@@ -121,6 +121,16 @@ O json citava `C0` (dependência da Q2) sem a thread existir — o placar saía 
       "pergunta": "Prototipo: fica orcamentos ou venda-cotacoes?",
       "respondida": true,
       "resposta": "venda-cotacoes (label \"Orçamentos\", renderiza OrcListPage); orcamentos vira 301 — delegada ao [CC] por [W] 2026-10-06"
+    },
+    {
+      "id": "D-C2",
+      "pergunta": "Ligar a C2 (Lista de POS, Remessas, Devoluções no biz=1) depois das 48h da C1?",
+      "respondida": true,
+      "destrava": [
+        "C2"
+      ],
+      "resposta": "sim — ligar depois de 2026-10-15 ~12:50Z, se a C1 não tiver incidente na janela (critério conferido pelo Code antes de ligar)",
+      "fonte": "_DECISOES-W-2026-10-15.md"
     }
   ],
   "threads": [
@@ -407,7 +417,11 @@ O json citava `C0` (dependência da Q2) sem a thread existir — o placar saía 
       "depende_threads": [
         "C1"
       ],
-      "provas": []
+      "provas": [],
+      "depende_decisoes": [
+        "D-C2"
+      ],
+      "nota_provas": "janela da C1: deploy do #9192 em 2026-10-13 12:49Z + 48h; recibo cita os logs/erros do período e o smoke discriminante (as 3 da C2 viram Page; uma tela fora da C2 segue Blade)"
     },
     {
       "id": "C3",

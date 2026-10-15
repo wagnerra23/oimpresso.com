@@ -64,6 +64,9 @@
 .oi-sig--fail i{background:var(--danger-fg)}
 .oi-sig--fail{border-color:color-mix(in oklch,var(--danger-fg) 26%,transparent)}
 .oi-periodo{margin:16px 24px 0}
+.oi-link{all:unset;cursor:pointer;color:var(--accent);font-weight:500}.oi-link:hover{text-decoration:underline;text-underline-offset:4px}.oi-link:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}.oi-link.sa-mono{font-family:var(--font-mono)}
+.sa-page .sa-mute{color:var(--text-mute)}
+.oi-maq-table{min-width:1500px}.oi-maq-table td{overflow-wrap:anywhere}
 .oi-orig{font:400 11.5px/1 var(--font-mono);color:var(--text-mute);white-space:nowrap}
 .oi-form{display:flex;flex-direction:column;gap:12px;padding:14px 16px}
 .oi-form-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}

@@ -77,6 +77,56 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/repair/playbook/
       "respondida": true,
       "resposta": "JobSheet/Index ganha as abas Pendentes/Concluídas/Entrega vencida/Todas (thread 05)",
       "fonte": "_DECISOES-W-2026-10-02.md"
+    },
+    {
+      "id": "D-LINK-VALIDADE",
+      "pergunta": "Por quantos dias depois da entrega o link de acompanhamento continua abrindo?",
+      "respondida": true,
+      "destrava": [
+        "06"
+      ],
+      "fonte": "_DECISOES-W-2026-10-15.md",
+      "resposta": "90 dias depois da entrega (prazo da garantia de serviço); OS em aberto não expira"
+    },
+    {
+      "id": "D-LOJA",
+      "pergunta": "A página do link mostra o nome da loja e o telefone do balcão (campo novo no payload)?",
+      "respondida": true,
+      "destrava": [
+        "06"
+      ],
+      "fonte": "_DECISOES-W-2026-10-15.md",
+      "resposta": "sim — nome da loja no topo e telefone do balcão no rodapé (dado da empresa)"
+    },
+    {
+      "id": "D-LEGADO",
+      "pergunta": "Na busca por nº da OS, a série passa a ser obrigatória?",
+      "respondida": true,
+      "destrava": [
+        "06"
+      ],
+      "fonte": "_DECISOES-W-2026-10-15.md",
+      "resposta": "sim — na busca por nº da OS a série passa a ser obrigatória"
+    },
+    {
+      "id": "D-ACESSO",
+      "pergunta": "Oferecer 'Receber acesso' pelo celular da OS (código por SMS/WhatsApp) para quem não tem cadastro no portal?",
+      "respondida": true,
+      "destrava": [
+        "07"
+      ],
+      "fonte": "_DECISOES-W-2026-10-15.md",
+      "resposta": "sim — 'Receber acesso' desligado por padrão, a loja liga na configuração; código por WhatsApp; walk-in nunca ganha acesso"
+    },
+    {
+      "id": "D-APROVAR",
+      "pergunta": "O cliente pode aprovar ou recusar o orçamento pelo link (sem ver o valor na página)? Muda o charter (read-only) e a leitura da ADR ARQ-0002.",
+      "respondida": true,
+      "destrava": [
+        "08"
+      ],
+      "fonte": "_DECISOES-W-2026-10-15b.md",
+      "resposta": "aprovado — o cliente aprova ou recusa o orçamento pelo link, sem ver o valor na página (ADR ARQ-0002 mantida); ligado por padrão, a loja pode desligar na configuração; o charter do ConsultaOs ganha a exceção \"uma decisão de orçamento por OS\""
     }
   ],
   "threads": [
@@ -271,6 +321,143 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/repair/playbook/
         {
           "tipo": "arquivo",
           "path": "Modules/ConsultaOs/Repositories/RepairConsultaOsRepository.php"
+        }
+      ]
+    },
+    {
+      "id": "06",
+      "titulo": "Link de acompanhamento com código (ConsultaOs): /os/{codigo}, código digitado, QR no recibo, tag no template",
+      "dono": "CL",
+      "vaga": 3,
+      "prs": 2,
+      "arquivo": "06-link-codigo.md",
+      "depende_threads": [
+        "04"
+      ],
+      "depende_decisoes": [
+        "D-LINK-VALIDADE",
+        "D-LOJA",
+        "D-LEGADO"
+      ],
+      "prefixo": [
+        "Modules/ConsultaOs/",
+        "Modules/Repair/Database/Migrations/",
+        "Modules/Repair/Entities/JobSheet.php",
+        "Modules/Repair/Resources/views/job_sheet/print_pdf.blade.php",
+        "Modules/Repair/Resources/views/job_sheet/print_label.blade.php",
+        "Modules/Repair/Utils/RepairUtil.php",
+        "resources/js/Pages/ConsultaOs/",
+        "tests/Feature/ConsultaOs/"
+      ],
+      "nao_toca": [
+        "Modules/Repair/Http/Controllers/RepairController.php",
+        "resources/js/Pages/Repair/"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "Modules/ConsultaOs/Routes/web.php",
+          "padrao": "'/os/{codigo}'"
+        },
+        {
+          "tipo": "contem",
+          "path": "resources/js/Pages/ConsultaOs/Index.casos.md",
+          "padrao": "UC-COS-15"
+        },
+        {
+          "tipo": "contem",
+          "path": "tests/Feature/ConsultaOs/ConsultaOsLinkContratoTest.php",
+          "padrao": "UC-COS-15"
+        },
+        {
+          "tipo": "contem",
+          "path": "tests/Feature/ConsultaOs/ConsultaOsLinkContratoTest.php",
+          "padrao": "UC-COS-16"
+        },
+        {
+          "tipo": "contem",
+          "path": "tests/Feature/ConsultaOs/ConsultaOsLinkContratoTest.php",
+          "padrao": "UC-COS-17"
+        },
+        {
+          "tipo": "contem",
+          "path": "tests/Feature/ConsultaOs/ConsultaOsLinkContratoTest.php",
+          "padrao": "UC-COS-25"
+        },
+        {
+          "tipo": "contem",
+          "path": "tests/Feature/ConsultaOs/ConsultaOsLinkContratoTest.php",
+          "padrao": "UC-COS-26"
+        }
+      ],
+      "nota_provas": "casos UC-COS-12..22, 25..27, 29 em cowork-inbox/repair/ConsultaOs-link.casos.md; forma em repair-portal.jsx + os-acompanhamento.jsx (cartão único) + repair-print.js (QR no recibo)"
+    },
+    {
+      "id": "07",
+      "titulo": "Receber acesso ao portal pelo celular da OS (OTP)",
+      "dono": "CL",
+      "vaga": 4,
+      "prs": 1,
+      "arquivo": "07-acesso-otp.md",
+      "depende_threads": [
+        "06"
+      ],
+      "depende_decisoes": [
+        "D-ACESSO"
+      ],
+      "prefixo": [
+        "Modules/ConsultaOs/",
+        "Modules/Crm/Http/Controllers/ContactLoginController.php",
+        "tests/Feature/ConsultaOs/"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/Repair/"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "resources/js/Pages/ConsultaOs/Index.casos.md",
+          "padrao": "UC-COS-23"
+        },
+        {
+          "tipo": "contem",
+          "path": "tests/Feature/ConsultaOs/ConsultaOsLinkContratoTest.php",
+          "padrao": "UC-COS-23"
+        }
+      ],
+      "nota_provas": "UC-COS-23; walk-in nunca ganha acesso"
+    },
+    {
+      "id": "08",
+      "titulo": "Aprovar/recusar orçamento pelo link (UC-COS-28)",
+      "dono": "CL",
+      "vaga": 4,
+      "prs": 1,
+      "arquivo": "08-aprovar-orcamento.md",
+      "depende_threads": [
+        "06"
+      ],
+      "depende_decisoes": [
+        "D-APROVAR"
+      ],
+      "prefixo": [
+        "Modules/ConsultaOs/",
+        "Modules/Repair/Http/Controllers/JobSheetController.php",
+        "tests/Feature/ConsultaOs/"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/Repair/"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "resources/js/Pages/ConsultaOs/Index.casos.md",
+          "padrao": "UC-COS-28"
+        },
+        {
+          "tipo": "contem",
+          "path": "tests/Feature/ConsultaOs/ConsultaOsLinkContratoTest.php",
+          "padrao": "UC-COS-28"
         }
       ]
     }

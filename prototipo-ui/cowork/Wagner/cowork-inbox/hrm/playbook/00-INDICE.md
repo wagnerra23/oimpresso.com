@@ -36,7 +36,7 @@ Denominadores: **D1** `Modules/Essentials/Routes/web.php` `prefix('hrm')` · **D
 | nav → `TaxonomyController?type=hrm_department` · `hrm_designation` | (core) | — | core | — | **sem aba no protótipo** | 01 |
 | — (protótipo tinha aba **Turnos**) | | | | aba removida do build em 2026-09-29 (`hrm-page.jsx?v=hrm12dono`); `hrm-turnos` aponta para `pt-escalas` | resolvida | 12 |
 
-Também medido nesta sha: `.claude/commands/onda.md` **não existe** (PR-A7 não feito → abertura colada à mão) · os planos `memory/sessions/2026-09-05-{como-integrar-ponto-hrm,arte-folha-encargos-br}.md` citados pela emenda [W] **não existiam** em a88c66a — **aterrissaram no #6877 (2026-09-05)**; a ADR-mãe da folha veio no #6881 (corrigido em 2026-09-24, _saida-10) · `whats-active` **morto** (HTTP 000 medido pelo [CL] em 05/09) — substituto: `gh pr list --state open` cruzado com os arquivos a tocar.
+Também medido nesta sha: `.claude/commands/onda.md` **não existe** (PR-A7 não feito → abertura colada à mão) · os planos `memory/sessions/2026-09-05-{como-integrar-ponto-hrm,arte-folha-encargos-br}.md` citados pela emenda [W] entraram no #6877 (2026-09-05); a ADR-mãe da folha veio no #6881 (corrigido em 2026-09-24, _saida-10) · `whats-active` **morto** (HTTP 000 medido pelo [CL] em 05/09) — substituto: `gh pr list --state open` cruzado com os arquivos a tocar.
 
 ## 2 · Threads — ordem · dono · prefixo (Lei 1) · dependência
 
@@ -115,110 +115,539 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
   "modulo": "Hrm",
   "sha": "45e63465d2e4",
   "gerado": "2026-09-05",
-  "absorve": ["prototipo-ui/cowork/Wagner/cowork-inbox/hrm/PEDIDO-CL-hrm.md", "prototipo-ui/cowork/Wagner/cowork-inbox/hrm/EXPORT-HRM-2026-09-04.md"],
-  "variaveis": { "PAGES": "resources/js/Pages/Essentials" },
+  "absorve": [
+    "prototipo-ui/cowork/Wagner/cowork-inbox/hrm/PEDIDO-CL-hrm.md",
+    "prototipo-ui/cowork/Wagner/cowork-inbox/hrm/EXPORT-HRM-2026-09-04.md"
+  ],
+  "variaveis": {
+    "PAGES": "resources/js/Pages/Essentials"
+  },
   "decisoes": [
-    { "id": "RESIDUO-2", "pergunta": "Departamentos e Cargos (nav_hrm → TaxonomyController) viram abas do HRM no protótipo?", "respondida": true, "resposta": "sim — [W] 2026-09-22 (_saida-01); reconfirmado 2026-09-29: cadastro = dono HRM", "destrava": ["01"] },
-    { "id": "RESIDUO-3", "pergunta": "ShiftController::destroy ainda responde 200 sem apagar turno com vínculo?", "respondida": true, "resposta": "sem objeto — thread 05 cancelada por D4 (2026-09-29)" },
-    { "id": "D4", "pergunta": "Quem é dono do horário contratual: Shift (HRM) ou ponto_escalas (Ponto)?", "respondida": true, "resposta": "Ponto — [W] 2026-09-29. O código já faz isso: escala_atual_id → ponto_escalas (migration 2026_04_18_000003:42); o Ponto não lê Shift. A tabela da ADR 0014 (Shift = fonte) é que está errada", "destrava": ["12"] },
-    { "id": "D5", "pergunta": "Onde ficam os feriados que o Ponto usa?", "respondida": true, "resposta": "cadastro no HRM (Holidays/Index.tsx, produção React); o Ponto lê EssentialsHoliday — [W] 2026-09-29. Hoje o Ponto não lê: 0 ocorrências em Modules/Ponto @46f1d4b3976d", "destrava": ["12"] },
-    { "id": "RESIDUO-4", "pergunta": "DataTablePro do DS (th sem scope/semântica em 3 módulos): pedido de DS próprio?", "respondida": true, "resposta": "não — [W] 2026-09-29: nenhuma tela usa o DataGrid do DS; produção usa shared/DataTable.tsx (scope=col :360, sort por button :309)" },
-    { "id": "RESIDUO-5", "pergunta": "Metas no protótipo mostra apuração excluída da produção por caminho de VALOR: tirar ou selar 'fora desta onda'?", "respondida": true, "resposta": "tirar — [W] 2026-09-29; Painel também exclui (DashboardController::hrmDashboard). Build puxado do vivo: hrm-extras.jsx?v=hrm13metas", "destrava": ["04"] },
-    { "id": "RESIDUO-6", "pergunta": "As 5 chaves de presença do Settings do HRM (grace_before/after_checkin/checkout + is_location_required): ficam em /hrm/settings ou migram para o Ponto (dono da jornada desde D1)?", "respondida": true, "resposta": "[W] 2026-09-23 disse migrar; na execução da 09 (2026-09-24, [W]) virou APOSENTAR sem migrar — no Ponto a lei fixa as duas (CLT Art. 58 §1º; REP-P Portaria 671). Executado: EssentialsSettingsController.php:25 + HrmPresencaCedeAoPontoTest UC-HRM-PRES-05", "origem": "_saida-07.md · _saida-07a.md · _saida-09.md item 6 · _saida-10.md" },
-    { "id": "D1", "pergunta": "Presença web × Ponto", "respondida": true, "resposta": "cede ao Ponto — dono único da jornada (2026-09-05)", "destrava": ["09"] },
-    { "id": "D2", "pergunta": "Folha gerencial × completa", "respondida": true, "resposta": "completa com encargos → projeto com ADR própria (2026-09-05). ADR-mãe memory/decisions/proposals/2026-09-05-folha-com-encargos-modelo-e-fronteira.md ratificada por [W] 2026-09-24 (flip no PR #7920; merge = ato)" },
-    { "id": "D3", "pergunta": "Licença aprovada bloqueia marcação?", "respondida": true, "resposta": "sim; guard nasce no Ponto; bloquear = impedir criação (append-only)" }
+    {
+      "id": "RESIDUO-2",
+      "pergunta": "Departamentos e Cargos (nav_hrm → TaxonomyController) viram abas do HRM no protótipo?",
+      "respondida": true,
+      "resposta": "sim — [W] 2026-09-22 (_saida-01); reconfirmado 2026-09-29: cadastro = dono HRM",
+      "destrava": [
+        "01"
+      ]
+    },
+    {
+      "id": "RESIDUO-3",
+      "pergunta": "ShiftController::destroy ainda responde 200 sem apagar turno com vínculo?",
+      "respondida": true,
+      "resposta": "sem objeto — thread 05 cancelada por D4 (2026-09-29)"
+    },
+    {
+      "id": "D4",
+      "pergunta": "Quem é dono do horário contratual: Shift (HRM) ou ponto_escalas (Ponto)?",
+      "respondida": true,
+      "resposta": "Ponto — [W] 2026-09-29. O código já faz isso: escala_atual_id → ponto_escalas (migration 2026_04_18_000003:42); o Ponto não lê Shift. A tabela da ADR 0014 (Shift = fonte) é que está errada",
+      "destrava": [
+        "12"
+      ]
+    },
+    {
+      "id": "D5",
+      "pergunta": "Onde ficam os feriados que o Ponto usa?",
+      "respondida": true,
+      "resposta": "cadastro no HRM (Holidays/Index.tsx, produção React); o Ponto lê EssentialsHoliday — [W] 2026-09-29. Hoje o Ponto não lê: 0 ocorrências em Modules/Ponto @46f1d4b3976d",
+      "destrava": [
+        "12"
+      ]
+    },
+    {
+      "id": "RESIDUO-4",
+      "pergunta": "DataTablePro do DS (th sem scope/semântica em 3 módulos): pedido de DS próprio?",
+      "respondida": true,
+      "resposta": "não — [W] 2026-09-29: nenhuma tela usa o DataGrid do DS; produção usa shared/DataTable.tsx (scope=col :360, sort por button :309)"
+    },
+    {
+      "id": "RESIDUO-5",
+      "pergunta": "Metas no protótipo mostra apuração excluída da produção por caminho de VALOR: tirar ou selar 'fora desta onda'?",
+      "respondida": true,
+      "resposta": "tirar — [W] 2026-09-29; Painel também exclui (DashboardController::hrmDashboard). Build puxado do vivo: hrm-extras.jsx?v=hrm13metas",
+      "destrava": [
+        "04"
+      ]
+    },
+    {
+      "id": "RESIDUO-6",
+      "pergunta": "As 5 chaves de presença do Settings do HRM (grace_before/after_checkin/checkout + is_location_required): ficam em /hrm/settings ou migram para o Ponto (dono da jornada desde D1)?",
+      "respondida": true,
+      "resposta": "[W] 2026-09-23 disse migrar; na execução da 09 (2026-09-24, [W]) virou APOSENTAR sem migrar — no Ponto a lei fixa as duas (CLT Art. 58 §1º; REP-P Portaria 671). Executado: EssentialsSettingsController.php:25 + HrmPresencaCedeAoPontoTest UC-HRM-PRES-05",
+      "origem": "_saida-07.md · _saida-07a.md · _saida-09.md item 6 · _saida-10.md"
+    },
+    {
+      "id": "D1",
+      "pergunta": "Presença web × Ponto",
+      "respondida": true,
+      "resposta": "cede ao Ponto — dono único da jornada (2026-09-05)",
+      "destrava": [
+        "09"
+      ]
+    },
+    {
+      "id": "D2",
+      "pergunta": "Folha gerencial × completa",
+      "respondida": true,
+      "resposta": "completa com encargos → projeto com ADR própria (2026-09-05). ADR-mãe memory/decisions/proposals/2026-09-05-folha-com-encargos-modelo-e-fronteira.md ratificada por [W] 2026-09-24 (flip no PR #7920; merge = ato)"
+    },
+    {
+      "id": "D3",
+      "pergunta": "Licença aprovada bloqueia marcação?",
+      "respondida": true,
+      "resposta": "sim; guard nasce no Ponto; bloquear = impedir criação (append-only)"
+    }
   ],
   "threads": [
-    { "id": "01", "titulo": "Build: TABS do HRM (−Presença · +Departamentos/Cargos)", "dono": "CC", "vaga": 1, "arquivo": "01-build-tabs-hrm.md",
-      "prefixo": ["prototipo-ui/cowork/Wagner/hrm-page.jsx", "prototipo-ui/cowork/Wagner/hrm-data.jsx", "prototipo-ui/cowork/Wagner/oimpresso.com.html"],
-      "nao_toca": ["prototipo-ui/cowork/Wagner/hrm-extras.jsx", "prototipo-ui/cowork/Wagner/hrm-forms.jsx", "prototipo-ui/cowork/Wagner/app.jsx"],
-      "provas": [ { "tipo": "nao_contem", "path": "prototipo-ui/cowork/Wagner/hrm-page.jsx", "padrao": "id:\"hrm-presenca\"", "nota": "aba Presença fora do TABS (D1); a parte +Departamentos só com RESIDUO-2" } ] },
-    { "id": "02", "titulo": "Licenças — Page", "dono": "CL", "vaga": 1, "arquivo": "02-licencas.md",
-      "prefixo": ["${PAGES}/Licencas.tsx", "${PAGES}/Licencas/", "Modules/Essentials/Http/Controllers/EssentialsLeaveController.php", "governance/design/contracts/essentials-licencas.contract.json", "Modules/Essentials/Tests/Feature/HrmLicencaTest.php", "e2e/essentials-licencas.spec.ts", ".github/workflows/essentials-pest.yml"],
-      "nao_toca": ["Modules/Essentials/Services/LeaveRequestService.php", "${PAGES}/Metas.tsx", "${PAGES}/Settings/", "${PAGES}/Holidays/", "${PAGES}/Todo/", "${PAGES}/Knowledge/", "${PAGES}/Documents/", "${PAGES}/Messages/", "${PAGES}/Reminders/"],
+    {
+      "id": "01",
+      "titulo": "Build: TABS do HRM (−Presença · +Departamentos/Cargos)",
+      "dono": "CC",
+      "vaga": 1,
+      "arquivo": "01-build-tabs-hrm.md",
+      "prefixo": [
+        "prototipo-ui/cowork/Wagner/hrm-page.jsx",
+        "prototipo-ui/cowork/Wagner/hrm-data.jsx",
+        "prototipo-ui/cowork/Wagner/oimpresso.com.html"
+      ],
+      "nao_toca": [
+        "prototipo-ui/cowork/Wagner/hrm-extras.jsx",
+        "prototipo-ui/cowork/Wagner/hrm-forms.jsx",
+        "prototipo-ui/cowork/Wagner/app.jsx"
+      ],
       "provas": [
-        { "tipo": "um_de", "paths": ["${PAGES}/Licencas.tsx", "${PAGES}/Licencas/Index.tsx"] },
-        { "tipo": "um_de", "paths": ["${PAGES}/Licencas.charter.md", "${PAGES}/Licencas/Index.charter.md"] },
-        { "tipo": "um_de", "paths": ["${PAGES}/Licencas.casos.md", "${PAGES}/Licencas/Index.casos.md"] },
-        { "tipo": "json_com_chaves", "path": "governance/design/contracts/essentials-licencas.contract.json", "chaves": ["alvo", "secoes"], "nota": "nome segue a irmã (essentials-metas); o hrm-licencas.contract.json do cowork-inbox é insumo, o gerador carimba" },
-        { "tipo": "arquivo", "path": "e2e/essentials-licencas.spec.ts" },
-        { "tipo": "contem", "path": "Modules/Essentials/Http/Controllers/EssentialsLeaveController.php", "padrao": "Inertia::render('Essentials/Licencas", "nota": "D4: a rota passa a ter Page" }
-      ] },
-    { "id": "03", "titulo": "Tipos de licença — Page", "dono": "CL", "vaga": 1, "arquivo": "03-tipos-licenca.md",
-      "prefixo": ["${PAGES}/Tipos.tsx", "${PAGES}/Tipos/", "Modules/Essentials/Http/Controllers/EssentialsLeaveTypeController.php", "governance/design/contracts/essentials-tipos.contract.json", "e2e/essentials-tipos.spec.ts"],
-      "nao_toca": ["Modules/Essentials/Http/Controllers/EssentialsLeaveController.php", "Modules/Essentials/Tests/Feature/HrmExclusaoGuardaTest.php"],
+        {
+          "tipo": "nao_contem",
+          "path": "prototipo-ui/cowork/Wagner/hrm-page.jsx",
+          "padrao": "id:\"hrm-presenca\"",
+          "nota": "aba Presença fora do TABS (D1); a parte +Departamentos só com RESIDUO-2"
+        }
+      ]
+    },
+    {
+      "id": "02",
+      "titulo": "Licenças — Page",
+      "dono": "CL",
+      "vaga": 1,
+      "arquivo": "02-licencas.md",
+      "prefixo": [
+        "${PAGES}/Licencas.tsx",
+        "${PAGES}/Licencas/",
+        "Modules/Essentials/Http/Controllers/EssentialsLeaveController.php",
+        "governance/design/contracts/essentials-licencas.contract.json",
+        "Modules/Essentials/Tests/Feature/HrmLicencaTest.php",
+        "e2e/essentials-licencas.spec.ts",
+        ".github/workflows/essentials-pest.yml"
+      ],
+      "nao_toca": [
+        "Modules/Essentials/Services/LeaveRequestService.php",
+        "${PAGES}/Metas.tsx",
+        "${PAGES}/Settings/",
+        "${PAGES}/Holidays/",
+        "${PAGES}/Todo/",
+        "${PAGES}/Knowledge/",
+        "${PAGES}/Documents/",
+        "${PAGES}/Messages/",
+        "${PAGES}/Reminders/"
+      ],
       "provas": [
-        { "tipo": "um_de", "paths": ["${PAGES}/Tipos.tsx", "${PAGES}/Tipos/Index.tsx"] },
-        { "tipo": "um_de", "paths": ["${PAGES}/Tipos.charter.md", "${PAGES}/Tipos/Index.charter.md"] },
-        { "tipo": "um_de", "paths": ["${PAGES}/Tipos.casos.md", "${PAGES}/Tipos/Index.casos.md"] },
-        { "tipo": "json_com_chaves", "path": "governance/design/contracts/essentials-tipos.contract.json", "chaves": ["alvo", "secoes"] },
-        { "tipo": "contem", "path": "Modules/Essentials/Http/Controllers/EssentialsLeaveTypeController.php", "padrao": "Inertia::render('Essentials/Tipos" }
-      ] },
-    { "id": "04", "titulo": "Metas — PUXAR (produção à frente, #6869)", "dono": "CC", "vaga": 1, "arquivo": "04-metas-venda.md",
-      "prefixo": ["prototipo-ui/cowork/Wagner/hrm-extras.jsx"], "nao_toca": ["${PAGES}/Metas.tsx", "Modules/Essentials/Http/Controllers/SalesTargetController.php"],
-      "depende_decisoes": ["RESIDUO-5"],
-      "provas": [], "nota_provas": "read-only + build: prova = _saida-04.md com o diff nos dois sentidos (Metas.tsx × hrm-extras.jsx Metas) e a divergência de VALOR declarada" },
-    { "id": "05", "titulo": "Turnos — Page (CANCELADA por D4)", "dono": "CL", "vaga": 2, "arquivo": "05-turnos.md",
+        {
+          "tipo": "um_de",
+          "paths": [
+            "${PAGES}/Licencas.tsx",
+            "${PAGES}/Licencas/Index.tsx"
+          ]
+        },
+        {
+          "tipo": "um_de",
+          "paths": [
+            "${PAGES}/Licencas.charter.md",
+            "${PAGES}/Licencas/Index.charter.md"
+          ]
+        },
+        {
+          "tipo": "um_de",
+          "paths": [
+            "${PAGES}/Licencas.casos.md",
+            "${PAGES}/Licencas/Index.casos.md"
+          ]
+        },
+        {
+          "tipo": "json_com_chaves",
+          "path": "governance/design/contracts/essentials-licencas.contract.json",
+          "chaves": [
+            "alvo",
+            "secoes"
+          ],
+          "nota": "nome segue a irmã (essentials-metas); o hrm-licencas.contract.json do cowork-inbox é insumo, o gerador carimba"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "e2e/essentials-licencas.spec.ts"
+        },
+        {
+          "tipo": "contem",
+          "path": "Modules/Essentials/Http/Controllers/EssentialsLeaveController.php",
+          "padrao": "Inertia::render('Essentials/Licencas",
+          "nota": "D4: a rota passa a ter Page"
+        }
+      ]
+    },
+    {
+      "id": "03",
+      "titulo": "Tipos de licença — Page",
+      "dono": "CL",
+      "vaga": 1,
+      "arquivo": "03-tipos-licenca.md",
+      "prefixo": [
+        "${PAGES}/Tipos.tsx",
+        "${PAGES}/Tipos/",
+        "Modules/Essentials/Http/Controllers/EssentialsLeaveTypeController.php",
+        "governance/design/contracts/essentials-tipos.contract.json",
+        "e2e/essentials-tipos.spec.ts"
+      ],
+      "nao_toca": [
+        "Modules/Essentials/Http/Controllers/EssentialsLeaveController.php",
+        "Modules/Essentials/Tests/Feature/HrmExclusaoGuardaTest.php"
+      ],
+      "provas": [
+        {
+          "tipo": "um_de",
+          "paths": [
+            "${PAGES}/Tipos.tsx",
+            "${PAGES}/Tipos/Index.tsx"
+          ]
+        },
+        {
+          "tipo": "um_de",
+          "paths": [
+            "${PAGES}/Tipos.charter.md",
+            "${PAGES}/Tipos/Index.charter.md"
+          ]
+        },
+        {
+          "tipo": "um_de",
+          "paths": [
+            "${PAGES}/Tipos.casos.md",
+            "${PAGES}/Tipos/Index.casos.md"
+          ]
+        },
+        {
+          "tipo": "json_com_chaves",
+          "path": "governance/design/contracts/essentials-tipos.contract.json",
+          "chaves": [
+            "alvo",
+            "secoes"
+          ]
+        },
+        {
+          "tipo": "contem",
+          "path": "Modules/Essentials/Http/Controllers/EssentialsLeaveTypeController.php",
+          "padrao": "Inertia::render('Essentials/Tipos"
+        }
+      ]
+    },
+    {
+      "id": "04",
+      "titulo": "Metas — PUXAR (produção à frente, #6869)",
+      "dono": "CC",
+      "vaga": 1,
+      "arquivo": "04-metas-venda.md",
+      "prefixo": [
+        "prototipo-ui/cowork/Wagner/hrm-extras.jsx"
+      ],
+      "nao_toca": [
+        "${PAGES}/Metas.tsx",
+        "Modules/Essentials/Http/Controllers/SalesTargetController.php"
+      ],
+      "depende_decisoes": [
+        "RESIDUO-5"
+      ],
+      "provas": [],
+      "nota_provas": "read-only + build: prova = _saida-04.md com o diff nos dois sentidos (Metas.tsx × hrm-extras.jsx Metas) e a divergência de VALOR declarada"
+    },
+    {
+      "id": "05",
+      "titulo": "Turnos — Page (CANCELADA por D4)",
+      "dono": "CL",
+      "vaga": 2,
+      "arquivo": "05-turnos.md",
       "bloqueio": "cancelada — D4 [W] 2026-09-29: escala é do Ponto. Não executar; a saída do /shift é da thread 12",
-      "prefixo": ["${PAGES}/Turnos.tsx", "${PAGES}/Turnos/", "Modules/Essentials/Http/Controllers/ShiftController.php", "governance/design/contracts/essentials-turnos.contract.json", "e2e/essentials-turnos.spec.ts"],
-      "nao_toca": ["Modules/Essentials/Http/Controllers/AttendanceController.php"],
-      "depende_threads": ["09"], "depende_decisoes": ["RESIDUO-3"],
+      "prefixo": [
+        "${PAGES}/Turnos.tsx",
+        "${PAGES}/Turnos/",
+        "Modules/Essentials/Http/Controllers/ShiftController.php",
+        "governance/design/contracts/essentials-turnos.contract.json",
+        "e2e/essentials-turnos.spec.ts"
+      ],
+      "nao_toca": [
+        "Modules/Essentials/Http/Controllers/AttendanceController.php"
+      ],
+      "depende_threads": [
+        "09"
+      ],
+      "depende_decisoes": [
+        "RESIDUO-3"
+      ],
       "provas": [
-        { "tipo": "um_de", "paths": ["${PAGES}/Turnos.tsx", "${PAGES}/Turnos/Index.tsx"] },
-        { "tipo": "um_de", "paths": ["${PAGES}/Turnos.charter.md", "${PAGES}/Turnos/Index.charter.md"] },
-        { "tipo": "um_de", "paths": ["${PAGES}/Turnos.casos.md", "${PAGES}/Turnos/Index.casos.md"] },
-        { "tipo": "json_com_chaves", "path": "governance/design/contracts/essentials-turnos.contract.json", "chaves": ["alvo", "secoes"] },
-        { "tipo": "contem", "path": "Modules/Essentials/Http/Controllers/ShiftController.php", "padrao": "Inertia::render('Essentials/Turnos" }
-      ] },
-    { "id": "06", "titulo": "Painel — Page", "dono": "CL", "vaga": 2, "arquivo": "06-painel.md",
-      "prefixo": ["${PAGES}/Painel.tsx", "${PAGES}/Painel/", "Modules/Essentials/Http/Controllers/DashboardController.php", "governance/design/contracts/essentials-painel.contract.json"],
-      "nao_toca": ["Modules/Essentials/Http/Controllers/AttendanceController.php"],
-      "depende_threads": ["09"],
+        {
+          "tipo": "um_de",
+          "paths": [
+            "${PAGES}/Turnos.tsx",
+            "${PAGES}/Turnos/Index.tsx"
+          ]
+        },
+        {
+          "tipo": "um_de",
+          "paths": [
+            "${PAGES}/Turnos.charter.md",
+            "${PAGES}/Turnos/Index.charter.md"
+          ]
+        },
+        {
+          "tipo": "um_de",
+          "paths": [
+            "${PAGES}/Turnos.casos.md",
+            "${PAGES}/Turnos/Index.casos.md"
+          ]
+        },
+        {
+          "tipo": "json_com_chaves",
+          "path": "governance/design/contracts/essentials-turnos.contract.json",
+          "chaves": [
+            "alvo",
+            "secoes"
+          ]
+        },
+        {
+          "tipo": "contem",
+          "path": "Modules/Essentials/Http/Controllers/ShiftController.php",
+          "padrao": "Inertia::render('Essentials/Turnos"
+        }
+      ]
+    },
+    {
+      "id": "06",
+      "titulo": "Painel — Page",
+      "dono": "CL",
+      "vaga": 2,
+      "arquivo": "06-painel.md",
+      "prefixo": [
+        "${PAGES}/Painel.tsx",
+        "${PAGES}/Painel/",
+        "Modules/Essentials/Http/Controllers/DashboardController.php",
+        "governance/design/contracts/essentials-painel.contract.json"
+      ],
+      "nao_toca": [
+        "Modules/Essentials/Http/Controllers/AttendanceController.php"
+      ],
+      "depende_threads": [
+        "09"
+      ],
       "provas": [
-        { "tipo": "um_de", "paths": ["${PAGES}/Painel.tsx", "${PAGES}/Painel/Index.tsx"] },
-        { "tipo": "um_de", "paths": ["${PAGES}/Painel.charter.md", "${PAGES}/Painel/Index.charter.md"] },
-        { "tipo": "um_de", "paths": ["${PAGES}/Painel.casos.md", "${PAGES}/Painel/Index.casos.md"] },
-        { "tipo": "contem", "path": "Modules/Essentials/Http/Controllers/DashboardController.php", "padrao": "Inertia::render('Essentials/Painel" }
-      ] },
-    { "id": "07", "titulo": "Configurações — PUXAR (12 campos × 10 chaves)", "dono": "CC->CL", "vaga": 1, "arquivo": "07-configuracoes-puxar.md",
-      "prefixo": [], "nao_toca": ["Modules/Essentials/Http/Controllers/EssentialsSettingsController.php"],
-      "provas": [], "nota_provas": "read-only: prova = _saida-07.md com as 12 linhas classificadas" },
-    { "id": "08", "titulo": "Feriados — PUXAR (ler Holidays/Index.tsx)", "dono": "CC", "vaga": 1, "arquivo": "08-feriados-puxar.md",
-      "prefixo": [], "nao_toca": ["${PAGES}/Holidays/Index.tsx"],
-      "provas": [], "nota_provas": "read-only: prova = _saida-08.md com o diff nos dois sentidos" },
-    { "id": "09", "titulo": "Presença SAI do HRM → Ponto dono da jornada", "dono": "W+CL", "vaga": 2, "arquivo": "09-presenca-sai.md",
-      "prefixo": ["memory/decisions/0014-essentials-pontowr2-integracao.md", "Modules/Essentials/Routes/web.php", "Modules/Essentials/Providers/EssentialsServiceProvider.php", "Modules/Ponto/Config/config.php"],
-      "nao_toca": ["Modules/Ponto/Http/", "Modules/Ponto/Database/", "Modules/Essentials/Http/Controllers/AttendanceController.php"],
-      "depende_decisoes": ["D1", "D3"],
+        {
+          "tipo": "um_de",
+          "paths": [
+            "${PAGES}/Painel.tsx",
+            "${PAGES}/Painel/Index.tsx"
+          ]
+        },
+        {
+          "tipo": "um_de",
+          "paths": [
+            "${PAGES}/Painel.charter.md",
+            "${PAGES}/Painel/Index.charter.md"
+          ]
+        },
+        {
+          "tipo": "um_de",
+          "paths": [
+            "${PAGES}/Painel.casos.md",
+            "${PAGES}/Painel/Index.casos.md"
+          ]
+        },
+        {
+          "tipo": "contem",
+          "path": "Modules/Essentials/Http/Controllers/DashboardController.php",
+          "padrao": "Inertia::render('Essentials/Painel"
+        }
+      ]
+    },
+    {
+      "id": "07",
+      "titulo": "Configurações — PUXAR (12 campos × 10 chaves)",
+      "dono": "CC->CL",
+      "vaga": 1,
+      "arquivo": "07-configuracoes-puxar.md",
+      "prefixo": [],
+      "nao_toca": [
+        "Modules/Essentials/Http/Controllers/EssentialsSettingsController.php"
+      ],
+      "provas": [],
+      "nota_provas": "read-only: prova = _saida-07.md com as 12 linhas classificadas"
+    },
+    {
+      "id": "08",
+      "titulo": "Feriados — PUXAR (ler Holidays/Index.tsx)",
+      "dono": "CC",
+      "vaga": 1,
+      "arquivo": "08-feriados-puxar.md",
+      "prefixo": [],
+      "nao_toca": [
+        "${PAGES}/Holidays/Index.tsx"
+      ],
+      "provas": [],
+      "nota_provas": "read-only: prova = _saida-08.md com o diff nos dois sentidos"
+    },
+    {
+      "id": "09",
+      "titulo": "Presença SAI do HRM → Ponto dono da jornada",
+      "dono": "W+CL",
+      "vaga": 2,
+      "arquivo": "09-presenca-sai.md",
+      "prefixo": [
+        "memory/decisions/0014-essentials-pontowr2-integracao.md",
+        "Modules/Essentials/Routes/web.php",
+        "Modules/Essentials/Providers/EssentialsServiceProvider.php",
+        "Modules/Ponto/Config/config.php"
+      ],
+      "nao_toca": [
+        "Modules/Ponto/Http/",
+        "Modules/Ponto/Database/",
+        "Modules/Essentials/Http/Controllers/AttendanceController.php"
+      ],
+      "depende_decisoes": [
+        "D1",
+        "D3"
+      ],
       "provas": [
-        { "tipo": "contem", "path": "memory/decisions/0014-essentials-pontowr2-integracao.md", "padrao": "2026-09-05", "nota": "emenda datada — nunca ADR paralela (LC-19)" },
-        { "tipo": "nao_contem", "path": "memory/decisions/0014-essentials-pontowr2-integracao.md", "padrao": "lifecycle: arquivado" },
-        { "tipo": "nao_contem", "path": "Modules/Essentials/Providers/EssentialsServiceProvider.php", "padrao": "command('pos:autoClockOutUser')", "nota": "cron desagendado no MESMO PR que congela essentials_attendances (emenda [W])" },
-        { "tipo": "nao_contem", "path": "Modules/Ponto/Config/config.php", "padrao": "EssentialsUserShiftHistory", "nota": "ponteiro morto :136 limpo" }
-      ] },
-    { "id": "10", "titulo": "Folha — BLOQUEADA (D2 → projeto com ADR própria)", "dono": "W", "arquivo": "10-folha-bloqueada.md",
-      "prefixo": [], "nao_toca": ["Modules/Essentials/Http/Controllers/PayrollController.php"],
-      "bloqueio": "ADR-mãe ratificada (D2, [W] 2026-09-24, PR #7920). Nenhuma Page até existirem modelo de verba + motor (§9 da ADR, passos 2-5); insumo do Ponto ainda sem dado em prod",
-      "provas": [ { "tipo": "contem", "path": "memory/decisions/proposals/2026-09-05-folha-com-encargos-modelo-e-fronteira.md", "padrao": "status: aceito", "nota": "ratificação [W]; a ADR cita a 0014 em related" } ], "nota_provas": "_saida-10.md registra a decisão; o rótulo transitório 'folha gerencial' segue pendente [W]" },
-    { "id": "11", "titulo": "Fim do topnav Blade + limpeza O8", "dono": "CL", "vaga": 3, "arquivo": "11-topnav-legado.md",
+        {
+          "tipo": "contem",
+          "path": "memory/decisions/0014-essentials-pontowr2-integracao.md",
+          "padrao": "2026-09-05",
+          "nota": "emenda datada — nunca ADR paralela (LC-19)"
+        },
+        {
+          "tipo": "nao_contem",
+          "path": "memory/decisions/0014-essentials-pontowr2-integracao.md",
+          "padrao": "lifecycle: arquivado"
+        },
+        {
+          "tipo": "nao_contem",
+          "path": "Modules/Essentials/Providers/EssentialsServiceProvider.php",
+          "padrao": "command('pos:autoClockOutUser')",
+          "nota": "cron desagendado no MESMO PR que congela essentials_attendances (emenda [W])"
+        },
+        {
+          "tipo": "nao_contem",
+          "path": "Modules/Ponto/Config/config.php",
+          "padrao": "EssentialsUserShiftHistory",
+          "nota": "ponteiro morto :136 limpo"
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "titulo": "Folha — BLOQUEADA (D2 → projeto com ADR própria)",
+      "dono": "W",
+      "arquivo": "10-folha-bloqueada.md",
+      "prefixo": [],
+      "nao_toca": [
+        "Modules/Essentials/Http/Controllers/PayrollController.php"
+      ],
+      "bloqueio": "ADR ratificada (#7920); passo 2 do §9 aberto (D-FOLHA-PASSO2); sem Page até o modelo de verba e o motor",
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "memory/decisions/proposals/2026-09-05-folha-com-encargos-modelo-e-fronteira.md",
+          "padrao": "status: aceito",
+          "nota": "ratificação [W]; a ADR cita a 0014 em related"
+        },
+        {
+          "tipo": "ausente",
+          "path": "Modules/Essentials/Resources/views/layouts/nav_hrm.blade.php",
+          "nota": "resíduo da 11 (D-NAVHRM): sai com as 6 blades de payroll/*"
+        }
+      ],
+      "nota_provas": "_saida-10.md registra a decisão; o rótulo transitório 'folha gerencial' segue pendente [W]"
+    },
+    {
+      "id": "11",
+      "titulo": "Fim do topnav Blade + limpeza O8",
+      "dono": "CL",
+      "vaga": 3,
+      "arquivo": "11-topnav-legado.md",
       "bloqueio": "até a Folha ter Page (thread 10, _DECISOES-W-2026-10-13): o nav_hrm tem 7 consumidores com rota viva, incluindo as 6 blades de payroll (_saida-11b)",
-      "prefixo": ["Modules/Essentials/Resources/views/layouts/nav_hrm.blade.php", "Modules/Essentials/Resources/views/layouts/partials/sidebar_hrm.blade.php", "Modules/Essentials/Resources/views/leave/", "Modules/Essentials/Resources/views/leave_type/", "Modules/Essentials/Resources/views/sales_targets/", "Modules/Essentials/Resources/views/dashboard/hrm_dashboard.blade.php"],
-      "nao_toca": ["Modules/Essentials/Resources/views/attendance/", "Modules/Essentials/Resources/views/payroll/", "Modules/Essentials/Routes/web.php"],
-      "depende_threads": ["02", "03", "06", "12"],
+      "prefixo": [
+        "Modules/Essentials/Resources/views/layouts/nav_hrm.blade.php",
+        "Modules/Essentials/Resources/views/layouts/partials/sidebar_hrm.blade.php",
+        "Modules/Essentials/Resources/views/leave/",
+        "Modules/Essentials/Resources/views/leave_type/",
+        "Modules/Essentials/Resources/views/sales_targets/",
+        "Modules/Essentials/Resources/views/dashboard/hrm_dashboard.blade.php"
+      ],
+      "nao_toca": [
+        "Modules/Essentials/Resources/views/attendance/",
+        "Modules/Essentials/Resources/views/payroll/",
+        "Modules/Essentials/Routes/web.php"
+      ],
+      "depende_threads": [
+        "02",
+        "03",
+        "06",
+        "12"
+      ],
       "provas": [
-        { "tipo": "ausente", "path": "Modules/Essentials/Resources/views/layouts/nav_hrm.blade.php" },
-        { "tipo": "ausente", "path": "Modules/Essentials/Resources/views/layouts/partials/sidebar_hrm.blade.php" },
-        { "tipo": "ausente", "path": "Modules/Essentials/Resources/views/dashboard/hrm_dashboard.blade.php" }
-      ] },
-    { "id": "12", "titulo": "Dono por papel — emenda 0014 (D4 escala→Ponto · D5 feriado HRM lido pelo Ponto)", "dono": "CL", "vaga": 2, "arquivo": "12-dono-por-papel.md",
-      "prefixo": ["memory/decisions/0014-essentials-pontowr2-integracao.md", "Modules/Essentials/Routes/web.php"],
-      "nao_toca": ["Modules/Ponto/", "Modules/Essentials/Http/Controllers/ShiftController.php", "Modules/Essentials/Entities/Shift.php"],
-      "depende_threads": ["09"], "depende_decisoes": ["D4", "D5"],
+        {
+          "tipo": "ausente",
+          "path": "Modules/Essentials/Resources/views/layouts/partials/sidebar_hrm.blade.php"
+        },
+        {
+          "tipo": "ausente",
+          "path": "Modules/Essentials/Resources/views/dashboard/hrm_dashboard.blade.php"
+        }
+      ],
+      "nota_provas": "D-NAVHRM [W] 2026-10-14: fecha com 2 de 3; remoção do nav_hrm.blade.php transferida como resíduo para a thread 10"
+    },
+    {
+      "id": "12",
+      "titulo": "Dono por papel — emenda 0014 (D4 escala→Ponto · D5 feriado HRM lido pelo Ponto)",
+      "dono": "CL",
+      "vaga": 2,
+      "arquivo": "12-dono-por-papel.md",
+      "prefixo": [
+        "memory/decisions/0014-essentials-pontowr2-integracao.md",
+        "Modules/Essentials/Routes/web.php"
+      ],
+      "nao_toca": [
+        "Modules/Ponto/",
+        "Modules/Essentials/Http/Controllers/ShiftController.php",
+        "Modules/Essentials/Entities/Shift.php"
+      ],
+      "depende_threads": [
+        "09"
+      ],
+      "depende_decisoes": [
+        "D4",
+        "D5"
+      ],
       "provas": [
-        { "tipo": "contem", "path": "memory/decisions/0014-essentials-pontowr2-integracao.md", "padrao": "2026-09-29", "nota": "emenda datada D4+D5 — nunca ADR paralela (LC-19)" },
-        { "tipo": "contem", "path": "Modules/Essentials/Routes/web.php", "padrao": "'/ponto/escalas'", "nota": "/shift cede com 301, como a presença" }
-      ] }
+        {
+          "tipo": "contem",
+          "path": "memory/decisions/0014-essentials-pontowr2-integracao.md",
+          "padrao": "2026-09-29",
+          "nota": "emenda datada D4+D5 — nunca ADR paralela (LC-19)"
+        },
+        {
+          "tipo": "contem",
+          "path": "Modules/Essentials/Routes/web.php",
+          "padrao": "'/ponto/escalas'",
+          "nota": "/shift cede com 301, como a presença"
+        }
+      ]
+    }
   ]
 }
 ```
