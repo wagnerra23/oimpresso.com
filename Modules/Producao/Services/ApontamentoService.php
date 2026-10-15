@@ -87,6 +87,7 @@ class ApontamentoService
             return $existente;
         }
 
+        /** @var Apontamento $inicio */
         $inicio = $this->abertos($businessId)->findOrFail($inicioId);
 
         return Apontamento::query()->create([
@@ -109,7 +110,11 @@ class ApontamentoService
         ]);
     }
 
-    /** Inícios da empresa que ainda não têm linha de fim. */
+    /**
+     * Inícios da empresa que ainda não têm linha de pausa ou fim.
+     *
+     * @return Builder<Apontamento>
+     */
     public function abertos(int $businessId): Builder
     {
         return Apontamento::query()
