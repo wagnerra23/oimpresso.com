@@ -3163,6 +3163,7 @@
     "memory/dominio/financeiro.md",
     "memory/dominio/fiscal-faturamento.md",
     "memory/dominio/oficina-auto.md",
+    "memory/dominio/producao.md",
     "memory/dominio/vendas.md",
     "memory/dominios/_patterns/01-strangler-fig-acl-brownfield-ai.md",
     "memory/dominios/_patterns/02-bridge-tables-para-core.md",
@@ -4433,12 +4434,12 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 4427,
+    "total": 4428,
     "resolved": 2981,
-    "unstamped": 1446,
+    "unstamped": 1447,
     "collisions": 0,
     "by_source": {
-      "unstamped": 1446,
+      "unstamped": 1447,
       "derived-adr": 436,
       "stamped": 1156,
       "derived-handoffs": 619,
