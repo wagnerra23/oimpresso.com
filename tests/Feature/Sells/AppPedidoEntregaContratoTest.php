@@ -138,8 +138,9 @@ beforeEach(function () {
         'status' => 'final', 'sub_type' => null, 'current_stage_id' => $this->st['paid'],
     ]);
     // Duas linhas de topo garantidas (a conferência exige TODAS).
-    [$this->produto, $this->variacao] = appEntregaProduto((int) $this->biz->id, (int) $this->user->id);
+    // (uk_tsl_dup_prevent: uma linha por produto+variação na venda — um produto por linha.)
     foreach ([1, 2] as $n) {
+        [$this->produto, $this->variacao] = appEntregaProduto((int) $this->biz->id, (int) $this->user->id);
         appEntregaLinha($this->venda, $this->produto, $this->variacao, $n);
     }
     $this->linhas = DB::table('transaction_sell_lines')->where('transaction_id', $this->venda)
