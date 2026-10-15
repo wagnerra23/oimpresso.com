@@ -10,6 +10,7 @@ class ProducaoServiceProvider extends ServiceProvider
     {
         $this->registerConfig();
         $this->registerTranslations();
+        $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
     }
 
     public function register(): void
