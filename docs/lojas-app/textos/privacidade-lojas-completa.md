@@ -42,7 +42,7 @@ oimpresso (operador) por conta da empresa cliente (controladora). Sem localizaç
    - Identificadores do dispositivo ou outros → **ID do dispositivo** — Obrigatório · Prevenção de fraude; Funcionalidade (push).
    - Informações e desempenho do app → **Registros de falhas** e **Outros dados de diagnóstico** — Obrigatório · Análise · não compartilhado (servidor próprio, ADR 0429; desde 2026-10-07).
    - Informações financeiras → ⚠️ decidir com a sessão LEGAL: vendas e pagamentos são da **empresa**, não do usuário; "Histórico de compras" da Google é do usuário. Recomendação: não marcar, e explicar na política de privacidade.
-4. **Permissões:** `ACCESS_FINE_LOCATION` (sim), `ACCESS_BACKGROUND_LOCATION` (**não**), `POST_NOTIFICATIONS` (sim), `RECORD_AUDIO` (**remover**), `CAMERA` (não usado).
+4. **Permissões:** `ACCESS_FINE_LOCATION` (sim), `ACCESS_BACKGROUND_LOCATION` (**não**), `POST_NOTIFICATIONS` (sim), `RECORD_AUDIO` (**remover**), `CAMERA` (sim, a partir da versão com anexos de OS ou QR — ADR 0432), `USE_BIOMETRIC` (sim, a partir da versão com entrar com biometria — ADR 0432).
 
 ## Apple — App Privacy (tela a tela)
 Todos: **Linked to the user** · **Not used for tracking** · finalidade **App Functionality**.
@@ -57,3 +57,5 @@ Todos: **Linked to the user** · **Not used for tracking** · finalidade **App F
 - `NSLocationWhenInUseUsageDescription`: "O oimpresso usa a localização somente quando você bate o ponto, para registrar onde a marcação foi feita."
 - `NSPhotoLibraryUsageDescription`: "O oimpresso acessa as suas fotos somente quando você escolhe uma imagem para anexar a uma ordem de serviço."
 - **Remover** `NSMicrophoneUsageDescription` (expo-audio sem uso).
+
+> **2026-10-15 — ADR 0432:** câmera passa a ser usada no app (anexos de OS e QR) e a biometria pode destravar o login, conferida só pelo aparelho. O bloco do que declarar está em [`privacidade-lojas.md`](privacidade-lojas.md) §Câmera e biometria. A medição de 2026-10-01 acima ("Sem CAMERA") descreve o app daquela data.
