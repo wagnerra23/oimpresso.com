@@ -246,7 +246,10 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
               />
             </div>
 
-            <div className="flex-1 overflow-y-auto px-5 py-4" data-contract="produto-detalhe">
+            {/* Corpo com o fundo mais escuro do protótipo (`--bg-2`), abaixo do cabeçalho e do rodapé em
+                `--surface`: sem ele o corpo herdava o `--surface` e os cartões e a caixa "Sem imagem"
+                sumiam no fundo. Medido em produção, tema escuro, 2026-10-15. */}
+            <div className="flex-1 overflow-y-auto bg-[var(--bg-2)] px-5 py-4" data-contract="produto-detalhe">
               {abaAtiva === 'dados' && (
                 <Grid gap={4} className="grid-cols-[1fr_168px]">
                   <div className="pb-drawer-grid">

@@ -195,6 +195,16 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > componente ganhou a opção `tone="prototype"`, que só este painel liga — sem ela, todas as outras
 > telas seguem com as cores do DS (casos no `pageHeaderTabsFidelity.spec.tsx`, com controle).
 >
+> **3ª medição, 2026-10-15 (tema escuro, produto variável com 4 variações, mesma sonda):** depois dos
+> dois ajustes acima, botões, abas, contadores (ativo e inativo), rótulos, valores, selo do tipo,
+> caixa "Sem imagem", tabelas e cartões da aba Estoque batem com o protótipo. Sobrou uma diferença:
+> o **corpo do painel** (a área com os dados, entre a faixa das abas e o rodapé) não tinha fundo
+> próprio e herdava o `--surface` = `oklch(0.3 0.008 240)` do cabeçalho; no protótipo ele é
+> `--bg-2` = `oklch(0.23 0.006 240)`, e é isso que destaca os cartões e a caixa "Sem imagem". Corrigido
+> com `bg-[var(--bg-2)]` no corpo (nenhuma regra fora de `@layer` pinta esse elemento — conferido no
+> navegador). Ficam como estão, por serem mínimos: o fundo escurecido atrás do painel (preto a 50% em
+> produção, `oklch(0.15 0 0 / 0.45)` no protótipo) e a sombra do painel.
+>
 > **De propósito ou por dado:** "Transferir" por local (espera a requisição de transferência);
 > campos da aba Fiscal; coluna "Variação" no estoque de produto variável; Prateleira sem cadastro
 > mostra o aviso, como a Blade, em vez de uma linha por local com "—"; e diferenças de conteúdo
