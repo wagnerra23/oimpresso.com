@@ -46,8 +46,15 @@ interface Resultado {
 const brl = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 const pct = (v: number) => `${(v * 100).toLocaleString('pt-BR', { maximumFractionDigits: 4 })}%`;
 
-export default function SimuladorNota({ localPadrao }: { localPadrao: number | null }) {
-  const [produto, setProduto] = useState<ProductSearchResult | null>(null);
+export default function SimuladorNota({
+  localPadrao,
+  produtoInicial = null,
+}: {
+  localPadrao: number | null;
+  /** Vindo do "Abrir no módulo Fiscal" do painel de produto (UC-NFTR-29): já começa escolhido. */
+  produtoInicial?: ProductSearchResult | null;
+}) {
+  const [produto, setProduto] = useState<ProductSearchResult | null>(produtoInicial);
   const [quantidade, setQuantidade] = useState('1');
   const [valorUnitario, setValorUnitario] = useState('');
   const [ufDestino, setUfDestino] = useState('SP');
@@ -88,7 +95,7 @@ export default function SimuladorNota({ localPadrao }: { localPadrao: number | n
   };
 
   return (
-    <Card data-contract="simulador">
+    <Card id="simulador" data-contract="simulador">
       <CardHeader>
         <CardTitle className="text-base">Simular nota</CardTitle>
         <p className="text-xs text-muted-foreground">

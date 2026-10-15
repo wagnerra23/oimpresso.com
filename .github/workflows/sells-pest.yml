@@ -38,11 +38,20 @@ on:
       - 'app/Http/Controllers/SellCommissionSplitController.php'
       - 'app/Http/Controllers/SellController.php'
       - 'app/Http/Controllers/Api/App/PedidosController.php'
+      - 'app/Http/Controllers/Api/App/PedidoAcaoController.php'  # P1 tela 22 (PR 04 propostas-app)
+      - 'app/Http/Controllers/Api/App/PedidoEntregaController.php'  # P3 tela 22 entrega (PR 11 propostas-app)
+      - 'database/migrations/2026_10_15_180000_create_app_entregas_table.php'
       - 'app/Http/Controllers/Api/App/InicioController.php'
       - 'app/Http/Controllers/Api/App/PerfilMenuController.php'
       - 'database/migrations/2026_10_02_190000_create_app_menu_preferencias_table.php'
       - 'app/Http/Controllers/Api/App/NotificacoesController.php'
       - 'app/Http/Controllers/Api/App/OficinaController.php'
+      - 'app/Http/Controllers/Api/App/OsArquivosController.php'
+      - 'routes/api/app/os-arquivos.php'
+      - 'app/Contracts/Arquivos/AnexosDoApp.php'
+      - 'Modules/Arquivos/Services/AnexosDoAppService.php'
+      - 'Modules/Arquivos/Services/ArquivosService.php'
+      - 'Modules/Arquivos/Database/Migrations/2026_10_15_000001_add_legenda_etapa_to_arquivos.php'
       - 'app/Http/Controllers/Api/App/AgendamentoController.php'
       - 'Modules/OficinaAuto/Database/Migrations/2026_10_06_180000_create_oficina_agendamentos_table.php'
       - 'app/Http/Controllers/Api/App/VendaRapidaController.php'
@@ -162,11 +171,20 @@ jobs:
               - 'config/mwart.php'
               - 'app/Support/Mwart.php'
               - 'app/Http/Controllers/Api/App/PedidosController.php'
+              - 'app/Http/Controllers/Api/App/PedidoAcaoController.php'  # P1 tela 22 (PR 04 propostas-app)
+              - 'app/Http/Controllers/Api/App/PedidoEntregaController.php'  # P3 tela 22 entrega (PR 11 propostas-app)
+              - 'database/migrations/2026_10_15_180000_create_app_entregas_table.php'
               - 'app/Http/Controllers/Api/App/InicioController.php'
               - 'app/Http/Controllers/Api/App/PerfilMenuController.php'
               - 'database/migrations/2026_10_02_190000_create_app_menu_preferencias_table.php'
               - 'app/Http/Controllers/Api/App/NotificacoesController.php'
               - 'app/Http/Controllers/Api/App/OficinaController.php'
+              - 'app/Http/Controllers/Api/App/OsArquivosController.php'
+              - 'routes/api/app/os-arquivos.php'
+              - 'app/Contracts/Arquivos/AnexosDoApp.php'
+              - 'Modules/Arquivos/Services/AnexosDoAppService.php'
+              - 'Modules/Arquivos/Services/ArquivosService.php'
+              - 'Modules/Arquivos/Database/Migrations/2026_10_15_000001_add_legenda_etapa_to_arquivos.php'
               - 'app/Http/Controllers/Api/App/AgendamentoController.php'
               - 'Modules/OficinaAuto/Database/Migrations/2026_10_06_180000_create_oficina_agendamentos_table.php'
               - 'app/Http/Controllers/Api/App/VendaRapidaController.php'
@@ -325,9 +343,21 @@ jobs:
         # 2026-10-15 — + AppAjustesEmpresaContratoTest (UC-APPAJ-01..05, PR 01 do playbook propostas-app):
         # `ajustes` do /api/app/inicio completo com padrão, tenant 98 × 2, e a aba "App das lojas" de
         # /business/settings (salvar desliga padrão ligado e não apaga chave que a aba não edita).
+        # 2026-10-15 — + AppPedidoAcaoContratoTest (PR 04 do playbook propostas-app, P1 · tela 22):
+        # POST /api/app/pedidos/{id}/acao só com a lista segura, etapa_esperada → 409, Idempotency-Key,
+        # ajuste app_acoes_fsm_liberadas estreita a lista, outro business → 404 sem mudar a etapa.
+        # 2026-10-15 — + AppOsArquivosApiContratoTest (UC-APPANX-01..08, PR 09 do playbook propostas-app):
+        # anexos da OS no app — lista assinada de 10 min, envio jpg/png/pdf ≤ 10 MB, tenant 98 × 2 → 404,
+        # app_anexos_camera e Idempotency-Key.
         # 2026-10-15 — + AppRelatoriosLucroComissaoContratoTest (UC-APPLC-01..06, PR 13 do playbook propostas-app):
         # abas lucratividade e comissoes de /api/app/relatorios, conferidas contra o Lucro/Prejuízo e a
         # Comissão por vendedor do web; vendedor × gerente × ajuste; tenant 98 × 2. NASCE SEM RUN.
+        # 2026-10-15 — + AppOsArquivosApiContratoTest (UC-APPANX-01..08, PR 09 do playbook propostas-app):
+        # anexos da OS no app — lista assinada de 10 min, envio jpg/png/pdf ≤ 10 MB, tenant 98 × 2 → 404,
+        # app_anexos_camera e Idempotency-Key.
+        # 2026-10-15 — + AppPedidoEntregaContratoTest (PR 11 do playbook propostas-app, P3 · tela 22 entrega):
+        # POST /api/app/pedidos/{id}/entrega — ENT-NNNN por business, assinatura em arquivos, FSM entregar
+        # numa transação (falha desfaz tudo), ajustes app_entrega_exige_*, tenant 98 × 2 → 404.
         # 2026-10-15 — + AppOrcamentoRapidoContratoTest (UC-APPOR-01..10, PR 16 do playbook propostas-app,
         # REGRA MESTRE): /api/app/orcamentos/{materiais,calcular} e POST /orcamentos — dupla prova do total
         # contra a calculadora e a gravação da web, idempotência, tenant 98 × 2, ajuste app_orcamento_rapido.
@@ -350,8 +380,11 @@ jobs:
             tests/Feature/Sells/AppInicioApiContratoTest.php \
             tests/Feature/Sells/AppPerfilMenuApiContratoTest.php \
             tests/Feature/Sells/AppAjustesEmpresaContratoTest.php \
+            tests/Feature/Sells/AppPedidoAcaoContratoTest.php \
             tests/Feature/Sells/AppNotificacoesApiContratoTest.php \
             tests/Feature/Sells/AppOsApiContratoTest.php \
+            tests/Feature/Sells/AppOsArquivosApiContratoTest.php \
+            tests/Feature/Sells/AppPedidoEntregaContratoTest.php \
             tests/Feature/Sells/AppOficinaAgendaApiContratoTest.php \
             tests/Feature/Sells/AppVendaRapidaProdutosApiContratoTest.php \
             tests/Feature/Sells/AppFinanceiroApiContratoTest.php \

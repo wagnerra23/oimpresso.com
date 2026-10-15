@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PIDX-09, UC-PIDX-11, UC-PIDX-12, UC-PIDX-20 e UC-PIDX-22 (resources/js/Pages/Produto/Index.casos.md) — G-2 rastreabilidade caso↔teste.
+// Cobre UC-PIDX-09, UC-PIDX-11, UC-PIDX-12, UC-PIDX-20, UC-PIDX-22 e UC-PIDX-25 (resources/js/Pages/Produto/Index.casos.md) — G-2 rastreabilidade caso↔teste.
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -390,4 +390,52 @@ it('UC-PIDX-22 · produto sem foto chega ao painel com imagem null, não com a i
     expect(pdtDetalhe($this, $semFoto->productId)['imagem'])->toBeNull();
     // Com foto, a mesma URL que a Blade usa (acessor `image_url`).
     expect(pdtDetalhe($this, $comFoto->productId)['imagem'])->toEndWith('/uploads/img/1700000000_pdt_foto.jpg');
+});
+
+/**
+ * Liga ou desliga só o `nfebrasil_module` no pacote da empresa — o resto do `ModuleUtil` responde
+ * como sempre (uma instância nova, sem mock), pra não mudar o que a tela faz com os outros módulos.
+ */
+function pdtPacoteNfe(bool $ligado): void
+{
+    test()->partialMock(\App\Utils\ModuleUtil::class, function ($m) use ($ligado) {
+        $m->shouldReceive('hasThePermissionInSubscription')->andReturnUsing(
+            fn ($biz, $modulo, $callback = null) => $modulo === 'nfebrasil_module'
+                ? $ligado
+                : (new \App\Utils\ModuleUtil())->hasThePermissionInSubscription($biz, $modulo, $callback)
+        );
+    });
+}
+
+it('UC-PIDX-25 · a aba Fiscal traz a origem que a nota usa (0, a mesma para todos) e avisa que não é por produto', function () {
+    pdtEntrar($this, ['product.view', 'access_all_locations']);
+    $p = pdtProdutoComPrecos($this->business->id);
+
+    $f = pdtDetalhe($this, $p->productId)['fiscal'];
+
+    expect($f['origem'])->toBe('0');
+    expect($f['origem_por_produto'])->toBeFalse();
+});
+
+it('UC-PIDX-25 · "Abrir no módulo Fiscal" só vem com o módulo no pacote E a permissão da Tributação', function () {
+    $p = pdtProdutoComPrecos($this->business->id);
+
+    // Controle positivo: módulo no pacote + nfe.tributacao.manage → a Tributação com o produto.
+    pdtPacoteNfe(true);
+    pdtEntrar($this, ['product.view', 'access_all_locations', 'nfe.tributacao.manage']);
+    expect(pdtDetalhe($this, $p->productId)['fiscal']['link_modulo'])
+        ->toBe(route('nfe-brasil.tributacao.index', ['produto' => $p->productId]) . '#simulador');
+
+    // Sem a permissão: o botão levaria a uma tela que recusa o simulador.
+    pdtEntrar($this, ['product.view', 'access_all_locations']);
+    expect(pdtDetalhe($this, $p->productId)['fiscal']['link_modulo'])->toBeNull();
+});
+
+// Teste à parte: o controller fica em cache na rota durante o teste, e o mock do pacote tem de
+// valer desde a 1ª requisição.
+it('UC-PIDX-25 · com a permissão, mas o NfeBrasil fora do pacote da empresa, o botão não vem', function () {
+    $p = pdtProdutoComPrecos($this->business->id);
+    pdtPacoteNfe(false);
+    pdtEntrar($this, ['product.view', 'access_all_locations', 'nfe.tributacao.manage']);
+    expect(pdtDetalhe($this, $p->productId)['fiscal']['link_modulo'])->toBeNull();
 });
