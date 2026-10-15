@@ -51,5 +51,6 @@ Ficam fora (só na web): `cliente_aprovou` (ReservarEstoque), `reabrir_para_revi
 - `acoes[]` só com as seguras; POST avança pela FSM e grava a trilha com origem e motivo.
 - Idempotência: mesma chave e mesmo corpo → mesma resposta, uma linha de trilha; corpo diferente → 422.
 - 409 com `etapa_esperada` velha; ação fora da lista → 403; ajuste estreita a lista.
-- Cross-tenant: tenant 98 × 2 (ADR 0358) → 404 e a etapa do outro não muda.
+- Cross-tenant (ADR 0358): o business do contexto de teste × outro business → 404 e a etapa do outro não muda; controle positivo no mesmo arquivo (o próprio pedido avança).
+- Bite-test (2026-10-15, CT 100): sem a conferência de visibilidade o caso cross-tenant cai (404 → 409); sem a conferência de `etapa_esperada` o caso 409 cai (409 → 200).
 - 422 validacao; sem permissão de venda → 403.
