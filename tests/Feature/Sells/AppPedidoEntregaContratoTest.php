@@ -232,7 +232,10 @@ it('Idempotency-Key: mesma chave e mesmo corpo devolvem a mesma resposta sem gra
     $a = $post($this->venda, $corpo(), $chave)->assertStatus(201)->json();
     $b = $post($this->venda, $corpo(), $chave)->assertStatus(201)->json();
 
-    expect($b)->toBe($a);
+    // Mesmo conteúdo, não a mesma ordem: a coluna JSON do MySQL reordena as chaves ao gravar
+    // (o MariaDB do CT 100 não). Ordem de chave não é contrato de JSON.
+    expect($b)->toEqual($a);
+    expect($b['protocolo'])->toBe($a['protocolo']);
     expect(DB::table('app_entregas')->where('transaction_id', $this->venda)->count())->toBe(1);
     expect(DB::table('sale_stage_history')->where('transaction_id', $this->venda)->count())->toBe(1);
 
