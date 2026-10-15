@@ -363,8 +363,8 @@ class AtendimentoController extends Controller
             ->first();
     }
 
-    /** @return \Illuminate\Database\Query\Builder|\Illuminate\Support\Collection<int,int> */
-    private function idsDeCanaisVisiveis(User $user)
+    /** Subconsulta dos canais visíveis (para `whereIn`). */
+    private function idsDeCanaisVisiveis(User $user): \Illuminate\Database\Query\Builder
     {
         $bizId = (int) $user->business_id;
         if ($user->can('whatsapp.view-all-phones')) {

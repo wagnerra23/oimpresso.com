@@ -545,7 +545,7 @@ class InboxController extends Controller
             ->findOrFail($id);
 
         $channel = $conversation->channel;
-        if (! $channel) {
+        if (! $channel instanceof Channel) {
             return back()->withErrors(['send' => 'Canal não associado à conversa.']);
         }
 
