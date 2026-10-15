@@ -736,6 +736,12 @@ class ProductController extends Controller
                 'cst_pis' => (string) ($produto->cst_pis ?? ''),
                 'cst_cofins' => (string) ($produto->cst_cofins ?? ''),
                 'cst_ipi' => (string) ($produto->cst_ipi ?? ''),
+                // UC-PIDX-25. O cadastro não tem origem da mercadoria: as duas emissões montam
+                // `'orig' => 0` para todo item (Modules/NfeBrasil/Services/NfeService.php e
+                // app/Services/NFeService.php). A tela mostra o que a nota usa e avisa que vale pra todos.
+                'origem' => '0',
+                'origem_por_produto' => false,
+                'link_modulo' => $this->linkTributacaoDoProduto($business_id, $id),
             ],
             'prateleiras' => [
                 'colunas' => [
@@ -748,6 +754,28 @@ class ProductController extends Controller
                 ])->values(),
             ],
         ];
+    }
+
+    /**
+     * "Abrir no módulo Fiscal" da aba Fiscal (UC-PIDX-25): a Tributação do NfeBrasil, com este produto
+     * já escolhido no simulador. null quando o botão levaria a uma tela que a pessoa não usa — rota
+     * ausente, módulo fora do pacote da empresa, ou sem `nfe.tributacao.manage` (a permissão que o
+     * simulador exige). Mesma checagem do menu do módulo (NfeBrasil DataController::modifyAdminMenu).
+     */
+    private function linkTributacaoDoProduto(int $business_id, int $id): ?string
+    {
+        $usuario = auth()->user();
+        if (! $usuario || ! \Illuminate\Support\Facades\Route::has('nfe-brasil.tributacao.index')) {
+            return null;
+        }
+        $moduloLigado = $usuario->can('superadmin')
+            ? $this->moduleUtil->isModuleInstalled('NfeBrasil')
+            : (bool) $this->moduleUtil->hasThePermissionInSubscription($business_id, 'nfebrasil_module', 'superadmin_package');
+        if (! $moduloLigado || ! $usuario->can('nfe.tributacao.manage')) {
+            return null;
+        }
+
+        return route('nfe-brasil.tributacao.index', ['produto' => $id]).'#simulador';
     }
 
     /**

@@ -128,7 +128,12 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 >   painel só de leitura afirmaria algo que a tela não faz).
 > - Aba Fiscal: a produção mostra as colunas fiscais reais do cadastro (CFOP dentro/fora, CST…); o
 >   protótipo tem um conjunto menor e um botão "Abrir no módulo Fiscal". Em 2026-10-13 entrou o
->   "Tipo de imposto na venda" (UC-PIDX-19). **Não feitos, com motivo medido:** "Origem da
+>   "Tipo de imposto na venda" (UC-PIDX-19). **2026-10-15 (UC-PIDX-25), pedido de [F]: os três itens abaixo
+>   entraram**, sem inventar o que não existe — a origem aparece como o valor que a nota usa (`0 —
+>   Nacional`, fixo nas duas emissões) com o aviso de que é o mesmo para todos; o texto de ajuda é o
+>   do protótipo, corrigido onde ele afirmava o que a emissão não faz; e "Abrir no módulo Fiscal"
+>   leva à Tributação do NfeBrasil com o produto no simulador (UC-NFTR-29), só para quem tem o
+>   módulo e a permissão. O registro abaixo fica como era em 2026-10-13. **Não feitos, com motivo medido:** "Origem da
 >   mercadoria" (o campo não existe no cadastro nem no banco), "Abrir no módulo Fiscal" (não há
 >   tela fiscal por produto) e o texto de ajuda (o do protótipo chama de serviço todo produto sem
 >   NCM, o que é falso para cadastro incompleto).
