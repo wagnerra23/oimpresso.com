@@ -565,6 +565,8 @@ class BusinessController extends Controller
                     }
                 }
             }
+            // Ajustes do app das lojas: a aba que não edita uma chave `app_*` não a apaga, e o valor gravado é normalizado.
+            $pos_settings = \App\Services\AppLojas\AjustesDaEmpresa::aoSalvar((array) $pos_settings, $gravado);
             $default_pos_settings = $this->businessUtil->defaultPosSettings();
             foreach ($default_pos_settings as $key => $value) {
                 if (! isset($pos_settings[$key])) {
