@@ -46,6 +46,10 @@ on:
       - 'app/Http/Controllers/Api/App/AgendamentoController.php'
       - 'Modules/OficinaAuto/Database/Migrations/2026_10_06_180000_create_oficina_agendamentos_table.php'
       - 'app/Http/Controllers/Api/App/VendaRapidaController.php'
+      - 'app/Http/Controllers/Api/App/OrcamentosController.php'  # orçamento rápido (PR 16 propostas-app)
+      - 'Modules/ComunicacaoVisual/Services/OrcamentoCalculator.php'
+      - 'Modules/ComunicacaoVisual/Services/OrcamentoGravador.php'
+      - 'Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php'
       - 'app/Http/Controllers/Api/App/FinanceiroController.php'
       - 'app/Http/Controllers/Api/App/RelatoriosController.php'
       - 'app/Http/Controllers/Api/App/DashboardController.php'
@@ -166,6 +170,10 @@ jobs:
               - 'app/Http/Controllers/Api/App/AgendamentoController.php'
               - 'Modules/OficinaAuto/Database/Migrations/2026_10_06_180000_create_oficina_agendamentos_table.php'
               - 'app/Http/Controllers/Api/App/VendaRapidaController.php'
+              - 'app/Http/Controllers/Api/App/OrcamentosController.php'  # orçamento rápido (PR 16 propostas-app)
+              - 'Modules/ComunicacaoVisual/Services/OrcamentoCalculator.php'
+              - 'Modules/ComunicacaoVisual/Services/OrcamentoGravador.php'
+              - 'Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php'
               - 'app/Http/Controllers/Api/App/FinanceiroController.php'
               - 'app/Http/Controllers/Api/App/RelatoriosController.php'
               - 'app/Http/Controllers/Api/App/DashboardController.php'
@@ -317,6 +325,9 @@ jobs:
         # 2026-10-15 — + AppAjustesEmpresaContratoTest (UC-APPAJ-01..05, PR 01 do playbook propostas-app):
         # `ajustes` do /api/app/inicio completo com padrão, tenant 98 × 2, e a aba "App das lojas" de
         # /business/settings (salvar desliga padrão ligado e não apaga chave que a aba não edita).
+        # 2026-10-15 — + AppOrcamentoRapidoContratoTest (UC-APPOR-01..10, PR 16 do playbook propostas-app,
+        # REGRA MESTRE): /api/app/orcamentos/{materiais,calcular} e POST /orcamentos — dupla prova do total
+        # contra a calculadora e a gravação da web, idempotência, tenant 98 × 2, ajuste app_orcamento_rapido.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -345,6 +356,7 @@ jobs:
             tests/Feature/Sells/AppRelatoriosApiContratoTest.php \
             tests/Feature/Sells/AppDashboardApiContratoTest.php \
             tests/Feature/Sells/AppVendaRapidaCriarApiContratoTest.php \
+            tests/Feature/Sells/AppOrcamentoRapidoContratoTest.php \
             tests/Feature/Sells/AppPagamentosApiContratoTest.php \
             tests/Feature/Sells/AppPagamentosEscritaContratoTest.php \
             tests/Feature/Sells/SellsCreateV3ContratoTest.php \
