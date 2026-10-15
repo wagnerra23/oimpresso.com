@@ -1371,7 +1371,7 @@
 
 ### todo
 
-- **US-ESTOQUE-001** — Transferência pela configuração da empresa: baixa automática ou requisição aprovada por permissão _(`p2` · @wagner)_
+- **US-ESTOQUE-001** — Toda transferência cai pendente na requisição e só move o estoque quando aprovada _(`p2` · @wagner)_
 
 ## Mcp
 

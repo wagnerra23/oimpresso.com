@@ -36,7 +36,7 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 
 | US | status | Título |
 |---|---|---|
-| US-ESTOQUE-001 | `todo` | Transferência pela configuração da empresa: baixa automática ou requisição aprov |
+| US-ESTOQUE-001 | `todo` | Toda transferência cai pendente na requisição e só move o estoque quando aprovad |
 
 ## UC por status
 
