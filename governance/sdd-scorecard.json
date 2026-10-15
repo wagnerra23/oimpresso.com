@@ -23,20 +23,20 @@
       "detail": {
         "coverage_pct": 86.3,
         "specs_total": 54,
-        "us_total": 1073,
+        "us_total": 1074,
         "anchor_coverage_pct": 86.3,
         "by_state": {
           "sem_campo": 146,
           "placeholder": 1,
-          "pendente": 446,
+          "pendente": 447,
           "parcial": 125,
           "anchored_ok": 355,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 933,
+        "fields_total": 934,
         "fields_placeholder": 1,
-        "fields_grammar_ok": 829,
+        "fields_grammar_ok": 830,
         "orphan_fields": 6,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
@@ -148,13 +148,13 @@
     },
     "ghost_count": {
       "status": "measured",
-      "value": 10,
+      "value": 11,
       "unit": "nomes distintos",
       "direction": "down",
       "target": 0,
       "source": "scripts/governance/knowledge-drift.mjs --json (Modules/<X> citado e inexistente no disco; nomes: rodar a fonte direto)",
       "detail": {
-        "citing_modules": 25
+        "citing_modules": 26
       },
       "stream": "KL"
     },
