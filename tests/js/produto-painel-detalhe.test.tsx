@@ -122,6 +122,16 @@ describe('UC-PIDX-09 · o painel recebe os tokens do Design System', () => {
 });
 
 describe('UC-PIDX-09 · moldura do painel', () => {
+  it('a faixa do código tem a borda de baixo do Drawer do DS — a linha antes do título', () => {
+    const { painel } = abrir(detalhe());
+    const faixa = painel.getByText('CAM-001', { selector: 'span' }).closest('div') as HTMLElement;
+    // A faixa é o pai do grupo código+selo; é nela que fica a borda.
+    const alvo = faixa.parentElement?.contains(painel.getByRole('button', { name: 'Fechar painel' })) ? faixa.parentElement! : faixa;
+    expect(alvo.className).toContain('border-b');
+    expect(alvo.className).toContain('border-[var(--border)]');
+    expect(alvo.className).not.toContain('pb-[15px]');
+  });
+
   it('tem o botão "Fechar painel", e ele fecha', () => {
     const { aoFechar, painel } = abrir(detalhe());
     fireEvent.click(painel.getByRole('button', { name: 'Fechar painel' }));
