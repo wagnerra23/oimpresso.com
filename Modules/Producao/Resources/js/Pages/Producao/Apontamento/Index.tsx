@@ -8,13 +8,11 @@ import { Deferred, router, usePage } from '@inertiajs/react';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/Components/PageHeader';
-import EmptyState from '@/Components/shared/EmptyState';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Skeleton } from '@/Components/ui/skeleton';
-import { Stack } from '@/Components/layout';
+import '../../../../../../../resources/css/cowork-producao-bundle.css';
 import { agoraIso, enviar, esvaziar, novaChave, pendentes } from './_lib/fila';
 
 interface Etapa { id: number; os_tipo: string; os_id: number; posto: string | null; tipo_custo: string | null; inicio_previsto: string; status: string }
@@ -32,7 +30,7 @@ function Cronometro({ desde }: { desde: string }) {
     const t = setInterval(calc, 1000);
     return () => clearInterval(t);
   }, [desde]);
-  return <span role="timer" aria-live="off" aria-label={`Tempo apontado ${hms(seg)}`} className="font-mono text-2xl tabular-nums">{hms(seg)}</span>;
+  return <div role="timer" aria-live="off" aria-label={`Tempo apontado ${hms(seg)}`} className="pcv-crono is-on">{hms(seg)}</div>;
 }
 
 export default function ApontamentoIndex({ operador, motivos = [] }: Props) {
@@ -96,33 +94,35 @@ export default function ApontamentoIndex({ operador, motivos = [] }: Props) {
 
   return (
     <AppShellV2 title="Apontamento · Produção" breadcrumbItems={[{ label: 'Produção' }, { label: 'Apontamento' }]}>
-      <PageHeader title="Apontamento" subtitle={operador.nome} />
-      <Stack gap={4} className="mx-auto w-full max-w-md p-4">
-        {naFila > 0 && <Alert><AlertTitle>{naFila} apontamento(s) guardado(s) no celular</AlertTitle><AlertDescription>Envia sozinho quando a internet voltar.</AlertDescription></Alert>}
+      <div className="pcv-root">
+        <div className="pcv-ph"><PageHeader title="Apontamento" subtitle={operador.nome} /></div>
+        <div className="pcv-body">
+          {naFila > 0 && <Alert><AlertTitle>{naFila} apontamento(s) guardado(s) no celular</AlertTitle><AlertDescription>Envia sozinho quando a internet voltar.</AlertDescription></Alert>}
 
-        <section aria-label="Rodando agora" className="space-y-2">
-          <h2 className="text-sm font-semibold">Rodando agora</h2>
-          <Deferred data="rodando" fallback={<Skeleton className="h-24 w-full" />}>
-            <RodandoAgora renderLinha={(a) => <Linha key={a.id} a={a} motivos={motivos} apontar={apontar} />} />
-          </Deferred>
-        </section>
+          <section aria-label="Rodando agora" className="pcv-ap">
+            <div><span className="pcv-eyebrow">{operador.nome}</span><b className="pcv-ap-t">Rodando agora</b></div>
+            <Deferred data="rodando" fallback={<Skeleton className="h-24 w-full" />}>
+              <RodandoAgora renderLinha={(a) => <Linha key={a.id} a={a} motivos={motivos} apontar={apontar} />} />
+            </Deferred>
+          </section>
 
-        <section aria-label="Ler QR" className="space-y-2">
-          <Button className="min-h-11 w-full" onClick={lerCamera}>Ler QR da OS</Button>
-          <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); if (codigo) lerQr(codigo); }}>
-            <Input aria-label="Código da etiqueta" placeholder="ou digite o código" value={codigo} onChange={(e) => setCodigo(e.target.value)} className="min-h-11" />
-            <Button type="submit" variant="outline" className="min-h-11">Abrir</Button>
-          </form>
-          {aviso && <Alert><AlertDescription>{aviso}</AlertDescription></Alert>}
-        </section>
+          <section aria-label="Ler QR" className="pcv-scan">
+            <Button className="min-h-11" onClick={lerCamera}>Ler QR da OS</Button>
+            <form className="pcv-bar" onSubmit={(e) => { e.preventDefault(); if (codigo) lerQr(codigo); }}>
+              <Input aria-label="Código da etiqueta" placeholder="ou digite o código" value={codigo} onChange={(e) => setCodigo(e.target.value)} className="min-h-11" />
+              <Button type="submit" variant="outline" className="min-h-11">Abrir</Button>
+            </form>
+            {aviso && <p className="pcv-help" role="status">{aviso}</p>}
+          </section>
 
-        <section aria-label="Minhas etapas de hoje" className="space-y-2">
-          <h2 className="text-sm font-semibold">Minhas etapas de hoje <span className="font-normal text-muted-foreground">· na ordem da programação</span></h2>
-          <Deferred data="etapas" fallback={<Skeleton className="h-32 w-full" />}>
-            <MinhasEtapas onIniciar={(id) => apontar('/producao/apontamento/iniciar', { programacao_id: id })} />
-          </Deferred>
-        </section>
-      </Stack>
+          <section aria-label="Minhas etapas de hoje" className="pcv-ap">
+            <div><b className="pcv-ap-t">Minhas etapas de hoje</b><small>na ordem da programação</small></div>
+            <Deferred data="etapas" fallback={<Skeleton className="h-32 w-full" />}>
+              <MinhasEtapas onIniciar={(id) => apontar('/producao/apontamento/iniciar', { programacao_id: id })} />
+            </Deferred>
+          </section>
+        </div>
+      </div>
     </AppShellV2>
   );
 }
@@ -132,12 +132,10 @@ function Linha({ a, motivos: todos, apontar }: { a: Aberto; motivos: Array<{ id:
   const motivos = todos.filter((m) => m.posto_id === a.posto_id); // E04 A4: só os do posto
   const maquina = a.tipo_custo === 'maquina';
   return (
-    <Card><CardContent className="space-y-3 p-4">
-      <div className="flex items-baseline justify-between gap-2">
-        <div><b>{a.posto ?? 'Etapa'}</b><div className="text-xs text-muted-foreground">{maquina ? 'máquina' : 'você'} · OS {a.os_id}</div></div>
-        <Cronometro desde={a.desde} />
-      </div>
-      <div className="flex flex-wrap gap-2">
+    <div className="pcv-ap">
+      <div><span className="pcv-eyebrow">{maquina ? 'Máquina' : 'Você'} · OS {a.os_id}</span><b className="pcv-ap-t">{a.posto ?? 'Etapa'}</b></div>
+      <Cronometro desde={a.desde} />
+      <div className="pcv-bar">
         <select aria-label="Motivo da pausa" value={motivo} onChange={(e) => setMotivo(e.target.value)} className="min-h-11 rounded-md border border-input bg-background px-3 text-sm">
           <option value="">{motivos.length ? 'Motivo da pausa' : 'Sem motivos cadastrados no posto'}</option>
           {motivos.filter((m) => m.id).map((m) => <option key={m.id} value={m.id}>{m.nome}</option>)}
@@ -145,7 +143,7 @@ function Linha({ a, motivos: todos, apontar }: { a: Aberto; motivos: Array<{ id:
         <Button className="min-h-11" variant="outline" disabled={!motivo} onClick={() => apontar(`/producao/apontamento/${a.id}/pausar`, { motivo_id: Number(motivo) })}>Pausar</Button>
         <Button className="min-h-11" onClick={() => apontar(`/producao/apontamento/${a.id}/concluir`)}>Concluir etapa</Button>
       </div>
-    </CardContent></Card>
+    </div>
   );
 }
 
@@ -153,23 +151,22 @@ function RodandoAgora({ renderLinha }: { renderLinha: (a: Aberto) => React.React
   const r = (usePage().props as unknown as Props).rodando;
   const abertos = r ? [r.pessoa, ...r.maquinas].filter((a): a is Aberto => !!a) : [];
   return (
-    <Stack gap={2}>
-      {r?.ponto && <p className="text-xs text-muted-foreground">Ponto: entrada {r.ponto.entrada ?? '—'}{r.ponto.saida ? ` · saída ${r.ponto.saida}` : ' · presente'}</p>}
-      {abertos.length ? abertos.map(renderLinha) : <EmptyState title="Nada rodando" description="Leia o QR da OS ou escolha uma etapa abaixo." />}
-    </Stack>
+    <>
+      {r?.ponto && <p className="pcv-help">Ponto: entrada {r.ponto.entrada ?? '—'}{r.ponto.saida ? ` · saída ${r.ponto.saida}` : ' · presente'}</p>}
+      {abertos.length ? abertos.map(renderLinha) : <p className="pcv-vazio">Nada rodando. Leia o QR da OS ou escolha uma etapa abaixo.</p>}
+    </>
   );
 }
 
 function MinhasEtapas({ onIniciar }: { onIniciar: (id: number) => void }) {
   const etapas = (usePage().props as unknown as Props).etapas ?? [];
-  if (!etapas.length) return <EmptyState title="Nenhuma etapa sua hoje" description="Quando o PCP programar, ela aparece aqui." />;
+  if (!etapas.length) return <p className="pcv-vazio">Nenhuma etapa sua hoje. Quando o PCP programar, ela aparece aqui.</p>;
   return (
-    <ul className="space-y-2">
+    <ul className="pcv-minhas">
       {etapas.map((e) => (
         <li key={e.id}>
-          <button type="button" onClick={() => onIniciar(e.id)} className="flex min-h-11 w-full items-center justify-between rounded-md border border-border bg-card px-3 py-2 text-left">
-            <span><b className="font-mono">OS {e.os_id}</b><span className="block text-xs text-muted-foreground">{e.posto ?? '—'} · {e.inicio_previsto}</span></span>
-            <span className="text-sm">{e.status === 'iniciada' ? 'Retomar' : 'Iniciar'}</span>
+          <button type="button" onClick={() => onIniciar(e.id)} aria-label={`OS ${e.os_id} · ${e.posto ?? ''} · ${e.status === 'iniciada' ? 'retomar' : 'iniciar'}`}>
+            <b className="mono">OS {e.os_id}</b><span>{e.posto ?? '—'}</span><small>{e.inicio_previsto} · {e.status === 'iniciada' ? 'em andamento' : 'a iniciar'}</small>
           </button>
         </li>
       ))}
