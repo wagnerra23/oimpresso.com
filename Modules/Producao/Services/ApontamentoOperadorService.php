@@ -107,7 +107,8 @@ class ApontamentoOperadorService
                 $origem, null, Carbon::instance($momento), programacaoId: $etapa->id);
         } catch (DomainException $e) {
             if (! $this->base->pessoaAberto($businessId, $userId)) {
-                throw $e;
+                // Única outra recusa do base: origem `manual` sem justificativa.
+                throw new ApontamentoRecusado(ApontamentoRecusado::JUSTIFICATIVA_OBRIGATORIA, $e->getMessage());
             }
             $aberto = $this->rodandoAgora($businessId, $userId, $momento)['pessoa'];
             throw new ApontamentoRecusado(ApontamentoRecusado::PESSOA_OCUPADA, $e->getMessage(), ['apontamento_id' => $aberto?->id]);
@@ -195,9 +196,18 @@ class ApontamentoOperadorService
             throw new ApontamentoRecusado(ApontamentoRecusado::JUSTIFICATIVA_OBRIGATORIA, 'A correção exige justificativa.');
         }
         $inicio = $this->doOperador($businessId, $userId, $inicioId);
+        $dados = ['inicio_id' => $inicio->id, 'momento' => $this->hora($momento)->toIso8601String(), 'justificativa' => $justificativa, 'chave' => $chave];
 
-        return $this->evento($businessId, 'correcao_solicitada', $inicio, $userId,
-            ['inicio_id' => $inicio->id, 'momento' => Carbon::instance($momento)->toIso8601String(), 'justificativa' => $justificativa, 'chave' => $chave]);
+        // Reenvio da fila: a mesma chave devolve o pedido já gravado; corpo diferente é conflito.
+        $existente = Evento::query()->where('business_id', $businessId)->where('tipo', 'correcao_solicitada')
+            ->where('user_id', $userId)->where('dados->chave', $chave)->first();
+        if ($existente) {
+            $igual = array_intersect_key((array) $existente->dados, $dados) == $dados;
+
+            return $igual ? $existente : throw new ApontamentoRecusado(ApontamentoRecusado::IDEMPOTENCIA_CONFLITO, 'Esta chave já foi usada em outra correção.');
+        }
+
+        return $this->evento($businessId, 'correcao_solicitada', $inicio, $userId, $dados);
     }
 
     private function encerrar(string $tipo, int $businessId, int $userId, int $inicioId, string $chave, CarbonInterface $momento, ?int $motivoId): Apontamento
