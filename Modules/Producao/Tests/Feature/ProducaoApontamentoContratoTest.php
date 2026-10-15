@@ -164,6 +164,9 @@ it('UC-PCV-22 · cronômetro esquecido fecha no fim do turno, avisa o PCP e a co
         ->and(DB::table('pcp_eventos')->where('tipo', 'fechado_automaticamente')->where('business_id', $this->b98)->count())->toBe(1);
 
     $this->svc->lancarCorrecao($this->b98, $this->diego, $i->id, Carbon::parse(APT_DIA.' 16:40:00'), 'esqueci de parar', 'c22-c');
+    // Reenvio da fila: mesma chave e corpo não duplicam; corpo diferente é conflito.
+    $this->svc->lancarCorrecao($this->b98, $this->diego, $i->id, Carbon::parse(APT_DIA.' 16:40:00'), 'esqueci de parar', 'c22-c');
+    expect(aptRecusa(fn () => $this->svc->lancarCorrecao($this->b98, $this->diego, $i->id, Carbon::parse(APT_DIA.' 16:45:00'), 'esqueci de parar', 'c22-c')))->toBe('idempotencia_conflito');
     expect(aptRecusa(fn () => $this->svc->lancarCorrecao($this->b98, $this->diego, $i->id, Carbon::now(), ' ', 'c22-d')))->toBe('justificativa_obrigatoria');
     expect(DB::table('pcp_eventos')->where('tipo', 'correcao_solicitada')->count())->toBe(1)
         ->and(DB::table('pcp_apontamentos')->where('inicio_id', $i->id)->pluck('momento')->all())->toBe([APT_DIA.' 18:00:00']);
