@@ -14,7 +14,7 @@ module: Producao
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Producao/**` + `resources/js/Pages/Producao/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 34 arquivos em 10 papéis.
+**Total mapeado:** 43 arquivos em 14 papéis.
 
 ## Controllers — 6
 
@@ -66,6 +66,27 @@ module: Producao
 ## Config — 1
 
 - [config.php](../../../Modules/Producao/Config/config.php)
+
+## Telas (Inertia/React) — 2
+
+- [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/Index.tsx)
+- [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.tsx)
+
+## Componentes / apoio de tela — 3
+
+- [EditorPosto.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/_components/EditorPosto.tsx)
+- [EditorRoteiro.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/_components/EditorRoteiro.tsx)
+- [ProducaoAbas.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/_components/ProducaoAbas.tsx)
+
+## Charters (lei da tela) — 2
+
+- [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/Index.charter.md)
+- [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.charter.md)
+
+## Casos (contrato UC) — 2
+
+- [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/Index.casos.md)
+- [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.casos.md)
 
 ## Testes (Pest) — 3
 
