@@ -14,10 +14,11 @@ module: Producao
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Producao/**` + `resources/js/Pages/Producao/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 25 arquivos em 9 papéis.
+**Total mapeado:** 31 arquivos em 12 papéis.
 
-## Controllers — 2
+## Controllers — 3
 
+- [ApontamentoController.php](../../../Modules/Producao/Http/Controllers/ApontamentoController.php)
 - [DataController.php](../../../Modules/Producao/Http/Controllers/DataController.php)
 - [InstallController.php](../../../Modules/Producao/Http/Controllers/InstallController.php)
 
@@ -54,14 +55,27 @@ module: Producao
 
 - [config.php](../../../Modules/Producao/Config/config.php)
 
-## Testes (Pest) — 3
+## Telas (Inertia/React) — 1
 
-- 3 em [Modules/Producao/Tests/Feature/](../../../Modules/Producao/Tests/Feature)
+- [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.tsx)
+
+## Charters (lei da tela) — 1
+
+- [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.charter.md)
+
+## Casos (contrato UC) — 1
+
+- [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.casos.md)
+
+## Testes (Pest) — 4
+
+- 4 em [Modules/Producao/Tests/Feature/](../../../Modules/Producao/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 5
+## Demais arquivos (manifestos, docs, assets e misc) — 6
 
 - [ApontamentoRecusado.php](../../../Modules/Producao/Exceptions/ApontamentoRecusado.php)
+- [fila.ts](../../../Modules/Producao/Resources/js/Pages/Producao/Apontamento/_lib/fila.ts)
 - [producao.php](../../../Modules/Producao/Resources/lang/pt/producao.php)
 - [composer.json](../../../Modules/Producao/composer.json)
 - [module.json](../../../Modules/Producao/module.json)
