@@ -16,7 +16,7 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 0 |
+| US no SPEC | 1 |
 | CU no SDD | 0 |
 | Telas (.tsx) | 0 |
 | Telas com `casos.md` | 1 |
@@ -34,7 +34,9 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 > ([proibicoes §5](../../proibicoes.md) 2026-07-16 — UC não é canal de pedido). O contrato
 > nasce **junto** com a implementação, não antes.
 
-_Nenhuma._
+| US | status | Título |
+|---|---|---|
+| US-ESTOQUE-001 | `todo` | Transferência pela configuração da empresa: baixa automática ou requisição aprov |
 
 ## UC por status
 

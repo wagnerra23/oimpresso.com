@@ -54,3 +54,11 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ## Backlog
 - [BACKLOG] R-XFER-004 (origem ≠ destino) só é conferida no cliente (botão desabilitado). `store()` não compara `location_id` com `transfer_location_id`, nem confere se as duas filiais são do business da sessão. Grava quantidade: decisão [W].
+- [BACKLOG] **Transferência pela configuração da empresa (US-ESTOQUE-001) — decisões de [F] em 2026-10-15; a tela da requisição e a configuração ficam com o [W].** Hoje quem preenche escolhe a situação (pendente, em trânsito ou concluída) num campo do formulário; vai passar a ser decidida pela configuração da empresa:
+  - **Baixa automática ligada** (empresa pequena, sem responsável de estoque): ao concluir esta tela, a transferência já nasce aprovada e executada — o saldo muda na hora, como o UC-TRCRT-03.
+  - **Baixa automática desligada** (empresa com responsável de estoque): a transferência nasce **pendente** na tela de requisição e não mexe no estoque (como o UC-TRCRT-04); o responsável aprova ou recusa lá.
+  - **Responsável = permissão** (ex.: "aprovar transferência"), dada a quem a empresa quiser — não uma pessoa fixa na configuração.
+  - **Recusar = situação "recusada"**, que fica no histórico (não exclui).
+  - Objetivo, nas palavras de [F]: não travar a empresa pequena e dar à grande um controle de estoque efetivo pela requisição.
+  - **Com o [W]:** a configuração da empresa (baixa automática) e a tela da requisição (pendentes, Aprovar, Recusar). **Depende disso:** o campo situação sai deste formulário, e o "Transferir" do produto (painel e menu da linha da lista de produtos) abre esta tela com produto e local de origem preenchidos.
+  - Mexe em movimentação de estoque: antes de mergear, dupla confirmação do saldo (muda só na aprovação, nunca duas vezes) e o antes → depois apresentado ([`proibicoes.md`](../../../../memory/proibicoes.md) §CÁLCULO DE VALOR ou ESTOQUE).
