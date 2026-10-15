@@ -289,7 +289,7 @@ describe('UC-PIDX-25 · aba Fiscal: origem, ajuda e "Abrir no módulo Fiscal"', 
 
   it('com origem por produto, o aviso de "mesma em todas as notas" some', () => {
     abrir(comFiscal({ origem: '1', origem_por_produto: true }), { abaInicial: 'fiscal' });
-    expect(campo('Origem da mercadoria')).toBe('1 — Importação direta');
+    expect(campo('Origem da mercadoria')).toBe('1 — Estrangeira — importação direta');
     expect(ajuda()).not.toContain('mesma em todas as notas');
   });
 

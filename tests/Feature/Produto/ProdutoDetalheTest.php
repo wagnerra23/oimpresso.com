@@ -407,14 +407,34 @@ function pdtPacoteNfe(bool $ligado): void
     });
 }
 
-it('UC-PIDX-25 · a aba Fiscal traz a origem que a nota usa (0, a mesma para todos) e avisa que não é por produto', function () {
+it('UC-PIDX-25 · a aba Fiscal traz a origem gravada no produto, e diz que ela é por produto', function () {
     pdtEntrar($this, ['product.view', 'access_all_locations']);
-    $p = pdtProdutoComPrecos($this->business->id);
+    $importado = pdtProdutoComPrecos($this->business->id);
+    $nacional = EstoqueFixture::singleProduct($this->business->id);
+    DB::table('products')->where('id', $importado->productId)->update(['origem_mercadoria' => 1]);
 
-    $f = pdtDetalhe($this, $p->productId)['fiscal'];
+    $f = pdtDetalhe($this, $importado->productId)['fiscal'];
+    expect($f['origem'])->toBe('1');
+    expect($f['origem_por_produto'])->toBeTrue();
 
-    expect($f['origem'])->toBe('0');
-    expect($f['origem_por_produto'])->toBeFalse();
+    // Discriminante: o outro produto, sem escolha, segue com o DEFAULT 0 da coluna — a origem
+    // vem da linha do produto, não de um valor fixo do payload.
+    expect(pdtDetalhe($this, $nacional->productId)['fiscal']['origem'])->toBe('0');
+});
+
+it('UC-PIDX-25 · produto de outra empresa com origem própria não abre no painel', function () {
+    $outro = EstoqueFixture::secondBusinessId();
+    if ($outro === null) {
+        $this->markTestSkipped('Sem 2º business semeado.');
+    }
+    pdtEntrar($this, ['product.view', 'access_all_locations']);
+    $alheio = EstoqueFixture::singleProduct($outro);
+    DB::table('products')->where('id', $alheio->productId)->update(['origem_mercadoria' => 1]);
+    $meu = EstoqueFixture::singleProduct($this->business->id);
+
+    // Anti-vácuo: o próprio produto abre — o null do alheio não é painel quebrado.
+    expect(pdtDetalhe($this, $meu->productId))->not->toBeNull();
+    expect(pdtDetalhe($this, $alheio->productId))->toBeNull();
 });
 
 it('UC-PIDX-25 · "Abrir no módulo Fiscal" só vem com o módulo no pacote E a permissão da Tributação', function () {

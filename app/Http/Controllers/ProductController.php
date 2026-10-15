@@ -566,8 +566,8 @@ class ProductController extends Controller
      * os mesmos gates das variações; `composicao_total_exc` é a soma dos totais dos itens (o
      * "Total líquido" do protótipo), só com `view_purchase_price`. Variações e itens trazem as
      * imagens da variação (`variation_images` da Blade), só as da própria empresa.
-     * Dados fiscais: as colunas do próprio produto. A origem da mercadoria passou a existir no banco
-     * em 2026-10-15 (`products.origem_mercadoria`); este payload ainda não a lê — entra depois do #9450.
+     * Dados fiscais: as colunas do próprio produto, inclusive a origem da mercadoria
+     * (`products.origem_mercadoria`, por produto desde 2026-10-15).
      * Produto de outra empresa ⇒ null (Tier 0, ADR 0093).
      *
      * @return array<string, mixed>|null
@@ -737,11 +737,11 @@ class ProductController extends Controller
                 'cst_pis' => (string) ($produto->cst_pis ?? ''),
                 'cst_cofins' => (string) ($produto->cst_cofins ?? ''),
                 'cst_ipi' => (string) ($produto->cst_ipi ?? ''),
-                // UC-PIDX-25. O cadastro não tem origem da mercadoria: as duas emissões montam
-                // `'orig' => 0` para todo item (Modules/NfeBrasil/Services/NfeService.php e
-                // app/Services/NFeService.php). A tela mostra o que a nota usa e avisa que vale pra todos.
-                'origem' => '0',
-                'origem_por_produto' => false,
+                // UC-PIDX-25. A origem do próprio produto (`products.origem_mercadoria`, tabela A da
+                // NF-e), a mesma que as duas emissões usam no `orig` de cada item. Produto sem escolha
+                // fica com o DEFAULT 0 da coluna.
+                'origem' => (string) ($produto->origem_mercadoria ?? 0),
+                'origem_por_produto' => true,
                 'link_modulo' => $this->linkTributacaoDoProduto($business_id, $id),
             ],
             'prateleiras' => [

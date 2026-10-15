@@ -17,6 +17,7 @@ import { Grid, Inline } from '@/Components/layout';
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import { brl, qtdComUnidade } from '../../Unificado/_components/catalogo';
 import { TIPO_ROTULO, type AbaDoDetalhe, type DetalheProdutoDados } from './tipos';
+import { ORIGENS_MERCADORIA } from '../OrigemMercadoriaField';
 
 type Aba = AbaDoDetalhe;
 
@@ -25,19 +26,9 @@ const dinheiro = (n: number | undefined | null) => (n === undefined || n === nul
 /** `tax_type` do produto como a tela o chama; vazio quando o cadastro não diz. */
 const tipoDeImposto = (t: string) => (t === 'inclusive' ? 'Inclusivo' : t === 'exclusive' ? 'Exclusivo' : '');
 
-// Tabela A da NF-e (origem da mercadoria) — os códigos que o protótipo lista, mais os que faltavam.
-const ORIGENS: Record<string, string> = {
-  '0': 'Nacional',
-  '1': 'Importação direta',
-  '2': 'Adquirida no mercado interno',
-  '3': 'Nacional, importação > 40%',
-  '4': 'Nacional, processo produtivo básico',
-  '5': 'Nacional, importação ≤ 40%',
-  '6': 'Importação direta, sem similar nacional',
-  '7': 'Mercado interno, sem similar nacional',
-  '8': 'Nacional, importação > 70%',
-};
-const rotuloOrigem = (o: string) => (ORIGENS[o] ? `${o} — ${ORIGENS[o]}` : '');
+// Tabela A da NF-e (origem da mercadoria): os mesmos nomes do campo do cadastro.
+const ORIGENS = new Map(ORIGENS_MERCADORIA.map(([codigo, nome]) => [String(codigo), nome]));
+const rotuloOrigem = (o: string) => (ORIGENS.has(o) ? `${o} — ${ORIGENS.get(o)}` : '');
 
 /**
  * Texto de ajuda da aba Fiscal (UC-PIDX-25). Parte do protótipo, corrigido onde ele afirma o que a
@@ -534,9 +525,8 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                   <Dt rotulo="CST PIS" valor={d.fiscal.cst_pis} />
                   <Dt rotulo="CST COFINS" valor={d.fiscal.cst_cofins} />
                   <Dt rotulo="CST IPI" valor={d.fiscal.cst_ipi} />
-                  {/* Origem da mercadoria (UC-PIDX-25): o cadastro não guarda origem por produto, e toda
-                      nota sai com origem 0. A tela mostra o que a nota usa e diz que vale pra todos.
-                      Na ordem do protótipo: depois do CFOP, antes de "Imposto aplicável". */}
+                  {/* Origem da mercadoria (UC-PIDX-25): a do próprio produto, a mesma que vai no `orig`
+                      da nota. Na ordem do protótipo: depois do CFOP, antes de "Imposto aplicável". */}
                   <Dt rotulo="Origem da mercadoria" valor={rotuloOrigem(d.fiscal.origem)} />
                   <Dt rotulo="Imposto aplicável" valor={d.dados.imposto || 'Nenhum'} />
                   {/* Protótipo: a aba Fiscal fecha com o tipo de imposto. O mesmo dado da aba Dados. */}
