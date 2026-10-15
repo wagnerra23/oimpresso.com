@@ -39,7 +39,9 @@ O apontamento web antigo da Comunicação Visual (`/comunicacao-visual/api/apont
 ## Escrita
 Todas com header `Idempotency-Key` (até 64 caracteres; vira a `chave_idempotencia` do PCP, única por empresa) e throttle 30/min.
 
-**Fila sem internet (decisão [W] 2026-10-15, só para o apontamento):** o app guarda o toque e envia depois, com o `momento` do toque (ISO 8601 com fuso, ex. `2026-10-15T14:03:00-03:00`) e a mesma `Idempotency-Key` gerada no aparelho em toda tentativa. Sem `momento`, vale a hora do servidor. Limites, do serviço: até 5 min à frente do relógio do servidor e até 72 h para trás; fora disso, `422 campos.momento` ("Hora do aparelho errada; acerte o relógio" / "Envio vencido; peça a correção ao gestor").
+**Fila sem internet — exceção à regra 8 do `PLAYBOOK-PRS.md` (offline trava a escrita, sem fila), só para o apontamento.** [W] 2026-10-15, textual: *"Apontamento pode ficar numa fila sem internet e ser enviado depois, sem duplicar. A regra 8 do playbook do app ganha essa exceção só para o apontamento; o resto continua travando sem internet."* Confirmado no mesmo dia: *"Confirmo: o apontamento grava pelo Modules/Producao, pode ficar numa fila sem internet sem duplicar (só ele)"*.
+
+O app guarda o toque e envia depois, com o `momento` do toque (ISO 8601 com fuso, ex. `2026-10-15T14:03:00-03:00`) e a mesma `Idempotency-Key` gerada no aparelho em toda tentativa. Sem `momento`, vale a hora do servidor. Limites, do serviço: até 5 min à frente do relógio do servidor e até 72 h para trás; fora disso, `422 campos.momento` ("Hora do aparelho errada; acerte o relógio" / "Envio vencido; peça a correção ao gestor"). Hora fora do turno não é recusada: o turno (ou a saída do ponto) fecha sozinho o que ficou aberto, e uma conclusão da fila com hora anterior a esse fechamento vira pedido de correção — regra do serviço (thread 04), não desta API.
 
 Reenvio com a mesma chave e o mesmo corpo → a mesma resposta com `200` (a primeira vez é `201`). Mesma chave com corpo diferente → `422 idempotencia_conflito`.
 
