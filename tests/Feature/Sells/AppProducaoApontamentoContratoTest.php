@@ -4,34 +4,39 @@ declare(strict_types=1);
 
 use App\Services\AppLojas\EtiquetaProducao;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Laravel\Passport\Passport;
 
 /**
  * Apontamento de produção pelo app (P8, tela 02) — /api/app/producao/apontamentos/* e
- * GET /api/app/producao/etiqueta/{codigo}.
+ * GET /api/app/producao/etiqueta/{codigo}, sobre o ApontamentoOperadorService do PCP (ADR 0431).
  *
  * Contrato: memory/requisitos/AppMobile/api/tela-02-apontamento.md + handoff propostas-app
- * (PLAYBOOK-PRS.md: outra empresa → 404 sem vazar, erros {erro, mensagem}, Idempotency-Key em
- * app_idempotencia; AJUSTES-DA-EMPRESA.md: app_apontamento_exige_qr, padrão false).
- * NÃO derivado do controller.
+ * (PLAYBOOK-PRS.md: outra empresa → 404 sem vazar, erros {erro, mensagem}, Idempotency-Key;
+ * AJUSTES-DA-EMPRESA.md: app_apontamento_exige_qr, padrão false) + tradução combinada com a
+ * thread 04 de Produção (ApontamentoRecusado->codigo → HTTP). A regra do apontamento é testada no
+ * ProducaoApontamentoContratoTest do módulo; aqui é a API do app. NÃO derivado do controller.
  *
  * Tenants: 98 (canônico, ADR 0358) × 99 (adversário). Nunca biz=4. Todo "não aparece / não grava"
- * de outra empresa tem controle positivo em par — senão seria verde por vácuo.
+ * de outra empresa tem controle positivo em par. Hora fixa com Carbon::setTestNow (o Service
+ * valida o `momento` contra o relógio do servidor).
  */
 uses(DatabaseTransactions::class);
 
-function apAptOs(int $bizId, string $etapa = 'producao', ?int $orcamentoId = null): int
+const APP_APT_DIA = '2026-10-15';
+
+function appAptOs(int $bizId, ?int $orcamentoId = null): int
 {
     return (int) DB::table('comvis_os')->insertGetId([
         'business_id' => $bizId, 'orcamento_id' => $orcamentoId,
-        'numero' => 'OS-2099-' . random_int(10000, 99999), 'status_etapa' => $etapa,
+        'numero' => 'OS-2099-' . random_int(10000, 99999), 'status_etapa' => 'producao',
         'valor_total' => 0, 'created_at' => now(), 'updated_at' => now(),
     ]);
 }
 
-function apAptOrcamento(int $bizId, int $criadoPor, string $cliente, array $itens): int
+function appAptOrcamento(int $bizId, int $criadoPor, string $cliente, array $itens): int
 {
     $contato = (int) DB::table('contacts')->insertGetId([
         'business_id' => $bizId, 'type' => 'customer', 'name' => $cliente, 'contact_status' => 'active',
@@ -39,7 +44,7 @@ function apAptOrcamento(int $bizId, int $criadoPor, string $cliente, array $iten
     ]);
     $orc = (int) DB::table('comvis_orcamentos')->insertGetId([
         'business_id' => $bizId, 'numero' => 'ORC-2099-' . random_int(10000, 99999), 'contato_id' => $contato,
-        'data_emissao' => now()->toDateString(), 'status' => 'aprovado', 'created_at' => now(), 'updated_at' => now(),
+        'data_emissao' => APP_APT_DIA, 'status' => 'aprovado', 'created_at' => now(), 'updated_at' => now(),
     ]);
     foreach ($itens as $i => $desc) {
         DB::table('comvis_orcamento_itens')->insert([
@@ -51,19 +56,34 @@ function apAptOrcamento(int $bizId, int $criadoPor, string $cliente, array $iten
     return $orc;
 }
 
-function apAptAberto(int $bizId, int $osId, int $operador): int
+function appAptPosto(int $bizId, string $tipo = 'pessoa'): int
 {
-    return (int) DB::table('comvis_apontamentos')->insertGetId([
-        'business_id' => $bizId, 'os_id' => $osId, 'operador_id' => $operador,
-        'iniciado_em' => now()->subMinutes(30), 'created_at' => now(), 'updated_at' => now(),
+    return (int) DB::table('pcp_postos')->insertGetId([
+        'business_id' => $bizId, 'codigo' => 'APP-' . uniqid(), 'nome' => 'Impressão ' . $tipo,
+        'tipo_custo' => $tipo, 'custo_hora' => '30.00', 'created_at' => now(), 'updated_at' => now(),
     ]);
 }
 
-function apAptExigeQr(int $bizId, bool $liga): void
+function appAptEtapa(int $bizId, int $posto, int $osId, ?int $resp, string $status = 'pendente', string $hora = '08:00:00'): int
+{
+    return (int) DB::table('pcp_programacoes')->insertGetId([
+        'business_id' => $bizId, 'os_tipo' => 'comvis_os', 'os_id' => $osId, 'posto_id' => $posto,
+        'inicio_previsto' => APP_APT_DIA . ' ' . $hora, 'fim_previsto' => Carbon::parse(APP_APT_DIA . ' ' . $hora)->addHour(),
+        'status' => $status, 'user_id' => $resp, 'created_by' => $resp ?? 1, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+}
+
+function appAptExigeQr(int $bizId, bool $liga): void
 {
     $pos = json_decode((string) DB::table('business')->where('id', $bizId)->value('pos_settings'), true) ?: [];
     $pos['app_apontamento_exige_qr'] = $liga;
     DB::table('business')->where('id', $bizId)->update(['pos_settings' => json_encode($pos)]);
+}
+
+/** POST com Idempotency-Key. */
+function appAptPost($t, string $url, array $corpo, string $chave)
+{
+    return $t->withHeaders(['Idempotency-Key' => $chave])->postJson($url, $corpo);
 }
 
 beforeEach(function () {
@@ -71,214 +91,231 @@ beforeEach(function () {
         \Illuminate\Support\Facades\Artisan::call('passport:keys', ['--force' => true]);
     }
     if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped('Requer schema MySQL UltimatePOS (ADR 0358).');
+        $this->markTestSkipped('Requer schema MySQL UltimatePOS + trigger append-only do PCP (ADR 0358).');
     }
-    foreach (['comvis_os', 'comvis_apontamentos', 'comvis_orcamentos', 'comvis_orcamento_itens', 'app_idempotencia', 'contacts'] as $t) {
+    foreach (['pcp_apontamentos', 'pcp_programacoes', 'pcp_postos', 'pcp_eventos', 'ponto_marcacoes', 'comvis_os', 'comvis_orcamentos', 'comvis_orcamento_itens', 'contacts'] as $t) {
         if (! Schema::hasTable($t)) {
             $this->markTestSkipped("Schema ausente ({$t}).");
         }
     }
+    Carbon::setTestNow(APP_APT_DIA . ' 10:00:00');
 
     $this->bizId = (int) $this->seededTenant()->id;
     $this->outroBizId = (int) $this->seededSupportClientTenant()->id;
     // PRÉ-CONDIÇÃO: empresas distintas, senão o cross-tenant é tautológico.
     expect($this->outroBizId)->not->toBe($this->bizId);
 
-    $this->user = $this->usuarioComPermissoes(['comvis.os.view', 'comvis.apontamento.create']);
-
+    $this->user = $this->usuarioComPermissoes(['producao.access']);
     if (app(\App\Utils\ModuleUtil::class)->isSuperadminInstalled() && Schema::hasTable('subscriptions')) {
         DB::table('subscriptions')->insert([
             'business_id' => $this->bizId, 'package_id' => 0, 'package_price' => 0,
             'start_date' => now()->subDay()->toDateString(), 'end_date' => now()->addDay()->toDateString(),
-            'package_details' => json_encode(['comunicacao_visual_module' => 1]), 'created_id' => $this->user->id,
+            'package_details' => json_encode(['producao_module' => 1]), 'created_id' => $this->user->id,
             'status' => 'approved', 'created_at' => now(), 'updated_at' => now(),
         ]);
     }
-    apAptExigeQr($this->bizId, false);
+    appAptExigeQr($this->bizId, false);
+    $this->posto = appAptPosto($this->bizId);
 
     Passport::actingAs($this->user, [], 'api');
 });
 
-it('UC-APPAPT-01 sem token 401; sem ver OS 403; ver sem apontar lê a etiqueta com pode_apontar=false e não inicia', function () {
-    $os = apAptOs($this->bizId);
+afterEach(fn () => Carbon::setTestNow());
 
-    $soVer = $this->usuarioComPermissoes(['comvis.os.view']);
-    Passport::actingAs($soVer, [], 'api');
-    expect($this->getJson('/api/app/producao/etiqueta/' . $os)->assertOk()->json('pode_apontar'))->toBeFalse();
-    $this->withHeaders(['Idempotency-Key' => 'k-soVer'])
-        ->postJson('/api/app/producao/apontamentos/iniciar', ['pedido_id' => $os, 'etapa' => 'producao'])
-        ->assertStatus(403)->assertJsonPath('erro', 'sem_permissao');
-    expect(DB::table('comvis_apontamentos')->where('os_id', $os)->count())->toBe(0);
+it('UC-APPAPT-01 sem token 401; sem producao.access 403 em leitura e escrita, nada gravado', function () {
+    $os = appAptOs($this->bizId);
+    $etapa = appAptEtapa($this->bizId, $this->posto, $os, (int) $this->user->id);
 
     $nada = $this->usuarioComPermissoes([]);
     Passport::actingAs($nada, [], 'api');
     $this->getJson('/api/app/producao/apontamentos/em-andamento')->assertStatus(403)->assertJsonPath('erro', 'sem_permissao');
+    appAptPost($this, '/api/app/producao/apontamentos/iniciar', ['programacao_id' => $etapa], 'k01')
+        ->assertStatus(403)->assertJsonPath('erro', 'sem_permissao');
+    expect(DB::table('pcp_apontamentos')->where('programacao_id', $etapa)->count())->toBe(0);
 
     $this->app['auth']->forgetGuards();
     $this->withHeaders(['Accept' => 'application/json'])->get('/api/app/producao/apontamentos/em-andamento')->assertStatus(401);
 });
 
-it('UC-APPAPT-02 etiqueta: QR da empresa e número digitado resolvem o pedido; QR de outra empresa e OS do 99 → 404', function () {
-    $orc = apAptOrcamento($this->bizId, (int) $this->user->id, 'Ótica Visão Clara', ['Fachada ACM', 'Letra caixa']);
-    $os = apAptOs($this->bizId, 'producao', $orc);
+it('UC-APPAPT-02 etiqueta: QR da empresa e número digitado abrem a etapa do operador; hash de outra empresa e OS do 99 → 404', function () {
+    $orc = appAptOrcamento($this->bizId, (int) $this->user->id, 'Ótica Visão Clara', ['Fachada ACM', 'Letra caixa']);
+    $os = appAptOs($this->bizId, $orc);
+    $etapa = appAptEtapa($this->bizId, $this->posto, $os, (int) $this->user->id);
 
     $r = $this->getJson('/api/app/producao/etiqueta/' . rawurlencode(EtiquetaProducao::codigo($this->bizId, $os)))->assertOk();
     expect($r->json('pedido.id'))->toBe($os);
     expect($r->json('pedido.resumo'))->toBe('Fachada ACM + Letra caixa');
     expect($r->json('pedido.cliente'))->toBe('Ótica Visão Clara');
-    expect($r->json('etapa'))->toBe(['chave' => 'producao', 'rotulo' => 'Produção']);
+    expect($r->json('etapa.programacao_id'))->toBe($etapa);
+    expect($r->json('etapa.posto.id'))->toBe($this->posto);
+    expect($r->json('etapa.responsavel.id'))->toBe((int) $this->user->id);
     expect($r->json('pode_apontar'))->toBeTrue();
-    // Número digitado: o id e o número da OS.
     $numero = (string) DB::table('comvis_os')->where('id', $os)->value('numero');
-    expect($this->getJson('/api/app/producao/etiqueta/' . $os)->assertOk()->json('pedido.id'))->toBe($os);
+    expect($this->getJson('/api/app/producao/etiqueta/' . $os)->assertOk()->json('etapa.programacao_id'))->toBe($etapa);
     expect($this->getJson('/api/app/producao/etiqueta/' . rawurlencode(strtolower($numero)))->assertOk()->json('pedido.numero'))->toBe($numero);
 
-    // Mesmo id, mas com o hash de OUTRA empresa: 404 sem dizer que o pedido existe.
+    // Mesmo id com o hash de OUTRA empresa: 404 sem dizer que o pedido existe.
     $this->getJson('/api/app/producao/etiqueta/' . rawurlencode(EtiquetaProducao::codigo($this->outroBizId, $os)))
         ->assertStatus(404)->assertExactJson(['erro' => 'nao_encontrado', 'mensagem' => 'Etiqueta não encontrada.']);
-    // OS do 99, pelo id digitado e pelo QR do próprio 99: 404 para quem é do 98.
-    $alheia = apAptOs($this->outroBizId);
+    // OS do 99 com etapa no 99, pelo número e pelo QR do 99: 404 para quem é do 98.
+    $alheia = appAptOs($this->outroBizId);
+    appAptEtapa($this->outroBizId, appAptPosto($this->outroBizId), $alheia, null);
     $this->getJson('/api/app/producao/etiqueta/' . $alheia)->assertStatus(404)->assertJsonPath('erro', 'nao_encontrado');
     $this->getJson('/api/app/producao/etiqueta/' . rawurlencode(EtiquetaProducao::codigo($this->outroBizId, $alheia)))
         ->assertStatus(404)->assertJsonPath('erro', 'nao_encontrado');
 });
 
-it('UC-APPAPT-03 app_apontamento_exige_qr ligado: número digitado → 422 campos.codigo; iniciar exige o QR do pedido', function () {
-    $os = apAptOs($this->bizId);
-    apAptExigeQr($this->bizId, true);
+it('UC-APPAPT-03 etapa de outro operador: etiqueta diz com quem está (pode_apontar=false); iniciar → 409 etapa_alheia sem gravar', function () {
+    $colega = $this->usuarioComPermissoes(['producao.access']);
+    $os = appAptOs($this->bizId);
+    $etapa = appAptEtapa($this->bizId, $this->posto, $os, (int) $colega->id);
+
+    $r = $this->getJson('/api/app/producao/etiqueta/' . $os)->assertOk();
+    expect($r->json('pode_apontar'))->toBeFalse();
+    expect($r->json('etapa.responsavel.id'))->toBe((int) $colega->id);
+
+    appAptPost($this, '/api/app/producao/apontamentos/iniciar', ['programacao_id' => $etapa], 'k03')
+        ->assertStatus(409)->assertJsonPath('erro', 'etapa_alheia')->assertJsonPath('etapa.responsavel.id', (int) $colega->id);
+    expect(DB::table('pcp_apontamentos')->where('programacao_id', $etapa)->count())->toBe(0);
+});
+
+it('UC-APPAPT-04 app_apontamento_exige_qr: número → 422 campos.codigo; iniciar exige o QR da OS da etapa', function () {
+    $os = appAptOs($this->bizId);
+    $etapa = appAptEtapa($this->bizId, $this->posto, $os, (int) $this->user->id);
+    appAptExigeQr($this->bizId, true);
 
     $this->getJson('/api/app/producao/etiqueta/' . $os)
         ->assertStatus(422)->assertJsonPath('erro', 'validacao')->assertJsonStructure(['campos' => ['codigo']]);
-    // Controle positivo: o QR continua valendo.
     $this->getJson('/api/app/producao/etiqueta/' . rawurlencode(EtiquetaProducao::codigo($this->bizId, $os)))->assertOk();
 
-    $this->withHeaders(['Idempotency-Key' => 'k-qr-sem'])
-        ->postJson('/api/app/producao/apontamentos/iniciar', ['pedido_id' => $os, 'etapa' => 'producao'])
+    appAptPost($this, '/api/app/producao/apontamentos/iniciar', ['programacao_id' => $etapa], 'k04a')
         ->assertStatus(422)->assertJsonStructure(['campos' => ['codigo']]);
-    $this->withHeaders(['Idempotency-Key' => 'k-qr-outro'])
-        ->postJson('/api/app/producao/apontamentos/iniciar', [
-            'pedido_id' => $os, 'etapa' => 'producao', 'codigo' => EtiquetaProducao::codigo($this->bizId, apAptOs($this->bizId)),
-        ])->assertStatus(404);
-    expect(DB::table('comvis_apontamentos')->where('os_id', $os)->count())->toBe(0);
+    // QR de OUTRA OS da mesma empresa: a etapa não é dela → 404.
+    appAptPost($this, '/api/app/producao/apontamentos/iniciar', [
+        'programacao_id' => $etapa, 'codigo' => EtiquetaProducao::codigo($this->bizId, appAptOs($this->bizId)),
+    ], 'k04b')->assertStatus(404);
+    expect(DB::table('pcp_apontamentos')->where('programacao_id', $etapa)->count())->toBe(0);
 
-    $this->withHeaders(['Idempotency-Key' => 'k-qr-ok'])
-        ->postJson('/api/app/producao/apontamentos/iniciar', [
-            'pedido_id' => $os, 'etapa' => 'producao', 'codigo' => EtiquetaProducao::codigo($this->bizId, $os),
-        ])->assertStatus(201);
-    expect(DB::table('comvis_apontamentos')->where('os_id', $os)->count())->toBe(1);
+    appAptPost($this, '/api/app/producao/apontamentos/iniciar', [
+        'programacao_id' => $etapa, 'codigo' => EtiquetaProducao::codigo($this->bizId, $os),
+    ], 'k04c')->assertStatus(201);
+    expect(DB::table('pcp_apontamentos')->where('programacao_id', $etapa)->count())->toBe(1);
 });
 
-it('UC-APPAPT-04 iniciar grava no business do token; mesma chave devolve a mesma resposta; outra chave com um aberto → 409 em_andamento', function () {
-    $os = apAptOs($this->bizId);
+it('UC-APPAPT-05 iniciar grava no PCP da empresa do token com a hora do toque; reenvio 200 igual; 2º de pessoa → 409 em_andamento', function () {
+    $os = appAptOs($this->bizId);
+    $etapa = appAptEtapa($this->bizId, $this->posto, $os, (int) $this->user->id);
+    $toque = ['programacao_id' => $etapa, 'momento' => APP_APT_DIA . 'T09:40:00-03:00'];
 
-    $r = $this->withHeaders(['Idempotency-Key' => 'k-ini-1'])
-        ->postJson('/api/app/producao/apontamentos/iniciar', ['pedido_id' => $os, 'etapa' => 'producao'])->assertStatus(201);
+    $r = appAptPost($this, '/api/app/producao/apontamentos/iniciar', $toque, 'k05-1')->assertStatus(201);
     $id = (int) $r->json('id');
-    expect($r->json('iniciado_em'))->toBeString();
-    $linha = DB::table('comvis_apontamentos')->where('id', $id)->first();
+    $linha = DB::table('pcp_apontamentos')->where('id', $id)->first();
     expect((int) $linha->business_id)->toBe($this->bizId);
-    expect((int) $linha->operador_id)->toBe((int) $this->user->id);
-    expect($linha->finalizado_em)->toBeNull();
+    expect($linha->tipo)->toBe('inicio');
+    expect((int) $linha->user_id)->toBe((int) $this->user->id);
+    expect(Carbon::parse((string) $linha->momento)->equalTo(Carbon::parse($toque['momento'])))->toBeTrue();
 
-    $repetida = $this->withHeaders(['Idempotency-Key' => 'k-ini-1'])
-        ->postJson('/api/app/producao/apontamentos/iniciar', ['pedido_id' => $os, 'etapa' => 'producao'])->assertStatus(200);
-    expect($repetida->json('id'))->toBe($id);
-    expect(DB::table('comvis_apontamentos')->where('os_id', $os)->count())->toBe(1);
-
-    // Mesma chave, corpo diferente: conflito, nada novo gravado.
-    $this->withHeaders(['Idempotency-Key' => 'k-ini-1'])
-        ->postJson('/api/app/producao/apontamentos/iniciar', ['pedido_id' => apAptOs($this->bizId), 'etapa' => 'producao'])
+    // Reenvio da fila: mesma chave e mesmo corpo → 200 com a mesma linha, sem duplicar.
+    expect(appAptPost($this, '/api/app/producao/apontamentos/iniciar', $toque, 'k05-1')->assertStatus(200)->json('id'))->toBe($id);
+    expect(DB::table('pcp_apontamentos')->where('programacao_id', $etapa)->count())->toBe(1);
+    // Mesma chave, corpo diferente → conflito.
+    appAptPost($this, '/api/app/producao/apontamentos/iniciar', ['programacao_id' => $etapa, 'momento' => APP_APT_DIA . 'T09:45:00-03:00'], 'k05-1')
         ->assertStatus(422)->assertJsonPath('erro', 'idempotencia_conflito');
 
-    $outro = $this->withHeaders(['Idempotency-Key' => 'k-ini-2'])
-        ->postJson('/api/app/producao/apontamentos/iniciar', ['pedido_id' => apAptOs($this->bizId), 'etapa' => 'producao'])
-        ->assertStatus(409)->assertJsonPath('erro', 'em_andamento');
-    expect($outro->json('item.id'))->toBe($id);
+    $outra = appAptEtapa($this->bizId, $this->posto, appAptOs($this->bizId), (int) $this->user->id, 'pendente', '09:00:00');
+    appAptPost($this, '/api/app/producao/apontamentos/iniciar', ['programacao_id' => $outra], 'k05-2')
+        ->assertStatus(409)->assertJsonPath('erro', 'em_andamento')->assertJsonPath('apontamento_id', $id);
 
-    $andamento = $this->getJson('/api/app/producao/apontamentos/em-andamento')->assertOk();
-    expect($andamento->json('item.id'))->toBe($id);
-    expect($andamento->json('item.pedido.id'))->toBe($os);
-    expect($andamento->json('item.etapa.chave'))->toBe('producao');
+    $a = $this->getJson('/api/app/producao/apontamentos/em-andamento')->assertOk();
+    expect($a->json('pessoa.id'))->toBe($id);
+    expect($a->json('pessoa.pedido.id'))->toBe($os);
+    expect($a->json('pessoa.etapa.programacao_id'))->toBe($etapa);
+    expect($a->json('maquinas'))->toBe([]);
 });
 
-it('UC-APPAPT-05 iniciar recusa etapa que mudou (409 etapa_mudou), pedido encerrado (422 bloqueado) e pedido do 99 (404) sem gravar', function () {
-    $os = apAptOs($this->bizId, 'finalizando');
-    $this->withHeaders(['Idempotency-Key' => 'k-et'])
-        ->postJson('/api/app/producao/apontamentos/iniciar', ['pedido_id' => $os, 'etapa' => 'producao'])
-        ->assertStatus(409)->assertJsonPath('erro', 'etapa_mudou')->assertJsonPath('etapa.chave', 'finalizando');
+it('UC-APPAPT-06 hora do aparelho fora dos limites → 422 campos.momento; etapa encerrada → 422 bloqueado; nada gravado', function () {
+    $etapa = appAptEtapa($this->bizId, $this->posto, appAptOs($this->bizId), (int) $this->user->id);
+    appAptPost($this, '/api/app/producao/apontamentos/iniciar', ['programacao_id' => $etapa, 'momento' => APP_APT_DIA . 'T13:10:00Z'], 'k06a')
+        ->assertStatus(422)->assertJsonStructure(['campos' => ['momento']]); // 10:10 em Brasília = 10 min à frente (> 5 min)
+    appAptPost($this, '/api/app/producao/apontamentos/iniciar', ['programacao_id' => $etapa, 'momento' => '2026-10-11T10:00:00-03:00'], 'k06b')
+        ->assertStatus(422)->assertJsonStructure(['campos' => ['momento']]); // > 72 h atrás
+    appAptPost($this, '/api/app/producao/apontamentos/iniciar', ['programacao_id' => $etapa, 'momento' => 'ontem'], 'k06c')
+        ->assertStatus(422)->assertJsonStructure(['campos' => ['momento']]);
+    expect(DB::table('pcp_apontamentos')->where('programacao_id', $etapa)->count())->toBe(0);
 
-    $fim = apAptOs($this->bizId, 'concluida');
-    $this->withHeaders(['Idempotency-Key' => 'k-fim'])
-        ->postJson('/api/app/producao/apontamentos/iniciar', ['pedido_id' => $fim, 'etapa' => 'concluida'])
+    $fim = appAptEtapa($this->bizId, $this->posto, appAptOs($this->bizId), (int) $this->user->id, 'concluida');
+    appAptPost($this, '/api/app/producao/apontamentos/iniciar', ['programacao_id' => $fim], 'k06d')
         ->assertStatus(422)->assertJsonPath('erro', 'bloqueado');
-
-    $alheia = apAptOs($this->outroBizId);
-    $this->withHeaders(['Idempotency-Key' => 'k-99'])
-        ->postJson('/api/app/producao/apontamentos/iniciar', ['pedido_id' => $alheia, 'etapa' => 'producao'])
-        ->assertStatus(404)->assertExactJson(['erro' => 'nao_encontrado', 'mensagem' => 'Pedido não encontrado.']);
-
-    expect(DB::table('comvis_apontamentos')->whereIn('os_id', [$os, $fim, $alheia])->count())->toBe(0);
-    // A recusa desfaz a reserva: a mesma chave inicia quando a etapa bate (controle positivo).
-    $this->withHeaders(['Idempotency-Key' => 'k-et'])
-        ->postJson('/api/app/producao/apontamentos/iniciar', ['pedido_id' => $os, 'etapa' => 'finalizando'])
+    // Controle positivo: dentro do limite grava.
+    appAptPost($this, '/api/app/producao/apontamentos/iniciar', ['programacao_id' => $etapa, 'momento' => APP_APT_DIA . 'T09:58:00-03:00'], 'k06e')
         ->assertStatus(201);
 });
 
-it('UC-APPAPT-06 finalizar devolve minutos e fecha; cancelar fecha com motivo e m² 0; encerrado não muda mais', function () {
-    $os = apAptOs($this->bizId);
-    $ap = apAptAberto($this->bizId, $os, (int) $this->user->id);
+it('UC-APPAPT-07 pausar exige motivo; concluir devolve minutos pelo momento; encerrado não muda; corrigir é append-only e não duplica', function () {
+    $etapa = appAptEtapa($this->bizId, $this->posto, appAptOs($this->bizId), (int) $this->user->id);
+    $id = (int) appAptPost($this, '/api/app/producao/apontamentos/iniciar', ['programacao_id' => $etapa, 'momento' => APP_APT_DIA . 'T08:00:00-03:00'], 'k07-i')->json('id');
 
-    $r = $this->withHeaders(['Idempotency-Key' => 'k-fin'])
-        ->postJson("/api/app/producao/apontamentos/{$ap}/finalizar", ['m2_produzido' => '4.500'])->assertOk();
-    expect($r->json())->toBe(['id' => $ap, 'minutos' => 30]);
-    $linha = DB::table('comvis_apontamentos')->where('id', $ap)->first();
-    expect($linha->finalizado_em)->not->toBeNull();
-    expect((string) $linha->m2_produzido)->toBe('4.500');
-    // Repetida com a mesma chave: mesma resposta. Com outra chave: já encerrado.
-    expect($this->withHeaders(['Idempotency-Key' => 'k-fin'])
-        ->postJson("/api/app/producao/apontamentos/{$ap}/finalizar", ['m2_produzido' => '4.500'])->assertOk()->json('minutos'))->toBe(30);
-    $this->withHeaders(['Idempotency-Key' => 'k-fin-2'])
-        ->postJson("/api/app/producao/apontamentos/{$ap}/finalizar", [])->assertStatus(422)->assertJsonPath('erro', 'bloqueado');
+    appAptPost($this, "/api/app/producao/apontamentos/{$id}/pausar", [], 'k07-p0')->assertStatus(422)->assertJsonStructure(['campos' => ['motivo_id']]);
+    $p = appAptPost($this, "/api/app/producao/apontamentos/{$id}/pausar", ['motivo_id' => 7, 'momento' => APP_APT_DIA . 'T08:30:00-03:00'], 'k07-p')->assertStatus(201);
+    expect($p->json('minutos'))->toBe(30);
+    expect($p->json('encerrado_por'))->toBe('pausa');
 
-    $ap2 = apAptAberto($this->bizId, $os, (int) $this->user->id);
-    $this->withHeaders(['Idempotency-Key' => 'k-can-sem'])
-        ->postJson("/api/app/producao/apontamentos/{$ap2}/cancelar", [])->assertStatus(422)->assertJsonStructure(['campos' => ['motivo']]);
-    $this->withHeaders(['Idempotency-Key' => 'k-can'])
-        ->postJson("/api/app/producao/apontamentos/{$ap2}/cancelar", ['motivo' => 'Peça errada'])
-        ->assertOk()->assertExactJson(['id' => $ap2, 'cancelado' => true]);
-    $c = DB::table('comvis_apontamentos')->where('id', $ap2)->first();
-    expect($c->observacoes)->toBe('[CANCELADO] Peça errada');
-    expect((float) $c->m2_produzido)->toBe(0.0);
-    expect($this->getJson('/api/app/producao/apontamentos/em-andamento')->assertOk()->json('item'))->toBeNull();
+    $id2 = (int) appAptPost($this, '/api/app/producao/apontamentos/iniciar', ['programacao_id' => $etapa, 'momento' => APP_APT_DIA . 'T08:40:00-03:00'], 'k07-i2')->json('id');
+    $f = appAptPost($this, "/api/app/producao/apontamentos/{$id2}/concluir", ['momento' => APP_APT_DIA . 'T09:25:00-03:00'], 'k07-f')->assertStatus(201);
+    expect($f->json())->toMatchArray(['id' => $id2, 'encerrado_por' => 'fim', 'minutos' => 45]);
+    expect(DB::table('pcp_programacoes')->where('id', $etapa)->value('status'))->toBe('concluida');
+    // Reenvio igual → 200 igual; outra chave sobre o encerrado → 422 bloqueado.
+    expect(appAptPost($this, "/api/app/producao/apontamentos/{$id2}/concluir", ['momento' => APP_APT_DIA . 'T09:25:00-03:00'], 'k07-f')->assertStatus(200)->json('minutos'))->toBe(45);
+    appAptPost($this, "/api/app/producao/apontamentos/{$id2}/concluir", [], 'k07-f2')->assertStatus(422)->assertJsonPath('erro', 'bloqueado');
+
+    appAptPost($this, "/api/app/producao/apontamentos/{$id2}/corrigir", ['momento' => APP_APT_DIA . 'T09:10:00-03:00'], 'k07-c0')
+        ->assertStatus(422)->assertJsonStructure(['campos' => ['justificativa']]);
+    $c = appAptPost($this, "/api/app/producao/apontamentos/{$id2}/corrigir", ['momento' => APP_APT_DIA . 'T09:10:00-03:00', 'justificativa' => 'Parei antes'], 'k07-c')
+        ->assertStatus(201)->assertJsonPath('situacao', 'aguardando_gestor');
+    expect(appAptPost($this, "/api/app/producao/apontamentos/{$id2}/corrigir", ['momento' => APP_APT_DIA . 'T09:10:00-03:00', 'justificativa' => 'Parei antes'], 'k07-c')
+        ->assertStatus(200)->json('id'))->toBe($c->json('id'));
+    appAptPost($this, "/api/app/producao/apontamentos/{$id2}/corrigir", ['momento' => APP_APT_DIA . 'T09:11:00-03:00', 'justificativa' => 'Parei antes'], 'k07-c')
+        ->assertStatus(422)->assertJsonPath('erro', 'idempotencia_conflito');
+    expect(DB::table('pcp_eventos')->where('business_id', $this->bizId)->where('tipo', 'correcao_solicitada')->count())->toBe(1);
+    // O par original fica (append-only): ainda 1 linha de fim, no horário da conclusão.
+    $fins = DB::table('pcp_apontamentos')->where('inicio_id', $id2)->pluck('momento')->all();
+    expect($fins)->toHaveCount(1);
+    expect(Carbon::parse((string) $fins[0])->equalTo(Carbon::parse(APP_APT_DIA . 'T09:25:00-03:00')))->toBeTrue();
 });
 
-it('UC-APPAPT-07 finalizar/cancelar apontamento do 99 ou de outro operador → 404 e a linha alheia não muda', function () {
-    $alheio = apAptAberto($this->outroBizId, apAptOs($this->outroBizId), (int) $this->user->id);
-    $colega = $this->usuarioComPermissoes(['comvis.os.view', 'comvis.apontamento.create']);
-    $doColega = apAptAberto($this->bizId, apAptOs($this->bizId), (int) $colega->id);
+it('UC-APPAPT-08 pausar/concluir/corrigir apontamento do 99 ou de outro operador → 404, nada gravado; o dono consegue', function () {
+    $postoAlheio = appAptPosto($this->outroBizId);
+    $alheio = (int) DB::table('pcp_apontamentos')->insertGetId([
+        'business_id' => $this->outroBizId, 'chave_idempotencia' => 'k08-99-' . uniqid(), 'tipo' => 'inicio',
+        'posto_id' => $postoAlheio, 'tipo_custo' => 'pessoa', 'custo_hora' => '30.00', 'user_id' => (int) $this->user->id,
+        'iniciado_por' => (int) $this->user->id, 'momento' => APP_APT_DIA . ' 09:00:00', 'origem' => 'qr',
+    ]);
+    $colega = $this->usuarioComPermissoes(['producao.access']);
+    $etapaColega = appAptEtapa($this->bizId, $this->posto, appAptOs($this->bizId), (int) $colega->id);
+    Passport::actingAs($colega, [], 'api');
+    $doColega = (int) appAptPost($this, '/api/app/producao/apontamentos/iniciar', ['programacao_id' => $etapaColega], 'k08-col')
+        ->assertStatus(201)->json('id');
+    Passport::actingAs($this->user, [], 'api');
 
     foreach ([$alheio, $doColega] as $id) {
-        $this->withHeaders(['Idempotency-Key' => "k-f-{$id}"])
-            ->postJson("/api/app/producao/apontamentos/{$id}/finalizar", [])
+        appAptPost($this, "/api/app/producao/apontamentos/{$id}/pausar", ['motivo_id' => 7], "k08-p{$id}")->assertStatus(404)->assertJsonPath('erro', 'nao_encontrado');
+        appAptPost($this, "/api/app/producao/apontamentos/{$id}/concluir", [], "k08-f{$id}")->assertStatus(404)->assertJsonPath('erro', 'nao_encontrado');
+        appAptPost($this, "/api/app/producao/apontamentos/{$id}/corrigir", ['momento' => APP_APT_DIA . 'T09:30:00-03:00', 'justificativa' => 'Tentativa alheia'], "k08-c{$id}")
             ->assertStatus(404)->assertJsonPath('erro', 'nao_encontrado');
-        $this->withHeaders(['Idempotency-Key' => "k-c-{$id}"])
-            ->postJson("/api/app/producao/apontamentos/{$id}/cancelar", ['motivo' => 'Tentativa alheia'])
-            ->assertStatus(404)->assertJsonPath('erro', 'nao_encontrado');
-        expect(DB::table('comvis_apontamentos')->where('id', $id)->value('finalizado_em'))->toBeNull();
+        expect(DB::table('pcp_apontamentos')->where('inicio_id', $id)->count())->toBe(0);
     }
-    // O apontamento do 99 não aparece no em-andamento de quem é do 98.
-    expect($this->getJson('/api/app/producao/apontamentos/em-andamento')->assertOk()->json('item'))->toBeNull();
+    expect($this->getJson('/api/app/producao/apontamentos/em-andamento')->assertOk()->json('pessoa'))->toBeNull();
 
-    // Controle positivo: o colega fecha o próprio.
+    // Controle positivo: o colega conclui o dele.
     Passport::actingAs($colega, [], 'api');
-    $this->withHeaders(['Idempotency-Key' => 'k-colega'])
-        ->postJson("/api/app/producao/apontamentos/{$doColega}/finalizar", [])->assertOk();
-    expect(DB::table('comvis_apontamentos')->where('id', $doColega)->value('finalizado_em'))->not->toBeNull();
+    appAptPost($this, "/api/app/producao/apontamentos/{$doColega}/concluir", [], 'k08-ok')->assertStatus(201);
 });
 
-it('UC-APPAPT-08 escrita sem Idempotency-Key → 422 campos.idempotency_key, nada gravado', function () {
-    $os = apAptOs($this->bizId);
-    $this->postJson('/api/app/producao/apontamentos/iniciar', ['pedido_id' => $os, 'etapa' => 'producao'])
+it('UC-APPAPT-09 escrita sem Idempotency-Key ou com chave > 64 → 422, nada gravado', function () {
+    $etapa = appAptEtapa($this->bizId, $this->posto, appAptOs($this->bizId), (int) $this->user->id);
+    $this->postJson('/api/app/producao/apontamentos/iniciar', ['programacao_id' => $etapa])
         ->assertStatus(422)->assertJsonPath('erro', 'validacao')->assertJsonStructure(['campos' => ['idempotency_key']]);
-    expect(DB::table('comvis_apontamentos')->where('os_id', $os)->count())->toBe(0);
+    appAptPost($this, '/api/app/producao/apontamentos/iniciar', ['programacao_id' => $etapa], str_repeat('x', 65))
+        ->assertStatus(422)->assertJsonStructure(['campos' => ['idempotency_key']]);
+    expect(DB::table('pcp_apontamentos')->where('programacao_id', $etapa)->count())->toBe(0);
 });

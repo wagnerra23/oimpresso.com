@@ -7,8 +7,9 @@ namespace App\Services\AppLojas;
 /**
  * Código da etiqueta de produção lida pelo app (P8): `oimpresso:p:<business_hash>:<pedido_id>`.
  *
- * O `pedido_id` é o id da OS de comunicação visual (`comvis_os.id`), a mesma que o apontamento
- * aponta (`comvis_apontamentos.os_id`). O `business_hash` NÃO é o business_id: é um HMAC com a
+ * O `pedido_id` é o id da OS de comunicação visual (`comvis_os.id`); no PCP é o `os_id` com
+ * `os_tipo = comvis_os` (ADR 0431). O formato com o tipo da OS (para Repair e Oficina) é da
+ * thread 05 do playbook de Produção. O `business_hash` NÃO é o business_id: é um HMAC com a
  * APP_KEY, para que o QR não exponha nem permita adivinhar o id da empresa. Quem gera o QR no PDF
  * (PR 07 do playbook propostas-app) chama `codigo()`; quem lê chama `ler()`.
  *

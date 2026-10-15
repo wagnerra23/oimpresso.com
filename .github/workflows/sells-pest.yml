@@ -44,6 +44,7 @@ on:
       - 'app/Http/Controllers/Api/App/NotificacoesController.php'
       - 'app/Http/Controllers/Api/App/OficinaController.php'
       - 'app/Http/Controllers/Api/App/ProducaoController.php'
+      - 'Modules/Producao/Services/**'
       - 'app/Http/Controllers/Api/App/AgendamentoController.php'
       - 'Modules/OficinaAuto/Database/Migrations/2026_10_06_180000_create_oficina_agendamentos_table.php'
       - 'app/Http/Controllers/Api/App/VendaRapidaController.php'
@@ -165,6 +166,7 @@ jobs:
               - 'app/Http/Controllers/Api/App/NotificacoesController.php'
               - 'app/Http/Controllers/Api/App/OficinaController.php'
               - 'app/Http/Controllers/Api/App/ProducaoController.php'
+              - 'Modules/Producao/Services/**'
               - 'app/Http/Controllers/Api/App/AgendamentoController.php'
               - 'Modules/OficinaAuto/Database/Migrations/2026_10_06_180000_create_oficina_agendamentos_table.php'
               - 'app/Http/Controllers/Api/App/VendaRapidaController.php'
@@ -319,9 +321,10 @@ jobs:
         # 2026-10-15 — + AppAjustesEmpresaContratoTest (UC-APPAJ-01..05, PR 01 do playbook propostas-app):
         # `ajustes` do /api/app/inicio completo com padrão, tenant 98 × 2, e a aba "App das lojas" de
         # /business/settings (salvar desliga padrão ligado e não apaga chave que a aba não edita).
-        # 2026-10-15 — + AppProducaoApontamentoContratoTest (UC-APPAPT-01..08, PR 06 do playbook propostas-app):
-        # apontamento por QR com token — etiqueta da empresa × hash/OS do 99 → 404, app_apontamento_exige_qr,
-        # iniciar/finalizar/cancelar com Idempotency-Key, 409 em_andamento/etapa_mudou. NASCE SEM RUN.
+        # 2026-10-15 — + AppProducaoApontamentoContratoTest (UC-APPAPT-01..09, PR 06 do playbook propostas-app):
+        # apontamento por QR com token sobre o ApontamentoOperadorService do PCP (ADR 0431) — etiqueta da
+        # empresa × hash/OS do 99 → 404, app_apontamento_exige_qr, iniciar/pausar/concluir/corrigir com
+        # Idempotency-Key e hora do aparelho, 409 etapa_alheia/em_andamento. NASCE SEM RUN.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
