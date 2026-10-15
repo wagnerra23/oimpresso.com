@@ -52,6 +52,8 @@ on:
     paths:
       - 'Modules/Whatsapp/**'
       - 'resources/js/Pages/Whatsapp/**'
+      - 'app/Http/Controllers/Api/App/AtendimentoController.php'
+      - 'routes/api/app/atendimento.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/whatsapp-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -90,6 +92,8 @@ jobs:
             whatsapp:
               - 'Modules/Whatsapp/**'
               - 'resources/js/Pages/Whatsapp/**'
+              - 'app/Http/Controllers/Api/App/AtendimentoController.php'
+              - 'routes/api/app/atendimento.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/whatsapp-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -134,6 +138,9 @@ jobs:
         #   156 passed (395 assertions) - 0 failed - 0 skipped - 61.59s
         # Estado do banco IDENTICO antes e depois (business/users/channels/contacts/
         # transactions medidos no MESMO comando) -- nenhum dos 22 vaza linha.
+        # 2026-10-15 — + AppAtendimentoApiContratoTest (UC-APPAT-01..09, PR 18 do playbook propostas-app,
+        # tela 41 do app): /api/app/atendimento por cima da Caixa Unificada; trava LGPD sem consentimento,
+        # Idempotency-Key, tenant 98 x 2. Daemon falso (Http::fake) - nenhuma mensagem real sai.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -146,6 +153,7 @@ jobs:
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-whatsapp-junit.xml \
             Modules/Whatsapp/Tests/Feature/RegisterWhatsappPermissionsCommandTest.php \
+            Modules/Whatsapp/Tests/Feature/AppAtendimentoApiContratoTest.php \
             Modules/Whatsapp/Tests/Feature/EmployeePerformanceDiasAtivosTest.php \
             Modules/Whatsapp/Tests/Feature/ChannelDisplayIdentifierIndexTest.php \
             Modules/Whatsapp/Tests/Feature/CentrifugoPublishTest.php \

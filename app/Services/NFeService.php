@@ -269,7 +269,7 @@ class NFeService{
 
 					$stdICMS = new \stdClass();
 					$stdICMS->item = $itemCont; 
-					$stdICMS->orig = 0;
+					$stdICMS->orig = (int) ($i->product->origem_mercadoria ?? 0);
 					$stdICMS->CST = $i->product->cst_csosn;
 					$stdICMS->modBC = 0;
 					$stdICMS->vBC = $this->format($i->unit_price * $i->quantity);
@@ -287,7 +287,7 @@ class NFeService{
 					$stdICMS = new \stdClass();
 
 					$stdICMS->item = $itemCont; 
-					$stdICMS->orig = 0;
+					$stdICMS->orig = (int) ($i->product->origem_mercadoria ?? 0);
 					$stdICMS->CSOSN = $i->product->cst_csosn;
 
 					if($i->product->cst_csosn == '500'){

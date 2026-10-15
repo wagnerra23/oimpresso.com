@@ -79,6 +79,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 | UC-PIDX-21 | Produto que não controla estoque tem a aba Estoque no painel, com o aviso de que não gerencia estoque | could | protótipo (aba `estoque` do `DetalheDrawer`, ramo `stockOn` falso) | `produto-painel-detalhe.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-23 | Produto que sincroniza com o WooCommerce tem a marca ao lado do nome na lista | could | Blade (`ProductController@index`, coluna `product`: `fa-wordpress` quando `! woocommerce_disable_sync`) | `produto-lista-woocommerce.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-24 | Campos personalizados 1 a 7 como colunas opcionais da lista: só os que a empresa rotulou, com o valor do produto | could | Blade (`product/index.blade.php`: colunas `product_custom_field1..7`, `visible` só com rótulo) + protótipo (`PB_COLS_PADRAO.cf1 = false`) | `ProdutoListaConsultaTest` (Pest, roda em lane) + `produto-lista-campos-personalizados.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
+| UC-PIDX-25 | Aba Fiscal do painel: origem da mercadoria, texto de ajuda e "Abrir no módulo Fiscal" | could | protótipo (aba `fiscal` do `DetalheDrawer`) + emissão (`orig` fixo em 0) | `ProdutoDetalheTest` (Pest, roda em lane) + `produto-painel-detalhe.test.tsx` (Vitest) + `TributacaoIndexContratoTest` (UC-NFTR-29) | ⬜ nasce neste PR — verde esperado |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -412,6 +413,13 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 
 ---
 
+## UC-PIDX-25 · Aba Fiscal: origem da mercadoria, texto de ajuda e "Abrir no módulo Fiscal" · `could`
+- **Persona:** quem confere os dados fiscais de um produto antes de vender, sem abrir o cadastro.
+- **Aceite:** Dada a aba Fiscal do painel · Então ela mostra **Origem da mercadoria** depois dos CST e antes de "Imposto aplicável", com o código e o nome da tabela A (`0 — Nacional`) e o aviso de que a origem é a mesma em todas as notas · E um **texto de ajuda** que muda conforme o cadastro: sem NCM, diz que a nota usa o NCM padrão da empresa; com NCM, explica a ordem da regra (exceção do produto, regra do NCM, padrão da empresa); com CEST, avisa que a nota não troca o CFOP sozinha · E, para quem tem o NfeBrasil no pacote e a permissão `nfe.tributacao.manage`, o botão **"Abrir no módulo Fiscal"**, que leva à Tributação com o produto já escolhido no simulador (UC-NFTR-29). Sem módulo ou sem permissão, o botão não existe.
+- **Teste:** [`ProdutoDetalheTest`](../../../../tests/Feature/Produto/ProdutoDetalheTest.php) — `UC-PIDX-25` (origem e as três condições do link, na lane Estoque · MySQL); [`produto-painel-detalhe.test.tsx`](../../../../tests/js/produto-painel-detalhe.test.tsx) — `UC-PIDX-25` (não roda em lane). Mutação: voltar o texto do protótipo para produto sem NCM derruba o 5º caso do Vitest.
+- **Contrato:** protótipo `produto-blade.jsx`, aba `fiscal` do `DetalheDrawer` (NCM, CEST, CFOP, Origem, Imposto aplicável, Tipo de imposto, texto de ajuda e o botão). **Diferenças deliberadas, medidas no código:** (1) o cadastro não tem origem por produto — as duas emissões montam `'orig' => 0` para todo item (`Modules/NfeBrasil/Services/NfeService.php` e `app/Services/NFeService.php`); a tela mostra o valor que a nota usa e diz que vale para todos, em vez de inventar um campo. (2) O texto do protótipo chama de serviço todo produto sem NCM e diz que, com CEST, a nota sai com CFOP de substituído; a emissão não faz nem uma coisa nem outra (usa o NCM padrão da empresa e não lê o CEST), então o texto foi corrigido. (3) O protótipo leva a um "módulo Fiscal" do produto; a tela que existe é a Tributação do NfeBrasil, com o simulador.
+- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+
 ## Achados de governança (o trio prometia o que não tinha)
 
 > Não são bugs de comportamento — são **contratos frouxos** que deixariam a tela ser promovida
@@ -548,6 +556,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
+- 2026-10-15 · [F+C] **UC-PIDX-25** (aba Fiscal): entram a origem da mercadoria (o valor que a nota usa, com o aviso de que é o mesmo para todos), o texto de ajuda (corrigido onde o protótipo afirmava o que a emissão não faz) e "Abrir no módulo Fiscal", que leva à Tributação com o produto no simulador (UC-NFTR-29). Fecha três dos itens que o UC-PIDX-19 deixou como não feitos.
 - 2026-10-15 · [F+C] **UC-PIDX-24** (lista): os campos personalizados 1 a 7 já eram colunas opcionais (desde #9124) e não tinham teste; o caso entra com teste de servidor (comparado com a Blade) e de tela. A tabela de paridade deixa de dizer "ausente" para custom fields e selo WooCommerce, e perde a âncora errada `AR-PROD-040/041`.
 - 2026-10-15 · [F+C] **UC-PIDX-23** (lista): produto que sincroniza com o WooCommerce passa a ter a marca ao lado do nome, como a lista Blade; o dado (`woocommerce_sync`) já vinha do servidor.
 - 2026-10-15 · [CC] **só documentação:** D-1..D-4 e G-g marcados como resolvidos pela lista nova, com a evidência no código; 4 itens do backlog idem; nota na tabela de paridade com o que ainda falta (custom fields e selo WooCommerce). O SDD §1.1 deixa de dizer "zero live". Nenhum UC muda.

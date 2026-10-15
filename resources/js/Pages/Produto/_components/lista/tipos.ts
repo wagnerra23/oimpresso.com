@@ -195,6 +195,12 @@ export interface DetalheProdutoDados {
     cst_pis: string;
     cst_cofins: string;
     cst_ipi: string;
+    /** Código da tabela A da NF-e. Hoje é o que a emissão usa para todo item (UC-PIDX-25). */
+    origem: string;
+    /** false enquanto o cadastro não tiver origem por produto — a tela avisa que vale pra todos. */
+    origem_por_produto: boolean;
+    /** Tributação do NfeBrasil com este produto no simulador; null sem módulo ou sem permissão. */
+    link_modulo: string | null;
   };
   prateleiras: {
     colunas: { prateleira: boolean; fileira: boolean; posicao: boolean };
