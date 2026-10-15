@@ -78,6 +78,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 | UC-PIDX-20 | Painel: composição com "Total líquido", preço da composição e preços de cada item; imagens das variações e dos itens | should `[V0]` | Blade (`combo_product_details`, `variation_images`) + protótipo (`DetalheDrawer`, aba `composicao`) + REGRA MESTRE valor | `ProdutoDetalheTest` (Pest, roda em lane) + `produto-painel-detalhe.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-21 | Produto que não controla estoque tem a aba Estoque no painel, com o aviso de que não gerencia estoque | could | protótipo (aba `estoque` do `DetalheDrawer`, ramo `stockOn` falso) | `produto-painel-detalhe.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-23 | Produto que sincroniza com o WooCommerce tem a marca ao lado do nome na lista | could | Blade (`ProductController@index`, coluna `product`: `fa-wordpress` quando `! woocommerce_disable_sync`) | `produto-lista-woocommerce.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
+| UC-PIDX-24 | Campos personalizados 1 a 7 como colunas opcionais da lista: só os que a empresa rotulou, com o valor do produto | could | Blade (`product/index.blade.php`: colunas `product_custom_field1..7`, `visible` só com rótulo) + protótipo (`PB_COLS_PADRAO.cf1 = false`) | `ProdutoListaConsultaTest` (Pest, roda em lane) + `produto-lista-campos-personalizados.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -402,6 +403,13 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - **Contrato:** lista Blade, `ProductController@index` (coluna `product`): `if ($is_woocommerce && ! $row->woocommerce_disable_sync)` põe `<i class="fab fa-wordpress">` sob o nome. O protótipo não tem a marca (não desenha o WooCommerce na linha); a tela segue a Blade aqui. Ícone: `Globe` (lucide), porque o pacote não tem a marca do WordPress.
 - **Status: ⬜** — nasce neste PR; verde esperado. O arquivo de teste não roda em lane.
 
+## UC-PIDX-24 · Campos personalizados como colunas opcionais da lista · `could`
+- **Persona:** a empresa que usa campos personalizados no cadastro (cor, coleção, fornecedor de origem) quer ver esse dado na lista, sem abrir produto por produto.
+- **Aceite:** Dado que a empresa deu rótulo a um campo personalizado de 1 a 7 (rótulos personalizados da empresa) · Então o menu "Colunas" oferece aquele campo com o rótulo da empresa, desligado por padrão · Quando a pessoa liga · Então a coluna mostra o valor de cada produto, e traço quando o produto não tem. Campo sem rótulo não vira coluna. O servidor manda os campos 1 a 7 de cada linha com os mesmos valores das colunas da lista Blade; do 8 em diante, só no painel.
+- **Teste:** [`ProdutoListaConsultaTest`](../../../../tests/Feature/Produto/ProdutoListaConsultaTest.php) — `UC-PIDX-24` (roda na lane Estoque Pest), compara com o DataTable da Blade; [`produto-lista-campos-personalizados.test.tsx`](../../../../tests/js/produto-lista-campos-personalizados.test.tsx) — `UC-PIDX-24` (não roda em lane). Mutação: tirar a checagem do rótulo em `colunas.tsx` derruba o 4º caso do Vitest.
+- **Contrato:** lista Blade, `product/index.blade.php` (`product_custom_field1..7`, `visible: $('#cf_N').text().length > 0`, rótulo de `custom_labels.product.custom_field_N`). **Divergência deliberada da Blade, pelo protótipo:** na Blade a coluna rotulada aparece de início; aqui começa desligada no menu "Colunas" (`PB_COLS_PADRAO.cf1 = false` em `produto-blade.jsx`). É forma, e na forma o protótipo decide (UI-0029).
+- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+
 ---
 
 ## Achados de governança (o trio prometia o que não tinha)
@@ -464,6 +472,9 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 > WooCommerce sincronizado na linha (o filtro "WooCommerce habilitado" existe, o selo não).
 > _Atualização 2026-10-15 [F+C]: o selo do WooCommerce entrou com o **UC-PIDX-23** (marca ao lado
 > do nome)._
+> _Correção 2026-10-15 [F+C]: os custom fields **não faltavam** — a lista nova tem as colunas 1 a 7
+> desde 2026-10-10 (#9124), no menu "Colunas", só para os campos rotulados. Faltava o teste: entrou
+> com o **UC-PIDX-24**. A nota acima fica como estava (registro do dia)._
 
 > A lista React mostra 6 atributos por card. O **mesmo método** `index()`, no branch DataTables,
 > entrega 14 colunas + 7 filtros + 2 ações em massa. Cada linha é âncora que **não** deve sumir
@@ -475,12 +486,12 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 | **Imagem do produto** | coluna `image` (`:272-274`) | — | ausente (card usa ícone genérico) |
 | **Localizações do produto** | coluna `product_locations` (`:196-200`) | `AR-PROD-055` | ausente |
 | **Marca · unidade · imposto · tipo** | colunas `brand`/`unit`/`tax`/`type` | `AR-PROD-014` (Tipo) | só `unit` chega; resto ausente |
-| **20 custom fields** (7 na grade) | `:326-357` | `AR-PROD-040/041` | ausente |
+| **20 custom fields** (7 na grade) | `:326-357` | — _(a âncora `AR-PROD-040/041` que estava aqui é Plano de Contas e Marca, não campo personalizado)_ | ~~ausente~~ existe: colunas 1 a 7 no menu "Colunas" (só as rotuladas) e os 20 no painel — UC-PIDX-24 (2026-10-15) |
 | **Filtros: tipo · marca · unidade · imposto · localização · not-for-selling** | `resources/views/product/index.blade.php:21-110 (verificado@5d5cac0)` (7 filtros) | `AR-PROD-060` (filtros de consulta) | só categoria + inativos; charter declara Non-Goal p/ "filtros avançados" (backlog) |
 | **Seleção em massa + excluir/desativar selecionados** | `mass_delete` (`:276-278`) + `:438-496` | `AR-PROD-022` (soft-delete) | Non-Goal declarado no charter (`❌ Bulk actions`) — **ok, não é regressão** |
 | **Aba "Relatório de estoque"** (custo, valor de venda, lucro potencial) | 2ª tabela do mesmo Blade (`:617-670`) | `AR-PROD-051/061` | ausente · pareia com `CU-PROD-12` `[V0]` (agregação de valor) |
 | **Badge "não vendável"** (`not_for_selling`) | `:263-264` | — | ausente (só o badge "inativo" migrou) |
-| **Selo WooCommerce sincronizado** | `:266-268` | — | ausente |
+| **Selo WooCommerce sincronizado** | `:266-268` | — | ~~ausente~~ existe — UC-PIDX-23 (2026-10-15) |
 | **Ordenação por qualquer coluna** | DataTables server-side | `AR-PROD-062` (grid agrupável) | ausente (ordem fixa por nome) |
 
 ---
@@ -537,6 +548,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
+- 2026-10-15 · [F+C] **UC-PIDX-24** (lista): os campos personalizados 1 a 7 já eram colunas opcionais (desde #9124) e não tinham teste; o caso entra com teste de servidor (comparado com a Blade) e de tela. A tabela de paridade deixa de dizer "ausente" para custom fields e selo WooCommerce, e perde a âncora errada `AR-PROD-040/041`.
 - 2026-10-15 · [F+C] **UC-PIDX-23** (lista): produto que sincroniza com o WooCommerce passa a ter a marca ao lado do nome, como a lista Blade; o dado (`woocommerce_sync`) já vinha do servidor.
 - 2026-10-15 · [CC] **só documentação:** D-1..D-4 e G-g marcados como resolvidos pela lista nova, com a evidência no código; 4 itens do backlog idem; nota na tabela de paridade com o que ainda falta (custom fields e selo WooCommerce). O SDD §1.1 deixa de dizer "zero live". Nenhum UC muda.
 - 2026-10-14 · [F+C] **UC-PIDX-22** (lista e painel): produto sem foto passa a mostrar "IMG" na coluna Imagem e "Sem imagem" no painel, como no protótipo; o servidor manda `imagem = null` em vez da imagem genérica.
