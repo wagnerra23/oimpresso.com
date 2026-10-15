@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 36,
-    "nodes": 766,
-    "edges": 1062,
+    "nodes": 767,
+    "edges": 1063,
     "by_node_type": {
       "module": 40,
       "table": 108,
       "adr": 143,
-      "component": 397,
+      "component": 398,
       "api": 78
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 82,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 397,
+      "hasComponent": 398,
       "dependsOn": 120,
       "delegatesTo": 112,
       "migratesTo": 1,
@@ -3831,6 +3831,13 @@
       "module": "Producao",
       "name": "DataController",
       "desc": "3 hooks UltimatePOS (pacote superadmin, permissões; sem item de sidebar enquanto não houver tela)"
+    },
+    {
+      "id": "component:Producao/EtiquetaOsController",
+      "type": "component",
+      "module": "Producao",
+      "name": "EtiquetaOsController",
+      "desc": "PDF A4 da OS com o QR da etiqueta (E05 modelo a4_os; PR 07 propostas-app)"
     },
     {
       "id": "component:Producao/FerramentasController",
@@ -11546,6 +11553,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/EtiquetaOsController",
       "type": "hasComponent",
       "source": "contains"
     },
