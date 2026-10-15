@@ -396,7 +396,9 @@ class NfeService
      * Quantidade e preço vêm da linha (`unit_price_inc_tax` = o que o cliente
      * pagou por unidade, já com desconto de linha e imposto UPos).
      *
-     * @return list<array{sell_line_id:int|null,product_id:int|null,cprod:string,xprod:string,ncm:string,unidade:string,quantidade:float,valor_unitario:float}>
+     * `origem` = origem da mercadoria do produto (tabela A, 0–8 · DEFAULT 0 na coluna).
+     *
+     * @return list<array{sell_line_id:int|null,product_id:int|null,cprod:string,xprod:string,ncm:string,origem:int,unidade:string,quantidade:float,valor_unitario:float}>
      */
     protected function linhasDaVenda(int $businessId, int $transactionId): array
     {
@@ -409,7 +411,7 @@ class NfeService
             ->orderBy('tsl.id')
             ->get([
                 'tsl.id as sell_line_id', 'tsl.product_id', 'tsl.quantity', 'tsl.unit_price_inc_tax',
-                'p.name', 'p.sku', 'p.ncm', 'v.sub_sku', 'u.short_name',
+                'p.name', 'p.sku', 'p.ncm', 'p.origem_mercadoria', 'v.sub_sku', 'u.short_name',
             ]);
 
         $linhas = [];
@@ -420,6 +422,7 @@ class NfeService
                 'cprod'          => (string) ($r->sub_sku ?: $r->sku ?: $r->product_id),
                 'xprod'          => (string) $r->name,
                 'ncm'            => (string) ($r->ncm ?? ''),
+                'origem'         => (int) ($r->origem_mercadoria ?? 0),
                 'unidade'        => (string) ($r->short_name ?: 'UN'),
                 'quantidade'     => (float) $r->quantity,
                 'valor_unitario' => (float) $r->unit_price_inc_tax,
@@ -541,7 +544,9 @@ class NfeService
                 'cbenef'  => $tributo->c_benef,
                 'icms'    => [
                     'cst_csosn' => $tributo->csosn ?? $tributo->cst ?? '102',
-                    'orig'      => 0,
+                    // Origem do produto (tabela A). Linha montada sem a chave (teste, chamada
+                    // antiga) segue com 0 — a origem que toda nota usava.
+                    'orig'      => (int) ($it['origem'] ?? 0),
                     'vbc'       => $tributo->base_icms ?? 0,
                     'picms'     => $tributo->aliquota_icms,
                     'vicms'     => $tributo->valor_icms,

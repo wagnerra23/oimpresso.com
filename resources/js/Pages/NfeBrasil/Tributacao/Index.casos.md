@@ -491,6 +491,20 @@ last_run: "2026-10-14"
 - **Contrato:** playbook Fiscal thread 28 (R-FISC-042) · LC 87/1996 · LC 190/2022 · D-ENTRADA.
 - **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
+## UC-NFTR-29 · Vindo do painel de produto, o simulador abre com o produto escolhido · `could` `[T0]`
+
+- **Persona:** quem está na lista de produtos, na aba Fiscal do painel, e quer ver como a nota daquele
+  produto vai sair.
+- **Aceite:** Dado o link "Abrir no módulo Fiscal" do painel de produto (`/nfe-brasil/tributacao?produto={id}#simulador`)
+  · Então o simulador já abre com aquele produto escolhido; falta só o valor e a UF de destino.
+  Produto de outra empresa, id inválido ou sem o parâmetro: a tela abre como sempre, sem produto e sem erro.
+- **Teste:** [`TributacaoIndexContratoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/TributacaoIndexContratoTest.php) — `UC-NFTR-29 · …` (controle positivo com o produto da própria empresa; o do vizinho volta `null`).
+- **Contrato:** protótipo do Produto (`prototipo-ui/cowork/Felipe/produto-blade.jsx`, aba `fiscal` do
+  `DetalheDrawer`: botão "Abrir no módulo Fiscal", destino `fiscal-modulo` com o produto) + UC-PIDX-25 do
+  [`Produto/Index.casos.md`](../../Produto/Index.casos.md). O simulador é o mesmo do UC-NFTR-08: nada é
+  gravado, e o valor não é preenchido de antemão (quem simula digita).
+- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+
 ## Backlog — sem UC até ganhar teste
 
 > Prosa honesta, sem gate. Vira UC quando ganhar teste que o cite (G-2).

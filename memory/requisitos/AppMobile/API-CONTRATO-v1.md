@@ -50,12 +50,18 @@ Sem cadastro de ponto → `403 sem_colaborador`.
 
 `GET /api/app/pedidos/{id}` → o item acima + `itens_venda[{produto, quantidade, total}]`,
 `cliente{id, nome, telefone}`, `etapas[{grupo, rotulo, estado: feito|atual|futuro}]`,
-`acoes[{chave, rotulo, pode}]` (de `SaleFsmActionController::actions`, só leitura na v1).
+`acoes[{chave, rotulo, pode}]` — desde 2026-10-15 só as ações da lista segura que o app pode
+executar (antes listava todas as da etapa, só para leitura).
 
-**Escrita (não na 1ª entrega):** `POST /api/app/pedidos/{id}/acao {acao}` via
-`ExecuteStageActionService`. Várias ações reservam/baixam estoque ou cancelam cobrança — só entra
-com a regra mestre cumprida. Na v1 o app mostra o botão contextual desabilitado com "Abrir no
-computador".
+**Escrita:** `POST /api/app/pedidos/{id}/acao {acao, etapa_esperada, motivo}` via
+`ExecuteStageActionService`, só para as ações sem efeito em valor, estoque, cobrança ou fiscal. As
+que reservam/baixam estoque ou cancelam cobrança seguem só na web. Contrato:
+[api/tela-22-avancar-etapa.md](api/tela-22-avancar-etapa.md).
+
+**Entrega:** `POST /api/app/pedidos/{id}/entrega {itens, recebido_por, assinatura_png | sem_assinatura_motivo, lat, lng, etapa_esperada}`
+— protocolo `ENT-NNNN` por business, assinatura em `arquivos` e a ação `entregar` da FSM numa
+transação; o detalhe traz `entrega{pode}` e `itens_venda[].linha_id`. Contrato:
+[api/tela-22-entrega.md](api/tela-22-entrega.md).
 
 ### 2.1 Orçamentos (tela 04) — só leitura
 
@@ -278,6 +284,8 @@ Mesmos campos e regras do §4.2, **menos** `tipo` e `papeis` (mudar papel fica n
   colaborador com `controla_ponto`; `fiscal` = a regra de §10.2; `assistente` = quem conversa com a Jana (§12.4); `equipe` = quem vê a lista de usuários (§12.2); `ponto_gestor` = quem tem acesso ao módulo Ponto (§12.1); `financeiro` = a regra de §10.1; `relatorios` = algum bloco de §10.3 visível; `dashboard` = `dashboard.data` (§10.4); `pagamentos` = a regra do Financeiro (§10.5); `inicio` só para perfil `erp`; `mais` sempre.
   `perfil` = `erp` se tem tarefas, vendas, pessoas, financeiro, fiscal, relatórios ou dashboard, senão `colaborador`. `abre_em` = `inicio`
   (erp), `ponto` (colaborador) ou `mais` (sem nenhuma das duas).
+- `atendimento` (tela 41, P5): quem tem acesso ao atendimento WhatsApp da web (`whatsapp.access`, módulo no plano)
+  **e** enxerga um canal WhatsApp ligado; sem canal, a área não vem. Contrato: [api/tela-41-atendimento.md](api/tela-41-atendimento.md).
 
 - `faturado_hoje` e `meta_dia`: só com `dashboard.data` (senão `null`). Meta do dia = meta mensal
   da Jana ÷ dias úteis do mês (D11), sempre com `derivada: true`.

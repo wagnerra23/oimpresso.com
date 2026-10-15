@@ -34,6 +34,14 @@ class ApontamentoOperadorService
     public const PASSADO_TOLERADO_H = 72;
     public const EXCEDENTE_PENDENCIA_MIN = 30;
 
+    /** Tipos de `pcp_eventos` gravados aqui (texto livre na tabela; semântica em memory/dominio/producao.md). */
+    public const EV_ETAPA_INICIADA = 'etapa_iniciada';
+    public const EV_ETAPA_CONCLUIDA = 'etapa_concluida';
+    public const EV_AVISO_PROXIMO = 'aviso_proximo';
+    public const EV_FECHADO_AUTO = 'fechado_automaticamente';
+    public const EV_CORRECAO = 'correcao_solicitada';
+    public const EV_PENDENCIA_GESTOR = 'pendencia_gestor';
+
     public function __construct(
         private readonly ApontamentoService $base,
         private readonly TurnoService $turno,
@@ -118,7 +126,7 @@ class ApontamentoOperadorService
         if ($etapa->status === 'pendente') {
             $etapa->forceFill(['status' => 'iniciada'])->save();
         }
-        $this->evento($businessId, 'etapa_iniciada', $ap, $userId);
+        $this->evento($businessId, self::EV_ETAPA_INICIADA, $ap, $userId);
 
         return $ap;
     }
@@ -148,9 +156,9 @@ class ApontamentoOperadorService
             ->where('status', 'pendente')->where('id', '!=', $etapa->id)
             ->orderBy('inicio_previsto')->first() : null;
 
-        $this->evento($businessId, 'etapa_concluida', $fim, $userId);
+        $this->evento($businessId, self::EV_ETAPA_CONCLUIDA, $fim, $userId);
         if ($proxima?->user_id) {
-            $this->evento($businessId, 'aviso_proximo', $fim, (int) $proxima->user_id, ['programacao_id' => $proxima->id]);
+            $this->evento($businessId, self::EV_AVISO_PROXIMO, $fim, (int) $proxima->user_id, ['programacao_id' => $proxima->id]);
         }
 
         return $fim;
@@ -180,7 +188,7 @@ class ApontamentoOperadorService
             }
             $fim = $this->base->fechar($businessId, $inicio->id, (int) $inicio->iniciado_por,
                 "auto-{$inicio->id}", $origem, Carbon::instance($quando));
-            $this->evento($businessId, 'fechado_automaticamente', $fim, null, ['origem' => $origem]);
+            $this->evento($businessId, self::EV_FECHADO_AUTO, $fim, null, ['origem' => $origem]);
             $fechados++;
         }
         foreach ($pessoas as [$userId, $dia]) {
@@ -200,7 +208,7 @@ class ApontamentoOperadorService
         $dados = ['inicio_id' => $inicio->id, 'momento' => $this->hora($momento)->toIso8601String(), 'justificativa' => $justificativa, 'chave' => $chave];
 
         // Reenvio da fila: a mesma chave devolve o pedido já gravado; corpo diferente é conflito.
-        $existente = Evento::query()->where('business_id', $businessId)->where('tipo', 'correcao_solicitada')
+        $existente = Evento::query()->where('business_id', $businessId)->where('tipo', self::EV_CORRECAO)
             ->where('user_id', $userId)->where('dados->chave', $chave)->first();
         if ($existente) {
             $igual = array_intersect_key((array) $existente->dados, $dados) == $dados;
@@ -208,7 +216,7 @@ class ApontamentoOperadorService
             return $igual ? $existente : throw new ApontamentoRecusado(ApontamentoRecusado::IDEMPOTENCIA_CONFLITO, 'Esta chave já foi usada em outra correção.');
         }
 
-        return $this->evento($businessId, 'correcao_solicitada', $inicio, $userId, $dados);
+        return $this->evento($businessId, self::EV_CORRECAO, $inicio, $userId, $dados);
     }
 
     private function encerrar(string $tipo, int $businessId, int $userId, int $inicioId, string $chave, CarbonInterface $momento, ?int $motivoId): Apontamento
@@ -308,7 +316,7 @@ class ApontamentoOperadorService
         $apontado = (int) $pares->sum(fn ($p) => intdiv(max(0, strtotime($p->ate) - strtotime($p->de)), 60));
 
         if ($apontado > $presenca + self::EXCEDENTE_PENDENCIA_MIN) {
-            Evento::query()->create(['business_id' => $businessId, 'tipo' => 'pendencia_gestor', 'user_id' => $userId,
+            Evento::query()->create(['business_id' => $businessId, 'tipo' => self::EV_PENDENCIA_GESTOR, 'user_id' => $userId,
                 'dados' => ['dia' => $dia->toDateString(), 'apontado_minutos' => $apontado, 'presenca_minutos' => $presenca]]);
         }
     }
