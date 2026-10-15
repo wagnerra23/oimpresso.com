@@ -18,9 +18,9 @@ import { Stack } from '@/Components/layout';
 import { agoraIso, enviar, esvaziar, novaChave, pendentes } from './_lib/fila';
 
 interface Etapa { id: number; os_tipo: string; os_id: number; posto: string | null; tipo_custo: string | null; inicio_previsto: string; status: string }
-interface Aberto { id: number; programacao_id: number | null; os_tipo: string | null; os_id: number | null; posto: string | null; tipo_custo: string; desde: string }
+interface Aberto { id: number; posto_id: number; programacao_id: number | null; os_tipo: string | null; os_id: number | null; posto: string | null; tipo_custo: string; desde: string }
 interface Rodando { pessoa: Aberto | null; maquinas: Aberto[]; ponto: { entrada: string | null; saida: string | null } | null }
-interface Props { operador: { id: number; nome: string }; etapas?: Etapa[]; rodando?: Rodando; motivos?: Array<{ id: number; nome: string }> }
+interface Props { operador: { id: number; nome: string }; etapas?: Etapa[]; rodando?: Rodando; motivos?: Array<{ id: number; posto_id: number; nome: string }> }
 
 const hms = (s: number) => [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60].map((n) => String(n).padStart(2, '0')).join(':');
 
@@ -36,6 +36,7 @@ function Cronometro({ desde }: { desde: string }) {
 }
 
 export default function ApontamentoIndex({ operador, motivos = [] }: Props) {
+  // `motivos` é deferido junto com `rodando`; antes de chegar, a pausa fica desabilitada.
   const [codigo, setCodigo] = useState('');
   const [aviso, setAviso] = useState<string | null>(null);
   const [naFila, setNaFila] = useState(() => pendentes(operador.id));
@@ -126,8 +127,9 @@ export default function ApontamentoIndex({ operador, motivos = [] }: Props) {
   );
 }
 
-function Linha({ a, motivos, apontar }: { a: Aberto; motivos: Array<{ id: number; nome: string }>; apontar: (url: string, corpo?: Record<string, unknown>) => void }) {
+function Linha({ a, motivos: todos, apontar }: { a: Aberto; motivos: Array<{ id: number; posto_id: number; nome: string }>; apontar: (url: string, corpo?: Record<string, unknown>) => void }) {
   const [motivo, setMotivo] = useState('');
+  const motivos = todos.filter((m) => m.posto_id === a.posto_id); // E04 A4: só os do posto
   const maquina = a.tipo_custo === 'maquina';
   return (
     <Card><CardContent className="space-y-3 p-4">
