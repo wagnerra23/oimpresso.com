@@ -5,6 +5,8 @@ migracao_ui: "n/a — módulo novo, nasce Inertia (sem Blade)"
 contains:
   - "DataController — 3 hooks UltimatePOS (pacote superadmin, permissões; sem item de sidebar enquanto não houver tela)"
   - "InstallController — instalação 1-clique (ADR 0024)"
+not_contains:
+  - "Presença e saída do ponto (o apontamento só LÊ, D-PONTO) → Modules/Ponto"
 excludes:
   - "Dono da OS: a OS continua em Repair, ComunicacaoVisual e OficinaAuto (D-RELACAO, ADR 0431)"
   - "Receita e lista de materiais: Manufacturing segue fonte de material"
