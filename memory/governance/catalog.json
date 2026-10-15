@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 36,
-    "nodes": 763,
-    "edges": 1057,
+    "nodes": 767,
+    "edges": 1061,
     "by_node_type": {
       "module": 40,
       "table": 108,
       "adr": 143,
-      "component": 394,
+      "component": 398,
       "api": 78
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 82,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 394,
+      "hasComponent": 398,
       "dependsOn": 119,
       "delegatesTo": 111,
       "migratesTo": 1,
@@ -3826,6 +3826,13 @@
       "desc": ""
     },
     {
+      "id": "component:Producao/ColaboradorCustoController",
+      "type": "component",
+      "module": "Producao",
+      "name": "ColaboradorCustoController",
+      "desc": "custo-hora da pessoa, só com producao.desempenho.ver (E03)"
+    },
+    {
       "id": "component:Producao/DataController",
       "type": "component",
       "module": "Producao",
@@ -3833,11 +3840,32 @@
       "desc": "3 hooks UltimatePOS (pacote superadmin, permissões; sem item de sidebar enquanto não houver tela)"
     },
     {
+      "id": "component:Producao/FerramentasController",
+      "type": "component",
+      "module": "Producao",
+      "name": "FerramentasController",
+      "desc": "ferramentas com código QR (E03)"
+    },
+    {
       "id": "component:Producao/InstallController",
       "type": "component",
       "module": "Producao",
       "name": "InstallController",
       "desc": "instalação 1-clique (ADR 0024)"
+    },
+    {
+      "id": "component:Producao/PostosController",
+      "type": "component",
+      "module": "Producao",
+      "name": "PostosController",
+      "desc": "postos, máquinas e veículos, com os motivos de pausa e de refugo do posto (UC-PCV-33, E03)"
+    },
+    {
+      "id": "component:Producao/RoteirosController",
+      "type": "component",
+      "module": "Producao",
+      "name": "RoteirosController",
+      "desc": "roteiros por família, até 2 trilhas com junção nomeada (UC-PCV-13, thread 03)"
     },
     {
       "id": "component:ProductCatalogue/DataController",
@@ -4783,7 +4811,7 @@
       "id": "module:Producao",
       "type": "module",
       "module": "Producao",
-      "purpose": "Camada única de PCP: apontamento de produção por operação, pessoa e tempo, postos com capacidade e custo-hora por empresa, programação e gargalo. Em 2026-10-15 é só esqueleto — instalação, pacote do superadmin e permissões; nenhuma tabela, tela ou rota de negócio.",
+      "purpose": "Camada única de PCP: apontamento de produção por operação, pessoa e tempo, postos com capacidade e custo-hora por empresa, programação e gargalo. Nasceu em 2026-10-15 como esqueleto (ADR 0431); o fundo veio na thread 02 e os cadastros na 03.",
       "trust": "",
       "owner": "wagner",
       "permission_prefix": "",
@@ -11510,13 +11538,37 @@
     },
     {
       "from": "module:Producao",
+      "to": "component:Producao/ColaboradorCustoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
       "to": "component:Producao/DataController",
       "type": "hasComponent",
       "source": "contains"
     },
     {
       "from": "module:Producao",
+      "to": "component:Producao/FerramentasController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
       "to": "component:Producao/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/PostosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/RoteirosController",
       "type": "hasComponent",
       "source": "contains"
     },
