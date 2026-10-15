@@ -7,6 +7,17 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * `pcp_programacoes` — fundo do PCP (ADR 0431, thread 02). Escopo por empresa (ADR 0093).
+ *
+ * @property int $id
+ * @property int $business_id
+ * @property string $os_tipo
+ * @property int $os_id
+ * @property int $posto_id
+ * @property ?int $operacao_id
+ * @property ?int $user_id
+ * @property string $status
+ * @property \Illuminate\Support\Carbon $inicio_previsto
+ * @property \Illuminate\Support\Carbon $fim_previsto
  */
 class Programacao extends Model
 {
