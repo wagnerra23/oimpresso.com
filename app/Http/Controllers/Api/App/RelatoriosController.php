@@ -295,10 +295,11 @@ class RelatoriosController extends Controller
      */
     private function menoresMargens(int $bizId, CarbonImmutable $de, CarbonImmutable $ate, string|array $locais): array
     {
-        return $this->lucroPorVenda($bizId, $de, $ate, $locais)
-            ->havingRaw('receita > 0')
-            ->orderByRaw('lucro / receita')
-            ->orderBy('sale.id')
+        // Subconsulta: o MySQL não aceita o alias de um SUM numa expressão do ORDER BY.
+        return DB::query()->fromSub($this->lucroPorVenda($bizId, $de, $ate, $locais), 'v')
+            ->where('v.receita', '>', 0)
+            ->orderByRaw('v.lucro / v.receita')
+            ->orderBy('v.id')
             ->limit(self::MENORES_MARGENS)
             ->get()
             ->map(fn ($l) => [
