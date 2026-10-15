@@ -1,0 +1,16 @@
+{
+  "_": "A1 [CL] 2026-10-15 — playbook producao. Protótipo: rota `pcv-roteiros` (app.jsx → ProducaoCvPage view=roteiros). Roteiros (1ª família). Tema escuro (default do shell), 1440×900.",
+  "_mapa": "alvo:mapa --rota pcv-roteiros --raiz <.pcv-root | .pcv-root > .pcv-body> contra o espelho servido por servirEstatico, 2026-10-15: .pcv-root = div.pcv-ph · nav.ds-tabbar · div.pcv-body; .pcv-body.pcv-rot = nav.pcv-rot-l · div.pcv-rot-r",
+  "header": {
+    "seletor": ".pcv-root > .pcv-ph"
+  },
+  "abas": {
+    "seletor": ".pcv-root > .ds-tabbar"
+  },
+  "familias": {
+    "seletor": ".pcv-root > .pcv-body > .pcv-rot-l"
+  },
+  "fluxo": {
+    "seletor": ".pcv-root > .pcv-body > .pcv-rot-r"
+  }
+}

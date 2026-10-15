@@ -1,0 +1,230 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI Oimpresso Matriz Cert vence em breve 12 dias restantes IA 3 Visão geral G D Atendimento 6 Cadastro 3 Clientes G C Produtos 12 G P Fabricação 3 Comercial 4 CRM 14 G R Vendas 18 G V Oficina Auto 1 Vestuário 1 Finanças 4 Caixa G X Financeiro 11 G F Cobrança 1 Cobrança Recorrente 3 Fiscal 1 Fiscal 7 Produção 5 Painel de produção 6 Quadro Linha do tempo Custo real × orçado Instalação Roteiros ⋯ mais 1 Ordens de Serviço Entregas e instalação Comunicação Visual Assistência técnica 7 Estoque 3 Compras 4 Movimentações 6 G E Patrimônio 4 RH 3 Ponto HRM 7 Essenciais 6 Sistema 12 Auditoria Fluxos e regras Voz do Cliente Suporte 1 Usuários 3 Preferências Configurações 14 Relatórios 4 Arquivos 3 Base de Conhecimento Planilhas 1 Governança 3 Plataforma 1 WR Wagner Rocha Administrador COMUNICAÇÃO VISUAL · OS COMO PROJETO Produção 6 em produção · 1 atrasadas ou vencendo Nova OS do orçamento Painel Quadro Linha do tempo Custo real × orçado Instalação Apontamento Roteiros Impresso simples Lona impressa em sequência Adesivo impresso e recortado em sequência Placa rígida Placa em ACM com UV com etapas em paralelo Projeto com instalação Fachada em ACM + estrutura com etapas em paralelo Letra-caixa iluminada com etapas em paralelo Fachada em ACM + estrutura Projeto com instalação · vira as etapas da OS quando o orçamento é aprovado Ajustar tempos 1 Projeto e medição Arte e aprovação 2,0 h Em paralelo — as duas trilhas andam ao mesmo tempo e se juntam em Montagem na fábrica 2 Estrutura metálica Serralheria 6,0 h 3 Corte CNC do ACM Serralheria · Router CNC 2x3 3 chapas/h 4 Adesivo de aplicação Impressão · Roland VG3-640 9 m²/h 5 Laminação Acabamento · Laminadora a frio · só com laminação 30 m²/h 6 Montagem na fábrica Serralheria 2,0 h 7 Instalação em campo Instalação 6,0 h Tempo de máquina = quantidade ÷ capacidade do posto. Etapa marcada \"só com…\" entra na OS quando a opção vem marcada no orçamento. Por que no máximo duas trilhas Linha reta demais faz a impressão esperar a serralheria sem motivo. Fluxograma livre demais ninguém treina. O meio-termo: famílias prontas, até 2 trilhas que sempre se juntam, e opcionais ligados pelo orçamento. O operador nunca vê o roteiro inteiro — só \"minhas etapas de hoje\".",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 79,
+      "tokensMortos": []
+    },
+    "theme": "light",
+    "url": "http://127.0.0.1:5571/"
+  },
+  "clicar": [
+    ".sb-user-btn",
+    ".user-menu .um-cascade:has(.um-vibe-cur)",
+    ".um-sub .um-vibe[aria-pressed=\"false\"]",
+    ".sb-user-btn"
+  ],
+  "nos_totais": 880,
+  "quieto_ms": 2000,
+  "rota": "pcv-roteiros",
+  "secoes": {
+    "abas": {
+      "contraste": {
+        "fundo": "oklch(0.985 0.003 90)",
+        "fundo_de": "pcv-root",
+        "razao": 16.59,
+        "texto": "oklch(0.22 0.01 80)",
+        "y_fundo": 0.95578,
+        "y_texto": 0.010627
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.22 0.01 80)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px 24px"
+      },
+      "filhos": 7,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.985 0.003 90)",
+          "de": "pcv-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1180
+      },
+      "seletor": ".pcv-root > .ds-tabbar",
+      "truncado": false
+    },
+    "familias": {
+      "contraste": {
+        "fundo": "oklch(0.985 0.003 90)",
+        "fundo_de": "pcv-root",
+        "razao": 16.59,
+        "texto": "oklch(0.22 0.01 80)",
+        "y_fundo": 0.95578,
+        "y_texto": 0.010627
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.22 0.01 80)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "6px",
+        "padding": "0px"
+      },
+      "filhos": 8,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pcv-body"
+        },
+        {
+          "bg": "oklch(0.985 0.003 90)",
+          "de": "pcv-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "pcv-eyebrow",
+        "button",
+        "button",
+        "pcv-eyebrow",
+        "button",
+        "pcv-eyebrow",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 421,
+        "w": 260
+      },
+      "seletor": ".pcv-root > .pcv-body > .pcv-rot-l",
+      "truncado": false
+    },
+    "fluxo": {
+      "contraste": {
+        "fundo": "oklch(0.985 0.003 90)",
+        "fundo_de": "pcv-root",
+        "razao": 16.59,
+        "texto": "oklch(0.22 0.01 80)",
+        "y_fundo": 0.95578,
+        "y_texto": 0.010627
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.22 0.01 80)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "14px",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pcv-body"
+        },
+        {
+          "bg": "oklch(0.985 0.003 90)",
+          "de": "pcv-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "section",
+        "div"
+      ],
+      "rect": {
+        "h": 619,
+        "w": 856
+      },
+      "seletor": ".pcv-root > .pcv-body > .pcv-rot-r",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.985 0.003 90)",
+        "fundo_de": "pcv-root",
+        "razao": 16.59,
+        "texto": "oklch(0.22 0.01 80)",
+        "y_fundo": 0.95578,
+        "y_texto": 0.010627
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.22 0.01 80)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px 24px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.985 0.003 90)",
+          "de": "pcv-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "header"
+      ],
+      "rect": {
+        "h": 97,
+        "w": 1180
+      },
+      "seletor": ".pcv-root > .pcv-ph",
+      "truncado": false
+    }
+  },
+  "tela": "producao--roteiros--index-claro",
+  "url": "http://127.0.0.1:5571/",
+  "viewport": "1440x900"
+}

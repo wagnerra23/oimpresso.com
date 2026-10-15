@@ -1,0 +1,28 @@
+{
+  "_": "A1 [CL] 2026-10-15 — playbook producao. Protótipo: rota `pcv` (app.jsx → ProducaoCvPage view=painel). Painel (vista padrão). Tema escuro (default do shell), 1440×900.",
+  "_mapa": "alvo:mapa --rota pcv --raiz <.pcv-root | .pcv-root > .pcv-body> contra o espelho servido por servirEstatico, 2026-10-15: .pcv-root = div.pcv-ph · nav.ds-tabbar · div.pcv-body; .pcv-body = div.pcv-kpis · div.pcv-alertas · section (Fila de aprovação de arte) · section (Acontecendo agora) · div.pcv-grid2 (Carga das máquinas · Aproveitamento de mídia) · section (Produtividade por setor)",
+  "header": {
+    "seletor": ".pcv-root > .pcv-ph"
+  },
+  "abas": {
+    "seletor": ".pcv-root > .ds-tabbar"
+  },
+  "kpis": {
+    "seletor": ".pcv-root > .pcv-body > .pcv-kpis"
+  },
+  "alertas": {
+    "seletor": ".pcv-root > .pcv-body > .pcv-alertas"
+  },
+  "fila_arte": {
+    "seletor": ".pcv-root > .pcv-body > section:nth-child(3)"
+  },
+  "acontecendo": {
+    "seletor": ".pcv-root > .pcv-body > section:nth-child(4)"
+  },
+  "carga_midia": {
+    "seletor": ".pcv-root > .pcv-body > .pcv-grid2"
+  },
+  "produtividade": {
+    "seletor": ".pcv-root > .pcv-body > section:nth-child(6)"
+  }
+}

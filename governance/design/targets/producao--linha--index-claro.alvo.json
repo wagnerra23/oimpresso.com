@@ -1,0 +1,340 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI Oimpresso Matriz Cert vence em breve 12 dias restantes IA 3 Visão geral G D Atendimento 6 Cadastro 3 Clientes G C Produtos 12 G P Fabricação 3 Comercial 4 CRM 14 G R Vendas 18 G V Oficina Auto 1 Vestuário 1 Finanças 4 Caixa G X Financeiro 11 G F Cobrança 1 Cobrança Recorrente 3 Fiscal 1 Fiscal 7 Produção 5 Painel de produção 6 Quadro Linha do tempo Custo real × orçado Instalação Apontamento ⋯ mais 1 Ordens de Serviço Entregas e instalação Comunicação Visual Assistência técnica 7 Estoque 3 Compras 4 Movimentações 6 G E Patrimônio 4 RH 3 Ponto HRM 7 Essenciais 6 Sistema 12 Auditoria Fluxos e regras Voz do Cliente Suporte 1 Usuários 3 Preferências Configurações 14 Relatórios 4 Arquivos 3 Base de Conhecimento Planilhas 1 Governança 3 Plataforma 1 WR Wagner Rocha Administrador COMUNICAÇÃO VISUAL · OS COMO PROJETO Produção 6 em produção · 1 atrasadas ou vencendo Nova OS do orçamento Painel Quadro Linha do tempo Custo real × orçado Instalação Apontamento Roteiros Todas Atrasadas ou vencendo 1 Travadas por arte 2 Urgentes 4 Qualquer responsável Diego Marcos Ana Felipe Larissa Hoje, 15/10 Amanhã, 16/10 Arraste um bloco para mudar o horário ou levar para outra máquina do mesmo setor. No teclado: Alt + setas. Tracejado = travado por arte · borda vermelha = passa do turno (18h). Máquina 08 h 09 h 10 h 11 h 12 h 13 h 14 h 15 h 16 h 17 h 18 h 19 h HP Latex 365 12 m²/h · Diego · 3,1 h OS-2603 Supermercado Bom Preço OS-2619 Agência Norte OS-2598 Construtora Alicerce Roland VG3-640 9 m²/h · Diego · 10,4 h OS-2611 Rota Livre Transportes OS-2608 Padaria Pão Dourado OS-2611 Rota Livre Transportes Mimaki UJF-6042 4 m²/h · Paula · 3,6 h OS-2614 Clínica Sorriso Plotter de recorte GR2 20 m/h · Felipe · 2,5 h OS-2611 Rota Livre Transportes Laminadora a frio 30 m²/h · Felipe · 0,7 h OS-2611 Rota Livre Transportes Router CNC 2x3 3 chapas/h · Marcos · 7,6 h OS-2608 Padaria Pão Dourado OS-2614 Clínica Sorriso OS-2617 Academia Força Total Bancada de solda — · Marcos · 8,0 h OS-2617 Academia Força Total Eventos das máquinas hoje todas as máquinas — clique numa máquina para filtrar Baixou 58 m² de vinil branco brilho 15/10 11:14 · Diego · Roland VG3-640 OS-2611 Pausou Corte CNC do ACM — troca de fresa 15/10 10:31 · Marcos · Router CNC 2x3 OS-2608 Iniciou Impressão eco-solvente (QR na máquina) 15/10 08:05 · Diego · Roland VG3-640 OS-2611 Iniciou Corte CNC do ACM 15/10 08:00 · Marcos · Router CNC 2x3 OS-2608 Sugestão de reprogramação Mover OS-2608 (1,1 h) da Roland VG3-640 para a HP Latex 365 às 10:45 tira a Roland do vermelho (10,4 h → 9,3 h) sem atrasar a fachada. Ou arraste o bloco você mesmo. Aplicar",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 79,
+      "tokensMortos": []
+    },
+    "theme": "light",
+    "url": "http://127.0.0.1:5571/"
+  },
+  "clicar": [
+    ".sb-user-btn",
+    ".user-menu .um-cascade:has(.um-vibe-cur)",
+    ".um-sub .um-vibe[aria-pressed=\"false\"]",
+    ".sb-user-btn"
+  ],
+  "nos_totais": 983,
+  "quieto_ms": 2000,
+  "rota": "pcv-linha",
+  "secoes": {
+    "abas": {
+      "contraste": {
+        "fundo": "oklch(0.985 0.003 90)",
+        "fundo_de": "pcv-root",
+        "razao": 16.59,
+        "texto": "oklch(0.22 0.01 80)",
+        "y_fundo": 0.95578,
+        "y_texto": 0.010627
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.22 0.01 80)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px 24px"
+      },
+      "filhos": 7,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.985 0.003 90)",
+          "de": "pcv-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1180
+      },
+      "seletor": ".pcv-root > .ds-tabbar",
+      "truncado": false
+    },
+    "barra": {
+      "contraste": {
+        "fundo": "oklch(0.985 0.003 90)",
+        "fundo_de": "pcv-root",
+        "razao": 16.59,
+        "texto": "oklch(0.22 0.01 80)",
+        "y_fundo": 0.95578,
+        "y_texto": 0.010627
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.22 0.01 80)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pcv-body"
+        },
+        {
+          "bg": "oklch(0.985 0.003 90)",
+          "de": "pcv-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "pcv-help"
+      ],
+      "rect": {
+        "h": 60,
+        "w": 1132
+      },
+      "seletor": ".pcv-root > .pcv-body > .pcv-bar",
+      "truncado": false
+    },
+    "eventos_maquinas": {
+      "contraste": {
+        "fundo": "rgb(255, 255, 255)",
+        "fundo_de": "proprio",
+        "razao": 17.32,
+        "texto": "oklch(0.22 0.01 80)",
+        "y_fundo": 1,
+        "y_texto": 0.010627
+      },
+      "estilo": {
+        "backgroundColor": "rgb(255, 255, 255)",
+        "borderRadius": "12px",
+        "color": "oklch(0.22 0.01 80)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgb(255, 255, 255)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "header",
+        "div"
+      ],
+      "rect": {
+        "h": 279,
+        "w": 1132
+      },
+      "seletor": ".pcv-root > .pcv-body > section:nth-child(4)",
+      "truncado": false
+    },
+    "filtro": {
+      "contraste": {
+        "fundo": "oklch(0.985 0.003 90)",
+        "fundo_de": "pcv-root",
+        "razao": 16.59,
+        "texto": "oklch(0.22 0.01 80)",
+        "y_fundo": 0.95578,
+        "y_texto": 0.010627
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.22 0.01 80)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "0px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pcv-body"
+        },
+        {
+          "bg": "oklch(0.985 0.003 90)",
+          "de": "pcv-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "pcv-filtro-q",
+        "div",
+        "pcv-filtro-r"
+      ],
+      "rect": {
+        "h": 34,
+        "w": 1132
+      },
+      "seletor": ".pcv-root > .pcv-body > .pcv-filtro",
+      "truncado": false
+    },
+    "gantt": {
+      "contraste": {
+        "fundo": "rgb(255, 255, 255)",
+        "fundo_de": "proprio",
+        "razao": 17.32,
+        "texto": "oklch(0.22 0.01 80)",
+        "y_fundo": 1,
+        "y_texto": 0.010627
+      },
+      "estilo": {
+        "backgroundColor": "rgb(255, 255, 255)",
+        "borderRadius": "8px",
+        "color": "oklch(0.22 0.01 80)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 8,
+      "fundoCadeia": [
+        {
+          "bg": "rgb(255, 255, 255)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "pcv-g-row",
+        "pcv-g-row",
+        "pcv-g-row",
+        "pcv-g-row",
+        "pcv-g-row",
+        "pcv-g-row",
+        "pcv-g-row",
+        "pcv-g-row"
+      ],
+      "rect": {
+        "h": 398,
+        "w": 1132
+      },
+      "seletor": ".pcv-root > .pcv-body > .pcv-gantt",
+      "truncado": true
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.985 0.003 90)",
+        "fundo_de": "pcv-root",
+        "razao": 16.59,
+        "texto": "oklch(0.22 0.01 80)",
+        "y_fundo": 0.95578,
+        "y_texto": 0.010627
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.22 0.01 80)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px 24px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.985 0.003 90)",
+          "de": "pcv-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "header"
+      ],
+      "rect": {
+        "h": 97,
+        "w": 1180
+      },
+      "seletor": ".pcv-root > .pcv-ph",
+      "truncado": false
+    },
+    "sugestao": {
+      "contraste": {
+        "motivo": "nenhum ancestral com fundo opaco (último: oklab(0.55 0.0633927 -0.135946 / 0.06), alfa 0.06)"
+      },
+      "estilo": {
+        "backgroundColor": "oklab(0.55 0.0633927 -0.135946 / 0.06)",
+        "borderRadius": "8px",
+        "color": "oklch(0.22 0.01 80)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "11px",
+        "padding": "12px 14px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklab(0.55 0.0633927 -0.135946 / 0.06)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "span",
+        "div"
+      ],
+      "rect": {
+        "h": 98,
+        "w": 1132
+      },
+      "seletor": ".pcv-root > .pcv-body > div:nth-child(5)",
+      "truncado": false
+    }
+  },
+  "tela": "producao--linha--index-claro",
+  "url": "http://127.0.0.1:5571/",
+  "viewport": "1440x900"
+}

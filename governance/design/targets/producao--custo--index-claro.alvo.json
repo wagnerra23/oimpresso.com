@@ -1,0 +1,264 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI Oimpresso Matriz Cert vence em breve 12 dias restantes IA 3 Visão geral G D Atendimento 6 Cadastro 3 Clientes G C Produtos 12 G P Fabricação 3 Comercial 4 CRM 14 G R Vendas 18 G V Oficina Auto 1 Vestuário 1 Finanças 4 Caixa G X Financeiro 11 G F Cobrança 1 Cobrança Recorrente 3 Fiscal 1 Fiscal 7 Produção 5 Painel de produção 6 Quadro Linha do tempo Custo real × orçado Instalação Apontamento ⋯ mais 1 Ordens de Serviço Entregas e instalação Comunicação Visual Assistência técnica 7 Estoque 3 Compras 4 Movimentações 6 G E Patrimônio 4 RH 3 Ponto HRM 7 Essenciais 6 Sistema 12 Auditoria Fluxos e regras Voz do Cliente Suporte 1 Usuários 3 Preferências Configurações 14 Relatórios 4 Arquivos 3 Base de Conhecimento Planilhas 1 Governança 3 Plataforma 1 WR Wagner Rocha Administrador COMUNICAÇÃO VISUAL · OS COMO PROJETO Produção 6 em produção · 1 atrasadas ou vencendo Nova OS do orçamento Painel Quadro Linha do tempo Custo real × orçado Instalação Apontamento Roteiros Orçado em produção R$ 36.290,00 Gasto até agora R$ 23.060,00 hora apontada + material baixado Acima do esperado 4 OS gasto > 105% do previsto para o progresso Sobra nas OS fechadas R$ 240,00 1 OS prontas Perdas por motivo últimos 30 dias · R$ 905,00 Banding / falha de cabeça R$ 450,00 Erro de arte R$ 210,00 Cor fora do padrão R$ 151,00 Medida errada R$ 94,00 Perdas por máquina onde o refugo nasce HP Latex 365 R$ 450,00 Router CNC 2x3 R$ 210,00 Roland VG3-640 R$ 151,00 Plotter de recorte GR2 R$ 94,00 Por OS o esperado é o orçado × o progresso — compara o que já deveria ter custado OS Cliente Progresso Orçado Esperado agora Real Desvio Abrir OS-2611 Rota Livre Transportes 45 % R$ 6.880,00 R$ 3.096,00 R$ 5.210,00 +68 % Abrir OS-2608 Padaria Pão Dourado 49 % R$ 9.400,00 R$ 4.606,00 R$ 8.120,00 +76 % Abrir OS-2614 Clínica Sorriso 14 % R$ 3.120,00 R$ 436,80 R$ 380,00 -13 % Abrir OS-2603 Supermercado Bom Preço 89 % R$ 4.320,00 R$ 3.844,80 R$ 4.610,00 +20 % Abrir OS-2617 Academia Força Total 8 % R$ 7.650,00 R$ 612,00 R$ 900,00 +47 % Abrir OS-2619 Agência Norte 27 % R$ 960,00 R$ 259,20 R$ 120,00 -54 % Abrir OS-2598 Construtora Alicerce 100 % R$ 3.960,00 R$ 3.960,00 R$ 3.720,00 -6 % Abrir",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 79,
+      "tokensMortos": []
+    },
+    "theme": "light",
+    "url": "http://127.0.0.1:5571/"
+  },
+  "clicar": [
+    ".sb-user-btn",
+    ".user-menu .um-cascade:has(.um-vibe-cur)",
+    ".um-sub .um-vibe[aria-pressed=\"false\"]",
+    ".sb-user-btn"
+  ],
+  "nos_totais": 953,
+  "quieto_ms": 2000,
+  "rota": "pcv-custo",
+  "secoes": {
+    "abas": {
+      "contraste": {
+        "fundo": "oklch(0.985 0.003 90)",
+        "fundo_de": "pcv-root",
+        "razao": 16.59,
+        "texto": "oklch(0.22 0.01 80)",
+        "y_fundo": 0.95578,
+        "y_texto": 0.010627
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.22 0.01 80)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px 24px"
+      },
+      "filhos": 7,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.985 0.003 90)",
+          "de": "pcv-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1180
+      },
+      "seletor": ".pcv-root > .ds-tabbar",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.985 0.003 90)",
+        "fundo_de": "pcv-root",
+        "razao": 16.59,
+        "texto": "oklch(0.22 0.01 80)",
+        "y_fundo": 0.95578,
+        "y_texto": 0.010627
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.22 0.01 80)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px 24px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.985 0.003 90)",
+          "de": "pcv-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "header"
+      ],
+      "rect": {
+        "h": 97,
+        "w": 1180
+      },
+      "seletor": ".pcv-root > .pcv-ph",
+      "truncado": false
+    },
+    "kpis": {
+      "contraste": {
+        "fundo": "oklch(0.985 0.003 90)",
+        "fundo_de": "pcv-root",
+        "razao": 16.59,
+        "texto": "oklch(0.22 0.01 80)",
+        "y_fundo": 0.95578,
+        "y_texto": 0.010627
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.22 0.01 80)",
+        "display": "grid",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "12px",
+        "padding": "0px"
+      },
+      "filhos": 4,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pcv-body"
+        },
+        {
+          "bg": "oklch(0.985 0.003 90)",
+          "de": "pcv-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "div",
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 98,
+        "w": 1132
+      },
+      "seletor": ".pcv-root > .pcv-body > .pcv-kpis",
+      "truncado": false
+    },
+    "perdas": {
+      "contraste": {
+        "fundo": "oklch(0.985 0.003 90)",
+        "fundo_de": "pcv-root",
+        "razao": 16.59,
+        "texto": "oklch(0.22 0.01 80)",
+        "y_fundo": 0.95578,
+        "y_texto": 0.010627
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.22 0.01 80)",
+        "display": "grid",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "16px",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pcv-body"
+        },
+        {
+          "bg": "oklch(0.985 0.003 90)",
+          "de": "pcv-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "section",
+        "section"
+      ],
+      "rect": {
+        "h": 199,
+        "w": 1132
+      },
+      "seletor": ".pcv-root > .pcv-body > .pcv-grid2",
+      "truncado": false
+    },
+    "por_os": {
+      "contraste": {
+        "fundo": "rgb(255, 255, 255)",
+        "fundo_de": "proprio",
+        "razao": 17.32,
+        "texto": "oklch(0.22 0.01 80)",
+        "y_fundo": 1,
+        "y_texto": 0.010627
+      },
+      "estilo": {
+        "backgroundColor": "rgb(255, 255, 255)",
+        "borderRadius": "12px",
+        "color": "oklch(0.22 0.01 80)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgb(255, 255, 255)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "header",
+        "div"
+      ],
+      "rect": {
+        "h": 455,
+        "w": 1132
+      },
+      "seletor": ".pcv-root > .pcv-body > section:nth-child(3)",
+      "truncado": false
+    }
+  },
+  "tela": "producao--custo--index-claro",
+  "url": "http://127.0.0.1:5571/",
+  "viewport": "1440x900"
+}
