@@ -251,8 +251,8 @@ it('UC-APPAT-06: dentro da janela responde mesmo sem consentimento; mesma chave 
     expect(appatChamadasAoDaemon())->toBe(1);
     expect(DB::table('messages')->where('conversation_id', $conv)->where('direction', 'outbound')->count())->toBe(1);
 
-    // Sem chave → validação, sem envio.
-    $this->postJson("/api/app/atendimento/{$conv}/mensagens", ['texto' => 'x'])
+    // Sem chave → validação, sem envio. (withHeader vale para as requisições seguintes do caso.)
+    $this->flushHeaders()->postJson("/api/app/atendimento/{$conv}/mensagens", ['texto' => 'x'])
         ->assertStatus(422)->assertJsonPath('erro', 'validacao');
     expect(appatChamadasAoDaemon())->toBe(1);
 });
