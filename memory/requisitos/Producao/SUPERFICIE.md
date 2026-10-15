@@ -14,7 +14,7 @@ module: Producao
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Producao/**` + `resources/js/Pages/Producao/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 52 arquivos em 14 papéis.
+**Total mapeado:** 54 arquivos em 15 papéis.
 
 ## Controllers — 7
 
@@ -50,6 +50,10 @@ module: Producao
 - [Roteiro.php](../../../Modules/Producao/Entities/Roteiro.php)
 - [RoteiroEtapa.php](../../../Modules/Producao/Entities/RoteiroEtapa.php)
 - [Turno.php](../../../Modules/Producao/Entities/Turno.php)
+
+## Console / Commands — 1
+
+- [FecharTurnoCommand.php](../../../Modules/Producao/Console/FecharTurnoCommand.php)
 
 ## Providers — 2
 
@@ -93,9 +97,9 @@ module: Producao
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/Index.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.casos.md)
 
-## Testes (Pest) — 5
+## Testes (Pest) — 6
 
-- 5 em [Modules/Producao/Tests/Feature/](../../../Modules/Producao/Tests/Feature)
+- 6 em [Modules/Producao/Tests/Feature/](../../../Modules/Producao/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 6

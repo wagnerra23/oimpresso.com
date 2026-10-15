@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 36,
-    "nodes": 770,
-    "edges": 1066,
+    "nodes": 771,
+    "edges": 1067,
     "by_node_type": {
       "module": 40,
       "table": 108,
       "adr": 143,
-      "component": 400,
+      "component": 401,
       "api": 79
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 83,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 400,
+      "hasComponent": 401,
       "dependsOn": 120,
       "delegatesTo": 112,
       "migratesTo": 1,
@@ -3853,6 +3853,13 @@
       "module": "Producao",
       "name": "DataController",
       "desc": "3 hooks UltimatePOS (pacote superadmin, permissões; sem item de sidebar enquanto não houver tela)"
+    },
+    {
+      "id": "component:Producao/FecharTurnoCommand",
+      "type": "component",
+      "module": "Producao",
+      "name": "FecharTurnoCommand",
+      "desc": "producao:fechar-turno a cada 15 min, fecha o cronômetro esquecido no fim do turno ou na saída do ponto"
     },
     {
       "id": "component:Producao/FerramentasController",
@@ -11587,6 +11594,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/FecharTurnoCommand",
       "type": "hasComponent",
       "source": "contains"
     },
