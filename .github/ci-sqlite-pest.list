@@ -672,3 +672,4 @@ tests/Feature/Install/InstalacaoSoPorPostTest.php
 tests/Feature/Site/PrivacidadeAppContratoTest.php
 tests/Feature/Modules/OficinaAuto/PlacaStubForaDeProducaoTest.php
 tests/Feature/Modules/ModuleManagerServiceTest.php
+Modules/Producao/Tests/Feature/ProducaoModuloAtivacaoTest.php

@@ -148,13 +148,13 @@
     },
     "ghost_count": {
       "status": "measured",
-      "value": 12,
+      "value": 10,
       "unit": "nomes distintos",
       "direction": "down",
       "target": 0,
       "source": "scripts/governance/knowledge-drift.mjs --json (Modules/<X> citado e inexistente no disco; nomes: rodar a fonte direto)",
       "detail": {
-        "citing_modules": 26
+        "citing_modules": 25
       },
       "stream": "KL"
     },
@@ -256,10 +256,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 80,
+        "entries_aprovadas": 81,
         "max_error_rate_pct": 1.98,
-        "last_pr": 8969,
-        "last_lote": "gt-g5-lote-8969"
+        "last_pr": 9433,
+        "last_lote": "gt-g5-lote-9433"
       },
       "stream": "GT"
     }

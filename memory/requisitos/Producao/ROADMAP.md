@@ -7,7 +7,7 @@ audience: Wagner
 fator_estimate: 10x IA-pair (ADR 0106) + margem 2x; tarefas humano-limitadas (canary 7d, smoke real) mantém relógio mundo real
 ---
 
-# ROADMAP — Modules/Pcp (5 fases sequenciais)
+# ROADMAP — Modules/Producao (5 fases sequenciais)
 
 ## Pré-requisitos (bloqueadores)
 
@@ -114,7 +114,7 @@ fator_estimate: 10x IA-pair (ADR 0106) + margem 2x; tarefas humano-limitadas (ca
 |---|---|
 | **PWA câmera iOS Safari quirks** | Capacitor wrap fallback como Plano B (US-PCP-009 mantém PWA como default; Capacitor wrap apenas se >2 dispositivos quebrarem) |
 | **Operador esquece stop → appointment vazio 24h+** | Cron `pcp:auto-close-stale-appointments` daily 23h BRT força close + alerta gerente |
-| **Cross-tenant leak via `Modules/IProduction` legacy permission `iproduction.*`** | Audit + delete Modules/IProduction (D1 opção c) limpa zombie ANTES de Fase 1 |
+| **Cross-tenant leak via `IProduction` legacy permission `iproduction.*`** | Audit + delete IProduction (D1 opção c) limpa zombie ANTES de Fase 1 |
 | **FSM action intermediária quebrar transição automática `concluir_producao`** | Pest exhaustive: "100% operações done deve disparar transição" + 0143 `fsm:scan-drift` detecta orphan |
 | **Sinal qualificado piloto não chegar até jul/2026** | Re-priorizar — Vestuario (ROTA LIVRE biz=4) tem PCP simples (costura) que pode validar Fase 1-3 mesmo sem Vargas/Extreme |
 | **LGPD performance operador exposição indevida** | Permission `pcp.performance.view` gate + PII redactor logs + audit log access |

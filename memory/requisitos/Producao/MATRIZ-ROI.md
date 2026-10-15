@@ -6,7 +6,7 @@ status: discovery 2026-05-12
 audience: Wagner (decisão priorização)
 ---
 
-# MATRIZ-ROI — Modules/Pcp (cross-vertical apontamento)
+# MATRIZ-ROI — Modules/Producao (cross-vertical apontamento)
 
 > 20 US-PCP × concorrentes BR/USA. Score 0-3 (0=ausente, 1=básico, 2=competitivo, 3=estado-da-arte).
 > Concorrência BR pesquisada via WebSearch + research clientes-legacy.
