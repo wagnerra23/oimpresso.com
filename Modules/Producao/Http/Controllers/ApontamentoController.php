@@ -41,7 +41,7 @@ class ApontamentoController extends Controller
         [$biz, $user] = $this->operador($request);
 
         return Inertia::render('Producao/Apontamento/Index', [
-            'operador' => ['id' => $user, 'nome' => (string) User::query()->whereKey($user)->value('first_name')],
+            'operador' => ['id' => $user, 'nome' => (string) User::query()->where('business_id', $biz)->whereKey($user)->value('first_name')],
             'etapas' => Inertia::defer(fn () => $this->etapas($biz, $user)),
             'rodando' => Inertia::defer(fn () => $this->rodando($biz, $user)),
             'motivos' => Inertia::defer(fn () => $this->motivos($biz)),
@@ -55,7 +55,7 @@ class ApontamentoController extends Controller
 
         return $this->responder(function () use ($biz, $user, $d) {
             $r = $this->svc->resolverQr($biz, $user, $d['os_tipo'], (int) $d['os_id'], $d['programacao_id'] ?? null);
-            $nome = $r['programacao']->user_id ? User::query()->whereKey($r['programacao']->user_id)->value('first_name') : null;
+            $nome = $r['programacao']->user_id ? User::query()->where('business_id', $biz)->whereKey($r['programacao']->user_id)->value('first_name') : null;
 
             return ['pode_apontar' => $r['pode_apontar'], 'etapa' => $this->etapa($biz, $r['programacao']), 'responsavel' => $nome];
         });
