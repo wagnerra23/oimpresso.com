@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 36,
-    "nodes": 768,
-    "edges": 1064,
+    "nodes": 770,
+    "edges": 1066,
     "by_node_type": {
       "module": 40,
       "table": 108,
       "adr": 143,
-      "component": 398,
+      "component": 400,
       "api": 79
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 83,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 398,
+      "hasComponent": 400,
       "dependsOn": 120,
       "delegatesTo": 112,
       "migratesTo": 1,
@@ -1893,6 +1893,13 @@
       "module": "ComunicacaoVisual",
       "name": "ApontamentoController",
       "desc": ""
+    },
+    {
+      "id": "component:ComunicacaoVisual/AppOrcamentoRapidoController",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "AppOrcamentoRapidoController",
+      "desc": "PR 16 propostas-app)"
     },
     {
       "id": "component:ComunicacaoVisual/DataController",
@@ -4329,6 +4336,13 @@
       "module": "Whatsapp",
       "name": "Admin/TemplatesController",
       "desc": "sync HSM Meta + criar template LOCAL Z-API/Baileys"
+    },
+    {
+      "id": "component:Whatsapp/Api/AppAtendimentoController",
+      "type": "component",
+      "module": "Whatsapp",
+      "name": "Api/AppAtendimentoController",
+      "desc": "atendimento WhatsApp do app das lojas, /api/app/atendimento (tela 41, PR 18 propostas-app); implementa o contrato App/Contracts/Atendimento/AtendimentoDoApp"
     },
     {
       "id": "component:Whatsapp/Api/BaileysWebhookController",
@@ -7528,6 +7542,12 @@
     {
       "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/ApontamentoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/AppOrcamentoRapidoController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -12583,6 +12603,12 @@
     {
       "from": "module:Whatsapp",
       "to": "component:Whatsapp/Admin/TemplatesController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "component:Whatsapp/Api/AppAtendimentoController",
       "type": "hasComponent",
       "source": "contains"
     },
