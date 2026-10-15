@@ -23,7 +23,7 @@ O apontamento web antigo da Comunicação Visual (`/comunicacao-visual/api/apont
              "inicio_previsto": "2026-10-15T08:00:00-03:00", "responsavel": { "id": 12, "nome": "Diego" } },
   "pode_apontar": true }
 ```
-- QR: `oimpresso:p:<business_hash>:<os_id>`. `business_hash` = 12 hex de um HMAC da APP_KEY sobre o id da empresa (`EtiquetaProducao::codigo`), para o QR não expor o id. Hash de outra empresa → 404, sem consultar o pedido. O formato com o tipo da OS (Repair, Oficina) é decisão da thread 05.
+- QR: `oimpresso:p:<business_hash>:<os_tipo>:<os_id>` (ex. `…:comvis_os:501`), impresso no PDF da OS (`GET /producao/os/{id}/etiqueta`, PR 07). `business_hash` = 12 hex de um HMAC da APP_KEY sobre o id da empresa (`EtiquetaProducao::codigo`), para o QR não expor o id. Hash de outra empresa ou `os_tipo` que o app não aponta (hoje só `comvis_os`) → 404, sem consultar o pedido. O formato antigo sem tipo (`oimpresso:p:<hash>:<os_id>`) segue lido como `comvis_os`. É o mesmo formato que a tela do operador do PCP (thread 04) lê; o QR por etapa da etiqueta térmica é da thread 05.
 - Número digitado: o id da OS ou o número (`OS-2026-00012`, sem diferença de maiúscula).
 - A etapa devolvida é a do operador naquela OS. Se a OS só tem etapa de outro, vem essa, com `pode_apontar: false` e o responsável — o app mostra com quem está e não grava nada.
 - `resumo` = até 3 descrições dos itens do orçamento da OS, unidas por " + "; `cliente` = contato do orçamento.
