@@ -63,6 +63,7 @@
             <directory>./Modules/Woocommerce/Tests/Feature</directory>
             <directory>./Modules/Compras/Tests/Feature</directory>
             <directory>./Modules/VozDoCliente/Tests/Feature</directory>
+            <directory>./Modules/Producao/Tests/Feature</directory>
         </testsuite>
     </testsuites>
     <source>
