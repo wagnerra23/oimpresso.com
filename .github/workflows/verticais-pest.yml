@@ -138,6 +138,8 @@ on:
       - 'Modules/Crm/Tests/Feature/CrmPropostas*'
       # Thread Producao/02 — fundo do PCP (trigger append-only exige MySQL).
       - 'Modules/Producao/**'
+      # Thread Producao/04 — o apontamento lê a saída do ponto (D-PONTO).
+      - 'Modules/Ponto/Services/PresencaDoDiaService.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/verticais-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -258,6 +260,8 @@ jobs:
               - 'Modules/Crm/Tests/Feature/CrmPropostas*'
               # Thread Producao/02 — fundo do PCP (trigger append-only exige MySQL).
               - 'Modules/Producao/**'
+              # Thread Producao/04 — o apontamento lê a saída do ponto (D-PONTO).
+              - 'Modules/Ponto/Services/PresencaDoDiaService.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/verticais-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -497,7 +501,8 @@ jobs:
             Modules/Crm/Tests/Feature/CrmConfiguracoesContratoTest.php \
             Modules/Crm/Tests/Feature/CrmPropostasBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmPropostasContratoTest.php \
-            Modules/Producao/Tests/Feature/ProducaoFundoContratoTest.php
+            Modules/Producao/Tests/Feature/ProducaoFundoContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoApontamentoContratoTest.php
 
       # O sumário conta `assertions` POR ARQUIVO — é o discriminador que separa
       # "passou" de "pulou" (LC-13). Aqui só REPORTA.
