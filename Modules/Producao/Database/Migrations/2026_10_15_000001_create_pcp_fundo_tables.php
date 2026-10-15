@@ -10,7 +10,8 @@ use Illuminate\Support\Facades\Schema;
  *
  * Toda tabela nasce com `business_id` indexado + FK (ADR 0093). `pcp_apontamentos` e
  * `pcp_eventos` são APPEND-ONLY por trigger, como `ponto_marcacoes`: abrir e fechar um
- * cronômetro são DUAS linhas (`tipo` inicio/fim), nunca um UPDATE; correção é lançamento novo.
+ * cronômetro são DUAS linhas (`tipo` inicio e pausa/fim), nunca um UPDATE; correção é lançamento novo.
+ * "Fechado automaticamente" é `origem = turno` (ou `ponto`): sem coluna própria.
  *
  * A OS fica referenciada por (`os_tipo`, `os_id`) sem FK: PCP é camada única e os módulos
  * (Repair, ComunicacaoVisual, OficinaAuto) seguem donos da OS (D-RELACAO).
@@ -80,9 +81,13 @@ return new class extends Migration
                 $t->dateTime('inicio_previsto');
                 $t->dateTime('fim_previsto');
                 $t->enum('status', ['pendente', 'iniciada', 'concluida', 'cancelada'])->default('pendente');
+                // Responsável pela etapa: "minhas etapas" (UC-PCV-19), etapa alheia (UC-PCV-34), aviso (UC-PCV-21).
+                $t->unsignedInteger('user_id')->nullable();
                 $t->unsignedInteger('created_by');
                 $t->timestamps();
                 $t->index(['business_id', 'posto_id', 'inicio_previsto'], 'pcp_prog_biz_posto_inicio_idx');
+                $t->index(['business_id', 'user_id'], 'pcp_prog_biz_user_idx');
+                $t->foreign('user_id')->references('id')->on('users');
                 $t->foreign('business_id')->references('id')->on('business')->cascadeOnDelete();
                 $t->foreign('created_by')->references('id')->on('users');
             });
@@ -94,8 +99,11 @@ return new class extends Migration
                 $t->unsignedInteger('business_id')->index();
                 // E02 / UC-PCV-23: a fila offline reenvia; a chave torna o reenvio inócuo.
                 $t->string('chave_idempotencia', 64);
-                $t->enum('tipo', ['inicio', 'fim']);
-                $t->unsignedBigInteger('inicio_id')->nullable()->comment('linha de inicio que esta fecha');
+                // `pausa` fecha o trecho sem concluir a etapa; retomar é um `inicio` novo.
+                $t->enum('tipo', ['inicio', 'pausa', 'fim']);
+                $t->unsignedBigInteger('inicio_id')->nullable()->comment('linha de inicio que esta fecha (pausa ou fim)');
+                // Motivo da pausa. O cadastro é da thread 03 (E03); a FK entra lá, junto com a tabela.
+                $t->unsignedBigInteger('motivo_id')->nullable();
                 $t->string('os_tipo', 40)->nullable();
                 $t->unsignedBigInteger('os_id')->nullable();
                 $t->foreignId('posto_id')->constrained('pcp_postos');
