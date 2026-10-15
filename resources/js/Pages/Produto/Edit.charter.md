@@ -50,6 +50,7 @@ Editar produto existente reusando estrutura Create.tsx 100% — diferença é `u
 ## Anti-patterns
 
 - ❌ NÃO mexer no método `update()` PHP (out of scope)
+  - _Exceção datada (2026-10-15, UC-PEDIT-09): o `update()` passou a aceitar `origem_mercadoria` (0–8), gravado só quando o campo vem — o Blade não manda e não zera. Nada mais do método mudou._
 - ❌ NÃO recriar SKU server-side no client
 
 ## Pest GUARD
