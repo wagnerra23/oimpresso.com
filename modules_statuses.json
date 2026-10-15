@@ -21,6 +21,7 @@
     "OficinaAuto": true,
     "PaymentGateway": true,
     "Ponto": true,
+    "Producao": true,
     "ProductCatalogue": true,
     "Forja": true,
     "RecurringBilling": true,

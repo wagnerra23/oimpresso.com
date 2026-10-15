@@ -1,11 +1,11 @@
 ---
 id: requisitos-pcp-spec
-module: Pcp
+module: Producao
 version: "1.0"
 last_updated: "2026-06-13"
 owner: wagner
 status: rascunho
-status_nota: dormente (feature-wish — ADR 0152)
+status_nota: ativo desde 2026-10-15 (ADR 0431 tira o PCP do feature-wish da 0152); módulo Modules/Producao, só esqueleto
 type: spec
 scope: cross-vertical (OficinaAuto + ComunicacaoVisual + Repair + Vestuario)
 piloto_previsto: Vargas (recapagem multi-mecânico) OU Extreme (ComVis multi-plotter) — sinal qualificado pendente
@@ -18,27 +18,24 @@ related_adrs:
   - 0143-fsm-pipeline-live-prod-marco-2026-05-12
   - 0137-modules-oficinaauto-qualificada
   - 0152-modules-pcp-feature-wish
+  - 0431-pcp-sai-do-desejo-modules-producao
 related_specs: [ComunicacaoVisual/SPEC.md (US-COMVIS-003 PCP), OficinaAuto/SPEC.md (US-OFICINA-004), Repair/SPEC.md, Manufacturing/SPEC.md]
 related_research: [research/clientes-legacy-officeimpresso/_MAPPING/TELA-PRODUCAO-KANBAN.md]
 last_review: 2026-05-15
 ---
 
-<!-- schema-allowlist: US sob "## §7 — User Stories (US-PCP-001..020 — 20 propostas)"; SPEC dormente (feature-wish ADR 0152) com numeração de seções §0..§9 do blueprint original — heading US mantido pra não quebrar links internos. -->
+<!-- schema-allowlist: US sob "## §7 — User Stories (US-PCP-001..020 — 20 propostas)"; SPEC escrito como blueprint enquanto dormente (ADR 0152), ativo pela ADR 0431 com numeração de seções §0..§9 do blueprint original — heading US mantido pra não quebrar links internos. -->
 
 # SPEC — PCP / Apontamento de Produção (cross-vertical)
 
-> ## ⛔ DORMENTE — feature-wish ([ADR 0152](../../decisions/0152-modules-pcp-feature-wish.md))
+> ## ✅ ATIVO desde 2026-10-15 — [ADR 0431](../../decisions/0431-pcp-sai-do-desejo-modules-producao.md)
 >
-> **NÃO atribuir owner às US-PCP-* abaixo.** **NÃO scaffoldear código** em `Modules/Pcp/` nem renomear `Modules/IProduction/` placeholder. **DECISÃO D1 (Pcp vs IProduction)** também fica dormente — resolve no ADR de promoção quando trigger ativar.
+> O PCP saiu do feature-wish da [ADR 0152](../../decisions/0152-modules-pcp-feature-wish.md) por decisão de [W] em 2026-10-15. D1 = **`Modules/Producao`** (rota `/producao`, permissões `producao.*`); `IProduction` já tinha sido removido no PR #842. Esta pasta era `memory/requisitos/Pcp/` até 2026-10-15; os IDs `US-PCP-*` ficam.
 >
-> Razão (ADR 0152): nenhum dos verticais com produção física hoje tem cliente pagante ativo (Vestuario é revenda; ComVis em Sprint 1 sem piloto; OficinaAuto aguarda Martinho; Autopecas aguarda Vargas ADR 0125; Repair legacy sem clientes oimpresso novo). [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) — sem sinal qualificado, sem código.
->
-> Triggers de ativação documentados em [ADR 0152 §"Trigger condições"](../../decisions/0152-modules-pcp-feature-wish.md). Pelo menos UM precisa ser satisfeito + Wagner aprovar ADR de promoção.
->
-> **SPEC abaixo permanece intacto como blueprint pré-pago** — quando trigger ativar, dev abre o SPEC e tem ~3 semanas de design já feito (60% reuso identificado, 4 schema tables novas, 5 cenários peculiares, 20 US, 10 regras Gherkin, mapping TOTVS/SAP/Mubisys/Sankhya/Odoo).
+> O texto abaixo dizia `Modules/Producao` até 2026-10-15; as citações foram trocadas para o nome decidido (rename curado no `ghost-rename-map`). O módulo existe só como esqueleto (sem tabela, sem tela); o fundo e as telas entram pelas threads do playbook de Produção, na ordem do [ROADMAP](ROADMAP.md).
 
 > Convenção do ID: `US-PCP-NNN`.
-> ⚠️ **NÃO É MÓDULO NOVO POR DEFAULT.** §0 abaixo prova que 60–70% do que PCP precisa já existe espalhado (`Modules/Repair` Kanban shared infra + FSM canon stages produção + Modules/IProduction placeholder + Modules/Manufacturing recipes/BoM). PCP é **camada fina de apontamento + capacidade + agenda** que **costura** o que já tem.
+> ⚠️ **NÃO É MÓDULO NOVO POR DEFAULT.** §0 abaixo prova que 60–70% do que PCP precisa já existe espalhado (`Modules/Repair` Kanban shared infra + FSM canon stages produção + IProduction placeholder + Modules/Manufacturing recipes/BoM). PCP é **camada fina de apontamento + capacidade + agenda** que **costura** o que já tem.
 
 ## §0 — Comparação com o que JÁ EXISTE (CRUCIAL — discovery 2026-05-12)
 
@@ -64,14 +61,14 @@ Wagner: *"não duplicar"*. Esta seção é a contra-prova.
 | **Notificações cliente status** | ✅ `RepairStatusChanged` event + `NotifyRepairCustomer` listener + email/SMS templates em `repair_statuses` | ✅ FSM action side-effects | LGPD consent (ADR 0143) | — | ❌ reusar |
 | **Dashboard PCP (carga semana, top performer)** | ⚠️ `Modules/Repair/dashboard` Blade básico | ❌ | ❌ | SAP Capacity Scheduling Board, TOTVS relatórios PCP | ✅ **CONSTRUIR** dashboard Inertia novo |
 | **Multi-tenant Tier 0** | ✅ `HasBusinessScope` em RepairStatus, JobSheet | ✅ ADR 0143 — todas FSM tables têm `business_id` indexado | — | — | ✅ **OBRIGATÓRIO** em todas tabelas novas PCP (Tier 0 IRREVOGÁVEL — ADR 0093) |
-| **Modules/IProduction placeholder** | — | — | ⚠️ existe como stub vazio (apenas DataController + InstallController + SCOPE L3) | — | ❓ **DECISÃO D1**: PCP vive como `Modules/Pcp` novo OU **assume `Modules/IProduction`** (renomeando)? |
+| **IProduction placeholder** | — | — | ⚠️ existe como stub vazio (apenas DataController + InstallController + SCOPE L3) | — | ❓ **DECISÃO D1**: PCP vive como `Modules/Producao` novo OU **assume `IProduction`** (renomeando)? |
 | **Modules/Manufacturing legacy** | — | — | ✅ existe: MfgRecipe + ProductionController + ingredient groups + waste % | TOTVS estrutura BoM | ❌ NÃO duplicar — PCP **integra** ao Manufacturing pra consumir BoM/receita quando aplicável |
 
 ### Veredito §0
 
 - **~60% do que PCP precisa já existe** no oimpresso (Kanban shared Repair + FSM canon + BoM Manufacturing + history append-only + multi-tenant scaffolding).
 - **Gap real (40%)** = apontamento OPERATION-level + capacidade postos + cronômetro mobile + QR scan + gargalo + agendamento + dashboard.
-- **NÃO criar `Modules/Pcp` novo às cegas.** Opções em D1.
+- **NÃO criar `Modules/Producao` novo às cegas.** Opções em D1.
 
 ## §1 — Visão
 
@@ -221,7 +218,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ## §7 — User Stories (US-PCP-001..020 — 20 propostas)
 
-**Implementado em:** _pendente_ — epic dormente (feature-wish ADR 0152); `Modules/Pcp/` e `Modules/IProduction/` não existem no disco; nenhuma das 20 US construída (estado agregado)
+**Implementado em:** _pendente_ — epic dormente (feature-wish ADR 0152); `Modules/Producao/` e `IProduction` não existem no disco; nenhuma das 20 US construída (estado agregado)
 
 > Formato headers (parser MCP — ADR 0134).
 > Status inicial **todo** até sinal qualificado (ADR 0105) — proposta = `proposed`.
@@ -229,7 +226,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ### US-PCP-001 · Schema base + migrations (4 tabelas + triggers append-only) — **P0**
 
-**Implementado em:** _pendente_ — nenhuma migration `pcp_*` no disco; `Modules/Pcp/` inexistente (SPEC dormente ADR 0152)
+**Implementado em:** _pendente_ — nenhuma migration `pcp_*` no disco; `Modules/Producao/` inexistente (SPEC dormente ADR 0152)
 
 > owner: — · priority: p0 · estimate: 3h · status: todo · type: story
 > Schema §3. Triggers MySQL append-only em `pcp_appointments`. `business_id` indexed + FK em tudo. Pest cross-tenant (biz=1 vs biz=99 — ADR 0101).
@@ -243,7 +240,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ### US-PCP-003 · Models + global scopes `HasBusinessScope` — **P0**
 
-**Implementado em:** _pendente_ — sem models `Modules/Pcp/Entities/*` (módulo não scaffoldado, ADR 0152)
+**Implementado em:** _pendente_ — sem models `Modules/Producao/Entities/*` (módulo não scaffoldado, ADR 0152)
 
 > owner: — · priority: p0 · estimate: 2h · status: todo · type: story
 
@@ -269,14 +266,14 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ### US-PCP-007 · Service `RegisterAppointment` (idempotent) — **P0**
 
-**Implementado em:** _pendente_ — sem service de apontamento em `Modules/Pcp/Services/*` (módulo não construído, ADR 0152)
+**Implementado em:** _pendente_ — sem service de apontamento em `Modules/Producao/Services/*` (módulo não construído, ADR 0152)
 
 > owner: — · priority: p0 · estimate: 4h · status: todo · type: story
 > Idempotency-Key + race condition guard (mesmo usuário 2 starts).
 
 ### US-PCP-008 · Endpoint API JWT `POST /api/pcp/scan` — **P0**
 
-**Implementado em:** _pendente_ — rota `/api/pcp/scan` inexistente (nenhum `Modules/Pcp/Routes/api.php`; módulo dormente ADR 0152)
+**Implementado em:** _pendente_ — rota `/api/pcp/scan` inexistente (nenhum `Modules/Producao/Routes/api.php`; módulo dormente ADR 0152)
 
 > owner: — · priority: p0 · estimate: 3h · status: todo · type: story
 > Sanctum token user-level + rate limit + LGPD log audit.
@@ -357,7 +354,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ### US-PCP-020 · Documentação RUNBOOK + Charter páginas — **P0**
 
-**Implementado em:** _pendente_ — sem `RUNBOOK-*.md` em `memory/requisitos/Pcp/` nem charters (nenhuma tela PCP construída, ADR 0152)
+**Implementado em:** _pendente_ — sem `RUNBOOK-*.md` em `memory/requisitos/Producao/` nem charters (nenhuma tela PCP construída ainda; módulo em esqueleto, ADR 0431)
 
 > owner: — · priority: p0 · estimate: 3h · status: todo · type: story
 > 1 RUNBOOK por tela MWART + `.charter.md` ao lado de cada `.tsx`.
@@ -384,7 +381,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - ADR modular: [0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md)
 - ADR Processo MWART: [0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)
 - Mapping Delphi PCP: [research/_MAPPING/TELA-PRODUCAO-KANBAN.md](../../research/clientes-legacy-officeimpresso/_MAPPING/TELA-PRODUCAO-KANBAN.md)
-- ADR proposta PCP: [decisions/NNNN-pcp-camada-fina-apontamento.md](../../decisions/NNNN-pcp-camada-fina-apontamento.md) (D1-D5)
+- ADR proposta PCP: [ADR-PROPOSAL.md](ADR-PROPOSAL.md) (D1-D5), aceita pela [ADR 0431](../../decisions/0431-pcp-sai-do-desejo-modules-producao.md)
 - MATRIZ-ROI: [MATRIZ-ROI.md](MATRIZ-ROI.md)
 - ROADMAP: [ROADMAP.md](ROADMAP.md)
 
