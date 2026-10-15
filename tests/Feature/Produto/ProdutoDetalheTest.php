@@ -393,14 +393,14 @@ it('UC-PIDX-22 · produto sem foto chega ao painel com imagem null, não com a i
 });
 
 /**
- * Liga ou desliga só o `nfebrasil_module` no pacote da empresa — o resto do `ModuleUtil` responde
+ * Liga ou desliga só o `fiscal_module` no pacote da empresa — o resto do `ModuleUtil` responde
  * como sempre (uma instância nova, sem mock), pra não mudar o que a tela faz com os outros módulos.
  */
 function pdtPacoteNfe(bool $ligado): void
 {
     test()->partialMock(\App\Utils\ModuleUtil::class, function ($m) use ($ligado) {
         $m->shouldReceive('hasThePermissionInSubscription')->andReturnUsing(
-            fn ($biz, $modulo, $callback = null) => $modulo === 'nfebrasil_module'
+            fn ($biz, $modulo, $callback = null) => $modulo === 'fiscal_module'
                 ? $ligado
                 : (new \App\Utils\ModuleUtil())->hasThePermissionInSubscription($biz, $modulo, $callback)
         );
@@ -433,7 +433,7 @@ it('UC-PIDX-25 · "Abrir no módulo Fiscal" só vem com o módulo no pacote E a 
 
 // Teste à parte: o controller fica em cache na rota durante o teste, e o mock do pacote tem de
 // valer desde a 1ª requisição.
-it('UC-PIDX-25 · com a permissão, mas o NfeBrasil fora do pacote da empresa, o botão não vem', function () {
+it('UC-PIDX-25 · com a permissão, mas o módulo Fiscal fora do pacote da empresa, o botão não vem', function () {
     $p = pdtProdutoComPrecos($this->business->id);
     pdtPacoteNfe(false);
     pdtEntrar($this, ['product.view', 'access_all_locations', 'nfe.tributacao.manage']);
