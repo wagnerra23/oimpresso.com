@@ -1823,6 +1823,7 @@
     "2026-10-13-2130-sistema08-tema-escuro-catraca": "memory/handoffs/2026-10-13-2130-sistema08-tema-escuro-catraca.md",
     "2026-10-14-0300-gestao-fila-merges-13-out-3": "memory/handoffs/2026-10-14-0300-gestao-fila-merges-13-out-3.md",
     "2026-10-14-1006-contratos-thread01-e-subida-cowork": "memory/handoffs/2026-10-14-1006-contratos-thread01-e-subida-cowork.md",
+    "2026-10-14-1545-painel-produto-cores-e-pendencias-lista": "memory/handoffs/2026-10-14-1545-painel-produto-cores-e-pendencias-lista.md",
     "calculo-total-fatura": "memory/requisitos/Produto/topicos/calculo-total-fatura.md",
     "componentes-compartilhados": "memory/requisitos/_Geral/topicos/componentes-compartilhados.md",
     "governance-architecture": "memory/governance/ARCHITECTURE.md",
@@ -4428,15 +4429,15 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 4422,
-    "resolved": 2978,
+    "total": 4423,
+    "resolved": 2979,
     "unstamped": 1444,
     "collisions": 0,
     "by_source": {
       "unstamped": 1444,
       "derived-adr": 435,
       "stamped": 1156,
-      "derived-handoffs": 618,
+      "derived-handoffs": 619,
       "derived-sessions": 769
     }
   }
