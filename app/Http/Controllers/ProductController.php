@@ -566,7 +566,8 @@ class ProductController extends Controller
      * os mesmos gates das variações; `composicao_total_exc` é a soma dos totais dos itens (o
      * "Total líquido" do protótipo), só com `view_purchase_price`. Variações e itens trazem as
      * imagens da variação (`variation_images` da Blade), só as da própria empresa.
-     * Dados fiscais: as colunas do próprio produto; "origem da mercadoria" não existe no banco e não vem.
+     * Dados fiscais: as colunas do próprio produto. A origem da mercadoria passou a existir no banco
+     * em 2026-10-15 (`products.origem_mercadoria`); este payload ainda não a lê — entra depois do #9450.
      * Produto de outra empresa ⇒ null (Tier 0, ADR 0093).
      *
      * @return array<string, mixed>|null
@@ -1236,6 +1237,7 @@ class ProductController extends Controller
                     'sub_category_id' => $duplicate_product->sub_category_id,
                     'tax' => $duplicate_product->tax,
                     'tax_type' => $duplicate_product->tax_type,
+                    'origem_mercadoria' => (int) ($duplicate_product->origem_mercadoria ?? 0),
                     'barcode_type' => $duplicate_product->barcode_type,
                     'sku' => (string) ($duplicate_product->sku ?? ''),
                     'alert_quantity' => $duplicate_product->alert_quantity,
@@ -1274,6 +1276,23 @@ class ProductController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
+    /**
+     * Origem da mercadoria — tabela A da NF-e, códigos 0 a 8 (AR-PROD-128).
+     *
+     * Fora do `try` de store()/update(): o `catch (\Exception)` deles engoliria a
+     * ValidationException num redirect genérico. Ausente ou vazia ⇒ não valida e não grava.
+     */
+    protected function validarOrigemMercadoria(Request $request): void
+    {
+        $request->validate(
+            ['origem_mercadoria' => ['sometimes', 'nullable', 'integer', 'between:0,8']],
+            [
+                'origem_mercadoria.integer' => 'A origem da mercadoria tem que ser um código de 0 a 8.',
+                'origem_mercadoria.between' => 'A origem da mercadoria tem que ser um código de 0 a 8.',
+            ],
+        );
+    }
+
     public function store(Request $request)
     {
         if (! auth()->user()->can('product.create')) {
@@ -1303,6 +1322,8 @@ class ProductController extends Controller
             throw \Illuminate\Validation\ValidationException::withMessages($fk_alheio);
         }
 
+        $this->validarOrigemMercadoria($request);
+
         try {
             $business_id = $request->session()->get('user.business_id');
             $form_fields = ['name', 'brand_id', 'unit_id', 'category_id', 'tax', 'type', 'barcode_type', 'sku', 'alert_quantity', 'tax_type', 'weight', 'product_description', 'sub_unit_ids', 'preparation_time_in_minutes', 'product_custom_field1', 'product_custom_field2', 'product_custom_field3', 'product_custom_field4', 'product_custom_field5', 'product_custom_field6', 'product_custom_field7', 'product_custom_field8', 'product_custom_field9', 'product_custom_field10', 'product_custom_field11', 'product_custom_field12', 'product_custom_field13', 'product_custom_field14', 'product_custom_field15', 'product_custom_field16', 'product_custom_field17', 'product_custom_field18', 'product_custom_field19', 'product_custom_field20',];
@@ -1318,6 +1339,12 @@ class ProductController extends Controller
 
             $product_details['enable_stock'] = (! empty($request->input('enable_stock')) && $request->input('enable_stock') == 1) ? 1 : 0;
             $product_details['not_for_selling'] = (! empty($request->input('not_for_selling')) && $request->input('not_for_selling') == 1) ? 1 : 0;
+
+            // Origem da mercadoria: só grava quando o formulário manda. O Blade não manda, e o
+            // produto nasce com o DEFAULT 0 da coluna — a mesma origem que a nota usava antes.
+            if ($request->filled('origem_mercadoria')) {
+                $product_details['origem_mercadoria'] = (int) $request->input('origem_mercadoria');
+            }
 
             if (! empty($request->input('sub_category_id'))) {
                 $product_details['sub_category_id'] = $request->input('sub_category_id');
@@ -1594,6 +1621,7 @@ class ProductController extends Controller
                     'subCategoryId' => $product->sub_category_id,
                     'tax' => $product->tax,
                     'taxType' => $product->tax_type ?? 'exclusive',
+                    'origemMercadoria' => (int) ($product->origem_mercadoria ?? 0),
                     'barcodeType' => (string) ($product->barcode_type ?? 'C128'),
                     'enableStock' => (bool) $product->enable_stock,
                     'alertQuantity' => $alert_quantity,
@@ -1658,6 +1686,8 @@ class ProductController extends Controller
                 ->where('id', $id)
                 ->firstOrFail();
 
+        $this->validarOrigemMercadoria($request);
+
         try {
             $product_details = $request->only(['name', 'brand_id', 'unit_id', 'category_id', 'tax', 'barcode_type', 'sku', 'alert_quantity', 'tax_type', 'weight', 'product_description', 'sub_unit_ids', 'preparation_time_in_minutes', 'product_custom_field1', 'product_custom_field2', 'product_custom_field3', 'product_custom_field4', 'product_custom_field5', 'product_custom_field6', 'product_custom_field7', 'product_custom_field8', 'product_custom_field9', 'product_custom_field10', 'product_custom_field11', 'product_custom_field12', 'product_custom_field13', 'product_custom_field14', 'product_custom_field15', 'product_custom_field16', 'product_custom_field17', 'product_custom_field18', 'product_custom_field19', 'product_custom_field20',]);
 
@@ -1685,6 +1715,11 @@ class ProductController extends Controller
             $product->alert_quantity = ! empty($product_details['alert_quantity']) ? $this->productUtil->num_uf($product_details['alert_quantity']) : $product_details['alert_quantity'];
             $product->tax_type = $product_details['tax_type'];
             $product->weight = $product_details['weight'];
+            // Origem da mercadoria: só muda quando o formulário manda (o Blade não manda e não
+            // pode zerar a origem que alguém escolheu na tela React).
+            if ($request->filled('origem_mercadoria')) {
+                $product->origem_mercadoria = (int) $request->input('origem_mercadoria');
+            }
             $product->product_custom_field1 = $product_details['product_custom_field1'] ?? '';
             $product->product_custom_field2 = $product_details['product_custom_field2'] ?? '';
             $product->product_custom_field3 = $product_details['product_custom_field3'] ?? '';
