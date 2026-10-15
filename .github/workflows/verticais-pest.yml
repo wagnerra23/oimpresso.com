@@ -503,6 +503,7 @@ jobs:
             Modules/Crm/Tests/Feature/CrmPropostasContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoFundoContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoApontamentoContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoApontamentoTelaTest.php \
             Modules/Producao/Tests/Feature/ProducaoRoteirosContratoTest.php
 
       # O sumário conta `assertions` POR ARQUIVO — é o discriminador que separa

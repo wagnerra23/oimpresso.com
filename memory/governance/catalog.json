@@ -26,23 +26,23 @@
   ],
   "stats": {
     "modules": 36,
-    "nodes": 769,
-    "edges": 1065,
+    "nodes": 771,
+    "edges": 1067,
     "by_node_type": {
       "module": 40,
       "table": 108,
       "adr": 143,
-      "component": 400,
-      "api": 78
+      "component": 401,
+      "api": 79
     },
     "by_edge_type": {
       "ownsTable": 97,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 82,
+      "providesApi": 83,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 400,
+      "hasComponent": 401,
       "dependsOn": 120,
       "delegatesTo": 112,
       "migratesTo": 1,
@@ -1510,6 +1510,14 @@
       "id": "api:/producao/*",
       "type": "api",
       "prefix": "/producao/*",
+      "providers": [
+        "Producao"
+      ]
+    },
+    {
+      "id": "api:/producao/apontamento/*",
+      "type": "api",
+      "prefix": "/producao/apontamento/*",
       "providers": [
         "Producao"
       ]
@@ -3831,6 +3839,13 @@
       "module": "Producao",
       "name": "Api/AppApontamentoController",
       "desc": "apontamento do app das lojas com token (/api/app/producao/*, P8 tela 02), sobre o ApontamentoOperadorService"
+    },
+    {
+      "id": "component:Producao/ApontamentoController",
+      "type": "component",
+      "module": "Producao",
+      "name": "ApontamentoController",
+      "desc": "celular do operador (PWA, thread 04): /producao/apontamento, escritas em JSON para a fila offline; a regra mora no ApontamentoOperadorService"
     },
     {
       "id": "component:Producao/ColaboradorCustoController",
@@ -11572,6 +11587,12 @@
     },
     {
       "from": "module:Producao",
+      "to": "component:Producao/ApontamentoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
       "to": "component:Producao/ColaboradorCustoController",
       "type": "hasComponent",
       "source": "contains"
@@ -11609,6 +11630,12 @@
     {
       "from": "module:Producao",
       "to": "api:/producao/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Producao",
+      "to": "api:/producao/apontamento/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
