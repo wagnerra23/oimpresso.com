@@ -438,6 +438,7 @@
     "0429-log-de-falhas-glitchtip-self-host-ct100": "memory/decisions/0429-log-de-falhas-glitchtip-self-host-ct100.md",
     "0430-retencao-lgpd-patrimonio-anonimiza-campo-pessoal": "memory/decisions/0430-retencao-lgpd-patrimonio-anonimiza-campo-pessoal.md",
     "0431-pcp-sai-do-desejo-modules-producao": "memory/decisions/0431-pcp-sai-do-desejo-modules-producao.md",
+    "0433-fonte-do-prototipo-passa-ao-git": "memory/decisions/0433-fonte-do-prototipo-passa-ao-git.md",
     "2026-04-18-session-01": "memory/sessions/2026-04-18-session-01.md",
     "2026-04-18-session-02": "memory/sessions/2026-04-18-session-02.md",
     "2026-04-19-session-03": "memory/sessions/2026-04-19-session-03.md",
@@ -4433,13 +4434,13 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 4427,
-    "resolved": 2981,
+    "total": 4428,
+    "resolved": 2982,
     "unstamped": 1446,
     "collisions": 0,
     "by_source": {
       "unstamped": 1446,
-      "derived-adr": 436,
+      "derived-adr": 437,
       "stamped": 1156,
       "derived-handoffs": 619,
       "derived-sessions": 770

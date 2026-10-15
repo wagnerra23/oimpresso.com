@@ -88,6 +88,7 @@ import { join, dirname, resolve, relative } from 'node:path';
 import { anchorRelPath } from './anchor-content-check.mjs'; // fonte única: como extrair o path do related_prototype
 import { BUILD_SOURCE_RE } from '../design-sync/bundle-contract.mjs'; // fonte única: que extensão é conteúdo do espelho
 import { pathsForOwner } from '../design-sync/bundle-transaction.mjs'; // fonte única: onde cada CONTA pousa
+import { FONTE_GIT } from '../design/fonte-prototipo.mjs'; // fonte única: de quem a fonte do protótipo é o git (ADR 0433)
 
 const ROOT = process.cwd();
 
@@ -1064,6 +1065,26 @@ export function unverifiedSince(entries, arquivos, provaBundle = null) {
     } else ok++;
   }
   return { mexidoDepois, nuncaVerificado, ok, comLedger: runs.length };
+}
+
+// ── FONTE NO GIT (ADR 0433 · [W] 2026-10-15) ───────────────────────────────────────────
+// A declaração vive em scripts/design/fonte-prototipo.mjs. A partir de `desde`, o espelho
+// `prototipo-ui/cowork/Wagner/` deixa de ser cópia do Cowork: edição commitada nele é a AUTORIA,
+// não remendo. O que muda é só a leitura de "mexido depois": commit posterior à virada sai da
+// lista de acusação e vai para `autoradoNoGit`, que é RELATADO (nunca calado). Commit anterior à
+// virada segue julgado pela regra antiga — a história não é reescrita.
+export { FONTE_GIT };
+
+export function separarAutoriaNoGit(mexidoDepois, fonte = FONTE_GIT) {
+  const tDesde = fonte ? instante(fonte.desde) : null;
+  if (tDesde == null) return { mexidoDepois, autoradoNoGit: [] };
+  const fica = [], autorado = [];
+  for (const m of mexidoDepois) {
+    const t = instante(m.commitadoEm);
+    // data ilegível não vira isenção: fica na acusação (conservador, §5 2026-07-29)
+    (t != null && t >= tDesde ? autorado : fica).push(m);
+  }
+  return { mexidoDepois: fica, autoradoNoGit: autorado };
 }
 
 export function slaVerdict(entries, nowIso, days = SLA_DAYS) {
@@ -2211,7 +2232,9 @@ function main() {
     }
 
     const ledger = existsSync(join(ROOT, LEDGER_REL)) ? JSON.parse(readFileSync(join(ROOT, LEDGER_REL), 'utf8')) : [];
-    const r = unverifiedSince(Array.isArray(ledger) ? ledger : (ledger.runs || []), arquivos, provaBundle);
+    const r0 = unverifiedSince(Array.isArray(ledger) ? ledger : (ledger.runs || []), arquivos, provaBundle);
+    const { mexidoDepois, autoradoNoGit } = separarAutoriaNoGit(r0.mexidoDepois);
+    const r = { ...r0, mexidoDepois };
 
     console.log(`\n  MEXEU-DEPOIS-DE-VERIFICAR — espelho vs ledger (${arquivos.length} arquivo(s) versionado(s))\n`);
     if (raso) console.log('  ⚠ clone RASO — as datas de commit medem o piso da história, não a história (§5 2026-07-24).\n');
@@ -2227,9 +2250,13 @@ function main() {
       process.exit(0);
     }
     for (const m of r.mexidoDepois) console.log(`  🔴 MEXIDO-DEPOIS  ${m.cowork}\n       verificado ${m.verificadoEm} · commitado ${m.commitadoEm}`);
+    if (autoradoNoGit.length) {
+      console.log(`  ✎ editados no git depois da virada (fonte = git desde ${FONTE_GIT.desde}, ADR ${FONTE_GIT.adr}): ${autoradoNoGit.length}`);
+      for (const m of autoradoNoGit) console.log(`     ✎ ${m.cowork} · commitado ${m.commitadoEm}`);
+    }
     console.log(`\n  🔴 mexido-depois: ${r.mexidoDepois.length} · ✓ intactos desde a verificação: ${r.ok} · ⬜ nunca verificados: ${r.nuncaVerificado.length}`);
     if (r.nuncaVerificado.length) console.log('     (nunca-verificado NÃO bloqueia — forward-only, ADR 0275: puni-lo seria backfill em massa do legado)');
-    if (r.mexidoDepois.length) console.log('\n  Conteúdo do espelho mudou sem prova de que bate com o vivo. Rode o ciclo e re-verifique,\n  ou reverta o commit se foi remendo à mão (o espelho é build-only — não tem autor local legítimo).');
+    if (r.mexidoDepois.length) console.log('\n  Conteúdo do espelho mudou ANTES da virada para o git sem prova de que batia com o Cowork.\n  Rode o ciclo e re-verifique, ou reverta o commit se foi remendo à mão.');
     if (argv.includes('--check') && r.mexidoDepois.length) process.exit(1);
     console.log('');
     return;
