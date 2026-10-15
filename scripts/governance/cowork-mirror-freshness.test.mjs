@@ -51,6 +51,8 @@ import {
   refsParaDeletado,
   orfaosNaAdicao,
   unverifiedSince,
+  separarAutoriaNoGit,
+  FONTE_GIT,
   ultimaVerificacaoDe,
   SLA_DAYS,
 } from './cowork-mirror-freshness.mjs';
@@ -1107,6 +1109,24 @@ check('mesmo número → mesmo veredito (independe de --check)',
   const r3 = absentLocal(shellDs);
   check('--absent-local NÃO acusa `_ds/**` (fora por .gitignore do espelho, não é achado)',
     !r3.faltando.some((d) => d.startsWith('_ds/')), JSON.stringify(r3));
+}
+
+// ── fonte no git (ADR 0433 · [W] 2026-10-15) ────────────────────────────────────────
+// Depois da virada, commit no espelho e autoria: sai da acusacao e vai para autoradoNoGit.
+// Antes da virada a regra antiga continua mordendo. Data ilegivel fica na acusacao.
+{
+  const fonte = { dono: 'Wagner', desde: '2026-10-15T00:00:00-03:00', adr: '0433' };
+  const m = [
+    { cowork: 'antes.jsx', commitadoEm: '2026-10-14T23:59:00-03:00' },
+    { cowork: 'depois.jsx', commitadoEm: '2026-10-15T10:00:00-03:00' },
+    { cowork: 'sem-data.jsx', commitadoEm: 'nao-e-data' },
+  ];
+  const s = separarAutoriaNoGit(m, fonte);
+  check('BITE fonte-git: commit ANTES da virada continua acusado', s.mexidoDepois.some((x) => x.cowork === 'antes.jsx'), JSON.stringify(s));
+  check('fonte-git: commit DEPOIS da virada vira autoria (relatada, nao acusada)', s.autoradoNoGit.length === 1 && s.autoradoNoGit[0].cowork === 'depois.jsx', JSON.stringify(s));
+  check('fonte-git: data ilegivel NAO vira isencao', s.mexidoDepois.some((x) => x.cowork === 'sem-data.jsx'), JSON.stringify(s));
+  check('fonte-git: sem fonte declarada nada muda', separarAutoriaNoGit(m, null).mexidoDepois.length === 3, '');
+  check('fonte-git: FONTE_GIT declara dono, data e ADR', FONTE_GIT.dono === 'Wagner' && !!FONTE_GIT.desde && FONTE_GIT.adr === '0433', JSON.stringify(FONTE_GIT));
 }
 
 // ── unverifiedSince — MEXEU-DEPOIS-DE-VERIFICAR (v4 · 2026-08-17) ────────────────

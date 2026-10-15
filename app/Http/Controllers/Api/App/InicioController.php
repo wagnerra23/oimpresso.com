@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\App;
 
 use App\Http\Controllers\Controller;
+use App\Services\AppLojas\AjustesDaEmpresa;
 use App\User;
 use App\Utils\ProductUtil;
 use App\Utils\TransactionUtil;
@@ -26,6 +27,7 @@ use Illuminate\Support\Facades\DB;
  *   (FinanceiroController::podeVerFinanceiro — a mesma regra da área `financeiro`).
  * - proximas_tarefas: TarefasController::proximasPara (3).
  * - nao_lidas: NotificacoesController::naoLidas (o ponto no sino; §6.1).
+ * - ajustes: AjustesDaEmpresa::paraEmpresa — `pos_settings.app_*` completo com o padrão (§6.2).
  *
  * Tier 0 (ADR 0093): business_id do usuário do token em tudo.
  */
@@ -56,6 +58,8 @@ class InicioController extends Controller
             'financeiro' => $this->financeiro($user, $bizId),
             'proximas_tarefas' => app(TarefasController::class)->proximasPara($user, 3),
             'nao_lidas' => app(NotificacoesController::class)->naoLidas($user),
+            // Ajustes da empresa (aba "App das lojas"): sempre todas as chaves, com padrão onde falta.
+            'ajustes' => AjustesDaEmpresa::paraEmpresa($bizId),
         ] + $this->perfil($user));
     }
 
