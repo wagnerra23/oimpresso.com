@@ -35,6 +35,7 @@ contains:
   - "Api/WhatsmeowWebhookController — recebe events daemon Go WuzAPI CT 100 (middleware VerifyWhatsmeowSignature HMAC global)"
   - "Api/CustomerProfileController — Customer Memory profile endpoint (US-WA-VOZ-001 PR #919)"
   - "Api/EmployeeScorecardController — Employee scorecard reclamações 30d (US-WA-VOZ-002 PR #919)"
+  - "Api/AppAtendimentoController — atendimento WhatsApp do app das lojas, /api/app/atendimento (tela 41, PR 18 propostas-app); implementa o contrato App/Contracts/Atendimento/AtendimentoDoApp"
   # Services / Drivers
   - "Services/Drivers/{ZapiDriver, MetaCloudDriver, BaileysDriver, NullDriver, DriverFactory} — abstração + fallback runtime"
   - "Services/Centrifugo/{CentrifugoPublisher, CentrifugoTokenIssuer} — real-time UI ADR 0058"

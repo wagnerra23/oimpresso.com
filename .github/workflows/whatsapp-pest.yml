@@ -52,7 +52,7 @@ on:
     paths:
       - 'Modules/Whatsapp/**'
       - 'resources/js/Pages/Whatsapp/**'
-      - 'app/Http/Controllers/Api/App/AtendimentoController.php'
+      - 'app/Contracts/Atendimento/**'
       - 'routes/api/app/atendimento.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/whatsapp-pest.yml'
@@ -92,7 +92,7 @@ jobs:
             whatsapp:
               - 'Modules/Whatsapp/**'
               - 'resources/js/Pages/Whatsapp/**'
-              - 'app/Http/Controllers/Api/App/AtendimentoController.php'
+              - 'app/Contracts/Atendimento/**'
               - 'routes/api/app/atendimento.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/whatsapp-pest.yml'

@@ -344,6 +344,9 @@ class AppServiceProvider extends ServiceProvider
         // Anexos da OS pelo app (P2, tela 03): o módulo Arquivos registra a implementação real;
         // sem ele, o envio responde 503 sem_configuracao e o conteúdo, 404.
         $this->app->bindIf(\App\Contracts\Arquivos\AnexosDoApp::class, \App\Contracts\Arquivos\Nulo\SemAnexosDoApp::class);
+        // Área `atendimento` do Início do app (tela 41): o Whatsapp registra a implementação real;
+        // sem ele, a área não aparece.
+        $this->app->bindIf(\App\Contracts\Atendimento\AtendimentoDoApp::class, \App\Contracts\Atendimento\Nulo\SemAtendimentoDoApp::class);
     }
 
     /**
