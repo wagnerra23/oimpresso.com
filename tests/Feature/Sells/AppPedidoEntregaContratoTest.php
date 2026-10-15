@@ -147,6 +147,9 @@ beforeEach(function () {
         ->whereNull('parent_sell_line_id')->pluck('id')->map(fn ($x) => (int) $x)->all();
     appEntregaAjustes((int) $this->biz->id, []);
 
+    // O limite de escrita (throttle:20,1) tem teste próprio abaixo; aqui não pode vazar entre testes
+    // (o cache do CT 100 persiste e o usuário do contexto é o mesmo).
+    $this->withoutMiddleware(\Illuminate\Routing\Middleware\ThrottleRequests::class);
     Passport::actingAs($this->user, [], 'api');
 });
 
@@ -344,4 +347,11 @@ it('usuário sem nenhuma permissão de venda → 403 sem_permissao', function ()
 
     $post($this->venda, $corpo())->assertStatus(403)->assertJsonPath('erro', 'sem_permissao');
     expect(appEntregaEtapa($this->venda))->toBe('paid');
+});
+
+it('rota de escrita com throttle de 20 por minuto (playbook: 20–30/min)', function () {
+    $rota = collect(app('router')->getRoutes()->getRoutes())
+        ->first(fn ($r) => $r->uri() === 'api/app/pedidos/{id}/entrega' && in_array('POST', $r->methods(), true));
+    expect($rota)->not->toBeNull();
+    expect($rota->gatherMiddleware())->toContain('throttle:20,1');
 });
