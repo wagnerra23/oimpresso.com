@@ -58,6 +58,12 @@ Câmera para ler o QR, pedida no primeiro uso. Número digitado como alternativa
 ## Ajuste da empresa
 `app_apontamento_exige_qr` (padrão `false`), lido por `AjustesDaEmpresa::valor`. Com `true`, o app esconde "Digitar número"; o servidor recusa número em `GET /producao/etiqueta/{codigo}` e exige no `iniciar` o `codigo` do QR do mesmo pedido → `422 campos.codigo` (QR de outro pedido ou empresa → 404).
 
+## Em revisão (2026-10-15)
+Decisão [W], repassada pela coordenação da Produção: o apontamento do app grava no módulo de Produção (PCP, ADR 0431 — camada única), não em `comvis_apontamentos`. O PR deste contrato (#9447) está em rascunho até o serviço do operador da thread 04 abrir. Já combinado com ela:
+- o QR continua apontando a OS; a etapa passa a ser a programação do posto (`programacao_id`) devolvida pela leitura do QR;
+- `cancelar` sai; toque errado vira correção com justificativa (append-only); `finalizar` vira concluir, e entra pausar com motivo;
+- fila sem internet permitida só para o apontamento (decisão [W]): o app manda a hora do toque e a `Idempotency-Key` gerada no aparelho;
+- o ajuste `app_apontamento_exige_qr` continua conferido nesta API.
+
 ## Fora deste contrato
-- Pausa, dois cronômetros, etapa de máquina e saída do ponto (ficha E04 do playbook Produção no celular): são do `Modules/Producao` (PCP), outra tabela. Esta rota é o apontamento da Comunicação Visual que já existe.
-- Área `producao` no `areas` de `/api/app/inicio` (§6): não incluída aqui; o `InicioController` é dos PRs 01/02.
+- Área `producao` no `areas` de `/api/app/inicio` (§6): o `InicioController` é dos PRs 01/02.
