@@ -17,7 +17,7 @@ import { Grid, Inline } from '@/Components/layout';
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import { brl, qtdComUnidade } from '../../Unificado/_components/catalogo';
 import { TIPO_ROTULO, type AbaDoDetalhe, type DetalheProdutoDados } from './tipos';
-import { ORIGENS_MERCADORIA } from '../OrigemMercadoriaField';
+import { ORIGENS_MERCADORIA } from '../origem-mercadoria';
 
 type Aba = AbaDoDetalhe;
 
