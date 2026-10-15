@@ -58,6 +58,11 @@ executar (antes listava todas as da etapa, só para leitura).
 que reservam/baixam estoque ou cancelam cobrança seguem só na web. Contrato:
 [api/tela-22-avancar-etapa.md](api/tela-22-avancar-etapa.md).
 
+**Entrega:** `POST /api/app/pedidos/{id}/entrega {itens, recebido_por, assinatura_png | sem_assinatura_motivo, lat, lng, etapa_esperada}`
+— protocolo `ENT-NNNN` por business, assinatura em `arquivos` e a ação `entregar` da FSM numa
+transação; o detalhe traz `entrega{pode}` e `itens_venda[].linha_id`. Contrato:
+[api/tela-22-entrega.md](api/tela-22-entrega.md).
+
 ### 2.1 Orçamentos (tela 04) — só leitura
 
 `GET /api/app/orcamentos?status=todos|rascunho|enviado|aprovado|convertido&pagina=N` →

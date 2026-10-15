@@ -13,3 +13,7 @@ Route::get('/producao', [\App\Http\Controllers\Api\App\PedidosController::class,
 // etapa_esperada obrigatórias; throttle de escrita. Contrato: api/tela-22-avancar-etapa.md.
 Route::post('/pedidos/{id}/acao', [\App\Http\Controllers\Api\App\PedidoAcaoController::class, 'executar'])
     ->whereNumber('id')->middleware('throttle:30,1')->name('pedidos.acao');
+// Protocolo de entrega (P3 · tela 22): ação `entregar` da FSM + protocolo ENT-NNNN + assinatura em
+// `arquivos`, numa transação; Idempotency-Key e etapa_esperada obrigatórias. Contrato: api/tela-22-entrega.md.
+Route::post('/pedidos/{id}/entrega', [\App\Http\Controllers\Api\App\PedidoEntregaController::class, 'registrar'])
+    ->whereNumber('id')->middleware('throttle:20,1')->name('pedidos.entrega');
