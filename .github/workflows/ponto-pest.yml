@@ -412,6 +412,7 @@ jobs:
             Modules/Ponto/Tests/Feature/ObservabilityTest.php \
             Modules/Ponto/Tests/Feature/TelasNavegacaoTest.php \
             Modules/Ponto/Tests/Feature/Wave26SaturationTest.php \
+            Modules/Ponto/Tests/Feature/PresencaDoDiaContratoTest.php \
             Modules/Ponto/Tests/Feature/ModuleSpecBranchPresenceTest.php
 
 

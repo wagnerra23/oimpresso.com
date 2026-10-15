@@ -45,6 +45,7 @@ lente: [construir]
 | OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-09-15 |
 | PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-09-07 |
 | Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-10-08 |
+| Producao | [BRIEFING](../requisitos/Producao/BRIEFING.md) | 2026-10-15 |
 | ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-07-23 |
 | RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-09-07 |
 | Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-10-01 |
@@ -147,8 +148,8 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **435** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 379 · superseded: 27 · proposto: 15 · deprecated: 11 · recusado: 2 · rascunho: 1.
+- **436** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 380 · superseded: 27 · proposto: 15 · deprecated: 11 · recusado: 2 · rascunho: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
@@ -427,14 +428,14 @@ lente: [construir]
 
 ## Rastro
 
-- **624** handoffs · **794** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **624** handoffs · **795** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-10-15-refutacao-gt-g5-lote-9433-r1`
   - `2026-10-09-session-09`
   - `2026-10-09-session-08`
   - `2026-10-09-session-07`
   - `2026-10-09-session-06`
   - `2026-10-09-session-05`
-  - `2026-10-09-session-04`
 
 ---
 _Gerado por `scripts/governance/system-map.mjs` · 2026-10-15 · deriva das fontes canônicas, não as substitui._
