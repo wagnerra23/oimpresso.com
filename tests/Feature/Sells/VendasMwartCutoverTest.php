@@ -200,9 +200,11 @@ it('prévia da importação: flag desligada no Blade, ligada na Page React, X-In
 
 // ── C1 · Descontos, Importação e Pedido de venda ligados só para biz=1 ─────────────────────
 // Cutover [W] 2026-10-13 ("pode ligar tudo"), thread C1 do venda-menu/playbook/02: sem env, as
-// três chaves vêm LIGADAS com a lista de empresas = [1]. As outras três (C2) seguem desligadas.
+// três chaves vêm LIGADAS com a lista de empresas = [1].
+// C2 [W] 2026-10-14 ("faça então e termine"): Lista de POS, Remessas e Devoluções também vêm
+// LIGADAS só para biz=1. Empresa que não é a 1 segue no Blade nas seis.
 
-it('C1 sem env as chaves de Descontos, Importação e Pedido vêm ligadas só para biz=1', function () {
+it('C1+C2 sem env as seis chaves de Vendas vêm ligadas só para biz=1', function () {
     $c1 = ['vendas_discount_index', 'vendas_import_sales', 'vendas_sales_order_index'];
     $c2 = ['vendas_pos_index', 'vendas_shipments_index', 'vendas_sell_return_index'];
 
@@ -218,13 +220,23 @@ it('C1 sem env as chaves de Descontos, Importação e Pedido vêm ligadas só pa
         expect($padrao[$chave])->toBe(['enabled' => true, 'business_ids' => [1]]);
     }
     foreach ($c2 as $chave) {
-        expect($padrao[$chave])->toBe(['enabled' => false, 'business_ids' => []]);
+        expect($padrao[$chave])->toBe(['enabled' => true, 'business_ids' => [1]]);
     }
 
     // Com o default, uma empresa que não é a 1 continua no Blade.
     expect($this->bizId)->not->toBe(1);
     config(['mwart.vendas_discount_index' => $padrao['vendas_discount_index']]);
     $this->get('/discount')->assertOk()->assertViewIs('discount.index');
+
+    // Idem para as três do C2.
+    foreach ([
+        'vendas_pos_index' => ['/pos', 'sale_pos.index'],
+        'vendas_shipments_index' => ['/shipments', 'sell.shipments'],
+        'vendas_sell_return_index' => ['/sell-return', 'sell_return.index'],
+    ] as $chave => [$url, $view]) {
+        config(["mwart.{$chave}" => $padrao[$chave]]);
+        $this->get($url)->assertOk()->assertViewIs($view);
+    }
 });
 
 // ── Q2 · Cotações (`vendas_cotacoes`) ─────────────────────────────────────────────────────
