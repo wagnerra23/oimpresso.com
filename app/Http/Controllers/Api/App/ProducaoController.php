@@ -212,23 +212,12 @@ class ProducaoController extends Controller
         }
         $justificativa = trim((string) $v['justificativa']);
 
-        // O Service grava um evento por chamada; o reenvio da mesma chave devolve o já gravado.
-        $ja = DB::table('pcp_eventos')->where('business_id', $bizId)->where('tipo', 'correcao_solicitada')
-            ->where('user_id', (int) $user->id)->where('dados->chave', $v['chave'])->first();
-        if ($ja !== null) {
-            $dados = json_decode((string) $ja->dados, true) ?: [];
-            if ((int) ($dados['inicio_id'] ?? 0) !== $id || ($dados['justificativa'] ?? null) !== $justificativa
-                || ! Carbon::parse((string) ($dados['momento'] ?? ''))->equalTo($v['momento'])) {
-                return $this->erro(422, 'idempotencia_conflito', 'Esta chave já foi usada em outro apontamento.');
-            }
-
-            return response()->json(['id' => (int) $ja->id, 'apontamento_id' => $id, 'situacao' => 'aguardando_gestor']);
-        }
-
         return $this->recusavel(function () use ($bizId, $user, $id, $v, $justificativa) {
+            // Reenvio da fila com a mesma chave e o mesmo corpo: o Service devolve o pedido já gravado.
             $e = $this->apontamento->lancarCorrecao($bizId, (int) $user->id, $id, $v['momento'], $justificativa, $v['chave']);
 
-            return response()->json(['id' => (int) $e->id, 'apontamento_id' => $id, 'situacao' => 'aguardando_gestor'], 201);
+            return response()->json(['id' => (int) $e->id, 'apontamento_id' => $id, 'situacao' => 'aguardando_gestor'],
+                $e->wasRecentlyCreated ? 201 : 200);
         });
     }
 
