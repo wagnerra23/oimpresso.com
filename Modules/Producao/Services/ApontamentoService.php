@@ -9,7 +9,7 @@ use Modules\Producao\Entities\Apontamento;
 use Modules\Producao\Entities\Posto;
 
 /**
- * Apontamento append-only (thread 02 + E02). Abrir e fechar são duas linhas.
+ * Apontamento append-only (thread 02 + E02). Abrir e fechar (pausa ou fim) são duas linhas.
  *
  * - Posto `maquina` grava `maquina_id` + `iniciado_por` e NÃO ocupa a pessoa (UC-PCV-31).
  * - Posto `pessoa` grava `user_id`; uma pessoa tem no máximo 1 apontamento de pessoa aberto.
@@ -65,6 +65,17 @@ class ApontamentoService
 
     public function fechar(int $businessId, int $inicioId, int $por, string $chave, string $origem = 'qr', ?Carbon $momento = null): Apontamento
     {
+        return $this->encerrar('fim', $businessId, $inicioId, $por, $chave, $origem, $momento, null);
+    }
+
+    /** Pausa fecha o trecho sem concluir a etapa; retomar é um `iniciar` novo. Motivo vem do cadastro do posto (thread 03). */
+    public function pausar(int $businessId, int $inicioId, int $por, string $chave, ?int $motivoId, string $origem = 'qr', ?Carbon $momento = null): Apontamento
+    {
+        return $this->encerrar('pausa', $businessId, $inicioId, $por, $chave, $origem, $momento, $motivoId);
+    }
+
+    private function encerrar(string $tipo, int $businessId, int $inicioId, int $por, string $chave, string $origem, ?Carbon $momento, ?int $motivoId): Apontamento
+    {
         if ($existente = $this->porChave($businessId, $chave)) {
             return $existente;
         }
@@ -74,8 +85,9 @@ class ApontamentoService
         return Apontamento::query()->create([
             'business_id' => $businessId,
             'chave_idempotencia' => $chave,
-            'tipo' => 'fim',
+            'tipo' => $tipo,
             'inicio_id' => $inicio->id,
+            'motivo_id' => $motivoId,
             'os_tipo' => $inicio->os_tipo,
             'os_id' => $inicio->os_id,
             'posto_id' => $inicio->posto_id,

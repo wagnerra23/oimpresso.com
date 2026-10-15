@@ -157,6 +157,13 @@ it('UC-PCV-31 · dois cronômetros: máquina e pessoa', function () {
     $roland99 = pcpPosto($this->b99, 'ROLAND31', Posto::MAQUINA, '42.00');
     expect($this->svc->iniciar($this->b99, $roland99->id, $this->u99, 'ch-31-roland')->business_id)->toBe($this->b99);
 
+    // Pausa com motivo fecha o trecho (a pessoa fica livre) e também é append-only.
+    $pausa = $this->svc->pausar($this->b98, $pes->id, $this->u98, 'ch-31-acab-pausa', 7);
+    expect([$pausa->tipo, $pausa->inicio_id, $pausa->motivo_id])->toBe(['pausa', $pes->id, 7])
+        ->and($this->svc->pessoaAberto($this->b98, $this->u98))->toBeFalse()
+        ->and(fn () => DB::table('pcp_apontamentos')->where('id', $pausa->id)->update(['motivo_id' => 8]))->toThrow(QueryException::class);
+    $pes = $this->svc->iniciar($this->b98, $acab->id, $this->u98, 'ch-31-acab-retoma', 'repair_job_sheet', 31); // retomar = início novo
+
     // Fechado, a pessoa volta a poder abrir; fechar de novo não acha o aberto.
     $this->svc->fechar($this->b98, $pes->id, $this->u98, 'ch-31-acab-fim');
     expect($this->svc->pessoaAberto($this->b98, $this->u98))->toBeFalse()
