@@ -199,7 +199,7 @@ export interface DetalheProdutoDados {
     origem: string;
     /** false enquanto o cadastro não tiver origem por produto — a tela avisa que vale pra todos. */
     origem_por_produto: boolean;
-    /** Tributação do NfeBrasil com este produto no simulador; null sem módulo ou sem permissão. */
+    /** Tributação do NfeBrasil com este produto no simulador; null sem o módulo Fiscal no pacote ou sem permissão. */
     link_modulo: string | null;
   };
   prateleiras: {

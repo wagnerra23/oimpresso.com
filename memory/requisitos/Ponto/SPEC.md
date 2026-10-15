@@ -374,3 +374,22 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 - [x] `business_id` explícito em toda query + teste cross-tenant 98 × 99
 - [ ] Tela `/ponto/conformidade` (PR 2): KPI por verificação + tabela caso a caso + atalho para o Espelho
 - [ ] Colaborador sem PIS: [W] confirmar a base legal a citar (o protótipo diz só "bloqueia AFD e eSocial S-2230"; sem artigo, hoje entra como conferência)
+
+### US-PONTO-017 · Presença do dia lida por outro módulo (somente leitura)
+
+> owner: — · priority: p1 · estimate: — · type: story
+
+**Implementado em:** `Modules/Ponto/Services/PresencaDoDiaService.php` · `Modules/Ponto/Tests/Feature/PresencaDoDiaContratoTest.php`
+**Testado em:** `Modules/Ponto/Tests/Feature/PresencaDoDiaContratoTest.php`
+
+**Como** apontamento da Produção (Modules/Producao, thread 04 + E04 do playbook PCP),
+**quero** ler a entrada, a saída e a presença do dia de um usuário,
+**para que** a saída do ponto feche o cronômetro de pessoa e as horas de pessoa não passem da presença.
+
+**Decisão:** D-PONTO, confirmada por [W] em 2026-10-15: o ponto é a fonte legal e nunca é alterado pelo apontamento; a saída no ponto fecha o cronômetro de pessoa e, sem saída, ele fecha no fim do turno.
+
+**Aceite:**
+- [x] Só leitura: nada é gravado em `ponto_marcacoes` nem no cadastro (Portaria MTP 671/2021)
+- [x] `business_id` explícito em toda consulta, sem depender da sessão; teste cross-tenant 98 × 99
+- [x] Marcação anulada e a própria linha de anulação não contam
+- [x] Mesma escolha de batidas do `ApuracaoService::carregarMarcacoes` (1ª entrada, última saída, 1º par de almoço)
