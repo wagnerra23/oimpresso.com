@@ -7,7 +7,7 @@
 - Consentimento: `contacts.whatsapp_consent` (+ `whatsapp_opt_in_at`), já devolvido em `GET /api/app/pessoas/{id}/cadastro` (§4.1).
 
 ## Rotas ✅ — token e `business_id` do usuário do token, explícito (ADR 0093)
-Código: `app/Http/Controllers/Api/App/AtendimentoController.php` · rotas: `routes/api/app/atendimento.php`.
+Código: `Modules/Whatsapp/Http/Controllers/Api/AppAtendimentoController.php` (no módulo desde 2026-10-15; até então em `app/`, o que quebrava a direção de dependência — o Início pergunta a área pelo contrato `App/Contracts/Atendimento/AtendimentoDoApp`) · rotas: `routes/api/app/atendimento.php`.
 
 `GET /api/app/atendimento?pagina=N` →
 ```json

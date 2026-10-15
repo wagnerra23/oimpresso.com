@@ -239,6 +239,9 @@ class WhatsappServiceProvider extends ServiceProvider
         // Centrifugo publisher singleton (stateless HTTP wrapper)
         $this->app->singleton(CentrifugoPublisher::class);
 
+        // Área `atendimento` do Início do app das lojas (tela 41): o núcleo pergunta pelo contrato.
+        $this->app->bind(\App\Contracts\Atendimento\AtendimentoDoApp::class, \Modules\Whatsapp\Http\Controllers\Api\AppAtendimentoController::class);
+
         // US-WA-072 — Whisper transcription contract. WhisperTranscriber é
         // o único impl nesta fase; Ollama whisper-local vai em US separada.
         // Mock fácil em test via $this->app->bind(AudioTranscriber::class, ...).

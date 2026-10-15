@@ -14,9 +14,9 @@ module: Whatsapp
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Whatsapp/**` + `resources/js/Pages/Whatsapp/**` + `resources/js/Pages/Atendimento/**` (namespaces Inertia `Whatsapp`, `Atendimento`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `Whatsapp` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 436 arquivos em 20 papéis.
+**Total mapeado:** 437 arquivos em 20 papéis.
 
-## Controllers — 23
+## Controllers — 24
 
 - [BroadcastController.php](../../../Modules/Whatsapp/Http/Controllers/Admin/BroadcastController.php)
 - [CaixaUnificadaController.php](../../../Modules/Whatsapp/Http/Controllers/Admin/CaixaUnificadaController.php)
@@ -31,6 +31,7 @@ module: Whatsapp
 - [QueuesController.php](../../../Modules/Whatsapp/Http/Controllers/Admin/QueuesController.php)
 - [SettingsController.php](../../../Modules/Whatsapp/Http/Controllers/Admin/SettingsController.php)
 - [TemplatesController.php](../../../Modules/Whatsapp/Http/Controllers/Admin/TemplatesController.php)
+- [AppAtendimentoController.php](../../../Modules/Whatsapp/Http/Controllers/Api/AppAtendimentoController.php)
 - [BaileysWebhookController.php](../../../Modules/Whatsapp/Http/Controllers/Api/BaileysWebhookController.php)
 - [ChannelBaileysWebhookController.php](../../../Modules/Whatsapp/Http/Controllers/Api/ChannelBaileysWebhookController.php)
 - [CustomerProfileController.php](../../../Modules/Whatsapp/Http/Controllers/Api/CustomerProfileController.php)

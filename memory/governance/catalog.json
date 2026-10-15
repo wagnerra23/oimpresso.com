@@ -4323,6 +4323,13 @@
       "desc": "sync HSM Meta + criar template LOCAL Z-API/Baileys"
     },
     {
+      "id": "component:Whatsapp/Api/AppAtendimentoController",
+      "type": "component",
+      "module": "Whatsapp",
+      "name": "Api/AppAtendimentoController",
+      "desc": "atendimento WhatsApp do app das lojas, /api/app/atendimento (tela 41, PR 18 propostas-app); implementa o contrato App/Contracts/Atendimento/AtendimentoDoApp"
+    },
+    {
       "id": "component:Whatsapp/Api/BaileysWebhookController",
       "type": "component",
       "module": "Whatsapp",
@@ -12569,6 +12576,12 @@
     {
       "from": "module:Whatsapp",
       "to": "component:Whatsapp/Admin/TemplatesController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "component:Whatsapp/Api/AppAtendimentoController",
       "type": "hasComponent",
       "source": "contains"
     },

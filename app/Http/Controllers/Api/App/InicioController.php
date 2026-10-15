@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\App;
 
+use App\Contracts\Atendimento\AtendimentoDoApp;
 use App\Http\Controllers\Controller;
 use App\Services\AppLojas\AjustesDaEmpresa;
 use App\User;
@@ -108,7 +109,7 @@ class InicioController extends Controller
             'ponto_gestor' => app(PontoAprovacoesController::class)->podeVerFila($user),
             'equipe' => app(EquipeController::class)->podeVerEquipe($user),
             'assistente' => app(ChatController::class)->podeConversar($user),
-            'atendimento' => app(AtendimentoController::class)->areaVisivel($user), // canal WhatsApp ligado (tela 41)
+            'atendimento' => app(AtendimentoDoApp::class)->areaVisivel($user), // canal WhatsApp ligado (tela 41)
             'mais' => true,
         ]));
 

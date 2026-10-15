@@ -23,7 +23,6 @@
     "app/Domain/Fsm/SideEffects/RecolherCacamba.php",
     "app/Domain/Fsm/SideEffects/VoltarCacambaDisponivel.php",
     "app/Http/Controllers/DocumentacaoController.php",
-    "app/Http/Controllers/ProdutoUnificadoController.php",
     "app/Http/Controllers/SellController.php",
     "app/Http/Controllers/ServiceOrderFsmActionController.php",
     "app/Http/Middleware/AdminSidebarMenu.php",
