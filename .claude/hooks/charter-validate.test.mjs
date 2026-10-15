@@ -62,7 +62,7 @@ const raizFx = mkdtempSync(join(tmpdir(), 'ancora-fx-'));
 mkdirSync(join(raizFx, 'scripts', 'governance'), { recursive: true });
 writeFileSync(join(raizFx, 'scripts', 'governance', '.cowork-freshness-ledger.json'), JSON.stringify([
   { kind: 'compare', date: '2026-01-01T00:00:00Z', verified: ['velho.jsx'], staleList: [] },
-  { kind: 'compare', date: '2026-02-02T00:00:00Z', verified: [], staleList: ['divergente.jsx'] },
+  { kind: 'compare', date: '2026-02-02T00:00:00Z', verified: [], staleList: ['divergente.jsx', 'Wagner/producao-cv-page.jsx'] },
   // live-only DEPOIS da compare: não pode virar "a última rodada" (medido 2026-08-27 — uma
   // entrada dessas fez `STALE` degradar pra `SEM VEREDITO NOVO` no ancora.mjs).
   { kind: 'live-only', date: '2026-03-03T00:00:00Z', liveOnly: 2, liveOnlyList: ['x.jsx'] },
@@ -78,6 +78,9 @@ check('ancoraStale: reporta o arquivo e a data medidos', (() => { const r = anco
 check('ancoraStale: LIBERA "nunca verificado" (senao vira parede de 25 telas)', ancoraStale(cOk, raizFx) === null);
 check('ancoraStale: LIBERA related_prototype n/a (herda PT)', ancoraStale(cNa, raizFx) === null);
 check('ancoraStale: LIBERA charter sem related_prototype', ancoraStale(cSem, raizFx) === null);
+// Fonte no git (ADR 0433): para o dono Wagner, STALE contra o Cowork vivo deixou de ser defeito.
+const cWagner = chFx('e.charter.md', ['---', 'status: live', 'related_prototype: prototipo-ui/cowork/Wagner/producao-cv-page.jsx', '---', ''].join('\n'));
+check('ancoraStale: LIBERA ancora do dono com fonte no git, mesmo no staleList (ADR 0433)', ancoraStale(cWagner, raizFx) === null);
 check('ancoraStale: entrada live-only NAO vira a ultima rodada', !!ancoraStale(cStale, raizFx));
 check('ancoraStale: fail-open com ledger ausente', ancoraStale(cStale, mkdtempSync(join(tmpdir(), 'sem-ledger-'))) === null);
 check('ancoraStale: fail-open com charter inexistente', ancoraStale(join(raizFx, 'nao-existe.charter.md'), raizFx) === null);
