@@ -71,6 +71,9 @@ const AQUI = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(AQUI, '..', '..');
 const SNAPSHOT_DS = join(REPO, 'prototipo-ui/design-system');
 const ENTRY = 'oimpresso.com.html';
+// Teto das partes na rota ZIP. Elas nao passam pelo `get_file` (ver o passo [5]), entao o limite
+// de 256 KiB do gerador nao se aplica; 64 MiB so evita parte absurda se algo der muito errado.
+export const CAP_DISCO = 64 * 1024 * 1024;
 
 const sha = (buf) => createHash('sha256').update(buf).digest('hex');
 
@@ -857,8 +860,14 @@ function principal() {
   const outSync = join(rascunho, '_sync-regerado');
   // `--owner` vem da conta que o PASSO 0 liberou — quem chama sabe de quem e o lote; o path da
   // arvore extraida (tmpdir) nao diz. Sem isto o gerador sai `owner: "project"` (medido).
+  // `--cap`: o teto de 256 KiB do gerador existe por causa do `DesignSync.get_file`, que corta o
+  // payload nesse tamanho. Aqui as partes nunca passam por ele: nascem e morrem no tmpdir e o
+  // aplicador as le com readFileSync. Em 2026-10-15 o handoff (55) parou com `targetManifest
+  // sozinho excede o cap: 273152 > 262144` — o manifesto de 1600 arquivos ja nao cabe numa parte
+  // de 256 KiB, e a rota ZIP herdava um limite de um transporte que ela nao usa.
   const g = roda('scripts/design-sync/gerar-payload-partes.mjs',
-    ['--root', raiz, '--out', outSync, ...(primeira ? [] : ['--previous', ATIVO_DONO]), '--full-tree', '--owner', DONO]);
+    ['--root', raiz, '--out', outSync, ...(primeira ? [] : ['--previous', ATIVO_DONO]), '--full-tree', '--owner', DONO,
+      '--cap', String(CAP_DISCO)]);
   if (!g.ok) { console.error(g.out); morre('o gerador canonico falhou'); }
   console.log(`\n  [5] REGERAR      ${((g.out.match(/BUNDLE v2: \w+/) || [''])[0] || '').trim()}`);
   console.log(`                   ${((g.out.match(/DELTA:.*/) || [''])[0] || '').trim()}`);

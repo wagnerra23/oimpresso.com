@@ -25,6 +25,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { aplicarRefDs } from './bundle-contract.mjs';
+import { CAP_DISCO } from './receber-handoff.mjs';
 
 const GERADOR = fileURLToPath(new URL('./gerar-payload-partes.mjs', import.meta.url));
 const CAP = 262144;
@@ -256,6 +257,25 @@ console.log('\n=== 9) SOLTA — part01 pode carregar só o manifesto quando o pr
   ok(envs[0].targetManifest && envs[0].chunks.length === 0, 'part01 é controle-only quando necessário');
   ok(files.every((file) => statSync(join(out, file)).size <= capControle), 'todas as partes respeitam o cap');
   ok(envs.slice(1).flatMap((env) => env.chunks).some((chunk) => chunk.path === '000-grande.css'), 'chunk grande seguiu nas partes de dados');
+}
+
+console.log('\n=== cap da rota ZIP — manifesto maior que 256 KiB (2026-10-15) ===');
+{
+  // O handoff (55) parou com `targetManifest sozinho excede o cap: 273152 > 262144`: o projeto
+  // passou de ~1600 arquivos e o manifesto deixou de caber numa parte. O teto existe por causa
+  // do `get_file`; a rota ZIP le as partes do disco e passa CAP_DISCO.
+  const dir = mkdtempSync(join(tmpdir(), 'gpp-cap-'));
+  writeFileSync(join(dir, 'oimpresso.com.html'), '<!doctype html><html><head></head><body></body></html>\n');
+  mkdirSync(join(dir, 'cowork-inbox', 'lote', 'playbook'), { recursive: true });
+  for (let i = 0; i < 2600; i++) {
+    writeFileSync(join(dir, 'cowork-inbox', 'lote', 'playbook', `${String(i).padStart(4, '0')}-thread-com-nome-comprido.md`), `# ${i}\n`);
+  }
+  const r1 = rodar(['--root', dir, '--out', saida(), '--full-tree', '--owner', 'Wagner', '--piso', '0']);
+  ok(r1.code !== 0 && /targetManifest sozinho excede o cap/.test(r1.out), `MORDE: com o teto padrao o manifesto grande nao cabe (exit ${r1.code})`);
+  const out = saida();
+  const r2 = rodar(['--root', dir, '--out', out, '--full-tree', '--owner', 'Wagner', '--piso', '0', '--cap', String(CAP_DISCO)]);
+  ok(r2.code === 0 && partesDe(out).length >= 1, `SOLTA: com CAP_DISCO gera as partes (exit ${r2.code}) ${r2.code ? r2.out.slice(-300) : ''}`);
+  ok(CAP_DISCO > 262144, 'CAP_DISCO e maior que o teto do get_file');
 }
 
 console.log('\n=== ds-ref — profundidade e so atributo (2026-09-21) ===');
