@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Controllers\Api\App;
+namespace Modules\ComunicacaoVisual\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Services\AppLojas\AjustesDaEmpresa;
 use App\User;
 use App\Utils\ModuleUtil;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -25,12 +25,15 @@ use Modules\ComunicacaoVisual\Services\OrcamentoGravador;
  * token e acrescenta o que o app exige: números como texto, Idempotency-Key e a DUPLA PROVA (o app
  * manda o total que mostrou; o ERP recalcula e recusa se divergir, sem gravar nada).
  *
+ * Mora NO MÓDULO, não em app/Http/Controllers/Api/App: a seta de dependência vai módulo → núcleo
+ * (tests/Feature/Architecture/DependencyDirectionTest). A rota fica em routes/api/app/orcamentos.php.
+ *
  * Tier 0 (ADR 0093): business_id do usuário do token, explícito em toda consulta. Os global scopes
  * de Material/Orcamento leem a SESSÃO e, sem ela, não filtram nada; por isso o preço do material é
  * resolvido aqui, com business_id, e entra no Calculator como preço do item (o Calculator nunca faz
  * o lookup de Material nesta rota).
  */
-class OrcamentosController extends Controller
+class AppOrcamentoRapidoController extends Controller
 {
     /** Medida em metros: texto com ponto, até 3 casas (coluna decimal 8,3). */
     private const MEDIDA = '/^\d{1,4}(\.\d{1,3})?$/';

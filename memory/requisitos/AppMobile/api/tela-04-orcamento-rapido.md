@@ -6,7 +6,7 @@
 
 ## As mesmas funções da web
 - Web (sessão): `POST /comunicacao-visual/api/calcular` e `POST /comunicacao-visual/api/orcamentos`, no `OrcamentoController`.
-- App (token): as rotas abaixo, no `Api\App\OrcamentosController`.
+- App (token): as rotas abaixo, no `AppOrcamentoRapidoController` do módulo (`Modules/ComunicacaoVisual/Http/Controllers`), porque a seta de dependência vai módulo → núcleo.
 - Os dois usam o **mesmo** cálculo (`OrcamentoCalculator`) e a **mesma** gravação (`OrcamentoGravador`). O preço vem de `comvis_materiais.preco_venda_m2`.
 - Fórmula: `area_m2 = largura × altura × quantidade` (3 casas) · `total do item = area_m2 × preço/m²` (2 casas) · total = soma dos itens.
 

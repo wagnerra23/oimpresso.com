@@ -46,7 +46,7 @@ on:
       - 'app/Http/Controllers/Api/App/AgendamentoController.php'
       - 'Modules/OficinaAuto/Database/Migrations/2026_10_06_180000_create_oficina_agendamentos_table.php'
       - 'app/Http/Controllers/Api/App/VendaRapidaController.php'
-      - 'app/Http/Controllers/Api/App/OrcamentosController.php'  # orçamento rápido (PR 16 propostas-app)
+      - 'Modules/ComunicacaoVisual/Http/Controllers/AppOrcamentoRapidoController.php'  # orçamento rápido (PR 16 propostas-app)
       - 'Modules/ComunicacaoVisual/Services/OrcamentoCalculator.php'
       - 'Modules/ComunicacaoVisual/Services/OrcamentoGravador.php'
       - 'Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php'
@@ -170,7 +170,7 @@ jobs:
               - 'app/Http/Controllers/Api/App/AgendamentoController.php'
               - 'Modules/OficinaAuto/Database/Migrations/2026_10_06_180000_create_oficina_agendamentos_table.php'
               - 'app/Http/Controllers/Api/App/VendaRapidaController.php'
-              - 'app/Http/Controllers/Api/App/OrcamentosController.php'  # orçamento rápido (PR 16 propostas-app)
+              - 'Modules/ComunicacaoVisual/Http/Controllers/AppOrcamentoRapidoController.php'  # orçamento rápido (PR 16 propostas-app)
               - 'Modules/ComunicacaoVisual/Services/OrcamentoCalculator.php'
               - 'Modules/ComunicacaoVisual/Services/OrcamentoGravador.php'
               - 'Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php'
