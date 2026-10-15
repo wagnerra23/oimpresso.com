@@ -133,7 +133,8 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 >   Nacional`, fixo nas duas emissões) com o aviso de que é o mesmo para todos; o texto de ajuda é o
 >   do protótipo, corrigido onde ele afirmava o que a emissão não faz; e "Abrir no módulo Fiscal"
 >   leva à Tributação do NfeBrasil com o produto no simulador (UC-NFTR-29), só para quem tem o
->   módulo e a permissão. O registro abaixo fica como era em 2026-10-13. **Não feitos, com motivo medido:** "Origem da
+>   módulo Fiscal no pacote e a permissão (a 1ª versão checava o pacote do NfeBrasil e não aparecia;
+>   corrigido no mesmo dia). O registro abaixo fica como era em 2026-10-13. **Não feitos, com motivo medido:** "Origem da
 >   mercadoria" (o campo não existe no cadastro nem no banco), "Abrir no módulo Fiscal" (não há
 >   tela fiscal por produto) e o texto de ajuda (o do protótipo chama de serviço todo produto sem
 >   NCM, o que é falso para cadastro incompleto).
