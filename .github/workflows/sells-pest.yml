@@ -38,6 +38,7 @@ on:
       - 'app/Http/Controllers/SellCommissionSplitController.php'
       - 'app/Http/Controllers/SellController.php'
       - 'app/Http/Controllers/Api/App/PedidosController.php'
+      - 'app/Http/Controllers/Api/App/PedidoAcaoController.php'  # P1 tela 22 (PR 04 propostas-app)
       - 'app/Http/Controllers/Api/App/InicioController.php'
       - 'app/Http/Controllers/Api/App/PerfilMenuController.php'
       - 'database/migrations/2026_10_02_190000_create_app_menu_preferencias_table.php'
@@ -158,6 +159,7 @@ jobs:
               - 'config/mwart.php'
               - 'app/Support/Mwart.php'
               - 'app/Http/Controllers/Api/App/PedidosController.php'
+              - 'app/Http/Controllers/Api/App/PedidoAcaoController.php'  # P1 tela 22 (PR 04 propostas-app)
               - 'app/Http/Controllers/Api/App/InicioController.php'
               - 'app/Http/Controllers/Api/App/PerfilMenuController.php'
               - 'database/migrations/2026_10_02_190000_create_app_menu_preferencias_table.php'
@@ -317,6 +319,9 @@ jobs:
         # 2026-10-15 — + AppAjustesEmpresaContratoTest (UC-APPAJ-01..05, PR 01 do playbook propostas-app):
         # `ajustes` do /api/app/inicio completo com padrão, tenant 98 × 2, e a aba "App das lojas" de
         # /business/settings (salvar desliga padrão ligado e não apaga chave que a aba não edita).
+        # 2026-10-15 — + AppPedidoAcaoContratoTest (PR 04 do playbook propostas-app, P1 · tela 22):
+        # POST /api/app/pedidos/{id}/acao só com a lista segura, etapa_esperada → 409, Idempotency-Key,
+        # ajuste app_acoes_fsm_liberadas estreita a lista, tenant 98 × 2 → 404 sem mudar a etapa.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -335,7 +340,7 @@ jobs:
             tests/Feature/Sells/AppPedidosApiContratoTest.php \
             tests/Feature/Sells/AppInicioApiContratoTest.php \
             tests/Feature/Sells/AppPerfilMenuApiContratoTest.php \
-            tests/Feature/Sells/AppAjustesEmpresaContratoTest.php \
+            tests/Feature/Sells/AppAjustesEmpresaContratoTest.php             tests/Feature/Sells/AppPedidoAcaoContratoTest.php \
             tests/Feature/Sells/AppNotificacoesApiContratoTest.php \
             tests/Feature/Sells/AppOsApiContratoTest.php \
             tests/Feature/Sells/AppOficinaAgendaApiContratoTest.php \
