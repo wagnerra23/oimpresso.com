@@ -11,6 +11,7 @@ import { PageHeader } from '@/Components/PageHeader';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Skeleton } from '@/Components/ui/skeleton';
 import '../../../../../../../resources/css/cowork-producao-bundle.css';
 import { agoraIso, enviar, esvaziar, novaChave, pendentes } from './_lib/fila';
@@ -136,10 +137,15 @@ function Linha({ a, motivos: todos, apontar }: { a: Aberto; motivos: Array<{ id:
       <div><span className="pcv-eyebrow">{maquina ? 'Máquina' : 'Você'} · OS {a.os_id}</span><b className="pcv-ap-t">{a.posto ?? 'Etapa'}</b></div>
       <Cronometro desde={a.desde} />
       <div className="pcv-bar">
-        <select aria-label="Motivo da pausa" value={motivo} onChange={(e) => setMotivo(e.target.value)} className="min-h-11 rounded-md border border-input bg-background px-3 text-sm">
-          <option value="">{motivos.length ? 'Motivo da pausa' : 'Sem motivos cadastrados no posto'}</option>
-          {motivos.filter((m) => m.id).map((m) => <option key={m.id} value={m.id}>{m.nome}</option>)}
-        </select>
+        <Select value={motivo || undefined} onValueChange={setMotivo} disabled={!motivos.length}>
+          <SelectTrigger aria-label="Motivo da pausa" className="min-h-11 min-w-48">
+            <SelectValue placeholder={motivos.length ? 'Motivo da pausa' : 'Sem motivos cadastrados no posto'} />
+          </SelectTrigger>
+          <SelectContent>
+            {/* Valor vazio quebra o Radix Select (§5 2026-06-29): só motivo com id. */}
+            {motivos.filter((m) => m.id).map((m) => <SelectItem key={m.id} value={String(m.id)}>{m.nome}</SelectItem>)}
+          </SelectContent>
+        </Select>
         <Button className="min-h-11" variant="outline" disabled={!motivo} onClick={() => apontar(`/producao/apontamento/${a.id}/pausar`, { motivo_id: Number(motivo) })}>Pausar</Button>
         <Button className="min-h-11" onClick={() => apontar(`/producao/apontamento/${a.id}/concluir`)}>Concluir etapa</Button>
       </div>

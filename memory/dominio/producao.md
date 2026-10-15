@@ -21,6 +21,11 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0431-pcp-sai-do-dese
   `turno` fechado no fim do turno (D-TURNO), `ponto` fechado pela saída no ponto (D-PONTO).
   "Fechado automaticamente" = `turno` ou `ponto`.
 - **Programação** (`pcp_programacoes.status`): `pendente → iniciada → concluida`, ou `cancelada`.
+- **Eventos do apontamento** (`pcp_eventos.tipo`, texto livre, sem enum — fora do bloco `json`;
+  constantes `EV_*` do `ApontamentoOperadorService`, thread 04): `etapa_iniciada`, `etapa_concluida`,
+  `aviso_proximo` (aviso ao próximo responsável, D-AVISO), `fechado_automaticamente` (aviso ao PCP),
+  `correcao_solicitada` (correção com justificativa; o par original fica) e `pendencia_gestor`
+  (horas de pessoa acima da presença + 30 min, D-PONTO).
 
 ## Enums canônicos (machine-checked por `dominio:check`)
 

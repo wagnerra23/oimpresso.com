@@ -7,6 +7,8 @@ contains:
   - "InstallController — instalação 1-clique (ADR 0024)"
   - "ApontamentoController — celular do operador (PWA, thread 04): /producao/apontamento, escritas em JSON para a fila offline; a regra mora no ApontamentoOperadorService"
   - "FecharTurnoCommand — producao:fechar-turno a cada 15 min, fecha o cronômetro esquecido no fim do turno ou na saída do ponto"
+not_contains:
+  - "Presença e saída do ponto (o apontamento só LÊ, D-PONTO) → Modules/Ponto"
 excludes:
   - "Dono da OS: a OS continua em Repair, ComunicacaoVisual e OficinaAuto (D-RELACAO, ADR 0431)"
   - "Receita e lista de materiais: Manufacturing segue fonte de material"
