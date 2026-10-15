@@ -279,6 +279,8 @@ Mesmos campos e regras do §4.2, **menos** `tipo` e `papeis` (mudar papel fica n
   colaborador com `controla_ponto`; `fiscal` = a regra de §10.2; `assistente` = quem conversa com a Jana (§12.4); `equipe` = quem vê a lista de usuários (§12.2); `ponto_gestor` = quem tem acesso ao módulo Ponto (§12.1); `financeiro` = a regra de §10.1; `relatorios` = algum bloco de §10.3 visível; `dashboard` = `dashboard.data` (§10.4); `pagamentos` = a regra do Financeiro (§10.5); `inicio` só para perfil `erp`; `mais` sempre.
   `perfil` = `erp` se tem tarefas, vendas, pessoas, financeiro, fiscal, relatórios ou dashboard, senão `colaborador`. `abre_em` = `inicio`
   (erp), `ponto` (colaborador) ou `mais` (sem nenhuma das duas).
+- `atendimento` (tela 41, P5): quem tem acesso ao atendimento WhatsApp da web (`whatsapp.access`, módulo no plano)
+  **e** enxerga um canal WhatsApp ligado; sem canal, a área não vem. Contrato: [api/tela-41-atendimento.md](api/tela-41-atendimento.md).
 
 - `faturado_hoje` e `meta_dia`: só com `dashboard.data` (senão `null`). Meta do dia = meta mensal
   da Jana ÷ dias úteis do mês (D11), sempre com `derivada: true`.

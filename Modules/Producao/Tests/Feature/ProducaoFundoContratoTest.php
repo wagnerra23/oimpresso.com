@@ -1,12 +1,15 @@
 <?php
 
 declare(strict_types=1);
-// Fundo do PCP: append-only. UC-PCV-28 entra com as entities (PR seguinte).
+// Cobre UC-PCV-28 (Producao.casos.md).
 
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\Producao\Entities\Apontamento;
+use Modules\Producao\Entities\Evento;
+use Modules\Producao\Entities\Posto;
 
 uses(Tests\TestCase::class, DatabaseTransactions::class);
 
@@ -50,6 +53,19 @@ function pcpUsuario(?int $biz, string $nome): int
         'password' => bcrypt('x'), 'business_id' => $biz, 'created_at' => now(), 'updated_at' => now()]);
 }
 
+function pcpPosto(int $biz, string $codigo, string $tipo, string $custo): Posto
+{
+    // SUPERADMIN: fixture grava em duas empresas; o escopo é provado nos asserts, não aqui.
+    return Posto::withoutGlobalScopes()->create(['business_id' => $biz, 'codigo' => $codigo, 'nome' => $codigo,
+        'tipo_custo' => $tipo, 'custo_hora' => $custo]);
+}
+
+function pcpComo(int $userId, int $biz): void
+{
+    test()->actingAs(\App\User::find($userId));
+    session(['user.business_id' => $biz]);
+}
+
 it('fundo · apontamento e evento são append-only (trigger, como o Ponto)', function () {
     $posto = DB::table('pcp_postos')->insertGetId(['business_id' => $this->b98, 'codigo' => 'LAM-AO', 'nome' => 'Laminação',
         'tipo_custo' => 'pessoa', 'custo_hora' => '28.00', 'created_at' => now(), 'updated_at' => now()]);
@@ -66,5 +82,33 @@ it('fundo · apontamento e evento são append-only (trigger, como o Ponto)', fun
     // Controle: a tabela mutável do fundo aceita update (o bloqueio não é geral) e a linha segue lá.
     expect(DB::table('pcp_postos')->where('id', $posto)->update(['custo_hora' => '30.00']))->toBe(1)
         ->and(DB::table('pcp_apontamentos')->where('id', $ap)->value('justificativa'))->toBeNull();
+});
+
+it('UC-PCV-28 · cada empresa vê só a sua produção', function () {
+    foreach ([$this->b98 => $this->u98, $this->b99 => $this->u99] as $biz => $user) {
+        $posto = pcpPosto($biz, 'ROLAND', Posto::MAQUINA, '42.00'); // mesmo código nas duas: único por empresa
+        // SUPERADMIN: fixture grava nas duas empresas; o escopo é provado nos asserts.
+        Apontamento::withoutGlobalScopes()->create(['business_id' => $biz, 'chave_idempotencia' => "ch-28-{$biz}", 'tipo' => 'inicio',
+            'os_tipo' => 'repair_job_sheet', 'os_id' => 28, 'posto_id' => $posto->id, 'tipo_custo' => Posto::MAQUINA,
+            'custo_hora' => '42.00', 'maquina_id' => $posto->id, 'iniciado_por' => $user, 'momento' => now()]);
+        Evento::withoutGlobalScopes()->create(['business_id' => $biz, 'tipo' => 'etapa_iniciada', 'os_tipo' => 'repair_job_sheet', 'os_id' => 28]);
+    }
+
+    pcpComo($this->u98, $this->b98);
+    expect(Posto::query()->where('codigo', 'ROLAND')->pluck('business_id')->map('intval')->all())->toBe([$this->b98])
+        ->and(Apontamento::query()->where('os_id', 28)->pluck('business_id')->map('intval')->unique()->values()->all())->toBe([$this->b98])
+        ->and(Evento::query()->where('os_id', 28)->pluck('business_id')->map('intval')->unique()->values()->all())->toBe([$this->b98]);
+
+    // O posto da 99, lido pelo id a partir da 98, não existe para ela.
+    $postoAlheio = Posto::withoutGlobalScopes()->where('business_id', $this->b99)->where('codigo', 'ROLAND')->value('id');
+    expect(Posto::query()->find($postoAlheio))->toBeNull();
+
+    // Discriminante: a mesma consulta como 99 devolve só a 99 (o filtro troca, não esvazia).
+    pcpComo($this->u99, $this->b99);
+    expect(Posto::query()->where('codigo', 'ROLAND')->pluck('business_id')->map('intval')->all())->toBe([$this->b99]);
+
+    // Controle negativo: sem escopo os dois registros existem — o filtro de cima é real.
+    // SUPERADMIN: controle negativo do teste de isolamento.
+    expect(Posto::withoutGlobalScopes()->where('codigo', 'ROLAND')->whereIn('business_id', [$this->b98, $this->b99])->count())->toBe(2);
 });
 

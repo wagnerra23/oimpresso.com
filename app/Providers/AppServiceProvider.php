@@ -341,6 +341,9 @@ class AppServiceProvider extends ServiceProvider
         // Avançar etapa da OS pelo app (tela 03): a OficinaAuto registra a implementação real;
         // sem ela, nenhuma OS é encontrada.
         $this->app->bindIf(\App\Contracts\Oficina\AcoesOs::class, \App\Contracts\Oficina\Nulo\SemAcoesOs::class);
+        // Anexos da OS pelo app (P2, tela 03): o módulo Arquivos registra a implementação real;
+        // sem ele, o envio responde 503 sem_configuracao e o conteúdo, 404.
+        $this->app->bindIf(\App\Contracts\Arquivos\AnexosDoApp::class, \App\Contracts\Arquivos\Nulo\SemAnexosDoApp::class);
     }
 
     /**
