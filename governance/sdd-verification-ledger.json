@@ -2168,6 +2168,25 @@
       "evidencia": "memory/sessions/2026-10-07-refutacao-gt-g5-lote-8969-r1.md (rodada aprovada)",
       "trajetoria": "1 rodada: 0,00% (r1, 0/234)",
       "marcador_absorcao": "n/a — lote não afrouxa baseline nenhum"
+    },
+    {
+      "pr": 9433,
+      "lote_id": "gt-g5-lote-9433",
+      "data": "2026-10-15",
+      "tipo": "anchors",
+      "gerador": "claude-opus-5-5 (Anthropic) — sessão que autorou o lote",
+      "refutador": "claude-fable-5-1 (Anthropic) — subagente em contexto próprio, zero contexto do gerador (instruído a não abrir evidências prévias nem o corpo do PR); instância NOVA, r1",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 122,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "veredito": "aprovado",
+      "evidencia": "memory/sessions/2026-10-15-refutacao-gt-g5-lote-9433-r1.md (rodada aprovada)",
+      "trajetoria": "1 rodada: 0,00% (r1, 0/122)",
+      "marcador_absorcao": "n/a — lote não afrouxa baseline nenhum"
     }
   ]
 }
