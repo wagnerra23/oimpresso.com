@@ -7,6 +7,7 @@ use DomainException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Modules\Ponto\Services\PresencaDoDiaService;
 use Modules\Producao\Entities\Apontamento;
 use Modules\Producao\Entities\Evento;
@@ -221,6 +222,9 @@ class ApontamentoOperadorService
         if ($momento->lt($inicio->momento)) {
             throw new ApontamentoRecusado(ApontamentoRecusado::MOMENTO_INVALIDO, 'A hora é anterior ao início.');
         }
+        if ($tipo === 'pausa' && ! $this->motivoDoPosto($businessId, (int) $inicio->posto_id, (int) $motivoId)) {
+            throw new ApontamentoRecusado(ApontamentoRecusado::MOTIVO_OBRIGATORIO, 'Escolha um motivo de pausa deste posto.');
+        }
 
         $fechamento = Apontamento::query()->where('business_id', $businessId)->where('inicio_id', $inicio->id)->first();
         if ($fechamento) {
@@ -236,6 +240,17 @@ class ApontamentoOperadorService
         return $tipo === 'pausa'
             ? $this->base->pausar($businessId, $inicio->id, $userId, $chave, $motivoId, 'qr', Carbon::instance($momento))
             : $this->base->fechar($businessId, $inicio->id, $userId, $chave, 'qr', Carbon::instance($momento));
+    }
+
+    /** E04 A4: o motivo vem do cadastro do posto (`pcp_motivos`, thread 03). Antes da 03, só a presença vale. */
+    private function motivoDoPosto(int $businessId, int $postoId, int $motivoId): bool
+    {
+        if (! Schema::hasTable('pcp_motivos')) {
+            return $motivoId > 0;
+        }
+
+        return DB::table('pcp_motivos')->where('business_id', $businessId)->where('posto_id', $postoId)
+            ->where('tipo', 'pausa')->where('ativo', true)->where('id', $motivoId)->exists();
     }
 
     /** O início tem de ser da empresa e do operador; de outro operador é o mesmo 404. */

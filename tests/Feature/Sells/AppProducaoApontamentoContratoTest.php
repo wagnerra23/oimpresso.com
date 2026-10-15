@@ -73,6 +73,17 @@ function appAptEtapa(int $bizId, int $posto, int $osId, ?int $resp, string $stat
     ]);
 }
 
+/** Motivo de pausa do posto (`pcp_motivos`, thread 03); antes dela basta um id > 0. */
+function appAptMotivo(int $bizId, int $posto): int
+{
+    if (! Schema::hasTable('pcp_motivos')) {
+        return 7;
+    }
+
+    return (int) DB::table('pcp_motivos')->insertGetId(['business_id' => $bizId, 'posto_id' => $posto, 'tipo' => 'pausa',
+        'nome' => 'Troca de bobina', 'created_at' => now(), 'updated_at' => now()]);
+}
+
 function appAptExigeQr(int $bizId, bool $liga): void
 {
     $pos = json_decode((string) DB::table('business')->where('id', $bizId)->value('pos_settings'), true) ?: [];
@@ -256,7 +267,13 @@ it('UC-APPAPT-07 pausar exige motivo; concluir devolve minutos pelo momento; enc
     $id = (int) appAptPost($this, '/api/app/producao/apontamentos/iniciar', ['programacao_id' => $etapa, 'momento' => APP_APT_DIA . 'T08:00:00-03:00'], 'k07-i')->json('id');
 
     appAptPost($this, "/api/app/producao/apontamentos/{$id}/pausar", [], 'k07-p0')->assertStatus(422)->assertJsonStructure(['campos' => ['motivo_id']]);
-    $p = appAptPost($this, "/api/app/producao/apontamentos/{$id}/pausar", ['motivo_id' => 7, 'momento' => APP_APT_DIA . 'T08:30:00-03:00'], 'k07-p')->assertStatus(201);
+    if (Schema::hasTable('pcp_motivos')) {
+        // Motivo de OUTRO posto: o Service recusa (só vale o cadastro do posto do apontamento).
+        appAptPost($this, "/api/app/producao/apontamentos/{$id}/pausar", ['motivo_id' => appAptMotivo($this->bizId, appAptPosto($this->bizId))], 'k07-pX')
+            ->assertStatus(422)->assertJsonStructure(['campos' => ['motivo_id']]);
+        expect(DB::table('pcp_apontamentos')->where('inicio_id', $id)->count())->toBe(0);
+    }
+    $p = appAptPost($this, "/api/app/producao/apontamentos/{$id}/pausar", ['motivo_id' => appAptMotivo($this->bizId, $this->posto), 'momento' => APP_APT_DIA . 'T08:30:00-03:00'], 'k07-p')->assertStatus(201);
     expect($p->json('minutos'))->toBe(30);
     expect($p->json('encerrado_por'))->toBe('pausa');
 

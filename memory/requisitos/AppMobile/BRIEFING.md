@@ -4,7 +4,7 @@ status: em-construcao
 status_nota: "Telas próprias no app oimpresso-app (decisão [W] 2026-10-01, 2ª); a base /m dentro do ERP foi revertida."
 updated_at: "2026-10-15"
 distilled_at: "2026-10-15"
-distilled_by: "manual [CL] — 2026-10-15: relidos a ADR 0432 e os 7 contratos ⬜ das propostas P1–P9 (api/tela-02, 03-anexos, 04, 13-lucratividade, 22-avancar-etapa, 22-entrega, 41); entraram a regra da biometria, o ponteiro para os contratos e os ajustes da empresa (PR 01 propostas-app). Base anterior: reversão do /m de 2026-10-01 (#8463, #8465) e MAPA-DE-DADOS-v1 (#8462). Não há Modules/AppMobile, então o destilador automático não cobre esta porta."
+distilled_by: "manual [CL] — 2026-10-15: relidos a ADR 0432 e os 7 contratos ⬜ das propostas P1–P9 (api/tela-02, 03-anexos, 04, 13-lucratividade, 22-avancar-etapa, 22-entrega, 41); entraram a regra da biometria e o ponteiro para os contratos. Base anterior: reversão do /m de 2026-10-01 (#8463, #8465) e MAPA-DE-DADOS-v1 (#8462). Não há Modules/AppMobile, então o destilador automático não cobre esta porta. Ajustes da empresa (PR 01 propostas-app) em 2026-10-15."
 owner: W
 ---
 

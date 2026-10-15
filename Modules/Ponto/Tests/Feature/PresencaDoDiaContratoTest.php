@@ -10,7 +10,6 @@ use Modules\Ponto\Entities\Colaborador;
 use Modules\Ponto\Entities\Marcacao;
 use Modules\Ponto\Services\PresencaDoDiaService;
 use Modules\Ponto\Tests\Feature\PontoTestCase;
-use Tests\Support\WithSeededTenant;
 
 uses(PontoTestCase::class);
 
@@ -100,7 +99,7 @@ afterEach(function () {
 
 it('lê a saída e a presença das batidas do dia, descontando o almoço', function () {
     pddPrecisaDeSchema();
-    $biz = (int) WithSeededTenant::resolveSeededTenant()?->id ?: $this->markTestSkipped('sem tenant 98');
+    $biz = (int) $this->seededTenant()->id;
     $u = pddUsuario($biz);
     $c = pddColaborador($biz, $u->id);
 
@@ -119,7 +118,7 @@ it('lê a saída e a presença das batidas do dia, descontando o almoço', funct
 
 it('saída anulada não fecha nada: sem outra saída, a saída é nula', function () {
     pddPrecisaDeSchema();
-    $biz = (int) WithSeededTenant::resolveSeededTenant()?->id ?: $this->markTestSkipped('sem tenant 98');
+    $biz = (int) $this->seededTenant()->id;
     $u = pddUsuario($biz);
     $c = pddColaborador($biz, $u->id);
 
@@ -140,7 +139,7 @@ it('saída anulada não fecha nada: sem outra saída, a saída é nula', functio
 it('não atravessa empresas: o ponto do 99 não responde pelo 98', function () {
     pddPrecisaDeSchema();
     $alheio = $this->garantirBizAlheio();
-    $biz = (int) WithSeededTenant::resolveSeededTenant()?->id ?: $this->markTestSkipped('sem tenant 98');
+    $biz = (int) $this->seededTenant()->id;
     $u = pddUsuario($alheio);
     $c = pddColaborador($alheio, $u->id);
     pddBatida($c, '08:00:00', Marcacao::TIPO_ENTRADA, $u->id);
@@ -156,7 +155,7 @@ it('não atravessa empresas: o ponto do 99 não responde pelo 98', function () {
 
 it('só lê: nenhuma linha é gravada em ponto_marcacoes nem no cadastro', function () {
     pddPrecisaDeSchema();
-    $biz = (int) WithSeededTenant::resolveSeededTenant()?->id ?: $this->markTestSkipped('sem tenant 98');
+    $biz = (int) $this->seededTenant()->id;
     $u = pddUsuario($biz);
     $c = pddColaborador($biz, $u->id);
     pddBatida($c, '08:00:00', Marcacao::TIPO_ENTRADA, $u->id);

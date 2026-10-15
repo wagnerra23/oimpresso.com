@@ -47,7 +47,7 @@ Reenvio com a mesma chave e o mesmo corpo → a mesma resposta com `200` (a prim
 - `codigo` (o texto do QR) é obrigatório quando a empresa liga `app_apontamento_exige_qr`; tem de ser desta empresa e da OS desta etapa, senão 404.
 - Também serve para retomar depois de uma pausa.
 
-`POST /api/app/producao/apontamentos/{id}/pausar` `{ motivo_id, momento? }` → `201 { id, encerrado_por: "pausa", origem, encerrado_em, minutos }`
+`POST /api/app/producao/apontamentos/{id}/pausar` `{ motivo_id, momento? }` → `201 { id, encerrado_por: "pausa", origem, encerrado_em, minutos }` (motivo de pausa ativo do posto do apontamento, cadastro da thread 03; outro → `422 campos.motivo_id`)
 - `motivo_id` do cadastro de motivos do posto.
 
 `POST /api/app/producao/apontamentos/{id}/concluir` `{ momento? }` → `201 { id, encerrado_por: "fim", origem, encerrado_em, minutos }`
