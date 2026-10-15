@@ -21,6 +21,9 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0431-pcp-sai-do-dese
   `turno` fechado no fim do turno (D-TURNO), `ponto` fechado pela saída no ponto (D-PONTO).
   "Fechado automaticamente" = `turno` ou `ponto`.
 - **Programação** (`pcp_programacoes.status`): `pendente → iniciada → concluida`, ou `cancelada`.
+- **Motivo** (`pcp_motivos.tipo`, por posto): `pausa` é o que o operador escolhe ao pausar (A4);
+  `refugo` é o motivo obrigatório da perda (A5, UC-PCV-17). Lista fechada por posto (UC-PCV-33,
+  emenda E03 da thread 03).
 
 ## Enums canônicos (machine-checked por `dominio:check`)
 
@@ -32,7 +35,8 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0431-pcp-sai-do-dese
     "pcp_programacoes.status": ["pendente", "iniciada", "concluida", "cancelada"],
     "pcp_apontamentos.tipo": ["inicio", "pausa", "fim"],
     "pcp_apontamentos.tipo_custo": ["maquina", "pessoa"],
-    "pcp_apontamentos.origem": ["qr", "manual", "turno", "ponto"]
+    "pcp_apontamentos.origem": ["qr", "manual", "turno", "ponto"],
+    "pcp_motivos.tipo": ["pausa", "refugo"]
   }
 }
 ```
