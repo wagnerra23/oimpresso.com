@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\App;
 
+use App\Contracts\Arquivos\AnexosDoApp;
 use App\Http\Controllers\Controller;
 use App\Services\AppLojas\AjustesDaEmpresa;
 use App\User;
@@ -12,12 +13,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Validator;
-use Modules\Arquivos\Services\ArquivosService;
-use Modules\Arquivos\Services\VaultEncryptionService;
-use Modules\OficinaAuto\Entities\ServiceOrder;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -26,7 +23,8 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * Sobre a tabela `arquivos` (Modules/Arquivos, ADR 0123): o mesmo morph que a web usa para as
  * fotos da OS (`arquivable_type` = FQCN do ServiceOrder), o mesmo caminho de gravação
- * (ArquivosService: dedupe, Curador, vault, trilha).
+ * (ArquivosService: dedupe, Curador, vault, trilha), alcançado pelo contrato
+ * App\Contracts\Arquivos\AnexosDoApp — o núcleo não importa módulo (DependencyDirectionTest).
  *
  * Tier 0 (ADR 0093): business_id do usuário do token em toda consulta, explícito — os global
  * scopes do Arquivo e do ServiceOrder leem a SESSÃO, que não existe numa chamada com token.
@@ -51,6 +49,9 @@ class OsArquivosController extends Controller
     private const MIMES = ['image/jpeg', 'image/png', 'application/pdf'];
 
     private const ROTA_IDEMPOTENCIA = 'os_arquivos';
+
+    /** Valor gravado em arquivos.arquivable_type para a OS (morph sem morphMap = FQCN do model). */
+    private const TIPO_OS = 'Modules\OficinaAuto\Entities\ServiceOrder';
 
     /** GET /api/app/os/{id}/arquivos */
     public function index(Request $request, int $id): JsonResponse
@@ -146,20 +147,25 @@ class OsArquivosController extends Controller
         }
 
         try {
-            // Tier 0: a OS já foi conferida no business do token; o where explícito não depende
-            // do global scope (que lê a sessão).
-            $os = ServiceOrder::query()->where('business_id', $bizId)->whereKey($id)->firstOrFail();
-            $novo = app(ArquivosService::class)->attachNoNegocio($os, $arquivo, $bizId);
-            DB::table('arquivos')->where('business_id', $bizId)->where('id', $novo->id)->update([
+            // Tier 0: a OS já foi conferida no business do token; o módulo filtra de novo pelo
+            // business explícito (o global scope lê a sessão).
+            $novoId = app(AnexosDoApp::class)->anexar($bizId, self::TIPO_OS, $id, $arquivo);
+            if ($novoId === null) {
+                throw new \RuntimeException('sem_configuracao');
+            }
+            DB::table('arquivos')->where('business_id', $bizId)->where('id', $novoId)->update([
                 'legenda' => $legenda,
                 'etapa' => $this->etapaAtual($bizId, $id),
             ]);
             DB::table('app_idempotencia')->where('id', $reservaId)->update([
-                'resposta' => json_encode(['arquivo_id' => (int) $novo->id]),
+                'resposta' => json_encode(['arquivo_id' => $novoId]),
                 'updated_at' => now(),
             ]);
         } catch (\Throwable $e) {
             DB::table('app_idempotencia')->where('id', $reservaId)->delete();
+            if ($e->getMessage() === 'sem_configuracao') {
+                return response()->json(['erro' => 'sem_configuracao', 'mensagem' => 'Os anexos não estão disponíveis.'], 503);
+            }
             Log::error('API app os.arquivos.store: ' . $e->getMessage(), ['business_id' => $bizId]);
 
             return response()->json(['erro' => 'falha', 'mensagem' => 'Não foi possível enviar o anexo.'], 500);
@@ -167,10 +173,10 @@ class OsArquivosController extends Controller
 
         // `origem` serve só para métrica (contrato): não vira regra nem coluna.
         Log::info('app.os_arquivos.upload', [
-            'business_id' => $bizId, 'arquivo_id' => (int) $novo->id, 'origem' => $request->input('origem'),
+            'business_id' => $bizId, 'arquivo_id' => $novoId, 'origem' => $request->input('origem'),
         ]);
 
-        return $this->respostaItem($bizId, (int) $novo->id, 201);
+        return $this->respostaItem($bizId, $novoId, 201);
     }
 
     /**
@@ -179,40 +185,14 @@ class OsArquivosController extends Controller
      */
     public function conteudo(Request $request, int $arquivo): Response
     {
-        $bizId = (int) $request->query('biz');
-        $a = DB::table('arquivos')->where('business_id', $bizId)->where('id', $arquivo)
-            ->whereNull('deleted_at')->first(['id', 'business_id', 'disk', 'storage_path', 'original_name', 'mime_type', 'encrypted']);
-        if ($a === null || trim((string) $a->storage_path) === '') {
+        $c = app(AnexosDoApp::class)->conteudo((int) $request->query('biz'), $arquivo);
+        if ($c === null) {
             return response()->json(['erro' => 'nao_encontrado', 'mensagem' => 'Anexo não encontrado.'], 404);
         }
 
-        $disco = $a->disk ?: 'arquivos';
-        $disk = Storage::disk($disco);
-        if (! $disk->exists($a->storage_path)) {
-            return response()->json(['erro' => 'nao_encontrado', 'mensagem' => 'Anexo não encontrado.'], 404);
-        }
-
-        try {
-            DB::table('arquivos_audit_log')->insert([
-                'arquivo_id' => (int) $a->id, 'business_id' => (int) $a->business_id, 'user_id' => null,
-                'action' => 'signed_url_consumed',
-                'payload' => json_encode(['via' => 'app', 'agent' => substr((string) $request->userAgent(), 0, 200)]),
-                'created_at' => now(),
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('app.os_arquivos.audit_failed', ['arquivo_id' => (int) $a->id]);
-        }
-
-        $corpo = (bool) $a->encrypted
-            ? app(VaultEncryptionService::class)->getDecrypted($disco, $a->storage_path)
-            : $disk->get($a->storage_path);
-        if ($corpo === null) {
-            return response()->json(['erro' => 'nao_encontrado', 'mensagem' => 'Anexo não encontrado.'], 404);
-        }
-
-        return response($corpo, 200, [
-            'Content-Type' => $a->mime_type ?: 'application/octet-stream',
-            'Content-Disposition' => 'inline; filename="' . addslashes((string) $a->original_name) . '"',
+        return response($c['corpo'], 200, [
+            'Content-Type' => $c['tipo'],
+            'Content-Disposition' => 'inline; filename="' . addslashes($c['nome']) . '"',
             'Cache-Control' => 'private, max-age=' . (self::URL_MINUTOS * 60),
         ]);
     }
@@ -256,7 +236,7 @@ class OsArquivosController extends Controller
                 $j->on('u.id', '=', 'a.uploaded_by_user_id')->on('u.business_id', '=', 'a.business_id');
             })
             ->where('a.business_id', $bizId)
-            ->where('a.arquivable_type', ServiceOrder::class)
+            ->where('a.arquivable_type', self::TIPO_OS)
             ->whereNull('a.deleted_at');
     }
 
