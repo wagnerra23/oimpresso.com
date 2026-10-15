@@ -15,6 +15,7 @@
 
 import type { ColumnDef } from '@tanstack/react-table';
 import { Globe } from 'lucide-react';
+import { Inline } from '@/Components/layout';
 import AcoesProduto, { type AcaoProduto } from './AcoesProduto';
 import {
   TIPO_ROTULO,
@@ -73,7 +74,7 @@ export function colunasDaLista({ visiveis, densa, permissions, contexto, aoEscol
     meta: { width: 300 },
     cell: ({ row }) => (
       <div className="min-w-0">
-        <div className="flex min-w-0 items-center gap-1.5">
+        <Inline gap={1} wrap={false} className="min-w-0">
           <span className="truncate font-semibold text-[var(--text)]">{row.original.nome}</span>
           {/* Marca de quem sincroniza com o WooCommerce, como a lista Blade (`fa-wordpress` sob o
               nome). O servidor só manda o campo quando o módulo está instalado. UC-PIDX-23. */}
@@ -88,7 +89,7 @@ export function colunasDaLista({ visiveis, densa, permissions, contexto, aoEscol
               <title>Sincroniza com o WooCommerce</title>
             </Globe>
           )}
-        </div>
+        </Inline>
         {!densa && <div className="truncate text-[11px] text-[var(--text-mute)]">{subLinhaProduto(row.original)}</div>}
       </div>
     ),
