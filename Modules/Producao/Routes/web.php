@@ -1,7 +1,11 @@
 <?php
 
 use Modules\Producao\Http\Controllers\ApontamentoController;
+use Modules\Producao\Http\Controllers\ColaboradorCustoController;
+use Modules\Producao\Http\Controllers\FerramentasController;
 use Modules\Producao\Http\Controllers\InstallController;
+use Modules\Producao\Http\Controllers\PostosController;
+use Modules\Producao\Http\Controllers\RoteirosController;
 
 /*
  * Esqueleto (ADR 0431): só as rotas Install 1-clique (ADR 0024 /
@@ -32,4 +36,25 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::post('{inicio}/pausar', [ApontamentoController::class, 'pausar'])->whereNumber('inicio')->name('pausar');
         Route::post('{inicio}/concluir', [ApontamentoController::class, 'concluir'])->whereNumber('inicio')->name('concluir');
         Route::post('{inicio}/corrigir', [ApontamentoController::class, 'corrigir'])->whereNumber('inicio')->name('corrigir');
+    });
+
+// ── Thread 03 + E03 · cadastros (postos, motivos, roteiros, ferramentas, custo-hora) ──
+// Bloco próprio: as threads seguintes acrescentam o delas embaixo, sem mexer neste.
+Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
+    ->prefix('producao')
+    ->name('producao.')
+    ->group(function () {
+        Route::get('roteiros', [RoteirosController::class, 'index'])->name('roteiros.index');
+        Route::post('roteiros', [RoteirosController::class, 'store'])->name('roteiros.store');
+        Route::put('roteiros/{id}', [RoteirosController::class, 'update'])->whereNumber('id')->name('roteiros.update');
+
+        Route::get('postos', [PostosController::class, 'index'])->name('postos.index');
+        Route::post('postos', [PostosController::class, 'store'])->name('postos.store');
+        Route::put('postos/{id}', [PostosController::class, 'update'])->whereNumber('id')->name('postos.update');
+        Route::put('postos/{id}/motivos', [PostosController::class, 'motivos'])->whereNumber('id')->name('postos.motivos');
+
+        Route::post('ferramentas', [FerramentasController::class, 'store'])->name('ferramentas.store');
+        Route::put('ferramentas/{id}', [FerramentasController::class, 'update'])->whereNumber('id')->name('ferramentas.update');
+
+        Route::put('colaboradores/{userId}/custo-hora', [ColaboradorCustoController::class, 'update'])->whereNumber('userId')->name('colaboradores.custo');
     });
