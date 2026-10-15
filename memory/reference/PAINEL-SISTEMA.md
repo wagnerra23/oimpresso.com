@@ -148,8 +148,8 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **436** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 380 · superseded: 27 · proposto: 15 · deprecated: 11 · recusado: 2 · rascunho: 1.
+- **438** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 381 · superseded: 27 · proposto: 16 · deprecated: 11 · recusado: 2 · rascunho: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
