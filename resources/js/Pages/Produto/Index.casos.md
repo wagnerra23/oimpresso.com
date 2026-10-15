@@ -410,12 +410,29 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 | G-d | Charter §Automation Hooks declarava **2 endpoints inexistentes**: `GET /produto` (a rota é `/products`) e `GET /produto/{id}/sheet-data` — varredura contada: `sheet-data` existe **só** para `/sells/{id}` (`routes/web.php:704 (verificado@e2c8397)`), **0** ocorrências para produto. Corrigido no charter (fato). | `grep -rn "sheet-data" routes/ app/` |
 | G-e | Charter §Goals declarava o gate `product.view_own`. Varredura contada em `app/`, `Modules/`, `routes/`, `resources/` (excl. charters): **0** ocorrências — a permissão **não existe** no projeto. O gate real é `product.view` **ou** `product.create` (`:66-68`). Corrigido no charter (fato). | `grep -rn "product.view_own"` |
 | G-f | Charter §Refs apontava `ui_kits/cowork-2026-05-09/prod-page.jsx` — caminho **inexistente**. O blueprint vivo é `prototipo-ui/cowork/Wagner/produtos-page.jsx`, que o próprio frontmatter (`bundle_source`) já declara. Corrigido no charter (fato). | `ls ui_kits/…` → No such file |
-| G-g | O charter está `status: live` (promovido em 2026-07-12 por `charter-promote-signal.mjs`, sinal `route-hits:16`) enquanto o SDD §1.1 e o SPEC afirmam *"as 8 telas existem, nenhuma é `live`"*. **Não reconciliei**: o critério de promoção é decisão de processo, não fato de arquivo. Ver §Divergências. | `Index.charter.md:8,166` × `SDD §1.1` × `SPEC.md:18` |
+| G-g | ✅ **Resolvido 2026-10-15** (ver D-4). O charter está `status: live` (promovido em 2026-07-12 por `charter-promote-signal.mjs`, sinal `route-hits:16`) enquanto o SDD §1.1 e o SPEC afirmam *"as 8 telas existem, nenhuma é `live`"*. **Não reconciliei**: o critério de promoção é decisão de processo, não fato de arquivo. Ver §Divergências. | `Index.charter.md:8,166` × `SDD §1.1` × `SPEC.md:18` |
 
 ---
 
-## Divergências abertas — decisão [W] (não escolhi vencedor)
+## Divergências — resolvidas pela lista nova (2026-10-15)
 
+> ✅ **Resolvidas em 2026-10-15, conferidas no código.** As quatro descrevem a lista de **cartões**,
+> que saiu em 2026-10-10 (charter v3, #9118/#9119/#9124). Não pedem mais decisão do [W]:
+>
+> - **D-1:** a popularidade saiu da tela e do controller (0 ocorrências de `popular` em `Index.tsx`
+>   e no `ProductController`). Os indicadores são os 4 do protótipo (UC-PIDX-07).
+> - **D-2:** clicar na linha abre o painel de detalhe, só com `product.view`
+>   (`Index.tsx`: `onRowClick={pode('view') ? …}`). O gate invertido sumiu com o link.
+> - **D-3:** o menu "Ações" da linha (`_components/lista/AcoesProduto.tsx`) tem as ações da lista
+>   Blade (ver, editar, estoque inicial, histórico, duplicar, código de barras, preços por grupo,
+>   anexo, ativar/desativar, excluir) e mais "Comprar" e "Dados fiscais". As 5 sem Non-Goal entraram.
+> - **D-4:** o `ProductController@index` serve a tela React por padrão; o Blade só com `?classico=1`.
+>   O tráfego de `/products` agora é da tela React. O SPEC já diz que o `Index` é a única tela `live`;
+>   a frase do SDD §1.1 ("zero live") foi corrigida com data neste PR. A dúvida sobre o promotor
+>   automático ler tráfego do Blade nas **outras** telas segue no backlog abaixo — é mecanismo, não esta tela.
+>
+> O texto original segue abaixo, sem mudança, como registro do que se viu em 2026-07-26.
+>
 > Fase 2.6 do `sdd-from-source`: **fato** eu corrijo; **intenção** e **promessa não cumprida** eu
 > registro nos dois lados e levo pro dono. Nenhum item abaixo foi alterado no charter.
 
@@ -429,6 +446,13 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 ---
 
 ## Paridade Blade→React (gaps do cutover — decisão [W]/[F], não bug afirmado)
+
+> **Conferido em 2026-10-15** contra a lista nova (`_components/lista/colunas.tsx`, `FiltrosLista.tsx`,
+> `tipos.ts`). A tabela abaixo descreve a lista de cartões e fica como registro. Na lista nova:
+> saldo com unidade (coluna Estoque), imagem, locais, marca, imposto, tipo, os filtros, a seleção em
+> massa com desativar/excluir, a aba "Relatório de estoque", "não para venda" (na 2ª linha da célula
+> Produto) e a ordenação por coluna **existem**. **Ainda faltam:** os custom fields e o selo de
+> WooCommerce sincronizado na linha (o filtro "WooCommerce habilitado" existe, o selo não).
 
 > A lista React mostra 6 atributos por card. O **mesmo método** `index()`, no branch DataTables,
 > entrega 14 colunas + 7 filtros + 2 ações em massa. Cada linha é âncora que **não** deve sumir
@@ -464,16 +488,23 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
-- **[BACKLOG] Os três denominadores da tela não fecham** — `kpis.total` (todos, sem `modifier`),
+- ✅ **Resolvido 2026-10-15:** a lista é paginada no servidor sem corte (UC-PIDX-01), os indicadores
+  contam as mesmas linhas da lista sem filtro (UC-PIDX-07) e a contagem por categoria saiu com os
+  cartões. Texto original: **[BACKLOG] Os três denominadores da tela não fecham** — `kpis.total` (todos, sem `modifier`),
   `rows` (sem `modifier`, cortado em 200) e `categorias[].count` (**tudo**, inclusive `modifier` e
   inativos). A soma das abas ≠ total do KPI ≠ cards na tela. Não virou UC porque o número correto
   de cada contador depende de qual pergunta a tela responde — decisão de desenho.
-- **[BACKLOG] `stockQty` sempre `null`** — a interface declara (`Index.tsx:56 (verificado@d4afe95)`), o builder manda
+- ✅ **Resolvido 2026-10-15:** a coluna Estoque mostra o saldo com unidade (`colunas.tsx`, id
+  `estoque`; `estoqueTexto` em `tipos.ts`). Texto original: **[BACKLOG] `stockQty` sempre `null`** — a interface declara (`Index.tsx:56 (verificado@d4afe95)`), o builder manda
   `null` fixo (`:465`) e o card **não renderiza**. O Blade tem a coluna `current_stock` com unidade.
   Vira UC quando [W] confirmar que o saldo entra no card (toca `[V0]`: saldo é estoque).
-- **[BACKLOG] Badge "não vendável" (`not_for_selling`)** — existe no Blade (`:263-264`), some no
+- ✅ **Resolvido 2026-10-15:** "não para venda" aparece na 2ª linha da célula Produto
+  (`subLinhaProduto` em `tipos.ts`; some na densidade compacta) e há o filtro "Não para venda".
+  Texto original: **[BACKLOG] Badge "não vendável" (`not_for_selling`)** — existe no Blade (`:263-264`), some no
   React. Sem âncora Delphi clara; 1 fonte só.
-- **[BACKLOG] Filtros avançados** — o charter declara "filtros avançados" como backlog explícito.
+- ✅ **Resolvido 2026-10-15:** `FiltrosLista.tsx` tem tipo, categoria, unidade, imposto, marca,
+  local, situação, modelo do dispositivo, "não para venda" e WooCommerce. Texto original:
+  **[BACKLOG] Filtros avançados** — o charter declara "filtros avançados" como backlog explícito.
   (A ordenação por coluna, que estava neste item, virou o **UC-PIDX-13** em 2026-10-12.)
 - **[BACKLOG] O promotor automático de charter pode estar lendo tráfego do Blade** — `/products`
   serve os dois branches; `route-hits` não distingue. Se confirmado, afeta as 8 telas do módulo e
@@ -495,6 +526,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
+- 2026-10-15 · [CC] **só documentação:** D-1..D-4 e G-g marcados como resolvidos pela lista nova, com a evidência no código; 4 itens do backlog idem; nota na tabela de paridade com o que ainda falta (custom fields e selo WooCommerce). O SDD §1.1 deixa de dizer "zero live". Nenhum UC muda.
 - 2026-10-14 · [F+C] **UC-PIDX-22** (lista e painel): produto sem foto passa a mostrar "IMG" na coluna Imagem e "Sem imagem" no painel, como no protótipo; o servidor manda `imagem = null` em vez da imagem genérica.
 - 2026-10-14 · [F+C] **UC-PIDX-21** (painel): produto que não controla estoque passa a ter a aba Estoque, com o aviso "Este produto não gerencia estoque." Sem permissão de ver o relatório, a aba continua fora.
 - 2026-10-14 · [F+C] **UC-PIDX-20** (painel): a composição ganha o "Total líquido", o preço de venda da composição e as colunas de preço da Blade por item; as abas Variações e Composição mostram as imagens. Total provado por dois caminhos (à mão e pela janela "Ver" da Blade).

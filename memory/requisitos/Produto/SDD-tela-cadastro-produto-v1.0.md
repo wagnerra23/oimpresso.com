@@ -186,7 +186,7 @@ A `module-grade 71` (UX/DS das 8 telas) **esconde** três buracos de valor/estoq
 
 > ⚙️ **derivado** — re-rodável de [BRIEFING.md](BRIEFING.md) + rotas reais (`routes/web.php`). Se as rotas ou o BRIEFING mudaram, re-derive esta seção; não remende à mão.
 
-A tela de cadastro de produto é o **registro-mãe do ERP** — nada em Vendas, Compras, Fiscal ou Produção existe sem um produto cadastrado antes. É um **wrapper Inertia/React sobre `App\Product`** do UltimatePOS legacy, em migração Blade→React via processo MWART ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)) — **8 telas React existem, todas `status: draft`/`awaiting-smoke-browser`, zero `live`** (o Blade coexiste como fallback via branch dual no header `X-Inertia`). Finalizar e promover essas telas é a US-PROD-023.
+A tela de cadastro de produto é o **registro-mãe do ERP** — nada em Vendas, Compras, Fiscal ou Produção existe sem um produto cadastrado antes. É um **wrapper Inertia/React sobre `App\Product`** do UltimatePOS legacy, em migração Blade→React via processo MWART ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)) — **8 telas React existem, todas `status: draft`/`awaiting-smoke-browser`, zero `live`** (o Blade coexiste como fallback via branch dual no header `X-Inertia`). Finalizar e promover essas telas é a US-PROD-023. _(Retrato da escrita deste SDD. Em 2026-10-15 a lista `Index` é `live` e a `/products` serve a tela React por padrão, com o Blade só em `?classico=1`. O estado vivo é o `status:` de cada charter.)_
 
 ### 1.0 As duas verticais do produto
 
