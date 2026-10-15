@@ -115,8 +115,9 @@ class PedidosController extends Controller
             ->leftJoin('products as p', 'tsl.product_id', '=', 'p.id')
             ->where('tsl.transaction_id', $l->id)
             ->whereNull('tsl.parent_sell_line_id')
-            ->get(['p.name as produto', 'tsl.quantity', 'tsl.unit_price_inc_tax'])
+            ->get(['tsl.id', 'p.name as produto', 'tsl.quantity', 'tsl.unit_price_inc_tax'])
             ->map(fn ($s) => [
+                'linha_id' => (int) $s->id,
                 'produto' => (string) $s->produto,
                 'quantidade' => (float) $s->quantity,
                 'total' => round((float) $s->quantity * (float) $s->unit_price_inc_tax, 2),
@@ -137,7 +138,30 @@ class PedidosController extends Controller
                 'estado' => $atual === false ? 'futuro' : ($i < $atual ? 'feito' : ($i === $atual ? 'atual' : 'futuro')),
             ])->values(),
             'acoes' => $this->acoes($user, (int) $l->id, $l->current_stage_id),
+            'entrega' => $this->entrega($user, (int) $l->id, $l->current_stage_id),
         ]);
+    }
+
+    /**
+     * Entrega pelo app (POST /pedidos/{id}/entrega, P3 · tela 22): null quando a etapa atual não tem
+     * a ação `entregar`; senão `pode` = o usuário passa no RBAC da FSM e a ação não tem side effect.
+     * Fica fora de `acoes[]` porque não sai pela rota de ação: exige protocolo e assinatura.
+     */
+    private function entrega(User $user, int $id, $stageId): ?array
+    {
+        if ($stageId === null) {
+            return null;
+        }
+        $acao = SaleStageAction::query()->where('stage_id', (int) $stageId)->where('key', 'entregar')->first();
+        if ($acao === null) {
+            return null;
+        }
+        $venda = Transaction::where('business_id', (int) $user->business_id)->find($id);
+
+        return [
+            'pode' => $venda !== null && empty($acao->side_effect_class) && empty($acao->event_class)
+                && app(StageActionPolicy::class)->canExecute($user, $venda, 'entregar'),
+        ];
     }
 
     /** Colunas da aba Produção (decisão [W] 2026-10-02: Produção usa as etapas da VENDA). */
