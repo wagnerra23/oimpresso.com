@@ -338,6 +338,9 @@ jobs:
         # 2026-10-15 — + AppPedidoAcaoContratoTest (PR 04 do playbook propostas-app, P1 · tela 22):
         # POST /api/app/pedidos/{id}/acao só com a lista segura, etapa_esperada → 409, Idempotency-Key,
         # ajuste app_acoes_fsm_liberadas estreita a lista, outro business → 404 sem mudar a etapa.
+        # 2026-10-15 — + AppRelatoriosLucroComissaoContratoTest (UC-APPLC-01..06, PR 13 do playbook propostas-app):
+        # abas lucratividade e comissoes de /api/app/relatorios, conferidas contra o Lucro/Prejuízo e a
+        # Comissão por vendedor do web; vendedor × gerente × ajuste; tenant 98 × 2. NASCE SEM RUN.
         # 2026-10-15 — + AppOsArquivosApiContratoTest (UC-APPANX-01..08, PR 09 do playbook propostas-app):
         # anexos da OS no app — lista assinada de 10 min, envio jpg/png/pdf ≤ 10 MB, tenant 98 × 2 → 404,
         # app_anexos_camera e Idempotency-Key.
@@ -373,6 +376,7 @@ jobs:
             tests/Feature/Sells/AppFinanceiroApiContratoTest.php \
             tests/Feature/Sells/AppFiscalApiContratoTest.php \
             tests/Feature/Sells/AppRelatoriosApiContratoTest.php \
+            tests/Feature/Sells/AppRelatoriosLucroComissaoContratoTest.php \
             tests/Feature/Sells/AppDashboardApiContratoTest.php \
             tests/Feature/Sells/AppVendaRapidaCriarApiContratoTest.php \
             tests/Feature/Sells/AppPagamentosApiContratoTest.php \

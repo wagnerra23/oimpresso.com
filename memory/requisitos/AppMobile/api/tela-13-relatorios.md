@@ -2,17 +2,20 @@
 
 > Parte do contrato da API do app ([API-CONTRATO-v1.md](../API-CONTRATO-v1.md): regras gerais §0, Início §6).
 
-`GET /api/app/relatorios?periodo=mes|trimestre|ano&aba=dre|vendas|producao|estoque` →
+`GET /api/app/relatorios?periodo=mes|trimestre|ano&aba=dre|vendas|producao|estoque|lucratividade|comissoes` →
 `{ periodo:{de, ate}, kpis:{receitas, despesas, saldo, margem_pct}|null,
 dre:{receitas_por_categoria:[{nome, valor}], despesas_por_categoria:[{nome, valor}]}|null,
 vendas:{receita_por_dia:[{data, valor}], top_clientes:[{nome, valor}]}|null,
-producao:{por_etapa:[{rotulo, total}]}|null, estoque:{baixo:[{nome, quantidade, minimo, unidade}]}|null }`.
+producao:{por_etapa:[{rotulo, total}]}|null, estoque:{baixo:[{nome, quantidade, minimo, unidade}]}|null,
+lucratividade:{…}|null, comissoes:{…}|null }` — os dois últimos em [tela-13-lucratividade.md](tela-13-lucratividade.md).
 
 - `periodo` = mês, trimestre ou ano corrente (do primeiro ao último dia). Só o bloco da `aba` vem
   preenchido; os outros vêm `null`.
 - Cada bloco segue a permissão da tela web dele e vem `null` sem ela (o app mostra "Sem acesso a este
   relatório"): `kpis` e `dre` = regra do Financeiro ([§10.1](tela-06-financeiro.md) — `kpis` **pode** vir `null`); `vendas` =
-  `dashboard.data`; `producao` = quem vê vendas (§5); `estoque` = `stock_report.view`. Sem nenhum →
+  `dashboard.data`; `producao` = quem vê vendas (§5); `estoque` = `stock_report.view`; `lucratividade` = `dashboard.data`;
+  `comissoes` = `commission_agent.view` (todos) ou o vendedor com percentual (só a própria linha, se o ajuste
+  `app_comissao_vendedor_ve_propria` deixa). Sem nenhum →
   `403 sem_permissao`. A área `relatorios` entra em `areas` (§6) quando algum bloco é visível.
 - `kpis`: títulos a receber (receitas) e a pagar (despesas) **não cancelados** com competência no
   período — a mesma base do DRE web. `saldo` = receitas − despesas; `margem_pct` = saldo ÷ receitas ×
