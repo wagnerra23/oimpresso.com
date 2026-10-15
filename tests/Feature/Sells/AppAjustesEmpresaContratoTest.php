@@ -160,7 +160,8 @@ it('UC-APPAJ-04: salvar as configurações desliga ajuste de padrão ligado e n�
 
 it('UC-APPAJ-05: a aba "App das lojas" aparece nas configurações com as chaves editáveis marcadas pelo gravado', function () {
     $biz = Business::findOrFail(APP_AJ_BIZ);
-    appAjPos(APP_AJ_BIZ, ['app_biometria_login' => false]);
+    // Parte do padrão do UltimatePOS: as abas antigas da Blade leem chaves de pos_settings sem checar.
+    appAjPos(APP_AJ_BIZ, app(\App\Utils\BusinessUtil::class)->defaultPosSettings() + ['app_biometria_login' => false]);
     $user = $this->usuarioComPermissoes(['business_settings.access'], $biz);
     $this->actingAs($user);
     session(['user.business_id' => $biz->id, 'user.id' => $user->id, 'business.id' => $biz->id]);
