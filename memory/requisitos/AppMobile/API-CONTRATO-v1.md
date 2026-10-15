@@ -303,6 +303,28 @@ Mesmos campos e regras do §4.2, **menos** `tipo` e `papeis` (mudar papel fica n
   de outro usuário ou inexistente → `404 { erro: "nao_encontrado" }`.
   `POST /api/app/notificacoes/lidas` marca todas → `200 { nao_lidas: 0, marcadas }`.
 
+### 6.2 Ajustes da empresa (aba "App das lojas")
+
+`GET /api/app/inicio` traz `ajustes`, **sempre com todas as chaves**: o gravado em
+`business.pos_settings.app_*` da empresa do token, e o padrão onde a chave não existe.
+
+```json
+"ajustes": { "app_entrega_exige_assinatura": false, "app_entrega_exige_localizacao": false,
+  "app_acoes_fsm_liberadas": [], "app_anexos_camera": true, "app_apontamento_exige_qr": false,
+  "app_orcamento_rapido": false, "app_atendimento_atalhos": true,
+  "app_comissao_vendedor_ve_propria": true, "app_biometria_login": true }
+```
+
+- Fonte única de chave → tipo → padrão: `App\Services\AppLojas\AjustesDaEmpresa::CHAVES`. Quem lê um
+  ajuste usa `AjustesDaEmpresa::valor()`/`paraEmpresa()`, nunca `pos_settings` direto.
+- Web: Configurações da empresa → aba "App das lojas" (`business_settings.access`). Desmarcar grava
+  `false` (a aba manda `0`), e salvar outra aba não apaga chave `app_*` gravada. Valor inválido volta ao
+  padrão; `app_acoes_fsm_liberadas` guarda só chaves `[a-z0-9_]`, sem repetição.
+- `app_acoes_fsm_liberadas` ainda não está na aba: a lista segura e a tela que escolhe dentro dela
+  chegam com a ação do pedido (P1).
+- Cada rota de escrita que depende de um ajuste também o confere no servidor (o app só esconde ou
+  mostra). ERP antigo sem `ajustes`: o app usa os padrões acima.
+
 ## 7. Mais
 
 **Dashboard (tela 35 do protótipo): fora da v1** — D13 define as 7 áreas e o Dashboard não é uma delas.
