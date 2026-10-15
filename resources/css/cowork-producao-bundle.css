@@ -1,9 +1,16 @@
-/* cowork-producao-bundle.css — Produção (PCP) · telas do Modules/Producao (ADR 0431, playbook thread 03)
+/* cowork-producao-bundle.css — Produção (PCP) · telas do Modules/Producao (ADR 0431)
  *
- * PROVENIENCIA: copia INTEIRA e VERBATIM de `prototipo-ui/cowork/Wagner/producao-cv.css` (espelho
- * do Cowork; alvos medidos na thread A1, 2026-10-15). Nada foi escrito a mao; so este cabecalho
- * foi acrescentado. O bundle entra inteiro primeiro (proibicoes §Design System / Pacote Cowork
- * novo); a customizacao vem nas ondas seguintes. Classes escopadas por `.pcv-*`.
+ * PROVENIENCIA: copia INTEIRA e VERBATIM de `prototipo-ui/cowork/Wagner/producao-cv.css`, versao
+ * `pcv11` (o host `oimpresso.com.html` carrega `producao-cv.css?v=pcv11`), blob git
+ * bbcf272062bf, espelho de 2026-10-15. Nada foi escrito a mao; so este cabecalho foi acrescentado.
+ * Regra do bundle Cowork (proibicoes §Design System / Pacote Cowork novo): entra inteiro primeiro,
+ * customizacao nas ondas seguintes. As telas das threads 03 e 04 importam este mesmo arquivo.
+ *
+ * ATUALIZAR: o Cowork vivo ja esta na `pcv13` (com o celular). Quando o espelho receber a versao
+ * nova, recopie o arquivo INTEIRO por cima do corpo abaixo e troque versao e blob neste cabecalho.
+ *
+ * ESCOPO: tudo e prefixado por `.pcv-*`, exceto 3 seletores do proprio prototipo — `.sr-only`
+ * (o mesmo utilitario do Tailwind) e `body.pcv-arrastando` (estado de arraste da linha do tempo).
  */
 /* producao-cv.css — módulo Produção (comunicação visual). Tokens do DS; sem cor crua fora de oklch de domínio dos setores. */
 .pcv-root{display:flex;flex-direction:column;min-height:100%;background:var(--bg)}
