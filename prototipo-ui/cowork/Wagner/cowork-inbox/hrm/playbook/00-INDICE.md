@@ -579,7 +579,6 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
       "dono": "CL",
       "vaga": 3,
       "arquivo": "11-topnav-legado.md",
-      "bloqueio": "até a Folha ter Page (thread 10, _DECISOES-W-2026-10-13): o nav_hrm tem 7 consumidores com rota viva, incluindo as 6 blades de payroll (_saida-11b)",
       "prefixo": [
         "Modules/Essentials/Resources/views/layouts/nav_hrm.blade.php",
         "Modules/Essentials/Resources/views/layouts/partials/sidebar_hrm.blade.php",
