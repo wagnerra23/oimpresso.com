@@ -22,8 +22,8 @@ Três PRs, mergeados nesta ordem:
 Tabelas (prefixo `pcp_`, permitido pela ADR 0431; todas com `business_id` indexado + FK, ADR 0093):
 - `pcp_turnos` — 1 por empresa, padrão 08h–18h (D-TURNO). Sem linha, o `TurnoService` devolve o padrão.
 - `pcp_postos` — **E02:** `tipo_custo` `maquina|pessoa` + `custo_hora`; veículo é posto `maquina` com `veiculo=1` e `custo_km`. Capacidade, unidade e horas/dia configuráveis (D4). Código único por empresa.
-- `pcp_operacoes`, `pcp_programacoes` (mutável; mudança vira evento nas threads 06/07).
-- `pcp_apontamentos` — **append-only** por trigger (UPDATE e DELETE dão `SQLSTATE 45000`), como `ponto_marcacoes`. Abrir e fechar são duas linhas (`tipo` `inicio`/`fim`, a de fim aponta `inicio_id`). **E02:** posto `maquina` grava `maquina_id` + `iniciado_por` e `user_id` nulo; posto `pessoa` grava `user_id`. `chave_idempotencia` única por `business_id`. `custo_hora` e `tipo_custo` são copiados do posto no início.
+- `pcp_operacoes`, `pcp_programacoes` (mutável; mudança vira evento nas threads 06/07). A programação tem **responsável** (`user_id`, indexado com `business_id`): é o que a thread 04 usa para "minhas etapas" (UC-PCV-19), recusa de etapa alheia (UC-PCV-34) e aviso ao próximo (UC-PCV-21). Pedido da coordenação a partir do plano da 04.
+- `pcp_apontamentos` — **append-only** por trigger (UPDATE e DELETE dão `SQLSTATE 45000`), como `ponto_marcacoes`. Abrir e fechar são duas linhas: `tipo` `inicio`, e depois `pausa` ou `fim` apontando `inicio_id`. A pausa fecha o trecho sem concluir a etapa e leva `motivo_id` (a FK do motivo entra na thread 03, com o cadastro); retomar é um `inicio` novo. "Fechado automaticamente" é `origem = turno`/`ponto`, sem coluna própria. **E02:** posto `maquina` grava `maquina_id` + `iniciado_por` e `user_id` nulo; posto `pessoa` grava `user_id`. `chave_idempotencia` única por `business_id`. `custo_hora` e `tipo_custo` são copiados do posto no início.
 - `pcp_eventos` — append-only, mesma trigger.
 
 A OS fica em (`os_tipo`, `os_id`) sem FK: o PCP é camada única e Repair/CV/Oficina seguem donos da OS (D-RELACAO).
@@ -31,6 +31,7 @@ A OS fica em (`os_tipo`, `os_id`) sem FK: o PCP é camada única e Repair/CV/Ofi
 ## Regras do serviço
 - 1 apontamento de **pessoa** aberto por usuário; N de **máquina**. O de máquina não ocupa a pessoa (UC-PCV-31).
 - Reenvio com a mesma chave devolve a mesma linha; a mesma chave em outra empresa é outra linha.
+- `pausar` grava a pausa com motivo; o par início→pausa entra no custo como qualquer outro.
 - `origem=manual` exige justificativa (D3). Fechamento pelo turno (`origem=turno`) e pelo ponto (`origem=ponto`) já têm valor no enum; quem fecha é a thread 04.
 - `business_id` entra por parâmetro em toda consulta do serviço (fila e job não têm sessão) — nenhum `withoutGlobalScopes` em código de produção.
 
@@ -56,7 +57,7 @@ O que **não** pode entrar, e está semeado no mesmo caso: um apontamento aberto
 | append-only | UPDATE e DELETE caem nas duas tabelas | `pcp_postos` aceita update e a linha do apontamento segue intacta |
 | UC-PCV-28 (entities) | como 99 a mesma consulta devolve só a 99 | sem escopo existem as duas linhas |
 | UC-PCV-28 (serviço) | operador da 98 em posto da 99 → não encontrado, nada gravado | o aberto existe na 99 |
-| UC-PCV-31 | 2º de pessoa recusado e não gravado; a hora da Roland não é do Diego | 2º de máquina é aceito (3 abertos) |
+| UC-PCV-31 | 2º de pessoa recusado e não gravado; a hora da Roland não é do Diego; pausa com motivo libera a pessoa e não aceita UPDATE | 2º de máquina é aceito (3 abertos) |
 | UC-PCV-32 | dois caminhos dão 592,00 | OS 7002 dá 210,00 |
 
 Os testes rodam no CI (lane Verticais · MySQL), não nesta máquina (ADR 0062). `php -l` local passou nos 12 arquivos.
@@ -66,7 +67,7 @@ Os testes rodam no CI (lane Verticais · MySQL), não nesta máquina (ADR 0062).
 
 ## Pedidos ao Cowork / threads seguintes
 1. A prova de terceiros entra por parâmetro no `CustoRealService`. O lançamento do terceiro (valor, conta a pagar) é da thread 19; até lá a ficha (thread 08) passa 0.
-2. Pausa (`pausa`/`retomada`) **não** está no enum de `tipo`: a E04 traz pausa com motivo e os motivos vêm do posto (E03). Entra por migration nova na thread 04, sem tocar as linhas existentes.
+2. `motivo_id` nasce sem FK: a thread 03 (E03) cria o cadastro de motivos por posto e acrescenta a FK.
 3. Corrida de dois inícios de pessoa simultâneos do mesmo usuário não é bloqueada no banco (a regra é do serviço). Se a fila offline da thread 04 puder produzir isso, ela deve serializar por usuário.
 
 ## Próxima
