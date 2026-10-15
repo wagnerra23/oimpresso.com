@@ -136,6 +136,8 @@ on:
       # Thread Crm/14 — Propostas: baseline da Blade (F2) antes da tela React.
       - 'Modules/Crm/Http/Controllers/ProposalController.php'
       - 'Modules/Crm/Tests/Feature/CrmPropostas*'
+      # Thread Producao/02 — fundo do PCP (trigger append-only exige MySQL).
+      - 'Modules/Producao/**'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/verticais-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -254,6 +256,8 @@ jobs:
               # Thread Crm/14 — Propostas: baseline da Blade (F2) antes da tela React.
               - 'Modules/Crm/Http/Controllers/ProposalController.php'
               - 'Modules/Crm/Tests/Feature/CrmPropostas*'
+              # Thread Producao/02 — fundo do PCP (trigger append-only exige MySQL).
+              - 'Modules/Producao/**'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/verticais-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -492,7 +496,8 @@ jobs:
             Modules/Crm/Tests/Feature/CrmConfiguracoesBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmConfiguracoesContratoTest.php \
             Modules/Crm/Tests/Feature/CrmPropostasBaselineTest.php \
-            Modules/Crm/Tests/Feature/CrmPropostasContratoTest.php
+            Modules/Crm/Tests/Feature/CrmPropostasContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoFundoContratoTest.php
 
       # O sumário conta `assertions` POR ARQUIVO — é o discriminador que separa
       # "passou" de "pulou" (LC-13). Aqui só REPORTA.
