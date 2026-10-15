@@ -3,7 +3,7 @@ module: AppMobile
 status: em-construcao
 status_nota: "Telas próprias no app oimpresso-app (decisão [W] 2026-10-01, 2ª); a base /m dentro do ERP foi revertida."
 updated_at: "2026-10-15"
-distilled_at: "2026-10-01"
+distilled_at: "2026-10-15"
 distilled_by: "manual [CL] — reescrito na reversão do /m (#8463 e #8465 revertidos), a partir das decisões [W] de 2026-10-01 e do MAPA-DE-DADOS-v1 (#8462)."
 owner: W
 ---
