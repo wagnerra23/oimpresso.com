@@ -1,0 +1,15 @@
+{
+  "_": "A1 [CL] 2026-10-15 — playbook producao. Mesma tela de `producao--apontamento--index` em viewport 390×844 (o quadro do celular, A1-alvos.md), tema escuro.",
+  "header": {
+    "seletor": ".pcv-root > .pcv-ph"
+  },
+  "abas": {
+    "seletor": ".pcv-root > .ds-tabbar"
+  },
+  "texto": {
+    "seletor": ".pcv-root > .pcv-body > .pcv-campo-txt"
+  },
+  "celular": {
+    "seletor": ".pcv-root > .pcv-body > .pcv-phone"
+  }
+}

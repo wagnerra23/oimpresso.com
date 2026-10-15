@@ -1,0 +1,25 @@
+{
+  "_": "A1 [CL] 2026-10-15 — playbook producao. Protótipo: rota `pcv-quadro` (app.jsx → ProducaoCvPage view=quadro). Ficha da OS: drawer 760 aberto com --clicar \".pcv-card-open\" (1º cartão do quadro), aba padrão Etapas. Tema escuro (default do shell), 1440×900.",
+  "_mapa": "alvo:mapa --rota pcv-quadro --raiz <.pcv-root | .pcv-root > .pcv-body> contra o espelho servido por servirEstatico, 2026-10-15: .pcv-root = div.pcv-ph · nav.ds-tabbar · div.pcv-body; o drawer entra como 4º filho de .pcv-root (div > aside com 4 blocos: cabeçalho · abas do drawer · corpo .pcv-ficha · rodapé); .pcv-ficha = div.pcv-ficha-top · div.pcv-fsm · nav.ds-tabbar · ol.pcv-etapas",
+  "drawer": {
+    "seletor": ".pcv-root > div:nth-child(4) > aside"
+  },
+  "cabecalho": {
+    "seletor": ".pcv-root > div:nth-child(4) > aside > div:nth-child(1)"
+  },
+  "resumo": {
+    "seletor": ".pcv-ficha > .pcv-ficha-top"
+  },
+  "fsm": {
+    "seletor": ".pcv-ficha > .pcv-fsm"
+  },
+  "abas_ficha": {
+    "seletor": ".pcv-ficha > .ds-tabbar"
+  },
+  "etapas": {
+    "seletor": ".pcv-ficha > .pcv-etapas"
+  },
+  "rodape": {
+    "seletor": ".pcv-root > div:nth-child(4) > aside > div:nth-child(4)"
+  }
+}
