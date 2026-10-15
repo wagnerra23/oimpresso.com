@@ -1,15 +1,17 @@
 ---
 id: requisitos-pcp-adr-proposal
-slug: NNNN-pcp-camada-fina-apontamento-cross-vertical
-number: NNNN
+slug: 0431-pcp-sai-do-desejo-modules-producao
+number: 431
 title: "PCP / Apontamento de Produção — camada fina cross-vertical (proposta)"
 type: adr
-status: proposed
+status: accepted
+accepted_at: "2026-10-15"
+accepted_via: "ADR 0431 (memory/decisions/0431-pcp-sai-do-desejo-modules-producao.md)"
 authority: canonical (quando accepted)
 lifecycle: canon
 proposed_by: [W]
 proposed_at: 2026-05-12
-module: Pcp (ou IProduction renomeado — ver D1)
+module: Producao
 tags: [pcp, apontamento, cross-vertical, fsm, multi-tenant, kanban, mobile-pwa, qr-code]
 supersedes: []
 amends: [0143]
@@ -25,7 +27,19 @@ review_triggers:
 
 ## Status
 
-**Proposed 2026-05-12.** Discovery + SPEC + MATRIZ-ROI + ROADMAP elaborados. Aguarda aprovação Wagner sobre D1-D5 antes de scaffold.
+**Accepted 2026-10-15** pela [ADR 0431](../../decisions/0431-pcp-sai-do-desejo-modules-producao.md). [W] respondeu D1–D5 no chat em 2026-10-15 (*"eu autorizo tudo, nome da pasta 'Producao' · e sim quero PCP e autorizado fazer"*):
+
+| id | resposta de [W] em 2026-10-15 |
+|---|---|
+| D1 | **`Modules/Producao`** — nem `Pcp`, nem renomear `IProduction` (que já tinha sido removido no PR #842) |
+| D2 | PWA |
+| D3 | híbrido, padrão automático |
+| D4 | configurável por empresa, com valores sugeridos |
+| D5 | regra simples na V1; IA depois |
+
+O texto abaixo é a proposta de 2026-05-12, preservada como foi escrita: as seções "Decisões pendentes" registram as opções e as recomendações da época. Onde ela dizia `Modules/Producao`, as citações foram trocadas para o nome decidido (rename curado no `ghost-rename-map`); as permissões são `producao.*`.
+
+**Proposed 2026-05-12.** Discovery + SPEC + MATRIZ-ROI + ROADMAP elaborados.
 
 ## Contexto
 
@@ -52,7 +66,7 @@ Skill `mcp-first` + leitura de `_MAPPING/TELA-PRODUCAO-KANBAN.md` + `ADR 0143` +
 | Multi-tenant Tier 0 scaffolding (`HasBusinessScope`, FK business_id indexed) | `App\Concerns\HasBusinessScope` | ✅ Tier 0 IRREVOGÁVEL |
 | Notification cliente status change (event + listener + LGPD consent) | `RepairStatusChanged` + `NotifyRepairCustomer` | ✅ produção |
 | Mapping legacy Delphi PCP (8 agrupadores Kanban + 13 lookups + WR_KANBAN table) | `research/_MAPPING/TELA-PRODUCAO-KANBAN.md` | ✅ source-first documented |
-| `Modules/IProduction` placeholder | módulo vazio (DataController + Install stub L3) | ⚠️ não-construído |
+| `IProduction` placeholder | módulo vazio (DataController + Install stub L3) | ⚠️ não-construído |
 
 ### Gap real (40%)
 
@@ -77,22 +91,22 @@ ROI alta — paridade Delphi + diferencial vs Bling (que NÃO tem cronômetro/QR
 
 **Opções:**
 
-**(a) `Modules/Pcp` novo** — nome canônico claro, isolado, sem baggage.
+**(a) `Modules/Producao` novo** — nome canônico claro, isolado, sem baggage.
 - ✅ Pró: nomenclatura PT-BR / domínio claro
 - ✅ Pró: zero risk de mexer em código IProduction (mesmo stub)
 - ❌ Contra: IProduction permanece zombie
 
-**(b) Renomear `Modules/IProduction` → `Modules/Pcp`** — aproveita scaffold existente (DataController/Install).
+**(b) Renomear `IProduction` → `Modules/Producao`** — aproveita scaffold existente (DataController/Install).
 - ✅ Pró: limpa zombie
 - ❌ Contra: rename custoso (migrations existentes? URL prefix mudaria de `/iproduction/*` pra `/pcp/*` — ver SCOPE.md `url_prefixes`). Skill `migrar-modulo` (ADR 0088) tem matriz 8 dimensões.
 - ❌ Contra: IProduction tem `permission_prefix: iproduction.*` espalhado se houver permissions seedadas
 
-**(c) `Modules/Pcp` novo + delete `Modules/IProduction`** — limpa zombie sem rename custoso.
+**(c) `Modules/Producao` novo + delete `IProduction`** — limpa zombie sem rename custoso.
 - ✅ Pró: zero baggage
 - ✅ Pró: skill `criar-modulo` (8 peças) caminho conhecido
 - ❌ Contra: deletar módulo (mesmo stub) exige ADR justificando
 
-**Recomendação Claude:** opção (c) — `Modules/Pcp` novo + ADR justificando delete IProduction (provavelmente vazio em produção; confirmar com `php artisan permission:cache-reset` + grep `iproduction.*`).
+**Recomendação Claude:** opção (c) — `Modules/Producao` novo + ADR justificando delete IProduction (provavelmente vazio em produção; confirmar com `php artisan permission:cache-reset` + grep `iproduction.*`).
 
 **Pendente:** Wagner decide.
 
@@ -149,7 +163,7 @@ ROI alta — paridade Delphi + diferencial vs Bling (que NÃO tem cronômetro/QR
 - ✅ Pró: histórico via audit log
 - ❌ Contra: cliente novo tem 0 dados — onboarding com defaults sugeridos
 
-**Recomendação Claude:** **(b) configurável**, com **catálogo de defaults** (Modules/Pcp seeder com referência tipo "Plotter HP Latex 64in 12m²/h" pra UX onboarding).
+**Recomendação Claude:** **(b) configurável**, com **catálogo de defaults** (Modules/Producao seeder com referência tipo "Plotter HP Latex 64in 12m²/h" pra UX onboarding).
 
 **Pendente:** trivial, Wagner aprova default.
 
@@ -211,24 +225,24 @@ ROI alta — paridade Delphi + diferencial vs Bling (que NÃO tem cronômetro/QR
 2. **Operador esquece stop** → appointment "vazio 24h+" → precisa cron `pcp:auto-close-stale-appointments`
 3. **Offline-first PWA IndexedDB queue** = código não-trivial pra escrever bem (race condition, replay-safe)
 4. **Aprendizado FSM action intermediária** (não cruzar fronteira de stage) — pattern novo, vai exigir docs
-5. **`Modules/IProduction` zombie** se opção D1=(a)/(c) — limpar ou aceitar
+5. **`IProduction` zombie** se opção D1=(a)/(c) — limpar ou aceitar
 
 ## Refs
 
-- **ADR mãe FSM**: [0143](0143-fsm-pipeline-live-prod-marco-2026-05-12.md)
-- **ADR Tier 0**: [0093](0093-multi-tenant-isolation-tier-0.md)
-- **ADR Modular vertical**: [0121](0121-oimpresso-modular-especializado-por-vertical.md)
-- **ADR MWART**: [0104](0104-processo-mwart-canonico-unico-caminho.md)
-- **ADR Estimates 10x**: [0106](0106-recalibracao-velocidade-fator-10x-ia-pair.md)
-- **ADR sinal qualificado**: [0105](0105-cliente-como-sinal-guiar-sem-mandar.md)
-- **SPEC PCP**: [memory/requisitos/Pcp/SPEC.md](../requisitos/Pcp/SPEC.md)
-- **MATRIZ-ROI**: [memory/requisitos/Pcp/MATRIZ-ROI.md](../requisitos/Pcp/MATRIZ-ROI.md)
-- **ROADMAP**: [memory/requisitos/Pcp/ROADMAP.md](../requisitos/Pcp/ROADMAP.md)
-- **Mapping legacy**: [research/_MAPPING/TELA-PRODUCAO-KANBAN.md](../research/clientes-legacy-officeimpresso/_MAPPING/TELA-PRODUCAO-KANBAN.md)
+- **ADR mãe FSM**: [0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)
+- **ADR Tier 0**: [0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)
+- **ADR Modular vertical**: [0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md)
+- **ADR MWART**: [0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)
+- **ADR Estimates 10x**: [0106](../../decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md)
+- **ADR sinal qualificado**: [0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)
+- **SPEC PCP**: [SPEC.md](SPEC.md)
+- **MATRIZ-ROI**: [MATRIZ-ROI.md](MATRIZ-ROI.md)
+- **ROADMAP**: [ROADMAP.md](ROADMAP.md)
+- **Mapping legacy**: [research/_MAPPING/TELA-PRODUCAO-KANBAN.md](../../research/clientes-legacy-officeimpresso/_MAPPING/TELA-PRODUCAO-KANBAN.md)
 
 ## Aprovação
 
-Pendente Wagner [W] decidir D1-D5. Skill `publication-policy` Tier A enforce — esta ADR fica `proposed` até Wagner aprovar. Status muda pra `accepted` via PR ADR com aprovação.
+[W] decidiu D1–D5 em 2026-10-15; aceita pela [ADR 0431](../../decisions/0431-pcp-sai-do-desejo-modules-producao.md).
 
 ---
-**Versão inicial proposed 2026-05-12.**
+**Versão inicial proposed 2026-05-12.** Accepted 2026-10-15 (ADR 0431).

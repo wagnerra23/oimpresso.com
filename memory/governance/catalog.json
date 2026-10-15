@@ -25,29 +25,29 @@
     "supersededBy"
   ],
   "stats": {
-    "modules": 35,
-    "nodes": 751,
-    "edges": 1046,
+    "modules": 36,
+    "nodes": 757,
+    "edges": 1050,
     "by_node_type": {
-      "module": 39,
+      "module": 40,
       "table": 108,
-      "adr": 136,
-      "component": 391,
-      "api": 77
+      "adr": 138,
+      "component": 393,
+      "api": 78
     },
     "by_edge_type": {
       "ownsTable": 97,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 81,
+      "providesApi": 82,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 391,
+      "hasComponent": 393,
       "dependsOn": 119,
       "delegatesTo": 111,
       "migratesTo": 1,
       "supersedes": 26,
-      "supersedesPartially": 63,
+      "supersedesPartially": 64,
       "supersededBy": 30
     },
     "dangling": 0
@@ -465,6 +465,13 @@
       "type": "adr",
       "num": "0145",
       "slug": "0145-ia-administradora-pivot-ads-fsm-piloto-cobradora",
+      "exists": true
+    },
+    {
+      "id": "adr:0152",
+      "type": "adr",
+      "num": "0152",
+      "slug": "0152-modules-pcp-feature-wish",
       "exists": true
     },
     {
@@ -1007,6 +1014,13 @@
       "exists": true
     },
     {
+      "id": "adr:0431",
+      "type": "adr",
+      "num": "0431",
+      "slug": "0431-pcp-sai-do-desejo-modules-producao",
+      "exists": true
+    },
+    {
       "id": "api:/.well-known/assetlinks.json",
       "type": "api",
       "prefix": "/.well-known/assetlinks.json",
@@ -1455,6 +1469,14 @@
       "prefix": "/privacidade/ponto/exclusao",
       "providers": [
         "Ponto"
+      ]
+    },
+    {
+      "id": "api:/producao/*",
+      "type": "api",
+      "prefix": "/producao/*",
+      "providers": [
+        "Producao"
       ]
     },
     {
@@ -3762,6 +3784,20 @@
       "desc": ""
     },
     {
+      "id": "component:Producao/DataController",
+      "type": "component",
+      "module": "Producao",
+      "name": "DataController",
+      "desc": "3 hooks UltimatePOS (pacote superadmin, permissões; sem item de sidebar enquanto não houver tela)"
+    },
+    {
+      "id": "component:Producao/InstallController",
+      "type": "component",
+      "module": "Producao",
+      "name": "InstallController",
+      "desc": "instalação 1-clique (ADR 0024)"
+    },
+    {
       "id": "component:ProductCatalogue/DataController",
       "type": "component",
       "module": "ProductCatalogue",
@@ -4698,6 +4734,19 @@
       "permission_prefix": "ponto.*",
       "charter_adr": "0080",
       "path": "memory/requisitos/Ponto/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
+    },
+    {
+      "id": "module:Producao",
+      "type": "module",
+      "module": "Producao",
+      "purpose": "Camada única de PCP: apontamento de produção por operação, pessoa e tempo, postos com capacidade e custo-hora por empresa, programação e gargalo. Em 2026-10-15 é só esqueleto — instalação, pacote do superadmin e permissões; nenhuma tabela, tela ou rota de negócio.",
+      "trust": "",
+      "owner": "wagner",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "path": "memory/requisitos/Producao/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -6787,6 +6836,12 @@
       "to": "adr:0424",
       "type": "supersedes",
       "source": "supersedes"
+    },
+    {
+      "from": "adr:0431",
+      "to": "adr:0152",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
     },
     {
       "from": "module:Arquivos",
@@ -11366,6 +11421,24 @@
     {
       "from": "module:Ponto",
       "to": "api:/privacidade/ponto",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "api:/producao/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
