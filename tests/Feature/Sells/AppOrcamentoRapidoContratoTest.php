@@ -112,7 +112,8 @@ it('UC-APPOR-01 · materiais lista só o catálogo ATIVO do business do token, c
         ->and($ids)->not->toContain($this->doOutro);
     $lona = collect($r->json('itens'))->firstWhere('id', $this->lona);
     expect(array_keys($lona))->toBe(['id', 'nome', 'categoria', 'unidade', 'preco_m2']);
-    expect($lona['preco_m2'])->toBe(65.0);
+    // JSON não distingue 65 de 65.0: o valor é o que importa.
+    expect($lona['preco_m2'])->toEqual(65.0);
 });
 
 it('UC-APPOR-02 · sem permissão de orçamento → 403 sem_permissao; empresa sem material ativo → 503 sem_configuracao', function () {
@@ -133,7 +134,10 @@ it('UC-APPOR-03 · calcular o caso de referência dá 3,6 m² × 65,00 = 234,00 
     // Prova 1 — conta à mão.
     expect(3.00 * 1.20 * 1)->toEqualWithDelta(3.6, 0.0001);
     expect(3.6 * 65.00)->toEqualWithDelta(234.00, 0.0001);
-    expect($r->json())->toBe(['area_m2' => 3.6, 'preco_m2' => 65.0, 'total' => 234.0]);
+    expect(array_keys($r->json()))->toBe(['area_m2', 'preco_m2', 'total']);
+    expect($r->json('area_m2'))->toEqual(3.6);
+    expect($r->json('preco_m2'))->toEqual(65.0);
+    expect($r->json('total'))->toEqual(234.0);
 
     // Prova 2 — o mesmo item pela calculadora da web (sessão do 98).
     $web = $this->actingAs($this->user, 'web')
@@ -166,7 +170,7 @@ it('UC-APPOR-05 · grava o rascunho de 234,00 do business do token e o banco bat
 
     expect(array_keys($r->json()))->toBe(['id', 'numero', 'status', 'total']);
     expect($r->json('status'))->toBe('rascunho');
-    expect($r->json('total'))->toBe(234.0);
+    expect($r->json('total'))->toEqual(234.0);
     expect($r->json('numero'))->toMatch('/^ORC-\d{4}-\d{5}$/');
     expect(appOrContagem())->toBe($antes + 1);
 
@@ -207,7 +211,7 @@ it('UC-APPOR-06 · dois itens: 234,00 + (0,50 × 0,50 × 4 = 1,00 m² × 65,00 =
     $r = appOrPost($this, $corpo)->assertStatus(201);
 
     expect(234.00 + 0.50 * 0.50 * 4 * 65.00)->toEqualWithDelta(299.00, 0.0001);
-    expect($r->json('total'))->toBe(299.0);
+    expect($r->json('total'))->toEqual(299.0);
     $soma = DB::table('comvis_orcamento_itens')->where('orcamento_id', $r->json('id'))->sum('subtotal');
     expect((float) $soma)->toEqualWithDelta(299.00, 0.0001);
     expect(DB::table('comvis_orcamentos')->where('id', $r->json('id'))->value('contato_id'))->toBeNull();
@@ -219,8 +223,9 @@ it('UC-APPOR-07 · total_previsto divergente → 422 em itens.N.total_previsto e
     $corpo = $this->corpo;
     $corpo['itens'][0]['total_previsto'] = '233.99';
 
-    appOrPost($this, $corpo, $chave)->assertStatus(422)->assertJsonPath('erro', 'validacao')
-        ->assertJsonPath('campos.itens.0.total_previsto', 'O total mudou: o ERP calculou 234.00. Confira e envie de novo.');
+    $r = appOrPost($this, $corpo, $chave)->assertStatus(422)->assertJsonPath('erro', 'validacao');
+    // A chave do campo é LITERAL `itens.0.total_previsto` (assertJsonPath a partiria nos pontos).
+    expect($r->json('campos'))->toBe(['itens.0.total_previsto' => 'O total mudou: o ERP calculou 234.00. Confira e envie de novo.']);
 
     expect(appOrContagem())->toBe($antes);
     expect(DB::table('app_idempotencia')->where('business_id', APP_OR_BIZ)->where('chave', $chave)->exists())->toBeFalse();
@@ -246,7 +251,8 @@ it('UC-APPOR-09 · Tier 0: material ou cliente do business 2 → 422 e nada grav
     $antes = appOrContagem();
     $corpo = $this->corpo;
     $corpo['itens'][0]['material_id'] = $this->doOutro;
-    appOrPost($this, $corpo)->assertStatus(422)->assertJsonPath('campos.itens.0.material_id', 'Material não encontrado.');
+    $r = appOrPost($this, $corpo)->assertStatus(422);
+    expect($r->json('campos'))->toBe(['itens.0.material_id' => 'Material não encontrado.']);
 
     $clienteDo2 = (int) DB::table('contacts')->insertGetId([
         'business_id' => APP_OR_OUTRO, 'type' => 'customer', 'name' => 'AppOR cliente do 2', 'mobile' => '',
@@ -271,6 +277,8 @@ it('UC-APPOR-10 · ajuste app_orcamento_rapido desligado ou só permissão de ve
     appOrPost($this, $this->corpo)->assertStatus(403)->assertJsonPath('erro', 'sem_permissao');
 
     Passport::actingAs($this->user, [], 'api');
+    // withHeaders() de appOrPost persiste no caso de teste: sem limpar, a chave anterior iria junto.
+    $this->flushHeaders();
     $this->postJson('/api/app/orcamentos', $this->corpo)->assertStatus(422)->assertJsonStructure(['campos' => ['idempotency_key']]);
 
     expect(appOrContagem())->toBe($antes);
