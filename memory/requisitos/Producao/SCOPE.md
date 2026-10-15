@@ -10,6 +10,7 @@ contains:
   - "FerramentasController — ferramentas com código QR (E03)"
   - "ColaboradorCustoController — custo-hora da pessoa, só com producao.desempenho.ver (E03)"
   - "ApontamentoController — celular do operador (PWA, thread 04): /producao/apontamento, escritas em JSON para a fila offline; a regra mora no ApontamentoOperadorService"
+  - "FecharTurnoCommand — producao:fechar-turno a cada 15 min, fecha o cronômetro esquecido no fim do turno ou na saída do ponto"
   - "Api/AppApontamentoController — apontamento do app das lojas com token (/api/app/producao/*, P8 tela 02), sobre o ApontamentoOperadorService"
 not_contains:
   - "Presença e saída do ponto (o apontamento só LÊ, D-PONTO) → Modules/Ponto"
