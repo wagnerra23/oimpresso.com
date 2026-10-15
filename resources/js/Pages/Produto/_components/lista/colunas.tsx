@@ -14,6 +14,7 @@
 // Imagem (`resizable: false`) e a última da grade (regra da tabela, não daqui).
 
 import type { ColumnDef } from '@tanstack/react-table';
+import { Globe } from 'lucide-react';
 import AcoesProduto, { type AcaoProduto } from './AcoesProduto';
 import {
   TIPO_ROTULO,
@@ -72,7 +73,22 @@ export function colunasDaLista({ visiveis, densa, permissions, contexto, aoEscol
     meta: { width: 300 },
     cell: ({ row }) => (
       <div className="min-w-0">
-        <div className="truncate font-semibold text-[var(--text)]">{row.original.nome}</div>
+        <div className="flex min-w-0 items-center gap-1.5">
+          <span className="truncate font-semibold text-[var(--text)]">{row.original.nome}</span>
+          {/* Marca de quem sincroniza com o WooCommerce, como a lista Blade (`fa-wordpress` sob o
+              nome). O servidor só manda o campo quando o módulo está instalado. UC-PIDX-23. */}
+          {row.original.woocommerce_sync === true && (
+            <Globe
+              size={12}
+              className="shrink-0 text-[var(--text-mute)]"
+              role="img"
+              aria-label="Sincroniza com o WooCommerce"
+              data-contract="produto-lista-woocommerce"
+            >
+              <title>Sincroniza com o WooCommerce</title>
+            </Globe>
+          )}
+        </div>
         {!densa && <div className="truncate text-[11px] text-[var(--text-mute)]">{subLinhaProduto(row.original)}</div>}
       </div>
     ),

@@ -77,6 +77,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 | UC-PIDX-19 | A aba Fiscal do painel mostra o tipo de imposto na venda (inclusivo ou exclusivo) | could | protótipo (aba `fiscal` do `DetalheDrawer`) | `produto-painel-detalhe.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-20 | Painel: composição com "Total líquido", preço da composição e preços de cada item; imagens das variações e dos itens | should `[V0]` | Blade (`combo_product_details`, `variation_images`) + protótipo (`DetalheDrawer`, aba `composicao`) + REGRA MESTRE valor | `ProdutoDetalheTest` (Pest, roda em lane) + `produto-painel-detalhe.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-21 | Produto que não controla estoque tem a aba Estoque no painel, com o aviso de que não gerencia estoque | could | protótipo (aba `estoque` do `DetalheDrawer`, ramo `stockOn` falso) | `produto-painel-detalhe.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
+| UC-PIDX-23 | Produto que sincroniza com o WooCommerce tem a marca ao lado do nome na lista | could | Blade (`ProductController@index`, coluna `product`: `fa-wordpress` quando `! woocommerce_disable_sync`) | `produto-lista-woocommerce.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -393,6 +394,13 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - **Medido em produção (biz 1, tema escuro, 2026-10-14):** antes, 73 das 74 miniaturas da 1ª página e o painel do produto 1817 eram `<img src=".../img/default.png">` (sem fundo); simulando a troca no navegador, a caixa do painel fica 168×168, fundo `oklch(0.23 0.006 240)`, borda `oklch(0.34 0.008 240)`, texto `oklch(0.67 0.005 90)` 11px, e a miniatura 30×30 com "IMG" 9px — as regras `.pb-img`/`.pb-thumb` do bundle, iguais às do protótipo.
 - **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
 
+## UC-PIDX-23 · Produto que sincroniza com o WooCommerce tem a marca ao lado do nome · `could`
+- **Persona:** quem vende também na loja WooCommerce olha a lista e quer saber, sem abrir o produto, quais deles vão para a loja.
+- **Aceite:** Dado o módulo WooCommerce instalado · Quando um produto tem a sincronização ligada (`woocommerce_disable_sync = 0`) · Então a célula Produto mostra uma marca ao lado do nome, com o nome acessível "Sincroniza com o WooCommerce", também no modo compacto. Produto com a sincronização desligada não tem a marca; sem o módulo, nenhum tem (o servidor nem manda o campo `woocommerce_sync`).
+- **Teste:** [`produto-lista-woocommerce.test.tsx`](../../../../tests/js/produto-lista-woocommerce.test.tsx) — `UC-PIDX-23` (não roda em lane). Mutação: trocar a condição por "campo presente" derruba o 1º caso.
+- **Contrato:** lista Blade, `ProductController@index` (coluna `product`): `if ($is_woocommerce && ! $row->woocommerce_disable_sync)` põe `<i class="fab fa-wordpress">` sob o nome. O protótipo não tem a marca (não desenha o WooCommerce na linha); a tela segue a Blade aqui. Ícone: `Globe` (lucide), porque o pacote não tem a marca do WordPress.
+- **Status: ⬜** — nasce neste PR; verde esperado. O arquivo de teste não roda em lane.
+
 ---
 
 ## Achados de governança (o trio prometia o que não tinha)
@@ -495,6 +503,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
+- 2026-10-15 · [F+C] **UC-PIDX-23** (lista): produto que sincroniza com o WooCommerce passa a ter a marca ao lado do nome, como a lista Blade; o dado (`woocommerce_sync`) já vinha do servidor.
 - 2026-10-14 · [F+C] **UC-PIDX-22** (lista e painel): produto sem foto passa a mostrar "IMG" na coluna Imagem e "Sem imagem" no painel, como no protótipo; o servidor manda `imagem = null` em vez da imagem genérica.
 - 2026-10-14 · [F+C] **UC-PIDX-21** (painel): produto que não controla estoque passa a ter a aba Estoque, com o aviso "Este produto não gerencia estoque." Sem permissão de ver o relatório, a aba continua fora.
 - 2026-10-14 · [F+C] **UC-PIDX-20** (painel): a composição ganha o "Total líquido", o preço de venda da composição e as colunas de preço da Blade por item; as abas Variações e Composição mostram as imagens. Total provado por dois caminhos (à mão e pela janela "Ver" da Blade).
