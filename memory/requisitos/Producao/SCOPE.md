@@ -9,6 +9,7 @@ contains:
   - "PostosController — postos, máquinas e veículos, com os motivos de pausa e de refugo do posto (UC-PCV-33, E03)"
   - "FerramentasController — ferramentas com código QR (E03)"
   - "ColaboradorCustoController — custo-hora da pessoa, só com producao.desempenho.ver (E03)"
+  - "ApontamentoController — celular do operador (PWA, thread 04): /producao/apontamento, escritas em JSON para a fila offline; a regra mora no ApontamentoOperadorService"
   - "EtiquetaOsController — PDF A4 da OS com o QR da etiqueta (E05 modelo a4_os; PR 07 propostas-app)"
 not_contains:
   - "Presença e saída do ponto (o apontamento só LÊ, D-PONTO) → Modules/Ponto"
@@ -22,6 +23,7 @@ owner: wagner
 status: em construção
 url_prefixes:
   - /producao/* (install 1-clique, os cadastros da thread 03: roteiros, postos, ferramentas, custo-hora, e o PDF da OS com QR em os/{id}/etiqueta — Routes/web.php)
+  - /producao/apontamento/* (celular do operador, thread 04)
 ---
 
 # Modules/Producao
