@@ -18,6 +18,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { fonteNoGit } from '../../scripts/design/fonte-prototipo.mjs';
 
 const WRITE_TOOLS = new Set(['Write', 'Edit', 'MultiEdit']);
 const BACKSLASH = String.fromCharCode(92);
@@ -103,6 +104,9 @@ export function ancoraStale(charterPath, raizGit = process.cwd()) {
     if (!compare.length) return null;
     const ultima = compare[compare.length - 1];
     const nome = proto.replace(/^prototipo-ui\/cowork\//, '');
+    // Fonte no git (ADR 0433): "STALE" aqui é divergência contra o Cowork vivo. Para o dono cuja
+    // fonte passou a ser o git, o Cowork não é mais a referência, e a divergência é o esperado.
+    if (fonteNoGit(nome)) return null;
     if (!(ultima.staleList || []).includes(nome)) return null;
     return { proto: nome, medidoEm: ultima.date };
   } catch { return null; }                                      // fail-open

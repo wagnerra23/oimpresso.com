@@ -4,7 +4,7 @@ status: em-construcao
 status_nota: "Telas próprias no app oimpresso-app (decisão [W] 2026-10-01, 2ª); a base /m dentro do ERP foi revertida."
 updated_at: "2026-10-15"
 distilled_at: "2026-10-15"
-distilled_by: "manual [CL] — 2026-10-15: relidos a ADR 0432 e os 7 contratos ⬜ das propostas P1–P9 (api/tela-02, 03-anexos, 04, 13-lucratividade, 22-avancar-etapa, 22-entrega, 41); entraram a regra da biometria e o ponteiro para os contratos. Base anterior: reversão do /m de 2026-10-01 (#8463, #8465) e MAPA-DE-DADOS-v1 (#8462). Não há Modules/AppMobile, então o destilador automático não cobre esta porta."
+distilled_by: "manual [CL] — 2026-10-15: relidos a ADR 0432 e os 7 contratos ⬜ das propostas P1–P9 (api/tela-02, 03-anexos, 04, 13-lucratividade, 22-avancar-etapa, 22-entrega, 41); entraram a regra da biometria e o ponteiro para os contratos. Base anterior: reversão do /m de 2026-10-01 (#8463, #8465) e MAPA-DE-DADOS-v1 (#8462). Não há Modules/AppMobile, então o destilador automático não cobre esta porta. Ajustes da empresa (PR 01 propostas-app) em 2026-10-15."
 owner: W
 ---
 
@@ -31,6 +31,14 @@ design-v4 em `mobile/ref/design-v4/`).
 - Dados do ERP por **API com token Passport**, pelo HTTP nativo do Capacitor. Hoje a API existe
   só para o Ponto (`/ponto/api`); as demais telas precisam de endpoint novo no ERP, um por tela,
   com isolamento `business_id` (ADR 0093) e teste cross-tenant no tenant 98 (ADR 0358).
+
+## Ajustes da empresa
+
+- Comportamento que uma empresa pode querer diferente é uma chave `app_*` em `business.pos_settings`,
+  editada na aba "App das lojas" das configurações e lida pelo app no bloco `ajustes` de
+  `GET /api/app/inicio` (sempre com todas as chaves, padrão onde falta). Contrato: API-CONTRATO-v1 §6.2.
+- Fonte única de chave → tipo → padrão: `App\Services\AppLojas\AjustesDaEmpresa::CHAVES`.
+  Cada rota de escrita confere o ajuste no servidor; o app só esconde ou mostra.
 
 ## Onde ler
 

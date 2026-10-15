@@ -26,12 +26,12 @@
   ],
   "stats": {
     "modules": 36,
-    "nodes": 757,
-    "edges": 1050,
+    "nodes": 762,
+    "edges": 1056,
     "by_node_type": {
       "module": 40,
       "table": 108,
-      "adr": 138,
+      "adr": 143,
       "component": 393,
       "api": 78
     },
@@ -47,7 +47,7 @@
       "delegatesTo": 111,
       "migratesTo": 1,
       "supersedes": 26,
-      "supersedesPartially": 64,
+      "supersedesPartially": 70,
       "supersededBy": 30
     },
     "dangling": 0
@@ -741,6 +741,13 @@
       "exists": true
     },
     {
+      "id": "adr:0315",
+      "type": "adr",
+      "num": "0315",
+      "slug": "0315-design-sync-claude-design-vs-cowork-charter",
+      "exists": true
+    },
+    {
       "id": "adr:0320",
       "type": "adr",
       "num": "0320",
@@ -846,6 +853,13 @@
       "exists": true
     },
     {
+      "id": "adr:0374",
+      "type": "adr",
+      "num": "0374",
+      "slug": "0374-emenda-0315-espelho-cowork-e-rota-prevista",
+      "exists": true
+    },
+    {
       "id": "adr:0384",
       "type": "adr",
       "num": "0384",
@@ -864,6 +878,13 @@
       "type": "adr",
       "num": "0387",
       "slug": "0387-github-md-diario-cowork-aceito-e-tratado",
+      "exists": true
+    },
+    {
+      "id": "adr:0389",
+      "type": "adr",
+      "num": "0389",
+      "slug": "0389-emenda-0374-escrita-do-espelho-quando-o-get-file-volta-inline",
       "exists": true
     },
     {
@@ -944,6 +965,13 @@
       "exists": true
     },
     {
+      "id": "adr:0406",
+      "type": "adr",
+      "num": "0406",
+      "slug": "0406-o-que-ultimo-importado-decide-emenda-0404",
+      "exists": true
+    },
+    {
       "id": "adr:0409",
       "type": "adr",
       "num": "0409",
@@ -1018,6 +1046,13 @@
       "type": "adr",
       "num": "0431",
       "slug": "0431-pcp-sai-do-desejo-modules-producao",
+      "exists": true
+    },
+    {
+      "id": "adr:0433",
+      "type": "adr",
+      "num": "0433",
+      "slug": "0433-fonte-do-prototipo-passa-ao-git",
       "exists": true
     },
     {
@@ -6840,6 +6875,42 @@
     {
       "from": "adr:0431",
       "to": "adr:0152",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0433",
+      "to": "adr:0315",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0433",
+      "to": "adr:0374",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0433",
+      "to": "adr:0389",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0433",
+      "to": "adr:0398",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0433",
+      "to": "adr:0404",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0433",
+      "to": "adr:0406",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
     },
