@@ -59,7 +59,10 @@ function TituloDaSecao({ children }: { children: ReactNode }) {
   return <h3 className="mb-3 text-[11px] leading-[1.2] font-bold uppercase tracking-[0.06em] text-[var(--text-mute)]">{children}</h3>;
 }
 
-const TOPO = 'pt-[14px] pr-[18px] pb-[15px] pl-[19px]';
+// Faixa do código + selo + fechar: a do `Drawer` do DS no protótipo (padding 14px 18px e
+// `border-bottom: 1px solid var(--border)`). A borda é a linha entre a faixa e o título; sem ela a
+// faixa compensava com 15px embaixo. Altura igual nos dois: 14 + 28 + 14 + 1 = 57px.
+const TOPO = 'border-b border-[var(--border)] pt-[14px] pr-[18px] pb-[14px] pl-[19px]';
 
 /**
  * Os 3 indicadores da aba Estoque do protótipo (`.pb-kpi`, 3 colunas). Nada é calculado aqui: os

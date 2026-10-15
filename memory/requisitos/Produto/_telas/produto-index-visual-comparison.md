@@ -205,6 +205,13 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > navegador). Ficam como estão, por serem mínimos: o fundo escurecido atrás do painel (preto a 50% em
 > produção, `oklch(0.15 0 0 / 0.45)` no protótipo) e a sombra do painel.
 >
+> **2026-10-15 — linha entre a faixa do código e o título ([F]):** no protótipo a faixa do código +
+> selo + fechar é a do `Drawer` do DS, com `border-bottom: 1px solid var(--border)` (medido no espelho,
+> PRD-0009: faixa 57px com borda `oklch(0.34 0.008 240)`, título logo em seguida). Em produção a
+> faixa (`TOPO` em `PainelDetalhe.tsx`) não tinha borda e compensava com 15px embaixo. Corrigido:
+> 14px + borda de 1px, mesma altura de 57px. A medição de 2026-10-11 registrou a estrutura
+> ("faixa de selos + fechar (57) e bloco do título (76)") mas não a borda.
+>
 > **De propósito ou por dado:** "Transferir" por local (espera a requisição de transferência);
 > campos da aba Fiscal; coluna "Variação" no estoque de produto variável; Prateleira sem cadastro
 > mostra o aviso, como a Blade, em vez de uma linha por local com "—"; e diferenças de conteúdo
