@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\App;
 use App\Domain\Fsm\Models\SaleStageAction;
 use App\Domain\Fsm\Policies\StageActionPolicy;
 use App\Http\Controllers\Controller;
+use App\Services\AppLojas\AcoesDoPedido;
 use App\Transaction;
 use App\User;
 use Illuminate\Database\Query\Builder;
@@ -22,8 +23,9 @@ use Illuminate\Support\Facades\DB;
  * sub_type, permissões direct_sell.view / view_own_sell_only / view_commission_agent_sell e
  * locais permitidos. Tier 0 (ADR 0093): business_id do usuário do token, nunca da requisição.
  *
- * As ações de etapa só são LISTADAS (com `pode`); executar fica fora da v1 porque várias
- * reservam/baixam estoque ou cancelam cobrança (regra mestre de valor/estoque).
+ * As ações de etapa listadas são só as da lista segura (AcoesDoPedido); executar é o
+ * PedidoAcaoController (tela 22). As que reservam/baixam estoque ou cancelam cobrança seguem só
+ * na web (regra mestre de valor/estoque).
  */
 class PedidosController extends Controller
 {
@@ -452,7 +454,11 @@ class PedidosController extends Controller
         return trim((string) ($l->cliente_empresa ?: $l->cliente)) ?: '—';
     }
 
-    /** Ações da etapa atual, só para mostrar (rótulo + se o usuário poderia executar). */
+    /**
+     * Ações da etapa atual que o app pode executar (POST /pedidos/{id}/acao, tela 22): só as da
+     * lista segura liberadas pelo ajuste `app_acoes_fsm_liberadas` (AcoesDoPedido). As demais
+     * ficam na web e não vêm aqui. `pode` = o usuário passa no RBAC da FSM.
+     */
     private function acoes(User $user, int $id, $stageId): array
     {
         if ($stageId === null) {
@@ -460,10 +466,12 @@ class PedidosController extends Controller
         }
         $venda = Transaction::where('business_id', (int) $user->business_id)->find($id);
         $policy = app(StageActionPolicy::class);
+        $liberadas = AcoesDoPedido::liberadas((int) $user->business_id);
 
         return SaleStageAction::query()
             ->where('stage_id', (int) $stageId)
             ->get()
+            ->filter(fn (SaleStageAction $a) => AcoesDoPedido::podeNoApp($a, $liberadas))
             ->map(fn (SaleStageAction $a) => [
                 'chave' => (string) $a->key,
                 'rotulo' => (string) $a->label,
