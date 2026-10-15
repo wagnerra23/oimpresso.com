@@ -14,11 +14,12 @@ module: ComunicacaoVisual
 >
 > **O que isto é:** o inventário completo das raízes `Modules/ComunicacaoVisual/**` + `resources/js/Pages/ComunicacaoVisual/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 67 arquivos em 15 papéis.
+**Total mapeado:** 69 arquivos em 15 papéis.
 
-## Controllers — 4
+## Controllers — 5
 
 - [ApontamentoController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/ApontamentoController.php)
+- [AppOrcamentoRapidoController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/AppOrcamentoRapidoController.php)
 - [DataController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/DataController.php)
 - [InstallController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/InstallController.php)
 - [OrcamentoController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php)
@@ -31,10 +32,11 @@ module: ComunicacaoVisual
 - [IniciarApontamentoRequest.php](../../../Modules/ComunicacaoVisual/Http/Requests/IniciarApontamentoRequest.php)
 - [RecusarOrcamentoRequest.php](../../../Modules/ComunicacaoVisual/Http/Requests/RecusarOrcamentoRequest.php)
 
-## Services — 2
+## Services — 3
 
 - [ApontamentoTracker.php](../../../Modules/ComunicacaoVisual/Services/ApontamentoTracker.php)
 - [OrcamentoCalculator.php](../../../Modules/ComunicacaoVisual/Services/OrcamentoCalculator.php)
+- [OrcamentoGravador.php](../../../Modules/ComunicacaoVisual/Services/OrcamentoGravador.php)
 
 ## Models / Entities — 10
 

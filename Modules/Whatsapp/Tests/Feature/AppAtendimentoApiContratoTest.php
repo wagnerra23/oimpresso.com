@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Api\App\AtendimentoController;
+use Modules\Whatsapp\Http\Controllers\Api\AppAtendimentoController;
 use App\User;
 use App\Utils\ModuleUtil;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -163,11 +163,11 @@ it('UC-APPAT-02: sem canal ligado visível, `canal.ligado` é false e a área `a
     Passport::actingAs($u, [], 'api');
     $this->getJson('/api/app/atendimento')->assertOk()
         ->assertJsonPath('canal.ligado', false)->assertJsonPath('conversas', []);
-    expect(app(AtendimentoController::class)->areaVisivel($u))->toBeFalse();
+    expect(app(AppAtendimentoController::class)->areaVisivel($u))->toBeFalse();
 
     $ligado = appatCanal(APPAT_BIZ);
     appatAcesso(APPAT_BIZ, $u->id, $ligado->id);
-    expect(app(AtendimentoController::class)->areaVisivel($u))->toBeTrue();
+    expect(app(AppAtendimentoController::class)->areaVisivel($u))->toBeTrue();
 });
 
 it('UC-APPAT-03: sem `whatsapp.access` → 403 sem_permissao; sem `whatsapp.send` não envia', function () {

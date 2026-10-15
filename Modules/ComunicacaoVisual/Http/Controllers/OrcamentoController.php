@@ -5,10 +5,9 @@ namespace Modules\ComunicacaoVisual\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\DB;
 use Modules\ComunicacaoVisual\Entities\Orcamento;
-use Modules\ComunicacaoVisual\Entities\OrcamentoItem;
 use Modules\ComunicacaoVisual\Services\OrcamentoCalculator;
+use Modules\ComunicacaoVisual\Services\OrcamentoGravador;
 
 /**
  * OrcamentoController — API JSON de orçamentos de comunicação visual.
@@ -32,7 +31,8 @@ use Modules\ComunicacaoVisual\Services\OrcamentoCalculator;
 class OrcamentoController extends Controller
 {
     public function __construct(
-        private readonly OrcamentoCalculator $calculator
+        private readonly OrcamentoCalculator $calculator,
+        private readonly OrcamentoGravador $gravador,
     ) {}
 
     // ------------------------------------------------------------------
@@ -68,47 +68,8 @@ class OrcamentoController extends Controller
             return response()->json(['message' => $e->getMessage()], 422);
         }
 
-        $businessId = session('user.business_id') ?? session('business.id');
-        $numero     = $this->gerarNumero($businessId);
-
-        $orcamento = DB::transaction(function () use ($calculado, $validated, $businessId, $numero) {
-            /** @var Orcamento $orc */
-            $orc = Orcamento::create([
-                'business_id'      => $businessId,
-                'numero'           => $numero,
-                'contato_id'       => $calculado['contato_id'],
-                'vendedor_id'      => $calculado['vendedor_id'],
-                'data_emissao'     => $calculado['data_emissao'],
-                'data_validade'    => $calculado['data_validade'],
-                'status'           => 'rascunho',
-                'subtotal'         => $calculado['subtotal'],
-                'desconto'         => $calculado['desconto'],
-                'extras'           => $calculado['extras'],
-                'custo_instalacao' => $calculado['custo_instalacao'],
-                'custo_entrega'    => $calculado['custo_entrega'],
-                'total'            => $calculado['total'],
-                'observacoes'      => $calculado['observacoes'],
-            ]);
-
-            foreach ($calculado['itens'] as $ordem => $itemCalc) {
-                OrcamentoItem::create([
-                    'orcamento_id'     => $orc->id,
-                    'business_id'      => $businessId,
-                    'material_id'      => $itemCalc['material_id'],
-                    'descricao'        => $itemCalc['descricao'],
-                    'largura_m'        => $itemCalc['largura_m'],
-                    'altura_m'         => $itemCalc['altura_m'],
-                    'quantidade'       => $itemCalc['quantidade'],
-                    'area_m2'          => $itemCalc['area_m2'],
-                    'preco_unitario_m2' => $itemCalc['preco_unitario_m2'],
-                    'subtotal'         => $itemCalc['subtotal'],
-                    'observacoes'      => $itemCalc['observacoes'],
-                    'ordem'            => $ordem + 1,
-                ]);
-            }
-
-            return $orc->load('itens');
-        });
+        $businessId = (int) (session('user.business_id') ?? session('business.id'));
+        $orcamento  = $this->gravador->gravar($businessId, $calculado);
 
         return response()->json($orcamento, 201);
     }
@@ -182,36 +143,5 @@ class OrcamentoController extends Controller
             'itens.*.quantidade.min'   => 'A quantidade do item deve ser pelo menos 1.',
             'itens.*.preco_unitario_m2.gt' => 'O preço por m² deve ser maior que zero.',
         ]);
-    }
-
-    /**
-     * Gera número sequencial no formato ORC-YYYY-NNNNN por business.
-     *
-     * Lookup do MAX(numero) filtrando por business_id e ano atual.
-     * Sequência recomeça em 1 a cada ano-civil.
-     *
-     * Multi-tenant Tier 0: filtra explicitamente por business_id.
-     */
-    private function gerarNumero(int $businessId): string
-    {
-        $ano     = now()->year;
-        $prefixo = "ORC-{$ano}-";
-
-        // SUPERADMIN: withoutGlobalScopes aqui pois precisamos do MAX real no biz (global scope ativo geraria ambiguidade)
-        $ultimo = Orcamento::withoutGlobalScopes()
-            ->where('business_id', $businessId)
-            ->where('numero', 'LIKE', "{$prefixo}%")
-            ->max('numero');
-
-        if ($ultimo) {
-            // Extrai parte numérica (últimos 5 chars do formato ORC-YYYY-NNNNN)
-            $partes    = explode('-', $ultimo);
-            $ultimoSeq = (int) end($partes);
-            $proximo   = $ultimoSeq + 1;
-        } else {
-            $proximo = 1;
-        }
-
-        return $prefixo . str_pad((string) $proximo, 5, '0', STR_PAD_LEFT);
     }
 }

@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Api\App;
+namespace Modules\Whatsapp\Http\Controllers\Api;
 
+use App\Contracts\Atendimento\AtendimentoDoApp;
 use App\Http\Controllers\Controller;
 use App\Services\AppLojas\AjustesDaEmpresa;
 use App\User;
@@ -37,8 +38,12 @@ use Modules\Whatsapp\Services\Inbox\EnvioDeTextoNoCanal;
  *
  * Tier 0 (ADR 0093): business_id do usuário do token, explícito em toda consulta (sem sessão, o
  * escopo global ScopeByBusiness não filtra). Conversa de outra empresa ou de canal sem acesso → 404.
+ *
+ * Mora no módulo (não em app/) porque depende das entidades do Whatsapp: a seta vai módulo → núcleo
+ * (DependencyDirectionTest). O Início do app pergunta a área pelo contrato AtendimentoDoApp, que este
+ * controller implementa e o WhatsappServiceProvider registra.
  */
-class AtendimentoController extends Controller
+class AppAtendimentoController extends Controller implements AtendimentoDoApp
 {
     private const POR_PAGINA = 30;
 

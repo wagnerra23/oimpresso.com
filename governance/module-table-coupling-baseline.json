@@ -27,10 +27,12 @@
   ],
   "allowlist": [
     "Governance>Whatsapp",
-    "Ponto>Financeiro"
+    "Ponto>Financeiro",
+    "Whatsapp>ComunicacaoVisual"
   ],
   "allowlist_razoes": {
     "Governance>Whatsapp": "FALSO-POSITIVO do detector, nao fronteira: as 2 unicas queries sao `failed_jobs` (Modules/Jana/Services/HealthSnapshotService.php), tabela de INFRA do Laravel cuja migration por acaso mora em Modules/Whatsapp. A mitigacao `>=3 modulos = infra compartilhada` nao dispara porque so Jana e Governance a leem — UM modulo abaixo do limiar. Baixar o limiar pra 2 foi MEDIDO e DESCARTADO em 2026-08-12: cegaria o detector em fin_contas_bancarias e subscriptions pra calar este alarme. Se um 3o modulo ler failed_jobs, a tabela vira infra sozinha e esta entrada pode sair.",
-    "Ponto>Financeiro": "ponto:demo-dados (2026-10-01, [W] \"dados fictícios em prod no 235\") grava títulos FICTÍCIOS em fin_titulos só no business demo da revisão das lojas, por insert direto de propósito: retrato para a tela, sem disparar observers do Financeiro. Não é uso operacional do Ponto."
+    "Ponto>Financeiro": "ponto:demo-dados (2026-10-01, [W] \"dados fictícios em prod no 235\") grava títulos FICTÍCIOS em fin_titulos só no business demo da revisão das lojas, por insert direto de propósito: retrato para a tela, sem disparar observers do Financeiro. Não é uso operacional do Ponto.",
+    "Whatsapp>ComunicacaoVisual": "Dívida que já existia e só ficou visível: o atalho `link_arte` do atendimento do app (tela 41, PR 18 propostas-app) lê `cv_ordens_producao` (arte_url + codigo, só leitura, com business_id e contato_id explícitos e Schema::hasTable antes). Até 2026-10-15 a leitura morava em app/Http/Controllers/Api/App/AtendimentoController.php, fora do alcance deste scanner (que só varre Modules/); o controller foi movido para Modules/Whatsapp para consertar o DependencyDirectionTest, e o par apareceu. Para sair daqui: a ComunicacaoVisual expõe a arte da ordem por contrato (App/Contracts) e o atalho passa a perguntar por ele."
   }
 }
