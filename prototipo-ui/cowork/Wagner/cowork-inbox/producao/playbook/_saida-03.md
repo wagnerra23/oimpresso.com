@@ -30,7 +30,7 @@ entregue_em: "PR desta thread (claude/producao-thread-03), base main; nasceu em 
   fluxo com bloco "em paralelo" à direita, editor em drawer 760) e `Producao/Postos/Index` (postos, veículos,
   ferramentas, custo-hora). Charter e casos ao lado de cada uma.
 - **Bundle:** `resources/css/cowork-producao-bundle.css` = cópia inteira do `producao-cv.css` (regra do bundle
-  Cowork). As threads seguintes importam o mesmo arquivo.
+  Cowork; PR #9463). As threads seguintes importam o mesmo arquivo.
 - **Menu:** `DataController::modifyAdminMenu` ganhou o item "Produção" (pacote → `producao.access` → item),
   apontando para Roteiros até a 06 trazer o Painel.
 - **Teste:** `ProducaoRoteirosContratoTest.php` (lane MySQL `verticais-pest`), tenant 98 × 99, um `it` por UC
@@ -51,14 +51,16 @@ entregue_em: "PR desta thread (claude/producao-thread-03), base main; nasceu em 
   "em produção / atrasadas" (dependem das threads 06/08). Medir depois do deploy no staging.
 - O Pest roda no CI (lane verticais-pest), não nesta máquina.
 
-## Perguntas ao Cowork (não editei o espelho)
-1. O protótipo não tem vista de **postos/motivos/veículos/ferramentas**; a tela segue as classes `pcv-*`. Se o
-   Cowork quiser forma própria, é uma vista nova (`pcv-postos`) e um alvo novo.
-2. **`producao-cv.css` (pcv11), regra G3:** `.pcv-perdas i` e `.pcv-feed li.is-refugo .pcv-feed-dot` usam
-   `--color-destructive-fg` como `background`. O `conformance-gate` não aceita token `-fg` como superfície;
-   no bundle (`resources/css/cowork-producao-bundle.css`, PR #9463) as duas viraram `--color-destructive`,
-   com desvio declarado. Corrigir na fonte para o próximo pacote descer igual.
-3. A E03 não traz UC para custo-hora da pessoa, veículo e ferramenta; ficaram como `[BACKLOG]` defendidos pelo
+## Fonte do protótipo corrigida no git (ADR 0433)
+- **`producao-cv.css` (pcv11), regra G3:** `.pcv-perdas i` e `.pcv-feed li.is-refugo .pcv-feed-dot` usavam
+  `--color-destructive-fg` como `background`, e o `conformance-gate` não aceita token `-fg` como superfície.
+  As duas passaram a `--color-destructive` na própria fonte (`prototipo-ui/cowork/Wagner/producao-cv.css`,
+  PR #9463), e o bundle `resources/css/cowork-producao-bundle.css` segue igual a ela.
+
+## Perguntas
+1. O protótipo não tem vista de **postos/motivos/veículos/ferramentas**; a tela segue as classes `pcv-*`. Se
+   quiser forma própria, é uma vista nova (`pcv-postos`) e um alvo novo.
+2. A E03 não traz UC para custo-hora da pessoa, veículo e ferramenta; ficaram como `[BACKLOG]` defendidos pelo
    teste. Se quiser id, o casos do Cowork ganha UC-PCV-5x.
 
 ## Provas
