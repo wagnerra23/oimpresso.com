@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/Components/ui/select';
+import { OrigemMercadoriaField } from './_components/OrigemMercadoriaField';
 
 const ADVANCED_OPEN_KEY = 'oimpresso.produto.create.advanced.open';
 
@@ -40,6 +41,7 @@ interface ProdutoDuplicate {
   sub_category_id: number | null;
   tax: number | null;
   tax_type: 'inclusive' | 'exclusive' | null;
+  origem_mercadoria?: number;
   barcode_type: string | null;
   sku: string;
   alert_quantity: number | null;
@@ -83,6 +85,7 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
     sub_category_id: dup?.sub_category_id ?? '',
     tax: dup?.tax ?? '',
     tax_type: (dup?.tax_type ?? 'exclusive') as 'inclusive' | 'exclusive',
+    origem_mercadoria: dup?.origem_mercadoria ?? 0,
     barcode_type: dup?.barcode_type ?? props.barcodeDefault,
     enable_stock: 1,
     not_for_selling: 0,
@@ -300,6 +303,11 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
                     </SelectContent>
                   </Select>
                 </div>
+                <OrigemMercadoriaField
+                  value={data.origem_mercadoria}
+                  onChange={(v) => setData('origem_mercadoria', v)}
+                  error={errors.origem_mercadoria}
+                />
               </CardContent>
             </Card>
 

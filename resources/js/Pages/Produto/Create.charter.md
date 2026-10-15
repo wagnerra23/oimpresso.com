@@ -58,6 +58,7 @@ Cadastrar produto novo (single/variable/combo) com validação cliente-side Type
 - ❌ Multi-image gallery upload (apenas 1 image — paridade legacy)
 - ❌ NÃO gera SKU client-side (server-side em `store()`)
 - ❌ NÃO modifica método `store()` PHP (out of scope)
+  - _Exceção datada (2026-10-15, UC-PCAD-07): o `store()` passou a aceitar `origem_mercadoria` (0–8), gravado só quando o campo vem. Nada mais do método mudou._
 - ❌ NÃO valida SKU duplicate cliente-side (server confirma)
 
 ## UX Targets
