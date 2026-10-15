@@ -1,0 +1,209 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI Oimpresso Matriz Cert vence em breve 12 dias restantes IA 3 Visão geral G D Atendimento 6 Cadastro 3 Clientes G C Produtos 12 G P Fabricação 3 Comercial 4 CRM 14 G R Vendas 18 G V Oficina Auto 1 Vestuário 1 Finanças 4 Caixa G X Financeiro 11 G F Cobrança 1 Cobrança Recorrente 3 Fiscal 1 Fiscal 7 Produção 5 Painel de produção 6 Quadro Linha do tempo Custo real × orçado Instalação Apontamento ⋯ mais 1 Ordens de Serviço Entregas e instalação Comunicação Visual Assistência técnica 7 Estoque 3 Compras 4 Movimentações 6 G E Patrimônio 4 RH 3 Ponto HRM 7 Essenciais 6 Sistema 12 Auditoria Fluxos e regras Voz do Cliente Suporte 1 Usuários 3 Preferências Configurações 14 Relatórios 4 Arquivos 3 Base de Conhecimento Planilhas 1 Governança 3 Plataforma 1 WR Wagner Rocha Administrador COMUNICAÇÃO VISUAL · OS COMO PROJETO Produção 6 em produção · 1 atrasadas ou vencendo Nova OS do orçamento Painel Quadro Linha do tempo Custo real × orçado Instalação Apontamento Roteiros Agenda de instalação equipe de campo · próximos dias 16/10 08:00 Padaria Pão Dourado OS-2608 · Jonas + Rafa · 6 h · Fiorino ABC-1D23 Agendada 24/10 14:00 Academia Força Total OS-2617 · Rafa · 3 h · Fiorino ABC-1D23 A confirmar 13/10 09:00 Farmácia Vida OS-2588 · Jonas · 2 h · Strada DEF-4G56 Concluída Abrir OS-2608 A OS só vai para Instalação quando todas as etapas de fábrica fecham. Instalação I-118 oimpresso · produção OS-2608 · 16/10 às 08:00 Padaria Pão Dourado R. Edgard Ferraz, 412 — Centro, Jaú/SP Abrir no mapa ✓ Andaime e EPI ✓ Nível e prumo Teste de vedação Foto antes tirar foto Foto depois tirar foto Assinatura do cliente assinar na tela Concluir instalação",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 79,
+      "tokensMortos": []
+    },
+    "theme": "light",
+    "url": "http://127.0.0.1:5571/"
+  },
+  "clicar": [
+    ".sb-user-btn",
+    ".user-menu .um-cascade:has(.um-vibe-cur)",
+    ".um-sub .um-vibe[aria-pressed=\"false\"]",
+    ".sb-user-btn"
+  ],
+  "nos_totais": 873,
+  "quieto_ms": 2000,
+  "rota": "pcv-instalacao",
+  "secoes": {
+    "abas": {
+      "contraste": {
+        "fundo": "oklch(0.985 0.003 90)",
+        "fundo_de": "pcv-root",
+        "razao": 16.59,
+        "texto": "oklch(0.22 0.01 80)",
+        "y_fundo": 0.95578,
+        "y_texto": 0.010627
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.22 0.01 80)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px 24px"
+      },
+      "filhos": 7,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.985 0.003 90)",
+          "de": "pcv-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1180
+      },
+      "seletor": ".pcv-root > .ds-tabbar",
+      "truncado": false
+    },
+    "agenda": {
+      "contraste": {
+        "fundo": "rgb(255, 255, 255)",
+        "fundo_de": "proprio",
+        "razao": 17.32,
+        "texto": "oklch(0.22 0.01 80)",
+        "y_fundo": 1,
+        "y_texto": 0.010627
+      },
+      "estilo": {
+        "backgroundColor": "rgb(255, 255, 255)",
+        "borderRadius": "12px",
+        "color": "oklch(0.22 0.01 80)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgb(255, 255, 255)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "header",
+        "div"
+      ],
+      "rect": {
+        "h": 301,
+        "w": 718
+      },
+      "seletor": ".pcv-root > .pcv-body > section:nth-child(1)",
+      "truncado": false
+    },
+    "celular": {
+      "contraste": {
+        "fundo": "oklch(0.985 0.003 90)",
+        "fundo_de": "proprio",
+        "razao": 16.59,
+        "texto": "oklch(0.22 0.01 80)",
+        "y_fundo": 0.95578,
+        "y_texto": 0.010627
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.985 0.003 90)",
+        "borderRadius": "8px",
+        "color": "oklch(0.22 0.01 80)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.985 0.003 90)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "pcv-phone-top",
+        "pcv-phone-body",
+        "pcv-phone-foot"
+      ],
+      "rect": {
+        "h": 640,
+        "w": 390
+      },
+      "seletor": ".pcv-root > .pcv-body > .pcv-phone",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.985 0.003 90)",
+        "fundo_de": "pcv-root",
+        "razao": 16.59,
+        "texto": "oklch(0.22 0.01 80)",
+        "y_fundo": 0.95578,
+        "y_texto": 0.010627
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.22 0.01 80)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px 24px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.985 0.003 90)",
+          "de": "pcv-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "header"
+      ],
+      "rect": {
+        "h": 97,
+        "w": 1180
+      },
+      "seletor": ".pcv-root > .pcv-ph",
+      "truncado": false
+    }
+  },
+  "tela": "producao--instalacao--index-claro",
+  "url": "http://127.0.0.1:5571/",
+  "viewport": "1440x900"
+}

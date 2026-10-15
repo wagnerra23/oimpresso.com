@@ -1,0 +1,16 @@
+{
+  "_": "A1 [CL] 2026-10-15 — playbook producao. Protótipo: rota `pcv-apontamento` (app.jsx → ProducaoCvPage view=apontamento). Apontamento (passo lista). Tema escuro (default do shell), 1440×900.",
+  "_mapa": "alvo:mapa --rota pcv-apontamento --raiz <.pcv-root | .pcv-root > .pcv-body> contra o espelho servido por servirEstatico, 2026-10-15: .pcv-root = div.pcv-ph · nav.ds-tabbar · div.pcv-body; .pcv-body.pcv-campo = div.pcv-campo-txt · div.pcv-phone",
+  "header": {
+    "seletor": ".pcv-root > .pcv-ph"
+  },
+  "abas": {
+    "seletor": ".pcv-root > .ds-tabbar"
+  },
+  "texto": {
+    "seletor": ".pcv-root > .pcv-body > .pcv-campo-txt"
+  },
+  "celular": {
+    "seletor": ".pcv-root > .pcv-body > .pcv-phone"
+  }
+}

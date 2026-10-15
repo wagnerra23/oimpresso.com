@@ -1,0 +1,19 @@
+{
+  "_": "A1 [CL] 2026-10-15 — playbook producao. Protótipo: rota `pcv-custo` (app.jsx → ProducaoCvPage view=custo). Custo. Tema escuro (default do shell), 1440×900.",
+  "_mapa": "alvo:mapa --rota pcv-custo --raiz <.pcv-root | .pcv-root > .pcv-body> contra o espelho servido por servirEstatico, 2026-10-15: .pcv-root = div.pcv-ph · nav.ds-tabbar · div.pcv-body; .pcv-body = div.pcv-kpis · div.pcv-grid2 (Perdas por motivo · por máquina) · section (Por OS)",
+  "header": {
+    "seletor": ".pcv-root > .pcv-ph"
+  },
+  "abas": {
+    "seletor": ".pcv-root > .ds-tabbar"
+  },
+  "kpis": {
+    "seletor": ".pcv-root > .pcv-body > .pcv-kpis"
+  },
+  "perdas": {
+    "seletor": ".pcv-root > .pcv-body > .pcv-grid2"
+  },
+  "por_os": {
+    "seletor": ".pcv-root > .pcv-body > section:nth-child(3)"
+  }
+}

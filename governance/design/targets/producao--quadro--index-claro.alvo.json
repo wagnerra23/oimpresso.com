@@ -1,0 +1,318 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI Oimpresso Matriz Cert vence em breve 12 dias restantes IA 3 Visão geral G D Atendimento 6 Cadastro 3 Clientes G C Produtos 12 G P Fabricação 3 Comercial 4 CRM 14 G R Vendas 18 G V Oficina Auto 1 Vestuário 1 Finanças 4 Caixa G X Financeiro 11 G F Cobrança 1 Cobrança Recorrente 3 Fiscal 1 Fiscal 7 Produção 5 Painel de produção 6 Quadro Linha do tempo Custo real × orçado Instalação Apontamento ⋯ mais 1 Ordens de Serviço Entregas e instalação Comunicação Visual Assistência técnica 7 Estoque 3 Compras 4 Movimentações 6 G E Patrimônio 4 RH 3 Ponto HRM 7 Essenciais 6 Sistema 12 Auditoria Fluxos e regras Voz do Cliente Suporte 1 Usuários 3 Preferências Configurações 14 Relatórios 4 Arquivos 3 Base de Conhecimento Planilhas 1 Governança 3 Plataforma 1 WR Wagner Rocha Administrador COMUNICAÇÃO VISUAL · OS COMO PROJETO Produção 6 em produção · 1 atrasadas ou vencendo Nova OS do orçamento Painel Quadro Linha do tempo Custo real × orçado Instalação Apontamento Roteiros Todas Atrasadas ou vencendo 1 Travadas por arte 2 Urgentes 4 Qualquer responsável Diego Marcos Ana Felipe Larissa Por setor Por máquina 7 de 7 OS. A OS anda sozinha quando o operador fecha a etapa. Para mover à mão: arraste o cartão ou use o menu ⋮. Esconder eventos Arte e aprovação 2 OS-2614 Normal Placas de sinalização interna (24 un) Clínica Sorriso Arte e arquivo de corte Progresso 14% 09:12 Sistema : Reenviou o link de prova ao cliente entrega 20/10 Aguardando cliente Ana OS-2619 Normal Banner roll-up 0,8×2 m (4 un) Agência Norte Arte e prova Progresso 27% 08:47 Cliente : Pediu ajuste: aumentar o logo e trocar o telefone entrega 18/10 Ajuste pedido Ana Impressão 1 OS-2611 Alta Adesivagem de frota — 6 baús Rota Livre Transportes Impressão eco-solvente · Roland VG3-640 Progresso 45% 11:14 Diego : Baixou 58 m² de vinil branco brilho entrega 17/10 Diego Acabamento 1 OS-2603 Urgente Lonas de oferta 5×2 m (12 un) Supermercado Bom Preço Bainha + ilhós Progresso 89% 10:52 Felipe : Iniciou Bainha + ilhós vence hoje Felipe Serralheria 2 OS-2608 Alta Fachada ACM 8×1,2 m + letreiro Padaria Pão Dourado Corte CNC do ACM · Router CNC 2x3 Progresso 49% 10:31 Marcos : Pausou Corte CNC do ACM — troca de fresa amanhã Marcos OS-2617 Normal Letra-caixa iluminada \"FORÇA\" Academia Força Total Corte CNC das faces · Router CNC 2x3 Progresso 8% 10:30 Cliente : Aprovou a arte pelo link entrega 24/10 Marcos Instalação 0 Nada aqui agora. Expedição 1 OS-2598 Alta Tapume impresso 40 m Construtora Alicerce Embalar e liberar Progresso 100% 09:10 Larissa : Liberou para retirada atrasada Larissa Eventos das 7 OS do quadro Fechar Baixou 58 m² de vinil branco brilho 15/10 11:14 · Diego · Roland VG3-640 OS-2611 Iniciou Bainha + ilhós 15/10 10:52 · Felipe OS-2603 Pausou Corte CNC do ACM — troca de fresa 15/10 10:31 · Marcos · Router CNC 2x3 OS-2608 Reenviou o link de prova ao cliente 15/10 09:12 · Sistema OS-2614 Pediu ajuste: aumentar o logo e trocar o telefone 15/10 08:47 · Cliente OS-2619 Iniciou Impressão eco-solvente (QR na máquina) 15/10 08:05 · Diego · Roland VG3-640 OS-2611 Iniciou Corte CNC do ACM 15/10 08:00 · Marcos · Router CNC 2x3 OS-2608 Fechou automaticamente o apontamento aberto (fim do turno) 14/10 18:00 · Sistema · HP Latex 365 OS-2603 Concluiu Arte e prova 14/10 17:40 · Ana OS-2611 Refugo de 9,4 m² — banding na cabeça 3 14/10 15:20 · Diego · HP Latex 365 OS-2603 Aprovou a arte pelo link 14/10 10:30 · Cliente OS-2617 Liberou para retirada 14/10 09:10 · Larissa OS-2598 Aprovou a arte pelo link 13/10 16:40 · Cliente OS-2611 Orçamento aprovado virou OS (roteiro Adesivo impresso e recortado) 13/10 11:05 · Larissa OS-2611",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 79,
+      "tokensMortos": []
+    },
+    "theme": "light",
+    "url": "http://127.0.0.1:5571/"
+  },
+  "clicar": [
+    ".sb-user-btn",
+    ".user-menu .um-cascade:has(.um-vibe-cur)",
+    ".um-sub .um-vibe[aria-pressed=\"false\"]",
+    ".sb-user-btn"
+  ],
+  "nos_totais": 1149,
+  "quieto_ms": 2000,
+  "rota": "pcv-quadro",
+  "secoes": {
+    "abas": {
+      "contraste": {
+        "fundo": "oklch(0.985 0.003 90)",
+        "fundo_de": "pcv-root",
+        "razao": 16.59,
+        "texto": "oklch(0.22 0.01 80)",
+        "y_fundo": 0.95578,
+        "y_texto": 0.010627
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.22 0.01 80)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px 24px"
+      },
+      "filhos": 7,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.985 0.003 90)",
+          "de": "pcv-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1180
+      },
+      "seletor": ".pcv-root > .ds-tabbar",
+      "truncado": false
+    },
+    "barra": {
+      "contraste": {
+        "fundo": "oklch(0.985 0.003 90)",
+        "fundo_de": "pcv-root",
+        "razao": 16.59,
+        "texto": "oklch(0.22 0.01 80)",
+        "y_fundo": 0.95578,
+        "y_texto": 0.010627
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.22 0.01 80)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "0px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pcv-body"
+        },
+        {
+          "bg": "oklch(0.985 0.003 90)",
+          "de": "pcv-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "pcv-help",
+        "button"
+      ],
+      "rect": {
+        "h": 32,
+        "w": 1132
+      },
+      "seletor": ".pcv-root > .pcv-body > .pcv-bar",
+      "truncado": false
+    },
+    "board": {
+      "contraste": {
+        "fundo": "oklch(0.985 0.003 90)",
+        "fundo_de": "pcv-root",
+        "razao": 16.59,
+        "texto": "oklch(0.22 0.01 80)",
+        "y_fundo": 0.95578,
+        "y_texto": 0.010627
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.22 0.01 80)",
+        "display": "grid",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "12px",
+        "padding": "0px 0px 8px"
+      },
+      "filhos": 6,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pcv-quadro"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pcv-body"
+        },
+        {
+          "bg": "oklch(0.985 0.003 90)",
+          "de": "pcv-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "pcv-col",
+        "pcv-col",
+        "pcv-col",
+        "pcv-col",
+        "pcv-col",
+        "pcv-col"
+      ],
+      "rect": {
+        "h": 590,
+        "w": 820
+      },
+      "seletor": ".pcv-root > .pcv-body > .pcv-quadro > .pcv-board",
+      "truncado": true
+    },
+    "eventos": {
+      "contraste": {
+        "fundo": "rgb(255, 255, 255)",
+        "fundo_de": "proprio",
+        "razao": 17.32,
+        "texto": "oklch(0.22 0.01 80)",
+        "y_fundo": 1,
+        "y_texto": 0.010627
+      },
+      "estilo": {
+        "backgroundColor": "rgb(255, 255, 255)",
+        "borderRadius": "8px",
+        "color": "oklch(0.22 0.01 80)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgb(255, 255, 255)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "header",
+        "pcv-feed"
+      ],
+      "rect": {
+        "h": 680,
+        "w": 300
+      },
+      "seletor": ".pcv-root > .pcv-body > .pcv-quadro > .pcv-evpanel",
+      "truncado": false
+    },
+    "filtro": {
+      "contraste": {
+        "fundo": "oklch(0.985 0.003 90)",
+        "fundo_de": "pcv-root",
+        "razao": 16.59,
+        "texto": "oklch(0.22 0.01 80)",
+        "y_fundo": 0.95578,
+        "y_texto": 0.010627
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.22 0.01 80)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "0px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pcv-body"
+        },
+        {
+          "bg": "oklch(0.985 0.003 90)",
+          "de": "pcv-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "pcv-filtro-q",
+        "div",
+        "pcv-filtro-r"
+      ],
+      "rect": {
+        "h": 34,
+        "w": 1132
+      },
+      "seletor": ".pcv-root > .pcv-body > .pcv-filtro",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.985 0.003 90)",
+        "fundo_de": "pcv-root",
+        "razao": 16.59,
+        "texto": "oklch(0.22 0.01 80)",
+        "y_fundo": 0.95578,
+        "y_texto": 0.010627
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.22 0.01 80)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px 24px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.985 0.003 90)",
+          "de": "pcv-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "header"
+      ],
+      "rect": {
+        "h": 97,
+        "w": 1180
+      },
+      "seletor": ".pcv-root > .pcv-ph",
+      "truncado": false
+    }
+  },
+  "tela": "producao--quadro--index-claro",
+  "url": "http://127.0.0.1:5571/",
+  "viewport": "1440x900"
+}
