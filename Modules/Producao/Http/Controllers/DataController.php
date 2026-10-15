@@ -2,7 +2,9 @@
 
 namespace Modules\Producao\Http\Controllers;
 
+use App\Utils\ModuleUtil;
 use Illuminate\Routing\Controller;
+use Menu;
 
 /**
  * DataController — Modules/Producao (ADR 0431).
@@ -58,10 +60,32 @@ class DataController extends Controller
     }
 
     /**
-     * Sem item de sidebar enquanto o módulo não tem tela (esqueleto). A thread do
-     * Painel/Quadro acrescenta o item junto com a primeira Page.
+     * Item da sidebar desde a thread 03 (primeiras telas: Roteiros e Postos). Três camadas,
+     * como o golden do Arquivos: pacote `producao_module` → permissão `producao.access` → item.
+     * O item aponta para Roteiros enquanto o Painel (thread 06) não existe; a 06 troca o destino.
      */
     public function modifyAdminMenu(): void
     {
+        $module_util = new ModuleUtil();
+
+        if (auth()->user()->can('superadmin')) {
+            $is_enabled = $module_util->isModuleInstalled('Producao');
+        } else {
+            $business_id = session()->get('user.business_id');
+            $is_enabled = (bool) $module_util->hasThePermissionInSubscription($business_id, 'producao_module', 'superadmin_package');
+        }
+
+        if (! $is_enabled || ! (auth()->user()->can('superadmin') || auth()->user()->can('producao.access'))) {
+            return;
+        }
+
+        $segmento_ativo = request()->segment(1) === 'producao';
+
+        Menu::modify('admin-sidebar-menu', function ($menu) use ($segmento_ativo) {
+            $menu->url(url('/producao/roteiros'), 'Produção', [
+                'icon' => 'fa fa-industry',
+                'active' => $segmento_ativo,
+            ]);
+        });
     }
 }

@@ -1,10 +1,14 @@
 ---
 module: Producao
-purpose: "Camada única de PCP: apontamento de produção por operação, pessoa e tempo, postos com capacidade e custo-hora por empresa, programação e gargalo. Em 2026-10-15 é só esqueleto — instalação, pacote do superadmin e permissões; nenhuma tabela, tela ou rota de negócio."
+purpose: "Camada única de PCP: apontamento de produção por operação, pessoa e tempo, postos com capacidade e custo-hora por empresa, programação e gargalo. Nasceu em 2026-10-15 como esqueleto (ADR 0431); o fundo veio na thread 02 e os cadastros na 03."
 migracao_ui: "n/a — módulo novo, nasce Inertia (sem Blade)"
 contains:
   - "DataController — 3 hooks UltimatePOS (pacote superadmin, permissões; sem item de sidebar enquanto não houver tela)"
   - "InstallController — instalação 1-clique (ADR 0024)"
+  - "RoteirosController — roteiros por família, até 2 trilhas com junção nomeada (UC-PCV-13, thread 03)"
+  - "PostosController — postos, máquinas e veículos, com os motivos de pausa e de refugo do posto (UC-PCV-33, E03)"
+  - "FerramentasController — ferramentas com código QR (E03)"
+  - "ColaboradorCustoController — custo-hora da pessoa, só com producao.desempenho.ver (E03)"
   - "ApontamentoController — celular do operador (PWA, thread 04): /producao/apontamento, escritas em JSON para a fila offline; a regra mora no ApontamentoOperadorService"
   - "FecharTurnoCommand — producao:fechar-turno a cada 15 min, fecha o cronômetro esquecido no fim do turno ou na saída do ponto"
 not_contains:
@@ -18,7 +22,7 @@ depends_on: []
 owner: wagner
 status: em construção
 url_prefixes:
-  - /producao/* (hoje só install 1-clique, Routes/web.php)
+  - /producao/* (install 1-clique e os cadastros da thread 03: roteiros, postos, ferramentas, custo-hora — Routes/web.php)
   - /producao/apontamento/* (celular do operador, thread 04)
 ---
 
