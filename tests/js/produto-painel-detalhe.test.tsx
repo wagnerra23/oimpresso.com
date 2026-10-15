@@ -65,7 +65,7 @@ const detalhe = (parte: Partial<DetalheProdutoDados> = {}): DetalheProdutoDados 
   composicao_total_exc: null,
   estoque: [],
   estoque_totais: null,
-  fiscal: { ncm: '', cest: '', cfop_interno: '', cfop_externo: '', cst_csosn: '', cst_pis: '', cst_cofins: '', cst_ipi: '' },
+  fiscal: { ncm: '', cest: '', cfop_interno: '', cfop_externo: '', cst_csosn: '', cst_pis: '', cst_cofins: '', cst_ipi: '', origem: '0', origem_por_produto: false, link_modulo: null },
   prateleiras: { colunas: { prateleira: false, fileira: false, posicao: false }, linhas: [] },
   ...parte,
 });
@@ -174,7 +174,7 @@ describe('UC-PIDX-09 · abas', () => {
 });
 
 describe('UC-PIDX-17 · o painel abre na aba que quem abriu pediu', () => {
-  const comFiscal = () => detalhe({ fiscal: { ncm: '49019900', cest: '2806400', cfop_interno: '5102', cfop_externo: '6102', cst_csosn: '102', cst_pis: '07', cst_cofins: '07', cst_ipi: '53' } });
+  const comFiscal = () => detalhe({ fiscal: { ncm: '49019900', cest: '2806400', cfop_interno: '5102', cfop_externo: '6102', cst_csosn: '102', cst_pis: '07', cst_cofins: '07', cst_ipi: '53', origem: '0', origem_por_produto: false, link_modulo: null } });
 
   it('pedida a aba Fiscal, os dados fiscais já estão na tela, sem clicar em aba', () => {
     const { painel } = abrir(comFiscal(), { abaInicial: 'fiscal' });
@@ -248,6 +248,66 @@ describe('UC-PIDX-19 · a aba Fiscal mostra o tipo de imposto na venda', () => {
   it('a aba Dados continua mostrando o mesmo valor', () => {
     const { painel } = abrir(comTipo('exclusive'));
     expect(campo(painel, 'Tipo de imposto na venda')).toBe('Exclusivo');
+  });
+});
+
+describe('UC-PIDX-25 · aba Fiscal: origem, ajuda e "Abrir no módulo Fiscal"', () => {
+  const comFiscal = (f: Partial<DetalheProdutoDados['fiscal']>) => {
+    const base = detalhe();
+    return detalhe({ fiscal: { ...base.fiscal, ...f } });
+  };
+  const campo = (rotulo: string) =>
+    (screen.getByText(rotulo).closest('.pb-dt') as HTMLElement).querySelector('b')?.textContent;
+  const ajuda = () => document.querySelector('[data-contract=produto-detalhe-fiscal-ajuda]')?.textContent ?? '';
+
+  it('mostra a origem que a nota usa, com o nome da tabela A, e avisa que vale para todos', () => {
+    abrir(comFiscal({ origem: '0' }), { abaInicial: 'fiscal' });
+    expect(campo('Origem da mercadoria')).toBe('0 — Nacional');
+    expect(ajuda()).toContain('A origem é a mesma em todas as notas');
+  });
+
+  it('a origem fica antes de "Imposto aplicável" (a ordem do protótipo)', () => {
+    abrir(comFiscal({}), { abaInicial: 'fiscal' });
+    const rotulos = Array.from(document.querySelectorAll('[role=dialog] .pb-dt > span')).map((e) => e.textContent);
+    expect(rotulos.slice(-3)).toEqual(['Origem da mercadoria', 'Imposto aplicável', 'Tipo de imposto na venda']);
+  });
+
+  it('código fora da tabela A vira traço, não um rótulo inventado', () => {
+    abrir(comFiscal({ origem: '9' }), { abaInicial: 'fiscal' });
+    expect(campo('Origem da mercadoria')).toBe('—');
+  });
+
+  it('com origem por produto, o aviso de "mesma em todas as notas" some', () => {
+    abrir(comFiscal({ origem: '1', origem_por_produto: true }), { abaInicial: 'fiscal' });
+    expect(campo('Origem da mercadoria')).toBe('1 — Importação direta');
+    expect(ajuda()).not.toContain('mesma em todas as notas');
+  });
+
+  it('sem NCM, a ajuda diz que a nota usa o NCM padrão — e não chama o produto de serviço', () => {
+    abrir(comFiscal({ ncm: '0' }), { abaInicial: 'fiscal' });
+    expect(ajuda()).toContain('a NF-e usa o NCM padrão da empresa');
+    expect(ajuda()).not.toMatch(/Serviço: sai em NFS-e/);
+  });
+
+  it('com NCM, a ajuda explica a ordem da regra; com CEST, avisa que o CFOP não muda sozinho', () => {
+    abrir(comFiscal({ ncm: '49019900', cest: '' }), { abaInicial: 'fiscal' });
+    expect(ajuda()).toContain('primeiro a exceção do produto, depois a regra do NCM');
+    expect(ajuda()).not.toContain('CEST');
+    cleanup();
+    abrir(comFiscal({ ncm: '49019900', cest: '2806400' }), { abaInicial: 'fiscal' });
+    expect(ajuda()).toContain('a nota não troca o CFOP sozinha');
+  });
+
+  it('sem link do servidor (sem módulo ou sem permissão), o botão não existe', () => {
+    abrir(comFiscal({ link_modulo: null }), { abaInicial: 'fiscal' });
+    expect(screen.queryByRole('button', { name: 'Abrir no módulo Fiscal' })).toBeNull();
+  });
+
+  it('com link, o botão leva para a Tributação com o produto', () => {
+    const url = '/nfe-brasil/tributacao?produto=7#simulador';
+    const { irPara } = abrir(comFiscal({ link_modulo: url }), { abaInicial: 'fiscal' });
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir no módulo Fiscal' }));
+    expect(irPara).toHaveBeenCalledWith(url);
   });
 });
 

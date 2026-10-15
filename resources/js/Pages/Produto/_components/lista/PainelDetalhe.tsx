@@ -24,6 +24,37 @@ const qtd = (n: number) => n.toLocaleString('pt-BR', { minimumFractionDigits: 0,
 const dinheiro = (n: number | undefined | null) => (n === undefined || n === null ? '—' : brl(n));
 /** `tax_type` do produto como a tela o chama; vazio quando o cadastro não diz. */
 const tipoDeImposto = (t: string) => (t === 'inclusive' ? 'Inclusivo' : t === 'exclusive' ? 'Exclusivo' : '');
+
+// Tabela A da NF-e (origem da mercadoria) — os códigos que o protótipo lista, mais os que faltavam.
+const ORIGENS: Record<string, string> = {
+  '0': 'Nacional',
+  '1': 'Importação direta',
+  '2': 'Adquirida no mercado interno',
+  '3': 'Nacional, importação > 40%',
+  '4': 'Nacional, processo produtivo básico',
+  '5': 'Nacional, importação ≤ 40%',
+  '6': 'Importação direta, sem similar nacional',
+  '7': 'Mercado interno, sem similar nacional',
+  '8': 'Nacional, importação > 70%',
+};
+const rotuloOrigem = (o: string) => (ORIGENS[o] ? `${o} — ${ORIGENS[o]}` : '');
+
+/**
+ * Texto de ajuda da aba Fiscal (UC-PIDX-25). Parte do protótipo, corrigido onde ele afirma o que a
+ * emissão não faz: sem NCM o produto NÃO vira serviço (a nota usa o NCM padrão da empresa), e o CEST
+ * NÃO troca o CFOP da nota (a `NfeService` não lê o CEST). A ordem da regra é a do simulador da
+ * Tributação: exceção do produto → regra do NCM → padrão da empresa.
+ */
+export function ajudaFiscal(f: { ncm: string; cest: string }): string {
+  const temNcm = !!f.ncm && f.ncm !== '0';
+  if (!temNcm) {
+    return 'Sem NCM no cadastro: a NF-e usa o NCM padrão da empresa. Se for serviço, a nota é a NFS-e, que não usa NCM.';
+  }
+  const base = 'O NCM escolhe a tributação da nota: primeiro a exceção do produto, depois a regra do NCM e, por fim, o padrão da empresa. Confira antes de emitir.';
+  return f.cest
+    ? `${base} CEST preenchido indica produto com substituição tributária; a nota não troca o CFOP sozinha — confira a regra do NCM.`
+    : base;
+}
 // Produto único tem uma variação interna chamada DUMMY; o protótipo a mostra como "Padrão".
 const nomeDaVariacao = (n: string | null | undefined) => (!n || n === 'DUMMY' ? 'Padrão' : n);
 
@@ -500,9 +531,33 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                   <Dt rotulo="CST PIS" valor={d.fiscal.cst_pis} />
                   <Dt rotulo="CST COFINS" valor={d.fiscal.cst_cofins} />
                   <Dt rotulo="CST IPI" valor={d.fiscal.cst_ipi} />
+                  {/* Origem da mercadoria (UC-PIDX-25): o cadastro não guarda origem por produto, e toda
+                      nota sai com origem 0. A tela mostra o que a nota usa e diz que vale pra todos.
+                      Na ordem do protótipo: depois do CFOP, antes de "Imposto aplicável". */}
+                  <Dt rotulo="Origem da mercadoria" valor={rotuloOrigem(d.fiscal.origem)} />
                   <Dt rotulo="Imposto aplicável" valor={d.dados.imposto || 'Nenhum'} />
                   {/* Protótipo: a aba Fiscal fecha com o tipo de imposto. O mesmo dado da aba Dados. */}
                   <Dt rotulo="Tipo de imposto na venda" valor={tipoDeImposto(d.dados.tipo_imposto)} />
+                </div>
+              )}
+              {abaAtiva === 'fiscal' && (
+                <div data-contract="produto-detalhe-fiscal-ajuda">
+                  {!d.fiscal.origem_por_produto && (
+                    <p className="pb-help mt-2.5">
+                      A origem é a mesma em todas as notas: o cadastro ainda não guarda a origem de cada produto.
+                    </p>
+                  )}
+                  <p className="pb-help mt-1.5">{ajudaFiscal(d.fiscal)}</p>
+                  {d.fiscal.link_modulo && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-2 h-[26px] px-[10px] text-[11.5px]"
+                      onClick={() => irPara(d.fiscal.link_modulo as string)}
+                    >
+                      Abrir no módulo Fiscal
+                    </Button>
+                  )}
                 </div>
               )}
 
