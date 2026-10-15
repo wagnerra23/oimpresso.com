@@ -45,7 +45,7 @@ const rotuloOrigem = (o: string) => (ORIGENS[o] ? `${o} — ${ORIGENS[o]}` : '')
  * NÃO troca o CFOP da nota (a `NfeService` não lê o CEST). A ordem da regra é a do simulador da
  * Tributação: exceção do produto → regra do NCM → padrão da empresa.
  */
-export function ajudaFiscal(f: { ncm: string; cest: string }): string {
+function ajudaFiscal(f: { ncm: string; cest: string }): string {
   const temNcm = !!f.ncm && f.ncm !== '0';
   if (!temNcm) {
     return 'Sem NCM no cadastro: a NF-e usa o NCM padrão da empresa. Se for serviço, a nota é a NFS-e, que não usa NCM.';
