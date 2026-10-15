@@ -108,6 +108,8 @@ return new class extends Migration
                 $t->unsignedBigInteger('os_id')->nullable();
                 $t->foreignId('posto_id')->constrained('pcp_postos');
                 $t->foreignId('operacao_id')->nullable()->constrained('pcp_operacoes');
+                // Etapa programada: distingue a 2ª passagem da mesma OS pelo mesmo posto (retrabalho).
+                $t->foreignId('programacao_id')->nullable()->constrained('pcp_programacoes');
                 $t->enum('tipo_custo', ['maquina', 'pessoa'])->comment('cópia do posto no início');
                 $t->decimal('custo_hora', 12, 2)->comment('cópia do posto no início: custo não muda para trás');
                 $t->unsignedBigInteger('maquina_id')->nullable()->comment('posto maquina: não ocupa a pessoa');
@@ -122,6 +124,7 @@ return new class extends Migration
                 $t->unique(['business_id', 'chave_idempotencia'], 'pcp_apont_biz_chave_uq');
                 $t->index(['business_id', 'os_tipo', 'os_id'], 'pcp_apont_biz_os_idx');
                 $t->index('inicio_id');
+                $t->index(['business_id', 'programacao_id'], 'pcp_apont_biz_prog_idx');
                 $t->foreign('business_id')->references('id')->on('business');
                 $t->foreign('maquina_id')->references('id')->on('pcp_postos');
                 $t->foreign('user_id')->references('id')->on('users');
