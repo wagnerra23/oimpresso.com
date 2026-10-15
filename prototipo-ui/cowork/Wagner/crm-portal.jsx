@@ -327,14 +327,8 @@ function CrmPortalPage({ view = "painel" }) {
             {CONTATOS.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
           </select>
         </label>
-        <span className="cp-seg" role="group" aria-label="Tamanho da prévia">
-          <button aria-pressed={modo === "celular"} onClick={() => setModo("celular")}>Celular 390</button>
-          <button aria-pressed={modo === "tela"} onClick={() => setModo("tela")}>Tela cheia</button>
-        </span>
-        <span className="cp-seg" role="group" aria-label="Tema">
-          <button aria-pressed={tema === "light"} onClick={() => trocarTema("light")}>Claro</button>
-          <button aria-pressed={tema === "dark"} onClick={() => trocarTema("dark")}>Escuro</button>
-        </span>
+        {window.CliSeg && <window.CliSeg size="sm" ariaLabel="Tamanho da prévia" value={modo} onChange={setModo} options={[{ key: "celular", label: "Celular 390" }, { key: "tela", label: "Tela cheia" }]} />}
+        {window.CliSeg && <window.CliSeg size="sm" ariaLabel="Tema" value={tema} onChange={trocarTema} options={[{ key: "light", label: "Claro" }, { key: "dark", label: "Escuro" }]} />}
         <label style={{ display: "flex", alignItems: "center", gap: 6 }}>Estado
           <select value={estado} onChange={(e) => setEstado(e.target.value)}>
             <option value="dados">Com dados</option><option value="carregando">Carregando</option><option value="erro">Erro</option><option value="vazio">Vazio</option>

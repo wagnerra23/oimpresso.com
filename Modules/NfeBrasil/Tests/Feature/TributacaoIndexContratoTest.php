@@ -329,3 +329,40 @@ it('UC-NFTR-05 · listagem traz a regra do próprio business e nenhuma do vizinh
     expect($regras)->toHaveCount(1);                  // controle positivo: a minha veio…
     expect($regras[0]['ncm'])->toBe('49019900');      // …e é a minha mesmo, não a do vizinho
 });
+
+/** Prop eager `produtoInicial` do index, pedido com `?produto=` (o link do painel de produto). */
+function nftrProdutoInicial(string $query): mixed
+{
+    $request = Illuminate\Http\Request::create('/nfe-brasil/tributacao?' . $query, 'GET');
+    $request->setLaravelSession(app('session.store'));
+    $request->session()->put('business.id', NFTR_BIZ);
+    $request->session()->put('user.business_id', NFTR_BIZ);
+
+    $response = (new Modules\NfeBrasil\Http\Controllers\TributacaoController())->index($request);
+    $props = new ReflectionProperty($response, 'props');
+    $props->setAccessible(true);
+
+    return $props->getValue($response)['produtoInicial'];
+}
+
+it('UC-NFTR-29 · vindo do painel de produto (?produto=), o simulador abre com o produto da empresa escolhido', function () {
+    DB::beginTransaction();
+    try {
+        $meu = Tests\Support\EstoqueFixture::singleProduct(NFTR_BIZ);
+        $doVizinho = Tests\Support\EstoqueFixture::singleProduct(NFTR_BIZ_OUTRO);
+
+        $inicial = nftrProdutoInicial('produto=' . $meu->productId);
+        // Controle positivo: o produto da própria empresa vem, com o id da 1ª variação.
+        expect($inicial['product_id'])->toBe($meu->productId);
+        expect($inicial['variation_id'])->toBe((int) $meu->variations[0]['variation_id']);
+        expect($inicial['name'])->toBe(DB::table('products')->where('id', $meu->productId)->value('name'));
+
+        // Tier 0: produto de outra empresa não aparece — nem nome, nem erro.
+        expect(nftrProdutoInicial('produto=' . $doVizinho->productId))->toBeNull();
+        // Sem o parâmetro, ou com lixo, a tela abre como sempre.
+        expect(nftrProdutoInicial(''))->toBeNull();
+        expect(nftrProdutoInicial('produto=abc'))->toBeNull();
+    } finally {
+        DB::rollBack();
+    }
+});

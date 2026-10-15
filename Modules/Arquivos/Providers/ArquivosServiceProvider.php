@@ -78,5 +78,7 @@ class ArquivosServiceProvider extends ServiceProvider
         $this->app->singleton(CuradorEngine::class);
         $this->app->singleton(VaultEncryptionService::class);
         $this->app->singleton(ArquivosService::class);
+        // Anexos do app das lojas (P2): o núcleo pede pelo contrato, o módulo implementa.
+        $this->app->bind(\App\Contracts\Arquivos\AnexosDoApp::class, \Modules\Arquivos\Services\AnexosDoAppService::class);
     }
 }
