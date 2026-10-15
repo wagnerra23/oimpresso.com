@@ -305,6 +305,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
   - a data vai e volta sem deslocamento: salvar sem mexer na data não a altera (na tela Blade a data exibida passa pelo `format_date`, com o deslocamento histórico de 3 horas);
   - com validade ou lote desligados na empresa, a linha existente mantém o que já tinha (o formulário Blade, sem o campo, apagava).
 - **Achado do caminho antigo, NÃO resolvido aqui (hipótese por leitura, ainda sem medição):** ao zerar uma linha existente, o `save()` não chama `updateProductQuantity` (`if ($qty_remaining != 0)`), então o saldo do local não desceria. A janela herda o que o Blade faz — o teste afirma só a igualdade entre os dois caminhos nesse caso. Decisão de conserto é do [W]/[F].
+  - **Medido em 2026-10-15** ([`EstoqueInicialZerarLinhaTest`](../../../../tests/Feature/Produto/EstoqueInicialZerarLinhaTest.php), CT 100 em `8723405fb`): lançar 10 e depois zerar a linha pelo `/opening-stock/save` grava a linha com quantidade 0, mas o saldo do local **fica em 10**. O controle (baixar de 10 para 1) desconta certo, então o defeito é só no zero. O teste está na quarentena da lane de Estoque até o conserto; o conserto mexe em estoque e segue a regra mestre (duas provas e antes→depois) — decisão [W]/[F].
 - **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide (a parte Vitest não roda em lane nenhuma).
 
 ## UC-PIDX-16 · Arrastar a borda da coluna muda a largura dela · `should`

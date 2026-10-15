@@ -170,3 +170,4 @@
 
 tests/Feature/Produto/FormacaoPrecoParidadeLegadoTest.php  # roda na lane sqlite (.github/ci-sqlite-pest.list linha 211) — não duplicar aqui
 tests/Feature/Estoque/DevolucaoGuardaContratoTest.php   # CU-DEV-07: controle positivo (GET /sell-return com access_own_sell_return) responde 403 — setup do harness, SEM veredito sobre a hipotese do $sells. CU-DEV-08 ja VERDE (trava de lastro landada no mesmo PR); sai da quarentena quando o 07 for exercitavel
+tests/Feature/Produto/EstoqueInicialZerarLinhaTest.php  # MEDIDA (2026-10-15, CT 100 em 8723405fb): zerar a linha de estoque inicial pelo /opening-stock/save grava a linha com 0 e deixa o saldo do local em 10 (o controle 10->1 passa). Vermelho = defeito do save(), nao do teste. Sai quando [W]/[F] decidirem o conserto (regra mestre de estoque)
