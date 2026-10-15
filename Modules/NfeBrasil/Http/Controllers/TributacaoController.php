@@ -63,6 +63,11 @@ class TributacaoController extends Controller
             'localPadrao' => DB::table('business_locations')
                 ->where('business_id', $businessId)->orderBy('id')->value('id'),
 
+            // EAGER (1 linha): produto vindo do "Abrir no módulo Fiscal" do painel de produto
+            // (UC-NFTR-29) — o simulador já abre com ele escolhido. Tier 0: só produto da empresa
+            // da sessão; de outra empresa (ou id inválido) é null, sem erro, como se não viesse.
+            'produtoInicial' => $this->produtoInicialDoSimulador($request, $businessId),
+
             // DEFERRED (pesado): query DB com map de N regras + scoped por tenant
             'regras'    => Inertia::defer(fn () => $this->buildRegrasPayload($businessId)),
 
@@ -72,6 +77,29 @@ class TributacaoController extends Controller
             // DEFERRED (consultas de leitura): saúde fiscal — playbook Fiscal thread 14, UC-NFTR-24/25.
             'saude'     => Inertia::defer(fn () => $this->buildSaudePayload($businessId)),
         ]);
+    }
+
+    /** @return array{product_id:int, variation_id:int, name:string, sku:string}|null */
+    private function produtoInicialDoSimulador(Request $request, int $businessId): ?array
+    {
+        $id = $request->query('produto');
+        if (! is_string($id) || ! ctype_digit($id)) {
+            return null;
+        }
+        $produto = DB::table('products')
+            ->where('business_id', $businessId)
+            ->where('id', (int) $id)
+            ->first(['id', 'name', 'sku']);
+        if ($produto === null) {
+            return null;
+        }
+
+        return [
+            'product_id'   => (int) $produto->id,
+            'variation_id' => (int) (DB::table('variations')->where('product_id', $produto->id)->orderBy('id')->value('id') ?? 0),
+            'name'         => (string) $produto->name,
+            'sku'          => (string) ($produto->sku ?? ''),
+        ];
     }
 
     /** Saúde fiscal com a rota de cada pendência já resolvida em URL (null se a rota não existe). */
