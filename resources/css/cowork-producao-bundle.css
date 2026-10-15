@@ -2,12 +2,17 @@
  *
  * PROVENIENCIA: copia INTEIRA e VERBATIM de `prototipo-ui/cowork/Wagner/producao-cv.css`, versao
  * `pcv11` (o host `oimpresso.com.html` carrega `producao-cv.css?v=pcv11`), blob git
- * bbcf272062bf, espelho de 2026-10-15. Nada foi escrito a mao; so este cabecalho foi acrescentado.
+ * bbcf272062bf (+ a correcao G3 abaixo, feita na fonte), 2026-10-15. Nada foi escrito a mao; so este cabecalho foi acrescentado.
  * Regra do bundle Cowork (proibicoes §Design System / Pacote Cowork novo): entra inteiro primeiro,
  * customizacao nas ondas seguintes. As telas das threads 03 e 04 importam este mesmo arquivo.
  *
  * ATUALIZAR: o Cowork vivo ja esta na `pcv13` (com o celular). Quando o espelho receber a versao
  * nova, recopie o arquivo INTEIRO por cima do corpo abaixo e troque versao e blob neste cabecalho.
+ *
+ * FONTE CORRIGIDA NO GIT (2026-10-15, ADR 0433): na pcv11, `.pcv-perdas i` e
+ * `.pcv-feed li.is-refugo .pcv-feed-dot` usavam `--color-destructive-fg` como `background`, e a regra
+ * G3 do conformance-gate nao aceita token -fg como superficie. A troca para `--color-destructive` foi
+ * feita na propria fonte, `prototipo-ui/cowork/Wagner/producao-cv.css`; este corpo segue igual a ela.
  *
  * ESCOPO: tudo e prefixado por `.pcv-*`, exceto 3 seletores do proprio prototipo — `.sr-only`
  * (o mesmo utilitario do Tailwind) e `body.pcv-arrastando` (estado de arraste da linha do tempo).
@@ -174,7 +179,7 @@
 .pcv-g-blk.is-mov{box-shadow:0 0 0 2px var(--accent)}
 .pcv-perdas{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
 .pcv-perdas li{display:grid;grid-template-columns:minmax(0,1fr) 120px 90px;gap:10px;align-items:center;font-size:13px}
-.pcv-perdas i{display:block;height:6px;border-radius:3px;background:color-mix(in oklch,var(--color-destructive-fg,var(--neg)) 60%,transparent)}
+.pcv-perdas i{display:block;height:6px;border-radius:3px;background:color-mix(in oklch,var(--color-destructive,var(--neg)) 60%,transparent)}
 .pcv-perdas b{text-align:right}
 .pcv-minhas{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
 .pcv-minhas button{all:unset;box-sizing:border-box;cursor:pointer;width:100%;display:flex;flex-direction:column;gap:2px;padding:12px;min-height:56px;border:1px solid var(--border);border-radius:8px;background:var(--surface)}
@@ -209,7 +214,7 @@
 .pcv-feed li.is-etapa .pcv-feed-dot{background:var(--color-info,var(--accent))}
 .pcv-feed li.is-cliente .pcv-feed-dot,.pcv-feed li.is-instalacao .pcv-feed-dot{background:var(--color-success,var(--accent))}
 .pcv-feed li.is-arte .pcv-feed-dot{background:var(--color-warning,var(--accent))}
-.pcv-feed li.is-refugo .pcv-feed-dot{background:var(--color-destructive-fg,var(--neg))}
+.pcv-feed li.is-refugo .pcv-feed-dot{background:var(--color-destructive,var(--neg))}
 .pcv-feed li.is-pcp .pcv-feed-dot{background:var(--accent)}
 .pcv-feed-m{display:flex;flex-direction:column;gap:2px;min-width:0}
 .pcv-feed-t{font-size:13px;text-wrap:pretty}
