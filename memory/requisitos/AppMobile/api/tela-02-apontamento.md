@@ -2,7 +2,7 @@
 
 > ✅ **Rota no ERP desde o PR 06 do playbook `propostas-app`** (2026-10-15). Parte do contrato da API do app ([API-CONTRATO-v1.md](../API-CONTRATO-v1.md): regras gerais §0, Início §6). Origem: handoff `propostas-app` do Design, conferido em 2026-10-05; revisado no mesmo dia por decisão [W] para gravar no PCP. O QR impresso no PDF da OS é o PR 07.
 >
-> **Implementado em:** `app/Http/Controllers/Api/App/ProducaoController.php` · `app/Services/AppLojas/EtiquetaProducao.php` · `routes/api/app/producao.php` · teste `tests/Feature/Sells/AppProducaoApontamentoContratoTest.php` (UC-APPAPT-01..09, lane `sells-pest`).
+> **Implementado em:** `Modules/Producao/Http/Controllers/Api/AppApontamentoController.php` · `app/Services/AppLojas/EtiquetaProducao.php` · `routes/api/app/producao.php` · teste `tests/Feature/Sells/AppProducaoApontamentoContratoTest.php` (UC-APPAPT-01..09, lane `sells-pest`).
 
 ## Onde grava
 Decisão [W] 2026-10-15: o apontamento do app grava no módulo de Produção (PCP, ADR 0431 — camada única de apontamento), pela regra do operador `ApontamentoOperadorService` (thread 04 do playbook de Produção). Esta API só autentica, lê o QR, confere o ajuste da empresa e traduz as recusas do serviço em HTTP. O `business_id` vem do usuário do token em toda chamada — a sessão não existe aqui.
