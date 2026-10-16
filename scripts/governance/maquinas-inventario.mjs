@@ -15,7 +15,10 @@ const MODE = process.argv.includes('--write') ? 'write'
 // --- helpers de extração (medido, nunca inventado) ---
 const firstDescComment = (txt) => {
   // padrão canônico: `// nome.mjs — descrição`  OU  bloco `/** nome — descrição`
-  const lines = txt.split('\n');
+  // /\r?\n/ e não '\n': com CRLF (git com core.autocrlf=true, o padrão do Windows) o `\r` fica
+  // no fim de cada linha, o `(.+)$` não casa, e TODA descrição virava "(sem descrição no
+  // cabeçalho)" — o hook do commit gravava esse índice errado (medido 2026-10-16).
+  const lines = txt.split(/\r?\n/);
   for (const l of lines.slice(0, 12)) {
     let m = l.match(/^\s*(?:\/\/|\*)\s*[\w.-]+\.(?:mjs|js|cjs)\s*[—-]\s*(.+)$/);
     if (m) return m[1].trim();
