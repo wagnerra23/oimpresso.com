@@ -11,9 +11,18 @@ if (! function_exists('repo_path')) {
 
 const PRODUTO_EDIT_PAGE_PATH = 'resources/js/Pages/Produto/Edit.tsx';
 
+/**
+ * O fonte da tela: a Page mais as seções do formulário, que desde 2026-10-16 moram em
+ * `_components/formulario/` (compartilhadas com Create.tsx). O campo Tipo desabilitado mora lá.
+ */
 function readProdutoEdit(): string
 {
-    return file_get_contents(repo_path(PRODUTO_EDIT_PAGE_PATH));
+    $fonte = file_get_contents(repo_path(PRODUTO_EDIT_PAGE_PATH));
+    foreach (glob(repo_path('resources/js/Pages/Produto/_components/formulario') . '/*.ts*') ?: [] as $arquivo) {
+        $fonte .= "\n" . file_get_contents($arquivo);
+    }
+
+    return $fonte;
 }
 
 it('Page existe em Pages/Produto/Edit.tsx', function () {

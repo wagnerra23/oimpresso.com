@@ -1,0 +1,298 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR OFFICEIMPRESSO · matriz · 12 produtos · 4 grupos de preço · papel: Administrador Produtos Produto — cadastro Atualizado 09:46 ← Voltar à lista Baixar Excel Novo produto Novo produto dados do produto Nome do produto * SKU ⓘ Bipar Tipo de código de barras * C128 C39 EAN-13 EAN-8 UPC-A UPC-E Unidade * Un m² m kg cx pç + Sub-unidades relacionadas ⓘ Nenhuma Un m² m kg cx pç Marca Sem marca Vinilcor 3M Avery Coral Suprema + Categoria Selecione… Comunicação visual Impressos Adesivos Acabamento Insumos Serviços Subcategoria Selecione… Locais do negócio ⓘ Matriz ✕ Filial Centro + Gerenciar estoque Habilite pra controlar a quantidade. Serviços ficam sem estoque. Quantidade de alerta ⓘ Garantia Sem garantia 3 meses 6 meses 12 meses Descrição do produto Imagem e folheto Arraste a imagem (1:1, até 5 MB) + folheto em PDF Configurações validade, série, prateleira, campos personalizados Expira em meses dias não aplicável Habilitar IMEI / nº de série Cada peça é rastreada individualmente na venda. Não para venda Insumo: entra em compra e produção, não no balcão. Peso Detalhes de prateleira Local Prateleira Fileira Posição Matriz Filial Centro Fornecedor preferencial Acabamento padrão Tempo de preparo (minutos) Fiscal NCM · CEST · CFOP · origem NCM * ⓘ CEST ⓘ CFOP padrão de venda 5101 — Venda de produção do estabelecimento 5102 — Venda de mercadoria adquirida de terceiros 5405 — Venda com ST, substituído 5933 — Prestação de serviço tributado por ISS Origem da mercadoria 0 — Nacional 1 — Importação direta 2 — Adquirida no mercado interno 3 — Nacional, importação > 40% 6 — Importação direta, sem similar nacional Sem substituição tributária. O módulo Fiscal valida NCM × CFOP antes de emitir. Impostos e preços imposto Nenhum Imposto aplicável Nenhum ICMS 18% ICMS 12% ISS 5% Tipo de imposto no preço de venda * Exclusivo Inclusivo Tipo de produto * ⓘ Único Variável Composição Preço de compra padrão % de lucro Preço de venda padrão Imagem da variação Sem imposto * Com imposto * Sem imposto * Com imposto Imagens da variação Rascunho salvo automaticamente às 09:46 2 campo(s) a corrigir Cancelar Salvar e adicionar preços por grupo Salvar e adicionar estoque inicial Salvar e adicionar outro Salvar",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 85,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://localhost:5596/"
+  },
+  "nos_totais": 731,
+  "quieto_ms": 400,
+  "rota": "prod-novo",
+  "secoes": {
+    "acoes": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "8px",
+        "padding": "4px 0px 0px"
+      },
+      "filhos": 7,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-root"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "pb-help",
+        "pb-erro",
+        "os-btn",
+        "os-btn",
+        "os-btn",
+        "os-btn",
+        "os-btn"
+      ],
+      "rect": {
+        "h": 34,
+        "w": 1176
+      },
+      "seletor": "main .pb-root > .pb-body > .pb-formactions",
+      "truncado": false
+    },
+    "configuracoes": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h3",
+        "pb-widget-b"
+      ],
+      "rect": {
+        "h": 336,
+        "w": 1176
+      },
+      "seletor": "main .pb-root > .pb-body > section.pb-widget:nth-of-type(2)",
+      "truncado": false
+    },
+    "dados": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h3",
+        "pb-widget-b"
+      ],
+      "rect": {
+        "h": 420,
+        "w": 1176
+      },
+      "seletor": "main .pb-root > .pb-body > section.pb-widget:nth-of-type(1)",
+      "truncado": false
+    },
+    "fiscal": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h3",
+        "pb-widget-b"
+      ],
+      "rect": {
+        "h": 150,
+        "w": 1176
+      },
+      "seletor": "main .pb-root > .pb-body > section.pb-widget:nth-of-type(3)",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px 12px",
+        "padding": "14px 0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 80,
+        "w": 1176
+      },
+      "seletor": "main .pb-root > .cli-ph > header",
+      "truncado": false
+    },
+    "precos": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h3",
+        "pb-widget-b"
+      ],
+      "rect": {
+        "h": 231,
+        "w": 1176
+      },
+      "seletor": "main .pb-root > .pb-body > section.pb-widget:nth-of-type(4)",
+      "truncado": false
+    }
+  },
+  "tela": "produto--create",
+  "url": "http://localhost:5596/"
+}
