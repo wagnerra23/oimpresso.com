@@ -13,10 +13,11 @@ contains:
   - "FecharTurnoCommand — producao:fechar-turno a cada 15 min, fecha o cronômetro esquecido no fim do turno ou na saída do ponto"
   - "Api/AppApontamentoController — apontamento do app das lojas com token (/api/app/producao/*, P8 tela 02, inclui motivos-pausa), sobre o ApontamentoOperadorService"
   - "EtiquetaOsController — PDF A4 da OS com o QR da etiqueta (E05 modelo a4_os; PR 07 propostas-app)"
+  - "Ordem (pcp_ordens) — OS por item que nasce do pedido nos modelos de fluxo; situação no motor FSM pelo ProcessoDaOrdem (ADR 0436)"
 not_contains:
   - "Presença e saída do ponto (o apontamento só LÊ, D-PONTO) → Modules/Ponto"
 excludes:
-  - "Dono da OS: a OS continua em Repair, ComunicacaoVisual e OficinaAuto (D-RELACAO, ADR 0431)"
+  - "Dono da OS de Repair, ComunicacaoVisual e OficinaAuto: continua nesses módulos (D-RELACAO, ADR 0431); a OS por item do pedido é da Produção desde a ADR 0436"
   - "Receita e lista de materiais: Manufacturing segue fonte de material"
   - "Encaixe de mídia por algoritmo (versão 2)"
   - "Análise de gargalo por IA (depois da regra simples da V1)"
