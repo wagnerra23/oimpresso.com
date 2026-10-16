@@ -70,7 +70,7 @@ const OS = [
     etapas: [["arte","Arte e prova","Ana","feito",1,0.8],["impressao","Impressão látex","Diego","feito",10,11.5,"latex"],["acabamento","Bainha + ilhós","Felipe","andamento",6,4.5],["expedicao","Embalar e liberar","Larissa","fila",0.5,0]],
     refugo: [{ etapa: "Impressão látex", motivo: "Banding na cabeça 3", m2: 9.4, custo: 338, quem: "Diego", quando: "14/10 15:20" }] },
   { id: "OS-2617", cliente: "Academia Força Total", titulo: "Letra-caixa iluminada \"FORÇA\"", produto: "letra", qtd: "5 letras", prazo: "2026-10-24", prioridade: "normal",
-    arte: "aprovada", aprovadaEm: "2026-10-14 10:30", resp: "Larissa", orcado: 7650, real: 900, perda: 0,
+    arte: "aprovada", liberada: false, aprovadaEm: "2026-10-14 10:30", resp: "Larissa", orcado: 7650, real: 900, perda: 0,
     etapas: [["arte","Vetor e gabarito","Ana","feito",1,1],["serralheria","Corte CNC das faces","Marcos","fila",1.7,0,"cnc","A"],["serralheria","Dobra e solda das laterais","Marcos","fila",4,0,"solda","A"],["acabamento","Elétrica: LED e fonte","Felipe","fila",2,0,null,"B"],["serralheria","Montagem + teste de acendimento","Marcos","fila",1.5,0],["instalacao","Instalação","Rafa","a agendar",3,0]], junta: "Montagem + teste de acendimento" },
   { id: "OS-2619", cliente: "Supermercado Bom Preço", titulo: "Banner roll-up 0,8×2 m (4 un)", produto: "lona", qtd: "6,4 m²", prazo: "2026-10-18", prioridade: "normal",
     arte: "ajuste", resp: "Larissa", orcado: 960, real: 120, perda: 0,
