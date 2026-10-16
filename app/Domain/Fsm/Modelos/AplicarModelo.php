@@ -24,7 +24,9 @@ use Spatie\Permission\Models\Role;
  * processos do `$businessId` recebido. Nunca altera documento (`transactions`, OS…), nunca
  * desativa processo de outro modelo nem o legado. A ação de avançar só recebe side effect quando a
  * regra da etapa de destino aponta um que já existe — hoje nenhuma (todas planejadas). O cancelar
- * fica sem efeito até um documento usar o processo.
+ * fica sem efeito até um documento usar o processo. Aplicar de novo mantém o `ligada` que a
+ * empresa já gravou nas regras (firstOrCreate não reescreve a etapa) e liga a regra de custo da
+ * compra com os parâmetros do modelo (RegrasCompra).
  */
 final class AplicarModelo
 {
@@ -62,10 +64,14 @@ final class AplicarModelo
                 $ids[$dominio] = $this->montarProcesso($businessId, $modeloId, $modelo['nome'], $dominio, $def);
             }
 
-            ModeloEmpresa::withoutGlobalScope(ScopeByBusiness::class)->updateOrCreate(
-                ['business_id' => $businessId],
-                ['porte' => $porte, 'atividade' => $atividade, 'modelo' => $modeloId, 'aplicado_em' => now(), 'aplicado_por' => $userId],
-            );
+            $linha = ModeloEmpresa::withoutGlobalScope(ScopeByBusiness::class)->firstOrNew(['business_id' => $businessId]);
+            $linha->fill(['porte' => $porte, 'atividade' => $atividade, 'modelo' => $modeloId, 'aplicado_em' => now(), 'aplicado_por' => $userId]);
+            // Como no protótipo (fluxos-page.jsx aplicar): a regra de custo da compra liga com os
+            // parâmetros do modelo; o resto do que a empresa configurou na Compra fica.
+            if (! empty($modelo['compra']) && Schema::hasColumn('fsm_modelos_empresa', 'regras_compra')) {
+                $linha->regras_compra = RegrasCompra::mudar($linha->regras_compra, RegrasCompra::CUSTO, true, $modelo['compra']);
+            }
+            $linha->save();
 
             return $ids;
         });
