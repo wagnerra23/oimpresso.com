@@ -9,7 +9,7 @@ lifecycle: ativo
 
 # Arquitetura viva da Jana
 
-> ⚙️ **Gerado por `scripts/governance/system-map.mjs` em 2026-10-15.** NÃO edite à mão.
+> ⚙️ **Gerado por `scripts/governance/system-map.mjs` em 2026-10-16.** NÃO edite à mão.
 > Esta página deriva o que o repositório consegue provar. Saúde de máquina é verificada por probe — compose existente não significa container vivo.
 > Resumo do sistema inteiro: [`PAINEL-SISTEMA.md`](../../reference/PAINEL-SISTEMA.md). Decisões donas: [ADR 0035](../../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md), [ADR 0048](../../decisions/0048-framework-agentes-laravel-ai-vizra-rejeitada.md) e [ADR 0062](../../decisions/0062-separacao-runtime-hostinger-ct100.md).
 
@@ -55,7 +55,7 @@ O desenho mostra **quem chama quem**. Ele não multiplica um serviço compartilh
 ```mermaid
 flowchart TB
   subgraph B["B · agentes do projeto"]
-    AG["20 agentes PHP"]
+    AG["21 agentes PHP"]
     DATA["5 tools SQL do Brief Diário"]
     DATA --> AG
   end
@@ -147,7 +147,7 @@ A tool e a avaliação chamam o mesmo serviço para não criar um pipeline de te
 
 | Medida | Valor derivado | Fonte dona |
 |---|---:|---|
-| Agentes PHP de produto | **20** | `Modules/*/Ai/Agents/*Agent.php` + contrato `implements Agent` |
+| Agentes PHP de produto | **21** | `Modules/*/Ai/Agents/*Agent.php` + contrato `implements Agent` |
 | Módulos com agentes PHP | **4** | árvore `Modules/` |
 | Agentes sem referência de produção | **0** | referências PHP fora de `Tests/` |
 | Tools registradas no MCP | **44** | [`OimpressoMcpServer.php`](../../../Modules/Jana/Mcp/OimpressoMcpServer.php) |
@@ -165,7 +165,7 @@ A tool e a avaliação chamam o mesmo serviço para não criar um pipeline de te
 |---|---:|---|
 | Crm | 3 | [ClienteProximaAcaoAgent](../../../Modules/Crm/Ai/Agents/ClienteProximaAcaoAgent.php) · [ClienteResumoAgent](../../../Modules/Crm/Ai/Agents/ClienteResumoAgent.php) · [ClienteSegmentoAgent](../../../Modules/Crm/Ai/Agents/ClienteSegmentoAgent.php) |
 | Forja | 1 | [ProjectDecomposerAgent](../../../Modules/Forja/Ai/Agents/ProjectDecomposerAgent.php) |
-| Jana | 15 | [BriefDiarioAgent](../../../Modules/Jana/Ai/Agents/BriefDiarioAgent.php) · [BriefingAgent](../../../Modules/Jana/Ai/Agents/BriefingAgent.php) · [ChatCopilotoAgent](../../../Modules/Jana/Ai/Agents/ChatCopilotoAgent.php) · [ClarificadorAgent](../../../Modules/Jana/Ai/Agents/ClarificadorAgent.php) · [DetectarSupersedeAgent](../../../Modules/Jana/Ai/Agents/DetectarSupersedeAgent.php) · [ExtrairFatosAgent](../../../Modules/Jana/Ai/Agents/ExtrairFatosAgent.php) · [HealthNarratorAgent](../../../Modules/Jana/Ai/Agents/HealthNarratorAgent.php) · [KbAnswerAgent](../../../Modules/Jana/Ai/Agents/KbAnswerAgent.php) · [ProximaPerguntaAgent](../../../Modules/Jana/Ai/Agents/ProximaPerguntaAgent.php) · [PrUiJudgeAgent](../../../Modules/Jana/Ai/Agents/PrUiJudgeAgent.php) · [SaleInsightAgent](../../../Modules/Jana/Ai/Agents/SaleInsightAgent.php) · [SinteseSemanalAgent](../../../Modules/Jana/Ai/Agents/SinteseSemanalAgent.php) · [SugestaoFiscalAgent](../../../Modules/Jana/Ai/Agents/SugestaoFiscalAgent.php) · [SugestoesMetasAgent](../../../Modules/Jana/Ai/Agents/SugestoesMetasAgent.php) · [WeeklyDigestAgent](../../../Modules/Jana/Ai/Agents/WeeklyDigestAgent.php) |
+| Jana | 16 | [BriefDiarioAgent](../../../Modules/Jana/Ai/Agents/BriefDiarioAgent.php) · [BriefingAgent](../../../Modules/Jana/Ai/Agents/BriefingAgent.php) · [ChatCopilotoAgent](../../../Modules/Jana/Ai/Agents/ChatCopilotoAgent.php) · [ClarificadorAgent](../../../Modules/Jana/Ai/Agents/ClarificadorAgent.php) · [DetectarSupersedeAgent](../../../Modules/Jana/Ai/Agents/DetectarSupersedeAgent.php) · [ExtrairFatosAgent](../../../Modules/Jana/Ai/Agents/ExtrairFatosAgent.php) · [HealthNarratorAgent](../../../Modules/Jana/Ai/Agents/HealthNarratorAgent.php) · [KbAnswerAgent](../../../Modules/Jana/Ai/Agents/KbAnswerAgent.php) · [ProximaPerguntaAgent](../../../Modules/Jana/Ai/Agents/ProximaPerguntaAgent.php) · [PrUiJudgeAgent](../../../Modules/Jana/Ai/Agents/PrUiJudgeAgent.php) · [RecomendarModeloFluxoAgent](../../../Modules/Jana/Ai/Agents/RecomendarModeloFluxoAgent.php) · [SaleInsightAgent](../../../Modules/Jana/Ai/Agents/SaleInsightAgent.php) · [SinteseSemanalAgent](../../../Modules/Jana/Ai/Agents/SinteseSemanalAgent.php) · [SugestaoFiscalAgent](../../../Modules/Jana/Ai/Agents/SugestaoFiscalAgent.php) · [SugestoesMetasAgent](../../../Modules/Jana/Ai/Agents/SugestoesMetasAgent.php) · [WeeklyDigestAgent](../../../Modules/Jana/Ai/Agents/WeeklyDigestAgent.php) |
 | Whatsapp | 1 | [InboxAssistAgent](../../../Modules/Whatsapp/Ai/Agents/InboxAssistAgent.php) |
 
 > ✅ Nenhuma classe de agente ficou sem referência PHP de produção.
@@ -234,4 +234,4 @@ A página **não grava “verde”** no Markdown: esse estado venceria no minuto
 - interpretar falha de probe e impacto no negócio.
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-10-15 · arquitetura derivada das fontes canônicas._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-10-16 · arquitetura derivada das fontes canônicas._
