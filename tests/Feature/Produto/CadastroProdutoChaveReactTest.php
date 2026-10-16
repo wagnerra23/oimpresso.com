@@ -53,7 +53,12 @@ function pcadrUsuario(int $bizId): User
 
 function pcadrLogin(object $test, User $user): object
 {
-    session(['user.business_id' => (int) $user->business_id, 'user.id' => $user->id]);
+    // O cadastro Blade formata a margem com @num_format, que lê session('currency'): o
+    // SetSessionData do login real preenche (mesmo conserto do ContasContratoTest).
+    session([
+        'user.business_id' => (int) $user->business_id, 'user.id' => $user->id, 'business.id' => (int) $user->business_id,
+        'currency' => ['id' => 1, 'code' => 'BRL', 'symbol' => 'R$', 'thousand_separator' => '.', 'decimal_separator' => ','],
+    ]);
 
     return $test->actingAs($user);
 }
@@ -103,6 +108,7 @@ it('UC-PCAD-08 · visita Inertia abre o React mesmo com a chave desligada (regra
     pcadrChave(false);
     $user = pcadrUsuario((int) $this->biz->id);
 
+    // A visita Inertia volta JSON da página; o contrato é o componente (molde: ProdutoBulkEditContratoTest).
     pcadrLogin($this, $user)->withHeaders(pcadrVisitaInertia())->get('/products/create')->assertOk()
-        ->assertInertia(fn (AssertableInertia $p) => $p->component('Produto/Create', false));
+        ->assertJsonPath('component', 'Produto/Create');
 });
