@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Jana\Ai\Agents;
+namespace App\Domain\Fsm\Ai;
 
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Ai\Contracts\Agent;

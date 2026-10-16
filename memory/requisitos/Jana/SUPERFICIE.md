@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 582 arquivos em 19 papéis.
+**Total mapeado:** 581 arquivos em 19 papéis.
 
 ## Controllers — 11
 
@@ -384,7 +384,7 @@ module: Jana
 - 15 em [Modules/Jana/Tests/Unit/](../../../Modules/Jana/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 94
+## Demais arquivos (manifestos, docs, assets e misc) — 93
 
 - [BriefDiarioAgent.php](../../../Modules/Jana/Ai/Agents/BriefDiarioAgent.php)
 - [BriefingAgent.php](../../../Modules/Jana/Ai/Agents/BriefingAgent.php)
@@ -396,7 +396,6 @@ module: Jana
 - [KbAnswerAgent.php](../../../Modules/Jana/Ai/Agents/KbAnswerAgent.php)
 - [PrUiJudgeAgent.php](../../../Modules/Jana/Ai/Agents/PrUiJudgeAgent.php)
 - [ProximaPerguntaAgent.php](../../../Modules/Jana/Ai/Agents/ProximaPerguntaAgent.php)
-- [RecomendarModeloFluxoAgent.php](../../../Modules/Jana/Ai/Agents/RecomendarModeloFluxoAgent.php)
 - [SaleInsightAgent.php](../../../Modules/Jana/Ai/Agents/SaleInsightAgent.php)
 - [SinteseSemanalAgent.php](../../../Modules/Jana/Ai/Agents/SinteseSemanalAgent.php)
 - [SugestaoFiscalAgent.php](../../../Modules/Jana/Ai/Agents/SugestaoFiscalAgent.php)

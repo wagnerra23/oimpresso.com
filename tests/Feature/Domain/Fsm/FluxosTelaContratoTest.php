@@ -233,7 +233,7 @@ function flxtAssistente($teste, array $dados)
 }
 
 it('UC-FLXT-08 · com IA, o assistente devolve o modelo sugerido só com casos do catálogo', function () {
-    \Modules\Jana\Ai\Agents\RecomendarModeloFluxoAgent::fake([[
+    \App\Domain\Fsm\Ai\RecomendarModeloFluxoAgent::fake([[
         'modelo' => 'instalacao', 'porque' => 'Você instala fachadas com equipe própria.',
         'ligar' => ['UC-FLX-28', 'UC-FLX-99'], 'desligar' => ['UC-FLX-15'],
         'porte' => 'pequena', 'atividade' => 'instal',
@@ -251,7 +251,7 @@ it('UC-FLXT-08 · com IA, o assistente devolve o modelo sugerido só com casos d
 });
 
 it('UC-FLXT-09 · sem IA, cai na regra de encaixe e diz que foi pelo perfil', function () {
-    \Modules\Jana\Ai\Agents\RecomendarModeloFluxoAgent::fake(fn () => throw new RuntimeException('provedor fora do ar'));
+    \App\Domain\Fsm\Ai\RecomendarModeloFluxoAgent::fake(fn () => throw new RuntimeException('provedor fora do ar'));
     flxtEntrar($this, flxtUsuario(['fluxos.ver']));
 
     $r = flxtAssistente($this, ['texto' => '', 'porte' => 'micro', 'atividade' => 'oficina']);
@@ -264,7 +264,7 @@ it('UC-FLXT-09 · sem IA, cai na regra de encaixe e diz que foi pelo perfil', fu
 });
 
 it('UC-FLXT-10 · modelo fora do catálogo vindo da IA também cai na regra', function () {
-    \Modules\Jana\Ai\Agents\RecomendarModeloFluxoAgent::fake([[
+    \App\Domain\Fsm\Ai\RecomendarModeloFluxoAgent::fake([[
         'modelo' => 'nao-existe', 'porque' => 'x', 'ligar' => [], 'desligar' => [], 'porte' => 'pequena', 'atividade' => 'cv',
     ]]);
     flxtEntrar($this, flxtUsuario(['fluxos.ver']));

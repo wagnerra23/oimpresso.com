@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace App\Domain\Fsm\Modelos;
 
 use Illuminate\Support\Facades\Log;
-use Modules\Jana\Ai\Agents\RecomendarModeloFluxoAgent;
+use App\Domain\Fsm\Ai\RecomendarModeloFluxoAgent;
 use Throwable;
 
 /**
  * Assistente da tela Fluxos e regras: descrição livre → modelo sugerido, motivo e casos a
- * ligar/desligar. Usa a IA do ERP (RecomendarModeloFluxoAgent, laravel/ai); sem IA — módulo
- * Jana ausente, provedor fora ou resposta fora do catálogo — cai na regra de encaixe
- * (CatalogoModelos::recomendar) e diz isso em `origem = regra`, como o protótipo.
+ * ligar/desligar. Usa a IA do ERP (RecomendarModeloFluxoAgent, laravel/ai); sem IA — provedor
+ * fora, erro ou resposta fora do catálogo — cai na regra de encaixe (CatalogoModelos::recomendar) e diz isso em `origem = regra`, como o protótipo.
  *
  * Só sugere: não grava nada. Aplicar é o POST /fluxos/modelo, sob fluxos.configurar.
  */
