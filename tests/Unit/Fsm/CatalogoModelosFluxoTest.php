@@ -137,3 +137,104 @@ it('encaixe igual ao protótipo: porte 2, porte vizinho 1, atividade 2', functio
     expect($rec[0])->toBe(['id' => 'cv-pequena', 'encaixe' => 4, 'rotulo' => 'Recomendado'])
         ->and(count($rec))->toBe(7);
 });
+
+/** Pares `chave: "texto"` e `chave: ["a", "b"]` de uma linha de objeto JS do fluxos-data.jsx. */
+function flxObjeto(string $linha): array
+{
+    preg_match_all('/(\w+):\s*(?:"([^"]*)"|\[([^\]]*)\])/', $linha, $m, PREG_SET_ORDER);
+    $out = [];
+    foreach ($m as $par) {
+        if (isset($par[3])) {
+            preg_match_all('/"([^"]*)"/', $par[3], $itens);
+            $out[$par[1]] = $itens[1];
+        } else {
+            $out[$par[1]] = $par[2];
+        }
+    }
+
+    return $out;
+}
+
+/** Linhas do bloco `const <nome> = ...` até a linha que fecha o bloco. */
+function flxBloco(string $nome): array
+{
+    $src = (string) file_get_contents(__DIR__ . '/../../../prototipo-ui/cowork/Wagner/fluxos-data.jsx');
+    $ini = strpos($src, "const {$nome} = ");
+    $fim = strpos($src, "\n};", $ini) ?: PHP_INT_MAX;
+    $fim2 = strpos($src, "\n];", $ini) ?: PHP_INT_MAX;
+
+    return array_map('rtrim', explode("\n", substr($src, $ini, min($fim, $fim2) - $ini)));
+}
+
+it('casos de uso, fontes, portes e estados são os do protótipo', function () {
+    $casos = [];
+    foreach (flxBloco('CASOS') as $l) {
+        if (str_contains($l, 'id: "UC-FLX-')) {
+            $o = flxObjeto($l);
+            $casos[] = [$o['id'], $o['t'], $o['proc'], $o['etapa'], $o['regra'], $o['fontes'], $o['porte'], $o['estado'], $o['us']];
+        }
+    }
+    expect(count($casos))->toBe(32)
+        ->and(\App\Domain\Fsm\Modelos\CasosDoPrototipo::CASOS)->toBe($casos);
+
+    $fontes = [];
+    foreach (flxBloco('FONTES') as $l) {
+        if (preg_match('/^\s+(\w+):\s+\{/', $l, $k)) {
+            $o = flxObjeto($l);
+            $fontes[$k[1]] = ['nome' => $o['n'], 'url' => $o['url']];
+        }
+    }
+    expect(count($fontes))->toBe(11)->and(CatalogoModelos::fontes())->toBe($fontes);
+
+    $portes = [];
+    foreach (flxBloco('PORTES') as $l) {
+        if (str_contains($l, '{ v: ')) {
+            $o = flxObjeto($l);
+            $portes[$o['v']] = ['rotulo' => $o['l'], 'descricao' => $o['d']];
+        }
+    }
+    expect(CatalogoModelos::portes())->toBe($portes)
+        ->and(array_keys($portes))->toBe(array_keys(CatalogoModelos::PORTES))
+        ->and(CatalogoModelos::portes()['pequena']['descricao'])->toBe('6 a 20 pessoas');
+
+    $estados = [];
+    foreach (flxBloco('ESTADOS') as $l) {
+        if (preg_match('/^\s+(\w+):\s+\{/', $l, $k)) {
+            $o = flxObjeto($l);
+            $estados[$k[1]] = ['rotulo' => $o['l'], 'tom' => $o['tone']];
+        }
+    }
+    expect(count($estados))->toBe(7)->and(CatalogoModelos::estadosCaso())->toBe($estados);
+
+    // Todo caso aponta para fonte, porte e estado existentes; CASOS (título, domínio) concorda.
+    foreach (CatalogoModelos::casos() as $c) {
+        expect(array_diff($c['fontes'], array_keys($fontes)))->toBe([], $c['id'])
+            ->and(array_key_exists($c['porte'], $portes))->toBeTrue($c['id'])
+            ->and(array_key_exists($c['estado'], $estados))->toBeTrue($c['id'])
+            ->and(CatalogoModelos::CASOS[$c['id']])->toBe([$c['titulo'], $c['processo']], $c['id']);
+    }
+});
+
+it('cada modelo traz o inspirado em e a regra de custo da compra do protótipo', function () {
+    $insp = [];
+    $compra = [];
+    $atual = null;
+    foreach (flxBloco('MODELOS') as $l) {
+        if (preg_match('/\{ id: "([a-z-]+)"/', $l, $m)) {
+            $atual = $m[1];
+        }
+        if ($atual !== null && preg_match('/insp: \[([^\]]*)\]/', $l, $m)) {
+            preg_match_all('/"([^"]*)"/', $m[1], $i);
+            $insp[$atual] = $i[1];
+        }
+        if ($atual !== null && preg_match('/compra: (\{[^}]*\})/', $l, $m)) {
+            $compra[$atual] = flxObjeto($m[1]);
+        }
+    }
+    expect(count($insp))->toBe(7)->and(count($compra))->toBe(7);
+    foreach (CatalogoModelos::modelos() as $id => $m) {
+        expect($m['insp'])->toBe($insp[$id], "insp de {$id}")
+            ->and($m['compra'])->toBe($compra[$id], "compra de {$id}")
+            ->and(array_diff($m['insp'], array_keys(CatalogoModelos::fontes())))->toBe([], $id);
+    }
+});
