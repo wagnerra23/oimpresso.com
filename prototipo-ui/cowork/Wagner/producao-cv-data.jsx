@@ -72,12 +72,12 @@ const OS = [
   { id: "OS-2617", cliente: "Academia Força Total", titulo: "Letra-caixa iluminada \"FORÇA\"", produto: "letra", qtd: "5 letras", prazo: "2026-10-24", prioridade: "normal",
     arte: "aprovada", aprovadaEm: "2026-10-14 10:30", resp: "Larissa", orcado: 7650, real: 900, perda: 0,
     etapas: [["arte","Vetor e gabarito","Ana","feito",1,1],["serralheria","Corte CNC das faces","Marcos","fila",1.7,0,"cnc","A"],["serralheria","Dobra e solda das laterais","Marcos","fila",4,0,"solda","A"],["acabamento","Elétrica: LED e fonte","Felipe","fila",2,0,null,"B"],["serralheria","Montagem + teste de acendimento","Marcos","fila",1.5,0],["instalacao","Instalação","Rafa","a agendar",3,0]], junta: "Montagem + teste de acendimento" },
-  { id: "OS-2619", cliente: "Agência Norte", titulo: "Banner roll-up 0,8×2 m (4 un)", produto: "lona", qtd: "6,4 m²", prazo: "2026-10-18", prioridade: "normal",
+  { id: "OS-2619", cliente: "Supermercado Bom Preço", titulo: "Banner roll-up 0,8×2 m (4 un)", produto: "lona", qtd: "6,4 m²", prazo: "2026-10-18", prioridade: "normal",
     arte: "ajuste", resp: "Larissa", orcado: 960, real: 120, perda: 0,
     etapas: [["arte","Arte e prova","Ana","andamento",0.5,0.6],["impressao","Impressão látex","Diego","fila",0.6,0,"latex"],["acabamento","Bainha + ilhós","Felipe","fila",0.5,0],["expedicao","Embalar e liberar","Larissa","fila",0.25,0]] },
   { id: "OS-2598", cliente: "Construtora Alicerce", titulo: "Tapume impresso 40 m", produto: "lona", qtd: "88 m²", prazo: "2026-10-14", prioridade: "alta",
     arte: "aprovada", aprovadaEm: "2026-10-08 14:00", resp: "Larissa", orcado: 3960, real: 3720, perda: 2.2,
-    etapas: [["arte","Arte e prova","Ana","feito",1,1],["impressao","Impressão látex","Diego","feito",7.3,7.1,"latex"],["acabamento","Bainha + ilhós","Felipe","feito",4,3.8],["expedicao","Embalar e liberar","Larissa","pronto",0.5,0.3]] },
+    etapas: [["arte","Arte e prova","Ana","feito",1,1],["impressao","Impressão látex","Diego","feito",7.3,7.1,"latex"],["acabamento","Bainha + ilhós","Felipe","feito",4,3.8],["expedicao","Embalar e liberar","Larissa","andamento",0.5,0.3]] },
 ];
 
 // Agenda de máquina (linha do tempo) — blocos em horas a partir de 08:00, hoje e amanhã
@@ -182,10 +182,14 @@ const desvio = (os) => os.orcado ? ((os.real - os.orcado * progresso(os) / 100) 
 const setorDe = (id) => SETORES.find((s) => s.id === id) || SETORES[0];
 const maqDe = (id) => MAQUINAS.find((m) => m.id === id);
 const osDe = (id) => OS.find((o) => o.id === id);
+// OS por item: cada OS nasce de UM item da venda quando o cliente aprova. [venda, nº do item, itens que geram OS, outros itens]
+const ORIGEM = { "OS-2611": ["V-8406", 1, 1, ""], "OS-2608": ["V-8398", 1, 1, ""], "OS-2617": ["V-8413", 1, 1, ""], "OS-2614": ["V-8411", 1, 1, "projeto de sinalização (serviço, sem OS)"],
+  "OS-2603": ["V-8401", 1, 2, ""], "OS-2619": ["V-8401", 2, 2, ""], "OS-2598": ["V-8390", 1, 1, ""] };
+const origemDe = (id) => { const o = ORIGEM[id]; return o ? { venda: o[0], item: o[1], total: o[2], outros: o[3], irmas: Object.keys(ORIGEM).filter((k) => ORIGEM[k][0] === o[0]) } : null; };
 
 // Gargalos: carga hoje por máquina (h previstas na agenda) vs turno 10h
 const cargaMaquina = (id) => AGENDA.filter((b) => b.maq === id).reduce((s, b) => s + (b.fim - b.ini), 0);
 
 window.PCVD = { EVENTOS, registrar, eventosDe, HOJE, fmt, d2, h1, dias, SETORES, MAQUINAS, PESSOAS, ROTEIROS, OS, ORCAMENTOS, AGENDA, AGENDA_AMANHA, MATERIAIS, PERDAS, INSTALACOES, ENCAIXE,
-  etapas, atual, progresso, atraso, desvio, setorDe, maqDe, osDe, cargaMaquina };
+  etapas, atual, progresso, atraso, desvio, setorDe, maqDe, osDe, origemDe, cargaMaquina };
 })();

@@ -8,11 +8,15 @@ use App\Domain\Fsm\Modelos\AplicarModelo;
 use App\Domain\Fsm\Modelos\CatalogoModelos;
 use App\Domain\Fsm\Modelos\CatalogoProcessos;
 use App\Domain\Fsm\Modelos\RecomendarModelo;
+use App\Domain\Fsm\Modelos\RegrasCompra;
+use App\Domain\Fsm\Modelos\RegrasDaEmpresa;
 use App\Domain\Fsm\Models\ModeloEmpresa;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use InvalidArgumentException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -31,7 +35,7 @@ class FluxosController extends Controller
     /** Abas do protótipo, na ordem: Modelos · Processos · Fluxos da empresa · Casos de uso. */
     private const ABAS = ['modelos', 'processos', 'empresa', 'casos'];
 
-    public function index(): Response
+    public function index(RegrasDaEmpresa $regras): Response
     {
         abort_unless(auth()->user()->can('fluxos.ver'), 403);
 
@@ -72,6 +76,9 @@ class FluxosController extends Controller
         $aba = (string) request()->query('aba', 'modelos');
         $aba = in_array($aba, self::ABAS, true) ? $aba : 'modelos';
         $processo = (string) request()->query('processo', 'producao');
+        $empresa = self::empresa();
+        $businessId = (int) request()->session()->get('user.business_id');
+        $comModelo = $aba === 'empresa' && $empresa !== null && CatalogoModelos::modelo($empresa['modelo']) !== null;
 
         return Inertia::render('Fluxos/Index', [
             'aba' => $aba,
@@ -95,7 +102,11 @@ class FluxosController extends Controller
             'dominios' => self::opcoes(CatalogoModelos::DOMINIOS),
             'casos_total' => count(CatalogoModelos::CASOS),
             'casos' => array_map(fn (array $c) => ['titulo' => $c[0], 'dominio' => $c[1]], CatalogoModelos::CASOS),
-            'empresa' => self::empresa(),
+            'empresa' => $empresa,
+            // Aba Fluxos da empresa: o que a empresa ligou/desligou e a Compra configurável.
+            'regras_ligadas' => $comModelo ? $regras->ligadas($businessId, $empresa['modelo']) : (object) [],
+            'regras_compra' => $comModelo ? $regras->compra($businessId) : [],
+            'opcoes_compra' => $comModelo ? RegrasCompra::opcoes() : (object) [],
             'pode_configurar' => auth()->user()->can('fluxos.configurar'),
         ]);
     }
@@ -125,6 +136,62 @@ class FluxosController extends Controller
             'success' => 1,
             'msg' => "Modelo {$nome} aplicado. Documentos em andamento continuam na etapa em que estavam.",
         ]);
+    }
+
+    /**
+     * Liga ou desliga uma regra "ao entrar" do modelo em uso (aba Fluxos da empresa). A regra é a
+     * de índice `indice` no processo `dominio` do catálogo, como no protótipo.
+     */
+    public function regra(Request $request, RegrasDaEmpresa $regras): RedirectResponse
+    {
+        abort_unless($request->user()->can('fluxos.configurar'), 403);
+
+        $dados = $request->validate([
+            'dominio' => ['required', 'string', Rule::in(array_keys(CatalogoModelos::DOMINIOS))],
+            'indice' => ['required', 'integer', 'min:0'],
+            'ligada' => ['required', 'boolean'],
+        ]);
+
+        // Tier 0 (ADR 0093): a empresa é sempre a da sessão.
+        self::recusarComo('regra', fn () => $regras->ligar(
+            (int) $request->session()->get('user.business_id'),
+            $dados['dominio'],
+            (int) $dados['indice'],
+            (bool) $dados['ligada'],
+        ));
+
+        return redirect('/fluxos?aba=empresa');
+    }
+
+    /** Liga, desliga ou muda os parâmetros de uma regra das etapas da Compra (RegrasCompra). */
+    public function compra(Request $request, RegrasDaEmpresa $regras): RedirectResponse
+    {
+        abort_unless($request->user()->can('fluxos.configurar'), 403);
+
+        $dados = $request->validate([
+            'regra' => ['required', 'string', Rule::in(array_column(RegrasCompra::PADRAO, 'id'))],
+            'ativo' => ['nullable', 'boolean'],
+            'params' => ['nullable', 'array'],
+        ]);
+
+        self::recusarComo('regra', fn () => $regras->mudarCompra(
+            (int) $request->session()->get('user.business_id'),
+            $dados['regra'],
+            isset($dados['ativo']) ? (bool) $dados['ativo'] : null,
+            $dados['params'] ?? [],
+        ));
+
+        return redirect('/fluxos?aba=empresa');
+    }
+
+    /** Erro de regra de negócio vira erro de formulário (Inertia mostra no campo). */
+    private static function recusarComo(string $campo, callable $fn): void
+    {
+        try {
+            $fn();
+        } catch (InvalidArgumentException $e) {
+            throw ValidationException::withMessages([$campo => $e->getMessage()]);
+        }
     }
 
     /**

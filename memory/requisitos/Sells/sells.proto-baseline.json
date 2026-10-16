@@ -4,9 +4,9 @@
  "tela": "Sells/Index",
  "charter": "resources/js/Pages/Sells/Index.charter.md",
  "ancora": "prototipo-ui/cowork/Wagner/vendas-page.jsx",
- "prototipo_sha": "1ab4ab51b13a93f7a54876d911b21337e05584b0",
+ "prototipo_sha": "8aa073913d2e4692090cbf88eeb66a32f34b32b7",
  "shell": ".",
- "gerado_em": "2026-10-15T15:01:08.091Z",
+ "gerado_em": "2026-10-16T19:37:19.102Z",
  "celulas": {
   "1280|light": {
    "tema": "light",
@@ -28863,5 +28863,5 @@
    ]
   }
  },
- "render_sha256": "99dffa67a4b0d096d8d200790e68e4c62c733f267e097abe3bf402bc2a72905c"
+ "render_sha256": "4669fe09f0e19453db4c7ce985da8fed81c57ffa43667f8d23f57eab9ef8e041"
 }

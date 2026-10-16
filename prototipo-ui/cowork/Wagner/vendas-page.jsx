@@ -1234,6 +1234,32 @@ function VendasListPage() {
 // ──────────────────────────────────────────────────────────────
 // DETAIL DRAWER (com Fiscal tab — A+)
 // ──────────────────────────────────────────────────────────────
+
+// OS por item: "Cliente aprova" cria uma OS para cada item que gera OS (produto); serviço e pronta-entrega não geram.
+// A venda só conclui quando todas as OS estão concluídas (fluxos-processos.jsx, processo "venda", ação Concluir).
+function vdOsDaVenda(v, fsm) {
+  const itens = (v.itemsList || []).filter((it) => it.type === "produto");
+  if ((fsm || 0) < 1 || v.vertical === "mec") return []; // venda da oficina já nasce da OS de mecânica
+  const base = (v.osIds && v.osIds[0]) || String(v.id).replace(/\D/g, "");
+  const sits = (fsm || 0) >= 3 ? ["Concluída"] : ["Em execução", "Pausada", "Na fila", "Concluída"];
+  return itens.map((it, i) => ({ id: "OS-" + base + (i ? "-" + (i + 1) : ""), item: it.name, n: i + 1, sit: sits[(i + base.length) % sits.length], motivo: "falta material" }));
+}
+function VdProducaoDaVenda({ v, fsm }) {
+  const itens = (v.itemsList || []), os = vdOsDaVenda(v, fsm), semOs = itens.filter((it) => it.type !== "produto");
+  if (v.vertical === "mec" || !itens.some((it) => it.type === "produto")) return null;
+  const TOM = { "Concluída": "ok", "Em execução": "info", "Pausada": "warn", "Retrabalho": "danger", "Na fila": "", "Aguardando liberação": "" };
+  return (
+    <section className="vd-prod" aria-label="Produção desta venda">
+      <div className="vd-prod-h"><b>Produção</b><span>{os.length ? os.filter((o) => o.sit === "Concluída").length + " de " + os.length + " OS prontas" : "as OS nascem quando o cliente aprovar"}</span></div>
+      {os.length > 0 && <ul className="vd-prod-l">{os.map((o) => (
+        <li key={o.id}><button type="button" className="vd-prod-os" onClick={() => window.__selectRoute && window.__selectRoute("pcv-quadro")} aria-label={"Abrir " + o.id}>
+          <span className="mono">{o.id}</span><span className="vd-prod-it">Item {o.n} · {o.item}</span>
+          <span className={"vd-prod-sit " + (TOM[o.sit] || "")}>{o.sit}{o.sit === "Pausada" ? " — " + o.motivo : ""}</span></button></li>))}</ul>}
+      {semOs.length > 0 && <p className="vd-prod-n">Sem OS: {semOs.map((it) => it.name).join(", ")} (serviço ou pronta-entrega).</p>}
+    </section>
+  );
+}
+
 function VendaDetailDrawer({ venda, onClose, onEdit }) {
   const { VENDAS_STATUS, VENDEDORES_MAP } = window.VENDAS_DATA;
   const v = venda;
@@ -1310,7 +1336,10 @@ function VendaDetailDrawer({ venda, onClose, onEdit }) {
 
         {window.OiEtapaPainel && <div className="vd-etapa"><window.OiEtapaPainel proc="venda" modo="leitura" docId={v.id}
           estado={v.status === "cancelada" ? "Cancelado" : ["Orçamento", "Aprovado", "Faturado", "Entregue", "Entregue"][Math.max(0, Math.min(4, effFsm || 0))]}
+          bloqueios={() => { const os = vdOsDaVenda(v, effFsm), f = os.filter((o) => o.sit !== "Concluída"); return os.length && f.length ? { "Concluir": "só " + (os.length - f.length) + " de " + os.length + " OS prontas" } : {}; }}
           nota={wantsNFe || wantsNFSe ? "Ao faturar sai: " + [wantsNFe && "NF-e dos produtos", wantsNFSe && "NFS-e dos serviços"].filter(Boolean).join(" + ") + " — conforme a natureza fiscal de cada item." : null} /></div>}
+
+        <VdProducaoDaVenda v={v} fsm={effFsm} />
 
         <window.CliTabs className="vd-drawer-tabs" ariaLabel="Abas da venda" pad={24} size="sm"
           active={tab} onChange={setTab}
