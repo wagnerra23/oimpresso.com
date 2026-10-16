@@ -159,3 +159,8 @@
 .flp-leg .t-esp::before{border-style:dashed}
 .flp-leg .t-ok::before{border:2px solid var(--color-success)}
 .flp-leg .t-x::before{border:2px solid var(--color-destructive)}
+.flp-item .flp-cob{align-self:flex-start;margin-top:3px}
+.flp-cobc{min-width:150px;width:230px}
+.flp-cobc small{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin-top:3px;font-size:var(--fs-1,10.5px);line-height:1.4;color:var(--text-mute)}
+.flp-cob-r{margin:0 0 8px;font-size:var(--fs-2,11.5px);color:var(--text-dim)}
+.flp-cob-r b{color:var(--text)}

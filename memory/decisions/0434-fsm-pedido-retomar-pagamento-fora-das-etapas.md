@@ -3,7 +3,7 @@ slug: 0434-fsm-pedido-retomar-pagamento-fora-das-etapas
 number: 434
 title: "FSM do pedido — retomar produção, pagamento fora das etapas, conclusão pelo PCP e passos do app vindos do processo"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision

@@ -104,6 +104,8 @@ class PermissionCatalog
         'expense.delete',
         'expense.edit',
         'expense_report.view',
+        'fluxos.configurar',
+        'fluxos.ver',
         'invoice_settings.access',
         'print_invoice',
         'print_labels.access',
