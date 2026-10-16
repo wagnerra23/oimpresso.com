@@ -62,8 +62,11 @@ andamento.
 
 - Perfil porte × atividade: começa pelo gravado da empresa; sem modelo gravado, Pequena ·
   Comunicação visual, como no protótipo. Só é gravado junto com "Usar modelo".
-- Ligar/desligar regra e a Compra "configurável" da aba Fluxos da empresa: o ERP não tem regra
-  configurável por empresa; a aba mostra as regras do modelo só para leitura.
+- Ligar/desligar regra e a Compra "configurável" da aba Fluxos da empresa: gravam a configuração
+  da empresa (`ligada` na etapa; `fsm_modelos_empresa.regras_compra`), mas nada executa ainda —
+  as regras do catálogo seguem planejadas e o recebimento da compra não lê a configuração.
+  Na Compra só os parâmetros do custo aparecem, como no protótipo (a tolerância do
+  "Gerar conta a pagar" fica no padrão).
 
 - "Aparece nas telas" da aba Processos: o protótipo aponta rotas dele, não do ERP; fica fora até
   cada processo ter a tela correspondente no ERP.
