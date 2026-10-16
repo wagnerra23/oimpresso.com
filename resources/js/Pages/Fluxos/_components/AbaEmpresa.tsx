@@ -6,7 +6,6 @@
 
 import { Link, router, usePage } from '@inertiajs/react';
 import { Alert, AlertDescription } from '@/Components/ui/alert';
-import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Switch } from '@/Components/ui/switch';
@@ -32,6 +31,21 @@ const salvar = { preserveScroll: true, preserveState: true } as const;
 const visivel = (k: string, p: Record<string, string | number>) =>
   k === 'aprovacao' ? p.preco === 'propor' : k === 'regraEm' ? p.preco !== 'so_custo' : true;
 
+/** Switch com rótulo e sublinha à direita (o `Switch label sublabel` do DS do protótipo). */
+function Interruptor({ id, titulo, sub, checked, disabled, onChange }: {
+  id: string; titulo: string; sub: string; checked: boolean; disabled: boolean; onChange: (v: boolean) => void;
+}) {
+  return (
+    <span className="flex items-start gap-3">
+      <Switch id={id} variant="cowork" className="mt-0.5" checked={checked} disabled={disabled} onCheckedChange={onChange} />
+      <label htmlFor={id} className={`flex flex-col gap-0.5${disabled ? ' opacity-60' : ''}`}>
+        <span className="text-sm font-medium">{titulo}</span>
+        <span className="flx-dim">{sub}</span>
+      </label>
+    </span>
+  );
+}
+
 function RegrasLiga({ p, ligadas, pode }: { p: ProcessoDoModelo; ligadas: boolean[]; pode: boolean }) {
   return (
     <div className="flx-cmp">
@@ -39,20 +53,15 @@ function RegrasLiga({ p, ligadas, pode }: { p: ProcessoDoModelo; ligadas: boolea
         const id = `flx-r-${p.dominio}-${i}`;
         return (
           <div key={i} className="flx-liga-r">
-            <label htmlFor={id} className="flex flex-col gap-0.5">
-              <span className="text-sm">{r.efeito}</span>
-              <span className="flx-dim">Ao entrar em {r.etapa}</span>
-            </label>
-            <span className="flex items-center gap-2">
-              {r.uc ? <code>{r.uc}</code> : null}
-              <Switch
-                id={id}
-                variant="cowork"
-                checked={ligadas[i] ?? true}
-                disabled={!pode}
-                onCheckedChange={(v) => router.patch('/fluxos/regra', { dominio: p.dominio, indice: i, ligada: v }, salvar)}
-              />
-            </span>
+            <Interruptor
+              id={id}
+              titulo={r.efeito}
+              sub={`Ao entrar em ${r.etapa}`}
+              checked={ligadas[i] ?? true}
+              disabled={!pode}
+              onChange={(v) => router.patch('/fluxos/regra', { dominio: p.dominio, indice: i, ligada: v }, salvar)}
+            />
+            {r.uc && <span className="flx-uc">{r.uc}</span>}
           </div>
         );
       })}
@@ -68,19 +77,14 @@ function CompraRegras({ regras, opcoes, pode }: { regras: RegraCompra[]; opcoes:
         const id = `flx-c-${r.id}`;
         return (
           <div key={r.id} className="flx-cmp-r">
-            <div className="flx-liga-r">
-              <label htmlFor={id} className="flex flex-col gap-0.5">
-                <span className="text-sm">{r.titulo}</span>
-                <span className="flx-dim">Ao entrar em {r.etapa_efetiva}{r.trava ? ' · obrigatória' : ''}</span>
-              </label>
-              <Switch
-                id={id}
-                variant="cowork"
-                checked={r.ativo}
-                disabled={!pode || r.trava}
-                onCheckedChange={(v) => router.patch('/fluxos/compra', { regra: r.id, ativo: v }, salvar)}
-              />
-            </div>
+            <Interruptor
+              id={id}
+              titulo={r.titulo}
+              sub={`Ao entrar em ${r.etapa_efetiva}${r.trava ? ' · obrigatória' : ''}`}
+              checked={r.ativo}
+              disabled={!pode || r.trava}
+              onChange={(v) => router.patch('/fluxos/compra', { regra: r.id, ativo: v }, salvar)}
+            />
             {r.ativo && r.params && r.id === 'insumo.custo' && (
               <div className="flx-cmp-p">
                 {Object.keys(r.params).filter((k) => visivel(k, r.params!)).map((k) => {
@@ -93,7 +97,7 @@ function CompraRegras({ regras, opcoes, pode }: { regras: RegraCompra[]; opcoes:
                       disabled={!pode}
                       onValueChange={(v) => router.patch('/fluxos/compra', { regra: r.id, params: { [k]: v } }, salvar)}
                     >
-                      <SelectTrigger id={`${id}-${k}`}><SelectValue /></SelectTrigger>
+                      <SelectTrigger id={`${id}-${k}`} className="w-full min-w-0 [&>span]:truncate"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {op.opcoes.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
                       </SelectContent>
@@ -158,13 +162,15 @@ export default function AbaEmpresa({ empresa, emUso, portes, atividades, ligadas
           return (
             <section key={p.dominio} className="flx-card" aria-label={p.nome}>
               <div className="flx-card-h">
-                <b>{p.nome}</b>
-                <span className="flex items-center gap-2">
-                  {daCompra && <Badge variant="secondary">configurável</Badge>}
+                <div className="flex flex-col gap-0.5">
+                  <span className="flex items-center gap-2">
+                    <b>{p.nome}</b>
+                    {daCompra && <span className="flx-pill accent">configurável</span>}
+                  </span>
                   <span className="flx-dim">
                     {p.etapas.length} etapas · {p.regras.length} {p.regras.length === 1 ? 'regra' : 'regras'}
                   </span>
-                </span>
+                </div>
               </div>
               <Cadeia etapas={p.etapas} marcadas={new Set(p.regras.map((r) => r.etapa))} />
               {daCompra
