@@ -27,7 +27,8 @@ use Spatie\Permission\Models\Role;
  *
  * Actions (13 com roles e is_critical conforme US-SELL-031):
  *   enviar_orcamento, cliente_aprovou, cliente_rejeitou,
- *   iniciar_producao, pausar_producao, concluir_producao,
+ *   iniciar_producao, pausar_producao, retomar_producao (on_hold → in_production, ADR 0434),
+ *   concluir_producao,
  *   faturar, emitir_nfe, marcar_pago,
  *   entregar, concluir,
  *   cancelar_venda (qualquer stage não-terminal),
@@ -175,6 +176,9 @@ class FsmProcessoVendaComProducaoSeeder extends Seeder
             ['quote_approved', 'iniciar_producao', 'Iniciar produção', 'in_production', ['producao.iniciar'], true, null],
             ['quote_approved', 'reabrir_para_revisao', 'Reabrir para revisão (volta orçamento)', 'quote_sent', ['vendas.gerente'], true, 'App\\Domain\\Fsm\\SideEffects\\LiberarReserva'],
             ['in_production', 'pausar_producao', 'Pausar produção', 'on_hold', ['producao.pausar'], false, null],
+            // ADR 0434 (decisão [W] 2026-10-16): volta da espera. Sem ela o pedido pausado só saía
+            // cancelado. Mesmo papel de iniciar, sem side effect (a reserva de estoque não mudou).
+            ['on_hold', 'retomar_producao', 'Retomar produção', 'in_production', ['producao.iniciar'], false, null],
             ['in_production', 'concluir_producao', 'Concluir produção', 'ready_for_invoice', ['producao.concluir'], true, 'App\\Domain\\Fsm\\SideEffects\\ConsumirEstoque'],
             ['ready_for_invoice', 'faturar', 'Faturar', 'invoiced', ['financeiro.faturar'], true, null],
             ['invoiced', 'emitir_nfe', 'Emitir NF-e', null, ['fiscal.emitir'], true, null],
