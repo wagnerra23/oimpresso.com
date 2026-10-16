@@ -209,7 +209,8 @@ class FinanceiroController extends Controller
             'valor_min' => $num('valor_min'),
             'valor_max' => $num('valor_max'),
             'plano' => $plano !== null && preg_match('/^[0-9A-Za-z]+(\.[0-9A-Za-z]+)*$/', $plano) ? $plano : null,
-            'documento' => $compacto('documento'),
+            'documento' => $txt('documento'),
+            'documento_compacto' => $compacto('documento'),
             'registro' => in_array($registro, ['ativos', 'excluidos', 'todos'], true) ? $registro : 'ativos',
             'contrato' => $compacto('contrato'),
         ];
@@ -359,7 +360,14 @@ class FinanceiroController extends Controller
         }
 
         if ($f['documento'] !== null) {
-            $q->where('t.numero', 'like', '%' . $this->escaparLike((string) $f['documento']) . '%');
+            // Como digitado e sem pontuação: "R-00012" acha "R-00012"; "88.213" acha "88213".
+            $likes = array_unique(array_map(fn ($x) => '%' . $this->escaparLike($x) . '%',
+                array_filter([(string) $f['documento'], (string) $f['documento_compacto']], fn ($x) => $x !== '')));
+            $q->where(function (Builder $w) use ($likes) {
+                foreach ($likes as $like) {
+                    $w->orWhere('t.numero', 'like', $like);
+                }
+            });
         }
 
         if ($f['contrato'] !== null) {

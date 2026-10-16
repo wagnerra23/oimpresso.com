@@ -371,6 +371,8 @@ it('valor, documento, período e forma: a regra do app sobre o valor mostrado e 
     expect(appFinIds($this, $m, 'aba=receber&valor_min=20&valor_max=100'))->toBe([$parcial]);
     expect(appFinIds($this, $m, 'aba=receber&valor_min=31'))->toBe([$grande]);
     expect(appFinIds($this, $m, "aba=receber&documento={$doc}"))->toBe([$parcial]);
+    // Como digitado, com a pontuação do número: "DOC-123456".
+    expect(appFinIds($this, $m, 'aba=receber&documento=' . urlencode('DOC-' . $doc)))->toBe([$parcial]);
     expect(appFinIds($this, $m, 'situacao=a_receber,recebidas&data_campo=emissao&de=2001-05-10&ate=2001-05-11'))->toBe([$parcial, $quitado]);
     // Pagamento: título em aberto não tem data de pagamento, então não entra no período.
     expect(appFinIds($this, $m, "situacao=a_receber,recebidas&data_campo=pagamento&de={$hoje}&ate={$hoje}"))->toBe([$quitado]);
