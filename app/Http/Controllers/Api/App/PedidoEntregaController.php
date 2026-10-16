@@ -36,7 +36,8 @@ use Illuminate\Support\Facades\Validator;
  *  - `app_entrega_exige_localizacao` true → `lat`/`lng` nulos = 422 campos.lat.
  *
  * `entregar` não mexe em valor nem estoque no processo `venda_com_producao`
- * (FsmProcessoVendaComProducaoSeeder: paid → delivered, sem side effect). Se o cadastro do business
+ * (FsmProcessoVendaComProducaoSeeder: invoiced → delivered e, por compatibilidade, paid → delivered —
+ * ADR 0434; sem side effect). Se o cadastro do business
  * tiver posto side effect ou evento na ação, ela fica só na web (regra mestre).
  *
  * Tier 0 (ADR 0093): business_id do usuário do token em toda consulta; pedido de outro business ou

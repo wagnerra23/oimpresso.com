@@ -1590,6 +1590,20 @@
           <div class="col-md-12">
             <div class="checkbox">
               <label>
+                {!! Form::checkbox('permissions[]', 'fluxos.ver', false, [ 'class' => 'input-icheck']); !!} {{ __( 'role.fluxos.ver' ) }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'fluxos.configurar', false, [ 'class' => 'input-icheck']); !!} {{ __( 'role.fluxos.configurar' ) }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
                 {!! Form::checkbox('permissions[]', 'barcode_settings.access', false, 
                 [ 'class' => 'input-icheck']); !!} {{ __( 'role.barcode_settings.access' ) }}
               </label>

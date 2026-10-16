@@ -434,6 +434,8 @@ class LegacyMenuAdapter
             '/financeiro',
             // Modo Suporte (ADR 0305/0309) — telas React Suporte/Empresas + Suporte/Visao.
             '/suporte',
+            // Sistema › Fluxos e regras (ADR 0435).
+            '/fluxos',
             // Adicione aqui conforme migrar telas.
         ];
         // Dashboard do Ponto é `/ponto` exato (não prefixo) — o startsWith pegaria

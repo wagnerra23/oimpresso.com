@@ -103,6 +103,8 @@ on:
       # cobertura (a pegadinha que o sells-pest.yml documenta no próprio paths:).
       - 'app/Domain/**'
       - 'tests/Feature/Domain/**'
+      - 'app/Http/Controllers/FluxosController.php'
+      - 'database/migrations/2026_10_16_150000_add_fluxos_permissions.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/domain-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -141,6 +143,8 @@ jobs:
             domain:
               - 'app/Domain/**'
               - 'tests/Feature/Domain/**'
+              - 'app/Http/Controllers/FluxosController.php'
+              - 'database/migrations/2026_10_16_150000_add_fluxos_permissions.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/domain-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
