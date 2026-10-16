@@ -4,6 +4,8 @@
 export interface Opcao {
   value: string;
   label: string;
+  /** Só nos portes: "6 a 20 pessoas". */
+  descricao?: string;
 }
 
 export interface Regra {
@@ -26,6 +28,8 @@ export interface Modelo {
   portes: string[];
   atividades: string[];
   casos: string[];
+  /** Sistemas que inspiraram o modelo (ids de `fontes`). */
+  insp: string[];
   processos: ProcessoDoModelo[];
 }
 
@@ -67,3 +71,24 @@ export interface ProcessoCatalogo {
   /** `de`/`para` são chaves de estado; `para` null = a ação não muda o estado. */
   transicoes: { de: string; para: string | null; rotulo: string; guarda: string; efeito: string; quem: string }[];
 }
+
+/** Caso de uso do catálogo (aba Casos de uso). `processo` é o domínio; `porte` = a partir de. */
+export interface CasoCatalogo {
+  id: string;
+  titulo: string;
+  processo: string;
+  etapa: string;
+  regra: string;
+  fontes: string[];
+  porte: string;
+  estado: string;
+  us: string;
+  /** Ids dos modelos que usam o caso. */
+  modelos: string[];
+}
+
+/** id da fonte => nome e endereço (url vazia = proposta própria). */
+export type MapaFontes = Record<string, { nome: string; url: string }>;
+
+/** estado do caso no oimpresso => rótulo e tom (ok · accent · warn · danger · mute). */
+export type MapaEstadosCaso = Record<string, { rotulo: string; tom: string }>;

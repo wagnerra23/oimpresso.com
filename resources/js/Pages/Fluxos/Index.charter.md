@@ -46,6 +46,9 @@ andamento.
 - Aba Processos: processos do `CatalogoProcessos` (#9496) agrupados por área; detalhe com estados
   (filtro pelo estado de origem, legenda início/espera/fim/exceção), roteiro em paralelo, tabela de
   transições, comparativo NF-e × NFS-e nos fiscais e "Conversa com" entre processos.
+- Aba Casos de uso: `CatalogoModelos::casos()` (#9501) em tabela com busca e filtros por processo,
+  fonte e estado no oimpresso; gaveta do caso com regra, estado, fontes (link) e modelos que usam;
+  lista das fontes com quantos casos cada uma anuncia.
 - Aba Fluxos da empresa: modelo em uso (ou "processos de antes dos modelos" quando legado), com
   data e perfil, e as etapas e regras de cada processo dele.
 - PT-BR em todo texto.
@@ -57,8 +60,6 @@ andamento.
 
 ## Lacunas declaradas (o protótipo mostra, o catálogo ainda não tem)
 
-- Descrição do porte ("6 a 20 pessoas") e "Inspirado em <concorrentes>" no rodapé do card: o
-  catálogo não traz esses campos. Ficam fora até o catálogo ganhar o dado (pedido à sessão do backend).
 - Perfil porte × atividade: começa pelo gravado da empresa; sem modelo gravado, Pequena ·
   Comunicação visual, como no protótipo. Só é gravado junto com "Usar modelo".
 - Ligar/desligar regra e a Compra "configurável" da aba Fluxos da empresa: o ERP não tem regra

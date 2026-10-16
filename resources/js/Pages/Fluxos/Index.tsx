@@ -2,8 +2,7 @@
 // Fonte visual: prototipo-ui/cowork/Wagner/fluxos-page.jsx (CSS copiado inteiro em
 // resources/css/cowork-fluxos-bundle.css). Lei: Index.charter.md · contrato: Index.casos.md.
 //
-// Abas como no protótipo: Modelos · Processos · Fluxos da empresa · Casos de uso. Casos de uso
-// entra no PR seguinte. "Usar modelo" exige fluxos.configurar (POST /fluxos/modelo).
+// Abas como no protótipo: Modelos · Processos · Fluxos da empresa · Casos de uso. "Usar modelo" exige fluxos.configurar (POST /fluxos/modelo).
 
 import '../../../css/cowork-fluxos-bundle.css';
 import { useState } from 'react';
@@ -11,13 +10,15 @@ import { Head, usePage } from '@inertiajs/react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { PageHeader } from '@/Components/PageHeader';
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
-import EmptyState from '@/Components/shared/EmptyState';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import AbaModelos from './_components/AbaModelos';
+import AbaCasos from './_components/AbaCasos';
 import AbaEmpresa from './_components/AbaEmpresa';
 import AbaProcessos from './_components/AbaProcessos';
 import DetalheModelo from './_components/DetalheModelo';
-import type { EmpresaModelo, MapaCasos, MapaEncaixe, Modelo, Opcao, Perfil, ProcessoCatalogo } from './_components/tipos';
+import type {
+  CasoCatalogo, EmpresaModelo, MapaCasos, MapaEncaixe, MapaEstadosCaso, MapaFontes, Modelo, Opcao, Perfil, ProcessoCatalogo,
+} from './_components/tipos';
 
 type Aba = 'modelos' | 'processos' | 'empresa' | 'casos';
 
@@ -32,6 +33,10 @@ interface Props {
   processos: ProcessoCatalogo[];
   processos_total: number;
   processo: string;
+  casos_lista: CasoCatalogo[];
+  fontes: MapaFontes;
+  estados_caso: MapaEstadosCaso;
+  dominios: Opcao[];
   empresa: EmpresaModelo | null;
   pode_configurar: boolean;
 }
@@ -47,7 +52,8 @@ const ABAS: { key: Aba; label: string }[] = [
 const PERFIL_INICIAL: Perfil = { porte: 'pequena', ativ: 'cv' };
 
 export default function FluxosIndex({
-  aba, modelos, encaixe, portes, atividades, casos_total, casos, processos, processos_total, processo, empresa, pode_configurar,
+  aba, modelos, encaixe, portes, atividades, casos_total, casos, processos, processos_total, processo,
+  casos_lista, fontes, estados_caso, dominios, empresa, pode_configurar,
 }: Props) {
   // O perfil começa pelo gravado da empresa (quando "Usar modelo" já gravou); senão, o do protótipo.
   const [perfil, setPerfil] = useState<Perfil>({
@@ -66,7 +72,7 @@ export default function FluxosIndex({
       <div className="flx-root" data-screen-label={`Fluxos e regras · ${rotuloAba}`}>
         <PageHeader
           title="Fluxos e regras"
-          subtitle={`${modelos.length} modelos · ${casos_total} casos de uso`}
+          subtitle={`${modelos.length} modelos · ${casos_total} casos de uso · ${Object.values(fontes).filter((f) => f.url).length} sistemas pesquisados`}
           actions={emUso ? <span className="flx-dim">Em uso: <b>{emUso.nome}</b></span> : null}
         />
         <div className="px-5">
@@ -99,6 +105,7 @@ export default function FluxosIndex({
               emUsoId={emUso?.id ?? null}
               onAbrir={setAberto}
               casos={casos}
+              fontes={fontes}
             />
           )}
           {aba === 'empresa' && (
@@ -106,9 +113,14 @@ export default function FluxosIndex({
           )}
           {aba === 'processos' && <AbaProcessos processos={processos} inicial={processo} />}
           {aba === 'casos' && (
-            <EmptyState
-              title={`${rotuloAba}: em construção`}
-              description="Esta aba chega nos próximos passos da tela. Os modelos já podem ser consultados na aba Modelos."
+            <AbaCasos
+              casos={casos_lista}
+              fontes={fontes}
+              estados={estados_caso}
+              dominios={dominios}
+              portes={portes}
+              modelos={modelos}
+              emUsoId={emUso?.id ?? null}
             />
           )}
         </div>
