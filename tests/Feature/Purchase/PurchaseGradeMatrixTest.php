@@ -407,6 +407,40 @@ describe('Tier 0 cross-tenant (MySQL real)', function () {
         }
     });
 
+    it('UC-PURCRE-11 · fornecedor de outro negócio ou item sem produto voltam como erro do campo, sem gravar', function () {
+        DB::beginTransaction();
+        try {
+            $bizId = (int) $this->gmBizProprio->id;
+            $fornecedorAlheio = (int) DB::table('contacts')->insertGetId([
+                'business_id' => (int) $this->gmBizVitima->id, 'type' => 'supplier', 'name' => 'Fornecedor alheio',
+                'contact_id' => 'UCP11' . uniqid(), 'created_by' => (int) $this->gmUserVitima->id,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+            $refNo = 'UCP11-' . uniqid();
+
+            // Linha digitada à mão na tela (sem produto do cadastro) + fornecedor de outro tenant.
+            $resposta = $this->actingAs($this->gmUser)->from('/purchases/create')->post('/purchases', [
+                'ref_no' => $refNo, 'status' => 'received', 'contact_id' => $fornecedorAlheio,
+                'transaction_date' => now()->format('Y-m-d H:i'),
+                'location_id' => DB::table('business_locations')->where('business_id', $bizId)->value('id'),
+                'discount_type' => 'fixed', 'discount_amount' => '0', 'tax_amount' => '0',
+                'shipping_charges' => '0', 'exchange_rate' => '1', 'total_before_tax' => '10', 'final_total' => '10',
+                'purchases' => [[
+                    'product_name' => 'digitado', 'product_id' => '', 'variation_id' => '',
+                    'quantity' => '1', 'pp_without_discount' => '10', 'discount_percent' => '0', 'item_tax' => '0',
+                    'purchase_price' => '10', 'purchase_price_inc_tax' => '10', 'purchase_line_tax_id' => '',
+                ]],
+            ]);
+
+            // Antes: 302 pra /purchases com "algo deu errado". Agora: volta pro form com o erro de cada campo.
+            $resposta->assertRedirect('/purchases/create');
+            $resposta->assertSessionHasErrors(['contact_id', 'purchases.0.product_id', 'purchases.0.variation_id']);
+            expect(DB::table('transactions')->where('ref_no', $refNo)->count())->toBe(0);
+        } finally {
+            DB::rollBack();
+        }
+    });
+
     // ── UC-PURCRE-09 — "Comprar" da lista de produtos ───────────────────────
 
     it('UC-PURCRE-09 · ?produto= de um produto do próprio negócio entra como produto_inicial', function () {

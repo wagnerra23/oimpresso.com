@@ -26,6 +26,7 @@ import { FieldError } from '@/Components/ui/field-state';
 import { Plus, Trash2, Search, ShoppingCart, ArrowLeft, Save, LayoutGrid } from 'lucide-react';
 import GradeMatrixInput, { type GradeCell } from '@/Pages/Purchase/_components/GradeMatrixInput';
 import GradeProductCombobox, { type PickedProduct } from '@/Pages/Purchase/_components/GradeProductCombobox';
+import SupplierCombobox from '@/Pages/Purchase/_components/SupplierCombobox';
 
 // ---------- Tipos ----------
 
@@ -126,6 +127,7 @@ function PurchaseCreate({
   const [gradeUnitCost, setGradeUnitCost] = useState(0);
   const [gradeLoading, setGradeLoading] = useState(false);
   const [gradeErro, setGradeErro] = useState<string | null>(null);
+  const [erroItens, setErroItens] = useState<string | null>(null);
 
   const form = useForm({
     ref_no: '' as string,
@@ -301,6 +303,21 @@ function PurchaseCreate({
 
   const enviar = (e: React.FormEvent) => {
     e.preventDefault();
+    // Item sem produto do cadastro (linha digitada à mão) não tem como entrar no estoque:
+    // o store() exige product_id/variation_id e sem eles caía no "algo deu errado".
+    if (!form.data.contact_id) {
+      form.setError('contact_id', 'Escolha o fornecedor.');
+      return;
+    }
+    if (linhas.length === 0) {
+      setErroItens('Adicione ao menos um item à compra.');
+      return;
+    }
+    if (linhas.some((l) => !l.variation_id)) {
+      setErroItens('Há item sem produto do cadastro. Escolha o produto na busca "Adicionar por grade" e remova a linha digitada.');
+      return;
+    }
+    setErroItens(null);
     form.transform((dados) => ({
       ...dados,
       // createOrUpdatePurchaseLines lê `purchase_line_tax_id` (não `tax_id`) sem isset →
@@ -366,13 +383,11 @@ function PurchaseCreate({
 
             <div>
               <Label htmlFor="contact_id" className="text-[12px] text-stone-600">Fornecedor *</Label>
-              <Input
-                id="contact_id"
-                placeholder="ID do fornecedor"
-                className="mt-1 h-9 text-[13px]"
-                value={form.data.contact_id}
-                onChange={(e) => form.setData('contact_id', e.target.value)}
-                required
+              <SupplierCombobox
+                value={form.data.contact_id ? { id: Number(form.data.contact_id), label: form.data.contact_name } : null}
+                onChange={(s) => form.setData({ ...form.data, contact_id: s ? String(s.id) : '', contact_name: s?.label ?? '' })}
+                disabled={form.processing}
+                invalid={!!form.errors.contact_id}
               />
               {form.errors.contact_id && <p className="text-destructive text-[11px] mt-1">{form.errors.contact_id}</p>}
             </div>
@@ -502,6 +517,7 @@ function PurchaseCreate({
             </Button>
           </div>
 
+          <FieldError className="mb-2">{erroItens ?? form.errors.purchases}</FieldError>
           {linhas.length === 0 ? (
             <div className="py-10 text-center">
               <ShoppingCart className="h-10 w-10 mx-auto text-stone-300 mb-2" />

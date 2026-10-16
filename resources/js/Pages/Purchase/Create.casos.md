@@ -109,6 +109,7 @@ decisão do dono, com chip aberto.
 | UC-PURCRE-07 | A Page não decide tenant — `business_id` vem das props | must `[T0]` | RUNBOOK §10 | `Wave2CreateInertiaTest` | 🧪 estrutural · na lane |
 | UC-PURCRE-08 | Salvar aceita a data que a própria tela manda (`datetime-local`, ISO) | must | charter Goals (1 POST único) · smoke prod 2026-09-24 | `PurchaseDataIsoTest` | 🧪 comportamento · na lane |
 | UC-PURCRE-10 | Salvar grava a compra com o payload da tela (sem bloco de pagamento) | must | charter Goals (1 POST único) · reclamação ROTA LIVRE 2026-10-16 | `PurchaseGradeMatrixTest` | 🧪 comportamento · na lane |
+| UC-PURCRE-11 | Fornecedor buscado pelo nome e escopado ao negócio; item sem produto volta como erro do campo | must `[T0]` | charter Goals · reclamação ROTA LIVRE 2026-10-16 · ADR 0093 | `PurchaseGradeMatrixTest` | 🧪 comportamento · na lane |
 
 ---
 
@@ -316,6 +317,21 @@ decisão do dono, com chip aberto.
   de pagamento; o `store()` passava `$request->input('payment')` (null) ao `createOrUpdatePaymentLines`,
   cujo `foreach` sobre null vira `ErrorException` no Laravel e cai no catch genérico.
 - **O que NÃO muda:** nenhum cálculo de valor ou estoque — só a ausência de pagamento deixa de quebrar.
+- **Status: 🧪 comportamento · na lane**
+
+## UC-PURCRE-11 · Fornecedor pelo nome, escopado ao negócio; item sem produto vira erro do campo · `must` `[T0]`
+
+- **Persona:** quem lança compra pela tela React (Larissa, biz=4).
+- **Aceite:** Dado a tela de nova compra · Quando a pessoa busca o fornecedor pelo **nome** (não mais
+  pelo id numérico) · Então o `contact_id` enviado é o do contato escolhido. Se o POST chegar com
+  fornecedor de **outro negócio**, ou com item sem `product_id`/`variation_id` (linha digitada à mão),
+  o `store()` volta ao formulário com o erro de cada campo e **não grava** — em vez do "algo deu errado".
+- **Teste:** [`PurchaseGradeMatrixTest`](../../../../tests/Feature/Purchase/PurchaseGradeMatrixTest.php)
+  (bloco MySQL; fornecedor do biz=99 contra usuário do biz=98).
+- **Contrato:** reclamação do cliente + ADR 0093 (o `contact_id` vinha cru do navegador e não era
+  conferido contra o negócio). A validação saiu de dentro do `try` do `store()`, onde a
+  `ValidationException` era engolida pelo catch genérico.
+- **O que NÃO muda:** nenhum cálculo de valor ou estoque.
 - **Status: 🧪 comportamento · na lane**
 
 ## `[BACKLOG]` — achados sem contrato em 2 fontes, ou sem teste que os defenda

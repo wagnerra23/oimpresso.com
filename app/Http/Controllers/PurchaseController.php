@@ -21,6 +21,7 @@ use App\Variation;
 use Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Spatie\Activitylog\Models\Activity;
 use Yajra\DataTables\Facades\DataTables;
 use App\Events\PurchaseCreatedOrModified;
@@ -525,6 +526,28 @@ class PurchaseController extends Controller
         // Fora do try de propósito pra o 422 não ser engolido pelo catch genérico.
         $this->assertPurchaseVariationsOwnership($request);
 
+        // Validação FORA do try: dentro dele a ValidationException era engolida pelo catch
+        // genérico e virava "algo deu errado" — a tela React nunca recebia o erro do campo.
+        // contact_id escopado ao negócio (Tier 0, ADR 0093): a tela React manda o id cru.
+        $request->validate([
+            'status' => 'required',
+            'contact_id' => ['required', Rule::exists('contacts', 'id')->where('business_id', $request->session()->get('user.business_id'))],
+            'transaction_date' => 'required',
+            'total_before_tax' => 'required',
+            'location_id' => 'required',
+            'final_total' => 'required',
+            'purchases' => 'required|array|min:1',
+            'purchases.*.product_id' => 'required',
+            'purchases.*.variation_id' => 'required',
+            'document' => 'file|max:'.(config('constants.document_size_limit') / 1000),
+        ], [
+            'contact_id.required' => 'Escolha o fornecedor.',
+            'contact_id.exists' => 'Fornecedor não encontrado neste negócio.',
+            'purchases.required' => 'Adicione ao menos um item à compra.',
+            'purchases.*.product_id.required' => 'Há item sem produto do cadastro.',
+            'purchases.*.variation_id.required' => 'Há item sem produto do cadastro.',
+        ]);
+
         try {
             $business_id = $request->session()->get('user.business_id');
 
@@ -539,18 +562,6 @@ class PurchaseController extends Controller
 
             //Reverse exchange rate and save it.
             //$transaction_data['exchange_rate'] = $transaction_data['exchange_rate'];
-
-            //TODO: Check for "Undefined index: total_before_tax" issue
-            //Adding temporary fix by validating
-            $request->validate([
-                'status' => 'required',
-                'contact_id' => 'required',
-                'transaction_date' => 'required',
-                'total_before_tax' => 'required',
-                'location_id' => 'required',
-                'final_total' => 'required',
-                'document' => 'file|max:'.(config('constants.document_size_limit') / 1000),
-            ]);
 
             $user_id = $request->session()->get('user.id');
             $enable_product_editing = $request->session()->get('business.enable_editing_product_from_purchase');
