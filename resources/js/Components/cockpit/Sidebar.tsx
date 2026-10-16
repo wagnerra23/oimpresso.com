@@ -124,6 +124,8 @@ const MENU_ICON_MAP: Record<string, LucideIcon> = {
   'base de conhecimento': BookOpen,
   planilha: Sheet,
   suporte: LifeBuoy,
+  // Sistema › Fluxos e regras (ADR 0435): protótipo data.jsx `icon: "cog"`.
+  'fluxos e regras': Settings,
 };
 
 /** Ícone de SUB-TELA (thread 14): o nome vem do dado (`ghost.icon`), no vocabulário do
