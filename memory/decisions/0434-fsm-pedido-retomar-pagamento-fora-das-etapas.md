@@ -53,6 +53,9 @@ do pedido).
    Concluída. "Pago" vira **situação do título no Financeiro** (`sem_titulo | pendente | parcial |
    pago`), derivada dos títulos ligados à venda — não etapa do pedido. A etapa `paid` fica por
    compatibilidade: pedidos que já estão nela continuam podendo entregar.
+   `marcar_pago` (Faturada → Paga) **continua existindo** para quem já usa, mas deixa de ser passo
+   obrigatório: a ação `entregar` passa a sair também de Faturada. Não foi apagada porque há pedidos
+   em `paid` e histórico append-only que a referencia.
 3. **Conclusão pelo PCP.** Quando a última etapa do PCP termina, o ERP executa `concluir_producao`
    (com a baixa de estoque do side effect `ConsumirEstoque`), pelo mesmo `ExecuteStageActionService`.
 4. **Passos do app vêm do processo.** A lista de passos do pedido no app é lida do processo
