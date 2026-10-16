@@ -363,7 +363,9 @@ it('UC-APPAPT-10 motivos-pausa: só pausa ATIVA do posto, na ordem do gestor; po
     $todos = collect($this->getJson('/api/app/producao/motivos-pausa')->assertOk()->json('motivos'));
     expect($todos->pluck('id')->all())->toContain($bobina, $setup, $material);
     expect($todos->pluck('id')->all())->not->toContain($do99);
-    expect($todos->pluck('nome')->all())->not->toContain('Antigo', 'Cor');
+    // Um needle por assert: `not->toContain(a, b)` passa se só UM faltar (LC-31).
+    expect($todos->pluck('nome')->all())->not->toContain('Antigo');
+    expect($todos->pluck('nome')->all())->not->toContain('Cor');
     // Posto do 99: lista vazia, sem dizer que o posto existe. Controle positivo: o 99 vê o dele.
     $this->getJson('/api/app/producao/motivos-pausa?posto_id=' . $postoDo99)->assertOk()->assertExactJson(['motivos' => []]);
     expect(DB::table('pcp_motivos')->where('posto_id', $postoDo99)->where('ativo', true)->count())->toBe(1);

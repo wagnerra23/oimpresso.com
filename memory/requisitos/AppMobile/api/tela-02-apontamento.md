@@ -2,7 +2,7 @@
 
 > ✅ **Rota no ERP desde o PR 06 do playbook `propostas-app`** (2026-10-15). Parte do contrato da API do app ([API-CONTRATO-v1.md](../API-CONTRATO-v1.md): regras gerais §0, Início §6). Origem: handoff `propostas-app` do Design, conferido em 2026-10-05; revisado no mesmo dia por decisão [W] para gravar no PCP. O QR impresso no PDF da OS é o PR 07.
 >
-> **Implementado em:** `Modules/Producao/Http/Controllers/Api/AppApontamentoController.php` · `app/Services/AppLojas/EtiquetaProducao.php` · `routes/api/app/producao.php` · teste `tests/Feature/Sells/AppProducaoApontamentoContratoTest.php` (UC-APPAPT-01..09, lane `sells-pest`).
+> **Implementado em:** `Modules/Producao/Http/Controllers/Api/AppApontamentoController.php` · `app/Services/AppLojas/EtiquetaProducao.php` · `routes/api/app/producao.php` · teste `tests/Feature/Sells/AppProducaoApontamentoContratoTest.php` (UC-APPAPT-01..10, lane `sells-pest`). Motivos de pausa: `ApontamentoOperadorService::motivosDePausa` (2026-10-16).
 
 ## Onde grava
 Decisão [W] 2026-10-15: o apontamento do app grava no módulo de Produção (PCP, ADR 0431 — camada única de apontamento), pela regra do operador `ApontamentoOperadorService` (thread 04 do playbook de Produção). Esta API só autentica, lê o QR, confere o ajuste da empresa e traduz as recusas do serviço em HTTP. O `business_id` vem do usuário do token em toda chamada — a sessão não existe aqui.
@@ -30,11 +30,23 @@ O apontamento web antigo da Comunicação Visual (`/comunicacao-visual/api/apont
 
 `GET /api/app/producao/apontamentos/em-andamento` → o que está rodando agora (E04 A1):
 ```json
-{ "pessoa": null | { "id", "tipo": "pessoa", "pedido": {…}, "etapa": {…}, "iniciado_em" },
-  "maquinas": [ { "id", "tipo": "maquina", "pedido", "etapa", "iniciado_em" } ],
+{ "pessoa": null | { "id", "tipo": "pessoa", "pedido": {…}, "etapa": {…}, "iniciado_em",
+                      "motivos_pausa": [ { "id": 31, "nome": "Troca de bobina" }, { "id": 30, "nome": "Setup" } ] },
+  "maquinas": [ { "id", "tipo": "maquina", "pedido", "etapa", "iniciado_em", "motivos_pausa": [ … ] } ],
   "ponto": null | { "entrada", "saida", "presenca_minutos" } }
 ```
-`ponto` é a linha do próprio operador, lida do Ponto (nunca escrita).
+`ponto` é a linha do próprio operador, lida do Ponto (nunca escrita). `motivos_pausa` (2026-10-16, campo acrescentado) = motivos de pausa ativos do posto **daquele** apontamento, na ordem do cadastro — a mesma lista do `GET motivos-pausa?posto_id=`; posto sem motivo → `[]`. Vai aqui e não na etiqueta porque a pausa sai do apontamento aberto; a etiqueta serve para iniciar.
+
+`GET /api/app/producao/motivos-pausa?posto_id={id}` → motivos de pausa ativos da empresa do token (UC-PCV-33, cadastro do posto — thread 03 do PCP):
+```json
+{ "motivos": [ { "id": 31, "posto_id": 3, "nome": "Troca de bobina" },
+               { "id": 30, "posto_id": 3, "nome": "Setup" } ] }
+```
+- Só `tipo = pausa` e `ativo`; motivos de refugo não entram. Ordem: posto, depois a ordem do gestor, depois o nome.
+- Com `posto_id`, só os daquele posto. Sem ele, todos os postos da empresa (o app filtra por `posto_id` de cada item).
+- Posto de outra empresa ou inexistente → `200 { "motivos": [] }` (não diz se o posto existe). `posto_id` não numérico → `422 campos.posto_id`.
+- É exatamente o conjunto que o `pausar` aceita para um apontamento daquele posto. O app guarda a lista por posto no aparelho para pausar sem internet; se o gestor desativar o motivo antes do envio, o `pausar` da fila volta `422 campos.motivo_id`.
+- Leitura: sem `Idempotency-Key`, sem throttle próprio (o do grupo `api`).
 
 ## Escrita
 Todas com header `Idempotency-Key` (até 64 caracteres; vira a `chave_idempotencia` do PCP, única por empresa) e throttle 30/min.
