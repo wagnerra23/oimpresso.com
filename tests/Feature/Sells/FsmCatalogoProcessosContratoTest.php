@@ -104,7 +104,7 @@ it('nenhuma referência aponta para classe, método ou rota inexistente', functi
                 if ($curto === 'DevolucaoService') {
                     continue; // há dois; conferidos pelo caminho no teste abaixo
                 }
-                expect(FLX_REFS)->toHaveKey($curto, "{$id}: {$curto} sem entrada em FLX_REFS");
+                expect(array_key_exists($curto, FLX_REFS))->toBeTrue("{$id}: {$curto} sem entrada em FLX_REFS");
                 expect(method_exists(FLX_REFS[$curto], $metodo))->toBeTrue("{$curto}::{$metodo}");
                 $refs++;
             }
