@@ -19,6 +19,8 @@ interface Props {
   atividades: Opcao[];
   perfil: Perfil;
   onPerfil: (p: Perfil) => void;
+  emUsoId: string | null;
+  onAbrir: (id: string) => void;
 }
 
 /** Combinação ausente no mapa (não deve acontecer: o servidor manda todas). */
@@ -26,7 +28,7 @@ const SEM_ENCAIXE: Encaixe = { n: 0, rotulo: 'Outro perfil', motivo: 'Outro port
 
 const rotulo = (lista: Opcao[], v: string) => lista.find((o) => o.value === v)?.label ?? v;
 
-function ModeloCard({ m, e }: { m: Modelo; e: Encaixe }) {
+function ModeloCard({ m, e, emUso, onAbrir }: { m: Modelo; e: Encaixe; emUso: boolean; onAbrir: () => void }) {
   // Processo de destaque: Produção, senão Entrega, senão o primeiro (igual ao protótipo).
   const principal = m.processos.find((p) => p.dominio === 'producao')
     ?? m.processos.find((p) => p.dominio === 'entrega')
@@ -34,10 +36,10 @@ function ModeloCard({ m, e }: { m: Modelo; e: Encaixe }) {
   const regras = m.processos.reduce((s, p) => s + p.regras.length, 0);
 
   return (
-    <article className={`flx-card${e.n < 2 ? ' fraco' : ''}`} data-modelo={m.id}>
+    <button type="button" className={`flx-card${e.n < 2 ? ' fraco' : ''}`} data-modelo={m.id} onClick={onAbrir}>
       <div className="flx-card-h">
         <b>{m.nome}</b>
-        <SeloEncaixe n={e.n} rotulo={e.rotulo} />
+        {emUso ? <span className="flx-pill accent">Em uso</span> : <SeloEncaixe n={e.n} rotulo={e.rotulo} />}
       </div>
       <span className={`flx-mot${e.n >= 4 ? ' ok' : ''}`}>{e.motivo}</span>
       <p>{m.para}</p>
@@ -52,11 +54,11 @@ function ModeloCard({ m, e }: { m: Modelo; e: Encaixe }) {
           {m.processos.length} processos · {regras} regras · {m.casos.length} casos de uso
         </span>
       </div>
-    </article>
+    </button>
   );
 }
 
-export default function AbaModelos({ modelos, encaixe, portes, atividades, perfil, onPerfil }: Props) {
+export default function AbaModelos({ modelos, encaixe, portes, atividades, perfil, onPerfil, emUsoId, onAbrir }: Props) {
   const nota = (m: Modelo): Encaixe => encaixe[m.id]?.[perfil.porte]?.[perfil.ativ] ?? SEM_ENCAIXE;
   // Ordem do protótipo: maior encaixe primeiro; empate mantém a ordem do catálogo (sort estável).
   const ordenados = useMemo(
@@ -94,7 +96,7 @@ export default function AbaModelos({ modelos, encaixe, portes, atividades, perfi
       <div className="flx-sec"><span>Para {perfilTexto}</span><i /></div>
       {bons.length > 0 ? (
         <div className="flx-grid">
-          {bons.map((m) => <ModeloCard key={m.id} m={m} e={nota(m)} />)}
+          {bons.map((m) => <ModeloCard key={m.id} m={m} e={nota(m)} emUso={m.id === emUsoId} onAbrir={() => onAbrir(m.id)} />)}
         </div>
       ) : (
         <EmptyState
@@ -106,7 +108,7 @@ export default function AbaModelos({ modelos, encaixe, portes, atividades, perfi
         <>
           <div className="flx-sec"><span>Outros modelos</span><i /></div>
           <div className="flx-grid">
-            {outros.map((m) => <ModeloCard key={m.id} m={m} e={nota(m)} />)}
+            {outros.map((m) => <ModeloCard key={m.id} m={m} e={nota(m)} emUso={m.id === emUsoId} onAbrir={() => onAbrir(m.id)} />)}
           </div>
         </>
       )}

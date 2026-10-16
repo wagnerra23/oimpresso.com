@@ -42,3 +42,14 @@ export interface Perfil {
   porte: string;
   ativ: string;
 }
+
+/** id do caso (UC-FLX-NN) => título e domínio, de CatalogoModelos::CASOS. */
+export type MapaCasos = Record<string, { titulo: string; dominio: string }>;
+
+/** Modelo em uso na empresa da sessão; `modelo = 'legado'` = processos de antes do catálogo. */
+export interface EmpresaModelo {
+  modelo: string;
+  porte: string | null;
+  atividade: string | null;
+  aplicado_em: string | null;
+}
