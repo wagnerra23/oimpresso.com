@@ -177,3 +177,58 @@ it('cancelada de OUTRO business não aparece em "cancelados" (Tier 0)', function
     expect($ids)->toContain($this->venda);
     expect($ids)->not->toContain($alheia);
 });
+
+/** Ação do detalhe do pedido pela chave, ou null. */
+function appPassosAcao($test, string $chave): ?array
+{
+    return collect($test->getJson('/api/app/pedidos/' . $test->venda)->assertOk()->json('acoes'))
+        ->firstWhere('chave', $chave);
+}
+
+/** Título a receber de origem venda, gravado cru (sem Observer). */
+function appPassosTitulo(int $biz, int $venda, int $userId, float $total, float $aberto): void
+{
+    DB::table('fin_titulos')->insert([
+        'business_id' => $biz, 'numero' => 'APP-PAG-' . substr(uniqid(), -8), 'tipo' => 'receber',
+        'status' => $aberto <= 0 ? 'quitado' : ($aberto < $total ? 'parcial' : 'aberto'),
+        'valor_total' => $total, 'valor_aberto' => $aberto, 'emissao' => now()->toDateString(),
+        'vencimento' => now()->toDateString(), 'competencia_mes' => now()->format('Y-m'),
+        'origem' => 'venda', 'origem_id' => $venda, 'parcela_numero' => 1, 'parcela_total' => 1,
+        'created_by' => $userId, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+}
+
+it('detalhe: pede_motivo é true em pausar_producao e false em iniciar_producao', function () {
+    appPassosMover($this->biz, $this->venda, 'venda_com_producao', 'in_production');
+    $pausar = appPassosAcao($this, 'pausar_producao');
+    expect($pausar)->not->toBeNull();
+    expect($pausar['pede_motivo'])->toBeTrue();
+
+    appPassosMover($this->biz, $this->venda, 'venda_com_producao', 'quote_approved');
+    $iniciar = appPassosAcao($this, 'iniciar_producao');
+    expect($iniciar)->not->toBeNull();
+    expect($iniciar['pede_motivo'])->toBeFalse();
+});
+
+it('detalhe: pagamento sem_titulo sem fin_titulos; título de OUTRO business não vaza (Tier 0)', function () {
+    if (! Schema::hasTable('fin_titulos')) {
+        $this->markTestSkipped('fin_titulos ausente nesta lane.');
+    }
+    // Tira do caminho título que o Observer possa ter criado para a venda (soft delete; rollback no fim).
+    DB::table('fin_titulos')->where('origem', 'venda')->where('origem_id', $this->venda)
+        ->update(['deleted_at' => now()]);
+
+    $pag = $this->getJson('/api/app/pedidos/' . $this->venda)->assertOk()->json('pagamento');
+    expect($pag['situacao'])->toBe('sem_titulo');
+    expect($pag['valor_aberto'])->toEqual(0.0);
+
+    appPassosTitulo($this->outroBiz, $this->venda, (int) $this->user->id, 100, 100);
+    $pag = $this->getJson('/api/app/pedidos/' . $this->venda)->assertOk()->json('pagamento');
+    expect($pag['situacao'])->toBe('sem_titulo');
+
+    // Controle positivo: o título do PRÓPRIO business aparece — o assert acima discrimina.
+    appPassosTitulo($this->biz, $this->venda, (int) $this->user->id, 100, 40);
+    $pag = $this->getJson('/api/app/pedidos/' . $this->venda)->assertOk()->json('pagamento');
+    expect($pag['situacao'])->toBe('parcial');
+    expect($pag['valor_aberto'])->toEqual(40.0);
+});
