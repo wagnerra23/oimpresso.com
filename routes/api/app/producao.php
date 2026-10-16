@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Route;
 // Escrita com Idempotency-Key e throttle 30/min.
 Route::prefix('producao')->name('producao.')->group(function () {
     Route::get('/apontamentos/em-andamento', [AppApontamentoController::class, 'emAndamento'])->name('apontamentos.em_andamento');
+    // Motivos de pausa ativos (UC-PCV-33); ?posto_id= filtra. O app guarda por posto para pausar offline.
+    Route::get('/motivos-pausa', [AppApontamentoController::class, 'motivosPausa'])->name('motivos_pausa');
     Route::post('/apontamentos/iniciar', [AppApontamentoController::class, 'iniciar'])->middleware('throttle:30,1')->name('apontamentos.iniciar');
     Route::post('/apontamentos/{id}/pausar', [AppApontamentoController::class, 'pausar'])
         ->whereNumber('id')->middleware('throttle:30,1')->name('apontamentos.pausar');

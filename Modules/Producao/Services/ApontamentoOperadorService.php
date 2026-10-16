@@ -131,6 +131,26 @@ class ApontamentoOperadorService
         return $ap;
     }
 
+    /**
+     * E04 A4 · UC-PCV-33: motivos de pausa ATIVOS do cadastro do posto, na ordem do gestor.
+     * É a lista que o `pausar` aceita (mesmo filtro do `motivoDoPosto`). Com `$postoId`, só os
+     * daquele posto; posto de outra empresa devolve vazio. Consumidores: PWA web e API do app.
+     *
+     * @return Collection<int, array{id:int, posto_id:int, nome:string}>
+     */
+    public function motivosDePausa(int $businessId, ?int $postoId = null): Collection
+    {
+        if (! Schema::hasTable('pcp_motivos')) {
+            return collect();
+        }
+
+        return DB::table('pcp_motivos')->where('business_id', $businessId)->where('tipo', 'pausa')->where('ativo', true)
+            ->when($postoId !== null, fn ($q) => $q->where('posto_id', $postoId))
+            ->orderBy('posto_id')->orderBy('ordem')->orderBy('nome')->get(['id', 'posto_id', 'nome'])
+            ->map(fn ($m) => ['id' => (int) $m->id, 'posto_id' => (int) $m->posto_id, 'nome' => (string) $m->nome])
+            ->values();
+    }
+
     /** E04 A4: pausa com motivo do cadastro do posto (o cadastro e a FK são da thread 03). */
     public function pausar(int $businessId, int $userId, int $inicioId, int $motivoId, string $chave, CarbonInterface $momento): Apontamento
     {

@@ -8,8 +8,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Producao\Entities\Apontamento;
@@ -157,16 +155,10 @@ class ApontamentoController extends Controller
         ];
     }
 
-    /** Motivos de pausa por posto (cadastro da thread 03, E04 A4). Antes dela, lista vazia. */
+    /** Motivos de pausa por posto (cadastro da thread 03, E04 A4): a mesma lista que o app lê. */
     private function motivos(int $biz): array
     {
-        if (! Schema::hasTable('pcp_motivos')) {
-            return [];
-        }
-
-        return DB::table('pcp_motivos')->where('business_id', $biz)->where('tipo', 'pausa')->where('ativo', true)
-            ->orderBy('ordem')->orderBy('nome')->get(['id', 'posto_id', 'nome'])
-            ->map(fn ($m) => ['id' => (int) $m->id, 'posto_id' => (int) $m->posto_id, 'nome' => $m->nome])->all();
+        return $this->svc->motivosDePausa($biz)->all();
     }
 
     private function etapa(int $biz, Programacao $p): array
