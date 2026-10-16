@@ -57,7 +57,7 @@ trait GuardsFsmTransitions
                 'model' => $model::class,
                 'id' => $model->getKey(),
                 'from_stage_id' => $model->getOriginal('current_stage_id'),
-                'to_stage_id' => $model->current_stage_id,
+                'to_stage_id' => $model->getAttribute('current_stage_id'),
             ]);
         });
     }

@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 36,
-    "nodes": 773,
-    "edges": 1069,
+    "nodes": 775,
+    "edges": 1071,
     "by_node_type": {
       "module": 40,
       "table": 108,
-      "adr": 143,
-      "component": 403,
+      "adr": 144,
+      "component": 404,
       "api": 79
     },
     "by_edge_type": {
@@ -42,12 +42,12 @@
       "providesApi": 83,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 403,
+      "hasComponent": 404,
       "dependsOn": 120,
       "delegatesTo": 112,
       "migratesTo": 1,
       "supersedes": 26,
-      "supersedesPartially": 70,
+      "supersedesPartially": 71,
       "supersededBy": 30
     },
     "dangling": 0
@@ -1053,6 +1053,13 @@
       "type": "adr",
       "num": "0433",
       "slug": "0433-fonte-do-prototipo-passa-ao-git",
+      "exists": true
+    },
+    {
+      "id": "adr:0436",
+      "type": "adr",
+      "num": "0436",
+      "slug": "0436-os-por-item-producao-dona-da-os-do-pedido",
       "exists": true
     },
     {
@@ -3888,6 +3895,13 @@
       "module": "Producao",
       "name": "InstallController",
       "desc": "instalação 1-clique (ADR 0024)"
+    },
+    {
+      "id": "component:Producao/Ordem",
+      "type": "component",
+      "module": "Producao",
+      "name": "Ordem",
+      "desc": "OS por item que nasce do pedido nos modelos de fluxo; situação no motor FSM pelo ProcessoDaOrdem (ADR 0436)"
     },
     {
       "id": "component:Producao/PostosController",
@@ -6989,6 +7003,12 @@
     {
       "from": "adr:0433",
       "to": "adr:0406",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0436",
+      "to": "adr:0431",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
     },
@@ -11638,6 +11658,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/Ordem",
       "type": "hasComponent",
       "source": "contains"
     },
