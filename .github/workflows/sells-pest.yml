@@ -404,6 +404,7 @@ jobs:
             tests/Feature/Sells/AppPedidosApiContratoTest.php \
             tests/Feature/Sells/AppPedidosPassosProcessoContratoTest.php \
             tests/Feature/Sells/FsmAplicarModeloContratoTest.php \
+            tests/Feature/Sells/FsmCatalogoProcessosContratoTest.php \
             tests/Feature/Sells/AppInicioApiContratoTest.php \
             tests/Feature/Sells/AppPerfilMenuApiContratoTest.php \
             tests/Feature/Sells/AppAjustesEmpresaContratoTest.php \
