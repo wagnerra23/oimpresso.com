@@ -30,8 +30,10 @@ beforeEach(function () {
     if (! Schema::hasTable('pcp_ordens')) {
         $this->markTestSkipped('pcp_ordens ausente — migrations do Modules/Producao não rodaram.');
     }
-    $this->b98 = $this->seededTenant();
-    $this->b99 = $this->seededSupportClientTenant();
+    $this->B98 = $this->seededTenant();
+    $this->b98 = (int) $this->B98->id;
+    $this->B99 = $this->seededSupportClientTenant();
+    $this->b99 = (int) $this->B99->id;
 });
 
 function ordemNova(int $biz, int $stageId, int $linha): Ordem
@@ -62,7 +64,7 @@ it('Tier 0: cada empresa tem o próprio processo e o motor recusa OS de uma empr
     expect((int) $p99->business_id)->toBe($this->b99);
 
     $ordem = ordemNova($this->b98, $svc->etapaInicial($this->b99)->id, 7101);
-    $user = $this->usuarioComPermissoes(['producao.access'], $this->b98);
+    $user = $this->usuarioComPermissoes(['producao.access'], $this->B98);
 
     expect(fn () => app(ExecuteStageActionService::class)->execute($ordem, 'liberar', $user))
         ->toThrow(UnauthorizedActionException::class, 'Cross-tenant');
@@ -71,7 +73,7 @@ it('Tier 0: cada empresa tem o próprio processo e o motor recusa OS de uma empr
 it('Liberar leva Aguardando liberação a Na fila pelo motor e grava o histórico da empresa', function () {
     $svc = app(ProcessoDaOrdem::class);
     $ordem = ordemNova($this->b98, $svc->etapaInicial($this->b98)->id, 7102);
-    $user = $this->usuarioComPermissoes(['producao.access'], $this->b98);
+    $user = $this->usuarioComPermissoes(['producao.access'], $this->B98);
     $user->assignRole('producao.liberar#'.$this->b98);
 
     app(ExecuteStageActionService::class)->execute($ordem, 'liberar', $user);
@@ -87,7 +89,7 @@ it('sem o papel, Liberar é recusado e a situação não muda', function () {
     $svc = app(ProcessoDaOrdem::class);
     $inicial = $svc->etapaInicial($this->b98);
     $ordem = ordemNova($this->b98, $inicial->id, 7103);
-    $user = $this->usuarioComPermissoes(['producao.access'], $this->b98);
+    $user = $this->usuarioComPermissoes(['producao.access'], $this->B98);
 
     expect(fn () => app(ExecuteStageActionService::class)->execute($ordem, 'liberar', $user))
         ->toThrow(UnauthorizedActionException::class);
