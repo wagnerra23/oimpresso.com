@@ -32,8 +32,8 @@ function Bloco({ titulo, nota, acao, children }: { titulo: string; nota?: string
   return (
     <Card className="gap-3 py-4">
       <CardHeader className="px-4">
-        <CardTitle className="text-sm">{titulo}</CardTitle>
-        {nota && <CardDescription>{nota}</CardDescription>}
+        <CardTitle className="text-[13.5px]">{titulo}</CardTitle>
+        {nota && <CardDescription className="text-[11.5px]">{nota}</CardDescription>}
         {acao && <CardAction>{acao}</CardAction>}
       </CardHeader>
       <CardContent className="px-4">{children}</CardContent>
@@ -136,10 +136,12 @@ function Detalhe({ p, nomeDe, onIr }: { p: ProcessoCatalogo; nomeDe: (id: string
           <Alert className="flp-alerta">
             <AlertTitle>Qual nota sai é decisão fiscal do item, não da tela</AlertTitle>
             <AlertDescription>
+              <p>
               Impresso personalizado e sob encomenda, em regra, é serviço — só ISS (Súmula 156 do STJ), mesmo levando
               material. Revenda de material sem personalização é mercadoria (NF-e). Instalação é serviço. Há exceções
               (impresso que vira embalagem ou insumo de indústria). Por isso cada item carrega a <b>natureza fiscal</b>,
               definida com o contador, e o faturamento decide NF-e, NFS-e ou as duas.
+              </p>
             </AlertDescription>
           </Alert>
         </Bloco>
