@@ -38,6 +38,7 @@ last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 48
 | UC-PCAD-06 | Duplicar produto de outro business → 404 (não 500) | should `[T0]` | `CU-PROD-07.2` | `CadastroProdutoContratoTest` | 🧪 passa (fix no PR) |
 | UC-PCAD-07 | Produto novo grava a origem da mercadoria escolhida (0–8) | should | `AR-PROD-128` | `ProdutoOrigemMercadoriaTest` | 🧪 passa no CT 100 |
 | UC-PCAD-09 | Novo produto simples nasce com o preço digitado, com a conta do Blade | must `[V0]` | `CU-PROD-01.4` | `produto-preco.test.tsx` (Vitest) | 🧪 passa |
+| UC-PCAD-10 | Novo produto nasce nos locais do negócio (um local só já vem marcado) | must | `CU-PROD-01` | `produto-locais.test.tsx` (Vitest) | 🧪 passa |
 | ~~UC-PCAD-02~~ | ~~Campo obrigatório validado server~~ | — | — | — | ⬛ **retirado** — gap de paridade, não bug |
 | ~~UC-PCAD-03~~ | ~~Defaults conservadores server~~ | — | — | — | ⬛ **retirado** — gap de paridade, não bug |
 | UC-PCAD-05 | Cadastro não aceita insumo de outro business | must `[T0]` | `CU-PROD-01.5` | — | 🔶 **backlog** — achado Tier 0 real, US própria |
@@ -163,6 +164,14 @@ last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 48
 - **Contrato:** `CU-PROD-01` item 4 `[V0]` + REGRA MESTRE de valor (`proibicoes.md`). A conta é a do Blade (`public/js/product.js` com `__add_percent`/`__get_rate` de `functions.js`): exata (Decimal.js) e arredondada como o `accounting.toFixed`.
 - **Prova por dois caminhos (2026-10-16):** 545 casos (compra × lucro × alíquota, e compra × venda) gerados pelo `precos.ts` comparados com as **próprias funções do Blade** extraídas de `functions.js` e rodadas com `decimal.js`, os dois lados lidos pelo **`Util::num_uf` real** (corpo extraído do `Util.php`, PHP 8): **2.725 valores, 0 divergências**. Controle: com a conta em `number` saem 8 divergências (ex.: 123,45 + 10% → 135,80 contra 135,79 do Blade). Mordida: `Create.tsx` sem o preço derruba o caso da tela; a conta em `number` derruba o caso 135,79.
 - **Fora deste UC:** produto **variável** e **composto** (têm editor próprio de preço) e a tela **Editar** (o preço do produto existente segue no Blade). Sem preço digitado o produto nasce com zero, como no Blade.
+- **Status: 🧪** — teste escrito junto do código, sem veredito publicado no manifesto (G-7).
+
+## UC-PCAD-10 · Novo produto nasce nos locais do negócio · `must`
+- **Persona:** quem cadastra e precisa vender o produto. Sem local, o produto nasce sem `product_locations` e não aparece para venda em local nenhum.
+- **Aceite:** Dada a tela Novo produto · Quando a empresa tem **um** local · Então ele já vem marcado e vai no envio · E, com **mais de um**, nenhum vem marcado e vão os que a pessoa marcar.
+- **Teste:** [`produto-locais.test.tsx`](../../../../tests/js/produto-locais.test.tsx) — `UC-PCAD-10` (os dois casos). Roda no step "Comportamento React" do job `Frontend / Vite build`.
+- **Contrato:** paridade com o cadastro Blade — `create.blade.php` (`$default_location`: com um local só, `product_locations[]` já vem com ele) e `ProductController@store` (`product_locations()->sync(...)`). Como no Blade, o campo não é obrigatório.
+- **Mordida (2026-10-16):** `product_locations` de volta a `[]` derruba o caso de um local; tirar o bloco da tela derruba os dois.
 - **Status: 🧪** — teste escrito junto do código, sem veredito publicado no manifesto (G-7).
 
 ---

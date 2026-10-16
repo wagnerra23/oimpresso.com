@@ -12,11 +12,16 @@ import type { ReactNode, FormEvent } from 'react';
 import { Save, X } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { ProdutoFormulario } from './_components/formulario/ProdutoFormulario';
-import { definidorDe } from './_components/formulario/tipos';
+import { definidorDe, opcoesDe } from './_components/formulario/tipos';
 import type { OptionMap, OptionStringMap } from './_components/formulario/tipos';
 import { aliquotaDoImposto, camposDePreco, precoInicial } from './_components/formulario/precos';
 
 const ADVANCED_OPEN_KEY = 'oimpresso.produto.create.advanced.open';
+
+function localUnico(locais: OptionMap): number[] {
+  const ids = opcoesDe(locais).map(([id]) => Number(id));
+  return ids.length === 1 ? ids : [];
+}
 
 interface ProdutoDuplicate {
   id: number;
@@ -83,7 +88,8 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
     weight: dup?.weight ?? '',
     product_description: dup?.product_description ?? '',
     sub_unit_ids: [] as number[],
-    product_locations: [] as number[],
+    // Um local só: já vem marcado, como no Blade (`$default_location`). Mais de um: quem cadastra escolhe.
+    product_locations: localUnico(props.businessLocations),
     warranty_id: '' as number | '',
     expiry_period: '',
     expiry_period_type: '',
