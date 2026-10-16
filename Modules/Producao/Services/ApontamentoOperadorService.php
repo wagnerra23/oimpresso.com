@@ -14,6 +14,7 @@ use Modules\Producao\Entities\Evento;
 use Modules\Producao\Entities\Posto;
 use Modules\Producao\Entities\Programacao;
 use Modules\Producao\Exceptions\ApontamentoRecusado;
+use Modules\Producao\Jobs\ConcluirProducaoDaVendaJob;
 
 /**
  * Regra do apontamento do operador (thread 04 + E04 do playbook PCP), por cima do
@@ -25,6 +26,7 @@ use Modules\Producao\Exceptions\ApontamentoRecusado;
  *   limites abaixo, e a mesma chave nunca grava duas vezes.
  * - Fechamento automático (UC-PCV-22 · UC-PCV-36, D-PONTO): pessoa fecha na saída do ponto;
  *   sem saída, e máquina sempre, no fim do turno. O Ponto só é lido.
+ * - Etapa de venda (`os_tipo = venda`) concluída por último conclui a produção da venda (fila).
  * - Correção de horário não reescreve o par (append-only, e o custo lê o par): vira evento
  *   `correcao_solicitada` para o gestor. Aplicar a correção ao custo mexe em VALOR (regra mestre).
  */
@@ -179,6 +181,10 @@ class ApontamentoOperadorService
         $this->evento($businessId, self::EV_ETAPA_CONCLUIDA, $fim, $userId);
         if ($proxima?->user_id) {
             $this->evento($businessId, self::EV_AVISO_PROXIMO, $fim, (int) $proxima->user_id, ['programacao_id' => $proxima->id]);
+        }
+        // Decisão [W] 2026-10-16: última etapa da venda concluída → `concluir_producao` (com baixa de estoque).
+        if ($etapa?->os_tipo === Programacao::OS_VENDA) {
+            ConcluirProducaoDaVendaJob::dispatch($businessId, (int) $etapa->os_id, $userId, (int) $etapa->id);
         }
 
         return $fim;
