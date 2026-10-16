@@ -449,6 +449,8 @@ describe('Tier 0 cross-tenant (MySQL real)', function () {
             $bizId = (int) $this->gmBizProprio->id;
             $local = DB::table('business_locations')->where('business_id', $bizId)->value('id');
             $produto = gmProduto($bizId, (int) $this->gmUser->id, 'Produto edição React');
+            // Sem enable_stock o ProductUtil não movimenta estoque (gmProduto nasce com o default 0).
+            DB::table('products')->where('id', $produto)->update(['enable_stock' => 1]);
             $variacao = gmVariacao($produto, 'P/Preto');
             $fornecedor = (int) DB::table('contacts')->insertGetId([
                 'business_id' => $bizId, 'type' => 'supplier', 'name' => 'Fornecedor UC-PUREDT-08',
