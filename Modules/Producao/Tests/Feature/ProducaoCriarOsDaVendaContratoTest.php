@@ -135,6 +135,9 @@ it('idempotente: criar de novo não duplica OS nem programações', function () 
 
 it('Tier 0: a 99 não cria OS a partir da venda da 98', function () {
     $tx = osVenda($this, 'cv-pequena');
+    // A 99 liga o mesmo produto a um roteiro dela: só o filtro da venda por empresa pode barrar.
+    DB::table('pcp_produto_roteiro')->insert(['business_id' => $this->b99, 'product_id' => $this->produtoComRoteiro,
+        'roteiro_id' => osRoteiro($this->b99), 'created_at' => now(), 'updated_at' => now()]);
 
     expect(app(CriarOsDaVenda::class)->criar($this->b99, (int) $tx->id))->toBe([]);
     expect(osOrdens($this->b99, $tx->id))->toHaveCount(0);
