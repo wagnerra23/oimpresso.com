@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from '@/Components/ui/select';
 import type { CamposProduto, DefinirCampo, ModoFormulario, OpcoesProduto } from './tipos';
+import { entradasDeOpcoes } from './opcoes';
 
 interface Props {
   modo: ModoFormulario;
@@ -67,7 +68,7 @@ export function BlocoEstoque({ modo, data, definir, opcoes }: Props) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(opcoes.barcodeTypes).map(([k, v]) => (
+              {entradasDeOpcoes(opcoes.barcodeTypes).map(([k, v]) => (
                 <SelectItem key={k} value={k}>
                   {v}
                 </SelectItem>

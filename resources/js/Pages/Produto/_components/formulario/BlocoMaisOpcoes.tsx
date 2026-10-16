@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from '@/Components/ui/select';
 import type { CamposProduto, DefinirCampo, OpcoesProduto } from './tipos';
+import { entradasDeOpcoes } from './opcoes';
 
 interface Props {
   data: CamposProduto;
@@ -110,7 +111,7 @@ export function BlocoMaisOpcoes({ data, definir, opcoes, chaveAberto, mostrarVal
                 <SelectValue placeholder="Nenhuma" />
               </SelectTrigger>
               <SelectContent>
-                {Object.entries(opcoes.warranties).map(([k, v]) => (
+                {entradasDeOpcoes(opcoes.warranties).map(([k, v]) => (
                   <SelectItem key={k} value={k}>
                     {v}
                   </SelectItem>

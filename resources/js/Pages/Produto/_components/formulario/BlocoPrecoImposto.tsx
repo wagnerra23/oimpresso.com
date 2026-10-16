@@ -11,6 +11,7 @@ import {
 } from '@/Components/ui/select';
 import { OrigemMercadoriaField } from '../OrigemMercadoriaField';
 import type { CamposProduto, DefinirCampo, ErrosProduto, OpcoesProduto } from './tipos';
+import { entradasDeOpcoes, IMPOSTO_NENHUM, impostoDoSelect, selectDoImposto } from './opcoes';
 
 interface Props {
   data: CamposProduto;
@@ -28,12 +29,13 @@ export function BlocoPrecoImposto({ data, definir, errors, opcoes }: Props) {
       <CardContent className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="tax">Taxa de imposto</Label>
-          <Select value={String(data.tax ?? '')} onValueChange={(v) => definir('tax', Number(v))}>
+          <Select value={selectDoImposto(data.tax)} onValueChange={(v) => definir('tax', impostoDoSelect(v))}>
             <SelectTrigger id="tax">
               <SelectValue placeholder="Nenhuma" />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(opcoes.taxes).map(([k, v]) => (
+              <SelectItem value={IMPOSTO_NENHUM}>Nenhum</SelectItem>
+              {entradasDeOpcoes(opcoes.taxes).map(([k, v]) => (
                 <SelectItem key={k} value={k}>
                   {v}
                 </SelectItem>
