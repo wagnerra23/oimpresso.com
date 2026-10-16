@@ -293,6 +293,222 @@ const PROCS = [
     ], liga: [] },
 ];
 
+// Cobertura no ERP por transição, na ordem de `trans` — EXPORTADA do CatalogoProcessos do main
+// (#9496 + #9505 + #9507) em 16/10/2026, não digitada. estado: sim · parcial · nao · nao_verificado; onde = classe/rota ou motivo.
+// Regenerar do catálogo quando ele mudar (não editar à mão).
+const COB = {
+  "venda": [
+    ["parcial", "Ação FSM enviar_orcamento (SaleFsmActionController@execute, POST /sells/{id}/fsm-action) só muda a etapa. O envio de verdade é NotificationController@send (template new_quotation), fora da FSM. Sem conferência de contato e sem medição de abertura."],
+    ["parcial", "Ação FSM cliente_aprovou com ReservarEstoque muda a etapa; o link público (SellPosController@showInvoice, GET /quote/{token}) só mostra. Não cria OS por item nem parcelas de sinal e saldo; sem checagem de validade; a reserva espera payload.items, que a tela não manda."],
+    ["parcial", "Ação FSM cliente_rejeitou leva a Cancelada: não existe a etapa Perdido, o motivo não é pedido e nada alimenta funil (DealPipelineService::moverStage do Crm, que leva a perdido com motivo, não tem chamador)."],
+    ["parcial", "Ação FSM faturar sai de \"Pronto pra faturar\" e só muda a etapa. NF-e (NfeEmissaoController@emitir) e NFS-e (NfseController@emitirParaTransaction) são botões separados, sem decidir pela natureza fiscal do item."],
+    ["parcial", "Ações FSM entregar e concluir só mudam a etapa (entregar exige Paga antes; no app, PedidoEntregaController@registrar). Sem checagem de OS pronta e sem pesquisa de satisfação depois da entrega."],
+    ["parcial", "Ação FSM cancelar_venda com CancelarVendaCascade::execute libera a reserva. Não cobra \"nenhuma nota autorizada\": tenta cancelar as notas, mas lê transaction_documents, que nenhum código grava. Não estorna sinal já pago (só cancela boleto pendente)."],
+  ],
+  "producao": [
+    ["nao", "Nada gera as etapas (fila) a partir do roteiro: não há ação Liberar, reserva de material nem cálculo de prazo."],
+    ["parcial", "ApontamentoController@iniciar e a API do app → ApontamentoOperadorService::iniciar abrem o apontamento e contam o tempo, por QR ou tela; a trava é o responsável da etapa, não o setor. Só funciona com etapa já cadastrada, e nada cria etapa."],
+    ["parcial", "ApontamentoController@pausar → ApontamentoOperadorService::pausar para o relógio e exige motivo do cadastro. Não há alerta de prazo."],
+    ["parcial", "Retomar é um novo início na mesma etapa (ApontamentoController@iniciar) e o relógio volta. Não existe estado Pausada gravado; mesma dependência de etapa cadastrada."],
+    ["parcial", "ApontamentoController@concluir → ApontamentoOperadorService::concluir conclui a etapa e avisa o responsável da próxima. Não lê o roteiro, não trata etapas paralelas e não muda o estado da próxima."],
+    ["nao", "Não há ação de reprovar, etapa de origem nem custo de refugo somado à OS (só o cadastro de motivos de refugo)."],
+    ["nao", "Não existe Refazer: a etapa não tem estado de retrabalho."],
+    ["parcial", "Concluir a última etapa só a marca concluída. Não baixa o material real, não congela custo (CustoRealService::daOs calcula, mas não tem chamador) e não marca a OS pronta."],
+    ["nao", "Não existe cancelar item ou etapa no PCP, nem liberar reserva, nem lançar consumo como perda."],
+  ],
+  "nfe": [
+    ["parcial", "Não há estado Rascunho nem Validada: as regras (valor, NCM, item de serviço) rodam dentro de NfeService::emitirInterno (POST /nfe-brasil/transactions/{tx}/emitir). Sem validação XSD explícita; o certificado só é checado por ativo, não por validade."],
+    ["parcial", "NfeService::emitirInterno reserva o número da série e transmite. Se a SEFAZ cai a nota vira erro_envio: contingência só manual (ContingenciaController@ativar, tpEmis 4), sem SVC nem EPEC, e RetentarContingenciaJob não tem quem o dispare."],
+    ["parcial", "NfeService::processarRetorno grava autorizada, XML e DANFE. O e-mail sozinho só sai no boleto pago; na venda, só por NfeEmissaoController@reenviarEmail. Não baixa estoque nem liga ao título."],
+    ["sim", "NfeService::processarRetorno grava rejeitada com cStat e motivo; a tela de nota mostra o resultado. O campo com erro não é extraído (a orientação vem de um mapa na tela)."],
+    ["parcial", "AcoesController@retransmitir → NfeService::retransmitir (POST /fiscal/acoes/nfe/{emissao}/retransmitir) não volta a nota para correção: marca a antiga inutilizada no banco local e emite outra, com outro número."],
+    ["parcial", "NfeService::processarRetorno grava denegada e só escreve log: não avisa o fiscal, e NfeService::retransmitir aceita denegada (deixa reemitir em vez de tratar o número como queimado)."],
+    ["parcial", "AcoesController@cartaCorrecao → NfeCartaCorrecaoService::aplicar (POST /fiscal/acoes/nfe/{emissao}/cce) envia o evento 110110 e o liga à nota. A regra \"não corrige valor, imposto, destinatário nem data\" não é conferida (texto livre)."],
+    ["parcial", "AcoesController@cancelarNfe → NfeService::cancelar (POST /fiscal/acoes/nfe/{emissao}/cancelar) envia o evento 110111 e marca cancelada. Não confere o prazo localmente e não estorna estoque nem cancela o título."],
+    ["sim", "AcoesController@inutilizar → NfeInutilizacaoService::inutilizar (POST /fiscal/acoes/nfe/inutilizar) comunica a faixa à SEFAZ e marca as emissões da faixa. Não confere localmente que os números foram pulados (quem barra é a SEFAZ)."],
+  ],
+  "nfse": [
+    ["parcial", "NfseController@store (POST /nfse/emitir) confere o código LC 116 e calcula ISS e retenções federais. Não existe município de incidência (usa o do prestador) nem o estado Validada, e o rascunho criado pela venda não tem rota para validar."],
+    ["sim", "NfseController@store → EmitirNfseJob → NfseEmissaoService::emitir envia a DPS assinada à Sefin Nacional (SnNfseAdapter). Só o emissor nacional está ligado; não há emissor municipal."],
+    ["parcial", "NfseEmissaoService::emitir grava emitida com número e chave. Não envia ao tomador e não ajusta o título pelo ISS retido (o Financeiro não referencia NFS-e)."],
+    ["parcial", "A rejeição vira status erro com a mensagem (NfseEmissaoService::marcarErro), mas a nota não volta para correção: não pode ser editada."],
+    ["nao", "Não há rota de corrigir ou reemitir a nota rejeitada (Modules/NFSe/Routes/web.php só tem listar, emitir, emitir por venda, ver, cancelar e PDF); \"Nova emissão\" cria outra do zero."],
+    ["nao", "Não existe substituição de NFS-e: nenhuma rota, campo ou vínculo com a nota substituta."],
+    ["parcial", "NfseController@cancelar → NfseEmissaoService::cancelar (POST /nfse/{nfse}/cancelar) marca cancelada sem olhar a resposta da Sefin (fica cancelada mesmo se ela recusar). Não confere regra nem prazo e não cancela o título."],
+  ],
+  "cobranca": [
+    ["parcial", "UnificadoController@emitirBoletoTitulo (POST /financeiro/unificado/{tituloId}/boleto) registra o boleto no Inter com conta ativa para boleto. Não envia ao cliente (CobrancaEmitida não é disparado), não muda o estado do título e não gera PIX por esse caminho."],
+    ["parcial", "Não há estado vencido gravado nem cron: a tela calcula \"atrasado\" ao ler (UnificadoController::deriveStatus), já no D+0. CobrancaVencida é disparado no retorno CNAB, mas nenhum listener o ouve."],
+    ["nao", "Não existe régua D+1/D+5/D+15 sobre título nem tarefa ao vendedor. A régua do RecurringBilling é fixa e só de leitura (\"Em breve\"); o lembrete agendado do núcleo (pos:autoSendPaymentReminder) é sobre vendas, não títulos."],
+    ["parcial", "OnCobrancaPagaCreateFinanceiroTitulo::baixarTituloExistente quita o título quando o pagamento zera o saldo, mas só para o business dono do SaaS (saas_owner_business_id); webhook de boleto Inter/C6/Asaas só grava o evento. Não libera produção, não emite nota (EmitirNFeAoReceberPagamento só ouve o RecurringBilling, com NFEBRASIL_AUTO_EMISSION desligado) e não lança comissão."],
+    ["parcial", "Pelo banco, OnCobrancaPagaCreateFinanceiroTitulo::baixarTituloExistente reduz o valor em aberto e o título segue aberto (mesmas restrições do pagamento total). Na baixa manual, UnificadoController@baixar (POST /financeiro/unificado/{id}/baixar) divide em título quitado + saldo."],
+    ["parcial", "ConciliacaoController@match (POST /financeiro/conciliacao/{lineId}/match) casa a linha do extrato com o título e marca a linha. O título não muda de estado, não se confere se está quitado e nada é lançado no caixa."],
+    ["nao", "Não existe renegociação: nenhuma ação, alçada ou geração de parcelas novas (só o cancelamento em lote, sem substitutos)."],
+    ["nao", "Não existe baixa por perda: nenhum motivo, alçada, lançamento de perda ou bloqueio de crédito ligado a ela (o limite de crédito do núcleo é outra coisa)."],
+  ],
+  "pagar": [
+    ["parcial", "UnificadoController@aprovar (POST /financeiro/unificado/{id}/aprovar) aprova de verdade, mas o único filtro é a permissão financeiro.titulo.aprovar: não existe alçada por valor."],
+    ["nao", "Não existe estado Agendado (o título só tem aberto, parcial, quitado e cancelado), nem envio de pagamento ao banco, nem conferência de saldo projetado."],
+    ["nao", "O retorno automático do banco só cria título a receber. Para conta a pagar só há a baixa manual (ContaPagarController@pagar), que não cria pagamento na compra: a compra não fica paga."],
+    ["parcial", "ConciliacaoController@match marca a linha do extrato como conciliada, ligada ao título; o título não ganha estado Conciliado e a sugestão automática só procura títulos ainda em aberto."],
+  ],
+  "compra": [
+    ["parcial", "PurchaseOrderController@store (POST /purchase-order, com as requisições) cria o pedido e TransactionUtil::updatePurchaseOrderStatus avança a requisição. Não há passo de aprovação nem alçada, e o envio ao fornecedor é notificação manual."],
+    ["parcial", "SellController@updateShipping (PUT /sells/update-shipping/{id}, o mesmo modal do pedido) marca o envio como shipped. Não confere a confirmação do fornecedor nem registra previsão de chegada."],
+    ["parcial", "Não existe estado Cancelado na requisição: PurchaseRequisitionController@destroy (DELETE /purchase-requisition/{id}) exclui, sem pedir motivo."],
+    ["parcial", "Não existe estado Cancelado no pedido: PurchaseOrderController@destroy (DELETE /purchase-order/{id}) exclui, ou o envio é marcado cancelado. Não avisa o fornecedor e não há orçamento de compra para liberar."],
+    ["parcial", "PurchaseController@updateStatus (POST /purchases/update-status) com received dá entrada no estoque. Não há custo médio (troca pelo preço da última compra), proposta de preço nem conferência de quantidade."],
+    ["nao", "Não existe estado Conferido nem checagem de divergência; a conta a pagar nasce ao criar a compra. PurchaseXmlController não tem rota, e a manifestação (ManifestacaoController@confirmar) não tem ligação com a compra."],
+    ["parcial", "TransactionPaymentController@store (POST /payments) → TituloAutoService::registrarPagamento dá baixa no título e a compra fica paga, sem exigir título aprovado. Com a compra toda paga, o título termina cancelado em vez de quitado (BUG-4 registrado em teste)."],
+  ],
+  "requisicao": [
+    ["nao", "Não existe requisição de material da OS (a única requisição é a de compra). A reserva do motor é por venda, variação e local, sem lote nem fração de rolo."],
+    ["nao", "Nada abre requisição de compra quando falta saldo (a de compra é manual) e nada pausa a etapa da OS."],
+    ["nao", "Não há entrega de material do almoxarifado para a OS; a única baixa ligada a documento é a do motor, sobre reservas da venda."],
+  ],
+  "inventario": [
+    ["nao", "Não existe contagem de inventário: nenhuma tabela ou rota de contagem, nenhum congelamento de saldo."],
+    ["nao", "Não existe cálculo de divergência por item (não há contagem)."],
+    ["parcial", "StockAdjustmentController@store (POST /stock-adjustments) lança ajuste manual que só tira do estoque, com valor unitário e recuperado. Não vem de contagem, não tem alçada do gerente e não lança sobra."],
+  ],
+  "entrega": [
+    ["parcial", "Ação FSM agendar_instalacao (SaleFsmActionController@execute) só muda a etapa. Não há agenda de equipe e veículo nem aviso ao cliente."],
+    ["parcial", "Ação FSM iniciar_instalacao só muda a etapa: não confere material e equipe nem avisa o cliente."],
+    ["nao", "Não existe a etapa Reagendado nem a ação de confirmar nova data; o status de reagendamento de cv_instalacoes não é gravado por nenhum código."],
+    ["parcial", "Ação FSM reagendar_instalacao volta para a mesma etapa: não pede motivo, não tem etapa Reagendado e não avisa o cliente."],
+    ["parcial", "Ação FSM concluir_instalacao muda a etapa. Foto e assinatura são só colunas de cv_instalacoes, sem quem grave nelas: não são exigidas e não há relatório na OS."],
+    ["parcial", "Ação FSM aprovacao_final_cliente muda para entregue. O protocolo só sai em PedidoEntregaController@registrar (venda, no app), e não há pesquisa em 2 dias."],
+  ],
+  "devolucao": [
+    ["nao", "Não existe ocorrência pós-venda no ERP: a devolução começa direto no lançamento."],
+    ["nao", "Nenhum código cria OS de retrabalho; as ações de garantia das OS semeadas só mudam a etapa."],
+    ["nao", "Sem ocorrência no ERP. A NF-e de devolução tem serviço (Modules/NfeBrasil/Services/DevolucaoService::emitirDevolucao) sem rota nem chamador fora dos testes; DevolucaoController (legado) não tem rota."],
+    ["nao", "Sem ocorrência no ERP (ver Analisar)."],
+    ["nao", "Sem ocorrência no ERP (ver Analisar)."],
+    ["nao", "Depende da OS de retrabalho, que não existe."],
+    ["sim", "resource sell-return (routes/web.php) → SellReturnController@store → TransactionUtil::addSellReturn (quantidade por item; volta o estoque por ProductUtil::updateProductQuantity)"],
+    ["parcial", "A devolução de venda vira transação sell_return com situação de pagamento (TransactionUtil::updatePaymentStatus); o Modules/Financeiro não lê sell_return, então o título da venda não é estornado."],
+    ["parcial", "Modules/Vestuario/Services/DevolucaoService::registrarDevolucao (tipo credito_ficha → vestuario_creditos_cliente) existe, sem rota nem chamador fora dos testes. A validade de 6 meses vem do ERP: constante VALIDADE_CREDITO_MESES = 6 do mesmo serviço (CDC Art. 50), gravada em expira_em e zerada por expirarCreditosVencidos; é fixa no código, não parâmetro da empresa."],
+  ],
+  "devolucao-compra": [
+    ["sim", "resource purchase-return → PurchaseReturnController@store (ProductUtil::decreaseProductQuantity) e /purchase-return/save → CombinedPurchaseReturnController@save"],
+    ["nao_verificado", "A devolução de compra tem situação de pagamento (TransactionUtil::updatePaymentStatus); não conferi se o Financeiro a liga ao título a pagar."],
+    ["sim", "PurchaseReturnController@destroy (resource purchase-return)"],
+  ],
+  "os-reparo": [
+    ["sim", "Ação \"Iniciar diagnóstico\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Finalizar diagnóstico e gerar orçamento\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Cliente aprovou orçamento\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Cliente rejeitou orçamento\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Pedir peças ao fornecedor\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Confirmar chegada das peças\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Iniciar execução do reparo\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Iniciar execução do reparo\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Pausar execução\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Retomar execução\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Concluir execução do reparo\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Entregar ao cliente\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["nao", "Ação \"Entregar ao cliente (sem conserto)\" cadastrada no processo os_reparo_padrao, mas a etapa de origem é terminal: o ExecuteStageActionService recusa."],
+    ["sim", "Ação \"Cancelar OS\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Cancelar OS\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Cancelar OS\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Cancelar OS\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Cancelar OS\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Cancelar OS\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Cancelar OS\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Cancelar OS\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Cancelar OS\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["nao", "Ação \"Registrar acionamento de garantia\" cadastrada no processo os_reparo_padrao, mas a etapa de origem é terminal: o ExecuteStageActionService recusa."],
+  ],
+  "oficina-os": [
+    ["sim", "Ação \"Iniciar diagnóstico\" do processo oficina_mecanica_os — ServiceOrderFsmActionController@execute (Modules/OficinaAuto/Routes/web.php)"],
+    ["sim", "Ação \"Enviar orçamento pra aprovação\" do processo oficina_mecanica_os — ServiceOrderFsmActionController@execute (Modules/OficinaAuto/Routes/web.php)"],
+    ["sim", "Ação \"Cliente aprovou — pedir peças\" do processo oficina_mecanica_os — ServiceOrderFsmActionController@execute (Modules/OficinaAuto/Routes/web.php)"],
+    ["sim", "Ação \"Cliente aprovou — já executar\" do processo oficina_mecanica_os — ServiceOrderFsmActionController@execute (Modules/OficinaAuto/Routes/web.php)"],
+    ["sim", "Ação \"Cliente recusou orçamento\" do processo oficina_mecanica_os — ServiceOrderFsmActionController@execute (Modules/OficinaAuto/Routes/web.php)"],
+    ["sim", "Ação \"Peças chegaram — iniciar execução\" do processo oficina_mecanica_os — ServiceOrderFsmActionController@execute (Modules/OficinaAuto/Routes/web.php)"],
+    ["sim", "Ação \"Concluir serviço\" do processo oficina_mecanica_os — ServiceOrderFsmActionController@execute (Modules/OficinaAuto/Routes/web.php)"],
+    ["sim", "Ação \"Entregar ao cliente\" do processo oficina_mecanica_os — ServiceOrderFsmActionController@execute (Modules/OficinaAuto/Routes/web.php)"],
+    ["sim", "Ação \"Acionar garantia\" do processo oficina_mecanica_os — ServiceOrderFsmActionController@execute (Modules/OficinaAuto/Routes/web.php)"],
+    ["sim", "Ação \"Cancelar OS\" do processo oficina_mecanica_os — ServiceOrderFsmActionController@execute (Modules/OficinaAuto/Routes/web.php)"],
+    ["sim", "Ação \"Cancelar OS\" do processo oficina_mecanica_os — ServiceOrderFsmActionController@execute (Modules/OficinaAuto/Routes/web.php)"],
+    ["sim", "Ação \"Cancelar OS\" do processo oficina_mecanica_os — ServiceOrderFsmActionController@execute (Modules/OficinaAuto/Routes/web.php)"],
+    ["sim", "Ação \"Cancelar OS\" do processo oficina_mecanica_os — ServiceOrderFsmActionController@execute (Modules/OficinaAuto/Routes/web.php)"],
+    ["sim", "Ação \"Cancelar OS\" do processo oficina_mecanica_os — ServiceOrderFsmActionController@execute (Modules/OficinaAuto/Routes/web.php)"],
+  ],
+  "os-cv": [
+    ["parcial", "Ação \"Enviar orçamento ao cliente\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cliente aprovou orçamento\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cliente rejeitou orçamento\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Enviar arte pra aprovação cliente\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Arte aprovada pelo cliente\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Rejeitar arte (volta pra designer)\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Iniciar impressão\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Aguardar liberação de máquina (PCP industrial)\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Iniciar impressão (máquina liberada)\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Concluir impressão\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Refazer impressão (problema detectado)\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Iniciar acabamento\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Concluir acabamento\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cliente busca no balcão\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Agendar instalação\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Iniciar instalação (chegou no cliente)\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Reagendar instalação\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Concluir instalação\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cliente aprovou instalação final\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["nao", "Ação \"Emitir NFe55 (mercadoria) + NFSe56 (instalação) paralelo\" cadastrada no processo os_comunicacao_visual, mas a etapa de origem é terminal: o ExecuteStageActionService recusa."],
+    ["nao", "Ação \"Acionar garantia (abre OS filha)\" cadastrada no processo os_comunicacao_visual, mas a etapa de origem é terminal: o ExecuteStageActionService recusa."],
+    ["parcial", "Ação \"Cancelar OS\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cancelar OS\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cancelar OS\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cancelar OS\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cancelar OS\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cancelar OS\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cancelar OS\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cancelar OS\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cancelar OS\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cancelar OS\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cancelar OS\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cancelar OS\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cancelar OS\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+  ],
+  "atendimento": [
+    ["parcial", "InboxController@assign (PATCH /atendimento/inbox/{id}/assign) só preenche o responsável; o status não muda e o SLA conta a partir das mensagens, não de assumir."],
+    ["nao", "Não existe status \"aguardando cliente\" nem pausa de SLA (awaiting_human é o robô passando para humano)."],
+    ["nao", "A mensagem que chega nunca muda o status de uma conversa que já existe; sem status de espera não há retomada de SLA."],
+    ["parcial", "InboxController@updateStatus com resolved → CsatDispatcher::dispatchOnResolve manda a pesquisa (só canal Baileys, flag ligada por padrão). Não exige assunto ligado: a conversa não tem vínculo com orçamento, OS ou cobrança."],
+  ],
+  "contrato": [
+    ["parcial", "RecurringBillingController@store (POST /recurring-billing) já cria a assinatura ativa: não há Rascunho, ação Ativar nem conferência de assinatura do cliente. As cobranças saem do job diário."],
+    ["parcial", "InvoiceGeneratorService::run (rb:generate-invoices, diário, só em live) emite a fatura e avança o vencimento. A nota do mês não sai no ciclo: só quando a fatura é paga, e com a flag de emissão automática ligada."],
+    ["nao", "past_due existe no enum, mas nenhum código grava esse status: não há contagem de parcelas vencidas nem aviso. A única suspensão é a pausa manual (RecurringBillingController@pausar)."],
+    ["parcial", "RecurringBillingController@reativar (POST /recurring-billing/{id}/reativar) volta para ativo e o job retoma. Não confere se as parcelas em atraso foram pagas, e Suspenso nunca é atingido."],
+    ["nao", "Não existe estado Encerrado, data de fim do contrato nem cobrança proporcional."],
+    ["sim", "RecurringBillingController@cancelar (POST /recurring-billing/{id}/cancelar) cancela e o job para de gerar faturas. Não confere aviso prévio, e faturas já abertas se cancelam em outra rota."],
+  ],
+  "ponto": [
+    ["parcial", "IntercorrenciaController@submeter (POST /ponto/intercorrencias/{id}/submeter) passa a pendente e entra na fila de aprovações. Não avisa o gestor, e a justificativa é exigida no cadastro, não na submissão."],
+    ["sim", "AprovacaoController@aprovar (POST /ponto/aprovacoes/{id}/aprovar) aprova, grava quem e quando e reapura o dia. Não confere se quem aprova é o gestor do colaborador (só o acesso ao módulo)."],
+    ["parcial", "AprovacaoController@rejeitar exige motivo e grava rejeitada, mas não avisa o colaborador e não exige que esteja pendente."],
+    ["parcial", "ApuracaoService::aplicarIntercorrencias ajusta o espelho na aprovação, com a marcação original preservada. Não existe ação Aplicar do RH, nem quem grave APLICADA, nem checagem de período aberto."],
+    ["sim", "IntercorrenciaController@cancelar (POST /ponto/intercorrencias/{id}/cancelar) cancela o rascunho (aceita também pendente). Não confere se quem descarta é o próprio colaborador."],
+  ],
+};
+const COB_EST = { sim: { l: "executa", tone: "ok" }, parcial: { l: "parcial", tone: "warn" }, nao: { l: "não existe", tone: "danger" }, nao_verificado: { l: "não verificado", tone: "mute" } };
+// Resumo do processo: quantas transições o ERP executa de ponta a ponta, de quantas.
+function resumoCob(id) {
+  const r = { sim: 0, parcial: 0, nao: 0, nao_verificado: 0, total: 0 };
+  (COB[id] || []).forEach(([e]) => { r[e] += 1; r.total += 1; });
+  return r;
+}
+function CobItem({ id }) {
+  const r = resumoCob(id);
+  if (!r.total) return null;
+  if (r.nao_verificado === r.total) return <span className="flx-pill mute flp-cob">ERP não verificado</span>;
+  const tone = r.sim === r.total ? "ok" : r.sim + r.parcial > 0 ? "warn" : "danger";
+  return <span className={"flx-pill flp-cob " + tone} title={r.sim + " executa · " + r.parcial + " parcial · " + r.nao + " não existe · " + r.nao_verificado + " não verificado"}>{r.sim} de {r.total} no ERP{r.parcial ? " · " + r.parcial + (r.parcial === 1 ? " parcial" : " parciais") : ""}</span>;
+}
+
 // Comparativo NF-e × NFS-e — o que muda na FSM e no financeiro.
 const NFX = [
   ["Documenta", "Circulação de mercadoria", "Prestação de serviço"],
@@ -348,10 +564,11 @@ function Detalhe({ p, onIr }) {
       )}
       <Widget title={est ? "A partir de " + est : "Transições"} note={est ? lista.length + (lista.length === 1 ? " ação possível" : " ações possíveis") : "Só passa se = condição para a ação acontecer · efeito = o que o sistema faz sozinho"} flush
         actions={est ? <button type="button" className="flx-link" onClick={() => setEst(null)}>Ver todas</button> : null}>
+        {(() => { const r = resumoCob(p.id); return r.total ? <p className="flp-cob-r">No oimpresso: <b>{r.sim}</b> executa · <b>{r.parcial}</b> parcial · <b>{r.nao}</b> não existe · <b>{r.nao_verificado}</b> não verificado</p> : null; })()}
         {lista.length === 0 ? <p className="flp-fim">Nenhuma ação sai de <b>{est}</b> — o documento termina aqui.</p> :
         <div className="flp-tw">
           <table className="flp-t">
-            <thead><tr><th scope="col">De → para</th><th scope="col">Ação</th><th scope="col">Só passa se</th><th scope="col">Efeito</th><th scope="col">Quem</th></tr></thead>
+            <thead><tr><th scope="col">De → para</th><th scope="col">Ação</th><th scope="col">Só passa se</th><th scope="col">Efeito</th><th scope="col">Quem</th><th scope="col">No oimpresso</th></tr></thead>
             <tbody>{lista.map((t, i) => (
               <tr key={i}>
                 <td><span className="flp-de">{t.de}</span><span className="flp-para">{t.para ? "→ " + t.para : "sem mudar de estado"}</span></td>
@@ -359,6 +576,7 @@ function Detalhe({ p, onIr }) {
                 <td>{t.guarda || <span className="flx-dim">—</span>}</td>
                 <td>{t.efeito || <span className="flx-dim">—</span>}</td>
                 <td className="flp-quem">{t.quem}</td>
+                <td className="flp-cobc">{(() => { const c = (COB[p.id] || [])[p.trans.indexOf(t)]; if (!c) return <span className="flx-dim">—</span>; const e = COB_EST[c[0]]; return <><span className={"flx-pill " + e.tone}>{e.l}</span>{c[1] && <small title={c[1]}>{c[1]}</small>}</>; })()}</td>
               </tr>))}
             </tbody>
           </table>
@@ -410,7 +628,7 @@ function FluxosProcessos(props) {
                 <span className="flx-lbl">{a}</span>
                 {ps.map((x) => (
                   <button key={x.id} type="button" aria-current={x.id === sel ? "true" : undefined} className={"flp-item" + (x.id === sel ? " on" : "")} onClick={() => ir(x.id)}>
-                    <span>{x.n}</span><small>{x.estados.length} estados · {x.trans.length} transições</small>
+                    <span>{x.n}</span><small>{x.estados.length} estados · {x.trans.length} transições</small><CobItem id={x.id} />
                   </button>
                 ))}
               </div>
@@ -423,6 +641,6 @@ function FluxosProcessos(props) {
   );
 }
 
-window.FLX_PROC = { AREAS, PROCS, NFX, TELAS };
+window.FLX_PROC = { AREAS, PROCS, NFX, TELAS, COB, resumoCob };
 window.FluxosProcessos = FluxosProcessos;
 })();
