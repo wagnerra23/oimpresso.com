@@ -408,7 +408,7 @@ class FinanceiroLancamentoAcoesController extends Controller
         if ($restante > 0 && (! preg_match('/^\d{4}-\d{2}-\d{2}$/', $venceResto) || $venceResto < $pagoEm)) {
             return $this->invalido(['vencimento_restante' => 'Escolha o vencimento do restante.']);
         }
-        $contaId = isset($c['conta_id']) && $c['conta_id'] !== null ? (int) $c['conta_id'] : null;
+        $contaId = isset($c['conta_id']) ? (int) $c['conta_id'] : null;
         if ($contaId !== null && ! DB::table('fin_contas_bancarias')->where('business_id', $bizId)->where('id', $contaId)->whereNull('deleted_at')->exists()) {
             return $this->invalido(['conta_id' => 'Conta bancária não encontrada.']);
         }
@@ -547,7 +547,8 @@ class FinanceiroLancamentoAcoesController extends Controller
         }
         $contaNome = $item['conta_id'] === null ? null : DB::table('fin_contas_bancarias as f')
             ->leftJoin('accounts as a', fn ($j) => $j->on('a.id', '=', 'f.account_id')->where('a.business_id', '=', $bizId))
-            ->where('f.business_id', $bizId)->where('f.id', $item['conta_id'])->value(DB::raw("COALESCE(a.name, CONCAT('Conta ', f.id))"));
+            ->where('f.business_id', $bizId)->where('f.id', $item['conta_id'])
+            ->selectRaw("COALESCE(a.name, CONCAT('Conta ', f.id)) as nome")->value('nome');
         $recorrencia = $item['contrato'] !== null && $t->origem === 'recurring' && ctype_digit((string) $item['contrato']) ? (int) $item['contrato'] : null;
 
         return $item + [
