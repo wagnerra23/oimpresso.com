@@ -51,7 +51,22 @@ function osRoteiro(int $biz): int
     return $id;
 }
 
-/** Venda no processo de venda do modelo, na etapa Orçamento, com 2 linhas: 10 (com roteiro) e 20 (sem). */
+/** Unidade + produto + variação na empresa (mesmo formato do fixture do Manufacturing). @return array{0:int,1:int} */
+function osProduto(int $biz, int $userId, string $nome): array
+{
+    $suf = random_int(100000, 999999);
+    $unit = DB::table('units')->insertGetId(['business_id' => $biz, 'actual_name' => 'Unidade OS', 'short_name' => 'UO', 'allow_decimal' => 1,
+        'created_by' => $userId, 'created_at' => now(), 'updated_at' => now()]);
+    $prod = DB::table('products')->insertGetId(['business_id' => $biz, 'name' => $nome, 'type' => 'single', 'unit_id' => $unit, 'tax_type' => 'exclusive',
+        'sku' => 'OSI-'.$suf, 'barcode_type' => 'C128', 'enable_stock' => 0, 'alert_quantity' => 0, 'created_by' => $userId, 'created_at' => now(), 'updated_at' => now()]);
+    $pv = DB::table('product_variations')->insertGetId(['product_id' => $prod, 'name' => 'DUMMY', 'is_dummy' => 1, 'created_at' => now(), 'updated_at' => now()]);
+    $var = DB::table('variations')->insertGetId(['name' => 'DUMMY', 'product_id' => $prod, 'product_variation_id' => $pv, 'sub_sku' => 'OSI-'.$suf,
+        'default_purchase_price' => 0, 'dpp_inc_tax' => 0, 'profit_percent' => 0, 'default_sell_price' => 0, 'sell_price_inc_tax' => 0, 'created_at' => now(), 'updated_at' => now()]);
+
+    return [$prod, $var];
+}
+
+/** Venda no processo de venda do modelo, na etapa Orçamento, com 2 linhas: uma com roteiro e outra sem. */
 function osVenda($teste, string $modelo): Transaction
 {
     $ids = app(AplicarModelo::class)->aplicar($teste->b98, $modelo);
@@ -64,11 +79,14 @@ function osVenda($teste, string $modelo): Transaction
         $tx->{$k} = $v;
     }
     $tx->save();
+    [$p1, $v1] = osProduto($teste->b98, (int) $teste->vendedor->id, 'Fachada ACM');
+    [$p2, $v2] = osProduto($teste->b98, (int) $teste->vendedor->id, 'Instalação');
+    $teste->produtoComRoteiro = $p1;
     DB::table('transaction_sell_lines')->insert([
-        ['transaction_id' => $tx->id, 'product_id' => 10, 'variation_id' => 100, 'quantity' => 2, 'unit_price' => 30, 'unit_price_inc_tax' => 33, 'created_at' => now(), 'updated_at' => now()],
-        ['transaction_id' => $tx->id, 'product_id' => 20, 'variation_id' => 200, 'quantity' => 1, 'unit_price' => 40, 'unit_price_inc_tax' => 44, 'created_at' => now(), 'updated_at' => now()],
+        ['transaction_id' => $tx->id, 'product_id' => $p1, 'variation_id' => $v1, 'quantity' => 2, 'unit_price' => 30, 'unit_price_inc_tax' => 33, 'created_at' => now(), 'updated_at' => now()],
+        ['transaction_id' => $tx->id, 'product_id' => $p2, 'variation_id' => $v2, 'quantity' => 1, 'unit_price' => 40, 'unit_price_inc_tax' => 44, 'created_at' => now(), 'updated_at' => now()],
     ]);
-    DB::table('pcp_produto_roteiro')->insert(['business_id' => $teste->b98, 'product_id' => 10, 'roteiro_id' => osRoteiro($teste->b98), 'created_at' => now(), 'updated_at' => now()]);
+    DB::table('pcp_produto_roteiro')->insert(['business_id' => $teste->b98, 'product_id' => $p1, 'roteiro_id' => osRoteiro($teste->b98), 'created_at' => now(), 'updated_at' => now()]);
 
     return $tx;
 }
@@ -86,7 +104,7 @@ it('UC-FLX-01 · aprovar a venda cria uma OS só para o item com roteiro, em Agu
     $ordens = osOrdens($this->b98, $tx->id);
     expect($tx->fresh()->current_stage_id)->not->toBeNull();
     expect($ordens)->toHaveCount(1);
-    expect((int) $ordens[0]->product_id)->toBe(10);
+    expect((int) $ordens[0]->product_id)->toBe($this->produtoComRoteiro);
     expect($ordens[0]->currentStage->name)->toBe('Aguardando liberação');
 });
 
