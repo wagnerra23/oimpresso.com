@@ -2,8 +2,8 @@
 // Fonte visual: prototipo-ui/cowork/Wagner/fluxos-page.jsx (CSS copiado inteiro em
 // resources/css/cowork-fluxos-bundle.css). Lei: Index.charter.md · contrato: Index.casos.md.
 //
-// Abas como no protótipo: Modelos · Processos · Fluxos da empresa · Casos de uso. Processos e
-// Casos de uso entram nos PRs seguintes. "Usar modelo" exige fluxos.configurar (POST /fluxos/modelo).
+// Abas como no protótipo: Modelos · Processos · Fluxos da empresa · Casos de uso. Casos de uso
+// entra no PR seguinte. "Usar modelo" exige fluxos.configurar (POST /fluxos/modelo).
 
 import '../../../css/cowork-fluxos-bundle.css';
 import { useState } from 'react';
@@ -15,8 +15,9 @@ import EmptyState from '@/Components/shared/EmptyState';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import AbaModelos from './_components/AbaModelos';
 import AbaEmpresa from './_components/AbaEmpresa';
+import AbaProcessos from './_components/AbaProcessos';
 import DetalheModelo from './_components/DetalheModelo';
-import type { EmpresaModelo, MapaCasos, MapaEncaixe, Modelo, Opcao, Perfil } from './_components/tipos';
+import type { EmpresaModelo, MapaCasos, MapaEncaixe, Modelo, Opcao, Perfil, ProcessoCatalogo } from './_components/tipos';
 
 type Aba = 'modelos' | 'processos' | 'empresa' | 'casos';
 
@@ -28,6 +29,9 @@ interface Props {
   atividades: Opcao[];
   casos_total: number;
   casos: MapaCasos;
+  processos: ProcessoCatalogo[];
+  processos_total: number;
+  processo: string;
   empresa: EmpresaModelo | null;
   pode_configurar: boolean;
 }
@@ -43,7 +47,7 @@ const ABAS: { key: Aba; label: string }[] = [
 const PERFIL_INICIAL: Perfil = { porte: 'pequena', ativ: 'cv' };
 
 export default function FluxosIndex({
-  aba, modelos, encaixe, portes, atividades, casos_total, casos, empresa, pode_configurar,
+  aba, modelos, encaixe, portes, atividades, casos_total, casos, processos, processos_total, processo, empresa, pode_configurar,
 }: Props) {
   // O perfil começa pelo gravado da empresa (quando "Usar modelo" já gravou); senão, o do protótipo.
   const [perfil, setPerfil] = useState<Perfil>({
@@ -71,7 +75,7 @@ export default function FluxosIndex({
               key: a.key,
               label: a.label,
               href: `/fluxos?aba=${a.key}`,
-              badge: a.key === 'modelos' ? modelos.length : a.key === 'casos' ? casos_total : undefined,
+              badge: a.key === 'modelos' ? modelos.length : a.key === 'processos' ? processos_total : a.key === 'casos' ? casos_total : undefined,
             }))}
             activeGhostKey={aba}
           />
@@ -100,7 +104,8 @@ export default function FluxosIndex({
           {aba === 'empresa' && (
             <AbaEmpresa empresa={empresa} emUso={emUso} portes={portes} atividades={atividades} />
           )}
-          {(aba === 'processos' || aba === 'casos') && (
+          {aba === 'processos' && <AbaProcessos processos={processos} inicial={processo} />}
+          {aba === 'casos' && (
             <EmptyState
               title={`${rotuloAba}: em construção`}
               description="Esta aba chega nos próximos passos da tela. Os modelos já podem ser consultados na aba Modelos."

@@ -53,3 +53,17 @@ export interface EmpresaModelo {
   atividade: string | null;
   aplicado_em: string | null;
 }
+
+/** Processo do CatalogoProcessos (aba Processos). `tipo` do estado: ini | nor | esp | ok | x. */
+export interface ProcessoCatalogo {
+  id: string;
+  area: string;
+  nome: string;
+  doc: string;
+  porque: string;
+  liga: string[];
+  roteiro: { titulo: string; trilhas: string[][]; junta: string[] } | null;
+  estados: { chave: string; nome: string; tipo: string; lado: boolean }[];
+  /** `de`/`para` são chaves de estado; `para` null = a ação não muda o estado. */
+  transicoes: { de: string; para: string | null; rotulo: string; guarda: string; efeito: string; quem: string }[];
+}

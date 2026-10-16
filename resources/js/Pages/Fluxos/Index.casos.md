@@ -97,10 +97,20 @@ last_run: "2026-10-16"
 - **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-11").
 - **Status: 🧪**
 
+## UC-FLXT-12 · A aba Processos mostra estados, transições e roteiro de cada processo
+- **Persona:** dono entendendo como um documento anda antes de escolher o modelo.
+- **Aceite:** Dado o catálogo de processos (protótipo aprovado no #9498) · Quando abre `?aba=processos`
+  · Então vê os processos por área, e no escolhido os estados (com início, espera e fins), a tabela
+  de transições (de → para, ação, só passa se, efeito, quem) com filtro por estado de origem, o
+  roteiro em paralelo da produção e o comparativo NF-e × NFS-e nos fiscais. `?processo=` abre um
+  processo direto (o link "Ver estados e condições" da gaveta do modelo usa isso).
+- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-12").
+- **Status: 🧪**
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste)
 
-- **[BACKLOG]** Aba Processos: estados, transições e roteiro (PR 2).
+- **[BACKLOG]** Indicador de cobertura por processo e situação por transição — nasce primeiro num PR só de protótipo (regra [W] 2026-10-16).
 - **[BACKLOG]** Ligar/desligar regra por processo e a Compra editável do protótipo — o ERP ainda não tem regra configurável.
 - **[BACKLOG]** Aba Casos de uso: UC-FLX com fontes e estado (PR 4).

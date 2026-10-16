@@ -280,3 +280,32 @@ it('UC-FLXT-11 · sem fluxos.ver o assistente devolve 403', function () {
 
     expect(flxtAssistente($this, ['porte' => 'pequena', 'atividade' => 'cv'])->getStatusCode())->toBe(403);
 });
+
+it('UC-FLXT-12 · aba Processos traz os processos do catálogo com estados, transições e roteiro', function () {
+    flxtEntrar($this, flxtUsuario(['fluxos.ver']));
+
+    $r = flxtGet($this, '/fluxos?aba=processos&processo=nfe');
+    $r->assertOk();
+    $procs = collect($r->json('props.processos'));
+
+    // Os processos do protótipo aprovado (#9498), incluindo devoluções e as 3 OS.
+    expect($procs->count())->toBe(count(\App\Domain\Fsm\Modelos\CatalogoProcessos::processos()));
+    expect($procs->pluck('id')->all())->toContain('venda', 'producao', 'nfe', 'devolucao', 'devolucao-compra', 'os-reparo', 'oficina-os', 'os-cv');
+    expect($r->json('props.processo'))->toBe('nfe');
+    expect($r->json('props.processos_total'))->toBe($procs->count());
+
+    // Produção: roteiro em paralelo; transição sem mudar de estado vem com para=null.
+    $producao = $procs->firstWhere('id', 'producao');
+    expect($producao['roteiro']['junta'])->toBe(['Montagem', 'Instalação']);
+    $concluirEtapa = collect($producao['transicoes'])->firstWhere('rotulo', 'Concluir etapa');
+    expect($concluirEtapa['para'])->toBeNull();
+    $chaves = array_column($producao['estados'], 'chave');
+    expect(collect($producao['transicoes'])->pluck('de')->diff($chaves)->all())->toBe([]);
+
+    // A cobertura por transição NÃO vai para a tela neste passo (indicador nasce no protótipo).
+    expect(array_key_exists('cobertura', $producao['transicoes'][0]))->toBeFalse();
+
+    // Fora da aba Processos o payload não leva os processos; processo desconhecido cai em producao.
+    expect(flxtGet($this, '/fluxos?aba=modelos')->json('props.processos'))->toBe([]);
+    expect(flxtGet($this, '/fluxos?aba=processos&processo=xyz')->json('props.processo'))->toBe('producao');
+});
