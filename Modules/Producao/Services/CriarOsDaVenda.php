@@ -4,7 +4,6 @@ namespace Modules\Producao\Services;
 
 use App\Domain\Fsm\Modelos\CatalogoModelos;
 use App\Domain\Fsm\Models\SaleProcess;
-use App\Domain\Fsm\Models\SaleProcessStage;
 use App\Scopes\ScopeByBusiness;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -37,15 +36,14 @@ final class CriarOsDaVenda
         if ($stageId === null) {
             return false;
         }
-        $stage = SaleProcessStage::with('process')->find($stageId);
-        $process = $stage?->process;
-        if (! $process || (int) $process->business_id !== $businessId || $stage->key !== self::ETAPA_APROVADO
-            || $process->dominio !== 'venda' || in_array($process->modelo, [null, 'legado'], true)) {
+        $etapa = DB::table('sale_process_stages as s')->join('sale_processes as p', 'p.id', '=', 's.process_id')
+            ->where('s.id', $stageId)->where('p.business_id', $businessId)->first(['s.key', 'p.dominio', 'p.modelo']);
+        if (! $etapa || $etapa->key !== self::ETAPA_APROVADO || $etapa->dominio !== 'venda' || in_array($etapa->modelo, [null, 'legado'], true)) {
             return false;
         }
 
         return SaleProcess::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)
-            ->where('key', CatalogoModelos::chaveProcesso($process->modelo, 'producao'))->exists();
+            ->where('key', CatalogoModelos::chaveProcesso((string) $etapa->modelo, 'producao'))->exists();
     }
 
     /** @return list<int> ids das OS da venda (as que já existiam e as criadas agora) */
