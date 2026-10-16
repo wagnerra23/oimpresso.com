@@ -28,10 +28,17 @@ use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\Facades\DataTables;
 use App\Events\ProductsCreatedOrModified;
 use App\TransactionSellLine;
+use App\Services\FeatureFlagService;
 use Inertia\Inertia;
 
 class ProductController extends Controller
 {
+    /**
+     * Chave por empresa (GrowthBook, default OFF): com ela ligada, /products/create abre o cadastro
+     * React em toda entrada, inclusive o "Novo produto" da /products. [F] 2026-10-16.
+     */
+    private const FLAG_CADASTRO_REACT = 'useV2ProdutoCadastro';
+
     /**
      * All Utils instance.
      */
@@ -1250,7 +1257,17 @@ class ProductController extends Controller
         $pos_module_data = $this->moduleUtil->getModuleData('get_product_screen_top_view');
 
         // Wave 2 B4 Produto (Agent W2-C 2026-05-15) — branch dual Inertia MWART (ADR 0104)
-        if (request()->header('X-Inertia')) {
+        // Visita Inertia abre sempre o React (uma visita Inertia não aceita HTML de volta).
+        // GET de página inteira (o "Novo produto" da /products navega assim) abre o React só com a
+        // chave useV2ProdutoCadastro ligada para a empresa; `?classico=1` mantém o Blade.
+        // Chave desligada (o default): o Blade segue sendo o cadastro, como antes. [F] 2026-10-16.
+        // ⚠️ Ligar para cliente exige antes o preço no formulário React (Create.casos.md §Pendência
+        // de CONTRATO: a tela ainda não manda preço).
+        $telaReact = request()->header('X-Inertia')
+            || (! request()->boolean('classico')
+                && app(FeatureFlagService::class)->isOn(self::FLAG_CADASTRO_REACT, ['business_id' => $business_id]));
+
+        if ($telaReact) {
             return Inertia::render('Produto/Create', [
                 'categories' => $categories,
                 'brands' => $brands,
