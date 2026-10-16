@@ -29,6 +29,19 @@ class SaleStageHistory extends Model
         'executed_at' => 'datetime',
     ];
 
+    /**
+     * Só as transições da VENDA. `transaction_id` guarda a chave do documento que andou no motor;
+     * a OS por item (ADR 0436) e a OS da oficina gravam o id delas no mesmo campo, então o histórico
+     * da venda X traria a OS de mesmo número. Exclui as etapas de processos de produção.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder<self>  $q
+     */
+    public function scopeDaVenda($q): void
+    {
+        $producao = fn ($p) => $p->where('dominio', 'producao');
+        $q->whereDoesntHave('toStage.process', $producao)->whereDoesntHave('fromStage.process', $producao);
+    }
+
     public function action(): BelongsTo
     {
         return $this->belongsTo(SaleStageAction::class, 'action_id');

@@ -46,6 +46,7 @@ class SaleHistoryController extends Controller
         $items = SaleStageHistory::query()
             ->where('business_id', $businessId)
             ->where('transaction_id', $id)
+            ->daVenda()
             ->with([
                 'action:id,key,label,target_stage_id,side_effect_class,event_class',
                 'fromStage:id,key,name,color',
@@ -144,6 +145,7 @@ class SaleHistoryController extends Controller
         $fsm = SaleStageHistory::query()
             ->where('business_id', $businessId)
             ->where('transaction_id', $id)
+            ->daVenda()
             ->with([
                 'action:id,key,label,target_stage_id',
                 'fromStage:id,key,name,color',
