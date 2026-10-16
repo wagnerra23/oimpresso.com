@@ -109,7 +109,7 @@ class FinanceiroLancamentosController extends Controller
         }
         $parcelas = isset($d['parcelas']) ? (int) $d['parcelas'] : null;
         if ($parcelas !== null && $centavos !== null && $centavos < $parcelas) {
-            $campos['parcelas'] = 'Cada parcela precisa ter pelo menos R$ 0,01.';
+            $campos['parcelas'] = 'Cada parcela precisa ter pelo menos um centavo.';
         }
         $plano = DB::table('fin_planos_conta')->where('business_id', $bizId)->where('codigo', $d['plano_codigo'])
             ->whereNull('deleted_at')->where('ativo', true)->first(['id', 'codigo', 'nome', 'tipo']);

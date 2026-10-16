@@ -91,7 +91,7 @@ atualizado. Título de outro business = `404 nao_encontrado`. Estado errado = `4
   Mesmas validações do novo. Registra no histórico cada campo com antes → depois. Lançamento gerado por
   venda/compra/despesa/contrato não muda de valor por aqui (`422 campos.valor`).
 - `POST .../baixar` (`BaixaLancamento`; `financeiro.contas_receber.baixar` / `financeiro.contas_pagar.pagar`) —
-  `valor_pago` em centavos, de R$ 0,01 até o valor em aberto; `pago_em` até hoje. Igual ao aberto: o título fica
+  `valor_pago` em centavos, de um centavo até o valor em aberto; `pago_em` até hoje. Igual ao aberto: o título fica
   quitado. **Menor (parcial)**: este fica liquidado com o valor pago (`valor_total` passa a ser o baixado) e o
   restante vira um lançamento NOVO em aberto vencendo em `vencimento_restante` (obrigatório), mesma pessoa/plano,
   descrição "X (restante)". A soma de `valor_total` não muda; `valor_aberto` cai exatamente o pago.

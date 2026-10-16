@@ -120,7 +120,7 @@ it('sem token 401; sem financeiro 403; sem permissão de criar 403 e nada é gra
     expect(appNovoSoma($biz, 'receber'))->toBe($antes);
 });
 
-it('único: 201 {id, ids, recorrencia_id}; grava em aberto o valor exato; banco e kpis andam R$ 1.250,50 (dupla prova)', function () {
+it('único: 201 {id, ids, recorrencia_id}; grava em aberto o valor exato; banco e kpis andam o valor exato, ao centavo (dupla prova)', function () {
     $biz = (int) $this->tenant->id;
     Passport::actingAs($this->eu, [], 'api');
     $somaAntes = appNovoSoma($biz, 'receber');
