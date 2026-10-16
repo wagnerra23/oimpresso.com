@@ -5,8 +5,8 @@ irmaos: Edit.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — editar o cadastro não pode perder o que a tela velha (Blade + Delphi) preservava.
 owner: wagner
-last_run: "2026-09-18"
-last_run_ci: "CT 100 (tenant 98, MySQL), cercado por git hash-object antes/depois (idêntico): ANTES do fix 3 failed (7 assertions) — enable_stock 1→0, not_for_selling 1→0, nome não persiste; DEPOIS 5 passed (17 assertions) com UC-PEDIT-08. Smoke de UI no staging fechou os 2 sentidos + controle negativo. UC-PEDIT-03 🧪; UC-PEDIT-01/02/04 ⬜ stub test.fixme · UC-PEDIT-01/02/04 (#7532, arquivo irmão ProdutoEditContratoTest): CT 100 (oimpresso-staging, MySQL), arquivo ProdutoEditContratoTest: 6 passed (16 assertions), baseline do mesmo arquivo em main era 2 passed (2 assertions); UC-PEDIT-01/02/04 saíram do stub e viraram Pest de comportamento, os três VERDES (guards, não achados). Os 05/06/07 seguem ❌ no arquivo irmão — nada de cálculo foi tocado aqui"
+last_run: "2026-10-16"
+last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 485 passed (2356 assertions); UC-PEDIT-01 a 09 verdes. Revalidação depois do refactor que passou as seções do formulário para _components/formulario/ (sem mudança de comportamento: HTML e estado do formulário idênticos antes/depois em 3 cenários do Editar no Vitest; o PUT envia os mesmos campos)"
 ---
 
 # Casos de Uso & Aceite — Editar produto
