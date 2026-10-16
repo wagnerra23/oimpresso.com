@@ -2,9 +2,12 @@
 
 namespace Modules\Producao\Providers;
 
+use App\Domain\Fsm\Models\SaleStageHistory;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\ServiceProvider;
 use Modules\Producao\Console\FecharTurnoCommand;
+use Modules\Producao\Jobs\CriarOsDaVendaJob;
+use Modules\Producao\Services\CriarOsDaVenda;
 
 class ProducaoServiceProvider extends ServiceProvider
 {
@@ -19,6 +22,15 @@ class ProducaoServiceProvider extends ServiceProvider
         $this->commands([FecharTurnoCommand::class]);
         $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
             $schedule->command('producao:fechar-turno')->everyFifteenMinutes()->withoutOverlapping();
+        });
+
+        // ADR 0436 (UC-FLX-01): a venda de um modelo entrou em "Aprovado" → uma OS por item, depois
+        // do commit da transição. O motor grava o histórico em toda transição, de venda ou de OS.
+        SaleStageHistory::created(function (SaleStageHistory $h) {
+            $biz = (int) $h->business_id;
+            if (app(CriarOsDaVenda::class)->deveCriar($biz, $h->to_stage_id !== null ? (int) $h->to_stage_id : null)) {
+                CriarOsDaVendaJob::dispatch($biz, (int) $h->transaction_id, $h->user_id !== null ? (int) $h->user_id : null)->afterCommit();
+            }
         });
     }
 
