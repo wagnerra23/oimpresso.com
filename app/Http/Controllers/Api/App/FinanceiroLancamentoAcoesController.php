@@ -64,7 +64,7 @@ class FinanceiroLancamentoAcoesController extends Controller
     public function alterar(Request $request, int $id): JsonResponse
     {
         return $this->acao($request, $id, 'alterar', function (Titulo $t, User $user, array $corpo) {
-            if ($t->trashed()) {
+            if ($this->excluido($t)) {
                 return $this->estado('Lançamento excluído: reative antes de alterar.');
             }
             if ($t->status === 'quitado') {
@@ -84,7 +84,7 @@ class FinanceiroLancamentoAcoesController extends Controller
             if (! $this->podeBaixar($user, (string) $t->tipo)) {
                 return $this->erro('sem_permissao', 'Seu usuário não pode ' . ($t->tipo === 'receber' ? 'receber.' : 'pagar.'), 403);
             }
-            if ($t->trashed()) {
+            if ($this->excluido($t)) {
                 return $this->estado('Lançamento excluído: reative antes de dar baixa.');
             }
             if (! in_array($t->status, ['aberto', 'parcial'], true)) {
@@ -102,7 +102,7 @@ class FinanceiroLancamentoAcoesController extends Controller
             if (! $this->podeBaixar($user, (string) $t->tipo)) {
                 return $this->erro('sem_permissao', 'Seu usuário não pode ' . ($recebe ? 'receber.' : 'pagar.'), 403);
             }
-            if ($t->trashed() || $t->status !== 'quitado') {
+            if ($this->excluido($t) || $t->status !== 'quitado') {
                 return $this->estado($recebe ? 'Este lançamento ainda não foi recebido.' : 'Este lançamento ainda não foi pago.');
             }
             $ativas = $this->baixasAtivas((int) $t->id);
@@ -117,7 +117,7 @@ class FinanceiroLancamentoAcoesController extends Controller
     public function excluir(Request $request, int $id): JsonResponse
     {
         return $this->acao($request, $id, 'excluir', function (Titulo $t, User $user, array $corpo) {
-            if ($t->trashed()) {
+            if ($this->excluido($t)) {
                 return null; // já excluído: devolve como está
             }
             $recebe = $t->tipo === 'receber';
@@ -132,10 +132,7 @@ class FinanceiroLancamentoAcoesController extends Controller
             }
             $motivo = trim((string) ($corpo['motivo'] ?? ''));
             $motivo = $motivo === '' ? null : mb_substr($motivo, 0, 200);
-            $meta = (array) ($t->metadata ?? []);
-            $meta['motivo_exclusao'] = $motivo;
-            $t->fill(['metadata' => $meta, 'updated_by' => $user->id])->save();
-            $t->delete();
+            $this->cancelar($t, $user, $motivo);
             $this->historico($t, $user, $motivo !== null ? "Excluído: {$motivo}" : 'Excluído');
 
             return null;
@@ -145,16 +142,21 @@ class FinanceiroLancamentoAcoesController extends Controller
     public function reativar(Request $request, int $id): JsonResponse
     {
         return $this->acao($request, $id, 'reativar', function (Titulo $t, User $user) {
-            if (! $t->trashed()) {
+            if (! $this->excluido($t)) {
                 return $this->estado('Este lançamento não está excluído.');
             }
             $meta = (array) ($t->metadata ?? []);
             if (! empty($meta['juntado_em'])) {
                 return $this->estado('Este restante voltou para o lançamento #' . (int) $meta['juntado_em'] . ' e não pode ser reativado.');
             }
-            $t->restore();
-            unset($meta['motivo_exclusao']);
-            $t->fill(['metadata' => $meta, 'updated_by' => $user->id])->save();
+            // Só o que foi excluído aqui (manual, com o status de antes guardado) volta; cancelamento de venda,
+            // compra ou contrato é da origem.
+            if ($t->origem !== 'manual' || $t->trashed() || empty($meta['status_antes_exclusao'])) {
+                return $this->estado('Este lançamento foi cancelado fora do app: reative no computador.');
+            }
+            $status = (string) $meta['status_antes_exclusao'];
+            unset($meta['motivo_exclusao'], $meta['status_antes_exclusao']);
+            $t->fill(['status' => $status, 'metadata' => $meta, 'updated_by' => $user->id])->save();
             $this->historico($t, $user, 'Reativado');
 
             return null;
@@ -485,15 +487,14 @@ class FinanceiroLancamentoAcoesController extends Controller
 
         if (! empty($meta['restante_id'])) {
             $resto = Titulo::withTrashed()->where('business_id', $bizId)->whereKey((int) $meta['restante_id'])->lockForUpdate()->first();
-            if ($resto !== null && ! $resto->trashed()) {
+            if ($resto !== null && ! $this->excluido($resto)) {
                 if ($resto->status !== 'aberto' || $this->centavosBaixados((int) $resto->id) > 0) {
                     return $this->estado("O restante (lançamento #{$resto->id}) já foi " . ($recebe ? 'recebido' : 'pago') . ': retorne ele antes.');
                 }
                 $metaR = (array) ($resto->metadata ?? []);
                 $metaR['juntado_em'] = (int) $t->id;
-                $metaR['motivo_exclusao'] = "Juntado de volta ao lançamento #{$t->id}";
-                $resto->fill(['metadata' => $metaR, 'updated_by' => $user->id])->save();
-                $resto->delete();
+                $resto->fill(['metadata' => $metaR])->save();
+                $this->cancelar($resto, $user, "Juntado de volta ao lançamento #{$t->id}");
                 $this->historico($resto, $user, "Juntado de volta ao lançamento #{$t->id} (retorno do pagamento parcial)");
                 $total += (int) round(((float) $resto->valor_total) * 100);
                 $junta = "; o restante #{$resto->id} voltou para este lançamento";
@@ -540,7 +541,7 @@ class FinanceiroLancamentoAcoesController extends Controller
         $restante = null;
         if (! empty($meta['restante_id'])) {
             $r = DB::table('fin_titulos')->where('business_id', $bizId)->where('id', (int) $meta['restante_id'])
-                ->whereNull('deleted_at')->first(['id', 'valor_total', 'vencimento']);
+                ->whereNull('deleted_at')->where('status', '!=', 'cancelado')->first(['id', 'valor_total', 'vencimento']);
             if ($r !== null) {
                 $restante = ['id' => (int) $r->id, 'valor' => round((float) $r->valor_total, 2), 'vencimento' => substr((string) $r->vencimento, 0, 10)];
             }
@@ -578,6 +579,24 @@ class FinanceiroLancamentoAcoesController extends Controller
         activity(self::LOG)->performedOn($t)->causedBy($user)
             ->tap(fn ($a) => $a->business_id = (int) $t->business_id)
             ->log($texto);
+    }
+
+    /** Excluído = cancelado (o model não deixa apagar título) ou, em dado antigo, com soft delete. */
+    private function excluido(Titulo $t): bool
+    {
+        return $t->trashed() || $t->status === 'cancelado';
+    }
+
+    /**
+     * "Excluir" do app = cancelar o título, a forma que o Financeiro aceita (Titulo::delete() recusa). valor_aberto
+     * fica como está: cancelado sai das somas pelo status (kpis contam só aberto/parcial) e volta igual ao reativar.
+     */
+    private function cancelar(Titulo $t, User $user, ?string $motivo): void
+    {
+        $meta = (array) ($t->metadata ?? []);
+        $meta['motivo_exclusao'] = $motivo;
+        $meta['status_antes_exclusao'] = (string) $t->status;
+        $t->fill(['status' => 'cancelado', 'metadata' => $meta, 'updated_by' => $user->id])->save();
     }
 
     /** Baixas ativas (não estorno e não estornadas) do título. */

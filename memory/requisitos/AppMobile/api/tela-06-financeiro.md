@@ -46,7 +46,8 @@ e `contadores_situacao`; **`resumo` e `contas` nunca**.
   no nosso número de um boleto do título.
 - `valor_min` / `valor_max` — sobre o `valor` mostrado (em aberto = o que falta; liquidado = o baixado).
 - `plano_conta` — código; um grupo ("2.1") pega as contas de baixo ("2.1.01").
-- `registro=ativos|excluidos|todos` — excluído = título apagado no ERP (soft delete), que segue no histórico.
+- `registro=ativos|excluidos|todos` — excluído = título **cancelado** no ERP (o Financeiro não apaga título;
+  em dado antigo, também o soft delete), que segue no histórico. Aparece na caixa dos em aberto.
 - `contrato` — nº do contrato da Cobrança Recorrente (id da assinatura) que gerou o título.
 
 Na resposta, a mais: `contadores_situacao: {a_receber, a_pagar, recebidas, pagas}` (sempre, já com o
@@ -121,10 +122,12 @@ atualizado. Título de outro business = `404 nao_encontrado`. Estado errado = `4
   descrição "X (restante)". A soma de `valor_total` não muda; `valor_aberto` cai exatamente o pago.
 - `POST .../estornar` ("Retornar") — só liquidado. Cada baixa ativa ganha a linha de estorno (ledger: valor
   negativo com `estorno_de_id`; baixa nunca é apagada). Num parcial, o restante ainda em aberto volta para este
-  (é excluído com o motivo "Juntado de volta…" e não pode ser reativado); restante já pago → `409`. Baixa que
+  (é cancelado com o motivo "Juntado de volta…" e não pode ser reativado); restante já pago → `409`. Baixa que
   veio do pagamento da venda/compra (`transaction_payment_id`) não se retorna por aqui (`409`).
-- `POST .../excluir {motivo}` — só em aberto, sem baixa e de origem manual; soft delete com o motivo.
-  `POST .../reativar` — desfaz a exclusão.
+- `POST .../excluir {motivo}` — só em aberto, sem baixa e de origem manual; **cancela** o título (`Titulo::delete()`
+  recusa apagar) guardando o motivo e o status de antes. `valor_aberto` não muda: sai das somas pelo status.
+  `POST .../reativar` — volta o status de antes; só para o que foi excluído pelo app (cancelamento de venda,
+  compra ou contrato é da origem → `409`).
 - `GET .../recibo` → `ReciboDados` (só liquidado e ativo, senão `409`): `numero` = `REC-<ano do pagamento>-<id>`,
   valor = baixas ativas, data = última baixa, `empresa` = nome/CNPJ do business e cidade do 1º local, `parte` com
   o documento do cadastro, `restante` quando parcial.

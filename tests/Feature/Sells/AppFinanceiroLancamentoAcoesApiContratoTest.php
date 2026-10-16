@@ -86,7 +86,8 @@ function appAcaoTitulo($test, int $centavos, array $extra = []): int
 function appAcaoRetrato($test): array
 {
     $biz = (int) $test->tenant->id;
-    $tit = DB::table('fin_titulos')->where('business_id', $biz)->where('tipo', 'receber')->whereNull('deleted_at')
+    // Excluído no app = cancelado: fica fora das somas (como nos kpis).
+    $tit = DB::table('fin_titulos')->where('business_id', $biz)->where('tipo', 'receber')->whereNull('deleted_at')->where('status', '!=', 'cancelado')
         ->selectRaw('COALESCE(SUM(valor_total),0) t, COALESCE(SUM(CASE WHEN status IN (\'aberto\',\'parcial\') THEN valor_aberto ELSE 0 END),0) a')->first();
     $baixas = DB::table('fin_titulo_baixas as b')->where('b.business_id', $biz)->whereNull('b.estorno_de_id')
         ->whereNotExists(fn ($e) => $e->from('fin_titulo_baixas as e')->whereColumn('e.estorno_de_id', 'b.id'))->sum('b.valor_baixa');
@@ -278,5 +279,7 @@ it('excluir e reativar: sai e volta das somas; motivo no detalhe; liquidado e la
     appAcao($this, 'POST', "{$pago}/excluir")->assertStatus(409);
     $venda = appAcaoTitulo($this, 5000, ['origem' => 'venda', 'origem_id' => 999998]);
     appAcao($this, 'POST', "{$venda}/excluir")->assertStatus(409);
-    expect(DB::table('fin_titulos')->whereIn('id', [$pago, $venda])->whereNotNull('deleted_at')->count())->toBe(0);
+    expect(DB::table('fin_titulos')->whereIn('id', [$pago, $venda])->where('status', 'cancelado')->count())->toBe(0);
+    // Excluir = cancelar (o Financeiro não deixa apagar título): o registro segue, com o status de antes guardado.
+    expect(DB::table('fin_titulos')->where('id', $id)->value('status'))->toBe('aberto');
 });

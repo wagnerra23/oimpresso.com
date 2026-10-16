@@ -92,7 +92,7 @@ function appNovoCorpo(string $raiz, array $extra = []): array
 /** Soma de valor_total e valor_aberto dos títulos ativos do tipo, no business, em centavos (prova 1). */
 function appNovoSoma(int $biz, string $tipo): array
 {
-    $r = DB::table('fin_titulos')->where('business_id', $biz)->where('tipo', $tipo)->whereNull('deleted_at')
+    $r = DB::table('fin_titulos')->where('business_id', $biz)->where('tipo', $tipo)->whereNull('deleted_at')->where('status', '!=', 'cancelado')
         ->selectRaw('COALESCE(SUM(valor_total),0) as t, COALESCE(SUM(valor_aberto),0) as a, COUNT(*) as n')->first();
 
     return ['total' => (int) round($r->t * 100), 'aberto' => (int) round($r->a * 100), 'n' => (int) $r->n];
@@ -210,7 +210,10 @@ it('recusa sem gravar: grupo, plano de outro tipo, plano/pessoa/conta de outro b
         'created_by' => $this->eu->id, 'created_at' => now(), 'updated_at' => now(),
     ]);
     $contaAlheia = DB::table('fin_contas_bancarias')->insertGetId([
-        'business_id' => $outro, 'banco_codigo' => '077', 'agencia' => '0001', 'carteira' => '112',
+        'business_id' => $outro, 'account_id' => DB::table('accounts')->insertGetId([
+            'business_id' => $outro, 'name' => 'Conta APP alheia', 'account_number' => 'APP-' . uniqid(),
+            'created_by' => $this->eu->id, 'created_at' => now(), 'updated_at' => now(),
+        ]), 'banco_codigo' => '077', 'agencia' => '0001', 'carteira' => '112',
         'beneficiario_documento' => 'DOC-TESTE-APP', 'beneficiario_razao_social' => 'APP Novo', 'ativo_para_boleto' => false,
         'created_at' => now(), 'updated_at' => now(),
     ]);

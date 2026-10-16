@@ -261,7 +261,9 @@ class FinanceiroController extends Controller
         }
         $q->where(function (Builder $w) use ($abertos, $liquidados, $janela) {
             if ($abertos !== []) {
-                $w->orWhere(fn (Builder $a) => $a->whereIn('t.tipo', $abertos)->whereIn('t.status', ['aberto', 'parcial']));
+                // Cancelado ("excluído") só entra quando o registro pede (a base já filtrou), na caixa dos em aberto:
+                // só lançamento em aberto pode ser excluído.
+                $w->orWhere(fn (Builder $a) => $a->whereIn('t.tipo', $abertos)->whereIn('t.status', ['aberto', 'parcial', 'cancelado']));
             }
             if ($liquidados !== []) {
                 $w->orWhere(function (Builder $l) use ($liquidados, $janela) {
@@ -417,7 +419,10 @@ class FinanceiroController extends Controller
         return $t === null ? null : $this->item($t, CarbonImmutable::today()->toDateString());
     }
 
-    /** `registro`: ativos (padrão), excluidos (apagados no ERP, que seguem no histórico) ou todos. */
+    /**
+     * `registro`: ativos (padrão), excluidos ou todos. Excluído no ERP = título CANCELADO (o model não deixa
+     * apagar: "use cancelar() ou status=cancelado") ou, em dado antigo, com soft delete. Segue no histórico.
+     */
     private function base(int $bizId, string $registro): Builder
     {
         $q = DB::table('fin_titulos as t')
@@ -442,9 +447,9 @@ class FinanceiroController extends Controller
             ]);
 
         return match ($registro) {
-            'excluidos' => $q->whereNotNull('t.deleted_at'),
+            'excluidos' => $q->where(fn (Builder $w) => $w->whereNotNull('t.deleted_at')->orWhere('t.status', 'cancelado')),
             'todos' => $q,
-            default => $q->whereNull('t.deleted_at'),
+            default => $q->whereNull('t.deleted_at')->where('t.status', '!=', 'cancelado'),
         };
     }
 
@@ -484,7 +489,7 @@ class FinanceiroController extends Controller
             'plano_codigo' => $t->plano_codigo !== null ? (string) $t->plano_codigo : null,
             'plano_nome' => $t->plano_nome !== null ? (string) $t->plano_nome : null,
             'documento' => $documento !== '' ? $documento : (string) $t->numero,
-            'excluido' => $t->deleted_at !== null,
+            'excluido' => $t->deleted_at !== null || $t->status === 'cancelado',
             'contrato' => $t->contrato !== null ? (string) $t->contrato : ((string) ($meta['contrato'] ?? '') !== '' ? (string) $meta['contrato'] : null),
         ];
     }
