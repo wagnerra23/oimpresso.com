@@ -1,0 +1,153 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Domain\Fsm\Modelos;
+
+/**
+ * Processos que o ERP já semeia no motor FSM, transcritos dos seeders reais (pedido [W] 2026-10-16).
+ *
+ * Gerado rodando os 3 seeders num banco descartável e exportando `sale_process_stages` e
+ * `sale_stage_actions` — não digitado. Não edite à mão: o teste `FsmCatalogoProcessosContratoTest`
+ * roda os seeders e falha se esta transcrição divergir deles.
+ *
+ * estados: [chave, nome, inicial, terminal] · transicoes: [de, para|null, ação, rótulo, side effect|null]
+ */
+final class ProcessosDosSeeders
+{
+    public const PROCESSOS = [
+        'os_reparo_padrao' => [
+            'nome' => 'OS Reparo Padrão',
+            'seeder' => 'Database\\Seeders\\FsmProcessoOsReparoPadraoSeeder',
+            'estados' => [
+                ['recebido_para_diagnostico', 'Recebido pra diagnóstico', true, false],
+                ['em_diagnostico', 'Em diagnóstico', false, false],
+                ['diagnosticado_aguardando_aprovacao', 'Diagnosticado — aguardando aprovação', false, false],
+                ['orcamento_aprovado', 'Orçamento aprovado', false, false],
+                ['orcamento_rejeitado', 'Orçamento rejeitado', false, true],
+                ['aguardando_pecas', 'Aguardando peças', false, false],
+                ['pecas_chegadas', 'Peças chegaram', false, false],
+                ['em_execucao', 'Em execução', false, false],
+                ['pausado', 'Pausado', false, false],
+                ['concluido_aguardando_retirada', 'Concluído — aguardando retirada', false, false],
+                ['entregue_completo', 'Entregue ao cliente', false, true],
+                ['cancelado', 'Cancelado', false, true],
+                ['garantia_acionada', 'Garantia acionada', false, true],
+            ],
+            'transicoes' => [
+                ['recebido_para_diagnostico', 'em_diagnostico', 'iniciar_diagnostico', 'Iniciar diagnóstico', null],
+                ['em_diagnostico', 'diagnosticado_aguardando_aprovacao', 'finalizar_diagnostico', 'Finalizar diagnóstico e gerar orçamento', null],
+                ['diagnosticado_aguardando_aprovacao', 'orcamento_aprovado', 'cliente_aprovou_orcamento', 'Cliente aprovou orçamento', 'App\\Domain\\Fsm\\SideEffects\\ReservarEstoque'],
+                ['diagnosticado_aguardando_aprovacao', 'orcamento_rejeitado', 'cliente_rejeitou_orcamento', 'Cliente rejeitou orçamento', null],
+                ['orcamento_aprovado', 'aguardando_pecas', 'pedir_pecas', 'Pedir peças ao fornecedor', null],
+                ['aguardando_pecas', 'pecas_chegadas', 'confirmar_chegada_pecas', 'Confirmar chegada das peças', null],
+                ['orcamento_aprovado', 'em_execucao', 'iniciar_execucao', 'Iniciar execução do reparo', null],
+                ['pecas_chegadas', 'em_execucao', 'iniciar_execucao', 'Iniciar execução do reparo', null],
+                ['em_execucao', 'pausado', 'pausar_execucao', 'Pausar execução', null],
+                ['pausado', 'em_execucao', 'retomar_execucao', 'Retomar execução', null],
+                ['em_execucao', 'concluido_aguardando_retirada', 'concluir_execucao', 'Concluir execução do reparo', 'App\\Domain\\Fsm\\SideEffects\\ConsumirEstoque'],
+                ['concluido_aguardando_retirada', 'entregue_completo', 'entregar_ao_cliente', 'Entregar ao cliente', null],
+                ['orcamento_rejeitado', 'entregue_completo', 'entregar_ao_cliente', 'Entregar ao cliente (sem conserto)', null],
+                ['recebido_para_diagnostico', 'cancelado', 'cancelar_os', 'Cancelar OS', 'App\\Domain\\Fsm\\SideEffects\\LiberarReserva'],
+                ['em_diagnostico', 'cancelado', 'cancelar_os', 'Cancelar OS', 'App\\Domain\\Fsm\\SideEffects\\LiberarReserva'],
+                ['diagnosticado_aguardando_aprovacao', 'cancelado', 'cancelar_os', 'Cancelar OS', 'App\\Domain\\Fsm\\SideEffects\\LiberarReserva'],
+                ['orcamento_aprovado', 'cancelado', 'cancelar_os', 'Cancelar OS', 'App\\Domain\\Fsm\\SideEffects\\LiberarReserva'],
+                ['aguardando_pecas', 'cancelado', 'cancelar_os', 'Cancelar OS', 'App\\Domain\\Fsm\\SideEffects\\LiberarReserva'],
+                ['pecas_chegadas', 'cancelado', 'cancelar_os', 'Cancelar OS', 'App\\Domain\\Fsm\\SideEffects\\LiberarReserva'],
+                ['em_execucao', 'cancelado', 'cancelar_os', 'Cancelar OS', 'App\\Domain\\Fsm\\SideEffects\\LiberarReserva'],
+                ['pausado', 'cancelado', 'cancelar_os', 'Cancelar OS', 'App\\Domain\\Fsm\\SideEffects\\LiberarReserva'],
+                ['concluido_aguardando_retirada', 'cancelado', 'cancelar_os', 'Cancelar OS', 'App\\Domain\\Fsm\\SideEffects\\LiberarReserva'],
+                ['entregue_completo', 'garantia_acionada', 'registrar_garantia', 'Registrar acionamento de garantia', null],
+            ],
+        ],
+        'oficina_mecanica_os' => [
+            'nome' => 'Oficina — OS de Mecânica',
+            'seeder' => 'Modules\\OficinaAuto\\Database\\Seeders\\OficinaAutoFsmSeeder',
+            'estados' => [
+                ['recepcao', 'Recepção', true, false],
+                ['em_diagnostico', 'Diagnóstico', false, false],
+                ['aguardando_aprovacao', 'Aguardando aprovação', false, false],
+                ['aguardando_pecas', 'Aguardando peças', false, false],
+                ['em_execucao', 'Em execução', false, false],
+                ['pronto_retirada', 'Pronto p/ retirar', false, false],
+                ['entregue', 'Entregue', false, true],
+                ['cancelado', 'Cancelado', false, true],
+                ['garantia_acionada', 'Garantia acionada', false, true],
+            ],
+            'transicoes' => [
+                ['recepcao', 'em_diagnostico', 'iniciar_diagnostico', 'Iniciar diagnóstico', null],
+                ['em_diagnostico', 'aguardando_aprovacao', 'enviar_orcamento', 'Enviar orçamento pra aprovação', null],
+                ['aguardando_aprovacao', 'aguardando_pecas', 'aprovar_pedir_pecas', 'Cliente aprovou — pedir peças', null],
+                ['aguardando_aprovacao', 'em_execucao', 'aprovar_executar', 'Cliente aprovou — já executar', null],
+                ['aguardando_aprovacao', 'cancelado', 'recusar_orcamento', 'Cliente recusou orçamento', null],
+                ['aguardando_pecas', 'em_execucao', 'pecas_chegaram', 'Peças chegaram — iniciar execução', null],
+                ['em_execucao', 'pronto_retirada', 'concluir_servico', 'Concluir serviço', null],
+                ['pronto_retirada', 'entregue', 'entregar', 'Entregar ao cliente', null],
+                ['pronto_retirada', 'garantia_acionada', 'acionar_garantia', 'Acionar garantia', null],
+                ['recepcao', 'cancelado', 'cancelar_os', 'Cancelar OS', null],
+                ['em_diagnostico', 'cancelado', 'cancelar_os', 'Cancelar OS', null],
+                ['aguardando_pecas', 'cancelado', 'cancelar_os', 'Cancelar OS', null],
+                ['em_execucao', 'cancelado', 'cancelar_os', 'Cancelar OS', null],
+                ['pronto_retirada', 'cancelado', 'cancelar_os', 'Cancelar OS', null],
+            ],
+        ],
+        'os_comunicacao_visual' => [
+            'nome' => 'OS Comunicação Visual',
+            'seeder' => 'Database\\Seeders\\FsmProcessoComunicacaoVisualSeeder',
+            'estados' => [
+                ['quote_draft', 'Orçamento — Rascunho', true, false],
+                ['quote_sent', 'Orçamento — Enviado', false, false],
+                ['quote_approved', 'Aprovado pelo cliente', false, false],
+                ['arte_em_aprovacao', 'Arte em aprovação', false, false],
+                ['arte_aprovada', 'Arte aprovada', false, false],
+                ['aguardando_maquina', 'Aguardando máquina (PCP)', false, false],
+                ['em_impressao', 'Em impressão', false, false],
+                ['impressao_concluida', 'Impressão concluída', false, false],
+                ['aguardando_acabamento', 'Aguardando acabamento', false, false],
+                ['acabamento_concluido', 'Acabamento concluído', false, false],
+                ['aguardando_instalacao', 'Aguardando instalação', false, false],
+                ['em_instalacao', 'Em instalação', false, false],
+                ['instalado_aguardando_aprovacao_final', 'Instalado — aguardando aprovação final', false, false],
+                ['entregue_completo', 'Entregue ao cliente', false, true],
+                ['cancelado', 'Cancelado', false, true],
+                ['garantia_acionada', 'Garantia acionada', false, true],
+            ],
+            'transicoes' => [
+                ['quote_draft', 'quote_sent', 'enviar_orcamento', 'Enviar orçamento ao cliente', null],
+                ['quote_sent', 'quote_approved', 'cliente_aprovou', 'Cliente aprovou orçamento', 'App\\Domain\\Fsm\\SideEffects\\ReservarEstoque'],
+                ['quote_sent', 'cancelado', 'cliente_rejeitou', 'Cliente rejeitou orçamento', null],
+                ['quote_approved', 'arte_em_aprovacao', 'enviar_para_aprovacao_arte', 'Enviar arte pra aprovação cliente', null],
+                ['arte_em_aprovacao', 'arte_aprovada', 'aprovar_arte', 'Arte aprovada pelo cliente', null],
+                ['arte_em_aprovacao', 'arte_em_aprovacao', 'rejeitar_arte', 'Rejeitar arte (volta pra designer)', null],
+                ['arte_aprovada', 'em_impressao', 'iniciar_impressao', 'Iniciar impressão', null],
+                ['arte_aprovada', 'aguardando_maquina', 'aguardar_maquina', 'Aguardar liberação de máquina (PCP industrial)', null],
+                ['aguardando_maquina', 'em_impressao', 'iniciar_impressao', 'Iniciar impressão (máquina liberada)', null],
+                ['em_impressao', 'impressao_concluida', 'concluir_impressao', 'Concluir impressão', 'App\\Domain\\Fsm\\SideEffects\\ConsumirEstoque'],
+                ['em_impressao', 'em_impressao', 'refazer_impressao', 'Refazer impressão (problema detectado)', null],
+                ['impressao_concluida', 'aguardando_acabamento', 'iniciar_acabamento', 'Iniciar acabamento', null],
+                ['aguardando_acabamento', 'acabamento_concluido', 'concluir_acabamento', 'Concluir acabamento', null],
+                ['acabamento_concluido', 'entregue_completo', 'entregar_balcao', 'Cliente busca no balcão', null],
+                ['acabamento_concluido', 'aguardando_instalacao', 'agendar_instalacao', 'Agendar instalação', null],
+                ['aguardando_instalacao', 'em_instalacao', 'iniciar_instalacao', 'Iniciar instalação (chegou no cliente)', null],
+                ['aguardando_instalacao', 'aguardando_instalacao', 'reagendar_instalacao', 'Reagendar instalação', null],
+                ['em_instalacao', 'instalado_aguardando_aprovacao_final', 'concluir_instalacao', 'Concluir instalação', null],
+                ['instalado_aguardando_aprovacao_final', 'entregue_completo', 'aprovacao_final_cliente', 'Cliente aprovou instalação final', null],
+                ['entregue_completo', null, 'emitir_nfe_e_nfse', 'Emitir NFe55 (mercadoria) + NFSe56 (instalação) paralelo', null],
+                ['entregue_completo', 'garantia_acionada', 'aplicar_garantia', 'Acionar garantia (abre OS filha)', null],
+                ['quote_draft', 'cancelado', 'cancelar_os', 'Cancelar OS', 'App\\Domain\\Fsm\\SideEffects\\CancelarVendaCascade'],
+                ['quote_sent', 'cancelado', 'cancelar_os', 'Cancelar OS', 'App\\Domain\\Fsm\\SideEffects\\CancelarVendaCascade'],
+                ['quote_approved', 'cancelado', 'cancelar_os', 'Cancelar OS', 'App\\Domain\\Fsm\\SideEffects\\CancelarVendaCascade'],
+                ['arte_em_aprovacao', 'cancelado', 'cancelar_os', 'Cancelar OS', 'App\\Domain\\Fsm\\SideEffects\\CancelarVendaCascade'],
+                ['arte_aprovada', 'cancelado', 'cancelar_os', 'Cancelar OS', 'App\\Domain\\Fsm\\SideEffects\\CancelarVendaCascade'],
+                ['aguardando_maquina', 'cancelado', 'cancelar_os', 'Cancelar OS', 'App\\Domain\\Fsm\\SideEffects\\CancelarVendaCascade'],
+                ['em_impressao', 'cancelado', 'cancelar_os', 'Cancelar OS', 'App\\Domain\\Fsm\\SideEffects\\CancelarVendaCascade'],
+                ['impressao_concluida', 'cancelado', 'cancelar_os', 'Cancelar OS', 'App\\Domain\\Fsm\\SideEffects\\CancelarVendaCascade'],
+                ['aguardando_acabamento', 'cancelado', 'cancelar_os', 'Cancelar OS', 'App\\Domain\\Fsm\\SideEffects\\CancelarVendaCascade'],
+                ['acabamento_concluido', 'cancelado', 'cancelar_os', 'Cancelar OS', 'App\\Domain\\Fsm\\SideEffects\\CancelarVendaCascade'],
+                ['aguardando_instalacao', 'cancelado', 'cancelar_os', 'Cancelar OS', 'App\\Domain\\Fsm\\SideEffects\\CancelarVendaCascade'],
+                ['em_instalacao', 'cancelado', 'cancelar_os', 'Cancelar OS', 'App\\Domain\\Fsm\\SideEffects\\CancelarVendaCascade'],
+                ['instalado_aguardando_aprovacao_final', 'cancelado', 'cancelar_os', 'Cancelar OS', 'App\\Domain\\Fsm\\SideEffects\\CancelarVendaCascade'],
+            ],
+        ],
+    ];
+}
