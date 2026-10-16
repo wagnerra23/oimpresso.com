@@ -37,7 +37,7 @@ produção desde 2026-05-12 ([ADR 0143](0143-fsm-pipeline-live-prod-marco-2026-0
 documento que não é venda (a `OrdemProducao` da Comunicação Visual usa `current_stage_id`).
 
 Hoje cada empresa recebe o mesmo processo de venda, `venda_com_producao`: uma linha única que mistura
-orçamento, produção, faturamento, pagamento e entrega. A ADR 0434 ([PR #9484](https://github.com/wagnerra23/oimpresso.com/pull/9484), ainda aberto em 2026-10-16)
+orçamento, produção, faturamento, pagamento e entrega. A [ADR 0434](0434-fsm-pedido-retomar-pagamento-fora-das-etapas.md)
 corrigiu três travas dessa linha, mas ela continua igual para a gráfica de 3 pessoas e para a de 200.
 
 O [W] desenhou no protótipo "Fluxos e regras" (`prototipo-ui/cowork/Wagner/fluxos-data.jsx`,

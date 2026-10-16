@@ -254,6 +254,17 @@
       }
     },
     {
+      "screen": "Producao",
+      "note": "7 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
       "screen": "ProductCatalogue",
       "note": "1 arquivo(s)",
       "cells": {
@@ -563,7 +574,7 @@
     },
     {
       "screen": "Produto",
-      "note": "37 arquivo(s)",
+      "note": "45 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -661,18 +672,18 @@
       }
     }
   ],
-  "progressPct": 60,
+  "progressPct": 61,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "ed2702122",
-  "generatedAt": "2026-10-15T14:19:14.505Z",
+  "measuredAgainstSha": "d645bde5a",
+  "generatedAt": "2026-10-16T14:08:47.328Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
   },
   "counts": {
-    "screens": 60,
-    "done": 36,
+    "screens": 61,
+    "done": 37,
     "references": 0
   }
 }
