@@ -140,7 +140,7 @@ final class CatalogoProcessos
                     'para' => $t[1] !== null ? $chavePorNome[$t[1]] : null,
                     'acao' => CatalogoModelos::chaveEtapa($t[2]),
                     'rotulo' => $t[2], 'guarda' => $t[3], 'efeito' => $t[4], 'quem' => $t[5],
-                    'cobertura' => self::cobertura($id, $erp, $t[2], $t[1], in_array($tipoPorNome[$t[0]], self::FINAIS, true)),
+                    'cobertura' => self::cobertura($id, $erp, $t[2], $t[1], $t[0], in_array($tipoPorNome[$t[0]], self::FINAIS, true)),
                 ], $p['trans']),
             ];
         }
@@ -160,9 +160,9 @@ final class CatalogoProcessos
     }
 
     /** @return array{estado:string, onde:string} */
-    private static function cobertura(string $id, ?string $erp, string $rotulo, ?string $para, bool $origemFinal): array
+    private static function cobertura(string $id, ?string $erp, string $rotulo, ?string $para, string $de, bool $origemFinal): array
     {
-        $chave = self::chaveCobertura($id, $rotulo, $para);
+        $chave = self::chaveCobertura($id, $rotulo, $para, $de);
         if ($chave !== null) {
             [$estado, $onde] = self::COBERTURA[$id][$chave];
 
@@ -180,10 +180,18 @@ final class CatalogoProcessos
         return ['estado' => 'nao_verificado', 'onde' => 'Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição.'];
     }
 
-    /** Chave de COBERTURA desta ação: "rótulo → destino" se existir, senão "rótulo"; null se nenhuma. */
-    public static function chaveCobertura(string $id, string $rotulo, ?string $para): ?string
+    /**
+     * Chave de COBERTURA desta ação, da mais específica para a mais geral: "origem → destino · rótulo",
+     * "rótulo → destino", "rótulo". null se nenhuma.
+     */
+    public static function chaveCobertura(string $id, string $rotulo, ?string $para, ?string $de = null): ?string
     {
-        foreach ([$rotulo . ' → ' . ($para ?? 'mesmo estado'), $rotulo] as $chave) {
+        $destino = $para ?? 'mesmo estado';
+        $candidatas = [$rotulo . ' → ' . $destino, $rotulo];
+        if ($de !== null) {
+            array_unshift($candidatas, $de . ' → ' . $destino . ' · ' . $rotulo);
+        }
+        foreach ($candidatas as $chave) {
             if (isset(self::COBERTURA[$id][$chave])) {
                 return $chave;
             }

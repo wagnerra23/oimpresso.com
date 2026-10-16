@@ -273,7 +273,7 @@ it('devolução completa, cobertura sem órfão e resumos', function () {
     foreach (CatalogoProcessos::COBERTURA as $id => $mapa) {
         $p = CatalogoProcessos::processos()[$id];
         $nomes = array_column($p['estados'], 'nome', 'chave');
-        $usadas = array_map(fn ($t) => CatalogoProcessos::chaveCobertura($id, $t['rotulo'], $t['para'] !== null ? $nomes[$t['para']] : null), $p['transicoes']);
+        $usadas = array_map(fn ($t) => CatalogoProcessos::chaveCobertura($id, $t['rotulo'], $t['para'] !== null ? $nomes[$t['para']] : null, $nomes[$t['de']]), $p['transicoes']);
         expect(in_array(null, $usadas, true))->toBeFalse("{$id}: ação sem cobertura escrita")
             ->and(array_keys($mapa))->toEqualCanonicalizing($usadas, "{$id}: cobertura sobrando ou repetida");
     }
