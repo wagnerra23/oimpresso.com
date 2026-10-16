@@ -437,17 +437,21 @@ it('UC-PIDX-25 · produto de outra empresa com origem própria não abre no pain
     expect(pdtDetalhe($this, $alheio->productId))->toBeNull();
 });
 
-it('UC-PIDX-25 · "Abrir no módulo Fiscal" só vem com o módulo no pacote E a permissão da Tributação', function () {
+it('UC-PIDX-25 · "Abrir no módulo Fiscal" só vem com o módulo no pacote E a permissão de acessar o módulo', function () {
     $p = pdtProdutoComPrecos($this->business->id);
 
-    // Controle positivo: módulo no pacote + nfe.tributacao.manage → a Tributação com o produto.
+    // Controle positivo: módulo no pacote + fiscal.access + nfe.tributacao.manage → a Tributação com o produto.
     pdtPacoteNfe(true);
-    pdtEntrar($this, ['product.view', 'access_all_locations', 'nfe.tributacao.manage']);
+    pdtEntrar($this, ['product.view', 'access_all_locations', 'fiscal.access', 'nfe.tributacao.manage']);
     expect(pdtDetalhe($this, $p->productId)['fiscal']['link_modulo'])
         ->toBe(route('nfe-brasil.tributacao.index', ['produto' => $p->productId]) . '#simulador');
 
-    // Sem a permissão: o botão levaria a uma tela que recusa o simulador.
-    pdtEntrar($this, ['product.view', 'access_all_locations']);
+    // Sem a permissão de acessar o módulo (decisão [F] 2026-10-16), mesmo podendo simular: não vem.
+    pdtEntrar($this, ['product.view', 'access_all_locations', 'nfe.tributacao.manage']);
+    expect(pdtDetalhe($this, $p->productId)['fiscal']['link_modulo'])->toBeNull();
+
+    // Com acesso ao módulo, mas sem a permissão do simulador: a tela recusaria a simulação.
+    pdtEntrar($this, ['product.view', 'access_all_locations', 'fiscal.access']);
     expect(pdtDetalhe($this, $p->productId)['fiscal']['link_modulo'])->toBeNull();
 });
 
@@ -456,6 +460,6 @@ it('UC-PIDX-25 · "Abrir no módulo Fiscal" só vem com o módulo no pacote E a 
 it('UC-PIDX-25 · com a permissão, mas o módulo Fiscal fora do pacote da empresa, o botão não vem', function () {
     $p = pdtProdutoComPrecos($this->business->id);
     pdtPacoteNfe(false);
-    pdtEntrar($this, ['product.view', 'access_all_locations', 'nfe.tributacao.manage']);
+    pdtEntrar($this, ['product.view', 'access_all_locations', 'fiscal.access', 'nfe.tributacao.manage']);
     expect(pdtDetalhe($this, $p->productId)['fiscal']['link_modulo'])->toBeNull();
 });
