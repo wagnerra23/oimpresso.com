@@ -1076,6 +1076,9 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/discount/activate/{id}', [DiscountController::class, 'activate']);
     Route::post('/discount/mass-deactivate', [DiscountController::class, 'massDeactivate']);
     Route::resource('discount', DiscountController::class);
+    // Sistema › Fluxos e regras (ADR 0435): modelos de fluxo por porte × atividade.
+    // O controller checa fluxos.ver; aplicar modelo (fluxos.configurar) entra no PR 3.
+    Route::get('/fluxos', [\App\Http\Controllers\FluxosController::class, 'index'])->name('fluxos.index');
 
     Route::prefix('account')->group(function () {
         Route::resource('/account', AccountController::class);

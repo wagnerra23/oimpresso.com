@@ -1,0 +1,21 @@
+// Cadeia de etapas numeradas; etapas com regra ficam marcadas (classe `r` do bundle).
+// Fonte visual: `Cadeia` em prototipo-ui/cowork/Wagner/fluxos-page.jsx.
+
+export function Cadeia({ etapas, marcadas }: { etapas: string[]; marcadas?: Set<string> }) {
+  return (
+    <ol className="flx-chain">
+      {etapas.map((e, i) => (
+        <li key={e} className={marcadas?.has(e) ? 'r' : ''}>
+          <span className="n">{i + 1}</span>
+          {e}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/** Selo do encaixe: Recomendado (ok) · Serve (accent) · Parcial/Outro perfil (mute). */
+export function SeloEncaixe({ n, rotulo }: { n: number; rotulo: string }) {
+  const tom = n >= 4 ? 'ok' : n === 3 ? 'accent' : 'mute';
+  return <span className={`flx-pill ${tom}`}>{rotulo}</span>;
+}
