@@ -669,7 +669,7 @@ return [
     'price' => 'Preço',
     'auto_backup_instruction' => 'Para ativar o backup automático e a limpeza do backup, você deve configurar uma tarefa cron com este comando',
     'gross_profit' => 'Lucro bruto',
-    'single' => 'Solteiro',
+    'single' => 'Único',
     'variable' => 'Variável',
     'total_purchase_price' => 'Preço total de compra',
     'total_sell_price' => 'Preço total de venda',
