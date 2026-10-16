@@ -259,3 +259,161 @@ it('Início: a área financeiro aparece com a mesma regra do endpoint', function
     Passport::actingAs(appFinUsuario((int) $this->tenant->id, false), [], 'api');
     expect($this->getJson('/api/app/inicio')->assertOk()->json('areas'))->not->toContain('financeiro');
 });
+
+// ── Filtro avançado (FILTRO_FINANCEIRO do app). Regra de referência: `filtrarLancamentos` em
+//    oimpresso-app src/financeiro-filtros.ts — os casos abaixo vêm de lá, não do controller. Cada teste
+//    marca os seus títulos com um nome de parte único e filtra por `busca`, para não depender do seed. ──
+
+/** Ids da lista para a query dada, com o marcador do teste em `busca`. */
+function appFinIds($test, string $marca, string $query): array
+{
+    $r = $test->getJson('/api/app/financeiro?busca=' . urlencode($marca) . '&' . $query)->assertOk();
+
+    return array_column($r->json('itens'), 'id');
+}
+
+it('situacao=: junta as caixas pedidas (em aberto primeiro, depois liquidados) e conta cada caixa já com o filtro', function () {
+    appFinPlano(true);
+    $biz = (int) $this->tenant->id;
+    $eu = appFinUsuario($biz, true);
+    Passport::actingAs($eu, [], 'api');
+    $hoje = CarbonImmutable::today()->toDateString();
+    $m = 'APPSIT-' . uniqid();
+
+    $rec = appFinTitulo($biz, $eu->id, 'receber', 'aberto', 10.0, 10.0, '2001-03-01', ['cliente_descricao' => $m]);
+    $pag = appFinTitulo($biz, $eu->id, 'pagar', 'aberto', 20.0, 20.0, '2001-03-02', ['cliente_descricao' => $m]);
+    $pagas = appFinTitulo($biz, $eu->id, 'pagar', 'quitado', 30.0, 0, $hoje, ['cliente_descricao' => $m]);
+    appFinBaixa($biz, $pagas, $eu->id, 30.0, $hoje);
+    $recebida = appFinTitulo($biz, $eu->id, 'receber', 'quitado', 40.0, 0, $hoje, ['cliente_descricao' => $m]);
+    appFinBaixa($biz, $recebida, $eu->id, 40.0, $hoje);
+
+    $r = $this->getJson('/api/app/financeiro?situacao=a_receber,pagas&busca=' . urlencode($m))->assertOk();
+    expect(array_column($r->json('itens'), 'id'))->toBe([$rec, $pagas]);
+    expect($r->json('contadores_situacao'))->toBe(['a_receber' => 1, 'a_pagar' => 1, 'recebidas' => 1, 'pagas' => 1]);
+    expect($r->json('contadores'))->toBe(['receber' => 1, 'pagar' => 1, 'extrato' => 2]);
+
+    // Valor desconhecido é ignorado; nenhuma caixa válida = lista vazia (não cai na aba).
+    expect(appFinIds($this, $m, 'situacao=a_pagar,lixo'))->toBe([$pag]);
+    expect(appFinIds($this, $m, 'situacao='))->toBe([]);
+});
+
+it('registro: excluídos ficam fora por padrão, saem sozinhos com registro=excluidos e junto com registro=todos', function () {
+    appFinPlano(true);
+    $biz = (int) $this->tenant->id;
+    $eu = appFinUsuario($biz, true);
+    Passport::actingAs($eu, [], 'api');
+    $m = 'APPREG-' . uniqid();
+
+    $ativo = appFinTitulo($biz, $eu->id, 'receber', 'aberto', 10.0, 10.0, '2001-04-01', ['cliente_descricao' => $m]);
+    $apagado = appFinTitulo($biz, $eu->id, 'receber', 'aberto', 11.0, 11.0, '2001-04-02', ['cliente_descricao' => $m, 'deleted_at' => now()]);
+
+    expect(appFinIds($this, $m, 'aba=receber'))->toBe([$ativo]);
+    $exc = $this->getJson('/api/app/financeiro?registro=excluidos&busca=' . urlencode($m))->assertOk();
+    expect(array_column($exc->json('itens'), 'id'))->toBe([$apagado]);
+    expect($exc->json('itens.0.excluido'))->toBeTrue();
+    expect(appFinIds($this, $m, 'registro=todos'))->toBe([$ativo, $apagado]);
+});
+
+it('plano_conta: o grupo pega as contas de baixo; planos_conta vem na ordem do código, só do business', function () {
+    if (! Schema::hasTable('fin_planos_conta')) {
+        $this->markTestSkipped('Schema ausente (fin_planos_conta).');
+    }
+    appFinPlano(true);
+    $biz = (int) $this->tenant->id;
+    $eu = appFinUsuario($biz, true);
+    Passport::actingAs($eu, [], 'api');
+    $m = 'APPPLANO-' . uniqid();
+    $raiz = '9' . random_int(100, 999);
+    $plano = fn (int $b, string $cod, string $tipo, int $nivel) => DB::table('fin_planos_conta')->insertGetId([
+        'business_id' => $b, 'codigo' => $cod, 'nome' => "Plano {$cod}", 'tipo' => $tipo, 'nivel' => $nivel,
+        'natureza' => 'debito', 'aceita_lancamento' => true, 'ativo' => true, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $grupo = $plano($biz, "{$raiz}.2", 'despesa', 2);
+    $filha = $plano($biz, "{$raiz}.2.01", 'custo', 3);
+    $filha10 = $plano($biz, "{$raiz}.10", 'receita', 2);
+    $plano((int) $this->outro->id, "{$raiz}.2.99", 'despesa', 3);
+
+    $noGrupo = appFinTitulo($biz, $eu->id, 'pagar', 'aberto', 5.0, 5.0, '2001-05-01', ['cliente_descricao' => $m, 'plano_conta_id' => $grupo]);
+    $naFilha = appFinTitulo($biz, $eu->id, 'pagar', 'aberto', 6.0, 6.0, '2001-05-02', ['cliente_descricao' => $m, 'plano_conta_id' => $filha]);
+    appFinTitulo($biz, $eu->id, 'pagar', 'aberto', 7.0, 7.0, '2001-05-03', ['cliente_descricao' => $m, 'plano_conta_id' => $filha10]);
+
+    $r = $this->getJson("/api/app/financeiro?aba=pagar&plano_conta={$raiz}.2&busca=" . urlencode($m))->assertOk();
+    expect(array_column($r->json('itens'), 'id'))->toBe([$noGrupo, $naFilha]);
+    expect($r->json('itens.1'))->toMatchArray(['plano_codigo' => "{$raiz}.2.01", 'plano_nome' => "Plano {$raiz}.2.01"]);
+
+    $planos = collect($r->json('planos_conta'))->filter(fn ($p) => str_starts_with($p['codigo'], $raiz . '.'))->values()->all();
+    expect($planos)->toBe([
+        ['codigo' => "{$raiz}.2", 'nome' => "Plano {$raiz}.2", 'tipo' => 'despesa'],
+        ['codigo' => "{$raiz}.2.01", 'nome' => "Plano {$raiz}.2.01", 'tipo' => 'despesa'],
+        ['codigo' => "{$raiz}.10", 'nome' => "Plano {$raiz}.10", 'tipo' => 'receita'],
+    ]);
+});
+
+it('valor, documento, período e forma: a regra do app sobre o valor mostrado e a forma realizada', function () {
+    appFinPlano(true);
+    $biz = (int) $this->tenant->id;
+    $eu = appFinUsuario($biz, true);
+    Passport::actingAs($eu, [], 'api');
+    $hoje = CarbonImmutable::today()->toDateString();
+    $m = 'APPVAL-' . uniqid();
+
+    // Parcial: o valor mostrado é o que falta (30), não o total (80).
+    $parcial = appFinTitulo($biz, $eu->id, 'receber', 'parcial', 80.0, 30.0, '2001-06-01',
+        ['cliente_descricao' => $m, 'numero' => 'DOC-' . random_int(100000, 999999), 'emissao' => '2001-05-10', 'forma_pagamento' => 'boleto']);
+    $doc = substr((string) DB::table('fin_titulos')->where('id', $parcial)->value('numero'), 4);
+    $grande = appFinTitulo($biz, $eu->id, 'receber', 'aberto', 500.0, 500.0, '2001-06-02',
+        ['cliente_descricao' => $m, 'emissao' => '2001-05-20', 'forma_pagamento' => 'boleto']);
+    // Previsto boleto, recebido no Pix: a forma realizada manda.
+    $quitado = appFinTitulo($biz, $eu->id, 'receber', 'quitado', 50.0, 0, '2001-06-03',
+        ['cliente_descricao' => $m, 'emissao' => '2001-05-11', 'forma_pagamento' => 'boleto']);
+    appFinBaixa($biz, $quitado, $eu->id, 50.0, $hoje);
+
+    expect(appFinIds($this, $m, 'aba=receber&valor_min=20&valor_max=100'))->toBe([$parcial]);
+    expect(appFinIds($this, $m, 'aba=receber&valor_min=31'))->toBe([$grande]);
+    expect(appFinIds($this, $m, "aba=receber&documento={$doc}"))->toBe([$parcial]);
+    expect(appFinIds($this, $m, 'situacao=a_receber,recebidas&data_campo=emissao&de=2001-05-10&ate=2001-05-11'))->toBe([$parcial, $quitado]);
+    // Pagamento: título em aberto não tem data de pagamento, então não entra no período.
+    expect(appFinIds($this, $m, "situacao=a_receber,recebidas&data_campo=pagamento&de={$hoje}&ate={$hoje}"))->toBe([$quitado]);
+    expect(appFinIds($this, $m, 'situacao=a_receber,recebidas&forma_pagamento=Pix'))->toBe([$quitado]);
+    expect(appFinIds($this, $m, 'situacao=a_receber,recebidas&forma_pagamento=Boleto'))->toBe([$parcial, $grande]);
+    expect(appFinIds($this, $m, 'situacao=a_receber,recebidas&forma_pagamento=Vale'))->toBe([]);
+
+    $r = $this->getJson('/api/app/financeiro?situacao=recebidas&busca=' . urlencode($m))->assertOk();
+    expect($r->json('itens.0'))->toMatchArray(['id' => $quitado, 'forma_pagamento' => 'Pix', 'emissao' => '2001-05-11', 'competencia' => '2001-06', 'excluido' => false]);
+    expect($r->json('formas_pagamento'))->toContain('Pix', 'Boleto', 'Cartão de crédito');
+});
+
+it('conta, NF e nosso número; o filtro nunca traz título de outro business e não mexe no resumo', function () {
+    appFinPlano(true);
+    $biz = (int) $this->tenant->id;
+    $eu = appFinUsuario($biz, true);
+    Passport::actingAs($eu, [], 'api');
+    $m = 'APPCONTA-' . uniqid();
+    $conta = appFinConta($biz, $eu->id, 'Conta APP filtro', null);
+
+    $comConta = appFinTitulo($biz, $eu->id, 'receber', 'aberto', 10.0, 10.0, '2001-07-01',
+        ['cliente_descricao' => $m, 'conta_bancaria_id' => $conta, 'metadata' => json_encode(['nfe_numero' => '004512'])]);
+    $comBoleto = appFinTitulo($biz, $eu->id, 'receber', 'aberto', 12.0, 12.0, '2001-07-02', ['cliente_descricao' => $m]);
+    DB::table('fin_boleto_remessas')->insert([
+        'business_id' => $biz, 'titulo_id' => $comBoleto, 'conta_bancaria_id' => $conta, 'nosso_numero' => '00077123',
+        'linha_digitavel' => str_repeat('1', 47), 'codigo_barras' => str_repeat('2', 44), 'valor_total' => 12.0,
+        'vencimento' => '2001-07-02', 'strategy' => 'cnab_direct', 'idempotency_key' => (string) Str::uuid(),
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    // O mesmo marcador e a mesma NF no business 2: não pode aparecer.
+    $alheio = appFinTitulo((int) $this->outro->id, $eu->id, 'receber', 'aberto', 99.0, 99.0, '2001-07-01',
+        ['cliente_descricao' => $m, 'metadata' => json_encode(['nfe_numero' => '004512'])]);
+
+    $antes = $this->getJson('/api/app/financeiro')->assertOk()->json('resumo');
+    expect(appFinIds($this, $m, "aba=receber&conta_id={$conta}"))->toBe([$comConta]);
+    expect(appFinIds($this, $m, 'aba=receber&nf=4512'))->toBe([$comConta]);
+    expect(appFinIds($this, $m, 'aba=receber&nosso_numero=77123'))->toBe([$comBoleto]);
+    expect(appFinIds($this, $m, 'aba=receber'))->toBe([$comConta, $comBoleto]);
+    expect(appFinIds($this, $m, 'registro=todos&situacao=a_receber'))->not->toContain($alheio);
+
+    $filtrado = $this->getJson('/api/app/financeiro?aba=receber&valor_min=999999&busca=' . urlencode($m))->assertOk();
+    expect($filtrado->json('itens'))->toBe([]);
+    expect($filtrado->json('resumo'))->toBe($antes);
+    $item = collect($this->getJson('/api/app/financeiro?aba=receber&busca=' . urlencode($m))->json('itens'))->firstWhere('id', $comBoleto);
+    expect($item['nosso_numero'])->toBe('00077123');
+});
