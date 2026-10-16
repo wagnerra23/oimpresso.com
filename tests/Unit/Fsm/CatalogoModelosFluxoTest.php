@@ -23,6 +23,7 @@ function flxProtoModelos(): array
     $modelos = [];
     $atual = null;
     foreach (explode("\n", $bloco) as $linha) {
+        $linha = rtrim($linha);
         if (preg_match('/\{ id: "([a-z-]+)"/', $linha, $m)) {
             $atual = $m[1];
             $modelos[$atual] = ['processos' => []];
