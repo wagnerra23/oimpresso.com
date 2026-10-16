@@ -22,6 +22,45 @@ function EtapaLi({ e, i, D }) {
   );
 }
 
+// Situação da OS por item (processo "OS e produção por item" de fluxos-processos.jsx). O roteiro (aba Etapas) diz
+// ONDE o item está; a situação diz COMO ele está: na fila, em execução, pausado, em retrabalho, concluído.
+// Cada ação que pede dado o pede na prévia (campos do OiEtapaPainel), antes de confirmar.
+function situacaoDe(os, es) {
+  if (es.every((e) => e.estado === "feito" || e.estado === "pronto")) return "Concluída";
+  if (os.arte !== "aprovada") return "Aguardando liberação";
+  return es.some((e) => e.estado === "andamento") ? "Em execução" : "Na fila";
+}
+function SituacaoItem({ os, es, D, irAba }) {
+  const { Select } = DS();
+  if (!window.OiEtapaPainel) return null;
+  const org = D.origemDe ? D.origemDe(os.id) : null;
+  const falta = es.filter((e) => e.estado !== "feito" && e.estado !== "pronto");
+  const feitas = es.filter((e) => e.estado === "feito" || e.estado === "pronto" || e.estado === "andamento");
+  const mats = (D.MATERIAIS || {})[os.id] || [];
+  const radio = (nome, ops, val, set, k) => <div className="pcv-mot" role="radiogroup" aria-label={nome}>{ops.map((o) => <label key={o}><input type="radio" name={nome} checked={val[k] === o} onChange={() => set({ ...val, [k]: o })} /> {o}</label>)}</div>;
+  const campos = {
+    "Pausar": { ok: (v) => !!v.motivo, texto: (v) => v.motivo, render: (v, set) => <><span className="oie-l">Motivo da pausa</span>{radio("Motivo da pausa", ["Falta material", "Máquina", "Aguardando cliente"], v, set, "motivo")}</> },
+    "Reprovar no controle": { ok: (v) => !!(v.motivo && v.origem), texto: (v) => v.motivo + " · volta para " + v.origem, render: (v, set) => <div className="pcv-mot-g">
+      {Select && <Select label="Motivo" value={v.motivo || ""} onChange={(e) => set({ ...v, motivo: e.target.value })} options={[{ value: "", label: "Escolha" }].concat(MOTIVOS.map((m) => ({ value: m, label: m })))} />}
+      {Select && <Select label="Etapa de origem (reabre)" value={v.origem || ""} onChange={(e) => set({ ...v, origem: e.target.value })} options={[{ value: "", label: "Escolha" }].concat(feitas.map((e) => ({ value: e.nome, label: e.nome })))} />}
+      <p className="oie-dim">O custo do refugo soma na OS; a etapa de origem volta para a fila.</p></div> },
+    "Concluir item": { ok: () => true, texto: () => "baixa de " + mats.length + " materiais", render: () => <><span className="oie-l">Baixa do material real (antes → depois)</span>
+      <table className="pcv-baixa"><thead><tr><th>Material</th><th>Estoque antes</th><th>Baixa real</th><th>Depois</th></tr></thead>
+        <tbody>{mats.map(([n, u, prev, real]) => { const b = real || prev, antes = Math.ceil(b * 2.5) + 10; return <tr key={n}><td>{n}</td><td className="mono">{D.h1(antes)} {u}</td><td className="mono">− {D.h1(b)} {u}{!real ? " (previsto)" : ""}</td><td className="mono">{D.h1(antes - b)} {u}</td></tr>; })}</tbody></table>
+      <p className="oie-dim">Custo congelado em {D.fmt(os.real)}. {org && org.total > 1 ? "A venda " + org.venda + " fica pronta quando as " + org.total + " OS terminarem." : "Esta é a única OS da venda: a venda fica pronta para concluir."}</p></> },
+    "Cancelar item": { ok: (v) => !!v.consumo, texto: (v) => v.consumo, render: (v, set) => <><span className="oie-l">Consumo até aqui</span>{radio("Consumo", ["Nada consumido", "Lançar consumo como perda"], v, set, "consumo")}</> },
+  };
+  return (
+    <div className="pcv-sit">
+      {org && <p className="pcv-org">Item {org.item} de {org.total} da venda <b className="mono">{org.venda}</b>{org.irmas.length > 1 ? " · outras OS: " + org.irmas.filter((k) => k !== os.id).join(", ") : ""}{org.outros ? " · " + org.outros : ""}</p>}
+      <window.OiEtapaPainel proc="producao" modo="acao" docId={os.id} estado={situacaoDe(os, es)} campos={campos}
+        nota={falta.length ? "Roteiro: " + (es.length - falta.length) + " de " + es.length + " etapas feitas — próxima: " + falta[0].nome + "." : null}
+        bloqueios={() => ({ ...(os.arte !== "aprovada" ? { "Liberar": "arte ainda não aprovada pelo cliente" } : {}), ...(falta.length > 1 ? { "Concluir item": falta.length === 2 ? "falta 1 etapa do roteiro" : "faltam " + (falta.length - 1) + " etapas do roteiro" } : {}) })}
+        resolver={() => ({ "Liberar": { label: "Ver arte e arquivos", onClick: () => irAba("arte") }, "Concluir item": { label: "Ver etapas", onClick: () => irAba("etapas") } })} />
+    </div>
+  );
+}
+
 function FichaOs({ id, onClose }) {
   const D = P(); const { Drawer, TabBar, Button, Progress, Alert, Select, Input, FsmStepper } = DS();
   const os = D.osDe(id);
@@ -45,6 +84,7 @@ function FichaOs({ id, onClose }) {
           <div><span className="pcv-eyebrow">Custo</span><b className="mono">{D.fmt(os.real)}</b> <small>de {D.fmt(os.orcado)} orçado</small></div>
         </div>
         {FsmStepper && <div className="pcv-fsm"><FsmStepper variant="inline" hue={295} steps={steps} /></div>}
+        <SituacaoItem os={os} es={es} D={D} irAba={setAba} />
         {TabBar && <TabBar ariaLabel="Seções da OS" size="sm" tabs={[{ key: "etapas", label: "Etapas", count: es.length }, { key: "arte", label: "Arte e arquivos" }, { key: "materiais", label: "Materiais" }, { key: "custo", label: "Custo" }, { key: "refugo", label: "Refugo", count: refugo.length }, { key: "historico", label: "Histórico" }]} active={aba} onChange={setAba} />}
 
         {aba === "etapas" && <ol className="pcv-etapas">
@@ -147,6 +187,9 @@ function Custo({ onAbrir }) {
   );
 }
 
+// Produto → roteiro (UC-FLX-07). Exemplo; no ERP a ligação é por empresa.
+const PROD_ROT = { lona: ["Lona 440 g impressa", "Banner roll-up"], adesivo: ["Adesivo vinil impresso", "Adesivo de frota"], acm: ["Placa ACM 3 mm"], fachada: ["Fachada ACM sob medida"], letra: ["Letra-caixa iluminada"] };
+
 function Roteiros() {
   const D = P(); const { Widget, Button, Alert } = DS();
   const [sel, setSel] = useState("fachada");
@@ -174,6 +217,11 @@ function Roteiros() {
               : <Passo key={k} p={p} />)}
           </ol>
           <p className="pcv-help">Tempo de máquina = quantidade ÷ capacidade do posto. Etapa marcada "só com…" entra na OS quando a opção vem marcada no orçamento.</p>
+          <div className="pcv-rot-prod">
+            <span className="pcv-eyebrow">Produtos que usam este roteiro</span>
+            <div className="pcv-rot-chips">{(PROD_ROT[sel] || []).map((x) => <span key={x} className="pcv-chip">{x}</span>)}<Button size="sm">Ligar produto</Button></div>
+            <p className="pcv-help">Cada item aprovado vira uma OS com o roteiro do produto dele. Produto sem roteiro usa as etapas de produção do modelo da empresa (Sistema › Fluxos e regras).</p>
+          </div>
         </Widget>}
         {Alert && <Alert tone="info" title="Por que no máximo duas trilhas">Linha reta demais faz a impressão esperar a serralheria sem motivo. Fluxograma livre demais ninguém treina. O meio-termo: famílias prontas, até 2 trilhas que sempre se juntam, e opcionais ligados pelo orçamento. O operador nunca vê o roteiro inteiro — só "minhas etapas de hoje".</Alert>}
       </div>
