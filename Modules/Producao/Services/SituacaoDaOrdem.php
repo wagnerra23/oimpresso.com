@@ -28,7 +28,7 @@ final class SituacaoDaOrdem
 {
     public const EV_RETRABALHO = 'retrabalho_aberto';
 
-    public function __construct(private readonly ExecuteStageActionService $fsm) {}
+    public function __construct(private readonly ExecuteStageActionService $fsm, private readonly CustoRealService $custo) {}
 
     public function ordem(int $businessId, int $ordemId): Ordem
     {
@@ -93,6 +93,31 @@ final class SituacaoDaOrdem
         if ($ordem->currentStage?->key === 'em_execucao') {
             $this->fsm->execute($ordem, 'concluir_etapa', User::find($userId), ['programacao_id' => $etapa->id]);
         }
+        $this->concluirItemSeTerminou($businessId, (int) $ordem->id, $userId);
+    }
+
+    /**
+     * Concluir item (última etapa do roteiro feita): a OS fica Concluída, pronta, com o custo real
+     * CONGELADO (CustoRealService — horas apontadas × custo-hora copiado no início; regra mestre de
+     * valor). Trava a OS e relê a situação: duas conclusões ao mesmo tempo concluem uma vez só.
+     * A baixa do material real NÃO acontece aqui: o ERP ainda não registra o consumo real por OS
+     * (decisão pendente do [W], ADR 0436).
+     */
+    public function concluirItemSeTerminou(int $businessId, int $ordemId, int $userId): bool
+    {
+        return DB::transaction(function () use ($businessId, $ordemId, $userId): bool {
+            $ordem = Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)->lockForUpdate()->find($ordemId);
+            $status = Programacao::query()->where('business_id', $businessId)->where('os_tipo', Ordem::OS_TIPO)->where('os_id', $ordemId)->pluck('status');
+            if (! $ordem || $ordem->currentStage?->key !== 'em_execucao' || ! $status->contains('concluida')
+                || $status->contains(fn ($s) => in_array($s, ['pendente', 'iniciada'], true))) {
+                return false;
+            }
+            $custo = $this->custo->daOs($businessId, Ordem::OS_TIPO, $ordemId);
+            $this->fsm->execute($ordem, 'concluir_item', User::find($userId), ['custo' => $custo]);
+            $ordem->forceFill(['pronta_em' => now(), 'custo_real' => $custo['total'], 'custo_congelado_em' => now()])->save();
+
+            return true;
+        });
     }
 
     public function liberar(int $businessId, int $ordemId, User $user): Ordem
