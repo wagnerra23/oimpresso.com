@@ -38,6 +38,10 @@ on:
       - 'app/Http/Controllers/SellCommissionSplitController.php'
       - 'app/Http/Controllers/SellController.php'
       - 'app/Http/Controllers/Api/App/PedidosController.php'
+      - 'app/Domain/Fsm/Support/PassosDoProcesso.php'
+      - 'database/migrations/2026_10_16_120000_add_passo_to_sale_process_stages.php'
+      - 'database/seeders/FsmProcessoVendaComProducaoSeeder.php'
+      - 'database/seeders/FsmProcessoComunicacaoVisualSeeder.php'
       - 'app/Http/Controllers/Api/App/PedidoAcaoController.php'  # P1 tela 22 (PR 04 propostas-app)
       - 'app/Http/Controllers/Api/App/PedidoEntregaController.php'  # P3 tela 22 entrega (PR 11 propostas-app)
       - 'database/migrations/2026_10_15_180000_create_app_entregas_table.php'
@@ -173,6 +177,10 @@ jobs:
               - 'config/mwart.php'
               - 'app/Support/Mwart.php'
               - 'app/Http/Controllers/Api/App/PedidosController.php'
+              - 'app/Domain/Fsm/Support/PassosDoProcesso.php'
+              - 'database/migrations/2026_10_16_120000_add_passo_to_sale_process_stages.php'
+              - 'database/seeders/FsmProcessoVendaComProducaoSeeder.php'
+              - 'database/seeders/FsmProcessoComunicacaoVisualSeeder.php'
               - 'app/Http/Controllers/Api/App/PedidoAcaoController.php'  # P1 tela 22 (PR 04 propostas-app)
               - 'app/Http/Controllers/Api/App/PedidoEntregaController.php'  # P3 tela 22 entrega (PR 11 propostas-app)
               - 'database/migrations/2026_10_15_180000_create_app_entregas_table.php'
@@ -385,6 +393,7 @@ jobs:
             tests/Feature/Sells/SellsIndexTenantContratoTest.php \
             tests/Feature/Sells/SellsIndexFiltroDataFimContratoTest.php \
             tests/Feature/Sells/AppPedidosApiContratoTest.php \
+            tests/Feature/Sells/AppPedidosPassosProcessoContratoTest.php \
             tests/Feature/Sells/AppInicioApiContratoTest.php \
             tests/Feature/Sells/AppPerfilMenuApiContratoTest.php \
             tests/Feature/Sells/AppAjustesEmpresaContratoTest.php \
