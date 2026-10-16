@@ -2,13 +2,15 @@
 // (filtro por estado de origem), roteiro em paralelo, transições e o comparativo NF-e × NFS-e.
 // Fonte visual: `FluxosProcessos` / `Detalhe` / `Estados` em
 // prototipo-ui/cowork/Wagner/fluxos-processos.jsx. Dados: CatalogoProcessos (#9496).
+// Cobertura do ERP (`CobItem`, resumo e coluna "No oimpresso" do protótipo, #9506): vem pronta do
+// catálogo, a tela só mostra.
 // "Aparece nas telas" do protótipo fica fora: aponta rotas do protótipo, não do ERP.
 
 import { useState } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
-import type { ProcessoCatalogo } from './tipos';
+import type { EstadoCobertura, ProcessoCatalogo } from './tipos';
 
 interface Props {
   processos: ProcessoCatalogo[];
@@ -27,6 +29,29 @@ const NFX: [string, string, string][] = [
   ['Onde se recolhe', 'UF de origem / destino (DIFAL)', 'Em regra no município do prestador; algumas atividades no local da execução (LC 116, art. 3º)'],
   ['Reforma tributária', 'Ganha campos de IBS/CBS (transição 2026–2032)', 'Ganha campos de IBS/CBS (transição 2026–2032)'],
 ];
+
+/** `COB_EST` do protótipo. */
+const COB_EST: Record<EstadoCobertura, { l: string; tone: string }> = {
+  sim: { l: 'executa', tone: 'ok' },
+  parcial: { l: 'parcial', tone: 'warn' },
+  nao: { l: 'não existe', tone: 'danger' },
+  nao_verificado: { l: 'não verificado', tone: 'mute' },
+};
+
+/** Selo do processo na lista (`CobItem` do protótipo). */
+function CobItem({ r }: { r: ProcessoCatalogo['cobertura'] }) {
+  if (!r.total) return null;
+  if (r.nao_verificado === r.total) return <span className="flx-pill mute flp-cob">ERP não verificado</span>;
+  const tone = r.sim === r.total ? 'ok' : r.sim + r.parcial > 0 ? 'warn' : 'danger';
+  return (
+    <span
+      className={`flx-pill flp-cob ${tone}`}
+      title={`${r.sim} executa · ${r.parcial} parcial · ${r.nao} não existe · ${r.nao_verificado} não verificado`}
+    >
+      {r.sim} de {r.total} no ERP{r.parcial ? ` · ${r.parcial} ${r.parcial === 1 ? 'parcial' : 'parciais'}` : ''}
+    </span>
+  );
+}
 
 function Bloco({ titulo, nota, acao, children }: { titulo: string; nota?: string; acao?: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -101,13 +126,19 @@ function Detalhe({ p, nomeDe, onIr }: { p: ProcessoCatalogo; nomeDe: (id: string
           : 'Só passa se = condição para a ação acontecer · efeito = o que o sistema faz sozinho'}
         acao={filtro ? <Button size="sm" variant="ghost" onClick={() => setFiltro(null)}>Ver todas</Button> : undefined}
       >
+        {p.cobertura.total > 0 && (
+          <p className="flp-cob-r">
+            No oimpresso: <b>{p.cobertura.sim}</b> executa · <b>{p.cobertura.parcial}</b> parcial · <b>{p.cobertura.nao}</b> não
+            existe · <b>{p.cobertura.nao_verificado}</b> não verificado
+          </p>
+        )}
         {lista.length === 0 ? (
           <p className="flp-fim">Nenhuma ação sai de <b>{nome(filtro ?? '')}</b> — o documento termina aqui.</p>
         ) : (
           <div className="flp-tw">
             <table className="flp-t">
               <thead>
-                <tr><th scope="col">De → para</th><th scope="col">Ação</th><th scope="col">Só passa se</th><th scope="col">Efeito</th><th scope="col">Quem</th></tr>
+                <tr><th scope="col">De → para</th><th scope="col">Ação</th><th scope="col">Só passa se</th><th scope="col">Efeito</th><th scope="col">Quem</th><th scope="col">No oimpresso</th></tr>
               </thead>
               <tbody>
                 {lista.map((t, i) => (
@@ -117,6 +148,10 @@ function Detalhe({ p, nomeDe, onIr }: { p: ProcessoCatalogo; nomeDe: (id: string
                     <td>{t.guarda || <span className="flx-dim">—</span>}</td>
                     <td>{t.efeito || <span className="flx-dim">—</span>}</td>
                     <td className="flp-quem">{t.quem || <span className="flx-dim">—</span>}</td>
+                    <td className="flp-cobc">
+                      <span className={`flx-pill ${COB_EST[t.cobertura.estado].tone}`}>{COB_EST[t.cobertura.estado].l}</span>
+                      {t.cobertura.onde && <small title={t.cobertura.onde}>{t.cobertura.onde}</small>}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -190,6 +225,7 @@ export default function AbaProcessos({ processos, inicial }: Props) {
                 >
                   <span>{x.nome}</span>
                   <small>{x.estados.length} estados · {x.transicoes.length} transições</small>
+                  <CobItem r={x.cobertura} />
                 </button>
               ))}
             </div>
