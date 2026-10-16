@@ -15,9 +15,19 @@ if (! function_exists('repo_path')) {
 
 const CREATE_PAGE_PATH = 'resources/js/Pages/Produto/Create.tsx';
 
+/**
+ * O fonte da tela: a Page mais as seções do formulário, que desde 2026-10-16 moram em
+ * `_components/formulario/` (compartilhadas com Edit.tsx). Sem isso, um texto que mudou de
+ * arquivo (ex.: "Mais opções") reprovaria a tela sem a tela ter mudado.
+ */
 function readProdutoCreate(): string
 {
-    return file_get_contents(repo_path(CREATE_PAGE_PATH));
+    $fonte = file_get_contents(repo_path(CREATE_PAGE_PATH));
+    foreach (glob(repo_path('resources/js/Pages/Produto/_components/formulario') . '/*.ts*') ?: [] as $arquivo) {
+        $fonte .= "\n" . file_get_contents($arquivo);
+    }
+
+    return $fonte;
 }
 
 it('Page existe em Pages/Produto/Create.tsx', function () {
