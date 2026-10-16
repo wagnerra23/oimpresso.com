@@ -7,12 +7,14 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { useState } from 'react';
 import type { ReactNode, FormEvent } from 'react';
 import { Save, X } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { ProdutoFormulario } from './_components/formulario/ProdutoFormulario';
 import { definidorDe } from './_components/formulario/tipos';
 import type { OptionMap, OptionStringMap } from './_components/formulario/tipos';
+import { aliquotaDoImposto, camposDePreco, precoInicial } from './_components/formulario/precos';
 
 const ADVANCED_OPEN_KEY = 'oimpresso.produto.create.advanced.open';
 
@@ -59,7 +61,11 @@ export interface ProdutoCreatePageProps {
 function ProdutoCreate(props: ProdutoCreatePageProps) {
   const dup = props.duplicateProduct;
 
-  const { data, setData, post, processing, errors } = useForm({
+  // Preço do produto simples (precos.ts). Só os valores sem imposto; os "com imposto" saem da
+  // alíquota do imposto escolhido, no envio e na tela.
+  const [preco, setPreco] = useState(() => precoInicial(Number(props.defaultProfitPercent)));
+
+  const { data, setData, post, transform, processing, errors } = useForm({
     name: dup?.name ?? '',
     sku: dup?.sku ?? '',
     type: (dup?.type ?? 'single') as 'single' | 'variable' | 'combo',
@@ -90,6 +96,10 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // Variável e composto têm o próprio editor de preço; só o simples manda os cinco campos.
+    transform((d) =>
+      d.type === 'single' ? { ...d, ...camposDePreco(preco, aliquotaDoImposto(d.tax, props.taxAttributes)) } : d,
+    );
     post('/products');
   };
 
@@ -138,6 +148,11 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
             opcoes={props}
             mostrarValidade={props.enableExpiry}
             chaveMaisOpcoes={ADVANCED_OPEN_KEY}
+            preco={
+              data.type === 'single'
+                ? { valor: preco, mudar: setPreco, aliquota: aliquotaDoImposto(data.tax, props.taxAttributes) }
+                : undefined
+            }
           />
         </div>
       </div>
