@@ -5,7 +5,7 @@ irmaos: Edit.charter.md (lei) · Edit.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: os três gates de escrita (tenant, janela temporal, devolução existente) são duráveis — não mudam quando o formulário ganhar campo novo.
 owner: wagner
-last_run: "2026-09-04"
+last_run: "2026-10-16"
 last_run_ci: "✅ 2026-09-05: os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841). Medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. Os 7 UC desta tela tem lane; 1 com defesa de COMPORTAMENTO (UpdateCrossTenantIdorTest - o IDOR de escrita cross-tenant em dinheiro; nao esta em quarantine.list nenhuma, e o markTestSkipped que sobrou so protege sqlite) e 6 ESTRUTURAL (Wave2Edit*, presence-gate LC-11). Nao restatear a mao: rode scripts/qa/uc-lane-coverage.mjs. ⚠ O TEXTO A SEGUIR ESTA SUPERADO e fica como fato datado - os dois numeros dele ja nasciam falsos: 🔴 NENHUM teste de tests/Feature/Purchase/ roda em lane alguma — 8 arquivos órfãos de CI; o do IDOR soma quarentena por cima. Ver §Dívida de prova."
 ---
 
