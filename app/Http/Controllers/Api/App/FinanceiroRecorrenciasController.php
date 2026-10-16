@@ -64,7 +64,7 @@ class FinanceiroRecorrenciasController extends Controller
         usort($itens, fn ($a, $b) => [$a['status'] === 'ativa' ? 0 : 1, $a['descricao'], $a['id']]
             <=> [$b['status'] === 'ativa' ? 0 : 1, $b['descricao'], $b['id']]);
 
-        return response()->json(['itens' => array_values($itens)]);
+        return response()->json(['itens' => $itens]); // usort já reindexa
     }
 
     /** POST /api/app/financeiro/recorrencias/{id}/interromper — idempotente: já interrompida devolve como está. */
