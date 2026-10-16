@@ -15,7 +15,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 >
 > **O que isto é:** o módulo `Sells` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Sells/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`transactions`, `transaction_sell_lines`, `transaction_payments`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 207 arquivos em 9 papéis.
+**Total mapeado:** 208 arquivos em 9 papéis.
 
 ## Controllers — 6
 
@@ -26,7 +26,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [SellReturnController.php](../../../app/Http/Controllers/SellReturnController.php)
 - [SellTranscriptPdfController.php](../../../app/Http/Controllers/SellTranscriptPdfController.php)
 
-## Motor (Utils/Domínio) — 33
+## Motor (Utils/Domínio) — 34
 
 - [GuardsFsmTransitions.php](../../../app/Domain/Fsm/Concerns/GuardsFsmTransitions.php)
 - [SideEffectInterface.php](../../../app/Domain/Fsm/Contracts/SideEffectInterface.php)
@@ -60,6 +60,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [ReservarEstoque.php](../../../app/Domain/Fsm/SideEffects/ReservarEstoque.php)
 - [VoltarCacambaDisponivel.php](../../../app/Domain/Fsm/SideEffects/VoltarCacambaDisponivel.php)
 - [FsmAuthorizationFlag.php](../../../app/Domain/Fsm/Support/FsmAuthorizationFlag.php)
+- [PassosDoProcesso.php](../../../app/Domain/Fsm/Support/PassosDoProcesso.php)
 - [TransactionUtil.php](../../../app/Utils/TransactionUtil.php)
 
 ## Models / Entities — 3
