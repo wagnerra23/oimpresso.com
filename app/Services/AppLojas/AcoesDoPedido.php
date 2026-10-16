@@ -15,6 +15,7 @@ use App\Domain\Fsm\Models\SaleStageAction;
  *
  *  - iniciar_producao   quote_approved → in_production   sem side effect
  *  - pausar_producao    in_production  → on_hold         sem side effect
+ *  - retomar_producao   on_hold        → in_production   sem side effect (ADR 0434)
  *  - concluir           delivered      → completed       sem side effect
  *
  * Ficam FORA (só na web): cliente_aprovou (ReservarEstoque), reabrir_para_revisao (LiberarReserva),
@@ -35,8 +36,25 @@ final class AcoesDoPedido
     public const SEGURAS = [
         'iniciar_producao',
         'pausar_producao',
+        'retomar_producao',
         'concluir',
     ];
+
+    /**
+     * Ações em que o app oferece o campo `motivo` (opcional; vai para sale_stage_history.payload_snapshot
+     * pelo POST /pedidos/{id}/acao). A lista de ações do detalhe expõe isso como `pede_motivo`.
+     *
+     * @var list<string>
+     */
+    public const PEDEM_MOTIVO = [
+        'pausar_producao',
+        'retomar_producao',
+    ];
+
+    public static function pedeMotivo(string $chave): bool
+    {
+        return in_array($chave, self::PEDEM_MOTIVO, true);
+    }
 
     /** @return list<string> ações que este business libera no app */
     public static function liberadas(int $bizId): array
