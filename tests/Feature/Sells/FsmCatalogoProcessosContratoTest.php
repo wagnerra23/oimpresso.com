@@ -185,7 +185,9 @@ it('nenhuma referência aponta para classe, método ou rota inexistente', functi
         }
     }
     expect(method_exists(\Modules\NfeBrasil\Services\DevolucaoService::class, 'emitirDevolucao'))->toBeTrue()
-        ->and(method_exists(\Modules\Vestuario\Services\DevolucaoService::class, 'registrarDevolucao'))->toBeTrue();
+        ->and(method_exists(\Modules\Vestuario\Services\DevolucaoService::class, 'registrarDevolucao'))->toBeTrue()
+        // "validade de 6 meses" do protótipo = a do ERP (Lançar crédito).
+        ->and(\Modules\Vestuario\Services\DevolucaoService::VALIDADE_CREDITO_MESES)->toBe(6);
 
     $uris = collect(Route::getRoutes()->getRoutes())->map->uri()->all();
     foreach (['sell-return', 'purchase-return', 'purchase-return/save', 'repair/job-sheets/{id}/fsm-action', 'sells/{id}/fsm-action'] as $uri) {

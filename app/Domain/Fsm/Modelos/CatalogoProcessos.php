@@ -58,7 +58,7 @@ final class CatalogoProcessos
             'Concluir refação' => ['nao', 'Depende da OS de retrabalho, que não existe.'],
             'Registrar itens devolvidos' => ['sim', 'resource sell-return (routes/web.php) → SellReturnController@store → TransactionUtil::addSellReturn (quantidade por item; volta o estoque por ProductUtil::updateProductQuantity)'],
             'Estornar valor' => ['parcial', 'A devolução de venda vira transação sell_return com situação de pagamento (TransactionUtil::updatePaymentStatus); o Modules/Financeiro não lê sell_return, então o título da venda não é estornado.'],
-            'Lançar crédito' => ['parcial', 'Modules/Vestuario/Services/DevolucaoService::registrarDevolucao (tipo credito_ficha → vestuario_creditos_cliente) existe, sem rota nem chamador fora dos testes.'],
+            'Lançar crédito' => ['parcial', 'Modules/Vestuario/Services/DevolucaoService::registrarDevolucao (tipo credito_ficha → vestuario_creditos_cliente) existe, sem rota nem chamador fora dos testes. A validade de 6 meses vem do ERP: constante VALIDADE_CREDITO_MESES = 6 do mesmo serviço (CDC Art. 50), gravada em expira_em e zerada por expirarCreditosVencidos; é fixa no código, não parâmetro da empresa.'],
         ],
         'devolucao-compra' => [
             'Registrar devolução ao fornecedor' => ['sim', 'resource purchase-return → PurchaseReturnController@store (ProductUtil::decreaseProductQuantity) e /purchase-return/save → CombinedPurchaseReturnController@save'],
