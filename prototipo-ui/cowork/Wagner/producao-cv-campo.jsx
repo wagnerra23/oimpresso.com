@@ -28,6 +28,7 @@ function Apontamento() {
   const [seg, setSeg] = useState(2 * 3600 + 14 * 60 + 8);
   const [m2, setM2] = useState("");
   const [log, setLog] = useState([]);
+  const [pausa, setPausa] = useState(false); // Pausar pede o motivo antes de parar o relógio
   const os = D.osDe("OS-2611"); const et = D.atual(os); const maq = D.maqDe(et.maq);
   useEffect(() => { if (!rodando) return; const t = setInterval(() => setSeg((s) => s + 1), 1000); return () => clearInterval(t); }, [rodando]);
   const marca = (ev) => { setLog((l) => [{ ev, quando: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) }, ...l]); D.registrar({ os: os.id, quem: "Diego", tipo: /Refugo/.test(ev) ? "refugo" : "etapa", maq: et.maq, texto: ev + (/Refugo/.test(ev) ? "" : " " + et.nome) }); };
@@ -44,8 +45,12 @@ function Apontamento() {
         </ul>
       </div>
       <Celular titulo={passo === "scan" ? "Ler QR" : passo === "lista" ? "Produção" : os.id}
-        rodape={passo === "etapa" && <div className="pcv-bar" style={{ width: "100%" }}>
-          {!rodando ? <Button variant="primary" onClick={() => { setRodando(true); marca("Iniciou"); }}>{seg > 0 ? "Retomar" : "Iniciar"}</Button> : <Button onClick={() => { setRodando(false); marca("Pausou — troca de bobina"); }}>Pausar</Button>}
+        rodape={passo === "etapa" && pausa ? <div className="pcv-pausa" role="group" aria-label="Motivo da pausa">
+          <b>Por que parou?</b>
+          {["Falta material", "Máquina", "Aguardando cliente"].map((m) => <Button key={m} onClick={() => { setPausa(false); setRodando(false); marca("Pausou — " + m.toLowerCase()); }}>{m}</Button>)}
+          <Button variant="ghost" onClick={() => setPausa(false)}>Voltar</Button>
+        </div> : passo === "etapa" && <div className="pcv-bar" style={{ width: "100%" }}>
+          {!rodando ? <Button variant="primary" onClick={() => { setRodando(true); marca("Iniciou"); }}>{seg > 0 ? "Retomar" : "Iniciar"}</Button> : <Button onClick={() => setPausa(true)}>Pausar</Button>}
           <Button onClick={() => { setRodando(false); marca("Concluiu a etapa"); setPasso("fim"); }}>Concluir etapa</Button>
         </div>}>
         {passo === "lista" && <div className="pcv-ap">
