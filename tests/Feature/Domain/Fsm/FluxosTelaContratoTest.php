@@ -169,3 +169,59 @@ it('UC-FLXT-04 · a migration dá fluxos.ver e fluxos.configurar a quem tem busi
     flxtEntrar($this, User::findOrFail($u->id));
     expect(flxtGet($this, '/fluxos')->json('props.pode_configurar'))->toBeTrue();
 });
+
+function flxtPostAplicar($teste, array $dados)
+{
+    return $teste->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'X-Inertia' => 'true'])
+        ->post('/fluxos/modelo', $dados);
+}
+
+it('UC-FLXT-05 · quem configura usa um modelo e só a empresa da sessão passa a tê-lo', function () {
+    if (! \Illuminate\Support\Facades\Schema::hasTable('fsm_modelos_empresa')) {
+        $this->markTestSkipped('Tabela fsm_modelos_empresa ausente (migration do #9492).');
+    }
+    $outra = (int) DB::table('business')->where('id', '!=', FLXT_BIZ)->value('id');
+    $antesOutra = DB::table('sale_processes')->where('business_id', $outra)->where('key', 'like', 'flx_cv_pequena_%')->count();
+
+    flxtEntrar($this, flxtUsuario(['fluxos.ver', 'fluxos.configurar']));
+    $r = flxtPostAplicar($this, ['modelo' => 'cv-pequena', 'porte' => 'pequena', 'atividade' => 'cv', 'business_id' => $outra]);
+
+    $r->assertRedirect('/fluxos?aba=empresa');
+    expect(session('status.msg'))->toContain('Documentos em andamento continuam na etapa em que estavam');
+    $linha = DB::table('fsm_modelos_empresa')->where('business_id', FLXT_BIZ)->first();
+    expect($linha->modelo)->toBe('cv-pequena');
+    expect([$linha->porte, $linha->atividade])->toBe(['pequena', 'cv']);
+    expect(DB::table('sale_processes')->where('business_id', FLXT_BIZ)->where('key', 'like', 'flx_cv_pequena_%')->pluck('dominio')->sort()->values()->all())
+        ->toBe(['compra', 'producao', 'venda']);
+    // O business_id do formulário é ignorado: a outra empresa não ganhou nada.
+    expect(DB::table('sale_processes')->where('business_id', $outra)->where('key', 'like', 'flx_cv_pequena_%')->count())->toBe($antesOutra);
+});
+
+it('UC-FLXT-06 · sem fluxos.configurar o POST devolve 403 e nada é gravado', function () {
+    if (! \Illuminate\Support\Facades\Schema::hasTable('fsm_modelos_empresa')) {
+        $this->markTestSkipped('Tabela fsm_modelos_empresa ausente (migration do #9492).');
+    }
+    $antes = DB::table('fsm_modelos_empresa')->where('business_id', FLXT_BIZ)->value('modelo');
+
+    flxtEntrar($this, flxtUsuario(['fluxos.ver']));
+    expect(flxtGet($this, '/fluxos')->json('props.pode_configurar'))->toBeFalse();
+    expect(flxtPostAplicar($this, ['modelo' => 'oficina'])->getStatusCode())->toBe(403);
+
+    expect(DB::table('fsm_modelos_empresa')->where('business_id', FLXT_BIZ)->value('modelo'))->toBe($antes);
+    expect(DB::table('sale_processes')->where('business_id', FLXT_BIZ)->where('key', 'like', 'flx_oficina_%')->exists())->toBeFalse();
+});
+
+it('UC-FLXT-07 · a aba Fluxos da empresa traz o modelo da própria empresa', function () {
+    if (! \Illuminate\Support\Facades\Schema::hasTable('fsm_modelos_empresa')) {
+        $this->markTestSkipped('Tabela fsm_modelos_empresa ausente (migration do #9492).');
+    }
+    $outra = (int) DB::table('business')->where('id', '!=', FLXT_BIZ)->value('id');
+    DB::table('fsm_modelos_empresa')->updateOrInsert(['business_id' => FLXT_BIZ], ['modelo' => 'grafica', 'porte' => 'media', 'atividade' => 'offset', 'aplicado_em' => now()]);
+    DB::table('fsm_modelos_empresa')->updateOrInsert(['business_id' => $outra], ['modelo' => 'oficina', 'porte' => 'micro', 'atividade' => 'oficina', 'aplicado_em' => now()]);
+
+    flxtEntrar($this, flxtUsuario(['fluxos.ver']));
+    $empresa = flxtGet($this, '/fluxos?aba=empresa')->json('props.empresa');
+
+    expect($empresa['modelo'])->toBe('grafica');
+    expect([$empresa['porte'], $empresa['atividade']])->toBe(['media', 'offset']);
+});

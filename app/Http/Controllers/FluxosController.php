@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Domain\Fsm\Modelos\AplicarModelo;
 use App\Domain\Fsm\Modelos\CatalogoModelos;
+use App\Domain\Fsm\Models\ModeloEmpresa;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -69,8 +74,58 @@ class FluxosController extends Controller
             'portes' => self::opcoes(CatalogoModelos::PORTES),
             'atividades' => self::opcoes(CatalogoModelos::ATIVIDADES),
             'casos_total' => count(CatalogoModelos::CASOS),
+            'casos' => array_map(fn (array $c) => ['titulo' => $c[0], 'dominio' => $c[1]], CatalogoModelos::CASOS),
+            'empresa' => self::empresa(),
             'pode_configurar' => auth()->user()->can('fluxos.configurar'),
         ]);
+    }
+
+    /**
+     * "Usar modelo" (aba Fluxos da empresa). Monta os processos do modelo no motor FSM da
+     * empresa da sessão via AplicarModelo (#9492, ADR 0435). Documentos em andamento ficam na
+     * etapa em que estão: AplicarModelo não toca em documento.
+     */
+    public function aplicar(Request $request, AplicarModelo $aplicar): RedirectResponse
+    {
+        abort_unless($request->user()->can('fluxos.configurar'), 403);
+
+        $dados = $request->validate([
+            'modelo' => ['required', 'string', Rule::in(array_keys(CatalogoModelos::modelos()))],
+            'porte' => ['nullable', 'string', Rule::in(array_keys(CatalogoModelos::PORTES))],
+            'atividade' => ['nullable', 'string', Rule::in(array_keys(CatalogoModelos::ATIVIDADES))],
+        ]);
+
+        // Tier 0 (ADR 0093): a empresa é sempre a da sessão, nunca um id vindo do formulário.
+        $businessId = (int) $request->session()->get('user.business_id');
+        $aplicar->aplicar($businessId, $dados['modelo'], $dados['porte'] ?? null, $dados['atividade'] ?? null, (int) $request->user()->id);
+
+        $nome = CatalogoModelos::modelo($dados['modelo'])['nome'];
+
+        return redirect('/fluxos?aba=empresa')->with('status', [
+            'success' => 1,
+            'msg' => "Modelo {$nome} aplicado. Documentos em andamento continuam na etapa em que estavam.",
+        ]);
+    }
+
+    /**
+     * Modelo em uso na empresa da sessão (HasBusinessScope filtra). null = nenhuma linha;
+     * `modelo = legado` = processos de antes do catálogo.
+     *
+     * @return array{modelo:string, porte:?string, atividade:?string, aplicado_em:?string}|null
+     */
+    private static function empresa(): ?array
+    {
+        $linha = ModeloEmpresa::query()->first();
+        if ($linha === null) {
+            return null;
+        }
+
+        return [
+            'modelo' => (string) $linha->modelo,
+            'porte' => $linha->porte,
+            'atividade' => $linha->atividade,
+            'aplicado_em' => $linha->aplicado_em?->toIso8601String(),
+        ];
     }
 
     /**

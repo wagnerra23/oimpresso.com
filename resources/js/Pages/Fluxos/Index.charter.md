@@ -36,7 +36,12 @@ andamento.
   do catálogo ordenados pelo encaixe, com selo Recomendado (4) · Serve (3) · Parcial (1–2) ·
   Outro perfil (0), a frase do motivo, a cadeia do processo de destaque e as contagens.
 - Encaixe, selo e motivo vêm do servidor (`CatalogoModelos::encaixe()`); a tela não recalcula.
-- Acesso: `fluxos.ver` para abrir; `fluxos.configurar` para trocar o modelo (PR 3).
+- Acesso: `fluxos.ver` para abrir; `fluxos.configurar` para trocar o modelo.
+- Card abre a gaveta do modelo (processos, regras "ao entrar em", casos cobertos, diferença para o
+  modelo em uso). "Usar este modelo" → confirmação dizendo que documentos em andamento ficam onde
+  estão → `POST /fluxos/modelo` → `AplicarModelo` (#9492). A empresa é sempre a da sessão.
+- Aba Fluxos da empresa: modelo em uso (ou "processos de antes dos modelos" quando legado), com
+  data e perfil, e as etapas e regras de cada processo dele.
 - PT-BR em todo texto.
 
 ## Non-Goals — Features (NÃO faz)
@@ -48,8 +53,10 @@ andamento.
 
 - Descrição do porte ("6 a 20 pessoas") e "Inspirado em <concorrentes>" no rodapé do card: o
   catálogo não traz esses campos. Ficam fora até o catálogo ganhar o dado (pedido à sessão do backend).
-- Perfil porte × atividade da EMPRESA: neste PR o perfil é só escolha local da tela (padrão
-  Pequena · Comunicação visual, como no protótipo).
+- Perfil porte × atividade: começa pelo gravado da empresa; sem modelo gravado, Pequena ·
+  Comunicação visual, como no protótipo. Só é gravado junto com "Usar modelo".
+- Ligar/desligar regra e a Compra "configurável" da aba Fluxos da empresa: o ERP não tem regra
+  configurável por empresa; a aba mostra as regras do modelo só para leitura.
 
 ## UX Targets
 

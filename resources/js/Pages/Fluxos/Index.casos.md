@@ -48,11 +48,34 @@ last_run: "2026-10-16"
 - **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-04").
 - **Status: 🧪**
 
+## UC-FLXT-05 · Quem configura usa um modelo e a empresa passa a tê-lo
+- **Persona:** gerente com `fluxos.configurar`.
+- **Aceite:** Dado a empresa sem modelo · Quando escolhe "Comunicação visual · pequena" e confirma ·
+  Então `fsm_modelos_empresa` da empresa da sessão grava o modelo, o porte e a atividade, os processos
+  `flx_cv_pequena_*` nascem só nessa empresa, e a tela volta na aba Fluxos da empresa com o aviso
+  "Documentos em andamento continuam na etapa em que estavam".
+- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-05").
+- **Status: 🧪**
+
+## UC-FLXT-06 · Sem fluxos.configurar não troca o modelo
+- **Persona:** usuário que só vê a tela (`fluxos.ver`).
+- **Aceite:** Dado um usuário sem `fluxos.configurar` · Quando envia "Usar modelo" · Então recebe 403 e
+  nada é gravado; a tela informa `pode_configurar = false` (o botão não aparece).
+- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-06").
+- **Status: 🧪**
+
+## UC-FLXT-07 · Fluxos da empresa mostra o modelo em uso
+- **Persona:** dono conferindo o fluxo atual.
+- **Aceite:** Dado a empresa com um modelo gravado · Quando abre `?aba=empresa` · Então `empresa` traz
+  o modelo, o porte e a atividade dela, e não os de outra empresa.
+- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-07").
+- **Status: 🧪**
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste)
 
 - **[BACKLOG]** Aba Processos: estados, transições e roteiro (PR 2).
-- **[BACKLOG]** Aba Fluxos da empresa + "Usar modelo" com confirmação (PR 3).
+- **[BACKLOG]** Ligar/desligar regra por processo e a Compra editável do protótipo — o ERP ainda não tem regra configurável.
 - **[BACKLOG]** Aba Casos de uso: UC-FLX com fontes e estado (PR 4).
 - **[BACKLOG]** Assistente de configuração com IA e queda para a regra de encaixe (PR 5).
