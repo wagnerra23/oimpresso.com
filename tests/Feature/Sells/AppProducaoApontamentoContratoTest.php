@@ -336,3 +336,51 @@ it('UC-APPAPT-09 escrita sem Idempotency-Key ou com chave > 64 → 422, nada gra
         ->assertStatus(422)->assertJsonStructure(['campos' => ['idempotency_key']]);
     expect(DB::table('pcp_apontamentos')->where('programacao_id', $etapa)->count())->toBe(0);
 });
+
+it('UC-APPAPT-10 motivos-pausa: só pausa ATIVA do posto, na ordem do gestor; posto do 99 → lista vazia; em-andamento leva os do posto; o pausar aceita o id listado', function () {
+    if (! Schema::hasTable('pcp_motivos')) {
+        $this->markTestSkipped('Schema ausente (pcp_motivos, thread 03).');
+    }
+    $motivo = fn (int $biz, int $posto, string $nome, int $ordem = 0, string $tipo = 'pausa', bool $ativo = true) => (int) DB::table('pcp_motivos')
+        ->insertGetId(['business_id' => $biz, 'posto_id' => $posto, 'tipo' => $tipo, 'nome' => $nome, 'ordem' => $ordem,
+            'ativo' => $ativo, 'created_at' => now(), 'updated_at' => now()]);
+    $outroPosto = appAptPosto($this->bizId, 'maquina');
+    $postoDo99 = appAptPosto($this->outroBizId);
+
+    $setup = $motivo($this->bizId, $this->posto, 'Setup', 2);
+    $bobina = $motivo($this->bizId, $this->posto, 'Troca de bobina', 1);
+    $motivo($this->bizId, $this->posto, 'Antigo', 0, 'pausa', false);
+    $motivo($this->bizId, $this->posto, 'Cor', 0, 'refugo');
+    $material = $motivo($this->bizId, $outroPosto, 'Falta de material', 1);
+    $do99 = $motivo($this->outroBizId, $postoDo99, 'Motivo do 99', 1);
+
+    // Filtro por posto: forma exata, ordem do cadastro, sem inativo nem refugo.
+    $this->getJson('/api/app/producao/motivos-pausa?posto_id=' . $this->posto)->assertOk()->assertExactJson(['motivos' => [
+        ['id' => $bobina, 'posto_id' => $this->posto, 'nome' => 'Troca de bobina'],
+        ['id' => $setup, 'posto_id' => $this->posto, 'nome' => 'Setup'],
+    ]]);
+    // Sem filtro: os dois postos da empresa, nada do 99.
+    $todos = collect($this->getJson('/api/app/producao/motivos-pausa')->assertOk()->json('motivos'));
+    expect($todos->pluck('id')->all())->toContain($bobina, $setup, $material);
+    expect($todos->pluck('id')->all())->not->toContain($do99);
+    // Um needle por assert: `not->toContain(a, b)` passa se só UM faltar (LC-31).
+    expect($todos->pluck('nome')->all())->not->toContain('Antigo');
+    expect($todos->pluck('nome')->all())->not->toContain('Cor');
+    // Posto do 99: lista vazia, sem dizer que o posto existe. Controle positivo: o 99 vê o dele.
+    $this->getJson('/api/app/producao/motivos-pausa?posto_id=' . $postoDo99)->assertOk()->assertExactJson(['motivos' => []]);
+    expect(DB::table('pcp_motivos')->where('posto_id', $postoDo99)->where('ativo', true)->count())->toBe(1);
+    $this->getJson('/api/app/producao/motivos-pausa?posto_id=abc')->assertStatus(422)->assertJsonStructure(['campos' => ['posto_id']]);
+
+    // em-andamento traz os motivos do posto do apontamento aberto, e o pausar aceita o id listado.
+    $etapa = appAptEtapa($this->bizId, $this->posto, appAptOs($this->bizId), (int) $this->user->id);
+    $id = (int) appAptPost($this, '/api/app/producao/apontamentos/iniciar', ['programacao_id' => $etapa, 'momento' => APP_APT_DIA . 'T09:00:00-03:00'], 'k10-i')
+        ->assertStatus(201)->json('id');
+    $a = $this->getJson('/api/app/producao/apontamentos/em-andamento')->assertOk();
+    expect($a->json('pessoa.motivos_pausa'))->toBe([['id' => $bobina, 'nome' => 'Troca de bobina'], ['id' => $setup, 'nome' => 'Setup']]);
+    appAptPost($this, "/api/app/producao/apontamentos/{$id}/pausar", ['motivo_id' => $a->json('pessoa.motivos_pausa.0.id'), 'momento' => APP_APT_DIA . 'T09:30:00-03:00'], 'k10-p')
+        ->assertStatus(201)->assertJsonPath('encerrado_por', 'pausa');
+
+    // Sem producao.access: 403, nada listado.
+    Passport::actingAs($this->usuarioComPermissoes([]), [], 'api');
+    $this->getJson('/api/app/producao/motivos-pausa')->assertStatus(403)->assertJsonPath('erro', 'sem_permissao');
+});

@@ -12,6 +12,7 @@ use App\Utils\ModuleUtil;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -70,15 +71,43 @@ class AppApontamentoController extends Controller
 
         $r = $this->apontamento->rodandoAgora($bizId, (int) $user->id, now());
         $ponto = $r['ponto'] ?? null;
+        // A pausa sai daqui (botão do apontamento aberto): os motivos do posto vão junto, uma leitura só.
+        $motivos = ($r['pessoa'] || $r['maquinas']->isNotEmpty())
+            ? $this->apontamento->motivosDePausa($bizId)->groupBy('posto_id')
+            : collect();
 
         return response()->json([
-            'pessoa' => $r['pessoa'] ? $this->aberto($bizId, $r['pessoa']) : null,
-            'maquinas' => $r['maquinas']->map(fn (Apontamento $a) => $this->aberto($bizId, $a))->values(),
+            'pessoa' => $r['pessoa'] ? $this->aberto($bizId, $r['pessoa'], $motivos) : null,
+            'maquinas' => $r['maquinas']->map(fn (Apontamento $a) => $this->aberto($bizId, $a, $motivos))->values(),
             'ponto' => $ponto === null ? null : [
                 'entrada' => $ponto['entrada']?->toIso8601String(),
                 'saida' => $ponto['saida']?->toIso8601String(),
                 'presenca_minutos' => $ponto['presenca_minutos'],
             ],
+        ]);
+    }
+
+    /**
+     * GET /api/app/producao/motivos-pausa?posto_id= — motivos de pausa ativos (UC-PCV-33), na ordem do
+     * gestor. É a lista que o `pausar` aceita; o app guarda por posto para pausar sem internet.
+     * Posto de outra empresa ou inexistente: lista vazia (nada a mostrar, nada revelado).
+     */
+    public function motivosPausa(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if (! $this->podeApontar($user)) {
+            return $this->semPermissao();
+        }
+
+        $v = Validator::make($request->query(), ['posto_id' => ['nullable', 'integer', 'min:1']],
+            ['posto_id.integer' => 'O posto é um número.']);
+        if ($v->fails()) {
+            return $this->invalido(collect($v->errors()->toArray())->map(fn ($m) => $m[0])->all());
+        }
+        $postoId = $request->query('posto_id');
+
+        return response()->json([
+            'motivos' => $this->apontamento->motivosDePausa((int) $user->business_id, $postoId === null ? null : (int) $postoId),
         ]);
     }
 
@@ -365,7 +394,8 @@ class AppApontamentoController extends Controller
         return $u === null ? null : ['id' => (int) $u->id, 'nome' => trim($u->first_name . ' ' . ($u->last_name ?? ''))];
     }
 
-    private function aberto(int $bizId, Apontamento $a): array
+    /** @param Collection $motivos motivos de pausa ativos agrupados por posto_id */
+    private function aberto(int $bizId, Apontamento $a, Collection $motivos): array
     {
         $p = $a->programacao_id ? Programacao::query()->where('business_id', $bizId)->find((int) $a->programacao_id) : null;
 
@@ -375,6 +405,8 @@ class AppApontamentoController extends Controller
             'pedido' => $a->os_id ? $this->pedido($bizId, (int) $a->os_id) : null,
             'etapa' => $p === null ? null : $this->etapa($bizId, $p),
             'iniciado_em' => $a->momento->toIso8601String(),
+            'motivos_pausa' => $motivos->get((int) $a->posto_id, collect())
+                ->map(fn (array $m) => ['id' => $m['id'], 'nome' => $m['nome']])->values(),
         ];
     }
 

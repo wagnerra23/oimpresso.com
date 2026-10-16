@@ -3838,7 +3838,7 @@
       "type": "component",
       "module": "Producao",
       "name": "Api/AppApontamentoController",
-      "desc": "apontamento do app das lojas com token (/api/app/producao/*, P8 tela 02), sobre o ApontamentoOperadorService"
+      "desc": "apontamento do app das lojas com token (/api/app/producao/*, P8 tela 02, inclui motivos-pausa), sobre o ApontamentoOperadorService"
     },
     {
       "id": "component:Producao/ApontamentoController",
