@@ -18,6 +18,7 @@ import type {
   OpcoesProduto,
   TipoProduto,
 } from './tipos';
+import { opcoesDe } from './tipos';
 
 interface Props {
   modo: ModoFormulario;
@@ -65,7 +66,7 @@ export function BlocoIdentificacao({ modo, data, definir, errors, opcoes, tipoAt
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {Object.entries(opcoes.productTypes).map(([k, v]) => (
+                {opcoesDe(opcoes.productTypes).map(([k, v]) => (
                   <SelectItem key={k} value={k}>
                     {v}
                   </SelectItem>
@@ -91,7 +92,7 @@ export function BlocoIdentificacao({ modo, data, definir, errors, opcoes, tipoAt
               <SelectValue placeholder="Selecione" />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(opcoes.units).map(([k, v]) => (
+              {opcoesDe(opcoes.units).map(([k, v]) => (
                 <SelectItem key={k} value={k}>
                   {v}
                 </SelectItem>
@@ -109,7 +110,7 @@ export function BlocoIdentificacao({ modo, data, definir, errors, opcoes, tipoAt
               <SelectValue placeholder="Selecione" />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(opcoes.categories).map(([k, v]) => (
+              {opcoesDe(opcoes.categories).map(([k, v]) => (
                 <SelectItem key={k} value={k}>
                   {v}
                 </SelectItem>
@@ -127,7 +128,7 @@ export function BlocoIdentificacao({ modo, data, definir, errors, opcoes, tipoAt
               <SelectValue placeholder="Selecione" />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(opcoes.brands).map(([k, v]) => (
+              {opcoesDe(opcoes.brands).map(([k, v]) => (
                 <SelectItem key={k} value={k}>
                   {v}
                 </SelectItem>
