@@ -6,6 +6,7 @@ import { BlocoIdentificacao } from './BlocoIdentificacao';
 import { BlocoPrecoImposto } from './BlocoPrecoImposto';
 import { BlocoEstoque } from './BlocoEstoque';
 import { BlocoMaisOpcoes } from './BlocoMaisOpcoes';
+import type { PrecoSimples } from './precos';
 import type {
   CamposProduto,
   DefinirCampo,
@@ -29,6 +30,8 @@ interface Props {
   mostrarValidade?: boolean;
   /** Chave do localStorage que lembra se "Mais opções" ficou aberta. */
   chaveMaisOpcoes: string;
+  /** Novo produto simples: o preço, mostrado no card "Preço & Imposto". */
+  preco?: { valor: PrecoSimples; mudar: (p: PrecoSimples) => void; aliquota: number };
 }
 
 export function ProdutoFormulario({
@@ -42,6 +45,7 @@ export function ProdutoFormulario({
   tipoAtual,
   mostrarValidade,
   chaveMaisOpcoes,
+  preco,
 }: Props) {
   return (
     <form id={id} onSubmit={onSubmit} className="space-y-6">
@@ -53,7 +57,7 @@ export function ProdutoFormulario({
         opcoes={opcoes}
         tipoAtual={tipoAtual}
       />
-      <BlocoPrecoImposto data={data} definir={definir} errors={errors} opcoes={opcoes} />
+      <BlocoPrecoImposto data={data} definir={definir} errors={errors} opcoes={opcoes} preco={preco} />
       <BlocoEstoque modo={modo} data={data} definir={definir} opcoes={opcoes} />
       <BlocoMaisOpcoes
         data={data}
