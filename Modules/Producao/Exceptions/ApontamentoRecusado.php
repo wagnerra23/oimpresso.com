@@ -13,6 +13,7 @@ use DomainException;
  *   etapa_alheia → 409 (contexto: etapa e responsável atuais)
  *   pessoa_ocupada → 409 (contexto: apontamento aberto)
  *   etapa_encerrada · apontamento_encerrado → 422 bloqueado
+ *   pedido_em_espera → 409 (a venda da etapa está em espera; retomar depois que voltar para produção)
  *   idempotencia_conflito → 422 · momento_invalido → 422 campos.momento · motivo_obrigatorio → 422 campos.motivo_id · justificativa_obrigatoria → 422 campos.justificativa
  */
 class ApontamentoRecusado extends DomainException
@@ -26,6 +27,7 @@ class ApontamentoRecusado extends DomainException
     public const MOMENTO_INVALIDO = 'momento_invalido';
     public const MOTIVO_OBRIGATORIO = 'motivo_obrigatorio';
     public const JUSTIFICATIVA_OBRIGATORIA = 'justificativa_obrigatoria';
+    public const PEDIDO_EM_ESPERA = 'pedido_em_espera';
 
     /** @param array<string, mixed> $contexto */
     public function __construct(public readonly string $codigo, string $mensagem, public readonly array $contexto = [])

@@ -46,6 +46,7 @@ class AppApontamentoController extends Controller
         ApontamentoRecusado::NAO_ENCONTRADO => [404, 'nao_encontrado', null],
         ApontamentoRecusado::ETAPA_ALHEIA => [409, 'etapa_alheia', null],
         ApontamentoRecusado::PESSOA_OCUPADA => [409, 'em_andamento', null],
+        ApontamentoRecusado::PEDIDO_EM_ESPERA => [409, 'pedido_em_espera', null],
         ApontamentoRecusado::ETAPA_ENCERRADA => [422, 'bloqueado', null],
         ApontamentoRecusado::APONTAMENTO_ENCERRADO => [422, 'bloqueado', null],
         ApontamentoRecusado::IDEMPOTENCIA_CONFLITO => [422, 'idempotencia_conflito', null],

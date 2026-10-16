@@ -25,6 +25,7 @@ use Modules\Producao\Exceptions\ApontamentoRecusado;
  *   limites abaixo, e a mesma chave nunca grava duas vezes.
  * - Fechamento automático (UC-PCV-22 · UC-PCV-36, D-PONTO): pessoa fecha na saída do ponto;
  *   sem saída, e máquina sempre, no fim do turno. O Ponto só é lido.
+ * - Etapa de venda (`os_tipo = venda`) com a venda em espera não inicia nem retoma (PedidoEmEsperaService).
  * - Correção de horário não reescreve o par (append-only, e o custo lê o par): vira evento
  *   `correcao_solicitada` para o gestor. Aplicar a correção ao custo mexe em VALOR (regra mestre).
  */
@@ -109,6 +110,11 @@ class ApontamentoOperadorService
         if ((int) $etapa->user_id !== $userId) {
             throw new ApontamentoRecusado(ApontamentoRecusado::ETAPA_ALHEIA, 'Esta etapa está com outro responsável.',
                 ['programacao_id' => $etapa->id, 'posto_id' => $etapa->posto_id, 'user_id' => $etapa->user_id]);
+        }
+        if ($etapa->os_tipo === Programacao::OS_VENDA
+            && app(PedidoEmEsperaService::class)->etapaDaVenda($businessId, (int) $etapa->os_id) === PedidoEmEsperaService::EM_ESPERA) {
+            throw new ApontamentoRecusado(ApontamentoRecusado::PEDIDO_EM_ESPERA, 'O pedido desta etapa está em espera. Retome quando ele voltar para produção.',
+                ['programacao_id' => $etapa->id]);
         }
 
         try {
@@ -257,7 +263,7 @@ class ApontamentoOperadorService
         $fechamento = Apontamento::query()->where('business_id', $businessId)->where('inicio_id', $inicio->id)->first();
         if ($fechamento) {
             // Fila offline chegou depois do fechamento automático: a hora real vira correção para o gestor.
-            if (in_array($fechamento->origem, ['turno', 'ponto'], true) && $momento->lt($fechamento->momento)) {
+            if (in_array($fechamento->origem, ['turno', 'ponto', 'pedido'], true) && $momento->lt($fechamento->momento)) {
                 $this->lancarCorrecao($businessId, $userId, $inicio->id, $momento, 'fila offline', $chave);
 
                 return $fechamento;

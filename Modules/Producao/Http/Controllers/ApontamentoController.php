@@ -30,6 +30,7 @@ class ApontamentoController extends Controller
         ApontamentoRecusado::NAO_ENCONTRADO => 404,
         ApontamentoRecusado::ETAPA_ALHEIA => 409,
         ApontamentoRecusado::PESSOA_OCUPADA => 409,
+        ApontamentoRecusado::PEDIDO_EM_ESPERA => 409,
     ];
 
     public function __construct(private readonly ApontamentoOperadorService $svc, private readonly ModuleUtil $moduleUtil) {}
