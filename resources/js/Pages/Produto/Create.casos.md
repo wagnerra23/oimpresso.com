@@ -39,6 +39,7 @@ last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 48
 | UC-PCAD-07 | Produto novo grava a origem da mercadoria escolhida (0–8) | should | `AR-PROD-128` | `ProdutoOrigemMercadoriaTest` | 🧪 passa no CT 100 |
 | UC-PCAD-09 | Novo produto simples nasce com o preço digitado, com a conta do Blade | must `[V0]` | `CU-PROD-01.4` | `produto-preco.test.tsx` (Vitest) | 🧪 passa |
 | UC-PCAD-10 | Novo produto nasce nos locais do negócio (um local só já vem marcado) | must | `CU-PROD-01` | `produto-locais.test.tsx` (Vitest) | 🧪 passa |
+| UC-PCAD-11 | Variável e composto não salvam pela tela React: vão para o cadastro clássico | must | `CU-PROD-02` | `produto-tipo.test.tsx` (Vitest) | 🧪 passa |
 | ~~UC-PCAD-02~~ | ~~Campo obrigatório validado server~~ | — | — | — | ⬛ **retirado** — gap de paridade, não bug |
 | ~~UC-PCAD-03~~ | ~~Defaults conservadores server~~ | — | — | — | ⬛ **retirado** — gap de paridade, não bug |
 | UC-PCAD-05 | Cadastro não aceita insumo de outro business | must `[T0]` | `CU-PROD-01.5` | — | 🔶 **backlog** — achado Tier 0 real, US própria |
@@ -172,6 +173,15 @@ last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 48
 - **Teste:** [`produto-locais.test.tsx`](../../../../tests/js/produto-locais.test.tsx) — `UC-PCAD-10` (os dois casos). Roda no step "Comportamento React" do job `Frontend / Vite build`.
 - **Contrato:** paridade com o cadastro Blade — `create.blade.php` (`$default_location`: com um local só, `product_locations[]` já vem com ele) e `ProductController@store` (`product_locations()->sync(...)`). Como no Blade, o campo não é obrigatório.
 - **Mordida (2026-10-16):** `product_locations` de volta a `[]` derruba o caso de um local; tirar o bloco da tela derruba os dois.
+- **Status: 🧪** — teste escrito junto do código, sem veredito publicado no manifesto (G-7).
+
+## UC-PCAD-11 · Variável e composto não salvam pela tela React · `must`
+- **Persona:** quem cadastra produto com grade (tamanho/cor) ou composto. Pela tela React o produto nascia quebrado.
+- **Aceite:** Dado o tipo **Variável** ou **Composto** na tela Novo produto · Então a tela avisa que esse tipo ainda não tem editor aqui · E oferece o link "Cadastrar no formulário clássico" (`/products/create?classico=1`, página inteira) · E o botão Salvar fica desligado e o envio não acontece · E, com **Simples**, nada disso aparece e o envio segue.
+- **Teste:** [`produto-tipo.test.tsx`](../../../../tests/js/produto-tipo.test.tsx) — `UC-PCAD-11` (variável, composto e o controle simples). Roda no step "Comportamento React" do job `Frontend / Vite build`.
+- **Contrato:** `ProductController@store` — variável sem `product_variation` não cria variação nenhuma; composto sem `composition_variation_id` cria a variação sem itens e com preço zero (`item_level_purchase_price_total`/`selling_price` ausentes). Sem variação o produto não entra em venda, compra, OS nem fabricação, que trabalham por `variation_id`.
+- **Mordida (2026-10-16):** sem a trava do envio caem os 2 casos de tipo; sem o aviso também.
+- **Fora deste UC:** o editor de grade e de composição em React (trabalho próprio). Até ele existir, o clássico é o caminho.
 - **Status: 🧪** — teste escrito junto do código, sem veredito publicado no manifesto (G-7).
 
 ---

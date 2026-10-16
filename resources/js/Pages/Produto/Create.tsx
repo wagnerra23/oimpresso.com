@@ -12,7 +12,7 @@ import type { ReactNode, FormEvent } from 'react';
 import { Save, X } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { ProdutoFormulario } from './_components/formulario/ProdutoFormulario';
-import { definidorDe, opcoesDe } from './_components/formulario/tipos';
+import { definidorDe, opcoesDe, tipoSemEditor } from './_components/formulario/tipos';
 import type { OptionMap, OptionStringMap } from './_components/formulario/tipos';
 import { aliquotaDoImposto, camposDePreco, precoInicial } from './_components/formulario/precos';
 
@@ -102,6 +102,8 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // Variável e composto sairiam sem variação/itens (tipos.ts tipoSemEditor): não salva.
+    if (tipoSemEditor(data.type)) return;
     // Variável e composto têm o próprio editor de preço; só o simples manda os cinco campos.
     transform((d) =>
       d.type === 'single' ? { ...d, ...camposDePreco(preco, aliquotaDoImposto(d.tax, props.taxAttributes)) } : d,
@@ -135,7 +137,7 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
                   Cancelar
                 </Link>
               </Button>
-              <Button form="produto-create-form" type="submit" disabled={processing}>
+              <Button form="produto-create-form" type="submit" disabled={processing || tipoSemEditor(data.type)}>
                 <Save className="w-4 h-4 mr-1.5" />
                 Salvar produto
               </Button>
