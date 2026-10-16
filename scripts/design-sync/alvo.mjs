@@ -286,7 +286,13 @@ export const MAPA_PROBE_SOURCE = `(() => {
 })()`;
 
 /* ── estabilidade: nunca medir durante o lazy-load (§5 2026-08-24) ──────────────────────── */
-async function esperarEstavel(page, { sumir = null, quietoMs = 400 } = {}) {
+// Teto de espera da fila de carga do PROTÓTIPO (window.__oiLazyDone === false → true).
+// Medido em 2026-10-16 (Windows, headless, espelho servido local, rota prod-novo): a fila fechou
+// em ~25 s. Com o teto antigo de 8 s, o laço de estabilidade via os módulos compilados chegando um
+// a um e saía "NÃO MEDI" em 27 leituras — a tela nem podia ser medida.
+export const TETO_FILA_PROTOTIPO_MS = 60000;
+
+async function esperarEstavel(page, { sumir = null, quietoMs = 400, tetoFilaMs = TETO_FILA_PROTOTIPO_MS } = {}) {
   await page.waitForLoadState('domcontentloaded');
   if (sumir) {
     // Espera o esqueleto SAIR — e só então mede a estabilidade. Ordem importa: o esqueleto é
@@ -298,8 +304,20 @@ async function esperarEstavel(page, { sumir = null, quietoMs = 400 } = {}) {
     try { await page.waitForSelector(sumir, { state: 'detached', timeout: 15000 }); }
     catch { throw Object.assign(new Error(`--aguardar-sumir: "${sumir}" ainda está no DOM após 15 s — não meço esqueleto`), { naoMedi: true }); }
   }
-  // Sinal que a app publica, quando publica. Ausente → não é erro; o laço abaixo é a garantia real.
-  await page.waitForFunction(() => window.__oiLazyDone === true, null, { timeout: 8000 }).catch(() => {});
+  // Sinal que a app publica, quando publica. Três estados, e só um muda o teto:
+  //  · `false` — a página DECLARA que a fila de carga ainda corre (o host do protótipo marca
+  //    `false` no parse e `true` ao fechar a fila, oimpresso.com.html). Espera fechar até o teto;
+  //    se não fechar, NÃO MEDI — nunca medir o meio do caminho.
+  //  · `true`  — já fechou.
+  //  · ausente — página que não publica (render de produção, fixture): os 8 s de antes, e o laço
+  //    abaixo é a garantia real.
+  const fila = await page.evaluate(() => window.__oiLazyDone);
+  if (fila === false) {
+    try { await page.waitForFunction(() => window.__oiLazyDone === true, null, { timeout: tetoFilaMs }); }
+    catch { throw Object.assign(new Error(`a fila de carga do protótipo não fechou em ${Math.round(tetoFilaMs / 1000)} s (window.__oiLazyDone segue false) — medida seria retrato de meio-caminho`), { naoMedi: true }); }
+  } else if (fila !== true) {
+    await page.waitForFunction(() => window.__oiLazyDone === true, null, { timeout: 8000 }).catch(() => {});
+  }
   const PASSO = 200;
   const precisa = Math.max(2, Math.ceil(quietoMs / PASSO)); // leituras iguais SEGUIDAS que fecham a janela
   let anterior = -1, iguais = 0;
@@ -376,11 +394,11 @@ async function rodarMapa(url, raiz, sumir = null, quietoMs = 400, opcoes = {}) {
   } finally { await browser.close(); }
 }
 
-async function medirAlvo({ url, tela, secoes, injetar, sumir = null, quietoMs = 400, viewport = null, sbMode = null, rota = null, clicar = null }) {
+async function medirAlvo({ url, tela, secoes, injetar, sumir = null, quietoMs = 400, viewport = null, sbMode = null, rota = null, clicar = null, tetoFilaMs = TETO_FILA_PROTOTIPO_MS }) {
   const probe = sondaCanonica();
   const { browser, page } = await abrirPagina(url, { viewport, sbMode, rota });
   try {
-    let nos = await esperarEstavel(page, { sumir, quietoMs });
+    let nos = await esperarEstavel(page, { sumir, quietoMs, tetoFilaMs });
     if (passosDeClique(clicar).length) nos = await clicarEEstabilizar(page, clicar, { quietoMs });
     if (injetar) {
       const mexeu = await page.evaluate((sel) => {
@@ -427,6 +445,11 @@ const FIXTURE_SK = FIXTURE.replace('<div class="item c"></div>', '<div class="it
 const FIXTURE_FASES = FIXTURE.replace('<div class="item b"></div><div class="item c"></div>', '')
   + `<script>const s=document.querySelector('.cartao');const add=(k)=>{const d=document.createElement('div');d.className='item '+k;s.appendChild(d);};
 setTimeout(()=>add('b'),300);setTimeout(()=>add('c'),900);</script>`;
+// Fila de carga do protótipo: `__oiLazyDone` nasce false e só vira true depois que o 4º filho
+// entra. O DOM fica parado de 0 a 1200 ms — sem esperar o sinal, a janela de 400 ms fecha antes
+// e a medida sai com 3 filhos (meio do caminho).
+const FIXTURE_FILA = FIXTURE.replace('<script>window.__oiLazyDone = true;</script>', '')
+  + `<script>window.__oiLazyDone=false;setTimeout(()=>{const d=document.createElement('div');d.className='item d';document.querySelector('.cartao').appendChild(d);},1200);setTimeout(()=>{window.__oiLazyDone=true;},1300);</script>`;
 
 async function selftest(comBrowser) {
   const checks = [];
@@ -551,6 +574,18 @@ async function selftest(comBrowser) {
     const g = await medirAlvo({ url: urlF, tela: 'fixture-fases', secoes, quietoMs: 1500 });
     ok('--quieto-ms 1500 mede o estado final de carga em fases (3 filhos)', g.secoes.cartao.filhos === 3 && g.quieto_ms === 1500,
       `filhos=${g.secoes.cartao.filhos}`);
+
+    // Fila de carga do protótipo: mede depois que ela FECHA; se não fechar no teto, NÃO MEDI.
+    const fq = join(tmpdir(), `alvo-fixture-fila-${process.pid}.html`);
+    writeFileSync(fq, FIXTURE_FILA);
+    const urlQ = 'file://' + fq.split(String.fromCharCode(92)).join('/');
+    const q = await medirAlvo({ url: urlQ, tela: 'fixture-fila', secoes });
+    ok('fila do protótipo (__oiLazyDone false → true): mede depois de fechar (4 filhos, não 3)',
+      q.secoes.cartao.filhos === 4, `filhos=${q.secoes.cartao.filhos}`);
+    let rcQ = null;
+    try { await medirAlvo({ url: urlQ, tela: 'fixture-fila', secoes, tetoFilaMs: 500 }); rcQ = 'mediu'; }
+    catch (e) { rcQ = e.naoMedi ? 'naoMedi' : 'falhou'; }
+    ok('fila que não fecha dentro do teto → NÃO MEDI (exit 2), nunca o meio do caminho', rcQ === 'naoMedi', `rc=${rcQ}`);
 
     // --clicar: a seção só existe depois do clique (drawer do Financeiro, thread 07)
     const fc = join(tmpdir(), `alvo-fixture-clique-${process.pid}.html`);
