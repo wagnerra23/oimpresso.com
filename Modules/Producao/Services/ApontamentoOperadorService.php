@@ -25,9 +25,9 @@ use Modules\Producao\Exceptions\ApontamentoRecusado;
  *   limites abaixo, e a mesma chave nunca grava duas vezes.
  * - Fechamento automático (UC-PCV-22 · UC-PCV-36, D-PONTO): pessoa fecha na saída do ponto;
  *   sem saída, e máquina sempre, no fim do turno. O Ponto só é lido.
- * - Etapa de venda (`os_tipo = venda`) com a venda em espera não inicia nem retoma (PedidoEmEsperaService).
  * - Correção de horário não reescreve o par (append-only, e o custo lê o par): vira evento
  *   `correcao_solicitada` para o gestor. Aplicar a correção ao custo mexe em VALOR (regra mestre).
+ * - Etapa de venda (`os_tipo = venda`) com a venda em espera não inicia nem retoma (PedidoEmEsperaService).
  */
 class ApontamentoOperadorService
 {
