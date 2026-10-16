@@ -16,6 +16,8 @@
      'commission_agent.manage' => 'Adicionar, editar e remover agentes comerciais',
      'discount.view' => 'Ver descontos',
      'discount.manage' => 'Adicionar, editar, desativar e excluir descontos',
+     'fluxos.ver' => 'Ver fluxos e regras',
+     'fluxos.configurar' => 'Trocar o modelo de fluxo da empresa',
      'supplier.view' => 'Ver provedor',
      'supplier.create' => 'Adicionar provedor',
      'supplier.update' => 'Editar provedor',

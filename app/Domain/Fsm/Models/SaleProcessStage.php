@@ -25,6 +25,7 @@ class SaleProcessStage extends Model
         'is_initial' => 'bool',
         'is_terminal' => 'bool',
         'sort_order' => 'int',
+        'regras_ao_entrar' => 'array',
     ];
 
     public function process(): BelongsTo

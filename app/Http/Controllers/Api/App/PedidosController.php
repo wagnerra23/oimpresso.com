@@ -8,6 +8,7 @@ use App\Domain\Fsm\Models\SaleStageAction;
 use App\Domain\Fsm\Policies\StageActionPolicy;
 use App\Http\Controllers\Controller;
 use App\Services\AppLojas\AcoesDoPedido;
+use App\Services\Sells\SituacaoPagamentoVenda;
 use App\Transaction;
 use App\User;
 use Illuminate\Database\Query\Builder;
@@ -161,6 +162,8 @@ class PedidosController extends Controller
             ])->values(),
             'acoes' => $this->acoes($user, (int) $l->id, $l->current_stage_id),
             'entrega' => $this->entrega($user, (int) $l->id, $l->current_stage_id),
+            // Só no detalhe: a lista usaria dasVendas() numa consulta só, se [W] pedir.
+            'pagamento' => app(SituacaoPagamentoVenda::class)->daVenda((int) $user->business_id, (int) $l->id),
         ]);
     }
 
@@ -586,6 +589,7 @@ class PedidosController extends Controller
                 'chave' => (string) $a->key,
                 'rotulo' => (string) $a->label,
                 'pode' => $venda ? (bool) $policy->canExecute($user, $venda, $a->key) : false,
+                'pede_motivo' => AcoesDoPedido::pedeMotivo((string) $a->key),
             ])->values()->all();
     }
 }
