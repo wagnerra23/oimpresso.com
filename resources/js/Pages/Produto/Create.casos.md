@@ -5,8 +5,8 @@ irmaos: Create.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o produto que NASCE do cadastro não muda quando a tela vira aba.
 owner: wagner
-last_run: "2026-07-17"
-last_run_ci: "3 UCs ativos (01/04/06) — todos passam; 02/03 retirados, 05 backlog (correção [F] 2026-07-17)"
+last_run: "2026-10-16"
+last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 485 passed (2356 assertions); UC-PCAD-01/04/05/06/07 verdes. Revalidação depois do refactor que passou as seções do formulário para _components/formulario/ (sem mudança de comportamento: HTML e estado do formulário idênticos antes/depois em 8 cenários no Vitest)"
 ---
 
 # Casos de Uso & Aceite — Cadastro de produto
