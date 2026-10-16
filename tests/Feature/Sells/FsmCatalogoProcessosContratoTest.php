@@ -33,6 +33,22 @@ const FLX_REFS = [
     'RepairFsmActionController' => \Modules\Repair\Http\Controllers\RepairFsmActionController::class,
     'ServiceOrderFsmActionController' => \App\Http\Controllers\ServiceOrderFsmActionController::class,
     'SaleFsmActionController' => \App\Http\Controllers\SaleFsmActionController::class,
+    'NotificationController' => \App\Http\Controllers\NotificationController::class,
+    'SellPosController' => \App\Http\Controllers\SellPosController::class,
+    'NfeEmissaoController' => \Modules\NfeBrasil\Http\Controllers\NfeEmissaoController::class,
+    'NfseController' => \Modules\NFSe\Http\Controllers\NfseController::class,
+    'PedidoEntregaController' => \App\Http\Controllers\Api\App\PedidoEntregaController::class,
+    'CancelarVendaCascade' => \App\Domain\Fsm\SideEffects\CancelarVendaCascade::class,
+    'NfeService' => \Modules\NfeBrasil\Services\NfeService::class,
+    'ContingenciaController' => \Modules\NfeBrasil\Http\Controllers\ContingenciaController::class,
+    'AcoesController' => \Modules\Fiscal\Http\Controllers\AcoesController::class,
+    'NfeCartaCorrecaoService' => \Modules\NfeBrasil\Services\NfeCartaCorrecaoService::class,
+    'NfeInutilizacaoService' => \Modules\NfeBrasil\Services\NfeInutilizacaoService::class,
+    'NfseEmissaoService' => \Modules\NFSe\Services\NfseEmissaoService::class,
+    'UnificadoController' => \Modules\Financeiro\Http\Controllers\UnificadoController::class,
+    'ConciliacaoController' => \Modules\Financeiro\Http\Controllers\ConciliacaoController::class,
+    'OnCobrancaPagaCreateFinanceiroTitulo' => \Modules\Financeiro\Listeners\OnCobrancaPagaCreateFinanceiroTitulo::class,
+    'DealPipelineService' => \Modules\Crm\Services\DealPipelineService::class,
 ];
 
 /** Seeder que grava cada processo `erp` do protótipo. */
@@ -190,7 +206,14 @@ it('nenhuma referência aponta para classe, método ou rota inexistente', functi
         ->and(\Modules\Vestuario\Services\DevolucaoService::VALIDADE_CREDITO_MESES)->toBe(6);
 
     $uris = collect(Route::getRoutes()->getRoutes())->map->uri()->all();
-    foreach (['sell-return', 'purchase-return', 'purchase-return/save', 'repair/job-sheets/{id}/fsm-action', 'sells/{id}/fsm-action'] as $uri) {
+    $rotas = [
+        'sell-return', 'purchase-return', 'purchase-return/save', 'repair/job-sheets/{id}/fsm-action', 'sells/{id}/fsm-action',
+        'quote/{token}', 'nfe-brasil/transactions/{tx}/emitir', 'nfe-brasil/contingencia/ativar',
+        'fiscal/acoes/nfe/{emissao}/retransmitir', 'fiscal/acoes/nfe/{emissao}/cce', 'fiscal/acoes/nfe/{emissao}/cancelar',
+        'fiscal/acoes/nfe/inutilizar', 'nfse/emitir', 'nfse/transactions/{tx}/emitir', 'nfse/{nfse}/cancelar',
+        'financeiro/unificado/{tituloId}/boleto', 'financeiro/unificado/{id}/baixar', 'financeiro/conciliacao/{lineId}/match',
+    ];
+    foreach ($rotas as $uri) {
         expect(in_array($uri, $uris, true))->toBeTrue("rota {$uri}");
     }
     expect($refs)->toBeGreaterThan(20);
@@ -204,6 +227,20 @@ it('o que a cobertura afirma sobre o código continua verdadeiro', function () {
         // "o Financeiro não lê sell_return" (controle positivo: ele lê 'sell').
         ->and(collect(flxChamadores("'sell_return'"))->filter(fn ($p) => str_contains($p, 'Modules/Financeiro/'))->all())->toBe([])
         ->and(collect(flxChamadores("'sell'"))->filter(fn ($p) => str_contains($p, 'Modules/Financeiro/'))->isNotEmpty())->toBeTrue();
+
+    // Venda, NF-e, NFS-e e cobrança.
+    $nfseService = (string) file_get_contents(base_path('Modules/NFSe/Services/NfseEmissaoService.php'));
+    expect(flxChamadores('RetentarContingenciaJob::dispatch'))->toBe([])
+        ->and(flxChamadores('new RetentarContingenciaJob'))->toBe([])
+        ->and(flxChamadores('TransactionDocument::create'))->toBe([])
+        ->and(flxChamadores('new TransactionDocument'))->toBe([])
+        ->and(collect(flxChamadores('moverStage('))->reject(fn ($p) => str_ends_with($p, 'DealPipelineService.php'))->all())->toBe([])
+        ->and(collect(flxChamadores('iss_retido'))->filter(fn ($p) => str_contains($p, 'Modules/Financeiro/'))->all())->toBe([])
+        ->and(collect(flxChamadores('renegoci'))->filter(fn ($p) => str_contains($p, 'Modules/Financeiro/'))->all())->toBe([])
+        // NfseEmissaoService::cancelar chama o provedor como instrução solta: a resposta não é usada.
+        ->and(str_contains($nfseService, "\n        \$this->provider->cancelar(\$emissao->numero, \$motivo);\n"))->toBeTrue()
+        // A tela calcula o atraso ao ler; o título não tem estado vencido.
+        ->and(method_exists(\Modules\Financeiro\Http\Controllers\UnificadoController::class, 'deriveStatus'))->toBeTrue();
 });
 
 it('ação em etapa terminal é recusada pelo motor, como a cobertura diz', function () {
@@ -230,8 +267,15 @@ it('devolução completa, cobertura sem órfão e resumos', function () {
             expect($final || in_array($e['chave'], $comSaida, true))->toBeTrue("{$id}: {$e['chave']} sem saída")
                 ->and(! $final || in_array($e['chave'], $comEntrada, true))->toBeTrue("{$id}: {$e['chave']} sem entrada");
         }
-        // Toda ação tem cobertura escrita e não sobra entrada para ação que não existe.
-        expect(array_keys(CatalogoProcessos::COBERTURA[$id]))->toEqualCanonicalizing(array_column($p['transicoes'], 'rotulo'));
+    }
+
+    // Toda ação dos processos com cobertura escrita tem entrada, e não sobra entrada para ação que não existe.
+    foreach (CatalogoProcessos::COBERTURA as $id => $mapa) {
+        $p = CatalogoProcessos::processos()[$id];
+        $nomes = array_column($p['estados'], 'nome', 'chave');
+        $usadas = array_map(fn ($t) => CatalogoProcessos::chaveCobertura($id, $t['rotulo'], $t['para'] !== null ? $nomes[$t['para']] : null), $p['transicoes']);
+        expect(in_array(null, $usadas, true))->toBeFalse("{$id}: ação sem cobertura escrita")
+            ->and(array_keys($mapa))->toEqualCanonicalizing($usadas, "{$id}: cobertura sobrando ou repetida");
     }
 
     foreach (CatalogoProcessos::processos() as $p) {
@@ -245,5 +289,9 @@ it('devolução completa, cobertura sem órfão e resumos', function () {
         ->and(CatalogoProcessos::resumo('os-reparo'))->toBe(['sim' => 21, 'parcial' => 0, 'nao' => 2, 'nao_verificado' => 0, 'total' => 23])
         ->and(CatalogoProcessos::resumo('oficina-os'))->toBe(['sim' => 14, 'parcial' => 0, 'nao' => 0, 'nao_verificado' => 0, 'total' => 14])
         ->and(CatalogoProcessos::resumo('os-cv'))->toBe(['sim' => 0, 'parcial' => 32, 'nao' => 2, 'nao_verificado' => 0, 'total' => 34])
-        ->and(CatalogoProcessos::resumo('venda'))->toBe(['sim' => 0, 'parcial' => 0, 'nao' => 0, 'nao_verificado' => 6, 'total' => 6]);
+        ->and(CatalogoProcessos::resumo('venda'))->toBe(['sim' => 0, 'parcial' => 6, 'nao' => 0, 'nao_verificado' => 0, 'total' => 6])
+        ->and(CatalogoProcessos::resumo('nfe'))->toBe(['sim' => 2, 'parcial' => 7, 'nao' => 0, 'nao_verificado' => 0, 'total' => 9])
+        ->and(CatalogoProcessos::resumo('nfse'))->toBe(['sim' => 1, 'parcial' => 4, 'nao' => 2, 'nao_verificado' => 0, 'total' => 7])
+        ->and(CatalogoProcessos::resumo('cobranca'))->toBe(['sim' => 0, 'parcial' => 5, 'nao' => 3, 'nao_verificado' => 0, 'total' => 8])
+        ->and(CatalogoProcessos::resumo('pagar')['nao_verificado'])->toBe(CatalogoProcessos::resumo('pagar')['total']);
 });

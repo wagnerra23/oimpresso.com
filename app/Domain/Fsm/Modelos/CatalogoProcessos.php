@@ -47,7 +47,10 @@ final class CatalogoProcessos
         'os_comunicacao_visual' => ['parcial', 'POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação'],
     ];
 
-    /** processo => rótulo da ação => [estado, onde]. Toda ação dos processos listados aqui tem entrada. */
+    /**
+     * processo => rótulo da ação => [estado, onde]. Toda ação dos processos listados aqui tem entrada.
+     * Quando duas ações têm o mesmo rótulo, a chave é "rótulo → estado de destino".
+     */
     public const COBERTURA = [
         'devolucao' => [
             'Analisar' => ['nao', 'Não existe ocorrência pós-venda no ERP: a devolução começa direto no lançamento.'],
@@ -64,6 +67,46 @@ final class CatalogoProcessos
             'Registrar devolução ao fornecedor' => ['sim', 'resource purchase-return → PurchaseReturnController@store (ProductUtil::decreaseProductQuantity) e /purchase-return/save → CombinedPurchaseReturnController@save'],
             'Receber crédito ou estorno' => ['nao_verificado', 'A devolução de compra tem situação de pagamento (TransactionUtil::updatePaymentStatus); não conferi se o Financeiro a liga ao título a pagar.'],
             'Excluir devolução' => ['sim', 'PurchaseReturnController@destroy (resource purchase-return)'],
+        ],
+        // Venda: o motor tem venda_com_producao (ADR 0129), sem guarda; nenhuma condição "só passa se" existe no código.
+        'venda' => [
+            'Enviar ao cliente' => ['parcial', 'Ação FSM enviar_orcamento (SaleFsmActionController@execute, POST /sells/{id}/fsm-action) só muda a etapa. O envio de verdade é NotificationController@send (template new_quotation), fora da FSM. Sem conferência de contato e sem medição de abertura.'],
+            'Cliente aprova' => ['parcial', 'Ação FSM cliente_aprovou com ReservarEstoque muda a etapa; o link público (SellPosController@showInvoice, GET /quote/{token}) só mostra. Não cria OS por item nem parcelas de sinal e saldo; sem checagem de validade; a reserva espera payload.items, que a tela não manda.'],
+            'Marcar perdido' => ['parcial', 'Ação FSM cliente_rejeitou leva a Cancelada: não existe a etapa Perdido, o motivo não é pedido e nada alimenta funil (DealPipelineService::moverStage do Crm, que leva a perdido com motivo, não tem chamador).'],
+            'Faturar' => ['parcial', 'Ação FSM faturar sai de "Pronto pra faturar" e só muda a etapa. NF-e (NfeEmissaoController@emitir) e NFS-e (NfseController@emitirParaTransaction) são botões separados, sem decidir pela natureza fiscal do item.'],
+            'Concluir' => ['parcial', 'Ações FSM entregar e concluir só mudam a etapa (entregar exige Paga antes; no app, PedidoEntregaController@registrar). Sem checagem de OS pronta e sem pesquisa de satisfação depois da entrega.'],
+            'Cancelar' => ['parcial', 'Ação FSM cancelar_venda com CancelarVendaCascade::execute libera a reserva. Não cobra "nenhuma nota autorizada": tenta cancelar as notas, mas lê transaction_documents, que nenhum código grava. Não estorna sinal já pago (só cancela boleto pendente).'],
+        ],
+        'nfe' => [
+            'Validar' => ['parcial', 'Não há estado Rascunho nem Validada: as regras (valor, NCM, item de serviço) rodam dentro de NfeService::emitirInterno (POST /nfe-brasil/transactions/{tx}/emitir). Sem validação XSD explícita; o certificado só é checado por ativo, não por validade.'],
+            'Transmitir' => ['parcial', 'NfeService::emitirInterno reserva o número da série e transmite. Se a SEFAZ cai a nota vira erro_envio: contingência só manual (ContingenciaController@ativar, tpEmis 4), sem SVC nem EPEC, e RetentarContingenciaJob não tem quem o dispare.'],
+            'Retorno 100' => ['parcial', 'NfeService::processarRetorno grava autorizada, XML e DANFE. O e-mail sozinho só sai no boleto pago; na venda, só por NfeEmissaoController@reenviarEmail. Não baixa estoque nem liga ao título.'],
+            'Retorno de rejeição' => ['sim', 'NfeService::processarRetorno grava rejeitada com cStat e motivo; a tela de nota mostra o resultado. O campo com erro não é extraído (a orientação vem de um mapa na tela).'],
+            'Corrigir e revalidar' => ['parcial', 'AcoesController@retransmitir → NfeService::retransmitir (POST /fiscal/acoes/nfe/{emissao}/retransmitir) não volta a nota para correção: marca a antiga inutilizada no banco local e emite outra, com outro número.'],
+            'Retorno de denegação' => ['parcial', 'NfeService::processarRetorno grava denegada e só escreve log: não avisa o fiscal, e NfeService::retransmitir aceita denegada (deixa reemitir em vez de tratar o número como queimado).'],
+            'Carta de correção (CC-e)' => ['parcial', 'AcoesController@cartaCorrecao → NfeCartaCorrecaoService::aplicar (POST /fiscal/acoes/nfe/{emissao}/cce) envia o evento 110110 e o liga à nota. A regra "não corrige valor, imposto, destinatário nem data" não é conferida (texto livre).'],
+            'Cancelar' => ['parcial', 'AcoesController@cancelarNfe → NfeService::cancelar (POST /fiscal/acoes/nfe/{emissao}/cancelar) envia o evento 110111 e marca cancelada. Não confere o prazo localmente e não estorna estoque nem cancela o título.'],
+            'Inutilizar número' => ['sim', 'AcoesController@inutilizar → NfeInutilizacaoService::inutilizar (POST /fiscal/acoes/nfe/inutilizar) comunica a faixa à SEFAZ e marca as emissões da faixa. Não confere localmente que os números foram pulados (quem barra é a SEFAZ).'],
+        ],
+        'nfse' => [
+            'Validar' => ['parcial', 'NfseController@store (POST /nfse/emitir) confere o código LC 116 e calcula ISS e retenções federais. Não existe município de incidência (usa o do prestador) nem o estado Validada, e o rascunho criado pela venda não tem rota para validar.'],
+            'Enviar DPS' => ['sim', 'NfseController@store → EmitirNfseJob → NfseEmissaoService::emitir envia a DPS assinada à Sefin Nacional (SnNfseAdapter). Só o emissor nacional está ligado; não há emissor municipal.'],
+            'Retorno de autorização' => ['parcial', 'NfseEmissaoService::emitir grava emitida com número e chave. Não envia ao tomador e não ajusta o título pelo ISS retido (o Financeiro não referencia NFS-e).'],
+            'Retorno de rejeição' => ['parcial', 'A rejeição vira status erro com a mensagem (NfseEmissaoService::marcarErro), mas a nota não volta para correção: não pode ser editada.'],
+            'Corrigir e revalidar' => ['nao', 'Não há rota de corrigir ou reemitir a nota rejeitada (Modules/NFSe/Routes/web.php só tem listar, emitir, emitir por venda, ver, cancelar e PDF); "Nova emissão" cria outra do zero.'],
+            'Substituir' => ['nao', 'Não existe substituição de NFS-e: nenhuma rota, campo ou vínculo com a nota substituta.'],
+            'Cancelar' => ['parcial', 'NfseController@cancelar → NfseEmissaoService::cancelar (POST /nfse/{nfse}/cancelar) marca cancelada sem olhar a resposta da Sefin (fica cancelada mesmo se ela recusar). Não confere regra nem prazo e não cancela o título.'],
+        ],
+        // Cobrança = fin_titulos (enum aberto/parcial/quitado/cancelado): Emitido, Vencido, Em cobrança e Conciliado não existem como estado.
+        'cobranca' => [
+            'Registrar boleto/PIX' => ['parcial', 'UnificadoController@emitirBoletoTitulo (POST /financeiro/unificado/{tituloId}/boleto) registra o boleto no Inter com conta ativa para boleto. Não envia ao cliente (CobrancaEmitida não é disparado), não muda o estado do título e não gera PIX por esse caminho.'],
+            'Vencimento passou' => ['parcial', 'Não há estado vencido gravado nem cron: a tela calcula "atrasado" ao ler (UnificadoController::deriveStatus), já no D+0. CobrancaVencida é disparado no retorno CNAB, mas nenhum listener o ouve.'],
+            'Iniciar régua' => ['nao', 'Não existe régua D+1/D+5/D+15 sobre título nem tarefa ao vendedor. A régua do RecurringBilling é fixa e só de leitura ("Em breve"); o lembrete agendado do núcleo (pos:autoSendPaymentReminder) é sobre vendas, não títulos.'],
+            'Retorno do banco → Pago' => ['parcial', 'OnCobrancaPagaCreateFinanceiroTitulo::baixarTituloExistente quita o título quando o pagamento zera o saldo, mas só para o business dono do SaaS (saas_owner_business_id); webhook de boleto Inter/C6/Asaas só grava o evento. Não libera produção, não emite nota (EmitirNFeAoReceberPagamento só ouve o RecurringBilling, com NFEBRASIL_AUTO_EMISSION desligado) e não lança comissão.'],
+            'Retorno do banco → Pago parcial' => ['parcial', 'Pelo banco, OnCobrancaPagaCreateFinanceiroTitulo::baixarTituloExistente reduz o valor em aberto e o título segue aberto (mesmas restrições do pagamento total). Na baixa manual, UnificadoController@baixar (POST /financeiro/unificado/{id}/baixar) divide em título quitado + saldo.'],
+            'Conciliar extrato' => ['parcial', 'ConciliacaoController@match (POST /financeiro/conciliacao/{lineId}/match) casa a linha do extrato com o título e marca a linha. O título não muda de estado, não se confere se está quitado e nada é lançado no caixa.'],
+            'Renegociar' => ['nao', 'Não existe renegociação: nenhuma ação, alçada ou geração de parcelas novas (só o cancelamento em lote, sem substitutos).'],
+            'Baixar' => ['nao', 'Não existe baixa por perda: nenhum motivo, alçada, lançamento de perda ou bloqueio de crédito ligado a ela (o limite de crédito do núcleo é outra coisa).'],
         ],
     ];
 
@@ -97,7 +140,7 @@ final class CatalogoProcessos
                     'para' => $t[1] !== null ? $chavePorNome[$t[1]] : null,
                     'acao' => CatalogoModelos::chaveEtapa($t[2]),
                     'rotulo' => $t[2], 'guarda' => $t[3], 'efeito' => $t[4], 'quem' => $t[5],
-                    'cobertura' => self::cobertura($id, $erp, $t[2], in_array($tipoPorNome[$t[0]], self::FINAIS, true)),
+                    'cobertura' => self::cobertura($id, $erp, $t[2], $t[1], in_array($tipoPorNome[$t[0]], self::FINAIS, true)),
                 ], $p['trans']),
             ];
         }
@@ -117,10 +160,11 @@ final class CatalogoProcessos
     }
 
     /** @return array{estado:string, onde:string} */
-    private static function cobertura(string $id, ?string $erp, string $rotulo, bool $origemFinal): array
+    private static function cobertura(string $id, ?string $erp, string $rotulo, ?string $para, bool $origemFinal): array
     {
-        if (isset(self::COBERTURA[$id][$rotulo])) {
-            [$estado, $onde] = self::COBERTURA[$id][$rotulo];
+        $chave = self::chaveCobertura($id, $rotulo, $para);
+        if ($chave !== null) {
+            [$estado, $onde] = self::COBERTURA[$id][$chave];
 
             return ['estado' => $estado, 'onde' => $onde];
         }
@@ -134,5 +178,17 @@ final class CatalogoProcessos
         }
 
         return ['estado' => 'nao_verificado', 'onde' => 'Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição.'];
+    }
+
+    /** Chave de COBERTURA desta ação: "rótulo → destino" se existir, senão "rótulo"; null se nenhuma. */
+    public static function chaveCobertura(string $id, string $rotulo, ?string $para): ?string
+    {
+        foreach ([$rotulo . ' → ' . ($para ?? 'mesmo estado'), $rotulo] as $chave) {
+            if (isset(self::COBERTURA[$id][$chave])) {
+                return $chave;
+            }
+        }
+
+        return null;
     }
 }
