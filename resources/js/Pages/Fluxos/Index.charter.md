@@ -40,6 +40,9 @@ andamento.
 - Card abre a gaveta do modelo (processos, regras "ao entrar em", casos cobertos, diferença para o
   modelo em uso). "Usar este modelo" → confirmação dizendo que documentos em andamento ficam onde
   estão → `POST /fluxos/modelo` → `AplicarModelo` (#9492). A empresa é sempre a da sessão.
+- Assistente de configuração (aba Modelos): descrição livre + exemplos → `POST /fluxos/assistente`
+  → `RecomendarModelo` (agente `RecomendarModeloFluxoAgent`, laravel/ai). Sem IA, ou com resposta
+  fora do catálogo, cai na regra de encaixe e a tela diz "Sugestão pelo perfil". Só sugere.
 - Aba Fluxos da empresa: modelo em uso (ou "processos de antes dos modelos" quando legado), com
   data e perfil, e as etapas e regras de cada processo dele.
 - PT-BR em todo texto.

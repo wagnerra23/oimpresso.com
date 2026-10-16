@@ -94,6 +94,7 @@ export default function FluxosIndex({
               onPerfil={setPerfil}
               emUsoId={emUso?.id ?? null}
               onAbrir={setAberto}
+              casos={casos}
             />
           )}
           {aba === 'empresa' && (

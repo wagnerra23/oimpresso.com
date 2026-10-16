@@ -71,6 +71,32 @@ last_run: "2026-10-16"
 - **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-07").
 - **Status: 🧪**
 
+## UC-FLXT-08 · O assistente sugere um modelo a partir da descrição
+- **Persona:** dono que não sabe qual modelo escolher.
+- **Aceite:** Dado a IA do ERP disponível · Quando descreve a empresa e pede a recomendação · Então
+  recebe o modelo sugerido, o porquê, os casos a ligar/desligar (só ids do catálogo) e o perfil
+  indicado, marcado como "Sugestão da IA". Nada é gravado.
+- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-08").
+- **Status: 🧪**
+
+## UC-FLXT-09 · Sem IA, o assistente usa a regra de encaixe e diz isso
+- **Persona:** dono, com o provedor de IA fora do ar.
+- **Aceite:** Dado a IA indisponível · Quando pede a recomendação · Então recebe o modelo de maior
+  encaixe para o perfil e o motivo "Escolhido só pelo porte e pela atividade — a IA não respondeu.";
+  a tela mostra "Sugestão pelo perfil".
+- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-09").
+- **Status: 🧪**
+
+## UC-FLXT-10 · Resposta da IA fora do catálogo não vira sugestão
+- **Aceite:** Dado a IA devolvendo um modelo que não existe · Então vale a regra de encaixe.
+- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-10").
+- **Status: 🧪**
+
+## UC-FLXT-11 · Sem fluxos.ver o assistente não responde
+- **Aceite:** Dado um usuário sem `fluxos.ver` · Quando chama o assistente · Então recebe 403.
+- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-11").
+- **Status: 🧪**
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste)
@@ -78,4 +104,3 @@ last_run: "2026-10-16"
 - **[BACKLOG]** Aba Processos: estados, transições e roteiro (PR 2).
 - **[BACKLOG]** Ligar/desligar regra por processo e a Compra editável do protótipo — o ERP ainda não tem regra configurável.
 - **[BACKLOG]** Aba Casos de uso: UC-FLX com fontes e estado (PR 4).
-- **[BACKLOG]** Assistente de configuração com IA e queda para a regra de encaixe (PR 5).

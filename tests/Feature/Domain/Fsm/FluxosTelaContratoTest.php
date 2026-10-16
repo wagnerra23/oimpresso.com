@@ -225,3 +225,58 @@ it('UC-FLXT-07 · a aba Fluxos da empresa traz o modelo da própria empresa', fu
     expect($empresa['modelo'])->toBe('grafica');
     expect([$empresa['porte'], $empresa['atividade']])->toBe(['media', 'offset']);
 });
+
+function flxtAssistente($teste, array $dados)
+{
+    return $teste->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
+        ->postJson('/fluxos/assistente', $dados);
+}
+
+it('UC-FLXT-08 · com IA, o assistente devolve o modelo sugerido só com casos do catálogo', function () {
+    \App\Domain\Fsm\Ai\RecomendarModeloFluxoAgent::fake([[
+        'modelo' => 'instalacao', 'porque' => 'Você instala fachadas com equipe própria.',
+        'ligar' => ['UC-FLX-28', 'UC-FLX-99'], 'desligar' => ['UC-FLX-15'],
+        'porte' => 'pequena', 'atividade' => 'instal',
+    ]]);
+    flxtEntrar($this, flxtUsuario(['fluxos.ver']));
+
+    $r = flxtAssistente($this, ['texto' => 'Duas equipes de instalação de fachada.', 'porte' => 'pequena', 'atividade' => 'cv']);
+
+    $r->assertOk();
+    expect($r->json())->toBe([
+        'modelo' => 'instalacao', 'porque' => 'Você instala fachadas com equipe própria.',
+        'ligar' => ['UC-FLX-28'], 'desligar' => ['UC-FLX-15'],
+        'porte' => 'pequena', 'atividade' => 'instal', 'origem' => 'ia',
+    ]);
+});
+
+it('UC-FLXT-09 · sem IA, cai na regra de encaixe e diz que foi pelo perfil', function () {
+    \App\Domain\Fsm\Ai\RecomendarModeloFluxoAgent::fake(fn () => throw new RuntimeException('provedor fora do ar'));
+    flxtEntrar($this, flxtUsuario(['fluxos.ver']));
+
+    $r = flxtAssistente($this, ['texto' => '', 'porte' => 'micro', 'atividade' => 'oficina']);
+
+    $r->assertOk();
+    // Micro · oficina: o modelo Oficina mecânica tem porte e atividade iguais (encaixe 4).
+    expect($r->json('modelo'))->toBe('oficina');
+    expect($r->json('origem'))->toBe('regra');
+    expect($r->json('porque'))->toBe('Escolhido só pelo porte e pela atividade — a IA não respondeu.');
+});
+
+it('UC-FLXT-10 · modelo fora do catálogo vindo da IA também cai na regra', function () {
+    \App\Domain\Fsm\Ai\RecomendarModeloFluxoAgent::fake([[
+        'modelo' => 'nao-existe', 'porque' => 'x', 'ligar' => [], 'desligar' => [], 'porte' => 'pequena', 'atividade' => 'cv',
+    ]]);
+    flxtEntrar($this, flxtUsuario(['fluxos.ver']));
+
+    $r = flxtAssistente($this, ['texto' => 'qualquer', 'porte' => 'pequena', 'atividade' => 'cv']);
+
+    expect($r->json('origem'))->toBe('regra');
+    expect($r->json('modelo'))->toBe('cv-pequena');
+});
+
+it('UC-FLXT-11 · sem fluxos.ver o assistente devolve 403', function () {
+    flxtEntrar($this, flxtUsuario(['customer.view']));
+
+    expect(flxtAssistente($this, ['porte' => 'pequena', 'atividade' => 'cv'])->getStatusCode())->toBe(403);
+});

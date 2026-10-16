@@ -6,7 +6,9 @@ namespace App\Http\Controllers;
 
 use App\Domain\Fsm\Modelos\AplicarModelo;
 use App\Domain\Fsm\Modelos\CatalogoModelos;
+use App\Domain\Fsm\Modelos\RecomendarModelo;
 use App\Domain\Fsm\Models\ModeloEmpresa;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -105,6 +107,28 @@ class FluxosController extends Controller
             'success' => 1,
             'msg' => "Modelo {$nome} aplicado. Documentos em andamento continuam na etapa em que estavam.",
         ]);
+    }
+
+    /**
+     * Assistente de configuração: descrição livre → modelo sugerido (IA do ERP, com queda para a
+     * regra de encaixe). Só sugere, não grava — por isso basta fluxos.ver.
+     */
+    public function assistente(Request $request, RecomendarModelo $recomendar): JsonResponse
+    {
+        abort_unless($request->user()->can('fluxos.ver'), 403);
+
+        $dados = $request->validate([
+            'texto' => ['nullable', 'string', 'max:2000'],
+            'porte' => ['required', 'string', Rule::in(array_keys(CatalogoModelos::PORTES))],
+            'atividade' => ['required', 'string', Rule::in(array_keys(CatalogoModelos::ATIVIDADES))],
+        ]);
+
+        return response()->json($recomendar->recomendar(
+            (string) ($dados['texto'] ?? ''),
+            $dados['porte'],
+            $dados['atividade'],
+            (int) $request->session()->get('user.business_id'),
+        ));
     }
 
     /**
