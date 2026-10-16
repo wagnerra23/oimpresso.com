@@ -7,7 +7,7 @@
 ## Resumo
 - **440** arquivos · **425** números únicos · máx **0435**
 - **ADRs ATIVOS (lifecycle ativo): 393** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 381 · superseded 27 · proposto 18 · deprecated 11 · recusado 2 · rascunho 1
+- Por status: aceito 382 · superseded 27 · proposto 17 · deprecated 11 · recusado 2 · rascunho 1
 - Por lifecycle: ativo 393 · substituido 27 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
@@ -477,5 +477,5 @@ _(nenhuma)_
 | 0431 | aceito | ativo | decision | PCP sai do estado de desejo: nasce Modules/Producao como camada única de produçã |
 | 0432 | proposto | ativo | decision | App das lojas — biometria só no login, feita pelo aparelho; o ponto continua sem |
 | 0433 | aceito | ativo | decision | A fonte do protótipo do [W] passa a ser o git; o Cowork vira ferramenta opcional |
-| 0434 | proposto | ativo | decision | FSM do pedido — retomar produção, pagamento fora das etapas, conclusão pelo PCP  |
+| 0434 | aceito | ativo | decision | FSM do pedido — retomar produção, pagamento fora das etapas, conclusão pelo PCP  |
 | 0435 | proposto | ativo | decision | Fluxos por modelo (porte × atividade): a empresa escolhe um modelo e o modelo mo |
