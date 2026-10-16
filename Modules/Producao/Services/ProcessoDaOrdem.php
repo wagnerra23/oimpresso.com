@@ -35,17 +35,21 @@ final class ProcessoDaOrdem
 
     /**
      * [de, chave da ação, rótulo, para (null = fica na etapa), crítica, papel]. "Concluir etapa"
-     * não muda a situação: passa o roteiro adiante (PR 4 do plano).
+     * não muda a situação: passa o roteiro adiante.
+     *
+     * Papel null: a ação é disparada pelo apontamento do operador, que já confere se ele é o
+     * responsável da etapa (ApontamentoOperadorService). Um segundo portão no motor barraria o
+     * celular. As ações de tela (Liberar, Reprovar, Refazer, Cancelar) exigem papel.
      */
     public const ACOES = [
         ['aguardando_liberacao', 'liberar', 'Liberar', 'na_fila', false, 'producao.liberar'],
-        ['na_fila', 'iniciar_etapa', 'Iniciar etapa', 'em_execucao', false, 'producao.operar'],
-        ['em_execucao', 'pausar', 'Pausar', 'pausada', false, 'producao.operar'],
-        ['pausada', 'retomar', 'Retomar', 'em_execucao', false, 'producao.operar'],
-        ['em_execucao', 'concluir_etapa', 'Concluir etapa', null, false, 'producao.operar'],
+        ['na_fila', 'iniciar_etapa', 'Iniciar etapa', 'em_execucao', false, null],
+        ['em_execucao', 'pausar', 'Pausar', 'pausada', false, null],
+        ['pausada', 'retomar', 'Retomar', 'em_execucao', false, null],
+        ['em_execucao', 'concluir_etapa', 'Concluir etapa', null, false, null],
         ['em_execucao', 'reprovar', 'Reprovar no controle', 'retrabalho', true, 'producao.qualidade'],
         ['retrabalho', 'refazer', 'Refazer', 'em_execucao', false, 'producao.liberar'],
-        ['em_execucao', 'concluir_item', 'Concluir item', 'concluida', true, 'producao.operar'],
+        ['em_execucao', 'concluir_item', 'Concluir item', 'concluida', false, null],
         ['aguardando_liberacao', 'cancelar_item', 'Cancelar item', 'cancelada', true, 'vendas.gerente'],
     ];
 
@@ -77,6 +81,9 @@ final class ProcessoDaOrdem
                     ['label' => $rotulo, 'target_stage_id' => $para !== null ? $stages[$para]->id : null,
                         'requires_confirmation' => $critica, 'is_critical' => $critica],
                 );
+                if ($papel === null) {
+                    continue;
+                }
                 $nome = $this->garantirPapel($businessId, $papel);
                 if (! $acao->roles()->where('role_name', $nome)->exists()) {
                     SaleStageActionRole::create(['action_id' => $acao->id, 'role_name' => $nome]);

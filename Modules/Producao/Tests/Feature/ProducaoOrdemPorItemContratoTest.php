@@ -119,3 +119,16 @@ it('a programação do PCP guarda a posição da etapa no roteiro e o posto é o
     $posto = collect(Schema::getColumns('pcp_programacoes'))->firstWhere('name', 'posto_id');
     expect($posto['nullable'])->toBeTrue();
 });
+
+it('as ações do apontamento não pedem papel no motor; as de tela pedem', function () {
+    $p = app(ProcessoDaOrdem::class)->garantir($this->b98);
+    $acoes = SaleStageAction::with('roles')->whereIn('stage_id', SaleProcessStage::where('process_id', $p->id)->pluck('id'))->get()->keyBy('key');
+
+    foreach (['iniciar_etapa', 'pausar', 'retomar', 'concluir_etapa', 'concluir_item'] as $k) {
+        expect($acoes[$k]->roles)->toHaveCount(0);
+        expect((bool) $acoes[$k]->is_critical)->toBeFalse();
+    }
+    foreach (['liberar', 'reprovar', 'refazer', 'cancelar_item'] as $k) {
+        expect($acoes[$k]->roles->pluck('role_name')->first())->toEndWith('#'.$this->b98);
+    }
+});
