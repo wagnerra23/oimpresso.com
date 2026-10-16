@@ -4,7 +4,7 @@
 // quando o índice está fiel. Usa MAQUINAS_OUT (env) pra apontar o --check pra uma cópia
 // temporária mutada — NUNCA toca o doc real. Roda no governance-script-tests.yml (advisory).
 import { execFileSync } from 'node:child_process';
-import { writeFileSync, readFileSync, mkdtempSync } from 'node:fs';
+import { writeFileSync, readFileSync, mkdtempSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -78,6 +78,26 @@ t('restaurado fiel → --check volta a liberar (exit 0)', check(fixture) === 0);
   t('citaEmLiteralPhp: caminho em literal de string => leitor', !!r && r[0] === true);
   t('CONTROLE NEGATIVO: caminho em docblock (Model/migration) => NÃO é leitor', !!r && r[1] === false);
   t('CONTROLE NEGATIVO: caminho em comentário de linha => NÃO é leitor', !!r && r[2] === false);
+}
+
+// (7) cabeçalho com fim de linha CRLF (git com core.autocrlf=true, o padrão do Windows).
+//     Até 2026-10-16 a descrição de TODO script em CRLF saía "(sem descrição no cabeçalho)", e o
+//     hook do commit gravava esse índice. Pasta mínima (o gerador usa o cwd como raiz) com um
+//     script em CRLF e um em LF de controle. Os fins de linha são montados por código.
+{
+  const raiz = mkdtempSync(join(tmpdir(), 'maq-crlf-'));
+  for (const d of ['scripts/governance', 'governance', '.claude']) mkdirSync(join(raiz, d), { recursive: true });
+  writeFileSync(join(raiz, 'scripts/governance/gates-registry.json'), '{"gates":[]}');
+  writeFileSync(join(raiz, 'governance/required-checks-baseline.json'), '{"classic_protection":{"contexts":[]},"rulesets":{"contexts":[]}}');
+  writeFileSync(join(raiz, '.claude/settings.json'), '{}');
+  const crlf = String.fromCharCode(13, 10);
+  const lf = String.fromCharCode(10);
+  writeFileSync(join(raiz, 'scripts/cabecalho-crlf.mjs'), ['// cabecalho-crlf.mjs — Descrição em CRLF', 'console.log(1);', ''].join(crlf));
+  writeFileSync(join(raiz, 'scripts/cabecalho-lf.mjs'), ['// cabecalho-lf.mjs — Descrição em LF', 'console.log(1);', ''].join(lf));
+  const tabela = execFileSync('node', [join(process.cwd(), SCRIPT)], { cwd: raiz, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+  const linha = (nome) => tabela.split(lf).find((l) => l.includes('`' + nome + '`')) || '';
+  t('cabeçalho em CRLF: a descrição é lida', linha('cabecalho-crlf.mjs').includes('Descrição em CRLF'));
+  t('CONTROLE: cabeçalho em LF segue lido', linha('cabecalho-lf.mjs').includes('Descrição em LF'));
 }
 
 if (fails) { console.error(`\n✗ ${fails} teste(s) falharam`); process.exit(1); }

@@ -148,6 +148,13 @@ last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 48
 - **Contrato:** `AR-PROD-128` (o Office Comercial tinha "Origem da Mercadoria" no cadastro, `PRODUTO.ORIGEM_MERCADORIA`) + tabela A do MOC (`orig` só aceita 0 a 8).
 - **Status: 🧪** — Recibo: CT 100 (`oimpresso-staging`, MySQL `oimpresso_staging`, worktree isolado do branch, sem tocar o checkout compartilhado), 2026-10-15 — **8 passed (19 assertions)**. Bite-test por mutação: emissão de volta a `0`, limite `0,9` no lugar de `0,8`, `update()` sem o guarda `filled` e `linhasDaVenda` sem a coluna — cada uma derruba 1 caso. Não vira ✅ enquanto a lane não publicar o veredito (G-7).
 
+## UC-PCAD-08 · O "Novo produto" da /products abre o cadastro React quando a chave da empresa está ligada · `should`
+- **Persona:** quem cadastra produto pela lista `/products`. A lista navega com página inteira (`Index.tsx`, `window.location.assign`), então quem decide qual cadastro abre é o `ProductController@create`.
+- **Aceite:** Dado a chave `useV2ProdutoCadastro` **desligada** para a empresa (o default) · Quando abro `/products/create` com página inteira · Então abre o cadastro **Blade**, como antes · E, com a chave **ligada**, abre o cadastro **React** (`Produto/Create`) · E `?classico=1` devolve o Blade mesmo com a chave ligada · E uma visita Inertia abre o React com a chave desligada (a regra anterior).
+- **Teste:** [`CadastroProdutoChaveReactTest`](../../../../tests/Feature/Produto/CadastroProdutoChaveReactTest.php) — `UC-PCAD-08` (os quatro casos).
+- **Contrato:** decisão [F] 2026-10-16 — *"O Novo produto da /products deve abrir o cadastro novo (React), no lugar do Blade."* A chave existe porque o formulário React ainda não manda preço (§Pendência de CONTRATO abaixo): ligar para cliente vem depois do preço.
+- **Status: 🧪** — escrito junto do código, ainda sem veredito da lane `PHP / Pest (Estoque · MySQL)` (G-7).
+
 ---
 
 ## Pendência de CONTRATO (achado sem caso de uso — não vira UC até `[F]` decidir)
