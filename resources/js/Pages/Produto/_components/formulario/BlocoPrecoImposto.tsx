@@ -11,6 +11,7 @@ import {
 } from '@/Components/ui/select';
 import { OrigemMercadoriaField } from '../OrigemMercadoriaField';
 import type { CamposProduto, DefinirCampo, ErrosProduto, OpcoesProduto } from './tipos';
+import { opcoesDe } from './tipos';
 
 interface Props {
   data: CamposProduto;
@@ -18,6 +19,12 @@ interface Props {
   errors: ErrosProduto;
   opcoes: OpcoesProduto;
 }
+
+/**
+ * "Nenhum imposto" é uma escolha de verdade. O formulário guarda '' (o que o servidor espera), e
+ * o Select do Radix não aceita item com valor vazio: no Select vale este sentinela.
+ */
+const SEM_IMPOSTO = 'sem-imposto';
 
 export function BlocoPrecoImposto({ data, definir, errors, opcoes }: Props) {
   return (
@@ -28,12 +35,16 @@ export function BlocoPrecoImposto({ data, definir, errors, opcoes }: Props) {
       <CardContent className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="tax">Taxa de imposto</Label>
-          <Select value={String(data.tax ?? '')} onValueChange={(v) => definir('tax', Number(v))}>
+          <Select
+            value={data.tax === '' || data.tax == null ? SEM_IMPOSTO : String(data.tax)}
+            onValueChange={(v) => definir('tax', v === SEM_IMPOSTO ? '' : Number(v))}
+          >
             <SelectTrigger id="tax">
               <SelectValue placeholder="Nenhuma" />
             </SelectTrigger>
             <SelectContent>
-              {Object.entries(opcoes.taxes).map(([k, v]) => (
+              <SelectItem value={SEM_IMPOSTO}>Nenhuma</SelectItem>
+              {opcoesDe(opcoes.taxes).map(([k, v]) => (
                 <SelectItem key={k} value={k}>
                   {v}
                 </SelectItem>
