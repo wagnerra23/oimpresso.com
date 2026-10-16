@@ -57,8 +57,11 @@ function RegrasModelo({ proc, atual }) {
   );
 }
 
-function OiEtapaPainel({ proc, estado, docId, bloqueios, resolver, interceptar, onAcao, modo, nota }) {
+// campos = { [acao]: { render: (val, set) => JSX, ok: (val) => bool, texto: (val) => string } } — o que a ação pede
+// antes de confirmar (motivo, etapa de origem, prévia de baixa). O texto entra no histórico.
+function OiEtapaPainel({ proc, estado, docId, bloqueios, resolver, interceptar, onAcao, modo, nota, campos }) {
   const [prev, setPrev] = useState(null);
+  const [val, setVal] = useState({});
   const [, tick] = useState(0);
   useEffect(() => {
     const h = () => tick((n) => n + 1);
@@ -96,10 +99,10 @@ function OiEtapaPainel({ proc, estado, docId, bloqueios, resolver, interceptar, 
   const pri = acoes.findIndex((t) => !bl[t.acao]);
 
   const confirmar = () => {
-    const t = prev; setPrev(null);
-    if (interceptar && interceptar[t.acao]) { interceptar[t.acao](t); return; }
-    transitar(proc, docId, t, atual);
-    if (onAcao) onAcao(t);
+    const t = prev, v = val, c = campos && campos[t.acao]; setPrev(null); setVal({});
+    if (interceptar && interceptar[t.acao]) { interceptar[t.acao](t, v); return; }
+    transitar(proc, docId, c && c.texto ? { ...t, acao: t.acao + " — " + c.texto(v) } : t, atual);
+    if (onAcao) onAcao(t, v);
   };
 
   return (
@@ -121,7 +124,7 @@ function OiEtapaPainel({ proc, estado, docId, bloqueios, resolver, interceptar, 
           <div className="oie-bts">
             {acoes.map((t, i) => leitura
               ? <span key={i} className={"oie-chip" + (bl[t.acao] ? " preso" : "")}>{t.acao}{t.para ? " → " + t.para : ""}</span>
-              : <button key={i} type="button" className={"oie-bt" + (i === pri ? " pri" : "")} disabled={!!bl[t.acao]} onClick={() => setPrev(t)}
+              : <button key={i} type="button" className={"oie-bt" + (i === pri ? " pri" : "")} disabled={!!bl[t.acao]} onClick={() => { setVal({}); setPrev(t); }}
                   title={bl[t.acao] || (t.guarda ? "Só passa se: " + t.guarda : "")}>{t.acao}{t.para ? " → " + t.para : ""}</button>)}
           </div>
           {presas.length > 0 && (
@@ -153,7 +156,7 @@ function OiEtapaPainel({ proc, estado, docId, bloqueios, resolver, interceptar, 
         <Modal open={!!prev} onClose={() => setPrev(null)} title={prev ? prev.acao : ""} width={460}
           footer={prev && <>
             <Button variant="ghost" onClick={() => setPrev(null)}>Cancelar</Button>
-            <Button variant="primary" onClick={confirmar}>Confirmar</Button>
+            <Button variant="primary" disabled={!!(campos && campos[prev.acao] && campos[prev.acao].ok && !campos[prev.acao].ok(val))} onClick={confirmar}>Confirmar</Button>
           </>}>
           {prev && (
             <div className="oie-prev">
@@ -162,6 +165,7 @@ function OiEtapaPainel({ proc, estado, docId, bloqueios, resolver, interceptar, 
               <div><span className="oie-l">O sistema vai</span>
                 {prev.efeito ? <ul>{prev.efeito.split(" · ").map((e, i) => <li key={i}>{e}</li>)}</ul> : <p>Só mudar a etapa.</p>}
               </div>
+              {campos && campos[prev.acao] && <div className="oie-campos">{campos[prev.acao].render(val, setVal)}</div>}
               {prev.quem && <p className="oie-dim">Quem pode: {prev.quem}</p>}
             </div>
           )}

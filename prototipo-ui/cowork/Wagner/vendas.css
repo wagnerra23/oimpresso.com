@@ -3383,3 +3383,17 @@ body:has(.vendas-aplus[data-vd-drawer="largo"]) .os-drawer.wide{ width: 560px; m
 [data-theme="dark"] .vendas-aplus .vd-bulk{ background: var(--raised, var(--surface)); color: var(--text); border: 1px solid var(--border); }
 [data-theme="dark"] .vendas-aplus .vd-bulk-ct{ background: var(--bg-2); }
 [data-theme="dark"] .vendas-aplus .vd-bulk-btn{ color: var(--text); border-color: var(--border); }
+/* Produção desta venda — uma OS por item que gera OS */
+.vd-prod{margin:4px 20px 8px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;display:flex;flex-direction:column;gap:6px}
+.vd-prod-h{display:flex;align-items:baseline;gap:8px;font-size:var(--fs-3,12.5px)}
+.vd-prod-h span{color:var(--text-dim)}
+.vd-prod-l{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.vd-prod-os{display:grid;grid-template-columns:92px 1fr auto;align-items:center;gap:10px;width:100%;min-height:32px;padding:4px 6px;border:0;border-radius:6px;background:none;color:var(--text);font:inherit;font-size:var(--fs-3,12.5px);text-align:left;cursor:pointer}
+.vd-prod-os:hover{background:color-mix(in oklch,var(--accent) 7%,transparent)}
+.vd-prod-it{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vd-prod-sit{padding:1px 8px;border-radius:999px;background:color-mix(in oklch,var(--text-dim) 12%,transparent);color:var(--text-dim)}
+.vd-prod-sit.ok{background:color-mix(in oklch,var(--color-success) 14%,transparent);color:var(--color-success)}
+.vd-prod-sit.info{background:color-mix(in oklch,var(--accent) 14%,transparent);color:var(--accent)}
+.vd-prod-sit.warn{background:color-mix(in oklch,var(--color-warning) 16%,transparent);color:var(--color-warning)}
+.vd-prod-sit.danger{background:color-mix(in oklch,var(--color-destructive) 14%,transparent);color:var(--color-destructive)}
+.vd-prod-n{margin:0;color:var(--text-dim);font-size:var(--fs-2,11.5px)}
