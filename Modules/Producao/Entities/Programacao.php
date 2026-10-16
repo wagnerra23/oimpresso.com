@@ -12,7 +12,13 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $business_id
  * @property string $os_tipo
  * @property int $os_id
- * @property int $posto_id
+ * @property ?int $posto_id
+ * @property ?int $roteiro_etapa_id
+ * @property ?int $bloco
+ * @property int $trilha
+ * @property int $ordem
+ * @property ?string $nome
+ * @property ?string $junta
  * @property ?int $operacao_id
  * @property ?int $user_id
  * @property string $status
