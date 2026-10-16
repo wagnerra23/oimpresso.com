@@ -12,7 +12,8 @@
 // Diferença: prop `purchase` pré-popula form + método PUT em vez de POST.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
+import { Icon } from '@/Components/Icon';
 import { router, useForm } from '@inertiajs/react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Button } from '@/Components/ui/button';
@@ -233,10 +234,10 @@ function PurchaseEdit({
   return (
     <form onSubmit={enviar}>
       <PageHeader
-        icon="shopping-cart"
+        leading={<Icon name="shopping-cart" size={18} className="mr-2 inline-block align-[-2px] text-primary" />}
         title={`Editar compra ${purchase.ref_no || '#' + purchase.id}`}
-        description="Ajuste de campos da compra (dentro do período permitido)."
-        action={
+        subtitle="Ajuste de campos da compra (dentro do período permitido)."
+        actions={
           <div className="flex gap-2">
             <Button type="button" variant="outline" size="sm" onClick={() => router.visit(`/purchases/${purchase.id}`)}>
               <ArrowLeft className="h-4 w-4 mr-1" /> Cancelar

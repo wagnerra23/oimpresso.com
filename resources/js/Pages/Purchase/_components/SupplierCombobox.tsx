@@ -11,6 +11,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Loader2, X } from 'lucide-react';
+import { Inline } from '@/Components/layout';
 import {
   Command,
   CommandEmpty,
@@ -109,7 +110,7 @@ export default function SupplierCombobox({ value, onChange, disabled = false, in
 
   if (value) {
     return (
-      <div className="mt-1 flex h-9 items-center gap-2 rounded-md border border-input bg-background px-3 text-[13px]">
+      <Inline gap={2} className="mt-1 h-9 rounded-md border border-input bg-background px-3 text-[13px]">
         <span className="flex-1 truncate" data-testid="fornecedor-escolhido">{value.label}</span>
         <button
           type="button"
@@ -120,7 +121,7 @@ export default function SupplierCombobox({ value, onChange, disabled = false, in
         >
           <X className="size-3.5" />
         </button>
-      </div>
+      </Inline>
     );
   }
 
