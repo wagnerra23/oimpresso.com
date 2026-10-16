@@ -40,6 +40,7 @@ export interface CamposProduto {
   enable_stock?: number;
   not_for_selling?: number;
   expiry_period?: string;
+  product_locations?: number[];
 }
 
 /** Os erros de validação que os blocos exibem. */
@@ -56,6 +57,8 @@ export interface OpcoesProduto {
   barcodeTypes: OptionStringMap;
   warranties: OptionMap;
   productTypes: OptionStringMap;
+  /** Novo: os locais do negócio que quem cadastra pode acessar. */
+  businessLocations?: OptionMap;
 }
 
 /**

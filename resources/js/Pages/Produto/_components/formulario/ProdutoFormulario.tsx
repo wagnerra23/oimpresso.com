@@ -6,6 +6,7 @@ import { BlocoIdentificacao } from './BlocoIdentificacao';
 import { BlocoPrecoImposto } from './BlocoPrecoImposto';
 import { BlocoEstoque } from './BlocoEstoque';
 import { BlocoMaisOpcoes } from './BlocoMaisOpcoes';
+import { BlocoLocais } from './BlocoLocais';
 import type { PrecoSimples } from './precos';
 import type {
   CamposProduto,
@@ -57,6 +58,9 @@ export function ProdutoFormulario({
         opcoes={opcoes}
         tipoAtual={tipoAtual}
       />
+      {modo === 'novo' && opcoes.businessLocations && (
+        <BlocoLocais data={data} definir={definir} locais={opcoes.businessLocations} />
+      )}
       <BlocoPrecoImposto data={data} definir={definir} errors={errors} opcoes={opcoes} preco={preco} />
       <BlocoEstoque modo={modo} data={data} definir={definir} opcoes={opcoes} />
       <BlocoMaisOpcoes
