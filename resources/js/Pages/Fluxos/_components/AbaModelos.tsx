@@ -9,8 +9,9 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/Components/ui/select';
 import EmptyState from '@/Components/shared/EmptyState';
+import Assistente from './Assistente';
 import { Cadeia, SeloEncaixe } from './Cadeia';
-import type { Encaixe, MapaEncaixe, Modelo, Opcao, Perfil } from './tipos';
+import type { Encaixe, MapaCasos, MapaEncaixe, Modelo, Opcao, Perfil } from './tipos';
 
 interface Props {
   modelos: Modelo[];
@@ -21,6 +22,7 @@ interface Props {
   onPerfil: (p: Perfil) => void;
   emUsoId: string | null;
   onAbrir: (id: string) => void;
+  casos: MapaCasos;
 }
 
 /** Combinação ausente no mapa (não deve acontecer: o servidor manda todas). */
@@ -58,7 +60,7 @@ function ModeloCard({ m, e, emUso, onAbrir }: { m: Modelo; e: Encaixe; emUso: bo
   );
 }
 
-export default function AbaModelos({ modelos, encaixe, portes, atividades, perfil, onPerfil, emUsoId, onAbrir }: Props) {
+export default function AbaModelos({ modelos, encaixe, portes, atividades, perfil, onPerfil, emUsoId, onAbrir, casos }: Props) {
   const nota = (m: Modelo): Encaixe => encaixe[m.id]?.[perfil.porte]?.[perfil.ativ] ?? SEM_ENCAIXE;
   // Ordem do protótipo: maior encaixe primeiro; empate mantém a ordem do catálogo (sort estável).
   const ordenados = useMemo(
@@ -92,6 +94,16 @@ export default function AbaModelos({ modelos, encaixe, portes, atividades, perfi
           </Select>
         </div>
       </div>
+
+      <Assistente
+        perfil={perfil}
+        modelos={modelos}
+        casos={casos}
+        portes={portes}
+        atividades={atividades}
+        onVer={onAbrir}
+        onPerfil={onPerfil}
+      />
 
       <div className="flx-sec"><span>Para {perfilTexto}</span><i /></div>
       {bons.length > 0 ? (
