@@ -49,6 +49,25 @@ const FLX_REFS = [
     'ConciliacaoController' => \Modules\Financeiro\Http\Controllers\ConciliacaoController::class,
     'OnCobrancaPagaCreateFinanceiroTitulo' => \Modules\Financeiro\Listeners\OnCobrancaPagaCreateFinanceiroTitulo::class,
     'DealPipelineService' => \Modules\Crm\Services\DealPipelineService::class,
+    'ContaPagarController' => \Modules\Financeiro\Http\Controllers\ContaPagarController::class,
+    'PurchaseOrderController' => \App\Http\Controllers\PurchaseOrderController::class,
+    'SellController' => \App\Http\Controllers\SellController::class,
+    'PurchaseRequisitionController' => \App\Http\Controllers\PurchaseRequisitionController::class,
+    'PurchaseController' => \App\Http\Controllers\PurchaseController::class,
+    'ManifestacaoController' => \Modules\NfeBrasil\Http\Controllers\ManifestacaoController::class,
+    'TransactionPaymentController' => \App\Http\Controllers\TransactionPaymentController::class,
+    'TituloAutoService' => \Modules\Financeiro\Services\TituloAutoService::class,
+    'StockAdjustmentController' => \App\Http\Controllers\StockAdjustmentController::class,
+    'ApontamentoController' => \Modules\Producao\Http\Controllers\ApontamentoController::class,
+    'ApontamentoOperadorService' => \Modules\Producao\Services\ApontamentoOperadorService::class,
+    'CustoRealService' => \Modules\Producao\Services\CustoRealService::class,
+    'InboxController' => \Modules\Whatsapp\Http\Controllers\Admin\InboxController::class,
+    'CsatDispatcher' => \Modules\Whatsapp\Services\Csat\CsatDispatcher::class,
+    'RecurringBillingController' => \Modules\RecurringBilling\Http\Controllers\RecurringBillingController::class,
+    'InvoiceGeneratorService' => \Modules\RecurringBilling\Services\InvoiceGeneratorService::class,
+    'IntercorrenciaController' => \Modules\Ponto\Http\Controllers\IntercorrenciaController::class,
+    'AprovacaoController' => \Modules\Ponto\Http\Controllers\AprovacaoController::class,
+    'ApuracaoService' => \Modules\Ponto\Services\ApuracaoService::class,
 ];
 
 /** Seeder que grava cada processo `erp` do protótipo. */
@@ -112,7 +131,8 @@ function flxChamadores(string $needle): array
         $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(base_path($raiz), FilesystemIterator::SKIP_DOTS));
         foreach ($it as $f) {
             $p = str_replace(DIRECTORY_SEPARATOR, '/', $f->getPathname());
-            if ($f->getExtension() !== 'php' || preg_match('#/(Tests|tests|Migrations|Seeders)/#', $p)) {
+            // O próprio catálogo cita os nomes que a cobertura descreve: não conta como chamador.
+            if ($f->getExtension() !== 'php' || preg_match('#/(Tests|tests|Migrations|Seeders)/|/Domain/Fsm/Modelos/#', $p)) {
                 continue;
             }
             if (str_contains((string) file_get_contents($p), $needle)) {
@@ -212,6 +232,10 @@ it('nenhuma referência aponta para classe, método ou rota inexistente', functi
         'fiscal/acoes/nfe/{emissao}/retransmitir', 'fiscal/acoes/nfe/{emissao}/cce', 'fiscal/acoes/nfe/{emissao}/cancelar',
         'fiscal/acoes/nfe/inutilizar', 'nfse/emitir', 'nfse/transactions/{tx}/emitir', 'nfse/{nfse}/cancelar',
         'financeiro/unificado/{tituloId}/boleto', 'financeiro/unificado/{id}/baixar', 'financeiro/conciliacao/{lineId}/match',
+        'financeiro/unificado/{id}/aprovar', 'purchase-order', 'sells/update-shipping/{id}', 'purchases/update-status',
+        'stock-adjustments', 'recurring-billing', 'recurring-billing/{id}/reativar', 'recurring-billing/{id}/cancelar',
+        'ponto/intercorrencias/{id}/submeter', 'ponto/intercorrencias/{id}/cancelar', 'ponto/aprovacoes/{id}/aprovar',
+        'ponto/aprovacoes/{id}/rejeitar', 'atendimento/inbox/{id}/assign',
     ];
     foreach ($rotas as $uri) {
         expect(in_array($uri, $uris, true))->toBeTrue("rota {$uri}");
@@ -241,6 +265,15 @@ it('o que a cobertura afirma sobre o código continua verdadeiro', function () {
         ->and(str_contains($nfseService, "\n        \$this->provider->cancelar(\$emissao->numero, \$motivo);\n"))->toBeTrue()
         // A tela calcula o atraso ao ler; o título não tem estado vencido.
         ->and(method_exists(\Modules\Financeiro\Http\Controllers\UnificadoController::class, 'deriveStatus'))->toBeTrue();
+
+    // Os outros 9 processos.
+    $rotas = collect(Route::getRoutes()->getRoutes())->map(fn ($r) => $r->getActionName())->implode("\n");
+    expect(flxChamadores('Programacao::create'))->toBe([])
+        ->and(flxChamadores('new Programacao('))->toBe([])
+        ->and(str_contains($rotas, 'PurchaseXmlController'))->toBeFalse()
+        ->and(collect(flxChamadores("'past_due'"))->filter(fn ($p) => str_contains($p, 'Modules/RecurringBilling/') && preg_match('/status[\'"]?\s*=>\s*[\'"]past_due/', (string) file_get_contents($p)))->all())->toBe([])
+        ->and(collect(flxChamadores('CustoRealService'))->reject(fn ($p) => str_ends_with($p, 'CustoRealService.php'))->filter(fn ($p) => str_contains((string) file_get_contents($p), 'CustoRealService::') || str_contains((string) file_get_contents($p), 'CustoRealService $'))->all())->toBe([])
+        ->and(collect(flxChamadores('cv_instalacoes'))->filter(fn ($p) => str_contains($p, '/Http/'))->all())->toBe([]);
 });
 
 it('ação em etapa terminal é recusada pelo motor, como a cobertura diz', function () {
@@ -273,7 +306,7 @@ it('devolução completa, cobertura sem órfão e resumos', function () {
     foreach (CatalogoProcessos::COBERTURA as $id => $mapa) {
         $p = CatalogoProcessos::processos()[$id];
         $nomes = array_column($p['estados'], 'nome', 'chave');
-        $usadas = array_map(fn ($t) => CatalogoProcessos::chaveCobertura($id, $t['rotulo'], $t['para'] !== null ? $nomes[$t['para']] : null), $p['transicoes']);
+        $usadas = array_map(fn ($t) => CatalogoProcessos::chaveCobertura($id, $t['rotulo'], $t['para'] !== null ? $nomes[$t['para']] : null, $nomes[$t['de']]), $p['transicoes']);
         expect(in_array(null, $usadas, true))->toBeFalse("{$id}: ação sem cobertura escrita")
             ->and(array_keys($mapa))->toEqualCanonicalizing($usadas, "{$id}: cobertura sobrando ou repetida");
     }
@@ -293,5 +326,18 @@ it('devolução completa, cobertura sem órfão e resumos', function () {
         ->and(CatalogoProcessos::resumo('nfe'))->toBe(['sim' => 2, 'parcial' => 7, 'nao' => 0, 'nao_verificado' => 0, 'total' => 9])
         ->and(CatalogoProcessos::resumo('nfse'))->toBe(['sim' => 1, 'parcial' => 4, 'nao' => 2, 'nao_verificado' => 0, 'total' => 7])
         ->and(CatalogoProcessos::resumo('cobranca'))->toBe(['sim' => 0, 'parcial' => 5, 'nao' => 3, 'nao_verificado' => 0, 'total' => 8])
-        ->and(CatalogoProcessos::resumo('pagar')['nao_verificado'])->toBe(CatalogoProcessos::resumo('pagar')['total']);
+        ->and(CatalogoProcessos::resumo('pagar'))->toBe(['sim' => 0, 'parcial' => 2, 'nao' => 2, 'nao_verificado' => 0, 'total' => 4])
+        ->and(CatalogoProcessos::resumo('compra'))->toBe(['sim' => 0, 'parcial' => 6, 'nao' => 1, 'nao_verificado' => 0, 'total' => 7])
+        ->and(CatalogoProcessos::resumo('requisicao'))->toBe(['sim' => 0, 'parcial' => 0, 'nao' => 3, 'nao_verificado' => 0, 'total' => 3])
+        ->and(CatalogoProcessos::resumo('inventario'))->toBe(['sim' => 0, 'parcial' => 1, 'nao' => 2, 'nao_verificado' => 0, 'total' => 3])
+        ->and(CatalogoProcessos::resumo('producao'))->toBe(['sim' => 0, 'parcial' => 5, 'nao' => 4, 'nao_verificado' => 0, 'total' => 9])
+        ->and(CatalogoProcessos::resumo('entrega'))->toBe(['sim' => 0, 'parcial' => 5, 'nao' => 1, 'nao_verificado' => 0, 'total' => 6])
+        ->and(CatalogoProcessos::resumo('atendimento'))->toBe(['sim' => 0, 'parcial' => 2, 'nao' => 2, 'nao_verificado' => 0, 'total' => 4])
+        ->and(CatalogoProcessos::resumo('contrato'))->toBe(['sim' => 1, 'parcial' => 3, 'nao' => 2, 'nao_verificado' => 0, 'total' => 6])
+        ->and(CatalogoProcessos::resumo('ponto'))->toBe(['sim' => 2, 'parcial' => 3, 'nao' => 0, 'nao_verificado' => 0, 'total' => 5]);
+
+    // Todo processo do protótipo tem cobertura: só sobra "não verificado" onde está escrito o porquê.
+    $semEscrito = collect(CatalogoProcessos::processos())->flatMap(fn ($p) => $p['transicoes'])
+        ->filter(fn ($t) => $t['cobertura']['onde'] === 'Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição.');
+    expect($semEscrito->count())->toBe(0);
 });

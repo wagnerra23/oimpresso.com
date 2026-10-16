@@ -108,6 +108,77 @@ final class CatalogoProcessos
             'Renegociar' => ['nao', 'Não existe renegociação: nenhuma ação, alçada ou geração de parcelas novas (só o cancelamento em lote, sem substitutos).'],
             'Baixar' => ['nao', 'Não existe baixa por perda: nenhum motivo, alçada, lançamento de perda ou bloqueio de crédito ligado a ela (o limite de crédito do núcleo é outra coisa).'],
         ],
+        'pagar' => [
+            'Aprovar' => ['parcial', 'UnificadoController@aprovar (POST /financeiro/unificado/{id}/aprovar) aprova de verdade, mas o único filtro é a permissão financeiro.titulo.aprovar: não existe alçada por valor.'],
+            'Agendar no banco' => ['nao', 'Não existe estado Agendado (o título só tem aberto, parcial, quitado e cancelado), nem envio de pagamento ao banco, nem conferência de saldo projetado.'],
+            'Retorno do banco' => ['nao', 'O retorno automático do banco só cria título a receber. Para conta a pagar só há a baixa manual (ContaPagarController@pagar), que não cria pagamento na compra: a compra não fica paga.'],
+            'Conciliar' => ['parcial', 'ConciliacaoController@match marca a linha do extrato como conciliada, ligada ao título; o título não ganha estado Conciliado e a sugestão automática só procura títulos ainda em aberto.'],
+        ],
+        // Compra = núcleo UltimatePOS (purchase_requisition, purchase_order, purchase): não há estado Cancelado nem Conferido.
+        'compra' => [
+            'Aprovar requisição' => ['parcial', 'PurchaseOrderController@store (POST /purchase-order, com as requisições) cria o pedido e TransactionUtil::updatePurchaseOrderStatus avança a requisição. Não há passo de aprovação nem alçada, e o envio ao fornecedor é notificação manual.'],
+            'Marcar em trânsito' => ['parcial', 'SellController@updateShipping (PUT /sells/update-shipping/{id}, o mesmo modal do pedido) marca o envio como shipped. Não confere a confirmação do fornecedor nem registra previsão de chegada.'],
+            'Requisição → Cancelado · Cancelar' => ['parcial', 'Não existe estado Cancelado na requisição: PurchaseRequisitionController@destroy (DELETE /purchase-requisition/{id}) exclui, sem pedir motivo.'],
+            'Pedido → Cancelado · Cancelar' => ['parcial', 'Não existe estado Cancelado no pedido: PurchaseOrderController@destroy (DELETE /purchase-order/{id}) exclui, ou o envio é marcado cancelado. Não avisa o fornecedor e não há orçamento de compra para liberar.'],
+            'Receber' => ['parcial', 'PurchaseController@updateStatus (POST /purchases/update-status) com received dá entrada no estoque. Não há custo médio (troca pelo preço da última compra), proposta de preço nem conferência de quantidade.'],
+            'Conferir NF-e de entrada' => ['nao', 'Não existe estado Conferido nem checagem de divergência; a conta a pagar nasce ao criar a compra. PurchaseXmlController não tem rota, e a manifestação (ManifestacaoController@confirmar) não tem ligação com a compra.'],
+            'Pagar' => ['parcial', 'TransactionPaymentController@store (POST /payments) → TituloAutoService::registrarPagamento dá baixa no título e a compra fica paga, sem exigir título aprovado. Com a compra toda paga, o título termina cancelado em vez de quitado (BUG-4 registrado em teste).'],
+        ],
+        'requisicao' => [
+            'Separar' => ['nao', 'Não existe requisição de material da OS (a única requisição é a de compra). A reserva do motor é por venda, variação e local, sem lote nem fração de rolo.'],
+            'Sem saldo' => ['nao', 'Nada abre requisição de compra quando falta saldo (a de compra é manual) e nada pausa a etapa da OS.'],
+            'Entregar' => ['nao', 'Não há entrega de material do almoxarifado para a OS; a única baixa ligada a documento é a do motor, sobre reservas da venda.'],
+        ],
+        'inventario' => [
+            'Iniciar' => ['nao', 'Não existe contagem de inventário: nenhuma tabela ou rota de contagem, nenhum congelamento de saldo.'],
+            'Fechar contagem' => ['nao', 'Não existe cálculo de divergência por item (não há contagem).'],
+            'Aprovar ajuste' => ['parcial', 'StockAdjustmentController@store (POST /stock-adjustments) lança ajuste manual que só tira do estoque, com valor unitário e recuperado. Não vem de contagem, não tem alçada do gerente e não lança sobra.'],
+        ],
+        // Produção = PCP (Modules/Producao): as etapas vivem em pcp_programacoes, e nenhum código de produção grava nessa tabela.
+        'producao' => [
+            'Liberar' => ['nao', 'Nada gera as etapas (fila) a partir do roteiro: não há ação Liberar, reserva de material nem cálculo de prazo.'],
+            'Iniciar etapa' => ['parcial', 'ApontamentoController@iniciar e a API do app → ApontamentoOperadorService::iniciar abrem o apontamento e contam o tempo, por QR ou tela; a trava é o responsável da etapa, não o setor. Só funciona com etapa já cadastrada, e nada cria etapa.'],
+            'Pausar' => ['parcial', 'ApontamentoController@pausar → ApontamentoOperadorService::pausar para o relógio e exige motivo do cadastro. Não há alerta de prazo.'],
+            'Retomar' => ['parcial', 'Retomar é um novo início na mesma etapa (ApontamentoController@iniciar) e o relógio volta. Não existe estado Pausada gravado; mesma dependência de etapa cadastrada.'],
+            'Concluir etapa' => ['parcial', 'ApontamentoController@concluir → ApontamentoOperadorService::concluir conclui a etapa e avisa o responsável da próxima. Não lê o roteiro, não trata etapas paralelas e não muda o estado da próxima.'],
+            'Reprovar no controle' => ['nao', 'Não há ação de reprovar, etapa de origem nem custo de refugo somado à OS (só o cadastro de motivos de refugo).'],
+            'Refazer' => ['nao', 'Não existe Refazer: a etapa não tem estado de retrabalho.'],
+            'Concluir item' => ['parcial', 'Concluir a última etapa só a marca concluída. Não baixa o material real, não congela custo (CustoRealService::daOs calcula, mas não tem chamador) e não marca a OS pronta.'],
+            'Cancelar item' => ['nao', 'Não existe cancelar item ou etapa no PCP, nem liberar reserva, nem lançar consumo como perda.'],
+        ],
+        // Entrega: as ações vivem no processo os_comunicacao_visual (instalação), que nenhuma tela inicia.
+        'entrega' => [
+            'Agendar' => ['parcial', 'Ação FSM agendar_instalacao (SaleFsmActionController@execute) só muda a etapa. Não há agenda de equipe e veículo nem aviso ao cliente.'],
+            'Sair para o campo' => ['parcial', 'Ação FSM iniciar_instalacao só muda a etapa: não confere material e equipe nem avisa o cliente.'],
+            'Confirmar nova data' => ['nao', 'Não existe a etapa Reagendado nem a ação de confirmar nova data; o status de reagendamento de cv_instalacoes não é gravado por nenhum código.'],
+            'Reagendar' => ['parcial', 'Ação FSM reagendar_instalacao volta para a mesma etapa: não pede motivo, não tem etapa Reagendado e não avisa o cliente.'],
+            'Concluir instalação' => ['parcial', 'Ação FSM concluir_instalacao muda a etapa. Foto e assinatura são só colunas de cv_instalacoes, sem quem grave nelas: não são exigidas e não há relatório na OS.'],
+            'Fechar' => ['parcial', 'Ação FSM aprovacao_final_cliente muda para entregue. O protocolo só sai em PedidoEntregaController@registrar (venda, no app), e não há pesquisa em 2 dias.'],
+        ],
+        // Atendimento = conversas do WhatsApp (status open, awaiting_human, resolved, archived).
+        'atendimento' => [
+            'Assumir' => ['parcial', 'InboxController@assign (PATCH /atendimento/inbox/{id}/assign) só preenche o responsável; o status não muda e o SLA conta a partir das mensagens, não de assumir.'],
+            'Pedir retorno' => ['nao', 'Não existe status "aguardando cliente" nem pausa de SLA (awaiting_human é o robô passando para humano).'],
+            'Cliente respondeu' => ['nao', 'A mensagem que chega nunca muda o status de uma conversa que já existe; sem status de espera não há retomada de SLA.'],
+            'Resolver' => ['parcial', 'InboxController@updateStatus com resolved → CsatDispatcher::dispatchOnResolve manda a pesquisa (só canal Baileys, flag ligada por padrão). Não exige assunto ligado: a conversa não tem vínculo com orçamento, OS ou cobrança.'],
+        ],
+        // Contrato = assinatura do RecurringBilling (status trialing, active, paused, canceled, past_due).
+        'contrato' => [
+            'Ativar' => ['parcial', 'RecurringBillingController@store (POST /recurring-billing) já cria a assinatura ativa: não há Rascunho, ação Ativar nem conferência de assinatura do cliente. As cobranças saem do job diário.'],
+            'Dia do ciclo' => ['parcial', 'InvoiceGeneratorService::run (rb:generate-invoices, diário, só em live) emite a fatura e avança o vencimento. A nota do mês não sai no ciclo: só quando a fatura é paga, e com a flag de emissão automática ligada.'],
+            'Suspender' => ['nao', 'past_due existe no enum, mas nenhum código grava esse status: não há contagem de parcelas vencidas nem aviso. A única suspensão é a pausa manual (RecurringBillingController@pausar).'],
+            'Reativar' => ['parcial', 'RecurringBillingController@reativar (POST /recurring-billing/{id}/reativar) volta para ativo e o job retoma. Não confere se as parcelas em atraso foram pagas, e Suspenso nunca é atingido.'],
+            'Encerrar' => ['nao', 'Não existe estado Encerrado, data de fim do contrato nem cobrança proporcional.'],
+            'Cancelar' => ['sim', 'RecurringBillingController@cancelar (POST /recurring-billing/{id}/cancelar) cancela e o job para de gerar faturas. Não confere aviso prévio, e faturas já abertas se cancelam em outra rota.'],
+        ],
+        // Ponto: intercorrências (Portaria 671/2021), marcação original preservada (append-only).
+        'ponto' => [
+            'Submeter' => ['parcial', 'IntercorrenciaController@submeter (POST /ponto/intercorrencias/{id}/submeter) passa a pendente e entra na fila de aprovações. Não avisa o gestor, e a justificativa é exigida no cadastro, não na submissão.'],
+            'Aprovar' => ['sim', 'AprovacaoController@aprovar (POST /ponto/aprovacoes/{id}/aprovar) aprova, grava quem e quando e reapura o dia. Não confere se quem aprova é o gestor do colaborador (só o acesso ao módulo).'],
+            'Rejeitar' => ['parcial', 'AprovacaoController@rejeitar exige motivo e grava rejeitada, mas não avisa o colaborador e não exige que esteja pendente.'],
+            'Aplicar' => ['parcial', 'ApuracaoService::aplicarIntercorrencias ajusta o espelho na aprovação, com a marcação original preservada. Não existe ação Aplicar do RH, nem quem grave APLICADA, nem checagem de período aberto.'],
+            'Descartar' => ['sim', 'IntercorrenciaController@cancelar (POST /ponto/intercorrencias/{id}/cancelar) cancela o rascunho (aceita também pendente). Não confere se quem descarta é o próprio colaborador.'],
+        ],
     ];
 
     /**
@@ -140,7 +211,7 @@ final class CatalogoProcessos
                     'para' => $t[1] !== null ? $chavePorNome[$t[1]] : null,
                     'acao' => CatalogoModelos::chaveEtapa($t[2]),
                     'rotulo' => $t[2], 'guarda' => $t[3], 'efeito' => $t[4], 'quem' => $t[5],
-                    'cobertura' => self::cobertura($id, $erp, $t[2], $t[1], in_array($tipoPorNome[$t[0]], self::FINAIS, true)),
+                    'cobertura' => self::cobertura($id, $erp, $t[2], $t[1], $t[0], in_array($tipoPorNome[$t[0]], self::FINAIS, true)),
                 ], $p['trans']),
             ];
         }
@@ -160,9 +231,9 @@ final class CatalogoProcessos
     }
 
     /** @return array{estado:string, onde:string} */
-    private static function cobertura(string $id, ?string $erp, string $rotulo, ?string $para, bool $origemFinal): array
+    private static function cobertura(string $id, ?string $erp, string $rotulo, ?string $para, string $de, bool $origemFinal): array
     {
-        $chave = self::chaveCobertura($id, $rotulo, $para);
+        $chave = self::chaveCobertura($id, $rotulo, $para, $de);
         if ($chave !== null) {
             [$estado, $onde] = self::COBERTURA[$id][$chave];
 
@@ -180,10 +251,18 @@ final class CatalogoProcessos
         return ['estado' => 'nao_verificado', 'onde' => 'Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição.'];
     }
 
-    /** Chave de COBERTURA desta ação: "rótulo → destino" se existir, senão "rótulo"; null se nenhuma. */
-    public static function chaveCobertura(string $id, string $rotulo, ?string $para): ?string
+    /**
+     * Chave de COBERTURA desta ação, da mais específica para a mais geral: "origem → destino · rótulo",
+     * "rótulo → destino", "rótulo". null se nenhuma.
+     */
+    public static function chaveCobertura(string $id, string $rotulo, ?string $para, ?string $de = null): ?string
     {
-        foreach ([$rotulo . ' → ' . ($para ?? 'mesmo estado'), $rotulo] as $chave) {
+        $destino = $para ?? 'mesmo estado';
+        $candidatas = [$rotulo . ' → ' . $destino, $rotulo];
+        if ($de !== null) {
+            array_unshift($candidatas, $de . ' → ' . $destino . ' · ' . $rotulo);
+        }
+        foreach ($candidatas as $chave) {
             if (isset(self::COBERTURA[$id][$chave])) {
                 return $chave;
             }

@@ -23,7 +23,8 @@ use Spatie\Permission\Models\Role;
  *
  * Stages canônicos (11 = 9 lineares + 2 laterais terminais):
  *   quote_draft (initial) → quote_sent → quote_approved → in_production →
- *   ready_for_invoice → invoiced → paid → delivered → completed (terminal)
+ *   ready_for_invoice → invoiced → delivered → completed (terminal)
+ *   paid fica por compatibilidade (invoiced → paid → delivered), fora do caminho padrão (ADR 0434)
  *   Laterais: cancelled (terminal), on_hold
  *
  * Actions (13 com roles e is_critical conforme US-SELL-031):
@@ -186,6 +187,11 @@ class FsmProcessoVendaComProducaoSeeder extends Seeder
             ['in_production', 'concluir_producao', 'Concluir produção', 'ready_for_invoice', ['producao.concluir'], true, 'App\\Domain\\Fsm\\SideEffects\\ConsumirEstoque'],
             ['ready_for_invoice', 'faturar', 'Faturar', 'invoiced', ['financeiro.faturar'], true, null],
             ['invoiced', 'emitir_nfe', 'Emitir NF-e', null, ['fiscal.emitir'], true, null],
+            // ADR 0434 item 2 (decisão [W] 2026-10-16): pagamento SAI da sequência de etapas. O caminho
+            // padrão é Faturada → Entregue → Concluída; "pago" é situação dos títulos no Financeiro
+            // (App\Services\Sells\SituacaoPagamentoVenda). marcar_pago e a etapa paid ficam por
+            // compatibilidade: quem já usa continua podendo, e pedido parado em paid ainda entrega.
+            ['invoiced', 'entregar', 'Entregar ao cliente', 'delivered', ['logistica.entregar'], false, null],
             ['invoiced', 'marcar_pago', 'Marcar como pago', 'paid', ['financeiro.baixar'], true, null],
             ['paid', 'entregar', 'Entregar ao cliente', 'delivered', ['logistica.entregar'], false, null],
             ['delivered', 'concluir', 'Concluir venda', 'completed', ['vendas.gerente'], false, null],
