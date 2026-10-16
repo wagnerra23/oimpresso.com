@@ -45,7 +45,7 @@ class FluxosController extends Controller
                 'portes' => $m['portes'],
                 'atividades' => $m['atividades'],
                 'casos' => $m['casos'],
-                'insp' => $m['insp'] ?? [],
+                'insp' => $m['insp'],
                 'processos' => array_map(
                     fn (string $dominio, array $p) => [
                         'dominio' => $dominio,
@@ -159,7 +159,7 @@ class FluxosController extends Controller
         $modelos = CatalogoModelos::modelos();
 
         return array_map(fn (array $c) => $c + [
-            'modelos' => array_values(array_keys(array_filter($modelos, fn (array $m) => in_array($c['id'], $m['casos'], true)))),
+            'modelos' => array_keys(array_filter($modelos, fn (array $m) => in_array($c['id'], $m['casos'], true))),
         ], CatalogoModelos::casos());
     }
 
