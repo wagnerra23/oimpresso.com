@@ -12,6 +12,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
+import { TemaDoCockpit } from './Cadeia';
 import type { CasoCatalogo, MapaEstadosCaso, MapaFontes, Modelo, Opcao } from './tipos';
 
 interface Props {
@@ -73,22 +74,27 @@ export default function AbaCasos({ casos, fontes, estados, dominios, portes, mod
   }, [casos, q, fProc, fFonte, fEst]);
 
   const colunas: ColumnDef<CasoCatalogo>[] = [
-    { id: 'id', header: 'Caso', meta: { width: 96, mono: true }, cell: ({ row }) => row.original.id },
+    { id: 'id', header: 'Caso', meta: { width: 96, mono: true }, cell: ({ row }) => <span className="whitespace-nowrap">{row.original.id}</span> },
     {
-      id: 't', header: 'O que faz',
+      id: 't', header: 'O que faz', meta: { width: 380 },
       cell: ({ row }) => (
-        <div>
-          <b>{row.original.titulo}</b>
-          <div className="flx-dim">Ao entrar em {row.original.etapa} — {row.original.regra}</div>
+        <div className="min-w-0">
+          <b className="block truncate" title={row.original.titulo}>{row.original.titulo}</b>
+          <div className="flx-dim truncate" title={`Ao entrar em ${row.original.etapa} — ${row.original.regra}`}>
+            Ao entrar em {row.original.etapa} — {row.original.regra}
+          </div>
         </div>
       ),
     },
-    { id: 'proc', header: 'Processo', cell: ({ row }) => nomeProc(row.original.processo) },
-    { id: 'fontes', header: 'Quem anuncia', cell: ({ row }) => nomeFontes(row.original.fontes) },
-    { id: 'porte', header: 'A partir de', cell: ({ row }) => nomePorte(row.original.porte) },
-    { id: 'mod', header: 'Modelos', meta: { align: 'right', mono: true }, cell: ({ row }) => row.original.modelos.length },
+    { id: 'proc', header: 'Processo', meta: { width: 100 }, cell: ({ row }) => nomeProc(row.original.processo) },
     {
-      id: 'estado', header: 'No oimpresso',
+      id: 'fontes', header: 'Quem anuncia', meta: { width: 200 },
+      cell: ({ row }) => <span className="block truncate" title={nomeFontes(row.original.fontes)}>{nomeFontes(row.original.fontes)}</span>,
+    },
+    { id: 'porte', header: 'A partir de', meta: { width: 100 }, cell: ({ row }) => nomePorte(row.original.porte) },
+    { id: 'mod', header: 'Modelos', meta: { align: 'right', mono: true, width: 80 }, cell: ({ row }) => row.original.modelos.length },
+    {
+      id: 'estado', header: 'No oimpresso', meta: { width: 160 },
       cell: ({ row }) => (
         <span className="flx-est">
           <Selo estado={row.original.estado} estados={estados} />
@@ -134,6 +140,7 @@ export default function AbaCasos({ casos, fontes, estados, dominios, portes, mod
           showSearch={false}
           onRowClick={(r) => setAberto(r.id)}
           totalLabel="casos"
+          density="dense"
         />
       )}
 
@@ -153,6 +160,7 @@ export default function AbaCasos({ casos, fontes, estados, dominios, portes, mod
 
       <Sheet open={c !== null} onOpenChange={(a) => !a && setAberto(null)}>
         <SheetContent className="w-full sm:max-w-[520px] overflow-y-auto">
+          <TemaDoCockpit>
           {c && (
             <>
               <SheetHeader>
@@ -178,7 +186,7 @@ export default function AbaCasos({ casos, fontes, estados, dominios, portes, mod
                     {c.fontes.map((f) => (
                       <li key={f}>
                         {fontes[f]?.url
-                          ? <a href={fontes[f].url} target="_blank" rel="noopener noreferrer">{fontes[f].nome}</a>
+                          ? <a className="text-primary hover:underline" href={fontes[f].url} target="_blank" rel="noopener noreferrer">{fontes[f].nome}</a>
                           : <span>{fontes[f]?.nome ?? f} (proposta própria)</span>}
                       </li>
                     ))}
@@ -203,6 +211,7 @@ export default function AbaCasos({ casos, fontes, estados, dominios, portes, mod
               </SheetFooter>
             </>
           )}
+          </TemaDoCockpit>
         </SheetContent>
       </Sheet>
     </>

@@ -13,7 +13,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
-import { Cadeia } from './Cadeia';
+import { Cadeia, TemaDoCockpit } from './Cadeia';
 import type { Encaixe, MapaCasos, Modelo, Opcao, Perfil } from './tipos';
 
 interface Props {
@@ -66,6 +66,7 @@ export default function DetalheModelo({
     <>
       <Sheet open={modelo !== null} onOpenChange={(a) => !a && onFechar()}>
         <SheetContent className="w-full sm:max-w-[620px] overflow-y-auto">
+          <TemaDoCockpit>
           {modelo && (
             <>
               <SheetHeader>
@@ -129,11 +130,13 @@ export default function DetalheModelo({
               </SheetFooter>
             </>
           )}
+          </TemaDoCockpit>
         </SheetContent>
       </Sheet>
 
       <AlertDialog open={confirmar && modelo !== null} onOpenChange={setConfirmar}>
         <AlertDialogContent>
+          <TemaDoCockpit>
           <AlertDialogHeader>
             <AlertDialogTitle>Usar {modelo?.nome}?</AlertDialogTitle>
             <AlertDialogDescription asChild>
@@ -155,6 +158,7 @@ export default function DetalheModelo({
               {enviando ? 'Aplicando…' : 'Usar modelo'}
             </AlertDialogAction>
           </AlertDialogFooter>
+          </TemaDoCockpit>
         </AlertDialogContent>
       </AlertDialog>
     </>
