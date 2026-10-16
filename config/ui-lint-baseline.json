@@ -667,10 +667,19 @@
       "R1": 21
     },
     "resources/js/Pages/Produto/Create.tsx": {
-      "R1": 11
+      "R1": 7
     },
     "resources/js/Pages/Produto/Edit.tsx": {
-      "R1": 10
+      "R1": 7
+    },
+    "resources/js/Pages/Produto/_components/formulario/BlocoEstoque.tsx": {
+      "R1": 2
+    },
+    "resources/js/Pages/Produto/_components/formulario/BlocoIdentificacao.tsx": {
+      "R1": 1
+    },
+    "resources/js/Pages/Produto/_components/formulario/BlocoMaisOpcoes.tsx": {
+      "R1": 1
     },
     "resources/js/Pages/Produto/Index.tsx": {
       "R1": 60,
