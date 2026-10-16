@@ -21,7 +21,7 @@ use Tests\Contract\AutosaveContractRunner;
  * em sale_stage_history.payload_snapshot. NÃO derivado do seeder: o contrato é a ADR.
  *
  * Usa o processo REAL (FsmProcessoVendaComProducaoSeeder::runForBusiness) no business do teste e a
- * migration de dados 2026_10_16_120000 que leva a ação a quem já tinha o processo.
+ * migration de dados 2026_10_16_130000 que leva a ação a quem já tinha o processo.
  *
  * Tier 0 (ADR 0093 / ADR 0358): venda de outro business não retoma. Controle positivo em par: a do
  * próprio business retoma — senão o "não mudou" seria verde por vácuo.
@@ -130,7 +130,7 @@ it('a migration de dados cria retomar_producao em quem já tinha o processo, com
     DB::table('sale_stage_actions')->where('id', $acao->id)->delete();
     expect(retomarAcao($this->biz))->toBeNull();
 
-    $migration = require database_path('migrations/2026_10_16_120000_add_retomar_producao_to_venda_com_producao.php');
+    $migration = require database_path('migrations/2026_10_16_130000_add_retomar_producao_to_venda_com_producao.php');
     $migration->up();
     $migration->up();
 
