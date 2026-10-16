@@ -78,13 +78,13 @@ final class CatalogoModelos
     /**
      * @return array<string, array{nome:string, para:string, portes:list<string>, atividades:list<string>,
      *     processos:array<string, array{etapas:list<string>, regras:list<array{0:string,1:string,2:string,3:?string,4:?string}>}>,
-     *     casos:list<string>}>
+     *     casos:list<string>, insp:list<string>, compra:array<string, string>}>
      */
     public static function modelos(): array
     {
         $baixa = ConsumirEstoque::class;
 
-        return [
+        $modelos = [
             'balcao' => [
                 'nome' => 'Balcão enxuto', 'para' => 'Quem orça, imprime e entrega no mesmo dia, com poucas pessoas.',
                 'portes' => ['micro'], 'atividades' => ['cv', 'rapida', 'brindes', 'textil'],
@@ -211,6 +211,13 @@ final class CatalogoModelos
                 'casos' => ['UC-FLX-17', 'UC-FLX-22', 'UC-FLX-24', 'UC-FLX-27'],
             ],
         ];
+
+        // Inspirado em e regra de custo da compra (fluxos-data.jsx), exportados em CasosDoPrototipo.
+        foreach (CasosDoPrototipo::MODELOS as $id => [$insp, $compra]) {
+            $modelos[$id] += ['insp' => $insp, 'compra' => $compra];
+        }
+
+        return $modelos;
     }
 
     public static function modelo(string $id): ?array
@@ -268,6 +275,38 @@ final class CatalogoModelos
         usort($lista, fn ($a, $b) => [$b['encaixe'], $a['ordem']] <=> [$a['encaixe'], $b['ordem']]);
 
         return array_map(fn ($l) => ['id' => $l['id'], 'encaixe' => $l['encaixe'], 'rotulo' => self::rotuloEncaixe($l['encaixe'])], $lista);
+    }
+
+    /**
+     * Casos de uso na ordem do protótipo, com tudo que a aba Casos de uso mostra.
+     *
+     * @return list<array{id:string, titulo:string, processo:string, etapa:string, regra:string,
+     *     fontes:list<string>, porte:string, estado:string, us:string}>
+     */
+    public static function casos(): array
+    {
+        return array_map(fn ($c) => [
+            'id' => $c[0], 'titulo' => $c[1], 'processo' => $c[2], 'etapa' => $c[3], 'regra' => $c[4],
+            'fontes' => $c[5], 'porte' => $c[6], 'estado' => $c[7], 'us' => $c[8],
+        ], CasosDoPrototipo::CASOS);
+    }
+
+    /** @return array<string, array{nome:string, url:string}> sistema pesquisado => nome e endereço */
+    public static function fontes(): array
+    {
+        return array_map(fn ($f) => ['nome' => $f[0], 'url' => $f[1]], CasosDoPrototipo::FONTES);
+    }
+
+    /** @return array<string, array{rotulo:string, descricao:string}> porte => "Pequena", "6 a 20 pessoas" */
+    public static function portes(): array
+    {
+        return array_map(fn ($p) => ['rotulo' => $p[0], 'descricao' => $p[1]], CasosDoPrototipo::PORTES);
+    }
+
+    /** @return array<string, array{rotulo:string, tom:string}> estado do caso no oimpresso => rótulo e tom */
+    public static function estadosCaso(): array
+    {
+        return array_map(fn ($e) => ['rotulo' => $e[0], 'tom' => $e[1]], CasosDoPrototipo::ESTADOS);
     }
 
     /** Chave da etapa no motor: "Aprovação do cliente" → "aprovacao_do_cliente". */
