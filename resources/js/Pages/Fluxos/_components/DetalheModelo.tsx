@@ -4,7 +4,7 @@
 // AplicarModelo, #9492); documentos em andamento não mudam de etapa (ADR 0435).
 
 import { useState } from 'react';
-import { router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { Button } from '@/Components/ui/button';
 import {
   Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle,
@@ -27,6 +27,9 @@ interface Props {
   podeConfigurar: boolean;
   onFechar: () => void;
 }
+
+/** Domínio do modelo → processo da aba Processos (`DOM_PROC` do protótipo). */
+const DOM_PROC: Record<string, string> = { venda: 'venda', producao: 'producao', compra: 'compra', entrega: 'entrega', financeiro: 'cobranca' };
 
 const rot = (l: Opcao[], v: string) => l.find((o) => o.value === v)?.label ?? v;
 
@@ -89,7 +92,12 @@ export default function DetalheModelo({
                 )}
                 {modelo.processos.map((p) => (
                   <section key={p.dominio} className="flx-proc">
-                    <h4>{p.nome}</h4>
+                    <h4>
+                      {p.nome}
+                      <Link className="flx-link" href={`/fluxos?aba=processos&processo=${DOM_PROC[p.dominio] ?? p.dominio}`}>
+                        Ver estados e condições
+                      </Link>
+                    </h4>
                     <Cadeia etapas={p.etapas} marcadas={new Set(p.regras.map((r) => r.etapa))} />
                     <ul className="flx-regras">
                       {p.regras.map((r, i) => (

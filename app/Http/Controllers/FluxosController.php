@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Domain\Fsm\Modelos\AplicarModelo;
 use App\Domain\Fsm\Modelos\CatalogoModelos;
+use App\Domain\Fsm\Modelos\CatalogoProcessos;
 use App\Domain\Fsm\Modelos\RecomendarModelo;
 use App\Domain\Fsm\Models\ModeloEmpresa;
 use Illuminate\Http\JsonResponse;
@@ -68,9 +69,15 @@ class FluxosController extends Controller
         }
 
         $aba = (string) request()->query('aba', 'modelos');
+        $aba = in_array($aba, self::ABAS, true) ? $aba : 'modelos';
+        $processo = (string) request()->query('processo', 'producao');
 
         return Inertia::render('Fluxos/Index', [
-            'aba' => in_array($aba, self::ABAS, true) ? $aba : 'modelos',
+            'aba' => $aba,
+            // Aba Processos: só vai na própria aba (18 processos, estados e transições).
+            'processos' => $aba === 'processos' ? self::processos() : [],
+            'processos_total' => count(CatalogoProcessos::processos()),
+            'processo' => isset(CatalogoProcessos::processos()[$processo]) ? $processo : 'producao',
             'modelos' => $modelos,
             'encaixe' => $encaixe,
             'portes' => self::opcoes(CatalogoModelos::PORTES),
@@ -129,6 +136,25 @@ class FluxosController extends Controller
             $dados['atividade'],
             (int) $request->session()->get('user.business_id'),
         ));
+    }
+
+    /**
+     * Processos do CatalogoProcessos (#9496) para a aba Processos, na ordem do protótipo. A
+     * cobertura por transição fica de fora: o indicador nasce primeiro no protótipo.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private static function processos(): array
+    {
+        return array_values(array_map(fn (array $p) => [
+            'id' => $p['id'], 'area' => $p['area'], 'nome' => $p['nome'], 'doc' => $p['doc'],
+            'porque' => $p['porque'], 'liga' => $p['liga'], 'roteiro' => $p['roteiro'],
+            'estados' => $p['estados'],
+            'transicoes' => array_map(fn (array $t) => [
+                'de' => $t['de'], 'para' => $t['para'], 'rotulo' => $t['rotulo'],
+                'guarda' => $t['guarda'], 'efeito' => $t['efeito'], 'quem' => $t['quem'],
+            ], $p['transicoes']),
+        ], CatalogoProcessos::processos()));
     }
 
     /**

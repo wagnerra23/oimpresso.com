@@ -43,6 +43,9 @@ andamento.
 - Assistente de configuração (aba Modelos): descrição livre + exemplos → `POST /fluxos/assistente`
   → `RecomendarModelo` (agente `RecomendarModeloFluxoAgent`, laravel/ai). Sem IA, ou com resposta
   fora do catálogo, cai na regra de encaixe e a tela diz "Sugestão pelo perfil". Só sugere.
+- Aba Processos: processos do `CatalogoProcessos` (#9496) agrupados por área; detalhe com estados
+  (filtro pelo estado de origem, legenda início/espera/fim/exceção), roteiro em paralelo, tabela de
+  transições, comparativo NF-e × NFS-e nos fiscais e "Conversa com" entre processos.
 - Aba Fluxos da empresa: modelo em uso (ou "processos de antes dos modelos" quando legado), com
   data e perfil, e as etapas e regras de cada processo dele.
 - PT-BR em todo texto.
@@ -60,6 +63,9 @@ andamento.
   Comunicação visual, como no protótipo. Só é gravado junto com "Usar modelo".
 - Ligar/desligar regra e a Compra "configurável" da aba Fluxos da empresa: o ERP não tem regra
   configurável por empresa; a aba mostra as regras do modelo só para leitura.
+
+- "Aparece nas telas" da aba Processos: o protótipo aponta rotas dele, não do ERP; fica fora até
+  cada processo ter a tela correspondente no ERP.
 
 ## UX Targets
 
