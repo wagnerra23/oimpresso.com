@@ -7,6 +7,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/financeiro', [\App\Http\Controllers\Api\App\FinanceiroController::class, 'index'])->name('financeiro.index');
 
+// Aba Recorrências (chave RECORRENCIAS do app): contratos e contas fixas; interromper para só a geração futura.
+Route::get('/financeiro/recorrencias', [\App\Http\Controllers\Api\App\FinanceiroRecorrenciasController::class, 'index'])->name('financeiro.recorrencias');
+Route::post('/financeiro/recorrencias/{id}/interromper', [\App\Http\Controllers\Api\App\FinanceiroRecorrenciasController::class, 'interromper'])
+    ->whereNumber('id')->name('financeiro.recorrencias.interromper');
+
 // + Novo lançamento (chave NOVO_LANCAMENTO do app). Regra mestre: mexe em valor — ver o controller.
 Route::post('/financeiro/lancamentos', [\App\Http\Controllers\Api\App\FinanceiroLancamentosController::class, 'store'])->name('financeiro.lancamentos.store');
 

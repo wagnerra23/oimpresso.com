@@ -69,6 +69,7 @@ on:
       - 'Modules/ComunicacaoVisual/Services/OrcamentoGravador.php'
       - 'Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php'
       - 'app/Http/Controllers/Api/App/FinanceiroController.php'
+      - 'app/Http/Controllers/Api/App/FinanceiroRecorrenciasController.php'
       - 'app/Http/Controllers/Api/App/FinanceiroLancamentosController.php'
       - 'app/Http/Controllers/Api/App/FinanceiroLancamentoAcoesController.php'
       - 'routes/api/app/financeiro.php'
@@ -214,6 +215,7 @@ jobs:
               - 'Modules/ComunicacaoVisual/Services/OrcamentoGravador.php'
               - 'Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php'
               - 'app/Http/Controllers/Api/App/FinanceiroController.php'
+              - 'app/Http/Controllers/Api/App/FinanceiroRecorrenciasController.php'
               - 'app/Http/Controllers/Api/App/FinanceiroLancamentosController.php'
               - 'app/Http/Controllers/Api/App/FinanceiroLancamentoAcoesController.php'
               - 'routes/api/app/financeiro.php'
@@ -427,6 +429,7 @@ jobs:
             tests/Feature/Sells/AppOficinaAgendaApiContratoTest.php \
             tests/Feature/Sells/AppVendaRapidaProdutosApiContratoTest.php \
             tests/Feature/Sells/AppFinanceiroApiContratoTest.php \
+            tests/Feature/Sells/AppFinanceiroRecorrenciasApiContratoTest.php \
             tests/Feature/Sells/AppFinanceiroNovoLancamentoApiContratoTest.php \
             tests/Feature/Sells/AppFinanceiroLancamentoAcoesApiContratoTest.php \
             tests/Feature/Sells/AppFiscalApiContratoTest.php \
