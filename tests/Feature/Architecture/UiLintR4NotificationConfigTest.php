@@ -31,3 +31,10 @@ it('aceita a árvore de pastas de Planilhas com PageHeader e sem tabela (telas-s
     $hits = notificationConfigR4('resources/js/Pages/Spreadsheet/Index.tsx', '<div />');
     expect(array_column($hits, 'match'))->toBe(['no <PageHeader>']);
 });
+
+it('aceita a tela de abas de Fluxos e regras com PageHeader e sem tabela (ADR 0435)', function () {
+    expect(notificationConfigR4('resources/js/Pages/Fluxos/Index.tsx', '<PageHeader />'))
+        ->toBeEmpty();
+    $hits = notificationConfigR4('resources/js/Pages/Fluxos/Index.tsx', '<div />');
+    expect(array_column($hits, 'match'))->toBe(['no <PageHeader>']);
+});
