@@ -112,6 +112,7 @@ function PurchaseEdit({
   permissions,
 }: PurchaseEditPageProps) {
   const [busca, setBusca] = useState('');
+  const [erroItens, setErroItens] = useState<string | null>(null);
   const [linhas, setLinhas] = useState<PurchaseLineDraft[]>(
     purchase.purchase_lines.length > 0 ? purchase.purchase_lines : []
   );
@@ -199,9 +200,25 @@ function PurchaseEdit({
 
   const enviar = (e: React.FormEvent) => {
     e.preventDefault();
+    if (linhas.length === 0) {
+      setErroItens('A compra precisa de ao menos um item.');
+      return;
+    }
+    if (linhas.some((l) => !l.variation_id)) {
+      setErroItens('Há item sem produto do cadastro. Remova a linha digitada à mão.');
+      return;
+    }
+    setErroItens(null);
     form.transform((dados) => ({
       ...dados,
-      purchases: linhas,
+      // createOrUpdatePurchaseLines só ATUALIZA a linha que vem com `purchase_line_id` — sem ele
+      // cria uma nova e apaga a antiga (perde o vínculo com as vendas). E lê `purchase_line_tax_id`
+      // sem isset: a chave tem que existir em toda linha, senão o update() quebra (UC-PUREDT-08).
+      purchases: linhas.map(({ id, ...l }) => ({
+        ...l,
+        ...(id ? { purchase_line_id: id } : {}),
+        purchase_line_tax_id: l.tax_id ?? '',
+      })),
       total_before_tax: totais.subtotal,
       final_total: totais.final,
     }));
@@ -331,6 +348,7 @@ function PurchaseEdit({
             </Button>
           </div>
 
+          {erroItens && <p className="text-destructive text-[12px] mb-2">{erroItens}</p>}
           {linhas.length === 0 ? (
             <div className="py-10 text-center">
               <ShoppingCart className="h-10 w-10 mx-auto text-stone-300 mb-2" />

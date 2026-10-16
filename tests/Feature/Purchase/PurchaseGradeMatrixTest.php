@@ -231,12 +231,14 @@ function gmPayloadCompra(int $variationId, int $produtoId): array
 function gmUsuario(int $bizId): User
 {
     $perm = Permission::firstOrCreate(['name' => 'purchase.create', 'guard_name' => 'web']);
+    // purchase.update: os UC-PUREDT-08 editam a compra que o próprio teste criou.
+    $permUpdate = Permission::firstOrCreate(['name' => 'purchase.update', 'guard_name' => 'web']);
     // roles.business_id é NOT NULL + FK (proibicoes §FSM) — sufixo #biz é convenção UPOS.
     $role = Role::firstOrCreate(
         ['name' => 'gm-purchase-test#' . $bizId, 'guard_name' => 'web'],
         ['business_id' => $bizId]
     );
-    $role->givePermissionTo($perm);
+    $role->givePermissionTo($perm, $permUpdate);
 
     // Username determinístico: a base do CT 100 persiste entre runs e users viram FK em
     // várias tabelas — user novo a cada execução vazaria linha impossível de limpar.
@@ -439,6 +441,71 @@ describe('Tier 0 cross-tenant (MySQL real)', function () {
         } finally {
             DB::rollBack();
         }
+    });
+
+    it('UC-PUREDT-08 · editar pela tela React atualiza a linha existente (não duplica) e acerta o estoque', function () {
+        DB::beginTransaction();
+        try {
+            $bizId = (int) $this->gmBizProprio->id;
+            $local = DB::table('business_locations')->where('business_id', $bizId)->value('id');
+            $produto = gmProduto($bizId, (int) $this->gmUser->id, 'Produto edição React');
+            $variacao = gmVariacao($produto, 'P/Preto');
+            $fornecedor = (int) DB::table('contacts')->insertGetId([
+                'business_id' => $bizId, 'type' => 'supplier', 'name' => 'Fornecedor UC-PUREDT-08',
+                'contact_id' => 'UCE08' . uniqid(), 'created_by' => (int) $this->gmUser->id,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+            $refNo = 'UCE08-' . uniqid();
+            $cabecalho = [
+                'ref_no' => $refNo, 'status' => 'received', 'contact_id' => $fornecedor,
+                'transaction_date' => now()->format('Y-m-d H:i'), 'location_id' => $local,
+                'discount_type' => 'fixed', 'discount_amount' => '0', 'tax_id' => '', 'tax_amount' => '0',
+                'shipping_charges' => '0', 'additional_notes' => '', 'exchange_rate' => '1',
+            ];
+            $linha = fn (string $qtd) => [
+                'product_name' => 'Produto edição React P/Preto', 'product_id' => $produto,
+                'variation_id' => $variacao, 'unit_id' => '', 'unit_name' => 'un', 'quantity' => $qtd,
+                'pp_without_discount' => '22.5', 'discount_percent' => '0', 'item_tax' => '0', 'tax_id' => '',
+                'purchase_price' => '22.5', 'purchase_price_inc_tax' => '22.5', 'purchase_line_tax_id' => '',
+            ];
+            $estoque = fn () => (float) DB::table('variation_location_details')
+                ->where('variation_id', $variacao)->where('location_id', $local)->sum('qty_available');
+
+            $this->actingAs($this->gmUser)->post('/purchases', $cabecalho + [
+                'total_before_tax' => '45', 'final_total' => '45', 'purchases' => [$linha('2')],
+            ]);
+            $compra = DB::table('transactions')->where('business_id', $bizId)->where('ref_no', $refNo)->first();
+            expect($compra)->not->toBeNull();
+            $linhaId = (int) DB::table('purchase_lines')->where('transaction_id', $compra->id)->value('id');
+            expect($estoque())->toBe(2.0);
+
+            // O que o Edit.tsx manda: _method PUT + a linha com purchase_line_id (era `id`).
+            $resposta = $this->actingAs($this->gmUser)->post('/purchases/' . $compra->id, $cabecalho + [
+                '_method' => 'PUT', 'total_before_tax' => '67.5', 'final_total' => '67.5',
+                'purchases' => [$linha('3') + ['purchase_line_id' => $linhaId]],
+            ]);
+
+            $resposta->assertRedirect('/purchases');
+            expect(session('status.success'))->toBe(1, 'update() falhou: ' . json_encode(session('status')));
+            $linhas = DB::table('purchase_lines')->where('transaction_id', $compra->id)->get();
+            expect($linhas)->toHaveCount(1);
+            expect((int) $linhas[0]->id)->toBe($linhaId);
+            expect((float) $linhas[0]->quantity)->toBe(3.0);
+            expect((float) DB::table('transactions')->where('id', $compra->id)->value('final_total'))->toBe(67.5);
+            // Estoque: 2 da criação + 1 da edição — não 2 + 3 (linha nova) nem 3 − 2.
+            expect($estoque())->toBe(3.0);
+        } finally {
+            DB::rollBack();
+        }
+    });
+
+    it('UC-PUREDT-08 · purchase_line_id de outra compra é recusado (422) antes de gravar', function () {
+        $resposta = $this->actingAs($this->gmUser)->post('/purchases/999999999', [
+            '_method' => 'PUT',
+            'purchases' => [['purchase_line_id' => (int) DB::table('purchase_lines')->max('id') ?: 1]],
+        ]);
+
+        $resposta->assertStatus(422);
     });
 
     // ── UC-PURCRE-09 — "Comprar" da lista de produtos ───────────────────────

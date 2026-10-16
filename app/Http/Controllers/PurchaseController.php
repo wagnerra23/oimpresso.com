@@ -1108,6 +1108,12 @@ class PurchaseController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Tier 0 (ADR 0093) — mesmo gate do store(): variação forjada de outro negócio, e
+        // `purchase_line_id` de linha que não é desta compra (createOrUpdatePurchaseLines faz
+        // PurchaseLine::findOrFail sem escopo). Fora do try pra o 422 não virar mensagem crua.
+        $this->assertPurchaseVariationsOwnership($request);
+        $this->assertPurchaseLinesBelongTo($request, (int) $id);
+
         try {
             $business_id = request()->session()->get('user.business_id');
 
@@ -1495,6 +1501,33 @@ class PurchaseController extends Controller
      * (store() é compartilhado Blade legacy + Inertia + modo grade). No-op pro fluxo
      * manual MVP1 (variation_id null → nada a validar).
      */
+    /**
+     * As linhas enviadas com `purchase_line_id` têm de pertencer a ESTA compra, e a compra ao
+     * negócio da sessão. Sem isso o update() alteraria quantidade/custo de linha alheia.
+     */
+    private function assertPurchaseLinesBelongTo(Request $request, int $transaction_id): void
+    {
+        $line_ids = collect($request->input('purchases', []))
+            ->pluck('purchase_line_id')
+            ->filter(fn ($id) => ! empty($id))
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        if ($line_ids->isEmpty()) {
+            return;
+        }
+
+        $valid_count = PurchaseLine::query()
+            ->join('transactions', 'transactions.id', '=', 'purchase_lines.transaction_id')
+            ->whereIn('purchase_lines.id', $line_ids->all())
+            ->where('purchase_lines.transaction_id', $transaction_id)
+            ->where('transactions.business_id', $request->session()->get('user.business_id'))
+            ->count();
+
+        abort_if($valid_count !== $line_ids->count(), 422, 'Linha de compra inválida para esta compra.');
+    }
+
     private function assertPurchaseVariationsOwnership(Request $request): void
     {
         $business_id = $request->session()->get('user.business_id');
