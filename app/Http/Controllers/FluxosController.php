@@ -45,6 +45,7 @@ class FluxosController extends Controller
                 'portes' => $m['portes'],
                 'atividades' => $m['atividades'],
                 'casos' => $m['casos'],
+                'insp' => $m['insp'] ?? [],
                 'processos' => array_map(
                     fn (string $dominio, array $p) => [
                         'dominio' => $dominio,
@@ -77,11 +78,21 @@ class FluxosController extends Controller
             // Aba Processos: só vai na própria aba (18 processos, estados e transições).
             'processos' => $aba === 'processos' ? self::processos() : [],
             'processos_total' => count(CatalogoProcessos::processos()),
+            // Aba Casos de uso: lista só na própria aba; fontes e estados vão sempre (cabeçalho,
+            // "Inspirado em" dos cards e a gaveta do modelo usam).
+            'casos_lista' => $aba === 'casos' ? self::casosLista() : [],
+            'fontes' => CatalogoModelos::fontes(),
+            'estados_caso' => CatalogoModelos::estadosCaso(),
             'processo' => isset(CatalogoProcessos::processos()[$processo]) ? $processo : 'producao',
             'modelos' => $modelos,
             'encaixe' => $encaixe,
-            'portes' => self::opcoes(CatalogoModelos::PORTES),
+            'portes' => array_map(
+                fn (string $v, array $p) => ['value' => $v, 'label' => $p['rotulo'], 'descricao' => $p['descricao']],
+                array_keys(CatalogoModelos::portes()),
+                CatalogoModelos::portes(),
+            ),
             'atividades' => self::opcoes(CatalogoModelos::ATIVIDADES),
+            'dominios' => self::opcoes(CatalogoModelos::DOMINIOS),
             'casos_total' => count(CatalogoModelos::CASOS),
             'casos' => array_map(fn (array $c) => ['titulo' => $c[0], 'dominio' => $c[1]], CatalogoModelos::CASOS),
             'empresa' => self::empresa(),
@@ -136,6 +147,20 @@ class FluxosController extends Controller
             $dados['atividade'],
             (int) $request->session()->get('user.business_id'),
         ));
+    }
+
+    /**
+     * Casos de uso do catálogo (#9501) com os modelos que usam cada um, para a aba Casos de uso.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private static function casosLista(): array
+    {
+        $modelos = CatalogoModelos::modelos();
+
+        return array_map(fn (array $c) => $c + [
+            'modelos' => array_values(array_keys(array_filter($modelos, fn (array $m) => in_array($c['id'], $m['casos'], true)))),
+        ], CatalogoModelos::casos());
     }
 
     /**

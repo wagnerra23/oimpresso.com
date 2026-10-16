@@ -309,3 +309,31 @@ it('UC-FLXT-12 · aba Processos traz os processos do catálogo com estados, tran
     expect(flxtGet($this, '/fluxos?aba=modelos')->json('props.processos'))->toBe([]);
     expect(flxtGet($this, '/fluxos?aba=processos&processo=xyz')->json('props.processo'))->toBe('producao');
 });
+
+it('UC-FLXT-13 · aba Casos de uso traz os casos com fontes, estado, US e os modelos que usam', function () {
+    flxtEntrar($this, flxtUsuario(['fluxos.ver']));
+
+    $r = flxtGet($this, '/fluxos?aba=casos');
+    $r->assertOk();
+    $casos = collect($r->json('props.casos_lista'));
+
+    expect($casos->count())->toBe(count(\App\Domain\Fsm\Modelos\CatalogoModelos::casos()));
+    $uc01 = $casos->firstWhere('id', 'UC-FLX-01');
+    expect($uc01['titulo'])->toBe('Orçamento aprovado vira OS sem redigitar');
+    expect($uc01['fontes'])->toContain('mubisys');
+    expect($uc01['estado'])->toBe('planejado');
+    // Modelos que listam UC-FLX-01 no catálogo.
+    $esperados = collect(\App\Domain\Fsm\Modelos\CatalogoModelos::modelos())
+        ->filter(fn ($m) => in_array('UC-FLX-01', $m['casos'], true))->keys()->values()->all();
+    expect($uc01['modelos'])->toBe($esperados);
+    expect($esperados)->toContain('cv-pequena', 'balcao');
+
+    // Fontes, estados, descrição do porte e "Inspirado em" para o cabeçalho e os cards.
+    expect($r->json('props.fontes.mubisys.nome'))->toBe('Mubisys');
+    expect($r->json('props.estados_caso.planejado.rotulo'))->toBe('planejado');
+    expect(collect($r->json('props.portes'))->firstWhere('value', 'pequena')['descricao'])->toBe('6 a 20 pessoas');
+    expect(collect($r->json('props.modelos'))->firstWhere('id', 'cv-pequena')['insp'])->toBe(['mubisys', 'holdprint', 'shopvox']);
+
+    // Fora da aba Casos de uso a lista não vai.
+    expect(flxtGet($this, '/fluxos?aba=modelos')->json('props.casos_lista'))->toBe([]);
+});

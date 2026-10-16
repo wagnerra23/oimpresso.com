@@ -11,7 +11,7 @@ import {
 import EmptyState from '@/Components/shared/EmptyState';
 import Assistente from './Assistente';
 import { Cadeia, SeloEncaixe } from './Cadeia';
-import type { Encaixe, MapaCasos, MapaEncaixe, Modelo, Opcao, Perfil } from './tipos';
+import type { Encaixe, MapaCasos, MapaEncaixe, MapaFontes, Modelo, Opcao, Perfil } from './tipos';
 
 interface Props {
   modelos: Modelo[];
@@ -23,6 +23,7 @@ interface Props {
   emUsoId: string | null;
   onAbrir: (id: string) => void;
   casos: MapaCasos;
+  fontes: MapaFontes;
 }
 
 /** Combinação ausente no mapa (não deve acontecer: o servidor manda todas). */
@@ -30,7 +31,7 @@ const SEM_ENCAIXE: Encaixe = { n: 0, rotulo: 'Outro perfil', motivo: 'Outro port
 
 const rotulo = (lista: Opcao[], v: string) => lista.find((o) => o.value === v)?.label ?? v;
 
-function ModeloCard({ m, e, emUso, onAbrir }: { m: Modelo; e: Encaixe; emUso: boolean; onAbrir: () => void }) {
+function ModeloCard({ m, e, emUso, onAbrir, fontes }: { m: Modelo; e: Encaixe; emUso: boolean; onAbrir: () => void; fontes: MapaFontes }) {
   // Processo de destaque: Produção, senão Entrega, senão o primeiro (igual ao protótipo).
   const principal = m.processos.find((p) => p.dominio === 'producao')
     ?? m.processos.find((p) => p.dominio === 'entrega')
@@ -55,12 +56,13 @@ function ModeloCard({ m, e, emUso, onAbrir }: { m: Modelo; e: Encaixe; emUso: bo
         <span>
           {m.processos.length} processos · {regras} regras · {m.casos.length} casos de uso
         </span>
+        {m.insp.length > 0 && <span>Inspirado em {m.insp.map((f) => fontes[f]?.nome ?? f).join(', ')}</span>}
       </div>
     </button>
   );
 }
 
-export default function AbaModelos({ modelos, encaixe, portes, atividades, perfil, onPerfil, emUsoId, onAbrir, casos }: Props) {
+export default function AbaModelos({ modelos, encaixe, portes, atividades, perfil, onPerfil, emUsoId, onAbrir, casos, fontes }: Props) {
   const nota = (m: Modelo): Encaixe => encaixe[m.id]?.[perfil.porte]?.[perfil.ativ] ?? SEM_ENCAIXE;
   // Ordem do protótipo: maior encaixe primeiro; empate mantém a ordem do catálogo (sort estável).
   const ordenados = useMemo(
@@ -83,6 +85,7 @@ export default function AbaModelos({ modelos, encaixe, portes, atividades, perfi
             onValueChange={(v) => onPerfil({ ...perfil, porte: v })}
             options={portes}
           />
+          <span className="flx-dim">{portes.find((p) => p.value === perfil.porte)?.descricao}</span>
         </div>
         <div className="flx-perfil-c flx-perfil-sel">
           <span className="flx-lbl" id="flx-ativ">Atividade principal</span>
@@ -108,7 +111,7 @@ export default function AbaModelos({ modelos, encaixe, portes, atividades, perfi
       <div className="flx-sec"><span>Para {perfilTexto}</span><i /></div>
       {bons.length > 0 ? (
         <div className="flx-grid">
-          {bons.map((m) => <ModeloCard key={m.id} m={m} e={nota(m)} emUso={m.id === emUsoId} onAbrir={() => onAbrir(m.id)} />)}
+          {bons.map((m) => <ModeloCard key={m.id} m={m} e={nota(m)} emUso={m.id === emUsoId} onAbrir={() => onAbrir(m.id)} fontes={fontes} />)}
         </div>
       ) : (
         <EmptyState
@@ -120,7 +123,7 @@ export default function AbaModelos({ modelos, encaixe, portes, atividades, perfi
         <>
           <div className="flx-sec"><span>Outros modelos</span><i /></div>
           <div className="flx-grid">
-            {outros.map((m) => <ModeloCard key={m.id} m={m} e={nota(m)} emUso={m.id === emUsoId} onAbrir={() => onAbrir(m.id)} />)}
+            {outros.map((m) => <ModeloCard key={m.id} m={m} e={nota(m)} emUso={m.id === emUsoId} onAbrir={() => onAbrir(m.id)} fontes={fontes} />)}
           </div>
         </>
       )}

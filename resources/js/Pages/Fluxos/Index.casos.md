@@ -107,10 +107,18 @@ last_run: "2026-10-16"
 - **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-12").
 - **Status: 🧪**
 
+## UC-FLXT-13 · A aba Casos de uso mostra cada UC-FLX com fontes e estado no oimpresso
+- **Persona:** dono comparando o que os concorrentes anunciam com o que o oimpresso já tem.
+- **Aceite:** Dado o catálogo de casos (#9501) · Quando abre `?aba=casos` · Então vê a tabela (caso, o que
+  faz, processo, quem anuncia, a partir de que porte, quantos modelos usam, estado no oimpresso e US),
+  filtra por busca, processo, fonte e estado, e ao clicar abre a gaveta com a regra, o estado, as fontes
+  com link e os modelos que usam. A aba Modelos passa a mostrar a descrição do porte e "Inspirado em".
+- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-13").
+- **Status: 🧪**
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste)
 
 - **[BACKLOG]** Indicador de cobertura por processo e situação por transição — nasce primeiro num PR só de protótipo (regra [W] 2026-10-16).
 - **[BACKLOG]** Ligar/desligar regra por processo e a Compra editável do protótipo — o ERP ainda não tem regra configurável.
-- **[BACKLOG]** Aba Casos de uso: UC-FLX com fontes e estado (PR 4).
