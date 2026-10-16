@@ -10,6 +10,7 @@ import { Button } from '@/Components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Switch } from '@/Components/ui/switch';
 import EmptyState from '@/Components/shared/EmptyState';
+import { Inline, Stack } from '@/Components/layout';
 import { Cadeia } from './Cadeia';
 import type { EmpresaModelo, MapaOpcoesCompra, Modelo, Opcao, ProcessoDoModelo, RegraCompra, RegrasLigadas } from './tipos';
 
@@ -36,13 +37,13 @@ function Interruptor({ id, titulo, sub, checked, disabled, onChange }: {
   id: string; titulo: string; sub: string; checked: boolean; disabled: boolean; onChange: (v: boolean) => void;
 }) {
   return (
-    <span className="flex items-start gap-3">
+    <Inline asChild gap={3} align="start"><span>
       <Switch id={id} variant="cowork" className="mt-0.5" checked={checked} disabled={disabled} onCheckedChange={onChange} />
       <label htmlFor={id} className={`flex flex-col gap-0.5${disabled ? ' opacity-60' : ''}`}>
         <span className="text-sm font-medium">{titulo}</span>
         <span className="flx-dim">{sub}</span>
       </label>
-    </span>
+    </span></Inline>
   );
 }
 
@@ -162,15 +163,15 @@ export default function AbaEmpresa({ empresa, emUso, portes, atividades, ligadas
           return (
             <section key={p.dominio} className="flx-card" aria-label={p.nome}>
               <div className="flx-card-h">
-                <div className="flex flex-col gap-0.5">
-                  <span className="flex items-center gap-2">
+                <Stack gap={0} className="gap-0.5">
+                  <Inline asChild gap={2}><span>
                     <b>{p.nome}</b>
                     {daCompra && <span className="flx-pill accent">configurável</span>}
-                  </span>
+                  </span></Inline>
                   <span className="flx-dim">
                     {p.etapas.length} etapas · {p.regras.length} {p.regras.length === 1 ? 'regra' : 'regras'}
                   </span>
-                </div>
+                </Stack>
               </div>
               <Cadeia etapas={p.etapas} marcadas={new Set(p.regras.map((r) => r.etapa))} />
               {daCompra
