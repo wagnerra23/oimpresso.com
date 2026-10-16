@@ -337,3 +337,107 @@ it('UC-FLXT-13 · aba Casos de uso traz os casos com fontes, estado, US e os mod
     // Fora da aba Casos de uso a lista não vai.
     expect(flxtGet($this, '/fluxos?aba=modelos')->json('props.casos_lista'))->toBe([]);
 });
+
+function flxtPatch($teste, string $url, array $dados)
+{
+    return $teste->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'X-Inertia' => 'true'])
+        ->patch($url, $dados);
+}
+
+function flxtComRegrasConfiguraveis($teste): void
+{
+    if (! \Illuminate\Support\Facades\Schema::hasColumn('fsm_modelos_empresa', 'regras_compra')) {
+        $teste->markTestSkipped('Coluna fsm_modelos_empresa.regras_compra ausente (migration 2026_10_16_170000).');
+    }
+}
+
+/** `ligada` gravada na regra da etapa do processo do modelo, na empresa dada. */
+function flxtLigada(int $biz, string $processo, string $etapa, string $uc): ?bool
+{
+    $pid = DB::table('sale_processes')->where('business_id', $biz)->where('key', $processo)->value('id');
+    $regras = json_decode((string) DB::table('sale_process_stages')->where('process_id', $pid)->where('key', $etapa)->value('regras_ao_entrar'), true) ?? [];
+    $r = collect($regras)->firstWhere('uc', $uc);
+
+    return $r === null ? null : ($r['ligada'] ?? true);
+}
+
+it('UC-FLXT-14 · quem configura desliga e religa uma regra do modelo só na própria empresa', function () {
+    flxtComRegrasConfiguraveis($this);
+    $outra = (int) DB::table('business')->where('id', '!=', FLXT_BIZ)->value('id');
+    app(\App\Domain\Fsm\Modelos\AplicarModelo::class)->aplicar($outra, 'cv-pequena');
+
+    flxtEntrar($this, flxtUsuario(['fluxos.ver', 'fluxos.configurar']));
+    flxtPostAplicar($this, ['modelo' => 'cv-pequena', 'porte' => 'pequena', 'atividade' => 'cv']);
+    expect(flxtGet($this, '/fluxos?aba=empresa')->json('props.regras_ligadas.producao'))->toBe([true, true, true]);
+
+    // Produção, regra 1 = "Impressão → Apontamento pelo celular (UC-FLX-09)".
+    flxtPatch($this, '/fluxos/regra', ['dominio' => 'producao', 'indice' => 1, 'ligada' => false, 'business_id' => $outra])
+        ->assertRedirect('/fluxos?aba=empresa');
+
+    expect(flxtLigada(FLXT_BIZ, 'flx_cv_pequena_producao', 'impressao', 'UC-FLX-09'))->toBeFalse();
+    expect(flxtGet($this, '/fluxos?aba=empresa')->json('props.regras_ligadas.producao'))->toBe([true, false, true]);
+    // O business_id do formulário é ignorado: a outra empresa segue com a regra ligada.
+    expect(flxtLigada($outra, 'flx_cv_pequena_producao', 'impressao', 'UC-FLX-09'))->toBeTrue();
+
+    // Aplicar o mesmo modelo de novo não religa o que a empresa desligou.
+    flxtPostAplicar($this, ['modelo' => 'cv-pequena', 'porte' => 'pequena', 'atividade' => 'cv']);
+    expect(flxtLigada(FLXT_BIZ, 'flx_cv_pequena_producao', 'impressao', 'UC-FLX-09'))->toBeFalse();
+
+    flxtPatch($this, '/fluxos/regra', ['dominio' => 'producao', 'indice' => 1, 'ligada' => true]);
+    expect(flxtLigada(FLXT_BIZ, 'flx_cv_pequena_producao', 'impressao', 'UC-FLX-09'))->toBeTrue();
+
+    // Regra que não existe no modelo em uso: erro de formulário, nada gravado.
+    flxtPatch($this, '/fluxos/regra', ['dominio' => 'entrega', 'indice' => 0, 'ligada' => false])
+        ->assertSessionHasErrors('regra');
+});
+
+it('UC-FLXT-15 · a Compra é configurável: Usar modelo traz o custo do modelo e a empresa muda os parâmetros', function () {
+    flxtComRegrasConfiguraveis($this);
+    flxtEntrar($this, flxtUsuario(['fluxos.ver', 'fluxos.configurar']));
+    flxtPostAplicar($this, ['modelo' => 'balcao', 'porte' => 'micro', 'atividade' => 'rapida']);
+
+    $compra = fn () => collect(flxtGet($this, '/fluxos?aba=empresa')->json('props.regras_compra'));
+    // balcao: último preço, só recalcula o custo (CasosDoPrototipo::MODELOS).
+    expect($compra()->firstWhere('id', 'insumo.custo')['params'])->toMatchArray(['metodo' => 'ultimo', 'preco' => 'so_custo', 'etapa' => 'recebido']);
+
+    flxtPatch($this, '/fluxos/compra', ['regra' => 'insumo.custo', 'params' => ['metodo' => 'medio', 'etapa' => 'conferido']])
+        ->assertRedirect('/fluxos?aba=empresa');
+    $custo = $compra()->firstWhere('id', 'insumo.custo');
+    expect($custo['params'])->toMatchArray(['metodo' => 'medio', 'preco' => 'so_custo', 'etapa' => 'conferido']);
+    expect($custo['etapa_efetiva'])->toBe('conferido');
+
+    flxtPatch($this, '/fluxos/compra', ['regra' => 'pedido.email', 'ativo' => false]);
+    expect($compra()->firstWhere('id', 'pedido.email')['ativo'])->toBeFalse();
+
+    // Trocar de modelo volta o custo para o do modelo e mantém o resto.
+    flxtPostAplicar($this, ['modelo' => 'brindes', 'porte' => 'micro', 'atividade' => 'brindes']);
+    expect($compra()->firstWhere('id', 'insumo.custo')['params'])->toMatchArray(['metodo' => 'ultimo', 'preco' => 'aplicar', 'regraEm' => 'categoria', 'ops' => 'vivo']);
+    expect($compra()->firstWhere('id', 'pedido.email')['ativo'])->toBeFalse();
+});
+
+it('UC-FLXT-16 · a entrada no estoque é obrigatória e valor fora das opções é recusado', function () {
+    flxtComRegrasConfiguraveis($this);
+    flxtEntrar($this, flxtUsuario(['fluxos.ver', 'fluxos.configurar']));
+    flxtPostAplicar($this, ['modelo' => 'cv-pequena']);
+    $antes = DB::table('fsm_modelos_empresa')->where('business_id', FLXT_BIZ)->value('regras_compra');
+
+    flxtPatch($this, '/fluxos/compra', ['regra' => 'recebido.estoque', 'ativo' => false])->assertSessionHasErrors('regra');
+    flxtPatch($this, '/fluxos/compra', ['regra' => 'insumo.custo', 'params' => ['metodo' => 'chute']])->assertSessionHasErrors('regra');
+    flxtPatch($this, '/fluxos/compra', ['regra' => 'insumo.custo', 'params' => ['tolerancia' => 5]])->assertSessionHasErrors('regra');
+
+    expect(DB::table('fsm_modelos_empresa')->where('business_id', FLXT_BIZ)->value('regras_compra'))->toBe($antes);
+});
+
+it('UC-FLXT-17 · sem fluxos.configurar mudar regra devolve 403; sem modelo, recusa', function () {
+    flxtComRegrasConfiguraveis($this);
+    DB::table('fsm_modelos_empresa')->updateOrInsert(['business_id' => FLXT_BIZ], ['modelo' => 'legado', 'regras_compra' => null]);
+
+    flxtEntrar($this, flxtUsuario(['fluxos.ver']));
+    expect(flxtPatch($this, '/fluxos/regra', ['dominio' => 'venda', 'indice' => 0, 'ligada' => false])->getStatusCode())->toBe(403);
+    expect(flxtPatch($this, '/fluxos/compra', ['regra' => 'pedido.email', 'ativo' => false])->getStatusCode())->toBe(403);
+
+    flxtEntrar($this, flxtUsuario(['fluxos.ver', 'fluxos.configurar']));
+    flxtPatch($this, '/fluxos/compra', ['regra' => 'pedido.email', 'ativo' => false])->assertSessionHasErrors('regra');
+    expect(DB::table('fsm_modelos_empresa')->where('business_id', FLXT_BIZ)->value('regras_compra'))->toBeNull();
+    expect(flxtGet($this, '/fluxos?aba=empresa')->json('props.regras_compra'))->toBe([]);
+});

@@ -59,6 +59,16 @@ export interface OpcoesProduto {
 }
 
 /**
+ * As opções de uma lista vinda do servidor, sem a chave vazia. O servidor acrescenta '' às
+ * listas de unidades ("Selecionar") e de impostos ("nenhum") para os selects do Blade; o Select
+ * do Radix não aceita item com valor vazio e derruba a tela inteira (tela em branco medida em
+ * produção em 2026-10-16 · §5 2026-06-29). Toda lista que vira <SelectItem> passa por aqui.
+ */
+export function opcoesDe(mapa: OptionMap | OptionStringMap): Array<[string, string]> {
+  return Object.entries(mapa).filter(([chave]) => chave !== '');
+}
+
+/**
  * Ponte entre o `setData` do useForm de cada tela e os blocos. O tipo do Inertia é casado com o
  * formulário de UMA tela, e os blocos escrevem campos das duas. O que garante que a tela tem o
  * campo é o `modo`: os campos opcionais de CamposProduto só aparecem em modo `novo`.

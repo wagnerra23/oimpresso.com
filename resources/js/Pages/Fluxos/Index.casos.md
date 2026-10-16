@@ -116,9 +116,39 @@ last_run: "2026-10-16"
 - **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-13").
 - **Status: 🧪**
 
+## UC-FLXT-14 · Quem configura desliga e religa uma regra do modelo
+- **Persona:** dono que não quer, por exemplo, o apontamento pelo celular na Impressão.
+- **Aceite:** Dado um modelo em uso e `fluxos.configurar` · Quando desliga uma regra "ao entrar" na
+  aba Fluxos da empresa · Então a regra fica `ligada = false` na etapa do processo da própria empresa
+  (o `business_id` do formulário é ignorado), a tela passa a mostrar desligada, aplicar o mesmo
+  modelo de novo não a religa, e regra que não existe no modelo em uso é recusada.
+- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-14").
+- **Status: 🧪**
+
+## UC-FLXT-15 · A Compra é configurável e "Usar modelo" traz o custo do modelo
+- **Persona:** dono que decide como o custo do insumo muda quando a compra chega.
+- **Aceite:** Dado "Usar modelo" · Então a regra "Atualizar o custo dos insumos" liga com os parâmetros
+  do modelo (método, preço, quem segue, aprovação, OPs abertas, etapa) · Quando a empresa muda um
+  parâmetro ou desliga outra regra da Compra · Então a mudança fica gravada e a etapa onde a regra
+  dispara acompanha · E trocar de modelo volta só o custo para o do novo modelo.
+- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-15").
+- **Status: 🧪**
+
+## UC-FLXT-16 · Entrada no estoque é obrigatória; valor fora das opções é recusado
+- **Aceite:** Dado a Compra configurável · Quando tenta desligar "Dar entrada no estoque", mandar um
+  valor que não está nas opções ou um parâmetro que a regra não tem · Então recebe erro e nada muda.
+- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-16").
+- **Status: 🧪**
+
+## UC-FLXT-17 · Sem fluxos.configurar ou sem modelo, nada muda
+- **Aceite:** Dado um usuário sem `fluxos.configurar` · Quando muda uma regra · Então recebe 403 ·
+  E dado uma empresa no processo antigo (`legado`) · Quando quem configura muda a Compra · Então
+  recebe "Escolha um modelo antes de configurar as regras" e nada é gravado.
+- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-17").
+- **Status: 🧪**
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste)
 
 - **[BACKLOG]** Indicador de cobertura por processo e situação por transição — nasce primeiro num PR só de protótipo (regra [W] 2026-10-16).
-- **[BACKLOG]** Ligar/desligar regra por processo e a Compra editável do protótipo — o ERP ainda não tem regra configurável.
