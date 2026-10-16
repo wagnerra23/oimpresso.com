@@ -532,9 +532,13 @@ class UiLintCommand extends Command
         // O PageHeader segue obrigatório; a exceção não libera outras listas.
         // Spreadsheet/Index (telas-soltas/04, D1 [W] 2026-10-07): o prototipo planilhas-page.jsx e
         // uma ARVORE de pastas recolhivel, nao tabela; o charter declara a variante.
+        // Fluxos/Index (Sistema › Fluxos e regras, ADR 0435): o protótipo fluxos-page.jsx é uma
+        // tela de abas com cards de modelo; a única tabela fica na aba Casos de uso, num componente
+        // próprio (_components/AbaCasos.tsx, com o DataTable shared). O charter declara o desenho.
         $semTabelaPorDesenho = in_array($normalized, [
             'resources/js/Pages/NotificationTemplate/Index.tsx',
             'resources/js/Pages/Spreadsheet/Index.tsx',
+            'resources/js/Pages/Fluxos/Index.tsx',
         ], true);
         if (! $hasDataTable && ! $semTabelaPorDesenho) {
             $out[] = [
