@@ -36,7 +36,7 @@ class FinanceiroController extends Controller
     private const SITUACOES = ['a_receber', 'a_pagar', 'recebidas', 'pagas'];
 
     /** Chave do ERP (Titulo::FORMAS_PAGAMENTO) → rótulo que o app mostra e devolve no filtro. */
-    private const FORMAS = [
+    public const FORMAS = [
         'pix' => 'Pix', 'boleto' => 'Boleto', 'cartao_credito' => 'Cartão de crédito', 'cartao_debito' => 'Cartão de débito',
         'dinheiro' => 'Dinheiro', 'transferencia' => 'Transferência', 'cheque' => 'Cheque', 'compensacao' => 'Compensação',
         'outro' => 'Outro',
@@ -191,7 +191,7 @@ class FinanceiroController extends Controller
 
         $campo = (string) $request->query('data_campo', 'vencimento');
         $forma = $txt('forma_pagamento');
-        $formaChave = $forma === null ? null : $this->chaveForma($forma);
+        $formaChave = $forma === null ? null : self::chaveForma($forma);
         $conta = $txt('conta_id');
         $plano = $txt('plano_conta');
         $registro = (string) $request->query('registro', 'ativos');
@@ -217,7 +217,7 @@ class FinanceiroController extends Controller
     }
 
     /** "Pix" (rótulo de `formas_pagamento`) ou "pix" (chave do ERP) → chave; desconhecida → null. */
-    private function chaveForma(string $forma): ?string
+    public static function chaveForma(string $forma): ?string
     {
         $n = mb_strtolower(trim($forma));
         foreach (self::FORMAS as $chave => $rotulo) {
@@ -317,6 +317,7 @@ class FinanceiroController extends Controller
         if ($f['busca'] !== null) {
             $like = '%' . $this->escaparLike((string) $f['busca']) . '%';
             $q->where(fn (Builder $w) => $w->where('t.numero', 'like', $like)
+                ->orWhere('t.metadata->descricao', 'like', $like)
                 ->orWhere('t.cliente_descricao', 'like', $like)
                 ->orWhere('c.name', 'like', $like));
         }
@@ -360,12 +361,12 @@ class FinanceiroController extends Controller
         }
 
         if ($f['documento'] !== null) {
-            // Como digitado e sem pontuação: "R-00012" acha "R-00012"; "88.213" acha "88213".
+            // Como digitado e sem pontuação: "PED-77" acha "PED-77"; "88.213" acha "88213".
             $likes = array_unique(array_map(fn ($x) => '%' . $this->escaparLike($x) . '%',
                 array_filter([(string) $f['documento'], (string) $f['documento_compacto']], fn ($x) => $x !== '')));
             $q->where(function (Builder $w) use ($likes) {
                 foreach ($likes as $like) {
-                    $w->orWhere('t.numero', 'like', $like);
+                    $w->orWhere('t.numero', 'like', $like)->orWhere('t.metadata->documento', 'like', $like);
                 }
             });
         }
@@ -426,12 +427,15 @@ class FinanceiroController extends Controller
         $status = $t->status === 'quitado'
             ? 'liquidado'
             : ($vencimento !== null && $vencimento < $hojeIso ? 'vencido' : 'aberto');
-        $descricao = 'Título ' . $t->numero;
-        if ((int) $t->parcela_total > 1) {
-            $descricao .= ' · parcela ' . (int) $t->parcela_numero . '/' . (int) $t->parcela_total;
-        }
         $meta = is_string($t->metadata) ? (json_decode($t->metadata, true) ?: []) : [];
         $nf = $meta['nfe_numero'] ?? null;
+        // Descrição digitada (metadata.descricao, a mesma do cockpit web); sem ela, "Título <número>".
+        $digitada = trim((string) ($meta['descricao'] ?? ''));
+        $descricao = $digitada !== '' ? $digitada : 'Título ' . $t->numero;
+        if ($digitada === '' && (int) $t->parcela_total > 1) {
+            $descricao .= ' · parcela ' . (int) $t->parcela_numero . '/' . (int) $t->parcela_total;
+        }
+        $documento = trim((string) ($meta['documento'] ?? ''));
 
         return [
             'id' => (int) $t->id,
@@ -452,7 +456,7 @@ class FinanceiroController extends Controller
             'nosso_numero' => $t->nosso_numero ? (string) $t->nosso_numero : null,
             'plano_codigo' => $t->plano_codigo !== null ? (string) $t->plano_codigo : null,
             'plano_nome' => $t->plano_nome !== null ? (string) $t->plano_nome : null,
-            'documento' => (string) $t->numero,
+            'documento' => $documento !== '' ? $documento : (string) $t->numero,
             'excluido' => $t->deleted_at !== null,
             'contrato' => $t->contrato !== null ? (string) $t->contrato : null,
         ];

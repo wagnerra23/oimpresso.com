@@ -54,3 +54,26 @@ filtro), `planos_conta: [{codigo, nome, tipo?}]` (ativos do business, na ordem n
 `receita` ou `despesa`, custo conta como despesa) e `formas_pagamento: [rótulo]` (as do ERP). Cada item ganha
 `emissao`, `competencia` (AAAA-MM), `venda_em`, `forma_pagamento` (rótulo), `conta_id`, `nf_numero`,
 `nosso_numero`, `plano_codigo`, `plano_nome`, `documento` (= nº do título), `excluido` e `contrato`.
+
+## Novo lançamento (chave `NOVO_LANCAMENTO` do app) — REGRA MESTRE (valor)
+
+`POST /api/app/financeiro/lancamentos`, header `Idempotency-Key` obrigatório, corpo `NovoLancamento` do app
+(`src/lancamento-regras.ts`): `{tipo, descricao, contato_id, valor, vencimento, emissao, competencia,
+forma_pagamento, conta_id, plano_codigo, documento, nf_numero, observacao, parcelas, recorrencia}` →
+`201 { id, ids, recorrencia_id: null }` (`id` = o primeiro; `ids` = todos, um por parcela).
+
+- Acesso: o do Financeiro + `financeiro.lancamentos.create` ou `financeiro.contas_receber.create` /
+  `financeiro.contas_pagar.create` conforme o tipo (ou superadmin). Sem ela, `403 sem_permissao`.
+- O ERP revalida tudo e conta em **centavos inteiros**: `valor` com mais de 2 casas é recusado. O título nasce
+  `aberto` com `valor_aberto = valor_total`, origem `manual`, número `R-00000`/`P-00000` do business (o mesmo
+  sequencial da Visão Unificada web). `descricao`, `documento` e `nf_numero` vão no `metadata`
+  (`descricao`/`documento`/`nfe_numero`, as chaves que o cockpit web e a lista do app leem).
+- `plano_codigo`: conta ativa do business, analítica (sem filhas) e do tipo (receber = receita; pagar =
+  despesa ou custo). `contato_id` e `conta_id`: do business. `forma_pagamento`: rótulo ou chave do ERP.
+- `parcelas` (2 a 60): `valor` é o TOTAL, dividido em centavos com a diferença na 1ª (a regra
+  `dividirParcelas` do app: 100,00 em 3 = 33,34 + 33,33 + 33,33); uma parcela por mês a partir do
+  vencimento, sem estourar o dia (31/01 → 28/02 → 31/03); descrição "X (i/n)", documento "D/i".
+- `recorrencia` preenchida → `422 campos.recorrencia`: o Financeiro não tem gerador de título recorrente.
+- Erros: `422 {erro:"validacao", mensagem, campos}`. Idempotência na tabela `app_idempotencia` (rota
+  `financeiro.lancamentos`), na mesma transação dos títulos: mesma chave e corpo → `200` com a mesma
+  resposta; corpo diferente → `422 idempotencia_conflito`; ainda gravando → `409 em_andamento`.
