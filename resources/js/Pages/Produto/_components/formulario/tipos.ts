@@ -1,0 +1,69 @@
+// Formulário de produto compartilhado pelas telas Novo (Create.tsx) e Editar (Edit.tsx).
+// Cada bloco deste diretório é uma seção do formulário. Cada tela monta o próprio useForm e
+// entrega aos blocos o que eles leem e escrevem.
+
+export interface OptionMap {
+  [id: number]: string;
+}
+
+export interface OptionStringMap {
+  [key: string]: string;
+}
+
+/** Novo e Editar divergem em rótulos e em quais campos o formulário tem. */
+export type ModoFormulario = 'novo' | 'editar';
+
+export type TipoProduto = 'single' | 'variable' | 'combo';
+
+/**
+ * O que os blocos leem do formulário. Os ids chegam como `number | string` porque o useForm
+ * alarga o valor inicial `''` para string. Os quatro campos opcionais existem só no formulário
+ * da tela Novo, e os blocos só os mostram em modo `novo`.
+ */
+export interface CamposProduto {
+  name: string;
+  sku: string;
+  unit_id: number | string;
+  brand_id: number | string;
+  category_id: number | string;
+  tax: number | string;
+  tax_type: 'inclusive' | 'exclusive';
+  origem_mercadoria: number;
+  barcode_type: string;
+  alert_quantity: number | string;
+  weight: number | string;
+  product_description: string;
+  warranty_id: number | string;
+  product_custom_field1: string;
+  product_custom_field2: string;
+  type?: TipoProduto;
+  enable_stock?: number;
+  not_for_selling?: number;
+  expiry_period?: string;
+}
+
+/** Os erros de validação que os blocos exibem. */
+export type ErrosProduto = Partial<Record<'name' | 'origem_mercadoria', string>>;
+
+export type DefinirCampo = <K extends keyof CamposProduto>(campo: K, valor: CamposProduto[K]) => void;
+
+/** As listas de opções que as duas telas recebem do servidor. */
+export interface OpcoesProduto {
+  units: OptionMap;
+  categories: OptionMap;
+  brands: OptionMap;
+  taxes: OptionMap;
+  barcodeTypes: OptionStringMap;
+  warranties: OptionMap;
+  productTypes: OptionStringMap;
+}
+
+/**
+ * Ponte entre o `setData` do useForm de cada tela e os blocos. O tipo do Inertia é casado com o
+ * formulário de UMA tela, e os blocos escrevem campos das duas. O que garante que a tela tem o
+ * campo é o `modo`: os campos opcionais de CamposProduto só aparecem em modo `novo`.
+ */
+export function definidorDe(setData: unknown): DefinirCampo {
+  const escrever = setData as (campo: string, valor: unknown) => void;
+  return (campo, valor) => escrever(campo, valor);
+}
