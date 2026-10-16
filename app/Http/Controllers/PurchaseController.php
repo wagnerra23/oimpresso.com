@@ -633,7 +633,10 @@ class PurchaseController extends Controller
             $this->productUtil->createOrUpdatePurchaseLines($transaction, $purchases, $currency_details, $enable_product_editing);
 
             //Add Purchase payments
-            $this->transactionUtil->createOrUpdatePaymentLines($transaction, $request->input('payment'));
+            // A tela React (Purchase/Create.tsx) não envia `payment` — compra nasce a prazo.
+            // Sem o `?? []` o foreach de createOrUpdatePaymentLines recebe null, o warning vira
+            // ErrorException e o catch abaixo devolve "algo deu errado" (UC-PURCRE-10).
+            $this->transactionUtil->createOrUpdatePaymentLines($transaction, $request->input('payment') ?? []);
 
             //update payment status
             $this->transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);

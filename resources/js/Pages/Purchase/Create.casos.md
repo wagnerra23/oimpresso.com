@@ -108,6 +108,7 @@ decisão do dono, com chip aberto.
 | UC-PURCRE-06 | Dropdown de filiais respeita `permitted_locations` | must `[T0]` | RUNBOOK §10 · charter R-PUR-002 | `Wave2CreateBaselineTest` | 🧪 estrutural · na lane |
 | UC-PURCRE-07 | A Page não decide tenant — `business_id` vem das props | must `[T0]` | RUNBOOK §10 | `Wave2CreateInertiaTest` | 🧪 estrutural · na lane |
 | UC-PURCRE-08 | Salvar aceita a data que a própria tela manda (`datetime-local`, ISO) | must | charter Goals (1 POST único) · smoke prod 2026-09-24 | `PurchaseDataIsoTest` | 🧪 comportamento · na lane |
+| UC-PURCRE-10 | Salvar grava a compra com o payload da tela (sem bloco de pagamento) | must | charter Goals (1 POST único) · reclamação ROTA LIVRE 2026-10-16 | `PurchaseGradeMatrixTest` | 🧪 comportamento · na lane |
 
 ---
 
@@ -301,6 +302,21 @@ decisão do dono, com chip aberto.
 - **Status: 🧪 comportamento · na lane** — os 3 casos batem na rota com o tenant semeado.
 
 ---
+
+## UC-PURCRE-10 · Salvar grava a compra com o payload da tela (sem bloco de pagamento) · `must`
+
+- **Persona:** quem lança compra pela tela React — Larissa (biz=4) reportou em 2026-10-16 que nenhuma
+  compra salvava ("Algo deu errado, por favor, tente novamente mais tarde").
+- **Aceite:** Dado fornecedor, filial e uma linha de item · Quando a tela envia o POST como o `enviar()`
+  do `Create.tsx` monta — **sem** a chave `payment` · Então a compra é gravada a prazo
+  (`payment_status = due`), com o total e a quantidade enviados.
+- **Teste:** [`PurchaseGradeMatrixTest`](../../../../tests/Feature/Purchase/PurchaseGradeMatrixTest.php)
+  (bloco MySQL, dentro de transação revertida).
+- **Contrato:** charter Goals (a compra sai num POST único) + reclamação do cliente. A tela não tem bloco
+  de pagamento; o `store()` passava `$request->input('payment')` (null) ao `createOrUpdatePaymentLines`,
+  cujo `foreach` sobre null vira `ErrorException` no Laravel e cai no catch genérico.
+- **O que NÃO muda:** nenhum cálculo de valor ou estoque — só a ausência de pagamento deixa de quebrar.
+- **Status: 🧪 comportamento · na lane**
 
 ## `[BACKLOG]` — achados sem contrato em 2 fontes, ou sem teste que os defenda
 

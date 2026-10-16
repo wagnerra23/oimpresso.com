@@ -358,6 +358,55 @@ describe('Tier 0 cross-tenant (MySQL real)', function () {
             'O gate de ownership recusou uma variação do PRÓPRIO negócio — o 422 do teste acima não prova scope.'
         );
     });
+    // ── UC-PURCRE-10 — salvar com o payload que a tela React manda ──────────
+
+    it('UC-PURCRE-10 · store() grava a compra com o payload da tela React (sem `payment`, data ISO)', function () {
+        // Tudo dentro de uma transação revertida no fim: o store() abre a dele (vira savepoint)
+        // e a base persistente do CT 100 não fica com a compra (§5 2026-09-18).
+        DB::beginTransaction();
+        try {
+            $bizId = (int) $this->gmBizProprio->id;
+            $produto = gmProduto($bizId, (int) $this->gmUser->id, 'Produto compra React');
+            $variacao = gmVariacao($produto, 'P/Preto');
+            $fornecedor = (int) DB::table('contacts')->insertGetId([
+                'business_id' => $bizId, 'type' => 'supplier', 'name' => 'Fornecedor UC-PURCRE-10',
+                'contact_id' => 'UCP10' . uniqid(), 'created_by' => (int) $this->gmUser->id,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+            $refNo = 'UCP10-' . uniqid();
+
+            // Espelha o `enviar()` do Create.tsx: números crus, data do datetime-local e
+            // NENHUMA chave `payment` — a tela não tem bloco de pagamento.
+            $resposta = $this->actingAs($this->gmUser)->post('/purchases', [
+                'ref_no' => $refNo, 'status' => 'received', 'contact_id' => $fornecedor,
+                'transaction_date' => now()->format('Y-m-d H:i'),
+                'location_id' => DB::table('business_locations')->where('business_id', $bizId)->value('id'),
+                'discount_type' => 'fixed', 'discount_amount' => '0', 'tax_id' => '', 'tax_amount' => '0',
+                'shipping_charges' => '0', 'additional_notes' => '', 'exchange_rate' => '1',
+                'total_before_tax' => '45', 'final_total' => '45',
+                'purchases' => [[
+                    'product_name' => 'Produto compra React P/Preto', 'product_id' => $produto,
+                    'variation_id' => $variacao, 'unit_id' => '', 'unit_name' => 'un',
+                    'quantity' => '2', 'pp_without_discount' => '22.5', 'discount_percent' => '0',
+                    'item_tax' => '0', 'tax_id' => '', 'purchase_price' => '22.5',
+                    'purchase_price_inc_tax' => '22.5', 'purchase_line_tax_id' => '',
+                ]],
+            ]);
+
+            $resposta->assertRedirect('/purchases');
+            expect(session('status.success'))->toBe(1, 'store() caiu no catch genérico: ' . json_encode(session('status')));
+
+            $compra = DB::table('transactions')->where('business_id', $bizId)
+                ->where('type', 'purchase')->where('ref_no', $refNo)->first();
+            expect($compra)->not->toBeNull();
+            expect((float) $compra->final_total)->toBe(45.0);
+            expect($compra->payment_status)->toBe('due');
+            expect((float) DB::table('purchase_lines')->where('transaction_id', $compra->id)->sum('quantity'))->toBe(2.0);
+        } finally {
+            DB::rollBack();
+        }
+    });
+
     // ── UC-PURCRE-09 — "Comprar" da lista de produtos ───────────────────────
 
     it('UC-PURCRE-09 · ?produto= de um produto do próprio negócio entra como produto_inicial', function () {
