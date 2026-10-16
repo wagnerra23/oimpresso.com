@@ -293,6 +293,222 @@ const PROCS = [
     ], liga: [] },
 ];
 
+// Cobertura no ERP por transição, na ordem de `trans` — EXPORTADA do CatalogoProcessos (#9496)
+// em 16/10/2026, não digitada. estado: sim · parcial · nao · nao_verificado; onde = classe/rota ou motivo.
+// Regenerar do catálogo quando ele mudar (não editar à mão).
+const COB = {
+  "venda": [
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+  ],
+  "producao": [
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+  ],
+  "nfe": [
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+  ],
+  "nfse": [
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+  ],
+  "cobranca": [
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+  ],
+  "pagar": [
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+  ],
+  "compra": [
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+  ],
+  "requisicao": [
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+  ],
+  "inventario": [
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+  ],
+  "entrega": [
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+  ],
+  "devolucao": [
+    ["nao", "Não existe ocorrência pós-venda no ERP: a devolução começa direto no lançamento."],
+    ["nao", "Nenhum código cria OS de retrabalho; as ações de garantia das OS semeadas só mudam a etapa."],
+    ["nao", "Sem ocorrência no ERP. A NF-e de devolução tem serviço (Modules/NfeBrasil/Services/DevolucaoService::emitirDevolucao) sem rota nem chamador fora dos testes; DevolucaoController (legado) não tem rota."],
+    ["nao", "Sem ocorrência no ERP (ver Analisar)."],
+    ["nao", "Sem ocorrência no ERP (ver Analisar)."],
+    ["nao", "Depende da OS de retrabalho, que não existe."],
+    ["sim", "resource sell-return (routes/web.php) → SellReturnController@store → TransactionUtil::addSellReturn (quantidade por item; volta o estoque por ProductUtil::updateProductQuantity)"],
+    ["parcial", "A devolução de venda vira transação sell_return com situação de pagamento (TransactionUtil::updatePaymentStatus); o Modules/Financeiro não lê sell_return, então o título da venda não é estornado."],
+    ["parcial", "Modules/Vestuario/Services/DevolucaoService::registrarDevolucao (tipo credito_ficha → vestuario_creditos_cliente) existe, sem rota nem chamador fora dos testes. A validade de 6 meses vem do ERP: constante VALIDADE_CREDITO_MESES = 6 do mesmo serviço (CDC Art. 50), gravada em expira_em e zerada por expirarCreditosVencidos; é fixa no código, não parâmetro da empresa."],
+  ],
+  "devolucao-compra": [
+    ["sim", "resource purchase-return → PurchaseReturnController@store (ProductUtil::decreaseProductQuantity) e /purchase-return/save → CombinedPurchaseReturnController@save"],
+    ["nao_verificado", "A devolução de compra tem situação de pagamento (TransactionUtil::updatePaymentStatus); não conferi se o Financeiro a liga ao título a pagar."],
+    ["sim", "PurchaseReturnController@destroy (resource purchase-return)"],
+  ],
+  "os-reparo": [
+    ["sim", "Ação \"Iniciar diagnóstico\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Finalizar diagnóstico e gerar orçamento\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Cliente aprovou orçamento\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Cliente rejeitou orçamento\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Pedir peças ao fornecedor\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Confirmar chegada das peças\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Iniciar execução do reparo\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Iniciar execução do reparo\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Pausar execução\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Retomar execução\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Concluir execução do reparo\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Entregar ao cliente\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["nao", "Ação \"Entregar ao cliente (sem conserto)\" cadastrada no processo os_reparo_padrao, mas a etapa de origem é terminal: o ExecuteStageActionService recusa."],
+    ["sim", "Ação \"Cancelar OS\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Cancelar OS\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Cancelar OS\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Cancelar OS\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Cancelar OS\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Cancelar OS\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Cancelar OS\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Cancelar OS\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["sim", "Ação \"Cancelar OS\" do processo os_reparo_padrao — POST /repair/job-sheets/{id}/fsm-action (RepairFsmActionController@execute)"],
+    ["nao", "Ação \"Registrar acionamento de garantia\" cadastrada no processo os_reparo_padrao, mas a etapa de origem é terminal: o ExecuteStageActionService recusa."],
+  ],
+  "oficina-os": [
+    ["sim", "Ação \"Iniciar diagnóstico\" do processo oficina_mecanica_os — ServiceOrderFsmActionController@execute (Modules/OficinaAuto/Routes/web.php)"],
+    ["sim", "Ação \"Enviar orçamento pra aprovação\" do processo oficina_mecanica_os — ServiceOrderFsmActionController@execute (Modules/OficinaAuto/Routes/web.php)"],
+    ["sim", "Ação \"Cliente aprovou — pedir peças\" do processo oficina_mecanica_os — ServiceOrderFsmActionController@execute (Modules/OficinaAuto/Routes/web.php)"],
+    ["sim", "Ação \"Cliente aprovou — já executar\" do processo oficina_mecanica_os — ServiceOrderFsmActionController@execute (Modules/OficinaAuto/Routes/web.php)"],
+    ["sim", "Ação \"Cliente recusou orçamento\" do processo oficina_mecanica_os — ServiceOrderFsmActionController@execute (Modules/OficinaAuto/Routes/web.php)"],
+    ["sim", "Ação \"Peças chegaram — iniciar execução\" do processo oficina_mecanica_os — ServiceOrderFsmActionController@execute (Modules/OficinaAuto/Routes/web.php)"],
+    ["sim", "Ação \"Concluir serviço\" do processo oficina_mecanica_os — ServiceOrderFsmActionController@execute (Modules/OficinaAuto/Routes/web.php)"],
+    ["sim", "Ação \"Entregar ao cliente\" do processo oficina_mecanica_os — ServiceOrderFsmActionController@execute (Modules/OficinaAuto/Routes/web.php)"],
+    ["sim", "Ação \"Acionar garantia\" do processo oficina_mecanica_os — ServiceOrderFsmActionController@execute (Modules/OficinaAuto/Routes/web.php)"],
+    ["sim", "Ação \"Cancelar OS\" do processo oficina_mecanica_os — ServiceOrderFsmActionController@execute (Modules/OficinaAuto/Routes/web.php)"],
+    ["sim", "Ação \"Cancelar OS\" do processo oficina_mecanica_os — ServiceOrderFsmActionController@execute (Modules/OficinaAuto/Routes/web.php)"],
+    ["sim", "Ação \"Cancelar OS\" do processo oficina_mecanica_os — ServiceOrderFsmActionController@execute (Modules/OficinaAuto/Routes/web.php)"],
+    ["sim", "Ação \"Cancelar OS\" do processo oficina_mecanica_os — ServiceOrderFsmActionController@execute (Modules/OficinaAuto/Routes/web.php)"],
+    ["sim", "Ação \"Cancelar OS\" do processo oficina_mecanica_os — ServiceOrderFsmActionController@execute (Modules/OficinaAuto/Routes/web.php)"],
+  ],
+  "os-cv": [
+    ["parcial", "Ação \"Enviar orçamento ao cliente\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cliente aprovou orçamento\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cliente rejeitou orçamento\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Enviar arte pra aprovação cliente\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Arte aprovada pelo cliente\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Rejeitar arte (volta pra designer)\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Iniciar impressão\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Aguardar liberação de máquina (PCP industrial)\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Iniciar impressão (máquina liberada)\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Concluir impressão\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Refazer impressão (problema detectado)\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Iniciar acabamento\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Concluir acabamento\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cliente busca no balcão\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Agendar instalação\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Iniciar instalação (chegou no cliente)\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Reagendar instalação\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Concluir instalação\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cliente aprovou instalação final\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["nao", "Ação \"Emitir NFe55 (mercadoria) + NFSe56 (instalação) paralelo\" cadastrada no processo os_comunicacao_visual, mas a etapa de origem é terminal: o ExecuteStageActionService recusa."],
+    ["nao", "Ação \"Acionar garantia (abre OS filha)\" cadastrada no processo os_comunicacao_visual, mas a etapa de origem é terminal: o ExecuteStageActionService recusa."],
+    ["parcial", "Ação \"Cancelar OS\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cancelar OS\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cancelar OS\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cancelar OS\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cancelar OS\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cancelar OS\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cancelar OS\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cancelar OS\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cancelar OS\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cancelar OS\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cancelar OS\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cancelar OS\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+    ["parcial", "Ação \"Cancelar OS\" do processo os_comunicacao_visual — POST /sells/{id}/fsm-action (SaleFsmActionController@execute) — sem tela que inicie a venda neste processo; OrdemProducao sem rota de ação"],
+  ],
+  "atendimento": [
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+  ],
+  "contrato": [
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+  ],
+  "ponto": [
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+    ["nao_verificado", "Processo só do protótipo; o código do ERP ainda não foi conferido para esta transição."],
+  ],
+};
+const COB_EST = { sim: { l: "executa", tone: "ok" }, parcial: { l: "parcial", tone: "warn" }, nao: { l: "não existe", tone: "danger" }, nao_verificado: { l: "não verificado", tone: "mute" } };
+// Resumo do processo: quantas transições o ERP executa de ponta a ponta, de quantas.
+function resumoCob(id) {
+  const r = { sim: 0, parcial: 0, nao: 0, nao_verificado: 0, total: 0 };
+  (COB[id] || []).forEach(([e]) => { r[e] += 1; r.total += 1; });
+  return r;
+}
+function CobItem({ id }) {
+  const r = resumoCob(id);
+  if (!r.total) return null;
+  if (r.nao_verificado === r.total) return <span className="flx-pill mute flp-cob">ERP não verificado</span>;
+  const tone = r.sim === r.total ? "ok" : r.sim + r.parcial > 0 ? "warn" : "danger";
+  return <span className={"flx-pill flp-cob " + tone} title={r.sim + " executa · " + r.parcial + " parcial · " + r.nao + " não existe · " + r.nao_verificado + " não verificado"}>{r.sim} de {r.total} no ERP{r.parcial ? " · " + r.parcial + " parcial" + (r.parcial === 1 ? "" : "is") : ""}</span>;
+}
+
 // Comparativo NF-e × NFS-e — o que muda na FSM e no financeiro.
 const NFX = [
   ["Documenta", "Circulação de mercadoria", "Prestação de serviço"],
@@ -348,10 +564,11 @@ function Detalhe({ p, onIr }) {
       )}
       <Widget title={est ? "A partir de " + est : "Transições"} note={est ? lista.length + (lista.length === 1 ? " ação possível" : " ações possíveis") : "Só passa se = condição para a ação acontecer · efeito = o que o sistema faz sozinho"} flush
         actions={est ? <button type="button" className="flx-link" onClick={() => setEst(null)}>Ver todas</button> : null}>
+        {(() => { const r = resumoCob(p.id); return r.total ? <p className="flp-cob-r">No oimpresso: <b>{r.sim}</b> executa · <b>{r.parcial}</b> parcial · <b>{r.nao}</b> não existe · <b>{r.nao_verificado}</b> não verificado</p> : null; })()}
         {lista.length === 0 ? <p className="flp-fim">Nenhuma ação sai de <b>{est}</b> — o documento termina aqui.</p> :
         <div className="flp-tw">
           <table className="flp-t">
-            <thead><tr><th scope="col">De → para</th><th scope="col">Ação</th><th scope="col">Só passa se</th><th scope="col">Efeito</th><th scope="col">Quem</th></tr></thead>
+            <thead><tr><th scope="col">De → para</th><th scope="col">Ação</th><th scope="col">Só passa se</th><th scope="col">Efeito</th><th scope="col">Quem</th><th scope="col">No oimpresso</th></tr></thead>
             <tbody>{lista.map((t, i) => (
               <tr key={i}>
                 <td><span className="flp-de">{t.de}</span><span className="flp-para">{t.para ? "→ " + t.para : "sem mudar de estado"}</span></td>
@@ -359,6 +576,7 @@ function Detalhe({ p, onIr }) {
                 <td>{t.guarda || <span className="flx-dim">—</span>}</td>
                 <td>{t.efeito || <span className="flx-dim">—</span>}</td>
                 <td className="flp-quem">{t.quem}</td>
+                <td className="flp-cobc">{(() => { const c = (COB[p.id] || [])[p.trans.indexOf(t)]; if (!c) return <span className="flx-dim">—</span>; const e = COB_EST[c[0]]; return <><span className={"flx-pill " + e.tone}>{e.l}</span>{c[1] && <small title={c[1]}>{c[1]}</small>}</>; })()}</td>
               </tr>))}
             </tbody>
           </table>
@@ -410,7 +628,7 @@ function FluxosProcessos(props) {
                 <span className="flx-lbl">{a}</span>
                 {ps.map((x) => (
                   <button key={x.id} type="button" aria-current={x.id === sel ? "true" : undefined} className={"flp-item" + (x.id === sel ? " on" : "")} onClick={() => ir(x.id)}>
-                    <span>{x.n}</span><small>{x.estados.length} estados · {x.trans.length} transições</small>
+                    <span>{x.n}</span><small>{x.estados.length} estados · {x.trans.length} transições</small><CobItem id={x.id} />
                   </button>
                 ))}
               </div>
@@ -423,6 +641,6 @@ function FluxosProcessos(props) {
   );
 }
 
-window.FLX_PROC = { AREAS, PROCS, NFX, TELAS };
+window.FLX_PROC = { AREAS, PROCS, NFX, TELAS, COB, resumoCob };
 window.FluxosProcessos = FluxosProcessos;
 })();
