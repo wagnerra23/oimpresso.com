@@ -1003,6 +1003,26 @@ class AdminSidebarMenu
                     ]
                 )->order(90);
             }
+
+            // Sistema › Fluxos e regras (ADR 0435) — modelos de fluxo por porte × atividade.
+            // Permissão própria (migration 2026_10_16_150000); grupo SISTEMA declarado,
+            // como no protótipo prototipo-ui/cowork/Wagner/fluxos-page.jsx.
+            if (auth()->user()->can('fluxos.ver')) {
+                $menu->url(
+                    route('fluxos.index'),
+                    __('Fluxos e regras'),
+                    [
+                        'icon'   => '<svg aria-hidden="true" class="tw-size-5 tw-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                    <path d="M3 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
+                    <path d="M19 7a2 2 0 1 0 0 -4a2 2 0 0 0 0 4z"></path>
+                    <path d="M11 19h5.5a3.5 3.5 0 0 0 0 -7h-8a3.5 3.5 0 0 1 0 -7h4.5"></path>
+                  </svg>',
+                        'active' => request()->segment(1) == 'fluxos',
+                        'group'  => 'sistema',
+                    ]
+                )->order(88);
+            }
         });
 
         //Add menus from modules
