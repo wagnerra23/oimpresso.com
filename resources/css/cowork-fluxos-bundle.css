@@ -1,10 +1,15 @@
 /* cowork-fluxos-bundle.css — cópia INTEIRA de prototipo-ui/cowork/Wagner/fluxos-page.css
  * (Sistema · Fluxos e regras, ADR 0435), sem edição. Escopo .flx-root / .flp-*; só tokens
  * do cockpit. Regra Tier 0 "bundle Cowork aplicado inteiro" (proibicoes.md §Design System):
- * customização Inertia entra depois, em PR separado. Recopiar quando o protótipo mudar. */
+ * customização Inertia entra depois, em PR separado. Recopiar quando o protótipo mudar.
+ * Único ajuste à cópia (stylelint, mesmo valor computado — medido no render do ERP):
+ * sem !important no padding do header (o bundle fica fora de @layer e já vence o
+ * utilitário; sem a regra o padding cai a 0, com ela sem !important fica 20px), sem o
+ * fallback #fff de --accent-fg (o token existe nos dois temas) e as duas regras repetidas
+ * (.flx-proc h4, .flx-filtros) fundidas na primeira, com o valor que vencia. */
 /* fluxos-page.css — Sistema · Fluxos e regras. Escopo .flx-root. Só tokens do cockpit. */
 .flx-root{display:flex;flex-direction:column;min-height:0;flex:1}
-.flx-root>header{padding-left:20px!important;padding-right:20px!important}
+.flx-root>header{padding-left:20px;padding-right:20px}
 .flx-body{flex:1;min-height:0;overflow:auto;padding:16px 20px 32px;display:flex;flex-direction:column;gap:14px}
 .flx-body>*{flex-shrink:0}
 .flx-dim{color:var(--text-dim);font-size:var(--fs-3,12.5px)}
@@ -33,7 +38,7 @@
 .flx-chain li{display:inline-flex;align-items:center;gap:5px;padding:3px 8px 3px 4px;border:1px solid var(--border);border-radius:999px;font-size:var(--fs-2,11.5px);color:var(--text-dim);white-space:nowrap}
 .flx-chain li .n{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;background:var(--bg-2);font:600 9.5px/1 var(--font-mono);color:var(--text-mute)}
 .flx-chain li.r{color:var(--text);border-color:color-mix(in oklch,var(--accent) 40%,var(--border))}
-.flx-chain li.r .n{background:var(--accent);color:var(--accent-fg,#fff)}
+.flx-chain li.r .n{background:var(--accent);color:var(--accent-fg)}
 .flx-pill{display:inline-flex;align-items:center;padding:1px 8px;border-radius:999px;border:1px solid var(--border);font-size:var(--fs-1,10.5px);font-weight:600;white-space:nowrap;color:var(--text-dim)}
 .flx-pill.ok{color:var(--color-success);border-color:color-mix(in oklch,var(--color-success) 30%,transparent);background:color-mix(in oklch,var(--color-success) 7%,transparent)}
 .flx-pill.accent{color:var(--accent);border-color:color-mix(in oklch,var(--accent) 35%,transparent);background:color-mix(in oklch,var(--accent) 7%,transparent)}
@@ -53,7 +58,7 @@
 .flx-det-para{margin:0;font-size:var(--fs-4,13.5px);line-height:1.5;color:var(--text);text-wrap:pretty}
 .flx-det-meta{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:var(--fs-2,11.5px);color:var(--text-dim)}
 .flx-proc{display:flex;flex-direction:column;gap:8px}
-.flx-proc h4{margin:0;display:flex;gap:8px;align-items:baseline;font:600 10.5px/1.4 var(--font-sans);letter-spacing:.05em;text-transform:uppercase;color:var(--text-mute)}
+.flx-proc h4{margin:0;display:flex;gap:8px;align-items:center;font:600 10.5px/1.4 var(--font-sans);letter-spacing:.05em;text-transform:uppercase;color:var(--text-mute)}
 .flx-regras{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;border:1px solid var(--border);border-radius:8px}
 .flx-regras li{display:grid;grid-template-columns:minmax(0,190px) minmax(0,1fr) auto;gap:4px 12px;align-items:baseline;padding:8px 10px;border-bottom:1px solid var(--border);font-size:var(--fs-3,12.5px);color:var(--text)}
 .flx-regras li:last-child{border-bottom:0}
@@ -70,7 +75,7 @@
 .flx-procs .flx-regras{margin-top:10px}
 .flx-cmp{display:flex;flex-direction:column;gap:12px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
 .flx-cmp-p{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:10px 0 0 44px}
-.flx-filtros{display:flex;flex-wrap:wrap;gap:10px 14px}
+.flx-filtros{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 14px}
 .flx-filtros>*{min-width:180px}
 .flx-gridwrap{min-width:0;overflow:auto}
 .flx-est{display:inline-flex;flex-direction:column;align-items:flex-start;gap:2px}
@@ -141,7 +146,6 @@
 .flx-link{margin-left:auto;padding:2px 4px;border:0;background:transparent;color:var(--accent);font:500 var(--fs-2,11.5px)/1.4 var(--font-sans);letter-spacing:0;text-transform:none;cursor:pointer}
 .flx-link:hover{text-decoration:underline;text-underline-offset:3px}
 .flx-link:focus-visible,.flx-uc:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
-.flx-proc h4{align-items:center}
 .flx-uc{padding:0;border:0;background:transparent;color:var(--accent);font-family:var(--font-mono);font-size:var(--fs-1,10.5px);cursor:pointer;text-align:left}
 .flx-uc:hover{text-decoration:underline;text-underline-offset:3px}
 .flx-dif{padding:10px 12px;border:1px solid color-mix(in oklch,var(--accent) 30%,var(--border));border-radius:8px;background:color-mix(in oklch,var(--accent) 5%,transparent)}
@@ -150,7 +154,6 @@
 .flx-busca{display:flex;flex-direction:column;gap:4px;min-width:240px;flex:1 1 240px;max-width:360px}
 .flx-busca input{height:32px;padding:0 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font:inherit;font-size:var(--fs-3,12.5px)}
 .flx-busca input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-.flx-filtros{align-items:flex-end}
 .flx-filtros-r{display:flex;align-items:center;gap:10px;margin-left:auto;min-height:32px}
 .flx-est-l{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
 .flx-gridwrap tbody tr{cursor:pointer}
