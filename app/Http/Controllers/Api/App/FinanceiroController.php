@@ -49,12 +49,18 @@ class FinanceiroController extends Controller
 
     /** Forma e conta: a da última baixa (realizada) manda; sem baixa, a prevista no título — a regra do cockpit web. */
     private const FORMA = '(COALESCE((SELECT x.meio_pagamento FROM fin_titulo_baixas x WHERE x.titulo_id = t.id'
-        . ' AND x.business_id = t.business_id AND x.estorno_de_id IS NULL ORDER BY x.data_baixa DESC, x.id DESC LIMIT 1),'
-        . ' t.forma_pagamento))';
+        . ' AND x.business_id = t.business_id AND x.estorno_de_id IS NULL' . self::NAO_ESTORNADA_X
+        . ' ORDER BY x.data_baixa DESC, x.id DESC LIMIT 1), t.forma_pagamento))';
 
     private const CONTA = '(COALESCE((SELECT x.conta_bancaria_id FROM fin_titulo_baixas x WHERE x.titulo_id = t.id'
-        . ' AND x.business_id = t.business_id AND x.estorno_de_id IS NULL ORDER BY x.data_baixa DESC, x.id DESC LIMIT 1),'
-        . ' t.conta_bancaria_id))';
+        . ' AND x.business_id = t.business_id AND x.estorno_de_id IS NULL' . self::NAO_ESTORNADA_X
+        . ' ORDER BY x.data_baixa DESC, x.id DESC LIMIT 1), t.conta_bancaria_id))';
+
+    /**
+     * Baixa ativa = não é linha de estorno E não foi estornada. O estorno do Financeiro é ledger-style (linha
+     * negativa com estorno_de_id); ignorar só a linha negativa contaria de novo a baixa que ela desfez.
+     */
+    private const NAO_ESTORNADA_X = ' AND NOT EXISTS (SELECT 1 FROM fin_titulo_baixas xe WHERE xe.estorno_de_id = x.id)';
 
     /** Nº do contrato = id da assinatura da Cobrança Recorrente que gerou o título (origem recurring → rb_invoices). */
     private const CONTRATO = "(SELECT ri.subscription_id FROM rb_invoices ri WHERE ri.id = t.origem_id"
@@ -248,15 +254,7 @@ class FinanceiroController extends Controller
             in_array('pagas', $situacoes, true) ? 'pagar' : null,
         ]));
 
-        $baixas = DB::table('fin_titulo_baixas')
-            ->where('business_id', $bizId)
-            ->whereNull('estorno_de_id')
-            ->groupBy('titulo_id')
-            ->select(['titulo_id', DB::raw('MAX(data_baixa) as pago_em'), DB::raw('SUM(valor_baixa) as pago')]);
-
-        $q = $this->base($bizId, (string) $f['registro'])
-            ->leftJoinSub($baixas, 'b', 'b.titulo_id', '=', 't.id')
-            ->addSelect([DB::raw(self::PAGO_EM . ' as pago_em'), DB::raw(self::VALOR . ' as valor')]);
+        $q = $this->comBaixas($this->base($bizId, (string) $f['registro']), $bizId);
 
         if ($abertos === [] && $liquidados === []) {
             return $q->whereRaw('1 = 0');
@@ -372,11 +370,14 @@ class FinanceiroController extends Controller
         }
 
         if ($f['contrato'] !== null) {
-            if ($this->temRecorrencia()) {
-                $q->whereRaw('CAST(' . self::CONTRATO . ' AS CHAR) LIKE ?', ['%' . $this->escaparLike((string) $f['contrato']) . '%']);
-            } else {
-                $q->whereRaw('1 = 0');
-            }
+            // Contrato da Cobrança Recorrente (id da assinatura) ou o nº digitado no lançamento (metadata.contrato).
+            $like = '%' . $this->escaparLike((string) $f['contrato']) . '%';
+            $q->where(function (Builder $w) use ($like) {
+                $w->where('t.metadata->contrato', 'like', $like);
+                if ($this->temRecorrencia()) {
+                    $w->orWhereRaw('CAST(' . self::CONTRATO . ' AS CHAR) LIKE ?', [$like]);
+                }
+            });
         }
     }
 
@@ -388,6 +389,32 @@ class FinanceiroController extends Controller
     private function temRecorrencia(): bool
     {
         return self::$temRecorrencia ??= Schema::hasTable('rb_invoices');
+    }
+
+    /** Junta as baixas ativas do título (`b`): `pago` = soma, `pago_em` = a última. Dá `valor` e `pago_em` da linha. */
+    private function comBaixas(Builder $q, int $bizId): Builder
+    {
+        $baixas = DB::table('fin_titulo_baixas as bx')
+            ->where('bx.business_id', $bizId)
+            ->whereNull('bx.estorno_de_id')
+            ->whereNotExists(fn ($e) => $e->from('fin_titulo_baixas as be')->whereColumn('be.estorno_de_id', 'bx.id'))
+            ->groupBy('bx.titulo_id')
+            ->select(['bx.titulo_id', DB::raw('MAX(bx.data_baixa) as pago_em'), DB::raw('SUM(bx.valor_baixa) as pago')]);
+
+        return $q->leftJoinSub($baixas, 'b', 'b.titulo_id', '=', 't.id')
+            ->addSelect([DB::raw(self::PAGO_EM . ' as pago_em'), DB::raw(self::VALOR . ' as valor')]);
+    }
+
+    /**
+     * Um lançamento no formato da lista, excluído ou não (o detalhe do app parte dele). null se não é do business.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function itemPorId(int $bizId, int $id): ?array
+    {
+        $t = $this->comBaixas($this->base($bizId, 'todos'), $bizId)->where('t.id', $id)->first();
+
+        return $t === null ? null : $this->item($t, CarbonImmutable::today()->toDateString());
     }
 
     /** `registro`: ativos (padrão), excluidos (apagados no ERP, que seguem no histórico) ou todos. */
@@ -458,7 +485,7 @@ class FinanceiroController extends Controller
             'plano_nome' => $t->plano_nome !== null ? (string) $t->plano_nome : null,
             'documento' => $documento !== '' ? $documento : (string) $t->numero,
             'excluido' => $t->deleted_at !== null,
-            'contrato' => $t->contrato !== null ? (string) $t->contrato : null,
+            'contrato' => $t->contrato !== null ? (string) $t->contrato : ((string) ($meta['contrato'] ?? '') !== '' ? (string) $meta['contrato'] : null),
         ];
     }
 
@@ -505,6 +532,7 @@ class FinanceiroController extends Controller
             ->where('b.business_id', $bizId)
             ->whereBetween('b.data_baixa', [$ini, $fim])
             ->whereNull('b.estorno_de_id')
+            ->whereNotExists(fn ($e) => $e->from('fin_titulo_baixas as e')->whereColumn('e.estorno_de_id', 'b.id'))
             ->whereNull('t.deleted_at')
             ->groupBy('t.tipo')
             ->selectRaw('t.tipo as tipo, SUM(b.valor_baixa) as total')

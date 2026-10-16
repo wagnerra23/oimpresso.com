@@ -77,3 +77,33 @@ forma_pagamento, conta_id, plano_codigo, documento, nf_numero, observacao, parce
 - Erros: `422 {erro:"validacao", mensagem, campos}`. Idempotência na tabela `app_idempotencia` (rota
   `financeiro.lancamentos`), na mesma transação dos títulos: mesma chave e corpo → `200` com a mesma
   resposta; corpo diferente → `422 idempotencia_conflito`; ainda gravando → `409 em_andamento`.
+
+## Detalhe e ações do lançamento (chave `LANCAMENTO_ACOES` do app) — REGRA MESTRE (valor)
+
+Todas sob `/api/app/financeiro/lancamentos/{id}`; as de escrita exigem `Idempotency-Key` (repetir com o mesmo
+corpo devolve o detalhe atual; corpo diferente `422 idempotencia_conflito`) e respondem o `LancamentoDetalhe`
+atualizado. Título de outro business = `404 nao_encontrado`. Estado errado = `409 {erro:"estado", mensagem}`.
+
+- `GET` → `LancamentoDetalhe`: o item da lista + `parte_id`, `observacao`, `recorrencia_id`, `parcela` ("n/m"),
+  `conta_nome`, `motivo_exclusao`, `historico:[{quando, texto}]` (log `financeiro.app` do `activity_log`),
+  `restante:{id, valor, vencimento}` e `origem_id` (no restante, de onde veio).
+- `PATCH` (`AlteracaoLancamento`; permissão de criar) — só lançamento em aberto, sem baixa e não excluído.
+  Mesmas validações do novo. Registra no histórico cada campo com antes → depois. Lançamento gerado por
+  venda/compra/despesa/contrato não muda de valor por aqui (`422 campos.valor`).
+- `POST .../baixar` (`BaixaLancamento`; `financeiro.contas_receber.baixar` / `financeiro.contas_pagar.pagar`) —
+  `valor_pago` em centavos, de R$ 0,01 até o valor em aberto; `pago_em` até hoje. Igual ao aberto: o título fica
+  quitado. **Menor (parcial)**: este fica liquidado com o valor pago (`valor_total` passa a ser o baixado) e o
+  restante vira um lançamento NOVO em aberto vencendo em `vencimento_restante` (obrigatório), mesma pessoa/plano,
+  descrição "X (restante)". A soma de `valor_total` não muda; `valor_aberto` cai exatamente o pago.
+- `POST .../estornar` ("Retornar") — só liquidado. Cada baixa ativa ganha a linha de estorno (ledger: valor
+  negativo com `estorno_de_id`; baixa nunca é apagada). Num parcial, o restante ainda em aberto volta para este
+  (é excluído com o motivo "Juntado de volta…" e não pode ser reativado); restante já pago → `409`. Baixa que
+  veio do pagamento da venda/compra (`transaction_payment_id`) não se retorna por aqui (`409`).
+- `POST .../excluir {motivo}` — só em aberto, sem baixa e de origem manual; soft delete com o motivo.
+  `POST .../reativar` — desfaz a exclusão.
+- `GET .../recibo` → `ReciboDados` (só liquidado e ativo, senão `409`): `numero` = `REC-<ano do pagamento>-<id>`,
+  valor = baixas ativas, data = última baixa, `empresa` = nome/CNPJ do business e cidade do 1º local, `parte` com
+  o documento do cadastro, `restante` quando parcial.
+- **Baixa ativa** = não é linha de estorno e não foi estornada. É a regra das somas desta API (lista, resumo
+  `recebido`/`pago`, forma e conta do item) a partir desta versão. ⚠️ O `FluxoRealizadoService` e outros
+  relatórios do Financeiro ainda ignoram só a linha de estorno — contam de novo a baixa estornada (decisão [W]).
