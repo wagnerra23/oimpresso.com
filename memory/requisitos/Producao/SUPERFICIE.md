@@ -14,7 +14,7 @@ module: Producao
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Producao/**` + `resources/js/Pages/Producao/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 58 arquivos em 16 papéis.
+**Total mapeado:** 62 arquivos em 17 papéis.
 
 ## Controllers — 9
 
@@ -32,11 +32,12 @@ module: Producao
 
 - [SalvarRoteiroRequest.php](../../../Modules/Producao/Http/Requests/SalvarRoteiroRequest.php)
 
-## Services — 4
+## Services — 5
 
 - [ApontamentoOperadorService.php](../../../Modules/Producao/Services/ApontamentoOperadorService.php)
 - [ApontamentoService.php](../../../Modules/Producao/Services/ApontamentoService.php)
 - [CustoRealService.php](../../../Modules/Producao/Services/CustoRealService.php)
+- [PedidoEmEsperaService.php](../../../Modules/Producao/Services/PedidoEmEsperaService.php)
 - [TurnoService.php](../../../Modules/Producao/Services/TurnoService.php)
 
 ## Models / Entities — 11
@@ -53,6 +54,10 @@ module: Producao
 - [RoteiroEtapa.php](../../../Modules/Producao/Entities/RoteiroEtapa.php)
 - [Turno.php](../../../Modules/Producao/Entities/Turno.php)
 
+## Jobs — 1
+
+- [PausarEtapasDaVendaJob.php](../../../Modules/Producao/Jobs/PausarEtapasDaVendaJob.php)
+
 ## Console / Commands — 1
 
 - [FecharTurnoCommand.php](../../../Modules/Producao/Console/FecharTurnoCommand.php)
@@ -66,10 +71,11 @@ module: Producao
 
 - [web.php](../../../Modules/Producao/Routes/web.php)
 
-## Migrations (schema) — 2
+## Migrations (schema) — 3
 
 - [2026_10_15_000001_create_pcp_fundo_tables.php](../../../Modules/Producao/Database/Migrations/2026_10_15_000001_create_pcp_fundo_tables.php)
 - [2026_10_16_000001_create_pcp_cadastros_tables.php](../../../Modules/Producao/Database/Migrations/2026_10_16_000001_create_pcp_cadastros_tables.php)
+- [2026_10_16_000002_add_pedido_origem_to_pcp_apontamentos.php](../../../Modules/Producao/Database/Migrations/2026_10_16_000002_add_pedido_origem_to_pcp_apontamentos.php)
 
 ## Config — 1
 
@@ -103,9 +109,9 @@ module: Producao
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/Index.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.casos.md)
 
-## Testes (Pest) — 7
+## Testes (Pest) — 8
 
-- 7 em [Modules/Producao/Tests/Feature/](../../../Modules/Producao/Tests/Feature)
+- 8 em [Modules/Producao/Tests/Feature/](../../../Modules/Producao/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 6
