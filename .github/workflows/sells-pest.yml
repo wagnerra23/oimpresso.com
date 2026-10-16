@@ -380,7 +380,7 @@ jobs:
         # 2026-10-16 — + FsmRetomarProducaoContratoTest: retomar_producao on_hold → in_production
         # no processo real venda_com_producao, papel producao.iniciar, motivo no histórico, outro business
         # não retoma, migration de dados idempotente, POST /api/app/pedidos/{id}/acao.
-        # 2026-10-16 — + FsmPagamentoForaDasEtapasContratoTest (ADR 0434 item 2): entregar sai de invoiced,
+        # 2026-10-16 — + FsmPagamentoForaDasEtapasContratoTest: entregar sai de invoiced,
         # paid → entregar por compatibilidade, migration idempotente, SituacaoPagamentoVenda pelos títulos.
         env:
           DB_CONNECTION: mysql
