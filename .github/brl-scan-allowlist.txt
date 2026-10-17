@@ -257,3 +257,7 @@ str_ends_with($ok['obtido'], '= R$ 2.610,00')
 'receita do mês no Financeiro R$ 3.000,00'
 Dado receita de 12 meses de R$ 3,48 mi · Então "atenção" com 96,7% do sublimite de
 R$ 3,6 mi (LC 123/2006 art. 13-A); exatamente 90% já é atenção
+# ── app Financeiro tela 06 · histórico do Alterar (2026-10-16) ──────────────────
+# Vetor de asserção do AppFinanceiroLancamentoAcoesApiContratoTest: confere que o histórico registra o
+# valor ANTES → DEPOIS no formato que o app mostra. Valores fictícios do fixture (título de teste), não dado de cliente.
+valor R$ 1.000,00 → R$ 1.200,00

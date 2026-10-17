@@ -37,6 +37,9 @@ last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 48
 | UC-PCAD-04 | Custo e preço de venda não inflam no parser pt-BR | must `[V0]` | `CU-PROD-01.4` | `CadastroProdutoContratoTest` | 🧪 passa |
 | UC-PCAD-06 | Duplicar produto de outro business → 404 (não 500) | should `[T0]` | `CU-PROD-07.2` | `CadastroProdutoContratoTest` | 🧪 passa (fix no PR) |
 | UC-PCAD-07 | Produto novo grava a origem da mercadoria escolhida (0–8) | should | `AR-PROD-128` | `ProdutoOrigemMercadoriaTest` | 🧪 passa no CT 100 |
+| UC-PCAD-09 | Novo produto simples nasce com o preço digitado, com a conta do Blade | must `[V0]` | `CU-PROD-01.4` | `produto-preco.test.tsx` (Vitest) | 🧪 passa |
+| UC-PCAD-10 | Novo produto nasce nos locais do negócio (um local só já vem marcado) | must | `CU-PROD-01` | `produto-locais.test.tsx` (Vitest) | 🧪 passa |
+| UC-PCAD-11 | Variável e composto não salvam pela tela React: vão para o cadastro clássico | must | `CU-PROD-02` | `produto-tipo.test.tsx` (Vitest) | 🧪 passa |
 | ~~UC-PCAD-02~~ | ~~Campo obrigatório validado server~~ | — | — | — | ⬛ **retirado** — gap de paridade, não bug |
 | ~~UC-PCAD-03~~ | ~~Defaults conservadores server~~ | — | — | — | ⬛ **retirado** — gap de paridade, não bug |
 | UC-PCAD-05 | Cadastro não aceita insumo de outro business | must `[T0]` | `CU-PROD-01.5` | — | 🔶 **backlog** — achado Tier 0 real, US própria |
@@ -155,9 +158,38 @@ last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 48
 - **Contrato:** decisão [F] 2026-10-16 — *"O Novo produto da /products deve abrir o cadastro novo (React), no lugar do Blade."* A chave existe porque o formulário React ainda não manda preço (§Pendência de CONTRATO abaixo): ligar para cliente vem depois do preço.
 - **Status: 🧪** — escrito junto do código, ainda sem veredito da lane `PHP / Pest (Estoque · MySQL)` (G-7).
 
+## UC-PCAD-09 · Novo produto simples nasce com o preço digitado, com a conta do Blade · `must` `[V0]`
+- **Persona:** Larissa — cadastra o produto e já define custo e venda. Sem os campos, o produto nascia sem preço e precisava de uma segunda tela para vender.
+- **Aceite:** Dado o card "Preço & Imposto" de um produto **simples** · Quando digito a compra sem imposto · Então a venda é preenchida pelo % de lucro padrão da empresa · E mudar o lucro refaz a venda, e mudar a venda refaz o lucro (compra 0 → lucro 0) · E os dois "com imposto" saem da alíquota do imposto escolhido · E o envio leva `single_dpp`, `single_dpp_inc_tax`, `profit_percent`, `single_dsp` e `single_dsp_inc_tax` com vírgula decimal e sem milhar, com os **mesmos valores que o cadastro Blade grava**.
+- **Teste:** [`produto-preco.test.tsx`](../../../../tests/js/produto-preco.test.tsx) — `UC-PCAD-09` (a conta e o envio pela tela). Roda no step "Comportamento React" do job `Frontend / Vite build`.
+- **Contrato:** `CU-PROD-01` item 4 `[V0]` + REGRA MESTRE de valor (`proibicoes.md`). A conta é a do Blade (`public/js/product.js` com `__add_percent`/`__get_rate` de `functions.js`): exata (Decimal.js) e arredondada como o `accounting.toFixed`.
+- **Prova por dois caminhos (2026-10-16):** 545 casos (compra × lucro × alíquota, e compra × venda) gerados pelo `precos.ts` comparados com as **próprias funções do Blade** extraídas de `functions.js` e rodadas com `decimal.js`, os dois lados lidos pelo **`Util::num_uf` real** (corpo extraído do `Util.php`, PHP 8): **2.725 valores, 0 divergências**. Controle: com a conta em `number` saem 8 divergências (ex.: 123,45 + 10% → 135,80 contra 135,79 do Blade). Mordida: `Create.tsx` sem o preço derruba o caso da tela; a conta em `number` derruba o caso 135,79.
+- **Fora deste UC:** produto **variável** e **composto** (têm editor próprio de preço) e a tela **Editar** (o preço do produto existente segue no Blade). Sem preço digitado o produto nasce com zero, como no Blade.
+- **Status: 🧪** — teste escrito junto do código, sem veredito publicado no manifesto (G-7).
+
+## UC-PCAD-10 · Novo produto nasce nos locais do negócio · `must`
+- **Persona:** quem cadastra e precisa vender o produto. Sem local, o produto nasce sem `product_locations` e não aparece para venda em local nenhum.
+- **Aceite:** Dada a tela Novo produto · Quando a empresa tem **um** local · Então ele já vem marcado e vai no envio · E, com **mais de um**, nenhum vem marcado e vão os que a pessoa marcar.
+- **Teste:** [`produto-locais.test.tsx`](../../../../tests/js/produto-locais.test.tsx) — `UC-PCAD-10` (os dois casos). Roda no step "Comportamento React" do job `Frontend / Vite build`.
+- **Contrato:** paridade com o cadastro Blade — `create.blade.php` (`$default_location`: com um local só, `product_locations[]` já vem com ele) e `ProductController@store` (`product_locations()->sync(...)`). Como no Blade, o campo não é obrigatório.
+- **Mordida (2026-10-16):** `product_locations` de volta a `[]` derruba o caso de um local; tirar o bloco da tela derruba os dois.
+- **Status: 🧪** — teste escrito junto do código, sem veredito publicado no manifesto (G-7).
+
+## UC-PCAD-11 · Variável e composto não salvam pela tela React · `must`
+- **Persona:** quem cadastra produto com grade (tamanho/cor) ou composto. Pela tela React o produto nascia quebrado.
+- **Aceite:** Dado o tipo **Variável** ou **Composto** na tela Novo produto · Então a tela avisa que esse tipo ainda não tem editor aqui · E oferece o link "Cadastrar no formulário clássico" (`/products/create?classico=1`, página inteira) · E o botão Salvar fica desligado e o envio não acontece · E, com **Simples**, nada disso aparece e o envio segue.
+- **Teste:** [`produto-tipo.test.tsx`](../../../../tests/js/produto-tipo.test.tsx) — `UC-PCAD-11` (variável, composto e o controle simples). Roda no step "Comportamento React" do job `Frontend / Vite build`.
+- **Contrato:** `ProductController@store` — variável sem `product_variation` não cria variação nenhuma; composto sem `composition_variation_id` cria a variação sem itens e com preço zero (`item_level_purchase_price_total`/`selling_price` ausentes). Sem variação o produto não entra em venda, compra, OS nem fabricação, que trabalham por `variation_id`.
+- **Mordida (2026-10-16):** sem a trava do envio caem os 2 casos de tipo; sem o aviso também.
+- **Fora deste UC:** o editor de grade e de composição em React (trabalho próprio). Até ele existir, o clássico é o caminho.
+- **Status: 🧪** — teste escrito junto do código, sem veredito publicado no manifesto (G-7).
+
 ---
 
 ## Pendência de CONTRATO (achado sem caso de uso — não vira UC até `[F]` decidir)
+
+> ✅ **Resolvida em 2026-10-16 — saída (b), decisão [W].** O preço entrou na tela Novo: `UC-PCAD-09`.
+> O texto abaixo fica como estava (é o registro de por que a tela nasceu sem preço).
 
 > ⚠️ **A tela não manda preço. O card se chama "Preço & Imposto" e não tem campo de preço.**
 >
