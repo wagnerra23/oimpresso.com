@@ -2,7 +2,8 @@
 // Fonte visual: prototipo-ui/cowork/Wagner/fluxos-page.jsx (CSS copiado inteiro em
 // resources/css/cowork-fluxos-bundle.css). Lei: Index.charter.md · contrato: Index.casos.md.
 //
-// Abas como no protótipo: Modelos · Processos · Fluxos da empresa · Casos de uso. "Usar modelo" exige fluxos.configurar (POST /fluxos/modelo).
+// Abas como no protótipo: Modelos · Processos · Fluxos da empresa · Casos de uso. "Usar modelo" e mudar
+// regra exigem fluxos.configurar (POST /fluxos/modelo, PATCH /fluxos/regra e /fluxos/compra).
 
 import '../../../css/cowork-fluxos-bundle.css';
 import { useState } from 'react';
@@ -17,7 +18,8 @@ import AbaEmpresa from './_components/AbaEmpresa';
 import AbaProcessos from './_components/AbaProcessos';
 import DetalheModelo from './_components/DetalheModelo';
 import type {
-  CasoCatalogo, EmpresaModelo, MapaCasos, MapaEncaixe, MapaEstadosCaso, MapaFontes, Modelo, Opcao, Perfil, ProcessoCatalogo,
+  CasoCatalogo, EmpresaModelo, MapaCasos, MapaEncaixe, MapaEstadosCaso, MapaFontes, MapaOpcoesCompra, Modelo, Opcao, Perfil,
+  ProcessoCatalogo, RegraCompra, RegrasLigadas,
 } from './_components/tipos';
 
 type Aba = 'modelos' | 'processos' | 'empresa' | 'casos';
@@ -38,6 +40,9 @@ interface Props {
   estados_caso: MapaEstadosCaso;
   dominios: Opcao[];
   empresa: EmpresaModelo | null;
+  regras_ligadas: RegrasLigadas;
+  regras_compra: RegraCompra[];
+  opcoes_compra: MapaOpcoesCompra;
   pode_configurar: boolean;
 }
 
@@ -53,7 +58,7 @@ const PERFIL_INICIAL: Perfil = { porte: 'pequena', ativ: 'cv' };
 
 export default function FluxosIndex({
   aba, modelos, encaixe, portes, atividades, casos_total, casos, processos, processos_total, processo,
-  casos_lista, fontes, estados_caso, dominios, empresa, pode_configurar,
+  casos_lista, fontes, estados_caso, dominios, empresa, regras_ligadas, regras_compra, opcoes_compra, pode_configurar,
 }: Props) {
   // O perfil começa pelo gravado da empresa (quando "Usar modelo" já gravou); senão, o do protótipo.
   const [perfil, setPerfil] = useState<Perfil>({
@@ -109,7 +114,16 @@ export default function FluxosIndex({
             />
           )}
           {aba === 'empresa' && (
-            <AbaEmpresa empresa={empresa} emUso={emUso} portes={portes} atividades={atividades} />
+            <AbaEmpresa
+              empresa={empresa}
+              emUso={emUso}
+              portes={portes}
+              atividades={atividades}
+              ligadas={regras_ligadas}
+              compra={regras_compra}
+              opcoesCompra={opcoes_compra}
+              podeConfigurar={pode_configurar}
+            />
           )}
           {aba === 'processos' && <AbaProcessos processos={processos} inicial={processo} />}
           {aba === 'casos' && (
