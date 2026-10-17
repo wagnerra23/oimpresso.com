@@ -441,6 +441,7 @@
     "0432-app-das-lojas-biometria-so-no-login": "memory/decisions/0432-app-das-lojas-biometria-so-no-login.md",
     "0433-fonte-do-prototipo-passa-ao-git": "memory/decisions/0433-fonte-do-prototipo-passa-ao-git.md",
     "0434-fsm-pedido-retomar-pagamento-fora-das-etapas": "memory/decisions/0434-fsm-pedido-retomar-pagamento-fora-das-etapas.md",
+    "0435-fluxos-por-modelo-porte-atividade": "memory/decisions/0435-fluxos-por-modelo-porte-atividade.md",
     "2026-04-18-session-01": "memory/sessions/2026-04-18-session-01.md",
     "2026-04-18-session-02": "memory/sessions/2026-04-18-session-02.md",
     "2026-04-19-session-03": "memory/sessions/2026-04-19-session-03.md",
@@ -2369,6 +2370,7 @@
     "requisitos-fiscal-spec": "memory/requisitos/Fiscal/SPEC.md",
     "requisitos-fiscal-sped-gap": "memory/requisitos/Fiscal/fiscal-sped-gap.md",
     "requisitos-fiscal-telas-cert-health-check-casos": "memory/requisitos/Fiscal/_telas/cert-health-check.casos.md",
+    "requisitos-fluxos-runbook-fluxos-index": "memory/requisitos/Fluxos/RUNBOOK-fluxos-index.md",
     "requisitos-forja-briefing": "memory/requisitos/Forja/BRIEFING.md",
     "requisitos-forja-capterra-design-ficha": "memory/requisitos/Forja/CAPTERRA-DESIGN-FICHA.md",
     "requisitos-forja-runbook-gantt": "memory/requisitos/Forja/RUNBOOK-gantt.md",
@@ -4444,14 +4446,14 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 4438,
-    "resolved": 2984,
+    "total": 4440,
+    "resolved": 2986,
     "unstamped": 1454,
     "collisions": 0,
     "by_source": {
       "unstamped": 1454,
-      "derived-adr": 439,
-      "stamped": 1156,
+      "derived-adr": 440,
+      "stamped": 1157,
       "derived-handoffs": 619,
       "derived-sessions": 770
     }
