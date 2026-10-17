@@ -54,7 +54,10 @@ import {
 import type { AcaoProduto } from './_components/lista/AcoesProduto';
 import CadastroRapidoProduto from './_components/lista/CadastroRapido';
 import EstoqueInicialProduto from './_components/lista/EstoqueInicial';
-import { colunasDaLista, filtrosParaATabela } from './_components/lista/colunas';
+import { aplicarEncaixe, colunasDaLista, filtrosParaATabela } from './_components/lista/colunas';
+import { encaixarColunas } from './_components/lista/encaixe';
+import { useLargurasGuardadas } from './_components/lista/useLargurasGuardadas';
+import { useTamanho } from './_components/lista/useTamanho';
 import FiltrosListaProdutos from './_components/lista/FiltrosLista';
 import IndicadoresLista from './_components/lista/IndicadoresLista';
 import PainelDetalheProduto from './_components/lista/PainelDetalhe';
@@ -193,8 +196,9 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
   const [selecionados, setSelecionados] = useState<number[]>([]);
   // Larguras que o usuário arrastou. Moram AQUI, e não na tabela, porque a tabela vive dentro de
   // `<Deferred data="lista">` e é desmontada em toda visita não-parcial (ordenar, trocar de página,
-  // filtrar). O "Atualizar a lista" é recarga parcial e não desmonta.
-  const [largurasArrastadas, setLargurasArrastadas] = useState<Record<string, number>>({});
+  // filtrar). O "Atualizar a lista" é recarga parcial e não desmonta. E ficam no navegador
+  // (`useLargurasGuardadas`): sem isso, voltar da edição de um produto ou apertar F5 desfazia o ajuste.
+  const [largurasArrastadas, setLargurasArrastadas] = useLargurasGuardadas();
   const [confirmar, setConfirmar] = useState<Confirmacao | null>(null);
   const [localModal, setLocalModal] = useState<'add' | 'remove' | null>(null);
   const [locaisEscolhidos, setLocaisEscolhidos] = useState<string[]>([]);
@@ -223,6 +227,14 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
 
   useEffect(() => gravarLocal(CHAVE_COLUNAS, visiveis), [visiveis]);
   useEffect(() => gravarLocal(CHAVE_DENSIDADE, densa), [densa]);
+
+  // Espaço da página e da tabela: as colunas encaixam na largura da tabela (UC-PIDX-26) e a grade
+  // ganha altura própria, como no protótipo, pra a barra de rolar para o lado ficar à vista
+  // (UC-PIDX-27). Os dois elementos ficam fora do `<Deferred>`: não somem ao recarregar a lista.
+  const corpoRef = useRef<HTMLDivElement>(null);
+  const tabelaRef = useRef<HTMLDivElement>(null);
+  const corpo = useTamanho(corpoRef);
+  const areaDaTabela = useTamanho(tabelaRef);
 
   const pode = (p: keyof PermissoesLista) => permissions[p] === true;
   const linhas = lista?.data ?? [];
@@ -341,11 +353,24 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
   };
 
   // ── Colunas: as do protótipo, definidas em _components/lista/colunas.tsx ──
-  const colunas = useMemo(
+  const colunasDoPrototipo = useMemo(
     () => colunasDaLista({ visiveis, densa, permissions, contexto, aoEscolher }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [visiveis, densa, permissions, contexto],
   );
+  // Tela estreita: as colunas encolhem até caber (UC-PIDX-26). Do espaço da tabela saem a caixa de
+  // seleção (34px) e a barra de rolagem vertical que a grade passa a ter (16px).
+  const colunas = useMemo(() => {
+    const disponivel = areaDaTabela.largura - 34 - 16;
+    const larguras = encaixarColunas(
+      colunasDoPrototipo.map((c) => ({ id: c.id ?? '', largura: c.meta?.width ?? 0 })),
+      disponivel,
+      largurasArrastadas,
+    );
+    return aplicarEncaixe(colunasDoPrototipo, larguras);
+  }, [colunasDoPrototipo, areaDaTabela.largura, largurasArrastadas]);
+  // Altura da grade como no protótipo (`ListaProdutos`): 72% da área que rola, nunca menos de 260px.
+  const alturaDaGrade = corpo.altura > 0 ? Math.max(260, Math.round(corpo.altura * 0.72)) : undefined;
 
   const estadoDaLinha = (l: LinhaProduto): EstadoDaLinha | undefined =>
     l.inativo ? 'archived' : l.abaixo_do_alerta ? 'urgent' : undefined;
@@ -416,7 +441,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
           }
         />
 
-        <div className="pb-body">
+        <div className="pb-body" ref={corpoRef}>
           <div className="pb-kpis" data-contract="produto-kpis">
             <Deferred
               data="kpis"
@@ -485,7 +510,13 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
                   { value: 'compacto', label: 'Compacto' },
                 ]}
               />
-              <MenuColunas colunas={opcionais} visiveis={visiveis} aoMudar={setVisiveis} />
+              <MenuColunas
+                colunas={opcionais}
+                visiveis={visiveis}
+                aoMudar={setVisiveis}
+                larguraAjustada={Object.keys(largurasArrastadas).length > 0}
+                aoRestaurarLarguras={() => setLargurasArrastadas({})}
+              />
               {permissions.create === true && (
                 <Button variant="outline" size="sm" onClick={() => setRapido(true)}>
                   <Plus size={12} aria-hidden /> Cadastro rápido
@@ -537,7 +568,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
               </Deferred>
             ) : (
             <>
-            <div data-contract="produto-tabela">
+            <div data-contract="produto-tabela" ref={tabelaRef}>
               <Deferred
                 data="lista"
                 fallback={
@@ -562,6 +593,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
                   onColumnResize={(id, largura) =>
                     setLargurasArrastadas((m) => (m[id] === largura ? m : { ...m, [id]: largura }))
                   }
+                  scrollMaxHeight={alturaDaGrade}
                   tableWrapperClassName="pb-grid-pro"
                   totalLabel="produtos"
                   rowKey={(l) => l.id}
