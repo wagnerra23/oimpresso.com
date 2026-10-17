@@ -92,3 +92,21 @@ export type MapaFontes = Record<string, { nome: string; url: string }>;
 
 /** estado do caso no oimpresso => rótulo e tom (ok · accent · warn · danger · mute). */
 export type MapaEstadosCaso = Record<string, { rotulo: string; tom: string }>;
+
+/** domínio => ligada de cada regra do modelo em uso, na ordem do catálogo (RegrasDaEmpresa::ligadas). */
+export type RegrasLigadas = Record<string, boolean[]>;
+
+/** Regra das etapas da Compra com o que a empresa gravou (RegrasCompra::daEmpresa). */
+export interface RegraCompra {
+  id: string;
+  titulo: string;
+  desc: string;
+  trava: boolean;
+  ativo: boolean;
+  params: Record<string, string | number> | null;
+  /** Etapa onde a regra dispara (a do custo pode ir para Conferido). */
+  etapa_efetiva: string;
+}
+
+/** parâmetro => rótulo e opções (RegrasCompra::opcoes). */
+export type MapaOpcoesCompra = Record<string, { rotulo: string; opcoes: Opcao[] }>;

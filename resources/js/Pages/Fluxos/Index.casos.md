@@ -122,7 +122,7 @@ last_run: "2026-10-16"
   aba Fluxos da empresa · Então a regra fica `ligada = false` na etapa do processo da própria empresa
   (o `business_id` do formulário é ignorado), a tela passa a mostrar desligada, aplicar o mesmo
   modelo de novo não a religa, e regra que não existe no modelo em uso é recusada.
-- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-14").
+- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-14") + `tests/js/fluxos-aba-empresa.test.tsx` (a tela).
 - **Status: 🧪**
 
 ## UC-FLXT-15 · A Compra é configurável e "Usar modelo" traz o custo do modelo
@@ -131,20 +131,20 @@ last_run: "2026-10-16"
   do modelo (método, preço, quem segue, aprovação, OPs abertas, etapa) · Quando a empresa muda um
   parâmetro ou desliga outra regra da Compra · Então a mudança fica gravada e a etapa onde a regra
   dispara acompanha · E trocar de modelo volta só o custo para o do novo modelo.
-- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-15").
+- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-15") + `tests/js/fluxos-aba-empresa.test.tsx` (a tela).
 - **Status: 🧪**
 
 ## UC-FLXT-16 · Entrada no estoque é obrigatória; valor fora das opções é recusado
 - **Aceite:** Dado a Compra configurável · Quando tenta desligar "Dar entrada no estoque", mandar um
   valor que não está nas opções ou um parâmetro que a regra não tem · Então recebe erro e nada muda.
-- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-16").
+- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-16") + `tests/js/fluxos-aba-empresa.test.tsx` (a tela).
 - **Status: 🧪**
 
 ## UC-FLXT-17 · Sem fluxos.configurar ou sem modelo, nada muda
 - **Aceite:** Dado um usuário sem `fluxos.configurar` · Quando muda uma regra · Então recebe 403 ·
   E dado uma empresa no processo antigo (`legado`) · Quando quem configura muda a Compra · Então
   recebe "Escolha um modelo antes de configurar as regras" e nada é gravado.
-- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-17").
+- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-17") + `tests/js/fluxos-aba-empresa.test.tsx` (a tela).
 - **Status: 🧪**
 
 ---
