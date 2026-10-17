@@ -27,6 +27,8 @@ use Modules\Producao\Exceptions\ApontamentoRecusado;
  *   sem saída, e máquina sempre, no fim do turno. O Ponto só é lido.
  * - Correção de horário não reescreve o par (append-only, e o custo lê o par): vira evento
  *   `correcao_solicitada` para o gestor. Aplicar a correção ao custo mexe em VALOR (regra mestre).
+ * - Etapa da OS por item (`os_tipo = pcp_ordem`, ADR 0436): a situação da OS anda junto
+ *   (SituacaoDaOrdem) e OS não liberada, em retrabalho ou encerrada não aponta.
  */
 class ApontamentoOperadorService
 {
@@ -110,6 +112,7 @@ class ApontamentoOperadorService
             throw new ApontamentoRecusado(ApontamentoRecusado::ETAPA_ALHEIA, 'Esta etapa está com outro responsável.',
                 ['programacao_id' => $etapa->id, 'posto_id' => $etapa->posto_id, 'user_id' => $etapa->user_id]);
         }
+        app(SituacaoDaOrdem::class)->antesDeIniciar($businessId, $etapa);
 
         try {
             $ap = $this->base->iniciar($businessId, $etapa->posto_id, $userId, $chave, $etapa->os_tipo, (int) $etapa->os_id,
@@ -127,6 +130,7 @@ class ApontamentoOperadorService
             $etapa->forceFill(['status' => 'iniciada'])->save();
         }
         $this->evento($businessId, self::EV_ETAPA_INICIADA, $ap, $userId);
+        app(SituacaoDaOrdem::class)->aoIniciar($businessId, $etapa, $userId);
 
         return $ap;
     }
@@ -158,7 +162,12 @@ class ApontamentoOperadorService
             throw new ApontamentoRecusado(ApontamentoRecusado::MOTIVO_OBRIGATORIO, 'Escolha o motivo da pausa.');
         }
 
-        return $this->encerrar('pausa', $businessId, $userId, $inicioId, $chave, $momento, $motivoId);
+        $pausa = $this->encerrar('pausa', $businessId, $userId, $inicioId, $chave, $momento, $motivoId);
+        if ($pausa->wasRecentlyCreated && $pausa->tipo === 'pausa') {
+            app(SituacaoDaOrdem::class)->aoPausar($businessId, $pausa, $userId);
+        }
+
+        return $pausa;
     }
 
     /** UC-PCV-21: conclui a etapa, passa a OS adiante e avisa o próximo responsável. */
@@ -177,6 +186,9 @@ class ApontamentoOperadorService
             ->orderBy('inicio_previsto')->first() : null;
 
         $this->evento($businessId, self::EV_ETAPA_CONCLUIDA, $fim, $userId);
+        if ($etapa) {
+            app(SituacaoDaOrdem::class)->aoConcluirEtapa($businessId, $etapa, $userId);
+        }
         if ($proxima?->user_id) {
             $this->evento($businessId, self::EV_AVISO_PROXIMO, $fim, (int) $proxima->user_id, ['programacao_id' => $proxima->id]);
         }

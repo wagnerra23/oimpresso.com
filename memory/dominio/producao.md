@@ -26,6 +26,11 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0431-pcp-sai-do-dese
   `aviso_proximo` (aviso ao próximo responsável, D-AVISO), `fechado_automaticamente` (aviso ao PCP),
   `correcao_solicitada` (correção com justificativa; o par original fica) e `pendencia_gestor`
   (horas de pessoa acima da presença + 30 min, D-PONTO).
+- **Situação da OS por item** (`pcp_ordens.current_stage_id`, processo `pcp_ordem_item` no motor FSM,
+  ADR 0436): `aguardando_liberacao → na_fila → em_execucao ⇄ pausada`, `retrabalho → em_execucao`,
+  `concluida` e `cancelada`. Programações da OS por item têm `os_tipo = pcp_ordem`. Evento
+  `retrabalho_aberto` (`SituacaoDaOrdem::EV_RETRABALHO`): reprovação no controle reabre a etapa de
+  origem como etapa nova.
 - **Motivo** (`pcp_motivos.tipo`, por posto): `pausa` é o que o operador escolhe ao pausar (A4);
   `refugo` é o motivo obrigatório da perda (A5, UC-PCV-17). Lista fechada por posto (UC-PCV-33,
   emenda E03 da thread 03).
