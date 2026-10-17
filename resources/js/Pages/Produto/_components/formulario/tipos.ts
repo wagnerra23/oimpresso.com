@@ -16,6 +16,19 @@ export type ModoFormulario = 'novo' | 'editar';
 export type TipoProduto = 'single' | 'variable' | 'combo';
 
 /**
+ * Variável e composto ainda não têm editor na tela React: sem `product_variation` o store() cria o
+ * variável sem variação nenhuma, e sem `composition_variation_id` o composto nasce sem itens e com
+ * preço zero. Nos dois casos o produto não entra em venda, compra, OS nem fabricação. Até o editor
+ * existir, a tela Novo só salva o simples e manda os outros para o cadastro clássico.
+ */
+export function tipoSemEditor(tipo: TipoProduto | undefined): boolean {
+  return tipo === 'variable' || tipo === 'combo';
+}
+
+/** O cadastro Blade, mesmo com a chave do cadastro React ligada (ProductController@create). */
+export const URL_CADASTRO_CLASSICO = '/products/create?classico=1';
+
+/**
  * O que os blocos leem do formulário. Os ids chegam como `number | string` porque o useForm
  * alarga o valor inicial `''` para string. Os quatro campos opcionais existem só no formulário
  * da tela Novo, e os blocos só os mostram em modo `novo`.
@@ -40,6 +53,7 @@ export interface CamposProduto {
   enable_stock?: number;
   not_for_selling?: number;
   expiry_period?: string;
+  product_locations?: number[];
 }
 
 /** Os erros de validação que os blocos exibem. */
@@ -56,6 +70,8 @@ export interface OpcoesProduto {
   barcodeTypes: OptionStringMap;
   warranties: OptionMap;
   productTypes: OptionStringMap;
+  /** Novo: os locais do negócio que quem cadastra pode acessar. */
+  businessLocations?: OptionMap;
 }
 
 /**
