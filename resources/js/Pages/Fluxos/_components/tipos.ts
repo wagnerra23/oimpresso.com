@@ -69,8 +69,17 @@ export interface ProcessoCatalogo {
   roteiro: { titulo: string; trilhas: string[][]; junta: string[] } | null;
   estados: { chave: string; nome: string; tipo: string; lado: boolean }[];
   /** `de`/`para` são chaves de estado; `para` null = a ação não muda o estado. */
-  transicoes: { de: string; para: string | null; rotulo: string; guarda: string; efeito: string; quem: string }[];
+  transicoes: {
+    de: string; para: string | null; rotulo: string; guarda: string; efeito: string; quem: string;
+    /** Quanto do ERP executa esta transição e onde (CatalogoProcessos::cobertura). */
+    cobertura: { estado: EstadoCobertura; onde: string };
+  }[];
+  /** Quantas transições em cada estado de cobertura (CatalogoProcessos::resumo). */
+  cobertura: Record<EstadoCobertura, number> & { total: number };
 }
+
+/** sim = o ERP executa · parcial = só uma parte · nao = não existe · nao_verificado = ninguém conferiu. */
+export type EstadoCobertura = 'sim' | 'parcial' | 'nao' | 'nao_verificado';
 
 /** Caso de uso do catálogo (aba Casos de uso). `processo` é o domínio; `porte` = a partir de. */
 export interface CasoCatalogo {

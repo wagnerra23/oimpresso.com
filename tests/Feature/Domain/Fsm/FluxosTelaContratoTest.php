@@ -302,9 +302,6 @@ it('UC-FLXT-12 · aba Processos traz os processos do catálogo com estados, tran
     $chaves = array_column($producao['estados'], 'chave');
     expect(collect($producao['transicoes'])->pluck('de')->diff($chaves)->all())->toBe([]);
 
-    // A cobertura por transição NÃO vai para a tela neste passo (indicador nasce no protótipo).
-    expect(array_key_exists('cobertura', $producao['transicoes'][0]))->toBeFalse();
-
     // Fora da aba Processos o payload não leva os processos; processo desconhecido cai em producao.
     expect(flxtGet($this, '/fluxos?aba=modelos')->json('props.processos'))->toBe([]);
     expect(flxtGet($this, '/fluxos?aba=processos&processo=xyz')->json('props.processo'))->toBe('producao');
@@ -440,4 +437,30 @@ it('UC-FLXT-17 · sem fluxos.configurar mudar regra devolve 403; sem modelo, rec
     flxtPatch($this, '/fluxos/compra', ['regra' => 'pedido.email', 'ativo' => false])->assertSessionHasErrors('regra');
     expect(DB::table('fsm_modelos_empresa')->where('business_id', FLXT_BIZ)->value('regras_compra'))->toBeNull();
     expect(flxtGet($this, '/fluxos?aba=empresa')->json('props.regras_compra'))->toBe([]);
+});
+
+it('UC-FLXT-18 · aba Processos mostra quanto o ERP executa de cada processo e de cada transição', function () {
+    flxtEntrar($this, flxtUsuario(['fluxos.ver']));
+    $procs = collect(flxtGet($this, '/fluxos?aba=processos')->json('props.processos'))->keyBy('id');
+
+    // Números do protótipo aprovado (#9506, fluxos-processos.jsx COB): [sim, parcial, nao, nao_verificado].
+    $prototipo = [
+        'venda' => [0, 6, 0, 0], 'producao' => [0, 5, 4, 0], 'nfe' => [2, 7, 0, 0], 'nfse' => [1, 4, 2, 0],
+        'cobranca' => [0, 5, 3, 0], 'pagar' => [0, 2, 2, 0], 'compra' => [0, 6, 1, 0], 'requisicao' => [0, 0, 3, 0],
+        'inventario' => [0, 1, 2, 0], 'entrega' => [0, 5, 1, 0], 'devolucao' => [1, 2, 6, 0], 'devolucao-compra' => [2, 0, 0, 1],
+        'os-reparo' => [21, 0, 2, 0], 'oficina-os' => [14, 0, 0, 0], 'os-cv' => [0, 32, 2, 0], 'atendimento' => [0, 2, 2, 0],
+        'contrato' => [1, 3, 2, 0], 'ponto' => [2, 3, 0, 0],
+    ];
+    expect($procs->keys()->sort()->values()->all())->toBe(collect(array_keys($prototipo))->sort()->values()->all());
+    foreach ($prototipo as $id => [$sim, $parcial, $nao, $nv]) {
+        expect($procs[$id]['cobertura'])->toBe(['sim' => $sim, 'parcial' => $parcial, 'nao' => $nao, 'nao_verificado' => $nv, 'total' => $sim + $parcial + $nao + $nv]);
+        expect(count($procs[$id]['transicoes']))->toBe($sim + $parcial + $nao + $nv);
+    }
+
+    // Cada transição diz o estado e onde está no código.
+    $iniciar = collect($procs['os-reparo']['transicoes'])->firstWhere('rotulo', 'Iniciar diagnóstico');
+    expect($iniciar['cobertura']['estado'])->toBe('sim');
+    expect($iniciar['cobertura']['onde'])->toContain('RepairFsmActionController@execute');
+    expect(collect($procs['devolucao-compra']['transicoes'])->pluck('cobertura.estado')->countBy()->all())
+        ->toBe(['sim' => 2, 'nao_verificado' => 1]);
 });

@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa + critério de aceite verificável (Dado/Quando/Então), provado por teste citando o id.
 por_que: quem configura o fluxo muda como toda venda anda — o acesso é fronteira de permissão, e o encaixe tem de bater com o catálogo.
 owner: wagner
-last_run: "2026-10-16"
+last_run: "2026-10-17"
 ---
 
 # Casos de Uso & Aceite — Fluxos/Index
@@ -147,8 +147,18 @@ last_run: "2026-10-16"
 - **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-17") + `tests/js/fluxos-aba-empresa.test.tsx` (a tela).
 - **Status: 🧪**
 
+## UC-FLXT-18 · A aba Processos mostra quanto o ERP executa
+- **Persona:** dono decidindo se um modelo já funciona no oimpresso ou ainda é plano.
+- **Aceite:** Dado o catálogo de processos com a cobertura do ERP (#9496, #9505, #9507) · Quando abre
+  `?aba=processos` · Então cada processo da lista tem o selo "X de Y no ERP" (ou "ERP não verificado"),
+  o detalhe mostra o resumo (executa · parcial · não existe · não verificado) e a tabela de transições
+  ganha a coluna "No oimpresso" com o estado e onde está no código — os mesmos números do protótipo
+  aprovado (#9506).
+- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-18").
+- **Status: 🧪**
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste)
 
-- **[BACKLOG]** Indicador de cobertura por processo e situação por transição — nasce primeiro num PR só de protótipo (regra [W] 2026-10-16).
+- Nenhum no momento.

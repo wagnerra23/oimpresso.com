@@ -231,8 +231,8 @@ class FluxosController extends Controller
     }
 
     /**
-     * Processos do CatalogoProcessos (#9496) para a aba Processos, na ordem do protótipo. A
-     * cobertura por transição fica de fora: o indicador nasce primeiro no protótipo.
+     * Processos do CatalogoProcessos (#9496) para a aba Processos, na ordem do protótipo, com a
+     * cobertura do ERP por transição e o resumo do processo (indicador aprovado no protótipo, #9506).
      *
      * @return list<array<string, mixed>>
      */
@@ -245,8 +245,27 @@ class FluxosController extends Controller
             'transicoes' => array_map(fn (array $t) => [
                 'de' => $t['de'], 'para' => $t['para'], 'rotulo' => $t['rotulo'],
                 'guarda' => $t['guarda'], 'efeito' => $t['efeito'], 'quem' => $t['quem'],
+                'cobertura' => $t['cobertura'],
             ], $p['transicoes']),
+            'cobertura' => self::resumoCobertura($p['transicoes']),
         ], CatalogoProcessos::processos()));
+    }
+
+    /**
+     * Mesma conta de CatalogoProcessos::resumo(), sobre as transições já montadas (resumo() monta o
+     * catálogo inteiro de novo a cada chamada).
+     *
+     * @param  list<array{cobertura:array{estado:string}}>  $transicoes
+     * @return array<string, int>
+     */
+    private static function resumoCobertura(array $transicoes): array
+    {
+        $r = array_fill_keys(CatalogoProcessos::ESTADOS_COBERTURA, 0);
+        foreach ($transicoes as $t) {
+            $r[$t['cobertura']['estado']]++;
+        }
+
+        return $r + ['total' => array_sum($r)];
     }
 
     /**
