@@ -36,7 +36,7 @@ class FinanceiroController extends Controller
     private const SITUACOES = ['a_receber', 'a_pagar', 'recebidas', 'pagas'];
 
     /** Chave do ERP (Titulo::FORMAS_PAGAMENTO) → rótulo que o app mostra e devolve no filtro. */
-    private const FORMAS = [
+    public const FORMAS = [
         'pix' => 'Pix', 'boleto' => 'Boleto', 'cartao_credito' => 'Cartão de crédito', 'cartao_debito' => 'Cartão de débito',
         'dinheiro' => 'Dinheiro', 'transferencia' => 'Transferência', 'cheque' => 'Cheque', 'compensacao' => 'Compensação',
         'outro' => 'Outro',
@@ -49,12 +49,18 @@ class FinanceiroController extends Controller
 
     /** Forma e conta: a da última baixa (realizada) manda; sem baixa, a prevista no título — a regra do cockpit web. */
     private const FORMA = '(COALESCE((SELECT x.meio_pagamento FROM fin_titulo_baixas x WHERE x.titulo_id = t.id'
-        . ' AND x.business_id = t.business_id AND x.estorno_de_id IS NULL ORDER BY x.data_baixa DESC, x.id DESC LIMIT 1),'
-        . ' t.forma_pagamento))';
+        . ' AND x.business_id = t.business_id AND x.estorno_de_id IS NULL' . self::NAO_ESTORNADA_X
+        . ' ORDER BY x.data_baixa DESC, x.id DESC LIMIT 1), t.forma_pagamento))';
 
     private const CONTA = '(COALESCE((SELECT x.conta_bancaria_id FROM fin_titulo_baixas x WHERE x.titulo_id = t.id'
-        . ' AND x.business_id = t.business_id AND x.estorno_de_id IS NULL ORDER BY x.data_baixa DESC, x.id DESC LIMIT 1),'
-        . ' t.conta_bancaria_id))';
+        . ' AND x.business_id = t.business_id AND x.estorno_de_id IS NULL' . self::NAO_ESTORNADA_X
+        . ' ORDER BY x.data_baixa DESC, x.id DESC LIMIT 1), t.conta_bancaria_id))';
+
+    /**
+     * Baixa ativa = não é linha de estorno E não foi estornada. O estorno do Financeiro é ledger-style (linha
+     * negativa com estorno_de_id); ignorar só a linha negativa contaria de novo a baixa que ela desfez.
+     */
+    private const NAO_ESTORNADA_X = ' AND NOT EXISTS (SELECT 1 FROM fin_titulo_baixas xe WHERE xe.estorno_de_id = x.id)';
 
     /** Nº do contrato = id da assinatura da Cobrança Recorrente que gerou o título (origem recurring → rb_invoices). */
     private const CONTRATO = "(SELECT ri.subscription_id FROM rb_invoices ri WHERE ri.id = t.origem_id"
@@ -191,7 +197,7 @@ class FinanceiroController extends Controller
 
         $campo = (string) $request->query('data_campo', 'vencimento');
         $forma = $txt('forma_pagamento');
-        $formaChave = $forma === null ? null : $this->chaveForma($forma);
+        $formaChave = $forma === null ? null : self::chaveForma($forma);
         $conta = $txt('conta_id');
         $plano = $txt('plano_conta');
         $registro = (string) $request->query('registro', 'ativos');
@@ -217,7 +223,7 @@ class FinanceiroController extends Controller
     }
 
     /** "Pix" (rótulo de `formas_pagamento`) ou "pix" (chave do ERP) → chave; desconhecida → null. */
-    private function chaveForma(string $forma): ?string
+    public static function chaveForma(string $forma): ?string
     {
         $n = mb_strtolower(trim($forma));
         foreach (self::FORMAS as $chave => $rotulo) {
@@ -248,22 +254,16 @@ class FinanceiroController extends Controller
             in_array('pagas', $situacoes, true) ? 'pagar' : null,
         ]));
 
-        $baixas = DB::table('fin_titulo_baixas')
-            ->where('business_id', $bizId)
-            ->whereNull('estorno_de_id')
-            ->groupBy('titulo_id')
-            ->select(['titulo_id', DB::raw('MAX(data_baixa) as pago_em'), DB::raw('SUM(valor_baixa) as pago')]);
-
-        $q = $this->base($bizId, (string) $f['registro'])
-            ->leftJoinSub($baixas, 'b', 'b.titulo_id', '=', 't.id')
-            ->addSelect([DB::raw(self::PAGO_EM . ' as pago_em'), DB::raw(self::VALOR . ' as valor')]);
+        $q = $this->comBaixas($this->base($bizId, (string) $f['registro']), $bizId);
 
         if ($abertos === [] && $liquidados === []) {
             return $q->whereRaw('1 = 0');
         }
         $q->where(function (Builder $w) use ($abertos, $liquidados, $janela) {
             if ($abertos !== []) {
-                $w->orWhere(fn (Builder $a) => $a->whereIn('t.tipo', $abertos)->whereIn('t.status', ['aberto', 'parcial']));
+                // Cancelado ("excluído") só entra quando o registro pede (a base já filtrou), na caixa dos em aberto:
+                // só lançamento em aberto pode ser excluído.
+                $w->orWhere(fn (Builder $a) => $a->whereIn('t.tipo', $abertos)->whereIn('t.status', ['aberto', 'parcial', 'cancelado']));
             }
             if ($liquidados !== []) {
                 $w->orWhere(function (Builder $l) use ($liquidados, $janela) {
@@ -317,6 +317,7 @@ class FinanceiroController extends Controller
         if ($f['busca'] !== null) {
             $like = '%' . $this->escaparLike((string) $f['busca']) . '%';
             $q->where(fn (Builder $w) => $w->where('t.numero', 'like', $like)
+                ->orWhere('t.metadata->descricao', 'like', $like)
                 ->orWhere('t.cliente_descricao', 'like', $like)
                 ->orWhere('c.name', 'like', $like));
         }
@@ -360,22 +361,25 @@ class FinanceiroController extends Controller
         }
 
         if ($f['documento'] !== null) {
-            // Como digitado e sem pontuação: "R-00012" acha "R-00012"; "88.213" acha "88213".
+            // Como digitado e sem pontuação: "PED-77" acha "PED-77"; "88.213" acha "88213".
             $likes = array_unique(array_map(fn ($x) => '%' . $this->escaparLike($x) . '%',
                 array_filter([(string) $f['documento'], (string) $f['documento_compacto']], fn ($x) => $x !== '')));
             $q->where(function (Builder $w) use ($likes) {
                 foreach ($likes as $like) {
-                    $w->orWhere('t.numero', 'like', $like);
+                    $w->orWhere('t.numero', 'like', $like)->orWhere('t.metadata->documento', 'like', $like);
                 }
             });
         }
 
         if ($f['contrato'] !== null) {
-            if ($this->temRecorrencia()) {
-                $q->whereRaw('CAST(' . self::CONTRATO . ' AS CHAR) LIKE ?', ['%' . $this->escaparLike((string) $f['contrato']) . '%']);
-            } else {
-                $q->whereRaw('1 = 0');
-            }
+            // Contrato da Cobrança Recorrente (id da assinatura) ou o nº digitado no lançamento (metadata.contrato).
+            $like = '%' . $this->escaparLike((string) $f['contrato']) . '%';
+            $q->where(function (Builder $w) use ($like) {
+                $w->where('t.metadata->contrato', 'like', $like);
+                if ($this->temRecorrencia()) {
+                    $w->orWhereRaw('CAST(' . self::CONTRATO . ' AS CHAR) LIKE ?', [$like]);
+                }
+            });
         }
     }
 
@@ -389,7 +393,36 @@ class FinanceiroController extends Controller
         return self::$temRecorrencia ??= Schema::hasTable('rb_invoices');
     }
 
-    /** `registro`: ativos (padrão), excluidos (apagados no ERP, que seguem no histórico) ou todos. */
+    /** Junta as baixas ativas do título (`b`): `pago` = soma, `pago_em` = a última. Dá `valor` e `pago_em` da linha. */
+    private function comBaixas(Builder $q, int $bizId): Builder
+    {
+        $baixas = DB::table('fin_titulo_baixas as bx')
+            ->where('bx.business_id', $bizId)
+            ->whereNull('bx.estorno_de_id')
+            ->whereNotExists(fn ($e) => $e->from('fin_titulo_baixas as be')->whereColumn('be.estorno_de_id', 'bx.id'))
+            ->groupBy('bx.titulo_id')
+            ->select(['bx.titulo_id', DB::raw('MAX(bx.data_baixa) as pago_em'), DB::raw('SUM(bx.valor_baixa) as pago')]);
+
+        return $q->leftJoinSub($baixas, 'b', 'b.titulo_id', '=', 't.id')
+            ->addSelect([DB::raw(self::PAGO_EM . ' as pago_em'), DB::raw(self::VALOR . ' as valor')]);
+    }
+
+    /**
+     * Um lançamento no formato da lista, excluído ou não (o detalhe do app parte dele). null se não é do business.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function itemPorId(int $bizId, int $id): ?array
+    {
+        $t = $this->comBaixas($this->base($bizId, 'todos'), $bizId)->where('t.id', $id)->first();
+
+        return $t === null ? null : $this->item($t, CarbonImmutable::today()->toDateString());
+    }
+
+    /**
+     * `registro`: ativos (padrão), excluidos ou todos. Excluído no ERP = título CANCELADO (o model não deixa
+     * apagar: "use cancelar() ou status=cancelado") ou, em dado antigo, com soft delete. Segue no histórico.
+     */
     private function base(int $bizId, string $registro): Builder
     {
         $q = DB::table('fin_titulos as t')
@@ -414,9 +447,9 @@ class FinanceiroController extends Controller
             ]);
 
         return match ($registro) {
-            'excluidos' => $q->whereNotNull('t.deleted_at'),
+            'excluidos' => $q->where(fn (Builder $w) => $w->whereNotNull('t.deleted_at')->orWhere('t.status', 'cancelado')),
             'todos' => $q,
-            default => $q->whereNull('t.deleted_at'),
+            default => $q->whereNull('t.deleted_at')->where('t.status', '!=', 'cancelado'),
         };
     }
 
@@ -426,12 +459,15 @@ class FinanceiroController extends Controller
         $status = $t->status === 'quitado'
             ? 'liquidado'
             : ($vencimento !== null && $vencimento < $hojeIso ? 'vencido' : 'aberto');
-        $descricao = 'Título ' . $t->numero;
-        if ((int) $t->parcela_total > 1) {
-            $descricao .= ' · parcela ' . (int) $t->parcela_numero . '/' . (int) $t->parcela_total;
-        }
         $meta = is_string($t->metadata) ? (json_decode($t->metadata, true) ?: []) : [];
         $nf = $meta['nfe_numero'] ?? null;
+        // Descrição digitada (metadata.descricao, a mesma do cockpit web); sem ela, "Título <número>".
+        $digitada = trim((string) ($meta['descricao'] ?? ''));
+        $descricao = $digitada !== '' ? $digitada : 'Título ' . $t->numero;
+        if ($digitada === '' && (int) $t->parcela_total > 1) {
+            $descricao .= ' · parcela ' . (int) $t->parcela_numero . '/' . (int) $t->parcela_total;
+        }
+        $documento = trim((string) ($meta['documento'] ?? ''));
 
         return [
             'id' => (int) $t->id,
@@ -452,9 +488,9 @@ class FinanceiroController extends Controller
             'nosso_numero' => $t->nosso_numero ? (string) $t->nosso_numero : null,
             'plano_codigo' => $t->plano_codigo !== null ? (string) $t->plano_codigo : null,
             'plano_nome' => $t->plano_nome !== null ? (string) $t->plano_nome : null,
-            'documento' => (string) $t->numero,
-            'excluido' => $t->deleted_at !== null,
-            'contrato' => $t->contrato !== null ? (string) $t->contrato : null,
+            'documento' => $documento !== '' ? $documento : (string) $t->numero,
+            'excluido' => $t->deleted_at !== null || $t->status === 'cancelado',
+            'contrato' => $t->contrato !== null ? (string) $t->contrato : ((string) ($meta['contrato'] ?? '') !== '' ? (string) $meta['contrato'] : null),
         ];
     }
 
@@ -501,6 +537,7 @@ class FinanceiroController extends Controller
             ->where('b.business_id', $bizId)
             ->whereBetween('b.data_baixa', [$ini, $fim])
             ->whereNull('b.estorno_de_id')
+            ->whereNotExists(fn ($e) => $e->from('fin_titulo_baixas as e')->whereColumn('e.estorno_de_id', 'b.id'))
             ->whereNull('t.deleted_at')
             ->groupBy('t.tipo')
             ->selectRaw('t.tipo as tipo, SUM(b.valor_baixa) as total')
