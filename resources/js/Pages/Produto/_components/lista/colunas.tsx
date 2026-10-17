@@ -214,7 +214,7 @@ function comDica(texto: string | null | undefined): ReactNode {
 }
 
 /**
- * Preço da célula. A faixa de produto variável ("R$ 10,00 – R$ 30,00") quebra em duas linhas logo
+ * Preço da célula. A faixa de produto variável ("‹mínimo› – ‹máximo›") quebra em duas linhas logo
  * depois do traço quando a coluna encolhe (UC-PIDX-26): cortada com "…", o preço máximo sumia. Os
  * outros espaços viram inseparáveis, então a quebra só cai no traço ("R$" nunca fica sozinho). No
  * modo confortável a linha já tem duas linhas de texto (nome + detalhe): medido em 1366px, ela passa

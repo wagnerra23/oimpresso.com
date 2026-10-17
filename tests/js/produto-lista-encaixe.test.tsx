@@ -21,6 +21,7 @@ import { useLargurasGuardadas } from '@/Pages/Produto/_components/lista/useLargu
 import {
   CHAVE_LARGURAS,
   colunasOpcionais,
+  faixaDePreco,
   largurasValidas,
   visibilidadePadrao,
   type LinhaProduto,
@@ -142,7 +143,8 @@ describe('UC-PIDX-26 · as colunas encaixam no espaço da tela', () => {
     const variavel: LinhaProduto = { ...linha(3, 'Calça jeans'), tipo: 'variable', variacoes: 4, venda_min: 59.9, venda_max: 89.9 };
     render(<DataTable<LinhaProduto> caption="Produtos" columns={colunasDoPrototipo()} data={[variavel]} density="grid" rowKey={(l) => l.id} />);
 
-    const celula = screen.getByTitle('R$ 59,90 – R$ 89,90');
+    // O `title` leva a faixa como o servidor formata (`faixaDePreco`), com espaços comuns.
+    const celula = screen.getByTitle(faixaDePreco('variable', 59.9, 89.9));
     expect(celula.className).toContain('whitespace-normal');
     // Só o espaço depois do traço quebra; dentro de cada valor o espaço é inseparável.
     expect(celula.textContent).toBe('R$\u00a059,90\u00a0– R$\u00a089,90');

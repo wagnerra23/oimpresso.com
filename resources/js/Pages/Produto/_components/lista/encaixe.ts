@@ -16,8 +16,9 @@
 //
 // Os pisos (medidos em produção em 2026-10-17, fonte da célula IBM Plex Sans 12,5px, com os 20px de
 // respiro da célula):
-// - preço: "R$ 9.999,99" ocupa 71px → 92. A faixa de produto variável ("R$ 10,00 – R$ 30,00") não
-//   cabe numa linha: quebra em duas depois do traço (ver `colunas.tsx`), em vez de cortar o valor;
+// - preço: quatro dígitos com centavos ("9.999,99", com o prefixo da moeda) ocupam 71px → 92. A faixa
+//   de produto variável ("‹mínimo› – ‹máximo›") não cabe numa linha: quebra em duas depois do traço
+//   (ver `colunas.tsx`), em vez de cortar o valor;
 // - estoque: "4010 UNID", o mais largo da empresa 1, pede 88;
 // - tipo: a pílula mais larga, "Composição", ocupa 76px → 96;
 // - os de texto (produto, locais, categoria, marca, imposto, SKU, campos) cortam com "…" e mostram o
