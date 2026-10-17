@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **440** arquivos · **425** números únicos · máx **0435**
-- **ADRs ATIVOS (lifecycle ativo): 393** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 382 · superseded 27 · proposto 17 · deprecated 11 · recusado 2 · rascunho 1
-- Por lifecycle: ativo 393 · substituido 27 · arquivado 20
+- **441** arquivos · **426** números únicos · máx **0436**
+- **ADRs ATIVOS (lifecycle ativo): 394** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 382 · superseded 27 · proposto 18 · deprecated 11 · recusado 2 · rascunho 1
+- Por lifecycle: ativo 394 · substituido 27 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -36,7 +36,7 @@ _(nenhuma)_
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 - **0430** Retenção LGPD do Patrimônio anonimiza campo pessoal, nunca apaga linha nem trilh · recusada 2026-10-13 — No Patrimônio não há retenção LGPD: vale a lápide de 2026-07-27 (num ERP o dado tem dever de guarda; o controle é por pe
 
-## Todas as ADRs (440)
+## Todas as ADRs (441)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -479,3 +479,4 @@ _(nenhuma)_
 | 0433 | aceito | ativo | decision | A fonte do protótipo do [W] passa a ser o git; o Cowork vira ferramenta opcional |
 | 0434 | aceito | ativo | decision | FSM do pedido — retomar produção, pagamento fora das etapas, conclusão pelo PCP  |
 | 0435 | proposto | ativo | decision | Fluxos por modelo (porte × atividade): a empresa escolhe um modelo e o modelo mo |
+| 0436 | proposto | ativo | decision | OS por item: a OS que nasce do pedido mora no Modules/Producao e anda no motor F |
