@@ -37,6 +37,8 @@ escolhidos, e (nos PRs seguintes) os processos, os fluxos em uso na empresa e os
 | 3 | aba Fluxos da empresa + "Usar modelo" (ação do backend, `fluxos.configurar`) |
 | 4 | aba Casos de uso (UC-FLX com fontes e estado) |
 | 5 | assistente de configuração (IA do ERP, com queda para a regra de encaixe) |
+| 6 | regras configuráveis por empresa — backend (`PATCH /fluxos/regra`, `PATCH /fluxos/compra`, `RegrasCompra`) |
+| 7 | aba Fluxos da empresa com os switches e a Compra configurável |
 
 ## Passos
 

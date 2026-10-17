@@ -27,7 +27,7 @@ function EtapaLi({ e, i, D }) {
 // Cada ação que pede dado o pede na prévia (campos do OiEtapaPainel), antes de confirmar.
 function situacaoDe(os, es) {
   if (es.every((e) => e.estado === "feito" || e.estado === "pronto")) return "Concluída";
-  if (os.arte !== "aprovada") return "Aguardando liberação";
+  if (os.arte !== "aprovada" || os.liberada === false) return "Aguardando liberação";
   return es.some((e) => e.estado === "andamento") ? "Em execução" : "Na fila";
 }
 function SituacaoItem({ os, es, D, irAba }) {
@@ -38,7 +38,18 @@ function SituacaoItem({ os, es, D, irAba }) {
   const feitas = es.filter((e) => e.estado === "feito" || e.estado === "pronto" || e.estado === "andamento");
   const mats = (D.MATERIAIS || {})[os.id] || [];
   const radio = (nome, ops, val, set, k) => <div className="pcv-mot" role="radiogroup" aria-label={nome}>{ops.map((o) => <label key={o}><input type="radio" name={nome} checked={val[k] === o} onChange={() => set({ ...val, [k]: o })} /> {o}</label>)}</div>;
+  const pessoas = Object.keys(D.PESSOAS || {});
+  const abertas = es.map((e, i) => [e, i]).filter(([e]) => e.estado !== "feito" && e.estado !== "pronto");
   const campos = {
+    // Decisão [W] 16/10 (opção c): o PCP escolhe o responsável de cada etapa ao Liberar. Sugestão = o de
+    // sempre do roteiro; só o responsável aponta na etapa pelo celular.
+    "Liberar": { ok: (v) => abertas.every(([e, i]) => (v["r" + i] ?? e.resp)), texto: (v) => abertas.map(([e, i]) => e.nome + ": " + (v["r" + i] ?? e.resp)).join(" · "),
+      render: (v, set) => <><span className="oie-l">Responsável de cada etapa</span>
+        <table className="pcv-baixa"><thead><tr><th>Etapa</th><th>Setor</th><th>Responsável</th></tr></thead>
+          <tbody>{abertas.map(([e, i]) => <tr key={i}><td>{e.nome}</td><td>{D.setorDe(e.setor).nome}</td><td>
+            <select aria-label={"Responsável da etapa " + e.nome} value={v["r" + i] ?? e.resp} onChange={(ev) => set({ ...v, ["r" + i]: ev.target.value })}>
+              {pessoas.map((p) => <option key={p} value={p}>{p} · {D.PESSOAS[p]}</option>)}</select></td></tr>)}</tbody></table>
+        <p className="oie-dim">Só o responsável aponta na etapa pelo celular. Dá para trocar depois, enquanto a etapa não começou.</p></> },
     "Pausar": { ok: (v) => !!v.motivo, texto: (v) => v.motivo, render: (v, set) => <><span className="oie-l">Motivo da pausa</span>{radio("Motivo da pausa", ["Falta material", "Máquina", "Aguardando cliente"], v, set, "motivo")}</> },
     "Reprovar no controle": { ok: (v) => !!(v.motivo && v.origem), texto: (v) => v.motivo + " · volta para " + v.origem, render: (v, set) => <div className="pcv-mot-g">
       {Select && <Select label="Motivo" value={v.motivo || ""} onChange={(e) => set({ ...v, motivo: e.target.value })} options={[{ value: "", label: "Escolha" }].concat(MOTIVOS.map((m) => ({ value: m, label: m })))} />}
