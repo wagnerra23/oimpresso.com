@@ -28,7 +28,7 @@ final class SituacaoDaOrdem
 {
     public const EV_RETRABALHO = 'retrabalho_aberto';
 
-    public function __construct(private readonly ExecuteStageActionService $fsm) {}
+    public function __construct(private readonly ExecuteStageActionService $fsm, private readonly CustoRealService $custo) {}
 
     public function ordem(int $businessId, int $ordemId): Ordem
     {
@@ -93,14 +93,69 @@ final class SituacaoDaOrdem
         if ($ordem->currentStage?->key === 'em_execucao') {
             $this->fsm->execute($ordem, 'concluir_etapa', User::find($userId), ['programacao_id' => $etapa->id]);
         }
+        $this->concluirItemSeTerminou($businessId, (int) $ordem->id, $userId);
     }
 
-    public function liberar(int $businessId, int $ordemId, User $user): Ordem
+    /**
+     * Concluir item (última etapa do roteiro feita): a OS fica Concluída, pronta, com o custo real
+     * CONGELADO (CustoRealService — horas apontadas × custo-hora copiado no início; regra mestre de
+     * valor). Trava a OS e relê a situação: duas conclusões ao mesmo tempo concluem uma vez só.
+     * A baixa do material real NÃO acontece aqui: o ERP ainda não registra o consumo real por OS
+     * (decisão pendente do [W], ADR 0436).
+     */
+    public function concluirItemSeTerminou(int $businessId, int $ordemId, int $userId): bool
+    {
+        return DB::transaction(function () use ($businessId, $ordemId, $userId): bool {
+            $ordem = Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)->lockForUpdate()->find($ordemId);
+            $status = Programacao::query()->where('business_id', $businessId)->where('os_tipo', Ordem::OS_TIPO)->where('os_id', $ordemId)->pluck('status');
+            if (! $ordem || $ordem->currentStage?->key !== 'em_execucao' || ! $status->contains('concluida')
+                || $status->contains(fn ($s) => in_array($s, ['pendente', 'iniciada'], true))) {
+                return false;
+            }
+            $custo = $this->custo->daOs($businessId, Ordem::OS_TIPO, $ordemId);
+            $this->fsm->execute($ordem, 'concluir_item', User::find($userId), ['custo' => $custo]);
+            $ordem->forceFill(['pronta_em' => now(), 'custo_real' => $custo['total'], 'custo_congelado_em' => now()])->save();
+
+            return true;
+        });
+    }
+
+    /**
+     * Liberar: o PCP escolhe o responsável de cada etapa aberta (decisão [W] 16/10, opção c; #9530).
+     * `$responsaveis` = programação → usuário. Etapa já com responsável o mantém se não vier no mapa;
+     * etapa aberta sem responsável recusa a liberação. Responsável tem de ser da MESMA empresa (Tier 0).
+     *
+     * @param  array<int, int>  $responsaveis
+     */
+    public function liberar(int $businessId, int $ordemId, User $user, array $responsaveis = []): Ordem
     {
         $ordem = $this->ordem($businessId, $ordemId);
-        $this->fsm->execute($ordem, 'liberar', $user);
 
-        return $ordem->fresh();
+        return DB::transaction(function () use ($businessId, $ordem, $user, $responsaveis) {
+            $abertas = Programacao::query()->where('business_id', $businessId)->where('os_tipo', Ordem::OS_TIPO)->where('os_id', $ordem->id)
+                ->where('status', 'pendente')->get()->keyBy('id');
+            $fora = array_diff(array_keys($responsaveis), $abertas->keys()->all());
+            if ($fora !== []) {
+                throw new ApontamentoRecusado(ApontamentoRecusado::RESPONSAVEL_INVALIDO, 'Etapa que não é desta OS ou já começou.', ['programacao_id' => array_values($fora)]);
+            }
+            $validos = DB::table('users')->where('business_id', $businessId)->whereIn('id', array_values($responsaveis))->pluck('id')->map(fn ($id) => (int) $id)->all();
+            foreach ($responsaveis as $prog => $uid) {
+                if (! in_array((int) $uid, $validos, true)) {
+                    throw new ApontamentoRecusado(ApontamentoRecusado::RESPONSAVEL_INVALIDO, 'Responsável não encontrado nesta empresa.', ['programacao_id' => $prog]);
+                }
+            }
+            $sem = $abertas->filter(fn (Programacao $p) => ! isset($responsaveis[$p->id]) && $p->user_id === null)->pluck('nome')->all();
+            if ($sem !== []) {
+                throw new ApontamentoRecusado(ApontamentoRecusado::RESPONSAVEL_INVALIDO, 'Escolha o responsável de: '.implode(', ', $sem).'.');
+            }
+
+            $this->fsm->execute($ordem, 'liberar', $user, ['responsaveis' => $responsaveis]);
+            foreach ($responsaveis as $prog => $uid) {
+                $abertas[$prog]->forceFill(['user_id' => (int) $uid])->save();
+            }
+
+            return $ordem->fresh();
+        });
     }
 
     /** Reprovar no controle: motivo de refugo do cadastro + etapa de origem, que volta como etapa nova. */

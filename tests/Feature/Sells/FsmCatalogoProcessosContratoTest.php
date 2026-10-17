@@ -61,6 +61,9 @@ const FLX_REFS = [
     'ApontamentoController' => \Modules\Producao\Http\Controllers\ApontamentoController::class,
     'ApontamentoOperadorService' => \Modules\Producao\Services\ApontamentoOperadorService::class,
     'CustoRealService' => \Modules\Producao\Services\CustoRealService::class,
+    'SituacaoDaOrdem' => \Modules\Producao\Services\SituacaoDaOrdem::class,
+    'CriarOsDaVenda' => \Modules\Producao\Services\CriarOsDaVenda::class,
+    'OsDaVenda' => \Modules\Producao\Services\OsDaVenda::class,
     'InboxController' => \Modules\Whatsapp\Http\Controllers\Admin\InboxController::class,
     'CsatDispatcher' => \Modules\Whatsapp\Services\Csat\CsatDispatcher::class,
     'RecurringBillingController' => \Modules\RecurringBilling\Http\Controllers\RecurringBillingController::class,
@@ -268,11 +271,10 @@ it('o que a cobertura afirma sobre o código continua verdadeiro', function () {
 
     // Os outros 9 processos.
     $rotas = collect(Route::getRoutes()->getRoutes())->map(fn ($r) => $r->getActionName())->implode("\n");
-    expect(flxChamadores('Programacao::create'))->toBe([])
-        ->and(flxChamadores('new Programacao('))->toBe([])
-        ->and(str_contains($rotas, 'PurchaseXmlController'))->toBeFalse()
+    // Produção (OS por item, ADR 0436): as afirmações viraram comportamento e são provadas pelos
+    // contratos do Modules/Producao (ProducaoCriarOsDaVenda, SituacaoDaOrdem, ConcluirItem).
+    expect(str_contains($rotas, 'PurchaseXmlController'))->toBeFalse()
         ->and(collect(flxChamadores("'past_due'"))->filter(fn ($p) => str_contains($p, 'Modules/RecurringBilling/') && preg_match('/status[\'"]?\s*=>\s*[\'"]past_due/', (string) file_get_contents($p)))->all())->toBe([])
-        ->and(collect(flxChamadores('CustoRealService'))->reject(fn ($p) => str_ends_with($p, 'CustoRealService.php'))->filter(fn ($p) => str_contains((string) file_get_contents($p), 'CustoRealService::') || str_contains((string) file_get_contents($p), 'CustoRealService $'))->all())->toBe([])
         ->and(collect(flxChamadores('cv_instalacoes'))->filter(fn ($p) => str_contains($p, '/Http/'))->all())->toBe([]);
 });
 
@@ -330,7 +332,7 @@ it('devolução completa, cobertura sem órfão e resumos', function () {
         ->and(CatalogoProcessos::resumo('compra'))->toBe(['sim' => 0, 'parcial' => 6, 'nao' => 1, 'nao_verificado' => 0, 'total' => 7])
         ->and(CatalogoProcessos::resumo('requisicao'))->toBe(['sim' => 0, 'parcial' => 0, 'nao' => 3, 'nao_verificado' => 0, 'total' => 3])
         ->and(CatalogoProcessos::resumo('inventario'))->toBe(['sim' => 0, 'parcial' => 1, 'nao' => 2, 'nao_verificado' => 0, 'total' => 3])
-        ->and(CatalogoProcessos::resumo('producao'))->toBe(['sim' => 0, 'parcial' => 5, 'nao' => 4, 'nao_verificado' => 0, 'total' => 9])
+        ->and(CatalogoProcessos::resumo('producao'))->toBe(['sim' => 1, 'parcial' => 8, 'nao' => 0, 'nao_verificado' => 0, 'total' => 9])
         ->and(CatalogoProcessos::resumo('entrega'))->toBe(['sim' => 0, 'parcial' => 5, 'nao' => 1, 'nao_verificado' => 0, 'total' => 6])
         ->and(CatalogoProcessos::resumo('atendimento'))->toBe(['sim' => 0, 'parcial' => 2, 'nao' => 2, 'nao_verificado' => 0, 'total' => 4])
         ->and(CatalogoProcessos::resumo('contrato'))->toBe(['sim' => 1, 'parcial' => 3, 'nao' => 2, 'nao_verificado' => 0, 'total' => 6])

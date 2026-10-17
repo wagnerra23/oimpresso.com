@@ -3,11 +3,13 @@
 namespace Modules\Producao\Providers;
 
 use App\Domain\Fsm\Models\SaleStageHistory;
+use App\Transaction;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\ServiceProvider;
 use Modules\Producao\Console\FecharTurnoCommand;
 use Modules\Producao\Jobs\CriarOsDaVendaJob;
 use Modules\Producao\Services\CriarOsDaVenda;
+use Modules\Producao\Services\OsDaVenda;
 
 class ProducaoServiceProvider extends ServiceProvider
 {
@@ -30,6 +32,14 @@ class ProducaoServiceProvider extends ServiceProvider
             $biz = (int) $h->business_id;
             if (app(CriarOsDaVenda::class)->deveCriar($biz, $h->to_stage_id !== null ? (int) $h->to_stage_id : null)) {
                 CriarOsDaVendaJob::dispatch($biz, (int) $h->transaction_id, $h->user_id !== null ? (int) $h->user_id : null)->afterCommit();
+            }
+        });
+
+        // ADR 0436: "Concluir" da venda (→ Entregue) exige as OS prontas. Roda no updating da venda,
+        // dentro da transação do motor: a recusa desfaz a transição inteira.
+        Transaction::updating(function (Transaction $tx) {
+            if ($tx->isDirty('current_stage_id')) {
+                app(OsDaVenda::class)->guardar((int) $tx->business_id, (int) $tx->id, $tx->current_stage_id !== null ? (int) $tx->current_stage_id : null);
             }
         });
     }
