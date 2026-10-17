@@ -220,6 +220,8 @@ jobs:
           echo 'tests/Feature/TransactionPayment/TransactionPaymentEditContratoTest.php' >> /tmp/run.txt
           # 2026-10-14 — o modal Blade de edição não move mais a hora ao salvar (format_date_no_shift).
           echo 'tests/Feature/TransactionPayment/TransactionPaymentModalHoraTest.php' >> /tmp/run.txt
+          # 2026-10-14 — MEDIÇÃO: os modais de ADICIONAR pagamento gravam a hora deslocada? NASCE SEM RUN.
+          echo 'tests/Feature/TransactionPayment/TransactionPaymentAdicionarHoraTest.php' >> /tmp/run.txt
 
           # Visibilidade obrigatória: quarentena silenciosa vira cobertura fingida.
           echo "Árvore: $(wc -l < /tmp/all.txt) · quarentena: $(wc -l < /tmp/quar.txt) · RODANDO: $(wc -l < /tmp/run.txt)"
