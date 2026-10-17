@@ -216,10 +216,10 @@ const MOLDURA_GRID = 'overflow-hidden rounded-lg border border-border bg-[var(--
  * No `grid` a rolagem mora num filho da moldura (pro rodapé não rolar junto). O
  * `containerType` vai com ela: é o container de `cqw` da mensagem de lista vazia.
  */
-function Rolagem({ ativa, children }: { ativa: boolean; children: ReactNode }) {
+function Rolagem({ ativa, alturaMaxima, children }: { ativa: boolean; alturaMaxima?: number; children: ReactNode }) {
   if (!ativa) return <>{children}</>;
   return (
-    <div className="overflow-auto" style={{ containerType: 'inline-size' }}>
+    <div className="overflow-auto" style={{ containerType: 'inline-size', maxHeight: alturaMaxima }}>
       {children}
     </div>
   );
@@ -370,6 +370,13 @@ interface Props<T> {
   columnWidths?: Record<string, number>;
   /** Chamado a cada passo do arrasto, com o id da coluna e a largura nova (já com o piso). */
   onColumnResize?: (columnId: string, largura: number) => void;
+  /**
+   * Só no `grid`: altura máxima da área que rola, em px. A grade passa a rolar por dentro, com o
+   * cabeçalho fixo e a barra de rolar para o lado sempre à vista — sem ela, a barra horizontal
+   * fica no fim da lista, longe da tela. É a altura que o `ListaProdutos` do protótipo dá ao
+   * `DataTablePro`. Omitido = a grade cresce com as linhas (markup de sempre).
+   */
+  scrollMaxHeight?: number;
   /** Caixinha por linha + "marcar todas" no cabeçalho — ver `SelecaoDaTabela`. */
   selection?: SelecaoDaTabela<T>;
   /**
@@ -468,6 +475,7 @@ export default function DataTable<T>({
   resizable = false,
   columnWidths,
   onColumnResize,
+  scrollMaxHeight,
 }: Props<T>) {
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   // Larguras que o usuário arrastou, por id de coluna. Por id e não por posição: ligar ou
@@ -606,7 +614,7 @@ export default function DataTable<T>({
         }
         style={grid ? undefined : { containerType: 'inline-size' }}
       >
-        <Rolagem ativa={grid}>
+        <Rolagem ativa={grid} alturaMaxima={scrollMaxHeight}>
         <table
           className={`w-full ${grid ? 'border-separate border-spacing-0 text-[12.5px]' : 'text-sm'}${temLargura ? ' table-fixed' : ''}`}
           style={pisoDaTabela ? { minWidth: pisoDaTabela } : undefined}
