@@ -12,7 +12,8 @@
 // Diferença: prop `purchase` pré-popula form + método PUT em vez de POST.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
+import { Icon } from '@/Components/Icon';
 import { router, useForm } from '@inertiajs/react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Button } from '@/Components/ui/button';
@@ -112,6 +113,7 @@ function PurchaseEdit({
   permissions,
 }: PurchaseEditPageProps) {
   const [busca, setBusca] = useState('');
+  const [erroItens, setErroItens] = useState<string | null>(null);
   const [linhas, setLinhas] = useState<PurchaseLineDraft[]>(
     purchase.purchase_lines.length > 0 ? purchase.purchase_lines : []
   );
@@ -199,9 +201,25 @@ function PurchaseEdit({
 
   const enviar = (e: React.FormEvent) => {
     e.preventDefault();
+    if (linhas.length === 0) {
+      setErroItens('A compra precisa de ao menos um item.');
+      return;
+    }
+    if (linhas.some((l) => !l.variation_id)) {
+      setErroItens('Há item sem produto do cadastro. Remova a linha digitada à mão.');
+      return;
+    }
+    setErroItens(null);
     form.transform((dados) => ({
       ...dados,
-      purchases: linhas,
+      // createOrUpdatePurchaseLines só ATUALIZA a linha que vem com `purchase_line_id` — sem ele
+      // cria uma nova e apaga a antiga (perde o vínculo com as vendas). E lê `purchase_line_tax_id`
+      // sem isset: a chave tem que existir em toda linha, senão o update() quebra (UC-PUREDT-08).
+      purchases: linhas.map(({ id, ...l }) => ({
+        ...l,
+        ...(id ? { purchase_line_id: id } : {}),
+        purchase_line_tax_id: l.tax_id ?? '',
+      })),
       total_before_tax: totais.subtotal,
       final_total: totais.final,
     }));
@@ -216,10 +234,10 @@ function PurchaseEdit({
   return (
     <form onSubmit={enviar}>
       <PageHeader
-        icon="shopping-cart"
+        leading={<Icon name="shopping-cart" size={18} className="mr-2 inline-block align-[-2px] text-primary" />}
         title={`Editar compra ${purchase.ref_no || '#' + purchase.id}`}
-        description="Ajuste de campos da compra (dentro do período permitido)."
-        action={
+        subtitle="Ajuste de campos da compra (dentro do período permitido)."
+        actions={
           <div className="flex gap-2">
             <Button type="button" variant="outline" size="sm" onClick={() => router.visit(`/purchases/${purchase.id}`)}>
               <ArrowLeft className="h-4 w-4 mr-1" /> Cancelar
@@ -331,6 +349,7 @@ function PurchaseEdit({
             </Button>
           </div>
 
+          {erroItens && <p className="text-destructive text-[12px] mb-2">{erroItens}</p>}
           {linhas.length === 0 ? (
             <div className="py-10 text-center">
               <ShoppingCart className="h-10 w-10 mx-auto text-stone-300 mb-2" />
