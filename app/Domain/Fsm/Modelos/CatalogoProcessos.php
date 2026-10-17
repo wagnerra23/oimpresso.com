@@ -71,10 +71,10 @@ final class CatalogoProcessos
         // Venda: o motor tem venda_com_producao (ADR 0129), sem guarda; nenhuma condição "só passa se" existe no código.
         'venda' => [
             'Enviar ao cliente' => ['parcial', 'Ação FSM enviar_orcamento (SaleFsmActionController@execute, POST /sells/{id}/fsm-action) só muda a etapa. O envio de verdade é NotificationController@send (template new_quotation), fora da FSM. Sem conferência de contato e sem medição de abertura.'],
-            'Cliente aprova' => ['parcial', 'Ação FSM cliente_aprovou com ReservarEstoque muda a etapa; o link público (SellPosController@showInvoice, GET /quote/{token}) só mostra. Não cria OS por item nem parcelas de sinal e saldo; sem checagem de validade; a reserva espera payload.items, que a tela não manda.'],
+            'Cliente aprova' => ['parcial', 'Ação FSM cliente_aprovou com ReservarEstoque muda a etapa; o link público (SellPosController@showInvoice, GET /quote/{token}) só mostra. No legado não cria OS por item; na venda de modelo, entrar em Aprovado cria uma OS por item com roteiro (CriarOsDaVenda). Não gera parcelas de sinal e saldo; sem checagem de validade; a reserva espera payload.items, que a tela não manda.'],
             'Marcar perdido' => ['parcial', 'Ação FSM cliente_rejeitou leva a Cancelada: não existe a etapa Perdido, o motivo não é pedido e nada alimenta funil (DealPipelineService::moverStage do Crm, que leva a perdido com motivo, não tem chamador).'],
             'Faturar' => ['parcial', 'Ação FSM faturar sai de "Pronto pra faturar" e só muda a etapa. NF-e (NfeEmissaoController@emitir) e NFS-e (NfseController@emitirParaTransaction) são botões separados, sem decidir pela natureza fiscal do item.'],
-            'Concluir' => ['parcial', 'Ações FSM entregar e concluir só mudam a etapa (entregar exige Paga antes; no app, PedidoEntregaController@registrar). Sem checagem de OS pronta e sem pesquisa de satisfação depois da entrega.'],
+            'Concluir' => ['parcial', 'Ações FSM entregar e concluir só mudam a etapa (entregar exige Paga antes; no app, PedidoEntregaController@registrar). No legado, sem checagem de OS pronta; na venda de modelo, Entregue exige as OS por item prontas (OsDaVenda). Sem pesquisa de satisfação depois da entrega.'],
             'Cancelar' => ['parcial', 'Ação FSM cancelar_venda com CancelarVendaCascade::execute libera a reserva. Não cobra "nenhuma nota autorizada": tenta cancelar as notas, mas lê transaction_documents, que nenhum código grava. Não estorna sinal já pago (só cancela boleto pendente).'],
         ],
         'nfe' => [
@@ -136,15 +136,15 @@ final class CatalogoProcessos
         ],
         // Produção = PCP (Modules/Producao): as etapas vivem em pcp_programacoes, e nenhum código de produção grava nessa tabela.
         'producao' => [
-            'Liberar' => ['nao', 'Nada gera as etapas (fila) a partir do roteiro: não há ação Liberar, reserva de material nem cálculo de prazo.'],
-            'Iniciar etapa' => ['parcial', 'ApontamentoController@iniciar e a API do app → ApontamentoOperadorService::iniciar abrem o apontamento e contam o tempo, por QR ou tela; a trava é o responsável da etapa, não o setor. Só funciona com etapa já cadastrada, e nada cria etapa.'],
-            'Pausar' => ['parcial', 'ApontamentoController@pausar → ApontamentoOperadorService::pausar para o relógio e exige motivo do cadastro. Não há alerta de prazo.'],
-            'Retomar' => ['parcial', 'Retomar é um novo início na mesma etapa (ApontamentoController@iniciar) e o relógio volta. Não existe estado Pausada gravado; mesma dependência de etapa cadastrada.'],
-            'Concluir etapa' => ['parcial', 'ApontamentoController@concluir → ApontamentoOperadorService::concluir conclui a etapa e avisa o responsável da próxima. Não lê o roteiro, não trata etapas paralelas e não muda o estado da próxima.'],
-            'Reprovar no controle' => ['nao', 'Não há ação de reprovar, etapa de origem nem custo de refugo somado à OS (só o cadastro de motivos de refugo).'],
-            'Refazer' => ['nao', 'Não existe Refazer: a etapa não tem estado de retrabalho.'],
-            'Concluir item' => ['parcial', 'Concluir a última etapa só a marca concluída. Não baixa o material real, não congela custo (CustoRealService::daOs calcula, mas não tem chamador) e não marca a OS pronta.'],
-            'Cancelar item' => ['nao', 'Não existe cancelar item ou etapa no PCP, nem liberar reserva, nem lançar consumo como perda.'],
+            'Liberar' => ['parcial', 'SituacaoDaOrdem::liberar executa Liberar na OS por item (ADR 0436); as etapas nascem do roteiro do produto quando o cliente aprova (CriarOsDaVenda). Sem tela ainda; não reserva material nem calcula prazo pela fila.'],
+            'Iniciar etapa' => ['parcial', 'ApontamentoOperadorService::iniciar abre o apontamento por QR ou tela e, na OS por item, leva a OS de Na fila a Em execução (SituacaoDaOrdem). A trava é o responsável da etapa, não o setor; etapa sem posto não aponta.'],
+            'Pausar' => ['parcial', 'ApontamentoOperadorService::pausar exige motivo do cadastro do posto e, sem outra etapa da OS rodando, leva a OS por item a Pausada. Não há alerta de prazo.'],
+            'Retomar' => ['sim', 'Iniciar de novo com a OS por item Pausada executa Retomar (SituacaoDaOrdem::aoIniciar) e o relógio volta.'],
+            'Concluir etapa' => ['parcial', 'ApontamentoOperadorService::concluir conclui a etapa e registra Concluir etapa na OS por item; etapa de um bloco só começa com o bloco anterior (as duas trilhas) feito. O aviso ao próximo segue a ordem prevista, não a junta.'],
+            'Reprovar no controle' => ['parcial', 'SituacaoDaOrdem::reprovar (motivo de refugo do posto + etapa de origem já feita) leva a OS a Retrabalho e reabre a etapa de origem como etapa nova; o custo entra pelas horas dela. Sem tela ainda.'],
+            'Refazer' => ['parcial', 'SituacaoDaOrdem::refazer volta a OS por item a Em execução. Sem tela ainda.'],
+            'Concluir item' => ['parcial', 'A última etapa concluída executa Concluir item (SituacaoDaOrdem::concluirItemSeTerminou): OS pronta e custo real congelado (CustoRealService::daOs). Não baixa o material real (decisão pendente).'],
+            'Cancelar item' => ['parcial', 'SituacaoDaOrdem::cancelarItem, antes de liberar, cancela as etapas programadas. Não lança consumo como perda nem libera reserva. Sem tela ainda.'],
         ],
         // Entrega: as ações vivem no processo os_comunicacao_visual (instalação), que nenhuma tela inicia.
         'entrega' => [
