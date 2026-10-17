@@ -120,12 +120,42 @@ final class SituacaoDaOrdem
         });
     }
 
-    public function liberar(int $businessId, int $ordemId, User $user): Ordem
+    /**
+     * Liberar: o PCP escolhe o responsável de cada etapa aberta (decisão [W] 16/10, opção c; #9530).
+     * `$responsaveis` = programação → usuário. Etapa já com responsável o mantém se não vier no mapa;
+     * etapa aberta sem responsável recusa a liberação. Responsável tem de ser da MESMA empresa (Tier 0).
+     *
+     * @param  array<int, int>  $responsaveis
+     */
+    public function liberar(int $businessId, int $ordemId, User $user, array $responsaveis = []): Ordem
     {
         $ordem = $this->ordem($businessId, $ordemId);
-        $this->fsm->execute($ordem, 'liberar', $user);
 
-        return $ordem->fresh();
+        return DB::transaction(function () use ($businessId, $ordem, $user, $responsaveis) {
+            $abertas = Programacao::query()->where('business_id', $businessId)->where('os_tipo', Ordem::OS_TIPO)->where('os_id', $ordem->id)
+                ->where('status', 'pendente')->get()->keyBy('id');
+            $fora = array_diff(array_keys($responsaveis), $abertas->keys()->all());
+            if ($fora !== []) {
+                throw new ApontamentoRecusado(ApontamentoRecusado::RESPONSAVEL_INVALIDO, 'Etapa que não é desta OS ou já começou.', ['programacao_id' => array_values($fora)]);
+            }
+            $validos = DB::table('users')->where('business_id', $businessId)->whereIn('id', array_values($responsaveis))->pluck('id')->map(fn ($id) => (int) $id)->all();
+            foreach ($responsaveis as $prog => $uid) {
+                if (! in_array((int) $uid, $validos, true)) {
+                    throw new ApontamentoRecusado(ApontamentoRecusado::RESPONSAVEL_INVALIDO, 'Responsável não encontrado nesta empresa.', ['programacao_id' => $prog]);
+                }
+            }
+            $sem = $abertas->filter(fn (Programacao $p) => ! isset($responsaveis[$p->id]) && $p->user_id === null)->pluck('nome')->all();
+            if ($sem !== []) {
+                throw new ApontamentoRecusado(ApontamentoRecusado::RESPONSAVEL_INVALIDO, 'Escolha o responsável de: '.implode(', ', $sem).'.');
+            }
+
+            $this->fsm->execute($ordem, 'liberar', $user, ['responsaveis' => $responsaveis]);
+            foreach ($responsaveis as $prog => $uid) {
+                $abertas[$prog]->forceFill(['user_id' => (int) $uid])->save();
+            }
+
+            return $ordem->fresh();
+        });
     }
 
     /** Reprovar no controle: motivo de refugo do cadastro + etapa de origem, que volta como etapa nova. */
