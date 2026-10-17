@@ -10,6 +10,8 @@ import {
   SelectValue,
 } from '@/Components/ui/select';
 import { OrigemMercadoriaField } from '../OrigemMercadoriaField';
+import { CamposPreco } from './CamposPreco';
+import type { PrecoSimples } from './precos';
 import type { CamposProduto, DefinirCampo, ErrosProduto, OpcoesProduto } from './tipos';
 import { opcoesDe } from './tipos';
 
@@ -18,6 +20,8 @@ interface Props {
   definir: DefinirCampo;
   errors: ErrosProduto;
   opcoes: OpcoesProduto;
+  /** Novo produto simples: o preço. Sem ele (Editar, variável, composto) o card não mostra preço. */
+  preco?: { valor: PrecoSimples; mudar: (p: PrecoSimples) => void; aliquota: number };
 }
 
 /**
@@ -26,7 +30,7 @@ interface Props {
  */
 const SEM_IMPOSTO = 'sem-imposto';
 
-export function BlocoPrecoImposto({ data, definir, errors, opcoes }: Props) {
+export function BlocoPrecoImposto({ data, definir, errors, opcoes, preco }: Props) {
   return (
     <Card>
       <CardHeader>
@@ -72,6 +76,7 @@ export function BlocoPrecoImposto({ data, definir, errors, opcoes }: Props) {
           onChange={(v) => definir('origem_mercadoria', v)}
           error={errors.origem_mercadoria}
         />
+        {preco && <CamposPreco valor={preco.valor} mudar={preco.mudar} aliquota={preco.aliquota} />}
       </CardContent>
     </Card>
   );
