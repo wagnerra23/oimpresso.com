@@ -231,12 +231,14 @@ function gmPayloadCompra(int $variationId, int $produtoId): array
 function gmUsuario(int $bizId): User
 {
     $perm = Permission::firstOrCreate(['name' => 'purchase.create', 'guard_name' => 'web']);
+    // purchase.update: os UC-PUREDT-08 editam a compra que o próprio teste criou.
+    $permUpdate = Permission::firstOrCreate(['name' => 'purchase.update', 'guard_name' => 'web']);
     // roles.business_id é NOT NULL + FK (proibicoes §FSM) — sufixo #biz é convenção UPOS.
     $role = Role::firstOrCreate(
         ['name' => 'gm-purchase-test#' . $bizId, 'guard_name' => 'web'],
         ['business_id' => $bizId]
     );
-    $role->givePermissionTo($perm);
+    $role->givePermissionTo($perm, $permUpdate);
 
     // Username determinístico: a base do CT 100 persiste entre runs e users viram FK em
     // várias tabelas — user novo a cada execução vazaria linha impossível de limpar.
@@ -358,6 +360,156 @@ describe('Tier 0 cross-tenant (MySQL real)', function () {
             'O gate de ownership recusou uma variação do PRÓPRIO negócio — o 422 do teste acima não prova scope.'
         );
     });
+    // ── UC-PURCRE-10 — salvar com o payload que a tela React manda ──────────
+
+    it('UC-PURCRE-10 · store() grava a compra com o payload da tela React (sem `payment`, data ISO)', function () {
+        // Tudo dentro de uma transação revertida no fim: o store() abre a dele (vira savepoint)
+        // e a base persistente do CT 100 não fica com a compra (§5 2026-09-18).
+        DB::beginTransaction();
+        try {
+            $bizId = (int) $this->gmBizProprio->id;
+            $produto = gmProduto($bizId, (int) $this->gmUser->id, 'Produto compra React');
+            $variacao = gmVariacao($produto, 'P/Preto');
+            $fornecedor = (int) DB::table('contacts')->insertGetId([
+                'business_id' => $bizId, 'type' => 'supplier', 'name' => 'Fornecedor UC-PURCRE-10',
+                'contact_id' => 'UCP10' . uniqid(), 'created_by' => (int) $this->gmUser->id,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+            $refNo = 'UCP10-' . uniqid();
+
+            // Espelha o `enviar()` do Create.tsx: números crus, data do datetime-local e
+            // NENHUMA chave `payment` — a tela não tem bloco de pagamento.
+            $resposta = $this->actingAs($this->gmUser)->post('/purchases', [
+                'ref_no' => $refNo, 'status' => 'received', 'contact_id' => $fornecedor,
+                'transaction_date' => now()->format('Y-m-d H:i'),
+                'location_id' => DB::table('business_locations')->where('business_id', $bizId)->value('id'),
+                'discount_type' => 'fixed', 'discount_amount' => '0', 'tax_id' => '', 'tax_amount' => '0',
+                'shipping_charges' => '0', 'additional_notes' => '', 'exchange_rate' => '1',
+                'total_before_tax' => '45', 'final_total' => '45',
+                'purchases' => [[
+                    'product_name' => 'Produto compra React P/Preto', 'product_id' => $produto,
+                    'variation_id' => $variacao, 'unit_id' => '', 'unit_name' => 'un',
+                    'quantity' => '2', 'pp_without_discount' => '22.5', 'discount_percent' => '0',
+                    'item_tax' => '0', 'tax_id' => '', 'purchase_price' => '22.5',
+                    'purchase_price_inc_tax' => '22.5', 'purchase_line_tax_id' => '',
+                ]],
+            ]);
+
+            $resposta->assertRedirect('/purchases');
+            expect(session('status.success'))->toBe(1, 'store() caiu no catch genérico: ' . json_encode(session('status')));
+
+            $compra = DB::table('transactions')->where('business_id', $bizId)
+                ->where('type', 'purchase')->where('ref_no', $refNo)->first();
+            expect($compra)->not->toBeNull();
+            expect((float) $compra->final_total)->toBe(45.0);
+            expect($compra->payment_status)->toBe('due');
+            expect((float) DB::table('purchase_lines')->where('transaction_id', $compra->id)->sum('quantity'))->toBe(2.0);
+        } finally {
+            DB::rollBack();
+        }
+    });
+
+    it('UC-PURCRE-11 · fornecedor de outro negócio ou item sem produto voltam como erro do campo, sem gravar', function () {
+        DB::beginTransaction();
+        try {
+            $bizId = (int) $this->gmBizProprio->id;
+            $fornecedorAlheio = (int) DB::table('contacts')->insertGetId([
+                'business_id' => (int) $this->gmBizVitima->id, 'type' => 'supplier', 'name' => 'Fornecedor alheio',
+                'contact_id' => 'UCP11' . uniqid(), 'created_by' => (int) $this->gmUserVitima->id,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+            $refNo = 'UCP11-' . uniqid();
+
+            // Linha digitada à mão na tela (sem produto do cadastro) + fornecedor de outro tenant.
+            $resposta = $this->actingAs($this->gmUser)->from('/purchases/create')->post('/purchases', [
+                'ref_no' => $refNo, 'status' => 'received', 'contact_id' => $fornecedorAlheio,
+                'transaction_date' => now()->format('Y-m-d H:i'),
+                'location_id' => DB::table('business_locations')->where('business_id', $bizId)->value('id'),
+                'discount_type' => 'fixed', 'discount_amount' => '0', 'tax_amount' => '0',
+                'shipping_charges' => '0', 'exchange_rate' => '1', 'total_before_tax' => '10', 'final_total' => '10',
+                'purchases' => [[
+                    'product_name' => 'digitado', 'product_id' => '', 'variation_id' => '',
+                    'quantity' => '1', 'pp_without_discount' => '10', 'discount_percent' => '0', 'item_tax' => '0',
+                    'purchase_price' => '10', 'purchase_price_inc_tax' => '10', 'purchase_line_tax_id' => '',
+                ]],
+            ]);
+
+            // Antes: 302 pra /purchases com "algo deu errado". Agora: volta pro form com o erro de cada campo.
+            $resposta->assertRedirect('/purchases/create');
+            $resposta->assertSessionHasErrors(['contact_id', 'purchases.0.product_id', 'purchases.0.variation_id']);
+            expect(DB::table('transactions')->where('ref_no', $refNo)->count())->toBe(0);
+        } finally {
+            DB::rollBack();
+        }
+    });
+
+    it('UC-PUREDT-08 · editar pela tela React atualiza a linha existente (não duplica) e acerta o estoque', function () {
+        DB::beginTransaction();
+        try {
+            $bizId = (int) $this->gmBizProprio->id;
+            $local = DB::table('business_locations')->where('business_id', $bizId)->value('id');
+            $produto = gmProduto($bizId, (int) $this->gmUser->id, 'Produto edição React');
+            // Sem enable_stock o ProductUtil não movimenta estoque (gmProduto nasce com o default 0).
+            DB::table('products')->where('id', $produto)->update(['enable_stock' => 1]);
+            $variacao = gmVariacao($produto, 'P/Preto');
+            $fornecedor = (int) DB::table('contacts')->insertGetId([
+                'business_id' => $bizId, 'type' => 'supplier', 'name' => 'Fornecedor UC-PUREDT-08',
+                'contact_id' => 'UCE08' . uniqid(), 'created_by' => (int) $this->gmUser->id,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+            $refNo = 'UCE08-' . uniqid();
+            $cabecalho = [
+                'ref_no' => $refNo, 'status' => 'received', 'contact_id' => $fornecedor,
+                'transaction_date' => now()->format('Y-m-d H:i'), 'location_id' => $local,
+                'discount_type' => 'fixed', 'discount_amount' => '0', 'tax_id' => '', 'tax_amount' => '0',
+                'shipping_charges' => '0', 'additional_notes' => '', 'exchange_rate' => '1',
+            ];
+            $linha = fn (string $qtd) => [
+                'product_name' => 'Produto edição React P/Preto', 'product_id' => $produto,
+                'variation_id' => $variacao, 'unit_id' => '', 'unit_name' => 'un', 'quantity' => $qtd,
+                'pp_without_discount' => '22.5', 'discount_percent' => '0', 'item_tax' => '0', 'tax_id' => '',
+                'purchase_price' => '22.5', 'purchase_price_inc_tax' => '22.5', 'purchase_line_tax_id' => '',
+            ];
+            $estoque = fn () => (float) DB::table('variation_location_details')
+                ->where('variation_id', $variacao)->where('location_id', $local)->sum('qty_available');
+
+            $this->actingAs($this->gmUser)->post('/purchases', $cabecalho + [
+                'total_before_tax' => '45', 'final_total' => '45', 'purchases' => [$linha('2')],
+            ]);
+            $compra = DB::table('transactions')->where('business_id', $bizId)->where('ref_no', $refNo)->first();
+            expect($compra)->not->toBeNull();
+            $linhaId = (int) DB::table('purchase_lines')->where('transaction_id', $compra->id)->value('id');
+            expect($estoque())->toBe(2.0);
+
+            // O que o Edit.tsx manda: _method PUT + a linha com purchase_line_id (era `id`).
+            $resposta = $this->actingAs($this->gmUser)->post('/purchases/' . $compra->id, $cabecalho + [
+                '_method' => 'PUT', 'total_before_tax' => '67.5', 'final_total' => '67.5',
+                'purchases' => [$linha('3') + ['purchase_line_id' => $linhaId]],
+            ]);
+
+            $resposta->assertRedirect('/purchases');
+            expect(session('status.success'))->toBe(1, 'update() falhou: ' . json_encode(session('status')));
+            $linhas = DB::table('purchase_lines')->where('transaction_id', $compra->id)->get();
+            expect($linhas)->toHaveCount(1);
+            expect((int) $linhas[0]->id)->toBe($linhaId);
+            expect((float) $linhas[0]->quantity)->toBe(3.0);
+            expect((float) DB::table('transactions')->where('id', $compra->id)->value('final_total'))->toBe(67.5);
+            // Estoque: 2 da criação + 1 da edição — não 2 + 3 (linha nova) nem 3 − 2.
+            expect($estoque())->toBe(3.0);
+        } finally {
+            DB::rollBack();
+        }
+    });
+
+    it('UC-PUREDT-08 · purchase_line_id de outra compra é recusado (422) antes de gravar', function () {
+        $resposta = $this->actingAs($this->gmUser)->post('/purchases/999999999', [
+            '_method' => 'PUT',
+            'purchases' => [['purchase_line_id' => (int) DB::table('purchase_lines')->max('id') ?: 1]],
+        ]);
+
+        $resposta->assertStatus(422);
+    });
+
     // ── UC-PURCRE-09 — "Comprar" da lista de produtos ───────────────────────
 
     it('UC-PURCRE-09 · ?produto= de um produto do próprio negócio entra como produto_inicial', function () {

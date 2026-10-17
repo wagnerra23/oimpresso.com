@@ -5,7 +5,7 @@ irmaos: Edit.charter.md (lei) · Edit.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: os três gates de escrita (tenant, janela temporal, devolução existente) são duráveis — não mudam quando o formulário ganhar campo novo.
 owner: wagner
-last_run: "2026-09-04"
+last_run: "2026-10-16"
 last_run_ci: "✅ 2026-09-05: os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841). Medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. Os 7 UC desta tela tem lane; 1 com defesa de COMPORTAMENTO (UpdateCrossTenantIdorTest - o IDOR de escrita cross-tenant em dinheiro; nao esta em quarantine.list nenhuma, e o markTestSkipped que sobrou so protege sqlite) e 6 ESTRUTURAL (Wave2Edit*, presence-gate LC-11). Nao restatear a mao: rode scripts/qa/uc-lane-coverage.mjs. ⚠ O TEXTO A SEGUIR ESTA SUPERADO e fica como fato datado - os dois numeros dele ja nasciam falsos: 🔴 NENHUM teste de tests/Feature/Purchase/ roda em lane alguma — 8 arquivos órfãos de CI; o do IDOR soma quarentena por cima. Ver §Dívida de prova."
 ---
 
@@ -99,6 +99,7 @@ allowlist por conta própria — por que ela existe (custo de CI? teste instáve
 | UC-PUREDT-05 | Sem `purchase.update` não se abre nem se salva | must | RUNBOOK §3 · charter R-PUR-007 | `Wave2EditBaselineTest` | 🧪 estrutural · na lane |
 | UC-PUREDT-06 | O formulário chega pré-populado com a compra, tipada | should | RUNBOOK §4 · §9 | `Wave2EditInertiaTest` | 🧪 estrutural · na lane |
 | UC-PUREDT-07 | A Page não decide tenant — `business_id` vem das props | must `[T0]` | RUNBOOK §3 | `Wave2EditInertiaTest` | 🧪 estrutural · na lane |
+| UC-PUREDT-08 | Salvar a edição atualiza a linha existente e o estoque pela diferença | must `[T0]` `[V0]` | reclamação ROTA LIVRE 2026-10-16 · charter R-PUR-001 | `PurchaseGradeMatrixTest` | 🧪 comportamento · na lane |
 
 ---
 
@@ -224,6 +225,22 @@ allowlist por conta própria — por que ela existe (custo de CI? teste instáve
   presence-gate seria o instrumento certo. Só que ele tambem nao roda: instrumento certo, nunca acionado.
 
 ---
+
+
+## UC-PUREDT-08 · Salvar a edição atualiza a linha existente e o estoque pela diferença · `must` `[T0]` `[V0]`
+
+- **Persona:** quem corrige uma compra pelo lápis da lista (Larissa, biz=4).
+- **Aceite:** Dada uma compra recebida com 1 linha de 2 unidades · Quando a tela de edição salva a mesma
+  linha com 3 unidades · Então continua **1** linha (o mesmo `id`), com quantidade 3, total refeito, e o
+  estoque fica em 3 (soma só a diferença). `purchase_line_id` de linha que não é desta compra é recusado
+  com 422 antes de gravar.
+- **Teste:** [`PurchaseGradeMatrixTest`](../../../../tests/Feature/Purchase/PurchaseGradeMatrixTest.php)
+  (bloco MySQL, transação revertida).
+- **Contrato:** reclamação do cliente + a regra do `createOrUpdatePurchaseLines` (só atualiza a linha
+  que chega com `purchase_line_id`; sem ele cria outra e apaga a antiga). Antes deste conserto o
+  `Edit.tsx` mandava `id` e não mandava `purchase_line_tax_id`, e todo salvar caía em
+  *"Undefined array key"* — nenhuma edição pela tela React chegava ao banco.
+- **Status: 🧪 comportamento · na lane**
 
 ## `[BACKLOG]` — achados sem contrato em 2 fontes, ou sem teste que os defenda
 

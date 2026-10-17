@@ -21,6 +21,7 @@ use App\Variation;
 use Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Spatie\Activitylog\Models\Activity;
 use Yajra\DataTables\Facades\DataTables;
 use App\Events\PurchaseCreatedOrModified;
@@ -525,6 +526,28 @@ class PurchaseController extends Controller
         // Fora do try de propósito pra o 422 não ser engolido pelo catch genérico.
         $this->assertPurchaseVariationsOwnership($request);
 
+        // Validação FORA do try: dentro dele a ValidationException era engolida pelo catch
+        // genérico e virava "algo deu errado" — a tela React nunca recebia o erro do campo.
+        // contact_id escopado ao negócio (Tier 0, ADR 0093): a tela React manda o id cru.
+        $request->validate([
+            'status' => 'required',
+            'contact_id' => ['required', Rule::exists('contacts', 'id')->where('business_id', $request->session()->get('user.business_id'))],
+            'transaction_date' => 'required',
+            'total_before_tax' => 'required',
+            'location_id' => 'required',
+            'final_total' => 'required',
+            'purchases' => 'required|array|min:1',
+            'purchases.*.product_id' => 'required',
+            'purchases.*.variation_id' => 'required',
+            'document' => 'file|max:'.(config('constants.document_size_limit') / 1000),
+        ], [
+            'contact_id.required' => 'Escolha o fornecedor.',
+            'contact_id.exists' => 'Fornecedor não encontrado neste negócio.',
+            'purchases.required' => 'Adicione ao menos um item à compra.',
+            'purchases.*.product_id.required' => 'Há item sem produto do cadastro.',
+            'purchases.*.variation_id.required' => 'Há item sem produto do cadastro.',
+        ]);
+
         try {
             $business_id = $request->session()->get('user.business_id');
 
@@ -539,18 +562,6 @@ class PurchaseController extends Controller
 
             //Reverse exchange rate and save it.
             //$transaction_data['exchange_rate'] = $transaction_data['exchange_rate'];
-
-            //TODO: Check for "Undefined index: total_before_tax" issue
-            //Adding temporary fix by validating
-            $request->validate([
-                'status' => 'required',
-                'contact_id' => 'required',
-                'transaction_date' => 'required',
-                'total_before_tax' => 'required',
-                'location_id' => 'required',
-                'final_total' => 'required',
-                'document' => 'file|max:'.(config('constants.document_size_limit') / 1000),
-            ]);
 
             $user_id = $request->session()->get('user.id');
             $enable_product_editing = $request->session()->get('business.enable_editing_product_from_purchase');
@@ -633,7 +644,10 @@ class PurchaseController extends Controller
             $this->productUtil->createOrUpdatePurchaseLines($transaction, $purchases, $currency_details, $enable_product_editing);
 
             //Add Purchase payments
-            $this->transactionUtil->createOrUpdatePaymentLines($transaction, $request->input('payment'));
+            // A tela React (Purchase/Create.tsx) não envia `payment` — compra nasce a prazo.
+            // Sem o `?? []` o foreach de createOrUpdatePaymentLines recebe null, o warning vira
+            // ErrorException e o catch abaixo devolve "algo deu errado" (UC-PURCRE-10).
+            $this->transactionUtil->createOrUpdatePaymentLines($transaction, $request->input('payment') ?? []);
 
             //update payment status
             $this->transactionUtil->updatePaymentStatus($transaction->id, $transaction->final_total);
@@ -1094,6 +1108,12 @@ class PurchaseController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Tier 0 (ADR 0093) — mesmo gate do store(): variação forjada de outro negócio, e
+        // `purchase_line_id` de linha que não é desta compra (createOrUpdatePurchaseLines faz
+        // PurchaseLine::findOrFail sem escopo). Fora do try pra o 422 não virar mensagem crua.
+        $this->assertPurchaseVariationsOwnership($request);
+        $this->assertPurchaseLinesBelongTo($request, (int) $id);
+
         try {
             $business_id = request()->session()->get('user.business_id');
 
@@ -1481,6 +1501,33 @@ class PurchaseController extends Controller
      * (store() é compartilhado Blade legacy + Inertia + modo grade). No-op pro fluxo
      * manual MVP1 (variation_id null → nada a validar).
      */
+    /**
+     * As linhas enviadas com `purchase_line_id` têm de pertencer a ESTA compra, e a compra ao
+     * negócio da sessão. Sem isso o update() alteraria quantidade/custo de linha alheia.
+     */
+    private function assertPurchaseLinesBelongTo(Request $request, int $transaction_id): void
+    {
+        $line_ids = collect($request->input('purchases', []))
+            ->pluck('purchase_line_id')
+            ->filter(fn ($id) => ! empty($id))
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        if ($line_ids->isEmpty()) {
+            return;
+        }
+
+        $valid_count = PurchaseLine::query()
+            ->join('transactions', 'transactions.id', '=', 'purchase_lines.transaction_id')
+            ->whereIn('purchase_lines.id', $line_ids->all())
+            ->where('purchase_lines.transaction_id', $transaction_id)
+            ->where('transactions.business_id', $request->session()->get('user.business_id'))
+            ->count();
+
+        abort_if($valid_count !== $line_ids->count(), 422, 'Linha de compra inválida para esta compra.');
+    }
+
     private function assertPurchaseVariationsOwnership(Request $request): void
     {
         $business_id = $request->session()->get('user.business_id');
