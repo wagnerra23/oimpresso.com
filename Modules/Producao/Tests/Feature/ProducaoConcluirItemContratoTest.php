@@ -68,7 +68,7 @@ it('a última etapa concluída conclui o item, deixa a OS pronta e congela o cus
     $o = $this->ordem->fresh();
     expect($o->currentStage->key)->toBe('concluida');
     expect($o->pronta_em)->not->toBeNull();
-    // Caminho 2 (à mão): 3,5 h de pessoa × R$ 30,00 = 105,00.
+    // Caminho 2 (à mão): 3,5 h de pessoa × custo-hora 30,00 = 105,00.
     expect((string) $o->custo_real)->toBe('105.0000');
     expect($o->custo_congelado_em)->not->toBeNull();
 });
