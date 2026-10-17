@@ -166,6 +166,17 @@
       }
     },
     {
+      "screen": "Fluxos",
+      "note": "9 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
       "screen": "Funcoes",
       "note": "3 arquivo(s)",
       "cells": {
@@ -574,7 +585,7 @@
     },
     {
       "screen": "Produto",
-      "note": "45 arquivo(s)",
+      "note": "48 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -675,15 +686,15 @@
   "progressPct": 61,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "d645bde5a",
-  "generatedAt": "2026-10-16T14:08:47.328Z",
+  "measuredAgainstSha": "0d075c296",
+  "generatedAt": "2026-10-17T13:07:08.747Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
   },
   "counts": {
-    "screens": 61,
-    "done": 37,
+    "screens": 62,
+    "done": 38,
     "references": 0
   }
 }

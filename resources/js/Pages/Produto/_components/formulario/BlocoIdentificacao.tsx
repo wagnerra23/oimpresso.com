@@ -18,7 +18,7 @@ import type {
   OpcoesProduto,
   TipoProduto,
 } from './tipos';
-import { opcoesDe } from './tipos';
+import { URL_CADASTRO_CLASSICO, opcoesDe, tipoSemEditor } from './tipos';
 
 interface Props {
   modo: ModoFormulario;
@@ -80,6 +80,17 @@ export function BlocoIdentificacao({ modo, data, definir, errors, opcoes, tipoAt
                 Tipo não pode ser alterado após criação.
               </p>
             </>
+          )}
+          {novo && tipoSemEditor(data.type) && (
+            // Sem o editor de grade/composição, o store() cria o variável sem variação nenhuma e o
+            // composto sem itens: o produto não entra em venda, compra, OS nem fabricação.
+            <p role="alert" className="mt-1 text-[12px] text-destructive">
+              Produto {data.type === 'variable' ? 'variável' : 'composto'} ainda não tem editor nesta tela.{' '}
+              {/* Página inteira (não Link do Inertia): com ?classico=1 o create() abre o Blade. */}
+              <a href={URL_CADASTRO_CLASSICO} className="underline">
+                Cadastrar no formulário clássico
+              </a>
+            </p>
           )}
         </div>
         <div>
