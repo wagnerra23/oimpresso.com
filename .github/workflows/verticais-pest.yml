@@ -448,6 +448,10 @@ jobs:
         # cadastro de paciente sobre o contact, bloqueio sem apagar, prontuário carimbado pelo
         # servidor, adendo e append-only pela rota (405) e pelo banco.
         #
+        # ENTRA 2026-10-18 — Fisio/FisioPacienteContatoTest (UC-FPI-05..07): contato apagado não
+        # vira paciente, busca de contato no servidor (só da empresa, sem ficha, até 20) e contato
+        # criado no cadastro pelo ContactUtil, sem duplicar celular na empresa. 98 contra 99.
+        #
         # ENTRAM 2026-10-18 — Fisio/FisioQuestionarioTest e Fisio/PontuacaoQuestionarioTest
         # (US-FISIO-011): questionários de uso livre pontuados no servidor, bloqueados por licença
         # recusados, 404 entre empresas. O Unit é puro (sem DB) e entra aqui para ter veredito.
@@ -542,6 +546,7 @@ jobs:
             Modules/Producao/Tests/Feature/ProducaoFecharTurnoComandoTest.php \
             Modules/Fisio/Tests/Feature/FisioEsquemaContratoTest.php \
             Modules/Fisio/Tests/Feature/FisioPacienteCrudTest.php \
+            Modules/Fisio/Tests/Feature/FisioPacienteContatoTest.php \
             Modules/Fisio/Tests/Feature/FisioProntuarioTest.php \
             Modules/Fisio/Tests/Feature/FisioQuestionarioTest.php \
             Modules/Fisio/Tests/Unit/PontuacaoQuestionarioTest.php \

@@ -130,8 +130,18 @@ it('UC-FPI-06 · devolve no máximo 20 contatos', function () {
 it('UC-FPI-06 · a tela não carrega mais a lista de contatos (a busca é no servidor)', function () {
     F::contato($this->b98, $this->u98->id, 'Qualquer Contato');
 
-    $this->get('/fisio/pacientes')->assertOk()
-        ->assertInertia(fn ($pg) => $pg->component('Fisio/Pacientes/Index', false)->missing('contatos'));
+    // Visita Inertia como o browser faz (X-Inertia + X-Requested-With): props em JSON, com as
+    // deferidas listadas em `deferredProps`. `contatos` não pode estar em nenhum dos dois.
+    $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+    $r = $this->get('/fisio/pacientes', ['X-Inertia' => 'true', 'X-Requested-With' => 'XMLHttpRequest', 'X-Inertia-Version' => (string) $versao]);
+    $r->assertOk();
+
+    $props = array_keys((array) $r->json('props'));
+    $deferidas = collect((array) $r->json('deferredProps'))->flatten()->all();
+    expect($r->json('component'))->toBe('Fisio/Pacientes/Index')
+        ->and($deferidas)->toContain('pacientes')
+        ->and($props)->not->toContain('contatos')
+        ->and($deferidas)->not->toContain('contatos');
 });
 
 it('UC-FPI-06 · busca de contato exige fisio.editar', function () {
