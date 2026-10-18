@@ -21,6 +21,7 @@ use Modules\Fisio\Entities\Concerns\EscopoBibliotecaFisio;
  * @property string $type
  * @property ?string $pose
  * @property array $steps
+ * @property ?array $synonyms
  * @property ?int $default_sets
  * @property ?int $default_reps
  * @property ?int $default_hold_s
@@ -42,6 +43,7 @@ class Exercise extends Model
 
     protected $casts = [
         'steps' => 'array',
+        'synonyms' => 'array',
         'safety_notes' => 'array',
         'contraindication_flags' => 'array',
         'needs_support' => 'boolean',

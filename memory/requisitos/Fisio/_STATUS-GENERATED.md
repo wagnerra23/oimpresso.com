@@ -18,14 +18,16 @@ authority: generated
 |---|---:|
 | US no SPEC | 12 |
 | CU no SDD | 0 |
-| Telas (.tsx) | 0 |
+| Telas (.tsx) | 1 |
 | Telas com `casos.md` | 5 |
 | UC declarados | 48 |
 | UC com teste que os cita | 48 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
-_Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **entregue** tem contrato._
+| Lacuna | O que falta escrever |
+|---|---|
+| `US-FISIO-004` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Biblioteca semeada e revisada pela responsável técnica — **P |
 
 ### Backlog — NÃO é lacuna
 
@@ -39,7 +41,6 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | US-FISIO-001 | `todo` | Trio SDD da F1 e US no SPEC — **P0** |
 | US-FISIO-002 | `todo` | Esqueleto `Modules/Fisio` (ativação por empresa, permissões, menu condicionado)  |
 | US-FISIO-003 | `todo` | Schema, models e append-only de prontuário e ledger do jogo — **P0** |
-| US-FISIO-004 | `todo` | Biblioteca semeada e revisada pela responsável técnica — **P0** |
 | US-FISIO-005 | `todo` | Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0** |
 | US-FISIO-006 | `todo` | Editor de programa, protocolos-modelo e aviso de contraindicação — **P0** |
 | US-FISIO-007 | `todo` | Portal do paciente (link + PIN, consentimentos, check-in, telemonitoramento) — * |

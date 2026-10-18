@@ -32,6 +32,7 @@ Câmera, nota por câmera, prescrição sugerida por IA, ditado por voz, pacotes
 1. **XP:** os testes leem `config('fisio.xp.*')`. Use como padrão os números de `02-f1-constancia.md` (100 XP por dia prescrito: 70 pelos exercícios, 30 pelo registro; teto semanal); os testes sobrescrevem os valores nas fixtures.
 2. **Contraindicação:** os testes esperam 409 na primeira tentativa e gravação com quem confirmou. Acrescente a **justificativa escrita** (coluna `contraindication_justification`) e grave-a no prontuário, como pede a ADR §13.2. É aviso, não bloqueio.
 3. **Busca por texto na biblioteca:** entra na F1 só se [W] aceitar a decisão nº 3 da ADR §14; caso contrário, fica o filtro por região e equipamento.
+   **Decidido — [W] 2026-10-18: a busca por texto ENTRA na F1** (aceita a decisão nº 3 da ADR §14). Implementada na US-FISIO-004 como LIKE em nome e sinônimos, sem motor externo; FULLTEXT, facetas e registro de busca sem resultado seguem na B-07 de `etapas/01-biblioteca.md`.
 4. **WhatsApp:** reusar o módulo `Whatsapp` existente com o driver **`whatsmeow`** (decisão de [W], ADR §13.1). O Fisio nunca chama o whatsmeow direto: passa pelo `ChannelDriverFactory`, para que trocar para `meta_cloud` seja só configuração. Implemente as mitigações da §13.1: um número por clínica, teto por hora com intervalo aleatório, só paciente com consentimento, alerta ao profissional quando o canal cair, e o link `wa.me`/portal copiável como alternativa.
 
 ## Regras duras (Tier 0)

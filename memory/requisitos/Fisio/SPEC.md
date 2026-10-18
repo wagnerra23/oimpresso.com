@@ -49,10 +49,14 @@ related_adrs:
 
 ### US-FISIO-004 · Biblioteca semeada e revisada pela responsável técnica — **P0**
 
-**Implementado em:** _pendente_ — sem seed
+**Implementado em:** `Modules/Fisio/Http/Controllers/BibliotecaController.php` · rotas `fisio.biblioteca.*` (`Modules/Fisio/Routes/web.php`) · tela `Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/Index.tsx` (+ `Index.charter.md`) · seeder `Modules/Fisio/Database/Seeders/FisioBibliotecaSeeder.php` (lista vazia — conteúdo aguarda passos documentados e revisão da Dra. Dejeane) — veredito pela lane Verticais (`FisioBibliotecaTest`)
 
-> owner: — · priority: p0 · estimate: 4h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 4h · status: doing · type: story
 > blocked_by: US-FISIO-003. 38 exercícios com `times_per_day`, avisos de respiração/apoio e `contraindication_flags`. DoD: revisão da Dra. Dejeane anotada no PR. Detalhe: `etapas/01-biblioteca.md`.
+
+**DoD:** a biblioteca global (`business_id` nulo) aparece para toda clínica com o módulo e o exercício próprio só para a dona; exercício próprio grava com a empresa da sessão e `is_custom`; global responde 403 à edição e próprio de outra empresa 404; filtro por região e busca por texto em nome e sinônimos (busca na F1 aceita por [W] em 2026-10-18, ADR 0437 §14 nº 3) — `FisioBibliotecaTest`. **Falta para fechar:** o seed dos 38 exercícios, que depende de passos/dose/contraindicações escritos e da revisão da Dra. Dejeane anotada no PR.
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioBibliotecaTest.php`
 
 ### US-FISIO-005 · Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0**
 
