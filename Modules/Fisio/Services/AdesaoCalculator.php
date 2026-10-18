@@ -38,7 +38,7 @@ final class AdesaoCalculator
         $dias = [];
         foreach ($checkins as $c) {
             $dia = DiaLocal::parse((string) $c['date'])->format('Y-m-d');
-            if ((int) ($c['done_count'] ?? 0) >= 1 && $dia >= $inicio && $dia <= $hoje) {
+            if ($c['done_count'] >= 1 && $dia >= $inicio && $dia <= $hoje) {
                 $dias[$dia] = true;
             }
         }

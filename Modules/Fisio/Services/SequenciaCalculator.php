@@ -54,7 +54,7 @@ final class SequenciaCalculator
             if ($dia > $hoje) {
                 continue;
             }
-            $soma = (int) ($c['done_count'] ?? 0) >= 1;
+            $soma = $c['done_count'] >= 1;
             $dor = $c['pain'] ?? null;
             $pausa = ($dor !== null && (int) $dor >= $limiarDor) || ! empty($c['red_flags'] ?? []);
             if (! $soma && ! $pausa) {
