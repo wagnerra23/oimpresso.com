@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-10-17**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-10-18**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -34,6 +34,7 @@ lente: [construir]
 | Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-09-29 |
 | Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-09-07 |
 | Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-10-07 |
+| Fisio | [BRIEFING](../requisitos/Fisio/BRIEFING.md) | 2026-10-18 |
 | Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-09-15 |
 | Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-09-15 |
 | Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-10-14 |
@@ -148,8 +149,8 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **441** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 382 · superseded: 27 · proposto: 18 · deprecated: 11 · recusado: 2 · rascunho: 1.
+- **442** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 383 · superseded: 27 · proposto: 18 · deprecated: 11 · recusado: 2 · rascunho: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
@@ -438,4 +439,4 @@ lente: [construir]
   - `2026-10-09-session-05`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-10-17 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-10-18 · deriva das fontes canônicas, não as substitui._
