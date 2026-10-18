@@ -9,6 +9,7 @@ contains:
   - "Jogo de constância (ledger de XP append-only, nível e sequência derivados)"
   - "Painel e fila de atenção do profissional"
   - "BibliotecaController"
+  - "BibliotecaFavoritosController — favoritos do profissional na empresa (fisio_exercise_favorites)"
   - "DataController"
   - "InstallController"
   - "PacientesController"
