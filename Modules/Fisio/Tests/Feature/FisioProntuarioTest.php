@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-FISIO-005
 // Cobre UC-FPS-03, UC-FPS-04, UC-FPS-05 (Fisio/Pacientes/Show.casos.md).
 
 use Illuminate\Database\QueryException;

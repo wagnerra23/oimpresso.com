@@ -18,7 +18,7 @@ authority: generated
 |---|---:|
 | US no SPEC | 12 |
 | CU no SDD | 0 |
-| Telas (.tsx) | 0 |
+| Telas (.tsx) | 2 |
 | Telas com `casos.md` | 5 |
 | UC declarados | 48 |
 | UC com teste que os cita | 48 |

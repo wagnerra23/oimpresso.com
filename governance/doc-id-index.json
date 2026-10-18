@@ -3177,6 +3177,7 @@
     "memory/dominio/estoque.md",
     "memory/dominio/financeiro.md",
     "memory/dominio/fiscal-faturamento.md",
+    "memory/dominio/fisio.md",
     "memory/dominio/oficina-auto.md",
     "memory/dominio/producao.md",
     "memory/dominio/vendas.md",
@@ -4466,12 +4467,12 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 4460,
+    "total": 4461,
     "resolved": 2996,
-    "unstamped": 1464,
+    "unstamped": 1465,
     "collisions": 0,
     "by_source": {
-      "unstamped": 1464,
+      "unstamped": 1465,
       "derived-adr": 442,
       "stamped": 1162,
       "derived-handoffs": 619,
