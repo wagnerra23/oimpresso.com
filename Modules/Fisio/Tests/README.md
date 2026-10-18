@@ -1,6 +1,6 @@
 # Suíte TDD — Modules/Fisio · F1 "Constância"
 
-Testes escritos **antes do código** (handoff `HANDOFF-fisio-f1-claude-code.md`, T-02 a T-10). Implemente até ficarem verdes **sem afrouxar asserção**. Se um teste estiver errado, mude o teste num commit próprio e diga por quê no PR.
+Testes escritos **antes do código** (handoff `memory/requisitos/Fisio/HANDOFF-F1.md`, T-02 a T-10). Implemente até ficarem verdes **sem afrouxar asserção**. Se um teste estiver errado, mude o teste num commit próprio e diga por quê no PR.
 
 **Total:** 17 arquivos, 138 blocos `it()`, **166 casos** (com datasets expandidos). 13 de Feature (117 casos) e 4 de Unit (49 casos puros, sem DB).
 

@@ -120,7 +120,11 @@ return new class extends Migration
         if (! Schema::hasTable('fisio_protocols')) {
             Schema::create('fisio_protocols', function (Blueprint $t) {
                 $t->id();
-                $t->unsignedInteger('business_id')->index();
+                // NULO = protocolo-modelo do produto (revisado pela responsável técnica, ADR 0437);
+                // preenchido = protocolo da clínica. A clínica trabalha numa CÓPIA do modelo
+                // (origin_protocol_id), então revisar o modelo global nunca altera a cópia dela.
+                $t->unsignedInteger('business_id')->nullable()->index();
+                $t->unsignedBigInteger('origin_protocol_id')->nullable()->index();
                 $t->string('name', 160);
                 $t->string('region', 40)->nullable();
                 // Modelo da clínica com a lógica toda visível (não é SaMD — ADR 0437 §5, P58).
@@ -128,6 +132,7 @@ return new class extends Migration
                 $t->text('notes')->nullable();
                 $t->timestamps();
                 $t->foreign('business_id')->references('id')->on('business');
+                $t->foreign('origin_protocol_id')->references('id')->on('fisio_protocols')->nullOnDelete();
             });
         }
 

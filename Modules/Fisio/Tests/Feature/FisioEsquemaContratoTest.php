@@ -85,7 +85,7 @@ it('as 11 tabelas existem e todas têm business_id indexado (nulo só na bibliot
     foreach ($tabelas as $t) {
         $col = collect(Schema::getColumns($t))->firstWhere('name', 'business_id');
         expect($col)->not->toBeNull("{$t} sem business_id")
-            ->and($col['nullable'])->toBe($t === 'fisio_exercises', "{$t}.business_id: nulo só na biblioteca global");
+            ->and($col['nullable'])->toBe(in_array($t, ['fisio_exercises', 'fisio_protocols'], true), "{$t}.business_id: nulo só na biblioteca e nos protocolos-modelo globais");
         $indexado = collect(Schema::getIndexes($t))->contains(fn ($i) => ($i['columns'][0] ?? null) === 'business_id');
         expect($indexado)->toBeTrue("{$t}.business_id sem índice");
     }
@@ -124,6 +124,21 @@ it('biblioteca: a sessão vê o global e o próprio, nunca o de outra empresa', 
     $ids = Exercise::query()->whereIn('id', [$global->id, $de98->id, $de99->id])->pluck('id')->map('intval')->sort()->values()->all();
 
     expect($ids)->toBe(collect([$global->id, $de98->id])->sort()->values()->all());
+});
+
+it('protocolo-modelo global: a clínica vê o modelo e o dela; a cópia não muda quando o modelo muda', function () {
+    // SUPERADMIN: semeia o modelo global e o protocolo de outra empresa sem sessão.
+    $modelo = Protocol::withoutGlobalScopes()->create(['business_id' => null, 'name' => 'Fibromialgia', 'region' => 'global', 'items' => [['ordem' => 1]]]);
+    $copia98 = Protocol::withoutGlobalScopes()->create(['business_id' => $this->b98, 'origin_protocol_id' => $modelo->id, 'name' => 'Fibromialgia', 'region' => 'global', 'items' => [['ordem' => 1]]]);
+    $de99 = Protocol::withoutGlobalScopes()->create(['business_id' => $this->b99, 'name' => 'Ombro', 'region' => 'ombro', 'items' => []]);
+
+    F::como($this, $this->u98);
+    $ids = Protocol::query()->whereIn('id', [$modelo->id, $copia98->id, $de99->id])->pluck('id')->map('intval')->sort()->values()->all();
+    expect($ids)->toBe(collect([$modelo->id, $copia98->id])->sort()->values()->all());
+
+    // SUPERADMIN: a responsável técnica revisa o modelo global.
+    Protocol::withoutGlobalScopes()->whereKey($modelo->id)->update(['items' => json_encode([['ordem' => 1], ['ordem' => 2]])]);
+    expect(Protocol::query()->findOrFail($copia98->id)->items)->toBe([['ordem' => 1]]);
 });
 
 it('item do programa herda o business do programa; business divergente é recusado', function () {
