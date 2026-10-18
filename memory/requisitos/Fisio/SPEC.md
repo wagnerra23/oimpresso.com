@@ -56,7 +56,8 @@ related_adrs:
 
 ### US-FISIO-005 · Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0**
 
-**Implementado em:** _pendente_
+**Implementado em:** _parcial_ — `Modules/Fisio/Http/Controllers/PacientesController.php` · `Modules/Fisio/Http/Controllers/ProntuarioController.php` · `Modules/Fisio/Services/ProntuarioRegras.php` · telas `Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Index.tsx` e `Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Show.tsx` (+ charters e casos) — âncora fecha com `verificado@sha7` quando a lane MySQL der o veredito
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioPacienteCrudTest.php` · `Modules/Fisio/Tests/Feature/FisioProntuarioTest.php`
 
 > owner: — · priority: p0 · estimate: 8h · status: todo · type: story
 > blocked_by: US-FISIO-003. Paciente é `contact`; avaliação, evolução e adendo carimbados com nome e CREFITO; marcadores de condição. DoD: `FisioPacienteCrudTest`, `FisioProntuarioTest`.

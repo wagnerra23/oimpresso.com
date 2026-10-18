@@ -2,7 +2,7 @@
 id: requisitos-fisio-briefing
 module: Fisio
 status: em-construcao
-status_nota: "ADR 0437 aceita em 2026-10-18; esqueleto de Modules/Fisio no PR #9536 (US-FISIO-002), sem schema nem telas"
+status_nota: "ADR 0437 aceita em 2026-10-18; esqueleto (US-FISIO-002) e schema (US-FISIO-003) no main; pacientes e prontuário (US-FISIO-005) em PR"
 updated_at: "2026-10-18"
 owner: W
 related_adrs: ["0437-modulo-fisio-vertical-fisioterapia"]
@@ -19,7 +19,7 @@ Vertical de fisioterapia dentro do oimpresso: o profissional monta o programa de
 
 ## Estado atual
 
-Decisão aceita ([ADR 0437](../../decisions/0437-modulo-fisio-vertical-fisioterapia.md), 2026-10-18). O esqueleto de `Modules/Fisio` (pacote, permissões, menu condicionado, instalação) está no PR #9536 (US-FISIO-002), junto com a suíte de testes da F1, escrita antes do código. Ainda não há schema, rotas de negócio nem telas. Responsável técnica do conteúdo clínico: Dra. Dejeane.
+Decisão aceita ([ADR 0437](../../decisions/0437-modulo-fisio-vertical-fisioterapia.md), 2026-10-18). Esqueleto (pacote, permissões, menu condicionado) e schema append-only (11 tabelas `fisio_*`, triggers em `fisio_records` e `fisio_game_ledger`) já estão no main. **Pacientes e prontuário (US-FISIO-005):** lista e ficha do paciente (paciente = contact, perfil clínico 1:1, bloquear em vez de apagar), avaliação com o mínimo da Res. COFFITO 414/2012, evolução e adendo carimbados com nome, CREFITO, data e hora. Biblioteca, programa, portal, jogo, lembrete e painel seguem nas US seguintes. Responsável técnica do conteúdo clínico: Dra. Dejeane.
 
 ## Portas canônicas
 
@@ -28,7 +28,7 @@ Decisão aceita ([ADR 0437](../../decisions/0437-modulo-fisio-vertical-fisiotera
 - **Requisitos:** [`SPEC.md`](SPEC.md)
 - **Execução da F1:** [`HANDOFF-F1.md`](HANDOFF-F1.md)
 - **Especificações por etapa:** [`etapas/`](etapas/)
-- **Telas:** `Modules/Fisio/Resources/js/Pages/Fisio/` + charters/casos ao lado das Pages (a criar)
+- **Telas:** `Modules/Fisio/Resources/js/Pages/Fisio/` + charters/casos ao lado das Pages (Pacientes/Index e Pacientes/Show prontas; demais a criar) · [RUNBOOK](RUNBOOK-pacientes.md)
 
 ## Decisões e riscos que exigem atenção
 
@@ -38,7 +38,7 @@ Decisão aceita ([ADR 0437](../../decisions/0437-modulo-fisio-vertical-fisiotera
 
 ## Próxima ação verificável
 
-- US-FISIO-001 (trio SDD) e US-FISIO-002 (esqueleto) — dono: [W]/Claude Code — evidência: `feature-lint --check` verde e testes de visibilidade passando.
+- US-FISIO-005 — evidência: `FisioPacienteCrudTest` e `FisioProntuarioTest` verdes na lane `Verticais · Pest (MySQL)`. Depois: US-FISIO-004 (biblioteca) e US-FISIO-006 (programa).
 
 ## Regra de manutenção
 

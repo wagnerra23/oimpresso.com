@@ -21,7 +21,8 @@ depends_on: [Whatsapp]
 owner: wagner
 status: em construção
 url_prefixes:
-  - /fisio/* (área do profissional — a criar)
+  - /fisio/pacientes/* (pacientes e prontuário — US-FISIO-005)
+  - /fisio/* (demais telas do profissional — a criar)
   - /fisio/p/{token}/* (portal público do paciente — a criar)
 ---
 
