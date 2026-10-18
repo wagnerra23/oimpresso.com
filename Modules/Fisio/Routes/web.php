@@ -1,5 +1,6 @@
 <?php
 
+use Modules\Fisio\Http\Controllers\BibliotecaController;
 use Modules\Fisio\Http\Controllers\InstallController;
 use Modules\Fisio\Http\Middleware\FisioLiberado;
 
@@ -33,5 +34,10 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
     ->prefix('fisio')
     ->name('fisio.')
     ->group(function () {
-        //
+        // US-FISIO-004 — biblioteca: globais (do oimpresso, ninguém edita) + próprios da clínica.
+        // Só filtros por região e equipamento; busca por texto fica fora (ADR 0437 §14 nº 3).
+        Route::get('biblioteca', [BibliotecaController::class, 'index'])->name('biblioteca.index');
+        Route::post('biblioteca/exercicios', [BibliotecaController::class, 'store'])->name('biblioteca.exercicios.store');
+        Route::put('biblioteca/exercicios/{id}', [BibliotecaController::class, 'update'])->whereNumber('id')->name('biblioteca.exercicios.update');
+        Route::delete('biblioteca/exercicios/{id}', [BibliotecaController::class, 'destroy'])->whereNumber('id')->name('biblioteca.exercicios.destroy');
     });

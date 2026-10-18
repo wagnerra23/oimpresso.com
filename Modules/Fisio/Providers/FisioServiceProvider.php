@@ -12,6 +12,8 @@ class FisioServiceProvider extends ServiceProvider
         $this->registerTranslations();
         // US-FISIO-003: as 11 tabelas fisio_* (ADR 0437). Tabelas novas: sem efeito em empresa sem o pacote.
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
+        // US-FISIO-004: semeia a biblioteca global (idempotente; também roda no Install 1-clique).
+        $this->commands([\Modules\Fisio\Console\SemearBibliotecaCommand::class]);
     }
 
     public function register(): void

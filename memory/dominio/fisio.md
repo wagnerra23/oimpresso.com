@@ -34,6 +34,9 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0437-modulo-fisio-ve
 - **Questionário** (`fisio_questionnaires.instrument`): só os de uso livre (ADR 0437 §8) — `eva`,
   `rmdq` (Roland-Morris), `psfs`, `lefs`, `spadi`. ODI, NDI, KOOS, QuickDASH e WOMAC ficam fora até
   haver licença comercial.
+- **Revisão clínica do exercício global** (`fisio_exercises.review_status`, US-FISIO-004 · etapa 01
+  §3.8): `rascunho` → `em_revisao` → `publicado` → `retirado`. Só `publicado` aparece para a clínica.
+  O seed L0 nasce `em_revisao`, pendente da Dra. Dejeane. Nulo no exercício próprio da clínica.
 - **Status do programa** (`fisio_programs.status`, texto, fora do bloco `json`): `ativo` ou
   `encerrado` — um ativo por paciente.
 
@@ -47,7 +50,8 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0437-modulo-fisio-ve
     "fisio_programs.origin": ["manual", "protocolo"],
     "fisio_programs.pain_alert_mode": ["absoluto", "sobre_basal"],
     "fisio_game_ledger.reason": ["exercicio_concluido", "checkin"],
-    "fisio_questionnaires.instrument": ["eva", "rmdq", "psfs", "lefs", "spadi"]
+    "fisio_questionnaires.instrument": ["eva", "rmdq", "psfs", "lefs", "spadi"],
+    "fisio_exercises.review_status": ["rascunho", "em_revisao", "publicado", "retirado"]
   }
 }
 ```

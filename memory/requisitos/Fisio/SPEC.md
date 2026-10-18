@@ -49,10 +49,13 @@ related_adrs:
 
 ### US-FISIO-004 · Biblioteca semeada e revisada pela responsável técnica — **P0**
 
-**Implementado em:** _pendente_ — sem seed
+**Implementado em:** _parcial_ · `Modules/Fisio/Http/Controllers/BibliotecaController.php` · `Modules/Fisio/Database/Seeders/FisioBibliotecaSeeder.php` · `Modules/Fisio/Database/Seeders/biblioteca-l0.php` · `Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/Index.tsx` — falta a revisão clínica da Dra. Dejeane: os 38 exercícios nascem `em_revisao` e não aparecem para as clínicas até serem publicados
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioBibliotecaTest.php`
 
 > owner: — · priority: p0 · estimate: 4h · status: todo · type: story
 > blocked_by: US-FISIO-003. 38 exercícios com `times_per_day`, avisos de respiração/apoio e `contraindication_flags`. DoD: revisão da Dra. Dejeane anotada no PR. Detalhe: `etapas/01-biblioteca.md`.
+
+**DoD:** `FisioBibliotecaTest` (UC-FBI-01..06) verde na lane MySQL `verticais-pest`: global visível a toda clínica e editável por nenhuma (403), próprio de outra clínica 404, exercício próprio grava o business da sessão, filtros por região e equipamento (busca por texto fora — ADR 0437 §14 nº 3), seed L0 de 38 exercícios `em_revisao` fora da grade até publicar, idempotente sem sobrescrever o revisado. Publicação em produção só depois da revisão da Dra. Dejeane registrada.
 
 ### US-FISIO-005 · Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0**
 

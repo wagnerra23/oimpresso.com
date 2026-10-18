@@ -1,9 +1,11 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-FBI-01..UC-FBI-04 (Fisio/Biblioteca/Index.casos.md).
+// Cobre UC-FBI-01..UC-FBI-06 (Fisio/Biblioteca/Index.casos.md).
+// @covers-us US-FISIO-004
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Modules\Fisio\Database\Seeders\FisioBibliotecaSeeder;
 use Modules\Fisio\Entities\Exercise;
 use Modules\Fisio\Tests\Support\FisioFixtures as F;
 
@@ -85,12 +87,67 @@ it('UC-FBI-03 · global não é editável por business; próprio de outro respon
         ->and(Exercise::withoutGlobalScopes()->find($this->de98->id)->name)->toBe('Renomeado');
 });
 
-it('UC-FBI-04 · filtro por região e busca por nome', function () {
-    $ombro = F::exercicio(null, 'Rotação externa', ['region' => 'ombro']);
+// Busca por texto saiu da F1: a decisão nº 3 da ADR 0437 §14 não foi aceita por [W], e o
+// HANDOFF-F1 (ajuste de conciliação nº 3) manda ficar só com o filtro por região e equipamento.
+// O caso troca a busca `?q=` pelo filtro de equipamento — mesma forma de prova (o filtrado entra,
+// o resto sai), com controle de que o filtro não esvazia nem vaza o próprio de outra clínica.
+it('UC-FBI-04 · filtro por região e por equipamento', function () {
+    $ombro = F::exercicio(null, 'Rotação externa', ['region' => 'ombro', 'equipment' => ['elastico']]);
+    $semNada = F::exercicio(null, 'Sem equipamento', ['equipment' => []]);
+    $elastico99 = F::exercicio($this->b99, 'Elástico da 99', ['equipment' => ['elastico']]);
 
     $porRegiao = fbiIds($this, $this->u98, '?region=ombro');
-    $porBusca = fbiIds($this, $this->u98, '?q=Rota');
+    $porEquipamento = fbiIds($this, $this->u98, '?equipamento=elastico');
+    $semEquipamento = fbiIds($this, $this->u98, '?equipamento=nenhum');
 
     expect($porRegiao)->toContain($ombro->id)->not->toContain($this->global->id)
-        ->and($porBusca)->toContain($ombro->id)->not->toContain($this->de98->id);
+        ->and($porEquipamento)->toContain($ombro->id)->not->toContain($this->de98->id)->not->toContain($semNada->id)->not->toContain($elastico99->id)
+        ->and($semEquipamento)->toContain($semNada->id)->not->toContain($ombro->id);
+});
+
+it('UC-FBI-05 · seed L0: 38 globais pendentes de revisão clínica, fora da grade até publicar', function () {
+    $r = (new FisioBibliotecaSeeder())->semear();
+    // SUPERADMIN: verificação do seed global (business_id nulo), sem sessão.
+    $semeados = Exercise::withoutGlobalScopes()->whereNull('business_id')->whereNotNull('code')->get();
+
+    expect($r['criados'] + $r['atualizados'] + $r['preservados'])->toBe(38)
+        ->and($semeados)->toHaveCount(38)
+        ->and($semeados->pluck('review_status')->unique()->values()->all())->toBe(['em_revisao'])
+        ->and($semeados->every(fn ($e) => $e->is_custom === false && count($e->steps) > 0 && $e->times_per_day >= 1))->toBeTrue();
+
+    // Contraindicações usam só os códigos do paciente (1:1 com condition_flags).
+    $flags = $semeados->flatMap(fn ($e) => (array) $e->contraindication_flags)->unique()->values()->all();
+    expect(array_values(array_diff($flags, (array) config('fisio.condition_flags'))))->toBe([])
+        ->and($flags)->not->toBeEmpty();
+
+    // Pendente da Dra. Dejeane: a clínica NÃO vê o conteúdo em revisão...
+    $exemplo = (int) $semeados->first()->id;
+    expect(fbiIds($this, $this->u98))->not->toContain($exemplo)->toContain($this->global->id);
+
+    // ...e vê depois de publicado (controle: a trava é o estado, não o seed).
+    // SUPERADMIN: a revisão clínica publica o exercício.
+    Exercise::withoutGlobalScopes()->whereKey($exemplo)->update(['review_status' => 'publicado', 'reviewed_by_name' => 'Revisora', 'reviewed_crefito' => F::CREFITO, 'reviewed_at' => now()]);
+    expect(fbiIds($this, $this->u98))->toContain($exemplo);
+
+    // Re-seed é idempotente e não sobrescreve o que já foi revisado.
+    $r2 = (new FisioBibliotecaSeeder())->semear();
+    expect($r2['criados'])->toBe(0)
+        ->and($r2['preservados'])->toBe(1)
+        ->and(Exercise::withoutGlobalScopes()->whereNull('business_id')->whereNotNull('code')->count())->toBe(38) // SUPERADMIN: verificação
+        ->and(Exercise::withoutGlobalScopes()->find($exemplo)->review_status)->toBe('publicado'); // SUPERADMIN: verificação
+});
+
+it('UC-FBI-06 · remover: só o próprio; global 403, de outra clínica 404, em programa 409', function () {
+    $emUso = F::exercicio($this->b98, 'Em programa');
+    F::programa(F::paciente($this->b98, $this->u98->id), [$emUso], $this->u98->id);
+
+    F::como($this, $this->u98);
+    $this->deleteJson("/fisio/biblioteca/exercicios/{$this->global->id}")->assertForbidden();
+    $this->deleteJson("/fisio/biblioteca/exercicios/{$this->de99->id}")->assertNotFound();
+    $this->deleteJson("/fisio/biblioteca/exercicios/{$emUso->id}")->assertStatus(409)->assertJson(['erro' => 'em_uso']);
+    $this->deleteJson("/fisio/biblioteca/exercicios/{$this->de98->id}")->assertNoContent();
+
+    // SUPERADMIN: verificação pós-tentativa — só o próprio livre saiu.
+    expect(Exercise::withoutGlobalScopes()->whereKey([$this->global->id, $this->de99->id, $emUso->id])->count())->toBe(3)
+        ->and(Exercise::withoutGlobalScopes()->find($this->de98->id))->toBeNull();
 });

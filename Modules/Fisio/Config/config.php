@@ -64,6 +64,77 @@ return [
         'lockout_minutos' => 30,
     ],
 
+    /*
+     * Marcadores de condição do paciente (fisio_patients.condition_flags) e, com os MESMOS
+     * códigos, contraindicações do exercício (fisio_exercises.contraindication_flags) — etapa 01
+     * §3.3.1 e B-02 ("os códigos de contraindicação batem 1:1 com os do paciente"). Lista
+     * fechada; o mapa exercício → marcador está pendente da revisão clínica (Dra. Dejeane).
+     */
+    'condition_flags' => [
+        'protese_quadril_posterior',
+        'protese_quadril_anterior',
+        'pos_op_manguito',
+        'pos_lca',
+        'gestante',
+        'osteoporose',
+        'risco_queda',
+        'hipertensao_nao_controlada',
+    ],
+
+    /*
+     * Biblioteca (US-FISIO-004). O conteúdo GLOBAL do oimpresso só aparece para as clínicas
+     * quando `review_status = publicado` (revisão clínica registrada, etapa 01 §3.8). O seed L0
+     * nasce `em_revisao`, pendente da Dra. Dejeane. Ligar `mostrar_em_revisao` só em ambiente de
+     * demonstração/homologação — nunca em produção antes da revisão (ADR 0437 §12).
+     */
+    'biblioteca' => [
+        'mostrar_em_revisao' => (bool) env('FISIO_BIBLIOTECA_MOSTRAR_EM_REVISAO', false),
+
+        /* Facetas (etapa 01 §3.3). Código => rótulo PT-BR; o código é o que vai para o banco. */
+        'regioes' => [
+            'cervical' => 'Cervical',
+            'toracica' => 'Torácica',
+            'lombar' => 'Lombar',
+            'quadril' => 'Quadril',
+            'joelho' => 'Joelho',
+            'tornozelo' => 'Tornozelo e pé',
+            'ombro' => 'Ombro',
+            'cotovelo' => 'Cotovelo',
+            'punho_mao' => 'Punho e mão',
+            'corpo_todo' => 'Corpo todo',
+        ],
+        'tipos' => [
+            'mobilidade' => 'Mobilidade',
+            'alongamento' => 'Alongamento',
+            'fortalecimento' => 'Fortalecimento',
+            'controle_motor' => 'Controle motor',
+            'equilibrio' => 'Equilíbrio',
+            'condicionamento' => 'Condicionamento',
+            'respiracao' => 'Respiração e relaxamento',
+        ],
+        'posicoes' => [
+            'deitado' => 'Deitado de costas',
+            'deitado_lado' => 'Deitado de lado',
+            'de_brucos' => 'De bruços',
+            'quatro_apoios' => 'Quatro apoios',
+            'ajoelhado' => 'Ajoelhado',
+            'sentado' => 'Sentado',
+            'em_pe' => 'Em pé',
+        ],
+        /* Equipamento caseiro brasileiro (lista vazia no exercício = não precisa de nada). */
+        'equipamentos' => [
+            'cadeira' => 'Cadeira',
+            'parede' => 'Parede',
+            'toalha' => 'Toalha',
+            'cabo_vassoura' => 'Cabo de vassoura',
+            'garrafa_pet' => 'Garrafa PET',
+            'degrau' => 'Degrau ou escada',
+            'travesseiro' => 'Travesseiro ou almofada',
+            'elastico' => 'Elástico ou faixa',
+            'bola' => 'Bola',
+        ],
+    ],
+
     /* Dor (0–10) a partir da qual o portal sai do jogo e mostra só a instrução do profissional. */
     'pain_alert_threshold_padrao' => 7,
 

@@ -19,7 +19,9 @@ use Modules\Fisio\Entities\Concerns\EscopoBibliotecaFisio;
  * @property string $name
  * @property string $region
  * @property string $type
+ * @property ?string $code
  * @property ?string $pose
+ * @property ?array $equipment
  * @property array $steps
  * @property ?int $default_sets
  * @property ?int $default_reps
@@ -29,6 +31,10 @@ use Modules\Fisio\Entities\Concerns\EscopoBibliotecaFisio;
  * @property ?array $contraindication_flags
  * @property bool $needs_support
  * @property bool $is_custom
+ * @property ?string $review_status  rascunho|em_revisao|publicado|retirado (só no global; nulo no próprio)
+ * @property ?string $reviewed_by_name
+ * @property ?string $reviewed_crefito
+ * @property ?\Illuminate\Support\Carbon $reviewed_at
  */
 class Exercise extends Model
 {
@@ -42,6 +48,7 @@ class Exercise extends Model
 
     protected $casts = [
         'steps' => 'array',
+        'equipment' => 'array',
         'safety_notes' => 'array',
         'contraindication_flags' => 'array',
         'needs_support' => 'boolean',
@@ -50,6 +57,7 @@ class Exercise extends Model
         'default_reps' => 'integer',
         'default_hold_s' => 'integer',
         'times_per_day' => 'integer',
+        'reviewed_at' => 'datetime',
     ];
 
     protected static function newFactory(): ExerciseFactory
