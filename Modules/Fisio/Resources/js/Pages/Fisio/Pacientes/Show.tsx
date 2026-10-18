@@ -1,7 +1,7 @@
 // @memcofre
 //   tela: /fisio/pacientes/{id}
 //   module: Fisio
-//   stories: US-FISIO-005 (UC-FPS-02..05, UC-FPS-07) · US-FISIO-006 (UC-FPS-06, 08..10) · US-FISIO-011 (UC-FPS-13..16)
+//   stories: US-FISIO-005 (UC-FPS-02..05, UC-FPS-07, UC-FPS-19..20) · US-FISIO-006 (UC-FPS-06, 08..10) · US-FISIO-011 (UC-FPS-13..16)
 //   permissao: fisio.access · editar, assinar e bloquear exigem fisio.editar
 //
 // Ficha do paciente: perfil clínico e prontuário (Res. COFFITO 414/2012). O prontuário só
@@ -24,6 +24,7 @@ import PerfilClinicoCampos, { type PerfilClinico } from '../_components/PerfilCl
 import { limparObjetivos, rotuloCondicao } from '../_components/condicoes';
 import Questionarios, { HistoricoQuestionarios, type Instrumento, type RespostaQuestionario } from '../_components/Questionarios';
 import EditorPrograma, { type ExercicioBiblioteca, type Programa, type ProtocoloModelo } from '../_components/EditorPrograma';
+import ExportarProntuarioPdf from '../_components/ExportarProntuarioPdf';
 
 interface Paciente {
   id: number;
@@ -202,7 +203,12 @@ export default function PacienteShow({ paciente, condicoes, pode_editar, prontua
     <div data-screen-label="Fisio · Ficha do paciente">
       <PageHeader
         title={paciente.nome ?? 'Paciente'}
-        actions={<Button variant="ghost" asChild><Link href="/fisio/pacientes"><ArrowLeft className="size-4" aria-hidden="true" /> Pacientes</Link></Button>}
+        actions={
+          <>
+            <ExportarProntuarioPdf pacienteId={paciente.id} />
+            <Button variant="ghost" asChild><Link href="/fisio/pacientes"><ArrowLeft className="size-4" aria-hidden="true" /> Pacientes</Link></Button>
+          </>
+        }
       />
       <div className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
         <Card>

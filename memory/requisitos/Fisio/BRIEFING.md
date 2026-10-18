@@ -21,6 +21,8 @@ Vertical de fisioterapia dentro do oimpresso: o profissional monta o programa de
 
 Decisão aceita ([ADR 0437](../../decisions/0437-modulo-fisio-vertical-fisioterapia.md), 2026-10-18). O esqueleto de `Modules/Fisio` (pacote, permissões, menu condicionado, instalação) está no PR #9536 (US-FISIO-002), junto com a suíte de testes da F1, escrita antes do código. Ainda não há schema, rotas de negócio nem telas. Responsável técnica do conteúdo clínico: Dra. Dejeane.
 
+Em 2026-10-18 a ficha do paciente ganhou a exportação do prontuário em PDF (UC-FPS-19..20, [`Show.casos.md`](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Show.casos.md)); cada exportação fica no `activity_log`.
+
 ## Portas canônicas
 
 - **Herança geral (componentes/layouts/templates compartilhados):** [`../_Geral/BRIEFING.md`](../_Geral/BRIEFING.md)

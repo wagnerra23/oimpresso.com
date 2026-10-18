@@ -17,6 +17,8 @@ contains:
   - "ProgramasController"
   - "ProtocolosController"
   - "Editor de programa por paciente, protocolos-modelo (aplicar e copiar para a clínica) e aviso de contraindicação que não bloqueia (US-FISIO-006)"
+  - "ProntuarioPdfController"
+  - "Exportação do prontuário em PDF (dompdf, registrada no activity_log) — UC-FPS-19..20"
   - "Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) com pontuação calculada no servidor (US-FISIO-011)"
 not_contains:
   - "Envio de WhatsApp → Modules/Whatsapp (driver whatsmeow via ChannelDriverFactory)"

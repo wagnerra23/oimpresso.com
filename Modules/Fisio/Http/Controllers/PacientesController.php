@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Fisio\Entities\Patient;
@@ -106,6 +107,11 @@ class PacientesController extends Controller
         $paciente = $this->paciente($id);
 
         $dados = $request->validate($this->regrasPerfil());
+
+        // Bloqueado = ficha guardada só para leitura (Lei 13.787/2018; UC-FPS-18).
+        if ($paciente->estaBloqueado()) {
+            throw ValidationException::withMessages(['main_complaint' => 'Paciente bloqueado: o perfil clínico não aceita alteração.']);
+        }
 
         // Só muda o que veio: editar a meta semanal não apaga objetivos nem marcadores.
         $campos = ['sessions_per_week' => (int) $dados['sessions_per_week']];
