@@ -534,6 +534,16 @@ jobs:
 
       # O sumário conta `assertions` POR ARQUIVO — é o discriminador que separa
       # "passou" de "pulou" (LC-13). Aqui só REPORTA.
+      - name: DIAG falhas como anotacao
+        if: always()
+        run: |
+          node -e '
+          const x=require("fs").readFileSync("test-results/pest-verticais-junit.xml","utf8");
+          const re=/<testcase[^>]*name="([^"]*)"[^>]*file="([^"]*)"[^>]*>([\s\S]*?)<\/testcase>/g; let m,n=0;
+          while((m=re.exec(x))&&n<40){ const f=/<(failure|error)[^>]*>([\s\S]*?)<\/(failure|error)>/.exec(m[3]); if(!f) continue; n++;
+            const msg=f[2].replace(/&quot;/g,"\"").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&amp;/g,"&").slice(0,900).replace(/\r?\n/g," | ");
+            console.log("::error title="+m[1].slice(0,120).replace(/[:,]/g," ")+"::"+m[2].split("/").pop()+" :: "+msg); }
+          console.log("falhas:",n);' || true
       - name: Sumario JUnit por arquivo (junit-summary.mjs)
         if: always()
         run: node scripts/tests/junit-summary.mjs test-results/pest-verticais-junit.xml --out test-results/pest-verticais-junit-summary.json || true
