@@ -31,6 +31,9 @@ return new class extends Migration
         'fisio_game_ledger' => null,
     ];
 
+    /** Razões aceitas no ledger do jogo (ADR 0437 §6). Fonte única do enum e do trigger. */
+    private const LEDGER_REASONS = ['exercicio_concluido', 'checkin'];
+
     public function up(): void
     {
         if (! Schema::hasTable('fisio_patients')) {
@@ -209,7 +212,7 @@ return new class extends Migration
                 $t->foreignId('patient_id')->constrained('fisio_patients');
                 $t->date('date');
                 // Enum fechado: insert fora dele falha. A etapa 02 propõe mais razões — decisão da US-FISIO-008.
-                $t->enum('reason', ['exercicio_concluido', 'checkin']);
+                $t->enum('reason', ['exercicio_concluido', 'checkin']); // manter igual a LEDGER_REASONS (o dominio:check lê o literal)
                 $t->unsignedSmallInteger('xp');
                 $t->timestamp('created_at')->useCurrent();
                 $t->index(['business_id', 'patient_id', 'date'], 'fisio_ledger_biz_pac_date_idx');
@@ -262,6 +265,15 @@ return new class extends Migration
                     DB::unprepared("CREATE TRIGGER {$nome} BEFORE {$op} ON {$tabela} FOR EACH ROW {$corpo}");
                 }
             }
+
+            // O banco roda com `strict => false` (config/database.php): valor fora do ENUM vira ''
+            // em vez de erro. O trigger fecha o enum de verdade — razão desconhecida é recusada.
+            $lista = "'".implode("','", self::LEDGER_REASONS)."'";
+            DB::unprepared('DROP TRIGGER IF EXISTS trg_fisio_game_ledger_reason');
+            DB::unprepared("CREATE TRIGGER trg_fisio_game_ledger_reason BEFORE INSERT ON fisio_game_ledger FOR EACH ROW
+                BEGIN IF NEW.reason IS NULL OR NEW.reason NOT IN ({$lista}) THEN
+                    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'fisio_game_ledger: razão fora do enum fechado (ADR 0437 §6).';
+                END IF; END");
         }
     }
 
@@ -272,6 +284,7 @@ return new class extends Migration
                 DB::unprepared("DROP TRIGGER IF EXISTS trg_{$tabela}_no_update");
                 DB::unprepared("DROP TRIGGER IF EXISTS trg_{$tabela}_no_delete");
             }
+            DB::unprepared('DROP TRIGGER IF EXISTS trg_fisio_game_ledger_reason');
         }
         foreach ([
             'fisio_portal_tokens', 'fisio_questionnaires', 'fisio_game_ledger', 'fisio_checkins',
