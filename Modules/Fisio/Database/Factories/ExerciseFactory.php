@@ -23,7 +23,7 @@ class ExerciseFactory extends Factory
             'name' => 'Exercício '.$this->faker->unique()->numerify('####'),
             'region' => $this->faker->randomElement(['lombar', 'cervical', 'ombro', 'joelho', 'quadril', 'tornozelo']),
             'type' => $this->faker->randomElement(['fortalecimento', 'alongamento', 'mobilidade', 'equilibrio']),
-            'pose' => $this->faker->randomElement(['deitado', 'sentado', 'em_pe']),
+            'pose' => $this->faker->randomElement(['deitado_costas', 'sentado', 'em_pe']),
             'steps' => ['Posicione-se', 'Execute o movimento devagar', 'Volte à posição inicial'],
             'default_sets' => 3,
             'default_reps' => 10,
