@@ -56,7 +56,7 @@ Câmera, nota por câmera, prescrição sugerida por IA, ditado por voz, pacotes
 | `fisio_consents` | business_id, patient_id, purpose, version, granted_at, revoked_at, ip, channel |
 | `fisio_exercises` | business_id (nulo = global), name, region, type, pose, steps (json), default_sets, default_reps, default_hold_s, times_per_day, safety_notes (json), contraindication_flags (json), needs_support (bool), is_custom |
 | `fisio_protocols` | business_id, name, region, items (json), notes — modelo da clínica, lógica visível |
-| `fisio_programs` | business_id, patient_id, phase, status, origin (`manual`/`protocolo`), stop_instruction (texto do profissional), pain_alert_threshold, created_by, starts_at |
+| `fisio_programs` | business_id, patient_id, phase, status, origin (`manual`/`protocolo`), stop_instruction (texto do profissional), pain_alert_threshold, pain_alert_mode (`absoluto`/`sobre_basal`, padrão `sobre_basal` em protocolos de dor crônica como fibromialgia), crisis_items (json: versão de crise escrita pelo profissional), created_by, starts_at |
 | `fisio_program_items` | program_id, exercise_id, sets, reps, hold_s, times_per_day, notes, position |
 | `fisio_checkins` | business_id, patient_id, program_id, date, done_item_ids (json), pain (0–10), effort, note, red_flags (json) — **único por paciente + data** |
 | `fisio_game_ledger` | business_id, patient_id, date, reason, xp — razão é enum fechado; sem UPDATE |

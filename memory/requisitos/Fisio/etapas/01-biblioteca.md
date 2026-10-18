@@ -156,6 +156,9 @@ A ADR só traz os códigos de condição, sem o detalhe clínico. Abaixo está o
 | 8 | Tendinopatia de Aquiles (porção média) | JOSPT, 2ª revisão dez/2024 | atual [25] |
 | 9 | Dor no calcanhar / fasciopatia plantar | JOSPT, 2ª revisão dez/2023 | atual [25] |
 | 10 | Epicondilalgia lateral | JOSPT, dez/2022 | atual [25] |
+| 11 | Fibromialgia | EULAR 2017 (exercício: recomendação forte), SBR 2026, Cochrane 2017 (aeróbico) e 2013 (resistido) — detalhe em [`../protocolos/11-fibromialgia.md`](../protocolos/11-fibromialgia.md) | atual |
+
+**Aprovação:** os protocolos 1–11 foram aprovados pelo produto por [W] em 2026-10-18. Isso libera a construção (B-09) e o seed em `rascunho`; a publicação de cada um continua dependendo da revisão clínica da Dra. Dejeane (C-04), registrada no PR.
 
 **Onda 2 (L2, mais risco, depende do protocolo do cirurgião):** pós-artroplastia total de joelho (APTA, revisão 2026) [29][30], pós-reconstrução de LCA / estabilidade do joelho (JOSPT 2017) [25], capsulite adesiva (2013, revisão em edição) [25], fratura distal do rádio (JOSPT 2024) [25], fratura de quadril no idoso (2021) [25]. Os pós-operatórios trazem um campo obrigatório "restrições do cirurgião", preenchido pelo profissional.
 
