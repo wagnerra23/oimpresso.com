@@ -587,7 +587,7 @@ lifecycle: ativo
 | `agent-pr-outcomes.mjs` | agente, ci, script | 🟢 só lê | test | `memory/requisitos/Brief/BRIEFING.md` +8 | EVALS DE OUTCOME dos PRs do agente (DORA-style). |
 | `agents-md-staleness.mjs` | ci, script | 🟢 só lê | — | `memory/decisions/proposals/2026-07-23-sentinelas-staleness-prontidao-required.md` +3 | sentinela: o AGENTS.md ficou atrás do CLAUDE.md? |
 | `anchor-content-check.mjs` | agente, ci, script | 🟢 só lê | test | `memory/decisions/0327-anchor-content-required-emenda-0314.md` +32 | sentinela de CONTEÚDO da âncora de design. |
-| `anchor-lint.mjs` | agente, ci, script | 🟢 só lê | selftest | `memory/decisions/0303-anchor-lint-wired-testado-sa-a2-bis.md` +131 | parser da gramática anchor spec↔código (ADR 0273 · passo SA-A2 |
+| `anchor-lint.mjs` | agente, ci, script | 🟢 só lê | selftest | `memory/decisions/0303-anchor-lint-wired-testado-sa-a2-bis.md` +132 | parser da gramática anchor spec↔código (ADR 0273 · passo SA-A2 |
 | `ancora-codigo-sync.mjs` | ci, script | 🔴 disco | — | `memory/requisitos/_DesignSystem/SDD-TEMPLATE.md` +5 | AUTO-SYNC da âncora doc→CÓDIGO (o mecanismo do Swimm, traduzido). |
 | `baseline-folga.mjs` | ci | 🔴 disco | — | (só sessão/handoff · 1) | trava o ganho que ninguém lembrou de travar (auto-APERTO de baseline). |
 | `baseline-tamper-guard.mjs` | ci, script | 🟢 só lê | selftest | `memory/decisions/0331-anti-duplicacao-work-claim-gate.md` +48 | anti-grandfather (Gap 2 do blueprint SDD · ADR 0256/0258). |
@@ -608,14 +608,14 @@ lifecycle: ativo
 | `criar-tela.mjs` | agente, ci, npm, script | 🔴 disco | — | `memory/decisions/0351-sdd-from-source.md` +32 | GERADOR de tela que NASCE do Padrão de Tela (Constituição UI v2 · UI-0013). |
 | `cron-watchdog.mjs` | agente, ci | 🔴 disco | — | `memory/decisions/0391-regime-de-evolucao-por-loops-blade-fora.md` +26 | G6: heartbeat dos crons de governança (generaliza o auto-canário |
 | `deadlink-gate.mjs` | ci, script | 🔴 disco | test | `memory/decisions/0347-deadlink-gate-required-emenda-0314.md` +55 | catraca de integridade referencial doc↔doc (links markdown mortos). |
-| `design-code-map-check.mjs` | agente, ci, script | 🔴 disco | bite-log + test | `memory/requisitos/_Governanca/GRADE-MAPAS-VINCULOS-trava-frescor.md` +64 | sentinela da ponte design↔código PERSISTENTE (<tela>.map.json). |
+| `design-code-map-check.mjs` | agente, ci, script | 🔴 disco | bite-log + test | `memory/requisitos/_Governanca/GRADE-MAPAS-VINCULOS-trava-frescor.md` +65 | sentinela da ponte design↔código PERSISTENTE (<tela>.map.json). |
 | `design-gate-bites.mjs` | agente, ci | 🔴 disco | — | `memory/decisions/0410-ratificacao-zero-baseline-no-funil-design.md` +13 | o BITE-LOG dos gates de design (DR-2a da ADR 0336). |
 | `design-return-check.mjs` | ci, script | 🔴 disco | selftest + test | (só sessão/handoff · 3) | Verifica o retorno Code -> Design definido em memory/reference/prototipo-ui/PROTOCOL.md §10.2. |
 | `detect-handoff.mjs` | ci, npm | 🟢 só lê | — | `memory/requisitos/_DesignSystem/INVENTARIO-ANCORAS-2026-09-09.md` +3 | DETECTOR-EM-LOTE do G4 ("paste zip → 1 tarefa por tela"). |
 | `detect-ui-drift.mjs` | ci, npm, script | 🟢 só lê | test | `memory/decisions/0348-briefing-coverage-required-emenda-0314.md` +6 | M1: detector de MUDANÇA DE UI NÃO-DECLARADA (eixo de AUTORIZAÇÃO). |
 | `doc-auto-relink.mjs` | ci, npm | 🔴 disco | — | `memory/requisitos/Infra/RUNBOOK-doc-auto-relink-orfaos.md` +9 | AUTO-RELIGADOR: dado um doc que MOVEU (A→B), religa os links. |
 | `doc-freshness-score.mjs` | ci, script | 🟢 só lê | — | `memory/requisitos/Governance/SPEC.md` +10 | RADAR de frescor POR DOC (score 0-100 · régua Dosu). |
-| `doc-id-index.mjs` | agente, ci, script | 🔴 disco | — | `memory/decisions/0380-errata-0292-distiller-freshness-health-check-advisory.md` +74 | GERADOR determinístico do índice `id → path atual` do corpus memory/. |
+| `doc-id-index.mjs` | agente, ci, script | 🔴 disco | — | `memory/decisions/0380-errata-0292-distiller-freshness-health-check-advisory.md` +75 | GERADOR determinístico do índice `id → path atual` do corpus memory/. |
 | `doc-id-stamp.mjs` | ci, npm | 🔴 disco | — | `memory/decisions/0380-errata-0292-distiller-freshness-health-check-advisory.md` +5 | STAMPER: adiciona `id:` no frontmatter dos docs SEM id. |
 | `document-authority.mjs` | agente, ci, script | 🟢 só lê | selftest | (só sessão/handoff · 1) | identidade documental compartilhada pelo hook e pelo CI. |
 | `document-relocation-adversary.mjs` | agente, ci, npm, script | 🟢 só lê | — | `memory/proibicoes.md` +4 | Validador read-only de planos de realocacao documental. |
@@ -628,7 +628,7 @@ lifecycle: ativo
 | `dtcg-equivalence.mjs` | ci, npm | 🟢 só lê | test | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +13 | onda DTCG (ancora: ADR 0239 DS git SSOT + ADR 0249 DS v6 + |
 | `dup-detector.mjs` | agente, ci | 🟢 só lê | test | `memory/decisions/0331-anti-duplicacao-work-claim-gate.md` +34 | L3 (keystone) da trava anti-duplicação de trabalho entre sessões |
 | `fact-anchor.mjs` | script | 🟢 só lê | test | `memory/decisions/0349-fact-anchor-fail-emenda-0314.md` +15 | lógica PURA do Check T de memory-health.mjs (fact-anchor). |
-| `feature-lint.mjs` | ci, npm, script | 🔴 disco | test | `memory/decisions/0368-funil-admissao-feature-pesquisa-propoe-w-admite.md` +26 | valida o TRIO de feature (requirements.md + plan.md + tasks.md) em |
+| `feature-lint.mjs` | ci, npm, script | 🔴 disco | test | `memory/decisions/0368-funil-admissao-feature-pesquisa-propoe-w-admite.md` +27 | valida o TRIO de feature (requirements.md + plan.md + tasks.md) em |
 | `fiscal-debitos-derive.mjs` | ci | 🔴 disco | — | — | - |
 | `flip-required.mjs` | — | 🔴 disco | — | — | promove UM check advisory a required na branch protection de `main`. |
 | `fluxo-morde.mjs` | ci, script | 🔴 disco | — | `memory/licoes-rejeitadas.md` | EXERCÍCIO DE FOGO DO FLUXO: o método detém um defeito, ou só o comenta? |
@@ -654,7 +654,7 @@ lifecycle: ativo
 | `maquinas-inventario.mjs` | agente, ci, script | 🔴 disco | test | `memory/proibicoes.md` +21 | DERIVA um índice único e legível de TODAS as "máquinas" |
 | `mcp-drift-sentinel.mjs` | ci, script | 🔴 disco | — | `memory/decisions/proposals/2026-07-23-sentinelas-staleness-prontidao-required.md` +7 | sentinela EXTERNA de drift do MCP server (ADR 0256 + 0062). |
 | `memory-health.mjs` | ci, script | 🔴 disco | selftest | `memory/decisions/0317-maquina-revisao-adr-quando-rever-gatilhos.md` +120 | sentinela de saúde da base de conhecimento (ADR 0256, Onda 1). |
-| `module-surface.mjs` | agente, ci, npm, script | 🔴 disco | test | `memory/decisions/0370-module-surface-catalog-graph-required-emenda-0314.md` +113 | GERADOR determinístico da "Superfície de código" de um módulo. |
+| `module-surface.mjs` | agente, ci, npm, script | 🔴 disco | test | `memory/decisions/0370-module-surface-catalog-graph-required-emenda-0314.md` +114 | GERADOR determinístico da "Superfície de código" de um módulo. |
 | `negocio-vs-governanca-ratio.mjs` | agente, ci | 🟢 só lê | test | `memory/decisions/0334-modelo-3-camadas-invariante-anti-atrofia-inteligencia-negocio.md` +11 | o alarme anti-atrofia da inteligência de negócio. |
 | `next-id.mjs` | agente, script | 🟢 só lê | — | `memory/decisions/0304-alocacao-numero-ciente-trabalho-em-voo.md` +11 | aloca o próximo número de ADR/US **ciente de trabalho em voo** (ADR 0304). |
 | `normalize-adr-frontmatter.mjs` | npm | 🔴 disco | — | `memory/decisions/0257-adr-status-lifecycle-kind-modelo-canonico.md` +1 | normaliza status/lifecycle de ADR pro enum canônico. |
@@ -665,7 +665,7 @@ lifecycle: ativo
 | `permissao-renomeada-lint.mjs` | ci | 🟢 só lê | — | — | barra o nome VELHO de permissão renomeada em linha NOVA. |
 | `permission-drift.mjs` | ci | 🟢 só lê | test | `memory/requisitos/Governance/SPEC.md` +9 | mede o drift entre permissão DECLARADA e permissão APLICADA. |
 | `plan-health.mjs` | ci, script | 🟢 só lê | — | `memory/decisions/0294-metodo-dual-track-shapeup-catraca.md` +19 | sentinela de PLANOS órfãos/podres (ADR 0294 Onda 1 · catraca da |
-| `plans-index.mjs` | agente, ci | 🔴 disco | test | `memory/decisions/0294-metodo-dual-track-shapeup-catraca.md` +54 | GERADOR determinístico do Índice de Planos Vivos (ADR 0294 + 0256). |
+| `plans-index.mjs` | agente, ci | 🔴 disco | test | `memory/decisions/0294-metodo-dual-track-shapeup-catraca.md` +55 | GERADOR determinístico do Índice de Planos Vivos (ADR 0294 + 0256). |
 | `protection-drift.mjs` | agente, ci, script | 🔴 disco | selftest | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +49 | drift de branch protection + watchdog de staleness (GT-G4, |
 | `pt-conformance.mjs` | ci, npm, script | 🟢 só lê | bite-log | `memory/decisions/0336-gates-design-promocao-por-mordida-provada-emenda-0314.md` +25 | VERIFICA que uma tela que DECLARA "herda PT-0X" tem de fato a |
 | `rag-status-vocab-check.mjs` | ci | 🟢 só lê | — | `memory/licoes-rejeitadas.md` +1 | detecta documento que ENTRA no índice do RAG mas |
@@ -678,7 +678,7 @@ lifecycle: ativo
 | `reguas-ledger-check.mjs` | ci | 🔴 disco | — | `memory/proibicoes.md` +4 | o ledger de réguas contradiz a si mesmo? |
 | `replica-inconsistencias.mjs` | ci, script | 🔴 disco | — | `memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md` +8 | LISTA DE INCONSISTÊNCIAS pós-aplicação do protótipo (ADR 0388). |
 | `required-always-run.mjs` | ci, script | 🔴 disco | — | `memory/decisions/0395-pageheader-ratchet-required-emenda-0314.md` +16 | todo context REQUIRED nasce em TODO PR? |
-| `requisitos-status.mjs` | agente, ci, npm, script | 🔴 disco | — | `memory/decisions/0364-trio-de-tela-mora-em-memory-emenda-0264.md` +115 | a CADEIA DE RASTREABILIDADE de um módulo, derivada e com STATUS. |
+| `requisitos-status.mjs` | agente, ci, npm, script | 🔴 disco | — | `memory/decisions/0364-trio-de-tela-mora-em-memory-emenda-0264.md` +116 | a CADEIA DE RASTREABILIDADE de um módulo, derivada e com STATUS. |
 | `resolver-reclamacao.mjs` | ci, npm | 🟢 só lê | — | `memory/decisions/proposals/2026-07-21-resolvedor-reclamacao-cadeia.md` +4 | resolvedor reclamação → cadeia de responsabilidade. |
 | `revisar-fluxos.mjs` | ci | 🟢 só lê | test | `memory/reference/FLUXO-MAQUINAS.md` +2 | revisão derivada dos fluxos e das máquinas que eles citam. |
 | `sdd-flow.mjs` | npm | 🟢 só lê | test | (só sessão/handoff · 1) | recibo estrutural da cadeia: |
@@ -692,7 +692,7 @@ lifecycle: ativo
 | `skills-index-generate.mjs` | agente, ci, script | 🔴 disco | test | `memory/decisions/proposals/2026-08-03-incorporar-boost-guidelines-skills.md` +6 | GERADOR determinístico do índice de skills (US-GOV-052 P31). |
 | `spec-lib-staleness.mjs` | ci | 🟢 só lê | test | `memory/decisions/proposals/2026-07-23-sentinelas-staleness-prontidao-required.md` | sentinela: o DOC que descreve uma lib externa ficou |
 | `system-map.mjs` | agente, ci, script | 🔴 disco | — | `memory/proibicoes.md` +52 | a MATRIZ gerada do painel do sistema oimpresso. |
-| `tasks-index-generate.mjs` | agente, ci, script | 🔴 disco | — | `memory/requisitos/_BACKLOG-GENERATED.md` +10 | GERADOR determinístico de BACKLOG + CHANGELOG indexados. |
+| `tasks-index-generate.mjs` | agente, ci, script | 🔴 disco | — | `memory/requisitos/_BACKLOG-GENERATED.md` +11 | GERADOR determinístico de BACKLOG + CHANGELOG indexados. |
 | `tema-owner.mjs` | agente | 🟢 só lê | test | `memory/proibicoes.md` +5 | detector ADVISORY de DONO-DE-TEMA por sobreposição de ENTIDADE. |
 | `test-lane-coverage.mjs` | agente, ci, script | 🔴 disco | — | `memory/proibicoes.md` +20 | quais testes EXISTEM × quais o CI realmente EXECUTA. |
 | `uc-sem-lane.mjs` | ci, script | 🟢 só lê | — | (só sessão/handoff · 2) | UC com o id no TÍTULO de um teste que LANE NENHUMA executa. |
@@ -721,7 +721,7 @@ lifecycle: ativo
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
-| `validate.mjs` | agente, ci, script | 🔴 disco | — | `memory/proibicoes.md` +33 | valida frontmatter de memory/** contra os schemas canônicos. |
+| `validate.mjs` | agente, ci, script | 🔴 disco | — | `memory/proibicoes.md` +34 | valida frontmatter de memory/** contra os schemas canônicos. |
 
 ### 5.16 `scripts/pr-critic/` — 4
 
