@@ -49,7 +49,7 @@ related_adrs:
 
 ### US-FISIO-004 · Biblioteca semeada e revisada pela responsável técnica — **P0**
 
-**Implementado em:** `Modules/Fisio/Http/Controllers/BibliotecaController.php` · rotas `fisio.biblioteca.*` (`Modules/Fisio/Routes/web.php`) · tela `Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/Index.tsx` (+ `Index.charter.md`) · seeder `Modules/Fisio/Database/Seeders/FisioBibliotecaSeeder.php` (lista vazia — conteúdo aguarda passos documentados e revisão da Dra. Dejeane) — veredito pela lane Verticais (`FisioBibliotecaTest`)
+**Implementado em:** _pendente_ — parcial: `Modules/Fisio/Http/Controllers/BibliotecaController.php`, rotas `fisio.biblioteca.*` e tela `Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/Index.tsx` existem; o seed `Modules/Fisio/Database/Seeders/FisioBibliotecaSeeder.php` está vazio (conteúdo aguarda passos documentados e revisão da Dra. Dejeane). A âncora fecha com o seed.
 
 > owner: — · priority: p0 · estimate: 4h · status: doing · type: story
 > blocked_by: US-FISIO-003. 38 exercícios com `times_per_day`, avisos de respiração/apoio e `contraindication_flags`. DoD: revisão da Dra. Dejeane anotada no PR. Detalhe: `etapas/01-biblioteca.md`.
