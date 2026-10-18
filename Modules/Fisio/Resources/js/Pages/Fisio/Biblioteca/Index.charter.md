@@ -15,7 +15,7 @@ alcance:
   menu_hook: Modules/Fisio/Http/Controllers/DataController.php::modifyAdminMenu
   pacote: fisio_module
 tier: B
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — /fisio/biblioteca (DRAFT · biblioteca de exercícios)
