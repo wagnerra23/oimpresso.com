@@ -13,6 +13,8 @@ contains:
   - "InstallController"
   - "PacientesController"
   - "RegistrosController"
+  - "ResponsavelController"
+  - "Fisioterapeuta responsável pelo paciente e transferência registrada no activity_log"
   - "QuestionariosController"
   - "Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) com pontuação calculada no servidor (US-FISIO-011)"
 not_contains:

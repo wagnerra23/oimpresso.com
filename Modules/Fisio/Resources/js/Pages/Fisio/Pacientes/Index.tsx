@@ -22,6 +22,8 @@ import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetT
 import { Skeleton } from '@/Components/ui/skeleton';
 import PerfilClinicoCampos, { type PerfilClinico } from '../_components/PerfilClinicoCampos';
 import { limparObjetivos, rotuloCondicao } from '../_components/condicoes';
+import FiltroResponsavel from '../_components/FiltroResponsavel';
+import type { Profissional } from '../_components/ResponsavelPaciente';
 
 interface Paciente {
   id: number;
@@ -30,14 +32,16 @@ interface Paciente {
   main_complaint: string | null;
   sessions_per_week: number;
   condition_flags: string[];
+  responsavel: { id: number; nome: string } | null;
 }
 interface Contato { id: number; nome: string; telefone: string | null }
 interface Props {
-  filtros: { q: string };
+  filtros: { q: string; responsavel: string };
   condicoes: string[];
   pode_editar: boolean;
   pacientes?: Paciente[];
   contatos?: Contato[];
+  profissionais?: Profissional[];
 }
 
 function Lista({ pacientes, q }: { pacientes: Paciente[]; q: string }) {
@@ -58,6 +62,7 @@ function Lista({ pacientes, q }: { pacientes: Paciente[]; q: string }) {
               <span className="block truncate text-xs text-muted-foreground">{p.main_complaint || 'Sem queixa registrada'}</span>
             </div>
             {p.condition_flags.map((c) => <Badge key={c} variant="outline">{rotuloCondicao(c)}</Badge>)}
+            <span className="text-xs text-muted-foreground" data-contract="fisio-paciente-responsavel">Responsável: {p.responsavel?.nome ?? 'sem responsável'}</span>
             <span className="text-xs text-muted-foreground">{p.sessions_per_week}× por semana</span>
           </Link>
         </li>
@@ -114,12 +119,14 @@ function NovoPaciente({ contatos, condicoes, onClose }: { contatos: Contato[]; c
   );
 }
 
-export default function PacientesIndex({ filtros, condicoes, pode_editar, pacientes, contatos }: Props) {
+export default function PacientesIndex({ filtros, condicoes, pode_editar, pacientes, contatos, profissionais }: Props) {
   const [q, setQ] = useState(filtros.q);
   const [criando, setCriando] = useState(false);
+  const visitar = (busca: string, responsavel: string) =>
+    router.get('/fisio/pacientes', { ...(busca ? { q: busca } : {}), ...(responsavel ? { responsavel } : {}) }, { preserveState: true, replace: true });
   const buscar = (e: FormEvent) => {
     e.preventDefault();
-    router.get('/fisio/pacientes', q ? { q } : {}, { preserveState: true, replace: true });
+    visitar(q, filtros.responsavel);
   };
 
   return (
@@ -133,6 +140,9 @@ export default function PacientesIndex({ filtros, condicoes, pode_editar, pacien
           <Input aria-label="Buscar paciente pelo nome" placeholder="Buscar pelo nome" value={q} onChange={(e) => setQ(e.target.value)} />
           <Button type="submit" variant="outline"><Search className="size-4" aria-hidden="true" /> Buscar</Button>
         </form>
+        <Deferred data="profissionais" fallback={null}>
+          <FiltroResponsavel valor={filtros.responsavel} profissionais={profissionais ?? []} onChange={(v) => visitar(filtros.q, v)} />
+        </Deferred>
         <Card>
           <CardContent className="p-4">
             <Deferred data="pacientes" fallback={<Skeleton className="h-40 w-full" />}>

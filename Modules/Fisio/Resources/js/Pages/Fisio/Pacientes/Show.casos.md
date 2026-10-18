@@ -38,6 +38,9 @@ related_us: []
 | UC-FPS-16 | histórico de questionários na ficha, deferido, só do paciente e da clínica | should | `FisioQuestionarioTest` |
 | UC-FPS-17 | paciente bloqueado: prontuário só aceita adendo | must | `FisioProntuarioTest` |
 | UC-FPS-18 | paciente bloqueado: perfil clínico não aceita edição | must | `FisioPacienteCrudTest` |
+| UC-FPS-30 | quem cadastra é o responsável; a ficha mostra o responsável | should | `FisioPacienteResponsavelTest` |
+| UC-FPS-31 | transferir o paciente fica registrado (quem, de quem, para quem, quando) | must | `FisioPacienteResponsavelTest` |
+| UC-FPS-32 | transferir exige `fisio.editar`; destino só da mesma empresa com acesso ao Fisio | must | `FisioPacienteResponsavelTest` |
 
 ---
 
@@ -142,6 +145,25 @@ related_us: []
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioPacienteCrudTest.php`
 - **Status: 🧪**
 
+## UC-FPS-30 · Responsável desde o cadastro · `should`
+- **Persona:** fisioterapeuta que cadastra o paciente.
+- **Aceite:** Quando um paciente é cadastrado · Então o responsável é o usuário logado; `responsible_user_id` vindo do corpo é ignorado. A ficha mostra o nome do responsável. Pacientes cadastrados antes da coluna existir ficam "sem responsável" até alguém transferir — o banco não guardava quem cadastrou, então nada é inventado.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPacienteResponsavelTest.php`
+- **Status: 🧪**
+
+## UC-FPS-31 · Transferir o paciente, com registro · `must`
+- **Persona:** fisioterapeuta que passa o paciente a um colega da clínica.
+- **Aceite:** Quando transfere para outro profissional da empresa · Então o responsável muda e nasce uma linha no `activity_log` com quem fez, de quem, para quem e a hora do servidor, no `business_id` do paciente. Transferir de novo acrescenta outra linha; a anterior não muda. A ficha mostra o histórico, mais recente primeiro.
+- **Regressão que defende:** troca de responsável sem rastro.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPacienteResponsavelTest.php`
+- **Status: 🧪**
+
+## UC-FPS-32 · Quem transfere e para quem `[T0]` · `must`
+- **Persona:** invariante multi-tenant (ADR 0093) e de permissão.
+- **Aceite:** Sem `fisio.editar` responde 403 · destino de outra empresa, sem acesso ao Fisio, inativo ou inexistente responde 422 em `para_user_id` · paciente de outra empresa responde 404 · paciente bloqueado responde 422. Em todos, o responsável e o histórico ficam como estavam.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPacienteResponsavelTest.php`
+- **Status: 🧪**
+
 ---
 
 ## Backlog (prosa honesta — vira UC quando ganhar teste que o cite)
@@ -151,6 +173,7 @@ related_us: []
 - `[BACKLOG]` Enunciados literais da versão brasileira validada de EVA, RMDQ, PSFS, LEFS e SPADI na tela do questionário (aguarda conferência da Dra. Dejeane contra a publicação).
 
 ## Trilha do tempo
+- 2026-10-18 · responsável pelo paciente — cadastro grava o responsável, ficha mostra e transfere com registro no `activity_log` (UC-FPS-30..32).
 - 2026-10-18 · US-FISIO-005 — paciente bloqueado vira só leitura no servidor: prontuário aceita só adendo (UC-FPS-17) e perfil não aceita edição (UC-FPS-18).
 - 2026-10-18 · US-FISIO-011 — questionários de uso livre viram UC-FPS-13..16 (estrutura e pontuação; enunciados pendentes).
 - 2026-10-17 · suíte TDD da F1 — casos nascem antes da tela e do código; prontuário, bloqueio e contraindicação entram pela atualização de escopo do mesmo dia.

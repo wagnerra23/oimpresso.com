@@ -35,6 +35,7 @@ Decisão aceita ([ADR 0437](../../decisions/0437-modulo-fisio-vertical-fisiotera
 - WhatsApp pelo driver `whatsmeow` com risco de banimento aceito e mitigado — [ADR 0437 §13.1](../../decisions/0437-modulo-fisio-vertical-fisioterapia.md)
 - Linha da Anvisa (o que vira SaMD) — [ADR 0437 §5](../../decisions/0437-modulo-fisio-vertical-fisioterapia.md)
 - Decisões ainda abertas — [ADR 0437 §14](../../decisions/0437-modulo-fisio-vertical-fisioterapia.md)
+- Fisioterapeuta responsável pelo paciente (2026-10-18): a transferência fica no `activity_log`, sem tabela própria; pacientes anteriores à coluna ficam sem responsável até alguém atribuir — [SPEC US-FISIO-005](SPEC.md)
 
 ## Próxima ação verificável
 

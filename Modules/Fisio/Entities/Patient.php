@@ -6,6 +6,7 @@ namespace Modules\Fisio\Entities;
 
 use App\Concerns\HasBusinessScope;
 use App\Contact;
+use App\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,6 +21,7 @@ use Modules\Fisio\Entities\Concerns\SemExclusaoDeDadoClinico;
  * @property int $id
  * @property int $business_id
  * @property int $contact_id
+ * @property ?int $responsible_user_id fisioterapeuta responsável (usuário da mesma empresa); nulo nos pacientes anteriores à coluna
  * @property ?string $main_complaint
  * @property ?array $goals
  * @property int $sessions_per_week
@@ -58,6 +60,7 @@ class Patient extends Model
         'goals' => 'array',
         'condition_flags' => 'array',
         'sessions_per_week' => 'integer',
+        'responsible_user_id' => 'integer',
         'blocked_at' => 'datetime',
     ];
 
@@ -75,6 +78,17 @@ class Patient extends Model
     public function contact(): BelongsTo
     {
         return $this->belongsTo(Contact::class, 'contact_id');
+    }
+
+    /**
+     * Fisioterapeuta responsável. Inclui usuário excluído (soft delete) para a ficha continuar
+     * mostrando quem atendia. Quem pode ser responsável é validado na escrita (ResponsavelPaciente).
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function responsavel(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'responsible_user_id')->withTrashed();
     }
 
     /** @return HasMany<Record, $this> */

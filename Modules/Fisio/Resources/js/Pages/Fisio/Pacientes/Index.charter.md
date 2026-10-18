@@ -32,6 +32,7 @@ Listar os pacientes ativos da clínica e cadastrar um paciente a partir de um co
 - Lista de pacientes ativos, com busca pelo nome do contato — UC-FPI-01.
 - Cadastro a partir de um contato da empresa: queixa, objetivos, dias por semana (1 a 7) e marcadores de condição da lista fechada — UC-FPI-01, UC-FPI-03.
 - Lista só da empresa da sessão — UC-FPI-02.
+- Mostra o fisioterapeuta responsável de cada paciente e filtra por responsável, incluindo "Meus pacientes" — UC-FPI-20.
 
 ## Non-Goals — Features (NÃO faz)
 
