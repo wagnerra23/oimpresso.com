@@ -447,6 +447,11 @@ jobs:
         # ENTRAM 2026-10-18 — Fisio/FisioPacienteCrudTest e Fisio/FisioProntuarioTest (US-FISIO-005):
         # cadastro de paciente sobre o contact, bloqueio sem apagar, prontuário carimbado pelo
         # servidor, adendo e append-only pela rota (405) e pelo banco.
+        #
+        # ENTRAM 2026-10-18 — Fisio/FisioQuestionarioTest e Fisio/PontuacaoQuestionarioTest
+        # (US-FISIO-011): questionários de uso livre pontuados no servidor, bloqueados por licença
+        # recusados, 404 entre empresas. O Unit é puro (sem DB) e entra aqui para ter veredito.
+        #
         # ENTRA 2026-10-18 — Fisio/Tests/Unit (núcleo de cálculo de US-FISIO-008/010): 5 arquivos
         # de regra pura (nível, sequência, adesão 7d, fila de atenção, bordas de fuso). Sem
         # TestCase nem banco; ficam nesta lane porque ela já dispara em Modules/Fisio/**.
@@ -534,6 +539,8 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioEsquemaContratoTest.php \
             Modules/Fisio/Tests/Feature/FisioPacienteCrudTest.php \
             Modules/Fisio/Tests/Feature/FisioProntuarioTest.php \
+            Modules/Fisio/Tests/Feature/FisioQuestionarioTest.php \
+            Modules/Fisio/Tests/Unit/PontuacaoQuestionarioTest.php \
             Modules/Fisio/Tests/Unit/NivelCalculatorTest.php \
             Modules/Fisio/Tests/Unit/SequenciaCalculatorTest.php \
             Modules/Fisio/Tests/Unit/AdesaoCalculatorTest.php \

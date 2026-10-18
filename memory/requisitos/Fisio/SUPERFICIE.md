@@ -14,20 +14,21 @@ module: Fisio
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Fisio/**` + `resources/js/Pages/Fisio/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 71 arquivos em 14 papéis.
+**Total mapeado:** 78 arquivos em 14 papéis.
 
-## Controllers — 4
+## Controllers — 5
 
 - [DataController.php](../../../Modules/Fisio/Http/Controllers/DataController.php)
 - [InstallController.php](../../../Modules/Fisio/Http/Controllers/InstallController.php)
 - [PacientesController.php](../../../Modules/Fisio/Http/Controllers/PacientesController.php)
+- [QuestionariosController.php](../../../Modules/Fisio/Http/Controllers/QuestionariosController.php)
 - [RegistrosController.php](../../../Modules/Fisio/Http/Controllers/RegistrosController.php)
 
 ## Middleware — 1
 
 - [FisioLiberado.php](../../../Modules/Fisio/Http/Middleware/FisioLiberado.php)
 
-## Services — 7
+## Services — 10
 
 - [AdesaoCalculator.php](../../../Modules/Fisio/Services/AdesaoCalculator.php)
 - [AtencaoDetector.php](../../../Modules/Fisio/Services/AtencaoDetector.php)
@@ -35,6 +36,9 @@ module: Fisio
 - [FisioAcesso.php](../../../Modules/Fisio/Services/FisioAcesso.php)
 - [MetaSemanal.php](../../../Modules/Fisio/Services/MetaSemanal.php)
 - [NivelCalculator.php](../../../Modules/Fisio/Services/NivelCalculator.php)
+- [CatalogoQuestionarios.php](../../../Modules/Fisio/Services/Questionarios/CatalogoQuestionarios.php)
+- [PontuacaoQuestionario.php](../../../Modules/Fisio/Services/Questionarios/PontuacaoQuestionario.php)
+- [RespostaInvalidaException.php](../../../Modules/Fisio/Services/Questionarios/RespostaInvalidaException.php)
 - [SequenciaCalculator.php](../../../Modules/Fisio/Services/SequenciaCalculator.php)
 
 ## Models / Entities — 13
@@ -75,9 +79,10 @@ module: Fisio
 - [Index.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Index.tsx)
 - [Show.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Show.tsx)
 
-## Componentes / apoio de tela — 1
+## Componentes / apoio de tela — 2
 
 - [PerfilClinicoCampos.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/PerfilClinicoCampos.tsx)
+- [Questionarios.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/Questionarios.tsx)
 
 ## Charters (lei da tela) — 2
 
@@ -92,11 +97,11 @@ module: Fisio
 - [Painel.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Painel.casos.md)
 - [Portal.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/Portal.casos.md)
 
-## Testes (Pest) — 20
+## Testes (Pest) — 22
 
-- 14 em [Modules/Fisio/Tests/Feature/](../../../Modules/Fisio/Tests/Feature)
+- 15 em [Modules/Fisio/Tests/Feature/](../../../Modules/Fisio/Tests/Feature)
 - 1 em [Modules/Fisio/Tests/Support/](../../../Modules/Fisio/Tests/Support)
-- 5 em [Modules/Fisio/Tests/Unit/](../../../Modules/Fisio/Tests/Unit)
+- 6 em [Modules/Fisio/Tests/Unit/](../../../Modules/Fisio/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 11

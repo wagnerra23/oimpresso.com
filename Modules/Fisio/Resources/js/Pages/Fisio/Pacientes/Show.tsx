@@ -1,12 +1,13 @@
 // @memcofre
 //   tela: /fisio/pacientes/{id}
 //   module: Fisio
-//   stories: US-FISIO-005 (UC-FPS-02..05, UC-FPS-07)
+//   stories: US-FISIO-005 (UC-FPS-02..05, UC-FPS-07) · US-FISIO-011 (UC-FPS-13..16)
 //   permissao: fisio.access · editar, assinar e bloquear exigem fisio.editar
 //
 // Ficha do paciente: perfil clínico e prontuário (Res. COFFITO 414/2012). O prontuário só
 // cresce: registro assinado não se edita; corrigir é acrescentar um adendo ao original.
-// Programa e questionários chegam nas US seguintes (US-FISIO-006 e T-11).
+// Questionários de uso livre (US-FISIO-011): respostas transcritas, pontuação do servidor.
+// O programa chega na US-FISIO-006.
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent, type ReactNode } from 'react';
@@ -21,6 +22,7 @@ import { Skeleton } from '@/Components/ui/skeleton';
 import { Textarea } from '@/Components/ui/textarea';
 import PerfilClinicoCampos, { type PerfilClinico } from '../_components/PerfilClinicoCampos';
 import { limparObjetivos, rotuloCondicao } from '../_components/condicoes';
+import Questionarios, { HistoricoQuestionarios, type Instrumento, type RespostaQuestionario } from '../_components/Questionarios';
 
 interface Paciente {
   id: number;
@@ -46,6 +48,8 @@ interface Props {
   condicoes: string[];
   pode_editar: boolean;
   prontuario?: Registro[];
+  instrumentos: Instrumento[];
+  questionarios?: RespostaQuestionario[];
 }
 
 const TIPO: Record<Registro['kind'], string> = {
@@ -187,7 +191,7 @@ function LinhaDoTempo({ registros, podeEditar, onCorrigir }: { registros: Regist
   );
 }
 
-export default function PacienteShow({ paciente, condicoes, pode_editar, prontuario }: Props) {
+export default function PacienteShow({ paciente, condicoes, pode_editar, prontuario, instrumentos, questionarios }: Props) {
   const [corrigindo, setCorrigindo] = useState<Registro | null>(null);
 
   return (
@@ -213,6 +217,15 @@ export default function PacienteShow({ paciente, condicoes, pode_editar, prontua
             )}
             <Deferred data="prontuario" fallback={<Skeleton className="h-40 w-full" />}>
               <LinhaDoTempo registros={prontuario ?? []} podeEditar={pode_editar && !paciente.bloqueado} onCorrigir={setCorrigindo} />
+            </Deferred>
+          </CardContent>
+        </Card>
+        <Card className="lg:col-start-2">
+          <CardContent className="flex flex-col gap-4 p-4">
+            <h2 className="text-base font-semibold">Questionários</h2>
+            <Questionarios pacienteId={paciente.id} instrumentos={instrumentos} podeRegistrar={pode_editar && !paciente.bloqueado} />
+            <Deferred data="questionarios" fallback={<Skeleton className="h-24 w-full" />}>
+              <HistoricoQuestionarios respostas={questionarios ?? []} instrumentos={instrumentos} />
             </Deferred>
           </CardContent>
         </Card>
