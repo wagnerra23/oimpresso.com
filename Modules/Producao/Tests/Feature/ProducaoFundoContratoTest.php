@@ -173,10 +173,15 @@ it('UC-PCV-31 · dois cronômetros: máquina e pessoa', function () {
     expect($this->svc->iniciar($this->b99, $roland99->id, $this->u99, 'ch-31-roland')->business_id)->toBe($this->b99);
 
     // Pausa com motivo fecha o trecho (a pessoa fica livre) e também é append-only.
-    $pausa = $this->svc->pausar($this->b98, $pes->id, $this->u98, 'ch-31-acab-pausa', 7);
-    expect([$pausa->tipo, $pausa->inicio_id, $pausa->motivo_id])->toBe(['pausa', $pes->id, 7])
+    // Motivo vem do cadastro do posto (thread 03 trouxe a FK pcp_apont_motivo_fk): nada de id fixo.
+    $motivo = (int) DB::table('pcp_motivos')->insertGetId(['business_id' => $this->b98, 'posto_id' => $acab->id, 'tipo' => 'pausa',
+        'nome' => 'Falta de material 31', 'ordem' => 1, 'created_at' => now(), 'updated_at' => now()]);
+    $outroMotivo = (int) DB::table('pcp_motivos')->insertGetId(['business_id' => $this->b98, 'posto_id' => $acab->id, 'tipo' => 'pausa',
+        'nome' => 'Setup 31', 'ordem' => 2, 'created_at' => now(), 'updated_at' => now()]);
+    $pausa = $this->svc->pausar($this->b98, $pes->id, $this->u98, 'ch-31-acab-pausa', $motivo);
+    expect([$pausa->tipo, $pausa->inicio_id, $pausa->motivo_id])->toBe(['pausa', $pes->id, $motivo])
         ->and($this->svc->pessoaAberto($this->b98, $this->u98))->toBeFalse()
-        ->and(fn () => DB::table('pcp_apontamentos')->where('id', $pausa->id)->update(['motivo_id' => 8]))->toThrow(QueryException::class);
+        ->and(fn () => DB::table('pcp_apontamentos')->where('id', $pausa->id)->update(['motivo_id' => $outroMotivo]))->toThrow(QueryException::class);
     $pes = $this->svc->iniciar($this->b98, $acab->id, $this->u98, 'ch-31-acab-retoma', 'repair_job_sheet', 31); // retomar = início novo
 
     // Fechado, a pessoa volta a poder abrir; fechar de novo não acha o aberto.
