@@ -88,12 +88,22 @@ describe('UC-PIDX-26 · as colunas encaixam no espaço da tela', () => {
     const encaixe = encaixarColunas(paraEncaixe(), DISPONIVEL_1366);
 
     expect(encaixe).toEqual({
-      produto: 122, locais: 61, compra: 92, venda: 92, estoque: 88, tipo: 96, categoria: 67, marca: 64, imposto: 60, sku: 66,
+      produto: 114, locais: 63, compra: 92, venda: 92, estoque: 88, tipo: 96, categoria: 81, marca: 64, imposto: 60, sku: 58,
     });
     // Ação (96) e Imagem (74) não encolhem — o protótipo as fixa.
     const soma = paraEncaixe().reduce((s, c) => s + (encaixe[c.id] ?? c.largura), 0);
     expect(soma).toBe(978);
     expect(soma).toBeLessThanOrEqual(DISPONIVEL_1366);
+  });
+
+  // Medido em produção em 2026-10-18 (largura que o <th> pede, com a seta de ordenar): palavra única
+  // não quebra, então o piso tem de caber o rótulo. Na 1ª versão "CATEGORIA" (79) tinha piso 66 e
+  // vazava 12px sobre o rótulo de MARCA.
+  it('nenhum piso fica abaixo da largura que o rótulo do cabeçalho pede', () => {
+    const ROTULO_PEDE: Record<string, number> = { categoria: 79, locais: 61, marca: 64, imposto: 60, sku: 50 };
+    for (const [id, pede] of Object.entries(ROTULO_PEDE)) {
+      expect(PISO_DA_COLUNA[id], id).toBeGreaterThanOrEqual(pede);
+    }
   });
 
   it('nenhuma coluna passa do piso; se nem os pisos cabem, a tabela fica nos pisos e rola', () => {
@@ -129,7 +139,7 @@ describe('UC-PIDX-26 · as colunas encaixam no espaço da tela', () => {
       />,
     );
 
-    expect(larguras()).toEqual(['96px', '74px', '122px', '61px', '92px', '92px', '88px', '96px', '67px', '64px', '60px', '66px']);
+    expect(larguras()).toEqual(['96px', '74px', '114px', '63px', '92px', '92px', '88px', '96px', '81px', '64px', '60px', '58px']);
     expect(Number.parseInt((document.querySelector('table') as HTMLElement).style.minWidth, 10)).toBeLessThanOrEqual(1034);
   });
 
