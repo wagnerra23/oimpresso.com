@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-FISIO-003
 // Cobre UC-FPI-02 (Fisio/Pacientes/Index.casos.md) e UC-FPS-04/UC-FPS-07 (Fisio/Pacientes/Show.casos.md) na camada de dados.
 
 use Illuminate\Database\QueryException;

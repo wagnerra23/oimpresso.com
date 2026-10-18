@@ -14,12 +14,14 @@ module: Fisio
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Fisio/**` + `resources/js/Pages/Fisio/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 56 arquivos em 11 papéis.
+**Total mapeado:** 64 arquivos em 14 papéis.
 
-## Controllers — 2
+## Controllers — 4
 
 - [DataController.php](../../../Modules/Fisio/Http/Controllers/DataController.php)
 - [InstallController.php](../../../Modules/Fisio/Http/Controllers/InstallController.php)
+- [PacientesController.php](../../../Modules/Fisio/Http/Controllers/PacientesController.php)
+- [RegistrosController.php](../../../Modules/Fisio/Http/Controllers/RegistrosController.php)
 
 ## Middleware — 1
 
@@ -62,6 +64,20 @@ module: Fisio
 
 - [config.php](../../../Modules/Fisio/Config/config.php)
 
+## Telas (Inertia/React) — 2
+
+- [Index.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Index.tsx)
+- [Show.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Show.tsx)
+
+## Componentes / apoio de tela — 1
+
+- [PerfilClinicoCampos.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/PerfilClinicoCampos.tsx)
+
+## Charters (lei da tela) — 2
+
+- [Index.charter.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Index.charter.md)
+- [Show.charter.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Show.charter.md)
+
 ## Casos (contrato UC) — 5
 
 - [Index.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/Index.casos.md)
@@ -77,13 +93,14 @@ module: Fisio
 - 4 em [Modules/Fisio/Tests/Unit/](../../../Modules/Fisio/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 10
+## Demais arquivos (manifestos, docs, assets e misc) — 11
 
 - [CheckinFactory.php](../../../Modules/Fisio/Database/Factories/CheckinFactory.php)
 - [ExerciseFactory.php](../../../Modules/Fisio/Database/Factories/ExerciseFactory.php)
 - [PatientFactory.php](../../../Modules/Fisio/Database/Factories/PatientFactory.php)
 - [ProgramFactory.php](../../../Modules/Fisio/Database/Factories/ProgramFactory.php)
 - [DadoClinicoImutavelException.php](../../../Modules/Fisio/Exceptions/DadoClinicoImutavelException.php)
+- [condicoes.ts](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/condicoes.ts)
 - [fisio.php](../../../Modules/Fisio/Resources/lang/pt/fisio.php)
 - [README.md](../../../Modules/Fisio/Tests/README.md)
 - [composer.json](../../../Modules/Fisio/composer.json)
