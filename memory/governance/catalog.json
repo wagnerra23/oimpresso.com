@@ -2793,6 +2793,13 @@
       "desc": ""
     },
     {
+      "id": "component:Fisio/Cadastro de pacientes",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Cadastro de pacientes",
+      "desc": ""
+    },
+    {
       "id": "component:Fisio/DataController",
       "type": "component",
       "module": "Fisio",
@@ -2811,13 +2818,6 @@
       "type": "component",
       "module": "Fisio",
       "name": "Jogo de constância",
-      "desc": ""
-    },
-    {
-      "id": "component:Fisio/Pacientes",
-      "type": "component",
-      "module": "Fisio",
-      "name": "Pacientes",
       "desc": ""
     },
     {
@@ -8903,6 +8903,12 @@
     },
     {
       "from": "module:Fisio",
+      "to": "component:Fisio/Cadastro de pacientes",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
       "to": "component:Fisio/DataController",
       "type": "hasComponent",
       "source": "contains"
@@ -8916,12 +8922,6 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/Jogo de constância",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Fisio",
-      "to": "component:Fisio/Pacientes",
       "type": "hasComponent",
       "source": "contains"
     },

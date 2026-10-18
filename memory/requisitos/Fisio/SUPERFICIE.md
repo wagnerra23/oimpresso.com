@@ -14,7 +14,7 @@ module: Fisio
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Fisio/**` + `resources/js/Pages/Fisio/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 36 arquivos em 9 papéis.
+**Total mapeado:** 56 arquivos em 11 papéis.
 
 ## Controllers — 2
 
@@ -29,6 +29,22 @@ module: Fisio
 
 - [FisioAcesso.php](../../../Modules/Fisio/Services/FisioAcesso.php)
 
+## Models / Entities — 13
+
+- [Checkin.php](../../../Modules/Fisio/Entities/Checkin.php)
+- [EscopoBibliotecaFisio.php](../../../Modules/Fisio/Entities/Concerns/EscopoBibliotecaFisio.php)
+- [SemExclusaoDeDadoClinico.php](../../../Modules/Fisio/Entities/Concerns/SemExclusaoDeDadoClinico.php)
+- [Consent.php](../../../Modules/Fisio/Entities/Consent.php)
+- [Exercise.php](../../../Modules/Fisio/Entities/Exercise.php)
+- [GameLedger.php](../../../Modules/Fisio/Entities/GameLedger.php)
+- [Patient.php](../../../Modules/Fisio/Entities/Patient.php)
+- [PortalToken.php](../../../Modules/Fisio/Entities/PortalToken.php)
+- [Program.php](../../../Modules/Fisio/Entities/Program.php)
+- [ProgramItem.php](../../../Modules/Fisio/Entities/ProgramItem.php)
+- [Protocol.php](../../../Modules/Fisio/Entities/Protocol.php)
+- [Questionnaire.php](../../../Modules/Fisio/Entities/Questionnaire.php)
+- [Record.php](../../../Modules/Fisio/Entities/Record.php)
+
 ## Providers — 2
 
 - [FisioServiceProvider.php](../../../Modules/Fisio/Providers/FisioServiceProvider.php)
@@ -37,6 +53,10 @@ module: Fisio
 ## Rotas — 1
 
 - [web.php](../../../Modules/Fisio/Routes/web.php)
+
+## Migrations (schema) — 1
+
+- [2026_10_18_000001_create_fisio_tables.php](../../../Modules/Fisio/Database/Migrations/2026_10_18_000001_create_fisio_tables.php)
 
 ## Config — 1
 
@@ -50,15 +70,20 @@ module: Fisio
 - [Painel.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Painel.casos.md)
 - [Portal.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/Portal.casos.md)
 
-## Testes (Pest) — 18
+## Testes (Pest) — 19
 
-- 13 em [Modules/Fisio/Tests/Feature/](../../../Modules/Fisio/Tests/Feature)
+- 14 em [Modules/Fisio/Tests/Feature/](../../../Modules/Fisio/Tests/Feature)
 - 1 em [Modules/Fisio/Tests/Support/](../../../Modules/Fisio/Tests/Support)
 - 4 em [Modules/Fisio/Tests/Unit/](../../../Modules/Fisio/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 5
+## Demais arquivos (manifestos, docs, assets e misc) — 10
 
+- [CheckinFactory.php](../../../Modules/Fisio/Database/Factories/CheckinFactory.php)
+- [ExerciseFactory.php](../../../Modules/Fisio/Database/Factories/ExerciseFactory.php)
+- [PatientFactory.php](../../../Modules/Fisio/Database/Factories/PatientFactory.php)
+- [ProgramFactory.php](../../../Modules/Fisio/Database/Factories/ProgramFactory.php)
+- [DadoClinicoImutavelException.php](../../../Modules/Fisio/Exceptions/DadoClinicoImutavelException.php)
 - [fisio.php](../../../Modules/Fisio/Resources/lang/pt/fisio.php)
 - [README.md](../../../Modules/Fisio/Tests/README.md)
 - [composer.json](../../../Modules/Fisio/composer.json)

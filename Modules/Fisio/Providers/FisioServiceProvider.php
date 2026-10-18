@@ -10,6 +10,8 @@ class FisioServiceProvider extends ServiceProvider
     {
         $this->registerConfig();
         $this->registerTranslations();
+        // US-FISIO-003: as 11 tabelas fisio_* (ADR 0437). Tabelas novas: sem efeito em empresa sem o pacote.
+        $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
     }
 
     public function register(): void

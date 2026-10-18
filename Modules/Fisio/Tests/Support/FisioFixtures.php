@@ -236,7 +236,9 @@ final class FisioFixtures
     /** @return list<int> ids dos itens na ordem de position */
     public static function itens(Program $prog): array
     {
-        return ProgramItem::query()->where('program_id', $prog->id)->orderBy('position')->pluck('id')->map('intval')->all();
+        // SUPERADMIN: helper de arranjo/verificação — o UC-FPS-01 lê os itens do programa da 98 com a
+        // sessão da 99 para provar que nada mudou. O ProgramItem tem escopo próprio (US-FISIO-003).
+        return ProgramItem::withoutGlobalScopes()->where('program_id', $prog->id)->orderBy('position')->pluck('id')->map('intval')->all();
     }
 
     /**
