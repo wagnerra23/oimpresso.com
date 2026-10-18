@@ -10,7 +10,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Link } from '@inertiajs/react';
 import type { ReactNode } from 'react';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import KpiCard from '@/Components/shared/KpiCard';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import EmptyState from '@/Components/shared/EmptyState';
@@ -72,7 +72,7 @@ function rotuloMotivo(m: Motivo, r: Regras): string {
   }
 }
 
-function Kpis({ kpis }: { kpis: Kpis }) {
+function PainelKpis({ kpis }: { kpis: Kpis }) {
   return (
     <KpiGrid cols={4}>
       <KpiCard
@@ -187,12 +187,11 @@ export default function FisioPainel({ regras, kpis, atencao, pacientes }: Props)
     <div data-screen-label="Fisio · Painel" className="mx-auto flex max-w-7xl flex-col gap-4 p-4">
       <PageHeader
         title="Painel"
-        icon="layout-dashboard"
-        description="Adesão, dor e quem precisa de atenção, a partir do que os pacientes registraram no portal."
+        subtitle="Adesão, dor e quem precisa de atenção, a partir do que os pacientes registraram no portal."
       />
 
       <Deferred data="kpis" fallback={<Skeleton className="h-28 w-full" />}>
-        {kpis ? <Kpis kpis={kpis} /> : <span />}
+        {kpis ? <PainelKpis kpis={kpis} /> : <span />}
       </Deferred>
 
       {semRegistro && (

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\Fisio\Services;
 
 use DateTimeInterface;
-use Illuminate\Support\Collection;
 use Modules\Fisio\Entities\Checkin;
 use Modules\Fisio\Entities\GameLedger;
 use Modules\Fisio\Entities\Patient;
@@ -54,7 +53,7 @@ final class PainelFisio
             ->with('contact:id,name')
             ->orderBy('id')
             ->get();
-        $ids = $pacientes->pluck('id')->all();
+        $ids = array_map('intval', $pacientes->pluck('id')->all());
 
         $programas = $this->programasAtivos($ids);
         $checkins = $this->checkins($ids, DiaLocal::somar($hoje, -self::HISTORICO_DIAS), $hoje);
@@ -69,9 +68,8 @@ final class PainelFisio
         $fila = [];
         $checkins7d = 0;
         foreach ($pacientes as $p) {
-            /** @var Program|null $prog */
-            $prog = $programas->get($p->id);
-            $dele = $checkins->get($p->id, []);
+            $prog = $programas[(int) $p->id] ?? null;
+            $dele = $checkins[(int) $p->id] ?? [];
             $limiar = $prog?->limiarDeDor() ?? (int) config('fisio.pain_alert_threshold_padrao', AtencaoDetector::LIMIAR_DOR_PADRAO);
 
             $adesao = $this->adesao->calcular($dele, (int) $p->sessions_per_week, $hoje, $prog !== null);
@@ -128,9 +126,9 @@ final class PainelFisio
 
         return [
             'kpis' => [
-                'adesao_media_7d' => $this->media(array_column($linhas, 'adesao_7d'), 0),
+                'adesao_media_7d' => $this->mediaInteira(array_column($linhas, 'adesao_7d')),
                 'pacientes_ativos' => count($linhas),
-                'dor_media' => $this->media(array_column($linhas, 'dor_7d'), 1),
+                'dor_media' => $this->mediaDecimal(array_column($linhas, 'dor_7d')),
                 'checkins_7d' => $checkins7d,
             ],
             'atencao' => $fila,
@@ -154,8 +152,8 @@ final class PainelFisio
     public function evolucao(Patient $p, ?DateTimeInterface $agora = null): array
     {
         $hoje = DiaLocal::de($agora ?? now());
-        $prog = $this->programasAtivos([(int) $p->id])->get($p->id);
-        $dele = $this->checkins([(int) $p->id], DiaLocal::somar($hoje, -(self::EVOLUCAO_DIAS - 1)), $hoje)->get($p->id, []);
+        $prog = $this->programasAtivos([(int) $p->id])[(int) $p->id] ?? null;
+        $dele = $this->checkins([(int) $p->id], DiaLocal::somar($hoje, -(self::EVOLUCAO_DIAS - 1)), $hoje)[(int) $p->id] ?? [];
 
         return [
             'dias' => self::EVOLUCAO_DIAS,
@@ -177,47 +175,57 @@ final class PainelFisio
     /**
      * Programa ativo mais recente de cada paciente.
      *
-     * @param  list<int>  $ids
-     * @return Collection<int, Program>
+     * @param  array<int, int>  $ids
+     * @return array<int, Program>
      */
-    private function programasAtivos(array $ids): Collection
+    private function programasAtivos(array $ids): array
     {
+        $porPaciente = [];
         if ($ids === []) {
-            return collect();
+            return $porPaciente;
         }
-
-        return Program::query()
+        $programas = Program::query()
             ->whereIn('patient_id', $ids)
             ->where('status', Program::STATUS_ATIVO)
             ->orderBy('id')
-            ->get()
-            ->keyBy('patient_id');
+            ->get();
+        foreach ($programas as $prog) {
+            $porPaciente[(int) $prog->patient_id] = $prog;
+        }
+
+        return $porPaciente;
     }
 
     /**
      * Check-ins por paciente, em ordem de data, no formato dos calculadores puros.
      *
-     * @param  list<int>  $ids
-     * @return Collection<int, list<array{date:string, done_count:int, pain:?int, red_flags:list<string>}>>
+     * @param  array<int, int>  $ids
+     * @return array<int, list<array{date:string, done_count:int, pain:?int, red_flags:list<string>}>>
      */
-    private function checkins(array $ids, string $de, string $ate): Collection
+    private function checkins(array $ids, string $de, string $ate): array
     {
+        $porPaciente = [];
         if ($ids === []) {
-            return collect();
+            return $porPaciente;
         }
 
-        return Checkin::query()
+        $linhas = Checkin::query()
             ->whereIn('patient_id', $ids)
             ->whereBetween('date', [$de, $ate])
             ->orderBy('date')
-            ->get(['patient_id', 'date', 'done_item_ids', 'pain', 'red_flags'])
-            ->groupBy('patient_id')
-            ->map(fn (Collection $cs) => $cs->map(fn (Checkin $c) => [
+            ->get(['patient_id', 'date', 'done_item_ids', 'pain', 'red_flags']);
+        foreach ($linhas as $c) {
+            /** @var list<string> $flags */
+            $flags = array_values(array_map('strval', (array) ($c->red_flags ?? [])));
+            $porPaciente[(int) $c->patient_id][] = [
                 'date' => $c->date->format('Y-m-d'),
                 'done_count' => count((array) ($c->done_item_ids ?? [])),
-                'pain' => $c->pain,
-                'red_flags' => array_values((array) ($c->red_flags ?? [])),
-            ])->values()->all());
+                'pain' => $c->pain !== null ? (int) $c->pain : null,
+                'red_flags' => $flags,
+            ];
+        }
+
+        return $porPaciente;
     }
 
     private function inicioPrograma(Program $prog): string
@@ -227,15 +235,27 @@ final class PainelFisio
             : DiaLocal::de($prog->created_at ?? now());
     }
 
-    /** @param  list<int|null>  $valores */
-    private function media(array $valores, int $casas): int|float|null
+    /** @param  array<int, int|null>  $valores  média arredondada meio para cima; null se não houver valor */
+    private function mediaInteira(array $valores): ?int
+    {
+        $m = $this->mediaBruta($valores);
+
+        return $m === null ? null : (int) round($m, 0, PHP_ROUND_HALF_UP);
+    }
+
+    /** @param  array<int, int|null>  $valores  média com 1 casa; null se não houver valor */
+    private function mediaDecimal(array $valores): ?float
+    {
+        $m = $this->mediaBruta($valores);
+
+        return $m === null ? null : round($m, 1, PHP_ROUND_HALF_UP);
+    }
+
+    /** @param  array<int, int|null>  $valores */
+    private function mediaBruta(array $valores): ?float
     {
         $validos = array_values(array_filter($valores, fn ($v) => $v !== null));
-        if ($validos === []) {
-            return null;
-        }
-        $m = round(array_sum($validos) / count($validos), $casas, PHP_ROUND_HALF_UP);
 
-        return $casas === 0 ? (int) $m : (float) $m;
+        return $validos === [] ? null : array_sum($validos) / count($validos);
     }
 }
