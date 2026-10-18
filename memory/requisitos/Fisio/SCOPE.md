@@ -3,7 +3,7 @@ module: Fisio
 purpose: "Vertical de fisioterapia: programa de exercícios domiciliares, portal do paciente por link + PIN, constância (check-in, jogo, lembrete WhatsApp), prontuário conforme COFFITO e painel de risco de abandono. Decidido pela ADR 0437 em 2026-10-18."
 migracao_ui: "n/a — módulo novo, nasce Inertia (sem Blade)"
 contains:
-  - "Pacientes (perfil clínico 1:1 sobre contacts) e prontuário append-only (Res. COFFITO 414/2012)"
+  - "Cadastro de pacientes (perfil clínico 1:1 sobre contacts) e prontuário append-only (Res. COFFITO 414/2012)"
   - "Biblioteca de exercícios, protocolos-modelo e programa por paciente"
   - "Portal público do paciente (token HMAC + PIN, consentimentos, check-in, telemonitoramento Res. 619/2025)"
   - "Jogo de constância (ledger de XP append-only, nível e sequência derivados)"
