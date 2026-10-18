@@ -15,7 +15,7 @@ alcance:
   menu_hook: Modules/Fisio/Http/Controllers/DataController.php::modifyAdminMenu
   pacote: fisio_module
 tier: B
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — /fisio/biblioteca (DRAFT · biblioteca de exercícios)
@@ -33,6 +33,9 @@ Mostrar ao fisioterapeuta os exercícios que ele pode prescrever — a bibliotec
 - Cadastro e edição de exercício próprio, gravado com a empresa da sessão (exige `fisio.editar`) — UC-FBI-02, UC-FBI-03.
 - Filtro por região e busca por texto no nome e nos sinônimos (busca na F1 aceita por [W] em 2026-10-18, ADR 0437 §14 nº 3) — UC-FBI-04.
 - Foto (JPG/PNG/WebP) ou vídeo MP4 curto no exercício próprio, mostrada no card e no formulário de edição, guardada pelo backbone `Modules/Arquivos` sob a empresa da sessão e servida só por rota que confere a empresa — UC-FBI-05. Tipo, tamanho e a declaração de que não mostra paciente validados no servidor — UC-FBI-06. Remover tira só a mídia da clínica dona — UC-FBI-07.
+- Favorito por profissional na empresa (estrela no card, filtro "Só favoritos"); favoritar um global não o altera — UC-FBI-08.
+- Filtros de posição e equipamento das listas fechadas de `config('fisio.biblioteca.*')`, combinados com região, busca e favoritos, com estado na URL — UC-FBI-09.
+- Posição e equipamento no cadastro do exercício próprio — UC-FBI-10.
 
 ## Non-Goals — Features (NÃO faz)
 

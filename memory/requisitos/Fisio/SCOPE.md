@@ -11,6 +11,7 @@ contains:
   - "BibliotecaController"
   - "BibliotecaMidiaController"
   - "Foto ou vídeo curto do exercício próprio da clínica (UC-FBI-05..07) — servida por rota com checagem de empresa"
+  - "BibliotecaFavoritosController — favoritos do profissional na empresa (fisio_exercise_favorites)"
   - "DataController"
   - "InstallController"
   - "PacientesController"

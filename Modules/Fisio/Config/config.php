@@ -95,4 +95,40 @@ return [
         'secrecao_ou_abertura_corte',
         'panturrilha_inchada_dolorida',
     ],
+
+    /*
+     * Facetas da biblioteca de exercícios (US-FISIO-004): listas FECHADAS de
+     * `etapas/01-biblioteca.md` §3.3. Valor fora daqui é recusado no cadastro e ignorado no
+     * filtro. São rótulos de estrutura, não conteúdo clínico: nenhum exercício nasce daqui.
+     *  - posicoes: uma por exercício (`fisio_exercises.pose`).
+     *  - equipamentos: várias por exercício (`fisio_exercises.equipment`, lista JSON);
+     *    "nenhum" marca o exercício feito sem objeto e não se combina com os outros.
+     */
+    'biblioteca' => [
+        'posicoes' => [
+            'deitado_costas' => 'Deitado de costas',
+            'deitado_lado' => 'Deitado de lado',
+            'de_brucos' => 'De bruços',
+            'quatro_apoios' => 'Quatro apoios',
+            'ajoelhado' => 'Ajoelhado',
+            'sentado' => 'Sentado',
+            'em_pe' => 'Em pé',
+            'em_pe_apoio' => 'Em pé com apoio',
+        ],
+        'equipamentos' => [
+            'nenhum' => 'Nenhum',
+            'cadeira' => 'Cadeira',
+            'parede' => 'Parede',
+            'toalha' => 'Toalha',
+            'cabo_vassoura' => 'Cabo de vassoura',
+            'garrafa_pet' => 'Garrafa PET',
+            'saco_arroz_feijao' => 'Saco de arroz ou feijão',
+            'mochila_peso' => 'Mochila com peso',
+            'degrau' => 'Degrau ou escada',
+            'travesseiro' => 'Travesseiro ou almofada',
+            'elastico' => 'Elástico ou faixa',
+            'caneleira' => 'Caneleira',
+            'bola' => 'Bola',
+        ],
+    ],
 ];

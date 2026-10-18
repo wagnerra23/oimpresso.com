@@ -15,6 +15,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Fisio\Entities\Exercise;
 use Modules\Fisio\Services\MidiaExercicio;
+use Modules\Fisio\Services\BibliotecaFacetas;
 
 /**
  * Biblioteca de exercícios do Fisio (US-FISIO-004).
@@ -38,12 +39,15 @@ class BibliotecaController extends Controller
     {
         $regiao = trim((string) $request->query('region', ''));
         $q = trim((string) $request->query('q', ''));
+        // Posição, equipamento e "só favoritos" (BibliotecaFacetas): combinam com região e busca.
+        $facetas = BibliotecaFacetas::doRequest($request);
 
         return Inertia::render('Fisio/Biblioteca/Index', [
-            'filtros' => ['region' => $regiao, 'q' => $q],
+            'filtros' => ['region' => $regiao, 'q' => $q, ...$facetas->paraTela()],
             'pode_editar' => $this->podeEditar($request),
-            'exercicios' => Inertia::defer(fn () => $this->listar($regiao, $q)),
+            'exercicios' => Inertia::defer(fn () => $this->listar($regiao, $q, $facetas)),
             'regioes' => Inertia::defer(fn () => $this->regioes()),
+            'facetas' => BibliotecaFacetas::opcoes(),
         ]);
     }
 
@@ -109,6 +113,7 @@ class BibliotecaController extends Controller
             'safety_notes' => ['sometimes', 'nullable', 'array', 'max:10'],
             'safety_notes.*' => ['string', 'max:300'],
             'needs_support' => ['sometimes', 'boolean'],
+            ...BibliotecaFacetas::regrasCadastro(),
         ];
     }
 
@@ -119,6 +124,7 @@ class BibliotecaController extends Controller
             'name.required' => 'Dê um nome ao exercício.',
             'steps.required' => 'Escreva ao menos um passo.',
             'steps.min' => 'Escreva ao menos um passo.',
+            ...BibliotecaFacetas::mensagensCadastro(),
         ];
     }
 
@@ -139,13 +145,13 @@ class BibliotecaController extends Controller
             }
         }
 
-        return $dados;
+        return BibliotecaFacetas::normalizarCadastro($dados);
     }
 
     /** @return list<array<string, mixed>> */
-    private function listar(string $regiao, string $q): array
+    private function listar(string $regiao, string $q, BibliotecaFacetas $facetas): array
     {
-        return Exercise::query()
+        return $facetas->aplicar(Exercise::query())
             ->when($regiao !== '', fn (Builder $query) => $query->where('region', $regiao))
             ->when($q !== '', fn (Builder $query) => $this->buscar($query, $q))
             // Próprios da clínica primeiro, depois a global; dentro de cada grupo, por nome.
@@ -154,7 +160,7 @@ class BibliotecaController extends Controller
             ->limit(self::LIMITE_LISTA)
             ->with('arquivos') // mídia do exercício próprio (UC-FBI-05) — escopo do Arquivo filtra pela sessão
             ->get()
-            ->map(fn (Model $e) => $this->linha($e))
+            ->map(fn (Model $e) => [...$this->linha($e), ...$facetas->marcar($e)])
             ->all();
     }
 

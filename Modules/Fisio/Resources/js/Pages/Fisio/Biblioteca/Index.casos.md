@@ -27,6 +27,9 @@ related_us: []
 | UC-FBI-05 | foto ou vídeo no exercício próprio, só a dona vê | must | `FisioBibliotecaMidiaTest` |
 | UC-FBI-06 | tipo, tamanho e declaração validados no servidor | must | `FisioBibliotecaMidiaTest` |
 | UC-FBI-07 | remover mídia mexe só na da clínica dona | must | `FisioBibliotecaMidiaTest` |
+| UC-FBI-08 | favorito por profissional e empresa; global não muda | must | `FisioBibliotecaFavoritosTest` |
+| UC-FBI-09 | filtros de posição, equipamento e "só favoritos" combinados, estado na URL | should | `FisioBibliotecaFavoritosTest` |
+| UC-FBI-10 | exercício próprio aceita posição e equipamento da lista fechada | should | `FisioBibliotecaFavoritosTest` |
 
 ---
 
@@ -68,6 +71,22 @@ related_us: []
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioBibliotecaMidiaTest.php`
 - **Status: 🧪**
 
+## UC-FBI-08 · Favoritos do profissional `[T0]` · `must`
+- **Aceite:** Dado um exercício global, um da 98 e um da 99 · Quando o profissional da 98 marca a estrela · Então o favorito grava na tabela `fisio_exercise_favorites` com a empresa e o usuário da sessão (o que vier no corpo é ignorado), o exercício global fica idêntico, e a grade mostra a estrela marcada só para ele. Outro usuário da 98 tem a própria lista; a 99 não vê nenhum favorito da 98 e recebe 404 ao favoritar o próprio da 98. Favoritar de novo não duplica (o banco recusa duplicata); desfavoritar remove. "Só favoritos" mostra só os do usuário. Favoritar exige só `fisio.access`.
+- **Regressão que defende:** favorito de um profissional aparecendo para o colega ou para outra clínica; clínica alterando o exercício global ao favoritar.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioBibliotecaFavoritosTest.php`
+- **Status: 🧪**
+
+## UC-FBI-09 · Filtros de posição e equipamento · `should`
+- **Aceite:** Filtrar por posição ou por equipamento devolve só os exercícios com aquele valor; os filtros combinam entre si e com região, busca e "só favoritos". As opções são as listas fechadas de `config('fisio.biblioteca.*')` (`etapas/01-biblioteca.md` §3.3); valor fora da lista na URL é ignorado (a lista fica igual à sem filtro e o estado volta vazio). O estado do filtro fica na query string (`pose`, `equipment`, `fav`, `region`, `q`).
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioBibliotecaFavoritosTest.php`
+- **Status: 🧪**
+
+## UC-FBI-10 · Posição e equipamento no exercício da clínica · `should`
+- **Aceite:** Criar ou editar exercício próprio grava posição e equipamentos da lista fechada; valor fora da lista ou "Nenhum" combinado com outro equipamento → 422; lista vazia de equipamento volta a "não informado". Exercício global segue não editável (403).
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioBibliotecaFavoritosTest.php`
+- **Status: 🧪**
+
 ---
 
 ## Backlog (prosa honesta — vira UC quando ganhar teste que o cite)
@@ -81,3 +100,4 @@ related_us: []
 - 2026-10-17 · suíte TDD da F1 — casos nascem antes da tela e do código.
 - 2026-10-18 · US-FISIO-004 — `BibliotecaController`, tela e lane Verticais com `FisioBibliotecaTest`. Busca por texto na F1 aceita por [W] em 2026-10-18 (ADR 0437 §14 nº 3). Status segue 🧪 até o veredito da lane.
 - 2026-10-18 · foto e vídeo no exercício próprio (comparativo Physitrack) — UC-FBI-05..07, `FisioBibliotecaMidiaTest`. Usa o backbone `Modules/Arquivos` (ADR 0123/0214).
+- 2026-10-18 · favoritos e filtros de posição e equipamento (comparativo Physitrack) — UC-FBI-08..10, `FisioBibliotecaFavoritosTest`. Posição passa a ser lista fechada no cadastro.
