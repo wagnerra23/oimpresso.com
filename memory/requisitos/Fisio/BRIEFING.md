@@ -30,6 +30,8 @@ Decisão aceita ([ADR 0437](../../decisions/0437-modulo-fisio-vertical-fisiotera
 - **Especificações por etapa:** [`etapas/`](etapas/)
 - **Telas:** `Modules/Fisio/Resources/js/Pages/Fisio/` + charters/casos ao lado das Pages (a criar)
 
+- **Biblioteca — mídia do exercício próprio (2026-10-18):** a clínica anexa foto ou vídeo MP4 curto ao exercício dela, pelo backbone `Modules/Arquivos`, visível só para a empresa (UC-FBI-05..07, `FisioBibliotecaMidiaTest`).
+
 ## Decisões e riscos que exigem atenção
 
 - WhatsApp pelo driver `whatsmeow` com risco de banimento aceito e mitigado — [ADR 0437 §13.1](../../decisions/0437-modulo-fisio-vertical-fisioterapia.md)

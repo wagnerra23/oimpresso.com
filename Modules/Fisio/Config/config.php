@@ -64,6 +64,15 @@ return [
         'lockout_minutos' => 30,
     ],
 
+    /*
+     * Foto ou vídeo curto do exercício PRÓPRIO da clínica (UC-FBI-05..07). Tetos em KB, validados
+     * no servidor por tipo. Abaixo do `upload_max_filesize` de public/.user.ini (64M).
+     */
+    'midia' => [
+        'foto_max_kb' => 10240,   // 10 MB
+        'video_max_kb' => 51200,  // 50 MB
+    ],
+
     /* Dor (0–10) a partir da qual o portal sai do jogo e mostra só a instrução do profissional. */
     'pain_alert_threshold_padrao' => 7,
 
