@@ -14,6 +14,7 @@ use Inertia\Response;
 use Modules\Fisio\Entities\Patient;
 use Modules\Fisio\Entities\Questionnaire;
 use Modules\Fisio\Entities\Record;
+use Modules\Fisio\Services\EditorProgramaPayload;
 use Modules\Fisio\Services\Questionarios\CatalogoQuestionarios;
 
 /**
@@ -92,6 +93,10 @@ class PacientesController extends Controller
             // Catálogo estático (sem query): vai junto. O histórico é query → defer (US-FISIO-011).
             'instrumentos' => array_values(CatalogoQuestionarios::todos()),
             'questionarios' => Inertia::defer(fn () => $this->historicoQuestionarios($paciente)),
+            // Aba Programa (US-FISIO-006): queries → defer.
+            'programa' => Inertia::defer(fn () => app(EditorProgramaPayload::class)->programaAtivo($paciente), 'programa'),
+            'exercicios' => Inertia::defer(fn () => app(EditorProgramaPayload::class)->exercicios($paciente), 'programa'),
+            'protocolos' => Inertia::defer(fn () => app(EditorProgramaPayload::class)->protocolos(), 'programa'),
         ]);
     }
 

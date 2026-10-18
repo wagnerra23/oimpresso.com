@@ -14,6 +14,9 @@ contains:
   - "PacientesController"
   - "RegistrosController"
   - "QuestionariosController"
+  - "ProgramasController"
+  - "ProtocolosController"
+  - "Editor de programa por paciente, protocolos-modelo (aplicar e copiar para a clínica) e aviso de contraindicação que não bloqueia (US-FISIO-006)"
   - "Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) com pontuação calculada no servidor (US-FISIO-011)"
 not_contains:
   - "Envio de WhatsApp → Modules/Whatsapp (driver whatsmeow via ChannelDriverFactory)"
@@ -27,6 +30,8 @@ owner: wagner
 status: em construção
 url_prefixes:
   - /fisio/pacientes/* (área do profissional — pacientes, prontuário e questionários; demais telas a criar)
+  - /fisio/programas/* (editor de programa — itens, dose, ordem, protocolo)
+  - /fisio/protocolos/* (protocolos-modelo — copiar e editar a cópia da clínica)
   - /fisio/p/{token}/* (portal público do paciente — a criar)
 ---
 
