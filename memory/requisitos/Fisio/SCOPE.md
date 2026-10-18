@@ -12,6 +12,8 @@ contains:
   - "InstallController"
   - "PacientesController"
   - "RegistrosController"
+  - "QuestionariosController"
+  - "Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) com pontuação calculada no servidor (US-FISIO-011)"
 not_contains:
   - "Envio de WhatsApp → Modules/Whatsapp (driver whatsmeow via ChannelDriverFactory)"
   - "Cobrança, pacotes e títulos → Financeiro / RecurringBilling (F3)"
@@ -23,7 +25,7 @@ depends_on: [Whatsapp]
 owner: wagner
 status: em construção
 url_prefixes:
-  - /fisio/pacientes/* (área do profissional — pacientes e prontuário; demais telas a criar)
+  - /fisio/pacientes/* (área do profissional — pacientes, prontuário e questionários; demais telas a criar)
   - /fisio/p/{token}/* (portal público do paciente — a criar)
 ---
 
