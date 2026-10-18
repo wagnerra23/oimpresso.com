@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Fisio\Http\Controllers;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -68,8 +69,12 @@ class BibliotecaController extends Controller
     public function update(Request $request, int $id): JsonResponse|RedirectResponse
     {
         $this->exigirEdicao($request);
-        // Próprio de outra empresa: o escopo não o enxerga → 404 (UC-FBI-03).
-        $exercicio = Exercise::query()->findOrFail($id);
+        // Próprio de outra empresa → 404 (UC-FBI-03). O escopo do model já filtra; o where
+        // explícito por business_id é a segunda camada, legível no próprio método.
+        $biz = (int) $request->session()->get('user.business_id');
+        $exercicio = Exercise::query()
+            ->where(fn (Builder $w) => $w->whereNull('business_id')->orWhere('business_id', $biz))
+            ->findOrFail($id);
         abort_if($exercicio->ehGlobal(), 403, 'Exercício da biblioteca global não pode ser alterado pela clínica.');
 
         $dados = $request->validate($this->regras(true), $this->mensagens());
@@ -147,23 +152,31 @@ class BibliotecaController extends Controller
             ->orderBy('name')
             ->limit(self::LIMITE_LISTA)
             ->get()
-            ->map(fn (Exercise $e) => [
-                'id' => $e->id,
-                'name' => $e->name,
-                'region' => $e->region,
-                'type' => $e->type,
-                'pose' => $e->pose,
-                'steps' => $e->steps ?? [],
-                'synonyms' => $e->synonyms ?? [],
-                'default_sets' => $e->default_sets,
-                'default_reps' => $e->default_reps,
-                'default_hold_s' => $e->default_hold_s,
-                'times_per_day' => $e->times_per_day,
-                'safety_notes' => $e->safety_notes ?? [],
-                'needs_support' => $e->needs_support,
-                'global' => $e->ehGlobal(),
-            ])
+            ->map(fn (Model $e) => $this->linha($e))
             ->all();
+    }
+
+    /** @return array<string, mixed> */
+    private function linha(Model $e): array
+    {
+        assert($e instanceof Exercise);
+
+        return [
+            'id' => $e->id,
+            'name' => $e->name,
+            'region' => $e->region,
+            'type' => $e->type,
+            'pose' => $e->pose,
+            'steps' => $e->steps,
+            'synonyms' => $e->synonyms ?? [],
+            'default_sets' => $e->default_sets,
+            'default_reps' => $e->default_reps,
+            'default_hold_s' => $e->default_hold_s,
+            'times_per_day' => $e->times_per_day,
+            'safety_notes' => $e->safety_notes ?? [],
+            'needs_support' => $e->needs_support,
+            'global' => $e->ehGlobal(),
+        ];
     }
 
     /**
