@@ -9,6 +9,7 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Modules\Fisio\Entities\Record;
+use Modules\Fisio\Exceptions\DadoClinicoImutavelException;
 use Modules\Fisio\Tests\Support\FisioFixtures as F;
 
 uses(Tests\TestCase::class, DatabaseTransactions::class);
@@ -106,7 +107,8 @@ it('UC-FPS-04 · registro assinado: UPDATE e DELETE falham no banco; a rota de e
     // Pelo Eloquent também (o model não pode contornar — save() de registro assinado lança).
     $reg = Record::query()->findOrFail($id);
     $reg->body = ['conduta' => 'outra'];
-    expect(fn () => $reg->save())->toThrow(Throwable::class);
+    // Classe concreta: `Throwable` é interface, e o Pest lê string que não é classe como MENSAGEM.
+    expect(fn () => $reg->save())->toThrow(DadoClinicoImutavelException::class);
 
     // HTTP: não há PUT/PATCH/DELETE de registro.
     $this->putJson("/fisio/pacientes/{$this->p->id}/registros/{$id}", ['body' => ['conduta' => 'x']])->assertStatus(405);
