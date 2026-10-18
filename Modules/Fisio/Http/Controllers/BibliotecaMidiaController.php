@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\Fisio\Http\Controllers;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -93,7 +92,7 @@ class BibliotecaMidiaController extends Controller
             return response($conteudo, 200, $cabecalhos + ['Content-Disposition' => 'inline; filename="'.$nome.'"']);
         }
 
-        if ($disco instanceof FilesystemAdapter && $disco->getAdapter() instanceof LocalFilesystemAdapter) {
+        if ($disco->getAdapter() instanceof LocalFilesystemAdapter) {
             // BinaryFileResponse responde a `Range` sozinho — o player de vídeo do Safari exige.
             return response()->file($disco->path((string) $arquivo->storage_path), $cabecalhos);
         }
