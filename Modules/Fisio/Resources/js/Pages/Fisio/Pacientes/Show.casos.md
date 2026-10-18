@@ -5,14 +5,14 @@ irmaos: Show.charter.md (lei) · Show.tsx (tela)
 tecnica: Caso de uso = narrativa do fisioterapeuta + critério de aceite verificável (Dado/Quando/Então)
 por_que: a ficha é o prontuário legal (Res. COFFITO 414/2012, guarda de 20 anos pela Lei 13.787/2018) e o editor do programa que o paciente executa sozinho em casa. Editar evolução assinada, apagar paciente ou prescrever contra uma contraindicação sem aviso são falhas legais e clínicas.
 owner: wagner
-last_run: "2026-10-17"
+last_run: "2026-10-18"
 last_run_ci: "_pendente_ — o trio nasce com a suíte TDD da F1 (antes do código). O veredito entra quando a lane MySQL rodar FisioProntuarioTest, FisioProgramaEditorTest, FisioPacienteCrudTest, FisioMultiTenantTest e FisioWhatsappJobTest."
-related_us: []
+related_us: [US-FISIO-005]
 ---
 
 # Casos de Uso & Aceite — Fisio · Ficha do paciente (`/fisio/pacientes/{id}`)
 
-> **Âncora:** ADR 0437 §4 a §8 e handoff F1 (T-05, T-06, T-09). Padrão Cockpit + Apps Vinculados: abas Evolução, Programa, Prontuário, Questionários. Os UCs não derivam do `.tsx`.
+> **Âncora:** ADR 0437 §4 a §8 e handoff F1 (T-05, T-06, T-09). Padrão Cockpit + Apps Vinculados: abas Evolução, Programa, Avaliação, Prontuário, Questionários. Os UCs não derivam do `.tsx`.
 >
 > **Status:** ✅ passa (manifesto) · 🧪 teste cita o UC, sem veredito · ⬜ não verificado · ❌ quebrou. **O veredito é da lane** (G-7).
 
@@ -105,9 +105,12 @@ related_us: []
 
 ## Backlog (prosa honesta — vira UC quando ganhar teste que o cite)
 
+- `[BACKLOG]` Seções opcionais da avaliação (antecedentes, prognóstico, sessões previstas, sinais de alerta, marcadores) gravam no corpo quando informadas — sem teste que as cite ainda.
+- `[BACKLOG]` Paciente bloqueado aceita só adendo no prontuário e não aceita edição de perfil — regra do controller, sem teste próprio.
 - `[BACKLOG]` Gráfico de dor na aba Evolução (a série chega na prop `serie_dor`, provada em UC-FPP-20; o render ainda sem teste).
 - `[BACKLOG]` Protocolos-modelo da clínica aplicados ao programa (`origin=protocolo`) — fora desta suíte.
 - `[BACKLOG]` Questionários liberados (EVA, RMDQ, PSFS, LEFS, SPADI) — T-11, pontuação conferida com a referência publicada.
 
 ## Trilha do tempo
+- 2026-10-18 · US-FISIO-005 — telas e rotas de pacientes/prontuário implementadas; o veredito segue com a lane MySQL.
 - 2026-10-17 · suíte TDD da F1 — casos nascem antes da tela e do código; prontuário, bloqueio e contraindicação entram pela atualização de escopo do mesmo dia.

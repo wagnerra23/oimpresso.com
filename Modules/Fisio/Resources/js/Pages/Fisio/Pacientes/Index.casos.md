@@ -5,9 +5,9 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do fisioterapeuta + critério de aceite verificável (Dado/Quando/Então)
 por_que: paciente é um contact — duplicar cadastro parte o histórico em dois; meta semanal inválida quebra a adesão; paciente de outra clínica na lista é vazamento Tier 0.
 owner: wagner
-last_run: "2026-10-17"
+last_run: "2026-10-18"
 last_run_ci: "_pendente_ — o trio nasce com a suíte TDD da F1 (antes do código). O veredito entra quando a lane MySQL rodar FisioPacienteCrudTest, FisioMultiTenantTest e FisioModuloVisibilidadeTest."
-related_us: []
+related_us: [US-FISIO-005]
 ---
 
 # Casos de Uso & Aceite — Fisio · Pacientes (`/fisio/pacientes`)
@@ -60,4 +60,5 @@ related_us: []
 - `[BACKLOG]` Filtro "bloqueados" para consultar prontuário guardado — a regra de guarda está em UC-FPS-07; o filtro da lista ainda sem teste.
 
 ## Trilha do tempo
+- 2026-10-18 · US-FISIO-005 — telas e rotas de pacientes/prontuário implementadas; o veredito segue com a lane MySQL.
 - 2026-10-17 · suíte TDD da F1 — casos nascem antes da tela e do código.
