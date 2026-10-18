@@ -28,9 +28,9 @@ related_adrs:
 
 ### US-FISIO-001 · Trio SDD da F1 e US no SPEC — **P0**
 
-**Implementado em:** `memory/requisitos/Fisio/features/f1-constancia/requirements.md` · `memory/requisitos/Fisio/features/f1-constancia/plan.md` · `memory/requisitos/Fisio/features/f1-constancia/tasks.md` · verificado@f90027e (2026-10-18)
+**Implementado em:** _pendente_ — trio entregue em features/f1-constancia/, âncora fecha com a US-FISIO-002
 
-> owner: wagner · priority: p0 · estimate: 2h · status: done · type: story
+> owner: wagner · priority: p0 · estimate: 2h · status: todo · type: story
 > `npm run sdd:init -- Fisio/f1-constancia --us US-FISIO-001 ...` e `feature-lint --check` verde. Concilia os 4 ajustes do HANDOFF (XP por config, justificativa de contraindicação, busca na F1 condicionada, WhatsApp pelo `ChannelDriverFactory`).
 
 ### US-FISIO-002 · Esqueleto `Modules/Fisio` (ativação por empresa, permissões, menu condicionado) — **P0**
