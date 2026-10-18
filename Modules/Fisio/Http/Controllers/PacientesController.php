@@ -11,7 +11,10 @@ use Illuminate\Routing\Controller;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Fisio\Entities\Exercise;
 use Modules\Fisio\Entities\Patient;
+use Modules\Fisio\Entities\Program;
+use Modules\Fisio\Entities\ProgramItem;
 use Modules\Fisio\Entities\Questionnaire;
 use Modules\Fisio\Entities\Record;
 use Modules\Fisio\Services\Questionarios\CatalogoQuestionarios;
@@ -92,6 +95,9 @@ class PacientesController extends Controller
             // Catálogo estático (sem query): vai junto. O histórico é query → defer (US-FISIO-011).
             'instrumentos' => array_values(CatalogoQuestionarios::todos()),
             'questionarios' => Inertia::defer(fn () => $this->historicoQuestionarios($paciente)),
+            // Editor de programa (US-FISIO-006): programa ativo e biblioteca para prescrever são query → defer.
+            'programa' => Inertia::defer(fn () => $this->programaAtivo($paciente)),
+            'exercicios' => Inertia::defer(fn () => $this->bibliotecaParaPrescrever()),
         ]);
     }
 
@@ -221,6 +227,70 @@ class PacientesController extends Controller
                 'score' => $q->score !== null ? (float) $q->score : null,
                 'detalhe' => (array) ($q->answers['detalhe'] ?? []),
                 'answered_at' => $q->answered_at?->toIso8601String(),
+            ])
+            ->all();
+    }
+
+    /**
+     * Programa ativo do paciente com os itens na ordem (UC-FPS-06..10). Nulo se não houver.
+     * Escopo por empresa vem do model; o filtro por paciente, daqui.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function programaAtivo(Patient $paciente): ?array
+    {
+        $programa = Program::query()
+            ->where('patient_id', $paciente->id)
+            ->where('status', Program::STATUS_ATIVO)
+            ->with(['items.exercise:id,name,region'])
+            ->latest('id')
+            ->first();
+
+        if ($programa === null) {
+            return null;
+        }
+
+        return [
+            'id' => $programa->id,
+            'phase' => $programa->phase,
+            'starts_at' => $programa->starts_at?->toDateString(),
+            'stop_instruction' => $programa->stop_instruction,
+            'limiar_dor' => $programa->limiarDeDor(),
+            'itens' => $programa->items->map(fn (ProgramItem $i) => [
+                'id' => $i->id,
+                'exercise_id' => $i->exercise_id,
+                'nome' => $i->exercise?->name,
+                'regiao' => $i->exercise?->region,
+                'sets' => $i->sets,
+                'reps' => $i->reps,
+                'hold_s' => $i->hold_s,
+                'times_per_day' => $i->times_per_day,
+                'notes' => $i->notes,
+                'position' => $i->position,
+                'contraindicacao_confirmada' => $i->contraindication_ack_flags ?? [],
+                'contraindicacao_confirmada_em' => $i->contraindication_ack_at?->toIso8601String(),
+            ])->values()->all(),
+        ];
+    }
+
+    /**
+     * Biblioteca que o profissional pode prescrever: global + própria da clínica (o escopo do
+     * model já recusa a de outra empresa). Os marcadores de contraindicação vão junto para a
+     * tela antecipar o aviso; quem decide se avisa é o servidor (UC-FPS-10).
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function bibliotecaParaPrescrever(): array
+    {
+        return Exercise::query()
+            ->orderBy('name')
+            ->limit(500)
+            ->get(['id', 'name', 'region', 'contraindication_flags'])
+            ->map(fn (Exercise $e) => [
+                'id' => $e->id,
+                'nome' => $e->name,
+                'regiao' => $e->region,
+                'contraindicacoes' => $e->contraindication_flags ?? [],
             ])
             ->all();
     }

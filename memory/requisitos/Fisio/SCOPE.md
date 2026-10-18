@@ -14,6 +14,8 @@ contains:
   - "PacientesController"
   - "RegistrosController"
   - "QuestionariosController"
+  - "ProgramasController"
+  - "Editor de programa: criar, item com dose padrão, dose, ordem, remover e aviso de contraindicação que não bloqueia (US-FISIO-006)"
   - "Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) com pontuação calculada no servidor (US-FISIO-011)"
 not_contains:
   - "Envio de WhatsApp → Modules/Whatsapp (driver whatsmeow via ChannelDriverFactory)"

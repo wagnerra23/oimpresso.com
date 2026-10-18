@@ -3,6 +3,7 @@
 use Modules\Fisio\Http\Controllers\BibliotecaController;
 use Modules\Fisio\Http\Controllers\InstallController;
 use Modules\Fisio\Http\Controllers\PacientesController;
+use Modules\Fisio\Http\Controllers\ProgramasController;
 use Modules\Fisio\Http\Controllers\QuestionariosController;
 use Modules\Fisio\Http\Controllers\RegistrosController;
 use Modules\Fisio\Http\Middleware\FisioLiberado;
@@ -53,6 +54,16 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         // Prontuário é append-only: estes verbos existem só para responder 405 com o motivo.
         Route::match(['put', 'patch', 'delete'], 'pacientes/{id}/registros/{registro}', [RegistrosController::class, 'imutavel'])
             ->whereNumber(['id', 'registro'])->name('pacientes.registros.imutavel');
+
+        // Editor de programa (US-FISIO-006). Escrita exige `fisio.editar` (checada no controller);
+        // `ordem` vem antes de `{item}` e `{item}` é numérico — as duas rotas nunca colidem.
+        Route::post('pacientes/{id}/programas', [ProgramasController::class, 'store'])->whereNumber('id')->name('pacientes.programas.store');
+        Route::post('programas/{id}/itens', [ProgramasController::class, 'adicionarItem'])->whereNumber('id')->name('programas.itens.store');
+        Route::put('programas/{id}/itens/ordem', [ProgramasController::class, 'reordenar'])->whereNumber('id')->name('programas.itens.ordem');
+        Route::put('programas/{id}/itens/{item}', [ProgramasController::class, 'atualizarItem'])->whereNumber(['id', 'item'])->name('programas.itens.update');
+        Route::delete('programas/{id}/itens/{item}', [ProgramasController::class, 'removerItem'])->whereNumber(['id', 'item'])->name('programas.itens.destroy');
+        // Envio pelo WhatsApp é da US-FISIO-009: a rota existe pelo contrato de URIs e responde 501 até lá.
+        Route::post('programas/{id}/enviar', [ProgramasController::class, 'enviar'])->whereNumber('id')->name('programas.enviar');
 
         // Questionários de uso livre (US-FISIO-011). Pontuação calculada no servidor; só criação.
         Route::post('pacientes/{id}/questionarios', [QuestionariosController::class, 'store'])->whereNumber('id')->name('pacientes.questionarios.store');

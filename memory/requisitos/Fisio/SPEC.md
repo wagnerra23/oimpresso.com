@@ -75,10 +75,14 @@ related_adrs:
 
 ### US-FISIO-006 · Editor de programa, protocolos-modelo e aviso de contraindicação — **P0**
 
-**Implementado em:** _pendente_
+**Implementado em:** _pendente_ — parcial: `Modules/Fisio/Http/Controllers/ProgramasController.php`, rotas `fisio.pacientes.programas.store` e `fisio.programas.itens.*` (`Modules/Fisio/Routes/web.php`) e a seção Programa da ficha (`Modules/Fisio/Resources/js/Pages/Fisio/_components/ProgramaEditor.tsx`, em `Show.tsx`) existem. Faltam os protocolos-modelo (dependem dos protocolos revisados pela Dra. Dejeane) e o registro da justificativa no prontuário. A âncora fecha com os dois.
 
-> owner: — · priority: p0 · estimate: 8h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 8h · status: doing · type: story
 > blocked_by: US-FISIO-004, US-FISIO-005. Aviso nunca bloqueia; exige justificativa que vai ao prontuário (ADR 0437 §13.2). DoD: `FisioProgramaEditorTest`.
+
+**DoD:** programa criado `ativo`, `origin=manual`, `created_by` da sessão, instrução de parada obrigatória e limiar de dor padrão 7; novo ativo encerra o anterior; item herda a dose padrão e vai para o fim; dose validada com limites sem tocar outro item; reordenar só com a lista exata e completa; remover recompacta posições sem apagar check-in; exercício próprio de outra empresa recusado; contraindicação responde 409 com os marcadores e nada grava, e com confirmação grava quem, quando, quais marcadores e a justificativa (opcional pelo contrato do teste); outra empresa 404 antes de validar; escrita exige `fisio.editar` — `FisioProgramaEditorTest`. **Falta para fechar:** protocolos-modelo aplicados ao programa (`origin=protocolo`) e a justificativa indo ao prontuário como registro (o carimbo exige CREFITO, que o editor não pede). `POST fisio/programas/{id}/enviar` existe e responde 501 até a US-FISIO-009.
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioProgramaEditorTest.php`
 
 ### US-FISIO-007 · Portal do paciente (link + PIN, consentimentos, check-in, telemonitoramento) — **P0**
 

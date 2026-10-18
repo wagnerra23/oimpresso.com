@@ -133,9 +133,12 @@ related_us: []
 
 - `[BACKLOG]` Gráfico de dor na aba Evolução (a série chega na prop `serie_dor`, provada em UC-FPP-20; o render ainda sem teste).
 - `[BACKLOG]` Protocolos-modelo da clínica aplicados ao programa (`origin=protocolo`) — fora desta suíte.
+- `[BACKLOG]` Justificativa da contraindicação confirmada também como registro no prontuário (hoje fica no item: `contraindication_justification`, com quem, quando e quais marcadores; o registro carimbado exige CREFITO).
+- `[BACKLOG]` "Enviar" o programa pelo WhatsApp: a rota existe e responde 501 até a US-FISIO-009 (UC-FPS-11).
 - `[BACKLOG]` Enunciados literais da versão brasileira validada de EVA, RMDQ, PSFS, LEFS e SPADI na tela do questionário (aguarda conferência da Dra. Dejeane contra a publicação).
 
 ## Trilha do tempo
+- 2026-10-18 · US-FISIO-006 — a seção Programa entra no `.tsx` (editor com dose, ordem, remoção e aviso de contraindicação que não bloqueia) para os casos UC-FPS-06, 08, 09 e 10; os UCs não mudaram e seguem derivados do HANDOFF F1 (T-06) e da ADR 0437 §13. Veredito: lane Verticais (`FisioProgramaEditorTest`).
 - 2026-10-18 · US-FISIO-011 — questionários de uso livre viram UC-FPS-13..16 (estrutura e pontuação; enunciados pendentes).
 - 2026-10-17 · suíte TDD da F1 — casos nascem antes da tela e do código; prontuário, bloqueio e contraindicação entram pela atualização de escopo do mesmo dia.
 - 2026-10-18 · US-FISIO-005 — a tela `.tsx` nasce (#9546) para os casos UC-FPS-02..05 e 07; os UCs não mudaram e seguem derivados do HANDOFF F1, não do `.tsx`. Veredito: lane Verticais.

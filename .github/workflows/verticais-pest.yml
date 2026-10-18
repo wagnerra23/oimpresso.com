@@ -460,6 +460,11 @@ jobs:
         # ENTRA 2026-10-18 — Fisio/FisioBibliotecaTest (US-FISIO-004): biblioteca global visível
         # para 98 e 99, exercício próprio só do dono, global não editável (403), próprio alheio
         # 404, filtro por região e busca por texto (UC-FBI-01..04).
+        #
+        # ENTRA 2026-10-18 — Fisio/FisioProgramaEditorTest (US-FISIO-006): criar programa com
+        # instrução de parada (um ativo por paciente), item com a dose padrão, dose com limites,
+        # reordenar com lista exata, remover recompactando, exercício alheio recusado e aviso de
+        # contraindicação que não bloqueia e grava a confirmação (UC-FPS-06, 08..10).
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -550,7 +555,8 @@ jobs:
             Modules/Fisio/Tests/Unit/AdesaoCalculatorTest.php \
             Modules/Fisio/Tests/Unit/AtencaoDetectorTest.php \
             Modules/Fisio/Tests/Unit/CalculoBordasTest.php \
-            Modules/Fisio/Tests/Feature/FisioBibliotecaTest.php
+            Modules/Fisio/Tests/Feature/FisioBibliotecaTest.php \
+            Modules/Fisio/Tests/Feature/FisioProgramaEditorTest.php
 
       # O sumário conta `assertions` POR ARQUIVO — é o discriminador que separa
       # "passou" de "pulou" (LC-13). Aqui só REPORTA.

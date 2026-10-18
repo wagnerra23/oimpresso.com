@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-FISIO-006
 // Cobre UC-FPS-06, UC-FPS-08, UC-FPS-09, UC-FPS-10 (Fisio/Pacientes/Show.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;

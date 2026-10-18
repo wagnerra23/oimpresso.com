@@ -33,12 +33,14 @@ Mostrar e editar o perfil clínico do paciente e manter o prontuário: avaliaç�
 - Assinar avaliação (campos mínimos da Res. 414) e evolução, com carimbo do servidor — UC-FPS-03.
 - Corrigir por adendo apontando o original, que não muda — UC-FPS-04, UC-FPS-05.
 - Bloquear o paciente sem apagar nada — UC-FPS-07.
+- Montar o programa de exercícios: criar com instrução de parada, adicionar da biblioteca com a dose padrão, ajustar dose, reordenar e remover — UC-FPS-06, 08, 09 (US-FISIO-006).
+- Avisar contraindicação entre marcador do paciente e exercício, sem bloquear: o profissional confirma e a confirmação fica gravada — UC-FPS-10. O aviso informa; quem decide é o profissional.
 - Registrar questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) com pontuação do servidor e ver o histórico — UC-FPS-13..16 (US-FISIO-011). Mostra o número e a referência; não interpreta (SaMD, ADR 0437 §5).
 
 ## Non-Goals — Features (NÃO faz)
 
 - ❌ Editar ou apagar registro assinado (não existe rota; o banco recusa).
-- ❌ Programa de exercícios e envio pelo WhatsApp (US-FISIO-006 e seguintes).
+- ❌ Envio do programa pelo WhatsApp (US-FISIO-009 e seguintes).
 
 ## Refs
 
