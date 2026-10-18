@@ -81,7 +81,7 @@ Não chega a 10 por causa da **amplitude**: ~500 exercícios contra 18.000+ do P
 | Objetos | só equipamento caseiro brasileiro ou faixa elástica (§3.3) |
 | Pós-produção | pipeline automático: corte, estabilização, cor, loop, espelhamento, transcodificação (§3.6) |
 
-**Kit [estimativa, sem cotação]:** celular recente que grave em 4K, dois tripés, dois painéis de LED com difusor, fundo de tecido ou papel cinza, colchonete, cadeira sem braço, cabo de vassoura, garrafas PET de 500 mL e 2 L, toalha, degrau ou caixote, faixa elástica. Ordem de grandeza: **R$ 2.000 a R$ 5.000**, uma vez só.
+**Kit [estimativa, sem cotação]:** celular recente que grave em 4K, dois tripés, dois painéis de LED com difusor, fundo de tecido ou papel cinza, colchonete, cadeira sem braço, cabo de vassoura, garrafas PET de 500 mL e 2 L, toalha, degrau ou caixote, faixa elástica. Ordem de grandeza: **R$ [redacted Tier 0]**, uma vez só.
 
 **Equipe por dia de gravação:** fisioterapeuta-modelo (ou dois: adulto e idoso), uma pessoa operando câmera e roteiro (pode ser do time de 5), fisioterapeuta revisor depois, assíncrono.
 
@@ -192,7 +192,7 @@ Mudou o texto → regera os três por comando. Nada fica fora de sincronia.
 
 ### 3.6 Modo de baixo consumo de dados
 
-Contexto: o GB móvel custou em média R$ 6,13 no 1º trimestre de 2025 (+21%), e o consumo de dados caiu 9,3% [34]. No 2º trimestre de 2026 a média foi R$ 5,36 [35]. Planos pré-pagos em São Paulo saem por ~R$ 2/GB [36]. **O paciente economiza dados, e a gente precisa respeitar isso.**
+Contexto: o GB móvel custou em média R$ [redacted Tier 0] no 1º trimestre de 2025 (+21%), e o consumo de dados caiu 9,3% [34]. No 2º trimestre de 2026 a média foi R$ [redacted Tier 0] [35]. Planos pré-pagos em São Paulo saem por ~R$ [redacted Tier 0]/GB [36]. **O paciente economiza dados, e a gente precisa respeitar isso.**
 
 **Codificação [estimativas de tamanho, a medir no pipeline]:**
 
@@ -205,7 +205,7 @@ Contexto: o GB móvel custou em média R$ 6,13 no 1º trimestre de 2025 (+21%), 
 | narração | Opus/AAC mono ~32 kbps | — | ~0,1 MB por 25 s |
 
 - **H.264 como base obrigatória.** AV1 tem decodificação em hardware só em aparelhos recentes (no iPhone, a partir do 15 Pro), e o recomendado é manter vários codecs [37]. AV1 fica como variante opcional futura.
-- **Vídeo em loop é baixado uma vez** e fica no cache. Um programa de 6 exercícios na variante padrão ≈ 3 MB na primeira abertura, ~R$ 0,02 de dados [estimativa com R$ 5,36/GB]. Nos dias seguintes, zero.
+- **Vídeo em loop é baixado uma vez** e fica no cache. Um programa de 6 exercícios na variante padrão ≈ 3 MB na primeira abertura, ~R$ [redacted Tier 0] de dados [estimativa com R$ [redacted Tier 0]/GB]. Nos dias seguintes, zero.
 - **Cache no aparelho:** service worker no portal guarda vídeo, áudio e quadros-chave do programa ativo. Mudou o programa → baixa só o que mudou.
 - **"Baixar no Wi-Fi":** ao abrir o link, oferecer "Baixar tudo agora (≈3 MB)". Detecção automática do tipo de rede só funciona em navegadores Chromium (Network Information API) [não confirmado nesta pesquisa]; no iPhone, a escolha é manual.
 - **Modo economia** (chave no portal, lembrada no aparelho): força 360p ou só quadros-chave + áudio.
@@ -260,7 +260,7 @@ A ADR põe "busca por texto" na F4. **Proposta: trazer a busca com facetas para 
 
 - **Pipeline de mídia:** comando Artisan + job em fila com ffmpeg (corte, estabilização, espelhamento, variantes, quadros-chave) → storage S3-compatível → CDN.
 - **TTS:** um provedor só (Google Cloud TTS ou ElevenLabs, decidido no teste com idosos), chamado só no comando de geração. A chave de API não chega ao portal.
-- **Prism PHP (IA já usada no oimpresso):** só para ferramentas internas de conteúdo, como rascunho de roteiro a partir das notas do revisor e sugestão de sinônimos, **sempre revisadas por humano**. Nunca no caminho do paciente nem na prescrição (ADR §5, P57).
+- **IA pela camada `laravel/ai` (ADR 0035):** só para ferramentas internas de conteúdo, como rascunho de roteiro a partir das notas do revisor e sugestão de sinônimos, **sempre revisadas por humano**. Nunca no caminho do paciente nem na prescrição (ADR §5, P57).
 
 ---
 
@@ -359,9 +359,9 @@ Encaixam no handoff da F1: B-01 a B-04 detalham T-03/T-04; B-05 a B-08 detalham 
 31. Teletime — IBGE PNAD TIC 2025 (60+ = 74,5%; 98,7% acessam pelo celular): https://teletime.com.br/02/07/2026/usuarios-internet-brasil-ultrapassa-90/
 32. Google Cloud — Text-to-Speech pricing: https://cloud.google.com/text-to-speech/pricing?hl=nl
 33. Puter — ElevenLabs API pricing (jun/2026; publicado por concorrente): https://developer.puter.com/tutorials/elevenlabs-api-pricing/
-34. Hardware.com.br — Anatel: GB a R$ 6,13 no 1T2025, consumo −9,3%: https://www.hardware.com.br/?p=315070
-35. Teletime — Anatel: GB a R$ 5,36 no 2T2026: https://teletime.com.br/07/10/2026/preco-medio-gb-movel-cai-anatel/
-36. MelhorPlano.net — preço por GB 2025 (pré-pago R$ 2,03): https://melhorplano.net/sala-de-imprensa/preco-por-gb-2025
+34. Hardware.com.br — Anatel: GB a R$ [redacted Tier 0] no 1T2025, consumo −9,3%: https://www.hardware.com.br/?p=315070
+35. Teletime — Anatel: GB a R$ [redacted Tier 0] no 2T2026: https://teletime.com.br/07/10/2026/preco-medio-gb-movel-cai-anatel/
+36. MelhorPlano.net — preço por GB 2025 (pré-pago R$ [redacted Tier 0]): https://melhorplano.net/sala-de-imprensa/preco-por-gb-2025
 37. Bitmovin — AV1 playback support (dados de 2024; manter vários codecs): https://bitmovin.com/av1-playback-support/
 38. Bunny Stream — Pricing: https://bunny.net/docs/stream/pricing
 39. Cloudflare Stream — Pricing: https://developers.cloudflare.com/stream/pricing

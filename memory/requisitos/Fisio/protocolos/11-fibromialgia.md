@@ -27,11 +27,11 @@
 | exercício | dose inicial | na biblioteca? |
 |---|---|---|
 | Caminhada leve (ou marcha estacionária em casa) | 8–10 min, 3×/semana, "consigo conversar" | **novo** (gravar) |
-| Respiração diafragmática | 2×10, diário | sim |
-| Gato-camelo | 2×8, suave | sim |
-| Rotação de tronco deitado | 2×8 | sim |
-| Alongamento de isquiotibiais sentado | 2× 20 s | sim |
-| Retração escapular | 2×10 | sim |
+| Respiração diafragmática | 2×10, diário | a conferir na lista do seed (US-FISIO-004) |
+| Gato-camelo | 2×8, suave | a conferir na lista do seed (US-FISIO-004) |
+| Rotação de tronco deitado | 2×8 | a conferir na lista do seed (US-FISIO-004) |
+| Alongamento de isquiotibiais sentado | 2× 20 s | a conferir na lista do seed (US-FISIO-004) |
+| Retração escapular | 2×10 | a conferir na lista do seed (US-FISIO-004) |
 
 **Critério de passagem (escrito):** cumpriu ≥ 80% das sessões prescritas por 2 semanas seguidas e não relatou crise de mais de 48 h que associe ao exercício. Passagem manual pelo profissional.
 
@@ -40,12 +40,12 @@
 | exercício | dose | na biblioteca? |
 |---|---|---|
 | Caminhada / bicicleta ergométrica / marcha estacionária | +2 a 5 min por semana até 20–30 min, 2–3×/semana, leve a moderado | caminhada e bicicleta: **novos** |
-| Sentar e levantar | 1–2×8–10, 2×/semana | sim |
-| Ponte de glúteo | 1–2×8–10, 2×/semana | sim |
-| Elevação de panturrilha | 1–2×10, 2×/semana | sim |
+| Sentar e levantar | 1–2×8–10, 2×/semana | a conferir na lista do seed (US-FISIO-004) |
+| Ponte de glúteo | 1–2×8–10, 2×/semana | a conferir na lista do seed (US-FISIO-004) |
+| Elevação de panturrilha | 1–2×10, 2×/semana | a conferir na lista do seed (US-FISIO-004) |
 | Remada com elástico | 1–2×10, 2×/semana | **novo** (gravar) |
-| Mini agachamento na parede | 1–2×8, 2×/semana | sim |
-| Apoio unipodal (perto de apoio firme) | 3× 15–30 s | sim |
+| Mini agachamento na parede | 1–2×8, 2×/semana | a conferir na lista do seed (US-FISIO-004) |
+| Apoio unipodal (perto de apoio firme) | 3× 15–30 s | a conferir na lista do seed (US-FISIO-004) |
 
 Força em dias **não consecutivos**, carga leve (termina a série sentindo que faria mais 3–4 repetições).
 

@@ -27,8 +27,8 @@ O fisioterapeuta não pode precisar do Vedius ou do ZenFisio do lado do Fisio. E
 
 | produto | o que faz bem (com fonte) | copiar | evitar |
 |---|---|---|---|
-| **Vedius** (R$ 79,90/mês; equipe R$ 69,90 por colaborador) | confirmação automática por WhatsApp que o paciente responde; recorrência ilimitada; cada atendimento entra sozinho no financeiro | confirmação WhatsApp com resposta de um toque; atendimento que vira lançamento | não publica lista de espera, pacotes, salas, NFS-e nem teleconsulta: são os buracos a explorar |
-| **ZenFisio** (R$ 79 / 179 / 439) | "Repetir" com renovação ao fim da série; pacote novo ou existente vinculado ao agendamento, com o financeiro seguindo o pacote; sala por agendamento e filtro por sala; status personalizado que trava depois de "realizado"; bloqueio de horário; lembrete por SMS | pacote vinculado ao agendamento; status travado depois do atendimento registrado; renovação de série | SMS no lugar de WhatsApp; NFS-e como módulo pago à parte |
+| **Vedius** (R$ [redacted Tier 0]/mês; equipe R$ [redacted Tier 0] por colaborador) | confirmação automática por WhatsApp que o paciente responde; recorrência ilimitada; cada atendimento entra sozinho no financeiro | confirmação WhatsApp com resposta de um toque; atendimento que vira lançamento | não publica lista de espera, pacotes, salas, NFS-e nem teleconsulta: são os buracos a explorar |
+| **ZenFisio** (R$ [redacted Tier 0] / 179 / 439) | "Repetir" com renovação ao fim da série; pacote novo ou existente vinculado ao agendamento, com o financeiro seguindo o pacote; sala por agendamento e filtro por sala; status personalizado que trava depois de "realizado"; bloqueio de horário; lembrete por SMS | pacote vinculado ao agendamento; status travado depois do atendimento registrado; renovação de série | SMS no lugar de WhatsApp; NFS-e como módulo pago à parte |
 | **Ninsaúde** | confirmação por SMS/WhatsApp com 1 ou 2 dias de antecedência, mensagem por perfil/profissional/unidade (diz reduzir faltas em até 68%, número do próprio fornecedor); agendamento online com horário, preço e serviço por profissional; recorrência diária, semanal, mensal e anual para sessões e pacotes | antecedência configurável; agenda online com preço por serviço | — |
 | **Jane App** | lista de espera automática: ao cancelar ou mover, avisa só quem tem preferência compatível e segura a vaga num período de acesso exclusivo, com espera de 15 min se a consulta é em menos de 24 h e de 2 h se é em mais; política de cancelamento exibida no agendamento online; sinal (depósito) total ou parcial na reserva; cartão salvo | **lista de espera com casamento de preferência e janela de exclusividade**: é o diferencial que nenhum local publica | lista de espera só nos planos caros (Thrive) |
 | **Cliniko** (US$ 45/mês para 1 profissional; SMS cerca de US$ 0,10 por mensagem) | recorrência, agenda online pelo portal, telessaúde dentro do registro do atendimento | vídeo nascendo do agendamento, sem ferramenta de terceiros | salas e recursos compartilhados fracos; SMS cobrado à parte |
@@ -168,8 +168,8 @@ Uma camada `TeleconsultaProvider` com **uma** implementação (LiveKit) e nenhum
 
 | regra | detalhe |
 |---|---|
-| Pacote = N sessões de um tipo (ou de um grupo de tipos), preço, validade | ex.: 10 sessões, R$ 900, 90 dias |
-| Formas de venda | à vista, parcelado (N títulos no Financeiro) ou **mensalidade** (plano "2x por semana, R$ 480/mês" via RecurringBilling, com Pix Automático se PJ) |
+| Pacote = N sessões de um tipo (ou de um grupo de tipos), preço, validade | ex.: 10 sessões, R$ [redacted Tier 0] 90 dias |
+| Formas de venda | à vista, parcelado (N títulos no Financeiro) ou **mensalidade** (plano "2x por semana, R$ [redacted Tier 0]/mês" via RecurringBilling, com Pix Automático se PJ) |
 | Consumo | cada agendamento "realizado" consome 1 sessão; falta ou cancelamento tardio consomem conforme a política (A8) depois da confirmação do profissional |
 | Ledger append-only | `fisio_package_ledger` (crédito na compra, débito por sessão, estorno por adendo). Saldo é **derivado**, igual ao XP da F1 |
 | Avisos | "faltam 2 sessões" para o profissional e para o paciente pelo WhatsApp, com link de renovação (Pix) |
@@ -240,7 +240,7 @@ O que entra na F3: campo "convênio / reembolso" no paciente e **recibo para ree
 Eventos (listeners Laravel, sem acoplamento direto):
 `AppointmentCompleted` → consome sessão, gera cobrança avulsa se não houver pacote · `PaymentReceived` (Financeiro) → emite NFS-e (PJ) ou cria recibo pendente (PF) · `PackageLow` → WhatsApp de renovação · `AppointmentCancelled` → lista de espera.
 
-**Custo de WhatsApp.** Tabela da Meta para o Brasil a partir de 01/10/2026: utilidade cerca de **R$ 0,035** por mensagem (a fonte tem inconsistência de moeda, conferir na tabela oficial). Desde essa data, utilidade dentro da janela de 24 h também é cobrada. Estimativa: paciente com 2 sessões por semana gera cerca de 8 confirmações + 2 lembretes por mês ≈ R$ 0,35/mês.
+**Custo de WhatsApp.** Tabela da Meta para o Brasil a partir de 01/10/2026: utilidade cerca de **R$ [redacted Tier 0]** por mensagem (a fonte tem inconsistência de moeda, conferir na tabela oficial). Desde essa data, utilidade dentro da janela de 24 h também é cobrada. Estimativa: paciente com 2 sessões por semana gera cerca de 8 confirmações + 2 lembretes por mês ≈ R$ [redacted Tier 0]/mês.
 
 ---
 

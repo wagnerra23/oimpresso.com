@@ -8,6 +8,8 @@ contains:
   - "Portal público do paciente (token HMAC + PIN, consentimentos, check-in, telemonitoramento Res. 619/2025)"
   - "Jogo de constância (ledger de XP append-only, nível e sequência derivados)"
   - "Painel e fila de atenção do profissional"
+  - "DataController"
+  - "InstallController"
 not_contains:
   - "Envio de WhatsApp → Modules/Whatsapp (driver whatsmeow via ChannelDriverFactory)"
   - "Cobrança, pacotes e títulos → Financeiro / RecurringBilling (F3)"

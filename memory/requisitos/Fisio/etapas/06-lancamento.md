@@ -28,15 +28,15 @@ As metas de quantidade são **estimativas minhas** e servem de calibragem. Não 
 
 | produto | grátis | entrada | equipe/clínica | anual / outros |
 |---|---|---|---|---|
-| Physitrack | trial de 2 semanas | US$ 18,99/prof./mês (≈ R$ 169 no comparativo) | Enterprise sob consulta | "fundadores": 30% off por 12 meses para quem entrar até 01/01/2027; oferta para estudante sem preço publicado |
-| Vedius | trial de 7 dias, sem cartão | R$ 79,90/mês | R$ 69,90/colaborador | anual R$ 749,90 (25% off à vista, 15% parcelado) |
-| ZenFisio | trial de 14 dias | R$ 79/mês | R$ 179 (Equipe), R$ 439 (Clínica) | 25% off semestral/anual; financeiro e NFS-e podem ser cobrados à parte |
-| Kynesia | plano Start grátis | Flow R$ 49,90 (até 50 pacientes ativos, 50 laudos por IA) | Elite R$ 89,90 | anual com desconto, sem valor publicado |
-| Fisioly | Free com limites após 7 dias | Essencial R$ 44,90 | Profissional R$ 79,90 / Elite R$ 149,90 | anual mais barato |
+| Physitrack | trial de 2 semanas | US$ 18,99/prof./mês (≈ R$ [redacted Tier 0] no comparativo) | Enterprise sob consulta | "fundadores": 30% off por 12 meses para quem entrar até 01/01/2027; oferta para estudante sem preço publicado |
+| Vedius | trial de 7 dias, sem cartão | R$ [redacted Tier 0]/mês | R$ [redacted Tier 0]/colaborador | anual R$ [redacted Tier 0] (25% off à vista, 15% parcelado) |
+| ZenFisio | trial de 14 dias | R$ [redacted Tier 0]/mês | R$ [redacted Tier 0] (Equipe), R$ [redacted Tier 0] (Clínica) | 25% off semestral/anual; financeiro e NFS-e podem ser cobrados à parte |
+| Kynesia | plano Start grátis | Flow R$ [redacted Tier 0] (até 50 pacientes ativos, 50 laudos por IA) | Elite R$ [redacted Tier 0] | anual com desconto, sem valor publicado |
+| Fisioly | Free com limites após 7 dias | Essencial R$ [redacted Tier 0] | Profissional R$ [redacted Tier 0] / Elite R$ [redacted Tier 0] | anual mais barato |
 
 Fontes: [comparativo Physitrack, 04/10/2026](https://www.physitrack.com/pt/insights/melhor-software-fisioterapia-brasil-comparativo); [preços Physitrack](https://www.physitrack.com/pt/physitrack-pricing); [Vedius](https://vedius.com.br/mercado-fisioterapia/).
 
-**Conclusão:** a faixa de R$ 49–79 é a âncora do mercado, e a validação se confirma. Abaixo de R$ 45 o produto parece "de brinquedo". Acima de R$ 90 ele precisa justificar o valor com dinheiro (F3), coisa que só o oimpresso entrega. Ninguém publica plano para estudante ou recém-formado com preço. Esse espaço está livre.
+**Conclusão:** a faixa de R$ [redacted Tier 0] é a âncora do mercado, e a validação se confirma. Abaixo de R$ [redacted Tier 0] o produto parece "de brinquedo". Acima de R$ [redacted Tier 0] ele precisa justificar o valor com dinheiro (F3), coisa que só o oimpresso entrega. Ninguém publica plano para estudante ou recém-formado com preço. Esse espaço está livre.
 
 ### 2.2 Modelos product-led
 
@@ -57,16 +57,16 @@ Fontes: [comparativo Physitrack, 04/10/2026](https://www.physitrack.com/pt/insig
 |---|---|---|---|
 | **Rede local (Tubarão, Criciúma, Florianópolis)** | SC tem 13,3 fisioterapeutas por 10 mil habitantes, acima da média nacional ([RSD](https://rsdjournal.org/rsd/article/download/22392/19871/270164)) | tempo de [W] | **piloto** |
 | **Faculdades e clínicas-escola** | UDESC/CEFID tem graduação em Fisioterapia ([grade](https://udesc.br/arquivos/cefid/id_cpmenu/1012/GRADE_FIS_17224523363496_1012.pdf)); UNESC em Criciúma ([Pravaler](https://www.pravaler.com.br/faculdades/unesc/graduacao/fisioterapia/)); Unisul Tubarão **a confirmar** | baixo: licença grátis para a clínica-escola | **semente de longo prazo**: o aluno formado leva o hábito |
-| **Congressos** | o 13º Congresso Internacional de Fisioterapia (SBF) foi em Florianópolis, com 3.000+ congressistas esperados; estande de R$ 900–1.100/m²; cotas de R$ 5 mil (Bronze, 9 m²) a R$ 30 mil ([projeto comercial CIF 2023](https://attitudepromo.iweventos.com.br/upload/cartas/files/projeto-comercial-cif2023.pdf)). Data e local do COBRAFI e do CIF 2026–2027: **não confirmados** | alto | **depois** do mês 4, com casos para mostrar |
+| **Congressos** | o 13º Congresso Internacional de Fisioterapia (SBF) foi em Florianópolis, com 3.000+ congressistas esperados; estande de R$ [redacted Tier 0]/m²; cotas de R$ [redacted Tier 0] (Bronze, 9 m²) a R$ [redacted Tier 0] ([projeto comercial CIF 2023](https://attitudepromo.iweventos.com.br/upload/cartas/files/projeto-comercial-cif2023.pdf)). Data e local do COBRAFI e do CIF 2026–2027: **não confirmados** | alto | **depois** do mês 4, com casos para mostrar |
 | **Instagram/TikTok de fisioterapeutas** | segundo revisões citadas por estudo da Unicesumar, cerca de 41% dos usuários de redes dizem ser influenciados pelo conteúdo de saúde que veem ([anais EPCC](https://static.even3.com/anais/1250754.pdf)) | orgânico: tempo; pago: ver abaixo | **fábrica de conteúdo** (3.5): o fisioterapeuta posta e a marca vai junto |
 | **Meta Ads** | CPL médio no Brasil de cerca de US$ 88,80 entre jul/2025 e jun/2026, com picos e médias inconsistentes ([Superads](https://www.superads.ai/facebook-ads-costs/cost-per-lead/brazil)) | alto e volátil | **só retargeting** de quem visitou a página por um link de paciente |
 | **CREFITO-10 (SC)** | não achei programa de convênio ou benefício para empresas (**não confirmado**) | — | propor palestra sobre "Res. 619/2025 e prontuário de telemonitoramento" (conteúdo, não venda) |
 | **Grupos de WhatsApp/Telegram, influenciadores de fisio** | não achei dado público de tamanho nem de custo (**não confirmado**) | — | microinfluenciadores regionais no mês 4+, pagos em licença, não em dinheiro (estimativa) |
 
 **CAC estimado** (estimativa minha, com as fontes acima):
-- Piloto local: cerca de R$ 0 em dinheiro e algo como 2–3 h de [W] por profissional.
-- Cota Bronze em congresso (R$ 5 mil + viagem) com 20 pagantes: ≥ R$ 300 por pagante.
-- Meta Ads: com CPL de US$ 89 e 10% de lead para pagante, cerca de US$ 890. Inviável com ticket de R$ 59.
+- Piloto local: cerca de R$ [redacted Tier 0] em dinheiro e algo como 2–3 h de [W] por profissional.
+- Cota Bronze em congresso (R$ [redacted Tier 0] + viagem) com 20 pagantes: ≥ R$ [redacted Tier 0] por pagante.
+- Meta Ads: com CPL de US$ 89 e 10% de lead para pagante, cerca de US$ 890. Inviável com ticket de R$ [redacted Tier 0]
 
 **Conclusão:** o crescimento precisa vir do produto: rodapé, indicação, conteúdo e faculdade.
 
@@ -94,18 +94,18 @@ A Res. COFFITO 532/2021 permitiria divulgar imagem de procedimento com TCLE pré
 
 | plano | preço | limite | para quem |
 |---|---|---|---|
-| **Grátis** | R$ 0 | até **5 pacientes ativos**; envio do programa e do lembrete pelo **WhatsApp do próprio profissional** (botão `wa.me` com texto pronto, custo zero para nós); biblioteca, portal, jogo e painel completos | experimentar com pacientes reais |
-| **Autônomo** | **R$ 59/mês** ou **R$ 588/ano** (= R$ 49/mês) | pacientes ativos ilimitados; **lembrete diário automático** pelo WhatsApp da clínica (módulo Whatsapp, driver `whatsmeow`, um número por clínica — ADR 0437 §13.1; não é a API oficial); protocolos-modelo próprios; questionários | público de entrada |
-| **Clínica** | **R$ 49/prof./mês** (mínimo 2) ou anual com 2 meses grátis | tudo do Autônomo + painel da clínica + protocolos compartilhados | 2–10 profissionais |
+| **Grátis** | R$ [redacted Tier 0] | até **5 pacientes ativos**; envio do programa e do lembrete pelo **WhatsApp do próprio profissional** (botão `wa.me` com texto pronto, custo zero para nós); biblioteca, portal, jogo e painel completos | experimentar com pacientes reais |
+| **Autônomo** | **R$ [redacted Tier 0]/mês** ou **R$ [redacted Tier 0]/ano** (= R$ [redacted Tier 0]/mês) | pacientes ativos ilimitados; **lembrete diário automático** pelo WhatsApp da clínica (módulo Whatsapp, driver `whatsmeow`, um número por clínica — ADR 0437 §13.1; não é a API oficial); protocolos-modelo próprios; questionários | público de entrada |
+| **Clínica** | **R$ [redacted Tier 0]/prof./mês** (mínimo 2) ou anual com 2 meses grátis | tudo do Autônomo + painel da clínica + protocolos compartilhados | 2–10 profissionais |
 | **Estudante / recém-formado** | **50% off por 12 meses** | estudante: plano Grátis com 10 pacientes (clínica-escola); recém-formado: CREFITO há ≤ 24 meses | semente |
 | **Fundador piloto** | **50% off enquanto a assinatura estiver ativa**, só para os 15–20 do piloto | — | recompensa de quem ajudou a construir |
-| **+ Dinheiro (oimpresso)** — F3 | **+ R$ 29/mês** (estimativa) | pacotes, cobrança Pix/cartão, **NFS-e**, **Receita Saúde** | profissional PJ ou PF que hoje emite nota e recibo à mão |
+| **+ Dinheiro (oimpresso)** — F3 | **+ R$ [redacted Tier 0]/mês** (estimativa) | pacotes, cobrança Pix/cartão, **NFS-e**, **Receita Saúde** | profissional PJ ou PF que hoje emite nota e recibo à mão |
 
 Por que estes números:
 - **Limite em pacientes ativos, não em programas.** É o que o Kynesia usa (50 no Flow) e acompanha o valor recebido. Limitar programas pune o bom uso.
 - **5 grátis, não 10.** É estimativa: com 5 o profissional sente o valor; a partir do 6º paciente o painel de risco faz falta e o upgrade acontece no momento de maior valor.
-- **O que puxa o upgrade é o lembrete automático, não um corte de função.** Ele custa dinheiro real (a ADR cita cerca de R$ 0,05 por mensagem de utilidade; 30 lembretes/mês/paciente ≈ R$ 1,50 por paciente por mês, **estimativa**). E ataca o esquecimento, causa nº 1 de abandono. No grátis o profissional continua lembrando à mão, que é exatamente a dor que ele quer tirar.
-- **R$ 59 fica entre o Kynesia (49,90) e o Vedius/ZenFisio (79).** O anual a R$ 49 empata com a âncora mais baixa do mercado.
+- **O que puxa o upgrade é o lembrete automático, não um corte de função.** Com o driver `whatsmeow` (ADR 0437 §13.1) não há custo por mensagem; o custo real é o risco de banimento do número da clínica, que as mitigações da §13.1 reduzem. O lembrete ataca o esquecimento, causa nº 1 de abandono. No grátis o profissional continua lembrando à mão, que é exatamente a dor que ele quer tirar.
+- **R$ [redacted Tier 0] fica entre o Kynesia (49,90) e o Vedius/ZenFisio (79).** O anual a R$ [redacted Tier 0] empata com a âncora mais baixa do mercado.
 - **Receita Saúde:** profissional de saúde pessoa física é obrigado ao recibo digital desde jan/2025, e o fisioterapeuta está incluído ([Contabilizei](https://www.contabilizei.com.br/contabilizei-responde/o-que-e-receita-saude/)). Junto com a NFS-e para quem é PJ, é o que justifica cobrar a mais. O ZenFisio já cobra NFS-e à parte ([comparativo](https://www.physitrack.com/pt/insights/melhor-software-fisioterapia-brasil-comparativo)).
 - **Trial do pago:** 14 dias do Autônomo **sem cartão**, que ativa sozinho quando o profissional cadastra o 6º paciente. No fim, volta ao Grátis em vez de bloquear. Sem cartão converte menos (25% contra 60%, [InnerTrends](https://www.innertrends.com/blog/saas-free-trial-benchmarks)), mas no Brasil a exigência de cartão espanta o autônomo (estimativa). Revisar depois do piloto.
 
@@ -148,7 +148,7 @@ Regras:
 | 1–2 | marca | foto e nome de exibição. Mostra ao vivo a prévia do portal que o paciente vai ver (a hora do "uau") |
 | 2–4 | **paciente de exemplo = você** | o sistema cria o paciente "Você (teste)" com um protocolo-modelo de lombar. O profissional abre o portal no próprio celular, faz o check-in e ganha os primeiros XP. Ele vive a experiência do paciente |
 | 4–7 | primeiro paciente real | só nome + WhatsApp + queixa. Escolhe um protocolo-modelo (joelho, ombro, lombar, tornozelo, cervical) e ajusta séries |
-| 7–9 | enviar | botão "Enviar pelo WhatsApp". No Grátis abre o `wa.me` do profissional com o link + PIN; no pago, envia pelo número oficial |
+| 7–9 | enviar | botão "Enviar pelo WhatsApp". No Grátis abre o `wa.me` do profissional com o link + PIN; no pago, o lembrete automático sai pelo número da clínica conectado no módulo `Whatsapp` (driver `whatsmeow`) |
 | 9–10 | próximo passo | checklist visível: ✔ marca ✔ teste ✔ 1º paciente ☐ 3 pacientes ☐ primeiro check-in recebido ☐ convidar colega |
 
 Regras: o profissional pode pular qualquer passo, e o wizard nunca pede dado que não seja usado na hora. O consentimento de teleatendimento do paciente é pedido no portal, como já previsto no T-07.
@@ -172,7 +172,7 @@ Regras de conformidade, em um lint que bloqueia a exportação:
 
 Dependência legal: as ilustrações da biblioteca precisam de **licença que permita uso em redes sociais por terceiros**. Ilustração própria ou gerada com direitos cedidos. Verificar antes do seed (T-04 da F1).
 
-Calendário: 12 modelos sazonais pré-prontos (ex.: "volta às corridas em março", "dor nas costas no home office"). IA via Prism só **reescreve a legenda no tom do profissional**. Não gera conduta clínica (ADR §5).
+Calendário: 12 modelos sazonais pré-prontos (ex.: "volta às corridas em março", "dor nas costas no home office"). A IA (camada `laravel/ai`, ADR 0035) só **reescreve a legenda no tom do profissional**. Não gera conduta clínica (ADR §5).
 
 ### 3.6 Piloto: 15–20 fisioterapeutas em 8 semanas
 
@@ -236,7 +236,7 @@ O motivo é que "oimpresso" remete a gráfica. Para o fisioterapeuta ele não di
 
 | risco | mitigação |
 |---|---|
-| grátis caro (WhatsApp oficial) | no grátis o envio sai do WhatsApp do próprio profissional; o lembrete oficial é só no pago |
+| lembrete automático no grátis | o grátis não tem lembrete automático: o profissional envia pelo próprio WhatsApp (`wa.me`); o lembrete automático pelo número da clínica (driver `whatsmeow`) é só no pago |
 | cartão ou rodapé lido como publicidade irregular do profissional | sem dado do paciente, sem promessa, com CREFITO; o profissional não reposta; validar o texto com o CREFITO-10 antes do lançamento aberto |
 | rodapé no template de WhatsApp reclassificado como marketing | rodapé só no portal e no cartão, nunca no template |
 | indicação vista como "comissão" | crédito de software só entre profissionais; nada para paciente |
@@ -264,13 +264,13 @@ O motivo é que "oimpresso" remete a gráfica. Para o fisioterapeuta ele não di
 | id | tarefa | blocked_by | DoD |
 |---|---|---|---|
 | L-01 | **Planos e limites do Fisio**: plano por business (grátis, autônomo, clínica, estudante, fundador), limite de pacientes ativos, `fisio_plan_features` com reuso do pacote/assinatura existente do oimpresso (Superadmin), trial de 14 dias que dispara no 6º paciente e volta ao Grátis no fim | F1 T-12 | teste: o 6º paciente no grátis ativa o trial; com o trial vencido, o 6º fica somente leitura e nada é apagado (guarda de 20 anos) |
-| L-02 | **Envio no grátis via `wa.me`** (texto pronto com link + PIN) e envio oficial no pago, com o mesmo job do T-09 condicionado ao plano | L-01 | grátis nunca chama a API oficial; pago mantém um lembrete por paciente por dia |
+| L-02 | **Envio no grátis via `wa.me`** (texto pronto com link + PIN) e lembrete automático no pago, com o mesmo job do T-09 condicionado ao plano | L-01 | grátis não dispara o job de lembrete; pago mantém um lembrete por paciente por dia |
 | L-03 | **Eventos de crescimento**: tabela `fisio_growth_events` (business_id, evento, ref, utm, at) para cadastro, marca, teste, 1º paciente, 1º envio, 1º check-in, 5 ativos, upgrade, indicação, post exportado; painel interno só para superadmin | L-01 | as métricas da §3.6 saem do banco sem planilha; nenhum dado clínico no evento |
 | L-04 | **Onboarding de 10 min**: wizard da §3.4, paciente de exemplo "Você (teste)" excluído das métricas e da contagem do plano, checklist persistente | L-03 | E2E: cadastro → 1º programa enviado em < 10 min sem campo obrigatório extra; paciente teste não conta no limite |
 | L-05 | **Marca no portal + rodapé + página `/fisio`** com `ref`/`utm`; nome e CREFITO obrigatórios no portal; página de aterrissagem pública com texto da ADR §5 ("apoio ao fisioterapeuta…") | L-03, decisão de marca | portal sem CREFITO não publica; cadastro via `ref` gera evento atribuído |
 | L-06 | **Cartão de conquista**: imagem gerada no servidor (tokens DS v6), sem dado do paciente, share nativo, página pública do cartão com rodapé; o profissional não tem acesso ao cartão | L-05, F1 T-08 | teste de snapshot: nenhum nome, dor ou região na imagem; rota sem PIN não expõe dado do paciente |
 | L-07 | **Indicação entre profissionais**: código automático, crédito nos dois lados depois do 1º pagamento compensado, teto de 12/ano, CREFITO único, bloqueio de autoindicação | L-01, L-03 | testes de fraude (mesmo CPF/CNPJ, CREFITO repetido); crédito aplicado no RecurringBilling |
-| L-08 | **Fábrica de conteúdo**: carrossel, roteiro e legenda a partir de exercício/protocolo; lint ético bloqueante (§3.5); IA via Prism só para reescrever legenda | L-05, licença das ilustrações | lint com testes para cada termo bloqueado; card final sempre com CREFITO; exportação PNG/ZIP |
+| L-08 | **Fábrica de conteúdo**: carrossel, roteiro e legenda a partir de exercício/protocolo; lint ético bloqueante (§3.5); IA (`laravel/ai`, ADR 0035) só para reescrever legenda | L-05, licença das ilustrações | lint com testes para cada termo bloqueado; card final sempre com CREFITO; exportação PNG/ZIP |
 | L-09 | **Plano estudante/recém-formado**: upload de comprovante, fila de revisão manual, expiração automática em 12 meses | L-01 | expirou → volta ao preço cheio com aviso de 15 dias |
 | L-10 | **Pesquisa in-app do piloto**: pergunta de valor percebido e de disposição a pagar nas semanas 4 e 8 | L-03 | respostas no painel interno, ligadas ao business |
 | L-11 | **Cobrança anual e "+ Dinheiro"**: anual com desconto e NFS-e do próprio oimpresso para o assinante, via RecurringBilling + NFSe | L-01 | assinatura anual gera NFS-e; o add-on só aparece com a F3 pronta |

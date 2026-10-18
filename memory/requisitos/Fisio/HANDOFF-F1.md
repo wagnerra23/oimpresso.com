@@ -25,7 +25,7 @@ Câmera, nota por câmera, prescrição sugerida por IA, ditado por voz, pacotes
 
 - `memory/requisitos/Fisio/etapas/01-biblioteca.md` e `02-f1-constancia.md`: detalham a F1 (biblioteca, WhatsApp, check-in, jogo com números, painel de risco), com tarefas próprias (B-xx e as da F1) que refinam T-04 a T-10 abaixo.
 - `03` a `06`: etapas futuras (câmera, operação, IA/questionários, lançamento). Leia só para não fechar porta; não implemente.
-- `Modules/Fisio/Tests/`: 17 arquivos Pest (138 `it()`, 166 casos), factories e os 5 `casos.md`. O `README.md` da suíte lista as suposições de nome; confirme cada uma antes de escrever o código e ajuste o teste **só** se a suposição for de nome, nunca de regra.
+- `Modules/Fisio/Tests/`: 17 arquivos Pest (138 `it()`, 166 casos) e os 5 `casos.md`; as 4 factories voltam com os models na US-FISIO-003 (PHPStan não aceita factory de model inexistente). O `README.md` da suíte lista as suposições de nome; confirme cada uma antes de escrever o código e ajuste o teste **só** se a suposição for de nome, nunca de regra.
 
 ### Ajustes de conciliação (resolva no T-01)
 

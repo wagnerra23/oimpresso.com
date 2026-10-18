@@ -250,7 +250,7 @@ O check-in da F1 passa a referenciar as séries feitas com câmera. O registro d
 | Normas | A consulta pública que originou a RDC 657 exigia conformidade com **IEC 62304** (ciclo de vida do software), **IEC 62366-1** (usabilidade) e **ISO 14971** (risco) [fonte 25]. Se o texto final as cita nominalmente: [não confirmado], pois não consegui ler a íntegra; na prática, são as normas que o dossiê da Q87 pede para declarar. |
 | IA | **Relatório de IA**: técnica e racional, origem, quantidade e descrição dos dados de treino, justificativa estatística do tamanho das bases [fonte 13, Q50]. Se usarmos o modelo pré-treinado do MediaPipe sem retreino, o relatório precisa documentar o modelo de terceiro e **o nosso conjunto de validação** (C-14 vira a base disso). |
 | Prazo da Anvisa | Notificação classe I/II: **30–45 dias** após a documentação completa, segundo consultoria (média, sem garantia) [fonte 26]. |
-| Taxas | Notificação classe I/II: **R$ 175,72** (micro), **R$ 351,43** (pequena), até R$ 3.514,32 (grande). AFE de indústria: **R$ 976,20** (micro), **R$ 1.952,40** (pequena), até R$ 19.524,00 (grande). CBPF (se exigido): R$ 2.659,35 para micro e pequena. Empresa sem porte comprovado é cobrada como grande. Tabela de consultoria com rodapé de 2026; confirmar a vigente [fonte 27]. |
+| Taxas | Notificação classe I/II: **R$ [redacted Tier 0]** (micro), **R$ [redacted Tier 0]** (pequena), até R$ [redacted Tier 0] (grande). AFE de indústria: **R$ [redacted Tier 0]** (micro), **R$ [redacted Tier 0]** (pequena), até R$ [redacted Tier 0] (grande). CBPF (se exigido): R$ [redacted Tier 0] para micro e pequena. Empresa sem porte comprovado é cobrada como grande. Tabela de consultoria com rodapé de 2026; confirmar a vigente [fonte 27]. |
 
 ### 5.3 Custo e prazo totais [estimativa minha, sem fonte: validar com 2–3 orçamentos]
 
@@ -258,13 +258,13 @@ Não achei preço público de consultoria regulatória brasileira para SaMD [nã
 
 | bloco | prazo | custo |
 |---|---|---|
-| Diagnóstico regulatório + consulta de enquadramento formal | 1–2 meses | R$ 8–20 mil (consultoria) |
-| AFE de fabricante + licença sanitária + estrutura de qualidade (RDC 665: procedimentos de projeto, controle de mudanças, reclamações, tecnovigilância) | 3–6 meses | R$ 30–80 mil (consultoria + horas internas) |
-| Documentação de IEC 62304 (classe de segurança do software), ISO 14971, IEC 62366-1 (estudo de usabilidade com 15 ou mais usuários) e cibersegurança | 3–6 meses, em paralelo | R$ 40–120 mil, sobretudo horas do time de 2 devs mais a revisão da consultoria |
-| Avaliação clínica / análise clínica (RDC 548/2021) da ADM: estudo de concordância com goniômetro ou captura de movimento em ~30–50 voluntários, com fisioterapeuta pesquisador e possível comitê de ética | 4–8 meses | R$ 30–100 mil |
-| Taxas Anvisa (porte micro ou pequeno) | — | R$ 1–3 mil |
-| **Total para notificar** | **9–15 meses** | **R$ 110–320 mil** |
-| Manutenção anual (qualidade, tecnovigilância, petições de mudança, auditoria interna) | contínuo | R$ 30–80 mil/ano |
+| Diagnóstico regulatório + consulta de enquadramento formal | 1–2 meses | R$ [redacted Tier 0] (consultoria) |
+| AFE de fabricante + licença sanitária + estrutura de qualidade (RDC 665: procedimentos de projeto, controle de mudanças, reclamações, tecnovigilância) | 3–6 meses | R$ [redacted Tier 0] (consultoria + horas internas) |
+| Documentação de IEC 62304 (classe de segurança do software), ISO 14971, IEC 62366-1 (estudo de usabilidade com 15 ou mais usuários) e cibersegurança | 3–6 meses, em paralelo | R$ [redacted Tier 0], sobretudo horas do time de 2 devs mais a revisão da consultoria |
+| Avaliação clínica / análise clínica (RDC 548/2021) da ADM: estudo de concordância com goniômetro ou captura de movimento em ~30–50 voluntários, com fisioterapeuta pesquisador e possível comitê de ética | 4–8 meses | R$ [redacted Tier 0] |
+| Taxas Anvisa (porte micro ou pequeno) | — | R$ [redacted Tier 0] |
+| **Total para notificar** | **9–15 meses** | **R$ [redacted Tier 0]** |
+| Manutenção anual (qualidade, tecnovigilância, petições de mudança, auditoria interna) | contínuo | R$ [redacted Tier 0]/ano |
 
 **Custo escondido mais caro:** o **ritmo de entrega**. Com a IEC 62304 e o controle de mudanças, toda mudança no componente clínico passa por análise de risco e verificação documentada. O isolamento do componente (5.1) protege o resto do ERP.
 

@@ -34,8 +34,8 @@ pii: true
 
 O mercado brasileiro está partido em dois:
 
-- **Gestão barata** (Vedius, ZenFisio, Kynesia, Fisioly, de R$ 45 a R$ 90/mês): agenda, prontuário, financeiro. Prescrição de exercício é acessório.
-- **Prescrição cara** (Physitrack, R$ 169/mês no Brasil): biblioteca enorme e app do paciente, mas sem cobrança, sem NFS-e e sem cara de Brasil.
+- **Gestão barata** (Vedius, ZenFisio, Kynesia, Fisioly, de R$ [redacted Tier 0]/mês): agenda, prontuário, financeiro. Prescrição de exercício é acessório.
+- **Prescrição cara** (Physitrack, R$ [redacted Tier 0]/mês no Brasil): biblioteca enorme e app do paciente, mas sem cobrança, sem NFS-e e sem cara de Brasil.
 
 Ninguém junta, com evidência pública, **programa domiciliar + adesão medida + jogo de constância + cobrança e NFS-e**. O oimpresso já tem metade disso pronta (financeiro, NFS-e, WhatsApp, link público). O Fisio é a outra metade.
 
@@ -44,7 +44,7 @@ Ninguém junta, com evidência pública, **programa domiciliar + adesão medida 
 
 ### As alavancas, em ordem de força
 
-1. **WhatsApp como canal principal.** Está na tela inicial de 65% dos celulares no Brasil, e o lembrete com link direto para o check-in ataca o esquecimento, causa nº 1 de abandono. Custa cerca de R$ 0,05 por mensagem de utilidade. Há RCT mostrando aumento de adesão com mensagens.
+1. **WhatsApp como canal principal.** Está na tela inicial de 65% dos celulares no Brasil, e o lembrete com link direto para o check-in ataca o esquecimento, causa nº 1 de abandono. Com o driver `whatsmeow` (§13.1) não há custo por mensagem; na API oficial seria cerca de R$ [redacted Tier 0] por mensagem de utilidade. Há RCT mostrando aumento de adesão com mensagens.
 2. **Zero atrito para o paciente.** Link + PIN, sem app, sem e-mail, sem senha. As reclamações mais repetidas contra Wibbi, MedBridge, PT Wired e Limber são de login, app instável e exigência de e-mail.
 3. **Jogo de constância.** Nota da série, XP, nível, missões do dia, medalhas, sequência. Tédio e "não vejo resultado" somam 41% dos motivos de abandono; o jogo transforma cada dia feito em progresso visível. Regras de segurança na §6.
 4. **Painel que mostra quem vai abandonar.** Dor alta e medo de movimento preveem abandono (estudo brasileiro, BrJP 2023), e supervisão é o principal facilitador. O painel transforma supervisão em escala.
@@ -52,7 +52,7 @@ Ninguém junta, com evidência pública, **programa domiciliar + adesão medida 
 6. **Montar o programa rápido.** A reclamação nº 1 contra o MedBridge é o tempo de montagem. Aqui: protocolos-modelo da clínica (com a lógica visível), busca por texto e ditado por voz para o prontuário. A IA que *sugere conduta* fica para depois, por causa da Anvisa (§5).
 7. **Ciclo financeiro completo.** Pacote → cobrança → NFS-e → Receita Saúde (obrigatório para pessoa física desde 2025). Concorrente que não é ERP não copia isso.
 8. **Câmera como "uau" de demonstração.** Contar repetições, ritmo e tempo de sustentação no celular, sem medir ângulo. Ninguém entre os players locais oferece isso de forma visível, e é o vídeo que viraliza.
-9. **Freemium para o autônomo.** Grátis até cerca de 10 pacientes ativos, depois na faixa dos locais (R$ 49 a R$ 79, a validar). A âncora brasileira é baixa; quem cobra R$ 169 não domina.
+9. **Freemium para o autônomo.** Grátis até 5 pacientes ativos (§14 nº 10 e `etapas/06-lancamento.md`), depois na faixa dos locais (R$ [redacted Tier 0] a validar). A âncora brasileira é baixa; quem cobra R$ [redacted Tier 0] não domina.
 10. **Indicação entre profissionais.** Crédito por indicação, como o Jane App faz (US$ 120+ por clínica indicada).
 
 ### Os três erros que matam produtos assim
@@ -224,7 +224,7 @@ Cada etapa tem especificação própria, com o que os melhores fazem, regras, ri
 | 7 | Notificar SaMD classe II na Anvisa | não agora; pedir 2–3 orçamentos e decidir depois do piloto |
 | 8 | Licenciar questionários pagos (Mapi, IWH) | depois do piloto, se os clientes pedirem |
 | 9 | Aviso fixo "em emergência, ligue 192" | só após parecer regulatório |
-| 10 | Preço: grátis até 5 pacientes, R$ 59/mês (R$ 49 no anual), 50% para estudante | validar no piloto |
+| 10 | Preço: grátis até 5 pacientes, R$ [redacted Tier 0]/mês (R$ [redacted Tier 0] no anual), 50% para estudante | validar no piloto |
 
 ## Fontes
 

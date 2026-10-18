@@ -22,9 +22,9 @@
 
 | produto | o que faz | preço | PT-BR | leitura para nós |
 |---|---|---|---|---|
-| **Vedius** (BR) | prontuário por voz com IA e assistente por voz para consultar dados do paciente; alega aderência à Res. 414 | R$ 79,90/mês; R$ 69,90 por colaborador | sim | é o concorrente direto em voz. O site não diz onde o áudio é processado. A LGPD aparece só como "adequado" |
-| **Kynesia** (BR) | evolução por voz ou texto, 50 laudos por IA/mês no Flow, **"IA diagnóstica com clusters"** e **"sugestão de testes ortopédicos"** | grátis / R$ 49,90 / R$ 89,90 | sim | copiar a evolução por voz. **Evitar** a "IA diagnóstica" e a sugestão de testes: pela P&R da Anvisa (P45, P57) isso tem cara de SaMD. Os links de Privacidade e Termos do site apontam para "#" |
-| **Physitrack EMR** | escriba que redige a nota seção por seção durante o atendimento, sugestões de exercício que o profissional aprova antes de chegarem ao paciente, agente de tarefas administrativas; diz que a IA não decide e não inventa conteúdo | software US$ 41,99–59,99/usuário/mês; transcrição é add-on de US$ 19/mês com 100 notas (+US$ 5 a cada 25). No Brasil, R$ 118 (fundador) ou R$ 169 | **não**: ditado em outros idiomas é recurso futuro e o lançamento é só nos EUA (acesso antecipado desde 28/09/2026, cobrança a partir de 01/01/2027) | janela de 6 a 12 meses **[estimativa]** antes de chegar escriba PT-BR do Physitrack. A "sugestão de exercício com aprovação" é exatamente a P57 (SaMD classe II no Brasil, mesmo com aprovação humana) |
+| **Vedius** (BR) | prontuário por voz com IA e assistente por voz para consultar dados do paciente; alega aderência à Res. 414 | R$ [redacted Tier 0]/mês; R$ [redacted Tier 0] por colaborador | sim | é o concorrente direto em voz. O site não diz onde o áudio é processado. A LGPD aparece só como "adequado" |
+| **Kynesia** (BR) | evolução por voz ou texto, 50 laudos por IA/mês no Flow, **"IA diagnóstica com clusters"** e **"sugestão de testes ortopédicos"** | grátis / R$ [redacted Tier 0] / R$ [redacted Tier 0] | sim | copiar a evolução por voz. **Evitar** a "IA diagnóstica" e a sugestão de testes: pela P&R da Anvisa (P45, P57) isso tem cara de SaMD. Os links de Privacidade e Termos do site apontam para "#" |
+| **Physitrack EMR** | escriba que redige a nota seção por seção durante o atendimento, sugestões de exercício que o profissional aprova antes de chegarem ao paciente, agente de tarefas administrativas; diz que a IA não decide e não inventa conteúdo | software US$ 41,99–59,99/usuário/mês; transcrição é add-on de US$ 19/mês com 100 notas (+US$ 5 a cada 25). No Brasil, R$ [redacted Tier 0] (fundador) ou R$ [redacted Tier 0] | **não**: ditado em outros idiomas é recurso futuro e o lançamento é só nos EUA (acesso antecipado desde 28/09/2026, cobrança a partir de 01/01/2027) | janela de 6 a 12 meses **[estimativa]** antes de chegar escriba PT-BR do Physitrack. A "sugestão de exercício com aprovação" é exatamente a P57 (SaMD classe II no Brasil, mesmo com aprovação humana) |
 | **Heidi Health** | escriba ambiente, mais de 200 modelos de nota, "Ask Heidi", Heidi Evidence (fev/2026); não guarda áudio depois da transcrição | grátis (10 "Pro Actions"/mês); Clinician US$ 150/mês no anual (antes US$ 90). Outra fonte cita US$ 110 e US$ 180 | "110+ idiomas"; português não confirmado na fonte | modelo de **template por especialidade** e "áudio não fica guardado" vale copiar |
 | **Nabla** | Copilot (nota SOAP em cerca de 5 s depois da consulta) + Dictation (voz no cursor, com dicionário próprio e atalhos); áudio processado no navegador e nunca guardado; nota e transcrição retidas 14 dias | não publica (a Commure cita US$ 119/mês); camada grátis com limite | "35+ idiomas", sem PT-BR confirmado | copiar o **dicionário personalizado** e a **retenção curta configurável** |
 | **Abridge** | nota ligada ao trecho da transcrição e ao timestamp do áudio, detecção de alucinação, integração profunda com Epic | só enterprise: cerca de US$ 2.500–7.200+/clínico/ano (estimativa de terceiros); não atende consultório pequeno | 28+ idiomas | copiar a **rastreabilidade de cada frase até o trecho falado**. É a melhor defesa contra alucinação |
@@ -144,10 +144,10 @@ Implementação: o prompt proíbe inferência e exige `source_spans` por campo; 
 | Configuração mais arriscada define a classe | P64 | se o motor puder ser configurado para algo mais arriscado, a classe sobe |
 
 **Custo e prazo:**
-- Taxa de notificação classe I/II: **R$ 1.406** (Pure Global). Registro III/IV: R$ 8.510–19.856. CBPF, se exigido: R$ 72.805.
-- **Divergência com a etapa 03 §5 (refutação de 2026-10-18):** lá a taxa de notificação vem por porte da empresa (R$ 175,72 micro, R$ 351,43 pequena, até R$ 3.514,32 grande), a CBPF tem outro valor e a preparação total sai em 9–15 meses e R$ 110–320 mil. As duas etapas usam fontes diferentes e nenhum dos números foi conferido na tabela oficial da Anvisa. Antes de qualquer decisão da ADR 0437 §14 nº 7, conferir as taxas na fonte oficial e unificar aqui e na etapa 03.
+- Taxa de notificação classe I/II: **R$ [redacted Tier 0]** (Pure Global). Registro III/IV: R$ [redacted Tier 0] CBPF, se exigido: R$ [redacted Tier 0]
+- **Divergência com a etapa 03 §5 (refutação de 2026-10-18):** lá a taxa de notificação vem por porte da empresa (R$ [redacted Tier 0] micro, R$ [redacted Tier 0] pequena, até R$ [redacted Tier 0] grande), a CBPF tem outro valor e a preparação total sai em 9–15 meses e R$ [redacted Tier 0]. As duas etapas usam fontes diferentes e nenhum dos números foi conferido na tabela oficial da Anvisa. Antes de qualquer decisão da ADR 0437 §14 nº 7, conferir as taxas na fonte oficial e unificar aqui e na etapa 03.
 - Análise da notificação: "semanas" (Pure Global).
-- Preparação (SGQ, dossiê, gestão de risco, relatório de IA, validação): **6 a 12 meses e R$ 150–400 mil** entre consultoria regulatória, responsável técnico, validação clínica e horas de engenharia **[estimativa minha, sem fonte]**. Mais um custo recorrente de qualidade e tecnovigilância.
+- Preparação (SGQ, dossiê, gestão de risco, relatório de IA, validação): **6 a 12 meses e R$ [redacted Tier 0]** entre consultoria regulatória, responsável técnico, validação clínica e horas de engenharia **[estimativa minha, sem fonte]**. Mais um custo recorrente de qualidade e tecnovigilância.
 - Prestador como representante: a partir de US$ 2.000/ano (Pure Global), útil só para fabricante estrangeiro.
 
 **Benefício:** o Physitrack só oferece sugestão de exercício nos EUA. Nenhum concorrente local mostra evidência pública de regularização. A Kynesia anuncia "IA diagnóstica" sem regularização visível (**não confirmado**). Seria diferencial, mas o ganho de tempo sobre "protocolo-modelo + busca + repetir programa" é marginal: montar um programa com busca e protocolo leva cerca de 1 minuto (promessa da ADR); a IA economizaria segundos.
@@ -187,7 +187,7 @@ Implementação: o prompt proíbe inferência e exige `source_spans` por campo; 
 2. **F4-b (licença):** uma cotação Mapi para **ODI + NDI + KOOS (+HOOS)** e uma licença IWH para **QuickDASH** (≈ CAD 1.875 no 1º ano até 500 usuários). Com isso a cobertura por região fica completa e chega ao **9**. Decisão de [W] depois das cotações.
 3. **Pelve:** só depois de ler a licença do ICIQ e do PFDI-20. Se forem caros, o PSFS cobre como instrumento paciente-específico.
 
-> Conta de bolso **[estimativa]**: a licença QuickDASH a ~CAD 1.875/ano empata com cerca de 7 assinaturas anuais de R$ 49 a R$ 79/mês. Só vale quando o produto tiver base que peça mão e punho.
+> Conta de bolso **[estimativa]**: a licença QuickDASH a ~CAD 1.875/ano empata com cerca de 7 assinaturas anuais de R$ [redacted Tier 0]/mês. Só vale quando o produto tiver base que peça mão e punho.
 
 #### 3.4.3 Funcionalidades
 
@@ -252,7 +252,7 @@ Implementação: o prompt proíbe inferência e exige `source_spans` por campo; 
 | T-F4-00 | Admissão da F4 pelo funil (ADR 0368) e decisão de [W] sobre motor UE × local e sobre licenças Mapi/IWH | F1 entregue | aceite textual registrado |
 | T-F4-01 | Jurídico/LGPD: DPA com suboperadores, cláusulas-padrão da ANPD ou região UE confirmada por fornecedor, texto de aviso ao paciente | T-F4-00 | contrato ou termos anexados; inventário de suboperadores na tela da clínica |
 | T-F4-02 | Banco de teste de ASR: 30 ditados reais com consentimento + transcrição de referência; script de WER e acerto em termos; rodar Whisper-turbo local, `gpt-transcribe` UE, AssemblyAI e Gemini | T-F4-00 | relatório com WER/termos/custo/latência; motor escolhido |
-| T-F4-03 | `TranscriptionService` com driver configurável (Prism quando couber), upload de áudio, job de transcrição, **remoção do áudio** com confirmação | T-F4-01, T-F4-02 | teste: áudio não existe depois do job; falha do driver cai em erro legível |
+| T-F4-03 | `TranscriptionService` com driver configurável (camada `laravel/ai`, ADR 0035), upload de áudio, job de transcrição, **remoção do áudio** com confirmação | T-F4-01, T-F4-02 | teste: áudio não existe depois do job; falha do driver cai em erro legível |
 | T-F4-04 | `ClinicalNoteStructurer`: prompt sem inferência, JSON com `source_spans`, validador, pseudonimização (sem nome nem CPF no prompt), dicionário da clínica | T-F4-03 | testes: ditado sem diagnóstico → campo vazio; campo sem trecho → rejeitado; nome do paciente nunca no payload |
 | T-F4-05 | UI "Ditar" em avaliação, evolução e alta: gravação, campos com destaque de origem, "não ditado", edição, assinatura no fluxo append-only | T-F4-04 | casos.md; nada é gravado em `fisio_records` sem assinatura; ui:lint verde |
 | T-F4-06 | Ditado para o programa: extração de séries, repetições e sustentação **só para exercícios nomeados** que existem na biblioteca | T-F4-04, T-F4-07 | teste: exercício não nomeado nunca entra |
@@ -296,7 +296,7 @@ Implementação: o prompt proíbe inferência e exige `source_spans` por campo; 
 **Anvisa**
 - P&R RDC 657/2022 (P10, P11, P24, P26, P34, P44–P47, P50, P55, P57, P58, P64, P65, P67, P68, P70, P71, P78, P79, P87): https://www.gov.br/anvisa/pt-br/assuntos/noticias-anvisa/2022/software-como-dispositivo-medico-perguntas-e-respostas/perguntas-respostas-rdc-657-de-2022-v1-01-09-2022.pdf/@@download/file
 - Notificação para classe II (RDC 423/2020): https://www.mattosfilho.com.br/unico/noticias/tomada-publica-softwares-medicos
-- Taxas e prazos (notificação R$ 1.406, CBPF R$ 72.805, semanas): https://www.pureglobal.com/pt/devices/samd
+- Taxas e prazos (notificação R$ [redacted Tier 0] CBPF R$ [redacted Tier 0] semanas): https://www.pureglobal.com/pt/devices/samd
 - AFE: https://www.fazcomex.com.br/blog/o-que-e-o-autorizacao-de-funcionamento-afe-da-anvisa/
 
 **Questionários**
