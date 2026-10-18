@@ -94,6 +94,14 @@ Onde o handoff deixava escolha, o teste escolheu. Mudar qualquer uma delas é mu
 8. **Novo link revoga o anterior** (um token vivo por paciente).
 9. **Consentimento de versão antiga não vale**: a versão vigente vem de `config('fisio.consent_versions.<purpose>')`, nunca do corpo.
 
+## Divergências conhecidas com `etapas/02-f1-constancia.md` (achadas na refutação de 2026-10-18)
+
+A suíte e a etapa 02 foram escritas separadas e discordam em quatro pontos. Nenhum foi resolvido aqui; cada um se decide na US indicada, mudando o teste **ou** a etapa num commit próprio, dito no PR:
+
+1. **Modalidade do telemonitoramento:** a suíte fixa `modality='assincrona'`; a etapa 02 §3.5 escreve `modality=assincrono` (e admite `channel=whatsapp_botao`). → US-FISIO-007.
+2. **Razão do XP de registro:** a suíte usa `fisio_game_ledger.reason='checkin'` e `config('fisio.xp.checkin')`; a etapa 02 §3.4 chama de `registro_do_dia` e o enum dela tem mais 6 razões (`missao`, `desafio_semanal`, `medalha`, `escudo_ganho`, `escudo_usado`, `pausa_protegida`). → US-FISIO-008.
+3. **XP de exercício:** a suíte dá `xp.exercicio_concluido` **por vez feita** (até `times_per_day`); a etapa 02 dá 70 × (itens feitos ÷ prescritos), com normalização 4 ÷ n e teto semanal. Os padrões do `Config/config.php` seguem a etapa (70/30); as fixtures sobrescrevem com 10/5. → US-FISIO-008.
+4. **Sequência:** a suíte usa folga `ceil(7 / sessions_per_week) - 1`; a etapa 02 usa escudos (1 a cada 7 dias prescritos, estoque máximo 2). → US-FISIO-008.
 ## Suposições de nome — o implementador CONFIRMA (ou ajusta os testes num commit só)
 
 **Classes**

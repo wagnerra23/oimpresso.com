@@ -5,7 +5,7 @@ version: "1.0"
 last_updated: "2026-10-18"
 owner: wagner
 status: rascunho
-status_nota: "ativo desde 2026-10-18 (ADR 0437 aceita); módulo Modules/Fisio ainda não existe — F1 começa pela US-FISIO-001"
+status_nota: "ativo desde 2026-10-18 (ADR 0437 aceita); esqueleto de Modules/Fisio no PR #9536 (US-FISIO-002), sem schema nem telas ainda"
 type: spec
 scope: vertical (fisioterapia, autônomo e consultório pequeno)
 related_adrs:
@@ -35,7 +35,7 @@ related_adrs:
 
 ### US-FISIO-002 · Esqueleto `Modules/Fisio` (ativação por empresa, permissões, menu condicionado) — **P0**
 
-**Implementado em:** _pendente_ — `Modules/Fisio/` inexistente
+**Implementado em:** _pendente_ — esqueleto no PR #9536 (rotas de negócio, schema e telas ainda não existem); âncora fecha com o CI verde
 
 > owner: — · priority: p0 · estimate: 4h · status: todo · type: story
 > blocked_by: US-FISIO-001. DoD: empresa sem o pacote não vê menu nem rota (`FisioModuloVisibilidadeTest`, `FisioModuloContratoTest`). `ModuleUtil` pelo container.

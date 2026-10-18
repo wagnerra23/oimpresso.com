@@ -2,7 +2,7 @@
 id: requisitos-fisio-briefing
 module: Fisio
 status: em-construcao
-status_nota: "ADR 0437 aceita em 2026-10-18; sem código ainda — F1 começa pela US-FISIO-001"
+status_nota: "ADR 0437 aceita em 2026-10-18; esqueleto de Modules/Fisio no PR #9536 (US-FISIO-002), sem schema nem telas"
 updated_at: "2026-10-18"
 owner: W
 related_adrs: ["0437-modulo-fisio-vertical-fisioterapia"]
@@ -19,7 +19,7 @@ Vertical de fisioterapia dentro do oimpresso: o profissional monta o programa de
 
 ## Estado atual
 
-Decisão aceita ([ADR 0437](../../decisions/0437-modulo-fisio-vertical-fisioterapia.md), 2026-10-18). `Modules/Fisio` ainda não existe. A suíte de testes da F1 foi escrita antes do código e entra junto com o esqueleto (US-FISIO-002). Responsável técnica do conteúdo clínico: Dra. Dejeane.
+Decisão aceita ([ADR 0437](../../decisions/0437-modulo-fisio-vertical-fisioterapia.md), 2026-10-18). O esqueleto de `Modules/Fisio` (pacote, permissões, menu condicionado, instalação) está no PR #9536 (US-FISIO-002), junto com a suíte de testes da F1, escrita antes do código. Ainda não há schema, rotas de negócio nem telas. Responsável técnica do conteúdo clínico: Dra. Dejeane.
 
 ## Portas canônicas
 

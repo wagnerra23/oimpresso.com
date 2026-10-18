@@ -145,6 +145,7 @@ Implementação: o prompt proíbe inferência e exige `source_spans` por campo; 
 
 **Custo e prazo:**
 - Taxa de notificação classe I/II: **R$ 1.406** (Pure Global). Registro III/IV: R$ 8.510–19.856. CBPF, se exigido: R$ 72.805.
+- **Divergência com a etapa 03 §5 (refutação de 2026-10-18):** lá a taxa de notificação vem por porte da empresa (R$ 175,72 micro, R$ 351,43 pequena, até R$ 3.514,32 grande), a CBPF tem outro valor e a preparação total sai em 9–15 meses e R$ 110–320 mil. As duas etapas usam fontes diferentes e nenhum dos números foi conferido na tabela oficial da Anvisa. Antes de qualquer decisão da ADR 0437 §14 nº 7, conferir as taxas na fonte oficial e unificar aqui e na etapa 03.
 - Análise da notificação: "semanas" (Pure Global).
 - Preparação (SGQ, dossiê, gestão de risco, relatório de IA, validação): **6 a 12 meses e R$ 150–400 mil** entre consultoria regulatória, responsável técnico, validação clínica e horas de engenharia **[estimativa minha, sem fonte]**. Mais um custo recorrente de qualidade e tecnovigilância.
 - Prestador como representante: a partir de US$ 2.000/ano (Pure Global), útil só para fabricante estrangeiro.

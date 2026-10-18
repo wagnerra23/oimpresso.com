@@ -95,7 +95,7 @@ A Res. COFFITO 532/2021 permitiria divulgar imagem de procedimento com TCLE pré
 | plano | preço | limite | para quem |
 |---|---|---|---|
 | **Grátis** | R$ 0 | até **5 pacientes ativos**; envio do programa e do lembrete pelo **WhatsApp do próprio profissional** (botão `wa.me` com texto pronto, custo zero para nós); biblioteca, portal, jogo e painel completos | experimentar com pacientes reais |
-| **Autônomo** | **R$ 59/mês** ou **R$ 588/ano** (= R$ 49/mês) | pacientes ativos ilimitados; **lembrete diário automático** pelo WhatsApp oficial; protocolos-modelo próprios; questionários | público de entrada |
+| **Autônomo** | **R$ 59/mês** ou **R$ 588/ano** (= R$ 49/mês) | pacientes ativos ilimitados; **lembrete diário automático** pelo WhatsApp da clínica (módulo Whatsapp, driver `whatsmeow`, um número por clínica — ADR 0437 §13.1; não é a API oficial); protocolos-modelo próprios; questionários | público de entrada |
 | **Clínica** | **R$ 49/prof./mês** (mínimo 2) ou anual com 2 meses grátis | tudo do Autônomo + painel da clínica + protocolos compartilhados | 2–10 profissionais |
 | **Estudante / recém-formado** | **50% off por 12 meses** | estudante: plano Grátis com 10 pacientes (clínica-escola); recém-formado: CREFITO há ≤ 24 meses | semente |
 | **Fundador piloto** | **50% off enquanto a assinatura estiver ativa**, só para os 15–20 do piloto | — | recompensa de quem ajudou a construir |

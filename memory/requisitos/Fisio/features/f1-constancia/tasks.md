@@ -11,6 +11,7 @@ module: Fisio
 > `status:` aqui (ADR 0302 — done-ness se lê da âncora da US no SPEC, nunca de checkbox).
 > Executar em ordem topológica de `blocked_by:`. Task atômica = 1 sessão consegue fechar.
 > Detalhe de cada task: [HANDOFF-F1.md](../../HANDOFF-F1.md) e [etapas/](../../etapas/).
+> **Numeração:** os ids daqui (T-01…T-11) estão deslocados em 1 em relação à tabela do HANDOFF (T-00…T-12): o T-01 daqui é o T-02 do HANDOFF (esqueleto), e assim por diante. O README da suíte de testes usa a numeração do HANDOFF. Na dúvida, vale o id da US (US-FISIO-NNN).
 
 ### T-01 · Criar o esqueleto `Modules/Fisio` e trazer a suíte TDD
 > blocked_by: — · covers: AC-2 · us: US-FISIO-002 · estimate: 4h
