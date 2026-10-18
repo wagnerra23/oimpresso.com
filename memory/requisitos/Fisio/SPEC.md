@@ -106,9 +106,9 @@ related_adrs:
 
 ### US-FISIO-011 · Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) — **P1**
 
-**Implementado em:** `Modules/Fisio/Services/Questionarios/PontuacaoQuestionario.php` · `Modules/Fisio/Services/Questionarios/CatalogoQuestionarios.php` · `Modules/Fisio/Http/Controllers/QuestionariosController.php` · rota `fisio.pacientes.questionarios.store` (`Modules/Fisio/Routes/web.php`) · seção Questionários em `Modules/Fisio/Resources/js/Pages/Fisio/_components/Questionarios.tsx` (ficha `Show.tsx`) — enunciados da versão BR pendentes de conferência pela Dra. Dejeane; veredito pela lane Verticais
+**Implementado em:** _pendente_ — parcial: pontuação (`Modules/Fisio/Services/Questionarios/PontuacaoQuestionario.php`), catálogo, `Modules/Fisio/Http/Controllers/QuestionariosController.php` e a seção na ficha existem; o texto literal dos itens da versão brasileira validada não está transcrito (`texto: null`) e aguarda a Dra. Dejeane. A âncora fecha com os enunciados.
 
-> owner: — · priority: p1 · estimate: 6h · status: done · type: story
+> owner: — · priority: p1 · estimate: 6h · status: doing · type: story
 > blocked_by: US-FISIO-005. Texto da versão brasileira validada, referência na tela; pontuação conferida com a publicação. ODI, NDI, KOOS, QuickDASH e WOMAC bloqueados até licença.
 
 **DoD:** resposta gravada com a pontuação calculada no servidor (RMDQ soma de "sim", PSFS média, LEFS soma, SPADI subescalas ÷50/÷80 e total ÷130), `score` do corpo ignorado; bloqueados por licença e respostas incompletas recusados; escrita exige `fisio.editar`, outra empresa 404; histórico na ficha por prop deferida; referência bibliográfica na tela; o sistema não interpreta a pontuação. Pendente fora do código: texto literal dos itens da versão BR validada (revisão da Dra. Dejeane) — `FisioQuestionarioTest`, `PontuacaoQuestionarioTest`.
