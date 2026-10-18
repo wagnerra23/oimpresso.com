@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **956 tarefas abertas** em **55 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **968 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -36,6 +36,7 @@
 | [`Essentials`](#essentials) | 15 | 0 | 0 | 0 | 15 |
 | [`Comissao`](#comissao) | 14 | 0 | 0 | 0 | 14 |
 | [`PaymentGateway`](#paymentgateway) | 13 | 0 | 0 | 0 | 13 |
+| [`Fisio`](#fisio) | 12 | 0 | 0 | 0 | 12 |
 | [`NFSe`](#nfse) | 12 | 0 | 0 | 0 | 12 |
 | [`PontoWr2`](#pontowr2) | 12 | 0 | 0 | 0 | 12 |
 | [`Superadmin`](#superadmin) | 11 | 0 | 0 | 0 | 11 |
@@ -1058,6 +1059,24 @@
 - **US-PG-007** — Expor URL pública HTTPS do webhook Inter (deploy/proxy CT100)
 - **US-PG-008** — Linkage cobranca_id no webhook genérico + re-resolve do órfão
 - **US-PG-009** — Executar smokes humano-limitados PaymentGateway Onda 5 (biz=1 + canary Larissa)
+
+## Fisio
+
+
+### todo
+
+- **US-FISIO-001** — Trio SDD da F1 e US no SPEC — **P0**
+- **US-FISIO-002** — Esqueleto `Modules/Fisio` (ativação por empresa, permissões, menu condicionado) — **P0**
+- **US-FISIO-003** — Schema, models e append-only de prontuário e ledger do jogo — **P0**
+- **US-FISIO-004** — Biblioteca semeada e revisada pela responsável técnica — **P0**
+- **US-FISIO-005** — Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0**
+- **US-FISIO-006** — Editor de programa, protocolos-modelo e aviso de contraindicação — **P0**
+- **US-FISIO-007** — Portal do paciente (link + PIN, consentimentos, check-in, telemonitoramento) — **P0**
+- **US-FISIO-008** — Jogo de constância (XP, nível, sequência, missões, pausa por dor) — **P1**
+- **US-FISIO-009** — Lembrete diário e envio do programa por WhatsApp (driver whatsmeow) — **P0**
+- **US-FISIO-010** — Painel, evolução e fila de atenção — **P0**
+- **US-FISIO-011** — Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) — **P1**
+- **US-FISIO-012** — Fecha o loop da F1 — **P1**
 
 ## NFSe
 
