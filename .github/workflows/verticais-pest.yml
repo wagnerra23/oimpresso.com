@@ -463,7 +463,7 @@ jobs:
         #
         # ENTRAM 2026-10-18 — Fisio/FisioMultiTenantTest, Fisio/FisioModuloVisibilidadeTest e
         # Fisio/FisioEvolucaoTest (US-FISIO-010): painel e evolução da 98 sem paciente da 99, menu e
-        # rota /fisio só com pacote + fisio.access, aba Evolução (UC-FPS-17). Inteiros e verdes.
+        # rota /fisio só com pacote + fisio.access, aba Evolução (UC-FPS-19). Inteiros e verdes.
         #
         # ENTRA 2026-10-18 — Fisio/FisioPainelTest (US-FISIO-010), numa invocação PRÓPRIA que exclui
         # SÓ o UC-FPN-05: ele monta o check-in pela rota pública do portal (F::portalPronto →

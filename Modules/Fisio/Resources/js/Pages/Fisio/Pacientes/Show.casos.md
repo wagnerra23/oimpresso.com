@@ -36,7 +36,9 @@ related_us: []
 | UC-FPS-14 | bloqueado por licença, desconhecido ou incompleto é recusado | must | `FisioQuestionarioTest`, `PontuacaoQuestionarioTest` |
 | UC-FPS-15 | questionário exige `fisio.editar`; outra clínica 404; bloqueado não recebe | must | `FisioQuestionarioTest` |
 | UC-FPS-16 | histórico de questionários na ficha, deferido, só do paciente e da clínica | should | `FisioQuestionarioTest` |
-| UC-FPS-17 | aba Evolução: dor e dias com exercício em 30 dias, só na visão do profissional | should | `FisioEvolucaoTest` |
+| UC-FPS-17 | paciente bloqueado: prontuário só aceita adendo | must | `FisioProntuarioTest` |
+| UC-FPS-18 | paciente bloqueado: perfil clínico não aceita edição | must | `FisioPacienteCrudTest` |
+| UC-FPS-19 | aba Evolução: dor e dias com exercício em 30 dias, só na visão do profissional | should | `FisioEvolucaoTest` |
 
 ---
 
@@ -128,7 +130,20 @@ related_us: []
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioQuestionarioTest.php`
 - **Status: 🧪**
 
-## UC-FPS-17 · Evolução do paciente na ficha · `should`
+## UC-FPS-17 · Bloqueado: o prontuário só recebe correção · `must`
+- **Persona:** invariante legal (Lei 13.787/2018 — "excluir" é bloquear; ADR 0437 §4 — registro corrigido por adendo, nunca sobrescrito).
+- **Aceite:** Dado um paciente bloqueado · Quando o fisioterapeuta tenta assinar avaliação ou evolução nova · Então responde 422 em `kind` e nada grava. Adendo apontando registro do próprio paciente continua aceito (corrigir o que está guardado segue possível).
+- **Regressão que defende:** atendimento novo registrado em ficha que a clínica "excluiu".
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioProntuarioTest.php`
+- **Status: 🧪**
+
+## UC-FPS-18 · Bloqueado: o perfil clínico fica só leitura · `must`
+- **Persona:** invariante legal (Lei 13.787/2018; mesma regra que já vale para questionário em UC-FPS-15).
+- **Aceite:** Dado um paciente bloqueado · Quando o fisioterapeuta envia edição de queixa, meta ou marcadores · Então responde com erro em `main_complaint` e os valores guardados não mudam.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPacienteCrudTest.php`
+- **Status: 🧪**
+
+## UC-FPS-19 · Evolução do paciente na ficha · `should`
 - **Persona:** fisioterapeuta abrindo a ficha.
 - **Aceite:** Dado check-ins do paciente · Quando a ficha carrega a aba Evolução (props deferidas `evolucao` e `serie_dor`) · Então vêm os registros dos últimos 30 dias em ordem de data, com dor, nº de exercícios feitos e sinal de alerta, a adesão 7d do mesmo cálculo do painel (nula sem programa ativo) e a série de dor só com o que tem dor informada. Ficha de outra clínica responde 404.
 - **Regressão que defende:** série de dor de outra clínica ou fora da janela; dor ausente virando 0 no gráfico. O portal não recebe a série (UC-FPP-20, ADR 0437 §5).
@@ -139,12 +154,13 @@ related_us: []
 
 ## Backlog (prosa honesta — vira UC quando ganhar teste que o cite)
 
-- `[BACKLOG]` Render do gráfico de dor na aba Evolução — os dados têm teste (UC-FPS-17); o desenho no navegador, não.
+- `[BACKLOG]` Render do gráfico de dor na aba Evolução — os dados têm teste (UC-FPS-19); o desenho no navegador, não.
 - `[BACKLOG]` Protocolos-modelo da clínica aplicados ao programa (`origin=protocolo`) — fora desta suíte.
 - `[BACKLOG]` Enunciados literais da versão brasileira validada de EVA, RMDQ, PSFS, LEFS e SPADI na tela do questionário (aguarda conferência da Dra. Dejeane contra a publicação).
 
 ## Trilha do tempo
+- 2026-10-18 · US-FISIO-005 — paciente bloqueado vira só leitura no servidor: prontuário aceita só adendo (UC-FPS-17) e perfil não aceita edição (UC-FPS-18).
 - 2026-10-18 · US-FISIO-011 — questionários de uso livre viram UC-FPS-13..16 (estrutura e pontuação; enunciados pendentes).
 - 2026-10-17 · suíte TDD da F1 — casos nascem antes da tela e do código; prontuário, bloqueio e contraindicação entram pela atualização de escopo do mesmo dia.
-- 2026-10-18 · US-FISIO-010 — aba Evolução (componente `_components/EvolucaoPaciente.tsx`) vira UC-FPS-17, com teste escrito junto da tela.
+- 2026-10-18 · US-FISIO-010 — aba Evolução (componente `_components/EvolucaoPaciente.tsx`) vira UC-FPS-19, com teste escrito junto da tela.
 - 2026-10-18 · US-FISIO-005 — a tela `.tsx` nasce (#9546) para os casos UC-FPS-02..05 e 07; os UCs não mudaram e seguem derivados do HANDOFF F1, não do `.tsx`. Veredito: lane Verticais.

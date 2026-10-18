@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 // @covers-us US-FISIO-005
-// Cobre UC-FPS-03, UC-FPS-04, UC-FPS-05 (Fisio/Pacientes/Show.casos.md).
+// Cobre UC-FPS-03, UC-FPS-04, UC-FPS-05, UC-FPS-17 (Fisio/Pacientes/Show.casos.md).
 
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -162,4 +162,26 @@ it('UC-FPS-05 · adendo sem amends_id, ou apontando registro de outro paciente/b
     $this->postJson("/fisio/pacientes/{$this->p->id}/registros", $base + ['amends_id' => $da99])->assertStatus(422)->assertJsonValidationErrors('amends_id');
 
     expect(Record::query()->where('patient_id', $this->p->id)->count())->toBe(0);
+});
+
+it('UC-FPS-17 · paciente bloqueado só recebe adendo; avaliação e evolução novas são recusadas', function () {
+    $orig = $this->postJson("/fisio/pacientes/{$this->p->id}/registros", [
+        'kind' => 'evolucao', 'crefito' => F::CREFITO, 'body' => ['conduta' => 'Ponte 3x12', 'resposta_paciente' => 'Sem dor'],
+    ])->assertCreated()->json('id');
+    $this->delete("/fisio/pacientes/{$this->p->id}")->assertRedirect();
+
+    $this->postJson("/fisio/pacientes/{$this->p->id}/registros", [
+        'kind' => 'evolucao', 'crefito' => F::CREFITO, 'body' => ['conduta' => 'x', 'resposta_paciente' => 'y'],
+    ])->assertStatus(422)->assertJsonValidationErrors('kind');
+    $this->postJson("/fisio/pacientes/{$this->p->id}/registros", fprAvaliacao())
+        ->assertStatus(422)->assertJsonValidationErrors('kind');
+    expect(Record::query()->where('patient_id', $this->p->id)->count())->toBe(1);
+
+    // Corrigir o que já está guardado continua possível (guarda de 20 anos, correção só por adendo).
+    $adendo = $this->postJson("/fisio/pacientes/{$this->p->id}/registros", [
+        'kind' => 'adendo', 'amends_id' => $orig, 'crefito' => F::CREFITO, 'body' => ['texto' => 'Correção: 3x10.'],
+    ])->assertCreated()->json('id');
+
+    expect(Record::query()->where('patient_id', $this->p->id)->pluck('id')->map('intval')->sort()->values()->all())
+        ->toBe([(int) $orig, (int) $adendo]);
 });
