@@ -443,6 +443,10 @@ jobs:
         # triggers append-only de fisio_records (assinado) e fisio_game_ledger, únicos. Os outros
         # arquivos de Modules/Fisio/Tests/Feature têm casos que dependem das rotas das US seguintes
         # (US-FISIO-004..010) e entram aqui, um a um, quando a US de cada um os deixar verdes.
+        #
+        # ENTRAM 2026-10-18 — Fisio/FisioPacienteCrudTest e Fisio/FisioProntuarioTest (US-FISIO-005):
+        # cadastro de paciente sobre o contact, bloqueio sem apagar, prontuário carimbado pelo
+        # servidor, adendo e append-only pela rota (405) e pelo banco.
         # ENTRA 2026-10-18 — Fisio/Tests/Unit (núcleo de cálculo de US-FISIO-008/010): 5 arquivos
         # de regra pura (nível, sequência, adesão 7d, fila de atenção, bordas de fuso). Sem
         # TestCase nem banco; ficam nesta lane porque ela já dispara em Modules/Fisio/**.
@@ -528,6 +532,8 @@ jobs:
             Modules/Producao/Tests/Feature/ProducaoEtiquetaOsContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoFecharTurnoComandoTest.php \
             Modules/Fisio/Tests/Feature/FisioEsquemaContratoTest.php \
+            Modules/Fisio/Tests/Feature/FisioPacienteCrudTest.php \
+            Modules/Fisio/Tests/Feature/FisioProntuarioTest.php \
             Modules/Fisio/Tests/Unit/NivelCalculatorTest.php \
             Modules/Fisio/Tests/Unit/SequenciaCalculatorTest.php \
             Modules/Fisio/Tests/Unit/AdesaoCalculatorTest.php \

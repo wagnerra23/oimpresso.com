@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do fisioterapeuta + critério de aceite verificável (Dado/Quando/Então)
 por_que: paciente é um contact — duplicar cadastro parte o histórico em dois; meta semanal inválida quebra a adesão; paciente de outra clínica na lista é vazamento Tier 0.
 owner: wagner
-last_run: "2026-10-17"
+last_run: "2026-10-18"
 last_run_ci: "_pendente_ — o trio nasce com a suíte TDD da F1 (antes do código). O veredito entra quando a lane MySQL rodar FisioPacienteCrudTest, FisioMultiTenantTest e FisioModuloVisibilidadeTest."
 related_us: []
 ---
@@ -61,3 +61,4 @@ related_us: []
 
 ## Trilha do tempo
 - 2026-10-17 · suíte TDD da F1 — casos nascem antes da tela e do código.
+- 2026-10-18 · US-FISIO-005 — a tela `.tsx` nasce (#9546) para os casos UC-FPI-01/03; os UCs não mudaram e seguem derivados do HANDOFF F1, não do `.tsx`. Veredito: lane Verticais.

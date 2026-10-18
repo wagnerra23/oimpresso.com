@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 786,
-    "edges": 1083,
+    "nodes": 788,
+    "edges": 1085,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 411,
+      "component": 413,
       "api": 81
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 85,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 411,
+      "hasComponent": 413,
       "dependsOn": 122,
       "delegatesTo": 113,
       "migratesTo": 1,
@@ -1338,17 +1338,17 @@
       ]
     },
     {
-      "id": "api:/fisio/*",
+      "id": "api:/fisio/p/{token}/*",
       "type": "api",
-      "prefix": "/fisio/*",
+      "prefix": "/fisio/p/{token}/*",
       "providers": [
         "Fisio"
       ]
     },
     {
-      "id": "api:/fisio/p/{token}/*",
+      "id": "api:/fisio/pacientes/*",
       "type": "api",
-      "prefix": "/fisio/p/{token}/*",
+      "prefix": "/fisio/pacientes/*",
       "providers": [
         "Fisio"
       ]
@@ -2821,6 +2821,13 @@
       "desc": ""
     },
     {
+      "id": "component:Fisio/PacientesController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "PacientesController",
+      "desc": ""
+    },
+    {
       "id": "component:Fisio/Painel e fila de atenção do profissional",
       "type": "component",
       "module": "Fisio",
@@ -2832,6 +2839,13 @@
       "type": "component",
       "module": "Fisio",
       "name": "Portal público do paciente",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/RegistrosController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "RegistrosController",
       "desc": ""
     },
     {
@@ -8927,6 +8941,12 @@
     },
     {
       "from": "module:Fisio",
+      "to": "component:Fisio/PacientesController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
       "to": "component:Fisio/Painel e fila de atenção do profissional",
       "type": "hasComponent",
       "source": "contains"
@@ -8939,13 +8959,19 @@
     },
     {
       "from": "module:Fisio",
-      "to": "api:/fisio/*",
+      "to": "component:Fisio/RegistrosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "api:/fisio/p/{token}/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
     {
       "from": "module:Fisio",
-      "to": "api:/fisio/p/{token}/*",
+      "to": "api:/fisio/pacientes/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
