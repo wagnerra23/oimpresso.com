@@ -34,6 +34,22 @@ class Patient extends Model
     use HasFactory;
     use SemExclusaoDeDadoClinico;
 
+    /**
+     * Marcadores de condição (lista fechada). São os mesmos códigos de
+     * `fisio_exercises.contraindication_flags`: texto livre aqui faria o alerta de
+     * contraindicação nunca casar (UC-FPI-03; etapas/01-biblioteca §3.3.1).
+     */
+    public const CONDITION_FLAGS = [
+        'protese_quadril_posterior',
+        'protese_quadril_anterior',
+        'pos_op_manguito',
+        'pos_lca',
+        'gestante',
+        'osteoporose',
+        'risco_queda',
+        'hipertensao_nao_controlada',
+    ];
+
     protected $table = 'fisio_patients';
 
     protected $guarded = ['id'];

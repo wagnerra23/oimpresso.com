@@ -70,7 +70,13 @@ class DataController extends Controller
         $segmento_ativo = request()->segment(1) === 'fisio';
 
         Menu::modify('admin-sidebar-menu', function ($menu) use ($segmento_ativo) {
-            $menu->url(url('/fisio'), 'Fisio', [
+            $menu->dropdown('Fisio', function ($sub) {
+                // Pacientes chegou na US-FISIO-005; o Painel (/fisio) entra com a US-FISIO-011.
+                $sub->url(url('/fisio/pacientes'), 'Pacientes', [
+                    'icon' => 'fa fa-user',
+                    'active' => request()->segment(2) === 'pacientes',
+                ]);
+            }, [
                 'icon' => 'fa fa-heartbeat',
                 'active' => $segmento_ativo,
             ]);

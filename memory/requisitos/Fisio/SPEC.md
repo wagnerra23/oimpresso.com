@@ -42,10 +42,14 @@ related_adrs:
 
 ### US-FISIO-003 · Schema, models e append-only de prontuário e ledger do jogo — **P0**
 
-**Implementado em:** _pendente_ — nenhuma migration `fisio_*`
+**Implementado em:** `Modules/Fisio/Database/Migrations/2026_10_18_000001_create_fisio_tables.php` · `Modules/Fisio/Entities/` · verificado@b9a7a58 (2026-10-18, #9537)
 
-> owner: — · priority: p0 · estimate: 6h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 6h · status: done · type: story
 > blocked_by: US-FISIO-002. DoD: isolamento 98×99 (`FisioMultiTenantTest`); UPDATE/DELETE em registro assinado falha (`FisioProntuarioTest`); nenhum `forceDelete` em dado clínico.
+
+**DoD:** as 11 tabelas `fisio_*` com `business_id` e escopo entre 98 e 99; trigger recusa UPDATE/DELETE em `fisio_records` assinado e em `fisio_game_ledger`; nenhum `forceDelete` em dado clínico — `FisioEsquemaContratoTest`.
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioEsquemaContratoTest.php`
 
 ### US-FISIO-004 · Biblioteca semeada e revisada pela responsável técnica — **P0**
 
@@ -60,10 +64,14 @@ related_adrs:
 
 ### US-FISIO-005 · Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0**
 
-**Implementado em:** _pendente_
+**Implementado em:** `Modules/Fisio/Http/Controllers/PacientesController.php` · `Modules/Fisio/Http/Controllers/RegistrosController.php` · rotas `fisio.pacientes.*` (`Modules/Fisio/Routes/web.php`) · telas `Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Index.tsx` e `Show.tsx` (+ charters) — veredito pela lane Verticais (`FisioPacienteCrudTest`, `FisioProntuarioTest`)
 
-> owner: — · priority: p0 · estimate: 8h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 8h · status: done · type: story
 > blocked_by: US-FISIO-003. Paciente é `contact`; avaliação, evolução e adendo carimbados com nome e CREFITO; marcadores de condição. DoD: `FisioPacienteCrudTest`, `FisioProntuarioTest`.
+
+**DoD:** paciente criado sobre um `contact` da empresa, um por contato, meta 1–7 e marcadores da lista fechada; excluir só bloqueia; avaliação/evolução/adendo carimbados com usuário, CREFITO e hora do servidor; avaliação exige os campos mínimos da Res. 414; registro assinado responde 405 a PUT/DELETE — `FisioPacienteCrudTest`, `FisioProntuarioTest`.
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioPacienteCrudTest.php` · `Modules/Fisio/Tests/Feature/FisioProntuarioTest.php`
 
 ### US-FISIO-006 · Editor de programa, protocolos-modelo e aviso de contraindicação — **P0**
 

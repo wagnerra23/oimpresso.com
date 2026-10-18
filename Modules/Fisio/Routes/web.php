@@ -2,6 +2,8 @@
 
 use Modules\Fisio\Http\Controllers\BibliotecaController;
 use Modules\Fisio\Http\Controllers\InstallController;
+use Modules\Fisio\Http\Controllers\PacientesController;
+use Modules\Fisio\Http\Controllers\RegistrosController;
 use Modules\Fisio\Http\Middleware\FisioLiberado;
 
 /*
@@ -38,4 +40,16 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('biblioteca', [BibliotecaController::class, 'index'])->name('biblioteca.index');
         Route::post('biblioteca/exercicios', [BibliotecaController::class, 'store'])->name('biblioteca.exercicios.store');
         Route::put('biblioteca/exercicios/{id}', [BibliotecaController::class, 'update'])->whereNumber('id')->name('biblioteca.exercicios.update');
+
+        // Pacientes e prontuário (US-FISIO-005). Escrita exige `fisio.editar` (checada no controller).
+        Route::get('pacientes', [PacientesController::class, 'index'])->name('pacientes.index');
+        Route::post('pacientes', [PacientesController::class, 'store'])->name('pacientes.store');
+        Route::get('pacientes/{id}', [PacientesController::class, 'show'])->whereNumber('id')->name('pacientes.show');
+        Route::put('pacientes/{id}', [PacientesController::class, 'update'])->whereNumber('id')->name('pacientes.update');
+        Route::delete('pacientes/{id}', [PacientesController::class, 'destroy'])->whereNumber('id')->name('pacientes.destroy');
+
+        Route::post('pacientes/{id}/registros', [RegistrosController::class, 'store'])->whereNumber('id')->name('pacientes.registros.store');
+        // Prontuário é append-only: estes verbos existem só para responder 405 com o motivo.
+        Route::match(['put', 'patch', 'delete'], 'pacientes/{id}/registros/{registro}', [RegistrosController::class, 'imutavel'])
+            ->whereNumber(['id', 'registro'])->name('pacientes.registros.imutavel');
     });

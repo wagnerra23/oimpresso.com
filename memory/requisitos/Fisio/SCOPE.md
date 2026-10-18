@@ -11,6 +11,8 @@ contains:
   - "BibliotecaController"
   - "DataController"
   - "InstallController"
+  - "PacientesController"
+  - "RegistrosController"
 not_contains:
   - "Envio de WhatsApp → Modules/Whatsapp (driver whatsmeow via ChannelDriverFactory)"
   - "Cobrança, pacotes e títulos → Financeiro / RecurringBilling (F3)"
@@ -22,7 +24,7 @@ depends_on: [Whatsapp]
 owner: wagner
 status: em construção
 url_prefixes:
-  - /fisio/* (área do profissional — a criar)
+  - /fisio/pacientes/* (área do profissional — pacientes e prontuário; demais telas a criar)
   - /fisio/p/{token}/* (portal público do paciente — a criar)
 ---
 

@@ -5,7 +5,7 @@ irmaos: Show.charter.md (lei) · Show.tsx (tela)
 tecnica: Caso de uso = narrativa do fisioterapeuta + critério de aceite verificável (Dado/Quando/Então)
 por_que: a ficha é o prontuário legal (Res. COFFITO 414/2012, guarda de 20 anos pela Lei 13.787/2018) e o editor do programa que o paciente executa sozinho em casa. Editar evolução assinada, apagar paciente ou prescrever contra uma contraindicação sem aviso são falhas legais e clínicas.
 owner: wagner
-last_run: "2026-10-17"
+last_run: "2026-10-18"
 last_run_ci: "_pendente_ — o trio nasce com a suíte TDD da F1 (antes do código). O veredito entra quando a lane MySQL rodar FisioProntuarioTest, FisioProgramaEditorTest, FisioPacienteCrudTest, FisioMultiTenantTest e FisioWhatsappJobTest."
 related_us: []
 ---
@@ -111,3 +111,4 @@ related_us: []
 
 ## Trilha do tempo
 - 2026-10-17 · suíte TDD da F1 — casos nascem antes da tela e do código; prontuário, bloqueio e contraindicação entram pela atualização de escopo do mesmo dia.
+- 2026-10-18 · US-FISIO-005 — a tela `.tsx` nasce (#9546) para os casos UC-FPS-02..05 e 07; os UCs não mudaram e seguem derivados do HANDOFF F1, não do `.tsx`. Veredito: lane Verticais.
