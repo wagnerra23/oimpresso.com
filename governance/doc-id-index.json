@@ -442,6 +442,7 @@
     "0433-fonte-do-prototipo-passa-ao-git": "memory/decisions/0433-fonte-do-prototipo-passa-ao-git.md",
     "0434-fsm-pedido-retomar-pagamento-fora-das-etapas": "memory/decisions/0434-fsm-pedido-retomar-pagamento-fora-das-etapas.md",
     "0435-fluxos-por-modelo-porte-atividade": "memory/decisions/0435-fluxos-por-modelo-porte-atividade.md",
+    "0436-os-por-item-producao-dona-da-os-do-pedido": "memory/decisions/0436-os-por-item-producao-dona-da-os-do-pedido.md",
     "2026-04-18-session-01": "memory/sessions/2026-04-18-session-01.md",
     "2026-04-18-session-02": "memory/sessions/2026-04-18-session-02.md",
     "2026-04-19-session-03": "memory/sessions/2026-04-19-session-03.md",
@@ -4446,13 +4447,13 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 4440,
-    "resolved": 2986,
+    "total": 4441,
+    "resolved": 2987,
     "unstamped": 1454,
     "collisions": 0,
     "by_source": {
       "unstamped": 1454,
-      "derived-adr": 440,
+      "derived-adr": 441,
       "stamped": 1157,
       "derived-handoffs": 619,
       "derived-sessions": 770
