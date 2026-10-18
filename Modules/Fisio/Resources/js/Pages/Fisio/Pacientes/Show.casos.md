@@ -32,6 +32,10 @@ related_us: []
 | UC-FPS-10 | alerta de contraindicação avisa e registra a confirmação | must | `FisioProgramaEditorTest` |
 | UC-FPS-11 | enviar o programa pelo WhatsApp (fila, idempotente) | must | `FisioWhatsappJobTest` |
 | UC-FPS-12 | sem envio sem módulo, sem consentimento, bloqueado | must | `FisioWhatsappJobTest` |
+| UC-FPS-13 | questionário grava com a pontuação calculada no servidor | must | `FisioQuestionarioTest`, `PontuacaoQuestionarioTest` |
+| UC-FPS-14 | bloqueado por licença, desconhecido ou incompleto é recusado | must | `FisioQuestionarioTest`, `PontuacaoQuestionarioTest` |
+| UC-FPS-15 | questionário exige `fisio.editar`; outra clínica 404; bloqueado não recebe | must | `FisioQuestionarioTest` |
+| UC-FPS-16 | histórico de questionários na ficha, deferido, só do paciente e da clínica | should | `FisioQuestionarioTest` |
 
 ---
 
@@ -101,14 +105,37 @@ related_us: []
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioWhatsappJobTest.php`
 - **Status: 🧪**
 
+## UC-FPS-13 · Questionário pontuado pelo servidor · `must`
+- **Persona:** fisioterapeuta aplicando EVA, Roland-Morris, PSFS, LEFS ou SPADI (ADR 0437 §8).
+- **Aceite:** Quando registra as respostas de um questionário de uso livre · Então a resposta grava com `business_id` da sessão, a data/hora do servidor e a pontuação calculada pela regra publicada do instrumento (RMDQ = nº de "sim"; PSFS = média das atividades; LEFS = soma; SPADI = dor ÷50, incapacidade ÷80, total ÷130). `score` vindo do corpo é ignorado. O sistema mostra o número, não uma interpretação (SaMD, ADR 0437 §5).
+- **Fonte:** estrutura de cada instrumento conforme as referências no catálogo (`CatalogoQuestionarios`). Enunciados da versão brasileira validada **pendentes** de conferência pela Dra. Dejeane — a tela pede a transcrição pelo número do item.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioQuestionarioTest.php` · `Modules/Fisio/Tests/Unit/PontuacaoQuestionarioTest.php`
+- **Status: 🧪**
+
+## UC-FPS-14 · Só os de uso livre, e completos · `must`
+- **Aceite:** ODI, NDI, KOOS, QuickDASH/DASH e WOMAC (bloqueados por licença) e códigos desconhecidos respondem 422 em `instrumento`. Item faltando, a mais ou fora da faixa responde 422 no campo do item. Nada grava. Sem rateio de item faltante enquanto a regra de cada manual não for conferida.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioQuestionarioTest.php` · `Modules/Fisio/Tests/Unit/PontuacaoQuestionarioTest.php`
+- **Status: 🧪**
+
+## UC-FPS-15 · Quem pode registrar `[T0]` · `must`
+- **Aceite:** Sem `fisio.editar` responde 403. Paciente de outra clínica responde 404 e nada grava lá. Paciente bloqueado não recebe questionário novo (422).
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioQuestionarioTest.php`
+- **Status: 🧪**
+
+## UC-FPS-16 · Histórico na ficha · `should`
+- **Aceite:** A ficha recebe o catálogo (com referências, sem os bloqueados) e o histórico como prop deferida, mais recente primeiro, só do paciente aberto e da clínica da sessão.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioQuestionarioTest.php`
+- **Status: 🧪**
+
 ---
 
 ## Backlog (prosa honesta — vira UC quando ganhar teste que o cite)
 
 - `[BACKLOG]` Gráfico de dor na aba Evolução (a série chega na prop `serie_dor`, provada em UC-FPP-20; o render ainda sem teste).
 - `[BACKLOG]` Protocolos-modelo da clínica aplicados ao programa (`origin=protocolo`) — fora desta suíte.
-- `[BACKLOG]` Questionários liberados (EVA, RMDQ, PSFS, LEFS, SPADI) — T-11, pontuação conferida com a referência publicada.
+- `[BACKLOG]` Enunciados literais da versão brasileira validada de EVA, RMDQ, PSFS, LEFS e SPADI na tela do questionário (aguarda conferência da Dra. Dejeane contra a publicação).
 
 ## Trilha do tempo
+- 2026-10-18 · US-FISIO-011 — questionários de uso livre viram UC-FPS-13..16 (estrutura e pontuação; enunciados pendentes).
 - 2026-10-17 · suíte TDD da F1 — casos nascem antes da tela e do código; prontuário, bloqueio e contraindicação entram pela atualização de escopo do mesmo dia.
 - 2026-10-18 · US-FISIO-005 — a tela `.tsx` nasce (#9546) para os casos UC-FPS-02..05 e 07; os UCs não mudaram e seguem derivados do HANDOFF F1, não do `.tsx`. Veredito: lane Verticais.

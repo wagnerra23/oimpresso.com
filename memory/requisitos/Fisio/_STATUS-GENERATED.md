@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 0 |
 | Telas (.tsx) | 2 |
 | Telas com `casos.md` | 5 |
-| UC declarados | 48 |
-| UC com teste que os cita | 48 |
+| UC declarados | 52 |
+| UC com teste que os cita | 52 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -29,6 +29,7 @@ authority: generated
 |---|---|
 | `US-FISIO-003` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Schema, models e append-only de prontuário e ledger do jogo  |
 | `US-FISIO-005` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0 |
+| `US-FISIO-011` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) —  |
 
 ### Backlog — NÃO é lacuna
 
@@ -47,7 +48,6 @@ authority: generated
 | US-FISIO-008 | `todo` | Jogo de constância (XP, nível, sequência, missões, pausa por dor) — **P1** |
 | US-FISIO-009 | `todo` | Lembrete diário e envio do programa por WhatsApp (driver whatsmeow) — **P0** |
 | US-FISIO-010 | `todo` | Painel, evolução e fila de atenção — **P0** |
-| US-FISIO-011 | `todo` | Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) — **P1** |
 | US-FISIO-012 | `todo` | Fecha o loop da F1 — **P1** |
 
 ## UC por status
@@ -101,6 +101,10 @@ authority: generated
 | UC-FPS-10 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-11 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-12 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-13 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-14 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-15 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-16 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-OAP-01 | Public/Portal | 🧪 aguarda veredito da lane |
 
 ---

@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 788,
-    "edges": 1085,
+    "nodes": 790,
+    "edges": 1087,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 413,
+      "component": 415,
       "api": 81
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 85,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 413,
+      "hasComponent": 415,
       "dependsOn": 122,
       "delegatesTo": 113,
       "migratesTo": 1,
@@ -2839,6 +2839,20 @@
       "type": "component",
       "module": "Fisio",
       "name": "Portal público do paciente",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/Questionários de uso livre",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Questionários de uso livre",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/QuestionariosController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "QuestionariosController",
       "desc": ""
     },
     {
@@ -8954,6 +8968,18 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/Portal público do paciente",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/Questionários de uso livre",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/QuestionariosController",
       "type": "hasComponent",
       "source": "contains"
     },

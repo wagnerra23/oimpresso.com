@@ -33,6 +33,7 @@ Mostrar e editar o perfil clínico do paciente e manter o prontuário: avaliaç�
 - Assinar avaliação (campos mínimos da Res. 414) e evolução, com carimbo do servidor — UC-FPS-03.
 - Corrigir por adendo apontando o original, que não muda — UC-FPS-04, UC-FPS-05.
 - Bloquear o paciente sem apagar nada — UC-FPS-07.
+- Registrar questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) com pontuação do servidor e ver o histórico — UC-FPS-13..16 (US-FISIO-011). Mostra o número e a referência; não interpreta (SaMD, ADR 0437 §5).
 
 ## Non-Goals — Features (NÃO faz)
 
