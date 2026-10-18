@@ -461,6 +461,10 @@ jobs:
         # para 98 e 99, exercício próprio só do dono, global não editável (403), próprio alheio
         # 404, filtro por região e busca por texto (UC-FBI-01..04).
         #
+        # ENTRA 2026-10-18 — Fisio/FisioProntuarioPdfTest (UC-FPS-19..20): exportação do prontuário
+        # em PDF — registros assinados em ordem cronológica e carimbados, 403 sem fisio.access, 404
+        # entre 98 e 99, e cada exportação no activity_log sem PII.
+        #
         # ENTRA 2026-10-18 — Fisio/FisioBibliotecaMidiaTest: foto/vídeo do exercício próprio pelo
         # backbone Modules/Arquivos (biz-{id}/), servida por rota que confere empresa (98 lê, 99
         # 404), global 403, limites e declaração no servidor, remoção só da dona (UC-FBI-05..07).
@@ -555,6 +559,7 @@ jobs:
             Modules/Fisio/Tests/Unit/AtencaoDetectorTest.php \
             Modules/Fisio/Tests/Unit/CalculoBordasTest.php \
             Modules/Fisio/Tests/Feature/FisioBibliotecaTest.php \
+            Modules/Fisio/Tests/Feature/FisioProntuarioPdfTest.php \
             Modules/Fisio/Tests/Feature/FisioBibliotecaMidiaTest.php
 
       # O sumário conta `assertions` POR ARQUIVO — é o discriminador que separa
