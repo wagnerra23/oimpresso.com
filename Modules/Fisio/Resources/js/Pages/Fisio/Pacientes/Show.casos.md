@@ -36,6 +36,8 @@ related_us: []
 | UC-FPS-14 | bloqueado por licença, desconhecido ou incompleto é recusado | must | `FisioQuestionarioTest`, `PontuacaoQuestionarioTest` |
 | UC-FPS-15 | questionário exige `fisio.editar`; outra clínica 404; bloqueado não recebe | must | `FisioQuestionarioTest` |
 | UC-FPS-16 | histórico de questionários na ficha, deferido, só do paciente e da clínica | should | `FisioQuestionarioTest` |
+| UC-FPS-19 | exportar o prontuário em PDF: todos os registros assinados, carimbados, em ordem cronológica | should | `FisioProntuarioPdfTest` |
+| UC-FPS-20 | exportar exige `fisio.access` da mesma clínica; outra clínica 404; cada exportação fica no log de auditoria | must | `FisioProntuarioPdfTest` |
 
 ---
 
@@ -127,6 +129,19 @@ related_us: []
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioQuestionarioTest.php`
 - **Status: 🧪**
 
+## UC-FPS-19 · Exportar o prontuário em PDF · `should`
+- **Persona:** fisioterapeuta que precisa entregar o prontuário (paciente, outro profissional, perícia).
+- **Aceite:** Quando clica "Exportar prontuário (PDF)" na ficha · Então recebe um PDF com a identificação do paciente (nome e telefone do contato), o perfil clínico e **todos** os registros assinados do paciente — avaliação, evolução, telemonitoramento e adendo (este apontando o registro que corrige) — do mais antigo para o mais novo, cada um com nome de quem assinou, CREFITO, data e hora. Rodapé com a empresa, a data de emissão e "Página X de Y". Registro sem assinatura não entra. Paciente bloqueado também exporta (a guarda continua).
+- **Regressão que defende:** prontuário entregue incompleto ou sem o carimbo de cada registro.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioProntuarioPdfTest.php`
+- **Status: 🧪**
+
+## UC-FPS-20 · Quem exporta e o rastro da exportação `[T0]` · `must`
+- **Persona:** invariante LGPD (art. 11 — dado de saúde) e multi-tenant (ADR 0093).
+- **Aceite:** Sem `fisio.access` responde 403. Paciente de outra clínica responde 404 e nada é registrado. Cada exportação grava uma linha no `activity_log` (`log_name=fisio`, evento `prontuario_exportado`) com o paciente como sujeito, o usuário como autor, a clínica da sessão e a quantidade de registros — sem nome, telefone nem conteúdo clínico nas propriedades.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioProntuarioPdfTest.php`
+- **Status: 🧪**
+
 ---
 
 ## Backlog (prosa honesta — vira UC quando ganhar teste que o cite)
@@ -136,6 +151,7 @@ related_us: []
 - `[BACKLOG]` Enunciados literais da versão brasileira validada de EVA, RMDQ, PSFS, LEFS e SPADI na tela do questionário (aguarda conferência da Dra. Dejeane contra a publicação).
 
 ## Trilha do tempo
+- 2026-10-18 · exportação do prontuário em PDF vira UC-FPS-19..20 (rota e controller próprios; o PDF do programa fica para depois da US-FISIO-006).
 - 2026-10-18 · US-FISIO-011 — questionários de uso livre viram UC-FPS-13..16 (estrutura e pontuação; enunciados pendentes).
 - 2026-10-17 · suíte TDD da F1 — casos nascem antes da tela e do código; prontuário, bloqueio e contraindicação entram pela atualização de escopo do mesmo dia.
 - 2026-10-18 · US-FISIO-005 — a tela `.tsx` nasce (#9546) para os casos UC-FPS-02..05 e 07; os UCs não mudaram e seguem derivados do HANDOFF F1, não do `.tsx`. Veredito: lane Verticais.
