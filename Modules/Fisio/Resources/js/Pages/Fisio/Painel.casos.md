@@ -6,13 +6,13 @@ tecnica: Caso de uso = narrativa do fisioterapeuta + critério de aceite verific
 por_que: o painel decide quem o fisioterapeuta chama hoje. Número errado de adesão esconde quem vai abandonar; fila de atenção que perde dor alta ou sinal de alerta é risco clínico; paciente de outra clínica no painel é vazamento Tier 0.
 owner: wagner
 last_run: "2026-10-17"
-last_run_ci: "_pendente_ — o trio nasce com a suíte TDD da F1 (antes do código). O veredito entra quando a lane MySQL rodar FisioPainelTest, FisioCheckinTest, FisioWhatsappJobTest e os Unit AdesaoCalculatorTest/AtencaoDetectorTest."
+last_run_ci: "_pendente_ — US-FISIO-010 (2026-10-18) liga FisioPainelTest, FisioMultiTenantTest e FisioModuloVisibilidadeTest na lane Verticais · MySQL; o veredito é da lane. UC-FPN-05 depende do portal (F::portalPronto → PortalTokenService, US-FISIO-007) e UC-FPN-07 do job de WhatsApp (US-FISIO-009)."
 related_us: []
 ---
 
 # Casos de Uso & Aceite — Fisio · Painel (`/fisio`)
 
-> **Âncora:** ADR 0437 (§4 a §8) e o handoff F1 "Constância" (T-02, T-09, T-10). Os UCs não derivam do `.tsx` — a tela ainda não existe.
+> **Âncora:** ADR 0437 (§4 a §8) e o handoff F1 "Constância" (T-02, T-09, T-10). Os UCs não derivam do `.tsx` (nasceram antes dele, com a suíte TDD).
 >
 > **Status:** ✅ passa (veredito no manifesto) · 🧪 teste cita o UC, sem veredito coletado · ⬜ não verificado · ❌ quebrou. **O veredito é da lane, nunca desta leitura** (G-7).
 
@@ -87,3 +87,4 @@ related_us: []
 
 ## Trilha do tempo
 - 2026-10-17 · suíte TDD da F1 — casos nascem antes da tela e do código, junto com os testes que os citam.
+- 2026-10-18 · US-FISIO-010 — tela `Painel.tsx`, rota `GET /fisio` (`fisio.painel`) e charter. Fila separada em Alerta (`dor_subiu`, `dor_alta`, `sinal_de_alerta`) e Risco de abandono (`sem_registro`), via `AtencaoDetector::separar`. Status dos UCs segue 🧪 até o veredito da lane.

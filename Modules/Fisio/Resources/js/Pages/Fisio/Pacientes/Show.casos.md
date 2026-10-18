@@ -36,6 +36,7 @@ related_us: []
 | UC-FPS-14 | bloqueado por licença, desconhecido ou incompleto é recusado | must | `FisioQuestionarioTest`, `PontuacaoQuestionarioTest` |
 | UC-FPS-15 | questionário exige `fisio.editar`; outra clínica 404; bloqueado não recebe | must | `FisioQuestionarioTest` |
 | UC-FPS-16 | histórico de questionários na ficha, deferido, só do paciente e da clínica | should | `FisioQuestionarioTest` |
+| UC-FPS-17 | aba Evolução: dor e dias com exercício em 30 dias, só na visão do profissional | should | `FisioEvolucaoTest` |
 
 ---
 
@@ -127,15 +128,23 @@ related_us: []
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioQuestionarioTest.php`
 - **Status: 🧪**
 
+## UC-FPS-17 · Evolução do paciente na ficha · `should`
+- **Persona:** fisioterapeuta abrindo a ficha.
+- **Aceite:** Dado check-ins do paciente · Quando a ficha carrega a aba Evolução (props deferidas `evolucao` e `serie_dor`) · Então vêm os registros dos últimos 30 dias em ordem de data, com dor, nº de exercícios feitos e sinal de alerta, a adesão 7d do mesmo cálculo do painel (nula sem programa ativo) e a série de dor só com o que tem dor informada. Ficha de outra clínica responde 404.
+- **Regressão que defende:** série de dor de outra clínica ou fora da janela; dor ausente virando 0 no gráfico. O portal não recebe a série (UC-FPP-20, ADR 0437 §5).
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioEvolucaoTest.php`
+- **Status: 🧪**
+
 ---
 
 ## Backlog (prosa honesta — vira UC quando ganhar teste que o cite)
 
-- `[BACKLOG]` Gráfico de dor na aba Evolução (a série chega na prop `serie_dor`, provada em UC-FPP-20; o render ainda sem teste).
+- `[BACKLOG]` Render do gráfico de dor na aba Evolução — os dados têm teste (UC-FPS-17); o desenho no navegador, não.
 - `[BACKLOG]` Protocolos-modelo da clínica aplicados ao programa (`origin=protocolo`) — fora desta suíte.
 - `[BACKLOG]` Enunciados literais da versão brasileira validada de EVA, RMDQ, PSFS, LEFS e SPADI na tela do questionário (aguarda conferência da Dra. Dejeane contra a publicação).
 
 ## Trilha do tempo
 - 2026-10-18 · US-FISIO-011 — questionários de uso livre viram UC-FPS-13..16 (estrutura e pontuação; enunciados pendentes).
 - 2026-10-17 · suíte TDD da F1 — casos nascem antes da tela e do código; prontuário, bloqueio e contraindicação entram pela atualização de escopo do mesmo dia.
+- 2026-10-18 · US-FISIO-010 — aba Evolução (componente `_components/EvolucaoPaciente.tsx`) vira UC-FPS-17, com teste escrito junto da tela.
 - 2026-10-18 · US-FISIO-005 — a tela `.tsx` nasce (#9546) para os casos UC-FPS-02..05 e 07; os UCs não mudaram e seguem derivados do HANDOFF F1, não do `.tsx`. Veredito: lane Verticais.

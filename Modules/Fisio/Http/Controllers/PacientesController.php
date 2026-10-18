@@ -14,6 +14,7 @@ use Inertia\Response;
 use Modules\Fisio\Entities\Patient;
 use Modules\Fisio\Entities\Questionnaire;
 use Modules\Fisio\Entities\Record;
+use Modules\Fisio\Services\PainelFisio;
 use Modules\Fisio\Services\Questionarios\CatalogoQuestionarios;
 
 /**
@@ -74,6 +75,7 @@ class PacientesController extends Controller
     public function show(Request $request, int $id): Response
     {
         $paciente = $this->paciente($id)->loadMissing('contact:id,name,mobile');
+        $evolucao = null;
 
         return Inertia::render('Fisio/Pacientes/Show', [
             'paciente' => [
@@ -92,6 +94,15 @@ class PacientesController extends Controller
             // Catálogo estático (sem query): vai junto. O histórico é query → defer (US-FISIO-011).
             'instrumentos' => array_values(CatalogoQuestionarios::todos()),
             'questionarios' => Inertia::defer(fn () => $this->historicoQuestionarios($paciente)),
+            // Aba Evolução (US-FISIO-010): série de dor e adesão, só na visão do profissional
+            // (ADR 0437 §5; o portal não recebe `serie_dor` — UC-FPP-20). Um cálculo só para as duas.
+            'evolucao' => Inertia::defer(function () use (&$evolucao, $paciente) {
+                $e = $evolucao ??= app(PainelFisio::class)->evolucao($paciente);
+                unset($e['serie_dor']);
+
+                return $e;
+            }),
+            'serie_dor' => Inertia::defer(fn () => ($evolucao ??= app(PainelFisio::class)->evolucao($paciente))['serie_dor']),
         ]);
     }
 

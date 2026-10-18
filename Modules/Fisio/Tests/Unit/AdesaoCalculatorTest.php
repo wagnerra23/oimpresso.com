@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-FISIO-010
 // Cobre, na regra pura, UC-FPN-02 (Fisio/Painel.casos.md).
 
 use Modules\Fisio\Services\AdesaoCalculator;

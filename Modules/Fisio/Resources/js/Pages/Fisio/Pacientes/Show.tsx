@@ -23,6 +23,7 @@ import { Textarea } from '@/Components/ui/textarea';
 import PerfilClinicoCampos, { type PerfilClinico } from '../_components/PerfilClinicoCampos';
 import { limparObjetivos, rotuloCondicao } from '../_components/condicoes';
 import Questionarios, { HistoricoQuestionarios, type Instrumento, type RespostaQuestionario } from '../_components/Questionarios';
+import EvolucaoPaciente, { type Evolucao, type PontoDor } from '../_components/EvolucaoPaciente';
 
 interface Paciente {
   id: number;
@@ -50,6 +51,8 @@ interface Props {
   prontuario?: Registro[];
   instrumentos: Instrumento[];
   questionarios?: RespostaQuestionario[];
+  evolucao?: Evolucao;
+  serie_dor?: PontoDor[];
 }
 
 const TIPO: Record<Registro['kind'], string> = {
@@ -191,7 +194,7 @@ function LinhaDoTempo({ registros, podeEditar, onCorrigir }: { registros: Regist
   );
 }
 
-export default function PacienteShow({ paciente, condicoes, pode_editar, prontuario, instrumentos, questionarios }: Props) {
+export default function PacienteShow({ paciente, condicoes, pode_editar, prontuario, instrumentos, questionarios, evolucao, serie_dor }: Props) {
   const [corrigindo, setCorrigindo] = useState<Registro | null>(null);
 
   return (
@@ -217,6 +220,14 @@ export default function PacienteShow({ paciente, condicoes, pode_editar, prontua
             )}
             <Deferred data="prontuario" fallback={<Skeleton className="h-40 w-full" />}>
               <LinhaDoTempo registros={prontuario ?? []} podeEditar={pode_editar && !paciente.bloqueado} onCorrigir={setCorrigindo} />
+            </Deferred>
+          </CardContent>
+        </Card>
+        <Card className="lg:col-start-2">
+          <CardContent className="flex flex-col gap-4 p-4">
+            <h2 className="text-base font-semibold">Evolução</h2>
+            <Deferred data={['evolucao', 'serie_dor']} fallback={<Skeleton className="h-40 w-full" />}>
+              {evolucao ? <EvolucaoPaciente evolucao={evolucao} serieDor={serie_dor ?? []} /> : <span />}
             </Deferred>
           </CardContent>
         </Card>

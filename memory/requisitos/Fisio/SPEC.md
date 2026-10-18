@@ -105,12 +105,14 @@ Núcleo de cálculo (serviços puros, sem rota nem tela; a US segue pendente): `
 
 ### US-FISIO-010 · Painel, evolução e fila de atenção — **P0**
 
-**Implementado em:** _pendente_
+**Implementado em:** _pendente_ — `Modules/Fisio/Http/Controllers/PainelController.php`, `Modules/Fisio/Services/PainelFisio.php`, rota `fisio.painel` (`GET /fisio`), tela `Modules/Fisio/Resources/js/Pages/Fisio/Painel.tsx` e aba Evolução (`Modules/Fisio/Resources/js/Pages/Fisio/_components/EvolucaoPaciente.tsx`) existem; o UC-FPN-05 do `FisioPainelTest` depende do portal (US-FISIO-007). A âncora fecha com o portal.
 
 > owner: — · priority: p0 · estimate: 8h · status: doing · type: story
 > blocked_by: US-FISIO-008. Adesão 7d, dor, nível; fila de abandono separada da fila de alerta clínico. DoD: `FisioPainelTest`, `AdesaoCalculatorTest`, `AtencaoDetectorTest`.
 
 Núcleo de cálculo (serviços puros, sem rota nem tela; a US segue pendente): `Modules/Fisio/Services/AdesaoCalculator.php`, `Modules/Fisio/Services/AtencaoDetector.php`.
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioPainelTest.php` · `Modules/Fisio/Tests/Feature/FisioEvolucaoTest.php` · `Modules/Fisio/Tests/Unit/AdesaoCalculatorTest.php` · `Modules/Fisio/Tests/Unit/AtencaoDetectorTest.php`
 
 ### US-FISIO-011 · Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) — **P1**
 

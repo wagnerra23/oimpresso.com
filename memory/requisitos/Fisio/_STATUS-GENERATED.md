@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 12 |
 | CU no SDD | 0 |
-| Telas (.tsx) | 3 |
+| Telas (.tsx) | 4 |
 | Telas com `casos.md` | 5 |
-| UC declarados | 52 |
-| UC com teste que os cita | 52 |
+| UC declarados | 53 |
+| UC com teste que os cita | 53 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -30,6 +30,7 @@ authority: generated
 | `US-FISIO-003` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Schema, models e append-only de prontuário e ledger do jogo  |
 | `US-FISIO-004` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Biblioteca semeada e revisada pela responsável técnica — **P |
 | `US-FISIO-005` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0 |
+| `US-FISIO-010` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Painel, evolução e fila de atenção — **P0** |
 | `US-FISIO-011` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) —  |
 
 ### Backlog — NÃO é lacuna
@@ -47,7 +48,6 @@ authority: generated
 | US-FISIO-007 | `todo` | Portal do paciente (link + PIN, consentimentos, check-in, telemonitoramento) — * |
 | US-FISIO-008 | `todo` | Jogo de constância (XP, nível, sequência, missões, pausa por dor) — **P1** |
 | US-FISIO-009 | `todo` | Lembrete diário e envio do programa por WhatsApp (driver whatsmeow) — **P0** |
-| US-FISIO-010 | `todo` | Painel, evolução e fila de atenção — **P0** |
 | US-FISIO-012 | `todo` | Fecha o loop da F1 — **P1** |
 
 ## UC por status
@@ -105,6 +105,7 @@ authority: generated
 | UC-FPS-14 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-15 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-16 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-17 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-OAP-01 | Public/Portal | 🧪 aguarda veredito da lane |
 
 ---
