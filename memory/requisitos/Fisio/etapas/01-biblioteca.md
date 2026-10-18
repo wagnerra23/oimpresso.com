@@ -235,6 +235,8 @@ Contexto: o GB móvel custou em média R$ [redacted Tier 0] no 1º trimestre de 
 
 A ADR põe "busca por texto" na F4. **Proposta: trazer a busca com facetas para a F1**, porque sem ela a nota da biblioteca não passa de 7. O ditado por voz continua na F4.
 
+> **Decidido — [W] 2026-10-18:** a busca por texto **entra na F1** (decisão nº 3 da ADR 0437 §14). A US-FISIO-004 entregou a forma mínima: busca por nome e sinônimos (LIKE, sem motor externo; sinônimos numa lista JSON no próprio exercício). Os itens abaixo — FULLTEXT com passos, tabela de sinônimos editável, ordenação, registro de busca sem resultado, filtro por equipamento e atalhos — continuam na B-07.
+
 - **MySQL FULLTEXT** em nome + sinônimos + passos, mais filtros por faceta. Sem motor externo e sem camada de abstração nova.
 - Tabela de sinônimos editável pelo revisor.
 - **Ordenação:** favoritos da clínica → mais usados pela clínica → nível ascendente.

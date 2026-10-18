@@ -57,3 +57,4 @@ related_us: []
 
 ## Trilha do tempo
 - 2026-10-17 · suíte TDD da F1 — casos nascem antes da tela e do código.
+- 2026-10-18 · US-FISIO-004 — `BibliotecaController`, tela e lane Verticais com `FisioBibliotecaTest`. Busca por texto na F1 aceita por [W] em 2026-10-18 (ADR 0437 §14 nº 3). Status segue 🧪 até o veredito da lane.

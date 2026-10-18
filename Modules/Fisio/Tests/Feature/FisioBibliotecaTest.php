@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 // Cobre UC-FBI-01..UC-FBI-04 (Fisio/Biblioteca/Index.casos.md).
+// @covers-us US-FISIO-004
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Modules\Fisio\Entities\Exercise;
