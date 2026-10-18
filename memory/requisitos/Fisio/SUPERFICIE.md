@@ -14,7 +14,7 @@ module: Fisio
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Fisio/**` + `resources/js/Pages/Fisio/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 40 arquivos em 9 papéis.
+**Total mapeado:** 36 arquivos em 9 papéis.
 
 ## Controllers — 2
 
@@ -57,12 +57,8 @@ module: Fisio
 - 4 em [Modules/Fisio/Tests/Unit/](../../../Modules/Fisio/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 9
+## Demais arquivos (manifestos, docs, assets e misc) — 5
 
-- [CheckinFactory.php](../../../Modules/Fisio/Database/Factories/CheckinFactory.php)
-- [ExerciseFactory.php](../../../Modules/Fisio/Database/Factories/ExerciseFactory.php)
-- [PatientFactory.php](../../../Modules/Fisio/Database/Factories/PatientFactory.php)
-- [ProgramFactory.php](../../../Modules/Fisio/Database/Factories/ProgramFactory.php)
 - [fisio.php](../../../Modules/Fisio/Resources/lang/pt/fisio.php)
 - [README.md](../../../Modules/Fisio/Tests/README.md)
 - [composer.json](../../../Modules/Fisio/composer.json)

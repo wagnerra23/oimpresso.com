@@ -38,6 +38,7 @@ Os caminhos desta pasta já são os do repo (copie a árvore `Modules/` para a r
 - `FisioModuloContratoTest`: 3 de 4 verdes já no esqueleto (pacote, permissões, varredura de fonte). O de rotas fica vermelho até as rotas da F1 existirem; quando ficar verde inteiro, entra na `ci-sqlite-pest.list` (roda sem banco, como o `ProducaoModuloAtivacaoTest`).
 - Os Feature com `F::motivoDeSkip()` pulam até as migrations `fisio_*` (US-FISIO-003); com as tabelas, entram na lane MySQL (`verticais-pest.yml`) junto com `Modules/Fisio/**` nos `paths`.
 - Unit: 49 casos, todos vermelhos só por classe inexistente (nenhum erro de sintaxe), até os serviços puros chegarem.
+- As 4 factories (`Database/Factories/*.php`) **não** entraram no esqueleto: referenciam os models `Modules\Fisio\Entities\*`, que só nascem na US-FISIO-003, e o PHPStan ratchet acusa classe inexistente. Estão guardadas fora do repo (`C:\tmp\fisio-suite-pendente\Fisio\Database\Factories`) e voltam junto com os models na US-FISIO-003. As fixtures dos testes não dependem delas.
 - Os `*.casos.md` ficam ao lado das Pages desde já: `npm run casos:check` não acusa violação nova com eles sem `.tsx`.
 ## Doutrina seguida (o que foi copiado do repo)
 
