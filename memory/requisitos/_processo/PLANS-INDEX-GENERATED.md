@@ -4,12 +4,12 @@
 > Fonte única: o plano é a verdade, este índice é derivado ([ADR 0256](../../decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md)). Execução mora no MCP via `parent_plan` ([ADR 0070](../../decisions/0070-jira-style-task-management-current-md-removed.md)). Frescor/órfão = sentinela `plan-health` (memory-health Check J).
 
 ## Saúde (derivada)
-- **8** planos registrados (com `## Status vivo`) · **27** pendentes de backfill (arquivo *plan* sem bloco)
-- reviewed_at preenchido: **5/8** · vinculados a MCP (`parent_plan`): **5/8**
-- Por status: proposto 4 · ativo 3 · (vazio) 1
+- **9** planos registrados (com `## Status vivo`) · **27** pendentes de backfill (arquivo *plan* sem bloco)
+- reviewed_at preenchido: **6/9** · vinculados a MCP (`parent_plan`): **6/9**
+- Por status: proposto 5 · ativo 3 · (vazio) 1
 - Inconsistências de schema: 4 — ver final
 
-## Registrados (8)
+## Registrados (9)
 | Plano | Módulo | Status | Owner | reviewed_at | parent_plan | gate-de-saída |
 |---|---|---|---|---|---|---|
 | [Plano de aprofundamento das avaliações](../_Governanca/PLANO-APROFUNDAMENTO-AVALIACOES.md) | _Governanca | — | — | — | — | — |
@@ -18,6 +18,7 @@
 | [Plan — {{título curto da feature}}](../_TEMPLATE_FEATURE/plan.md) | _TEMPLATE_FEATURE | proposto | — | — | — | {{quando todos os ACs estarão provados e a US ancorada}} |
 | [Plan — OpenAPI 3.0 seguro para o Connector](../Connector/features/openapi-connector/plan.md) | Connector | ativo | W/F | 2026-08-03 | `connector-openapi` | AC-1..7 provados, smoke de suporte concluído e US-CONN-013 a |
 | [Plan — arquitetura do recebimento parcial de parcela](../Financeiro/features/recebimento-parcial-parcela/plan.md) | Financeiro | proposto | W | — | `financeiro-recebimento-parcial-parcela` | — |
+| [Plan — F1 Constância do módulo Fisio](../Fisio/features/f1-constancia/plan.md) | Fisio | proposto | W | 2026-10-18 | `fisio-f1-constancia` | AC-1..AC-11 provados pela suíte Pest da F1 rodando verde no  |
 | [OBSERVABILITY — Jana](../Jana/OBSERVABILITY.md) | Jana | proposto | W/C | 2026-07-28 | — | um caso real observado percorre trace → avaliação → revisão  |
 | [Plano — Atendimento Automático (WhatsApp / Caixa Unificada)](../Whatsapp/PLANO-ATENDIMENTO-AUTOMATICO.md) | Whatsapp | ativo | W | 2026-06-20 | `plano-atendimento-automatico` | E1+E3 com ≥5 clientes pagando JANA Pro (espelha gates da ADR |
 

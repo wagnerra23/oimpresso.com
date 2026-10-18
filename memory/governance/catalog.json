@@ -25,26 +25,26 @@
     "supersededBy"
   ],
   "stats": {
-    "modules": 36,
-    "nodes": 775,
-    "edges": 1071,
+    "modules": 37,
+    "nodes": 786,
+    "edges": 1083,
     "by_node_type": {
-      "module": 40,
+      "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 404,
-      "api": 79
+      "component": 411,
+      "api": 81
     },
     "by_edge_type": {
       "ownsTable": 97,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 83,
+      "providesApi": 85,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 404,
-      "dependsOn": 120,
-      "delegatesTo": 112,
+      "hasComponent": 411,
+      "dependsOn": 122,
+      "delegatesTo": 113,
       "migratesTo": 1,
       "supersedes": 26,
       "supersedesPartially": 71,
@@ -1335,6 +1335,22 @@
       "prefix": "/fiscal/*",
       "providers": [
         "Fiscal"
+      ]
+    },
+    {
+      "id": "api:/fisio/*",
+      "type": "api",
+      "prefix": "/fisio/*",
+      "providers": [
+        "Fisio"
+      ]
+    },
+    {
+      "id": "api:/fisio/p/{token}/*",
+      "type": "api",
+      "prefix": "/fisio/p/{token}/*",
+      "providers": [
+        "Fisio"
       ]
     },
     {
@@ -2768,6 +2784,55 @@
       "module": "Fiscal",
       "name": "SpedController",
       "desc": "sub-página 7 + endpoint gerar() download EFD-ICMS/IPI MVP (PR #8)"
+    },
+    {
+      "id": "component:Fisio/Biblioteca de exercícios, protocolos-modelo e programa por paciente",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Biblioteca de exercícios, protocolos-modelo e programa por paciente",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/DataController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "DataController",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/InstallController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "InstallController",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/Jogo de constância",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Jogo de constância",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/Pacientes",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Pacientes",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/Painel e fila de atenção do profissional",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Painel e fila de atenção do profissional",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/Portal público do paciente",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Portal público do paciente",
+      "desc": ""
     },
     {
       "id": "component:Forja/⚠️ MOVIDO, NÃO FUNDIDO: as abas triagem/backlog/quadro/changelog sobrepõem Triage/Backlog/Board/Activity deste módulo. Fundir = deletar uma implementação = decisão [W], separada desta deprecação",
@@ -4527,6 +4592,19 @@
       "desc": ""
     },
     {
+      "id": "module:[Whatsapp]",
+      "type": "module",
+      "module": "[Whatsapp]",
+      "purpose": "",
+      "trust": "",
+      "owner": "",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "path": null,
+      "catalog_kind": "referenced-only",
+      "catalog_status": "referenced-only"
+    },
+    {
       "id": "module:Accounting",
       "type": "module",
       "module": "Accounting",
@@ -4718,6 +4796,19 @@
       "permission_prefix": "fiscal.*",
       "charter_adr": "0094",
       "path": "memory/requisitos/Fiscal/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
+    },
+    {
+      "id": "module:Fisio",
+      "type": "module",
+      "module": "Fisio",
+      "purpose": "Vertical de fisioterapia: programa de exercícios domiciliares, portal do paciente por link + PIN, constância (check-in, jogo, lembrete WhatsApp), prontuário conforme COFFITO e painel de risco de abandono. Decidido pela ADR 0437 em 2026-10-18.",
+      "trust": "",
+      "owner": "wagner",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "path": "memory/requisitos/Fisio/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -8781,6 +8872,80 @@
     {
       "from": "module:Fiscal",
       "to": "api:/fiscal/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "module:Whatsapp",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Envio de WhatsApp"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "module:[Whatsapp]",
+      "type": "dependsOn",
+      "source": "depends_on"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "module:Whatsapp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Envio de WhatsApp"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/Biblioteca de exercícios, protocolos-modelo e programa por paciente",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/Jogo de constância",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/Pacientes",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/Painel e fila de atenção do profissional",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/Portal público do paciente",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "api:/fisio/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "api:/fisio/p/{token}/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
@@ -12908,6 +13073,10 @@
   ],
   "diagnostics": {
     "referenced_only_modules": [
+      {
+        "module": "[Whatsapp]",
+        "reason": "referenciado por SCOPE, sem descritor próprio"
+      },
       {
         "module": "Accounting",
         "reason": "referenciado por SCOPE, sem descritor próprio"

@@ -34,6 +34,7 @@ lente: [construir]
 | Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-09-29 |
 | Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-09-07 |
 | Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-10-07 |
+| Fisio | [BRIEFING](../requisitos/Fisio/BRIEFING.md) | 2026-10-18 |
 | Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-09-15 |
 | Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-09-15 |
 | Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-10-14 |
@@ -148,8 +149,8 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **441** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 382 · superseded: 27 · proposto: 18 · deprecated: 11 · recusado: 2 · rascunho: 1.
+- **442** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 383 · superseded: 27 · proposto: 18 · deprecated: 11 · recusado: 2 · rascunho: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
@@ -428,14 +429,14 @@ lente: [construir]
 
 ## Rastro
 
-- **624** handoffs · **795** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **624** handoffs · **798** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-10-18-refutacao-gt-g5-lote-9536-r3`
+  - `2026-10-18-refutacao-gt-g5-lote-9536-r2`
+  - `2026-10-18-refutacao-gt-g5-lote-9536-r1`
   - `2026-10-15-refutacao-gt-g5-lote-9433-r1`
   - `2026-10-09-session-09`
   - `2026-10-09-session-08`
-  - `2026-10-09-session-07`
-  - `2026-10-09-session-06`
-  - `2026-10-09-session-05`
 
 ---
 _Gerado por `scripts/governance/system-map.mjs` · 2026-10-18 · deriva das fontes canônicas, não as substitui._

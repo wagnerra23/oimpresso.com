@@ -1,0 +1,11 @@
+{
+    "name": "Fisio",
+    "alias": "fisio",
+    "description": "Fisio — vertical de fisioterapia: programa de exercícios domiciliar, portal do paciente por link + PIN, check-in com dor e sinais de alerta, jogo de constância e prontuário conforme a Res. COFFITO 414/2012 (ADR 0437).",
+    "keywords": ["fisio", "fisioterapia", "saude", "constancia", "prontuario"],
+    "priority": 0,
+    "providers": [
+        "Modules\\Fisio\\Providers\\FisioServiceProvider"
+    ],
+    "files": []
+}
