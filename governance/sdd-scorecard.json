@@ -182,16 +182,16 @@
     },
     "ragas_real_uptime": {
       "status": "measured",
-      "value": 53.3,
+      "value": 50,
       "unit": "%",
       "direction": "up",
       "target": 95,
       "source": "governance/ragas-real-trend.json (transporte CT100→scorecard · órfã governance/ragas-real-trend · ADR 0318 + pattern ADR 0279)",
       "detail": {
-        "weeks_expected": 15,
+        "weeks_expected": 16,
         "weeks_valid": 8,
         "first_scheduled": "2026-07-05",
-        "last_week": "2026-10-11",
+        "last_week": "2026-10-18",
         "latest": {
           "gate_status": "skipped",
           "n_evaluated": 0,
