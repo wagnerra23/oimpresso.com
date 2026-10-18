@@ -52,8 +52,8 @@
 ### 2.3 WhatsApp: o que o mercado faz e o risco do módulo atual
 
 - **Concorrentes locais** (Vedius, Kynesia) usam WhatsApp para lembrete. Se usam a API oficial: **não confirmado**.
-- **O módulo atual do oimpresso** usa Evolution API/whatsmeow, ou seja, conexão de WhatsApp comum via QR code. É não oficial. A FAQ do WhatsApp diz que apps não oficiais violam os termos e podem levar a **banimento temporário ou permanente** [15]. Para dado de saúde e número do profissional, o risco é alto: o banimento derruba o canal de todos os pacientes daquela clínica de uma vez.
-- **Saída barata:** a Evolution API v2 tem integração com a **WhatsApp Cloud API oficial** (`integration: "WHATSAPP-BUSINESS"`, com Number ID, token permanente e webhook validado) [16]. Dá para manter o módulo Whatsapp e trocar só o transporte do Fisio para a Cloud API. O suporte a templates nessa integração **não está confirmado** na documentação, então testar antes. Se faltar, chamar a Graph API direto num adapter.
+- **O módulo `Whatsapp` do oimpresso** já tem dois drivers atrás do `ChannelDriverFactory`: `whatsmeow` (conexão comum por QR code, não oficial) e `meta_cloud` (`MetaCloudDriver`, API oficial). A FAQ do WhatsApp diz que apps não oficiais violam os termos e podem levar a **banimento temporário ou permanente** [15]; com dado de saúde, o banimento derruba o lembrete de todos os pacientes daquela clínica de uma vez.
+- **Decisão de [W] (ADR 0437 §13.1 e §14 nº 5):** o Fisio usa o driver `whatsmeow`, um número por clínica, sempre via `ChannelDriverFactory`, com as mitigações da §13.1. Trocar para `meta_cloud` é só configuração, porque o driver oficial já existe no módulo; nada de integração nova nem adapter próprio do Fisio.
 
 ---
 
@@ -74,7 +74,7 @@
 | Faturamento em real | Desde 01/07/2026, quem tem o Brasil como país de faturamento cria WABA em BRL, faturada pelo Facebook Brasil. Migração obrigatória até 30/06/2027. Depois disso, WABA fora de BRL deixa de entregar | Meta [17] |
 | Desconto por volume | Utilidade e autenticação ficam mais baratas com o volume mensal, somado por portfólio | Meta [17] |
 
-**Custo estimado por paciente (estimativa minha, não é preço):** 4 dias prescritos por semana, com um template de utilidade por dia prescrito, dá cerca de 17 mensagens por mês. A US$ 0,0068–0,008 e câmbio de R$ 5,40 (premissa), são **R$ 0,62 a R$ 0,73 por paciente por mês**, mais as mensagens de serviço do check-in conversado, que cabem nas 1.000 grátis por número em clínica pequena. É compatível com o "≈ R$ 0,05 por mensagem" da ADR.
+**Custo estimado por paciente (estimativa minha, não é preço):** 4 dias prescritos por semana, com um template de utilidade por dia prescrito, dá cerca de 17 mensagens por mês. A US$ 0,0068–0,008 e câmbio de R$ [redacted Tier 0] (premissa), são **R$ [redacted Tier 0] por paciente por mês**, mais as mensagens de serviço do check-in conversado, que cabem nas 1.000 grátis por número em clínica pequena. É compatível com o "≈ R$ [redacted Tier 0] por mensagem" da ADR.
 
 **Opt-in (Meta):** a pessoa precisa dizer que aceita receber mensagens **daquele negócio identificado pelo nome**. O canal é livre (site, SMS, presencial, papel). A Meta recomenda opt-in por categoria e opt-out fácil, e pode auditar o fluxo [24][25]. No produto, o consentimento `whatsapp` (`fisio_consents`) já cumpre isso se o texto disser o nome da clínica e do profissional e listar o que será enviado (programa, lembretes, avisos do profissional). Precisa ser registrado **antes** do primeiro template.
 
@@ -98,10 +98,10 @@
 
 | opção | prós | contras |
 |---|---|---|
-| **A. Número único "Fisio · oimpresso"** (um WABA do oimpresso) | Rápido. Um processo de verificação. Ideal para o freemium (≤10 pacientes) | Começa com 250 usuários/dia. O limite e a qualidade são compartilhados entre todas as clínicas. As 1.000 mensagens de serviço grátis são divididas. A marca no cabeçalho do chat é do oimpresso, e o profissional entra só como variável no texto |
+| **A. Número único "Fisio · oimpresso"** (um WABA do oimpresso) | Rápido. Um processo de verificação. Ideal para o freemium (≤5 pacientes) | Começa com 250 usuários/dia. O limite e a qualidade são compartilhados entre todas as clínicas. As 1.000 mensagens de serviço grátis são divididas. A marca no cabeçalho do chat é do oimpresso, e o profissional entra só como variável no texto |
 | **B. Número da clínica** (Embedded Signup, oimpresso como Tech Provider) | Marca do profissional no chat. Qualidade e limite isolados. 1.000 de serviço grátis por clínica | Mais configuração. Requisitos de Tech Provider **não confirmados** nesta pesquisa |
 
-Recomendação: **A no lançamento**, com verificação do negócio feita antes do piloto para sair de 250, e **B para os planos pagos**. O código do Fisio fala com uma interface única (`FisioMessenger`) que resolve qual número usar por `business_id`.
+Decidido por [W] (ADR 0437 §13.1(a) e §14 nº 5): **um número por clínica**, nunca compartilhado entre clínicas. A tabela acima fica como registro da pesquisa; a opção A não vale. O Fisio não tem interface própria de envio: chama o módulo `Whatsapp` pelo `ChannelDriverFactory`, que resolve o canal conectado de cada `business_id`.
 
 **Botões e janela de 24h:**
 - Mensagem interativa com botões de resposta: **até 3 botões, 20 caracteres cada** [27]. Se templates de utilidade aceitam botão de resposta rápida junto com botão de URL na mesma mensagem: **não confirmado**. Testar no cadastro do template.
@@ -283,7 +283,7 @@ Com dor ≥ limiar ou sinal de alerta: **não** há animação de jogo. Aparece 
 
 | risco | mitigação |
 |---|---|
-| Banimento do número no transporte não oficial (Evolution/whatsmeow) [15] | Fisio só envia pela Cloud API oficial. O transporte não oficial fica proibido para o Fisio (teste falha se o business usar instância QR) |
+| Banimento do número no transporte não oficial (whatsmeow) [15] | Risco aceito por [W] (ADR 0437 §13.1). Mitigações: um número por clínica, teto por hora com intervalo aleatório, só paciente com consentimento de WhatsApp, alerta ao profissional quando o canal cair, link do portal copiável como alternativa. Trocar para `meta_cloud` é configuração |
 | Template recategorizado como marketing sem reprovação (custo ~9×) [18] | Checagem de `correct_category` por webhook e job diário, troca de variante, alerta ao admin |
 | Mudança de preço em 01/10/2026 (serviço e utilidade na janela) [19][20] | Custo por paciente calculado no log e exibido no admin. Teto mensal por business, configurável |
 | Limite de 250 usuários/dia em portfólio novo [26] | Verificação do negócio antes do piloto. Opção B (número da clínica) para os pagos |
@@ -308,7 +308,7 @@ Com dor ≥ limiar ou sinal de alerta: **não** há animação de jogo. Aparece 
 | Check-in em ≤ 3 toques | ≥ 70% dos check-ins | — |
 | Opt-out de lembrete | < 5% em 8 semanas | ADHERE: 2 de 56 [1] |
 | Qualidade do número | Verde em todas as semanas | [26] |
-| Custo WhatsApp por paciente ativo por mês | ≤ R$ 1,00 | estimativa §3.1 |
+| Custo WhatsApp por paciente ativo por mês | ≤ R$ [redacted Tier 0] | estimativa §3.1 |
 | Profissional abre o painel | ≥ 3 vezes por semana | — |
 | "Parabéns" enviado por profissional por semana | ≥ 1 por paciente ativo em 50% das clínicas | feedback positivo do profissional [7] |
 | Precisão do vermelho (abandonou em 14 dias) | só medir na F1 e calibrar na F3 | §3.7 |
@@ -325,7 +325,7 @@ Com dor ≥ limiar ou sinal de alerta: **não** há animação de jogo. Aparece 
 | T-08a | Ledger e regras de XP (70/30, normalização 4/n, teto de 500 por semana, nada por exceder) | T-07c | Testes por regra da §3.4. Excesso dá 0. Dor 9 dá os 30 do registro |
 | T-08b | Níveis (tabela §3.4), sequência por dia prescrito, escudos (máx. 2), pausa protegida, total que nunca zera, semanas completas | T-08a | Testes: dia não prescrito não quebra a sequência; escudo consumido; pausa não gasta escudo; nível nunca desce |
 | T-08c | Missões do pool permitido, desafio semanal opcional, 12 medalhas, card "Você sabia?", modo manutenção na alta | T-08b | Nenhuma missão fora do prescrito (teste percorre o pool). Recusar o desafio não tira XP |
-| T-09a | Adapter `FisioMessenger` sobre a **Cloud API oficial** (via Evolution `WHATSAPP-BUSINESS` ou Graph API direta), resolução do número por business (opção A/B) | T-07b | Business com instância QR não envia nada do Fisio (teste). Webhook validado |
+| T-09a | Envio do Fisio pelo módulo `Whatsapp` via `ChannelDriverFactory` (driver `whatsmeow`, um número por clínica), com teto por hora e intervalo aleatório | T-07b | Sem disparo para business sem canal conectado ou paciente sem consentimento; canal caído gera alerta ao profissional (teste) |
 | T-09b | Catálogo de templates (§3.3), 2 variantes cada, cadastro, webhook de status e `template_category_update`, job diário que compara `category` com `correct_category`, troca automática de variante e alerta ao admin | T-09a | Simulação de recategorização troca a variante e cria alerta |
 | T-09c | Job de lembrete: horário e âncora do paciente, janela 07–21h, pula quem já fez, modo leve/diário automático, teto diário, "sentimos sua falta" semanal, rodízio de texto, log idempotente com custo estimado | T-09b, T-08b | Um envio por paciente por dia (teste de corrida). Nada para business sem módulo. Troca de modo pelos limites 85%/60% |
 | T-09d | Respostas por botão: "Já fiz" → check-in com faixa de dor; menu de barreiras; "PARAR" revoga; áudio recebido gera resposta padrão sem download | T-09c, T-07c | `pain_band` gravado. Revogação versionada. Nenhum arquivo de áudio persistido |

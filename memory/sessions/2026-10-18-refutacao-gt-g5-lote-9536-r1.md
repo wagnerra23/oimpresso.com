@@ -49,12 +49,12 @@ outcomes:
 | 6 | ADR §13.3: 100 XP/dia (70+30), 10 níveis, 2 escudos | CONFIRMADO | etapa 02 §3.4 |
 | 7 | ADR §13.4: série com câmera vale o mesmo XP | CONFIRMADO | etapa 03 §3.4 e §3.5 |
 | 8 | ADR §8: EVA, RMDQ, PSFS, LEFS, SPADI liberados | CONFIRMADO | etapa 05 tabela (RMDQ domínio público pela SRALab); validações BR seguem "a conferir" na própria etapa |
-| 9 | ADR §2 alavanca 9: grátis até ~10 pacientes, R$ 49–79 | **REFUTADO** | ADR §14 nº 10 e etapa 06 dizem grátis até **5**. Contradição interna da ADR aceita — **pendente [W]** (não editei corpo de ADR aceita) |
-| 10 | ADR §2 alavanca 1: lembrete custa ~R$ 0,05 por mensagem | **REFUTADO** | vale só para API oficial; a §13.1 da mesma ADR escolheu `whatsmeow` (sem custo por mensagem, etapa 02 cabeçalho). **Pendente [W]** |
+| 9 | ADR §2 alavanca 9: grátis até ~10 pacientes, R$ [redacted Tier 0] | **REFUTADO** | ADR §14 nº 10 e etapa 06 dizem grátis até **5**. Contradição interna da ADR aceita — **pendente [W]** (não editei corpo de ADR aceita) |
+| 10 | ADR §2 alavanca 1: lembrete custa ~R$ [redacted Tier 0] por mensagem | **REFUTADO** | vale só para API oficial; a §13.1 da mesma ADR escolheu `whatsmeow` (sem custo por mensagem, etapa 02 cabeçalho). **Pendente [W]** |
 | 11 | etapa 02 §3.5: aviso fixo "ligue 192" para todos | **REFUTADO** | ADR §14 nº 9 segura o aviso até parecer regulatório e a ADR vence. **Corrigido**: nota de pendência na etapa 02 |
 | 12 | etapa 02 §3.5: check-in pelo botão do WhatsApp | **REFUTADO** | depende de template/botão da API oficial; driver decidido é `whatsmeow`. **Corrigido**: condicionado a `meta_cloud`, suporte a botão no whatsmeow marcado [não confirmado] |
 | 13 | etapa 06 §plano Autônomo: lembrete "pelo WhatsApp oficial" | **REFUTADO** | ADR §13.1: `whatsmeow`, não oficial. **Corrigido** |
-| 14 | etapa 05 §3.3: taxa de notificação R$ 1.406, preparo 6–12 meses e R$ 150–400 mil | **REFUTADO** (diverge) | etapa 03 §5: taxa por porte (R$ 175,72 a R$ 3.514,32), 9–15 meses, R$ 110–320 mil. **Corrigido**: nota de divergência e "conferir na tabela oficial antes da decisão §14 nº 7" |
+| 14 | etapa 05 §3.3: taxa de notificação R$ [redacted Tier 0] preparo 6–12 meses e R$ [redacted Tier 0] | **REFUTADO** (diverge) | etapa 03 §5: taxa por porte (R$ [redacted Tier 0]), 9–15 meses, R$ [redacted Tier 0]. **Corrigido**: nota de divergência e "conferir na tabela oficial antes da decisão §14 nº 7" |
 | 15 | SPEC `status_nota`: "Modules/Fisio ainda não existe" | **REFUTADO** | o esqueleto está neste PR. **Corrigido** |
 | 16 | SPEC US-FISIO-002: "_pendente_ — `Modules/Fisio/` inexistente" | **REFUTADO** | idem. **Corrigido** (segue _pendente_, com o motivo verdadeiro) |
 | 17 | BRIEFING: "sem código ainda" / "`Modules/Fisio` ainda não existe" | **REFUTADO** | idem. **Corrigido** |
@@ -70,7 +70,7 @@ outcomes:
 | 27 | etapa 03: sem gravação de vídeo × ADR §7 (processamento no aparelho) | CONFIRMADO | |
 | 28 | etapa 05: prescrição por IA "não fazer agora" × ADR §5/§9 | CONFIRMADO | |
 | 29 | etapa 05: MCID fora do portal × ADR §13.5 | CONFIRMADO | |
-| 30 | etapa 06: R$ 59/mês, R$ 49 no anual × ADR §14 nº 10 | CONFIRMADO | |
+| 30 | etapa 06: R$ [redacted Tier 0]/mês, R$ [redacted Tier 0] no anual × ADR §14 nº 10 | CONFIRMADO | |
 | 31 | etapa 06: sem depoimento/antes-depois × ADR §4 (Res. 424/2013) | CONFIRMADO | |
 | 32 | etapa 06: 50% para estudante × ADR §14 nº 10 | CONFIRMADO | |
 | 33 | BRIEFING próxima ação (US-001/002, feature-lint) | CONFIRMADO | |
