@@ -1,6 +1,7 @@
 <?php
 
 use Modules\Fisio\Http\Controllers\BibliotecaController;
+use Modules\Fisio\Http\Controllers\BibliotecaFavoritosController;
 use Modules\Fisio\Http\Controllers\InstallController;
 use Modules\Fisio\Http\Controllers\PacientesController;
 use Modules\Fisio\Http\Controllers\ProgramasController;
@@ -44,6 +45,9 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('biblioteca', [BibliotecaController::class, 'index'])->name('biblioteca.index');
         Route::post('biblioteca/exercicios', [BibliotecaController::class, 'store'])->name('biblioteca.exercicios.store');
         Route::put('biblioteca/exercicios/{id}', [BibliotecaController::class, 'update'])->whereNumber('id')->name('biblioteca.exercicios.update');
+        // Favoritos do profissional na empresa da sessão (exige só fisio.access).
+        Route::post('biblioteca/exercicios/{id}/favorito', [BibliotecaFavoritosController::class, 'store'])->whereNumber('id')->name('biblioteca.exercicios.favorito.store');
+        Route::delete('biblioteca/exercicios/{id}/favorito', [BibliotecaFavoritosController::class, 'destroy'])->whereNumber('id')->name('biblioteca.exercicios.favorito.destroy');
 
         // Pacientes e prontuário (US-FISIO-005). Escrita exige `fisio.editar` (checada no controller).
         Route::get('pacientes', [PacientesController::class, 'index'])->name('pacientes.index');

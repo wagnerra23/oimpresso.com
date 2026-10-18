@@ -58,7 +58,7 @@ it('UC-FBI-01 · no Eloquent também: sessão da 98 vê global + 98, nunca 99', 
 it('UC-FBI-02 · criar exercício próprio grava business da sessão e is_custom', function () {
     F::como($this, $this->u98);
     $this->postJson('/fisio/biblioteca/exercicios', [
-        'name' => 'Ponte unilateral da clínica', 'region' => 'lombar', 'type' => 'fortalecimento', 'pose' => 'deitado',
+        'name' => 'Ponte unilateral da clínica', 'region' => 'lombar', 'type' => 'fortalecimento', 'pose' => 'deitado_costas',
         'steps' => ['Deite', 'Estenda uma perna', 'Eleve o quadril'], 'default_sets' => 3, 'default_reps' => 10, 'default_hold_s' => 0,
         'times_per_day' => 1, 'business_id' => null,
     ])->assertCreated();
