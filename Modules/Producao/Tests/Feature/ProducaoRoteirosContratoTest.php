@@ -38,10 +38,22 @@ function rotPosto(int $biz, string $codigo): Posto
         'tipo_custo' => 'maquina', 'custo_hora' => '50.00']);
 }
 
+/**
+ * Troca de usuário como um login novo: limpa a sessão antes. O SetSessionData só preenche
+ * `user.business_id` quando a sessão está vazia, então `actingAs` sozinho deixaria a empresa
+ * do usuário anterior na sessão e o teste mediria a empresa errada.
+ */
+function rotComo($teste, $user)
+{
+    $teste->flushSession();
+
+    return $teste->actingAs($user);
+}
+
 /** Prop deferida pedida como o browser pede (X-Inertia + X-Requested-With). */
 function rotProps($teste, $user, string $rota, string $componente, string $prop): array
 {
-    $teste->actingAs($user);
+    rotComo($teste, $user);
     $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
     $r = $teste->get($rota, ['X-Inertia' => 'true', 'X-Requested-With' => 'XMLHttpRequest', 'X-Inertia-Version' => (string) $versao,
         'X-Inertia-Partial-Data' => $prop, 'X-Inertia-Partial-Component' => $componente]);
@@ -91,7 +103,7 @@ it('UC-PCV-13 · até 2 trilhas que se juntam numa etapa nomeada; 3ª trilha ou 
     // Tenant: o roteiro da 98 não aparece para a 99, e a 99 não o altera.
     $daOutra = collect(rotProps($this, $this->g99, '/producao/roteiros', 'Producao/Roteiros/Index', 'roteiros'))->pluck('id');
     expect($daOutra)->not->toContain($id);
-    $this->actingAs($this->g99)->put("/producao/roteiros/$id", rotFachada('Invadido'))->assertNotFound();
+    rotComo($this, $this->g99)->put("/producao/roteiros/$id", rotFachada('Invadido'))->assertNotFound();
     expect(DB::table('pcp_roteiros')->where('id', $id)->value('nome'))->toBe($nome);
 
     // A 98 lê o roteiro no mesmo formato que salvou (o bloco volta com as 2 trilhas e a junção).
@@ -124,7 +136,7 @@ it('UC-PCV-33 · motivos de pausa vêm do cadastro do posto; outro posto mostra 
     // Controle negativo — a 99 não vê nem altera os motivos dos postos da 98.
     $daOutra = collect(rotProps($this, $this->g99, '/producao/postos', 'Producao/Postos/Index', 'postos'))->pluck('id');
     expect($daOutra)->not->toContain($roland)->not->toContain($lamin->id);
-    $this->actingAs($this->g99)->put("/producao/postos/$roland/motivos", ['tipo' => 'pausa', 'nomes' => ['Invasão']])->assertNotFound();
+    rotComo($this, $this->g99)->put("/producao/postos/$roland/motivos", ['tipo' => 'pausa', 'nomes' => ['Invasão']])->assertNotFound();
     expect(DB::table('pcp_motivos')->where('posto_id', $roland)->where('tipo', 'pausa')->orderBy('ordem')->pluck('nome')->all())->toBe($daRoland);
 });
 
@@ -138,12 +150,12 @@ it('E03 · custo-hora da pessoa só aparece e só grava com producao.desempenho.
         ->and(rotProps($this, $this->g98, '/producao/postos', 'Producao/Postos/Index', 'colaboradores'))->toBe([]);
 
     // Com a permissão: grava e lê o valor do colaborador da própria empresa.
-    $this->actingAs($gestor)->put("/producao/colaboradores/{$operador->id}/custo-hora", ['custo_hora' => '42.50'])->assertSessionHasNoErrors();
+    rotComo($this, $gestor)->put("/producao/colaboradores/{$operador->id}/custo-hora", ['custo_hora' => '42.50'])->assertSessionHasNoErrors();
     $lista = collect(rotProps($this, $gestor, '/producao/postos', 'Producao/Postos/Index', 'colaboradores'))->keyBy('id');
     expect((string) $lista[$operador->id]['custo_hora'])->toBe('42.50');
 
     // Colaborador de outra empresa é recusado, mesmo com a permissão.
-    $this->actingAs($gestor)->put("/producao/colaboradores/{$this->g99->id}/custo-hora", ['custo_hora' => 10])->assertSessionHasErrors('user_id');
+    rotComo($this, $gestor)->put("/producao/colaboradores/{$this->g99->id}/custo-hora", ['custo_hora' => 10])->assertSessionHasErrors('user_id');
     expect(DB::table('pcp_colaborador_custos')->where('user_id', $this->g99->id)->exists())->toBeFalse();
 });
 
@@ -161,7 +173,7 @@ it('E03 · veículo é posto de máquina com placa e custo por km; ferramenta te
     $this->post('/producao/ferramentas', ['codigo_qr' => $qr, 'nome' => 'Furadeira'])->assertSessionHasNoErrors();
     $this->post('/producao/ferramentas', ['codigo_qr' => $qr, 'nome' => 'Outra'])->assertSessionHasErrors('codigo_qr');
     // O mesmo código vale em outra empresa: o QR é único por empresa, não no sistema.
-    $this->actingAs($this->g99)->post('/producao/ferramentas', ['codigo_qr' => $qr, 'nome' => 'Furadeira da 99'])->assertSessionHasNoErrors();
+    rotComo($this, $this->g99)->post('/producao/ferramentas', ['codigo_qr' => $qr, 'nome' => 'Furadeira da 99'])->assertSessionHasNoErrors();
     expect(DB::table('pcp_ferramentas')->where('codigo_qr', $qr)->pluck('business_id')->sort()->values()->all())
         ->toBe([(int) $this->b98->id, (int) $this->b99->id]);
 });
