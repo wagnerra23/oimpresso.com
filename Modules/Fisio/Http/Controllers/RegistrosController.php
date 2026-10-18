@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Modules\Fisio\Entities\Patient;
 use Modules\Fisio\Entities\Record;
 
@@ -22,6 +23,10 @@ use Modules\Fisio\Entities\Record;
  * O carimbo (`signed_by`, `signed_crefito`, `signed_at`) é montado aqui: usuário logado,
  * CREFITO informado na assinatura e relógio do servidor. Nada disso vem do corpo
  * (UC-FPS-03). `telemonitoramento` não é criável pela tela: quem gera é o portal.
+ *
+ * Paciente bloqueado (Lei 13.787/2018: "excluir" é bloquear e o prontuário fica guardado)
+ * só recebe adendo — corrigir o que já está assinado continua possível; atendimento novo,
+ * não (UC-FPS-17).
  */
 class RegistrosController extends Controller
 {
@@ -41,6 +46,10 @@ class RegistrosController extends Controller
         $dados = $request->validate($this->regras((string) $request->input('kind'), $paciente, $biz), [
             'amends_id.exists' => 'O adendo precisa apontar um registro deste paciente.',
         ]);
+
+        if ($paciente->estaBloqueado() && $dados['kind'] !== Record::KIND_ADENDO) {
+            throw ValidationException::withMessages(['kind' => 'Paciente bloqueado: o prontuário só aceita adendo de correção.']);
+        }
 
         $registro = Record::query()->create([
             'business_id' => $biz,
