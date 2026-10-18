@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 791,
-    "edges": 1088,
+    "nodes": 793,
+    "edges": 1090,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 416,
+      "component": 418,
       "api": 81
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 85,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 416,
+      "hasComponent": 418,
       "dependsOn": 122,
       "delegatesTo": 113,
       "migratesTo": 1,
@@ -2814,6 +2814,13 @@
       "desc": ""
     },
     {
+      "id": "component:Fisio/Exportação do prontuário em PDF",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Exportação do prontuário em PDF",
+      "desc": "UC-FPS-19..20"
+    },
+    {
       "id": "component:Fisio/InstallController",
       "type": "component",
       "module": "Fisio",
@@ -2846,6 +2853,13 @@
       "type": "component",
       "module": "Fisio",
       "name": "Portal público do paciente",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/ProntuarioPdfController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "ProntuarioPdfController",
       "desc": ""
     },
     {
@@ -8956,6 +8970,12 @@
     },
     {
       "from": "module:Fisio",
+      "to": "component:Fisio/Exportação do prontuário em PDF",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
       "to": "component:Fisio/InstallController",
       "type": "hasComponent",
       "source": "contains"
@@ -8981,6 +9001,12 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/Portal público do paciente",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/ProntuarioPdfController",
       "type": "hasComponent",
       "source": "contains"
     },
