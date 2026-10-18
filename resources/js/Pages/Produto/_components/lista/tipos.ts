@@ -280,6 +280,21 @@ export function subLinhaProduto(l: LinhaProduto): string {
 
 export const CHAVE_COLUNAS = 'oimpresso.produto.lista.colunas';
 export const CHAVE_DENSIDADE = 'oimpresso.produto.lista.densa';
+/**
+ * Larguras que a pessoa arrastou, por id de coluna — UC-PIDX-16. Lembradas no navegador, como a
+ * escolha de colunas e a densidade: a ROTA LIVRE refazia o ajuste a cada visita (2026-10-17).
+ */
+export const CHAVE_LARGURAS = 'oimpresso.produto.lista.larguras';
+
+/** Só o que é largura de verdade sai do navegador: número entre o piso do arrasto (48) e 1200. */
+export function largurasValidas(valor: unknown): Record<string, number> {
+  if (!valor || typeof valor !== 'object' || Array.isArray(valor)) return {};
+  const out: Record<string, number> = {};
+  for (const [id, w] of Object.entries(valor as Record<string, unknown>)) {
+    if (typeof w === 'number' && Number.isFinite(w) && w >= 48 && w <= 1200) out[id] = Math.round(w);
+  }
+  return out;
+}
 
 /** Colunas opcionais (o menu "Colunas" do protótipo — PB_COLS + PB_COLS_PADRAO). */
 export interface ColunaOpcional {

@@ -1,6 +1,9 @@
 // Menu "Colunas" — o `MenuColunas` do protótipo (produto-blade.jsx) no `ui/dropdown-menu`.
 // É o "Visibilidade da coluna" da lista Blade, agora visível pro operador e lembrado no
 // navegador (`oimpresso.produto.lista.colunas`).
+//
+// "Voltar às larguras de saída" desfaz as larguras arrastadas, que também ficam lembradas no
+// navegador (UC-PIDX-16). Só aparece quando há largura ajustada.
 
 import { Columns3 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
@@ -18,9 +21,12 @@ interface Props {
   colunas: ColunaOpcional[];
   visiveis: Record<string, boolean>;
   aoMudar: (visiveis: Record<string, boolean>) => void;
+  /** Há coluna com largura arrastada (lembrada no navegador). */
+  larguraAjustada?: boolean;
+  aoRestaurarLarguras?: () => void;
 }
 
-export default function MenuColunas({ colunas, visiveis, aoMudar }: Props) {
+export default function MenuColunas({ colunas, visiveis, aoMudar, larguraAjustada = false, aoRestaurarLarguras }: Props) {
   const n = colunas.filter((c) => visiveis[c.id]).length;
   return (
     <DropdownMenu>
@@ -43,6 +49,9 @@ export default function MenuColunas({ colunas, visiveis, aoMudar }: Props) {
         ))}
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => aoMudar(visibilidadePadrao(colunas))}>Voltar ao padrão</DropdownMenuItem>
+        {larguraAjustada && aoRestaurarLarguras && (
+          <DropdownMenuItem onSelect={aoRestaurarLarguras}>Voltar às larguras de saída</DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

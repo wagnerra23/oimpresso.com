@@ -12,8 +12,13 @@
 //
 // Redimensionar: como no protótipo, toda coluna pode ser arrastada pela borda, menos Ação e
 // Imagem (`resizable: false`) e a última da grade (regra da tabela, não daqui).
+//
+// Tela estreita: as larguras daqui são as do protótipo; `aplicarEncaixe` encolhe as que não cabem
+// (regra em `encaixe.ts`, UC-PIDX-26). Por isso as células de texto levam `title`: cortadas com
+// "…", mostram o texto inteiro ao passar o mouse.
 
 import type { ColumnDef } from '@tanstack/react-table';
+import type { ReactNode } from 'react';
 import { Globe } from 'lucide-react';
 import { Inline } from '@/Components/layout';
 import AcoesProduto, { type AcaoProduto } from './AcoesProduto';
@@ -75,7 +80,9 @@ export function colunasDaLista({ visiveis, densa, permissions, contexto, aoEscol
     cell: ({ row }) => (
       <div className="min-w-0">
         <Inline gap={1} wrap={false} className="min-w-0">
-          <span className="truncate font-semibold text-[var(--text)]">{row.original.nome}</span>
+          <span className="truncate font-semibold text-[var(--text)]" title={row.original.nome}>
+            {row.original.nome}
+          </span>
           {/* Marca de quem sincroniza com o WooCommerce, como a lista Blade (`fa-wordpress` sob o
               nome). O servidor só manda o campo quando o módulo está instalado. UC-PIDX-23. */}
           {row.original.woocommerce_sync === true && (
@@ -100,7 +107,7 @@ export function colunasDaLista({ visiveis, densa, permissions, contexto, aoEscol
       header: 'Locais',
       enableSorting: false,
       meta: { width: 150 },
-      cell: ({ row }) => row.original.locais.join(', ') || '—',
+      cell: ({ row }) => comDica(row.original.locais.join(', ')),
     });
   }
   if (v('compra') && permissions.view_purchase_price === true) {
@@ -111,7 +118,7 @@ export function colunasDaLista({ visiveis, densa, permissions, contexto, aoEscol
       accessorFn: (l) => l.compra_max ?? null,
       // Sem mono: no protótipo o preço é texto normal de 13px (medido com design-diff em 2026-10-11).
       meta: { width: 150, align: 'right' },
-      cell: ({ row }) => faixaDePreco(row.original.tipo, row.original.compra_min, row.original.compra_max),
+      cell: ({ row }) => preco(faixaDePreco(row.original.tipo, row.original.compra_min, row.original.compra_max)),
     });
   }
   if (v('venda') && permissions.access_default_selling_price === true) {
@@ -121,7 +128,7 @@ export function colunasDaLista({ visiveis, densa, permissions, contexto, aoEscol
       enableSorting: true,
       accessorFn: (l) => l.venda_max ?? null,
       meta: { width: 150, align: 'right' },
-      cell: ({ row }) => faixaDePreco(row.original.tipo, row.original.venda_min, row.original.venda_max),
+      cell: ({ row }) => preco(faixaDePreco(row.original.tipo, row.original.venda_min, row.original.venda_max)),
     });
   }
   if (v('estoque')) {
@@ -157,7 +164,9 @@ export function colunasDaLista({ visiveis, densa, permissions, contexto, aoEscol
       meta: { width: 160 },
       cell: ({ row }) => (
         <div className="min-w-0">
-          <div className="truncate font-semibold">{row.original.categoria ?? '—'}</div>
+          <div className="truncate font-semibold" title={row.original.categoria ?? undefined}>
+            {row.original.categoria ?? '—'}
+          </div>
           {!densa && row.original.subcategoria && (
             <div className="truncate text-[11px] text-[var(--text-mute)]">{row.original.subcategoria}</div>
           )}
@@ -166,13 +175,13 @@ export function colunasDaLista({ visiveis, densa, permissions, contexto, aoEscol
     });
   }
   if (v('marca')) {
-    out.push({ id: 'marca', header: 'Marca', enableSorting: true, accessorFn: (l) => l.marca, meta: { width: 120 }, cell: ({ row }) => row.original.marca ?? '—' });
+    out.push({ id: 'marca', header: 'Marca', enableSorting: true, accessorFn: (l) => l.marca, meta: { width: 120 }, cell: ({ row }) => comDica(row.original.marca) });
   }
   if (v('imposto')) {
-    out.push({ id: 'imposto', header: 'Imposto', enableSorting: false, meta: { width: 110 }, cell: ({ row }) => row.original.imposto ?? '—' });
+    out.push({ id: 'imposto', header: 'Imposto', enableSorting: false, meta: { width: 110 }, cell: ({ row }) => comDica(row.original.imposto) });
   }
   if (v('sku')) {
-    out.push({ id: 'sku', header: 'SKU', enableSorting: true, accessorFn: (l) => l.sku, meta: { width: 120, mono: true }, cell: ({ row }) => row.original.sku || '—' });
+    out.push({ id: 'sku', header: 'SKU', enableSorting: true, accessorFn: (l) => l.sku, meta: { width: 120, mono: true }, cell: ({ row }) => comDica(row.original.sku) });
   }
   if (v('serie')) {
     out.push({
@@ -191,11 +200,51 @@ export function colunasDaLista({ visiveis, densa, permissions, contexto, aoEscol
         header: rotulo,
         enableSorting: false,
         meta: { width: 170 },
-        cell: ({ row }) => row.original.campos[String(i)] || '—',
+        cell: ({ row }) => comDica(row.original.campos[String(i)]),
       });
     }
   }
   return out;
+}
+
+/** Texto da célula com o inteiro no `title` (a célula corta com "…" quando a coluna encolhe). */
+function comDica(texto: string | null | undefined): ReactNode {
+  if (!texto || texto === '—') return '—';
+  return <span title={texto}>{texto}</span>;
+}
+
+/**
+ * Preço da célula. A faixa de produto variável ("‹mínimo› – ‹máximo›") quebra em duas linhas logo
+ * depois do traço quando a coluna encolhe (UC-PIDX-26): cortada com "…", o preço máximo sumia. Os
+ * outros espaços viram inseparáveis, então a quebra só cai no traço ("R$" nunca fica sozinho). No
+ * modo confortável a linha já tem duas linhas de texto (nome + detalhe): medido em 1366px, ela passa
+ * de 45 para 47px.
+ */
+function preco(texto: string): ReactNode {
+  if (!texto || texto === '—') return '—';
+  const comQuebraNoTraco = texto.replace(/ /g, '\u00a0').replace('\u00a0–\u00a0', '\u00a0– ');
+  return (
+    <span title={texto} className="whitespace-normal">
+      {comQuebraNoTraco}
+    </span>
+  );
+}
+
+/**
+ * Aplica as larguras do encaixe (`encaixarColunas`, UC-PIDX-26). A coluna encolhida deixa o rótulo
+ * do cabeçalho quebrar em duas linhas — "Preço de compra un." não cabe numa linha em 92px, e sem
+ * quebrar ele invadiria a coluna vizinha. As colunas que não mudaram ficam como estão.
+ */
+export function aplicarEncaixe(
+  colunas: ColumnDef<LinhaProduto, unknown>[],
+  larguras: Record<string, number>,
+): ColumnDef<LinhaProduto, unknown>[] {
+  return colunas.map((c) => {
+    const largura = c.id ? larguras[c.id] : undefined;
+    if (largura === undefined) return c;
+    const header = typeof c.header === 'string' ? <span className="whitespace-normal">{c.header}</span> : c.header;
+    return { ...c, header, meta: { ...c.meta, width: largura } } as ColumnDef<LinhaProduto, unknown>;
+  });
 }
 
 /**
