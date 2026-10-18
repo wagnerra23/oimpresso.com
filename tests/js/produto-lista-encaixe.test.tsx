@@ -9,6 +9,8 @@
 // menu lateral aberto: 1.034px de espaço para a tabela, que exigia 1.704px; Tipo, Categoria, Marca,
 // Imposto e SKU ficavam fora da tela, e a barra de rolar para o lado ficava a 4.097px do topo.
 //
+// ⚠️ Nenhuma lane de CI roda este arquivo ainda (cada lane Vitest lista os próprios specs; pôr este
+// no Vitest do `Frontend / Vite build` mexe em `.github/`, que pede revisão do [W] — vai em PR próprio).
 // Comando: npx vitest run tests/js/produto-lista-encaixe.test.tsx
 
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
