@@ -41,7 +41,8 @@ class ProgramasController extends Controller
 
     public function store(Request $request, int $id): JsonResponse
     {
-        $paciente = Patient::query()->findOrFail($id);
+        $biz = $this->businessId($request);
+        $paciente = Patient::query()->where('business_id', $biz)->findOrFail($id);
         $this->exigirEdicao($request);
         if ($paciente->estaBloqueado()) {
             throw ValidationException::withMessages(['paciente' => 'Paciente bloqueado não recebe programa novo.']);
@@ -83,7 +84,10 @@ class ProgramasController extends Controller
     /** Edita o cabeçalho: instrução de parada, limiar e modo do alerta de dor, versão de crise, fase. */
     public function update(Request $request, int $id): JsonResponse
     {
-        $programa = Program::query()->findOrFail($id);
+        // Programa de outra empresa → 404. O escopo do model já filtra; o where explícito é a
+        // segunda camada, legível no próprio método (ADR 0093).
+        $biz = $this->businessId($request);
+        $programa = Program::query()->where('business_id', $biz)->findOrFail($id);
         $this->exigirEdicao($request);
         $this->exigirAtivo($programa);
 
@@ -111,7 +115,10 @@ class ProgramasController extends Controller
 
     public function adicionarItem(Request $request, int $id): JsonResponse
     {
-        $programa = Program::query()->findOrFail($id);
+        // Programa de outra empresa → 404. O escopo do model já filtra; o where explícito é a
+        // segunda camada, legível no próprio método (ADR 0093).
+        $biz = $this->businessId($request);
+        $programa = Program::query()->where('business_id', $biz)->findOrFail($id);
         $this->exigirEdicao($request);
         $this->exigirAtivo($programa);
 
@@ -122,8 +129,8 @@ class ProgramasController extends Controller
             'crefito' => ['nullable', 'string', 'max:40'],
         ], ['exercise_id.exists' => 'Exercício não encontrado na biblioteca desta clínica.']);
 
-        $exercicio = Exercise::query()->findOrFail((int) $dados['exercise_id']);
-        $paciente = Patient::query()->findOrFail($programa->patient_id);
+        $exercicio = Exercise::query()->where(fn ($q) => $q->whereNull('business_id')->orWhere('business_id', $biz))->findOrFail((int) $dados['exercise_id']);
+        $paciente = Patient::query()->where('business_id', $biz)->findOrFail($programa->patient_id);
         $flags = $this->cruzamento($exercicio, $paciente);
 
         if ($flags !== [] && ! $request->boolean('confirmar_contraindicacao')) {
@@ -147,8 +154,9 @@ class ProgramasController extends Controller
     /** Dose: séries, repetições, sustentação, vezes por dia e observação. Só muda o que veio. */
     public function atualizarItem(Request $request, int $id, int $item): JsonResponse
     {
-        $programa = Program::query()->findOrFail($id);
-        $linha = ProgramItem::query()->where('program_id', $programa->id)->findOrFail($item);
+        $biz = $this->businessId($request);
+        $programa = Program::query()->where('business_id', $biz)->findOrFail($id);
+        $linha = ProgramItem::query()->where('business_id', $biz)->where('program_id', $programa->id)->findOrFail($item);
         $this->exigirEdicao($request);
         $this->exigirAtivo($programa);
 
@@ -173,7 +181,10 @@ class ProgramasController extends Controller
     /** Grava exatamente a ordem pedida. A lista tem que ser os itens deste programa, todos, sem repetição. */
     public function reordenar(Request $request, int $id): JsonResponse
     {
-        $programa = Program::query()->findOrFail($id);
+        // Programa de outra empresa → 404. O escopo do model já filtra; o where explícito é a
+        // segunda camada, legível no próprio método (ADR 0093).
+        $biz = $this->businessId($request);
+        $programa = Program::query()->where('business_id', $biz)->findOrFail($id);
         $this->exigirEdicao($request);
         $this->exigirAtivo($programa);
 
@@ -207,8 +218,9 @@ class ProgramasController extends Controller
      */
     public function removerItem(Request $request, int $id, int $item): JsonResponse
     {
-        $programa = Program::query()->findOrFail($id);
-        $linha = ProgramItem::query()->where('program_id', $programa->id)->findOrFail($item);
+        $biz = $this->businessId($request);
+        $programa = Program::query()->where('business_id', $biz)->findOrFail($id);
+        $linha = ProgramItem::query()->where('business_id', $biz)->where('program_id', $programa->id)->findOrFail($item);
         $this->exigirEdicao($request);
         $this->exigirAtivo($programa);
 
@@ -228,7 +240,10 @@ class ProgramasController extends Controller
      */
     public function aplicarProtocolo(Request $request, int $id): JsonResponse
     {
-        $programa = Program::query()->findOrFail($id);
+        // Programa de outra empresa → 404. O escopo do model já filtra; o where explícito é a
+        // segunda camada, legível no próprio método (ADR 0093).
+        $biz = $this->businessId($request);
+        $programa = Program::query()->where('business_id', $biz)->findOrFail($id);
         $this->exigirEdicao($request);
         $this->exigirAtivo($programa);
 
@@ -239,17 +254,17 @@ class ProgramasController extends Controller
             'crefito' => ['nullable', 'string', 'max:40'],
         ]);
         // Protocolo de outra empresa não existe para esta (escopo global OU da sessão).
-        $protocolo = Protocol::query()->find((int) $dados['protocol_id']);
+        $protocolo = Protocol::query()->where(fn ($q) => $q->whereNull('business_id')->orWhere('business_id', $biz))->find((int) $dados['protocol_id']);
         if ($protocolo === null) {
             throw ValidationException::withMessages(['protocol_id' => 'Protocolo não encontrado nesta clínica.']);
         }
 
-        $paciente = Patient::query()->findOrFail($programa->patient_id);
+        $paciente = Patient::query()->where('business_id', $biz)->findOrFail($programa->patient_id);
         $linhas = [];
         $ignorados = [];
         foreach ((array) $protocolo->items as $i => $linha) {
             $exId = is_array($linha) ? (int) ($linha['exercise_id'] ?? 0) : 0;
-            $exercicio = $exId > 0 ? Exercise::query()->find($exId) : null;
+            $exercicio = $exId > 0 ? Exercise::query()->where(fn ($q) => $q->whereNull('business_id')->orWhere('business_id', $biz))->find($exId) : null;
             if ($exercicio === null) {
                 $ignorados[] = $i + 1;
 

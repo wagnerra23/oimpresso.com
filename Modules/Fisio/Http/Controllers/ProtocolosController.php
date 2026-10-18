@@ -32,7 +32,9 @@ class ProtocolosController extends Controller
     /** Copia um protocolo visível (modelo do produto ou da própria clínica) para a clínica. */
     public function copiar(Request $request, int $id): JsonResponse
     {
-        $origem = Protocol::query()->findOrFail($id);
+        // Visível = modelo global ou da própria empresa (mesmo filtro do escopo, explícito aqui).
+        $biz = $this->businessId($request);
+        $origem = Protocol::query()->where(fn ($q) => $q->whereNull('business_id')->orWhere('business_id', $biz))->findOrFail($id);
         $this->exigirEdicao($request);
 
         $copia = Protocol::query()->create([
@@ -50,7 +52,8 @@ class ProtocolosController extends Controller
     /** Salva os itens do programa como protocolo da clínica (útil enquanto não há modelo global). */
     public function salvarDoPrograma(Request $request, int $id): JsonResponse
     {
-        $programa = Program::query()->findOrFail($id);
+        $biz = $this->businessId($request);
+        $programa = Program::query()->where('business_id', $biz)->findOrFail($id);
         $this->exigirEdicao($request);
 
         $dados = $request->validate([
@@ -59,7 +62,7 @@ class ProtocolosController extends Controller
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $itens = ProgramItem::query()->where('program_id', $programa->id)->orderBy('position')->get()
+        $itens = ProgramItem::query()->where('business_id', $biz)->where('program_id', $programa->id)->orderBy('position')->get()
             ->map(fn (ProgramItem $i) => [
                 'exercise_id' => (int) $i->exercise_id,
                 'sets' => $i->sets, 'reps' => $i->reps, 'hold_s' => $i->hold_s,
@@ -83,11 +86,11 @@ class ProtocolosController extends Controller
     /** Edita o protocolo da clínica. Modelo do produto responde 403: é leitura. */
     public function update(Request $request, int $id): JsonResponse
     {
-        $protocolo = Protocol::query()->findOrFail($id);
+        $biz = $this->businessId($request);
+        $protocolo = Protocol::query()->where(fn ($q) => $q->whereNull('business_id')->orWhere('business_id', $biz))->findOrFail($id);
         $this->exigirEdicao($request);
         abort_if($protocolo->business_id === null, 403, 'Protocolo-modelo do produto não se altera. Copie para a clínica e edite a cópia.');
 
-        $biz = $this->businessId($request);
         $dados = $request->validate([
             'name' => ['sometimes', 'required', 'string', 'max:160'],
             'region' => ['sometimes', 'nullable', 'string', 'max:40'],
