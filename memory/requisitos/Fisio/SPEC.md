@@ -82,6 +82,8 @@ related_adrs:
 > owner: — · priority: p1 · estimate: 8h · status: todo · type: story
 > blocked_by: US-FISIO-007. Regras da ADR 0437 §6 e números de `etapas/02-f1-constancia.md`. DoD: `FisioJogoTest`, `NivelCalculatorTest`, `SequenciaCalculatorTest`.
 
+Núcleo de cálculo (serviços puros, sem rota nem tela; a US segue pendente): `Modules/Fisio/Services/NivelCalculator.php`, `Modules/Fisio/Services/SequenciaCalculator.php`, `Modules/Fisio/Services/DiaLocal.php`, `Modules/Fisio/Services/MetaSemanal.php`.
+
 ### US-FISIO-009 · Lembrete diário e envio do programa por WhatsApp (driver whatsmeow) — **P0**
 
 **Implementado em:** _pendente_
@@ -95,6 +97,8 @@ related_adrs:
 
 > owner: — · priority: p0 · estimate: 8h · status: todo · type: story
 > blocked_by: US-FISIO-008. Adesão 7d, dor, nível; fila de abandono separada da fila de alerta clínico. DoD: `FisioPainelTest`, `AdesaoCalculatorTest`, `AtencaoDetectorTest`.
+
+Núcleo de cálculo (serviços puros, sem rota nem tela; a US segue pendente): `Modules/Fisio/Services/AdesaoCalculator.php`, `Modules/Fisio/Services/AtencaoDetector.php`.
 
 ### US-FISIO-011 · Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) — **P1**
 
