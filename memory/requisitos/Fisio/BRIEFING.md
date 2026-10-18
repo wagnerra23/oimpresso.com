@@ -23,6 +23,8 @@ Decisão aceita ([ADR 0437](../../decisions/0437-modulo-fisio-vertical-fisiotera
 
 Em 2026-10-18 entraram, depois do esqueleto: schema (US-003), biblioteca (US-004, parcial), pacientes e prontuário (US-005), questionários (US-011, parcial), o núcleo de cálculo (#9547) e o painel do profissional com a aba Evolução (US-010; o caso de nível e sequência na tabela depende do portal, US-007). O portal do paciente ainda não existe, então o painel abre sem check-ins e mostra estado vazio.
 
+Em 2026-10-18 a ficha do paciente ganhou a exportação do prontuário em PDF (UC-FPS-19..20, [`Show.casos.md`](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Show.casos.md)); cada exportação fica no `activity_log`.
+
 ## Portas canônicas
 
 - **Herança geral (componentes/layouts/templates compartilhados):** [`../_Geral/BRIEFING.md`](../_Geral/BRIEFING.md)

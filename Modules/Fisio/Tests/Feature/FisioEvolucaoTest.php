@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 // @covers-us US-FISIO-010
-// Cobre UC-FPS-19 (Fisio/Pacientes/Show.casos.md).
+// Cobre UC-FPS-21 (Fisio/Pacientes/Show.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Carbon;
@@ -34,7 +34,7 @@ beforeEach(function () {
 
 afterEach(fn () => Carbon::setTestNow());
 
-it('UC-FPS-19 · evolução traz os registros dos últimos 30 dias, em ordem, com dor, feitos e sinal de alerta', function () {
+it('UC-FPS-21 · evolução traz os registros dos últimos 30 dias, em ordem, com dor, feitos e sinal de alerta', function () {
     $p = F::paciente($this->b98, $this->u98->id, ['sessions_per_week' => 2]);
     $prog = F::programa($p, [$this->ex], $this->u98->id, ['starts_at' => '2026-09-01']);
     $item = F::itens($prog);
@@ -59,7 +59,7 @@ it('UC-FPS-19 · evolução traz os registros dos últimos 30 dias, em ordem, co
     expect($serie)->toBe([['date' => '2026-10-01', 'pain' => 4], ['date' => '2026-10-13', 'pain' => 6]]);
 });
 
-it('UC-FPS-19 · sem programa ativo a adesão é nula e sem registro a série é vazia', function () {
+it('UC-FPS-21 · sem programa ativo a adesão é nula e sem registro a série é vazia', function () {
     $p = F::paciente($this->b98, $this->u98->id);
 
     $ev = F::props($this, $this->u98, "/fisio/pacientes/{$p->id}", 'Fisio/Pacientes/Show', 'evolucao');
@@ -68,7 +68,7 @@ it('UC-FPS-19 · sem programa ativo a adesão é nula e sem registro a série é
         ->and($ev['pontos'])->toBe([]);
 });
 
-it('UC-FPS-19 · evolução de paciente de outra clínica não abre e não vaza check-in', function () {
+it('UC-FPS-21 · evolução de paciente de outra clínica não abre e não vaza check-in', function () {
     $alheio = F::paciente($this->b99, $this->u99->id);
     $prog = F::programa($alheio, [$this->ex], $this->u99->id);
     F::checkin($alheio, $prog, '2026-10-13', F::itens($prog), 8);

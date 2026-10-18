@@ -38,7 +38,9 @@ related_us: []
 | UC-FPS-16 | histórico de questionários na ficha, deferido, só do paciente e da clínica | should | `FisioQuestionarioTest` |
 | UC-FPS-17 | paciente bloqueado: prontuário só aceita adendo | must | `FisioProntuarioTest` |
 | UC-FPS-18 | paciente bloqueado: perfil clínico não aceita edição | must | `FisioPacienteCrudTest` |
-| UC-FPS-19 | aba Evolução: dor e dias com exercício em 30 dias, só na visão do profissional | should | `FisioEvolucaoTest` |
+| UC-FPS-19 | exportar o prontuário em PDF: todos os registros assinados, carimbados, em ordem cronológica | should | `FisioProntuarioPdfTest` |
+| UC-FPS-20 | exportar exige `fisio.access` da mesma clínica; outra clínica 404; cada exportação fica no log de auditoria | must | `FisioProntuarioPdfTest` |
+| UC-FPS-21 | aba Evolução: dor e dias com exercício em 30 dias, só na visão do profissional | should | `FisioEvolucaoTest` |
 
 ---
 
@@ -143,7 +145,20 @@ related_us: []
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioPacienteCrudTest.php`
 - **Status: 🧪**
 
-## UC-FPS-19 · Evolução do paciente na ficha · `should`
+## UC-FPS-19 · Exportar o prontuário em PDF · `should`
+- **Persona:** fisioterapeuta que precisa entregar o prontuário (paciente, outro profissional, perícia).
+- **Aceite:** Quando clica "Exportar prontuário (PDF)" na ficha · Então recebe um PDF com a identificação do paciente (nome e telefone do contato), o perfil clínico e **todos** os registros assinados do paciente — avaliação, evolução, telemonitoramento e adendo (este apontando o registro que corrige) — do mais antigo para o mais novo, cada um com nome de quem assinou, CREFITO, data e hora. Rodapé com a empresa, a data de emissão e "Página X de Y". Registro sem assinatura não entra. Paciente bloqueado também exporta (a guarda continua).
+- **Regressão que defende:** prontuário entregue incompleto ou sem o carimbo de cada registro.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioProntuarioPdfTest.php`
+- **Status: 🧪**
+
+## UC-FPS-20 · Quem exporta e o rastro da exportação `[T0]` · `must`
+- **Persona:** invariante LGPD (art. 11 — dado de saúde) e multi-tenant (ADR 0093).
+- **Aceite:** Sem `fisio.access` responde 403. Paciente de outra clínica responde 404 e nada é registrado. Cada exportação grava uma linha no `activity_log` (`log_name=fisio`, evento `prontuario_exportado`) com o paciente como sujeito, o usuário como autor, a clínica da sessão e a quantidade de registros — sem nome, telefone nem conteúdo clínico nas propriedades.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioProntuarioPdfTest.php`
+- **Status: 🧪**
+
+## UC-FPS-21 · Evolução do paciente na ficha · `should`
 - **Persona:** fisioterapeuta abrindo a ficha.
 - **Aceite:** Dado check-ins do paciente · Quando a ficha carrega a aba Evolução (props deferidas `evolucao` e `serie_dor`) · Então vêm os registros dos últimos 30 dias em ordem de data, com dor, nº de exercícios feitos e sinal de alerta, a adesão 7d do mesmo cálculo do painel (nula sem programa ativo) e a série de dor só com o que tem dor informada. Ficha de outra clínica responde 404.
 - **Regressão que defende:** série de dor de outra clínica ou fora da janela; dor ausente virando 0 no gráfico. O portal não recebe a série (UC-FPP-20, ADR 0437 §5).
@@ -154,13 +169,14 @@ related_us: []
 
 ## Backlog (prosa honesta — vira UC quando ganhar teste que o cite)
 
-- `[BACKLOG]` Render do gráfico de dor na aba Evolução — os dados têm teste (UC-FPS-19); o desenho no navegador, não.
+- `[BACKLOG]` Render do gráfico de dor na aba Evolução — os dados têm teste (UC-FPS-21); o desenho no navegador, não.
 - `[BACKLOG]` Protocolos-modelo da clínica aplicados ao programa (`origin=protocolo`) — fora desta suíte.
 - `[BACKLOG]` Enunciados literais da versão brasileira validada de EVA, RMDQ, PSFS, LEFS e SPADI na tela do questionário (aguarda conferência da Dra. Dejeane contra a publicação).
 
 ## Trilha do tempo
+- 2026-10-18 · exportação do prontuário em PDF vira UC-FPS-19..20 (rota e controller próprios; o PDF do programa fica para depois da US-FISIO-006).
 - 2026-10-18 · US-FISIO-005 — paciente bloqueado vira só leitura no servidor: prontuário aceita só adendo (UC-FPS-17) e perfil não aceita edição (UC-FPS-18).
 - 2026-10-18 · US-FISIO-011 — questionários de uso livre viram UC-FPS-13..16 (estrutura e pontuação; enunciados pendentes).
 - 2026-10-17 · suíte TDD da F1 — casos nascem antes da tela e do código; prontuário, bloqueio e contraindicação entram pela atualização de escopo do mesmo dia.
-- 2026-10-18 · US-FISIO-010 — aba Evolução (componente `_components/EvolucaoPaciente.tsx`) vira UC-FPS-19, com teste escrito junto da tela.
+- 2026-10-18 · US-FISIO-010 — aba Evolução (componente `_components/EvolucaoPaciente.tsx`) vira UC-FPS-21, com teste escrito junto da tela.
 - 2026-10-18 · US-FISIO-005 — a tela `.tsx` nasce (#9546) para os casos UC-FPS-02..05 e 07; os UCs não mudaram e seguem derivados do HANDOFF F1, não do `.tsx`. Veredito: lane Verticais.
