@@ -26,23 +26,23 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 791,
-    "edges": 1088,
+    "nodes": 796,
+    "edges": 1093,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 416,
-      "api": 81
+      "component": 419,
+      "api": 83
     },
     "by_edge_type": {
       "ownsTable": 97,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 85,
+      "providesApi": 87,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 416,
+      "hasComponent": 419,
       "dependsOn": 122,
       "delegatesTo": 113,
       "migratesTo": 1,
@@ -1349,6 +1349,22 @@
       "id": "api:/fisio/pacientes/*",
       "type": "api",
       "prefix": "/fisio/pacientes/*",
+      "providers": [
+        "Fisio"
+      ]
+    },
+    {
+      "id": "api:/fisio/programas/*",
+      "type": "api",
+      "prefix": "/fisio/programas/*",
+      "providers": [
+        "Fisio"
+      ]
+    },
+    {
+      "id": "api:/fisio/protocolos/*",
+      "type": "api",
+      "prefix": "/fisio/protocolos/*",
       "providers": [
         "Fisio"
       ]
@@ -2814,6 +2830,13 @@
       "desc": ""
     },
     {
+      "id": "component:Fisio/Editor de programa por paciente, protocolos-modelo",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Editor de programa por paciente, protocolos-modelo",
+      "desc": ""
+    },
+    {
       "id": "component:Fisio/InstallController",
       "type": "component",
       "module": "Fisio",
@@ -2846,6 +2869,20 @@
       "type": "component",
       "module": "Fisio",
       "name": "Portal público do paciente",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/ProgramasController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "ProgramasController",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/ProtocolosController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "ProtocolosController",
       "desc": ""
     },
     {
@@ -8956,6 +8993,12 @@
     },
     {
       "from": "module:Fisio",
+      "to": "component:Fisio/Editor de programa por paciente, protocolos-modelo",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
       "to": "component:Fisio/InstallController",
       "type": "hasComponent",
       "source": "contains"
@@ -8986,6 +9029,18 @@
     },
     {
       "from": "module:Fisio",
+      "to": "component:Fisio/ProgramasController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/ProtocolosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
       "to": "component:Fisio/Questionários de uso livre",
       "type": "hasComponent",
       "source": "contains"
@@ -9011,6 +9066,18 @@
     {
       "from": "module:Fisio",
       "to": "api:/fisio/pacientes/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "api:/fisio/programas/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "api:/fisio/protocolos/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },

@@ -1,13 +1,13 @@
 // @memcofre
 //   tela: /fisio/pacientes/{id}
 //   module: Fisio
-//   stories: US-FISIO-005 (UC-FPS-02..05, UC-FPS-07) · US-FISIO-011 (UC-FPS-13..16)
+//   stories: US-FISIO-005 (UC-FPS-02..05, UC-FPS-07) · US-FISIO-006 (UC-FPS-06, 08..10) · US-FISIO-011 (UC-FPS-13..16)
 //   permissao: fisio.access · editar, assinar e bloquear exigem fisio.editar
 //
 // Ficha do paciente: perfil clínico e prontuário (Res. COFFITO 414/2012). O prontuário só
 // cresce: registro assinado não se edita; corrigir é acrescentar um adendo ao original.
 // Questionários de uso livre (US-FISIO-011): respostas transcritas, pontuação do servidor.
-// O programa chega na US-FISIO-006.
+// Programa de exercícios (US-FISIO-006): editor em ../_components/EditorPrograma.tsx.
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent, type ReactNode } from 'react';
@@ -23,6 +23,7 @@ import { Textarea } from '@/Components/ui/textarea';
 import PerfilClinicoCampos, { type PerfilClinico } from '../_components/PerfilClinicoCampos';
 import { limparObjetivos, rotuloCondicao } from '../_components/condicoes';
 import Questionarios, { HistoricoQuestionarios, type Instrumento, type RespostaQuestionario } from '../_components/Questionarios';
+import EditorPrograma, { type ExercicioBiblioteca, type Programa, type ProtocoloModelo } from '../_components/EditorPrograma';
 
 interface Paciente {
   id: number;
@@ -50,6 +51,9 @@ interface Props {
   prontuario?: Registro[];
   instrumentos: Instrumento[];
   questionarios?: RespostaQuestionario[];
+  programa?: Programa | null;
+  exercicios?: ExercicioBiblioteca[];
+  protocolos?: ProtocoloModelo[];
 }
 
 const TIPO: Record<Registro['kind'], string> = {
@@ -191,7 +195,7 @@ function LinhaDoTempo({ registros, podeEditar, onCorrigir }: { registros: Regist
   );
 }
 
-export default function PacienteShow({ paciente, condicoes, pode_editar, prontuario, instrumentos, questionarios }: Props) {
+export default function PacienteShow({ paciente, condicoes, pode_editar, prontuario, instrumentos, questionarios, programa, exercicios, protocolos }: Props) {
   const [corrigindo, setCorrigindo] = useState<Registro | null>(null);
 
   return (
@@ -217,6 +221,20 @@ export default function PacienteShow({ paciente, condicoes, pode_editar, prontua
             )}
             <Deferred data="prontuario" fallback={<Skeleton className="h-40 w-full" />}>
               <LinhaDoTempo registros={prontuario ?? []} podeEditar={pode_editar && !paciente.bloqueado} onCorrigir={setCorrigindo} />
+            </Deferred>
+          </CardContent>
+        </Card>
+        <Card className="lg:col-start-2">
+          <CardContent className="flex flex-col gap-4 p-4">
+            <h2 className="text-base font-semibold">Programa</h2>
+            <Deferred data={['programa', 'exercicios', 'protocolos']} fallback={<Skeleton className="h-40 w-full" />}>
+              <EditorPrograma
+                pacienteId={paciente.id}
+                podeEditar={pode_editar && !paciente.bloqueado}
+                programa={programa ?? null}
+                exercicios={exercicios ?? []}
+                protocolos={protocolos ?? []}
+              />
             </Deferred>
           </CardContent>
         </Card>
