@@ -12,7 +12,9 @@ use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Fisio\Entities\Patient;
+use Modules\Fisio\Entities\Questionnaire;
 use Modules\Fisio\Entities\Record;
+use Modules\Fisio\Services\Questionarios\CatalogoQuestionarios;
 
 /**
  * Pacientes do Fisio (US-FISIO-005). O paciente É um contact (ADR 0437 §4): aqui mora só o
@@ -87,6 +89,9 @@ class PacientesController extends Controller
             'condicoes' => Patient::CONDITION_FLAGS,
             'pode_editar' => $this->podeEditar($request),
             'prontuario' => Inertia::defer(fn () => $this->linhaDoTempo($paciente)),
+            // Catálogo estático (sem query): vai junto. O histórico é query → defer (US-FISIO-011).
+            'instrumentos' => array_values(CatalogoQuestionarios::todos()),
+            'questionarios' => Inertia::defer(fn () => $this->historicoQuestionarios($paciente)),
         ]);
     }
 
@@ -193,6 +198,29 @@ class PacientesController extends Controller
                 'signed_crefito' => $r->signed_crefito,
                 'assinado_por' => trim(($r->signer?->first_name ?? '').' '.($r->signer?->last_name ?? '')),
                 'amends_id' => $r->amends_id !== null ? (int) $r->amends_id : null,
+            ])
+            ->all();
+    }
+
+    /**
+     * Respostas de questionário do paciente, mais recente primeiro (UC-FPS-16). O escopo por empresa
+     * vem do model; o filtro por paciente, daqui.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function historicoQuestionarios(Patient $paciente): array
+    {
+        return Questionnaire::query()
+            ->where('patient_id', $paciente->id)
+            ->orderByDesc('answered_at')
+            ->orderByDesc('id')
+            ->get()
+            ->map(fn (Questionnaire $q) => [
+                'id' => $q->id,
+                'instrumento' => $q->instrument,
+                'score' => $q->score !== null ? (float) $q->score : null,
+                'detalhe' => (array) ($q->answers['detalhe'] ?? []),
+                'answered_at' => $q->answered_at?->toIso8601String(),
             ])
             ->all();
     }
