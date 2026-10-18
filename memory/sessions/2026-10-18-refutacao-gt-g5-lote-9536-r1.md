@@ -89,3 +89,10 @@ A suíte TDD (`Modules/Fisio/Tests`) discorda da etapa 02 em 4 pontos (modalidad
 1. **r2 em sessão fresca** sobre o lote inteiro (14 de prosa, mais os 2 derivados), por instância nova sem contexto deste PR — é o que libera o ledger-check.
 2. **[W]:** itens 9 e 10 pedem emenda na ADR 0437 aceita (preço do grátis; custo por mensagem com `whatsmeow`).
 3. **Coordenação:** item 19 (HANDOFF menciona factories que voltam só na US-FISIO-003).
+## Recibo (máquina)
+
+Bloco acrescentado em 2026-10-18 por outra sessão, só para o `refutador-gt-g5.js` ler esta rodada como r1 na trajetória e não numerar a próxima também como r1. Os números são os desta evidência; nada da tabela mudou.
+
+```json
+{"itens_verificados":36,"erros_confirmados":11,"error_rate_pct":30.56,"pii_hits":0,"veredito":"reprovado","refutados_count":11,"sessao_fresca":false}
+```
