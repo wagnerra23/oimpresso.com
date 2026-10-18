@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 // @covers-us US-FISIO-005
-// Cobre UC-FPI-01, UC-FPI-03 (Fisio/Pacientes/Index.casos.md) e UC-FPS-02, UC-FPS-07 (Fisio/Pacientes/Show.casos.md).
+// Cobre UC-FPI-01, UC-FPI-03 (Fisio/Pacientes/Index.casos.md) e UC-FPS-02, UC-FPS-07, UC-FPS-18 (Fisio/Pacientes/Show.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -168,4 +168,20 @@ it('UC-FPI-01 · busca por nome do contact na lista', function () {
     $ids = collect(F::props($this, $this->u98, '/fisio/pacientes?q=Zuleica', 'Fisio/Pacientes/Index', 'pacientes'))->pluck('id');
 
     expect($ids)->toContain($alvo->id)->not->toContain($outro->id);
+});
+
+it('UC-FPS-18 · paciente bloqueado não aceita edição do perfil clínico', function () {
+    $p = F::paciente($this->b98, $this->u98->id, ['main_complaint' => 'Dor no joelho', 'condition_flags' => ['pos_lca']]);
+    $this->delete("/fisio/pacientes/{$p->id}")->assertRedirect();
+
+    $this->put("/fisio/pacientes/{$p->id}", [
+        'main_complaint' => 'Alterada depois do bloqueio',
+        'sessions_per_week' => 5,
+        'condition_flags' => ['gestante'],
+    ])->assertSessionHasErrors('main_complaint');
+
+    $f = $p->fresh();
+    expect($f->main_complaint)->toBe('Dor no joelho')
+        ->and($f->condition_flags)->toBe(['pos_lca'])
+        ->and($f->blocked_at)->not->toBeNull();
 });
