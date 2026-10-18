@@ -429,14 +429,14 @@ lente: [construir]
 
 ## Rastro
 
-- **624** handoffs · **795** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **624** handoffs · **796** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-10-18-refutacao-gt-g5-lote-9536-r1`
   - `2026-10-15-refutacao-gt-g5-lote-9433-r1`
   - `2026-10-09-session-09`
   - `2026-10-09-session-08`
   - `2026-10-09-session-07`
   - `2026-10-09-session-06`
-  - `2026-10-09-session-05`
 
 ---
 _Gerado por `scripts/governance/system-map.mjs` · 2026-10-18 · deriva das fontes canônicas, não as substitui._
