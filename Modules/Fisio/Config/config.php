@@ -64,6 +64,24 @@ return [
         'lockout_minutos' => 30,
     ],
 
+    /*
+     * Lista FECHADA de marcadores de condição do paciente (`fisio_patients.condition_flags`,
+     * HANDOFF-F1 §Modelo de dados; US-FISIO-005). São os MESMOS códigos de
+     * `fisio_exercises.contraindication_flags` (etapa 01 §3.3.1) — marcador digitado livre
+     * nunca casaria com o aviso de contraindicação. Rótulos em lang/pt/fisio.php.
+     * Acrescentar um código aqui é decisão clínica (revisão da Dra. Dejeane).
+     */
+    'condition_flags' => [
+        'protese_quadril_posterior',
+        'protese_quadril_anterior',
+        'pos_op_manguito',
+        'pos_lca',
+        'gestante',
+        'osteoporose',
+        'risco_queda',
+        'hipertensao_nao_controlada',
+    ],
+
     /* Dor (0–10) a partir da qual o portal sai do jogo e mostra só a instrução do profissional. */
     'pain_alert_threshold_padrao' => 7,
 

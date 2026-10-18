@@ -1,6 +1,8 @@
 <?php
 
 use Modules\Fisio\Http\Controllers\InstallController;
+use Modules\Fisio\Http\Controllers\PacientesController;
+use Modules\Fisio\Http\Controllers\ProntuarioController;
 use Modules\Fisio\Http\Middleware\FisioLiberado;
 
 /*
@@ -34,4 +36,26 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
     ->name('fisio.')
     ->group(function () {
         //
+    });
+
+/*
+ * 3) US-FISIO-005 · pacientes e prontuário (Res. COFFITO 414/2012). Bloco PRÓPRIO, com o
+ *    MESMO stack do grupo 2 (FisioLiberado incluso), para as US seguintes acrescentarem o
+ *    delas em outro bloco sem conflito. Ler: fisio.access. Gravar: fisio.editar (controller).
+ */
+Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin', FisioLiberado::class])
+    ->prefix('fisio')
+    ->name('fisio.')
+    ->group(function () {
+        Route::get('pacientes', [PacientesController::class, 'index'])->name('pacientes.index');
+        Route::post('pacientes', [PacientesController::class, 'store'])->name('pacientes.store');
+        Route::get('pacientes/contatos', [PacientesController::class, 'contatos'])->name('pacientes.contatos');
+        Route::get('pacientes/{id}', [PacientesController::class, 'show'])->whereNumber('id')->name('pacientes.show');
+        Route::put('pacientes/{id}', [PacientesController::class, 'update'])->whereNumber('id')->name('pacientes.update');
+        // "Excluir" = bloquear (blocked_at). Nunca apaga (Lei 13.787/2018).
+        Route::delete('pacientes/{id}', [PacientesController::class, 'destroy'])->whereNumber('id')->name('pacientes.bloquear');
+        // Prontuário: só inclusão. PUT/PATCH/DELETE de registro respondem 405 (append-only).
+        Route::post('pacientes/{id}/registros', [ProntuarioController::class, 'store'])->whereNumber('id')->name('pacientes.registros.store');
+        Route::get('pacientes/{id}/registros/{registro}', [ProntuarioController::class, 'show'])
+            ->whereNumber('id')->whereNumber('registro')->name('pacientes.registros.show');
     });
