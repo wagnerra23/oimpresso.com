@@ -77,7 +77,7 @@ related_adrs:
 
 **Implementado em:** _pendente_
 
-> owner: — · priority: p0 · estimate: 8h · status: doing · type: story
+> owner: — · priority: p0 · estimate: 8h · status: todo · type: story
 > blocked_by: US-FISIO-004, US-FISIO-005. Aviso nunca bloqueia; exige justificativa que vai ao prontuário (ADR 0437 §13.2). DoD: `FisioProgramaEditorTest`.
 
 ### US-FISIO-007 · Portal do paciente (link + PIN, consentimentos, check-in, telemonitoramento) — **P0**
