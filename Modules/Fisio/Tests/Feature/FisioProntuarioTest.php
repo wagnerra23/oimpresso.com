@@ -8,6 +8,7 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Modules\Fisio\Entities\Record;
+use Modules\Fisio\Exceptions\DadoClinicoImutavelException;
 use Modules\Fisio\Tests\Support\FisioFixtures as F;
 
 uses(Tests\TestCase::class, DatabaseTransactions::class);
@@ -103,9 +104,13 @@ it('UC-FPS-04 · registro assinado: UPDATE e DELETE falham no banco; a rota de e
         ->and(fn () => DB::table('fisio_records')->where('id', $id)->delete())->toThrow(QueryException::class);
 
     // Pelo Eloquent também (o model não pode contornar — save() de registro assinado lança).
+    // `toThrow(Throwable::class)` NÃO servia: Throwable é interface, `class_exists` dá false e o
+    // Pest passa a tratar o argumento como TRECHO DA MENSAGEM (Mixins/Expectation.php::toThrow) —
+    // o assert exigia "Throwable" no texto do erro. A classe concreta da camada do model é mais
+    // estrita que a intenção original (qualquer lançamento), não mais frouxa.
     $reg = Record::query()->findOrFail($id);
     $reg->body = ['conduta' => 'outra'];
-    expect(fn () => $reg->save())->toThrow(Throwable::class);
+    expect(fn () => $reg->save())->toThrow(DadoClinicoImutavelException::class);
 
     // HTTP: não há PUT/PATCH/DELETE de registro.
     $this->putJson("/fisio/pacientes/{$this->p->id}/registros/{$id}", ['body' => ['conduta' => 'x']])->assertStatus(405);
