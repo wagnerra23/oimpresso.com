@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Fisio\Entities\Exercise;
+use Modules\Fisio\Services\MidiaExercicio;
 use Modules\Fisio\Services\BibliotecaFacetas;
 
 /**
@@ -157,6 +158,7 @@ class BibliotecaController extends Controller
             ->orderByRaw('business_id IS NULL')
             ->orderBy('name')
             ->limit(self::LIMITE_LISTA)
+            ->with('arquivos') // mídia do exercício próprio (UC-FBI-05) — escopo do Arquivo filtra pela sessão
             ->get()
             ->map(fn (Model $e) => [...$this->linha($e), ...$facetas->marcar($e)])
             ->all();
@@ -182,6 +184,7 @@ class BibliotecaController extends Controller
             'safety_notes' => $e->safety_notes ?? [],
             'needs_support' => $e->needs_support,
             'global' => $e->ehGlobal(),
+            'midia' => MidiaExercicio::resumo($e),
         ];
     }
 

@@ -1,7 +1,7 @@
 // @memcofre
 //   tela: /fisio/biblioteca
 //   module: Fisio
-//   stories: US-FISIO-004 (UC-FBI-01..04)
+//   stories: US-FISIO-004 (UC-FBI-01..07)
 //   permissao: fisio.access · cadastrar/editar exercício próprio exige fisio.editar
 //
 // Biblioteca de exercícios (grade). Mostra a biblioteca global do oimpresso (só leitura) e os
@@ -23,6 +23,7 @@ import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Textarea } from '@/Components/ui/textarea';
+import { MidiaCampo, MidiaPreview, type MidiaResumo } from '../_components/MidiaExercicio';
 import CamposFacetas from './_components/CamposFacetas';
 import FavoritoBotao from './_components/FavoritoBotao';
 import FiltrosFacetas from './_components/FiltrosFacetas';
@@ -45,6 +46,7 @@ interface Exercicio {
   safety_notes: string[];
   needs_support: boolean;
   global: boolean;
+  midia: MidiaResumo | null;
 }
 interface Props {
   filtros: { region: string; q: string } & FiltrosFacetasValor;
@@ -106,6 +108,7 @@ function Grade({ exercicios, filtros, facetas, podeEditar, onEditar }: {
               </div>
             </CardHeader>
             <CardContent className="flex flex-col gap-2 p-4 pt-0 text-sm">
+              {e.midia && <MidiaPreview midia={e.midia} nome={e.name} className="aspect-video" />}
               <ol className="list-decimal pl-5 text-muted-foreground">
                 {e.steps.map((passo, i) => <li key={i}>{passo}</li>)}
               </ol>
@@ -228,6 +231,7 @@ function FormularioExercicio({ editando, facetas, onClose }: { editando: Exercic
               {campo('default_hold_s', 'Sustentação (s)', { type: 'number' })}
               {campo('times_per_day', 'Vezes ao dia', { type: 'number' })}
             </div>
+            {editando && <MidiaCampo exercicioId={editando.id} nome={editando.name} midia={editando.midia} />}
           </div>
           <SheetFooter>
             <Button type="submit" disabled={form.processing}>{editando ? 'Salvar' : 'Cadastrar exercício'}</Button>
