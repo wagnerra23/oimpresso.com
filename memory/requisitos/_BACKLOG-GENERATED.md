@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **969 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **970 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -10,7 +10,7 @@
 |---|---:|---:|---:|---:|---:|
 | [`Jana`](#jana) | 83 | 2 | 0 | 0 | 81 |
 | [`Whatsapp`](#whatsapp) | 67 | 0 | 0 | 0 | 67 |
-| [`Sells`](#sells) | 60 | 0 | 0 | 0 | 60 |
+| [`Sells`](#sells) | 61 | 0 | 0 | 0 | 61 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
 | [`Financeiro`](#financeiro) | 46 | 0 | 0 | 0 | 46 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
@@ -296,6 +296,7 @@
 - **US-SELL-064** — Listar vendas de POS com rodapé de totais (`/pos`)
 - **US-SELL-065** — Cadastro de descontos com ver × editar (`/discount`)
 - **US-SELL-066** — Devolução de venda em React — lista e registro (`/sell-return`)
+- **US-SELL-067** — Orçamento guarda o custo do dia em cada linha (UC-FLX-33)
 
 ## Infra
 
