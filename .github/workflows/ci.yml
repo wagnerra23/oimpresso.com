@@ -50,7 +50,9 @@ jobs:
       - name: Cache composer
         uses: actions/cache@v4
         with:
-          path: ~/.composer/cache
+          path: |
+            ~/.cache/composer
+            ~/.composer/cache
           key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
           restore-keys: composer-${{ runner.os }}-
 
