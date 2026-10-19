@@ -99,12 +99,12 @@ Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `M
 
 Núcleo de cálculo (serviços puros, sem rota nem tela; a US segue pendente): `Modules/Fisio/Services/NivelCalculator.php`, `Modules/Fisio/Services/SequenciaCalculator.php`, `Modules/Fisio/Services/DiaLocal.php`, `Modules/Fisio/Services/MetaSemanal.php`.
 
-### US-FISIO-009 · Lembrete diário e envio do programa por WhatsApp (driver whatsmeow) — **P0**
+### US-FISIO-009 · Lembrete diário e envio do programa por WhatsApp (canal escolhido pela clínica) — **P0**
 
 **Implementado em:** _pendente_
 
 > owner: — · priority: p0 · estimate: 6h · status: todo · type: story
-> blocked_by: US-FISIO-007. Pelo módulo `Whatsapp` via `ChannelDriverFactory` (nunca whatsmeow direto); mitigações de banimento da ADR 0437 §13.1. DoD: `FisioWhatsappJobTest`; canal caído gera alerta ao profissional.
+> blocked_by: US-FISIO-007. Pelo módulo `Whatsapp` via `ChannelDriverFactory` (nunca um driver direto), com o canal lido da configuração da clínica: `meta_cloud`, `whatsmeow` (exige aceite de risco registrado) ou envio manual `wa.me`; mitigações de banimento da ADR 0437 §13.1 quando o canal for `whatsmeow`. DoD: `FisioWhatsappJobTest`; canal caído gera alerta ao profissional.
 
 ### US-FISIO-010 · Painel, evolução e fila de atenção — **P0**
 

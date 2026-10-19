@@ -23,7 +23,7 @@ contains:
   - "Exportação do prontuário em PDF (dompdf, registrada no activity_log) — UC-FPS-19..20"
   - "Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) com pontuação calculada no servidor (US-FISIO-011)"
 not_contains:
-  - "Envio de WhatsApp → Modules/Whatsapp (driver whatsmeow via ChannelDriverFactory)"
+  - "Envio de WhatsApp → Modules/Whatsapp (canal da clínica — meta_cloud ou whatsmeow — via ChannelDriverFactory)"
   - "Cobrança, pacotes e títulos → Financeiro / RecurringBilling (F3)"
   - "Emissão de nota → NFSe (F3)"
 excludes:

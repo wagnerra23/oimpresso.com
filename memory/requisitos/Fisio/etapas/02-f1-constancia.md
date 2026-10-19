@@ -1,6 +1,8 @@
 # Etapa 02 — F1 Constância: portal, lembrete WhatsApp, check-in, jogo e painel de risco
 
-> **Decisão posterior de [W] (2026-10-18): o driver é `whatsmeow`** (ADR 0437 §13.1). As seções sobre API oficial da Meta (categorias, preço por template, aprovação de template, Flows) valem só se o canal for trocado para `meta_cloud`. Com whatsmeow não há template nem custo por mensagem; em troca valem as mitigações de banimento da ADR §13.1 (um número por clínica, teto por hora, aquecimento, alerta de canal caído, alternativa `wa.me`). O resto desta especificação (horário-âncora, check-in em 3 toques, jogo, painel de risco) não muda.
+> **Emenda de [W] (2026-10-18, mesmo dia): o canal é escolha de cada clínica** entre `meta_cloud`, `whatsmeow` e envio manual `wa.me` (ADR 0437 §13.1). As seções sobre a API oficial valem para as clínicas que escolherem `meta_cloud`; o parágrafo abaixo vale para as que escolherem `whatsmeow`.
+>
+> **Decisão anterior de [W] (2026-10-18, fato datado): o driver é `whatsmeow`** (ADR 0437 §13.1). As seções sobre API oficial da Meta (categorias, preço por template, aprovação de template, Flows) valem só se o canal for trocado para `meta_cloud`. Com whatsmeow não há template nem custo por mensagem; em troca valem as mitigações de banimento da ADR §13.1 (um número por clínica, teto por hora, aquecimento, alerta de canal caído, alternativa `wa.me`). O resto desta especificação (horário-âncora, check-in em 3 toques, jogo, painel de risco) não muda.
 
 > Pesquisa feita em 2026-10-17. Fontes numeradas em §7, citadas como [n].
 > Durante a pesquisa o limite de buscas web da sessão acabou. Os pontos que ficaram sem verificação estão marcados **não confirmado**. Repetir essas buscas antes de fechar o PR.
