@@ -211,6 +211,23 @@ last_run: "2026-10-07"
 - **Regressão que defende:** cartões voltarem a somar a empresa inteira com o filtro ligado, ou o
   contador da aba mudar conforme o filtro de uma tela só.
 - **Status: 🧪**
+
+---
+
+## UC-OP-11 · O painel da ordem monta dentro do `.cockpit` e tem a moldura do protótipo
+- **Persona:** Eliana (produção) — abre uma ordem e precisa distinguir, de relance, o que foi consumido
+  (caixa dos ingredientes) do que custa (quadro do custo), com os números secundários esmaecidos.
+- **Aceite:** Dado a lista de ordens · Quando abro uma ordem · Então o painel monta dentro do `.cockpit`
+  (onde moram as cores e a fonte do Design System), com o × do protótipo no canto e sem o "Close" em
+  inglês; o rodapé tem "Fechar" e, só em rascunho, "Editar ordem" com o lápis.
+- **Fonte:** protótipo `manufacturing-producao.jsx` (`MfgProducaoDrawer`) sobre o `Drawer` do DS +
+  `venda-v3.css` (corpo em `--bg-2`, seções em cartão) + `manufacturing-page.css` L166-167 (× no canto).
+  Medição de 2026-10-19 em [`Index-visual-comparison.md`](../../../memory/requisitos/Manufacturing/Index-visual-comparison.md).
+- **Teste:** `tests/js/manufacturing-ordem-drawer.test.tsx` (lane jsdom). Mordida provada por mutação:
+  sem a prop `container` → 1 failed, por `AssertionError`.
+- **Regressão que defende:** o portal voltar ao `<body>` — a caixa dos ingredientes e o quadro do custo
+  somem, os cinzas viram brancos e a fonte cai para a do sistema, com CI verde.
+- **Status: 🧪**
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
