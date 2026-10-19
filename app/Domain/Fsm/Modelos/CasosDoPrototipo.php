@@ -87,8 +87,8 @@ final class CasosDoPrototipo
         ['UC-FLX-34', 'Orçamento aberto avisa que o custo mudou', 'venda', 'Orçamento / Enviado', 'Mostra o custo guardado ao lado do custo de hoje e a margem que sobra; só recalcula se alguém pedir', ['oimpresso'], 'micro', 'sem', ''],
         ['UC-FLX-35', 'Preço negociado abaixo da margem pede aprovação', 'venda', 'Aprovado', 'Compara o preço fechado com o custo guardado; abaixo da margem mínima só aprova quem tem permissão', ['oimpresso'], 'pequena', 'sem', ''],
         ['UC-FLX-36', 'OS em andamento avisa insumo que mudou de custo', 'producao', 'qualquer etapa antes de Concluída', 'Mostra o custo da abertura e o de hoje; a regra da compra decide se a OS mantém o custo ou acompanha', ['katana'], 'pequena', 'prototipo', 'Compras · regras das etapas'],
-        ['UC-FLX-37', 'Material consumido leva o custo do dia da baixa', 'producao', 'Concluída', 'Congela as horas apontadas e o material pelo custo da data da baixa; compra depois não reescreve a OS', ['odoo', 'katana'], 'pequena', 'parcial', 'Produção · horas congeladas; material na ADR 0436'],
-        ['UC-FLX-38', 'Custo do insumo guarda o histórico por data', 'compra', 'Recebido', 'Cada recebimento grava o custo com a data; o custo novo vale daqui pra frente e o anterior nunca é apagado', ['katana', 'odoo'], 'micro', 'sem', ''],
+        ['UC-FLX-37', 'Material consumido leva o custo do dia da baixa', 'producao', 'Concluída', 'Congela as horas apontadas e o material pelo custo da data da baixa; compra depois não reescreve a OS', ['odoo', 'katana'], 'pequena', 'parcial', 'Produção · horas congeladas em pcp_ordens; material sem regra'],
+        ['UC-FLX-38', 'Custo do insumo guarda o histórico por data', 'compra', 'Recebido', 'Cada recebimento grava o custo com a data; o custo novo vale daqui pra frente e o anterior nunca é apagado', ['katana', 'odoo'], 'micro', 'parcial', 'purchase_lines por data; falta a regra do custo vigente'],
     ];
 
     /** modelo => [inspirado em, regra de custo da compra] */
