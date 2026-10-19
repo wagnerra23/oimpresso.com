@@ -59,12 +59,17 @@ export interface ProdutoCreatePageProps {
   warranties: OptionMap;
   commonSettings: Record<string, unknown>;
   enableExpiry: boolean;
+  /** `add_expiry` (validade lançada na compra) ou `add_manufacturing` (calculada pela fabricação). */
+  expiryType?: string;
   enableLot: boolean;
   enableRacks: boolean;
 }
 
 function ProdutoCreate(props: ProdutoCreatePageProps) {
   const dup = props.duplicateProduct;
+  // UC-PCAD-12 — a validade como no Blade (product/create.blade.php): período em meses por padrão;
+  // com a validade lançada na compra (`add_expiry`) o campo fica escondido e vai como 12 meses.
+  const validadeNaCompra = props.enableExpiry && props.expiryType === 'add_expiry';
 
   // Preço do produto simples (precos.ts). Só os valores sem imposto; os "com imposto" saem da
   // alíquota do imposto escolhido, no envio e na tela.
@@ -91,8 +96,8 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
     // Um local só: já vem marcado, como no Blade (`$default_location`). Mais de um: quem cadastra escolhe.
     product_locations: localUnico(props.businessLocations),
     warranty_id: '' as number | '',
-    expiry_period: '',
-    expiry_period_type: '',
+    expiry_period: validadeNaCompra ? '12' : '',
+    expiry_period_type: 'months',
     enable_sr_no: 0,
     product_custom_field1: '',
     product_custom_field2: '',
@@ -154,7 +159,7 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
             definir={definidorDe(setData)}
             errors={errors}
             opcoes={props}
-            mostrarValidade={props.enableExpiry}
+            mostrarValidade={props.enableExpiry && !validadeNaCompra}
             chaveMaisOpcoes={ADVANCED_OPEN_KEY}
             preco={
               data.type === 'single'
