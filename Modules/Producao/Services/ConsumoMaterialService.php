@@ -116,7 +116,7 @@ final class ConsumoMaterialService
         $this->transactionUtil->mapPurchaseSell([
             'id' => $businessId, 'location_id' => (int) $localId,
             'accounting_method' => $empresa?->accounting_method ?? 'fifo', 'pos_settings' => $empresa?->pos_settings,
-        ], collect([$linha]), 'production_purchase', false);
+        ], [$linha], 'production_purchase', false);
         $this->productUtil->decreaseProductQuantity((int) $material->product_id, (int) $material->id, (int) $localId, $quantidade);
 
         $lote = DB::table('transaction_sell_lines_purchase_lines as m')
