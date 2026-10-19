@@ -33,6 +33,12 @@ class GameLedger extends Model
 
     public const REASON_CHECKIN = 'checkin';
 
+    /** Missão do dia cumprida (T-08c); `ref` = chave da missão. */
+    public const REASON_MISSAO = 'missao';
+
+    /** Desafio semanal aceito e batido (T-08c); `ref` = segunda-feira da semana. */
+    public const REASON_DESAFIO = 'desafio_semanal';
+
     protected $table = 'fisio_game_ledger';
 
     protected $guarded = ['id'];

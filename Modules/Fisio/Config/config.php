@@ -39,6 +39,8 @@ return [
         ],
         'normalizacao_dias_base' => 4,
         'teto_semanal' => 500,
+        // Missões e desafio somam até isto por semana, dentro do teto_semanal (etapa 02 §3.4).
+        'teto_semanal_bonus' => 100,
         'niveis' => [
             1 => 0,       // Primeiro Passo
             2 => 150,     // Ritmo

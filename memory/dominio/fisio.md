@@ -27,11 +27,14 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0437-modulo-fisio-ve
   `sobre_basal` (dor acima da basal do paciente; padrão nos protocolos de dor crônica). Com o alerta,
   o paciente vê só a instrução estática do profissional (`stop_instruction`) — nunca conduta
   calculada pelo software (ADR 0437 §5).
-- **Razão do XP** (`fisio_game_ledger.reason`, append-only): `exercicio_concluido` e `checkin`
-  (registrar o dia, inclusive com dor alta). Decisão da US-FISIO-008 (2026-10-18): fica `checkin` (é o
+- **Razão do XP** (`fisio_game_ledger.reason`, append-only): `exercicio_concluido`, `checkin`
+  (registrar o dia, inclusive com dor alta), `missao` (missão do dia cumprida; `ref` diz qual) e
+  `desafio_semanal` (desafio aceito e batido; `ref` = segunda da semana) — as duas últimas entram
+  com a T-08c (2026-10-19). Medalha não é razão: é derivada do histórico, 0 XP. Decisão da US-FISIO-008 (2026-10-18): fica `checkin` (é o
   `registro_do_dia` da etapa 02 com o nome que a suíte e o banco já usam). As outras razões da etapa 02
   (`missao`, `desafio_semanal`, `medalha`, `escudo_ganho`, `escudo_usado`, `pausa_protegida`) entram
   com o código de missões/escudos (T-08c), mudando este bloco junto com a migration — razão sem código não entra.
+  Situação em 2026-10-19: entraram `missao` e `desafio_semanal`; `escudo_*` e `pausa_protegida` seguem sem código.
 - **Questionário** (`fisio_questionnaires.instrument`): só os de uso livre (ADR 0437 §8) — `eva`,
   `rmdq` (Roland-Morris), `psfs`, `lefs`, `spadi`. ODI, NDI, KOOS, QuickDASH e WOMAC ficam fora até
   haver licença comercial.
@@ -47,7 +50,7 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0437-modulo-fisio-ve
     "fisio_records.kind": ["avaliacao", "evolucao", "telemonitoramento", "adendo"],
     "fisio_programs.origin": ["manual", "protocolo"],
     "fisio_programs.pain_alert_mode": ["absoluto", "sobre_basal"],
-    "fisio_game_ledger.reason": ["exercicio_concluido", "checkin"],
+    "fisio_game_ledger.reason": ["exercicio_concluido", "checkin", "missao", "desafio_semanal"],
     "fisio_questionnaires.instrument": ["eva", "rmdq", "psfs", "lefs", "spadi"]
   }
 }

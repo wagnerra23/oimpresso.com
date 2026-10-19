@@ -3,7 +3,7 @@
 // sequência; pausa com mensagem gentil, sem ranking) e o atalho "hoje estou em crise" quando a
 // fisio escreveu a versão de crise. O paciente marca as vezes aqui; o "Como foi hoje" leva isso.
 import { Check, ChevronDown, Flame, HeartHandshake, Minus, Plus, ShieldCheck } from 'lucide-react';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { cn } from '@/Lib/utils';
@@ -112,9 +112,11 @@ interface HojeProps {
   temCrise: boolean;
   onCheckin: () => void;
   onCrise: () => void;
+  /** Missões, desafio e medalhas (T-08c), logo abaixo do cartão do jogo. */
+  constancia?: ReactNode;
 }
 
-export function TelaHoje({ itens, jogo, vezes, onVezes, registradoHoje, temCrise, onCheckin, onCrise }: HojeProps) {
+export function TelaHoje({ itens, jogo, vezes, onVezes, registradoHoje, temCrise, onCheckin, onCrise, constancia }: HojeProps) {
   const feitos = itens.filter((i) => (vezes[i.id] ?? 0) >= 1).length;
   const pct = itens.length === 0 ? 0 : Math.round((feitos / itens.length) * 100);
 
@@ -126,6 +128,7 @@ export function TelaHoje({ itens, jogo, vezes, onVezes, registradoHoje, temCrise
       </header>
 
       <CartaoJogo jogo={jogo} />
+      {constancia}
 
       {itens.length === 0 ? (
         <p className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">Sua fisioterapeuta ainda não montou o programa. Assim que ela montar, ele aparece aqui.</p>

@@ -127,6 +127,7 @@ Route::middleware(['web', 'throttle:60,1'])
         Route::post('consentimentos', [PortalController::class, 'consentir'])->name('consentimentos.store');
         Route::delete('consentimentos/{purpose}', [PortalController::class, 'revogar'])->name('consentimentos.destroy');
         Route::post('checkin', [PortalController::class, 'checkin'])->name('checkin');
+        Route::post('desafio', [PortalController::class, 'desafio'])->name('desafio');
     });
 
 /*
