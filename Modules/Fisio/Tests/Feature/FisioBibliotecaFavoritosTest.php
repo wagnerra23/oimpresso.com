@@ -50,7 +50,12 @@ function fbfLinhas($t, $user, string $qs = ''): array
 /** @return list<int> */
 function fbfIds($t, $user, string $qs = ''): array
 {
-    return collect(fbfLinhas($t, $user, $qs))->pluck('id')->map('intval')->sort()->values()->all();
+    // Só os 4 exercícios deste teste: a biblioteca global já vem com os 38 do seed L0
+    // (migration 2026_10_19_000090), e os filtros por posição/equipamento também os pegam.
+    $doTeste = [$t->global->id, $t->sentadoCadeira->id, $t->de98->id, $t->de99->id];
+
+    return collect(fbfLinhas($t, $user, $qs))->pluck('id')->map('intval')
+        ->filter(fn (int $id) => in_array($id, $doTeste, true))->sort()->values()->all();
 }
 
 function fbfFavoritos(int $biz, int $userId): array

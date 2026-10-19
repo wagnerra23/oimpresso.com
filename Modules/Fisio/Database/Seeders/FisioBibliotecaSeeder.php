@@ -10,28 +10,11 @@ use Modules\Fisio\Entities\Exercise;
 /**
  * Seed da biblioteca GLOBAL do Fisio (US-FISIO-004, T-04 do HANDOFF-F1).
  *
- * ⚠️ CONTEÚDO CLÍNICO AGUARDA REVISÃO DA DRA. DEJEANE (responsável técnica, ADR 0437 §12).
- * Nenhum exercício entra aqui sem passos, dose e contraindicações escritos em documento canônico
- * e revisados por ela. Este seeder não inventa conteúdo: a lista `exercicios()` só recebe item que
- * tenha TODOS os campos obrigatórios documentados (nome, região, tipo, passos).
+ * Os 38 exercícios do lote L0 moram em `biblioteca-l0.php`, ao lado. Aprovados sem ressalvas
+ * pela responsável técnica, Dra. Djenane Detroz (CREFITO 18.341-F), em 2026-10-19. Mudança de
+ * conteúdo clínico passa pela revisão dela anotada no PR (ADR 0437).
  *
- * ESTADO EM 2026-10-18: a lista está VAZIA, e isso é o resultado honesto da leitura dos docs.
- * `etapas/01-biblioteca.md` define a taxonomia e o lote L0 (38 exercícios), mas não traz o
- * conteúdo de nenhum exercício. O único documento com exercícios nomeados é
- * `protocolos/11-fibromialgia.md`, que dá nome e dose, mas não os passos nem a região, e marca
- * cada um como "a conferir na lista do seed". Ficaram fora, à espera de passos + revisão:
- *   - Respiração diafragmática (2×10, diário)
- *   - Gato-camelo (2×8)
- *   - Rotação de tronco deitado (2×8)
- *   - Alongamento de isquiotibiais sentado (2× 20 s)
- *   - Retração escapular (2×10)
- *   - Sentar e levantar (1–2×8–10)
- *   - Ponte de glúteo (1–2×8–10)
- *   - Elevação de panturrilha (1–2×10)
- *   - Mini agachamento na parede (1–2×8)
- *   - Apoio unipodal perto de apoio firme (3× 15–30 s)
- * (Caminhada leve, marcha estacionária, bicicleta ergométrica e remada com elástico o próprio
- * protocolo marca como "novo (gravar)".)
+ * Roda sozinho no deploy pela migration `2026_10_19_000090_seed_biblioteca_global_fisio`.
  *
  * IDEMPOTENTE: chave = (business_id nulo, name). Rodar de novo atualiza o conteúdo do global,
  * nunca duplica e nunca toca em exercício de clínica. Não apaga nada.
@@ -49,7 +32,7 @@ class FisioBibliotecaSeeder extends Seeder
      */
     public function exercicios(): array
     {
-        return [];
+        return require __DIR__.'/biblioteca-l0.php';
     }
 
     public function run(): void

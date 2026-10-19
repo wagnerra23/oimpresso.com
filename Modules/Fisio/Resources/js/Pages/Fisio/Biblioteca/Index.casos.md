@@ -30,6 +30,7 @@ related_us: []
 | UC-FBI-08 | favorito por profissional e empresa; global não muda | must | `FisioBibliotecaFavoritosTest` |
 | UC-FBI-09 | filtros de posição, equipamento e "só favoritos" combinados, estado na URL | should | `FisioBibliotecaFavoritosTest` |
 | UC-FBI-10 | exercício próprio aceita posição e equipamento da lista fechada | should | `FisioBibliotecaFavoritosTest` |
+| UC-FBI-11 | biblioteca global vem com os 38 do lote L0, no vocabulário das listas fechadas | must | `BibliotecaL0Test` |
 
 ---
 
@@ -87,11 +88,16 @@ related_us: []
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioBibliotecaFavoritosTest.php`
 - **Status: 🧪**
 
+
+## UC-FBI-11 · A biblioteca global já vem pronta · `must`
+- **Persona:** fisioterapeuta que abre a biblioteca pela primeira vez.
+- **Aceite:** O deploy semeia 38 exercícios globais (lote L0, aprovado pela responsável técnica, Dra. Djenane Detroz, CREFITO 18.341-F, em 2026-10-19), sem duplicar e sem tocar em exercício de clínica. Cada um tem passos, dose e vezes por dia; posição e equipamento vêm das listas fechadas de `config('fisio.biblioteca')` (senão somem dos filtros) e as contraindicações vêm de `Patient::CONDITION_FLAGS` (senão o aviso ao prescrever nunca dispara). Nenhum texto promete tratar, curar, corrigir postura, prevenir lesão ou diagnosticar (ADR 0437 §5).
+- **Teste:** `Modules/Fisio/Tests/Unit/BibliotecaL0Test.php`
+- **Status: 🧪**
 ---
 
 ## Backlog (prosa honesta — vira UC quando ganhar teste que o cite)
 
-- `[BACKLOG]` Seed dos 38 exercícios com `times_per_day`, avisos de respiração/apoio e `contraindication_flags` — revisão clínica anotada no PR (T-04), sem teste de conteúdo.
 - `[BACKLOG]` Protocolos-modelo na grade.
 - `[BACKLOG]` Duração máxima do vídeo: hoje o limite é de tamanho; medir duração exigiria ferramenta nova (ffprobe), que pede ADR.
 - `[BACKLOG]` Mídia do exercício no portal do paciente (US-FISIO-007).
