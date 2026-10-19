@@ -522,6 +522,9 @@ jobs:
         # backbone Modules/Arquivos (biz-{id}/), servida por rota que confere empresa (98 lê, 99
         # 404), global 403, limites e declaração no servidor, remoção só da dona (UC-FBI-05..07).
         #
+        # ENTRA 2026-10-19 — Fisio/FisioPortalSemLoginTest: o portal abre sem login com o ModuleUtil
+        # REAL (sem o mock do pacote). Em produção o link válido dava 500: auth()->user()->can() em null.
+        #
         # ENTRAM 2026-10-19 — Fisio/FisioWhatsappJobTest e Fisio/AgendaDeEnvioTest (US-FISIO-009): envio
         # do link do portal e lembrete diário pelo módulo Whatsapp existente (número de saída padrão),
         # consentimento, isolamento 98×99, idempotência persistida, silêncio, teto por hora e wa.me
@@ -630,6 +633,7 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioModuloVisibilidadeTest.php \
             Modules/Fisio/Tests/Feature/FisioEvolucaoTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalAcessoTest.php \
+            Modules/Fisio/Tests/Feature/FisioPortalSemLoginTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalLinkTest.php \
             Modules/Fisio/Tests/Feature/FisioWhatsappJobTest.php \
             Modules/Fisio/Tests/Unit/AgendaDeEnvioTest.php \
