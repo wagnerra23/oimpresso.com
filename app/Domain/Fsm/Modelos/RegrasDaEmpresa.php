@@ -105,6 +105,30 @@ final class RegrasDaEmpresa
         });
     }
 
+    /** Margem mínima do orçamento, em % (UC-FLX-35). Nula = regra desligada. */
+    public function margemMinima(int $businessId): ?float
+    {
+        $v = $this->linha($businessId)?->margem_minima_pct;
+
+        return $v === null ? null : (float) $v;
+    }
+
+    /** Grava a margem mínima da empresa; nula desliga a regra. */
+    public function mudarMargemMinima(int $businessId, ?float $pct): void
+    {
+        $this->modeloEmUso($businessId);
+        if ($pct !== null && ($pct < 0 || $pct > 100)) {
+            throw new InvalidArgumentException('A margem mínima vai de 0% a 100%.');
+        }
+
+        DB::transaction(function () use ($businessId, $pct) {
+            $linha = ModeloEmpresa::withoutGlobalScope(ScopeByBusiness::class)
+                ->where('business_id', $businessId)->lockForUpdate()->firstOrFail();
+            $linha->margem_minima_pct = $pct === null ? null : round($pct, 2);
+            $linha->save();
+        });
+    }
+
     /** Modelo do catálogo em uso; recusa empresa sem modelo ou no legado. */
     private function modeloEmUso(int $businessId): string
     {

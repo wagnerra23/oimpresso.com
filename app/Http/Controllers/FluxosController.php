@@ -107,6 +107,8 @@ class FluxosController extends Controller
             'regras_ligadas' => $comModelo ? $regras->ligadas($businessId, $empresa['modelo']) : (object) [],
             'regras_compra' => $comModelo ? $regras->compra($businessId) : [],
             'opcoes_compra' => $comModelo ? RegrasCompra::opcoes() : (object) [],
+            // UC-FLX-35 · UC-FLXT-19: margem mínima do orçamento (nula = desligada).
+            'margem_minima' => $comModelo ? $regras->margemMinima($businessId) : null,
             'pode_configurar' => auth()->user()->can('fluxos.configurar'),
         ]);
     }
@@ -179,6 +181,27 @@ class FluxosController extends Controller
             $dados['regra'],
             isset($dados['ativo']) ? (bool) $dados['ativo'] : null,
             $dados['params'] ?? [],
+        ));
+
+        return redirect('/fluxos?aba=empresa');
+    }
+
+    /**
+     * Margem mínima do orçamento (UC-FLXT-19 · UC-FLX-35). Abaixo dela, converter orçamento em
+     * venda exige `sell.aprovar_margem_baixa`. Vazio desliga a regra.
+     */
+    public function margem(Request $request, RegrasDaEmpresa $regras): RedirectResponse
+    {
+        abort_unless($request->user()->can('fluxos.configurar'), 403);
+
+        $dados = $request->validate([
+            'margem_minima' => ['nullable', 'numeric', 'min:0', 'max:100'],
+        ]);
+
+        // Tier 0 (ADR 0093): a empresa é sempre a da sessão.
+        self::recusarComo('margem_minima', fn () => $regras->mudarMargemMinima(
+            (int) $request->session()->get('user.business_id'),
+            isset($dados['margem_minima']) ? (float) $dados['margem_minima'] : null,
         ));
 
         return redirect('/fluxos?aba=empresa');

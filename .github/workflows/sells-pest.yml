@@ -38,6 +38,10 @@ on:
       - 'Modules/Compras/Observers/TransactionSellLineCustoObserver.php'
       - 'Modules/Compras/Providers/ComprasServiceProvider.php'
       - 'app/Contracts/Compras/**'  # UC-FLX-34 custo no detalhe do orcamento
+      - 'app/Observers/TransactionMargemMinimaObserver.php'
+      - 'app/Exceptions/MargemAbaixoDoMinimo.php'
+      - 'database/migrations/2026_10_19_220000_add_margem_minima_to_fsm_modelos_empresa.php'
+      - 'database/migrations/2026_10_19_220100_add_sell_aprovar_margem_baixa_permission.php'
       - 'app/TransactionSellLine.php'
       - 'database/migrations/2026_10_19_200000_add_custo_previsto_to_transaction_sell_lines.php'
       - 'Modules/Compras/Services/CustoDoInsumoService.php'
@@ -170,6 +174,10 @@ jobs:
               - 'Modules/Compras/Observers/TransactionSellLineCustoObserver.php'
               - 'Modules/Compras/Providers/ComprasServiceProvider.php'
               - 'app/Contracts/Compras/**'  # UC-FLX-34 custo no detalhe do orcamento
+              - 'app/Observers/TransactionMargemMinimaObserver.php'
+              - 'app/Exceptions/MargemAbaixoDoMinimo.php'
+              - 'database/migrations/2026_10_19_220000_add_margem_minima_to_fsm_modelos_empresa.php'
+              - 'database/migrations/2026_10_19_220100_add_sell_aprovar_margem_baixa_permission.php'
               - 'app/TransactionSellLine.php'
               - 'database/migrations/2026_10_19_200000_add_custo_previsto_to_transaction_sell_lines.php'
               - 'Modules/Compras/Services/CustoDoInsumoService.php'
@@ -422,6 +430,7 @@ jobs:
             tests/Feature/Sells/SellsShowContratoTest.php \
             tests/Feature/Sells/OrcamentoCustoPrevistoContratoTest.php \
             tests/Feature/Sells/SellsShowCustoOrcamentoContratoTest.php \
+            tests/Feature/Sells/SellsMargemMinimaContratoTest.php \
             tests/Feature/Sells/SellsEditContratoTest.php \
             tests/Feature/Sells/SellsIndexTenantContratoTest.php \
             tests/Feature/Sells/SellsIndexFiltroDataFimContratoTest.php \

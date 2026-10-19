@@ -24,5 +24,6 @@ class ModeloEmpresa extends Model
     protected $casts = [
         'aplicado_em' => 'datetime',
         'regras_compra' => 'array',
+        'margem_minima_pct' => 'float',
     ];
 }

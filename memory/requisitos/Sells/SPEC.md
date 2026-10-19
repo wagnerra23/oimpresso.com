@@ -1538,3 +1538,22 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 - [x] Só para quem tem `view_purchase_price`; sem ela o custo não vai no JSON.
 - [x] O núcleo lê o custo pela interface `App\Contracts\Compras\CustoDoInsumo`, ligada pelo módulo Compras.
 - [ ] Recalcular o orçamento com o custo de hoje, a pedido (fora desta entrega).
+
+### US-SELL-069 · Orçamento abaixo da margem mínima só vira venda com aprovação (UC-FLX-35)
+
+**Implementado em:** `app/Observers/TransactionMargemMinimaObserver.php` · `app/Exceptions/MargemAbaixoDoMinimo.php` · `app/Domain/Fsm/Modelos/RegrasDaEmpresa.php` (`margemMinima()`) · `resources/js/Pages/Fluxos/_components/AbaEmpresa.tsx`
+
+**Testado em:** `tests/Feature/Sells/SellsMargemMinimaContratoTest.php` (UC-DRAFT-05, lane `sells-pest.yml`) · `tests/Feature/Domain/Fsm/FluxosTelaContratoTest.php` (UC-FLXT-19, lane `domain-pest.yml`).
+
+> owner: wagner · priority: p1 · estimate: 4h · type: story
+> blocked_by: US-SELL-067
+
+**Origem:** decisão [W] 2026-10-19 — *"margem abaixo do mínimo bloqueia a conversão do orçamento em venda; só quem tem a permissão aprova. Configure a margem por empresa na tela de Fluxos."*
+
+**Aceite:**
+- [x] A empresa grava a margem mínima do orçamento na aba Fluxos da empresa (`fluxos.configurar`); vazio desliga.
+- [x] Converter orçamento (rascunho) em venda com margem pelo custo guardado abaixo do mínimo é recusado para quem não tem `sell.aprovar_margem_baixa`, com a margem e o mínimo na mensagem.
+- [x] Quem tem a permissão converte; sem mínimo configurado, com margem acima ou sem custo guardado, converte normalmente.
+- [x] O desconto do pedido entra na margem.
+- [x] A permissão aparece na tela de papéis.
+- [ ] Mostrar a margem e o mínimo na tela do orçamento antes de tentar converter.
