@@ -19,7 +19,6 @@
                           "Modules/ComunicacaoVisual/Entities/InstalacaoCatalogo.php",
                           "Modules/ComunicacaoVisual/Entities/Material.php",
                           "Modules/ComunicacaoVisual/Entities/Orcamento.php",
-                          "Modules/ComunicacaoVisual/Entities/OrcamentoItem.php",
                           "Modules/ComunicacaoVisual/Entities/OrdemProducao.php",
                           "Modules/ComunicacaoVisual/Entities/Os.php",
                           "Modules/ComunicacaoVisual/Entities/Substrato.php",
