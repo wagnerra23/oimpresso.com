@@ -3,7 +3,7 @@
 // Motivos: lista fechada por posto (UC-PCV-33), um por linha. Posto novo nasce com o padrão
 // sugerido pelo servidor (Motivo::PADRAO); a lista se ajusta depois de salvo.
 import { router, useForm } from '@inertiajs/react';
-import { useState, type ReactNode } from 'react';
+import { useLayoutEffect, useState, type ReactNode } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
@@ -34,6 +34,11 @@ export default function EditorPosto({ posto, veiculo, onClose }: { posto: Posto 
   });
   const [pausa, setPausa] = useState((posto?.motivos.pausa ?? []).join('\n'));
   const [refugo, setRefugo] = useState((posto?.motivos.refugo ?? []).join('\n'));
+  // O drawer é um portal: no <body>, fora do `.cockpit`, o `--text-mute` do `.pcv-help` chega
+  // vazio e a ajuda sai branca (medido em 2026-10-19). Monta dentro do `.cockpit` (lápide §5
+  // 2026-10-19). Layout effect: o drawer abre na 1ª renderização e já nasce no lugar certo.
+  const [cockpit, setCockpit] = useState<HTMLElement | null>(null);
+  useLayoutEffect(() => setCockpit(document.querySelector<HTMLElement>('.cockpit')), []);
   const { data, setData, errors, processing } = form;
   const editaMotivos = posto !== null && !veiculo;
 
@@ -53,7 +58,7 @@ export default function EditorPosto({ posto, veiculo, onClose }: { posto: Posto 
 
   return (
     <Sheet open onOpenChange={(o) => { if (!o) onClose(); }}>
-      <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-[760px]" data-contract="producao-posto-editor">
+      <SheetContent side="right" container={cockpit} className="w-full overflow-y-auto sm:max-w-[760px]" data-contract="producao-posto-editor">
         <SheetHeader>
           <SheetTitle>{posto ? `Editar ${posto.nome}` : veiculo ? 'Novo veículo' : 'Novo posto'}</SheetTitle>
           <SheetDescription>{veiculo ? 'Veículo custa pela hora e pelo km.' : 'Capacidade e custo-hora são da sua empresa.'}</SheetDescription>

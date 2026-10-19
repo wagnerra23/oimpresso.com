@@ -18,7 +18,7 @@
 
 import '../../../css/cowork-produto-bundle.css';
 import { Deferred, Head, router } from '@inertiajs/react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Download, FileSpreadsheet, Package, Plus, RefreshCw, Search, Tag } from 'lucide-react';
 import { toast } from 'sonner';
@@ -200,6 +200,11 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
   // (`useLargurasGuardadas`): sem isso, voltar da edição de um produto ou apertar F5 desfazia o ajuste.
   const [largurasArrastadas, setLargurasArrastadas] = useLargurasGuardadas();
   const [confirmar, setConfirmar] = useState<Confirmacao | null>(null);
+  // Os dois diálogos abaixo são portais. No <body>, fora do `.cockpit`, `--warn` e `--text`
+  // chegam vazios: medido em 2026-10-19, o aviso da exclusão saía branco em vez de laranja.
+  // Montam dentro do `.cockpit`, como o painel de detalhe (lápide §5 2026-10-19).
+  const [cockpit, setCockpit] = useState<HTMLElement | null>(null);
+  useLayoutEffect(() => setCockpit(document.querySelector<HTMLElement>('.cockpit')), []);
   const [localModal, setLocalModal] = useState<'add' | 'remove' | null>(null);
   const [locaisEscolhidos, setLocaisEscolhidos] = useState<string[]>([]);
   const [wooModal, setWooModal] = useState(false);
@@ -734,7 +739,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
 
       <AlertDialog open={confirmar !== null} onOpenChange={(o) => !o && setConfirmar(null)}>
         {confirmar && (
-          <AlertDialogContent>
+          <AlertDialogContent container={cockpit}>
             <AlertDialogHeader>
               <AlertDialogTitle>{confirmar.titulo}</AlertDialogTitle>
               <AlertDialogDescription>{confirmar.corpo}</AlertDialogDescription>
@@ -758,7 +763,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
       </AlertDialog>
 
       <Dialog open={localModal !== null} onOpenChange={(o) => !o && setLocalModal(null)}>
-        <DialogContent>
+        <DialogContent container={cockpit}>
           <DialogHeader>
             <DialogTitle>{localModal === 'add' ? 'Adicionar ao local' : 'Remover do local'}</DialogTitle>
             <DialogDescription>
