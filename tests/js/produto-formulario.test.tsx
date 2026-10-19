@@ -167,8 +167,7 @@ describe('Editar produto com as listas do servidor', () => {
           subUnitIds: null, categoryId: 1, subCategoryId: null, tax: 1, taxType: 'exclusive',
           origemMercadoria: 0, barcodeType: 'C128', enableStock: true, alertQuantity: null,
           weight: null, productDescription: null, productLocations: [1], image: null,
-          warrantyId: null, productCustomField1: null, productCustomField2: null,
-          productCustomField3: null, productCustomField4: null,
+          warrantyId: null, camposPersonalizados: {}, expiryPeriod: null, expiryPeriodType: null,
         }}
         subUnits={{}}
         permissions={{ opening_stock: false, delete: false }}

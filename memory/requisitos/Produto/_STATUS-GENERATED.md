@@ -21,7 +21,7 @@ authority: generated
 | Telas (.tsx) | 12 |
 | Telas com `casos.md` | 16 |
 | UC declarados | 175 |
-| UC com teste que os cita | 157 |
+| UC com teste que os cita | 158 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -135,7 +135,7 @@ authority: generated
 | UC-PEDIT-07 | Edit | 🧪 aguarda veredito da lane |
 | UC-PEDIT-08 | Edit | 🧪 aguarda veredito da lane |
 | UC-PEDIT-09 | Edit | 🧪 aguarda veredito da lane |
-| UC-PEDIT-10 | Create | 📝 sem_teste |
+| UC-PEDIT-10 | Edit | 🧪 aguarda veredito da lane |
 | UC-PETQ-01 | Etiquetas/Index | 🧪 aguarda veredito da lane |
 | UC-PETQ-02 | Etiquetas/Index | 🧪 aguarda veredito da lane |
 | UC-PETQ-03 | Etiquetas/Index | 🧪 aguarda veredito da lane |
