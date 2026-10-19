@@ -13,8 +13,18 @@
 //
 // O conteúdo vai num portal (fora do `.mfg-root` da página), por isso o `mfg-root` é
 // reaplicado no `SheetContent` para as classes `mfg-*` do bundle valerem (§5 2026-07-10).
+// Isso só faz os seletores alcançarem o painel: os VALORES que eles usam (`--border`, `--bg-2`,
+// `--text-dim`, a fonte IBM Plex) moram no `.cockpit`. Medido em produção em 2026-10-19, com o
+// portal no <body>: sem caixa nos ingredientes, sem quadro no custo, linhas divisórias com 0px,
+// cinzas brancos e fonte do sistema. Por isso o portal monta DENTRO do `.cockpit` (prop
+// `container`), o mesmo caminho do painel do produto (Produto/_components/lista/PainelDetalhe.tsx).
+//
+// A moldura (cabeçalho, corpo em `--bg-2`, seções em cartão, rodapé e botões) é a do Drawer do
+// DS mais as camadas do protótipo; os valores e a origem de cada um estão no bundle, em `.mfg-drawer`.
 
-import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
+import { useLayoutEffect, useState } from 'react';
+import { Pencil } from 'lucide-react';
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { Button } from '@/Components/ui/button';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Stack } from '@/Components/layout/stack';
@@ -67,10 +77,13 @@ interface Props {
   onClose: () => void;
 }
 
-const SECAO = 'mx-3 my-2.5 rounded-[12px] border bg-card px-[18px] py-3.5';
-const TITULO_SECAO = 'mb-2 text-[10.5px] font-semibold uppercase tracking-[.05em] text-muted-foreground';
-
 export default function OrdemDrawer({ ordem, detalhe, onClose }: Props) {
+  // O `.cockpit` é o contêiner que entrega os tokens e a fonte do Design System. Layout effect
+  // (e não effect): com `?ordem=` na URL o painel abre na 1ª renderização, e assim o portal já
+  // nasce no `.cockpit` em vez de montar no <body> e mudar de lugar depois.
+  const [cockpit, setCockpit] = useState<HTMLElement | null>(null);
+  useLayoutEffect(() => setCockpit(document.querySelector<HTMLElement>('.cockpit')), []);
+
   const subtitulo = ordem
     ? [
         ordem.transaction_date,
@@ -95,17 +108,30 @@ export default function OrdemDrawer({ ordem, detalhe, onClose }: Props) {
 
   return (
     <Sheet open={!!ordem} onOpenChange={(o) => { if (!o) onClose(); }}>
-      <SheetContent side="right" className="mfg-root w-full gap-0 sm:max-w-[680px]" data-contract="drawer">
-        <SheetHeader className="gap-1 border-b px-[18px] py-4">
-          <SheetTitle className="text-[17px] leading-[1.3]">{ordem?.ref_no ?? 'Ordem de produção'}</SheetTitle>
-          <SheetDescription className="text-[12.5px] leading-[1.45]">{subtitulo}</SheetDescription>
+      <SheetContent
+        side="right"
+        container={cockpit}
+        showCloseButton={false}
+        className="mfg-root mfg-drawer w-full gap-0 sm:max-w-[680px]"
+        data-contract="drawer"
+      >
+        <div className="mfg-drawer-x">
+          <SheetClose asChild>
+            <Button variant="ghost" size="icon" aria-label="Fechar">
+              ×
+            </Button>
+          </SheetClose>
+        </div>
+        <SheetHeader className="mfg-drawer-h">
+          <SheetTitle className="mfg-drawer-t">{ordem?.ref_no ?? 'Ordem de produção'}</SheetTitle>
+          <SheetDescription className="mfg-drawer-st">{subtitulo}</SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="mfg-drawer-b">
           {detalhe ? (
             <>
-              <section className={SECAO}>
-                <h4 className={TITULO_SECAO}>Ingredientes consumidos</h4>
+              <section className="mfg-drawer-sec">
+                <h4>Ingredientes consumidos</h4>
                 {detalhe.linhas.length === 0 ? (
                   <p className="mfg-note">Nenhum ingrediente gravado nesta ordem.</p>
                 ) : (
@@ -127,8 +153,8 @@ export default function OrdemDrawer({ ordem, detalhe, onClose }: Props) {
                 )}
               </section>
 
-              <section className={SECAO}>
-                <h4 className={TITULO_SECAO}>Custo</h4>
+              <section className="mfg-drawer-sec">
+                <h4>Custo</h4>
                 <dl className="mfg-tot">
                   <dt>Ingredientes (preço de hoje)</dt>
                   <dd>{fmt(detalhe.custo.ingredientes)}</dd>
@@ -166,13 +192,16 @@ export default function OrdemDrawer({ ordem, detalhe, onClose }: Props) {
           )}
         </div>
 
-        <SheetFooter className="flex-row justify-end gap-2 border-t">
-          <Button variant="outline" onClick={onClose}>
+        <SheetFooter className="mfg-drawer-f">
+          <Button variant="outline" className="mfg-drawer-btn" onClick={onClose}>
             Fechar
           </Button>
           {ordem && !ordem.mfg_is_final ? (
-            <Button asChild>
-              <a href={`/manufacturing/production/${ordem.id}/edit`}>Editar ordem</a>
+            <Button asChild className="mfg-drawer-btn primary">
+              <a href={`/manufacturing/production/${ordem.id}/edit`}>
+                <Pencil size={13} aria-hidden />
+                Editar ordem
+              </a>
             </Button>
           ) : null}
         </SheetFooter>

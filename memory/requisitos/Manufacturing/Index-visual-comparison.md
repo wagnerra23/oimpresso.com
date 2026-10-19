@@ -10,7 +10,7 @@ status: rascunho
 # apontada (regex `^inertia_target:\s*["']?(\S+?\.tsx)`, datas em last_updated/date/updated_at).
 # Sem os dois campos, o doc cai no balde "nao-avaliado" e envelhece calado.
 inertia_target: resources/js/Pages/Manufacturing/Index.tsx
-last_updated: "2026-10-05"
+last_updated: "2026-10-19"
 ---
 
 # Comparação design × produção — `Manufacturing/Index` (Ordens de produção)
@@ -239,12 +239,57 @@ total" e soma no indicador "Valor total". O protótipo mostra o rascunho a preç
 indicador diz *"rascunho a preço de hoje"*). Resultado em produção: a mesma ordem aparece com um total na lista
 e com a metade dele no painel. Mudar a lista é mudança de valor exibido — fica para decisão [W].
 
+## Painel da ordem — 2026-10-19 (medido e corrigido)
+
+Pedido [F] com dois prints, protótipo × produção. Mesma sonda nos dois lados: 34 elementos do painel,
+estilo calculado pelo navegador, tema escuro, 1600×900. Protótipo: a cópia do git
+(`prototipo-ui/cowork/Wagner`, `MfgProducaoDrawer`) servida pelo `servirEspelho`, ordem MFG2026/0041.
+Produção: empresa 1, ordem 2024/0002 (rascunho). **Frescor da cópia não provado:** o
+`DesignSync.get_file` no projeto vivo devolveu 404 `project not found` com o login da sessão. A cópia
+abriu na mesma ordem e com os mesmos números do print do protótipo.
+
+**Causa principal (medida):** o painel é portal e montava no `<body>`, fora do `.cockpit`. Ali
+`--border`, `--bg-2`, `--surface`, `--text`, `--text-dim` e `--text-mute` chegavam vazios, e
+`--font-sans`/`--font-mono` eram a pilha do sistema. O `mfg-root` no `SheetContent` fazia os seletores
+do bundle alcançarem o painel, mas sem valor. Controle: copiar as variáveis do `.cockpit` para o painel,
+só no navegador, trouxe de volta a borda da caixa e o separador das linhas (0 → 1px), o quadro do custo
+(fundo `--bg-2`, borda 1px), o `<hr>` (0 → 1px), os cinzas e a IBM Plex.
+
+| dimensão | produção (antes) | protótipo | veredito |
+|---|---|---|---|
+| D4 fonte | do sistema | IBM Plex Sans / Mono | DÍVIDA A FECHAR — corrigida |
+| D6 caixa dos ingredientes, quadro do custo, divisórias | sem borda e sem fundo | borda 1px, fundo `--bg-2` | DÍVIDA — corrigida |
+| D6 cinzas (código, quantidade, preço, rótulos do custo) | brancos | `--text-dim` | DÍVIDA — corrigida |
+| D6 fundos | painel inteiro num tom só | painel `--surface`, corpo `--bg-2`, seções em cartão | DÍVIDA — corrigida |
+| D2 rodapé | 69px, padding 16 | 55px, padding 12/18 | DÍVIDA — corrigida |
+| D4/D6 botões | 36px, raio 6, 14px; "Editar ordem" sem lápis, peso 500 | 30px, raio 8, 12,5px; lápis 13px, peso 600 | DÍVIDA — corrigida |
+| D3 fechar do canto | ícone X numa área de 44px, rótulo "Close" | × de 28px, raio 6, `--text-mute` | DÍVIDA — corrigida |
+| D4 tamanhos no painel | 12 · 10 · 12 | 12,5 · 10,5 · 12,5 | DÍVIDA — corrigida só no painel |
+| D1 rede | busca parcial (~1,2s, com esqueleto) | instantâneo (dado de mentira) | IGUAL — não recarrega a página |
+
+**Depois, simulado em produção antes do merge:** com o CSS novo injetado (conferido por tamanho e hash
+contra o arquivo) e a árvore que o `OrdemDrawer.tsx` novo gera, **90 de 93** propriedades iguais ao
+protótipo. As 3 restantes: a pilha de fontes reserva (a primeira, IBM Plex Sans, é a mesma) e dois cinzas
+que o bundle clareia pela ADR 0410 — título da seção e código do item em `--text-dim` (5,51:1 sobre o
+cartão) em vez de `--text-mute` (4,57:1 no tema escuro; o claro não foi medido). **A prova final é o
+smoke depois do deploy** (LC-30), não esta simulação.
+
+**Fora do eixo FORMA (seguem do código, não são dívida):** a observação da ordem (a ordem antiga não tem
+esse campo), os links "Fila de produção · ficha do produto" (as telas não existem) e "Editar ordem" só em
+rascunho (a tela antiga não edita ordem finalizada). **Rótulo pendente [W]:** o protótipo diz "Mesma receita
+hoje" e a produção "Mesma ordem a preço de hoje", porque a conta usa a quantidade gravada. Ou o protótipo
+muda, ou o rótulo volta.
+
+**Não coberto:** as regras-base do bundle (`.mfg-ing` 12px, código 10px, `.mfg-tot dt` 12px) seguem o
+handoff antigo e valem também para Receitas e Insumos; trocar lá pede medir aquelas telas. O diálogo
+"Nova receita" também é portal sem `container` (não medido).
+
 ## Cobertura desta tela hoje
 
 | camada | estado |
 |---|---|
 | charter | ✓ `Index.charter.md` — **`status: draft`** |
-| casos | ✓ **5 UCs** em `Index.casos.md` |
+| casos | ✓ `Index.casos.md` (contagem viva: `npm run casos:report`) |
 | scorecard | ✓ `memory/governance/scorecards/screens/manufacturing-index.yaml` |
 | e2e / browser | ✗ nenhum |
 | baseline de pixel | ✗ **0 `.snap`** (104 no repo, nenhum do módulo) |
