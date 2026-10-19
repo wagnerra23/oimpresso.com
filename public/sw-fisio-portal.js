@@ -11,6 +11,8 @@
  * - Só GET. POST/DELETE (PIN, consentimento, check-in) nunca passam pelo cache.
  * - `set-cookie` é removido antes de guardar (a sessão nunca fica no aparelho).
  * - Não intercepta nada fora do portal e do build (escopo /fisio/p/).
+ * - A fila offline do check-in (T-13 parte 2) NÃO mora aqui: é da página (portal.ts), só em
+ *   aparelho lembrado, e o reenvio é um POST que passa direto pela rede como os outros.
  *
  * Versão: suba `fisio-portal-v1` para descartar o cache de todos os aparelhos.
  */
