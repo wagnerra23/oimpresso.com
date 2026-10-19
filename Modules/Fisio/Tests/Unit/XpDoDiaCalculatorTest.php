@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-FISIO-008
 // Cobre, na regra pura, UC-FJG-01 e UC-FJG-02 (memory/requisitos/Fisio/_telas/jogo-constancia.casos.md).
 
 use Modules\Fisio\Services\XpDoDiaCalculator;
