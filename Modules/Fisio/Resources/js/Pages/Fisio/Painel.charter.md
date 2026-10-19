@@ -33,6 +33,7 @@ Mostrar ao fisioterapeuta, a partir do que os pacientes registraram no portal, a
 - Duas filas separadas: **Alerta** (`dor_subiu`, `dor_alta`, `sinal_de_alerta`) e **Risco de abandono** (`sem_registro`), com o motivo em texto — UC-FPN-03, UC-FPN-04.
 - Tabela com adesão, última dor, último registro, nível e sequência derivados — UC-FPN-05.
 - Só a empresa da sessão — UC-FPN-06.
+- Fallback humano do WhatsApp (etapa 02 T-09e): lista os envios de hoje que não chegaram (falha, fila parada ou canal da clínica caído), com link `wa.me` pré-preenchido; sem consentimento vigente, sem link — UC-FPN-09.
 - Estado vazio honesto: sem check-ins, a tela diz isso; nenhum número é inventado.
 
 ## Non-Goals — Features (NÃO faz)
