@@ -669,7 +669,10 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioPortalAppTest.php \
             Modules/Fisio/Tests/Feature/FisioPainelEnviosFalhosTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalFilaOfflineTest.php \
-            Modules/Fisio/Tests/Feature/FisioLinguagemAnvisaTest.php             Modules/Fisio/Tests/Feature/FisioJogoConstanciaTest.php             Modules/Fisio/Tests/Unit/MissoesCalculatorTest.php             Modules/Fisio/Tests/Unit/MedalhasCalculatorTest.php
+            Modules/Fisio/Tests/Feature/FisioLinguagemAnvisaTest.php \
+            Modules/Fisio/Tests/Feature/FisioJogoConstanciaTest.php \
+            Modules/Fisio/Tests/Unit/MissoesCalculatorTest.php \
+            Modules/Fisio/Tests/Unit/MedalhasCalculatorTest.php
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-verticais-junit-fisio-painel.xml \
             Modules/Fisio/Tests/Feature/FisioPainelTest.php
