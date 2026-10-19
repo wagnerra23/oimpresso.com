@@ -68,6 +68,8 @@ related_adrs:
 
 **Mídia do exercício próprio (parcial, comparativo Physitrack):** foto JPG/PNG/WebP ou vídeo MP4 curto no exercício da clínica, guardado pelo backbone `Modules/Arquivos` (ADR 0123/0214) sob a empresa da sessão e servido por rota com checagem de empresa; global recusa (403); tipo, tamanho e declaração "não mostra paciente" no servidor; remoção reversível só da dona — `Modules/Fisio/Http/Controllers/BibliotecaMidiaController.php`, `Modules/Fisio/Services/MidiaExercicio.php`, `FisioBibliotecaMidiaTest` (UC-FBI-05..07). Fica para depois: transcodificação, quadros-chave e PDF do exercício (`etapas/01-biblioteca.md` §3.6–3.7).
 
+**Lint de linguagem Anvisa (etapa 01 B-06):** exercício próprio, protocolo (editar e salvar do programa) e instruções do programa (instrução de parada, versão de crise, observação do exercício) com termo proibido da ADR 0437 §5 voltam 422, com mensagem em PT-BR que diz o termo e o motivo; a lista é `config('fisio.linguagem_anvisa.termos_proibidos')`, cópia literal da ADR — `Modules/Fisio/Services/LinguagemAnvisa.php`, `FisioLinguagemAnvisaTest` (UC-FBI-12).
+
 **Testado em:** `Modules/Fisio/Tests/Feature/FisioBibliotecaTest.php` · `Modules/Fisio/Tests/Feature/FisioBibliotecaFavoritosTest.php` · `Modules/Fisio/Tests/Feature/FisioBibliotecaMidiaTest.php`
 
 ### US-FISIO-005 · Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0**

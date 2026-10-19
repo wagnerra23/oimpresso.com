@@ -12,6 +12,7 @@ use Illuminate\Validation\ValidationException;
 use Modules\Fisio\Entities\Program;
 use Modules\Fisio\Entities\ProgramItem;
 use Modules\Fisio\Entities\Protocol;
+use Modules\Fisio\Services\LinguagemAnvisa;
 
 /**
  * Protocolos-modelo da clínica (US-FISIO-006; ADR 0437 §5, P58; etapas/01-biblioteca.md B-09).
@@ -61,6 +62,7 @@ class ProtocolosController extends Controller
             'region' => ['nullable', 'string', 'max:40'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
+        LinguagemAnvisa::exigirLimpo(['name' => $dados['name'], 'notes' => $dados['notes'] ?? null]);
 
         $itens = ProgramItem::query()->where('business_id', $biz)->where('program_id', $programa->id)->orderBy('position')->get()
             ->map(fn (ProgramItem $i) => [
@@ -71,6 +73,8 @@ class ProtocolosController extends Controller
         if ($itens === []) {
             throw ValidationException::withMessages(['programa' => 'O programa não tem exercícios para virar protocolo.']);
         }
+        // Observação de item gravada antes do lint (B-06) não vira protocolo com promessa clínica.
+        LinguagemAnvisa::exigirLimpo(['programa' => array_column($itens, 'notes')]);
 
         $protocolo = Protocol::query()->create([
             'business_id' => $this->businessId($request),
@@ -104,6 +108,11 @@ class ProtocolosController extends Controller
             'items.*.times_per_day' => ['nullable', 'integer', 'between:1,10'],
             'items.*.notes' => ['nullable', 'string', 'max:500'],
         ], ['items.*.exercise_id.exists' => 'Exercício não encontrado na biblioteca desta clínica.']);
+        LinguagemAnvisa::exigirLimpo([
+            'name' => $dados['name'] ?? null,
+            'notes' => $dados['notes'] ?? null,
+            'items' => array_column((array) ($dados['items'] ?? []), 'notes'),
+        ]);
 
         if (array_key_exists('items', $dados)) {
             $dados['items'] = array_values(array_map(fn (array $i) => [

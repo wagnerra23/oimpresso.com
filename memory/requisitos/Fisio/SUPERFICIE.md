@@ -39,7 +39,7 @@ module: Fisio
 
 - [FisioLiberado.php](../../../Modules/Fisio/Http/Middleware/FisioLiberado.php)
 
-## Services — 27
+## Services — 28
 
 - [AdesaoCalculator.php](../../../Modules/Fisio/Services/AdesaoCalculator.php)
 - [AparelhosDoPortal.php](../../../Modules/Fisio/Services/AparelhosDoPortal.php)
@@ -52,6 +52,7 @@ module: Fisio
 - [FisioAcesso.php](../../../Modules/Fisio/Services/FisioAcesso.php)
 - [JogoService.php](../../../Modules/Fisio/Services/JogoService.php)
 - [LimiarDorCalculator.php](../../../Modules/Fisio/Services/LimiarDorCalculator.php)
+- [LinguagemAnvisa.php](../../../Modules/Fisio/Services/LinguagemAnvisa.php)
 - [MetaSemanal.php](../../../Modules/Fisio/Services/MetaSemanal.php)
 - [MidiaExercicio.php](../../../Modules/Fisio/Services/MidiaExercicio.php)
 - [NivelCalculator.php](../../../Modules/Fisio/Services/NivelCalculator.php)

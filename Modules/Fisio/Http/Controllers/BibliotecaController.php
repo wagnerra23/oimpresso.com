@@ -16,6 +16,7 @@ use Inertia\Response;
 use Modules\Fisio\Entities\Exercise;
 use Modules\Fisio\Services\MidiaExercicio;
 use Modules\Fisio\Services\BibliotecaFacetas;
+use Modules\Fisio\Services\LinguagemAnvisa;
 
 /**
  * Biblioteca de exercícios do Fisio (US-FISIO-004).
@@ -56,6 +57,7 @@ class BibliotecaController extends Controller
         $this->exigirEdicao($request);
 
         $dados = $request->validate($this->regras(false), $this->mensagens());
+        $this->exigirLinguagem($dados);
 
         $exercicio = Exercise::query()->create([
             ...$this->normalizar($dados),
@@ -83,6 +85,7 @@ class BibliotecaController extends Controller
         abort_if($exercicio->ehGlobal(), 403, 'Exercício da biblioteca global não pode ser alterado pela clínica.');
 
         $dados = $request->validate($this->regras(true), $this->mensagens());
+        $this->exigirLinguagem($dados);
         $exercicio->fill($this->normalizar($dados))->save();
 
         if ($request->expectsJson()) {
@@ -115,6 +118,16 @@ class BibliotecaController extends Controller
             'needs_support' => ['sometimes', 'boolean'],
             ...BibliotecaFacetas::regrasCadastro(),
         ];
+    }
+
+    /**
+     * Texto que o paciente lê sem promessa clínica (B-06 · UC-FBI-12; ADR 0437 §5) → 422.
+     *
+     * @param  array<string, mixed>  $dados
+     */
+    private function exigirLinguagem(array $dados): void
+    {
+        LinguagemAnvisa::exigirLimpo(array_intersect_key($dados, array_flip(['name', 'steps', 'synonyms', 'safety_notes'])));
     }
 
     /** @return array<string, string> */
