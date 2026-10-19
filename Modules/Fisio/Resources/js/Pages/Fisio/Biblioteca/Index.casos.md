@@ -31,6 +31,7 @@ related_us: []
 | UC-FBI-09 | filtros de posição, equipamento e "só favoritos" combinados, estado na URL | should | `FisioBibliotecaFavoritosTest` |
 | UC-FBI-10 | exercício próprio aceita posição e equipamento da lista fechada | should | `FisioBibliotecaFavoritosTest` |
 | UC-FBI-11 | biblioteca global vem com os 38 do lote L0, no vocabulário das listas fechadas | must | `BibliotecaL0Test` |
+| UC-FBI-12 | texto da clínica com promessa clínica (ADR 0437 §5) é recusado ao salvar | must | `FisioLinguagemAnvisaTest` |
 
 ---
 
@@ -94,6 +95,13 @@ related_us: []
 - **Aceite:** O deploy semeia 38 exercícios globais (lote L0, aprovado pela responsável técnica, Dra. Djenane Detroz, CREFITO 18.341-F, em 2026-10-19), sem duplicar e sem tocar em exercício de clínica. Cada um tem passos, dose e vezes por dia; posição e equipamento vêm das listas fechadas de `config('fisio.biblioteca')` (senão somem dos filtros) e as contraindicações vêm de `Patient::CONDITION_FLAGS` (senão o aviso ao prescrever nunca dispara). Nenhum texto promete tratar, curar, corrigir postura, prevenir lesão ou diagnosticar (ADR 0437 §5).
 - **Teste:** `Modules/Fisio/Tests/Unit/BibliotecaL0Test.php`
 - **Status: 🧪**
+
+## UC-FBI-12 · Texto da clínica sem promessa clínica `[T0]` · `must`
+- **Persona:** fisioterapeuta que escreve o exercício próprio, um protocolo ou as instruções do programa.
+- **Aceite:** Dado um texto com um dos termos proibidos da ADR 0437 §5 ("diagnostica", "trata", "corrige postura", "previne lesão" — sem maiúscula, sem acento, por palavra inteira), quando a clínica salva exercício próprio (criar/editar), protocolo (editar ou salvar do programa) ou instruções do programa (instrução de parada, versão de crise, observação do exercício), então a resposta é 422, nada é gravado e a mensagem em PT-BR diz qual termo foi barrado e que a decisão clínica é do profissional (Anvisa, RDC 657/2022). Texto limpo grava ("tratamento" passa). A lista mora em `config('fisio.linguagem_anvisa.termos_proibidos')`, cópia literal da ADR. Outra empresa recebe 404 antes do lint.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioLinguagemAnvisaTest.php`
+- **Status: 🧪**
+
 ---
 
 ## Backlog (prosa honesta — vira UC quando ganhar teste que o cite)
@@ -107,3 +115,4 @@ related_us: []
 - 2026-10-18 · US-FISIO-004 — `BibliotecaController`, tela e lane Verticais com `FisioBibliotecaTest`. Busca por texto na F1 aceita por [W] em 2026-10-18 (ADR 0437 §14 nº 3). Status segue 🧪 até o veredito da lane.
 - 2026-10-18 · foto e vídeo no exercício próprio (comparativo Physitrack) — UC-FBI-05..07, `FisioBibliotecaMidiaTest`. Usa o backbone `Modules/Arquivos` (ADR 0123/0214).
 - 2026-10-18 · favoritos e filtros de posição e equipamento (comparativo Physitrack) — UC-FBI-08..10, `FisioBibliotecaFavoritosTest`. Posição passa a ser lista fechada no cadastro.
+- 2026-10-19 · etapa 01 B-06 — lint de linguagem Anvisa ao salvar exercício próprio, protocolo e instruções do programa (UC-FBI-12, `FisioLinguagemAnvisaTest`).
