@@ -2,9 +2,9 @@
 
 namespace Modules\ComunicacaoVisual\Entities;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\ComunicacaoVisual\Entities\Concerns\EscopoPorNegocioDaSessao;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -42,6 +42,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 class OrcamentoItem extends Model
 {
     // Sem SoftDeletes — itens são deletados junto com o orçamento via CASCADE
+    use EscopoPorNegocioDaSessao;
     use LogsActivity;
 
     /**
@@ -97,15 +98,10 @@ class OrcamentoItem extends Model
     // Global scope multi-tenant Tier 0 (ADR 0093)
     // ------------------------------------------------------------------
 
+    // O filtro por empresa vem da trait EscopoPorNegocioDaSessao (mesmo comportamento da
+    // closure que morava aqui até 2026-10-19).
     protected static function booted(): void
     {
-        static::addGlobalScope('business_id', function (Builder $query) {
-            $businessId = session('user.business_id') ?? session('business.id');
-            if ($businessId !== null) {
-                $query->where('comvis_orcamento_itens.business_id', $businessId);
-            }
-        });
-
         static::creating(function (OrcamentoItem $row) {
             if ($row->business_id === null) {
                 $row->business_id = session('user.business_id') ?? session('business.id') ?? 0;

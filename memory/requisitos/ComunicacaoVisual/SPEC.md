@@ -1185,9 +1185,11 @@ Job lê `commission_distribution_json`, calcula valores, cria lançamentos `comi
 
 ### US-COMVIS-019 · Item do orçamento guarda o custo do material no dia (UC-FLX-33) — **P1**
 
-> owner: wagner · priority: p1 · estimate: 2h · status: doing · type: story
+> owner: wagner · priority: p1 · estimate: 2h · type: story
 
-**Implementado em:** `Modules/ComunicacaoVisual/Services/OrcamentoGravador.php` · `Modules/ComunicacaoVisual/Database/Migrations/2026_10_19_210000_add_custo_previsto_to_comvis_orcamento_itens.php` · `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCustoPrevistoTest.php`
+**Implementado em:** `Modules/ComunicacaoVisual/Services/OrcamentoGravador.php` · `Modules/ComunicacaoVisual/Database/Migrations/2026_10_19_210000_add_custo_previsto_to_comvis_orcamento_itens.php`
+
+**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCustoPrevistoTest.php` (lane `verticais-pest.yml`).
 
 Como quem orça comunicação visual, quero que cada item guarde o custo do material no dia do orçamento, porque o que se negocia não é o que se emprega na produção e o cadastro do material não tem histórico.
 
@@ -1195,7 +1197,7 @@ Como quem orça comunicação visual, quero que cada item guarde o custo do mate
 - Custo do item = área × custo do m², arredondado a 2 casas.
 - Custo zero no cadastro conta como não informado.
 
-**Acceptance:**
+**Aceite:**
 - [x] Item com material grava `custo_previsto_m2`, `custo_previsto` e `custo_previsto_em`
 - [x] Item sem material, material sem custo ou de outra empresa fica sem custo
 - [x] Mudar o custo no cadastro depois não altera o orçamento gravado

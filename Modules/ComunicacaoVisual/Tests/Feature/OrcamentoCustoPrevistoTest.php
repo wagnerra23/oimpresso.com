@@ -1,4 +1,5 @@
 <?php
+// @covers-us US-COMVIS-019
 
 declare(strict_types=1);
 

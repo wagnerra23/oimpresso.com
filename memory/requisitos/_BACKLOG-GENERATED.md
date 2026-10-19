@@ -25,7 +25,7 @@
 | [`Compras`](#compras) | 20 | 1 | 0 | 0 | 18 |
 | [`Connector`](#connector) | 20 | 0 | 0 | 0 | 19 |
 | [`Producao`](#producao) | 20 | 0 | 0 | 0 | 20 |
-| [`ComunicacaoVisual`](#comunicacaovisual) | 19 | 1 | 0 | 0 | 18 |
+| [`ComunicacaoVisual`](#comunicacaovisual) | 19 | 0 | 0 | 0 | 19 |
 | [`Forja`](#forja) | 19 | 0 | 1 | 0 | 7 |
 | [`Mwart`](#mwart) | 19 | 0 | 0 | 0 | 19 |
 | [`Vestuario`](#vestuario) | 19 | 0 | 0 | 0 | 19 |
@@ -814,12 +814,9 @@
 ## ComunicacaoVisual
 
 
-### doing
-
-- **US-COMVIS-019** — Item do orçamento guarda o custo do material no dia (UC-FLX-33) — **P1** _(`p1` · @wagner)_
-
 ### todo
 
+- **US-COMVIS-019** — Item do orçamento guarda o custo do material no dia (UC-FLX-33) — **P1** _(`p1` · @wagner)_
 - **US-COMVIS-001** — Cálculo automático por m² (lona, vinil, banner, fachada) — **P0**
 - **US-COMVIS-002** — Cadastro de material com preço por gramatura — **P0**
 - **US-COMVIS-003** — PCP gráfico — fluxo OS multi-etapa com responsável + prazo + custo — **P0**
