@@ -10,6 +10,8 @@ contains:
   - "Jogo de constância (ledger de XP append-only, nível e sequência derivados)"
   - "Painel e fila de atenção do profissional"
   - "BibliotecaController"
+  - "BibliotecaMidiaController"
+  - "Foto ou vídeo curto do exercício próprio da clínica (UC-FBI-05..07) — servida por rota com checagem de empresa"
   - "BibliotecaFavoritosController — favoritos do profissional na empresa (fisio_exercise_favorites)"
   - "DataController"
   - "PainelController"
@@ -26,6 +28,7 @@ not_contains:
   - "Envio de WhatsApp → Modules/Whatsapp (driver whatsmeow via ChannelDriverFactory)"
   - "Cobrança, pacotes e títulos → Financeiro / RecurringBilling (F3)"
   - "Emissão de nota → NFSe (F3)"
+  - "Armazenamento de arquivo (foto/vídeo do exercício próprio) → Modules/Arquivos (backbone HasArquivos, ADR 0123/0214)"
 excludes:
   - "Prescrição sugerida por IA e câmera com ângulo/correção de forma (SaMD classe II, ADR 0437 §5) até decisão de notificação"
   - "Questionários com licença paga (ODI, NDI, KOOS, QuickDASH, WOMAC) até licença"

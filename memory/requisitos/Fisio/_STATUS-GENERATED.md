@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 0 |
 | Telas (.tsx) | 4 |
 | Telas com `casos.md` | 5 |
-| UC declarados | 67 |
-| UC com teste que os cita | 67 |
+| UC declarados | 70 |
+| UC com teste que os cita | 70 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -58,6 +58,9 @@ authority: generated
 | UC-FBI-02 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-03 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-04 | Biblioteca/Index | 🧪 aguarda veredito da lane |
+| UC-FBI-05 | Biblioteca/Index | 🧪 aguarda veredito da lane |
+| UC-FBI-06 | Biblioteca/Index | 🧪 aguarda veredito da lane |
+| UC-FBI-07 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-08 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-09 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-10 | Biblioteca/Index | 🧪 aguarda veredito da lane |

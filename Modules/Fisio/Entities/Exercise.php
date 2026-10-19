@@ -6,12 +6,14 @@ namespace Modules\Fisio\Entities;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Arquivos\Concerns\HasArquivos;
 use Modules\Fisio\Database\Factories\ExerciseFactory;
 use Modules\Fisio\Entities\Concerns\EscopoBibliotecaFisio;
 
 /**
  * `fisio_exercises` — biblioteca. `business_id` nulo = global do oimpresso; preenchido =
- * exercício próprio da clínica. Escopo próprio (`EscopoBibliotecaFisio`): a sessão vê os
+ * exercício próprio da clínica. A foto/vídeo do exercício próprio vive no backbone
+ * `Modules/Arquivos` (`HasArquivos`, ADR 0123) — ver `Services/MidiaExercicio`. Escopo próprio (`EscopoBibliotecaFisio`): a sessão vê os
  * globais e os dela, nunca os de outra empresa (ADR 0093).
  *
  * @property int $id
@@ -35,6 +37,7 @@ use Modules\Fisio\Entities\Concerns\EscopoBibliotecaFisio;
 class Exercise extends Model
 {
     use EscopoBibliotecaFisio;
+    use HasArquivos;
     /** @use HasFactory<ExerciseFactory> */
     use HasFactory;
 
