@@ -27,6 +27,7 @@ created: "2026-10-18"
 
 - **2026-10-17** — P: produto separado ou módulo do oimpresso? → R: módulo ([W]: *"Gostaria que fosse módulo se não for ficar ruim"*).
 - **2026-10-18** — P: qual driver de WhatsApp? → R: `whatsmeow`, pelo módulo `Whatsapp` existente ([W]: *"whatsmeow será o driver"*); risco de banimento aceito com as mitigações da ADR 0437 §13.1.
+- **2026-10-18 (emenda do mesmo dia)** — P: um driver só? → R: não; os dois, à escolha de cada clínica na tela de configurações do WhatsApp ([W]: *"As duas, acho que depende da escolha do fisioterapeuta"*). Canais: `meta_cloud` (recomendado), `whatsmeow` (com aceite de risco registrado por clínica) e envio manual `wa.me`. ADR 0437 §13.1.
 - **2026-10-18** — P: quem revisa o conteúdo clínico? → R: Dra. Dejeane, fisioterapeuta contratada.
 - **Aberta** — busca por texto na biblioteca entra na F1? (ADR 0437 §14, decisão nº 3). Até decidir, a F1 entrega filtro por região e equipamento.
 
