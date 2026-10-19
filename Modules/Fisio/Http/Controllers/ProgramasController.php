@@ -16,6 +16,7 @@ use Modules\Fisio\Entities\Program;
 use Modules\Fisio\Entities\ProgramItem;
 use Modules\Fisio\Entities\Protocol;
 use Modules\Fisio\Entities\Record;
+use Modules\Fisio\Services\LinguagemAnvisa;
 
 /**
  * Editor de programa de exercícios (US-FISIO-006; ADR 0437 §5 e §13.2).
@@ -53,6 +54,7 @@ class ProgramasController extends Controller
             'starts_at' => ['nullable', 'date'],
             ...$this->regrasCabecalho(true),
         ], $this->mensagens());
+        $this->exigirLinguagem($dados);
 
         $programa = DB::transaction(function () use ($request, $paciente, $dados) {
             // Um ativo por paciente: o anterior sai de uso por status, nunca por DELETE.
@@ -95,6 +97,7 @@ class ProgramasController extends Controller
             'phase' => ['sometimes', 'nullable', 'string', 'max:40'],
             ...$this->regrasCabecalho(false),
         ], $this->mensagens());
+        $this->exigirLinguagem($dados);
 
         $campos = [];
         foreach (['phase', 'pain_alert_threshold', 'pain_alert_mode'] as $c) {
@@ -172,6 +175,7 @@ class ProgramasController extends Controller
             'hold_s.between' => 'Sustentação de 0 a 600 segundos.',
             'times_per_day.between' => 'Vezes por dia de 1 a 10.',
         ]);
+        LinguagemAnvisa::exigirLimpo(['notes' => $dados['notes'] ?? null]);
 
         $linha->fill($dados)->save();
 
@@ -389,6 +393,16 @@ class ProgramasController extends Controller
         $biz = $this->businessId($request);
 
         return Rule::exists('fisio_exercises', 'id')->where(fn ($q) => $q->whereNull('business_id')->orWhere('business_id', $biz));
+    }
+
+    /**
+     * Instruções do programa que o paciente lê sem promessa clínica (B-06 · UC-FBI-12; ADR 0437 §5) → 422.
+     *
+     * @param  array<string, mixed>  $dados
+     */
+    private function exigirLinguagem(array $dados): void
+    {
+        LinguagemAnvisa::exigirLimpo(array_intersect_key($dados, array_flip(['stop_instruction', 'crisis_items'])));
     }
 
     /** @return array<string, mixed> */

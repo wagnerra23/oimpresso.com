@@ -95,6 +95,16 @@ return [
         'video_max_kb' => 51200,  // 50 MB
     ],
 
+    /*
+     * Linguagem proibida no texto que a clínica salva (B-06 · UC-FBI-12). Cópia LITERAL da ADR 0437 §5
+     * ("Proibido: ..."), nunca ampliada aqui: termo novo entra pela ADR primeiro. Quem lê é
+     * Modules\Fisio\Services\LinguagemAnvisa, que compara sem maiúscula, sem acento e por palavra
+     * inteira ("tratamento" passa; "trata" não).
+     */
+    'linguagem_anvisa' => [
+        'termos_proibidos' => ['diagnostica', 'trata', 'corrige postura', 'previne lesão'],
+    ],
+
     /* Dor (0–10) a partir da qual o portal sai do jogo e mostra só a instrução do profissional. */
     'pain_alert_threshold_padrao' => 7,
 
