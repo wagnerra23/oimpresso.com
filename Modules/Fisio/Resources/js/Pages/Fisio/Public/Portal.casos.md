@@ -1,13 +1,13 @@
 ---
 id: modules-fisio-pages-fisio-public-portal-casos
 casos: Fisio · Portal do paciente · /fisio/p/{token}
-irmaos: Portal.charter.md (lei) · Portal.tsx (tela) · precedente resources/js/Pages/OficinaAuto/AprovacaoPublica.casos.md
+irmaos: Portal.charter.md (lei) · Portal.tsx (tela) + _components/Entrada.tsx, Hoje.tsx, Checkin.tsx · precedente resources/js/Pages/OficinaAuto/AprovacaoPublica.casos.md
 tecnica: Caso de uso = narrativa do paciente + critério de aceite verificável (Dado/Quando/Então)
 por_que: o portal é público na internet e mostra dado de saúde. Sem PIN/lockout é força bruta; sem consentimento é LGPD; sem telemonitoramento o check-in não vale como prontuário (Res. COFFITO 619/2025); conduta calculada pelo software vira dispositivo médico (Anvisa/SaMD); XP que premia exceder o prescrito incentiva lesão.
 owner: wagner
 last_run: "2026-10-19"
-last_run_ci: "_pendente_ — o trio nasce com a suíte TDD da F1 (antes do código). O veredito entra quando a lane MySQL rodar FisioPortalAcessoTest, FisioCheckinTest, FisioJogoTest, FisioPortalSegurancaClinicaTest e os Unit SequenciaCalculatorTest/NivelCalculatorTest."
-related_us: []
+last_run_ci: "_pendente_ — a US-FISIO-007b põe FisioCheckinTest, FisioJogoTest, FisioPortalSegurancaClinicaTest e FisioPortalAparelhoTest na lane Verticais (MySQL); o veredito por UC entra quando o manifesto da lane for regenerado."
+related_us: [US-FISIO-007, US-FISIO-008]
 ---
 
 # Casos de Uso & Aceite — Fisio · Portal do paciente (`/fisio/p/{token}`)
@@ -44,6 +44,10 @@ related_us: []
 | UC-FPP-19 | dor alta ou alerta: só a instrução do profissional | must | `FisioPortalSegurancaClinicaTest` |
 | UC-FPP-20 | portal não expõe série de dor | must | `FisioPortalSegurancaClinicaTest` |
 | UC-FPP-21 | WhatsApp e câmera: opcionais, independentes, carimbados; sem PIN nada se grava | must | `FisioPortalLinkTest` |
+| UC-FPP-22 | "lembrar este aparelho" dispensa o PIN; só hash no banco | must | `FisioPortalAparelhoTest` |
+| UC-FPP-23 | aparelho lembrado cai com outro link, prazo vencido, revogação ou link novo | must | `FisioPortalAparelhoTest` |
+| UC-FPP-24 | dia de crise só com versão escrita pelo profissional; conta para a sequência | must | `FisioPortalAparelhoTest` |
+| UC-FPP-25 | Hoje: dose, cuidados, jogo e só o relato de hoje; nada de outra clínica | must | `FisioPortalAparelhoTest` |
 
 ---
 
@@ -160,6 +164,29 @@ related_us: []
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioPortalLinkTest.php`
 - **Status: 🧪**
 
+## UC-FPP-22 · Lembrar este aparelho · `must`
+- **Persona:** paciente que abre o lembrete todo dia e não quer digitar o PIN de novo (etapa 02 T-07a).
+- **Aceite:** Dado o PIN certo com "Lembrar este aparelho" marcado · Então o servidor grava em `fisio_portal_devices` só o sha256 de um segredo aleatório, amarrado à linha do token e ao business, válido por `config('fisio.portal.lembrar_aparelho_dias')` (30), e devolve o segredo num cookie httpOnly cifrado. Num aparelho sem sessão, esse cookie abre direto o Hoje. Sem cookie, ou com cookie forjado, o PIN volta. Sem marcar, nada é gravado.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPortalAparelhoTest.php`
+- **Status: 🧪**
+
+## UC-FPP-23 · O aparelho lembrado cai quando deve `[T0]` · `must`
+- **Aceite:** O cookie de um link não abre o link de outro paciente. Passado o prazo, o PIN volta mesmo com o link ainda válido. O profissional revogar o link, ou gerar outro, revoga os aparelhos lembrados (`revoked_at`); o link antigo cai no estado vazio.
+- **Regressão que defende:** celular perdido ou emprestado continuar com acesso depois de a clínica trocar o link.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPortalAparelhoTest.php`
+- **Status: 🧪**
+
+## UC-FPP-24 · Hoje estou em crise · `must`
+- **Persona:** paciente com dor crônica (protocolo 11) num dia ruim.
+- **Aceite:** O botão só aparece quando o profissional escreveu a versão de crise no programa (`crisis_items`). Sem ela, `crisis=true` é recusado (422) e nada é gravado. Com ela, o check-in grava `crisis=true` e o dia conta para a sequência. A versão de crise é texto do profissional, e o software não a escolhe.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPortalAparelhoTest.php`
+- **Status: 🧪**
+
+## UC-FPP-25 · A tela Hoje mostra o que o paciente precisa, e só isso `[T0]` · `must`
+- **Aceite:** Com consentimento: itens do programa ativo com séries, repetições, tempo, vezes por dia e os cuidados da biblioteca; estado do jogo (`xp`, `nivel`, `xp_no_nivel`, `xp_para_proximo`, `sequencia`, `em_pausa`, `dias_cumpridos`, sem ranking); `relato` só do dia corrente, para corrigir. O token da 98 não grava check-in em paciente da 99, mesmo com `business_id`/`patient_id` no corpo, e nada da 99 aparece no payload.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPortalAparelhoTest.php`
+- **Status: 🧪**
+
 ---
 
 ## Backlog (prosa honesta — vira UC quando ganhar teste que o cite)
@@ -167,8 +194,11 @@ related_us: []
 - `[BACKLOG]` Missões e medalhas da Jornada (T-08) — regra ainda não fixada na ADR em forma testável.
 - `[BACKLOG]` A tela funciona sem zoom em 360 px e com leitor de tela — sem prova automatizada.
 - `[BACKLOG]` Rate limit por IP na rota pública: `throttle:60,1` ligado na US-FISIO-007a (como o Oficina), ainda sem teste que o cite.
-- `[BACKLOG]` "Lembrar este aparelho por 30 dias" (etapa 02 T-07a, `fisio_portal_devices`) — fora do corte da US-FISIO-007a.
+- `[BACKLOG]` Fila offline do check-in (IndexedDB + reenvio ao reabrir, etapa 02 §3.6) — a idempotência por dia já existe no servidor; falta o service worker.
+- `[BACKLOG]` Aviso fixo "Se for uma emergência, ligue 192" no dia de pausa — segurado pela ADR 0437 §14 nº 9 até parecer regulatório.
+- `[BACKLOG]` Crise por mais de 3 dias seguidos avisar o profissional (protocolo 11) — sem regra testável no AtencaoDetector ainda.
 
 ## Trilha do tempo
+- 2026-10-19 · US-FISIO-007b — check-in grava o dia, telemonitoramento/adendo, sinal de alerta notifica, modo pausa só com a instrução do profissional; tela desenhada (Entrada, Hoje, Check-in, Crise) a partir do canvas Prescreve Pro; "lembrar este aparelho" (`fisio_portal_devices`). UC-FPP-22..25 entram com `FisioPortalAparelhoTest`.
 - 2026-10-18 · US-FISIO-007a — a tela nasce mínima (`Portal.tsx` + `Portal.charter.md`): link, PIN, consentimentos e lista do dia; check-in, jogo e modo pausa ficam com a US-FISIO-007b/008. UC-FPP-21 (consentimentos opcionais) entra com teste.
 - 2026-10-17 · suíte TDD da F1 — casos nascem antes da tela e do código; consentimentos, telemonitoramento, jogo, sinais de alerta e modo pausa entram pela atualização de escopo do mesmo dia.

@@ -2,10 +2,10 @@
 id: modules-fisio-pages-fisio-public-portal-charter
 page: /fisio/p/{token}
 component: Modules/Fisio/Resources/js/Pages/Fisio/Public/Portal.tsx
-related_prototype: "n/a (tela pública fora do AppShellV2; o canvas Prescreve Pro desenha o app do paciente, mas em 2026-10-18 não havia fonte resolvível em prototipo-ui/ — a versão desenhada é da US-FISIO-007b)"
+related_prototype: "canvas de design Prescreve Pro (claude.ai), telas PacienteAcesso, PacienteHoje, PacienteCheckin, PacienteCrise e PacienteNota — referência visual, sem fonte em prototipo-ui/; a implementação usa os tokens e componentes do repo"
 owner: wagner
 status: draft
-last_validated: "2026-10-18"
+last_validated: "2026-10-19"
 parent_module: Fisio
 related_adrs: [93, 358, 437]
 alcance:
@@ -14,12 +14,13 @@ alcance:
   permission: n/a (pública, sem login — link + PIN gerados pela clínica)
   pacote: fisio_module
 tier: B
-charter_version: 1
+charter_version: 2
 ---
 
-# Page Charter — /fisio/p/{token} (DRAFT · portal do paciente, entrada mínima)
+# Page Charter — /fisio/p/{token} (DRAFT · portal do paciente)
 
-> Nasce na US-FISIO-007a (ADR 0437 §4, §5 e §7; HANDOFF-F1 T-07; etapa 02 T-07a/T-07b). Casos: [`Portal.casos.md`](Portal.casos.md).
+> Nasce na US-FISIO-007a e ganha as telas do dia na US-FISIO-007b (ADR 0437 §4 a §7; HANDOFF-F1 T-07; etapa 02 T-07a a T-07c). Casos: [`Portal.casos.md`](Portal.casos.md).
+> Uma página Inertia; as telas são componentes em `_components/` (`Entrada.tsx`, `Hoje.tsx`, `Checkin.tsx`) escolhidos pela `etapa` e pelo `modo` que o servidor decide.
 > Precedente: link público de aprovação da OficinaAuto (token HMAC + PIN + lockout). Non-Goals e Anti-hooks além dos abaixo são de [W].
 
 ## Mission
@@ -32,19 +33,26 @@ Deixar o paciente abrir, pelo link que a clínica gerou e com o PIN que a fisiot
 - PIN de 4 dígitos com 5 tentativas e trava de 30 min — UC-FPP-03, UC-FPP-04.
 - Consentimento de teleatendimento antes de qualquer dado; WhatsApp e câmera são opcionais e independentes; revogação pelo portal — UC-FPP-05, UC-FPP-06.
 - Paciente bloqueado ou de outra clínica não abre — UC-FPP-07.
-- Lista do dia: só nome do exercício, dose e observação do profissional.
+- Lembrar este aparelho por 30 dias; o PIN volta em aparelho novo, depois do prazo ou de revogação — UC-FPP-22, UC-FPP-23.
+- Hoje: exercícios do programa ativo com dose, vezes por dia, passos e cuidados da biblioteca, e o jogo (nível, XP para o próximo, sequência, pausa gentil) — UC-FPP-17, UC-FPP-18, UC-FPP-25.
+- "Como foi hoje?" em 3 toques (fiz tudo/parte/nada → dor 0–10 → "notou algo diferente?"), esforço e recado recolhidos; reenvio no mesmo dia corrige — UC-FPP-08 a UC-FPP-16.
+- Dia de pausa (dor ≥ limiar ou sinal de alerta): só a instrução escrita pelo profissional, sem jogo — UC-FPP-19, UC-FPP-20.
+- "Hoje estou em crise" quando o profissional escreveu a versão de crise — UC-FPP-24.
 
 ## Non-Goals — Features (NÃO faz)
 
-- ❌ Check-in, XP, nível e sequência (US-FISIO-007b e US-FISIO-008) — o endpoint de check-in já barra sem PIN e sem consentimento, mas não grava.
+- ❌ Ranking, moeda, loja, missões e medalhas (ADR 0437 §6; missões e medalhas ficam no backlog do jogo).
+- ❌ Câmera, nota de execução e vídeo do exercício (F2).
+- ❌ Áudio do paciente (fora da F1 — o handoff proíbe guardar áudio).
 - ❌ Mostrar queixa, marcadores de condição, aviso de contraindicação ou série de dor (ADR 0437 §5 — SaMD).
-- ❌ "Lembrar este aparelho por 30 dias" (etapa 02 T-07a) — depende de `fisio_portal_devices`, fora deste corte.
+- ❌ Calcular conduta para o paciente (ajustar dose, sugerir troca de exercício) — dispositivo médico (Anvisa/SaMD).
 
 ## Anti-hooks
 
 - ⛔ Nenhum dado clínico antes do PIN e do consentimento — garantido no servidor, nunca só na tela.
 - ⛔ O business nunca vem de parâmetro: vem assinado no token.
-- ⛔ Token e PIN em claro nunca vão para banco, log ou activity_log.
+- ⛔ Token, PIN e segredo do aparelho em claro nunca vão para banco, log ou activity_log.
+- ⛔ O portal nunca recebe série histórica de dor; só o relato do dia corrente.
 
 ## Refs
 

@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-FISIO-007
 // Cobre UC-FPP-01..UC-FPP-07 (Fisio/Public/Portal.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;

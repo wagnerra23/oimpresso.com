@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 0 |
 | Telas (.tsx) | 5 |
 | Telas com `casos.md` | 6 |
-| UC declarados | 81 |
-| UC com teste que os cita | 81 |
+| UC declarados | 85 |
+| UC com teste que os cita | 85 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -31,7 +31,6 @@ authority: generated
 | `US-FISIO-004` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Biblioteca semeada e revisada pela responsável técnica — **P |
 | `US-FISIO-005` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0 |
 | `US-FISIO-006` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Editor de programa, protocolos-modelo e aviso de contraindic |
-| `US-FISIO-007` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Portal do paciente (link + PIN, consentimentos, check-in, te |
 | `US-FISIO-010` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Painel, evolução e fila de atenção — **P0** |
 | `US-FISIO-011` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) —  |
 
@@ -104,6 +103,10 @@ authority: generated
 | UC-FPP-19 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPP-20 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPP-21 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-22 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-23 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-24 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-25 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPS-01 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-02 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-03 | Pacientes/Show | 🧪 aguarda veredito da lane |
