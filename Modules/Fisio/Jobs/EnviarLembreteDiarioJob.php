@@ -58,7 +58,7 @@ class EnviarLembreteDiarioJob implements ShouldQueue
 
         $envio = app(EnvioWhatsappFisio::class);
         $hoje = $envio->hoje($this->businessId);
-        $pacientes = $this->elegiveis($hoje);
+        $pacientes = self::elegiveisDoDia($this->businessId, $hoje);
         if ($pacientes === []) {
             return;
         }
@@ -94,12 +94,17 @@ class EnviarLembreteDiarioJob implements ShouldQueue
         Log::info('[fisio.whatsapp.lembrete] lembretes enfileirados', $ctx + ['enviados' => $enviados, 'dia' => $hoje]);
     }
 
-    /** @return list<Patient> com programa ativo, não bloqueados e sem check-in hoje */
-    private function elegiveis(string $hoje): array
+    /**
+     * Quem o lembrete de hoje procura (antes de consentimento e telefone). Público porque o painel
+     * (T-09e) usa a MESMA lista para mostrar quem ficou sem lembrete quando o canal está caído.
+     *
+     * @return list<Patient> com programa ativo, não bloqueados e sem check-in hoje
+     */
+    public static function elegiveisDoDia(int $businessId, string $hoje): array
     {
         // SUPERADMIN: job sem sessão — todas as leituras filtram business_id explicitamente (ADR 0093).
         $comPrograma = Program::query()->withoutGlobalScopes()
-            ->where('business_id', $this->businessId)
+            ->where('business_id', $businessId)
             ->where('status', Program::STATUS_ATIVO)
             ->pluck('patient_id')->map('intval')->unique()->all();
         if ($comPrograma === []) {
@@ -108,14 +113,14 @@ class EnviarLembreteDiarioJob implements ShouldQueue
 
         // SUPERADMIN: job sem sessão — filtro explícito por business_id (ADR 0093).
         $jaRegistraram = Checkin::query()->withoutGlobalScopes()
-            ->where('business_id', $this->businessId)
+            ->where('business_id', $businessId)
             ->whereIn('patient_id', $comPrograma)
             ->whereDate('date', $hoje)
             ->pluck('patient_id')->map('intval')->all();
 
         // SUPERADMIN: job sem sessão — filtro explícito por business_id (ADR 0093).
         return Patient::query()->withoutGlobalScopes()
-            ->where('business_id', $this->businessId)
+            ->where('business_id', $businessId)
             ->whereIn('id', array_values(array_diff($comPrograma, $jaRegistraram)))
             ->whereNull('blocked_at')
             ->orderBy('id')

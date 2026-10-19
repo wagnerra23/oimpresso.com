@@ -539,6 +539,10 @@ jobs:
         # consentimento, isolamento 98×99, idempotência persistida, silêncio, teto por hora e wa.me
         # manual sem canal. O caso de integração com o portal real PULA até o US-FISIO-007a entrar.
         #
+        # ENTRA 2026-10-19 — Fisio/FisioPainelEnviosFalhosTest (etapa 02 T-09e, UC-FPN-09): o painel
+        # lista o WhatsApp de hoje que não chegou, com wa.me; sucesso some, 99 não vaza, sem
+        # consentimento não ganha link.
+        #
         # ENTRA 2026-10-19 — Fisio/FisioLinguagemAnvisaTest (etapa 01 B-06 · UC-FBI-12): termo
         # proibido da ADR 0437 §5 no exercício próprio, protocolo ou instruções do programa → 422 com
         # a mensagem do termo; texto limpo grava; 99 recebe 404 antes do lint.
@@ -657,6 +661,7 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioPortalSegurancaClinicaTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalAparelhoTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalAppTest.php \
+            Modules/Fisio/Tests/Feature/FisioPainelEnviosFalhosTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalFilaOfflineTest.php \
             Modules/Fisio/Tests/Feature/FisioLinguagemAnvisaTest.php
           vendor/bin/pest --no-coverage --colors=always \
