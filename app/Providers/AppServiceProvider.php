@@ -298,10 +298,6 @@ class AppServiceProvider extends ServiceProvider
         // Ref: ADR 0127 §princípio 3 (causer dual)
         Activity::observe(ActivityCauserKindObserver::class);
 
-        // UC-FLX-33: congela o custo do insumo na linha de orçamento (venda em rascunho).
-        // Só lê compras; nunca derruba a venda (ver o docblock do observer).
-        \App\TransactionSellLine::observe(\App\Observers\TransactionSellLineCustoObserver::class);
-
         // FSM (parecer juiz 2026-07-21): zera o singleton FsmAuthorizationFlag
         // ANTES de cada job — impede que uma flag não-consumida (exceção antes
         // do save, self-transition não-dirty, Titulo sem guard) vaze autorização

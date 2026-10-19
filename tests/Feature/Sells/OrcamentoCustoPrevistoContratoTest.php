@@ -25,7 +25,8 @@ use Tests\Support\WithSeededTenant;
  *
  * O orçamento é de 15/03. A compra de 20/03 chega depois e NÃO pode mudar o custo guardado.
  */
-uses(Tests\TestCase::class, DatabaseTransactions::class, WithSeededTenant::class);
+// O TestCase já vem do tests/Pest.php (`uses(TestCase::class)->in('Feature')`).
+uses(DatabaseTransactions::class, WithSeededTenant::class);
 
 beforeEach(function () {
     try {

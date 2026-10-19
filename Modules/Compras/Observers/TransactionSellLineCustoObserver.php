@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Observers;
+namespace Modules\Compras\Observers;
 
 use App\TransactionSellLine;
 use Illuminate\Support\Facades\DB;
@@ -25,6 +25,9 @@ use Modules\Compras\Services\CustoDoInsumoService;
  * log. Não toca preço, total nem estoque.
  *
  * Tier 0 (ADR 0093): o business vem da própria transação da linha.
+ *
+ * Mora em Compras, e não em `app/`, porque o núcleo não importa de módulo
+ * (tests/Feature/Architecture/DependencyDirectionTest). Registrado por ComprasServiceProvider.
  */
 final class TransactionSellLineCustoObserver
 {

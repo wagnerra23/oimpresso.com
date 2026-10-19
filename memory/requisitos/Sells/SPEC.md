@@ -1502,7 +1502,7 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 
 ### US-SELL-067 · Orçamento guarda o custo do dia em cada linha (UC-FLX-33)
 
-**Implementado em:** `app/Observers/TransactionSellLineCustoObserver.php` · `database/migrations/2026_10_19_200000_add_custo_previsto_to_transaction_sell_lines.php`
+**Implementado em:** `Modules/Compras/Observers/TransactionSellLineCustoObserver.php` · `database/migrations/2026_10_19_200000_add_custo_previsto_to_transaction_sell_lines.php`
 
 **Testado em:** `tests/Feature/Sells/OrcamentoCustoPrevistoContratoTest.php` (lane `sells-pest.yml`).
 
