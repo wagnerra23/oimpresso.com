@@ -264,15 +264,20 @@ só no navegador, trouxe de volta a borda da caixa e o separador das linhas (0 �
 | D2 rodapé | 69px, padding 16 | 55px, padding 12/18 | DÍVIDA — corrigida |
 | D4/D6 botões | 36px, raio 6, 14px; "Editar ordem" sem lápis, peso 500 | 30px, raio 8, 12,5px; lápis 13px, peso 600 | DÍVIDA — corrigida |
 | D3 fechar do canto | ícone X numa área de 44px, rótulo "Close" | × de 28px, raio 6, `--text-mute` | DÍVIDA — corrigida |
-| D4 tamanhos no painel | 12 · 10 · 12 | 12,5 · 10,5 · 12,5 | DÍVIDA — corrigida só no painel |
+| D4 tamanhos (linha, código, rótulo do custo) | 12 · 10 · 12 | 12,5 · 10,5 · 12,5 | DÍVIDA — corrigida na regra-base do bundle |
+| D6 fundo atrás do painel | `bg-black/50` | `oklch(0.15 0 0 / 0.45)` | DÍVIDA — **não corrigida**: o `SheetContent` não aceita classe no fundo; mudar pede mexer no `Sheet` compartilhado |
 | D1 rede | busca parcial (~1,2s, com esqueleto) | instantâneo (dado de mentira) | IGUAL — não recarrega a página |
 
-**Depois, simulado em produção antes do merge:** com o CSS novo injetado (conferido por tamanho e hash
-contra o arquivo) e a árvore que o `OrdemDrawer.tsx` novo gera, **90 de 93** propriedades iguais ao
-protótipo. As 3 restantes: a pilha de fontes reserva (a primeira, IBM Plex Sans, é a mesma) e dois cinzas
-que o bundle clareia pela ADR 0410 — título da seção e código do item em `--text-dim` (5,51:1 sobre o
-cartão) em vez de `--text-mute` (4,57:1 no tema escuro; o claro não foi medido). **A prova final é o
-smoke depois do deploy** (LC-30), não esta simulação.
+**Depois, simulado em produção antes do merge:** o HTML exato que o `OrdemDrawer.tsx` novo gera (tirado
+do jsdom, já com as classes resolvidas pelo `cn()`, dados fictícios) montado dentro do `.cockpit`, mais as
+regras do build que ainda não existem em produção (hash conferido). Das **94** propriedades medidas,
+**86** iguais ao protótipo de saída. Das 8 restantes: o raio dos 2 botões (aqui `rounded-lg` é 12px;
+trocado para `rounded-[8px]` e conferido em produção: 8px, com os controles `rounded-md` 6px e
+`rounded-lg` 12px); 2 sombras equivalentes (o Tailwind soma camadas transparentes antes da sombra; a
+sombra visível é a mesma); e 4 declaradas — o fundo atrás do painel (tabela acima), a pilha de fontes
+reserva (a primeira, IBM Plex Sans, é a mesma) e os dois cinzas da ADR 0410: título da seção e código do
+item em `--text-dim` (5,51:1 sobre o cartão) em vez de `--text-mute` (4,57:1 no tema escuro; o claro não
+foi medido). **A prova final é o smoke depois do deploy** (LC-30), não esta simulação.
 
 **Fora do eixo FORMA (seguem do código, não são dívida):** a observação da ordem (a ordem antiga não tem
 esse campo), os links "Fila de produção · ficha do produto" (as telas não existem) e "Editar ordem" só em
@@ -280,9 +285,15 @@ rascunho (a tela antiga não edita ordem finalizada). **Rótulo pendente [W]:** 
 hoje" e a produção "Mesma ordem a preço de hoje", porque a conta usa a quantidade gravada. Ou o protótipo
 muda, ou o rótulo volta.
 
-**Não coberto:** as regras-base do bundle (`.mfg-ing` 12px, código 10px, `.mfg-tot dt` 12px) seguem o
-handoff antigo e valem também para Receitas e Insumos; trocar lá pede medir aquelas telas. O diálogo
-"Nova receita" também é portal sem `container` (não medido).
+**Onde mora a correção:** a moldura está em classes Tailwind no `OrdemDrawer.tsx`, como no painel do
+produto (`Produto/_components/lista/PainelDetalhe.tsx`); o bundle não cresceu (MANUAL-CSS-JS passo 1).
+Os 4 tamanhos foram trocados na regra-base do bundle (`.mfg-ing`, `.mfg-ing .m`, `.mfg-ing .n small`,
+`.mfg-tot dt`), porque utilitário não vence regra do bundle e `!important` é proibido. Os valores são os
+da mesma regra do protótipo (`manufacturing-page.css` L55-62).
+
+**Não coberto:** a troca na regra-base alcança também Receitas, Insumos e o editor de ingredientes, que
+usam as mesmas classes; o valor é o do protótipo, mas essas telas não foram medidas depois da troca. O
+diálogo "Nova receita" também é portal sem `container` (não medido).
 
 ## Cobertura desta tela hoje
 
