@@ -39,6 +39,7 @@ Deixar o paciente abrir, pelo link que a clínica gerou e com o PIN que a fisiot
 - Dia de pausa (dor ≥ limiar ou sinal de alerta): só a instrução escrita pelo profissional, sem jogo — UC-FPP-19, UC-FPP-20.
 - "Hoje estou em crise" quando o profissional escreveu a versão de crise — UC-FPP-24.
 - App instalável: manifesto por link (sem o nome da clínica), tela do dia aberta sem rede só em aparelho lembrado, convite "Adicionar à tela inicial" a partir do 3º dia cumprido — UC-FPP-26 a UC-FPP-28.
+- Fila offline do check-in: sem rede, o check-in fica no aparelho lembrado e vai quando a internet volta, uma vez só (chave por envio); de outro dia é recusado — UC-FPP-30 a UC-FPP-32.
 
 ## Non-Goals — Features (NÃO faz)
 

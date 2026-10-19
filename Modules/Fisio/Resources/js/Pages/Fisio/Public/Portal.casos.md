@@ -214,6 +214,24 @@ related_us: [US-FISIO-007, US-FISIO-008]
 - **Aceite:** `GET /fisio/app` (sem token) devolve a página do portal com `erro: sem_link`: só o texto pedindo para abrir o link que a clínica mandou pelo WhatsApp. Não consulta o banco e não manda dado de paciente, de clínica nem do jogo.
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioPortalAppTest.php`
 - **Status: 🧪**
+
+## UC-FPP-30 · Reenvio da fila com a mesma chave não grava duas vezes `[T0]` · `must`
+- **Persona:** paciente que fez o check-in em casa, com a rede caindo.
+- **Aceite:** Cada envio do check-in leva uma `chave`. Se a mesma chave volta (a fila reenviou porque a resposta se perdeu), o servidor responde 200 com o check-in do dia e não grava nada de novo: continua 1 linha em `fisio_checkins`, 1 telemonitoramento, nenhum adendo e nenhum XP a mais. Chave nova no mesmo dia segue a regra de sempre (atualiza o dia).
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPortalFilaOfflineTest.php`
+- **Status: 🧪**
+
+## UC-FPP-31 · Só aparelho lembrado guarda check-in no aparelho `[T0]` · `must`
+- **Aceite:** A tela Hoje traz `guardar_offline: true` só em aparelho lembrado; com o PIN só na sessão vem `false` e o portal não guarda o check-in sem rede (mostra só o aviso de sem internet). Um envio marcado `offline: true` vindo de aparelho não lembrado é recusado (403 `fila_so_aparelho_lembrado`) e nada é gravado; a fila apaga o item.
+- **Regressão que defende:** dado clínico (dor, sinal de alerta) ficando num celular emprestado.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPortalFilaOfflineTest.php`
+- **Status: 🧪**
+
+## UC-FPP-32 · Check-in guardado de outro dia não cai no dia errado `[T0]` · `must`
+- **Aceite:** O envio leva o `dia` em que o paciente fez o check-in. Se não for o dia de hoje no fuso da clínica, o servidor recusa (422 `dia_passou`) e não grava nada: o relato de ontem nunca vira o check-in de hoje. A fila apaga o item.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPortalFilaOfflineTest.php`
+- **Status: 🧪**
+
 ---
 
 ## Backlog (prosa honesta — vira UC quando ganhar teste que o cite)
@@ -221,13 +239,14 @@ related_us: [US-FISIO-007, US-FISIO-008]
 - `[BACKLOG]` Missões e medalhas da Jornada (T-08) — regra ainda não fixada na ADR em forma testável.
 - `[BACKLOG]` A tela funciona sem zoom em 360 px e com leitor de tela — sem prova automatizada.
 - `[BACKLOG]` Rate limit por IP na rota pública: `throttle:60,1` ligado na US-FISIO-007a (como o Oficina), ainda sem teste que o cite.
-- `[BACKLOG]` Fila offline do check-in (IndexedDB + reenvio ao reabrir, etapa 02 §3.6) — o service worker já existe (UC-FPP-27); falta a fila. O servidor grava o check-in no dia do envio, então a fila só pode reenviar no mesmo dia.
+- `[BACKLOG]` Check-in feito offline num dia e enviado só no dia seguinte: hoje é recusado (UC-FPP-32) e se perde. Aceitar "ontem" mexe na sequência do jogo (dá para salvar um dia esquecido) — decisão [W].
 - `[BACKLOG]` Convite "Adicionar à tela inicial" a partir do 3º dia cumprido (Android pelo convite do navegador; iPhone com passo a passo) — no código (`_components/Instalar.tsx`), sem prova automatizada.
 - `[BACKLOG]` Aviso por push para quem instalou (iOS 16.4+) — exige chave VAPID e biblioteca nova (ADR).
 - `[BACKLOG]` Aviso fixo "Se for uma emergência, ligue 192" no dia de pausa — segurado pela ADR 0437 §14 nº 9 até parecer regulatório.
 - `[BACKLOG]` Crise por mais de 3 dias seguidos avisar o profissional (protocolo 11) — sem regra testável no AtencaoDetector ainda.
 
 ## Trilha do tempo
+- 2026-10-19 · T-13 (parte 2) — fila offline do check-in no aparelho lembrado (`portal.ts`), reenvio ao abrir a tela e quando a internet volta, chave por envio (`fisio_checkins.client_key`). UC-FPP-30..32 entram com `FisioPortalFilaOfflineTest`.
 - 2026-10-19 · T-13 (parte 1) — app instalável: manifesto por link, ícones, service worker que guarda a tela do dia só em aparelho lembrado, convite de instalação. UC-FPP-26..28 entram com `FisioPortalAppTest`.
 - 2026-10-19 · US-FISIO-007b — check-in grava o dia, telemonitoramento/adendo, sinal de alerta notifica, modo pausa só com a instrução do profissional; tela desenhada (Entrada, Hoje, Check-in, Crise) a partir do canvas Prescreve Pro; "lembrar este aparelho" (`fisio_portal_devices`). UC-FPP-22..25 entram com `FisioPortalAparelhoTest`.
 - 2026-10-18 · US-FISIO-007a — a tela nasce mínima (`Portal.tsx` + `Portal.charter.md`): link, PIN, consentimentos e lista do dia; check-in, jogo e modo pausa ficam com a US-FISIO-007b/008. UC-FPP-21 (consentimentos opcionais) entra com teste.

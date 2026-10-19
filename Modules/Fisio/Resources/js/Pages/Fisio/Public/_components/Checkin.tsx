@@ -11,7 +11,7 @@ import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
 import { cn } from '@/Lib/utils';
 import { CartaoJogo } from './Hoje';
-import { ancoraDor, enviar, ESFORCOS, SINAIS, type Esforco, type ItemHoje, type Relato, type RespostaCheckin } from './portal';
+import { ancoraDor, diaDeHoje, enviar, ESFORCOS, guardarNaFila, limparFila, novaChave, SINAIS, type Esforco, type ItemHoje, type Relato, type RespostaCheckin } from './portal';
 
 type Feito = 'tudo' | 'parte' | 'nada';
 
@@ -23,6 +23,8 @@ interface CheckinProps {
   relato: Relato | null;
   sinais: string[];
   crise: boolean;
+  /** Aparelho lembrado: sem rede, o check-in fica na fila do aparelho (UC-FPP-31). */
+  guardarOffline: boolean;
   onVoltar: () => void;
 }
 
@@ -45,7 +47,7 @@ function Opcao({ ativo, onClick, children, className }: { ativo: boolean; onClic
   );
 }
 
-export function TelaCheckin({ token, itens, vezes, onVezes, relato, sinais, crise, onVoltar }: CheckinProps) {
+export function TelaCheckin({ token, itens, vezes, onVezes, relato, sinais, crise, guardarOffline, onVoltar }: CheckinProps) {
   const algumMarcado = itens.some((i) => (vezes[i.id] ?? 0) >= 1);
   const todosMarcados = itens.length > 0 && itens.every((i) => (vezes[i.id] ?? 0) >= i.times_per_day);
   const inicial: Feito | null = crise ? 'parte' : todosMarcados ? 'tudo' : algumMarcado ? 'parte' : relato ? 'nada' : null;
@@ -60,6 +62,7 @@ export function TelaCheckin({ token, itens, vezes, onVezes, relato, sinais, cris
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [resposta, setResposta] = useState<RespostaCheckin | null>(null);
+  const [naFila, setNaFila] = useState(false);
 
   const escolherFeito = (f: Feito) => {
     setFeito(f);
@@ -74,7 +77,7 @@ export function TelaCheckin({ token, itens, vezes, onVezes, relato, sinais, cris
     setEnviando(true);
     setErro(null);
     const marcados = itens.filter((i) => (vezes[i.id] ?? 0) >= 1);
-    const r = await enviar('POST', `/fisio/p/${token}/checkin`, {
+    const corpo = {
       done_item_ids: marcados.map((i) => i.id),
       vezes: Object.fromEntries(marcados.map((i) => [i.id, Math.min(vezes[i.id] ?? 1, i.times_per_day)])),
       pain: dor,
@@ -82,14 +85,38 @@ export function TelaCheckin({ token, itens, vezes, onVezes, relato, sinais, cris
       note: nota.trim() === '' ? null : nota.trim().slice(0, NOTA_MAX),
       red_flags: mudou ? flags : [],
       crisis: crise,
-    });
+    };
+    const chave = novaChave();
+    const dia = diaDeHoje();
+    let r: Awaited<ReturnType<typeof enviar>>;
+    try {
+      r = await enviar('POST', `/fisio/p/${token}/checkin`, { ...corpo, chave, dia });
+    } catch {
+      // Sem rede. Em aparelho lembrado, fica na fila e vai quando a internet voltar.
+      setEnviando(false);
+      if (guardarOffline && guardarNaFila(token, { chave, dia, corpo })) return setNaFila(true);
+      return setErro('Sem internet agora. Tente de novo quando a conexão voltar.');
+    }
     setEnviando(false);
-    if (r.status === 200 || r.status === 201) return setResposta(r.json as unknown as RespostaCheckin);
+    if (r.status === 200 || r.status === 201) {
+      limparFila(token); // o envio de agora vale mais que um guardado antes
+      return setResposta(r.json as unknown as RespostaCheckin);
+    }
     if (r.status === 403 || r.status === 404) return router.reload();
     setErro('Não deu para enviar. Confira a internet e tente de novo — nada se perde, você pode reenviar hoje.');
   };
 
   if (resposta) return <Enviado resposta={resposta} />;
+  if (naFila) {
+    return (
+      <div className="flex flex-1 flex-col items-center gap-4 text-center" data-contract="fisio-portal-na-fila" role="status">
+        <span className="mt-6 flex size-20 items-center justify-center rounded-full bg-muted text-foreground"><Check className="size-10" aria-hidden="true" /></span>
+        <h1 className="text-2xl font-semibold leading-tight">Registro guardado neste aparelho</h1>
+        <p className="max-w-xs text-muted-foreground">Sem internet agora. Ele vai para a sua fisio sozinho quando a conexão voltar, hoje.</p>
+        <Button type="button" variant="outline" size="lg" className="mt-auto h-12 w-full rounded-lg" onClick={onVoltar}>Voltar para hoje</Button>
+      </div>
+    );
+  }
 
   return (
     <form className="flex flex-1 flex-col gap-6" data-contract="fisio-portal-checkin" onSubmit={(e) => { e.preventDefault(); void mandar(); }}>
