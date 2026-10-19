@@ -14,9 +14,9 @@ module: Producao
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Producao/**` + `resources/js/Pages/Producao/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 75 arquivos em 17 papéis.
+**Total mapeado:** 78 arquivos em 17 papéis.
 
-## Controllers — 9
+## Controllers — 10
 
 - [AppApontamentoController.php](../../../Modules/Producao/Http/Controllers/Api/AppApontamentoController.php)
 - [ApontamentoController.php](../../../Modules/Producao/Http/Controllers/ApontamentoController.php)
@@ -25,6 +25,7 @@ module: Producao
 - [EtiquetaOsController.php](../../../Modules/Producao/Http/Controllers/EtiquetaOsController.php)
 - [FerramentasController.php](../../../Modules/Producao/Http/Controllers/FerramentasController.php)
 - [InstallController.php](../../../Modules/Producao/Http/Controllers/InstallController.php)
+- [OrdemCustoController.php](../../../Modules/Producao/Http/Controllers/OrdemCustoController.php)
 - [PostosController.php](../../../Modules/Producao/Http/Controllers/PostosController.php)
 - [RoteirosController.php](../../../Modules/Producao/Http/Controllers/RoteirosController.php)
 
@@ -32,7 +33,7 @@ module: Producao
 
 - [SalvarRoteiroRequest.php](../../../Modules/Producao/Http/Requests/SalvarRoteiroRequest.php)
 
-## Services — 9
+## Services — 10
 
 - [ApontamentoOperadorService.php](../../../Modules/Producao/Services/ApontamentoOperadorService.php)
 - [ApontamentoService.php](../../../Modules/Producao/Services/ApontamentoService.php)
@@ -40,6 +41,7 @@ module: Producao
 - [CriarOsDaVenda.php](../../../Modules/Producao/Services/CriarOsDaVenda.php)
 - [CustoRealService.php](../../../Modules/Producao/Services/CustoRealService.php)
 - [OsDaVenda.php](../../../Modules/Producao/Services/OsDaVenda.php)
+- [PrevisaoCustoDaOrdem.php](../../../Modules/Producao/Services/PrevisaoCustoDaOrdem.php)
 - [ProcessoDaOrdem.php](../../../Modules/Producao/Services/ProcessoDaOrdem.php)
 - [SituacaoDaOrdem.php](../../../Modules/Producao/Services/SituacaoDaOrdem.php)
 - [TurnoService.php](../../../Modules/Producao/Services/TurnoService.php)
@@ -116,9 +118,9 @@ module: Producao
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/Index.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.casos.md)
 
-## Testes (Pest) — 14
+## Testes (Pest) — 15
 
-- 14 em [Modules/Producao/Tests/Feature/](../../../Modules/Producao/Tests/Feature)
+- 15 em [Modules/Producao/Tests/Feature/](../../../Modules/Producao/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 6

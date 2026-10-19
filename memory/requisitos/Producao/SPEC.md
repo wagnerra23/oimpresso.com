@@ -383,7 +383,26 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [ ] Campo de material na tela do operador (Non-Goal da tela até a thread 08).
 - [ ] Estorno de baixa apontada errada.
 
-**Total US: 21** · **Estimate agregado:** ~81h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
+### US-PCP-022 · A regra da compra (congela | vivo) vale para a OS aberta (UC-FLX-36) — **P1**
+
+**Implementado em:** `Modules/Producao/Services/PrevisaoCustoDaOrdem.php` · `Modules/Producao/Http/Controllers/OrdemCustoController.php`
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoCustoOsAbertaContratoTest.php` (lane `verticais-pest.yml`).
+
+> owner: wagner · priority: p1 · estimate: 3h · type: story
+> blocked_by: US-PCP-021
+
+**Origem:** UC-FLX-36 da tela de fluxos. A regra "Atualizar o custo dos insumos" das etapas da Compra (`RegrasCompra`, parâmetro `ops`) era só configuração gravada; nenhuma OS a lia.
+
+**Aceite:**
+- [x] Para a OS por item aberta, cada material apontado mostra o custo na data de abertura da OS e o de hoje (método da empresa, `App\Contracts\Compras\CustoDoInsumo`), o custo do lote que saiu e se mudou (UC-PCOSA-01).
+- [x] `congela`: a previsão é a da abertura; `vivo`: a previsão é a de hoje; regra desligada ou nunca gravada vale `congela` (UC-PCOSA-01..03).
+- [x] Só leitura: nenhum dos modos muda `pcp_ordens.custo_real` nem o custo das baixas; OS concluída mostra só o congelado (UC-PCOSA-04).
+- [x] `GET /producao/ordens/{id}/custo` em JSON, só com `producao.desempenho.ver`; OS de outra empresa 404 (UC-PCOSA-05).
+- [ ] Mostrar na tela da OS (a Ficha é da thread 08).
+- [ ] Previsão do material ainda não apontado (empenho, D-EMPENHO da thread 08).
+
+**Total US: 22** · **Estimate agregado:** ~81h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
 
 ## §8 — Regras Gherkin (R-PCP-001..010) — resumo
 

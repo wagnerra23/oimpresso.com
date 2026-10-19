@@ -138,3 +138,47 @@ Status: 🧪
 gestor), e o reenvio responde sem gravar de novo.
 
 Status: 🧪
+
+---
+
+## Custo da OS em andamento (US-PCP-022 · UC-FLX-36)
+
+> **Âncora:** UC-FLX-36 do catálogo de fluxos (*"mostra o custo da abertura e o de hoje; a regra da compra
+> decide se a OS mantém o custo ou acompanha"*) e a regra "Atualizar o custo dos insumos" das etapas da
+> Compra (`RegrasCompra`, parâmetro `ops`: *Mantêm o custo da abertura* | *Passam a usar o custo novo*).
+> Leitura para o gestor (`GET /producao/ordens/{id}/custo`); a tela ainda não mostra. Prova:
+> `ProducaoCustoOsAbertaContratoTest`. Só leitura: nada do congelado muda.
+
+## UC-PCOSA-01 · Congela: abertura × hoje, previsão na abertura · `must` valor
+
+**Dado** a OS aberta em 12/03 com 3 un de vinil (médio 10,00 em 12/03; 15,00 em 20/03) e a regra em
+"Mantêm o custo da abertura" **Quando** o gestor consulta em 20/03 **Então** vê abertura 30,00 e hoje 45,00,
+o item marcado como mudou, e a previsão em 30,00; nada é gravado.
+
+Status: 🧪
+
+## UC-PCOSA-02 · Vivo: a previsão acompanha · `must` valor
+
+**Dado** a regra em "Passam a usar o custo novo" **Então** a previsão é 45,00, o custo do lote segue 30,00 e
+nada é gravado; com a regra desligada, vale a abertura.
+
+Status: 🧪
+
+## UC-PCOSA-03 · Sem regra gravada, congela · `must`
+
+**Dado** a empresa que nunca mexeu na regra **Então** vale o padrão: a OS mantém o custo da abertura.
+
+Status: 🧪
+
+## UC-PCOSA-04 · OS concluída mostra o congelado · `must` valor
+
+**Dado** a OS concluída (1 h × 30,00 + 30,00 de material) **Então** a consulta mostra só o congelado, 60,00,
+nas duas regras.
+
+Status: 🧪
+
+## UC-PCOSA-05 · Custo é do gestor · `must`
+
+**Quando** o operador sem `producao.desempenho.ver` consulta **Então** 403; OS de outra empresa **Então** 404.
+
+Status: 🧪
