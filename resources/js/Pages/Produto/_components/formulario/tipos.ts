@@ -76,6 +76,8 @@ export interface CamposProduto {
   enable_stock?: number;
   not_for_selling?: number;
   expiry_period?: string;
+  /** `months` · `days` · `''` (não aplicável). */
+  expiry_period_type?: string;
   product_locations?: number[];
 }
 

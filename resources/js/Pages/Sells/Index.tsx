@@ -474,7 +474,7 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
       return 'rascunho';
     }
     const v = ls.get('pill', 'todas');
-    return (['todas', 'paga', 'pendente', 'faturada', 'cancelada'] as const).includes(v as PillKey)
+    return (['todas', 'paga', 'pendente', 'faturada', 'cancelada'] as readonly PillKey[]).includes(v as PillKey)
       ? (v as PillKey)
       : 'todas';
   });

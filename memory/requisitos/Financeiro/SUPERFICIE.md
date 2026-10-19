@@ -14,13 +14,14 @@ module: Financeiro
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 355 arquivos em 22 papéis.
+**Total mapeado:** 356 arquivos em 22 papéis.
 
-## Controllers — 23
+## Controllers — 24
 
 - [AdvisorAuthController.php](../../../Modules/Financeiro/Http/Controllers/Advisor/AdvisorAuthController.php)
 - [AdvisorPortalController.php](../../../Modules/Financeiro/Http/Controllers/Advisor/AdvisorPortalController.php)
 - [AdvisorAccessController.php](../../../Modules/Financeiro/Http/Controllers/AdvisorAccessController.php)
+- [FinanceiroLancamentoAcoesController.php](../../../Modules/Financeiro/Http/Controllers/Api/FinanceiroLancamentoAcoesController.php)
 - [AssinaturaController.php](../../../Modules/Financeiro/Http/Controllers/AssinaturaController.php)
 - [CaixaController.php](../../../Modules/Financeiro/Http/Controllers/CaixaController.php)
 - [CategoriaController.php](../../../Modules/Financeiro/Http/Controllers/CategoriaController.php)

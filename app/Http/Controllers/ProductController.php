@@ -1318,6 +1318,9 @@ class ProductController extends Controller
                 'warranties' => $warranties,
                 'commonSettings' => $common_settings ?? [],
                 'enableExpiry' => session('business.enable_product_expiry') == 1,
+                // UC-PCAD-12: `add_expiry` (padrão da coluna) = a validade é lançada na compra; o Blade
+                // esconde o campo e manda 12 meses. `add_manufacturing` = o campo aparece, vazio.
+                'expiryType' => (string) session('business.expiry_type'),
                 'enableLot' => (bool) ($common_settings['enable_lot_number'] ?? false),
                 'enableRacks' => (bool) session('business.enable_racks'),
             ]);

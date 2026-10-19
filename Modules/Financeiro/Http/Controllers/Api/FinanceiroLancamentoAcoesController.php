@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Api\App;
+namespace Modules\Financeiro\Http\Controllers\Api;
 
+use App\Http\Controllers\Api\App\FinanceiroController;
+use App\Http\Controllers\Api\App\FinanceiroLancamentosController;
 use App\Http\Controllers\Controller;
 use App\User;
 use Carbon\CarbonImmutable;

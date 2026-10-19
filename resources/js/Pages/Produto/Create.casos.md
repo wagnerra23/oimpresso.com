@@ -5,7 +5,7 @@ irmaos: Create.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o produto que NASCE do cadastro não muda quando a tela vira aba.
 owner: wagner
-last_run: "2026-10-16"
+last_run: "2026-10-19"
 last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 485 passed (2356 assertions); UC-PCAD-01/04/05/06/07 verdes. Revalidação depois do refactor que passou as seções do formulário para _components/formulario/ (sem mudança de comportamento: HTML e estado do formulário idênticos antes/depois em 8 cenários no Vitest)"
 ---
 
@@ -40,6 +40,7 @@ last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 48
 | UC-PCAD-09 | Novo produto simples nasce com o preço digitado, com a conta do Blade | must `[V0]` | `CU-PROD-01.4` | `produto-preco.test.tsx` (Vitest) | 🧪 passa |
 | UC-PCAD-10 | Novo produto nasce nos locais do negócio (um local só já vem marcado) | must | `CU-PROD-01` | `produto-locais.test.tsx` (Vitest) | 🧪 passa |
 | UC-PCAD-11 | Variável e composto não salvam pela tela React: vão para o cadastro clássico | must | `CU-PROD-02` | `produto-tipo.test.tsx` (Vitest) | 🧪 passa |
+| UC-PCAD-12 | Novo produto grava a validade digitada (com o período, como o Blade) | must | `CU-PROD-01` | `produto-formulario.test.tsx` (Vitest) | 🧪 passa |
 | ~~UC-PCAD-02~~ | ~~Campo obrigatório validado server~~ | — | — | — | ⬛ **retirado** — gap de paridade, não bug |
 | ~~UC-PCAD-03~~ | ~~Defaults conservadores server~~ | — | — | — | ⬛ **retirado** — gap de paridade, não bug |
 | UC-PCAD-05 | Cadastro não aceita insumo de outro business | must `[T0]` | `CU-PROD-01.5` | — | 🔶 **backlog** — achado Tier 0 real, US própria |
@@ -182,6 +183,15 @@ last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 48
 - **Contrato:** `ProductController@store` — variável sem `product_variation` não cria variação nenhuma; composto sem `composition_variation_id` cria a variação sem itens e com preço zero (`item_level_purchase_price_total`/`selling_price` ausentes). Sem variação o produto não entra em venda, compra, OS nem fabricação, que trabalham por `variation_id`.
 - **Mordida (2026-10-16):** sem a trava do envio caem os 2 casos de tipo; sem o aviso também.
 - **Fora deste UC:** o editor de grade e de composição em React (trabalho próprio). Até ele existir, o clássico é o caminho.
+- **Status: 🧪** — teste escrito junto do código, sem veredito publicado no manifesto (G-7).
+
+## UC-PCAD-12 · Novo produto grava a validade digitada · `must`
+- **Persona:** empresa que controla validade de produto (perecível, insumo com prazo). Pela tela React a validade digitada não era gravada.
+- **Aceite:** Dada uma empresa que usa validade · Quando ela calcula a validade pela fabricação (`add_manufacturing`) · Então a tela mostra "Expira em" com o número e o período (meses por padrão, dias ou não aplicável) e o envio leva os dois · E, quando a validade é lançada na compra (`add_expiry`, o padrão da coluna), o campo fica escondido e o envio leva 12 meses · E, sem validade na empresa, o campo não aparece.
+- **Teste:** [`produto-formulario.test.tsx`](../../../../tests/js/produto-formulario.test.tsx) — `UC-PCAD-12` (os três casos). Roda no step "Comportamento React" do job `Frontend / Vite build`.
+- **Contrato:** paridade com o cadastro Blade — `create.blade.php` (`expiry_period_type` com `months` por padrão; com `business.expiry_type == 'add_expiry'` o bloco fica escondido e vai `expiry_period = 12`) e `ProductController@store`, que só grava a validade quando vêm o número **e** o período. A tela mandava o período sempre vazio.
+- **Mordida (2026-10-19):** com o período de volta a vazio caem os 2 casos de validade (`expected '' to be 'months'`); com a tela do `main` também caem os 2. O terceiro (empresa sem validade) é guarda e passa nos dois.
+- **Fora deste UC:** duplicar produto ainda não traz a validade do original (o Blade traz); a tela Editar ainda não mostra a validade (o envio dela é o `UC-PEDIT-10`).
 - **Status: 🧪** — teste escrito junto do código, sem veredito publicado no manifesto (G-7).
 
 ---

@@ -125,3 +125,12 @@ Route::middleware(['web', 'throttle:60,1'])
         Route::delete('consentimentos/{purpose}', [PortalController::class, 'revogar'])->name('consentimentos.destroy');
         Route::post('checkin', [PortalController::class, 'checkin'])->name('checkin');
     });
+
+/*
+ * 4) Entrada do app do paciente na Google Play (etapa 02 §3.6 · ADR 0437 §13.7). O app instalado
+ *    pela loja abre aqui quando o paciente toca no ícone: sem token, a tela só pede para abrir o
+ *    link que a clínica mandou. Não lê banco e não mostra dado nenhum (UC-FPP-29).
+ */
+Route::middleware(['web', 'throttle:60,1'])
+    ->get('fisio/app', [PortalController::class, 'app'])
+    ->name('fisio.portal.app');

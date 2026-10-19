@@ -12,8 +12,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/Components/ui/select';
+import { Inline } from '@/Components/layout';
 import type { CamposProduto, DefinirCampo, OpcoesProduto } from './tipos';
 import { opcoesDe } from './tipos';
+
+/** O Select do Radix não aceita item com valor vazio: "não aplicável" é `''` no envio. */
+const NAO_APLICAVEL = 'nao-aplicavel';
 
 interface Props {
   data: CamposProduto;
@@ -21,7 +25,10 @@ interface Props {
   opcoes: OpcoesProduto;
   /** Chave do localStorage que lembra se a seção ficou aberta. */
   chaveAberto: string;
-  /** Só no Novo, e só quando a empresa usa validade. */
+  /**
+   * Só no Novo, quando a empresa usa validade e a calcula pela fabricação. Com a validade
+   * lançada na compra (`add_expiry`), o Blade esconde o campo e manda 12 meses.
+   */
   mostrarValidade?: boolean;
 }
 
@@ -91,13 +98,31 @@ export function BlocoMaisOpcoes({ data, definir, opcoes, chaveAberto, mostrarVal
         </div>
         {mostrarValidade && (
           <div>
-            <Label htmlFor="expiry_period">Validade</Label>
-            <Input
-              id="expiry_period"
-              type="number"
-              value={data.expiry_period}
-              onChange={(e) => definir('expiry_period', e.target.value)}
-            />
+            <Label htmlFor="expiry_period">Expira em</Label>
+            {/* UC-PCAD-12: sem o período, o ProductController@store descarta o número. */}
+            <Inline gap={2}>
+              <Input
+                id="expiry_period"
+                type="number"
+                value={data.expiry_period}
+                onChange={(e) => definir('expiry_period', e.target.value)}
+                placeholder="12"
+                className="tabular-nums"
+              />
+              <Select
+                value={data.expiry_period_type || NAO_APLICAVEL}
+                onValueChange={(v) => definir('expiry_period_type', v === NAO_APLICAVEL ? '' : v)}
+              >
+                <SelectTrigger id="expiry_period_type" aria-label="Período da validade">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="months">meses</SelectItem>
+                  <SelectItem value="days">dias</SelectItem>
+                  <SelectItem value={NAO_APLICAVEL}>não aplicável</SelectItem>
+                </SelectContent>
+              </Select>
+            </Inline>
           </div>
         )}
         {opcoes.warranties && Object.keys(opcoes.warranties).length > 0 && (

@@ -5,8 +5,10 @@
 // tela Novo produto aberta pela lista /products/unificado ficava EM BRANCO em produção, com
 // "A <Select.Item /> must have a value prop that is not an empty string" no console.
 // Este teste usa as listas com a chave vazia e prova que as duas telas renderizam.
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
+
+const enviado: { payload: Record<string, unknown> | null } = { payload: null }
 
 vi.mock('@inertiajs/react', async () => {
   const React = await import('react')
@@ -16,10 +18,16 @@ vi.mock('@inertiajs/react', async () => {
       React.createElement('a', { href, ...resto }, children),
     useForm: (inicial: Record<string, unknown>) => {
       const [data, setData] = React.useState(inicial)
+      const transformar = React.useRef((d: Record<string, unknown>) => d)
       return {
         data,
         setData: (k: string, v: unknown) => setData((d) => ({ ...d, [k]: v })),
-        post: vi.fn(),
+        transform: (fn: (d: Record<string, unknown>) => Record<string, unknown>) => {
+          transformar.current = fn
+        },
+        post: () => {
+          enviado.payload = transformar.current(data)
+        },
         put: vi.fn(),
         processing: false,
         errors: {},
@@ -93,6 +101,59 @@ describe('Novo produto com as listas do servidor', () => {
       />,
     )
     expect(document.querySelector('#tax')?.textContent).toContain('Nenhuma')
+  })
+})
+
+// UC-PCAD-12 — a validade do Novo produto. O ProductController@store só grava a validade quando
+// vêm o número E o período (`expiry_period_type`). A tela mandava o período sempre vazio: a
+// validade digitada era descartada. Agora segue o Blade: meses por padrão; com a validade lançada
+// na compra (`add_expiry`), o campo fica escondido e vai como 12 meses.
+describe('UC-PCAD-12 · Novo produto — validade', () => {
+  const novo = (enableExpiry: boolean, expiryType?: string) =>
+    render(
+      <ProdutoCreate
+        {...(listasDoServidor as never)}
+        barcodeDefault="C128"
+        defaultProfitPercent={25}
+        duplicateProduct={null}
+        sellingPriceGroupCount={0}
+        commonSettings={{}}
+        enableExpiry={enableExpiry}
+        expiryType={expiryType}
+        enableLot={false}
+        enableRacks={false}
+      />,
+    )
+  const salvar = (container: HTMLElement) => {
+    enviado.payload = null
+    fireEvent.submit(container.querySelector('form#produto-create-form') as HTMLFormElement)
+    return enviado.payload as Record<string, unknown>
+  }
+
+  it('validade pela fabricação: "Expira em" em meses, e o envio leva o número com o período', () => {
+    const { container } = novo(true, 'add_manufacturing')
+
+    expect(screen.getByText('Expira em')).toBeTruthy()
+    expect(document.querySelector('#expiry_period_type')?.textContent).toContain('meses')
+    fireEvent.change(document.querySelector('#expiry_period') as HTMLInputElement, { target: { value: '6' } })
+
+    const envio = salvar(container)
+    expect(envio.expiry_period).toBe('6')
+    expect(envio.expiry_period_type).toBe('months')
+  })
+
+  it('validade lançada na compra: campo escondido e o envio leva 12 meses, como o Blade', () => {
+    const { container } = novo(true, 'add_expiry')
+
+    expect(document.querySelector('#expiry_period')).toBeNull()
+    const envio = salvar(container)
+    expect(envio.expiry_period).toBe('12')
+    expect(envio.expiry_period_type).toBe('months')
+  })
+
+  it('empresa sem validade: o campo não aparece', () => {
+    novo(false)
+    expect(document.querySelector('#expiry_period')).toBeNull()
   })
 })
 

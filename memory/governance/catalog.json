@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 809,
-    "edges": 1108,
+    "nodes": 810,
+    "edges": 1109,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 431,
+      "component": 432,
       "api": 84
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 88,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 431,
+      "hasComponent": 432,
       "dependsOn": 123,
       "delegatesTo": 114,
       "migratesTo": 1,
@@ -2584,6 +2584,13 @@
       "module": "Financeiro",
       "name": "AdvisorAccessController",
       "desc": "Onda 31 US-FIN-037 grant/revoke acesso contador parceiro (biz-side, consent LGPD)"
+    },
+    {
+      "id": "component:Financeiro/Api/FinanceiroLancamentoAcoesController",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "Api/FinanceiroLancamentoAcoesController",
+      "desc": "API do app (tela 06, LANCAMENTO_ACOES): detalhe, alterar, baixar, retornar, excluir, reativar e recibo em /api/app/financeiro/lancamentos/{id}; movido de app/Http/Controllers/Api/App (DependencyDirectionTest)"
     },
     {
       "id": "component:Financeiro/AssinaturaController",
@@ -8722,6 +8729,12 @@
     {
       "from": "module:Financeiro",
       "to": "component:Financeiro/AdvisorAccessController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "component:Financeiro/Api/FinanceiroLancamentoAcoesController",
       "type": "hasComponent",
       "source": "contains"
     },
