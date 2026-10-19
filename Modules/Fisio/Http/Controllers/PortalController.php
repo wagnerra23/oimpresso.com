@@ -7,24 +7,35 @@ namespace Modules\Fisio\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Fisio\Entities\Checkin;
 use Modules\Fisio\Entities\Patient;
 use Modules\Fisio\Entities\PortalToken;
 use Modules\Fisio\Entities\Program;
 use Modules\Fisio\Entities\ProgramItem;
+use Modules\Fisio\Services\AparelhosDoPortal;
+use Modules\Fisio\Services\CheckinDoPortal;
 use Modules\Fisio\Services\Consentimentos;
+use Modules\Fisio\Services\JogoService;
 use Modules\Fisio\Services\PortalTokenService;
 
 /**
- * Portal público do paciente — `/fisio/p/{token}` (US-FISIO-007a; ADR 0437 §4, §5 e §7).
+ * Portal público do paciente — `/fisio/p/{token}` (US-FISIO-007a/007b; ADR 0437 §4 a §7).
  *
  * Sem conta no sistema e sem middleware de admin: quem abre é o paciente, com o link que a
  * clínica gerou e o PIN que a fisioterapeuta passou. Etapas, nesta ordem e sem atalho:
- *   1. `pin`           — link válido; nenhum dado clínico sai antes do PIN (UC-FPP-01);
+ *   1. `pin`           — link válido; nenhum dado clínico sai antes do PIN (UC-FPP-01). Aparelho
+ *                        lembrado por 30 dias pula o PIN (UC-FPP-22/23);
  *   2. `consentimento` — PIN certo, mas sem o consentimento de teleatendimento na versão
  *                        vigente: nada do programa sai (UC-FPP-05);
- *   3. `hoje`          — o programa ativo do PRÓPRIO paciente, da PRÓPRIA clínica.
+ *   3. `hoje`          — o programa ativo do PRÓPRIO paciente, da PRÓPRIA clínica, o estado do
+ *                        jogo e o "Como foi hoje". Com dor ≥ limiar ou sinal de alerta no dia,
+ *                        `modo=pausa`: só a instrução escrita pelo profissional (UC-FPP-19).
+ *
+ * Uma página Inertia só (`Fisio/Public/Portal`): as telas Entrada, Hoje e Check-in são
+ * componentes dela, escolhidos pela `etapa` que o SERVIDOR decide.
  *
  * Toda falha de link (malformado, adulterado, expirado, revogado, substituído, paciente
  * bloqueado, clínica sem o pacote) é o MESMO estado vazio `link_invalido` (UC-FPP-02/07).
@@ -33,9 +44,6 @@ use Modules\Fisio\Services\PortalTokenService;
  * (`fisio_portal.<id>`). Link novo ou revogado = linha nova ou morta, então a sessão antiga
  * não vale para ele. O business nunca vem de parâmetro: vem assinado no token e cada leitura
  * filtra por ele (ADR 0093).
- *
- * O check-in (`POST .../checkin`) já passa pelos mesmos portões aqui; gravar o dia, o
- * telemonitoramento e o jogo é a US-FISIO-007b.
  */
 class PortalController extends Controller
 {
@@ -44,6 +52,9 @@ class PortalController extends Controller
     public function __construct(
         private readonly PortalTokenService $tokens,
         private readonly Consentimentos $consentimentos,
+        private readonly AparelhosDoPortal $aparelhos,
+        private readonly CheckinDoPortal $checkins,
+        private readonly JogoService $jogo,
     ) {
     }
 
@@ -60,6 +71,7 @@ class PortalController extends Controller
                 'etapa' => 'pin',
                 'token' => $token,
                 'tentativas_restantes' => $this->tokens->tentativasRestantes($linha),
+                'lembrar_dias' => $this->aparelhos->dias(),
             ]);
         }
 
@@ -77,14 +89,35 @@ class PortalController extends Controller
             ]);
         }
 
-        return Inertia::render('Fisio/Public/Portal', $base + [
+        $deHoje = $this->checkins->checkinDeHoje($paciente);
+        $modo = $this->checkins->modo($paciente, $deHoje);
+        $comum = $base + [
             'etapa' => 'hoje',
-            'hoje' => ['itens' => $this->itensDeHoje($paciente)],
+            'modo' => $modo,
+            'jogo' => $this->jogo->estado($paciente),
             'consentimentos' => $this->consentimentos->situacao($paciente),
+            'registrado_hoje' => $deHoje !== null,
+        ];
+
+        if ($modo === CheckinDoPortal::MODO_PAUSA) {
+            // Dia de pausa: nada de "faça mais" — só a palavra do profissional (Anvisa, UC-FPP-19).
+            return Inertia::render('Fisio/Public/Portal', $comum + ['instrucao' => $this->checkins->instrucao($paciente)]);
+        }
+
+        $programa = $this->checkins->programaAtivo($paciente);
+
+        return Inertia::render('Fisio/Public/Portal', $comum + [
+            'hoje' => ['itens' => $this->itensDeHoje($programa)],
+            'crise' => ['itens' => $this->checkins->versaoDeCrise($programa)],
+            'relato' => $deHoje !== null ? $this->relatoDeHoje($deHoje) : null,
+            'red_flags' => array_values(array_map('strval', (array) config('fisio.red_flags', []))),
         ]);
     }
 
-    /** 200 aceito · 422 `pin_invalido` + restantes · 423 `bloqueado` · 404 `link_invalido`. */
+    /**
+     * 200 aceito · 422 `pin_invalido` + restantes · 423 `bloqueado` · 404 `link_invalido`.
+     * Com `lembrar=true`, o aparelho fica lembrado por 30 dias (cookie httpOnly cifrado).
+     */
     public function pin(Request $request, string $token): JsonResponse
     {
         $linha = $this->tokens->resolver($token);
@@ -107,7 +140,22 @@ class PortalController extends Controller
         $request->session()->migrate(true);
         $request->session()->put($this->chaveSessao($linha), true);
 
-        return response()->json(['ok' => true]);
+        $resposta = response()->json(['ok' => true]);
+        if ($request->boolean('lembrar')) {
+            $resposta->withCookie(cookie(
+                $this->aparelhos->nomeCookie($linha),
+                $this->aparelhos->lembrar($linha),
+                $this->aparelhos->dias() * 24 * 60,
+                '/fisio/p',
+                null,
+                null,   // secure: segue config('session.secure')
+                true,   // httpOnly
+                false,
+                'lax',
+            ));
+        }
+
+        return $resposta;
     }
 
     /** Aceite de uma finalidade (versão SEMPRE da config). 201 criou · 200 já aceito. */
@@ -153,8 +201,9 @@ class PortalController extends Controller
     }
 
     /**
-     * Check-in do dia: aqui só os portões (link, PIN, consentimento de teleatendimento), que a
-     * US-FISIO-007a fecha. Gravar o dia é a US-FISIO-007b — até lá, 501 explícito.
+     * "Como foi hoje" (US-FISIO-007b). Portões: link, PIN (ou aparelho lembrado) e
+     * consentimento de teleatendimento. 201 criou o dia · 200 atualizou (reenvio) · 422 inválido.
+     * Em dia de pausa a resposta é SÓ {modo, instrucao, checkin_id} (UC-FPP-19).
      */
     public function checkin(Request $request, string $token): JsonResponse
     {
@@ -165,11 +214,42 @@ class PortalController extends Controller
         if (! $this->pinAceito($request, $linha)) {
             return response()->json(['erro' => 'pin_pendente'], 403);
         }
-        if (! $this->consentimentos->vigente($this->pacienteDe($linha), Consentimentos::TELEATENDIMENTO)) {
+        $paciente = $this->pacienteDe($linha);
+        if (! $this->consentimentos->vigente($paciente, Consentimentos::TELEATENDIMENTO)) {
             return response()->json(['erro' => 'consentimento_pendente'], 403);
         }
 
-        return response()->json(['erro' => 'checkin_indisponivel'], 501);
+        $dados = $request->validate([
+            'done_item_ids' => ['present', 'array', 'max:100'],
+            'done_item_ids.*' => ['integer'],
+            'vezes' => ['nullable', 'array', 'max:100'],
+            'vezes.*' => ['integer', 'min:0', 'max:50'],
+            'pain' => ['nullable', 'integer', 'between:0,10'],
+            'effort' => ['required', 'string', Rule::in(CheckinDoPortal::ESFORCOS)],
+            'note' => ['nullable', 'string', 'max:'.CheckinDoPortal::NOTA_MAX],
+            'red_flags' => ['nullable', 'array', 'max:20'],
+            'red_flags.*' => ['string', Rule::in((array) config('fisio.red_flags', []))],
+            'crisis' => ['nullable', 'boolean'],
+        ]);
+
+        $r = $this->checkins->registrar($paciente, $dados);
+        $status = $r['criado'] ? 201 : 200;
+        $checkin = $r['checkin'];
+
+        if ($this->checkins->modo($paciente, $checkin) === CheckinDoPortal::MODO_PAUSA) {
+            return response()->json([
+                'modo' => CheckinDoPortal::MODO_PAUSA,
+                'instrucao' => $this->checkins->instrucao($paciente),
+                'checkin_id' => (int) $checkin->id,
+            ], $status);
+        }
+
+        return response()->json([
+            'modo' => CheckinDoPortal::MODO_NORMAL,
+            'checkin_id' => (int) $checkin->id,
+            'xp_ganho' => $r['xp_ganho'],
+            'jogo' => $this->jogo->estado($paciente),
+        ], $status);
     }
 
     /** Paciente que o PortalTokenService já resolveu (business do token, não bloqueado). */
@@ -181,9 +261,22 @@ class PortalController extends Controller
         return $p;
     }
 
+    /**
+     * PIN aceito nesta sessão, OU aparelho lembrado deste mesmo token (cookie), que então
+     * passa a valer para a sessão também.
+     */
     private function pinAceito(Request $request, PortalToken $linha): bool
     {
-        return $request->session()->get($this->chaveSessao($linha)) === true;
+        if ($request->session()->get($this->chaveSessao($linha)) === true) {
+            return true;
+        }
+        if ($this->aparelhos->reconhece($linha, $request->cookie($this->aparelhos->nomeCookie($linha)))) {
+            $request->session()->put($this->chaveSessao($linha), true);
+
+            return true;
+        }
+
+        return false;
     }
 
     private function chaveSessao(PortalToken $linha): string
@@ -214,26 +307,37 @@ class PortalController extends Controller
     }
 
     /**
-     * Itens do programa ativo do paciente — só o que ele precisa para fazer o exercício. Nada de
-     * queixa, marcador de condição, aviso de contraindicação nem série de dor (ADR 0437 §5).
+     * O relato de HOJE (para o paciente corrigir). Só o dia corrente: nenhuma série de dor
+     * sai para o portal (UC-FPP-20) — a chave da dor é `dor`, nunca o nome da coluna.
+     *
+     * @return array<string, mixed>
+     */
+    private function relatoDeHoje(Checkin $c): array
+    {
+        return [
+            'feitos' => array_values(array_map('intval', (array) ($c->done_item_ids ?? []))),
+            'dor' => $c->pain !== null ? (int) $c->pain : null,
+            'esforco' => $c->effort,
+            'observacao' => $c->note,
+            'crise' => (bool) $c->crisis,
+        ];
+    }
+
+    /**
+     * Itens do programa ativo — só o que o paciente precisa para fazer o exercício: nome, passos,
+     * dose e os cuidados da biblioteca. Nada de queixa, marcador de condição, aviso de
+     * contraindicação nem série de dor (ADR 0437 §5).
      *
      * @return list<array<string, mixed>>
      */
-    private function itensDeHoje(Patient $paciente): array
+    private function itensDeHoje(?Program $programa): array
     {
-        $biz = (int) $paciente->business_id;
-        $programa = Program::withoutGlobalScopes() // SUPERADMIN: portal público sem sessão; filtra pelo business do token.
-            ->where('business_id', $biz)
-            ->where('patient_id', $paciente->id)
-            ->where('status', Program::STATUS_ATIVO)
-            ->orderByDesc('id')
-            ->first();
         if ($programa === null) {
             return [];
         }
 
         return ProgramItem::withoutGlobalScopes() // SUPERADMIN: portal público sem sessão; filtra pelo business do token.
-            ->where('business_id', $biz)
+            ->where('business_id', (int) $programa->business_id)
             ->where('program_id', $programa->id)
             ->with(['exercise' => fn ($q) => $q->withoutGlobalScopes()->select(['id', 'name', 'steps', 'safety_notes'])]) // SUPERADMIN: exercício do item já filtrado pelo business acima.
             ->orderBy('position')
@@ -243,10 +347,10 @@ class PortalController extends Controller
                 'nome' => $i->exercise?->name,
                 'passos' => $i->exercise?->steps ?? [],
                 'cuidados' => $i->exercise?->safety_notes ?? [],
-                'sets' => $i->sets,
-                'reps' => $i->reps,
-                'hold_s' => $i->hold_s,
-                'times_per_day' => $i->times_per_day,
+                'sets' => $i->sets !== null ? (int) $i->sets : null,
+                'reps' => $i->reps !== null ? (int) $i->reps : null,
+                'hold_s' => $i->hold_s !== null ? (int) $i->hold_s : null,
+                'times_per_day' => max(1, (int) $i->times_per_day),
                 'notes' => $i->notes,
             ])
             ->all();

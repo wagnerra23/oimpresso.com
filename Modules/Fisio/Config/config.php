@@ -81,6 +81,9 @@ return [
         'validade_dias' => 30,
         'max_tentativas' => 5,
         'lockout_minutos' => 30,
+        // "Lembrar este aparelho" (US-FISIO-007b, etapa 02 T-07a): cookie httpOnly cifrado ligado
+        // ao link; revogar ou gerar outro link derruba o aparelho e o PIN volta.
+        'lembrar_aparelho_dias' => 30,
     ],
 
     /*

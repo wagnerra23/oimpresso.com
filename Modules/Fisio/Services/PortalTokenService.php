@@ -190,6 +190,10 @@ class PortalTokenService
 
     private function revogarAtivos(int $biz, int $pacienteId): void
     {
+        // Link revogado ou regenerado derruba também os aparelhos lembrados (US-FISIO-007b, T-07a):
+        // o PIN volta a ser pedido.
+        app(AparelhosDoPortal::class)->revogarDoPaciente($biz, $pacienteId);
+
         PortalToken::withoutGlobalScopes() // SUPERADMIN: revoga só os links do PRÓPRIO paciente, no business dele.
             ->where('business_id', $biz)
             ->where('patient_id', $pacienteId)
