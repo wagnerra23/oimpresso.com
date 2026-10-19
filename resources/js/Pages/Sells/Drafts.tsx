@@ -40,6 +40,14 @@ export interface SellsDraftsPageProps {
   urls: { datatable: string; back: string };
 }
 
+// O endpoint manda a quantidade já formatada em pt-BR (`format_quantity` → "1,0000"), e
+// `Number("1,0000")` dava NaN na coluna Itens. Ponto é milhar, vírgula é decimal.
+function quantidadePtBR(v: unknown): number {
+  if (typeof v === 'number') return v;
+  const n = Number(String(v ?? '').replace(/\./g, '').replace(',', '.'));
+  return Number.isFinite(n) ? n : 0;
+}
+
 function formatDateTime(input: string): string {
   if (!input) return '';
   const d = new Date(input);
@@ -100,8 +108,8 @@ export default function SellsDrafts(props: SellsDraftsPageProps) {
         invoice_no: String(r.invoice_no ?? ''),
         customer_name: r.name ? String(r.name) : null,
         business_location: String(r.business_location ?? ''),
-        total_items: Number(r.total_items ?? 0),
-        total_quantity: Number(r.total_quantity ?? 0),
+        total_items: quantidadePtBR(r.total_items),
+        total_quantity: quantidadePtBR(r.total_quantity),
         added_by: r.added_by ? String(r.added_by) : null,
       }));
       setRows(items);

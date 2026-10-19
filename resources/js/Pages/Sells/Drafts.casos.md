@@ -4,7 +4,7 @@ irmaos: Drafts.charter.md (lei) · Drafts.tsx · tests/Feature/Sells/SellsDrafts
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: rascunho é a venda que a Larissa deixa pela metade quando o telefone toca — quem vê qual rascunho, e de qual empresa, não pode mudar num refactor visual.
 owner: wagner
-last_run: "2026-10-14"
+last_run: "2026-10-19"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Sells · MySQL)"
 ---
 

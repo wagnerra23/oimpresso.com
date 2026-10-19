@@ -338,7 +338,14 @@ export default function SaleSheet({
             <SheetHeader className="px-6 pt-6 pb-4 border-b border-border space-y-2">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-mono text-xs text-muted-foreground">#{data.invoice_no}</span>
-                <PaymentBadge status={data.payment_status} />
+                {data.status === 'draft' ? (
+                  // Rascunho (pílula Rascunhos da consulta): não tem pagamento — o selo diz o estado real.
+                  <span className="inline-flex items-center rounded-full border border-border bg-muted px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+                    Rascunho
+                  </span>
+                ) : (
+                  <PaymentBadge status={data.payment_status} />
+                )}
                 {data.shipping_status && data.shipping_status !== 'delivered' && (
                   <span className="inline-flex items-center rounded-full border border-warning/20 bg-warning-soft px-2.5 py-0.5 text-[11px] font-medium text-warning-fg">
                     Frete: {data.shipping_status}
@@ -546,7 +553,7 @@ export default function SaleSheet({
                     <CreditCard size={11} />
                     Pagamentos ({data.payments.length})
                   </h3>
-                  {data.payment_status !== 'paid' && !showAddPayment && (
+                  {data.payment_status !== 'paid' && data.status !== 'draft' && !showAddPayment && (
                     <Button
                       type="button"
                       size="sm"
@@ -856,7 +863,7 @@ export default function SaleSheet({
                   Ver tela →
                 </Link>
               </Button>
-              {data.urls.sell_return_add && (
+              {data.urls.sell_return_add && data.status !== 'draft' && (
                 <Button size="sm" variant="outline" asChild title="Devolução — retorno da peça pro estoque">
                   <a href={data.urls.sell_return_add}>
                     <Undo2 size={14} className="mr-1.5" />
@@ -867,7 +874,7 @@ export default function SaleSheet({
               <Button size="sm" asChild>
                 <Link href={data.urls.edit}>
                   <Edit size={14} className="mr-1.5" />
-                  Editar
+                  {data.status === 'draft' ? 'Continuar venda' : 'Editar'}
                 </Link>
               </Button>
             </div>
