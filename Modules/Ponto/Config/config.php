@@ -159,13 +159,14 @@ return [
         'ios_app_id'        => env('PONTO_IOS_APP_ID', ''),   // "<TeamID>.<bundleId>"
         'paths'             => ['/ponto/mobile*'],
         // Outros apps Android do mesmo domínio, publicados no MESMO assetlinks.json.
-        // Fingerprint é público (vai no arquivo servido), por isso fica no git.
+        // Fingerprint é público (vai no arquivo servido), por isso fica no git, sem env
+        // (env() fora de config/ é barrado pelo Larastan). Vários fingerprints: separar por vírgula.
         // Fisio (TWA do portal do paciente, oimpresso-app/fisio-twa): upload key
         // do oimpresso-app; falta a app signing key do Play Console (Integridade do app).
         'outros_android'    => [
             [
                 'package' => 'com.oimpresso.fisio',
-                'sha256'  => env('FISIO_ANDROID_SHA256', '4E:DB:F0:2C:68:5B:CA:0B:89:E9:A9:03:A7:6A:FB:D2:F8:85:BF:BA:6B:11:90:DD:0C:B5:40:05:E2:31:C3:50'),
+                'sha256'  => '4E:DB:F0:2C:68:5B:CA:0B:89:E9:A9:03:A7:6A:FB:D2:F8:85:BF:BA:6B:11:90:DD:0C:B5:40:05:E2:31:C3:50',
             ],
         ],
     ],
