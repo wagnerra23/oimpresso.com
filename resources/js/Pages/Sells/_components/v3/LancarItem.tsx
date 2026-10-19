@@ -18,7 +18,7 @@
 // Drawer de detalhe do item (7 abas · tributação · DIFAL). O gatilho continua
 // dizendo o que falta em vez de fingir que abre.
 
-import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import { Button } from '@/Components/ui/button';
 import {
@@ -159,13 +159,6 @@ export function LancarItem({
     [obsInterna, obsProducao, local, impressao],
   );
 
-  /* O diálogo é um portal. No <body>, fora do `.cockpit`, `--bg`, `--text`, `--border` chegam
-     vazios — medido em produção em 2026-10-19: `.sells-cowork { background: var(--bg) }` virava
-     fundo TRANSPARENTE e a venda aparecia através do diálogo. Por isso ele monta dentro do
-     `.cockpit` (lápide §5 2026-10-19; o wrapper `venda-v3 sells-cowork` sozinho não traz token). */
-  const [cockpit, setCockpit] = useState<HTMLElement | null>(null);
-  useLayoutEffect(() => setCockpit(document.querySelector<HTMLElement>('.cockpit')), []);
-
   if (!produto) return null;
 
   const medidasResumo = dims
@@ -192,7 +185,7 @@ export function LancarItem({
 
   return (
     <Dialog open onOpenChange={(aberto) => !aberto && onFechar()}>
-      <DialogContent container={cockpit} className="venda-v3 sells-cowork max-h-[92vh] overflow-y-auto sm:max-w-[720px]">
+      <DialogContent className="venda-v3 sells-cowork max-h-[92vh] overflow-y-auto sm:max-w-[720px]">
         <DialogHeader>
           <DialogTitle className="text-[15px] leading-[1.3]">Lançar {produto.nome}</DialogTitle>
           <DialogDescription className="text-[11.5px] leading-[1.35]">
