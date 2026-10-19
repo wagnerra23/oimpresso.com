@@ -1,0 +1,92 @@
+{
+  "url": "http://127.0.0.1:42201/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 79
+  },
+  "theme": "dark",
+  "assinatura": "OI WR Programa de documentação · Trilha D Não é escrever documentação — é manter um sistema que mede, traduz, publica, opera, detecta drift e aprende. Autorizada por [W] em 05/08/2026 · ciclo completo em 06/08/2026. ← Documentação Ver plano no git Ciclo Ondas Caminhos Pronto & batimento onda atual D0 fundação — inventários, donos e navegação ondas 1 / 11 D0 em execução · D1–D10 na fila estações do ciclo 11 fecha em aprender → medir de novo task MCP US-INFRA-048 parent_plan=programa-ondas · merge ratifica O ciclo completo onze estações — descobrir, medir, traduzir, publicar, operar, aprender e medir de novo 01 Descobrir máquina, hook, MCP, módulo ou fluxo 02 Medir o estado real inventário, código e probes 03 Classificar e localizar o dono camada e arquivo que já responde 04 Priorizar o gap criticidade e impacto 05 Documentar no dono existente traduzir para humano 06 Validar tecnicamente fonte, links e arquitetura 07 Validar operacionalmente executar o runbook 08 Publicar PR, merge e /documentacao 09 Operar e observar o doc em uso 10 Incidente ou drift a realidade discorda do doc 11 Aprender e corrigir runbook, lição ou decisão estação 11 → estação 02 · o aprendizado reentra na medição; publicar não encerra 02 Medir o estado real medir entrada fonte e configuração reais, não a lembrança do doc máquina que já existe · probe da máquina regra Guardar o ID estável do achado — é ele que precisa sumir no recibo. Uma unidade de trabalho = uma task + um achado Selecionar, medir antes, localizar o dono, priorizar, traduzir, validar técnica e operacionalmente, provar pelo recibo, entregar PR de uma intenção, publicar, fechar e aprender. dono deste texto: memory/requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md · a tela renderiza o plano; não é cópia commitada",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null
+  }
+}

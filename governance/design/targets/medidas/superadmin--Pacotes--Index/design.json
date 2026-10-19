@@ -1,0 +1,96 @@
+{
+  "url": "http://127.0.0.1:42201/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 79
+  },
+  "theme": "dark",
+  "assinatura": "OI WR Pacotes de assinatura 6 pacotes · 5 ativos · 1 privado Novo pacote Visão geral Negócios 10 Assinaturas 10 Pacotes 6 Usuário 360° Comunicador Configurações Balcão ativo R$ 189 / mês 1 local 3 usuários 500 produtos 300 faturas 14 dias de teste NF-e / NFS-e Para gráfica rápida de balcão — orçamento, OS e PDV. 38 assinantes Gráfica ativo R$ 389 / mês 2 locais 10 usuários produtos ilimitados faturas ilimitadas 14 dias de teste NF-e / NFS-e BI e dashboards Produção completa: OP, fila de impressão, acabamento e fiscal. 57 assinantes Rede ativo R$ 890 / mês locais ilimitados usuários ilimitados produtos ilimitados faturas ilimitadas 30 dias de teste NF-e / NFS-e BI e dashboards Ponto eletrônico Multi-loja com BI consolidado e ponto eletrônico. 12 assinantes Piloto ROTA LIVRE privado ativo Grátis por 6 meses 1 local 6 usuários produtos ilimitados faturas ilimitadas Ponto eletrônico Oficina Auto Pacote privado do piloto — liberado só pelo superadmin. 1 assinante Implantação avulso ativo R$ 2.400 / ano 1 local 2 usuários 200 produtos 100 faturas Cobrança avulsa de setup e migração de dados. 9 assinantes Legado 2024 inativo R$ 149 / mês 1 local 3 usuários 300 produtos 200 faturas NF-e / NFS-e Grade antiga — mantida só para contratos vigentes. 4 assinantes",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": {
+      "bg": "oklch(0.7 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "oklch(0.7 0.15 295)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null
+  }
+}

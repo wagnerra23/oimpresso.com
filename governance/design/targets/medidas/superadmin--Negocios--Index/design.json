@@ -1,0 +1,191 @@
+{
+  "url": "http://127.0.0.1:42201/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 80
+  },
+  "theme": "dark",
+  "assinatura": "OI WR Negócios 10 cadastrados · 4 com assinatura ativa · 1 inativo Exportar Novo negócio Visão geral Negócios 10 Assinaturas 10 Pacotes 6 Usuário 360° Comunicador Configurações Pacote Assinatura Status Última venda 10 de 10 Negócio Dono Assinatura atual Recorrência Cadastro Placa & Cia biz # 195 Fortaleza · CE Heloísa Prado heloisa@placaecia.com.br Sem assinatura nenhum pacote — 17/08/2026 última venda nunca Studio Lona inativo biz # 193 Rio de Janeiro · RJ Vinícius Sá vinicius@studiolona.com Sem assinatura nenhum pacote — 16/08/2026 última venda nunca Fachadas Norte biz # 190 Manaus · AM Rita Camargo rita@fachadasnorte.com.br Trial Gráfica · vence 27/08/2026 — 13/08/2026 última venda hoje ROTA LIVRE Comunicação Visual biz # 171 São Paulo · SP Larissa Souza larissa@rotalivre.com Trial Piloto ROTA LIVRE · vence 30/08/2026 — 11/06/2026 última venda hoje Adesivo Express biz # 186 Belo Horizonte · MG Tiago Prado tiago@adesivoexpress.com Vencida Balcão · vence 04/08/2026 R$ 189 18/03/2026 última venda há 19 dias Martinho Oficina biz # 164 Guarulhos · SP Martinho Alves martinho@oficinamartinho.com.br Ativa Gráfica · vence 12/09/2026 R$ 389 04/02/2026 última venda hoje Anterior 1 2 Próxima 1 – 6 de 10",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": {
+      "bg": "oklch(0.7 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "oklch(0.7 0.15 295)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "center",
+        "larguraPct": 3.4,
+        "mono": false,
+        "corPropria": null,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 24.9,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 3,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 20.9,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "500",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 19.9,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 2,
+        "pill": {
+          "radius": "9999px",
+          "borda": true,
+          "bg": "oklch(0.235 0.01 240)",
+          "dot": false
+        }
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 10.9,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 15.9,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "500",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 6,
+        "tag": "BUTTON",
+        "align": "right",
+        "larguraPct": 4.1,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "fixed",
+      "colunasDeclaradas": 0,
+      "linhas": 6,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null
+  }
+}

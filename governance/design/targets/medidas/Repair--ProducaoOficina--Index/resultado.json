@@ -1,0 +1,192 @@
+{
+  "id": "Repair/ProducaoOficina/Index",
+  "module": "Repair",
+  "source": "repair-page.jsx",
+  "target": "resources/js/Pages/Repair/ProducaoOficina/Index.tsx",
+  "token": "rep-producao",
+  "lado": "ambos",
+  "frescor": "verificado 2026-10-15",
+  "contrato": null,
+  "compare": {
+    "rc": 0,
+    "veredito": "IGUAL",
+    "motivo": "",
+    "bugs": 0,
+    "shell": 0,
+    "sameTheme": false,
+    "porDim": {
+      "D2": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 0,
+        "igual": 1
+      },
+      "D4": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 2,
+        "igual": 0
+      },
+      "D6": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 0,
+        "igual": 1
+      },
+      "D8": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 0,
+        "igual": 1
+      },
+      "D9": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 5,
+        "igual": 0
+      },
+      "SHELL": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 4,
+        "igual": 0
+      },
+      "SAÚDE": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 0,
+        "igual": 0
+      }
+    },
+    "rows": [
+      {
+        "dim": "D2",
+        "campo": "layout",
+        "prod": "ok",
+        "design": "ok",
+        "veredito": "IGUAL"
+      },
+      {
+        "dim": "D4",
+        "campo": "título",
+        "prod": "—",
+        "design": "—",
+        "veredito": "SEM-DADO"
+      },
+      {
+        "dim": "D6",
+        "campo": "cor",
+        "prod": "ok",
+        "design": "ok",
+        "veredito": "IGUAL"
+      },
+      {
+        "dim": "D8",
+        "campo": "kpi align",
+        "prod": "ok",
+        "design": "ok",
+        "veredito": "IGUAL"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-alcas",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-corpo",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-modos",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-rodape",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-topo",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D4",
+        "campo": "linha da tabela",
+        "prod": "não medido",
+        "design": "não medido",
+        "veredito": "SEM-DADO",
+        "detalhe": "passe `tableRow` em __DD_ROLES nos DOIS lados"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.atalhoTopo.presenca",
+        "prod": "0 el (.sb-shortcuts .sb-shortcut)",
+        "design": "0 el (.sb-menu > .sb-item)",
+        "veredito": "SEM-DADO",
+        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.presenca",
+        "prod": "0 el (.sb-menu-grouped)",
+        "design": "1 el (.sb-menu)",
+        "veredito": "SEM-DADO",
+        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.grupoHeader.presenca",
+        "prod": "0 el (.sb-group-h)",
+        "design": "0 el (.sb-group-h)",
+        "veredito": "SEM-DADO",
+        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.itemGrupo.presenca",
+        "prod": "0 el (.sb-item)",
+        "design": "0 el (.sb-group .sb-item, .sb-group-body .sb-item)",
+        "veredito": "SEM-DADO",
+        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      },
+      {
+        "dim": "SAÚDE",
+        "campo": "tokens.prod",
+        "prod": "--accent --pos --neg --warn --text-dim --sunken --border",
+        "design": "—",
+        "veredito": "NÃO MEDI",
+        "detalhe": "token de cor não resolve na raiz — a cascata está incompleta e toda cor cai em fallback"
+      }
+    ]
+  },
+  "veredito": null,
+  "motivo": "",
+  "medido": true,
+  "designSha": "9526526670ffb37e4c05c43e5c4d7b3c828ee7b23eb78e06513e61f8bdf613f3",
+  "prodSha": "54902a1e50b15e70522c18c4e47da423931f313fc8f24333593253817961744a",
+  "meta": {
+    "urlFinal": "https://staging.oimpresso.com/repair/producao-oficina",
+    "componenteInertia": null
+  },
+  "medidoEm": "2026-10-19T07:55:17.163Z",
+  "baseUrl": "https://staging.oimpresso.com",
+  "bundle": "d16835e9e37d447aa8207922e8dcd24c10c5b8e483341dc41ce4a563f2ea7c38"
+}

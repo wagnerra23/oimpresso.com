@@ -1,0 +1,229 @@
+{
+  "url": "https://staging.oimpresso.com/fiscal/nfe",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 7
+  },
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C NF-e · NFC-e Modelos 55 + 65 · 6 no mês · 0 requerem ação 0 autorizadas · 0 processando Buscar Importar XML Inutilizar faixa Emitir Notas fiscais NF-e · NFC-e NFS-e Eventos Manifesto DF-e Certificado SPED e livros NF-e (55) 6 NFC-e (65) 0 Entrada (XML) 0 Todas 6 Autorizadas 0 Rejeitadas 0 Janela 24h 0 Processando 0 Número Chave / destinatário Status SEFAZ Valor Emissão 10 NF-e · s 1 — — — Inutilizada R$ 100,00 — 11 NF-e · s 1 — — — Inutilizada R$ 100,00 — 12 NF-e · s 1 — — — Inutilizada R$ 100,00 — 13 NF-e · s 1 — — — Inutilizada R$ 100,00 — 14 NF-e · s 1 — — — Inutilizada R$ 100,00 — 15 NF-e · s 1 — — — Erro no envio R$ 100,00 — Débitos conhecidos desta tela Lista deferida filtra por tab/status/busca com paginação 50 rows é Inertia::defer; sem teste do payload filtrado (buildRowsPayload, ordem emitido_em DESC). sem teste Retransmitir só aceita nota rejeitada/denegada/erro_envio Dado nota em outro status · Quando pede retransmissão · Então volta com erro sem chamar o Service. Não é testável sem banco: no AcoesController::retransmitir a whitelist é checada depois do firstOrFail(), logo exige nfe_emissoes — indisponível nas duas lanes de hoje (ver §recibo). O caso que existia aqui assertava um array literal escrito no próprio teste e foi removido em 2026-07-28 (não defendia nada). Parcialmente coberto desde 2026-09-01 pelo UC-FNFE-09, que prova estaticamente que a whitelist do Service é exatamente essa e que ela rejeita — o que falta aqui é o caminho de runtime, e ele segue esperando lane com as migrations do NfeBrasil. sem teste Drawer: mapa \"Jana sugere\" por cstat rejeitado, pílula temporal na linha comportamento de UI, sem cobertura Feature nem E2E (a tela não aparece em tests/Browser). Reduzido em 2026-09-03: a metade \"atalhos J/K + Enter\" saiu deste item e virou UC-FNFE-10, com teste de render que morde (4 mutações provadas). O que fica aqui é o que segue descoberto: o mapa guiado por cstat e a pílula temporal. parcialmente coberto navegar abrir Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": {
+      "bg": "oklch(0.9 0.004 90)",
+      "color": "oklch(0.555 0.01 80)",
+      "border": "oklch(0.555 0.01 80)"
+    },
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "fiscal-subnav",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "fiscal-nfe-filters",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "debitos-conhecidos",
+        "classes": {
+          "dataIso": 3,
+          "dataBr": 0,
+          "snakeCru": 3
+        },
+        "exemplos": {
+          "dataIso": [
+            "2026-07-28",
+            "2026-09-01",
+            "2026-09-03"
+          ],
+          "snakeCru": [
+            "emitido_em",
+            "erro_envio",
+            "nfe_emissoes"
+          ]
+        }
+      }
+    ],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 7.5,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "700",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 57.9,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 17,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "700",
+        "blocos": 2,
+        "pill": {
+          "radius": "99px",
+          "borda": false,
+          "bg": "oklch(0.96 0.05 60)",
+          "dot": false
+        }
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 9.4,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "700",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 8.2,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 10,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 6,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null
+  }
+}

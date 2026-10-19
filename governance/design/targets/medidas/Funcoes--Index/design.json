@@ -1,0 +1,96 @@
+{
+  "url": "http://127.0.0.1:42201/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 79
+  },
+  "theme": "dark",
+  "assinatura": "OI WR Funções e permissões 6 funções · 39 grupos (53 do ) · 341 permissões no catálogo Usuários Nova função Usuários Funções e permissões Comissionados Apuração de comissão Funções 6 Controles na tela 243 Permissões no banco 341 Sem usuário 1 6 de 6 Administrador 56 de risco Acesso total — sem restrição de módulo, local ou carteira. Balcão e vendas Clientes e fornecedores Produtos e estoque Produção Financeiro e fiscal RH e ponto Relatórios e painel Sistema 1 usuário · 242 controles ativos Editar Atendente Balcão: atende, orça e abre OS. Não vê custo nem financeiro. Balcão e vendas Clientes e fornecedores Produtos e estoque Produção Financeiro e fiscal RH e ponto Relatórios e painel Sistema 2 usuários · 34 controles ativos Editar Produção Fila de impressão, acabamento e apontamento. Sem preço. Balcão e vendas Clientes e fornecedores Produtos e estoque Produção Financeiro e fiscal RH e ponto Relatórios e painel Sistema 2 usuários · 22 controles ativos Editar Financeiro 8 de risco Títulos, conciliação, fiscal e DRE. Não mexe em produção. Balcão e vendas Clientes e fornecedores Produtos e estoque Produção Financeiro e fiscal RH e ponto Relatórios e painel Sistema 2 usuários · 37 controles ativos Editar Vendas Carteira própria, comissão e orçamento. Vê só os clientes dele. Balcão e vendas Clientes e fornecedores Produtos e estoque Produção Financeiro e fiscal RH e ponto Relatórios e painel Sistema 2 usuários · 22 controles ativos Editar Consulta Somente leitura — para contador e auditoria externa. Balcão e vendas Clientes e fornecedores Produtos e estoque Produção Financeiro e fiscal RH e ponto Relatórios e painel Sistema 0 usuários · 21 controles ativos Editar O catálogo espelha os grupos do no . Pares “ver todos / ver próprio” viram um escopo, os nove “Desativar …” do PDV viram liberações, e chaves sem tradução aparecem cruas — como no legado.",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": {
+      "bg": "oklch(0.7 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "oklch(0.7 0.15 295)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null
+  }
+}

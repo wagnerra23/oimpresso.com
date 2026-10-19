@@ -1,0 +1,252 @@
+{
+  "url": "http://127.0.0.1:42201/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 79
+  },
+  "theme": "dark",
+  "assinatura": "OI WR REPAIR · Matriz + 1 filial · 14 folhas · 11 pendentes Assistência técnica administrador Atualizado 09:42 ⌕ Buscar Adicionar folha Painel Produção 11 Folhas de OS 14 Reparos 14 Status 9 Modelos 6 Portal do cliente Configurações Pendentes 11 Concluídas 3 Entrega vencida 1 Todas 14 Pendente = status sem is_completed_status . A folha só sai daqui quando o status conclui. Técnico Todos Anderson Prado Rafael Uchoa Bruna Sales Não atribuído Local Todos Matriz — Centro Filial — Zona Norte Status Todos os status Recebido no balcão Em diagnóstico Orçamento enviado Aguardando peça Em reparo Em teste final Pronto p/ retirada Entregue Sem reparo (devolvido) Cliente Todos os clientes Comunicação Rota Livre Gráfica Martinho ME Studio Vento Sul Sinalize Já Ltda Ateliê Casa Forte Eduardo Pessoa Folha nº ↕ Tipo de serviço ↕ Entrega prevista ↑ Status ↕ Pipeline Técnico ↕ Cliente ↕ Equipamento Nº de série Custo estimado ↕ Ações JS-2026-0418 Balcão 27/08/2026 em 3d Recebido no balcão recep não atribuído Comunicação Rota Livre Matriz — Centro Roland GR2-540 Plotter de recorte RL-GR2-88123 — status da folha JS-2026-0418 editar a folha JS-2026-0418 imprimir a folha JS-2026-0418 excluir a folha JS-2026-0418 JS-2026-0417 Coleta 26/08/2026 em 2d Recebido no balcão recep não atribuído Gráfica Martinho ME Filial — Zona Norte Dell Latitude 5440 Notebook DL-5440-A991 R$ 240,00 status da folha JS-2026-0417 editar a folha JS-2026-0417 imprimir a folha JS-2026-0417 excluir a folha JS-2026-0417 JS-2026-0412 Balcão 25/08/2026 em 1d Em diagnóstico diag Anderson Prado Studio Vento Sul Matriz — Centro Epson SureColor S60600 Impressora látex EP-S606-77401 R$ 1.450,00 status da folha JS-2026-0412 editar a folha JS-2026-0412 imprimir a folha JS-2026-0412 excluir a folha JS-2026-0412 JS-2026-0410 Balcão 25/08/2026 em 1d Em diagnóstico diag Bruna Sales Eduardo Pessoa Matriz — Centro Dell Latitude 5440 Notebook DL-5440-B120 R$ 380,00 status da folha JS-2026-0410 editar a folha JS-2026-0410 imprimir a folha JS-2026-0410 excluir a folha JS-2026-0410 JS-2026-0405 No local 24/08/2026 vence hoje Orçamento enviado diag Rafael Uchoa Comunicação Rota Livre Matriz — Centro HP Latex 315 Impressora látex HP-315-55210 R$ 3.890,00 status da folha JS-2026-0405 editar a folha JS-2026-0405 imprimir a folha JS-2026-0405 excluir a folha JS-2026-0405 JS-2026-0402 Balcão 28/08/2026 em 4d Orçamento enviado diag Anderson Prado Sinalize Já Ltda Filial — Zona Norte Mimaki CJV150-75 Impressora DTF MK-CJV-31007 R$ 2.240,00 status da folha JS-2026-0402 editar a folha JS-2026-0402 imprimir a folha JS-2026-0402 excluir a folha JS-2026-0402 JS-2026-0398 Balcão 23/08/2026 atrasada 1d Aguardando peça peça Bruna Sales Ateliê Casa Forte Matriz — Centro Brother GTX-600 Impressora DTF BR-GTX-90881 R$ 4.120,00 status da folha JS-2026-0398 editar a folha JS-2026-0398 imprimir a folha JS-2026-0398 excluir a folha JS-2026-0398 JS-2026-0394 Balcão 26/08/2026 em 2d Aguardando peça peça Rafael Uchoa Gráfica Martinho ME Filial — Zona Norte Roland GR2-540 Plotter de recorte RL-GR2-77320 R$ 890,00 status da folha JS-2026-0394 editar a folha JS-2026-0394 imprimir a folha JS-2026-0394 excluir a folha JS-2026-0394 JS-2026-0390 Balcão 24/08/2026 vence hoje Em reparo reparo Anderson Prado Studio Vento Sul Matriz — Centro Epson SureColor S60600 Impressora látex EP-S606-11902 R$ 1.980,00 status da folha JS-2026-0390 editar a folha JS-2026-0390 imprimir a folha JS-2026-0390 excluir a folha JS-2026-0390 11 folha(s) · 11 pendente(s) Anterior 1 2 Próximo 1 – 9 de 11",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "center",
+        "larguraPct": 2,
+        "mono": false,
+        "corPropria": null,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 7.9,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 6.4,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 8.9,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "700",
+        "blocos": 2,
+        "pill": {
+          "radius": "9999px",
+          "borda": true,
+          "bg": "oklch(0.275 0.05 145)",
+          "dot": true
+        }
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 10,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "600",
+        "blocos": 1,
+        "pill": {
+          "radius": "999px",
+          "borda": true,
+          "bg": "oklch(0.62 0.02 250 / 0.12)",
+          "dot": true
+        }
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 8.9,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "600",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 6,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 8.2,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 7,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 11.3,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 8,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 12.5,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 9,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 8.3,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 10,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 7.7,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 11,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": 7.6,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "400",
+        "blocos": 8,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "fixed",
+      "colunasDeclaradas": 0,
+      "linhas": 9,
+      "linhasComEstado": 1
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null
+  }
+}

@@ -1,0 +1,151 @@
+{
+  "url": "https://staging.oimpresso.com/kb",
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C KB — Knowledge Base 2.555 docs servidos via mcp.oimpresso.com — ADRs, sessions, references e specs sincronizados de memory/* via webhook GitHub. Docs ativos 2.555 2.555 total · 0 soft-deleted Docs com PII 24 CPF/CNPJ/email mascarados Tipos 14 adr: 512 · session: 648 · reference: 387 · spec: 61 · handoff: 474 · comparativo: 18 · audit: 15 · runbook: 8 · changelog: 33 · briefing: 80 · surface: 37 · charter: 172 · casos: 101 · feature: 9 Último sync 03/09, 16:25 webhook GitHub Busca (/, debounce 350ms) Tipo Todos Módulo Todos só com PII 2.519 docs 1 - 25 · pág 1 / 101 Tipo Título Módulo Indexado PII Tam. ref Protocolo de comparação RUNTIME — produção × protótipo (v2) designsystem-protocolo-comparacao-runtime _DesignSystem 03/09, 16:25 — 13.5k ref BRIEFING — _DesignSystem · 🧭 porta (índice meta) designsystem-briefing — 03/09, 16:25 — 694c ref Manual de Identidade Visual — Clareza Confiante designsystem-manual-identidade — 03/09, 16:25 — 8.5k ref AUTOMATION-ROADMAP · Constituição UI v2 designsystem-automation-roadmap — 03/09, 16:25 — 13.4k ref RUNBOOK — Contrato de Tela (a perna de fidelidade visual do trio-de-tela) designsystem-runbook-contrato-de-tela — 03/09, 16:25 — 15.6k ref Changelog · Design System designsystem-changelog — 03/09, 16:25 — 39.1k ref Como respeitar o protótipo — a norma (fonte da verdade da tela) designsystem-respeitar-prototipo — 03/09, 16:25 — 5.1k ref Screen Review PDCA — pattern doc canon (templates + exemplo round) designsystem-screen-review-pdca — 03/09, 16:25 — 9.7k ref RUNBOOK — migrar Pages para dentro do módulo dono designsystem-runbook-migrar-pages-para-modulo — 03/09, 16:25 — 8.1k ref RUNBOOK — Ondas de Cópia Cowork → Inertia (playbook canônico reusável) designsystem-runbook-onda-cowork — 03/09, 16:25 — 14.3k ref RUNBOOK · feedback-management — gerenciar feedback de cliente real designsystem-runbook-feedback-management — 03/09, 16:25 — 5.3k ref GUIA — Sidebar v3 oimpresso: do estado atual ao canon completo designsystem-guia-sidebar-v3-passo-a-passo — 03/09, 16:25 — 13.3k ref Sessão 2026-04-27 — Protótipo \"Chat Cockpit\" + ADR 0039 designsystem-from-claude-design-sessions-2026-04-27-prototipo-chat-cockpit — 03/09, 16:25 — 3.1k ref Architecture Decision Records (ADRs) designsystem-from-claude-design-decisions-readme — 03/09, 16:25 — 2.3k ref HANDOFF — Protótipo Oimpresso ERP designsystem-from-claude-design-handoff-prototipo-chat — 03/09, 16:25 — 8.2k ref ADR 0039 — Padrão de UI \"Chat Cockpit\" (3 colunas) para o ERP designsystem-from-claude-design-decisions-0039-ui-chat-cockpit-padrao — 03/09, 16:25 — 8.1k ref 04 — Convenções do Projeto designsystem-from-claude-design-04-conventions — 03/09, 16:25 — 4.1k ref SCREEN-GRADE — método de maturidade de tela (nota /100 comparativa) designsystem-screen-grade-metodo — 03/09, 16:25 — 11.7k ref PRE-MERGE UI · checklist por camada antes de PR designsystem-pre-merge-ui — 03/09, 16:25 — 8.9k ref ADR UI-0022 · Border/input neutro no dark clareado 0.30→0.335 (emenda à ADR UI-0020) designsystem-adr-ui-0022-border-dark-clareado-fidelidade — 03/09, 16:25 — 4.5k ref ADR UI-0015 (_DesignSystem) · Padrão Cowork como visual default dos campos de formulário designsystem-adr-ui-0015-padrao-cowork-default-forms — 03/09, 16:25 — 6.1k ref ADR UI-0013 · Constituição UI v2 — hierarquia de 4 camadas (Fundações → Shell → Padrão de Tela → Módulo) designsystem-adr-ui-0013-constituicao-ui-v2-camadas — 03/09, 16:25 — 8.8k ref ADR UI-0021 · Primary roxo no dark clareado 0.62→0.7 (emenda à ADR 0190) designsystem-adr-ui-0021-primary-dark-clareado-0190 — 03/09, 16:25 — 3.0k ref ADR UI-0012 · Zip Cowork 2026-05-09 atualiza canon visual; novas telas (vendas, clientes, financeiro, produto, produção, inventário) designsystem-adr-ui-0012-zip-cowork-2026-05-09-canon-visual — 03/09, 16:25 — 10.7k ref ADR UI-0023 · Sidebar DARK-FIXO (preto) DEFINITIVO — supersede UI-0019; erradica o conflito light×black designsystem-adr-ui-0023-sidebar-dark-fixo-preto-definitivo-supersede-0019 — 03/09, 16:25 — 7.8k « Anterior 1 2 3 4 5 6 7 8 9 10 ... 100 101 Seguente » Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 2,
+      "tag": "DIV",
+      "overflowX": false,
+      "items": [
+        {
+          "label": "Tipos14adr: 51",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Último sync03/",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        }
+      ]
+    },
+    "title": {
+      "fontPx": 24,
+      "weight": "600",
+      "color": "oklch(0.137 0.036 258.5)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 5.2,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 10,
+        "weight": "500",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 66.6,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 10.5,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 9.2,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 10,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 3.9,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 10,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 4.6,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 10,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 25,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

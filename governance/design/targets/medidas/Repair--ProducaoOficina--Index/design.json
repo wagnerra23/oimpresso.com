@@ -1,0 +1,92 @@
+{
+  "url": "http://127.0.0.1:42201/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 79
+  },
+  "theme": "dark",
+  "assinatura": "OI WR REPAIR · Matriz + 1 filial · 14 folhas · 11 pendentes Assistência técnica administrador Atualizado 09:42 ⌕ Buscar Adicionar folha Painel Produção 11 Folhas de OS 14 Reparos 14 Status 9 Modelos 6 Portal do cliente Configurações Kanban derivado do status, não um campo novo A coluna vem de repair_statuses.sort_order + is_completed_status (KanbanProductionService). Mover o card grava o status padrão daquela coluna. 14 OS · 1 aguardando aprovação Recepção 2 JS-2026-0418 P2 Roland GR2-540 · Não reconhece crop mark Comunicação Rota Livre 🗓 27/08/2026 JS-2026-0417 P3 Dell Latitude 5440 · Não liga Gráfica Martinho ME 🗓 26/08/2026 Diagnóstico 4 JS-2026-0412 P1 Epson SureColor S60600 · Falha de tinta magenta Studio Vento Sul @ Anderson Prado 🗓 25/08/2026 JS-2026-0410 P2 Dell Latitude 5440 · Superaquecimento Eduardo Pessoa @ Bruna Sales 🗓 25/08/2026 JS-2026-0405 P0 HP Latex 315 · Aquecedor traseiro sem potência Comunicação Rota Livre @ Rafael Uchoa 🗓 24/08/2026 JS-2026-0402 P2 Mimaki CJV150-75 · Corte integrado desalinhado Sinalize Já Ltda @ Anderson Prado 🗓 28/08/2026 Aguardando peças 2 JS-2026-0398 P0 Brother GTX-600 · Canal branco entupido 🔒 blocked Ateliê Casa Forte @ Bruna Sales ⚠ 23/08/2026 JS-2026-0394 P2 Roland GR2-540 · Motor de tração travando 🔒 blocked Gráfica Martinho ME @ Rafael Uchoa 🗓 26/08/2026 Em execução 3 JS-2026-0390 P1 Epson SureColor S60600 · Encoder sujo Studio Vento Sul @ Anderson Prado 🗓 24/08/2026 JS-2026-0386 P3 Dell Latitude 5440 · Teclado com teclas mortas Sinalize Já Ltda @ Bruna Sales 🗓 25/08/2026 JS-2026-0380 P1 Mimaki CJV150-75 · Capping station ressecada Ateliê Casa Forte @ Rafael Uchoa 🗓 24/08/2026 Pronto 3 JS-2026-0371 P2 Roland GR2-540 · Lâmina não desce Comunicação Rota Livre @ Anderson Prado 🗓 22/08/2026 JS-2026-0364 P3 Dell Latitude 5440 · Bateria não carrega Eduardo Pessoa @ Bruna Sales 🗓 18/08/2026 JS-2026-0357 P2 HP Latex 315 · Placa principal em curto Sinalize Já Ltda @ Rafael Uchoa 🗓 14/08/2026",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null
+  }
+}

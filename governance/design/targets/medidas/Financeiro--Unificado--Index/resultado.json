@@ -1,0 +1,248 @@
+{
+  "id": "Financeiro/Unificado/Index",
+  "module": "Financeiro",
+  "source": "financeiro-page.jsx",
+  "target": "resources/js/Pages/Financeiro/Unificado/Index.tsx",
+  "token": "financeiro",
+  "lado": "ambos",
+  "frescor": "verificado 2026-10-15",
+  "contrato": null,
+  "compare": {
+    "rc": 1,
+    "veredito": "DIVERGE (bug)",
+    "motivo": "",
+    "bugs": 2,
+    "shell": 0,
+    "sameTheme": false,
+    "porDim": {
+      "D2": {
+        "diverge": 2,
+        "bug": 1,
+        "semDado": 0,
+        "igual": 1
+      },
+      "D4": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 0,
+        "igual": 1
+      },
+      "D6": {
+        "diverge": 1,
+        "bug": 0,
+        "semDado": 0,
+        "igual": 1
+      },
+      "D8": {
+        "diverge": 1,
+        "bug": 1,
+        "semDado": 0,
+        "igual": 0
+      },
+      "D9": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 10,
+        "igual": 0
+      },
+      "SHELL": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 4,
+        "igual": 0
+      },
+      "SAÚDE": {
+        "diverge": 0,
+        "bug": 0,
+        "semDado": 0,
+        "igual": 0
+      }
+    },
+    "rows": [
+      {
+        "dim": "D2",
+        "campo": "layout",
+        "prod": "ok",
+        "design": "ok",
+        "veredito": "IGUAL"
+      },
+      {
+        "dim": "D4",
+        "campo": "tipografia",
+        "prod": "ok",
+        "design": "ok",
+        "veredito": "IGUAL"
+      },
+      {
+        "dim": "D6",
+        "campo": "cor",
+        "prod": "ok",
+        "design": "ok",
+        "veredito": "IGUAL"
+      },
+      {
+        "dim": "D8",
+        "campo": "kpi.tag",
+        "prod": "BUTTON",
+        "design": "DIV",
+        "veredito": "DIVERGE (bug)"
+      },
+      {
+        "dim": "D9",
+        "campo": "filter-pills-toolbar",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "header-acoes",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "kpis",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "periodbar-personalizado",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-alcas",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-corpo",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-modos",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-rodape",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "sb-topo",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D9",
+        "campo": "tabela-linhas",
+        "prod": "presente",
+        "design": "ausente",
+        "veredito": "SEM-DADO",
+        "detalhe": "região só existe de um lado"
+      },
+      {
+        "dim": "D2",
+        "campo": "nº de colunas",
+        "prod": 1,
+        "design": 12,
+        "veredito": "DIVERGE (bug)",
+        "detalhe": "comparando as 1 primeiras"
+      },
+      {
+        "dim": "D6",
+        "campo": "estado de linha",
+        "prod": "0/1",
+        "design": "12/23",
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "um lado distingue linha por estado (trilha/apagado) e o outro não — pode ser capacidade ausente OU nenhuma linha nesse estado hoje; confira antes de tratar como defeito"
+      },
+      {
+        "dim": "D2",
+        "campo": "col0.blocos de texto",
+        "prod": 1,
+        "design": 0,
+        "veredito": "DIVERGE (dado?)",
+        "detalhe": "pode ser render condicional dirigido por dado — confira a célula antes de tratar como defeito"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.atalhoTopo.presenca",
+        "prod": "0 el (.sb-shortcuts .sb-shortcut)",
+        "design": "0 el (.sb-menu > .sb-item)",
+        "veredito": "SEM-DADO",
+        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.containerMenu.presenca",
+        "prod": "0 el (.sb-menu-grouped)",
+        "design": "1 el (.sb-menu)",
+        "veredito": "SEM-DADO",
+        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.grupoHeader.presenca",
+        "prod": "0 el (.sb-group-h)",
+        "design": "0 el (.sb-group-h)",
+        "veredito": "SEM-DADO",
+        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      },
+      {
+        "dim": "SHELL",
+        "campo": "shell.itemGrupo.presenca",
+        "prod": "0 el (.sb-item)",
+        "design": "0 el (.sb-group .sb-item, .sb-group-body .sb-item)",
+        "veredito": "SEM-DADO",
+        "detalhe": "o seletor não casou elemento VISÍVEL deste lado — conserte o mapa de papéis antes de ler o resto"
+      },
+      {
+        "dim": "SAÚDE",
+        "campo": "tokens.prod",
+        "prod": "--accent --pos --neg --warn --text-dim --sunken --border",
+        "design": "—",
+        "veredito": "NÃO MEDI",
+        "detalhe": "token de cor não resolve na raiz — a cascata está incompleta e toda cor cai em fallback"
+      }
+    ]
+  },
+  "veredito": null,
+  "motivo": "",
+  "medido": true,
+  "designSha": "e10e92c692bd3e89be1a258db8c17260ef2a37181d3d8618044e6a51a40f78be",
+  "prodSha": "702bb1e2cb0bcec4e52bd078efcb8cf87debab424903ea56467d70490d7204c4",
+  "meta": {
+    "urlFinal": "https://staging.oimpresso.com/financeiro/unificado",
+    "componenteInertia": null
+  },
+  "medidoEm": "2026-10-19T07:55:17.160Z",
+  "baseUrl": "https://staging.oimpresso.com",
+  "bundle": "d16835e9e37d447aa8207922e8dcd24c10c5b8e483341dc41ce4a563f2ea7c38"
+}

@@ -1,0 +1,96 @@
+{
+  "url": "https://staging.oimpresso.com/officeimpresso/licenca_log",
+  "saude": {
+    "folhasVazias": [
+      "app.css",
+      "vendor.css",
+      "app.css"
+    ],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 18
+  },
+  "theme": "light",
+  "assinatura": "CI Biz Visão geral Gerenciamento de usuários Contatos Produtos Reparar Vendas Relatórios Configurações Suporte Jana Sidebar Menu Collapse Sidebar Calendário Adicionar a fazer Application Tour Calculator Reparar Today's Profit 10/19/2026 Notifications CI Signed in as CI Perfil Desconectar Toggle navigation Office Impresso Empresas Licenciadas Computadores Licenças Clientes Log de Acesso Máquinas Cadastradas Registro da máquina é a chave desta tela. A rotina popula/atualiza o cadastro; o log do último acesso aparece em cada linha. Máquinas cadastradas 0 total de equipamentos Máquinas bloqueadas 0 bloqueio individual Empresas bloqueadas 0 bloqueio em massa Acessos 24h 0 processa-dados-cliente 🔍 Empresa / Máquina Estado atual Todos Ativa Bloqueada Aplicar Timeline de Máquinas (0) 1 linha por máquina · última atividade primeiro · clique em empresa ou máquina para filtrar Empresa Location / CNPJ Máquina HD Versão IP Último Login Estado no Último Login Estado Atual Ações Nenhuma máquina cadastrada ainda. A tabela é populada pela rotina quando o Delphi envia CNPJ + HD. - V6.4 | Copyright © 2026 All rights reserved. × Benefício de hoje Fechar Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Só essenciais Aceitar tudo Tour da Aplicação Vamos passar pelo aplicativo em 7 passos rápidos ... « Anterior Próximo » Tour final",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "rgb(17, 24, 39)"
+    },
+    "primary": {
+      "bg": "rgb(239, 239, 239)",
+      "color": "rgb(0, 0, 0)",
+      "border": "rgb(0, 0, 0)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "center",
+        "larguraPct": 100,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "700",
+        "blocos": 3,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 1,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null
+  }
+}

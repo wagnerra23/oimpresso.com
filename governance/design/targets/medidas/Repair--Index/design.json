@@ -1,0 +1,233 @@
+{
+  "url": "http://127.0.0.1:42201/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 79
+  },
+  "theme": "dark",
+  "assinatura": "OI WR REPAIR · Matriz + 1 filial · 14 folhas · 11 pendentes Assistência técnica administrador Atualizado 09:42 ⌕ Buscar Adicionar folha Painel Produção 11 Folhas de OS 14 Reparos 14 Status 9 Modelos 6 Portal do cliente Configurações Em andamento 11 clique filtra a lista Concluídas 3 Total exibido 14 Buscar Local Todos os locais Matriz — Centro Filial — Zona Norte Responsável Todos os responsáveis Anderson Prado Rafael Uchoa Bruna Sales Não atribuído 0 Recebido no balcão Em diagnóstico Orçamento enviado Aguardando peça Em reparo Em teste final Pronto p/ retirada Entregue Sem reparo (devolvido) OS ↕ Status ↕ Cliente ↕ Aparelho Série Resp. Aberta ↕ Prazo ↕ Total ↕ Pgto REP-2026-0418 Recebido no balcão Comunicação Rota Livre Roland GR2-540 RL-GR2-88123 — 24/08/2026 27/08/2026 em 3d R$ 0,00 Pendente REP-2026-0417 Recebido no balcão Gráfica Martinho ME Dell Latitude 5440 DL-5440-A991 — 24/08/2026 26/08/2026 em 2d R$ 240,00 Vencido REP-2026-0412 Em diagnóstico Studio Vento Sul Epson SureColor S60600 EP-S606-77401 Anderson Prado 21/08/2026 25/08/2026 em 1d R$ 1.450,00 Vencido REP-2026-0410 Em diagnóstico Eduardo Pessoa Dell Latitude 5440 DL-5440-B120 Bruna Sales 20/08/2026 25/08/2026 em 1d R$ 380,00 Vencido REP-2026-0405 Orçamento enviado Comunicação Rota Livre HP Latex 315 HP-315-55210 Rafael Uchoa 18/08/2026 24/08/2026 vence hoje R$ 3.890,00 Vencido REP-2026-0402 Orçamento enviado Sinalize Já Ltda Mimaki CJV150-75 MK-CJV-31007 Anderson Prado 17/08/2026 28/08/2026 em 4d R$ 2.240,00 Vencido REP-2026-0398 Aguardando peça Ateliê Casa Forte Brother GTX-600 BR-GTX-90881 Bruna Sales 14/08/2026 23/08/2026 atrasada 1d R$ 4.800,00 Vencido REP-2026-0394 Aguardando peça Gráfica Martinho ME Roland GR2-540 RL-GR2-77320 Rafael Uchoa 13/08/2026 26/08/2026 em 2d R$ 1.100,00 Vencido REP-2026-0289 Em reparo Studio Vento Sul Epson SureColor S60600 EP-S606-11902 Anderson Prado 14/08/2026 24/08/2026 vence hoje R$ 1.980,00 Pendente Mostrando 1–9 de 14 Anterior 1 2 Próximo 1 – 9 de 14 O reparo é a venda derivada da folha — pagamento, garantia e cobrança são de Vendas/Financeiro. Aqui só se lê.",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 9.9,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 11.9,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "600",
+        "blocos": 1,
+        "pill": {
+          "radius": "999px",
+          "borda": true,
+          "bg": "oklch(0.62 0.02 250 / 0.12)",
+          "dot": true
+        }
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 13.5,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 12.8,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 9.2,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 9.2,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 6,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 6.8,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 7,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 10.6,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "700",
+        "blocos": 2,
+        "pill": {
+          "radius": "9999px",
+          "borda": true,
+          "bg": "oklch(0.275 0.05 145)",
+          "dot": true
+        }
+      },
+      {
+        "col": 8,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 8.2,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 9,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 7.8,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "9999px",
+          "borda": true,
+          "bg": "oklch(0.235 0.01 240)",
+          "dot": false
+        }
+      }
+    ],
+    "tabela": {
+      "tableLayout": "fixed",
+      "colunasDeclaradas": 0,
+      "linhas": 9,
+      "linhasComEstado": 1
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null
+  }
+}

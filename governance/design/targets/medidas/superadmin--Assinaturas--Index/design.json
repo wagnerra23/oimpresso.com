@@ -1,0 +1,203 @@
+{
+  "url": "http://127.0.0.1:42201/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 80
+  },
+  "theme": "dark",
+  "assinatura": "OI WR Assinaturas 10 registros · R$ 4.017 aprovados · 1 pendente de baixa Exportar Lançar assinatura Visão geral Negócios 10 Assinaturas 10 Pacotes 6 Usuário 360° Comunicador Configurações Ativas 5 Em trial 2 Pendentes 1 Vencidas ou canceladas 2 Pacote Status Criada em 10 de 10 Assinatura Negócio Status Vigência Valor Pagamento SUB-2249 criada 16/08/2026 Studio Lona Balcão Pendente — → — sem trial R$ 189 Boleto bol_781902 SUB-2271 criada 15/08/2026 Copiadora Central Legado 2024 Aprovada 15/08/2026 → 15/09/2026 sem trial R$ 149 Pix automático pix_7c02de41 SUB-2288 criada 13/08/2026 Fachadas Norte Gráfica Trial 13/08/2026 → 27/08/2026 trial até 27/08/2026 — — — SUB-2291 criada 12/08/2026 Martinho Oficina Gráfica Aprovada 12/08/2026 → 12/09/2026 sem trial R$ 389 Pix automático pix_9f31a7c2 SUB-2280 criada 03/08/2026 Print Ideal Balcão Aprovada 03/08/2026 → 03/09/2026 sem trial R$ 189 Boleto bol_774120 SUB-2284 criada 28/07/2026 Grupo Sinaliza (3 lojas) Rede Aprovada 28/07/2026 → 28/08/2026 sem trial R$ 890 Cartão (Stripe) ch_3PkQ8bL2 Anterior 1 2 Próxima 1 – 6 de 10",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": {
+      "bg": "oklch(0.7 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "oklch(0.7 0.15 295)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "center",
+        "larguraPct": 3.4,
+        "mono": false,
+        "corPropria": null,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 14.9,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 19.9,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "500",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 9.9,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "9999px",
+          "borda": true,
+          "bg": "oklch(0.74 0.13 75)",
+          "dot": false
+        }
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 22.9,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "500",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 9,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 6,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 15.9,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "500",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 7,
+        "tag": "BUTTON",
+        "align": "right",
+        "larguraPct": 4.1,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "fixed",
+      "colunasDeclaradas": 0,
+      "linhas": 6,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null
+  }
+}

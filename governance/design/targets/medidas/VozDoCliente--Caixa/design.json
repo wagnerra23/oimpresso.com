@@ -1,0 +1,240 @@
+{
+  "url": "http://127.0.0.1:42201/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 79
+  },
+  "theme": "dark",
+  "assinatura": "OI WR Voz do Cliente 8 relatos · 3 pendentes · o mais novo há 2 h o que as pessoas relataram — de dentro do sistema, com a tela em que aconteceu Pendentes de triagem 3 ninguém olhou ainda Triados 2 já viraram US no backlog Fechados 3 resolvidos ou descartados Gravidade alta 3 dor que trava o trabalho Todos 8 Pendentes 3 Triados 2 Fechados 3 Quando Quem O que disse Onde Grav. Situação Ação 24/08/2026 08:40 recente · há 2 h Larissa Prado O total da venda mudou depois que troquei o cliente — precisei refazer a linha do banner. Alta Pendente Triar 24/08/2026 05:40 recente · há 5 h Eliana Souza Baixa de boleto pago não aparece no extrato no mesmo dia. Fico sem saber se entrou. Alta Triado 24/08/2026 01:40 recente · há 9 h Larissa Prado Na busca de cliente, digitar CNPJ com ponto não acha ninguém. Média Triado 23/08/2026 08:40 fresc · há 1 dia Marcos Vinícius No tablet da oficina o botão de iniciar execução fica atrás do teclado. Média Pendente Triar 23/08/2026 03:40 fresc · há 1 dia — Etiqueta saiu com o preço cortado na direita. Baixa Pendente Triar 22/08/2026 06:40 frio · há 2 dias Wagner Ramos Relatório de estoque demora uns 20 segundos com filtro de local vazio. Baixa Fechado resolvido no índice da query 21/08/2026 08:40 frio · há 3 dias Larissa Prado Não consigo imprimir a OS sem passar pelo orçamento antes. Média Fechado é o fluxo desenhado — virou treinamento 20/08/2026 10:40 frio · há 4 dias Eliana Souza A conciliação some do menu quando entro pela empresa da matriz. Alta Fechado duplicado do 79 O relato entra por dentro do sistema (widget de feedback), guarda a tela de origem e não abre chamado nem notifica ninguém — a triagem é manual .",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "cabecalho",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "kpis",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "filtros",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "lista",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 8,
+          "snakeCru": 0
+        },
+        "exemplos": {
+          "dataBr": [
+            "24/08/2026",
+            "23/08/2026",
+            "22/08/2026"
+          ]
+        }
+      }
+    ],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 13.8,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "700",
+        "blocos": 4,
+        "pill": {
+          "radius": "9999px",
+          "borda": true,
+          "bg": "oklch(0.68 0.13 162 / 0.16)",
+          "dot": true
+        }
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 11.7,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 23.1,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 16.7,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 7.7,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "9999px",
+          "borda": true,
+          "bg": "oklch(0.55 0.17 18)",
+          "dot": false
+        }
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 19.6,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "9999px",
+          "borda": true,
+          "bg": "oklch(0.74 0.13 75)",
+          "dot": false
+        }
+      },
+      {
+        "col": 6,
+        "tag": "BUTTON",
+        "align": "right",
+        "larguraPct": 7.4,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 8,
+      "linhasComEstado": 1
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null
+  }
+}
