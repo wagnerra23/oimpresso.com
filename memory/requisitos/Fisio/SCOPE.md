@@ -14,6 +14,7 @@ contains:
   - "Foto ou vídeo curto do exercício próprio da clínica (UC-FBI-05..07) — servida por rota com checagem de empresa"
   - "BibliotecaFavoritosController — favoritos do profissional na empresa (fisio_exercise_favorites)"
   - "DataController"
+  - "PainelController"
   - "InstallController"
   - "PacientesController"
   - "RegistrosController"
@@ -35,6 +36,7 @@ depends_on: [Whatsapp]
 owner: wagner
 status: em construção
 url_prefixes:
+  - /fisio (painel do profissional — KPIs, fila de atenção e tabela; US-FISIO-010)
   - /fisio/pacientes/* (área do profissional — pacientes, prontuário e questionários; demais telas a criar)
   - /fisio/p/{token}/* (portal público do paciente — a criar)
 ---
