@@ -38,6 +38,7 @@ Deixar o paciente abrir, pelo link que a clínica gerou e com o PIN que a fisiot
 - "Como foi hoje?" em 3 toques (fiz tudo/parte/nada → dor 0–10 → "notou algo diferente?"), esforço e recado recolhidos; reenvio no mesmo dia corrige — UC-FPP-08 a UC-FPP-16.
 - Dia de pausa (dor ≥ limiar ou sinal de alerta): só a instrução escrita pelo profissional, sem jogo — UC-FPP-19, UC-FPP-20.
 - "Hoje estou em crise" quando o profissional escreveu a versão de crise — UC-FPP-24.
+- App instalável: manifesto por link (sem o nome da clínica), tela do dia aberta sem rede só em aparelho lembrado, convite "Adicionar à tela inicial" a partir do 3º dia cumprido — UC-FPP-26 a UC-FPP-28.
 
 ## Non-Goals — Features (NÃO faz)
 

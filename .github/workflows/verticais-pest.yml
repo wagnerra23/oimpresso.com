@@ -140,6 +140,8 @@ on:
       - 'Modules/Producao/**'
       # US-FISIO-003 — fundo do Fisio (triggers append-only + escopo multi-tenant exigem MySQL).
       - 'Modules/Fisio/**'
+      # Etapa 02 T-13 — service worker do portal do paciente (FisioPortalAppTest lê o arquivo).
+      - 'public/sw-fisio-portal.js'
       # Thread Producao/04 — o apontamento lê a saída do ponto (D-PONTO).
       - 'Modules/Ponto/Services/PresencaDoDiaService.php'
       - 'database/schema/mysql-schema.sql'
@@ -264,6 +266,8 @@ jobs:
               - 'Modules/Producao/**'
               # US-FISIO-003 — fundo do Fisio (triggers append-only + escopo multi-tenant exigem MySQL).
               - 'Modules/Fisio/**'
+              # Etapa 02 T-13 — service worker do portal do paciente (FisioPortalAppTest lê o arquivo).
+              - 'public/sw-fisio-portal.js'
               # Thread Producao/04 — o apontamento lê a saída do ponto (D-PONTO).
               - 'Modules/Ponto/Services/PresencaDoDiaService.php'
               - 'database/schema/mysql-schema.sql'
@@ -507,6 +511,10 @@ jobs:
         # Com o portal gravando, o filtro que tirava o UC-FPN-05 do FisioPainelTest sai: o arquivo
         # roda inteiro (asserções intactas).
         #
+        # ENTRA 2026-10-19 — Fisio/FisioPortalAppTest (etapa 02 T-13): manifesto por link sem o
+        # nome da clínica, tela do dia guardada no aparelho só quando ele está lembrado, e o
+        # service worker public/sw-fisio-portal.js (está no gatilho acima) (UC-FPP-26..28).
+        #
         # ENTRA 2026-10-18 — Fisio/FisioBibliotecaMidiaTest: foto/vídeo do exercício próprio pelo
         # backbone Modules/Arquivos (biz-{id}/), servida por rota que confere empresa (98 lê, 99
         # 404), global 403, limites e declaração no servidor, remoção só da dona (UC-FBI-05..07).
@@ -629,7 +637,8 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioCheckinTest.php \
             Modules/Fisio/Tests/Feature/FisioJogoTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalSegurancaClinicaTest.php \
-            Modules/Fisio/Tests/Feature/FisioPortalAparelhoTest.php
+            Modules/Fisio/Tests/Feature/FisioPortalAparelhoTest.php \
+            Modules/Fisio/Tests/Feature/FisioPortalAppTest.php
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-verticais-junit-fisio-painel.xml \
             Modules/Fisio/Tests/Feature/FisioPainelTest.php

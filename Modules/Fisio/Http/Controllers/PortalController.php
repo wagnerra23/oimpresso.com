@@ -10,6 +10,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Modules\Fisio\Entities\Checkin;
 use Modules\Fisio\Entities\Patient;
 use Modules\Fisio\Entities\PortalToken;
@@ -58,7 +59,7 @@ class PortalController extends Controller
     ) {
     }
 
-    public function show(Request $request, string $token): Response
+    public function show(Request $request, string $token): Response|SymfonyResponse
     {
         $linha = $this->tokens->resolver($token);
         if ($linha === null) {
@@ -101,17 +102,61 @@ class PortalController extends Controller
 
         if ($modo === CheckinDoPortal::MODO_PAUSA) {
             // Dia de pausa: nada de "faça mais" — só a palavra do profissional (Anvisa, UC-FPP-19).
-            return Inertia::render('Fisio/Public/Portal', $comum + ['instrucao' => $this->checkins->instrucao($paciente)]);
+            return $this->offline($request, $linha, Inertia::render('Fisio/Public/Portal', $comum + ['instrucao' => $this->checkins->instrucao($paciente)]));
         }
 
         $programa = $this->checkins->programaAtivo($paciente);
 
-        return Inertia::render('Fisio/Public/Portal', $comum + [
+        return $this->offline($request, $linha, Inertia::render('Fisio/Public/Portal', $comum + [
             'hoje' => ['itens' => $this->itensDeHoje($programa)],
             'crise' => ['itens' => $this->checkins->versaoDeCrise($programa)],
             'relato' => $deHoje !== null ? $this->relatoDeHoje($deHoje) : null,
             'red_flags' => array_values(array_map('strval', (array) config('fisio.red_flags', []))),
-        ]);
+        ]));
+    }
+
+    /**
+     * Manifesto do app instalável (etapa 02 §3.6 · UC-FPP-26). Um por link: o app instalado abre
+     * direto no programa do paciente. Não consulta o banco e não diz o nome da clínica — o
+     * manifesto é público e vem antes do PIN; o nome aparece dentro do app depois da entrada.
+     */
+    public function manifest(string $token): JsonResponse
+    {
+        $inicio = '/fisio/p/'.$token;
+
+        return response()->json([
+            'id' => $inicio,
+            'name' => 'Meu programa de exercícios',
+            'short_name' => 'Exercícios',
+            'description' => 'Seus exercícios do dia e o registro de como foi, enviados pela sua fisioterapeuta.',
+            'start_url' => $inicio,
+            'scope' => '/fisio/p/',
+            'display' => 'standalone',
+            'orientation' => 'portrait',
+            'lang' => 'pt-BR',
+            // Roxo 295 do DS (tokens primary oklch(0.55 0.15 295)) e fundo background oklch(1 0 0).
+            'theme_color' => '#795bbf',
+            'background_color' => '#ffffff',
+            'icons' => [
+                ['src' => '/img/fisio-portal-192.png', 'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'any'],
+                ['src' => '/img/fisio-portal-512.png', 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'any'],
+                ['src' => '/img/fisio-portal-512-maskable.png', 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'maskable'],
+            ],
+        ], 200, ['Content-Type' => 'application/manifest+json']);
+    }
+
+    /**
+     * Autoriza o service worker a guardar esta tela para abrir sem rede (UC-FPP-27) — só em
+     * aparelho LEMBRADO. Com o PIN só na sessão, o programa não fica no aparelho: senão a cópia
+     * guardada abriria sem PIN depois que a sessão acabasse. Sem este cabeçalho o SW apaga a cópia.
+     */
+    private function offline(Request $request, PortalToken $linha, Response $tela): SymfonyResponse
+    {
+        $resposta = $tela->toResponse($request);
+        $lembrado = $this->aparelhos->reconhece($linha, $request->cookie($this->aparelhos->nomeCookie($linha)));
+        $resposta->headers->set('X-Fisio-Offline', $lembrado ? 'guardar' : 'nao-guardar');
+
+        return $resposta;
     }
 
     /**
