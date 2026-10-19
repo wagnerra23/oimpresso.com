@@ -14,15 +14,16 @@ module: Fisio
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Fisio/**` + `resources/js/Pages/Fisio/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 167 arquivos em 19 papéis.
+**Total mapeado:** 171 arquivos em 19 papéis.
 
-## Controllers — 16
+## Controllers — 17
 
 - [BibliotecaController.php](../../../Modules/Fisio/Http/Controllers/BibliotecaController.php)
 - [BibliotecaFavoritosController.php](../../../Modules/Fisio/Http/Controllers/BibliotecaFavoritosController.php)
 - [BibliotecaMidiaController.php](../../../Modules/Fisio/Http/Controllers/BibliotecaMidiaController.php)
 - [DataController.php](../../../Modules/Fisio/Http/Controllers/DataController.php)
 - [EnvioWhatsappController.php](../../../Modules/Fisio/Http/Controllers/EnvioWhatsappController.php)
+- [FolhaProgramaController.php](../../../Modules/Fisio/Http/Controllers/FolhaProgramaController.php)
 - [InstallController.php](../../../Modules/Fisio/Http/Controllers/InstallController.php)
 - [PacientesController.php](../../../Modules/Fisio/Http/Controllers/PacientesController.php)
 - [PainelController.php](../../../Modules/Fisio/Http/Controllers/PainelController.php)
@@ -39,7 +40,7 @@ module: Fisio
 
 - [FisioLiberado.php](../../../Modules/Fisio/Http/Middleware/FisioLiberado.php)
 
-## Services — 28
+## Services — 29
 
 - [AdesaoCalculator.php](../../../Modules/Fisio/Services/AdesaoCalculator.php)
 - [AparelhosDoPortal.php](../../../Modules/Fisio/Services/AparelhosDoPortal.php)
@@ -50,6 +51,7 @@ module: Fisio
 - [DiaLocal.php](../../../Modules/Fisio/Services/DiaLocal.php)
 - [EditorProgramaPayload.php](../../../Modules/Fisio/Services/EditorProgramaPayload.php)
 - [FisioAcesso.php](../../../Modules/Fisio/Services/FisioAcesso.php)
+- [FolhaPrograma.php](../../../Modules/Fisio/Services/FolhaPrograma.php)
 - [JogoService.php](../../../Modules/Fisio/Services/JogoService.php)
 - [LimiarDorCalculator.php](../../../Modules/Fisio/Services/LimiarDorCalculator.php)
 - [LinguagemAnvisa.php](../../../Modules/Fisio/Services/LinguagemAnvisa.php)
@@ -131,8 +133,9 @@ module: Fisio
 
 - [config.php](../../../Modules/Fisio/Config/config.php)
 
-## Views (Blade) — 1
+## Views (Blade) — 2
 
+- [folha-programa.blade.php](../../../Modules/Fisio/Resources/views/pdf/folha-programa.blade.php)
 - [prontuario.blade.php](../../../Modules/Fisio/Resources/views/pdf/prontuario.blade.php)
 
 ## Telas (Inertia/React) — 5
@@ -179,9 +182,9 @@ module: Fisio
 - [Painel.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Painel.casos.md)
 - [Portal.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/Portal.casos.md)
 
-## Testes (Pest) — 40
+## Testes (Pest) — 41
 
-- 28 em [Modules/Fisio/Tests/Feature/](../../../Modules/Fisio/Tests/Feature)
+- 29 em [Modules/Fisio/Tests/Feature/](../../../Modules/Fisio/Tests/Feature)
 - 2 em [Modules/Fisio/Tests/Support/](../../../Modules/Fisio/Tests/Support)
 - 10 em [Modules/Fisio/Tests/Unit/](../../../Modules/Fisio/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
