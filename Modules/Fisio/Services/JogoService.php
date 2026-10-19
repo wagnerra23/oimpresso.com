@@ -157,7 +157,7 @@ final class JogoService
     /**
      * Missões de hoje, desafio da semana e medalhas, para o portal. Sem ranking.
      *
-     * @return array{missoes: list<array{chave:string, texto:string, cumprida:bool}>, desafio: array{semana:string, oferecido:bool, decidido:bool, aceito:bool, meta:?int, opcoes:list<int>, cumpridos:int, pago:bool}, medalhas: list<array{codigo:string, nome:string}>}
+     * @return array{missoes: list<array{chave:string, texto:string, cumprida:bool}>, desafio: array{oferecido:bool, decidido:bool, aceito:bool, meta:?int, opcoes:list<int>, cumpridos:int, pago:bool}, medalhas: list<array{codigo:string, nome:string}>}
      */
     public function constancia(Patient $p, ?DateTimeInterface $agora = null): array
     {
@@ -179,8 +179,8 @@ final class JogoService
 
         return [
             'missoes' => $missoes,
+            // Sem data no payload: o portal não carrega datas do histórico (UC-FPP-20).
             'desafio' => [
-                'semana' => $seg,
                 // Oferta só na segunda (etapa 02 §3.4); a decisão vale a semana toda.
                 'oferecido' => $desafio === null && $hoje === $seg && $programa !== null,
                 'decidido' => $desafio !== null,
