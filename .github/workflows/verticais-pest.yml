@@ -489,6 +489,10 @@ jobs:
         # em PDF — registros assinados em ordem cronológica e carimbados, 403 sem fisio.access, 404
         # entre 98 e 99, e cada exportação no activity_log sem PII.
         #
+        # ENTRA 2026-10-19 — Fisio/FisioFolhaProgramaTest (UC-FPS-37..38, B-12): folha A4 do programa
+        # — só o programa no papel (sem queixa nem prontuário), foto embutida, 403/404, rastro sem PII,
+        # e imprimir não revoga nem emite link do portal.
+        #
         # ENTRAM 2026-10-18 — Fisio/FisioMultiTenantTest, Fisio/FisioModuloVisibilidadeTest e
         # Fisio/FisioEvolucaoTest (US-FISIO-010): painel e evolução da 98 sem paciente da 99, menu e
         # rota /fisio só com pacote + fisio.access, aba Evolução (UC-FPS-21). Inteiros e verdes.
@@ -651,6 +655,7 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioPacienteResponsavelTest.php \
             Modules/Fisio/Tests/Feature/FisioProgramaEditorTest.php \
             Modules/Fisio/Tests/Feature/FisioProntuarioPdfTest.php \
+            Modules/Fisio/Tests/Feature/FisioFolhaProgramaTest.php \
             Modules/Fisio/Tests/Feature/FisioBibliotecaMidiaTest.php \
             Modules/Fisio/Tests/Feature/FisioMultiTenantTest.php \
             Modules/Fisio/Tests/Feature/FisioModuloVisibilidadeTest.php \

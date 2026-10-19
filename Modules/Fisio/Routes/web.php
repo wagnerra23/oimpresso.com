@@ -10,6 +10,7 @@ use Modules\Fisio\Http\Controllers\PainelController;
 use Modules\Fisio\Http\Controllers\PortalController;
 use Modules\Fisio\Http\Controllers\PortalLinkController;
 use Modules\Fisio\Http\Controllers\ProgramasController;
+use Modules\Fisio\Http\Controllers\FolhaProgramaController;
 use Modules\Fisio\Http\Controllers\ProntuarioPdfController;
 use Modules\Fisio\Http\Controllers\ProtocolosController;
 use Modules\Fisio\Http\Controllers\QuestionariosController;
@@ -100,6 +101,8 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::post('programas/{id}/protocolo', [ProgramasController::class, 'aplicarProtocolo'])->whereNumber('id')->name('programas.protocolo');
         // US-FISIO-009: envio do link do portal pelo módulo Whatsapp (fila) ou wa.me manual sem canal ativo.
         Route::post('programas/{id}/enviar', [EnvioWhatsappController::class, 'enviar'])->whereNumber('id')->name('programas.enviar');
+        // B-12: folha A4 do programa para imprimir. Leitura (fisio.access); não emite nem revoga link do portal.
+        Route::get('programas/{id}/folha.pdf', [FolhaProgramaController::class, 'show'])->whereNumber('id')->name('programas.folha');
         Route::post('programas/{id}/salvar-como-protocolo', [ProtocolosController::class, 'salvarDoPrograma'])->whereNumber('id')->name('programas.salvar-protocolo');
 
         // Protocolos-modelo: copiar um modelo (global ou da clínica) e editar a cópia da clínica.

@@ -26,6 +26,7 @@ contains:
   - "Editor de programa por paciente, protocolos-modelo (aplicar e copiar para a clínica) e aviso de contraindicação que não bloqueia (US-FISIO-006)"
   - "ProntuarioPdfController"
   - "Exportação do prontuário em PDF (dompdf, registrada no activity_log) — UC-FPS-19..20"
+  - "FolhaProgramaController — folha A4 do programa para imprimir, sem QR do portal (B-12)"
   - "Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) com pontuação calculada no servidor (US-FISIO-011)"
   - "PortalController — portal público do paciente: PIN com trava, consentimentos separados, lista do dia (US-FISIO-007a)"
   - "PortalLinkController — link do portal gerado e revogado na ficha (US-FISIO-007a)"

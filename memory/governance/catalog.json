@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 810,
-    "edges": 1109,
+    "nodes": 811,
+    "edges": 1110,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 432,
+      "component": 433,
       "api": 84
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 88,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 432,
+      "hasComponent": 433,
       "dependsOn": 123,
       "delegatesTo": 114,
       "migratesTo": 1,
@@ -2892,6 +2892,13 @@
       "module": "Fisio",
       "name": "Fisioterapeuta responsável pelo paciente e transferência registrada no activity_log",
       "desc": ""
+    },
+    {
+      "id": "component:Fisio/FolhaProgramaController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "FolhaProgramaController",
+      "desc": "folha A4 do programa para imprimir, sem QR do portal (B-12)"
     },
     {
       "id": "component:Fisio/Foto ou vídeo curto do exercício próprio da clínica",
@@ -9149,6 +9156,12 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/Fisioterapeuta responsável pelo paciente e transferência registrada no activity_log",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/FolhaProgramaController",
       "type": "hasComponent",
       "source": "contains"
     },
