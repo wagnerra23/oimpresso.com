@@ -5,7 +5,7 @@ irmaos: Show.charter.md (lei) · Show.tsx (tela)
 tecnica: Caso de uso = narrativa do fisioterapeuta + critério de aceite verificável (Dado/Quando/Então)
 por_que: a ficha é o prontuário legal (Res. COFFITO 414/2012, guarda de 20 anos pela Lei 13.787/2018) e o editor do programa que o paciente executa sozinho em casa. Editar evolução assinada, apagar paciente ou prescrever contra uma contraindicação sem aviso são falhas legais e clínicas.
 owner: wagner
-last_run: "2026-10-18"
+last_run: "2026-10-19"
 last_run_ci: "_pendente_ — o trio nasce com a suíte TDD da F1 (antes do código). O veredito entra quando a lane MySQL rodar FisioProntuarioTest, FisioProgramaEditorTest, FisioPacienteCrudTest, FisioMultiTenantTest e FisioWhatsappJobTest."
 related_us: []
 ---
@@ -44,6 +44,9 @@ related_us: []
 | UC-FPS-19 | exportar o prontuário em PDF: todos os registros assinados, carimbados, em ordem cronológica | should | `FisioProntuarioPdfTest` |
 | UC-FPS-20 | exportar exige `fisio.access` da mesma clínica; outra clínica 404; cada exportação fica no log de auditoria | must | `FisioProntuarioPdfTest` |
 | UC-FPS-21 | aba Evolução: dor e dias com exercício em 30 dias, só na visão do profissional | should | `FisioEvolucaoTest` |
+| UC-FPS-33 | gerar link do portal: link e PIN uma vez, só hash no banco, link anterior morre | must | `FisioPortalLinkTest` |
+| UC-FPS-34 | revogar o link do portal derruba o acesso e fica registrado | must | `FisioPortalLinkTest` |
+| UC-FPS-35 | gerar/revogar exige `fisio.editar`; outra clínica 404; bloqueado não recebe link | must | `FisioPortalLinkTest` |
 
 ---
 
@@ -187,6 +190,23 @@ related_us: []
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioEvolucaoTest.php`
 - **Status: 🧪**
 
+## UC-FPS-33 · Gerar o link do portal `[must]`
+- **Persona:** fisioterapeuta na ficha, entregando o acesso ao paciente.
+- **Aceite:** Dado um paciente ativo · Quando a fisioterapeuta gera o link · Então a resposta traz a URL, o PIN de 4 dígitos e a validade (30 dias) UMA vez; o banco guarda só o hash do token e do PIN, no business do paciente; gerar de novo revoga o anterior; cada emissão vai ao `activity_log` com quem e quando, sem token nem PIN.
+- **Regressão que defende:** PIN recuperável depois de gerado; dois links vivos para o mesmo paciente.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPortalLinkTest.php`
+- **Status: 🧪**
+
+## UC-FPS-34 · Revogar o link · `must`
+- **Aceite:** Revogar derruba o link vivo (o paciente cai no estado vazio); a linha fica com `revoked_at` e a revogação vai ao `activity_log`.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPortalLinkTest.php`
+- **Status: 🧪**
+
+## UC-FPS-35 · Quem gera e para quem `[T0]` · `must`
+- **Aceite:** Sem `fisio.editar` → 403; paciente de outra clínica → 404; paciente bloqueado → 422 `paciente_bloqueado`. Em todos, nada é gravado.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPortalLinkTest.php`
+- **Status: 🧪**
+
 ---
 
 ## Backlog (prosa honesta — vira UC quando ganhar teste que o cite)
@@ -197,6 +217,7 @@ related_us: []
 - `[BACKLOG]` Enunciados literais da versão brasileira validada de EVA, RMDQ, PSFS, LEFS e SPADI na tela do questionário (aguarda conferência da Dra. Dejeane contra a publicação).
 
 ## Trilha do tempo
+- 2026-10-18 · US-FISIO-007a — link do portal gerado na ficha (`_components/LinkPortal.tsx`, `PortalLinkController`) vira UC-FPS-33..35, com teste escrito junto.
 - 2026-10-18 · responsável pelo paciente — cadastro grava o responsável, ficha mostra e transfere com registro no `activity_log` (UC-FPS-30..32).
 - 2026-10-18 · exportação do prontuário em PDF vira UC-FPS-19..20 (rota e controller próprios; o PDF do programa fica para depois da US-FISIO-006).
 - 2026-10-18 · US-FISIO-005 — paciente bloqueado vira só leitura no servidor: prontuário aceita só adendo (UC-FPS-17) e perfil não aceita edição (UC-FPS-18).

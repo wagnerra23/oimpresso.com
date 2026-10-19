@@ -25,6 +25,7 @@ declare(strict_types=1);
 const APPSHELL_ALLOWLIST_PREFIXES = [
     'Site/',                        // marketing + auth (Home, Login, Register, Pricing, Blog…)
     'Ponto/Publico/',               // privacidade/exclusão do app de ponto — exigência das lojas (sem login)
+    'Fisio/Public/',                // portal do paciente por link + PIN (sem conta no sistema; US-FISIO-007a)
 ];
 
 // Telas isentas por caminho exato (público sem login).
