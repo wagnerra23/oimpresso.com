@@ -174,7 +174,7 @@ it('casos de uso, fontes, portes e estados são os do protótipo', function () {
             $casos[] = [$o['id'], $o['t'], $o['proc'], $o['etapa'], $o['regra'], $o['fontes'], $o['porte'], $o['estado'], $o['us']];
         }
     }
-    expect(count($casos))->toBe(32)
+    expect(count($casos))->toBe(38)
         ->and(\App\Domain\Fsm\Modelos\CasosDoPrototipo::CASOS)->toBe($casos);
 
     $fontes = [];
@@ -184,7 +184,7 @@ it('casos de uso, fontes, portes e estados são os do protótipo', function () {
             $fontes[$k[1]] = ['nome' => $o['n'], 'url' => $o['url']];
         }
     }
-    expect(count($fontes))->toBe(11)->and(CatalogoModelos::fontes())->toBe($fontes);
+    expect(count($fontes))->toBe(13)->and(CatalogoModelos::fontes())->toBe($fontes);
 
     $portes = [];
     foreach (flxBloco('PORTES') as $l) {
