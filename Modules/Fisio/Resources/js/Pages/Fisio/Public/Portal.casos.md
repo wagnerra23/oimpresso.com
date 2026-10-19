@@ -5,7 +5,7 @@ irmaos: Portal.charter.md (lei) · Portal.tsx (tela) · precedente resources/js/
 tecnica: Caso de uso = narrativa do paciente + critério de aceite verificável (Dado/Quando/Então)
 por_que: o portal é público na internet e mostra dado de saúde. Sem PIN/lockout é força bruta; sem consentimento é LGPD; sem telemonitoramento o check-in não vale como prontuário (Res. COFFITO 619/2025); conduta calculada pelo software vira dispositivo médico (Anvisa/SaMD); XP que premia exceder o prescrito incentiva lesão.
 owner: wagner
-last_run: "2026-10-17"
+last_run: "2026-10-19"
 last_run_ci: "_pendente_ — o trio nasce com a suíte TDD da F1 (antes do código). O veredito entra quando a lane MySQL rodar FisioPortalAcessoTest, FisioCheckinTest, FisioJogoTest, FisioPortalSegurancaClinicaTest e os Unit SequenciaCalculatorTest/NivelCalculatorTest."
 related_us: []
 ---
