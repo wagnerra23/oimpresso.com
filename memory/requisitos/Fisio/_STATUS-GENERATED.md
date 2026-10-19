@@ -19,9 +19,9 @@ authority: generated
 | US no SPEC | 12 |
 | CU no SDD | 0 |
 | Telas (.tsx) | 4 |
-| Telas com `casos.md` | 5 |
-| UC declarados | 70 |
-| UC com teste que os cita | 70 |
+| Telas com `casos.md` | 6 |
+| UC declarados | 75 |
+| UC com teste que os cita | 75 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -46,7 +46,6 @@ authority: generated
 | US-FISIO-001 | `todo` | Trio SDD da F1 e US no SPEC — **P0** |
 | US-FISIO-002 | `todo` | Esqueleto `Modules/Fisio` (ativação por empresa, permissões, menu condicionado)  |
 | US-FISIO-007 | `todo` | Portal do paciente (link + PIN, consentimentos, check-in, telemonitoramento) — * |
-| US-FISIO-008 | `todo` | Jogo de constância (XP, nível, sequência, missões, pausa por dor) — **P1** |
 | US-FISIO-009 | `todo` | Lembrete diário e envio do programa por WhatsApp (canal escolhido pela clínica)  |
 | US-FISIO-012 | `todo` | Fecha o loop da F1 — **P1** |
 
@@ -64,6 +63,11 @@ authority: generated
 | UC-FBI-08 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-09 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-10 | Biblioteca/Index | 🧪 aguarda veredito da lane |
+| UC-FJG-01 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
+| UC-FJG-02 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
+| UC-FJG-03 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
+| UC-FJG-04 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
+| UC-FJG-05 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
 | UC-FPI-01 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPI-02 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPI-03 | Pacientes/Index | 🧪 aguarda veredito da lane |

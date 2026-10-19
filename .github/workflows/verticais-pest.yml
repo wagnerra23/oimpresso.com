@@ -461,6 +461,11 @@ jobs:
         # TestCase nem banco; ficam nesta lane porque ela já dispara em Modules/Fisio/**.
         # NÃO rodado localmente em MySQL (proibicoes.md / ADR 0358): o veredito é esta lane.
         #
+        # ENTRAM 2026-10-18 — Fisio/FisioJogoServicoTest + Unit XpDoDiaCalculatorTest e LimiarDorCalculatorTest
+        # (US-FISIO-008): XP só pelo prescrito, reenvio sem duplicar, teto semanal, pausa por dor sem
+        # punir, dia de crise, alerta sobre a dor de base, isolamento 98×99. Pelo evento CheckinRegistrado,
+        # sem depender do portal; o FisioJogoTest (caminho HTTP) entra com a US-FISIO-007.
+        #
         # ENTRA 2026-10-18 — Fisio/FisioPacienteResponsavelTest: fisioterapeuta responsável e
         # transferência registrada no activity_log; destino de outra empresa 422, paciente alheio
         # 404, sem fisio.editar 403 (UC-FPI-20, UC-FPS-30..32).
@@ -584,6 +589,9 @@ jobs:
             Modules/Fisio/Tests/Unit/AdesaoCalculatorTest.php \
             Modules/Fisio/Tests/Unit/AtencaoDetectorTest.php \
             Modules/Fisio/Tests/Unit/CalculoBordasTest.php \
+            Modules/Fisio/Tests/Unit/XpDoDiaCalculatorTest.php \
+            Modules/Fisio/Tests/Unit/LimiarDorCalculatorTest.php \
+            Modules/Fisio/Tests/Feature/FisioJogoServicoTest.php \
             Modules/Fisio/Tests/Feature/FisioBibliotecaFavoritosTest.php \
             Modules/Fisio/Tests/Feature/FisioBibliotecaTest.php \
             Modules/Fisio/Tests/Feature/FisioPacienteResponsavelTest.php \

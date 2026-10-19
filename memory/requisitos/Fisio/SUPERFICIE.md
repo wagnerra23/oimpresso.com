@@ -14,7 +14,7 @@ module: Fisio
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Fisio/**` + `resources/js/Pages/Fisio/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 119 arquivos em 16 papéis.
+**Total mapeado:** 128 arquivos em 17 papéis.
 
 ## Controllers — 13
 
@@ -36,7 +36,7 @@ module: Fisio
 
 - [FisioLiberado.php](../../../Modules/Fisio/Http/Middleware/FisioLiberado.php)
 
-## Services — 16
+## Services — 19
 
 - [AdesaoCalculator.php](../../../Modules/Fisio/Services/AdesaoCalculator.php)
 - [AtencaoDetector.php](../../../Modules/Fisio/Services/AtencaoDetector.php)
@@ -44,6 +44,8 @@ module: Fisio
 - [DiaLocal.php](../../../Modules/Fisio/Services/DiaLocal.php)
 - [EditorProgramaPayload.php](../../../Modules/Fisio/Services/EditorProgramaPayload.php)
 - [FisioAcesso.php](../../../Modules/Fisio/Services/FisioAcesso.php)
+- [JogoService.php](../../../Modules/Fisio/Services/JogoService.php)
+- [LimiarDorCalculator.php](../../../Modules/Fisio/Services/LimiarDorCalculator.php)
 - [MetaSemanal.php](../../../Modules/Fisio/Services/MetaSemanal.php)
 - [MidiaExercicio.php](../../../Modules/Fisio/Services/MidiaExercicio.php)
 - [NivelCalculator.php](../../../Modules/Fisio/Services/NivelCalculator.php)
@@ -54,6 +56,7 @@ module: Fisio
 - [RespostaInvalidaException.php](../../../Modules/Fisio/Services/Questionarios/RespostaInvalidaException.php)
 - [ResponsavelPaciente.php](../../../Modules/Fisio/Services/ResponsavelPaciente.php)
 - [SequenciaCalculator.php](../../../Modules/Fisio/Services/SequenciaCalculator.php)
+- [XpDoDiaCalculator.php](../../../Modules/Fisio/Services/XpDoDiaCalculator.php)
 
 ## Models / Entities — 14
 
@@ -72,6 +75,11 @@ module: Fisio
 - [Questionnaire.php](../../../Modules/Fisio/Entities/Questionnaire.php)
 - [Record.php](../../../Modules/Fisio/Entities/Record.php)
 
+## Events / Listeners — 2
+
+- [CheckinRegistrado.php](../../../Modules/Fisio/Events/CheckinRegistrado.php)
+- [LancarXpDoCheckin.php](../../../Modules/Fisio/Listeners/LancarXpDoCheckin.php)
+
 ## Providers — 2
 
 - [FisioServiceProvider.php](../../../Modules/Fisio/Providers/FisioServiceProvider.php)
@@ -81,12 +89,13 @@ module: Fisio
 
 - [web.php](../../../Modules/Fisio/Routes/web.php)
 
-## Migrations (schema) — 4
+## Migrations (schema) — 5
 
 - [2026_10_18_000001_create_fisio_tables.php](../../../Modules/Fisio/Database/Migrations/2026_10_18_000001_create_fisio_tables.php)
 - [2026_10_18_000002_add_synonyms_to_fisio_exercises.php](../../../Modules/Fisio/Database/Migrations/2026_10_18_000002_add_synonyms_to_fisio_exercises.php)
 - [2026_10_18_000003_add_responsible_user_to_fisio_patients.php](../../../Modules/Fisio/Database/Migrations/2026_10_18_000003_add_responsible_user_to_fisio_patients.php)
 - [2026_10_18_000006_add_favoritos_e_equipamento_biblioteca_fisio.php](../../../Modules/Fisio/Database/Migrations/2026_10_18_000006_add_favoritos_e_equipamento_biblioteca_fisio.php)
+- [2026_10_18_000081_add_crisis_to_fisio_checkins.php](../../../Modules/Fisio/Database/Migrations/2026_10_18_000081_add_crisis_to_fisio_checkins.php)
 
 ## Seeders — 1
 
@@ -137,11 +146,11 @@ module: Fisio
 - [Painel.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Painel.casos.md)
 - [Portal.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/Portal.casos.md)
 
-## Testes (Pest) — 28
+## Testes (Pest) — 31
 
-- 21 em [Modules/Fisio/Tests/Feature/](../../../Modules/Fisio/Tests/Feature)
+- 22 em [Modules/Fisio/Tests/Feature/](../../../Modules/Fisio/Tests/Feature)
 - 1 em [Modules/Fisio/Tests/Support/](../../../Modules/Fisio/Tests/Support)
-- 6 em [Modules/Fisio/Tests/Unit/](../../../Modules/Fisio/Tests/Unit)
+- 8 em [Modules/Fisio/Tests/Unit/](../../../Modules/Fisio/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 12

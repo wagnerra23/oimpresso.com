@@ -28,9 +28,10 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0437-modulo-fisio-ve
   o paciente vê só a instrução estática do profissional (`stop_instruction`) — nunca conduta
   calculada pelo software (ADR 0437 §5).
 - **Razão do XP** (`fisio_game_ledger.reason`, append-only): `exercicio_concluido` e `checkin`
-  (registrar o dia, inclusive com dor alta). A etapa 02 propõe mais razões (`registro_do_dia`,
-  `missao`, `desafio_semanal`, `medalha`, `escudo_ganho`, `escudo_usado`, `pausa_protegida`) —
-  decisão da US-FISIO-008, que muda este bloco junto com a migration.
+  (registrar o dia, inclusive com dor alta). Decisão da US-FISIO-008 (2026-10-18): fica `checkin` (é o
+  `registro_do_dia` da etapa 02 com o nome que a suíte e o banco já usam). As outras razões da etapa 02
+  (`missao`, `desafio_semanal`, `medalha`, `escudo_ganho`, `escudo_usado`, `pausa_protegida`) entram
+  com o código de missões/escudos (T-08c), mudando este bloco junto com a migration — razão sem código não entra.
 - **Questionário** (`fisio_questionnaires.instrument`): só os de uso livre (ADR 0437 §8) — `eva`,
   `rmdq` (Roland-Morris), `psfs`, `lefs`, `spadi`. ODI, NDI, KOOS, QuickDASH e WOMAC ficam fora até
   haver licença comercial.

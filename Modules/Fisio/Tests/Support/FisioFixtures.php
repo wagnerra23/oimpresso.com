@@ -54,10 +54,16 @@ final class FisioFixtures
 
     public const CREFITO = 'CREFITO-10/123456-F';
 
-    /** Valores de XP fixados pelo teste (o serviço DEVE ler `config('fisio.xp.*')`). */
-    public const XP_EXERCICIO = 10;
+    /**
+     * Valores do jogo fixados pelo teste (o serviço DEVE ler `config('fisio.jogo.*')`).
+     * Base de normalização 3 = meta padrão das fixtures (3x/semana): o fator base ÷ n vale 1
+     * e o XP do dia fica legível no teste — 60 × (vezes feitas ÷ prescritas) + 30.
+     */
+    public const XP_EXERCICIO = 60;
 
-    public const XP_CHECKIN = 5;
+    public const XP_CHECKIN = 30;
+
+    public const XP_BASE_NORMALIZACAO = 3;
 
     public const TABELAS = [
         'business', 'contacts', 'users',
@@ -94,8 +100,10 @@ final class FisioFixtures
     public static function configurar(): void
     {
         config([
-            'fisio.xp.exercicio_concluido' => self::XP_EXERCICIO,
-            'fisio.xp.checkin' => self::XP_CHECKIN,
+            'fisio.jogo.xp.exercicio_concluido' => self::XP_EXERCICIO,
+            'fisio.jogo.xp.checkin' => self::XP_CHECKIN,
+            'fisio.jogo.normalizacao_dias_base' => self::XP_BASE_NORMALIZACAO,
+            'fisio.jogo.teto_semanal' => 500,
             'fisio.consent_versions.teleatendimento' => 'tele-v1',
             'fisio.consent_versions.whatsapp' => 'wa-v1',
             'fisio.portal.max_tentativas' => 5,

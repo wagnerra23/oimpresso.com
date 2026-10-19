@@ -34,6 +34,7 @@ final class PainelFisio
         private readonly AtencaoDetector $atencao,
         private readonly NivelCalculator $nivel,
         private readonly SequenciaCalculator $sequencia,
+        private readonly JogoService $jogo,
     ) {}
 
     /**
@@ -62,7 +63,7 @@ final class PainelFisio
             ->groupBy('patient_id')
             ->selectRaw('patient_id, SUM(xp) as total')
             ->pluck('total', 'patient_id');
-        $limiares = (array) config('fisio.niveis', [1 => 0]);
+        $limiares = JogoService::tabelaDeNiveis();
 
         $linhas = [];
         $fila = [];
@@ -70,7 +71,8 @@ final class PainelFisio
         foreach ($pacientes as $p) {
             $prog = $programas[(int) $p->id] ?? null;
             $dele = $checkins[(int) $p->id] ?? [];
-            $limiar = $prog?->limiarDeDor() ?? (int) config('fisio.pain_alert_threshold_padrao', AtencaoDetector::LIMIAR_DOR_PADRAO);
+            // Mesmo limiar que pausa o jogo no portal: absoluto, ou sobre a dor de base (protocolo 11).
+            $limiar = $this->jogo->limiarDeDor($prog, $dele);
 
             $adesao = $this->adesao->calcular($dele, (int) $p->sessions_per_week, $hoje, $prog !== null);
             $seq = $this->sequencia->calcular($dele, (int) $p->sessions_per_week, $hoje, $limiar);
@@ -200,7 +202,7 @@ final class PainelFisio
      * Check-ins por paciente, em ordem de data, no formato dos calculadores puros.
      *
      * @param  array<int, int>  $ids
-     * @return array<int, list<array{date:string, done_count:int, pain:?int, red_flags:list<string>}>>
+     * @return array<int, list<array{date:string, done_count:int, pain:?int, red_flags:list<string>, crise:bool}>>
      */
     private function checkins(array $ids, string $de, string $ate): array
     {
@@ -213,16 +215,9 @@ final class PainelFisio
             ->whereIn('patient_id', $ids)
             ->whereBetween('date', [$de, $ate])
             ->orderBy('date')
-            ->get(['patient_id', 'date', 'done_item_ids', 'pain', 'red_flags']);
+            ->get();
         foreach ($linhas as $c) {
-            /** @var list<string> $flags */
-            $flags = array_values(array_map('strval', (array) ($c->red_flags ?? [])));
-            $porPaciente[(int) $c->patient_id][] = [
-                'date' => $c->date->format('Y-m-d'),
-                'done_count' => count((array) ($c->done_item_ids ?? [])),
-                'pain' => $c->pain !== null ? (int) $c->pain : null,
-                'red_flags' => $flags,
-            ];
+            $porPaciente[(int) $c->patient_id][] = JogoService::paraCalculo($c);
         }
 
         return $porPaciente;

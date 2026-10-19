@@ -98,13 +98,14 @@ Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `M
 
 ### US-FISIO-008 · Jogo de constância (XP, nível, sequência, missões, pausa por dor) — **P1**
 
-**Implementado em:** _pendente_
+**Implementado em:** _pendente_ — parcial: calculadoras puras `Modules/Fisio/Services/XpDoDiaCalculator.php`, `Modules/Fisio/Services/LimiarDorCalculator.php`, `Modules/Fisio/Services/NivelCalculator.php`, `Modules/Fisio/Services/SequenciaCalculator.php` (com dia de crise), serviço `Modules/Fisio/Services/JogoService.php` e ponto de entrada único `Modules/Fisio/Events/CheckinRegistrado.php` → `Modules/Fisio/Listeners/LancarXpDoCheckin.php` existem; números em `config('fisio.jogo')`; coluna `fisio_checkins.crisis`. A âncora fecha quando o portal (US-FISIO-007) disparar o evento no check-in. Escudos, missões, desafio e medalhas (T-08c) ficam no backlog do contrato.
 
-> owner: — · priority: p1 · estimate: 8h · status: todo · type: story
-> blocked_by: US-FISIO-007. Regras da ADR 0437 §6 e números de `etapas/02-f1-constancia.md`. DoD: `FisioJogoTest`, `NivelCalculatorTest`, `SequenciaCalculatorTest`.
+> owner: — · priority: p1 · estimate: 8h · status: doing · type: story
+> blocked_by: US-FISIO-007 (só a ligação com o portal). Regras da ADR 0437 §6 e números de `etapas/02-f1-constancia.md`.
 
-Núcleo de cálculo (serviços puros, sem rota nem tela; a US segue pendente): `Modules/Fisio/Services/NivelCalculator.php`, `Modules/Fisio/Services/SequenciaCalculator.php`, `Modules/Fisio/Services/DiaLocal.php`, `Modules/Fisio/Services/MetaSemanal.php`.
+**DoD:** XP só pelo prescrito — `xp.exercicio_concluido` × (vezes feitas ÷ prescritas, cada item até `times_per_day`) e `xp.checkin` sempre, inclusive com dor alta, ambos × `normalizacao_dias_base` ÷ `sessions_per_week`; item fora do programa e vez a mais valem 0; reenvio lança só a diferença positiva e nada é estornado (ledger append-only); teto semanal; dor ≥ limiar ou sinal de alerta pausa o jogo sem quebrar a sequência e põe o paciente na fila de atenção; em `sobre_basal` o limiar é a dor de base da paciente + margem; dia de crise conta para a sequência; nível derivado do ledger, sem coluna e sem ranking; evento de outra clínica ou paciente bloqueado não lança — `FisioJogoServicoTest`, `FisioJogoTest`, `XpDoDiaCalculatorTest`, `LimiarDorCalculatorTest`, `NivelCalculatorTest`, `SequenciaCalculatorTest`. Contrato: `memory/requisitos/Fisio/_telas/jogo-constancia.casos.md` (UC-FJG-01..05).
 
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioJogoServicoTest.php` · `Modules/Fisio/Tests/Feature/FisioJogoTest.php` · `Modules/Fisio/Tests/Unit/XpDoDiaCalculatorTest.php` · `Modules/Fisio/Tests/Unit/LimiarDorCalculatorTest.php`
 ### US-FISIO-009 · Lembrete diário e envio do programa por WhatsApp (canal escolhido pela clínica) — **P0**
 
 **Implementado em:** _pendente_
