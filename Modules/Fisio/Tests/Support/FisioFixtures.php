@@ -104,6 +104,11 @@ final class FisioFixtures
             'fisio.jogo.xp.checkin' => self::XP_CHECKIN,
             'fisio.jogo.normalizacao_dias_base' => self::XP_BASE_NORMALIZACAO,
             'fisio.jogo.teto_semanal' => 500,
+            // Missões desligadas por padrão: a suíte de XP conta só exercício + registro. Quem
+            // testa missão liga com MISSAO_XP (FisioJogoConstanciaTest, UC-FJG-06..09).
+            'fisio.jogo.xp.missao' => 0,
+            'fisio.jogo.xp.desafio_semanal' => 40,
+            'fisio.jogo.teto_semanal_bonus' => 100,
             'fisio.consent_versions.teleatendimento' => 'tele-v1',
             'fisio.consent_versions.whatsapp' => 'wa-v1',
             'fisio.portal.max_tentativas' => 5,

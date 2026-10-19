@@ -52,6 +52,8 @@ related_us: [US-FISIO-007, US-FISIO-008]
 | UC-FPP-27 | programa abre sem rede só em aparelho lembrado | must | `FisioPortalAppTest` |
 | UC-FPP-28 | service worker nunca guarda POST nem cookie e apaga link que deixou de abrir | must | `FisioPortalAppTest` |
 | UC-FPP-29 | app da Google Play abre em `/fisio/app`, que só pede o link da clínica | must | `FisioPortalAppTest` |
+| UC-FPP-33 | Hoje mostra missões e medalhas; no dia de pausa, nada disso | must | `FisioJogoConstanciaTest` |
+| UC-FPP-34 | desafio da semana: aceitar ou "Agora não", sem perder nada | must | `FisioJogoConstanciaTest` |
 
 ---
 
@@ -232,11 +234,21 @@ related_us: [US-FISIO-007, US-FISIO-008]
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioPortalFilaOfflineTest.php`
 - **Status: 🧪**
 
+## UC-FPP-33 · Missões de hoje e medalhas na tela Hoje · `must`
+- **Aceite:** Fora da pausa, a tela Hoje recebe `constancia` (JogoService::constancia): as missões de hoje, cada uma marcada quando cumprida, e as medalhas já ganhas, abaixo do cartão do jogo (`_components/Constancia.tsx`). No dia de pausa (dor ≥ limiar ou sinal de alerta), nem a tela nem a resposta do check-in trazem `constancia`: só a instrução do profissional (UC-FPP-19). Sem ranking, moeda ou loja. Regras do jogo: UC-FJG-06..08.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioJogoConstanciaTest.php`
+- **Status: 🧪**
+
+## UC-FPP-34 · Desafio da semana opcional · `must`
+- **Aceite:** Na segunda, o cartão "Desafio da semana" oferece "Cumprir n−1 dias" e "Cumprir n dias" (só "Cumprir 1 dia" com meta 1) e "Agora não". A escolha vai para `POST /fisio/p/{token}/desafio` (mesmos portões do check-in: link, PIN e consentimento). "Agora não" não tira XP. Depois de aceitar, o cartão mostra "X de N dias cumpridos nesta semana" e, batida a meta, "Meta cumprida". Fora da segunda ou com a semana já decidida: 409, nada gravado. Regras: UC-FJG-09.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioJogoConstanciaTest.php`
+- **Status: 🧪**
+
 ---
 
 ## Backlog (prosa honesta — vira UC quando ganhar teste que o cite)
 
-- `[BACKLOG]` Missões e medalhas da Jornada (T-08) — regra ainda não fixada na ADR em forma testável.
+- `[BACKLOG]` Card "Você sabia?" depois do check-in, missões "dica do profissional" e "horário combinado", medalhas "horário combinado" e "programa concluído", e modo manutenção na alta (T-08c) — sem fonte: faltam texto de dica aprovado pela responsável técnica, horário combinado por paciente e estado de alta no programa. Detalhe em `memory/requisitos/Fisio/_telas/jogo-constancia.casos.md` §Backlog. Decisão [W].
 - `[BACKLOG]` A tela funciona sem zoom em 360 px e com leitor de tela — sem prova automatizada.
 - `[BACKLOG]` Rate limit por IP na rota pública: `throttle:60,1` ligado na US-FISIO-007a (como o Oficina), ainda sem teste que o cite.
 - `[BACKLOG]` Check-in feito offline num dia e enviado só no dia seguinte: hoje é recusado (UC-FPP-32) e se perde. Aceitar "ontem" mexe na sequência do jogo (dá para salvar um dia esquecido) — decisão [W].
@@ -246,6 +258,7 @@ related_us: [US-FISIO-007, US-FISIO-008]
 - `[BACKLOG]` Crise por mais de 3 dias seguidos avisar o profissional (protocolo 11) — sem regra testável no AtencaoDetector ainda.
 
 ## Trilha do tempo
+- 2026-10-19 · T-08c (parte com fonte) — missões de hoje, desafio da semana e medalhas na tela Hoje (`_components/Constancia.tsx`, rota `fisio.portal.desafio`). UC-FPP-33..34 entram com `FisioJogoConstanciaTest`.
 - 2026-10-19 · T-13 (parte 2) — fila offline do check-in no aparelho lembrado (`portal.ts`), reenvio ao abrir a tela e quando a internet volta, chave por envio (`fisio_checkins.client_key`). UC-FPP-30..32 entram com `FisioPortalFilaOfflineTest`.
 - 2026-10-19 · T-13 (parte 1) — app instalável: manifesto por link, ícones, service worker que guarda a tela do dia só em aparelho lembrado, convite de instalação. UC-FPP-26..28 entram com `FisioPortalAppTest`.
 - 2026-10-19 · US-FISIO-007b — check-in grava o dia, telemonitoramento/adendo, sinal de alerta notifica, modo pausa só com a instrução do profissional; tela desenhada (Entrada, Hoje, Check-in, Crise) a partir do canvas Prescreve Pro; "lembrar este aparelho" (`fisio_portal_devices`). UC-FPP-22..25 entram com `FisioPortalAparelhoTest`.
