@@ -23,8 +23,10 @@ use Modules\Producao\Exceptions\ApontamentoRecusado;
  * (regra mestre, proibicoes.md). Decisão [W] 2026-10-19: "a OS baixa do estoque o material apontado
  * em cada etapa, pelo custo do lote que saiu."
  *
- * Como baixa: a OS tem UMA transação `production_sell` no local da venda que gerou a OS (o core já a
- * reconhece no histórico de estoque). Cada apontamento vira uma linha dela; o `mapPurchaseSell`
+ * Como baixa: cada apontamento é uma transação `production_sell` (ref `OS-<id>`) no local da venda que
+ * gerou a OS, com uma linha só (o core já a reconhece no histórico de estoque). Uma por baixa, e não
+ * uma por OS, porque `transaction_sell_lines` tem `uk_tsl_dup_prevent (transaction_id, product_id,
+ * variation_id)`: a 2ª baixa do mesmo material na mesma transação estoura. O `mapPurchaseSell`
  * (`production_purchase`) amarra a linha ao lote pelo método da empresa (FIFO/LIFO) e soma em
  * `purchase_lines.mfg_quantity_used`; o `decreaseProductQuantity` tira do saldo do local.
  *
@@ -89,7 +91,7 @@ final class ConsumoMaterialService
 
     private function baixar(int $businessId, int $userId, Programacao $etapa, object $material, string $quantidade, string $chave, Carbon $momento): Consumo
     {
-        // Trava a OS: duas baixas ao mesmo tempo não criam duas production_sell nem passam pela conclusão.
+        // Trava a OS: uma baixa não passa pela conclusão que congela o custo.
         $ordem = Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)->with('currentStage')
             ->lockForUpdate()->find((int) $etapa->os_id)
             ?? throw new ApontamentoRecusado(ApontamentoRecusado::NAO_ENCONTRADO, 'OS não encontrada.');
@@ -105,7 +107,11 @@ final class ConsumoMaterialService
         $localId = DB::table('transactions')->where('business_id', $businessId)->where('id', $ordem->transaction_id)->value('location_id')
             ?? throw new ApontamentoRecusado(ApontamentoRecusado::NAO_ENCONTRADO, 'A venda desta OS não tem local de estoque.');
 
-        $saida = $this->saidaDaOrdem($businessId, $ordem, (int) $localId, $userId, $momento);
+        $saida = Transaction::create([
+            'business_id' => $businessId, 'location_id' => (int) $localId, 'type' => 'production_sell', 'status' => 'final',
+            'payment_status' => 'due', 'transaction_date' => $momento, 'ref_no' => 'OS-'.$ordem->id,
+            'created_by' => $userId, 'final_total' => 0, 'total_before_tax' => 0, 'essentials_duration' => 0,
+        ]);
         $linha = TransactionSellLine::create([
             'transaction_id' => $saida->id, 'product_id' => (int) $material->product_id, 'variation_id' => (int) $material->id,
             'quantity' => $quantidade, 'unit_price_before_discount' => 0, 'unit_price' => 0, 'unit_price_inc_tax' => 0,
@@ -132,31 +138,14 @@ final class ConsumoMaterialService
         $unitario = $this->quatroCasas((string) DB::selectOne('SELECT ROUND(? / ?, 4) AS u', [$custo, $quantidade])->u);
         DB::table('transaction_sell_lines')->where('id', $linha->id)
             ->update(['unit_price_before_discount' => $unitario, 'unit_price' => $unitario, 'unit_price_inc_tax' => $unitario]);
-        $total = $this->quatroCasas((string) DB::table('pcp_consumos')->where('business_id', $businessId)
-            ->where('transaction_id', $saida->id)->selectRaw('ROUND(COALESCE(SUM(custo), 0) + ?, 4) AS t', [$custo])->value('t'));
         DB::table('transactions')->where('business_id', $businessId)->where('id', $saida->id)
-            ->update(['final_total' => $total, 'total_before_tax' => $total]);
+            ->update(['final_total' => $custo, 'total_before_tax' => $custo]);
 
         return Consumo::query()->create([
             'business_id' => $businessId, 'chave' => $chave, 'ordem_id' => $ordem->id, 'programacao_id' => $etapa->id,
             'product_id' => (int) $material->product_id, 'variation_id' => (int) $material->id, 'quantidade' => $quantidade,
             'quantidade_sem_lote' => $semLote, 'custo' => $custo,
             'transaction_id' => $saida->id, 'transaction_sell_line_id' => $linha->id, 'user_id' => $userId, 'momento' => $momento,
-        ]);
-    }
-
-    /** A production_sell da OS: a do primeiro consumo, ou uma nova no local da venda. */
-    private function saidaDaOrdem(int $businessId, Ordem $ordem, int $localId, int $userId, Carbon $momento): Transaction
-    {
-        $existente = Consumo::query()->where('business_id', $businessId)->where('ordem_id', $ordem->id)->value('transaction_id');
-        if ($existente) {
-            return Transaction::query()->where('business_id', $businessId)->findOrFail($existente);
-        }
-
-        return Transaction::create([
-            'business_id' => $businessId, 'location_id' => $localId, 'type' => 'production_sell', 'status' => 'final',
-            'payment_status' => 'due', 'transaction_date' => $momento, 'ref_no' => 'OS-'.$ordem->id,
-            'created_by' => $userId, 'final_total' => 0, 'total_before_tax' => 0, 'essentials_duration' => 0,
         ]);
     }
 

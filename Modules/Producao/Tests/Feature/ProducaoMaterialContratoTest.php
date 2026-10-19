@@ -153,10 +153,14 @@ it('UC-PCMAT-02 · o custo é o do lote que saiu (FIFO), não o preço do dia ne
     ($this->compra)($this->localL, '2026-02-01 09:00:00', '50', '1.00');
     expect((string) $c->fresh()->custo)->toBe('34.0000');
 
-    // Segunda baixa na mesma OS: mesma production_sell. Sai do que sobrou: lote novo (02/02, mais antigo) 2 × 1,00 = 2,0000.
+    // Segunda baixa do MESMO material na mesma OS: outra production_sell (o core não aceita a mesma
+    // variação duas vezes numa transação — uk_tsl_dup_prevent). Sai do que sobrou: lote novo
+    // (02/02, mais antigo) 2 × 1,00 = 2,0000. Cada saída tem o total do próprio custo.
     $d = ($this->baixar)('2');
-    expect((string) $d->custo)->toBe('2.0000')->and((int) $d->transaction_id)->toBe((int) $c->transaction_id);
-    expect((string) DB::table('transactions')->where('id', $c->transaction_id)->value('final_total'))->toBe('36.0000');
+    expect((string) $d->custo)->toBe('2.0000')->and((int) $d->transaction_id)->not->toBe((int) $c->transaction_id);
+    expect((string) DB::table('transactions')->where('id', $c->transaction_id)->value('final_total'))->toBe('34.0000')
+        ->and((string) DB::table('transactions')->where('id', $d->transaction_id)->value('final_total'))->toBe('2.0000');
+    expect(app(CustoRealService::class)->daOs($this->b98, Ordem::OS_TIPO, $this->ordem->id)['material'])->toBe('36.00');
 });
 
 it('UC-PCMAT-03 · concluir o item congela horas e material juntos; material depois da conclusão é recusado', function () {
@@ -222,6 +226,10 @@ it('UC-PCMAT-07 · PWA e app apontam o material sem mostrar o custo ao operador'
     $this->actingAs($this->op1)->postJson('/producao/apontamento/material', $corpo)->assertOk();
     $this->actingAs($this->op2)->postJson('/producao/apontamento/material', ['chave' => 'pwa-'.uniqid()] + $corpo)->assertStatus(409);
 
+    // O checkout não traz storage/oauth-*.key (mesmo contorno do AppProducaoApontamentoContratoTest).
+    if (! file_exists(storage_path('oauth-public.key'))) {
+        \Illuminate\Support\Facades\Artisan::call('passport:keys', ['--force' => true]);
+    }
     Passport::actingAs($this->op1, [], 'api');
     $app = $this->withHeaders(['Idempotency-Key' => 'app-'.uniqid()])->postJson('/api/app/producao/apontamentos/material',
         ['programacao_id' => $this->etapa->id, 'variation_id' => $this->vid, 'quantidade' => '1'])->assertCreated();

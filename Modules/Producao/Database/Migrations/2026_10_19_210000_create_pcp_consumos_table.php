@@ -8,9 +8,8 @@ use Illuminate\Support\Facades\Schema;
  * Material consumido na OS por item (UC-FLX-37 · US-PCP-021). Decisão [W] 2026-10-19: "a OS baixa do
  * estoque o material apontado em cada etapa, pelo custo do lote que saiu".
  *
- * Uma linha por apontamento de material. A baixa de estoque mora no core: cada OS tem UMA transação
- * `production_sell` (no local da venda que gerou a OS) e cada consumo é uma linha de venda dela,
- * amarrada ao lote em `transaction_sell_lines_purchase_lines` pelo `mapPurchaseSell`.
+ * Uma linha por apontamento de material. A baixa de estoque mora no core: cada consumo é uma
+ * transação `production_sell` de uma linha (no local da venda que gerou a OS), amarrada ao lote em `transaction_sell_lines_purchase_lines` pelo `mapPurchaseSell`.
  * `custo` é o custo do lote que saiu, congelado aqui: compra posterior não reescreve.
  *
  * Idempotente pela `chave` (fila offline do celular), como o apontamento de horas.
