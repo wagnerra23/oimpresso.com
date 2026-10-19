@@ -47,7 +47,7 @@ authority: generated
 | US-FISIO-006 | `todo` | Editor de programa, protocolos-modelo e aviso de contraindicação — **P0** |
 | US-FISIO-007 | `todo` | Portal do paciente (link + PIN, consentimentos, check-in, telemonitoramento) — * |
 | US-FISIO-008 | `todo` | Jogo de constância (XP, nível, sequência, missões, pausa por dor) — **P1** |
-| US-FISIO-009 | `todo` | Lembrete diário e envio do programa por WhatsApp (driver whatsmeow) — **P0** |
+| US-FISIO-009 | `todo` | Lembrete diário e envio do programa por WhatsApp (canal escolhido pela clínica)  |
 | US-FISIO-012 | `todo` | Fecha o loop da F1 — **P1** |
 
 ## UC por status
