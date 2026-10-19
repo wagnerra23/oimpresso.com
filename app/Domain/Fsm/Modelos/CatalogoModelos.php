@@ -71,6 +71,12 @@ final class CatalogoModelos
         'UC-FLX-30' => ['ISS retido ajusta o valor do título', 'financeiro'],
         'UC-FLX-31' => ['Natureza fiscal do item decide a nota', 'financeiro'],
         'UC-FLX-32' => ['NF-e em contingência quando a SEFAZ cai', 'financeiro'],
+        'UC-FLX-33' => ['Orçamento aprovado guarda o custo do dia', 'venda'],
+        'UC-FLX-34' => ['Orçamento aberto avisa que o custo mudou', 'venda'],
+        'UC-FLX-35' => ['Preço negociado abaixo da margem pede aprovação', 'venda'],
+        'UC-FLX-36' => ['OS em andamento avisa insumo que mudou de custo', 'producao'],
+        'UC-FLX-37' => ['Material consumido leva o custo do dia da baixa', 'producao'],
+        'UC-FLX-38' => ['Custo do insumo guarda o histórico por data', 'compra'],
     ];
 
     private const ORDEM_PORTE = ['micro' => 0, 'pequena' => 1, 'media' => 2, 'grande' => 3];
@@ -97,7 +103,7 @@ final class CatalogoModelos
                         ['Recebido', 'Custo = último preço; preço de venda não muda', 'UC-FLX-17', null, null],
                     ]],
                 ],
-                'casos' => ['UC-FLX-01', 'UC-FLX-03', 'UC-FLX-14', 'UC-FLX-17', 'UC-FLX-19', 'UC-FLX-23', 'UC-FLX-26'],
+                'casos' => ['UC-FLX-01', 'UC-FLX-03', 'UC-FLX-14', 'UC-FLX-17', 'UC-FLX-19', 'UC-FLX-23', 'UC-FLX-26', 'UC-FLX-33', 'UC-FLX-38'],
             ],
             'cv-pequena' => [
                 'nome' => 'Comunicação visual · pequena', 'para' => 'Produção por OS com arte, aprovação do cliente e instalação própria.',
@@ -118,7 +124,7 @@ final class CatalogoModelos
                         ['Conferido', 'Gera conta a pagar', '', null, null],
                     ]],
                 ],
-                'casos' => ['UC-FLX-01', 'UC-FLX-02', 'UC-FLX-03', 'UC-FLX-08', 'UC-FLX-09', 'UC-FLX-14', 'UC-FLX-15', 'UC-FLX-17', 'UC-FLX-21', 'UC-FLX-23', 'UC-FLX-25', 'UC-FLX-26', 'UC-FLX-27'],
+                'casos' => ['UC-FLX-01', 'UC-FLX-02', 'UC-FLX-03', 'UC-FLX-08', 'UC-FLX-09', 'UC-FLX-14', 'UC-FLX-15', 'UC-FLX-17', 'UC-FLX-21', 'UC-FLX-23', 'UC-FLX-25', 'UC-FLX-26', 'UC-FLX-27', 'UC-FLX-33', 'UC-FLX-34', 'UC-FLX-35', 'UC-FLX-37', 'UC-FLX-38'],
             ],
             'cv-pcp' => [
                 'nome' => 'Comunicação visual · média com PCP', 'para' => 'Vários setores e turnos; o gargalo é decidir o que entra na máquina.',
@@ -140,7 +146,7 @@ final class CatalogoModelos
                         ['Conferido', 'Custo médio; propostas vão à fila da Fabricação', 'UC-FLX-17', null, null],
                     ]],
                 ],
-                'casos' => ['UC-FLX-01', 'UC-FLX-02', 'UC-FLX-04', 'UC-FLX-05', 'UC-FLX-06', 'UC-FLX-07', 'UC-FLX-08', 'UC-FLX-09', 'UC-FLX-10', 'UC-FLX-12', 'UC-FLX-13', 'UC-FLX-15', 'UC-FLX-16', 'UC-FLX-17', 'UC-FLX-19', 'UC-FLX-21', 'UC-FLX-22', 'UC-FLX-24', 'UC-FLX-27'],
+                'casos' => ['UC-FLX-01', 'UC-FLX-02', 'UC-FLX-04', 'UC-FLX-05', 'UC-FLX-06', 'UC-FLX-07', 'UC-FLX-08', 'UC-FLX-09', 'UC-FLX-10', 'UC-FLX-12', 'UC-FLX-13', 'UC-FLX-15', 'UC-FLX-16', 'UC-FLX-17', 'UC-FLX-19', 'UC-FLX-21', 'UC-FLX-22', 'UC-FLX-24', 'UC-FLX-27', 'UC-FLX-33', 'UC-FLX-34', 'UC-FLX-35', 'UC-FLX-36', 'UC-FLX-37', 'UC-FLX-38'],
             ],
             'grafica' => [
                 'nome' => 'Gráfica digital e offset', 'para' => 'Produção seriada; papel e tinta mudam de preço com frequência.',
@@ -161,7 +167,7 @@ final class CatalogoModelos
                         ['Liquidado', 'Custeio RKW no fechamento do mês', 'UC-FLX-20', null, null],
                     ]],
                 ],
-                'casos' => ['UC-FLX-01', 'UC-FLX-02', 'UC-FLX-07', 'UC-FLX-11', 'UC-FLX-13', 'UC-FLX-15', 'UC-FLX-16', 'UC-FLX-17', 'UC-FLX-20'],
+                'casos' => ['UC-FLX-01', 'UC-FLX-02', 'UC-FLX-07', 'UC-FLX-11', 'UC-FLX-13', 'UC-FLX-15', 'UC-FLX-16', 'UC-FLX-17', 'UC-FLX-20', 'UC-FLX-33', 'UC-FLX-36', 'UC-FLX-37', 'UC-FLX-38'],
             ],
             'brindes' => [
                 'nome' => 'Brindes, sublimação e DTF', 'para' => 'Catálogo com variação de cor e tamanho; compra por grade.',
@@ -175,7 +181,7 @@ final class CatalogoModelos
                         ['Recebido', 'Último preço; aplica o preço sozinho', 'UC-FLX-17', null, null],
                     ]],
                 ],
-                'casos' => ['UC-FLX-01', 'UC-FLX-03', 'UC-FLX-14', 'UC-FLX-17', 'UC-FLX-19', 'UC-FLX-24', 'UC-FLX-26'],
+                'casos' => ['UC-FLX-01', 'UC-FLX-03', 'UC-FLX-14', 'UC-FLX-17', 'UC-FLX-19', 'UC-FLX-24', 'UC-FLX-26', 'UC-FLX-33', 'UC-FLX-38'],
             ],
             'instalacao' => [
                 'nome' => 'Fachadas e instalação sob encomenda', 'para' => 'Cada job é um projeto: visita, projeto, produção e equipe em campo.',
@@ -194,7 +200,7 @@ final class CatalogoModelos
                         ['Recebido', 'Custo médio; propõe preço, aprova no recebimento', 'UC-FLX-17', null, null],
                     ]],
                 ],
-                'casos' => ['UC-FLX-02', 'UC-FLX-06', 'UC-FLX-15', 'UC-FLX-17', 'UC-FLX-21', 'UC-FLX-22', 'UC-FLX-23', 'UC-FLX-25', 'UC-FLX-27'],
+                'casos' => ['UC-FLX-02', 'UC-FLX-06', 'UC-FLX-15', 'UC-FLX-17', 'UC-FLX-21', 'UC-FLX-22', 'UC-FLX-23', 'UC-FLX-25', 'UC-FLX-27', 'UC-FLX-33', 'UC-FLX-34', 'UC-FLX-35', 'UC-FLX-37', 'UC-FLX-38'],
             ],
             'oficina' => [
                 'nome' => 'Oficina mecânica', 'para' => 'OS de veículo; a peça comprada destrava o serviço.',
