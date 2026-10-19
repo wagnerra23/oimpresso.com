@@ -43,6 +43,9 @@ andamento.
 - Assistente de configuração (aba Modelos): descrição livre + exemplos → `POST /fluxos/assistente`
   → `RecomendarModelo` (agente `RecomendarModeloFluxoAgent`, laravel/ai). Sem IA, ou com resposta
   fora do catálogo, cai na regra de encaixe e a tela diz "Sugestão pelo perfil". Só sugere.
+- Margem mínima do orçamento (aba Fluxos da empresa, UC-FLXT-19 · UC-FLX-35): interruptor + campo em %,
+  `PATCH /fluxos/margem` com `fluxos.configurar`; vazio desliga. Abaixo dela, converter orçamento em
+  venda exige `sell.aprovar_margem_baixa` (decisão [W] 2026-10-19).
 - Aba Processos: processos do `CatalogoProcessos` (#9496) agrupados por área; detalhe com estados
   (filtro pelo estado de origem, legenda início/espera/fim/exceção), roteiro em paralelo, tabela de
   transições, comparativo NF-e × NFS-e nos fiscais e "Conversa com" entre processos.

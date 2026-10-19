@@ -298,6 +298,10 @@ class AppServiceProvider extends ServiceProvider
         // Ref: ADR 0127 §princípio 3 (causer dual)
         Activity::observe(ActivityCauserKindObserver::class);
 
+        // UC-DRAFT-05: orçamento abaixo da margem mínima da empresa só vira venda com
+        // `sell.aprovar_margem_baixa`. Sem margem configurada, não age.
+        \App\Transaction::observe(\App\Observers\TransactionMargemMinimaObserver::class);
+
         // FSM (parecer juiz 2026-07-21): zera o singleton FsmAuthorizationFlag
         // ANTES de cada job — impede que uma flag não-consumida (exceção antes
         // do save, self-transition não-dirty, Titulo sem guard) vaze autorização

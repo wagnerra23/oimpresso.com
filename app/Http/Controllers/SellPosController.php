@@ -1791,7 +1791,8 @@ class SellPosController extends Controller
             DB::rollBack();
             \Log::emergency('File:' . $e->getFile() . 'Line:' . $e->getLine() . 'Message:' . $e->getMessage());
             $output = ['success' => 0,
-                'msg' => __('messages.something_went_wrong'),
+                // UC-DRAFT-05: a recusa por margem diz ao vendedor o que fazer.
+                'msg' => $e instanceof \App\Exceptions\MargemAbaixoDoMinimo ? $e->getMessage() : __('messages.something_went_wrong'),
             ];
         }
 
@@ -3222,6 +3223,11 @@ class SellPosController extends Controller
             }
 
             if (get_class($e) == \App\Exceptions\AdvanceBalanceNotAvailable::class) {
+                $msg = $e->getMessage();
+            }
+
+            // UC-DRAFT-05: recusa por margem abaixo do mínimo da empresa.
+            if ($e instanceof \App\Exceptions\MargemAbaixoDoMinimo) {
                 $msg = $e->getMessage();
             }
 

@@ -54,6 +54,14 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Regressão que defende:** KPI contando rascunho de outra empresa ou somando cotações.
 - **Status: 🧪**
 
+## UC-DRAFT-05 · Rascunho com margem abaixo do mínimo só vira venda com aprovação `[must]`
+- **Persona:** Wagner — *"o que é negociado nunca é o que é empregado"*: desconto que come a margem precisa de alguém que responda por ele.
+- **Aceite:** Dado uma empresa com margem mínima de 30% e um rascunho cuja margem pelo custo guardado é 20% (receita 100,00, custo guardado 80,00) · Quando um vendedor sem `sell.aprovar_margem_baixa` converte em venda · Então a conversão é recusada com a margem e o mínimo na mensagem e a venda segue rascunho · Quando quem tem a permissão converte · Então vira venda. E sem margem mínima configurada, com margem acima do mínimo, ou sem custo guardado nas linhas · Então converte normalmente.
+- **Fontes:** catálogo da tela de fluxos UC-FLX-35 · decisão [W] 2026-10-19 ("bloqueia a conversão; só quem tem a permissão aprova") · SPEC Sells US-SELL-069 · custo guardado da US-SELL-067.
+- **Teste:** `SellsMargemMinimaContratoTest` — `UC-DRAFT-05 …`.
+- **Regressão que defende:** desconto abaixo do piso passando sem aprovação; ou o bloqueio travando venda de quem não configurou margem.
+- **Status: 🧪**
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** A **lista** (`/sells/draft-dt?is_quotation=0`) não filtra `sub_status`: pela leitura de `SellController@getDraftDatables`, o ramo `is_quotation=0` só exige `status = draft`, então cotações e proformas entrariam na lista de rascunhos — enquanto o KPI (UC-DRAFT-04) as exclui e o charter declara `sub_status=NULL`. O Blade legado usa o mesmo endpoint, logo o comportamento é herdado. **Hipótese, não medida** (não rodei teste). Decisão [W]: a lista deve seguir o charter (filtrar) ou o charter deve ser corrigido pro que o legado sempre fez? Ganha id junto da decisão.
