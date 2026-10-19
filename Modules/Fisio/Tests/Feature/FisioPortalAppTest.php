@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 // @covers-us US-FISIO-007
-// Cobre UC-FPP-26..UC-FPP-28 (Fisio/Public/Portal.casos.md) — app instalável, etapa 02 §3.6 (T-13).
+// Cobre UC-FPP-26..UC-FPP-29 (Fisio/Public/Portal.casos.md) — app instalável, etapa 02 §3.6 (T-13).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Carbon;
@@ -128,4 +128,18 @@ it('UC-FPP-28 · o service worker obedece o servidor e nunca guarda POST nem coo
 
     $portal = (string) file_get_contents(base_path('Modules/Fisio/Resources/js/Pages/Fisio/Public/_components/portal.ts'));
     expect($portal)->toContain("register('/sw-fisio-portal.js', { scope: '/fisio/p/' })");
+});
+
+it('UC-FPP-29 · a entrada do app da loja só pede o link da clínica, sem dado nenhum', function () {
+    $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+    $r = $this->get('/fisio/app', ['X-Inertia' => 'true', 'X-Requested-With' => 'XMLHttpRequest', 'X-Inertia-Version' => (string) $versao]);
+
+    $r->assertOk();
+    expect($r->json('component'))->toBe('Fisio/Public/Portal')
+        ->and($r->json('props.erro'))->toBe('sem_link')
+        ->and($r->json('props.etapa'))->toBeNull()
+        ->and($r->json('props.token'))->toBe('');
+    foreach (['hoje', 'jogo', 'clinica', 'relato', 'consentimento'] as $chave) {
+        expect($r->json("props.{$chave}"))->toBeNull();
+    }
 });
