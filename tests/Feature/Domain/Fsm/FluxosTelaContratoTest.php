@@ -1,4 +1,5 @@
 <?php
+// @covers-us US-SELL-069 (UC-FLXT-19: a margem mínima é configurada nesta tela)
 
 declare(strict_types=1);
 
@@ -465,4 +466,28 @@ it('UC-FLXT-18 · aba Processos mostra quanto o ERP executa de cada processo e d
     expect($iniciar['cobertura']['onde'])->toContain('RepairFsmActionController@execute');
     expect(collect($procs['devolucao-compra']['transicoes'])->pluck('cobertura.estado')->countBy()->all())
         ->toBe(['sim' => 2, 'nao_verificado' => 1]);
+});
+
+it('UC-FLXT-19 · quem configura grava a margem mínima do orçamento; vazio desliga; fora de 0–100 é recusado', function () {
+    if (! \Illuminate\Support\Facades\Schema::hasColumn('fsm_modelos_empresa', 'margem_minima_pct')) {
+        $this->markTestSkipped('Coluna fsm_modelos_empresa.margem_minima_pct ausente (migration 2026_10_19_220000).');
+    }
+    flxtEntrar($this, flxtUsuario(['fluxos.ver', 'fluxos.configurar']));
+    flxtPostAplicar($this, ['modelo' => 'cv-pequena']);
+    $gravada = fn () => DB::table('fsm_modelos_empresa')->where('business_id', FLXT_BIZ)->value('margem_minima_pct');
+
+    flxtPatch($this, '/fluxos/margem', ['margem_minima' => 27.5])->assertRedirect('/fluxos?aba=empresa');
+    expect((float) $gravada())->toBe(27.5);
+    expect(flxtGet($this, '/fluxos?aba=empresa')->json('props.margem_minima'))->toEqual(27.5);
+
+    flxtPatch($this, '/fluxos/margem', ['margem_minima' => 120])->assertSessionHasErrors('margem_minima');
+    flxtPatch($this, '/fluxos/margem', ['margem_minima' => -1])->assertSessionHasErrors('margem_minima');
+    expect((float) $gravada())->toBe(27.5);
+
+    flxtPatch($this, '/fluxos/margem', ['margem_minima' => null])->assertRedirect('/fluxos?aba=empresa');
+    expect($gravada())->toBeNull();
+
+    flxtEntrar($this, flxtUsuario(['fluxos.ver']));
+    expect(flxtPatch($this, '/fluxos/margem', ['margem_minima' => 10])->getStatusCode())->toBe(403);
+    expect($gravada())->toBeNull();
 });
