@@ -150,4 +150,25 @@ return [
             'bola' => 'Bola',
         ],
     ],
+
+    /*
+     * WhatsApp do Fisio (US-FISIO-009; ADR 0437 §13.1). O Fisio NÃO tem canal próprio: envia pelo
+     * módulo `Whatsapp` (número de saída padrão da empresa, driver e saúde resolvidos lá). Estes
+     * parâmetros são só do lado do Fisio:
+     *  - teto_por_hora / intervalo_*: mitigação (c) da §13.1 — o módulo Whatsapp não limita envio
+     *    de saída por número; o Fisio espalha os seus envios (janela móvel de 60 min, intervalo
+     *    sorteado entre mensagens). Vale para todo canal automático.
+     *  - silencio: nada sai nessa faixa no fuso da clínica; o envio vai para o fim do silêncio.
+     *  - pin_delay_segundos: o PIN sai numa 2ª mensagem, depois do link (nunca junto — precedente
+     *    OficinaAuto `EnviarLinkAprovacaoWhatsappJob`).
+     *  - lembrete_horario: quando o agendador enfileira o lembrete diário (fuso do app).
+     */
+    'whatsapp' => [
+        'teto_por_hora' => 30,
+        'intervalo_min_segundos' => 20,
+        'intervalo_max_segundos' => 90,
+        'silencio' => ['inicio' => '21:00', 'fim' => '07:00'],
+        'pin_delay_segundos' => 60,
+        'lembrete_horario' => '08:30',
+    ],
 ];

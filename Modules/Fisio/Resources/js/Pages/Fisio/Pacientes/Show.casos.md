@@ -7,7 +7,7 @@ por_que: a ficha é o prontuário legal (Res. COFFITO 414/2012, guarda de 20 ano
 owner: wagner
 last_run: "2026-10-19"
 last_run_ci: "_pendente_ — o trio nasce com a suíte TDD da F1 (antes do código). O veredito entra quando a lane MySQL rodar FisioProntuarioTest, FisioProgramaEditorTest, FisioPacienteCrudTest, FisioMultiTenantTest e FisioWhatsappJobTest."
-related_us: []
+related_us: [US-FISIO-009]
 ---
 
 # Casos de Uso & Aceite — Fisio · Ficha do paciente (`/fisio/pacientes/{id}`)
@@ -32,6 +32,7 @@ related_us: []
 | UC-FPS-10 | alerta de contraindicação avisa e registra a confirmação | must | `FisioProgramaEditorTest` |
 | UC-FPS-11 | enviar o programa pelo WhatsApp (fila, idempotente) | must | `FisioWhatsappJobTest` |
 | UC-FPS-12 | sem envio sem módulo, sem consentimento, bloqueado | must | `FisioWhatsappJobTest` |
+| UC-FPS-36 | sem canal ativo no módulo Whatsapp: envio manual pelo `wa.me` | must | `FisioWhatsappJobTest` |
 | UC-FPS-13 | questionário grava com a pontuação calculada no servidor | must | `FisioQuestionarioTest`, `PontuacaoQuestionarioTest` |
 | UC-FPS-14 | bloqueado por licença, desconhecido ou incompleto é recusado | must | `FisioQuestionarioTest`, `PontuacaoQuestionarioTest` |
 | UC-FPS-15 | questionário exige `fisio.editar`; outra clínica 404; bloqueado não recebe | must | `FisioQuestionarioTest` |
@@ -107,12 +108,19 @@ related_us: []
 - **Status: 🧪**
 
 ## UC-FPS-11 · Enviar pelo WhatsApp · `must`
-- **Aceite:** "Enviar" enfileira o job (202) com business e programa · o job manda link e PIN em duas mensagens, o PIN atrasado, e o link abre o portal · rodar duas vezes no mesmo dia não manda duas vezes.
+- **Aceite:** "Enviar" enfileira o job (202) com business e programa, sem enviar no request · o job manda link e PIN em duas mensagens pelo número de saída padrão do módulo `Whatsapp` (reuso, ADR 0437 §13.1), o PIN depois do link e nunca junto, e o link abre o portal · rodar duas vezes no mesmo dia não manda duas vezes nem emite link novo (emitir revoga o anterior).
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioWhatsappJobTest.php`
 - **Status: 🧪**
 
 ## UC-FPS-12 · Quando não enviar · `must`
-- **Aceite:** Nenhuma mensagem para business sem o módulo, programa de outra clínica, paciente sem consentimento de WhatsApp (ou revogado), paciente bloqueado ou sem telefone.
+- **Aceite:** Nenhuma mensagem para business sem o módulo, programa de outra clínica, paciente sem consentimento de WhatsApp (revogado, nunca dado ou de versão antiga), paciente bloqueado, sem telefone ou com opt-out de WhatsApp no contato.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioWhatsappJobTest.php`
+- **Status: 🧪**
+
+## UC-FPS-36 · Sem canal, o profissional envia do próprio WhatsApp · `must`
+- **Persona:** fisioterapeuta de clínica que não conectou número no módulo Whatsapp (ou cujo canal caiu).
+- **Aceite:** Dado que a empresa não tem número de saída ativo no módulo `Whatsapp` · Quando o profissional clica em "Enviar pelo WhatsApp" · Então nada é enfileirado e a resposta traz dois links `wa.me` para o celular do paciente — o do portal e, separado, o do código de acesso — para ele enviar do aparelho dele (ADR 0437 §13.1 (f)). As mesmas guardas do envio automático valem: sem consentimento de WhatsApp, 422 e nenhum link emitido; programa de outra clínica, 404.
+- **Regressão que defende:** mensagem automática saindo sem canal; link do portal emitido (revogando o anterior) para quem não consentiu.
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioWhatsappJobTest.php`
 - **Status: 🧪**
 
@@ -218,6 +226,7 @@ related_us: []
 
 ## Trilha do tempo
 - 2026-10-18 · US-FISIO-007a — link do portal gerado na ficha (`_components/LinkPortal.tsx`, `PortalLinkController`) vira UC-FPS-33..35, com teste escrito junto.
+- 2026-10-19 · US-FISIO-009 — envio do link e lembrete pelo módulo `Whatsapp` existente (sem canal próprio do Fisio, decisão [W]); UC-FPS-11/12 detalhados e UC-FPS-36 (envio manual `wa.me` sem canal ativo) nasce com o teste.
 - 2026-10-18 · responsável pelo paciente — cadastro grava o responsável, ficha mostra e transfere com registro no `activity_log` (UC-FPS-30..32).
 - 2026-10-18 · exportação do prontuário em PDF vira UC-FPS-19..20 (rota e controller próprios; o PDF do programa fica para depois da US-FISIO-006).
 - 2026-10-18 · US-FISIO-005 — paciente bloqueado vira só leitura no servidor: prontuário aceita só adendo (UC-FPS-17) e perfil não aceita edição (UC-FPS-18).

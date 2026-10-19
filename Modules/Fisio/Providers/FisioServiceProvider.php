@@ -2,10 +2,14 @@
 
 namespace Modules\Fisio\Providers;
 
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use Modules\Fisio\Console\LembretesCommand;
+use Modules\Fisio\Contracts\LinkDoPortal;
 use Modules\Fisio\Events\CheckinRegistrado;
 use Modules\Fisio\Listeners\LancarXpDoCheckin;
+use Modules\Fisio\Services\Whatsapp\LinkDoPortalPorToken;
 
 class FisioServiceProvider extends ServiceProvider
 {
@@ -19,11 +23,20 @@ class FisioServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
         // US-FISIO-008: ponto de entrada único do jogo — check-in gravado lança o XP no ledger.
         Event::listen(CheckinRegistrado::class, [LancarXpDoCheckin::class, 'handle']);
+
+        // US-FISIO-009: lembrete diário por WhatsApp (pelo módulo Whatsapp). Um job por empresa com o pacote;
+        // o job é idempotente (1 lembrete por paciente por dia) e respeita o horário de silêncio.
+        $this->commands([LembretesCommand::class]);
+        $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
+            $schedule->command('fisio:lembretes')->dailyAt((string) config('fisio.whatsapp.lembrete_horario', '08:30'))->withoutOverlapping();
+        });
     }
 
     public function register(): void
     {
         $this->app->register(RouteServiceProvider::class);
+        // Ponto de integração com o portal do paciente (US-FISIO-007a): emite token + PIN e devolve a URL.
+        $this->app->bind(LinkDoPortal::class, LinkDoPortalPorToken::class);
     }
 
     protected function registerConfig(): void

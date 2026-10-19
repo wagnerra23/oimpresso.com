@@ -7,7 +7,7 @@ por_que: o painel decide quem o fisioterapeuta chama hoje. Número errado de ade
 owner: wagner
 last_run: "2026-10-18"
 last_run_ci: "_pendente_ — US-FISIO-010 (2026-10-18) liga FisioPainelTest, FisioMultiTenantTest e FisioModuloVisibilidadeTest na lane Verticais · MySQL; o veredito é da lane. UC-FPN-05 depende do portal (F::portalPronto → PortalTokenService, US-FISIO-007) e UC-FPN-07 do job de WhatsApp (US-FISIO-009)."
-related_us: []
+related_us: [US-FISIO-009]
 ---
 
 # Casos de Uso & Aceite — Fisio · Painel (`/fisio`)
@@ -27,6 +27,7 @@ related_us: []
 | UC-FPN-05 | tabela com nível e sequência derivados | should | `FisioPainelTest` |
 | UC-FPN-06 | painel não mistura clínicas | must | `FisioMultiTenantTest` |
 | UC-FPN-07 | lembrete diário: 1 por paciente por dia | must | `FisioWhatsappJobTest` |
+| UC-FPN-08 | lembrete respeita silêncio, teto por hora e canal caído | must | `FisioWhatsappJobTest`, `AgendaDeEnvioTest` |
 
 ---
 
@@ -78,6 +79,13 @@ related_us: []
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioWhatsappJobTest.php`
 - **Status: 🧪**
 
+## UC-FPN-08 · O lembrete não acorda ninguém nem queima o número · `must`
+- **Persona:** paciente (horário de silêncio) e clínica (número de WhatsApp sem banimento; ADR 0437 §13.1 (c) e (e)).
+- **Aceite:** Dado o horário de silêncio de `config('fisio.whatsapp.silencio')` (padrão 21:00–07:00, fuso da clínica) · Quando o lembrete roda dentro dele · Então a mensagem é agendada para o fim do silêncio, não enviada na hora. No mesmo número, nunca mais que `teto_por_hora` envios numa janela de 60 min, com intervalo sorteado entre `intervalo_min_segundos` e `intervalo_max_segundos` entre mensagens. Canal desconectado ou banido no módulo `Whatsapp` → nenhum envio automático (o alerta de canal caído é do módulo Whatsapp).
+- **Regressão que defende:** rajada de mensagens com cadência fixa (padrão de automação que leva a banimento); lembrete de madrugada.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioWhatsappJobTest.php` · `Modules/Fisio/Tests/Unit/AgendaDeEnvioTest.php`
+- **Status: 🧪**
+
 ---
 
 ## Backlog (prosa honesta — vira UC quando ganhar teste que o cite)
@@ -86,5 +94,6 @@ related_us: []
 - `[BACKLOG]` Painel responde em ≤ 800 ms p50 com 300 pacientes — sem medição no CI.
 
 ## Trilha do tempo
+- 2026-10-19 · US-FISIO-009 — lembrete diário pelo módulo `Whatsapp` existente; UC-FPN-08 (silêncio, teto por hora, intervalo aleatório, canal caído) nasce com o teste.
 - 2026-10-17 · suíte TDD da F1 — casos nascem antes da tela e do código, junto com os testes que os citam.
 - 2026-10-18 · US-FISIO-010 — tela `Painel.tsx`, rota `GET /fisio` (`fisio.painel`) e charter. Fila separada em Alerta (`dor_subiu`, `dor_alta`, `sinal_de_alerta`) e Risco de abandono (`sem_registro`), via `AtencaoDetector::separar`. Status dos UCs segue 🧪 até o veredito da lane.

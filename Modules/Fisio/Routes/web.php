@@ -3,6 +3,7 @@
 use Modules\Fisio\Http\Controllers\BibliotecaController;
 use Modules\Fisio\Http\Controllers\BibliotecaMidiaController;
 use Modules\Fisio\Http\Controllers\BibliotecaFavoritosController;
+use Modules\Fisio\Http\Controllers\EnvioWhatsappController;
 use Modules\Fisio\Http\Controllers\InstallController;
 use Modules\Fisio\Http\Controllers\PacientesController;
 use Modules\Fisio\Http\Controllers\PainelController;
@@ -97,6 +98,8 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::put('programas/{id}/itens/{item}', [ProgramasController::class, 'atualizarItem'])->whereNumber(['id', 'item'])->name('programas.itens.update');
         Route::delete('programas/{id}/itens/{item}', [ProgramasController::class, 'removerItem'])->whereNumber(['id', 'item'])->name('programas.itens.destroy');
         Route::post('programas/{id}/protocolo', [ProgramasController::class, 'aplicarProtocolo'])->whereNumber('id')->name('programas.protocolo');
+        // US-FISIO-009: envio do link do portal pelo módulo Whatsapp (fila) ou wa.me manual sem canal ativo.
+        Route::post('programas/{id}/enviar', [EnvioWhatsappController::class, 'enviar'])->whereNumber('id')->name('programas.enviar');
         Route::post('programas/{id}/salvar-como-protocolo', [ProtocolosController::class, 'salvarDoPrograma'])->whereNumber('id')->name('programas.salvar-protocolo');
 
         // Protocolos-modelo: copiar um modelo (global ou da clínica) e editar a cópia da clínica.

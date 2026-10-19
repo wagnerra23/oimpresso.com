@@ -110,10 +110,12 @@ Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `M
 **Testado em:** `Modules/Fisio/Tests/Feature/FisioJogoServicoTest.php` · `Modules/Fisio/Tests/Feature/FisioJogoTest.php` · `Modules/Fisio/Tests/Unit/XpDoDiaCalculatorTest.php` · `Modules/Fisio/Tests/Unit/LimiarDorCalculatorTest.php`
 ### US-FISIO-009 · Lembrete diário e envio do programa por WhatsApp (canal escolhido pela clínica) — **P0**
 
-**Implementado em:** _pendente_
+**Implementado em:** _pendente_ — parcial: envio pelo módulo `Whatsapp` existente (sem canal, driver nem tabela próprios do Fisio — decisão [W] 2026-10-19: "o WhatsApp já está pronto no sistema"): `Modules/Fisio/Jobs/EnviarProgramaWhatsappJob.php`, `Modules/Fisio/Jobs/EnviarLembreteDiarioJob.php`, `Modules/Fisio/Console/LembretesCommand.php` (`fisio:lembretes`, agendado), `Modules/Fisio/Http/Controllers/EnvioWhatsappController.php` (rota `fisio.programas.enviar`: fila ou `wa.me` manual sem canal ativo), `Modules/Fisio/Services/Whatsapp/EnvioWhatsappFisio.php` (consentimento, idempotência persistida, ritmo) e `Modules/Fisio/Services/Whatsapp/AgendaDeEnvio.php` (silêncio, teto por hora, intervalo aleatório). O link vem do contrato `Modules/Fisio/Contracts/LinkDoPortal.php`, que delega ao `PortalTokenService` do US-FISIO-007a; a âncora fecha quando o portal entrar e o caso de integração do `FisioWhatsappJobTest` deixar de pular.
 
-> owner: — · priority: p0 · estimate: 6h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 6h · status: doing · type: story
 > blocked_by: US-FISIO-007. Pelo módulo `Whatsapp` via `ChannelDriverFactory` (nunca um driver direto), com o canal lido da configuração da clínica: `meta_cloud`, `whatsmeow` (exige aceite de risco registrado) ou envio manual `wa.me`; mitigações de banimento da ADR 0437 §13.1 quando o canal for `whatsmeow`. DoD: `FisioWhatsappJobTest`; canal caído gera alerta ao profissional.
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioWhatsappJobTest.php` · `Modules/Fisio/Tests/Unit/AgendaDeEnvioTest.php`
 
 ### US-FISIO-010 · Painel, evolução e fila de atenção — **P0**
 
