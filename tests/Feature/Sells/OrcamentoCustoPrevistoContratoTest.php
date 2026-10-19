@@ -1,4 +1,5 @@
 <?php
+// @covers-us US-SELL-067
 
 declare(strict_types=1);
 
