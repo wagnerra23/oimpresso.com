@@ -58,9 +58,9 @@ related_adrs:
 > owner: — · priority: p0 · estimate: 4h · status: doing · type: story
 > blocked_by: US-FISIO-003. 38 exercícios com `times_per_day`, avisos de respiração/apoio e `contraindication_flags`. DoD: revisão da Dra. Dejeane anotada no PR. Detalhe: `etapas/01-biblioteca.md`.
 
-**DoD:** a biblioteca global (`business_id` nulo) aparece para toda clínica com o módulo e o exercício próprio só para a dona; exercício próprio grava com a empresa da sessão e `is_custom`; global responde 403 à edição e próprio de outra empresa 404; filtro por região e busca por texto em nome e sinônimos (busca na F1 aceita por [W] em 2026-10-18, ADR 0437 §14 nº 3) — `FisioBibliotecaTest`. **Falta para fechar:** o seed dos 38 exercícios, que depende de passos/dose/contraindicações escritos e da revisão da Dra. Dejeane anotada no PR.
+**DoD:** a biblioteca global (`business_id` nulo) aparece para toda clínica com o módulo e o exercício próprio só para a dona; exercício próprio grava com a empresa da sessão e `is_custom`; global responde 403 à edição e próprio de outra empresa 404; filtro por região e busca por texto em nome e sinônimos (busca na F1 aceita por [W] em 2026-10-18, ADR 0437 §14 nº 3) — `FisioBibliotecaTest`; favorito por profissional na empresa (favoritar um global não o altera), filtros de posição e equipamento das listas fechadas de `config('fisio.biblioteca.*')` combinados com região, busca e "só favoritos", e posição/equipamento no exercício próprio (comparativo Physitrack, 2026-10-18) — `FisioBibliotecaFavoritosTest`. **Falta para fechar:** o seed dos 38 exercícios, que depende de passos/dose/contraindicações escritos e da revisão da Dra. Dejeane anotada no PR.
 
-**Testado em:** `Modules/Fisio/Tests/Feature/FisioBibliotecaTest.php`
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioBibliotecaTest.php` · `Modules/Fisio/Tests/Feature/FisioBibliotecaFavoritosTest.php`
 
 ### US-FISIO-005 · Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0**
 
@@ -69,9 +69,12 @@ related_adrs:
 > owner: — · priority: p0 · estimate: 8h · status: done · type: story
 > blocked_by: US-FISIO-003. Paciente é `contact`; avaliação, evolução e adendo carimbados com nome e CREFITO; marcadores de condição. DoD: `FisioPacienteCrudTest`, `FisioProntuarioTest`.
 
-**DoD:** paciente criado sobre um `contact` da empresa, um por contato, meta 1–7 e marcadores da lista fechada; excluir só bloqueia; avaliação/evolução/adendo carimbados com usuário, CREFITO e hora do servidor; avaliação exige os campos mínimos da Res. 414; registro assinado responde 405 a PUT/DELETE; o prontuário exporta em PDF (registros assinados em ordem cronológica, carimbados) e cada exportação fica no `activity_log` — `FisioPacienteCrudTest`, `FisioProntuarioTest`, `FisioProntuarioPdfTest`.
+**DoD:** paciente criado sobre um `contact` da empresa, um por contato, meta 1–7 e marcadores da lista fechada; excluir só bloqueia; avaliação/evolução/adendo carimbados com usuário, CREFITO e hora do servidor; avaliação exige os campos mínimos da Res. 414; registro assinado responde 405 a PUT/DELETE; o prontuário exporta em PDF (registros assinados em ordem cronológica, carimbados) e cada exportação fica no `activity_log` — `FisioPacienteCrudTest`, `FisioProntuarioTest`, `FisioProntuarioPdfTest`. Melhoria do comparativo (cadastro): contato apagado recusado, contato escolhido por busca no servidor e contato criado na hora sem duplicar celular — `FisioPacienteContatoTest` (UC-FPI-05..07).
 
-**Testado em:** `Modules/Fisio/Tests/Feature/FisioPacienteCrudTest.php` · `Modules/Fisio/Tests/Feature/FisioProntuarioTest.php` · `Modules/Fisio/Tests/Feature/FisioProntuarioPdfTest.php`
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioPacienteCrudTest.php` · `Modules/Fisio/Tests/Feature/FisioProntuarioTest.php` · `Modules/Fisio/Tests/Feature/FisioProntuarioPdfTest.php` · `Modules/Fisio/Tests/Feature/FisioPacienteContatoTest.php`
+
+**Ampliação 2026-10-18 · fisioterapeuta responsável e transferência (feito).** Cada paciente tem um responsável, usuário da mesma empresa com acesso ao Fisio; quem cadastra é o responsável. A lista mostra e filtra por responsável ("Meus pacientes") e a ficha transfere para outro profissional da empresa. Cada transferência fica no `activity_log` (quem, de quem, para quem, quando) e nada se apaga. Transferir exige `fisio.editar`; destino de outra empresa ou sem acesso ao Fisio responde 422. Pacientes cadastrados antes da coluna ficam sem responsável até alguém transferir. Fora: notificações e comparação entre profissionais. Referência: a Physitrack permite compartilhar e transferir clientes entre profissionais. Casos UC-FPI-20 e UC-FPS-30..32.
+Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `Modules/Fisio/Services/ResponsavelPaciente.php` · migration `Modules/Fisio/Database/Migrations/2026_10_18_000003_add_responsible_user_to_fisio_patients.php` · componentes `Modules/Fisio/Resources/js/Pages/Fisio/_components/ResponsavelPaciente.tsx` e `FiltroResponsavel.tsx`. Testado em `Modules/Fisio/Tests/Feature/FisioPacienteResponsavelTest.php`.
 
 ### US-FISIO-006 · Editor de programa, protocolos-modelo e aviso de contraindicação — **P0**
 

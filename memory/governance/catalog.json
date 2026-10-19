@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 795,
-    "edges": 1092,
+    "nodes": 799,
+    "edges": 1096,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 419,
+      "component": 423,
       "api": 82
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 86,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 419,
+      "hasComponent": 423,
       "dependsOn": 122,
       "delegatesTo": 113,
       "migratesTo": 1,
@@ -2808,6 +2808,20 @@
       "desc": ""
     },
     {
+      "id": "component:Fisio/BibliotecaFavoritosController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "BibliotecaFavoritosController",
+      "desc": "favoritos do profissional na empresa (fisio_exercise_favorites)"
+    },
+    {
+      "id": "component:Fisio/Busca de contato para o cadastro e criação do contato na hora pelo ContactUtil do core",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Busca de contato para o cadastro e criação do contato na hora pelo ContactUtil do core",
+      "desc": ""
+    },
+    {
       "id": "component:Fisio/Cadastro de pacientes",
       "type": "component",
       "module": "Fisio",
@@ -2827,6 +2841,13 @@
       "module": "Fisio",
       "name": "Exportação do prontuário em PDF",
       "desc": "UC-FPS-19..20"
+    },
+    {
+      "id": "component:Fisio/Fisioterapeuta responsável pelo paciente e transferência registrada no activity_log",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Fisioterapeuta responsável pelo paciente e transferência registrada no activity_log",
+      "desc": ""
     },
     {
       "id": "component:Fisio/InstallController",
@@ -2896,6 +2917,13 @@
       "type": "component",
       "module": "Fisio",
       "name": "RegistrosController",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/ResponsavelController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "ResponsavelController",
       "desc": ""
     },
     {
@@ -8973,6 +9001,18 @@
     },
     {
       "from": "module:Fisio",
+      "to": "component:Fisio/BibliotecaFavoritosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/Busca de contato para o cadastro e criação do contato na hora pelo ContactUtil do core",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
       "to": "component:Fisio/Cadastro de pacientes",
       "type": "hasComponent",
       "source": "contains"
@@ -8986,6 +9026,12 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/Exportação do prontuário em PDF",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/Fisioterapeuta responsável pelo paciente e transferência registrada no activity_log",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -9046,6 +9092,12 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/RegistrosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/ResponsavelController",
       "type": "hasComponent",
       "source": "contains"
     },

@@ -23,6 +23,7 @@ import { Textarea } from '@/Components/ui/textarea';
 import PerfilClinicoCampos, { type PerfilClinico } from '../_components/PerfilClinicoCampos';
 import { limparObjetivos, rotuloCondicao } from '../_components/condicoes';
 import Questionarios, { HistoricoQuestionarios, type Instrumento, type RespostaQuestionario } from '../_components/Questionarios';
+import ResponsavelPaciente, { type Profissional, type Transferencia } from '../_components/ResponsavelPaciente';
 import EvolucaoPaciente, { type Evolucao, type PontoDor } from '../_components/EvolucaoPaciente';
 import ExportarProntuarioPdf from '../_components/ExportarProntuarioPdf';
 
@@ -35,6 +36,7 @@ interface Paciente {
   sessions_per_week: number;
   condition_flags: string[];
   bloqueado: boolean;
+  responsavel: Profissional | null;
 }
 interface Registro {
   id: number;
@@ -52,6 +54,8 @@ interface Props {
   prontuario?: Registro[];
   instrumentos: Instrumento[];
   questionarios?: RespostaQuestionario[];
+  profissionais?: Profissional[];
+  transferencias?: Transferencia[];
   evolucao?: Evolucao;
   serie_dor?: PontoDor[];
 }
@@ -195,7 +199,7 @@ function LinhaDoTempo({ registros, podeEditar, onCorrigir }: { registros: Regist
   );
 }
 
-export default function PacienteShow({ paciente, condicoes, pode_editar, prontuario, instrumentos, questionarios, evolucao, serie_dor }: Props) {
+export default function PacienteShow({ paciente, condicoes, pode_editar, prontuario, instrumentos, questionarios, profissionais, transferencias, evolucao, serie_dor }: Props) {
   const [corrigindo, setCorrigindo] = useState<Registro | null>(null);
 
   return (
@@ -216,6 +220,7 @@ export default function PacienteShow({ paciente, condicoes, pode_editar, prontua
             {paciente.bloqueado && <Badge variant="outline">Bloqueado — prontuário guardado</Badge>}
             {paciente.telefone && <p className="text-sm text-muted-foreground">{paciente.telefone}</p>}
             <Perfil paciente={paciente} condicoes={condicoes} podeEditar={pode_editar} />
+            <ResponsavelPaciente pacienteId={paciente.id} responsavel={paciente.responsavel} podeTransferir={pode_editar && !paciente.bloqueado} profissionais={profissionais} transferencias={transferencias} />
           </CardContent>
         </Card>
         <Card>

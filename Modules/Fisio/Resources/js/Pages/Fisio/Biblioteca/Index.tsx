@@ -23,6 +23,10 @@ import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Textarea } from '@/Components/ui/textarea';
+import CamposFacetas from './_components/CamposFacetas';
+import FavoritoBotao from './_components/FavoritoBotao';
+import FiltrosFacetas from './_components/FiltrosFacetas';
+import { rotulo, type Facetas, type FiltrosFacetasValor } from './_components/facetas';
 
 interface Exercicio {
   id: number;
@@ -30,6 +34,8 @@ interface Exercicio {
   region: string;
   type: string;
   pose: string | null;
+  equipment: string[];
+  favorito: boolean;
   steps: string[];
   synonyms: string[];
   default_sets: number | null;
@@ -41,10 +47,11 @@ interface Exercicio {
   global: boolean;
 }
 interface Props {
-  filtros: { region: string; q: string };
+  filtros: { region: string; q: string } & FiltrosFacetasValor;
   pode_editar: boolean;
   exercicios?: Exercicio[];
   regioes?: string[];
+  facetas: Facetas;
 }
 
 /** Sentinela do "todas as regiões" — nunca value="" (Radix derruba a tela). */
@@ -59,16 +66,17 @@ function dose(e: Exercicio): string {
   return partes.join(' · ');
 }
 
-function Grade({ exercicios, filtros, podeEditar, onEditar }: {
+function Grade({ exercicios, filtros, facetas, podeEditar, onEditar }: {
   exercicios: Exercicio[];
   filtros: Props['filtros'];
+  facetas: Facetas;
   podeEditar: boolean;
   onEditar: (e: Exercicio) => void;
 }) {
   if (exercicios.length === 0) {
     return (
       <p className="py-8 text-center text-sm text-muted-foreground">
-        {filtros.q || filtros.region ? 'Nenhum exercício com esse filtro.' : 'A biblioteca ainda não tem exercícios.'}
+        {filtros.q || filtros.region || filtros.pose || filtros.equipment || filtros.fav ?'Nenhum exercício com esse filtro.' : 'A biblioteca ainda não tem exercícios.'}
       </p>
     );
   }
@@ -84,13 +92,18 @@ function Grade({ exercicios, filtros, podeEditar, onEditar }: {
                   <Badge variant="outline">{e.region}</Badge>
                   <Badge variant="outline">{e.type}</Badge>
                   {e.global ? <Badge variant="secondary">Biblioteca oimpresso</Badge> : <Badge>Da clínica</Badge>}
+                  {e.pose && <Badge variant="outline">{rotulo(facetas.posicoes, e.pose)}</Badge>}
+                  {e.equipment.map((q) => <Badge key={q} variant="outline">{rotulo(facetas.equipamentos, q)}</Badge>)}
                 </div>
               </div>
-              {podeEditar && !e.global && (
-                <Button variant="ghost" size="icon" aria-label={`Editar ${e.name}`} onClick={() => onEditar(e)}>
-                  <Pencil className="size-4" aria-hidden="true" />
-                </Button>
-              )}
+              <div className="flex shrink-0">
+                <FavoritoBotao exercicioId={e.id} nome={e.name} favorito={e.favorito} />
+                {podeEditar && !e.global && (
+                  <Button variant="ghost" size="icon" aria-label={`Editar ${e.name}`} onClick={() => onEditar(e)}>
+                    <Pencil className="size-4" aria-hidden="true" />
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="flex flex-col gap-2 p-4 pt-0 text-sm">
               <ol className="list-decimal pl-5 text-muted-foreground">
@@ -115,6 +128,7 @@ interface FormExercicio {
   region: string;
   type: string;
   pose: string;
+  equipment: string[];
   steps: string;
   synonyms: string;
   default_sets: string;
@@ -127,12 +141,13 @@ const linhas = (s: string) => s.split('\n').map((l) => l.trim()).filter(Boolean)
 const virgulas = (s: string) => s.split(',').map((l) => l.trim()).filter(Boolean);
 const inteiro = (s: string) => (s.trim() === '' ? null : Number(s));
 
-function FormularioExercicio({ editando, onClose }: { editando: Exercicio | null; onClose: () => void }) {
+function FormularioExercicio({ editando, facetas, onClose }: { editando: Exercicio | null; facetas: Facetas; onClose: () => void }) {
   const form = useForm<FormExercicio>({
     name: editando?.name ?? '',
     region: editando?.region ?? '',
     type: editando?.type ?? '',
     pose: editando?.pose ?? '',
+    equipment: editando?.equipment ?? [],
     steps: (editando?.steps ?? []).join('\n'),
     synonyms: (editando?.synonyms ?? []).join(', '),
     default_sets: editando?.default_sets != null ? String(editando.default_sets) : '',
@@ -149,6 +164,7 @@ function FormularioExercicio({ editando, onClose }: { editando: Exercicio | null
       region: d.region,
       type: d.type,
       pose: d.pose || null,
+      equipment: d.equipment,
       steps: linhas(d.steps),
       synonyms: virgulas(d.synonyms),
       default_sets: inteiro(d.default_sets),
@@ -192,7 +208,14 @@ function FormularioExercicio({ editando, onClose }: { editando: Exercicio | null
               {campo('region', 'Região', { placeholder: 'ex.: lombar' })}
               {campo('type', 'Objetivo', { placeholder: 'ex.: fortalecimento' })}
             </div>
-            {campo('pose', 'Posição', { placeholder: 'ex.: deitado' })}
+            <CamposFacetas
+              facetas={facetas}
+              pose={form.data.pose}
+              equipment={form.data.equipment}
+              erros={erros}
+              onPose={(v) => form.setData('pose', v)}
+              onEquipment={(v) => form.setData('equipment', v)}
+            />
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="fx-steps">Passos (um por linha)</Label>
               <Textarea id="fx-steps" rows={4} value={form.data.steps} onChange={(e) => form.setData('steps', e.target.value)} />
@@ -215,17 +238,19 @@ function FormularioExercicio({ editando, onClose }: { editando: Exercicio | null
   );
 }
 
-export default function BibliotecaIndex({ filtros, pode_editar, exercicios, regioes }: Props) {
+export default function BibliotecaIndex({ filtros, pode_editar, exercicios, regioes, facetas }: Props) {
   const [q, setQ] = useState(filtros.q);
   const [formulario, setFormulario] = useState<{ editando: Exercicio | null } | null>(null);
 
-  const visitar = (params: { region?: string; q?: string }) => {
-    const limpo = Object.fromEntries(Object.entries(params).filter(([, v]) => v));
+  // Estado dos filtros na URL: região, busca, posição, equipamento e "só favoritos" combinam.
+  const atual = { region: filtros.region, q: filtros.q, pose: filtros.pose, equipment: filtros.equipment, fav: filtros.fav ? '1' : '' };
+  const visitar = (params: Partial<typeof atual>) => {
+    const limpo = Object.fromEntries(Object.entries({ ...atual, ...params }).filter(([, v]) => v));
     router.get('/fisio/biblioteca', limpo, { preserveState: true, replace: true });
   };
   const buscar = (e: FormEvent) => {
     e.preventDefault();
-    visitar({ region: filtros.region, q });
+    visitar({ q });
   };
 
   return (
@@ -243,7 +268,7 @@ export default function BibliotecaIndex({ filtros, pode_editar, exercicios, regi
             <Button type="submit" variant="outline"><Search className="size-4" aria-hidden="true" /> Buscar</Button>
           </form>
           <Deferred data="regioes" fallback={<Skeleton className="h-9 w-48" />}>
-            <Select value={filtros.region || TODAS} onValueChange={(v) => visitar({ region: v === TODAS ? '' : v, q: filtros.q })}>
+            <Select value={filtros.region || TODAS} onValueChange={(v) => visitar({ region: v === TODAS ? '' : v })}>
               <SelectTrigger className="w-48" aria-label="Filtrar por região"><SelectValue placeholder="Região" /></SelectTrigger>
               <SelectContent>
                 <SafeSelectItem value={TODAS}>Todas as regiões</SafeSelectItem>
@@ -251,17 +276,23 @@ export default function BibliotecaIndex({ filtros, pode_editar, exercicios, regi
               </SelectContent>
             </Select>
           </Deferred>
+          <FiltrosFacetas
+            facetas={facetas}
+            valor={{ pose: filtros.pose, equipment: filtros.equipment, fav: filtros.fav }}
+            onChange={(v) => visitar({ pose: v.pose, equipment: v.equipment, fav: v.fav ? '1' : '' })}
+          />
         </div>
         <Deferred data="exercicios" fallback={<Skeleton className="h-64 w-full" />}>
           <Grade
             exercicios={exercicios ?? []}
             filtros={filtros}
+            facetas={facetas}
             podeEditar={pode_editar}
             onEditar={(e) => setFormulario({ editando: e })}
           />
         </Deferred>
       </div>
-      {formulario && <FormularioExercicio editando={formulario.editando} onClose={() => setFormulario(null)} />}
+      {formulario && <FormularioExercicio editando={formulario.editando} facetas={facetas} onClose={() => setFormulario(null)} />}
     </div>
   );
 }

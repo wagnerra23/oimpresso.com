@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 0 |
 | Telas (.tsx) | 4 |
 | Telas com `casos.md` | 5 |
-| UC declarados | 57 |
-| UC com teste que os cita | 57 |
+| UC declarados | 67 |
+| UC com teste que os cita | 67 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -58,10 +58,17 @@ authority: generated
 | UC-FBI-02 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-03 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-04 | Biblioteca/Index | 🧪 aguarda veredito da lane |
+| UC-FBI-08 | Biblioteca/Index | 🧪 aguarda veredito da lane |
+| UC-FBI-09 | Biblioteca/Index | 🧪 aguarda veredito da lane |
+| UC-FBI-10 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FPI-01 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPI-02 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPI-03 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPI-04 | Pacientes/Index | 🧪 aguarda veredito da lane |
+| UC-FPI-05 | Pacientes/Index | 🧪 aguarda veredito da lane |
+| UC-FPI-06 | Pacientes/Index | 🧪 aguarda veredito da lane |
+| UC-FPI-07 | Pacientes/Index | 🧪 aguarda veredito da lane |
+| UC-FPI-20 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPN-01 | Painel | 🧪 aguarda veredito da lane |
 | UC-FPN-02 | Painel | 🧪 aguarda veredito da lane |
 | UC-FPN-03 | Painel | 🧪 aguarda veredito da lane |
@@ -110,6 +117,9 @@ authority: generated
 | UC-FPS-19 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-20 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-21 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-30 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-31 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-32 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-OAP-01 | Public/Portal | 🧪 aguarda veredito da lane |
 
 ---

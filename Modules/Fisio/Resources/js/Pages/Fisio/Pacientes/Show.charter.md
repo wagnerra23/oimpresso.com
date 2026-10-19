@@ -33,12 +33,14 @@ Mostrar e editar o perfil clínico do paciente e manter o prontuário: avaliaç�
 - Assinar avaliação (campos mínimos da Res. 414) e evolução, com carimbo do servidor — UC-FPS-03.
 - Corrigir por adendo apontando o original, que não muda — UC-FPS-04, UC-FPS-05.
 - Bloquear o paciente sem apagar nada — UC-FPS-07.
+- Mostrar o fisioterapeuta responsável e transferir o paciente para outro profissional da empresa, com o histórico das transferências — UC-FPS-30..32.
 - Exportar o prontuário em PDF (identificação, perfil clínico e todos os registros assinados em ordem cronológica, com carimbo; rodapé com empresa, emissão e "Página X de Y"); cada exportação fica no `activity_log` sem PII — UC-FPS-19, UC-FPS-20. Exportar exige só `fisio.access`.
 - Registrar questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) com pontuação do servidor e ver o histórico — UC-FPS-13..16 (US-FISIO-011). Mostra o número e a referência; não interpreta (SaMD, ADR 0437 §5).
 
 ## Non-Goals — Features (NÃO faz)
 
 - ❌ Editar ou apagar registro assinado (não existe rota; o banco recusa).
+- ❌ Avisar o profissional que recebeu o paciente, ou comparar resultados entre profissionais (fora do escopo do responsável).
 - ❌ Programa de exercícios e envio pelo WhatsApp (US-FISIO-006 e seguintes).
 - ❌ PDF do programa de exercícios (vem depois da US-FISIO-006); o PDF daqui é só o prontuário.
 

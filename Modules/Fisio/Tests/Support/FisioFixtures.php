@@ -183,7 +183,7 @@ final class FisioFixtures
             'name' => $nome.' '.uniqid(),
             'region' => 'lombar',
             'type' => 'fortalecimento',
-            'pose' => 'deitado',
+            'pose' => 'deitado_costas',
             'steps' => ['Deite de barriga para cima', 'Eleve o quadril', 'Desça devagar'],
             'default_sets' => 3,
             'default_reps' => 12,
