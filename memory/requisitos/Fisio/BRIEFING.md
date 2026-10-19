@@ -39,6 +39,7 @@ Cadastro de paciente (melhoria do comparativo, 2026-10-18): o contato é escolhi
 ## Decisões e riscos que exigem atenção
 
 - WhatsApp com canal escolhido pela clínica (`meta_cloud` recomendado, `whatsmeow` com aceite de risco e mitigações, ou `wa.me` manual) — [ADR 0437 §13.1](../../decisions/0437-modulo-fisio-vertical-fisioterapia.md)
+- App do paciente instalável com agendamento no estilo do AppBarber Cliente (link + PIN segue valendo; sem promoção, venda extra nem nota pública) — [ADR 0437 §13.7](../../decisions/0437-modulo-fisio-vertical-fisioterapia.md) e [etapa F3 A14–A21](etapas/04-f3-operacao.md)
 - Linha da Anvisa (o que vira SaMD) — [ADR 0437 §5](../../decisions/0437-modulo-fisio-vertical-fisioterapia.md)
 - Decisões ainda abertas — [ADR 0437 §14](../../decisions/0437-modulo-fisio-vertical-fisioterapia.md)
 - Fisioterapeuta responsável pelo paciente (2026-10-18): a transferência fica no `activity_log`, sem tabela própria; pacientes anteriores à coluna ficam sem responsável até alguém atribuir — [SPEC US-FISIO-005](SPEC.md)
