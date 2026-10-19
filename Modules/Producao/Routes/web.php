@@ -37,6 +37,8 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::post('{inicio}/pausar', [ApontamentoController::class, 'pausar'])->whereNumber('inicio')->name('pausar');
         Route::post('{inicio}/concluir', [ApontamentoController::class, 'concluir'])->whereNumber('inicio')->name('concluir');
         Route::post('{inicio}/corrigir', [ApontamentoController::class, 'corrigir'])->whereNumber('inicio')->name('corrigir');
+        // US-PCP-021 · UC-FLX-37 — material consumido na etapa (baixa pelo lote que saiu).
+        Route::post('material', [ApontamentoController::class, 'material'])->name('material');
     });
 
 // ── Thread 03 + E03 · cadastros (postos, motivos, roteiros, ferramentas, custo-hora) ──

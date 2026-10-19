@@ -15,6 +15,7 @@ use Modules\Producao\Entities\Posto;
 use Modules\Producao\Entities\Programacao;
 use Modules\Producao\Exceptions\ApontamentoRecusado;
 use Modules\Producao\Services\ApontamentoOperadorService;
+use Modules\Producao\Services\ConsumoMaterialService;
 
 /**
  * Celular do operador (PWA web) — thread 04 + E04 do playbook PCP. A regra mora no
@@ -82,6 +83,27 @@ class ApontamentoController extends Controller
         $d = $request->validate($this->regras());
 
         return $this->escrever(fn () => $this->svc->concluir($biz, $user, $inicio, $d['chave'], Carbon::parse($d['momento'])));
+    }
+
+    /**
+     * US-PCP-021 · UC-FLX-37: material consumido na etapa. Baixa o estoque do local da venda pelo lote
+     * que saiu. O operador não vê o custo (é do gestor); a resposta diz só o que saiu e o que ficou sem lote.
+     */
+    public function material(Request $request, ConsumoMaterialService $consumo): JsonResponse
+    {
+        [$biz, $user] = $this->operador($request);
+        $d = $request->validate($this->regras() + [
+            'programacao_id' => 'required|integer|min:1', 'variation_id' => 'required|integer|min:1', 'quantidade' => 'required|string|max:24',
+        ]);
+
+        try {
+            $c = $consumo->registrar($biz, $user, (int) $d['programacao_id'], (int) $d['variation_id'], (string) $d['quantidade'], $d['chave'], Carbon::parse($d['momento']));
+        } catch (ApontamentoRecusado $e) {
+            return $this->recusa($e);
+        }
+
+        return response()->json(['id' => $c->id, 'programacao_id' => $c->programacao_id, 'variation_id' => $c->variation_id,
+            'quantidade' => (string) $c->quantidade, 'quantidade_sem_lote' => (string) $c->quantidade_sem_lote], $c->wasRecentlyCreated ? 201 : 200);
     }
 
     public function corrigir(Request $request, int $inicio): JsonResponse
