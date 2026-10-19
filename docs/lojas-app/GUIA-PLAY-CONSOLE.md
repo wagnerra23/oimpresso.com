@@ -48,3 +48,31 @@ Caminho: **Painel → "Termine de configurar seu app" → Ver tarefas**. Ordem s
 Depois: **Testar e lançar → Teste interno** (upload do AAB — sessão ANDROID). Para conta pessoal criada após
 nov/2023 o Google exige teste fechado com 12 testadores por 14 dias; conta de **organização** é dispensada —
 conferir o tipo da conta antes de planejar prazo.
+
+## App do paciente do Fisio (`com.oimpresso.fisio`) — estado em 2026-10-19
+
+- **App no console:** "oimpresso Fisio", ID `4973690108002117967`, mesma conta (WR2 Sistemas, `5298628569506403208`).
+  TWA do portal do paciente, abre `https://oimpresso.com/fisio/app`. Criado como App, gratuito, Português (Brasil).
+- **Teste interno:** versão `2 (0.1.0)` publicada em 2026-10-19 (AAB `fisio-release-aab-2`, run 39257781902 do
+  `oimpresso-app`). O AAB do run 39253637760 (versão 1) foi **recusado**: a Proteção Automática da Play exige
+  minSdk 24 e ele tinha 23. Corrigido em `fisio-twa/app/build.gradle` (commit `15be21c` no PR wagnerra23/oimpresso-app#108).
+- **Testadores:** lista de e-mails "Fisio testadores" com `wagnerra@gmail.com` (só ela marcada na faixa).
+  Link de participação: `https://play.google.com/apps/internaltest/4701425155280694866`.
+  Até o app ser revisado, aparece no celular como "com.oimpresso.fisio (unreviewed)".
+- **Integridade do app → Assinatura de apps** (para o `assetlinks.json` do `oimpresso.com`):
+  - Chave de assinatura do app (gerenciada pelo Google) — **SHA-256:**
+    `37:7E:0C:D1:AB:F7:B2:F8:C8:00:E9:B9:EB:91:C0:5A:E3:F7:99:DB:D3:CF:3A:74:D3:00:82:80:FB:07:73:16`
+  - Chave de upload (a mesma do app oimpresso; vale para AAB/APK instalado fora da Play) — SHA-256:
+    `4E:DB:F0:2C:68:5B:CA:0B:89:E9:A9:03:A7:6A:FB:D2:F8:85:BF:BA:6B:11:90:DD:0C:B5:40:05:E2:31:C3:50`
+  - Entrada a incluir no `assetlinks.json` (o TWA só abre sem barra de URL com ela no ar):
+    `{"relation":["delegate_permission/common.handle_all_urls"],"target":{"namespace":"android_app","package_name":"com.oimpresso.fisio","sha256_cert_fingerprints":["<as duas acima>"]}}`
+- **Salvo em 2026-10-19** (aprovado por [W]): Anúncios (não) · Apps governamentais (não) · Recursos financeiros
+  (nenhum) · ID de publicidade (não usa; o manifesto só pede `INTERNET`) · Classificação de conteúdo **Livre**
+  (contato `wagner@oimpresso.com`; "Conteúdo online" = Sim, porque o portal é carregado da web).
+- **Pendente — bloqueado pela política de privacidade:** `https://oimpresso.com/privacidade` não fala de saúde,
+  paciente nem Fisio, e o app coleta dado de saúde (dor 0–10, notas, sinais de alerta, questionários RMDQ/PSFS/LEFS/SPADI,
+  consentimentos com IP). Sem essa seção, Política de Privacidade, Apps de saúde e Segurança dos dados não podem ser
+  declaradas com verdade. A política nova precisa da revisão da Eliana [E].
+- **Pendente — decisão [W]:** Público-alvo (o módulo tem cadastro de responsável, então há paciente menor de idade) e
+  Detalhes do login (o portal abre por link + PIN; o revisor do Google precisa de um paciente de demonstração).
+  Página da loja e teste fechado/aberto ("beta") só abrem depois disso.
