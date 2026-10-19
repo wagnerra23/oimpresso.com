@@ -23,6 +23,8 @@ Decisão aceita ([ADR 0437](../../decisions/0437-modulo-fisio-vertical-fisiotera
 
 Em 2026-10-18 a ficha do paciente ganhou a exportação do prontuário em PDF (UC-FPS-19..20, [`Show.casos.md`](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Show.casos.md)); cada exportação fica no `activity_log`.
 
+Cadastro de paciente (melhoria do comparativo, 2026-10-18): o contato é escolhido por busca no servidor (nome ou celular, até 20, só da empresa e sem ficha) ou criado na hora como cliente pelo cadastro de contatos do sistema, sem duplicar celular na empresa; contato apagado não vira paciente — casos UC-FPI-05..07 em [`Pacientes/Index.casos.md`](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Index.casos.md).
+
 ## Portas canônicas
 
 - **Herança geral (componentes/layouts/templates compartilhados):** [`../_Geral/BRIEFING.md`](../_Geral/BRIEFING.md)
