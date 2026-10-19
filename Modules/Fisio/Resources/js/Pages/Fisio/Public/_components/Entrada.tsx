@@ -78,7 +78,7 @@ export function EtapaPin({ token, restantes, lembrarDias }: { token: string; res
                 onClick={() => tecla(t)}
                 aria-label={t === 'apagar' ? 'Apagar' : `Número ${t}`}
                 className={cn(
-                  'flex h-14 items-center justify-center rounded-xl font-mono text-2xl outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50',
+                  'flex h-14 items-center justify-center rounded-lg font-mono text-2xl outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50',
                   t === 'apagar' ? 'text-muted-foreground' : 'border border-border bg-card active:bg-muted',
                 )}
               >
@@ -88,7 +88,7 @@ export function EtapaPin({ token, restantes, lembrarDias }: { token: string; res
         ))}
       </div>
 
-      <div className="flex items-start gap-3 rounded-xl border border-border bg-card p-3">
+      <div className="flex items-start gap-3 rounded-lg border border-border bg-card p-3">
         <Checkbox id="portal-lembrar" checked={lembrar} onCheckedChange={(v) => setLembrar(v === true)} className="mt-0.5" />
         <Label htmlFor="portal-lembrar" className="flex flex-col items-start gap-0.5 font-normal">
           <span className="font-medium">Lembrar este aparelho por {lembrarDias} dias</span>
@@ -98,7 +98,7 @@ export function EtapaPin({ token, restantes, lembrarDias }: { token: string; res
 
       {msg && <p id="portal-pin-msg" className="text-sm text-destructive" role="alert">{msg}</p>}
 
-      <Button type="submit" size="lg" className="mt-auto h-14 rounded-xl text-base" disabled={!completo || enviando}>Entrar</Button>
+      <Button type="submit" size="lg" className="mt-auto h-14 rounded-lg text-base" disabled={!completo || enviando}>Entrar</Button>
       <p className="text-center text-xs text-muted-foreground">Depois de 5 tentativas erradas o acesso fica travado por 30 minutos.</p>
     </form>
   );
@@ -111,7 +111,7 @@ const TEXTO_OPCIONAL: Record<string, { titulo: string; detalhe: string }> = {
 
 function LinhaAutorizacao({ id, titulo, detalhe, ligado, onChange }: { id: string; titulo: string; detalhe: string; ligado: boolean; onChange: (v: boolean) => void }) {
   return (
-    <div className="flex items-start gap-3 rounded-xl border border-border bg-card p-3">
+    <div className="flex items-start gap-3 rounded-lg border border-border bg-card p-3">
       <Label htmlFor={id} className="flex flex-1 flex-col items-start gap-0.5 font-normal">
         <span className="font-semibold">{titulo}</span>
         <span className="text-sm text-muted-foreground">{detalhe}</span>
@@ -170,7 +170,7 @@ export function EtapaConsentimento({ token, clinica, versao, opcionais }: { toke
         Termo versão {versao ?? '—'} · seus dados ficam com {clinica ?? 'a clínica'} e não são vendidos nem usados para propaganda.
       </p>
       {erro && <p className="text-sm text-destructive" role="alert">{erro}</p>}
-      <Button type="submit" size="lg" className="mt-auto h-14 rounded-xl text-base" disabled={!aceito || enviando}>
+      <Button type="submit" size="lg" className="mt-auto h-14 rounded-lg text-base" disabled={!aceito || enviando}>
         <Check aria-hidden="true" />Concordo e começar
       </Button>
       <p className="text-center text-sm text-muted-foreground">

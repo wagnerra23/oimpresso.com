@@ -12,10 +12,10 @@ import { dose, hojePorExtenso, progressoNivel, type ItemHoje, type Jogo } from '
 export function CartaoJogo({ jogo }: { jogo: Jogo }) {
   const pct = progressoNivel(jogo);
   return (
-    <section aria-label="Sua constância" className="flex flex-col gap-3 rounded-2xl bg-foreground p-4 text-background" data-contract="fisio-portal-jogo">
+    <section aria-label="Sua constância" className="flex flex-col gap-3 rounded-lg bg-foreground p-4 text-background" data-contract="fisio-portal-jogo">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <span className="flex size-11 items-center justify-center rounded-xl bg-primary font-mono text-lg font-semibold text-primary-foreground">{jogo.nivel}</span>
+          <span className="flex size-11 items-center justify-center rounded-lg bg-primary font-mono text-lg font-semibold text-primary-foreground">{jogo.nivel}</span>
           <span className="flex flex-col leading-tight">
             <span className="text-xs uppercase tracking-wider opacity-70">Nível</span>
             <span className="font-semibold">{jogo.xp_para_proximo === null ? 'Nível máximo' : `faltam ${jogo.xp_para_proximo} XP`}</span>
@@ -46,18 +46,18 @@ function Contador({ item, vezes, onChange }: { item: ItemHoje; vezes: number; on
   if (max <= 1) {
     const feito = vezes >= 1;
     return (
-      <Button type="button" variant={feito ? 'default' : 'outline'} className="h-11 min-w-28 rounded-xl" aria-pressed={feito} onClick={() => onChange(feito ? 0 : 1)}>
+      <Button type="button" variant={feito ? 'default' : 'outline'} className="h-11 min-w-28 rounded-lg" aria-pressed={feito} onClick={() => onChange(feito ? 0 : 1)}>
         {feito ? <><Check aria-hidden="true" />Feito</> : 'Marcar feito'}
       </Button>
     );
   }
   return (
     <div className="flex items-center gap-1" role="group" aria-label={`Vezes feitas de ${item.nome ?? 'exercício'}`}>
-      <Button type="button" variant="outline" size="icon" className="size-11 rounded-xl" aria-label="Uma vez a menos" disabled={vezes <= 0} onClick={() => onChange(vezes - 1)}>
+      <Button type="button" variant="outline" size="icon" className="size-11 rounded-lg" aria-label="Uma vez a menos" disabled={vezes <= 0} onClick={() => onChange(vezes - 1)}>
         <Minus aria-hidden="true" />
       </Button>
       <span className="w-14 text-center font-mono text-base" aria-live="polite">{vezes}/{max}</span>
-      <Button type="button" variant="outline" size="icon" className="size-11 rounded-xl" aria-label="Uma vez a mais" disabled={vezes >= max} onClick={() => onChange(vezes + 1)}>
+      <Button type="button" variant="outline" size="icon" className="size-11 rounded-lg" aria-label="Uma vez a mais" disabled={vezes >= max} onClick={() => onChange(vezes + 1)}>
         <Plus aria-hidden="true" />
       </Button>
     </div>
@@ -69,7 +69,7 @@ function CartaoExercicio({ item, vezes, onChange }: { item: ItemHoje; vezes: num
   const feito = vezes >= item.times_per_day;
   const detalhes = item.passos.length > 0 || item.cuidados.length > 0;
   return (
-    <li className={cn('flex flex-col gap-3 rounded-xl border bg-card p-3', feito ? 'border-primary/40' : 'border-border')}>
+    <li className={cn('flex flex-col gap-3 rounded-lg border bg-card p-3', feito ? 'border-primary/40' : 'border-border')}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-0.5">
           <span className={cn('font-semibold', feito && 'text-muted-foreground')}>{item.nome}</span>
@@ -128,7 +128,7 @@ export function TelaHoje({ itens, jogo, vezes, onVezes, registradoHoje, temCrise
       <CartaoJogo jogo={jogo} />
 
       {itens.length === 0 ? (
-        <p className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">Sua fisioterapeuta ainda não montou o programa. Assim que ela montar, ele aparece aqui.</p>
+        <p className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">Sua fisioterapeuta ainda não montou o programa. Assim que ela montar, ele aparece aqui.</p>
       ) : (
         <section aria-label="Programa de hoje" className="flex flex-col gap-2">
           <div className="flex items-center justify-between text-sm">
@@ -143,7 +143,7 @@ export function TelaHoje({ itens, jogo, vezes, onVezes, registradoHoje, temCrise
       )}
 
       <div className="sticky bottom-0 -mx-4 mt-auto flex flex-col gap-2 border-t border-border bg-background px-4 pt-3 pb-4">
-        <Button type="button" size="lg" className="h-14 rounded-xl text-base" onClick={onCheckin} data-contract="fisio-portal-abrir-checkin">
+        <Button type="button" size="lg" className="h-14 rounded-lg text-base" onClick={onCheckin} data-contract="fisio-portal-abrir-checkin">
           {registradoHoje ? 'Corrigir como foi hoje' : 'Como foi hoje?'}
         </Button>
         {temCrise && (
@@ -164,17 +164,17 @@ export function TelaCrise({ itens, sequencia, onVoltar, onComecar }: { itens: st
       <p className="text-muted-foreground">Hoje vale fazer a versão curta que a sua fisio deixou para você.</p>
       <ol className="flex flex-col gap-2">
         {itens.map((t, i) => (
-          <li key={i} className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
+          <li key={i} className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
             <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-muted font-mono text-sm text-primary">{i + 1}</span>
             <span className="font-medium">{t}</span>
           </li>
         ))}
       </ol>
-      <div className="flex items-center gap-3 rounded-xl bg-muted p-3 text-sm">
+      <div className="flex items-center gap-3 rounded-lg bg-muted p-3 text-sm">
         <ShieldCheck className="size-5 shrink-0 text-primary" aria-hidden="true" />
         <span>Conta como dia cumprido.{sequencia > 0 ? ` Sua sequência de ${sequencia} ${sequencia === 1 ? 'dia' : 'dias'} fica protegida.` : ''}</span>
       </div>
-      <Button type="button" size="lg" className="mt-auto h-14 rounded-xl text-base" onClick={onComecar}>Fiz a versão curta · registrar</Button>
+      <Button type="button" size="lg" className="mt-auto h-14 rounded-lg text-base" onClick={onComecar}>Fiz a versão curta · registrar</Button>
     </div>
   );
 }

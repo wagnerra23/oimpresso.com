@@ -35,7 +35,7 @@ function Opcao({ ativo, onClick, children, className }: { ativo: boolean; onClic
       aria-pressed={ativo}
       onClick={onClick}
       className={cn(
-        'min-h-12 rounded-xl border px-3 text-base font-semibold outline-none transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50',
+        'min-h-12 rounded-lg border px-3 text-base font-semibold outline-none transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50',
         ativo ? 'border-foreground bg-foreground text-background' : 'border-border bg-card text-foreground',
         className,
       )}
@@ -120,14 +120,11 @@ export function TelaCheckin({ token, itens, vezes, onVezes, relato, sinais, cris
                     <Checkbox id={`ck-${i.id}`} checked={n >= 1} onCheckedChange={(v) => onVezes(i.id, v === true ? Math.max(1, n) : 0)} />
                     <Label htmlFor={`ck-${i.id}`} className="flex-1 font-normal">{i.nome}</Label>
                     {i.times_per_day > 1 && n >= 1 && (
-                      <select
-                        aria-label={`Vezes de ${i.nome ?? 'exercício'}`}
-                        className="h-9 rounded-md border border-border bg-background px-2 font-mono text-sm"
-                        value={Math.min(n, i.times_per_day)}
-                        onChange={(e) => onVezes(i.id, Number(e.target.value))}
-                      >
-                        {Array.from({ length: i.times_per_day }, (_, k) => k + 1).map((k) => <option key={k} value={k}>{k}x</option>)}
-                      </select>
+                      <div className="flex items-center gap-1" role="group" aria-label={`Vezes de ${i.nome ?? 'exercício'}`}>
+                        <Button type="button" variant="outline" size="icon-sm" aria-label="Uma vez a menos" disabled={n <= 1} onClick={() => onVezes(i.id, n - 1)}>−</Button>
+                        <span className="w-10 text-center font-mono text-sm" aria-live="polite">{Math.min(n, i.times_per_day)}x</span>
+                        <Button type="button" variant="outline" size="icon-sm" aria-label="Uma vez a mais" disabled={n >= i.times_per_day} onClick={() => onVezes(i.id, n + 1)}>+</Button>
+                      </div>
                     )}
                   </li>
                 );
@@ -188,7 +185,7 @@ export function TelaCheckin({ token, itens, vezes, onVezes, relato, sinais, cris
       </div>
 
       {erro && <p className="text-sm text-destructive" role="alert">{erro}</p>}
-      <Button type="submit" size="lg" className="mt-auto h-14 rounded-xl text-base" disabled={!pronto || enviando}>
+      <Button type="submit" size="lg" className="mt-auto h-14 rounded-lg text-base" disabled={!pronto || enviando}>
         {relato ? 'Enviar correção' : 'Enviar para a minha fisio'}
       </Button>
     </form>
@@ -202,7 +199,7 @@ function Enviado({ resposta }: { resposta: RespostaCheckin }) {
         <h1 className="text-2xl font-semibold leading-tight">Seu registro foi enviado</h1>
         <p className="flex items-center gap-2 text-muted-foreground"><ShieldCheck className="size-5 text-primary" aria-hidden="true" />Sua sequência está protegida.</p>
         <InstrucaoDaFisio instrucao={resposta.instrucao ?? null} />
-        <Button type="button" variant="outline" size="lg" className="mt-auto h-12 rounded-xl" onClick={() => router.reload()}>Voltar ao início</Button>
+        <Button type="button" variant="outline" size="lg" className="mt-auto h-12 rounded-lg" onClick={() => router.reload()}>Voltar ao início</Button>
       </div>
     );
   }
@@ -214,7 +211,7 @@ function Enviado({ resposta }: { resposta: RespostaCheckin }) {
         {resposta.xp_ganho ? `+${resposta.xp_ganho} XP. ` : ''}Sua fisio recebeu o registro e acompanha a sua evolução.
       </p>
       {resposta.jogo && <div className="w-full text-left"><CartaoJogo jogo={resposta.jogo} /></div>}
-      <Button type="button" size="lg" className="mt-auto h-12 w-full rounded-xl" onClick={() => router.reload()}>Voltar ao início</Button>
+      <Button type="button" size="lg" className="mt-auto h-12 w-full rounded-lg" onClick={() => router.reload()}>Voltar ao início</Button>
     </div>
   );
 }
@@ -222,7 +219,7 @@ function Enviado({ resposta }: { resposta: RespostaCheckin }) {
 /** Texto ESTÁTICO escrito pelo profissional no programa (ADR 0437 §5): nada calculado aqui. */
 export function InstrucaoDaFisio({ instrucao }: { instrucao: string | null }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
+    <div className="rounded-lg border border-border bg-card p-4">
       <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Orientação da sua fisio</p>
       <p className="whitespace-pre-line">{instrucao ?? 'Sua fisio vai ver o seu registro. Em caso de dúvida, fale com a sua clínica.'}</p>
     </div>
