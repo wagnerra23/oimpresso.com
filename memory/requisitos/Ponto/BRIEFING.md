@@ -3,11 +3,20 @@ id: requisitos-ponto-briefing
 module: Ponto
 status: parcial
 updated_at: "2026-09-28"
-distilled_at: "2026-10-08"
-distilled_by: "manual [CL] — redestilação PARCIAL (2026-10-08): só a linha **Apuracao HE 100%** do §Wip foi re-lida, contra o #9066 (feriado do HRM na apuração). O resto do corpo NÃO foi re-lido. Antes: redestilação PARCIAL (2026-09-28): só a linha de **importação AFD** de §Capacidades foi re-lida, contra os PRs #7992/#8011/#8024/#8036 (saiu de Wip para pronto). O resto do corpo NÃO foi re-lido. Antes: redestilação PARCIAL (2026-09-23): só a linha **Frontend** de §Stack e arquitetura foi re-lida, contra a remoção das 25 Blades mortas (thread 11 do playbook). O resto do corpo segue nos retratos abaixo e NÃO foi re-lido. Antes: redestilação PARCIAL (2026-09-15): UMA seção re-lida contra conhecimento novo — §Capacidades canon/Backlog ganhou o **Fechamento de competência** a partir da US-PONTO-015, com as 3 restrições [W] de 2026-09-14 e o estado medido (domínio inexistente em `origin/main`). O RESTO do corpo NÃO foi re-lido: §Cobertura de teste e §Atributos fantasma seguem no retrato de 2026-09-05 (PR #6802), §Contratos de tela no de 2026-08-21, e as demais no de 2026-07-27 (PR #4865). Gatilho: o `distiller_freshness` do sdd-scorecard acusou a porta 10d atrás dos eventos do módulo — eu adicionei a US e não refleti aqui; re-carimbar sem re-ler seria gaming."
+distilled_at: "2026-10-19"
+distilled_by: "manual [CL] — redestilação PARCIAL (2026-10-19): só a seção nova **App Links** foi escrita, contra o #9583 (o assetlinks.json do Ponto passa a publicar também o app Fisio). O resto do corpo NÃO foi re-lido. Antes: redestilação PARCIAL (2026-10-08): só a linha **Apuracao HE 100%** do §Wip foi re-lida, contra o #9066 (feriado do HRM na apuração). O resto do corpo NÃO foi re-lido. Antes: redestilação PARCIAL (2026-09-28): só a linha de **importação AFD** de §Capacidades foi re-lida, contra os PRs #7992/#8011/#8024/#8036 (saiu de Wip para pronto). O resto do corpo NÃO foi re-lido. Antes: redestilação PARCIAL (2026-09-23): só a linha **Frontend** de §Stack e arquitetura foi re-lida, contra a remoção das 25 Blades mortas (thread 11 do playbook). O resto do corpo segue nos retratos abaixo e NÃO foi re-lido. Antes: redestilação PARCIAL (2026-09-15): UMA seção re-lida contra conhecimento novo — §Capacidades canon/Backlog ganhou o **Fechamento de competência** a partir da US-PONTO-015, com as 3 restrições [W] de 2026-09-14 e o estado medido (domínio inexistente em `origin/main`). O RESTO do corpo NÃO foi re-lido: §Cobertura de teste e §Atributos fantasma seguem no retrato de 2026-09-05 (PR #6802), §Contratos de tela no de 2026-08-21, e as demais no de 2026-07-27 (PR #4865). Gatilho: o `distiller_freshness` do sdd-scorecard acusou a porta 10d atrás dos eventos do módulo — eu adicionei a US e não refleti aqui; re-carimbar sem re-ler seria gaming."
 ---
 
 # BRIEFING — Modules/Ponto
+
+## App Links — estado em 2026-10-19
+
+O `/.well-known/assetlinks.json` é servido pelo Ponto (`AppLinksController`) e passou a declarar
+**dois** apps: o de ponto (pacote e fingerprints pelo env de produção, como antes) e o **oimpresso
+Fisio** (`com.oimpresso.fisio`, TWA do portal do paciente), configurado em
+`pontowr2.app_links.outros_android`. App sem pacote ou sem fingerprint válido fica fora; nenhum
+válido = 404. O Fisio entrou só com a upload key do oimpresso-app — falta a app signing key do
+Play Console, que só existe depois do primeiro envio.
 
 ## Contratos de tela — estado em 2026-08-21
 
