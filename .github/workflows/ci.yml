@@ -167,4 +167,4 @@ jobs:
         run: npm run build:inertia
 
       - name: Comportamento React — notificações, total da Nova despesa, formulário e lista de produtos
-        run: npx vitest run tests/js/notificacoes-selecao.test.tsx tests/js/notificacoes-editor.test.tsx tests/js/despesas-total-envio.test.ts tests/js/transaction-payment-edit.test.tsx tests/js/produto-formulario.test.tsx tests/js/produto-preco.test.tsx tests/js/produto-locais.test.tsx tests/js/produto-tipo.test.tsx tests/js/produto-lista-encaixe.test.tsx tests/js/produto-lista-redimensionar.test.tsx
+        run: npx vitest run tests/js/notificacoes-selecao.test.tsx tests/js/notificacoes-editor.test.tsx tests/js/despesas-total-envio.test.ts tests/js/transaction-payment-edit.test.tsx tests/js/produto-formulario.test.tsx tests/js/produto-preco.test.tsx tests/js/produto-locais.test.tsx tests/js/produto-tipo.test.tsx tests/js/produto-editar-preserva.test.tsx tests/js/produto-lista-encaixe.test.tsx tests/js/produto-lista-redimensionar.test.tsx

@@ -1185,6 +1185,22 @@ class ProductController extends Controller
     }
 
     /**
+     * O valor gravado dos 20 campos personalizados do produto (1 → 20). O Editar React devolve
+     * todos no envio, porque o update() grava '' em quem não vem no request (UC-PEDIT-10).
+     *
+     * @return array<int, string>
+     */
+    protected function valoresCamposPersonalizados(Product $produto): array
+    {
+        $valores = [];
+        for ($i = 1; $i <= 20; $i++) {
+            $valores[$i] = (string) ($produto->{'product_custom_field' . $i} ?? '');
+        }
+
+        return $valores;
+    }
+
+    /**
      * Show the form for creating a new resource.
      *
      * @return \Illuminate\Http\Response
@@ -1680,10 +1696,12 @@ class ProductController extends Controller
                     'productLocations' => $product->product_locations->pluck('id')->all(),
                     'image' => $product->image_url,
                     'warrantyId' => $product->warranty_id,
-                    'productCustomField1' => $product->product_custom_field1,
-                    'productCustomField2' => $product->product_custom_field2,
-                    'productCustomField3' => $product->product_custom_field3,
-                    'productCustomField4' => $product->product_custom_field4,
+                    // UC-PEDIT-10: o update() grava '' em todo campo personalizado que não vem no
+                    // request e, com a empresa usando validade, zera a validade que não vem. A tela
+                    // recebe o valor gravado dos 20 campos e da validade para devolvê-los no envio.
+                    'camposPersonalizados' => $this->valoresCamposPersonalizados($product),
+                    'expiryPeriod' => $product->expiry_period !== null ? (float) $product->expiry_period : null,
+                    'expiryPeriodType' => $product->expiry_period_type,
                 ],
                 'categories' => $categories,
                 'brands' => $brands,

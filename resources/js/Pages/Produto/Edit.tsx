@@ -11,8 +11,8 @@ import type { ReactNode, FormEvent } from 'react';
 import { Save, X } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { ProdutoFormulario } from './_components/formulario/ProdutoFormulario';
-import { definidorDe } from './_components/formulario/tipos';
-import type { OptionMap, OptionStringMap } from './_components/formulario/tipos';
+import { camposPersonalizadosGravados, definidorDe } from './_components/formulario/tipos';
+import type { NumeroCampoPersonalizado, OptionMap, OptionStringMap } from './_components/formulario/tipos';
 
 const ADVANCED_OPEN_KEY = 'oimpresso.produto.edit.advanced.open';
 
@@ -38,10 +38,11 @@ interface ProdutoEditModel {
   productLocations: number[];
   image: string | null;
   warrantyId: number | null;
-  productCustomField1: string | null;
-  productCustomField2: string | null;
-  productCustomField3: string | null;
-  productCustomField4: string | null;
+  /** O valor gravado dos 20 campos personalizados (1 → 20). */
+  camposPersonalizados: Partial<Record<NumeroCampoPersonalizado, string | null>>;
+  expiryPeriod: number | null;
+  /** `months` · `days` · null (não aplicável). */
+  expiryPeriodType: string | null;
 }
 
 export interface ProdutoEditPageProps {
@@ -82,10 +83,11 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
     product_description: p.productDescription ?? '',
     product_locations: p.productLocations,
     warranty_id: p.warrantyId ?? '',
-    product_custom_field1: p.productCustomField1 ?? '',
-    product_custom_field2: p.productCustomField2 ?? '',
-    product_custom_field3: p.productCustomField3 ?? '',
-    product_custom_field4: p.productCustomField4 ?? '',
+    // UC-PEDIT-10: o update() apaga o campo personalizado que não vem no envio e, com a empresa
+    // usando validade, zera a validade que não vem. A tela devolve o valor gravado de todos.
+    ...camposPersonalizadosGravados(p.camposPersonalizados),
+    expiry_period: p.expiryPeriod !== null ? String(p.expiryPeriod) : '',
+    expiry_period_type: p.expiryPeriodType ?? '',
   });
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
