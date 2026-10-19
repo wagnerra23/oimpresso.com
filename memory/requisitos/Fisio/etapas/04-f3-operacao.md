@@ -31,6 +31,8 @@ O fisioterapeuta não pode precisar do Vedius ou do ZenFisio do lado do Fisio. E
 | **ZenFisio** (R$ [redacted Tier 0] / 179 / 439) | "Repetir" com renovação ao fim da série; pacote novo ou existente vinculado ao agendamento, com o financeiro seguindo o pacote; sala por agendamento e filtro por sala; status personalizado que trava depois de "realizado"; bloqueio de horário; lembrete por SMS | pacote vinculado ao agendamento; status travado depois do atendimento registrado; renovação de série | SMS no lugar de WhatsApp; NFS-e como módulo pago à parte |
 | **Ninsaúde** | confirmação por SMS/WhatsApp com 1 ou 2 dias de antecedência, mensagem por perfil/profissional/unidade (diz reduzir faltas em até 68%, número do próprio fornecedor); agendamento online com horário, preço e serviço por profissional; recorrência diária, semanal, mensal e anual para sessões e pacotes | antecedência configurável; agenda online com preço por serviço | — |
 | **Jane App** | lista de espera automática: ao cancelar ou mover, avisa só quem tem preferência compatível e segura a vaga num período de acesso exclusivo, com espera de 15 min se a consulta é em menos de 24 h e de 2 h se é em mais; política de cancelamento exibida no agendamento online; sinal (depósito) total ou parcial na reserva; cartão salvo | **lista de espera com casamento de preferência e janela de exclusividade**: é o diferencial que nenhum local publica | lista de espera só nos planos caros (Thrive) |
+| **AppBarber Cliente** (barbearia; nota 4,9 com cerca de 110 mil avaliações na App Store) | agendar e reagendar em um toque; sinal por Pix; renovação de assinatura pelo app com aviso de fim; pesquisa depois do atendimento; histórico com comprovante; preferência para o atendimento ("prefiro não conversar") | reagendar em um toque, sinal Pix, saldo e renovação do pacote, pesquisa pós-sessão (privada), recado de preferência | login a cada acesso (reclamação recorrente nas avaliações); lista de outras barbearias para o cliente (reclamação de um profissional); promoções e venda de serviço extra no checkout |
+| **Booksy** | sinal em % por serviço e taxa de falta com cartão salvo; aviso mínimo para cancelar grátis; clientes de confiança dispensados do sinal; bloqueio de cliente problemático | dispensa de sinal para quem é de confiança (aqui: pacote ativo); bloqueio por faltas | taxa cobrada sozinha (ver A8: aqui é sempre sugerida e confirmada) |
 | **Cliniko** (US$ 45/mês para 1 profissional; SMS cerca de US$ 0,10 por mensagem) | recorrência, agenda online pelo portal, telessaúde dentro do registro do atendimento | vídeo nascendo do agendamento, sem ferramenta de terceiros | salas e recursos compartilhados fracos; SMS cobrado à parte |
 | **Feegow** | integra com plataformas de WhatsApp (Digisac, Blip) para lembrete | — | recursos e preço **não confirmados** |
 
@@ -76,11 +78,21 @@ O fisioterapeuta não pode precisar do Vedius ou do ZenFisio do lado do Fisio. E
 | A11 | **Sessão em grupo** (até N pacientes, uso de aparelho) | cada participante consome a própria sessão; já serve ao projeto de estúdio de pilates |
 | A12 | **Painel do dia** | quem confirmou, quem não respondeu, quem tem pacote vencendo, quem tem débito; tudo no AppShellV2 com "Apps Vinculados" |
 | A13 | **Ligação com a constância (F1)** | quem falta e quem não faz o programa domiciliar entra junto na fila de atenção do Painel; esse sinal combinado é exclusivo do Fisio |
+| A14 | **App do paciente instalável** (ADR 0437 §13.7) | o próprio portal, instalável na tela inicial e publicado nas lojas (§14 nº 11 da ADR); link + PIN continua valendo para quem não instala; atalhos: exercícios de hoje, agendar, minhas consultas |
+| A15 | **Entrada que lembra o aparelho** | primeira vez: código de 6 dígitos pelo canal de WhatsApp da clínica (validade curta, tentativas limitadas como o PIN da F1); depois, digital ou rosto do celular (chave de acesso do próprio aparelho, nada de biometria no servidor); sem senha; "sair deste aparelho" no app e "desconectar aparelhos" na ficha do paciente; canal `wa.me` manual → entrada pelo link + PIN |
+| A16 | **Marcar para dependente** | o responsável marca para filho ou pai; menor de idade exige consentimento do responsável legal (LGPD art. 14); dependente adulto só com autorização registrada do próprio dependente; o prontuário continua sendo do dependente |
+| A17 | **Sinal por Pix com isenção** | estende A9: sinal opcional em % por tipo (padrão desligado), abatido no valor da consulta e devolvido se cancelar dentro do prazo da política; **quem tem pacote ativo não paga sinal** (equivalente ao "cliente de confiança" do Booksy) |
+| A18 | **Saldo e renovação do pacote no app** | saldo de sessões sempre visível ao marcar; a renovação só aparece quando o profissional indica continuar no plano terapêutico, nunca como oferta automática; paga por Pix pelo gateway do núcleo (F3-T09) |
+| A19 | **Check-in "Cheguei"** | botão no dia, a partir de 1 h antes; muda o status para "chegou" (A10) e avisa a recepção; não substitui a evolução |
+| A20 | **Recado ao marcar e nota depois da sessão** | recado opcional do paciente vai para a ficha do atendimento; nota de 1 a 5 depois da sessão é **privada**, só a clínica vê, nunca vira avaliação pública |
+| A21 | **Limites do autoagendamento** | quem pode marcar sozinho (com pacote ativo · todos em tratamento · ninguém), tipos liberados, horários abertos para o app, antecedência mínima, até quantos dias à frente, e bloqueio depois de N faltas sem aviso (padrão 2), com desbloqueio pelo profissional |
 
 #### UX
 - Tela `Fisio/Agenda` padrão calendário, arrastar para remarcar (dispara nova confirmação WhatsApp), atalho N para novo e teclado J/K na visão lista.
 - Criar agendamento em **3 campos**: paciente, tipo, horário. Pacote e sala vêm por padrão do último atendimento.
 - Celular primeiro: o autônomo usa a agenda no celular entre um atendimento e outro.
+- **App do paciente** (A14 a A21): agendar em 4 passos (para quem e o quê → com quem → quando, com "me avise se abrir vaga" → confere e confirma); "Minhas consultas" com próximas, pacote e histórico. Telas no canvas do módulo, faixa "Etapa 6".
+- **Nunca no app do paciente:** promoção, venda extra no checkout, outras clínicas, nota pública.
 - DS v6, roxo 295, nenhuma cor de módulo. A cor do status usa os tokens semânticos existentes (`--pos`, `--warn`, `--neg`); confirmar nomes no `DESIGN.md`.
 
 #### Dados (novas tabelas, todas com `business_id`)
@@ -256,8 +268,11 @@ Eventos (listeners Laravel, sem acoplamento direto):
 | Mídia trafegando fora do Brasil | cláusula de transferência internacional no DPA; caminho de self-host no Brasil |
 | Dado clínico vazar na NFS-e ou no WhatsApp | discriminação genérica; templates sem diagnóstico |
 | Sobreposição com a OficinaAuto ou o POS (agenda duplicada no núcleo) | F3-T01 decide reaproveitar ou não e registra |
+| Loja da Apple ou do Google recusar o app por ser "só um site" | o app empacotado precisa de função própria de app (entrada pelo aparelho, notificação, câmera da F2); se recusar, a instalação pela tela inicial continua valendo |
+| Celular perdido com o app aberto | entrada pelo rosto ou digital a cada abertura; "desconectar aparelhos" na ficha do paciente |
+| Responsável marcar por adulto sem autorização | A16: dependente adulto só com autorização registrada; a consulta continua sendo do dependente no prontuário |
 
-**Fora da F3:** convênio/TISS · split de pagamento no gateway · gravação de teleconsulta · app nativo · sala de espera virtual com triagem · multiunidade · contabilidade e cálculo de imposto (Carnê-Leão, DAS) · lembrete por SMS · análise automática do vídeo da teleconsulta (SaMD classe II).
+**Fora da F3:** convênio/TISS · split de pagamento no gateway · gravação de teleconsulta · app nativo próprio por clínica (o app instalável da A14 é o mesmo portal; marca própria por clínica só sob demanda, ADR 0437 §14 nº 11) · sala de espera virtual com triagem · multiunidade · contabilidade e cálculo de imposto (Carnê-Leão, DAS) · lembrete por SMS · análise automática do vídeo da teleconsulta (SaMD classe II) · promoção, venda extra e nota pública no app do paciente (fora de propósito, ADR 0437 §13.7).
 
 ---
 
@@ -303,6 +318,11 @@ Eventos (listeners Laravel, sem acoplamento direto):
 | F3-T16 | Agenda online pública + no portal: tipos liberados, paciente novo (nome + WhatsApp), sinal via Pix opcional, política exibida | F3-T06, F3-T09 | sem conflito com agenda interna; política aceita gravada |
 | F3-T17 | Painel do dia + fila de atenção combinando falta e constância (F1) | F3-T05, F3-T08 | números batem com os dados de teste |
 | F3-T18 | DPA: incluir provedor de vídeo, gateway e transferência internacional (se LiveKit Cloud fora do Brasil) | F3-T14 | revisão LGPD anotada antes do primeiro paciente real |
+| F3-T20 | App instalável: manifesto e ícones da clínica, instalação pela tela inicial, empacotamento para App Store e Google Play (ADR 0437 §14 nº 11) | F3-T16 | instala em Android e iPhone; link + PIN segue abrindo o mesmo portal; nenhuma rota nova sem `business_id` |
+| F3-T21 | Entrada que lembra o aparelho (A15): código por WhatsApp, chave de acesso do aparelho, sair e desconectar aparelhos | F3-T20, F1 (portal + job WhatsApp) | código expira e tem limite de tentativas; nenhuma biometria sai do aparelho; desconectar invalida todas as sessões daquele paciente; canal `wa.me` cai no link + PIN |
+| F3-T22 | Dependentes (A16) com consentimento do responsável legal e autorização do dependente adulto | F3-T21 | menor sem consentimento não marca; adulto sem autorização não aparece para o responsável; isolamento entre 2 businesses |
+| F3-T23 | Sinal com isenção (A17), saldo e renovação (A18), check-in (A19), recado e nota privada (A20) | F3-T08, F3-T09, F3-T16 | pacote ativo nunca vê sinal; renovação não aparece sem indicação do profissional; nota nunca sai da clínica |
+| F3-T24 | Limites do autoagendamento (A21) na tela de configurações da clínica | F3-T16 | bloqueio por N faltas reversível pelo profissional; tipos e horários não liberados não aparecem no app |
 | F3-T19 | Fecha o loop: âncora `Implementado em:` das US no SPEC | todas | `verificado@sha7` |
 
 ---
@@ -318,6 +338,15 @@ Eventos (listeners Laravel, sem acoplamento direto):
 - Jane App, faltas e política de cancelamento: https://360clinician.beehiiv.com/p/reduce-noshows-late-cancellations-help-jane
 - Cliniko, preços e recursos (fonte concorrente, Pabau): https://pabau.com/blog/cliniko-pricing/
 - Feegow + WhatsApp (integração Digisac): https://digisac.com.br/solucoes/integracoes/feegow
+
+**App do paciente e autoagendamento (comparativo de 2026-10-18)**
+- AppBarber: Cliente, App Store (funções, notas de versão, avaliações): https://apps.apple.com/BR/app/id6450795073
+- Jane, agendamento online (portal, família, cancelamento, sinal, formulários, lista de espera): https://jane.app/features/online-booking
+- Jane, aviso de vaga para quem está na espera: https://jane.app/guide/wait-list-notifications-client-experience
+- Cliniko, agendamento online (sem usuário e senha, aviso mínimo para cancelar): https://www.cliniko.com/features/appointments/online-bookings/
+- Booksy, proteção contra falta (sinal, taxa, clientes de confiança, bloqueio): https://biz.booksy.com/features/no-show-protection
+- Physitrack, app com a marca da clínica: https://www.physitrack.com/branded-app
+- Doctoralia, agenda para clínicas (lembretes, check-in, lista de espera): https://medicinasa.com.br/agenda-clinica-doctoralia/
 
 **Teleconsulta / regulação**
 - Res. COFFITO 619/2025, texto (arts. 1º, 2º, 4º, 5º, 6º, 7º): https://www.normasbrasil.com.br/norma/resolucao-619-2025_480866.html
