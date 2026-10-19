@@ -15,6 +15,8 @@ contains:
   - "InstallController"
   - "PacientesController"
   - "RegistrosController"
+  - "ResponsavelController"
+  - "Fisioterapeuta responsável pelo paciente e transferência registrada no activity_log"
   - "QuestionariosController"
   - "ProntuarioPdfController"
   - "Exportação do prontuário em PDF (dompdf, registrada no activity_log) — UC-FPS-19..20"

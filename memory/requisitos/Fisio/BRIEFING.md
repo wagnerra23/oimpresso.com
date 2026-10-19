@@ -39,6 +39,7 @@ Cadastro de paciente (melhoria do comparativo, 2026-10-18): o contato é escolhi
 - WhatsApp pelo driver `whatsmeow` com risco de banimento aceito e mitigado — [ADR 0437 §13.1](../../decisions/0437-modulo-fisio-vertical-fisioterapia.md)
 - Linha da Anvisa (o que vira SaMD) — [ADR 0437 §5](../../decisions/0437-modulo-fisio-vertical-fisioterapia.md)
 - Decisões ainda abertas — [ADR 0437 §14](../../decisions/0437-modulo-fisio-vertical-fisioterapia.md)
+- Fisioterapeuta responsável pelo paciente (2026-10-18): a transferência fica no `activity_log`, sem tabela própria; pacientes anteriores à coluna ficam sem responsável até alguém atribuir — [SPEC US-FISIO-005](SPEC.md)
 - Biblioteca com favoritos por profissional e filtros de posição e equipamento (listas fechadas em `Modules/Fisio/Config/config.php`, de `etapas/01-biblioteca.md` §3.3) — casos UC-FBI-08..10 em [`Biblioteca/Index.casos.md`](../../../Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/Index.casos.md). Os exercícios globais ainda não declaram posição nem equipamento: isso vem com o seed revisado pela Dra. Dejeane.
 
 ## Próxima ação verificável

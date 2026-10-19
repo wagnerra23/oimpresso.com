@@ -27,6 +27,7 @@ related_us: []
 | UC-FPI-05 | contato apagado não vira paciente | must | `FisioPacienteContatoTest` |
 | UC-FPI-06 | busca de contato no servidor, só da empresa e sem ficha | must | `FisioPacienteContatoTest` |
 | UC-FPI-07 | criar o contato na hora, sem duplicar celular | must | `FisioPacienteContatoTest` |
+| UC-FPI-20 | coluna e filtro por fisioterapeuta responsável ("meus pacientes") | should | `FisioPacienteResponsavelTest` |
 
 ---
 
@@ -76,6 +77,13 @@ related_us: []
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioPacienteContatoTest.php`
 - **Status: 🧪**
 
+## UC-FPI-20 · Ver e filtrar pelo fisioterapeuta responsável `[T0]` · `should`
+- **Persona:** clínica com mais de um fisioterapeuta.
+- **Aceite:** Cada linha da lista mostra o responsável (ou "sem responsável" nos pacientes cadastrados antes da coluna existir) · O filtro "Meus pacientes" traz só os do usuário logado e o filtro por profissional traz só os daquele profissional · A lista de profissionais do filtro tem só usuários ativos da mesma empresa com acesso ao Fisio — usuário de outra empresa nunca aparece.
+- **Referência de mercado:** a Physitrack deixa compartilhar e transferir clientes entre profissionais. Aqui entra só a parte de responsável e filtro; notificações ficam fora.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPacienteResponsavelTest.php`
+- **Status: 🧪**
+
 ---
 
 ## Backlog (prosa honesta — vira UC quando ganhar teste que o cite)
@@ -84,6 +92,7 @@ related_us: []
 - `[BACKLOG]` Filtro "bloqueados" para consultar prontuário guardado — a regra de guarda está em UC-FPS-07; o filtro da lista ainda sem teste.
 
 ## Trilha do tempo
+- 2026-10-18 · responsável pelo paciente — coluna e filtro por responsável (UC-FPI-20).
 - 2026-10-17 · suíte TDD da F1 — casos nascem antes da tela e do código.
 - 2026-10-18 · melhoria "novo contato na hora" — UC-FPI-05 (contato apagado recusado), UC-FPI-06 (busca de contato no servidor) e UC-FPI-07 (contato criado no cadastro). Veredito: lane Verticais.
 - 2026-10-18 · US-FISIO-005 — a tela `.tsx` nasce (#9546) para os casos UC-FPI-01/03; os UCs não mudaram e seguem derivados do HANDOFF F1, não do `.tsx`. Veredito: lane Verticais.
