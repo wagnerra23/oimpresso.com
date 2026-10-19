@@ -5,7 +5,7 @@ irmaos: Painel.charter.md (lei) · Painel.tsx (tela)
 tecnica: Caso de uso = narrativa do fisioterapeuta + critério de aceite verificável (Dado/Quando/Então)
 por_que: o painel decide quem o fisioterapeuta chama hoje. Número errado de adesão esconde quem vai abandonar; fila de atenção que perde dor alta ou sinal de alerta é risco clínico; paciente de outra clínica no painel é vazamento Tier 0.
 owner: wagner
-last_run: "2026-10-18"
+last_run: "2026-10-19"
 last_run_ci: "_pendente_ — US-FISIO-010 (2026-10-18) liga FisioPainelTest, FisioMultiTenantTest e FisioModuloVisibilidadeTest na lane Verticais · MySQL; o veredito é da lane. UC-FPN-05 depende do portal (F::portalPronto → PortalTokenService, US-FISIO-007) e UC-FPN-07 do job de WhatsApp (US-FISIO-009)."
 related_us: [US-FISIO-009]
 ---
