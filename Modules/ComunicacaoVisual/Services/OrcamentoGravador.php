@@ -23,6 +23,31 @@ use Modules\ComunicacaoVisual\Entities\OrcamentoItem;
 class OrcamentoGravador
 {
     /**
+     * Custo por m² de cada material dos itens, lido do cadastro no momento da gravação
+     * (UC-FLX-33 · US-COMVIS-019). O cadastro não tem histórico, então o valor guardado no item é
+     * o único registro do custo daquele dia. Custo zero conta como "não informado" (é o default
+     * da coluna) e fica nulo. Filtra pelo `$businessId` explícito, sem depender do global scope.
+     *
+     * @return array<int, float> material_id => custo por m²
+     */
+    private function custosDoDia(int $businessId, array $itens): array
+    {
+        $ids = array_values(array_unique(array_filter(array_map(fn ($i) => (int) ($i['material_id'] ?? 0), $itens))));
+        if ($ids === []) {
+            return [];
+        }
+
+        return DB::table('comvis_materiais')
+            ->where('business_id', $businessId)
+            ->whereIn('id', $ids)
+            ->whereNull('deleted_at')
+            ->where('preco_custo_m2', '>', 0)
+            ->pluck('preco_custo_m2', 'id')
+            ->map(fn ($v) => round((float) $v, 2))
+            ->all();
+    }
+
+    /**
      * @param  array  $calculado  saída do OrcamentoCalculator::calcular()
      */
     public function gravar(int $businessId, array $calculado, string $status = 'rascunho'): Orcamento
@@ -46,7 +71,11 @@ class OrcamentoGravador
                 'observacoes'      => $calculado['observacoes'],
             ]);
 
+            $custoM2 = $this->custosDoDia($businessId, $calculado['itens']);
+            $hoje = now()->toDateString();
+
             foreach ($calculado['itens'] as $ordem => $itemCalc) {
+                $m2 = $custoM2[(int) ($itemCalc['material_id'] ?? 0)] ?? null;
                 OrcamentoItem::create([
                     'orcamento_id'      => $orc->id,
                     'business_id'       => $businessId,
@@ -60,6 +89,10 @@ class OrcamentoGravador
                     'subtotal'          => $itemCalc['subtotal'],
                     'observacoes'       => $itemCalc['observacoes'],
                     'ordem'             => $ordem + 1,
+                    // UC-FLX-33: custo do material no dia do orçamento (ver custosDoDia).
+                    'custo_previsto_m2' => $m2,
+                    'custo_previsto'    => $m2 === null ? null : round((float) $itemCalc['area_m2'] * $m2, 2, PHP_ROUND_HALF_UP),
+                    'custo_previsto_em' => $m2 === null ? null : $hoje,
                 ]);
             }
 

@@ -72,6 +72,9 @@ class OrcamentoItem extends Model
         'subtotal',
         'observacoes',
         'ordem',
+        'custo_previsto_m2',
+        'custo_previsto',
+        'custo_previsto_em',
     ];
 
     protected $casts = [
@@ -85,6 +88,9 @@ class OrcamentoItem extends Model
         'preco_unitario_m2' => 'decimal:2',
         'subtotal'         => 'decimal:2',
         'ordem'            => 'integer',
+        'custo_previsto_m2' => 'decimal:2',
+        'custo_previsto'   => 'decimal:2',
+        'custo_previsto_em' => 'date:Y-m-d',
     ];
 
     // ------------------------------------------------------------------
