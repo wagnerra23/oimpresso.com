@@ -45,12 +45,19 @@ function AlertDialogOverlay({
 function AlertDialogContent({
   className,
   size = "default",
+  container,
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Content> & {
   size?: "default" | "sm"
+  /**
+   * Onde o portal monta. Sem ele, no <body> (padrão do Radix), como sempre foi.
+   * Os tokens do Design System vivem no `.cockpit`; conteúdo que consome `var(--warn)`,
+   * `var(--text)` etc. passa o `.cockpit` aqui (mesmo contrato do `ui/sheet` e do `ui/dialog`).
+   */
+  container?: HTMLElement | null
 }) {
   return (
-    <AlertDialogPortal>
+    <AlertDialogPortal container={container ?? undefined}>
       <AlertDialogOverlay />
       <AlertDialogPrimitive.Content
         data-slot="alert-dialog-content"
