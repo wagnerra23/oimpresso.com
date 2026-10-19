@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 6 |
 | Telas (.tsx) | 11 |
 | Telas com `casos.md` | 11 |
-| UC declarados | 116 |
-| UC com teste que os cita | 115 |
+| UC declarados | 114 |
+| UC com teste que os cita | 113 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -94,6 +94,8 @@ authority: generated
 | US-SELL-057 | `todo` | Skeleton de carregamento no Create + INP < 200ms |
 | US-SELL-058 | `desconhecido` | Redesenho do cadastro de venda em tela PARALELA (`/sells/create-v3`) — sem tocar |
 | US-SELL-059 | `desconhecido` | Editar venda existente (`/sells/{id}/edit`) — guards de prazo, devolução e tenan |
+| US-SELL-060 | `desconhecido` | Listar rascunhos de venda (`/sells/drafts`) |
+| US-SELL-061 | `desconhecido` | Listar cotações (`/sells/quotations`) |
 | US-SELL-062 | `desconhecido` | Listar vendas recorrentes e pausar/retomar (`/sells/subscriptions`) |
 | US-SELL-063 | `desconhecido` | Caixa do dia por forma de pagamento e por origem (`/vendas/caixa`) |
 | US-SELL-064 | `desconhecido` | Listar vendas de POS com rodapé de totais (`/pos`) |
@@ -165,8 +167,6 @@ authority: generated
 | UC-SIDX-01 | Index | 🧪 aguarda veredito da lane |
 | UC-SIDX-02 | Index | 🧪 aguarda veredito da lane |
 | UC-SIDX-03 | Index | 🧪 aguarda veredito da lane |
-| UC-SIDX-04 | Index | 🧪 aguarda veredito da lane |
-| UC-SIDX-05 | Index | 🧪 aguarda veredito da lane |
 | UC-SSUB-01 | Subscriptions | 🧪 aguarda veredito da lane |
 | UC-SSUB-02 | Subscriptions | 🧪 aguarda veredito da lane |
 | UC-SSUB-03 | Subscriptions | 🧪 aguarda veredito da lane |
