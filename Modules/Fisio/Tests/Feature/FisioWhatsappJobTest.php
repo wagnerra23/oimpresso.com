@@ -1,7 +1,8 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-FPS-11, UC-FPS-12, UC-FPS-36 (Fisio/Pacientes/Show.casos.md) e UC-FPN-07, UC-FPN-08 (Fisio/Painel.casos.md).
+=======
+// @covers-us US-FISIO-009
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Carbon;

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 // Cobre, na regra pura, UC-FPN-08 (Fisio/Painel.casos.md).
+// @covers-us US-FISIO-009
 
 use Modules\Fisio\Services\Whatsapp\AgendaDeEnvio;
 
