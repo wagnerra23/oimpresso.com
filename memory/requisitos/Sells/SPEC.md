@@ -1499,3 +1499,24 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 - [ ] Motivo da devolução (R3) e aviso de item sob medida (R4) — exigem mudar o `store()` ou dado que o produto não guarda.
 
 - Charters: [`SellReturn/Index.charter.md`](../../../resources/js/Pages/SellReturn/Index.charter.md) · [`SellReturn/Add.charter.md`](../../../resources/js/Pages/SellReturn/Add.charter.md) · runbook: [RUNBOOK-sell-return-add.md](RUNBOOK-sell-return-add.md)
+
+### US-SELL-067 · Orçamento guarda o custo do dia em cada linha (UC-FLX-33)
+
+**Implementado em:** `Modules/Compras/Observers/TransactionSellLineCustoObserver.php` · `database/migrations/2026_10_19_200000_add_custo_previsto_to_transaction_sell_lines.php`
+
+**Testado em:** `tests/Feature/Sells/OrcamentoCustoPrevistoContratoTest.php` (lane `sells-pest.yml`).
+
+> owner: wagner · priority: p1 · estimate: 3h · type: story
+> blocked_by: US-COM-024
+
+**Origem:** casos de custo da tela de fluxos (UC-FLX-33). O que se negocia na venda não é o que se emprega na produção; o orçamento precisa guardar o custo do dia em que foi feito.
+
+**Problema:** a linha de venda não guarda custo. O custo de hoje está em `variations.dpp_inc_tax`, sobrescrito a cada compra, então um orçamento antigo não sabe com que custo foi calculado.
+
+**Aceite:**
+- [x] Linha de venda em rascunho (orçamento) grava `custo_previsto`, a data e o método, pelo custo do insumo na data do orçamento (US-COM-024).
+- [x] Compra posterior e edição da linha não mudam o custo guardado; trocar o produto da linha recalcula.
+- [x] Converter o orçamento em venda mantém o custo do dia.
+- [x] Venda finalizada não grava custo previsto (o custo real vem do lote, `mapPurchaseSell`).
+- [x] Falha no cálculo não impede gravar a linha.
+- [ ] Mostrar o custo guardado e a margem na tela do orçamento (UC-FLX-34).
