@@ -31,7 +31,7 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * paciente por dia. O teste mede o efeito (nº de SendWhatsappMessageJob), não onde a chave mora.
  *
  * O link do portal vem do contrato `LinkDoPortal` (ponto de integração com o US-FISIO-007a):
- * aqui um falso; o último caso usa o portal real e só roda quando o 007a estiver no main.
+ * aqui um falso; o último caso usa o portal real (PortalTokenService, já no main).
  *
  * Tenant 98 (com pacote) contra 99 (sem). ⚠️ SKIP em SQLite (LC-13).
  */
@@ -283,9 +283,6 @@ it('UC-FPN-08 · canal desconectado ou banido no módulo Whatsapp: nenhum lembre
 });
 
 it('UC-FPS-11 · integração com o portal real (US-FISIO-007a): o link enviado abre o portal', function () {
-    if (! class_exists('Modules\\Fisio\\Services\\PortalTokenService')) {
-        $this->markTestSkipped('Portal do paciente (US-FISIO-007a) ainda não está no main — a integração fecha quando o PR A entrar.');
-    }
     Bus::fake([SendWhatsappMessageJob::class]);
     app()->forgetInstance(LinkDoPortal::class);
     app()->bind(LinkDoPortal::class, \Modules\Fisio\Services\Whatsapp\LinkDoPortalPorToken::class);

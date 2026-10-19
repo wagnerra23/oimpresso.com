@@ -8,7 +8,7 @@ use Modules\Fisio\Contracts\LinkDoPortal;
 use Modules\Fisio\Entities\Patient;
 
 /**
- * Falso do portal do paciente (US-FISIO-007a ainda fora do main) para os testes do WhatsApp.
+ * Falso do portal do paciente (US-FISIO-007a) para os testes do WhatsApp que não dependem do token real.
  * Conta as emissões por paciente: emitir revoga o acesso anterior, então emitir à toa (ex.: num
  * envio que não vai sair) é defeito que o teste precisa enxergar.
  */
