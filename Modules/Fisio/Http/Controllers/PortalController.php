@@ -19,6 +19,7 @@ use Modules\Fisio\Entities\ProgramItem;
 use Modules\Fisio\Services\AparelhosDoPortal;
 use Modules\Fisio\Services\CheckinDoPortal;
 use Modules\Fisio\Services\Consentimentos;
+use Modules\Fisio\Services\DiaLocal;
 use Modules\Fisio\Services\JogoService;
 use Modules\Fisio\Services\PortalTokenService;
 
@@ -98,6 +99,8 @@ class PortalController extends Controller
             'jogo' => $this->jogo->estado($paciente),
             'consentimentos' => $this->consentimentos->situacao($paciente),
             'registrado_hoje' => $deHoje !== null,
+            // O portal só guarda check-in na fila offline quando o aparelho é lembrado (UC-FPP-31).
+            'guardar_offline' => $this->lembrado($request, $linha),
         ];
 
         if ($modo === CheckinDoPortal::MODO_PAUSA) {
@@ -162,10 +165,15 @@ class PortalController extends Controller
     private function offline(Request $request, PortalToken $linha, Response $tela): SymfonyResponse
     {
         $resposta = $tela->toResponse($request);
-        $lembrado = $this->aparelhos->reconhece($linha, $request->cookie($this->aparelhos->nomeCookie($linha)));
-        $resposta->headers->set('X-Fisio-Offline', $lembrado ? 'guardar' : 'nao-guardar');
+        $resposta->headers->set('X-Fisio-Offline', $this->lembrado($request, $linha) ? 'guardar' : 'nao-guardar');
 
         return $resposta;
+    }
+
+    /** Aparelho lembrado deste token (cookie) — só nele o programa e a fila ficam no aparelho. */
+    private function lembrado(Request $request, PortalToken $linha): bool
+    {
+        return $this->aparelhos->reconhece($linha, $request->cookie($this->aparelhos->nomeCookie($linha)));
     }
 
     /**
@@ -284,7 +292,19 @@ class PortalController extends Controller
             'red_flags' => ['nullable', 'array', 'max:20'],
             'red_flags.*' => ['string', Rule::in((array) config('fisio.red_flags', []))],
             'crisis' => ['nullable', 'boolean'],
+            'chave' => ['nullable', 'string', 'regex:/^[A-Za-z0-9-]{8,64}$/'],
+            'dia' => ['nullable', 'date_format:Y-m-d'],
+            'offline' => ['nullable', 'boolean'],
         ]);
+
+        // Fila offline (UC-FPP-30..32): o check-in guardado no aparelho só vale no dia em que o
+        // paciente o fez, e só existe em aparelho lembrado. Nos dois casos nada é gravado.
+        if (isset($dados['dia']) && $dados['dia'] !== DiaLocal::de(now())) {
+            return response()->json(['erro' => 'dia_passou'], 422);
+        }
+        if (($dados['offline'] ?? false) && ! $this->lembrado($request, $linha)) {
+            return response()->json(['erro' => 'fila_so_aparelho_lembrado'], 403);
+        }
 
         $r = $this->checkins->registrar($paciente, $dados);
         $status = $r['criado'] ? 201 : 200;
