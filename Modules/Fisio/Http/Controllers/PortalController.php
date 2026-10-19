@@ -120,6 +120,15 @@ class PortalController extends Controller
      * direto no programa do paciente. Não consulta o banco e não diz o nome da clínica — o
      * manifesto é público e vem antes do PIN; o nome aparece dentro do app depois da entrada.
      */
+    /**
+     * Entrada do app instalado pela Google Play (UC-FPP-29). Sem token não há paciente: a tela só
+     * orienta a abrir o link da clínica. Não consulta o banco.
+     */
+    public function app(): Response
+    {
+        return Inertia::render('Fisio/Public/Portal', ['erro' => 'sem_link', 'etapa' => null, 'token' => '']);
+    }
+
     public function manifest(string $token): JsonResponse
     {
         $inicio = '/fisio/p/'.$token;

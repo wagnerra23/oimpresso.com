@@ -24,7 +24,7 @@ import { ConviteInstalar } from './_components/Instalar';
 import { registrarAppDoPortal, type ItemHoje, type Jogo, type Relato, type Termo } from './_components/portal';
 
 interface Props {
-  erro: 'link_invalido' | null;
+  erro: 'link_invalido' | 'sem_link' | null;
   etapa: 'pin' | 'consentimento' | 'hoje' | null;
   token: string;
   clinica?: string | null;
@@ -115,6 +115,18 @@ function AreaDoDia({ token, props }: { token: string; props: Props }) {
 export default function Portal(props: Props) {
   const { erro, etapa, token, clinica } = props;
   useEffect(registrarAppDoPortal, []);
+
+  if (erro === 'sem_link') {
+    return (
+      <Moldura titulo="Seu programa de exercícios">
+        <div className="flex flex-col gap-3" data-contract="fisio-portal-sem-link">
+          <h1 className="text-2xl font-semibold">Abra o link da sua clínica</h1>
+          <p className="text-muted-foreground">Sua fisioterapeuta manda o link do seu programa pelo WhatsApp. Toque nele para entrar com o seu PIN.</p>
+          <p className="text-muted-foreground">Não recebeu? Peça o link à sua clínica.</p>
+        </div>
+      </Moldura>
+    );
+  }
 
   if (erro === 'link_invalido' || etapa === null) {
     return (

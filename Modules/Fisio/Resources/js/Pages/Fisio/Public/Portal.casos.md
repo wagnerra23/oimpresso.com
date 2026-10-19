@@ -51,6 +51,7 @@ related_us: [US-FISIO-007, US-FISIO-008]
 | UC-FPP-26 | app instalável: manifesto por link, sem o nome da clínica | must | `FisioPortalAppTest` |
 | UC-FPP-27 | programa abre sem rede só em aparelho lembrado | must | `FisioPortalAppTest` |
 | UC-FPP-28 | service worker nunca guarda POST nem cookie e apaga link que deixou de abrir | must | `FisioPortalAppTest` |
+| UC-FPP-29 | app da Google Play abre em `/fisio/app`, que só pede o link da clínica | must | `FisioPortalAppTest` |
 
 ---
 
@@ -207,6 +208,12 @@ related_us: [US-FISIO-007, US-FISIO-008]
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioPortalAppTest.php`
 - **Status: 🧪**
 
+
+## UC-FPP-29 · O app da loja abre sem link e só orienta · `must`
+- **Persona:** paciente que instalou o app pela Google Play e tocou no ícone.
+- **Aceite:** `GET /fisio/app` (sem token) devolve a página do portal com `erro: sem_link`: só o texto pedindo para abrir o link que a clínica mandou pelo WhatsApp. Não consulta o banco e não manda dado de paciente, de clínica nem do jogo.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPortalAppTest.php`
+- **Status: 🧪**
 ---
 
 ## Backlog (prosa honesta — vira UC quando ganhar teste que o cite)
