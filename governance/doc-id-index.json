@@ -2380,6 +2380,7 @@
     "requisitos-fisio-features-f1-constancia-requirements": "memory/requisitos/Fisio/features/f1-constancia/requirements.md",
     "requisitos-fisio-features-f1-constancia-tasks": "memory/requisitos/Fisio/features/f1-constancia/tasks.md",
     "requisitos-fisio-spec": "memory/requisitos/Fisio/SPEC.md",
+    "requisitos-fisio-telas-jogo-constancia-casos": "memory/requisitos/Fisio/_telas/jogo-constancia.casos.md",
     "requisitos-fluxos-runbook-fluxos-index": "memory/requisitos/Fluxos/RUNBOOK-fluxos-index.md",
     "requisitos-forja-briefing": "memory/requisitos/Forja/BRIEFING.md",
     "requisitos-forja-capterra-design-ficha": "memory/requisitos/Forja/CAPTERRA-DESIGN-FICHA.md",
@@ -4467,14 +4468,14 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 4461,
-    "resolved": 2996,
+    "total": 4462,
+    "resolved": 2997,
     "unstamped": 1465,
     "collisions": 0,
     "by_source": {
       "unstamped": 1465,
       "derived-adr": 442,
-      "stamped": 1162,
+      "stamped": 1163,
       "derived-handoffs": 619,
       "derived-sessions": 773
     }
