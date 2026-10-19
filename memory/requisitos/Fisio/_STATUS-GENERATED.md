@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 0 |
 | Telas (.tsx) | 5 |
 | Telas com `casos.md` | 6 |
-| UC declarados | 79 |
-| UC com teste que os cita | 79 |
+| UC declarados | 81 |
+| UC com teste que os cita | 81 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -46,7 +46,6 @@ authority: generated
 |---|---|---|
 | US-FISIO-001 | `todo` | Trio SDD da F1 e US no SPEC — **P0** |
 | US-FISIO-002 | `todo` | Esqueleto `Modules/Fisio` (ativação por empresa, permissões, menu condicionado)  |
-| US-FISIO-009 | `todo` | Lembrete diário e envio do programa por WhatsApp (canal escolhido pela clínica)  |
 | US-FISIO-012 | `todo` | Fecha o loop da F1 — **P1** |
 
 ## UC por status
@@ -83,6 +82,7 @@ authority: generated
 | UC-FPN-05 | Painel | 🧪 aguarda veredito da lane |
 | UC-FPN-06 | Painel | 🧪 aguarda veredito da lane |
 | UC-FPN-07 | Painel | 🧪 aguarda veredito da lane |
+| UC-FPN-08 | Painel | 🧪 aguarda veredito da lane |
 | UC-FPP-01 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPP-02 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPP-03 | Public/Portal | 🧪 aguarda veredito da lane |
@@ -131,6 +131,7 @@ authority: generated
 | UC-FPS-33 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-34 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-35 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-36 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-OAP-01 | Public/Portal | 🧪 aguarda veredito da lane |
 
 ---
