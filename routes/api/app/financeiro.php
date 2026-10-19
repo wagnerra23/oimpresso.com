@@ -16,7 +16,7 @@ Route::post('/financeiro/recorrencias/{id}/interromper', [\App\Http\Controllers\
 Route::post('/financeiro/lancamentos', [\App\Http\Controllers\Api\App\FinanceiroLancamentosController::class, 'store'])->name('financeiro.lancamentos.store');
 
 // Detalhe e ações do lançamento (chave LANCAMENTO_ACOES do app). Regra mestre: baixa e retorno mexem em valor.
-Route::controller(\App\Http\Controllers\Api\App\FinanceiroLancamentoAcoesController::class)
+Route::controller(\Modules\Financeiro\Http\Controllers\Api\FinanceiroLancamentoAcoesController::class)
     ->prefix('/financeiro/lancamentos/{id}')->whereNumber('id')->name('financeiro.lancamentos.')
     ->group(function () {
         Route::get('/', 'show')->name('show');
