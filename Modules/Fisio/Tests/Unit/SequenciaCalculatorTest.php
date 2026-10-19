@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 // Cobre, na regra pura, UC-FPP-18 (Fisio/Public/Portal.casos.md) e UC-FJG-03 (memory/requisitos/Fisio/_telas/jogo-constancia.casos.md).
+// @covers-us US-FISIO-008
 
 use Modules\Fisio\Services\SequenciaCalculator;
 

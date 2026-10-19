@@ -2,10 +2,10 @@
 id: requisitos-fisio-spec
 module: Fisio
 version: "1.0"
-last_updated: "2026-10-18"
+last_updated: "2026-10-19"
 owner: wagner
 status: rascunho
-status_nota: "ativo desde 2026-10-18 (ADR 0437 aceita); esqueleto de Modules/Fisio no PR #9536 (US-FISIO-002), sem schema nem telas ainda"
+status_nota: "ativo desde 2026-10-18 (ADR 0437 aceita); F1 no main, atrás do pacote fisio_module; em 2026-10-19 só US-FISIO-011 (texto dos questionários) e US-FISIO-012 seguem abertas"
 type: spec
 scope: vertical (fisioterapia, autônomo e consultório pequeno)
 related_adrs:
@@ -28,17 +28,23 @@ related_adrs:
 
 ### US-FISIO-001 · Trio SDD da F1 e US no SPEC — **P0**
 
-**Implementado em:** _pendente_ — trio entregue em features/f1-constancia/, âncora fecha com a US-FISIO-002
+**Implementado em:** `memory/requisitos/Fisio/features/f1-constancia/` (`requirements.md` · `plan.md` · `tasks.md`) · `npm run feature:lint:check` sem erro (1 aviso advisory: `feature-sem-sdd`) · verificado@7e6237c (2026-10-19)
 
-> owner: wagner · priority: p0 · estimate: 2h · status: todo · type: story
+> owner: wagner · priority: p0 · estimate: 2h · status: done · type: story
 > `npm run sdd:init -- Fisio/f1-constancia --us US-FISIO-001 ...` e `feature-lint --check` verde. Concilia os 4 ajustes do HANDOFF (XP por config, justificativa de contraindicação, busca na F1 condicionada, WhatsApp pelo `ChannelDriverFactory`).
+
+**DoD:** trio `requirements.md` · `plan.md` · `tasks.md` em `features/f1-constancia/` com as US-FISIO-001..012 ligadas, e `npm run feature:lint:check` sem erro.
 
 ### US-FISIO-002 · Esqueleto `Modules/Fisio` (ativação por empresa, permissões, menu condicionado) — **P0**
 
-**Implementado em:** _pendente_ — esqueleto no PR #9536 (rotas de negócio, schema e telas ainda não existem); âncora fecha com o CI verde
+**Implementado em:** `Modules/Fisio/module.json` · `Modules/Fisio/Http/Controllers/DataController.php` (pacote `fisio_module`, permissões `fisio.*`) · `Modules/Fisio/Providers/FisioServiceProvider.php` · verificado@7e6237c (2026-10-19, esqueleto do #9536)
 
-> owner: — · priority: p0 · estimate: 4h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 4h · status: done · type: story
 > blocked_by: US-FISIO-001. DoD: empresa sem o pacote não vê menu nem rota (`FisioModuloVisibilidadeTest`, `FisioModuloContratoTest`). `ModuleUtil` pelo container.
+
+**DoD:** pacote `fisio_module` nasce desligado e permissões `fisio.*` sem concessão padrão; empresa sem o pacote ou usuário sem `fisio.access` não vê o menu nem abre `/fisio`; sem hardcode de business e sem `forceDelete` em dado clínico — `FisioModuloVisibilidadeTest`, `FisioModuloContratoTest`.
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioModuloVisibilidadeTest.php` · `Modules/Fisio/Tests/Feature/FisioModuloContratoTest.php` (este estava sem lane até 2026-10-19; entrou na `verticais-pest`)
 
 ### US-FISIO-003 · Schema, models e append-only de prontuário e ledger do jogo — **P0**
 
@@ -108,31 +114,33 @@ Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `M
 
 ### US-FISIO-008 · Jogo de constância (XP, nível, sequência, missões, pausa por dor) — **P1**
 
-**Implementado em:** _pendente_ — parcial: calculadoras puras `Modules/Fisio/Services/XpDoDiaCalculator.php`, `Modules/Fisio/Services/LimiarDorCalculator.php`, `Modules/Fisio/Services/NivelCalculator.php`, `Modules/Fisio/Services/SequenciaCalculator.php` (com dia de crise), serviço `Modules/Fisio/Services/JogoService.php` e ponto de entrada único `Modules/Fisio/Events/CheckinRegistrado.php` → `Modules/Fisio/Listeners/LancarXpDoCheckin.php` existem; números em `config('fisio.jogo')`; coluna `fisio_checkins.crisis`. A âncora fecha quando o portal (US-FISIO-007) disparar o evento no check-in. Escudos, missões, desafio e medalhas (T-08c) ficam no backlog do contrato.
+**Implementado em:** `Modules/Fisio/Services/JogoService.php` · `Modules/Fisio/Services/XpDoDiaCalculator.php` · `Modules/Fisio/Services/LimiarDorCalculator.php` · `Modules/Fisio/Services/NivelCalculator.php` · `Modules/Fisio/Services/SequenciaCalculator.php` · evento `Modules/Fisio/Events/CheckinRegistrado.php` disparado por `Modules/Fisio/Services/CheckinDoPortal.php` → `Modules/Fisio/Listeners/LancarXpDoCheckin.php` · números em `config('fisio.jogo')` · verificado@7e6237c (2026-10-19, #9564 + #9567). Escudos, missões, desafio e medalhas (T-08c) ficam fora desta âncora, no backlog do contrato.
 
-> owner: — · priority: p1 · estimate: 8h · status: doing · type: story
+> owner: — · priority: p1 · estimate: 8h · status: done · type: story
 > blocked_by: US-FISIO-007 (só a ligação com o portal). Regras da ADR 0437 §6 e números de `etapas/02-f1-constancia.md`.
 
 **DoD:** XP só pelo prescrito — `xp.exercicio_concluido` × (vezes feitas ÷ prescritas, cada item até `times_per_day`) e `xp.checkin` sempre, inclusive com dor alta, ambos × `normalizacao_dias_base` ÷ `sessions_per_week`; item fora do programa e vez a mais valem 0; reenvio lança só a diferença positiva e nada é estornado (ledger append-only); teto semanal; dor ≥ limiar ou sinal de alerta pausa o jogo sem quebrar a sequência e põe o paciente na fila de atenção; em `sobre_basal` o limiar é a dor de base da paciente + margem; dia de crise conta para a sequência; nível derivado do ledger, sem coluna e sem ranking; evento de outra clínica ou paciente bloqueado não lança — `FisioJogoServicoTest`, `FisioJogoTest`, `XpDoDiaCalculatorTest`, `LimiarDorCalculatorTest`, `NivelCalculatorTest`, `SequenciaCalculatorTest`. Contrato: `memory/requisitos/Fisio/_telas/jogo-constancia.casos.md` (UC-FJG-01..05).
 
-**Testado em:** `Modules/Fisio/Tests/Feature/FisioJogoServicoTest.php` · `Modules/Fisio/Tests/Feature/FisioJogoTest.php` · `Modules/Fisio/Tests/Unit/XpDoDiaCalculatorTest.php` · `Modules/Fisio/Tests/Unit/LimiarDorCalculatorTest.php`
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioJogoServicoTest.php` · `Modules/Fisio/Tests/Feature/FisioJogoTest.php` · `Modules/Fisio/Tests/Unit/XpDoDiaCalculatorTest.php` · `Modules/Fisio/Tests/Unit/LimiarDorCalculatorTest.php` · `Modules/Fisio/Tests/Unit/NivelCalculatorTest.php` · `Modules/Fisio/Tests/Unit/SequenciaCalculatorTest.php`
 ### US-FISIO-009 · Lembrete diário e envio do programa por WhatsApp (canal escolhido pela clínica) — **P0**
 
-**Implementado em:** _pendente_ — parcial: envio pelo módulo `Whatsapp` existente (sem canal, driver nem tabela próprios do Fisio — decisão [W] 2026-10-19: "o WhatsApp já está pronto no sistema"): `Modules/Fisio/Jobs/EnviarProgramaWhatsappJob.php`, `Modules/Fisio/Jobs/EnviarLembreteDiarioJob.php`, `Modules/Fisio/Console/LembretesCommand.php` (`fisio:lembretes`, agendado), `Modules/Fisio/Http/Controllers/EnvioWhatsappController.php` (rota `fisio.programas.enviar`: fila ou `wa.me` manual sem canal ativo), `Modules/Fisio/Services/Whatsapp/EnvioWhatsappFisio.php` (consentimento, idempotência persistida, ritmo) e `Modules/Fisio/Services/Whatsapp/AgendaDeEnvio.php` (silêncio, teto por hora, intervalo aleatório). O link vem do contrato `Modules/Fisio/Contracts/LinkDoPortal.php`, que delega ao `PortalTokenService` do US-FISIO-007a; a âncora fecha quando o portal entrar e o caso de integração do `FisioWhatsappJobTest` deixar de pular.
+**Implementado em:** `Modules/Fisio/Jobs/EnviarProgramaWhatsappJob.php` · `Modules/Fisio/Jobs/EnviarLembreteDiarioJob.php` · `Modules/Fisio/Console/LembretesCommand.php` (`fisio:lembretes`, agendado) · `Modules/Fisio/Http/Controllers/EnvioWhatsappController.php` (rota `fisio.programas.enviar`: fila ou `wa.me` manual sem canal ativo) · `Modules/Fisio/Services/Whatsapp/EnvioWhatsappFisio.php` · `Modules/Fisio/Services/Whatsapp/AgendaDeEnvio.php` · link pelo contrato `Modules/Fisio/Contracts/LinkDoPortal.php` (portal real do US-FISIO-007a) · verificado@7e6237c (2026-10-19, #9566). Envio pelo módulo `Whatsapp` existente, sem canal, driver nem tabela próprios do Fisio (decisão [W] 2026-10-19: "o WhatsApp já está pronto no sistema"); a escolha do canal, o aceite de risco do `whatsmeow` e o alerta de canal caído são do módulo `Whatsapp`.
 
-> owner: — · priority: p0 · estimate: 6h · status: doing · type: story
+> owner: — · priority: p0 · estimate: 6h · status: done · type: story
 > blocked_by: US-FISIO-007. Pelo módulo `Whatsapp` via `ChannelDriverFactory` (nunca um driver direto), com o canal lido da configuração da clínica: `meta_cloud`, `whatsmeow` (exige aceite de risco registrado) ou envio manual `wa.me`; mitigações de banimento da ADR 0437 §13.1 quando o canal for `whatsmeow`. DoD: `FisioWhatsappJobTest`; canal caído gera alerta ao profissional.
+
+**DoD:** link primeiro e PIN depois, nunca na mesma mensagem; no máximo 1 lembrete e 1 envio de programa por paciente por dia (chave persistida); só com consentimento de WhatsApp; silêncio das 21h às 7h e teto por hora; sem canal ativo, `wa.me` manual; nada sai para outra clínica — `FisioWhatsappJobTest`, `AgendaDeEnvioTest`.
 
 **Testado em:** `Modules/Fisio/Tests/Feature/FisioWhatsappJobTest.php` · `Modules/Fisio/Tests/Unit/AgendaDeEnvioTest.php`
 
 ### US-FISIO-010 · Painel, evolução e fila de atenção — **P0**
 
-**Implementado em:** _pendente_ — `Modules/Fisio/Http/Controllers/PainelController.php`, `Modules/Fisio/Services/PainelFisio.php`, rota `fisio.painel` (`GET /fisio`), tela `Modules/Fisio/Resources/js/Pages/Fisio/Painel.tsx` e aba Evolução (`Modules/Fisio/Resources/js/Pages/Fisio/_components/EvolucaoPaciente.tsx`) existem; o UC-FPN-05 do `FisioPainelTest` depende do portal (US-FISIO-007). A âncora fecha com o portal.
+**Implementado em:** `Modules/Fisio/Http/Controllers/PainelController.php` · `Modules/Fisio/Services/PainelFisio.php` · `Modules/Fisio/Services/AdesaoCalculator.php` · `Modules/Fisio/Services/AtencaoDetector.php` · rota `fisio.painel` · tela `Modules/Fisio/Resources/js/Pages/Fisio/Painel.tsx` · aba Evolução `Modules/Fisio/Resources/js/Pages/Fisio/_components/EvolucaoPaciente.tsx` · verificado@7e6237c (2026-10-19, #9553; o UC-FPN-05 voltou a rodar inteiro com o portal do #9567)
 
-> owner: — · priority: p0 · estimate: 8h · status: doing · type: story
+> owner: — · priority: p0 · estimate: 8h · status: done · type: story
 > blocked_by: US-FISIO-008. Adesão 7d, dor, nível; fila de abandono separada da fila de alerta clínico. DoD: `FisioPainelTest`, `AdesaoCalculatorTest`, `AtencaoDetectorTest`.
 
-Núcleo de cálculo (serviços puros, sem rota nem tela; a US segue pendente): `Modules/Fisio/Services/AdesaoCalculator.php`, `Modules/Fisio/Services/AtencaoDetector.php`.
+**DoD:** painel com adesão de 7 dias, dor e nível derivados dos check-ins; fila de abandono separada da fila de alerta clínico; paciente bloqueado fora da tabela; nada da outra clínica no painel nem na evolução — `FisioPainelTest`, `FisioEvolucaoTest`, `AdesaoCalculatorTest`, `AtencaoDetectorTest`.
 
 **Testado em:** `Modules/Fisio/Tests/Feature/FisioPainelTest.php` · `Modules/Fisio/Tests/Feature/FisioEvolucaoTest.php` · `Modules/Fisio/Tests/Unit/AdesaoCalculatorTest.php` · `Modules/Fisio/Tests/Unit/AtencaoDetectorTest.php`
 
@@ -149,7 +157,7 @@ Núcleo de cálculo (serviços puros, sem rota nem tela; a US segue pendente): `
 
 ### US-FISIO-012 · Fecha o loop da F1 — **P1**
 
-**Implementado em:** _pendente_
+**Implementado em:** _pendente_ — em 2026-10-19 só falta a US-FISIO-011 (texto dos questionários, depende da Dra. Dejeane); 001 a 010 já têm âncora.
 
 > owner: wagner · priority: p1 · estimate: 1h · status: todo · type: story
 > blocked_by: US-FISIO-001..011. Âncoras `Implementado em:` com `verificado@sha7` (ADR 0273).

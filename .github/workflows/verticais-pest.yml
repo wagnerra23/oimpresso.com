@@ -525,6 +525,11 @@ jobs:
         # ENTRA 2026-10-19 — Fisio/FisioPortalSemLoginTest: o portal abre sem login com o ModuleUtil
         # REAL (sem o mock do pacote). Em produção o link válido dava 500: auth()->user()->can() em null.
         #
+        # ENTRA 2026-10-19 — Fisio/FisioModuloContratoTest (US-FISIO-002): pacote fisio_module desligado
+        # por padrão, permissões fisio.* sem concessão padrão, nomes das rotas da F1, sem hardcode de
+        # business e sem forceDelete em dado clínico. Estava órfão (test-lane-coverage: 1 de 36 do
+        # Fisio sem lane); não grava nada, então roda aqui sem depender do seed.
+        #
         # ENTRAM 2026-10-19 — Fisio/FisioWhatsappJobTest e Fisio/AgendaDeEnvioTest (US-FISIO-009): envio
         # do link do portal e lembrete diário pelo módulo Whatsapp existente (número de saída padrão),
         # consentimento, isolamento 98×99, idempotência persistida, silêncio, teto por hora e wa.me
@@ -631,6 +636,7 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioBibliotecaMidiaTest.php \
             Modules/Fisio/Tests/Feature/FisioMultiTenantTest.php \
             Modules/Fisio/Tests/Feature/FisioModuloVisibilidadeTest.php \
+            Modules/Fisio/Tests/Feature/FisioModuloContratoTest.php \
             Modules/Fisio/Tests/Feature/FisioEvolucaoTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalAcessoTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalSemLoginTest.php \
