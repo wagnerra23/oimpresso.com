@@ -27,6 +27,9 @@ beforeEach(function () {
     if (! Schema::hasTable('pcp_ordens')) {
         $this->markTestSkipped('pcp_ordens ausente — migrations do Modules/Producao não rodaram.');
     }
+    // Relógio congelado: as horas apontadas são now()-N, e cada now() lido em instante diferente
+    // fazia o segundo virar entre início e fim — 1 s a mais × 30,00/h = 0,01 no custo (CI 2026-10-18).
+    $this->freezeTime();
     $this->B98 = $this->seededTenant();
     $this->b98 = (int) $this->B98->id;
     app(ProcessoDaOrdem::class)->garantir($this->b98);

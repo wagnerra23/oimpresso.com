@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 0 |
 | Telas (.tsx) | 3 |
 | Telas com `casos.md` | 5 |
-| UC declarados | 63 |
-| UC com teste que os cita | 63 |
+| UC declarados | 66 |
+| UC com teste que os cita | 66 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -65,6 +65,9 @@ authority: generated
 | UC-FPI-02 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPI-03 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPI-04 | Pacientes/Index | 🧪 aguarda veredito da lane |
+| UC-FPI-05 | Pacientes/Index | 🧪 aguarda veredito da lane |
+| UC-FPI-06 | Pacientes/Index | 🧪 aguarda veredito da lane |
+| UC-FPI-07 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPI-20 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPN-01 | Painel | 🧪 aguarda veredito da lane |
 | UC-FPN-02 | Painel | 🧪 aguarda veredito da lane |
