@@ -36,6 +36,7 @@ Mostrar e editar o perfil clínico do paciente, manter o prontuário (avaliaçã
 - Montar e editar o programa de exercícios: criar com instrução de parada, limiar e modo do alerta de dor, versão de crise; adicionar da biblioteca com a dose padrão, ajustar dose, reordenar, remover — UC-FPS-06, UC-FPS-08, UC-FPS-09 (US-FISIO-006).
 - Avisar contraindicação ao prescrever (marcador do paciente × exercício), sem bloquear: o profissional mantém com justificativa, que vai ao prontuário; o paciente não vê o aviso (ADR 0437 §13.2) — UC-FPS-10.
 - Aplicar protocolo-modelo ao programa e copiar o modelo global para a clínica (lógica visível, "A decisão clínica é do fisioterapeuta").
+- Mostrar o fisioterapeuta responsável e transferir o paciente para outro profissional da empresa, com o histórico das transferências — UC-FPS-30..32.
 - Exportar o prontuário em PDF (identificação, perfil clínico e todos os registros assinados em ordem cronológica, com carimbo; rodapé com empresa, emissão e "Página X de Y"); cada exportação fica no `activity_log` sem PII — UC-FPS-19, UC-FPS-20. Exportar exige só `fisio.access`.
 - Registrar questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) com pontuação do servidor e ver o histórico — UC-FPS-13..16 (US-FISIO-011). Mostra o número e a referência; não interpreta (SaMD, ADR 0437 §5).
 
@@ -43,6 +44,7 @@ Mostrar e editar o perfil clínico do paciente, manter o prontuário (avaliaçã
 
 - ❌ Editar ou apagar registro assinado (não existe rota; o banco recusa).
 - ❌ Envio do programa pelo WhatsApp (US-FISIO-009).
+- ❌ Avisar o profissional que recebeu o paciente, ou comparar resultados entre profissionais (fora do escopo do responsável).
 - ❌ PDF do programa de exercícios (vem depois da US-FISIO-006); o PDF daqui é só o prontuário.
 
 ## Refs

@@ -26,23 +26,23 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 799,
-    "edges": 1096,
+    "nodes": 804,
+    "edges": 1101,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 422,
-      "api": 83
+      "component": 426,
+      "api": 84
     },
     "by_edge_type": {
       "ownsTable": 97,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 87,
+      "providesApi": 88,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 422,
+      "hasComponent": 426,
       "dependsOn": 122,
       "delegatesTo": 113,
       "migratesTo": 1,
@@ -1335,6 +1335,14 @@
       "prefix": "/fiscal/*",
       "providers": [
         "Fiscal"
+      ]
+    },
+    {
+      "id": "api:/fisio",
+      "type": "api",
+      "prefix": "/fisio",
+      "providers": [
+        "Fisio"
       ]
     },
     {
@@ -2823,6 +2831,13 @@
       "desc": "favoritos do profissional na empresa (fisio_exercise_favorites)"
     },
     {
+      "id": "component:Fisio/Busca de contato para o cadastro e criação do contato na hora pelo ContactUtil do core",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Busca de contato para o cadastro e criação do contato na hora pelo ContactUtil do core",
+      "desc": ""
+    },
+    {
       "id": "component:Fisio/Cadastro de pacientes",
       "type": "component",
       "module": "Fisio",
@@ -2851,6 +2866,13 @@
       "desc": "UC-FPS-19..20"
     },
     {
+      "id": "component:Fisio/Fisioterapeuta responsável pelo paciente e transferência registrada no activity_log",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Fisioterapeuta responsável pelo paciente e transferência registrada no activity_log",
+      "desc": ""
+    },
+    {
       "id": "component:Fisio/InstallController",
       "type": "component",
       "module": "Fisio",
@@ -2876,6 +2898,13 @@
       "type": "component",
       "module": "Fisio",
       "name": "Painel e fila de atenção do profissional",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/PainelController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "PainelController",
       "desc": ""
     },
     {
@@ -2925,6 +2954,13 @@
       "type": "component",
       "module": "Fisio",
       "name": "RegistrosController",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/ResponsavelController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "ResponsavelController",
       "desc": ""
     },
     {
@@ -9008,6 +9044,12 @@
     },
     {
       "from": "module:Fisio",
+      "to": "component:Fisio/Busca de contato para o cadastro e criação do contato na hora pelo ContactUtil do core",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
       "to": "component:Fisio/Cadastro de pacientes",
       "type": "hasComponent",
       "source": "contains"
@@ -9032,6 +9074,12 @@
     },
     {
       "from": "module:Fisio",
+      "to": "component:Fisio/Fisioterapeuta responsável pelo paciente e transferência registrada no activity_log",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
       "to": "component:Fisio/InstallController",
       "type": "hasComponent",
       "source": "contains"
@@ -9051,6 +9099,12 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/Painel e fila de atenção do profissional",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/PainelController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -9098,6 +9152,12 @@
     },
     {
       "from": "module:Fisio",
+      "to": "component:Fisio/ResponsavelController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
       "to": "api:/fisio/p/{token}/*",
       "type": "providesApi",
       "source": "url_prefixes"
@@ -9117,6 +9177,12 @@
     {
       "from": "module:Fisio",
       "to": "api:/fisio/protocolos/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "api:/fisio",
       "type": "providesApi",
       "source": "url_prefixes"
     },

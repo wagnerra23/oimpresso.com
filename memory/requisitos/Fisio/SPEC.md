@@ -69,9 +69,12 @@ related_adrs:
 > owner: — · priority: p0 · estimate: 8h · status: done · type: story
 > blocked_by: US-FISIO-003. Paciente é `contact`; avaliação, evolução e adendo carimbados com nome e CREFITO; marcadores de condição. DoD: `FisioPacienteCrudTest`, `FisioProntuarioTest`.
 
-**DoD:** paciente criado sobre um `contact` da empresa, um por contato, meta 1–7 e marcadores da lista fechada; excluir só bloqueia; avaliação/evolução/adendo carimbados com usuário, CREFITO e hora do servidor; avaliação exige os campos mínimos da Res. 414; registro assinado responde 405 a PUT/DELETE; o prontuário exporta em PDF (registros assinados em ordem cronológica, carimbados) e cada exportação fica no `activity_log` — `FisioPacienteCrudTest`, `FisioProntuarioTest`, `FisioProntuarioPdfTest`.
+**DoD:** paciente criado sobre um `contact` da empresa, um por contato, meta 1–7 e marcadores da lista fechada; excluir só bloqueia; avaliação/evolução/adendo carimbados com usuário, CREFITO e hora do servidor; avaliação exige os campos mínimos da Res. 414; registro assinado responde 405 a PUT/DELETE; o prontuário exporta em PDF (registros assinados em ordem cronológica, carimbados) e cada exportação fica no `activity_log` — `FisioPacienteCrudTest`, `FisioProntuarioTest`, `FisioProntuarioPdfTest`. Melhoria do comparativo (cadastro): contato apagado recusado, contato escolhido por busca no servidor e contato criado na hora sem duplicar celular — `FisioPacienteContatoTest` (UC-FPI-05..07).
 
-**Testado em:** `Modules/Fisio/Tests/Feature/FisioPacienteCrudTest.php` · `Modules/Fisio/Tests/Feature/FisioProntuarioTest.php` · `Modules/Fisio/Tests/Feature/FisioProntuarioPdfTest.php`
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioPacienteCrudTest.php` · `Modules/Fisio/Tests/Feature/FisioProntuarioTest.php` · `Modules/Fisio/Tests/Feature/FisioProntuarioPdfTest.php` · `Modules/Fisio/Tests/Feature/FisioPacienteContatoTest.php`
+
+**Ampliação 2026-10-18 · fisioterapeuta responsável e transferência (feito).** Cada paciente tem um responsável, usuário da mesma empresa com acesso ao Fisio; quem cadastra é o responsável. A lista mostra e filtra por responsável ("Meus pacientes") e a ficha transfere para outro profissional da empresa. Cada transferência fica no `activity_log` (quem, de quem, para quem, quando) e nada se apaga. Transferir exige `fisio.editar`; destino de outra empresa ou sem acesso ao Fisio responde 422. Pacientes cadastrados antes da coluna ficam sem responsável até alguém transferir. Fora: notificações e comparação entre profissionais. Referência: a Physitrack permite compartilhar e transferir clientes entre profissionais. Casos UC-FPI-20 e UC-FPS-30..32.
+Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `Modules/Fisio/Services/ResponsavelPaciente.php` · migration `Modules/Fisio/Database/Migrations/2026_10_18_000003_add_responsible_user_to_fisio_patients.php` · componentes `Modules/Fisio/Resources/js/Pages/Fisio/_components/ResponsavelPaciente.tsx` e `FiltroResponsavel.tsx`. Testado em `Modules/Fisio/Tests/Feature/FisioPacienteResponsavelTest.php`.
 
 ### US-FISIO-006 · Editor de programa, protocolos-modelo e aviso de contraindicação — **P0**
 
@@ -109,12 +112,14 @@ Núcleo de cálculo (serviços puros, sem rota nem tela; a US segue pendente): `
 
 ### US-FISIO-010 · Painel, evolução e fila de atenção — **P0**
 
-**Implementado em:** _pendente_
+**Implementado em:** _pendente_ — `Modules/Fisio/Http/Controllers/PainelController.php`, `Modules/Fisio/Services/PainelFisio.php`, rota `fisio.painel` (`GET /fisio`), tela `Modules/Fisio/Resources/js/Pages/Fisio/Painel.tsx` e aba Evolução (`Modules/Fisio/Resources/js/Pages/Fisio/_components/EvolucaoPaciente.tsx`) existem; o UC-FPN-05 do `FisioPainelTest` depende do portal (US-FISIO-007). A âncora fecha com o portal.
 
-> owner: — · priority: p0 · estimate: 8h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 8h · status: doing · type: story
 > blocked_by: US-FISIO-008. Adesão 7d, dor, nível; fila de abandono separada da fila de alerta clínico. DoD: `FisioPainelTest`, `AdesaoCalculatorTest`, `AtencaoDetectorTest`.
 
 Núcleo de cálculo (serviços puros, sem rota nem tela; a US segue pendente): `Modules/Fisio/Services/AdesaoCalculator.php`, `Modules/Fisio/Services/AtencaoDetector.php`.
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioPainelTest.php` · `Modules/Fisio/Tests/Feature/FisioEvolucaoTest.php` · `Modules/Fisio/Tests/Unit/AdesaoCalculatorTest.php` · `Modules/Fisio/Tests/Unit/AtencaoDetectorTest.php`
 
 ### US-FISIO-011 · Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) — **P1**
 

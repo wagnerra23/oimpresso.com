@@ -71,7 +71,11 @@ class DataController extends Controller
 
         Menu::modify('admin-sidebar-menu', function ($menu) use ($segmento_ativo) {
             $menu->dropdown('Fisio', function ($sub) {
-                // Pacientes chegou na US-FISIO-005; o Painel (/fisio) entra com a US-FISIO-011.
+                // Painel (US-FISIO-010) primeiro; Pacientes (US-FISIO-005) em seguida.
+                $sub->url(url('/fisio'), 'Painel', [
+                    'icon' => 'fa fa-tachometer-alt',
+                    'active' => request()->segment(1) === 'fisio' && request()->segment(2) === null,
+                ]);
                 $sub->url(url('/fisio/pacientes'), 'Pacientes', [
                     'icon' => 'fa fa-user',
                     'active' => request()->segment(2) === 'pacientes',

@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-FISIO-010
 // Cobre UC-FPN-02, UC-FPN-03, UC-FPN-04, UC-FPN-05 (Fisio/Painel.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;

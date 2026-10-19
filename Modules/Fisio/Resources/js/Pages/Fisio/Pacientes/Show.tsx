@@ -23,6 +23,8 @@ import { Textarea } from '@/Components/ui/textarea';
 import PerfilClinicoCampos, { type PerfilClinico } from '../_components/PerfilClinicoCampos';
 import { limparObjetivos, rotuloCondicao } from '../_components/condicoes';
 import Questionarios, { HistoricoQuestionarios, type Instrumento, type RespostaQuestionario } from '../_components/Questionarios';
+import ResponsavelPaciente, { type Profissional, type Transferencia } from '../_components/ResponsavelPaciente';
+import EvolucaoPaciente, { type Evolucao, type PontoDor } from '../_components/EvolucaoPaciente';
 import EditorPrograma, { type ExercicioBiblioteca, type Programa, type ProtocoloModelo } from '../_components/EditorPrograma';
 import ExportarProntuarioPdf from '../_components/ExportarProntuarioPdf';
 
@@ -35,6 +37,7 @@ interface Paciente {
   sessions_per_week: number;
   condition_flags: string[];
   bloqueado: boolean;
+  responsavel: Profissional | null;
 }
 interface Registro {
   id: number;
@@ -55,6 +58,10 @@ interface Props {
   programa?: Programa | null;
   exercicios?: ExercicioBiblioteca[];
   protocolos?: ProtocoloModelo[];
+  profissionais?: Profissional[];
+  transferencias?: Transferencia[];
+  evolucao?: Evolucao;
+  serie_dor?: PontoDor[];
 }
 
 const TIPO: Record<Registro['kind'], string> = {
@@ -196,7 +203,7 @@ function LinhaDoTempo({ registros, podeEditar, onCorrigir }: { registros: Regist
   );
 }
 
-export default function PacienteShow({ paciente, condicoes, pode_editar, prontuario, instrumentos, questionarios, programa, exercicios, protocolos }: Props) {
+export default function PacienteShow({ paciente, condicoes, pode_editar, prontuario, instrumentos, questionarios, profissionais, transferencias, evolucao, serie_dor, programa, exercicios, protocolos }: Props) {
   const [corrigindo, setCorrigindo] = useState<Registro | null>(null);
 
   return (
@@ -217,6 +224,7 @@ export default function PacienteShow({ paciente, condicoes, pode_editar, prontua
             {paciente.bloqueado && <Badge variant="outline">Bloqueado — prontuário guardado</Badge>}
             {paciente.telefone && <p className="text-sm text-muted-foreground">{paciente.telefone}</p>}
             <Perfil paciente={paciente} condicoes={condicoes} podeEditar={pode_editar} />
+            <ResponsavelPaciente pacienteId={paciente.id} responsavel={paciente.responsavel} podeTransferir={pode_editar && !paciente.bloqueado} profissionais={profissionais} transferencias={transferencias} />
           </CardContent>
         </Card>
         <Card>
@@ -227,6 +235,14 @@ export default function PacienteShow({ paciente, condicoes, pode_editar, prontua
             )}
             <Deferred data="prontuario" fallback={<Skeleton className="h-40 w-full" />}>
               <LinhaDoTempo registros={prontuario ?? []} podeEditar={pode_editar && !paciente.bloqueado} onCorrigir={setCorrigindo} />
+            </Deferred>
+          </CardContent>
+        </Card>
+        <Card className="lg:col-start-2">
+          <CardContent className="flex flex-col gap-4 p-4">
+            <h2 className="text-base font-semibold">Evolução</h2>
+            <Deferred data={['evolucao', 'serie_dor']} fallback={<Skeleton className="h-40 w-full" />}>
+              {evolucao ? <EvolucaoPaciente evolucao={evolucao} serieDor={serie_dor ?? []} /> : <span />}
             </Deferred>
           </CardContent>
         </Card>

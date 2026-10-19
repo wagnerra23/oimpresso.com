@@ -4,11 +4,13 @@ use Modules\Fisio\Http\Controllers\BibliotecaController;
 use Modules\Fisio\Http\Controllers\BibliotecaFavoritosController;
 use Modules\Fisio\Http\Controllers\InstallController;
 use Modules\Fisio\Http\Controllers\PacientesController;
+use Modules\Fisio\Http\Controllers\PainelController;
 use Modules\Fisio\Http\Controllers\ProgramasController;
 use Modules\Fisio\Http\Controllers\ProntuarioPdfController;
 use Modules\Fisio\Http\Controllers\ProtocolosController;
 use Modules\Fisio\Http\Controllers\QuestionariosController;
 use Modules\Fisio\Http\Controllers\RegistrosController;
+use Modules\Fisio\Http\Controllers\ResponsavelController;
 use Modules\Fisio\Http\Middleware\FisioLiberado;
 
 /*
@@ -41,6 +43,9 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
     ->prefix('fisio')
     ->name('fisio.')
     ->group(function () {
+        // Painel do profissional (US-FISIO-010): KPIs, fila de atenção e tabela. Só leitura.
+        Route::get('/', [PainelController::class, 'index'])->name('painel');
+
         // Biblioteca de exercícios (US-FISIO-004). Escrita exige `fisio.editar` (checada no controller).
         Route::get('biblioteca', [BibliotecaController::class, 'index'])->name('biblioteca.index');
         Route::post('biblioteca/exercicios', [BibliotecaController::class, 'store'])->name('biblioteca.exercicios.store');
@@ -52,9 +57,14 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         // Pacientes e prontuário (US-FISIO-005). Escrita exige `fisio.editar` (checada no controller).
         Route::get('pacientes', [PacientesController::class, 'index'])->name('pacientes.index');
         Route::post('pacientes', [PacientesController::class, 'store'])->name('pacientes.store');
+        // Busca de contato para o cadastro (UC-FPI-06) — JSON, exige `fisio.editar`.
+        Route::get('pacientes/contatos', [PacientesController::class, 'contatos'])->name('pacientes.contatos');
         Route::get('pacientes/{id}', [PacientesController::class, 'show'])->whereNumber('id')->name('pacientes.show');
         Route::put('pacientes/{id}', [PacientesController::class, 'update'])->whereNumber('id')->name('pacientes.update');
         Route::delete('pacientes/{id}', [PacientesController::class, 'destroy'])->whereNumber('id')->name('pacientes.destroy');
+
+        // Fisioterapeuta responsável: transferir o paciente (UC-FPS-31). Exige `fisio.editar`.
+        Route::post('pacientes/{id}/responsavel', [ResponsavelController::class, 'store'])->whereNumber('id')->name('pacientes.responsavel.store');
 
         Route::post('pacientes/{id}/registros', [RegistrosController::class, 'store'])->whereNumber('id')->name('pacientes.registros.store');
         // Prontuário é append-only: estes verbos existem só para responder 405 com o motivo.
