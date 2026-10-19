@@ -1218,7 +1218,7 @@ class SellController extends Controller
             !auth()->user()->can('view_own_sell_only') &&
             !auth()->user()->can('view_commission_agent_sell') &&
             !$podeListaPos &&
-            !($somenteRascunhos && $podeRascunhos)) {
+            !$somenteRascunhos) { // rascunho já passou pelo gate próprio acima
             abort(403);
         }
 
