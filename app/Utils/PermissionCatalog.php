@@ -143,6 +143,7 @@ class PermissionCatalog
         'roles.view',
         'sale.history.view',
         'sales_representative.view',
+        'sell.aprovar_margem_baixa',
         'sell.create',
         'sell.delete',
         'sell.payments',

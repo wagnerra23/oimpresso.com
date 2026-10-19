@@ -18,6 +18,7 @@
      'discount.manage' => 'Adicionar, editar, desativar e excluir descontos',
      'fluxos.ver' => 'Ver fluxos e regras',
      'fluxos.configurar' => 'Trocar o modelo de fluxo da empresa',
+     'sell.aprovar_margem_baixa' => 'Aprovar orçamento abaixo da margem mínima',
      'supplier.view' => 'Ver provedor',
      'supplier.create' => 'Adicionar provedor',
      'supplier.update' => 'Editar provedor',

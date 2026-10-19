@@ -1598,6 +1598,13 @@
           <div class="col-md-12">
             <div class="checkbox">
               <label>
+                {!! Form::checkbox('permissions[]', 'sell.aprovar_margem_baixa', in_array('sell.aprovar_margem_baixa', $role_permissions), [ 'class' => 'input-icheck']); !!} {{ __( 'role.sell.aprovar_margem_baixa' ) }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
                 {!! Form::checkbox('permissions[]', 'barcode_settings.access', in_array('barcode_settings.access', $role_permissions), 
                 [ 'class' => 'input-icheck']); !!} {{ __( 'role.barcode_settings.access' ) }}
               </label>
