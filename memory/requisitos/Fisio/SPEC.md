@@ -80,10 +80,14 @@ Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `M
 
 ### US-FISIO-006 · Editor de programa, protocolos-modelo e aviso de contraindicação — **P0**
 
-**Implementado em:** _pendente_
+**Implementado em:** `Modules/Fisio/Http/Controllers/ProgramasController.php` · `Modules/Fisio/Http/Controllers/ProtocolosController.php` · `Modules/Fisio/Services/EditorProgramaPayload.php` · rotas `fisio.pacientes.programas.store`, `fisio.programas.*`, `fisio.protocolos.*` (`Modules/Fisio/Routes/web.php`) · tela `Modules/Fisio/Resources/js/Pages/Fisio/_components/EditorPrograma.tsx` montada na ficha (`Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Show.tsx`) — veredito pela lane Verticais (`FisioProgramaEditorTest`)
 
-> owner: — · priority: p0 · estimate: 8h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 8h · status: done · type: story
 > blocked_by: US-FISIO-004, US-FISIO-005. Aviso nunca bloqueia; exige justificativa que vai ao prontuário (ADR 0437 §13.2). DoD: `FisioProgramaEditorTest`.
+
+**DoD:** programa nasce ativo, `origin=manual`, `created_by` da sessão, limiar padrão 7, com instrução de parada obrigatória; novo ativo encerra o anterior; item herda a dose padrão e vai para o fim; dose validada sem tocar outro item; reordenar exige a lista exata; remover recompacta sem tocar check-in; exercício de outra clínica recusado; contraindicação responde 409 sem gravar e, confirmada, grava quem/quais/quando e a justificativa no item e um registro novo no prontuário; protocolo-modelo aplicado vira `origin=protocolo`, modelo global só se copia (editar = 403) — `FisioProgramaEditorTest`. Conteúdo clínico (exercícios e protocolos globais) aguarda a Dra. Dejeane: sem seed, o editor funciona com exercícios da clínica e mostra estado vazio.
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioProgramaEditorTest.php`
 
 ### US-FISIO-007 · Portal do paciente (link + PIN, consentimentos, check-in, telemonitoramento) — **P0**
 

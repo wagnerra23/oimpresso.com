@@ -468,6 +468,10 @@ jobs:
         # para 98 e 99, exercício próprio só do dono, global não editável (403), próprio alheio
         # 404, filtro por região e busca por texto (UC-FBI-01..04).
         #
+        # ENTRA 2026-10-18 — Fisio/FisioProgramaEditorTest (US-FISIO-006): criar programa com
+        # instrução de parada, um ativo por paciente, dose padrão, reordenar/remover, exercício de
+        # outra clínica recusado e aviso de contraindicação (409 → confirmação gravada).
+        #
         # ENTRA 2026-10-18 — Fisio/FisioBibliotecaFavoritosTest (US-FISIO-004, comparativo
         # Physitrack): favorito por profissional e empresa (98×99 e dois usuários da 98), global
         # inalterado ao favoritar, filtros de posição e equipamento da lista fechada (UC-FBI-08..10).
@@ -583,6 +587,7 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioBibliotecaFavoritosTest.php \
             Modules/Fisio/Tests/Feature/FisioBibliotecaTest.php \
             Modules/Fisio/Tests/Feature/FisioPacienteResponsavelTest.php \
+            Modules/Fisio/Tests/Feature/FisioProgramaEditorTest.php \
             Modules/Fisio/Tests/Feature/FisioProntuarioPdfTest.php \
             Modules/Fisio/Tests/Feature/FisioBibliotecaMidiaTest.php \
             Modules/Fisio/Tests/Feature/FisioMultiTenantTest.php \

@@ -14,9 +14,9 @@ module: Fisio
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Fisio/**` + `resources/js/Pages/Fisio/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 115 arquivos em 16 papéis.
+**Total mapeado:** 119 arquivos em 16 papéis.
 
-## Controllers — 11
+## Controllers — 13
 
 - [BibliotecaController.php](../../../Modules/Fisio/Http/Controllers/BibliotecaController.php)
 - [BibliotecaFavoritosController.php](../../../Modules/Fisio/Http/Controllers/BibliotecaFavoritosController.php)
@@ -25,7 +25,9 @@ module: Fisio
 - [InstallController.php](../../../Modules/Fisio/Http/Controllers/InstallController.php)
 - [PacientesController.php](../../../Modules/Fisio/Http/Controllers/PacientesController.php)
 - [PainelController.php](../../../Modules/Fisio/Http/Controllers/PainelController.php)
+- [ProgramasController.php](../../../Modules/Fisio/Http/Controllers/ProgramasController.php)
 - [ProntuarioPdfController.php](../../../Modules/Fisio/Http/Controllers/ProntuarioPdfController.php)
+- [ProtocolosController.php](../../../Modules/Fisio/Http/Controllers/ProtocolosController.php)
 - [QuestionariosController.php](../../../Modules/Fisio/Http/Controllers/QuestionariosController.php)
 - [RegistrosController.php](../../../Modules/Fisio/Http/Controllers/RegistrosController.php)
 - [ResponsavelController.php](../../../Modules/Fisio/Http/Controllers/ResponsavelController.php)
@@ -34,12 +36,13 @@ module: Fisio
 
 - [FisioLiberado.php](../../../Modules/Fisio/Http/Middleware/FisioLiberado.php)
 
-## Services — 15
+## Services — 16
 
 - [AdesaoCalculator.php](../../../Modules/Fisio/Services/AdesaoCalculator.php)
 - [AtencaoDetector.php](../../../Modules/Fisio/Services/AtencaoDetector.php)
 - [BibliotecaFacetas.php](../../../Modules/Fisio/Services/BibliotecaFacetas.php)
 - [DiaLocal.php](../../../Modules/Fisio/Services/DiaLocal.php)
+- [EditorProgramaPayload.php](../../../Modules/Fisio/Services/EditorProgramaPayload.php)
 - [FisioAcesso.php](../../../Modules/Fisio/Services/FisioAcesso.php)
 - [MetaSemanal.php](../../../Modules/Fisio/Services/MetaSemanal.php)
 - [MidiaExercicio.php](../../../Modules/Fisio/Services/MidiaExercicio.php)
@@ -104,12 +107,13 @@ module: Fisio
 - [Show.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Show.tsx)
 - [Painel.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Painel.tsx)
 
-## Componentes / apoio de tela — 11
+## Componentes / apoio de tela — 12
 
 - [CamposFacetas.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/_components/CamposFacetas.tsx)
 - [FavoritoBotao.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/_components/FavoritoBotao.tsx)
 - [FiltrosFacetas.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/_components/FiltrosFacetas.tsx)
 - [OrigemContato.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/_components/OrigemContato.tsx)
+- [EditorPrograma.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/EditorPrograma.tsx)
 - [EvolucaoPaciente.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/EvolucaoPaciente.tsx)
 - [ExportarProntuarioPdf.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/ExportarProntuarioPdf.tsx)
 - [FiltroResponsavel.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/_components/FiltroResponsavel.tsx)

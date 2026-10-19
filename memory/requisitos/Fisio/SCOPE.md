@@ -21,6 +21,9 @@ contains:
   - "ResponsavelController"
   - "Fisioterapeuta responsável pelo paciente e transferência registrada no activity_log"
   - "QuestionariosController"
+  - "ProgramasController"
+  - "ProtocolosController"
+  - "Editor de programa por paciente, protocolos-modelo (aplicar e copiar para a clínica) e aviso de contraindicação que não bloqueia (US-FISIO-006)"
   - "ProntuarioPdfController"
   - "Exportação do prontuário em PDF (dompdf, registrada no activity_log) — UC-FPS-19..20"
   - "Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) com pontuação calculada no servidor (US-FISIO-011)"
@@ -38,6 +41,8 @@ status: em construção
 url_prefixes:
   - /fisio (painel do profissional — KPIs, fila de atenção e tabela; US-FISIO-010)
   - /fisio/pacientes/* (área do profissional — pacientes, prontuário e questionários; demais telas a criar)
+  - /fisio/programas/* (editor de programa — itens, dose, ordem, protocolo)
+  - /fisio/protocolos/* (protocolos-modelo — copiar e editar a cópia da clínica)
   - /fisio/p/{token}/* (portal público do paciente — a criar)
 ---
 
