@@ -94,7 +94,9 @@ class DataController extends Controller
 
         Menu::modify('admin-sidebar-menu', function ($menu) use ($segmento_ativo) {
             $menu->dropdown('Fisio', function ($sub) {
-                // Painel (US-FISIO-010) primeiro; Pacientes (US-FISIO-005) em seguida.
+                // Ordem da ADR 0437 §3.3: Painel · Pacientes · Prescrever · Biblioteca · Agenda.
+                // Prescrever não tem tela própria (o editor fica na ficha do paciente) e a
+                // Agenda ainda não existe; entram aqui quando tiverem rota.
                 $sub->url(url('/fisio'), 'Painel', [
                     'icon' => 'fa fa-tachometer-alt',
                     'active' => request()->segment(1) === 'fisio' && request()->segment(2) === null,
@@ -102,6 +104,10 @@ class DataController extends Controller
                 $sub->url(url('/fisio/pacientes'), 'Pacientes', [
                     'icon' => 'fa fa-user',
                     'active' => request()->segment(2) === 'pacientes',
+                ]);
+                $sub->url(url('/fisio/biblioteca'), 'Biblioteca', [
+                    'icon' => 'fa fa-book',
+                    'active' => request()->segment(2) === 'biblioteca',
                 ]);
             }, [
                 'icon' => 'fa fa-heartbeat',
