@@ -1,7 +1,7 @@
 // @memcofre
 //   tela: /fisio
 //   module: Fisio
-//   stories: US-FISIO-010 (UC-FPN-02..06)
+//   stories: US-FISIO-010 (UC-FPN-02..06), US-FISIO-009 (UC-FPN-09)
 //   permissao: fisio.access
 //
 // Painel do profissional (PT-04 Dashboard). Mostra adesão, dor e quem precisa de atenção, a partir
@@ -53,11 +53,21 @@ interface Regras {
   limiar_dor_padrao: number;
   dias_sem_registro: number;
 }
+interface EnvioFalho {
+  patient_id: number;
+  nome: string | null;
+  tipo: 'lembrete' | 'programa';
+  motivo: 'falhou' | 'nao_saiu' | 'sem_canal';
+  detalhe: string | null;
+  wa_me: string[];
+  sem_link: 'sem_consentimento' | 'sem_permissao' | 'reenviar_pela_ficha' | null;
+}
 interface Props {
   regras: Regras;
   kpis?: Kpis;
   atencao?: ItemAtencao[];
   pacientes?: LinhaPaciente[];
+  envios_falhos?: EnvioFalho[];
 }
 
 const dataCurta = (d: string | null) =>
@@ -132,6 +142,54 @@ function Fila({ titulo, descricao, itens, regras, eixo, vazio }: {
   );
 }
 
+const ROTULO_MOTIVO_ENVIO: Record<EnvioFalho['motivo'], string> = {
+  falhou: 'Falhou no envio',
+  nao_saiu: 'Não saiu da fila',
+  sem_canal: 'WhatsApp da clínica desconectado',
+};
+const ROTULO_SEM_LINK: Record<NonNullable<EnvioFalho['sem_link']>, string> = {
+  sem_consentimento: 'Sem consentimento de WhatsApp',
+  sem_permissao: 'Peça a quem edita programas',
+  reenviar_pela_ficha: 'Reenvie pela ficha do paciente',
+};
+
+// T-09e · fallback humano: só aparece quando algum envio de hoje não chegou (UC-FPN-09).
+function EnviosFalhos({ itens }: { itens: EnvioFalho[] }) {
+  if (itens.length === 0) return null;
+  return (
+    <Card>
+      <CardContent className="flex flex-col gap-2 p-4">
+        <div>
+          <h2 className="text-base font-semibold">WhatsApp que não chegou hoje</h2>
+          <p className="text-xs text-muted-foreground">Mande à mão pelo seu WhatsApp: o texto já vai preenchido.</p>
+        </div>
+        <ul className="divide-y divide-border" data-contract="fisio-painel-envios-falhos">
+          {itens.map((i) => (
+            <li key={`${i.tipo}-${i.patient_id}`} className="flex flex-wrap items-center gap-2 py-3">
+              <Link href={`/fisio/pacientes/${i.patient_id}`} className="min-w-0 flex-1 text-sm font-medium hover:underline">
+                {i.nome ?? 'Contato sem nome'}
+              </Link>
+              <Badge variant="outline">{i.tipo === 'lembrete' ? 'Lembrete' : 'Programa'}</Badge>
+              <span className="text-xs text-muted-foreground" title={i.detalhe ?? undefined}>{ROTULO_MOTIVO_ENVIO[i.motivo]}</span>
+              {i.sem_link !== null ? (
+                <span className="text-xs text-muted-foreground">{ROTULO_SEM_LINK[i.sem_link]}</span>
+              ) : (
+                i.wa_me.map((href, n) => (
+                  <Button key={href} asChild size="sm" variant="outline">
+                    <a href={href} target="_blank" rel="noopener noreferrer">
+                      {i.wa_me.length > 1 ? (n === 0 ? 'Enviar link' : 'Enviar código') : 'Enviar pelo WhatsApp'}
+                    </a>
+                  </Button>
+                ))
+              )}
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+    </Card>
+  );
+}
+
 function Tabela({ pacientes }: { pacientes: LinhaPaciente[] }) {
   if (pacientes.length === 0) {
     return (
@@ -181,7 +239,7 @@ function Tabela({ pacientes }: { pacientes: LinhaPaciente[] }) {
   );
 }
 
-export default function FisioPainel({ regras, kpis, atencao, pacientes }: Props) {
+export default function FisioPainel({ regras, kpis, atencao, pacientes, envios_falhos }: Props) {
   const semRegistro = kpis !== undefined && kpis.checkins_7d === 0 && (pacientes?.length ?? 0) > 0;
   return (
     <div data-screen-label="Fisio · Painel" className="mx-auto flex max-w-7xl flex-col gap-4 p-4">
@@ -199,6 +257,10 @@ export default function FisioPainel({ regras, kpis, atencao, pacientes }: Props)
           Nenhum paciente registrou o dia nos últimos 7 dias. Os números de adesão e dor aparecem quando os check-ins do portal chegarem.
         </p>
       )}
+
+      <Deferred data="envios_falhos" fallback={null}>
+        <EnviosFalhos itens={envios_falhos ?? []} />
+      </Deferred>
 
       <Deferred data="atencao" fallback={<Skeleton className="h-40 w-full" />}>
         <div className="grid gap-4 lg:grid-cols-2">

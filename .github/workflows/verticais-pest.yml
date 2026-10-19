@@ -515,6 +515,10 @@ jobs:
         # nome da clínica, tela do dia guardada no aparelho só quando ele está lembrado, e o
         # service worker public/sw-fisio-portal.js (está no gatilho acima) (UC-FPP-26..28).
         #
+        # ENTRA 2026-10-19 — Fisio/FisioPortalFilaOfflineTest (etapa 02 T-13 parte 2): fila offline
+        # do check-in — mesma chave não grava duas vezes, só aparelho lembrado guarda, check-in de
+        # outro dia é recusado (UC-FPP-30..32).
+        #
         # ENTRA 2026-10-19 — Fisio/BibliotecaL0Test (US-FISIO-004): os 38 exercícios do lote L0
         # (aprovados pela responsável técnica) no vocabulário das listas fechadas (UC-FBI-11).
         #
@@ -534,6 +538,10 @@ jobs:
         # do link do portal e lembrete diário pelo módulo Whatsapp existente (número de saída padrão),
         # consentimento, isolamento 98×99, idempotência persistida, silêncio, teto por hora e wa.me
         # manual sem canal. O caso de integração com o portal real PULA até o US-FISIO-007a entrar.
+        #
+        # ENTRA 2026-10-19 — Fisio/FisioPainelEnviosFalhosTest (etapa 02 T-09e, UC-FPN-09): o painel
+        # lista o WhatsApp de hoje que não chegou, com wa.me; sucesso some, 99 não vaza, sem
+        # consentimento não ganha link.
         #
         # ENTRA 2026-10-19 — Fisio/FisioLinguagemAnvisaTest (etapa 01 B-06 · UC-FBI-12): termo
         # proibido da ADR 0437 §5 no exercício próprio, protocolo ou instruções do programa → 422 com
@@ -653,6 +661,8 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioPortalSegurancaClinicaTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalAparelhoTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalAppTest.php \
+            Modules/Fisio/Tests/Feature/FisioPainelEnviosFalhosTest.php \
+            Modules/Fisio/Tests/Feature/FisioPortalFilaOfflineTest.php \
             Modules/Fisio/Tests/Feature/FisioLinguagemAnvisaTest.php
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-verticais-junit-fisio-painel.xml \

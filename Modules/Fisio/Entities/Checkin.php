@@ -27,6 +27,7 @@ use Modules\Fisio\Entities\Concerns\SemExclusaoDeDadoClinico;
  * @property ?string $note
  * @property ?array $red_flags
  * @property bool $crisis paciente escolheu a versão de crise do programa (protocolo 11): conta para a sequência
+ * @property ?string $client_key chave do último envio aplicado (fila offline do portal, idempotência)
  */
 class Checkin extends Model
 {

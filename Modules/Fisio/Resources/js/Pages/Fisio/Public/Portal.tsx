@@ -14,14 +14,14 @@
 // App instalável (T-13): manifesto por link + service worker; a tela do dia abre sem rede em
 // aparelho lembrado (o servidor decide pelo cabeçalho X-Fisio-Offline)  → _components/Instalar.tsx
 // Nada clínico aparece antes do PIN e do consentimento: isso é garantido no servidor.
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { HeartPulse, ShieldCheck } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { TelaCheckin, InstrucaoDaFisio } from './_components/Checkin';
 import { EtapaConsentimento, EtapaPin } from './_components/Entrada';
 import { TelaCrise, TelaHoje } from './_components/Hoje';
 import { ConviteInstalar } from './_components/Instalar';
-import { registrarAppDoPortal, type ItemHoje, type Jogo, type Relato, type Termo } from './_components/portal';
+import { enviarFila, limparFila, registrarAppDoPortal, type ItemHoje, type Jogo, type Relato, type Termo } from './_components/portal';
 
 interface Props {
   erro: 'link_invalido' | 'sem_link' | null;
@@ -36,6 +36,7 @@ interface Props {
   instrucao?: string | null;
   jogo?: Jogo;
   registrado_hoje?: boolean;
+  guardar_offline?: boolean;
   hoje?: { itens: ItemHoje[] };
   crise?: { itens: string[] };
   relato?: Relato | null;
@@ -91,6 +92,7 @@ function AreaDoDia({ token, props }: { token: string; props: Props }) {
         relato={props.relato ?? null}
         sinais={props.red_flags ?? []}
         crise={tela === 'checkin-crise'}
+        guardarOffline={props.guardar_offline ?? false}
         onVoltar={() => setTela('hoje')}
       />
     );
@@ -115,6 +117,25 @@ function AreaDoDia({ token, props }: { token: string; props: Props }) {
 export default function Portal(props: Props) {
   const { erro, etapa, token, clinica } = props;
   useEffect(registrarAppDoPortal, []);
+
+  // Fila offline do check-in (UC-FPP-30..32): envia o que ficou guardado ao abrir a tela do dia
+  // e quando a internet volta; link inválido apaga a fila daquele link sem enviar.
+  useEffect(() => {
+    if (!token) return;
+    if (erro === 'link_invalido') {
+      limparFila(token);
+      return;
+    }
+    if (etapa !== 'hoje') return;
+    const tentar = () => {
+      void enviarFila(token).then((r) => {
+        if (r === 'enviado') router.reload();
+      });
+    };
+    tentar();
+    window.addEventListener('online', tentar);
+    return () => window.removeEventListener('online', tentar);
+  }, [token, erro, etapa]);
 
   if (erro === 'sem_link') {
     return (

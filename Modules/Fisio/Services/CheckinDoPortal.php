@@ -24,6 +24,7 @@ use Modules\Fisio\Notifications\SinalDeAlertaNotification;
  *
  * Invariantes:
  *  - UM check-in por paciente e dia civil (UNIQUE no banco); reenviar no mesmo dia ATUALIZA.
+ *  - Envio com a `chave` já aplicada ao dia (fila offline) não grava nada e responde sucesso.
  *  - Só itens do programa ATIVO do próprio paciente, na própria clínica; repetidos contam 1x.
  *  - Cada dia vira 1 `fisio_records` kind=telemonitoramento (assíncrono, canal portal,
  *    assinado pelo sistema). Reenvio com relato diferente = 1 `adendo` apontando para ele;
@@ -50,13 +51,21 @@ final class CheckinDoPortal
     /**
      * Grava (ou atualiza) o check-in do dia, o telemonitoramento e dispara o jogo.
      *
-     * @param  array{done_item_ids: list<int|string>, vezes?: array<int|string,int|string>, pain: ?int, effort: string, note?: ?string, red_flags?: ?list<string>, crisis?: ?bool}  $dados  já validado no formato
+     * @param  array{done_item_ids: list<int|string>, vezes?: array<int|string,int|string>, pain: ?int, effort: string, note?: ?string, red_flags?: ?list<string>, crisis?: ?bool, chave?: ?string}  $dados  já validado no formato
      * @return array{checkin: Checkin, criado: bool, xp_ganho: int}
      *
      * @throws ValidationException item fora do programa ativo, ou crise sem versão de crise
      */
     public function registrar(Patient $paciente, array $dados): array
     {
+        // Reenvio da fila offline com a chave que JÁ foi aplicada: a resposta é que se perdeu.
+        // Nada é gravado de novo — nem check-in, nem prontuário, nem jogo (UC-FPP-30).
+        $chave = ($dados['chave'] ?? '') !== '' ? (string) $dados['chave'] : null;
+        $hoje = $chave !== null ? $this->checkinDeHoje($paciente) : null;
+        if ($hoje !== null && $hoje->client_key === $chave) {
+            return ['checkin' => $hoje, 'criado' => false, 'xp_ganho' => 0];
+        }
+
         $programa = $this->programaAtivo($paciente);
         $feitos = array_values(array_unique(array_map('intval', $dados['done_item_ids'])));
 
@@ -80,6 +89,7 @@ final class CheckinDoPortal
             'note' => $nota,
             'red_flags' => $flags,
             'crisis' => $crise,
+            'client_key' => $chave,
         ];
         $dia = DiaLocal::de(now());
         $xpAntes = $this->jogo->xpTotal($paciente);
