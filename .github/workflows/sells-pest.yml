@@ -35,6 +35,10 @@ on:
       - 'Modules/ProductCatalogue/Http/Controllers/ProductCatalogueController.php'  # modulos-faltantes 04
       - 'Modules/ProductCatalogue/Services/CatalogueQrService.php'
       - 'app/Transaction.php'
+      - 'app/Observers/TransactionSellLineCustoObserver.php'
+      - 'app/TransactionSellLine.php'
+      - 'database/migrations/2026_10_19_200000_add_custo_previsto_to_transaction_sell_lines.php'
+      - 'Modules/Compras/Services/CustoDoInsumoService.php'
       - 'app/Http/Controllers/SellCommissionSplitController.php'
       - 'app/Http/Controllers/SellController.php'
       - 'app/Http/Controllers/Api/App/PedidosController.php'
@@ -161,6 +165,10 @@ jobs:
               - 'Modules/ProductCatalogue/Http/Controllers/ProductCatalogueController.php'
               - 'Modules/ProductCatalogue/Services/CatalogueQrService.php'
               - 'app/Transaction.php'
+              - 'app/Observers/TransactionSellLineCustoObserver.php'
+              - 'app/TransactionSellLine.php'
+              - 'database/migrations/2026_10_19_200000_add_custo_previsto_to_transaction_sell_lines.php'
+              - 'Modules/Compras/Services/CustoDoInsumoService.php'
               - 'app/Http/Controllers/SellCommissionSplitController.php'
               - 'app/Http/Controllers/SellPosController.php'
               - 'app/Http/Controllers/SellsV3Controller.php'
@@ -408,6 +416,7 @@ jobs:
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-sells-junit.xml \
             tests/Feature/Sells/SellsShowContratoTest.php \
+            tests/Feature/Sells/OrcamentoCustoPrevistoContratoTest.php \
             tests/Feature/Sells/SellsEditContratoTest.php \
             tests/Feature/Sells/SellsIndexTenantContratoTest.php \
             tests/Feature/Sells/SellsIndexFiltroDataFimContratoTest.php \
