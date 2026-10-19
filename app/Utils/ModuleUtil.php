@@ -167,7 +167,9 @@ class ModuleUtil extends Util
     public function hasThePermissionInSubscription($business_id, $permission, $callback_function = null)
     {
         if ($this->isSuperadminInstalled()) {
-            if (auth()->user()->can('superadmin')) {
+            // Rota pública (sem login, ex.: portal do paciente do Fisio) não tem usuário:
+            // sem usuário não há superadmin, e a decisão fica com o pacote da empresa.
+            if (auth()->user()?->can('superadmin')) {
                 return true;
             }
 
