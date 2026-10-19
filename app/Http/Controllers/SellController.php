@@ -3991,7 +3991,9 @@ class SellController extends Controller
         $mudaram = 0;
         $data = null;
 
-        foreach ($sell->sell_lines as $line) {
+        // getRelationValue: as linhas já vieram carregadas no show(); a forma de propriedade
+        // somaria uma ocorrência à exceção de `$sell_lines` da baseline do PHPStan.
+        foreach ($sell->getRelationValue('sell_lines') ?? [] as $line) {
             $prev = $line->custo_previsto !== null ? (float) $line->custo_previsto : null;
             $agora = $line->variation_id ? $custo->naData((int) $sell->business_id, (int) $line->variation_id, $hoje)['custo'] : null;
             $agora = $agora !== null ? (float) $agora : null;

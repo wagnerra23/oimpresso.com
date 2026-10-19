@@ -673,3 +673,6 @@ tests/Feature/Site/PrivacidadeAppContratoTest.php
 tests/Feature/Modules/OficinaAuto/PlacaStubForaDeProducaoTest.php
 tests/Feature/Modules/ModuleManagerServiceTest.php
 Modules/Producao/Tests/Feature/ProducaoModuloAtivacaoTest.php
+
+# [W] 2026-10-19: departamento do sidebar de Produção/Fisio/Arquivos (leitura de fonte, sem DB).
+tests/Feature/Sidebar/DepartamentoDoModuloSidebarTest.php

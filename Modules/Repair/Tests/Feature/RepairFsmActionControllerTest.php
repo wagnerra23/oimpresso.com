@@ -104,6 +104,10 @@ beforeEach(function () {
     foreach (glob(database_path('migrations/2026_05_11_12*_create_sale_*.php')) ?: [] as $f) {
         (require $f)->up();
     }
+    // ADR 0435: `sale_processes.dominio`/`modelo` (2026-10-16). O listener do Producao (#9519,
+    // CriarOsDaVenda::deveCriar) lê essas colunas a cada `sale_stage_history` criado; sem elas a
+    // transição da OS dava 500 aqui, enquanto em produção a coluna existe.
+    (require database_path('migrations/2026_10_16_140000_create_fsm_modelos_empresa_table.php'))->up();
 
     // Hotfix #643 (2026-05-12): startPipeline cria audit log SEM action_id.
     // Migration 2026_05_12_040001_alter_sale_stage_history_action_id_nullable
