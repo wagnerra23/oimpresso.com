@@ -28,9 +28,9 @@ related_adrs:
 
 ### US-FISIO-001 · Trio SDD da F1 e US no SPEC — **P0**
 
-**Implementado em:** `memory/requisitos/Fisio/features/f1-constancia/` (`requirements.md` · `plan.md` · `tasks.md`) · `npm run feature:lint:check` sem erro (1 aviso advisory: `feature-sem-sdd`) · verificado@7e6237c (2026-10-19)
+**Implementado em:** _pendente_ — o trio está em `memory/requisitos/Fisio/features/f1-constancia/` e `npm run feature:lint:check` sai sem erro (2026-10-19), mas nenhum teste declara `@covers-us US-FISIO-001`; por ser documento, a âncora fecha junto com a US-FISIO-012
 
-> owner: wagner · priority: p0 · estimate: 2h · status: done · type: story
+> owner: wagner · priority: p0 · estimate: 2h · status: doing · type: story
 > `npm run sdd:init -- Fisio/f1-constancia --us US-FISIO-001 ...` e `feature-lint --check` verde. Concilia os 4 ajustes do HANDOFF (XP por config, justificativa de contraindicação, busca na F1 condicionada, WhatsApp pelo `ChannelDriverFactory`).
 
 **DoD:** trio `requirements.md` · `plan.md` · `tasks.md` em `features/f1-constancia/` com as US-FISIO-001..012 ligadas, e `npm run feature:lint:check` sem erro.

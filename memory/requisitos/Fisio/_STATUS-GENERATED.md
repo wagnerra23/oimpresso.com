@@ -27,7 +27,7 @@ authority: generated
 
 | Lacuna | O que falta escrever |
 |---|---|
-| `US-FISIO-001` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Trio SDD da F1 e US no SPEC — **P0** |
+| `US-FISIO-001` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Trio SDD da F1 e US no SPEC — **P0** |
 | `US-FISIO-002` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Esqueleto `Modules/Fisio` (ativação por empresa, permissões, |
 | `US-FISIO-003` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Schema, models e append-only de prontuário e ledger do jogo  |
 | `US-FISIO-004` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Biblioteca semeada e revisada pela responsável técnica — **P |
