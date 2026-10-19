@@ -47,6 +47,7 @@ Mostrar detalhe completo de uma venda — linhas, pagamentos, frete, atividades 
 - Atalhos: `E` (edit), `P` (print), `Esc` (voltar /sells)
 - Multi-tenant Tier 0: scope `business_id` no controller (ADR 0093)
 - Permission gate: `sell.view` OR `direct_sell.access` OR `view_own_sell_only`
+- Orçamento aberto (rascunho): faixa com o custo guardado no dia do orçamento ao lado do custo de hoje e as duas margens, e o custo por linha; avisa quando o custo de algum item se afastou mais de 5% (UC-VSHOW-08 · US-SELL-068 · UC-FLX-34). Só para quem tem `view_purchase_price` — sem a permissão, o custo não vai no JSON
 
 ---
 
