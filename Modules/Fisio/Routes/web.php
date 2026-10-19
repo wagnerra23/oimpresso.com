@@ -119,6 +119,7 @@ Route::middleware(['web', 'throttle:60,1'])
     ->where(['token' => '[A-Za-z0-9_\-\.]{1,512}'])
     ->group(function () {
         Route::get('/', [PortalController::class, 'show'])->name('show');
+        Route::get('manifest.webmanifest', [PortalController::class, 'manifest'])->name('manifest');
         Route::post('pin', [PortalController::class, 'pin'])->name('pin');
         Route::post('consentimentos', [PortalController::class, 'consentir'])->name('consentimentos.store');
         Route::delete('consentimentos/{purpose}', [PortalController::class, 'revogar'])->name('consentimentos.destroy');

@@ -106,3 +106,9 @@ export function progressoNivel(j: Jogo): number {
   const total = j.xp_no_nivel + j.xp_para_proximo;
   return total <= 0 ? 0 : Math.round((j.xp_no_nivel / total) * 100);
 }
+
+/** Liga o service worker do app instalável (public/sw-fisio-portal.js · etapa 02 §3.6). Falha calada. */
+export function registrarAppDoPortal(): void {
+  if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.register('/sw-fisio-portal.js', { scope: '/fisio/p/' }).catch(() => undefined);
+}
