@@ -35,7 +35,8 @@ export default function EditorPosto({ posto, veiculo, onClose }: { posto: Posto 
   const [pausa, setPausa] = useState((posto?.motivos.pausa ?? []).join('\n'));
   const [refugo, setRefugo] = useState((posto?.motivos.refugo ?? []).join('\n'));
   // O drawer é um portal: no <body>, fora do `.cockpit`, o `--text-mute` do `.pcv-help` chega
-  // vazio e a ajuda sai branca (medido em 2026-10-19). Monta dentro do `.cockpit` (lápide §5
+  // vazio e a ajuda sai branca (medido em 2026-10-19 por simulação: a regra do bundle no <body>
+  // contra no `.cockpit`, porque a tela devolveu 403 ao usuário medido). Monta dentro do `.cockpit` (lápide §5
   // 2026-10-19). Layout effect: o drawer abre na 1ª renderização e já nasce no lugar certo.
   const [cockpit, setCockpit] = useState<HTMLElement | null>(null);
   useLayoutEffect(() => setCockpit(document.querySelector<HTMLElement>('.cockpit')), []);

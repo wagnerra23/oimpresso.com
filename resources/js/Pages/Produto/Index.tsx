@@ -201,8 +201,9 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
   const [largurasArrastadas, setLargurasArrastadas] = useLargurasGuardadas();
   const [confirmar, setConfirmar] = useState<Confirmacao | null>(null);
   // Os dois diálogos abaixo são portais. No <body>, fora do `.cockpit`, `--warn` e `--text`
-  // chegam vazios: medido em 2026-10-19, o aviso da exclusão saía branco em vez de laranja.
-  // Montam dentro do `.cockpit`, como o painel de detalhe (lápide §5 2026-10-19).
+  // chegam vazios. Medido em produção em 2026-10-19: no "Adicionar ao local", com a janela real,
+  // `--text` vazio; no aviso da exclusão, por simulação (mesma classe no <body>), branco em vez
+  // de laranja. Montam dentro do `.cockpit`, como o painel de detalhe (lápide §5 2026-10-19).
   const [cockpit, setCockpit] = useState<HTMLElement | null>(null);
   useLayoutEffect(() => setCockpit(document.querySelector<HTMLElement>('.cockpit')), []);
   const [localModal, setLocalModal] = useState<'add' | 'remove' | null>(null);
