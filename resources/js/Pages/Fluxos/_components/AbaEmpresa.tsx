@@ -3,8 +3,12 @@
 // Trocar o modelo é pela aba Modelos (gaveta → "Usar este modelo"). Cada regra liga e desliga
 // (PATCH /fluxos/regra) e a Compra é configurável (PATCH /fluxos/compra, regras de fsm-regras.jsx);
 // os dois exigem fluxos.configurar — sem ela os switches ficam só para leitura.
+// A margem mínima do orçamento (PATCH /fluxos/margem, UC-FLXT-19) não vem do protótipo: foi
+// pedida por [W] em 2026-10-19 e usa os mesmos átomos da Compra (Interruptor + campo).
 
+import { useEffect, useState } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
+import { NumericInputPtBR } from '@/Components/ui/numeric-input-ptbr';
 import { Alert, AlertDescription } from '@/Components/ui/alert';
 import { Button } from '@/Components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
@@ -22,6 +26,8 @@ interface Props {
   ligadas: RegrasLigadas;
   compra: RegraCompra[];
   opcoesCompra: MapaOpcoesCompra;
+  /** UC-FLXT-19: margem mínima do orçamento, em % (nula = desligada). */
+  margemMinima: number | null;
   podeConfigurar: boolean;
 }
 
@@ -115,8 +121,53 @@ function CompraRegras({ regras, opcoes, pode }: { regras: RegraCompra[]; opcoes:
   );
 }
 
-export default function AbaEmpresa({ empresa, emUso, portes, atividades, ligadas, compra, opcoesCompra, podeConfigurar }: Props) {
-  const erro = (usePage().props as { errors?: Record<string, string> }).errors?.regra ?? null;
+/**
+ * UC-FLXT-19 · margem mínima do orçamento (UC-FLX-35). Ligada, converter orçamento em venda abaixo
+ * dela exige `sell.aprovar_margem_baixa`; desligada, grava vazio (PATCH /fluxos/margem).
+ */
+function MargemMinima({ valor, pode }: { valor: number | null; pode: boolean }) {
+  const ligada = valor !== null;
+  const gravar = (v: number | null) => router.patch('/fluxos/margem', { margem_minima: v }, salvar);
+  // O campo avisa a cada tecla; grava só ao sair dele, e só se mudou.
+  const [rascunho, setRascunho] = useState<number>(valor ?? 0);
+  useEffect(() => setRascunho(valor ?? 0), [valor]);
+
+  return (
+    <section className="flx-card" aria-label="Margem mínima do orçamento">
+      <div className="flx-cmp">
+        <div className="flx-cmp-r">
+          <Interruptor
+            id="flx-margem-minima"
+            titulo="Margem mínima do orçamento"
+            sub="Abaixo dela, converter o orçamento em venda precisa de quem pode aprovar margem baixa"
+            checked={ligada}
+            disabled={!pode}
+            onChange={(v) => gravar(v ? 20 : null)}
+          />
+          {ligada && (
+            <div className="flx-cmp-p">
+              <label className="flx-busca" htmlFor="flx-margem-minima-pct">
+                <span className="flx-lbl">Margem mínima (%)</span>
+                <NumericInputPtBR
+                  id="flx-margem-minima-pct"
+                  value={rascunho}
+                  precision={1}
+                  disabled={!pode}
+                  onChange={setRascunho}
+                  onBlur={() => { if (rascunho !== valor) gravar(rascunho); }}
+                />
+              </label>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default function AbaEmpresa({ empresa, emUso, portes, atividades, ligadas, compra, opcoesCompra, margemMinima, podeConfigurar }: Props) {
+  const erros = (usePage().props as { errors?: Record<string, string> }).errors;
+  const erro = erros?.regra ?? erros?.margem_minima ?? null;
   const verModelos = (
     <Button size="sm" asChild><Link href="/fluxos?aba=modelos">Ver modelos</Link></Button>
   );
@@ -157,6 +208,7 @@ export default function AbaEmpresa({ empresa, emUso, portes, atividades, ligadas
         </div>
         <Button size="sm" variant="outline" asChild><Link href="/fluxos?aba=modelos">Trocar modelo</Link></Button>
       </div>
+      <MargemMinima valor={margemMinima} pode={podeConfigurar} />
       <div className="flx-procs">
         {emUso.processos.map((p) => {
           const daCompra = p.dominio === 'compra' && compra.length > 0;

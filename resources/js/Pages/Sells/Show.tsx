@@ -99,8 +99,23 @@ interface Activity {
   created_at: string;
 }
 
+/**
+ * UC-VSHOW-08 · custo do orçamento aberto: o guardado no dia ao lado do de hoje.
+ * Só vem preenchido em rascunho e para quem tem `view_purchase_price`.
+ */
+interface CustoOrcamento {
+  data: string | null;
+  linhas: { id: number; previsto: number | null; hoje: number | null; mudou: boolean }[];
+  total_previsto: number;
+  total_hoje: number;
+  margem_prevista_pct: number | null;
+  margem_hoje_pct: number | null;
+  itens_mudaram: number;
+}
+
 interface ShowDetail {
   lines: SaleLine[];
+  custo?: CustoOrcamento | null;
   payments: SalePayment[];
   taxes: { order_taxes: Record<string, number>; line_taxes: Record<string, number> };
   activities: Activity[];
@@ -620,6 +635,52 @@ export default function SellsShow(props: SellsShowPageProps) {
   );
 }
 
+function formatPct(v: number | null): string {
+  return v === null ? '—' : `${v.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
+}
+
+/** UC-VSHOW-08 · faixa do custo do orçamento: avisa quando o custo de hoje se afastou do guardado. */
+function CustoDoOrcamento({ custo }: { custo: CustoOrcamento }) {
+  const mudou = custo.itens_mudaram > 0;
+  // 'AAAA-MM-DD' formatado pelo texto: `new Date()` leria em UTC e mostraria o dia anterior no Brasil.
+  const data = custo.data ? custo.data.slice(0, 10).split('-').reverse().join('/') : null;
+
+  return (
+    <div
+      role={mudou ? 'status' : undefined}
+      data-testid="custo-orcamento"
+      className={
+        'flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-2.5 border-b border-border text-xs '
+        + (mudou ? 'bg-warning-soft text-warning-fg' : 'bg-muted/20 text-muted-foreground')
+      }
+    >
+      <span className="font-medium">
+        {mudou
+          ? `O custo de ${custo.itens_mudaram} item(s) mudou desde o orçamento${data ? ` (${data})` : ''}`
+          : `Custo guardado no orçamento${data ? ` (${data})` : ''}`}
+      </span>
+      <span className="tabular-nums">
+        Custo {formatBRL(custo.total_previsto)} → hoje {formatBRL(custo.total_hoje)}
+      </span>
+      <span className="tabular-nums">
+        Margem {formatPct(custo.margem_prevista_pct)} → {formatPct(custo.margem_hoje_pct)}
+      </span>
+    </div>
+  );
+}
+
+/** Custo da linha (guardado e de hoje), só quando o orçamento trouxe custo. */
+function CustoDaLinha({ linha }: { linha?: CustoOrcamento['linhas'][number] }) {
+  if (!linha || linha.previsto === null) return null;
+
+  return (
+    <div className={'text-xs tabular-nums ' + (linha.mudou ? 'text-warning-fg' : 'text-muted-foreground')}>
+      Custo {formatBRL(linha.previsto)}
+      {linha.hoje !== null && ` · hoje ${formatBRL(linha.hoje)}`}
+    </div>
+  );
+}
+
 interface ShowDetailSectionsProps {
   detail?: ShowDetail;
   headline: Headline;
@@ -639,6 +700,7 @@ function ShowDetailSections({ detail, headline, timelineRefreshKey = 0 }: ShowDe
           <h2 className="font-semibold text-sm">Itens da venda</h2>
           <span className="ml-auto text-xs text-muted-foreground">{detail.lines.length} item(s)</span>
         </div>
+        {detail.custo && <CustoDoOrcamento custo={detail.custo} />}
         {detail.lines.length === 0 ? (
           <EmptyState
             icon="package"
@@ -667,6 +729,7 @@ function ShowDetailSections({ detail, headline, timelineRefreshKey = 0 }: ShowDe
                     {line.product_sku && (
                       <div className="text-xs text-muted-foreground">{line.product_sku}</div>
                     )}
+                    <CustoDaLinha linha={detail.custo?.linhas.find((c) => c.id === line.id)} />
                   </td>
                   <td className="px-3 py-3 text-right tabular-nums">
                     {line.quantity} {line.unit}

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Compras\Services;
 
+use App\Contracts\Compras\CustoDoInsumo;
 use App\Domain\Fsm\Modelos\RegrasCompra;
 use App\Domain\Fsm\Modelos\RegrasDaEmpresa;
 use Carbon\Carbon;
@@ -41,7 +42,7 @@ use InvalidArgumentException;
  *
  * Tier 0 (ADR 0093): sempre o `$businessId` recebido, filtrado em `transactions.business_id`.
  */
-final class CustoDoInsumoService
+final class CustoDoInsumoService implements CustoDoInsumo
 {
     public const METODOS = ['medio', 'ultimo', 'por_insumo'];
 

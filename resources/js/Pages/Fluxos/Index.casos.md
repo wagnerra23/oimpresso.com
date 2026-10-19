@@ -157,6 +157,15 @@ last_run: "2026-10-17"
 - **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-18").
 - **Status: 🧪**
 
+## UC-FLXT-19 · Quem configura define a margem mínima do orçamento
+- **Persona:** dono que não quer orçamento convertido em venda com margem abaixo de um piso (UC-FLX-35).
+- **Aceite:** Dado uma empresa com modelo em uso · Quando quem tem `fluxos.configurar` grava uma margem
+  mínima entre 0 e 100 na aba Fluxos da empresa · Então ela fica gravada só para a empresa da sessão e
+  aparece na aba · Quando apaga o valor · Então a regra fica desligada · E dado um valor fora de 0–100
+  · Então recebe erro e nada muda · E sem `fluxos.configurar` recebe 403.
+- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-19").
+- **Status: 🧪**
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste)
