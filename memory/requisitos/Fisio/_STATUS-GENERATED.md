@@ -20,15 +20,15 @@ authority: generated
 | CU no SDD | 0 |
 | Telas (.tsx) | 5 |
 | Telas com `casos.md` | 6 |
-| UC declarados | 88 |
-| UC com teste que os cita | 88 |
+| UC declarados | 89 |
+| UC com teste que os cita | 89 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
 | Lacuna | O que falta escrever |
 |---|---|
 | `US-FISIO-003` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Schema, models e append-only de prontuário e ledger do jogo  |
-| `US-FISIO-004` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Biblioteca semeada e revisada pela responsável técnica — **P |
+| `US-FISIO-004` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Biblioteca semeada e revisada pela responsável técnica — **P |
 | `US-FISIO-005` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0 |
 | `US-FISIO-006` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Editor de programa, protocolos-modelo e aviso de contraindic |
 | `US-FISIO-010` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Painel, evolução e fila de atenção — **P0** |
@@ -61,6 +61,7 @@ authority: generated
 | UC-FBI-08 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-09 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-10 | Biblioteca/Index | 🧪 aguarda veredito da lane |
+| UC-FBI-11 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FJG-01 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
 | UC-FJG-02 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
 | UC-FJG-03 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |

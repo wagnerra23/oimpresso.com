@@ -515,6 +515,9 @@ jobs:
         # nome da clínica, tela do dia guardada no aparelho só quando ele está lembrado, e o
         # service worker public/sw-fisio-portal.js (está no gatilho acima) (UC-FPP-26..28).
         #
+        # ENTRA 2026-10-19 — Fisio/BibliotecaL0Test (US-FISIO-004): os 38 exercícios do lote L0
+        # (aprovados pela responsável técnica) no vocabulário das listas fechadas (UC-FBI-11).
+        #
         # ENTRA 2026-10-18 — Fisio/FisioBibliotecaMidiaTest: foto/vídeo do exercício próprio pelo
         # backbone Modules/Arquivos (biz-{id}/), servida por rota que confere empresa (98 lê, 99
         # 404), global 403, limites e declaração no servidor, remoção só da dona (UC-FBI-05..07).
@@ -634,6 +637,7 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioPortalLinkTest.php \
             Modules/Fisio/Tests/Feature/FisioWhatsappJobTest.php \
             Modules/Fisio/Tests/Unit/AgendaDeEnvioTest.php \
+            Modules/Fisio/Tests/Unit/BibliotecaL0Test.php \
             Modules/Fisio/Tests/Feature/FisioCheckinTest.php \
             Modules/Fisio/Tests/Feature/FisioJogoTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalSegurancaClinicaTest.php \
