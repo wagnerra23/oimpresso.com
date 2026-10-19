@@ -34,18 +34,27 @@ final class MensagensFisio
     }
 
     /**
-     * A mensagem gravada no módulo Whatsapp é deste envio do Fisio? Usado pelo fallback do painel
-     * (T-09e) para não confundir com mensagem de outro módulo ao mesmo telefone. Fica aqui, ao lado
-     * dos textos, para os dois mudarem juntos.
+     * A mensagem gravada no módulo Whatsapp é deste envio do Fisio, PARA ESTE paciente? Usado pelo
+     * fallback do painel (T-09e). O telefone sozinho não basta: outro módulo escreve para o mesmo
+     * número, e dois pacientes podem ter o celular do mesmo responsável. Por isso o texto é casado
+     * com o nome: exato no lembrete, pela saudação no link do programa. O código (PIN) não leva
+     * nome (ver `ehCodigo`). Fica ao lado dos textos para os dois mudarem juntos.
      */
-    public static function pertenceAo(string $tipo, string $body): bool
+    public static function pertenceAo(string $tipo, string $body, string $nome, string $clinica): bool
     {
+        $ola = $nome !== '' ? "Olá, {$nome}!" : 'Olá!';
+
         return match ($tipo) {
-            EnvioWhatsappFisio::LEMBRETE => str_contains($body, 'Hoje é dia dos seus exercícios com'),
-            EnvioWhatsappFisio::PROGRAMA => str_contains($body, 'preparou seus exercícios de casa')
-                || str_starts_with($body, 'Seu código de acesso aos exercícios'),
+            EnvioWhatsappFisio::LEMBRETE => $body === self::lembrete($nome, $clinica),
+            EnvioWhatsappFisio::PROGRAMA => str_starts_with($body, "{$ola} {$clinica} preparou seus exercícios de casa.")
+                || self::ehCodigo($body),
             default => false,
         };
+    }
+
+    public static function ehCodigo(string $body): bool
+    {
+        return str_starts_with($body, 'Seu código de acesso aos exercícios');
     }
 
     /** Link `wa.me` para o profissional enviar do próprio aparelho (canal manual, ADR 0437 §13.1 (c)). */

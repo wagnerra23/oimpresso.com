@@ -54,7 +54,7 @@ final class EnviosFalhosDoDia
 
         foreach ($this->reservas($businessId, $hoje) as [$reserva, $paciente, $tipo]) {
             $comReserva[$tipo][(int) $paciente->id] = true;
-            $bodies = $this->mensagens($businessId, $paciente, $tipo, Carbon::parse($reserva->created_at));
+            $bodies = $this->mensagens($businessId, $paciente, $tipo, Carbon::parse($reserva->created_at), $clinica);
             $saida = (string) ($reserva->properties?->get('saida') ?? '');
             $saida = $saida !== '' ? Carbon::parse($saida) : Carbon::parse($reserva->created_at);
 
@@ -132,7 +132,7 @@ final class EnviosFalhosDoDia
      *
      * @return array<string, list<array{status: string, failed_reason: ?string, created_at: string}>>
      */
-    private function mensagens(int $businessId, Patient $paciente, string $tipo, Carbon $desde): array
+    private function mensagens(int $businessId, Patient $paciente, string $tipo, Carbon $desde, string $clinica): array
     {
         $fone = (string) DB::table('contacts')
             ->where('business_id', $businessId)
@@ -153,10 +153,20 @@ final class EnviosFalhosDoDia
             ->orderBy('m.id')
             ->get(['m.body', 'm.status', 'm.failed_reason', 'm.created_at']);
 
+        // Celular de um responsável usado por dois pacientes: o código do portal não leva nome, então
+        // só é atribuído quando nenhum outro paciente da empresa usa o mesmo número.
+        $compartilhado = DB::table('fisio_patients as fp')
+            ->join('contacts as ct', 'ct.id', '=', 'fp.contact_id')
+            ->where('fp.business_id', $businessId)
+            ->where('ct.business_id', $businessId)
+            ->where('ct.mobile', $fone)
+            ->count() > 1;
+
+        $nome = $this->envio->primeiroNome($paciente);
         $porCorpo = [];
         foreach ($linhas as $l) {
             $body = (string) $l->body;
-            if (MensagensFisio::pertenceAo($tipo, $body)) {
+            if (MensagensFisio::pertenceAo($tipo, $body, $nome, $clinica) && ! ($compartilhado && MensagensFisio::ehCodigo($body))) {
                 $porCorpo[$body][] = ['status' => (string) $l->status, 'failed_reason' => $l->failed_reason, 'created_at' => (string) $l->created_at];
             }
         }

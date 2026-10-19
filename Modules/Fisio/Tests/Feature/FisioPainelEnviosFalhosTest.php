@@ -59,9 +59,17 @@ function fpnMensagem(int $biz, int $phoneId, Patient $p, string $body, string $s
     ]);
 }
 
-function fpnPacienteComLembrete(int $biz, int $userId, bool $consentir = true): Patient
+/** Lembrete exato que o job manda para este paciente (o painel casa pelo texto com o nome). */
+function fpnLembrete(Patient $p): string
 {
-    $p = F::paciente($biz, $userId);
+    $envio = app(EnvioWhatsappFisio::class);
+
+    return MensagensFisio::lembrete($envio->primeiroNome($p), $envio->nomeDaClinica((int) $p->business_id));
+}
+
+function fpnPacienteComLembrete(int $biz, int $userId, bool $consentir = true, string $mobile = '48999990000', string $nome = 'Paciente Fixture'): Patient
+{
+    $p = F::paciente($biz, $userId, ['contact_id' => F::contato($biz, $userId, $nome, $mobile)]);
     F::programa($p, [F::exercicio(null)], $userId);
     if ($consentir) {
         F::consentir($p, 'whatsapp');
@@ -78,7 +86,7 @@ function fpnFalhos($t, $user): \Illuminate\Support\Collection
 
 it('UC-FPN-09 · lembrete cujas tentativas falharam aparece com o link wa.me do mesmo texto', function () {
     $p = fpnPacienteComLembrete($this->b98, $this->u98->id);
-    $texto = MensagensFisio::lembrete(app(EnvioWhatsappFisio::class)->primeiroNome($p), app(EnvioWhatsappFisio::class)->nomeDaClinica($this->b98));
+    $texto = fpnLembrete($p);
     fpnMensagem($this->b98, $this->fone98, $p, $texto, 'failed', 'timeout');
     fpnMensagem($this->b98, $this->fone98, $p, $texto, 'failed', 'session_lost');
 
@@ -95,7 +103,8 @@ it('UC-FPN-09 · programa: só a mensagem que falhou vira link; a que chegou nã
     $prog = F::programa($p, [F::exercicio(null)], $this->u98->id);
     F::consentir($p, 'whatsapp');
     app(EnvioWhatsappFisio::class)->reservar($p, EnvioWhatsappFisio::PROGRAMA, fn () => true, ['program_id' => $prog->id]);
-    $link = MensagensFisio::link('Ana', 'Clínica', 'https://exemplo/fisio/p/tok');
+    $envio = app(EnvioWhatsappFisio::class);
+    $link = MensagensFisio::link($envio->primeiroNome($p), $envio->nomeDaClinica($this->b98), 'https://exemplo/fisio/p/tok');
     fpnMensagem($this->b98, $this->fone98, $p, $link, 'failed', 'erro');
     fpnMensagem($this->b98, $this->fone98, $p, MensagensFisio::pin('1234'), 'sent');
 
@@ -107,13 +116,12 @@ it('UC-FPN-09 · programa: só a mensagem que falhou vira link; a que chegou nã
 
 it('UC-FPN-09 · envio que chegou em alguma tentativa não aparece', function () {
     $p = fpnPacienteComLembrete($this->b98, $this->u98->id);
-    $texto = MensagensFisio::lembrete('X', 'Y');
-    fpnMensagem($this->b98, $this->fone98, $p, $texto, 'failed', 'timeout');
-    fpnMensagem($this->b98, $this->fone98, $p, $texto, 'sent');
+    fpnMensagem($this->b98, $this->fone98, $p, fpnLembrete($p), 'failed', 'timeout');
+    fpnMensagem($this->b98, $this->fone98, $p, fpnLembrete($p), 'sent');
 
     // Controle positivo: outro paciente com falha aparece — a lista não está vazia por acaso.
-    $outro = fpnPacienteComLembrete($this->b98, $this->u98->id);
-    fpnMensagem($this->b98, $this->fone98, $outro, $texto, 'failed', 'timeout');
+    $outro = fpnPacienteComLembrete($this->b98, $this->u98->id, mobile: '48988880000');
+    fpnMensagem($this->b98, $this->fone98, $outro, fpnLembrete($outro), 'failed', 'timeout');
 
     $lista = fpnFalhos($this, $this->u98);
     expect($lista->has('lembrete:'.$p->id))->toBeFalse()
@@ -122,9 +130,9 @@ it('UC-FPN-09 · envio que chegou em alguma tentativa não aparece', function ()
 
 it('UC-FPN-09 · falha de outra clínica não aparece no painel da 98', function () {
     $p99 = fpnPacienteComLembrete($this->b99, $this->u99->id);
-    fpnMensagem($this->b99, $this->fone99, $p99, MensagensFisio::lembrete('X', 'Y'), 'failed', 'timeout');
+    fpnMensagem($this->b99, $this->fone99, $p99, fpnLembrete($p99), 'failed', 'timeout');
     $p98 = fpnPacienteComLembrete($this->b98, $this->u98->id);
-    fpnMensagem($this->b98, $this->fone98, $p98, MensagensFisio::lembrete('X', 'Y'), 'failed', 'timeout');
+    fpnMensagem($this->b98, $this->fone98, $p98, fpnLembrete($p98), 'failed', 'timeout');
 
     $ids = fpnFalhos($this, $this->u98)->pluck('patient_id')->all();
 
@@ -133,7 +141,7 @@ it('UC-FPN-09 · falha de outra clínica não aparece no painel da 98', function
 
 it('UC-FPN-09 · paciente sem consentimento de WhatsApp aparece sem link (LGPD)', function () {
     $p = fpnPacienteComLembrete($this->b98, $this->u98->id, consentir: false);
-    fpnMensagem($this->b98, $this->fone98, $p, MensagensFisio::lembrete('X', 'Y'), 'failed', 'timeout');
+    fpnMensagem($this->b98, $this->fone98, $p, fpnLembrete($p), 'failed', 'timeout');
 
     $item = fpnFalhos($this, $this->u98)->get('lembrete:'.$p->id);
 
@@ -144,12 +152,24 @@ it('UC-FPN-09 · paciente sem consentimento de WhatsApp aparece sem link (LGPD)'
 
 it('UC-FPN-09 · sem fisio.editar a lista vem sem link (o programa leva o código do portal)', function () {
     $p = fpnPacienteComLembrete($this->b98, $this->u98->id);
-    fpnMensagem($this->b98, $this->fone98, $p, MensagensFisio::lembrete('X', 'Y'), 'failed', 'timeout');
+    fpnMensagem($this->b98, $this->fone98, $p, fpnLembrete($p), 'failed', 'timeout');
     $leitor = $this->usuarioComPermissoes([F::PERM_ACESSO], $this->seededTenant());
 
     $item = fpnFalhos($this, $leitor)->get('lembrete:'.$p->id);
 
     expect($item['wa_me'])->toBe([])->and($item['sem_link'])->toBe('sem_permissao');
+});
+
+it('UC-FPN-09 · celular compartilhado: a falha de um paciente não vira falha do outro', function () {
+    $irmao1 = fpnPacienteComLembrete($this->b98, $this->u98->id, mobile: '48977770000', nome: 'Ana Fixture');
+    $irmao2 = fpnPacienteComLembrete($this->b98, $this->u98->id, mobile: '48977770000', nome: 'Bia Fixture');
+    fpnMensagem($this->b98, $this->fone98, $irmao1, fpnLembrete($irmao1), 'failed', 'timeout');
+    fpnMensagem($this->b98, $this->fone98, $irmao2, fpnLembrete($irmao2), 'sent');
+
+    $lista = fpnFalhos($this, $this->u98);
+
+    expect($lista->has('lembrete:'.$irmao1->id))->toBeTrue()
+        ->and($lista->has('lembrete:'.$irmao2->id))->toBeFalse();
 });
 
 it('UC-FPN-09 · canal da clínica caído: quem ficou sem lembrete aparece; sem consentimento, não', function () {
