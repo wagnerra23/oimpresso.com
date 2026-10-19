@@ -6,7 +6,7 @@
 // que vai para o prontuário. Nada deste aviso aparece para o paciente.
 import { router } from '@inertiajs/react';
 import { useMemo, useState, type FormEvent } from 'react';
-import { ArrowDown, ArrowUp, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, Printer, Trash2 } from 'lucide-react';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
@@ -463,6 +463,16 @@ export default function EditorPrograma({ pacienteId, podeEditar, programa, exerc
       {programa ? (
         <>
           <Cabecalho key={programa.id} programa={programa} podeEditar={podeEditar} />
+          {/* B-12 (UC-FPS-37): folha A4 para quem prefere papel. Sem QR: o link do portal não é guardado em claro, e gerar outro derrubaria o do paciente. */}
+          <div className="flex flex-wrap items-center gap-2">
+            <Button size="sm" variant="outline" asChild>
+              <a href={`/fisio/programas/${programa.id}/folha.pdf`} target="_blank" rel="noopener noreferrer">
+                <Printer className="size-4" aria-hidden="true" />
+                Imprimir folha
+              </a>
+            </Button>
+            <span className="text-xs text-muted-foreground">Sai sem o QR do portal: o paciente segue usando o link e o PIN que já recebeu.</span>
+          </div>
           {programa.itens.length === 0 ? (
             <p className="text-sm text-muted-foreground">O programa ainda não tem exercícios.</p>
           ) : (
