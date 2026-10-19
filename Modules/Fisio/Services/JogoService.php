@@ -7,6 +7,7 @@ namespace Modules\Fisio\Services;
 use DateTimeInterface;
 use Illuminate\Support\Facades\DB;
 use Modules\Fisio\Entities\Checkin;
+use Modules\Fisio\Entities\Desafio;
 use Modules\Fisio\Entities\GameLedger;
 use Modules\Fisio\Entities\Patient;
 use Modules\Fisio\Entities\Program;
@@ -31,6 +32,9 @@ use Modules\Fisio\Entities\ProgramItem;
  *  - Dor ≥ limiar ou sinal de alerta PAUSA o jogo (estado()['em_pausa']) sem tirar XP nem
  *    quebrar a sequência; o registro do dia pontua sempre. A clínica vê o paciente na fila de
  *    atenção do painel pelo mesmo limiar (limiarDeDor()).
+ *  - Missões e desafio semanal (T-08c) entram pela MESMA transação do check-in, só pelo
+ *    prescrito (MissoesCalculator), até `teto_semanal_bonus` por semana e dentro do teto
+ *    semanal. Recusar o desafio não lança nada nem tira nada. Medalhas são derivadas (0 XP).
  *  - Escopo: tudo filtrado pelo business_id do próprio check-in/paciente — no portal não há
  *    sessão de usuário e o global scope não age; o filtro explícito age sempre.
  */
@@ -44,6 +48,8 @@ final class JogoService
         private readonly NivelCalculator $niveis,
         private readonly SequenciaCalculator $sequencia,
         private readonly LimiarDorCalculator $limiar,
+        private readonly MissoesCalculator $missoes,
+        private readonly MedalhasCalculator $medalhas,
     ) {}
 
     /**
@@ -71,7 +77,7 @@ final class JogoService
             (int) config('fisio.jogo.normalizacao_dias_base', 4),
         );
 
-        return DB::transaction(function () use ($checkin, $biz, $paciente, $dia, $alvo): array {
+        return DB::transaction(function () use ($checkin, $biz, $paciente, $dia, $alvo, $vezes): array {
             // Serializa reenvios simultâneos do mesmo dia: quem chega depois espera e vê o lançado.
             Checkin::query()->where('business_id', $biz)->whereKey($checkin->id)->lockForUpdate()->first();
 
@@ -98,11 +104,179 @@ final class JogoService
                 }
             }
 
+            $this->lancarBonus($checkin, $biz, (int) $paciente->id, $dia, $seg, $dom, $vezes);
+
             return [
                 XpDoDiaCalculator::RAZAO_EXERCICIO => $lancar[XpDoDiaCalculator::RAZAO_EXERCICIO],
                 XpDoDiaCalculator::RAZAO_CHECKIN => $lancar[XpDoDiaCalculator::RAZAO_CHECKIN],
             ];
         });
+    }
+
+    /**
+     * Missões cumpridas no dia e desafio da semana batido. Cada um lança uma vez (pelo `ref`);
+     * o XP é o configurado, limitado ao que sobra do bônus e do teto da semana. Pode ser 0: a
+     * linha fica como registro de que a missão foi cumprida.
+     *
+     * @param  array<int|string,int|string>  $vezes
+     */
+    private function lancarBonus(Checkin $checkin, int $biz, int $pacienteId, string $dia, string $seg, string $dom, array $vezes): void
+    {
+        $semana = GameLedger::query()->where('business_id', $biz)->where('patient_id', $pacienteId)->whereBetween('date', [$seg, $dom]);
+        $total = (int) (clone $semana)->sum('xp');
+        $bonus = (int) (clone $semana)->whereIn('reason', [GameLedger::REASON_MISSAO, GameLedger::REASON_DESAFIO])->sum('xp');
+        $tetoBonus = (int) config('fisio.jogo.teto_semanal_bonus', 100);
+        $teto = (int) config('fisio.jogo.teto_semanal', 500);
+        $lancar = function (string $razao, string $ref, int $xp) use ($biz, $pacienteId, $dia, &$total, &$bonus, $tetoBonus, $teto): void {
+            $valor = max(0, min($xp, $tetoBonus - $bonus, $teto - $total));
+            GameLedger::query()->create(['business_id' => $biz, 'patient_id' => $pacienteId, 'date' => $dia, 'reason' => $razao, 'ref' => $ref, 'xp' => $valor]);
+            $total += $valor;
+            $bonus += $valor;
+        };
+
+        $xpMissao = (int) config('fisio.jogo.xp.missao', 10);
+        if ($xpMissao > 0) {
+            $prescritos = $this->prescritosComNome($biz, $checkin->program_id);
+            $feitas = $this->vezesFeitas((array) ($checkin->done_item_ids ?? []), $vezes);
+            $vezesPrescritas = array_column($prescritos, 'times_per_day', 'id');
+            $jaFeitas = $this->missoesDoDia($biz, $pacienteId, $dia);
+            foreach ($this->missoes->doDia($prescritos, self::semente($biz, $pacienteId, $dia)) as $m) {
+                if (! in_array($m['chave'], $jaFeitas, true) && $this->missoes->cumprida($m, true, $feitas, $vezesPrescritas)) {
+                    $lancar(GameLedger::REASON_MISSAO, $m['chave'], $xpMissao);
+                }
+            }
+        }
+
+        $desafio = $this->desafioDaSemana($biz, $pacienteId, $seg);
+        if ($desafio !== null && $desafio->accepted && ! $this->desafioPago($biz, $pacienteId, $seg)
+            && $this->diasCumpridosNaSemana($biz, $pacienteId, $seg, $dom) >= (int) $desafio->target_days) {
+            $lancar(GameLedger::REASON_DESAFIO, $seg, (int) config('fisio.jogo.xp.desafio_semanal', 40));
+        }
+    }
+
+    /**
+     * Missões de hoje, desafio da semana e medalhas, para o portal. Sem ranking.
+     *
+     * @return array{missoes: list<array{chave:string, texto:string, cumprida:bool}>, desafio: array{semana:string, oferecido:bool, decidido:bool, aceito:bool, meta:?int, opcoes:list<int>, cumpridos:int, pago:bool}, medalhas: list<array{codigo:string, nome:string}>}
+     */
+    public function constancia(Patient $p, ?DateTimeInterface $agora = null): array
+    {
+        $biz = (int) $p->business_id;
+        $pid = (int) $p->id;
+        $hoje = DiaLocal::de($agora ?? now());
+        [$seg, $dom] = $this->semana($hoje);
+        $programa = $this->programaAtivo($p);
+        $feitas = $this->missoesDoDia($biz, $pid, $hoje);
+        $missoes = [];
+        foreach ($this->missoes->doDia($this->prescritosComNome($biz, $programa?->id), self::semente($biz, $pid, $hoje)) as $m) {
+            $missoes[] = ['chave' => $m['chave'], 'texto' => $m['texto'], 'cumprida' => in_array($m['chave'], $feitas, true)];
+        }
+
+        $desafio = $this->desafioDaSemana($biz, $pid, $seg);
+        $n = (int) $p->sessions_per_week;
+        $checkins = $this->checkinsDoPaciente($p, DiaLocal::somar($hoje, -self::HISTORICO_DIAS), $hoje);
+        $medalhas = $this->medalhas->ganhas($checkins, $n, $this->limiarDeDor($programa, $checkins), $this->nivel($p));
+
+        return [
+            'missoes' => $missoes,
+            'desafio' => [
+                'semana' => $seg,
+                // Oferta só na segunda (etapa 02 §3.4); a decisão vale a semana toda.
+                'oferecido' => $desafio === null && $hoje === $seg && $programa !== null,
+                'decidido' => $desafio !== null,
+                'aceito' => (bool) ($desafio?->accepted ?? false),
+                'meta' => $desafio?->target_days !== null ? (int) $desafio->target_days : null,
+                'opcoes' => self::opcoesDeMeta($n),
+                'cumpridos' => $this->diasCumpridosNaSemana($biz, $pid, $seg, $dom),
+                'pago' => $this->desafioPago($biz, $pid, $seg),
+            ],
+            'medalhas' => array_map(fn (string $c) => ['codigo' => $c, 'nome' => MedalhasCalculator::MEDALHAS[$c]], $medalhas),
+        ];
+    }
+
+    /**
+     * Aceitar (com meta n−1 ou n) ou recusar o desafio desta semana. Só na segunda e uma decisão
+     * por semana. Recusar grava a recusa e não toca no ledger.
+     *
+     * @return bool false quando não há oferta hoje, a meta não é das opções, ou a semana já foi decidida
+     */
+    public function decidirDesafio(Patient $p, bool $aceitar, ?int $meta, ?DateTimeInterface $agora = null): bool
+    {
+        $biz = (int) $p->business_id;
+        $hoje = DiaLocal::de($agora ?? now());
+        [$seg] = $this->semana($hoje);
+        if ($hoje !== $seg || $this->programaAtivo($p) === null || $this->desafioDaSemana($biz, (int) $p->id, $seg) !== null) {
+            return false;
+        }
+        if ($aceitar && ! in_array($meta, self::opcoesDeMeta((int) $p->sessions_per_week), true)) {
+            return false;
+        }
+        Desafio::query()->create([
+            'business_id' => $biz,
+            'patient_id' => (int) $p->id,
+            'week_start' => $seg,
+            'accepted' => $aceitar,
+            'target_days' => $aceitar ? $meta : null,
+        ]);
+
+        return true;
+    }
+
+    /** @return list<int> "Cumprir n−1 ou n dos n dias" (com meta 1, só 1) */
+    public static function opcoesDeMeta(int $n): array
+    {
+        return array_values(array_unique(array_filter([$n - 1, $n], fn (int $v) => $v >= 1)));
+    }
+
+    private static function semente(int $biz, int $pacienteId, string $dia): string
+    {
+        return "{$biz}:{$pacienteId}:{$dia}";
+    }
+
+    /** @return list<string> chaves das missões já lançadas no dia */
+    private function missoesDoDia(int $biz, int $pacienteId, string $dia): array
+    {
+        return GameLedger::query()->where('business_id', $biz)->where('patient_id', $pacienteId)->whereDate('date', $dia)
+            ->where('reason', GameLedger::REASON_MISSAO)->pluck('ref')->map(fn ($r) => (string) $r)->all();
+    }
+
+    private function desafioDaSemana(int $biz, int $pacienteId, string $seg): ?Desafio
+    {
+        return Desafio::query()->where('business_id', $biz)->where('patient_id', $pacienteId)->whereDate('week_start', $seg)->first();
+    }
+
+    private function desafioPago(int $biz, int $pacienteId, string $seg): bool
+    {
+        return GameLedger::query()->where('business_id', $biz)->where('patient_id', $pacienteId)
+            ->where('reason', GameLedger::REASON_DESAFIO)->where('ref', $seg)->exists();
+    }
+
+    /** Dias da semana que somam (exercício feito ou versão de crise), como na sequência. */
+    private function diasCumpridosNaSemana(int $biz, int $pacienteId, string $seg, string $dom): int
+    {
+        $n = 0;
+        foreach (Checkin::query()->where('business_id', $biz)->where('patient_id', $pacienteId)->whereBetween('date', [$seg, $dom])->get() as $c) {
+            $calc = self::paraCalculo($c);
+            $n += ($calc['done_count'] >= 1 || $calc['crise']) ? 1 : 0;
+        }
+
+        return $n;
+    }
+
+    /** @return list<array{id:int, nome:string, times_per_day:int}> */
+    private function prescritosComNome(int $biz, ?int $programId): array
+    {
+        if ($programId === null) {
+            return [];
+        }
+        $out = [];
+        foreach (ProgramItem::query()->where('fisio_program_items.business_id', $biz)->where('fisio_program_items.program_id', $programId)
+            ->join('fisio_exercises', 'fisio_exercises.id', '=', 'fisio_program_items.exercise_id')
+            ->orderBy('fisio_program_items.position')->orderBy('fisio_program_items.id')->get(['fisio_program_items.id', 'fisio_program_items.times_per_day', 'fisio_exercises.name']) as $i) {
+            $out[] = ['id' => (int) $i->id, 'nome' => (string) $i->getAttribute('name'), 'times_per_day' => (int) $i->times_per_day];
+        }
+
+        return $out;
     }
 
     /** XP total do paciente: soma do ledger (não existe coluna de XP). */

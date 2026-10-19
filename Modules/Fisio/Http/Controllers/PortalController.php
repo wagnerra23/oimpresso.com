@@ -115,7 +115,44 @@ class PortalController extends Controller
             'crise' => ['itens' => $this->checkins->versaoDeCrise($programa)],
             'relato' => $deHoje !== null ? $this->relatoDeHoje($deHoje) : null,
             'red_flags' => array_values(array_map('strval', (array) config('fisio.red_flags', []))),
+            // Missões, desafio e medalhas (T-08c): só fora da pausa — no dia ruim o jogo sai da tela.
+            'constancia' => $this->jogo->constancia($paciente),
         ]));
+    }
+
+    /**
+     * Desafio semanal (T-08c · UC-FPP-34): aceitar com meta n−1 ou n, ou recusar. Mesmos portões
+     * do check-in. 200 decidido · 409 sem oferta hoje ou semana já decidida · 422 meta inválida.
+     * Recusar não tira XP: só grava a recusa.
+     */
+    public function desafio(Request $request, string $token): JsonResponse
+    {
+        $linha = $this->tokens->resolver($token);
+        if ($linha === null) {
+            return $this->linkInvalido();
+        }
+        if (! $this->pinAceito($request, $linha)) {
+            return response()->json(['erro' => 'pin_pendente'], 403);
+        }
+        $paciente = $this->pacienteDe($linha);
+        if (! $this->consentimentos->vigente($paciente, Consentimentos::TELEATENDIMENTO)) {
+            return response()->json(['erro' => 'consentimento_pendente'], 403);
+        }
+
+        $dados = $request->validate([
+            'aceitar' => ['required', 'boolean'],
+            'meta' => ['nullable', 'integer', 'between:1,7'],
+        ]);
+        $aceitar = (bool) $dados['aceitar'];
+        $meta = isset($dados['meta']) ? (int) $dados['meta'] : null;
+        if ($aceitar && ! in_array($meta, JogoService::opcoesDeMeta((int) $paciente->sessions_per_week), true)) {
+            return response()->json(['erro' => 'meta_invalida'], 422);
+        }
+        if (! $this->jogo->decidirDesafio($paciente, $aceitar, $meta)) {
+            return response()->json(['erro' => 'sem_oferta'], 409);
+        }
+
+        return response()->json(['constancia' => $this->jogo->constancia($paciente)]);
     }
 
     /**
@@ -323,6 +360,7 @@ class PortalController extends Controller
             'checkin_id' => (int) $checkin->id,
             'xp_ganho' => $r['xp_ganho'],
             'jogo' => $this->jogo->estado($paciente),
+            'constancia' => $this->jogo->constancia($paciente),
         ], $status);
     }
 

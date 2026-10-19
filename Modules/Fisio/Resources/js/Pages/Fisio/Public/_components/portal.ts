@@ -23,6 +23,13 @@ export interface Jogo {
   dias_cumpridos: number;
 }
 
+/** Missões do dia, desafio da semana e medalhas (T-08c) — JogoService::constancia(). */
+export interface Constancia {
+  missoes: { chave: string; texto: string; cumprida: boolean }[];
+  desafio: { semana: string; oferecido: boolean; decidido: boolean; aceito: boolean; meta: number | null; opcoes: number[]; cumpridos: number; pago: boolean };
+  medalhas: { codigo: string; nome: string }[];
+}
+
 export interface Relato {
   feitos: number[];
   dor: number | null;

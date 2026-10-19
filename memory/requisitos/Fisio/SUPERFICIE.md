@@ -14,7 +14,7 @@ module: Fisio
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Fisio/**` + `resources/js/Pages/Fisio/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 167 arquivos em 19 papéis.
+**Total mapeado:** 175 arquivos em 19 papéis.
 
 ## Controllers — 16
 
@@ -39,7 +39,7 @@ module: Fisio
 
 - [FisioLiberado.php](../../../Modules/Fisio/Http/Middleware/FisioLiberado.php)
 
-## Services — 28
+## Services — 30
 
 - [AdesaoCalculator.php](../../../Modules/Fisio/Services/AdesaoCalculator.php)
 - [AparelhosDoPortal.php](../../../Modules/Fisio/Services/AparelhosDoPortal.php)
@@ -53,8 +53,10 @@ module: Fisio
 - [JogoService.php](../../../Modules/Fisio/Services/JogoService.php)
 - [LimiarDorCalculator.php](../../../Modules/Fisio/Services/LimiarDorCalculator.php)
 - [LinguagemAnvisa.php](../../../Modules/Fisio/Services/LinguagemAnvisa.php)
+- [MedalhasCalculator.php](../../../Modules/Fisio/Services/MedalhasCalculator.php)
 - [MetaSemanal.php](../../../Modules/Fisio/Services/MetaSemanal.php)
 - [MidiaExercicio.php](../../../Modules/Fisio/Services/MidiaExercicio.php)
+- [MissoesCalculator.php](../../../Modules/Fisio/Services/MissoesCalculator.php)
 - [NivelCalculator.php](../../../Modules/Fisio/Services/NivelCalculator.php)
 - [PainelFisio.php](../../../Modules/Fisio/Services/PainelFisio.php)
 - [PortalTokenService.php](../../../Modules/Fisio/Services/PortalTokenService.php)
@@ -70,12 +72,13 @@ module: Fisio
 - [MensagensFisio.php](../../../Modules/Fisio/Services/Whatsapp/MensagensFisio.php)
 - [XpDoDiaCalculator.php](../../../Modules/Fisio/Services/XpDoDiaCalculator.php)
 
-## Models / Entities — 15
+## Models / Entities — 16
 
 - [Checkin.php](../../../Modules/Fisio/Entities/Checkin.php)
 - [EscopoBibliotecaFisio.php](../../../Modules/Fisio/Entities/Concerns/EscopoBibliotecaFisio.php)
 - [SemExclusaoDeDadoClinico.php](../../../Modules/Fisio/Entities/Concerns/SemExclusaoDeDadoClinico.php)
 - [Consent.php](../../../Modules/Fisio/Entities/Consent.php)
+- [Desafio.php](../../../Modules/Fisio/Entities/Desafio.php)
 - [Exercise.php](../../../Modules/Fisio/Entities/Exercise.php)
 - [ExerciseFavorite.php](../../../Modules/Fisio/Entities/ExerciseFavorite.php)
 - [GameLedger.php](../../../Modules/Fisio/Entities/GameLedger.php)
@@ -111,7 +114,7 @@ module: Fisio
 
 - [web.php](../../../Modules/Fisio/Routes/web.php)
 
-## Migrations (schema) — 8
+## Migrations (schema) — 9
 
 - [2026_10_18_000001_create_fisio_tables.php](../../../Modules/Fisio/Database/Migrations/2026_10_18_000001_create_fisio_tables.php)
 - [2026_10_18_000002_add_synonyms_to_fisio_exercises.php](../../../Modules/Fisio/Database/Migrations/2026_10_18_000002_add_synonyms_to_fisio_exercises.php)
@@ -121,6 +124,7 @@ module: Fisio
 - [2026_10_19_000071_create_fisio_portal_devices.php](../../../Modules/Fisio/Database/Migrations/2026_10_19_000071_create_fisio_portal_devices.php)
 - [2026_10_19_000090_seed_biblioteca_global_fisio.php](../../../Modules/Fisio/Database/Migrations/2026_10_19_000090_seed_biblioteca_global_fisio.php)
 - [2026_10_19_000095_add_client_key_to_fisio_checkins.php](../../../Modules/Fisio/Database/Migrations/2026_10_19_000095_add_client_key_to_fisio_checkins.php)
+- [2026_10_19_000120_add_missoes_desafio_jogo_fisio.php](../../../Modules/Fisio/Database/Migrations/2026_10_19_000120_add_missoes_desafio_jogo_fisio.php)
 
 ## Seeders — 2
 
@@ -143,13 +147,14 @@ module: Fisio
 - [Painel.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Painel.tsx)
 - [Portal.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/Portal.tsx)
 
-## Componentes / apoio de tela — 17
+## Componentes / apoio de tela — 18
 
 - [CamposFacetas.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/_components/CamposFacetas.tsx)
 - [FavoritoBotao.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/_components/FavoritoBotao.tsx)
 - [FiltrosFacetas.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/_components/FiltrosFacetas.tsx)
 - [OrigemContato.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/_components/OrigemContato.tsx)
 - [Checkin.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/_components/Checkin.tsx)
+- [Constancia.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/_components/Constancia.tsx)
 - [Entrada.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/_components/Entrada.tsx)
 - [Hoje.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/_components/Hoje.tsx)
 - [Instalar.tsx](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/_components/Instalar.tsx)
@@ -179,11 +184,11 @@ module: Fisio
 - [Painel.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Painel.casos.md)
 - [Portal.casos.md](../../../Modules/Fisio/Resources/js/Pages/Fisio/Public/Portal.casos.md)
 
-## Testes (Pest) — 40
+## Testes (Pest) — 43
 
-- 28 em [Modules/Fisio/Tests/Feature/](../../../Modules/Fisio/Tests/Feature)
+- 29 em [Modules/Fisio/Tests/Feature/](../../../Modules/Fisio/Tests/Feature)
 - 2 em [Modules/Fisio/Tests/Support/](../../../Modules/Fisio/Tests/Support)
-- 10 em [Modules/Fisio/Tests/Unit/](../../../Modules/Fisio/Tests/Unit)
+- 12 em [Modules/Fisio/Tests/Unit/](../../../Modules/Fisio/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 15

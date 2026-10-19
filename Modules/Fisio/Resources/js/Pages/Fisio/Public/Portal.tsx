@@ -1,7 +1,7 @@
 // @memcofre
 //   tela: /fisio/p/{token}
 //   module: Fisio
-//   stories: US-FISIO-007a (UC-FPP-01..07, UC-FPP-21) · US-FISIO-007b (UC-FPP-08..20, UC-FPP-22..25) · US-FISIO-008 (jogo)
+//   stories: US-FISIO-007a (UC-FPP-01..07, UC-FPP-21) · US-FISIO-007b (UC-FPP-08..20, UC-FPP-22..25) · US-FISIO-008 (jogo; missões, desafio e medalhas UC-FPP-33..34)
 //   permissao: pública (sem login) — o business viaja assinado no token
 //
 // Portal do paciente, mobile-first, fora do AppShellV2 (o paciente não tem conta). Uma página
@@ -19,9 +19,10 @@ import { HeartPulse, ShieldCheck } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { TelaCheckin, InstrucaoDaFisio } from './_components/Checkin';
 import { EtapaConsentimento, EtapaPin } from './_components/Entrada';
+import { CartaoConstancia } from './_components/Constancia';
 import { TelaCrise, TelaHoje } from './_components/Hoje';
 import { ConviteInstalar } from './_components/Instalar';
-import { enviarFila, limparFila, registrarAppDoPortal, type ItemHoje, type Jogo, type Relato, type Termo } from './_components/portal';
+import { enviarFila, limparFila, registrarAppDoPortal, type Constancia, type ItemHoje, type Jogo, type Relato, type Termo } from './_components/portal';
 
 interface Props {
   erro: 'link_invalido' | 'sem_link' | null;
@@ -35,6 +36,7 @@ interface Props {
   modo?: 'normal' | 'pausa';
   instrucao?: string | null;
   jogo?: Jogo;
+  constancia?: Constancia;
   registrado_hoje?: boolean;
   guardar_offline?: boolean;
   hoje?: { itens: ItemHoje[] };
@@ -108,6 +110,7 @@ function AreaDoDia({ token, props }: { token: string; props: Props }) {
       temCrise={crise.length > 0}
       onCheckin={() => setTela('checkin')}
       onCrise={() => setTela('crise')}
+      constancia={props.constancia && <CartaoConstancia token={token} inicial={props.constancia} />}
     />
     <ConviteInstalar diasCumpridos={jogo.dias_cumpridos} />
     </>
