@@ -5,9 +5,9 @@ irmaos: Show.charter.md (lei) · Show.tsx (tela)
 tecnica: Caso de uso = narrativa do fisioterapeuta + critério de aceite verificável (Dado/Quando/Então)
 por_que: a ficha é o prontuário legal (Res. COFFITO 414/2012, guarda de 20 anos pela Lei 13.787/2018) e o editor do programa que o paciente executa sozinho em casa. Editar evolução assinada, apagar paciente ou prescrever contra uma contraindicação sem aviso são falhas legais e clínicas.
 owner: wagner
-last_run: "2026-10-17"
+last_run: "2026-10-19"
 last_run_ci: "_pendente_ — o trio nasce com a suíte TDD da F1 (antes do código). O veredito entra quando a lane MySQL rodar FisioProntuarioTest, FisioProgramaEditorTest, FisioPacienteCrudTest, FisioMultiTenantTest e FisioWhatsappJobTest."
-related_us: []
+related_us: [US-FISIO-009]
 ---
 
 # Casos de Uso & Aceite — Fisio · Ficha do paciente (`/fisio/pacientes/{id}`)
@@ -32,6 +32,22 @@ related_us: []
 | UC-FPS-10 | alerta de contraindicação avisa e registra a confirmação | must | `FisioProgramaEditorTest` |
 | UC-FPS-11 | enviar o programa pelo WhatsApp (fila, idempotente) | must | `FisioWhatsappJobTest` |
 | UC-FPS-12 | sem envio sem módulo, sem consentimento, bloqueado | must | `FisioWhatsappJobTest` |
+| UC-FPS-36 | sem canal ativo no módulo Whatsapp: envio manual pelo `wa.me` | must | `FisioWhatsappJobTest` |
+| UC-FPS-13 | questionário grava com a pontuação calculada no servidor | must | `FisioQuestionarioTest`, `PontuacaoQuestionarioTest` |
+| UC-FPS-14 | bloqueado por licença, desconhecido ou incompleto é recusado | must | `FisioQuestionarioTest`, `PontuacaoQuestionarioTest` |
+| UC-FPS-15 | questionário exige `fisio.editar`; outra clínica 404; bloqueado não recebe | must | `FisioQuestionarioTest` |
+| UC-FPS-16 | histórico de questionários na ficha, deferido, só do paciente e da clínica | should | `FisioQuestionarioTest` |
+| UC-FPS-17 | paciente bloqueado: prontuário só aceita adendo | must | `FisioProntuarioTest` |
+| UC-FPS-18 | paciente bloqueado: perfil clínico não aceita edição | must | `FisioPacienteCrudTest` |
+| UC-FPS-30 | quem cadastra é o responsável; a ficha mostra o responsável | should | `FisioPacienteResponsavelTest` |
+| UC-FPS-31 | transferir o paciente fica registrado (quem, de quem, para quem, quando) | must | `FisioPacienteResponsavelTest` |
+| UC-FPS-32 | transferir exige `fisio.editar`; destino só da mesma empresa com acesso ao Fisio | must | `FisioPacienteResponsavelTest` |
+| UC-FPS-19 | exportar o prontuário em PDF: todos os registros assinados, carimbados, em ordem cronológica | should | `FisioProntuarioPdfTest` |
+| UC-FPS-20 | exportar exige `fisio.access` da mesma clínica; outra clínica 404; cada exportação fica no log de auditoria | must | `FisioProntuarioPdfTest` |
+| UC-FPS-21 | aba Evolução: dor e dias com exercício em 30 dias, só na visão do profissional | should | `FisioEvolucaoTest` |
+| UC-FPS-33 | gerar link do portal: link e PIN uma vez, só hash no banco, link anterior morre | must | `FisioPortalLinkTest` |
+| UC-FPS-34 | revogar o link do portal derruba o acesso e fica registrado | must | `FisioPortalLinkTest` |
+| UC-FPS-35 | gerar/revogar exige `fisio.editar`; outra clínica 404; bloqueado não recebe link | must | `FisioPortalLinkTest` |
 
 ---
 
@@ -87,27 +103,135 @@ related_us: []
 
 ## UC-FPS-10 · Aviso de contraindicação · `must`
 - **Persona:** fisioterapeuta prescrevendo para paciente com prótese de quadril.
-- **Aceite:** Dado um paciente com marcador de condição · Quando adiciona exercício cujo `contraindication_flags` cruza com o marcador · Então recebe aviso (409 `contraindicacao` com as flags) e nada é gravado; confirmando, o item grava com quem e quando confirmou e quais flags. Sem cruzamento, entra direto sem confirmação. Aviso, não bloqueio — a conduta é do profissional.
+- **Aceite:** Dado um paciente com marcador de condição · Quando adiciona exercício cujo `contraindication_flags` cruza com o marcador · Então recebe aviso (409 `contraindicacao` com as flags) e nada é gravado; confirmando, o item grava com quem e quando confirmou e quais flags. Sem cruzamento, entra direto sem confirmação. Aviso, não bloqueio — a conduta é do profissional. A tela pede a justificativa escrita (`contraindication_justification`), e a confirmação vira um registro novo no prontuário (append-only); o paciente não vê o aviso.
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioProgramaEditorTest.php`
 - **Status: 🧪**
 
 ## UC-FPS-11 · Enviar pelo WhatsApp · `must`
-- **Aceite:** "Enviar" enfileira o job (202) com business e programa · o job manda link e PIN em duas mensagens, o PIN atrasado, e o link abre o portal · rodar duas vezes no mesmo dia não manda duas vezes.
+- **Aceite:** "Enviar" enfileira o job (202) com business e programa, sem enviar no request · o job manda link e PIN em duas mensagens pelo número de saída padrão do módulo `Whatsapp` (reuso, ADR 0437 §13.1), o PIN depois do link e nunca junto, e o link abre o portal · rodar duas vezes no mesmo dia não manda duas vezes nem emite link novo (emitir revoga o anterior).
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioWhatsappJobTest.php`
 - **Status: 🧪**
 
 ## UC-FPS-12 · Quando não enviar · `must`
-- **Aceite:** Nenhuma mensagem para business sem o módulo, programa de outra clínica, paciente sem consentimento de WhatsApp (ou revogado), paciente bloqueado ou sem telefone.
+- **Aceite:** Nenhuma mensagem para business sem o módulo, programa de outra clínica, paciente sem consentimento de WhatsApp (revogado, nunca dado ou de versão antiga), paciente bloqueado, sem telefone ou com opt-out de WhatsApp no contato.
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioWhatsappJobTest.php`
+- **Status: 🧪**
+
+## UC-FPS-36 · Sem canal, o profissional envia do próprio WhatsApp · `must`
+- **Persona:** fisioterapeuta de clínica que não conectou número no módulo Whatsapp (ou cujo canal caiu).
+- **Aceite:** Dado que a empresa não tem número de saída ativo no módulo `Whatsapp` · Quando o profissional clica em "Enviar pelo WhatsApp" · Então nada é enfileirado e a resposta traz dois links `wa.me` para o celular do paciente — o do portal e, separado, o do código de acesso — para ele enviar do aparelho dele (ADR 0437 §13.1 (f)). As mesmas guardas do envio automático valem: sem consentimento de WhatsApp, 422 e nenhum link emitido; programa de outra clínica, 404.
+- **Regressão que defende:** mensagem automática saindo sem canal; link do portal emitido (revogando o anterior) para quem não consentiu.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioWhatsappJobTest.php`
+- **Status: 🧪**
+
+## UC-FPS-13 · Questionário pontuado pelo servidor · `must`
+- **Persona:** fisioterapeuta aplicando EVA, Roland-Morris, PSFS, LEFS ou SPADI (ADR 0437 §8).
+- **Aceite:** Quando registra as respostas de um questionário de uso livre · Então a resposta grava com `business_id` da sessão, a data/hora do servidor e a pontuação calculada pela regra publicada do instrumento (RMDQ = nº de "sim"; PSFS = média das atividades; LEFS = soma; SPADI = dor ÷50, incapacidade ÷80, total ÷130). `score` vindo do corpo é ignorado. O sistema mostra o número, não uma interpretação (SaMD, ADR 0437 §5).
+- **Fonte:** estrutura de cada instrumento conforme as referências no catálogo (`CatalogoQuestionarios`). Enunciados da versão brasileira validada **pendentes** de conferência pela Dra. Dejeane — a tela pede a transcrição pelo número do item.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioQuestionarioTest.php` · `Modules/Fisio/Tests/Unit/PontuacaoQuestionarioTest.php`
+- **Status: 🧪**
+
+## UC-FPS-14 · Só os de uso livre, e completos · `must`
+- **Aceite:** ODI, NDI, KOOS, QuickDASH/DASH e WOMAC (bloqueados por licença) e códigos desconhecidos respondem 422 em `instrumento`. Item faltando, a mais ou fora da faixa responde 422 no campo do item. Nada grava. Sem rateio de item faltante enquanto a regra de cada manual não for conferida.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioQuestionarioTest.php` · `Modules/Fisio/Tests/Unit/PontuacaoQuestionarioTest.php`
+- **Status: 🧪**
+
+## UC-FPS-15 · Quem pode registrar `[T0]` · `must`
+- **Aceite:** Sem `fisio.editar` responde 403. Paciente de outra clínica responde 404 e nada grava lá. Paciente bloqueado não recebe questionário novo (422).
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioQuestionarioTest.php`
+- **Status: 🧪**
+
+## UC-FPS-16 · Histórico na ficha · `should`
+- **Aceite:** A ficha recebe o catálogo (com referências, sem os bloqueados) e o histórico como prop deferida, mais recente primeiro, só do paciente aberto e da clínica da sessão.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioQuestionarioTest.php`
+- **Status: 🧪**
+
+## UC-FPS-17 · Bloqueado: o prontuário só recebe correção · `must`
+- **Persona:** invariante legal (Lei 13.787/2018 — "excluir" é bloquear; ADR 0437 §4 — registro corrigido por adendo, nunca sobrescrito).
+- **Aceite:** Dado um paciente bloqueado · Quando o fisioterapeuta tenta assinar avaliação ou evolução nova · Então responde 422 em `kind` e nada grava. Adendo apontando registro do próprio paciente continua aceito (corrigir o que está guardado segue possível).
+- **Regressão que defende:** atendimento novo registrado em ficha que a clínica "excluiu".
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioProntuarioTest.php`
+- **Status: 🧪**
+
+## UC-FPS-18 · Bloqueado: o perfil clínico fica só leitura · `must`
+- **Persona:** invariante legal (Lei 13.787/2018; mesma regra que já vale para questionário em UC-FPS-15).
+- **Aceite:** Dado um paciente bloqueado · Quando o fisioterapeuta envia edição de queixa, meta ou marcadores · Então responde com erro em `main_complaint` e os valores guardados não mudam.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPacienteCrudTest.php`
+- **Status: 🧪**
+
+## UC-FPS-30 · Responsável desde o cadastro · `should`
+- **Persona:** fisioterapeuta que cadastra o paciente.
+- **Aceite:** Quando um paciente é cadastrado · Então o responsável é o usuário logado; `responsible_user_id` vindo do corpo é ignorado. A ficha mostra o nome do responsável. Pacientes cadastrados antes da coluna existir ficam "sem responsável" até alguém transferir — o banco não guardava quem cadastrou, então nada é inventado.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPacienteResponsavelTest.php`
+- **Status: 🧪**
+
+## UC-FPS-31 · Transferir o paciente, com registro · `must`
+- **Persona:** fisioterapeuta que passa o paciente a um colega da clínica.
+- **Aceite:** Quando transfere para outro profissional da empresa · Então o responsável muda e nasce uma linha no `activity_log` com quem fez, de quem, para quem e a hora do servidor, no `business_id` do paciente. Transferir de novo acrescenta outra linha; a anterior não muda. A ficha mostra o histórico, mais recente primeiro.
+- **Regressão que defende:** troca de responsável sem rastro.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPacienteResponsavelTest.php`
+- **Status: 🧪**
+
+## UC-FPS-32 · Quem transfere e para quem `[T0]` · `must`
+- **Persona:** invariante multi-tenant (ADR 0093) e de permissão.
+- **Aceite:** Sem `fisio.editar` responde 403 · destino de outra empresa, sem acesso ao Fisio, inativo ou inexistente responde 422 em `para_user_id` · paciente de outra empresa responde 404 · paciente bloqueado responde 422. Em todos, o responsável e o histórico ficam como estavam.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPacienteResponsavelTest.php`
+- **Status: 🧪**
+
+## UC-FPS-19 · Exportar o prontuário em PDF · `should`
+- **Persona:** fisioterapeuta que precisa entregar o prontuário (paciente, outro profissional, perícia).
+- **Aceite:** Quando clica "Exportar prontuário (PDF)" na ficha · Então recebe um PDF com a identificação do paciente (nome e telefone do contato), o perfil clínico e **todos** os registros assinados do paciente — avaliação, evolução, telemonitoramento e adendo (este apontando o registro que corrige) — do mais antigo para o mais novo, cada um com nome de quem assinou, CREFITO, data e hora. Rodapé com a empresa, a data de emissão e "Página X de Y". Registro sem assinatura não entra. Paciente bloqueado também exporta (a guarda continua).
+- **Regressão que defende:** prontuário entregue incompleto ou sem o carimbo de cada registro.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioProntuarioPdfTest.php`
+- **Status: 🧪**
+
+## UC-FPS-20 · Quem exporta e o rastro da exportação `[T0]` · `must`
+- **Persona:** invariante LGPD (art. 11 — dado de saúde) e multi-tenant (ADR 0093).
+- **Aceite:** Sem `fisio.access` responde 403. Paciente de outra clínica responde 404 e nada é registrado. Cada exportação grava uma linha no `activity_log` (`log_name=fisio`, evento `prontuario_exportado`) com o paciente como sujeito, o usuário como autor, a clínica da sessão e a quantidade de registros — sem nome, telefone nem conteúdo clínico nas propriedades.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioProntuarioPdfTest.php`
+- **Status: 🧪**
+
+## UC-FPS-21 · Evolução do paciente na ficha · `should`
+- **Persona:** fisioterapeuta abrindo a ficha.
+- **Aceite:** Dado check-ins do paciente · Quando a ficha carrega a aba Evolução (props deferidas `evolucao` e `serie_dor`) · Então vêm os registros dos últimos 30 dias em ordem de data, com dor, nº de exercícios feitos e sinal de alerta, a adesão 7d do mesmo cálculo do painel (nula sem programa ativo) e a série de dor só com o que tem dor informada. Ficha de outra clínica responde 404.
+- **Regressão que defende:** série de dor de outra clínica ou fora da janela; dor ausente virando 0 no gráfico. O portal não recebe a série (UC-FPP-20, ADR 0437 §5).
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioEvolucaoTest.php`
+- **Status: 🧪**
+
+## UC-FPS-33 · Gerar o link do portal `[must]`
+- **Persona:** fisioterapeuta na ficha, entregando o acesso ao paciente.
+- **Aceite:** Dado um paciente ativo · Quando a fisioterapeuta gera o link · Então a resposta traz a URL, o PIN de 4 dígitos e a validade (30 dias) UMA vez; o banco guarda só o hash do token e do PIN, no business do paciente; gerar de novo revoga o anterior; cada emissão vai ao `activity_log` com quem e quando, sem token nem PIN.
+- **Regressão que defende:** PIN recuperável depois de gerado; dois links vivos para o mesmo paciente.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPortalLinkTest.php`
+- **Status: 🧪**
+
+## UC-FPS-34 · Revogar o link · `must`
+- **Aceite:** Revogar derruba o link vivo (o paciente cai no estado vazio); a linha fica com `revoked_at` e a revogação vai ao `activity_log`.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPortalLinkTest.php`
+- **Status: 🧪**
+
+## UC-FPS-35 · Quem gera e para quem `[T0]` · `must`
+- **Aceite:** Sem `fisio.editar` → 403; paciente de outra clínica → 404; paciente bloqueado → 422 `paciente_bloqueado`. Em todos, nada é gravado.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPortalLinkTest.php`
 - **Status: 🧪**
 
 ---
 
 ## Backlog (prosa honesta — vira UC quando ganhar teste que o cite)
 
-- `[BACKLOG]` Gráfico de dor na aba Evolução (a série chega na prop `serie_dor`, provada em UC-FPP-20; o render ainda sem teste).
-- `[BACKLOG]` Protocolos-modelo da clínica aplicados ao programa (`origin=protocolo`) — fora desta suíte.
-- `[BACKLOG]` Questionários liberados (EVA, RMDQ, PSFS, LEFS, SPADI) — T-11, pontuação conferida com a referência publicada.
+- `[BACKLOG]` Render do gráfico de dor na aba Evolução — os dados têm teste (UC-FPS-21); o desenho no navegador, não.
+- `[BACKLOG]` Protocolos-modelo: aplicar ao programa (`origin=protocolo`), copiar o modelo global para a clínica e editar só a cópia (modelo global = 403), salvar o programa como protocolo — rotas existem desde a US-FISIO-006 (`ProtocolosController`, `ProgramasController::aplicarProtocolo`), ainda sem teste que as cite; o seed dos protocolos 1–11 aguarda a revisão clínica da Dra. Dejeane.
+- `[BACKLOG]` Justificativa da contraindicação gravada no item e no prontuário: implementada na US-FISIO-006, sem asserção na suíte (o `FisioProgramaEditorTest` cobre 409 e quem/quando/quais).
+- `[BACKLOG]` Enunciados literais da versão brasileira validada de EVA, RMDQ, PSFS, LEFS e SPADI na tela do questionário (aguarda conferência da Dra. Dejeane contra a publicação).
 
 ## Trilha do tempo
+- 2026-10-18 · US-FISIO-007a — link do portal gerado na ficha (`_components/LinkPortal.tsx`, `PortalLinkController`) vira UC-FPS-33..35, com teste escrito junto.
+- 2026-10-19 · US-FISIO-009 — envio do link e lembrete pelo módulo `Whatsapp` existente (sem canal próprio do Fisio, decisão [W]); UC-FPS-11/12 detalhados e UC-FPS-36 (envio manual `wa.me` sem canal ativo) nasce com o teste.
+- 2026-10-18 · responsável pelo paciente — cadastro grava o responsável, ficha mostra e transfere com registro no `activity_log` (UC-FPS-30..32).
+- 2026-10-18 · exportação do prontuário em PDF vira UC-FPS-19..20 (rota e controller próprios; o PDF do programa fica para depois da US-FISIO-006).
+- 2026-10-18 · US-FISIO-005 — paciente bloqueado vira só leitura no servidor: prontuário aceita só adendo (UC-FPS-17) e perfil não aceita edição (UC-FPS-18).
+- 2026-10-18 · US-FISIO-011 — questionários de uso livre viram UC-FPS-13..16 (estrutura e pontuação; enunciados pendentes).
 - 2026-10-17 · suíte TDD da F1 — casos nascem antes da tela e do código; prontuário, bloqueio e contraindicação entram pela atualização de escopo do mesmo dia.
+- 2026-10-18 · US-FISIO-006 — aba Programa na ficha (`_components/EditorPrograma.tsx`) para UC-FPS-06, 08, 09 e 10; UCs inalterados. Veredito: lane Verticais.
+- 2026-10-18 · US-FISIO-010 — aba Evolução (componente `_components/EvolucaoPaciente.tsx`) vira UC-FPS-21, com teste escrito junto da tela.
+- 2026-10-18 · US-FISIO-005 — a tela `.tsx` nasce (#9546) para os casos UC-FPS-02..05 e 07; os UCs não mudaram e seguem derivados do HANDOFF F1, não do `.tsx`. Veredito: lane Verticais.

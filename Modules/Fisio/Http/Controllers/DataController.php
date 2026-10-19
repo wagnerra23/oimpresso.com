@@ -19,6 +19,29 @@ use Modules\Fisio\Services\FisioAcesso;
 class DataController extends Controller
 {
     /**
+     * Texto do sino para o sinal de alerta do portal (US-FISIO-007b, UC-FPP-13). Só avisa e
+     * leva à ficha: não sugere conduta (ADR 0437 §5).
+     *
+     * @return array<string, mixed>
+     */
+    public function parse_notification($notification): array
+    {
+        if ($notification->type !== \Modules\Fisio\Notifications\SinalDeAlertaNotification::class) {
+            return [];
+        }
+        $data = (array) $notification->data;
+        $pacienteId = (int) ($data['patient_id'] ?? 0);
+
+        return [
+            'msg' => 'Fisio: paciente marcou sinal de alerta no registro do dia.',
+            'icon_class' => 'fas fa-exclamation-triangle bg-yellow',
+            'link' => url('/fisio/pacientes/'.$pacienteId),
+            'read_at' => $notification->read_at,
+            'created_at' => $notification->created_at?->diffForHumans(),
+        ];
+    }
+
+    /**
      * `default => false`: Fisio é add-on contratado. Empresa que não contratou não vê
      * menu nem rota (ADR 0437 §3.3 e §11).
      */
@@ -70,7 +93,17 @@ class DataController extends Controller
         $segmento_ativo = request()->segment(1) === 'fisio';
 
         Menu::modify('admin-sidebar-menu', function ($menu) use ($segmento_ativo) {
-            $menu->url(url('/fisio'), 'Fisio', [
+            $menu->dropdown('Fisio', function ($sub) {
+                // Painel (US-FISIO-010) primeiro; Pacientes (US-FISIO-005) em seguida.
+                $sub->url(url('/fisio'), 'Painel', [
+                    'icon' => 'fa fa-tachometer-alt',
+                    'active' => request()->segment(1) === 'fisio' && request()->segment(2) === null,
+                ]);
+                $sub->url(url('/fisio/pacientes'), 'Pacientes', [
+                    'icon' => 'fa fa-user',
+                    'active' => request()->segment(2) === 'pacientes',
+                ]);
+            }, [
                 'icon' => 'fa fa-heartbeat',
                 'active' => $segmento_ativo,
             ]);

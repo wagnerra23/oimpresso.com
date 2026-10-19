@@ -435,7 +435,7 @@ lifecycle: ativo
 | `css-size-baseline.mjs` | ci, npm, script | 🔴 disco | — | `memory/decisions/0311-frescor-consolidado-em-sla-escala-temporal-unica.md` +4 | scripts/css-size-baseline.mjs — ratchet de TAMANHO do CSS (anti-regrowth). |
 | `design-identity-grade.mjs` | ci | 🔴 disco | — | `memory/decisions/0254-design-identity-grade-deterministico.md` +7 | GRADE de identidade visual DETERMINÍSTICO (ADR 0254). |
 | `design-spec-gen.mjs` | ci, npm, script | 🔴 disco | — | `memory/decisions/0402-denominador-de-tela-inclui-pages-de-modulo.md` +6 | tela (componentes/tokens/layout) é PURA e DERIVÁVEL, mas era julgada por LLM |
-| `domain-dict-guard.mjs` | ci, npm, script | 🔴 disco | — | `memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md` +17 | scripts/domain-dict-guard.mjs — Gate G-4 (dicionário de domínio) da Governança executável (ADR 0264). |
+| `domain-dict-guard.mjs` | ci, npm, script | 🔴 disco | — | `memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md` +18 | scripts/domain-dict-guard.mjs — Gate G-4 (dicionário de domínio) da Governança executável (ADR 0264). |
 | `ds-canon-color-guard.mjs` | ci, npm | 🟢 só lê | — | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +8 | scripts/ds-canon-color-guard.mjs — catraca: a camada canônica NÃO usa paleta crua |
 | `ds-ledger.mjs` | ci, npm | 🔴 disco | — | `memory/requisitos/_DesignSystem/CHANGELOG.md` +8 | scripts/ds-ledger.mjs — Ledger de Conformidade DS (censo Onda 0, por tela). |
 | `ds-report.mjs` | ci, npm, script | 🔴 disco | — | `memory/decisions/0240-task-ledger-git-native-cowork-code.md` +13 | scripts/ds-report.mjs — placar de adoção do Design System (ds/* por regra × módulo) |
@@ -813,7 +813,7 @@ lifecycle: ativo
 | `governance/multi-tenant-global-model-contract.json` | php | (só sessão/handoff · 1) | (baseline/estado) |
 | `governance/multi-tenant-scope-baseline.json` | php | `memory/requisitos/AssetManagement/BRIEFING.md` +8 | (baseline/estado) |
 | `governance/prod-flags.json` | ci, script | `memory/decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md` +15 | (baseline/estado) |
-| `governance/required-checks-baseline.json` | agente, ci, script | `memory/decisions/0361-errata-0354-teammcp-pest-required-nunca-executado.md` +171 | Required checks de main CONGELADOS — GT-G4 (plano 2026-06-12 §2 GARANTIDA) |
+| `governance/required-checks-baseline.json` | agente, ci, script | `memory/decisions/0361-errata-0354-teammcp-pest-required-nunca-executado.md` +172 | Required checks de main CONGELADOS — GT-G4 (plano 2026-06-12 §2 GARANTIDA) |
 | `governance/reseed-meilisearch-manifest.json` | — | `memory/requisitos/_Governanca/roadmap/P11-kl-e2-renames-reseed-distiller.md` +5 | (baseline/estado) |
 | `governance/route-hits.json` | script | `memory/decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md` +22 | (baseline/estado) |
 | `governance/sdd-scorecard-baseline.json` | agente, ci, script | `memory/requisitos/_Governanca/roadmap/P13-promover-gt-g3-required.md` +30 | SDD scorecard baseline v1 — meta-catraca GT-G3 (plano 2026-06-12 §2 GARANTIDA + §4 Semanas 1-2) |

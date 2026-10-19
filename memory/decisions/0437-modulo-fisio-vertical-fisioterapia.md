@@ -12,7 +12,7 @@ decided_at: "2026-10-18"
 accepted_via: "Wagner 2026-10-18, textual: 'Já tenho fisioterapeuta contratado e a adr é aceita. Dr dejeane'. O aceite cobre a decisão, a seção Fisio no menu (§3.3) e as emendas da §13. As decisões da §14 ainda abertas seguem pendentes, uma a uma."
 module: fisio
 quarter: 2026-Q4
-tags: [fisio, vertical, modulo-novo, saude, lgpd, anvisa, samd, coffito, prontuario, gamificacao, whatsapp, camera, ds-v6, sidebar]
+tags: [fisio, vertical, modulo-novo, saude, lgpd, anvisa, samd, coffito, prontuario, gamificacao, whatsapp, camera, ds-v6, sidebar, agendamento-online, app-paciente]
 supersedes: []
 superseded_by: []
 related: [0368-funil-admissao-feature-pesquisa-propoe-w-admite, 0105-cliente-como-sinal-guiar-sem-mandar, 0039-ui-chat-cockpit-padrao, 0190-primary-button-roxo-universal-295, 0253-primitivos-layout, 0264-governanca-executavel-trio-dominio-e2e, 0306-strangler-spec-anchored-reconstrucao-sdd, 0383-ponto-interno-nao-coleta-biometria, 0386-ambar-da-oficina-revogado-roxo-e-a-unica-identidade, 0171-oficinaauto-ativacao-piloto-martinho-faseada]
@@ -44,8 +44,8 @@ Ninguém junta, com evidência pública, **programa domiciliar + adesão medida 
 
 ### As alavancas, em ordem de força
 
-1. **WhatsApp como canal principal.** Está na tela inicial de 65% dos celulares no Brasil, e o lembrete com link direto para o check-in ataca o esquecimento, causa nº 1 de abandono. Com o driver `whatsmeow` (§13.1) não há custo por mensagem; na API oficial seria cerca de R$ [redacted Tier 0] por mensagem de utilidade. Há RCT mostrando aumento de adesão com mensagens.
-2. **Zero atrito para o paciente.** Link + PIN, sem app, sem e-mail, sem senha. As reclamações mais repetidas contra Wibbi, MedBridge, PT Wired e Limber são de login, app instável e exigência de e-mail.
+1. **WhatsApp como canal principal.** Está na tela inicial de 65% dos celulares no Brasil, e o lembrete com link direto para o check-in ataca o esquecimento, causa nº 1 de abandono. O canal é escolha de cada clínica (§13.1): com o driver `whatsmeow` não há custo por mensagem; na API oficial seria cerca de R$ [redacted Tier 0] por mensagem de utilidade. Há RCT mostrando aumento de adesão com mensagens.
+2. **Zero atrito para o paciente.** Link + PIN, sem app, sem e-mail, sem senha. As reclamações mais repetidas contra Wibbi, MedBridge, PT Wired e Limber são de login, app instável e exigência de e-mail. **Emenda de 2026-10-18 (§13.7):** o mesmo portal passa a ser também um app que o paciente pode instalar, para agendar e acompanhar as consultas. Instalar é opcional: o link + PIN continua funcionando sem mudança, e o app não pede senha.
 3. **Jogo de constância.** Nota da série, XP, nível, missões do dia, medalhas, sequência. Tédio e "não vejo resultado" somam 41% dos motivos de abandono; o jogo transforma cada dia feito em progresso visível. Regras de segurança na §6.
 4. **Painel que mostra quem vai abandonar.** Dor alta e medo de movimento preveem abandono (estudo brasileiro, BrJP 2023), e supervisão é o principal facilitador. O painel transforma supervisão em escala.
 5. **O paciente como canal de marca.** Todo programa e todo lembrete levam o nome, a foto e o CREFITO do profissional, com um rodapé "feito com oimpresso". O fisioterapeuta vive de indicação, e o paciente que manda o print do nível 8 para a família está fazendo marketing dele.
@@ -161,7 +161,7 @@ Texto da versão brasileira validada, sem alteração, com a referência na tela
 |---|---|
 | **F1 · Constância** | pacientes e prontuário (Res. 414), biblioteca revisada com contraindicações, protocolos-modelo, programa por paciente, portal link + PIN, consentimentos, lembrete diário por WhatsApp, check-in com dor e sinais de alerta, jogo de constância sem câmera, painel de risco de abandono, questionários liberados, marca do profissional no portal |
 | **F2 · Câmera** | contagem de repetições, ritmo e sustentação no aparelho; nota da série; enquadramento guiado do celular. **Pré-requisito:** consulta de enquadramento à Anvisa |
-| **F3 · Operação e dinheiro** | agenda com confirmação por botões e lista de espera, teleconsulta por vídeo no navegador (LiveKit, sem gravação), pacotes que consomem sessões, cobrança (Pix Automático só PJ; cartão e Pix Cobrança para PF), NFS-e com preset de fisioterapia e fila do Receita Saúde |
+| **F3 · Operação e dinheiro** | agenda com confirmação por botões e lista de espera, teleconsulta por vídeo no navegador (LiveKit, sem gravação), pacotes que consomem sessões, cobrança (Pix Automático só PJ; cartão e Pix Cobrança para PF), NFS-e com preset de fisioterapia e fila do Receita Saúde; app do paciente instalável com agendamento, remarcação e consultas (§13.7) |
 | **F4 · Velocidade** | ditado por voz depois do atendimento, estruturado na Res. 414 (fornecedor em região adequada pela ANPD ou modelo local); questionários pagos se licenciados; prescrição por IA **só** depois da decisão sobre notificação classe II |
 
 ## 10. Alternativas consideradas
@@ -201,15 +201,25 @@ Cada etapa tem especificação própria, com o que os melhores fazem, regras, ri
 
 **Emendas que as etapas trouxeram a esta ADR:**
 
-1. **WhatsApp pelo módulo `Whatsapp` que já existe, com o driver `whatsmeow`.** Decisão de [W] em 2026-10-18 (textual: *"whatsmeow será o driver"*). Nada de integração nova: o Fisio registra as mensagens dele e chama o envio do módulo pelo `ChannelDriverFactory`.
-   - **Risco aceito e registrado:** whatsmeow não é API oficial; a Meta avisa que apps não oficiais podem levar a banimento do número. Um número de clínica banido para o lembrete de todos os pacientes daquela clínica.
-   - **Mitigações obrigatórias:** (a) um número por clínica, nunca um número compartilhado entre clínicas; (b) só mensagens a pacientes que deram consentimento de WhatsApp e já falaram com a clínica; (c) teto de envio por número/hora e intervalo aleatório entre mensagens; (d) aquecimento de número novo (volume baixo nas primeiras semanas); (e) monitor de saúde do canal reaproveitando os comandos de reconciliação do módulo, com alerta ao profissional quando o canal cair (incidente de 2026-09-02 mostrou canais mudos sem alerta); (f) alternativa sempre disponível: link `wa.me` do próprio profissional e link do portal copiável.
-   - **Porta aberta:** o Fisio fala com o módulo pelo contrato de driver, nunca com o whatsmeow direto. Trocar para `meta_cloud` (já existe no módulo, com Embedded Signup) é configuração do canal, sem mudar o Fisio.
+1. **WhatsApp pelo módulo `Whatsapp` que já existe; o canal é ESCOLHA DE CADA CLÍNICA.** Nada de integração nova: o Fisio registra as mensagens dele e chama o envio do módulo pelo `ChannelDriverFactory`.
+   - **Histórico da decisão (fato datado, preservado):** em 2026-10-18 [W] decidiu o driver único `whatsmeow` (textual: *"whatsmeow será o driver"*). **Emendado no mesmo dia** por [W] (textual: *"As duas, acho que depende da escolha do fisioterapeuta"* e *"Nas configuração do WhatsApp"*): os dois drivers ficam disponíveis e quem escolhe é a clínica, na tela de configurações do WhatsApp.
+   - **Os três canais oferecidos:** (a) `meta_cloud` — API oficial, recomendado, sem risco de banimento, com custo por mensagem e templates aprovados pela Meta (duas variantes por template, porque a Meta pode reclassificar utilidade como marketing); (b) `whatsmeow` — número da clínica conectado por QR, sem custo por mensagem, conexão não oficial; (c) envio manual pelo link `wa.me` do próprio profissional, sem lembrete automático (canal do plano grátis).
+   - **Troca de canal é configuração:** a clínica muda de canal a qualquer momento sem perder pacientes nem histórico; o Fisio não muda.
+   - **Aceite de risco por clínica (obrigatório no `whatsmeow`):** quem escolhe o QR marca que entende que a Meta pode bloquear o número. O aceite fica registrado na configuração da clínica (usuário, data e versão do texto). Sem aceite, o canal `whatsmeow` não ativa.
+   - **Risco registrado:** whatsmeow não é API oficial; a Meta avisa que apps não oficiais podem levar a banimento do número. Um número de clínica banido para o lembrete de todos os pacientes daquela clínica.
+   - **Mitigações obrigatórias quando o canal for `whatsmeow`:** (a) um número por clínica, nunca um número compartilhado entre clínicas; (b) só mensagens a pacientes que deram consentimento de WhatsApp e já falaram com a clínica; (c) teto de envio por número/hora e intervalo aleatório entre mensagens; (d) aquecimento de número novo (volume baixo nas primeiras semanas); (e) monitor de saúde do canal reaproveitando os comandos de reconciliação do módulo, com alerta ao profissional quando o canal cair (incidente de 2026-09-02 mostrou canais mudos sem alerta); (f) alternativa sempre disponível: link `wa.me` do próprio profissional e link do portal copiável.
+   - **Contrato único:** o Fisio fala com o módulo pelo contrato de driver, nunca com o whatsmeow ou a Meta direto. Os dois drivers já existem no módulo (`meta_cloud` com Embedded Signup), então oferecer os dois não cria integração nova.
 2. **Contraindicação avisa, nunca bloqueia.** Bloquear ação por diagnóstico é SaMD (P68/P70 da Anvisa). O profissional vê o aviso, escreve a justificativa, e ela vai para o prontuário. O paciente não vê nada disso.
 3. **Jogo com números** (detalhe em `02-f1-constancia.md`): 100 XP por dia prescrito (70 exercícios + 30 registro), teto semanal, 10 níveis com o 10º perto de 60 dias de constância, até 2 escudos de sequência, total de dias que nunca zera, modo manutenção na alta.
 4. **Câmera liberada exercício por exercício**, só depois de validação com voluntários, e a série com câmera vale o mesmo XP da série marcada à mão.
 5. **Gráfico de dor e diferença clínica mínima (MCID) só na visão do profissional.** Na tela do paciente viraria SaMD (P11/P79).
 6. **Ditado:** dado de saúde só para fornecedor em país reconhecido como adequado pela ANPD ou modelo rodando no nosso servidor; nome e CPF nunca vão no prompt; áudio apagado depois da transcrição.
+7. **App do paciente instalável, com agendamento no estilo do AppBarber Cliente.** Decisão de [W] em 2026-10-18, textual: *"Paciente pode baixar e agendar igual ao appbarberclient"*, e, depois do comparativo de funções, *"Pode fazer adorei"*.
+   - **O que já estava previsto e continua valendo:** a agenda online do paciente, a lista de espera e a política de falta e cancelamento já estavam na etapa F3 (`etapas/04-f3-operacao.md`, A7, A8, A9). Esta emenda não cria o autoagendamento. Ela muda **como o paciente chega** a ele e **acrescenta funções**.
+   - **O que muda:** (a) o portal pode ser **instalado**: na tela inicial do celular e nas lojas App Store e Google Play. É o mesmo código do portal, não um segundo produto; (b) **entrada que lembra o aparelho**: código de 6 dígitos pelo canal de WhatsApp da clínica na primeira vez e, depois, digital ou rosto do próprio celular. Continua sem senha (§10). Se o canal da clínica for o envio manual `wa.me`, a entrada segue pelo link + PIN; (c) o link + PIN da F1 continua funcionando. Quem não instala não perde nada.
+   - **Funções que entram (detalhe e regras na etapa F3, A14 a A21):** marcar para dependente; saldo do pacote com renovação pelo app, mostrada só quando o profissional indica continuar; sinal por Pix com isenção para quem tem pacote ativo; check-in "Cheguei"; recado do paciente ao marcar; nota privada depois da sessão; recibo no histórico; bloqueio do autoagendamento depois de N faltas sem aviso.
+   - **Fora, de propósito:** promoção, venda extra no checkout, vitrine com outras clínicas e nota pública. O app é da clínica, não marketplace. Saúde não é vitrine, e isso esbarra na ética profissional.
+   - **Comparativo que sustenta a emenda:** AppBarber Cliente, Jane, Cliniko, Booksy, Physitrack e Doctoralia, função por função, com fonte; está no canvas do módulo (tela "Pesquisa · Comparativo de funções") e resumido na etapa F3 §2.1.
 
 ## 14. Decisões pendentes de [W]
 
@@ -219,12 +229,13 @@ Cada etapa tem especificação própria, com o que os melhores fazem, regras, ri
 | 2 | Nome comercial do módulo | "Fiz Hoje" (checar no INPI, classes 9, 41, 42 e 44); "Prescreve" tem risco por ser descritivo |
 | 3 | Trazer a busca por texto da F4 para a F1 | sim: sem ela a biblioteca não passa de 7 |
 | 4 | Contratar fisioterapeuta responsável técnico do conteúdo | **decidido: Dra. Dejeane, já contratada** |
-| 5 | Driver e número de WhatsApp | **decidido 2026-10-18: driver `whatsmeow`**, um número por clínica, com as mitigações da §13.1; `meta_cloud` fica como troca por configuração |
+| 5 | Driver e número de WhatsApp | **decidido 2026-10-18 e emendado no mesmo dia: escolha da clínica** entre `meta_cloud` (recomendado), `whatsmeow` (com aceite de risco e as mitigações da §13.1) e envio manual `wa.me`, na tela de configurações do WhatsApp; um número por clínica |
 | 6 | Check-in inteiro dentro do WhatsApp (Flows) | F1.5, depois do piloto |
 | 7 | Notificar SaMD classe II na Anvisa | não agora; pedir 2–3 orçamentos e decidir depois do piloto |
 | 8 | Licenciar questionários pagos (Mapi, IWH) | depois do piloto, se os clientes pedirem |
 | 9 | Aviso fixo "em emergência, ligue 192" | só após parecer regulatório |
 | 10 | Preço: grátis até 5 pacientes, R$ [redacted Tier 0]/mês (R$ [redacted Tier 0] no anual), 50% para estudante | validar no piloto |
+| 11 | Publicar o app do paciente nas lojas (§13.7): de quem é a conta de desenvolvedor (Apple e Google) e se cada clínica tem app com a própria marca ou um app único | **app único com a marca do oimpresso nas lojas**, que mostra o nome e o logo da clínica depois da entrada; app com marca própria da clínica só quando houver cliente pedindo |
 
 ## Fontes
 

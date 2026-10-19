@@ -18,14 +18,21 @@ authority: generated
 |---|---:|
 | US no SPEC | 12 |
 | CU no SDD | 0 |
-| Telas (.tsx) | 0 |
-| Telas com `casos.md` | 5 |
-| UC declarados | 48 |
-| UC com teste que os cita | 48 |
+| Telas (.tsx) | 5 |
+| Telas com `casos.md` | 6 |
+| UC declarados | 88 |
+| UC com teste que os cita | 88 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
-_Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **entregue** tem contrato._
+| Lacuna | O que falta escrever |
+|---|---|
+| `US-FISIO-003` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Schema, models e append-only de prontuário e ledger do jogo  |
+| `US-FISIO-004` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Biblioteca semeada e revisada pela responsável técnica — **P |
+| `US-FISIO-005` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0 |
+| `US-FISIO-006` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Editor de programa, protocolos-modelo e aviso de contraindic |
+| `US-FISIO-010` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Painel, evolução e fila de atenção — **P0** |
+| `US-FISIO-011` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) —  |
 
 ### Backlog — NÃO é lacuna
 
@@ -38,15 +45,6 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 |---|---|---|
 | US-FISIO-001 | `todo` | Trio SDD da F1 e US no SPEC — **P0** |
 | US-FISIO-002 | `todo` | Esqueleto `Modules/Fisio` (ativação por empresa, permissões, menu condicionado)  |
-| US-FISIO-003 | `todo` | Schema, models e append-only de prontuário e ledger do jogo — **P0** |
-| US-FISIO-004 | `todo` | Biblioteca semeada e revisada pela responsável técnica — **P0** |
-| US-FISIO-005 | `todo` | Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0** |
-| US-FISIO-006 | `todo` | Editor de programa, protocolos-modelo e aviso de contraindicação — **P0** |
-| US-FISIO-007 | `todo` | Portal do paciente (link + PIN, consentimentos, check-in, telemonitoramento) — * |
-| US-FISIO-008 | `todo` | Jogo de constância (XP, nível, sequência, missões, pausa por dor) — **P1** |
-| US-FISIO-009 | `todo` | Lembrete diário e envio do programa por WhatsApp (driver whatsmeow) — **P0** |
-| US-FISIO-010 | `todo` | Painel, evolução e fila de atenção — **P0** |
-| US-FISIO-011 | `todo` | Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) — **P1** |
 | US-FISIO-012 | `todo` | Fecha o loop da F1 — **P1** |
 
 ## UC por status
@@ -57,10 +55,25 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-FBI-02 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-03 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-04 | Biblioteca/Index | 🧪 aguarda veredito da lane |
+| UC-FBI-05 | Biblioteca/Index | 🧪 aguarda veredito da lane |
+| UC-FBI-06 | Biblioteca/Index | 🧪 aguarda veredito da lane |
+| UC-FBI-07 | Biblioteca/Index | 🧪 aguarda veredito da lane |
+| UC-FBI-08 | Biblioteca/Index | 🧪 aguarda veredito da lane |
+| UC-FBI-09 | Biblioteca/Index | 🧪 aguarda veredito da lane |
+| UC-FBI-10 | Biblioteca/Index | 🧪 aguarda veredito da lane |
+| UC-FJG-01 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
+| UC-FJG-02 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
+| UC-FJG-03 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
+| UC-FJG-04 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
+| UC-FJG-05 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
 | UC-FPI-01 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPI-02 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPI-03 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPI-04 | Pacientes/Index | 🧪 aguarda veredito da lane |
+| UC-FPI-05 | Pacientes/Index | 🧪 aguarda veredito da lane |
+| UC-FPI-06 | Pacientes/Index | 🧪 aguarda veredito da lane |
+| UC-FPI-07 | Pacientes/Index | 🧪 aguarda veredito da lane |
+| UC-FPI-20 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPN-01 | Painel | 🧪 aguarda veredito da lane |
 | UC-FPN-02 | Painel | 🧪 aguarda veredito da lane |
 | UC-FPN-03 | Painel | 🧪 aguarda veredito da lane |
@@ -68,6 +81,7 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-FPN-05 | Painel | 🧪 aguarda veredito da lane |
 | UC-FPN-06 | Painel | 🧪 aguarda veredito da lane |
 | UC-FPN-07 | Painel | 🧪 aguarda veredito da lane |
+| UC-FPN-08 | Painel | 🧪 aguarda veredito da lane |
 | UC-FPP-01 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPP-02 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPP-03 | Public/Portal | 🧪 aguarda veredito da lane |
@@ -88,6 +102,14 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-FPP-18 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPP-19 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPP-20 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-21 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-22 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-23 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-24 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-25 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-26 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-27 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-28 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPS-01 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-02 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-03 | Pacientes/Show | 🧪 aguarda veredito da lane |
@@ -100,6 +122,22 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-FPS-10 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-11 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-12 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-13 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-14 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-15 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-16 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-17 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-18 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-19 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-20 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-21 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-30 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-31 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-32 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-33 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-34 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-35 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-36 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-OAP-01 | Public/Portal | 🧪 aguarda veredito da lane |
 
 ---

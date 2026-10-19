@@ -138,6 +138,10 @@ on:
       - 'Modules/Crm/Tests/Feature/CrmPropostas*'
       # Thread Producao/02 — fundo do PCP (trigger append-only exige MySQL).
       - 'Modules/Producao/**'
+      # US-FISIO-003 — fundo do Fisio (triggers append-only + escopo multi-tenant exigem MySQL).
+      - 'Modules/Fisio/**'
+      # Etapa 02 T-13 — service worker do portal do paciente (FisioPortalAppTest lê o arquivo).
+      - 'public/sw-fisio-portal.js'
       # Thread Producao/04 — o apontamento lê a saída do ponto (D-PONTO).
       - 'Modules/Ponto/Services/PresencaDoDiaService.php'
       - 'database/schema/mysql-schema.sql'
@@ -260,6 +264,10 @@ jobs:
               - 'Modules/Crm/Tests/Feature/CrmPropostas*'
               # Thread Producao/02 — fundo do PCP (trigger append-only exige MySQL).
               - 'Modules/Producao/**'
+              # US-FISIO-003 — fundo do Fisio (triggers append-only + escopo multi-tenant exigem MySQL).
+              - 'Modules/Fisio/**'
+              # Etapa 02 T-13 — service worker do portal do paciente (FisioPortalAppTest lê o arquivo).
+              - 'public/sw-fisio-portal.js'
               # Thread Producao/04 — o apontamento lê a saída do ponto (D-PONTO).
               - 'Modules/Ponto/Services/PresencaDoDiaService.php'
               - 'database/schema/mysql-schema.sql'
@@ -433,6 +441,91 @@ jobs:
         # `system.repair_version`, logo `isSuperadminInstalled()` é false e
         # `hasThePermissionInSubscription` devolve `true` no `return` final
         # (ModuleUtil.php:179) sem consultar subscription alguma.
+        #
+        # ENTRA 2026-10-18 — Fisio/FisioEsquemaContratoTest (US-FISIO-003): o contrato da camada
+        # de dados do Modules/Fisio — 11 tabelas com business_id, escopo dos models entre 98 e 99,
+        # triggers append-only de fisio_records (assinado) e fisio_game_ledger, únicos. Os outros
+        # arquivos de Modules/Fisio/Tests/Feature têm casos que dependem das rotas das US seguintes
+        # (US-FISIO-004..010) e entram aqui, um a um, quando a US de cada um os deixar verdes.
+        #
+        # ENTRAM 2026-10-18 — Fisio/FisioPacienteCrudTest e Fisio/FisioProntuarioTest (US-FISIO-005):
+        # cadastro de paciente sobre o contact, bloqueio sem apagar, prontuário carimbado pelo
+        # servidor, adendo e append-only pela rota (405) e pelo banco.
+        #
+        # ENTRA 2026-10-18 — Fisio/FisioPacienteContatoTest (UC-FPI-05..07): contato apagado não
+        # vira paciente, busca de contato no servidor (só da empresa, sem ficha, até 20) e contato
+        # criado no cadastro pelo ContactUtil, sem duplicar celular na empresa. 98 contra 99.
+        #
+        # ENTRAM 2026-10-18 — Fisio/FisioQuestionarioTest e Fisio/PontuacaoQuestionarioTest
+        # (US-FISIO-011): questionários de uso livre pontuados no servidor, bloqueados por licença
+        # recusados, 404 entre empresas. O Unit é puro (sem DB) e entra aqui para ter veredito.
+        #
+        # ENTRA 2026-10-18 — Fisio/Tests/Unit (núcleo de cálculo de US-FISIO-008/010): 5 arquivos
+        # de regra pura (nível, sequência, adesão 7d, fila de atenção, bordas de fuso). Sem
+        # TestCase nem banco; ficam nesta lane porque ela já dispara em Modules/Fisio/**.
+        # NÃO rodado localmente em MySQL (proibicoes.md / ADR 0358): o veredito é esta lane.
+        #
+        # ENTRAM 2026-10-18 — Fisio/FisioJogoServicoTest + Unit XpDoDiaCalculatorTest e LimiarDorCalculatorTest
+        # (US-FISIO-008): XP só pelo prescrito, reenvio sem duplicar, teto semanal, pausa por dor sem
+        # punir, dia de crise, alerta sobre a dor de base, isolamento 98×99. Pelo evento CheckinRegistrado,
+        # sem depender do portal; o FisioJogoTest (caminho HTTP) entra com a US-FISIO-007.
+        #
+        # ENTRA 2026-10-18 — Fisio/FisioPacienteResponsavelTest: fisioterapeuta responsável e
+        # transferência registrada no activity_log; destino de outra empresa 422, paciente alheio
+        # 404, sem fisio.editar 403 (UC-FPI-20, UC-FPS-30..32).
+        # ENTRA 2026-10-18 — Fisio/FisioBibliotecaTest (US-FISIO-004): biblioteca global visível
+        # para 98 e 99, exercício próprio só do dono, global não editável (403), próprio alheio
+        # 404, filtro por região e busca por texto (UC-FBI-01..04).
+        #
+        # ENTRA 2026-10-18 — Fisio/FisioProgramaEditorTest (US-FISIO-006): criar programa com
+        # instrução de parada, um ativo por paciente, dose padrão, reordenar/remover, exercício de
+        # outra clínica recusado e aviso de contraindicação (409 → confirmação gravada).
+        #
+        # ENTRA 2026-10-18 — Fisio/FisioBibliotecaFavoritosTest (US-FISIO-004, comparativo
+        # Physitrack): favorito por profissional e empresa (98×99 e dois usuários da 98), global
+        # inalterado ao favoritar, filtros de posição e equipamento da lista fechada (UC-FBI-08..10).
+        #
+        # ENTRA 2026-10-18 — Fisio/FisioProntuarioPdfTest (UC-FPS-19..20): exportação do prontuário
+        # em PDF — registros assinados em ordem cronológica e carimbados, 403 sem fisio.access, 404
+        # entre 98 e 99, e cada exportação no activity_log sem PII.
+        #
+        # ENTRAM 2026-10-18 — Fisio/FisioMultiTenantTest, Fisio/FisioModuloVisibilidadeTest e
+        # Fisio/FisioEvolucaoTest (US-FISIO-010): painel e evolução da 98 sem paciente da 99, menu e
+        # rota /fisio só com pacote + fisio.access, aba Evolução (UC-FPS-21). Inteiros e verdes.
+        #
+        # ENTRA 2026-10-18 — Fisio/FisioPainelTest (US-FISIO-010), numa invocação PRÓPRIA que exclui
+        # SÓ o UC-FPN-05: ele monta o check-in pela rota pública do portal (F::portalPronto →
+        # PortalTokenService), que é a US-FISIO-007 e ainda não existe. A asserção não foi tocada; o
+        # filtro sai quando o portal entrar. Os outros 9 casos (UC-FPN-02..04) rodam aqui. Arquivo
+        # JUnit separado (pest-verticais-junit-fisio-painel.xml) — o upload pega os dois.
+        #
+        # ENTRAM 2026-10-18 — Fisio/FisioPortalAcessoTest e Fisio/FisioPortalLinkTest (US-FISIO-007a):
+        # link + PIN com trava, estado vazio único para link ruim, consentimentos separados e
+        # carimbados, paciente bloqueado e outra clínica fora (UC-FPP-01..07, UC-FPP-21), e o link
+        # gerado na ficha (UC-FPS-33..35).
+        #
+        # ENTRAM 2026-10-19 — Fisio/FisioCheckinTest, FisioJogoTest, FisioPortalSegurancaClinicaTest
+        # e FisioPortalAparelhoTest (US-FISIO-007b): o check-in do portal grava o dia (idempotente),
+        # o telemonitoramento/adendo, dispara o jogo, avisa sinal de alerta e entra em pausa só com a
+        # instrução do profissional; "lembrar este aparelho" e dia de crise (UC-FPP-08..20, 22..25).
+        # Com o portal gravando, o filtro que tirava o UC-FPN-05 do FisioPainelTest sai: o arquivo
+        # roda inteiro (asserções intactas).
+        #
+        # ENTRA 2026-10-19 — Fisio/FisioPortalAppTest (etapa 02 T-13): manifesto por link sem o
+        # nome da clínica, tela do dia guardada no aparelho só quando ele está lembrado, e o
+        # service worker public/sw-fisio-portal.js (está no gatilho acima) (UC-FPP-26..28).
+        #
+        # ENTRA 2026-10-18 — Fisio/FisioBibliotecaMidiaTest: foto/vídeo do exercício próprio pelo
+        # backbone Modules/Arquivos (biz-{id}/), servida por rota que confere empresa (98 lê, 99
+        # 404), global 403, limites e declaração no servidor, remoção só da dona (UC-FBI-05..07).
+        #
+        # ENTRA 2026-10-19 — Fisio/FisioPortalSemLoginTest: o portal abre sem login com o ModuleUtil
+        # REAL (sem o mock do pacote). Em produção o link válido dava 500: auth()->user()->can() em null.
+        #
+        # ENTRAM 2026-10-19 — Fisio/FisioWhatsappJobTest e Fisio/AgendaDeEnvioTest (US-FISIO-009): envio
+        # do link do portal e lembrete diário pelo módulo Whatsapp existente (número de saída padrão),
+        # consentimento, isolamento 98×99, idempotência persistida, silêncio, teto por hora e wa.me
+        # manual sem canal. O caso de integração com o portal real PULA até o US-FISIO-007a entrar.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -512,7 +605,43 @@ jobs:
             Modules/Producao/Tests/Feature/ProducaoApontamentoTelaTest.php \
             Modules/Producao/Tests/Feature/ProducaoRoteirosContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoEtiquetaOsContratoTest.php \
-            Modules/Producao/Tests/Feature/ProducaoFecharTurnoComandoTest.php
+            Modules/Producao/Tests/Feature/ProducaoFecharTurnoComandoTest.php \
+            Modules/Fisio/Tests/Feature/FisioEsquemaContratoTest.php \
+            Modules/Fisio/Tests/Feature/FisioPacienteCrudTest.php \
+            Modules/Fisio/Tests/Feature/FisioPacienteContatoTest.php \
+            Modules/Fisio/Tests/Feature/FisioProntuarioTest.php \
+            Modules/Fisio/Tests/Feature/FisioQuestionarioTest.php \
+            Modules/Fisio/Tests/Unit/PontuacaoQuestionarioTest.php \
+            Modules/Fisio/Tests/Unit/NivelCalculatorTest.php \
+            Modules/Fisio/Tests/Unit/SequenciaCalculatorTest.php \
+            Modules/Fisio/Tests/Unit/AdesaoCalculatorTest.php \
+            Modules/Fisio/Tests/Unit/AtencaoDetectorTest.php \
+            Modules/Fisio/Tests/Unit/CalculoBordasTest.php \
+            Modules/Fisio/Tests/Unit/XpDoDiaCalculatorTest.php \
+            Modules/Fisio/Tests/Unit/LimiarDorCalculatorTest.php \
+            Modules/Fisio/Tests/Feature/FisioJogoServicoTest.php \
+            Modules/Fisio/Tests/Feature/FisioBibliotecaFavoritosTest.php \
+            Modules/Fisio/Tests/Feature/FisioBibliotecaTest.php \
+            Modules/Fisio/Tests/Feature/FisioPacienteResponsavelTest.php \
+            Modules/Fisio/Tests/Feature/FisioProgramaEditorTest.php \
+            Modules/Fisio/Tests/Feature/FisioProntuarioPdfTest.php \
+            Modules/Fisio/Tests/Feature/FisioBibliotecaMidiaTest.php \
+            Modules/Fisio/Tests/Feature/FisioMultiTenantTest.php \
+            Modules/Fisio/Tests/Feature/FisioModuloVisibilidadeTest.php \
+            Modules/Fisio/Tests/Feature/FisioEvolucaoTest.php \
+            Modules/Fisio/Tests/Feature/FisioPortalAcessoTest.php \
+            Modules/Fisio/Tests/Feature/FisioPortalSemLoginTest.php \
+            Modules/Fisio/Tests/Feature/FisioPortalLinkTest.php \
+            Modules/Fisio/Tests/Feature/FisioWhatsappJobTest.php \
+            Modules/Fisio/Tests/Unit/AgendaDeEnvioTest.php \
+            Modules/Fisio/Tests/Feature/FisioCheckinTest.php \
+            Modules/Fisio/Tests/Feature/FisioJogoTest.php \
+            Modules/Fisio/Tests/Feature/FisioPortalSegurancaClinicaTest.php \
+            Modules/Fisio/Tests/Feature/FisioPortalAparelhoTest.php \
+            Modules/Fisio/Tests/Feature/FisioPortalAppTest.php
+          vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-verticais-junit-fisio-painel.xml \
+            Modules/Fisio/Tests/Feature/FisioPainelTest.php
 
       # O sumário conta `assertions` POR ARQUIVO — é o discriminador que separa
       # "passou" de "pulou" (LC-13). Aqui só REPORTA.

@@ -42,66 +42,110 @@ related_adrs:
 
 ### US-FISIO-003 · Schema, models e append-only de prontuário e ledger do jogo — **P0**
 
-**Implementado em:** _pendente_ — nenhuma migration `fisio_*`
+**Implementado em:** `Modules/Fisio/Database/Migrations/2026_10_18_000001_create_fisio_tables.php` · `Modules/Fisio/Entities/` · verificado@b9a7a58 (2026-10-18, #9537)
 
-> owner: — · priority: p0 · estimate: 6h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 6h · status: done · type: story
 > blocked_by: US-FISIO-002. DoD: isolamento 98×99 (`FisioMultiTenantTest`); UPDATE/DELETE em registro assinado falha (`FisioProntuarioTest`); nenhum `forceDelete` em dado clínico.
+
+**DoD:** as 11 tabelas `fisio_*` com `business_id` e escopo entre 98 e 99; trigger recusa UPDATE/DELETE em `fisio_records` assinado e em `fisio_game_ledger`; nenhum `forceDelete` em dado clínico — `FisioEsquemaContratoTest`.
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioEsquemaContratoTest.php`
 
 ### US-FISIO-004 · Biblioteca semeada e revisada pela responsável técnica — **P0**
 
-**Implementado em:** _pendente_ — sem seed
+**Implementado em:** _pendente_ — parcial: `Modules/Fisio/Http/Controllers/BibliotecaController.php`, rotas `fisio.biblioteca.*` e tela `Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/Index.tsx` existem; o seed `Modules/Fisio/Database/Seeders/FisioBibliotecaSeeder.php` está vazio (conteúdo aguarda passos documentados e revisão da Dra. Dejeane). A âncora fecha com o seed.
 
-> owner: — · priority: p0 · estimate: 4h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 4h · status: doing · type: story
 > blocked_by: US-FISIO-003. 38 exercícios com `times_per_day`, avisos de respiração/apoio e `contraindication_flags`. DoD: revisão da Dra. Dejeane anotada no PR. Detalhe: `etapas/01-biblioteca.md`.
+
+**DoD:** a biblioteca global (`business_id` nulo) aparece para toda clínica com o módulo e o exercício próprio só para a dona; exercício próprio grava com a empresa da sessão e `is_custom`; global responde 403 à edição e próprio de outra empresa 404; filtro por região e busca por texto em nome e sinônimos (busca na F1 aceita por [W] em 2026-10-18, ADR 0437 §14 nº 3) — `FisioBibliotecaTest`; favorito por profissional na empresa (favoritar um global não o altera), filtros de posição e equipamento das listas fechadas de `config('fisio.biblioteca.*')` combinados com região, busca e "só favoritos", e posição/equipamento no exercício próprio (comparativo Physitrack, 2026-10-18) — `FisioBibliotecaFavoritosTest`. **Falta para fechar:** o seed dos 38 exercícios, que depende de passos/dose/contraindicações escritos e da revisão da Dra. Dejeane anotada no PR.
+
+**Mídia do exercício próprio (parcial, comparativo Physitrack):** foto JPG/PNG/WebP ou vídeo MP4 curto no exercício da clínica, guardado pelo backbone `Modules/Arquivos` (ADR 0123/0214) sob a empresa da sessão e servido por rota com checagem de empresa; global recusa (403); tipo, tamanho e declaração "não mostra paciente" no servidor; remoção reversível só da dona — `Modules/Fisio/Http/Controllers/BibliotecaMidiaController.php`, `Modules/Fisio/Services/MidiaExercicio.php`, `FisioBibliotecaMidiaTest` (UC-FBI-05..07). Fica para depois: transcodificação, quadros-chave e PDF do exercício (`etapas/01-biblioteca.md` §3.6–3.7).
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioBibliotecaTest.php` · `Modules/Fisio/Tests/Feature/FisioBibliotecaFavoritosTest.php` · `Modules/Fisio/Tests/Feature/FisioBibliotecaMidiaTest.php`
 
 ### US-FISIO-005 · Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0**
 
-**Implementado em:** _pendente_
+**Implementado em:** `Modules/Fisio/Http/Controllers/PacientesController.php` · `Modules/Fisio/Http/Controllers/RegistrosController.php` · rotas `fisio.pacientes.*` (`Modules/Fisio/Routes/web.php`) · telas `Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Index.tsx` e `Show.tsx` (+ charters) · exportação em PDF `Modules/Fisio/Http/Controllers/ProntuarioPdfController.php` + `Modules/Fisio/Services/ProntuarioExportacao.php` (UC-FPS-19..20) — veredito pela lane Verticais (`FisioPacienteCrudTest`, `FisioProntuarioTest`, `FisioProntuarioPdfTest`)
 
-> owner: — · priority: p0 · estimate: 8h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 8h · status: done · type: story
 > blocked_by: US-FISIO-003. Paciente é `contact`; avaliação, evolução e adendo carimbados com nome e CREFITO; marcadores de condição. DoD: `FisioPacienteCrudTest`, `FisioProntuarioTest`.
+
+**DoD:** paciente criado sobre um `contact` da empresa, um por contato, meta 1–7 e marcadores da lista fechada; excluir só bloqueia; avaliação/evolução/adendo carimbados com usuário, CREFITO e hora do servidor; avaliação exige os campos mínimos da Res. 414; registro assinado responde 405 a PUT/DELETE; o prontuário exporta em PDF (registros assinados em ordem cronológica, carimbados) e cada exportação fica no `activity_log` — `FisioPacienteCrudTest`, `FisioProntuarioTest`, `FisioProntuarioPdfTest`. Melhoria do comparativo (cadastro): contato apagado recusado, contato escolhido por busca no servidor e contato criado na hora sem duplicar celular — `FisioPacienteContatoTest` (UC-FPI-05..07).
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioPacienteCrudTest.php` · `Modules/Fisio/Tests/Feature/FisioProntuarioTest.php` · `Modules/Fisio/Tests/Feature/FisioProntuarioPdfTest.php` · `Modules/Fisio/Tests/Feature/FisioPacienteContatoTest.php`
+
+**Ampliação 2026-10-18 · fisioterapeuta responsável e transferência (feito).** Cada paciente tem um responsável, usuário da mesma empresa com acesso ao Fisio; quem cadastra é o responsável. A lista mostra e filtra por responsável ("Meus pacientes") e a ficha transfere para outro profissional da empresa. Cada transferência fica no `activity_log` (quem, de quem, para quem, quando) e nada se apaga. Transferir exige `fisio.editar`; destino de outra empresa ou sem acesso ao Fisio responde 422. Pacientes cadastrados antes da coluna ficam sem responsável até alguém transferir. Fora: notificações e comparação entre profissionais. Referência: a Physitrack permite compartilhar e transferir clientes entre profissionais. Casos UC-FPI-20 e UC-FPS-30..32.
+Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `Modules/Fisio/Services/ResponsavelPaciente.php` · migration `Modules/Fisio/Database/Migrations/2026_10_18_000003_add_responsible_user_to_fisio_patients.php` · componentes `Modules/Fisio/Resources/js/Pages/Fisio/_components/ResponsavelPaciente.tsx` e `FiltroResponsavel.tsx`. Testado em `Modules/Fisio/Tests/Feature/FisioPacienteResponsavelTest.php`.
 
 ### US-FISIO-006 · Editor de programa, protocolos-modelo e aviso de contraindicação — **P0**
 
-**Implementado em:** _pendente_
+**Implementado em:** `Modules/Fisio/Http/Controllers/ProgramasController.php` · `Modules/Fisio/Http/Controllers/ProtocolosController.php` · `Modules/Fisio/Services/EditorProgramaPayload.php` · rotas `fisio.pacientes.programas.store`, `fisio.programas.*`, `fisio.protocolos.*` (`Modules/Fisio/Routes/web.php`) · tela `Modules/Fisio/Resources/js/Pages/Fisio/_components/EditorPrograma.tsx` montada na ficha (`Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Show.tsx`) — veredito pela lane Verticais (`FisioProgramaEditorTest`)
 
-> owner: — · priority: p0 · estimate: 8h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 8h · status: done · type: story
 > blocked_by: US-FISIO-004, US-FISIO-005. Aviso nunca bloqueia; exige justificativa que vai ao prontuário (ADR 0437 §13.2). DoD: `FisioProgramaEditorTest`.
+
+**DoD:** programa nasce ativo, `origin=manual`, `created_by` da sessão, limiar padrão 7, com instrução de parada obrigatória; novo ativo encerra o anterior; item herda a dose padrão e vai para o fim; dose validada sem tocar outro item; reordenar exige a lista exata; remover recompacta sem tocar check-in; exercício de outra clínica recusado; contraindicação responde 409 sem gravar e, confirmada, grava quem/quais/quando e a justificativa no item e um registro novo no prontuário; protocolo-modelo aplicado vira `origin=protocolo`, modelo global só se copia (editar = 403) — `FisioProgramaEditorTest`. Conteúdo clínico (exercícios e protocolos globais) aguarda a Dra. Dejeane: sem seed, o editor funciona com exercícios da clínica e mostra estado vazio.
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioProgramaEditorTest.php`
 
 ### US-FISIO-007 · Portal do paciente (link + PIN, consentimentos, check-in, telemonitoramento) — **P0**
 
-**Implementado em:** _pendente_
+**Implementado em:** `Modules/Fisio/Services/PortalTokenService.php` · `Modules/Fisio/Services/Consentimentos.php` · `Modules/Fisio/Services/CheckinDoPortal.php` · `Modules/Fisio/Services/AparelhosDoPortal.php` · `Modules/Fisio/Http/Controllers/PortalController.php` · `Modules/Fisio/Resources/js/Pages/Fisio/Public/Portal.tsx`
 
-> owner: — · priority: p0 · estimate: 12h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 12h · status: done · type: story
 > blocked_by: US-FISIO-006. Token HMAC + PIN com lockout (padrão OficinaAuto); consentimentos versionados; check-in idempotente com sinais de alerta; cada check-in vira registro de telemonitoramento (Res. COFFITO 619/2025). DoD: `FisioPortalAcessoTest`, `FisioCheckinTest`, `FisioPortalSegurancaClinicaTest`.
+
+**Corte US-FISIO-007a (feito, 2026-10-18) · link + PIN e consentimentos.** A clínica gera na ficha um link do portal (token assinado com o business dentro, guardado só em hash, 30 dias, gerar outro revoga o anterior) e um PIN de 4 dígitos mostrado uma vez; 5 PINs errados travam por 30 min. As rotas públicas `/fisio/p/{token}` ficam fora do middleware de admin, com sessão própria do paciente amarrada ao link e escopo pelo business do token: paciente bloqueado, de outra clínica ou de clínica sem o pacote cai no mesmo estado vazio. Consentimentos separados e carimbados (versão da config, IP, canal, data): `teleatendimento` obrigatório para ver o programa, `whatsapp` e `camera` opcionais, revogáveis pelo portal. Implementado em `Modules/Fisio/Services/PortalTokenService.php` · `Modules/Fisio/Services/Consentimentos.php` · `Modules/Fisio/Http/Controllers/PortalController.php` · `Modules/Fisio/Http/Controllers/PortalLinkController.php` · tela mínima `Modules/Fisio/Resources/js/Pages/Fisio/Public/Portal.tsx` e botão `Modules/Fisio/Resources/js/Pages/Fisio/_components/LinkPortal.tsx` na ficha. Testado em `Modules/Fisio/Tests/Feature/FisioPortalAcessoTest.php` e `Modules/Fisio/Tests/Feature/FisioPortalLinkTest.php`. Falta (US-FISIO-007b): gravar o check-in, o telemonitoramento, sinais de alerta e modo pausa (`FisioCheckinTest`, `FisioPortalSegurancaClinicaTest`) e a tela desenhada.
+
+**Corte US-FISIO-007b (2026-10-19) · telas do paciente e check-in.** "Como foi hoje" grava `fisio_checkins` uma vez por dia (reenvio atualiza; UNIQUE no banco), só com itens do programa ativo, dor 0–10, esforço fechado, observação até 280 caracteres e sinais da lista fechada; o 1º envio do dia gera o `fisio_records` `telemonitoramento` (assíncrono, canal portal, assinado pelo sistema, ligado ao check-in por `checkin_id`) e reenvio com relato diferente gera `adendo` (`Modules/Fisio/Services/CheckinDoPortal.php`). Depois de gravar dispara `CheckinRegistrado` (o JogoService lança só a diferença positiva). Sinal de alerta novo notifica o profissional do programa e o responsável (`Modules/Fisio/Notifications/SinalDeAlertaNotification.php`, sino do sistema) e o painel já o põe na fila de atenção. Dor ≥ limiar do programa ou sinal de alerta: resposta e tela só com a `stop_instruction`. "Lembrar este aparelho por 30 dias" com cookie httpOnly cifrado e `fisio_portal_devices` (só hash, ligado ao token, revogado com o link) em `Modules/Fisio/Services/AparelhosDoPortal.php`. "Hoje estou em crise" só com a versão de crise escrita pelo profissional. Telas Entrada, Hoje e Check-in em `Modules/Fisio/Resources/js/Pages/Fisio/Public/_components/`. Testado em `Modules/Fisio/Tests/Feature/FisioCheckinTest.php`, `Modules/Fisio/Tests/Feature/FisioJogoTest.php`, `Modules/Fisio/Tests/Feature/FisioPortalSegurancaClinicaTest.php` e `Modules/Fisio/Tests/Feature/FisioPortalAparelhoTest.php`.
+
+**Corte T-13 parte 1 (2026-10-19) · app instalável** (etapa 02 §3.6). Manifesto por link em `GET /fisio/p/{token}/manifest.webmanifest` (`PortalController::manifest`, público, sem o nome da clínica), ícones `public/img/fisio-portal-*.png`, service worker `public/sw-fisio-portal.js` (escopo `/fisio/p/`) que guarda a tela do dia só quando o servidor manda `X-Fisio-Offline: guardar` — o que só acontece em aparelho lembrado — e apaga a cópia nos outros casos; convite de instalação em `Modules/Fisio/Resources/js/Pages/Fisio/Public/_components/Instalar.tsx`. Testado em `Modules/Fisio/Tests/Feature/FisioPortalAppTest.php` (UC-FPP-26..28). Falta (parte 2): fila offline do check-in; push para quem instalou fica para decisão (biblioteca nova).
+
+**DoD:** link inválido, adulterado, expirado ou revogado é o mesmo estado vazio; PIN com 5 tentativas e trava de 30 min; consentimento de teleatendimento antes de qualquer dado, opcionais separados e carimbados; check-in uma vez por dia (reenvio atualiza), só itens do programa ativo, dor 0–10 e esforço fechado; cada dia vira 1 telemonitoramento e reenvio diferente vira adendo; sinal de alerta notifica o profissional e entra na fila de atenção; dor ≥ limiar ou sinal de alerta mostra só a instrução do profissional; portal sem série de dor; "lembrar este aparelho" cai com outro link, prazo, revogação ou link novo; crise só com versão escrita pelo profissional; nada vaza entre clínicas — `FisioPortalAcessoTest`, `FisioPortalLinkTest`, `FisioCheckinTest`, `FisioJogoTest`, `FisioPortalSegurancaClinicaTest`, `FisioPortalAparelhoTest`. Contrato: `Modules/Fisio/Resources/js/Pages/Fisio/Public/Portal.casos.md` (UC-FPP-01..25).
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioPortalAcessoTest.php` · `Modules/Fisio/Tests/Feature/FisioPortalLinkTest.php` · `Modules/Fisio/Tests/Feature/FisioCheckinTest.php` · `Modules/Fisio/Tests/Feature/FisioPortalSegurancaClinicaTest.php` · `Modules/Fisio/Tests/Feature/FisioPortalAparelhoTest.php`
 
 ### US-FISIO-008 · Jogo de constância (XP, nível, sequência, missões, pausa por dor) — **P1**
 
-**Implementado em:** _pendente_
+**Implementado em:** _pendente_ — parcial: calculadoras puras `Modules/Fisio/Services/XpDoDiaCalculator.php`, `Modules/Fisio/Services/LimiarDorCalculator.php`, `Modules/Fisio/Services/NivelCalculator.php`, `Modules/Fisio/Services/SequenciaCalculator.php` (com dia de crise), serviço `Modules/Fisio/Services/JogoService.php` e ponto de entrada único `Modules/Fisio/Events/CheckinRegistrado.php` → `Modules/Fisio/Listeners/LancarXpDoCheckin.php` existem; números em `config('fisio.jogo')`; coluna `fisio_checkins.crisis`. A âncora fecha quando o portal (US-FISIO-007) disparar o evento no check-in. Escudos, missões, desafio e medalhas (T-08c) ficam no backlog do contrato.
 
-> owner: — · priority: p1 · estimate: 8h · status: todo · type: story
-> blocked_by: US-FISIO-007. Regras da ADR 0437 §6 e números de `etapas/02-f1-constancia.md`. DoD: `FisioJogoTest`, `NivelCalculatorTest`, `SequenciaCalculatorTest`.
+> owner: — · priority: p1 · estimate: 8h · status: doing · type: story
+> blocked_by: US-FISIO-007 (só a ligação com o portal). Regras da ADR 0437 §6 e números de `etapas/02-f1-constancia.md`.
 
-### US-FISIO-009 · Lembrete diário e envio do programa por WhatsApp (driver whatsmeow) — **P0**
+**DoD:** XP só pelo prescrito — `xp.exercicio_concluido` × (vezes feitas ÷ prescritas, cada item até `times_per_day`) e `xp.checkin` sempre, inclusive com dor alta, ambos × `normalizacao_dias_base` ÷ `sessions_per_week`; item fora do programa e vez a mais valem 0; reenvio lança só a diferença positiva e nada é estornado (ledger append-only); teto semanal; dor ≥ limiar ou sinal de alerta pausa o jogo sem quebrar a sequência e põe o paciente na fila de atenção; em `sobre_basal` o limiar é a dor de base da paciente + margem; dia de crise conta para a sequência; nível derivado do ledger, sem coluna e sem ranking; evento de outra clínica ou paciente bloqueado não lança — `FisioJogoServicoTest`, `FisioJogoTest`, `XpDoDiaCalculatorTest`, `LimiarDorCalculatorTest`, `NivelCalculatorTest`, `SequenciaCalculatorTest`. Contrato: `memory/requisitos/Fisio/_telas/jogo-constancia.casos.md` (UC-FJG-01..05).
 
-**Implementado em:** _pendente_
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioJogoServicoTest.php` · `Modules/Fisio/Tests/Feature/FisioJogoTest.php` · `Modules/Fisio/Tests/Unit/XpDoDiaCalculatorTest.php` · `Modules/Fisio/Tests/Unit/LimiarDorCalculatorTest.php`
+### US-FISIO-009 · Lembrete diário e envio do programa por WhatsApp (canal escolhido pela clínica) — **P0**
 
-> owner: — · priority: p0 · estimate: 6h · status: todo · type: story
-> blocked_by: US-FISIO-007. Pelo módulo `Whatsapp` via `ChannelDriverFactory` (nunca whatsmeow direto); mitigações de banimento da ADR 0437 §13.1. DoD: `FisioWhatsappJobTest`; canal caído gera alerta ao profissional.
+**Implementado em:** _pendente_ — parcial: envio pelo módulo `Whatsapp` existente (sem canal, driver nem tabela próprios do Fisio — decisão [W] 2026-10-19: "o WhatsApp já está pronto no sistema"): `Modules/Fisio/Jobs/EnviarProgramaWhatsappJob.php`, `Modules/Fisio/Jobs/EnviarLembreteDiarioJob.php`, `Modules/Fisio/Console/LembretesCommand.php` (`fisio:lembretes`, agendado), `Modules/Fisio/Http/Controllers/EnvioWhatsappController.php` (rota `fisio.programas.enviar`: fila ou `wa.me` manual sem canal ativo), `Modules/Fisio/Services/Whatsapp/EnvioWhatsappFisio.php` (consentimento, idempotência persistida, ritmo) e `Modules/Fisio/Services/Whatsapp/AgendaDeEnvio.php` (silêncio, teto por hora, intervalo aleatório). O link vem do contrato `Modules/Fisio/Contracts/LinkDoPortal.php`, que delega ao `PortalTokenService` do US-FISIO-007a; a âncora fecha quando o portal entrar e o caso de integração do `FisioWhatsappJobTest` deixar de pular.
+
+> owner: — · priority: p0 · estimate: 6h · status: doing · type: story
+> blocked_by: US-FISIO-007. Pelo módulo `Whatsapp` via `ChannelDriverFactory` (nunca um driver direto), com o canal lido da configuração da clínica: `meta_cloud`, `whatsmeow` (exige aceite de risco registrado) ou envio manual `wa.me`; mitigações de banimento da ADR 0437 §13.1 quando o canal for `whatsmeow`. DoD: `FisioWhatsappJobTest`; canal caído gera alerta ao profissional.
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioWhatsappJobTest.php` · `Modules/Fisio/Tests/Unit/AgendaDeEnvioTest.php`
 
 ### US-FISIO-010 · Painel, evolução e fila de atenção — **P0**
 
-**Implementado em:** _pendente_
+**Implementado em:** _pendente_ — `Modules/Fisio/Http/Controllers/PainelController.php`, `Modules/Fisio/Services/PainelFisio.php`, rota `fisio.painel` (`GET /fisio`), tela `Modules/Fisio/Resources/js/Pages/Fisio/Painel.tsx` e aba Evolução (`Modules/Fisio/Resources/js/Pages/Fisio/_components/EvolucaoPaciente.tsx`) existem; o UC-FPN-05 do `FisioPainelTest` depende do portal (US-FISIO-007). A âncora fecha com o portal.
 
-> owner: — · priority: p0 · estimate: 8h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 8h · status: doing · type: story
 > blocked_by: US-FISIO-008. Adesão 7d, dor, nível; fila de abandono separada da fila de alerta clínico. DoD: `FisioPainelTest`, `AdesaoCalculatorTest`, `AtencaoDetectorTest`.
+
+Núcleo de cálculo (serviços puros, sem rota nem tela; a US segue pendente): `Modules/Fisio/Services/AdesaoCalculator.php`, `Modules/Fisio/Services/AtencaoDetector.php`.
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioPainelTest.php` · `Modules/Fisio/Tests/Feature/FisioEvolucaoTest.php` · `Modules/Fisio/Tests/Unit/AdesaoCalculatorTest.php` · `Modules/Fisio/Tests/Unit/AtencaoDetectorTest.php`
 
 ### US-FISIO-011 · Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) — **P1**
 
-**Implementado em:** _pendente_
+**Implementado em:** _pendente_ — parcial: pontuação (`Modules/Fisio/Services/Questionarios/PontuacaoQuestionario.php`), catálogo, `Modules/Fisio/Http/Controllers/QuestionariosController.php` e a seção na ficha existem; o texto literal dos itens da versão brasileira validada não está transcrito (`texto: null`) e aguarda a Dra. Dejeane. A âncora fecha com os enunciados.
 
-> owner: — · priority: p1 · estimate: 6h · status: todo · type: story
+> owner: — · priority: p1 · estimate: 6h · status: doing · type: story
 > blocked_by: US-FISIO-005. Texto da versão brasileira validada, referência na tela; pontuação conferida com a publicação. ODI, NDI, KOOS, QuickDASH e WOMAC bloqueados até licença.
+
+**DoD:** resposta gravada com a pontuação calculada no servidor (RMDQ soma de "sim", PSFS média, LEFS soma, SPADI subescalas ÷50/÷80 e total ÷130), `score` do corpo ignorado; bloqueados por licença e respostas incompletas recusados; escrita exige `fisio.editar`, outra empresa 404; histórico na ficha por prop deferida; referência bibliográfica na tela; o sistema não interpreta a pontuação. Pendente fora do código: texto literal dos itens da versão BR validada (revisão da Dra. Dejeane) — `FisioQuestionarioTest`, `PontuacaoQuestionarioTest`.
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioQuestionarioTest.php` · `Modules/Fisio/Tests/Unit/PontuacaoQuestionarioTest.php`
 
 ### US-FISIO-012 · Fecha o loop da F1 — **P1**
 

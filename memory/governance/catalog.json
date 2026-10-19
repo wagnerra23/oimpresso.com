@@ -26,25 +26,25 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 786,
-    "edges": 1083,
+    "nodes": 809,
+    "edges": 1108,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 411,
-      "api": 81
+      "component": 431,
+      "api": 84
     },
     "by_edge_type": {
       "ownsTable": 97,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 85,
+      "providesApi": 88,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 411,
-      "dependsOn": 122,
-      "delegatesTo": 113,
+      "hasComponent": 431,
+      "dependsOn": 123,
+      "delegatesTo": 114,
       "migratesTo": 1,
       "supersedes": 26,
       "supersedesPartially": 71,
@@ -1338,9 +1338,9 @@
       ]
     },
     {
-      "id": "api:/fisio/*",
+      "id": "api:/fisio",
       "type": "api",
-      "prefix": "/fisio/*",
+      "prefix": "/fisio",
       "providers": [
         "Fisio"
       ]
@@ -1349,6 +1349,30 @@
       "id": "api:/fisio/p/{token}/*",
       "type": "api",
       "prefix": "/fisio/p/{token}/*",
+      "providers": [
+        "Fisio"
+      ]
+    },
+    {
+      "id": "api:/fisio/pacientes/*",
+      "type": "api",
+      "prefix": "/fisio/pacientes/*",
+      "providers": [
+        "Fisio"
+      ]
+    },
+    {
+      "id": "api:/fisio/programas/*",
+      "type": "api",
+      "prefix": "/fisio/programas/*",
+      "providers": [
+        "Fisio"
+      ]
+    },
+    {
+      "id": "api:/fisio/protocolos/*",
+      "type": "api",
+      "prefix": "/fisio/protocolos/*",
       "providers": [
         "Fisio"
       ]
@@ -2793,11 +2817,81 @@
       "desc": ""
     },
     {
+      "id": "component:Fisio/BibliotecaController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "BibliotecaController",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/BibliotecaFavoritosController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "BibliotecaFavoritosController",
+      "desc": "favoritos do profissional na empresa (fisio_exercise_favorites)"
+    },
+    {
+      "id": "component:Fisio/BibliotecaMidiaController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "BibliotecaMidiaController",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/Busca de contato para o cadastro e criação do contato na hora pelo ContactUtil do core",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Busca de contato para o cadastro e criação do contato na hora pelo ContactUtil do core",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/Cadastro de pacientes",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Cadastro de pacientes",
+      "desc": ""
+    },
+    {
       "id": "component:Fisio/DataController",
       "type": "component",
       "module": "Fisio",
       "name": "DataController",
       "desc": ""
+    },
+    {
+      "id": "component:Fisio/Editor de programa por paciente, protocolos-modelo",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Editor de programa por paciente, protocolos-modelo",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/EnvioWhatsappController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "EnvioWhatsappController",
+      "desc": "envio do link do portal pelo módulo Whatsapp (fila) ou wa.me manual sem canal ativo (US-FISIO-009)"
+    },
+    {
+      "id": "component:Fisio/Exportação do prontuário em PDF",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Exportação do prontuário em PDF",
+      "desc": "UC-FPS-19..20"
+    },
+    {
+      "id": "component:Fisio/Fisioterapeuta responsável pelo paciente e transferência registrada no activity_log",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Fisioterapeuta responsável pelo paciente e transferência registrada no activity_log",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/Foto ou vídeo curto do exercício próprio da clínica",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Foto ou vídeo curto do exercício próprio da clínica",
+      "desc": "servida por rota com checagem de empresa"
     },
     {
       "id": "component:Fisio/InstallController",
@@ -2814,10 +2908,10 @@
       "desc": ""
     },
     {
-      "id": "component:Fisio/Pacientes",
+      "id": "component:Fisio/PacientesController",
       "type": "component",
       "module": "Fisio",
-      "name": "Pacientes",
+      "name": "PacientesController",
       "desc": ""
     },
     {
@@ -2828,10 +2922,80 @@
       "desc": ""
     },
     {
+      "id": "component:Fisio/PainelController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "PainelController",
+      "desc": ""
+    },
+    {
       "id": "component:Fisio/Portal público do paciente",
       "type": "component",
       "module": "Fisio",
       "name": "Portal público do paciente",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/PortalController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "PortalController",
+      "desc": "portal público do paciente: PIN com trava, consentimentos separados, lista do dia (US-FISIO-007a)"
+    },
+    {
+      "id": "component:Fisio/PortalLinkController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "PortalLinkController",
+      "desc": "link do portal gerado e revogado na ficha (US-FISIO-007a)"
+    },
+    {
+      "id": "component:Fisio/ProgramasController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "ProgramasController",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/ProntuarioPdfController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "ProntuarioPdfController",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/ProtocolosController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "ProtocolosController",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/Questionários de uso livre",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Questionários de uso livre",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/QuestionariosController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "QuestionariosController",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/RegistrosController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "RegistrosController",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/ResponsavelController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "ResponsavelController",
       "desc": ""
     },
     {
@@ -8877,6 +9041,13 @@
     },
     {
       "from": "module:Fisio",
+      "to": "module:Arquivos",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Armazenamento de arquivo (foto/vídeo do exercício próprio)"
+    },
+    {
+      "from": "module:Fisio",
       "to": "module:Whatsapp",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -8887,6 +9058,13 @@
       "to": "module:[Whatsapp]",
       "type": "dependsOn",
       "source": "depends_on"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "module:Arquivos",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Armazenamento de arquivo (foto/vídeo do exercício próprio)"
     },
     {
       "from": "module:Fisio",
@@ -8903,7 +9081,67 @@
     },
     {
       "from": "module:Fisio",
+      "to": "component:Fisio/BibliotecaController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/BibliotecaFavoritosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/BibliotecaMidiaController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/Busca de contato para o cadastro e criação do contato na hora pelo ContactUtil do core",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/Cadastro de pacientes",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
       "to": "component:Fisio/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/Editor de programa por paciente, protocolos-modelo",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/EnvioWhatsappController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/Exportação do prontuário em PDF",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/Fisioterapeuta responsável pelo paciente e transferência registrada no activity_log",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/Foto ou vídeo curto do exercício próprio da clínica",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8921,7 +9159,7 @@
     },
     {
       "from": "module:Fisio",
-      "to": "component:Fisio/Pacientes",
+      "to": "component:Fisio/PacientesController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8933,19 +9171,97 @@
     },
     {
       "from": "module:Fisio",
+      "to": "component:Fisio/PainelController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
       "to": "component:Fisio/Portal público do paciente",
       "type": "hasComponent",
       "source": "contains"
     },
     {
       "from": "module:Fisio",
-      "to": "api:/fisio/*",
+      "to": "component:Fisio/PortalController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/PortalLinkController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/ProgramasController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/ProntuarioPdfController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/ProtocolosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/Questionários de uso livre",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/QuestionariosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/RegistrosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/ResponsavelController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "api:/fisio/p/{token}/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
     {
       "from": "module:Fisio",
-      "to": "api:/fisio/p/{token}/*",
+      "to": "api:/fisio/pacientes/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "api:/fisio/programas/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "api:/fisio/protocolos/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "api:/fisio",
       "type": "providesApi",
       "source": "url_prefixes"
     },

@@ -1073,7 +1073,7 @@
 - **US-FISIO-006** — Editor de programa, protocolos-modelo e aviso de contraindicação — **P0**
 - **US-FISIO-007** — Portal do paciente (link + PIN, consentimentos, check-in, telemonitoramento) — **P0**
 - **US-FISIO-008** — Jogo de constância (XP, nível, sequência, missões, pausa por dor) — **P1**
-- **US-FISIO-009** — Lembrete diário e envio do programa por WhatsApp (driver whatsmeow) — **P0**
+- **US-FISIO-009** — Lembrete diário e envio do programa por WhatsApp (canal escolhido pela clínica) — **P0**
 - **US-FISIO-010** — Painel, evolução e fila de atenção — **P0**
 - **US-FISIO-011** — Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) — **P1**
 - **US-FISIO-012** — Fecha o loop da F1 — **P1**

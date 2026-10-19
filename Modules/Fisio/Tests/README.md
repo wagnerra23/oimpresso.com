@@ -1,6 +1,6 @@
 # Suíte TDD — Modules/Fisio · F1 "Constância"
 
-Testes escritos **antes do código** (handoff `HANDOFF-fisio-f1-claude-code.md`, T-02 a T-10). Implemente até ficarem verdes **sem afrouxar asserção**. Se um teste estiver errado, mude o teste num commit próprio e diga por quê no PR.
+Testes escritos **antes do código** (handoff `memory/requisitos/Fisio/HANDOFF-F1.md`, T-02 a T-10). Implemente até ficarem verdes **sem afrouxar asserção**. Se um teste estiver errado, mude o teste num commit próprio e diga por quê no PR.
 
 **Total:** 17 arquivos, 138 blocos `it()`, **166 casos** (com datasets expandidos). 13 de Feature (117 casos) e 4 de Unit (49 casos puros, sem DB).
 
@@ -38,7 +38,14 @@ Os caminhos desta pasta já são os do repo (copie a árvore `Modules/` para a r
 - `FisioModuloContratoTest`: 3 de 4 verdes já no esqueleto (pacote, permissões, varredura de fonte). O de rotas fica vermelho até as rotas da F1 existirem; quando ficar verde inteiro, entra na `ci-sqlite-pest.list` (roda sem banco, como o `ProducaoModuloAtivacaoTest`).
 - Os Feature com `F::motivoDeSkip()` pulam até as migrations `fisio_*` (US-FISIO-003); com as tabelas, entram na lane MySQL (`verticais-pest.yml`) junto com `Modules/Fisio/**` nos `paths`.
 - Unit: 49 casos, todos vermelhos só por classe inexistente (nenhum erro de sintaxe), até os serviços puros chegarem.
-- As 4 factories (`Database/Factories/*.php`) **não** entraram no esqueleto: referenciam os models `Modules\Fisio\Entities\*`, que só nascem na US-FISIO-003, e o PHPStan ratchet acusa classe inexistente. Estão guardadas fora do repo (`C:\tmp\fisio-suite-pendente\Fisio\Database\Factories`) e voltam junto com os models na US-FISIO-003. As fixtures dos testes não dependem delas.
+- As 4 factories (`Database/Factories/*.php`) ficaram fora do esqueleto (referenciam `Modules\Fisio\Entities\*`, e o PHPStan ratchet acusava classe inexistente) e **voltaram na US-FISIO-003** junto com os models, com `@extends Factory<Model>`. As fixtures dos testes não dependem delas.
+
+## Estado na US-FISIO-003 (migrations, models, append-only)
+
+- Migration única `Database/Migrations/2026_10_18_000001_create_fisio_tables.php` com as 11 tabelas do HANDOFF, carregada pelo `FisioServiceProvider`. Triggers MySQL append-only em `fisio_records` (UPDATE/DELETE de linha com `signed_at`) e `fisio_game_ledger` (qualquer UPDATE/DELETE). Nenhuma FK de dado clínico com `ON DELETE CASCADE` (guarda de 20 anos).
+- Models além dos seis da suposição: `Consent`, `Protocol`, `GameLedger` (ledger do jogo), `Questionnaire`, `PortalToken`. Exceção da camada do model: `Modules\Fisio\Exceptions\DadoClinicoImutavelException` (save de registro assinado, qualquer update de ledger, delete de paciente/programa/check-in/registro/consentimento/questionário).
+- **Ajuste de fixture (não de asserção):** `fisio_program_items` ganhou `business_id` (cópia do programa, preenchida pelo model; business divergente é recusado) e o `ProgramItem` usa `HasBusinessScope` — o Tier 0 exige escopo em todo model (`MultiTenantScopeArchitectureTest`) e `business_id` em toda tabela (HANDOFF). Com isso, `F::itens()` passou a ler com `withoutGlobalScopes()` (comentado `// SUPERADMIN:`), porque o UC-FPS-01 do `FisioMultiTenantTest` lê os itens do programa da 98 **com a sessão da 99** para provar que nada mudou. `F::programa()` não mudou: o `create` não passa `business_id` e o model copia do programa.
+- `FisioEsquemaContratoTest` (novo): contrato da camada de dados — 11 tabelas com `business_id` indexado, isolamento 98×99 em todo model, biblioteca global+própria, triggers append-only, únicos e bloqueio de exclusão. É o único arquivo do Fisio na lane MySQL (`verticais-pest.yml`) por enquanto; os demais têm casos que dependem das rotas das US-FISIO-004..010 e entram na lane quando a US de cada um os deixar verdes.
 - Os `*.casos.md` ficam ao lado das Pages desde já: `npm run casos:check` não acusa violação nova com eles sem `.tsx`.
 ## Doutrina seguida (o que foi copiado do repo)
 
@@ -85,7 +92,7 @@ Em **negrito**, as regras que vieram na atualização de escopo.
 Onde o handoff deixava escolha, o teste escolheu. Mudar qualquer uma delas é mudar o teste junto, de propósito:
 
 1. **Reenvio do check-in no prontuário:** reenvio igual não cria nada; reenvio com relato diferente cria **1 `adendo`** com `amends_id` para o telemonitoramento do dia, que não muda. Motivo: o telemonitoramento é append-only e o prontuário precisa mostrar que o paciente mudou o relato.
-2. **XP:** `config('fisio.xp.exercicio_concluido')` por vez feita, até o `times_per_day` do item; `config('fisio.xp.checkin')` uma vez por dia. Reenvio lança só a diferença positiva e nunca estorna. Os testes usam 10 e 5.
+2. **XP (revisto na US-FISIO-008):** `config('fisio.jogo.xp.exercicio_concluido')` × (vezes feitas ÷ vezes prescritas, cada item até o `times_per_day`) e `config('fisio.jogo.xp.checkin')` uma vez por dia, ambos × `normalizacao_dias_base` ÷ `sessions_per_week`, com `teto_semanal`. Reenvio lança só a diferença positiva e nunca estorna. Os testes usam 60 / 30 com base 3 e meta 3 (fator 1).
 3. **Sequência:** folga = `ceil(7 / sessions_per_week) - 1` dias seguidos sem registro. Dia de pausa (dor ≥ limiar ou red flag) não soma e não quebra. Hoje não conta como buraco.
 4. **"Dor subiu e persiste":** é a comparação dos **2 registros mais recentes com dor informada**. Se o último voltou a cair, não entra.
 5. **Adesão:** arredondamento meio-para-cima; sem programa ativo dá `null` e fica fora da média.
@@ -102,7 +109,12 @@ A suíte e a etapa 02 foram escritas separadas e discordam em quatro pontos. Nen
 2. **Razão do XP de registro:** a suíte usa `fisio_game_ledger.reason='checkin'` e `config('fisio.xp.checkin')`; a etapa 02 §3.4 chama de `registro_do_dia` e o enum dela tem mais 6 razões (`missao`, `desafio_semanal`, `medalha`, `escudo_ganho`, `escudo_usado`, `pausa_protegida`). → US-FISIO-008.
 3. **XP de exercício:** a suíte dá `xp.exercicio_concluido` **por vez feita** (até `times_per_day`); a etapa 02 dá 70 × (itens feitos ÷ prescritos), com normalização 4 ÷ n e teto semanal. Os padrões do `Config/config.php` seguem a etapa (70/30); as fixtures sobrescrevem com 10/5. → US-FISIO-008.
 4. **Sequência:** a suíte usa folga `ceil(7 / sessions_per_week) - 1`; a etapa 02 usa escudos (1 a cada 7 dias prescritos, estoque máximo 2). → US-FISIO-008.
-## Suposições de nome — o implementador CONFIRMA (ou ajusta os testes num commit só)
+
+### Como a US-FISIO-008 resolveu as divergências 2 a 4 (2026-10-18)
+
+- **2 · razão do registro:** fica `checkin` (é o `registro_do_dia` da etapa 02 com o nome que a suíte e o banco já usam). As outras razões entram com o código de missões e escudos (T-08c).
+- **3 · XP de exercício:** vale a etapa 02 (proporcional, normalização 4 ÷ n, teto semanal), em `config('fisio.jogo')`. As asserções do `FisioJogoTest` mudaram de número, não de regra: continua "nada por exceder", "reenvio lança só a diferença" e "dor alta pontua o registro". As fixtures passaram a 60/30 com base 3.
+- **4 · sequência:** fica a folga `ceil(7 / meta) − 1` da suíte; escudos ficam no backlog do `_telas/jogo-constancia.casos.md`, para decisão de [W]. Entrou o dia de crise (protocolo 11), que conta como dia cumprido.## Suposições de nome — o implementador CONFIRMA (ou ajusta os testes num commit só)
 
 **Classes**
 - Models em `Modules\Fisio\Entities\`: `Patient`, `Record`, `Exercise`, `Program`, `ProgramItem`, `Checkin` (casts `array` em `goals`, `condition_flags`, `steps`, `done_item_ids`, `red_flags`, `body`, `contraindication_*`; `datetime` em `signed_at`).

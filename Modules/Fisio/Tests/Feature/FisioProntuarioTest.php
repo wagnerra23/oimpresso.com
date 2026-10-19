@@ -1,13 +1,15 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-FPS-03, UC-FPS-04, UC-FPS-05 (Fisio/Pacientes/Show.casos.md).
+// @covers-us US-FISIO-005
+// Cobre UC-FPS-03, UC-FPS-04, UC-FPS-05, UC-FPS-17 (Fisio/Pacientes/Show.casos.md).
 
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Modules\Fisio\Entities\Record;
+use Modules\Fisio\Exceptions\DadoClinicoImutavelException;
 use Modules\Fisio\Tests\Support\FisioFixtures as F;
 
 uses(Tests\TestCase::class, DatabaseTransactions::class);
@@ -105,7 +107,8 @@ it('UC-FPS-04 · registro assinado: UPDATE e DELETE falham no banco; a rota de e
     // Pelo Eloquent também (o model não pode contornar — save() de registro assinado lança).
     $reg = Record::query()->findOrFail($id);
     $reg->body = ['conduta' => 'outra'];
-    expect(fn () => $reg->save())->toThrow(Throwable::class);
+    // Classe concreta: `Throwable` é interface, e o Pest lê string que não é classe como MENSAGEM.
+    expect(fn () => $reg->save())->toThrow(DadoClinicoImutavelException::class);
 
     // HTTP: não há PUT/PATCH/DELETE de registro.
     $this->putJson("/fisio/pacientes/{$this->p->id}/registros/{$id}", ['body' => ['conduta' => 'x']])->assertStatus(405);
@@ -159,4 +162,26 @@ it('UC-FPS-05 · adendo sem amends_id, ou apontando registro de outro paciente/b
     $this->postJson("/fisio/pacientes/{$this->p->id}/registros", $base + ['amends_id' => $da99])->assertStatus(422)->assertJsonValidationErrors('amends_id');
 
     expect(Record::query()->where('patient_id', $this->p->id)->count())->toBe(0);
+});
+
+it('UC-FPS-17 · paciente bloqueado só recebe adendo; avaliação e evolução novas são recusadas', function () {
+    $orig = $this->postJson("/fisio/pacientes/{$this->p->id}/registros", [
+        'kind' => 'evolucao', 'crefito' => F::CREFITO, 'body' => ['conduta' => 'Ponte 3x12', 'resposta_paciente' => 'Sem dor'],
+    ])->assertCreated()->json('id');
+    $this->delete("/fisio/pacientes/{$this->p->id}")->assertRedirect();
+
+    $this->postJson("/fisio/pacientes/{$this->p->id}/registros", [
+        'kind' => 'evolucao', 'crefito' => F::CREFITO, 'body' => ['conduta' => 'x', 'resposta_paciente' => 'y'],
+    ])->assertStatus(422)->assertJsonValidationErrors('kind');
+    $this->postJson("/fisio/pacientes/{$this->p->id}/registros", fprAvaliacao())
+        ->assertStatus(422)->assertJsonValidationErrors('kind');
+    expect(Record::query()->where('patient_id', $this->p->id)->count())->toBe(1);
+
+    // Corrigir o que já está guardado continua possível (guarda de 20 anos, correção só por adendo).
+    $adendo = $this->postJson("/fisio/pacientes/{$this->p->id}/registros", [
+        'kind' => 'adendo', 'amends_id' => $orig, 'crefito' => F::CREFITO, 'body' => ['texto' => 'Correção: 3x10.'],
+    ])->assertCreated()->json('id');
+
+    expect(Record::query()->where('patient_id', $this->p->id)->pluck('id')->map('intval')->sort()->values()->all())
+        ->toBe([(int) $orig, (int) $adendo]);
 });

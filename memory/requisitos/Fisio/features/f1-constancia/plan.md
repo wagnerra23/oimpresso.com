@@ -23,7 +23,7 @@ module: Fisio
 | D1 | Paciente = `contact` + `fisio_patients` 1:1 | não duplicar cadastro de pessoa | ADR 0437 §3.1 |
 | D2 | `fisio_records` e `fisio_game_ledger` append-only | Res. COFFITO 414/2012 e Lei 13.787 (20 anos) | ADR 0437 §4 |
 | D3 | Portal por token HMAC + PIN com lockout | padrão provado em produção na OficinaAuto | `Public/AprovacaoOsController` |
-| D4 | WhatsApp pelo `ChannelDriverFactory` (driver `whatsmeow`) | decisão de [W]; troca para `meta_cloud` vira configuração | ADR 0437 §13.1 |
+| D4 | WhatsApp pelo `ChannelDriverFactory`, canal escolhido pela clínica (`meta_cloud` · `whatsmeow` com aceite de risco · `wa.me` manual) | decisão de [W], emendada em 2026-10-18; trocar de canal é configuração | ADR 0437 §13.1 |
 | D5 | Contraindicação avisa e pede justificativa, nunca bloqueia | bloquear por diagnóstico é SaMD (P68/P70) | ADR 0437 §13.2 |
 | D6 | Nível e sequência derivados, nunca coluna editável | done-ness derivada, não digitada | ADR 0302 |
 | D7 | Testes escritos antes do código (17 arquivos, 166 casos) | TDD; suposição de nome pode mudar, regra não | `Modules/Fisio/Tests/README.md` |
