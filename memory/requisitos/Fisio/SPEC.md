@@ -98,13 +98,10 @@ Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `M
 
 ### US-FISIO-008 · Jogo de constância (XP, nível, sequência, missões, pausa por dor) — **P1**
 
-**Implementado em:** _pendente_
+**Implementado em:** _parcial_ — calculadoras puras `Modules/Fisio/Services/XpDoDiaCalculator.php`, `Modules/Fisio/Services/LimiarDorCalculator.php`, `Modules/Fisio/Services/NivelCalculator.php`, `Modules/Fisio/Services/SequenciaCalculator.php` (com dia de crise); serviço `Modules/Fisio/Services/JogoService.php`; ponto de entrada único `Modules/Fisio/Events/CheckinRegistrado.php` → `Modules/Fisio/Listeners/LancarXpDoCheckin.php`; números em `config('fisio.jogo')`; coluna `fisio_checkins.crisis`. Contrato: `memory/requisitos/Fisio/_telas/jogo-constancia.casos.md` (UC-FJG-01..05). Falta: o portal (US-FISIO-007) disparar o evento no check-in, e escudos, missões, desafio e medalhas (T-08c).
 
-> owner: — · priority: p1 · estimate: 8h · status: todo · type: story
-> blocked_by: US-FISIO-007. Regras da ADR 0437 §6 e números de `etapas/02-f1-constancia.md`. DoD: `FisioJogoTest`, `NivelCalculatorTest`, `SequenciaCalculatorTest`.
-
-Núcleo de cálculo (serviços puros, sem rota nem tela; a US segue pendente): `Modules/Fisio/Services/NivelCalculator.php`, `Modules/Fisio/Services/SequenciaCalculator.php`, `Modules/Fisio/Services/DiaLocal.php`, `Modules/Fisio/Services/MetaSemanal.php`.
-
+> owner: — · priority: p1 · estimate: 8h · status: doing · type: story
+> blocked_by: US-FISIO-007 (só a ligação com o portal). Regras da ADR 0437 §6 e números de `etapas/02-f1-constancia.md`. DoD: `FisioJogoTest`, `FisioJogoServicoTest`, `NivelCalculatorTest`, `SequenciaCalculatorTest`, `XpDoDiaCalculatorTest`, `LimiarDorCalculatorTest`.
 ### US-FISIO-009 · Lembrete diário e envio do programa por WhatsApp (canal escolhido pela clínica) — **P0**
 
 **Implementado em:** _pendente_

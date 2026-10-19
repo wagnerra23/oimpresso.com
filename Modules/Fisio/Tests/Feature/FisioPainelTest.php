@@ -151,7 +151,7 @@ it('UC-FPN-04 · programa ativo há ≥4 dias e NUNCA registrou → atenção (c
 });
 
 it('UC-FPN-05 · tabela traz nível e sequência derivados, e bloqueado não aparece', function () {
-    config(['fisio.niveis' => [1 => 0, 2 => 20]]);
+    config(['fisio.jogo.niveis' => [1 => 0, 2 => 100]]);
     $p = F::paciente($this->b98, $this->u98->id, ['sessions_per_week' => 3]);
     $bloq = F::paciente($this->b98, $this->u98->id, ['blocked_at' => now()]);
     $prog = F::programa($p, [$this->ex], $this->u98->id);
@@ -159,7 +159,7 @@ it('UC-FPN-05 · tabela traz nível e sequência derivados, e bloqueado não apa
     $this->postJson('/fisio/p/'.$token.'/checkin', ['done_item_ids' => F::itens($prog), 'pain' => 2, 'effort' => 'adequado'])->assertCreated();
 
     $linha = fpnLinha($this, $p->id);
-    expect($linha['nivel'])->toBe(1)                      // 15 XP < 20
+    expect($linha['nivel'])->toBe(1)                      // 90 XP (60 + 30) < 100
         ->and($linha['sequencia'])->toBe(1)
         ->and($linha['ultima_dor'])->toBe(2)
         ->and(collect(F::props($this, $this->u98, '/fisio', 'Fisio/Painel', 'pacientes'))->pluck('id'))->not->toContain($bloq->id);

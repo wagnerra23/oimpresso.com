@@ -12,39 +12,51 @@ return [
     'name' => 'Fisio',
 
     /*
-     * Jogo de constância (ADR 0437 §6 e §13.3). XP só por cumprir o prescrito e por
-     * registrar o dia (inclusive com dor alta); exceder o prescrito dá 0.
-     *  - exercicio_concluido: parcela dos exercícios no dia prescrito (70 de 100).
-     *  - checkin: registro do dia (`registro_do_dia` na etapa 02), 30 de 100, sempre.
-     *  - normalizacao_dias_base: o XP do dia é multiplicado por base ÷ sessions_per_week.
-     *  - teto_semanal: exercícios + registro + missões + desafio.
+     * ── JOGO DE CONSTÂNCIA (US-FISIO-008 · ADR 0437 §6 e §13.3) ─────────────────────────
+     * Números de memory/requisitos/Fisio/etapas/02-f1-constancia.md §3.4. Quem lê é
+     * Modules\Fisio\Services\JogoService (e o PainelFisio, para os níveis).
+     *
+     * XP só por cumprir o PRESCRITO e por registrar o dia (inclusive com dor alta):
+     *  - xp.exercicio_concluido: parcela dos exercícios no dia (70 de 100), proporcional às
+     *    vezes feitas ÷ vezes prescritas; cada item conta no máximo `times_per_day` vezes.
+     *  - xp.checkin: registro do dia (`registro_do_dia` na etapa 02), 30 de 100, SEMPRE.
+     *  - normalizacao_dias_base: o XP do dia é multiplicado por base ÷ sessions_per_week,
+     *    para quem tem 7 dias na semana não subir de nível quase 2× mais rápido que quem tem 4.
+     *  - teto_semanal: limite de XP por semana (segunda a domingo).
+     *  - xp.missao e xp.desafio_semanal: reservados para missões e desafio (T-08c, ainda sem código).
+     *  - niveis: nível => XP acumulado mínimo; começa em 0 e cresce estritamente; nunca desce.
+     *  - dor_de_base: programa com `pain_alert_mode = sobre_basal` (dor crônica, protocolo 11 —
+     *    fibromialgia) pausa o jogo e sinaliza a clínica pela dor ACIMA DA BASE da própria
+     *    paciente: média das dores da 1ª semana do programa (`janela_dias`, com pelo menos
+     *    `minimo_registros`) + `margem`. Sem base ainda, vale o limiar absoluto do programa.
      */
-    'xp' => [
-        'exercicio_concluido' => 70,
-        'checkin' => 30,
+    'jogo' => [
+        'xp' => [
+            'exercicio_concluido' => 70,
+            'checkin' => 30,
+            'missao' => 10,
+            'desafio_semanal' => 40,
+        ],
         'normalizacao_dias_base' => 4,
-        'missao' => 10,
-        'desafio_semanal' => 40,
         'teto_semanal' => 500,
+        'niveis' => [
+            1 => 0,       // Primeiro Passo
+            2 => 150,     // Ritmo
+            3 => 400,     // Constância
+            4 => 800,     // Base Firme
+            5 => 1300,    // Equilíbrio
+            6 => 2000,    // Força Leve
+            7 => 2900,    // Movimento Livre
+            8 => 4000,    // Corpo Forte
+            9 => 5400,    // Mestre do Movimento
+            10 => 7000,   // Inabalável
+        ],
+        'dor_de_base' => [
+            'janela_dias' => 7,
+            'minimo_registros' => 3,
+            'margem' => 2,
+        ],
     ],
-
-    /*
-     * Nível => XP acumulado mínimo. Começa em 0 e cresce estritamente; nível nunca desce.
-     * Nomes na ordem da ADR 0437 §6.
-     */
-    'niveis' => [
-        1 => 0,       // Primeiro Passo
-        2 => 150,     // Ritmo
-        3 => 400,     // Constância
-        4 => 800,     // Base Firme
-        5 => 1300,    // Equilíbrio
-        6 => 2000,    // Força Leve
-        7 => 2900,    // Movimento Livre
-        8 => 4000,    // Corpo Forte
-        9 => 5400,    // Mestre do Movimento
-        10 => 7000,   // Inabalável
-    ],
-
     /*
      * Versão vigente de cada consentimento (fisio_consents, ADR 0437 §7). Consentimento
      * dado numa versão antiga não vale: a versão vem SEMPRE daqui, nunca do corpo do

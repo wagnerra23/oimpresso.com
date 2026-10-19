@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre, na regra pura, UC-FPP-18 (Fisio/Public/Portal.casos.md).
+// Cobre, na regra pura, UC-FPP-18 (Fisio/Public/Portal.casos.md) e UC-FJG-03 (memory/requisitos/Fisio/_telas/jogo-constancia.casos.md).
 
 use Modules\Fisio\Services\SequenciaCalculator;
 
@@ -102,4 +102,18 @@ it('UC-FPP-18 · dor com exercício feito no mesmo dia: soma (fez o prescrito) e
 
 it('UC-FPP-18 · meta fora de 1..7 é proibida', function () {
     expect(fn () => usqCalc([usqFeito('2026-10-14')], 0))->toThrow(InvalidArgumentException::class);
+});
+
+it('UC-FJG-03 · dia de crise (versão de crise escolhida pelo paciente) conta como dia cumprido', function () {
+    $crise = ['date' => '2026-10-12', 'done_count' => 0, 'pain' => 6, 'red_flags' => [], 'crise' => true];
+
+    expect(usqCalc([usqFeito('2026-10-10'), $crise, usqFeito('2026-10-14')]))->toBe(['sequencia' => 3, 'em_pausa' => false])
+        // controle negativo: sem a marca de crise o dia 12 não é elo; 11–13 viram 3 dias vazios (> folga 2) e quebra
+        ->and(usqCalc([usqFeito('2026-10-10'), [...$crise, 'crise' => false], usqFeito('2026-10-14')])['sequencia'])->toBe(1);
+});
+
+it('UC-FJG-03 · crise com dor acima do limiar: soma e também marca pausa', function () {
+    $criseForte = ['date' => '2026-10-14', 'done_count' => 0, 'pain' => 8, 'red_flags' => [], 'crise' => true];
+
+    expect(usqCalc([usqFeito('2026-10-12'), $criseForte]))->toBe(['sequencia' => 2, 'em_pausa' => true]);
 });

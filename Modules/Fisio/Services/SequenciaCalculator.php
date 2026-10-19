@@ -11,7 +11,8 @@ use InvalidArgumentException;
  *
  * folga(s)     = ceil(7 / sessions_per_week) - 1 → dias seguidos sem elo tolerados
  *                (s=7 → 0 · s=3 → 2 · s=2 → 3 · s=1 → 6). O descanso faz parte do tratamento.
- * Dia que SOMA = check-in com ≥1 exercício feito.
+ * Dia que SOMA = check-in com ≥1 exercício feito, OU dia de CRISE (o paciente escolheu a versão
+ *                de crise escrita pelo profissional — protocolo 11: conta como dia cumprido).
  * Dia de PAUSA = check-in com dor ≥ limiar OU sinal de alerta (red_flags). Não soma, mas é
  *                elo: não quebra e reinicia a contagem de folga ("pausa, não falta").
  *                Com exercício feito no mesmo dia, soma E marca pausa.
@@ -37,7 +38,7 @@ final class SequenciaCalculator
     }
 
     /**
-     * @param  list<array{date:string, done_count:int, pain:?int, red_flags?:list<string>}>  $checkins
+     * @param  list<array{date:string, done_count:int, pain:?int, red_flags?:list<string>, crise?:bool}>  $checkins
      * @return array{sequencia:int, em_pausa:bool}
      *
      * @throws InvalidArgumentException sessions_per_week fora de 1..7, ou dia mal formado
@@ -54,7 +55,7 @@ final class SequenciaCalculator
             if ($dia > $hoje) {
                 continue;
             }
-            $soma = $c['done_count'] >= 1;
+            $soma = $c['done_count'] >= 1 || ! empty($c['crise'] ?? false);
             $dor = $c['pain'] ?? null;
             $pausa = ($dor !== null && (int) $dor >= $limiarDor) || ! empty($c['red_flags'] ?? []);
             if (! $soma && ! $pausa) {

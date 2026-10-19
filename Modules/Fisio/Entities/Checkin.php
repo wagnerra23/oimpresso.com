@@ -26,6 +26,7 @@ use Modules\Fisio\Entities\Concerns\SemExclusaoDeDadoClinico;
  * @property ?string $effort
  * @property ?string $note
  * @property ?array $red_flags
+ * @property bool $crisis paciente escolheu a versão de crise do programa (protocolo 11): conta para a sequência
  */
 class Checkin extends Model
 {
@@ -43,6 +44,7 @@ class Checkin extends Model
         'done_item_ids' => 'array',
         'red_flags' => 'array',
         'pain' => 'integer',
+        'crisis' => 'boolean',
     ];
 
     protected static function newFactory(): CheckinFactory
