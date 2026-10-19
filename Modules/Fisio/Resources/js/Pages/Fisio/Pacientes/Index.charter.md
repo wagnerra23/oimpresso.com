@@ -35,6 +35,7 @@ Listar os pacientes ativos da clínica e cadastrar um paciente a partir de um co
 - Contato apagado (soft-delete) não vira paciente — UC-FPI-05.
 - Escolha do contato por busca no servidor (nome ou celular, até 20, só da empresa e sem ficha) — UC-FPI-06.
 - "Novo contato" no cadastro: nome e celular; o contato nasce como cliente pelo cadastro de contatos do sistema (ContactUtil), sem duplicar celular na empresa — UC-FPI-07.
+- Mostra o fisioterapeuta responsável de cada paciente e filtra por responsável, incluindo "Meus pacientes" — UC-FPI-20.
 
 ## Non-Goals — Features (NÃO faz)
 

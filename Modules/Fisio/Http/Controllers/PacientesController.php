@@ -19,6 +19,7 @@ use Modules\Fisio\Entities\Patient;
 use Modules\Fisio\Entities\Questionnaire;
 use Modules\Fisio\Entities\Record;
 use Modules\Fisio\Services\Questionarios\CatalogoQuestionarios;
+use Modules\Fisio\Services\ResponsavelPaciente;
 
 /**
  * Pacientes do Fisio (US-FISIO-005). O paciente É um contact (ADR 0437 §4): aqui mora só o
@@ -39,12 +40,17 @@ class PacientesController extends Controller
     public function index(Request $request): Response
     {
         $q = trim((string) $request->query('q', ''));
+        // Filtro por responsável (UC-FPI-20): '' = todos, 'meus' = o usuário logado, ou o id de um profissional.
+        $resp = trim((string) $request->query('responsavel', ''));
+        $respId = $resp === 'meus' ? (int) $request->user()?->id : (ctype_digit($resp) ? (int) $resp : null);
+        $biz = $this->businessId($request);
 
         return Inertia::render('Fisio/Pacientes/Index', [
-            'filtros' => ['q' => $q],
+            'filtros' => ['q' => $q, 'responsavel' => $respId !== null ? $resp : ''],
             'condicoes' => Patient::CONDITION_FLAGS,
             'pode_editar' => $this->podeEditar($request),
-            'pacientes' => Inertia::defer(fn () => $this->listarPacientes($q)),
+            'pacientes' => Inertia::defer(fn () => $this->listarPacientes($q, $respId)),
+            'profissionais' => Inertia::defer(fn () => app(ResponsavelPaciente::class)->profissionais($biz)->all()),
         ]);
     }
 
@@ -86,6 +92,8 @@ class PacientesController extends Controller
                 'sessions_per_week' => (int) $dados['sessions_per_week'],
                 'condition_flags' => array_values($dados['condition_flags'] ?? []),
                 'status' => 'ativo',
+                // Quem cadastra é o responsável até alguém transferir (UC-FPS-30). Nunca do corpo.
+                'responsible_user_id' => (int) $request->user()->id,
             ]);
         });
 
@@ -94,7 +102,7 @@ class PacientesController extends Controller
 
     public function show(Request $request, int $id): Response
     {
-        $paciente = $this->paciente($id)->loadMissing('contact:id,name,mobile');
+        $paciente = $this->paciente($id)->loadMissing(['contact:id,name,mobile', 'responsavel:id,first_name,last_name,username']);
 
         return Inertia::render('Fisio/Pacientes/Show', [
             'paciente' => [
@@ -106,7 +114,11 @@ class PacientesController extends Controller
                 'sessions_per_week' => $paciente->sessions_per_week,
                 'condition_flags' => $paciente->condition_flags ?? [],
                 'bloqueado' => $paciente->estaBloqueado(),
+                'responsavel' => $this->responsavelResumo($paciente),
             ],
+            // Responsável e transferência (UC-FPS-30..32): queries → defer.
+            'profissionais' => Inertia::defer(fn () => app(ResponsavelPaciente::class)->profissionais($this->businessId($request))->all(), 'responsavel'),
+            'transferencias' => Inertia::defer(fn () => app(ResponsavelPaciente::class)->historico($paciente), 'responsavel'),
             'condicoes' => Patient::CONDITION_FLAGS,
             'pode_editar' => $this->podeEditar($request),
             'prontuario' => Inertia::defer(fn () => $this->linhaDoTempo($paciente)),
@@ -171,12 +183,13 @@ class PacientesController extends Controller
     }
 
     /** @return list<array<string, mixed>> */
-    private function listarPacientes(string $q): array
+    private function listarPacientes(string $q, ?int $responsavelId): array
     {
         return Patient::query()
             ->whereNull('blocked_at')
-            ->with('contact:id,name,mobile')
+            ->with(['contact:id,name,mobile', 'responsavel:id,first_name,last_name,username'])
             ->when($q !== '', fn ($query) => $query->whereHas('contact', fn ($c) => $c->where('name', 'like', '%'.$q.'%')))
+            ->when($responsavelId !== null, fn ($query) => $query->where('responsible_user_id', $responsavelId))
             ->orderByDesc('id')
             ->limit(200)
             ->get()
@@ -187,8 +200,17 @@ class PacientesController extends Controller
                 'main_complaint' => $p->main_complaint,
                 'sessions_per_week' => $p->sessions_per_week,
                 'condition_flags' => $p->condition_flags ?? [],
+                'responsavel' => $this->responsavelResumo($p),
             ])
             ->all();
+    }
+
+    /** @return array{id: int, nome: string}|null */
+    private function responsavelResumo(Patient $p): ?array
+    {
+        $u = $p->responsavel;
+
+        return $u !== null ? ['id' => (int) $u->id, 'nome' => ResponsavelPaciente::nome($u)] : null;
     }
 
     /**

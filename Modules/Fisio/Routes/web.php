@@ -8,6 +8,7 @@ use Modules\Fisio\Http\Controllers\PacientesController;
 use Modules\Fisio\Http\Controllers\ProntuarioPdfController;
 use Modules\Fisio\Http\Controllers\QuestionariosController;
 use Modules\Fisio\Http\Controllers\RegistrosController;
+use Modules\Fisio\Http\Controllers\ResponsavelController;
 use Modules\Fisio\Http\Middleware\FisioLiberado;
 
 /*
@@ -60,6 +61,9 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('pacientes/{id}', [PacientesController::class, 'show'])->whereNumber('id')->name('pacientes.show');
         Route::put('pacientes/{id}', [PacientesController::class, 'update'])->whereNumber('id')->name('pacientes.update');
         Route::delete('pacientes/{id}', [PacientesController::class, 'destroy'])->whereNumber('id')->name('pacientes.destroy');
+
+        // Fisioterapeuta responsável: transferir o paciente (UC-FPS-31). Exige `fisio.editar`.
+        Route::post('pacientes/{id}/responsavel', [ResponsavelController::class, 'store'])->whereNumber('id')->name('pacientes.responsavel.store');
 
         Route::post('pacientes/{id}/registros', [RegistrosController::class, 'store'])->whereNumber('id')->name('pacientes.registros.store');
         // Prontuário é append-only: estes verbos existem só para responder 405 com o motivo.

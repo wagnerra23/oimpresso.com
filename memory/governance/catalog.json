@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 797,
-    "edges": 1096,
+    "nodes": 799,
+    "edges": 1098,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 422,
+      "component": 424,
       "api": 81
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 85,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 422,
+      "hasComponent": 424,
       "dependsOn": 123,
       "delegatesTo": 114,
       "migratesTo": 1,
@@ -2842,6 +2842,13 @@
       "desc": "UC-FPS-19..20"
     },
     {
+      "id": "component:Fisio/Fisioterapeuta responsável pelo paciente e transferência registrada no activity_log",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Fisioterapeuta responsável pelo paciente e transferência registrada no activity_log",
+      "desc": ""
+    },
+    {
       "id": "component:Fisio/Foto ou vídeo curto do exercício próprio da clínica",
       "type": "component",
       "module": "Fisio",
@@ -2909,6 +2916,13 @@
       "type": "component",
       "module": "Fisio",
       "name": "RegistrosController",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/ResponsavelController",
+      "type": "component",
+      "module": "Fisio",
+      "name": "ResponsavelController",
       "desc": ""
     },
     {
@@ -9036,6 +9050,12 @@
     },
     {
       "from": "module:Fisio",
+      "to": "component:Fisio/Fisioterapeuta responsável pelo paciente e transferência registrada no activity_log",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
       "to": "component:Fisio/Foto ou vídeo curto do exercício próprio da clínica",
       "type": "hasComponent",
       "source": "contains"
@@ -9091,6 +9111,12 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/RegistrosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/ResponsavelController",
       "type": "hasComponent",
       "source": "contains"
     },
