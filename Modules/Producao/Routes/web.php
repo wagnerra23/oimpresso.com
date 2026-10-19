@@ -5,6 +5,7 @@ use Modules\Producao\Http\Controllers\ColaboradorCustoController;
 use Modules\Producao\Http\Controllers\EtiquetaOsController;
 use Modules\Producao\Http\Controllers\FerramentasController;
 use Modules\Producao\Http\Controllers\InstallController;
+use Modules\Producao\Http\Controllers\OrdemCustoController;
 use Modules\Producao\Http\Controllers\PostosController;
 use Modules\Producao\Http\Controllers\RoteirosController;
 
@@ -68,4 +69,6 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
     ->name('producao.')
     ->group(function () {
         Route::get('os/{id}/etiqueta', [EtiquetaOsController::class, 'show'])->whereNumber('id')->name('os.etiqueta');
+        // US-PCP-022 · UC-FLX-36 — custo da abertura × hoje da OS por item em andamento (JSON, gestor).
+        Route::get('ordens/{id}/custo', [OrdemCustoController::class, 'show'])->whereNumber('id')->name('ordens.custo');
     });

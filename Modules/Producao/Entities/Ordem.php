@@ -24,6 +24,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $quantidade
  * @property ?int $roteiro_id
  * @property ?int $current_stage_id
+ * @property ?string $custo_real
+ * @property ?\Illuminate\Support\Carbon $pronta_em
+ * @property ?\Illuminate\Support\Carbon $custo_congelado_em
+ * @property ?\Illuminate\Support\Carbon $created_at
+ * @property ?\Illuminate\Support\Carbon $updated_at
  */
 class Ordem extends Model
 {

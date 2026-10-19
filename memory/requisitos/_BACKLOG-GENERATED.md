@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **974 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **975 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -22,7 +22,7 @@
 | [`Marketplaces`](#marketplaces) | 25 | 0 | 0 | 0 | 25 |
 | [`Crm`](#crm) | 23 | 0 | 0 | 0 | 23 |
 | [`Fiscal`](#fiscal) | 22 | 0 | 0 | 0 | 22 |
-| [`Producao`](#producao) | 21 | 0 | 0 | 0 | 21 |
+| [`Producao`](#producao) | 22 | 0 | 0 | 0 | 22 |
 | [`Compras`](#compras) | 20 | 1 | 0 | 0 | 18 |
 | [`Connector`](#connector) | 20 | 0 | 0 | 0 | 19 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 19 | 0 | 0 | 0 | 19 |
@@ -753,6 +753,7 @@
 - **US-PCP-019** — Smoke biz=4 ROTA LIVRE (canary 7d + cutover) — **P2**
 - **US-PCP-020** — Documentação RUNBOOK + Charter páginas — **P0**
 - **US-PCP-021** — A OS baixa o material apontado em cada etapa, pelo custo do lote que saiu (UC-FLX-37) — **P1**
+- **US-PCP-022** — A regra da compra (congela | vivo) vale para a OS aberta (UC-FLX-36) — **P1**
 
 ## Compras
 
