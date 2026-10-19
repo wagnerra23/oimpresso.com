@@ -1183,6 +1183,29 @@ Job lê `commission_distribution_json`, calcula valores, cria lançamentos `comi
 
 ---
 
+### US-COMVIS-019 · Item do orçamento guarda o custo do material no dia (UC-FLX-33) — **P1**
+
+> owner: wagner · priority: p1 · estimate: 2h · type: story
+
+**Implementado em:** `Modules/ComunicacaoVisual/Services/OrcamentoGravador.php` · `Modules/ComunicacaoVisual/Database/Migrations/2026_10_19_210000_add_custo_previsto_to_comvis_orcamento_itens.php`
+
+**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCustoPrevistoTest.php` (lane `verticais-pest.yml`).
+
+Como quem orça comunicação visual, quero que cada item guarde o custo do material no dia do orçamento, porque o que se negocia não é o que se emprega na produção e o cadastro do material não tem histórico.
+
+- Custo do m² lido de `comvis_materiais.preco_custo_m2` na gravação, filtrado pelo `business_id` explícito.
+- Custo do item = área × custo do m², arredondado a 2 casas.
+- Custo zero no cadastro conta como não informado.
+
+**Aceite:**
+- [x] Item com material grava `custo_previsto_m2`, `custo_previsto` e `custo_previsto_em`
+- [x] Item sem material, material sem custo ou de outra empresa fica sem custo
+- [x] Mudar o custo no cadastro depois não altera o orçamento gravado
+- [x] Preço, subtotal e total do orçamento não mudam
+- [ ] Ligar o material da CV ao produto do estoque, para usar o custo das compras (US-COM-024)
+
+---
+
 ## 16. Total US recalibrado (base 18 + novas 15 = 33 US)
 
 | Prioridade | US | Total esforço (h IA-pair) |

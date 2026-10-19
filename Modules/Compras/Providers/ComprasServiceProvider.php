@@ -31,6 +31,10 @@ class ComprasServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
+
+        // UC-FLX-33: congela o custo do insumo na linha de orçamento (venda em rascunho).
+        // Só lê compras; nunca derruba a venda (ver o docblock do observer).
+        \App\TransactionSellLine::observe(\Modules\Compras\Observers\TransactionSellLineCustoObserver::class);
     }
 
     public function register(): void
