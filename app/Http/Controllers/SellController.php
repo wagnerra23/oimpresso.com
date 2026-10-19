@@ -2707,6 +2707,8 @@ class SellController extends Controller
                             'unit' => optional(optional($line->product)->unit)->short_name ?? '',
                         ];
                     })->values()->toArray(),
+                    // UC-FLX-34: custo guardado × custo de hoje no orçamento aberto (nulo fora dele).
+                    'custo' => $this->custoDoOrcamento($sell),
                     'payments' => collect($sell->payment_lines ?? [])->map(function ($p) {
                         return [
                             'id' => (int) $p->id,
@@ -3962,5 +3964,60 @@ class SellController extends Controller
 
             return $output;
         }
+    }
+
+    /** Diferença entre o custo de hoje e o guardado a partir da qual a linha avisa (5%). */
+    private const LIMITE_AVISO_CUSTO = 0.05;
+
+    /**
+     * Custo do orçamento aberto: o guardado no dia (US-SELL-067) ao lado do custo de hoje
+     * (UC-FLX-34 · US-SELL-068). Nulo quando a venda não é rascunho, quando o usuário não tem
+     * `view_purchase_price` (o custo nem chega ao navegador) ou sem o módulo Compras.
+     *
+     * Margem = (receita sem imposto − custo) / receita, só sobre as linhas que têm os dois custos.
+     * Uma linha "mudou" quando o custo de hoje se afasta do guardado mais que LIMITE_AVISO_CUSTO.
+     */
+    private function custoDoOrcamento(Transaction $sell): ?array
+    {
+        if ($sell->status !== 'draft' || ! auth()->user()?->can('view_purchase_price')
+            || ! app()->bound(\App\Contracts\Compras\CustoDoInsumo::class)) {
+            return null;
+        }
+
+        $custo = app(\App\Contracts\Compras\CustoDoInsumo::class);
+        $hoje = now()->toDateString();
+        $linhas = [];
+        $receita = $previsto = $atual = 0.0;
+        $mudaram = 0;
+        $data = null;
+
+        foreach ($sell->sell_lines as $line) {
+            $prev = $line->custo_previsto !== null ? (float) $line->custo_previsto : null;
+            $agora = $line->variation_id ? $custo->naData((int) $sell->business_id, (int) $line->variation_id, $hoje)['custo'] : null;
+            $agora = $agora !== null ? (float) $agora : null;
+            $mudou = $prev !== null && $agora !== null && $prev > 0 && abs($agora - $prev) / $prev > self::LIMITE_AVISO_CUSTO;
+            $mudaram += $mudou ? 1 : 0;
+            $data ??= $line->custo_previsto_em ? \Carbon\Carbon::parse($line->custo_previsto_em)->toDateString() : null;
+
+            if ($prev !== null && $agora !== null) {
+                $qtd = (float) $line->quantity;
+                $receita += (float) $line->unit_price * $qtd;
+                $previsto += $prev * $qtd;
+                $atual += $agora * $qtd;
+            }
+            $linhas[] = ['id' => (int) $line->id, 'previsto' => $prev, 'hoje' => $agora, 'mudou' => $mudou];
+        }
+
+        $margem = fn (float $c) => $receita > 0 ? round(($receita - $c) / $receita * 100, 1) : null;
+
+        return [
+            'data' => $data,
+            'linhas' => $linhas,
+            'total_previsto' => round($previsto, 2),
+            'total_hoje' => round($atual, 2),
+            'margem_prevista_pct' => $margem($previsto),
+            'margem_hoje_pct' => $margem($atual),
+            'itens_mudaram' => $mudaram,
+        ];
     }
 }
