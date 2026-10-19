@@ -55,6 +55,8 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         // Pacientes e prontuário (US-FISIO-005). Escrita exige `fisio.editar` (checada no controller).
         Route::get('pacientes', [PacientesController::class, 'index'])->name('pacientes.index');
         Route::post('pacientes', [PacientesController::class, 'store'])->name('pacientes.store');
+        // Busca de contato para o cadastro (UC-FPI-06) — JSON, exige `fisio.editar`.
+        Route::get('pacientes/contatos', [PacientesController::class, 'contatos'])->name('pacientes.contatos');
         Route::get('pacientes/{id}', [PacientesController::class, 'show'])->whereNumber('id')->name('pacientes.show');
         Route::put('pacientes/{id}', [PacientesController::class, 'update'])->whereNumber('id')->name('pacientes.update');
         Route::delete('pacientes/{id}', [PacientesController::class, 'destroy'])->whereNumber('id')->name('pacientes.destroy');

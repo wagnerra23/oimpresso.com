@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 796,
-    "edges": 1095,
+    "nodes": 797,
+    "edges": 1096,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 421,
+      "component": 422,
       "api": 81
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 85,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 421,
+      "hasComponent": 422,
       "dependsOn": 123,
       "delegatesTo": 114,
       "migratesTo": 1,
@@ -2811,6 +2811,13 @@
       "type": "component",
       "module": "Fisio",
       "name": "BibliotecaMidiaController",
+      "desc": ""
+    },
+    {
+      "id": "component:Fisio/Busca de contato para o cadastro e criação do contato na hora pelo ContactUtil do core",
+      "type": "component",
+      "module": "Fisio",
+      "name": "Busca de contato para o cadastro e criação do contato na hora pelo ContactUtil do core",
       "desc": ""
     },
     {
@@ -9000,6 +9007,12 @@
     {
       "from": "module:Fisio",
       "to": "component:Fisio/BibliotecaMidiaController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Fisio",
+      "to": "component:Fisio/Busca de contato para o cadastro e criação do contato na hora pelo ContactUtil do core",
       "type": "hasComponent",
       "source": "contains"
     },

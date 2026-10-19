@@ -1,11 +1,12 @@
 // @memcofre
 //   tela: /fisio/pacientes
 //   module: Fisio
-//   stories: US-FISIO-005 (UC-FPI-01..04)
+//   stories: US-FISIO-005 (UC-FPI-01..07)
 //   permissao: fisio.access · cadastrar exige fisio.editar
 //
 // Lista de pacientes (PT-01). O paciente é um contato da empresa (ADR 0437 §4): o cadastro
-// escolhe um contato existente e acrescenta só o perfil clínico. Nome e telefone vêm do contato.
+// busca um contato existente no servidor, ou cria um contato novo (UC-FPI-06/07), e acrescenta
+// só o perfil clínico. Nome e telefone vêm do contato.
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent, type ReactNode } from 'react';
@@ -15,12 +16,10 @@ import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
-import { Label } from '@/Components/ui/label';
-import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
-import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { Skeleton } from '@/Components/ui/skeleton';
 import PerfilClinicoCampos, { type PerfilClinico } from '../_components/PerfilClinicoCampos';
+import OrigemContato, { type NovoContato, type Origem } from './_components/OrigemContato';
 import { limparObjetivos, rotuloCondicao } from '../_components/condicoes';
 
 interface Paciente {
@@ -31,13 +30,11 @@ interface Paciente {
   sessions_per_week: number;
   condition_flags: string[];
 }
-interface Contato { id: number; nome: string; telefone: string | null }
 interface Props {
   filtros: { q: string };
   condicoes: string[];
   pode_editar: boolean;
   pacientes?: Paciente[];
-  contatos?: Contato[];
 }
 
 function Lista({ pacientes, q }: { pacientes: Paciente[]; q: string }) {
@@ -66,15 +63,25 @@ function Lista({ pacientes, q }: { pacientes: Paciente[]; q: string }) {
   );
 }
 
-function NovoPaciente({ contatos, condicoes, onClose }: { contatos: Contato[]; condicoes: string[]; onClose: () => void }) {
-  const form = useForm<PerfilClinico & { contact_id: string }>({
-    contact_id: '', main_complaint: '', goals: [], sessions_per_week: 3, condition_flags: [],
+function NovoPaciente({ condicoes, onClose }: { condicoes: string[]; onClose: () => void }) {
+  const [origem, setOrigem] = useState<Origem>('existente');
+  const form = useForm<PerfilClinico & { contact_id: number | null; novo_contato: NovoContato }>({
+    contact_id: null, novo_contato: { nome: '', telefone: '' },
+    main_complaint: '', goals: [], sessions_per_week: 3, condition_flags: [],
   });
   const enviar = (e: FormEvent) => {
     e.preventDefault();
-    form.transform((d) => ({ ...d, goals: limparObjetivos(d.goals) }));
+    form.transform((d) => ({
+      ...d,
+      contact_id: origem === 'existente' ? d.contact_id : null,
+      novo_contato: origem === 'novo' ? d.novo_contato : null,
+      goals: limparObjetivos(d.goals),
+    }));
     form.post('/fisio/pacientes', { onSuccess: onClose });
   };
+  const pronto = origem === 'existente'
+    ? form.data.contact_id !== null
+    : form.data.novo_contato.nome.trim() !== '' && form.data.novo_contato.telefone !== '';
 
   return (
     <Sheet open onOpenChange={(aberto) => !aberto && onClose()}>
@@ -82,20 +89,18 @@ function NovoPaciente({ contatos, condicoes, onClose }: { contatos: Contato[]; c
         <form onSubmit={enviar} className="flex flex-col gap-4">
           <SheetHeader>
             <SheetTitle>Novo paciente</SheetTitle>
-            <SheetDescription>Escolha o contato. Nome e telefone ficam no cadastro do contato.</SheetDescription>
+            <SheetDescription>Escolha o contato ou cadastre um novo. Nome e telefone ficam no cadastro do contato.</SheetDescription>
           </SheetHeader>
-          <div className="flex flex-col gap-1.5 px-4">
-            <Label>Contato</Label>
-            <Select value={form.data.contact_id} onValueChange={(v) => form.setData('contact_id', v)}>
-              <SelectTrigger aria-label="Contato"><SelectValue placeholder="Selecione o contato" /></SelectTrigger>
-              <SelectContent>
-                {contatos.map((c) => (
-                  <SafeSelectItem key={c.id} value={String(c.id)}>{c.nome}{c.telefone ? ` · ${c.telefone}` : ''}</SafeSelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {contatos.length === 0 && <p className="text-xs text-muted-foreground">Todos os contatos já são pacientes. Cadastre o contato antes.</p>}
-            {form.errors.contact_id && <p className="text-xs text-destructive">{form.errors.contact_id}</p>}
+          <div className="px-4">
+            <OrigemContato
+              origem={origem}
+              onOrigem={setOrigem}
+              contatoId={form.data.contact_id}
+              onContato={(c) => form.setData('contact_id', c?.id ?? null)}
+              novo={form.data.novo_contato}
+              onNovo={(n) => form.setData('novo_contato', n)}
+              erros={form.errors as Record<string, string>}
+            />
           </div>
           <div className="px-4">
             <PerfilClinicoCampos
@@ -106,7 +111,7 @@ function NovoPaciente({ contatos, condicoes, onClose }: { contatos: Contato[]; c
             />
           </div>
           <SheetFooter>
-            <Button type="submit" disabled={form.processing || form.data.contact_id === ''}>Cadastrar paciente</Button>
+            <Button type="submit" disabled={form.processing || !pronto}>Cadastrar paciente</Button>
           </SheetFooter>
         </form>
       </SheetContent>
@@ -114,7 +119,7 @@ function NovoPaciente({ contatos, condicoes, onClose }: { contatos: Contato[]; c
   );
 }
 
-export default function PacientesIndex({ filtros, condicoes, pode_editar, pacientes, contatos }: Props) {
+export default function PacientesIndex({ filtros, condicoes, pode_editar, pacientes }: Props) {
   const [q, setQ] = useState(filtros.q);
   const [criando, setCriando] = useState(false);
   const buscar = (e: FormEvent) => {
@@ -141,11 +146,7 @@ export default function PacientesIndex({ filtros, condicoes, pode_editar, pacien
           </CardContent>
         </Card>
       </div>
-      {criando && (
-        <Deferred data="contatos" fallback={null}>
-          <NovoPaciente contatos={contatos ?? []} condicoes={condicoes} onClose={() => setCriando(false)} />
-        </Deferred>
-      )}
+      {criando && <NovoPaciente condicoes={condicoes} onClose={() => setCriando(false)} />}
     </div>
   );
 }

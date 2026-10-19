@@ -4,6 +4,7 @@ purpose: "Vertical de fisioterapia: programa de exercícios domiciliares, portal
 migracao_ui: "n/a — módulo novo, nasce Inertia (sem Blade)"
 contains:
   - "Cadastro de pacientes (perfil clínico 1:1 sobre contacts) e prontuário append-only (Res. COFFITO 414/2012)"
+  - "Busca de contato para o cadastro e criação do contato na hora pelo ContactUtil do core (UC-FPI-06/07)"
   - "Biblioteca de exercícios, protocolos-modelo e programa por paciente"
   - "Portal público do paciente (token HMAC + PIN, consentimentos, check-in, telemonitoramento Res. 619/2025)"
   - "Jogo de constância (ledger de XP append-only, nível e sequência derivados)"
