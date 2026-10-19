@@ -396,3 +396,14 @@ jobs:
             /tmp/lote-serve.log
           if-no-files-found: ignore
           retention-days: 30
+
+      # SONDA DA GAVETA (2026-10-19). O `design-diff-lote --selftest` (governance-script-tests) é
+      # hermético e sem navegador: prova que o comparador lê bem o snapshot, não que a sonda mede.
+      # Este roda a sonda canônica numa página-fixture com o Chromium que este job já instalou:
+      # tokens lidos DENTRO do portal (a gaveta da Fabricação perdia todos por montar fora do
+      # .cockpit e nenhuma máquina acusou) e o passo `abrir` do lote — clica, espera, e sai NÃO MEDI
+      # quando a gaveta não abre. Sem app e sem rede. `always()` pra não depender do smoke acima;
+      # sem `continue-on-error`: se a régua quebrar, este passo fica vermelho.
+      - name: design-diff-lote · sonda da gaveta morde (página-fixture, Chromium)
+        if: always() && steps.select.outputs.count != '0'
+        run: node scripts/design/design-diff-lote.mjs --selftest-sonda

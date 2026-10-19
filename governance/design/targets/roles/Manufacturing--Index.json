@@ -1,5 +1,65 @@
 {
   "_medido_em": "2026-09-22",
   "_por_que": "SEM este override a medicao sai contra a TELA ERRADA do lado design, e o veredito parece valido. Medido em 2026-09-22: a primeira rodada gravou `token: manufacturing`, que no app.jsx do espelho monta `<window.ManufacturingPage />` SEM initialView -- ou seja, a aba RECEITAS (`useState(initialView || \"receitas\")`), enquanto a producao mostrava ORDENS DE PRODUCAO. A causa e que `tokenDoMockup` deriva do `source` do application-report (`manufacturing-page.jsx`, o hub), nao da ancora resolvida (`manufacturing-producao.jsx`). O token abaixo foi LIDO do app.jsx do espelho do Felipe (:849): `if (route === \"mfg-producao\") content = <window.ManufacturingPage initialView=\"producao\" />`.",
-  "token": "mfg-producao"
+  "token": "mfg-producao",
+  "_gaveta_medida_em": "2026-10-19",
+  "_gaveta_por_que": "O painel da ordem (OrdemDrawer na producao, MfgProducaoDrawer no prototipo) so existe depois do clique na linha. Os seletores abaixo foram medidos nos dois lados, tema escuro, 1600x900: producao pelo data-slot do Sheet (o mesmo antes e depois do #9582), prototipo pela estrutura do Drawer do DS, que nao tem classe. `espera` e o quadro do custo porque a producao abre o cabecalho na hora e busca o detalhe por partial reload, com esqueleto. Sem ordem na lista (CI sem fixture de producao), a gaveta sai NAO MEDI e a medida da pagina fechada nao muda.",
+  "abrir": {
+    "prod": {
+      "clicar": "main table tbody tr",
+      "espera": "[data-contract=drawer] dl.mfg-tot"
+    },
+    "design": {
+      "clicar": "main table tbody tr",
+      "espera": "aside[role=dialog] dl.mfg-tot"
+    }
+  },
+  "roles": {
+    "prod": {
+      "drawer": {
+        "raiz": "[data-contract=drawer]",
+        "fechar": "[data-contract=drawer] [aria-label=Fechar], [data-contract=drawer] button:has(> svg.lucide-x)",
+        "cabecalho": "[data-slot=sheet-header]",
+        "titulo": "[data-slot=sheet-title]",
+        "subtitulo": "[data-slot=sheet-description]",
+        "corpo": "[data-contract=drawer] > :has(> section)",
+        "secao": "[data-contract=drawer] section",
+        "tituloSecao": "[data-contract=drawer] section h4",
+        "linhaItem": ".mfg-ing",
+        "nomeItem": ".mfg-ing .n",
+        "codigoItem": ".mfg-ing small",
+        "valorItem": ".mfg-ing .m",
+        "quadroCusto": "dl.mfg-tot",
+        "rotuloCusto": "dl.mfg-tot dt",
+        "valorCusto": "dl.mfg-tot dd",
+        "divisoria": "dl.mfg-tot hr",
+        "rodape": "[data-slot=sheet-footer]",
+        "botaoSecundario": "[data-slot=sheet-footer] > button",
+        "botaoPrimario": "[data-slot=sheet-footer] > a"
+      }
+    },
+    "design": {
+      "drawer": {
+        "raiz": "aside[role=dialog]",
+        "fechar": "aside[role=dialog] > div:first-child button",
+        "cabecalho": "aside[role=dialog] > div:nth-child(2)",
+        "titulo": "aside[role=dialog] > div:nth-child(2) > h3",
+        "subtitulo": "aside[role=dialog] > div:nth-child(2) > p",
+        "corpo": "aside[role=dialog] > div:nth-child(3)",
+        "secao": "aside[role=dialog] > div:nth-child(3) > div",
+        "tituloSecao": "aside[role=dialog] > div:nth-child(3) > div > h4",
+        "linhaItem": ".mfg-ing",
+        "nomeItem": ".mfg-ing .n",
+        "codigoItem": ".mfg-ing small",
+        "valorItem": ".mfg-ing .m",
+        "quadroCusto": "dl.mfg-tot",
+        "rotuloCusto": "dl.mfg-tot dt",
+        "valorCusto": "dl.mfg-tot dd",
+        "divisoria": "dl.mfg-tot hr",
+        "rodape": "aside[role=dialog] > div:last-child",
+        "botaoSecundario": "aside[role=dialog] > div:last-child > button:first-child",
+        "botaoPrimario": "aside[role=dialog] > div:last-child > button:last-child"
+      }
+    }
+  }
 }
