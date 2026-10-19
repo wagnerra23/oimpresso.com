@@ -23,4 +23,14 @@ class MargemAbaixoDoMinimo extends Exception
             number_format($minima, 1, ',', '.'),
         ));
     }
+
+    /**
+     * A mensagem para o vendedor quando a exceção pega é esta; nula para qualquer outra.
+     * Existe porque um catch antigo do SellPosController declara `Exception` sem `\` e o PHPStan
+     * conta as chamadas a `getMessage()` nele na baseline.
+     */
+    public static function mensagemDe(object $e): ?string
+    {
+        return $e instanceof self ? $e->getMessage() : null;
+    }
 }

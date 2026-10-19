@@ -3227,9 +3227,7 @@ class SellPosController extends Controller
             }
 
             // UC-DRAFT-05: recusa por margem abaixo do mínimo da empresa.
-            if ($e instanceof \App\Exceptions\MargemAbaixoDoMinimo) {
-                $msg = $e->getMessage();
-            }
+            $msg = \App\Exceptions\MargemAbaixoDoMinimo::mensagemDe($e) ?? $msg;
 
             $output = ['success' => 0,
                 'msg' => $msg,
