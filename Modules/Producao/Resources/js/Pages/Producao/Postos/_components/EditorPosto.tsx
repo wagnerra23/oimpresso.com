@@ -80,7 +80,7 @@ export default function EditorPosto({ posto, veiculo, onClose }: { posto: Posto 
           ) : (
             <Campo rotulo="Capacidade por hora" erro={errors.capacidade_por_hora}>
               <div className="flex gap-2"><Input inputMode="decimal" value={data.capacidade_por_hora} onChange={(e) => setData('capacidade_por_hora', e.target.value.replace(',', '.'))} />
-                <Input className="w-20" aria-label="Unidade" placeholder="m²" value={data.unidade_capacidade} onChange={(e) => setData('unidade_capacidade', e.target.value)} /></div>
+                <div className="w-20 shrink-0"><Input aria-label="Unidade" placeholder="m²" value={data.unidade_capacidade} onChange={(e) => setData('unidade_capacidade', e.target.value)} /></div></div>
             </Campo>
           )}
           <div className="col-span-2 flex items-center gap-2 text-sm"><Switch id="pcp-posto-ativo" checked={data.ativo} onCheckedChange={(v) => setData('ativo', v)} /><Label htmlFor="pcp-posto-ativo">Ativo</Label></div>

@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do gestor + critério de aceite verificável (Dado/Quando/Então)
 por_que: o celular só oferece os motivos do posto; motivo de outro posto ou de outra empresa corrompe o registro de pausa e refugo. Custo-hora da pessoa é dado de desempenho.
 owner: wagner
-last_run: "2026-10-16"
+last_run: "2026-10-19"
 last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando a lane verticais-pest rodar o ProducaoRoteirosContratoTest."
 ---
 
@@ -21,6 +21,7 @@ last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando 
 - **Aceite:** Dado o posto Roland com 6 motivos de pausa · Então a lista do posto mostra só esses 6 · E outro posto mostra os dele · E a empresa 99 não vê nem altera os motivos da 98.
 - **Teste:** `Modules/Producao/Tests/Feature/ProducaoRoteirosContratoTest.php`.
 - **Status: ⬜** — teste escrito, aguarda a lane MySQL.
+- **Revalidado 2026-10-19:** a tela mudou só na largura dos campos (custo-hora, nome da ferramenta, unidade — #9574); motivos por posto não foram tocados.
 
 ---
 

@@ -67,7 +67,7 @@ function Ferramentas({ itens }: { itens: Ferramenta[] }) {
       <form className="flex flex-wrap items-start gap-2" onSubmit={(e) => { e.preventDefault(); form.post('/producao/ferramentas', { preserveScroll: true, onSuccess: () => form.reset() }); }}>
         <div><Input aria-label="Código QR" placeholder="Código QR" value={form.data.codigo_qr} onChange={(e) => form.setData('codigo_qr', e.target.value)} />
           {form.errors.codigo_qr && <p className="text-xs text-destructive">{form.errors.codigo_qr}</p>}</div>
-        <Input aria-label="Nome da ferramenta" placeholder="Furadeira de impacto" className="w-64" value={form.data.nome} onChange={(e) => form.setData('nome', e.target.value)} />
+        <div className="w-64"><Input aria-label="Nome da ferramenta" placeholder="Furadeira de impacto" value={form.data.nome} onChange={(e) => form.setData('nome', e.target.value)} /></div>
         <Button type="submit" variant="outline" disabled={form.processing}><Plus className="size-3.5" aria-hidden="true" /> Adicionar</Button>
       </form>
       <ul className="flex flex-wrap gap-2">{itens.map((f) => <li key={f.id}><Badge variant="outline"><span className="mono">{f.codigo_qr}</span>&nbsp;{f.nome}</Badge></li>)}</ul>
@@ -75,12 +75,14 @@ function Ferramentas({ itens }: { itens: Ferramenta[] }) {
   );
 }
 
+// A largura dos campos vai num <div> em volta: o .cw-input (cowork-fields.css) fica fora de @layer
+// e põe width:100%, que vence o w-28/w-64 do Tailwind no próprio <Input> (§5 2026-10-14).
 function CustoPessoa({ c }: { c: Colaborador }) {
   const [valor, setValor] = useState(c.custo_hora ?? '');
   const salvar = () => router.put(`/producao/colaboradores/${c.id}/custo-hora`, { custo_hora: valor.replace(',', '.') }, { preserveScroll: true });
   return (
     <li className="flex items-center gap-3"><span className="min-w-0 flex-1 text-sm">{c.nome}</span>
-      <Input inputMode="decimal" className="w-28" aria-label={`Custo-hora de ${c.nome}`} value={valor} onChange={(e) => setValor(e.target.value)} />
+      <div className="w-28 shrink-0"><Input inputMode="decimal" aria-label={`Custo-hora de ${c.nome}`} value={valor} onChange={(e) => setValor(e.target.value)} /></div>
       <Button size="sm" variant="outline" onClick={salvar}>Salvar</Button></li>
   );
 }
