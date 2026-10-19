@@ -359,7 +359,31 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 > owner: — · priority: p0 · estimate: 3h · status: todo · type: story
 > 1 RUNBOOK por tela MWART + `.charter.md` ao lado de cada `.tsx`.
 
-**Total US: 20** · **Estimate agregado:** ~81h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
+### US-PCP-021 · A OS baixa o material apontado em cada etapa, pelo custo do lote que saiu (UC-FLX-37) — **P1**
+
+**Implementado em:** `Modules/Producao/Services/ConsumoMaterialService.php` · `Modules/Producao/Database/Migrations/2026_10_19_210000_create_pcp_consumos_table.php` · `Modules/Producao/Services/CustoRealService.php`
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoMaterialContratoTest.php` (lane `verticais-pest.yml`).
+
+> owner: wagner · priority: p1 · estimate: 4h · type: story
+
+**Origem:** decisão [W] 2026-10-19 — *"a OS baixa do estoque o material apontado em cada etapa, pelo custo do lote que saiu"* — e o UC-FLX-37 da tela de fluxos. O que se negocia na venda (custo previsto, US-SELL-067) não é o que se emprega na produção: a OS precisa guardar o custo empregado.
+
+**Problema:** a OS por item congelava só as horas apontadas (`pcp_ordens.custo_real`); o material consumido não baixava estoque nem entrava no custo.
+
+**Aceite:**
+- [x] O operador aponta material (variação + quantidade) na etapa dele; a baixa sai do local de estoque da venda que gerou a OS (UC-PCMAT-01).
+- [x] Cada apontamento é uma transação `production_sell` de uma linha (ref `OS-<id>`; uma por baixa porque `uk_tsl_dup_prevent` não aceita a mesma variação duas vezes numa transação), amarrada ao lote pelo `mapPurchaseSell` (`production_purchase`) e tirada do saldo pelo `decreaseProductQuantity`.
+- [x] O custo do material é Σ quantidade de cada lote × `purchase_lines.purchase_price_inc_tax`, guardado na baixa; compra posterior não muda (UC-PCMAT-02). Não usa o `dpp_inc_tax` do dia.
+- [x] O custo real congelado ao concluir o item soma o material (UC-PCMAT-03).
+- [x] Idempotente pela chave da fila offline (UC-PCMAT-04); tabela `pcp_consumos` com `business_id`, FK e índice.
+- [x] Só o responsável da etapa iniciada ou feita, com a OS Em execução ou Pausada; material de outra empresa e sem controle de estoque recusam (UC-PCMAT-05).
+- [x] Sem lote suficiente (empresa que não vende sem estoque) a baixa é recusada inteira (UC-PCMAT-06); empresa que vende sem estoque grava o que faltou em `quantidade_sem_lote`, sem custo.
+- [x] Endpoints na PWA (`POST /producao/apontamento/material`) e no app (`POST /api/app/producao/apontamentos/material`), sem o custo na resposta (UC-PCMAT-07).
+- [ ] Campo de material na tela do operador (Non-Goal da tela até a thread 08).
+- [ ] Estorno de baixa apontada errada.
+
+**Total US: 21** · **Estimate agregado:** ~81h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
 
 ## §8 — Regras Gherkin (R-PCP-001..010) — resumo
 

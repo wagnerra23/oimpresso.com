@@ -100,8 +100,9 @@ final class SituacaoDaOrdem
      * Concluir item (última etapa do roteiro feita): a OS fica Concluída, pronta, com o custo real
      * CONGELADO (CustoRealService — horas apontadas × custo-hora copiado no início; regra mestre de
      * valor). Trava a OS e relê a situação: duas conclusões ao mesmo tempo concluem uma vez só.
-     * A baixa do material real NÃO acontece aqui: o ERP ainda não registra o consumo real por OS
-     * (decisão pendente do [W], ADR 0436).
+     * O material entra no congelado: a baixa acontece no apontamento de cada etapa
+     * (ConsumoMaterialService, US-PCP-021 · decisão [W] 2026-10-19), e o CustoRealService soma o custo
+     * do lote que saiu. Até 2026-10-19 o ERP não registrava o consumo real por OS.
      */
     public function concluirItemSeTerminou(int $businessId, int $ordemId, int $userId): bool
     {

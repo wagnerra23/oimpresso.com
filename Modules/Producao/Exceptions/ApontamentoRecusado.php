@@ -15,6 +15,7 @@ use DomainException;
  *   etapa_encerrada · apontamento_encerrado → 422 bloqueado
  *   responsavel_invalido → 422 (Liberar: etapa sem responsável, de outra OS ou responsável de outra empresa)
  *   os_nao_liberada → 409 (OS por item fora de produção ou etapa anterior aberta; contexto: situação)
+ *   material_invalido → 422 campos.variation_id · quantidade_invalida → 422 campos.quantidade · estoque_insuficiente → 422 (material, US-PCP-021)
  *   idempotencia_conflito → 422 · momento_invalido → 422 campos.momento · motivo_obrigatorio → 422 campos.motivo_id · justificativa_obrigatoria → 422 campos.justificativa
  */
 class ApontamentoRecusado extends DomainException
@@ -30,6 +31,9 @@ class ApontamentoRecusado extends DomainException
     public const JUSTIFICATIVA_OBRIGATORIA = 'justificativa_obrigatoria';
     public const OS_NAO_LIBERADA = 'os_nao_liberada';
     public const RESPONSAVEL_INVALIDO = 'responsavel_invalido';
+    public const MATERIAL_INVALIDO = 'material_invalido';
+    public const QUANTIDADE_INVALIDA = 'quantidade_invalida';
+    public const ESTOQUE_INSUFICIENTE = 'estoque_insuficiente';
 
     /** @param array<string, mixed> $contexto */
     public function __construct(public readonly string $codigo, string $mensagem, public readonly array $contexto = [])

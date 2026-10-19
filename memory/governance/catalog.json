@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 811,
-    "edges": 1110,
+    "nodes": 812,
+    "edges": 1111,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 433,
+      "component": 434,
       "api": 84
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 88,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 433,
+      "hasComponent": 434,
       "dependsOn": 123,
       "delegatesTo": 114,
       "migratesTo": 1,
@@ -4103,6 +4103,13 @@
       "module": "Producao",
       "name": "ColaboradorCustoController",
       "desc": "custo-hora da pessoa, só com producao.desempenho.ver (E03)"
+    },
+    {
+      "id": "component:Producao/ConsumoMaterialService",
+      "type": "component",
+      "module": "Producao",
+      "name": "ConsumoMaterialService",
+      "desc": "material apontado na etapa da OS por item (US-PCP-021 · UC-FLX-37): baixa o estoque do local da venda por uma production_sell por apontamento, custo do lote que saiu, em pcp_consumos; o CustoRealService soma no congelado"
     },
     {
       "id": "component:Producao/DataController",
@@ -12135,6 +12142,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/ColaboradorCustoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/ConsumoMaterialService",
       "type": "hasComponent",
       "source": "contains"
     },

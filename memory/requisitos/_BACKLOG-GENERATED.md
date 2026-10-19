@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **973 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **974 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -22,9 +22,9 @@
 | [`Marketplaces`](#marketplaces) | 25 | 0 | 0 | 0 | 25 |
 | [`Crm`](#crm) | 23 | 0 | 0 | 0 | 23 |
 | [`Fiscal`](#fiscal) | 22 | 0 | 0 | 0 | 22 |
+| [`Producao`](#producao) | 21 | 0 | 0 | 0 | 21 |
 | [`Compras`](#compras) | 20 | 1 | 0 | 0 | 18 |
 | [`Connector`](#connector) | 20 | 0 | 0 | 0 | 19 |
-| [`Producao`](#producao) | 20 | 0 | 0 | 0 | 20 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 19 | 0 | 0 | 0 | 19 |
 | [`Forja`](#forja) | 19 | 0 | 1 | 0 | 7 |
 | [`Mwart`](#mwart) | 19 | 0 | 0 | 0 | 19 |
@@ -727,6 +727,33 @@
 - **US-FISCAL-019** — Cache Redis 60s KPIs + anti-DOS palette LIKE — ✅ Onda ESTABILIZAR
 - **US-FISCAL-020** — Integrar MotorTributarioService NfeBrasil — elimina 6 hardcodes Tier-0 SPED — ✅ Onda CONSOLIDAR
 
+## Producao
+
+
+### todo
+
+- **US-PCP-001** — Schema base + migrations (4 tabelas + triggers append-only) — **P0**
+- **US-PCP-002** — DECISÃO D1 — Pcp vs IProduction (renomeação ou módulo novo) — **P0 BLOCKER**
+- **US-PCP-003** — Models + global scopes `HasBusinessScope` — **P0**
+- **US-PCP-004** — CRUD `pcp_workstations` Inertia (Index/Create/Edit) — **P0**
+- **US-PCP-005** — CRUD `pcp_operations` Inertia — **P0**
+- **US-PCP-006** — FSM actions intermediárias (5 actions seed) — **P0**
+- **US-PCP-007** — Service `RegisterAppointment` (idempotent) — **P0**
+- **US-PCP-008** — Endpoint API JWT `POST /api/pcp/scan` — **P0**
+- **US-PCP-009** — PWA mobile shell + scanner QR (camera API) — **P0**
+- **US-PCP-010** — QR token na label OS + endpoint print extended — **P0**
+- **US-PCP-011** — Kanban shared infra adicionar agrupador configurável (8 agrupadores Delphi) — **P0**
+- **US-PCP-012** — Detect bottleneck (cron 15min) + alerta UI + Jana RAG context — **P1**
+- **US-PCP-013** — Capacidade dia/semana view agregada + dashboard card — **P1**
+- **US-PCP-014** — Performance operador (view + dashboard table com permission guard) — **P1**
+- **US-PCP-015** — `pcp_schedules` agendamento drag-drop calendário — **P2**
+- **US-PCP-016** — Integração BoM `MfgRecipe` (consumo automático ao concluir operação) — **P2**
+- **US-PCP-017** — Dashboard PCP Inertia (4 cards KPI + Kanban embed + heatmap) — **P1**
+- **US-PCP-018** — Broadcast Centrifugo (Kanban realtime + fila workstation) — **P2**
+- **US-PCP-019** — Smoke biz=4 ROTA LIVRE (canary 7d + cutover) — **P2**
+- **US-PCP-020** — Documentação RUNBOOK + Charter páginas — **P0**
+- **US-PCP-021** — A OS baixa o material apontado em cada etapa, pelo custo do lote que saiu (UC-FLX-37) — **P1**
+
 ## Compras
 
 
@@ -787,32 +814,6 @@
 ### in_progress
 
 - **US-CONN-015** — F2 — Pest baseline do ClientController antes de tocar _(`p2` · @[F])_
-
-## Producao
-
-
-### todo
-
-- **US-PCP-001** — Schema base + migrations (4 tabelas + triggers append-only) — **P0**
-- **US-PCP-002** — DECISÃO D1 — Pcp vs IProduction (renomeação ou módulo novo) — **P0 BLOCKER**
-- **US-PCP-003** — Models + global scopes `HasBusinessScope` — **P0**
-- **US-PCP-004** — CRUD `pcp_workstations` Inertia (Index/Create/Edit) — **P0**
-- **US-PCP-005** — CRUD `pcp_operations` Inertia — **P0**
-- **US-PCP-006** — FSM actions intermediárias (5 actions seed) — **P0**
-- **US-PCP-007** — Service `RegisterAppointment` (idempotent) — **P0**
-- **US-PCP-008** — Endpoint API JWT `POST /api/pcp/scan` — **P0**
-- **US-PCP-009** — PWA mobile shell + scanner QR (camera API) — **P0**
-- **US-PCP-010** — QR token na label OS + endpoint print extended — **P0**
-- **US-PCP-011** — Kanban shared infra adicionar agrupador configurável (8 agrupadores Delphi) — **P0**
-- **US-PCP-012** — Detect bottleneck (cron 15min) + alerta UI + Jana RAG context — **P1**
-- **US-PCP-013** — Capacidade dia/semana view agregada + dashboard card — **P1**
-- **US-PCP-014** — Performance operador (view + dashboard table com permission guard) — **P1**
-- **US-PCP-015** — `pcp_schedules` agendamento drag-drop calendário — **P2**
-- **US-PCP-016** — Integração BoM `MfgRecipe` (consumo automático ao concluir operação) — **P2**
-- **US-PCP-017** — Dashboard PCP Inertia (4 cards KPI + Kanban embed + heatmap) — **P1**
-- **US-PCP-018** — Broadcast Centrifugo (Kanban realtime + fila workstation) — **P2**
-- **US-PCP-019** — Smoke biz=4 ROTA LIVRE (canary 7d + cutover) — **P2**
-- **US-PCP-020** — Documentação RUNBOOK + Charter páginas — **P0**
 
 ## ComunicacaoVisual
 

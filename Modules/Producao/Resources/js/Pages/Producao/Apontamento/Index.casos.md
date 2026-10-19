@@ -78,3 +78,63 @@ sem saída, fecha no fim do turno; horas de pessoa no dia acima da presença + 3
 o Ponto não é alterado.
 
 Status: 🧪
+
+---
+
+## Material consumido na etapa (US-PCP-021 · UC-FLX-37)
+
+> **Âncora:** decisão [W] 2026-10-19 — *"a OS baixa do estoque o material apontado em cada etapa, pelo
+> custo do lote que saiu"* — e o UC-FLX-37 do catálogo de fluxos (`fluxos-data.jsx`: *"congela as horas
+> apontadas e o material pelo custo da data da baixa; compra depois não reescreve a OS"*). Nesta entrega
+> são os endpoints (PWA e app); a tela ainda não tem o campo — o Non-Goal "baixa de material" do charter
+> é da thread 08. Prova: `ProducaoMaterialContratoTest`. ESTOQUE e VALOR: regra mestre.
+
+## UC-PCMAT-01 · O material sai do estoque do local da venda · `must`
+
+**Dado** a OS de um item da venda feita na loja L, com a etapa do Diego iniciada **Quando** ele aponta 3 un de
+lona **Então** o saldo da lona em L cai 3, e a baixa fica gravada com a etapa, quem apontou e quando.
+
+Status: 🧪
+
+## UC-PCMAT-02 · Custo do lote que saiu · `must` valor
+
+**Dado** em L o lote A (2 un × 10,00, mais antigo) e o B (5 un × 14,00), e em outro local um lote de 1,00
+**Quando** a etapa baixa 3 un **Então** saem 2 de A e 1 de B e o custo é 2 × 10,00 + 1 × 14,00 = 34,00 —
+nem o preço do dia nem o lote de outro local; compra feita depois não muda esse valor.
+
+Status: 🧪
+
+## UC-PCMAT-03 · Concluir congela horas e material · `must` valor
+
+**Dado** 1 h de pessoa a 30,00 e 34,00 de material na OS **Quando** a última etapa é concluída **Então** o custo
+real congelado é 64,00; material apontado depois da conclusão é recusado e não muda o congelado.
+
+Status: 🧪
+
+## UC-PCMAT-04 · Reenvio não baixa duas vezes · `must`
+
+**Dado** a fila offline reenviando a mesma chave **Então** a baixa acontece uma vez só; a mesma chave com outra
+quantidade é recusada.
+
+Status: 🧪
+
+## UC-PCMAT-05 · Só quem está na etapa, só material da empresa · `must`
+
+**Quando** outro operador aponta na etapa do Diego, ou a etapa ainda não começou, ou o material é de outra
+empresa, ou a quantidade não é positiva **Então** nada é baixado.
+
+Status: 🧪
+
+## UC-PCMAT-06 · Sem lote no local, a baixa é recusada inteira · `must`
+
+**Dado** 7 un em lote na loja L e a empresa não vende sem estoque **Quando** a etapa aponta 8 **Então** a baixa
+é recusada e nada muda (saldo, lote, saída de estoque).
+
+Status: 🧪
+
+## UC-PCMAT-07 · O operador não vê o custo · `must`
+
+**Quando** o material é apontado pela PWA ou pelo app **Então** a resposta diz o que saiu, sem o custo (que é do
+gestor), e o reenvio responde sem gravar de novo.
+
+Status: 🧪
