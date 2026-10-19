@@ -66,6 +66,13 @@ conferir o tipo da conta antes de planejar prazo.
     `4E:DB:F0:2C:68:5B:CA:0B:89:E9:A9:03:A7:6A:FB:D2:F8:85:BF:BA:6B:11:90:DD:0C:B5:40:05:E2:31:C3:50`
   - Entrada a incluir no `assetlinks.json` (o TWA só abre sem barra de URL com ela no ar):
     `{"relation":["delegate_permission/common.handle_all_urls"],"target":{"namespace":"android_app","package_name":"com.oimpresso.fisio","sha256_cert_fingerprints":["<as duas acima>"]}}`
-- **Pendente** (declarações em nome da empresa, [W] aprova antes de salvar): política de privacidade, Saúde
-  (app de fisioterapia), Segurança dos dados, Público-alvo, Classificação, página da loja. Teste fechado/aberto
-  ("beta") só abre depois disso.
+- **Salvo em 2026-10-19** (aprovado por [W]): Anúncios (não) · Apps governamentais (não) · Recursos financeiros
+  (nenhum) · ID de publicidade (não usa; o manifesto só pede `INTERNET`) · Classificação de conteúdo **Livre**
+  (contato `wagner@oimpresso.com`; "Conteúdo online" = Sim, porque o portal é carregado da web).
+- **Pendente — bloqueado pela política de privacidade:** `https://oimpresso.com/privacidade` não fala de saúde,
+  paciente nem Fisio, e o app coleta dado de saúde (dor 0–10, notas, sinais de alerta, questionários RMDQ/PSFS/LEFS/SPADI,
+  consentimentos com IP). Sem essa seção, Política de Privacidade, Apps de saúde e Segurança dos dados não podem ser
+  declaradas com verdade. A política nova precisa da revisão da Eliana [E].
+- **Pendente — decisão [W]:** Público-alvo (o módulo tem cadastro de responsável, então há paciente menor de idade) e
+  Detalhes do login (o portal abre por link + PIN; o revisor do Google precisa de um paciente de demonstração).
+  Página da loja e teste fechado/aberto ("beta") só abrem depois disso.
