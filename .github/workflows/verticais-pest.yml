@@ -570,6 +570,7 @@ jobs:
             Modules/ComunicacaoVisual/Tests/Feature/MigrationsTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/MultiTenantTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/Tier0GuardTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCustoPrevistoTest.php \
             Modules/Repair/Tests/Feature/DeviceModelsInertiaSmokeTest.php \
             Modules/Repair/Tests/Feature/JobSheetShowContratoTest.php \
             Modules/Repair/Tests/Feature/ProducaoOficinaRefactorTest.php \
