@@ -14,7 +14,7 @@ module: ComunicacaoVisual
 >
 > **O que isto é:** o inventário completo das raízes `Modules/ComunicacaoVisual/**` + `resources/js/Pages/ComunicacaoVisual/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 69 arquivos em 15 papéis.
+**Total mapeado:** 71 arquivos em 15 papéis.
 
 ## Controllers — 5
 
@@ -65,7 +65,7 @@ module: ComunicacaoVisual
 
 - [web.php](../../../Modules/ComunicacaoVisual/Routes/web.php)
 
-## Migrations (schema) — 9
+## Migrations (schema) — 10
 
 - [2026_05_10_000040_create_comvis_materiais_table.php](../../../Modules/ComunicacaoVisual/Database/Migrations/2026_05_10_000040_create_comvis_materiais_table.php)
 - [2026_05_10_000041_create_comvis_orcamentos_table.php](../../../Modules/ComunicacaoVisual/Database/Migrations/2026_05_10_000041_create_comvis_orcamentos_table.php)
@@ -76,6 +76,7 @@ module: ComunicacaoVisual
 - [2026_05_12_000012_create_cv_instalacoes_catalogo_table.php](../../../Modules/ComunicacaoVisual/Database/Migrations/2026_05_12_000012_create_cv_instalacoes_catalogo_table.php)
 - [2026_05_12_000013_create_cv_ordens_producao_table.php](../../../Modules/ComunicacaoVisual/Database/Migrations/2026_05_12_000013_create_cv_ordens_producao_table.php)
 - [2026_05_12_000014_create_cv_instalacoes_table.php](../../../Modules/ComunicacaoVisual/Database/Migrations/2026_05_12_000014_create_cv_instalacoes_table.php)
+- [2026_10_19_210000_add_custo_previsto_to_comvis_orcamento_itens.php](../../../Modules/ComunicacaoVisual/Database/Migrations/2026_10_19_210000_add_custo_previsto_to_comvis_orcamento_itens.php)
 
 ## Seeders — 2
 
@@ -99,9 +100,9 @@ module: ComunicacaoVisual
 
 - [Index.casos.md](../../../resources/js/Pages/ComunicacaoVisual/Index.casos.md)
 
-## Testes (Pest) — 21
+## Testes (Pest) — 22
 
-- 21 em [Modules/ComunicacaoVisual/Tests/Feature/](../../../Modules/ComunicacaoVisual/Tests/Feature)
+- 22 em [Modules/ComunicacaoVisual/Tests/Feature/](../../../Modules/ComunicacaoVisual/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 4
