@@ -514,6 +514,27 @@ Como usuário de teclado/leitor de tela, quero o drawer acessível (WCAG 2.1 AA)
 - [ ] 7 dias na biz=4 sem incidente
 - [ ] smoke real em produção com recibo (status HTTP + screenshot)
 
+### US-COM-024 · Custo do insumo numa data, pelo método da empresa (UC-FLX-38)
+
+> owner: wagner · priority: p1 · estimate: 2h · status: doing · type: story
+
+Como quem orça e produz, quero saber quanto um insumo custava num dia qualquer, para que o orçamento e a OS guardem o custo daquele dia e uma compra nova não reescreva o passado. É a base dos casos UC-FLX-33 a 37 da tela de fluxos.
+
+**Implementado em:** `Modules/Compras/Services/CustoDoInsumoService.php` · `Modules/Compras/Tests/Feature/CustoDoInsumoServiceTest.php`
+
+- Fonte: `purchase_lines` + `transactions.transaction_date`. O histórico já existia; `variations.dpp_inc_tax` guarda só o último preço.
+- Método: o da regra "Atualizar o custo dos insumos" da empresa (`RegrasCompra`, `metodo`), padrão `medio`.
+- Só leitura: o serviço não grava nada.
+
+**Acceptance:**
+- [x] Médio ponderado pela quantidade líquida (recebida − devolvida) das compras recebidas até o fim do dia pedido
+- [x] Último preço = compra recebida mais recente até o fim do dia
+- [x] Fora da conta: compra não recebida, saldo inicial, transferência e custo de fabricação
+- [x] Sem compra até a data: custo nulo com o motivo
+- [x] Tier 0: só compras da empresa pedida (teste com a mesma variação em outra empresa)
+- [x] Método `por_insumo`: nulo com o motivo, até o insumo ter campo próprio
+- [ ] Consumidores: orçamento (UC-FLX-33) e OS (UC-FLX-37) passam a usar o serviço
+
 ### 9.1 Seguradas (feature-wish ADR 0105 — NÃO no backlog ativo)
 
 Sem dor reportada por cliente / sinal qualificado, estas **não** viram US ativa (ADR 0105 — cliente como sinal). Ficam catalogadas como wish, reabrem com sinal:
