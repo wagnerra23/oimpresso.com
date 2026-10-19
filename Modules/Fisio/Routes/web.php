@@ -1,11 +1,14 @@
 <?php
 
 use Modules\Fisio\Http\Controllers\BibliotecaController;
+use Modules\Fisio\Http\Controllers\BibliotecaMidiaController;
 use Modules\Fisio\Http\Controllers\BibliotecaFavoritosController;
 use Modules\Fisio\Http\Controllers\InstallController;
 use Modules\Fisio\Http\Controllers\PacientesController;
 use Modules\Fisio\Http\Controllers\PainelController;
+use Modules\Fisio\Http\Controllers\ProgramasController;
 use Modules\Fisio\Http\Controllers\ProntuarioPdfController;
+use Modules\Fisio\Http\Controllers\ProtocolosController;
 use Modules\Fisio\Http\Controllers\QuestionariosController;
 use Modules\Fisio\Http\Controllers\RegistrosController;
 use Modules\Fisio\Http\Controllers\ResponsavelController;
@@ -48,6 +51,10 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('biblioteca', [BibliotecaController::class, 'index'])->name('biblioteca.index');
         Route::post('biblioteca/exercicios', [BibliotecaController::class, 'store'])->name('biblioteca.exercicios.store');
         Route::put('biblioteca/exercicios/{id}', [BibliotecaController::class, 'update'])->whereNumber('id')->name('biblioteca.exercicios.update');
+        // Foto ou vídeo do exercício PRÓPRIO (UC-FBI-05..07). Servida por rota com checagem de empresa, nunca por URL de disco.
+        Route::post('biblioteca/exercicios/{id}/midia', [BibliotecaMidiaController::class, 'store'])->whereNumber('id')->name('biblioteca.exercicios.midia.store');
+        Route::get('biblioteca/exercicios/{id}/midia', [BibliotecaMidiaController::class, 'show'])->whereNumber('id')->name('biblioteca.exercicios.midia.show');
+        Route::delete('biblioteca/exercicios/{id}/midia', [BibliotecaMidiaController::class, 'destroy'])->whereNumber('id')->name('biblioteca.exercicios.midia.destroy');
         // Favoritos do profissional na empresa da sessão (exige só fisio.access).
         Route::post('biblioteca/exercicios/{id}/favorito', [BibliotecaFavoritosController::class, 'store'])->whereNumber('id')->name('biblioteca.exercicios.favorito.store');
         Route::delete('biblioteca/exercicios/{id}/favorito', [BibliotecaFavoritosController::class, 'destroy'])->whereNumber('id')->name('biblioteca.exercicios.favorito.destroy');
@@ -74,4 +81,19 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
 
         // Questionários de uso livre (US-FISIO-011). Pontuação calculada no servidor; só criação.
         Route::post('pacientes/{id}/questionarios', [QuestionariosController::class, 'store'])->whereNumber('id')->name('pacientes.questionarios.store');
+
+        // Editor de programa (US-FISIO-006). JSON; escrita exige `fisio.editar` (checada no controller).
+        // `itens/ordem` vem antes de `itens/{item}` para não ser lido como id.
+        Route::post('pacientes/{id}/programas', [ProgramasController::class, 'store'])->whereNumber('id')->name('pacientes.programas.store');
+        Route::put('programas/{id}', [ProgramasController::class, 'update'])->whereNumber('id')->name('programas.update');
+        Route::post('programas/{id}/itens', [ProgramasController::class, 'adicionarItem'])->whereNumber('id')->name('programas.itens.store');
+        Route::put('programas/{id}/itens/ordem', [ProgramasController::class, 'reordenar'])->whereNumber('id')->name('programas.itens.ordem');
+        Route::put('programas/{id}/itens/{item}', [ProgramasController::class, 'atualizarItem'])->whereNumber(['id', 'item'])->name('programas.itens.update');
+        Route::delete('programas/{id}/itens/{item}', [ProgramasController::class, 'removerItem'])->whereNumber(['id', 'item'])->name('programas.itens.destroy');
+        Route::post('programas/{id}/protocolo', [ProgramasController::class, 'aplicarProtocolo'])->whereNumber('id')->name('programas.protocolo');
+        Route::post('programas/{id}/salvar-como-protocolo', [ProtocolosController::class, 'salvarDoPrograma'])->whereNumber('id')->name('programas.salvar-protocolo');
+
+        // Protocolos-modelo: copiar um modelo (global ou da clínica) e editar a cópia da clínica.
+        Route::post('protocolos/{id}/copiar', [ProtocolosController::class, 'copiar'])->whereNumber('id')->name('protocolos.copiar');
+        Route::put('protocolos/{id}', [ProtocolosController::class, 'update'])->whereNumber('id')->name('protocolos.update');
     });

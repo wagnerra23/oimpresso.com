@@ -36,6 +36,8 @@ Cadastro de paciente (melhoria do comparativo, 2026-10-18): o contato é escolhi
 - **Especificações por etapa:** [`etapas/`](etapas/)
 - **Telas:** `Modules/Fisio/Resources/js/Pages/Fisio/` + charters/casos ao lado das Pages (a criar)
 
+- **Biblioteca — mídia do exercício próprio (2026-10-18):** a clínica anexa foto ou vídeo MP4 curto ao exercício dela, pelo backbone `Modules/Arquivos`, visível só para a empresa (UC-FBI-05..07, `FisioBibliotecaMidiaTest`).
+
 ## Decisões e riscos que exigem atenção
 
 - WhatsApp com canal escolhido pela clínica (`meta_cloud` recomendado, `whatsmeow` com aceite de risco e mitigações, ou `wa.me` manual) — [ADR 0437 §13.1](../../decisions/0437-modulo-fisio-vertical-fisioterapia.md)

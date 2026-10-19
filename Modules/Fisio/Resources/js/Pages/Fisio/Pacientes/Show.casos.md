@@ -99,7 +99,7 @@ related_us: []
 
 ## UC-FPS-10 · Aviso de contraindicação · `must`
 - **Persona:** fisioterapeuta prescrevendo para paciente com prótese de quadril.
-- **Aceite:** Dado um paciente com marcador de condição · Quando adiciona exercício cujo `contraindication_flags` cruza com o marcador · Então recebe aviso (409 `contraindicacao` com as flags) e nada é gravado; confirmando, o item grava com quem e quando confirmou e quais flags. Sem cruzamento, entra direto sem confirmação. Aviso, não bloqueio — a conduta é do profissional.
+- **Aceite:** Dado um paciente com marcador de condição · Quando adiciona exercício cujo `contraindication_flags` cruza com o marcador · Então recebe aviso (409 `contraindicacao` com as flags) e nada é gravado; confirmando, o item grava com quem e quando confirmou e quais flags. Sem cruzamento, entra direto sem confirmação. Aviso, não bloqueio — a conduta é do profissional. A tela pede a justificativa escrita (`contraindication_justification`), e a confirmação vira um registro novo no prontuário (append-only); o paciente não vê o aviso.
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioProgramaEditorTest.php`
 - **Status: 🧪**
 
@@ -192,7 +192,8 @@ related_us: []
 ## Backlog (prosa honesta — vira UC quando ganhar teste que o cite)
 
 - `[BACKLOG]` Render do gráfico de dor na aba Evolução — os dados têm teste (UC-FPS-21); o desenho no navegador, não.
-- `[BACKLOG]` Protocolos-modelo da clínica aplicados ao programa (`origin=protocolo`) — fora desta suíte.
+- `[BACKLOG]` Protocolos-modelo: aplicar ao programa (`origin=protocolo`), copiar o modelo global para a clínica e editar só a cópia (modelo global = 403), salvar o programa como protocolo — rotas existem desde a US-FISIO-006 (`ProtocolosController`, `ProgramasController::aplicarProtocolo`), ainda sem teste que as cite; o seed dos protocolos 1–11 aguarda a revisão clínica da Dra. Dejeane.
+- `[BACKLOG]` Justificativa da contraindicação gravada no item e no prontuário: implementada na US-FISIO-006, sem asserção na suíte (o `FisioProgramaEditorTest` cobre 409 e quem/quando/quais).
 - `[BACKLOG]` Enunciados literais da versão brasileira validada de EVA, RMDQ, PSFS, LEFS e SPADI na tela do questionário (aguarda conferência da Dra. Dejeane contra a publicação).
 
 ## Trilha do tempo
@@ -201,5 +202,6 @@ related_us: []
 - 2026-10-18 · US-FISIO-005 — paciente bloqueado vira só leitura no servidor: prontuário aceita só adendo (UC-FPS-17) e perfil não aceita edição (UC-FPS-18).
 - 2026-10-18 · US-FISIO-011 — questionários de uso livre viram UC-FPS-13..16 (estrutura e pontuação; enunciados pendentes).
 - 2026-10-17 · suíte TDD da F1 — casos nascem antes da tela e do código; prontuário, bloqueio e contraindicação entram pela atualização de escopo do mesmo dia.
+- 2026-10-18 · US-FISIO-006 — aba Programa na ficha (`_components/EditorPrograma.tsx`) para UC-FPS-06, 08, 09 e 10; UCs inalterados. Veredito: lane Verticais.
 - 2026-10-18 · US-FISIO-010 — aba Evolução (componente `_components/EvolucaoPaciente.tsx`) vira UC-FPS-21, com teste escrito junto da tela.
 - 2026-10-18 · US-FISIO-005 — a tela `.tsx` nasce (#9546) para os casos UC-FPS-02..05 e 07; os UCs não mudaram e seguem derivados do HANDOFF F1, não do `.tsx`. Veredito: lane Verticais.

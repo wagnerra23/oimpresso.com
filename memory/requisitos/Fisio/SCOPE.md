@@ -10,6 +10,8 @@ contains:
   - "Jogo de constância (ledger de XP append-only, nível e sequência derivados)"
   - "Painel e fila de atenção do profissional"
   - "BibliotecaController"
+  - "BibliotecaMidiaController"
+  - "Foto ou vídeo curto do exercício próprio da clínica (UC-FBI-05..07) — servida por rota com checagem de empresa"
   - "BibliotecaFavoritosController — favoritos do profissional na empresa (fisio_exercise_favorites)"
   - "DataController"
   - "PainelController"
@@ -19,6 +21,9 @@ contains:
   - "ResponsavelController"
   - "Fisioterapeuta responsável pelo paciente e transferência registrada no activity_log"
   - "QuestionariosController"
+  - "ProgramasController"
+  - "ProtocolosController"
+  - "Editor de programa por paciente, protocolos-modelo (aplicar e copiar para a clínica) e aviso de contraindicação que não bloqueia (US-FISIO-006)"
   - "ProntuarioPdfController"
   - "Exportação do prontuário em PDF (dompdf, registrada no activity_log) — UC-FPS-19..20"
   - "Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) com pontuação calculada no servidor (US-FISIO-011)"
@@ -26,6 +31,7 @@ not_contains:
   - "Envio de WhatsApp → Modules/Whatsapp (canal da clínica — meta_cloud ou whatsmeow — via ChannelDriverFactory)"
   - "Cobrança, pacotes e títulos → Financeiro / RecurringBilling (F3)"
   - "Emissão de nota → NFSe (F3)"
+  - "Armazenamento de arquivo (foto/vídeo do exercício próprio) → Modules/Arquivos (backbone HasArquivos, ADR 0123/0214)"
 excludes:
   - "Prescrição sugerida por IA e câmera com ângulo/correção de forma (SaMD classe II, ADR 0437 §5) até decisão de notificação"
   - "Questionários com licença paga (ODI, NDI, KOOS, QuickDASH, WOMAC) até licença"
@@ -35,6 +41,8 @@ status: em construção
 url_prefixes:
   - /fisio (painel do profissional — KPIs, fila de atenção e tabela; US-FISIO-010)
   - /fisio/pacientes/* (área do profissional — pacientes, prontuário e questionários; demais telas a criar)
+  - /fisio/programas/* (editor de programa — itens, dose, ordem, protocolo)
+  - /fisio/protocolos/* (protocolos-modelo — copiar e editar a cópia da clínica)
   - /fisio/p/{token}/* (portal público do paciente — a criar)
 ---
 

@@ -60,7 +60,9 @@ related_adrs:
 
 **DoD:** a biblioteca global (`business_id` nulo) aparece para toda clínica com o módulo e o exercício próprio só para a dona; exercício próprio grava com a empresa da sessão e `is_custom`; global responde 403 à edição e próprio de outra empresa 404; filtro por região e busca por texto em nome e sinônimos (busca na F1 aceita por [W] em 2026-10-18, ADR 0437 §14 nº 3) — `FisioBibliotecaTest`; favorito por profissional na empresa (favoritar um global não o altera), filtros de posição e equipamento das listas fechadas de `config('fisio.biblioteca.*')` combinados com região, busca e "só favoritos", e posição/equipamento no exercício próprio (comparativo Physitrack, 2026-10-18) — `FisioBibliotecaFavoritosTest`. **Falta para fechar:** o seed dos 38 exercícios, que depende de passos/dose/contraindicações escritos e da revisão da Dra. Dejeane anotada no PR.
 
-**Testado em:** `Modules/Fisio/Tests/Feature/FisioBibliotecaTest.php` · `Modules/Fisio/Tests/Feature/FisioBibliotecaFavoritosTest.php`
+**Mídia do exercício próprio (parcial, comparativo Physitrack):** foto JPG/PNG/WebP ou vídeo MP4 curto no exercício da clínica, guardado pelo backbone `Modules/Arquivos` (ADR 0123/0214) sob a empresa da sessão e servido por rota com checagem de empresa; global recusa (403); tipo, tamanho e declaração "não mostra paciente" no servidor; remoção reversível só da dona — `Modules/Fisio/Http/Controllers/BibliotecaMidiaController.php`, `Modules/Fisio/Services/MidiaExercicio.php`, `FisioBibliotecaMidiaTest` (UC-FBI-05..07). Fica para depois: transcodificação, quadros-chave e PDF do exercício (`etapas/01-biblioteca.md` §3.6–3.7).
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioBibliotecaTest.php` · `Modules/Fisio/Tests/Feature/FisioBibliotecaFavoritosTest.php` · `Modules/Fisio/Tests/Feature/FisioBibliotecaMidiaTest.php`
 
 ### US-FISIO-005 · Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0**
 
@@ -78,10 +80,14 @@ Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `M
 
 ### US-FISIO-006 · Editor de programa, protocolos-modelo e aviso de contraindicação — **P0**
 
-**Implementado em:** _pendente_
+**Implementado em:** `Modules/Fisio/Http/Controllers/ProgramasController.php` · `Modules/Fisio/Http/Controllers/ProtocolosController.php` · `Modules/Fisio/Services/EditorProgramaPayload.php` · rotas `fisio.pacientes.programas.store`, `fisio.programas.*`, `fisio.protocolos.*` (`Modules/Fisio/Routes/web.php`) · tela `Modules/Fisio/Resources/js/Pages/Fisio/_components/EditorPrograma.tsx` montada na ficha (`Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Show.tsx`) — veredito pela lane Verticais (`FisioProgramaEditorTest`)
 
-> owner: — · priority: p0 · estimate: 8h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 8h · status: done · type: story
 > blocked_by: US-FISIO-004, US-FISIO-005. Aviso nunca bloqueia; exige justificativa que vai ao prontuário (ADR 0437 §13.2). DoD: `FisioProgramaEditorTest`.
+
+**DoD:** programa nasce ativo, `origin=manual`, `created_by` da sessão, limiar padrão 7, com instrução de parada obrigatória; novo ativo encerra o anterior; item herda a dose padrão e vai para o fim; dose validada sem tocar outro item; reordenar exige a lista exata; remover recompacta sem tocar check-in; exercício de outra clínica recusado; contraindicação responde 409 sem gravar e, confirmada, grava quem/quais/quando e a justificativa no item e um registro novo no prontuário; protocolo-modelo aplicado vira `origin=protocolo`, modelo global só se copia (editar = 403) — `FisioProgramaEditorTest`. Conteúdo clínico (exercícios e protocolos globais) aguarda a Dra. Dejeane: sem seed, o editor funciona com exercícios da clínica e mostra estado vazio.
+
+**Testado em:** `Modules/Fisio/Tests/Feature/FisioProgramaEditorTest.php`
 
 ### US-FISIO-007 · Portal do paciente (link + PIN, consentimentos, check-in, telemonitoramento) — **P0**
 

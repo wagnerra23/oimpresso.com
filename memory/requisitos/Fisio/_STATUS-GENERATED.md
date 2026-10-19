@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 0 |
 | Telas (.tsx) | 4 |
 | Telas com `casos.md` | 5 |
-| UC declarados | 67 |
-| UC com teste que os cita | 67 |
+| UC declarados | 70 |
+| UC com teste que os cita | 70 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -30,6 +30,7 @@ authority: generated
 | `US-FISIO-003` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Schema, models e append-only de prontuário e ledger do jogo  |
 | `US-FISIO-004` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Biblioteca semeada e revisada pela responsável técnica — **P |
 | `US-FISIO-005` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0 |
+| `US-FISIO-006` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Editor de programa, protocolos-modelo e aviso de contraindic |
 | `US-FISIO-010` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Painel, evolução e fila de atenção — **P0** |
 | `US-FISIO-011` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) —  |
 
@@ -44,7 +45,6 @@ authority: generated
 |---|---|---|
 | US-FISIO-001 | `todo` | Trio SDD da F1 e US no SPEC — **P0** |
 | US-FISIO-002 | `todo` | Esqueleto `Modules/Fisio` (ativação por empresa, permissões, menu condicionado)  |
-| US-FISIO-006 | `todo` | Editor de programa, protocolos-modelo e aviso de contraindicação — **P0** |
 | US-FISIO-007 | `todo` | Portal do paciente (link + PIN, consentimentos, check-in, telemonitoramento) — * |
 | US-FISIO-008 | `todo` | Jogo de constância (XP, nível, sequência, missões, pausa por dor) — **P1** |
 | US-FISIO-009 | `todo` | Lembrete diário e envio do programa por WhatsApp (canal escolhido pela clínica)  |
@@ -58,6 +58,9 @@ authority: generated
 | UC-FBI-02 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-03 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-04 | Biblioteca/Index | 🧪 aguarda veredito da lane |
+| UC-FBI-05 | Biblioteca/Index | 🧪 aguarda veredito da lane |
+| UC-FBI-06 | Biblioteca/Index | 🧪 aguarda veredito da lane |
+| UC-FBI-07 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-08 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-09 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-10 | Biblioteca/Index | 🧪 aguarda veredito da lane |
