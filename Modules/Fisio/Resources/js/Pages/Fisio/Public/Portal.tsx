@@ -11,14 +11,17 @@
 //   Hoje     — exercícios, jogo, "hoje estou em crise"        → _components/Hoje.tsx
 //   Check-in — "Como foi hoje?" em 3 toques                   → _components/Checkin.tsx
 //   Pausa    — dor ≥ limiar ou sinal de alerta: só a instrução escrita pela fisio (sem jogo).
+// App instalável (T-13): manifesto por link + service worker; a tela do dia abre sem rede em
+// aparelho lembrado (o servidor decide pelo cabeçalho X-Fisio-Offline)  → _components/Instalar.tsx
 // Nada clínico aparece antes do PIN e do consentimento: isso é garantido no servidor.
 import { Head } from '@inertiajs/react';
 import { HeartPulse, ShieldCheck } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { TelaCheckin, InstrucaoDaFisio } from './_components/Checkin';
 import { EtapaConsentimento, EtapaPin } from './_components/Entrada';
 import { TelaCrise, TelaHoje } from './_components/Hoje';
-import type { ItemHoje, Jogo, Relato, Termo } from './_components/portal';
+import { ConviteInstalar } from './_components/Instalar';
+import { registrarAppDoPortal, type ItemHoje, type Jogo, type Relato, type Termo } from './_components/portal';
 
 interface Props {
   erro: 'link_invalido' | null;
@@ -39,10 +42,13 @@ interface Props {
   red_flags?: string[];
 }
 
-function Moldura({ titulo, clinica, children }: { titulo: string; clinica?: string | null; children: ReactNode }) {
+function Moldura({ titulo, clinica, token, children }: { titulo: string; clinica?: string | null; token?: string; children: ReactNode }) {
   return (
     <div className="flex min-h-dvh justify-center bg-background text-foreground" data-screen-label="Fisio · Portal do paciente">
-      <Head title={titulo} />
+      <Head title={titulo}>
+        {token && <link rel="manifest" href={`/fisio/p/${token}/manifest.webmanifest`} />}
+        {token && <link rel="apple-touch-icon" href="/img/fisio-portal-apple-180.png" />}
+      </Head>
       <main className="flex w-full max-w-md flex-col gap-5 px-4 pt-6 pb-4">
         {clinica && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -90,6 +96,7 @@ function AreaDoDia({ token, props }: { token: string; props: Props }) {
     );
   }
   return (
+    <>
     <TelaHoje
       itens={itens}
       jogo={jogo}
@@ -100,11 +107,14 @@ function AreaDoDia({ token, props }: { token: string; props: Props }) {
       onCheckin={() => setTela('checkin')}
       onCrise={() => setTela('crise')}
     />
+    <ConviteInstalar diasCumpridos={jogo.dias_cumpridos} />
+    </>
   );
 }
 
 export default function Portal(props: Props) {
   const { erro, etapa, token, clinica } = props;
+  useEffect(registrarAppDoPortal, []);
 
   if (erro === 'link_invalido' || etapa === null) {
     return (
@@ -117,7 +127,7 @@ export default function Portal(props: Props) {
 
   if (etapa === 'pin') {
     return (
-      <Moldura titulo="Seu programa">
+      <Moldura token={token} titulo="Seu programa">
         <EtapaPin token={token} restantes={props.tentativas_restantes ?? 0} lembrarDias={props.lembrar_dias ?? 30} />
       </Moldura>
     );
@@ -125,7 +135,7 @@ export default function Portal(props: Props) {
 
   if (etapa === 'consentimento') {
     return (
-      <Moldura titulo="Antes de começar" clinica={clinica}>
+      <Moldura token={token} titulo="Antes de começar" clinica={clinica}>
         <EtapaConsentimento token={token} clinica={clinica ?? null} versao={props.consentimento?.version ?? null} opcionais={props.opcionais ?? []} />
       </Moldura>
     );
@@ -133,7 +143,7 @@ export default function Portal(props: Props) {
 
   if (props.modo === 'pausa') {
     return (
-      <Moldura titulo="Hoje" clinica={clinica}>
+      <Moldura titulo="Hoje" clinica={clinica} token={token}>
         <div className="flex flex-1 flex-col gap-4" data-contract="fisio-portal-pausa">
           <h1 className="text-2xl font-semibold leading-tight">Hoje é dia de cuidar</h1>
           <p className="flex items-center gap-2 text-muted-foreground"><ShieldCheck className="size-5 text-primary" aria-hidden="true" />Seu registro foi enviado. Sua sequência está protegida.</p>
@@ -144,7 +154,7 @@ export default function Portal(props: Props) {
   }
 
   return (
-    <Moldura titulo="Hoje" clinica={clinica}>
+    <Moldura titulo="Hoje" clinica={clinica} token={token}>
       <AreaDoDia token={token} props={props} />
     </Moldura>
   );
