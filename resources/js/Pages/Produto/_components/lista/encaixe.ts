@@ -22,22 +22,26 @@
 // - estoque: "4010 UNID", o mais largo da empresa 1, pede 88;
 // - tipo: a pílula mais larga, "Composição", ocupa 76px → 96;
 // - os de texto (produto, locais, categoria, marca, imposto, SKU, campos) cortam com "…" e mostram o
-//   texto inteiro ao passar o mouse.
+//   texto inteiro ao passar o mouse;
+// - e nenhum piso fica abaixo do RÓTULO do cabeçalho: palavra única não quebra, e passa para a coluna
+//   vizinha. Medido em produção em 2026-10-18 (largura que o <th> pede, com a seta de ordenar):
+//   CATEGORIA 79 → 80 (na 1ª versão o piso era 66 e o rótulo vazava 12px sobre MARCA), LOCAIS 61 → 62,
+//   MARCA 64, IMPOSTO 60 (não ordena, sem seta), SKU 50 → 58.
 // Nos pisos, as 12 colunas de saída somam 974px (804 das que encolhem + Ação 96 + Imagem 74); com a
 // seleção (34) e a barra de rolagem vertical da grade (16), 1.024px — cabem nos 1.034px de 1366.
 
 /** Piso de cada coluna que encolhe. Coluna fora desta lista não encolhe. */
 export const PISO_DA_COLUNA: Record<string, number> = {
-  produto: 120,
-  locais: 60,
+  produto: 112,
+  locais: 62,
   compra: 92,
   venda: 92,
   estoque: 88,
   tipo: 96,
-  categoria: 66,
+  categoria: 80,
   marca: 64,
   imposto: 60,
-  sku: 66,
+  sku: 58,
   serie: 64,
   cf1: 80,
   cf2: 80,
