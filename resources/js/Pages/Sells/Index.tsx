@@ -65,7 +65,7 @@ import SellsCheatSheet, { SELLS_INDEX_SHORTCUTS } from './_components/SellsCheat
 type SlaKind = 'fresh' | 'warning' | 'overdue' | 'paid';
 type PaymentStatus = 'paid' | 'due' | 'partial' | string;
 type FiscalStatus = 'pendente' | 'autorizada' | 'rejeitada' | 'denegada' | 'cancelada' | null;
-type PillKey = 'todas' | 'paga' | 'pendente' | 'faturada' | 'cancelada';
+type PillKey = 'todas' | 'paga' | 'pendente' | 'faturada' | 'cancelada' | 'rascunho';
 type FocoKey = 'caixa' | 'faturamento' | 'comissao';
 
 interface SaleRow {
@@ -76,6 +76,8 @@ interface SaleRow {
   final_total: number;
   total_paid: number;
   payment_status: PaymentStatus;
+  /** 'final' | 'draft' — rascunho entra pela pílula Rascunhos. */
+  status?: string;
   shipping_status: string | null;
   customer_name: string | null;
   customer_secondary: string | null;
@@ -260,10 +262,12 @@ const STATUS_LABEL: Record<PillKey, string> = {
   pendente: 'Pendente',
   faturada: 'Faturada',
   cancelada: 'Cancelada',
+  rascunho: 'Rascunhos',
 };
 
 // classifier — what pill does a row belong to (frontend cheap derivation).
 export function classifyPill(r: SaleRow): PillKey {
+  if (r.status === 'draft') return 'rascunho';
   if (r.fiscal_status === 'cancelada') return 'cancelada';
   if (r.fiscal_status === 'autorizada') return 'faturada';
   if (r.payment_status === 'paid') return 'paga';
@@ -463,13 +467,20 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   useEffect(() => ls.set('savedView', savedViewId), [savedViewId]);
 
   // 5-pill status filter.
+  // `?pill=rascunho` abre direto nos rascunhos (link de /sells/drafts e do menu Visões).
+  // Rascunho não fica salvo no localStorage: a consulta reabre sempre nas vendas finais.
   const [pillFilter, setPillFilter] = useState<PillKey>(() => {
+    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('pill') === 'rascunho') {
+      return 'rascunho';
+    }
     const v = ls.get('pill', 'todas');
     return (['todas', 'paga', 'pendente', 'faturada', 'cancelada'] as const).includes(v as PillKey)
       ? (v as PillKey)
       : 'todas';
   });
-  useEffect(() => ls.set('pill', pillFilter), [pillFilter]);
+  useEffect(() => {
+    if (pillFilter !== 'rascunho') ls.set('pill', pillFilter);
+  }, [pillFilter]);
 
   // Onda 4 (ADR 0192) — saved tree branch "Por origem ▾" no dropdown Visões.
   // Filhos Balcão/Oficina/Online filtram client-side; persiste em
@@ -494,6 +505,11 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
 
   // Data fetch state.
   const [rows, setRows] = useState<SaleRow[]>([]);
+  // Rascunhos vivem numa lista à parte: os KPIs (faturado, a receber, NF) derivam de `rows`,
+  // que só recebe venda final — decisão [W] 2026-10-19, rascunho não entra em total de faturado.
+  const [draftRows, setDraftRows] = useState<SaleRow[]>([]);
+  const [draftsCount, setDraftsCount] = useState<number | null>(null);
+  const finaisCarregadas = useRef(false);
   const [loading, setLoading] = useState(true);
   const [meta, setMeta] = useState<ListMeta | null>(null);
   const [totals, setTotals] = useState<TotalsSummary | null>(null);
@@ -700,7 +716,9 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
     setLoading(true);
     const params = new URLSearchParams();
     // Backend payment_status: mapeia pill UI → backend filter.
-    if (pillFilter === 'paga') params.set('payment_status', 'paid');
+    const modoRascunho = pillFilter === 'rascunho';
+    if (modoRascunho) params.set('status', 'draft');
+    else if (pillFilter === 'paga') params.set('payment_status', 'paid');
     else if (pillFilter === 'pendente') params.set('payment_status', 'due');
     // Faturada/Cancelada filtra client-side (backend não tem invoice_status pill ainda).
     if (searchDebounced) params.set('q', searchDebounced);
@@ -713,6 +731,24 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
     if (dateFrom) params.set('date_from', dateFrom);
     if (dateTo) params.set('date_to', dateTo);
 
+    // Quem abre direto em `?pill=rascunho` ainda não tem as vendas finais: os KPIs ficariam
+    // zerados. Busca uma vez as finais (mesmo período) só para eles.
+    if (modoRascunho && !finaisCarregadas.current) {
+      finaisCarregadas.current = true;
+      const pf = new URLSearchParams(params);
+      pf.delete('status');
+      fetch(`/sells-list-json?${pf.toString()}`, {
+        headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        credentials: 'same-origin',
+      })
+        .then((r) => r.json())
+        .then((json) => {
+          if (!cancelled && Array.isArray(json.data)) setRows(json.data);
+        })
+        .catch(() => undefined);
+    }
+    if (!modoRascunho) finaisCarregadas.current = true;
+
     fetch(`/sells-list-json?${params.toString()}`, {
       headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
       credentials: 'same-origin',
@@ -720,13 +756,17 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
       .then((r) => r.json())
       .then((json) => {
         if (cancelled) return;
-        setRows(Array.isArray(json.data) ? json.data : []);
+        const data = Array.isArray(json.data) ? json.data : [];
+        if (modoRascunho) setDraftRows(data);
+        else setRows(data);
+        setDraftsCount(typeof json.drafts_count === 'number' ? json.drafts_count : null);
         setMeta(json.meta ?? null);
         setTotals(json.totals ?? null);
       })
       .catch(() => {
         if (cancelled) return;
-        setRows([]);
+        if (modoRascunho) setDraftRows([]);
+        else setRows([]);
         setMeta(null);
         setTotals(null);
       })
@@ -748,13 +788,17 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   const currentSavedView: SavedView =
     SAVED_VIEWS.find((s) => s.id === savedViewId) ?? SAVED_VIEWS[0]!;
   const filtered = useMemo<SaleRow[]>(() => {
+    // Rascunho: sem visão salva (todas falam de pagamento/NF, que rascunho não tem).
+    if (pillFilter === 'rascunho') {
+      return visaoOrigem ? draftRows.filter((r) => (r.source ?? 'balcao') === visaoOrigem) : draftRows;
+    }
     let out = rows.filter(currentSavedView.filter);
     if (pillFilter === 'faturada') out = out.filter((r) => r.fiscal_status === 'autorizada');
     else if (pillFilter === 'cancelada') out = out.filter((r) => r.fiscal_status === 'cancelada');
     // Onda 4 (ADR 0192) — saved tree "Por origem" filtra cliente-side por source.
     if (visaoOrigem) out = out.filter((r) => (r.source ?? 'balcao') === visaoOrigem);
     return out;
-  }, [rows, currentSavedView, pillFilter, visaoOrigem]);
+  }, [rows, draftRows, currentSavedView, pillFilter, visaoOrigem]);
 
   // Onda 4 (ADR 0192) — contadores por source dos rows server-loaded.
   // Alimenta os filhos do branch "Por origem" no dropdown saved tree e o
@@ -772,9 +816,10 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
   const countByPill = useCallback(
     (p: PillKey) => {
       if (p === 'todas') return rows.length;
+      if (p === 'rascunho') return draftsCount ?? 0;
       return rows.filter((r) => classifyPill(r) === p).length;
     },
-    [rows]
+    [rows, draftsCount]
   );
 
   // SLA breakdown (counts) — alimenta o KPI A receber.
@@ -1262,7 +1307,7 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
                   {[
                     { id: 'caixa',      label: 'Caixa do dia', href: '/vendas/caixa' },
                     { id: 'quotations', label: 'Orçamentos', href: '/sells/quotations' },
-                    { id: 'drafts',     label: 'Rascunhos',  href: '/sells/drafts' },
+                    { id: 'drafts',     label: 'Rascunhos',  href: '/sells?pill=rascunho' },
                     { id: 'subs',       label: 'Assinaturas',href: '/sells/subscriptions' },
                   ].map((s) => (
                     <a key={s.id} className="vd-visoes-item" href={s.href}>
@@ -1502,7 +1547,10 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
         {/* 5 status pills + toggle "Filtros avançados ▾" (PR follow-up) */}
         <div className="vd-tabs-row">
           <div className="os-tabs vd-tabs-grow">
-            {(['todas', 'paga', 'pendente', 'faturada', 'cancelada'] as const).map((s) => (
+            {(['todas', 'paga', 'pendente', 'faturada', 'cancelada', 'rascunho'] as const)
+              // Sem permissão de rascunho o servidor manda drafts_count null e a pílula some.
+              .filter((s) => s !== 'rascunho' || draftsCount !== null || pillFilter === 'rascunho')
+              .map((s) => (
               <button
                 key={s}
                 type="button"
