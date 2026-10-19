@@ -85,6 +85,9 @@ class DataController extends Controller
             $menu->url(url('/producao/roteiros'), 'Produção', [
                 'icon' => 'fa fa-industry',
                 'active' => $segmento_ativo,
+                // [W] 2026-10-19: Produção fica no grupo PRODUÇÃO do sidebar. Sem `group`
+                // o label 'Produção' casava a whitelist de CADASTRO (Sidebar.tsx).
+                'group' => 'producao',
             ]);
         });
     }

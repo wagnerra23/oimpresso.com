@@ -35,6 +35,10 @@ related_us: [US-FISIO-008]
 | UC-FJG-03 | dor alta pausa sem punir; dia de crise conta para a sequência | must | US-FISIO-008 | `FisioJogoServicoTest`, `SequenciaCalculatorTest` |
 | UC-FJG-04 | alerta relativo à dor de base da própria paciente (`sobre_basal`) | must | US-FISIO-008 | `FisioJogoServicoTest`, `LimiarDorCalculatorTest` |
 | UC-FJG-05 | nível derivado do ledger; isolamento por clínica; bloqueado não pontua | must | US-FISIO-008 | `FisioJogoServicoTest` |
+| UC-FJG-06 | missões do dia só do pool prescrito, sem missão de volume | must | US-FISIO-008 | `MissoesCalculatorTest`, `FisioJogoConstanciaTest` |
+| UC-FJG-07 | missão cumprida lança +10 uma vez; teto de bônus da semana | must | US-FISIO-008 | `FisioJogoConstanciaTest` |
+| UC-FJG-08 | 10 medalhas derivadas do histórico, que não somem | should | US-FISIO-008 | `MedalhasCalculatorTest`, `FisioJogoConstanciaTest` |
+| UC-FJG-09 | desafio semanal opcional: recusar não tira XP; aceito e batido paga +40 uma vez | must | US-FISIO-008 | `FisioJogoConstanciaTest` |
 
 ---
 
@@ -83,14 +87,56 @@ related_us: [US-FISIO-008]
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioJogoServicoTest.php`
 - **Status: 🧪**
 
+## UC-FJG-06 · Missões do dia só pelo prescrito `[must]`
+- **Persona:** paciente fazendo o programa em casa.
+- **Aceite:** O pool do dia tem só "Registre como foi hoje", "Faça {exercício} do seu programa"
+  (cada item prescrito) e "Faça todas as séries de {exercício}" (item com `times_per_day` ≥ 2).
+  Sorteio de até 3, sem repetir, pela semente (empresa, paciente, dia): o paciente vê as mesmas
+  missões o dia todo. Nenhum texto pede volume ("mais", "recorde", "sem descanso", "seguidos").
+- **Regressão que defende:** missão que incentiva fazer além do prescrito.
+- **Teste:** `Modules/Fisio/Tests/Unit/MissoesCalculatorTest.php` (percorre o pool inteiro de 3 programas e 60 sorteios) · `Modules/Fisio/Tests/Feature/FisioJogoConstanciaTest.php`
+- **Status: 🧪**
+
+## UC-FJG-07 · Missão cumprida vale +10, uma vez `[must]`
+- **Aceite:** Dado o check-in do dia (pelo evento `CheckinRegistrado`) · Quando a missão sorteada
+  foi cumprida (registro feito; item marcado; item com as vezes prescritas) · Então o ledger
+  recebe `missao` com `ref` = chave da missão e `xp.missao`, limitado ao que sobra de
+  `teto_semanal_bonus` e de `teto_semanal`. Reenvio não lança de novo; missão cumprida com o
+  bônus esgotado fica registrada com 0.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioJogoConstanciaTest.php`
+- **Status: 🧪**
+
+## UC-FJG-08 · Medalhas derivadas, que não somem `[should]`
+- **Aceite:** As 10 medalhas com fonte (Primeiro registro · 1ª semana completa · 4 semanas
+  completas · Sequência 7, 21 e 42 · Voltou depois de pausa · Registro honesto (10 registros com
+  dor anotada) · Nível 5 · Nível 10) saem do histórico de check-ins e do nível, sem coluna e sem
+  XP. Semana completa = dias que somam ≥ ceil(80% da meta) de segunda a domingo. A sequência das
+  medalhas é a melhor já vivida: quebrar a sequência não tira a medalha.
+- **Teste:** `Modules/Fisio/Tests/Unit/MedalhasCalculatorTest.php` · `Modules/Fisio/Tests/Feature/FisioJogoConstanciaTest.php`
+- **Status: 🧪**
+
+## UC-FJG-09 · Desafio semanal opcional `[must]`
+- **Persona:** paciente que abre o portal na segunda.
+- **Aceite:** Na segunda, com programa ativo, o paciente aceita "Cumprir n−1 ou n dos n dias"
+  ou recusa. Recusar grava a recusa em `fisio_game_desafios` e não toca no ledger. Aceito e batido
+  (dias que somam na semana ≥ meta), o ledger recebe `desafio_semanal` +40 uma vez, com `ref` =
+  segunda da semana. Fora da segunda não há oferta; meta fora das opções é recusada; a semana só se
+  decide uma vez, e a decisão não se edita (trigger append-only).
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioJogoConstanciaTest.php`
+- **Status: 🧪**
+
 ---
 
 ## Backlog (prosa honesta — vira UC quando ganhar teste que o cite)
 
 - `[BACKLOG]` Escudos de sequência (1 a cada 7 dias, estoque 2) — a suíte fixou a folga `ceil(7/meta) − 1` no lugar; decisão em aberto com [W].
-- `[BACKLOG]` Missões diárias, desafio semanal e medalhas (T-08c) — os valores já estão em `config('fisio.jogo.xp')`, o código não.
+- `[BACKLOG]` Card "Você sabia?" (T-08c, 1 chance em 3 ao concluir o dia) — falta o texto de dica escrito ou aprovado pela responsável técnica. Não há conteúdo educativo no repo; nada é inventado.
+- `[BACKLOG]` Missão "Veja a dica do {profissional}" (T-08c) — falta o mesmo texto de dica escrito ou aprovado pela responsável técnica.
+- `[BACKLOG]` Missão "Faça no horário que você combinou (±1h)" e medalha "Horário combinado 10 vezes" (T-08c) — falta o campo de horário combinado por paciente e a hora do check-in. Decisão [W]; não há coluna nova neste corte.
+- `[BACKLOG]` Medalha "Programa concluído (alta)" (T-08c) — falta o estado de alta no programa, distinto de `encerrado` (que hoje é o programa substituído por outro). Decisão [W].
 - `[BACKLOG]` Pausa protegida que expira em 7 dias ou com reativação pelo profissional.
-- `[BACKLOG]` Modo manutenção na alta (programa `encerrado`).
+- `[BACKLOG]` Modo manutenção na alta (T-08c: sem missões, lembrete semanal opcional, nível e medalhas mantidos) — falta o mesmo estado de alta no programa, distinto de `encerrado`. Decisão [W].
 
 ## Trilha do tempo
+- 2026-10-19 · T-08c, parte com fonte: missões do pool prescrito, desafio semanal e 10 das 12 medalhas (UC-FJG-06..09). Os 4 itens sem fonte ficam no backlog acima.
 - 2026-10-18 · nasce com a US-FISIO-008 (calculadoras puras, `JogoService`, evento `CheckinRegistrado`).

@@ -108,22 +108,33 @@ class InvoiceGeneratorService
     {
         /** @var Plan|null $plan */
         $plan = $sub->plan;
-        if ($plan === null) {
-            $stats['errors']++;
-            Log::channel('single')->error('rb:generate-invoices subscription sem plan', [
-                'subscription_id' => $sub->getKey(),
-                'plan_id'         => $sub->getAttribute('plan_id'),
-                'business_id'     => $businessId,
-            ]);
+        if ($plan !== null) {
+            $planId    = (int) $plan->getKey();
+            $planValor = (float) $plan->getAttribute('valor');
+            $planNome  = (string) $plan->getAttribute('name');
+            $planCiclo = (string) $plan->getAttribute('ciclo');
+        } else {
+            // UC-RBSUB-05 ([W] 2026-10-19, remédio "a"): assinatura com valor negociado não casa
+            // com plano nenhum (o store() grava plan_id = null) e fatura pelo que ela própria
+            // guarda — metadata.valor e metadata.ciclo, como o RecurringBillingController@store
+            // grava. Sem esses dois, segue sendo erro: o gerador não inventa valor nem ciclo.
+            $negociado = $this->valorNegociado($sub);
+            if ($negociado === null) {
+                $stats['errors']++;
+                Log::channel('single')->error('rb:generate-invoices subscription sem plan e sem valor negociado', [
+                    'subscription_id' => $sub->getKey(),
+                    'plan_id'         => $sub->getAttribute('plan_id'),
+                    'business_id'     => $businessId,
+                ]);
 
-            return $stats;
+                return $stats;
+            }
+            $planId    = null;
+            [$planValor, $planCiclo] = $negociado;
+            $planNome  = 'Valor negociado da assinatura';
         }
 
         $vencimento = Carbon::parse($sub->getAttribute('next_due_date'));
-        $planId      = (int) $plan->getKey();
-        $planValor   = (float) $plan->getAttribute('valor');
-        $planNome    = (string) $plan->getAttribute('name');
-        $planCiclo   = (string) $plan->getAttribute('ciclo');
         $subId       = (int) $sub->getKey();
 
         // Idempotência — invoice mesma competência (YYYY-MM) já existe?
@@ -166,6 +177,7 @@ class InvoiceGeneratorService
                     'plan_id'       => $planId,
                     'plan_name'     => $planNome,
                     'plan_ciclo'    => $planCiclo,
+                    'valor_origem'  => $planId === null ? 'assinatura' : 'plano',
                     'us'            => 'US-RB-003',
                 ],
             ]);
@@ -193,6 +205,34 @@ class InvoiceGeneratorService
 
         return $stats;
     }
+
+    /**
+     * Valor e ciclo da assinatura sem plano, lidos de metadata.valor / metadata.ciclo.
+     *
+     * O valor chega validado como `numeric` pelo StoreAssinaturaRequest (ponto decimal, nunca
+     * vírgula), então não passa por parser pt-BR. Arredonda a 2 casas: é dinheiro.
+     *
+     * @return array{0: float, 1: string}|null [valor, ciclo do plano] ou null se faltar um dos dois
+     */
+    private function valorNegociado(Subscription $sub): ?array
+    {
+        $meta = (array) ($sub->getAttribute('metadata') ?? []);
+        $valor = $meta['valor'] ?? null;
+        $ciclo = self::CICLO_DA_ASSINATURA[(string) ($meta['ciclo'] ?? '')] ?? null;
+        if (! is_numeric($valor) || (float) $valor <= 0 || $ciclo === null) {
+            return null;
+        }
+
+        return [round((float) $valor, 2), $ciclo];
+    }
+
+    /** O ciclo da assinatura (StoreAssinaturaRequest) → o ciclo do plano (rb_plans.ciclo). */
+    private const CICLO_DA_ASSINATURA = [
+        'mensal'     => 'monthly',
+        'trimestral' => 'quarterly',
+        'semestral'  => 'semiannual',
+        'anual'      => 'yearly',
+    ];
 
     /**
      * Avança a data conforme o ciclo do plano. Carbon addMonthsNoOverflow

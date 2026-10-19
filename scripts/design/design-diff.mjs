@@ -92,6 +92,7 @@
  *                                                                   # D0: prova que os 2 lados sao a MESMA tela
  *   node scripts/design/design-diff.mjs --shell-roles                 # mapa de papéis do SHELL, pra colar nos 2 lados
  *   node scripts/design/design-diff.mjs --compare p.json d.json --check-shell            # exit 1 se o SHELL divergir
+ *   node scripts/design/design-diff.mjs --compare p.json d.json --check-drawer           # exit 1 se a GAVETA divergir, 2 se não mediu
  *   node scripts/design/design-diff.mjs --compare p.json d.json --declarado decl.json    # allowlist {campo,motivo}
  *   node scripts/design/design-diff.mjs --selftest                    # fixture hermético (reproduz 07/07)
  */
@@ -369,9 +370,17 @@ export const PROBE_SOURCE = /* js */ `(() => {
     'boxShadow', 'textDecorationLine'];
   const normFam = (v) => String(v || '').replace(/["']/g, '').replace(/,\\s*/g, ',');
   const px1 = (n) => Math.round(n * 10) / 10;
-  const papelInfo = (sel) => {
-    const els = qa(sel).filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0; });
-    if (!els.length) return { seletor: sel, n: 0, css: null, caixa: null, icone: null };
+  // 'base' restringe a busca a uma raiz (a GAVETA usa: '.mfg-ing' não pode casar a lista da
+  // página atrás dela). 'ocultos' conta o que casou mas tem caixa 0 — a divisória sem borda
+  // do painel da ordem (2026-10-19) existia e não desenhava, e sem a contagem isso virava
+  // "seletor não casou", que é outra coisa.
+  const visivelEl = (e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
+  const papelInfo = (sel, base) => {
+    let todos;
+    try { todos = base ? [...base.querySelectorAll(sel)] : qa(sel); }
+    catch (e) { return { seletor: sel, n: 0, ocultos: 0, css: null, caixa: null, icone: null, erro: 'seletor inválido' }; }
+    const els = todos.filter(visivelEl);
+    if (!els.length) return { seletor: sel, n: 0, ocultos: todos.length, css: null, caixa: null, icone: null };
     const el = els[0], c = cs(el), r = el.getBoundingClientRect();
     const css = {};
     for (const k of CSS_SHELL) {
@@ -384,9 +393,15 @@ export const PROBE_SOURCE = /* js */ `(() => {
     const svg = el.querySelector('svg');
     const rs = svg ? svg.getBoundingClientRect() : null;
     return {
-      seletor: sel, n: els.length, css,
+      seletor: sel, n: els.length, ocultos: todos.length - els.length, css,
       caixa: { w: px1(r.width), h: px1(r.height) },
       icone: svg ? { w: px1(rs.width), h: px1(rs.height), strokeWidth: cs(svg).strokeWidth } : null,
+      // CONTEÚDO do elemento medido. A gaveta usa isto pra separar geometria de design de
+      // geometria de DADO: a seção com 1 ingrediente é mais baixa que a com 3, e isso não é
+      // divergência. Mesma regra de 'blocos' na linha da tabela.
+      blocos: textosDe(el).length,
+      texto: (el.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 80),
+      textoProprio: [...el.childNodes].some((n) => n.nodeType === 3 && (n.nodeValue || '').trim()),
     };
   };
   const shell = S ? (() => {
@@ -407,6 +422,49 @@ export const PROBE_SOURCE = /* js */ `(() => {
         })
       : null;
     return { papeis, atalhos };
+  })() : null;
+  // ── GAVETA (drawer/Sheet) — 2026-10-19 ────────────────────────────────────────
+  // Config em '__DD_ROLES.drawer' = { raiz: '<seletor da gaveta>', <papel>: '<seletor>' }, no
+  // molde do SHELL: o seletor difere por lado, o papel é o mesmo, e cada papel é medido pela
+  // MESMA lista fixa de propriedades (CSS_SHELL). Os papéis são buscados DENTRO da raiz.
+  // A gaveta só existe depois do clique — quem abre é o passo 'abrir' do lote, ou o agente,
+  // ANTES de injetar a sonda. Raiz ausente ⇒ 'presente: false' ⇒ SEM-DADO, nunca IGUAL.
+  //
+  // TOKENS NO PORTAL — o defeito que nenhuma máquina viu: o Sheet do Radix monta no <body>,
+  // fora do '.cockpit', e ali --border/--bg-2/--surface/--text-* chegavam VAZIOS e as fontes
+  // caíam na pilha do sistema (painel da ordem da Fabricação, 2026-10-19). A 'saude' acima
+  // lê os tokens só na raiz do documento, que estava sã. Aqui eles são lidos NO elemento da
+  // gaveta e comparados com os da página — o mesmo valor nos dois é o esperado.
+  const DW = R.drawer || null;
+  const TOKENS_GAVETA = ['--border', '--bg-2', '--surface', '--text', '--text-dim', '--text-mute', '--accent', '--font-sans', '--font-mono'];
+  const normTok = (v) => String(v || '').trim().replace(/["']/g, '').replace(/,\\s*/g, ',');
+  const drawer = DW ? (() => {
+    const raizSel = DW.raiz || null;
+    let raiz = null;
+    try { raiz = raizSel ? qa(raizSel).find(visivelEl) || null : null; } catch (e) { raiz = null; }
+    if (!raiz) return { raiz: raizSel, presente: false, papeis: {}, tokens: null };
+    const papeis = { raiz: papelInfo(raizSel) };
+    for (const nome of Object.keys(DW)) if (nome !== 'raiz') papeis[nome] = papelInfo(DW[nome], raiz);
+    // Referência = um elemento da PÁGINA, fora da gaveta: o título, senão o main.
+    let ref = null;
+    for (const s of [R.title, 'main', '[role=main]']) {
+      if (!s) continue;
+      try { ref = qa(s).find((e) => !raiz.contains(e) && visivelEl(e)) || null; } catch (e) { ref = null; }
+      if (ref) break;
+    }
+    if (!ref) ref = document.body;
+    const cg = cs(raiz), cp2 = cs(ref);
+    const naGaveta = {}, naPagina = {};
+    for (const t of TOKENS_GAVETA) { naGaveta[t] = normTok(cg.getPropertyValue(t)); naPagina[t] = normTok(cp2.getPropertyValue(t)); }
+    return {
+      raiz: raizSel, presente: true, papeis,
+      tokens: {
+        referencia: ref.tagName.toLowerCase(),
+        naGaveta, naPagina,
+        vazios: TOKENS_GAVETA.filter((t) => !naGaveta[t]),
+        difereDaPagina: TOKENS_GAVETA.filter((t) => naGaveta[t] !== naPagina[t]),
+      },
+    };
   })() : null;
   // GRÁFICO — papel que faltava, e a ausência tinha sintoma: quando alguém precisou medir
   // gráfico, nasceu um gate POR TELA (fiscal-cockpit-sparklines, patrimonio-painel) em vez
@@ -499,7 +557,7 @@ export const PROBE_SOURCE = /* js */ `(() => {
     // 17). Num shell que carrega vários protótipos juntos, comparar sem provar a
     // view mede a TELA ERRADA e devolve veredito plausível — o pior tipo de erro.
     assinatura: textoVisivel(document.body).slice(0, 20000),
-    roles: { kpi, title, primary, filterRows: filterEls.length ? visualRows(filterEls) : null, contratos, celulas, tabela, shell, chart },
+    roles: { kpi, title, primary, filterRows: filterEls.length ? visualRows(filterEls) : null, contratos, celulas, tabela, shell, chart, drawer },
   };
 })()`;
 
@@ -869,7 +927,8 @@ export function validarDeclaracao(obj) {
 }
 
 /**
- * Aplica a declaração — SÓ no escopo SHELL, e isso é fail-closed de propósito: silenciar
+ * Aplica a declaração — SÓ nos escopos SHELL e DRAWER (os que reportam `a classificar`), e
+ * isso é fail-closed de propósito: silenciar
  * `DIVERGE (bug)` de tela é outra decisão, e não se toma por arquivo de allowlist deste modo.
  * Item que aponta pra fora do shell simplesmente não casa e sai reportado como SEM EFEITO.
  *
@@ -877,10 +936,11 @@ export function validarDeclaracao(obj) {
  * QUANTAS linhas cada entrada silenciou — assim declaração ampla demais fica VISÍVEL em vez de
  * virar um cobertor mudo.
  */
+export const ESCOPOS_DECLARAVEIS = new Set(['SHELL', 'DRAWER']);
 export function aplicarDeclaracao(rows, itens = []) {
   const usos = itens.map(() => 0);
   const out = rows.map((r) => {
-    if (r.dim !== 'SHELL' || !String(r.veredito).startsWith('DIVERGE')) return r;
+    if (!ESCOPOS_DECLARAVEIS.has(r.dim) || !String(r.veredito).startsWith('DIVERGE')) return r;
     for (let i = 0; i < itens.length; i++) {
       const alvo = String(itens[i].campo);
       const casa = alvo.endsWith('*') ? String(r.campo).startsWith(alvo.slice(0, -1)) : String(r.campo) === alvo;
@@ -1013,6 +1073,131 @@ function dimShell(prod, design) {
 }
 
 /**
+ * GAVETA (drawer/Sheet) — escopo novo (2026-10-19), no molde do SHELL.
+ *
+ * Existe porque a gaveta ficava fora de toda máquina: a sonda fotografa o DOM no instante da
+ * injeção e nos dois lados ela só existe depois do clique. Custo medido no painel da ordem da
+ * Fabricação: perdia todos os tokens de cor e fonte por ser portal fora do `.cockpit`, e quem
+ * achou foi uma sonda ad-hoc de 34 elementos, que morreu com a sessão.
+ *
+ * Mesmas três regras do shell: banda do dono (`divergenciaShell` → `TOLERANCIAS`), veredito
+ * `DIVERGE (a classificar)` e nunca `(bug)`, e `--declarado` para o que já foi decidido.
+ * Uma regra a mais, porque a gaveta MOSTRA DADO e o menu não: quantidade de elementos e a
+ * geometria que acompanha o conteúdo (altura de seção com 1 × 3 ingredientes, largura de texto
+ * diferente) saem como `DIVERGE (dado?)`. Medida só vira "a classificar" quando o conteúdo
+ * dos dois lados é o mesmo — senão a régua acusa o dado, que é o falso-positivo de sempre.
+ * ─────────────────────────────────────────────────────────────────────────── */
+const SEM_DADO_DW = (campo, prod, design, detalhe) => ({ dim: 'DRAWER', campo, prod, design, veredito: 'SEM-DADO', detalhe });
+const A_CLASSIFICAR_DW = (campo, prod, design, detalhe) => ({ dim: 'DRAWER', campo, prod, design, veredito: 'DIVERGE (a classificar)', detalhe });
+const DADO_DW = (campo, prod, design, detalhe) => ({ dim: 'DRAWER', campo, prod, design, veredito: 'DIVERGE (dado?)', detalhe });
+const ALTURA = new Set(['height', 'minHeight', 'caixa.h']);
+const LARGURA = new Set(['width', 'caixa.w']);
+// Três cortes de RUÍDO, medidos no painel da ordem (2026-10-19) — cada um gerava linhas
+// verdadeiras pelo computed style e invisíveis na tela:
+//  · cor de borda, quando a borda de CIMA não desenha em algum dos lados: a sonda lê o de cima
+//    (mesma escolha do shell), e sem borda ali o computed devolve a cor do texto. A gaveta
+//    tem borda embaixo (cabeçalho, linha do item) e à esquerda (raiz) — comparar a cor de cima
+//    acusava cor de borda que ninguém vê. A diferença de LARGURA segue reportada;
+//  · propriedade HERDADA (fonte, cor do texto) e ícone num CONTÊINER — sem texto próprio e
+//    com 2+ blocos de texto dentro. A herança já é medida no elemento que desenha o texto;
+//    repetir em cada contêiner multiplicava uma causa só por sete;
+//    Elemento SEM texto nenhum (a divisória) também não mostra fonte nem cor do texto;
+//  · `min-height: auto` e `gap: normal`, que valem 0 onde a medida é tomada;
+//  · a pilha RESERVA de fonte: compara-se a família que desenha (a primeira). O resto só
+//    aparece se ela não carregar — foi 1 dos 3 resíduos da medição manual, e virava 8 linhas.
+// E uma regra de DADO a mais: lista com 1 item contra lista com vários — o item único é o
+// primeiro E o último, então borda e margem por posição (`:last-child`) não se comparam.
+const HERDADAS = new Set(['fontFamily', 'fontSize', 'fontWeight', 'lineHeight', 'letterSpacing', 'textTransform', 'color']);
+const POSICAO = new Set(['borderWidth', 'margin']);
+const semBordaEmCima = (x) => !(parseFloat(String((x.css || {}).borderWidth || '').split(/\s+/)[0]) > 0);
+const ehConteiner = (x) => !x.textoProprio && Number(x.blocos) >= 2;
+const semTexto = (x) => x.blocos === 0 && !x.icone;
+// Sombra: o Tailwind 4 emite quatro camadas `rgba(0, 0, 0, 0) 0px 0px 0px 0px` (ring/inset)
+// antes da sombra real. Transparente e de tamanho zero não desenha — medido no painel em
+// produção, era a única diferença de `box-shadow` contra a sombra única do protótipo.
+const camadasDeSombra = (v) => String(v).split(/,(?![^(]*\))/).map((s) => s.trim())
+  .filter((s) => s && !/^rgba\(0, 0, 0, 0\) 0px 0px 0px 0px$/.test(s));
+const normDw = (k, v) => ((k === 'minHeight' && v === 'auto') || (k === 'gap' && v === 'normal') ? '0px'
+  : k === 'fontFamily' ? String(v).split(',')[0].trim()
+  : k === 'boxShadow' ? (camadasDeSombra(v).join(', ') || 'none') : v);
+
+/** @param {any} prod @param {any} design */
+function dimGaveta(prod, design) {
+  const P = prod.drawer, D = design.drawer;
+  // Escopo OPCIONAL: tela sem gaveta declarada nos dois lados não ganha linha. Não é "igual":
+  // a coluna fica vazia, e `--check-drawer` sai 2 (não medi).
+  if (P == null && D == null) return [];
+  if (!P || !D) {
+    return [SEM_DADO_DW('drawer', P ? 'ok' : 'não medido', D ? 'ok' : 'não medido',
+      'declare `drawer` em __DD_ROLES nos DOIS lados (no lote: `roles.<lado>.drawer` do override)')];
+  }
+  if (!P.presente || !D.presente) {
+    return [SEM_DADO_DW('drawer.presenca', P.presente ? 'aberta' : `fechada (${P.raiz})`, D.presente ? 'aberta' : `fechada (${D.raiz})`,
+      'a gaveta não estava aberta e visível — no lote, declare o passo `abrir` no override; à mão, abra antes de injetar a sonda')];
+  }
+  const rows = [];
+  let comparadas = 0, iguais = 0;
+  // TOKENS — sinal POR LADO, não entre lados: a gaveta tem de resolver o mesmo valor que a
+  // página resolve. Diferença ali é portal montado fora do escopo dos tokens.
+  for (const [lado, s] of [['prod', P], ['design', D]]) {
+    const t = s.tokens;
+    if (!t) { rows.push(SEM_DADO_DW(`drawer.tokens.${lado}`, lado === 'prod' ? 'não medido' : '—', lado === 'design' ? 'não medido' : '—', 're-injete a sonda atual (--probe)')); continue; }
+    const dif = t.difereDaPagina || [];
+    if (!dif.length) continue;
+    const vaz = (t.vazios || []).filter((x) => dif.includes(x));
+    const lista = dif.join(' ');
+    rows.push(A_CLASSIFICAR_DW(`drawer.tokens.${lado}`, lado === 'prod' ? lista : '—', lado === 'design' ? lista : '—',
+      `${dif.length} token(s) resolvem na página (${t.referencia}) e NÃO na gaveta${vaz.length ? ` — vazios: ${vaz.join(' ')}` : ''}. Portal montado fora do escopo dos tokens (.cockpit)?`));
+  }
+  const pp = P.papeis || {}, dp = D.papeis || {};
+  for (const papel of [...new Set([...Object.keys(pp), ...Object.keys(dp)])].sort()) {
+    const a = pp[papel], b = dp[papel];
+    const cp = 'drawer.' + papel;
+    if (!a || !b) { rows.push(SEM_DADO_DW(cp, a ? 'presente' : 'ausente', b ? 'presente' : 'ausente', 'papel declarado só de um lado')); continue; }
+    if (!a.n || !b.n) {
+      // Casou mas não desenha, contra um lado que desenha: é DIVERGÊNCIA (a divisória de borda
+      // 0px), não ausência de medida. Zero dos dois lados segue SEM-DADO.
+      const naoDesenha = (x, y) => !x.n && x.ocultos > 0 && y.n > 0;
+      const desc = (x) => (x.n ? `${x.n} el` : x.ocultos ? `${x.ocultos} el sem caixa` : `0 el (${x.seletor})`);
+      if (naoDesenha(a, b) || naoDesenha(b, a)) rows.push(A_CLASSIFICAR_DW(cp + '.presenca', desc(a), desc(b), 'o elemento existe mas não desenha (caixa 0) de um lado'));
+      else rows.push(SEM_DADO_DW(cp + '.presenca', desc(a), desc(b), 'o seletor não casou elemento VISÍVEL — conserte o mapa de papéis antes de ler o resto'));
+      continue;
+    }
+    if (a.n !== b.n) rows.push(DADO_DW(cp + '.n', a.n, b.n, 'quantidade acompanha o dado (nº de itens da ordem)'));
+    const itemUnico = (a.n === 1) !== (b.n === 1);
+    const conteudo = (k) => (ALTURA.has(k) ? a.blocos !== b.blocos ? `${a.blocos} × ${b.blocos} blocos de texto` : null
+      : LARGURA.has(k) ? a.texto !== b.texto ? 'texto diferente nos dois lados' : null
+      : POSICAO.has(k) && itemUnico ? `lista de ${a.n} × ${b.n} — o item único é o primeiro e o último` : null);
+    const registra = (campo, k, va, vb) => {
+      if (va === undefined && vb === undefined) return;
+      comparadas++;
+      const det = divergenciaShell(k, va, vb);
+      if (!det) { iguais++; return; }
+      const c = conteudo(k);
+      rows.push(c ? DADO_DW(campo, va, vb, `acompanha o conteúdo (${c}) — ${det}`) : A_CLASSIFICAR_DW(campo, va, vb, det));
+    };
+    const conteiner = ehConteiner(a) && ehConteiner(b);
+    const semHeranca = conteiner || (semTexto(a) && semTexto(b));
+    for (const k of [...new Set([...Object.keys(a.css || {}), ...Object.keys(b.css || {})])]) {
+      const va = (a.css || {})[k], vb = (b.css || {})[k];
+      if (va === undefined || vb === undefined) { rows.push(SEM_DADO_DW(`${cp}.${k}`, va ?? 'não medido', vb ?? 'não medido', 'campo só existe num dos snapshots — re-injete a sonda atual')); continue; }
+      if (k === 'borderColor' && (semBordaEmCima(a) || semBordaEmCima(b))) continue;
+      if (semHeranca && HERDADAS.has(k)) continue;
+      registra(`${cp}.${k}`, k, normDw(k, va), normDw(k, vb));
+    }
+    for (const eixo of ['w', 'h']) registra(`${cp}.caixa.${eixo}`, 'caixa.' + eixo, a.caixa ? a.caixa[eixo] : undefined, b.caixa ? b.caixa[eixo] : undefined);
+    if (conteiner) continue;
+    if (!!a.icone !== !!b.icone) { comparadas++; rows.push(A_CLASSIFICAR_DW(cp + '.icone', a.icone ? 'com svg' : 'sem svg', b.icone ? 'com svg' : 'sem svg', 'presença do ícone')); }
+    else if (a.icone && b.icone) for (const eixo of ['w', 'h', 'strokeWidth']) registra(`${cp}.icone.${eixo}`, 'icone.' + eixo, a.icone[eixo], b.icone[eixo]);
+  }
+  // Denominador SEMPRE no relatório — o formato da medição manual ("90 de 93 iguais"). Sem ele,
+  // "3 divergências" não diz se a régua olhou 4 propriedades ou 400.
+  rows.push({ dim: 'DRAWER', campo: 'drawer.iguais', prod: `${iguais} de ${comparadas}`, design: `${iguais} de ${comparadas}`, veredito: 'IGUAL',
+    detalhe: 'propriedades comparadas que bateram (as linhas acima são as que não bateram)' });
+  return rows;
+}
+
+/**
  * GRÁFICO — curva, série e barra. Papel novo (2026-09-21), não dimensão nova: cada sinal
  * sai rotulado com a dimensão CANÔNICA dele, como a linha de tabela já faz.
  *
@@ -1093,7 +1278,7 @@ function dimGrafico(prod, design) {
   return rows;
 }
 
-const DIMENSIONS = [dimLayout, dimTipografia, dimCor, dimAlinhamento, dimTexto, dimCelulas, dimShell, dimGrafico];
+const DIMENSIONS = [dimLayout, dimTipografia, dimCor, dimAlinhamento, dimTexto, dimCelulas, dimShell, dimGaveta, dimGrafico];
 
 /**
  * @param {any} prodSnap @param {any} designSnap
@@ -1125,10 +1310,12 @@ export function compare(prodSnap, designSnap, opts = {}) {
   const rows = decl.rows;
   const bugs = rows.filter((r) => r.veredito === 'DIVERGE (bug)');
   const shell = rows.filter((r) => r.dim === 'SHELL' && r.veredito === 'DIVERGE (a classificar)');
+  const drawer = rows.filter((r) => r.dim === 'DRAWER' && r.veredito === 'DIVERGE (a classificar)');
   return {
     rows,
     bugs: bugs.length,
     shell: shell.length,
+    drawer: drawer.length,
     declaradas: decl.declaradas,
     porDeclaracao: decl.porItem,
     declaracoesSemEfeito: decl.semEfeito,
@@ -1402,9 +1589,10 @@ function runCompare(argvBruto) {
     console.log(fmt(res.rows));
     console.log(`\n  ✗ DIVERGE(bug): ${res.bugs}`);
     console.log(`  ▲ SHELL a classificar: ${res.shell}${res.declaradas ? `   ▫ declaradas: ${res.declaradas}` : ''}`);
-    if (res.shell > 0) {
+    if (res.rows.some((r) => r.dim === 'DRAWER')) console.log(`  ▲ GAVETA a classificar: ${res.drawer}`);
+    if (res.shell > 0 || res.drawer > 0) {
       console.log(
-        '\n  As 3 categorias de divergência de SHELL — a máquina NÃO as distingue, quem classifica é humano:' +
+        '\n  As 3 categorias de divergência de SHELL e GAVETA — a máquina NÃO as distingue, quem classifica é humano:' +
         '\n    DECIDIDA      alguém escolheu (ex.: a prod ter um atalho que o design não tem)' +
         '\n    DERIVA        ninguém escolheu — foi acontecendo' +
         '\n    DESIGN-ANDOU  o design mudou e a prod ficou na versão anterior' +
@@ -1444,6 +1632,20 @@ function runCompare(argvBruto) {
     if (res.shell > 0) process.exit(1);
   }
 
+  // Mesma regra para a GAVETA: 1 = medi e divergiu · 2 = não medi. Sem linha de DRAWER
+  // nenhuma é "não medi" também — a gaveta não foi declarada, ou não estava aberta.
+  if (argv.includes('--check-drawer')) {
+    const linhas = res.rows.filter((r) => r.dim === 'DRAWER');
+    const semDado = linhas.filter((r) => r.veredito === 'SEM-DADO');
+    if (!linhas.length || semDado.length) {
+      console.error(
+        `\n  ⛔ NÃO MEDI — ${linhas.length ? `${semDado.length} linha(s) de gaveta sem dado` : 'nenhuma gaveta nos snapshots'}. "0 divergências" aqui NÃO significa "igual".` +
+        '\n     Declare `drawer` em window.__DD_ROLES nos DOIS lados e abra a gaveta ANTES de injetar a sonda.\n');
+      process.exit(2);
+    }
+    if (res.drawer > 0) process.exit(1);
+  }
+
   // ── PROVENIÊNCIA: "igual" exige saber DE ONDE veio o lado design ───────────
   // Sem isto o `--check` saía 0 (= igual) mesmo com o design vindo de espelho
   // que ninguém verificou — e 0 é o código que um script lê como "pode seguir".
@@ -1454,7 +1656,7 @@ function runCompare(argvBruto) {
   //
   // Só morde quando o design veio do ESPELHO LOCAL. prod×prod (dois ambientes)
   // não depende da fidelidade do espelho e segue livre — por isso zero FP.
-  if ((argv.includes('--check') || argv.includes('--check-shell')) && ehEspelhoLocal(designSnap.url)) {
+  if ((argv.includes('--check') || argv.includes('--check-shell') || argv.includes('--check-drawer')) && ehEspelhoLocal(designSnap.url)) {
     const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
     const { completa, motivo } = rodadaDeFrescorCompleta(join(ROOT, LEDGER_FRESCOR_REL));
     if (!completa) {
@@ -2103,6 +2305,86 @@ function selftest() {
   );
   for (const f of [fCanBom, fCanVazio]) { try { rmSync(f, { force: true }); } catch { /* best-effort */ } }
 
+  // (i) GAVETA (drawer) — fixtures no formato MEDIDO no painel da ordem da Fabricação
+  //     (2026-10-19): o lado design são, e o "antes" da produção com o portal no <body>.
+  const tokOk = { '--border': 'oklch(.34 .008 240)', '--bg-2': 'oklch(.23 .006 240)', '--surface': 'oklch(.3 .008 240)', '--text': 'oklch(.94 .005 90)', '--font-sans': 'IBM Plex Sans,ui-sans-serif' };
+  const tokensDe = (naGaveta) => ({ referencia: 'h1', naGaveta, naPagina: tokOk,
+    vazios: Object.keys(tokOk).filter((t) => !naGaveta[t]), difereDaPagina: Object.keys(tokOk).filter((t) => naGaveta[t] !== tokOk[t]) });
+  const papelDw = ({ extra = {}, ...over } = {}) => ({ ...papelBase({ icone: null, ...over }), ocultos: 0, blocos: 1, texto: 'Fechar', textoProprio: true, ...extra });
+  const SOMBRA_TW = 'rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.3) -16px 0px 40px -12px';
+  const gavetaDesign = () => ({ raiz: 'aside[role=dialog]', presente: true, tokens: tokensDe(tokOk), papeis: {
+    raiz: papelDw({ css: { borderWidth: '0px 0px 0px 1px', boxShadow: 'rgba(0, 0, 0, 0.3) -16px 0px 40px -12px', fontFamily: 'IBM Plex Sans,ui-sans-serif' }, extra: { blocos: 12, textoProprio: false, texto: 'MFG' } }),
+    rodape: papelDw({ css: { height: '55px', padding: '12px 18px' }, caixa: { h: 55 }, extra: { blocos: 2, textoProprio: false, texto: 'Fechar Editar' } }),
+    botao: papelDw({ css: { height: '30px', fontFamily: 'IBM Plex Sans,ui-sans-serif,system-ui,sans-serif', fontSize: '12.5px', borderRadius: '8px' }, caixa: { h: 30 } }),
+    divisoria: papelDw({ css: { height: '1px', borderWidth: '1px 0px 0px' }, caixa: { h: 1 }, extra: { blocos: 0, texto: '', textoProprio: false } }),
+    secao: papelDw({ css: { height: '202px' }, caixa: { h: 202 }, extra: { blocos: 16, textoProprio: false, texto: 'Ingredientes (3)' } }),
+    linhaItem: papelDw({ n: 3, css: { borderWidth: '0px 0px 1px' }, extra: { blocos: 5, textoProprio: false, texto: 'item' } }),
+  } });
+  const gavetaAntes = () => {
+    const g = gavetaDesign();
+    g.raiz = '[data-contract=drawer]';
+    g.tokens = tokensDe({ '--border': '', '--bg-2': '', '--surface': '', '--text': '', '--font-sans': 'ui-sans-serif,system-ui' });
+    g.papeis.raiz.css.fontFamily = 'ui-sans-serif,system-ui';
+    Object.assign(g.papeis.rodape.css, { height: '69px', padding: '16px' }); g.papeis.rodape.caixa.h = 69;
+    Object.assign(g.papeis.botao.css, { height: '36px', fontFamily: 'ui-sans-serif,system-ui', fontSize: '14px', borderRadius: '6px' }); g.papeis.botao.caixa.h = 36;
+    g.papeis.divisoria = { seletor: 'dl hr', n: 0, ocultos: 1, css: null, caixa: null, icone: null };
+    Object.assign(g.papeis.secao.css, { height: '100px' }); g.papeis.secao.caixa.h = 100; g.papeis.secao.blocos = 6; g.papeis.secao.texto = 'Ingredientes (1)';
+    Object.assign(g.papeis.linhaItem, { n: 1 }); g.papeis.linhaItem.css.borderWidth = '0px';
+    return g;
+  };
+  const comGaveta = (drawer) => ({ theme: 'dark', url: 'https://oimpresso.com/x', roles: { ...comTexto([]).roles, drawer } });
+  const linhasDw = (r) => r.rows.filter((x) => x.dim === 'DRAWER');
+  const aClassificar = (r, campo) => linhasDw(r).some((x) => x.campo === campo && x.veredito === 'DIVERGE (a classificar)');
+  const comoDado = (r, campo) => linhasDw(r).some((x) => x.campo === campo && x.veredito === 'DIVERGE (dado?)');
+  const rAntes = compare(comGaveta(gavetaAntes()), comGaveta(gavetaDesign()));
+  const rDepois = compare(comGaveta(gavetaDesign()), comGaveta(gavetaDesign()));
+  const semGaveta = compare(comTexto([]), comTexto([]));
+  checks.push(
+    ['gaveta RUIM: token que a página resolve e a gaveta não vira linha (o portal fora do .cockpit)', aClassificar(rAntes, 'drawer.tokens.prod')],
+    ['gaveta RUIM: o lado são NÃO é acusado de token', !linhasDw(rAntes).some((x) => x.campo === 'drawer.tokens.design')],
+    ['gaveta RUIM: enumera rodapé (69×55) e botão (fonte, tamanho, raio, altura)',
+      aClassificar(rAntes, 'drawer.rodape.height') && aClassificar(rAntes, 'drawer.botao.fontFamily')
+      && aClassificar(rAntes, 'drawer.botao.fontSize') && aClassificar(rAntes, 'drawer.botao.borderRadius') && aClassificar(rAntes, 'drawer.botao.caixa.h')],
+    ['gaveta RUIM: divisória que existe e não desenha é DIVERGÊNCIA, não SEM-DADO', aClassificar(rAntes, 'drawer.divisoria.presenca')],
+    ['gaveta: altura de seção com 1 × 3 itens é DADO, não divergência', comoDado(rAntes, 'drawer.secao.height') && !aClassificar(rAntes, 'drawer.secao.height')],
+    ['gaveta: borda de item único contra lista é DADO (o único é o último)', comoDado(rAntes, 'drawer.linhaItem.borderWidth')],
+    ['gaveta: NUNCA emite DIVERGE (bug) — classificar é humano', !linhasDw(rAntes).some((x) => x.veredito === 'DIVERGE (bug)') && rAntes.bugs === 0],
+    ['gaveta: herança em CONTÊINER não multiplica a fonte (a raiz não repete o botão)', !linhasDw(rAntes).some((x) => x.campo === 'drawer.raiz.fontFamily')],
+    ['gaveta: o relatório traz o denominador (N de M iguais)', linhasDw(rAntes).some((x) => x.campo === 'drawer.iguais' && /^\d+ de \d+$/.test(String(x.prod)))],
+    ['gaveta BOA: gaveta idêntica = 0 a classificar, M de M iguais',
+      rDepois.drawer === 0 && linhasDw(rDepois).some((x) => x.campo === 'drawer.iguais' && /^(\d+) de \1$/.test(String(x.prod)))],
+    ['gaveta CONTROLE NEGATIVO: tela sem gaveta não ganha linha DRAWER nenhuma', linhasDw(semGaveta).length === 0 && semGaveta.drawer === 0],
+    ['gaveta: declarada só de um lado sai SEM-DADO', linhasDw(compare(comGaveta(gavetaDesign()), comTexto([]))).some((x) => x.campo === 'drawer' && x.veredito === 'SEM-DADO')],
+    ['gaveta: fechada (presente:false) sai SEM-DADO, nunca IGUAL',
+      (() => { const r = linhasDw(compare(comGaveta({ raiz: '[role=dialog]', presente: false, papeis: {}, tokens: null }), comGaveta(gavetaDesign()))); return r.length === 1 && r[0].veredito === 'SEM-DADO'; })()],
+    ['gaveta RUÍDO: camadas de sombra transparentes do Tailwind não divergem da sombra única',
+      (() => { const g = gavetaDesign(); g.papeis.raiz.css.boxShadow = SOMBRA_TW; return !linhasDw(compare(comGaveta(g), comGaveta(gavetaDesign()))).some((x) => /boxShadow/.test(x.campo)); })()],
+    ['gaveta RUÍDO: cor de borda sem borda em cima não é comparada',
+      (() => { const g = gavetaDesign(); g.papeis.rodape.css.borderColor = 'rgb(255, 0, 0)'; return !linhasDw(compare(comGaveta(g), comGaveta(gavetaDesign()))).some((x) => /borderColor/.test(x.campo)); })()],
+    ['gaveta: declaração silencia DRAWER (escopo estendido) e conta o que silenciou',
+      (() => { const r = compare(comGaveta(gavetaAntes()), comGaveta(gavetaDesign()), { declarado: [{ campo: 'drawer.*', motivo: 'teste' }] }); return r.drawer === 0 && r.declaradas > 0; })()],
+    ['gaveta: a sonda carrega o papel drawer e segue parseável',
+      PROBE_SOURCE.includes('R.drawer') && PROBE_SOURCE.includes('difereDaPagina') && (() => { try { new Function('return ' + PROBE_SOURCE); return true; } catch { return false; } })()],
+  );
+  // BITE-TEST pelo CLI de fora (§5 2026-07-30): --check-drawer morde, libera e diz "não medi".
+  const fDwBoa = tmpJson(comGaveta(gavetaDesign()));
+  const fDwRuim = tmpJson(comGaveta(gavetaAntes()));
+  const fDwSem = tmpJson({ ...comTexto([]), url: 'https://oimpresso.com/x' });
+  const fDwFechada = tmpJson(comGaveta({ raiz: '[role=dialog]', presente: false, papeis: {}, tokens: null }));
+  const fDwDecl = tmpJson({ itens: [{ campo: 'drawer.*', motivo: 'DECIDIDA: teste de allowlist' }] });
+  const cDwBoa = cli(['--compare', fDwBoa, fDwBoa, '--check-drawer']);
+  const cDwRuim = cli(['--compare', fDwRuim, fDwBoa, '--check-drawer']);
+  checks.push(
+    ['BITE CLI gaveta: BOA + --check-drawer → exit 0', cDwBoa.status === 0],
+    ['BITE CLI gaveta: RUIM + --check-drawer → exit 1', cDwRuim.status === 1],
+    ['BITE CLI gaveta: o relatório nomeia o token vazio no portal', /drawer\.tokens\.prod/.test(String(cDwRuim.stdout)) && /GAVETA a classificar/.test(String(cDwRuim.stdout))],
+    ['BITE CLI gaveta: sem gaveta nos snapshots + --check-drawer → exit 2 (não medi)', cli(['--compare', fDwSem, fDwSem, '--check-drawer']).status === 2],
+    ['BITE CLI gaveta: gaveta fechada + --check-drawer → exit 2 (não medi)', cli(['--compare', fDwFechada, fDwBoa, '--check-drawer']).status === 2],
+    ['BITE CLI gaveta: RUIM com tudo declarado → exit 0', cli(['--compare', fDwRuim, fDwBoa, '--check-drawer', '--declarado', fDwDecl]).status === 0],
+    ['BITE CLI gaveta: sem a flag, gaveta divergente NÃO derruba o --check histórico', cli(['--compare', fDwRuim, fDwBoa, '--check']).status === 0],
+  );
+  for (const p of [fDwBoa, fDwRuim, fDwSem, fDwFechada, fDwDecl]) { try { rmSync(p, { force: true }); } catch { /* best-effort */ } }
+
 
 
   let ok = true;
@@ -2207,4 +2489,4 @@ else if (argv.includes('--shell-roles')) {
 }
 else if (argv.includes('--canario')) runCanario(argv);
 else if (argv.includes('--compare')) runCompare(argv);
-else { console.error('uso: --probe | --shell-roles | --compare <prod.json> <design.json> [--check|--check-shell|--json|--declarado <f.json>] | --canario <snap.json> | --selftest'); process.exit(2); }
+else { console.error('uso: --probe | --shell-roles | --compare <prod.json> <design.json> [--check|--check-shell|--check-drawer|--json|--declarado <f.json>] | --canario <snap.json> | --selftest'); process.exit(2); }

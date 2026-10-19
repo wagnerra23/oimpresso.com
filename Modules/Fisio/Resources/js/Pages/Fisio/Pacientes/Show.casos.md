@@ -191,6 +191,20 @@ related_us: [US-FISIO-009]
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioProntuarioPdfTest.php`
 - **Status: 🧪**
 
+## UC-FPS-37 · Folha para imprimir do programa · `should`
+- **Persona:** fisioterapeuta atendendo paciente que prefere papel na geladeira (muitos idosos).
+- **Aceite:** Dado um programa com exercícios · Quando clica "Imprimir folha" no editor de programa · Então recebe um PDF A4 em letra grande com o nome do paciente, a instrução de parada, a versão de crise e cada exercício na ordem do programa: nome, dose por extenso (séries, repetições, tempo segurando, vezes ao dia), passos, observação e cuidados; a foto própria do exercício vai embutida, e exercício com vídeo aponta o portal. Cada folha grava uma linha no `activity_log` (`programa_impresso`) só com ids e a quantidade de itens.
+- **Regressão que defende:** paciente sem celular ficando sem o programa; dose ambígua no papel ("3×12").
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioFolhaProgramaTest.php`
+- **Status: 🧪**
+
+## UC-FPS-38 · O que a folha NÃO leva, e o link do portal `[T0]` · `must`
+- **Persona:** invariante LGPD (art. 11 — dado de saúde), multi-tenant (ADR 0093) e o link do portal do paciente (UC-FPS-33).
+- **Aceite:** A folha não leva queixa, objetivos, marcadores de condição, prontuário nem dor. Imprimir não emite nem revoga link: a folha sai sem QR (o banco guarda só o hash do token) e diz em texto como acompanhar pelo celular; o link vivo segue válido. Sem `fisio.access` responde 403; programa de outra clínica responde 404; nos dois, nada é registrado.
+- **Regressão que defende:** papel de geladeira expondo dado clínico; imprimir derrubando em silêncio o link que o paciente já usa.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioFolhaProgramaTest.php`
+- **Status: 🧪**
+
 ## UC-FPS-21 · Evolução do paciente na ficha · `should`
 - **Persona:** fisioterapeuta abrindo a ficha.
 - **Aceite:** Dado check-ins do paciente · Quando a ficha carrega a aba Evolução (props deferidas `evolucao` e `serie_dor`) · Então vêm os registros dos últimos 30 dias em ordem de data, com dor, nº de exercícios feitos e sinal de alerta, a adesão 7d do mesmo cálculo do painel (nula sem programa ativo) e a série de dor só com o que tem dor informada. Ficha de outra clínica responde 404.
@@ -225,6 +239,7 @@ related_us: [US-FISIO-009]
 - `[BACKLOG]` Enunciados literais da versão brasileira validada de EVA, RMDQ, PSFS, LEFS e SPADI na tela do questionário (aguarda conferência da Dra. Dejeane contra a publicação).
 
 ## Trilha do tempo
+- 2026-10-19 · B-12 (etapa 01-biblioteca) — folha A4 do programa para imprimir vira UC-FPS-37..38 (`FolhaProgramaController` + `Services/FolhaPrograma.php`, botão no `EditorPrograma.tsx`), com teste escrito junto. Sem QR, para não revogar o link vivo do paciente.
 - 2026-10-18 · US-FISIO-007a — link do portal gerado na ficha (`_components/LinkPortal.tsx`, `PortalLinkController`) vira UC-FPS-33..35, com teste escrito junto.
 - 2026-10-19 · US-FISIO-009 — envio do link e lembrete pelo módulo `Whatsapp` existente (sem canal próprio do Fisio, decisão [W]); UC-FPS-11/12 detalhados e UC-FPS-36 (envio manual `wa.me` sem canal ativo) nasce com o teste.
 - 2026-10-18 · responsável pelo paciente — cadastro grava o responsável, ficha mostra e transfere com registro no `activity_log` (UC-FPS-30..32).

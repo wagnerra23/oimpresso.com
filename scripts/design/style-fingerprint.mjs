@@ -60,7 +60,9 @@
 //      veredito binário e ninguém sabia dizer QUANTO. Agora cada eixo tem banda nomeada, razão
 //      MEDIDA no corpus e fronteira travada no selftest; a célula divergente diz o Δ que mediu.
 // Ainda FORA (precisa dep de imagem): backstop perceptual sem âncora (SSIM → ADR). Estados de DADOS
-//      (vazio/loading/erro/drawer) seguem no loop manual — exigem manipular o estado do app, não CSS.
+//      (vazio/loading/erro) seguem no loop manual — exigem manipular o estado do app, não CSS.
+//      A gaveta aberta saiu desta lista em 2026-10-19, mas no `design-diff`, não aqui: o passo
+//      `abrir` do `design-diff-lote` clica antes da sonda e o papel `drawer` mede a gaveta.
 
 import { readFileSync } from 'node:fs';
 import { pathToFileURL, fileURLToPath } from 'node:url';

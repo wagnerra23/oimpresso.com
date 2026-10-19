@@ -15,6 +15,8 @@ const FONTES = {
   corebridge: { n: "Corebridge", url: "https://www.corebridge.net/production-management" },
   cyrious:    { n: "Cyrious",    url: "https://www.cyrious.com/products/control/" },
   printiq:    { n: "printIQ",    url: "https://www.printiq.com/products/core/" },
+  odoo:       { n: "Odoo MRP",   url: "https://www.odoo.com/documentation/19.0/applications/inventory_and_mrp/manufacturing/basic_setup/mo_costs.html" },
+  katana:     { n: "Katana MRP", url: "https://support.katanamrp.com/en/articles/5914362-manufacturing-costs-for-products" },
   oimpresso:  { n: "oimpresso",  url: "" },
 };
 
@@ -83,6 +85,15 @@ const CASOS = [
   { id: "UC-FLX-31", t: "Natureza fiscal do item decide a nota", proc: "financeiro", etapa: "Faturado", regra: "Serviço gráfico sob encomenda → NFS-e · revenda → NF-e · instalação → NFS-e", fontes: ["oimpresso"], porte: "micro", estado: "verificar", us: "Súmula 156 STJ" },
   { id: "UC-FLX-32", t: "NF-e em contingência quando a SEFAZ cai", proc: "financeiro", etapa: "Validada → Transmitida", regra: "Emite em SVC/EPEC e transmite quando a SEFAZ voltar", fontes: ["oimpresso"], porte: "pequena", estado: "verificar", us: "" },
   { id: "UC-FLX-27", t: "Uma OS, duas notas (NF-e + NFS-e)", proc: "financeiro", etapa: "Faturado", regra: "Emite NF-e da mercadoria e NFS-e do serviço na mesma OS", fontes: ["oimpresso"], porte: "pequena", estado: "planejado", us: "ADR 0129 · US-NFE-060" },
+  // Custo em dois momentos (2026-10-19): o negociado na venda nunca é o empregado na produção.
+  // Pesquisa: Odoo/Katana documentam previsto × real e congelam o real ao concluir; nenhum
+  // concorrente documenta aviso de custo em orçamento aberto (33/34/35 são proposta oimpresso).
+  { id: "UC-FLX-33", t: "Orçamento aprovado guarda o custo do dia", proc: "venda", etapa: "Aprovado", regra: "Grava o custo previsto de cada item (material, tinta, hora de máquina, instalação) com a data; compra depois não muda esse valor", fontes: ["mubisys", "shopvox", "odoo"], porte: "micro", estado: "sem", us: "" },
+  { id: "UC-FLX-34", t: "Orçamento aberto avisa que o custo mudou", proc: "venda", etapa: "Orçamento / Enviado", regra: "Mostra o custo guardado ao lado do custo de hoje e a margem que sobra; só recalcula se alguém pedir", fontes: ["oimpresso"], porte: "micro", estado: "sem", us: "" },
+  { id: "UC-FLX-35", t: "Preço negociado abaixo da margem pede aprovação", proc: "venda", etapa: "Aprovado", regra: "Compara o preço fechado com o custo guardado; abaixo da margem mínima só aprova quem tem permissão", fontes: ["oimpresso"], porte: "pequena", estado: "sem", us: "" },
+  { id: "UC-FLX-36", t: "OS em andamento avisa insumo que mudou de custo", proc: "producao", etapa: "qualquer etapa antes de Concluída", regra: "Mostra o custo da abertura e o de hoje; a regra da compra decide se a OS mantém o custo ou acompanha", fontes: ["katana"], porte: "pequena", estado: "prototipo", us: "Compras · regras das etapas" },
+  { id: "UC-FLX-37", t: "Material consumido leva o custo do dia da baixa", proc: "producao", etapa: "Concluída", regra: "Congela as horas apontadas e o material pelo custo da data da baixa; compra depois não reescreve a OS", fontes: ["odoo", "katana"], porte: "pequena", estado: "parcial", us: "Produção · horas congeladas em pcp_ordens; material sem regra" },
+  { id: "UC-FLX-38", t: "Custo do insumo guarda o histórico por data", proc: "compra", etapa: "Recebido", regra: "Cada recebimento grava o custo com a data; o custo novo vale daqui pra frente e o anterior nunca é apagado", fontes: ["katana", "odoo"], porte: "micro", estado: "parcial", us: "purchase_lines por data; falta a regra do custo vigente" },
 ];
 
 // Modelos: processos (etapas + regras por etapa) + casos cobertos + parâmetros da regra de custo da compra
@@ -94,7 +105,7 @@ const MODELOS = [
       { dom: "venda", etapas: ["Orçamento", "Aprovado", "Pronto", "Entregue", "Pago"], regras: [["Aprovado", "Baixa o material do estoque", "UC-FLX-14"], ["Pago", "Emite a NF-e sozinho", "UC-FLX-26"]] },
       { dom: "compra", etapas: ["Pedido", "Recebido", "Pago"], regras: [["Recebido", "Custo = último preço; preço de venda não muda", "UC-FLX-17"]] },
     ],
-    casos: ["UC-FLX-01", "UC-FLX-03", "UC-FLX-14", "UC-FLX-17", "UC-FLX-19", "UC-FLX-23", "UC-FLX-26"],
+    casos: ["UC-FLX-01", "UC-FLX-03", "UC-FLX-14", "UC-FLX-17", "UC-FLX-19", "UC-FLX-23", "UC-FLX-26", "UC-FLX-33", "UC-FLX-38"],
     compra: { etapa: "recebido", metodo: "ultimo", preco: "so_custo", regraEm: "produto", aprovacao: "recebimento", ops: "congela" } },
   { id: "cv-pequena", n: "Comunicação visual · pequena", para: "Produção por OS com arte, aprovação do cliente e instalação própria.",
     portes: ["pequena"], ativs: ["cv", "instal"], insp: ["mubisys", "holdprint", "shopvox"],
@@ -103,7 +114,7 @@ const MODELOS = [
       { dom: "producao", etapas: ["Arte", "Aprovação do cliente", "Impressão", "Acabamento", "Instalação", "Entregue"], regras: [["Aprovação do cliente", "Link de aprovação; recusa volta para Arte", "UC-FLX-02"], ["Impressão", "Apontamento pelo celular", "UC-FLX-09"], ["Entregue", "Protocolo + pesquisa em 2 dias", "UC-FLX-23"]] },
       { dom: "compra", etapas: ["Pedido", "Em trânsito", "Recebido", "Conferido", "Pago"], regras: [["Recebido", "Custo médio; propõe preço, aprova no recebimento", "UC-FLX-17"], ["Conferido", "Gera conta a pagar", ""]] },
     ],
-    casos: ["UC-FLX-01", "UC-FLX-02", "UC-FLX-03", "UC-FLX-08", "UC-FLX-09", "UC-FLX-14", "UC-FLX-15", "UC-FLX-17", "UC-FLX-21", "UC-FLX-23", "UC-FLX-25", "UC-FLX-26", "UC-FLX-27"],
+    casos: ["UC-FLX-01", "UC-FLX-02", "UC-FLX-03", "UC-FLX-08", "UC-FLX-09", "UC-FLX-14", "UC-FLX-15", "UC-FLX-17", "UC-FLX-21", "UC-FLX-23", "UC-FLX-25", "UC-FLX-26", "UC-FLX-27", "UC-FLX-33", "UC-FLX-34", "UC-FLX-35", "UC-FLX-37", "UC-FLX-38"],
     compra: { etapa: "recebido", metodo: "medio", preco: "propor", regraEm: "produto", aprovacao: "recebimento", ops: "congela" } },
   { id: "cv-pcp", n: "Comunicação visual · média com PCP", para: "Vários setores e turnos; o gargalo é decidir o que entra na máquina.",
     portes: ["media", "grande"], ativs: ["cv", "instal", "offset"], insp: ["holdprint", "printiq", "corebridge"],
@@ -112,7 +123,7 @@ const MODELOS = [
       { dom: "producao", etapas: ["Pré-impressão", "Aprovação do cliente", "Liberada", "Impressão", "Acabamento", "Expedição"], regras: [["Pré-impressão", "Aproveitamento de mídia", "UC-FLX-13"], ["Liberada", "Alocador escolhe quem e quando", "UC-FLX-10"], ["Impressão", "Romaneio peça a peça", "UC-FLX-12"], ["Expedição", "Previsto × realizado", "UC-FLX-15"]] },
       { dom: "compra", etapas: ["Requisição", "Pedido", "Em trânsito", "Recebido", "Conferido", "Pago"], regras: [["Requisição", "Nasce do estoque mínimo", "UC-FLX-19"], ["Conferido", "Custo médio; propostas vão à fila da Fabricação", "UC-FLX-17"]] },
     ],
-    casos: ["UC-FLX-01", "UC-FLX-02", "UC-FLX-04", "UC-FLX-05", "UC-FLX-06", "UC-FLX-07", "UC-FLX-08", "UC-FLX-09", "UC-FLX-10", "UC-FLX-12", "UC-FLX-13", "UC-FLX-15", "UC-FLX-16", "UC-FLX-17", "UC-FLX-19", "UC-FLX-21", "UC-FLX-22", "UC-FLX-24", "UC-FLX-27"],
+    casos: ["UC-FLX-01", "UC-FLX-02", "UC-FLX-04", "UC-FLX-05", "UC-FLX-06", "UC-FLX-07", "UC-FLX-08", "UC-FLX-09", "UC-FLX-10", "UC-FLX-12", "UC-FLX-13", "UC-FLX-15", "UC-FLX-16", "UC-FLX-17", "UC-FLX-19", "UC-FLX-21", "UC-FLX-22", "UC-FLX-24", "UC-FLX-27", "UC-FLX-33", "UC-FLX-34", "UC-FLX-35", "UC-FLX-36", "UC-FLX-37", "UC-FLX-38"],
     compra: { etapa: "conferido", metodo: "medio", preco: "propor", regraEm: "produto", aprovacao: "fabricacao", ops: "congela" } },
   { id: "grafica", n: "Gráfica digital e offset", para: "Produção seriada; papel e tinta mudam de preço com frequência.",
     portes: ["pequena", "media", "grande"], ativs: ["offset", "rapida"], insp: ["calcgraf", "zenite", "printiq"],
@@ -122,7 +133,7 @@ const MODELOS = [
       { dom: "compra", etapas: ["Pedido", "Recebido", "Conferido", "Pago"], regras: [["Recebido", "Custo médio; preço acompanha o papel automaticamente", "UC-FLX-17"]] },
       { dom: "financeiro", etapas: ["Emitido", "Conferido", "Conciliado", "Liquidado"], regras: [["Liquidado", "Custeio RKW no fechamento do mês", "UC-FLX-20"]] },
     ],
-    casos: ["UC-FLX-01", "UC-FLX-02", "UC-FLX-07", "UC-FLX-11", "UC-FLX-13", "UC-FLX-15", "UC-FLX-16", "UC-FLX-17", "UC-FLX-20"],
+    casos: ["UC-FLX-01", "UC-FLX-02", "UC-FLX-07", "UC-FLX-11", "UC-FLX-13", "UC-FLX-15", "UC-FLX-16", "UC-FLX-17", "UC-FLX-20", "UC-FLX-33", "UC-FLX-36", "UC-FLX-37", "UC-FLX-38"],
     compra: { etapa: "recebido", metodo: "medio", preco: "aplicar", regraEm: "produto", aprovacao: "recebimento", ops: "congela" } },
   { id: "brindes", n: "Brindes, sublimação e DTF", para: "Catálogo com variação de cor e tamanho; compra por grade.",
     portes: ["micro", "pequena"], ativs: ["brindes", "textil"], insp: ["mubisys", "shopvox"],
@@ -130,7 +141,7 @@ const MODELOS = [
       { dom: "venda", etapas: ["Orçamento", "Aprovado", "Produção", "Entregue", "Pago"], regras: [["Produção", "Baixa a peça e o insumo pela grade", "UC-FLX-14"], ["Entregue", "Cliente avisado por mensagem", "UC-FLX-24"]] },
       { dom: "compra", etapas: ["Pedido", "Recebido", "Pago"], regras: [["Recebido", "Último preço; aplica o preço sozinho", "UC-FLX-17"]] },
     ],
-    casos: ["UC-FLX-01", "UC-FLX-03", "UC-FLX-14", "UC-FLX-17", "UC-FLX-19", "UC-FLX-24", "UC-FLX-26"],
+    casos: ["UC-FLX-01", "UC-FLX-03", "UC-FLX-14", "UC-FLX-17", "UC-FLX-19", "UC-FLX-24", "UC-FLX-26", "UC-FLX-33", "UC-FLX-38"],
     compra: { etapa: "recebido", metodo: "ultimo", preco: "aplicar", regraEm: "categoria", aprovacao: "recebimento", ops: "vivo" } },
   { id: "instalacao", n: "Fachadas e instalação sob encomenda", para: "Cada job é um projeto: visita, projeto, produção e equipe em campo.",
     portes: ["pequena", "media"], ativs: ["instal", "cv"], insp: ["holdprint", "visua", "shopvox"],
@@ -139,7 +150,7 @@ const MODELOS = [
       { dom: "entrega", etapas: ["Pronto", "Agendado", "Em campo", "Instalado", "Entregue"], regras: [["Agendado", "Agenda equipe e veículo", "UC-FLX-21"], ["Instalado", "Exige foto e assinatura", "UC-FLX-22"], ["Entregue", "Pesquisa de satisfação", "UC-FLX-25"]] },
       { dom: "compra", etapas: ["Pedido", "Recebido", "Conferido", "Pago"], regras: [["Recebido", "Custo médio; propõe preço, aprova no recebimento", "UC-FLX-17"]] },
     ],
-    casos: ["UC-FLX-02", "UC-FLX-06", "UC-FLX-15", "UC-FLX-17", "UC-FLX-21", "UC-FLX-22", "UC-FLX-23", "UC-FLX-25", "UC-FLX-27"],
+    casos: ["UC-FLX-02", "UC-FLX-06", "UC-FLX-15", "UC-FLX-17", "UC-FLX-21", "UC-FLX-22", "UC-FLX-23", "UC-FLX-25", "UC-FLX-27", "UC-FLX-33", "UC-FLX-34", "UC-FLX-35", "UC-FLX-37", "UC-FLX-38"],
     compra: { etapa: "recebido", metodo: "medio", preco: "propor", regraEm: "produto", aprovacao: "recebimento", ops: "congela" } },
   { id: "oficina", n: "Oficina mecânica", para: "OS de veículo; a peça comprada destrava o serviço.",
     portes: ["micro", "pequena", "media"], ativs: ["oficina"], insp: ["corebridge"],

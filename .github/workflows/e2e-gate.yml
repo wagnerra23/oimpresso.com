@@ -126,7 +126,9 @@ jobs:
         if: steps.decide.outputs.run == 'true'
         uses: actions/cache@v4
         with:
-          path: ~/.composer/cache
+          path: |
+            ~/.cache/composer
+            ~/.composer/cache
           key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
           restore-keys: ${{ runner.os }}-composer-
 

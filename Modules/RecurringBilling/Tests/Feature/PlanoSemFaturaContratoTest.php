@@ -32,7 +32,8 @@ declare(strict_types=1);
  * Escolher remédio antes do diagnóstico é o erro catalogado em proibicoes §5
  * (2026-07-15). Este teste existe pra o diagnóstico ter recibo.
  *
- * VEREDITO: não rodado (CT 100 — ADR 0062). "Vermelho" abaixo é PREDIÇÃO.
+ * RESOLVIDO [W] 2026-10-19 — remédio (a): sem plano, o gerador fatura por
+ * metadata.valor e metadata.ciclo da assinatura. Sem eles continua erro.
  *
  * PRÉ-CONDIÇÃO ANTI-VÁCUO (proibicoes §5 2026-07-24): o teste 1 prova primeiro que
  * o gerador ESTÁ FUNCIONANDO no caso com plano — senão um verde/vermelho aqui
@@ -262,6 +263,34 @@ it('UC-RBSUB-05 · assinatura com valor negociado (sem plano casado) TEM que ger
         0,
         'A assinatura não pode cair no branch de erro do gerador — cobrança dormente sem alarme.'
     );
+
+    // Remédio (a), [W] 2026-10-19: a fatura sai pelo VALOR NEGOCIADO (187), não pelo plano
+    // do catálogo (150), e o ciclo vem da assinatura ('mensal' → +1 mês).
+    expect($faturas)->toHaveCount(1);
+    expect((float) $faturas->first()->valor)->toBe(187.00);
+    expect($faturas->first()->metadata['valor_origem'])->toBe('assinatura');
+    expect($sub->fresh()->next_due_date->toDateString())->toBe('2026-08-10');
+});
+
+it('UC-RBSUB-05 · sem plano E sem valor negociado continua erro — o gerador não inventa valor', function (): void {
+    $sub = rbSemPlanoAssinatura(null, 187.00);
+    $sub->update(['metadata' => ['ciclo' => 'mensal', 'created_via' => 'import']]);
+
+    $stats = (new InvoiceGeneratorService())->run(1, '2026-07-10');
+
+    expect($stats['errors'])->toBe(1);
+    expect(Invoice::withoutGlobalScopes()->where('subscription_id', $sub->getKey())->count())->toBe(0);
+    expect($sub->fresh()->next_due_date->toDateString())->toBe('2026-07-10');
+});
+
+it('UC-RBSUB-05 · assinatura trimestral sem plano avança 3 meses', function (): void {
+    $sub = rbSemPlanoAssinatura(null, 450.00);
+    $sub->update(['metadata' => ['valor' => '450.00', 'ciclo' => 'trimestral']]);
+
+    (new InvoiceGeneratorService())->run(1, '2026-07-10');
+
+    expect((float) Invoice::withoutGlobalScopes()->where('subscription_id', $sub->getKey())->value('valor'))->toBe(450.00);
+    expect($sub->fresh()->next_due_date->toDateString())->toBe('2026-10-10');
 });
 
 /**

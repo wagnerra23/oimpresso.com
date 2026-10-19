@@ -112,6 +112,9 @@ class DataController extends Controller
             }, [
                 'icon' => 'fa fa-heartbeat',
                 'active' => $segmento_ativo,
+                // [W] 2026-10-19: Fisio vai para VENDAS — no sidebar é o grupo COMERCIAL
+                // (key 'comercial': CRM · Vendas). Sem `group` caía no fallback MAIS.
+                'group' => 'comercial',
             ]);
         });
     }
