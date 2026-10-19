@@ -61,7 +61,9 @@ function ffoLembrar($t): array
 
 function ffoEnviar($t, array $cookies, array $mudar = [])
 {
-    return $t->withCookies($cookies)->postJson('/fisio/p/'.$t->g['token'].'/checkin', array_merge([
+    // `postJson` só manda cookie com `withCredentials()` (MakesHttpRequests::prepareCookiesForJsonRequest):
+    // sem ele o aparelho lembrado nunca chega ao servidor e o portão do PIN responde 403.
+    return $t->withCookies($cookies)->withCredentials()->postJson('/fisio/p/'.$t->g['token'].'/checkin', array_merge([
         'done_item_ids' => $t->itens,
         'pain' => 3,
         'effort' => 'adequado',
