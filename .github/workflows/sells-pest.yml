@@ -37,6 +37,7 @@ on:
       - 'app/Transaction.php'
       - 'Modules/Compras/Observers/TransactionSellLineCustoObserver.php'
       - 'Modules/Compras/Providers/ComprasServiceProvider.php'
+      - 'app/Contracts/Compras/**'  # UC-FLX-34 custo no detalhe do orcamento
       - 'app/Observers/TransactionMargemMinimaObserver.php'
       - 'app/Exceptions/MargemAbaixoDoMinimo.php'
       - 'database/migrations/2026_10_19_220000_add_margem_minima_to_fsm_modelos_empresa.php'
@@ -172,6 +173,7 @@ jobs:
               - 'app/Transaction.php'
               - 'Modules/Compras/Observers/TransactionSellLineCustoObserver.php'
               - 'Modules/Compras/Providers/ComprasServiceProvider.php'
+              - 'app/Contracts/Compras/**'  # UC-FLX-34 custo no detalhe do orcamento
               - 'app/Observers/TransactionMargemMinimaObserver.php'
               - 'app/Exceptions/MargemAbaixoDoMinimo.php'
               - 'database/migrations/2026_10_19_220000_add_margem_minima_to_fsm_modelos_empresa.php'
@@ -427,6 +429,7 @@ jobs:
             --log-junit test-results/pest-sells-junit.xml \
             tests/Feature/Sells/SellsShowContratoTest.php \
             tests/Feature/Sells/OrcamentoCustoPrevistoContratoTest.php \
+            tests/Feature/Sells/SellsShowCustoOrcamentoContratoTest.php \
             tests/Feature/Sells/SellsMargemMinimaContratoTest.php \
             tests/Feature/Sells/SellsEditContratoTest.php \
             tests/Feature/Sells/SellsIndexTenantContratoTest.php \

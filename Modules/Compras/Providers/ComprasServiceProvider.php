@@ -40,6 +40,9 @@ class ComprasServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->register(RouteServiceProvider::class);
+
+        // O núcleo pede o custo do insumo pela interface, sem importar o módulo.
+        $this->app->bind(\App\Contracts\Compras\CustoDoInsumo::class, \Modules\Compras\Services\CustoDoInsumoService::class);
     }
 
     protected function registerTranslations(): void

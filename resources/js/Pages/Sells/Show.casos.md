@@ -91,6 +91,13 @@ last_run: "2026-07-27"
 - **Teste:** `tests/Feature/Sells/SellsShowContratoTest.php` — fato semeado por INSERT antes da leitura (independente do fluxo sob teste).
 - **Status: 🧪** — mesma condição do UC-VSHOW-01.
 
+## UC-VSHOW-08 · O orçamento aberto mostra se o custo mudou desde que foi feito
+- **Persona:** Wagner — *"o que é negociado nunca é o que é empregado"*: ao reabrir um orçamento, quer ver com que custo ele foi calculado e quanto da margem sobrou com o custo de hoje.
+- **Aceite:** Dado um orçamento (venda em rascunho) cuja linha guardou custo 20,00 no dia, e uma compra recebida hoje a 30,00 · Quando abro `/sells/{id}` com `view_purchase_price` · Então `detail.custo` traz, para a linha, guardado 20,00 e hoje 30,00 marcada como mudou, totais 40,00 → 60,00 e margem 60,0% → 40,0%. Sem a permissão, `detail.custo` é nulo e nenhum custo vai no JSON. Venda finalizada não traz o bloco.
+- **Âncora:** catálogo da tela de fluxos UC-FLX-34 (`prototipo-ui/cowork/Wagner/fluxos-data.jsx`) + SPEC Sells US-SELL-067/068 + gate de custo `view_purchase_price` do Blade (`Produto/Index.casos.md` UC sobre `view_purchase_price`).
+- **Teste:** `tests/Feature/Sells/SellsShowCustoOrcamentoContratoTest.php` — números à mão no cabeçalho do teste; usuários novos com permissões exatas (o admin do seed liberaria tudo).
+- **Status: 🧪** — roda na lane `sells-pest`.
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)

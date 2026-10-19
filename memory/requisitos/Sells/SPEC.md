@@ -1521,6 +1521,24 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 - [x] Falha no cálculo não impede gravar a linha.
 - [ ] Mostrar o custo guardado e a margem na tela do orçamento (UC-FLX-34).
 
+### US-SELL-068 · Orçamento aberto avisa que o custo mudou (UC-FLX-34)
+
+**Implementado em:** `app/Http/Controllers/SellController.php` (`custoDoOrcamento()`) · `resources/js/Pages/Sells/Show.tsx` · `app/Contracts/Compras/CustoDoInsumo.php`
+
+**Testado em:** `tests/Feature/Sells/SellsShowCustoOrcamentoContratoTest.php` (UC-VSHOW-08, lane `sells-pest.yml`).
+
+> owner: wagner · priority: p1 · estimate: 3h · type: story
+> blocked_by: US-SELL-067
+
+**Problema:** o orçamento guarda o custo do dia (US-SELL-067), mas ninguém vê quando o custo de hoje já se afastou dele.
+
+**Aceite:**
+- [x] Detalhe do orçamento aberto mostra custo guardado × custo de hoje, por linha e no total, e a margem com cada um.
+- [x] Aviso quando algum item se afastou mais de 5% do custo guardado.
+- [x] Só para quem tem `view_purchase_price`; sem ela o custo não vai no JSON.
+- [x] O núcleo lê o custo pela interface `App\Contracts\Compras\CustoDoInsumo`, ligada pelo módulo Compras.
+- [ ] Recalcular o orçamento com o custo de hoje, a pedido (fora desta entrega).
+
 ### US-SELL-069 · Orçamento abaixo da margem mínima só vira venda com aprovação (UC-FLX-35)
 
 **Implementado em:** `app/Observers/TransactionMargemMinimaObserver.php` · `app/Exceptions/MargemAbaixoDoMinimo.php` · `app/Domain/Fsm/Modelos/RegrasDaEmpresa.php` (`margemMinima()`) · `resources/js/Pages/Fluxos/_components/AbaEmpresa.tsx`
