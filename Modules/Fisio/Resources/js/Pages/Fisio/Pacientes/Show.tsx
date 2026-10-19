@@ -1,7 +1,7 @@
 // @memcofre
 //   tela: /fisio/pacientes/{id}
 //   module: Fisio
-//   stories: US-FISIO-005 (UC-FPS-02..05, UC-FPS-07, UC-FPS-19..20) · US-FISIO-006 (UC-FPS-06, 08..10) · US-FISIO-011 (UC-FPS-13..16)
+//   stories: US-FISIO-005 (UC-FPS-02..05, UC-FPS-07, UC-FPS-19..20) · US-FISIO-006 (UC-FPS-06, 08..10) · US-FISIO-011 (UC-FPS-13..16) · US-FISIO-007a (UC-FPS-33..35)
 //   permissao: fisio.access · editar, assinar e bloquear exigem fisio.editar
 //
 // Ficha do paciente: perfil clínico e prontuário (Res. COFFITO 414/2012). O prontuário só
@@ -27,6 +27,7 @@ import ResponsavelPaciente, { type Profissional, type Transferencia } from '../_
 import EvolucaoPaciente, { type Evolucao, type PontoDor } from '../_components/EvolucaoPaciente';
 import EditorPrograma, { type ExercicioBiblioteca, type Programa, type ProtocoloModelo } from '../_components/EditorPrograma';
 import ExportarProntuarioPdf from '../_components/ExportarProntuarioPdf';
+import LinkPortal from '../_components/LinkPortal';
 
 interface Paciente {
   id: number;
@@ -225,6 +226,7 @@ export default function PacienteShow({ paciente, condicoes, pode_editar, prontua
             {paciente.telefone && <p className="text-sm text-muted-foreground">{paciente.telefone}</p>}
             <Perfil paciente={paciente} condicoes={condicoes} podeEditar={pode_editar} />
             <ResponsavelPaciente pacienteId={paciente.id} responsavel={paciente.responsavel} podeTransferir={pode_editar && !paciente.bloqueado} profissionais={profissionais} transferencias={transferencias} />
+            <LinkPortal pacienteId={paciente.id} podeGerar={pode_editar && !paciente.bloqueado} />
           </CardContent>
         </Card>
         <Card>

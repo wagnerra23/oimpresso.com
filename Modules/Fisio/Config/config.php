@@ -65,13 +65,20 @@ return [
     'consent_versions' => [
         'teleatendimento' => 'v1',
         'whatsapp' => 'v1',
+        // Exercício acompanhado pela câmera (F2): processamento no aparelho, só métricas sobem.
+        'camera' => 'v1',
         'imagem' => 'v1',
         'marketing' => 'v1',
         'pesquisa_ia' => 'v1',
     ],
 
-    /* Portal do paciente: link + PIN com lockout (padrão da OficinaAuto). */
+    /*
+     * Portal do paciente: link + PIN com lockout (padrão da OficinaAuto). O link vale
+     * `validade_dias` (gerar outro revoga o anterior); o PIN de 4 dígitos trava após
+     * `max_tentativas` erros por `lockout_minutos`.
+     */
     'portal' => [
+        'validade_dias' => 30,
         'max_tentativas' => 5,
         'lockout_minutos' => 30,
     ],

@@ -6,6 +6,8 @@ use Modules\Fisio\Http\Controllers\BibliotecaFavoritosController;
 use Modules\Fisio\Http\Controllers\InstallController;
 use Modules\Fisio\Http\Controllers\PacientesController;
 use Modules\Fisio\Http\Controllers\PainelController;
+use Modules\Fisio\Http\Controllers\PortalController;
+use Modules\Fisio\Http\Controllers\PortalLinkController;
 use Modules\Fisio\Http\Controllers\ProgramasController;
 use Modules\Fisio\Http\Controllers\ProntuarioPdfController;
 use Modules\Fisio\Http\Controllers\ProtocolosController;
@@ -38,7 +40,7 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
  *    com as US seguintes (US-FISIO-003 em diante), sempre dentro deste grupo.
  *
  *    O portal público do paciente (/fisio/p/{token}) NÃO entra aqui: tem grupo próprio,
- *    sem auth, na US do portal (US-FISIO-007).
+ *    sem auth (bloco 3, abaixo).
  */
 Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin', FisioLiberado::class])
     ->prefix('fisio')
@@ -76,6 +78,10 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::match(['put', 'patch', 'delete'], 'pacientes/{id}/registros/{registro}', [RegistrosController::class, 'imutavel'])
             ->whereNumber(['id', 'registro'])->name('pacientes.registros.imutavel');
 
+        // Link do portal do paciente (US-FISIO-007a): gerar devolve link + PIN UMA vez; revogar derruba.
+        Route::post('pacientes/{id}/portal', [PortalLinkController::class, 'store'])->whereNumber('id')->name('pacientes.portal.store');
+        Route::delete('pacientes/{id}/portal', [PortalLinkController::class, 'destroy'])->whereNumber('id')->name('pacientes.portal.destroy');
+
         // Exportação do prontuário em PDF (UC-FPS-19..20). Leitura: basta `fisio.access`; a exportação fica no activity_log.
         Route::get('pacientes/{id}/prontuario.pdf', [ProntuarioPdfController::class, 'show'])->whereNumber('id')->name('pacientes.prontuario.pdf');
 
@@ -96,4 +102,22 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         // Protocolos-modelo: copiar um modelo (global ou da clínica) e editar a cópia da clínica.
         Route::post('protocolos/{id}/copiar', [ProtocolosController::class, 'copiar'])->whereNumber('id')->name('protocolos.copiar');
         Route::put('protocolos/{id}', [ProtocolosController::class, 'update'])->whereNumber('id')->name('protocolos.update');
+    });
+
+/*
+ * 3) Portal PÚBLICO do paciente (US-FISIO-007a): sem auth, sem SetSessionData, sem FisioLiberado.
+ *    O paciente não é usuário do sistema; o business viaja ASSINADO no token e cada leitura
+ *    filtra por ele (PortalTokenService). Throttle por IP contra força bruta, além do lockout
+ *    de 5 PINs errados por 30 min que mora na linha do token.
+ */
+Route::middleware(['web', 'throttle:60,1'])
+    ->prefix('fisio/p/{token}')
+    ->name('fisio.portal.')
+    ->where(['token' => '[A-Za-z0-9_\-\.]{1,512}'])
+    ->group(function () {
+        Route::get('/', [PortalController::class, 'show'])->name('show');
+        Route::post('pin', [PortalController::class, 'pin'])->name('pin');
+        Route::post('consentimentos', [PortalController::class, 'consentir'])->name('consentimentos.store');
+        Route::delete('consentimentos/{purpose}', [PortalController::class, 'revogar'])->name('consentimentos.destroy');
+        Route::post('checkin', [PortalController::class, 'checkin'])->name('checkin');
     });
