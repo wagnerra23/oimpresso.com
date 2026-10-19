@@ -34,6 +34,7 @@ import { faixaMargem, fmt, num, rotuloCustoExtra } from './_lib/formato';
 import type { ContadoresProducao, Permissoes, Receita } from './_lib/tipos';
 import FabricacaoAbas from './_components/FabricacaoAbas';
 import NovaReceitaDialog from './_components/NovaReceitaDialog';
+import Gaveta, { BOTAO_PRIMARIO, BOTAO_SECUNDARIO, SecaoGaveta } from './_components/Gaveta';
 import '../../../css/cowork-manufacturing-bundle.css';
 
 /** Filtros da URL — o servidor devolve o que entendeu, já normalizado. */
@@ -402,7 +403,16 @@ export default function Recipes({
   );
 }
 
-/** §4.3 — drawer de LEITURA da receita. Grupos com subtotal + quadro de custo + a nota. */
+/**
+ * §4.3 — gaveta de LEITURA da receita: grupos com subtotal + cartão de custo com a nota. A moldura
+ * é a de `Gaveta.tsx` (a do `RecipeDrawer` do protótipo: Drawer + DrawerSection do DS).
+ *
+ * Diferenças de propósito em relação ao protótipo:
+ *  · sem "Quando o insumo encarece" e "Nota no faturamento": a receita não guarda política de preço
+ *    nem natureza fiscal — esses campos só existem no dado de mentira do protótipo;
+ *  · "Produzir" aparece só com `prod`: aqui criar ordem exige `manufacturing.access_production` e
+ *    nada mais (`ProductionController@create`), e o protótipo pede também `criar`.
+ */
 function RecipeDrawer({
   r,
   perms,
@@ -418,122 +428,115 @@ function RecipeDrawer({
   onImprimir: (semCusto: boolean) => void;
 }) {
   return (
-    <>
-      {/* R-14 — clique no scrim fecha (o `esc` está no listener da página). */}
-      <div className="mfg-scrim" onClick={onClose} aria-hidden />
-      <aside className="mfg-drw" role="dialog" aria-label={`Receita ${r.name}`}>
-        <div className="mfg-drw-h">
-          <div>
-            <h2>{r.name}</h2>
-            <p>
-              {r.sku} · {r.cat} / {r.sub} · rende {num(r.custos.qtd_liq, 2)} {r.un}
-              {r.atualizado ? ` · atualizado ${r.atualizado}` : ''}
-            </p>
-          </div>
-          <button type="button" className="mfg-x" onClick={onClose} aria-label="Fechar">
-            ✕
-          </button>
-        </div>
-
-        <div className="mfg-drw-b">
-          {r.grupos.map((g) => (
-            <div className="mfg-grp" key={g.g}>
-              <div className="mfg-grp-h">
-                <b>{g.g}</b>
-                <span className="v">{fmt(g.subtotal)}</span>
-              </div>
-              {g.itens.map((i) => (
-                <div className="mfg-ing" key={i.id}>
-                  <span className="n">
-                    {i.nome}
-                    <small>
-                      {i.sku}
-                      {i.multiplicador > 1
-                        ? ` · ${num(i.quantidade * i.multiplicador, 3)} ${i.unidade_base}`
-                        : ''}
-                    </small>
-                  </span>
-                  <span className="m">
-                    {num(i.quantidade, i.quantidade < 1 ? 3 : 2)} {i.unidade}
-                  </span>
-                  <span className="m">{fmt(i.custo_unitario)}</span>
-                  <span className="m tot">{fmt(i.subtotal)}</span>
-                </div>
-              ))}
-              {g.itens.length === 0 && <p className="mfg-pick-empty">Grupo sem ingredientes.</p>}
-            </div>
-          ))}
-
-          <div className="mfg-sec">
-            <span>Custo</span>
-            <span className="ln" />
-          </div>
-          <dl className="mfg-tot">
-            <dt>Ingredientes</dt>
-            <dd>{fmt(r.custos.ingredientes)}</dd>
-            <dt>Custo extra ({rotuloCustoExtra(r.custo_tipo, r.extra, r.un)})</dt>
-            <dd>{fmt(r.custos.extra)}</dd>
-            <dt>Desperdício</dt>
-            <dd>
-              {num(r.waste, 0)}% · rende {num(r.custos.qtd_liq, 2)} de {num(r.qtd, 2)} {r.un}
-            </dd>
-            {r.sub_un && r.sub_fator ? (
-              <>
-                <dt>Sub-unidade de saída</dt>
-                <dd>
-                  {num(r.custos.qtd_liq * r.sub_fator, 2)} {r.sub_un}
-                </dd>
-              </>
-            ) : null}
-            <hr />
-            <dt className="mfg-tot-big-dt">Custo por {r.un}</dt>
-            <dd className="mfg-tot-big-dd">{fmt(r.custos.unit)}</dd>
-            <dt>Preço de venda atual</dt>
-            <dd>{fmt(r.venda)}</dd>
-            <dt>Margem</dt>
-            <dd>{num(r.custos.margem, 1)}%</dd>
-          </dl>
-
-          {/* Texto verbatim §4.3 — é a frase que explica por que o número muda sozinho. */}
-          <p className="mfg-note">
-            O custo é recalculado a cada leitura a partir do preço atual dos ingredientes — a
-            receita não guarda valor congelado. Uma compra de insumo salva em{' '}
-            <button type="button" className="mfg-link" onClick={() => router.visit('/purchases')}>
-              Compras
-            </button>{' '}
-            muda este número.
-            {precoEmMassaLiberado
-              ? ' A configuração de atualizar o preço do produto está ligada e vale para a produção;' +
-                ' a atualização em massa a partir desta lista ainda não foi liberada.'
-              : ''}
-          </p>
-        </div>
-
-        <div className="mfg-drw-f">
-          <Button variant="ghost" size="sm" onClick={onClose}>
+    <Gaveta
+      aberta
+      onClose={onClose}
+      titulo={r.name}
+      subtitulo={
+        `${r.sku} · ${r.cat} / ${r.sub} · rende ${num(r.custos.qtd_liq, 2)} ${r.un}` +
+        (r.atualizado ? ` · atualizado ${r.atualizado}` : '')
+      }
+      rodape={
+        <>
+          <Button variant="outline" className={BOTAO_SECUNDARIO} onClick={onClose}>
             Fechar
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => onImprimir(false)}>
-            <Printer className="mr-1.5 h-3.5 w-3.5" /> Ficha com custo
+          <Button variant="outline" className={BOTAO_SECUNDARIO} onClick={() => onImprimir(false)}>
+            <Printer size={13} className="size-[13px]" aria-hidden /> Ficha com custo
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => onImprimir(true)}>
+          <Button variant="outline" className={BOTAO_SECUNDARIO} onClick={() => onImprimir(true)}>
             Via de produção
           </Button>
           {perms.prod && (
-            <Button asChild variant="ghost" size="sm">
+            <Button asChild variant="outline" className={BOTAO_SECUNDARIO}>
               <a href={ROTA_PRODUZIR}>Produzir</a>
             </Button>
           )}
           {perms.editar && (
-            <Button asChild variant="ghost" size="sm">
+            <Button asChild className={BOTAO_PRIMARIO}>
               <a href={editarIngredientes(r.variation_id)}>
-                <Pencil className="mr-1.5 h-3.5 w-3.5" /> Editar ingredientes
+                <Pencil size={13} className="size-[13px]" aria-hidden /> Editar ingredientes
               </a>
             </Button>
           )}
-        </div>
-      </aside>
-    </>
+        </>
+      }
+    >
+      {/* No protótipo os grupos ficam direto sobre o corpo (um `div` com padding "0 18px 8px"),
+          fora de cartão — só o custo é `DrawerSection`. A altura de linha é a que eles herdam do
+          corpo do protótipo (1,45); dentro do cartão vale a do `DrawerSection` (1,5). */}
+      <div className="px-[18px] pb-2 leading-[1.45]">
+        {r.grupos.map((g) => (
+          <div className="mfg-grp" key={g.g}>
+            <div className="mfg-grp-h">
+              <b>{g.g}</b>
+              <span className="v">{fmt(g.subtotal)}</span>
+            </div>
+            {g.itens.map((i) => (
+              <div className="mfg-ing" key={i.id}>
+                <span className="n">
+                  {i.nome}
+                  <small>
+                    {i.sku}
+                    {i.multiplicador > 1
+                      ? ` · ${num(i.quantidade * i.multiplicador, 3)} ${i.unidade_base}`
+                      : ''}
+                  </small>
+                </span>
+                <span className="m">
+                  {num(i.quantidade, i.quantidade < 1 ? 3 : 2)} {i.unidade}
+                </span>
+                <span className="m">{fmt(i.custo_unitario)}</span>
+                <span className="m tot">{fmt(i.subtotal)}</span>
+              </div>
+            ))}
+            {g.itens.length === 0 && <p className="mfg-pick-empty">Grupo sem ingredientes.</p>}
+          </div>
+        ))}
+      </div>
+
+      <SecaoGaveta titulo="Custo">
+        <dl className="mfg-tot">
+          <dt>Ingredientes</dt>
+          <dd>{fmt(r.custos.ingredientes)}</dd>
+          <dt>Custo extra ({rotuloCustoExtra(r.custo_tipo, r.extra, r.un)})</dt>
+          <dd>{fmt(r.custos.extra)}</dd>
+          <dt>Desperdício</dt>
+          <dd>
+            {num(r.waste, 0)}% · rende {num(r.custos.qtd_liq, 2)} de {num(r.qtd, 2)} {r.un}
+          </dd>
+          {r.sub_un && r.sub_fator ? (
+            <>
+              <dt>Sub-unidade de saída</dt>
+              <dd>
+                {num(r.custos.qtd_liq * r.sub_fator, 2)} {r.sub_un}
+              </dd>
+            </>
+          ) : null}
+          <hr />
+          <dt className="mfg-tot-big-dt">Custo por {r.un}</dt>
+          <dd className="mfg-tot-big-dd">{fmt(r.custos.unit)}</dd>
+          <dt>Preço de venda atual</dt>
+          <dd>{fmt(r.venda)}</dd>
+          <dt>Margem</dt>
+          <dd>{num(r.custos.margem, 1)}%</dd>
+        </dl>
+
+        {/* Texto verbatim §4.3 — é a frase que explica por que o número muda sozinho. */}
+        <p className="mfg-note">
+          O custo é recalculado a cada leitura a partir do preço atual dos ingredientes — a
+          receita não guarda valor congelado. Uma compra de insumo salva em{' '}
+          <button type="button" className="mfg-link" onClick={() => router.visit('/purchases')}>
+            Compras
+          </button>{' '}
+          muda este número.
+          {precoEmMassaLiberado
+            ? ' A configuração de atualizar o preço do produto está ligada e vale para a produção;' +
+              ' a atualização em massa a partir desta lista ainda não foi liberada.'
+            : ''}
+        </p>
+      </SecaoGaveta>
+    </Gaveta>
   );
 }
 
