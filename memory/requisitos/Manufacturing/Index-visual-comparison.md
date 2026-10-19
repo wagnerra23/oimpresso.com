@@ -279,6 +279,17 @@ reserva (a primeira, IBM Plex Sans, é a mesma) e os dois cinzas da ADR 0410: t�
 item em `--text-dim` (5,51:1 sobre o cartão) em vez de `--text-mute` (4,57:1 no tema escuro; o claro não
 foi medido). **A prova final é o smoke depois do deploy** (LC-30), não esta simulação.
 
+**No ar, depois do deploy do #9582 (2026-10-19, empresa 1, tema escuro, 1600×900):** o manifesto de
+produção servia `cowork-manufacturing-bundle-C2AGPwX-.css` e `inertia-Cl6372-F.css`, os mesmos hashes do
+build do PR, e o pedaço `OrdemDrawer-*.js` já trazia a moldura nova e o `.cockpit`. Painel real da ordem
+2024/0002 (rascunho), sem nada injetado, depois de duas leituras iguais do número de elementos: monta
+dentro do `.cockpit`, sem o "Close" em inglês, e a mesma comparação dá **87 de 93** propriedades iguais ao
+protótipo, com os botões em 8px. As 6 restantes são as já declaradas acima: 2 sombras equivalentes, o
+fundo atrás do painel, a pilha de fontes reserva e os dois cinzas da ADR 0410. A linha divisória entre
+ingredientes ficou fora da conta: as duas ordens desta empresa têm um ingrediente só. Ordem 2021/0001
+(finalizada): as duas divisórias do custo com 1px, os rótulos do custo congelado presentes e só o botão
+"Fechar" no rodapé.
+
 **Fora do eixo FORMA (seguem do código, não são dívida):** a observação da ordem (a ordem antiga não tem
 esse campo), os links "Fila de produção · ficha do produto" (as telas não existem) e "Editar ordem" só em
 rascunho (a tela antiga não edita ordem finalizada). **Rótulo pendente [W]:** o protótipo diz "Mesma receita
