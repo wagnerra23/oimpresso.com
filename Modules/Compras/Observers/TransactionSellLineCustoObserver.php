@@ -68,9 +68,11 @@ final class TransactionSellLineCustoObserver
                 return;
             }
 
-            $linha->custo_previsto = $r['custo'];
-            $linha->custo_previsto_em = $r['data'];
-            $linha->custo_previsto_metodo = $r['metodo'];
+            // setAttribute guarda o decimal exato de 4 casas; atribuir à propriedade passaria
+            // por float (o tipo que o Larastan infere para a coluna decimal).
+            $linha->setAttribute('custo_previsto', $r['custo']);
+            $linha->setAttribute('custo_previsto_em', $r['data']);
+            $linha->setAttribute('custo_previsto_metodo', $r['metodo']);
         } catch (\Throwable $e) {
             Log::warning('custo previsto da linha de orçamento não calculado', [
                 'transaction_id' => $linha->transaction_id,
