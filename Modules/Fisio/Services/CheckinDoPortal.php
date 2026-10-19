@@ -60,7 +60,7 @@ final class CheckinDoPortal
     {
         // Reenvio da fila offline com a chave que JÁ foi aplicada: a resposta é que se perdeu.
         // Nada é gravado de novo — nem check-in, nem prontuário, nem jogo (UC-FPP-30).
-        $chave = isset($dados['chave']) && is_string($dados['chave']) && $dados['chave'] !== '' ? $dados['chave'] : null;
+        $chave = ($dados['chave'] ?? '') !== '' ? (string) $dados['chave'] : null;
         $hoje = $chave !== null ? $this->checkinDeHoje($paciente) : null;
         if ($hoje !== null && $hoje->client_key === $chave) {
             return ['checkin' => $hoje, 'criado' => false, 'xp_ganho' => 0];
