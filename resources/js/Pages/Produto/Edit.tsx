@@ -86,7 +86,7 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
     // UC-PEDIT-10: o update() apaga o campo personalizado que não vem no envio e, com a empresa
     // usando validade, zera a validade que não vem. A tela devolve o valor gravado de todos.
     ...camposPersonalizadosGravados(p.camposPersonalizados),
-    expiry_period: p.expiryPeriod !== null ? String(p.expiryPeriod) : '',
+    expiry_period: p.expiryPeriod != null ? String(p.expiryPeriod) : '',
     expiry_period_type: p.expiryPeriodType ?? '',
   });
 
