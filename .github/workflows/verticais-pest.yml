@@ -495,6 +495,12 @@ jobs:
         # filtro sai quando o portal entrar. Os outros 9 casos (UC-FPN-02..04) rodam aqui. Arquivo
         # JUnit separado (pest-verticais-junit-fisio-painel.xml) — o upload pega os dois.
         #
+        # ENTRAM 2026-10-18 — Fisio/FisioPortalAcessoTest e Fisio/FisioPortalLinkTest (US-FISIO-007a):
+        # link + PIN com trava, estado vazio único para link ruim, consentimentos separados e
+        # carimbados, paciente bloqueado e outra clínica fora (UC-FPP-01..07, UC-FPP-21), e o link
+        # gerado na ficha (UC-FPS-33..35). FisioCheckinTest, FisioJogoTest e
+        # FisioPortalSegurancaClinicaTest gravam check-in: entram com a US-FISIO-007b.
+        #
         # ENTRA 2026-10-18 — Fisio/FisioBibliotecaMidiaTest: foto/vídeo do exercício próprio pelo
         # backbone Modules/Arquivos (biz-{id}/), servida por rota que confere empresa (98 lê, 99
         # 404), global 403, limites e declaração no servidor, remoção só da dona (UC-FBI-05..07).
@@ -600,7 +606,9 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioBibliotecaMidiaTest.php \
             Modules/Fisio/Tests/Feature/FisioMultiTenantTest.php \
             Modules/Fisio/Tests/Feature/FisioModuloVisibilidadeTest.php \
-            Modules/Fisio/Tests/Feature/FisioEvolucaoTest.php
+            Modules/Fisio/Tests/Feature/FisioEvolucaoTest.php \
+            Modules/Fisio/Tests/Feature/FisioPortalAcessoTest.php \
+            Modules/Fisio/Tests/Feature/FisioPortalLinkTest.php
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-verticais-junit-fisio-painel.xml \
             --filter '/^(?!.*UC-FPN-05).*$/' \

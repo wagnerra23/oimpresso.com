@@ -43,6 +43,7 @@ related_us: []
 | UC-FPP-18 | sequência por dias prescritos; pausa não quebra | must | `FisioJogoTest`, `SequenciaCalculatorTest` |
 | UC-FPP-19 | dor alta ou alerta: só a instrução do profissional | must | `FisioPortalSegurancaClinicaTest` |
 | UC-FPP-20 | portal não expõe série de dor | must | `FisioPortalSegurancaClinicaTest` |
+| UC-FPP-21 | WhatsApp e câmera: opcionais, independentes, carimbados; sem PIN nada se grava | must | `FisioPortalLinkTest` |
 
 ---
 
@@ -75,7 +76,7 @@ related_us: []
 - **Status: 🧪**
 
 ## UC-FPP-06 · Cada consentimento por si · `must`
-- **Aceite:** WhatsApp, imagem, marketing e pesquisa são independentes do teleatendimento; purpose fora da lista é recusado. Revogar WhatsApp não fecha o portal; revogar teleatendimento fecha (o registro fica com `revoked_at`).
+- **Aceite:** WhatsApp, câmera, imagem, marketing e pesquisa são independentes do teleatendimento; purpose fora da lista é recusado. Revogar WhatsApp não fecha o portal; revogar teleatendimento fecha (o registro fica com `revoked_at`).
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioPortalAcessoTest.php`
 - **Status: 🧪**
 
@@ -152,13 +153,22 @@ related_us: []
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioPortalSegurancaClinicaTest.php`
 - **Status: 🧪**
 
+## UC-FPP-21 · Consentimentos opcionais, cada um com carimbo · `must`
+- **Persona:** paciente no primeiro acesso, escolhendo o que autoriza além do tratamento.
+- **Aceite:** Sem PIN aceito na sessão, nenhum consentimento é gravado (403). Com PIN: `camera` e `whatsapp` são aceitos à parte do teleatendimento, cada um com versão da config, canal `portal`, IP e data; aceitar de novo não duplica (200); `aceito` falso é recusado (422). Revogar a câmera não fecha o portal.
+- **Regressão que defende:** consentimento "em pacote" (um aceite valendo para tudo); gravação sem sessão do paciente.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPortalLinkTest.php`
+- **Status: 🧪**
+
 ---
 
 ## Backlog (prosa honesta — vira UC quando ganhar teste que o cite)
 
 - `[BACKLOG]` Missões e medalhas da Jornada (T-08) — regra ainda não fixada na ADR em forma testável.
 - `[BACKLOG]` A tela funciona sem zoom em 360 px e com leitor de tela — sem prova automatizada.
-- `[BACKLOG]` Rate limit por IP na rota pública (throttle, como o Oficina) — sem teste.
+- `[BACKLOG]` Rate limit por IP na rota pública: `throttle:60,1` ligado na US-FISIO-007a (como o Oficina), ainda sem teste que o cite.
+- `[BACKLOG]` "Lembrar este aparelho por 30 dias" (etapa 02 T-07a, `fisio_portal_devices`) — fora do corte da US-FISIO-007a.
 
 ## Trilha do tempo
+- 2026-10-18 · US-FISIO-007a — a tela nasce mínima (`Portal.tsx` + `Portal.charter.md`): link, PIN, consentimentos e lista do dia; check-in, jogo e modo pausa ficam com a US-FISIO-007b/008. UC-FPP-21 (consentimentos opcionais) entra com teste.
 - 2026-10-17 · suíte TDD da F1 — casos nascem antes da tela e do código; consentimentos, telemonitoramento, jogo, sinais de alerta e modo pausa entram pela atualização de escopo do mesmo dia.

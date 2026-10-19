@@ -27,6 +27,8 @@ contains:
   - "ProntuarioPdfController"
   - "Exportação do prontuário em PDF (dompdf, registrada no activity_log) — UC-FPS-19..20"
   - "Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) com pontuação calculada no servidor (US-FISIO-011)"
+  - "PortalController — portal público do paciente: PIN com trava, consentimentos separados, lista do dia (US-FISIO-007a)"
+  - "PortalLinkController — link do portal gerado e revogado na ficha (US-FISIO-007a)"
 not_contains:
   - "Envio de WhatsApp → Modules/Whatsapp (canal da clínica — meta_cloud ou whatsmeow — via ChannelDriverFactory)"
   - "Cobrança, pacotes e títulos → Financeiro / RecurringBilling (F3)"
@@ -43,7 +45,7 @@ url_prefixes:
   - /fisio/pacientes/* (área do profissional — pacientes, prontuário e questionários; demais telas a criar)
   - /fisio/programas/* (editor de programa — itens, dose, ordem, protocolo)
   - /fisio/protocolos/* (protocolos-modelo — copiar e editar a cópia da clínica)
-  - /fisio/p/{token}/* (portal público do paciente — a criar)
+  - /fisio/p/{token}/* (portal público do paciente — link + PIN e consentimentos; US-FISIO-007a)
 ---
 
 # Modules/Fisio

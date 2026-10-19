@@ -93,8 +93,10 @@ Implementado em `Modules/Fisio/Http/Controllers/ResponsavelController.php` · `M
 
 **Implementado em:** _pendente_
 
-> owner: — · priority: p0 · estimate: 12h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 12h · status: doing · type: story
 > blocked_by: US-FISIO-006. Token HMAC + PIN com lockout (padrão OficinaAuto); consentimentos versionados; check-in idempotente com sinais de alerta; cada check-in vira registro de telemonitoramento (Res. COFFITO 619/2025). DoD: `FisioPortalAcessoTest`, `FisioCheckinTest`, `FisioPortalSegurancaClinicaTest`.
+
+**Corte US-FISIO-007a (feito, 2026-10-18) · link + PIN e consentimentos.** A clínica gera na ficha um link do portal (token assinado com o business dentro, guardado só em hash, 30 dias, gerar outro revoga o anterior) e um PIN de 4 dígitos mostrado uma vez; 5 PINs errados travam por 30 min. As rotas públicas `/fisio/p/{token}` ficam fora do middleware de admin, com sessão própria do paciente amarrada ao link e escopo pelo business do token: paciente bloqueado, de outra clínica ou de clínica sem o pacote cai no mesmo estado vazio. Consentimentos separados e carimbados (versão da config, IP, canal, data): `teleatendimento` obrigatório para ver o programa, `whatsapp` e `camera` opcionais, revogáveis pelo portal. Implementado em `Modules/Fisio/Services/PortalTokenService.php` · `Modules/Fisio/Services/Consentimentos.php` · `Modules/Fisio/Http/Controllers/PortalController.php` · `Modules/Fisio/Http/Controllers/PortalLinkController.php` · tela mínima `Modules/Fisio/Resources/js/Pages/Fisio/Public/Portal.tsx` e botão `Modules/Fisio/Resources/js/Pages/Fisio/_components/LinkPortal.tsx` na ficha. Testado em `Modules/Fisio/Tests/Feature/FisioPortalAcessoTest.php` e `Modules/Fisio/Tests/Feature/FisioPortalLinkTest.php`. Falta (US-FISIO-007b): gravar o check-in, o telemonitoramento, sinais de alerta e modo pausa (`FisioCheckinTest`, `FisioPortalSegurancaClinicaTest`) e a tela desenhada.
 
 ### US-FISIO-008 · Jogo de constância (XP, nível, sequência, missões, pausa por dor) — **P1**
 
