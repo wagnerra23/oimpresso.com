@@ -27,11 +27,13 @@ authority: generated
 
 | Lacuna | O que falta escrever |
 |---|---|
+| `US-FISIO-001` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Trio SDD da F1 e US no SPEC — **P0** |
+| `US-FISIO-002` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Esqueleto `Modules/Fisio` (ativação por empresa, permissões, |
 | `US-FISIO-003` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Schema, models e append-only de prontuário e ledger do jogo  |
 | `US-FISIO-004` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Biblioteca semeada e revisada pela responsável técnica — **P |
 | `US-FISIO-005` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0 |
 | `US-FISIO-006` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Editor de programa, protocolos-modelo e aviso de contraindic |
-| `US-FISIO-010` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Painel, evolução e fila de atenção — **P0** |
+| `US-FISIO-010` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Painel, evolução e fila de atenção — **P0** |
 | `US-FISIO-011` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) —  |
 
 ### Backlog — NÃO é lacuna
@@ -43,8 +45,6 @@ authority: generated
 
 | US | status | Título |
 |---|---|---|
-| US-FISIO-001 | `todo` | Trio SDD da F1 e US no SPEC — **P0** |
-| US-FISIO-002 | `todo` | Esqueleto `Modules/Fisio` (ativação por empresa, permissões, menu condicionado)  |
 | US-FISIO-012 | `todo` | Fecha o loop da F1 — **P1** |
 
 ## UC por status

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 // Cobre UC-FPN-01 (Fisio/Painel.casos.md) e UC-FPI-04 (Fisio/Pacientes/Index.casos.md).
+// @covers-us US-FISIO-002
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Modules\Fisio\Http\Controllers\DataController;

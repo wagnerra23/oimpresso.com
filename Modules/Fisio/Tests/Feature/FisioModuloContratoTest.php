@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 // Cobre UC-FPN-01 (Fisio/Painel.casos.md) na parte de contrato estático e UC-FPS-07 (Fisio/Pacientes/Show.casos.md).
+// @covers-us US-FISIO-002
 
 use Illuminate\Support\Facades\Route;
 use Modules\Fisio\Http\Controllers\DataController;
