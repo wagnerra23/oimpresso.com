@@ -28,6 +28,7 @@ related_us: [US-FISIO-009]
 | UC-FPN-06 | painel não mistura clínicas | must | `FisioMultiTenantTest` |
 | UC-FPN-07 | lembrete diário: 1 por paciente por dia | must | `FisioWhatsappJobTest` |
 | UC-FPN-08 | lembrete respeita silêncio, teto por hora e canal caído | must | `FisioWhatsappJobTest`, `AgendaDeEnvioTest` |
+| UC-FPN-09 | envio de WhatsApp que não chegou vira link `wa.me` no painel | must | `FisioPainelEnviosFalhosTest` |
 
 ---
 
@@ -86,6 +87,14 @@ related_us: [US-FISIO-009]
 - **Teste:** `Modules/Fisio/Tests/Feature/FisioWhatsappJobTest.php` · `Modules/Fisio/Tests/Unit/AgendaDeEnvioTest.php`
 - **Status: 🧪**
 
+## UC-FPN-09 · O WhatsApp que não chegou vira envio à mão `[T0]` · `must`
+- **Persona:** recepção da clínica abrindo o painel; paciente que ficaria sem lembrete.
+- **Aceite:** Dado um lembrete ou envio de programa reservado hoje · Quando o módulo `Whatsapp` gravou só tentativas `failed` da mensagem (ou ela ficou na fila mais de 30 min depois do horário previsto), ou o número da clínica está desconectado/banido depois do horário do lembrete · Então o painel lista o paciente, o tipo e o motivo, com link `wa.me` pré-preenchido com o mesmo texto. Mensagem que chegou (`sent`/`delivered`/`read` em alguma tentativa) não aparece. Paciente de outra clínica não aparece. Paciente sem consentimento de WhatsApp vigente aparece sem link. Quem não tem `fisio.editar` vê a lista sem link (o programa leva o código do portal).
+- **Regressão que defende:** paciente sem lembrete em silêncio quando o canal falha; envio à mão para quem revogou o WhatsApp (LGPD); falha de outra clínica no painel (Tier 0).
+- **Fora:** lembrete que não saiu porque o canal caiu e voltou antes da consulta ao painel (não há registro sem gravar linha nova); programa com canal caído já recebe o `wa.me` no clique.
+- **Teste:** `Modules/Fisio/Tests/Feature/FisioPainelEnviosFalhosTest.php`
+- **Status: 🧪**
+
 ---
 
 ## Backlog (prosa honesta — vira UC quando ganhar teste que o cite)
@@ -94,6 +103,7 @@ related_us: [US-FISIO-009]
 - `[BACKLOG]` Painel responde em ≤ 800 ms p50 com 300 pacientes — sem medição no CI.
 
 ## Trilha do tempo
+- 2026-10-19 · etapa 02 T-09e — fallback humano no painel, lido de `activity_log` (reserva do Fisio) e `whatsapp_messages` (módulo Whatsapp), sem tabela própria; UC-FPN-09 nasce com o teste.
 - 2026-10-19 · US-FISIO-009 — lembrete diário pelo módulo `Whatsapp` existente; UC-FPN-08 (silêncio, teto por hora, intervalo aleatório, canal caído) nasce com o teste.
 - 2026-10-17 · suíte TDD da F1 — casos nascem antes da tela e do código, junto com os testes que os citam.
 - 2026-10-18 · US-FISIO-010 — tela `Painel.tsx`, rota `GET /fisio` (`fisio.painel`) e charter. Fila separada em Alerta (`dor_subiu`, `dor_alta`, `sinal_de_alerta`) e Risco de abandono (`sem_registro`), via `AtencaoDetector::separar`. Status dos UCs segue 🧪 até o veredito da lane.
