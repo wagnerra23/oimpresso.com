@@ -52,6 +52,29 @@ it('UC-FPN-01 · menu Fisio aparece para quem tem pacote e permissão, e some se
     expect(fisioMenuLabels())->not->toContain('Fisio');
 });
 
+it('UC-FPN-01 · o menu Fisio lista as telas do módulo na ordem da ADR 0437 §3.3, cada uma apontando para a rota real', function () {
+    F::como($this, $this->u98);
+    \Menu::create('admin-sidebar-menu', fn ($menu) => $menu);
+    (new DataController())->modifyAdminMenu();
+    $fisio = collect((new \App\Services\LegacyMenuAdapter())->build())->firstWhere('label', 'Fisio');
+
+    $this->assertNotNull($fisio, 'o grupo Fisio deveria estar na sidebar');
+    $itens = collect($fisio['children'] ?? [])
+        ->map(fn ($c) => [$c['label'], parse_url($c['href'], PHP_URL_PATH)])
+        ->all();
+
+    expect($itens)->toBe([
+        ['Painel', '/fisio'],
+        ['Pacientes', '/fisio/pacientes'],
+        ['Biblioteca', '/fisio/biblioteca'],
+    ]);
+
+    // Cada item abre: link de menu para rota inexistente seria 404 para a clínica.
+    foreach ($itens as [, $rota]) {
+        $this->get($rota)->assertOk();
+    }
+});
+
 it('UC-FPN-01 · rotas do Fisio respondem 403 para business sem o pacote, e 200 com', function () {
     F::como($this, $this->u98);
     $this->get('/fisio')->assertOk();
