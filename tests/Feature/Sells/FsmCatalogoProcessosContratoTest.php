@@ -264,7 +264,9 @@ it('o que a cobertura afirma sobre o código continua verdadeiro', function () {
         ->and(flxChamadores('TransactionDocument::create'))->toBe([])
         ->and(flxChamadores('new TransactionDocument'))->toBe([])
         ->and(collect(flxChamadores('moverStage('))->reject(fn ($p) => str_ends_with($p, 'DealPipelineService.php'))->all())->toBe([])
-        ->and(collect(flxChamadores('iss_retido'))->filter(fn ($p) => str_contains($p, 'Modules/Financeiro/'))->all())->toBe([])
+        // US-FIN-072 · UC-FLX-30: o Financeiro passou a lançar a retenção da NFS-e como baixa (desligado por padrão).
+        ->and(class_exists(\Modules\Financeiro\Services\RetencaoNfseTituloService::class))->toBeTrue()
+        ->and(collect(flxChamadores('iss_retido'))->filter(fn ($p) => str_contains($p, 'Modules/Financeiro/'))->isNotEmpty())->toBeTrue()
         ->and(collect(flxChamadores('renegoci'))->filter(fn ($p) => str_contains($p, 'Modules/Financeiro/'))->all())->toBe([])
         // NfseEmissaoService::cancelar chama o provedor como instrução solta: a resposta não é usada.
         ->and(str_contains($nfseService, "\n        \$this->provider->cancelar(\$emissao->numero, \$motivo);\n"))->toBeTrue()
