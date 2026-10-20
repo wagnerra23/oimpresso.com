@@ -193,12 +193,16 @@ it('UC-PCMAT-08 · a baixa sai do rolo escolhido; sem escolha segue o FIFO; rolo
     $outroMaterial = DB::table('purchase_lines')->insertGetId(['transaction_id' => DB::table('purchase_lines')->where('id', $this->loteA)->value('transaction_id'),
         'product_id' => $this->pid, 'variation_id' => $this->vid99, 'quantity' => '9', 'quantity_returned' => 0, 'pp_without_discount' => '1.00',
         'purchase_price' => '1.00', 'purchase_price_inc_tax' => '1.00', 'item_tax' => 0, 'created_at' => now(), 'updated_at' => now()]);
-    foreach ([[$this->loteC, '1'], [$this->loteB, '6'], [loteDaOutraEmpresa($this->vid99, $this->op1->id), '1'], [$outroMaterial, '1']] as [$lote, $q]) {
+    // Compra ainda não recebida (pending), no local da venda e do mesmo material: o núcleo não baixa dela.
+    $pendente = ($this->compra)($this->localL, '2026-02-15 09:00:00', '50', '2.00');
+    DB::table('transactions')->where('id', DB::table('purchase_lines')->where('id', $pendente)->value('transaction_id'))->update(['status' => 'pending']);
+    foreach ([[$this->loteC, '1'], [$this->loteB, '6'], [loteDaOutraEmpresa($this->vid99, $this->op1->id), '1'], [$outroMaterial, '1'], [$pendente, '1']] as [$lote, $q]) {
         expect(($this->recusa)(fn () => $comLote($q, $lote)))->toBe(ApontamentoRecusado::LOTE_INVALIDO);
     }
     expect(($this->saldo)($this->localL))->toBe('10.0000')
         ->and(DB::table('pcp_consumos')->where('ordem_id', $this->ordem->id)->count())->toBe(0)
-        ->and($mfg($this->loteA))->toBe('0.0000')->and($mfg($this->loteB))->toBe('0.0000')->and($mfg($this->loteC))->toBe('0.0000');
+        ->and($mfg($this->loteA))->toBe('0.0000')->and($mfg($this->loteB))->toBe('0.0000')->and($mfg($this->loteC))->toBe('0.0000')
+        ->and($mfg($pendente))->toBe('0.0000');
 
     // Escolhido B: as 3 saem de B (FIFO mandaria 2 de A). Custo à mão 3 × 14,00 = 42,0000; 2º caminho = o vínculo gravado.
     $c = $comLote('3', $this->loteB);

@@ -145,7 +145,7 @@ Status: 🧪
 
 **Dado** em L o lote A (2 un × 10,00, mais antigo) e o B (5 un × 14,00) **Quando** a etapa baixa 3 un escolhendo o lote B
 (`lote_id`) **Então** as 3 saem de B e o custo é 3 × 14,00 = 42,00; sem escolha a baixa segue o FIFO, como antes. Lote de
-outro local, de outro material, de outra empresa ou sem saldo para a quantidade inteira é recusado e nada é baixado; a
+outro local, de outro material, de outra empresa, de compra ainda não recebida ou sem saldo para a quantidade inteira é recusado e nada é baixado; a
 mesma chave com outro lote é conflito.
 
 Status: 🧪

@@ -38,7 +38,8 @@ use Modules\Producao\Exceptions\ApontamentoRecusado;
  *
  * Rolo escolhido (US-COM-025 · UC-FLX-18): com `$loteId` (a linha da compra), a baixa sai só daquele lote,
  * via `lot_no_line_id` da linha, que o `mapPurchaseSell` já respeita. O lote tem de ser da empresa, do
- * mesmo material, do local da venda e ter saldo para a quantidade inteira; senão é recusado e nada sai.
+ * mesmo material, do local da venda, de compra recebida (`received`, o mesmo filtro do `mapPurchaseSell`)
+ * e ter saldo para a quantidade inteira; senão é recusado e nada sai.
  * Sem `$loteId`, segue o método da empresa como antes.
  *
  * Quem aponta: o responsável da etapa, com a etapa iniciada ou feita e a OS Em execução ou Pausada.
@@ -142,8 +143,8 @@ final class ConsumoMaterialService
             ->first();
         $custo = $this->quatroCasas((string) $lote->custo);
         $semLote = $this->quatroCasas((string) $lote->sem_lote);
-        // Rolo escolhido que o core não pôde usar (compra não recebida, ou a empresa vende sem estoque e
-        // sobrou sem lote): recusa; a transação desfaz a baixa inteira.
+        // Rede de segurança: o core não tirou tudo do rolo escolhido (a empresa vende sem estoque e
+        // sobrou sem lote). Recusa; a transação desfaz a baixa inteira.
         if ($loteId !== null && $semLote !== '0.0000') {
             throw new ApontamentoRecusado(ApontamentoRecusado::LOTE_INVALIDO, 'Este lote não tem saldo para a quantidade apontada.');
         }
@@ -168,7 +169,7 @@ final class ConsumoMaterialService
     {
         $usado = $this->transactionUtil->get_pl_quantity_sum_string('pl');
         $lote = DB::table('purchase_lines as pl')->join('transactions as t', 't.id', '=', 'pl.transaction_id')
-            ->where('t.business_id', $businessId)->where('t.location_id', $localId)
+            ->where('t.business_id', $businessId)->where('t.location_id', $localId)->where('t.status', 'received')
             ->whereIn('t.type', ['purchase', 'purchase_transfer', 'opening_stock', 'production_purchase'])
             ->where('pl.id', $loteId)->where('pl.variation_id', $variationId)->lockForUpdate()
             ->selectRaw("(pl.quantity - ($usado)) >= CAST(? AS DECIMAL(22,4)) as cabe", [$quantidade])->first();

@@ -559,7 +559,7 @@ O que falta, e é o escopo desta US: a leitura "rolo → OS" (lote, frações po
 **Aceite:**
 - [x] Dado um lote (`purchase_line_id`) recebido, `GET /producao/lotes/{id}/rastreio` lista cada OS que usou fração dele: OS, venda, etapa, quantidade, data e quem apontou, mais o saldo do rolo (recebido − devolvido − vendido − ajustado − usado em produção, as colunas que o `mapPurchaseSell` confere) (UC-RLT-04).
 - [x] A soma das frações listadas é igual à quantidade do lote em `transaction_sell_lines_purchase_lines` das `production_sell`; dois caminhos no teste (UC-RLT-04).
-- [x] A baixa da OS aceita o lote escolhido (`lote_id` → `lot_no_line_id`); sem escolha segue o método da empresa, como hoje; lote de outro material, de outro local, de outra empresa ou sem saldo para a quantidade inteira recusa e nada baixa (UC-PCMAT-08).
+- [x] A baixa da OS aceita o lote escolhido (`lote_id` → `lot_no_line_id`); sem escolha segue o método da empresa, como hoje; lote de outro material, de outro local, de outra empresa, de compra não recebida ou sem saldo para a quantidade inteira recusa e nada baixa (UC-PCMAT-08).
 - [x] Tier 0: lote de outra empresa responde 404 (teste com lote da empresa 99 do mesmo formato; `business_id` em toda consulta) (UC-RLT-05).
 - [x] Só quem tem `purchase.view` (e o módulo Produção no pacote) abre o rastreio; sem a permissão, 403 (UC-RLT-05).
 - [ ] Tela: o rastreio dentro do relatório de Lotes (hoje só o JSON). Ver o `[BACKLOG]` de `Relatorios/Lotes/Index.casos.md`.
