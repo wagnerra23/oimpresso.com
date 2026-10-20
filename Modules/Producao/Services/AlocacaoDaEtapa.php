@@ -75,9 +75,9 @@ final class AlocacaoDaEtapa
      * Fila do posto para o alocador: etapas abertas (pendentes e em andamento) pela ordem do início
      * previsto. Posto de outra empresa → não encontrado.
      *
-     * @return Collection<int, array{id: int, os_tipo: string, os_id: int, nome: string|null, status: string, user_id: int|null, responsavel: string|null, inicio_previsto: string, fim_previsto: string}>
+     * @return list<array<string, mixed>>
      */
-    public function fila(int $businessId, int $postoId): Collection
+    public function fila(int $businessId, int $postoId): array
     {
         Posto::query()->where('business_id', $businessId)->find($postoId)
             ?? throw new ApontamentoRecusado(ApontamentoRecusado::NAO_ENCONTRADO, 'Posto não encontrado.');
@@ -92,6 +92,6 @@ final class AlocacaoDaEtapa
         return $etapas->map(fn (Programacao $p) => ['id' => (int) $p->id, 'os_tipo' => $p->os_tipo, 'os_id' => (int) $p->os_id,
             'nome' => $p->nome, 'status' => $p->status, 'user_id' => $p->user_id !== null ? (int) $p->user_id : null,
             'responsavel' => $p->user_id !== null ? ($quem[(int) $p->user_id] ?? null) : null,
-            'inicio_previsto' => $p->inicio_previsto->toDateTimeString(), 'fim_previsto' => $p->fim_previsto->toDateTimeString()])->values();
+            'inicio_previsto' => $p->inicio_previsto->toDateTimeString(), 'fim_previsto' => $p->fim_previsto->toDateTimeString()])->values()->all();
     }
 }
