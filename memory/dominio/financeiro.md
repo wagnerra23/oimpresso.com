@@ -22,6 +22,9 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0175-conta-bancaria-
   a baixa REGISTRA o movimento (`origem_tipo=titulo_baixa`); caixa não se edita direto.
 - **Conciliação** = casar `fin_extrato_lancamentos`/`fin_bank_statement_lines`
   (`pendente → sugerido → conciliado`, ou `ignorado`) com títulos/baixas.
+- **Retenção** (`meio_pagamento=retencao`) = baixa do ISS/PIS/COFINS/CSLL que o tomador reteve
+  na NFS-e (US-FIN-072, decisão [W] 2026-10-20): o título mantém o bruto e a retenção o quita em
+  parte, sem movimento de caixa. Nasce de um pagamento `retencao` na venda (transaction_payments).
 - **Classe de custo** = `fin_planos_conta.classe_custo` (`fixa` | `variavel` | nula = fora) — usada
   só no custeio RKW e no ponto de equilíbrio (US-FIN-070); não confundir com `natureza`
   (débito/crédito) nem com `dre_linha` (agrupamento da DRE).
@@ -47,7 +50,7 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0175-conta-bancaria-
     "fin_titulos.origem": ["manual", "venda", "compra", "despesa", "recurring", "folha", "caixa"],
     "fin_titulos.forma_pagamento": ["dinheiro", "pix", "boleto", "cartao_credito", "cartao_debito", "transferencia", "cheque", "compensacao", "outro"],
     "fin_titulos.aprovacao_status": ["pendente", "aprovado", "rejeitado"],
-    "fin_titulo_baixas.meio_pagamento": ["dinheiro", "pix", "boleto", "cartao_credito", "cartao_debito", "transferencia", "cheque", "compensacao", "outro"],
+    "fin_titulo_baixas.meio_pagamento": ["dinheiro", "pix", "boleto", "cartao_credito", "cartao_debito", "transferencia", "cheque", "compensacao", "outro", "retencao"],
     "fin_caixa_movimentos.tipo": ["entrada", "saida", "ajuste", "transferencia"],
     "fin_categorias.tipo": ["receita", "despesa", "ambos"],
     "fin_planos_conta.tipo": ["ativo", "passivo", "patrimonio", "receita", "despesa", "custo"],

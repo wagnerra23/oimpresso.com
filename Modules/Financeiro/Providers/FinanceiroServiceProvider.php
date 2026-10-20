@@ -73,6 +73,10 @@ class FinanceiroServiceProvider extends ServiceProvider
         \App\TransactionPayment::observe(\Modules\Financeiro\Observers\TransactionPaymentObserver::class);
         // ADR 0183 — observa cash_registers pra detectar fechamento e disparar event
         \App\CashRegister::observe(\Modules\Financeiro\Observers\CashRegisterObserver::class);
+        // US-FIN-072 — NFS-e autorizada/cancelada lança/estorna a baixa de retenção (chave por negócio, default OFF)
+        if (class_exists(\Modules\NFSe\Models\NfseEmissao::class)) {
+            \Modules\NFSe\Models\NfseEmissao::observe(\Modules\Financeiro\Observers\NfseEmissaoRetencaoObserver::class);
+        }
     }
 
     /**
@@ -105,6 +109,8 @@ class FinanceiroServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 \Modules\Financeiro\Console\Commands\InstallCommand::class,
+                // US-FIN-072 — prévia (só --dry-run) do ajuste por retenção da NFS-e.
+                \Modules\Financeiro\Console\Commands\IssRetidoAjusteCommand::class,
                 // Wave 17 D9.c — Health check do módulo (governance v3 saturação 66→81).
                 \Modules\Financeiro\Console\Commands\FinanceiroHealthCommand::class,
                 // Backfill plano_conta_id em titulos NULL — DRE depende disso.
