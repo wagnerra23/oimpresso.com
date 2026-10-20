@@ -539,7 +539,7 @@ transaction_documents
 
 ### US-SELL-017 · Totalizador rodapé (Qtd vendas + Σ R$ filtrado) · **P0**
 
-**Implementado em:** _parcial_ · `app/Http/Controllers/SellController.php` · verificado@176f9bc (2026-07-01) — `inertiaList` calcula e envia payload `totals` (`count`/`sum_final_total`/`sum_total_paid`/`sum_due`, `clone($q)` pós-filtro); `Index.tsx` faz `setTotals(json.totals)` mas o getter `totals` NUNCA é lido/renderizado (sem `tfoot`) — payload morto, é exatamente o bug US-SELL-045; falta a barra de rodapé (DoD central) na UI
+**Implementado em:** `app/Http/Controllers/SellController.php` · `resources/js/Pages/Sells/_components/SellsTotalBar.tsx` · `resources/js/Pages/Sells/Index.tsx` · verificado@9a67342 (2026-10-20) — `inertiaList` calcula `totals` sobre o filtro inteiro (`clone($q)` antes de paginar); a barra abaixo da lista mostra quantidade, Pago, A receber e Total do filtro com esses números, sem somar no navegador, e não mostra número quando a visão salva, a pílula Faturada/Cancelada ou a origem filtram só a página carregada (UC-SIDX-06, `tests/js/sells-index-totais.test.tsx`). Os modos Lista opt-in e Grade Avançada do escopo original saíram da tela em 2026-05-21 e não se aplicam
 
 > owner: — · priority: p0 · estimate: 2h · type: story · origin: sessao-2026-05-11-migration-officeimpresso
 > blocked_by: US-SELL-015
@@ -1063,7 +1063,7 @@ Migrar 14 vendas biz=1 do estado legacy pro FSM canon ADR 0143 (goal #3 CYCLE-06
 
 ### US-SELL-045 · Bug: payload `totals` morto na rede — backend calcula/envia, frontend nunca lê
 
-**Implementado em:** _pendente_ — bug de contrato órfão confirmado em `origin/main`; aguarda DECISÃO DE PRODUTO Wagner (remover cálculo+state morto OU reexibir totalizador do filtro inteiro); sem código até decisão
+**Implementado em:** _parcial_ · `resources/js/Pages/Sells/_components/SellsTotalBar.tsx` · `resources/js/Pages/Sells/Index.tsx` · verificado@9a67342 (2026-10-20) — opção (b), reexibir o totalizador do filtro inteiro, pedida por [M] em 2026-10-20 (ratificação [W] no merge); o payload `totals` volta a ser lido. Falta a parte do DoD sobre o `SellsTotalsTest`: os it() de front em quarentena testam arquivos apagados e o arquivo não roda em nenhuma lane de PR
 
 > owner: — · priority: p2 · estimate: 2h · status: todo · type: story
 > blocked_by: —
