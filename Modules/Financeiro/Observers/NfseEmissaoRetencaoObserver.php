@@ -9,7 +9,7 @@ use Modules\Financeiro\Services\RetencaoNfseTituloService;
 use Modules\NFSe\Models\NfseEmissao;
 
 /**
- * US-FIN-072 · UC-FLX-30 — escuta a mudança de status da NFS-e e ajusta o título da venda.
+ * US-FIN-072 · UC-FLX-30 — escuta a mudança de status da NFS-e e lança a retenção como baixa na venda/título.
  *
  * Só reage à TRANSIÇÃO (`wasChanged('status')`): nota autorizada antes deste deploy não
  * dispara nada. Falha aqui não pode derrubar a gravação da nota (o status fiscal já mudou na
@@ -27,7 +27,7 @@ class NfseEmissaoRetencaoObserver
         try {
             $servico = app(RetencaoNfseTituloService::class);
             $acao = $nota->isEmitida() ? $servico->aplicar($nota) : $servico->estornar($nota);
-            if (! in_array($acao, ['desligado', 'sem_titulo', 'sem_retencao', 'nada_a_estornar'], true)) {
+            if (! in_array($acao, ['desligado', 'sem_titulo', 'sem_retencao', 'nada_a_estornar', 'ja_lancado'], true)) {
                 Log::info('financeiro.retencao_nfse', ['business_id' => $nota->business_id, 'nfse_id' => $nota->id, 'acao' => $acao]);
             }
         } catch (\Throwable $e) {

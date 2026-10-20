@@ -8721,7 +8721,7 @@
       "to": "module:NFSe",
       "type": "delegatesTo",
       "source": "not_contains",
-      "note": "Emissão e cancelamento de NFS-e (o Financeiro só observa a mudança de status para cobrar o líquido das retenções — US-FIN-072)"
+      "note": "Emissão e cancelamento de NFS-e (o Financeiro só observa a mudança de status para lançar as retenções como baixa — US-FIN-072)"
     },
     {
       "from": "module:Financeiro",
@@ -8755,7 +8755,7 @@
       "to": "module:NFSe",
       "type": "dependsOn",
       "source": "delegatesTo",
-      "note": "Emissão e cancelamento de NFS-e (o Financeiro só observa a mudança de status para cobrar o líquido das retenções — US-FIN-072)"
+      "note": "Emissão e cancelamento de NFS-e (o Financeiro só observa a mudança de status para lançar as retenções como baixa — US-FIN-072)"
     },
     {
       "from": "module:Financeiro",

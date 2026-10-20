@@ -76,6 +76,17 @@ class TituloAutoService
             return null;
         }
 
+        // US-FIN-072 — título que recebeu baixa de RETENÇÃO da NFS-e: o valor em aberto vem das
+        // baixas (bruto − baixas), não do core. Sem isto a re-sincronização punha o aberto de
+        // volta no bruto (`total_remaining_amount` não existe em transactions) e, com a venda
+        // paga, cancelava o título em vez de quitá-lo. Escopo: só títulos com o registro.
+        if ($tx->type === 'sell' && ($marcado = $this->tituloComRetencaoNfse($tx)) !== null) {
+            $marcado->valor_total = (float) $tx->final_total;
+            $this->recalcularTitulo($marcado);
+
+            return $marcado;
+        }
+
         // Filosofia divergente sell/purchase vs expense (Fase 5.5 2026-05-21):
         //  - sell/purchase com payment_status='paid' → cancelarSeExistir (não vira título;
         //    "pagou no caixa, não cria conta a receber/pagar pendente")
@@ -113,15 +124,6 @@ class TituloAutoService
                 ->first();
 
             $numero = $existing?->numero ?? $this->proximoNumero($tx->business_id, $tipo);
-
-            // US-FIN-072 — título já ajustado pelo líquido da NFS-e: a re-sincronização da venda
-            // (que parte do bruto do core) mantém o desconto do retido e o registro do ajuste.
-            $ajusteNfse = $existing?->metadata['retencao_nfse'] ?? null;
-            if (is_array($ajusteNfse) && in_array($ajusteNfse['estado'] ?? null, RetencaoNfseTituloService::ESTADOS_LIQUIDO, true)) {
-                $retido = (float) $ajusteNfse['retido_total'];
-                $valorTotal = round(max(0, $valorTotal - $retido), 2);
-                $valorAberto = round(max(0, $valorAberto - $retido), 2);
-            }
 
             // Onda Edit 2026-05-18 — cross-link auto-pop em `cliente_descricao`.
             // Formato: "{ContactName} · #V-{txId}" (venda), "{ContactName} · #PC-{txId}" (compra),
@@ -166,11 +168,11 @@ class TituloAutoService
                         'competencia_mes' => Carbon::parse($tx->transaction_date, config('app.timezone'))->format('Y-m'),
                         'observacoes' => $tx->additional_notes,
                         'created_by' => $tx->created_by,
-                        'metadata' => array_merge([
+                        'metadata' => [
                             'auto_created' => true,
                             'transaction_invoice_no' => $tx->invoice_no,
                             'cross_link' => $crossLink,
-                        ], is_array($ajusteNfse) ? ['retencao_nfse' => $ajusteNfse] : []),
+                        ],
                     ]
                 );
         });
@@ -329,6 +331,11 @@ class TituloAutoService
 
             // Recalcula valor_aberto a partir das baixas líquidas (criado - estornado).
             $this->recalcularTitulo($titulo);
+
+            // US-FIN-072 — retenção da NFS-e quita parte do título, mas não é dinheiro em caixa.
+            if ($tp->method === RetencaoNfseTituloService::METODO) {
+                return $baixa;
+            }
 
             // SUPERADMIN: Observer TransactionPayment — INSERT CaixaMovimento com business_id da Transaction
             // Cria CaixaMovimento — entrada se receber (venda paga), saída se pagar (compra paga).
@@ -573,9 +580,25 @@ class TituloAutoService
      * Mapeia transaction_payments.method (enum core UltimatePOS) →
      * fin_titulo_baixas.meio_pagamento (enum Financeiro). Default: 'outro'.
      */
+    private function tituloComRetencaoNfse(Transaction $tx): ?Titulo
+    {
+        // SUPERADMIN: Observer Transaction sem session — business_id da Transaction recebida
+        $titulo = Titulo::query()
+            ->withoutGlobalScope(BusinessScopeImpl::class)
+            ->where('business_id', $tx->business_id)
+            ->where('origem', 'venda')
+            ->where('origem_id', $tx->id)
+            ->whereNull('parcela_numero')
+            ->where('status', '!=', 'cancelado')
+            ->first();
+
+        return is_array($titulo?->metadata['retencao_nfse'] ?? null) ? $titulo : null;
+    }
+
     private function mapearMeioPagamento(?string $method): string
     {
         return match ($method) {
+            RetencaoNfseTituloService::METODO => 'retencao',
             'cash' => 'dinheiro',
             'card' => 'cartao_credito',
             'cheque' => 'cheque',

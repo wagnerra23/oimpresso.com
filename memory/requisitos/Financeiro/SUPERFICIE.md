@@ -14,7 +14,7 @@ module: Financeiro
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 360 arquivos em 22 papéis.
+**Total mapeado:** 361 arquivos em 22 papéis.
 
 ## Controllers — 24
 
@@ -141,7 +141,7 @@ module: Financeiro
 - [api.php](../../../Modules/Financeiro/Routes/api.php)
 - [web.php](../../../Modules/Financeiro/Routes/web.php)
 
-## Migrations (schema) — 28
+## Migrations (schema) — 29
 
 - [2026_04_24_140001_create_fin_planos_conta_table.php](../../../Modules/Financeiro/Database/Migrations/2026_04_24_140001_create_fin_planos_conta_table.php)
 - [2026_04_24_140002_create_fin_categorias_table.php](../../../Modules/Financeiro/Database/Migrations/2026_04_24_140002_create_fin_categorias_table.php)
@@ -171,6 +171,7 @@ module: Financeiro
 - [2026_06_03_120000_add_forma_pagamento_to_fin_titulos.php](../../../Modules/Financeiro/Database/Migrations/2026_06_03_120000_add_forma_pagamento_to_fin_titulos.php)
 - [2026_06_04_120000_add_conta_bancaria_id_to_fin_titulos.php](../../../Modules/Financeiro/Database/Migrations/2026_06_04_120000_add_conta_bancaria_id_to_fin_titulos.php)
 - [2026_09_23_150000_add_dre_linha_to_fin_planos_conta.php](../../../Modules/Financeiro/Database/Migrations/2026_09_23_150000_add_dre_linha_to_fin_planos_conta.php)
+- [2026_10_20_130000_add_retencao_to_fin_titulo_baixas_meio_pagamento.php](../../../Modules/Financeiro/Database/Migrations/2026_10_20_130000_add_retencao_to_fin_titulo_baixas_meio_pagamento.php)
 
 ## Seeders — 3
 

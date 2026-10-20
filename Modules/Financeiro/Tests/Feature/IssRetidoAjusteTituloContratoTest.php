@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
-// @covers-us US-FIN-072 — NFS-e autorizada com retenção → o título cobra o líquido (UC-FLX-30).
+// @covers-us US-FIN-072 — NFS-e autorizada com retenção → a retenção entra como BAIXA (UC-FLX-30).
 
 use App\Transaction;
+use App\TransactionPayment;
+use App\Utils\TransactionUtil;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -15,20 +17,23 @@ use Modules\NFSe\Models\NfseEmissao;
 uses(Tests\TestCase::class);
 
 /**
- * US-FIN-072 · UC-FLX-30. Contrato: resources/js/Pages/Financeiro/ContasReceber/Index.casos.md
- * (UC-CRISS-01..07). REGRA MESTRE — valor: cada número é provado por DOIS caminhos.
+ * US-FIN-072 · UC-FLX-30 — decisão [W] 2026-10-20: retenção é BAIXA, o título mantém o bruto.
+ * Contrato: resources/js/Pages/Financeiro/ContasReceber/Index.casos.md (UC-CRISS-01..07).
+ * REGRA MESTRE — valor: cada número é provado por DOIS caminhos.
  *
  * Caso-base, conta à mão:
- *   serviço 1.000,00 · ISS 5% retido = 1.000,00 × 0,05 = 50,00
+ *   venda/serviço 1.000,00 · ISS 5% retido = 1.000,00 × 0,05 = 50,00
  *   PIS 0,65% = 6,50 · COFINS 3% = 30,00 · CSLL 1% = 10,00 → federais 46,50
- *   retido total = 50,00 + 46,50 = 96,50 → título 1.000,00 − 96,50 = 903,50
+ *   baixa de retenção = 50,00 + 46,50 = 96,50 · título bruto 1.000,00 · aberto 1.000,00 − 96,50 = 903,50
+ *   cliente paga 903,50 → 96,50 + 903,50 = 1.000,00 → venda paid, título quitado
  * O 2º caminho é `issRecalculo()`: refaz a conta em PHP a partir dos campos da nota, sem SQL.
  *
- * Tenant 98 (ADR 0358) e 99 como business B (nunca o 4). Tudo numa transação desfeita no fim
- * (`fin_titulos` não aceita delete). transaction_id fictício: sem FK, só liga nota ↔ título.
+ * Tenant 98 (ADR 0358) e 99 como business B (nunca o 4). Venda REAL (Transaction::create) para
+ * o fluxo passar pelos observers Sells→Financeiro de verdade. Tudo numa transação desfeita.
  */
 
-const ISS_LIQUIDO_MAO = 903.50;
+const ISS_RETIDO_MAO = 96.50;
+const ISS_ABERTO_MAO = 903.50;
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() !== 'mysql') {
@@ -59,15 +64,28 @@ function issChave(int $biz, bool $ativo): void
     DB::table('business')->where('id', $biz)->update(['common_settings' => json_encode($s)]);
 }
 
-function issTitulo(int $biz, int $owner, int $txId, array $over = []): int
+/** Venda a prazo de 1.000,00; o observer do Financeiro cria o título a receber. */
+function issVenda(int $biz, int $owner): int
 {
-    return DB::table('fin_titulos')->insertGetId(array_merge([
-        'business_id' => $biz, 'numero' => 'IS'.substr(uniqid(), -10), 'tipo' => 'receber',
-        'status' => 'aberto', 'valor_total' => 1000, 'valor_aberto' => 1000, 'moeda' => 'BRL',
-        'emissao' => '2031-03-01', 'vencimento' => '2031-03-31', 'competencia_mes' => '2031-03',
-        'origem' => 'venda', 'origem_id' => $txId, 'created_by' => $owner,
-        'created_at' => now(), 'updated_at' => now(),
-    ], $over));
+    $tx = Transaction::create([
+        'business_id' => $biz, 'location_id' => null, 'type' => 'sell', 'status' => 'final',
+        'payment_status' => 'due', 'contact_id' => null, 'invoice_no' => 'ISS-'.uniqid(),
+        'transaction_date' => '2031-03-01 10:00:00', 'total_before_tax' => 1000, 'final_total' => 1000,
+        'created_by' => $owner,
+    ]);
+    app(TituloAutoService::class)->sincronizarDeTransacao($tx); // idempotente com o observer
+
+    return (int) $tx->id;
+}
+
+function issPagar(int $txId, float $valor): void
+{
+    $tx = Transaction::find($txId);
+    TransactionPayment::create([
+        'business_id' => $tx->business_id, 'transaction_id' => $txId, 'amount' => $valor,
+        'method' => 'cash', 'paid_on' => now(), 'created_by' => $tx->created_by,
+    ]);
+    app(TransactionUtil::class)->updatePaymentStatus($txId, $tx->final_total);
 }
 
 function issNota(int $biz, int $txId, array $over = []): NfseEmissao
@@ -82,138 +100,147 @@ function issNota(int $biz, int $txId, array $over = []): NfseEmissao
     ], $over));
 }
 
-/** 2º caminho: a conta refeita em PHP a partir dos campos da nota, sem SQL. */
-function issRecalculo(float $bruto, NfseEmissao $n): float
+/** 2º caminho: retido refeito em PHP a partir dos campos da nota, sem SQL. */
+function issRecalculo(NfseEmissao $n): float
 {
     $iss = $n->iss_retido ? round((float) $n->valor_servicos * (float) $n->aliquota_iss, 2) : 0.0;
 
-    return round($bruto - $iss - (float) $n->valor_ret_pis - (float) $n->valor_ret_cofins - (float) $n->valor_ret_csll, 2);
+    return round($iss + (float) $n->valor_ret_pis + (float) $n->valor_ret_cofins + (float) $n->valor_ret_csll, 2);
 }
 
-function issLinha(int $id): object
+function issTitulo(int $biz, int $txId): object
 {
-    return DB::table('fin_titulos')->where('id', $id)->first();
+    return DB::table('fin_titulos')->where('business_id', $biz)->where('origem', 'venda')
+        ->where('origem_id', $txId)->whereNull('parcela_numero')->first();
 }
 
-function issMeta(int $id): array
+function issBaixasRetencao(int $tituloId): \Illuminate\Support\Collection
 {
-    return json_decode((string) issLinha($id)->metadata, true) ?: [];
+    return DB::table('fin_titulo_baixas')->where('titulo_id', $tituloId)->where('meio_pagamento', 'retencao')->get();
 }
 
-function issTx(): int
+function issPagamentosRetencao(int $txId): int
 {
-    return 9_800_000 + random_int(1, 99_999);
+    return DB::table('transaction_payments')->where('transaction_id', $txId)->where('method', RetencaoNfseTituloService::METODO)->count();
 }
 
-it('UC-CRISS-01 · chave desligada (o default) → autorizar a nota não muda o título', function () {
-    $tx = issTx();
-    $id = issTitulo($this->bizA, $this->ownerA, $tx);
+it('UC-CRISS-01 · chave desligada (o default) → nenhuma baixa de retenção', function () {
+    $tx = issVenda($this->bizA, $this->ownerA);
 
     issNota($this->bizA, $tx)->update(['status' => 'emitida']);
 
-    expect((float) issLinha($id)->valor_total)->toBe(1000.0);
-    expect((float) issLinha($id)->valor_aberto)->toBe(1000.0);
-    expect(issMeta($id))->not->toHaveKey('retencao_nfse');
+    $t = issTitulo($this->bizA, $tx);
+    expect((float) $t->valor_total)->toBe(1000.0);
+    expect((float) $t->valor_aberto)->toBe(1000.0);
+    expect(issBaixasRetencao((int) $t->id))->toHaveCount(0);
+    expect(issPagamentosRetencao($tx))->toBe(0);
 });
 
-it('UC-CRISS-02 · chave ligada → título cobra o líquido exato e não desconta duas vezes', function () {
+it('UC-CRISS-02 · chave ligada → título no bruto, baixa de retenção 96,50, aberto 903,50, uma vez só', function () {
     issChave($this->bizA, true);
-    $tx = issTx();
-    $id = issTitulo($this->bizA, $this->ownerA, $tx);
+    $tx = issVenda($this->bizA, $this->ownerA);
     $nota = issNota($this->bizA, $tx);
 
     $nota->update(['status' => 'emitida']);
 
-    expect(issRecalculo(1000.0, $nota))->toBe(ISS_LIQUIDO_MAO); // os dois caminhos concordam
-    expect((float) issLinha($id)->valor_total)->toBe(ISS_LIQUIDO_MAO);
-    expect((float) issLinha($id)->valor_aberto)->toBe(ISS_LIQUIDO_MAO);
-    $m = issMeta($id)['retencao_nfse'];
-    expect($m['estado'])->toBe('aplicado');
-    expect((float) $m['bruto'])->toBe(1000.0);
-    expect((float) $m['retido_total'])->toBe(96.5);
+    expect(issRecalculo($nota))->toBe(ISS_RETIDO_MAO); // os dois caminhos concordam
+    expect(round(1000.0 - issRecalculo($nota), 2))->toBe(ISS_ABERTO_MAO);
+    $t = issTitulo($this->bizA, $tx);
+    expect((float) $t->valor_total)->toBe(1000.0);
+    expect((float) $t->valor_aberto)->toBe(ISS_ABERTO_MAO);
+    expect($t->status)->toBe('parcial');
+    $baixas = issBaixasRetencao((int) $t->id);
+    expect($baixas)->toHaveCount(1);
+    expect((float) $baixas[0]->valor_baixa)->toBe(ISS_RETIDO_MAO);
+    // retenção não é dinheiro em caixa
+    expect(DB::table('fin_caixa_movimentos')->where('origem_tipo', 'titulo_baixa')->where('origem_id', $baixas[0]->id)->count())->toBe(0);
+    $m = json_decode((string) $t->metadata, true)['retencao_nfse'];
     expect((float) $m['retencoes']['iss'])->toBe(50.0);
-    expect((float) $m['retencoes']['csll'])->toBe(10.0);
+    expect((float) $m['pendente'])->toBe(0.0);
 
     // reprocessar a autorização: idempotente
     $nota->update(['status' => 'processando']);
     $nota->update(['status' => 'emitida']);
-    expect((float) issLinha($id)->valor_total)->toBe(ISS_LIQUIDO_MAO);
+    expect(issPagamentosRetencao($tx))->toBe(1);
+    expect((float) issTitulo($this->bizA, $tx)->valor_aberto)->toBe(ISS_ABERTO_MAO);
 });
 
-it('UC-CRISS-03 · título já com baixa parcial → valor intacto, ajuste fica pendente', function () {
+it('UC-CRISS-03 · cliente paga o líquido 903,50 → venda paid e título quitado', function () {
     issChave($this->bizA, true);
-    $tx = issTx();
-    $id = issTitulo($this->bizA, $this->ownerA, $tx, ['status' => 'parcial', 'valor_aberto' => 400]);
+    $tx = issVenda($this->bizA, $this->ownerA);
+    issNota($this->bizA, $tx)->update(['status' => 'emitida']);
+
+    issPagar($tx, ISS_ABERTO_MAO);
+
+    expect(Transaction::find($tx)->payment_status)->toBe('paid');
+    $t = issTitulo($this->bizA, $tx);
+    expect($t->status)->toBe('quitado');
+    expect((float) $t->valor_aberto)->toBe(0.0);
+    expect((float) $t->valor_total)->toBe(1000.0);
+});
+
+it('UC-CRISS-04 · venda com aberto menor que o retido → baixa só até o aberto, diferença pendente', function () {
+    issChave($this->bizA, true);
+    $tx = issVenda($this->bizA, $this->ownerA);
+    issPagar($tx, 950.00); // aberto 50,00 < retido 96,50
 
     issNota($this->bizA, $tx)->update(['status' => 'emitida']);
 
-    expect((float) issLinha($id)->valor_total)->toBe(1000.0);
-    expect((float) issLinha($id)->valor_aberto)->toBe(400.0);
-    $m = issMeta($id)['retencao_nfse'];
-    expect($m['estado'])->toBe('pendente');
-    expect($m['motivo'])->toBe('pendente_baixa');
-    expect((float) $m['retido_total'])->toBe(96.5);
+    $t = issTitulo($this->bizA, $tx);
+    $baixas = issBaixasRetencao((int) $t->id);
+    expect($baixas)->toHaveCount(1);
+    expect((float) $baixas[0]->valor_baixa)->toBe(50.0);
+    // 96,50 − 50,00 = 46,50
+    expect((float) json_decode((string) $t->metadata, true)['retencao_nfse']['pendente'])->toBe(46.5);
+    expect(Transaction::find($tx)->payment_status)->toBe('paid');
+    expect((float) $t->valor_aberto)->toBe(0.0);
 });
 
-it('UC-CRISS-04 · cancelar a NFS-e devolve o título ao bruto', function () {
+it('UC-CRISS-05 · cancelar a NFS-e estorna a baixa de retenção e o título volta a 1.000,00 em aberto', function () {
     issChave($this->bizA, true);
-    $tx = issTx();
-    $id = issTitulo($this->bizA, $this->ownerA, $tx);
+    $tx = issVenda($this->bizA, $this->ownerA);
     $nota = issNota($this->bizA, $tx);
     $nota->update(['status' => 'emitida']);
-    expect((float) issLinha($id)->valor_total)->toBe(ISS_LIQUIDO_MAO);
 
     $nota->update(['status' => 'cancelada']);
 
-    // 903,50 + 96,50 = 1.000,00
-    expect((float) issLinha($id)->valor_total)->toBe(1000.0);
-    expect((float) issLinha($id)->valor_aberto)->toBe(1000.0);
-    expect(issMeta($id)['retencao_nfse']['estado'])->toBe('estornado');
+    $t = issTitulo($this->bizA, $tx);
+    $baixas = issBaixasRetencao((int) $t->id);
+    expect($baixas)->toHaveCount(2); // original + estorno (append-only)
+    expect(round((float) $baixas->sum('valor_baixa'), 2))->toBe(0.0);
+    expect((float) $t->valor_aberto)->toBe(1000.0);
+    expect(issPagamentosRetencao($tx))->toBe(0);
+    expect(Transaction::find($tx)->payment_status)->toBe('due');
+    expect(json_decode((string) $t->metadata, true)['retencao_nfse']['estado'])->toBe('estornado');
 });
 
-it('UC-CRISS-05 · nota de um negócio não toca o título de outro com o mesmo transaction_id', function () {
+it('UC-CRISS-06 · nota de um negócio não lança retenção em venda de outro', function () {
     issChave($this->bizA, true);
     issChave($this->bizB, true);
-    $tx = issTx();
-    $idB = issTitulo($this->bizB, $this->ownerB, $tx);
+    $txB = issVenda($this->bizB, $this->ownerB);
 
-    issNota($this->bizA, $tx)->update(['status' => 'emitida']);
+    issNota($this->bizA, $txB)->update(['status' => 'emitida']);
 
-    expect((float) issLinha($idB)->valor_total)->toBe(1000.0);
-    expect(issMeta($idB))->not->toHaveKey('retencao_nfse');
+    $t = issTitulo($this->bizB, $txB);
+    expect((float) $t->valor_aberto)->toBe(1000.0);
+    expect(issBaixasRetencao((int) $t->id))->toHaveCount(0);
+    expect(issPagamentosRetencao($txB))->toBe(0);
 });
 
-it('UC-CRISS-06 · dry-run lista o antes→depois das notas já autorizadas e não grava nada', function () {
-    $tx = issTx();
-    $id = issTitulo($this->bizA, $this->ownerA, $tx);
-    // nota autorizada ANTES (chave desligada): o observer não ajustou
+it('UC-CRISS-07 · dry-run mostra a baixa de retenção que seria lançada e não grava nada', function () {
+    $tx = issVenda($this->bizA, $this->ownerA);
+    // nota autorizada ANTES (chave desligada): nada lançado
     issNota($this->bizA, $tx, ['valor_iss_retido' => null])->update(['status' => 'emitida']);
-    $antes = (array) issLinha($id);
+    $antes = (array) issTitulo($this->bizA, $tx);
 
     $rc = Artisan::call('financeiro:iss-retido-ajuste', ['--business' => $this->bizA, '--dry-run' => true]);
     $saida = Artisan::output();
 
     expect($rc)->toBe(0);
+    expect($saida)->toContain('96,50');
     expect($saida)->toContain('903,50');
-    expect($saida)->toContain('aplicar');
-    expect((array) issLinha($id))->toEqual($antes);
+    expect($saida)->toContain('baixa');
+    expect((array) issTitulo($this->bizA, $tx))->toEqual($antes);
+    expect(issPagamentosRetencao($tx))->toBe(0);
     expect(Artisan::call('financeiro:iss-retido-ajuste', ['--business' => $this->bizA]))->toBe(1);
-});
-
-it('UC-CRISS-07 · re-sincronizar a venda mantém o título no líquido', function () {
-    issChave($this->bizA, true);
-    $tx = issTx();
-    $id = issTitulo($this->bizA, $this->ownerA, $tx);
-    issNota($this->bizA, $tx)->update(['status' => 'emitida']);
-
-    $venda = (new Transaction())->forceFill([
-        'id' => $tx, 'business_id' => $this->bizA, 'type' => 'sell', 'status' => 'final',
-        'payment_status' => 'due', 'final_total' => 1000, 'transaction_date' => '2031-03-01',
-        'created_by' => $this->ownerA,
-    ]);
-    app(TituloAutoService::class)->sincronizarDeTransacao($venda);
-
-    expect((float) issLinha($id)->valor_total)->toBe(ISS_LIQUIDO_MAO);
-    expect((float) issLinha($id)->valor_aberto)->toBe(ISS_LIQUIDO_MAO);
-    expect(issMeta($id)['retencao_nfse']['estado'])->toBe('aplicado');
 });

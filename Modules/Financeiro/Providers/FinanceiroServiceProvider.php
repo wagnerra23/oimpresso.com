@@ -73,7 +73,7 @@ class FinanceiroServiceProvider extends ServiceProvider
         \App\TransactionPayment::observe(\Modules\Financeiro\Observers\TransactionPaymentObserver::class);
         // ADR 0183 — observa cash_registers pra detectar fechamento e disparar event
         \App\CashRegister::observe(\Modules\Financeiro\Observers\CashRegisterObserver::class);
-        // US-FIN-072 — NFS-e autorizada/cancelada ajusta o título pelo líquido (chave por negócio, default OFF)
+        // US-FIN-072 — NFS-e autorizada/cancelada lança/estorna a baixa de retenção (chave por negócio, default OFF)
         if (class_exists(\Modules\NFSe\Models\NfseEmissao::class)) {
             \Modules\NFSe\Models\NfseEmissao::observe(\Modules\Financeiro\Observers\NfseEmissaoRetencaoObserver::class);
         }

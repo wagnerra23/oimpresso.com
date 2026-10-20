@@ -9,8 +9,8 @@ use Modules\Financeiro\Services\RetencaoNfseTituloService;
 use Modules\NFSe\Models\NfseEmissao;
 
 /**
- * US-FIN-072 · UC-FLX-30 — PREVIA, para as NFS-e JÁ autorizadas de um negócio, do que mudaria
- * nos títulos se o ajuste pelo líquido fosse aplicado. NÃO GRAVA NADA.
+ * US-FIN-072 · UC-FLX-30 — PRÉVIA, para as NFS-e JÁ autorizadas de um negócio, da baixa de RETENÇÃO
+ * que seria lançada em cada venda/título (o bruto não muda). NÃO GRAVA NADA.
  *
  * Só existe `--dry-run`: aplicar nos títulos existentes é decisão [W] (REGRA MESTRE — valor),
  * e entra num PR próprio depois que o antes→depois daqui for visto.
@@ -21,7 +21,7 @@ class IssRetidoAjusteCommand extends Command
         {--business= : business_id (obrigatório — Tier 0)}
         {--dry-run : obrigatório — só lista, nunca grava}';
 
-    protected $description = 'Prévia (dry-run) do ajuste de títulos pelo ISS/PIS/COFINS/CSLL retidos nas NFS-e já autorizadas';
+    protected $description = 'Prévia (dry-run) da baixa de retenção (ISS/PIS/COFINS/CSLL) das NFS-e já autorizadas';
 
     public function handle(RetencaoNfseTituloService $servico): int
     {
@@ -56,16 +56,15 @@ class IssRetidoAjusteCommand extends Command
             if ($s['acao'] === 'sem_retencao') {
                 continue;
             }
+            $f = fn (int $c) => number_format($c / 100, 2, ',', '.');
             $linhas[] = [
                 $nota->id, $s['titulo']?->id ?? '-', $s['titulo']?->numero ?? '-',
-                number_format($s['bruto'] / 100, 2, ',', '.'),
-                number_format($s['retido'] / 100, 2, ',', '.'),
-                $s['acao'] === 'aplicar' ? number_format($s['liquido'] / 100, 2, ',', '.') : '(não muda)',
-                $s['acao'],
+                $f($s['bruto']), $f($s['aberto']), $f($s['retido']), $f($s['baixa']),
+                $f($s['aberto'] - $s['baixa']), $f($s['pendente']), $s['acao'],
             ];
         }
 
-        $this->table(['nfse_id', 'titulo_id', 'numero', 'antes', 'retido', 'depois', 'ação'], $linhas);
+        $this->table(['nfse_id', 'titulo_id', 'numero', 'bruto', 'aberto antes', 'retido', 'baixa retenção', 'aberto depois', 'pendência', 'ação'], $linhas);
         foreach ($contagem as $acao => $n) {
             $this->line(sprintf('  %s: %d', $acao, $n));
         }
