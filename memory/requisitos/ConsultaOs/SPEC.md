@@ -2,7 +2,7 @@
 id: requisitos-consulta-os-spec
 module: ConsultaOs
 version: "1.0"
-last_updated: "2026-10-02"
+last_updated: "2026-10-20"
 anchor_format: "v1"
 status: rascunho
 owner: wagner
@@ -50,6 +50,16 @@ Canary 7d em ROTA LIVRE antes de outros tenants.
 Criar `BRIEFING.md` após migração real (`na_justified D3.b` cai).
 
 **Implementado em:** _pendente_ — a precondição (migração real US-CONSULTA-001) não ocorreu; o `na_justified.D3.b` segue vigente até a busca real entregar valor de produto. (Existe um `BRIEFING.md` de estado mock no módulo, mas esta US pede o briefing pós-migração-real, ainda não cabível.)
+
+### US-CONSULTA-004 · Cliente acompanha o status: aviso a cada mudança + portal atualizado `parcial`
+
+UC-FLX-24 do catálogo `/fluxos` ("Cliente acompanha o status"): a cada mudança de status da OS o cliente é avisado e o portal mostra o status novo.
+
+**Aceite:** Dado uma OS do Repair com cliente que tem celular e um número de WhatsApp da empresa que atende aviso de OS · Quando o status muda na edição da OS · Então o cliente certo recebe o aviso (job do WhatsApp para o celular dele, pelo número da empresa) · E `/consulta-os/buscar` devolve a OS com o status novo, sem nada de outra empresa. Casos: `UC-COS-12..14` em `resources/js/Pages/ConsultaOs/Index.casos.md`.
+
+**Implementado em:** _parcial_ · `Modules/Repair/Http/Controllers/JobSheetController.php` · `Modules/Repair/Events/RepairStatusChanged.php` · `Modules/Whatsapp/Listeners/NotifyRepairCustomer.php` · `Modules/ConsultaOs/Repositories/RepairConsultaOsRepository.php` · `Modules/Repair/Tests/Feature/ClienteAcompanhaStatusContratoTest.php` · `Modules/Repair/Tests/Feature/RepairFsmActionControllerTest.php` · verificado@83e7f7f (2026-10-20) — medido 2026-10-20. O caminho edição → evento → WhatsApp → portal existe. Dois limites, travados como estado de hoje: **(1)** o aviso só sai para status de nome literal `ready`/`waiting_parts`; com nome da empresa ("Pronto para retirada") o portal muda e o WhatsApp não — `repair_statuses` não tem sinal limpo de "pronto" (`is_completed_status` vale como "Pronto" no kanban e "Entregue" no `startPipeline`), escolher o sinal é decisão [W] (UC-COS-13); **(2)** a transição pela FSM (`RepairFsmActionController::execute`) não dispara `RepairStatusChanged` nem muda o `status_id` que o portal lê (UC-COS-14). Follow-up: evento genérico de transição da FSM.
+
+**Testado em:** `Modules/Repair/Tests/Feature/ClienteAcompanhaStatusContratoTest.php` (UC-COS-12, UC-COS-13) · `Modules/Repair/Tests/Feature/RepairFsmActionControllerTest.php` (UC-COS-14)
 
 ## N/A justificado
 
