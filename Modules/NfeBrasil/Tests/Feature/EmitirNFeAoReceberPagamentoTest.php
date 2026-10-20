@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// @covers-us US-RB-044
+
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
@@ -17,6 +19,7 @@ uses(Tests\TestCase::class);
 
 /**
  * US-RB-044 fase 2 · Listener Invoice→NFe — pipeline real ligado.
+ * Cobre UC-FNFE-15..17 (resources/js/Pages/Fiscal/Nfe.casos.md) — UC-FLX-26 do catálogo de fluxos.
  *
  * Tests garantem:
  *   1. Listener registrado no event dispatcher (provider faz binding)
@@ -61,7 +64,7 @@ function fakeNfeEmissaoStub(string $status = 'autorizada', string $cstat = '100'
 
 // ── tests ─────────────────────────────────────────────────────────────────
 
-it('listener está registrado no event dispatcher pelo NfeBrasilServiceProvider', function () {
+it('UC-FNFE-15 · listener está registrado no event dispatcher pelo NfeBrasilServiceProvider', function () {
     $listeners = Event::getRawListeners()[InvoicePaid::class] ?? [];
 
     $hasNfeListener = collect($listeners)->contains(function ($l) {
@@ -72,7 +75,7 @@ it('listener está registrado no event dispatcher pelo NfeBrasilServiceProvider'
     expect($hasNfeListener)->toBeTrue();
 });
 
-it('com flag desabilitada (default), apenas loga e retorna sem tocar service', function () {
+it('UC-FNFE-16 · com flag desabilitada (default), apenas loga e retorna sem tocar service', function () {
     config(['nfebrasil.auto_emission_on_invoice_paid' => false]);
     Log::spy();
 
@@ -89,7 +92,7 @@ it('com flag desabilitada (default), apenas loga e retorna sem tocar service', f
     });
 });
 
-it('com flag habilitada e invoice ausente: log warning + no-op (não toca service)', function () {
+it('UC-FNFE-16 · com flag habilitada e invoice ausente: log warning + no-op (não toca service)', function () {
     config(['nfebrasil.auto_emission_on_invoice_paid' => true]);
     Log::spy();
 
@@ -107,7 +110,7 @@ it('com flag habilitada e invoice ausente: log warning + no-op (não toca servic
     });
 });
 
-it('com flag habilitada + invoice presente: chama service.emitirParaInvoice + dispara NFeAutorizada', function () {
+it('UC-FNFE-15 · com flag habilitada + invoice presente: chama service.emitirParaInvoice + dispara NFeAutorizada', function () {
     config(['nfebrasil.auto_emission_on_invoice_paid' => true]);
 
     $invoice = Invoice::create([
@@ -136,7 +139,7 @@ it('com flag habilitada + invoice presente: chama service.emitirParaInvoice + di
     $invoice->forceDelete();
 });
 
-it('rejeitada: service grava status=rejeitada mas listener NÃO dispara NFeAutorizada', function () {
+it('UC-FNFE-15 · rejeitada: service grava status=rejeitada mas listener NÃO dispara NFeAutorizada', function () {
     config(['nfebrasil.auto_emission_on_invoice_paid' => true]);
 
     $invoice = Invoice::create([
@@ -164,7 +167,7 @@ it('rejeitada: service grava status=rejeitada mas listener NÃO dispara NFeAutor
     $invoice->forceDelete();
 });
 
-it('Throwable do service é re-throwado pra queue retry (3 tries)', function () {
+it('UC-FNFE-17 · Throwable do service é re-throwado pra queue retry (3 tries)', function () {
     config(['nfebrasil.auto_emission_on_invoice_paid' => true]);
 
     $invoice = Invoice::create([
@@ -195,7 +198,7 @@ it('Throwable do service é re-throwado pra queue retry (3 tries)', function () 
     $invoice->forceDelete();
 });
 
-it('listener implementa ShouldQueue na fila nfe (separada de rb_webhooks)', function () {
+it('UC-FNFE-17 · listener implementa ShouldQueue na fila nfe (separada de rb_webhooks)', function () {
     $listener = new EmitirNFeAoReceberPagamento();
 
     expect($listener)->toBeInstanceOf(\Illuminate\Contracts\Queue\ShouldQueue::class)
@@ -204,7 +207,7 @@ it('listener implementa ShouldQueue na fila nfe (separada de rb_webhooks)', func
         ->and($listener->backoff)->toBe(60);
 });
 
-it('event InvoicePaid dispatcha listener via queue (não síncrono)', function () {
+it('UC-FNFE-15 · event InvoicePaid dispatcha listener via queue (não síncrono)', function () {
     Queue::fake();
     config(['nfebrasil.auto_emission_on_invoice_paid' => false]);
 
@@ -217,7 +220,7 @@ it('event InvoicePaid dispatcha listener via queue (não síncrono)', function (
     });
 });
 
-it('failed() loga erro estruturado pra observabilidade', function () {
+it('UC-FNFE-17 · failed() loga erro estruturado pra observabilidade', function () {
     Log::spy();
 
     $listener = new EmitirNFeAoReceberPagamento();
