@@ -29,6 +29,7 @@ contains:
   - "PlanoContaController — Onda 18 tela /plano-contas dedicada + Fluxo fallback sem conta"
   - "RelatoriosController"
   - "UnificadoController"
+  - "ReguaCobrancaJob + comando financeiro:regua-cobranca — US-FIN-071 · UC-FLX-29 régua de cobrança do título vencido (e-mail D+1/D+5/D+15 com opt-in LGPD, histórico idempotente em fin_titulo_lembretes, tarefa na última etapa pelo contrato AgendaDeTarefas de app/Contracts/Crm, implementado no Crm); desligada por padrão em business.common_settings"
 not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
   - "Tasks Jira-style → Modules/Forja"
