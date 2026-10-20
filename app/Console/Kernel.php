@@ -25,6 +25,13 @@ class Kernel extends ConsoleKernel
             ->dailyAt('04:00')
             ->withoutOverlapping();
 
+        // US-SELL-070 · UC-FLX-04 — orçamento enviado há 48 h sem abertura do link vira tarefa de
+        // retorno do vendedor (crm_schedules). Um QuoteFollowUpJob por empresa, com o business_id;
+        // --sync porque não depende de worker de fila. Idempotente (rodar de novo não duplica).
+        $schedule->command('sells:quote-follow-up --sync')
+            ->dailyAt('08:15')
+            ->withoutOverlapping();
+
         if ($env === 'live') {
             //Scheduling backup, specify the time when the backup will get cleaned & time when it will run.
             

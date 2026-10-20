@@ -140,7 +140,7 @@ it('UC-PCV-33 · motivos de pausa vêm do cadastro do posto; outro posto mostra 
     expect(DB::table('pcp_motivos')->where('posto_id', $roland)->where('tipo', 'pausa')->orderBy('ordem')->pluck('nome')->all())->toBe($daRoland);
 });
 
-it('E03 · custo-hora da pessoa só aparece e só grava com producao.desempenho.ver', function () {
+it('UC-PCCH-02 · E03 · custo-hora da pessoa só aparece e só grava com producao.desempenho.ver', function () {
     $operador = $this->usuarioComPermissoes([], $this->b98);
     $gestor = $this->usuarioComPermissoes(['producao.access', 'producao.desempenho.ver'], $this->b98);
 
