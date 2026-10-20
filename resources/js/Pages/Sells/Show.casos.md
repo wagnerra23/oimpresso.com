@@ -5,7 +5,7 @@ irmaos: Show.charter.md (lei) · tests/Feature/Sells/SellsShowContratoTest.php (
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-07-27"
+last_run: "2026-10-20"
 ---
 
 # Casos de Uso & Aceite — Detalhe da venda
@@ -147,3 +147,4 @@ last_run: "2026-07-27"
 
 ## Trilha do tempo
 - 2026-07-27 · [CC] criado — trio fechado pra `Sells/Show` (alvo #1 do débito Tier-0 de `exposicao-tier0.mjs`) com UC-VSHOW-01..07 + `SellsShowContratoTest.php` + lane `sells-pest.yml` (nenhuma das 9 lanes MySQL rodava `tests/Feature/Sells/**`). Casos derivados do charter §Goals/§Non-Goals + RUNBOOK-show + §CU-07; o Controller foi lido só pra confirmar. Ref [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md).
+- 2026-10-20 · [CC] + UC-ENTR-01..04 (volumes no protocolo de entrega, US-SELL-073 · UC-FLX-23) e `last_run` revalidado: a única mudança do `Show.tsx` depois de 2026-07-27 é a faixa de custo do orçamento (#9612, 2026-10-19), que é aditiva e já tem caso próprio (UC-VSHOW-08); os UC-VSHOW-01..07 tratam de isolamento, permissão, números, carga adiada, leitura sem efeito e trilha, que aquele diff não toca. Os testes rodam na lane `sells-pest`.
