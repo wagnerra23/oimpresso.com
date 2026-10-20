@@ -129,11 +129,12 @@ module: NfeBrasil
 - [EnviarDanfePorEmail.php](../../../Modules/NfeBrasil/Listeners/EnviarDanfePorEmail.php)
 - [SyncFiscalRuleToTaxRate.php](../../../Modules/NfeBrasil/Listeners/SyncFiscalRuleToTaxRate.php)
 
-## Console / Commands — 3
+## Console / Commands — 4
 
 - [MigrateCertFromBusiness.php](../../../Modules/NfeBrasil/Console/Commands/MigrateCertFromBusiness.php)
 - [NfeHealthCommand.php](../../../Modules/NfeBrasil/Console/Commands/NfeHealthCommand.php)
 - [PuxarDfesRecebidosCommand.php](../../../Modules/NfeBrasil/Console/Commands/PuxarDfesRecebidosCommand.php)
+- [RetentarContingenciaCommand.php](../../../Modules/NfeBrasil/Console/Commands/RetentarContingenciaCommand.php)
 
 ## Providers — 2
 
