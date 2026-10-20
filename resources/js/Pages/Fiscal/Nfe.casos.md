@@ -124,7 +124,6 @@ não tem as migrations do NfeBrasil. É lacuna de ambiente, não defeito do test
 | UC-FNFE-16 | nota normal (tpEmis 1) não leva `dhCont`/`xJust` | `[must]` `[reg]` | **—** (US-NFE-070) | `ContingenciaAgendamentoTest` | 🧪 |
 | UC-FNFE-17 | o agendamento só retransmite quem tem nota pendente e SEFAZ no ar | `[must]` | **—** (US-NFE-070) | `ContingenciaAgendamentoTest` | 🧪 |
 | UC-FNFE-18 | o job de um business nunca transmite nota de outro | `[must]` `[T0]` | **—** (US-NFE-070) | `ContingenciaAgendamentoTest` | 🧪 |
-
 | UC-FNFE-21 | fatura paga emite a NF-e sem ninguém clicar (UC-FLX-26) | `[must]` `[fiscal]` | CU-RB-09 itens 1-2 (SDD RecurringBilling) | `EmitirNFeAoReceberPagamentoTest` (4) | 🧪 |
 | UC-FNFE-22 | com a chave desligada (o padrão) ou fatura não encontrada, nenhuma nota sai (UC-FLX-26) | `[must]` `[fiscal]` | CU-RB-09 item 2 | `EmitirNFeAoReceberPagamentoTest` (2) | 🧪 |
 | UC-FNFE-23 | SEFAZ fora não derruba o pagamento: a emissão volta pra fila (UC-FLX-26) | `[must]` `[fiscal]` | CU-RB-09 item 3 | `EmitirNFeAoReceberPagamentoTest` (3) | 🧪 |
