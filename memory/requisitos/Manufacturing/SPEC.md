@@ -268,7 +268,7 @@ endereço canônico `/manufacturing/insumos` desde o **cutover de 2026-09-04** (
       e sub-unidade que não é do insumo; trocar todos os ingredientes não deixa os antigos —
       #9051, UC-RECIPE-14..18 em `SalvarReceitaServidorTest.php` (lane `Manufacturing · Pest (MySQL)`
       run 37799242847: 185 passed / 604 assertions, os 7 casos novos com ✓). A tela do editor
-      ainda é a Blade; as outras regras do §5 entram com ela.
+      era a Blade na data deste item; o editor React foi entregue depois (#9059 · #9068 · #9072) e as regras do §5 entraram com ele.
 
 > 🟢 **Decisões [W] 2026-10-06 — janela "Nova receita"** (hoje o botão está quebrado em produção:
 > a busca de produto não carrega):
@@ -314,6 +314,11 @@ estoque) e são decisões [W] **antes** de construir.
 > Até o [W] decidir, a US segue travada. Tem também 2 hipóteses
 de segurança no servidor (H1 `store`, H2 `get-recipe-details`), ainda sem teste.
 
+> ✅ **Decidido pelo [W] em 2026-10-13** (D1 sim · D2 `product_bom` · D3 a D6 recomendado): Fabricação é cadastro e a
+> ordem nasce no módulo Produção. **Esta US está cancelada** — o formulário de ordem não será construído aqui. A trava de
+> FSM acima deixa de ser pré-requisito desta tela. As hipóteses H1/H2 seguem valendo para o `store` legado enquanto ele existir
+> (ver US-MANU-008).
+
 **Definition of Done:**
 - [ ] As 6 regras `[FECHADA]` do §6, incluindo: trocar receita/quantidade **zera os overrides** ·
       estoque insuficiente **avisa e não bloqueia** · rascunho **não** movimenta estoque ·
@@ -332,6 +337,26 @@ de segurança no servidor (H1 `store`, H2 `get-recipe-details`), ainda sem teste
 > - **"Atualizar preço de venda" em massa** — §18.1 proíbe o `custo × 2` do protótipo e a regra
 >   real de markup **não foi decidida**. Só entra depois que [W] decidir a regra, e aí sob a
 >   REGRA MESTRE de valor.
+
+### US-MANU-008 · Rotas legadas só tocam dado da própria empresa
+
+**Como** Wagner
+**Quero** que nenhuma rota legada da Fabricação leia ou grave dado de outra empresa
+**Para** não vazar receita nem alterar preço ou estoque alheio
+
+**Fonte:** leitura de código em 2026-10-20 (acompanhamento da Fabricação). **Tudo abaixo é hipótese até o teste vermelho existir** — nenhum
+item foi provado. Os itens H1/H2 vêm do PARIDADE; H3 e o último são leitura nova.
+
+**Implementado em:** _pendente_
+
+**Testado em:** _pendente_
+
+**Definition of Done:**
+- [ ] H1 — `ProductionController::store` recusa `variation_id` e `location_id` de outra empresa e não cria transação nem baixa estoque
+- [ ] H2 — `RecipeController::getRecipeDetails` devolve 404 para receita de outra empresa
+- [ ] H3 — `RecipeController::updateRecipeProductPrices` só altera variação de receita da própria empresa (Tier 0 de valor: dupla prova + antes→depois)
+- [ ] `SettingsController::store` exige permissão do módulo (o [W] define qual)
+- [ ] Teste de cada item com a empresa fictícia 98 contra a 99 (nunca biz=4), na lane `Manufacturing · Pest (MySQL)`
 
 ## 4. Regras de negócio (Gherkin)
 

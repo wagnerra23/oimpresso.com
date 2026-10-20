@@ -301,6 +301,9 @@ last_run: "2026-10-19"
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
+- **[BACKLOG]** (H3 · Tier 0 · valor) Atualizar preço de venda só toca receita da **minha empresa**: `POST /manufacturing/update-product-prices` com `recipe_ids` de outra empresa não altera `default_purchase_price`, `dpp_inc_tax`, `default_sell_price` nem `profit_percent` da variação alheia. Hoje `updateRecipeProductPrices` faz `whereIn('id', …)` sem a cadeia de empresa e a rota só é chamada pela Blade — **hipótese sem teste**. REGRA MESTRE de valor: dupla prova + antes→depois.
+- **[BACKLOG]** (H2 · Tier 0) `GET /manufacturing/get-recipe-details` com receita de outra empresa devolve 404, sem ingrediente nem custo no corpo. **Hipótese sem teste.**
+- **[BACKLOG]** (D1) "Produzir" na ficha abre a ordem no módulo Produção, com a receita já escolhida (hoje aponta para `/manufacturing/production/create`, Blade).
 - **[BACKLOG]** `?legacy=1` responde **200 com a tela Blade** (não só "o ramo existe") e uma
   requisição **ajax real** recebe o JSON do DataTables. É a metade comportamental que os
   UC-RECIPE-06/07 não alcançam: precisa de fixture autenticada (user + business + permissão)
