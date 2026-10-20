@@ -248,6 +248,48 @@ Status: 🧪
 
 ---
 
+## Romaneio de impressão peça a peça (US-PCP-023 · UC-FLX-12)
+
+> **Âncora:** UC-FLX-12 do catálogo de fluxos (*"Pré-impressão → Impressão gera a lista do que foi enviado
+> ao setor de impressão e corte"*, referência Mubisys) e a US-PCP-023 do SPEC. As medidas por peça vêm do
+> item do orçamento da OS de comunicação visual (`comvis_orcamento_itens`: largura × altura × quantidade).
+> JSON (`POST /producao/os/{id}/romaneio`, `GET /producao/romaneios/{id}`); a tela ainda não mostra.
+> Prova: `ProducaoRomaneioContratoTest`.
+
+## UC-PCROM-01 · Uma linha por peça da OS · `must`
+
+**Dado** a OS com 2 peças no orçamento — Banner 3,000 × 1,000 m × 2 em Lona 440 g (6,000 m²) e Adesivo
+0,500 × 0,500 m × 10 sem material (2,500 m²) — e a etapa de impressão no posto Plotter **Quando** o PCP gera o
+romaneio para essa etapa **Então** sai o `ROM-<nº da OS>-v1` com 2 linhas, na ordem do orçamento, cada uma
+com descrição, mídia, largura, altura, quantidade e área, o posto de destino e quem gerou; o operador lê o
+mesmo romaneio.
+
+Status: 🧪
+
+## UC-PCROM-02 · Gravado não muda; gerar de novo é a v2 · `must`
+
+**Dado** o romaneio v1 gravado com o Banner × 2 **Quando** o orçamento passa o Banner para × 5 **Então** a v1
+segue com × 2 e 6,000 m², e editar ou apagar o romaneio ou a linha é recusado; **Quando** o PCP gera de novo
+**Então** sai a v2 com × 5, e a linha do Banner aponta que a peça já saiu no romaneio v1.
+
+Status: 🧪
+
+## UC-PCROM-03 · Gerar é do PCP; ler é de quem produz · `must`
+
+**Quando** o operador sem o papel `producao.liberar` tenta gerar **Então** 403 e nada é gravado; sem
+`producao.access` a leitura é 403. OS sem peças no orçamento **Então** 422 `quantidade_invalida`.
+
+Status: 🧪
+
+## UC-PCROM-04 · Outra empresa, 404 · `must`
+
+**Quando** o PCP do tenant 98 gera romaneio de OS do tenant 99, ou aponta como destino a etapa de outra OS,
+**Então** 404 e nada é gravado; romaneio de outra empresa na leitura **Então** 404.
+
+Status: 🧪
+
+---
+
 ## Liberação da OS para a produção (UC-FLX-28 · parcial · US-PCP-025)
 
 > **Âncora:** US-PCP-025 do `memory/requisitos/Producao/SPEC.md` (§Origem: *"Existe: o estado inicial

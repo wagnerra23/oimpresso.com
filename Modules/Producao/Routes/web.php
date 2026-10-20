@@ -8,6 +8,7 @@ use Modules\Producao\Http\Controllers\FerramentasController;
 use Modules\Producao\Http\Controllers\InstallController;
 use Modules\Producao\Http\Controllers\OrdemCustoController;
 use Modules\Producao\Http\Controllers\PostosController;
+use Modules\Producao\Http\Controllers\RomaneioController;
 use Modules\Producao\Http\Controllers\RoteirosController;
 
 /*
@@ -52,6 +53,7 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('roteiros', [RoteirosController::class, 'index'])->name('roteiros.index');
         Route::post('roteiros', [RoteirosController::class, 'store'])->name('roteiros.store');
         Route::put('roteiros/{id}', [RoteirosController::class, 'update'])->whereNumber('id')->name('roteiros.update');
+        Route::put('roteiros/{id}/produtos', [RoteirosController::class, 'produtos'])->whereNumber('id')->name('roteiros.produtos');
 
         Route::get('postos', [PostosController::class, 'index'])->name('postos.index');
         Route::post('postos', [PostosController::class, 'store'])->name('postos.store');
@@ -86,4 +88,13 @@ Route::middleware(['throttle:30,1'])
         Route::get('{token}', [AprovacaoArteController::class, 'mostrar'])->where('token', '[A-Za-z0-9]{48}')->name('mostrar');
         Route::post('{token}/aprovar', [AprovacaoArteController::class, 'aprovar'])->where('token', '[A-Za-z0-9]{48}')->name('aprovar');
         Route::post('{token}/recusar', [AprovacaoArteController::class, 'recusar'])->where('token', '[A-Za-z0-9]{48}')->name('recusar');
+    });
+
+// ── US-PCP-023 · UC-FLX-12 · romaneio de impressão peça a peça (JSON; a tela é follow-up) ──
+Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
+    ->prefix('producao')
+    ->name('producao.')
+    ->group(function () {
+        Route::post('os/{id}/romaneio', [RomaneioController::class, 'store'])->whereNumber('id')->name('os.romaneio.store');
+        Route::get('romaneios/{id}', [RomaneioController::class, 'show'])->whereNumber('id')->name('romaneios.show');
     });
