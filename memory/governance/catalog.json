@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 820,
-    "edges": 1119,
+    "nodes": 821,
+    "edges": 1120,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 442,
+      "component": 443,
       "api": 84
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 88,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 442,
+      "hasComponent": 443,
       "dependsOn": 123,
       "delegatesTo": 114,
       "migratesTo": 1,
@@ -1998,6 +1998,13 @@
       "desc": ""
     },
     {
+      "id": "component:ComunicacaoVisual/Entities/OsItem",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "Entities/OsItem",
+      "desc": "itens da OS copiados do orçamento, UC-FLX-01)"
+    },
+    {
       "id": "component:ComunicacaoVisual/Entities/Substrato",
       "type": "component",
       "module": "ComunicacaoVisual",
@@ -2024,6 +2031,13 @@
       "module": "ComunicacaoVisual",
       "name": "OrcamentoController",
       "desc": ""
+    },
+    {
+      "id": "component:ComunicacaoVisual/Services/OrcamentoViraOs",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "Services/OrcamentoViraOs",
+      "desc": "US-COMVIS-020 · UC-FLX-01)"
     },
     {
       "id": "component:Connector/Api/ApiController",
@@ -4131,6 +4145,13 @@
       "module": "Producao",
       "name": "ApontamentoController",
       "desc": "celular do operador (PWA, thread 04): /producao/apontamento, escritas em JSON para a fila offline; a regra mora no ApontamentoOperadorService"
+    },
+    {
+      "id": "component:Producao/AproveitamentoMidiaController + AproveitamentoDeMidia",
+      "type": "component",
+      "module": "Producao",
+      "name": "AproveitamentoMidiaController + AproveitamentoDeMidia",
+      "desc": "simulador de aproveitamento de mídia na bobina (US-PCP-024 · UC-FLX-13): pcp_bobinas (largura útil, margem, giro por mídia), arranjo em faixas com metros, perda e o uma a uma; aceitar grava pcp_arranjos + pcp_arranjo_os (consumo previsto por OS, rateio pela área) e gera o romaneio de cada OS; simular com producao.access, aceitar com o papel producao.liberar, JSON"
     },
     {
       "id": "component:Producao/ColaboradorCustoController",
@@ -7968,6 +7989,12 @@
     },
     {
       "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/Entities/OsItem",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/Entities/Substrato",
       "type": "hasComponent",
       "source": "contains"
@@ -7987,6 +8014,12 @@
     {
       "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/OrcamentoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/Services/OrcamentoViraOs",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -12222,6 +12255,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/ApontamentoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/AproveitamentoMidiaController + AproveitamentoDeMidia",
       "type": "hasComponent",
       "source": "contains"
     },
