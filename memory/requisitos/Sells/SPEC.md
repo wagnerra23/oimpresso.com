@@ -1595,3 +1595,25 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 - [ ] Nota abaixo do limite configurado pela empresa abre um atendimento ligado à venda e ao cliente.
 - [ ] Job e agendamento recebem o `business_id`; a resposta só se grava na venda da mesma empresa.
 - [ ] As respostas aparecem para quem tem `sell.view` na empresa; usuário de outro business recebe 404.
+
+### US-SELL-073 · Volumes no protocolo de entrega (UC-FLX-23) — **P2**
+
+**Implementado em:** `app/Http/Controllers/Api/App/PedidoEntregaController.php` · `database/migrations/2026_10_20_160000_add_volumes_to_app_entregas_table.php`
+
+**Testado em:** `tests/Feature/Sells/AppPedidoEntregaContratoTest.php` (lane `sells-pest.yml`) — casos UC-ENTR-01..04 no `resources/js/Pages/Sells/Show.casos.md`.
+
+> owner: wagner · priority: p2 · estimate: 1h · type: story
+
+**Origem:** caso UC-FLX-23 da tela de Fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:76`, fontes de mercado Mubisys, Corebridge e Cyrious) — na etapa Entregue, gerar o protocolo com itens, volumes e quem recebeu.
+
+**O que existe (medido 2026-10-20):** o protocolo já existia para a **venda**, pela entrega do app: `POST /api/app/pedidos/{id}/entrega` (`routes/api/app/pedidos.php:18` → `PedidoEntregaController@registrar`, contrato `memory/requisitos/AppMobile/api/tela-22-entrega.md`) grava `ENT-NNNN` por business em `app_entregas` (`database/migrations/2026_10_15_180000_create_app_entregas_table.php`) com os itens conferidos, quem recebeu, documento, assinatura e GPS, e executa a ação `entregar` da FSM na mesma transação. Faltavam os **volumes**: sem coluna e sem campo. Ninguém lê `app_entregas` além do próprio controller (sem tela, PDF ou GET do protocolo). O caso no catálogo aponta `US-COMVIS-007`, mas essa US é da OS da Comunicação Visual, que este protocolo não cobre.
+
+**Aceite:**
+- [x] O app pode mandar `volumes` (total do protocolo, inteiro de 1 a 9999); ele é gravado em `app_entregas.volumes` e devolvido na resposta 201.
+- [x] `volumes` fora da faixa, fracionado ou texto → `422 campos.volumes`, sem gravar nada.
+- [x] Sem `volumes` (app antigo) a entrega funciona como antes, com `volumes` nulo; a mesma `Idempotency-Key` com o mesmo corpo antigo segue devolvendo a resposta gravada.
+- [x] Pedido de outro business → 404 e nada gravado; o protocolo grava no business do usuário.
+- [ ] O detalhe da venda (`/sells/{id}`) mostra o protocolo, os itens, os volumes e quem recebeu, só para quem vê a venda na empresa.
+- [ ] Protocolo da OS da Comunicação Visual (UC-FLX-23 no processo de OS), que hoje não tem protocolo.
+
+**Entregue em 2026-10-20 (backend):** total de volumes, não por item — um volume (caixa, rolo, pacote) pode levar várias linhas da venda, então volume por linha não é bem definido. Opcional porque o app que já está nos celulares não manda o campo; sem ele não se inventa número (fica nulo, "não informado"). O `volumes` só entra no hash de idempotência quando vem, para que o corpo antigo mantenha o hash de antes.

@@ -91,6 +91,36 @@ last_run: "2026-07-27"
 - **Teste:** `tests/Feature/Sells/SellsShowContratoTest.php` — fato semeado por INSERT antes da leitura (independente do fluxo sob teste).
 - **Status: 🧪** — mesma condição do UC-VSHOW-01.
 
+## Volumes no protocolo de entrega (US-SELL-073 · UC-FLX-23)
+
+> **Âncora:** aceite da **US-SELL-073** (`memory/requisitos/Sells/SPEC.md`) e o **UC-FLX-23** do catálogo de
+> fluxos (*"gera o protocolo com itens, volumes e quem recebeu"*). O protocolo `ENT-NNNN` da venda é
+> gravado pela entrega do app (`POST /api/app/pedidos/{id}/entrega`, contrato
+> [`tela-22-entrega.md`](../../../../memory/requisitos/AppMobile/api/tela-22-entrega.md)), que já guardava
+> itens conferidos e quem recebeu. Esta entrega acrescenta o **total de volumes**, opcional para não
+> quebrar o app que já está nos celulares. A venda é a mesma deste detalhe; o detalhe ainda não mostra o
+> protocolo (fica como aceite aberto da US-SELL-073). Prova: `tests/Feature/Sells/AppPedidoEntregaContratoTest.php`.
+
+## UC-ENTR-01 · O protocolo grava os volumes junto com os itens e quem recebeu · `must`
+- **Aceite:** Dado uma venda na etapa de Entrega com as 2 linhas conferidas · Quando o app registra a entrega com `volumes: 3` · Então a resposta 201 traz `volumes: 3` e `recebido_por`, a linha de `app_entregas` tem `volumes = 3` e os ids das 2 linhas em `itens`, e a venda vai para `delivered`. Repetir a mesma `Idempotency-Key` com `volumes: 3` devolve o mesmo protocolo; com `volumes: 5` → `422 idempotencia_conflito`.
+- **Teste:** `tests/Feature/Sells/AppPedidoEntregaContratoTest.php` — `UC-ENTR-01`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-ENTR-02 · Volumes inválido é recusado e nada é gravado · `must`
+- **Aceite:** Dado a mesma venda · Quando o app manda `volumes` 0, -1, 2.5, `"tres"` ou 10000 · Então cada um volta `422 validacao` com `campos.volumes`, nenhuma linha em `app_entregas` nem reserva de chave, e a venda segue em `paid`.
+- **Teste:** `tests/Feature/Sells/AppPedidoEntregaContratoTest.php` — `UC-ENTR-02`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-ENTR-03 · Sem o campo volumes a entrega funciona como antes · `must`
+- **Aceite:** Dado o corpo do app antigo, sem `volumes` · Quando registra a entrega · Então 201 com `ENT-NNNN`, `volumes: null` na resposta e na linha, venda em `delivered`; a repetição da mesma chave com o mesmo corpo devolve o mesmo protocolo (o campo novo não mudou o hash do corpo antigo).
+- **Teste:** `tests/Feature/Sells/AppPedidoEntregaContratoTest.php` — `UC-ENTR-03`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-ENTR-04 · Volumes no pedido de outra empresa não grava nada · `[T0]` `must`
+- **Aceite:** Dado uma venda de outro business na etapa de Entrega · Quando o usuário registra a entrega dela com `volumes: 4` · Então `404 nao_encontrado`, nenhuma linha em `app_entregas` e a venda alheia segue em `paid`. Controle positivo: o mesmo corpo na venda da própria empresa grava `volumes = 4` com o `business_id` do usuário.
+- **Teste:** `tests/Feature/Sells/AppPedidoEntregaContratoTest.php` — `UC-ENTR-04`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
 ## UC-VSHOW-08 · O orçamento aberto mostra se o custo mudou desde que foi feito
 - **Persona:** Wagner — *"o que é negociado nunca é o que é empregado"*: ao reabrir um orçamento, quer ver com que custo ele foi calculado e quanto da margem sobrou com o custo de hoje.
 - **Aceite:** Dado um orçamento (venda em rascunho) cuja linha guardou custo 20,00 no dia, e uma compra recebida hoje a 30,00 · Quando abro `/sells/{id}` com `view_purchase_price` · Então `detail.custo` traz, para a linha, guardado 20,00 e hoje 30,00 marcada como mudou, totais 40,00 → 60,00 e margem 60,0% → 40,0%. Sem a permissão, `detail.custo` é nulo e nenhum custo vai no JSON. Venda finalizada não traz o bloco.
