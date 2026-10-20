@@ -1,6 +1,9 @@
 // SellsTotalBar — totais do filtro, abaixo da lista de vendas (US-SELL-017 · UC-SIDX-06).
 //
-// Forma: protótipo `prototipo-ui/cowork/Wagner/vendas-page.jsx`, bloco TOTALIZADORES (`vd-totalbar`).
+// Forma: protótipo `prototipo-ui/cowork/Wagner/vendas-page.jsx`, bloco TOTALIZADORES (`vd-totalbar`),
+// com os valores do `vendas.css` do protótipo escritos em classes do Tailwind sobre os mesmos tokens —
+// sem CSS novo no bundle (MANUAL-CSS-JS passo 1, catraca css-size-baseline). `--s-4`/`--s-5` do
+// protótipo não existem no app: viraram `gap-4` (16px) e `gap-5` (20px).
 // Números: só os que o servidor devolve em `/sells-list-json` → `totals` (SellController clona o
 // filtro antes de paginar, então a soma cobre todas as páginas). A barra não soma nada no
 // navegador — REGRA MESTRE de valor (memory/proibicoes.md).
@@ -13,14 +16,23 @@
 import type { ReactNode } from 'react';
 import { motivoSemTotais, type FiltrosDaTela, type TotaisDoFiltro } from './totaisDoFiltro';
 
+const BARRA =
+  'mt-[10px] flex flex-wrap items-center gap-4 gap-y-2 rounded-md border border-[color:var(--border)] bg-[var(--bg-2)] px-4 py-[11px]';
+const ROTULO =
+  'font-sans text-[length:var(--fs-1)] font-semibold uppercase leading-none tracking-[.06em] text-[color:var(--text-mute)]';
+const VALOR =
+  'font-mono text-[length:var(--fs-4)] font-semibold leading-none tabular-nums text-[color:var(--text-dim)]';
+const VALOR_TOTAL =
+  'font-mono text-[length:var(--fs-6)] font-bold leading-none tabular-nums tracking-[-0.01em] text-[color:var(--text)]';
+
 const brl = (n: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n);
 
 function Metrica({ rotulo, valor, grande = false }: { rotulo: string; valor: number; grande?: boolean }): ReactNode {
   return (
-    <div className="vd-totalbar-m">
-      <span className="k">{rotulo}</span>
-      <span className={grande ? 'v grand' : 'v'}>{brl(valor)}</span>
+    <div className="flex flex-col items-end gap-0.5 leading-[1.1]">
+      <span className={ROTULO}>{rotulo}</span>
+      <span className={grande ? VALOR_TOTAL : VALOR}>{brl(valor)}</span>
     </div>
   );
 }
@@ -38,19 +50,22 @@ export default function SellsTotalBar({ totais, filtros, carregando }: SellsTota
   const motivo = motivoSemTotais(filtros);
   if (motivo) {
     return (
-      <div className="vd-totalbar vd-totalbar-off" role="note">
+      <div className={`${BARRA} text-[length:var(--fs-2)] text-[color:var(--text-mute)]`} role="note">
         {motivo}
       </div>
     );
   }
 
   return (
-    <div className="vd-totalbar" role="region" aria-label="Totais do filtro">
-      <div className="vd-totalbar-l">
-        <b>{totais.count}</b> {totais.count === 1 ? 'venda' : 'vendas'}
-        <span className="vd-totalbar-sub">soma de todas as páginas do filtro</span>
+    <div className={BARRA} role="region" aria-label="Totais do filtro">
+      <div className="flex items-baseline gap-2 text-[length:var(--fs-3)] text-[color:var(--text-dim)]">
+        <b className="font-sans text-[length:var(--fs-5)] font-bold leading-none text-[color:var(--text)]">
+          {totais.count}
+        </b>{' '}
+        {totais.count === 1 ? 'venda' : 'vendas'}
+        <span className="text-[length:var(--fs-2)] text-[color:var(--text-mute)]">soma de todas as páginas do filtro</span>
       </div>
-      <div className="vd-totalbar-r">
+      <div className="ml-auto flex items-center gap-5">
         <Metrica rotulo="Pago" valor={totais.sum_total_paid} />
         <Metrica rotulo="A receber" valor={totais.sum_due} />
         <Metrica rotulo="Total do filtro" valor={totais.sum_final_total} grande />

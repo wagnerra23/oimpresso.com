@@ -2576,26 +2576,6 @@
   border: 4px solid transparent; border-top-color: var(--text);
 }
 .sells-cowork .vendas-aplus .vd-fb:hover .vd-fb-tip { opacity: 1; transform: translateX(-50%) translateY(0); }
-/* ── Totais do filtro (US-SELL-017 · UC-SIDX-06) — forma de prototipo-ui/cowork/Wagner/vendas.css
- *    `.vd-totalbar`. O protótipo usa --s-4/--s-5, que não existem no app: viraram 16px e 20px,
- *    os valores deles em prototipo-ui/cowork/Wagner/styles.css. ── */
-.sells-cowork .vendas-aplus .vd-totalbar {
-  display: flex; align-items: center; gap: 16px; flex-wrap: wrap; row-gap: 8px;
-  margin-top: 10px; padding: 11px 16px;
-  background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-md);
-}
-.sells-cowork .vendas-aplus .vd-totalbar-l {
-  display: flex; align-items: baseline; gap: 8px; font-size: var(--fs-3); color: var(--text-dim);
-}
-.sells-cowork .vendas-aplus .vd-totalbar-l b { font: 700 var(--fs-5)/1 var(--font-sans); color: var(--text); }
-.sells-cowork .vendas-aplus .vd-totalbar-sub { font-size: var(--fs-2); color: var(--text-mute); }
-.sells-cowork .vendas-aplus .vd-totalbar-r { margin-left: auto; display: flex; align-items: center; gap: 20px; }
-.sells-cowork .vendas-aplus .vd-totalbar-m { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; line-height: 1.1; }
-.sells-cowork .vendas-aplus .vd-totalbar-m .k { font: 600 var(--fs-1)/1 var(--font-sans); letter-spacing: .06em; text-transform: uppercase; color: var(--text-mute); }
-.sells-cowork .vendas-aplus .vd-totalbar-m .v { font: 600 var(--fs-4)/1 var(--font-mono); color: var(--text-dim); font-variant-numeric: tabular-nums; }
-.sells-cowork .vendas-aplus .vd-totalbar-m .v.grand { font: 700 var(--fs-6)/1 var(--font-mono); color: var(--text); letter-spacing: -0.01em; }
-.sells-cowork .vendas-aplus .vd-totalbar-off { font-size: var(--fs-2); color: var(--text-mute); }
-
 /* ── Bulk action bar (fixed bottom) ── */
 .sells-cowork .vendas-aplus .vd-bulk {
   position: fixed; bottom: 24px; left: 50%;
