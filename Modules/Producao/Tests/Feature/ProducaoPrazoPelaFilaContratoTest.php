@@ -115,7 +115,14 @@ function przVenda($teste, int $biz, int $comRoteiro, bool $semRoteiro = false): 
     $linha = fn ($prod, $var) => ['transaction_id' => $tx->id, 'product_id' => $prod, 'variation_id' => $var, 'quantity' => 1,
         'unit_price' => 50, 'unit_price_inc_tax' => 50, 'created_at' => now(), 'updated_at' => now()];
     for ($i = 0; $i < $comRoteiro; $i++) {
-        DB::table('transaction_sell_lines')->insert($linha($teste->produto, $teste->variacao));
+        // A partir da 2ª linha, outro produto com o mesmo roteiro: a chave única de
+        // transaction_sell_lines (venda + produto + variação) não aceita o mesmo produto duas vezes.
+        [$p, $v] = $i === 0 ? [$teste->produto, $teste->variacao] : przProduto($biz, (int) $teste->vendedor->id, 'Banner lona '.$i);
+        if ($i > 0) {
+            DB::table('pcp_produto_roteiro')->insert(['business_id' => $biz, 'product_id' => $p, 'roteiro_id' => $teste->roteiro,
+                'created_at' => now(), 'updated_at' => now()]);
+        }
+        DB::table('transaction_sell_lines')->insert($linha($p, $v));
     }
     if ($semRoteiro) {
         [$p, $v] = przProduto($biz, (int) $teste->vendedor->id, 'Instalação');
@@ -127,8 +134,9 @@ function przVenda($teste, int $biz, int $comRoteiro, bool $semRoteiro = false): 
 
 function przModulo($teste, bool $ligado = true): void
 {
-    $teste->partialMock(ModuleUtil::class, fn ($m) => $m->shouldReceive('hasThePermissionInSubscription')
-        ->andReturnUsing(fn ($b, $perm) => $ligado && $perm === 'producao_module'));
+    // partialMock é protegido no TestCase: chama no escopo do próprio teste.
+    (fn () => $this->partialMock(ModuleUtil::class, fn ($m) => $m->shouldReceive('hasThePermissionInSubscription')
+        ->andReturnUsing(fn ($b, $perm) => $ligado && $perm === 'producao_module')))->call($teste);
 }
 
 it('UC-PCPRZ-01 · uma linha: a data soma a fila de cada posto e as etapas do roteiro, em sequência por bloco', function () {
