@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-08-08"
+last_run: "2026-10-20"
 ---
 
 # Casos de Uso & Aceite — Contas a Receber
@@ -15,7 +15,7 @@ last_run: "2026-08-08"
 >
 > **Status:** ✅ passa (prova no manifesto) · 🧪 em teste/prova parcial · ⬜ não verificado · ❌ quebrou.
 >
-> ⚠️ **Régua estendida (Onda 0b):** hoje esta tela tem **0 UC com teste que o defenda** — a
+> ⚠️ **Régua estendida (Onda 0b), retrato de 2026-07-03:** esta tela tinha **0 UC com teste que o defenda** (os UC-CRREG-* e UC-CRAB-* de 2026-10-20 são os primeiros com teste) — a
 > cobertura de comportamento é o **débito** que o scorecard expõe ao lado da nota de UX (70).
 > Os casos abaixo estão no **backlog sem id** de propósito: pela G-2 ([ADR 0264]), um `UC-*`
 > declarado sem teste é órfão e **quebra o `casos-gate`**. Cada um só vira `UC-CR-NN` **no mesmo
@@ -43,11 +43,117 @@ last_run: "2026-08-08"
 - **[BACKLOG] Boleto é fluxo crítico observado** — a emissão registra span OTel
   `financeiro.boleto.emitir` com biz + titulo_id + falha de gateway (Wave 17 D9).
 
+## Aberto do título parcial (US-FIN-073)
+
+> **Âncora:** SPEC US-FIN-073 (achado do PR #9638, decisão [W] 2026-10-20). O saldo que esta tela
+> mostra na coluna "Em aberto" é o `valor_aberto` do título; ele não pode voltar ao bruto quando o core
+> regrava o `payment_status` da venda. Prova: `Modules/Financeiro/Tests/Feature/AbertoVendaParcialContratoTest.php`.
+> VALOR: regra mestre — cada número confere por dois caminhos (Σ baixas do título e
+> `final_total − Σ transaction_payments`).
+
+## UC-CRAB-01 · Venda parcial mantém o que já foi pago · `must` valor
+
+**Dado** uma venda de 1.000,00 com um pagamento de 400,00 **Quando** o core grava `payment_status = partial`
+(e qualquer re-sincronização depois, como mudar o vencimento) **Então** o título fica com 600,00 em aberto e
+status "parcial", nunca de volta a 1.000,00 "aberto".
+
+Status: 🧪
+
+## UC-CRAB-02 · Compra parcial idem · `must` valor
+
+**Dado** uma compra de 500,00 com 200,00 pago **Quando** o core grava `partial` **Então** o título a pagar fica
+com 300,00 em aberto, status "parcial".
+
+Status: 🧪
+
+## UC-CRAB-03 · Relatório dos títulos já gravados é só leitura · `must`
+
+**Dado** um título parcial gravado antes do conserto (aberto de volta no bruto) **Quando** rodo
+`financeiro:resync-from-core --business=N --aberto` **Então** ele aparece com aberto atual → correto e o status
+atual → correto, e nada é gravado; com `--apply` o comando recusa — corrigir os existentes é decisão [W].
+
+Status: 🧪
+
+## UC-CRAB-04 · Relatório não mostra título de outro business · `must` Tier 0
+
+**Dado** um título parcial divergente no business B **Quando** rodo o relatório para o business A **Então** ele
+não aparece; rodando para B, aparece.
+
+Status: 🧪
+
+---
+
+## Régua de cobrança do título vencido (US-FIN-071 · UC-FLX-29)
+
+> **Âncora:** [US-FIN-071](../../../../../memory/requisitos/Financeiro/SPEC.md) e o UC-FLX-29 do
+> catálogo de fluxos (transição "Vencido → Em cobrança": lembretes D+1, D+5 e D+15 e tarefa ao
+> vendedor). Nesta entrega é o job diário por business (`ReguaCobrancaJob`, agendado via
+> `financeiro:regua-cobranca`) — a tela ainda não mostra o histórico nem configura a régua; WhatsApp,
+> estado "em cobrança" no título e a configuração com permissão são follow-up da US. Régua **desligada
+> por padrão** (`business.common_settings['financeiro_regua_cobranca']`). Prova:
+> `Modules/Financeiro/Tests/Feature/ReguaCobrancaContratoTest.php`. Não mexe em valor de título.
+
+## UC-CRREG-01 · Lembrete em D+1, D+5 e D+15, não em D+2 · `must`
+
+**Dado** régua ligada com os dias padrão e hoje = 20/03, quatro títulos a receber em aberto vencidos
+em 19/03 (D+1), 18/03 (D+2), 15/03 (D+5) e 05/03 (D+15), cada um com cliente que tem e-mail
+**Quando** o job do dia roda **Então** saem 3 e-mails e ficam 3 lembretes `enviado` (etapas 1, 5 e
+15); o título de D+2 não recebe nada.
+
+Status: 🧪
+
+## UC-CRREG-02 · Rodar duas vezes no mesmo dia não duplica · `must`
+
+**Dado** um título vencido há 5 dias **Quando** o job roda duas vezes no mesmo dia **Então** existe
+1 lembrete para a etapa 5 e sai 1 e-mail só.
+
+Status: 🧪
+
+## UC-CRREG-03 · Opt-out de e-mail não recebe, e o motivo fica registrado · `must` LGPD
+
+**Dado** um título vencido há 1 dia cujo cliente tem `email_consent = false` **Quando** o job roda
+**Então** nenhum e-mail sai e o lembrete da etapa 1 fica `nao_enviado` com motivo `opt_out_email`.
+
+Status: 🧪
+
+## UC-CRREG-04 · Última etapa vira tarefa para o vendedor · `must`
+
+**Dado** dois títulos vencidos há 15 dias — um de venda com vendedor comissionado V, outro manual — e
+um vencido há 5 dias **Quando** o job roda **Então** o da venda gera tarefa no CRM (pelo contrato
+`AgendaDeTarefas`) atribuída a V e ligada à venda, o manual gera tarefa para o dono do business, e o de 5 dias não gera tarefa.
+
+Status: 🧪
+
+## UC-CRREG-05 · Régua desligada não faz nada · `must`
+
+**Dado** um business sem a chave da régua (o padrão) e um título vencido há 1 dia **Quando** o job
+roda **Então** nenhum lembrete é registrado e nenhum e-mail sai.
+
+Status: 🧪
+
+## UC-CRREG-06 · Um business não toca títulos de outro · `must` Tier 0
+
+**Dado** os businesses A (98) e B (99) com a régua ligada, cada um com 1 título vencido há 1 dia
+**Quando** roda o job de A **Então** só o título de A tem lembrete e sai 1 e-mail; o de B fica sem
+nada.
+
+Status: 🧪
+
+## UC-CRREG-07 · Sem o módulo Crm, o lembrete sai e não há tarefa · `must`
+
+**Dado** a agenda de tarefas (contrato `App\Contracts\Crm\AgendaDeTarefas`) não ligada e um título
+vencido há 15 dias **Quando** o job roda **Então** o e-mail sai, o lembrete da etapa 15 fica `enviado`
+sem tarefa e nenhuma linha nova aparece em `crm_schedules`.
+
+Status: 🧪
+
 ## Como rodar a suíte
 1. **Pest (MySQL real):** lane do Financeiro no CT100 — quando os UCs acima ganharem teste.
 2. **Cadência:** rodar ao fim de toda mexida na tela. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-20 · [CC] US-FIN-073: UC-CRAB-01..04 (aberto do título parcial + relatório `--aberto` só leitura),
+  provados por `AbertoVendaParcialContratoTest` na lane financeiro-pest. Nenhum título existente muda no deploy.
 - 2026-07-03 · [CC] criado na Onda de correção Financeiro (régua por tela, [ADR 0320]): charter +
   casos retroativos. Cobertura de comportamento nasce em **débito visível** (0 UC com teste) — a
   contradição UX-alto (70 Advanced) / comportamento-indefeso que o programa existe pra expor.
@@ -61,6 +167,10 @@ last_run: "2026-08-08"
   casava e o botão rendia nu (medido em prod: padding 0, radius 0, texto em 2 linhas). Só o chrome do
   header mudou — `label` e `onClick` idênticos; comportamento/cálculo intocados. UCs em débito seguem
   sem teste (sem `Status: ✅`, nada a revalidar via manifesto).
+- 2026-10-20 · [CC] UC-CRREG-01..07 (US-FIN-071 · UC-FLX-29): primeira cobertura com UC-id desta
+  tela — a régua de cobrança é job diário, sem mudança no `.tsx`; `last_run` intocado (nenhum UC
+  antigo reexecutado). Prova: `ReguaCobrancaContratoTest`.
+
 [ADR 0320]: ../../../../../memory/decisions/0320-programa-ondas-regua-correcao.md
 [ADR 0264]: ../../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md
 [ADR 0062]: ../../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md
