@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-08-08"
+last_run: "2026-10-20"
 ---
 
 # Casos de Uso & Aceite — Contas a Receber
@@ -15,7 +15,7 @@ last_run: "2026-08-08"
 >
 > **Status:** ✅ passa (prova no manifesto) · 🧪 em teste/prova parcial · ⬜ não verificado · ❌ quebrou.
 >
-> ⚠️ **Régua estendida (Onda 0b):** hoje esta tela tem **0 UC com teste que o defenda** — a
+> ⚠️ **Régua estendida (Onda 0b), retrato de 2026-07-03:** esta tela tinha **0 UC com teste que o defenda** (os UC-CRAB-* de 2026-10-20 são o primeiro bloco com teste) — a
 > cobertura de comportamento é o **débito** que o scorecard expõe ao lado da nota de UX (70).
 > Os casos abaixo estão no **backlog sem id** de propósito: pela G-2 ([ADR 0264]), um `UC-*`
 > declarado sem teste é órfão e **quebra o `casos-gate`**. Cada um só vira `UC-CR-NN` **no mesmo
@@ -43,11 +43,51 @@ last_run: "2026-08-08"
 - **[BACKLOG] Boleto é fluxo crítico observado** — a emissão registra span OTel
   `financeiro.boleto.emitir` com biz + titulo_id + falha de gateway (Wave 17 D9).
 
+## Aberto do título parcial (US-FIN-073)
+
+> **Âncora:** SPEC US-FIN-073 (achado do PR #9638, decisão [W] 2026-10-20). O saldo que esta tela
+> mostra na coluna "Em aberto" é o `valor_aberto` do título; ele não pode voltar ao bruto quando o core
+> regrava o `payment_status` da venda. Prova: `Modules/Financeiro/Tests/Feature/AbertoVendaParcialContratoTest.php`.
+> VALOR: regra mestre — cada número confere por dois caminhos (Σ baixas do título e
+> `final_total − Σ transaction_payments`).
+
+## UC-CRAB-01 · Venda parcial mantém o que já foi pago · `must` valor
+
+**Dado** uma venda de 1.000,00 com um pagamento de 400,00 **Quando** o core grava `payment_status = partial`
+(e qualquer re-sincronização depois, como mudar o vencimento) **Então** o título fica com 600,00 em aberto e
+status "parcial", nunca de volta a 1.000,00 "aberto".
+
+Status: 🧪
+
+## UC-CRAB-02 · Compra parcial idem · `must` valor
+
+**Dado** uma compra de 500,00 com 200,00 pago **Quando** o core grava `partial` **Então** o título a pagar fica
+com 300,00 em aberto, status "parcial".
+
+Status: 🧪
+
+## UC-CRAB-03 · Relatório dos títulos já gravados é só leitura · `must`
+
+**Dado** um título parcial gravado antes do conserto (aberto de volta no bruto) **Quando** rodo
+`financeiro:resync-from-core --business=N --aberto` **Então** ele aparece com aberto atual → correto e o status
+atual → correto, e nada é gravado; com `--apply` o comando recusa — corrigir os existentes é decisão [W].
+
+Status: 🧪
+
+## UC-CRAB-04 · Relatório não mostra título de outro business · `must` Tier 0
+
+**Dado** um título parcial divergente no business B **Quando** rodo o relatório para o business A **Então** ele
+não aparece; rodando para B, aparece.
+
+Status: 🧪
+
 ## Como rodar a suíte
 1. **Pest (MySQL real):** lane do Financeiro no CT100 — quando os UCs acima ganharem teste.
 2. **Cadência:** rodar ao fim de toda mexida na tela. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-20 · [CC] US-FIN-073: UC-CRAB-01..04 (aberto do título parcial + relatório `--aberto` só leitura),
+  provados por `AbertoVendaParcialContratoTest` na lane financeiro-pest. Nenhum título existente muda no deploy.
 - 2026-07-03 · [CC] criado na Onda de correção Financeiro (régua por tela, [ADR 0320]): charter +
   casos retroativos. Cobertura de comportamento nasce em **débito visível** (0 UC com teste) — a
   contradição UX-alto (70 Advanced) / comportamento-indefeso que o programa existe pra expor.
