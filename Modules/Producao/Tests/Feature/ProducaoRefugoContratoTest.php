@@ -1,5 +1,5 @@
 <?php
-// @covers-us US-PCP-026
+// @covers-us US-PCP-027
 
 declare(strict_types=1);
 // Cobre UC-PCREF-01..06 (Producao/Apontamento/Index.casos.md) — UC-FLX-16 do catálogo de fluxos.
@@ -21,7 +21,7 @@ use Modules\Producao\Services\SituacaoDaOrdem;
 uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
- * US-PCP-026 · UC-FLX-16 — refugo e retrabalho com motivo somam custo à OS. ESTOQUE e VALOR (regra
+ * US-PCP-027 · UC-FLX-16 — refugo e retrabalho com motivo somam custo à OS. ESTOQUE e VALOR (regra
  * mestre): cada número é feito à mão sobre o arranjo e conferido por um segundo caminho.
  *
  * Arranjo, tenant 98, FIFO, sem vender sem estoque:

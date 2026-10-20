@@ -6,7 +6,7 @@ use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * `pcp_refugos` — peças refugadas numa etapa da OS por item, com o motivo (UC-FLX-16 · US-PCP-026).
+ * `pcp_refugos` — peças refugadas numa etapa da OS por item, com o motivo (UC-FLX-16 · US-PCP-027).
  * Escopo por empresa (ADR 0093).
  *
  * @property int $id

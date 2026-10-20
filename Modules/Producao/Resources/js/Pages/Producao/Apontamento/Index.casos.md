@@ -198,7 +198,7 @@ Status: 🧪
 
 ---
 
-## Refugo e retrabalho com motivo (US-PCP-026 · UC-FLX-16)
+## Refugo e retrabalho com motivo (US-PCP-027 · UC-FLX-16)
 
 > **Âncora:** UC-FLX-16 do catálogo de fluxos (Acabamento: *refugo com motivo; refugo e retrabalho somam
 > custo à OS*), o cadastro de motivos de refugo por posto (UC-PCV-33, `pcp_motivos.tipo = refugo`), o

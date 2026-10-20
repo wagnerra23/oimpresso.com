@@ -110,7 +110,7 @@ class ApontamentoController extends Controller
     }
 
     /**
-     * US-PCP-026 · UC-FLX-16: refugo com motivo na etapa (quantas peças, motivo de refugo do posto),
+     * US-PCP-027 · UC-FLX-16: refugo com motivo na etapa (quantas peças, motivo de refugo do posto),
      * com material reposto (baixa pelo ConsumoMaterialService) e, se pedido, a OS para Retrabalho
      * (papel producao.qualidade no motor). A resposta não traz custo (o operador não vê custo).
      */

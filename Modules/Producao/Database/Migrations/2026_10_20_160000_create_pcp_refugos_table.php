@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Refugo com motivo na etapa da OS por item (UC-FLX-16 · US-PCP-026). Uma linha por apontamento de
+ * Refugo com motivo na etapa da OS por item (UC-FLX-16 · US-PCP-027). Uma linha por apontamento de
  * refugo: quantas peças, o motivo do cadastro do posto (`pcp_motivos`, tipo `refugo`) e quem/quando.
  * O material reposto para as peças refugadas é baixado pelo ConsumoMaterialService (`pcp_consumos`,
  * chave derivada da chave do refugo); por isso o custo do refugo já entra no custo real da OS.

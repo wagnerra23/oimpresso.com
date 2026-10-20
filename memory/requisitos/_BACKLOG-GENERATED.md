@@ -582,7 +582,7 @@
 - **US-PCP-023** — Romaneio de impressão peça a peça (UC-FLX-12) — **P2**
 - **US-PCP-024** — Simulador de aproveitamento de mídia na bobina (UC-FLX-13) — **P2**
 - **US-PCP-025** — Produção só libera com o sinal pago (UC-FLX-28) — **P2**
-- **US-PCP-026** — Refugo e retrabalho com motivo somam custo à OS (UC-FLX-16) — **P1**
+- **US-PCP-027** — Refugo e retrabalho com motivo somam custo à OS (UC-FLX-16) — **P1**
 
 ## RecurringBilling
 

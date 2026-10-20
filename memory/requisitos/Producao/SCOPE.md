@@ -11,7 +11,7 @@ contains:
   - "ColaboradorCustoController — custo-hora da pessoa, só com producao.desempenho.ver (E03)"
   - "ApontamentoController — celular do operador (PWA, thread 04): /producao/apontamento, escritas em JSON para a fila offline; a regra mora no ApontamentoOperadorService"
   - "ConsumoMaterialService — material apontado na etapa da OS por item (US-PCP-021 · UC-FLX-37): baixa o estoque do local da venda por uma production_sell por apontamento, custo do lote que saiu, em pcp_consumos; o CustoRealService soma no congelado"
-  - "RefugoService — refugo com motivo na etapa da OS por item (US-PCP-026 · UC-FLX-16): quantidade e motivo de refugo do posto em pcp_refugos, material reposto pelo ConsumoMaterialService e, com o papel de qualidade, a OS para Retrabalho pelo SituacaoDaOrdem::reprovar"
+  - "RefugoService — refugo com motivo na etapa da OS por item (US-PCP-027 · UC-FLX-16): quantidade e motivo de refugo do posto em pcp_refugos, material reposto pelo ConsumoMaterialService e, com o papel de qualidade, a OS para Retrabalho pelo SituacaoDaOrdem::reprovar"
   - "OrdemCustoController + PrevisaoCustoDaOrdem — custo da OS aberta: abertura × hoje dos insumos apontados e a previsão pela regra ops da compra (congela | vivo), JSON só com producao.desempenho.ver (US-PCP-022 · UC-FLX-36)"
   - "FecharTurnoCommand — producao:fechar-turno a cada 15 min, fecha o cronômetro esquecido no fim do turno ou na saída do ponto"
   - "Api/AppApontamentoController — apontamento do app das lojas com token (/api/app/producao/*, P8 tela 02, inclui motivos-pausa), sobre o ApontamentoOperadorService"

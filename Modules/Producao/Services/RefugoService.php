@@ -16,7 +16,7 @@ use Modules\Producao\Entities\Refugo;
 use Modules\Producao\Exceptions\ApontamentoRecusado;
 
 /**
- * Refugo e retrabalho com motivo (UC-FLX-16 · US-PCP-026). O responsável da etapa aponta quantas peças
+ * Refugo e retrabalho com motivo (UC-FLX-16 · US-PCP-027). O responsável da etapa aponta quantas peças
  * refugou e por quê (motivo de refugo do cadastro do posto, UC-PCV-33). Mexe em ESTOQUE e em VALOR
  * (regra mestre, proibicoes.md) quando repõe material — e aí NÃO baixa por conta própria: cada
  * material passa pelo ConsumoMaterialService (US-PCP-021), que baixa pelo lote que saiu.

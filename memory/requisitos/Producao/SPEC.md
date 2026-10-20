@@ -449,7 +449,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [ ] Idempotente: retorno do banco repetido não executa a transição duas vezes; OS cancelada não é liberada.
 - [ ] Multi-tenant: o listener recebe o `business_id` no evento e só toca OS e título da mesma empresa; `liberar` em OS de outra empresa → 404; Pest com dois tenants.
 
-### US-PCP-026 · Refugo e retrabalho com motivo somam custo à OS (UC-FLX-16) — **P1**
+### US-PCP-027 · Refugo e retrabalho com motivo somam custo à OS (UC-FLX-16) — **P1**
 
 **Implementado em:** `Modules/Producao/Services/RefugoService.php` · `Modules/Producao/Database/Migrations/2026_10_20_160000_create_pcp_refugos_table.php` · `Modules/Producao/Http/Controllers/ApontamentoController.php`
 

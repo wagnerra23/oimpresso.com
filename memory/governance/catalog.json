@@ -4186,7 +4186,7 @@
       "type": "component",
       "module": "Producao",
       "name": "RefugoService",
-      "desc": "refugo com motivo na etapa da OS por item (US-PCP-026 · UC-FLX-16): quantidade e motivo de refugo do posto em pcp_refugos, material reposto pelo ConsumoMaterialService e, com o papel de qualidade, a OS para Retrabalho pelo SituacaoDaOrdem::reprovar"
+      "desc": "refugo com motivo na etapa da OS por item (US-PCP-027 · UC-FLX-16): quantidade e motivo de refugo do posto em pcp_refugos, material reposto pelo ConsumoMaterialService e, com o papel de qualidade, a OS para Retrabalho pelo SituacaoDaOrdem::reprovar"
     },
     {
       "id": "component:Producao/RoteirosController",
