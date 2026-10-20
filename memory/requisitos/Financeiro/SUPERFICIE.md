@@ -14,9 +14,9 @@ module: Financeiro
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 363 arquivos em 22 papéis.
+**Total mapeado:** 373 arquivos em 22 papéis.
 
-## Controllers — 24
+## Controllers — 25
 
 - [AdvisorAuthController.php](../../../Modules/Financeiro/Http/Controllers/Advisor/AdvisorAuthController.php)
 - [AdvisorPortalController.php](../../../Modules/Financeiro/Http/Controllers/Advisor/AdvisorPortalController.php)
@@ -31,6 +31,7 @@ module: Financeiro
 - [ContaPagarController.php](../../../Modules/Financeiro/Http/Controllers/ContaPagarController.php)
 - [ContaReceberController.php](../../../Modules/Financeiro/Http/Controllers/ContaReceberController.php)
 - [CoworkSidebarController.php](../../../Modules/Financeiro/Http/Controllers/CoworkSidebarController.php)
+- [CusteioRkwController.php](../../../Modules/Financeiro/Http/Controllers/CusteioRkwController.php)
 - [DashboardController.php](../../../Modules/Financeiro/Http/Controllers/DashboardController.php)
 - [DataController.php](../../../Modules/Financeiro/Http/Controllers/DataController.php)
 - [DreController.php](../../../Modules/Financeiro/Http/Controllers/DreController.php)
@@ -60,9 +61,10 @@ module: Financeiro
 
 - [AdvisorViewScope.php](../../../Modules/Financeiro/Http/Middleware/AdvisorViewScope.php)
 
-## Services — 13
+## Services — 15
 
 - [BoletoOcrService.php](../../../Modules/Financeiro/Services/BoletoOcrService.php)
+- [CusteioRkwService.php](../../../Modules/Financeiro/Services/CusteioRkwService.php)
 - [DreService.php](../../../Modules/Financeiro/Services/DreService.php)
 - [FinanceiroAuditLogger.php](../../../Modules/Financeiro/Services/FinanceiroAuditLogger.php)
 - [FluxoCaixaService.php](../../../Modules/Financeiro/Services/FluxoCaixaService.php)
@@ -72,6 +74,7 @@ module: Financeiro
 - [PluggyClient.php](../../../Modules/Financeiro/Services/Integrations/PluggyClient.php)
 - [LinhaDigitavelValidator.php](../../../Modules/Financeiro/Services/LinhaDigitavelValidator.php)
 - [ReguaCobrancaConfig.php](../../../Modules/Financeiro/Services/ReguaCobrancaConfig.php)
+- [RetencaoNfseTituloService.php](../../../Modules/Financeiro/Services/RetencaoNfseTituloService.php)
 - [TituloAutoService.php](../../../Modules/Financeiro/Services/TituloAutoService.php)
 - [TituloService.php](../../../Modules/Financeiro/Services/TituloService.php)
 - [UnificadoService.php](../../../Modules/Financeiro/Services/UnificadoService.php)
@@ -100,9 +103,10 @@ module: Financeiro
 - [TituloBaixa.php](../../../Modules/Financeiro/Models/TituloBaixa.php)
 - [TituloComment.php](../../../Modules/Financeiro/Models/TituloComment.php)
 
-## Observers — 3
+## Observers — 4
 
 - [CashRegisterObserver.php](../../../Modules/Financeiro/Observers/CashRegisterObserver.php)
+- [NfseEmissaoRetencaoObserver.php](../../../Modules/Financeiro/Observers/NfseEmissaoRetencaoObserver.php)
 - [TransactionObserver.php](../../../Modules/Financeiro/Observers/TransactionObserver.php)
 - [TransactionPaymentObserver.php](../../../Modules/Financeiro/Observers/TransactionPaymentObserver.php)
 
@@ -120,13 +124,15 @@ module: Financeiro
 - [OnTituloCriadoLog.php](../../../Modules/Financeiro/Listeners/OnTituloCriadoLog.php)
 - [ProcessAsaasPixWebhookListener.php](../../../Modules/Financeiro/Listeners/ProcessAsaasPixWebhookListener.php)
 
-## Console / Commands — 8
+## Console / Commands — 10
 
 - [BackfillExtratoOfxCommand.php](../../../Modules/Financeiro/Console/Commands/BackfillExtratoOfxCommand.php)
 - [BackfillPlanoContaCommand.php](../../../Modules/Financeiro/Console/Commands/BackfillPlanoContaCommand.php)
 - [BridgeExpenseToTitulosCommand.php](../../../Modules/Financeiro/Console/Commands/BridgeExpenseToTitulosCommand.php)
+- [CusteioRkwCommand.php](../../../Modules/Financeiro/Console/Commands/CusteioRkwCommand.php)
 - [FinanceiroHealthCommand.php](../../../Modules/Financeiro/Console/Commands/FinanceiroHealthCommand.php)
 - [InstallCommand.php](../../../Modules/Financeiro/Console/Commands/InstallCommand.php)
+- [IssRetidoAjusteCommand.php](../../../Modules/Financeiro/Console/Commands/IssRetidoAjusteCommand.php)
 - [ProvisionSmokeTenantCommand.php](../../../Modules/Financeiro/Console/Commands/ProvisionSmokeTenantCommand.php)
 - [ReguaCobrancaCommand.php](../../../Modules/Financeiro/Console/Commands/ReguaCobrancaCommand.php)
 - [ResyncFromCoreCommand.php](../../../Modules/Financeiro/Console/Commands/ResyncFromCoreCommand.php)
@@ -141,7 +147,7 @@ module: Financeiro
 - [api.php](../../../Modules/Financeiro/Routes/api.php)
 - [web.php](../../../Modules/Financeiro/Routes/web.php)
 
-## Migrations (schema) — 29
+## Migrations (schema) — 31
 
 - [2026_04_24_140001_create_fin_planos_conta_table.php](../../../Modules/Financeiro/Database/Migrations/2026_04_24_140001_create_fin_planos_conta_table.php)
 - [2026_04_24_140002_create_fin_categorias_table.php](../../../Modules/Financeiro/Database/Migrations/2026_04_24_140002_create_fin_categorias_table.php)
@@ -171,7 +177,9 @@ module: Financeiro
 - [2026_06_03_120000_add_forma_pagamento_to_fin_titulos.php](../../../Modules/Financeiro/Database/Migrations/2026_06_03_120000_add_forma_pagamento_to_fin_titulos.php)
 - [2026_06_04_120000_add_conta_bancaria_id_to_fin_titulos.php](../../../Modules/Financeiro/Database/Migrations/2026_06_04_120000_add_conta_bancaria_id_to_fin_titulos.php)
 - [2026_09_23_150000_add_dre_linha_to_fin_planos_conta.php](../../../Modules/Financeiro/Database/Migrations/2026_09_23_150000_add_dre_linha_to_fin_planos_conta.php)
+- [2026_10_20_120000_add_classe_custo_to_fin_planos_conta.php](../../../Modules/Financeiro/Database/Migrations/2026_10_20_120000_add_classe_custo_to_fin_planos_conta.php)
 - [2026_10_20_120000_create_fin_titulo_lembretes_table.php](../../../Modules/Financeiro/Database/Migrations/2026_10_20_120000_create_fin_titulo_lembretes_table.php)
+- [2026_10_20_130000_add_retencao_to_fin_titulo_baixas_meio_pagamento.php](../../../Modules/Financeiro/Database/Migrations/2026_10_20_130000_add_retencao_to_fin_titulo_baixas_meio_pagamento.php)
 
 ## Seeders — 3
 
@@ -307,9 +315,9 @@ module: Financeiro
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Unificado/Index.casos.md)
 - [Novo.casos.md](../../../resources/js/Pages/Financeiro/Unificado/Novo.casos.md)
 
-## Testes (Pest) — 89
+## Testes (Pest) — 91
 
-- 84 em [Modules/Financeiro/Tests/Feature/](../../../Modules/Financeiro/Tests/Feature)
+- 86 em [Modules/Financeiro/Tests/Feature/](../../../Modules/Financeiro/Tests/Feature)
 - 1 em [Modules/Financeiro/Tests/Feature/Advisor/](../../../Modules/Financeiro/Tests/Feature/Advisor)
 - 4 em [Modules/Financeiro/Tests/Unit/](../../../Modules/Financeiro/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._

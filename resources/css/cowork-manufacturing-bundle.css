@@ -53,19 +53,15 @@
 .mfg-bulk .sp{flex:1}
 
 /* ── Drawer (PT-02) ── */
-.mfg-scrim{position:fixed;inset:0;background:rgba(0,0,0,.42);z-index:60}
-.mfg-drw{position:fixed;top:0;right:0;bottom:0;width:min(680px,94vw);background:var(--surface);border-left:1px solid var(--border);z-index:61;display:flex;flex-direction:column}
-.mfg-drw-h{padding:16px 20px 13px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start}
-.mfg-drw-h h2{margin:0;font-size:16px;font-weight:600;color:var(--text)}
-.mfg-drw-h p{margin:3px 0 0;font-size:11.5px;color:var(--text-dim)}
+/* A moldura antiga das gavetas (.mfg-scrim, .mfg-drw, -h, -b, -f) saiu em 2026-10-19: as três gavetas
+   usam Pages/Manufacturing/_components/Gaveta.tsx (o Drawer do DS, medido contra o protótipo). */
 .mfg-x{margin-left:auto;background:none;border:1px solid var(--border);border-radius:6px;color:var(--text-dim);width:28px;height:28px;cursor:pointer}
-.mfg-drw-b{flex:1;overflow:auto;padding:0 20px 20px}
 .mfg-sec{padding:16px 0 4px;display:flex;align-items:center;gap:8px}
 .mfg-sec span{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--text-mute)}
 .mfg-sec .ln{flex:1;height:1px;background:var(--border)}
 .mfg-grp{border:1px solid var(--border);border-radius:8px;margin-top:8px;overflow:hidden}
 .mfg-grp-h{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg-2);border-bottom:1px solid var(--border)}
-.mfg-grp-h b{font-size:12px;color:var(--text)}
+.mfg-grp-h b{font-size:12.5px;font-weight:600;color:var(--text)} /* valor do protótipo, manufacturing-page.css L53 (gaveta da receita, 2026-10-19) */
 .mfg-grp-h .v{margin-left:auto;font-family:var(--font-mono,ui-monospace,monospace);font-size:12px;color:var(--text)}
 .mfg-ing{display:grid;grid-template-columns:1fr 96px 92px 96px;gap:10px;align-items:center;padding:7px 12px;border-bottom:1px solid var(--border);font-size:12.5px}
 .mfg-ing:last-child{border-bottom:0}
@@ -79,7 +75,6 @@
 .mfg-tot .big dt{font-weight:600;color:var(--text)}
 .mfg-tot .big dd{font-size:15px;font-weight:600;color:var(--color-primary)}
 .mfg-tot hr{grid-column:1/-1;border:0;border-top:1px solid var(--border);margin:4px 0}
-.mfg-drw-f{border-top:1px solid var(--border);padding:12px 20px;display:flex;gap:8px;justify-content:flex-end;background:var(--surface)}
 .mfg-note{font-size:11.5px;color:var(--text-dim);margin:10px 0 0;line-height:1.5}
 .mfg-note code{font-family:var(--font-mono,ui-monospace,monospace);font-size:10.5px;background:var(--bg-2);padding:1px 4px;border-radius:3px}
 
@@ -143,6 +138,11 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
    nos .tsx devolve ZERO — nem esta tela usa (migrou pro `<Button>`). Vazando e morta:
    sai. É a proibição "aplicar bundle Cowork SEM scopear" (proibicoes.md §DS). */
 .mfg-ing.mfg-ing5{grid-template-columns:minmax(180px,1fr) 130px 92px 100px 76px}
+/* Dentro da gaveta (Receitas afetadas, aba Insumos) a trilha acima pede 642px e o cartão tem 615:
+   a coluna Margem era cortada e o nome da receita truncado. Mesma regra do protótipo
+   (manufacturing-page.css, `.mfg-root aside[role="dialog"] .mfg-ing.mfg-ing5`); aqui a gaveta é o
+   `SheetContent`, que leva `mfg-root` e `role="dialog"` no mesmo elemento. */
+.mfg-root[role="dialog"] .mfg-ing.mfg-ing5{grid-template-columns:minmax(0,1fr) 104px 92px 96px 72px}
 .mfg-ing.mfg-ing6{grid-template-columns:minmax(200px,1fr) 92px 132px 104px 96px 34px}
 .mfg-ed-main{overflow-x:auto}
 .mfg-ed-main .mfg-grp,.mfg-ed-main .mfg-pick,.mfg-ed-main .mfg-add.mfg-block{min-width:680px}

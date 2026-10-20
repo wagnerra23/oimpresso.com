@@ -565,6 +565,28 @@ O que falta, e é o escopo desta US: a leitura "rolo → OS" (lote, frações po
 - [ ] Tela: o rastreio dentro do relatório de Lotes (hoje só o JSON). Ver o `[BACKLOG]` de `Relatorios/Lotes/Index.casos.md`.
 - [ ] Separar no relatório de Lotes a fração usada em OS da venda (a `consultaLotes` soma a baixa da OS em "vendido").
 
+### US-COM-026 · Compra recebida aplica a regra de custo e preço (UC-FLX-17)
+
+> owner: wagner · priority: p1 · estimate: 3h · status: doing · type: story
+
+Como dono que configurou a regra "Atualizar o custo dos insumos" na aba Fluxos, quero que a compra, ao ficar recebida, grave o custo do insumo pelo método da regra e trate o preço de venda como a regra manda, para que o custo não seja o último preço digitado e o preço não mude sem eu escolher.
+
+**Implementado em:** `Modules/Compras/Services/AplicarCustoDoRecebimento.php` · `Modules/Compras/Tests/Feature/AplicarCustoDoRecebimentoTest.php`
+
+- Origem: UC-FLX-17 da tela de fluxos (etapa Recebido). Até aqui o recebimento não lia `RegrasCompra`: com `business.enable_editing_product_from_purchase` ligado, `ProductUtil::updateProductFromPurchase` gravava o último preço em `variations.default_purchase_price`/`dpp_inc_tax`, inclusive em compra pendente.
+- Só vale para a empresa que gravou a regra de custo (`fsm_modelos_empresa.regras_compra` com a chave `insumo.custo`), ligada e disparando em Recebido. Empresa que nunca gravou a regra: comportamento de antes, sem nenhuma mudança.
+- Custo: `CustoDoInsumoService::naData` (US-COM-024) na data da compra, pelo `metodo` da regra. Custo nulo (sem compra recebida ou método sem resposta): a variação não muda.
+- Preço (`preco`): `so_custo` não muda o preço; `aplicar` recalcula o preço mantendo a margem atual da variação; `propor` grava uma proposta em `compras_propostas_preco` e não muda o preço.
+- Fora daqui (follow-up): a fila de aprovação das propostas (`aprovacao`), `regraEm`, a etapa Conferido e a propagação para os produtos fabricados.
+
+**Acceptance:**
+- [x] Recebimento com a regra grava o custo pelo método da regra, em `default_purchase_price` e `dpp_inc_tax`
+- [x] `so_custo`: preço igual, margem recalculada; `aplicar`: preço novo com a margem de antes; `propor`: proposta pendente com custo e preço antes/depois, preço igual
+- [x] Com a regra, compra pendente não muda custo nem preço (a edição de produto pela compra do core fica desligada)
+- [x] Empresa sem a regra gravada: o core segue como antes (teste do último preço)
+- [x] Tier 0: só variações da empresa da compra; a outra empresa não muda
+- [ ] Fila de aprovação das propostas (Fabricação / Pendências)
+
 ### 9.1 Seguradas (feature-wish ADR 0105 — NÃO no backlog ativo)
 
 Sem dor reportada por cliente / sinal qualificado, estas **não** viram US ativa (ADR 0105 — cliente como sinal). Ficam catalogadas como wish, reabrem com sinal:
