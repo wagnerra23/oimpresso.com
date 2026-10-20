@@ -1,4 +1,5 @@
 <?php
+// @covers-us US-PCP-029
 
 declare(strict_types=1);
 // Cobre o alocador: quem e quando começa cada etapa (UC-FLX-10 · US-PCP-029).
