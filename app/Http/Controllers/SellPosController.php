@@ -2399,6 +2399,14 @@ class SellPosController extends Controller
         $transaction = Transaction::where('invoice_token', $token)->with(['business', 'location'])->first();
 
         if (!empty($transaction)) {
+            // US-SELL-070 · UC-FLX-04 — termômetro de acesso da proposta. Falha ao gravar não
+            // pode derrubar a página do cliente (o recorder já engole; o try daqui cobre o container).
+            try {
+                app(\App\Services\Sells\QuoteAccessRecorder::class)->record($transaction, request());
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('quote_access.record_failed', ['transaction_id' => (int) $transaction->id]);
+            }
+
             $invoice_layout_id = $transaction->is_direct_sale ? $transaction->location->sale_invoice_layout_id : null;
 
             $receipt = $this->receiptContent($transaction->business_id, $transaction->location_id, $transaction->id, 'browser', false, false, $invoice_layout_id);

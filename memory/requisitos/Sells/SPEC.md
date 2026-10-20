@@ -1560,7 +1560,9 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 
 ### US-SELL-070 · Termômetro de acesso da proposta (UC-FLX-04) — **P2**
 
-**Implementado em:** _pendente_
+**Implementado em:** `app/Services/Sells/QuoteAccessRecorder.php` · `app/Jobs/QuoteFollowUpJob.php` · `app/Console/Commands/Sells/QuoteFollowUpCommand.php` · `database/migrations/2026_10_20_120000_create_transaction_quote_accesses_table.php`
+
+**Testado em:** `tests/Feature/Sells/QuoteAccessTermometroContratoTest.php` (lane `sells-pest.yml`) — casos UC-QUO-05..08 no Quotations.casos.md da tela de cotações.
 
 > owner: wagner · priority: p2 · estimate: 3h · type: story
 
@@ -1569,11 +1571,13 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 **O que existe (medido 2026-10-20):** a etapa existe (`quote_sent`, ação `enviar_orcamento` em `database/seeders/FsmProcessoVendaComProducaoSeeder.php:178`) e o link público do orçamento também (`/quote/{token}` em `routes/web.php:509` → `SellPosController::showInvoice`, `app/Http/Controllers/SellPosController.php:2397`). O `showInvoice` só renderiza: não grava acesso nenhum. Não há coluna nem tabela de abertura (`opened_at`/`viewed_at`) em `app/` nem em `Modules/Crm`. O CRM registra o mesmo gap para a proposta dele (`memory/requisitos/Crm/SPEC.md:95`, *"falta tracking abertura/aceite"*). O agendamento de retorno do CRM (`Modules/Crm/Entities/Schedule.php`) é o destino natural da tarefa.
 
 **Aceite:**
-- [ ] Abrir o link público `/quote/{token}` de um orçamento em `quote_sent` grava a primeira abertura e o número de aberturas; acesso de usuário logado da própria empresa não conta.
+- [x] Abrir o link público `/quote/{token}` de um orçamento em `quote_sent` grava a primeira abertura e o número de aberturas; acesso de usuário logado da própria empresa não conta.
 - [ ] O detalhe do orçamento mostra "aberto em <data>" ou "não aberto", só para quem tem `sell.view` (ou `direct_sell.view`) na empresa.
-- [ ] Orçamento em `quote_sent` há mais de 48 h sem abertura gera uma tarefa de retorno para o vendedor, uma vez só (rodar de novo não duplica).
-- [ ] A rotina de 48 h roda por empresa e recebe o `business_id` (job assíncrono não usa sessão); token de outro business não grava nada.
+- [x] Orçamento em `quote_sent` há mais de 48 h sem abertura gera uma tarefa de retorno para o vendedor, uma vez só (rodar de novo não duplica).
+- [x] A rotina de 48 h roda por empresa e recebe o `business_id` (job assíncrono não usa sessão); token de outro business não grava nada.
 - [ ] Usuário de outro business que pede o detalhe ou o histórico de abertura recebe 404.
+
+**Entregue em 2026-10-20 (backend):** a abertura vai para a tabela-ponte `transaction_quote_accesses` (não altera `transactions`; sem IP nem user agent). HEAD e prefetch do navegador não contam; falha ao gravar não derruba a página. A tarefa de retorno é um agendamento do CRM (`crm_schedules`, tipo ligação, atribuído ao `created_by` do orçamento e ligado à venda em `crm_followup_invoices`); empresa sem as tabelas do CRM não ganha tarefa. Rotina diária `sells:quote-follow-up --sync` às 08:15 (`app/Console/Kernel.php`). Fora desta entrega: a tela ("aberto em <data>" no detalhe, com o 404 de outro business) — o dado já está na tabela.
 
 ### US-SELL-071 · Pesquisa de satisfação depois da entrega (UC-FLX-25) — **P2**
 
