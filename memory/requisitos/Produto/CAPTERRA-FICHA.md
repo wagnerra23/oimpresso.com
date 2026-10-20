@@ -258,8 +258,42 @@ nota         = 280 / 460 × 100 = 60,9 → 61/100  (igual à de julho)
 nasce pendente e só se aplica quando uma pessoa com permissão aceita.
 
 **Casos de uso registrados no SDD:** [`CU-PROD-16`, `CU-PROD-17` e `CU-PROD-18`](SDD-tela-cadastro-produto-v1.0.md).
-Os três dependem de decisão [W] antes de virarem contrato com teste. A principal: o NCM entra no
-cadastro ou continua só na Tributação, com o cadastro apenas avisando?
+Decidido no mesmo dia ([M], ratificação [W] no merge): **o NCM entra no cadastro**, sem bloquear o
+salvamento de quem vende serviço.
+
+### Comunicação visual (mesmo dia, segunda rodada)
+
+A rodada acima usou só ERP geral. Refeita com ERPs de gráfica e comunicação visual, porque a gráfica
+que imprime sob encomenda emite nota de **serviço** (ISS, Súmula 156 do STJ; item 24.01 da LC 116 para
+placas, banners e adesivos), e então o NCM não pode ser exigido de todo produto.
+
+| Capacidade | Quem faz | oimpresso hoje |
+|---|---|---|
+| Natureza mercadoria × serviço por produto, com o item da LC 116 | GestãoClick ("o enquadramento é decisão do contador") | 🟡 `nfe_naturezas_produto` existe e só o contador decide (Tributação); **não aparece no cadastro** |
+| Material por m², metro linear, peça ou valor fixo, com área mínima | Nortgraf · shopVOX | 🟡 existe no módulo de Comunicação Visual (`comvis_materiais`, `cv_substratos.minimo_m2`), fora do cadastro de produto |
+| Largura útil da bobina, perda e emenda | Calcgraf · shopVOX | 🔴 sem coluna de largura |
+| Material como variação do produto | Nortgraf | 🔴 a grade atual é só tamanho × cor |
+| Serviço de instalação (base + m² + km, NR-35) e de arte | Everflow · GestãoClick | 🟡 `cv_instalacoes_catalogo` no módulo de Comunicação Visual |
+| Custo de máquina por hora | shopVOX | 🔴 só no orçamento |
+
+**Não pontuado:** Mubisys, Zênite e Calcgraf não têm central de ajuda pública, e GestãoClick, Nortgraf
+e Everflow só têm páginas comerciais. Só o shopVOX tem ajuda aberta. Nota com fonte comercial seria
+número inventado. Os casos foram registrados no SDD como `CU-PROD-19` e `CV-06`…`CV-11`.
+
+**Não confirmado:** o mérito da ADI 4389 (só a cautelar), a tese final do Tema 816 do STF, a
+obrigatoriedade do NBS na NFS-e nacional e as datas de rejeição do IBS/CBS (`cClassTrib`) na NF-e.
+
+**Fontes de comunicação visual:**
+[GestãoClick](https://gestaoclick.com.br/segmentos/programa-para-empresa-de-comunicacao-visual/) ·
+[Nortgraf](https://nortgraf.com/comunicacao-visual) ·
+[Everflow](https://everflow.com.br/segmentos/software-para-comunicacao-visual/) ·
+[Calcgraf — comunicação visual](https://www.calcgraf.com.br/segmento/comunicacao-visual/) ·
+[Calcgraf — ficha técnica](https://www.calcgraf.com.br/solucao/ficha-tecnica/) ·
+[shopVOX — perda de material](https://shopvox-pro.helpdocs.io/article/mpjvxhpl2g-wastage-calculator) ·
+[shopVOX — produto × material](https://shopvox-pro.helpdocs.io/article/htcy37tcab-products-vs-materials-in-shop-vox-pro) ·
+[Harada — subitem 13.05](https://haradaadvogados.com.br/iss-exame-do-subitem-13-05-da-lista-de-servicos/) ·
+[CCA — ADI 4389](https://www.cca.com.br/noticias/2721/embalagens-personalizadas-novo-enfoque-dado-pelo-stf-para-efeito-de-tributacao-pelo-icms/) ·
+[Contábeis — cClassTrib](https://www.contabeis.com.br/noticias/74339/cbs-e-ibs-em-2026-exigem-revisao-do-cclasstrib-nas-nf-e/)
 
 **Limite da pesquisa:** a ajuda do Bling devolveu 403 e uma página da Olist devolveu 404; o que se
 cita deles veio dos resumos de busca sobre as páginas oficiais. Não se achou fonte confirmando
