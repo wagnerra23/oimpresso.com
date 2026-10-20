@@ -80,6 +80,10 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('ordens/{id}/custo', [OrdemCustoController::class, 'show'])->whereNumber('id')->name('ordens.custo');
         // US-COMVIS-NEW-004 · UC-FLX-02 — gera o link da prova para o cliente aprovar (JSON).
         Route::post('ordens/{id}/aprovacao-arte', [AprovacaoArteController::class, 'solicitar'])->whereNumber('id')->name('ordens.aprovacao-arte');
+        // US-PCP-028 · UC-FLX-06 — prazo de entrega da venda pela fila dos postos (JSON, só leitura).
+        Route::get('vendas/{id}/prazo', [PrazoDaVendaController::class, 'show'])->whereNumber('id')->name('vendas.prazo');
+        // US-COM-025 · UC-FLX-18 — rastreio do rolo: OS que usaram fração do lote + saldo (JSON, quem vê compras).
+        Route::get('lotes/{id}/rastreio', [LoteRastreioController::class, 'show'])->whereNumber('id')->name('lotes.rastreio');
     });
 
 // ── UC-FLX-02 · US-COMVIS-NEW-004 · página pública da prova (sem login) ──
@@ -92,14 +96,11 @@ Route::middleware(['throttle:30,1'])
         Route::get('{token}', [AprovacaoArteController::class, 'mostrar'])->where('token', '[A-Za-z0-9]{48}')->name('mostrar');
         Route::post('{token}/aprovar', [AprovacaoArteController::class, 'aprovar'])->where('token', '[A-Za-z0-9]{48}')->name('aprovar');
         Route::post('{token}/recusar', [AprovacaoArteController::class, 'recusar'])->where('token', '[A-Za-z0-9]{48}')->name('recusar');
-        // US-PCP-028 · UC-FLX-06 — prazo de entrega da venda pela fila dos postos (JSON, só leitura).
-        Route::get('vendas/{id}/prazo', [PrazoDaVendaController::class, 'show'])->whereNumber('id')->name('vendas.prazo');
-        // US-COM-025 · UC-FLX-18 — rastreio do rolo: OS que usaram fração do lote + saldo (JSON, quem vê compras).
-        Route::get('lotes/{id}/rastreio', [LoteRastreioController::class, 'show'])->whereNumber('id')->name('lotes.rastreio');
     });
 
 // ── US-PCP-029 · UC-FLX-10 · alocador decide quem e quando começa (JSON, gestor) ──
 // ── US-PCP-023 · UC-FLX-12 · romaneio de impressão peça a peça (JSON; a tela é follow-up) ──
+// (os dois num bloco só desde o merge de 2026-10-20; mesmo middleware, rotas distintas)
 Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
     ->prefix('producao')
     ->name('producao.')
