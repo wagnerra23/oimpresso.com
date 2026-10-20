@@ -425,7 +425,9 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ### US-PCP-024 · Simulador de aproveitamento de mídia na bobina (UC-FLX-13) — **P2**
 
-**Implementado em:** _pendente_
+**Implementado em:** `Modules/Producao/Services/AproveitamentoDeMidia.php` · `Modules/Producao/Http/Controllers/AproveitamentoMidiaController.php` · `Modules/Producao/Database/Migrations/2026_10_20_200000_create_pcp_aproveitamento_midia_tables.php`
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoAproveitamentoMidiaContratoTest.php` (lane `verticais-pest.yml`) · casos `Apontamento/Index.casos.md` (UC-PCAPV-01..05).
 
 > owner: wagner · priority: p2 · estimate: 8h · type: story
 > blocked_by: US-PCP-023
@@ -433,11 +435,13 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 **Origem:** UC-FLX-13 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:66`, referências Holdprint, printIQ e Calcgraf, porte média, situação `sem`). Na Pré-impressão os jobs vão para a máquina um a um; nada agrupa peças na largura da bobina. `rg -i "nesting|aproveitamento|largura_bobina"` em `Modules/` volta vazio (medido 2026-10-20): o substrato da CV guarda só preço e mínimo por m² (`Modules/ComunicacaoVisual/Entities/Substrato.php:27-30`), sem largura útil da bobina, e "bobina" no PCP aparece só como motivo de pausa (`Modules/Producao/Entities/Motivo.php:35`).
 
 **Aceite:**
-- [ ] O cadastro da mídia passa a ter largura útil da bobina e margem entre peças.
-- [ ] Dado um conjunto de peças de OS na fila da Pré-impressão com a mesma mídia, o simulador propõe um arranjo na largura da bobina (girando a peça quando a mídia aceita) e mostra metros lineares, área útil e % de perda, comparado com imprimir uma a uma.
-- [ ] O PCP aceita o arranjo e ele vira o romaneio de impressão (US-PCP-023), guardando o consumo previsto de mídia por OS (rateio pela área).
-- [ ] Simular é só leitura; aceitar exige `producao.liberar`, sem ela 403.
-- [ ] Multi-tenant: só entram peças/OS e mídias da empresa do usuário; OS de outra empresa no pedido → 404; Pest com dois tenants.
+- [x] A mídia ganha largura útil da bobina, margem entre peças e se a peça pode girar — em `pcp_bobinas` (uma por mídia, do PCP; o cadastro da mídia segue na Comunicação Visual). `PUT /producao/bobinas/{mídia}` (UC-PCAPV-01).
+- [x] Dado um conjunto de OS e uma mídia, o simulador junta as peças dessa mídia (uma por unidade) e propõe o arranjo em faixas na largura da bobina, girando a peça quando a mídia aceita; mostra metros lineares, área útil, área consumida e % de perda, e os mesmos números para imprimir uma a uma (UC-PCAPV-02/03). Peça maior que a bobina é recusada. `POST /producao/aproveitamento/simular`.
+- [x] O PCP aceita o arranjo: ele é recalculado no servidor e gravado (`pcp_arranjos`), com o consumo previsto de mídia por OS rateado pela área (`pcp_arranjo_os`), e vira o romaneio de impressão de cada OS na etapa informada (US-PCP-023) (UC-PCAPV-04). `POST /producao/aproveitamento`.
+- [x] Simular é só leitura (`producao.access`); aceitar exige o papel `producao.liberar`, sem ele 403 (UC-PCAPV-02/04).
+- [x] Multi-tenant: mídia, OS ou etapa de outra empresa → 404 e nada gravado; Pest com os tenants 98 e 99 (UC-PCAPV-05).
+- [ ] Escolher as OS pela fila da Pré-impressão (hoje o PCP informa as OS) e a tela do simulador com o desenho das faixas.
+- [ ] Baixar a mídia pelo consumo previsto do arranjo (hoje o consumo real segue o apontado na etapa, US-PCP-021).
 
 ### US-PCP-025 · Produção só libera com o sinal pago (UC-FLX-28) — **P2**
 
