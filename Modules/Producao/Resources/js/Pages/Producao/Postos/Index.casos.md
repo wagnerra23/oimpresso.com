@@ -135,6 +135,15 @@ venda de outra empresa não muda.
 
 Status: 🧪
 
+## UC-PCPRZ-09 · A data prometida não muda o vencimento do título · `must`
+
+**Quando** a data prometida é gravada em `transactions.due_date` **Então** o vencimento que o Financeiro calcula
+(`Transaction::getDueDateAttribute`, `TituloAutoService` e `CriarTituloDeVendaJob`) continua sendo a data da venda +
+condição de pagamento: venda a 30 dias de 20/10 vence 19/11; venda sem condição vence 20/10 — antes e depois da gravação
+de 26/10. Regra mestre de valor.
+
+Status: 🧪
+
 - **[BACKLOG]** UC-FLX-06 — mostrar o prazo na aprovação do orçamento (tela de venda); descontar o já apontado da etapa iniciada; o Ponto passar a usar o contrato `CalendarioDaEmpresa` em vez de importar `EssentialsHoliday`.
 
 ---

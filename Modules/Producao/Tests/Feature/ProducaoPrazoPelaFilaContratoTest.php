@@ -2,7 +2,7 @@
 // @covers-us US-PCP-028
 
 declare(strict_types=1);
-// Cobre UC-PCPRZ-01..08 (Postos/Index.casos.md · US-PCP-028 · UC-FLX-06 — prazo de entrega pela fila,
+// Cobre UC-PCPRZ-01..09 (Postos/Index.casos.md · US-PCP-028 · UC-FLX-06 — prazo de entrega pela fila,
 // em dias úteis pelo período de funcionamento cadastrado no RH, e a data prometida gravada na
 // aprovação — decisão [W] 2026-10-20).
 
@@ -310,4 +310,37 @@ it('UC-PCPRZ-08 · na aprovação a estimativa vai para a venda sem data e para 
     $alheia = przVenda($this, $this->b99, 1);
     expect(app(PrometerPrazoDaVenda::class)->gravar($this->b98, $alheia))->toBeNull();
     expect(DB::table('transactions')->where('id', $alheia)->value('due_date'))->toBeNull();
+});
+
+it('UC-PCPRZ-09 · gravar a data prometida não muda o vencimento que o Financeiro calcula', function () {
+    // Regra mestre de valor: `transactions.due_date` (coluna) é a data prometida; o vencimento do
+    // título vem de `$tx->due_date`, que é o accessor `Transaction::getDueDateAttribute`
+    // (data da venda + condição de pagamento). Mede os dois cálculos de vencimento do Financeiro
+    // antes e depois da gravação, numa venda a 30 dias e numa sem condição de pagamento.
+    $titulo = app(\Modules\Financeiro\Services\TituloAutoService::class);
+    $job = (new ReflectionClass(\Modules\Financeiro\Jobs\CriarTituloDeVendaJob::class))->newInstanceWithoutConstructor();
+    $vencimentos = function (int $id) use ($titulo, $job): array {
+        $tx = Transaction::query()->where('business_id', $this->b98)->findOrFail($id);
+        $priv = fn (object $obj) => (fn (Transaction $t) => $this->calcularVencimento($t))->call($obj, $tx);
+
+        return [Carbon::parse($tx->due_date)->toDateString(), $priv($titulo), $priv($job)];
+    };
+
+    $aPrazo = przVenda($this, $this->b98, 1);
+    DB::table('transactions')->where('id', $aPrazo)->update(['status' => 'final', 'pay_term_number' => 30, 'pay_term_type' => 'days',
+        'transaction_date' => '2026-10-20 09:00:00']);
+    $semCondicao = przVenda($this, $this->b98, 1);
+    DB::table('transactions')->where('id', $semCondicao)->update(['status' => 'final', 'transaction_date' => '2026-10-20 09:00:00']);
+
+    $antes = [$aPrazo => $vencimentos($aPrazo), $semCondicao => $vencimentos($semCondicao)];
+    expect($antes[$aPrazo])->toBe(['2026-11-19', '2026-11-19', '2026-11-19'])
+        ->and($antes[$semCondicao])->toBe(['2026-10-20', '2026-10-20', '2026-10-20']);
+
+    foreach ([$aPrazo, $semCondicao] as $id) {
+        // A gravação aconteceu: a coluna recebeu a data prometida (26/10, a mesma do UC-PCPRZ-08).
+        expect(app(PrometerPrazoDaVenda::class)->gravar($this->b98, $id))->toBe('2026-10-26');
+        expect(substr((string) DB::table('transactions')->where('id', $id)->value('due_date'), 0, 10))->toBe('2026-10-26');
+        // E o vencimento do Financeiro não mudou em nenhum dos três caminhos.
+        expect($vencimentos($id))->toBe($antes[$id]);
+    }
 });
