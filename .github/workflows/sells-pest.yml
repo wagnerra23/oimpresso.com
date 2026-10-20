@@ -130,6 +130,10 @@ on:
       # Sob teste em ImportSalesContratoTest (thread 05 · importação de vendas por planilha).
       - 'app/Http/Controllers/ImportSalesController.php'
       - 'app/Services/Sells/**'
+      # Sob teste em SellsTravaAposNotaContratoTest (US-SELL-072): contrato e leitores de nota.
+      - 'app/Contracts/Fiscal/**'
+      - 'Modules/NfeBrasil/Services/NotaDaVendaNfeBrasil.php'
+      - 'Modules/NFSe/Services/NotaDaVendaNfse.php'
       - 'app/Jobs/ImportarVendasJob.php'
       # Sob teste em VendasMwartCutoverTest (flags de cutover por empresa das telas de Vendas).
       - 'config/mwart.php'
@@ -209,6 +213,9 @@ jobs:
               - 'resources/js/Pages/Discount/**'
               - 'app/Http/Controllers/ImportSalesController.php'
               - 'app/Services/Sells/**'
+              - 'app/Contracts/Fiscal/**'
+              - 'Modules/NfeBrasil/Services/NotaDaVendaNfeBrasil.php'
+              - 'Modules/NFSe/Services/NotaDaVendaNfse.php'
               - 'app/Jobs/ImportarVendasJob.php'
               - 'config/mwart.php'
               - 'app/Support/Mwart.php'
@@ -428,6 +435,9 @@ jobs:
         # não retoma, migration de dados idempotente, POST /api/app/pedidos/{id}/acao.
         # 2026-10-16 — + FsmPagamentoForaDasEtapasContratoTest: entregar sai de invoiced,
         # paid → entregar por compatibilidade, migration idempotente, SituacaoPagamentoVenda pelos títulos.
+        # 2026-10-20 — + SellsTravaAposNotaContratoTest (US-SELL-072, UC-SEDIT-13..18): nota autorizada
+        # recusa itens/valores/cliente no PUT /pos/{id} e deixa a observação; nota cancelada não trava;
+        # pagamento trava só valores; nota do 2º business não trava; sem nota nem pagamento, como antes.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -444,6 +454,7 @@ jobs:
             tests/Feature/Sells/SellsShowCustoOrcamentoContratoTest.php \
             tests/Feature/Sells/SellsMargemMinimaContratoTest.php \
             tests/Feature/Sells/SellsEditContratoTest.php \
+            tests/Feature/Sells/SellsTravaAposNotaContratoTest.php \
             tests/Feature/Sells/SellsIndexTenantContratoTest.php \
             tests/Feature/Sells/SellsIndexFiltroDataFimContratoTest.php \
             tests/Feature/Sells/AppPedidosApiContratoTest.php \

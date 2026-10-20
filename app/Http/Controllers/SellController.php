@@ -3287,6 +3287,9 @@ class SellController extends Controller
                     'editDiscount' => (bool) $edit_discount,
                     'update' => true,
                 ],
+                // US-SELL-072 — o que a nota/pagamento travam (o servidor recusa no update; a tela
+                // pode desabilitar os campos): nota, pagamento, itens_valores, cliente, motivo.
+                'trava' => app(\App\Services\Sells\TravaDaVenda::class)->estado($transaction),
                 'urls' => array_filter([
                     // PUT /pos/{id} = SellPosController@update, o caminho canônico de valor (o
                     // mesmo do form Blade sell.edit). /sells/{id} caía em SellController@update,

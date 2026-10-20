@@ -181,6 +181,41 @@ last_run: "2026-10-02"
 
 ---
 
+## Venda com nota ou pagamento trava itens e valores (US-SELL-072)
+
+> **Âncora:** decisão [W] 2026-10-20, textual — *"Trava itens e valores após nota"*. Com nota
+> fiscal válida na venda (NF-e/NFC-e autorizada ou em contingência, NFS-e emitida), itens, valores
+> e cliente não se editam: cancela-se a nota antes. Com pagamento só os valores travam. Campos de
+> texto seguem editáveis. Vale para o update desta tela e do Blade (os dois vão a
+> `SellPosController@update`). VALOR: regra mestre — a trava só recusa, não calcula.
+> Prova: `tests/Feature/Sells/SellsTravaAposNotaContratoTest.php` (lane `sells-pest`).
+
+## UC-SEDIT-13 · Com nota, itens, valores e cliente não mudam
+- **Aceite:** Dado uma venda com NF-e autorizada (ou NFS-e emitida) · Quando o update pede outra quantidade, ou outro cliente · Então volta "Venda com nota autorizada: cancele a nota para alterar itens e valores." e total, linhas e estoque ficam iguais.
+- **Status: 🧪** _(nasce sem run.)_
+
+## UC-SEDIT-14 · Com nota, a observação ainda se edita
+- **Aceite:** Dado uma venda com NF-e autorizada · Quando só a observação muda (valores iguais) · Então a observação é gravada e total, linhas e estoque ficam iguais (não passa pelo recálculo).
+- **Status: 🧪** _(nasce sem run.)_
+
+## UC-SEDIT-15 · Nota cancelada não trava
+- **Aceite:** Dado uma venda cuja NF-e foi cancelada · Quando a quantidade muda · Então o update grava a nova quantidade.
+- **Status: 🧪** _(nasce sem run.)_
+
+## UC-SEDIT-16 · Com pagamento, só os valores travam
+- **Aceite:** Dado uma venda com pagamento registrado e sem nota · Quando a quantidade muda · Então volta "Venda com pagamento: valores não podem ser alterados; estorne o pagamento antes." e nada muda · Quando só a observação muda · Então ela é gravada e o total fica igual.
+- **Status: 🧪** _(nasce sem run.)_
+
+## UC-SEDIT-17 · Nota de outro business não trava esta venda
+- **Aceite:** Dado uma NF-e autorizada do 2º business apontando para o mesmo `transaction_id` de uma venda do business 98 · Quando a quantidade muda · Então o update grava (Tier 0).
+- **Status: 🧪** _(nasce sem run.)_
+
+## UC-SEDIT-18 · Sem nota nem pagamento, a edição é a de antes
+- **Aceite:** Dado uma venda de 2 × 50,00 = 100,00 sem nota nem pagamento · Quando a quantidade vai a 3 · Então o total fica 150,00 e o estoque cai de 8 para 7, como antes desta US.
+- **Status: 🧪** _(nasce sem run.)_
+
+---
+
 ## Backlog — achados sem teste ainda (prosa honesta, sem id)
 
 - ~~**[BACKLOG] Desconto de linha aplicado duas vezes ao editar pela tela React**~~ → virou o **UC-SEDIT-09** (2026-10-02), com conserto e teste.
