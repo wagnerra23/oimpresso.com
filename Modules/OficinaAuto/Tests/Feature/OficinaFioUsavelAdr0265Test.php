@@ -249,6 +249,21 @@ it('fio usável: criar OS → recepcao → entregue → imprimir, sem role mecan
             "action {$actionKey} deve ser executável com permission do módulo (sem role mecanico/gerente)"
         );
 
+        if ($actionKey === 'entregar') {
+            // Entrega exige foto do serviço feito, enviada depois de entrar em execução
+            // (US-OFICINA-047 · UC-FLX-22). A foto do laudo acima é do diagnóstico.
+            $order->arquivos()->create([
+                'business_id'   => BIZ_FIO,
+                'disk'          => 'arquivos',
+                'storage_path'  => 'tests/fio-adr0265-servico.png',
+                'original_name' => 'fio-servico.png',
+                'mime_type'     => 'image/png',
+                'size_bytes'    => 68,
+                'md5'           => md5('fio-adr0265-servico'),
+                'bucket'        => 'active',
+            ]);
+        }
+
         $exec = $this->postJson(
             "/oficina-auto/service-orders/{$order->id}/fsm/execute",
             ['action_key' => $actionKey],

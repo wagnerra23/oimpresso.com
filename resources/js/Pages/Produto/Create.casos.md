@@ -41,6 +41,8 @@ last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 48
 | UC-PCAD-10 | Novo produto nasce nos locais do negócio (um local só já vem marcado) | must | `CU-PROD-01` | `produto-locais.test.tsx` (Vitest) | 🧪 passa |
 | UC-PCAD-11 | Variável e composto não salvam pela tela React: vão para o cadastro clássico | must | `CU-PROD-02` | `produto-tipo.test.tsx` (Vitest) | 🧪 passa |
 | UC-PCAD-12 | Novo produto grava a validade digitada (com o período, como o Blade) | must | `CU-PROD-01` | `produto-formulario.test.tsx` (Vitest) | 🧪 passa |
+| UC-PCAD-13 | Novo produto grava o NCM digitado (8 dígitos), sem exigir NCM | must | `CU-PROD-16` | `CadastroProdutoNcmTest` + `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
+| UC-PCAD-14 | Sem NCM a tela avisa, e o produto é salvo assim mesmo | should | `CU-PROD-18` | `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
 | ~~UC-PCAD-02~~ | ~~Campo obrigatório validado server~~ | — | — | — | ⬛ **retirado** — gap de paridade, não bug |
 | ~~UC-PCAD-03~~ | ~~Defaults conservadores server~~ | — | — | — | ⬛ **retirado** — gap de paridade, não bug |
 | UC-PCAD-05 | Cadastro não aceita insumo de outro business | must `[T0]` | `CU-PROD-01.5` | — | 🔶 **backlog** — achado Tier 0 real, US própria |
@@ -194,6 +196,22 @@ last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 48
 - **Fora deste UC:** duplicar produto ainda não traz a validade do original (o Blade traz); a tela Editar ainda não mostra a validade (o envio dela é o `UC-PEDIT-10`).
 - **Status: 🧪** — teste escrito junto do código, sem veredito publicado no manifesto (G-7).
 
+## UC-PCAD-13 · Novo produto grava o NCM digitado, sem exigir NCM · `must`
+- **Persona:** quem cadastra mercadoria que sai em nota fiscal. O NCM vai em cada item da nota, e sem ele a nota de mercadoria não sai. Antes deste caso, o cadastro não tinha o campo: o NCM só era editado na tela de Tributação do módulo fiscal, que nem toda empresa tem no pacote.
+- **Aceite:** Dado o card "Preço & Imposto" da tela Novo produto · Quando digito o NCM · Então o campo guarda só os dígitos, no máximo 8 (digitar `4911.10.90` fica `49111090`) · E o produto nasce com esse NCM · E, sem NCM (campo vazio, ou o Blade, que não manda o campo), o produto é **salvo** e nasce com o `'0'` que a coluna usa para "sem NCM" · E NCM fora do formato (curto, longo, com pontos) é recusado antes de gravar: nenhum produto nasce · E duplicar um produto traz o NCM dele, e o `'0'` do banco aparece vazio.
+- **Teste:** [`CadastroProdutoNcmTest`](../../../../tests/Feature/Produto/CadastroProdutoNcmTest.php) — `UC-PCAD-13` (o servidor: grava, vazio, Blade, os três formatos recusados, duplicar) · [`produto-formulario.test.tsx`](../../../../tests/js/produto-formulario.test.tsx) — `UC-PCAD-13` (a tela: só dígitos, duplicar, e o Editar sem o campo).
+- **Contrato:** `CU-PROD-16` do [SDD](../../../../memory/requisitos/Produto/SDD-tela-cadastro-produto-v1.0.md) — decisão [M] 2026-10-20, *"o NCM entra no cadastro do produto"* (ratificação [W] no merge). O NCM não é obrigatório porque produto de **serviço** não tem NCM: pela Súmula 156 do STJ, o serviço gráfico sob encomenda paga ISS e sai em nota de serviço (`CU-PROD-19`). A validação de 8 dígitos é a mesma da tela de Tributação (`SugestaoFiscalService`, `digits:8`).
+- **Fora deste UC:** a tela **Editar** ainda não mostra o NCM, porque o `update()` não lê o campo. Pôr o campo lá exige decidir o que fazer com produto antigo cujo NCM está fora do formato (a edição seria recusada por um campo que a pessoa não mexeu).
+- **Status: 🧪** — escrito junto do código, sem veredito da lane `PHP / Pest (Estoque · MySQL)` nem do job `Frontend / Vite build` (G-7). Mordida por mutação ainda não rodada: não há PHP nem Node na máquina onde foi escrito.
+
+## UC-PCAD-14 · Sem NCM a tela avisa, e o produto é salvo assim mesmo · `should`
+- **Persona:** quem cadastra com pressa e deixa o NCM para depois. O produto sem NCM só trava na hora da nota, longe do cadastro.
+- **Aceite:** Dada a tela Novo produto · Quando o NCM está vazio · Então aparece embaixo do campo *"Sem NCM a nota fiscal de mercadoria não sai. Dá para salvar e preencher depois."* · E o botão Salvar continua ligado e o envio acontece · E, com menos de 8 dígitos, o aviso diz *"O NCM tem 8 dígitos."* · E, com os 8 dígitos, o aviso some.
+- **Teste:** [`produto-formulario.test.tsx`](../../../../tests/js/produto-formulario.test.tsx) — `UC-PCAD-14` (sem NCM envia, NCM incompleto). Roda no step "Comportamento React" do job `Frontend / Vite build`.
+- **Contrato:** `CU-PROD-18` do SDD — o aviso não pode impedir o salvamento; o cadastro mínimo segue nome e SKU (`CU-PROD-01`). Referência de mercado: a Omie avisa NCM, EAN e origem faltando; o protótipo `Product Cadastro.html` (Cowork do [F]) desenha *"Faltam: nome, NCM"*.
+- **Fora deste UC:** o aviso olha só o NCM. Produto **novo** ainda não tem natureza fiscal decidida (quem decide é o contador, depois, na Tributação — `UC-NFTR-32`), então a tela não sabe se ele é serviço. Avisar EAN inválido e mostrar a natureza ficam para quando o Editar e a ficha receberem o `CU-PROD-19`.
+- **Status: 🧪** — escrito junto do código, sem veredito publicado (G-7).
+
 ---
 
 ## Pendência de CONTRATO (achado sem caso de uso — não vira UC até `[F]` decidir)
@@ -240,6 +258,10 @@ last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 48
   produto **variável** (`CU-PROD-02` item 2) — vira UC junto com o `casos.md` da grade/variação.
 - **Submit retorna `/products`** — `CU-PROD-01` item 6. É paridade de **navegação**, não de dado;
   o Pest vê o 302 mas o que importa (o operador chega na lista) é smoke da US-PROD-023.
+- **NCM na tela Editar** — `CU-PROD-16`. Falta o `update()` gravar o campo e decidir o que fazer com o NCM antigo fora do formato (ver "Fora deste UC" do `UC-PCAD-13`).
+- **Natureza fiscal (mercadoria × serviço) no cadastro** — `CU-PROD-19`. A natureza existe (`nfe_naturezas_produto`) e é decidida pelo contador na Tributação; o cadastro ainda não a mostra. Vira UC no `Edit.casos.md` ou na ficha, onde o produto já existe.
+- **Peso bruto e dimensões** — `CU-PROD-17`. Não há colunas para isso em `products`; vira UC quando houver sinal de cliente que despacha ou vende em marketplace (ADR 0105).
+- **Casos de comunicação visual** — `CV-06` a `CV-11` do SDD. A maior parte do dado mora no módulo de Comunicação Visual; viram UC com sinal de cliente.
 - **Quick-add inline** — `CU-PROD-08`. Rota e contrato separados (`save_quick_product`); merece
   `casos.md` próprio quando a tela de origem (venda/compra) fechar o trio dela.
 
