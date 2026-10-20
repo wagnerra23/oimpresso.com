@@ -6,7 +6,10 @@
 import { useMemo, useState } from 'react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { PageHeader } from '@/Components/PageHeader';
+import { Inline } from '@/Components/layout';
+import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import DocRail from './_components/DocRail';
 import LenteBar from './_components/LenteBar';
 import type { Navegacao } from './_components/tipos';
@@ -38,20 +41,21 @@ interface Props {
   escopo: { tipos: string[]; prosa: string };
 }
 
-const TOM: Record<string, string> = {
-  ok: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200',
-  accent: 'bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-200',
-  warn: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200',
-  danger: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200',
-  mute: 'bg-muted text-muted-foreground',
+const VARIANTE: Record<string, 'success' | 'warning' | 'danger' | 'info' | 'neutral'> = {
+  ok: 'success',
+  accent: 'info',
+  warn: 'warning',
+  danger: 'danger',
+  mute: 'neutral',
 };
+const TODOS = '__todos__';
 
 export default function CasosDeUso({ casos, processos, estados, fonte, blob, buscaDisponivel, nav, atual, escopo }: Props) {
-  const [processo, setProcesso] = useState<string>('');
-  const [estado, setEstado] = useState<string>('');
+  const [processo, setProcesso] = useState<string>(TODOS);
+  const [estado, setEstado] = useState<string>(TODOS);
 
   const visiveis = useMemo(
-    () => casos.filter((c) => (!processo || c.processo === processo) && (!estado || c.estado === estado)),
+    () => casos.filter((c) => (processo === TODOS || c.processo === processo) && (estado === TODOS || c.estado === estado)),
     [casos, processo, estado],
   );
 
@@ -84,25 +88,23 @@ export default function CasosDeUso({ casos, processos, estados, fonte, blob, bus
               <span className="m">renderizado a cada acesso</span>
             </div>
 
-            <div className="mb-3 flex flex-wrap gap-2" data-contract="casos-filtros">
-              <select
-                aria-label="Filtrar por processo"
-                className="h-8 rounded-md border bg-background px-2 text-sm"
-                value={processo}
-                onChange={(e) => setProcesso(e.target.value)}
-              >
-                <option value="">Todos os processos</option>
-                {processos.map((p) => <option key={p} value={p}>{p}</option>)}
-              </select>
-              <select
-                aria-label="Filtrar por estado"
-                className="h-8 rounded-md border bg-background px-2 text-sm"
-                value={estado}
-                onChange={(e) => setEstado(e.target.value)}
-              >
-                <option value="">Todos os estados</option>
-                {Object.entries(estados).map(([k, e]) => <option key={k} value={k}>{e.rotulo}</option>)}
-              </select>
+            <div className="mb-3" data-contract="casos-filtros">
+              <Inline gap={2} wrap>
+                <Select value={processo} onValueChange={setProcesso}>
+                  <SelectTrigger size="sm" aria-label="Filtrar por processo"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={TODOS}>Todos os processos</SelectItem>
+                    {processos.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Select value={estado} onValueChange={setEstado}>
+                  <SelectTrigger size="sm" aria-label="Filtrar por estado"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={TODOS}>Todos os estados</SelectItem>
+                    {Object.entries(estados).map(([k, e]) => <SelectItem key={k} value={k}>{e.rotulo}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </Inline>
             </div>
 
             <div className="overflow-x-auto" data-contract="casos-tabela">
@@ -126,7 +128,7 @@ export default function CasosDeUso({ casos, processos, estados, fonte, blob, bus
                       <td className="py-2 pr-3 whitespace-nowrap">{c.processo} · {c.etapa}</td>
                       <td className="py-2 pr-3">{c.regra}</td>
                       <td className="py-2 pr-3 whitespace-nowrap">
-                        <span className={`rounded px-1.5 py-0.5 text-xs ${TOM[c.estadoTom] ?? TOM.mute}`}>{c.estadoRotulo}</span>
+                        <Badge variant={VARIANTE[c.estadoTom] ?? 'neutral'}>{c.estadoRotulo}</Badge>
                       </td>
                       <td className="py-2 text-xs">{c.us || '—'}</td>
                     </tr>

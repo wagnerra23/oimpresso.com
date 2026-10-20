@@ -7,6 +7,7 @@
 // Read-only de propósito (Non-Goal do charter): nada aqui grava, e por isso não há FsmActionPanel.
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { PageHeader } from '@/Components/PageHeader';
+import { Inline } from '@/Components/layout';
 import { Button } from '@/Components/ui/button';
 import DocRail from './_components/DocRail';
 import LenteBar from './_components/LenteBar';
@@ -36,14 +37,14 @@ export default function Index({ html, sumario, fonte, blob, atualizadoEm, buscaD
             title="Documentação do sistema"
             subtitle="A página é o documento renderizado a cada acesso — não uma cópia dele."
             actions={
-              <div className="flex gap-2">
+              <Inline gap={2}>
                 <Button asChild variant="outline" size="sm">
                   <a href="/documentacao/casos-de-uso">Casos de uso</a>
                 </Button>
                 <Button asChild variant="outline" size="sm">
                   <a href={blob} target="_blank" rel="noopener noreferrer">Ver fonte no git</a>
                 </Button>
-              </div>
+              </Inline>
             }
             below={<div data-contract="doc-lentebar"><LenteBar nav={nav} path="/documentacao" /></div>}
           />

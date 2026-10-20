@@ -283,7 +283,7 @@ class DocumentacaoController extends Controller
 
         foreach ($catalogo::CASOS as [$id, $titulo, $processo, $etapa, $regra, $fontes, $porte, $estado, $us]) {
             $processos[$processo] = true;
-            [$rotuloEstado, $tom] = $catalogo::ESTADOS[$estado] ?? [$estado, 'mute'];
+            [$rotuloEstado, $tom] = $catalogo::ESTADOS[$estado];
 
             $casos[] = [
                 'id' => $id,
@@ -291,8 +291,8 @@ class DocumentacaoController extends Controller
                 'processo' => $processo,
                 'etapa' => $etapa,
                 'regra' => $regra,
-                'fontes' => array_map(static fn (string $f): string => $catalogo::FONTES[$f][0] ?? $f, $fontes),
-                'porte' => $catalogo::PORTES[$porte][0] ?? $porte,
+                'fontes' => array_map(static fn (string $f): string => $catalogo::FONTES[$f][0], $fontes),
+                'porte' => $catalogo::PORTES[$porte][0],
                 'estado' => $estado,
                 'estadoRotulo' => $rotuloEstado,
                 'estadoTom' => $tom,
