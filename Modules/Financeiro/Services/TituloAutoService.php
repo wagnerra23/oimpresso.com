@@ -76,10 +76,10 @@ class TituloAutoService
             return null;
         }
 
-        // US-FIN-072 — título que recebeu baixa de RETENÇÃO da NFS-e: o valor em aberto vem das
-        // baixas (bruto − baixas), não do core. Sem isto a re-sincronização punha o aberto de
-        // volta no bruto (`total_remaining_amount` não existe em transactions) e, com a venda
-        // paga, cancelava o título em vez de quitá-lo. Escopo: só títulos com o registro.
+        // US-FIN-072 — título que recebeu baixa de RETENÇÃO da NFS-e. O aberto da venda parcial
+        // já vem das baixas no caminho geral (US-FIN-073); o que este desvio ainda segura é a
+        // venda PAGA: o caminho geral cancela o título ("quitada no caixa"), e aqui a retenção
+        // é baixa de verdade, então o título tem de ficar QUITADO. Escopo: só títulos com o registro.
         if ($tx->type === 'sell' && ($marcado = $this->tituloComRetencaoNfse($tx)) !== null) {
             $marcado->valor_total = (float) $tx->final_total;
             $this->recalcularTitulo($marcado);
@@ -103,16 +103,8 @@ class TituloAutoService
         };
 
         $valorTotal = (float) $tx->final_total;
-        // Pra expense paga: valor_aberto = 0 (mesma regra do bridge F5).
-        // Pra sell/purchase paga/parcial: usa total_remaining_amount.
-        if ($tx->type === 'expense' && $tx->payment_status === 'paid') {
-            $valorAberto = 0.0;
-        } else {
-            $valorAberto = (float) ($tx->total_remaining_amount ?? $tx->final_total);
-        }
-        $valorPago = $valorTotal - $valorAberto;
 
-        return DB::transaction(function () use ($tx, $tipo, $origem, $valorTotal, $valorAberto, $valorPago) {
+        return DB::transaction(function () use ($tx, $tipo, $origem, $valorTotal) {
             // SUPERADMIN: Observer Transaction sem session — business_id deduzido da Transaction recebida
             // Procura existente pra preservar `numero` (idempotente).
             $existing = Titulo::query()
@@ -124,6 +116,26 @@ class TituloAutoService
                 ->first();
 
             $numero = $existing?->numero ?? $this->proximoNumero($tx->business_id, $tipo);
+
+            // Valor em aberto (US-FIN-073):
+            //  - expense: regra da Fase 5.5 intacta (paga → 0; senão o atributo, que nas despesas
+            //    vem do bridge F5 — fora do escopo deste conserto).
+            //  - sell/purchase: BRUTO − BAIXAS do próprio título, a mesma conta do
+            //    recalcularTitulo(). Antes lia `$tx->total_remaining_amount`, coluna que NÃO existe
+            //    em `transactions` (BridgeExpenseToTitulosCommand:30) — o `?? final_total` sempre
+            //    ganhava, e cada re-sincronização (o core faz save() do payment_status depois de
+            //    cada pagamento) devolvia o aberto ao bruto, apagando os pagamentos já baixados.
+            //    As baixas são escritas pelo TransactionPaymentObserver; ler delas não duplica nada.
+            if ($tx->type === 'expense') {
+                $valorAberto = $tx->payment_status === 'paid'
+                    ? 0.0
+                    : (float) ($tx->total_remaining_amount ?? $tx->final_total);
+            } else {
+                $valorAberto = $existing
+                    ? $this->abertoPorBaixas((int) $existing->id, $valorTotal)
+                    : $valorTotal;
+            }
+            $valorPago = $valorTotal - $valorAberto;
 
             // Onda Edit 2026-05-18 — cross-link auto-pop em `cliente_descricao`.
             // Formato: "{ContactName} · #V-{txId}" (venda), "{ContactName} · #PC-{txId}" (compra),
@@ -453,14 +465,8 @@ class TituloAutoService
      */
     public function recalcularTitulo(Titulo $titulo): void
     {
-        // SUPERADMIN: Observer/Job sem session — soma baixas pelo titulo_id (biz preservado pela FK Titulo)
-        $somaBaixas = (float) TituloBaixa::query()
-            ->withoutGlobalScope(BusinessScopeImpl::class)
-            ->where('titulo_id', $titulo->id)
-            ->sum('valor_baixa');
-
         $valorTotal = (float) $titulo->valor_total;
-        $valorAberto = max(0, $valorTotal - $somaBaixas);
+        $valorAberto = $this->abertoPorBaixas((int) $titulo->id, $valorTotal);
 
         if ($titulo->status === 'cancelado') {
             // Cancelado fica cancelado — só atualiza valor_aberto pra refletir baixas.
@@ -480,6 +486,22 @@ class TituloAutoService
         }
 
         $titulo->save();
+    }
+
+    /**
+     * Aberto do título = bruto − Σ baixas líquidas (estornos entram negativos), nunca < 0.
+     * Fonte única do aberto de venda/compra: recalcularTitulo() e a re-sincronização
+     * (US-FIN-073) leem daqui, então as duas não divergem.
+     */
+    public function abertoPorBaixas(int $tituloId, float $valorTotal): float
+    {
+        // SUPERADMIN: Observer/Job sem session — soma baixas pelo titulo_id (biz preservado pela FK Titulo)
+        $somaBaixas = (float) TituloBaixa::query()
+            ->withoutGlobalScope(BusinessScopeImpl::class)
+            ->where('titulo_id', $tituloId)
+            ->sum('valor_baixa');
+
+        return round(max(0.0, $valorTotal - $somaBaixas), 2);
     }
 
     /**
@@ -576,10 +598,6 @@ class TituloAutoService
             ->first();
     }
 
-    /**
-     * Mapeia transaction_payments.method (enum core UltimatePOS) →
-     * fin_titulo_baixas.meio_pagamento (enum Financeiro). Default: 'outro'.
-     */
     private function tituloComRetencaoNfse(Transaction $tx): ?Titulo
     {
         // SUPERADMIN: Observer Transaction sem session — business_id da Transaction recebida
@@ -595,6 +613,10 @@ class TituloAutoService
         return is_array($titulo?->metadata['retencao_nfse'] ?? null) ? $titulo : null;
     }
 
+    /**
+     * Mapeia transaction_payments.method (enum core UltimatePOS) →
+     * fin_titulo_baixas.meio_pagamento (enum Financeiro). Default: 'outro'.
+     */
     private function mapearMeioPagamento(?string $method): string
     {
         return match ($method) {
