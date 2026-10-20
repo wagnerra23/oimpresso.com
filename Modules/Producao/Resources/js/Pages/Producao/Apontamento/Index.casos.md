@@ -526,6 +526,52 @@ Status: 🧪
 
 ---
 
+## Previsto × realizado por OS (US-COMVIS-005 · UC-FLX-15)
+
+> **Âncora:** UC-FLX-15 do catálogo de fluxos (*"Previsto × realizado por OS — congela o custo real e compara
+> com o orçado e o aprovado"*, etapa Entregue) e US-COMVIS-005 (*"ver, ao fechar OS, comparativo: custo orçado
+> vs custo real"*). Orçado = custo guardado na linha da venda no dia do orçamento (US-SELL-067); realizado =
+> custo congelado ao concluir (US-PCP-021). Leitura para o gestor (`GET /producao/ordens/{id}/previsto-realizado`
+> e `GET /producao/vendas/{id}/previsto-realizado`); a tela ainda não mostra. Prova:
+> `ProducaoPrevistoRealizadoContratoTest`. Só leitura: nada do gravado muda.
+
+## UC-PCPR-01 · OS concluída: orçado × congelado · `must` valor
+
+**Dado** a linha de 4 × 25,00 com custo guardado 12,50 e a OS concluída com 62,00 congelado **Quando** o gestor
+consulta **Então** vê orçado 50,00, realizado 62,00, diferença +12,00 (+24,00%), margem orçada 50,00% e real
+38,00%; nada é gravado.
+
+Status: 🧪
+
+## UC-PCPR-02 · OS aberta mostra o parcial; cancelada, nada · `must` valor
+
+**Dado** a OS em execução com 7,50 de material apontado (linha 2 × 30,00, custo guardado 10,00) **Então** vê
+"em andamento", realizado 7,50, diferença −12,50 (−62,50%) e o congelado segue vazio; a OS cancelada não tem
+realizado.
+
+Status: 🧪
+
+## UC-PCPR-03 · A venda soma as OS · `must` valor
+
+**Dado** a venda com as duas OS acima e uma cancelada **Então** o total é receita 160,00, orçado 70,00,
+realizado 69,50, diferença −0,50 (−0,71%), margem orçada 56,25% e real 56,56%, "em andamento" enquanto
+alguma OS não concluiu; a cancelada fica fora.
+
+Status: 🧪
+
+## UC-PCPR-04 · Linha sem custo guardado · `must`
+
+**Dado** a linha vendida sem custo guardado **Então** não há orçado, diferença nem margem orçada; a margem real
+aparece, e a venda avisa `sem_orcado`.
+
+Status: 🧪
+
+## UC-PCPR-05 · Custo é do gestor · `must`
+
+**Quando** o operador sem `producao.desempenho.ver` consulta a OS ou a venda **Então** 403; OS ou venda de outra
+empresa **Então** 404.
+
+Status: 🧪
 ## Sinal pago libera a OS (US-PCP-025 · UC-FLX-28)
 
 > **Âncora:** US-PCP-025 do `memory/requisitos/Producao/SPEC.md` (*"A empresa configura se a produção exige

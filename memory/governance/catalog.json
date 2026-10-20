@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 840,
-    "edges": 1143,
+    "nodes": 841,
+    "edges": 1144,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 460,
+      "component": 461,
       "api": 86
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 90,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 460,
+      "hasComponent": 461,
       "dependsOn": 125,
       "delegatesTo": 116,
       "migratesTo": 1,
@@ -4322,6 +4322,13 @@
       "module": "Producao",
       "name": "PrazoDaVendaController + PrazoPelaFila",
       "desc": "prazo de entrega da venda/orçamento pela fila dos postos (Σ programações abertas + etapas do roteiro ÷ horas por dia, em dias úteis pelo CalendarioDeProducao: turno da produção, senão expediente do RH; folgas do expediente e feriados do RH da empresa e da loja, pelo contrato CalendarioDaEmpresa do Rh), JSON só leitura com sell.view ou producao.access (US-PCP-028 · UC-FLX-06)"
+    },
+    {
+      "id": "component:Producao/PrevistoRealizadoController + PrevistoRealizadoDaOrdem",
+      "type": "component",
+      "module": "Producao",
+      "name": "PrevistoRealizadoController + PrevistoRealizadoDaOrdem",
+      "desc": "previsto × realizado por OS e por venda: custo guardado na linha da venda × custo real congelado, diferença e margem, JSON só com producao.desempenho.ver (US-COMVIS-005 · UC-FLX-15)"
     },
     {
       "id": "component:Producao/PrometerPrazoDaVenda",
@@ -12542,6 +12549,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/PrazoDaVendaController + PrazoPelaFila",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/PrevistoRealizadoController + PrevistoRealizadoDaOrdem",
       "type": "hasComponent",
       "source": "contains"
     },
