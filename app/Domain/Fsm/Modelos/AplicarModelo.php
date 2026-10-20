@@ -24,7 +24,8 @@ use Spatie\Permission\Models\Role;
  * processos do `$businessId` recebido. Nunca altera documento (`transactions`, OS…), nunca
  * desativa processo de outro modelo nem o legado. A ação de avançar só recebe side effect quando a
  * regra da etapa de destino aponta um que já existe — hoje nenhuma (todas planejadas). O cancelar
- * fica sem efeito até um documento usar o processo. Aplicar de novo mantém o `ligada` que a
+ * fica sem efeito até um documento usar o processo. Regra planejada com motivo conhecido grava a
+ * `pendencia` (CatalogoModelos::PENDENCIAS) — o porquê de não executar. Aplicar de novo mantém o `ligada` que a
  * empresa já gravou nas regras (firstOrCreate não reescreve a etapa) e liga a regra de custo da
  * compra com os parâmetros do modelo (RegrasCompra).
  */
@@ -100,6 +101,7 @@ final class AplicarModelo
                 'estado' => $classe !== null ? 'ativo' : 'planejado',
                 'side_effect' => $classe,
                 'candidato' => $candidato,
+                'pendencia' => $classe === null ? (CatalogoModelos::PENDENCIAS[$uc] ?? null) : null,
             ], fn ($v) => $v !== null);
         }
 

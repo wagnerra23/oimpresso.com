@@ -98,9 +98,12 @@ Status: 🧪
 > Os mesmos UCs cobrem a parte já feita do **UC-FLX-14** (*"Consome do estoque a quantidade real, não a
 > orçada"*, `CasosDoPrototipo.php:67`, situação `parcial`): o que baixa é a quantidade apontada na etapa.
 
-- **[BACKLOG]** UC-FLX-14 — a regra "ao entrar na etapa → Baixa o material do estoque" dos modelos de
-  processo ainda não executa: em `app/Domain/Fsm/Modelos/CatalogoModelos.php` ela é só dado, com
-  `ConsumirEstoque` como candidato (ele baixa a quantidade reservada, e o caso pede a consumida).
+> A regra "ao entrar na etapa → Baixa o material do estoque" do catálogo está só nos modelos de venda
+> sem OS (Balcão enxuto e Brindes). Nos modelos com OS a baixa é a do apontamento, acima — não há regra
+> que baixe de novo. Nos sem OS ela não executa de propósito e grava o porquê
+> (`CatalogoModelos::PENDENCIAS`): ligar o `ConsumirEstoque` baixaria a reserva por cima da baixa da
+> venda finalizada. Prova em `resources/js/Pages/Fluxos/Index.casos.md` (UC-FLXT-20 e UC-FLXT-21); o
+> que é "consumido" na venda sem OS segue no backlog de lá, como decisão [W].
 
 ## UC-PCMAT-01 · O material sai do estoque do local da venda · `must`
 
@@ -240,6 +243,58 @@ Status: 🧪
 
 ---
 
+## Aproveitamento de mídia na bobina (US-PCP-024 · UC-FLX-13)
+
+> **Âncora:** UC-FLX-13 do catálogo de fluxos (*"Agrupa os jobs na bobina para reduzir a perda de mídia"*,
+> etapa Pré-impressão, referências Holdprint, printIQ e Calcgraf) e a US-PCP-024 do SPEC. As peças vêm dos
+> itens do orçamento das OS de comunicação visual (`comvis_orcamento_itens`, só os da mídia pedida); a
+> largura útil da bobina é do PCP (`pcp_bobinas`). Arranjo em faixas: da peça mais alta para a mais baixa,
+> cada uma na primeira faixa onde cabe; com giro, a peça deita quando cabe. JSON (`PUT /producao/bobinas/{mídia}`,
+> `POST /producao/aproveitamento/simular`, `POST /producao/aproveitamento`); a tela ainda não mostra.
+> Prova: `ProducaoAproveitamentoMidiaContratoTest`.
+
+## UC-PCAPV-01 · A mídia ganha largura útil, margem e giro · `must`
+
+**Dado** a Lona sem bobina cadastrada **Quando** simula **Então** 422 `material_invalido` · **Quando** cadastra
+1,600 m de largura útil e 0,020 m de margem **Então** a bobina fica com giro permitido; trocar para sem giro não
+duplica (uma bobina por mídia); largura 0 é recusada.
+
+Status: 🧪
+
+## UC-PCAPV-02 · Girando, 4 peças em 2 faixas · `must`
+
+**Dado** a OS A com 2 × 0,780 × 0,500 m de Lona (e um adesivo, outra mídia) e a OS B com 0,500 × 1,000 m e
+0,580 × 0,500 m de Lona **Quando** simula as duas **Então** o banner deita (1,000 × 0,500); faixa 1 = banner + placa
+(1,600 m), faixa 2 = as duas faixas (1,580 m); 1,020 m de rolo, 1,570 m² úteis em 1,632 m², perda 3,80% — uma a
+uma seriam 2,060 m e 52,37% · o consumo previsto rateado pela área: A 0,507 m, B 0,513 m · simular não grava nada.
+
+Status: 🧪
+
+## UC-PCAPV-03 · Sem giro o rolo cresce; peça maior que a bobina é recusada · `must`
+
+**Dado** a mesma Lona sem giro **Quando** simula **Então** o banner fica em pé (faixa de 1,000 m) e o rolo vai a
+1,520 m · peça de 1,700 × 1,700 m numa bobina de 1,600 m **Então** 422 `material_invalido`.
+
+Status: 🧪
+
+## UC-PCAPV-04 · Aceitar vira o romaneio de cada OS · `must`
+
+**Quando** o operador sem o papel `producao.liberar` aceita **Então** 403 e nada é gravado · **Quando** o PCP aceita
+com a etapa de destino de cada OS **Então** grava o arranjo (1,020 m, 2,060 m uma a uma, quem aceitou), o consumo
+previsto de cada OS (0,507 m e 0,513 m) e gera o romaneio de impressão de cada OS nessa etapa (US-PCP-023), ligado
+ao arranjo.
+
+Status: 🧪
+
+## UC-PCAPV-05 · Outra empresa, 404 · `must`
+
+**Quando** o PCP do tenant 98 cadastra bobina ou simula com mídia do tenant 99, põe OS do tenant 99 no arranjo,
+ou aponta etapa do tenant 99 como destino **Então** 404, e nenhuma bobina, arranjo ou romaneio é gravado.
+
+Status: 🧪
+
+---
+
 ## Liberação da OS para a produção (UC-FLX-28 · parcial · US-PCP-025)
 
 > **Âncora:** US-PCP-025 do `memory/requisitos/Producao/SPEC.md` (§Origem: *"Existe: o estado inicial
@@ -275,9 +330,54 @@ segue em Aguardando liberação.
 
 Status: 🧪
 
-- **[BACKLOG]** UC-FLX-28 — com a regra ligada pela empresa, o Liberar recusa enquanto o título do sinal do
-  orçamento não estiver quitado, e a quitação (baixa manual ou retorno do banco) libera a OS sozinha pela
-  FSM. Nada disso existe hoje: falta gerar as parcelas de sinal na aprovação, o vínculo título ↔ OS e o
-  listener (US-PCP-025).
 - **[BACKLOG]** Liberar sem o papel `producao.liberar` é recusado pelo motor FSM (`ProcessoDaOrdem::ACOES`),
   mas ainda não tem teste próprio nesta tela.
+
+---
+
+## Sinal pago libera a OS (US-PCP-025 · UC-FLX-28)
+
+> **Âncora:** US-PCP-025 do `memory/requisitos/Producao/SPEC.md` (*"A empresa configura se a produção exige
+> sinal; desligado, o `liberar` segue como hoje"* · *"`liberar` recusa com motivo enquanto o título não estiver
+> quitado, inclusive para quem tem `producao.liberar`"* · *"um listener executa `liberar` pela FSM com ator
+> sistema"*) e o UC-FLX-28 do catálogo de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:80`). Nesta
+> entrega o sinal é um percentual mínimo do total da venda, pago em `transaction_payments` (troco
+> descontado); não há parcela de sinal separada. Ainda sem campo na tela de Fluxos. VALOR (só leitura):
+> regra mestre. Prova: `ProducaoSinalPagoLiberaContratoTest`.
+
+## UC-PCLIB-04 · Regra desligada não muda o Liberar · `must`
+
+**Dado** a empresa sem sinal mínimo **Quando** o PCP libera a OS de uma venda de 1.000,00 sem nada pago
+**Então** a OS vai para Na fila, como antes.
+
+Status: 🧪
+
+## UC-PCLIB-05 · Com a regra ligada, sem o sinal o Liberar recusa · `must` valor
+
+**Dado** a empresa com sinal mínimo de 30% e a venda de 1.000,00 **Quando** o PCP com `producao.liberar` libera
+sem pagamento, ou com 299,99 pago **Então** a liberação é recusada com `sinal_pendente` e *"exigido 300,00,
+pago …"*, e a OS segue em Aguardando liberação. O exigido arredonda ao centavo: 333,33 × 30% = 100,00, e
+99,99 não basta.
+
+Status: 🧪
+
+## UC-PCLIB-06 · Sinal alcançado, o Liberar manual passa · `must` valor
+
+**Dado** a mesma regra e 350,00 de entrada com 50,00 de troco (pago 300,00) **Quando** o PCP libera **Então** a
+OS vai para Na fila.
+
+Status: 🧪
+
+## UC-PCLIB-07 · O pagamento libera a OS sozinho · `must`
+
+**Dado** a regra ligada e a OS com responsável em todas as etapas abertas **Quando** um pagamento de 300,00 é
+gravado na venda **Então** a OS vai para Na fila pela ação `liberar_pelo_sinal`, com `ator = sistema`, pago e
+exigido no histórico; registrar de novo não executa a transição outra vez. OS com etapa sem responsável fica
+em Aguardando liberação. Pagamento gravado por outra empresa não conta e não libera, e a empresa 99 não acha
+a OS da 98.
+
+Status: 🧪
+
+- **[BACKLOG]** UC-FLX-28 — parcelas de sinal e saldo geradas na aprovação do orçamento (Vendas/Financeiro) e o
+  retorno do banco criando o pagamento da venda (PaymentGateway): hoje o retorno só grava o evento. O campo do
+  sinal mínimo na aba Fluxos da empresa também falta (o valor é gravado por `RegrasDaEmpresa::mudarSinalMinimo`).

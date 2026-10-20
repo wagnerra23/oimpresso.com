@@ -14,7 +14,7 @@ module: NfeBrasil
 >
 > **O que isto é:** o inventário completo das raízes `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 297 arquivos em 19 papéis.
+**Total mapeado:** 301 arquivos em 19 papéis.
 
 ## Controllers — 16
 
@@ -49,7 +49,7 @@ module: NfeBrasil
 - [UpsertConfigDefaultRequest.php](../../../Modules/NfeBrasil/Http/Requests/UpsertConfigDefaultRequest.php)
 - [UpsertRegraTributariaRequest.php](../../../Modules/NfeBrasil/Http/Requests/UpsertRegraTributariaRequest.php)
 
-## Services — 30
+## Services — 31
 
 - [CertificadoService.php](../../../Modules/NfeBrasil/Services/CertificadoService.php)
 - [ResolveUfEmitente.php](../../../Modules/NfeBrasil/Services/Concerns/ResolveUfEmitente.php)
@@ -71,6 +71,7 @@ module: NfeBrasil
 - [RetencoesNfseService.php](../../../Modules/NfeBrasil/Services/RetencoesNfseService.php)
 - [SefazConsultaCadastroService.php](../../../Modules/NfeBrasil/Services/SefazConsultaCadastroService.php)
 - [SefazStatusRecorder.php](../../../Modules/NfeBrasil/Services/SefazStatusRecorder.php)
+- [SeparacaoNotasDaVenda.php](../../../Modules/NfeBrasil/Services/SeparacaoNotasDaVenda.php)
 - [ContadorService.php](../../../Modules/NfeBrasil/Services/Tributacao/ContadorService.php)
 - [FechamentoContadorService.php](../../../Modules/NfeBrasil/Services/Tributacao/FechamentoContadorService.php)
 - [ImportRegrasCsvService.php](../../../Modules/NfeBrasil/Services/Tributacao/ImportRegrasCsvService.php)
@@ -128,11 +129,12 @@ module: NfeBrasil
 - [EnviarDanfePorEmail.php](../../../Modules/NfeBrasil/Listeners/EnviarDanfePorEmail.php)
 - [SyncFiscalRuleToTaxRate.php](../../../Modules/NfeBrasil/Listeners/SyncFiscalRuleToTaxRate.php)
 
-## Console / Commands — 3
+## Console / Commands — 4
 
 - [MigrateCertFromBusiness.php](../../../Modules/NfeBrasil/Console/Commands/MigrateCertFromBusiness.php)
 - [NfeHealthCommand.php](../../../Modules/NfeBrasil/Console/Commands/NfeHealthCommand.php)
 - [PuxarDfesRecebidosCommand.php](../../../Modules/NfeBrasil/Console/Commands/PuxarDfesRecebidosCommand.php)
+- [RetentarContingenciaCommand.php](../../../Modules/NfeBrasil/Console/Commands/RetentarContingenciaCommand.php)
 
 ## Providers — 2
 
@@ -233,9 +235,9 @@ module: NfeBrasil
 - [Index.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/Index.casos.md)
 - [RegraForm.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/RegraForm.casos.md)
 
-## Testes (Pest) — 84
+## Testes (Pest) — 86
 
-- 84 em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature)
+- 86 em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 47

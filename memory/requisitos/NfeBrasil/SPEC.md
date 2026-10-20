@@ -1604,10 +1604,12 @@ Como contador, quero decidir por produto se ele é mercadoria (ICMS) ou serviço
 
 ### US-NFE-069 · A natureza fiscal do item escolhe a nota: NF-e para mercadoria, NFS-e para serviço e instalação (UC-FLX-31) — **P1**
 
-> owner: — · sprint: — · priority: p1 · estimate: 6h · status: todo · type: story
+> owner: — · sprint: — · priority: p1 · estimate: 6h · type: story
 > blocked_by: US-NFE-060 (NFS-e ainda é STUB, sem chamada real à Sefin nacional)
 
-**Implementado em:** _pendente_
+**Implementado em:** _parcial_ — `Modules/NfeBrasil/Services/SeparacaoNotasDaVenda.php` · `Modules/NfeBrasil/Tests/Feature/SeparacaoNotasDaVendaContratoTest.php` (só a separação das linhas; disparo no Faturado e emissão em aberto)
+
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/SeparacaoNotasDaVendaContratoTest.php` (lane `nfebrasil-pest.yml`)
 
 Como faturista, quero que a venda ou OS com mercadoria e serviço saia em duas notas — NF-e com as mercadorias e NFS-e com os serviços —, decididas pela natureza fiscal de cada produto, para não ter a NF-e recusada inteira nem a NFS-e com código de serviço errado.
 
@@ -1621,34 +1623,53 @@ Como faturista, quero que a venda ou OS com mercadoria e serviço saia em duas n
 US-NFE-060 cobre só o job de emissão da NFS-e (modelo 56, STUB); esta US cobre a divisão por natureza e o código de serviço por item. UC-FLX-27 ("Uma OS, duas notas") é o caso de OS da mesma divisão.
 
 **Aceite:**
-- [ ] Venda com 1 item `mercadoria` e 1 item `servico` gera uma NF-e só com a mercadoria e uma NFS-e só com o serviço; a soma das duas fecha o total da venda
+- [x] **Separar as linhas** (2026-10-20, PR-1): `SeparacaoNotasDaVenda::separar` divide a venda em parte mercadoria e parte serviço pela natureza do produto, com o `codigo_servico` de cada linha de serviço; a soma das duas partes é o `final_total`, centavo a centavo (UC-FNFSE-06..09 em `resources/js/Pages/Fiscal/Nfse.casos.md`). Regra de rateio de desconto, frete e acréscimos em `SeparacaoNotasDaVenda::REGRA_RATEIO` — **proposta, pendente de decisão [W]**
+- [ ] Disparo no Faturado: a venda/OS faturada chama a separação e gera as duas notas (hoje `NfeService::recusarItensDeServico` segue recusando a NF-e com item de serviço, de propósito)
+- [ ] Emissão: a NF-e sai só com a parte mercadoria e a NFS-e só com a parte serviço, cada uma com o total da sua parte
 - [ ] A NFS-e usa o `codigo_servico` gravado na natureza do produto; o default do business só vale para produto sem natureza decidida
 - [ ] Item de instalação (natureza `servico`) vai para a NFS-e, mesmo numa OS com material
 - [ ] Produto com natureza `pendente` bloqueia o faturamento com mensagem que manda o contador decidir; não escolhe imposto sozinho (D-NATUREZA)
 - [ ] Multi-tenant: natureza de biz=1 nunca decide nota de biz=2 (Pest com os dois tenants); só quem tem permissão de emitir nota dispara a divisão (403 sem ela)
 - [ ] Smoke fiscal manual contra SEFAZ/Sefin só em biz=1, homologação
 
-### US-NFE-070 · Contingência completa: retransmissão agendada, SVC-AN/SVC-RS e evento EPEC (UC-FLX-32) — **P1**
+### US-NFE-070 · Contingência: dhCont/xJust no XML e retransmissão agendada (UC-FLX-32) — **P1**
 
-> owner: — · sprint: — · priority: p1 · estimate: 8h · status: todo · type: story
+> owner: — · sprint: — · priority: p1 · estimate: 4h · status: done · type: story
+> blocked_by: —
+
+**Implementado em:** `Modules/NfeBrasil/Services/NfeService.php` · `Modules/NfeBrasil/Console/Commands/RetentarContingenciaCommand.php` · `Modules/NfeBrasil/Providers/NfeBrasilServiceProvider.php` · `Modules/NfeBrasil/Jobs/RetentarContingenciaJob.php` · `Modules/NfeBrasil/Tests/Feature/ContingenciaAgendamentoTest.php`
+
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/ContingenciaAgendamentoTest.php` (covers US-NFE-070 · lane `nfebrasil-pest`)
+
+Como gestor, quero que a nota emitida em contingência seja transmitida sozinha quando a SEFAZ voltar e saia com os campos que a SEFAZ exige, para não depender de alguém lembrar de reenviar nem ter a nota rejeitada depois.
+
+**Origem:** UC-FLX-32 "NF-e em contingência quando a SEFAZ cai" da tela Fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:84`, etapa Validada → Transmitida). Medido 2026-10-20, **parcial** — é o resto de US-NFE-006 (cuja âncora segue `_pendente_` e não foi alterada aqui):
+- existia: ativação manual (`Modules/NfeBrasil/Services/ContingenciaService.php`); `NfeService::resolverTpEmis` (modelo 55 → 4 EPEC, 65 → 9); `NfeService::transmitirContingencia`; `Modules/NfeBrasil/Jobs/RetentarContingenciaJob.php`; ~35 testes `Contingencia*Test`;
+- entregue nesta US (2026-10-20): `dhCont`/`xJust` no XML de toda nota com tpEmis ≠ 1, vindos da ativação (`contingencia_ativada_em` + `contingencia_motivo`; motivo com menos de 15 caracteres ganha o prefixo "Contingencia: "); o command `nfe:retentar-contingencia`, agendado a cada 5 min no `NfeBrasilServiceProvider`, que para cada business com nota em `contingencia` faz o ping da SEFAZ com o cert dele e só despacha `RetentarContingenciaJob($businessId)` com cStat 107 (grava `verde` em `nfe_sefaz_status`);
+- fica para **US-NFE-071**: SVC-AN/SVC-RS (`tpEmis` 6/7), o evento EPEC 110140 e a marcação de contingência no DANFE.
+
+Casos: `resources/js/Pages/Fiscal/Nfe.casos.md` UC-FNFE-15..18.
+
+**Aceite:**
+- [x] Um agendamento dispara `RetentarContingenciaJob` por business; ao voltar a SEFAZ, as notas em contingência são transmitidas em ordem de emissão (o teste de `tests/Feature/Sells/FsmCatalogoProcessosContratoTest.php` passa a exigir o chamador) — UC-FNFE-17
+- [x] Toda nota em contingência sai com `dhCont` e `xJust` preenchidos a partir do motivo da ativação; nota normal não muda — UC-FNFE-15/16
+- [x] Multi-tenant: o job de um business nunca transmite nota de outro (Pest com os tenants 98 e 2, UC-FNFE-18); ativar/desativar exige `nfe.contingencia.manage` (403 sem ela, `ContingenciaAtivacaoTest` UC-CONT-15)
+- [ ] Smoke fiscal manual contra SEFAZ só em biz=1, homologação
+
+### US-NFE-071 · Contingência: SVC-AN/SVC-RS, evento EPEC 110140 e marcação no DANFE (UC-FLX-32) — **P1**
+
+> owner: — · sprint: — · priority: p1 · estimate: 6h · status: todo · type: story
 > blocked_by: —
 
 **Implementado em:** _pendente_
 
-Como gestor, quero que a nota emitida em contingência seja transmitida sozinha quando a SEFAZ voltar, com o tipo de contingência certo e os campos que a SEFAZ exige, para não depender de alguém lembrar de reenviar nem ter a nota rejeitada depois.
+Como gestor, quero que a NF-e em contingência use o modo certo para a UF e tenha o evento EPEC registrado antes de imprimir, para o DANFE valer e a nota não ser rejeitada.
 
-**Origem:** UC-FLX-32 "NF-e em contingência quando a SEFAZ cai" da tela Fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:84`, etapa Validada → Transmitida). Medido 2026-10-20, **parcial** — é o resto de US-NFE-006 (cuja âncora segue `_pendente_` e não foi alterada aqui):
-- existe: ativação manual (`Modules/NfeBrasil/Services/ContingenciaService.php:33,73`); `NfeService.php:761,1581` `resolverTpEmis` (modelo 55 → 4 EPEC, 65 → 9); `NfeService.php:1380` `transmitirContingencia`; `Modules/NfeBrasil/Jobs/RetentarContingenciaJob.php`; ~35 testes `Contingencia*Test`;
-- falta: quem dispare `RetentarContingenciaJob` — sem schedule, e `tests/Feature/Sells/FsmCatalogoProcessosContratoTest.php:260` afirma zero chamadores;
-- falta: SVC-AN/SVC-RS (`tpEmis` 6/7);
-- falta: o evento EPEC 110140 (não há chamada `sefazEPEC`);
-- falta: preencher `dhCont`/`xJust` (a SEFAZ rejeita sem eles);
-- não verificado: a marcação de contingência no DANFE.
+**Origem:** o resto da US-NFE-070 (2026-10-20). Não há chamada `sefazEPEC` nem `tpEmis` 6/7 no código.
 
 **Aceite:**
-- [ ] Um agendamento dispara `RetentarContingenciaJob` por business; ao voltar a SEFAZ, as notas em contingência são transmitidas em ordem de emissão (o teste da linha 260 passa a exigir o chamador)
-- [ ] Toda nota em contingência sai com `dhCont` e `xJust` preenchidos a partir do motivo da ativação
 - [ ] NF-e modelo 55 pode usar SVC-AN (`tpEmis=6`) ou SVC-RS (`tpEmis=7`) conforme a UF do emitente
 - [ ] Em EPEC (`tpEmis=4`) o evento 110140 é enviado e registrado antes da impressão do DANFE; o DANFE mostra a marcação de contingência
-- [ ] Multi-tenant: o job de biz=1 nunca transmite nota de biz=2 (Pest com os dois tenants); ativar/desativar exige `nfe.contingencia.manage` (403 sem ela)
+- [ ] Multi-tenant: o evento de biz=1 nunca usa nota de biz=2 (Pest com os dois tenants)
 - [ ] Smoke fiscal manual contra SEFAZ só em biz=1, homologação
+
