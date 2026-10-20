@@ -159,6 +159,12 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         Route::get('/dre/export-xlsx', [DreController::class, 'exportXlsx'])->name('dre.export-xlsx');
         Route::get('/dre/export-csv', [DreController::class, 'exportCsv'])->name('dre.export-csv');
 
+        // Custeio RKW + ponto de equilíbrio (US-FIN-070). GET só lê; aplicar é ação explícita.
+        Route::get('/custeio-rkw', [\Modules\Financeiro\Http\Controllers\CusteioRkwController::class, 'show'])->name('custeio-rkw.show');
+        Route::post('/custeio-rkw/aplicar/{posto}', [\Modules\Financeiro\Http\Controllers\CusteioRkwController::class, 'aplicar'])
+            ->whereNumber('posto')
+            ->name('custeio-rkw.aplicar');
+
         // Contas a receber (lista + emitir boleto)
         Route::get('/contas-receber', [ContaReceberController::class, 'index'])->name('contas-receber.index');
         Route::post('/contas-receber/{tituloId}/boleto', [ContaReceberController::class, 'emitirBoleto'])

@@ -195,7 +195,10 @@ class FsmProcessoOsReparoPadraoSeeder extends Seeder
             ['em_execucao', 'pausar_execucao', 'Pausar execução', 'pausado', ['repair.tecnico'], false, null],
             ['pausado', 'retomar_execucao', 'Retomar execução', 'em_execucao', ['repair.tecnico'], false, null],
 
-            // Conclusão técnica — crítica (consome estoque + dispara Whatsapp via Listener legacy)
+            // Conclusão técnica — crítica (consome estoque). NÃO avisa o cliente: a ação não tem
+            // event_class e o RepairFsmActionController não sincroniza status_id nem dispara
+            // RepairStatusChanged — o aviso WhatsApp só sai pela edição da OS (JobSheetController::update).
+            // Travado em RepairFsmActionControllerTest (UC-COS-14), medido 2026-10-20.
             ['em_execucao', 'concluir_execucao', 'Concluir execução do reparo', 'concluido_aguardando_retirada', ['repair.tecnico'], true, 'App\\Domain\\Fsm\\SideEffects\\ConsumirEstoque'],
 
             // Entrega — recepção OU logística (cliente busca OU entrega externa).

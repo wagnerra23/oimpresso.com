@@ -565,6 +565,9 @@ class PurchaseController extends Controller
 
             $user_id = $request->session()->get('user.id');
             $enable_product_editing = $request->session()->get('business.enable_editing_product_from_purchase');
+            // US-COM-026: com a regra de custo da empresa, o custo vem dela, não do último preço.
+            $custoDaRegra = $this->custoDoRecebimento($business_id);
+            $enable_product_editing = $custoDaRegra ? 0 : $enable_product_editing;
 
             //Update business exchange rate.
             Business::update_business($business_id, ['p_exchange_rate' => ($transaction_data['exchange_rate'])]);
@@ -642,6 +645,7 @@ class PurchaseController extends Controller
             $purchases = $request->input('purchases');
 
             $this->productUtil->createOrUpdatePurchaseLines($transaction, $purchases, $currency_details, $enable_product_editing);
+            $custoDaRegra?->aoReceber($transaction);
 
             //Add Purchase payments
             // A tela React (Purchase/Create.tsx) não envia `payment` — compra nasce a prazo.
@@ -1132,6 +1136,8 @@ class PurchaseController extends Controller
                                 ->firstOrFail();
             $before_status = $transaction->status;
             $enable_product_editing = $request->session()->get('business.enable_editing_product_from_purchase');
+            $custoDaRegra = $this->custoDoRecebimento($business_id); // US-COM-026
+            $enable_product_editing = $custoDaRegra ? 0 : $enable_product_editing;
 
             $transaction_before = $transaction->replicate();
 
@@ -1209,6 +1215,9 @@ class PurchaseController extends Controller
             $purchases = $request->input('purchases');
 
             $delete_purchase_lines = $this->productUtil->createOrUpdatePurchaseLines($transaction, $purchases, $currency_details, $enable_product_editing, $before_status);
+            if ($before_status !== 'received') {
+                $custoDaRegra?->aoReceber($transaction);
+            }
 
             //Update mapping of purchase & Sell.
             $this->transactionUtil->adjustMappingPurchaseSellAfterEditingPurchase($before_status, $transaction, $delete_purchase_lines);
@@ -1953,6 +1962,20 @@ class PurchaseController extends Controller
     }
 
     /**
+     * Regra de custo e preço do recebimento (US-COM-026 · UC-FLX-17): devolve quem aplica só se o
+     * módulo Compras está ligado e a empresa gravou a regra. Null = comportamento de antes.
+     */
+    private function custoDoRecebimento(int $business_id): ?\App\Contracts\Compras\CustoDoRecebimento
+    {
+        if (! app()->bound(\App\Contracts\Compras\CustoDoRecebimento::class)) {
+            return null;
+        }
+        $regra = app(\App\Contracts\Compras\CustoDoRecebimento::class);
+
+        return $regra->assume($business_id) ? $regra : null;
+    }
+
+    /**
      * Update purchase status.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -1990,6 +2013,9 @@ class PurchaseController extends Controller
             $currency_details = $this->transactionUtil->purchaseCurrencyDetails($business_id);
             foreach ($transaction->purchase_lines as $purchase_line) {
                 $this->productUtil->updateProductStock($before_status, $transaction, $purchase_line->product_id, $purchase_line->variation_id, $purchase_line->quantity, $purchase_line->quantity, $currency_details);
+            }
+            if ($before_status !== 'received') {
+                $this->custoDoRecebimento($business_id)?->aoReceber($transaction); // US-COM-026
             }
 
             //Update mapping of purchase & Sell.

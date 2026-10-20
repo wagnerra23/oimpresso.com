@@ -47,7 +47,44 @@ last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando 
 - **Teste:** `Modules/Producao/Tests/Feature/ProducaoRoteirosContratoTest.php`.
 - **Status: 🧪**
 
-- **[BACKLOG]** UC-FLX-20 — fechamento do mês que rateia as despesas fixas por centro de custo (base: horas apontadas), propõe o custo-hora novo do posto com antes→depois e calcula o ponto de equilíbrio. Nada disso existe: não há classificação fixa/variável no plano de contas nem centro de custo (US-FIN-070).
+## Custeio RKW e ponto de equilíbrio (US-FIN-070 · UC-FLX-20)
+
+> **Âncora:** US-FIN-070 do `memory/requisitos/Financeiro/SPEC.md` (§Aceite: rateio das despesas fixas
+> proporcional às horas apontadas, antes→depois do custo-hora, aplicar só com confirmação e sem reescrever
+> apontamento fechado; ponto de equilíbrio = despesas fixas ÷ margem de contribuição %, aviso sem margem
+> positiva; 404 entre empresas; `producao.desempenho.ver` **e** acesso ao Financeiro) e o UC-PCCH-01
+> acima (o apontamento congela o custo-hora). VALOR: regra mestre — os testes conferem por dois caminhos.
+> Fixa/variável vem só da conta do plano (`fin_planos_conta.classe_custo`, nula = fora do custeio).
+
+## UC-PCCH-03 · Fechamento do mês rateia as despesas fixas pelas horas · `must` valor
+
+- **Persona:** gestor financeiro com `producao.desempenho.ver`.
+- **Aceite:** Dado 4.000,00 de despesas em contas fixas no mês (título cancelado e conta sem classe ficam fora) · E 30 h fechadas no posto A (30,00/h) e 10 h no posto B (50,00/h) · Quando o fechamento roda · Então a parcela fixa é 100,00/h, o rateio é 3.000,00 para A e 1.000,00 para B, e o custo-hora RKW sugerido é 130,00 e 150,00 · E divisão não exata fecha ao centavo (maior resto) · E nada é gravado (o comando também só lê).
+- **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
+- **Status: 🧪**
+
+## UC-PCCH-04 · Ponto de equilíbrio do mês · `must` valor
+
+- **Persona:** gestor financeiro.
+- **Aceite:** Dado receita 10.000,00, custos variáveis 2.000,00 e fixas 4.000,00 · Então a margem de contribuição é 80,00% e o ponto de equilíbrio 5.000,00 · Dado custos variáveis maiores que a receita · Então não há número: aparece o aviso de que o ponto de equilíbrio não se aplica.
+- **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
+- **Status: 🧪**
+
+## UC-PCCH-05 · Aplicar o custo-hora sugerido é ação explícita · `must` valor
+
+- **Persona:** gestor financeiro.
+- **Aceite:** Quando aplica o sugerido no posto A · Então a resposta traz antes 30,00 → depois 130,00 · E só o posto A muda · E o apontamento já gravado segue com 30,00 (UC-PCCH-01).
+- **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
+- **Status: 🧪**
+
+## UC-PCCH-06 · Isolamento e permissão do fechamento · `must`
+
+- **Persona:** gestor de outra empresa; usuário sem uma das permissões.
+- **Aceite:** Dado a empresa 99 com despesa fixa e horas próprias · Então o fechamento da 98 não as soma · E aplicar num posto da 99 é 404, sem gravar · E quem tem só o Financeiro ou só `producao.desempenho.ver` recebe 403, sem gravar.
+- **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
+- **Status: 🧪**
+
+- **[BACKLOG]** Centro de custo por setor (hoje o centro é o posto) e tela do fechamento no Financeiro — o cálculo existe em JSON e no comando `financeiro:custeio-rkw`.
 
 ---
 
@@ -104,3 +141,4 @@ Status: 🧪
 - 2026-10-16 · [CL] thread 03 + E03 do playbook de Produção — trio nasce junto (charter + casos + teste).
 - 2026-10-20 · [CL] UC-PCCH-01/02 documentam o custo-hora que já existe (UC-FLX-20 parcial); o bullet de backlog do custo-hora da pessoa virou o UC-PCCH-02; rateio e ponto de equilíbrio ficam no [BACKLOG] (US-FIN-070).
 - 2026-10-20 · [CL] UC-PCPRZ-01..04 — prazo de entrega pela fila dos postos (US-PCP-028 · UC-FLX-06), cálculo em JSON só leitura; tela e data prometida ficam no [BACKLOG].
+- 2026-10-20 · [CL] UC-PCCH-03..06 — custeio RKW e ponto de equilíbrio (US-FIN-070): cálculo só leitura + aplicar explícito; o [BACKLOG] do rateio virou estes casos.
