@@ -92,6 +92,11 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         Route::get('orcamentos/{id}', [OrcamentoController::class, 'show'])
             ->name('comvis.api.orcamentos.show');
 
+        // UC-FLX-01 · US-COMVIS-020: aprovar o orçamento cria a OS sem redigitar (idempotente)
+        Route::post('orcamentos/{id}/aprovar', [OrcamentoController::class, 'aprovar'])
+            ->whereNumber('id')
+            ->name('comvis.api.orcamentos.aprovar');
+
         // Sprint 1 — US-COMVIS-004: Spool Plotter / Apontamento de Produção
         // ATENÇÃO: em-andamento registrado antes de {apontamento} pra evitar conflito de rota
         Route::get('apontamentos/em-andamento', [ApontamentoController::class, 'emAndamento'])

@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 822,
-    "edges": 1121,
+    "nodes": 824,
+    "edges": 1123,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 444,
+      "component": 446,
       "api": 84
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 88,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 444,
+      "hasComponent": 446,
       "dependsOn": 123,
       "delegatesTo": 114,
       "migratesTo": 1,
@@ -1998,6 +1998,13 @@
       "desc": ""
     },
     {
+      "id": "component:ComunicacaoVisual/Entities/OsItem",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "Entities/OsItem",
+      "desc": "itens da OS copiados do orçamento, UC-FLX-01)"
+    },
+    {
       "id": "component:ComunicacaoVisual/Entities/Substrato",
       "type": "component",
       "module": "ComunicacaoVisual",
@@ -2038,6 +2045,13 @@
       "module": "ComunicacaoVisual",
       "name": "Services/AgendaInstalacao",
       "desc": "US-COMVIS-007 · UC-FLX-21)"
+    },
+    {
+      "id": "component:ComunicacaoVisual/Services/OrcamentoViraOs",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "Services/OrcamentoViraOs",
+      "desc": "US-COMVIS-020 · UC-FLX-01)"
     },
     {
       "id": "component:Connector/Api/ApiController",
@@ -7982,6 +7996,12 @@
     },
     {
       "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/Entities/OsItem",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/Entities/Substrato",
       "type": "hasComponent",
       "source": "contains"
@@ -8013,6 +8033,12 @@
     {
       "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/Services/AgendaInstalacao",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/Services/OrcamentoViraOs",
       "type": "hasComponent",
       "source": "contains"
     },

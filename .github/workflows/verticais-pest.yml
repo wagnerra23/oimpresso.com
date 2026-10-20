@@ -581,6 +581,7 @@ jobs:
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCustoPrevistoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCustoMaquinaPrevistoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAgendaContratoTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/OrcamentoViraOsContratoTest.php \
             Modules/Repair/Tests/Feature/DeviceModelsInertiaSmokeTest.php \
             Modules/Repair/Tests/Feature/JobSheetShowContratoTest.php \
             Modules/Repair/Tests/Feature/ProducaoOficinaRefactorTest.php \
