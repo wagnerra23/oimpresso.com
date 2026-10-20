@@ -47,9 +47,56 @@ last_run: "2026-10-13"
   Então vejo só a parcial · E sem filtro, `sem_pedido` conta as ordenadas e `parciais` conta as parciais da lista.
 - **Status: 🧪**
 
+---
+
+## Estoque mínimo vira requisição de compra (US-COM-027 · UC-FLX-19)
+
+> **Âncora:** [US-COM-027](../../../../memory/requisitos/Compras/SPEC.md) e o UC-FLX-19 do catálogo de
+> fluxos ("Abaixo do mínimo → cria a requisição"). Nesta entrega é o job diário por business
+> (`RequisicaoEstoqueMinimoJob`, agendado via `compras:requisicao-estoque-minimo`) que grava a requisição
+> do núcleo que esta tela lista; a tela não mudou. Mínimo = `products.alert_quantity`. Regra **desligada
+> por padrão** (`business.common_settings['compras_requisicao_estoque_minimo']`). Fornecedor da última
+> compra e a tela de ligar a regra são follow-up da US. Prova:
+> `Modules/Compras/Tests/Feature/RequisicaoEstoqueMinimoContratoTest.php`, lane `compras-pest.yml`.
+> Nenhum estoque muda; só nasce requisição.
+
+## UC-REQMIN-01 · Abaixo do mínimo nasce uma requisição por local · `[T0]` estoque
+- **Aceite:** Dado a regra ligada e, no local L1, A (mínimo 10, saldo 3,5), B (mínimo 20, saldo 0), C (mínimo 5,
+  saldo 12) e D (mínimo 8, saldo 8), e no local L2 A com saldo 9,99 · Quando o job do dia roda · Então L1 ganha 1
+  requisição `ordered` com A = 7 e B = 20 (sem C nem D) · E L2 ganha 1 requisição com A = 1.
+- **Status: 🧪**
+
+## UC-REQMIN-02 · Rodar de novo não duplica; o item novo entra na mesma requisição
+- **Aceite:** Dado A abaixo do mínimo em L1 · Quando o job roda duas vezes · Então há 1 requisição com 1 linha de A
+  (6 = 10 − 4) · E quando outro item cai abaixo do mínimo e o job roda · Então ele entra nessa mesma requisição aberta.
+- **Status: 🧪**
+
+## UC-REQMIN-03 · Item já numa requisição aberta não é pedido de novo
+- **Aceite:** Dado A abaixo do mínimo em L1 e uma requisição manual `partial` de L1 com A · Quando o job roda ·
+  Então nenhuma requisição nem linha nova é criada.
+- **Status: 🧪**
+
+## UC-REQMIN-04 · Regra desligada (padrão) não cria nada
+- **Aceite:** Dado um business sem a chave da regra · Quando o job roda com item abaixo do mínimo · Então nenhuma
+  requisição é criada.
+- **Status: 🧪**
+
+## UC-REQMIN-05 · Nenhum estoque muda e nenhum pedido de compra nasce · `[T0]` estoque
+- **Aceite:** Dado A em L1 com saldo 3,5 · Quando o job cria a requisição · Então o saldo de A em L1 segue 3,5 · E a
+  contagem de compras/pedidos de compra do business não muda.
+- **Status: 🧪**
+
+## UC-REQMIN-06 · Um business não cria requisição no outro · `[T0]`
+- **Aceite:** Dado os businesses 98 e 99 com a regra ligada, cada um com item abaixo do mínimo, e um saldo de produto
+  do 99 lançado num local do 98 · Quando roda o job do 98 · Então só o local do 98 ganha requisição, sem o produto do
+  99 · E o 99 fica sem requisição.
+- **Status: 🧪**
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 - [BACKLOG] Ver o detalhe e excluir pela tela nova (PR próprio).
 - [BACKLOG] KPI "Itens requisitados" e coluna "Pedido gerado" — decisão [W].
 
 ## Trilha do tempo
 - 2026-10-13 · [CL] criado com a F3 da thread `compras/playbook/07`.
+- 2026-10-20 · [CC] UC-REQMIN-01..06 (US-COM-027 · UC-FLX-19): requisição gerada pelo estoque mínimo — job
+  diário, sem mudança no `.tsx`; `last_run` intocado. Prova: `RequisicaoEstoqueMinimoContratoTest`.
