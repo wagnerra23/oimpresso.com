@@ -67,7 +67,7 @@ function sitIniciar($teste, Programacao $e, $user)
     return app(ApontamentoOperadorService::class)->iniciar($teste->b98, $user->id, $e->id, 'i-'.uniqid(), now());
 }
 
-it('OS ainda não liberada não aponta (409 os_nao_liberada) e Liberar põe Na fila', function () {
+it('UC-PCLIB-01 · OS ainda não liberada não aponta (409 os_nao_liberada) e Liberar põe Na fila', function () {
     expect(fn () => sitIniciar($this, $this->e1, $this->op1))
         ->toThrow(fn (ApontamentoRecusado $e) => expect($e->codigo)->toBe(ApontamentoRecusado::OS_NAO_LIBERADA));
 
@@ -138,7 +138,7 @@ it('Cancelar item antes de liberar cancela as etapas programadas', function () {
         ->toBe(['cancelada']);
 });
 
-it('Tier 0: a 99 não libera a OS da 98', function () {
+it('UC-PCLIB-03 · Tier 0: a 99 não libera a OS da 98', function () {
     expect(fn () => app(SituacaoDaOrdem::class)->liberar($this->b99, $this->ordem->id, $this->pcp))
         ->toThrow(fn (ApontamentoRecusado $e) => expect($e->codigo)->toBe(ApontamentoRecusado::NAO_ENCONTRADO));
     expect(sitDe($this))->toBe('aguardando_liberacao');

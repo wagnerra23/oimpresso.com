@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o apontamento vira custo real e fecha etapa da OS. Errar a etapa aponta tempo no lugar errado; errar a empresa expõe produção alheia; duplicar o envio offline dobra o custo.
 owner: wagner
-last_run: "2026-10-15"
+last_run: "2026-10-20"
 last_run_ci: "_pendente_ — o trio nasce na thread 04. O veredito por UC entra quando a lane verticais-pest rodar; até lá o Status é 🧪."
 ---
 
@@ -15,6 +15,12 @@ last_run_ci: "_pendente_ — o trio nasce na thread 04. O veredito por UC entra 
 > `Producao-celular.casos.md` (UC-PCV-31, 34, 35, 36 · emenda E04), mais as decisões [W] de 2026-10-15
 > (D-PONTO e fila offline). Os UCs não derivam do `.tsx`. Provas: `ProducaoApontamentoContratoTest` (regra)
 > e `ProducaoApontamentoTelaTest` (HTTP).
+>
+> **UC-FLX-09** do catálogo de fluxos (*"A leitura do QR da OS inicia ou conclui a etapa e grava o tempo"*,
+> `app/Domain/Fsm/Modelos/CasosDoPrototipo.php:62`, situação `parcial`) é o que os UC-PCV-19, 20, 21, 23 e 34
+> abaixo descrevem: o QR abre a etapa do operador e o apontamento grava `origem = qr`
+> (`ApontamentoOperadorService::iniciar`). O mesmo caminho pelo app das lojas tem prova própria em
+> `tests/Feature/Sells/AppProducaoApontamentoContratoTest.php` (UC-APPAPT-01..10).
 
 ---
 
@@ -81,13 +87,20 @@ Status: 🧪
 
 ---
 
-## Material consumido na etapa (US-PCP-021 · UC-FLX-37)
+## Material consumido na etapa (US-PCP-021 · UC-FLX-37 · UC-FLX-14)
 
 > **Âncora:** decisão [W] 2026-10-19 — *"a OS baixa do estoque o material apontado em cada etapa, pelo
 > custo do lote que saiu"* — e o UC-FLX-37 do catálogo de fluxos (`fluxos-data.jsx`: *"congela as horas
 > apontadas e o material pelo custo da data da baixa; compra depois não reescreve a OS"*). Nesta entrega
 > são os endpoints (PWA e app); a tela ainda não tem o campo — o Non-Goal "baixa de material" do charter
 > é da thread 08. Prova: `ProducaoMaterialContratoTest`. ESTOQUE e VALOR: regra mestre.
+>
+> Os mesmos UCs cobrem a parte já feita do **UC-FLX-14** (*"Consome do estoque a quantidade real, não a
+> orçada"*, `CasosDoPrototipo.php:67`, situação `parcial`): o que baixa é a quantidade apontada na etapa.
+
+- **[BACKLOG]** UC-FLX-14 — a regra "ao entrar na etapa → Baixa o material do estoque" dos modelos de
+  processo ainda não executa: em `app/Domain/Fsm/Modelos/CatalogoModelos.php` ela é só dado, com
+  `ConsumirEstoque` como candidato (ele baixa a quantidade reservada, e o caso pede a consumida).
 
 ## UC-PCMAT-01 · O material sai do estoque do local da venda · `must`
 
@@ -239,3 +252,47 @@ Status: 🧪
 novo; pedindo retrabalho sem o papel de qualidade **Então** 403 e nada fica (nem o refugo, nem a baixa).
 
 Status: 🧪
+
+---
+
+## Liberação da OS para a produção (UC-FLX-28 · parcial · US-PCP-025)
+
+> **Âncora:** US-PCP-025 do `memory/requisitos/Producao/SPEC.md` (§Origem: *"Existe: o estado inicial
+> `aguardando_liberacao` e a transição `liberar` → `na_fila` só com `producao.liberar`;
+> `SituacaoDaOrdem::liberar()` confere apenas os responsáveis das etapas"*), a decisão [W] 16/10 (opção c,
+> protótipo #9530: o Liberar pede o responsável de cada etapa aberta) e o UC-FLX-28 do catálogo de fluxos
+> (`CasosDoPrototipo.php:80`). Ainda não há rota nem tela: é o serviço `SituacaoDaOrdem::liberar`; a
+> Ficha da OS é da thread 08. O que o operador sente nesta tela é a recusa do apontamento. Provas:
+> `ProducaoSituacaoDaOrdemContratoTest` e `ProducaoLiberarResponsavelContratoTest`.
+
+## UC-PCLIB-01 · OS não liberada não aponta · `must`
+
+**Dado** a OS por item com as etapas Impressão, Laminação e Recorte, ainda em Aguardando liberação **Quando**
+o operador inicia a Impressão **Então** o apontamento é recusado com `os_nao_liberada` (409); depois do
+Liberar, a OS fica Na fila.
+
+Status: 🧪
+
+## UC-PCLIB-02 · Liberar exige o responsável de cada etapa aberta · `must`
+
+**Dado** a OS com Corte CNC e Montagem sem responsável **Quando** o PCP libera escolhendo só o do Corte CNC
+**Então** a liberação é recusada com *"Escolha o responsável de: Montagem."* e nada muda; escolhendo os dois,
+cada etapa grava o seu responsável, a OS vai para Na fila e o histórico guarda os responsáveis. Etapa que já
+tinha responsável e não vem na escolha fica com o dele.
+
+Status: 🧪
+
+## UC-PCLIB-03 · Liberar só dentro da empresa · `must`
+
+**Quando** o PCP escolhe responsável de outra empresa, ou uma etapa que não é desta OS, ou a empresa 99 tenta
+liberar a OS da 98 **Então** a liberação é recusada (`responsavel_invalido` ou OS não encontrada) e a OS
+segue em Aguardando liberação.
+
+Status: 🧪
+
+- **[BACKLOG]** UC-FLX-28 — com a regra ligada pela empresa, o Liberar recusa enquanto o título do sinal do
+  orçamento não estiver quitado, e a quitação (baixa manual ou retorno do banco) libera a OS sozinha pela
+  FSM. Nada disso existe hoje: falta gerar as parcelas de sinal na aprovação, o vínculo título ↔ OS e o
+  listener (US-PCP-025).
+- **[BACKLOG]** Liberar sem o papel `producao.liberar` é recusado pelo motor FSM (`ProcessoDaOrdem::ACOES`),
+  mas ainda não tem teste próprio nesta tela.
