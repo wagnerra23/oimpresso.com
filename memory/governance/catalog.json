@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 813,
-    "edges": 1112,
+    "nodes": 814,
+    "edges": 1113,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 435,
+      "component": 436,
       "api": 84
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 88,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 435,
+      "hasComponent": 436,
       "dependsOn": 123,
       "delegatesTo": 114,
       "migratesTo": 1,
@@ -2717,6 +2717,13 @@
       "module": "Financeiro",
       "name": "PlanoContaController",
       "desc": "Onda 18 tela /plano-contas dedicada + Fluxo fallback sem conta"
+    },
+    {
+      "id": "component:Financeiro/ReguaCobrancaJob + comando financeiro:regua-cobranca",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "ReguaCobrancaJob + comando financeiro:regua-cobranca",
+      "desc": "US-FIN-071 · UC-FLX-29 régua de cobrança do título vencido (e-mail D+1/D+5/D+15 com opt-in LGPD, histórico idempotente em fin_titulo_lembretes, tarefa na última etapa em crm_schedules); desligada por padrão em business.common_settings"
     },
     {
       "id": "component:Financeiro/RelatoriosController",
@@ -8864,6 +8871,12 @@
     {
       "from": "module:Financeiro",
       "to": "component:Financeiro/PlanoContaController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "component:Financeiro/ReguaCobrancaJob + comando financeiro:regua-cobranca",
       "type": "hasComponent",
       "source": "contains"
     },

@@ -2007,10 +2007,10 @@ Falta: classificar conta como fixa/variável, cadastrar centro de custo (posto/s
 
 ### US-FIN-071 · Régua de cobrança do título vencido D+1/D+5/D+15 (UC-FLX-29) — **P2**
 
-> owner: — · priority: p2 · estimate: 6h · status: todo · type: story
+> owner: — · priority: p2 · estimate: 6h · status: doing · type: story
 > blocked_by: —
 
-**Implementado em:** _pendente_ — não há estado "em cobrança" no título nem job de régua sobre `fin_titulos`; o lembrete atual cobre só venda, com 1 envio e sem cadência.
+**Implementado em:** _pendente_ — parcial em 2026-10-20: o job diário da régua (ReguaCobrancaJob + comando financeiro:regua-cobranca, e-mail D+1/D+5/D+15, tarefa na última etapa, desligada por padrão) está no módulo; falta WhatsApp, o estado "em cobrança" no título e a tela de configuração com permissão. A âncora vira path quando a US fechar (ADR 0273 + doneness-lint: status aberto com âncora viva é conflito).
 
 **Origem:** UC-FLX-29 da tela Fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:81`, transição "Vencido → Em cobrança", marcado `verificar`). Medido em 2026-10-20:
 - `app/Console/Commands/AutoSendPaymentReminder.php:85-128` — só transações de venda, 1 envio, sem D+1/D+5/D+15; WhatsApp é TODO. Agendado em `app/Console/Kernel.php:39` só no ambiente live.
@@ -2020,10 +2020,10 @@ Falta: classificar conta como fixa/variável, cadastrar centro de custo (posto/s
 
 **Aceite:**
 - [ ] Título a receber vencido passa a "em cobrança" (estado no título, não só filtro de data) e sai dele ao ser quitado ou cancelado.
-- [ ] Job agendado diário sobre `fin_titulos` envia o lembrete em D+1, D+5 e D+15 (dias configuráveis por business, padrão 1/5/15), no máximo um envio por etapa — rodar duas vezes no mesmo dia não duplica.
-- [ ] Envio por e-mail/WhatsApp respeita o opt-in LGPD (`Contact::canReceiveEmailNotification()` / `canReceiveWhatsappNotification()`): opt-out registra "não enviado" com motivo e não envia.
-- [ ] Na etapa D+15 (ou a configurada como última) cria tarefa para o vendedor do título; sem vendedor, para o responsável financeiro do business.
-- [ ] Multi-tenant: job recebe `$businessId` no constructor e só toca títulos daquele business; regra/histórico de outro business → 404. Teste com dois tenants.
+- [x] Job agendado diário sobre `fin_titulos` envia o lembrete em D+1, D+5 e D+15 (dias configuráveis por business, padrão 1/5/15), no máximo um envio por etapa — rodar duas vezes no mesmo dia não duplica. _(`ReguaCobrancaJob` + `financeiro:regua-cobranca` 09:00; idempotência pelo UNIQUE de `fin_titulo_lembretes`; dias em `business.common_settings['financeiro_regua_cobranca']`, régua **desligada por padrão** — UC-CRREG-01/02/05)_
+- [ ] Envio por e-mail/WhatsApp respeita o opt-in LGPD (`Contact::canReceiveEmailNotification()` / `canReceiveWhatsappNotification()`): opt-out registra "não enviado" com motivo e não envia. _(e-mail feito — UC-CRREG-03; **WhatsApp é follow-up**)_
+- [x] Na etapa D+15 (ou a configurada como última) cria tarefa para o vendedor do título; sem vendedor, para o responsável financeiro do business. _(tarefa em `crm_schedules`, a entidade do follow-up do CRM; vendedor = comissionado da venda de origem, senão quem lançou; sem venda → dono do business — UC-CRREG-04)_
+- [ ] Multi-tenant: job recebe `$businessId` no constructor e só toca títulos daquele business; regra/histórico de outro business → 404. Teste com dois tenants. _(job feito e testado com 98 × 99 — UC-CRREG-06; o 404 depende da tela de regra/histórico, follow-up)_
 - [ ] Permissão: configurar a régua exige permissão do Financeiro (ex. `financeiro.contas_receber.*`); sem ela → 403.
 
 ### US-FIN-072 · ISS retido ajusta o título para o valor líquido na autorização da NFS-e (UC-FLX-30) — **P2**
