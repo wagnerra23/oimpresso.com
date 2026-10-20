@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 819,
-    "edges": 1118,
+    "nodes": 820,
+    "edges": 1119,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 441,
+      "component": 442,
       "api": 84
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 88,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 441,
+      "hasComponent": 442,
       "dependsOn": 123,
       "delegatesTo": 114,
       "migratesTo": 1,
@@ -4215,6 +4215,13 @@
       "module": "Producao",
       "name": "RoteirosController",
       "desc": "roteiros por família, até 2 trilhas com junção nomeada (UC-PCV-13, thread 03), e os produtos ligados ao roteiro (US-PCP-026, UC-FLX-07)"
+    },
+    {
+      "id": "component:Producao/SinalDaOrdem",
+      "type": "component",
+      "module": "Producao",
+      "name": "SinalDaOrdem",
+      "desc": "regra 'produção só libera com o sinal pago' (US-PCP-025 · UC-FLX-28): o Liberar recusa abaixo do % mínimo da empresa e o pagamento gravado na venda libera a OS sozinho (liberar_pelo_sinal); só LÊ valor"
     },
     {
       "id": "component:ProductCatalogue/DataController",
@@ -12287,6 +12294,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/RoteirosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/SinalDaOrdem",
       "type": "hasComponent",
       "source": "contains"
     },

@@ -278,9 +278,54 @@ segue em Aguardando liberação.
 
 Status: 🧪
 
-- **[BACKLOG]** UC-FLX-28 — com a regra ligada pela empresa, o Liberar recusa enquanto o título do sinal do
-  orçamento não estiver quitado, e a quitação (baixa manual ou retorno do banco) libera a OS sozinha pela
-  FSM. Nada disso existe hoje: falta gerar as parcelas de sinal na aprovação, o vínculo título ↔ OS e o
-  listener (US-PCP-025).
 - **[BACKLOG]** Liberar sem o papel `producao.liberar` é recusado pelo motor FSM (`ProcessoDaOrdem::ACOES`),
   mas ainda não tem teste próprio nesta tela.
+
+---
+
+## Sinal pago libera a OS (US-PCP-025 · UC-FLX-28)
+
+> **Âncora:** US-PCP-025 do `memory/requisitos/Producao/SPEC.md` (*"A empresa configura se a produção exige
+> sinal; desligado, o `liberar` segue como hoje"* · *"`liberar` recusa com motivo enquanto o título não estiver
+> quitado, inclusive para quem tem `producao.liberar`"* · *"um listener executa `liberar` pela FSM com ator
+> sistema"*) e o UC-FLX-28 do catálogo de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:80`). Nesta
+> entrega o sinal é um percentual mínimo do total da venda, pago em `transaction_payments` (troco
+> descontado); não há parcela de sinal separada. Ainda sem campo na tela de Fluxos. VALOR (só leitura):
+> regra mestre. Prova: `ProducaoSinalPagoLiberaContratoTest`.
+
+## UC-PCLIB-04 · Regra desligada não muda o Liberar · `must`
+
+**Dado** a empresa sem sinal mínimo **Quando** o PCP libera a OS de uma venda de 1.000,00 sem nada pago
+**Então** a OS vai para Na fila, como antes.
+
+Status: 🧪
+
+## UC-PCLIB-05 · Com a regra ligada, sem o sinal o Liberar recusa · `must` valor
+
+**Dado** a empresa com sinal mínimo de 30% e a venda de 1.000,00 **Quando** o PCP com `producao.liberar` libera
+sem pagamento, ou com 299,99 pago **Então** a liberação é recusada com `sinal_pendente` e *"exigido 300,00,
+pago …"*, e a OS segue em Aguardando liberação. O exigido arredonda ao centavo: 333,33 × 30% = 100,00, e
+99,99 não basta.
+
+Status: 🧪
+
+## UC-PCLIB-06 · Sinal alcançado, o Liberar manual passa · `must` valor
+
+**Dado** a mesma regra e 350,00 de entrada com 50,00 de troco (pago 300,00) **Quando** o PCP libera **Então** a
+OS vai para Na fila.
+
+Status: 🧪
+
+## UC-PCLIB-07 · O pagamento libera a OS sozinho · `must`
+
+**Dado** a regra ligada e a OS com responsável em todas as etapas abertas **Quando** um pagamento de 300,00 é
+gravado na venda **Então** a OS vai para Na fila pela ação `liberar_pelo_sinal`, com `ator = sistema`, pago e
+exigido no histórico; registrar de novo não executa a transição outra vez. OS com etapa sem responsável fica
+em Aguardando liberação. Pagamento gravado por outra empresa não conta e não libera, e a empresa 99 não acha
+a OS da 98.
+
+Status: 🧪
+
+- **[BACKLOG]** UC-FLX-28 — parcelas de sinal e saldo geradas na aprovação do orçamento (Vendas/Financeiro) e o
+  retorno do banco criando o pagamento da venda (PaymentGateway): hoje o retorno só grava o evento. O campo do
+  sinal mínimo na aba Fluxos da empresa também falta (o valor é gravado por `RegrasDaEmpresa::mudarSinalMinimo`).
