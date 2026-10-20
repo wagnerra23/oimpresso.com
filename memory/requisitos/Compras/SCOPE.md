@@ -8,6 +8,8 @@ contains:
   - "InstallController"
   - "CustoDoInsumoService — custo do insumo numa data pelo método da regra da empresa (US-COM-024 · UC-FLX-38); só lê purchase_lines + transactions"
   - "compras_insumo_metodo_custo — tabela-ponte (business_id, variation_id) com o método próprio do insumo (medio | ultimo), lida quando a regra é por_insumo; variations do core não ganha coluna"
+  - "AplicarCustoDoRecebimento — compra recebida grava o custo pela regra da empresa e trata o preço (so_custo | aplicar | propor), só quando a empresa gravou a regra (US-COM-026 · UC-FLX-17)"
+  - "compras_propostas_preco — proposta de preço pendente gerada no recebimento (business_id, variation_id, transaction_id)"
 not_contains:
   - "Estoque/inventário operacional → Modules/AssetManagement + core UltimatePOS stock"
   - "Vendas/saídas → core UltimatePOS Sells (NÃO é módulo: telas legacy em app/ + resources/views — ghost-rename-map excluded classe C)"
@@ -56,5 +58,6 @@ Prefix `compras.*` (futuro — hoje usa `purchase.*` legacy do core UPOS).
 ## Multi-tenant Tier 0
 
 ADR 0093 — todas as queries filtram por `business_id` global scope via core
-UltimatePOS `Transaction::auth_scope()`. Compras não introduz tabela própria
-ainda (reusa `transactions` + `transaction_lines`).
+UltimatePOS `Transaction::auth_scope()`. Compras reusa `transactions` + `purchase_lines`;
+desde 2026-10-20 tem tabelas próprias — `compras_insumo_metodo_custo` (US-COM-024) e
+`compras_propostas_preco` (US-COM-026) —, ambas com `business_id` indexado + FK.

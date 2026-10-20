@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 815,
-    "edges": 1114,
+    "nodes": 817,
+    "edges": 1116,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 437,
+      "component": 439,
       "api": 84
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 88,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 437,
+      "hasComponent": 439,
       "dependsOn": 123,
       "delegatesTo": 114,
       "migratesTo": 1,
@@ -1914,11 +1914,25 @@
       "desc": ""
     },
     {
+      "id": "component:Compras/AplicarCustoDoRecebimento",
+      "type": "component",
+      "module": "Compras",
+      "name": "AplicarCustoDoRecebimento",
+      "desc": "compra recebida grava o custo pela regra da empresa e trata o preço (so_custo | aplicar | propor), só quando a empresa gravou a regra (US-COM-026 · UC-FLX-17)"
+    },
+    {
       "id": "component:Compras/compras_insumo_metodo_custo",
       "type": "component",
       "module": "Compras",
       "name": "compras_insumo_metodo_custo",
       "desc": "tabela-ponte (business_id, variation_id) com o método próprio do insumo (medio | ultimo), lida quando a regra é por_insumo; variations do core não ganha coluna"
+    },
+    {
+      "id": "component:Compras/compras_propostas_preco",
+      "type": "component",
+      "module": "Compras",
+      "name": "compras_propostas_preco",
+      "desc": "proposta de preço pendente gerada no recebimento (business_id, variation_id, transaction_id)"
     },
     {
       "id": "component:Compras/ComprasController",
@@ -7803,7 +7817,19 @@
     },
     {
       "from": "module:Compras",
+      "to": "component:Compras/AplicarCustoDoRecebimento",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
       "to": "component:Compras/compras_insumo_metodo_custo",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/compras_propostas_preco",
       "type": "hasComponent",
       "source": "contains"
     },
