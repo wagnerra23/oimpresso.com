@@ -23,6 +23,7 @@ use InvalidArgumentException;
  * Tier 0 (ADR 0093): sempre o `$businessId` recebido — o controller passa o da sessão.
  * Nunca toca documento. Ligar ou desligar não muda nenhuma execução hoje: as regras do catálogo
  * estão todas planejadas (CatalogoModelos), e as da Compra ainda não são lidas no recebimento.
+ * A baixa de material (UC-FLX-14) não executa de propósito: ver CatalogoModelos::PENDENCIAS.
  */
 final class RegrasDaEmpresa
 {

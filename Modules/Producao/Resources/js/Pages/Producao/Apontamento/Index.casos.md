@@ -98,9 +98,12 @@ Status: 🧪
 > Os mesmos UCs cobrem a parte já feita do **UC-FLX-14** (*"Consome do estoque a quantidade real, não a
 > orçada"*, `CasosDoPrototipo.php:67`, situação `parcial`): o que baixa é a quantidade apontada na etapa.
 
-- **[BACKLOG]** UC-FLX-14 — a regra "ao entrar na etapa → Baixa o material do estoque" dos modelos de
-  processo ainda não executa: em `app/Domain/Fsm/Modelos/CatalogoModelos.php` ela é só dado, com
-  `ConsumirEstoque` como candidato (ele baixa a quantidade reservada, e o caso pede a consumida).
+> A regra "ao entrar na etapa → Baixa o material do estoque" do catálogo está só nos modelos de venda
+> sem OS (Balcão enxuto e Brindes). Nos modelos com OS a baixa é a do apontamento, acima — não há regra
+> que baixe de novo. Nos sem OS ela não executa de propósito e grava o porquê
+> (`CatalogoModelos::PENDENCIAS`): ligar o `ConsumirEstoque` baixaria a reserva por cima da baixa da
+> venda finalizada. Prova em `resources/js/Pages/Fluxos/Index.casos.md` (UC-FLXT-20 e UC-FLXT-21); o
+> que é "consumido" na venda sem OS segue no backlog de lá, como decisão [W].
 
 ## UC-PCMAT-01 · O material sai do estoque do local da venda · `must`
 
