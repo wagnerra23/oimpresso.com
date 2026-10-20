@@ -5,8 +5,14 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: esta tela liga a emissão automática de NFe e edita a cascade tributária — o comportamento é durável mesmo se o layout mudar.
 owner: wagner
-last_run: "2026-10-14"
+last_run: "2026-10-20"
 ---
+
+> ℹ️ **`last_run` 2026-10-14 → 2026-10-20 (G-6), sem re-execução.** A única mudança no `Index.tsx` depois de
+> 2026-10-14 é o [#9450](https://github.com/wagnerra23/oimpresso.com/pull/9450) (2026-10-15): a prop
+> `produtoInicial` repassada ao simulador, que é o UC-NFTR-29 (escrito no mesmo PR). Conferido no diff do
+> commit `f544a6ca3d` restrito ao `Index.tsx`; nenhum outro UC depende dela. O bump marca o trio
+> reconciliado com a tela nesta data, não um re-run: os Status seguem vindo do manifesto G-7.
 
 # Casos de Uso & Aceite — Tributação (regras NCM · templates · gate de emissão automática)
 
