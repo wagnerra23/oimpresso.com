@@ -1604,10 +1604,12 @@ Como contador, quero decidir por produto se ele é mercadoria (ICMS) ou serviço
 
 ### US-NFE-069 · A natureza fiscal do item escolhe a nota: NF-e para mercadoria, NFS-e para serviço e instalação (UC-FLX-31) — **P1**
 
-> owner: — · sprint: — · priority: p1 · estimate: 6h · status: todo · type: story
+> owner: — · sprint: — · priority: p1 · estimate: 6h · type: story
 > blocked_by: US-NFE-060 (NFS-e ainda é STUB, sem chamada real à Sefin nacional)
 
 **Implementado em:** _parcial_ — `Modules/NfeBrasil/Services/SeparacaoNotasDaVenda.php` · `Modules/NfeBrasil/Tests/Feature/SeparacaoNotasDaVendaContratoTest.php` (só a separação das linhas; disparo no Faturado e emissão em aberto)
+
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/SeparacaoNotasDaVendaContratoTest.php` (lane `nfebrasil-pest.yml`)
 
 Como faturista, quero que a venda ou OS com mercadoria e serviço saia em duas notas — NF-e com as mercadorias e NFS-e com os serviços —, decididas pela natureza fiscal de cada produto, para não ter a NF-e recusada inteira nem a NFS-e com código de serviço errado.
 
