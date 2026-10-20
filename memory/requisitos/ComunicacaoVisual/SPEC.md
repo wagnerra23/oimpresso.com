@@ -121,6 +121,8 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 
 **Implementado em:** _pendente_ — migration `cv_ordens_producao` + Entity `OrdemProducao` existem, mas Kanban PCP (OsController + Page Inertia + drag-drop) não construído
 
+> A entrada da OS (orçamento aprovado vira OS com itens, medidas e arquivos — UC-FLX-01) está na US-COMVIS-020. Aqui fica o Kanban de etapas.
+
 **Como** PCP/produção
 **Quero** ver Kanban com colunas Design → Prepress → Impressão → Acabamento → Instalação → Entregue
 **Para** saber onde cada OS está + prazo + responsável
@@ -1207,6 +1209,38 @@ Como quem orça comunicação visual, quero que cada item guarde o custo do mate
 - [x] Item com posto de máquina e horas grava `custo_hora_previsto` e `custo_maquina_previsto` do dia; posto de pessoa, sem custo ou de outra empresa fica sem custo; mudar o custo da hora depois não altera o orçamento
 - [ ] Custo previsto de tinta e de instalação (sem fonte de custo hoje)
 - [ ] Ligar o material da CV ao produto do estoque, para usar o custo das compras (US-COM-024)
+
+
+---
+
+### US-COMVIS-020 · Orçamento aprovado vira OS sem redigitar (UC-FLX-01) — **P0**
+
+> owner: wagner · priority: p0 · estimate: 3h · type: story
+
+**Implementado em:** `Modules/ComunicacaoVisual/Services/OrcamentoViraOs.php` · `Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php` · `Modules/ComunicacaoVisual/Entities/OsItem.php` · `Modules/ComunicacaoVisual/Database/Migrations/2026_10_20_200000_create_comvis_os_itens_table.php`
+
+**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoViraOsContratoTest.php` (lane `verticais-pest.yml`).
+
+> Contrato: `UC-CVOS-01..07` do `resources/js/Pages/ComunicacaoVisual/Index.casos.md`. Parte da US-COMVIS-003 (PCP gráfico): esta US entrega a entrada da OS; o Kanban de etapas segue na 003.
+
+Como quem vende comunicação visual, quero que aprovar o orçamento crie a OS com os itens, as medidas e os arquivos dele, para a produção não redigitar nada.
+
+- `POST /comunicacao-visual/api/orcamentos/{id}/aprovar` marca o orçamento `aprovado` e cria a OS (`comvis_os`, etapa `arte`, número `OS-AAAA-NNNNN` por empresa).
+- Um item da OS (`comvis_os_itens`) por item do orçamento: descrição, material, largura, altura, quantidade, área e observação.
+- Os arquivos anexados ao orçamento (`media` do core) passam a apontar também para a OS, com o mesmo arquivo.
+- O valor da OS é o `total` do orçamento; nenhum preço é recalculado e o orçamento não muda de valor.
+- Aprovar de novo devolve a mesma OS (200) sem duplicar itens nem arquivos; recusado ou expirado não vira OS (422).
+- Permissão `comvis.orcamento.create` (ou superadmin); orçamento de outra empresa responde 404.
+- Na venda do core o mesmo caso já existia: `Modules/Producao/Services/CriarOsDaVenda.php` cria a OS por item quando a venda de um modelo entra em "Aprovado" (ADR 0436).
+
+**Aceite:**
+- [x] Aprovar cria a OS com os itens e as medidas do orçamento
+- [x] O valor da OS é o total do orçamento e o orçamento não muda de valor
+- [x] Aprovar de novo não duplica OS, itens nem arquivos
+- [x] Os arquivos do orçamento passam para a OS, só os da empresa
+- [x] Outra empresa não aprova nem gera OS; recusado não vira OS; sem permissão é recusado
+- [ ] Botão "Aprovar" na tela (hoje nenhuma tela salva nem lista orçamentos — ver backlog do `Index.casos.md`)
+- [ ] Upload de arquivo no orçamento (o orçamento não tem tela de anexos; a cópia cobre o que for anexado pelo `media` do core)
 
 ---
 
