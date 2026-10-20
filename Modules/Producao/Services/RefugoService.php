@@ -80,7 +80,7 @@ final class RefugoService
                 'business_id' => $businessId, 'chave' => $chave, 'ordem_id' => $ordem->id, 'programacao_id' => $etapa->id,
                 'motivo_id' => $motivoId, 'motivo' => $motivo, 'quantidade' => $quantidade, 'user_id' => $userId, 'momento' => $momento,
             ]);
-            foreach (array_values($materiais) as $i => $m) {
+            foreach ($materiais as $i => $m) {
                 $this->consumo->registrar($businessId, $userId, $etapa->id, (int) $m['variation_id'], (string) $m['quantidade'],
                     'refugo:'.sha1($businessId.':'.$chave).':'.$i, $momento);
             }
