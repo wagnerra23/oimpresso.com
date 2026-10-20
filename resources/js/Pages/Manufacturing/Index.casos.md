@@ -265,6 +265,8 @@ last_run: "2026-10-07"
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
+- **[BACKLOG]** (H1 · Tier 0 · estoque) Ordem só aceita produto e local da **minha empresa**: `POST /manufacturing/production` com `variation_id` ou `location_id` de outra empresa recusa e não cria `production_purchase`/`production_sell` nem mexe em estoque. Hoje `StoreProductionRequest` valida `exists:variations,id` sem empresa — **hipótese sem teste** (ver PARIDADE). Vira UC quando o teste vermelho existir (tenant 98 × 99, CT 100).
+- **[BACKLOG]** (D1 · decisão [W] 2026-10-13) A aba "Ordens de produção" é só consulta: nenhum botão leva a `/manufacturing/production/create`; a ordem nasce no módulo Produção. Depende do ADR e do destino em `Modules/Producao`.
 - **[BACKLOG]** O sufixo `fix` aparece só em ordem finalizada, com o `title` verbatim (R-21) —
   comportamento de navegador; lugar é spec Playwright.
 - **[BACKLOG]** O checkbox "Só finalizadas" e o KPI "Finalizadas" governam o MESMO filtro (um

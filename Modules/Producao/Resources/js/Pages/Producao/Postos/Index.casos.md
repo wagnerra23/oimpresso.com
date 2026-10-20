@@ -88,6 +88,154 @@ last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando 
 
 ---
 
+## Alocador decide quem e quando começa (US-PCP-029 · UC-FLX-10)
+
+> **Âncora:** UC-FLX-10 do catálogo de fluxos (`app/Domain/Fsm/Modelos/CatalogoModelos.php`, etapa *Liberada* →
+> "Alocador escolhe quem e quando"; `CasosDoPrototipo.php`: *"escolhe operador e horário para não parar máquina
+> nem faltar material"*) e a US-PCP-029 do `memory/requisitos/Producao/SPEC.md`. Nesta entrega são os endpoints
+> JSON (`PUT /producao/etapas/{id}/alocacao` e `GET /producao/postos/{id}/fila`); a tela do quadro é a US-PCP-015.
+> Prova: `ProducaoAlocacaoContratoTest` (tenant 98 × 99).
+
+## UC-PCALO-01 · Trocar responsável e início mantém a duração · `must`
+
+**Dado** a etapa Impressão do Diego, pendente, prevista das 08:00 às 09:30 **Quando** o gestor a passa para a
+Ana às 14:00 **Então** a etapa fica com a Ana das 14:00 às 15:30, e a situação da OS não muda.
+
+Status: 🧪
+
+## UC-PCALO-02 · Quem mudou e quando fica no histórico · `must`
+
+**Quando** o gestor muda só o início da etapa **Então** o histórico guarda o gestor, a hora, o responsável e o
+início de antes e de depois; o responsável continua o mesmo.
+
+Status: 🧪
+
+## UC-PCALO-03 · Etapa começada não se realoca · `must`
+
+**Dado** uma etapa iniciada ou concluída **Quando** o gestor tenta trocar o responsável **Então** é recusado e
+nada muda, nem o histórico.
+
+Status: 🧪
+
+## UC-PCALO-04 · Só pessoa da empresa com acesso à Produção · `must`
+
+**Quando** o responsável escolhido é de outra empresa ou não tem acesso à Produção **Então** é recusado e a
+etapa segue com quem estava.
+
+Status: 🧪
+
+## UC-PCALO-05 · Operador não aloca; outra empresa não existe · `must`
+
+**Quando** um operador sem permissão de mover etapa tenta alocar ou ver a fila **Então** recebe 403 **E** etapa
+ou posto de outra empresa respondem 404, sem mudar nada.
+
+Status: 🧪
+
+## UC-PCALO-06 · Fila do posto pela ordem do início previsto · `must`
+
+**Dado** no posto uma etapa iniciada (dia 2), uma pendente (dia 3), uma pendente sem responsável (dia 5) e uma
+concluída (dia 1) **Quando** o gestor abre a fila **Então** vêm as três abertas nessa ordem, com o responsável
+de cada uma; a concluída não aparece.
+
+Status: 🧪
+
+## Prazo de entrega calculado pela fila (US-PCP-028 · UC-FLX-06)
+
+> **Âncora:** UC-FLX-06 do catálogo de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:59` — *"Calcula a
+> data de entrega pela capacidade livre de cada etapa"*, etapa Aprovado da venda, situação `planejado`, "SPEC do
+> PCP") e a [ADR 0436](../../../../../../../memory/decisions/0436-os-por-item-producao-dona-da-os-do-pedido.md)
+> (o roteiro anda nas programações do PCP; "prazo pela fila" ficou fora da fase 2). O caso mora aqui porque a
+> fila e as horas por dia são do posto. O cálculo sai em JSON (`GET /producao/vendas/{id}/prazo`, só leitura); a
+> tela ainda não mostra. Prova: `ProducaoPrazoPelaFilaContratoTest`.
+>
+> **Decisão [W] 2026-10-20** (UC-PCPRZ-05..08): *"Pula sábado, domingo e feriados"*, pelo período de funcionamento
+> que a empresa já cadastrou — cada dia de produção do posto vale um dia útil. Hora útil = turno da produção
+> (`pcp_turnos`) → senão o expediente do RH (turno fixo do Essentials) → senão 08h–18h (D-TURNO de
+> `prototipo-ui/cowork/Wagner/cowork-inbox/producao/playbook/_DECISOES-W-2026-10-15.md`), com aviso. Folgas = as do
+> expediente; sem ele, sábado e domingo. Feriados = os do RH da empresa e da loja da venda — nenhum fixo no código. O
+> módulo lê o RH só pelo contrato `App\Contracts\Rh\CalendarioDaEmpresa`. A data prometida fica na venda
+> (`transactions.due_date`, PROJETO_DT_FIM) na aprovação e vai para a OS (`pcp_ordens.prazo_prometido`).
+
+## UC-PCPRZ-01 · A data soma a fila de cada posto e as etapas do roteiro · `must`
+
+**Dado** a impressora (8 h/dia) com 16 h abertas na fila, o acabamento (10 h/dia) com 4 h iniciadas, o corte sem
+horas por dia e o roteiro Impressão 4 h → [Corte 8 h ‖ Acabamento 2 h] → Conferência 4 h sem posto **Quando** o
+orçamento de 1 banner pede o prazo em 20/10 **Então** Impressão 2,0→2,5 dias, Corte 2,5→3,5 (8 h/dia por padrão),
+Acabamento 2,5→2,7, Conferência 3,5→4,0 — 4,0 dias × 10 h do turno = 40 h úteis desde ter 20/10 09:00, e a
+entrega prevista é seg 26/10 09:00 (sábado e domingo pulam) — a etapa opcional, a programação concluída e a
+de outra empresa no mesmo posto não contam, e as premissas dizem o padrão usado.
+
+Status: 🧪
+
+## UC-PCPRZ-02 · Itens da mesma venda disputam os postos · `must`
+
+**Dado** o mesmo orçamento com 2 banners e uma instalação sem roteiro **Então** o 2º banner espera o 1º em cada
+posto (Impressão 2,5→3,0, Corte 3,5→4,5, Acabamento 3,0→3,2, fim 5,0), a entrega vai para ter 27/10 09:00 e a instalação fica
+fora do prazo, listada sem roteiro.
+
+Status: 🧪
+
+## UC-PCPRZ-03 · Só leitura, e a venda aprovada não entra na própria fila · `must`
+
+**Dado** a venda já aprovada com a OS dela programada 8 h na impressora **Quando** pede o prazo **Então** a fila da
+impressora segue 16 h (a OS da própria venda não conta) e o cálculo não grava nada na venda nem nas programações.
+
+Status: 🧪
+
+## UC-PCPRZ-04 · Quem vende ou quem produz consulta · `must`
+
+**Quando** quem tem `sell.view` ou `producao.access` pede o prazo **Então** recebe a data; sem uma das duas, ou sem o
+módulo no pacote, 403; venda de outra empresa, 404.
+
+Status: 🧪
+
+## UC-PCPRZ-05 · Sem nada cadastrado: 08h–18h, folga no sábado e no domingo · `must`
+
+**Dado** a empresa sem turno da produção, sem expediente e sem feriado no RH **Quando** a fila soma 6 h a partir de sex
+30/10 16:00 **Então** conta 2 h na sexta, pula sábado e domingo e termina seg 02/11 12:00 — nada no código sabe que 02/11
+é Finados; feriado é o que a empresa cadastra · antes das 08:00 começa às 08:00, depois das 18:00 no dia útil seguinte,
+fechar às 18:00 fica no mesmo dia · as premissas avisam o padrão.
+
+Status: 🧪
+
+## UC-PCPRZ-06 · Feriados do RH: da empresa e da loja da venda · `must`
+
+**Dado** no RH da 98 o feriado de 02/11 da empresa, o de 03/11 só da loja da venda e o de 04/11 de outra loja, e na 99 o de
+04 a 06/11 **Então** as mesmas 6 h desde sex 30/10 16:00 terminam qua 04/11 12:00 na loja, ter 03/11 12:00 sem loja e seg
+02/11 12:00 na 99 (os feriados da 98 não valem nela) · a venda leva a loja dela: com feriado da loja em 26/10, a entrega do
+UC-PCPRZ-01 passa de seg 26/10 09:00 para ter 27/10 09:00. Mesma regra do Ponto (`ApuracaoService::aplicarFeriado`).
+
+Status: 🧪
+
+## UC-PCPRZ-07 · Hora útil: turno da produção, senão expediente do RH · `must`
+
+**Dado** no RH o turno fixo «Comercial» 07h–12h com folga só no domingo (e um flexível, sem horário, que não conta) **Então**
+6 h desde sex 30/10 16:00 terminam seg 02/11 08:00 (sáb 07→12, dom folga) · com o turno da produção 08h–18h cadastrado,
+ele manda na hora e as folgas seguem o expediente: sáb 31/10 12:00 · a 99 não vê o expediente da 98.
+
+Status: 🧪
+
+## UC-PCPRZ-08 · Na aprovação a data prometida vai para a venda e para a OS · `must`
+
+**Quando** a venda é aprovada e as OS nascem **Então** a venda sem data recebe a entrega prevista (26/10) em `due_date` e
+a OS recebe a mesma data · venda com data digitada pelo vendedor (30/11) **não** é sobrescrita, e a OS recebe 30/11 ·
+venda de outra empresa não muda.
+
+Status: 🧪
+
+## UC-PCPRZ-09 · A data prometida não muda o vencimento do título · `must`
+
+**Quando** a data prometida é gravada em `transactions.due_date` **Então** o vencimento que o Financeiro calcula
+(`Transaction::getDueDateAttribute`, `TituloAutoService` e `CriarTituloDeVendaJob`) continua sendo a data da venda +
+condição de pagamento: venda a 30 dias de 20/10 vence 19/11; venda sem condição vence 20/10 — antes e depois da gravação
+de 26/10. Regra mestre de valor.
+
+Status: 🧪
+
+- **[BACKLOG]** UC-FLX-06 — mostrar o prazo na aprovação do orçamento (tela de venda); descontar o já apontado da etapa iniciada; o Ponto passar a usar o contrato `CalendarioDaEmpresa` em vez de importar `EssentialsHoliday`.
+
+---
+
 ## Backlog de casos (sem id — a E03 não traz UC próprio; o teste já os defende)
 
 - **[BACKLOG]** Veículo é posto de máquina com placa obrigatória e custo por km; ferramenta tem QR único por empresa.
@@ -95,4 +243,7 @@ last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando 
 ## Trilha do tempo
 - 2026-10-16 · [CL] thread 03 + E03 do playbook de Produção — trio nasce junto (charter + casos + teste).
 - 2026-10-20 · [CL] UC-PCCH-01/02 documentam o custo-hora que já existe (UC-FLX-20 parcial); o bullet de backlog do custo-hora da pessoa virou o UC-PCCH-02; rateio e ponto de equilíbrio ficam no [BACKLOG] (US-FIN-070).
+- 2026-10-20 · [CL] UC-PCALO-01..06 — alocador decide quem e quando começa (US-PCP-029 · UC-FLX-10): endpoints JSON de alocação e fila do posto; a tela é a US-PCP-015.
+- 2026-10-20 · [CL] UC-PCPRZ-01..04 — prazo de entrega pela fila dos postos (US-PCP-028 · UC-FLX-06), cálculo em JSON só leitura; tela e data prometida ficam no [BACKLOG].
+- 2026-10-20 · [CL] UC-PCPRZ-05..08 — decisão [W]: dias úteis pelo período de funcionamento cadastrado (turno da produção, expediente e feriados do RH) e data prometida gravada na venda e na OS na aprovação; datas de UC-PCPRZ-01/02 recalculadas (24/10→26/10, 25/10→27/10).
 - 2026-10-20 · [CL] UC-PCCH-03..06 — custeio RKW e ponto de equilíbrio (US-FIN-070): cálculo só leitura + aplicar explícito; o [BACKLOG] do rateio virou estes casos.

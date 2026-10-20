@@ -102,8 +102,9 @@ Status: 🧪
 > sem OS (Balcão enxuto e Brindes). Nos modelos com OS a baixa é a do apontamento, acima — não há regra
 > que baixe de novo. Nos sem OS ela não executa de propósito e grava o porquê
 > (`CatalogoModelos::PENDENCIAS`): ligar o `ConsumirEstoque` baixaria a reserva por cima da baixa da
-> venda finalizada. Prova em `resources/js/Pages/Fluxos/Index.casos.md` (UC-FLXT-20 e UC-FLXT-21); o
-> que é "consumido" na venda sem OS segue no backlog de lá, como decisão [W].
+> venda finalizada. Prova em `resources/js/Pages/Fluxos/Index.casos.md` (UC-FLXT-20 e UC-FLXT-21); a
+> venda sem OS segue baixando a peça na finalização (decisão [W] 2026-10-20). No item sob encomenda a venda
+> aprovada só RESERVA o insumo e a baixa é a apontada (UC-PCRES-01..08, abaixo).
 
 ## UC-PCMAT-01 · O material sai do estoque do local da venda · `must`
 
@@ -155,6 +156,89 @@ gestor), e o reenvio responde sem gravar de novo.
 
 Status: 🧪
 
+## UC-PCMAT-08 · A baixa sai do rolo escolhido · `must` estoque
+
+> US-COM-025 · UC-FLX-18. Prova: `ProducaoRoloRastreioContratoTest`.
+
+**Dado** em L o lote A (2 un × 10,00, mais antigo) e o B (5 un × 14,00) **Quando** a etapa baixa 3 un escolhendo o lote B
+(`lote_id`) **Então** as 3 saem de B e o custo é 3 × 14,00 = 42,00; sem escolha a baixa segue o FIFO, como antes. Lote de
+outro local, de outro material, de outra empresa, de compra ainda não recebida ou sem saldo para a quantidade inteira é recusado e nada é baixado; a
+mesma chave com outro lote é conflito.
+
+Status: 🧪
+
+---
+
+## Reserva do insumo na venda (US-PCP-031 · UC-FLX-14)
+
+> **Âncora:** decisão [W] 2026-10-20 — *"Reserva insumo na venda, baixa real na produção"* — para o item feito
+> sob encomenda; o caso prático da Comunicação Visual (*"reserva 6m² lona em 'aprovado' → consome em 'produção
+> concluída'"*) e o UC-FLX-14 do catálogo (*"Consome do estoque a quantidade real, não a orçada"*). A receita do
+> Manufacturing é a fonte do material (decisão [W] 2026-10-15). Sob encomenda = o item gera OS, o produto vendido
+> não controla estoque e tem receita. Chave por empresa `common_settings['producao_reserva_insumo']`, desligada por
+> padrão. Prova: `ProducaoReservaInsumoContratoTest`. ESTOQUE: regra mestre — saldo físico e reservado em cada passo,
+> por dois caminhos.
+
+## UC-PCRES-01 · Venda aprovada reserva o insumo da receita · `must` estoque
+
+**Dado** o banner (não controla estoque) com receita de 5 lona para 2 banners, e a chave ligada **Quando** a venda de
+2 banners é aprovada e a OS nasce **Então** a OS reserva 2,5 × 2 = 5,0000 de lona no local da venda, sem data de
+expiração, e o saldo da lona não muda; aprovar de novo não reserva de novo.
+
+Status: 🧪
+
+## UC-PCRES-02 · Revenda e chave desligada não reservam · `must` estoque
+
+**Dado** a placa pronta (controla estoque, vende da prateleira) com a mesma receita **Quando** a OS dela nasce **Então**
+nada é reservado — o núcleo segue baixando a peça na venda. **E** com a chave desligada a OS do banner nasce sem
+reserva.
+
+Status: 🧪
+
+## UC-PCRES-03 · A baixa real abate a reserva · `must` estoque
+
+**Dado** 5 de lona reservados e saldo 10 **Quando** a etapa aponta 3 **Então** o saldo vai a 7 e a reserva a 2 — uma
+baixa só.
+
+Status: 🧪
+
+## UC-PCRES-04 · Consumo além do reservado baixa normalmente · `must` estoque
+
+**Dado** 5 reservados **Quando** a etapa aponta 3 e depois 4 **Então** o saldo cai 7 (10 → 3) e a reserva abate só o
+que tinha: fica zerada e `consumed`.
+
+Status: 🧪
+
+## UC-PCRES-05 · OS concluída libera o que sobrou · `must` estoque
+
+**Dado** 5 reservados e 3 apontados **Quando** a OS é concluída **Então** os 2 que sobraram são liberados e o saldo
+segue 7.
+
+Status: 🧪
+
+## UC-PCRES-06 · Venda cancelada libera tudo · `must` estoque
+
+**Dado** 5 reservados e nada apontado **Quando** a venda vai para a etapa cancelada **Então** a reserva é liberada e o
+saldo segue 10.
+
+Status: 🧪
+
+## UC-PCRES-07 · Reserva só dentro da empresa · `must`
+
+**Quando** outra empresa lê a receita, abate ou libera a reserva da OS **Então** nada muda; a mesma chamada na empresa
+dona abate.
+
+Status: 🧪
+
+## UC-PCRES-08 · A venda não baixa nem solta a reserva de insumo da OS · `must` estoque
+
+**Dado** a OS reservou 5 de lona e já apontou 3 (saldo 7, 2 reservados) e a venda tem uma reserva comum de 1
+**Quando** a venda passa por "Concluir produção" (ConsumirEstoque) ou "Reabrir para revisão" (LiberarReserva)
+**Então** só a reserva comum é baixada (saldo 6); a reserva da OS segue ativa com 2 — quem baixa o insumo é o
+apontamento, e quem solta a reserva é a OS concluída ou a venda cancelada.
+
+Status: 🧪
+
 ---
 
 ## Custo da OS em andamento (US-PCP-022 · UC-FLX-36)
@@ -170,6 +254,56 @@ Status: 🧪
 **Dado** a OS aberta em 12/03 com 3 un de vinil (médio 10,00 em 12/03; 15,00 em 20/03) e a regra em
 "Mantêm o custo da abertura" **Quando** o gestor consulta em 20/03 **Então** vê abertura 30,00 e hoje 45,00,
 o item marcado como mudou, e a previsão em 30,00; nada é gravado.
+
+Status: 🧪
+
+---
+
+## Cliente aprova a arte por link (US-COMVIS-NEW-004 · UC-FLX-02)
+
+> **Âncora:** UC-FLX-02 do catálogo de fluxos (`fluxos-data.jsx`, etapa "Aprovação do cliente"):
+> *"Envia link da prova; aprovado avança para Impressão, recusado volta para Arte com o comentário"* —
+> e a US-COMVIS-NEW-004 (`memory/requisitos/ComunicacaoVisual/SPEC.md`: link de curta validade, 7 dias,
+> página pública sem login, uso único). A etapa "Aprovação do cliente" é uma etapa do roteiro desta OS;
+> por isso o contrato mora aqui, junto do apontamento que conclui as outras etapas. Nesta entrega são o
+> endpoint do operador (gera o link) e a página pública; o envio por WhatsApp/e-mail com opt-in LGPD e o
+> botão na tela ficam para depois. Prova: `ProducaoAprovacaoArteContratoTest`.
+
+## UC-PCART-01 · Aprovar leva a OS para a Impressão · `must`
+
+**Dado** a OS com Arte feita, "Aprovação do cliente" pendente e Impressão depois, e o link da prova
+enviado **Quando** o cliente abre o link e aprova **Então** a etapa de aprovação fica concluída, a OS segue em
+execução pelo motor (sem mexer na situação à mão) e a Impressão pode começar — antes da aprovação, não podia.
+O banco guarda só o hash do token.
+
+Status: 🧪
+
+## UC-PCART-02 · Recusar volta para a Arte com o comentário · `must`
+
+**Quando** o cliente pede alteração com o comentário "Trocar o telefone do rodapé" **Então** a Arte volta como
+etapa nova "Arte (alteração)" para o mesmo designer, o comentário fica gravado, a aprovação continua pendente
+e a Impressão segue esperando. Pedido de alteração sem comentário é recusado e nada muda.
+
+Status: 🧪
+
+## UC-PCART-03 · O link vale uma resposta só · `must`
+
+**Dado** um link já respondido **Quando** alguém tenta aprovar ou recusar de novo **Então** a resposta é recusada
+(410) e nada muda.
+
+Status: 🧪
+
+## UC-PCART-04 · Link vencido é recusado · `must`
+
+**Dado** um link com mais de 7 dias **Quando** o cliente abre ou aprova **Então** a resposta é recusada (410) e a
+etapa fica como estava.
+
+Status: 🧪
+
+## UC-PCART-05 · Só a empresa da OS gera link · `must`
+
+**Quando** um usuário da empresa 99 pede o link de uma OS da empresa 98 **Então** recebe 404 e nada é gravado;
+token desconhecido também é 404.
 
 Status: 🧪
 

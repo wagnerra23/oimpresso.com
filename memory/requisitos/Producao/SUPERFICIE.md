@@ -14,20 +14,24 @@ module: Producao
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Producao/**` + `resources/js/Pages/Producao/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 96 arquivos em 17 papéis.
+**Total mapeado:** 117 arquivos em 17 papéis.
 
-## Controllers — 12
+## Controllers — 16
 
+- [AlocacaoController.php](../../../Modules/Producao/Http/Controllers/AlocacaoController.php)
 - [AppApontamentoController.php](../../../Modules/Producao/Http/Controllers/Api/AppApontamentoController.php)
 - [ApontamentoController.php](../../../Modules/Producao/Http/Controllers/ApontamentoController.php)
+- [AprovacaoArteController.php](../../../Modules/Producao/Http/Controllers/AprovacaoArteController.php)
 - [AproveitamentoMidiaController.php](../../../Modules/Producao/Http/Controllers/AproveitamentoMidiaController.php)
 - [ColaboradorCustoController.php](../../../Modules/Producao/Http/Controllers/ColaboradorCustoController.php)
 - [DataController.php](../../../Modules/Producao/Http/Controllers/DataController.php)
 - [EtiquetaOsController.php](../../../Modules/Producao/Http/Controllers/EtiquetaOsController.php)
 - [FerramentasController.php](../../../Modules/Producao/Http/Controllers/FerramentasController.php)
 - [InstallController.php](../../../Modules/Producao/Http/Controllers/InstallController.php)
+- [LoteRastreioController.php](../../../Modules/Producao/Http/Controllers/LoteRastreioController.php)
 - [OrdemCustoController.php](../../../Modules/Producao/Http/Controllers/OrdemCustoController.php)
 - [PostosController.php](../../../Modules/Producao/Http/Controllers/PostosController.php)
+- [PrazoDaVendaController.php](../../../Modules/Producao/Http/Controllers/PrazoDaVendaController.php)
 - [RomaneioController.php](../../../Modules/Producao/Http/Controllers/RomaneioController.php)
 - [RoteirosController.php](../../../Modules/Producao/Http/Controllers/RoteirosController.php)
 
@@ -35,28 +39,36 @@ module: Producao
 
 - [SalvarRoteiroRequest.php](../../../Modules/Producao/Http/Requests/SalvarRoteiroRequest.php)
 
-## Services — 16
+## Services — 23
 
+- [AlocacaoDaEtapa.php](../../../Modules/Producao/Services/AlocacaoDaEtapa.php)
 - [ApontamentoOperadorService.php](../../../Modules/Producao/Services/ApontamentoOperadorService.php)
 - [ApontamentoService.php](../../../Modules/Producao/Services/ApontamentoService.php)
+- [AprovacaoArteService.php](../../../Modules/Producao/Services/AprovacaoArteService.php)
 - [AproveitamentoDeMidia.php](../../../Modules/Producao/Services/AproveitamentoDeMidia.php)
+- [CalendarioDeProducao.php](../../../Modules/Producao/Services/CalendarioDeProducao.php)
 - [ConsumoMaterialService.php](../../../Modules/Producao/Services/ConsumoMaterialService.php)
 - [CriarOsDaVenda.php](../../../Modules/Producao/Services/CriarOsDaVenda.php)
 - [CustoHoraDoPostoService.php](../../../Modules/Producao/Services/CustoHoraDoPostoService.php)
 - [CustoRealService.php](../../../Modules/Producao/Services/CustoRealService.php)
 - [HorasDosPostosService.php](../../../Modules/Producao/Services/HorasDosPostosService.php)
 - [OsDaVenda.php](../../../Modules/Producao/Services/OsDaVenda.php)
+- [PrazoPelaFila.php](../../../Modules/Producao/Services/PrazoPelaFila.php)
 - [PrevisaoCustoDaOrdem.php](../../../Modules/Producao/Services/PrevisaoCustoDaOrdem.php)
 - [ProcessoDaOrdem.php](../../../Modules/Producao/Services/ProcessoDaOrdem.php)
+- [PrometerPrazoDaVenda.php](../../../Modules/Producao/Services/PrometerPrazoDaVenda.php)
+- [RastreioDoRolo.php](../../../Modules/Producao/Services/RastreioDoRolo.php)
 - [RefugoService.php](../../../Modules/Producao/Services/RefugoService.php)
+- [ReservaDeInsumoDaOs.php](../../../Modules/Producao/Services/ReservaDeInsumoDaOs.php)
 - [RomaneioDeImpressao.php](../../../Modules/Producao/Services/RomaneioDeImpressao.php)
 - [SinalDaOrdem.php](../../../Modules/Producao/Services/SinalDaOrdem.php)
 - [SituacaoDaOrdem.php](../../../Modules/Producao/Services/SituacaoDaOrdem.php)
 - [TurnoService.php](../../../Modules/Producao/Services/TurnoService.php)
 
-## Models / Entities — 16
+## Models / Entities — 17
 
 - [Apontamento.php](../../../Modules/Producao/Entities/Apontamento.php)
+- [AprovacaoArte.php](../../../Modules/Producao/Entities/AprovacaoArte.php)
 - [ColaboradorCusto.php](../../../Modules/Producao/Entities/ColaboradorCusto.php)
 - [Consumo.php](../../../Modules/Producao/Entities/Consumo.php)
 - [Evento.php](../../../Modules/Producao/Entities/Evento.php)
@@ -90,13 +102,16 @@ module: Producao
 
 - [web.php](../../../Modules/Producao/Routes/web.php)
 
-## Migrations (schema) — 7
+## Migrations (schema) — 10
 
 - [2026_10_15_000001_create_pcp_fundo_tables.php](../../../Modules/Producao/Database/Migrations/2026_10_15_000001_create_pcp_fundo_tables.php)
 - [2026_10_16_000001_create_pcp_cadastros_tables.php](../../../Modules/Producao/Database/Migrations/2026_10_16_000001_create_pcp_cadastros_tables.php)
 - [2026_10_17_000001_create_pcp_ordens_tables.php](../../../Modules/Producao/Database/Migrations/2026_10_17_000001_create_pcp_ordens_tables.php)
 - [2026_10_19_210000_create_pcp_consumos_table.php](../../../Modules/Producao/Database/Migrations/2026_10_19_210000_create_pcp_consumos_table.php)
+- [2026_10_20_000001_create_pcp_aprovacoes_arte_table.php](../../../Modules/Producao/Database/Migrations/2026_10_20_000001_create_pcp_aprovacoes_arte_table.php)
 - [2026_10_20_000001_create_pcp_romaneios_tables.php](../../../Modules/Producao/Database/Migrations/2026_10_20_000001_create_pcp_romaneios_tables.php)
+- [2026_10_20_120000_add_pcp_ordem_id_to_stock_reservations.php](../../../Modules/Producao/Database/Migrations/2026_10_20_120000_add_pcp_ordem_id_to_stock_reservations.php)
+- [2026_10_20_120000_add_prazo_prometido_to_pcp_ordens.php](../../../Modules/Producao/Database/Migrations/2026_10_20_120000_add_prazo_prometido_to_pcp_ordens.php)
 - [2026_10_20_160000_create_pcp_refugos_table.php](../../../Modules/Producao/Database/Migrations/2026_10_20_160000_create_pcp_refugos_table.php)
 - [2026_10_20_200000_create_pcp_aproveitamento_midia_tables.php](../../../Modules/Producao/Database/Migrations/2026_10_20_200000_create_pcp_aproveitamento_midia_tables.php)
 
@@ -104,8 +119,9 @@ module: Producao
 
 - [config.php](../../../Modules/Producao/Config/config.php)
 
-## Views (Blade) — 1
+## Views (Blade) — 2
 
+- [aprovacao-arte.blade.php](../../../Modules/Producao/Resources/views/aprovacao-arte.blade.php)
 - [etiqueta-os.blade.php](../../../Modules/Producao/Resources/views/etiqueta-os.blade.php)
 
 ## Telas (Inertia/React) — 3
@@ -132,9 +148,9 @@ module: Producao
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/Index.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.casos.md)
 
-## Testes (Pest) — 19
+## Testes (Pest) — 24
 
-- 19 em [Modules/Producao/Tests/Feature/](../../../Modules/Producao/Tests/Feature)
+- 24 em [Modules/Producao/Tests/Feature/](../../../Modules/Producao/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 6
