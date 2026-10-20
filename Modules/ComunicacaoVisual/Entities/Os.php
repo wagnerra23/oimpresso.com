@@ -5,6 +5,7 @@ namespace Modules\ComunicacaoVisual\Entities;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -130,6 +131,14 @@ class Os extends Model
     public function orcamento(): BelongsTo
     {
         return $this->belongsTo(Orcamento::class, 'orcamento_id');
+    }
+
+    /**
+     * Itens copiados do orçamento aprovado (UC-FLX-01): medidas e material, sem preço.
+     */
+    public function itens(): HasMany
+    {
+        return $this->hasMany(OsItem::class, 'os_id')->orderBy('ordem');
     }
 
     // ------------------------------------------------------------------
