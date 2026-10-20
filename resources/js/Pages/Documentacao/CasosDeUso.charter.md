@@ -21,12 +21,15 @@ charter_version: 1
 ## Goal
 
 [W] quer ver os casos de uso na documentação **sem texto escrito à mão que envelheça**. Id, título,
-regra, estado e US vêm do servidor; a tela só dá layout e filtro.
+regra, estado e US vêm do servidor; a tela só dá layout e filtro. Cada US leva ao SPEC onde mora e
+cada caso lista os `.casos.md` que o citam — links derivados da árvore pelo servidor
+(`RastroDosCasos`), nunca uma lista de arquivos escrita à mão (`UC-CASOS-04`, `UC-CASOS-05`).
 
 ## Non-Goals
 
 - ❌ **Não copia caso para markdown nem para o `.tsx`** — qualquer id/título/estado literal no TSX é defeito (`UC-CASOS-03`)
 - ❌ **Não edita nem cria caso** — read-only; mudar o catálogo é mudar o `fluxos-data.jsx` e exportar de novo
+- ❌ **Não mantém mapa caso → arquivo à mão** — o vínculo sai da árvore do repo a cada acesso (cache curto)
 - ❌ **Não expõe tenant nem PII** — conteúdo global de governança (ADR 0093)
 
 ## Automation Anti-hooks
