@@ -15,6 +15,7 @@ not_contains:
   - "Vendas/saídas → core UltimatePOS Sells (NÃO é módulo: telas legacy em app/ + resources/views — ghost-rename-map excluded classe C)"
   - "Financeiro de Contas a Pagar → Modules/Financeiro"
   - "NF-e de entrada → Modules/NfeBrasil"
+  - "Rastreio do rolo (em que OS cada fração do lote foi usada, US-COM-025) → Modules/Producao: as frações vêm de pcp_consumos, tabela de lá"
 trust_required: L3
 owner: wagner
 permission_prefix: compras.*

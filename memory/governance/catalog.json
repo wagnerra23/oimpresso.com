@@ -26,25 +26,25 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 829,
-    "edges": 1130,
+    "nodes": 831,
+    "edges": 1134,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 451,
-      "api": 84
+      "component": 452,
+      "api": 85
     },
     "by_edge_type": {
       "ownsTable": 97,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 88,
+      "providesApi": 89,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 451,
-      "dependsOn": 124,
-      "delegatesTo": 115,
+      "hasComponent": 452,
+      "dependsOn": 125,
+      "delegatesTo": 116,
       "migratesTo": 1,
       "supersedes": 26,
       "supersedesPartially": 71,
@@ -1565,6 +1565,14 @@
       "id": "api:/producao/apontamento/*",
       "type": "api",
       "prefix": "/producao/apontamento/*",
+      "providers": [
+        "Producao"
+      ]
+    },
+    {
+      "id": "api:/producao/lotes/{id}/rastreio",
+      "type": "api",
+      "prefix": "/producao/lotes/{id}/rastreio",
       "providers": [
         "Producao"
       ]
@@ -4243,6 +4251,13 @@
       "module": "Producao",
       "name": "InstallController",
       "desc": "instalação 1-clique (ADR 0024)"
+    },
+    {
+      "id": "component:Producao/LoteRastreioController + RastreioDoRolo",
+      "type": "component",
+      "module": "Producao",
+      "name": "LoteRastreioController + RastreioDoRolo",
+      "desc": "rastreio do rolo: em que OS cada fração do lote foi usada e o saldo, JSON só com purchase.view (US-COM-025 · UC-FLX-18); a baixa da OS aceita o rolo escolhido (lote_id)"
     },
     {
       "id": "component:Producao/Ordem",
@@ -7868,6 +7883,13 @@
     },
     {
       "from": "module:Compras",
+      "to": "module:Producao",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Rastreio do rolo (em que OS cada fração do lote foi usada, US-COM-025)"
+    },
+    {
+      "from": "module:Compras",
       "to": "module:AssetManagement",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -7886,6 +7908,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "NF-e de entrada"
+    },
+    {
+      "from": "module:Compras",
+      "to": "module:Producao",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Rastreio do rolo (em que OS cada fração do lote foi usada, US-COM-025)"
     },
     {
       "from": "module:Compras",
@@ -12400,6 +12429,12 @@
     },
     {
       "from": "module:Producao",
+      "to": "component:Producao/LoteRastreioController + RastreioDoRolo",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
       "to": "component:Producao/Ordem",
       "type": "hasComponent",
       "source": "contains"
@@ -12443,6 +12478,12 @@
     {
       "from": "module:Producao",
       "to": "api:/producao/apontamento/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Producao",
+      "to": "api:/producao/lotes/{id}/rastreio",
       "type": "providesApi",
       "source": "url_prefixes"
     },
