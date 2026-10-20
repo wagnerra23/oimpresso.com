@@ -1557,3 +1557,37 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 - [x] O desconto do pedido entra na margem.
 - [x] A permissão aparece na tela de papéis.
 - [ ] Mostrar a margem e o mínimo na tela do orçamento antes de tentar converter.
+
+### US-SELL-070 · Termômetro de acesso da proposta (UC-FLX-04) — **P2**
+
+**Implementado em:** _pendente_
+
+> owner: wagner · priority: p2 · estimate: 3h · type: story
+
+**Origem:** caso UC-FLX-04 da tela de Fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:57`, fonte de mercado Mubisys) — na etapa Enviado, registrar quando o cliente abre a proposta; sem abertura em 48 h, criar tarefa de retorno ao vendedor.
+
+**O que existe (medido 2026-10-20):** a etapa existe (`quote_sent`, ação `enviar_orcamento` em `database/seeders/FsmProcessoVendaComProducaoSeeder.php:178`) e o link público do orçamento também (`/quote/{token}` em `routes/web.php:509` → `SellPosController::showInvoice`, `app/Http/Controllers/SellPosController.php:2397`). O `showInvoice` só renderiza: não grava acesso nenhum. Não há coluna nem tabela de abertura (`opened_at`/`viewed_at`) em `app/` nem em `Modules/Crm`. O CRM registra o mesmo gap para a proposta dele (`memory/requisitos/Crm/SPEC.md:95`, *"falta tracking abertura/aceite"*). O agendamento de retorno do CRM (`Modules/Crm/Entities/Schedule.php`) é o destino natural da tarefa.
+
+**Aceite:**
+- [ ] Abrir o link público `/quote/{token}` de um orçamento em `quote_sent` grava a primeira abertura e o número de aberturas; acesso de usuário logado da própria empresa não conta.
+- [ ] O detalhe do orçamento mostra "aberto em <data>" ou "não aberto", só para quem tem `sell.view` (ou `direct_sell.view`) na empresa.
+- [ ] Orçamento em `quote_sent` há mais de 48 h sem abertura gera uma tarefa de retorno para o vendedor, uma vez só (rodar de novo não duplica).
+- [ ] A rotina de 48 h roda por empresa e recebe o `business_id` (job assíncrono não usa sessão); token de outro business não grava nada.
+- [ ] Usuário de outro business que pede o detalhe ou o histórico de abertura recebe 404.
+
+### US-SELL-071 · Pesquisa de satisfação depois da entrega (UC-FLX-25) — **P2**
+
+**Implementado em:** _pendente_
+
+> owner: wagner · priority: p2 · estimate: 4h · type: story
+
+**Origem:** caso UC-FLX-25 da tela de Fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:78`, fonte de mercado Mubisys) — dois dias depois da entrega, enviar a pesquisa; nota baixa abre atendimento.
+
+**O que existe (medido 2026-10-20):** a etapa de entrega existe (ação `entregar` → `delivered` em `database/seeders/FsmProcessoVendaComProducaoSeeder.php:194` e `:196`). Há pesquisa de satisfação pronta, mas para **conversa** do WhatsApp, não para venda: `Modules/Whatsapp/Services/Csat/CsatDispatcher.php:57` (`dispatchOnResolve`, disparado ao resolver a conversa em `Modules/Whatsapp/Http/Controllers/Admin/InboxController.php:753`), nota 1-5 lida por `Modules/Whatsapp/Services/Csat/CsatResponseParser.php:116`, gravada em `Modules/Whatsapp/Entities/CsatResponse.php`. Nada liga a entrega da venda a uma pesquisa, nem nota baixa a um atendimento.
+
+**Aceite:**
+- [ ] Venda que chega a `delivered` agenda a pesquisa para 2 dias depois; cancelada ou devolvida antes disso, não envia.
+- [ ] A pesquisa sai pelo canal do cliente (reaproveitando o CSAT do WhatsApp quando houver canal) só se o cliente aceita receber (`Contact::canReceiveWhatsappNotification()` / `canReceiveEmailNotification()`), e uma vez por venda.
+- [ ] Nota abaixo do limite configurado pela empresa abre um atendimento ligado à venda e ao cliente.
+- [ ] Job e agendamento recebem o `business_id`; a resposta só se grava na venda da mesma empresa.
+- [ ] As respostas aparecem para quem tem `sell.view` na empresa; usuário de outro business recebe 404.
