@@ -137,9 +137,21 @@ it('UC-PCART-05 · OS de outra empresa não gera link (404) e token desconhecido
     $alheio = $this->usuarioComPermissoes(['producao.access'], $this->B99);
     $this->actingAs($alheio)->postJson("/producao/ordens/{$this->ordem->id}/aprovacao-arte",
         ['programacao_id' => $this->aprovacao->id, 'arquivo' => 'https://x.test/a.png'])->assertNotFound();
-    $this->actingAs($this->designer)->postJson("/producao/ordens/{$this->ordem->id}/aprovacao-arte",
-        ['programacao_id' => $this->aprovacao->id, 'arquivo' => 'https://x.test/b.png'])->assertCreated()->assertJsonStructure(['link', 'expira_em']);
 
     $this->get('/arte/'.str_repeat('a', 48))->assertNotFound();
     expect(AprovacaoArte::withoutGlobalScopes()->where('business_id', $this->b99)->count())->toBe(0);
+});
+
+// Caso separado de propósito: o SetSessionData só preenche a sessão quando ela está vazia, e no teste
+// a sessão sobrevive entre requisições do mesmo caso. Trocar de usuário no mesmo it() herdaria a
+// empresa 99 da requisição anterior (em produção o login regenera a sessão).
+it('UC-PCART-05 · o designer da própria empresa gera o link (201)', function () {
+    $this->partialMock(ModuleUtil::class, fn ($m) => $m->shouldReceive('hasThePermissionInSubscription')
+        ->andReturnUsing(fn ($b, $perm) => $perm === 'producao_module'));
+    $r = $this->actingAs($this->designer)->postJson("/producao/ordens/{$this->ordem->id}/aprovacao-arte",
+        ['programacao_id' => $this->aprovacao->id, 'arquivo' => 'https://x.test/b.png'])->assertCreated()->assertJsonStructure(['link', 'expira_em']);
+
+    $pedido = AprovacaoArte::withoutGlobalScopes()->findOrFail($r->json('id'));
+    expect((int) $pedido->business_id)->toBe($this->b98)->and($pedido->arquivo)->toBe('https://x.test/b.png');
+    $this->get(parse_url($r->json('link'), PHP_URL_PATH))->assertOk()->assertSee('b.png');
 });
