@@ -5,6 +5,8 @@ namespace Modules\ComunicacaoVisual\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\Rule;
 use Modules\ComunicacaoVisual\Entities\Orcamento;
 use Modules\ComunicacaoVisual\Services\OrcamentoCalculator;
 use Modules\ComunicacaoVisual\Services\OrcamentoGravador;
@@ -123,6 +125,9 @@ class OrcamentoController extends Controller
             'itens.*.quantidade'        => ['required', 'integer', 'min:1'],
             'itens.*.preco_unitario_m2' => ['nullable', 'numeric', 'gt:0'],
             'itens.*.observacoes'       => ['nullable', 'string', 'max:500'],
+            // UC-FLX-33: posto e horas de máquina só alimentam o custo previsto, não o preço.
+            'itens.*.posto_id'          => $this->regraPosto(),
+            'itens.*.horas_maquina'     => ['nullable', 'numeric', 'min:0', 'max:999999'],
         ], [
             // Mensagens de validação em PT-BR
             'data_emissao.required'    => 'A data de emissão é obrigatória.',
@@ -142,6 +147,24 @@ class OrcamentoController extends Controller
             'itens.*.quantidade.required' => 'A quantidade do item é obrigatória.',
             'itens.*.quantidade.min'   => 'A quantidade do item deve ser pelo menos 1.',
             'itens.*.preco_unitario_m2.gt' => 'O preço por m² deve ser maior que zero.',
+            'itens.*.posto_id.exists'  => 'O posto informado não existe nesta empresa.',
+            'itens.*.horas_maquina.min' => 'As horas de máquina não podem ser negativas.',
         ]);
+    }
+
+    /**
+     * Posto do PCP do item: precisa ser da empresa da sessão (Tier 0, ADR 0093). Sem o módulo
+     * Producao instalado não há tabela; aí só se exige inteiro e o gravador segue sem custo de
+     * máquina (a interface CustoHoraDoPosto não está ligada).
+     */
+    private function regraPosto(): array
+    {
+        $regra = ['nullable', 'integer', 'min:1'];
+        if (Schema::hasTable('pcp_postos')) {
+            $businessId = (int) (session('user.business_id') ?? session('business.id'));
+            $regra[] = Rule::exists('pcp_postos', 'id')->where('business_id', $businessId);
+        }
+
+        return $regra;
     }
 }
