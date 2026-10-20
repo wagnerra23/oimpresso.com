@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **993 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **994 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -45,8 +45,8 @@
 | [`Cliente`](#cliente) | 9 | 1 | 0 | 0 | 8 |
 | [`TaskRegistry`](#taskregistry) | 9 | 0 | 0 | 0 | 9 |
 | [`KB`](#kb) | 8 | 0 | 0 | 0 | 8 |
+| [`Manufacturing`](#manufacturing) | 8 | 0 | 0 | 0 | 8 |
 | [`EvolutionAgent`](#evolutionagent) | 7 | 0 | 0 | 0 | 7 |
-| [`Manufacturing`](#manufacturing) | 7 | 0 | 0 | 0 | 7 |
 | [`TeamMcp`](#teammcp) | 7 | 0 | 0 | 0 | 7 |
 | [`NotificationTemplate`](#notificationtemplate) | 6 | 0 | 0 | 0 | 6 |
 | [`SRS`](#srs) | 6 | 0 | 0 | 0 | 6 |
@@ -1246,19 +1246,6 @@
 - **US-KB-007** — Imprimir SOP balcão físico (ONDA 5) — ⬜ **não começou**
 - **US-KB-008** — `KbController@index` pagina 2000 nós de uma vez — revisar antes de virar dor — ⬜ **não começou**
 
-## EvolutionAgent
-
-
-### todo
-
-- **US-EVOL-001** — Indexar `memory/` em vetor
-- **US-EVOL-002** — Consultar memória via Artisan (chamado pelo CC)
-- **US-EVOL-003** — Ranquear oportunidades por ROI
-- **US-EVOL-004** — Eval golden set
-- **US-EVOL-005** — Subagent CC `evolucao.md`
-- **US-EVOL-006** — Tier-2 autonomia: comentar PR
-- **US-EVOL-007** — Tier-3 autonomia: PR-draft autônomo
-
 ## Manufacturing
 
 
@@ -1271,6 +1258,20 @@
 - **US-MANU-005** — Insumos — impacto reverso e simulador de preço
 - **US-MANU-006** — Editor de ingredientes
 - **US-MANU-007** — Formulário de ordem de produção
+- **US-MANU-008** — Rotas legadas só tocam dado da própria empresa
+
+## EvolutionAgent
+
+
+### todo
+
+- **US-EVOL-001** — Indexar `memory/` em vetor
+- **US-EVOL-002** — Consultar memória via Artisan (chamado pelo CC)
+- **US-EVOL-003** — Ranquear oportunidades por ROI
+- **US-EVOL-004** — Eval golden set
+- **US-EVOL-005** — Subagent CC `evolucao.md`
+- **US-EVOL-006** — Tier-2 autonomia: comentar PR
+- **US-EVOL-007** — Tier-3 autonomia: PR-draft autônomo
 
 ## TeamMcp
 
