@@ -1594,6 +1594,34 @@ class NfeService
     }
 
     /**
+     * US-NFE-070 · UC-FLX-32 — `dhCont` (quando entrou em contingência) e `xJust` (por quê).
+     *
+     * A fonte é a ativação do tenant (`ContingenciaService::ativar`): o relógio original e o
+     * motivo declarado. O schema da SEFAZ pede xJust de 15 a 256 caracteres; o formulário
+     * aceita motivo a partir de 10, então motivo curto ganha o prefixo "Contingencia: " em vez
+     * de ser recusado na hora de emitir. Sem config (não deveria acontecer com tpEmis != 1),
+     * cai no instante da criação da emissão — ainda é a entrada real na contingência.
+     *
+     * @return array{0: string, 1: string}
+     */
+    private function dadosContingencia(int $businessId, NfeEmissao $emissao): array
+    {
+        $config = NfeBusinessConfig::withoutGlobalScopes() // SUPERADMIN: emissão roda em job sem sessão; filtro explícito abaixo.
+            ->where('business_id', $businessId)
+            ->first();
+
+        $quando = $config?->contingencia_ativada_em ?? $emissao->created_at ?? now();
+        $motivo = trim((string) ($config?->contingencia_motivo ?? ''));
+        if ($motivo === '') {
+            $motivo = 'SEFAZ indisponivel - emissao em contingencia';
+        } elseif (mb_strlen($motivo) < 15) {
+            $motivo = 'Contingencia: ' . $motivo;
+        }
+
+        return [$quando->format('Y-m-d\TH:i:sP'), mb_substr($motivo, 0, 256)];
+    }
+
+    /**
      * US-NFE-006 / ADR TECH-0002 — persiste o XML assinado da nota em contingência.
      *
      * Mesmo path de `processarRetorno` (`nfe-brasil/{biz}/notas/{serie}-{numero}.xml`)
@@ -1801,6 +1829,11 @@ class NfeService
         // `tp_emis` tem default 1 no schema, então emissão fora de contingência produz XML
         // byte-idêntico ao de antes deste PR. 4=EPEC (NF-e 55) · 9=off-line (NFC-e 65).
         $stdIde->tpEmis    = (int) ($emissao->tp_emis ?: NfeEmissao::TP_EMIS_NORMAL);
+        // US-NFE-070 · UC-FLX-32 — com tpEmis != 1 a SEFAZ exige dhCont + xJust (rejeita sem eles).
+        // Vêm da ATIVAÇÃO da contingência do tenant; com tpEmis = 1 nada muda no XML.
+        if ($stdIde->tpEmis !== NfeEmissao::TP_EMIS_NORMAL) {
+            [$stdIde->dhCont, $stdIde->xJust] = $this->dadosContingencia((int) $emissao->business_id, $emissao);
+        }
         $stdIde->cDV       = 0;
         $stdIde->tpAmb     = (int) ($emitOverride['ambiente'] ?? $business->ambiente ?? 2);
         // Thread 20 · finNFe=4 na devolução (R-NFE-026). Sem a chave = 1 (normal), XML de sempre.

@@ -537,7 +537,7 @@
 - **US-NFE-054** — Smoke real homologação SEFAZ-SC biz=1 — 1ª NFC-e cstat 100 (Goal #1 CYCLE-03) _(`p1` · @wagner)_
 - **US-NFE-062** — AuditLog em mutações fiscais NFe (Tributacao, Certificado, Manifestacao) _(`p1` · sprint cycle-04)_
 - **US-NFE-069** — A natureza fiscal do item escolhe a nota: NF-e para mercadoria, NFS-e para serviço e instalação (UC-FLX-31) — **P1** _(`p1` · sprint —)_
-- **US-NFE-070** — Contingência completa: retransmissão agendada, SVC-AN/SVC-RS e evento EPEC (UC-FLX-32) — **P1** _(`p1` · sprint —)_
+- **US-NFE-071** — Contingência: SVC-AN/SVC-RS, evento EPEC 110140 e marcação no DANFE (UC-FLX-32) — **P1** _(`p1` · sprint —)_
 - **US-NFE-055** — Estabilizar 107 tests broken Modules/NfeBrasil aplicando dual-mode SQLite/MySQL _(`p2`)_
 - **US-NFE-056** — Continuação PR #453 — migrar configBusiness(4) → configBusiness(1) em MotorTributarioServiceTest _(`p2`)_
 - **US-NFE-057** — Schema drift — atualizar fixtures DanfeServicePrefersArquivosTest pós-remoção `arquivos.filename` _(`p2`)_
