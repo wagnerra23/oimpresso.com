@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 834,
-    "edges": 1137,
+    "nodes": 835,
+    "edges": 1138,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 455,
+      "component": 456,
       "api": 85
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 89,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 455,
+      "hasComponent": 456,
       "dependsOn": 125,
       "delegatesTo": 116,
       "migratesTo": 1,
@@ -1969,6 +1969,13 @@
       "module": "Compras",
       "name": "InsumoMetodoCusto",
       "desc": "entidade da tabela-ponte compras_insumo_metodo_custo (business_id, variation_id) com o método próprio do insumo (medio | ultimo), lida quando a regra é por_insumo; variations do core não ganha coluna"
+    },
+    {
+      "id": "component:Compras/RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
+      "type": "component",
+      "module": "Compras",
+      "name": "RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
+      "desc": "US-COM-027 · UC-FLX-19 estoque abaixo de alert_quantity vira requisição de compra do núcleo (transactions type=purchase_requisition) por local, teto(mínimo − saldo), sem duplicar item em requisição aberta; não move estoque nem cria pedido; desligado por padrão em business.common_settings"
     },
     {
       "id": "component:ComunicacaoVisual/ApontamentoController",
@@ -7988,6 +7995,12 @@
     {
       "from": "module:Compras",
       "to": "component:Compras/InsumoMetodoCusto",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
       "type": "hasComponent",
       "source": "contains"
     },
