@@ -560,6 +560,76 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
   qualquer tela em branch dual MWART. É achado de **mecanismo**, não de tela — vira issue de
   governança, não UC.
 
+### Pesquisa de concorrentes (2026-10-20) — casos que a lista ainda não cobre
+
+> Vieram da comparação com 15 sistemas: 11 de catálogo e estoque (Shopify, Olist/Tiny, Omie, Bling,
+> Conta Azul, Senior, Alterdata, Nuvemshop, Square, Zoho, Odoo) e 4 de comunicação visual (Mubisys,
+> Calcgraf, Zênite, shopVOX). O código entre parênteses (D6, CV1…) é o do documento da pesquisa.
+> Ficaram aqui só os que a pesquisa recomenda trazer; os que "não valem agora" ou "dependem de
+> conferir" não entraram. Cada um vira UC quando ganhar teste que o defenda. Os marcados `[V0]`
+> mostram estoque e caem na REGRA MESTRE de valor/estoque (dupla prova + antes→depois).
+
+**Vestuário (ROTA LIVRE)**
+
+- **[BACKLOG] Clicar em "Abaixo do alerta" mostra só esses produtos (D6)** — hoje o indicador conta,
+  mas o clique não filtra. Aceite: Dado 3 produtos com estoque ≤ alerta, Quando clico no indicador,
+  Então a lista mostra exatamente esses 3, com a etiqueta do filtro, e um 2º clique devolve a lista
+  inteira. Fonte: Zoho (filtro Low Stock), Conta Azul (aba Esgotado), Nuvemshop (filtro sem estoque).
+- **[BACKLOG] Ver cada cor e tamanho, com saldo, na própria lista (D7)** `[V0]` — hoje a lista diz
+  só "N variações"; cada uma aparece no painel. Aceite: Dado um produto variável com 8 variações,
+  Quando abro a linha, Então vejo cada variação com SKU e saldo, e a soma das variações é o saldo
+  do produto. Fonte: Bling (variações marcadas na lista), Alterdata e Senior (estoque por grade).
+- **[BACKLOG] Separar o estoque reservado do disponível (D5)** `[V0]` — hoje o saldo não desconta
+  reservas. Aceite: Dado 10 un em estoque e uma venda em andamento que reservou 3, Então a lista
+  mostra 7 disponíveis e 3 reservadas. Pergunta em aberto: a ROTA LIVRE (biz=4) usa o fluxo de
+  venda que reserva estoque? Fonte: Conta Azul (aba Reservados), Senior (quantidade em reserva).
+- **[BACKLOG] Excluir sem perder: o excluído pode ser restaurado (D13)** — hoje "Excluir" apaga o
+  cadastro, as variações e os preços por grupo, e a confirmação diz que não tem volta. Aceite: Dado
+  um produto excluído, Quando filtro a situação "Excluídos", Então ele aparece e "Restaurar" o devolve
+  a Ativo com variações e preços. Fonte: Olist/Tiny (situação Excluídos + restaurar).
+- **[BACKLOG] Giro e últimas compras no painel do produto (D8)** — hoje o painel mostra preços,
+  estoque por local e fiscal. Aceite: o painel mostra a quantidade vendida nos últimos 90 dias e as
+  3 últimas compras (fornecedor, data, quantidade). Fonte: Alterdata (consulta de estoque).
+- **[BACKLOG] Recortes salvos com nome (D1)** — hoje os filtros vão para o endereço, mas não há
+  recorte com nome. Aceite: Dado um conjunto de filtros, Quando salvo como "Lonas abaixo do alerta",
+  Então ele aparece numa lista de recortes do usuário e abre com os mesmos filtros. Fonte: Shopify
+  (visões salvas), Odoo (favoritos).
+
+**Comunicação visual**
+
+- **[BACKLOG] Separar material, produto e serviço na consulta (CV1)** — hoje o filtro "Tipo de
+  produto" separa Único, Variável e Composição; material não tem marca própria. Aceite: Dado lona
+  (material), banner (produto) e instalação (serviço), Quando filtro "Material", Então só a lona
+  aparece. Fonte: shopVOX (produtos × materiais), Calcgraf (insumos e acabados).
+- **[BACKLOG] Material empenhado nas OS abertas × disponível (CV4)** `[V0]` — mesmo pedido do D5,
+  aplicado ao material. Aceite: Dado 50 m² de lona e OS abertas que seguram 20 m², Então a lista
+  mostra 30 m² disponíveis e 20 m² empenhados. Fonte: Calcgraf (material empenhado), shopVOX
+  (quantidade reservada).
+- **[BACKLOG] Saldo do material em rolos e em m² (CV2)** `[V0]` — hoje o saldo aparece numa unidade
+  só. Aceite: Dado 2 rolos de 1,60 m × 50 m, Então a lista mostra "2 rolos · 160 m²", e as duas
+  contas fecham. Fonte: shopVOX (unidade de compra × unidade de venda).
+- **[BACKLOG] Composição com a receita da Fabricação no painel (CV6)** — hoje o painel mostra só
+  os itens de um produto do tipo Composição. Aceite: Dado um produto com receita na Fabricação,
+  Quando abro o painel, Então vejo materiais e quantidades da receita. ⚠️ Conferir com o charter: o
+  Non-Goal "Sub-views de BOM/Insumos ficam em `/products/unificado`" pode valer aqui — decisão [W].
+  Fonte: shopVOX (lista de materiais, mão de obra e máquina do produto).
+- **[BACKLOG] Rastrear o rolo por OS a partir da consulta (CV3)** — a US-COM-025 (Compras) já
+  descreve o rastreio e está pendente; a consulta seria uma porta de entrada. Fonte: Mubisys
+  (estoque fracionado com rastreio da mídia), Calcgraf (controle de bobinas).
+
+Fontes abertas em 2026-10-20: [Shopify](https://help.shopify.com/manual/products/searching-filtering) ·
+[Olist/Tiny](https://ajuda.olist.com/produtos/acoes-em-lote-e-gerenciamento-de-produtos) ·
+[Conta Azul](https://contaazul.com/tutoriais/como-fazer-controle-de-estoque-na-conta-azul) ·
+[Senior](https://documentacao.senior.com.br/gestaoempresarialerp/5.10.4/menu_suprimentos/f211cpr.htm) ·
+[Alterdata](https://ajuda.alterdata.com.br/shop/relatorios-do-shop/consultas-e-relatorios-de-produtos/relatorio-consulta-de-estoque-shop) ·
+[Zoho](https://www.zoho.com/inventory/help/items/item-managing.html) ·
+[Odoo](https://www.odoo.com/documentation/latest/applications/essentials/search.html) ·
+[Bling](https://blog.bling.com.br/?p=9989) ·
+[Nuvemshop](https://atendimento.nuvemshop.com.br/pt_BR/organizar-produtos/como-excluir-produtos-de-forma-rapida) ·
+[Mubisys](https://mubisys.com/producao) ·
+[Calcgraf](https://www.calcgraf.com.br/solucao/estoque/) ·
+[shopVOX](https://shopvox-pro.helpdocs.io/article/htcy37tcab-products-vs-materials-in-shop-vox-pro).
+
 ---
 
 ## Refs
