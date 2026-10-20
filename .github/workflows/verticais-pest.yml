@@ -641,6 +641,7 @@ jobs:
             Modules/Producao/Tests/Feature/ProducaoMaterialContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoCustoOsAbertaContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoRefugoContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoRomaneioContratoTest.php \
             Modules/Fisio/Tests/Feature/FisioEsquemaContratoTest.php \
             Modules/Fisio/Tests/Feature/FisioPacienteCrudTest.php \
             Modules/Fisio/Tests/Feature/FisioPacienteContatoTest.php \
