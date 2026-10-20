@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei) · memory/requisitos/Documentacao/ANTI-REGRESSAO-
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-10-07"
+last_run: "2026-10-20"
 ---
 
 > ℹ️ **`last_run` 2026-09-24 → 2026-10-07 (G-6), e o que mudou NÃO foi comportamento.**
