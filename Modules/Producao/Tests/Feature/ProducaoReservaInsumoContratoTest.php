@@ -89,7 +89,7 @@ beforeEach(function () {
     }
 
     $receita = function (int $pid, int $vid): void {
-        $r = DB::table('mfg_recipes')->insertGetId(['product_id' => $pid, 'variation_id' => $vid, 'ingredients' => '', 'total_quantity' => 2,
+        $r = DB::table('mfg_recipes')->insertGetId(['product_id' => $pid, 'variation_id' => $vid, 'total_quantity' => 2,
             'final_price' => 0, 'created_at' => now(), 'updated_at' => now()]);
         DB::table('mfg_recipe_ingredients')->insert(['mfg_recipe_id' => $r, 'variation_id' => $this->vLona, 'quantity' => 5, 'created_at' => now(), 'updated_at' => now()]);
     };
@@ -191,7 +191,7 @@ it('UC-PCRES-04 · consumo real além do reservado baixa normalmente; a reserva 
     ($this->baixar)($etapa, '4');
 
     // À mão: saldo 10 − 3 − 4 = 3 (7 consumidos > 5 reservados); a reserva abate só o que tinha: 5 → 0.
-    expect(($this->saldo)())->toBe('3.0000')->and(($this->reservado)())->toBe('0');
+    expect(($this->saldo)())->toBe('3.0000')->and(($this->reservado)())->toBe('0.0000');
     $r = ($this->reserva)()[0];
     expect($r->status)->toBe('consumed')->and((string) $r->qty_reserved)->toBe('0.0000');
 });
@@ -205,7 +205,7 @@ it('UC-PCRES-05 · a OS concluída libera o que sobrou da reserva, sem mexer no 
     // À mão: sobraram 2 reservados → liberados (status released, quantidade preservada); saldo segue 7.
     $r = ($this->reserva)()[0];
     expect($r->status)->toBe('released')->and((string) $r->qty_reserved)->toBe('2.0000');
-    expect(($this->reservado)())->toBe('0')->and(($this->saldo)())->toBe('7.0000');
+    expect(($this->reservado)())->toBe('0.0000')->and(($this->saldo)())->toBe('7.0000');
 });
 
 it('UC-PCRES-06 · a venda cancelada libera todas as reservas das OS dela', function () {
@@ -221,7 +221,7 @@ it('UC-PCRES-06 · a venda cancelada libera todas as reservas das OS dela', func
 
     // À mão: 5 reservados → 0 ativos; saldo intacto (10), porque nada foi apontado.
     expect(($this->reserva)()[0]->status)->toBe('released');
-    expect(($this->reservado)())->toBe('0')->and(($this->saldo)())->toBe('10.0000');
+    expect(($this->reservado)())->toBe('0.0000')->and(($this->saldo)())->toBe('10.0000');
 });
 
 it('UC-PCRES-07 · Tier 0: a 99 não lê a receita, não abate nem libera reserva da 98', function () {
