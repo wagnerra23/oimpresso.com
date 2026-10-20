@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
+use Modules\ComunicacaoVisual\Entities\Concerns\EscopoPorNegocioDaSessao;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
@@ -46,6 +47,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 class Instalacao extends Model
 {
+    use EscopoPorNegocioDaSessao; // ADR 0093 — escopo automático por business (Tier 0)
     use SoftDeletes;
     use LogsActivity;
 
@@ -116,13 +118,8 @@ class Instalacao extends Model
 
     protected static function booted(): void
     {
-        static::addGlobalScope('business_id', function (Builder $query) {
-            $businessId = session('user.business_id') ?? session('business.id');
-            if ($businessId !== null) {
-                $query->where('cv_instalacoes.business_id', $businessId);
-            }
-        });
-
+        // O filtro por empresa vem da trait EscopoPorNegocioDaSessao (mesmo comportamento do
+        // escopo que vivia aqui: business_id da sessão, sem filtro quando não há sessão).
         static::creating(function (Instalacao $row) {
             if ($row->business_id === null) {
                 $row->business_id = session('user.business_id') ?? session('business.id') ?? 0;
