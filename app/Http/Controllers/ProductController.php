@@ -1818,8 +1818,10 @@ class ProductController extends Controller
             }
             // NCM (UC-PEDIT-11): só muda quando o campo vem. O Blade não manda, e a tela React só
             // manda quando a pessoa mexeu no NCM. Vazio é "sem NCM": volta ao '0' da coluna.
+            // setAttribute: a coluna `ncm` só existe no dump do schema, não numa migration, e o
+            // Larastan (que lê as migrations) não a enxerga como propriedade do model.
             if ($request->has('ncm')) {
-                $product->ncm = $request->filled('ncm') ? (string) $request->input('ncm') : '0';
+                $product->setAttribute('ncm', $request->filled('ncm') ? (string) $request->input('ncm') : '0');
             }
             $product->product_custom_field1 = $product_details['product_custom_field1'] ?? '';
             $product->product_custom_field2 = $product_details['product_custom_field2'] ?? '';
