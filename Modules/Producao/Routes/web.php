@@ -40,6 +40,8 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::post('{inicio}/corrigir', [ApontamentoController::class, 'corrigir'])->whereNumber('inicio')->name('corrigir');
         // US-PCP-021 · UC-FLX-37 — material consumido na etapa (baixa pelo lote que saiu).
         Route::post('material', [ApontamentoController::class, 'material'])->name('material');
+        // US-PCP-026 · UC-FLX-16 — refugo com motivo na etapa (e, se pedido, a OS para Retrabalho).
+        Route::post('refugo', [ApontamentoController::class, 'refugo'])->name('refugo');
     });
 
 // ── Thread 03 + E03 · cadastros (postos, motivos, roteiros, ferramentas, custo-hora) ──

@@ -449,7 +449,28 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [ ] Idempotente: retorno do banco repetido não executa a transição duas vezes; OS cancelada não é liberada.
 - [ ] Multi-tenant: o listener recebe o `business_id` no evento e só toca OS e título da mesma empresa; `liberar` em OS de outra empresa → 404; Pest com dois tenants.
 
-**Total US: 25** · **Estimate agregado:** ~98h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
+### US-PCP-026 · Refugo e retrabalho com motivo somam custo à OS (UC-FLX-16) — **P1**
+
+**Implementado em:** `Modules/Producao/Services/RefugoService.php` · `Modules/Producao/Database/Migrations/2026_10_20_160000_create_pcp_refugos_table.php` · `Modules/Producao/Http/Controllers/ApontamentoController.php`
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoRefugoContratoTest.php` (lane `verticais-pest.yml`).
+
+> owner: wagner · priority: p1 · estimate: 3h · type: story
+> blocked_by: US-PCP-021
+
+**Origem:** UC-FLX-16 da tela de fluxos (Acabamento: *refugo com motivo; refugo e retrabalho somam custo à OS*). Medido em 2026-10-20: o cadastro de motivos de refugo por posto já existia (`pcp_motivos.tipo = refugo`, UC-PCV-33) e o "Reprovar no controle" já levava a OS para Retrabalho reabrindo a etapa como etapa nova (`SituacaoDaOrdem::reprovar`, ADR 0436) — mas sem quantidade de peças refugadas, sem rota que o chamasse e sem reposição de material. As horas da etapa de retrabalho e o material baixado já entravam no `CustoRealService`.
+
+**Aceite:**
+- [x] O responsável da etapa iniciada ou feita aponta o refugo: quantidade de peças (até a quantidade da OS), motivo de refugo ativo do posto da etapa e da mesma empresa, quem e quando (UC-PCREF-01, UC-PCREF-05).
+- [x] Material reposto para as peças refugadas passa pelo `ConsumoMaterialService` (baixa pelo lote que saiu); falta de lote recusa tudo, inclusive o refugo (UC-PCREF-02, UC-PCREF-05).
+- [x] Com `retrabalho`, o refugo chama o "Reprovar no controle" do motor (papel `producao.qualidade`): a OS vai para Retrabalho e a etapa nova fica ligada ao refugo; sem o papel, 403 e nada grava (UC-PCREF-03, UC-PCREF-06).
+- [x] O custo real congelado na conclusão soma as horas do retrabalho e o material reposto, sem conta paralela (UC-PCREF-03).
+- [x] Idempotente pela chave da fila offline; tabela `pcp_refugos` com `business_id`, FK e índice (UC-PCREF-04).
+- [x] Endpoint na PWA (`POST /producao/apontamento/refugo`), sem custo na resposta (UC-PCREF-06).
+- [ ] Endpoint no app (`/api/app/producao/apontamentos/refugo`) e campo na tela do operador.
+- [ ] Relatório de refugo por motivo e posto para o gestor.
+
+**Total US: 26** · **Estimate agregado:** ~101h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
 
 ## §8 — Regras Gherkin (R-PCP-001..010) — resumo
 
