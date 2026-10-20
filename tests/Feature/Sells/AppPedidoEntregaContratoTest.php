@@ -1,4 +1,5 @@
 <?php
+// @covers-us US-SELL-073
 
 declare(strict_types=1);
 
@@ -357,4 +358,76 @@ it('rota de escrita com throttle de 20 por minuto (playbook: 20–30/min)', func
         ->first(fn ($r) => $r->uri() === 'api/app/pedidos/{id}/entrega' && in_array('POST', $r->methods(), true));
     expect($rota)->not->toBeNull();
     expect($rota->gatherMiddleware())->toContain('throttle:20,1');
+});
+
+// ── Volumes no protocolo (UC-FLX-23 · US-SELL-073) ─────────────────────────────────────────────
+// Contrato: tela-22-entrega.md §Volumes — total de volumes do protocolo, inteiro 1–9999, OPCIONAL
+// (o app antigo não manda o campo). Casos UC-ENTR-01..04 em resources/js/Pages/Sells/Show.casos.md.
+
+it('UC-ENTR-01 · grava os volumes no protocolo e devolve na resposta, junto com itens e quem recebeu', function () use ($post, $corpo) {
+    $chave = 'vol-' . uniqid();
+    $r = $post($this->venda, $corpo(['volumes' => 3]), $chave)->assertStatus(201);
+
+    expect($r->json('volumes'))->toBe(3);
+    expect($r->json('recebido_por'))->toBe('Recebedor Teste');
+    $ent = DB::table('app_entregas')->where('business_id', $this->biz->id)->where('transaction_id', $this->venda)->first();
+    expect((int) $ent->volumes)->toBe(3);
+    expect($ent->protocolo)->toBe($r->json('protocolo'));
+    expect(collect(json_decode((string) $ent->itens, true))->pluck('linha_id')->sort()->values()->all())
+        ->toBe(collect($this->linhas)->sort()->values()->all());
+    expect(appEntregaEtapa($this->venda))->toBe('delivered');
+
+    // Mesma chave e mesmos volumes devolvem a resposta gravada; mesma chave com outro número é conflito.
+    $post($this->venda, $corpo(['volumes' => 3]), $chave)
+        ->assertStatus(201)->assertJsonPath('protocolo', $r->json('protocolo'))->assertJsonPath('volumes', 3);
+    $post($this->venda, $corpo(['volumes' => 5]), $chave)
+        ->assertStatus(422)->assertJsonPath('erro', 'idempotencia_conflito');
+    expect(DB::table('app_entregas')->where('transaction_id', $this->venda)->count())->toBe(1);
+});
+
+it('UC-ENTR-02 · volumes zero, negativo, fracionado, texto ou acima de 9999 → 422 campos.volumes e nada é gravado', function () use ($post, $corpo) {
+    foreach ([0, -1, 2.5, 'tres', 10000] as $ruim) {
+        $post($this->venda, $corpo(['volumes' => $ruim]))
+            ->assertStatus(422)->assertJsonPath('erro', 'validacao')->assertJsonStructure(['campos' => ['volumes']]);
+    }
+
+    expect(DB::table('app_entregas')->where('transaction_id', $this->venda)->count())->toBe(0);
+    expect(DB::table('app_idempotencia')->where('transaction_id', $this->venda)->count())->toBe(0);
+    expect(appEntregaEtapa($this->venda))->toBe('paid');
+});
+
+it('UC-ENTR-03 · app antigo, sem o campo volumes: a entrega continua registrada como hoje e o protocolo fica sem volumes', function () use ($post, $corpo) {
+    $chave = 'antigo-' . uniqid();
+    $corpoAntigo = $corpo();
+    expect(array_key_exists('volumes', $corpoAntigo))->toBeFalse();
+
+    $r = $post($this->venda, $corpoAntigo, $chave)->assertStatus(201);
+
+    expect($r->json('volumes'))->toBeNull();
+    expect($r->json('protocolo'))->toStartWith('ENT-');
+    expect(DB::table('app_entregas')->where('transaction_id', $this->venda)->value('volumes'))->toBeNull();
+    expect(appEntregaEtapa($this->venda))->toBe('delivered');
+    // A repetição do corpo antigo segue idempotente (o campo novo não mudou o hash dele).
+    $post($this->venda, $corpoAntigo, $chave)->assertStatus(201)->assertJsonPath('protocolo', $r->json('protocolo'));
+    expect(DB::table('app_entregas')->where('transaction_id', $this->venda)->count())->toBe(1);
+});
+
+it('UC-ENTR-04 · [T0] volumes no pedido de OUTRA empresa → 404 e nada gravado; no da própria empresa, gravado nela', function () use ($post, $corpo) {
+    $stAlheio = appEntregaProcesso((int) $this->outroBiz->id);
+    $alheia = DB::table('transactions')->insertGetId([
+        'business_id' => $this->outroBiz->id, 'created_by' => $this->user->id, 'type' => 'sell',
+        'status' => 'final', 'payment_status' => 'paid', 'invoice_no' => 'APP-ENT-VOL-ALHEIA-' . uniqid(),
+        'transaction_date' => now(), 'total_before_tax' => 10, 'final_total' => 10,
+        'current_stage_id' => $stAlheio['paid'], 'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    $post($alheia, $corpo(['volumes' => 4]))->assertStatus(404)->assertJsonPath('erro', 'nao_encontrado');
+    expect(DB::table('app_entregas')->where('transaction_id', $alheia)->count())->toBe(0);
+    expect(appEntregaEtapa($alheia))->toBe('paid');
+
+    // Controle positivo: o mesmo corpo no pedido da própria empresa grava, com o business do usuário.
+    $post($this->venda, $corpo(['volumes' => 4]))->assertStatus(201)->assertJsonPath('volumes', 4);
+    $ent = DB::table('app_entregas')->where('transaction_id', $this->venda)->first();
+    expect((int) $ent->business_id)->toBe((int) $this->biz->id);
+    expect((int) $ent->volumes)->toBe(4);
 });
