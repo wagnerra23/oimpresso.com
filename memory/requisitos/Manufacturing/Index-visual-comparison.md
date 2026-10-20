@@ -306,6 +306,11 @@ da mesma regra do protótipo (`manufacturing-page.css` L55-62).
 usam as mesmas classes; o valor é o do protótipo, mas essas telas não foram medidas depois da troca. O
 diálogo "Nova receita" também é portal sem `container` (não medido).
 
+**Depois (2026-10-19, mesmo dia):** a moldura deste painel saiu para `_components/Gaveta.tsx` e as
+gavetas de Receitas e Insumos passaram a usá-la — medição em `Recipes-visual-comparison.md` e
+`Insumos-visual-comparison.md`. Este painel não mudou de forma (168 de 203 propriedades iguais no
+mesmo harness, contra 165 antes: a diferença é o botão primário ganhando a borda transparente de 1px do DS).
+
 ## Cobertura desta tela hoje
 
 | camada | estado |

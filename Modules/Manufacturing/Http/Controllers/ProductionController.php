@@ -203,6 +203,22 @@ class ProductionController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Tier 0 (ADR 0093): o FormRequest valida variation_id com `exists:variations,id`, sem
+        // empresa, e a receita é buscada só pelo variation_id — uma ordem com produto de outra
+        // empresa nascia aqui consumindo os ingredientes da receita dela (PARIDADE H1). O produto
+        // tem de ser da empresa da sessão; senão é 404. Fica ANTES do try: o catch(Exception)
+        // engoliria o abort e devolveria o redirect de erro. Para produto da própria empresa nada
+        // muda (a receita de uma variação é sempre da empresa do produto dela).
+        // OrdemReceitaEmpresaTest.
+        $produtoDaEmpresa = Variation::query()
+                                ->join('products', 'products.id', '=', 'variations.product_id')
+                                ->where('products.business_id', $business_id)
+                                ->where('variations.id', $request->input('variation_id'))
+                                ->exists();
+        if (! $produtoDaEmpresa) {
+            abort(404);
+        }
+
         try {
             // Rules originais já validadas pelo FormRequest — bloco removido. Preservado payload original.
 

@@ -64,6 +64,20 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CV-10 | O hub abre pra quem tem permissão e renderiza a calculadora | must | `CU-CV-01` itens 1-2 | `ContratoTelaOrcamentoTest` | 🧪 ⏭ PR-skip |
 | UC-CV-11 | Salvar o orçamento grava os valores do servidor, atomicamente | should | `CU-CV-05` itens 1-4 | `OrcamentoControllerTest` | 🧪 ⏭ PR-skip |
 | UC-CV-12 | O catálogo de partida nasce completo, idempotente e isolado | should | `CU-CV-07` itens 1-3 | `MaterialSeederTest` | 🧪 ⏭ PR-skip |
+| UC-CVINST-01 | Agenda equipe e veículo na OS e a agenda da janela lista a instalação | must | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAgendaContratoTest` | 🧪 |
+| UC-CVINST-02 | Alguém da equipe ocupado na janela bloqueia, dizendo com quem e quando | must | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAgendaContratoTest` | 🧪 |
+| UC-CVINST-03 | O mesmo veículo na janela bloqueia, mesmo escrito de outro jeito | must | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAgendaContratoTest` | 🧪 |
+| UC-CVINST-04 | Horário encostado e instalação cancelada não bloqueiam | must | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAgendaContratoTest` | 🧪 |
+| UC-CVINST-05 | Equipe de outra empresa é recusada; a agenda da outra empresa nunca conflita | must `[T0]` | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAgendaContratoTest` | 🧪 |
+| UC-CVINST-06 | OS de outra empresa devolve 404 | must `[T0]` | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAgendaContratoTest` | 🧪 |
+| UC-CVINST-07 | Sem permissão não agenda nem lista | must | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAgendaContratoTest` | 🧪 |
+| UC-CVOS-01 | Aprovar cria a OS com os itens e as medidas do orçamento | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
+| UC-CVOS-02 | A OS vale o total do orçamento e nenhum valor do orçamento muda | must `[V0]` | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
+| UC-CVOS-03 | Aprovar de novo não duplica OS, itens nem arquivos | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
+| UC-CVOS-04 | Os arquivos do orçamento passam para a OS, só os da empresa | must `[T0]` | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
+| UC-CVOS-05 | Outra empresa não aprova nem gera OS | must `[T0]` | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
+| UC-CVOS-06 | Orçamento recusado não vira OS | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
+| UC-CVOS-07 | Só quem pode criar orçamento aprova | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 
 > 🧪 **Nenhum status aqui é afirmação de verde.** O PR que criou este arquivo não executou teste algum (CT 100/CI —
 > [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)). "Vermelho
@@ -363,6 +377,136 @@ e marcar ✅ sem ela é `status:unverified` (G-7).
 - ⚠️ Este caso prova que o catálogo **existe no banco**, não que a operadora o vê — quem prova a
   tela é o UC-CV-07 (até 2026-09-23 a rota não entregava o catálogo; SDD §5.4.1).
 - **Status: 🧪 ⏭ PR-skip** — arquivo pula em SQLite; veredito da full-suite noturna.
+
+---
+
+## Agenda da instalação (US-COMVIS-007 · UC-FLX-21)
+
+> **Âncora:** UC-FLX-21 do catálogo de fluxos (*"Agenda equipe e veículo; bloqueia se não houver
+> janela"*) e o aceite de equipe + veículo + bloqueio da
+> [US-COMVIS-007](../../../../memory/requisitos/ComunicacaoVisual/SPEC.md). Nesta entrega são os
+> endpoints `POST /comunicacao-visual/api/os/{os}/instalacao` e
+> `GET /comunicacao-visual/api/instalacoes?de=&ate=` (janela de até 92 dias); não há tela de
+> instalação nem de OS, por isso os casos moram no hub (a agenda visual é follow-up). Veículo é
+> texto (placa/apelido): a empresa não tem cadastro de frota. Sobreposição é
+> `início < fim da outra E fim > início da outra`, só contra instalações `agendada`/`em_execucao`
+> da mesma empresa. Prova: `InstalacaoAgendaContratoTest` (tenant 98 contra 99,
+> [ADR 0358](../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)).
+> Sem impacto em valor ou estoque.
+
+## UC-CVINST-01 · Agenda equipe e veículo na OS e a agenda da janela lista a instalação · `must`
+
+**Dado** uma OS da empresa na etapa instalação **Quando** o coordenador agenda 21/10 09:00–11:00 com dois
+instaladores e o veículo "Fiorino ABC1D23" **Então** responde 201 e a instalação fica `agendada`, presa à OS,
+com início, fim, equipe e veículo; a agenda do dia lista a instalação com o número da OS e o nome de quem vai,
+e não mostra a instalação de outra empresa no mesmo dia. Janela pedida maior que 92 dias → 422.
+
+Status: 🧪
+
+## UC-CVINST-02 · Alguém da equipe ocupado na janela bloqueia, dizendo com quem e quando · `must`
+
+**Dado** o instalador A agendado 09:00–11:00 **Quando** outra OS pede 10:00–12:00 com A (veículo diferente)
+**Então** responde 422 com o nome de A e o horário da instalação que conflita, e nada é gravado.
+
+Status: 🧪
+
+## UC-CVINST-03 · O mesmo veículo na janela bloqueia, mesmo escrito de outro jeito · `must`
+
+**Dado** "Fiorino ABC1D23" agendado 09:00–11:00 **Quando** outra OS pede 10:30–12:00 com outra pessoa e o
+veículo " fiorino abc-1d23 " **Então** responde 422 citando o veículo, e nada é gravado.
+
+Status: 🧪
+
+## UC-CVINST-04 · Horário encostado e instalação cancelada não bloqueiam · `must`
+
+**Dado** A e o veículo agendados 09:00–11:00 **Quando** outra OS pede 11:00–13:00 ou 07:00–09:00 com os
+mesmos A e veículo **Então** agenda (201); e depois de a instalação das 09:00 ser cancelada, 09:30–10:30
+também agenda.
+
+Status: 🧪
+
+## UC-CVINST-05 · Equipe de outra empresa é recusada; a agenda da outra empresa nunca conflita · `must` `[T0]`
+
+**Quando** a equipe inclui um usuário da empresa 99 **Então** responde 422 e nada é gravado. **Dado** a 99 com
+o mesmo veículo e o mesmo id de pessoa na mesma janela **Quando** a 98 agenda **Então** agenda (201).
+
+Status: 🧪
+
+## UC-CVINST-06 · OS de outra empresa devolve 404 · `must` `[T0]`
+
+**Quando** a 98 tenta agendar instalação na OS da 99 **Então** a OS não é encontrada (404) e nenhuma
+instalação nasce nela.
+
+Status: 🧪
+
+## UC-CVINST-07 · Sem permissão não agenda nem lista · `must`
+
+**Quando** quem só tem `comvis.os.view` agenda **Então** 403 e nada é gravado; sem permissão nenhuma, listar
+dá 403; com `comvis.os.view` a agenda lista (200); com `comvis.os.update_status` agenda (201).
+
+Status: 🧪
+
+## Orçamento aprovado vira OS (US-COMVIS-003 · UC-FLX-01)
+
+> **Âncora:** UC-FLX-01 do catálogo de fluxos (*"Aprovado: cria a OS com itens, medidas e arquivos
+> do orçamento"*) e o aceite da [US-COMVIS-020](../../../../memory/requisitos/ComunicacaoVisual/SPEC.md)
+> (entrada da OS da US-COMVIS-003). Nesta entrega é o endpoint
+> `POST /comunicacao-visual/api/orcamentos/{id}/aprovar`; a tela ainda não tem o botão (nenhuma tela
+> salva nem lista orçamentos — ver Backlog). Não há tela de OS ainda, por isso os casos moram no hub.
+> Prova: `OrcamentoViraOsContratoTest` (tenant 98 contra 99, [ADR 0358](../../../../memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)).
+> VALOR: regra mestre — a aprovação não recalcula preço.
+
+## UC-CVOS-01 · Aprovar cria a OS com os itens e as medidas do orçamento · `must`
+
+**Dado** o orçamento enviado com Banner 3,000 × 1,500 × 1 (4,500 m²) e Adesivo 2,000 × 1,000 × 3 (6,000 m²)
+**Quando** ele é aprovado **Então** o orçamento fica `aprovado` e nasce uma OS da empresa, na etapa `arte`,
+número `OS-AAAA-NNNNN`, com dois itens que repetem descrição, largura, altura, quantidade, área e observação.
+
+Status: 🧪
+
+## UC-CVOS-02 · A OS vale o total do orçamento e nenhum valor do orçamento muda · `must` `[V0]`
+
+**Dado** subtotal 510,00 (270,00 + 240,00) e instalação 200,00 **Quando** o orçamento é aprovado **Então** a
+OS vale 710,00 (conta à mão e pelo calculator), e subtotal, total, desconto, extras, instalação e o subtotal
+de cada item do orçamento ficam iguais aos de antes.
+
+Status: 🧪
+
+## UC-CVOS-03 · Aprovar de novo não duplica OS, itens nem arquivos · `must`
+
+**Dado** o orçamento já aprovado **Quando** a aprovação chega de novo **Então** volta a mesma OS (200, não
+201), com os mesmos dois itens e o mesmo arquivo.
+
+Status: 🧪
+
+## UC-CVOS-04 · Os arquivos do orçamento passam para a OS, só os da empresa · `must` `[T0]`
+
+**Dado** dois arquivos anexados ao orçamento e um anexo de outra empresa com o mesmo id de orçamento
+**Quando** ele é aprovado **Então** a OS aponta para os dois arquivos da empresa (mesmo arquivo em disco) e
+nunca para o da outra.
+
+Status: 🧪
+
+## UC-CVOS-05 · Outra empresa não aprova nem gera OS · `must` `[T0]`
+
+**Quando** a empresa 99 tenta aprovar o orçamento da 98 **Então** o orçamento não é encontrado (404 na rota),
+nenhuma OS nasce e o orçamento continua `enviado`.
+
+Status: 🧪
+
+## UC-CVOS-06 · Orçamento recusado não vira OS · `must`
+
+**Dado** o orçamento recusado **Quando** a aprovação chega **Então** é recusada (422), nenhuma OS nasce e o
+status continua `recusado`.
+
+Status: 🧪
+
+## UC-CVOS-07 · Só quem pode criar orçamento aprova · `must`
+
+**Quando** um usuário sem `comvis.orcamento.create` aprova **Então** recebe 403 e nada é criado; com a
+permissão, a OS nasce (201).
+
+Status: 🧪
 
 ---
 

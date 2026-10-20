@@ -121,6 +121,8 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 
 **Implementado em:** _pendente_ — migration `cv_ordens_producao` + Entity `OrdemProducao` existem, mas Kanban PCP (OsController + Page Inertia + drag-drop) não construído
 
+> A entrada da OS (orçamento aprovado vira OS com itens, medidas e arquivos — UC-FLX-01) está na US-COMVIS-020. Aqui fica o Kanban de etapas.
+
 **Como** PCP/produção
 **Quero** ver Kanban com colunas Design → Prepress → Impressão → Acabamento → Instalação → Entregue
 **Para** saber onde cada OS está + prazo + responsável
@@ -219,17 +221,21 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 ### US-COMVIS-007 · Gestão de fachada/instalação (agenda + equipe + EPI) — **P1**
 
 > **Área:** Servicos
-> **Rota:** `GET/POST /comvis/instalacao`
-> **Controller/ação:** `InstalacaoController`
+> **Rota:** `GET /comunicacao-visual/api/instalacoes` · `POST /comunicacao-visual/api/os/{os}/instalacao`
+> **Controller/ação:** `InstalacaoController@index` · `InstalacaoController@agendar`
 
-**Implementado em:** _pendente_ — migration `cv_instalacoes` + Entity `Instalacao` existem, mas InstalacaoController + agenda/checklist/UI não construídos
+**Implementado em:** _parcial_ — agenda de equipe e veículo com bloqueio sem janela (UC-FLX-21): `Modules/ComunicacaoVisual/Services/AgendaInstalacao.php`, `Modules/ComunicacaoVisual/Http/Controllers/InstalacaoController.php`, `Modules/ComunicacaoVisual/Database/Migrations/2026_10_20_300000_add_agenda_to_cv_instalacoes.php`, `Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAgendaContratoTest.php`. Falta: tela da agenda (calendário), checklist de ferramentas/EPI, endereço/foto, comprovante e comissão.
+
+**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAgendaContratoTest.php` (lane `verticais-pest.yml`).
 
 **Como** coordenador de instalação
 **Quero** agendar equipe (instalador, ajudante, motorista) + ferramentas (escada, andaime, parafusadeira) + EPI + endereço cliente
 **Para** não chegar no cliente sem furadeira ou sem 2ª pessoa pra fachada de 6m
 
 **DoD:**
-- [ ] Agenda calendário (semanal) — drag-drop instalação na slot
+- [x] Agenda equipe (users da empresa) e veículo (placa/apelido) na OS da CV, e lista a agenda de uma janela de até 92 dias — UC-FLX-21 · UC-CVINST-01
+- [x] Bloqueia sem janela: sobreposição com instalação agendada/em execução que use alguém da equipe ou o mesmo veículo → 422 dizendo com quem e quando; encostado passa; outra empresa nunca conflita — UC-CVINST-02..06
+- [ ] Agenda calendário (semanal) — drag-drop instalação na slot (tela: follow-up; hoje só API)
 - [ ] Checklist ferramentas + EPI (NR-35 trabalho em altura — relevante)
 - [ ] Endereço integrado Google Maps + foto da fachada (cliente sobe pré-vistoria)
 - [ ] Comprovante instalação: foto + assinatura digital + GPS coords (LGPD: consent)
@@ -1207,6 +1213,38 @@ Como quem orça comunicação visual, quero que cada item guarde o custo do mate
 - [x] Item com posto de máquina e horas grava `custo_hora_previsto` e `custo_maquina_previsto` do dia; posto de pessoa, sem custo ou de outra empresa fica sem custo; mudar o custo da hora depois não altera o orçamento
 - [ ] Custo previsto de tinta e de instalação (sem fonte de custo hoje)
 - [ ] Ligar o material da CV ao produto do estoque, para usar o custo das compras (US-COM-024)
+
+
+---
+
+### US-COMVIS-020 · Orçamento aprovado vira OS sem redigitar (UC-FLX-01) — **P0**
+
+> owner: wagner · priority: p0 · estimate: 3h · type: story
+
+**Implementado em:** `Modules/ComunicacaoVisual/Services/OrcamentoViraOs.php` · `Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php` · `Modules/ComunicacaoVisual/Entities/OsItem.php` · `Modules/ComunicacaoVisual/Database/Migrations/2026_10_20_200000_create_comvis_os_itens_table.php`
+
+**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoViraOsContratoTest.php` (lane `verticais-pest.yml`).
+
+> Contrato: `UC-CVOS-01..07` do `resources/js/Pages/ComunicacaoVisual/Index.casos.md`. Parte da US-COMVIS-003 (PCP gráfico): esta US entrega a entrada da OS; o Kanban de etapas segue na 003.
+
+Como quem vende comunicação visual, quero que aprovar o orçamento crie a OS com os itens, as medidas e os arquivos dele, para a produção não redigitar nada.
+
+- `POST /comunicacao-visual/api/orcamentos/{id}/aprovar` marca o orçamento `aprovado` e cria a OS (`comvis_os`, etapa `arte`, número `OS-AAAA-NNNNN` por empresa).
+- Um item da OS (`comvis_os_itens`) por item do orçamento: descrição, material, largura, altura, quantidade, área e observação.
+- Os arquivos anexados ao orçamento (`media` do core) passam a apontar também para a OS, com o mesmo arquivo.
+- O valor da OS é o `total` do orçamento; nenhum preço é recalculado e o orçamento não muda de valor.
+- Aprovar de novo devolve a mesma OS (200) sem duplicar itens nem arquivos; recusado ou expirado não vira OS (422).
+- Permissão `comvis.orcamento.create` (ou superadmin); orçamento de outra empresa responde 404.
+- Na venda do core o mesmo caso já existia: `Modules/Producao/Services/CriarOsDaVenda.php` cria a OS por item quando a venda de um modelo entra em "Aprovado" (ADR 0436).
+
+**Aceite:**
+- [x] Aprovar cria a OS com os itens e as medidas do orçamento
+- [x] O valor da OS é o total do orçamento e o orçamento não muda de valor
+- [x] Aprovar de novo não duplica OS, itens nem arquivos
+- [x] Os arquivos do orçamento passam para a OS, só os da empresa
+- [x] Outra empresa não aprova nem gera OS; recusado não vira OS; sem permissão é recusado
+- [ ] Botão "Aprovar" na tela (hoje nenhuma tela salva nem lista orçamentos — ver backlog do `Index.casos.md`)
+- [ ] Upload de arquivo no orçamento (o orçamento não tem tela de anexos; a cópia cobre o que for anexado pelo `media` do core)
 
 ---
 
