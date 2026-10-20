@@ -224,6 +224,8 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 
 **Implementado em:** _parcial_ — agenda de equipe e veículo com bloqueio sem janela (UC-FLX-21): `Modules/ComunicacaoVisual/Services/AgendaInstalacao.php`, `Modules/ComunicacaoVisual/Http/Controllers/InstalacaoController.php`, `Modules/ComunicacaoVisual/Database/Migrations/2026_10_20_300000_add_agenda_to_cv_instalacoes.php`, `Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAgendaContratoTest.php`. Falta: tela da agenda (calendário), checklist de ferramentas/EPI, endereço/foto, comprovante e comissão.
 
+**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAgendaContratoTest.php` (lane `verticais-pest.yml`).
+
 **Como** coordenador de instalação
 **Quero** agendar equipe (instalador, ajudante, motorista) + ferramentas (escada, andaime, parafusadeira) + EPI + endereço cliente
 **Para** não chegar no cliente sem furadeira ou sem 2ª pessoa pra fachada de 6m
