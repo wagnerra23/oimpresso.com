@@ -254,6 +254,58 @@ Status: 🧪
 
 ---
 
+## Aproveitamento de mídia na bobina (US-PCP-024 · UC-FLX-13)
+
+> **Âncora:** UC-FLX-13 do catálogo de fluxos (*"Agrupa os jobs na bobina para reduzir a perda de mídia"*,
+> etapa Pré-impressão, referências Holdprint, printIQ e Calcgraf) e a US-PCP-024 do SPEC. As peças vêm dos
+> itens do orçamento das OS de comunicação visual (`comvis_orcamento_itens`, só os da mídia pedida); a
+> largura útil da bobina é do PCP (`pcp_bobinas`). Arranjo em faixas: da peça mais alta para a mais baixa,
+> cada uma na primeira faixa onde cabe; com giro, a peça deita quando cabe. JSON (`PUT /producao/bobinas/{mídia}`,
+> `POST /producao/aproveitamento/simular`, `POST /producao/aproveitamento`); a tela ainda não mostra.
+> Prova: `ProducaoAproveitamentoMidiaContratoTest`.
+
+## UC-PCAPV-01 · A mídia ganha largura útil, margem e giro · `must`
+
+**Dado** a Lona sem bobina cadastrada **Quando** simula **Então** 422 `material_invalido` · **Quando** cadastra
+1,600 m de largura útil e 0,020 m de margem **Então** a bobina fica com giro permitido; trocar para sem giro não
+duplica (uma bobina por mídia); largura 0 é recusada.
+
+Status: 🧪
+
+## UC-PCAPV-02 · Girando, 4 peças em 2 faixas · `must`
+
+**Dado** a OS A com 2 × 0,780 × 0,500 m de Lona (e um adesivo, outra mídia) e a OS B com 0,500 × 1,000 m e
+0,580 × 0,500 m de Lona **Quando** simula as duas **Então** o banner deita (1,000 × 0,500); faixa 1 = banner + placa
+(1,600 m), faixa 2 = as duas faixas (1,580 m); 1,020 m de rolo, 1,570 m² úteis em 1,632 m², perda 3,80% — uma a
+uma seriam 2,060 m e 52,37% · o consumo previsto rateado pela área: A 0,507 m, B 0,513 m · simular não grava nada.
+
+Status: 🧪
+
+## UC-PCAPV-03 · Sem giro o rolo cresce; peça maior que a bobina é recusada · `must`
+
+**Dado** a mesma Lona sem giro **Quando** simula **Então** o banner fica em pé (faixa de 1,000 m) e o rolo vai a
+1,520 m · peça de 1,700 × 1,700 m numa bobina de 1,600 m **Então** 422 `material_invalido`.
+
+Status: 🧪
+
+## UC-PCAPV-04 · Aceitar vira o romaneio de cada OS · `must`
+
+**Quando** o operador sem o papel `producao.liberar` aceita **Então** 403 e nada é gravado · **Quando** o PCP aceita
+com a etapa de destino de cada OS **Então** grava o arranjo (1,020 m, 2,060 m uma a uma, quem aceitou), o consumo
+previsto de cada OS (0,507 m e 0,513 m) e gera o romaneio de impressão de cada OS nessa etapa (US-PCP-023), ligado
+ao arranjo.
+
+Status: 🧪
+
+## UC-PCAPV-05 · Outra empresa, 404 · `must`
+
+**Quando** o PCP do tenant 98 cadastra bobina ou simula com mídia do tenant 99, põe OS do tenant 99 no arranjo,
+ou aponta etapa do tenant 99 como destino **Então** 404, e nenhuma bobina, arranjo ou romaneio é gravado.
+
+Status: 🧪
+
+---
+
 ## Liberação da OS para a produção (UC-FLX-28 · parcial · US-PCP-025)
 
 > **Âncora:** US-PCP-025 do `memory/requisitos/Producao/SPEC.md` (§Origem: *"Existe: o estado inicial
