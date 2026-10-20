@@ -4189,11 +4189,18 @@
       "desc": "postos, máquinas e veículos, com os motivos de pausa e de refugo do posto (UC-PCV-33, E03)"
     },
     {
+      "id": "component:Producao/RomaneioController + RomaneioDeImpressao",
+      "type": "component",
+      "module": "Producao",
+      "name": "RomaneioController + RomaneioDeImpressao",
+      "desc": "romaneio de impressão peça a peça da OS de comunicação visual (US-PCP-023 · UC-FLX-12): pcp_romaneios + pcp_romaneio_linhas, cópia imutável dos itens do orçamento por versão; gerar com o papel producao.liberar, ler com producao.access, JSON"
+    },
+    {
       "id": "component:Producao/RoteirosController",
       "type": "component",
       "module": "Producao",
       "name": "RoteirosController",
-      "desc": "roteiros por família, até 2 trilhas com junção nomeada (UC-PCV-13, thread 03)"
+      "desc": "roteiros por família, até 2 trilhas com junção nomeada (UC-PCV-13, thread 03), e os produtos ligados ao roteiro (US-PCP-026, UC-FLX-07)"
     },
     {
       "id": "component:ProductCatalogue/DataController",
@@ -12242,6 +12249,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/PostosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/RomaneioController + RomaneioDeImpressao",
       "type": "hasComponent",
       "source": "contains"
     },
