@@ -190,7 +190,7 @@ it('UC-PCV-31 · dois cronômetros: máquina e pessoa', function () {
         ->and(fn () => $this->svc->fechar($this->b98, $pes->id, $this->u98, 'ch-31-acab-fim2'))->toThrow(ModelNotFoundException::class);
 });
 
-it('UC-PCV-32 · custo real soma máquina, pessoa e terceiro — dupla prova', function () {
+it('UC-PCV-32 · UC-PCCH-01 · custo real soma máquina, pessoa e terceiro — dupla prova', function () {
     $roland = pcpPosto($this->b98, 'ROLAND32', Posto::MAQUINA, '42.00');
     $acab = pcpPosto($this->b98, 'ACAB32', Posto::PESSOA, '28.00');
     $t = fn (string $h) => Carbon::parse("2026-10-15 {$h}:00");
