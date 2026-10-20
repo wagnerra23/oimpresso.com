@@ -14,7 +14,7 @@ module: Financeiro
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 356 arquivos em 22 papéis.
+**Total mapeado:** 363 arquivos em 22 papéis.
 
 ## Controllers — 24
 
@@ -60,7 +60,7 @@ module: Financeiro
 
 - [AdvisorViewScope.php](../../../Modules/Financeiro/Http/Middleware/AdvisorViewScope.php)
 
-## Services — 12
+## Services — 13
 
 - [BoletoOcrService.php](../../../Modules/Financeiro/Services/BoletoOcrService.php)
 - [DreService.php](../../../Modules/Financeiro/Services/DreService.php)
@@ -71,6 +71,7 @@ module: Financeiro
 - [PluggyBankSyncService.php](../../../Modules/Financeiro/Services/Integrations/PluggyBankSyncService.php)
 - [PluggyClient.php](../../../Modules/Financeiro/Services/Integrations/PluggyClient.php)
 - [LinhaDigitavelValidator.php](../../../Modules/Financeiro/Services/LinhaDigitavelValidator.php)
+- [ReguaCobrancaConfig.php](../../../Modules/Financeiro/Services/ReguaCobrancaConfig.php)
 - [TituloAutoService.php](../../../Modules/Financeiro/Services/TituloAutoService.php)
 - [TituloService.php](../../../Modules/Financeiro/Services/TituloService.php)
 - [UnificadoService.php](../../../Modules/Financeiro/Services/UnificadoService.php)
@@ -105,9 +106,10 @@ module: Financeiro
 - [TransactionObserver.php](../../../Modules/Financeiro/Observers/TransactionObserver.php)
 - [TransactionPaymentObserver.php](../../../Modules/Financeiro/Observers/TransactionPaymentObserver.php)
 
-## Jobs — 1
+## Jobs — 2
 
 - [CriarTituloDeVendaJob.php](../../../Modules/Financeiro/Jobs/CriarTituloDeVendaJob.php)
+- [ReguaCobrancaJob.php](../../../Modules/Financeiro/Jobs/ReguaCobrancaJob.php)
 
 ## Events / Listeners — 6
 
@@ -118,7 +120,7 @@ module: Financeiro
 - [OnTituloCriadoLog.php](../../../Modules/Financeiro/Listeners/OnTituloCriadoLog.php)
 - [ProcessAsaasPixWebhookListener.php](../../../Modules/Financeiro/Listeners/ProcessAsaasPixWebhookListener.php)
 
-## Console / Commands — 7
+## Console / Commands — 8
 
 - [BackfillExtratoOfxCommand.php](../../../Modules/Financeiro/Console/Commands/BackfillExtratoOfxCommand.php)
 - [BackfillPlanoContaCommand.php](../../../Modules/Financeiro/Console/Commands/BackfillPlanoContaCommand.php)
@@ -126,6 +128,7 @@ module: Financeiro
 - [FinanceiroHealthCommand.php](../../../Modules/Financeiro/Console/Commands/FinanceiroHealthCommand.php)
 - [InstallCommand.php](../../../Modules/Financeiro/Console/Commands/InstallCommand.php)
 - [ProvisionSmokeTenantCommand.php](../../../Modules/Financeiro/Console/Commands/ProvisionSmokeTenantCommand.php)
+- [ReguaCobrancaCommand.php](../../../Modules/Financeiro/Console/Commands/ReguaCobrancaCommand.php)
 - [ResyncFromCoreCommand.php](../../../Modules/Financeiro/Console/Commands/ResyncFromCoreCommand.php)
 
 ## Providers — 2
@@ -138,7 +141,7 @@ module: Financeiro
 - [api.php](../../../Modules/Financeiro/Routes/api.php)
 - [web.php](../../../Modules/Financeiro/Routes/web.php)
 
-## Migrations (schema) — 28
+## Migrations (schema) — 29
 
 - [2026_04_24_140001_create_fin_planos_conta_table.php](../../../Modules/Financeiro/Database/Migrations/2026_04_24_140001_create_fin_planos_conta_table.php)
 - [2026_04_24_140002_create_fin_categorias_table.php](../../../Modules/Financeiro/Database/Migrations/2026_04_24_140002_create_fin_categorias_table.php)
@@ -168,6 +171,7 @@ module: Financeiro
 - [2026_06_03_120000_add_forma_pagamento_to_fin_titulos.php](../../../Modules/Financeiro/Database/Migrations/2026_06_03_120000_add_forma_pagamento_to_fin_titulos.php)
 - [2026_06_04_120000_add_conta_bancaria_id_to_fin_titulos.php](../../../Modules/Financeiro/Database/Migrations/2026_06_04_120000_add_conta_bancaria_id_to_fin_titulos.php)
 - [2026_09_23_150000_add_dre_linha_to_fin_planos_conta.php](../../../Modules/Financeiro/Database/Migrations/2026_09_23_150000_add_dre_linha_to_fin_planos_conta.php)
+- [2026_10_20_120000_create_fin_titulo_lembretes_table.php](../../../Modules/Financeiro/Database/Migrations/2026_10_20_120000_create_fin_titulo_lembretes_table.php)
 
 ## Seeders — 3
 
@@ -303,14 +307,14 @@ module: Financeiro
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Unificado/Index.casos.md)
 - [Novo.casos.md](../../../resources/js/Pages/Financeiro/Unificado/Novo.casos.md)
 
-## Testes (Pest) — 87
+## Testes (Pest) — 89
 
-- 82 em [Modules/Financeiro/Tests/Feature/](../../../Modules/Financeiro/Tests/Feature)
+- 84 em [Modules/Financeiro/Tests/Feature/](../../../Modules/Financeiro/Tests/Feature)
 - 1 em [Modules/Financeiro/Tests/Feature/Advisor/](../../../Modules/Financeiro/Tests/Feature/Advisor)
 - 4 em [Modules/Financeiro/Tests/Unit/](../../../Modules/Financeiro/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 42
+## Demais arquivos (manifestos, docs, assets e misc) — 43
 
 - [.gitkeep](../../../Modules/Financeiro/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Financeiro/Console/.gitkeep)
@@ -323,6 +327,7 @@ module: Financeiro
 - [.gitkeep](../../../Modules/Financeiro/Http/Controllers/.gitkeep)
 - [.gitkeep](../../../Modules/Financeiro/Http/Middleware/.gitkeep)
 - [.gitkeep](../../../Modules/Financeiro/Http/Requests/.gitkeep)
+- [LembreteCobrancaMail.php](../../../Modules/Financeiro/Mail/LembreteCobrancaMail.php)
 - [.gitkeep](../../../Modules/Financeiro/Providers/.gitkeep)
 - [BaixaRepository.php](../../../Modules/Financeiro/Repositories/BaixaRepository.php)
 - [TituloRepository.php](../../../Modules/Financeiro/Repositories/TituloRepository.php)

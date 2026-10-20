@@ -1,5 +1,6 @@
 <?php
 // @covers-us US-SELL-069 (UC-FLXT-19: a margem mínima é configurada nesta tela)
+// @covers-us US-PCP-021 (UC-FLXT-20/21: a regra de baixa de material sem OS não executa e não baixa duas vezes)
 
 declare(strict_types=1);
 
@@ -490,4 +491,91 @@ it('UC-FLXT-19 · quem configura grava a margem mínima do orçamento; vazio des
     flxtEntrar($this, flxtUsuario(['fluxos.ver']));
     expect(flxtPatch($this, '/fluxos/margem', ['margem_minima' => 10])->getStatusCode())->toBe(403);
     expect($gravada())->toBeNull();
+});
+
+/** Regra do UC-FLX-14 gravada na etapa do processo de venda do modelo, na empresa dada. */
+function flxtRegraBaixa(int $biz, string $processo, string $etapa): ?array
+{
+    $pid = DB::table('sale_processes')->where('business_id', $biz)->where('key', $processo)->value('id');
+    $regras = json_decode((string) DB::table('sale_process_stages')->where('process_id', $pid)->where('key', $etapa)->value('regras_ao_entrar'), true) ?? [];
+
+    return collect($regras)->firstWhere('uc', 'UC-FLX-14');
+}
+
+it('UC-FLXT-20 · a regra de baixa de material dos modelos sem OS diz por que não executa e não vira side effect', function () {
+    if (! \Illuminate\Support\Facades\Schema::hasTable('fsm_modelos_empresa')) {
+        $this->markTestSkipped('Tabela fsm_modelos_empresa ausente (migration do #9492).');
+    }
+    $aplicar = app(\App\Domain\Fsm\Modelos\AplicarModelo::class);
+
+    foreach ([['balcao', 'flx_balcao_venda', 'aprovado', 'orcamento'], ['brindes', 'flx_brindes_venda', 'producao', 'aprovado']] as [$modelo, $proc, $etapa, $anterior]) {
+        $ids = $aplicar->aplicar(FLXT_BIZ, $modelo);
+        // Modelo sem processo de produção: não há OS onde o apontamento baixaria o consumido.
+        expect(array_keys($ids))->not->toContain('producao');
+
+        $regra = flxtRegraBaixa(FLXT_BIZ, $proc, $etapa);
+        expect($regra['estado'])->toBe('planejado')
+            ->and(array_key_exists('side_effect', $regra))->toBeFalse()
+            ->and($regra['candidato'])->toBe(\App\Domain\Fsm\SideEffects\ConsumirEstoque::class)
+            ->and($regra['pendencia'])->toBe(\App\Domain\Fsm\Modelos\CatalogoModelos::PENDENCIAS['UC-FLX-14']);
+
+        // A ação que entra na etapa da regra não carrega a baixa.
+        $de = DB::table('sale_process_stages')->where('process_id', $ids['venda'])->where('key', $anterior)->value('id');
+        expect(DB::table('sale_stage_actions')->where('stage_id', $de)->where('key', 'avancar')->value('side_effect_class'))->toBeNull();
+    }
+
+    // Regra sem motivo conhecido não ganha pendência (UC-FLX-26 do balcão).
+    $pid = DB::table('sale_processes')->where('business_id', FLXT_BIZ)->where('key', 'flx_balcao_venda')->value('id');
+    $pago = json_decode((string) DB::table('sale_process_stages')->where('process_id', $pid)->where('key', 'pago')->value('regras_ao_entrar'), true);
+    expect($pago[0]['uc'])->toBe('UC-FLX-26')
+        ->and(array_key_exists('pendencia', $pago[0]))->toBeFalse();
+});
+
+it('UC-FLXT-21 · venda finalizada do balcão entra em Aprovado sem segunda baixa de estoque, com a regra ligada ou desligada', function () {
+    if (! \Illuminate\Support\Facades\Schema::hasTable('stock_reservations') || ! \Illuminate\Support\Facades\Schema::hasColumn('transactions', 'process_id')) {
+        $this->markTestSkipped('Tabelas do motor FSM ausentes.');
+    }
+    flxtComRegrasConfiguraveis($this);
+    $outra = (int) DB::table('business')->where('id', '!=', FLXT_BIZ)->value('id');
+    $ids = app(\App\Domain\Fsm\Modelos\AplicarModelo::class)->aplicar(FLXT_BIZ, 'balcao');
+    $etapa = fn (string $k) => (int) DB::table('sale_process_stages')->where('process_id', $ids['venda'])->where('key', $k)->value('id');
+
+    $user = flxtUsuario([]);
+    $user->assignRole(Role::findByName('vendas.enviar#' . FLXT_BIZ, 'web'));
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+    $user = User::findOrFail($user->id);
+
+    $regras = app(\App\Domain\Fsm\Modelos\RegrasDaEmpresa::class);
+    foreach ([true, false] as $ligada) {
+        // Balcão, venda: regra 0 = "Aprovado → Baixa o material do estoque (UC-FLX-14)".
+        $regras->ligar(FLXT_BIZ, 'venda', 0, $ligada);
+        expect(flxtRegraBaixa(FLXT_BIZ, 'flx_balcao_venda', 'aprovado')['ligada'])->toBe($ligada);
+
+        // Venda final: o núcleo já baixou a peça. Uma reserva ativa denuncia ConsumirEstoque se ele rodar.
+        $venda = DB::table('transactions')->insertGetId([
+            'business_id' => FLXT_BIZ, 'created_by' => $user->id, 'type' => 'sell', 'status' => 'final',
+            'payment_status' => 'due', 'invoice_no' => 'FLXT21-' . uniqid(), 'transaction_date' => now(),
+            'total_before_tax' => 10, 'final_total' => 10, 'process_id' => $ids['venda'],
+            'current_stage_id' => $etapa('orcamento'), 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $reserva = fn (int $biz) => DB::table('stock_reservations')->insertGetId([
+            'business_id' => $biz, 'transaction_id' => $venda, 'product_id' => 1, 'variation_id' => 1,
+            'location_id' => 1, 'qty_reserved' => 3, 'status' => 'active', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $minha = $reserva(FLXT_BIZ);
+        $alheia = $reserva($outra);
+        $saldo = fn () => (string) DB::table('variation_location_details')->sum('qty_available');
+        $saldoAntes = $saldo();
+
+        app(\App\Domain\Fsm\Services\ExecuteStageActionService::class)
+            ->execute(\App\Transaction::findOrFail($venda), 'avancar', $user);
+
+        // Controle positivo: a venda entrou em Aprovado.
+        expect((int) DB::table('transactions')->where('id', $venda)->value('current_stage_id'))->toBe($etapa('aprovado'));
+        // Caminho 1: nenhuma reserva consumida (nem a da outra empresa).
+        expect(DB::table('stock_reservations')->where('id', $minha)->value('status'))->toBe('active')
+            ->and(DB::table('stock_reservations')->where('id', $alheia)->value('status'))->toBe('active');
+        // Caminho 2: o saldo de estoque não mexeu.
+        expect($saldo())->toBe($saldoAntes);
+    }
 });
