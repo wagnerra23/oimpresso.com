@@ -35,9 +35,6 @@ beforeEach(function () {
     } catch (\Throwable $e) {
         $this->markTestSkipped('Schema UltimatePOS ausente: '.$e->getMessage().' — rode no MySQL real (lane compras-pest ou CT 100).');
     }
-    if (DB::table('business_locations')->doesntExist()) {
-        $this->markTestSkipped('Sem business_locations semeado (esquema/layout de fatura de referência).');
-    }
 
     $this->servico = app(RequisicaoEstoqueMinimoService::class);
     $this->servico->definir($this->bizA, true);
@@ -46,12 +43,15 @@ beforeEach(function () {
 
 function reqMinLocal(int $biz): int
 {
-    $ref = DB::table('business_locations')->first(['invoice_scheme_id', 'invoice_layout_id']);
+    // Esquema e layout próprios: o local de referência do seed nasce com FK desligada (id 0) e copiá-lo
+    // falha com a FK ligada no teste (SQLSTATE 23000).
+    $esquema = DB::table('invoice_schemes')->insertGetId(['business_id' => $biz, 'name' => 'Esq reqmin '.uniqid(), 'scheme_type' => 'blank']);
+    $layout = DB::table('invoice_layouts')->insertGetId(['business_id' => $biz, 'name' => 'Lay reqmin '.uniqid()]);
 
     return DB::table('business_locations')->insertGetId([
         'business_id' => $biz, 'name' => 'Local reqmin '.uniqid(), 'country' => 'Brasil', 'state' => 'SC',
-        'city' => 'Gravatal', 'zip_code' => '8873500', 'invoice_scheme_id' => $ref->invoice_scheme_id,
-        'invoice_layout_id' => $ref->invoice_layout_id, 'is_active' => 1,
+        'city' => 'Gravatal', 'zip_code' => '8873500', 'invoice_scheme_id' => $esquema,
+        'invoice_layout_id' => $layout, 'is_active' => 1,
     ]);
 }
 
