@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 815,
-    "edges": 1114,
+    "nodes": 816,
+    "edges": 1115,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 437,
+      "component": 438,
       "api": 84
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 88,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 437,
+      "hasComponent": 438,
       "dependsOn": 123,
       "delegatesTo": 114,
       "migratesTo": 1,
@@ -1947,6 +1947,13 @@
       "module": "Compras",
       "name": "InstallController",
       "desc": ""
+    },
+    {
+      "id": "component:Compras/RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
+      "type": "component",
+      "module": "Compras",
+      "name": "RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
+      "desc": "US-COM-027 · UC-FLX-19 estoque abaixo de alert_quantity vira requisição de compra do núcleo (transactions type=purchase_requisition) por local, teto(mínimo − saldo), sem duplicar item em requisição aberta; não move estoque nem cria pedido; desligado por padrão em business.common_settings"
     },
     {
       "id": "component:ComunicacaoVisual/ApontamentoController",
@@ -7828,6 +7835,12 @@
     {
       "from": "module:Compras",
       "to": "component:Compras/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
       "type": "hasComponent",
       "source": "contains"
     },
