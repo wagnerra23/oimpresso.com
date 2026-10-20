@@ -1,5 +1,6 @@
 <?php
 
+use Modules\Producao\Http\Controllers\AlocacaoController;
 use Modules\Producao\Http\Controllers\ApontamentoController;
 use Modules\Producao\Http\Controllers\AproveitamentoMidiaController;
 use Modules\Producao\Http\Controllers\ColaboradorCustoController;
@@ -82,11 +83,14 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('lotes/{id}/rastreio', [LoteRastreioController::class, 'show'])->whereNumber('id')->name('lotes.rastreio');
     });
 
+// ── US-PCP-029 · UC-FLX-10 · alocador decide quem e quando começa (JSON, gestor) ──
 // ── US-PCP-023 · UC-FLX-12 · romaneio de impressão peça a peça (JSON; a tela é follow-up) ──
 Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
     ->prefix('producao')
     ->name('producao.')
     ->group(function () {
+        Route::put('etapas/{id}/alocacao', [AlocacaoController::class, 'alocar'])->whereNumber('id')->name('etapas.alocar');
+        Route::get('postos/{postoId}/fila', [AlocacaoController::class, 'fila'])->whereNumber('postoId')->name('postos.fila');
         Route::post('os/{id}/romaneio', [RomaneioController::class, 'store'])->whereNumber('id')->name('os.romaneio.store');
         Route::get('romaneios/{id}', [RomaneioController::class, 'show'])->whereNumber('id')->name('romaneios.show');
     });

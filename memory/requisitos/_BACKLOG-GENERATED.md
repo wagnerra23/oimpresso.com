@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **996 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **997 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -15,8 +15,8 @@
 | [`Financeiro`](#financeiro) | 49 | 3 | 0 | 0 | 46 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
 | [`OficinaAuto`](#oficinaauto) | 38 | 0 | 0 | 0 | 37 |
+| [`Producao`](#producao) | 29 | 1 | 0 | 0 | 28 |
 | [`NfeBrasil`](#nfebrasil) | 28 | 0 | 0 | 6 | 22 |
-| [`Producao`](#producao) | 28 | 1 | 0 | 0 | 27 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
@@ -520,6 +520,44 @@
 
 - **US-OFICINA-035** — DVI (Vistoria Digital · Digital Vehicle Inspection) schema + API — **P1** _(`p1`)_
 
+## Producao
+
+
+### doing
+
+- **US-PCP-028** — Prazo de entrega calculado pela fila (UC-FLX-06) — **P2** _(`p2` · @wagner)_
+
+### todo
+
+- **US-PCP-001** — Schema base + migrations (4 tabelas + triggers append-only) — **P0**
+- **US-PCP-002** — DECISÃO D1 — Pcp vs IProduction (renomeação ou módulo novo) — **P0 BLOCKER**
+- **US-PCP-003** — Models + global scopes `HasBusinessScope` — **P0**
+- **US-PCP-004** — CRUD `pcp_workstations` Inertia (Index/Create/Edit) — **P0**
+- **US-PCP-005** — CRUD `pcp_operations` Inertia — **P0**
+- **US-PCP-006** — FSM actions intermediárias (5 actions seed) — **P0**
+- **US-PCP-007** — Service `RegisterAppointment` (idempotent) — **P0**
+- **US-PCP-008** — Endpoint API JWT `POST /api/pcp/scan` — **P0**
+- **US-PCP-009** — PWA mobile shell + scanner QR (camera API) — **P0**
+- **US-PCP-010** — QR token na label OS + endpoint print extended — **P0**
+- **US-PCP-011** — Kanban shared infra adicionar agrupador configurável (8 agrupadores Delphi) — **P0**
+- **US-PCP-012** — Detect bottleneck (cron 15min) + alerta UI + Jana RAG context — **P1**
+- **US-PCP-013** — Capacidade dia/semana view agregada + dashboard card — **P1**
+- **US-PCP-014** — Performance operador (view + dashboard table com permission guard) — **P1**
+- **US-PCP-015** — `pcp_schedules` agendamento drag-drop calendário — **P2**
+- **US-PCP-016** — Integração BoM `MfgRecipe` (consumo automático ao concluir operação) — **P2**
+- **US-PCP-017** — Dashboard PCP Inertia (4 cards KPI + Kanban embed + heatmap) — **P1**
+- **US-PCP-018** — Broadcast Centrifugo (Kanban realtime + fila workstation) — **P2**
+- **US-PCP-019** — Smoke biz=4 ROTA LIVRE (canary 7d + cutover) — **P2**
+- **US-PCP-020** — Documentação RUNBOOK + Charter páginas — **P0**
+- **US-PCP-021** — A OS baixa o material apontado em cada etapa, pelo custo do lote que saiu (UC-FLX-37) — **P1**
+- **US-PCP-022** — A regra da compra (congela | vivo) vale para a OS aberta (UC-FLX-36) — **P1**
+- **US-PCP-023** — Romaneio de impressão peça a peça (UC-FLX-12) — **P2**
+- **US-PCP-024** — Simulador de aproveitamento de mídia na bobina (UC-FLX-13) — **P2**
+- **US-PCP-025** — Produção só libera com o sinal pago (UC-FLX-28) — **P2**
+- **US-PCP-026** — Etapas da OS vêm do roteiro do produto (UC-FLX-07) — **P1**
+- **US-PCP-029** — Alocador decide quem e quando começa cada etapa (UC-FLX-10) — **P1**
+- **US-PCP-031** — Reserva o insumo na venda, baixa real na produção (UC-FLX-14) — **P1**
+
 ## NfeBrasil
 
 
@@ -556,43 +594,6 @@
 - **US-NFE-008** — Manifestar NF-e recebida (destinatário)
 - **US-NFE-009** — Gerar SPED Fiscal/EFD ICMS-IPI mensal
 - **US-NFE-010** — Cadastrar regra tributária por NCM (motor)
-
-## Producao
-
-
-### doing
-
-- **US-PCP-028** — Prazo de entrega calculado pela fila (UC-FLX-06) — **P2** _(`p2` · @wagner)_
-
-### todo
-
-- **US-PCP-001** — Schema base + migrations (4 tabelas + triggers append-only) — **P0**
-- **US-PCP-002** — DECISÃO D1 — Pcp vs IProduction (renomeação ou módulo novo) — **P0 BLOCKER**
-- **US-PCP-003** — Models + global scopes `HasBusinessScope` — **P0**
-- **US-PCP-004** — CRUD `pcp_workstations` Inertia (Index/Create/Edit) — **P0**
-- **US-PCP-005** — CRUD `pcp_operations` Inertia — **P0**
-- **US-PCP-006** — FSM actions intermediárias (5 actions seed) — **P0**
-- **US-PCP-007** — Service `RegisterAppointment` (idempotent) — **P0**
-- **US-PCP-008** — Endpoint API JWT `POST /api/pcp/scan` — **P0**
-- **US-PCP-009** — PWA mobile shell + scanner QR (camera API) — **P0**
-- **US-PCP-010** — QR token na label OS + endpoint print extended — **P0**
-- **US-PCP-011** — Kanban shared infra adicionar agrupador configurável (8 agrupadores Delphi) — **P0**
-- **US-PCP-012** — Detect bottleneck (cron 15min) + alerta UI + Jana RAG context — **P1**
-- **US-PCP-013** — Capacidade dia/semana view agregada + dashboard card — **P1**
-- **US-PCP-014** — Performance operador (view + dashboard table com permission guard) — **P1**
-- **US-PCP-015** — `pcp_schedules` agendamento drag-drop calendário — **P2**
-- **US-PCP-016** — Integração BoM `MfgRecipe` (consumo automático ao concluir operação) — **P2**
-- **US-PCP-017** — Dashboard PCP Inertia (4 cards KPI + Kanban embed + heatmap) — **P1**
-- **US-PCP-018** — Broadcast Centrifugo (Kanban realtime + fila workstation) — **P2**
-- **US-PCP-019** — Smoke biz=4 ROTA LIVRE (canary 7d + cutover) — **P2**
-- **US-PCP-020** — Documentação RUNBOOK + Charter páginas — **P0**
-- **US-PCP-021** — A OS baixa o material apontado em cada etapa, pelo custo do lote que saiu (UC-FLX-37) — **P1**
-- **US-PCP-022** — A regra da compra (congela | vivo) vale para a OS aberta (UC-FLX-36) — **P1**
-- **US-PCP-023** — Romaneio de impressão peça a peça (UC-FLX-12) — **P2**
-- **US-PCP-024** — Simulador de aproveitamento de mídia na bobina (UC-FLX-13) — **P2**
-- **US-PCP-025** — Produção só libera com o sinal pago (UC-FLX-28) — **P2**
-- **US-PCP-026** — Etapas da OS vêm do roteiro do produto (UC-FLX-07) — **P1**
-- **US-PCP-031** — Reserva o insumo na venda, baixa real na produção (UC-FLX-14) — **P1**
 
 ## RecurringBilling
 

@@ -487,7 +487,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [ ] Quantidade por área (m²) no item da CV: hoje a reserva usa a quantidade da linha na unidade do produto.
 - [ ] Mostrar o reservado no saldo disponível para venda do insumo (hoje nenhuma tela lê `stock_reservations`).
 
-**Total US: 28** · **Estimate agregado:** ~106h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
+**Total US: 29** · **Estimate agregado:** ~109h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
 
 ### US-PCP-026 · Etapas da OS vêm do roteiro do produto (UC-FLX-07) — **P1**
 
@@ -507,6 +507,27 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [x] Multi-tenant: roteiro de outra empresa → 404; produto de outra empresa é recusado; vínculo apontando roteiro de outra empresa conta como produto sem roteiro (UC-PCROT-04).
 - [ ] Seletor de produtos na tela de Roteiros (`Roteiros/Index.tsx`, com charter e gate visual).
 - [ ] Roteiro padrão da empresa para produto sem roteiro (decisão [W]: hoje produto sem roteiro não vira OS).
+
+### US-PCP-029 · Alocador decide quem e quando começa cada etapa (UC-FLX-10) — **P1**
+
+**Implementado em:** `Modules/Producao/Services/AlocacaoDaEtapa.php` · `Modules/Producao/Http/Controllers/AlocacaoController.php` · `Modules/Producao/Routes/web.php`
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoAlocacaoContratoTest.php` (lane `verticais-pest.yml`).
+
+> owner: wagner · priority: p1 · estimate: 3h · type: story
+
+**Origem:** UC-FLX-10 da tela de fluxos (`app/Domain/Fsm/Modelos/CatalogoModelos.php`, etapa *Liberada* → "Alocador escolhe quem e quando"; `CasosDoPrototipo.php`: *"escolhe operador e horário para não parar máquina nem faltar material"*). Medido em 2026-10-20: `pcp_programacoes` já tem `user_id`, `inicio_previsto` e `fim_previsto`, e o `SituacaoDaOrdem::liberar()` exige o responsável de cada etapa aberta ao liberar — mas só no Liberar, sem rota HTTP, e nada trocava a pessoa ou o horário depois, nem havia fila do posto por início previsto. A US-PCP-015 (calendário arrastar-e-soltar) segue para a tela; a tabela `pcp_schedules` que ela previa não é mais necessária, porque o início previsto mora em `pcp_programacoes`.
+
+**Aceite:**
+- [x] O gestor com `producao.etapa.mover` escolhe o responsável e/ou o início previsto de uma etapa pendente; a duração prevista se mantém (UC-PCALO-01). A situação da OS no FSM não muda.
+- [x] Cada alocação grava em `pcp_eventos` (append-only) quem mudou, quando, o antes e o depois (UC-PCALO-02).
+- [x] Etapa iniciada ou concluída não se realoca (UC-PCALO-03).
+- [x] Responsável tem de ser da mesma empresa e ter `producao.access` (UC-PCALO-04).
+- [x] Operador sem a permissão → 403; etapa ou posto de outra empresa → 404 (UC-PCALO-05).
+- [x] `GET /producao/postos/{id}/fila` lista as etapas abertas do posto pela ordem do início previsto, com o responsável (UC-PCALO-06).
+- [ ] Cadastro de quem trabalha em qual posto ou setor (hoje vale qualquer pessoa da empresa com acesso à Produção).
+- [ ] Tela do alocador (quadro/calendário — US-PCP-015) consumindo os dois endpoints.
+- [ ] Aviso de conflito: mesma pessoa ou mesmo posto com etapas sobrepostas, e material sem saldo para o horário escolhido.
 
 ### US-PCP-028 · Prazo de entrega calculado pela fila (UC-FLX-06) — **P2**
 
