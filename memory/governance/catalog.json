@@ -1998,6 +1998,13 @@
       "desc": ""
     },
     {
+      "id": "component:ComunicacaoVisual/Entities/OsItem",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "Entities/OsItem",
+      "desc": "itens da OS copiados do orçamento, UC-FLX-01)"
+    },
+    {
       "id": "component:ComunicacaoVisual/Entities/Substrato",
       "type": "component",
       "module": "ComunicacaoVisual",
@@ -2024,6 +2031,13 @@
       "module": "ComunicacaoVisual",
       "name": "OrcamentoController",
       "desc": ""
+    },
+    {
+      "id": "component:ComunicacaoVisual/Services/OrcamentoViraOs",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "Services/OrcamentoViraOs",
+      "desc": "US-COMVIS-020 · UC-FLX-01)"
     },
     {
       "id": "component:Connector/Api/ApiController",
@@ -7968,6 +7982,12 @@
     },
     {
       "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/Entities/OsItem",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/Entities/Substrato",
       "type": "hasComponent",
       "source": "contains"
@@ -7987,6 +8007,12 @@
     {
       "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/OrcamentoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/Services/OrcamentoViraOs",
       "type": "hasComponent",
       "source": "contains"
     },
