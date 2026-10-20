@@ -5,11 +5,14 @@ namespace Modules\Producao\Providers;
 use App\Domain\Fsm\Models\SaleStageHistory;
 use App\Transaction;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Modules\Producao\Console\FecharTurnoCommand;
 use Modules\Producao\Jobs\CriarOsDaVendaJob;
 use Modules\Producao\Services\CriarOsDaVenda;
+use Modules\Producao\Entities\Ordem;
 use Modules\Producao\Services\OsDaVenda;
+use Modules\Producao\Services\ReservaDeInsumoDaOs;
 
 class ProducaoServiceProvider extends ServiceProvider
 {
@@ -40,6 +43,21 @@ class ProducaoServiceProvider extends ServiceProvider
         Transaction::updating(function (Transaction $tx) {
             if ($tx->isDirty('current_stage_id')) {
                 app(OsDaVenda::class)->guardar((int) $tx->business_id, (int) $tx->id, $tx->current_stage_id !== null ? (int) $tx->current_stage_id : null);
+            }
+        });
+
+        // US-PCP-031 · UC-FLX-14: a reserva do insumo da OS sob encomenda acaba quando a OS acaba (o que
+        // sobrou é liberado) ou quando a venda é cancelada. Dentro da transação do motor, no `updated`.
+        Ordem::updated(function (Ordem $o) {
+            if ($o->wasChanged('current_stage_id') && $o->current_stage_id !== null
+                && in_array(DB::table('sale_process_stages')->where('id', $o->current_stage_id)->value('key'), ['concluida', 'cancelada'], true)) {
+                app(ReservaDeInsumoDaOs::class)->liberar((int) $o->business_id, (int) $o->id);
+            }
+        });
+        Transaction::updated(function (Transaction $tx) {
+            if ($tx->type === 'sell' && $tx->wasChanged('current_stage_id') && $tx->current_stage_id !== null
+                && (bool) DB::table('sale_process_stages')->where('id', $tx->current_stage_id)->value('is_cancelled')) {
+                app(ReservaDeInsumoDaOs::class)->liberarDaVenda((int) $tx->business_id, (int) $tx->id);
             }
         });
     }

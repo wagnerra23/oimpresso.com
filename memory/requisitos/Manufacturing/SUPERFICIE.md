@@ -14,7 +14,7 @@ module: Manufacturing
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Manufacturing/**` + `resources/js/Pages/Manufacturing/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 160 arquivos em 17 papéis.
+**Total mapeado:** 161 arquivos em 17 papéis.
 
 ## Controllers — 6
 
@@ -35,8 +35,9 @@ module: Manufacturing
 - [UpdateProductionRequest.php](../../../Modules/Manufacturing/Http/Requests/UpdateProductionRequest.php)
 - [UpdateRecipeRequest.php](../../../Modules/Manufacturing/Http/Requests/UpdateRecipeRequest.php)
 
-## Services — 2
+## Services — 3
 
+- [InsumosDaReceitaService.php](../../../Modules/Manufacturing/Services/InsumosDaReceitaService.php)
 - [ProductionService.php](../../../Modules/Manufacturing/Services/ProductionService.php)
 - [RecipeBomService.php](../../../Modules/Manufacturing/Services/RecipeBomService.php)
 

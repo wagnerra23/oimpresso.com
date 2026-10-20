@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 815,
-    "edges": 1114,
+    "nodes": 816,
+    "edges": 1115,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 437,
+      "component": 438,
       "api": 84
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 88,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 437,
+      "hasComponent": 438,
       "dependsOn": 123,
       "delegatesTo": 114,
       "migratesTo": 1,
@@ -4180,6 +4180,13 @@
       "module": "Producao",
       "name": "PostosController",
       "desc": "postos, máquinas e veículos, com os motivos de pausa e de refugo do posto (UC-PCV-33, E03)"
+    },
+    {
+      "id": "component:Producao/ReservaDeInsumoDaOs",
+      "type": "component",
+      "module": "Producao",
+      "name": "ReservaDeInsumoDaOs",
+      "desc": "reserva o insumo na venda, baixa real na produção (US-PCP-031 · UC-FLX-14): a OS do item sob encomenda reserva o insumo da receita (contrato Fabricacao/InsumosDaReceita do núcleo) em stock_reservations; o apontamento abate, a OS encerrada e a venda cancelada liberam; chave producao_reserva_insumo em common_settings, desligada por padrão"
     },
     {
       "id": "component:Producao/RoteirosController",
@@ -12229,6 +12236,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/PostosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/ReservaDeInsumoDaOs",
       "type": "hasComponent",
       "source": "contains"
     },

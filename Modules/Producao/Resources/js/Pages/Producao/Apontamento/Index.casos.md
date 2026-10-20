@@ -99,8 +99,10 @@ Status: 🧪
 > orçada"*, `CasosDoPrototipo.php:67`, situação `parcial`): o que baixa é a quantidade apontada na etapa.
 
 - **[BACKLOG]** UC-FLX-14 — a regra "ao entrar na etapa → Baixa o material do estoque" dos modelos de
-  processo ainda não executa: em `app/Domain/Fsm/Modelos/CatalogoModelos.php` ela é só dado, com
-  `ConsumirEstoque` como candidato (ele baixa a quantidade reservada, e o caso pede a consumida).
+  processo segue só dado em `app/Domain/Fsm/Modelos/CatalogoModelos.php`, com `ConsumirEstoque` como
+  candidato (ele baixa a quantidade reservada, e o caso pede a consumida). Pela decisão [W] 2026-10-20 ela
+  não deve baixar: no item sob encomenda a venda aprovada só RESERVA o insumo e a baixa é a apontada
+  (UC-PCRES-01..07, abaixo); na venda sem OS a peça já baixa na venda finalizada.
 
 ## UC-PCMAT-01 · O material sai do estoque do local da venda · `must`
 
@@ -149,6 +151,69 @@ Status: 🧪
 
 **Quando** o material é apontado pela PWA ou pelo app **Então** a resposta diz o que saiu, sem o custo (que é do
 gestor), e o reenvio responde sem gravar de novo.
+
+Status: 🧪
+
+---
+
+## Reserva do insumo na venda (US-PCP-031 · UC-FLX-14)
+
+> **Âncora:** decisão [W] 2026-10-20 — *"Reserva insumo na venda, baixa real na produção"* — para o item feito
+> sob encomenda; o caso prático da Comunicação Visual (*"reserva 6m² lona em 'aprovado' → consome em 'produção
+> concluída'"*) e o UC-FLX-14 do catálogo (*"Consome do estoque a quantidade real, não a orçada"*). A receita do
+> Manufacturing é a fonte do material (decisão [W] 2026-10-15). Sob encomenda = o item gera OS, o produto vendido
+> não controla estoque e tem receita. Chave por empresa `common_settings['producao_reserva_insumo']`, desligada por
+> padrão. Prova: `ProducaoReservaInsumoContratoTest`. ESTOQUE: regra mestre — saldo físico e reservado em cada passo,
+> por dois caminhos.
+
+## UC-PCRES-01 · Venda aprovada reserva o insumo da receita · `must` estoque
+
+**Dado** o banner (não controla estoque) com receita de 5 lona para 2 banners, e a chave ligada **Quando** a venda de
+2 banners é aprovada e a OS nasce **Então** a OS reserva 2,5 × 2 = 5,0000 de lona no local da venda, sem data de
+expiração, e o saldo da lona não muda; aprovar de novo não reserva de novo.
+
+Status: 🧪
+
+## UC-PCRES-02 · Revenda e chave desligada não reservam · `must` estoque
+
+**Dado** a placa pronta (controla estoque, vende da prateleira) com a mesma receita **Quando** a OS dela nasce **Então**
+nada é reservado — o núcleo segue baixando a peça na venda. **E** com a chave desligada a OS do banner nasce sem
+reserva.
+
+Status: 🧪
+
+## UC-PCRES-03 · A baixa real abate a reserva · `must` estoque
+
+**Dado** 5 de lona reservados e saldo 10 **Quando** a etapa aponta 3 **Então** o saldo vai a 7 e a reserva a 2 — uma
+baixa só.
+
+Status: 🧪
+
+## UC-PCRES-04 · Consumo além do reservado baixa normalmente · `must` estoque
+
+**Dado** 5 reservados **Quando** a etapa aponta 3 e depois 4 **Então** o saldo cai 7 (10 → 3) e a reserva abate só o
+que tinha: fica zerada e `consumed`.
+
+Status: 🧪
+
+## UC-PCRES-05 · OS concluída libera o que sobrou · `must` estoque
+
+**Dado** 5 reservados e 3 apontados **Quando** a OS é concluída **Então** os 2 que sobraram são liberados e o saldo
+segue 7.
+
+Status: 🧪
+
+## UC-PCRES-06 · Venda cancelada libera tudo · `must` estoque
+
+**Dado** 5 reservados e nada apontado **Quando** a venda vai para a etapa cancelada **Então** a reserva é liberada e o
+saldo segue 10.
+
+Status: 🧪
+
+## UC-PCRES-07 · Reserva só dentro da empresa · `must`
+
+**Quando** outra empresa lê a receita, abate ou libera a reserva da OS **Então** nada muda; a mesma chamada na empresa
+dona abate.
 
 Status: 🧪
 

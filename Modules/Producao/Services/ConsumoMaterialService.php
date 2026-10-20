@@ -36,6 +36,9 @@ use Modules\Producao\Exceptions\ApontamentoRecusado;
  * Empresa que permite vender sem estoque: o que faltou sai sem lote, sem custo, e fica em
  * `quantidade_sem_lote` para ninguém confundir com custo zero.
  *
+ * Reserva (US-PCP-031): se a OS reservou o insumo na venda (item sob encomenda), a baixa abate da
+ * reserva dela — a baixa em si é a mesma, a reserva nunca mexe no saldo.
+ *
  * Quem aponta: o responsável da etapa, com a etapa iniciada ou feita e a OS Em execução ou Pausada.
  * OS concluída tem o custo congelado: material depois disso é recusado. Tier 0: `$businessId` em
  * toda consulta (o app não tem sessão).
@@ -44,7 +47,7 @@ final class ConsumoMaterialService
 {
     public const SITUACOES = ['em_execucao', 'pausada'];
 
-    public function __construct(private readonly ProductUtil $productUtil, private readonly TransactionUtil $transactionUtil) {}
+    public function __construct(private readonly ProductUtil $productUtil, private readonly TransactionUtil $transactionUtil, private readonly ReservaDeInsumoDaOs $reserva) {}
 
     public function registrar(int $businessId, int $userId, int $programacaoId, int $variationId, string $quantidade, string $chave, CarbonInterface $momento): Consumo
     {
@@ -124,6 +127,8 @@ final class ConsumoMaterialService
             'accounting_method' => $empresa?->accounting_method ?? 'fifo', 'pos_settings' => $empresa?->pos_settings,
         ], [$linha], 'production_purchase', false);
         $this->productUtil->decreaseProductQuantity((int) $material->product_id, (int) $material->id, (int) $localId, $quantidade);
+        // US-PCP-031: a baixa real abate a reserva do insumo desta OS (nunca mais do que ela tem).
+        $this->reserva->abater($businessId, (int) $ordem->id, (int) $material->id, $quantidade);
 
         $lote = DB::table('transaction_sell_lines_purchase_lines as m')
             ->leftJoin('purchase_lines as pl', 'pl.id', '=', 'm.purchase_line_id')

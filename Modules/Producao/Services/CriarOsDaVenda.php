@@ -21,6 +21,8 @@ use Modules\Producao\Entities\Programacao;
  * situação inicial do processo do item, e uma programação do PCP por etapa do roteiro (etapa
  * opcional fica de fora até o orçamento guardar a opção). Linha sem roteiro não gera OS aqui.
  *
+ * Item sob encomenda com receita reserva o insumo na criação da OS (US-PCP-031, ReservaDeInsumoDaOs).
+ *
  * Idempotente: trava a venda (`lockForUpdate`) e a OS é única por empresa + linha. Tier 0: lê e
  * grava só no `$businessId` recebido.
  */
@@ -28,7 +30,7 @@ final class CriarOsDaVenda
 {
     public const ETAPA_APROVADO = 'aprovado';
 
-    public function __construct(private readonly ProcessoDaOrdem $processo) {}
+    public function __construct(private readonly ProcessoDaOrdem $processo, private readonly ReservaDeInsumoDaOs $reserva) {}
 
     /** A etapa de destino de uma transição de venda é a que cria as OS? */
     public function deveCriar(int $businessId, ?int $stageId): bool
@@ -75,6 +77,8 @@ final class CriarOsDaVenda
                 );
                 if ($ordem->wasRecentlyCreated) {
                     $this->programar($businessId, $ordem, (int) $roteiroId, $autor);
+                    // US-PCP-031: item sob encomenda reserva o insumo da receita (chave da empresa, padrão desligada).
+                    $this->reserva->reservar($businessId, $ordem);
                 }
                 $ids[] = (int) $ordem->id;
             }
