@@ -11,6 +11,7 @@ contains:
   - "ColaboradorCustoController — custo-hora da pessoa, só com producao.desempenho.ver (E03)"
   - "ApontamentoController — celular do operador (PWA, thread 04): /producao/apontamento, escritas em JSON para a fila offline; a regra mora no ApontamentoOperadorService"
   - "ConsumoMaterialService — material apontado na etapa da OS por item (US-PCP-021 · UC-FLX-37): baixa o estoque do local da venda por uma production_sell por apontamento, custo do lote que saiu, em pcp_consumos; o CustoRealService soma no congelado"
+  - "LoteRastreioController + RastreioDoRolo — rastreio do rolo: em que OS cada fração do lote foi usada e o saldo, JSON só com purchase.view (US-COM-025 · UC-FLX-18); a baixa da OS aceita o rolo escolhido (lote_id)"
   - "OrdemCustoController + PrevisaoCustoDaOrdem — custo da OS aberta: abertura × hoje dos insumos apontados e a previsão pela regra ops da compra (congela | vivo), JSON só com producao.desempenho.ver (US-PCP-022 · UC-FLX-36)"
   - "FecharTurnoCommand — producao:fechar-turno a cada 15 min, fecha o cronômetro esquecido no fim do turno ou na saída do ponto"
   - "Api/AppApontamentoController — apontamento do app das lojas com token (/api/app/producao/*, P8 tela 02, inclui motivos-pausa), sobre o ApontamentoOperadorService"
@@ -29,6 +30,7 @@ status: em construção
 url_prefixes:
   - /producao/* (install 1-clique, os cadastros da thread 03: roteiros, postos, ferramentas, custo-hora, e o PDF da OS com QR em os/{id}/etiqueta — Routes/web.php)
   - /producao/apontamento/* (celular do operador, thread 04)
+  - /producao/lotes/{id}/rastreio (rastreio do rolo, US-COM-025)
 ---
 
 # Modules/Producao

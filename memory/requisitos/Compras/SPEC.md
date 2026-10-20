@@ -544,7 +544,9 @@ Como quem orça e produz, quero saber quanto um insumo custava num dia qualquer,
 
 Como quem compra e controla a mídia (bobina de lona, vinil, papel em rolo), quero abrir um rolo recebido e ver em que OS cada fração dele foi usada e quanto ainda sobra, para saber o custo de cada trabalho e de onde veio o defeito de um lote.
 
-**Implementado em:** _pendente_
+**Implementado em:** `Modules/Producao/Services/RastreioDoRolo.php` · `Modules/Producao/Http/Controllers/LoteRastreioController.php` · `Modules/Producao/Services/ConsumoMaterialService.php`
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoRoloRastreioContratoTest.php` (lane `verticais-pest.yml`).
 
 **Origem:** UC-FLX-18 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:71`, etapa Recebido, fonte Mubisys, porte pequena, sem US até aqui). O que já existe (medido 2026-10-20):
 
@@ -555,11 +557,13 @@ Como quem compra e controla a mídia (bobina de lona, vinil, papel em rolo), que
 O que falta, e é o escopo desta US: a leitura "rolo → OS" (lote, frações por OS, saldo do rolo) e a escolha do rolo na baixa. Fora daqui: tabela `product_batches` própria, FEFO e picker de lote no PDV (US-INV-006 a US-INV-010, Estoque, adiadas por P7).
 
 **Aceite:**
-- [ ] Dado um lote (`purchase_line_id`) recebido, a consulta lista cada OS que usou fração dele: número da OS, etapa, quantidade, data e quem apontou, mais o saldo do rolo (recebido − devolvido − Σ frações).
-- [ ] A soma das frações listadas é igual à quantidade do lote em `transaction_sell_lines_purchase_lines` com `production_purchase`; dois caminhos no teste.
-- [ ] A baixa da OS aceita o lote escolhido (`lot_no_line_id`); sem escolha segue o método da empresa, como hoje; lote de outro produto ou sem saldo recusa.
-- [ ] Tier 0: lote de outra empresa responde 404 e não aparece na lista (teste com a mesma variação em duas empresas, `business_id` em toda consulta).
-- [ ] Só quem tem permissão de ver compras abre o rastreio; sem a permissão, 403.
+- [x] Dado um lote (`purchase_line_id`) recebido, `GET /producao/lotes/{id}/rastreio` lista cada OS que usou fração dele: OS, venda, etapa, quantidade, data e quem apontou, mais o saldo do rolo (recebido − devolvido − vendido − ajustado − usado em produção, as colunas que o `mapPurchaseSell` confere) (UC-RLT-04).
+- [x] A soma das frações listadas é igual à quantidade do lote em `transaction_sell_lines_purchase_lines` das `production_sell`; dois caminhos no teste (UC-RLT-04).
+- [x] A baixa da OS aceita o lote escolhido (`lote_id` → `lot_no_line_id`); sem escolha segue o método da empresa, como hoje; lote de outro material, de outro local, de outra empresa ou sem saldo para a quantidade inteira recusa e nada baixa (UC-PCMAT-08).
+- [x] Tier 0: lote de outra empresa responde 404 (teste com lote da empresa 99 do mesmo formato; `business_id` em toda consulta) (UC-RLT-05).
+- [x] Só quem tem `purchase.view` (e o módulo Produção no pacote) abre o rastreio; sem a permissão, 403 (UC-RLT-05).
+- [ ] Tela: o rastreio dentro do relatório de Lotes (hoje só o JSON). Ver o `[BACKLOG]` de `Relatorios/Lotes/Index.casos.md`.
+- [ ] Separar no relatório de Lotes a fração usada em OS da venda (a `consultaLotes` soma a baixa da OS em "vendido").
 
 ### 9.1 Seguradas (feature-wish ADR 0105 — NÃO no backlog ativo)
 
