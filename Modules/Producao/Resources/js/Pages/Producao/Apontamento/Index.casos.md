@@ -102,8 +102,9 @@ Status: 🧪
 > sem OS (Balcão enxuto e Brindes). Nos modelos com OS a baixa é a do apontamento, acima — não há regra
 > que baixe de novo. Nos sem OS ela não executa de propósito e grava o porquê
 > (`CatalogoModelos::PENDENCIAS`): ligar o `ConsumirEstoque` baixaria a reserva por cima da baixa da
-> venda finalizada. Prova em `resources/js/Pages/Fluxos/Index.casos.md` (UC-FLXT-20 e UC-FLXT-21); o
-> que é "consumido" na venda sem OS segue no backlog de lá, como decisão [W].
+> venda finalizada. Prova em `resources/js/Pages/Fluxos/Index.casos.md` (UC-FLXT-20 e UC-FLXT-21); a
+> venda sem OS segue baixando a peça na finalização (decisão [W] 2026-10-20). No item sob encomenda a venda
+> aprovada só RESERVA o insumo e a baixa é a apontada (UC-PCRES-01..08, abaixo).
 
 ## UC-PCMAT-01 · O material sai do estoque do local da venda · `must`
 
@@ -163,6 +164,78 @@ Status: 🧪
 (`lote_id`) **Então** as 3 saem de B e o custo é 3 × 14,00 = 42,00; sem escolha a baixa segue o FIFO, como antes. Lote de
 outro local, de outro material, de outra empresa, de compra ainda não recebida ou sem saldo para a quantidade inteira é recusado e nada é baixado; a
 mesma chave com outro lote é conflito.
+
+Status: 🧪
+
+---
+
+## Reserva do insumo na venda (US-PCP-031 · UC-FLX-14)
+
+> **Âncora:** decisão [W] 2026-10-20 — *"Reserva insumo na venda, baixa real na produção"* — para o item feito
+> sob encomenda; o caso prático da Comunicação Visual (*"reserva 6m² lona em 'aprovado' → consome em 'produção
+> concluída'"*) e o UC-FLX-14 do catálogo (*"Consome do estoque a quantidade real, não a orçada"*). A receita do
+> Manufacturing é a fonte do material (decisão [W] 2026-10-15). Sob encomenda = o item gera OS, o produto vendido
+> não controla estoque e tem receita. Chave por empresa `common_settings['producao_reserva_insumo']`, desligada por
+> padrão. Prova: `ProducaoReservaInsumoContratoTest`. ESTOQUE: regra mestre — saldo físico e reservado em cada passo,
+> por dois caminhos.
+
+## UC-PCRES-01 · Venda aprovada reserva o insumo da receita · `must` estoque
+
+**Dado** o banner (não controla estoque) com receita de 5 lona para 2 banners, e a chave ligada **Quando** a venda de
+2 banners é aprovada e a OS nasce **Então** a OS reserva 2,5 × 2 = 5,0000 de lona no local da venda, sem data de
+expiração, e o saldo da lona não muda; aprovar de novo não reserva de novo.
+
+Status: 🧪
+
+## UC-PCRES-02 · Revenda e chave desligada não reservam · `must` estoque
+
+**Dado** a placa pronta (controla estoque, vende da prateleira) com a mesma receita **Quando** a OS dela nasce **Então**
+nada é reservado — o núcleo segue baixando a peça na venda. **E** com a chave desligada a OS do banner nasce sem
+reserva.
+
+Status: 🧪
+
+## UC-PCRES-03 · A baixa real abate a reserva · `must` estoque
+
+**Dado** 5 de lona reservados e saldo 10 **Quando** a etapa aponta 3 **Então** o saldo vai a 7 e a reserva a 2 — uma
+baixa só.
+
+Status: 🧪
+
+## UC-PCRES-04 · Consumo além do reservado baixa normalmente · `must` estoque
+
+**Dado** 5 reservados **Quando** a etapa aponta 3 e depois 4 **Então** o saldo cai 7 (10 → 3) e a reserva abate só o
+que tinha: fica zerada e `consumed`.
+
+Status: 🧪
+
+## UC-PCRES-05 · OS concluída libera o que sobrou · `must` estoque
+
+**Dado** 5 reservados e 3 apontados **Quando** a OS é concluída **Então** os 2 que sobraram são liberados e o saldo
+segue 7.
+
+Status: 🧪
+
+## UC-PCRES-06 · Venda cancelada libera tudo · `must` estoque
+
+**Dado** 5 reservados e nada apontado **Quando** a venda vai para a etapa cancelada **Então** a reserva é liberada e o
+saldo segue 10.
+
+Status: 🧪
+
+## UC-PCRES-07 · Reserva só dentro da empresa · `must`
+
+**Quando** outra empresa lê a receita, abate ou libera a reserva da OS **Então** nada muda; a mesma chamada na empresa
+dona abate.
+
+Status: 🧪
+
+## UC-PCRES-08 · A venda não baixa nem solta a reserva de insumo da OS · `must` estoque
+
+**Dado** a OS reservou 5 de lona e já apontou 3 (saldo 7, 2 reservados) e a venda tem uma reserva comum de 1
+**Quando** a venda passa por "Concluir produção" (ConsumirEstoque) ou "Reabrir para revisão" (LiberarReserva)
+**Então** só a reserva comum é baixada (saldo 6); a reserva da OS segue ativa com 2 — quem baixa o insumo é o
+apontamento, e quem solta a reserva é a OS concluída ou a venda cancelada.
 
 Status: 🧪
 

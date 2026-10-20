@@ -36,6 +36,9 @@ use Modules\Producao\Exceptions\ApontamentoRecusado;
  * Empresa que permite vender sem estoque: o que faltou sai sem lote, sem custo, e fica em
  * `quantidade_sem_lote` para ninguém confundir com custo zero.
  *
+ * Reserva (US-PCP-031): se a OS reservou o insumo na venda (item sob encomenda), a baixa abate da
+ * reserva dela — a baixa em si é a mesma, a reserva nunca mexe no saldo.
+ *
  * Rolo escolhido (US-COM-025 · UC-FLX-18): com `$loteId` (a linha da compra), a baixa sai só daquele lote,
  * via `lot_no_line_id` da linha, que o `mapPurchaseSell` já respeita. O lote tem de ser da empresa, do
  * mesmo material, do local da venda, de compra recebida (`received`, o mesmo filtro do `mapPurchaseSell`)
@@ -50,7 +53,7 @@ final class ConsumoMaterialService
 {
     public const SITUACOES = ['em_execucao', 'pausada'];
 
-    public function __construct(private readonly ProductUtil $productUtil, private readonly TransactionUtil $transactionUtil) {}
+    public function __construct(private readonly ProductUtil $productUtil, private readonly TransactionUtil $transactionUtil, private readonly ReservaDeInsumoDaOs $reserva) {}
 
     public function registrar(int $businessId, int $userId, int $programacaoId, int $variationId, string $quantidade, string $chave, CarbonInterface $momento, ?int $loteId = null): Consumo
     {
@@ -134,6 +137,8 @@ final class ConsumoMaterialService
             'accounting_method' => $empresa?->accounting_method ?? 'fifo', 'pos_settings' => $empresa?->pos_settings,
         ], [$linha], 'production_purchase', false);
         $this->productUtil->decreaseProductQuantity((int) $material->product_id, (int) $material->id, (int) $localId, $quantidade);
+        // US-PCP-031: a baixa real abate a reserva do insumo desta OS (nunca mais do que ela tem).
+        $this->reserva->abater($businessId, (int) $ordem->id, (int) $material->id, $quantidade);
 
         $lote = DB::table('transaction_sell_lines_purchase_lines as m')
             ->leftJoin('purchase_lines as pl', 'pl.id', '=', 'm.purchase_line_id')
