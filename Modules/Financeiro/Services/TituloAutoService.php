@@ -114,6 +114,15 @@ class TituloAutoService
 
             $numero = $existing?->numero ?? $this->proximoNumero($tx->business_id, $tipo);
 
+            // US-FIN-072 — título já ajustado pelo líquido da NFS-e: a re-sincronização da venda
+            // (que parte do bruto do core) mantém o desconto do retido e o registro do ajuste.
+            $ajusteNfse = $existing?->metadata['retencao_nfse'] ?? null;
+            if (is_array($ajusteNfse) && in_array($ajusteNfse['estado'] ?? null, RetencaoNfseTituloService::ESTADOS_LIQUIDO, true)) {
+                $retido = (float) $ajusteNfse['retido_total'];
+                $valorTotal = round(max(0, $valorTotal - $retido), 2);
+                $valorAberto = round(max(0, $valorAberto - $retido), 2);
+            }
+
             // Onda Edit 2026-05-18 — cross-link auto-pop em `cliente_descricao`.
             // Formato: "{ContactName} · #V-{txId}" (venda), "{ContactName} · #PC-{txId}" (compra),
             // "{ContactName} · #E-{txId}" (despesa, Fase 5.5).
@@ -157,11 +166,11 @@ class TituloAutoService
                         'competencia_mes' => Carbon::parse($tx->transaction_date, config('app.timezone'))->format('Y-m'),
                         'observacoes' => $tx->additional_notes,
                         'created_by' => $tx->created_by,
-                        'metadata' => [
+                        'metadata' => array_merge([
                             'auto_created' => true,
                             'transaction_invoice_no' => $tx->invoice_no,
                             'cross_link' => $crossLink,
-                        ],
+                        ], is_array($ajusteNfse) ? ['retencao_nfse' => $ajusteNfse] : []),
                     ]
                 );
         });

@@ -31,6 +31,7 @@ not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
   - "Tasks Jira-style → Modules/Forja"
   - "MCP server admin → Modules/Forja"
+  - "Emissão e cancelamento de NFS-e (o Financeiro só observa a mudança de status para cobrar o líquido das retenções — US-FIN-072) → Modules/NFSe"
 depends_on:
   - Sells
   - Compras

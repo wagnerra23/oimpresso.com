@@ -2028,10 +2028,10 @@ Falta: classificar conta como fixa/variável, cadastrar centro de custo (posto/s
 
 ### US-FIN-072 · ISS retido ajusta o título para o valor líquido na autorização da NFS-e (UC-FLX-30) — **P2**
 
-> owner: — · priority: p2 · estimate: 6h · status: todo · type: story
+> owner: — · priority: p2 · estimate: 6h · status: doing · type: story
 > blocked_by: —
 
-**Implementado em:** _pendente_ — a NFS-e grava as retenções, mas o Financeiro nunca lê a NFS-e; o título segue cobrando o valor bruto.
+**Implementado em:** _pendente_ — parcial em 2026-10-20: a autorização da NFS-e ajusta o título da venda para o líquido de ISS/PIS/COFINS/CSLL retidos (RetencaoNfseTituloService + observer da NfseEmissao, chave por business **desligada por padrão**), o cancelamento devolve o retido, `nfse_emissoes.valor_iss_retido` passa a ser gravado e há a prévia `financeiro:iss-retido-ajuste --dry-run`. Falta IR/INSS retidos, o "aplicar" nas notas já autorizadas (decisão [W]) e a tela com bruto/retenções/líquido. A âncora vira path quando a US fechar (ADR 0273 + doneness-lint).
 
 **Origem:** UC-FLX-30 da tela Fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:82`, estágio "NFS-e Autorizada", marcado `verificar`). Medido em 2026-10-20:
 - `Modules/NfeBrasil/Services/RetencoesNfseService.php:84` — calcula PIS/COFINS/CSLL retidos.
@@ -2043,9 +2043,9 @@ Falta: listener na autorização que ache o título via `transaction_id` e o aju
 ⚠️ **REGRA MESTRE — CÁLCULO DE VALOR** ([proibicoes.md](../../proibicoes.md)): esta US mexe em valor de título.
 
 **Aceite:**
-- [ ] NFS-e autorizada com retenção → o título aberto da mesma `transaction_id` passa a cobrar bruto − (ISS + PIS + COFINS + CSLL + IR + INSS retidos); o bruto e cada retenção ficam gravados no título. Título já com baixa parcial: o ajuste incide só sobre o `valor_aberto`, nunca deixa saldo negativo.
-- [ ] `nfse_emissoes` passa a guardar o **valor** do ISS retido (não só o flag) e de IR/INSS quando houver.
-- [ ] Cancelamento da NFS-e estorna o ajuste (título volta ao bruto) e registra no histórico do título; reprocessar a mesma autorização não aplica o desconto duas vezes.
-- [ ] Dupla confirmação do cálculo: o líquido é provado por dois caminhos independentes (teste com números concretos + recálculo a partir de `nfse_emissoes`) e, para os títulos já existentes, um dry-run por business mostra antes→depois de cada título afetado; só aplica após aprovação [W].
-- [ ] Multi-tenant: listener só ajusta título do mesmo `business_id` da NFS-e; título/NFS-e de outro business → 404 e não é tocado. Teste com dois tenants.
+- [ ] NFS-e autorizada com retenção → o título aberto da mesma `transaction_id` passa a cobrar bruto − (ISS + PIS + COFINS + CSLL + IR + INSS retidos); o bruto e cada retenção ficam gravados no título. Título já com baixa parcial: o ajuste incide só sobre o `valor_aberto`, nunca deixa saldo negativo. _(ISS + PIS + COFINS + CSLL feitos, bruto e retenções em `metadata.retencao_nfse`, troca de valor no activity_log — UC-CRISS-02/07; **IR/INSS são follow-up**. Título com baixa: por decisão desta entrega (REGRA MESTRE) **não** é reescrito — fica `pendente` para decisão humana, UC-CRISS-03)_
+- [ ] `nfse_emissoes` passa a guardar o **valor** do ISS retido (não só o flag) e de IR/INSS quando houver. _(ISS feito: coluna `valor_iss_retido`; IR/INSS follow-up)_
+- [x] Cancelamento da NFS-e estorna o ajuste (título volta ao bruto) e registra no histórico do título; reprocessar a mesma autorização não aplica o desconto duas vezes. _(UC-CRISS-02/04)_
+- [ ] Dupla confirmação do cálculo: o líquido é provado por dois caminhos independentes (teste com números concretos + recálculo a partir de `nfse_emissoes`) e, para os títulos já existentes, um dry-run por business mostra antes→depois de cada título afetado; só aplica após aprovação [W]. _(dois caminhos + dry-run feitos — UC-CRISS-02/06; o "aplicar" nas notas antigas espera [W])_
+- [ ] Multi-tenant: listener só ajusta título do mesmo `business_id` da NFS-e; título/NFS-e de outro business → 404 e não é tocado. Teste com dois tenants. _(listener feito e testado com 98 × 99 — UC-CRISS-05; o 404 depende da tela do título, follow-up)_
 - [ ] Tela do título mostra bruto, retenções e líquido para quem tem acesso ao Financeiro; sem permissão → 403.

@@ -27,7 +27,7 @@
   "stats": {
     "modules": 37,
     "nodes": 813,
-    "edges": 1112,
+    "edges": 1114,
     "by_node_type": {
       "module": 42,
       "table": 108,
@@ -43,8 +43,8 @@
       "charteredByAdr": 30,
       "governedByAdr": 78,
       "hasComponent": 435,
-      "dependsOn": 123,
-      "delegatesTo": 114,
+      "dependsOn": 124,
+      "delegatesTo": 115,
       "migratesTo": 1,
       "supersedes": 26,
       "supersedesPartially": 71,
@@ -8692,6 +8692,13 @@
     },
     {
       "from": "module:Financeiro",
+      "to": "module:NFSe",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Emissão e cancelamento de NFS-e (o Financeiro só observa a mudança de status para cobrar o líquido das retenções — US-FIN-072)"
+    },
+    {
+      "from": "module:Financeiro",
       "to": "module:Compras",
       "type": "dependsOn",
       "source": "depends_on"
@@ -8716,6 +8723,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "module:NFSe",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Emissão e cancelamento de NFS-e (o Financeiro só observa a mudança de status para cobrar o líquido das retenções — US-FIN-072)"
     },
     {
       "from": "module:Financeiro",
