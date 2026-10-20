@@ -650,7 +650,11 @@ jobs:
             Modules/Producao/Tests/Feature/ProducaoFecharTurnoComandoTest.php \
             Modules/Producao/Tests/Feature/ProducaoMaterialContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoCustoOsAbertaContratoTest.php \
+<<<<<<< HEAD
             Modules/Producao/Tests/Feature/ProducaoPrazoPelaFilaContratoTest.php \
+=======
+            Modules/Producao/Tests/Feature/ProducaoRoloRastreioContratoTest.php \
+>>>>>>> origin/main
             Modules/Producao/Tests/Feature/ProducaoSinalPagoLiberaContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoRomaneioContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoAproveitamentoMidiaContratoTest.php \

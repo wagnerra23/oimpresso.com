@@ -11,6 +11,7 @@ contains:
   - "ColaboradorCustoController — custo-hora da pessoa, só com producao.desempenho.ver (E03)"
   - "ApontamentoController — celular do operador (PWA, thread 04): /producao/apontamento, escritas em JSON para a fila offline; a regra mora no ApontamentoOperadorService"
   - "ConsumoMaterialService — material apontado na etapa da OS por item (US-PCP-021 · UC-FLX-37): baixa o estoque do local da venda por uma production_sell por apontamento, custo do lote que saiu, em pcp_consumos; o CustoRealService soma no congelado"
+  - "LoteRastreioController + RastreioDoRolo — rastreio do rolo: em que OS cada fração do lote foi usada e o saldo, JSON só com purchase.view (US-COM-025 · UC-FLX-18); a baixa da OS aceita o rolo escolhido (lote_id)"
   - "OrdemCustoController + PrevisaoCustoDaOrdem — custo da OS aberta: abertura × hoje dos insumos apontados e a previsão pela regra ops da compra (congela | vivo), JSON só com producao.desempenho.ver (US-PCP-022 · UC-FLX-36)"
   - "PrazoDaVendaController + PrazoPelaFila — prazo de entrega da venda/orçamento pela fila dos postos (Σ programações abertas + etapas do roteiro ÷ horas por dia, em dias úteis pelo CalendarioDeProducao: turno da produção, senão expediente do RH; folgas do expediente e feriados do RH da empresa e da loja, pelo contrato CalendarioDaEmpresa do Rh), JSON só leitura com sell.view ou producao.access (US-PCP-028 · UC-FLX-06)"
   - "PrometerPrazoDaVenda — na aprovação (CriarOsDaVendaJob), grava a estimativa em transactions.due_date só quando a venda não tem data e copia a data para pcp_ordens.prazo_prometido (US-PCP-028 · UC-FLX-06)"
@@ -36,6 +37,7 @@ status: em construção
 url_prefixes:
   - /producao/* (install 1-clique, os cadastros da thread 03: roteiros, postos, ferramentas, custo-hora, e o PDF da OS com QR em os/{id}/etiqueta, o romaneio de impressão em os/{id}/romaneio e romaneios/{id}, a bobina da mídia em bobinas/{mídia} e o aproveitamento em aproveitamento e aproveitamento/simular — Routes/web.php)
   - /producao/apontamento/* (celular do operador, thread 04)
+  - /producao/lotes/{id}/rastreio (rastreio do rolo, US-COM-025)
 ---
 
 # Modules/Producao

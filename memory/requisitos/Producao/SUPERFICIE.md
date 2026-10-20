@@ -14,7 +14,11 @@ module: Producao
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Producao/**` + `resources/js/Pages/Producao/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
+<<<<<<< HEAD
 **Total mapeado:** 98 arquivos em 17 papéis.
+=======
+**Total mapeado:** 95 arquivos em 17 papéis.
+>>>>>>> origin/main
 
 ## Controllers — 13
 
@@ -26,6 +30,7 @@ module: Producao
 - [EtiquetaOsController.php](../../../Modules/Producao/Http/Controllers/EtiquetaOsController.php)
 - [FerramentasController.php](../../../Modules/Producao/Http/Controllers/FerramentasController.php)
 - [InstallController.php](../../../Modules/Producao/Http/Controllers/InstallController.php)
+- [LoteRastreioController.php](../../../Modules/Producao/Http/Controllers/LoteRastreioController.php)
 - [OrdemCustoController.php](../../../Modules/Producao/Http/Controllers/OrdemCustoController.php)
 - [PostosController.php](../../../Modules/Producao/Http/Controllers/PostosController.php)
 - [PrazoDaVendaController.php](../../../Modules/Producao/Http/Controllers/PrazoDaVendaController.php)
@@ -36,7 +41,11 @@ module: Producao
 
 - [SalvarRoteiroRequest.php](../../../Modules/Producao/Http/Requests/SalvarRoteiroRequest.php)
 
+<<<<<<< HEAD
 ## Services — 18
+=======
+## Services — 16
+>>>>>>> origin/main
 
 - [ApontamentoOperadorService.php](../../../Modules/Producao/Services/ApontamentoOperadorService.php)
 - [ApontamentoService.php](../../../Modules/Producao/Services/ApontamentoService.php)
@@ -51,7 +60,11 @@ module: Producao
 - [PrazoPelaFila.php](../../../Modules/Producao/Services/PrazoPelaFila.php)
 - [PrevisaoCustoDaOrdem.php](../../../Modules/Producao/Services/PrevisaoCustoDaOrdem.php)
 - [ProcessoDaOrdem.php](../../../Modules/Producao/Services/ProcessoDaOrdem.php)
+<<<<<<< HEAD
 - [PrometerPrazoDaVenda.php](../../../Modules/Producao/Services/PrometerPrazoDaVenda.php)
+=======
+- [RastreioDoRolo.php](../../../Modules/Producao/Services/RastreioDoRolo.php)
+>>>>>>> origin/main
 - [RomaneioDeImpressao.php](../../../Modules/Producao/Services/RomaneioDeImpressao.php)
 - [SinalDaOrdem.php](../../../Modules/Producao/Services/SinalDaOrdem.php)
 - [SituacaoDaOrdem.php](../../../Modules/Producao/Services/SituacaoDaOrdem.php)
