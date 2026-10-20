@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **975 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **986 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -10,20 +10,20 @@
 |---|---:|---:|---:|---:|---:|
 | [`Jana`](#jana) | 83 | 2 | 0 | 0 | 81 |
 | [`Whatsapp`](#whatsapp) | 67 | 0 | 0 | 0 | 67 |
-| [`Sells`](#sells) | 63 | 0 | 0 | 0 | 63 |
+| [`Sells`](#sells) | 65 | 0 | 0 | 0 | 65 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
-| [`Financeiro`](#financeiro) | 46 | 0 | 0 | 0 | 46 |
+| [`Financeiro`](#financeiro) | 49 | 0 | 0 | 0 | 49 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
 | [`OficinaAuto`](#oficinaauto) | 37 | 0 | 0 | 0 | 36 |
-| [`NfeBrasil`](#nfebrasil) | 26 | 0 | 0 | 6 | 20 |
+| [`NfeBrasil`](#nfebrasil) | 28 | 0 | 0 | 6 | 22 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
 | [`Marketplaces`](#marketplaces) | 25 | 0 | 0 | 0 | 25 |
+| [`Producao`](#producao) | 25 | 0 | 0 | 0 | 25 |
 | [`Crm`](#crm) | 23 | 0 | 0 | 0 | 23 |
 | [`Fiscal`](#fiscal) | 22 | 0 | 0 | 0 | 22 |
-| [`Producao`](#producao) | 22 | 0 | 0 | 0 | 22 |
-| [`Compras`](#compras) | 20 | 1 | 0 | 0 | 18 |
+| [`Compras`](#compras) | 21 | 1 | 0 | 0 | 19 |
 | [`Connector`](#connector) | 20 | 0 | 0 | 0 | 19 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 19 | 0 | 0 | 0 | 19 |
 | [`Forja`](#forja) | 19 | 0 | 1 | 0 | 7 |
@@ -299,6 +299,8 @@
 - **US-SELL-067** — Orçamento guarda o custo do dia em cada linha (UC-FLX-33)
 - **US-SELL-068** — Orçamento aberto avisa que o custo mudou (UC-FLX-34)
 - **US-SELL-069** — Orçamento abaixo da margem mínima só vira venda com aprovação (UC-FLX-35)
+- **US-SELL-070** — Termômetro de acesso da proposta (UC-FLX-04) — **P2**
+- **US-SELL-071** — Pesquisa de satisfação depois da entrega (UC-FLX-25) — **P2**
 
 ## Infra
 
@@ -391,6 +393,9 @@
 - **US-FIN-064** — Redirect ContasReceber/ContasPagar → Unificado (deprecação) _(`p2`)_
 - **US-FIN-065** — Elevar tela Unificado/Novo a ≥70 (form unificado real de cobrança) _(`p2`)_
 - **US-FIN-069** — Baseline de pixel do DRE (#7767) não reproduz o render do CI — visual-regression vermelho em todo PR de escopo global _(`p2` · @wagner)_
+- **US-FIN-070** — Custeio RKW e ponto de equilíbrio no fechamento do mês (UC-FLX-20) — **P2** _(`p2`)_
+- **US-FIN-071** — Régua de cobrança do título vencido D+1/D+5/D+15 (UC-FLX-29) — **P2** _(`p2`)_
+- **US-FIN-072** — ISS retido ajusta o título para o valor líquido na autorização da NFS-e (UC-FLX-30) — **P2** _(`p2`)_
 - **US-FIN-025** — Onda 6 — Cleanup colunas legacy + remover redirects 301 _(`p3` · @wagner)_
 - **US-FIN-042** — Backfill cliente_descricao biz=1 - 52 fin_titulos pre-Onda-Edit NULL _(`p3`)_
 - **US-FIN-066** — Elevar tela AssinaturaAtualizar a ≥70 (PageHeader canon + preview de valor) _(`p3`)_
@@ -528,6 +533,8 @@
 - **US-NFE-053** — Smoke homologação SEFAZ-SP eventos 210/220 biz=Gold _(`p1` · @wagner · sprint Gold-Reativacao)_
 - **US-NFE-054** — Smoke real homologação SEFAZ-SC biz=1 — 1ª NFC-e cstat 100 (Goal #1 CYCLE-03) _(`p1` · @wagner)_
 - **US-NFE-062** — AuditLog em mutações fiscais NFe (Tributacao, Certificado, Manifestacao) _(`p1` · sprint cycle-04)_
+- **US-NFE-069** — A natureza fiscal do item escolhe a nota: NF-e para mercadoria, NFS-e para serviço e instalação (UC-FLX-31) — **P1** _(`p1` · sprint —)_
+- **US-NFE-070** — Contingência completa: retransmissão agendada, SVC-AN/SVC-RS e evento EPEC (UC-FLX-32) — **P1** _(`p1` · sprint —)_
 - **US-NFE-055** — Estabilizar 107 tests broken Modules/NfeBrasil aplicando dual-mode SQLite/MySQL _(`p2`)_
 - **US-NFE-056** — Continuação PR #453 — migrar configBusiness(4) → configBusiness(1) em MotorTributarioServiceTest _(`p2`)_
 - **US-NFE-057** — Schema drift — atualizar fixtures DanfeServicePrefersArquivosTest pós-remoção `arquivos.filename` _(`p2`)_
@@ -670,6 +677,37 @@
 - **US-MKT-024** — Analytics avançado margem real (CMV + frete + taxa + tributos) — **P3** · 10h
 - **US-MKT-025** — Magalu Hub + Americanas drivers (4º + 5º marketplaces) — **P3** · 16h
 
+## Producao
+
+
+### todo
+
+- **US-PCP-001** — Schema base + migrations (4 tabelas + triggers append-only) — **P0**
+- **US-PCP-002** — DECISÃO D1 — Pcp vs IProduction (renomeação ou módulo novo) — **P0 BLOCKER**
+- **US-PCP-003** — Models + global scopes `HasBusinessScope` — **P0**
+- **US-PCP-004** — CRUD `pcp_workstations` Inertia (Index/Create/Edit) — **P0**
+- **US-PCP-005** — CRUD `pcp_operations` Inertia — **P0**
+- **US-PCP-006** — FSM actions intermediárias (5 actions seed) — **P0**
+- **US-PCP-007** — Service `RegisterAppointment` (idempotent) — **P0**
+- **US-PCP-008** — Endpoint API JWT `POST /api/pcp/scan` — **P0**
+- **US-PCP-009** — PWA mobile shell + scanner QR (camera API) — **P0**
+- **US-PCP-010** — QR token na label OS + endpoint print extended — **P0**
+- **US-PCP-011** — Kanban shared infra adicionar agrupador configurável (8 agrupadores Delphi) — **P0**
+- **US-PCP-012** — Detect bottleneck (cron 15min) + alerta UI + Jana RAG context — **P1**
+- **US-PCP-013** — Capacidade dia/semana view agregada + dashboard card — **P1**
+- **US-PCP-014** — Performance operador (view + dashboard table com permission guard) — **P1**
+- **US-PCP-015** — `pcp_schedules` agendamento drag-drop calendário — **P2**
+- **US-PCP-016** — Integração BoM `MfgRecipe` (consumo automático ao concluir operação) — **P2**
+- **US-PCP-017** — Dashboard PCP Inertia (4 cards KPI + Kanban embed + heatmap) — **P1**
+- **US-PCP-018** — Broadcast Centrifugo (Kanban realtime + fila workstation) — **P2**
+- **US-PCP-019** — Smoke biz=4 ROTA LIVRE (canary 7d + cutover) — **P2**
+- **US-PCP-020** — Documentação RUNBOOK + Charter páginas — **P0**
+- **US-PCP-021** — A OS baixa o material apontado em cada etapa, pelo custo do lote que saiu (UC-FLX-37) — **P1**
+- **US-PCP-022** — A regra da compra (congela | vivo) vale para a OS aberta (UC-FLX-36) — **P1**
+- **US-PCP-023** — Romaneio de impressão peça a peça (UC-FLX-12) — **P2**
+- **US-PCP-024** — Simulador de aproveitamento de mídia na bobina (UC-FLX-13) — **P2**
+- **US-PCP-025** — Produção só libera com o sinal pago (UC-FLX-28) — **P2**
+
 ## Crm
 
 
@@ -727,34 +765,6 @@
 - **US-FISCAL-019** — Cache Redis 60s KPIs + anti-DOS palette LIKE — ✅ Onda ESTABILIZAR
 - **US-FISCAL-020** — Integrar MotorTributarioService NfeBrasil — elimina 6 hardcodes Tier-0 SPED — ✅ Onda CONSOLIDAR
 
-## Producao
-
-
-### todo
-
-- **US-PCP-001** — Schema base + migrations (4 tabelas + triggers append-only) — **P0**
-- **US-PCP-002** — DECISÃO D1 — Pcp vs IProduction (renomeação ou módulo novo) — **P0 BLOCKER**
-- **US-PCP-003** — Models + global scopes `HasBusinessScope` — **P0**
-- **US-PCP-004** — CRUD `pcp_workstations` Inertia (Index/Create/Edit) — **P0**
-- **US-PCP-005** — CRUD `pcp_operations` Inertia — **P0**
-- **US-PCP-006** — FSM actions intermediárias (5 actions seed) — **P0**
-- **US-PCP-007** — Service `RegisterAppointment` (idempotent) — **P0**
-- **US-PCP-008** — Endpoint API JWT `POST /api/pcp/scan` — **P0**
-- **US-PCP-009** — PWA mobile shell + scanner QR (camera API) — **P0**
-- **US-PCP-010** — QR token na label OS + endpoint print extended — **P0**
-- **US-PCP-011** — Kanban shared infra adicionar agrupador configurável (8 agrupadores Delphi) — **P0**
-- **US-PCP-012** — Detect bottleneck (cron 15min) + alerta UI + Jana RAG context — **P1**
-- **US-PCP-013** — Capacidade dia/semana view agregada + dashboard card — **P1**
-- **US-PCP-014** — Performance operador (view + dashboard table com permission guard) — **P1**
-- **US-PCP-015** — `pcp_schedules` agendamento drag-drop calendário — **P2**
-- **US-PCP-016** — Integração BoM `MfgRecipe` (consumo automático ao concluir operação) — **P2**
-- **US-PCP-017** — Dashboard PCP Inertia (4 cards KPI + Kanban embed + heatmap) — **P1**
-- **US-PCP-018** — Broadcast Centrifugo (Kanban realtime + fila workstation) — **P2**
-- **US-PCP-019** — Smoke biz=4 ROTA LIVRE (canary 7d + cutover) — **P2**
-- **US-PCP-020** — Documentação RUNBOOK + Charter páginas — **P0**
-- **US-PCP-021** — A OS baixa o material apontado em cada etapa, pelo custo do lote que saiu (UC-FLX-37) — **P1**
-- **US-PCP-022** — A regra da compra (congela | vivo) vale para a OS aberta (UC-FLX-36) — **P1**
-
 ## Compras
 
 
@@ -776,6 +786,7 @@
 - **US-COM-018** — Autosave rascunho de compra (`localStorage` `{biz}.{user}` debounced) _(`p2`)_
 - **US-COM-019** — Eager-load `->with(['contact','location'])` em `listarCompras().paginate()` _(`p2`)_
 - **US-COM-021** — Investigar flakiness das baselines dark/empty do VRT e reabilitar no gate L2 _(`p2`)_
+- **US-COM-025** — Rastreio do rolo: em que OS cada fração da mídia foi usada (UC-FLX-18) — **P2** _(`p2` · @wagner)_
 - **US-COM-020** — A11y do drawer (`role=dialog` + focus-trap + `aria-label` + `Esc`) _(`p3`)_
 - **US-COM-001** — Cockpit `/compras` (lista paginada + 4 KPIs + drawer)
 - **US-COM-002** — Criar compra manual
