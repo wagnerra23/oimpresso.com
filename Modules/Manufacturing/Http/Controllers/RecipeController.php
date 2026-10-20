@@ -646,12 +646,22 @@ class RecipeController extends Controller
         $variation_id = request()->input('variation_id');
         $location_id = request()->input('location_id');
 
-        $recipe = MfgRecipe::where('variation_id', $variation_id)
+        // Tier 0 (ADR 0093): antes buscava a receita só pelo variation_id, e quem tinha
+        // access_recipe lia ingredientes e custo da receita de outra empresa (PARIDADE H2).
+        // A receita só é achada pela cadeia variations → products da empresa da sessão; de
+        // outra empresa (ou inexistente, que antes estourava 500 mais abaixo) é 404.
+        // OrdemReceitaEmpresaTest.
+        $recipe = MfgRecipe::query()
+                        ->forBusinessViaProductChain((int) $business_id)
+                        ->where('mfg_recipes.variation_id', $variation_id)
                         ->with(['variation', 'variation.product', 'variation.product.unit', 'sub_unit',
                             'ingredients' => function ($query) {
                                 $query->orderBy('sort_order', 'asc');
                             }, ])
                         ->first();
+        if ($recipe === null) {
+            abort(404);
+        }
 
         $ingredients = [];
         if (! empty($recipe)) {
