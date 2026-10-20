@@ -520,10 +520,11 @@ Como usuário de teclado/leitor de tela, quero o drawer acessível (WCAG 2.1 AA)
 
 Como quem orça e produz, quero saber quanto um insumo custava num dia qualquer, para que o orçamento e a OS guardem o custo daquele dia e uma compra nova não reescreva o passado. É a base dos casos UC-FLX-33 a 37 da tela de fluxos.
 
-**Implementado em:** `Modules/Compras/Services/CustoDoInsumoService.php` · `Modules/Compras/Tests/Feature/CustoDoInsumoServiceTest.php`
+**Implementado em:** `Modules/Compras/Services/CustoDoInsumoService.php` · `Modules/Compras/Database/Migrations/2026_10_20_000001_create_compras_insumo_metodo_custo_table.php` · `Modules/Compras/Entities/InsumoMetodoCusto.php` · `Modules/Compras/Tests/Feature/CustoDoInsumoServiceTest.php`
 
 - Fonte: `purchase_lines` + `transactions.transaction_date`. O histórico já existia; `variations.dpp_inc_tax` guarda só o último preço.
 - Método: o da regra "Atualizar o custo dos insumos" da empresa (`RegrasCompra`, `metodo`), padrão `medio`.
+- Regra `por_insumo`: cada insumo diz o seu método na tabela-ponte `compras_insumo_metodo_custo` (`variations` é core, não ganha coluna). A tela para editar o método do insumo é follow-up.
 - Só leitura: o serviço não grava nada.
 
 **Acceptance:**
@@ -532,7 +533,9 @@ Como quem orça e produz, quero saber quanto um insumo custava num dia qualquer,
 - [x] Fora da conta: compra não recebida, saldo inicial, transferência e custo de fabricação
 - [x] Sem compra até a data: custo nulo com o motivo
 - [x] Tier 0: só compras da empresa pedida (teste com a mesma variação em outra empresa)
-- [x] Método `por_insumo`: nulo com o motivo, até o insumo ter campo próprio
+- [x] Método `por_insumo`: usa o método gravado no insumo (`medio` ou `ultimo`); insumo sem método → custo nulo com o motivo
+- [x] Tier 0: o método que outra empresa deu ao mesmo insumo não vale
+- [ ] Tela para definir o método do insumo (drawer Insumos)
 - [ ] Consumidores: orçamento (UC-FLX-33) e OS (UC-FLX-37) passam a usar o serviço
 
 ### 9.1 Seguradas (feature-wish ADR 0105 — NÃO no backlog ativo)
