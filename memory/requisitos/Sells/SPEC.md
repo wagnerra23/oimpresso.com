@@ -1065,7 +1065,9 @@ Migrar 14 vendas biz=1 do estado legacy pro FSM canon ADR 0143 (goal #3 CYCLE-06
 
 **Implementado em:** _parcial_ · `resources/js/Pages/Sells/_components/SellsTotalBar.tsx` · `resources/js/Pages/Sells/Index.tsx` · verificado@9a67342 (2026-10-20) — opção (b), reexibir o totalizador do filtro inteiro, pedida por [M] em 2026-10-20 (ratificação [W] no merge); o payload `totals` volta a ser lido. Falta a parte do DoD sobre o `SellsTotalsTest`: os it() de front em quarentena testam arquivos apagados e o arquivo não roda em nenhuma lane de PR
 
-> owner: — · priority: p2 · estimate: 2h · status: todo · type: story
+**Testado em:** `tests/js/sells-index-totais.test.tsx` (covers US-SELL-045 · UC-SIDX-06; lane Vitest do `Frontend / Vite build`)
+
+> owner: — · priority: p2 · estimate: 2h · type: story
 > blocked_by: —
 
 **Origem:** revisão adversarial da triage Q2 Fase 2b SDD (2026-06-13). Contrato órfão de backend confirmado por leitura de `origin/main`.

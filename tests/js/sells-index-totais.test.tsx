@@ -10,6 +10,7 @@
 // Lane: Vitest do `Frontend / Vite build` (.github/workflows/ci.yml). Cada lane Vitest lista os
 // próprios specs: a lista viva é a de lá.
 // Comando: npx vitest run tests/js/sells-index-totais.test.tsx
+// @covers-us US-SELL-045
 
 import { describe, it, expect, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/react';
