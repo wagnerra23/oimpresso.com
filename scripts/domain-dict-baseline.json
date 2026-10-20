@@ -1,14 +1,14 @@
 {
   "_meta": {
-    "generated_at": "2026-07-31T11:41:54.612Z",
+    "generated_at": "2026-10-20T11:48:49.036Z",
     "gate": "dominio:check (ADR 0264 G-4 — dicionário de domínio ⇔ enum de migration + código, Salto #3)",
     "stats": {
-      "modules_with_dict": 6,
-      "modules_with_enums": 20,
+      "modules_with_dict": 9,
+      "modules_with_enums": 22,
       "divergences": 0,
       "code_divergences": 26,
       "forbidden_ui_terms": 76,
-      "modules_no_dict": 18
+      "modules_no_dict": 17
     },
     "nota": "Divergências ATUAIS fotografadas (débito): enum⇔dicionário E valores de domínio hardcoded no código (Salto #3). Gate falha só em divergência NOVA (ratchet). order_type=locacao zera quando a erradicação (ADR 0265) remover o valor do enum E das ramificações de código.",
     "refs": [
@@ -95,7 +95,6 @@
     "dominio:forbidden-ui-term:OficinaAuto:Modules/OficinaAuto/Database/Seeders/OficinaAutoFsmSeeder.php:locacao:8",
     "dominio:forbidden-ui-term:OficinaAuto:Modules/OficinaAuto/Database/Seeders/OficinaAutoFsmSeeder.php:locacao:9",
     "dominio:forbidden-ui-term:OficinaAuto:Modules/OficinaAuto/Database/Seeders/RepairSettingsSeeder.php:cacamba:1",
-    "dominio:module-no-dict:ADS",
     "dominio:module-no-dict:Arquivos",
     "dominio:module-no-dict:ComunicacaoVisual",
     "dominio:module-no-dict:Crm",

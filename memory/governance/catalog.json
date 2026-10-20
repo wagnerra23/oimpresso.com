@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 824,
-    "edges": 1124,
+    "nodes": 830,
+    "edges": 1132,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 446,
+      "component": 452,
       "api": 84
     },
     "by_edge_type": {
@@ -42,9 +42,9 @@
       "providesApi": 89,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 446,
-      "dependsOn": 123,
-      "delegatesTo": 114,
+      "hasComponent": 452,
+      "dependsOn": 124,
+      "delegatesTo": 115,
       "migratesTo": 1,
       "supersedes": 26,
       "supersedesPartially": 71,
@@ -1914,11 +1914,11 @@
       "desc": ""
     },
     {
-      "id": "component:Compras/compras_insumo_metodo_custo",
+      "id": "component:Compras/AplicarCustoDoRecebimento",
       "type": "component",
       "module": "Compras",
-      "name": "compras_insumo_metodo_custo",
-      "desc": "tabela-ponte (business_id, variation_id) com o método próprio do insumo (medio | ultimo), lida quando a regra é por_insumo; variations do core não ganha coluna"
+      "name": "AplicarCustoDoRecebimento",
+      "desc": "compra recebida grava o custo pela regra da empresa e trata o preço (so_custo | aplicar | propor), só quando a empresa gravou a regra (US-COM-026 · UC-FLX-17)"
     },
     {
       "id": "component:Compras/ComprasController",
@@ -1935,6 +1935,13 @@
       "desc": "custo do insumo numa data pelo método da regra da empresa (US-COM-024 · UC-FLX-38); só lê purchase_lines + transactions"
     },
     {
+      "id": "component:Compras/Database/Migrations/2026_10_20_120000_create_compras_propostas_preco_table",
+      "type": "component",
+      "module": "Compras",
+      "name": "Database/Migrations/2026_10_20_120000_create_compras_propostas_preco_table",
+      "desc": "tabela compras_propostas_preco, proposta de preço pendente gerada no recebimento (business_id, variation_id, transaction_id)"
+    },
+    {
       "id": "component:Compras/DataController",
       "type": "component",
       "module": "Compras",
@@ -1947,6 +1954,13 @@
       "module": "Compras",
       "name": "InstallController",
       "desc": ""
+    },
+    {
+      "id": "component:Compras/InsumoMetodoCusto",
+      "type": "component",
+      "module": "Compras",
+      "name": "InsumoMetodoCusto",
+      "desc": "entidade da tabela-ponte compras_insumo_metodo_custo (business_id, variation_id) com o método próprio do insumo (medio | ultimo), lida quando a regra é por_insumo; variations do core não ganha coluna"
     },
     {
       "id": "component:ComunicacaoVisual/ApontamentoController",
@@ -2019,6 +2033,13 @@
       "desc": ""
     },
     {
+      "id": "component:ComunicacaoVisual/InstalacaoController",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "InstalacaoController",
+      "desc": "/comunicacao-visual/api/instalacoes, US-COMVIS-007 · UC-FLX-21)"
+    },
+    {
       "id": "component:ComunicacaoVisual/InstallController",
       "type": "component",
       "module": "ComunicacaoVisual",
@@ -2031,6 +2052,13 @@
       "module": "ComunicacaoVisual",
       "name": "OrcamentoController",
       "desc": ""
+    },
+    {
+      "id": "component:ComunicacaoVisual/Services/AgendaInstalacao",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "Services/AgendaInstalacao",
+      "desc": "US-COMVIS-007 · UC-FLX-21)"
     },
     {
       "id": "component:ComunicacaoVisual/Services/OrcamentoViraOs",
@@ -2682,6 +2710,13 @@
       "module": "Financeiro",
       "name": "CoworkSidebarController",
       "desc": "endpoint JSON Mock Cowork (sidebar real via ShellMenuBuilder + 3 camadas habilitação, sem hardcode business_id; ADR 0093 Tier 0)"
+    },
+    {
+      "id": "component:Financeiro/CusteioRkwController + CusteioRkwService",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "CusteioRkwController + CusteioRkwService",
+      "desc": "custeio RKW e ponto de equilíbrio do mês (US-FIN-070 · UC-FLX-20): GET só leitura, aplicar o custo-hora sugerido é POST explícito; horas do PCP pelo contrato app/Contracts/Producao/HorasDosPostos.php (comando financeiro:custeio-rkw)"
     },
     {
       "id": "component:Financeiro/DashboardController",
@@ -4201,6 +4236,13 @@
       "module": "Producao",
       "name": "FerramentasController",
       "desc": "ferramentas com código QR (E03)"
+    },
+    {
+      "id": "component:Producao/HorasDosPostosService",
+      "type": "component",
+      "module": "Producao",
+      "name": "HorasDosPostosService",
+      "desc": "implementa app/Contracts/Producao/HorasDosPostos.php: horas fechadas por posto no mês e troca do custo-hora, para o custeio RKW do Financeiro (US-FIN-070)"
     },
     {
       "id": "component:Producao/InstallController",
@@ -7866,7 +7908,7 @@
     },
     {
       "from": "module:Compras",
-      "to": "component:Compras/compras_insumo_metodo_custo",
+      "to": "component:Compras/AplicarCustoDoRecebimento",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -7884,6 +7926,12 @@
     },
     {
       "from": "module:Compras",
+      "to": "component:Compras/Database/Migrations/2026_10_20_120000_create_compras_propostas_preco_table",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
       "to": "component:Compras/DataController",
       "type": "hasComponent",
       "source": "contains"
@@ -7891,6 +7939,12 @@
     {
       "from": "module:Compras",
       "to": "component:Compras/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/InsumoMetodoCusto",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8014,6 +8068,12 @@
     },
     {
       "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/InstalacaoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/InstallController",
       "type": "hasComponent",
       "source": "contains"
@@ -8021,6 +8081,12 @@
     {
       "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/OrcamentoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/Services/AgendaInstalacao",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8793,6 +8859,13 @@
     },
     {
       "from": "module:Financeiro",
+      "to": "module:NFSe",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Emissão e cancelamento de NFS-e (o Financeiro só observa a mudança de status para lançar as retenções como baixa — US-FIN-072)"
+    },
+    {
+      "from": "module:Financeiro",
       "to": "module:Compras",
       "type": "dependsOn",
       "source": "depends_on"
@@ -8817,6 +8890,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "module:NFSe",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Emissão e cancelamento de NFS-e (o Financeiro só observa a mudança de status para lançar as retenções como baixa — US-FIN-072)"
     },
     {
       "from": "module:Financeiro",
@@ -8911,6 +8991,12 @@
     {
       "from": "module:Financeiro",
       "to": "component:Financeiro/CoworkSidebarController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "component:Financeiro/CusteioRkwController + CusteioRkwService",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -12310,6 +12396,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/FerramentasController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/HorasDosPostosService",
       "type": "hasComponent",
       "source": "contains"
     },
