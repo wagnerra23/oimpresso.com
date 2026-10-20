@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **986 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **987 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -14,7 +14,7 @@
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
 | [`Financeiro`](#financeiro) | 49 | 0 | 0 | 0 | 49 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
-| [`OficinaAuto`](#oficinaauto) | 37 | 0 | 0 | 0 | 36 |
+| [`OficinaAuto`](#oficinaauto) | 38 | 1 | 0 | 0 | 36 |
 | [`NfeBrasil`](#nfebrasil) | 28 | 0 | 0 | 6 | 22 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
@@ -471,6 +471,10 @@
 
 ## OficinaAuto
 
+
+### doing
+
+- **US-OFICINA-047** — Entrega da OS exige foto do serviço feito (UC-FLX-22) _(`p2`)_
 
 ### todo
 
