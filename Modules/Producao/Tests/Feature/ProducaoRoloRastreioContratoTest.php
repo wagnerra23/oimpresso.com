@@ -126,7 +126,12 @@ beforeEach(function () {
 function loteDaOutraEmpresa(int $vid99, int $criadoPor): int
 {
     $v = DB::table('variations as v')->join('products as p', 'p.id', '=', 'v.product_id')->where('v.id', $vid99)->first(['p.id as pid', 'p.business_id']);
-    $loc = (int) (DB::table('business_locations')->where('business_id', $v->business_id)->value('id') ?? 0);
+    // Local próprio da outra empresa: o tenant de suporte pode não ter local, e location_id 0 cai na FK
+    // ligada do MySQL do CI (SQLSTATE 23000).
+    $esq = DB::table('invoice_schemes')->insertGetId(['business_id' => $v->business_id, 'name' => 'Esq '.uniqid(), 'scheme_type' => 'blank']);
+    $lay = DB::table('invoice_layouts')->insertGetId(['business_id' => $v->business_id, 'name' => 'Lay '.uniqid()]);
+    $loc = DB::table('business_locations')->insertGetId(['business_id' => $v->business_id, 'name' => 'Loja '.uniqid(), 'country' => 'Brasil',
+        'state' => 'SC', 'city' => 'Tubarão', 'zip_code' => '8870000', 'invoice_scheme_id' => $esq, 'invoice_layout_id' => $lay, 'is_active' => 1]);
     $tid = DB::table('transactions')->insertGetId(['business_id' => $v->business_id, 'location_id' => $loc, 'type' => 'purchase', 'status' => 'received',
         'payment_status' => 'due', 'transaction_date' => '2026-03-02 09:00:00', 'final_total' => 0, 'essentials_duration' => 0, 'created_by' => $criadoPor,
         'created_at' => now(), 'updated_at' => now()]);
