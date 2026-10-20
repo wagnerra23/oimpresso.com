@@ -22,6 +22,9 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0175-conta-bancaria-
   a baixa REGISTRA o movimento (`origem_tipo=titulo_baixa`); caixa não se edita direto.
 - **Conciliação** = casar `fin_extrato_lancamentos`/`fin_bank_statement_lines`
   (`pendente → sugerido → conciliado`, ou `ignorado`) com títulos/baixas.
+- **Classe de custo** = `fin_planos_conta.classe_custo` (`fixa` | `variavel` | nula = fora) — usada
+  só no custeio RKW e no ponto de equilíbrio (US-FIN-070); não confundir com `natureza`
+  (débito/crédito) nem com `dre_linha` (agrupamento da DRE).
 - **Estorno** é de PAGAMENTO/baixa (financeiro); **devolução** é de mercadoria (vendas.md).
 - **Sinônimos proibidos**: "conta a receber/pagar" como TABELA (canônico: título; "contas a
   receber" só como NOME DE TELA/visão); "duplicata" (não existe no schema); "quitação
@@ -49,6 +52,7 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0175-conta-bancaria-
     "fin_categorias.tipo": ["receita", "despesa", "ambos"],
     "fin_planos_conta.tipo": ["ativo", "passivo", "patrimonio", "receita", "despesa", "custo"],
     "fin_planos_conta.natureza": ["debito", "credito"],
+    "fin_planos_conta.classe_custo": ["fixa", "variavel"],
     "fin_extrato_lancamentos.origem": ["api", "ofx", "manual"],
     "fin_extrato_lancamentos.status": ["pendente", "sugerido", "conciliado", "ignorado"],
     "fin_bank_statement_lines.tipo": ["credit", "debit", "fee", "transfer", "unknown"],
