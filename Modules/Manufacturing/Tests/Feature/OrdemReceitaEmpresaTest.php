@@ -22,8 +22,8 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  *   empresa. O conserto vira defesa explícita (não depende mais desse acidente) e acerta a variação
  *   inexistente, que estourava 500 ("Attempt to read property variation on null").
  * - H1 · `POST /manufacturing/production` (`ProductionController::store`) aceita `variation_id` de
- *   qualquer empresa (`exists:variations,id`) e busca a receita sem a cadeia. Lido no código (o CI deste
- *   PR confirma ou derruba): a mesma `getSubUnits()` derruba a requisição com 404 quando chega aos
+ *   qualquer empresa (`exists:variations,id`) e busca a receita sem a cadeia. Medido no CI (run
+ *   39441296307, só com o teste): a mesma `getSubUnits()` derruba a requisição com 404 quando chega aos
  *   insumos da outra empresa — mas DEPOIS de incrementar o contador de referência da empresa da sessão
  *   (fora da transação, persiste) e de gravar a ordem numa transação que fica aberta (desfeita no fim
  *   da requisição em produção; visível dentro do teste, que usa a mesma conexão). Receita sem insumo e
