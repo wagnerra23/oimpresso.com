@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 824,
-    "edges": 1123,
+    "nodes": 825,
+    "edges": 1124,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 445,
+      "component": 446,
       "api": 85
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 89,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 445,
+      "hasComponent": 446,
       "dependsOn": 123,
       "delegatesTo": 114,
       "migratesTo": 1,
@@ -4160,6 +4160,13 @@
       "module": "Producao",
       "name": "AprovacaoArteController + AprovacaoArteService",
       "desc": "cliente aprova a arte por link (US-COMVIS-NEW-004 · UC-FLX-02): o operador gera o link da prova da OS por item (token, só o sha256 em pcp_aprovacoes_arte, 7 dias, uso único); a página pública /arte/{token} (Blade, sem login, throttle) aprova — conclui a etapa pelo motor — ou recusa com comentário, reabrindo a arte"
+    },
+    {
+      "id": "component:Producao/AproveitamentoMidiaController + AproveitamentoDeMidia",
+      "type": "component",
+      "module": "Producao",
+      "name": "AproveitamentoMidiaController + AproveitamentoDeMidia",
+      "desc": "simulador de aproveitamento de mídia na bobina (US-PCP-024 · UC-FLX-13): pcp_bobinas (largura útil, margem, giro por mídia), arranjo em faixas com metros, perda e o uma a uma; aceitar grava pcp_arranjos + pcp_arranjo_os (consumo previsto por OS, rateio pela área) e gera o romaneio de cada OS; simular com producao.access, aceitar com o papel producao.liberar, JSON"
     },
     {
       "id": "component:Producao/ColaboradorCustoController",
@@ -12269,6 +12276,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/AprovacaoArteController + AprovacaoArteService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/AproveitamentoMidiaController + AproveitamentoDeMidia",
       "type": "hasComponent",
       "source": "contains"
     },
