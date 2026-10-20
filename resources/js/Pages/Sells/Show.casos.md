@@ -130,6 +130,43 @@ last_run: "2026-10-20"
 
 ---
 
+## Pesquisa de satisfação depois da entrega (US-SELL-071 · UC-FLX-25)
+
+> **Âncora:** aceite da **US-SELL-071** (`memory/requisitos/Sells/SPEC.md`) e o **UC-FLX-25** do catálogo
+> de fluxos (Entregue + 2 dias, envia a pesquisa; nota baixa abre atendimento). Nesta entrega é o backend:
+> a rotina diária `sells:pesquisa-entrega` grava uma linha por venda em `transaction_satisfaction_surveys`,
+> envia pelo CSAT do WhatsApp ou por e-mail respeitando o opt-in LGPD do cliente, e a nota baixa vira
+> tarefa no agendamento do CRM (`crm_schedules`). Liga por empresa em
+> `business.common_settings['sells_pesquisa_entrega']`, desligada por padrão. A tela ainda não mostra as
+> respostas — fica no backlog abaixo. Prova: `tests/Feature/Sells/PesquisaSatisfacaoEntregaContratoTest.php`.
+
+## UC-VSHOW-09 · Com a pesquisa desligada (padrão), nenhuma venda recebe pesquisa · `must`
+- **Aceite:** Dado uma empresa que não ligou a pesquisa e uma venda entregue há 2 dias · Quando a rotina roda · Então nenhuma linha é gravada e nenhum e-mail sai.
+- **Teste:** `tests/Feature/Sells/PesquisaSatisfacaoEntregaContratoTest.php` — `UC-VSHOW-09`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VSHOW-10 · Entregue há 2 dias recebe a pesquisa; há 1 dia, cancelada ou de outra empresa não · `[T0]` `must`
+- **Aceite:** Dado no business 98 a venda A entregue há 2 dias, B entregue há 1 dia, C entregue há 2 dias e cancelada depois, e no business 99 a venda D entregue há 2 dias · Quando a rotina roda para o 98 · Então só A recebe a pesquisa (1 e-mail, linha `enviado` no business 98); B, C e D ficam sem linha.
+- **Teste:** `tests/Feature/Sells/PesquisaSatisfacaoEntregaContratoTest.php` — `UC-VSHOW-10`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VSHOW-11 · Rodar de novo não manda outra pesquisa para a mesma venda · `must`
+- **Aceite:** Dado a venda A já pesquisada · Quando a rotina roda no dia seguinte · Então 0 pesquisas novas, A segue com 1 linha e 1 e-mail no total.
+- **Teste:** `tests/Feature/Sells/PesquisaSatisfacaoEntregaContratoTest.php` — `UC-VSHOW-11`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VSHOW-12 · Cliente que recusou WhatsApp e e-mail não recebe, e fica o motivo · `must`
+- **Aceite:** Dado uma venda entregue há 2 dias cujo cliente tem `whatsapp_consent` e `email_consent` falsos · Quando a rotina roda · Então nenhum e-mail sai e a linha fica `nao_enviado` com motivo `opt_out`.
+- **Teste:** `tests/Feature/Sells/PesquisaSatisfacaoEntregaContratoTest.php` — `UC-VSHOW-12`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VSHOW-13 · Nota igual ou abaixo do limite abre um atendimento ligado à venda, uma vez · `must`
+- **Aceite:** Dado duas vendas pesquisadas, uma com nota 2 e outra com nota 4, e o limite padrão 2 · Quando a rotina roda · Então 1 tarefa no agendamento do CRM, do business 98 e ligada à venda de nota 2 (`crm_followup_invoices`); a de nota 4 não ganha tarefa. Rodar de novo cria 0.
+- **Teste:** `tests/Feature/Sells/PesquisaSatisfacaoEntregaContratoTest.php` — `UC-VSHOW-13`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão (e o `casos-gate` é required com
@@ -138,6 +175,8 @@ last_run: "2026-10-20"
 - **[BACKLOG] Timeline de transições FSM completa** — `sale_stage_history` com autor, estágio de origem/destino, papel exigido e badges de side-effect (o corpo do §CU-07). Exige pipeline FSM semeado na fixture; hoje só a trilha `activity_log` é coberta (UC-VSHOW-07).
 - **[BACKLOG] Fallback Blade preservado** — requisição sem `X-Inertia` continua caindo em `sale_pos.show` (charter §Endpoints + `RUNBOOK-show.md` §10 "NÃO esquecer fallback Blade"). Exige harness que renderize a Blade legacy sem o build do front.
 - **[BACKLOG] Os 4 gaps de gestão pós-venda do charter** — aprovação do cliente, transportadora/rastreio/entrega, seleção de tipo de NF com parcelas, e histórico de pedidos no perfil do cliente. Estão marcados 🟡 (sem cobertura) em `Show.charter.md` §UCs cobertos e continuam **fora** do escopo entregue da tela — viram UC quando a feature existir e tiver teste.
+- **[BACKLOG] Respostas da pesquisa de entrega na tela** — o detalhe da venda mostra a nota e o atendimento aberto, só para quem tem `sell.view` na empresa; outro business recebe 404 (aceite 5 da US-SELL-071). O dado já está em `transaction_satisfaction_surveys`.
+- **[BACKLOG] Resposta da pesquisa por e-mail** — hoje só a nota do WhatsApp (lida pelo `CsatResponseParser`) volta para a venda; resposta de e-mail não tem leitor.
 - **[BACKLOG] Atalhos de teclado E / P / Esc** — charter §Goals; hoje só há assert estrutural (`SellsShowCoworkTest` casa a string `e.key === 'e'`), que não prova o comportamento. Exige E2E Playwright.
 
 ## Como rodar a suíte
@@ -146,5 +185,7 @@ last_run: "2026-10-20"
 3. **Cadência:** rodar ao fim de toda mexida em `Sells/Show.tsx` ou em `SellController@show`. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-20 · [CL] UC-VSHOW-09..13 (US-SELL-071 · UC-FLX-25): pesquisa de satisfação 2 dias depois da entrega e atendimento na nota baixa. Teste `PesquisaSatisfacaoEntregaContratoTest`, nasce sem run.
+- 2026-10-20 · [CL] `last_run` 2026-07-27 → 2026-10-20 por conferência, não por run novo: desde o `last_run` o `Show.tsx` mudou só em a456273f41 (#9612, US-SELL-068), que acrescenta a faixa de custo do orçamento do UC-VSHOW-08 (63 linhas, só adições). UC-VSHOW-01..08 seguem batendo com a tela; nenhum teste foi re-rodado aqui.
 - 2026-07-27 · [CC] criado — trio fechado pra `Sells/Show` (alvo #1 do débito Tier-0 de `exposicao-tier0.mjs`) com UC-VSHOW-01..07 + `SellsShowContratoTest.php` + lane `sells-pest.yml` (nenhuma das 9 lanes MySQL rodava `tests/Feature/Sells/**`). Casos derivados do charter §Goals/§Non-Goals + RUNBOOK-show + §CU-07; o Controller foi lido só pra confirmar. Ref [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md).
 - 2026-10-20 · [CC] + UC-ENTR-01..04 (volumes no protocolo de entrega, US-SELL-073 · UC-FLX-23) e `last_run` revalidado: a única mudança do `Show.tsx` depois de 2026-07-27 é a faixa de custo do orçamento (#9612, 2026-10-19), que é aditiva e já tem caso próprio (UC-VSHOW-08); os UC-VSHOW-01..07 tratam de isolamento, permissão, números, carga adiada, leitura sem efeito e trilha, que aquele diff não toca. Os testes rodam na lane `sells-pest`.

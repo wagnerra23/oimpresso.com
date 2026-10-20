@@ -21,6 +21,8 @@ use Illuminate\Support\Str;
  *   quantidade reservada; o UC-FLX-14 pede a consumida). Nunca é executado.
  *
  * Hoje nenhuma regra do protótipo tem side effect idêntico no ERP: todas ficam planejadas.
+ * Quando se sabe por que uma regra planejada não pode executar, o motivo fica em PENDENCIAS e
+ * "Usar modelo" grava junto da regra (AplicarModelo) — a regra diz o que falta, não só "planejado".
  */
 final class CatalogoModelos
 {
@@ -77,6 +79,22 @@ final class CatalogoModelos
         'UC-FLX-36' => ['OS em andamento avisa insumo que mudou de custo', 'producao'],
         'UC-FLX-37' => ['Material consumido leva o custo do dia da baixa', 'producao'],
         'UC-FLX-38' => ['Custo do insumo guarda o histórico por data', 'compra'],
+    ];
+
+    /**
+     * UC => por que a regra "ao entrar" desse caso não executa no motor.
+     *
+     * UC-FLX-14 (balcão "Aprovado", brindes "Produção"): os dois são processos de venda sem OS.
+     * - A peça vendida já baixa no núcleo quando a venda é finalizada (SellPosController,
+     *   `decreaseProductQuantity` com `status = final`).
+     * - O material consumido só baixa no apontamento da etapa da OS (ConsumoMaterialService,
+     *   US-PCP-021), e estes modelos não têm processo de produção — CriarOsDaVenda não cria OS.
+     * - O candidato ConsumirEstoque baixa a quantidade RESERVADA: ligado aqui, somaria uma 2ª baixa
+     *   à da venda finalizada. Por isso não vira side effect.
+     * O que é "material consumido" numa venda sem OS (a peça? o insumo pela ficha?) é decisão [W].
+     */
+    public const PENDENCIAS = [
+        'UC-FLX-14' => 'Não executa: venda sem OS (balcão, brindes) baixa a peça quando é finalizada; venda com OS reserva o insumo da receita na aprovação e baixa o consumido no apontamento (US-PCP-031, decisão [W] 2026-10-20). Ligar a baixa aqui baixaria duas vezes.',
     ];
 
     private const ORDEM_PORTE = ['micro' => 0, 'pequena' => 1, 'media' => 2, 'grande' => 3];

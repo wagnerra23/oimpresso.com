@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 6 |
 | Telas (.tsx) | 11 |
 | Telas com `casos.md` | 11 |
-| UC declarados | 130 |
-| UC com teste que os cita | 129 |
+| UC declarados | 136 |
+| UC com teste que os cita | 135 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -101,7 +101,6 @@ authority: generated
 | US-SELL-066 | `desconhecido` | Devolução de venda em React — lista e registro (`/sell-return`) |
 | US-SELL-068 | `desconhecido` | Orçamento aberto avisa que o custo mudou (UC-FLX-34) |
 | US-SELL-069 | `desconhecido` | Orçamento abaixo da margem mínima só vira venda com aprovação (UC-FLX-35) |
-| US-SELL-071 | `desconhecido` | Pesquisa de satisfação depois da entrega (UC-FLX-25) — **P2** |
 
 ## UC por status
 
@@ -119,6 +118,7 @@ authority: generated
 | UC-ENTR-04 | Show | 🧪 aguarda veredito da lane |
 | UC-FLX-04 | Quotations | 🧪 aguarda veredito da lane |
 | UC-FLX-23 | Show | 🧪 aguarda veredito da lane |
+| UC-FLX-25 | Show | 🧪 aguarda veredito da lane |
 | UC-FLX-34 | Show | 🧪 aguarda veredito da lane |
 | UC-FLX-35 | Drafts | 🧪 aguarda veredito da lane |
 | UC-POS-01 | Pos/Index | 🧪 aguarda veredito da lane |
@@ -237,6 +237,11 @@ authority: generated
 | UC-VSHOW-06 | Show | 🧪 aguarda veredito da lane |
 | UC-VSHOW-07 | Show | 🧪 aguarda veredito da lane |
 | UC-VSHOW-08 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-09 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-10 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-11 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-12 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-13 | Show | 🧪 aguarda veredito da lane |
 
 ---
 
