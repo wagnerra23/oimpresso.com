@@ -24,6 +24,7 @@ use InvalidArgumentException;
  * Nunca toca documento. Ligar ou desligar não muda nenhuma execução hoje: as regras do catálogo
  * estão todas planejadas (CatalogoModelos). Das da Compra, a de custo dos insumos é lida no
  * recebimento desde 2026-10-20 (`custoGravado`, US-COM-026), só quando a empresa a gravou.
+ * A baixa de material (UC-FLX-14) não executa de propósito: ver CatalogoModelos::PENDENCIAS.
  */
 final class RegrasDaEmpresa
 {
