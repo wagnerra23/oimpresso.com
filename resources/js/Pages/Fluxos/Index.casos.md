@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa + critério de aceite verificável (Dado/Quando/Então), provado por teste citando o id.
 por_que: quem configura o fluxo muda como toda venda anda — o acesso é fronteira de permissão, e o encaixe tem de bater com o catálogo.
 owner: wagner
-last_run: "2026-10-17"
+last_run: "2026-10-20"
 ---
 
 # Casos de Uso & Aceite — Fluxos/Index
