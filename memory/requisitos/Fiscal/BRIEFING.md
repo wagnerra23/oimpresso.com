@@ -2,15 +2,15 @@
 id: requisitos-fiscal-briefing
 module: Fiscal
 status: parcial
-updated_at: "2026-10-07"
-distilled_at: "2026-10-07"
-distilled_by: "manual [C] — redestilação PARCIAL (2026-10-07, PR #9018 · playbook Fiscal thread 15c): eventos no código do módulo desde 2026-09-24 = o #8413 (install/uninstall/update saem de GET; sem efeito em tela) e este PR (cadastro do contador + papel Contador em /fiscal/config). Só a Capacidade e a Última mudança foram revistas; o resto segue o retrato de 2026-09-15. Gatilho: distiller_freshness do sdd-scorecard acusou a porta >7d atrás do código."
+updated_at: "2026-10-20"
+distilled_at: "2026-10-20"
+distilled_by: jana:distill-module-truth
 ---
 
 # BRIEFING — Fiscal (verdade destilada)
 
 ## Estado atual
-O módulo Fiscal atua como um cockpit unificado, consolidando nota fiscal eletrônica (NF-e) e nota fiscal de serviço eletrônica (NFS-e) em um único local. Atualmente em status parcial, o módulo está em piloto com a funcionalidade de NF-e já disponível ao público, enquanto o gerador do SPED aguarda finalizações de integração e configuração. Recentemente, foram implementadas ações de risco para configuração fiscal.
+O módulo Fiscal atua como um cockpit unificado, consolidando nota fiscal eletrônica (NF-e) e nota fiscal de serviço eletrônica (NFS-e) em um único local. Atualmente em status parcial, a funcionalidade de NF-e está disponível ao público, enquanto o gerador do SPED ainda aguarda finalizações de integração e configuração. Recentemente, foram implementadas ações de risco para configuração fiscal.
 
 ## Capacidades
 - Painel de controle com KPIs e alertas (inclui certificados vencidos).
@@ -27,13 +27,14 @@ O módulo Fiscal atua como um cockpit unificado, consolidando nota fiscal eletr�
 - O rollout para ROTA LIVRE (biz=4) está em pré-canary, aguardando testes manuais antes da promoção.
 
 ## Última mudança
-Em 2026-10-07 (playbook Fiscal thread 15c, PR #9018), o card **Envio de documentos** de `/fiscal/config` deixou de declarar "ainda não existe campo": a empresa cadastra o contador (tabela `nfe_contadores`, do NfeBrasil) e salvar cria o papel "Contador". O drawer "Enviar p/ contabilidade" do cockpit segue mockado (thread 28). Em 2026-09-09, as 7 abas do cockpit voltaram aos rótulos e à ordem do protótipo; antes disso, em 2026-09-08, os 8 inventários de paridade do Fiscal + NfeBrasil foram vinculados e as 2 telas silenciosas fechadas, e em 2026-09-06 a lane MySQL passou a EXECUTAR os 3 testes da tela Dfe. Em 2026-09-04 tinham saído as melhorias da onda 10 do SPED — prévia do arquivo de referência, correções das ações de manifestação e ajuste das permissões de operação administrativa.
+Em 2026-10-20 (PR #9632), o `Nfe.casos.md` ganhou os casos UC-FNFE-21..23 da NF-e emitida quando a fatura da cobrança recorrente é paga (US-RB-044 · UC-FLX-26); nenhum código de tela mudou, os testes existentes do listener passaram a citar os casos, e o `_lib/debitos-conhecidos.ts` foi regerado pelo `fiscal-debitos-derive`. Em 2026-10-07 (playbook Fiscal thread 15c, PR #9018), o card **Envio de documentos** de `/fiscal/config` deixou de declarar "ainda não existe campo": a empresa cadastra o contador (tabela `nfe_contadores`, do NfeBrasil) e salvar cria o papel "Contador". O drawer "Enviar p/ contabilidade" do cockpit segue mockado (thread 28). Em 2026-09-09, as 7 abas do cockpit voltaram aos rótulos e à ordem do protótipo; antes disso, em 2026-09-08, os 8 inventários de paridade do Fiscal + NfeBrasil foram vinculados e as 2 telas silenciosas fechadas, e em 2026-09-06 a lane MySQL passou a EXECUTAR os 3 testes da tela Dfe. Em 2026-09-04 tinham saído as melhorias da onda 10 do SPED — prévia do arquivo de referência, correções das ações de manifestação e ajuste das permissões de operação administrativa.
 
 ## Proveniência (destilado de)
 
 - audit `requisitos/Fiscal/AUDIT-SENIOR-2026-05-25.md` — AUDIT-SENIOR-2026-05-25.md
 - audit `requisitos/Fiscal/CAPTERRA-FICHA.md` — CAPTERRA-FICHA.md
 - audit `requisitos/Fiscal/CAPTERRA-INVENTARIO.md` — CAPTERRA-INVENTARIO.md
+- handoff `handoffs/2026-09-24-1150-fiscal-thread02-recibo-e-indice-patrimonio.md` (2026-09-24) — 2026-09-24-1150-fiscal-thread02-recibo-e-indice-patrimonio.md
 - session `sessions/2026-09-14-refutacao-gt-g5-lote-7262-r2.md` (2026-09-14) — 2026-09-14-refutacao-gt-g5-lote-7262-r2.md
 - session `sessions/2026-09-13-fiscal-e2e-rede-thread01.md` (2026-09-13) — 2026-09-13-fiscal-e2e-rede-thread01.md
 - session `sessions/2026-09-04-fiscal-onda10-sped-goals-cowork.md` (2026-09-04) — 2026-09-04-fiscal-onda10-sped-goals-cowork.md

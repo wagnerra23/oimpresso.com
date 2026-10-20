@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 // @covers-us US-NFE-068 — natureza ICMS × ISS por produto e DIFAL do Simples por UF (playbook Fiscal thread 29).
 // @covers R-NFE-034
+// Cobre UC-NFTR-30..32 (NfeBrasil/Tributacao/Index.casos.md) — UC-FLX-31 do catálogo de fluxos (parcial; resto = US-NFE-069).
 
 use App\User;
 use Illuminate\Support\Facades\DB;
@@ -85,7 +86,7 @@ afterEach(function () {
     t29Limpar();
 });
 
-it('R-NFE-034 · natureza decidida pelo contador vale para o produto', function () {
+it('UC-NFTR-30 · UC-NFTR-31 · R-NFE-034 · natureza decidida pelo contador vale para o produto', function () {
     $biz = t29Biz();
     $svc = app(NaturezaFiscalService::class);
     $banner = t29Produto($biz);
@@ -117,7 +118,7 @@ it('R-NFE-034 · natureza decidida pelo contador vale para o produto', function 
     expect($itens->has('natureza_a_decidir'))->toBeFalse();
 })->group('nfe', 'R-NFE-034');
 
-it('R-NFE-034 · só o contador decide: sem permissão, de outra empresa, sem fonte ou sem item LC 116 recusa', function () {
+it('UC-NFTR-31 · UC-NFTR-32 · R-NFE-034 · só o contador decide: sem permissão, de outra empresa, sem fonte ou sem item LC 116 recusa', function () {
     $biz = t29Biz();
     $svc = app(NaturezaFiscalService::class);
     $banner = t29Produto($biz);
