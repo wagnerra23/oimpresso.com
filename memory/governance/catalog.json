@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 815,
-    "edges": 1114,
+    "nodes": 817,
+    "edges": 1116,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 437,
+      "component": 439,
       "api": 84
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 88,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 437,
+      "hasComponent": 439,
       "dependsOn": 123,
       "delegatesTo": 114,
       "migratesTo": 1,
@@ -2670,6 +2670,13 @@
       "desc": "endpoint JSON Mock Cowork (sidebar real via ShellMenuBuilder + 3 camadas habilitação, sem hardcode business_id; ADR 0093 Tier 0)"
     },
     {
+      "id": "component:Financeiro/CusteioRkwController + CusteioRkwService",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "CusteioRkwController + CusteioRkwService",
+      "desc": "custeio RKW e ponto de equilíbrio do mês (US-FIN-070 · UC-FLX-20): GET só leitura, aplicar o custo-hora sugerido é POST explícito; horas do PCP pelo contrato app/Contracts/Producao/HorasDosPostos.php (comando financeiro:custeio-rkw)"
+    },
+    {
       "id": "component:Financeiro/DashboardController",
       "type": "component",
       "module": "Financeiro",
@@ -4152,6 +4159,13 @@
       "module": "Producao",
       "name": "FerramentasController",
       "desc": "ferramentas com código QR (E03)"
+    },
+    {
+      "id": "component:Producao/HorasDosPostosService",
+      "type": "component",
+      "module": "Producao",
+      "name": "HorasDosPostosService",
+      "desc": "implementa app/Contracts/Producao/HorasDosPostos.php: horas fechadas por posto no mês e troca do custo-hora, para o custeio RKW do Financeiro (US-FIN-070)"
     },
     {
       "id": "component:Producao/InstallController",
@@ -8841,6 +8855,12 @@
     },
     {
       "from": "module:Financeiro",
+      "to": "component:Financeiro/CusteioRkwController + CusteioRkwService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
       "to": "component:Financeiro/DashboardController",
       "type": "hasComponent",
       "source": "contains"
@@ -12205,6 +12225,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/FerramentasController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/HorasDosPostosService",
       "type": "hasComponent",
       "source": "contains"
     },

@@ -1985,10 +1985,10 @@ DoD: nota ≥70 + ratchet verde. Backend-only na aparência (tela de auth) — c
 
 ### US-FIN-070 · Custeio RKW e ponto de equilíbrio no fechamento do mês (UC-FLX-20) — **P2**
 
-> owner: — · priority: p2 · estimate: 6h · status: todo · type: story
+> owner: — · priority: p2 · estimate: 6h · status: doing · type: story
 > blocked_by: —
 
-**Implementado em:** _pendente_ — não há rateio de despesas fixas, centro de custo nem cálculo de ponto de equilíbrio; o custo-hora do PCP é digitado à mão por posto.
+**Implementado em:** _pendente_ — parcial (2026-10-20): o cálculo do fechamento existe só leitura em `Modules/Financeiro/Services/CusteioRkwService.php` (comando `financeiro:custeio-rkw` + `GET /financeiro/custeio-rkw`; aplicar o sugerido é `POST /financeiro/custeio-rkw/aplicar/{posto}`), com a classe fixa/variável em `fin_planos_conta.classe_custo` e as horas do PCP lidas pelo contrato `app/Contracts/Producao/HorasDosPostos.php`. Falta a tela do fechamento e o centro de custo por setor (hoje o centro é o posto). Casos UC-PCCH-03..06 em `Modules/Producao/Resources/js/Pages/Producao/Postos/Index.casos.md`.
 
 **Origem:** UC-FLX-20 da tela Fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:73`, estágio "Fechamento do mês", referências Holdprint e Zênite, porte média, marcado `sem`). Medido em 2026-10-20 — o que existe é só o **insumo**, não o processo:
 - `Modules/Producao/Database/Migrations/2026_10_15_000001_create_pcp_fundo_tables.php:44` — `pcp_postos.custo_hora`, preenchido à mão em `Modules/Producao/Http/Controllers/PostosController.php:93`; `pcp_colaborador_custos.custo_hora` em `ColaboradorCustoController.php:26`.
