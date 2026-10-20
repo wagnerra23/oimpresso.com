@@ -119,9 +119,15 @@ function przVenda($teste, int $biz, int $comRoteiro, bool $semRoteiro = false): 
 
 function przModulo($teste, bool $ligado = true): void
 {
-    // partialMock é protegido no TestCase: chama no escopo do próprio teste.
-    (fn () => $this->partialMock(ModuleUtil::class, fn ($m) => $m->shouldReceive('hasThePermissionInSubscription')
-        ->andReturnUsing(fn ($b, $perm) => $ligado && $perm === 'producao_module')))->call($teste);
+    // O controller da rota é resolvido uma vez por teste e guarda o ModuleUtil que recebeu: trocar o
+    // mock no meio do teste não chega nele. O mock é criado uma vez e lê o estado da propriedade.
+    $teste->moduloLigado = $ligado;
+    if (! ($teste->moduloMockado ?? false)) {
+        $teste->moduloMockado = true;
+        // partialMock é protegido no TestCase: chama no escopo do próprio teste.
+        (fn () => $this->partialMock(ModuleUtil::class, fn ($m) => $m->shouldReceive('hasThePermissionInSubscription')
+            ->andReturnUsing(fn ($b, $perm) => $this->moduloLigado && $perm === 'producao_module')))->call($teste);
+    }
 }
 
 it('UC-PCPRZ-01 · uma linha: a data soma a fila de cada posto e as etapas do roteiro, em sequência por bloco', function () {
