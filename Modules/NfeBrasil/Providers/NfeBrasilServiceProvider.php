@@ -114,6 +114,7 @@ class NfeBrasilServiceProvider extends ServiceProvider
             \Modules\NfeBrasil\Console\Commands\MigrateCertFromBusiness::class,
             \Modules\NfeBrasil\Console\Commands\PuxarDfesRecebidosCommand::class,
             \Modules\NfeBrasil\Console\Commands\NfeHealthCommand::class,
+            \Modules\NfeBrasil\Console\Commands\RetentarContingenciaCommand::class,
         ]);
     }
 
@@ -147,6 +148,13 @@ class NfeBrasilServiceProvider extends ServiceProvider
                         'Schedule nfe:health FALHOU — cert vencido ou SEFAZ down em algum business'
                     );
                 });
+
+            // US-NFE-070 · UC-FLX-32 — retransmite a contingência quando a SEFAZ volta.
+            // O command só despacha o job (1 por business) se o ping daquele business deu 107.
+            $schedule->command('nfe:retentar-contingencia')
+                ->everyFiveMinutes()
+                ->withoutOverlapping()
+                ->environments(['live']);
         });
     }
 

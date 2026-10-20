@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **988 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **989 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -24,8 +24,8 @@
 | [`Crm`](#crm) | 23 | 0 | 0 | 0 | 23 |
 | [`Compras`](#compras) | 22 | 2 | 0 | 0 | 19 |
 | [`Fiscal`](#fiscal) | 22 | 0 | 0 | 0 | 22 |
+| [`ComunicacaoVisual`](#comunicacaovisual) | 20 | 0 | 0 | 0 | 20 |
 | [`Connector`](#connector) | 20 | 0 | 0 | 0 | 19 |
-| [`ComunicacaoVisual`](#comunicacaovisual) | 19 | 0 | 0 | 0 | 19 |
 | [`Forja`](#forja) | 19 | 0 | 1 | 0 | 7 |
 | [`Mwart`](#mwart) | 19 | 0 | 0 | 0 | 19 |
 | [`Vestuario`](#vestuario) | 19 | 0 | 0 | 0 | 19 |
@@ -537,7 +537,7 @@
 - **US-NFE-054** — Smoke real homologação SEFAZ-SC biz=1 — 1ª NFC-e cstat 100 (Goal #1 CYCLE-03) _(`p1` · @wagner)_
 - **US-NFE-062** — AuditLog em mutações fiscais NFe (Tributacao, Certificado, Manifestacao) _(`p1` · sprint cycle-04)_
 - **US-NFE-069** — A natureza fiscal do item escolhe a nota: NF-e para mercadoria, NFS-e para serviço e instalação (UC-FLX-31) — **P1** _(`p1` · sprint —)_
-- **US-NFE-070** — Contingência completa: retransmissão agendada, SVC-AN/SVC-RS e evento EPEC (UC-FLX-32) — **P1** _(`p1` · sprint —)_
+- **US-NFE-071** — Contingência: SVC-AN/SVC-RS, evento EPEC 110140 e marcação no DANFE (UC-FLX-32) — **P1** _(`p1` · sprint —)_
 - **US-NFE-055** — Estabilizar 107 tests broken Modules/NfeBrasil aplicando dual-mode SQLite/MySQL _(`p2`)_
 - **US-NFE-056** — Continuação PR #453 — migrar configBusiness(4) → configBusiness(1) em MotorTributarioServiceTest _(`p2`)_
 - **US-NFE-057** — Schema drift — atualizar fixtures DanfeServicePrefersArquivosTest pós-remoção `arquivos.filename` _(`p2`)_
@@ -803,6 +803,32 @@
 - **US-FISCAL-019** — Cache Redis 60s KPIs + anti-DOS palette LIKE — ✅ Onda ESTABILIZAR
 - **US-FISCAL-020** — Integrar MotorTributarioService NfeBrasil — elimina 6 hardcodes Tier-0 SPED — ✅ Onda CONSOLIDAR
 
+## ComunicacaoVisual
+
+
+### todo
+
+- **US-COMVIS-020** — Orçamento aprovado vira OS sem redigitar (UC-FLX-01) — **P0** _(`p0` · @wagner)_
+- **US-COMVIS-019** — Item do orçamento guarda o custo do material no dia (UC-FLX-33) — **P1** _(`p1` · @wagner)_
+- **US-COMVIS-001** — Cálculo automático por m² (lona, vinil, banner, fachada) — **P0**
+- **US-COMVIS-002** — Cadastro de material com preço por gramatura — **P0**
+- **US-COMVIS-003** — PCP gráfico — fluxo OS multi-etapa com responsável + prazo + custo — **P0**
+- **US-COMVIS-004** — Apontamento de máquina (Roland/Mimaki/Mutoh/HP Latex) — **P1**
+- **US-COMVIS-005** — Pós-cálculo (orçado vs realizado) — **P1**
+- **US-COMVIS-006** — Tabela tributária CNAE 1813-0/01 (CFOP/CSOSN/NCM padrão) — **P0**
+- **US-COMVIS-007** — Gestão de fachada/instalação (agenda + equipe + EPI) — **P1**
+- **US-COMVIS-008** — NFSe automática pra serviço de instalação — **P1**
+- **US-COMVIS-009** — NFe automática a partir de boleto pago — **P0** (já entregue no núcleo)
+- **US-COMVIS-010** — Provador de orçamento online (formulário web público) — **P2**
+- **US-COMVIS-011** — Comissão por OS (vendedor + instalador) — **P1**
+- **US-COMVIS-012** — DAM básico — cliente envia arquivo print-ready — **P2**
+- **US-COMVIS-013** — Bulk update preço material via Jana — **P2**
+- **US-COMVIS-014** — Dashboard "Larissa pergunta no chat às 22h" — **P2**
+- **US-COMVIS-015** — Cadastro de máquina com tinta/CMYK consumption tracking — **P2**
+- **US-COMVIS-016** — CT-e/MDF-e pra entrega — **P3**
+- **US-COMVIS-017** — Importação massiva de clientes/produtos do legacy OfficeImpresso — **P0**
+- **US-COMVIS-018** — Loja whitelabel pra catálogo público — **P3**
+
 ## Connector
 
 
@@ -831,31 +857,6 @@
 ### in_progress
 
 - **US-CONN-015** — F2 — Pest baseline do ClientController antes de tocar _(`p2` · @[F])_
-
-## ComunicacaoVisual
-
-
-### todo
-
-- **US-COMVIS-019** — Item do orçamento guarda o custo do material no dia (UC-FLX-33) — **P1** _(`p1` · @wagner)_
-- **US-COMVIS-001** — Cálculo automático por m² (lona, vinil, banner, fachada) — **P0**
-- **US-COMVIS-002** — Cadastro de material com preço por gramatura — **P0**
-- **US-COMVIS-003** — PCP gráfico — fluxo OS multi-etapa com responsável + prazo + custo — **P0**
-- **US-COMVIS-004** — Apontamento de máquina (Roland/Mimaki/Mutoh/HP Latex) — **P1**
-- **US-COMVIS-005** — Pós-cálculo (orçado vs realizado) — **P1**
-- **US-COMVIS-006** — Tabela tributária CNAE 1813-0/01 (CFOP/CSOSN/NCM padrão) — **P0**
-- **US-COMVIS-007** — Gestão de fachada/instalação (agenda + equipe + EPI) — **P1**
-- **US-COMVIS-008** — NFSe automática pra serviço de instalação — **P1**
-- **US-COMVIS-009** — NFe automática a partir de boleto pago — **P0** (já entregue no núcleo)
-- **US-COMVIS-010** — Provador de orçamento online (formulário web público) — **P2**
-- **US-COMVIS-011** — Comissão por OS (vendedor + instalador) — **P1**
-- **US-COMVIS-012** — DAM básico — cliente envia arquivo print-ready — **P2**
-- **US-COMVIS-013** — Bulk update preço material via Jana — **P2**
-- **US-COMVIS-014** — Dashboard "Larissa pergunta no chat às 22h" — **P2**
-- **US-COMVIS-015** — Cadastro de máquina com tinta/CMYK consumption tracking — **P2**
-- **US-COMVIS-016** — CT-e/MDF-e pra entrega — **P3**
-- **US-COMVIS-017** — Importação massiva de clientes/produtos do legacy OfficeImpresso — **P0**
-- **US-COMVIS-018** — Loja whitelabel pra catálogo público — **P3**
 
 ## Forja
 
