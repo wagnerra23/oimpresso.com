@@ -148,7 +148,7 @@ final class CatalogoProcessos
         ],
         // Entrega: as ações vivem no processo os_comunicacao_visual (instalação), que nenhuma tela inicia.
         'entrega' => [
-            'Agendar' => ['parcial', 'Ação FSM agendar_instalacao (SaleFsmActionController@execute) só muda a etapa. Não há agenda de equipe e veículo nem aviso ao cliente.'],
+            'Agendar' => ['parcial', 'Ação FSM agendar_instalacao (SaleFsmActionController@execute) só muda a etapa e não exige agenda. A agenda de equipe e veículo existe na OS da CV (AgendaInstalacao::agendar recusa horário com conflito), sem tela e sem aviso ao cliente.'],
             'Sair para o campo' => ['parcial', 'Ação FSM iniciar_instalacao só muda a etapa: não confere material e equipe nem avisa o cliente.'],
             'Confirmar nova data' => ['nao', 'Não existe a etapa Reagendado nem a ação de confirmar nova data; o status de reagendamento de cv_instalacoes não é gravado por nenhum código.'],
             'Reagendar' => ['parcial', 'Ação FSM reagendar_instalacao volta para a mesma etapa: não pede motivo, não tem etapa Reagendado e não avisa o cliente.'],

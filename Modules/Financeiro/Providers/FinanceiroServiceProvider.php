@@ -130,6 +130,8 @@ class FinanceiroServiceProvider extends ServiceProvider
                 // fin_extrato_lancamentos (canônica). Idempotente, --business
                 // obrigatório (Tier 0), --dry default-seguro. Unifica external_id.
                 \Modules\Financeiro\Console\Commands\BackfillExtratoOfxCommand::class,
+                // US-FIN-070 — custeio RKW do mês, só leitura (aplicar é ação na tela).
+                \Modules\Financeiro\Console\Commands\CusteioRkwCommand::class,
                 // US-FIN-071 · UC-FLX-29 — régua de cobrança D+1/D+5/D+15 (default OFF por business).
                 \Modules\Financeiro\Console\Commands\ReguaCobrancaCommand::class,
             ]);

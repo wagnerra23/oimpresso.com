@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 822,
-    "edges": 1123,
+    "nodes": 827,
+    "edges": 1128,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 444,
+      "component": 449,
       "api": 84
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 88,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 444,
+      "hasComponent": 449,
       "dependsOn": 124,
       "delegatesTo": 115,
       "migratesTo": 1,
@@ -2019,6 +2019,13 @@
       "desc": ""
     },
     {
+      "id": "component:ComunicacaoVisual/InstalacaoController",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "InstalacaoController",
+      "desc": "/comunicacao-visual/api/instalacoes, US-COMVIS-007 · UC-FLX-21)"
+    },
+    {
       "id": "component:ComunicacaoVisual/InstallController",
       "type": "component",
       "module": "ComunicacaoVisual",
@@ -2031,6 +2038,13 @@
       "module": "ComunicacaoVisual",
       "name": "OrcamentoController",
       "desc": ""
+    },
+    {
+      "id": "component:ComunicacaoVisual/Services/AgendaInstalacao",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "Services/AgendaInstalacao",
+      "desc": "US-COMVIS-007 · UC-FLX-21)"
     },
     {
       "id": "component:ComunicacaoVisual/Services/OrcamentoViraOs",
@@ -2682,6 +2696,13 @@
       "module": "Financeiro",
       "name": "CoworkSidebarController",
       "desc": "endpoint JSON Mock Cowork (sidebar real via ShellMenuBuilder + 3 camadas habilitação, sem hardcode business_id; ADR 0093 Tier 0)"
+    },
+    {
+      "id": "component:Financeiro/CusteioRkwController + CusteioRkwService",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "CusteioRkwController + CusteioRkwService",
+      "desc": "custeio RKW e ponto de equilíbrio do mês (US-FIN-070 · UC-FLX-20): GET só leitura, aplicar o custo-hora sugerido é POST explícito; horas do PCP pelo contrato app/Contracts/Producao/HorasDosPostos.php (comando financeiro:custeio-rkw)"
     },
     {
       "id": "component:Financeiro/DashboardController",
@@ -4147,6 +4168,13 @@
       "desc": "celular do operador (PWA, thread 04): /producao/apontamento, escritas em JSON para a fila offline; a regra mora no ApontamentoOperadorService"
     },
     {
+      "id": "component:Producao/AproveitamentoMidiaController + AproveitamentoDeMidia",
+      "type": "component",
+      "module": "Producao",
+      "name": "AproveitamentoMidiaController + AproveitamentoDeMidia",
+      "desc": "simulador de aproveitamento de mídia na bobina (US-PCP-024 · UC-FLX-13): pcp_bobinas (largura útil, margem, giro por mídia), arranjo em faixas com metros, perda e o uma a uma; aceitar grava pcp_arranjos + pcp_arranjo_os (consumo previsto por OS, rateio pela área) e gera o romaneio de cada OS; simular com producao.access, aceitar com o papel producao.liberar, JSON"
+    },
+    {
       "id": "component:Producao/ColaboradorCustoController",
       "type": "component",
       "module": "Producao",
@@ -4187,6 +4215,13 @@
       "module": "Producao",
       "name": "FerramentasController",
       "desc": "ferramentas com código QR (E03)"
+    },
+    {
+      "id": "component:Producao/HorasDosPostosService",
+      "type": "component",
+      "module": "Producao",
+      "name": "HorasDosPostosService",
+      "desc": "implementa app/Contracts/Producao/HorasDosPostos.php: horas fechadas por posto no mês e troca do custo-hora, para o custeio RKW do Financeiro (US-FIN-070)"
     },
     {
       "id": "component:Producao/InstallController",
@@ -8000,6 +8035,12 @@
     },
     {
       "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/InstalacaoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/InstallController",
       "type": "hasComponent",
       "source": "contains"
@@ -8007,6 +8048,12 @@
     {
       "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/OrcamentoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/Services/AgendaInstalacao",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8911,6 +8958,12 @@
     {
       "from": "module:Financeiro",
       "to": "component:Financeiro/CoworkSidebarController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "component:Financeiro/CusteioRkwController + CusteioRkwService",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -12267,6 +12320,12 @@
     },
     {
       "from": "module:Producao",
+      "to": "component:Producao/AproveitamentoMidiaController + AproveitamentoDeMidia",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
       "to": "component:Producao/ColaboradorCustoController",
       "type": "hasComponent",
       "source": "contains"
@@ -12298,6 +12357,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/FerramentasController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/HorasDosPostosService",
       "type": "hasComponent",
       "source": "contains"
     },

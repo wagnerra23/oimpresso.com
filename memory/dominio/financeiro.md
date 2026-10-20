@@ -25,6 +25,9 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0175-conta-bancaria-
 - **Retenção** (`meio_pagamento=retencao`) = baixa do ISS/PIS/COFINS/CSLL que o tomador reteve
   na NFS-e (US-FIN-072, decisão [W] 2026-10-20): o título mantém o bruto e a retenção o quita em
   parte, sem movimento de caixa. Nasce de um pagamento `retencao` na venda (transaction_payments).
+- **Classe de custo** = `fin_planos_conta.classe_custo` (`fixa` | `variavel` | nula = fora) — usada
+  só no custeio RKW e no ponto de equilíbrio (US-FIN-070); não confundir com `natureza`
+  (débito/crédito) nem com `dre_linha` (agrupamento da DRE).
 - **Estorno** é de PAGAMENTO/baixa (financeiro); **devolução** é de mercadoria (vendas.md).
 - **Sinônimos proibidos**: "conta a receber/pagar" como TABELA (canônico: título; "contas a
   receber" só como NOME DE TELA/visão); "duplicata" (não existe no schema); "quitação
@@ -52,6 +55,7 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0175-conta-bancaria-
     "fin_categorias.tipo": ["receita", "despesa", "ambos"],
     "fin_planos_conta.tipo": ["ativo", "passivo", "patrimonio", "receita", "despesa", "custo"],
     "fin_planos_conta.natureza": ["debito", "credito"],
+    "fin_planos_conta.classe_custo": ["fixa", "variavel"],
     "fin_extrato_lancamentos.origem": ["api", "ofx", "manual"],
     "fin_extrato_lancamentos.status": ["pendente", "sugerido", "conciliado", "ignorado"],
     "fin_bank_statement_lines.tipo": ["credit", "debit", "fee", "transfer", "unknown"],

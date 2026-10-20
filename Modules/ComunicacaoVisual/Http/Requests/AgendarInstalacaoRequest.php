@@ -7,53 +7,49 @@ namespace Modules\ComunicacaoVisual\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * AgendarInstalacaoRequest — validação agendamento de instalação OS.
+ * AgendarInstalacaoRequest — POST /comunicacao-visual/api/os/{os}/instalacao (US-COMVIS-007 · UC-FLX-21).
  *
- * Wave 18 D8 Security.
+ * Janela [inicio, fim), equipe (ids de users) e veículo em texto (placa/apelido — não há
+ * cadastro de frota). A equipe ser da mesma empresa e a janela estar livre são regras do
+ * AgendaInstalacao, não daqui: dependem do banco e devolvem a mensagem do conflito.
  *
- * Cobre POST /com-visual/os/{id}/agendar-instalacao.
- * Define data + endereço + responsável de instalação.
+ * Até 2026-10-20 este arquivo era código morto (rota inexistente, contrato de endereço/UF que
+ * nada usava); foi reescrito para o contrato real da agenda.
  *
- * Multi-tenant Tier 0: os_id resolvido via global scope (não input).
- *
- * @see Modules/ComunicacaoVisual/Entities/Instalacao.php
+ * Tier 0: a OS vem da rota e o business da sessão — nunca do corpo.
  */
 class AgendarInstalacaoRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->check();
+        $user = auth()->user();
+
+        return $user !== null && ($user->can('superadmin') || $user->can('comvis.os.update_status'));
     }
 
     public function rules(): array
     {
         return [
-            'data_agendada'    => ['required', 'date', 'after_or_equal:today'],
-            'periodo'          => ['nullable', 'in:manha,tarde,noite,integral'],
-
-            // Endereço — limites pra evitar payload abusivo
-            'endereco'         => ['required', 'string', 'max:255'],
-            'cidade'           => ['required', 'string', 'max:120'],
-            'uf'               => ['required', 'string', 'size:2'],
-            'cep'              => ['nullable', 'string', 'max:9'],
-
-            'responsavel_id'   => ['nullable', 'integer', 'min:1'],
-            'observacoes'      => ['nullable', 'string', 'max:1000'],
-            'requer_andaime'   => ['nullable', 'boolean'],
-            'altura_metros'    => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'inicio' => ['required', 'date'],
+            'fim' => ['required', 'date', 'after:inicio'],
+            'equipe' => ['required', 'array', 'min:1', 'max:10'],
+            'equipe.*' => ['integer', 'min:1', 'distinct'],
+            'veiculo' => ['nullable', 'string', 'max:60'],
+            'observacoes' => ['nullable', 'string', 'max:1000'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'data_agendada.required'        => 'Data da instalação é obrigatória.',
-            'data_agendada.after_or_equal'  => 'Data da instalação não pode ser no passado.',
-            'endereco.required'             => 'Endereço de instalação obrigatório.',
-            'cidade.required'               => 'Cidade obrigatória.',
-            'uf.required'                   => 'UF obrigatória.',
-            'uf.size'                       => 'UF deve ter 2 caracteres (ex: SC, SP).',
-            'altura_metros.max'             => 'Altura máxima 100 metros.',
+            'inicio.required' => 'Informe o início da instalação.',
+            'fim.required' => 'Informe o fim da instalação.',
+            'fim.after' => 'O fim da instalação tem que ser depois do início.',
+            'equipe.required' => 'Informe ao menos uma pessoa da equipe.',
+            'equipe.min' => 'Informe ao menos uma pessoa da equipe.',
+            'equipe.max' => 'A equipe tem no máximo 10 pessoas.',
+            'equipe.*.distinct' => 'A mesma pessoa aparece duas vezes na equipe.',
+            'veiculo.max' => 'O veículo tem no máximo 60 caracteres.',
         ];
     }
 }
