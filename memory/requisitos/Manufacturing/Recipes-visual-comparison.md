@@ -116,6 +116,43 @@ Agora o frescor e **medido**: antes da parametrizacao do espelho, `frescorDaFont
 `fora do espelho` para ancora fora de `Wagner/`. O `STALE` e porque a ultima rodada do ledger de
 frescor nao cobriu o espelho do Felipe — nao e defeito da tela.
 
+## Gaveta da receita — 2026-10-19 (medida e corrigida)
+
+**Como foi medido (2026-10-19, [F] viu diferença entre produção e protótipo):** mesma sonda nos
+dois lados, estilo calculado pelo navegador, tema escuro, 1600×900, os mesmos dados de exemplo do
+protótipo. Protótipo: a cópia do git (`prototipo-ui/cowork/Wagner`, frescor verificado contra o Cowork
+vivo em 2026-10-15) servida localmente. Produção: `oimpresso.com` não é alcançável da sessão (o proxy
+devolve 403), então o lado de produção é o código do `main` — que é o que está no ar desde o deploy do
+#9582 — renderizado num harness com o CSS real compilado (Tailwind + `inertia.css` + bundle). Canário
+do harness: a gaveta da ordem, já corrigida e medida em produção hoje, reproduz no harness os mesmos
+resíduos que a medição de produção declarou (sombras equivalentes, fundo atrás do painel, cinzas da
+ADR 0410). **A prova final é o smoke depois do deploy** (LC-30).
+
+**Causa:** a gaveta usava a moldura antiga do bundle (`.mfg-drw`), anterior ao `Drawer` do DS. A
+da ordem já tinha sido trocada no #9582; esta e a do Insumo ficaram para trás. As três passam a usar
+`Pages/Manufacturing/_components/Gaveta.tsx` (a moldura medida no #9582, extraída do `OrdemDrawer`).
+
+| dimensão | antes | protótipo | depois |
+|---|---|---|---|
+| título · subtítulo | 16px · 11,5px | 17px −0,01em · 12,5px | igual |
+| fechar do canto | ✕ com borda 1px, 13,5px | × sem borda, 16px, `--text-mute` | igual |
+| corpo | sem fundo, padding 20 | `--bg-2`, grupos direto no corpo, "Custo" em cartão (raio 12, padding 14/18) | igual |
+| título do grupo (`.mfg-grp-h b`) | 12px / 700 | 12,5px / 600 | igual (regra-base do bundle) |
+| título "Custo" | 10px / 400, traço ao lado | 10,5px / 600, caixa alta | igual (cor: ADR 0410) |
+| nota "O custo é recalculado…" | fora do quadro | dentro do cartão do custo | igual |
+| rodapé · botões | 57px · 14px, sem borda, sem fundo | 55px · 30px, raio 8, 12,5px; "Editar ingredientes" primário com lápis | igual |
+| altura de linha dos ingredientes | 1,5 | 1,45 (herdada do corpo) | igual |
+
+Números da sonda: **168 de 320** propriedades iguais antes, **259 de 280** depois. As 21 restantes:
+o recheio interno do × (28×28 nos dois), 2 cinzas da ADR 0410 (`--text-dim` no lugar de `--text-mute`)
+e o fundo atrás do painel (o `SheetContent` não aceita classe no fundo — mesma pendência da ordem).
+
+**Fora do eixo FORMA (seguem o código, não são dívida):** "Quando o insumo encarece" e "Nota no
+faturamento" não aparecem — a receita não guarda política de preço nem natureza fiscal, esses campos
+só existem no dado de exemplo do protótipo; "Produzir" aparece com `prod` só — aqui criar ordem exige
+`manufacturing.access_production` e nada mais (`ProductionController@create`), e o protótipo pede
+também `criar`.
+
 ## Cobertura desta tela hoje
 
 | camada | estado |
@@ -155,7 +192,7 @@ os JSON da medição não foram versionados — a re-medição pós-deploy entra
 | R13 | Tabela | margem com fundo SÓLIDO | visual | `StatusBadge` do DS do Cowork | — | medido: o `StatusBadge` do React é suave com ponto (AP7) | FORA DE ESCOPO — 2026-10-02: suave com ponto é a regra AP7 (decidida em 2026-09-01), não pendência. O texto anterior ("BLOQUEADO, pedido ao dono do DS") estava errado |
 | R14 | Tabela | estrutura `<table>` + rodapé de paginação | visual | `DataGrid` → `shared/DataTable` (mapa do `prototipo-ui/design-system/HANDOFF.md` §4) | `<table>`, caixinha nativa 13px, cabeçalho 10px caixa-alta sobre `--bg-2`, linhas listradas, rodapé "‹ 1 › a–b de N receitas" dentro da moldura | prod 2026-10-05 (deploy `37270930132`, com o #8604 e o #8628): `<table>`, cabeçalho 34px (com a caixinha), linha 45px, números mono 12px −0,01em — os três valores do protótipo | ACEITO — 2026-10-05. Histórico: em 2026-10-02 estava EM PR (`density="grid"` no `shared/DataTable`, #8579 + Receitas paginando no servidor); o texto antes disso ("BLOQUEADO — gap do DS, sem par React") estava errado: o par é o `shared/DataTable` |
 | R15 | Tabela | vazio (`EmptyState`) · seleção (`BulkBar`) | visual | protótipo | — | — | NÃO INICIADO |
-| R16 | Drawer | leitura da receita | visual | protótipo | — | — | NÃO INICIADO (não medido) |
+| R16 | Drawer | leitura da receita | visual | `Drawer` + `DrawerSection` do DS | moldura do protótipo | 2026-10-19: 259 de 280 propriedades iguais (seção "Gaveta da receita") | ACEITO no código — falta o smoke pós-deploy |
 | R17 | Indicadores | peso do valor nos cartões de leitura | visual | protótipo: 700 | — | prod: 600 (padrão do `KpiCard`) | NÃO INICIADO — é o componente do DS, não da tela |
 | R18 | Indicadores | canto dos cartões de filtro | visual | protótipo: 8px | — | prod: 12px (`KpiCard variant="filter"`) | NÃO INICIADO — é o componente do DS, não da tela |
 | R19 | Tabela | cor das colunas não ordenadas | visual | protótipo: `--text-mute` (0,58) | — | prod: `--text-dim` (0,72), pela regra de contraste AA do bundle (ADR 0410) | FORA DE ESCOPO — a troca foi decisão de acessibilidade; reverter é decisão [W] |

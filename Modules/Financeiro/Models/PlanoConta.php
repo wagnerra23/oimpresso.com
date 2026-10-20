@@ -28,8 +28,11 @@ class PlanoConta extends Model
 
     protected $fillable = [
         'business_id', 'codigo', 'nome', 'tipo', 'nivel',
-        'parent_id', 'natureza', 'dre_linha', 'aceita_lancamento', 'protegido', 'ativo',
+        'parent_id', 'natureza', 'dre_linha', 'classe_custo', 'aceita_lancamento', 'protegido', 'ativo',
     ];
+
+    /** `classe_custo` do custeio RKW (US-FIN-070). NULL = fora do custeio até alguém classificar. */
+    public const CLASSES_CUSTO = ['fixa', 'variavel'];
 
     /**
      * Linhas da DRE aceitas em `dre_linha` (de-para explícito; NULL = segue o prefixo

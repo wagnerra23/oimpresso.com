@@ -11,14 +11,16 @@
 // Isso é o §9 do handoff ("a autoridade é o servidor") e evita uma segunda conta na tela.
 
 import { router } from '@inertiajs/react';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import DataTable from '@/Components/shared/DataTable';
 import StatusBadge from '@/Components/shared/StatusBadge';
 import { Search } from 'lucide-react';
-import { fmt, num } from './_lib/formato';
+import { faixaMargem, fmt, num } from './_lib/formato';
 import FabricacaoAbas from './_components/FabricacaoAbas';
+import Gaveta, { BOTAO_SECUNDARIO, SecaoGaveta } from './_components/Gaveta';
+import { Button } from '@/Components/ui/button';
 import '../../../css/cowork-manufacturing-bundle.css';
 
 interface LinhaInsumo {
@@ -56,6 +58,8 @@ interface Props {
 
 const ROUTE = '/manufacturing/insumos';
 
+/** Faixa da margem → tom, a mesma de Receitas (R-10: ≥55 sucesso · ≥45 atenção · abaixo perigo). */
+const TOM_MARGEM = { ok: 'success', warn: 'warning', bad: 'danger' } as const;
 /** Faixa do "maior peso" → tom do `StatusBadge` (≥50 perigo · ≥25 atenção · abaixo sucesso), como no protótipo. */
 const tomPeso = (peso: number) => (peso >= 50 ? 'danger' : peso >= 25 ? 'warning' : 'success');
 
@@ -140,16 +144,8 @@ export default function Insumos({
     );
   };
 
-  // R-14 do módulo: o drawer fecha com Esc, não só no scrim/✕. Mesmo padrão de Recipes.tsx.
-  useEffect(() => {
-    if (!selecionado) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") fechar();
-    };
-    window.addEventListener("keydown", onKey);
-
-    return () => window.removeEventListener("keydown", onKey);
-  }, [selecionado]);
+  // R-14 do módulo: a gaveta fecha com Esc, com o × e com clique fora. Quem faz isso é o `Sheet`
+  // de `Gaveta.tsx` (o listener de Esc que morava aqui somado ao do Sheet dava DUAS visitas).
 
   const sel = selecionado ? (insumos.find((i) => i.variation_id === selecionado) ?? null) : null;
 
@@ -210,28 +206,28 @@ export default function Insumos({
         )}
       </div>
 
-      {sel && (
-        <>
-          <div className="mfg-scrim" onClick={fechar} aria-hidden />
-          <aside className="mfg-drw" role="dialog" aria-label={`Impacto de ${sel.nome}`}>
-            <div className="mfg-drw-h">
-              <div>
-                <h2>{sel.nome}</h2>
-                <p>
-                  {sel.sku} · {fmt(sel.custo)} / {sel.unidade} · estoque {num(sel.estoque, 0)}{' '}
-                  {sel.unidade} · usado em {usos.length} receita{usos.length === 1 ? '' : 's'}
-                </p>
-              </div>
-              <button className="mfg-x" onClick={fechar} aria-label="Fechar">
-                ✕
-              </button>
-            </div>
-
-            <div className="mfg-drw-b">
-              <div className="mfg-sec">
-                <span>Simular variação de preço</span>
-                <span className="ln" />
-              </div>
+      {/* Moldura de `Gaveta.tsx` (a do protótipo: Drawer + DrawerSection do DS), a mesma das
+          gavetas de Receitas e Ordens. Diferença de propósito: o nome da receita afetada é texto, não
+          link (no protótipo abre a receita) — a aba Receitas não abre uma receita pelo endereço. */}
+      <Gaveta
+        aberta={!!sel}
+        onClose={fechar}
+        titulo={sel?.nome ?? ''}
+        subtitulo={
+          sel
+            ? `${sel.sku} · ${fmt(sel.custo)} / ${sel.unidade} · estoque ${num(sel.estoque, 0)} ${sel.unidade}` +
+              ` · usado em ${usos.length} receita${usos.length === 1 ? '' : 's'}`
+            : ''
+        }
+        rodape={
+          <Button variant="outline" className={BOTAO_SECUNDARIO} onClick={fechar}>
+            Fechar
+          </Button>
+        }
+      >
+        {sel ? (
+          <>
+            <SecaoGaveta titulo="Simular variação de preço">
               <div className="mfg-sim">
                 <input
                   type="range"
@@ -250,11 +246,9 @@ export default function Insumos({
                   {fmt(sel.custo)} → {fmt(sel.custo * (1 + variacao_pct / 100))} / {sel.unidade}
                 </span>
               </div>
+            </SecaoGaveta>
 
-              <div className="mfg-sec">
-                <span>Receitas afetadas</span>
-                <span className="ln" />
-              </div>
+            <SecaoGaveta titulo="Receitas afetadas">
               <div className="mfg-grp">
                 <div className="mfg-ing mfg-ing5 mfg-ing-h">
                   <span className="n">Receita</span>
@@ -269,7 +263,7 @@ export default function Insumos({
                 {usos.map((u) => (
                   <div className="mfg-ing mfg-ing5" key={u.recipe_id}>
                     <span className="n">
-                      <b>{u.nome}</b>
+                      {u.nome}
                       <small>
                         {u.sku} · {num(u.peso, 0)}% do custo
                       </small>
@@ -280,11 +274,13 @@ export default function Insumos({
                     <span className="m">{fmt(u.unit_atual)}</span>
                     <span className="m tot">{fmt(u.unit_novo)}</span>
                     <span className="m">
-                      <span
-                        className={`mfg-pill ${u.margem_nova >= 55 ? 'ok' : u.margem_nova >= 45 ? 'warn' : 'bad'}`}
-                      >
-                        {num(u.margem_nova, 0)}%
-                      </span>
+                      {/* O `StatusBadge` do protótipo, no mesmo mapeamento da coluna Margem de Receitas. */}
+                      <StatusBadge
+                        kind="margem"
+                        value={faixaMargem(u.margem_nova)}
+                        label={`${num(u.margem_nova, 0)}%`}
+                        tone={TOM_MARGEM[faixaMargem(u.margem_nova)]}
+                      />
                     </span>
                   </div>
                 ))}
@@ -298,10 +294,10 @@ export default function Insumos({
                 </a>{' '}
                 aplica a variação de verdade.
               </p>
-            </div>
-          </aside>
-        </>
-      )}
+            </SecaoGaveta>
+          </>
+        ) : null}
+      </Gaveta>
     </div>
   );
 }
