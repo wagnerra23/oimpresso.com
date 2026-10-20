@@ -1,6 +1,7 @@
 <?php
 
 use Modules\Producao\Http\Controllers\ApontamentoController;
+use Modules\Producao\Http\Controllers\AproveitamentoMidiaController;
 use Modules\Producao\Http\Controllers\ColaboradorCustoController;
 use Modules\Producao\Http\Controllers\EtiquetaOsController;
 use Modules\Producao\Http\Controllers\FerramentasController;
@@ -82,4 +83,14 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
     ->group(function () {
         Route::post('os/{id}/romaneio', [RomaneioController::class, 'store'])->whereNumber('id')->name('os.romaneio.store');
         Route::get('romaneios/{id}', [RomaneioController::class, 'show'])->whereNumber('id')->name('romaneios.show');
+    });
+
+// ── US-PCP-024 · UC-FLX-13 · aproveitamento de mídia na bobina (JSON; a tela é follow-up) ──
+Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
+    ->prefix('producao')
+    ->name('producao.')
+    ->group(function () {
+        Route::put('bobinas/{material}', [AproveitamentoMidiaController::class, 'bobina'])->whereNumber('material')->name('bobinas.update');
+        Route::post('aproveitamento/simular', [AproveitamentoMidiaController::class, 'simular'])->name('aproveitamento.simular');
+        Route::post('aproveitamento', [AproveitamentoMidiaController::class, 'aceitar'])->name('aproveitamento.aceitar');
     });
