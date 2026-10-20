@@ -34,6 +34,20 @@ Nada é copiado para markdown nem para o `.tsx`: id, título, processo, etapa, r
 do payload. O rótulo do estado vem de `CasosDoPrototipo::ESTADOS`. Mudou o protótipo → exporta de
 novo → a página muda no próximo acesso (ADR 0256: derivado e enforçado sobrevive).
 
+## Artefatos navegáveis (US → SPEC, caso → `.casos.md`)
+
+A prop deferred `artefatos` sai de `App\Services\Documentacao\RastroDosCasos`:
+
+- **US → SPEC:** extrai os ids `US-…` do texto da US e acha o `memory/requisitos/<Mod>/SPEC.md` que
+  tem `### <id>`. O link não leva âncora: a rota de documento não gera id nos títulos.
+- **Caso → `.casos.md`:** varre `resources/js/Pages/**` e `Modules/*/Resources/js/Pages/**` atrás do
+  id do caso. Arquivo que **declara** casos próprios com o prefixo `UC-FLX-` (título de seção
+  começando pelo id) fica de fora — é colisão de nome, não citação.
+- **Link:** `/documentacao/<slug>` quando o arquivo está em `mcp_memory_documents` (lookup por
+  `git_path`, mesmo filtro de acesso da rota de documento); senão o arquivo no GitHub. Os `.casos.md`
+  de `Modules/*` caem no GitHub porque o indexador só lê `resources/js/Pages`.
+- Varredura em cache de 10 minutos (`doc:rastro:specs`, `doc:rastro:casos`).
+
 ## Pegadinhas
 
 - **Não editar `CasosDoPrototipo.php` à mão** — o cabeçalho dele proíbe; mude o `.jsx` e exporte.

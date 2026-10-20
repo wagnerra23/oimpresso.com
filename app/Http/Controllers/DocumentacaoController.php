@@ -302,6 +302,10 @@ class DocumentacaoController extends Controller
 
         return Inertia::render('Documentacao/CasosDeUso', [
             'casos' => $casos,
+            // Deferred: varre SPECs e `.casos.md` (cache curto) e consulta o acervo pelo git_path.
+            // A tabela chega no 1º render; os links para os artefatos, logo depois.
+            'artefatos' => Inertia::defer(fn () => app(\App\Services\Documentacao\RastroDosCasos::class)
+                ->paraCasos(array_map(static fn (array $c): array => ['id' => $c['id'], 'us' => $c['us']], $casos), self::TIPOS_DOC, self::BLOB)),
             'processos' => array_keys($processos),
             'estados' => array_map(static fn (array $e): array => ['rotulo' => $e[0], 'tom' => $e[1]], $catalogo::ESTADOS),
             'fonte' => 'app/Domain/Fsm/Modelos/CasosDoPrototipo.php',

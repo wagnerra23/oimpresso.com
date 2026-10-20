@@ -797,6 +797,56 @@ it('UC-CASOS-03 · a tela NAO carrega id, título nem estado de caso escritos à
     }
 });
 
+function rastroDosCasos(): array
+{
+    $casos = array_map(
+        static fn (array $c): array => ['id' => $c[0], 'us' => $c[8]],
+        App\Domain\Fsm\Modelos\CasosDoPrototipo::CASOS,
+    );
+
+    return (new App\Services\Documentacao\RastroDosCasos)
+        ->paraCasos($casos, ['spec', 'casos'], 'https://github.com/wagnerra23/oimpresso.com/blob/main/');
+}
+
+it('UC-CASOS-04 · a US do caso leva ao SPEC onde ela mora, derivado da árvore', function () {
+    $r = rastroDosCasos()['UC-FLX-37'] ?? null;
+    expect($r)->not->toBeNull();
+
+    $us = collect($r['us'])->firstWhere('id', 'US-PCP-021');
+    expect($us)->not->toBeNull('a US citada no catálogo tem que ser extraída do texto');
+    expect(array_column($us['docs'], 'path'))->toContain('memory/requisitos/Producao/SPEC.md');
+
+    foreach ($us['docs'] as $d) {
+        // Interno = a rota de documento abre; fora do acervo = o arquivo no git. Nunca link inventado.
+        $d['interno']
+            ? expect($d['href'])->toStartWith('/documentacao/')
+            : expect($d['href'])->toEndWith($d['path']);
+    }
+});
+
+it('UC-CASOS-05 · o caso lista os .casos.md de tela que o citam — e não os que só usam o mesmo prefixo', function () {
+    $rastro = rastroDosCasos();
+
+    expect(array_column($rastro['UC-FLX-37']['documentado'], 'path'))
+        ->toContain('Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.casos.md');
+
+    // Financeiro/Fluxo declara UC-FLX-01..07 PRÓPRIOS (fluxo de caixa): colisão de id, não citação.
+    foreach ($rastro as $id => $r) {
+        // in_array + toBeFalse, não `->not->toContain(x, msg)`: o variádico negado com mensagem passa sempre (§5 2026-09-22).
+        expect(in_array('resources/js/Pages/Financeiro/Fluxo/Index.casos.md', array_column($r['documentado'], 'path'), true))
+            ->toBeFalse("{$id} creditado por colisão de prefixo");
+    }
+});
+
+it('UC-CASOS-06 · os links chegam em prop deferred, a tabela não espera por eles', function () {
+    ['props' => $p] = docInertiaProps(
+        (new App\Http\Controllers\DocumentacaoController)
+            ->casos(Illuminate\Http\Request::create('/documentacao/casos-de-uso'))
+    );
+
+    expect($p['artefatos'])->toBeInstanceOf(Inertia\DeferProp::class);
+});
+
 it('/documentacao/casos-de-uso resolve pra casos, nao pra documento de slug "casos-de-uso"', function () {
     $rota = app('router')->getRoutes()->match(
         Illuminate\Http\Request::create('/documentacao/casos-de-uso', 'GET')
