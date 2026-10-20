@@ -257,7 +257,8 @@ it('o que a cobertura afirma sobre o código continua verdadeiro', function () {
 
     // Venda, NF-e, NFS-e e cobrança.
     $nfseService = (string) file_get_contents(base_path('Modules/NFSe/Services/NfseEmissaoService.php'));
-    expect(flxChamadores('RetentarContingenciaJob::dispatch'))->toBe([])
+    // US-NFE-070 · UC-FLX-32: o agendamento nfe:retentar-contingencia passou a ser o chamador.
+    expect(flxChamadores('RetentarContingenciaJob::dispatch'))->toBe([flxCaminho('Modules/NfeBrasil/Console/Commands/RetentarContingenciaCommand.php')])
         ->and(flxChamadores('new RetentarContingenciaJob'))->toBe([])
         ->and(flxChamadores('TransactionDocument::create'))->toBe([])
         ->and(flxChamadores('new TransactionDocument'))->toBe([])
