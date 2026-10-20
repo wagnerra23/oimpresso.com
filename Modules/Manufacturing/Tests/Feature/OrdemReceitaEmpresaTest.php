@@ -16,11 +16,19 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * (§5, registradas em 2026-10-13 no #9086):
  *
  * - H2 · `GET /manufacturing/get-recipe-details` (`RecipeController::getRecipeDetails`) busca a receita
- *   só por `variation_id`, sem a cadeia de empresa: quem tem `manufacturing.access_recipe` lê os
- *   ingredientes e o custo da receita de outra empresa.
+ *   só por `variation_id`, sem a cadeia de empresa. **Medido no CI (run 39422978037): NÃO vaza.** A
+ *   receita de outra empresa já saía 404 antes do conserto, por acidente: `Util::getSubUnits()` busca a
+ *   unidade do produto com `Unit::where('business_id', <sessão>)->findOrFail()`, e a unidade é da outra
+ *   empresa. O conserto vira defesa explícita (não depende mais desse acidente) e acerta a variação
+ *   inexistente, que estourava 500 ("Attempt to read property variation on null").
  * - H1 · `POST /manufacturing/production` (`ProductionController::store`) aceita `variation_id` de
- *   qualquer empresa (`exists:variations,id`) e busca a receita sem a cadeia: a ordem nasce na empresa
- *   da sessão consumindo os ingredientes da receita de outra.
+ *   qualquer empresa (`exists:variations,id`) e busca a receita sem a cadeia. Lido no código (o CI deste
+ *   PR confirma ou derruba): a mesma `getSubUnits()` derruba a requisição com 404 quando chega aos
+ *   insumos da outra empresa — mas DEPOIS de incrementar o contador de referência da empresa da sessão
+ *   (fora da transação, persiste) e de gravar a ordem numa transação que fica aberta (desfeita no fim
+ *   da requisição em produção; visível dentro do teste, que usa a mesma conexão). Receita sem insumo e
+ *   variação sem receita estouram 500 (`getIngredientDetails()` devolve `$ingredients`, que só nasce
+ *   dentro do laço). O conserto recusa com 404 ANTES de qualquer escrita.
  *
  * Âncora positiva em cada endpoint (a própria empresa passa), para que o 404 da outra empresa não seja
  * rota que nem respondeu. O caso alheio exige 404, e não 403: o usuário TEM a permissão, quem recusa
@@ -39,7 +47,7 @@ beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
         $this->markTestSkipped('SQLite-incompatível: a cadeia de empresa depende do schema MySQL UltimatePOS (products/variations).');
     }
-    foreach (['business', 'users', 'units', 'products', 'product_variations', 'variations', 'mfg_recipes', 'mfg_recipe_ingredients', 'transactions'] as $t) {
+    foreach (['business', 'users', 'units', 'products', 'product_variations', 'variations', 'mfg_recipes', 'mfg_recipe_ingredients', 'transactions', 'business_locations', 'invoice_schemes', 'invoice_layouts'] as $t) {
         if (! Schema::hasTable($t)) {
             $this->markTestSkipped("Schema incompleto — tabela {$t} ausente.");
         }
@@ -66,15 +74,35 @@ function mfgOrdensDaEmpresa(): int
         ->count();
 }
 
-/** Corpo mínimo do formulário da ordem (Blade `production/create`). */
-function mfgOrdemPayload(int $variationId): array
+/** Local da empresa 98 (mesmo idioma de `despLocal()` em ExpensesBaselineTest). */
+function mfgOrdemLocal(): int
 {
+    $esquema = DB::table('invoice_schemes')->insertGetId(['business_id' => MFG_EMP_BIZ, 'name' => 'Esq '.uniqid(), 'scheme_type' => 'blank']);
+    $layout = DB::table('invoice_layouts')->insertGetId(['business_id' => MFG_EMP_BIZ, 'name' => 'Lay '.uniqid()]);
+
+    return DB::table('business_locations')->insertGetId([
+        'business_id' => MFG_EMP_BIZ, 'name' => 'Local ordem '.uniqid(), 'country' => 'Brasil', 'state' => 'SC',
+        'city' => 'Tubarão', 'zip_code' => '88700000', 'invoice_scheme_id' => $esquema, 'invoice_layout_id' => $layout, 'is_active' => 1,
+    ]);
+}
+
+/**
+ * Corpo mínimo do formulário da ordem (Blade `production/create`). A data vai no formato da empresa
+ * (`business.date_format` + `time_format`), porque o store a lê com `uf_date(..., true)`.
+ */
+function mfgOrdemPayload(int $variationId, int $localId, int $linhaInsumo): array
+{
+    $empresa = DB::table('business')->where('id', MFG_EMP_BIZ)->first(['date_format', 'time_format']);
+    $formato = $empresa->date_format.((string) $empresa->time_format === '12' ? ' h:i A' : ' H:i');
+
     return [
-        'transaction_date' => now()->format('Y-m-d H:i'),
-        'location_id' => 1,
+        'transaction_date' => now()->format($formato),
+        'location_id' => $localId,
         'final_total' => '15',
         'variation_id' => $variationId,
         'quantity' => '1',
+        // Quantidade de cada linha da receita, indexada pelo id da linha (mfg_recipe_ingredients.id).
+        'ingredients' => [$linhaInsumo => ['quantity' => '2']],
     ];
 }
 
@@ -108,23 +136,27 @@ describe('Montar a ordem — detalhes da receita só da própria empresa (Tier 0
 });
 
 describe('Gravar a ordem — só com produto da própria empresa (Tier 0 · H1)', function () {
-    it('UC-OP-13 — a ordem com produto da própria empresa passa da trava (âncora positiva)', function () {
+    it('UC-OP-13 — a ordem com produto da própria empresa é gravada (âncora positiva)', function () {
         $user = mfgOrdemUsuario();
-        [, $variacao] = mfgEmpReceita(MFG_EMP_BIZ, $user->id, 'Insumo ordem proprio');
+        [, $variacao, $linha] = mfgEmpReceita(MFG_EMP_BIZ, $user->id, 'Insumo ordem proprio');
+        $local = mfgOrdemLocal();
+        $antes = mfgOrdensDaEmpresa();
 
-        // O store devolve redirect para a lista tanto no sucesso quanto no erro que ele mesmo trata;
-        // o que interessa aqui é que a trava de empresa NÃO recusou (não é 404).
-        $resposta = $this->actingAs($user)->postJson('/manufacturing/production', mfgOrdemPayload($variacao));
+        $resposta = $this->actingAs($user)->post('/manufacturing/production', mfgOrdemPayload($variacao, $local, $linha));
 
+        // O store devolve o mesmo redirect no sucesso e no erro que ele trata; a ordem gravada é o
+        // que separa os dois caminhos (§5 2026-09-05: o status sozinho não discrimina).
         $resposta->assertRedirect('/manufacturing/production');
+        expect(mfgOrdensDaEmpresa())->toBe($antes + 1);
     });
 
     it('UC-OP-13 — recusa com 404 a ordem com produto de outra empresa, sem gravar nada', function () {
         $user = mfgOrdemUsuario();
-        [, $variacao] = mfgEmpReceita(MFG_EMP_OUTRO, $user->id, 'Insumo ordem alheio');
+        [, $variacao, $linha] = mfgEmpReceita(MFG_EMP_OUTRO, $user->id, 'Insumo ordem alheio');
+        $local = mfgOrdemLocal();
         $antes = mfgOrdensDaEmpresa();
 
-        $resposta = $this->actingAs($user)->postJson('/manufacturing/production', mfgOrdemPayload($variacao));
+        $resposta = $this->actingAs($user)->post('/manufacturing/production', mfgOrdemPayload($variacao, $local, $linha));
 
         $resposta->assertNotFound();
         expect(mfgOrdensDaEmpresa())->toBe($antes);
