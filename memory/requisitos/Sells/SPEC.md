@@ -1600,7 +1600,7 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 
 **Implementado em:** `app/Http/Controllers/Api/App/PedidoEntregaController.php` · `database/migrations/2026_10_20_160000_add_volumes_to_app_entregas_table.php`
 
-**Testado em:** `tests/Feature/Sells/AppPedidoEntregaContratoTest.php` (lane `sells-pest.yml`) — casos UC-ENTR-01..04 no `resources/js/Pages/Sells/Show.casos.md`.
+**Testado em:** `tests/Feature/Sells/AppPedidoEntregaContratoTest.php` (lane `sells-pest.yml`) — casos UC-ENTR-01..04 no Show.casos.md do detalhe da venda.
 
 > owner: wagner · priority: p2 · estimate: 1h · type: story
 
