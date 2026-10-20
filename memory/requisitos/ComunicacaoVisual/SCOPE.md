@@ -13,6 +13,8 @@ contains:
   - "Entities/InstalacaoCatalogo (cv_instalacoes_catalogo)"
   - "Entities/OrdemProducao (cv_ordens_producao + FSM canon ADR 0143)"
   - "Entities/Instalacao (cv_instalacoes)"
+  - "InstalacaoController (agenda da instalação por OS — /comunicacao-visual/api/instalacoes, US-COMVIS-007 · UC-FLX-21)"
+  - "Services/AgendaInstalacao (agenda equipe e veículo na OS; recusa sem janela — US-COMVIS-007 · UC-FLX-21)"
   # Mora em `database/seeders/` (convenção do projeto pros seeders de FSM canon), NÃO sob
   # Modules/ComunicacaoVisual/ — o SDD §5.4.5 já registra isso. Path anotado em 2026-08-10
   # porque a ausência sob o módulo já foi lida como "nunca construído": é código real,

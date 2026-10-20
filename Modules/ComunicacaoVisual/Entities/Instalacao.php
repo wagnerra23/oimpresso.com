@@ -24,10 +24,13 @@ use Spatie\Activitylog\Traits\LogsActivity;
  *
  * @property int         $id
  * @property int         $business_id
- * @property int         $ordem_id
+ * @property int|null    $ordem_id
+ * @property int|null    $os_id      FK comvis_os (agenda da instalação — UC-FLX-21)
  * @property int|null    $catalogo_id
  * @property array|null  $equipe_user_ids_json
  * @property \Carbon\Carbon|null $data_agendada
+ * @property \Carbon\Carbon|null $data_fim     fim da janela agendada (início = data_agendada)
+ * @property string|null $veiculo      placa/apelido (sem cadastro de frota)
  * @property \Carbon\Carbon|null $data_realizada
  * @property array|null  $endereco_json
  * @property string|null $foto_pre_url
@@ -66,9 +69,12 @@ class Instalacao extends Model
     protected $fillable = [
         'business_id',
         'ordem_id',
+        'os_id',
         'catalogo_id',
         'equipe_user_ids_json',
+        'veiculo',
         'data_agendada',
+        'data_fim',
         'data_realizada',
         'endereco_json',
         'foto_pre_url',
@@ -85,11 +91,13 @@ class Instalacao extends Model
     protected $casts = [
         'business_id'          => 'integer',
         'ordem_id'             => 'integer',
+        'os_id'                => 'integer',
         'catalogo_id'          => 'integer',
         'nfse_emissao_id'      => 'integer',
         'equipe_user_ids_json' => 'array',
         'endereco_json'        => 'array',
         'data_agendada'        => 'datetime',
+        'data_fim'             => 'datetime',
         'data_realizada'       => 'datetime',
         'comissao_calculada'   => 'decimal:2',
     ];
@@ -129,6 +137,12 @@ class Instalacao extends Model
     public function ordem(): BelongsTo
     {
         return $this->belongsTo(OrdemProducao::class, 'ordem_id');
+    }
+
+    /** OS viva da CV (comvis_os) — a agenda da instalação nasce por ela (UC-FLX-21). */
+    public function os(): BelongsTo
+    {
+        return $this->belongsTo(Os::class, 'os_id');
     }
 
     public function catalogo(): BelongsTo

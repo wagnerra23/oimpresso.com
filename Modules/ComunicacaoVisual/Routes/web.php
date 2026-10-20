@@ -2,6 +2,7 @@
 
 use Inertia\Inertia;
 use Modules\ComunicacaoVisual\Http\Controllers\ApontamentoController;
+use Modules\ComunicacaoVisual\Http\Controllers\InstalacaoController;
 use Modules\ComunicacaoVisual\Http\Controllers\InstallController;
 use Modules\ComunicacaoVisual\Http\Controllers\OrcamentoController;
 
@@ -107,4 +108,12 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
 
         Route::post('apontamentos/{apontamento}/cancelar', [ApontamentoController::class, 'cancelar'])
             ->name('comvis.api.apontamentos.cancelar');
+
+        // US-COMVIS-007 · UC-FLX-21: agenda da equipe de instalação (equipe + veículo; recusa sem janela).
+        Route::get('instalacoes', [InstalacaoController::class, 'index'])
+            ->name('comvis.api.instalacoes.index');
+
+        Route::post('os/{os}/instalacao', [InstalacaoController::class, 'agendar'])
+            ->whereNumber('os')
+            ->name('comvis.api.instalacoes.agendar');
     });
