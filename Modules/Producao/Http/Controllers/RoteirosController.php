@@ -6,6 +6,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Producao\Entities\Posto;
@@ -56,6 +57,35 @@ class RoteirosController extends Controller
         return back()->with('status', ['success' => 1, 'msg' => 'Roteiro salvo.']);
     }
 
+    /**
+     * Liga produtos ao roteiro (UC-FLX-07 · US-PCP-026): ao aprovar a venda, a OS de cada um desses
+     * produtos nasce com as etapas deste roteiro. Substitui a lista do roteiro; um produto que já
+     * estava em outro roteiro da empresa passa para este (o vínculo é único por produto).
+     */
+    public function produtos(Request $request, int $id): RedirectResponse
+    {
+        abort_unless($request->user()->can('producao.access'), 403);
+        $biz = (int) $request->session()->get('user.business_id');
+        $roteiro = Roteiro::query()->where('business_id', $biz)->findOrFail($id);
+        $ids = $request->validate([
+            'product_ids' => ['present', 'array'],
+            'product_ids.*' => ['integer', 'distinct', Rule::exists('products', 'id')->where('business_id', $biz)],
+        ])['product_ids'];
+
+        DB::transaction(function () use ($biz, $roteiro, $ids) {
+            DB::table('pcp_produto_roteiro')->where('business_id', $biz)->where('roteiro_id', $roteiro->id)
+                ->whereNotIn('product_id', $ids)->delete();
+            $linhas = array_map(fn ($p) => ['business_id' => $biz, 'product_id' => (int) $p, 'roteiro_id' => $roteiro->id,
+                'created_at' => now(), 'updated_at' => now()], $ids);
+            if ($linhas !== []) {
+                // Único por empresa + produto: o produto que estava em outro roteiro passa para este.
+                DB::table('pcp_produto_roteiro')->upsert($linhas, ['business_id', 'product_id'], ['roteiro_id', 'updated_at']);
+            }
+        });
+
+        return back()->with('status', ['success' => 1, 'msg' => 'Produtos do roteiro salvos.']);
+    }
+
     /** @param  array<int, array<string, mixed>>  $etapas */
     private function gravarEtapas(Roteiro $roteiro, int $biz, array $etapas): void
     {
@@ -102,6 +132,9 @@ class RoteirosController extends Controller
             return $b;
         }, array_values($blocos));
 
-        return ['id' => $r->id, 'familia' => $r->familia, 'nome' => $r->nome, 'etapas' => $etapas];
+        $produtos = DB::table('pcp_produto_roteiro')->where('business_id', $r->business_id)->where('roteiro_id', $r->id)
+            ->orderBy('product_id')->pluck('product_id')->map(fn ($p) => (int) $p)->all();
+
+        return ['id' => $r->id, 'familia' => $r->familia, 'nome' => $r->nome, 'etapas' => $etapas, 'produto_ids' => $produtos];
     }
 }
