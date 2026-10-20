@@ -94,7 +94,7 @@ final class CatalogoModelos
      * O que é "material consumido" numa venda sem OS (a peça? o insumo pela ficha?) é decisão [W].
      */
     public const PENDENCIAS = [
-        'UC-FLX-14' => 'Não executa: a peça vendida já baixa quando a venda é finalizada, e o material consumido só baixa no apontamento da OS, que este processo não tem. Ligar a baixa aqui baixaria duas vezes. Falta decidir o que é material consumido na venda sem OS.',
+        'UC-FLX-14' => 'Não executa: venda sem OS (balcão, brindes) baixa a peça quando é finalizada; venda com OS reserva o insumo da receita na aprovação e baixa o consumido no apontamento (US-PCP-031, decisão [W] 2026-10-20). Ligar a baixa aqui baixaria duas vezes.',
     ];
 
     private const ORDEM_PORTE = ['micro' => 0, 'pequena' => 1, 'media' => 2, 'grande' => 3];
