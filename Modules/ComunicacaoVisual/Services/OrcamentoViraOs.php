@@ -21,8 +21,9 @@ use Modules\ComunicacaoVisual\Entities\OsItem;
  * Idempotente: trava a linha do orçamento (`lockForUpdate`); se já existe OS dele, devolve a
  * mesma sem criar outra nem copiar de novo. Orçamento recusado ou expirado não vira OS.
  *
- * Tier 0 (ADR 0093): lê e grava só no `$businessId` recebido — os escopos globais ficam de fora
- * porque o filtro é explícito em toda consulta (funciona também sem sessão, em fila).
+ * Tier 0 (ADR 0093): lê e grava só no `$businessId` recebido. Toda leitura tem
+ * `where('business_id', $businessId)` explícito, além do escopo da sessão (que não filtra sem
+ * sessão, em fila); toda gravação passa o `business_id` explícito. Nenhum escopo é desligado.
  */
 final class OrcamentoViraOs
 {
@@ -38,12 +39,9 @@ final class OrcamentoViraOs
     public function aprovar(int $businessId, int $orcamentoId, ?int $userId = null): array
     {
         return DB::transaction(function () use ($businessId, $orcamentoId, $userId) {
-            // SUPERADMIN: escopo global substituído pelo business_id explícito (Tier 0, sem depender de sessão).
-            $orc = Orcamento::withoutGlobalScopes()->where('business_id', $businessId)
+            $orc = Orcamento::query()->where('business_id', $businessId)
                 ->whereKey($orcamentoId)->lockForUpdate()->firstOrFail();
-
-            // SUPERADMIN: idem — a OS existente do orçamento, na mesma empresa.
-            $existente = Os::withoutGlobalScopes()->where('business_id', $businessId)
+            $existente = Os::query()->where('business_id', $businessId)
                 ->where('orcamento_id', $orc->id)->first();
             if ($existente) {
                 return [$existente, false];
@@ -58,7 +56,7 @@ final class OrcamentoViraOs
                 $orc->save();
             }
 
-            $os = Os::withoutGlobalScopes()->create([
+            $os = Os::create([
                 'business_id'  => $businessId,
                 'orcamento_id' => $orc->id,
                 'numero'       => $this->proximoNumero($businessId),
@@ -69,11 +67,10 @@ final class OrcamentoViraOs
                 'observacoes'  => $orc->observacoes,
             ]);
 
-            // SUPERADMIN: idem — itens do orçamento desta empresa.
-            $itens = OrcamentoItem::withoutGlobalScopes()->where('business_id', $businessId)
+            $itens = OrcamentoItem::query()->where('business_id', $businessId)
                 ->where('orcamento_id', $orc->id)->orderBy('ordem')->orderBy('id')->get();
             foreach ($itens as $i => $item) {
-                OsItem::withoutGlobalScopes()->create([
+                OsItem::create([
                     'business_id'       => $businessId,
                     'os_id'             => $os->id,
                     'orcamento_item_id' => $item->id,
@@ -116,9 +113,7 @@ final class OrcamentoViraOs
     public function proximoNumero(int $businessId): string
     {
         $prefixo = 'OS-' . now()->year . '-';
-
-        // SUPERADMIN: MAX real da empresa, com business_id explícito.
-        $ultimo = Os::withoutGlobalScopes()->withTrashed()->where('business_id', $businessId)
+        $ultimo = Os::query()->withTrashed()->where('business_id', $businessId)
             ->where('numero', 'LIKE', "{$prefixo}%")->max('numero');
 
         $proximo = $ultimo ? ((int) substr((string) $ultimo, strlen($prefixo))) + 1 : 1;
