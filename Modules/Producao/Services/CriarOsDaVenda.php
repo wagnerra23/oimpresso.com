@@ -21,6 +21,10 @@ use Modules\Producao\Entities\Programacao;
  * situação inicial do processo do item, e uma programação do PCP por etapa do roteiro (etapa
  * opcional fica de fora até o orçamento guardar a opção). Linha sem roteiro não gera OS aqui.
  *
+ * As programações são cópia (nome, posto, horas, bloco/trilha) do roteiro no instante da aprovação:
+ * editar o roteiro depois não muda a OS já criada (UC-PCROT-03). O vínculo produto → roteiro é
+ * gravado na tela de Roteiros (`RoteirosController::produtos`).
+ *
  * Item sob encomenda com receita reserva o insumo na criação da OS (US-PCP-031, ReservaDeInsumoDaOs).
  *
  * Idempotente: trava a venda (`lockForUpdate`) e a OS é única por empresa + linha. Tier 0: lê e
@@ -59,8 +63,12 @@ final class CriarOsDaVenda
             }
             $linhas = DB::table('transaction_sell_lines')->where('transaction_id', $transactionId)
                 ->whereNull('parent_sell_line_id')->orderBy('id')->get();
-            $roteiros = DB::table('pcp_produto_roteiro')->where('business_id', $businessId)
-                ->whereIn('product_id', $linhas->pluck('product_id'))->pluck('roteiro_id', 'product_id');
+            // O roteiro tem de ser da mesma empresa do vínculo: um vínculo apontando roteiro de outra
+            // empresa é tratado como produto sem roteiro (Tier 0, UC-PCROT-04).
+            $roteiros = DB::table('pcp_produto_roteiro as pr')
+                ->join('pcp_roteiros as r', fn ($j) => $j->on('r.id', '=', 'pr.roteiro_id')->where('r.business_id', $businessId))
+                ->where('pr.business_id', $businessId)
+                ->whereIn('pr.product_id', $linhas->pluck('product_id'))->pluck('pr.roteiro_id', 'pr.product_id');
             $inicial = $this->processo->etapaInicial($businessId);
             $autor = $userId ?? (int) $venda->created_by;
 
