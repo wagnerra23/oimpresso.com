@@ -1635,6 +1635,8 @@ US-NFE-060 cobre só o job de emissão da NFS-e (modelo 56, STUB); esta US cobre
 
 **Implementado em:** `Modules/NfeBrasil/Services/NfeService.php` · `Modules/NfeBrasil/Console/Commands/RetentarContingenciaCommand.php` · `Modules/NfeBrasil/Providers/NfeBrasilServiceProvider.php` · `Modules/NfeBrasil/Jobs/RetentarContingenciaJob.php` · `Modules/NfeBrasil/Tests/Feature/ContingenciaAgendamentoTest.php`
 
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/ContingenciaAgendamentoTest.php` (covers US-NFE-070 · lane `nfebrasil-pest`)
+
 Como gestor, quero que a nota emitida em contingência seja transmitida sozinha quando a SEFAZ voltar e saia com os campos que a SEFAZ exige, para não depender de alguém lembrar de reenviar nem ter a nota rejeitada depois.
 
 **Origem:** UC-FLX-32 "NF-e em contingência quando a SEFAZ cai" da tela Fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:84`, etapa Validada → Transmitida). Medido 2026-10-20, **parcial** — é o resto de US-NFE-006 (cuja âncora segue `_pendente_` e não foi alterada aqui):
