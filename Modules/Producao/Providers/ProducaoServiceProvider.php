@@ -4,12 +4,15 @@ namespace Modules\Producao\Providers;
 
 use App\Domain\Fsm\Models\SaleStageHistory;
 use App\Transaction;
+use App\TransactionPayment;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Modules\Producao\Console\FecharTurnoCommand;
 use Modules\Producao\Jobs\CriarOsDaVendaJob;
 use Modules\Producao\Services\CriarOsDaVenda;
 use Modules\Producao\Services\OsDaVenda;
+use Modules\Producao\Services\SituacaoDaOrdem;
 
 class ProducaoServiceProvider extends ServiceProvider
 {
@@ -42,11 +45,28 @@ class ProducaoServiceProvider extends ServiceProvider
                 app(OsDaVenda::class)->guardar((int) $tx->business_id, (int) $tx->id, $tx->current_stage_id !== null ? (int) $tx->current_stage_id : null);
             }
         });
+
+        // US-PCP-025 (UC-FLX-28): pagamento gravado na venda — baixa manual, PDV ou retorno do banco que
+        // cria o pagamento — tenta liberar as OS dessa venda pelo sinal. Usa a empresa do PRÓPRIO
+        // pagamento (Tier 0). Falha aqui nunca derruba o pagamento: só fica no log.
+        TransactionPayment::saved(function (TransactionPayment $tp) {
+            if ($tp->transaction_id === null || $tp->business_id === null || (int) $tp->is_return === 1) {
+                return;
+            }
+            try {
+                app(SituacaoDaOrdem::class)->liberarPeloSinalDaVenda((int) $tp->business_id, (int) $tp->transaction_id);
+            } catch (\Throwable $e) {
+                Log::warning('producao.sinal: falha ao liberar OS pelo pagamento', ['business_id' => $tp->business_id, 'transaction_id' => $tp->transaction_id, 'erro' => $e->getMessage()]);
+            }
+        });
     }
 
     public function register(): void
     {
         $this->app->register(RouteServiceProvider::class);
+
+        // UC-FLX-33 · US-COMVIS-019: o orçamento da CV guarda o custo da hora de máquina do dia.
+        $this->app->bind(\App\Contracts\Producao\CustoHoraDoPosto::class, \Modules\Producao\Services\CustoHoraDoPostoService::class);
     }
 
     protected function registerConfig(): void

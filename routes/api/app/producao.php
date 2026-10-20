@@ -18,6 +18,8 @@ Route::prefix('producao')->name('producao.')->group(function () {
         ->whereNumber('id')->middleware('throttle:30,1')->name('apontamentos.concluir');
     Route::post('/apontamentos/{id}/corrigir', [AppApontamentoController::class, 'corrigir'])
         ->whereNumber('id')->middleware('throttle:30,1')->name('apontamentos.corrigir');
+    // US-PCP-021 · UC-FLX-37 — material consumido na etapa (baixa pelo lote que saiu).
+    Route::post('/apontamentos/material', [AppApontamentoController::class, 'material'])->middleware('throttle:30,1')->name('apontamentos.material');
     // QR `oimpresso:p:<business_hash>:<os_id>` ou número digitado; throttle contra varredura de números.
     Route::get('/etiqueta/{codigo}', [AppApontamentoController::class, 'etiqueta'])
         ->where('codigo', '[^/]{1,120}')->middleware('throttle:60,1')->name('etiqueta');

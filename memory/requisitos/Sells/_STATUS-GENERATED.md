@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 63 |
+| US no SPEC | 66 |
 | CU no SDD | 6 |
 | Telas (.tsx) | 11 |
 | Telas com `casos.md` | 11 |
-| UC declarados | 120 |
-| UC com teste que os cita | 119 |
+| UC declarados | 136 |
+| UC com teste que os cita | 135 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -112,6 +112,13 @@ authority: generated
 | UC-DRAFT-03 | Drafts | 🧪 aguarda veredito da lane |
 | UC-DRAFT-04 | Drafts | 🧪 aguarda veredito da lane |
 | UC-DRAFT-05 | Drafts | 🧪 aguarda veredito da lane |
+| UC-ENTR-01 | Show | 🧪 aguarda veredito da lane |
+| UC-ENTR-02 | Show | 🧪 aguarda veredito da lane |
+| UC-ENTR-03 | Show | 🧪 aguarda veredito da lane |
+| UC-ENTR-04 | Show | 🧪 aguarda veredito da lane |
+| UC-FLX-04 | Quotations | 🧪 aguarda veredito da lane |
+| UC-FLX-23 | Show | 🧪 aguarda veredito da lane |
+| UC-FLX-25 | Show | 🧪 aguarda veredito da lane |
 | UC-FLX-34 | Show | 🧪 aguarda veredito da lane |
 | UC-FLX-35 | Drafts | 🧪 aguarda veredito da lane |
 | UC-POS-01 | Pos/Index | 🧪 aguarda veredito da lane |
@@ -123,6 +130,10 @@ authority: generated
 | UC-POS-07 | Pos/Index | 🧪 stub (não executa) |
 | UC-POS-08 | Pos/Index | 🧪 stub (não executa) |
 | UC-QUO-01 | Quotations | 🧪 aguarda veredito da lane |
+| UC-QUO-05 | Quotations | 🧪 aguarda veredito da lane |
+| UC-QUO-06 | Quotations | 🧪 aguarda veredito da lane |
+| UC-QUO-07 | Quotations | 🧪 aguarda veredito da lane |
+| UC-QUO-08 | Quotations | 🧪 aguarda veredito da lane |
 | UC-REM-01 | Shipments/Index | 🧪 aguarda veredito da lane |
 | UC-REM-02 | Shipments/Index | 🧪 aguarda veredito da lane |
 | UC-REM-03 | Shipments/Index | 🧪 aguarda veredito da lane |
@@ -226,6 +237,11 @@ authority: generated
 | UC-VSHOW-06 | Show | 🧪 aguarda veredito da lane |
 | UC-VSHOW-07 | Show | 🧪 aguarda veredito da lane |
 | UC-VSHOW-08 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-09 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-10 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-11 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-12 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-13 | Show | 🧪 aguarda veredito da lane |
 
 ---
 

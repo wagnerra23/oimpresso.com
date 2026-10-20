@@ -100,6 +100,9 @@ class CrmServiceProvider extends ServiceProvider
 
         // Implementa o contrato do núcleo da busca de CEP do app das lojas (sobrepõe o vazio).
         $this->app->bind(\App\Contracts\Enderecos\BuscaCep::class, \Modules\Crm\Services\BuscaCepDoApp::class);
+
+        // US-FIN-071 · UC-FLX-29: a régua de cobrança do Financeiro cria a tarefa do vendedor por aqui.
+        $this->app->bind(\App\Contracts\Crm\AgendaDeTarefas::class, \Modules\Crm\Services\AgendaDeTarefasDoCrm::class);
     }
 
     /**

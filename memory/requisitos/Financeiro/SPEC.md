@@ -1982,3 +1982,91 @@ DoD: nota ≥70 + ratchet verde. Backend-only na aparência (tela de auth) — c
 **Não fazer:** regenerar a baseline só pra ficar verde — ADR 0409 (snapshot não decide sozinho) e §5 2026-09-21 (regeneração de baseline aposentada como conserto).
 
 **Critério de pronto:** `Financeiro/Dre` passa no `Pixel-diff núcleo-6` numa run com escopo global, com a causa das duas perguntas acima respondida no PR que resolver. Obs.: em 2026-09-23 o `visual-regression` estava fora da lista de required — o dono dessa resposta é `governance/required-checks-baseline.json`; o vermelho aparece em todo PR afetado.
+
+### US-FIN-070 · Custeio RKW e ponto de equilíbrio no fechamento do mês (UC-FLX-20) — **P2**
+
+> owner: — · priority: p2 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_ — não há rateio de despesas fixas, centro de custo nem cálculo de ponto de equilíbrio; o custo-hora do PCP é digitado à mão por posto.
+
+**Origem:** UC-FLX-20 da tela Fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:73`, estágio "Fechamento do mês", referências Holdprint e Zênite, porte média, marcado `sem`). Medido em 2026-10-20 — o que existe é só o **insumo**, não o processo:
+- `Modules/Producao/Database/Migrations/2026_10_15_000001_create_pcp_fundo_tables.php:44` — `pcp_postos.custo_hora`, preenchido à mão em `Modules/Producao/Http/Controllers/PostosController.php:93`; `pcp_colaborador_custos.custo_hora` em `ColaboradorCustoController.php:26`.
+- `Modules/Producao/Services/CustoRealService.php:12` — custo real da OS = horas × custo-hora + material + terceiros; usa o custo-hora copiado no apontamento (`ApontamentoService.php:63`), sem parcela de despesa fixa.
+- `Modules/Financeiro/Database/Migrations/2026_04_24_140001_create_fin_planos_conta_table.php:24` — o plano de contas só distingue `natureza` débito/crédito; `dre_linha` (migration `2026_09_23_150000`) agrupa para o DRE. Não há marca de despesa fixa × variável.
+- `git grep -iE "centro_custo|cost_center|ponto_equilibrio|rateio"` em `Modules/Financeiro` + `Modules/Producao` → zero ocorrências de código.
+
+Falta: classificar conta como fixa/variável, cadastrar centro de custo (posto/setor), rodar o fechamento do mês que soma as despesas fixas pagas/competência e rateia por centro (base: horas apontadas), propor o custo-hora novo do posto e calcular o ponto de equilíbrio do mês.
+
+**Aceite:**
+- [ ] Conta do plano de contas aceita a classificação fixa/variável e o centro de custo; contas antigas ficam sem classificação até alguém marcar (sem backfill automático).
+- [ ] Fechamento do mês (comando ou ação na tela, por `business_id`) rateia as despesas fixas do mês pelos centros de custo proporcional às horas apontadas e mostra antes→depois do custo-hora de cada posto; aplicar o novo custo-hora exige confirmação e não reescreve apontamentos já fechados.
+- [ ] Ponto de equilíbrio do mês = despesas fixas ÷ margem de contribuição %, exibido no fechamento; sem margem positiva mostra aviso em vez de número.
+- [ ] Multi-tenant: fechamento só lê `fin_titulos`/apontamentos do próprio `business_id`; fechamento de outro business → 404. Teste com dois tenants.
+- [ ] Permissão: só quem tem `producao.desempenho.ver` (custo-hora) **e** acesso ao Financeiro roda/vê o fechamento; sem permissão → 403.
+
+### US-FIN-071 · Régua de cobrança do título vencido D+1/D+5/D+15 (UC-FLX-29) — **P2**
+
+> owner: — · priority: p2 · estimate: 6h · status: doing · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_ — parcial em 2026-10-20: o job diário da régua (ReguaCobrancaJob + comando financeiro:regua-cobranca, e-mail D+1/D+5/D+15, tarefa na última etapa, desligada por padrão) está no módulo; falta WhatsApp, o estado "em cobrança" no título e a tela de configuração com permissão. A âncora vira path quando a US fechar (ADR 0273 + doneness-lint: status aberto com âncora viva é conflito).
+
+**Origem:** UC-FLX-29 da tela Fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:81`, transição "Vencido → Em cobrança", marcado `verificar`). Medido em 2026-10-20:
+- `app/Console/Commands/AutoSendPaymentReminder.php:85-128` — só transações de venda, 1 envio, sem D+1/D+5/D+15; WhatsApp é TODO. Agendado em `app/Console/Kernel.php:39` só no ambiente live.
+- `Modules/RecurringBilling/Http/Controllers/ConfiguracoesController.php:18,45-72` — +3/+7/+15 hardcoded, só exibição (`rb_dunning_rules` "para depois"). A régua de assinatura é US-RB-030/US-RB-031 (fatura recorrente que falha); esta US cobre o **título** vencido do Financeiro, qualquer origem.
+- `Modules/Financeiro/Console/Commands/FinanceiroHealthCommand.php:181-218` — só detecta vencidos.
+- Evento `CobrancaVencida` tem listener apenas no Superadmin (`Modules/Superadmin/Providers/SuperadminServiceProvider.php:158`); `app/Domain/Fsm/Modelos/CatalogoProcessos.php:104` marca `nao`.
+
+**Aceite:**
+- [ ] Título a receber vencido passa a "em cobrança" (estado no título, não só filtro de data) e sai dele ao ser quitado ou cancelado.
+- [x] Job agendado diário sobre `fin_titulos` envia o lembrete em D+1, D+5 e D+15 (dias configuráveis por business, padrão 1/5/15), no máximo um envio por etapa — rodar duas vezes no mesmo dia não duplica. _(`ReguaCobrancaJob` + `financeiro:regua-cobranca` 09:00; idempotência pelo UNIQUE de `fin_titulo_lembretes`; dias em `business.common_settings['financeiro_regua_cobranca']`, régua **desligada por padrão** — UC-CRREG-01/02/05)_
+- [ ] Envio por e-mail/WhatsApp respeita o opt-in LGPD (`Contact::canReceiveEmailNotification()` / `canReceiveWhatsappNotification()`): opt-out registra "não enviado" com motivo e não envia. _(e-mail feito — UC-CRREG-03; **WhatsApp é follow-up**)_
+- [x] Na etapa D+15 (ou a configurada como última) cria tarefa para o vendedor do título; sem vendedor, para o responsável financeiro do business. _(tarefa no follow-up do CRM pelo contrato `App\Contracts\Crm\AgendaDeTarefas` — sem o Crm ligado, sem tarefa, UC-CRREG-07; vendedor = comissionado da venda de origem, senão quem lançou; sem venda → dono do business — UC-CRREG-04)_
+- [ ] Multi-tenant: job recebe `$businessId` no constructor e só toca títulos daquele business; regra/histórico de outro business → 404. Teste com dois tenants. _(job feito e testado com 98 × 99 — UC-CRREG-06; o 404 depende da tela de regra/histórico, follow-up)_
+- [ ] Permissão: configurar a régua exige permissão do Financeiro (ex. `financeiro.contas_receber.*`); sem ela → 403.
+
+### US-FIN-072 · ISS retido ajusta o título para o valor líquido na autorização da NFS-e (UC-FLX-30) — **P2**
+
+> owner: — · priority: p2 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_ — a NFS-e grava as retenções, mas o Financeiro nunca lê a NFS-e; o título segue cobrando o valor bruto.
+
+**Origem:** UC-FLX-30 da tela Fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:82`, estágio "NFS-e Autorizada", marcado `verificar`). Medido em 2026-10-20:
+- `Modules/NfeBrasil/Services/RetencoesNfseService.php:84` — calcula PIS/COFINS/CSLL retidos.
+- `Modules/NFSe/Services/NfseEmissaoService.php:200-205` — grava `iss_retido` (só flag) + `valor_ret_*` em `nfse_emissoes`, com `transaction_id`.
+- `app/Domain/Fsm/Modelos/CatalogoProcessos.php:94` — Financeiro não lê NFS-e.
+
+Falta: listener na autorização que ache o título via `transaction_id` e o ajuste para o líquido; valor do ISS retido (hoje só flag); IR/INSS retidos; estorno no cancelamento; exibir bruto, retenções e líquido.
+
+⚠️ **REGRA MESTRE — CÁLCULO DE VALOR** ([proibicoes.md](../../proibicoes.md)): esta US mexe em valor de título.
+
+**Aceite:**
+- [ ] NFS-e autorizada com retenção → o título aberto da mesma `transaction_id` passa a cobrar bruto − (ISS + PIS + COFINS + CSLL + IR + INSS retidos); o bruto e cada retenção ficam gravados no título. Título já com baixa parcial: o ajuste incide só sobre o `valor_aberto`, nunca deixa saldo negativo.
+- [ ] `nfse_emissoes` passa a guardar o **valor** do ISS retido (não só o flag) e de IR/INSS quando houver.
+- [ ] Cancelamento da NFS-e estorna o ajuste (título volta ao bruto) e registra no histórico do título; reprocessar a mesma autorização não aplica o desconto duas vezes.
+- [ ] Dupla confirmação do cálculo: o líquido é provado por dois caminhos independentes (teste com números concretos + recálculo a partir de `nfse_emissoes`) e, para os títulos já existentes, um dry-run por business mostra antes→depois de cada título afetado; só aplica após aprovação [W].
+- [ ] Multi-tenant: listener só ajusta título do mesmo `business_id` da NFS-e; título/NFS-e de outro business → 404 e não é tocado. Teste com dois tenants.
+- [ ] Tela do título mostra bruto, retenções e líquido para quem tem acesso ao Financeiro; sem permissão → 403.
+
+### US-FIN-073 · Aberto do título de venda/compra parcial sobrevive à re-sincronização — **P1**
+
+> owner: — · priority: p1 · estimate: 4h · status: done · type: bug
+> blocked_by: —
+
+**Implementado em:** `Modules/Financeiro/Services/TituloAutoService.php` (`sincronizarDeTransacao` + `abertoPorBaixas`), `Modules/Financeiro/Console/Commands/ResyncFromCoreCommand.php` (modo `--aberto`), `Modules/Financeiro/Tests/Feature/AbertoVendaParcialContratoTest.php`
+
+**Testado em:** `Modules/Financeiro/Tests/Feature/AbertoVendaParcialContratoTest.php`
+
+**Origem:** achado no PR #9638 (US-FIN-072, ISS retido como baixa), que consertou só os títulos com retenção. Medido em 2026-10-20: `sincronizarDeTransacao` calculava o aberto de venda/compra como `$tx->total_remaining_amount ?? $tx->final_total`, e a coluna `transactions.total_remaining_amount` não existe (`BridgeExpenseToTitulosCommand.php:30`). O core grava o `payment_status` com `save()` depois de cada pagamento (`TransactionUtil::updatePaymentStatus`), o `TransactionObserver` re-sincroniza e o aberto volta ao bruto, com status "aberto" — os pagamentos já baixados no título somem do saldo. Venda paga no caixa continuar cancelando o título é o comportamento documentado e fica fora.
+
+⚠️ **REGRA MESTRE — CÁLCULO DE VALOR** ([proibicoes.md](../../proibicoes.md)): esta US muda o valor em aberto de título.
+
+**Aceite:**
+- [x] Re-sincronização de título de venda/compra calcula o aberto como bruto − Σ baixas do próprio título (a mesma conta do `recalcularTitulo`, uma função só); venda de 1.000,00 com 400,00 pago fica 600,00 "parcial" (UC-CRAB-01), compra de 500,00 com 200,00 pago fica 300,00 (UC-CRAB-02). Provado por dois caminhos: soma das baixas e `final_total − Σ transaction_payments`.
+- [x] Despesa (`expense`) mantém a regra da Fase 5.5 — fora deste conserto.
+- [x] `financeiro:resync-from-core --business=N --aberto` lista, sem gravar, os títulos de venda/compra parcial com aberto atual → aberto correto, o aberto pelo core ao lado e o aviso "baixas ≠ core" onde os dois discordam; `--aberto --apply` é recusado (UC-CRAB-03). Escopo de um business (UC-CRAB-04).
+
+**Fora desta US:** nenhum título existente muda no deploy — o fix vale nas próximas re-sincronizações. Corrigir os já gravados é decisão [W] depois de ver o `--aberto` rodado em produção, por business.
+

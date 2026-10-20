@@ -170,6 +170,10 @@ class OrcamentoCalculator
             'area_m2'          => $areaMeta,
             'preco_unitario_m2' => $precoUnitario,
             'subtotal'         => $subtotalItem,
+            // UC-FLX-33: só repassados para o custo previsto (OrcamentoGravador). Não entram no
+            // preço, no subtotal nem no total do cliente.
+            'posto_id'         => isset($item['posto_id']) ? (int) $item['posto_id'] : null,
+            'horas_maquina'    => isset($item['horas_maquina']) ? round((float) $item['horas_maquina'], 2, PHP_ROUND_HALF_UP) : null,
         ];
     }
 

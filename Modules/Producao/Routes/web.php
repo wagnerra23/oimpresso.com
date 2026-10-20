@@ -1,11 +1,14 @@
 <?php
 
 use Modules\Producao\Http\Controllers\ApontamentoController;
+use Modules\Producao\Http\Controllers\AproveitamentoMidiaController;
 use Modules\Producao\Http\Controllers\ColaboradorCustoController;
 use Modules\Producao\Http\Controllers\EtiquetaOsController;
 use Modules\Producao\Http\Controllers\FerramentasController;
 use Modules\Producao\Http\Controllers\InstallController;
+use Modules\Producao\Http\Controllers\OrdemCustoController;
 use Modules\Producao\Http\Controllers\PostosController;
+use Modules\Producao\Http\Controllers\RomaneioController;
 use Modules\Producao\Http\Controllers\RoteirosController;
 
 /*
@@ -37,6 +40,8 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::post('{inicio}/pausar', [ApontamentoController::class, 'pausar'])->whereNumber('inicio')->name('pausar');
         Route::post('{inicio}/concluir', [ApontamentoController::class, 'concluir'])->whereNumber('inicio')->name('concluir');
         Route::post('{inicio}/corrigir', [ApontamentoController::class, 'corrigir'])->whereNumber('inicio')->name('corrigir');
+        // US-PCP-021 · UC-FLX-37 — material consumido na etapa (baixa pelo lote que saiu).
+        Route::post('material', [ApontamentoController::class, 'material'])->name('material');
     });
 
 // ── Thread 03 + E03 · cadastros (postos, motivos, roteiros, ferramentas, custo-hora) ──
@@ -48,6 +53,7 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('roteiros', [RoteirosController::class, 'index'])->name('roteiros.index');
         Route::post('roteiros', [RoteirosController::class, 'store'])->name('roteiros.store');
         Route::put('roteiros/{id}', [RoteirosController::class, 'update'])->whereNumber('id')->name('roteiros.update');
+        Route::put('roteiros/{id}/produtos', [RoteirosController::class, 'produtos'])->whereNumber('id')->name('roteiros.produtos');
 
         Route::get('postos', [PostosController::class, 'index'])->name('postos.index');
         Route::post('postos', [PostosController::class, 'store'])->name('postos.store');
@@ -66,4 +72,25 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
     ->name('producao.')
     ->group(function () {
         Route::get('os/{id}/etiqueta', [EtiquetaOsController::class, 'show'])->whereNumber('id')->name('os.etiqueta');
+        // US-PCP-022 · UC-FLX-36 — custo da abertura × hoje da OS por item em andamento (JSON, gestor).
+        Route::get('ordens/{id}/custo', [OrdemCustoController::class, 'show'])->whereNumber('id')->name('ordens.custo');
+    });
+
+// ── US-PCP-023 · UC-FLX-12 · romaneio de impressão peça a peça (JSON; a tela é follow-up) ──
+Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
+    ->prefix('producao')
+    ->name('producao.')
+    ->group(function () {
+        Route::post('os/{id}/romaneio', [RomaneioController::class, 'store'])->whereNumber('id')->name('os.romaneio.store');
+        Route::get('romaneios/{id}', [RomaneioController::class, 'show'])->whereNumber('id')->name('romaneios.show');
+    });
+
+// ── US-PCP-024 · UC-FLX-13 · aproveitamento de mídia na bobina (JSON; a tela é follow-up) ──
+Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
+    ->prefix('producao')
+    ->name('producao.')
+    ->group(function () {
+        Route::put('bobinas/{material}', [AproveitamentoMidiaController::class, 'bobina'])->whereNumber('material')->name('bobinas.update');
+        Route::post('aproveitamento/simular', [AproveitamentoMidiaController::class, 'simular'])->name('aproveitamento.simular');
+        Route::post('aproveitamento', [AproveitamentoMidiaController::class, 'aceitar'])->name('aproveitamento.aceitar');
     });

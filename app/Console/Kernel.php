@@ -25,6 +25,13 @@ class Kernel extends ConsoleKernel
             ->dailyAt('04:00')
             ->withoutOverlapping();
 
+        // US-SELL-070 · UC-FLX-04 — orçamento enviado há 48 h sem abertura do link vira tarefa de
+        // retorno do vendedor (crm_schedules). Um QuoteFollowUpJob por empresa, com o business_id;
+        // --sync porque não depende de worker de fila. Idempotente (rodar de novo não duplica).
+        $schedule->command('sells:quote-follow-up --sync')
+            ->dailyAt('08:15')
+            ->withoutOverlapping();
+
         if ($env === 'live') {
             //Scheduling backup, specify the time when the backup will get cleaned & time when it will run.
             
@@ -370,6 +377,15 @@ class Kernel extends ConsoleKernel
                     'Schedule sells:smoke-daily FALHOU — investigar Cowork drift'
                 );
             });
+
+        // US-SELL-071 · UC-FLX-25 — pesquisa de satisfação 2 dias depois da entrega (CSAT do
+        // WhatsApp ou e-mail, respeitando o opt-in LGPD); nota baixa abre atendimento no CRM.
+        // Um job por empresa que ligou (default desligado), com o business_id; --sync porque não
+        // depende de worker. Idempotente (uma pesquisa por venda).
+        $schedule->command('sells:pesquisa-entrega --sync')
+            ->dailyAt('10:00')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping();
 
         // Ciclo diário de governança [CC]×Jana (ADVISORY — orquestra checks que já
         // existem; não cria daemon, não numera ADR, não auto-mergeia Tier 0).

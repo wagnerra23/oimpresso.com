@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 811,
-    "edges": 1110,
+    "nodes": 821,
+    "edges": 1120,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 433,
+      "component": 443,
       "api": 84
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 88,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 433,
+      "hasComponent": 443,
       "dependsOn": 123,
       "delegatesTo": 114,
       "migratesTo": 1,
@@ -1914,11 +1914,25 @@
       "desc": ""
     },
     {
+      "id": "component:Compras/compras_insumo_metodo_custo",
+      "type": "component",
+      "module": "Compras",
+      "name": "compras_insumo_metodo_custo",
+      "desc": "tabela-ponte (business_id, variation_id) com o método próprio do insumo (medio | ultimo), lida quando a regra é por_insumo; variations do core não ganha coluna"
+    },
+    {
       "id": "component:Compras/ComprasController",
       "type": "component",
       "module": "Compras",
       "name": "ComprasController",
       "desc": ""
+    },
+    {
+      "id": "component:Compras/CustoDoInsumoService",
+      "type": "component",
+      "module": "Compras",
+      "name": "CustoDoInsumoService",
+      "desc": "custo do insumo numa data pelo método da regra da empresa (US-COM-024 · UC-FLX-38); só lê purchase_lines + transactions"
     },
     {
       "id": "component:Compras/DataController",
@@ -1984,6 +1998,13 @@
       "desc": ""
     },
     {
+      "id": "component:ComunicacaoVisual/Entities/OsItem",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "Entities/OsItem",
+      "desc": "itens da OS copiados do orçamento, UC-FLX-01)"
+    },
+    {
       "id": "component:ComunicacaoVisual/Entities/Substrato",
       "type": "component",
       "module": "ComunicacaoVisual",
@@ -2010,6 +2031,13 @@
       "module": "ComunicacaoVisual",
       "name": "OrcamentoController",
       "desc": ""
+    },
+    {
+      "id": "component:ComunicacaoVisual/Services/OrcamentoViraOs",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "Services/OrcamentoViraOs",
+      "desc": "US-COMVIS-020 · UC-FLX-01)"
     },
     {
       "id": "component:Connector/Api/ApiController",
@@ -2719,11 +2747,32 @@
       "desc": "Onda 18 tela /plano-contas dedicada + Fluxo fallback sem conta"
     },
     {
+      "id": "component:Financeiro/ReguaCobrancaJob + comando financeiro:regua-cobranca",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "ReguaCobrancaJob + comando financeiro:regua-cobranca",
+      "desc": "US-FIN-071 · UC-FLX-29 régua de cobrança do título vencido (e-mail D+1/D+5/D+15 com opt-in LGPD, histórico idempotente em fin_titulo_lembretes, tarefa na última etapa pelo contrato AgendaDeTarefas de app/Contracts/Crm, implementado no Crm); desligada por padrão em business.common_settings"
+    },
+    {
       "id": "component:Financeiro/RelatoriosController",
       "type": "component",
       "module": "Financeiro",
       "name": "RelatoriosController",
       "desc": ""
+    },
+    {
+      "id": "component:Financeiro/ResyncFromCoreCommand",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "ResyncFromCoreCommand",
+      "desc": "financeiro:resync-from-core re-espelha valor_total inflado (num_uf) com --apply; modo --aberto só leitura lista títulos parciais com aberto divergente das baixas (US-FIN-073)"
+    },
+    {
+      "id": "component:Financeiro/TituloAutoService",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "TituloAutoService",
+      "desc": "espelha venda/compra/despesa em fin_titulos (Observers de transactions e transaction_payments); aberto de venda/compra = bruto − baixas do título (US-FIN-073)"
     },
     {
       "id": "component:Financeiro/UnificadoController",
@@ -4098,11 +4147,25 @@
       "desc": "celular do operador (PWA, thread 04): /producao/apontamento, escritas em JSON para a fila offline; a regra mora no ApontamentoOperadorService"
     },
     {
+      "id": "component:Producao/AproveitamentoMidiaController + AproveitamentoDeMidia",
+      "type": "component",
+      "module": "Producao",
+      "name": "AproveitamentoMidiaController + AproveitamentoDeMidia",
+      "desc": "simulador de aproveitamento de mídia na bobina (US-PCP-024 · UC-FLX-13): pcp_bobinas (largura útil, margem, giro por mídia), arranjo em faixas com metros, perda e o uma a uma; aceitar grava pcp_arranjos + pcp_arranjo_os (consumo previsto por OS, rateio pela área) e gera o romaneio de cada OS; simular com producao.access, aceitar com o papel producao.liberar, JSON"
+    },
+    {
       "id": "component:Producao/ColaboradorCustoController",
       "type": "component",
       "module": "Producao",
       "name": "ColaboradorCustoController",
       "desc": "custo-hora da pessoa, só com producao.desempenho.ver (E03)"
+    },
+    {
+      "id": "component:Producao/ConsumoMaterialService",
+      "type": "component",
+      "module": "Producao",
+      "name": "ConsumoMaterialService",
+      "desc": "material apontado na etapa da OS por item (US-PCP-021 · UC-FLX-37): baixa o estoque do local da venda por uma production_sell por apontamento, custo do lote que saiu, em pcp_consumos; o CustoRealService soma no congelado"
     },
     {
       "id": "component:Producao/DataController",
@@ -4147,6 +4210,13 @@
       "desc": "OS por item que nasce do pedido nos modelos de fluxo; situação no motor FSM pelo ProcessoDaOrdem (ADR 0436)"
     },
     {
+      "id": "component:Producao/OrdemCustoController + PrevisaoCustoDaOrdem",
+      "type": "component",
+      "module": "Producao",
+      "name": "OrdemCustoController + PrevisaoCustoDaOrdem",
+      "desc": "custo da OS aberta: abertura × hoje dos insumos apontados e a previsão pela regra ops da compra (congela | vivo), JSON só com producao.desempenho.ver (US-PCP-022 · UC-FLX-36)"
+    },
+    {
       "id": "component:Producao/PostosController",
       "type": "component",
       "module": "Producao",
@@ -4154,11 +4224,25 @@
       "desc": "postos, máquinas e veículos, com os motivos de pausa e de refugo do posto (UC-PCV-33, E03)"
     },
     {
+      "id": "component:Producao/RomaneioController + RomaneioDeImpressao",
+      "type": "component",
+      "module": "Producao",
+      "name": "RomaneioController + RomaneioDeImpressao",
+      "desc": "romaneio de impressão peça a peça da OS de comunicação visual (US-PCP-023 · UC-FLX-12): pcp_romaneios + pcp_romaneio_linhas, cópia imutável dos itens do orçamento por versão; gerar com o papel producao.liberar, ler com producao.access, JSON"
+    },
+    {
       "id": "component:Producao/RoteirosController",
       "type": "component",
       "module": "Producao",
       "name": "RoteirosController",
-      "desc": "roteiros por família, até 2 trilhas com junção nomeada (UC-PCV-13, thread 03)"
+      "desc": "roteiros por família, até 2 trilhas com junção nomeada (UC-PCV-13, thread 03), e os produtos ligados ao roteiro (US-PCP-026, UC-FLX-07)"
+    },
+    {
+      "id": "component:Producao/SinalDaOrdem",
+      "type": "component",
+      "module": "Producao",
+      "name": "SinalDaOrdem",
+      "desc": "regra 'produção só libera com o sinal pago' (US-PCP-025 · UC-FLX-28): o Liberar recusa abaixo do % mínimo da empresa e o pagamento gravado na venda libera a OS sozinho (liberar_pelo_sinal); só LÊ valor"
     },
     {
       "id": "component:ProductCatalogue/DataController",
@@ -7775,7 +7859,19 @@
     },
     {
       "from": "module:Compras",
+      "to": "component:Compras/compras_insumo_metodo_custo",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
       "to": "component:Compras/ComprasController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/CustoDoInsumoService",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -7893,6 +7989,12 @@
     },
     {
       "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/Entities/OsItem",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/Entities/Substrato",
       "type": "hasComponent",
       "source": "contains"
@@ -7912,6 +8014,12 @@
     {
       "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/OrcamentoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/Services/OrcamentoViraOs",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8855,7 +8963,25 @@
     },
     {
       "from": "module:Financeiro",
+      "to": "component:Financeiro/ReguaCobrancaJob + comando financeiro:regua-cobranca",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
       "to": "component:Financeiro/RelatoriosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "component:Financeiro/ResyncFromCoreCommand",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "component:Financeiro/TituloAutoService",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -12134,7 +12260,19 @@
     },
     {
       "from": "module:Producao",
+      "to": "component:Producao/AproveitamentoMidiaController + AproveitamentoDeMidia",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
       "to": "component:Producao/ColaboradorCustoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/ConsumoMaterialService",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -12176,13 +12314,31 @@
     },
     {
       "from": "module:Producao",
+      "to": "component:Producao/OrdemCustoController + PrevisaoCustoDaOrdem",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
       "to": "component:Producao/PostosController",
       "type": "hasComponent",
       "source": "contains"
     },
     {
       "from": "module:Producao",
+      "to": "component:Producao/RomaneioController + RomaneioDeImpressao",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
       "to": "component:Producao/RoteirosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/SinalDaOrdem",
       "type": "hasComponent",
       "source": "contains"
     },

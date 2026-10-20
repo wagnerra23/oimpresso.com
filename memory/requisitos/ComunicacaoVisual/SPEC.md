@@ -121,6 +121,8 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 
 **Implementado em:** _pendente_ — migration `cv_ordens_producao` + Entity `OrdemProducao` existem, mas Kanban PCP (OsController + Page Inertia + drag-drop) não construído
 
+> A entrada da OS (orçamento aprovado vira OS com itens, medidas e arquivos — UC-FLX-01) está na US-COMVIS-020. Aqui fica o Kanban de etapas.
+
 **Como** PCP/produção
 **Quero** ver Kanban com colunas Design → Prepress → Impressão → Acabamento → Instalação → Entregue
 **Para** saber onde cada OS está + prazo + responsável
@@ -1187,22 +1189,58 @@ Job lê `commission_distribution_json`, calcula valores, cria lançamentos `comi
 
 > owner: wagner · priority: p1 · estimate: 2h · type: story
 
-**Implementado em:** `Modules/ComunicacaoVisual/Services/OrcamentoGravador.php` · `Modules/ComunicacaoVisual/Database/Migrations/2026_10_19_210000_add_custo_previsto_to_comvis_orcamento_itens.php`
+**Implementado em:** `Modules/ComunicacaoVisual/Services/OrcamentoGravador.php` · `Modules/ComunicacaoVisual/Database/Migrations/2026_10_19_210000_add_custo_previsto_to_comvis_orcamento_itens.php` · `Modules/ComunicacaoVisual/Database/Migrations/2026_10_20_100000_add_custo_maquina_previsto_to_comvis_orcamento_itens.php` · `app/Contracts/Producao/CustoHoraDoPosto.php` · `Modules/Producao/Services/CustoHoraDoPostoService.php`
 
-**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCustoPrevistoTest.php` (lane `verticais-pest.yml`).
+**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCustoPrevistoTest.php` · `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCustoMaquinaPrevistoTest.php` (lane `verticais-pest.yml`).
 
 Como quem orça comunicação visual, quero que cada item guarde o custo do material no dia do orçamento, porque o que se negocia não é o que se emprega na produção e o cadastro do material não tem histórico.
 
 - Custo do m² lido de `comvis_materiais.preco_custo_m2` na gravação, filtrado pelo `business_id` explícito.
 - Custo do item = área × custo do m², arredondado a 2 casas.
 - Custo zero no cadastro conta como não informado.
+- Hora de máquina (2026-10-20): o item pode informar `posto_id` (posto do PCP da mesma empresa) e `horas_maquina`. Na gravação, o custo da hora vem de `pcp_postos.custo_hora` pela interface `App\Contracts\Producao\CustoHoraDoPosto` (só posto `tipo_custo = maquina`, custo > 0, `business_id` explícito); custo da máquina = horas × custo da hora, 2 casas. Sem o módulo Producao a interface não está ligada e o item segue sem custo de máquina.
+- Tinta e instalação seguem sem custo previsto: não há fonte de custo cadastrada para elas hoje.
 
 **Aceite:**
 - [x] Item com material grava `custo_previsto_m2`, `custo_previsto` e `custo_previsto_em`
 - [x] Item sem material, material sem custo ou de outra empresa fica sem custo
 - [x] Mudar o custo no cadastro depois não altera o orçamento gravado
 - [x] Preço, subtotal e total do orçamento não mudam
+- [x] Item com posto de máquina e horas grava `custo_hora_previsto` e `custo_maquina_previsto` do dia; posto de pessoa, sem custo ou de outra empresa fica sem custo; mudar o custo da hora depois não altera o orçamento
+- [ ] Custo previsto de tinta e de instalação (sem fonte de custo hoje)
 - [ ] Ligar o material da CV ao produto do estoque, para usar o custo das compras (US-COM-024)
+
+
+---
+
+### US-COMVIS-020 · Orçamento aprovado vira OS sem redigitar (UC-FLX-01) — **P0**
+
+> owner: wagner · priority: p0 · estimate: 3h · type: story
+
+**Implementado em:** `Modules/ComunicacaoVisual/Services/OrcamentoViraOs.php` · `Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php` · `Modules/ComunicacaoVisual/Entities/OsItem.php` · `Modules/ComunicacaoVisual/Database/Migrations/2026_10_20_200000_create_comvis_os_itens_table.php`
+
+**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoViraOsContratoTest.php` (lane `verticais-pest.yml`).
+
+> Contrato: `UC-CVOS-01..07` do `resources/js/Pages/ComunicacaoVisual/Index.casos.md`. Parte da US-COMVIS-003 (PCP gráfico): esta US entrega a entrada da OS; o Kanban de etapas segue na 003.
+
+Como quem vende comunicação visual, quero que aprovar o orçamento crie a OS com os itens, as medidas e os arquivos dele, para a produção não redigitar nada.
+
+- `POST /comunicacao-visual/api/orcamentos/{id}/aprovar` marca o orçamento `aprovado` e cria a OS (`comvis_os`, etapa `arte`, número `OS-AAAA-NNNNN` por empresa).
+- Um item da OS (`comvis_os_itens`) por item do orçamento: descrição, material, largura, altura, quantidade, área e observação.
+- Os arquivos anexados ao orçamento (`media` do core) passam a apontar também para a OS, com o mesmo arquivo.
+- O valor da OS é o `total` do orçamento; nenhum preço é recalculado e o orçamento não muda de valor.
+- Aprovar de novo devolve a mesma OS (200) sem duplicar itens nem arquivos; recusado ou expirado não vira OS (422).
+- Permissão `comvis.orcamento.create` (ou superadmin); orçamento de outra empresa responde 404.
+- Na venda do core o mesmo caso já existia: `Modules/Producao/Services/CriarOsDaVenda.php` cria a OS por item quando a venda de um modelo entra em "Aprovado" (ADR 0436).
+
+**Aceite:**
+- [x] Aprovar cria a OS com os itens e as medidas do orçamento
+- [x] O valor da OS é o total do orçamento e o orçamento não muda de valor
+- [x] Aprovar de novo não duplica OS, itens nem arquivos
+- [x] Os arquivos do orçamento passam para a OS, só os da empresa
+- [x] Outra empresa não aprova nem gera OS; recusado não vira OS; sem permissão é recusado
+- [ ] Botão "Aprovar" na tela (hoje nenhuma tela salva nem lista orçamentos — ver backlog do `Index.casos.md`)
+- [ ] Upload de arquivo no orçamento (o orçamento não tem tela de anexos; a cópia cobre o que for anexado pelo `media` do core)
 
 ---
 
