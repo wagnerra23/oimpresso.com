@@ -805,7 +805,7 @@ function rastroDosCasos(): array
     );
 
     return (new App\Services\Documentacao\RastroDosCasos)
-        ->paraCasos($casos, ['spec', 'casos'], 'https://github.com/wagnerra23/oimpresso.com/blob/main/');
+        ->paraCasos($casos, fn (array $paths): array => [], 'https://github.com/wagnerra23/oimpresso.com/blob/main/');
 }
 
 it('UC-CASOS-04 · a US do caso leva ao SPEC onde ela mora, derivado da árvore', function () {

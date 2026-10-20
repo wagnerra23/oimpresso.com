@@ -43,8 +43,9 @@ A prop deferred `artefatos` sai de `App\Services\Documentacao\RastroDosCasos`:
 - **Caso → `.casos.md`:** varre `resources/js/Pages/**` e `Modules/*/Resources/js/Pages/**` atrás do
   id do caso. Arquivo que **declara** casos próprios com o prefixo `UC-FLX-` (título de seção
   começando pelo id) fica de fora — é colisão de nome, não citação.
-- **Link:** `/documentacao/<slug>` quando o arquivo está em `mcp_memory_documents` (lookup por
-  `git_path`, mesmo filtro de acesso da rota de documento); senão o arquivo no GitHub. Os `.casos.md`
+- **Link:** `/documentacao/<slug>` quando o arquivo está em `mcp_memory_documents` (o controller
+  faz o lookup por `git_path` com a mesma `consultaBase()` da rota de documento e entrega o mapa
+  pronto ao service, que assim não depende de `Modules/`); senão o arquivo no GitHub. Os `.casos.md`
   de `Modules/*` caem no GitHub porque o indexador só lê `resources/js/Pages`.
 - Varredura em cache de 10 minutos (`doc:rastro:specs`, `doc:rastro:casos`).
 

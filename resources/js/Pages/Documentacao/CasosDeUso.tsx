@@ -6,6 +6,7 @@
 // Os links para SPEC e `.casos.md` chegam em `artefatos` (deferred), derivados da árvore do repo
 // por RastroDosCasos — a tela só troca o id da US pelo link que veio do servidor.
 import { useMemo, useState, type ReactNode } from 'react';
+import { Deferred } from '@inertiajs/react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { PageHeader } from '@/Components/PageHeader';
 import { Inline } from '@/Components/layout';
@@ -105,6 +106,56 @@ function TextoUs({ texto, rastro }: { texto: string; rastro?: Rastro }) {
   );
 }
 
+/** A tabela de casos. Sem `artefatos` (ainda chegando), a US é texto e "Documentado em" mostra `…`. */
+function TabelaCasos({ visiveis, artefatos }: { visiveis: Caso[]; artefatos?: Record<string, Rastro> }) {
+  return (
+    <div className="overflow-x-auto" data-contract="casos-tabela">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b text-left text-xs text-muted-foreground">
+            <th className="py-2 pr-3">Caso</th>
+            <th className="py-2 pr-3">Processo · etapa</th>
+            <th className="py-2 pr-3">Regra</th>
+            <th className="py-2 pr-3">Estado</th>
+            <th className="py-2 pr-3">US</th>
+            <th className="py-2">Documentado em</th>
+          </tr>
+        </thead>
+        <tbody>
+          {visiveis.map((c) => (
+            <tr key={c.id} className="border-b align-top" data-caso={c.id}>
+              <td className="py-2 pr-3">
+                <div className="font-mono text-xs text-muted-foreground">{c.id}</div>
+                <div className="font-medium">{c.titulo}</div>
+              </td>
+              <td className="py-2 pr-3 whitespace-nowrap">{c.processo} · {c.etapa}</td>
+              <td className="py-2 pr-3">{c.regra}</td>
+              <td className="py-2 pr-3 whitespace-nowrap">
+                <Badge variant={VARIANTE[c.estadoTom] ?? 'neutral'}>{c.estadoRotulo}</Badge>
+              </td>
+              <td className="py-2 pr-3 text-xs" data-contract="caso-us"><TextoUs texto={c.us} rastro={artefatos?.[c.id]} /></td>
+              <td className="py-2 text-xs" data-contract="caso-documentado">
+                {artefatos === undefined ? (
+                  '…'
+                ) : (artefatos[c.id]?.documentado ?? []).length === 0 ? (
+                  '—'
+                ) : (
+                  (artefatos[c.id]?.documentado ?? []).map((d) => (
+                    <div key={d.path}><LinkArtefato a={d} /></div>
+                  ))
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {visiveis.length === 0 ? (
+        <p className="py-6 text-center text-sm text-muted-foreground">Nenhum caso com esses filtros.</p>
+      ) : null}
+    </div>
+  );
+}
+
 export default function CasosDeUso({ casos, artefatos, processos, estados, fonte, blob, buscaDisponivel, nav, atual, escopo }: Props) {
   const [processo, setProcesso] = useState<string>(TODOS);
   const [estado, setEstado] = useState<string>(TODOS);
@@ -162,50 +213,10 @@ export default function CasosDeUso({ casos, artefatos, processos, estados, fonte
               </Inline>
             </div>
 
-            <div className="overflow-x-auto" data-contract="casos-tabela">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-left text-xs text-muted-foreground">
-                    <th className="py-2 pr-3">Caso</th>
-                    <th className="py-2 pr-3">Processo · etapa</th>
-                    <th className="py-2 pr-3">Regra</th>
-                    <th className="py-2 pr-3">Estado</th>
-                    <th className="py-2 pr-3">US</th>
-                    <th className="py-2">Documentado em</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {visiveis.map((c) => (
-                    <tr key={c.id} className="border-b align-top" data-caso={c.id}>
-                      <td className="py-2 pr-3">
-                        <div className="font-mono text-xs text-muted-foreground">{c.id}</div>
-                        <div className="font-medium">{c.titulo}</div>
-                      </td>
-                      <td className="py-2 pr-3 whitespace-nowrap">{c.processo} · {c.etapa}</td>
-                      <td className="py-2 pr-3">{c.regra}</td>
-                      <td className="py-2 pr-3 whitespace-nowrap">
-                        <Badge variant={VARIANTE[c.estadoTom] ?? 'neutral'}>{c.estadoRotulo}</Badge>
-                      </td>
-                      <td className="py-2 pr-3 text-xs" data-contract="caso-us"><TextoUs texto={c.us} rastro={artefatos?.[c.id]} /></td>
-                      <td className="py-2 text-xs" data-contract="caso-documentado">
-                        {artefatos === undefined ? (
-                          '…'
-                        ) : (artefatos[c.id]?.documentado ?? []).length === 0 ? (
-                          '—'
-                        ) : (
-                          (artefatos[c.id]?.documentado ?? []).map((d) => (
-                            <div key={d.path}><LinkArtefato a={d} /></div>
-                          ))
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {visiveis.length === 0 ? (
-                <p className="py-6 text-center text-sm text-muted-foreground">Nenhum caso com esses filtros.</p>
-              ) : null}
-            </div>
+            {/* O fallback é a MESMA tabela, sem links: a tabela não espera os artefatos (UC-CASOS-06). */}
+            <Deferred data="artefatos" fallback={<TabelaCasos visiveis={visiveis} />}>
+              <TabelaCasos visiveis={visiveis} artefatos={artefatos} />
+            </Deferred>
 
             <div className="doc-src">
               Fonte dona destes casos:{' '}

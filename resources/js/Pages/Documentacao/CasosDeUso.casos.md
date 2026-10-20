@@ -47,6 +47,6 @@ last_run: "2026-10-20"
 
 ## UC-CASOS-06 · Os links não atrasam a tabela
 - **Persona:** [W] abrindo a página.
-- **Aceite:** Dado que os links varrem a árvore e consultam o acervo · Quando a tela é montada · Então eles chegam numa prop deferred e a tabela aparece antes deles.
+- **Aceite:** Dado que os links varrem a árvore e consultam o acervo · Quando a tela é montada · Então eles chegam numa prop deferred, a tela os espera com `<Deferred data="artefatos">` e o fallback é a mesma tabela sem links — a tabela aparece antes deles.
 - **Teste:** `tests/Feature/DocumentacaoRouteTest.php` — `UC-CASOS-06 · …`
 - **Status: ⬜**

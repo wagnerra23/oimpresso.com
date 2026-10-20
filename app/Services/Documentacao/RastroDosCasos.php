@@ -4,8 +4,6 @@ namespace App\Services\Documentacao;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Schema;
-use Modules\Jana\Entities\Mcp\McpMemoryDocument;
 
 /**
  * Leva cada caso de uso do catálogo de fluxos (UC-FLX-NN) aos artefatos que o documentam:
@@ -15,9 +13,10 @@ use Modules\Jana\Entities\Mcp\McpMemoryDocument;
  * da árvore do repo a cada janela de cache — US nova num SPEC, ou tela nova citando o caso,
  * aparece sozinha; arquivo que sai, some junto.
  *
- * O LINK aponta para `/documentacao/{slug}` quando o arquivo está no acervo indexado (lookup por
- * `git_path` em `mcp_memory_documents`, o mesmo corpus que a rota de documento serve — com o
- * mesmo filtro de acesso). Fora do acervo, aponta para o arquivo no git. Hoje o indexador só lê
+ * O LINK aponta para `/documentacao/{slug}` quando o arquivo está no acervo indexado. Quem sabe
+ * isso é o DocumentacaoController (dono da consulta e do filtro de acesso do acervo): ele entrega
+ * o mapa `git_path → slug` pronto, e este service não depende de módulo (núcleo ↛ Modules/).
+ * Fora do acervo, aponta para o arquivo no git. Hoje o indexador só lê
  * os `.casos.md` de `resources/js/Pages`; os de `Modules/<X>/Resources/js/Pages` caem no git.
  *
  * COLISÃO DE ID (lição §5 2026-09-04): um `.casos.md` que DECLARA casos próprios com o prefixo
@@ -36,11 +35,11 @@ class RastroDosCasos
 
     /**
      * @param  list<array{id:string, us:string}>  $casos
-     * @param  list<string>  $tiposDoc  tipos que a rota de documento serve (dono: DocumentacaoController)
+     * @param  callable(list<string>): array<string,string>  $slugsNoAcervo  git_path → slug do que a rota de documento abre (dono: DocumentacaoController)
      * @param  string  $blob  base de link para o que não está no acervo (dono: DocumentacaoController)
      * @return array<string, array{us: list<array{id:string, docs: list<array{rotulo:string, path:string, href:string, interno:bool}>}>, documentado: list<array{rotulo:string, path:string, href:string, interno:bool}>}>
      */
-    public function paraCasos(array $casos, array $tiposDoc, string $blob): array
+    public function paraCasos(array $casos, callable $slugsNoAcervo, string $blob): array
     {
         $specs = $this->specsPorUs();
         $citacoes = $this->casosPorUc();
@@ -59,7 +58,8 @@ class RastroDosCasos
             $saida[$c['id']] = ['us' => $us, 'documentado' => $docs];
         }
 
-        $slugs = $this->slugsNoAcervo(array_values(array_unique($paths)), $tiposDoc);
+        $paths = array_values(array_unique($paths));
+        $slugs = $paths === [] ? [] : $slugsNoAcervo($paths);
         $link = fn (string $p): array => [
             'rotulo' => $this->rotulo($p),
             'path' => $p,
@@ -128,34 +128,6 @@ class RastroDosCasos
 
             return $mapa;
         });
-    }
-
-    /**
-     * @param  list<string>  $paths
-     * @param  list<string>  $tiposDoc
-     * @return array<string, string> git_path → slug
-     */
-    private function slugsNoAcervo(array $paths, array $tiposDoc): array
-    {
-        if ($paths === []) {
-            return [];
-        }
-        try {
-            if (! Schema::hasTable('mcp_memory_documents')) {
-                return [];
-            }
-
-            // Mesmo filtro de acesso da rota de documento: o link interno só existe se ela abre.
-            return McpMemoryDocument::query()
-                ->whereIn('type', $tiposDoc)
-                ->where('admin_only', false)
-                ->whereNull('scope_required')
-                ->whereIn('git_path', $paths)
-                ->pluck('slug', 'git_path')
-                ->all();
-        } catch (\Throwable) {
-            return [];
-        }
     }
 
     /** "memory/requisitos/Producao/SPEC.md" → "SPEC Producao"; ".../Pages/Producao/Apontamento/Index.casos.md" → "Producao/Apontamento/Index". */
