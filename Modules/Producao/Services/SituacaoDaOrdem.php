@@ -28,7 +28,12 @@ final class SituacaoDaOrdem
 {
     public const EV_RETRABALHO = 'retrabalho_aberto';
 
-    public function __construct(private readonly ExecuteStageActionService $fsm, private readonly CustoRealService $custo) {}
+    public function __construct(
+        private readonly ExecuteStageActionService $fsm,
+        private readonly CustoRealService $custo,
+        private readonly SinalDaOrdem $sinal,
+        private readonly ProcessoDaOrdem $processo,
+    ) {}
 
     public function ordem(int $businessId, int $ordemId): Ordem
     {
@@ -125,12 +130,15 @@ final class SituacaoDaOrdem
      * Liberar: o PCP escolhe o responsável de cada etapa aberta (decisão [W] 16/10, opção c; #9530).
      * `$responsaveis` = programação → usuário. Etapa já com responsável o mantém se não vier no mapa;
      * etapa aberta sem responsável recusa a liberação. Responsável tem de ser da MESMA empresa (Tier 0).
+     * Com a regra "só libera com o sinal pago" ligada, recusa antes enquanto o sinal da venda não chega
+     * ao mínimo — vale também para quem tem `producao.liberar` (US-PCP-025).
      *
      * @param  array<int, int>  $responsaveis
      */
     public function liberar(int $businessId, int $ordemId, User $user, array $responsaveis = []): Ordem
     {
         $ordem = $this->ordem($businessId, $ordemId);
+        $this->sinal->conferir($businessId, $ordem);
 
         return DB::transaction(function () use ($businessId, $ordem, $user, $responsaveis) {
             $abertas = Programacao::query()->where('business_id', $businessId)->where('os_tipo', Ordem::OS_TIPO)->where('os_id', $ordem->id)
@@ -156,6 +164,58 @@ final class SituacaoDaOrdem
             }
 
             return $ordem->fresh();
+        });
+    }
+
+    /**
+     * Pagamento registrado na venda (US-PCP-025): com a regra ligada e o sinal alcançado, libera
+     * sozinho cada OS da venda que está em Aguardando liberação e já tem responsável em todas as
+     * etapas abertas. A que falta responsável fica onde está (a pendência é a do Liberar). Devolve
+     * quantas liberou. Tier 0: só OS da `$businessId`.
+     */
+    public function liberarPeloSinalDaVenda(int $businessId, int $transactionId): int
+    {
+        if ($this->sinal->minimo($businessId) === null) {
+            return 0;
+        }
+        $ids = Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)
+            ->where('transaction_id', $transactionId)->pluck('id');
+        $liberadas = 0;
+        foreach ($ids as $id) {
+            try {
+                $liberadas += $this->liberarPeloSinal($businessId, (int) $id) ? 1 : 0;
+            } catch (ApontamentoRecusado) {
+                // Sinal abaixo do mínimo ou etapa sem responsável: a OS segue aguardando.
+            }
+        }
+
+        return $liberadas;
+    }
+
+    /**
+     * Liberar executado pelo sistema (ação `liberar_pelo_sinal`, sem papel). Trava e relê a OS: só
+     * age em Aguardando liberação, então pagamento repetido não libera duas vezes. Confere o sinal e
+     * os responsáveis como o Liberar de tela; o histórico guarda `ator = sistema` e o sinal.
+     */
+    public function liberarPeloSinal(int $businessId, int $ordemId): bool
+    {
+        $this->processo->garantir($businessId);
+
+        return DB::transaction(function () use ($businessId, $ordemId): bool {
+            $ordem = Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)->with('currentStage')->lockForUpdate()->find($ordemId);
+            if (! $ordem || $ordem->currentStage?->key !== 'aguardando_liberacao') {
+                return false;
+            }
+            $this->sinal->conferir($businessId, $ordem);
+            $sem = Programacao::query()->where('business_id', $businessId)->where('os_tipo', Ordem::OS_TIPO)->where('os_id', $ordem->id)
+                ->where('status', 'pendente')->whereNull('user_id')->pluck('nome')->all();
+            if ($sem !== []) {
+                throw new ApontamentoRecusado(ApontamentoRecusado::RESPONSAVEL_INVALIDO, 'Escolha o responsável de: '.implode(', ', $sem).'.');
+            }
+            $s = $this->sinal->situacao($businessId, (int) $ordem->transaction_id, (string) $this->sinal->minimo($businessId));
+            $this->fsm->execute($ordem, 'liberar_pelo_sinal', null, ['ator' => 'sistema', 'sinal_pago' => $s['pago'], 'sinal_exigido' => $s['exigido']]);
+
+            return true;
         });
     }
 

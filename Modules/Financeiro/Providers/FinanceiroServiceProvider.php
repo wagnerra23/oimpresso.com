@@ -124,6 +124,8 @@ class FinanceiroServiceProvider extends ServiceProvider
                 // fin_extrato_lancamentos (canônica). Idempotente, --business
                 // obrigatório (Tier 0), --dry default-seguro. Unifica external_id.
                 \Modules\Financeiro\Console\Commands\BackfillExtratoOfxCommand::class,
+                // US-FIN-071 · UC-FLX-29 — régua de cobrança D+1/D+5/D+15 (default OFF por business).
+                \Modules\Financeiro\Console\Commands\ReguaCobrancaCommand::class,
             ]);
         }
     }
@@ -133,10 +135,15 @@ class FinanceiroServiceProvider extends ServiceProvider
      */
     protected function registerCommandSchedules(): void
     {
-        // $this->app->booted(function () {
-        //     $schedule = $this->app->make(Schedule::class);
-        //     $schedule->command('inspire')->hourly();
-        // });
+        // US-FIN-071 · UC-FLX-29 — régua de cobrança diária. O comando só enfileira job para
+        // business com a régua LIGADA em common_settings (default OFF), então agendar não envia
+        // nada a ninguém até o negócio ligar.
+        $this->callAfterResolving(\Illuminate\Console\Scheduling\Schedule::class, function ($schedule): void {
+            $schedule->command('financeiro:regua-cobranca')
+                ->dailyAt('09:00')
+                ->withoutOverlapping()
+                ->onOneServer();
+        });
     }
 
     /**
