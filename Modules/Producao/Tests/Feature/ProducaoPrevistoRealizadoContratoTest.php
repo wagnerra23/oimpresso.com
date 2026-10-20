@@ -55,15 +55,18 @@ beforeEach(function () {
         'sku' => $sku, 'enable_stock' => 0, 'alert_quantity' => 0, 'tax_type' => 'exclusive', 'barcode_type' => 'C128',
         'created_by' => $this->op->id, 'created_at' => now(), 'updated_at' => now()]);
     $grupo = DB::table('product_variations')->insertGetId(['product_id' => $this->pid, 'name' => 'DUMMY', 'is_dummy' => 1, 'created_at' => now(), 'updated_at' => now()]);
-    $this->vid = DB::table('variations')->insertGetId(['product_id' => $this->pid, 'product_variation_id' => $grupo, 'name' => 'DUMMY', 'sub_sku' => $sku.'-1',
-        'default_purchase_price' => 0, 'dpp_inc_tax' => 0, 'profit_percent' => 0, 'default_sell_price' => 25, 'sell_price_inc_tax' => 25,
-        'created_at' => now(), 'updated_at' => now()]);
+    // Uma variação por linha: `transaction_sell_lines` tem uk_tsl_dup_prevent (transaction_id, product_id,
+    // variation_id), então duas linhas da mesma venda não podem repetir a variação.
+    $this->variacao = fn () => DB::table('variations')->insertGetId(['product_id' => $this->pid, 'product_variation_id' => $grupo,
+        'name' => 'V'.uniqid(), 'sub_sku' => $sku.'-'.uniqid(), 'default_purchase_price' => 0, 'dpp_inc_tax' => 0, 'profit_percent' => 0,
+        'default_sell_price' => 25, 'sell_price_inc_tax' => 25, 'created_at' => now(), 'updated_at' => now()]);
+    $this->vid = ($this->variacao)();
 
     $this->venda = fn (int $biz) => DB::table('transactions')->insertGetId(['business_id' => $biz, 'type' => 'sell', 'status' => 'final',
         'payment_status' => 'due', 'transaction_date' => now(), 'final_total' => 0, 'essentials_duration' => 0, 'created_by' => $this->op->id,
         'created_at' => now(), 'updated_at' => now()]);
     $this->linha = fn (int $venda, string $qtd, string $preco, ?string $custo) => DB::table('transaction_sell_lines')->insertGetId([
-        'transaction_id' => $venda, 'product_id' => $this->pid, 'variation_id' => $this->vid, 'quantity' => $qtd, 'unit_price' => $preco,
+        'transaction_id' => $venda, 'product_id' => $this->pid, 'variation_id' => ($this->variacao)(), 'quantity' => $qtd, 'unit_price' => $preco,
         'unit_price_inc_tax' => $preco, 'unit_price_before_discount' => $preco, 'item_tax' => 0, 'custo_previsto' => $custo,
         'created_at' => now(), 'updated_at' => now()]);
     // SUPERADMIN: fixture da empresa 98 (a OS nasce já na situação do caso; o motor só barra UPDATE).
