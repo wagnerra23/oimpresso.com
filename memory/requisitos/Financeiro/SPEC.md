@@ -2049,3 +2049,24 @@ Falta: listener na autorização que ache o título via `transaction_id` e o aju
 - [ ] Dupla confirmação do cálculo: o líquido é provado por dois caminhos independentes (teste com números concretos + recálculo a partir de `nfse_emissoes`) e, para os títulos já existentes, um dry-run por business mostra antes→depois de cada título afetado; só aplica após aprovação [W].
 - [ ] Multi-tenant: listener só ajusta título do mesmo `business_id` da NFS-e; título/NFS-e de outro business → 404 e não é tocado. Teste com dois tenants.
 - [ ] Tela do título mostra bruto, retenções e líquido para quem tem acesso ao Financeiro; sem permissão → 403.
+
+### US-FIN-073 · Aberto do título de venda/compra parcial sobrevive à re-sincronização — **P1**
+
+> owner: — · priority: p1 · estimate: 4h · status: done · type: bug
+> blocked_by: —
+
+**Implementado em:** `Modules/Financeiro/Services/TituloAutoService.php` (`sincronizarDeTransacao` + `abertoPorBaixas`), `Modules/Financeiro/Console/Commands/ResyncFromCoreCommand.php` (modo `--aberto`), `Modules/Financeiro/Tests/Feature/AbertoVendaParcialContratoTest.php`
+
+**Testado em:** `Modules/Financeiro/Tests/Feature/AbertoVendaParcialContratoTest.php`
+
+**Origem:** achado no PR #9638 (US-FIN-072, ISS retido como baixa), que consertou só os títulos com retenção. Medido em 2026-10-20: `sincronizarDeTransacao` calculava o aberto de venda/compra como `$tx->total_remaining_amount ?? $tx->final_total`, e a coluna `transactions.total_remaining_amount` não existe (`BridgeExpenseToTitulosCommand.php:30`). O core grava o `payment_status` com `save()` depois de cada pagamento (`TransactionUtil::updatePaymentStatus`), o `TransactionObserver` re-sincroniza e o aberto volta ao bruto, com status "aberto" — os pagamentos já baixados no título somem do saldo. Venda paga no caixa continuar cancelando o título é o comportamento documentado e fica fora.
+
+⚠️ **REGRA MESTRE — CÁLCULO DE VALOR** ([proibicoes.md](../../proibicoes.md)): esta US muda o valor em aberto de título.
+
+**Aceite:**
+- [x] Re-sincronização de título de venda/compra calcula o aberto como bruto − Σ baixas do próprio título (a mesma conta do `recalcularTitulo`, uma função só); venda de 1.000,00 com 400,00 pago fica 600,00 "parcial" (UC-CRAB-01), compra de 500,00 com 200,00 pago fica 300,00 (UC-CRAB-02). Provado por dois caminhos: soma das baixas e `final_total − Σ transaction_payments`.
+- [x] Despesa (`expense`) mantém a regra da Fase 5.5 — fora deste conserto.
+- [x] `financeiro:resync-from-core --business=N --aberto` lista, sem gravar, os títulos de venda/compra parcial com aberto atual → aberto correto, o aberto pelo core ao lado e o aviso "baixas ≠ core" onde os dois discordam; `--aberto --apply` é recusado (UC-CRAB-03). Escopo de um business (UC-CRAB-04).
+
+**Fora desta US:** nenhum título existente muda no deploy — o fix vale nas próximas re-sincronizações. Corrigir os já gravados é decisão [W] depois de ver o `--aberto` rodado em produção, por business.
+
