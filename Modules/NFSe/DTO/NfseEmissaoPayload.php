@@ -64,6 +64,12 @@ final class NfseEmissaoPayload
         return round($this->valorServicos * $this->aliquotaIss, 2);
     }
 
+    /** ISS que o tomador retém (US-FIN-072). 0 quando o ISS não é retido. */
+    public function valorIssRetido(): float
+    {
+        return $this->issRetido ? round($this->valorServicos * $this->aliquotaIss, 2) : 0.0;
+    }
+
     public function idempotencyKey(): string
     {
         return hash('sha256', implode('|', [
