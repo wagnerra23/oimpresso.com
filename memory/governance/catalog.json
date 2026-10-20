@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 819,
-    "edges": 1118,
+    "nodes": 825,
+    "edges": 1124,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 441,
+      "component": 447,
       "api": 84
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 88,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 441,
+      "hasComponent": 447,
       "dependsOn": 123,
       "delegatesTo": 114,
       "migratesTo": 1,
@@ -1998,6 +1998,13 @@
       "desc": ""
     },
     {
+      "id": "component:ComunicacaoVisual/Entities/OsItem",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "Entities/OsItem",
+      "desc": "itens da OS copiados do orçamento, UC-FLX-01)"
+    },
+    {
       "id": "component:ComunicacaoVisual/Entities/Substrato",
       "type": "component",
       "module": "ComunicacaoVisual",
@@ -2024,6 +2031,13 @@
       "module": "ComunicacaoVisual",
       "name": "OrcamentoController",
       "desc": ""
+    },
+    {
+      "id": "component:ComunicacaoVisual/Services/OrcamentoViraOs",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "Services/OrcamentoViraOs",
+      "desc": "US-COMVIS-020 · UC-FLX-01)"
     },
     {
       "id": "component:Connector/Api/ApiController",
@@ -2740,11 +2754,32 @@
       "desc": "Onda 18 tela /plano-contas dedicada + Fluxo fallback sem conta"
     },
     {
+      "id": "component:Financeiro/ReguaCobrancaJob + comando financeiro:regua-cobranca",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "ReguaCobrancaJob + comando financeiro:regua-cobranca",
+      "desc": "US-FIN-071 · UC-FLX-29 régua de cobrança do título vencido (e-mail D+1/D+5/D+15 com opt-in LGPD, histórico idempotente em fin_titulo_lembretes, tarefa na última etapa pelo contrato AgendaDeTarefas de app/Contracts/Crm, implementado no Crm); desligada por padrão em business.common_settings"
+    },
+    {
       "id": "component:Financeiro/RelatoriosController",
       "type": "component",
       "module": "Financeiro",
       "name": "RelatoriosController",
       "desc": ""
+    },
+    {
+      "id": "component:Financeiro/ResyncFromCoreCommand",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "ResyncFromCoreCommand",
+      "desc": "financeiro:resync-from-core re-espelha valor_total inflado (num_uf) com --apply; modo --aberto só leitura lista títulos parciais com aberto divergente das baixas (US-FIN-073)"
+    },
+    {
+      "id": "component:Financeiro/TituloAutoService",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "TituloAutoService",
+      "desc": "espelha venda/compra/despesa em fin_titulos (Observers de transactions e transaction_payments); aberto de venda/compra = bruto − baixas do título (US-FIN-073)"
     },
     {
       "id": "component:Financeiro/UnificadoController",
@@ -4193,7 +4228,7 @@
       "type": "component",
       "module": "Producao",
       "name": "PrazoDaVendaController + PrazoPelaFila",
-      "desc": "prazo de entrega da venda/orçamento pela fila dos postos (Σ programações abertas + etapas do roteiro ÷ horas por dia, em dias úteis pelo CalendarioDeProducao: turno da produção, senão expediente do RH; folgas do expediente e feriados do RH da empresa e da loja, pelo contrato App\\Contracts\\Rh\\CalendarioDaEmpresa), JSON só leitura com sell.view ou producao.access (US-PCP-028 · UC-FLX-06)"
+      "desc": "prazo de entrega da venda/orçamento pela fila dos postos (Σ programações abertas + etapas do roteiro ÷ horas por dia, em dias úteis pelo CalendarioDeProducao: turno da produção, senão expediente do RH; folgas do expediente e feriados do RH da empresa e da loja, pelo contrato CalendarioDaEmpresa do Rh), JSON só leitura com sell.view ou producao.access (US-PCP-028 · UC-FLX-06)"
     },
     {
       "id": "component:Producao/PrometerPrazoDaVenda",
@@ -4215,6 +4250,13 @@
       "module": "Producao",
       "name": "RoteirosController",
       "desc": "roteiros por família, até 2 trilhas com junção nomeada (UC-PCV-13, thread 03), e os produtos ligados ao roteiro (US-PCP-026, UC-FLX-07)"
+    },
+    {
+      "id": "component:Producao/SinalDaOrdem",
+      "type": "component",
+      "module": "Producao",
+      "name": "SinalDaOrdem",
+      "desc": "regra 'produção só libera com o sinal pago' (US-PCP-025 · UC-FLX-28): o Liberar recusa abaixo do % mínimo da empresa e o pagamento gravado na venda libera a OS sozinho (liberar_pelo_sinal); só LÊ valor"
     },
     {
       "id": "component:ProductCatalogue/DataController",
@@ -7961,6 +8003,12 @@
     },
     {
       "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/Entities/OsItem",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/Entities/Substrato",
       "type": "hasComponent",
       "source": "contains"
@@ -7980,6 +8028,12 @@
     {
       "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/OrcamentoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/Services/OrcamentoViraOs",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8929,7 +8983,25 @@
     },
     {
       "from": "module:Financeiro",
+      "to": "component:Financeiro/ReguaCobrancaJob + comando financeiro:regua-cobranca",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
       "to": "component:Financeiro/RelatoriosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "component:Financeiro/ResyncFromCoreCommand",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "component:Financeiro/TituloAutoService",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -12287,6 +12359,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/RoteirosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/SinalDaOrdem",
       "type": "hasComponent",
       "source": "contains"
     },
