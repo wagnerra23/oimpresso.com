@@ -449,7 +449,26 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [ ] Idempotente: retorno do banco repetido não executa a transição duas vezes; OS cancelada não é liberada.
 - [ ] Multi-tenant: o listener recebe o `business_id` no evento e só toca OS e título da mesma empresa; `liberar` em OS de outra empresa → 404; Pest com dois tenants.
 
-**Total US: 25** · **Estimate agregado:** ~98h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
+**Total US: 26** · **Estimate agregado:** ~98h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
+
+### US-PCP-026 · Etapas da OS vêm do roteiro do produto (UC-FLX-07) — **P1**
+
+**Implementado em:** _pendente_ — entrega 1 em `Modules/Producao/Services/CriarOsDaVenda.php` (OS por item copia as etapas do roteiro ligado ao produto) e `Modules/Producao/Http/Controllers/RoteirosController.php` (`PUT /producao/roteiros/{id}/produtos`); falta o seletor de produtos na tela de Roteiros.
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoCriarOsDaVendaContratoTest.php` (lane `verticais-pest.yml`) · casos `Roteiros/Index.casos.md` UC-PCROT-01..04.
+
+> owner: wagner · priority: p1 · estimate: 3h · status: doing · type: story
+
+**Origem:** UC-FLX-07 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:60`, referência shopVOX, situação `planejado`) e a regra *"Aprovado → Cria a OP com o roteiro do produto"* dos modelos CV (`app/Domain/Fsm/Modelos/CatalogoModelos.php:156`). Medido em 2026-10-20: a criação já existia (ADR 0436 — `CriarOsDaVenda` lê `pcp_produto_roteiro` e grava uma programação por etapa), mas nenhum código gravava o vínculo produto → roteiro (só os testes), e o vínculo não conferia se o roteiro era da mesma empresa.
+
+**Aceite:**
+- [x] Ao aprovar a venda, a OS por item do produto ligado a um roteiro nasce com uma programação por etapa, na ordem bloco/trilha, com o posto e o tempo previsto (horas) da etapa; a etapa opcional fica de fora (UC-PCROT-01, UC-FLX-07).
+- [x] Produto sem roteiro não gera OS — o comportamento de antes, sem roteiro padrão da empresa (UC-PCROT-02).
+- [x] As programações são cópia do roteiro no dia da aprovação: editar o roteiro depois não muda a OS já criada (UC-PCROT-03).
+- [x] O gestor (`producao.access`) liga produtos ao roteiro por `PUT /producao/roteiros/{id}/produtos`; um produto fica em um roteiro só, e o vínculo vem no payload da tela (`produto_ids`).
+- [x] Multi-tenant: roteiro de outra empresa → 404; produto de outra empresa é recusado; vínculo apontando roteiro de outra empresa conta como produto sem roteiro (UC-PCROT-04).
+- [ ] Seletor de produtos na tela de Roteiros (`Roteiros/Index.tsx`, com charter e gate visual).
+- [ ] Roteiro padrão da empresa para produto sem roteiro (decisão [W]: hoje produto sem roteiro não vira OS).
 
 ## §8 — Regras Gherkin (R-PCP-001..010) — resumo
 

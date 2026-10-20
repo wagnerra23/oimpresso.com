@@ -5,7 +5,7 @@ migracao_ui: "n/a — módulo novo, nasce Inertia (sem Blade)"
 contains:
   - "DataController — 3 hooks UltimatePOS (pacote superadmin, permissões; sem item de sidebar enquanto não houver tela)"
   - "InstallController — instalação 1-clique (ADR 0024)"
-  - "RoteirosController — roteiros por família, até 2 trilhas com junção nomeada (UC-PCV-13, thread 03)"
+  - "RoteirosController — roteiros por família, até 2 trilhas com junção nomeada (UC-PCV-13, thread 03), e os produtos ligados ao roteiro (US-PCP-026, UC-FLX-07)"
   - "PostosController — postos, máquinas e veículos, com os motivos de pausa e de refugo do posto (UC-PCV-33, E03)"
   - "FerramentasController — ferramentas com código QR (E03)"
   - "ColaboradorCustoController — custo-hora da pessoa, só com producao.desempenho.ver (E03)"
