@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\OficinaAuto\Services;
 
+use Modules\Arquivos\Entities\Arquivo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Modules\OficinaAuto\Entities\ServiceOrder;
@@ -201,9 +202,9 @@ class StageGateEvaluator
         $fotos = $order->arquivos->concat($order->dviInspectionItems->flatMap(fn ($item) => $item->arquivos));
 
         return $fotos
-            ->filter(fn ($a) => (int) $a->business_id === $bizId)
-            ->filter(fn ($a) => str_starts_with((string) $a->mime_type, 'image/'))
-            ->filter(fn ($a) => $desde === null || ($a->created_at !== null && $a->created_at->gte($desde)))
+            ->filter(fn (Arquivo $a) => (int) $a->business_id === $bizId)
+            ->filter(fn (Arquivo $a) => str_starts_with((string) $a->mime_type, 'image/'))
+            ->filter(fn (Arquivo $a) => $desde === null || ($a->created_at !== null && $a->created_at->gte($desde)))
             ->count();
     }
 

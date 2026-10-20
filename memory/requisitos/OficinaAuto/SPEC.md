@@ -1523,7 +1523,7 @@ Delta #6 do protótipo Cowork "Nova OS" (seção "Fiscal"). Painel **presentacio
 
 ### US-OFICINA-047 · Entrega da OS exige foto do serviço feito (UC-FLX-22)
 
-> owner: — · priority: p2 · estimate: 2h (IA-pair fator 10x ADR 0106) · status: doing · type: story · origin: catálogo de fluxos UC-FLX-22 (modelo "Oficina mecânica", etapa "Entregue · Fotos do serviço") · 2026-10-20
+> owner: — · priority: p2 · estimate: 2h (IA-pair fator 10x ADR 0106) · type: story · origin: catálogo de fluxos UC-FLX-22 (modelo "Oficina mecânica", etapa "Entregue · Fotos do serviço") · 2026-10-20
 > blocked_by: —
 
 O veículo só é entregue ao cliente com foto do serviço feito. Regra `servico_foto` no `StageGateEvaluator`, na ação `entregar` (Pronto p/ retirar → Entregue) do processo `oficina_mecanica_os` — o mesmo gate da US-OFICINA-003 (422 na web com liberação de gerente registrada na trilha; no app, `bloqueado` sem liberação). "Foto do serviço" = imagem anexada à OS ou a item da vistoria enviada a partir da entrada da OS em `em_execucao` na trilha FSM; foto do diagnóstico (antes) e PDF não contam. OS sem essa entrada na trilha (importada/repontuada) aceita qualquer foto da OS. Fotos filtradas pelo `business_id` da OS (o app chama sem sessão).
