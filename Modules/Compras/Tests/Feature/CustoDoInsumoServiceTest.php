@@ -11,6 +11,7 @@ use Tests\Support\WithSeededTenant;
 
 /**
  * US-COM-024 · UC-FLX-38 — custo do insumo numa data, lido de `purchase_lines`.
+ * Método por insumo: cobre UC-INSMET-01..05 (resources/js/Pages/Manufacturing/Insumos.casos.md).
  *
  * Âncora de contrato: memory/requisitos/Compras/SPEC.md US-COM-024 (critérios abaixo citados
  * pelo nome do caso). Os valores esperados NÃO vêm do serviço: vêm da conta feita à mão sobre
@@ -176,7 +177,7 @@ function metodoProprioDoInsumo(int $biz, int $variationId, string $metodo): void
     ]);
 }
 
-it('US-COM-024 · por insumo: o insumo marcado médio custa o médio ponderado', function () {
+it('UC-INSMET-01 · US-COM-024 · por insumo: o insumo marcado médio custa o médio ponderado', function () {
     // À mão: (10×12 + 20×16) / 30 = 14,6667. Segundo caminho: custoInsumoEsperado.
     expect(custoInsumoEsperado($this->compras, $this->biz->id, '2026-03-31', 'medio'))->toBe('14.6667');
     metodoProprioDoInsumo($this->biz->id, $this->variationId, 'medio');
@@ -186,7 +187,7 @@ it('US-COM-024 · por insumo: o insumo marcado médio custa o médio ponderado',
     expect($r['custo'])->toBe('14.6667')->and($r['metodo'])->toBe('medio')->and($r['motivo'])->toBeNull();
 });
 
-it('US-COM-024 · por insumo: o insumo marcado último custa o preço da compra mais recente', function () {
+it('UC-INSMET-02 · US-COM-024 · por insumo: o insumo marcado último custa o preço da compra mais recente', function () {
     // À mão: compra C (10/03), 16,00. O médio daria 14,6667 — o teste separa os dois.
     expect(custoInsumoEsperado($this->compras, $this->biz->id, '2026-03-31', 'ultimo'))->toBe('16.0000');
     metodoProprioDoInsumo($this->biz->id, $this->variationId, 'ultimo');
@@ -196,7 +197,7 @@ it('US-COM-024 · por insumo: o insumo marcado último custa o preço da compra 
     expect($r['custo'])->toBe('16.0000')->and($r['metodo'])->toBe('ultimo');
 });
 
-it('US-COM-024 · por insumo sem método definido devolve nulo com o motivo', function () {
+it('UC-INSMET-03 · US-COM-024 · por insumo sem método definido devolve nulo com o motivo', function () {
     $r = $this->servico->naData($this->biz->id, $this->variationId, '2026-03-31', 'por_insumo');
 
     expect($r['custo'])->toBeNull()
@@ -204,7 +205,7 @@ it('US-COM-024 · por insumo sem método definido devolve nulo com o motivo', fu
         ->and($r['motivo'])->toBe('O insumo não tem método definido.');
 });
 
-it('US-COM-024 · Tier 0: o método que outra empresa deu ao insumo não vale para esta', function () {
+it('UC-INSMET-04 · US-COM-024 · Tier 0: o método que outra empresa deu ao insumo não vale para esta', function () {
     metodoProprioDoInsumo($this->outra->id, $this->variationId, 'ultimo');
 
     $r = $this->servico->naData($this->biz->id, $this->variationId, '2026-03-31', 'por_insumo');
@@ -215,7 +216,7 @@ it('US-COM-024 · Tier 0: o método que outra empresa deu ao insumo não vale pa
     expect($daOutra['custo'])->toBe('1.0000')->and($daOutra['metodo'])->toBe('ultimo');
 });
 
-it('US-COM-024 · empresa com método médio ignora o método próprio do insumo', function () {
+it('UC-INSMET-05 · US-COM-024 · empresa com método médio ignora o método próprio do insumo', function () {
     // A linha diria "último" (16,0000); a empresa sem regra gravada usa médio (14,6667).
     metodoProprioDoInsumo($this->biz->id, $this->variationId, 'ultimo');
     DB::table('fsm_modelos_empresa')->where('business_id', $this->biz->id)->delete();
