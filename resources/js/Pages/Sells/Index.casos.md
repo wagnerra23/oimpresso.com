@@ -147,7 +147,6 @@ last_run: "2026-10-19"
 
 **Núcleo (3 ou mais ERPs brasileiros têm):**
 - **[BACKLOG] Filtrar por vendedor** — Tiny, Omie, Conta Azul. Não há esse filtro na tela hoje.
-- **[BACKLOG] Totais do que está filtrado** — o servidor já devolve `totals`, a tela não mostra. Tier 0 valor: só exibir o número calculado no servidor, nunca recalcular no navegador.
 - **[BACKLOG] Duplicar a venda (recompra)** — Bling, Tiny, Omie, Conta Azul.
 - **[BACKLOG] Enviar a venda ao cliente por e-mail ou WhatsApp pela lista** — Bling, Tiny, Omie, Conta Azul.
 - **[BACKLOG] Mudar situação ou etapa de várias vendas de uma vez** — Bling, Tiny, Omie. Passa pelo FSM, nunca por update direto.
