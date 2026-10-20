@@ -449,7 +449,27 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [ ] Idempotente: retorno do banco repetido não executa a transição duas vezes; OS cancelada não é liberada.
 - [ ] Multi-tenant: o listener recebe o `business_id` no evento e só toca OS e título da mesma empresa; `liberar` em OS de outra empresa → 404; Pest com dois tenants.
 
-**Total US: 25** · **Estimate agregado:** ~98h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
+### US-PCP-028 · Prazo de entrega calculado pela fila (UC-FLX-06) — **P2**
+
+> owner: wagner · priority: p2 · estimate: 4h · status: doing · type: story
+
+**Implementado em:** _pendente_ — o cálculo existe em JSON, só leitura (`Modules/Producao/Services/PrazoPelaFila.php` · `Modules/Producao/Http/Controllers/PrazoDaVendaController.php`); falta mostrar na aprovação do orçamento e gravar a data prometida por ação do vendedor.
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoPrazoPelaFilaContratoTest.php` (lane `verticais-pest.yml`).
+
+**Origem:** UC-FLX-06 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:59`, referências Holdprint e Calcgraf, situação `planejado`, "SPEC do PCP"). Medido em 2026-10-20: o posto já tinha `horas_por_dia` (padrão 10) e `capacidade_por_hora`, as etapas do roteiro têm `horas`, e o `CriarOsDaVenda` programava as etapas sem olhar a fila (`Modules/Producao/Services/CriarOsDaVenda.php:87`); nada calculava a data de entrega. A US-PCP-013 (capacidade dia/semana agregada) é outra pergunta.
+
+**Aceite:**
+- [x] Para a venda ou orçamento, cada linha cujo produto tem roteiro soma, em cada posto, a fila à frente — Σ das programações `pendente`/`iniciada` do posto na empresa — e as próprias etapas (sem as opcionais), em sequência por bloco, trilhas em paralelo; horas ÷ horas por dia do posto (UC-PCPRZ-01).
+- [x] Linhas da mesma venda disputam os mesmos postos; linha sem roteiro fica fora e vem listada (UC-PCPRZ-02).
+- [x] Posto sem horas por dia e etapa sem posto usam 8 h/dia, e a resposta diz isso em `premissas`; a data é em dias corridos (UC-PCPRZ-01).
+- [x] Só leitura; a OS da própria venda não entra na fila dela (UC-PCPRZ-03).
+- [x] `GET /producao/vendas/{id}/prazo` em JSON com `sell.view` ou `producao.access` e o módulo no pacote; venda de outra empresa 404 (UC-PCPRZ-04).
+- [ ] Mostrar o prazo na aprovação do orçamento (tela de venda).
+- [ ] Gravar a data prometida só por ação explícita do vendedor (decidir se é `transactions.delivery_date`, que hoje é data de entrega do frete).
+- [ ] Descontar fim de semana e o turno da empresa (`pcp_turnos`) e o já apontado da etapa iniciada.
+
+**Total US: 26** · **Estimate agregado:** ~98h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
 
 ## §8 — Regras Gherkin (R-PCP-001..010) — resumo
 

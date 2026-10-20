@@ -51,6 +51,51 @@ last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando 
 
 ---
 
+## Prazo de entrega calculado pela fila (US-PCP-028 · UC-FLX-06)
+
+> **Âncora:** UC-FLX-06 do catálogo de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:59` — *"Calcula a
+> data de entrega pela capacidade livre de cada etapa"*, etapa Aprovado da venda, situação `planejado`, "SPEC do
+> PCP") e a [ADR 0436](../../../../../../../memory/decisions/0436-os-por-item-producao-dona-da-os-do-pedido.md)
+> (o roteiro anda nas programações do PCP; "prazo pela fila" ficou fora da fase 2). O caso mora aqui porque a
+> fila e as horas por dia são do posto. Nesta entrega é o cálculo em JSON (`GET /producao/vendas/{id}/prazo`),
+> só leitura; a tela ainda não mostra. Prova: `ProducaoPrazoPelaFilaContratoTest`.
+
+## UC-PCPRZ-01 · A data soma a fila de cada posto e as etapas do roteiro · `must`
+
+**Dado** a impressora (8 h/dia) com 16 h abertas na fila, o acabamento (10 h/dia) com 4 h iniciadas, o corte sem
+horas por dia e o roteiro Impressão 4 h → [Corte 8 h ‖ Acabamento 2 h] → Conferência 4 h sem posto **Quando** o
+orçamento de 1 banner pede o prazo em 20/10 **Então** Impressão 2,0→2,5 dias, Corte 2,5→3,5 (8 h/dia por padrão),
+Acabamento 2,5→2,7, Conferência 3,5→4,0 e a data prevista é 24/10 — a etapa opcional, a programação concluída e a
+de outra empresa no mesmo posto não contam, e as premissas dizem o padrão usado.
+
+Status: 🧪
+
+## UC-PCPRZ-02 · Itens da mesma venda disputam os postos · `must`
+
+**Dado** o mesmo orçamento com 2 banners e uma instalação sem roteiro **Então** o 2º banner espera o 1º em cada
+posto (Impressão 2,5→3,0, Corte 3,5→4,5, Acabamento 3,0→3,2, fim 5,0), a data vai para 25/10 e a instalação fica
+fora do prazo, listada sem roteiro.
+
+Status: 🧪
+
+## UC-PCPRZ-03 · Só leitura, e a venda aprovada não entra na própria fila · `must`
+
+**Dado** a venda já aprovada com a OS dela programada 8 h na impressora **Quando** pede o prazo **Então** a fila da
+impressora segue 16 h (a OS da própria venda não conta) e o cálculo não grava nada na venda nem nas programações.
+
+Status: 🧪
+
+## UC-PCPRZ-04 · Quem vende ou quem produz consulta · `must`
+
+**Quando** quem tem `sell.view` ou `producao.access` pede o prazo **Então** recebe a data; sem uma das duas, ou sem o
+módulo no pacote, 403; venda de outra empresa, 404.
+
+Status: 🧪
+
+- **[BACKLOG]** UC-FLX-06 — mostrar o prazo na aprovação do orçamento e gravar a data prometida por ação do vendedor (hoje nada grava); descontar fim de semana e o turno da empresa; descontar o já apontado da etapa iniciada.
+
+---
+
 ## Backlog de casos (sem id — a E03 não traz UC próprio; o teste já os defende)
 
 - **[BACKLOG]** Veículo é posto de máquina com placa obrigatória e custo por km; ferramenta tem QR único por empresa.
@@ -58,3 +103,4 @@ last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando 
 ## Trilha do tempo
 - 2026-10-16 · [CL] thread 03 + E03 do playbook de Produção — trio nasce junto (charter + casos + teste).
 - 2026-10-20 · [CL] UC-PCCH-01/02 documentam o custo-hora que já existe (UC-FLX-20 parcial); o bullet de backlog do custo-hora da pessoa virou o UC-PCCH-02; rateio e ponto de equilíbrio ficam no [BACKLOG] (US-FIN-070).
+- 2026-10-20 · [CL] UC-PCPRZ-01..04 — prazo de entrega pela fila dos postos (US-PCP-028 · UC-FLX-06), cálculo em JSON só leitura; tela e data prometida ficam no [BACKLOG].
