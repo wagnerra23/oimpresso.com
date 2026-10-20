@@ -47,7 +47,141 @@ last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando 
 - **Teste:** `Modules/Producao/Tests/Feature/ProducaoRoteirosContratoTest.php`.
 - **Status: 🧪**
 
-- **[BACKLOG]** UC-FLX-20 — fechamento do mês que rateia as despesas fixas por centro de custo (base: horas apontadas), propõe o custo-hora novo do posto com antes→depois e calcula o ponto de equilíbrio. Nada disso existe: não há classificação fixa/variável no plano de contas nem centro de custo (US-FIN-070).
+## Custeio RKW e ponto de equilíbrio (US-FIN-070 · UC-FLX-20)
+
+> **Âncora:** US-FIN-070 do `memory/requisitos/Financeiro/SPEC.md` (§Aceite: rateio das despesas fixas
+> proporcional às horas apontadas, antes→depois do custo-hora, aplicar só com confirmação e sem reescrever
+> apontamento fechado; ponto de equilíbrio = despesas fixas ÷ margem de contribuição %, aviso sem margem
+> positiva; 404 entre empresas; `producao.desempenho.ver` **e** acesso ao Financeiro) e o UC-PCCH-01
+> acima (o apontamento congela o custo-hora). VALOR: regra mestre — os testes conferem por dois caminhos.
+> Fixa/variável vem só da conta do plano (`fin_planos_conta.classe_custo`, nula = fora do custeio).
+
+## UC-PCCH-03 · Fechamento do mês rateia as despesas fixas pelas horas · `must` valor
+
+- **Persona:** gestor financeiro com `producao.desempenho.ver`.
+- **Aceite:** Dado 4.000,00 de despesas em contas fixas no mês (título cancelado e conta sem classe ficam fora) · E 30 h fechadas no posto A (30,00/h) e 10 h no posto B (50,00/h) · Quando o fechamento roda · Então a parcela fixa é 100,00/h, o rateio é 3.000,00 para A e 1.000,00 para B, e o custo-hora RKW sugerido é 130,00 e 150,00 · E divisão não exata fecha ao centavo (maior resto) · E nada é gravado (o comando também só lê).
+- **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
+- **Status: 🧪**
+
+## UC-PCCH-04 · Ponto de equilíbrio do mês · `must` valor
+
+- **Persona:** gestor financeiro.
+- **Aceite:** Dado receita 10.000,00, custos variáveis 2.000,00 e fixas 4.000,00 · Então a margem de contribuição é 80,00% e o ponto de equilíbrio 5.000,00 · Dado custos variáveis maiores que a receita · Então não há número: aparece o aviso de que o ponto de equilíbrio não se aplica.
+- **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
+- **Status: 🧪**
+
+## UC-PCCH-05 · Aplicar o custo-hora sugerido é ação explícita · `must` valor
+
+- **Persona:** gestor financeiro.
+- **Aceite:** Quando aplica o sugerido no posto A · Então a resposta traz antes 30,00 → depois 130,00 · E só o posto A muda · E o apontamento já gravado segue com 30,00 (UC-PCCH-01).
+- **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
+- **Status: 🧪**
+
+## UC-PCCH-06 · Isolamento e permissão do fechamento · `must`
+
+- **Persona:** gestor de outra empresa; usuário sem uma das permissões.
+- **Aceite:** Dado a empresa 99 com despesa fixa e horas próprias · Então o fechamento da 98 não as soma · E aplicar num posto da 99 é 404, sem gravar · E quem tem só o Financeiro ou só `producao.desempenho.ver` recebe 403, sem gravar.
+- **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
+- **Status: 🧪**
+
+- **[BACKLOG]** Centro de custo por setor (hoje o centro é o posto) e tela do fechamento no Financeiro — o cálculo existe em JSON e no comando `financeiro:custeio-rkw`.
+
+---
+
+## Prazo de entrega calculado pela fila (US-PCP-028 · UC-FLX-06)
+
+> **Âncora:** UC-FLX-06 do catálogo de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:59` — *"Calcula a
+> data de entrega pela capacidade livre de cada etapa"*, etapa Aprovado da venda, situação `planejado`, "SPEC do
+> PCP") e a [ADR 0436](../../../../../../../memory/decisions/0436-os-por-item-producao-dona-da-os-do-pedido.md)
+> (o roteiro anda nas programações do PCP; "prazo pela fila" ficou fora da fase 2). O caso mora aqui porque a
+> fila e as horas por dia são do posto. O cálculo sai em JSON (`GET /producao/vendas/{id}/prazo`, só leitura); a
+> tela ainda não mostra. Prova: `ProducaoPrazoPelaFilaContratoTest`.
+>
+> **Decisão [W] 2026-10-20** (UC-PCPRZ-05..08): *"Pula sábado, domingo e feriados"*, pelo período de funcionamento
+> que a empresa já cadastrou — cada dia de produção do posto vale um dia útil. Hora útil = turno da produção
+> (`pcp_turnos`) → senão o expediente do RH (turno fixo do Essentials) → senão 08h–18h (D-TURNO de
+> `prototipo-ui/cowork/Wagner/cowork-inbox/producao/playbook/_DECISOES-W-2026-10-15.md`), com aviso. Folgas = as do
+> expediente; sem ele, sábado e domingo. Feriados = os do RH da empresa e da loja da venda — nenhum fixo no código. O
+> módulo lê o RH só pelo contrato `App\Contracts\Rh\CalendarioDaEmpresa`. A data prometida fica na venda
+> (`transactions.due_date`, PROJETO_DT_FIM) na aprovação e vai para a OS (`pcp_ordens.prazo_prometido`).
+
+## UC-PCPRZ-01 · A data soma a fila de cada posto e as etapas do roteiro · `must`
+
+**Dado** a impressora (8 h/dia) com 16 h abertas na fila, o acabamento (10 h/dia) com 4 h iniciadas, o corte sem
+horas por dia e o roteiro Impressão 4 h → [Corte 8 h ‖ Acabamento 2 h] → Conferência 4 h sem posto **Quando** o
+orçamento de 1 banner pede o prazo em 20/10 **Então** Impressão 2,0→2,5 dias, Corte 2,5→3,5 (8 h/dia por padrão),
+Acabamento 2,5→2,7, Conferência 3,5→4,0 — 4,0 dias × 10 h do turno = 40 h úteis desde ter 20/10 09:00, e a
+entrega prevista é seg 26/10 09:00 (sábado e domingo pulam) — a etapa opcional, a programação concluída e a
+de outra empresa no mesmo posto não contam, e as premissas dizem o padrão usado.
+
+Status: 🧪
+
+## UC-PCPRZ-02 · Itens da mesma venda disputam os postos · `must`
+
+**Dado** o mesmo orçamento com 2 banners e uma instalação sem roteiro **Então** o 2º banner espera o 1º em cada
+posto (Impressão 2,5→3,0, Corte 3,5→4,5, Acabamento 3,0→3,2, fim 5,0), a entrega vai para ter 27/10 09:00 e a instalação fica
+fora do prazo, listada sem roteiro.
+
+Status: 🧪
+
+## UC-PCPRZ-03 · Só leitura, e a venda aprovada não entra na própria fila · `must`
+
+**Dado** a venda já aprovada com a OS dela programada 8 h na impressora **Quando** pede o prazo **Então** a fila da
+impressora segue 16 h (a OS da própria venda não conta) e o cálculo não grava nada na venda nem nas programações.
+
+Status: 🧪
+
+## UC-PCPRZ-04 · Quem vende ou quem produz consulta · `must`
+
+**Quando** quem tem `sell.view` ou `producao.access` pede o prazo **Então** recebe a data; sem uma das duas, ou sem o
+módulo no pacote, 403; venda de outra empresa, 404.
+
+Status: 🧪
+
+## UC-PCPRZ-05 · Sem nada cadastrado: 08h–18h, folga no sábado e no domingo · `must`
+
+**Dado** a empresa sem turno da produção, sem expediente e sem feriado no RH **Quando** a fila soma 6 h a partir de sex
+30/10 16:00 **Então** conta 2 h na sexta, pula sábado e domingo e termina seg 02/11 12:00 — nada no código sabe que 02/11
+é Finados; feriado é o que a empresa cadastra · antes das 08:00 começa às 08:00, depois das 18:00 no dia útil seguinte,
+fechar às 18:00 fica no mesmo dia · as premissas avisam o padrão.
+
+Status: 🧪
+
+## UC-PCPRZ-06 · Feriados do RH: da empresa e da loja da venda · `must`
+
+**Dado** no RH da 98 o feriado de 02/11 da empresa, o de 03/11 só da loja da venda e o de 04/11 de outra loja, e na 99 o de
+04 a 06/11 **Então** as mesmas 6 h desde sex 30/10 16:00 terminam qua 04/11 12:00 na loja, ter 03/11 12:00 sem loja e seg
+02/11 12:00 na 99 (os feriados da 98 não valem nela) · a venda leva a loja dela: com feriado da loja em 26/10, a entrega do
+UC-PCPRZ-01 passa de seg 26/10 09:00 para ter 27/10 09:00. Mesma regra do Ponto (`ApuracaoService::aplicarFeriado`).
+
+Status: 🧪
+
+## UC-PCPRZ-07 · Hora útil: turno da produção, senão expediente do RH · `must`
+
+**Dado** no RH o turno fixo «Comercial» 07h–12h com folga só no domingo (e um flexível, sem horário, que não conta) **Então**
+6 h desde sex 30/10 16:00 terminam seg 02/11 08:00 (sáb 07→12, dom folga) · com o turno da produção 08h–18h cadastrado,
+ele manda na hora e as folgas seguem o expediente: sáb 31/10 12:00 · a 99 não vê o expediente da 98.
+
+Status: 🧪
+
+## UC-PCPRZ-08 · Na aprovação a data prometida vai para a venda e para a OS · `must`
+
+**Quando** a venda é aprovada e as OS nascem **Então** a venda sem data recebe a entrega prevista (26/10) em `due_date` e
+a OS recebe a mesma data · venda com data digitada pelo vendedor (30/11) **não** é sobrescrita, e a OS recebe 30/11 ·
+venda de outra empresa não muda.
+
+Status: 🧪
+
+## UC-PCPRZ-09 · A data prometida não muda o vencimento do título · `must`
+
+**Quando** a data prometida é gravada em `transactions.due_date` **Então** o vencimento que o Financeiro calcula
+(`Transaction::getDueDateAttribute`, `TituloAutoService` e `CriarTituloDeVendaJob`) continua sendo a data da venda +
+condição de pagamento: venda a 30 dias de 20/10 vence 19/11; venda sem condição vence 20/10 — antes e depois da gravação
+de 26/10. Regra mestre de valor.
+
+Status: 🧪
+
+- **[BACKLOG]** UC-FLX-06 — mostrar o prazo na aprovação do orçamento (tela de venda); descontar o já apontado da etapa iniciada; o Ponto passar a usar o contrato `CalendarioDaEmpresa` em vez de importar `EssentialsHoliday`.
 
 ---
 
@@ -58,3 +192,6 @@ last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando 
 ## Trilha do tempo
 - 2026-10-16 · [CL] thread 03 + E03 do playbook de Produção — trio nasce junto (charter + casos + teste).
 - 2026-10-20 · [CL] UC-PCCH-01/02 documentam o custo-hora que já existe (UC-FLX-20 parcial); o bullet de backlog do custo-hora da pessoa virou o UC-PCCH-02; rateio e ponto de equilíbrio ficam no [BACKLOG] (US-FIN-070).
+- 2026-10-20 · [CL] UC-PCPRZ-01..04 — prazo de entrega pela fila dos postos (US-PCP-028 · UC-FLX-06), cálculo em JSON só leitura; tela e data prometida ficam no [BACKLOG].
+- 2026-10-20 · [CL] UC-PCPRZ-05..08 — decisão [W]: dias úteis pelo período de funcionamento cadastrado (turno da produção, expediente e feriados do RH) e data prometida gravada na venda e na OS na aprovação; datas de UC-PCPRZ-01/02 recalculadas (24/10→26/10, 25/10→27/10).
+- 2026-10-20 · [CL] UC-PCCH-03..06 — custeio RKW e ponto de equilíbrio (US-FIN-070): cálculo só leitura + aplicar explícito; o [BACKLOG] do rateio virou estes casos.

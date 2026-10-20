@@ -5,9 +5,14 @@ tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §17 (R-01..R-24) — os UC abaixo DERIVAM dele
 owner: wagner
-last_run: "2026-10-08"
+last_run: "2026-10-19"
 ---
 
+> ℹ️ **`last_run` 2026-10-08 → 2026-10-19 (G-6): forma da gaveta, não comportamento.** A gaveta de leitura
+> da receita passou a usar a moldura do protótipo (`_components/Gaveta.tsx`, a mesma da ordem): grupos direto no
+> corpo, custo e nota num cartão, botões do DS. Os grupos, os números, a nota e os destinos dos botões são os
+> mesmos; nenhum UC deste arquivo trata da gaveta. Medição em `Recipes-visual-comparison.md` (2026-10-19).
+>
 > ℹ️ **`last_run` 2026-10-07 → 2026-10-08 (G-6): só o destino de um link.** "Editar ingredientes" da
 > gaveta passou a abrir o editor React (`&tela=nova`, US-MANU-006 etapa 3). A lista continua sem escrever
 > nada (charter Non-Goal): excluir receita fica no editor. Nenhum UC reexecutado.

@@ -36,6 +36,12 @@ use Modules\Producao\Exceptions\ApontamentoRecusado;
  * Empresa que permite vender sem estoque: o que faltou sai sem lote, sem custo, e fica em
  * `quantidade_sem_lote` para ninguém confundir com custo zero.
  *
+ * Rolo escolhido (US-COM-025 · UC-FLX-18): com `$loteId` (a linha da compra), a baixa sai só daquele lote,
+ * via `lot_no_line_id` da linha, que o `mapPurchaseSell` já respeita. O lote tem de ser da empresa, do
+ * mesmo material, do local da venda, de compra recebida (`received`, o mesmo filtro do `mapPurchaseSell`)
+ * e ter saldo para a quantidade inteira; senão é recusado e nada sai.
+ * Sem `$loteId`, segue o método da empresa como antes.
+ *
  * Quem aponta: o responsável da etapa, com a etapa iniciada ou feita e a OS Em execução ou Pausada.
  * OS concluída tem o custo congelado: material depois disso é recusado. Tier 0: `$businessId` em
  * toda consulta (o app não tem sessão).
@@ -46,12 +52,12 @@ final class ConsumoMaterialService
 
     public function __construct(private readonly ProductUtil $productUtil, private readonly TransactionUtil $transactionUtil) {}
 
-    public function registrar(int $businessId, int $userId, int $programacaoId, int $variationId, string $quantidade, string $chave, CarbonInterface $momento): Consumo
+    public function registrar(int $businessId, int $userId, int $programacaoId, int $variationId, string $quantidade, string $chave, CarbonInterface $momento, ?int $loteId = null): Consumo
     {
         $quantidade = $this->quantidade($quantidade);
         $momento = Carbon::instance($momento)->setTimezone(config('app.timezone'))->startOfSecond();
 
-        if ($repetido = $this->repeticao($businessId, $chave, $programacaoId, $variationId, $quantidade)) {
+        if ($repetido = $this->repeticao($businessId, $chave, $programacaoId, $variationId, $quantidade, $loteId)) {
             return $repetido;
         }
 
@@ -77,7 +83,7 @@ final class ConsumoMaterialService
         }
 
         try {
-            return DB::transaction(fn () => $this->baixar($businessId, $userId, $etapa, $material, $quantidade, $chave, $momento));
+            return DB::transaction(fn () => $this->baixar($businessId, $userId, $etapa, $material, $quantidade, $chave, $momento, $loteId));
         } catch (PurchaseSellMismatch $e) {
             throw new ApontamentoRecusado(ApontamentoRecusado::ESTOQUE_INSUFICIENTE, 'Não há estoque deste material no local da venda.');
         }
@@ -89,7 +95,7 @@ final class ConsumoMaterialService
         return Consumo::query()->where('business_id', $businessId)->where('ordem_id', $ordemId)->orderBy('momento')->orderBy('id')->get();
     }
 
-    private function baixar(int $businessId, int $userId, Programacao $etapa, object $material, string $quantidade, string $chave, Carbon $momento): Consumo
+    private function baixar(int $businessId, int $userId, Programacao $etapa, object $material, string $quantidade, string $chave, Carbon $momento, ?int $loteId): Consumo
     {
         // Trava a OS: uma baixa não passa pela conclusão que congela o custo.
         $ordem = Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)->with('currentStage')
@@ -107,6 +113,10 @@ final class ConsumoMaterialService
         $localId = DB::table('transactions')->where('business_id', $businessId)->where('id', $ordem->transaction_id)->value('location_id')
             ?? throw new ApontamentoRecusado(ApontamentoRecusado::NAO_ENCONTRADO, 'A venda desta OS não tem local de estoque.');
 
+        if ($loteId !== null) {
+            $this->conferirLote($businessId, (int) $localId, (int) $material->id, $loteId, $quantidade);
+        }
+
         $saida = Transaction::create([
             'business_id' => $businessId, 'location_id' => (int) $localId, 'type' => 'production_sell', 'status' => 'final',
             'payment_status' => 'due', 'transaction_date' => $momento, 'ref_no' => 'OS-'.$ordem->id,
@@ -115,7 +125,7 @@ final class ConsumoMaterialService
         $linha = TransactionSellLine::create([
             'transaction_id' => $saida->id, 'product_id' => (int) $material->product_id, 'variation_id' => (int) $material->id,
             'quantity' => $quantidade, 'unit_price_before_discount' => 0, 'unit_price' => 0, 'unit_price_inc_tax' => 0,
-            'item_tax' => 0, 'line_discount_amount' => 0,
+            'item_tax' => 0, 'line_discount_amount' => 0, 'lot_no_line_id' => $loteId,
         ]);
 
         $empresa = DB::table('business')->where('id', $businessId)->first(['accounting_method', 'pos_settings']);
@@ -133,6 +143,11 @@ final class ConsumoMaterialService
             ->first();
         $custo = $this->quatroCasas((string) $lote->custo);
         $semLote = $this->quatroCasas((string) $lote->sem_lote);
+        // Rede de segurança: o core não tirou tudo do rolo escolhido (a empresa vende sem estoque e
+        // sobrou sem lote). Recusa; a transação desfaz a baixa inteira.
+        if ($loteId !== null && $semLote !== '0.0000') {
+            throw new ApontamentoRecusado(ApontamentoRecusado::LOTE_INVALIDO, 'Este lote não tem saldo para a quantidade apontada.');
+        }
 
         // Preço unitário da linha = custo do lote ÷ quantidade, para o histórico de estoque mostrar o valor real.
         $unitario = $this->quatroCasas((string) DB::selectOne('SELECT ROUND(? / ?, 4) AS u', [$custo, $quantidade])->u);
@@ -149,15 +164,33 @@ final class ConsumoMaterialService
         ]);
     }
 
-    /** Mesma chave e mesmo corpo devolve o consumo gravado; corpo diferente é conflito. */
-    private function repeticao(int $businessId, string $chave, int $programacaoId, int $variationId, string $quantidade): ?Consumo
+    /** Lote escolhido: da empresa, do material, do local da venda e com saldo para tudo. Trava a linha da compra. */
+    private function conferirLote(int $businessId, int $localId, int $variationId, int $loteId, string $quantidade): void
+    {
+        $usado = $this->transactionUtil->get_pl_quantity_sum_string('pl');
+        $lote = DB::table('purchase_lines as pl')->join('transactions as t', 't.id', '=', 'pl.transaction_id')
+            ->where('t.business_id', $businessId)->where('t.location_id', $localId)->where('t.status', 'received')
+            ->whereIn('t.type', ['purchase', 'purchase_transfer', 'opening_stock', 'production_purchase'])
+            ->where('pl.id', $loteId)->where('pl.variation_id', $variationId)->lockForUpdate()
+            ->selectRaw("(pl.quantity - ($usado)) >= CAST(? AS DECIMAL(22,4)) as cabe", [$quantidade])->first();
+        if (! $lote) {
+            throw new ApontamentoRecusado(ApontamentoRecusado::LOTE_INVALIDO, 'Este lote não é deste material no local da venda.');
+        }
+        if ((int) $lote->cabe !== 1) {
+            throw new ApontamentoRecusado(ApontamentoRecusado::LOTE_INVALIDO, 'Este lote não tem saldo para a quantidade apontada.');
+        }
+    }
+
+    /** Mesma chave e mesmo corpo (lote escolhido incluso) devolve o consumo gravado; corpo diferente é conflito. */
+    private function repeticao(int $businessId, string $chave, int $programacaoId, int $variationId, string $quantidade, ?int $loteId): ?Consumo
     {
         $linha = Consumo::query()->where('business_id', $businessId)->where('chave', $chave)->first();
         if (! $linha) {
             return null;
         }
         $igual = (int) $linha->programacao_id === $programacaoId && (int) $linha->variation_id === $variationId
-            && $this->quatroCasas((string) $linha->quantidade) === $quantidade;
+            && $this->quatroCasas((string) $linha->quantidade) === $quantidade
+            && (int) DB::table('transaction_sell_lines')->where('id', $linha->transaction_sell_line_id)->value('lot_no_line_id') === (int) $loteId;
 
         return $igual ? $linha : throw new ApontamentoRecusado(ApontamentoRecusado::IDEMPOTENCIA_CONFLITO, 'Esta chave já foi usada em outro apontamento.');
     }
