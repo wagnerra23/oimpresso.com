@@ -12,7 +12,7 @@
 | [`Whatsapp`](#whatsapp) | 67 | 0 | 0 | 0 | 67 |
 | [`Sells`](#sells) | 65 | 0 | 0 | 0 | 65 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
-| [`Financeiro`](#financeiro) | 49 | 0 | 0 | 0 | 49 |
+| [`Financeiro`](#financeiro) | 49 | 1 | 0 | 0 | 48 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
 | [`OficinaAuto`](#oficinaauto) | 37 | 0 | 0 | 0 | 36 |
 | [`NfeBrasil`](#nfebrasil) | 28 | 0 | 0 | 6 | 22 |
@@ -362,6 +362,10 @@
 ## Financeiro
 
 
+### doing
+
+- **US-FIN-071** — Régua de cobrança do título vencido D+1/D+5/D+15 (UC-FLX-29) — **P2** _(`p2`)_
+
 ### todo
 
 - **US-FIN-014** — Imprimir 2ª via boleto Inter pelo título financeiro (botão na tela /boletos) _(`p1` · @wagner)_
@@ -394,7 +398,6 @@
 - **US-FIN-065** — Elevar tela Unificado/Novo a ≥70 (form unificado real de cobrança) _(`p2`)_
 - **US-FIN-069** — Baseline de pixel do DRE (#7767) não reproduz o render do CI — visual-regression vermelho em todo PR de escopo global _(`p2` · @wagner)_
 - **US-FIN-070** — Custeio RKW e ponto de equilíbrio no fechamento do mês (UC-FLX-20) — **P2** _(`p2`)_
-- **US-FIN-071** — Régua de cobrança do título vencido D+1/D+5/D+15 (UC-FLX-29) — **P2** _(`p2`)_
 - **US-FIN-072** — ISS retido ajusta o título para o valor líquido na autorização da NFS-e (UC-FLX-30) — **P2** _(`p2`)_
 - **US-FIN-025** — Onda 6 — Cleanup colunas legacy + remover redirects 301 _(`p3` · @wagner)_
 - **US-FIN-042** — Backfill cliente_descricao biz=1 - 52 fin_titulos pre-Onda-Edit NULL _(`p3`)_
@@ -534,7 +537,7 @@
 - **US-NFE-054** — Smoke real homologação SEFAZ-SC biz=1 — 1ª NFC-e cstat 100 (Goal #1 CYCLE-03) _(`p1` · @wagner)_
 - **US-NFE-062** — AuditLog em mutações fiscais NFe (Tributacao, Certificado, Manifestacao) _(`p1` · sprint cycle-04)_
 - **US-NFE-069** — A natureza fiscal do item escolhe a nota: NF-e para mercadoria, NFS-e para serviço e instalação (UC-FLX-31) — **P1** _(`p1` · sprint —)_
-- **US-NFE-070** — Contingência completa: retransmissão agendada, SVC-AN/SVC-RS e evento EPEC (UC-FLX-32) — **P1** _(`p1` · sprint —)_
+- **US-NFE-071** — Contingência: SVC-AN/SVC-RS, evento EPEC 110140 e marcação no DANFE (UC-FLX-32) — **P1** _(`p1` · sprint —)_
 - **US-NFE-055** — Estabilizar 107 tests broken Modules/NfeBrasil aplicando dual-mode SQLite/MySQL _(`p2`)_
 - **US-NFE-056** — Continuação PR #453 — migrar configBusiness(4) → configBusiness(1) em MotorTributarioServiceTest _(`p2`)_
 - **US-NFE-057** — Schema drift — atualizar fixtures DanfeServicePrefersArquivosTest pós-remoção `arquivos.filename` _(`p2`)_
