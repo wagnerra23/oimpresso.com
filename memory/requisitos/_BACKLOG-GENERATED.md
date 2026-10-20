@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **990 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **991 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -14,7 +14,7 @@
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
 | [`Financeiro`](#financeiro) | 49 | 3 | 0 | 0 | 46 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
-| [`OficinaAuto`](#oficinaauto) | 37 | 0 | 0 | 0 | 36 |
+| [`OficinaAuto`](#oficinaauto) | 38 | 0 | 0 | 0 | 37 |
 | [`NfeBrasil`](#nfebrasil) | 28 | 0 | 0 | 6 | 22 |
 | [`Producao`](#producao) | 26 | 0 | 0 | 0 | 26 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
@@ -495,6 +495,7 @@
 - **US-OFICINA-020** — Importer Firebird `WR_KANBAN` → `oa_kanban_state` (pré-arte Vargas/Martinho) — **P2** _(`p2`)_
 - **US-OFICINA-021** — Integração FIPE veículo (valor mercado + filtro garantia) — **P2** _(`p2`)_
 - **US-OFICINA-046** — Dívida F3: repontuar kanban Caçambas overdue→expected_completion + remover UI "Locações ativas" _(`p2`)_
+- **US-OFICINA-047** — Entrega da OS exige foto do serviço feito (UC-FLX-22) _(`p2`)_
 - **US-AUTO-001** — Cadastro veículo persistente (placa + chassi + km + ano + modelo + cor) — **P0**
 - **US-AUTO-002** — Consulta CRLV/Renavam por placa (DETRAN/SerPro) — **P0**
 - **US-AUTO-003** — Histórico do veículo (todas OS passadas) — **P0**
