@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 813,
-    "edges": 1112,
+    "nodes": 815,
+    "edges": 1114,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 435,
+      "component": 437,
       "api": 84
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 88,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 435,
+      "hasComponent": 437,
       "dependsOn": 123,
       "delegatesTo": 114,
       "migratesTo": 1,
@@ -1914,11 +1914,25 @@
       "desc": ""
     },
     {
+      "id": "component:Compras/compras_insumo_metodo_custo",
+      "type": "component",
+      "module": "Compras",
+      "name": "compras_insumo_metodo_custo",
+      "desc": "tabela-ponte (business_id, variation_id) com o método próprio do insumo (medio | ultimo), lida quando a regra é por_insumo; variations do core não ganha coluna"
+    },
+    {
       "id": "component:Compras/ComprasController",
       "type": "component",
       "module": "Compras",
       "name": "ComprasController",
       "desc": ""
+    },
+    {
+      "id": "component:Compras/CustoDoInsumoService",
+      "type": "component",
+      "module": "Compras",
+      "name": "CustoDoInsumoService",
+      "desc": "custo do insumo numa data pelo método da regra da empresa (US-COM-024 · UC-FLX-38); só lê purchase_lines + transactions"
     },
     {
       "id": "component:Compras/DataController",
@@ -7789,7 +7803,19 @@
     },
     {
       "from": "module:Compras",
+      "to": "component:Compras/compras_insumo_metodo_custo",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
       "to": "component:Compras/ComprasController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/CustoDoInsumoService",
       "type": "hasComponent",
       "source": "contains"
     },
