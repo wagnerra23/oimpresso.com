@@ -7,6 +7,8 @@ contains:
   - "AdvisorAccessController — Onda 31 US-FIN-037 grant/revoke acesso contador parceiro (biz-side, consent LGPD)"
   - "Advisor/AdvisorAuthController — Onda 31 US-FIN-037 login/logout guard web-advisor isolado"
   - "Advisor/AdvisorPortalController — Onda 31 US-FIN-037 dashboard /advisor (cards Meus clientes)"
+  - "TituloAutoService — espelha venda/compra/despesa em fin_titulos (Observers de transactions e transaction_payments); aberto de venda/compra = bruto − baixas do título (US-FIN-073)"
+  - "ResyncFromCoreCommand — financeiro:resync-from-core re-espelha valor_total inflado (num_uf) com --apply; modo --aberto só leitura lista títulos parciais com aberto divergente das baixas (US-FIN-073)"
   - "AssinaturaController — FIN-004 atualizar cobrança recorrente (multi-tenant Tier 0, gateway delegado a AssinaturaCobrancaService)"
   - "CaixaController — F6 Soft wrapper Inertia /financeiro/caixa read-only sobre cash_registers core UltimatePOS (não migra dados; lifecycle abrir/fechar continua na header POS via CashRegisterController core)"
   - "CategoriaController"
@@ -27,6 +29,7 @@ contains:
   - "PlanoContaController — Onda 18 tela /plano-contas dedicada + Fluxo fallback sem conta"
   - "RelatoriosController"
   - "UnificadoController"
+  - "ReguaCobrancaJob + comando financeiro:regua-cobranca — US-FIN-071 · UC-FLX-29 régua de cobrança do título vencido (e-mail D+1/D+5/D+15 com opt-in LGPD, histórico idempotente em fin_titulo_lembretes, tarefa na última etapa pelo contrato AgendaDeTarefas de app/Contracts/Crm, implementado no Crm); desligada por padrão em business.common_settings"
 not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
   - "Tasks Jira-style → Modules/Forja"
