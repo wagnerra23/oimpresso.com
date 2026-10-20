@@ -47,6 +47,9 @@ class ManufacturingServiceProvider extends ServiceProvider
     {
         $this->app->register(RouteServiceProvider::class);
         $this->registerCommands();
+
+        // US-PCP-031 · UC-FLX-14: a receita é a fonte do material reservado na venda sob encomenda.
+        $this->app->bind(\App\Contracts\Fabricacao\InsumosDaReceita::class, \Modules\Manufacturing\Services\InsumosDaReceitaService::class);
     }
 
     /**

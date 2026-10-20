@@ -94,6 +94,9 @@ class EssentialsServiceProvider extends ServiceProvider
 
         // Implementa o contrato do núcleo da aba Tarefas do app das lojas (sobrepõe o vazio).
         $this->app->bind(\App\Contracts\Tarefas\TarefasEssentials::class, \Modules\Essentials\Services\TarefasDoApp::class);
+
+        // Feriados e expediente do RH para quem conta dias úteis (prazo da produção, UC-FLX-06).
+        $this->app->bind(\App\Contracts\Rh\CalendarioDaEmpresa::class, \Modules\Essentials\Services\CalendarioDaEmpresaService::class);
     }
 
     /**

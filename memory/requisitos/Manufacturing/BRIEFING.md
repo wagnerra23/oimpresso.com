@@ -3,7 +3,7 @@ id: requisitos-manufacturing-briefing
 module: Manufacturing
 status: parcial
 status_nota: "Migração Inertia com CUTOVER concluído em 2026-09-04 — as 5 telas servem nos endereços canônicos (/manufacturing/recipe, /production, /report, /settings, /insumos), com ?legacy=1 devolvendo o Blade no mesmo endereço e /v2/* como 301. O editor de ingredientes (US-MANU-006) entrou em 2026-10-08 atrás de ?tela=nova, com as 6 regras de tela provadas em vitest. Falta a US-MANU-007 (formulário de ordem, travada por decisão FSM). Sem pilot dedicado; provê custeio/BOM."
-updated_at: "2026-10-09"
+updated_at: "2026-10-20"
 owner: W
 related_adrs:
   - 0011-alinhamento-padrao-jana
@@ -20,18 +20,28 @@ related_adrs:
 
 Módulo Manufacturing herdado UltimatePOS — gestão de **receitas/BOM (Bill of Materials)** + ordem de produção (`production_purchase`) + custeio dinâmico via chain `Variation→Product`. Modular monolith nWidart. Multi-tenant indireto (chain `products.business_id`).
 
-**Backend:** `Modules/Manufacturing/` · **Frontend:** Blade legacy + 2 páginas Inertia — `Pages/Manufacturing/Index.tsx` (produções) e `Pages/Manufacturing/Recipes.tsx` (consulta de receitas, servida em `/manufacturing/recipe`).
+**Backend:** `Modules/Manufacturing/` · **Frontend:** 6 páginas Inertia em `Pages/Manufacturing/` — `Index` (ordens), `Recipes`, `Report`, `Settings`, `Insumos` e `IngredientesEditor` — mais Blade legado que segue vivo: criar, gravar, editar, ver e excluir **ordem de produção**, `recipe/create`, `recipe/show` e o editor sem `?tela=nova`.
 
-## Sem nova capacidade desde jun/2026 (honesto)
+## O que mudou desde jun/2026 (corrigido em 2026-10-20)
 
-Nenhuma capacidade **de negócio** nova entrou na janela de refresh. As mudanças foram **cosméticas/estruturais**, não de feature:
+A versão anterior desta seção dizia "sem nova capacidade desde jun/2026". Estava errada: o próprio frontmatter e a tabela abaixo registram o contrário. O que entrou de set a out/2026 ([M+C]/[F+C], PRs #8289 a #9587):
 
-- **#4109** — declara o Padrão de Tela (PT-01 Lista) na página v2 (design, não capacidade).
-- **#3903** — perf D-14 (partial reload) na lista admin/core existente — filtros re-buscam só o que muda.
-- **#2599** — backfill de frontmatter dos charters (docs).
-- **#3660** — limpeza de marcadores de conflito em CHANGELOG/README (docs).
+- **Cutover** das 5 telas para os endereços canônicos (2026-09-04); `?legacy=1` devolve o Blade e `/v2/*` é 301.
+- **Receitas, Ordens, Relatório, Configurações e Insumos** em Inertia, na grade do DS e com a barra de abas única.
+- **Editor de ingredientes** (US-MANU-006) e janela **Nova receita** com cópia de receita; servidor recalcula o custo e só grava/apaga receita da própria empresa.
+- **Painel lateral da ordem** de produção (somente leitura) e indicadores que seguem local e período.
+- Hoje (2026-10-20) entrou o método de custo por insumo (UC-INSMET-01..05, US-COM-024, [W+C]); só o `Insumos.casos.md` está neste módulo.
 
-A capacidade de negócio real (CRUD receitas, ordens de produção, custeio) segue a mesma de mai/2026.
+## Decisão [W] 2026-10-13 — Fabricação × Produção (o código ainda não segue)
+
+Aceita em [2026-10-09-fabricacao-vs-producao-decisao-w.md](../../decisions/proposals/2026-10-09-fabricacao-vs-producao-decisao-w.md): **D1** sim (Fabricação é cadastro; a ordem nasce em Produção) · **D2** `product_bom` é a fonte única da composição · **D3 a D6** como recomendado (ordem pode existir sem material, mas só inicia com ele · desperdício sai da composição · regra de consumo vem da unidade do insumo). A **US-MANU-007 está cancelada**.
+
+Estado do código (leitura de 2026-10-20, `origin/main` `40463a2b18`): **nada disso foi implementado ainda neste módulo**.
+
+- A ordem `production_purchase` ainda é criada, finalizada e baixa estoque aqui (Blade); os botões de criar apontam para `/manufacturing/production/create`. `Modules/Producao` já existe (ADR 0431 e 0436).
+- `product_bom` aparece em 0 arquivos de `Modules/Manufacturing` e `Pages/Manufacturing`; o editor grava em `mfg_recipes`, lida por `ProductController`, `ProdutoUnificadoController` e `ProductUtil`.
+- `waste_percent` segue na receita, no custo e no editor. Não há estado "aguardando material" nem regra de consumo pela unidade.
+- Hipóteses de risco sem teste (Tier 0): H1 `store`, H2 `get-recipe-details`, H3 `update-product-prices` e `SettingsController@store` sem permissão do módulo — ver US-MANU-008 no SPEC.
 
 ## Correção de frescor (briefing estava STALE)
 
@@ -90,8 +100,8 @@ A versão anterior afirmava "Frontend Inertia/React ❌ pendente" e "Charter pá
 1. ~~Reverificar (grep) se OficinaAuto/ComunicacaoVisual realmente consomem `RecipeBomService`/`ProductionService`~~ — **fechado 2026-09-03**: reverificado, 0 arquivos, claim removido (ver seção acima).
 2. ~~`PermissionsTest` fechando `R-MANU-001..005`~~ — **fechado 2026-09-03** (ver Gaps catalogados).
 3. Promover os charters draft → live após screenshot aprovado por Wagner (agora são três: `Index`, `Recipes`, `Report`). Smoke de `Recipes.charter.md` **fechado 2026-09-03** — falta a aprovação do screenshot pelo Wagner (`Index.charter.md` e `Report.charter.md` seguem sem smoke registrado).
-4. **Smoke prod das 5 telas nos endereços canônicos** (`/manufacturing/recipe`, `/production`, `/report`, `/settings`, `/insumos`) — nenhuma foi aberta e verificada depois do cutover de 2026-09-04. CI verde não é smoke: conferir também que `?legacy=1` ainda devolve o Blade e que a entrada de Insumos aparece no menu lateral.
-5. **US-MANU-003 (Configurações do módulo)** é a próxima onda na ordem de custo crescente decidida por [M] — backend já existe (`SettingsController@index/@store`), 3 campos, escreve.
+4. *(a confirmar — há medições em produção registradas depois do cutover, #8636 · #8772 · #9587; reler antes de repetir)* **Smoke prod das 5 telas nos endereços canônicos** (`/manufacturing/recipe`, `/production`, `/report`, `/settings`, `/insumos`) — nenhuma foi aberta e verificada depois do cutover de 2026-09-04. CI verde não é smoke: conferir também que `?legacy=1` ainda devolve o Blade e que a entrada de Insumos aparece no menu lateral.
+5. ~~US-MANU-003 (Configurações do módulo)~~ — **entregue** (Wave 31). Próximo: ADR das decisões D1 a D6 e a US-MANU-008 (escopo por empresa nas rotas legadas), em testes vermelhos antes de qualquer correção.
 6. Migração MWART do CRUD/Recipes avaliada quando OficinaAuto consumir BOM via UI Inertia (segue sem consumo — item 1 acima).
 
 ## Nota atual
@@ -99,7 +109,9 @@ A versão anterior afirmava "Frontend Inertia/React ❌ pendente" e "Charter pá
 **?/100 (stale)** — última medição registrada **48/100** em 2026-05-16 (Wave Massive). O código evoluiu depois (Wave J v2 list + Wave 14/17/26/27 observ./dashboard/LGPD), então o 48 já não reflete o estado. **Não reavaliável**: a rubrica `module-grade` foi APOSENTADA em 2026-09-15 ([ADR 0399](../../decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md)) — **não existe mais nota de módulo, nem comando que a calcule**. O 48/100 fica como último valor conhecido, datado. Anti-fabricação segue valendo — nenhum número novo foi inventado no lugar.
 
 ---
-**Atualizado:** 2026-10-09 — o editor de ingredientes (US-MANU-006) entra na tabela de capacidades e sai da lista do que segue em Blade; as 6 regras de tela do §5 ganham teste vitest (UC-INGRED-08..13). [M+C]
+**Atualizado:** 2026-10-20 — seção "sem nova capacidade" corrigida, decisão [W] de 13/10 registrada e estado do código confrontado com ela. [CC]
+
+**Antes:** 2026-10-09 — o editor de ingredientes (US-MANU-006) entra na tabela de capacidades e sai da lista do que segue em Blade; as 6 regras de tela do §5 ganham teste vitest (UC-INGRED-08..13). [M+C]
 
 **Antes:** 2026-09-02 — a consulta de receitas entra em `/manufacturing/recipe` (Wave 29,
 porte do handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1"). O dono vivo da nota do módulo é o
