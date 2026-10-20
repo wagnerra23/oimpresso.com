@@ -28,7 +28,9 @@ vi.mock('@inertiajs/react', async () => {
         post: () => {
           enviado.payload = transformar.current(data)
         },
-        put: vi.fn(),
+        put: () => {
+          enviado.payload = transformar.current(data)
+        },
         processing: false,
         errors: {},
       }
@@ -245,15 +247,19 @@ describe('UC-PCAD-13 · UC-PCAD-14 · NCM no Novo produto', () => {
     expect(campoNcm().value).toBe('')
     expect(aviso()).not.toBeNull()
   })
+})
 
-  it('UC-PCAD-13 · Editar não mostra o campo NCM (o update() ainda não grava)', () => {
+// UC-PEDIT-11 — o NCM na tela Editar. A tela mostra o NCM gravado, só com dígitos, e só o manda
+// quando a pessoa mexeu nele: um NCM antigo fora do formato não pode barrar a edição de outro campo.
+describe('UC-PEDIT-11 · NCM no Editar produto', () => {
+  const editar = (ncm: string | null) =>
     render(
       <ProdutoEdit
         {...(listasDoServidor as never)}
         product={{
           id: 9, name: 'Lona 440g', sku: 'LON-440', type: 'single', brandId: 3, unitId: 5,
           subUnitIds: null, categoryId: 1, subCategoryId: null, tax: 1, taxType: 'exclusive',
-          origemMercadoria: 0, barcodeType: 'C128', enableStock: true, alertQuantity: null,
+          origemMercadoria: 0, ncm, barcodeType: 'C128', enableStock: true, alertQuantity: null,
           weight: null, productDescription: null, productLocations: [1], image: null,
           warrantyId: null, camposPersonalizados: {}, expiryPeriod: null, expiryPeriodType: null,
         }}
@@ -261,6 +267,50 @@ describe('UC-PCAD-13 · UC-PCAD-14 · NCM no Novo produto', () => {
         permissions={{ opening_stock: false, delete: false }}
       />,
     )
-    expect(campoNcm()).toBeNull()
+  const campoNcm = () => document.querySelector('#ncm') as HTMLInputElement
+  const aviso = () => screen.queryByTestId('ncm-aviso')
+  const salvar = (container: HTMLElement) => {
+    enviado.payload = null
+    fireEvent.submit(container.querySelector('form#produto-edit-form') as HTMLFormElement)
+    return enviado.payload as Record<string, unknown> | null
+  }
+
+  it('mostra o NCM gravado só com dígitos', () => {
+    editar('4911.10.90')
+    expect(campoNcm().value).toBe('49111090')
+    expect(aviso()).toBeNull()
+  })
+
+  it('sem mexer no NCM, o envio não leva o campo', () => {
+    const { container } = editar('49111090')
+    fireEvent.change(document.querySelector('#name') as HTMLInputElement, { target: { value: 'Lona 440g fosca' } })
+
+    const envio = salvar(container)
+    expect(envio?.name).toBe('Lona 440g fosca')
+    expect(envio && 'ncm' in envio).toBe(false)
+  })
+
+  it('NCM antigo fora do formato avisa, mas não vai no envio se a pessoa não mexer nele', () => {
+    const { container } = editar('4911')
+    expect(aviso()?.textContent).toBe('O NCM tem 8 dígitos.')
+
+    const envio = salvar(container)
+    expect(envio).not.toBeNull()
+    expect(envio && 'ncm' in envio).toBe(false)
+  })
+
+  it('NCM alterado vai no envio', () => {
+    const { container } = editar('49111090')
+    fireEvent.change(campoNcm(), { target: { value: '3926.90.90' } })
+
+    expect(salvar(container)?.ncm).toBe('39269090')
+  })
+
+  it('NCM apagado vai vazio no envio, e a tela avisa', () => {
+    const { container } = editar('49111090')
+    fireEvent.change(campoNcm(), { target: { value: '' } })
+
+    expect(aviso()?.textContent).toContain('Sem NCM a nota fiscal de mercadoria não sai')
+    expect(salvar(container)?.ncm).toBe('')
   })
 })
