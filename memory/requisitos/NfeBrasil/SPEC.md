@@ -1604,10 +1604,12 @@ Como contador, quero decidir por produto se ele é mercadoria (ICMS) ou serviço
 
 ### US-NFE-069 · A natureza fiscal do item escolhe a nota: NF-e para mercadoria, NFS-e para serviço e instalação (UC-FLX-31) — **P1**
 
-> owner: — · sprint: — · priority: p1 · estimate: 6h · status: todo · type: story
+> owner: — · sprint: — · priority: p1 · estimate: 6h · type: story
 > blocked_by: US-NFE-060 (NFS-e ainda é STUB, sem chamada real à Sefin nacional)
 
-**Implementado em:** _pendente_
+**Implementado em:** _parcial_ — `Modules/NfeBrasil/Services/SeparacaoNotasDaVenda.php` · `Modules/NfeBrasil/Tests/Feature/SeparacaoNotasDaVendaContratoTest.php` (só a separação das linhas; disparo no Faturado e emissão em aberto)
+
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/SeparacaoNotasDaVendaContratoTest.php` (lane `nfebrasil-pest.yml`)
 
 Como faturista, quero que a venda ou OS com mercadoria e serviço saia em duas notas — NF-e com as mercadorias e NFS-e com os serviços —, decididas pela natureza fiscal de cada produto, para não ter a NF-e recusada inteira nem a NFS-e com código de serviço errado.
 
@@ -1621,7 +1623,9 @@ Como faturista, quero que a venda ou OS com mercadoria e serviço saia em duas n
 US-NFE-060 cobre só o job de emissão da NFS-e (modelo 56, STUB); esta US cobre a divisão por natureza e o código de serviço por item. UC-FLX-27 ("Uma OS, duas notas") é o caso de OS da mesma divisão.
 
 **Aceite:**
-- [ ] Venda com 1 item `mercadoria` e 1 item `servico` gera uma NF-e só com a mercadoria e uma NFS-e só com o serviço; a soma das duas fecha o total da venda
+- [x] **Separar as linhas** (2026-10-20, PR-1): `SeparacaoNotasDaVenda::separar` divide a venda em parte mercadoria e parte serviço pela natureza do produto, com o `codigo_servico` de cada linha de serviço; a soma das duas partes é o `final_total`, centavo a centavo (UC-FNFSE-06..09 em `resources/js/Pages/Fiscal/Nfse.casos.md`). Regra de rateio de desconto, frete e acréscimos em `SeparacaoNotasDaVenda::REGRA_RATEIO` — **proposta, pendente de decisão [W]**
+- [ ] Disparo no Faturado: a venda/OS faturada chama a separação e gera as duas notas (hoje `NfeService::recusarItensDeServico` segue recusando a NF-e com item de serviço, de propósito)
+- [ ] Emissão: a NF-e sai só com a parte mercadoria e a NFS-e só com a parte serviço, cada uma com o total da sua parte
 - [ ] A NFS-e usa o `codigo_servico` gravado na natureza do produto; o default do business só vale para produto sem natureza decidida
 - [ ] Item de instalação (natureza `servico`) vai para a NFS-e, mesmo numa OS com material
 - [ ] Produto com natureza `pendente` bloqueia o faturamento com mensagem que manda o contador decidir; não escolhe imposto sozinho (D-NATUREZA)
