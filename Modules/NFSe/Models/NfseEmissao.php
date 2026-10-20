@@ -8,6 +8,15 @@ use Modules\NFSe\Models\Concerns\NfseBusinessScope;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
+/**
+ * Colunas criadas por migrations do NfeBrasil (D-NFSE-CONSOLIDA), fora do alcance da
+ * inferência de schema do Larastan — declaradas aqui. Cast decimal:2 ⇒ string.
+ *
+ * @property string|null $valor_iss_retido  ISS retido pelo tomador (US-FIN-072); NULL em nota anterior à coluna
+ * @property string|null $valor_ret_pis
+ * @property string|null $valor_ret_cofins
+ * @property string|null $valor_ret_csll
+ */
 class NfseEmissao extends Model
 {
     use SoftDeletes, NfseBusinessScope, LogsActivity;
@@ -19,7 +28,7 @@ class NfseEmissao extends Model
         'tomador_cnpj', 'tomador_cpf', 'tomador_nome', 'tomador_email', 'tomador_municipio_ibge',
         'lc116_codigo', 'ctrib_nac', 'cnae', 'descricao',
         'valor_servicos', 'valor_deducoes', 'valor_base_calculo',
-        'aliquota_iss', 'valor_iss', 'iss_retido',
+        'aliquota_iss', 'valor_iss', 'iss_retido', 'valor_iss_retido',
         'retencao_federal_sujeito', 'valor_ret_pis', 'valor_ret_cofins', 'valor_ret_csll',
         'status', 'provider_protocolo', 'provider_codigo_verificacao',
         'pdf_url', 'xml_envio', 'xml_retorno', 'erro_mensagem',
@@ -34,6 +43,7 @@ class NfseEmissao extends Model
         'aliquota_iss'   => 'decimal:4',
         'valor_iss'      => 'decimal:2',
         'iss_retido'     => 'boolean',
+        'valor_iss_retido' => 'decimal:2',
         'retencao_federal_sujeito' => 'boolean',
         'valor_ret_pis'    => 'decimal:2',
         'valor_ret_cofins' => 'decimal:2',

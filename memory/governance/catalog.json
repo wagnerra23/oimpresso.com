@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 825,
-    "edges": 1124,
+    "nodes": 827,
+    "edges": 1128,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 447,
+      "component": 449,
       "api": 84
     },
     "by_edge_type": {
@@ -42,9 +42,9 @@
       "providesApi": 88,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 447,
-      "dependsOn": 123,
-      "delegatesTo": 114,
+      "hasComponent": 449,
+      "dependsOn": 124,
+      "delegatesTo": 115,
       "migratesTo": 1,
       "supersedes": 26,
       "supersedesPartially": 71,
@@ -8826,6 +8826,13 @@
     },
     {
       "from": "module:Financeiro",
+      "to": "module:NFSe",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Emissão e cancelamento de NFS-e (o Financeiro só observa a mudança de status para lançar as retenções como baixa — US-FIN-072)"
+    },
+    {
+      "from": "module:Financeiro",
       "to": "module:Compras",
       "type": "dependsOn",
       "source": "depends_on"
@@ -8850,6 +8857,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "module:NFSe",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Emissão e cancelamento de NFS-e (o Financeiro só observa a mudança de status para lançar as retenções como baixa — US-FIN-072)"
     },
     {
       "from": "module:Financeiro",

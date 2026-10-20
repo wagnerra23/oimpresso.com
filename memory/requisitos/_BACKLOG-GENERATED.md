@@ -12,7 +12,7 @@
 | [`Whatsapp`](#whatsapp) | 67 | 0 | 0 | 0 | 67 |
 | [`Sells`](#sells) | 66 | 0 | 0 | 0 | 66 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
-| [`Financeiro`](#financeiro) | 49 | 2 | 0 | 0 | 47 |
+| [`Financeiro`](#financeiro) | 49 | 3 | 0 | 0 | 46 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
 | [`OficinaAuto`](#oficinaauto) | 37 | 0 | 0 | 0 | 36 |
 | [`NfeBrasil`](#nfebrasil) | 28 | 0 | 0 | 6 | 22 |
@@ -367,6 +367,7 @@
 
 - **US-FIN-070** — Custeio RKW e ponto de equilíbrio no fechamento do mês (UC-FLX-20) — **P2** _(`p2`)_
 - **US-FIN-071** — Régua de cobrança do título vencido D+1/D+5/D+15 (UC-FLX-29) — **P2** _(`p2`)_
+- **US-FIN-072** — ISS retido ajusta o título para o valor líquido na autorização da NFS-e (UC-FLX-30) — **P2** _(`p2`)_
 
 ### todo
 
@@ -399,7 +400,6 @@
 - **US-FIN-064** — Redirect ContasReceber/ContasPagar → Unificado (deprecação) _(`p2`)_
 - **US-FIN-065** — Elevar tela Unificado/Novo a ≥70 (form unificado real de cobrança) _(`p2`)_
 - **US-FIN-069** — Baseline de pixel do DRE (#7767) não reproduz o render do CI — visual-regression vermelho em todo PR de escopo global _(`p2` · @wagner)_
-- **US-FIN-072** — ISS retido ajusta o título para o valor líquido na autorização da NFS-e (UC-FLX-30) — **P2** _(`p2`)_
 - **US-FIN-025** — Onda 6 — Cleanup colunas legacy + remover redirects 301 _(`p3` · @wagner)_
 - **US-FIN-042** — Backfill cliente_descricao biz=1 - 52 fin_titulos pre-Onda-Edit NULL _(`p3`)_
 - **US-FIN-066** — Elevar tela AssinaturaAtualizar a ≥70 (PageHeader canon + preview de valor) _(`p3`)_
