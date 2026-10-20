@@ -535,6 +535,29 @@ Como quem orça e produz, quero saber quanto um insumo custava num dia qualquer,
 - [x] Método `por_insumo`: nulo com o motivo, até o insumo ter campo próprio
 - [ ] Consumidores: orçamento (UC-FLX-33) e OS (UC-FLX-37) passam a usar o serviço
 
+### US-COM-025 · Rastreio do rolo: em que OS cada fração da mídia foi usada (UC-FLX-18) — **P2**
+
+> owner: wagner · priority: p2 · estimate: 3h · type: story
+
+Como quem compra e controla a mídia (bobina de lona, vinil, papel em rolo), quero abrir um rolo recebido e ver em que OS cada fração dele foi usada e quanto ainda sobra, para saber o custo de cada trabalho e de onde veio o defeito de um lote.
+
+**Implementado em:** _pendente_
+
+**Origem:** UC-FLX-18 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:71`, etapa Recebido, fonte Mubisys, porte pequena, sem US até aqui). O que já existe (medido 2026-10-20):
+
+- O lote é a linha da compra: `purchase_lines.lot_number`, ligado por empresa em `business.enable_lot_number` (`app/Http/Controllers/BusinessController.php:440`).
+- A baixa da OS já sabe de que lote saiu (US-PCP-021): `Modules/Producao/Services/ConsumoMaterialService.php:122` grava a fração em `transaction_sell_lines_purchase_lines` pelo `mapPurchaseSell` (tipo `production_purchase`), e `pcp_consumos` liga a baixa à OS (`ordem_id`, `transaction_sell_line_id`).
+- O lote é escolhido sozinho pelo método da empresa (FIFO/LIFO); o `mapPurchaseSell` já aceita `lot_no_line_id` (`app/Utils/TransactionUtil.php:3264`), mas a baixa da OS não o passa.
+
+O que falta, e é o escopo desta US: a leitura "rolo → OS" (lote, frações por OS, saldo do rolo) e a escolha do rolo na baixa. Fora daqui: tabela `product_batches` própria, FEFO e picker de lote no PDV (US-INV-006 a US-INV-010, Estoque, adiadas por P7).
+
+**Aceite:**
+- [ ] Dado um lote (`purchase_line_id`) recebido, a consulta lista cada OS que usou fração dele: número da OS, etapa, quantidade, data e quem apontou, mais o saldo do rolo (recebido − devolvido − Σ frações).
+- [ ] A soma das frações listadas é igual à quantidade do lote em `transaction_sell_lines_purchase_lines` com `production_purchase`; dois caminhos no teste.
+- [ ] A baixa da OS aceita o lote escolhido (`lot_no_line_id`); sem escolha segue o método da empresa, como hoje; lote de outro produto ou sem saldo recusa.
+- [ ] Tier 0: lote de outra empresa responde 404 e não aparece na lista (teste com a mesma variação em duas empresas, `business_id` em toda consulta).
+- [ ] Só quem tem permissão de ver compras abre o rastreio; sem a permissão, 403.
+
 ### 9.1 Seguradas (feature-wish ADR 0105 — NÃO no backlog ativo)
 
 Sem dor reportada por cliente / sinal qualificado, estas **não** viram US ativa (ADR 0105 — cliente como sinal). Ficam catalogadas como wish, reabrem com sinal:
