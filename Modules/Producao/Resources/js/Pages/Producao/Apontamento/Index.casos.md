@@ -170,6 +170,56 @@ o item marcado como mudou, e a previsão em 30,00; nada é gravado.
 
 Status: 🧪
 
+---
+
+## Cliente aprova a arte por link (US-COMVIS-NEW-004 · UC-FLX-02)
+
+> **Âncora:** UC-FLX-02 do catálogo de fluxos (`fluxos-data.jsx`, etapa "Aprovação do cliente"):
+> *"Envia link da prova; aprovado avança para Impressão, recusado volta para Arte com o comentário"* —
+> e a US-COMVIS-NEW-004 (`memory/requisitos/ComunicacaoVisual/SPEC.md`: link de curta validade, 7 dias,
+> página pública sem login, uso único). A etapa "Aprovação do cliente" é uma etapa do roteiro desta OS;
+> por isso o contrato mora aqui, junto do apontamento que conclui as outras etapas. Nesta entrega são o
+> endpoint do operador (gera o link) e a página pública; o envio por WhatsApp/e-mail com opt-in LGPD e o
+> botão na tela ficam para depois. Prova: `ProducaoAprovacaoArteContratoTest`.
+
+## UC-PCART-01 · Aprovar leva a OS para a Impressão · `must`
+
+**Dado** a OS com Arte feita, "Aprovação do cliente" pendente e Impressão depois, e o link da prova
+enviado **Quando** o cliente abre o link e aprova **Então** a etapa de aprovação fica concluída, a OS segue em
+execução pelo motor (sem mexer na situação à mão) e a Impressão pode começar — antes da aprovação, não podia.
+O banco guarda só o hash do token.
+
+Status: 🧪
+
+## UC-PCART-02 · Recusar volta para a Arte com o comentário · `must`
+
+**Quando** o cliente pede alteração com o comentário "Trocar o telefone do rodapé" **Então** a Arte volta como
+etapa nova "Arte (alteração)" para o mesmo designer, o comentário fica gravado, a aprovação continua pendente
+e a Impressão segue esperando. Pedido de alteração sem comentário é recusado e nada muda.
+
+Status: 🧪
+
+## UC-PCART-03 · O link vale uma resposta só · `must`
+
+**Dado** um link já respondido **Quando** alguém tenta aprovar ou recusar de novo **Então** a resposta é recusada
+(410) e nada muda.
+
+Status: 🧪
+
+## UC-PCART-04 · Link vencido é recusado · `must`
+
+**Dado** um link com mais de 7 dias **Quando** o cliente abre ou aprova **Então** a resposta é recusada (410) e a
+etapa fica como estava.
+
+Status: 🧪
+
+## UC-PCART-05 · Só a empresa da OS gera link · `must`
+
+**Quando** um usuário da empresa 99 pede o link de uma OS da empresa 98 **Então** recebe 404 e nada é gravado;
+token desconhecido também é 404.
+
+Status: 🧪
+
 ## UC-PCOSA-02 · Vivo: a previsão acompanha · `must` valor
 
 **Dado** a regra em "Passam a usar o custo novo" **Então** a previsão é 45,00, o custo do lote segue 30,00 e

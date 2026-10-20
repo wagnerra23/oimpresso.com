@@ -1,6 +1,7 @@
 <?php
 
 use Modules\Producao\Http\Controllers\ApontamentoController;
+use Modules\Producao\Http\Controllers\AprovacaoArteController;
 use Modules\Producao\Http\Controllers\ColaboradorCustoController;
 use Modules\Producao\Http\Controllers\EtiquetaOsController;
 use Modules\Producao\Http\Controllers\FerramentasController;
@@ -71,4 +72,18 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('os/{id}/etiqueta', [EtiquetaOsController::class, 'show'])->whereNumber('id')->name('os.etiqueta');
         // US-PCP-022 · UC-FLX-36 — custo da abertura × hoje da OS por item em andamento (JSON, gestor).
         Route::get('ordens/{id}/custo', [OrdemCustoController::class, 'show'])->whereNumber('id')->name('ordens.custo');
+        // US-COMVIS-NEW-004 · UC-FLX-02 — gera o link da prova para o cliente aprovar (JSON).
+        Route::post('ordens/{id}/aprovacao-arte', [AprovacaoArteController::class, 'solicitar'])->whereNumber('id')->name('ordens.aprovacao-arte');
+    });
+
+// ── UC-FLX-02 · US-COMVIS-NEW-004 · página pública da prova (sem login) ──
+// A empresa vem do token (só o sha256 fica no banco), nunca da URL. Throttle 30/min/IP contra
+// varredura de token; o `web` do RouteServiceProvider dá sessão + CSRF ao formulário.
+Route::middleware(['throttle:30,1'])
+    ->prefix('arte')
+    ->name('producao.arte.')
+    ->group(function () {
+        Route::get('{token}', [AprovacaoArteController::class, 'mostrar'])->where('token', '[A-Za-z0-9]{48}')->name('mostrar');
+        Route::post('{token}/aprovar', [AprovacaoArteController::class, 'aprovar'])->where('token', '[A-Za-z0-9]{48}')->name('aprovar');
+        Route::post('{token}/recusar', [AprovacaoArteController::class, 'recusar'])->where('token', '[A-Za-z0-9]{48}')->name('recusar');
     });

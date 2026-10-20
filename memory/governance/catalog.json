@@ -26,23 +26,23 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 815,
-    "edges": 1114,
+    "nodes": 817,
+    "edges": 1116,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 437,
-      "api": 84
+      "component": 438,
+      "api": 85
     },
     "by_edge_type": {
       "ownsTable": 97,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 88,
+      "providesApi": 89,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 437,
+      "hasComponent": 438,
       "dependsOn": 123,
       "delegatesTo": 114,
       "migratesTo": 1,
@@ -1183,6 +1183,14 @@
       "prefix": "/arquivos/*",
       "providers": [
         "Arquivos"
+      ]
+    },
+    {
+      "id": "api:/arte/{token}",
+      "type": "api",
+      "prefix": "/arte/{token}",
+      "providers": [
+        "Producao"
       ]
     },
     {
@@ -4110,6 +4118,13 @@
       "module": "Producao",
       "name": "ApontamentoController",
       "desc": "celular do operador (PWA, thread 04): /producao/apontamento, escritas em JSON para a fila offline; a regra mora no ApontamentoOperadorService"
+    },
+    {
+      "id": "component:Producao/AprovacaoArteController + AprovacaoArteService",
+      "type": "component",
+      "module": "Producao",
+      "name": "AprovacaoArteController + AprovacaoArteService",
+      "desc": "cliente aprova a arte por link (US-COMVIS-NEW-004 · UC-FLX-02): o operador gera o link da prova da OS por item (token, só o sha256 em pcp_aprovacoes_arte, 7 dias, uso único); a página pública /arte/{token} (Blade, sem login, throttle) aprova — conclui a etapa pelo motor — ou recusa com comentário, reabrindo a arte"
     },
     {
       "id": "component:Producao/ColaboradorCustoController",
@@ -12174,6 +12189,12 @@
     },
     {
       "from": "module:Producao",
+      "to": "component:Producao/AprovacaoArteController + AprovacaoArteService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
       "to": "component:Producao/ColaboradorCustoController",
       "type": "hasComponent",
       "source": "contains"
@@ -12237,6 +12258,12 @@
       "to": "component:Producao/RoteirosController",
       "type": "hasComponent",
       "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "api:/arte/{token}",
+      "type": "providesApi",
+      "source": "url_prefixes"
     },
     {
       "from": "module:Producao",
