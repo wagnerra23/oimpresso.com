@@ -7,7 +7,7 @@ contains:
   - "DataController"
   - "InstallController"
   - "CustoDoInsumoService — custo do insumo numa data pelo método da regra da empresa (US-COM-024 · UC-FLX-38); só lê purchase_lines + transactions"
-  - "compras_insumo_metodo_custo — tabela-ponte (business_id, variation_id) com o método próprio do insumo (medio | ultimo), lida quando a regra é por_insumo; variations do core não ganha coluna"
+  - "InsumoMetodoCusto — entidade da tabela-ponte compras_insumo_metodo_custo (business_id, variation_id) com o método próprio do insumo (medio | ultimo), lida quando a regra é por_insumo; variations do core não ganha coluna"
 not_contains:
   - "Estoque/inventário operacional → Modules/AssetManagement + core UltimatePOS stock"
   - "Vendas/saídas → core UltimatePOS Sells (NÃO é módulo: telas legacy em app/ + resources/views — ghost-rename-map excluded classe C)"
