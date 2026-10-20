@@ -2057,6 +2057,8 @@ Falta: listener na autorização que ache o título via `transaction_id` e o aju
 
 **Implementado em:** `Modules/Financeiro/Services/TituloAutoService.php` (`sincronizarDeTransacao` + `abertoPorBaixas`), `Modules/Financeiro/Console/Commands/ResyncFromCoreCommand.php` (modo `--aberto`), `Modules/Financeiro/Tests/Feature/AbertoVendaParcialContratoTest.php`
 
+**Testado em:** `Modules/Financeiro/Tests/Feature/AbertoVendaParcialContratoTest.php`
+
 **Origem:** achado no PR #9638 (US-FIN-072, ISS retido como baixa), que consertou só os títulos com retenção. Medido em 2026-10-20: `sincronizarDeTransacao` calculava o aberto de venda/compra como `$tx->total_remaining_amount ?? $tx->final_total`, e a coluna `transactions.total_remaining_amount` não existe (`BridgeExpenseToTitulosCommand.php:30`). O core grava o `payment_status` com `save()` depois de cada pagamento (`TransactionUtil::updatePaymentStatus`), o `TransactionObserver` re-sincroniza e o aberto volta ao bruto, com status "aberto" — os pagamentos já baixados no título somem do saldo. Venda paga no caixa continuar cancelando o título é o comportamento documentado e fica fora.
 
 ⚠️ **REGRA MESTRE — CÁLCULO DE VALOR** ([proibicoes.md](../../proibicoes.md)): esta US muda o valor em aberto de título.
