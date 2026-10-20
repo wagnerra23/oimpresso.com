@@ -5,8 +5,15 @@ irmaos: Edit.charter.md (lei) · tests/Feature/Sells/SellsEditContratoTest.php (
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-10-02"
+last_run: "2026-10-20"
 ---
+
+<!-- REVALIDAÇÃO 2026-10-20 (US-SELL-072, trava após nota). Este PR não muda o .tsx; a última
+     mudança dele é a seção Reparo (#8578, 2026-10-03), já revalidada no comentário do UC-SEDIT-12
+     abaixo. Muda o servidor: SellPosController@update recusa item/valor/cliente com nota e valor
+     com pagamento, e SellController@edit passa a mandar a prop `trava`. Venda sem nota nem
+     pagamento segue o caminho de antes — UC-SEDIT-01..12 não têm nota nem pagamento no fixture
+     (o UC-SEDIT-10 tem pagamento, mas só faz GET) — status mantidos. UC-SEDIT-13..18 nascem 🧪. -->
 
 <!-- REVALIDAÇÃO 2026-10-02 (G-6: o .tsx mudou — UC-SEDIT-09, conserto da edição React).
      Mudanças no .tsx: pré-fill pelo preço antes do desconto, subtotal na regra do servidor
