@@ -138,6 +138,8 @@ on:
       - 'Modules/Crm/Tests/Feature/CrmPropostas*'
       # Thread Producao/02 — fundo do PCP (trigger append-only exige MySQL).
       - 'Modules/Producao/**'
+      # US-PCP-025 — o sinal mínimo da empresa mora nas regras do FSM.
+      - 'app/Domain/Fsm/Modelos/RegrasDaEmpresa.php'
       # US-FISIO-003 — fundo do Fisio (triggers append-only + escopo multi-tenant exigem MySQL).
       - 'Modules/Fisio/**'
       # Etapa 02 T-13 — service worker do portal do paciente (FisioPortalAppTest lê o arquivo).
@@ -264,6 +266,8 @@ jobs:
               - 'Modules/Crm/Tests/Feature/CrmPropostas*'
               # Thread Producao/02 — fundo do PCP (trigger append-only exige MySQL).
               - 'Modules/Producao/**'
+              # US-PCP-025 — o sinal mínimo da empresa mora nas regras do FSM.
+              - 'app/Domain/Fsm/Modelos/RegrasDaEmpresa.php'
               # US-FISIO-003 — fundo do Fisio (triggers append-only + escopo multi-tenant exigem MySQL).
               - 'Modules/Fisio/**'
               # Etapa 02 T-13 — service worker do portal do paciente (FisioPortalAppTest lê o arquivo).
@@ -640,6 +644,7 @@ jobs:
             Modules/Producao/Tests/Feature/ProducaoFecharTurnoComandoTest.php \
             Modules/Producao/Tests/Feature/ProducaoMaterialContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoCustoOsAbertaContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoSinalPagoLiberaContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoRomaneioContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoAproveitamentoMidiaContratoTest.php \
             Modules/Fisio/Tests/Feature/FisioEsquemaContratoTest.php \
