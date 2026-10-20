@@ -302,6 +302,14 @@ class DocumentacaoController extends Controller
 
         return Inertia::render('Documentacao/CasosDeUso', [
             'casos' => $casos,
+            // Deferred: varre SPECs e `.casos.md` (cache curto) e consulta o acervo pelo git_path.
+            // A tabela chega no 1º render; os links para os artefatos, logo depois.
+            'artefatos' => Inertia::defer(fn () => app(\App\Services\Documentacao\RastroDosCasos::class)
+                ->paraCasos(
+                    array_map(static fn (array $c): array => ['id' => $c['id'], 'us' => $c['us']], $casos),
+                    fn (array $paths): array => $this->slugsNoAcervo($paths),
+                    self::BLOB,
+                )),
             'processos' => array_keys($processos),
             'estados' => array_map(static fn (array $e): array => ['rotulo' => $e[0], 'tom' => $e[1]], $catalogo::ESTADOS),
             'fonte' => 'app/Domain/Fsm/Modelos/CasosDoPrototipo.php',
@@ -766,6 +774,26 @@ class DocumentacaoController extends Controller
             ->whereIn('type', self::TIPOS_DOC)
             ->where('admin_only', false)
             ->whereNull('scope_required');
+    }
+
+    /**
+     * `git_path → slug` dos arquivos que a rota de documento abre — mesma `consultaBase()`, então o
+     * link interno só existe se `/documentacao/{slug}` mostra o documento. Sem corpus, mapa vazio.
+     *
+     * @param  list<string>  $paths
+     * @return array<string, string>
+     */
+    private function slugsNoAcervo(array $paths): array
+    {
+        if (! $this->corpusDisponivel()) {
+            return [];
+        }
+
+        try {
+            return $this->consultaBase()->whereIn('git_path', $paths)->pluck('slug', 'git_path')->all();
+        } catch (\Throwable) {
+            return [];
+        }
     }
 
     /** O corpus vive numa tabela sincronizada por webhook; pode não existir no ambiente. */
