@@ -2747,6 +2747,13 @@
       "desc": "Onda 18 tela /plano-contas dedicada + Fluxo fallback sem conta"
     },
     {
+      "id": "component:Financeiro/ReguaCobrancaJob + comando financeiro:regua-cobranca",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "ReguaCobrancaJob + comando financeiro:regua-cobranca",
+      "desc": "US-FIN-071 · UC-FLX-29 régua de cobrança do título vencido (e-mail D+1/D+5/D+15 com opt-in LGPD, histórico idempotente em fin_titulo_lembretes, tarefa na última etapa pelo contrato AgendaDeTarefas de app/Contracts/Crm, implementado no Crm); desligada por padrão em business.common_settings"
+    },
+    {
       "id": "component:Financeiro/RelatoriosController",
       "type": "component",
       "module": "Financeiro",
@@ -8923,6 +8930,12 @@
     {
       "from": "module:Financeiro",
       "to": "component:Financeiro/PlanoContaController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "component:Financeiro/ReguaCobrancaJob + comando financeiro:regua-cobranca",
       "type": "hasComponent",
       "source": "contains"
     },
