@@ -11,6 +11,7 @@ use Tests\Support\WithSeededTenant;
 
 /**
  * US-COM-024 · UC-FLX-38 — custo do insumo numa data, lido de `purchase_lines`.
+ * Método por insumo: cobre UC-INSMET-01..05 (resources/js/Pages/Manufacturing/Insumos.casos.md).
  *
  * Âncora de contrato: memory/requisitos/Compras/SPEC.md US-COM-024 (critérios abaixo citados
  * pelo nome do caso). Os valores esperados NÃO vêm do serviço: vêm da conta feita à mão sobre
@@ -167,10 +168,63 @@ it('US-COM-024 · sem regra gravada, o método da empresa é o médio', function
     expect($r['metodo'])->toBe('medio')->and($r['custo'])->toBe('14.6667');
 });
 
-it('US-COM-024 · método por insumo ainda não tem campo e devolve nulo com o motivo', function () {
+/** Grava o método próprio do insumo na tabela-ponte (some no fim do teste, DatabaseTransactions). */
+function metodoProprioDoInsumo(int $biz, int $variationId, string $metodo): void
+{
+    DB::table('compras_insumo_metodo_custo')->insert([
+        'business_id' => $biz, 'variation_id' => $variationId, 'metodo' => $metodo,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+}
+
+it('UC-INSMET-01 · US-COM-024 · por insumo: o insumo marcado médio custa o médio ponderado', function () {
+    // À mão: (10×12 + 20×16) / 30 = 14,6667. Segundo caminho: custoInsumoEsperado.
+    expect(custoInsumoEsperado($this->compras, $this->biz->id, '2026-03-31', 'medio'))->toBe('14.6667');
+    metodoProprioDoInsumo($this->biz->id, $this->variationId, 'medio');
+
     $r = $this->servico->naData($this->biz->id, $this->variationId, '2026-03-31', 'por_insumo');
 
-    expect($r['custo'])->toBeNull()->and($r['motivo'])->toBe('O insumo ainda não tem campo para o método próprio.');
+    expect($r['custo'])->toBe('14.6667')->and($r['metodo'])->toBe('medio')->and($r['motivo'])->toBeNull();
+});
+
+it('UC-INSMET-02 · US-COM-024 · por insumo: o insumo marcado último custa o preço da compra mais recente', function () {
+    // À mão: compra C (10/03), 16,00. O médio daria 14,6667 — o teste separa os dois.
+    expect(custoInsumoEsperado($this->compras, $this->biz->id, '2026-03-31', 'ultimo'))->toBe('16.0000');
+    metodoProprioDoInsumo($this->biz->id, $this->variationId, 'ultimo');
+
+    $r = $this->servico->naData($this->biz->id, $this->variationId, '2026-03-31', 'por_insumo');
+
+    expect($r['custo'])->toBe('16.0000')->and($r['metodo'])->toBe('ultimo');
+});
+
+it('UC-INSMET-03 · US-COM-024 · por insumo sem método definido devolve nulo com o motivo', function () {
+    $r = $this->servico->naData($this->biz->id, $this->variationId, '2026-03-31', 'por_insumo');
+
+    expect($r['custo'])->toBeNull()
+        ->and($r['metodo'])->toBe('por_insumo')
+        ->and($r['motivo'])->toBe('O insumo não tem método definido.');
+});
+
+it('UC-INSMET-04 · US-COM-024 · Tier 0: o método que outra empresa deu ao insumo não vale para esta', function () {
+    metodoProprioDoInsumo($this->outra->id, $this->variationId, 'ultimo');
+
+    $r = $this->servico->naData($this->biz->id, $this->variationId, '2026-03-31', 'por_insumo');
+    expect($r['custo'])->toBeNull()->and($r['motivo'])->toBe('O insumo não tem método definido.');
+
+    // A própria outra empresa lê a sua linha: a única compra dela é 1000 un × 1,00.
+    $daOutra = $this->servico->naData($this->outra->id, $this->variationId, '2026-03-31', 'por_insumo');
+    expect($daOutra['custo'])->toBe('1.0000')->and($daOutra['metodo'])->toBe('ultimo');
+});
+
+it('UC-INSMET-05 · US-COM-024 · empresa com método médio ignora o método próprio do insumo', function () {
+    // A linha diria "último" (16,0000); a empresa sem regra gravada usa médio (14,6667).
+    metodoProprioDoInsumo($this->biz->id, $this->variationId, 'ultimo');
+    DB::table('fsm_modelos_empresa')->where('business_id', $this->biz->id)->delete();
+
+    $r = $this->servico->naData($this->biz->id, $this->variationId, '2026-03-31');
+    expect($r['metodo'])->toBe('medio')->and($r['custo'])->toBe('14.6667');
+
+    expect($this->servico->naData($this->biz->id, $this->variationId, '2026-03-31', 'ultimo')['custo'])->toBe('16.0000');
 });
 
 it('US-COM-024 · método desconhecido é recusado', function () {
