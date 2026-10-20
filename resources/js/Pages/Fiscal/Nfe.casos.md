@@ -120,6 +120,10 @@ não tem as migrations do NfeBrasil. É lacuna de ambiente, não defeito do test
 | UC-FNFE-11 | nenhum ícone decorativo chega ao leitor de tela | `[must]` | **—** (mesma nota) | `fiscal-nfe-teclado.test.tsx` | 🧪 |
 | UC-FNFE-12 | a lista não promete o que não tem (separador solto · tecla sem handler) | `[should]` | **—** (mesma nota) | `fiscal-nfe-teclado.test.tsx` (5) | 🧪 |
 | UC-FNFE-14 | a densidade escolhida acompanha a navegação entre as telas de notas | `[should]` | **—** (mesma nota) | `fiscal-densidade.test.tsx` | 🧪 |
+| UC-FNFE-15 | nota em contingência (tpEmis 4/9) sai com `dhCont` + `xJust` da ativação | `[must]` | **—** (US-NFE-070) | `ContingenciaAgendamentoTest` | 🧪 |
+| UC-FNFE-16 | nota normal (tpEmis 1) não leva `dhCont`/`xJust` | `[must]` `[reg]` | **—** (US-NFE-070) | `ContingenciaAgendamentoTest` | 🧪 |
+| UC-FNFE-17 | o agendamento só retransmite quem tem nota pendente e SEFAZ no ar | `[must]` | **—** (US-NFE-070) | `ContingenciaAgendamentoTest` | 🧪 |
+| UC-FNFE-18 | o job de um business nunca transmite nota de outro | `[must]` `[T0]` | **—** (US-NFE-070) | `ContingenciaAgendamentoTest` | 🧪 |
 | UC-FNFE-21 | fatura paga emite a NF-e sem ninguém clicar (UC-FLX-26) | `[must]` `[fiscal]` | CU-RB-09 itens 1-2 (SDD RecurringBilling) | `EmitirNFeAoReceberPagamentoTest` (4) | 🧪 |
 | UC-FNFE-22 | com a chave desligada (o padrão) ou fatura não encontrada, nenhuma nota sai (UC-FLX-26) | `[must]` `[fiscal]` | CU-RB-09 item 2 | `EmitirNFeAoReceberPagamentoTest` (2) | 🧪 |
 | UC-FNFE-23 | SEFAZ fora não derruba o pagamento: a emissão volta pra fila (UC-FLX-26) | `[must]` `[fiscal]` | CU-RB-09 item 3 | `EmitirNFeAoReceberPagamentoTest` (3) | 🧪 |
@@ -401,6 +405,45 @@ O Cockpit não é renderizado (recebe ~15 props de payload) e entra por um caso 
 que a pessoa fiscal **faz** (conferir, cancelar, manifestar, inutilizar); nenhum trata de
 preferência de exibição. Ancorar num CU plausível fecharia a lacuna do painel sem lastro (LC-11).
 
+## NF-e em contingência quando a SEFAZ cai (US-NFE-070 · UC-FLX-32)
+
+> **Âncora:** [US-NFE-070](../../../../memory/requisitos/NfeBrasil/SPEC.md) (resto da US-NFE-006) e o
+> UC-FLX-32 do catálogo de fluxos (etapa Validada → Transmitida: *"NF-e em contingência quando a SEFAZ
+> cai"*). Nesta entrega: `dhCont`/`xJust` no XML e a retransmissão agendada (`nfe:retentar-contingencia`,
+> a cada 5 min). SVC-AN/SVC-RS, evento EPEC 110140 e a marcação no DANFE seguem pendentes na US.
+> Coluna CU `—`: o SDD §6 do Fiscal não tem CU de contingência. Prova: `ContingenciaAgendamentoTest`.
+
+## UC-FNFE-15 · A nota em contingência leva quando e por quê entrou nela · `must`
+
+**Dado** a contingência ligada às 14:05 com o motivo "SEFAZ-RR fora do ar desde 14h" **Quando** sai uma NF-e
+(tpEmis 4) e uma NFC-e (tpEmis 9) **Então** as duas trazem `<dhCont>` com 14:05 do dia e `<xJust>SEFAZ-RR fora
+do ar desde 14h</xJust>`. Motivo de 10 caracteres ("SEFAZ caiu") vira "Contingencia: SEFAZ caiu" (24), porque a
+SEFAZ exige de 15 a 256.
+
+Status: 🧪
+
+## UC-FNFE-16 · A nota normal não muda · `must`
+
+**Dado** a contingência desligada **Quando** sai uma NF-e **Então** o XML tem `<tpEmis>1</tpEmis>` e nenhum
+`<dhCont>` nem `<xJust>`.
+
+Status: 🧪
+
+## UC-FNFE-17 · A retransmissão só sai quando há nota pendente e a SEFAZ responde · `must`
+
+**Dado** a empresa A com 1 nota em contingência e a B só com nota autorizada **Quando** o agendamento roda e o
+ping da SEFAZ de A volta cStat 107 **Então** só A é consultada, 1 job sai para A, nenhum para B, e a UF fica
+`verde` em `nfe_sefaz_status`. Com cStat 108 (SEFAZ paralisada) nada é despachado nem gravado.
+
+Status: 🧪
+
+## UC-FNFE-18 · O job de uma empresa nunca transmite nota de outra · `must`
+
+**Dado** uma nota em contingência em A e outra em B **Quando** roda o job de A **Então** só a nota de A é
+transmitida e a de B continua `contingencia`.
+
+Status: 🧪
+
 ---
 
 ## Boleto pago emite a NF-e (US-RB-044 · UC-FLX-26)
@@ -478,6 +521,9 @@ creditado antes e não é desfeito (`CU-RB-09` item 3).
 2. **Cadência:** rodar ao fim de toda mexida na tela. UC ❌ = regressão fiscal.
 
 ## Trilha do tempo
+- 2026-10-20 · [C] `UC-FNFE-15..18` — contingência (US-NFE-070 · UC-FLX-32): `dhCont`/`xJust` no XML e
+  retransmissão agendada. Testes novos em `ContingenciaAgendamentoTest`, sem veredito de lane ainda.
+
 - 2026-10-20 · [C] `UC-FNFE-21..23` — o fluxo "boleto pago emite a NF-e" (US-RB-044 · `CU-RB-09` ·
   UC-FLX-26) ganha casos aqui. Nenhum teste novo e nenhum assert mudou: os 9 casos existentes de
   `EmitirNFeAoReceberPagamentoTest` passaram a citar o UC no título. **Os ids pulam pro 21 de propósito:**
