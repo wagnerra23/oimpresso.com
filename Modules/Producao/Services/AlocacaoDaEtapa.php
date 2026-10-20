@@ -75,7 +75,7 @@ final class AlocacaoDaEtapa
      * Fila do posto para o alocador: etapas abertas (pendentes e em andamento) pela ordem do início
      * previsto. Posto de outra empresa → não encontrado.
      *
-     * @return Collection<int, array<string, mixed>>
+     * @return Collection<int, array{id: int, os_tipo: string, os_id: int, nome: string|null, status: string, user_id: int|null, responsavel: string|null, inicio_previsto: string, fim_previsto: string}>
      */
     public function fila(int $businessId, int $postoId): Collection
     {
