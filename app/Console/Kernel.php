@@ -378,6 +378,15 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // US-SELL-071 · UC-FLX-25 — pesquisa de satisfação 2 dias depois da entrega (CSAT do
+        // WhatsApp ou e-mail, respeitando o opt-in LGPD); nota baixa abre atendimento no CRM.
+        // Um job por empresa que ligou (default desligado), com o business_id; --sync porque não
+        // depende de worker. Idempotente (uma pesquisa por venda).
+        $schedule->command('sells:pesquisa-entrega --sync')
+            ->dailyAt('10:00')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping();
+
         // Ciclo diário de governança [CC]×Jana (ADVISORY — orquestra checks que já
         // existem; não cria daemon, não numera ADR, não auto-mergeia Tier 0).
         // Regenera o estado (governanca:scorecard) + frescor (graduation_ratio,

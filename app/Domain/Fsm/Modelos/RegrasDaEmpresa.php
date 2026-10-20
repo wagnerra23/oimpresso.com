@@ -130,6 +130,33 @@ final class RegrasDaEmpresa
         });
     }
 
+    /**
+     * Sinal mínimo para a produção liberar a OS, em % do total da venda (UC-FLX-28 · US-PCP-025).
+     * Nulo = regra desligada. Devolve o decimal como texto, sem passar por float.
+     */
+    public function sinalMinimo(int $businessId): ?string
+    {
+        $v = $this->linha($businessId)?->getRawOriginal('sinal_minimo_pct');
+
+        return $v === null ? null : (string) $v;
+    }
+
+    /** Grava o sinal mínimo da empresa; nulo desliga a regra. De 0,01% a 100%, até 2 casas. */
+    public function mudarSinalMinimo(int $businessId, ?string $pct): void
+    {
+        $this->modeloEmUso($businessId);
+        if ($pct !== null && (preg_match('/^\d{1,3}(\.\d{1,2})?$/', $pct) !== 1 || (float) $pct <= 0 || (float) $pct > 100)) {
+            throw new InvalidArgumentException('O sinal mínimo vai de 0,01% a 100%.');
+        }
+
+        DB::transaction(function () use ($businessId, $pct) {
+            $linha = ModeloEmpresa::withoutGlobalScope(ScopeByBusiness::class)
+                ->where('business_id', $businessId)->lockForUpdate()->firstOrFail();
+            $linha->setAttribute('sinal_minimo_pct', $pct);
+            $linha->save();
+        });
+    }
+
     /** Modelo do catálogo em uso; recusa empresa sem modelo ou no legado. */
     private function modeloEmUso(int $businessId): string
     {
