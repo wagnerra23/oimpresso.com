@@ -96,6 +96,54 @@ last_run: "2026-10-06"
 
 ---
 
+## Método de custo por insumo (US-COM-024 · UC-FLX-38)
+
+> **Âncora:** US-COM-024 (`memory/requisitos/Compras/SPEC.md`) e o UC-FLX-38 do catálogo de fluxos
+> (*"custo do insumo guarda o histórico por data"*). Quando a regra "Atualizar o custo dos insumos" da
+> empresa é **Definido em cada insumo** (`por_insumo`), cada insumo diz o seu método na tabela-ponte
+> `compras_insumo_metodo_custo`. Nesta entrega é o serviço (`CustoDoInsumoService`); o campo no drawer
+> desta tela é follow-up. Prova: `Modules/Compras/Tests/Feature/CustoDoInsumoServiceTest.php`. VALOR:
+> regra mestre (conta à mão + segundo caminho em PHP no teste).
+>
+> Arranjo dos casos (31/03): compras recebidas B 10 un × 12,00 e C 30 un × 16,00 com 10 devolvidas.
+
+## UC-INSMET-01 · Insumo marcado médio custa o médio ponderado · `must` valor
+
+**Dado** a regra da empresa `por_insumo` e o insumo marcado `medio` **Quando** se pede o custo em 31/03
+**Então** o custo é (10 × 12,00 + 20 × 16,00) / 30 = 14,6667 e o método informado é `medio`.
+
+Status: 🧪
+
+## UC-INSMET-02 · Insumo marcado último custa o preço da compra mais recente · `must` valor
+
+**Dado** a regra `por_insumo` e o insumo marcado `ultimo` **Quando** se pede o custo em 31/03 **Então** o
+custo é 16,0000 (compra C, de 10/03), não o médio de 14,6667.
+
+Status: 🧪
+
+## UC-INSMET-03 · Insumo sem método definido fica sem custo, com o motivo · `must`
+
+**Dado** a regra `por_insumo` e nenhuma linha para o insumo **Quando** se pede o custo **Então** o custo é
+nulo e o motivo é "O insumo não tem método definido." — nenhum padrão é inventado.
+
+Status: 🧪
+
+## UC-INSMET-04 · O método que outra empresa deu ao insumo não vale aqui · `must`
+
+**Dado** só a outra empresa marcou o mesmo insumo como `ultimo` **Quando** esta empresa pede o custo
+**Então** o custo é nulo com o motivo; a outra empresa lê a sua linha e o seu custo (1000 un × 1,00 → 1,0000).
+
+Status: 🧪
+
+## UC-INSMET-05 · Empresa com regra médio ignora o método do insumo · `must` valor
+
+**Dado** o insumo marcado `ultimo` (que daria 16,0000) e a empresa com a regra padrão médio **Quando** se
+pede o custo em 31/03 **Então** o custo é 14,6667 — o método do insumo só vale com `por_insumo`.
+
+Status: 🧪
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** O drawer fecha com `Esc`, com o ✕ e com clique no scrim — comportamento de
@@ -124,3 +172,6 @@ outra decisão de escopo — não é ajuste de código.
   `Modules/Manufacturing/Tests/Feature/CutoverRotasCanonicasTest.php` (9 asserts). Nenhum UC
   acima mudou de comportamento; os asserts de ROTA de Wave30/31/33 foram reapontados pro
   canônico porque o `/v2/` agora responde `RedirectController`, não o controller da tela.
+- 2026-10-20 · [W+C] US-COM-024 · UC-FLX-38: UC-INSMET-01..05, o método de custo por insumo
+  (`CustoDoInsumoService` + `compras_insumo_metodo_custo`). Só backend; `Insumos.tsx` não mudou e
+  o campo no drawer é follow-up. Prova: `CustoDoInsumoServiceTest.php`.

@@ -28,8 +28,9 @@ use InvalidArgumentException;
  *  - `medio`  — média ponderada pela quantidade líquida (recebida − devolvida) de todas as
  *               compras até a data.
  *  - `ultimo` — preço da compra mais recente até a data (empate de data: a linha mais nova).
- *  - `por_insumo` — ainda não existe campo no insumo para guardar o método; devolve custo
- *               nulo com o motivo, em vez de inventar um comportamento.
+ *  - `por_insumo` — cada insumo diz o seu método (`medio` ou `ultimo`) na tabela-ponte
+ *               `compras_insumo_metodo_custo`; a resposta traz o método efetivo. Insumo
+ *               sem linha: custo nulo com o motivo, em vez de inventar um padrão.
  *
  * Preço usado: `purchase_price_inc_tax`, a mesma base de `dpp_inc_tax` que a receita do
  * Manufacturing soma hoje, para os dois números serem comparáveis.
@@ -61,6 +62,20 @@ final class CustoDoInsumoService implements CustoDoInsumo
     }
 
     /**
+     * O método próprio do insumo (`compras_insumo_metodo_custo`), ou nulo se não definido.
+     * Filtro explícito por empresa: o serviço roda fora de sessão (observer, job).
+     */
+    public function metodoDoInsumo(int $businessId, int $variationId): ?string
+    {
+        $metodo = DB::table('compras_insumo_metodo_custo')
+            ->where('business_id', $businessId)
+            ->where('variation_id', $variationId)
+            ->value('metodo');
+
+        return in_array($metodo, ['medio', 'ultimo'], true) ? $metodo : null;
+    }
+
+    /**
      * @return array{custo: ?string, metodo: string, data: string, compras: int, ultima_compra_em: ?string, motivo: ?string}
      *         `custo` com 4 casas, por unidade base, imposto incluso; nulo quando não há
      *         compra recebida até a data ou o método não tem como responder.
@@ -76,7 +91,11 @@ final class CustoDoInsumoService implements CustoDoInsumo
         $resposta = ['custo' => null, 'metodo' => $metodo, 'data' => $ate->toDateString(), 'compras' => 0, 'ultima_compra_em' => null, 'motivo' => null];
 
         if ($metodo === 'por_insumo') {
-            return ['motivo' => 'O insumo ainda não tem campo para o método próprio.'] + $resposta;
+            $metodo = $this->metodoDoInsumo($businessId, $variationId);
+            if ($metodo === null) {
+                return ['motivo' => 'O insumo não tem método definido.'] + $resposta;
+            }
+            $resposta['metodo'] = $metodo;
         }
 
         $base = DB::table('purchase_lines as pl')
