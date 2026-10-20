@@ -1187,21 +1187,25 @@ Job lê `commission_distribution_json`, calcula valores, cria lançamentos `comi
 
 > owner: wagner · priority: p1 · estimate: 2h · type: story
 
-**Implementado em:** `Modules/ComunicacaoVisual/Services/OrcamentoGravador.php` · `Modules/ComunicacaoVisual/Database/Migrations/2026_10_19_210000_add_custo_previsto_to_comvis_orcamento_itens.php`
+**Implementado em:** `Modules/ComunicacaoVisual/Services/OrcamentoGravador.php` · `Modules/ComunicacaoVisual/Database/Migrations/2026_10_19_210000_add_custo_previsto_to_comvis_orcamento_itens.php` · `Modules/ComunicacaoVisual/Database/Migrations/2026_10_20_100000_add_custo_maquina_previsto_to_comvis_orcamento_itens.php` · `app/Contracts/Producao/CustoHoraDoPosto.php` · `Modules/Producao/Services/CustoHoraDoPostoService.php`
 
-**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCustoPrevistoTest.php` (lane `verticais-pest.yml`).
+**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCustoPrevistoTest.php` · `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCustoMaquinaPrevistoTest.php` (lane `verticais-pest.yml`).
 
 Como quem orça comunicação visual, quero que cada item guarde o custo do material no dia do orçamento, porque o que se negocia não é o que se emprega na produção e o cadastro do material não tem histórico.
 
 - Custo do m² lido de `comvis_materiais.preco_custo_m2` na gravação, filtrado pelo `business_id` explícito.
 - Custo do item = área × custo do m², arredondado a 2 casas.
 - Custo zero no cadastro conta como não informado.
+- Hora de máquina (2026-10-20): o item pode informar `posto_id` (posto do PCP da mesma empresa) e `horas_maquina`. Na gravação, o custo da hora vem de `pcp_postos.custo_hora` pela interface `App\Contracts\Producao\CustoHoraDoPosto` (só posto `tipo_custo = maquina`, custo > 0, `business_id` explícito); custo da máquina = horas × custo da hora, 2 casas. Sem o módulo Producao a interface não está ligada e o item segue sem custo de máquina.
+- Tinta e instalação seguem sem custo previsto: não há fonte de custo cadastrada para elas hoje.
 
 **Aceite:**
 - [x] Item com material grava `custo_previsto_m2`, `custo_previsto` e `custo_previsto_em`
 - [x] Item sem material, material sem custo ou de outra empresa fica sem custo
 - [x] Mudar o custo no cadastro depois não altera o orçamento gravado
 - [x] Preço, subtotal e total do orçamento não mudam
+- [x] Item com posto de máquina e horas grava `custo_hora_previsto` e `custo_maquina_previsto` do dia; posto de pessoa, sem custo ou de outra empresa fica sem custo; mudar o custo da hora depois não altera o orçamento
+- [ ] Custo previsto de tinta e de instalação (sem fonte de custo hoje)
 - [ ] Ligar o material da CV ao produto do estoque, para usar o custo das compras (US-COM-024)
 
 ---
