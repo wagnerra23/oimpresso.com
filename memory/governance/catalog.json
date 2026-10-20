@@ -2761,6 +2761,20 @@
       "desc": ""
     },
     {
+      "id": "component:Financeiro/ResyncFromCoreCommand",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "ResyncFromCoreCommand",
+      "desc": "financeiro:resync-from-core re-espelha valor_total inflado (num_uf) com --apply; modo --aberto só leitura lista títulos parciais com aberto divergente das baixas (US-FIN-073)"
+    },
+    {
+      "id": "component:Financeiro/TituloAutoService",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "TituloAutoService",
+      "desc": "espelha venda/compra/despesa em fin_titulos (Observers de transactions e transaction_payments); aberto de venda/compra = bruto − baixas do título (US-FIN-073)"
+    },
+    {
       "id": "component:Financeiro/UnificadoController",
       "type": "component",
       "module": "Financeiro",
@@ -8949,6 +8963,18 @@
     {
       "from": "module:Financeiro",
       "to": "component:Financeiro/RelatoriosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "component:Financeiro/ResyncFromCoreCommand",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "component:Financeiro/TituloAutoService",
       "type": "hasComponent",
       "source": "contains"
     },
