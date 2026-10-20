@@ -49,6 +49,16 @@ use Modules\Financeiro\Services\TituloAutoService;
  *   php artisan financeiro:resync-from-core --business=4            # DRY-RUN
  *   php artisan financeiro:resync-from-core --business=4 --detail
  *   php artisan financeiro:resync-from-core --business=4 --apply
+ *   php artisan financeiro:resync-from-core --business=4 --aberto   # US-FIN-073, SÓ LEITURA
+ *
+ * MODO --aberto (US-FIN-073, 2026-10-20): lista os títulos de venda/compra PARCIAL cujo
+ * `valor_aberto` gravado diverge do aberto correto (bruto − baixas do título). Até o fix,
+ * cada re-sincronização do TituloAutoService devolvia o aberto ao bruto, porque lia
+ * `transactions.total_remaining_amount` — coluna que não existe. O fix vale daqui pra frente;
+ * os títulos já gravados ficam como estão até [W] decidir corrigi-los vendo este relatório.
+ * Por isso o modo NÃO tem --apply: ele só mostra aberto atual → aberto correto, e põe ao lado
+ * o aberto pelo core (final_total − Σ pagamentos líquidos de troco) como segundo caminho.
+ * Onde os dois caminhos discordam (pagamento sem baixa, troco), a linha sai marcada.
  *
  * Refs: #2279 (fix num_uf), #2280 (correção core 16 vendas), ADR 0093 (Tier 0),
  * RUNBOOK-bridge-sells-titulos-backfill.md, agent financeiro-bridge-auditor.
@@ -61,6 +71,7 @@ class ResyncFromCoreCommand extends Command
         {--since= : Data mínima YYYY-MM-DD (emissao do título) (opcional)}
         {--limit= : Máximo de títulos por rodada (opcional)}
         {--apply : Aplica a correção (default DRY-RUN seguro)}
+        {--aberto : Só leitura — títulos de venda/compra parcial com valor_aberto divergente das baixas (US-FIN-073)}
         {--detail : Lista cada título processado}';
 
     protected $description = 'Re-sincroniza fin_titulos inflados (incidente num_uf) com o final_total corrigido do core. DRY-RUN por padrão.';
@@ -72,6 +83,16 @@ class ResyncFromCoreCommand extends Command
             $this->error('--business=ID obrigatório (Tier 0 IRREVOGÁVEL — ADR 0093)');
 
             return self::FAILURE;
+        }
+
+        if ($this->option('aberto')) {
+            if ($this->option('apply')) {
+                $this->error('--aberto é só leitura: corrigir os títulos existentes é decisão [W] (US-FIN-073).');
+
+                return self::FAILURE;
+            }
+
+            return $this->relatorioAberto($businessId, $this->option('limit') ? (int) $this->option('limit') : null);
         }
 
         $ratio = (float) ($this->option('ratio') ?: 1.5);
@@ -262,6 +283,80 @@ class ResyncFromCoreCommand extends Command
         $this->info("✓ Resync concluído em business={$businessId}");
         $this->info("  Títulos corrigidos: {$corrigidos}");
         $this->info("  Baixas-lixo estornadas: {$baixasEstornadas}");
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * US-FIN-073 — relatório SÓ LEITURA do aberto de títulos de venda/compra parcial.
+     * Não escreve nada (nem activity_log). Escopo: um business (Tier 0 ADR 0093).
+     */
+    private function relatorioAberto(int $businessId, ?int $limit): int
+    {
+        $this->info("[SÓ LEITURA] Aberto de títulos de venda/compra parcial (business={$businessId})");
+
+        $query = DB::table('fin_titulos as ft')
+            ->join('transactions as t', function ($join) {
+                $join->on('t.id', '=', 'ft.origem_id')
+                    ->on('t.business_id', '=', 'ft.business_id');
+            })
+            ->where('ft.business_id', $businessId)
+            ->whereIn('ft.origem', ['venda', 'compra'])
+            ->whereNull('ft.parcela_numero')
+            ->whereNull('ft.deleted_at')
+            ->where('ft.status', '!=', 'cancelado')
+            ->where('t.payment_status', 'partial')
+            ->select('ft.id', 'ft.numero', 'ft.origem', 'ft.status', 'ft.valor_total', 'ft.valor_aberto', 't.id as tx_id', 't.final_total')
+            // Caminho 1 (o do fix): Σ baixas líquidas do título (estornos são negativos).
+            ->selectRaw('(SELECT COALESCE(SUM(b.valor_baixa), 0) FROM fin_titulo_baixas b'
+                .' WHERE b.titulo_id = ft.id AND b.business_id = ft.business_id) as soma_baixas')
+            // Caminho 2 (o do core): Σ pagamentos líquidos de troco, igual TransactionUtil::getTotalPaid.
+            ->selectRaw('(SELECT COALESCE(SUM(IF(tp.is_return = 0, tp.amount, -1 * tp.amount)), 0) FROM transaction_payments tp'
+                .' WHERE tp.transaction_id = t.id AND tp.business_id = t.business_id) as pago_core')
+            ->orderBy('ft.id');
+
+        $rows = [];
+        $divergentes = 0;
+        foreach ($query->get() as $r) {
+            $total = (float) $r->valor_total;
+            $correto = round(max(0.0, $total - (float) $r->soma_baixas), 2);
+            $core = round(max(0.0, (float) $r->final_total - (float) $r->pago_core), 2);
+            $atual = round((float) $r->valor_aberto, 2);
+
+            if (abs($atual - $correto) < 0.005) {
+                continue;
+            }
+
+            $divergentes++;
+            if ($limit !== null && count($rows) >= $limit) {
+                continue;
+            }
+
+            $statusCorreto = $correto <= 0 ? 'quitado' : ($correto < $total ? 'parcial' : 'aberto');
+            $rows[] = [
+                'id' => $r->id,
+                'numero' => $r->numero,
+                'origem' => $r->origem,
+                'tx' => $r->tx_id,
+                'total' => number_format($total, 2, ',', '.'),
+                'aberto_atual' => number_format($atual, 2, ',', '.'),
+                'aberto_correto' => number_format($correto, 2, ',', '.'),
+                'aberto_core' => number_format($core, 2, ',', '.'),
+                'status' => "{$r->status} → {$statusCorreto}",
+                'aviso' => abs($correto - $core) < 0.005 ? '' : 'baixas ≠ core',
+            ];
+        }
+
+        if ($divergentes === 0) {
+            $this->info('Nenhum título parcial com aberto divergente das baixas.');
+
+            return self::SUCCESS;
+        }
+
+        $this->table(['id', 'numero', 'origem', 'tx', 'total', 'aberto_atual', 'aberto_correto', 'aberto_core', 'status', 'aviso'], $rows);
+        $this->warn(sprintf('%d título(s) com aberto divergente (%d listado(s)). Nada foi gravado.', $divergentes, count($rows)));
+        $this->line('  aberto_correto = total − Σ baixas do título · aberto_core = final_total − Σ pagamentos líquidos de troco.');
+        $this->line('  "baixas ≠ core": pagamento sem baixa no título (ou troco) — conferir antes de corrigir.');
 
         return self::SUCCESS;
     }
