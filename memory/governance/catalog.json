@@ -2698,6 +2698,13 @@
       "desc": "endpoint JSON Mock Cowork (sidebar real via ShellMenuBuilder + 3 camadas habilitação, sem hardcode business_id; ADR 0093 Tier 0)"
     },
     {
+      "id": "component:Financeiro/CusteioRkwController + CusteioRkwService",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "CusteioRkwController + CusteioRkwService",
+      "desc": "custeio RKW e ponto de equilíbrio do mês (US-FIN-070 · UC-FLX-20): GET só leitura, aplicar o custo-hora sugerido é POST explícito; horas do PCP pelo contrato app/Contracts/Producao/HorasDosPostos.php (comando financeiro:custeio-rkw)"
+    },
+    {
       "id": "component:Financeiro/DashboardController",
       "type": "component",
       "module": "Financeiro",
@@ -4208,6 +4215,13 @@
       "module": "Producao",
       "name": "FerramentasController",
       "desc": "ferramentas com código QR (E03)"
+    },
+    {
+      "id": "component:Producao/HorasDosPostosService",
+      "type": "component",
+      "module": "Producao",
+      "name": "HorasDosPostosService",
+      "desc": "implementa app/Contracts/Producao/HorasDosPostos.php: horas fechadas por posto no mês e troca do custo-hora, para o custeio RKW do Financeiro (US-FIN-070)"
     },
     {
       "id": "component:Producao/InstallController",
@@ -8935,6 +8949,12 @@
     },
     {
       "from": "module:Financeiro",
+      "to": "component:Financeiro/CusteioRkwController + CusteioRkwService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
       "to": "component:Financeiro/DashboardController",
       "type": "hasComponent",
       "source": "contains"
@@ -12323,6 +12343,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/FerramentasController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/HorasDosPostosService",
       "type": "hasComponent",
       "source": "contains"
     },
