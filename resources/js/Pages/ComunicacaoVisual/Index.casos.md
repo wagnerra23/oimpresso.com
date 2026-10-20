@@ -366,6 +366,56 @@ e marcar ✅ sem ela é `status:unverified` (G-7).
 
 ---
 
+## Hora de máquina no custo do orçamento (US-COMVIS-019 · UC-FLX-33)
+
+> **Âncora:** [SPEC US-COMVIS-019](../../../../memory/requisitos/ComunicacaoVisual/SPEC.md) e o
+> UC-FLX-33 do catálogo de fluxos (*"orçamento aprovado guarda o custo do dia"*). O custo da hora vem
+> de `pcp_postos.custo_hora` (módulo Producao) pela interface `App\Contracts\Producao\CustoHoraDoPosto`
+> e fica congelado no item. Nesta entrega é só backend (API do orçamento); a calculadora ainda não tem
+> o campo de posto. Tinta e instalação seguem sem custo previsto: não há fonte de custo cadastrada.
+> Prova: `OrcamentoCustoMaquinaPrevistoTest`. VALOR: regra mestre (cada número feito à mão e refeito
+> por um segundo caminho sem banco).
+
+## UC-CVMAQ-01 · O item guarda o custo da hora de máquina do dia · `must` valor
+
+**Dado** o posto Plotter, de máquina, a 42,00/h **Quando** o orçamento grava um item com 2,50 h e outro com
+0,75 h nesse posto **Então** o primeiro guarda 42,00 de custo da hora e 2,5 × 42,00 = 105,00 de custo de
+máquina, o segundo 0,75 × 42,00 = 31,50, e a data do custo é o dia da gravação.
+
+Status: 🧪
+
+## UC-CVMAQ-02 · Sem posto de máquina com custo da empresa, o item fica sem custo de máquina · `must`
+
+**Dado** um posto de pessoa a 30,00/h, um posto de máquina com custo 0,00, o Plotter de outra empresa e um
+item sem posto **Quando** o orçamento grava esses itens **Então** posto, horas, custo da hora e custo de
+máquina ficam nulos em todos.
+
+Status: 🧪
+
+## UC-CVMAQ-03 · Mudar o custo da hora depois não mexe no orçamento gravado · `must` valor
+
+**Dado** o item gravado com 42,00/h e 105,00 de custo de máquina **Quando** o custo do Plotter passa a 99,00/h
+**Então** o item continua com 42,00 e 105,00.
+
+Status: 🧪
+
+## UC-CVMAQ-04 · A hora de máquina não muda o preço do cliente · `must` valor
+
+**Dado** 6 itens de 2 m² a 30,00/m² e 50,00 de instalação **Quando** o mesmo orçamento é calculado com e sem
+posto e horas **Então** o subtotal é 360,00 e o total 410,00 nos dois, os subtotais dos itens são iguais, e o
+orçamento gravado tem os mesmos 360,00 e 410,00.
+
+Status: 🧪
+
+## UC-CVMAQ-05 · Posto de outra empresa é recusado na validação · `must` `[T0]`
+
+**Quando** o item informa o posto de outra empresa **Então** a validação recusa em `itens.0.posto_id`; o posto
+da própria empresa passa.
+
+Status: 🧪
+
+---
+
 ## Backlog — prosa honesta, sem id (ainda não é UC)
 
 > Cada item aqui tem contrato em **uma fonte só**, ou não tem código. Vira UC quando ganhar

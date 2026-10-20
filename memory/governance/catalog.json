@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 813,
-    "edges": 1112,
+    "nodes": 815,
+    "edges": 1114,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 435,
+      "component": 437,
       "api": 84
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 88,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 435,
+      "hasComponent": 437,
       "dependsOn": 123,
       "delegatesTo": 114,
       "migratesTo": 1,
@@ -2010,6 +2010,13 @@
       "module": "ComunicacaoVisual",
       "name": "OrcamentoController",
       "desc": ""
+    },
+    {
+      "id": "component:ComunicacaoVisual/OrcamentoGravador",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "OrcamentoGravador",
+      "desc": "grava o orçamento calculado e congela no item o custo do dia: material (comvis_materiais.preco_custo_m2) e hora de máquina (pcp_postos.custo_hora pela interface App\\\\Contracts\\\\Producao\\\\CustoHoraDoPosto, opcional) — US-COMVIS-019 · UC-FLX-33"
     },
     {
       "id": "component:Connector/Api/ApiController",
@@ -4110,6 +4117,13 @@
       "module": "Producao",
       "name": "ConsumoMaterialService",
       "desc": "material apontado na etapa da OS por item (US-PCP-021 · UC-FLX-37): baixa o estoque do local da venda por uma production_sell por apontamento, custo do lote que saiu, em pcp_consumos; o CustoRealService soma no congelado"
+    },
+    {
+      "id": "component:Producao/CustoHoraDoPostoService",
+      "type": "component",
+      "module": "Producao",
+      "name": "CustoHoraDoPostoService",
+      "desc": "implementa App\\\\Contracts\\\\Producao\\\\CustoHoraDoPosto (ligado no ProducaoServiceProvider): custo da hora do posto de máquina por empresa, lido de pcp_postos; consumido pelo orçamento da ComunicacaoVisual (US-COMVIS-019 · UC-FLX-33)"
     },
     {
       "id": "component:Producao/DataController",
@@ -7926,6 +7940,12 @@
     {
       "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/OrcamentoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/OrcamentoGravador",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -12155,6 +12175,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/ConsumoMaterialService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/CustoHoraDoPostoService",
       "type": "hasComponent",
       "source": "contains"
     },

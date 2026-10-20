@@ -1,5 +1,6 @@
 <?php
 // @covers-us US-COMVIS-019
+// Cobre UC-CVMAQ-01..05 (resources/js/Pages/ComunicacaoVisual/Index.casos.md) — UC-FLX-33.
 
 declare(strict_types=1);
 
@@ -82,7 +83,7 @@ function gravarComMaquina(array $payload, int $biz): array
     return [$orc, DB::table('comvis_orcamento_itens')->where('orcamento_id', $orc->id)->orderBy('ordem')->get()];
 }
 
-it('US-COMVIS-019 · item com posto de máquina grava horas, custo da hora e custo da máquina do dia', function () {
+it('UC-CVMAQ-01 · item com posto de máquina grava horas, custo da hora e custo da máquina do dia', function () {
     expect(app()->bound(CustoHoraDoPosto::class))->toBeTrue();
     [, $itens] = gravarComMaquina($this->payload, $this->biz->id);
 
@@ -95,7 +96,7 @@ it('US-COMVIS-019 · item com posto de máquina grava horas, custo da hora e cus
         ->and(Carbon::parse($itens[0]->custo_previsto_em)->toDateString())->toBe(now()->toDateString());
 });
 
-it('US-COMVIS-019 · posto de pessoa, sem custo, de outra empresa ou item sem posto ficam sem custo de máquina', function () {
+it('UC-CVMAQ-02 · posto de pessoa, sem custo, de outra empresa ou item sem posto ficam sem custo de máquina', function () {
     [, $itens] = gravarComMaquina($this->payload, $this->biz->id);
 
     foreach ([2, 3, 4, 5] as $i) {
@@ -107,7 +108,7 @@ it('US-COMVIS-019 · posto de pessoa, sem custo, de outra empresa ou item sem po
     }
 });
 
-it('US-COMVIS-019 · mudar o custo da hora do posto depois não mexe no orçamento gravado', function () {
+it('UC-CVMAQ-03 · mudar o custo da hora do posto depois não mexe no orçamento gravado', function () {
     [$orc] = gravarComMaquina($this->payload, $this->biz->id);
 
     DB::table('pcp_postos')->where('id', $this->plotter)->update(['custo_hora' => '99.00']);
@@ -117,7 +118,7 @@ it('US-COMVIS-019 · mudar o custo da hora do posto depois não mexe no orçamen
         ->and(number_format((float) $item->custo_maquina_previsto, 2, '.', ''))->toBe('105.00');
 });
 
-it('US-COMVIS-019 · hora de máquina não muda preço, subtotal nem total do cliente', function () {
+it('UC-CVMAQ-04 · hora de máquina não muda preço, subtotal nem total do cliente', function () {
     $semMaquina = $this->payload;
     foreach ($semMaquina['itens'] as $k => $it) {
         unset($semMaquina['itens'][$k]['posto_id'], $semMaquina['itens'][$k]['horas_maquina']);
@@ -136,7 +137,7 @@ it('US-COMVIS-019 · hora de máquina não muda preço, subtotal nem total do cl
         ->and(number_format((float) $gravado->subtotal, 2, '.', ''))->toBe('360.00');
 });
 
-it('US-COMVIS-019 · a validação recusa posto de outra empresa e aceita o da empresa', function () {
+it('UC-CVMAQ-05 · a validação recusa posto de outra empresa e aceita o da empresa', function () {
     session(['user.business_id' => $this->biz->id, 'business.id' => $this->biz->id]);
     $validar = function (int $postoId) {
         $m = new ReflectionMethod(OrcamentoController::class, 'validarPayload');

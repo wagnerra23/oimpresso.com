@@ -8,6 +8,7 @@ contains:
   - "DataController"
   - "InstallController"
   - "OrcamentoController"
+  - "OrcamentoGravador — grava o orçamento calculado e congela no item o custo do dia: material (comvis_materiais.preco_custo_m2) e hora de máquina (pcp_postos.custo_hora pela interface App\\Contracts\\Producao\\CustoHoraDoPosto, opcional) — US-COMVIS-019 · UC-FLX-33"
   - "Entities/Substrato (cv_substratos)"
   - "Entities/Acabamento (cv_acabamentos)"
   - "Entities/InstalacaoCatalogo (cv_instalacoes_catalogo)"
