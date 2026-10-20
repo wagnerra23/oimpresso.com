@@ -402,7 +402,54 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [ ] Mostrar na tela da OS (a Ficha é da thread 08).
 - [ ] Previsão do material ainda não apontado (empenho, D-EMPENHO da thread 08).
 
-**Total US: 22** · **Estimate agregado:** ~81h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
+### US-PCP-023 · Romaneio de impressão peça a peça (UC-FLX-12) — **P2**
+
+**Implementado em:** _pendente_
+
+> owner: wagner · priority: p2 · estimate: 3h · type: story
+
+**Origem:** UC-FLX-12 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:65`, referência Mubisys, situação `sem`). Na passagem Pré-impressão → Impressão não existe lista do que foi enviado ao setor de impressão e corte: `rg -i "romaneio"` em `Modules/Producao` e `Modules/ComunicacaoVisual` volta vazio (medido 2026-10-20). As dimensões por peça já existem no item do orçamento da CV (`Modules/ComunicacaoVisual/Entities/OrcamentoItem.php:14-31`, largura × altura × quantidade).
+
+**Aceite:**
+- [ ] Ao enviar um lote de OS para a etapa de impressão, o sistema gera o romaneio com uma linha por peça: OS, item, mídia/substrato, largura × altura, quantidade e acabamento previsto.
+- [ ] O romaneio fica gravado (número, data, quem gerou, etapa de destino) e pode ser reimpresso igual; peça já enviada em outro romaneio aberto é sinalizada.
+- [ ] O operador de impressão/corte marca cada peça como impressa/cortada a partir do romaneio, e a marcação aparece na OS.
+- [ ] Gerar romaneio exige `producao.liberar`; marcar peça exige ser o responsável da etapa; sem isso, 403.
+- [ ] Multi-tenant: romaneio e linhas com `business_id`; romaneio ou OS de outra empresa → 404; Pest com dois tenants.
+
+### US-PCP-024 · Simulador de aproveitamento de mídia na bobina (UC-FLX-13) — **P2**
+
+**Implementado em:** _pendente_
+
+> owner: wagner · priority: p2 · estimate: 8h · type: story
+> blocked_by: US-PCP-023
+
+**Origem:** UC-FLX-13 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:66`, referências Holdprint, printIQ e Calcgraf, porte média, situação `sem`). Na Pré-impressão os jobs vão para a máquina um a um; nada agrupa peças na largura da bobina. `rg -i "nesting|aproveitamento|largura_bobina"` em `Modules/` volta vazio (medido 2026-10-20): o substrato da CV guarda só preço e mínimo por m² (`Modules/ComunicacaoVisual/Entities/Substrato.php:27-30`), sem largura útil da bobina, e "bobina" no PCP aparece só como motivo de pausa (`Modules/Producao/Entities/Motivo.php:35`).
+
+**Aceite:**
+- [ ] O cadastro da mídia passa a ter largura útil da bobina e margem entre peças.
+- [ ] Dado um conjunto de peças de OS na fila da Pré-impressão com a mesma mídia, o simulador propõe um arranjo na largura da bobina (girando a peça quando a mídia aceita) e mostra metros lineares, área útil e % de perda, comparado com imprimir uma a uma.
+- [ ] O PCP aceita o arranjo e ele vira o romaneio de impressão (US-PCP-023), guardando o consumo previsto de mídia por OS (rateio pela área).
+- [ ] Simular é só leitura; aceitar exige `producao.liberar`, sem ela 403.
+- [ ] Multi-tenant: só entram peças/OS e mídias da empresa do usuário; OS de outra empresa no pedido → 404; Pest com dois tenants.
+
+### US-PCP-025 · Produção só libera com o sinal pago (UC-FLX-28) — **P2**
+
+**Implementado em:** _pendente_
+
+> owner: wagner · priority: p2 · estimate: 6h · type: story
+> blocked_by: parcelas de sinal e saldo na aprovação do orçamento (Vendas/Financeiro) · retorno do banco que baixa o título (PaymentGateway)
+
+**Origem:** UC-FLX-28 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:80`, situação `verificar`; medido **parcial** em 2026-10-20). Existe: o estado inicial `aguardando_liberacao` (`Modules/Producao/Services/ProcessoDaOrdem.php:27`) e a transição `liberar` → `na_fila` só com `producao.liberar` (`:45`); `SituacaoDaOrdem::liberar()` confere apenas os responsáveis das etapas (`Modules/Producao/Services/SituacaoDaOrdem.php:131-158`). Falta: aprovar o orçamento não gera parcelas de sinal e saldo (`app/Domain/Fsm/Modelos/CatalogoProcessos.php:74`); o webhook de boleto Inter/C6/Asaas só grava o evento e não libera produção (`CatalogoProcessos.php:105`); não há vínculo título do sinal ↔ OS, nem guarda no `liberar`, nem listener que libere sozinho. A US fica na Produção porque a liberação da OS é dela; gerar as parcelas é do Financeiro/Vendas e baixar pelo retorno do banco é do PaymentGateway.
+
+**Aceite:**
+- [ ] A empresa configura se a produção exige sinal; desligado, o `liberar` segue como hoje (só responsáveis).
+- [ ] Com a regra ligada, a OS gerada da venda aprovada fica vinculada ao título do sinal, e `liberar` recusa com motivo enquanto o título não estiver quitado, inclusive para quem tem `producao.liberar`.
+- [ ] Quitado o título do sinal (baixa manual ou retorno do banco), um listener executa `liberar` pela FSM com ator sistema, registrado no histórico da OS; OS com etapa sem responsável fica em `aguardando_liberacao` com a pendência visível.
+- [ ] Idempotente: retorno do banco repetido não executa a transição duas vezes; OS cancelada não é liberada.
+- [ ] Multi-tenant: o listener recebe o `business_id` no evento e só toca OS e título da mesma empresa; `liberar` em OS de outra empresa → 404; Pest com dois tenants.
+
+**Total US: 25** · **Estimate agregado:** ~98h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
 
 ## §8 — Regras Gherkin (R-PCP-001..010) — resumo
 
