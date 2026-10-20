@@ -241,6 +241,8 @@ class WhatsappServiceProvider extends ServiceProvider
 
         // Área `atendimento` do Início do app das lojas (tela 41): o núcleo pergunta pelo contrato.
         $this->app->bind(\App\Contracts\Atendimento\AtendimentoDoApp::class, \Modules\Whatsapp\Http\Controllers\Api\AppAtendimentoController::class);
+        // US-SELL-071 — pesquisa de satisfação depois da entrega pelo CSAT do WhatsApp (o núcleo não importa o módulo).
+        $this->app->bind(\App\Contracts\Atendimento\EnviaPesquisaSatisfacao::class, \Modules\Whatsapp\Services\Csat\PesquisaSatisfacaoWhatsapp::class);
 
         // US-WA-072 — Whisper transcription contract. WhisperTranscriber é
         // o único impl nesta fase; Ollama whisper-local vai em US separada.
