@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 813,
-    "edges": 1112,
+    "nodes": 814,
+    "edges": 1113,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 435,
+      "component": 436,
       "api": 84
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 88,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 435,
+      "hasComponent": 436,
       "dependsOn": 123,
       "delegatesTo": 114,
       "migratesTo": 1,
@@ -4166,6 +4166,13 @@
       "module": "Producao",
       "name": "PostosController",
       "desc": "postos, máquinas e veículos, com os motivos de pausa e de refugo do posto (UC-PCV-33, E03)"
+    },
+    {
+      "id": "component:Producao/RomaneioController + RomaneioDeImpressao",
+      "type": "component",
+      "module": "Producao",
+      "name": "RomaneioController + RomaneioDeImpressao",
+      "desc": "romaneio de impressão peça a peça da OS de comunicação visual (US-PCP-023 · UC-FLX-12): pcp_romaneios + pcp_romaneio_linhas, cópia imutável dos itens do orçamento por versão; gerar com o papel producao.liberar, ler com producao.access, JSON"
     },
     {
       "id": "component:Producao/RoteirosController",
@@ -12203,6 +12210,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/PostosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/RomaneioController + RomaneioDeImpressao",
       "type": "hasComponent",
       "source": "contains"
     },

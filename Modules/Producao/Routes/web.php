@@ -7,6 +7,7 @@ use Modules\Producao\Http\Controllers\FerramentasController;
 use Modules\Producao\Http\Controllers\InstallController;
 use Modules\Producao\Http\Controllers\OrdemCustoController;
 use Modules\Producao\Http\Controllers\PostosController;
+use Modules\Producao\Http\Controllers\RomaneioController;
 use Modules\Producao\Http\Controllers\RoteirosController;
 
 /*
@@ -71,4 +72,13 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('os/{id}/etiqueta', [EtiquetaOsController::class, 'show'])->whereNumber('id')->name('os.etiqueta');
         // US-PCP-022 · UC-FLX-36 — custo da abertura × hoje da OS por item em andamento (JSON, gestor).
         Route::get('ordens/{id}/custo', [OrdemCustoController::class, 'show'])->whereNumber('id')->name('ordens.custo');
+    });
+
+// ── US-PCP-023 · UC-FLX-12 · romaneio de impressão peça a peça (JSON; a tela é follow-up) ──
+Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
+    ->prefix('producao')
+    ->name('producao.')
+    ->group(function () {
+        Route::post('os/{id}/romaneio', [RomaneioController::class, 'store'])->whereNumber('id')->name('os.romaneio.store');
+        Route::get('romaneios/{id}', [RomaneioController::class, 'show'])->whereNumber('id')->name('romaneios.show');
     });
