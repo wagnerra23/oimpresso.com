@@ -6,6 +6,7 @@ use Modules\Producao\Http\Controllers\EtiquetaOsController;
 use Modules\Producao\Http\Controllers\FerramentasController;
 use Modules\Producao\Http\Controllers\InstallController;
 use Modules\Producao\Http\Controllers\OrdemCustoController;
+use Modules\Producao\Http\Controllers\PostoOperadoresController;
 use Modules\Producao\Http\Controllers\PostosController;
 use Modules\Producao\Http\Controllers\RoteirosController;
 
@@ -56,6 +57,9 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::post('postos', [PostosController::class, 'store'])->name('postos.store');
         Route::put('postos/{id}', [PostosController::class, 'update'])->whereNumber('id')->name('postos.update');
         Route::put('postos/{id}/motivos', [PostosController::class, 'motivos'])->whereNumber('id')->name('postos.motivos');
+        // US-PCP-030 · UC-FLX-08 — operadores do posto (só eles são responsáveis e começam a etapa).
+        Route::get('postos/{id}/operadores', [PostoOperadoresController::class, 'index'])->whereNumber('id')->name('postos.operadores');
+        Route::put('postos/{id}/operadores', [PostoOperadoresController::class, 'update'])->whereNumber('id')->name('postos.operadores.update');
 
         Route::post('ferramentas', [FerramentasController::class, 'store'])->name('ferramentas.store');
         Route::put('ferramentas/{id}', [FerramentasController::class, 'update'])->whereNumber('id')->name('ferramentas.update');

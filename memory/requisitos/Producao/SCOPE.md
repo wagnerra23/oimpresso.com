@@ -7,6 +7,7 @@ contains:
   - "InstallController — instalação 1-clique (ADR 0024)"
   - "RoteirosController — roteiros por família, até 2 trilhas com junção nomeada (UC-PCV-13, thread 03)"
   - "PostosController — postos, máquinas e veículos, com os motivos de pausa e de refugo do posto (UC-PCV-33, E03)"
+  - "PostoOperadoresController + OperadoresDoPosto — operadores de cada posto em pcp_posto_operadores (US-PCP-030 · UC-FLX-08): posto com cadastro só aceita um deles como responsável no Liberar e para começar a etapa; posto sem cadastro segue como antes"
   - "FerramentasController — ferramentas com código QR (E03)"
   - "ColaboradorCustoController — custo-hora da pessoa, só com producao.desempenho.ver (E03)"
   - "ApontamentoController — celular do operador (PWA, thread 04): /producao/apontamento, escritas em JSON para a fila offline; a regra mora no ApontamentoOperadorService"
