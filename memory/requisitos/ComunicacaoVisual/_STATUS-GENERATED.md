@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 18 |
+| US no SPEC | 20 |
 | CU no SDD | 10 |
 | Telas (.tsx) | 1 |
 | Telas com `casos.md` | 1 |
-| UC declarados | 12 |
-| UC com teste que os cita | 12 |
+| UC declarados | 20 |
+| UC com teste que os cita | 20 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -54,6 +54,7 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | US-COMVIS-016 | `desconhecido` | CT-e/MDF-e pra entrega — **P3** |
 | US-COMVIS-017 | `desconhecido` | Importação massiva de clientes/produtos do legacy OfficeImpresso — **P0** |
 | US-COMVIS-018 | `desconhecido` | Loja whitelabel pra catálogo público — **P3** |
+| US-COMVIS-019 | `desconhecido` | Item do orçamento guarda o custo do material no dia (UC-FLX-33) — **P1** |
 
 ## UC por status
 
@@ -71,6 +72,14 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-CV-10 | Index | 🧪 aguarda veredito da lane |
 | UC-CV-11 | Index | 🧪 aguarda veredito da lane |
 | UC-CV-12 | Index | 🧪 aguarda veredito da lane |
+| UC-CVOS-01 | Index | 🧪 aguarda veredito da lane |
+| UC-CVOS-02 | Index | 🧪 aguarda veredito da lane |
+| UC-CVOS-03 | Index | 🧪 aguarda veredito da lane |
+| UC-CVOS-04 | Index | 🧪 aguarda veredito da lane |
+| UC-CVOS-05 | Index | 🧪 aguarda veredito da lane |
+| UC-CVOS-06 | Index | 🧪 aguarda veredito da lane |
+| UC-CVOS-07 | Index | 🧪 aguarda veredito da lane |
+| UC-FLX-01 | Index | 🧪 aguarda veredito da lane |
 
 ---
 

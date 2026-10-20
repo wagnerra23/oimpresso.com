@@ -43,6 +43,8 @@ class ComprasServiceProvider extends ServiceProvider
 
         // O núcleo pede o custo do insumo pela interface, sem importar o módulo.
         $this->app->bind(\App\Contracts\Compras\CustoDoInsumo::class, \Modules\Compras\Services\CustoDoInsumoService::class);
+        // UC-FLX-17: o recebimento da compra aplica a regra de custo e preço da empresa.
+        $this->app->bind(\App\Contracts\Compras\CustoDoRecebimento::class, \Modules\Compras\Services\AplicarCustoDoRecebimento::class);
     }
 
     protected function registerTranslations(): void

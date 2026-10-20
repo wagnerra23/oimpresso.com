@@ -23,6 +23,79 @@ last_run: "2026-10-20"
 
 ---
 
+## Retenção da NFS-e entra como baixa (US-FIN-072 · UC-FLX-30)
+
+> **Âncora:** [US-FIN-072](../../../../../memory/requisitos/Financeiro/SPEC.md) e o UC-FLX-30 do
+> catálogo de fluxos (estágio "NFS-e Autorizada"). **Decisão [W] 2026-10-20:** "venda parcial não
+> deveria existir" — a retenção é **baixa**, não redução do título. Quando a NFS-e da venda é
+> autorizada com retenção, a venda recebe um pagamento `retencao` no valor retido (ISS retido + PIS +
+> COFINS + CSLL) e o título, que mantém o bruto, recebe a baixa `retencao` (sem movimento de caixa).
+> ⚠️ REGRA MESTRE de valor: chave **por business, desligada por padrão**
+> (`business.common_settings['financeiro_iss_retido_ajuste']`); só age na mudança de status da nota;
+> a baixa vai só até o que falta pagar, a diferença fica como pendência. Para notas já autorizadas, só
+> a prévia `financeiro:iss-retido-ajuste --dry-run --business=N`, que não grava. A tela ainda não
+> mostra bruto/retenções/líquido; IR/INSS e o "aplicar" nas notas antigas são follow-up da US.
+> Prova: `Modules/Financeiro/Tests/Feature/IssRetidoAjusteTituloContratoTest.php`.
+> Caso-base: venda 1.000,00 · ISS 5% retido 50,00 · PIS/COFINS/CSLL 46,50 → baixa 96,50 · aberto 903,50.
+
+## UC-CRISS-01 · Chave desligada não lança retenção · `must`
+
+**Dado** um business sem a chave (o padrão) e a venda V de 1.000,00 a receber **Quando** a NFS-e de V
+com ISS retido é autorizada **Então** o título segue 1.000,00 em aberto, sem baixa nem pagamento de
+retenção.
+
+Status: 🧪
+
+## UC-CRISS-02 · Chave ligada: baixa de retenção 96,50, uma vez só · `must` valor
+
+**Dado** a chave ligada e a venda V de 1.000,00 com título aberto **Quando** a NFS-e de V é autorizada
+com ISS 5% retido e PIS/COFINS/CSLL de 6,50/30,00/10,00 **Então** o título mantém 1.000,00 de total,
+recebe uma baixa `retencao` de 96,50 (sem movimento de caixa) e fica com 903,50 em aberto; reprocessar
+a autorização não lança outra.
+
+Status: 🧪
+
+## UC-CRISS-03 · Cliente paga o líquido e tudo fica pago · `must` valor
+
+**Dado** o título de V com a baixa de retenção de 96,50 **Quando** o cliente paga 903,50 **Então** a
+venda fica `paid` e o título `quitado` com 0,00 em aberto — nunca parcial.
+
+Status: 🧪
+
+## UC-CRISS-04 · Aberto menor que o retido: baixa até o aberto, diferença pendente · `must` valor
+
+**Dado** a venda V já com 950,00 pagos (falta 50,00) **Quando** a NFS-e com 96,50 retidos é autorizada
+**Então** a baixa de retenção é de 50,00, os 46,50 restantes ficam como pendência no registro do título,
+a venda fica `paid` e o título quitado — nunca saldo negativo.
+
+Status: 🧪
+
+## UC-CRISS-05 · Cancelar a NFS-e estorna a baixa de retenção · `must` valor
+
+**Dado** o título de V com a baixa de retenção de 96,50 **Quando** a NFS-e é cancelada **Então** o
+pagamento de retenção sai da venda, o título ganha a baixa de estorno (−96,50, append-only), volta a
+1.000,00 em aberto, a venda volta a `due` e o registro fica `estornado`.
+
+Status: 🧪
+
+## UC-CRISS-06 · Nota de um business não toca venda de outro · `must` Tier 0
+
+**Dado** os businesses A (98) e B (99) com a chave ligada e uma nota de A apontando para a venda de B
+**Quando** a nota de A é autorizada **Então** a venda e o título de B ficam sem pagamento e sem baixa de
+retenção.
+
+Status: 🧪
+
+## UC-CRISS-07 · Prévia das notas já autorizadas não grava nada · `must` valor
+
+**Dado** uma NFS-e autorizada com a chave desligada e a venda ainda com 1.000,00 em aberto **Quando**
+rodo `financeiro:iss-retido-ajuste --dry-run --business=A` **Então** a saída mostra a baixa de 96,50 e o
+aberto indo a 903,50 com ação `baixa`, nada é gravado, e sem `--dry-run` o comando recusa.
+
+Status: 🧪
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão. Itens SEM token de UC até existir teste real.
