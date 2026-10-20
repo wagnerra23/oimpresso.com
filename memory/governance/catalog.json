@@ -4193,7 +4193,7 @@
       "type": "component",
       "module": "Producao",
       "name": "RoteirosController",
-      "desc": "roteiros por família, até 2 trilhas com junção nomeada (UC-PCV-13, thread 03)"
+      "desc": "roteiros por família, até 2 trilhas com junção nomeada (UC-PCV-13, thread 03), e os produtos ligados ao roteiro (US-PCP-026, UC-FLX-07)"
     },
     {
       "id": "component:ProductCatalogue/DataController",
