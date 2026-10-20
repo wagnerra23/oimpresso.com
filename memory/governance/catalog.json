@@ -27,7 +27,7 @@
   "stats": {
     "modules": 37,
     "nodes": 830,
-    "edges": 1132,
+    "edges": 1131,
     "by_node_type": {
       "module": 42,
       "table": 108,
@@ -39,7 +39,7 @@
       "ownsTable": 97,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 89,
+      "providesApi": 88,
       "charteredByAdr": 30,
       "governedByAdr": 78,
       "hasComponent": 452,
@@ -12446,12 +12446,6 @@
       "to": "component:Producao/SinalDaOrdem",
       "type": "hasComponent",
       "source": "contains"
-    },
-    {
-      "from": "module:Producao",
-      "to": "api:/producao/*",
-      "type": "providesApi",
-      "source": "url_prefixes"
     },
     {
       "from": "module:Producao",

@@ -33,8 +33,7 @@ depends_on: []
 owner: wagner
 status: em construção
 url_prefixes:
-  - /producao/* (install 1-clique, os cadastros da thread 03: roteiros, postos, ferramentas, custo-hora, e o PDF da OS com QR em os/{id}/etiqueta, a alocação etapas/{id}/alocacao e a fila postos/{id}/fila — Routes/web.php)
-  - /producao/* (install 1-clique, os cadastros da thread 03: roteiros, postos, ferramentas, custo-hora, e o PDF da OS com QR em os/{id}/etiqueta, o romaneio de impressão em os/{id}/romaneio e romaneios/{id}, a bobina da mídia em bobinas/{mídia} e o aproveitamento em aproveitamento e aproveitamento/simular — Routes/web.php)
+  - /producao/* (install 1-clique, os cadastros da thread 03: roteiros, postos, ferramentas, custo-hora, e o PDF da OS com QR em os/{id}/etiqueta, o romaneio de impressão em os/{id}/romaneio e romaneios/{id}, a alocação etapas/{id}/alocacao e a fila postos/{id}/fila, a bobina da mídia em bobinas/{mídia} e o aproveitamento em aproveitamento e aproveitamento/simular — Routes/web.php)
   - /producao/apontamento/* (celular do operador, thread 04)
 ---
 
