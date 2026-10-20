@@ -5,9 +5,11 @@ irmaos: Create.charter.md (lei) · Create.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o contrato da grade (1 célula = 1 variation_id, 1 POST único) e o ownership das variations são duráveis — não mudam quando a tela ganhar campo novo.
 owner: wagner
-last_run: "2026-10-16"
+last_run: "2026-10-20"
 last_run_ci: "✅ 2026-09-05: os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841). Medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. Os 7 UC desta tela tem lane; 3 com defesa de COMPORTAMENTO (PurchaseGradeMatrixTest, que emite request e cujo bloco cross-tenant hoje roda em MySQL real) e 4 ESTRUTURAL (Wave2Create*, presence-gate LC-11). Nao restatear a mao: rode scripts/qa/uc-lane-coverage.mjs. ⚠ O TEXTO A SEGUIR ESTA SUPERADO e fica como fato datado - os dois numeros dele ja nasciam falsos (a pasta tem 10 arquivos, nao 8; e 4 ja rodavam quando foi escrito): 🔴 A DIVIDA CONTINUA ABERTA — NENHUM teste de tests/Feature/Purchase/ roda em lane alguma (8 arquivos orfaos de CI); o uc-lane-coverage reprova estes UC por isso e esta certo. Ver §Divida de prova. O bump de 2026-09-04 -> 2026-09-05 NAO paga essa divida e nao afirma execucao: ele registra a REVISAO exigida pelo G-6 depois que o .tsx foi tocado. O que foi revisado, e verificavel: o diff contra 153a65b558 (commit que criou este arquivo) e exatamente 5 atributos `data-contract` em <Card>, zero mudanca de logica/props/copy; e nenhum dos 7 UC depende de atributo/DOM/seletor (grep por data-contract|atributo|DOM|seletor|className neste arquivo: rc=1, zero hits) — os 7 sao de backend/tenant/dado. TENTATIVA DE PROVA REAL, e por que ela NAO vale como recibo: rodei tests/Feature/Purchase/ no CT 100 (90 passed, 6 failed, 6 skipped, 214 assertions), mas o checkout do container esta em c1abe9548f (2026-08-26) e NAO contem as ancoras (grep -c data-contract = 0). Run de outra arvore nao prova esta — citar aquele numero aqui seria medir a coisa errada."
 ---
+
+> ℹ️ **`last_run` 2026-10-16 → 2026-10-20 (G-6): entraram os UC-PURCUS-01..06 (US-COM-026).** O bump é a revisão do arquivo ao ganhar o bloco novo; nenhum UC antigo foi reexecutado. Os novos estão 🧪 até a lane `compras-pest` rodar `AplicarCustoDoRecebimentoTest`.
 
 > ℹ️ **`last_run` 2026-10-11 → 2026-10-13 (G-6): só cor no `Create.tsx`.** O #9201 trocou 6 `className` do bloco da grade (`stone-*` → `border-border`/`bg-muted`/`text-foreground`/`text-muted-foreground`) para seguir o tema escuro. Nenhum UC mudou nem foi reexecutado: os 7 UC são de backend, tenant e dado, e nenhum depende de cor.
 
@@ -333,6 +335,59 @@ decisão do dono, com chip aberto.
   `ValidationException` era engolida pelo catch genérico.
 - **O que NÃO muda:** nenhum cálculo de valor ou estoque.
 - **Status: 🧪 comportamento · na lane**
+
+---
+
+## Compra recebida atualiza custo e preço (US-COM-026 · UC-FLX-17)
+
+> **Âncora:** o UC-FLX-17 do catálogo de fluxos (etapa Recebido: *"compra recebida atualiza custo e
+> propõe preço"*) e a regra "Atualizar o custo dos insumos" da aba Fluxos (`RegrasCompra`, parâmetros
+> `metodo` e `preco`), registrados na US-COM-026 do [SPEC de Compras](../../../../memory/requisitos/Compras/SPEC.md).
+> Esta tela é a dona porque é onde a compra nasce recebida; editar para recebida e mudar o status na
+> lista chamam o mesmo serviço. Prova: `AplicarCustoDoRecebimentoTest` (lane compras-pest). VALOR: regra mestre.
+
+## UC-PURCUS-01 · Só recalcula o custo · `must` valor
+
+**Dado** a regra gravada com custo médio e "Só recalcula o custo", a variação a 11,00 de custo e 16,50 de preço
+(imposto 10%, margem 50%) e uma compra recebida de 10 un × 11,00 **Quando** entra recebida a compra de 10 un × 13,20
+**Então** o custo vira 12,10 (11,00 sem imposto), o preço fica 16,50 e a margem passa a 36,3636%.
+
+Status: 🧪
+
+## UC-PURCUS-02 · Aplica o preço mantendo a margem · `must` valor
+
+**Dado** a mesma compra e a regra em "Aplica o novo preço sozinho" **Então** o preço vira 16,50 sem imposto e 18,15
+com imposto, e a margem continua 50%. Com "Último preço" o custo é 13,20 e o preço 19,80.
+
+Status: 🧪
+
+## UC-PURCUS-03 · Propõe o preço sem mudar · `must` valor
+
+**Dado** a regra em "Propõe novo preço" **Então** o custo vira 12,10, o preço fica 16,50 e nasce uma proposta
+pendente com custo 11,00 → 12,10 e preço 16,50 → 18,15, ligada à compra. Aprovar a proposta é follow-up.
+
+Status: 🧪
+
+## UC-PURCUS-04 · Compra pendente não mexe em custo nem preço · `must`
+
+**Dado** a regra gravada **Quando** a compra fica pendente ou pedida **Então** custo e preço não mudam, e a edição
+de produto pela compra do core fica desligada para não gravar o último preço por cima.
+
+Status: 🧪
+
+## UC-PURCUS-05 · Empresa sem a regra segue como antes · `must`
+
+**Dado** a empresa que nunca gravou a regra, ou que a desligou **Quando** a compra é recebida **Então** nada novo
+acontece: o core segue como antes, gravando o último preço quando a edição de produto pela compra está ligada.
+
+Status: 🧪
+
+## UC-PURCUS-06 · Só a variação da empresa da compra · `must` `[T0]`
+
+**Dado** a regra gravada na outra empresa **Quando** ela recebe uma compra com a variação desta **Então** a variação
+desta não muda e nenhuma proposta nasce.
+
+Status: 🧪
 
 ## `[BACKLOG]` — achados sem contrato em 2 fontes, ou sem teste que os defenda
 
