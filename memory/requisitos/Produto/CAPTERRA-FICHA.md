@@ -230,6 +230,83 @@ O coração da onda: procurar o que a `module-grade 71` (UX/DS das 8 telas) **es
 - Session log: [2026-07-03-capterra-produto.md](../../sessions/2026-07-03-capterra-produto.md)
 - Fontes concorrentes (§2): ajuda.bling.com.br · ajuda.olist.com · ajuda.omie.com.br · ajuda.contaazul.com · ajuda.hiper.com.br · linx.com.br · help.shopify.com · developers.vtex.com · help.akeneo.com · atendimento.nuvemshop.com.br
 
+
+## 11. Revisão parcial 2026-10-20 — eixo fiscal e logístico do cadastro
+
+> 🖐 **curado** — pesquisa de concorrentes feita para a **tela de cadastro** (não é a revisão
+> trimestral completa, que segue pendente). Feita por [M+C] em 2026-10-20. As §1–§10 acima ficam
+> como estavam: são o retrato de 2026-07-03.
+
+A ficha de julho mediu capacidade de **catálogo** e não tinha dimensão **fiscal** nem **logística**.
+Os concorrentes BR tratam as duas no próprio cadastro do produto. Duas capacidades novas:
+
+| ID | Capacidade | Peso | Quem faz (mecanismo) | oimpresso hoje | Nota /10 |
+|---|---|:-:|---|---|:-:|
+| **C19 (P0)** | Dados fiscais para emitir nota (NCM, origem, unidade; CEST com substituição tributária) + aviso do que falta | 4 | Bling e Olist (unidade, NCM e origem obrigatórios para a nota) · Conta Azul (bloco "Dados fiscais" no cadastro) · Omie (aba "Recomendações fiscais" + alertas de NCM desatualizado, EAN inválido, origem vazia) | 🟡 colunas `ncm`/`cest`/`cfop_*`/`cst_*`/`origem_mercadoria` existem; origem e unidade no cadastro React; **NCM e CEST fora do cadastro React** (só na Tributação do módulo fiscal, com sugestão da Jana que nunca se aplica sozinha); nenhum aviso de pendência no cadastro | **6** |
+| **C20 (P2)** | Peso e dimensões (frete, marketplace) | 1 | Bling · Olist · Conta Azul (peso líquido, peso bruto, largura, altura, profundidade) | 🟡 só `products.weight`; sem peso bruto e sem dimensões | **4** |
+
+**Nota com as duas dimensões novas** (mesmos pesos da §5):
+
+```
+Σ ponderado  = 252 (§5) + C19 6×4 + C20 4×1 = 252 + 24 + 4 = 280
+Máximo       = 410 (§5) + 10×4 + 10×1       = 410 + 40 + 10 = 460
+nota         = 280 / 460 × 100 = 60,9 → 61/100  (igual à de julho)
+```
+
+**Diferencial que a pesquisa achou:** a sugestão fiscal da Jana na Tributação
+(`SugestaoFiscalService`, UC-NFTR-10..13) empata com a da Omie, e com uma regra que a Omie não declara:
+nasce pendente e só se aplica quando uma pessoa com permissão aceita.
+
+**Casos de uso registrados no SDD:** [`CU-PROD-16`, `CU-PROD-17` e `CU-PROD-18`](SDD-tela-cadastro-produto-v1.0.md).
+Decidido no mesmo dia ([M], ratificação [W] no merge): **o NCM entra no cadastro**, sem bloquear o
+salvamento de quem vende serviço.
+
+### Comunicação visual (mesmo dia, segunda rodada)
+
+A rodada acima usou só ERP geral. Refeita com ERPs de gráfica e comunicação visual, porque a gráfica
+que imprime sob encomenda emite nota de **serviço** (ISS, Súmula 156 do STJ; item 24.01 da LC 116 para
+placas, banners e adesivos), e então o NCM não pode ser exigido de todo produto.
+
+| Capacidade | Quem faz | oimpresso hoje |
+|---|---|---|
+| Natureza mercadoria × serviço por produto, com o item da LC 116 | GestãoClick ("o enquadramento é decisão do contador") | 🟡 `nfe_naturezas_produto` existe e só o contador decide (Tributação); **não aparece no cadastro** |
+| Material por m², metro linear, peça ou valor fixo, com área mínima | Nortgraf · shopVOX | 🟡 existe no módulo de Comunicação Visual (`comvis_materiais`, `cv_substratos.minimo_m2`), fora do cadastro de produto |
+| Largura útil da bobina, perda e emenda | Calcgraf · shopVOX | 🔴 sem coluna de largura |
+| Material como variação do produto | Nortgraf | 🔴 a grade atual é só tamanho × cor |
+| Serviço de instalação (base + m² + km, NR-35) e de arte | Everflow · GestãoClick | 🟡 `cv_instalacoes_catalogo` no módulo de Comunicação Visual |
+| Custo de máquina por hora | shopVOX | 🔴 só no orçamento |
+
+**Não pontuado:** Mubisys, Zênite e Calcgraf não têm central de ajuda pública, e GestãoClick, Nortgraf
+e Everflow só têm páginas comerciais. Só o shopVOX tem ajuda aberta. Nota com fonte comercial seria
+número inventado. Os casos foram registrados no SDD como `CU-PROD-19` e `CV-06`…`CV-11`.
+
+**Não confirmado:** o mérito da ADI 4389 (só a cautelar), a tese final do Tema 816 do STF, a
+obrigatoriedade do NBS na NFS-e nacional e as datas de rejeição do IBS/CBS (`cClassTrib`) na NF-e.
+
+**Fontes de comunicação visual:**
+[GestãoClick](https://gestaoclick.com.br/segmentos/programa-para-empresa-de-comunicacao-visual/) ·
+[Nortgraf](https://nortgraf.com/comunicacao-visual) ·
+[Everflow](https://everflow.com.br/segmentos/software-para-comunicacao-visual/) ·
+[Calcgraf — comunicação visual](https://www.calcgraf.com.br/segmento/comunicacao-visual/) ·
+[Calcgraf — ficha técnica](https://www.calcgraf.com.br/solucao/ficha-tecnica/) ·
+[shopVOX — perda de material](https://shopvox-pro.helpdocs.io/article/mpjvxhpl2g-wastage-calculator) ·
+[shopVOX — produto × material](https://shopvox-pro.helpdocs.io/article/htcy37tcab-products-vs-materials-in-shop-vox-pro) ·
+[Harada — subitem 13.05](https://haradaadvogados.com.br/iss-exame-do-subitem-13-05-da-lista-de-servicos/) ·
+[CCA — ADI 4389](https://www.cca.com.br/noticias/2721/embalagens-personalizadas-novo-enfoque-dado-pelo-stf-para-efeito-de-tributacao-pelo-icms/) ·
+[Contábeis — cClassTrib](https://www.contabeis.com.br/noticias/74339/cbs-e-ibs-em-2026-exigem-revisao-do-cclasstrib-nas-nf-e/)
+
+**Limite da pesquisa:** a ajuda do Bling devolveu 403 e uma página da Olist devolveu 404; o que se
+cita deles veio dos resumos de busca sobre as páginas oficiais. Não se achou fonte confirmando
+recurso de IA no cadastro do Bling ou do Tiny.
+
+**Fontes:**
+[Bling — NCM obrigatório na nota](https://ajuda.bling.com.br/hc/pt-br/articles/360037398033-Erro-ao-salvar-a-nota-Problema-com-o-item-x-NCM-deve-m-ser-preenchido-s) ·
+[Bling — Como cadastrar produtos](https://ajuda.bling.com.br/hc/pt-br/articles/360036756914-Como-cadastrar-produtos) ·
+[Bling — Exportação para a Amazon](https://ajuda.bling.com.br/hc/pt-br/articles/5099560621335-Exporta%C3%A7%C3%A3o-de-produtos-para-a-Amazon) ·
+[Olist — Campos obrigatórios](https://ajuda.olist.com/produtos/cadastro-de-produtos-campos-obrigatorios) ·
+[Conta Azul — Campos do cadastro](https://ajuda.contaazul.com/hc/pt-br/articles/7939004435981-Campos-de-preenchimento-no-cadastro-de-Produto) ·
+[Omie — Recomendações fiscais](https://ajuda.omie.com.br/pt-BR/articles/1592692-recomendacoes-fiscais-do-produto) ·
+[Omie — IA Fiscal](https://ajuda.omie.com.br/pt-BR/articles/9420193-perguntas-frequentes-inteligencia-artificial-fiscal)
 ---
 
 **Próxima revisão:** 2026-10-03 (trimestre) ou quando G-04 (SPEC) + G-01 (kardex real) fecharem.

@@ -66,6 +66,10 @@ on:
       - 'Modules/Producao/Http/Controllers/Api/AppApontamentoController.php'
       - 'Modules/Producao/Services/**'
       - 'app/Http/Controllers/Api/App/OsArquivosController.php'
+      - 'Modules/OficinaAuto/Services/StageGateEvaluator.php'  # UC-FLX-22 foto do serviço na entrega
+      - 'Modules/OficinaAuto/Services/AcoesOsDoApp.php'
+      - 'app/Http/Controllers/ServiceOrderFsmActionController.php'
+      - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php'
       - 'routes/api/app/os-arquivos.php'
       - 'app/Contracts/Arquivos/AnexosDoApp.php'
       - 'Modules/Arquivos/Services/AnexosDoAppService.php'
@@ -240,6 +244,10 @@ jobs:
               - 'Modules/Producao/Http/Controllers/Api/AppApontamentoController.php'
               - 'Modules/Producao/Services/**'
               - 'app/Http/Controllers/Api/App/OsArquivosController.php'
+              - 'Modules/OficinaAuto/Services/StageGateEvaluator.php'  # UC-FLX-22 foto do serviço na entrega
+              - 'Modules/OficinaAuto/Services/AcoesOsDoApp.php'
+              - 'app/Http/Controllers/ServiceOrderFsmActionController.php'
+              - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php'
               - 'routes/api/app/os-arquivos.php'
               - 'app/Contracts/Arquivos/AnexosDoApp.php'
               - 'Modules/Arquivos/Services/AnexosDoAppService.php'
@@ -472,6 +480,7 @@ jobs:
             tests/Feature/Sells/FsmPagamentoForaDasEtapasContratoTest.php \
             tests/Feature/Sells/AppNotificacoesApiContratoTest.php \
             tests/Feature/Sells/AppOsApiContratoTest.php \
+            Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php \
             tests/Feature/Sells/AppOsArquivosApiContratoTest.php \
             tests/Feature/Sells/AppPedidoEntregaContratoTest.php \
             tests/Feature/Sells/AppOficinaAgendaApiContratoTest.php \

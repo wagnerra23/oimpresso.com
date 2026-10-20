@@ -22,7 +22,8 @@ use InvalidArgumentException;
  *
  * Tier 0 (ADR 0093): sempre o `$businessId` recebido — o controller passa o da sessão.
  * Nunca toca documento. Ligar ou desligar não muda nenhuma execução hoje: as regras do catálogo
- * estão todas planejadas (CatalogoModelos), e as da Compra ainda não são lidas no recebimento.
+ * estão todas planejadas (CatalogoModelos). Das da Compra, a de custo dos insumos é lida no
+ * recebimento desde 2026-10-20 (`custoGravado`, US-COM-026), só quando a empresa a gravou.
  * A baixa de material (UC-FLX-14) não executa de propósito: ver CatalogoModelos::PENDENCIAS.
  */
 final class RegrasDaEmpresa
@@ -91,6 +92,22 @@ final class RegrasDaEmpresa
     public function compra(int $businessId): array
     {
         return RegrasCompra::daEmpresa($this->linha($businessId)?->regras_compra);
+    }
+
+    /**
+     * A regra de custo dos insumos, só se a empresa a gravou (UC-FLX-17 · US-COM-026).
+     * Null = a empresa nunca mexeu nela: o recebimento segue o comportamento de antes.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function custoGravado(int $businessId): ?array
+    {
+        $salvo = $this->linha($businessId)?->regras_compra;
+        if (! isset($salvo[RegrasCompra::CUSTO])) {
+            return null;
+        }
+
+        return collect(RegrasCompra::daEmpresa($salvo))->firstWhere('id', RegrasCompra::CUSTO);
     }
 
     /** @param array<string, mixed> $params */
