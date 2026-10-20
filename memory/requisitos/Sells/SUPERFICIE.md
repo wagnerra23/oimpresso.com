@@ -15,7 +15,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 >
 > **O que isto é:** o módulo `Sells` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Sells/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`transactions`, `transaction_sell_lines`, `transaction_payments`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 218 arquivos em 9 papéis.
+**Total mapeado:** 219 arquivos em 9 papéis.
 
 ## Controllers — 6
 
@@ -166,7 +166,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [Show.tsx](../../../resources/js/Pages/Sells/Show.tsx)
 - [Subscriptions.tsx](../../../resources/js/Pages/Sells/Subscriptions.tsx)
 
-## Componentes / apoio de tela — 47
+## Componentes / apoio de tela — 48
 
 - [EditarRemessaSheet.tsx](../../../resources/js/Pages/Sells/Shipments/_components/EditarRemessaSheet.tsx)
 - [CobrancaChip.tsx](../../../resources/js/Pages/Sells/_components/CobrancaChip.tsx)
@@ -201,6 +201,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [SellsDateFilter.tsx](../../../resources/js/Pages/Sells/_components/SellsDateFilter.tsx)
 - [SellsTabelaUnificada.tsx](../../../resources/js/Pages/Sells/_components/SellsTabelaUnificada.tsx)
 - [SellsTabsVisao.tsx](../../../resources/js/Pages/Sells/_components/SellsTabsVisao.tsx)
+- [SellsTotalBar.tsx](../../../resources/js/Pages/Sells/_components/SellsTotalBar.tsx)
 - [VdBulkEmitModal.tsx](../../../resources/js/Pages/Sells/_components/VdBulkEmitModal.tsx)
 - [VdNextActionPanel.tsx](../../../resources/js/Pages/Sells/_components/VdNextActionPanel.tsx)
 - [VdNfeEmitModal.tsx](../../../resources/js/Pages/Sells/_components/VdNfeEmitModal.tsx)
