@@ -12,6 +12,7 @@ contains:
   - "ApontamentoController — celular do operador (PWA, thread 04): /producao/apontamento, escritas em JSON para a fila offline; a regra mora no ApontamentoOperadorService"
   - "ConsumoMaterialService — material apontado na etapa da OS por item (US-PCP-021 · UC-FLX-37): baixa o estoque do local da venda por uma production_sell por apontamento, custo do lote que saiu, em pcp_consumos; o CustoRealService soma no congelado"
   - "OrdemCustoController + PrevisaoCustoDaOrdem — custo da OS aberta: abertura × hoje dos insumos apontados e a previsão pela regra ops da compra (congela | vivo), JSON só com producao.desempenho.ver (US-PCP-022 · UC-FLX-36)"
+  - "RomaneioController + RomaneioDeImpressao — romaneio de impressão peça a peça da OS de comunicação visual (US-PCP-023 · UC-FLX-12): pcp_romaneios + pcp_romaneio_linhas, cópia imutável dos itens do orçamento por versão; gerar com o papel producao.liberar, ler com producao.access, JSON"
   - "FecharTurnoCommand — producao:fechar-turno a cada 15 min, fecha o cronômetro esquecido no fim do turno ou na saída do ponto"
   - "Api/AppApontamentoController — apontamento do app das lojas com token (/api/app/producao/*, P8 tela 02, inclui motivos-pausa), sobre o ApontamentoOperadorService"
   - "EtiquetaOsController — PDF A4 da OS com o QR da etiqueta (E05 modelo a4_os; PR 07 propostas-app)"
@@ -27,7 +28,7 @@ depends_on: []
 owner: wagner
 status: em construção
 url_prefixes:
-  - /producao/* (install 1-clique, os cadastros da thread 03: roteiros, postos, ferramentas, custo-hora, e o PDF da OS com QR em os/{id}/etiqueta — Routes/web.php)
+  - /producao/* (install 1-clique, os cadastros da thread 03: roteiros, postos, ferramentas, custo-hora, e o PDF da OS com QR em os/{id}/etiqueta, o romaneio de impressão em os/{id}/romaneio e romaneios/{id} — Routes/web.php)
   - /producao/apontamento/* (celular do operador, thread 04)
 ---
 

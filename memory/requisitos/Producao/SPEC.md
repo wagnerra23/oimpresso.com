@@ -404,18 +404,22 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ### US-PCP-023 · Romaneio de impressão peça a peça (UC-FLX-12) — **P2**
 
-**Implementado em:** _pendente_
+**Implementado em:** `Modules/Producao/Services/RomaneioDeImpressao.php` · `Modules/Producao/Http/Controllers/RomaneioController.php` · `Modules/Producao/Database/Migrations/2026_10_20_000001_create_pcp_romaneios_tables.php`
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoRomaneioContratoTest.php` (lane `verticais-pest.yml`).
 
 > owner: wagner · priority: p2 · estimate: 3h · type: story
 
 **Origem:** UC-FLX-12 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:65`, referência Mubisys, situação `sem`). Na passagem Pré-impressão → Impressão não existe lista do que foi enviado ao setor de impressão e corte: `rg -i "romaneio"` em `Modules/Producao` e `Modules/ComunicacaoVisual` volta vazio (medido 2026-10-20). As dimensões por peça já existem no item do orçamento da CV (`Modules/ComunicacaoVisual/Entities/OrcamentoItem.php:14-31`, largura × altura × quantidade).
 
 **Aceite:**
-- [ ] Ao enviar um lote de OS para a etapa de impressão, o sistema gera o romaneio com uma linha por peça: OS, item, mídia/substrato, largura × altura, quantidade e acabamento previsto.
-- [ ] O romaneio fica gravado (número, data, quem gerou, etapa de destino) e pode ser reimpresso igual; peça já enviada em outro romaneio aberto é sinalizada.
+- [x] O PCP gera, para uma OS de comunicação visual e a etapa de destino dela, o romaneio com uma linha por peça do orçamento: item, mídia, largura × altura, quantidade e área (UC-PCROM-01). `POST /producao/os/{id}/romaneio` e `GET /producao/romaneios/{id}`, em JSON.
+- [ ] Gerar para um LOTE de OS de uma vez, e na própria passagem para a etapa de impressão (hoje é ação explícita por OS). Acabamento previsto: o item do orçamento não tem esse campo.
+- [x] O romaneio fica gravado (número `ROM-<OS>-vN`, data, quem gerou, posto de destino) e não muda; gerar de novo cria a versão seguinte, e a peça que já saiu numa versão anterior é sinalizada (UC-PCROM-02).
 - [ ] O operador de impressão/corte marca cada peça como impressa/cortada a partir do romaneio, e a marcação aparece na OS.
-- [ ] Gerar romaneio exige `producao.liberar`; marcar peça exige ser o responsável da etapa; sem isso, 403.
-- [ ] Multi-tenant: romaneio e linhas com `business_id`; romaneio ou OS de outra empresa → 404; Pest com dois tenants.
+- [x] Gerar romaneio exige o papel `producao.liberar`; ler exige `producao.access`; sem isso, 403 (UC-PCROM-03). Marcar peça (responsável da etapa) segue com a marcação.
+- [x] Multi-tenant: romaneio e linhas com `business_id`; romaneio, OS ou etapa de outra empresa → 404; Pest com os tenants 98 e 99 (UC-PCROM-04).
+- [ ] Mostrar o romaneio na tela (impressão do romaneio em PDF).
 
 ### US-PCP-024 · Simulador de aproveitamento de mídia na bobina (UC-FLX-13) — **P2**
 
