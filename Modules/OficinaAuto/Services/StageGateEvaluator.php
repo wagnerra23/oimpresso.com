@@ -199,12 +199,13 @@ class StageGateEvaluator
             ->max('h.executed_at');
         $desde = $inicio !== null ? Carbon::parse($inicio) : null;
 
+        /** @var \Illuminate\Support\Collection<int, Arquivo> $fotos */
         $fotos = $order->arquivos->concat($order->dviInspectionItems->flatMap(fn ($item) => $item->arquivos));
 
         return $fotos
-            ->filter(fn (Arquivo $a) => (int) $a->business_id === $bizId)
-            ->filter(fn (Arquivo $a) => str_starts_with((string) $a->mime_type, 'image/'))
-            ->filter(fn (Arquivo $a) => $desde === null || ($a->created_at !== null && $a->created_at->gte($desde)))
+            ->filter(fn ($a) => (int) $a->business_id === $bizId)
+            ->filter(fn ($a) => str_starts_with((string) $a->mime_type, 'image/'))
+            ->filter(fn ($a) => $desde === null || ($a->created_at !== null && $a->created_at->gte($desde)))
             ->count();
     }
 
