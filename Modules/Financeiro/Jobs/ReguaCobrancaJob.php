@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Financeiro\Jobs;
 
 use App\Contact;
+use App\Contracts\Crm\AgendaDeTarefas;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -28,8 +29,8 @@ use Modules\Financeiro\Services\ReguaCobrancaConfig;
  *     envio só, mesmo rodando duas vezes no dia;
  *  4. envia e-mail se `Contact::canReceiveEmailNotification()`; opt-out / sem e-mail / sem
  *     contato ficam como `nao_enviado` com o motivo (LGPD — proibicoes.md §FSM);
- *  5. na última etapa cria tarefa (`crm_schedules`, a mesma entidade do follow-up do CRM) para
- *     o vendedor da venda de origem; sem vendedor, para o dono do business.
+ *  5. na última etapa cria tarefa pelo contrato `App\Contracts\Crm\AgendaDeTarefas` (o Crm grava
+ *     o follow-up) para o vendedor da venda de origem; sem vendedor, para o dono do business.
  *
  * Fora desta entrega (follow-up no SPEC): WhatsApp, estado "em cobrança" no título, tela de
  * configuração com permissão.
@@ -146,7 +147,9 @@ class ReguaCobrancaJob implements ShouldQueue
 
     private function criarTarefa(object $titulo, int $etapa, ?Contact $contato): ?int
     {
-        if (! Schema::hasTable('crm_schedules')) {
+        // A tarefa é do Crm (dono de crm_schedules): só pelo contrato do núcleo. Sem o módulo
+        // ligado, não há agenda — o lembrete segue registrado, sem tarefa.
+        if (! app()->bound(AgendaDeTarefas::class)) {
             return null;
         }
         $responsavel = $this->vendedor($titulo)
@@ -155,25 +158,15 @@ class ReguaCobrancaJob implements ShouldQueue
             return null;
         }
 
-        $id = DB::table('crm_schedules')->insertGetId([
-            'business_id' => $this->businessId,
-            'contact_id' => $contato?->id,
-            'title' => "Cobrar título {$titulo->numero} — vencido há {$etapa} dias",
-            'status' => 'scheduled',
-            'start_datetime' => now(),
-            'end_datetime' => now()->addDay(),
-            'description' => 'Régua de cobrança (US-FIN-071): última etapa sem pagamento.',
-            'schedule_type' => 'call',
-            'allow_notification' => 0,
-            'created_by' => $responsavel,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-        if (Schema::hasTable('crm_schedule_users')) {
-            DB::table('crm_schedule_users')->insert(['schedule_id' => $id, 'user_id' => $responsavel]);
-        }
-
-        return (int) $id;
+        return app(AgendaDeTarefas::class)->criarTarefa(
+            $this->businessId,
+            $responsavel,
+            "Cobrar título {$titulo->numero} — vencido há {$etapa} dias",
+            'Régua de cobrança (US-FIN-071): última etapa sem pagamento.',
+            $contato?->id,
+            $titulo->origem === 'venda' && $titulo->origem_id ? (int) $titulo->origem_id : null,
+            now(),
+        );
     }
 
     /** Vendedor da venda de origem: comissionado, senão quem lançou a venda. */

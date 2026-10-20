@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
+use App\Contracts\Crm\AgendaDeTarefas;
 use Modules\Financeiro\Jobs\ReguaCobrancaJob;
 use Modules\Financeiro\Mail\LembreteCobrancaMail;
 use Modules\Financeiro\Services\ReguaCobrancaConfig;
@@ -13,7 +14,7 @@ uses(Tests\TestCase::class);
 
 /**
  * US-FIN-071 · UC-FLX-29 — régua de cobrança do título vencido (D+1/D+5/D+15).
- * Contrato: resources/js/Pages/Financeiro/ContasReceber/Index.casos.md (UC-CRREG-01..06).
+ * Contrato: resources/js/Pages/Financeiro/ContasReceber/Index.casos.md (UC-CRREG-01..07).
  *
  * Tenant 98 (ADR 0358) e, como business B, o cliente fictício 99 (nunca o 4). Hoje fixo em
  * 2031-03-20 para os vencimentos não dependerem do relógio; tudo dentro de transação desfeita
@@ -127,6 +128,7 @@ it('UC-CRREG-04 · na última etapa cria tarefa para o vendedor da venda; sem ve
     ]);
     $manual = reguaTitulo($this->bizA, $this->ownerA, 15, reguaContato($this->bizA, $this->ownerA));
     $d5 = reguaTitulo($this->bizA, $this->ownerA, 5, reguaContato($this->bizA, $this->ownerA));
+    expect(app()->bound(AgendaDeTarefas::class))->toBeTrue(); // Crm liga o contrato no ambiente de teste
 
     (new ReguaCobrancaJob($this->bizA, REGUA_HOJE))->handle(app(ReguaCobrancaConfig::class));
 
@@ -135,6 +137,8 @@ it('UC-CRREG-04 · na última etapa cria tarefa para o vendedor da venda; sem ve
     expect((int) $tarefaVenda->created_by)->toBe((int) $vendedor->id);
     expect((int) DB::table('crm_schedule_users')->where('schedule_id', $tarefaVenda->id)->value('user_id'))
         ->toBe((int) $vendedor->id);
+    expect((int) DB::table('crm_followup_invoices')->where('follow_up_id', $tarefaVenda->id)->value('transaction_id'))
+        ->toBe((int) $vendaId);
 
     $tarefaManual = DB::table('crm_schedules')->find(reguaLembretes($manual)[0]->tarefa_id);
     expect((int) $tarefaManual->created_by)->toBe($this->ownerA);
@@ -162,4 +166,19 @@ it('UC-CRREG-06 · o job de um business não toca títulos de outro business', f
     expect(reguaLembretes($idA))->toHaveCount(1);
     expect(reguaLembretes($idB))->toHaveCount(0);
     Mail::assertSent(LembreteCobrancaMail::class, 1);
+});
+
+it('UC-CRREG-07 · sem o contrato de agenda ligado (Crm ausente) o lembrete sai e nenhuma tarefa é criada', function () {
+    unset(app()[AgendaDeTarefas::class]);
+    expect(app()->bound(AgendaDeTarefas::class))->toBeFalse();
+    $antes = DB::table('crm_schedules')->where('business_id', $this->bizA)->count();
+    $id = reguaTitulo($this->bizA, $this->ownerA, 15, reguaContato($this->bizA, $this->ownerA));
+
+    (new ReguaCobrancaJob($this->bizA, REGUA_HOJE))->handle(app(ReguaCobrancaConfig::class));
+
+    $l = reguaLembretes($id);
+    expect($l)->toHaveCount(1);
+    expect($l[0]->status)->toBe('enviado');
+    expect($l[0]->tarefa_id)->toBeNull();
+    expect(DB::table('crm_schedules')->where('business_id', $this->bizA)->count())->toBe($antes);
 });

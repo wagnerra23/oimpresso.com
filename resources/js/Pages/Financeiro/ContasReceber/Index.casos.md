@@ -81,8 +81,8 @@ Status: 🧪
 ## UC-CRREG-04 · Última etapa vira tarefa para o vendedor · `must`
 
 **Dado** dois títulos vencidos há 15 dias — um de venda com vendedor comissionado V, outro manual — e
-um vencido há 5 dias **Quando** o job roda **Então** o da venda gera tarefa (`crm_schedules`)
-atribuída a V, o manual gera tarefa para o dono do business, e o de 5 dias não gera tarefa.
+um vencido há 5 dias **Quando** o job roda **Então** o da venda gera tarefa no CRM (pelo contrato
+`AgendaDeTarefas`) atribuída a V e ligada à venda, o manual gera tarefa para o dono do business, e o de 5 dias não gera tarefa.
 
 Status: 🧪
 
@@ -98,6 +98,14 @@ Status: 🧪
 **Dado** os businesses A (98) e B (99) com a régua ligada, cada um com 1 título vencido há 1 dia
 **Quando** roda o job de A **Então** só o título de A tem lembrete e sai 1 e-mail; o de B fica sem
 nada.
+
+Status: 🧪
+
+## UC-CRREG-07 · Sem o módulo Crm, o lembrete sai e não há tarefa · `must`
+
+**Dado** a agenda de tarefas (contrato `App\Contracts\Crm\AgendaDeTarefas`) não ligada e um título
+vencido há 15 dias **Quando** o job roda **Então** o e-mail sai, o lembrete da etapa 15 fica `enviado`
+sem tarefa e nenhuma linha nova aparece em `crm_schedules`.
 
 Status: 🧪
 
@@ -119,7 +127,7 @@ Status: 🧪
   casava e o botão rendia nu (medido em prod: padding 0, radius 0, texto em 2 linhas). Só o chrome do
   header mudou — `label` e `onClick` idênticos; comportamento/cálculo intocados. UCs em débito seguem
   sem teste (sem `Status: ✅`, nada a revalidar via manifesto).
-- 2026-10-20 · [CC] UC-CRREG-01..06 (US-FIN-071 · UC-FLX-29): primeira cobertura com UC-id desta
+- 2026-10-20 · [CC] UC-CRREG-01..07 (US-FIN-071 · UC-FLX-29): primeira cobertura com UC-id desta
   tela — a régua de cobrança é job diário, sem mudança no `.tsx`; `last_run` intocado (nenhum UC
   antigo reexecutado). Prova: `ReguaCobrancaContratoTest`.
 
