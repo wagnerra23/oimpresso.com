@@ -16,8 +16,10 @@ contains:
   - "Api/AppApontamentoController — apontamento do app das lojas com token (/api/app/producao/*, P8 tela 02, inclui motivos-pausa), sobre o ApontamentoOperadorService"
   - "EtiquetaOsController — PDF A4 da OS com o QR da etiqueta (E05 modelo a4_os; PR 07 propostas-app)"
   - "Ordem (pcp_ordens) — OS por item que nasce do pedido nos modelos de fluxo; situação no motor FSM pelo ProcessoDaOrdem (ADR 0436)"
+  - "SinalDaOrdem — regra 'produção só libera com o sinal pago' (US-PCP-025 · UC-FLX-28): o Liberar recusa abaixo do % mínimo da empresa e o pagamento gravado na venda libera a OS sozinho (liberar_pelo_sinal); só LÊ valor"
 not_contains:
   - "Presença e saída do ponto (o apontamento só LÊ, D-PONTO) → Modules/Ponto"
+  - "Parcelas de sinal e saldo do orçamento e o pagamento vindo do retorno do banco → Vendas/Financeiro e PaymentGateway (a Produção só lê o pago da venda)"
 excludes:
   - "Dono da OS de Repair, ComunicacaoVisual e OficinaAuto: continua nesses módulos (D-RELACAO, ADR 0431); a OS por item do pedido é da Produção desde a ADR 0436"
   - "Receita e lista de materiais: Manufacturing segue fonte de material"

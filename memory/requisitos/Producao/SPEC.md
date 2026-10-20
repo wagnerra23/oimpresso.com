@@ -435,19 +435,25 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ### US-PCP-025 · Produção só libera com o sinal pago (UC-FLX-28) — **P2**
 
-**Implementado em:** _pendente_
+**Implementado em:** `Modules/Producao/Services/SinalDaOrdem.php` · `Modules/Producao/Services/SituacaoDaOrdem.php` · `Modules/Producao/Providers/ProducaoServiceProvider.php` · `database/migrations/2026_10_20_120000_add_sinal_minimo_to_fsm_modelos_empresa.php`
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoSinalPagoLiberaContratoTest.php` (lane `verticais-pest.yml`) · casos `Apontamento/Index.casos.md` UC-PCLIB-04..07.
 
 > owner: wagner · priority: p2 · estimate: 6h · type: story
 > blocked_by: parcelas de sinal e saldo na aprovação do orçamento (Vendas/Financeiro) · retorno do banco que baixa o título (PaymentGateway)
 
 **Origem:** UC-FLX-28 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:80`, situação `verificar`; medido **parcial** em 2026-10-20). Existe: o estado inicial `aguardando_liberacao` (`Modules/Producao/Services/ProcessoDaOrdem.php:27`) e a transição `liberar` → `na_fila` só com `producao.liberar` (`:45`); `SituacaoDaOrdem::liberar()` confere apenas os responsáveis das etapas (`Modules/Producao/Services/SituacaoDaOrdem.php:131-158`). Falta: aprovar o orçamento não gera parcelas de sinal e saldo (`app/Domain/Fsm/Modelos/CatalogoProcessos.php:74`); o webhook de boleto Inter/C6/Asaas só grava o evento e não libera produção (`CatalogoProcessos.php:105`); não há vínculo título do sinal ↔ OS, nem guarda no `liberar`, nem listener que libere sozinho. A US fica na Produção porque a liberação da OS é dela; gerar as parcelas é do Financeiro/Vendas e baixar pelo retorno do banco é do PaymentGateway.
 
+**Entrega 1 (2026-10-20):** o sinal é um percentual mínimo do `final_total` da venda de origem, pago em `transaction_payments` da mesma empresa (troco descontado), gravado em `fsm_modelos_empresa.sinal_minimo_pct` (nulo = desligado, padrão). A conta é feita em DECIMAL no MySQL; nada de valor é gravado. A liberação automática é a ação FSM `liberar_pelo_sinal` (sem papel: só o sistema a chama), disparada no `TransactionPayment::saved`. Sem parcela de sinal separada ainda.
+
 **Aceite:**
-- [ ] A empresa configura se a produção exige sinal; desligado, o `liberar` segue como hoje (só responsáveis).
-- [ ] Com a regra ligada, a OS gerada da venda aprovada fica vinculada ao título do sinal, e `liberar` recusa com motivo enquanto o título não estiver quitado, inclusive para quem tem `producao.liberar`.
-- [ ] Quitado o título do sinal (baixa manual ou retorno do banco), um listener executa `liberar` pela FSM com ator sistema, registrado no histórico da OS; OS com etapa sem responsável fica em `aguardando_liberacao` com a pendência visível.
-- [ ] Idempotente: retorno do banco repetido não executa a transição duas vezes; OS cancelada não é liberada.
-- [ ] Multi-tenant: o listener recebe o `business_id` no evento e só toca OS e título da mesma empresa; `liberar` em OS de outra empresa → 404; Pest com dois tenants.
+- [x] A empresa configura se a produção exige sinal (percentual mínimo; `RegrasDaEmpresa::mudarSinalMinimo`); desligado, o `liberar` segue como hoje (só responsáveis) — UC-PCLIB-04.
+- [x] Com a regra ligada, `liberar` recusa com motivo (`sinal_pendente`, pago × exigido) enquanto o pago da venda da OS não alcançar o mínimo, inclusive para quem tem `producao.liberar` — UC-PCLIB-05/06.
+- [ ] A OS gerada da venda aprovada fica vinculada ao título do sinal (parcela de sinal e saldo na aprovação — Vendas/Financeiro).
+- [x] Pagamento gravado na venda executa a liberação pela FSM com ator sistema, registrada no histórico da OS; OS com etapa sem responsável fica em `aguardando_liberacao` — UC-PCLIB-07.
+- [ ] Retorno do banco cria o pagamento da venda (hoje o webhook de boleto só grava o evento — PaymentGateway); campo do sinal mínimo na aba Fluxos da empresa.
+- [x] Idempotente: pagamento repetido não executa a transição duas vezes (só age em `aguardando_liberacao`, com trava); OS cancelada não é liberada — UC-PCLIB-07.
+- [x] Multi-tenant: o listener usa o `business_id` do próprio pagamento e só toca OS e venda da mesma empresa; `liberar` em OS de outra empresa → não encontrada (404); Pest 98 × 99 — UC-PCLIB-07.
 
 **Total US: 25** · **Estimate agregado:** ~98h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
 
