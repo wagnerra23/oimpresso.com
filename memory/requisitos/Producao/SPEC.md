@@ -465,7 +465,29 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [x] Idempotente: pagamento repetido não executa a transição duas vezes (só age em `aguardando_liberacao`, com trava); OS cancelada não é liberada — UC-PCLIB-07.
 - [x] Multi-tenant: o listener usa o `business_id` do próprio pagamento e só toca OS e venda da mesma empresa; `liberar` em OS de outra empresa → não encontrada (404); Pest 98 × 99 — UC-PCLIB-07.
 
-**Total US: 27** · **Estimate agregado:** ~101h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
+### US-PCP-031 · Reserva o insumo na venda, baixa real na produção (UC-FLX-14) — **P1**
+
+**Implementado em:** `Modules/Producao/Services/ReservaDeInsumoDaOs.php` · `Modules/Producao/Database/Migrations/2026_10_20_120000_add_pcp_ordem_id_to_stock_reservations.php` · `app/Contracts/Fabricacao/InsumosDaReceita.php` · `Modules/Manufacturing/Services/InsumosDaReceitaService.php`
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoReservaInsumoContratoTest.php` (UC-PCRES-01..08, lane `verticais-pest.yml`).
+
+> owner: wagner · priority: p1 · estimate: 4h · type: story
+> blocked_by: US-PCP-021
+
+**Origem:** decisão [W] 2026-10-20 — *"Reserva insumo na venda, baixa real na produção"* — para o item feito sob encomenda (banner, placa, adesivo). Fontes: o caso prático da Comunicação Visual (*"reserva 6m² lona em 'aprovado' → consome em 'produção concluída'"*), o UC-FLX-14 (*"Consome do estoque a quantidade real, não a orçada"*) e a decisão [W] 2026-10-15 de que a receita do Manufacturing é a fonte de material. O produto acabado sob encomenda não controla estoque (nunca entra nem sai); a revenda segue baixando na venda; a produção para estoque (ordem de produção do Manufacturing) segue dando entrada no acabado. Revê a US-PCP-016 (consumo automático pela receita ao concluir): a baixa é a apontada, a receita só reserva.
+
+**Aceite:**
+- [x] Venda aprovada: a OS do item sob encomenda (gera OS, produto `enable_stock = 0`, tem receita) reserva cada insumo que controla estoque — receita por unidade × quantidade da OS — em `stock_reservations`, ligada à OS (`pcp_ordem_id`), no local da venda, sem data de expiração e sem mexer no saldo; idempotente (UC-PCRES-01).
+- [x] Produto que controla estoque (revenda) e empresa com a chave desligada não reservam (UC-PCRES-02).
+- [x] O apontamento da etapa baixa a quantidade real (US-PCP-021) e abate da reserva da OS no máximo o que ela tem; consumo além do reservado baixa normalmente; reserva zerada vira `consumed` (UC-PCRES-03, UC-PCRES-04).
+- [x] OS concluída ou cancelada libera o que sobrou; venda cancelada libera todas as reservas das OS dela (UC-PCRES-05, UC-PCRES-06).
+- [x] Chave por empresa `business.common_settings['producao_reserva_insumo']`, desligada por padrão; sem backfill (só reserva OS criada com a chave ligada). Tier 0: receita, reserva e liberação só da empresa (UC-PCRES-07).
+- [x] As ações da venda não tocam a reserva de insumo da OS: `ConsumirEstoque` ("Concluir produção") não a baixa — seria a 2ª baixa do insumo — e `LiberarReserva` ("Reabrir para revisão") não a solta (UC-PCRES-08).
+- [ ] Tela/ajuste para ligar a chave (hoje é dado de `common_settings`).
+- [ ] Quantidade por área (m²) no item da CV: hoje a reserva usa a quantidade da linha na unidade do produto.
+- [ ] Mostrar o reservado no saldo disponível para venda do insumo (hoje nenhuma tela lê `stock_reservations`).
+
+**Total US: 29** · **Estimate agregado:** ~109h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
 
 ### US-PCP-026 · Etapas da OS vêm do roteiro do produto (UC-FLX-07) — **P1**
 
@@ -506,6 +528,28 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [ ] Cadastro de quem trabalha em qual posto ou setor (hoje vale qualquer pessoa da empresa com acesso à Produção).
 - [ ] Tela do alocador (quadro/calendário — US-PCP-015) consumindo os dois endpoints.
 - [ ] Aviso de conflito: mesma pessoa ou mesmo posto com etapas sobrepostas, e material sem saldo para o horário escolhido.
+
+### US-PCP-028 · Prazo de entrega calculado pela fila (UC-FLX-06) — **P2**
+
+> owner: wagner · priority: p2 · estimate: 6h · status: doing · type: story
+
+**Implementado em:** _pendente_ — o cálculo em dias úteis e a data prometida na aprovação existem (`Modules/Producao/Services/PrazoPelaFila.php` · `Modules/Producao/Services/CalendarioDeProducao.php` · `app/Contracts/Rh/CalendarioDaEmpresa.php` · `Modules/Essentials/Services/CalendarioDaEmpresaService.php` · `Modules/Producao/Services/PrometerPrazoDaVenda.php` · `Modules/Producao/Jobs/CriarOsDaVendaJob.php` · `Modules/Producao/Http/Controllers/PrazoDaVendaController.php`); falta mostrar o prazo na aprovação do orçamento (tela de venda).
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoPrazoPelaFilaContratoTest.php` (lane `verticais-pest.yml`).
+
+**Origem:** UC-FLX-06 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:59`, referências Holdprint e Calcgraf, situação `planejado`, "SPEC do PCP"). Medido em 2026-10-20: o posto já tinha `horas_por_dia` (padrão 10) e `capacidade_por_hora`, as etapas do roteiro têm `horas`, e o `CriarOsDaVenda` programava as etapas sem olhar a fila (`Modules/Producao/Services/CriarOsDaVenda.php:87`); nada calculava a data de entrega. A US-PCP-013 (capacidade dia/semana agregada) é outra pergunta.
+
+**Aceite:**
+- [x] Para a venda ou orçamento, cada linha cujo produto tem roteiro soma, em cada posto, a fila à frente — Σ das programações `pendente`/`iniciada` do posto na empresa — e as próprias etapas (sem as opcionais), em sequência por bloco, trilhas em paralelo; horas ÷ horas por dia do posto (UC-PCPRZ-01).
+- [x] Linhas da mesma venda disputam os mesmos postos; linha sem roteiro fica fora e vem listada (UC-PCPRZ-02).
+- [x] Posto sem horas por dia e etapa sem posto usam 8 h/dia, e a resposta diz isso em `premissas` (UC-PCPRZ-01).
+- [x] Só leitura; a OS da própria venda não entra na fila dela (UC-PCPRZ-03).
+- [x] `GET /producao/vendas/{id}/prazo` em JSON com `sell.view` ou `producao.access` e o módulo no pacote; venda de outra empresa 404 (UC-PCPRZ-04).
+- [x] Decisão [W] 2026-10-20 — *"Pula sábado, domingo e feriados"*, pelo período de funcionamento já cadastrado: cada dia de produção vale um dia útil; hora útil = turno da produção (`pcp_turnos`) → senão expediente do RH (turno fixo do Essentials; com vários, o de mais funcionários) → senão 08h–18h com aviso; folgas do expediente, sem ele sábado e domingo (UC-PCPRZ-05, UC-PCPRZ-07).
+- [x] Feriados = os do RH da empresa e da loja da venda (`essentials_holidays`, mesma regra do Ponto), lidos pelo contrato `App\Contracts\Rh\CalendarioDaEmpresa`; nenhum feriado fixo no código; sem o Essentials, nenhum feriado, com aviso (UC-PCPRZ-06).
+- [x] Decisão [W] 2026-10-20 — a data prometida fica na venda (`transactions.due_date`, PROJETO_DT_FIM): na aprovação, venda sem data recebe a estimativa; data digitada pelo vendedor não é sobrescrita; a data vai para a OS (`pcp_ordens.prazo_prometido`) (UC-PCPRZ-08).
+- [ ] Mostrar o prazo na aprovação do orçamento (tela de venda).
+- [ ] Descontar o já apontado da etapa iniciada.
 
 ## §8 — Regras Gherkin (R-PCP-001..010) — resumo
 

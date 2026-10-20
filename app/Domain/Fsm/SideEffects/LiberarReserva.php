@@ -7,6 +7,7 @@ namespace App\Domain\Fsm\SideEffects;
 use App\Domain\Fsm\Contracts\SideEffectInterface;
 use App\Domain\Fsm\Models\StockReservation;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Marca reservas ACTIVE da transação como `released` (cancelamento OS).
@@ -27,6 +28,9 @@ class LiberarReserva implements SideEffectInterface
             ->where('business_id', $subject->business_id)
             ->where('transaction_id', $subject->getKey())
             ->where('status', StockReservation::STATUS_ACTIVE)
+            // US-PCP-031: a reserva de insumo de OS acaba com a OS (ReservaDeInsumoDaOs::liberar) ou com a
+            // venda cancelada (ProducaoServiceProvider) — reabrir a venda para revisão não a solta.
+            ->when(Schema::hasColumn('stock_reservations', 'pcp_ordem_id'), fn ($q) => $q->whereNull('pcp_ordem_id'))
             ->update(['status' => StockReservation::STATUS_RELEASED]);
     }
 }

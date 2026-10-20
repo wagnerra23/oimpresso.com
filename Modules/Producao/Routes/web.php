@@ -7,8 +7,10 @@ use Modules\Producao\Http\Controllers\ColaboradorCustoController;
 use Modules\Producao\Http\Controllers\EtiquetaOsController;
 use Modules\Producao\Http\Controllers\FerramentasController;
 use Modules\Producao\Http\Controllers\InstallController;
+use Modules\Producao\Http\Controllers\LoteRastreioController;
 use Modules\Producao\Http\Controllers\OrdemCustoController;
 use Modules\Producao\Http\Controllers\PostosController;
+use Modules\Producao\Http\Controllers\PrazoDaVendaController;
 use Modules\Producao\Http\Controllers\RomaneioController;
 use Modules\Producao\Http\Controllers\RoteirosController;
 
@@ -75,6 +77,10 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('os/{id}/etiqueta', [EtiquetaOsController::class, 'show'])->whereNumber('id')->name('os.etiqueta');
         // US-PCP-022 · UC-FLX-36 — custo da abertura × hoje da OS por item em andamento (JSON, gestor).
         Route::get('ordens/{id}/custo', [OrdemCustoController::class, 'show'])->whereNumber('id')->name('ordens.custo');
+        // US-PCP-028 · UC-FLX-06 — prazo de entrega da venda pela fila dos postos (JSON, só leitura).
+        Route::get('vendas/{id}/prazo', [PrazoDaVendaController::class, 'show'])->whereNumber('id')->name('vendas.prazo');
+        // US-COM-025 · UC-FLX-18 — rastreio do rolo: OS que usaram fração do lote + saldo (JSON, quem vê compras).
+        Route::get('lotes/{id}/rastreio', [LoteRastreioController::class, 'show'])->whereNumber('id')->name('lotes.rastreio');
     });
 
 // ── US-PCP-029 · UC-FLX-10 · alocador decide quem e quando começa (JSON, gestor) ──
