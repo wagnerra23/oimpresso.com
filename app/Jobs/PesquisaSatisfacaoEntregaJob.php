@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Contact;
+use App\Contracts\Atendimento\EnviaPesquisaSatisfacao;
 use App\Mail\PesquisaSatisfacaoEntregaMail;
-use App\Scopes\ScopeByBusiness;
 use App\Services\Sells\PesquisaEntregaConfig;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -16,8 +16,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
-use Modules\Whatsapp\Entities\Conversation;
-use Modules\Whatsapp\Services\Csat\CsatDispatcher;
 
 /**
  * Pesquisa de satisfação depois da entrega — US-SELL-071 · UC-FLX-25.
@@ -28,10 +26,11 @@ use Modules\Whatsapp\Services\Csat\CsatDispatcher;
  *     mais — até 9, para não disparar o histórico inteiro no dia em que a empresa liga — e que
  *     ainda estão em `delivered`/`completed` (cancelada antes disso não recebe);
  *  3. uma linha por venda em `transaction_satisfaction_surveys` — o UNIQUE garante uma pesquisa só;
- *  4. envia pelo CSAT do WhatsApp (`CsatDispatcher`, mesma nota 1-5) se o cliente tem conversa e
+ *  4. envia pelo WhatsApp via contrato `App\Contracts\Atendimento\EnviaPesquisaSatisfacao` (o
+ *     módulo Whatsapp liga o CSAT, nota 1-5; sem o módulo a interface não está ligada) se
  *     `canReceiveWhatsappNotification()`; senão por e-mail se `canReceiveEmailNotification()`;
  *     senão fica `nao_enviado` com o motivo (LGPD — proibicoes.md §FSM);
- *  5. copia a nota respondida no WhatsApp (o `CsatResponseParser` grava no CSAT) e, se a nota for
+ *  5. copia a nota respondida no WhatsApp (lida pelo mesmo contrato) e, se a nota for
  *     igual ou menor que o limite da empresa, abre um atendimento: tarefa no agendamento do CRM
  *     (`crm_schedules`, ligada à venda em `crm_followup_invoices`) para o vendedor.
  *
@@ -158,44 +157,45 @@ class PesquisaSatisfacaoEntregaJob implements ShouldQueue
         return ['nao_enviado', 'nenhum', 'sem_canal', null];
     }
 
-    /** Reaproveita o CSAT do WhatsApp na conversa mais recente do cliente nesta empresa. */
+    private function whatsapp(): ?EnviaPesquisaSatisfacao
+    {
+        return app()->bound(EnviaPesquisaSatisfacao::class) ? app(EnviaPesquisaSatisfacao::class) : null;
+    }
+
+    /** Pesquisa pelo WhatsApp (contrato do módulo); devolve a referência para ler a nota depois. */
     private function enviarWhatsapp(object $venda, Contact $contato): ?int
     {
-        if (! class_exists(CsatDispatcher::class) || ! Schema::hasTable('conversations') || ! Schema::hasTable('whatsapp_csat_responses')) {
-            return null;
-        }
-        $conversa = Conversation::query()->withoutGlobalScope(ScopeByBusiness::class) // job sem session
-            ->where('business_id', $this->businessId)->where('contact_id', $contato->id)
-            ->orderByDesc('last_message_at')->first();
-        if (! $conversa) {
+        if (! $canal = $this->whatsapp()) {
             return null;
         }
         try {
-            $csat = app(CsatDispatcher::class)->dispatchOnResolve($conversa, (int) $venda->created_by);
+            $r = $canal->enviar($this->businessId, (int) $contato->id, (int) $venda->id, (int) $venda->created_by);
         } catch (\Throwable $e) {
             Log::warning('[sells.pesquisa_entrega] falha no whatsapp', ['business_id' => $this->businessId, 'transaction_id' => (int) $venda->id, 'error' => class_basename($e)]);
 
             return null;
         }
 
-        return $csat ? (int) $csat->id : null;
+        return ($r['enviado'] ?? false) && ! empty($r['referencia']) ? (int) $r['referencia'] : null;
     }
 
     private function copiarNotasDoWhatsapp(): void
     {
-        if (! Schema::hasTable('whatsapp_csat_responses')) {
+        if (! $canal = $this->whatsapp()) {
             return;
         }
-        $pendentes = DB::table('transaction_satisfaction_surveys as s')
-            ->join('whatsapp_csat_responses as c', function ($j) {
-                $j->on('c.id', '=', 's.csat_response_id')->on('c.business_id', '=', 's.business_id');
-            })
-            ->where('s.business_id', $this->businessId)->whereNull('s.nota')->whereNotNull('c.score')
-            ->get(['s.id', 'c.score', 'c.responded_at']);
+        $pendentes = DB::table('transaction_satisfaction_surveys')
+            ->where('business_id', $this->businessId)->where('canal', 'whatsapp')
+            ->whereNull('nota')->whereNotNull('csat_response_id')
+            ->get(['id', 'csat_response_id']);
 
         foreach ($pendentes as $p) {
+            $nota = $canal->notaRespondida($this->businessId, (int) $p->csat_response_id);
+            if ($nota === null) {
+                continue;
+            }
             DB::table('transaction_satisfaction_surveys')->where('business_id', $this->businessId)->where('id', $p->id)
-                ->update(['nota' => (int) $p->score, 'respondido_em' => $p->responded_at ?? now(), 'status' => 'respondido', 'updated_at' => now()]);
+                ->update(['nota' => $nota, 'respondido_em' => now(), 'status' => 'respondido', 'updated_at' => now()]);
         }
     }
 
