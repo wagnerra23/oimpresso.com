@@ -40,6 +40,9 @@ class ApontamentoRecusado extends DomainException
     public const ESTOQUE_INSUFICIENTE = 'estoque_insuficiente';
     public const LOTE_INVALIDO = 'lote_invalido';
 
+    /** Link de aprovação da arte já respondido ou vencido → 410 (UC-FLX-02). */
+    public const APROVACAO_ENCERRADA = 'aprovacao_encerrada';
+
     /** @param array<string, mixed> $contexto */
     public function __construct(public readonly string $codigo, string $mensagem, public readonly array $contexto = [])
     {

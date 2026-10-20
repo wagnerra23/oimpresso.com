@@ -23,6 +23,7 @@ contains:
   - "FecharTurnoCommand — producao:fechar-turno a cada 15 min, fecha o cronômetro esquecido no fim do turno ou na saída do ponto"
   - "Api/AppApontamentoController — apontamento do app das lojas com token (/api/app/producao/*, P8 tela 02, inclui motivos-pausa), sobre o ApontamentoOperadorService"
   - "EtiquetaOsController — PDF A4 da OS com o QR da etiqueta (E05 modelo a4_os; PR 07 propostas-app)"
+  - "AprovacaoArteController + AprovacaoArteService — cliente aprova a arte por link (US-COMVIS-NEW-004 · UC-FLX-02): o operador gera o link da prova da OS por item (token, só o sha256 em pcp_aprovacoes_arte, 7 dias, uso único); a página pública /arte/{token} (Blade, sem login, throttle) aprova — conclui a etapa pelo motor — ou recusa com comentário, reabrindo a arte"
   - "Ordem (pcp_ordens) — OS por item que nasce do pedido nos modelos de fluxo; situação no motor FSM pelo ProcessoDaOrdem (ADR 0436)"
   - "SinalDaOrdem — regra 'produção só libera com o sinal pago' (US-PCP-025 · UC-FLX-28): o Liberar recusa abaixo do % mínimo da empresa e o pagamento gravado na venda libera a OS sozinho (liberar_pelo_sinal); só LÊ valor"
 not_contains:
@@ -39,6 +40,7 @@ status: em construção
 url_prefixes:
   - /producao/* (install 1-clique, os cadastros da thread 03: roteiros, postos, ferramentas, custo-hora, e o PDF da OS com QR em os/{id}/etiqueta, o romaneio de impressão em os/{id}/romaneio e romaneios/{id}, a alocação etapas/{id}/alocacao e a fila postos/{id}/fila, a bobina da mídia em bobinas/{mídia} e o aproveitamento em aproveitamento e aproveitamento/simular — Routes/web.php)
   - /producao/apontamento/* (celular do operador, thread 04)
+  - /arte/{token} (página pública da prova para o cliente aprovar, sem login — UC-FLX-02)
   - /producao/lotes/{id}/rastreio (rastreio do rolo, US-COM-025)
 ---
 
