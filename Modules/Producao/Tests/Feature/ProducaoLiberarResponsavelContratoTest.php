@@ -53,7 +53,7 @@ function libSit($teste): string
     return $teste->ordem->fresh()->currentStage->key;
 }
 
-it('Liberar grava o responsável escolhido em cada etapa e põe a OS Na fila', function () {
+it('UC-PCLIB-02 · Liberar grava o responsável escolhido em cada etapa e põe a OS Na fila', function () {
     app(SituacaoDaOrdem::class)->liberar($this->b98, $this->ordem->id, $this->pcp, [$this->e1->id => $this->op->id, $this->e2->id => $this->pcp->id]);
 
     expect(libSit($this))->toBe('na_fila');
@@ -63,7 +63,7 @@ it('Liberar grava o responsável escolhido em cada etapa e põe a OS Na fila', f
     expect($h->payload_snapshot['responsaveis'] ?? null)->not->toBeNull();
 });
 
-it('etapa aberta sem responsável recusa o Liberar e nada muda', function () {
+it('UC-PCLIB-02 · etapa aberta sem responsável recusa o Liberar e nada muda', function () {
     expect(fn () => app(SituacaoDaOrdem::class)->liberar($this->b98, $this->ordem->id, $this->pcp, [$this->e1->id => $this->op->id]))
         ->toThrow(ApontamentoRecusado::class, 'Escolha o responsável de: Montagem.');
 
@@ -71,7 +71,7 @@ it('etapa aberta sem responsável recusa o Liberar e nada muda', function () {
     expect($this->e1->fresh()->user_id)->toBeNull();
 });
 
-it('Tier 0: responsável de outra empresa é recusado', function () {
+it('UC-PCLIB-03 · Tier 0: responsável de outra empresa é recusado', function () {
     expect(fn () => app(SituacaoDaOrdem::class)->liberar($this->b98, $this->ordem->id, $this->pcp, [$this->e1->id => $this->op99->id, $this->e2->id => $this->op->id]))
         ->toThrow(fn (ApontamentoRecusado $e) => expect($e->codigo)->toBe(ApontamentoRecusado::RESPONSAVEL_INVALIDO));
 
@@ -79,12 +79,12 @@ it('Tier 0: responsável de outra empresa é recusado', function () {
     expect($this->e1->fresh()->user_id)->toBeNull();
 });
 
-it('etapa que não é desta OS é recusada', function () {
+it('UC-PCLIB-03 · etapa que não é desta OS é recusada', function () {
     expect(fn () => app(SituacaoDaOrdem::class)->liberar($this->b98, $this->ordem->id, $this->pcp, [999999999 => $this->op->id]))
         ->toThrow(ApontamentoRecusado::class, 'não é desta OS');
 });
 
-it('etapa que já tem responsável o mantém se não vier no mapa', function () {
+it('UC-PCLIB-02 · etapa que já tem responsável o mantém se não vier no mapa', function () {
     $this->e2->forceFill(['user_id' => $this->op->id])->save();
     app(SituacaoDaOrdem::class)->liberar($this->b98, $this->ordem->id, $this->pcp, [$this->e1->id => $this->pcp->id]);
 
