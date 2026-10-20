@@ -91,7 +91,7 @@ final class CatalogoProcessos
         'nfse' => [
             'Validar' => ['parcial', 'NfseController@store (POST /nfse/emitir) confere o código LC 116 e calcula ISS e retenções federais. Não existe município de incidência (usa o do prestador) nem o estado Validada, e o rascunho criado pela venda não tem rota para validar.'],
             'Enviar DPS' => ['sim', 'NfseController@store → EmitirNfseJob → NfseEmissaoService::emitir envia a DPS assinada à Sefin Nacional (SnNfseAdapter). Só o emissor nacional está ligado; não há emissor municipal.'],
-            'Retorno de autorização' => ['parcial', 'NfseEmissaoService::emitir grava emitida com número e chave. Não envia ao tomador e não ajusta o título pelo ISS retido (o Financeiro não referencia NFS-e).'],
+            'Retorno de autorização' => ['parcial', 'NfseEmissaoService::emitir grava emitida com número e chave. Não envia ao tomador. O ajuste do título pela retenção (ISS retido + federais, como baixa) existe no Financeiro (RetencaoNfseTituloService, US-FIN-072 · UC-FLX-30), desligado por padrão em cada empresa.'],
             'Retorno de rejeição' => ['parcial', 'A rejeição vira status erro com a mensagem (NfseEmissaoService::marcarErro), mas a nota não volta para correção: não pode ser editada.'],
             'Corrigir e revalidar' => ['nao', 'Não há rota de corrigir ou reemitir a nota rejeitada (Modules/NFSe/Routes/web.php só tem listar, emitir, emitir por venda, ver, cancelar e PDF); "Nova emissão" cria outra do zero.'],
             'Substituir' => ['nao', 'Não existe substituição de NFS-e: nenhuma rota, campo ou vínculo com a nota substituta.'],

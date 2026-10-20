@@ -1914,13 +1914,6 @@
       "desc": ""
     },
     {
-      "id": "component:Compras/compras_insumo_metodo_custo",
-      "type": "component",
-      "module": "Compras",
-      "name": "compras_insumo_metodo_custo",
-      "desc": "tabela-ponte (business_id, variation_id) com o método próprio do insumo (medio | ultimo), lida quando a regra é por_insumo; variations do core não ganha coluna"
-    },
-    {
       "id": "component:Compras/ComprasController",
       "type": "component",
       "module": "Compras",
@@ -1947,6 +1940,13 @@
       "module": "Compras",
       "name": "InstallController",
       "desc": ""
+    },
+    {
+      "id": "component:Compras/InsumoMetodoCusto",
+      "type": "component",
+      "module": "Compras",
+      "name": "InsumoMetodoCusto",
+      "desc": "entidade da tabela-ponte compras_insumo_metodo_custo (business_id, variation_id) com o método próprio do insumo (medio | ultimo), lida quando a regra é por_insumo; variations do core não ganha coluna"
     },
     {
       "id": "component:ComunicacaoVisual/ApontamentoController",
@@ -7887,12 +7887,6 @@
     },
     {
       "from": "module:Compras",
-      "to": "component:Compras/compras_insumo_metodo_custo",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Compras",
       "to": "component:Compras/ComprasController",
       "type": "hasComponent",
       "source": "contains"
@@ -7912,6 +7906,12 @@
     {
       "from": "module:Compras",
       "to": "component:Compras/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/InsumoMetodoCusto",
       "type": "hasComponent",
       "source": "contains"
     },
