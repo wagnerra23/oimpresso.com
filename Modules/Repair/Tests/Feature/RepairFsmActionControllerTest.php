@@ -162,6 +162,7 @@ afterEach(function () {
         foreach (array_reverse(glob(database_path('migrations/2026_05_11_12*_create_sale_*.php')) ?: []) as $f) {
             (require $f)->down();
         }
+        Schema::dropIfExists('support_agents');
         foreach (['role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions', 'users', 'business', 'activity_log'] as $tbl) {
             Schema::dropIfExists($tbl);
         }
@@ -341,6 +342,17 @@ it('UC-COS-14: transição pela FSM hoje NÃO avisa o cliente nem muda o status 
     // Quando existir o evento genérico de transição, este teste inverte.
     // Tenant fictício 98 (ADR 0358) — business sintético só pro middleware Timezone.
     DB::table('business')->insert(['id' => 98, 'name' => 'Tenant 98 FLX-24', 'time_zone' => 'America/Sao_Paulo']);
+    // Empresa 98 não é a operadora: o SupportAccessService (AdminSidebarMenu) consulta
+    // support_agents. Em SQLite :memory: a tabela não existe; cria a forma mínima que a
+    // consulta lê (user_id + revoked_at), igual às outras tabelas deste arquivo.
+    if (DB::connection()->getDriverName() === 'sqlite' && ! Schema::hasTable('support_agents')) {
+        Schema::create('support_agents', function (Blueprint $t) {
+            $t->increments('id');
+            $t->unsignedInteger('user_id');
+            $t->timestamp('revoked_at')->nullable();
+            $t->timestamps();
+        });
+    }
 
     ['recebido' => $r, 'diagnostico' => $d, 'action' => $action] = repairFsmFakeSetup(98);
     SaleStageActionRole::create(['action_id' => $action->id, 'role_name' => 'repair.tecnico']);
