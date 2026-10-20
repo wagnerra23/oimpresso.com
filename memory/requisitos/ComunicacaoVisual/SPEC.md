@@ -172,7 +172,11 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 > **Rota:** `GET /comvis/os/{id}/pos-calculo`
 > **Controller/ação:** `PosCalculoController`
 
-**Implementado em:** _pendente_ — PosCalculoController/PosCalculoService não construídos (depende de apontamento US-004 completo)
+**Implementado em:** _pendente_ — parcial em 2026-10-20: a comparação por OS e por venda existe como leitura JSON no módulo Produção (`Modules/Producao/Services/PrevistoRealizadoDaOrdem.php` · `Modules/Producao/Http/Controllers/PrevistoRealizadoController.php`, `GET /producao/ordens/{id}/previsto-realizado` e `GET /producao/vendas/{id}/previsto-realizado`, UC-FLX-15). Orçado = custo guardado na linha da venda (US-SELL-067); realizado = `pcp_ordens.custo_real` (US-PCP-021). Faltam a rota `/comvis/os/{id}/pos-calculo`, a tela, margem por cliente/produto/mês, alerta Jana e export; o item do orçamento CV (`custo_previsto` + `custo_maquina_previsto`) ainda não se liga à OS por item
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoPrevistoRealizadoContratoTest.php` (UC-PCPR-01..05, lane `verticais-pest.yml`).
+
+> owner: wagner · priority: p1 · estimate: 6h · status: doing · type: story
 
 **Como** dono/gestor
 **Quero** ver, ao fechar OS, comparativo: custo orçado vs custo real (mídia consumida + tinta + mão-de-obra etapa + instalação)
@@ -180,7 +184,8 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 
 **DoD:**
 - [ ] Cruza `orcamento.subtotal_custo` (US-COMVIS-001) com soma de `apontamento.custo_real` (US-COMVIS-004) + folha etapa (R$/h × tempo)
-- [ ] Margem % por OS, por cliente, por produto, por mês
+- [x] Por OS e por venda: orçado (custo guardado na linha) × realizado (congelado; OS aberta "em andamento" com o parcial), diferença em R$ e %, margem orçada × real sobre o preço da linha — só leitura, só com `producao.desempenho.ver`, outra empresa 404 (UC-PCPR-01..05)
+- [ ] Margem % por cliente, por produto, por mês
 - [ ] Alerta automático Jana: "OS-1234 fechou com margem -3% (orçado 22%) — quer revisar tabela?"
 - [ ] Relatório export Excel/PDF
 - [ ] Atende **dor #4 do top 10** (relatório margem por OS)

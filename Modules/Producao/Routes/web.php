@@ -7,6 +7,7 @@ use Modules\Producao\Http\Controllers\FerramentasController;
 use Modules\Producao\Http\Controllers\InstallController;
 use Modules\Producao\Http\Controllers\OrdemCustoController;
 use Modules\Producao\Http\Controllers\PostosController;
+use Modules\Producao\Http\Controllers\PrevistoRealizadoController;
 use Modules\Producao\Http\Controllers\RoteirosController;
 
 /*
@@ -71,4 +72,7 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('os/{id}/etiqueta', [EtiquetaOsController::class, 'show'])->whereNumber('id')->name('os.etiqueta');
         // US-PCP-022 · UC-FLX-36 — custo da abertura × hoje da OS por item em andamento (JSON, gestor).
         Route::get('ordens/{id}/custo', [OrdemCustoController::class, 'show'])->whereNumber('id')->name('ordens.custo');
+        // US-COMVIS-005 · UC-FLX-15 — previsto × realizado por OS e por venda (JSON, gestor).
+        Route::get('ordens/{id}/previsto-realizado', [PrevistoRealizadoController::class, 'ordem'])->whereNumber('id')->name('ordens.previsto-realizado');
+        Route::get('vendas/{id}/previsto-realizado', [PrevistoRealizadoController::class, 'venda'])->whereNumber('id')->name('vendas.previsto-realizado');
     });
