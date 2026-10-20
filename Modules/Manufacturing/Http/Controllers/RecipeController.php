@@ -663,20 +663,17 @@ class RecipeController extends Controller
             abort(404);
         }
 
-        $ingredients = [];
-        if (! empty($recipe)) {
-            $ingredients_array = [];
+        $ingredients_array = [];
 
-            foreach ($recipe->ingredients as $ingredient) {
-                $ingredient_quantity = $this->mfgUtil->calc_percentage($ingredient->quantity, $ingredient->waste_percent, $ingredient->quantity);
-                $ingredients_array[$ingredient->variation_id] = [
-                    'quantity' => $ingredient_quantity,
-                    'sub_unit_id' => $ingredient->sub_unit_id,
-                    'waste_percent' => $ingredient->waste_percent,
-                ];
-            }
-            $ingredients = $this->mfgUtil->getIngredientDetails($recipe, $business_id, $location_id);
+        foreach ($recipe->ingredients as $ingredient) {
+            $ingredient_quantity = $this->mfgUtil->calc_percentage($ingredient->quantity, $ingredient->waste_percent, $ingredient->quantity);
+            $ingredients_array[$ingredient->variation_id] = [
+                'quantity' => $ingredient_quantity,
+                'sub_unit_id' => $ingredient->sub_unit_id,
+                'waste_percent' => $ingredient->waste_percent,
+            ];
         }
+        $ingredients = $this->mfgUtil->getIngredientDetails($recipe, $business_id, $location_id);
         $business_details = $this->businessUtil->getDetails($business_id);
         $pos_settings = empty($business_details->pos_settings) ? $this->businessUtil->defaultPosSettings() : json_decode($business_details->pos_settings, true);
 
