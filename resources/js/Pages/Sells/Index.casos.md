@@ -136,11 +136,45 @@ last_run: "2026-10-19"
 - **[BACKLOG] Drawer da venda (documento vivo)** — clicar na linha abre o drawer com FSM/pagamentos; espelhar âncoras pós-DS v6.
 - **[BACKLOG] Imprimir resumo do caixa de hoje** — botão no header; exige stub de print (mesmo padrão UC-11 Oficina).
 
+### Pesquisa de concorrentes 2026-10-20 — núcleo e comunicação visual
+
+> Origem: pesquisa em 5 ERPs brasileiros e 7 sistemas de gráfica/comunicação visual, com fontes, em
+> [`memory/sessions/2026-10-20-pesquisa-consulta-venda-concorrentes-cv.md`](../../../../memory/sessions/2026-10-20-pesquisa-consulta-venda-concorrentes-cv.md).
+> São **propostas**, não contrato: cada item só ganha id quando tiver teste que o defenda (G-2), e os de
+> comunicação visual dependem do fluxo da venda registrar a informação. Premissa: a mesma tela atende o
+> vestuário; o que é de comunicação visual entra na visão **Produção** e só aparece para empresa com o
+> módulo Comunicação Visual.
+
+**Núcleo (3 ou mais ERPs brasileiros têm):**
+- **[BACKLOG] Filtrar por vendedor** — Tiny, Omie, Conta Azul. Não há esse filtro na tela hoje.
+- **[BACKLOG] Totais do que está filtrado** — o servidor já devolve `totals`, a tela não mostra. Tier 0 valor: só exibir o número calculado no servidor, nunca recalcular no navegador.
+- **[BACKLOG] Duplicar a venda (recompra)** — Bling, Tiny, Omie, Conta Azul.
+- **[BACKLOG] Enviar a venda ao cliente por e-mail ou WhatsApp pela lista** — Bling, Tiny, Omie, Conta Azul.
+- **[BACKLOG] Mudar situação ou etapa de várias vendas de uma vez** — Bling, Tiny, Omie. Passa pelo FSM, nunca por update direto.
+- **[BACKLOG] Exportar a lista para planilha** — Bling, Tiny, Omie. Hoje o botão em lote diz "Em breve".
+- **[BACKLOG] Imprimir várias vendas ou etiquetas de uma vez** — Bling, Tiny, Omie.
+- **[BACKLOG] Gerar ordem de produção a partir de vendas** — Bling, Tiny, Nomus.
+- **[BACKLOG] Faturar só parte da venda** — Tiny, Omie, Nomus.
+
+**Comunicação visual:**
+- **[BACKLOG] Ver na linha a etapa da produção** (arte, impressão, acabamento, instalação, entrega) — shopVOX, CoreBridge, Printavo, DecoNetwork, Ordant. A coluna Pipeline hoje mostra a etapa do fluxo da venda.
+- **[BACKLOG] Atrasadas pela data de entrega, com dias de atraso** — shopVOX, CoreBridge, DecoNetwork, Calcgraf. A visão "Atrasadas" de hoje olha o pagamento (`sla_kind`).
+- **[BACKLOG] Situação da arte na linha** (aguardando cliente, ajuste pedido, aprovada com data e quem aprovou) — 6 dos 9 sistemas de gráfica.
+- **[BACKLOG] Sinal pago e saldo a receber** — Printavo; colunas Pago e A receber já existem na visão Financeira, falta o sinal.
+- **[BACKLOG] Instalação: data, se está confirmada e equipe** — shopVOX, CoreBridge.
+- **[BACKLOG] Segunda data: fim da produção, além da data prometida** — shopVOX. Decisão de produto: campo novo ou derivado da etapa de instalação.
+- **[BACKLOG] Urgência e retrabalho/cortesia como marcadores** — Printavo e Calcgraf (urgência); retrabalho não confirmado em nenhum. Etiqueta genérica (como no Tiny) cobre os dois.
+- **[BACKLOG] Venda parada com motivo** (sem material, esperando cliente) — shopVOX. Diferente de cancelada e de atrasada.
+- **[BACKLOG] Status de cada nota da venda** (NF-e do material e NFS-e da instalação) — Calcgraf. Conferir se a coluna Fiscal já mostra as duas.
+- **[BACKLOG] Recompra levando a arte já aprovada** — shopVOX.
+- **[BACKLOG] Totais da operação** (em produção, atrasadas, aguardando arte, a receber) — Calcgraf, Printavo.
+
 ## Como rodar a suíte
 1. **E2E:** `npm run e2e:check` no harness do CI (e2e-gate) — vereditos viram manifesto via `npm run casos:results` (merge per-UC).
 2. **Cadência:** rodar ao fim de toda mexida em Sells/Index. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-20 · [M+C] Backlog da pesquisa de concorrentes (núcleo + comunicação visual), sem id e sem mudança de comportamento da tela; fontes no [registro da sessão](../../../../memory/sessions/2026-10-20-pesquisa-consulta-venda-concorrentes-cv.md).
 - 2026-10-19 · [CC] **UC-SIDX-04 `[T0]` + UC-SIDX-05 `[V0]`** — pílula "Rascunhos" na consulta de vendas (pedido da ROTA LIVRE: a tela `/sells/drafts` não tinha ações e "era para estar junta na consulta de vendas"; decisão [W]: filtro dentro da consulta, mesmas ações da venda, totais de faturado só com venda final). Teste `SellsIndexRascunhosContratoTest.php` na lane Sells. A tela `/sells/drafts` segue no ar até ser aposentada em PR próprio (só ganhou o conserto do "Itens NaN").
 - 2026-07-27 · [CC] **UC-SIDX-01 `[T0]` + UC-SIDX-02 `[V0]`** derivados pelo agent `sdd-from-source` ([ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md)) junto com o [SDD do módulo](../../../../memory/requisitos/Sells/SDD-tela-venda-v1.0.md) (`CU-SELL-32`/`CU-SELL-33`) + o teste `SellsIndexTenantContratoTest.php` + a lane nova `sells-pest.yml`. Achado que motivou o UC-SIDX-01: a derivação de `has_return` **não é escopada por `business_id`** em nenhum dos 2 sites medidos. **Convenção de id:** os novos usam 3 segmentos (`UC-SIDX-*`) porque o extrator de `scripts/governance/requisitos-status.mjs` exige `UC-XXX-NN` — os antigos `UC-S1x` ficam (renomear quebraria a citação dos testes que já os defendem, G-2). Ver SDD §9 D-4.
 - 2026-07-03 · [CC] UC-S12 "ver que a venda já teve devolução (setinha de retorno)" + contrato em `SellsIndexCoworkPayloadTest.php` — restaura o indicador `has_return`/badge perdido no rewrite Cowork #1032 (payload React nunca selecionava `return_exists`). Incidente reportado por Guilherme @ biz=4 ROTA LIVRE. Ancorado no critério canônico `return_parent_id + type='sell_return'` (ADR 0264 G-2).
