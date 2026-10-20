@@ -217,6 +217,15 @@ dona abate.
 
 Status: 🧪
 
+## UC-PCRES-08 · A venda não baixa nem solta a reserva de insumo da OS · `must` estoque
+
+**Dado** a OS reservou 5 de lona e já apontou 3 (saldo 7, 2 reservados) e a venda tem uma reserva comum de 1
+**Quando** a venda passa por "Concluir produção" (ConsumirEstoque) ou "Reabrir para revisão" (LiberarReserva)
+**Então** só a reserva comum é baixada (saldo 6); a reserva da OS segue ativa com 2 — quem baixa o insumo é o
+apontamento, e quem solta a reserva é a OS concluída ou a venda cancelada.
+
+Status: 🧪
+
 ---
 
 ## Custo da OS em andamento (US-PCP-022 · UC-FLX-36)

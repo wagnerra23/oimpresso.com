@@ -235,3 +235,25 @@ it('UC-PCRES-07 · Tier 0: a 99 não lê a receita, não abate nem libera reserv
     expect($this->svc->abater($this->b98, $ordem->id, $this->vLona, '1'))->toBe('4.0000');
     expect(StockReservation::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $this->b99)->where('pcp_ordem_id', $ordem->id)->count())->toBe(0);
 });
+
+it('UC-PCRES-08 · "Concluir produção" e "reabrir" da venda não baixam nem soltam a reserva de insumo da OS', function () {
+    [, $etapa] = ($this->novaOs)();
+    ($this->baixar)($etapa, '3');
+    // Controle: uma reserva comum da mesma venda (sem OS), 1 de lona — esta o ConsumirEstoque baixa.
+    StockReservation::withoutGlobalScope(ScopeByBusiness::class)->create(['business_id' => $this->b98, 'transaction_id' => $this->venda,
+        'product_id' => $this->lona, 'variation_id' => $this->vLona, 'location_id' => $this->localL, 'qty_reserved' => '1.0000',
+        'status' => StockReservation::STATUS_ACTIVE]);
+    $tx = Transaction::withoutGlobalScopes()->findOrFail($this->venda); // SUPERADMIN: fixture da empresa 98.
+
+    (new \App\Domain\Fsm\SideEffects\ConsumirEstoque)->execute($tx);
+
+    // À mão: antes 7 (10 − 3 apontados). Só a reserva comum sai: 7 − 1 = 6. A da OS (2) NÃO sai —
+    // sem o filtro o saldo iria a 7 − 1 − 2 = 4, uma 2ª baixa do insumo que o apontamento ainda vai baixar.
+    expect(($this->saldo)())->toBe('6.0000');
+    $daOs = DB::table('stock_reservations')->where('business_id', $this->b98)->where('transaction_id', $this->venda)->whereNotNull('pcp_ordem_id')->first();
+    expect($daOs->status)->toBe('active')->and((string) $daOs->qty_reserved)->toBe('2.0000');
+    expect(DB::table('stock_reservations')->where('business_id', $this->b98)->where('transaction_id', $this->venda)->whereNull('pcp_ordem_id')->value('status'))->toBe('consumed');
+
+    (new \App\Domain\Fsm\SideEffects\LiberarReserva)->execute($tx);
+    expect(DB::table('stock_reservations')->where('id', $daOs->id)->value('status'))->toBe('active');
+});

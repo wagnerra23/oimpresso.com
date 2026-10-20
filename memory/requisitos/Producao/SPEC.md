@@ -457,7 +457,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 **Implementado em:** `Modules/Producao/Services/ReservaDeInsumoDaOs.php` · `Modules/Producao/Database/Migrations/2026_10_20_120000_add_pcp_ordem_id_to_stock_reservations.php` · `app/Contracts/Fabricacao/InsumosDaReceita.php` · `Modules/Manufacturing/Services/InsumosDaReceitaService.php`
 
-**Testado em:** `Modules/Producao/Tests/Feature/ProducaoReservaInsumoContratoTest.php` (UC-PCRES-01..07, lane `verticais-pest.yml`).
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoReservaInsumoContratoTest.php` (UC-PCRES-01..08, lane `verticais-pest.yml`).
 
 > owner: wagner · priority: p1 · estimate: 4h · type: story
 > blocked_by: US-PCP-021
@@ -470,6 +470,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [x] O apontamento da etapa baixa a quantidade real (US-PCP-021) e abate da reserva da OS no máximo o que ela tem; consumo além do reservado baixa normalmente; reserva zerada vira `consumed` (UC-PCRES-03, UC-PCRES-04).
 - [x] OS concluída ou cancelada libera o que sobrou; venda cancelada libera todas as reservas das OS dela (UC-PCRES-05, UC-PCRES-06).
 - [x] Chave por empresa `business.common_settings['producao_reserva_insumo']`, desligada por padrão; sem backfill (só reserva OS criada com a chave ligada). Tier 0: receita, reserva e liberação só da empresa (UC-PCRES-07).
+- [x] As ações da venda não tocam a reserva de insumo da OS: `ConsumirEstoque` ("Concluir produção") não a baixa — seria a 2ª baixa do insumo — e `LiberarReserva` ("Reabrir para revisão") não a solta (UC-PCRES-08).
 - [ ] Tela/ajuste para ligar a chave (hoje é dado de `common_settings`).
 - [ ] Quantidade por área (m²) no item da CV: hoje a reserva usa a quantidade da linha na unidade do produto.
 - [ ] Mostrar o reservado no saldo disponível para venda do insumo (hoje nenhuma tela lê `stock_reservations`).
