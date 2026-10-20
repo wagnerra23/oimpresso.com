@@ -34,10 +34,10 @@
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 978,
+        "fields_total": 979,
         "fields_placeholder": 4,
-        "fields_grammar_ok": 842,
-        "orphan_fields": 6,
+        "fields_grammar_ok": 843,
+        "orphan_fields": 7,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
         "req_sem_aceite_total": 239,
