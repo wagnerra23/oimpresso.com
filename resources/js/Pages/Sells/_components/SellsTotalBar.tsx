@@ -2,8 +2,9 @@
 //
 // Forma: protótipo `prototipo-ui/cowork/Wagner/vendas-page.jsx`, bloco TOTALIZADORES (`vd-totalbar`),
 // com os valores do `vendas.css` do protótipo escritos em classes do Tailwind sobre os mesmos tokens —
-// sem CSS novo no bundle (MANUAL-CSS-JS passo 1, catraca css-size-baseline). `--s-4`/`--s-5` do
-// protótipo não existem no app: viraram `gap-4` (16px) e `gap-5` (20px).
+// sem CSS novo no bundle (MANUAL-CSS-JS passo 1, catraca css-size-baseline) e com os primitivos de
+// layout (ADR 0253). `--s-4`/`--s-5` do protótipo não existem no app: viraram `gap={4}` (16px) e
+// `gap={5}` (20px).
 // Números: só os que o servidor devolve em `/sells-list-json` → `totals` (SellController clona o
 // filtro antes de paginar, então a soma cobre todas as páginas). A barra não soma nada no
 // navegador — REGRA MESTRE de valor (memory/proibicoes.md).
@@ -14,10 +15,11 @@
 // não bate. Em Rascunho não há barra: os totais de faturado são só de venda final (UC-SIDX-05).
 
 import type { ReactNode } from 'react';
+import { Inline, Stack } from '@/Components/layout';
 import { motivoSemTotais, type FiltrosDaTela, type TotaisDoFiltro } from './totaisDoFiltro';
 
 const BARRA =
-  'mt-[10px] flex flex-wrap items-center gap-4 gap-y-2 rounded-md border border-[color:var(--border)] bg-[var(--bg-2)] px-4 py-[11px]';
+  'mt-[10px] rounded-md border border-[color:var(--border)] bg-[var(--bg-2)] px-4 py-[11px]';
 const ROTULO =
   'font-sans text-[length:var(--fs-1)] font-semibold uppercase leading-none tracking-[.06em] text-[color:var(--text-mute)]';
 const VALOR =
@@ -30,10 +32,10 @@ const brl = (n: number) =>
 
 function Metrica({ rotulo, valor, grande = false }: { rotulo: string; valor: number; grande?: boolean }): ReactNode {
   return (
-    <div className="flex flex-col items-end gap-0.5 leading-[1.1]">
+    <Stack gap={0} align="end" className="gap-0.5 leading-[1.1]">
       <span className={ROTULO}>{rotulo}</span>
       <span className={grande ? VALOR_TOTAL : VALOR}>{brl(valor)}</span>
-    </div>
+    </Stack>
   );
 }
 
@@ -57,19 +59,19 @@ export default function SellsTotalBar({ totais, filtros, carregando }: SellsTota
   }
 
   return (
-    <div className={BARRA} role="region" aria-label="Totais do filtro">
-      <div className="flex items-baseline gap-2 text-[length:var(--fs-3)] text-[color:var(--text-dim)]">
+    <Inline wrap gap={4} className={`${BARRA} gap-y-2`} role="region" aria-label="Totais do filtro">
+      <Inline gap={2} align="baseline" className="text-[length:var(--fs-3)] text-[color:var(--text-dim)]">
         <b className="font-sans text-[length:var(--fs-5)] font-bold leading-none text-[color:var(--text)]">
           {totais.count}
         </b>{' '}
         {totais.count === 1 ? 'venda' : 'vendas'}
         <span className="text-[length:var(--fs-2)] text-[color:var(--text-mute)]">soma de todas as páginas do filtro</span>
-      </div>
-      <div className="ml-auto flex items-center gap-5">
+      </Inline>
+      <Inline gap={5} className="ml-auto">
         <Metrica rotulo="Pago" valor={totais.sum_total_paid} />
         <Metrica rotulo="A receber" valor={totais.sum_due} />
         <Metrica rotulo="Total do filtro" valor={totais.sum_final_total} grande />
-      </div>
-    </div>
+      </Inline>
+    </Inline>
   );
 }
