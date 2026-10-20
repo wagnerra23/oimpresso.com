@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 823,
-    "edges": 1122,
+    "nodes": 825,
+    "edges": 1124,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 445,
+      "component": 447,
       "api": 84
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 88,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 445,
+      "hasComponent": 447,
       "dependsOn": 123,
       "delegatesTo": 114,
       "migratesTo": 1,
@@ -2019,6 +2019,13 @@
       "desc": ""
     },
     {
+      "id": "component:ComunicacaoVisual/InstalacaoController",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "InstalacaoController",
+      "desc": "/comunicacao-visual/api/instalacoes, US-COMVIS-007 · UC-FLX-21)"
+    },
+    {
       "id": "component:ComunicacaoVisual/InstallController",
       "type": "component",
       "module": "ComunicacaoVisual",
@@ -2031,6 +2038,13 @@
       "module": "ComunicacaoVisual",
       "name": "OrcamentoController",
       "desc": ""
+    },
+    {
+      "id": "component:ComunicacaoVisual/Services/AgendaInstalacao",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "Services/AgendaInstalacao",
+      "desc": "US-COMVIS-007 · UC-FLX-21)"
     },
     {
       "id": "component:ComunicacaoVisual/Services/OrcamentoViraOs",
@@ -8007,6 +8021,12 @@
     },
     {
       "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/InstalacaoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/InstallController",
       "type": "hasComponent",
       "source": "contains"
@@ -8014,6 +8034,12 @@
     {
       "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/OrcamentoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/Services/AgendaInstalacao",
       "type": "hasComponent",
       "source": "contains"
     },
