@@ -8,6 +8,15 @@ use Modules\NFSe\Models\Concerns\NfseBusinessScope;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
+/**
+ * Colunas criadas por migrations do NfeBrasil (D-NFSE-CONSOLIDA), fora do alcance da
+ * inferência de schema do Larastan — declaradas aqui. Cast decimal:2 ⇒ string.
+ *
+ * @property string|null $valor_iss_retido  ISS retido pelo tomador (US-FIN-072); NULL em nota anterior à coluna
+ * @property string|null $valor_ret_pis
+ * @property string|null $valor_ret_cofins
+ * @property string|null $valor_ret_csll
+ */
 class NfseEmissao extends Model
 {
     use SoftDeletes, NfseBusinessScope, LogsActivity;
