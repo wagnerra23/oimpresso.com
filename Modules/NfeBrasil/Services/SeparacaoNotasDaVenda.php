@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\NfeBrasil\Services;
 
+use App\Transaction;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Modules\NfeBrasil\Models\NfeNaturezaProduto;
@@ -52,7 +53,7 @@ class SeparacaoNotasDaVenda
             ->where('type', 'sell')
             ->first(['id', 'final_total', 'shipping_charges']);
         if ($tx === null) {
-            throw (new ModelNotFoundException())->setModel('transactions', [$transactionId]);
+            throw (new ModelNotFoundException())->setModel(Transaction::class, [$transactionId]);
         }
 
         $rows = DB::table('transaction_sell_lines as tsl')
@@ -92,7 +93,7 @@ class SeparacaoNotasDaVenda
     /**
      * A regra de rateio, sem banco. Ver o docblock da classe.
      *
-     * @param list<array{natureza:string,quantidade:float,valor_unitario:float}> $linhas
+     * @param list<array{natureza:string,quantidade:float,valor_unitario:float,product_id?:int}> $linhas
      */
     public static function dividir(array $linhas, float $finalTotal, float $frete): array
     {
@@ -103,10 +104,10 @@ class SeparacaoNotasDaVenda
             if ((float) $l['quantidade'] <= 0 || $cent <= 0) {
                 continue;
             }
-            if (($l['natureza'] ?? '') === NfeNaturezaProduto::PENDENTE && isset($l['product_id'])) {
+            if ($l['natureza'] === NfeNaturezaProduto::PENDENTE && isset($l['product_id'])) {
                 $pendentes[] = (int) $l['product_id'];
             }
-            $lado = ($l['natureza'] ?? '') === self::SERVICO ? self::SERVICO : self::MERCADORIA;
+            $lado = $l['natureza'] === self::SERVICO ? self::SERVICO : self::MERCADORIA;
             $partes[$lado][] = $l + ['bruto_cent' => $cent, 'bruto' => $cent / 100.0];
         }
 
