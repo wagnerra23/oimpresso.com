@@ -250,6 +250,11 @@ Status: 🧪
 
 **Quando** o operador aponta o refugo pela PWA **Então** a resposta não traz custo e o reenvio não grava de
 novo; pedindo retrabalho sem o papel de qualidade **Então** 403 e nada fica (nem o refugo, nem a baixa).
+
+Status: 🧪
+
+---
+
 ## Romaneio de impressão peça a peça (US-PCP-023 · UC-FLX-12)
 
 > **Âncora:** UC-FLX-12 do catálogo de fluxos (*"Pré-impressão → Impressão gera a lista do que foi enviado
