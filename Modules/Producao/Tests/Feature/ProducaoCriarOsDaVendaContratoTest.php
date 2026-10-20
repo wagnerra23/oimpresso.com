@@ -1,7 +1,9 @@
 <?php
+// @covers-us US-PCP-026
 
 declare(strict_types=1);
 // Cobre UC-FLX-01 (venda aprovada vira OS sem redigitar) e UC-FLX-07 (etapas vêm do produto) — ADR 0436, PR 3.
+// UC-PCROT-01..04: Producao/Roteiros/Index.casos.md (US-PCP-026).
 
 use App\Domain\Fsm\Modelos\AplicarModelo;
 use App\Domain\Fsm\Models\SaleProcessStage;
@@ -97,7 +99,7 @@ function osOrdens(int $biz, int $txId)
     return Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $biz)->where('transaction_id', $txId)->get();
 }
 
-it('UC-FLX-01 · aprovar a venda cria uma OS só para o item com roteiro, em Aguardando liberação', function () {
+it('UC-FLX-01 · UC-PCROT-02 · aprovar a venda cria uma OS só para o item com roteiro, em Aguardando liberação', function () {
     $tx = osVenda($this, 'cv-pequena');
     app(ExecuteStageActionService::class)->execute($tx, 'avancar', $this->vendedor);
 
@@ -133,7 +135,7 @@ it('idempotente: criar de novo não duplica OS nem programações', function () 
     expect(Programacao::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $this->b98)->where('os_tipo', Ordem::OS_TIPO)->count())->toBe($antes);
 });
 
-it('Tier 0: a 99 não cria OS a partir da venda da 98', function () {
+it('UC-PCROT-04 · Tier 0: a 99 não cria OS a partir da venda da 98', function () {
     $tx = osVenda($this, 'cv-pequena');
     // A 99 liga o mesmo produto a um roteiro dela: só o filtro da venda por empresa pode barrar.
     DB::table('pcp_produto_roteiro')->insert(['business_id' => $this->b99, 'product_id' => $this->produtoComRoteiro,
@@ -161,4 +163,86 @@ it('o histórico da venda não mostra transição de OS que tenha o mesmo númer
     $daVenda = SaleStageHistory::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $this->b98)->where('transaction_id', $tx->id)->daVenda()->count();
     $todos = SaleStageHistory::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $this->b98)->where('transaction_id', $tx->id)->count();
     expect($todos - $daVenda)->toBe(1);
+});
+
+/** Troca de usuário como um login novo (o SetSessionData só preenche a empresa com a sessão vazia). */
+function osComo($teste, $user)
+{
+    $teste->flushSession();
+
+    return $teste->actingAs($user);
+}
+
+function osProgramacoes(int $biz, int $ordemId)
+{
+    return Programacao::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $biz)
+        ->where('os_tipo', Ordem::OS_TIPO)->where('os_id', $ordemId)->orderBy('bloco')->orderBy('trilha')->orderBy('ordem')->get();
+}
+
+it('UC-PCROT-01 · o gestor liga o produto ao roteiro na tela, e a OS nasce com as etapas dele: ordem, posto e tempo previsto', function () {
+    $tx = osVenda($this, 'cv-pequena');
+    $gestor = $this->usuarioComPermissoes(['producao.access'], $this->B98);
+    // SUPERADMIN: fixture grava o posto na empresa do teste.
+    $posto = \Modules\Producao\Entities\Posto::withoutGlobalScopes()->create(['business_id' => $this->b98, 'codigo' => 'ROL-'.uniqid(),
+        'nome' => 'Roland', 'tipo_custo' => 'maquina', 'custo_hora' => '42.00']);
+    $nome = 'Adesivo '.uniqid();
+    osComo($this, $gestor)->post('/producao/roteiros', ['familia' => 'Adesivo', 'nome' => $nome, 'etapas' => [
+        ['nome' => 'Impressão', 'posto_id' => $posto->id, 'horas' => 1.5], ['nome' => 'Laminação', 'horas' => 0.5], ['nome' => 'Recorte', 'horas' => 1],
+    ]])->assertSessionHasNoErrors();
+    $roteiro = (int) DB::table('pcp_roteiros')->where('business_id', $this->b98)->where('nome', $nome)->value('id');
+
+    // O produto já estava no roteiro da Fachada (osVenda): ligar a este o tira de lá (1 roteiro por produto).
+    $this->put("/producao/roteiros/$roteiro/produtos", ['product_ids' => [$this->produtoComRoteiro]])->assertSessionHasNoErrors();
+    expect(DB::table('pcp_produto_roteiro')->where('business_id', $this->b98)->where('product_id', $this->produtoComRoteiro)->pluck('roteiro_id')->all())
+        ->toBe([$roteiro]);
+
+    app(ExecuteStageActionService::class)->execute($tx, 'avancar', $this->vendedor);
+    $ordem = osOrdens($this->b98, $tx->id)[0];
+    $prog = osProgramacoes($this->b98, (int) $ordem->id);
+
+    expect((int) $ordem->roteiro_id)->toBe($roteiro);
+    expect($prog->pluck('nome')->all())->toBe(['Impressão', 'Laminação', 'Recorte']);
+    expect((int) $prog[0]->posto_id)->toBe((int) $posto->id);
+    expect($prog[1]->posto_id)->toBeNull();
+    expect((int) $prog[0]->inicio_previsto->diffInMinutes($prog[0]->fim_previsto))->toBe(90);
+    expect((int) $prog[2]->inicio_previsto->diffInMinutes($prog[2]->fim_previsto))->toBe(60);
+    expect($prog[1]->inicio_previsto->equalTo($prog[0]->fim_previsto))->toBeTrue();
+});
+
+it('UC-PCROT-03 · editar o roteiro depois não muda a OS já criada', function () {
+    $tx = osVenda($this, 'cv-pequena');
+    app(ExecuteStageActionService::class)->execute($tx, 'avancar', $this->vendedor);
+    $ordem = osOrdens($this->b98, $tx->id)[0];
+    $antes = osProgramacoes($this->b98, (int) $ordem->id)->map(fn ($p) => [$p->nome, $p->posto_id, (string) $p->inicio_previsto, (string) $p->fim_previsto])->all();
+
+    $gestor = $this->usuarioComPermissoes(['producao.access'], $this->B98);
+    osComo($this, $gestor)->put('/producao/roteiros/'.$ordem->roteiro_id, ['familia' => 'Projeto', 'nome' => 'Fachada nova', 'etapas' => [
+        ['nome' => 'Só pintura', 'horas' => 9],
+    ]])->assertSessionHasNoErrors();
+
+    // Caso discriminante: a edição valeu no roteiro…
+    expect(DB::table('pcp_roteiro_etapas')->where('roteiro_id', $ordem->roteiro_id)->pluck('nome')->all())->toBe(['Só pintura']);
+    // …e a OS ficou com a cópia do dia da aprovação.
+    $depois = osProgramacoes($this->b98, (int) $ordem->id)->map(fn ($p) => [$p->nome, $p->posto_id, (string) $p->inicio_previsto, (string) $p->fim_previsto])->all();
+    expect($depois)->toBe($antes)->and(count($depois))->toBe(4);
+});
+
+it('UC-PCROT-04 · produto ou roteiro de outra empresa nunca entra na OS', function () {
+    $tx = osVenda($this, 'cv-pequena');
+    $gestor = $this->usuarioComPermissoes(['producao.access'], $this->B98);
+    $meu = (int) DB::table('pcp_produto_roteiro')->where('business_id', $this->b98)->where('product_id', $this->produtoComRoteiro)->value('roteiro_id');
+    $daOutra = osRoteiro($this->b99);
+    [$produto99] = osProduto($this->b99, (int) $this->vendedor->id, 'Produto da 99');
+
+    // A 98 não liga produto ao roteiro da 99, nem liga produto da 99 ao roteiro dela.
+    osComo($this, $gestor)->put("/producao/roteiros/$daOutra/produtos", ['product_ids' => [$this->produtoComRoteiro]])->assertNotFound();
+    $this->put("/producao/roteiros/$meu/produtos", ['product_ids' => [$produto99]])->assertSessionHasErrors('product_ids.0');
+    expect(DB::table('pcp_produto_roteiro')->where('product_id', $produto99)->count())->toBe(0);
+
+    // Um vínculo da 98 apontando o roteiro da 99 conta como produto sem roteiro: nenhuma OS.
+    DB::table('pcp_produto_roteiro')->where('business_id', $this->b98)->where('product_id', $this->produtoComRoteiro)->update(['roteiro_id' => $daOutra]);
+    app(ExecuteStageActionService::class)->execute($tx, 'avancar', $this->vendedor);
+    expect(osOrdens($this->b98, $tx->id))->toHaveCount(0);
+    expect(Programacao::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $this->b98)->where('os_tipo', Ordem::OS_TIPO)
+        ->whereIn('roteiro_etapa_id', DB::table('pcp_roteiro_etapas')->where('roteiro_id', $daOutra)->pluck('id'))->count())->toBe(0);
 });
