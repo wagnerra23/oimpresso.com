@@ -361,9 +361,9 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ### US-PCP-021 · A OS baixa o material apontado em cada etapa, pelo custo do lote que saiu (UC-FLX-37) — **P1**
 
-**Implementado em:** `Modules/Producao/Services/ConsumoMaterialService.php` · `Modules/Producao/Database/Migrations/2026_10_19_210000_create_pcp_consumos_table.php` · `Modules/Producao/Services/CustoRealService.php`
+**Implementado em:** `Modules/Producao/Services/ConsumoMaterialService.php` · `Modules/Producao/Database/Migrations/2026_10_19_210000_create_pcp_consumos_table.php` · `Modules/Producao/Services/CustoRealService.php` · `app/Domain/Fsm/Modelos/CatalogoModelos.php`
 
-**Testado em:** `Modules/Producao/Tests/Feature/ProducaoMaterialContratoTest.php` (lane `verticais-pest.yml`).
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoMaterialContratoTest.php` (lane `verticais-pest.yml`) · `tests/Feature/Domain/Fsm/FluxosTelaContratoTest.php` (UC-FLXT-20, UC-FLXT-21, lane `domain-pest.yml`).
 
 > owner: wagner · priority: p1 · estimate: 4h · type: story
 
@@ -380,6 +380,8 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [x] Só o responsável da etapa iniciada ou feita, com a OS Em execução ou Pausada; material de outra empresa e sem controle de estoque recusam (UC-PCMAT-05).
 - [x] Sem lote suficiente (empresa que não vende sem estoque) a baixa é recusada inteira (UC-PCMAT-06); empresa que vende sem estoque grava o que faltou em `quantidade_sem_lote`, sem custo.
 - [x] Endpoints na PWA (`POST /producao/apontamento/material`) e no app (`POST /api/app/producao/apontamentos/material`), sem o custo na resposta (UC-PCMAT-07).
+- [x] A regra "ao entrar → baixa o material" (UC-FLX-14) dos modelos de venda sem OS (Balcão enxuto, Brindes) não executa e grava o porquê; venda finalizada que entra na etapa não ganha 2ª baixa (UC-FLXT-20, UC-FLXT-21).
+- [ ] O que é "material consumido" numa venda sem OS (decisão [W]).
 - [ ] Campo de material na tela do operador (Non-Goal da tela até a thread 08).
 - [ ] Estorno de baixa apontada errada.
 
@@ -404,18 +406,22 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ### US-PCP-023 · Romaneio de impressão peça a peça (UC-FLX-12) — **P2**
 
-**Implementado em:** _pendente_
+**Implementado em:** `Modules/Producao/Services/RomaneioDeImpressao.php` · `Modules/Producao/Http/Controllers/RomaneioController.php` · `Modules/Producao/Database/Migrations/2026_10_20_000001_create_pcp_romaneios_tables.php`
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoRomaneioContratoTest.php` (lane `verticais-pest.yml`).
 
 > owner: wagner · priority: p2 · estimate: 3h · type: story
 
 **Origem:** UC-FLX-12 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:65`, referência Mubisys, situação `sem`). Na passagem Pré-impressão → Impressão não existe lista do que foi enviado ao setor de impressão e corte: `rg -i "romaneio"` em `Modules/Producao` e `Modules/ComunicacaoVisual` volta vazio (medido 2026-10-20). As dimensões por peça já existem no item do orçamento da CV (`Modules/ComunicacaoVisual/Entities/OrcamentoItem.php:14-31`, largura × altura × quantidade).
 
 **Aceite:**
-- [ ] Ao enviar um lote de OS para a etapa de impressão, o sistema gera o romaneio com uma linha por peça: OS, item, mídia/substrato, largura × altura, quantidade e acabamento previsto.
-- [ ] O romaneio fica gravado (número, data, quem gerou, etapa de destino) e pode ser reimpresso igual; peça já enviada em outro romaneio aberto é sinalizada.
+- [x] O PCP gera, para uma OS de comunicação visual e a etapa de destino dela, o romaneio com uma linha por peça do orçamento: item, mídia, largura × altura, quantidade e área (UC-PCROM-01). `POST /producao/os/{id}/romaneio` e `GET /producao/romaneios/{id}`, em JSON.
+- [ ] Gerar para um LOTE de OS de uma vez, e na própria passagem para a etapa de impressão (hoje é ação explícita por OS). Acabamento previsto: o item do orçamento não tem esse campo.
+- [x] O romaneio fica gravado (número `ROM-<OS>-vN`, data, quem gerou, posto de destino) e não muda; gerar de novo cria a versão seguinte, e a peça que já saiu numa versão anterior é sinalizada (UC-PCROM-02).
 - [ ] O operador de impressão/corte marca cada peça como impressa/cortada a partir do romaneio, e a marcação aparece na OS.
-- [ ] Gerar romaneio exige `producao.liberar`; marcar peça exige ser o responsável da etapa; sem isso, 403.
-- [ ] Multi-tenant: romaneio e linhas com `business_id`; romaneio ou OS de outra empresa → 404; Pest com dois tenants.
+- [x] Gerar romaneio exige o papel `producao.liberar`; ler exige `producao.access`; sem isso, 403 (UC-PCROM-03). Marcar peça (responsável da etapa) segue com a marcação.
+- [x] Multi-tenant: romaneio e linhas com `business_id`; romaneio, OS ou etapa de outra empresa → 404; Pest com os tenants 98 e 99 (UC-PCROM-04).
+- [ ] Mostrar o romaneio na tela (impressão do romaneio em PDF).
 
 ### US-PCP-024 · Simulador de aproveitamento de mídia na bobina (UC-FLX-13) — **P2**
 
@@ -435,21 +441,46 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ### US-PCP-025 · Produção só libera com o sinal pago (UC-FLX-28) — **P2**
 
-**Implementado em:** _pendente_
+**Implementado em:** `Modules/Producao/Services/SinalDaOrdem.php` · `Modules/Producao/Services/SituacaoDaOrdem.php` · `Modules/Producao/Providers/ProducaoServiceProvider.php` · `database/migrations/2026_10_20_120000_add_sinal_minimo_to_fsm_modelos_empresa.php`
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoSinalPagoLiberaContratoTest.php` (lane `verticais-pest.yml`) · casos `Apontamento/Index.casos.md` UC-PCLIB-04..07.
 
 > owner: wagner · priority: p2 · estimate: 6h · type: story
 > blocked_by: parcelas de sinal e saldo na aprovação do orçamento (Vendas/Financeiro) · retorno do banco que baixa o título (PaymentGateway)
 
 **Origem:** UC-FLX-28 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:80`, situação `verificar`; medido **parcial** em 2026-10-20). Existe: o estado inicial `aguardando_liberacao` (`Modules/Producao/Services/ProcessoDaOrdem.php:27`) e a transição `liberar` → `na_fila` só com `producao.liberar` (`:45`); `SituacaoDaOrdem::liberar()` confere apenas os responsáveis das etapas (`Modules/Producao/Services/SituacaoDaOrdem.php:131-158`). Falta: aprovar o orçamento não gera parcelas de sinal e saldo (`app/Domain/Fsm/Modelos/CatalogoProcessos.php:74`); o webhook de boleto Inter/C6/Asaas só grava o evento e não libera produção (`CatalogoProcessos.php:105`); não há vínculo título do sinal ↔ OS, nem guarda no `liberar`, nem listener que libere sozinho. A US fica na Produção porque a liberação da OS é dela; gerar as parcelas é do Financeiro/Vendas e baixar pelo retorno do banco é do PaymentGateway.
 
-**Aceite:**
-- [ ] A empresa configura se a produção exige sinal; desligado, o `liberar` segue como hoje (só responsáveis).
-- [ ] Com a regra ligada, a OS gerada da venda aprovada fica vinculada ao título do sinal, e `liberar` recusa com motivo enquanto o título não estiver quitado, inclusive para quem tem `producao.liberar`.
-- [ ] Quitado o título do sinal (baixa manual ou retorno do banco), um listener executa `liberar` pela FSM com ator sistema, registrado no histórico da OS; OS com etapa sem responsável fica em `aguardando_liberacao` com a pendência visível.
-- [ ] Idempotente: retorno do banco repetido não executa a transição duas vezes; OS cancelada não é liberada.
-- [ ] Multi-tenant: o listener recebe o `business_id` no evento e só toca OS e título da mesma empresa; `liberar` em OS de outra empresa → 404; Pest com dois tenants.
+**Entrega 1 (2026-10-20):** o sinal é um percentual mínimo do `final_total` da venda de origem, pago em `transaction_payments` da mesma empresa (troco descontado), gravado em `fsm_modelos_empresa.sinal_minimo_pct` (nulo = desligado, padrão). A conta é feita em DECIMAL no MySQL; nada de valor é gravado. A liberação automática é a ação FSM `liberar_pelo_sinal` (sem papel: só o sistema a chama), disparada no `TransactionPayment::saved`. Sem parcela de sinal separada ainda.
 
-**Total US: 25** · **Estimate agregado:** ~98h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
+**Aceite:**
+- [x] A empresa configura se a produção exige sinal (percentual mínimo; `RegrasDaEmpresa::mudarSinalMinimo`); desligado, o `liberar` segue como hoje (só responsáveis) — UC-PCLIB-04.
+- [x] Com a regra ligada, `liberar` recusa com motivo (`sinal_pendente`, pago × exigido) enquanto o pago da venda da OS não alcançar o mínimo, inclusive para quem tem `producao.liberar` — UC-PCLIB-05/06.
+- [ ] A OS gerada da venda aprovada fica vinculada ao título do sinal (parcela de sinal e saldo na aprovação — Vendas/Financeiro).
+- [x] Pagamento gravado na venda executa a liberação pela FSM com ator sistema, registrada no histórico da OS; OS com etapa sem responsável fica em `aguardando_liberacao` — UC-PCLIB-07.
+- [ ] Retorno do banco cria o pagamento da venda (hoje o webhook de boleto só grava o evento — PaymentGateway); campo do sinal mínimo na aba Fluxos da empresa.
+- [x] Idempotente: pagamento repetido não executa a transição duas vezes (só age em `aguardando_liberacao`, com trava); OS cancelada não é liberada — UC-PCLIB-07.
+- [x] Multi-tenant: o listener usa o `business_id` do próprio pagamento e só toca OS e venda da mesma empresa; `liberar` em OS de outra empresa → não encontrada (404); Pest 98 × 99 — UC-PCLIB-07.
+
+**Total US: 26** · **Estimate agregado:** ~98h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
+
+### US-PCP-026 · Etapas da OS vêm do roteiro do produto (UC-FLX-07) — **P1**
+
+**Implementado em:** _pendente_ — entrega 1 em `Modules/Producao/Services/CriarOsDaVenda.php` (OS por item copia as etapas do roteiro ligado ao produto) e `Modules/Producao/Http/Controllers/RoteirosController.php` (`PUT /producao/roteiros/{id}/produtos`); falta o seletor de produtos na tela de Roteiros.
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoCriarOsDaVendaContratoTest.php` (lane `verticais-pest.yml`) · casos `Roteiros/Index.casos.md` UC-PCROT-01..04.
+
+> owner: wagner · priority: p1 · estimate: 3h · status: doing · type: story
+
+**Origem:** UC-FLX-07 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:60`, referência shopVOX, situação `planejado`) e a regra *"Aprovado → Cria a OP com o roteiro do produto"* dos modelos CV (`app/Domain/Fsm/Modelos/CatalogoModelos.php:156`). Medido em 2026-10-20: a criação já existia (ADR 0436 — `CriarOsDaVenda` lê `pcp_produto_roteiro` e grava uma programação por etapa), mas nenhum código gravava o vínculo produto → roteiro (só os testes), e o vínculo não conferia se o roteiro era da mesma empresa.
+
+**Aceite:**
+- [x] Ao aprovar a venda, a OS por item do produto ligado a um roteiro nasce com uma programação por etapa, na ordem bloco/trilha, com o posto e o tempo previsto (horas) da etapa; a etapa opcional fica de fora (UC-PCROT-01, UC-FLX-07).
+- [x] Produto sem roteiro não gera OS — o comportamento de antes, sem roteiro padrão da empresa (UC-PCROT-02).
+- [x] As programações são cópia do roteiro no dia da aprovação: editar o roteiro depois não muda a OS já criada (UC-PCROT-03).
+- [x] O gestor (`producao.access`) liga produtos ao roteiro por `PUT /producao/roteiros/{id}/produtos`; um produto fica em um roteiro só, e o vínculo vem no payload da tela (`produto_ids`).
+- [x] Multi-tenant: roteiro de outra empresa → 404; produto de outra empresa é recusado; vínculo apontando roteiro de outra empresa conta como produto sem roteiro (UC-PCROT-04).
+- [ ] Seletor de produtos na tela de Roteiros (`Roteiros/Index.tsx`, com charter e gate visual).
+- [ ] Roteiro padrão da empresa para produto sem roteiro (decisão [W]: hoje produto sem roteiro não vira OS).
 
 ## §8 — Regras Gherkin (R-PCP-001..010) — resumo
 
