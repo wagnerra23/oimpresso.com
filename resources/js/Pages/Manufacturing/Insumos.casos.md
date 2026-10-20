@@ -5,9 +5,15 @@ tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §4.4 + §18.3 — os UC abaixo DERIVAM dele
 owner: wagner
-last_run: "2026-10-06"
+last_run: "2026-10-19"
 ---
 
+> ℹ️ **`last_run` 2026-10-06 → 2026-10-19 (G-6): forma da gaveta, não regra de negócio.** A gaveta passou a
+> usar a moldura do protótipo (`_components/Gaveta.tsx`): seções em cartão, rodapé com "Fechar", margem no
+> `StatusBadge`. Simulação, receitas afetadas e números são os mesmos. Comportamento: o `Esc` deixou de disparar
+> duas visitas (o listener da página saiu; fecha pelo `Sheet` — teste em `tests/js/manufacturing-gaveta.test.tsx`).
+> Medição em `Insumos-visual-comparison.md` (2026-10-19).
+>
 > ℹ️ **`last_run` 2026-10-04 → 2026-10-06 (G-6): forma, não regra de negócio.** A busca passa a ser a mesma da aba
 > Receitas (`.mfg-s`: lupa, 34px, canto 8) — antes era um `Input` simples de 30px sem lupa ([M] 2026-10-06, abas
 > irmãs com a mesma peça diferente). O que a busca filtra e o que cada linha abre não mudaram. Nenhum UC foi

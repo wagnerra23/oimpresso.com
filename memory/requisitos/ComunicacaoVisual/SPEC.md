@@ -226,17 +226,21 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 ### US-COMVIS-007 · Gestão de fachada/instalação (agenda + equipe + EPI) — **P1**
 
 > **Área:** Servicos
-> **Rota:** `GET/POST /comvis/instalacao`
-> **Controller/ação:** `InstalacaoController`
+> **Rota:** `GET /comunicacao-visual/api/instalacoes` · `POST /comunicacao-visual/api/os/{os}/instalacao`
+> **Controller/ação:** `InstalacaoController@index` · `InstalacaoController@agendar`
 
-**Implementado em:** _pendente_ — migration `cv_instalacoes` + Entity `Instalacao` existem, mas InstalacaoController + agenda/checklist/UI não construídos
+**Implementado em:** _parcial_ — agenda de equipe e veículo com bloqueio sem janela (UC-FLX-21): `Modules/ComunicacaoVisual/Services/AgendaInstalacao.php`, `Modules/ComunicacaoVisual/Http/Controllers/InstalacaoController.php`, `Modules/ComunicacaoVisual/Database/Migrations/2026_10_20_300000_add_agenda_to_cv_instalacoes.php`, `Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAgendaContratoTest.php`. Falta: tela da agenda (calendário), checklist de ferramentas/EPI, endereço/foto, comprovante e comissão.
+
+**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAgendaContratoTest.php` (lane `verticais-pest.yml`).
 
 **Como** coordenador de instalação
 **Quero** agendar equipe (instalador, ajudante, motorista) + ferramentas (escada, andaime, parafusadeira) + EPI + endereço cliente
 **Para** não chegar no cliente sem furadeira ou sem 2ª pessoa pra fachada de 6m
 
 **DoD:**
-- [ ] Agenda calendário (semanal) — drag-drop instalação na slot
+- [x] Agenda equipe (users da empresa) e veículo (placa/apelido) na OS da CV, e lista a agenda de uma janela de até 92 dias — UC-FLX-21 · UC-CVINST-01
+- [x] Bloqueia sem janela: sobreposição com instalação agendada/em execução que use alguém da equipe ou o mesmo veículo → 422 dizendo com quem e quando; encostado passa; outra empresa nunca conflita — UC-CVINST-02..06
+- [ ] Agenda calendário (semanal) — drag-drop instalação na slot (tela: follow-up; hoje só API)
 - [ ] Checklist ferramentas + EPI (NR-35 trabalho em altura — relevante)
 - [ ] Endereço integrado Google Maps + foto da fachada (cliente sobe pré-vistoria)
 - [ ] Comprovante instalação: foto + assinatura digital + GPS coords (LGPD: consent)

@@ -61,7 +61,7 @@ export function ProdutoFormulario({
       {modo === 'novo' && opcoes.businessLocations && (
         <BlocoLocais data={data} definir={definir} locais={opcoes.businessLocations} />
       )}
-      <BlocoPrecoImposto data={data} definir={definir} errors={errors} opcoes={opcoes} preco={preco} />
+      <BlocoPrecoImposto modo={modo} data={data} definir={definir} errors={errors} opcoes={opcoes} preco={preco} />
       <BlocoEstoque modo={modo} data={data} definir={definir} opcoes={opcoes} />
       <BlocoMaisOpcoes
         data={data}
