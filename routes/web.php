@@ -1219,6 +1219,13 @@ Route::middleware(['auth'])->group(function () {
     )->middleware(['setData', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
         ->name('documentacao.programa');
 
+    // Casos de uso do catálogo de fluxos (UC-FLX-NN), derivados de CasosDoPrototipo em runtime.
+    // Antes de /{slug} pelo mesmo motivo de /programa.
+    Route::get('/documentacao/casos-de-uso',
+        [\App\Http\Controllers\DocumentacaoController::class, 'casos']
+    )->middleware(['setData', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+        ->name('documentacao.casos');
+
     // Documento do acervo. Declarada DEPOIS de /buscar e /programa — sem essa ordem,
     // ambas casariam aqui primeiro e virariam 404 de "documento não encontrado".
     //

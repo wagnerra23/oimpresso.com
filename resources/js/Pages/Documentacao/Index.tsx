@@ -36,9 +36,14 @@ export default function Index({ html, sumario, fonte, blob, atualizadoEm, buscaD
             title="Documentação do sistema"
             subtitle="A página é o documento renderizado a cada acesso — não uma cópia dele."
             actions={
-              <Button asChild variant="outline" size="sm">
-                <a href={blob} target="_blank" rel="noopener noreferrer">Ver fonte no git</a>
-              </Button>
+              <div className="flex gap-2">
+                <Button asChild variant="outline" size="sm">
+                  <a href="/documentacao/casos-de-uso">Casos de uso</a>
+                </Button>
+                <Button asChild variant="outline" size="sm">
+                  <a href={blob} target="_blank" rel="noopener noreferrer">Ver fonte no git</a>
+                </Button>
+              </div>
             }
             below={<div data-contract="doc-lentebar"><LenteBar nav={nav} path="/documentacao" /></div>}
           />

@@ -21,7 +21,7 @@
 use App\User;
 
 it('exige login nas tres rotas de documentacao', function () {
-    foreach (['/documentacao', '/documentacao/buscar', '/documentacao/programa', '/documentacao/qualquer-slug'] as $rota) {
+    foreach (['/documentacao', '/documentacao/buscar', '/documentacao/programa', '/documentacao/casos-de-uso', '/documentacao/qualquer-slug'] as $rota) {
         $r = $this->get($rota);
         expect($r->getStatusCode())->toBe(302, "rota {$rota} deveria redirecionar pro login");
         expect($r->headers->get('Location'))->toContain('login');
@@ -757,4 +757,51 @@ it('UC-PROGRA-06 · o payload não carrega tenant nem segredo', function () {
     // O estado leva só id e balde da task — nada de dono, descrição ou tenant.
     $e = programaEstado([['id' => 'US-X-1', 'status' => 'doing', 'onda' => 'D0']], [['codigo' => 'D0', 'nome' => 'a']]);
     expect(array_keys($e['ondas']['D0']['tasks'][0]))->toBe(['id', 'balde']);
+});
+
+it('UC-CASOS-01 · a tela de casos de uso entrega TODOS os casos do catálogo, lidos de CasosDoPrototipo', function () {
+    ['component' => $componente, 'props' => $p] = docInertiaProps(
+        (new App\Http\Controllers\DocumentacaoController)
+            ->casos(Illuminate\Http\Request::create('/documentacao/casos-de-uso'))
+    );
+
+    $catalogo = App\Domain\Fsm\Modelos\CasosDoPrototipo::CASOS;
+
+    expect($componente)->toBe('Documentacao/CasosDeUso');
+    expect($catalogo)->not->toBeEmpty();
+    // A contagem vem da mesma constante: caso novo no catálogo aparece sem tocar PHP nem TSX.
+    expect($p['casos'])->toHaveCount(count($catalogo));
+    expect(array_column($p['casos'], 'id'))->toBe(array_column($catalogo, 0));
+    expect($p['atual'])->toBeNull();
+});
+
+it('UC-CASOS-02 · o estado de cada caso é o rótulo de CasosDoPrototipo::ESTADOS, não texto escrito à mão', function () {
+    ['props' => $p] = docInertiaProps(
+        (new App\Http\Controllers\DocumentacaoController)
+            ->casos(Illuminate\Http\Request::create('/documentacao/casos-de-uso'))
+    );
+
+    foreach ($p['casos'] as $caso) {
+        $esperado = App\Domain\Fsm\Modelos\CasosDoPrototipo::ESTADOS[$caso['estado']][0] ?? $caso['estado'];
+        expect($caso['estadoRotulo'])->toBe($esperado, "{$caso['id']} com rótulo divergente do catálogo");
+    }
+});
+
+it('UC-CASOS-03 · a tela NAO carrega id, título nem estado de caso escritos à mão', function () {
+    // Bite-test: colar qualquer título do catálogo no TSX quebra este caso.
+    $tsx = file_get_contents(base_path('resources/js/Pages/Documentacao/CasosDeUso.tsx'));
+
+    foreach (App\Domain\Fsm\Modelos\CasosDoPrototipo::CASOS as $caso) {
+        expect($tsx)->not->toContain($caso[0]);   // UC-FLX-NN
+        expect($tsx)->not->toContain($caso[1]);   // título
+    }
+});
+
+it('/documentacao/casos-de-uso resolve pra casos, nao pra documento de slug "casos-de-uso"', function () {
+    $rota = app('router')->getRoutes()->match(
+        Illuminate\Http\Request::create('/documentacao/casos-de-uso', 'GET')
+    );
+
+    expect($rota->getName())->toBe('documentacao.casos');
+    expect($rota->getActionMethod())->toBe('casos');
 });
