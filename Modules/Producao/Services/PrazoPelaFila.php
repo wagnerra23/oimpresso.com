@@ -11,7 +11,7 @@ use Modules\Producao\Entities\Ordem;
 
 /**
  * Prazo de entrega calculado pela fila (UC-FLX-06 · US-PCP-028). Só leitura: não grava data na
- * venda nem mexe nas programações.
+ * venda nem mexe nas programações — quem grava, na aprovação, é o `PrometerPrazoDaVenda`.
  *
  * Para cada linha da venda (ou orçamento) cujo produto tem roteiro (`pcp_produto_roteiro`), as
  * etapas não opcionais entram em sequência por bloco; as trilhas de um bloco começam juntas e o
@@ -24,7 +24,9 @@ use Modules\Producao\Entities\Ordem;
  *
  * Tempo em dias de produção: horas da etapa ÷ `pcp_postos.horas_por_dia`. Posto sem horas por dia
  * (zero ou vazio) e etapa sem posto usam HORAS_DIA_PADRAO, e isso vem nas `premissas` da resposta.
- * A data é hoje + os dias arredondados para cima, em dias corridos (sem descontar fim de semana).
+ * Cada dia de produção vale um dia útil da empresa: a entrega é agora + dias × horas do turno,
+ * contadas só dentro do turno, pulando folgas e feriados cadastrados (decisão [W] 2026-10-20 —
+ * período de funcionamento da empresa, `CalendarioDeProducao`; feriados da loja da venda também).
  *
  * Tier 0: toda consulta filtra pelo `$businessId` recebido; venda de outra empresa → null (404).
  */
@@ -32,11 +34,13 @@ final class PrazoPelaFila
 {
     public const HORAS_DIA_PADRAO = 8.0;
 
+    public function __construct(private readonly CalendarioDeProducao $calendario) {}
+
     /** @return array<string, mixed>|null null quando a venda não é desta empresa (o controller responde 404) */
     public function daVenda(int $businessId, int $transactionId): ?array
     {
         $venda = DB::table('transactions')->where('business_id', $businessId)->where('id', $transactionId)
-            ->where('type', 'sell')->first(['id']);
+            ->where('type', 'sell')->first(['id', 'location_id']);
         if (! $venda) {
             return null;
         }
@@ -51,7 +55,10 @@ final class PrazoPelaFila
         $postos = DB::table('pcp_postos')->where('business_id', $businessId)
             ->whereIn('id', $etapas->flatten(1)->pluck('posto_id')->filter()->unique())->get(['id', 'nome', 'horas_por_dia'])->keyBy('id');
 
-        $premissas = ['Dias corridos a partir de hoje, sem descontar fim de semana nem feriado.',
+        $agora = Carbon::now();
+        $calendario = $this->calendario->regras($businessId, $venda->location_id !== null ? (int) $venda->location_id : null, $agora);
+        $turno = $this->calendario->horasDoTurno($calendario);
+        $premissas = [...$calendario['premissas'], sprintf('Cada dia de produção do posto vale um dia útil (%s h de turno).', self::fmt($turno)),
             'Etapa já iniciada na fila conta inteira (o apontado não é descontado).'];
         $horasDia = [];
         foreach ($postos as $p) {
@@ -108,11 +115,13 @@ final class PrazoPelaFila
         }
 
         $dias = $itens === [] ? null : max(array_column($itens, 'fim_dias'));
+        $entrega = $dias === null ? null : $this->calendario->somarHoras($calendario, $agora, round($dias, 4) * $turno);
 
         return [
             'transaction_id' => $transactionId,
             'dias' => $dias,
-            'data_prevista' => $dias === null ? null : Carbon::today()->addDays((int) ceil(round($dias, 4)))->toDateString(),
+            'data_prevista' => $entrega?->toDateString(),
+            'entrega_prevista' => $entrega?->format('Y-m-d H:i'),
             'fila_horas' => array_map(fn ($h) => round($h, 4), $filaHoras),
             'itens' => $itens,
             'sem_roteiro' => $semRoteiro,

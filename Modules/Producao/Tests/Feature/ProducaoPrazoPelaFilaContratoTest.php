@@ -2,15 +2,22 @@
 // @covers-us US-PCP-028
 
 declare(strict_types=1);
-// Cobre UC-PCPRZ-01..04 (Postos/Index.casos.md · US-PCP-028 · UC-FLX-06 — prazo de entrega pela fila).
+// Cobre UC-PCPRZ-01..08 (Postos/Index.casos.md · US-PCP-028 · UC-FLX-06 — prazo de entrega pela fila,
+// em dias úteis pelo período de funcionamento cadastrado no RH, e a data prometida gravada na
+// aprovação — decisão [W] 2026-10-20).
 
+use App\Contracts\Rh\CalendarioDaEmpresa;
 use App\Transaction;
 use App\Utils\ModuleUtil;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\Producao\Jobs\CriarOsDaVendaJob;
+use Modules\Producao\Services\CalendarioDeProducao;
+use Modules\Producao\Services\CriarOsDaVenda;
 use Modules\Producao\Services\PrazoPelaFila;
+use Modules\Producao\Services\PrometerPrazoDaVenda;
 
 uses(Tests\TestCase::class, DatabaseTransactions::class);
 
@@ -33,6 +40,14 @@ beforeEach(function () {
     $this->b99 = (int) $this->seededSupportClientTenant()->id;
     $this->vendedor = $this->usuarioComPermissoes(['sell.view'], $this->B98);
     $u = (int) $this->vendedor->id;
+
+    // Calendário conhecido: as datas esperadas são contadas à mão sobre 08h–18h, sábado e domingo de
+    // folga e nenhum feriado. Limpa o que o seed tiver no RH e no turno das duas empresas (rollback no fim).
+    foreach (['essentials_holidays', 'essentials_shifts', 'pcp_turnos'] as $tabela) {
+        if (Schema::hasTable($tabela)) {
+            DB::table($tabela)->whereIn('business_id', [$this->b98, $this->b99])->delete();
+        }
+    }
 
     // Postos novos: a fila só tem o que o teste põe neles.
     $posto = fn (string $nome, float $horasDia) => (int) DB::table('pcp_postos')->insertGetId(['business_id' => $this->b98,
@@ -133,9 +148,11 @@ it('UC-PCPRZ-01 · uma linha: a data soma a fila de cada posto e as etapas do ro
     expect([$et['Acabamento']['inicio_dias'], $et['Acabamento']['fim_dias']])->toEqual([2.5, 2.7]);
     // O bloco termina com a trilha mais longa (3,5); Conferência sem posto: 3,5 + 4/8 = 4,0.
     expect([$et['Conferência']['inicio_dias'], $et['Conferência']['fim_dias']])->toEqual([3.5, 4.0]);
-    expect($p['dias'])->toEqual(4.0)->and($p['data_prevista'])->toBe('2026-10-24');
+    // 4,0 dias × 10 h do turno (08h–18h) = 40 h úteis a partir de ter 20/10 09:00: ter 9 h (→31), qua 10 (→21),
+    // qui 10 (→11), sex 10 (→1), sáb e dom pulam, seg 26/10 08:00 + 1 h = 09:00.
+    expect($p['dias'])->toEqual(4.0)->and($p['data_prevista'])->toBe('2026-10-26')->and($p['entrega_prevista'])->toBe('2026-10-26 09:00');
     expect(implode(' | ', $p['premissas']))->toContain('Posto Corte sem horas por dia: considerado 8 h')
-        ->toContain('Etapa sem posto');
+        ->toContain('Etapa sem posto')->toContain('Sem turno da produção nem expediente no RH: considerado 08:00–18:00');
 });
 
 it('UC-PCPRZ-02 · duas linhas disputam os mesmos postos; linha sem roteiro não entra no prazo', function () {
@@ -151,7 +168,8 @@ it('UC-PCPRZ-02 · duas linhas disputam os mesmos postos; linha sem roteiro não
     expect([$et['Corte']['inicio_dias'], $et['Corte']['fim_dias']])->toEqual([3.5, 4.5]);
     expect([$et['Acabamento']['inicio_dias'], $et['Acabamento']['fim_dias']])->toEqual([3.0, 3.2]);
     expect($p['itens'][1]['fim_dias'])->toEqual(5.0);
-    expect($p['dias'])->toEqual(5.0)->and($p['data_prevista'])->toBe('2026-10-25');
+    // 50 h úteis: ter 9 (→41), qua (→31), qui (→21), sex (→11), seg 26 (→1), ter 27/10 08:00 + 1 h = 09:00.
+    expect($p['dias'])->toEqual(5.0)->and($p['data_prevista'])->toBe('2026-10-27')->and($p['entrega_prevista'])->toBe('2026-10-27 09:00');
 });
 
 it('UC-PCPRZ-03 · venda já aprovada não entra na fila de si mesma, e o cálculo não grava nada', function () {
@@ -176,8 +194,8 @@ it('UC-PCPRZ-04 · quem vende ou quem produz consulta; sem permissão 403; venda
     $outro = $this->usuarioComPermissoes(['product.view'], $this->B98);
 
     $this->actingAs($this->vendedor)->getJson("/producao/vendas/{$tx}/prazo")->assertOk()
-        ->assertJsonPath('data_prevista', '2026-10-24')->assertJsonPath('transaction_id', $tx);
-    $this->actingAs($operador)->getJson("/producao/vendas/{$tx}/prazo")->assertOk()->assertJsonPath('data_prevista', '2026-10-24');
+        ->assertJsonPath('data_prevista', '2026-10-26')->assertJsonPath('transaction_id', $tx);
+    $this->actingAs($operador)->getJson("/producao/vendas/{$tx}/prazo")->assertOk()->assertJsonPath('data_prevista', '2026-10-26');
     $this->actingAs($outro)->getJson("/producao/vendas/{$tx}/prazo")->assertForbidden();
 
     // Venda da 99 (com o produto e o roteiro da 98): só o filtro da venda por empresa barra.
@@ -188,4 +206,108 @@ it('UC-PCPRZ-04 · quem vende ou quem produz consulta; sem permissão 403; venda
     // Sem o módulo no pacote, nem quem vende consulta.
     przModulo($this, false);
     $this->actingAs($this->vendedor)->getJson("/producao/vendas/{$tx}/prazo")->assertForbidden();
+});
+
+/** Feriado no RH (Essentials) — `$loja` nulo = da empresa toda. */
+function przFeriado(int $biz, string $de, ?string $ate = null, ?int $loja = null): void
+{
+    DB::table('essentials_holidays')->insert(['name' => 'Feriado PRZ', 'start_date' => $de, 'end_date' => $ate ?? $de, 'business_id' => $biz,
+        'location_id' => $loja, 'created_at' => now(), 'updated_at' => now()]);
+}
+
+function przEm(int $biz, ?int $loja, string $inicio, float $horas): string
+{
+    $cal = app(CalendarioDeProducao::class);
+
+    return $cal->somarHoras($cal->regras($biz, $loja, Carbon::parse($inicio)), Carbon::parse($inicio), $horas)->format('Y-m-d H:i');
+}
+
+it('UC-PCPRZ-05 · sem nada cadastrado: 08h–18h, folga no sábado e no domingo, e as horas contam só no turno', function () {
+    // Sex 30/10 16:00 + 6 h: sex 16→18 (2 h, faltam 4), sáb 31 e dom 01/11 pulam, seg 02/11 08:00 + 4 h = 12:00.
+    // Nada no código sabe que 02/11 é Finados: feriado é o que a empresa cadastra no RH (UC-PCPRZ-06).
+    expect(przEm($this->b98, null, '2026-10-30 16:00', 6))->toBe('2026-11-02 12:00');
+    // Antes da abertura começa às 08:00; depois do fechamento, no dia útil seguinte; fechar às 18:00 fica no dia.
+    expect(przEm($this->b98, null, '2026-10-26 06:00', 3))->toBe('2026-10-26 11:00');
+    expect(przEm($this->b98, null, '2026-10-20 19:30', 1))->toBe('2026-10-21 09:00');
+    expect(przEm($this->b98, null, '2026-10-20 09:00', 9))->toBe('2026-10-20 18:00');
+    expect(implode(' | ', app(CalendarioDeProducao::class)->regras($this->b98, null, now())['premissas']))
+        ->toContain('Sem expediente no RH: folga no sábado e no domingo');
+});
+
+it('UC-PCPRZ-06 · feriados do RH: o da empresa e o da loja da venda param; o de outra loja e o de outra empresa não', function () {
+    if (! app()->bound(CalendarioDaEmpresa::class)) {
+        $this->markTestSkipped('Essentials desligado: o contrato do RH não está ligado.');
+    }
+    $loja = (int) DB::table('business_locations')->where('business_id', $this->b98)->value('id');
+    if ($loja === 0) {
+        $this->markTestSkipped('Tenant 98 sem loja no seed.');
+    }
+    przFeriado($this->b98, '2026-11-02');                         // empresa toda
+    przFeriado($this->b98, '2026-11-03', null, $loja);            // só a loja da venda
+    przFeriado($this->b98, '2026-11-04', null, $loja + 1000000);  // outra loja
+    przFeriado($this->b99, '2026-11-04', '2026-11-06');           // outra empresa, 3 dias
+
+    // Na loja: sex 16→18 (2 h), sáb, dom, seg 02 (empresa) e ter 03 (loja) pulam; qua 04/11 08:00 + 4 h = 12:00.
+    expect(przEm($this->b98, $loja, '2026-10-30 16:00', 6))->toBe('2026-11-04 12:00');
+    // Sem loja só vale o da empresa: ter 03/11 08:00 + 4 h = 12:00.
+    expect(przEm($this->b98, null, '2026-10-30 16:00', 6))->toBe('2026-11-03 12:00');
+    // Na 99 os feriados da 98 não valem: seg 02/11 08:00 + 4 h = 12:00; os dela vêm dia a dia.
+    expect(przEm($this->b99, null, '2026-10-30 16:00', 6))->toBe('2026-11-02 12:00');
+    expect(app(CalendarioDaEmpresa::class)->diasNaoUteis($this->b99, null, Carbon::parse('2026-11-01'), Carbon::parse('2026-11-30')))
+        ->toBe(['2026-11-04', '2026-11-05', '2026-11-06']);
+
+    // A venda leva a loja dela para o prazo: 4,0 dias (40 h) desde ter 20/10 09:00 dariam seg 26/10 09:00
+    // (UC-PCPRZ-01); com feriado da loja na seg 26/10, ter 27/10 09:00.
+    przFeriado($this->b98, '2026-10-26', null, $loja);
+    $tx = przVenda($this, $this->b98, 1);
+    DB::table('transactions')->where('id', $tx)->update(['location_id' => $loja]);
+    expect(app(PrazoPelaFila::class)->daVenda($this->b98, $tx)['entrega_prevista'])->toBe('2026-10-27 09:00');
+});
+
+it('UC-PCPRZ-07 · hora útil: turno da produção, senão expediente do RH; folgas do expediente', function () {
+    if (! app()->bound(CalendarioDaEmpresa::class)) {
+        $this->markTestSkipped('Essentials desligado: o contrato do RH não está ligado.');
+    }
+    $turno = fn (string $nome, string $tipo, ?string $ini, ?string $fim, array $folgas) => DB::table('essentials_shifts')->insert(['name' => $nome,
+        'type' => $tipo, 'business_id' => $this->b98, 'start_time' => $ini, 'end_time' => $fim, 'holidays' => json_encode($folgas),
+        'created_at' => now(), 'updated_at' => now()]);
+    $turno('Flexível', 'flexible_shift', null, null, ['saturday']);   // sem horário: não conta
+    $turno('Comercial', 'fixed_shift', '07:00:00', '12:00:00', ['sunday']);
+
+    // Expediente 07h–12h (5 h), folga só no domingo: sex 16:00 já fechou; sáb 31/10 07→12 (5 h, falta 1);
+    // dom folga; seg 02/11 07:00 + 1 h = 08:00.
+    $cal = app(CalendarioDeProducao::class);
+    expect(przEm($this->b98, null, '2026-10-30 16:00', 6))->toBe('2026-11-02 08:00');
+    expect($cal->horasDoTurno($cal->regras($this->b98, null, now())))->toEqual(5.0);
+
+    // O turno da produção manda na hora (08h–18h); as folgas seguem as do expediente: sex 16→18 (2 h, faltam 4),
+    // sáb 31/10 08:00 + 4 h = 12:00.
+    DB::table('pcp_turnos')->insert(['business_id' => $this->b98, 'inicio' => '08:00:00', 'fim' => '18:00:00', 'created_at' => now(), 'updated_at' => now()]);
+    expect(przEm($this->b98, null, '2026-10-30 16:00', 6))->toBe('2026-10-31 12:00');
+    // A outra empresa não vê o expediente da 98: sábado e domingo de folga → seg 02/11 12:00.
+    expect(przEm($this->b99, null, '2026-10-30 16:00', 6))->toBe('2026-11-02 12:00');
+});
+
+it('UC-PCPRZ-08 · na aprovação a estimativa vai para a venda sem data e para a OS; data digitada fica', function () {
+    // Sem data: a aprovação (job das OS) grava 26/10 na venda e copia na OS criada.
+    $tx = przVenda($this, $this->b98, 1);
+    (new CriarOsDaVendaJob($this->b98, $tx))->handle(app(CriarOsDaVenda::class), app(PrometerPrazoDaVenda::class));
+    expect(substr((string) DB::table('transactions')->where('id', $tx)->value('due_date'), 0, 10))->toBe('2026-10-26');
+    $prazos = DB::table('pcp_ordens')->where('business_id', $this->b98)->where('transaction_id', $tx)->pluck('prazo_prometido');
+    expect($prazos)->toHaveCount(1)->and(substr((string) $prazos[0], 0, 10))->toBe('2026-10-26');
+
+    // Com data digitada pelo vendedor: não sobrescreve; a OS recebe a data dele.
+    $comData = przVenda($this, $this->b98, 1);
+    DB::table('transactions')->where('id', $comData)->update(['due_date' => '2026-11-30']);
+    $linha = (int) DB::table('transaction_sell_lines')->where('transaction_id', $comData)->value('id');
+    DB::table('pcp_ordens')->insert(['business_id' => $this->b98, 'transaction_id' => $comData, 'transaction_sell_line_id' => $linha,
+        'product_id' => $this->produto, 'quantidade' => 1, 'roteiro_id' => $this->roteiro, 'created_at' => now(), 'updated_at' => now()]);
+    expect(app(PrometerPrazoDaVenda::class)->gravar($this->b98, $comData))->toBe('2026-11-30');
+    expect(substr((string) DB::table('transactions')->where('id', $comData)->value('due_date'), 0, 10))->toBe('2026-11-30');
+    expect(substr((string) DB::table('pcp_ordens')->where('transaction_id', $comData)->value('prazo_prometido'), 0, 10))->toBe('2026-11-30');
+
+    // Venda de outra empresa pedida pela 98: nada muda.
+    $alheia = przVenda($this, $this->b99, 1);
+    expect(app(PrometerPrazoDaVenda::class)->gravar($this->b98, $alheia))->toBeNull();
+    expect(DB::table('transactions')->where('id', $alheia)->value('due_date'))->toBeNull();
 });

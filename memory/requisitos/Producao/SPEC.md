@@ -451,9 +451,9 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ### US-PCP-028 · Prazo de entrega calculado pela fila (UC-FLX-06) — **P2**
 
-> owner: wagner · priority: p2 · estimate: 4h · status: doing · type: story
+> owner: wagner · priority: p2 · estimate: 6h · status: doing · type: story
 
-**Implementado em:** _pendente_ — o cálculo existe em JSON, só leitura (`Modules/Producao/Services/PrazoPelaFila.php` · `Modules/Producao/Http/Controllers/PrazoDaVendaController.php`); falta mostrar na aprovação do orçamento e gravar a data prometida por ação do vendedor.
+**Implementado em:** _pendente_ — o cálculo em dias úteis e a data prometida na aprovação existem (`Modules/Producao/Services/PrazoPelaFila.php` · `Modules/Producao/Services/CalendarioDeProducao.php` · `app/Contracts/Rh/CalendarioDaEmpresa.php` · `Modules/Essentials/Services/CalendarioDaEmpresaService.php` · `Modules/Producao/Services/PrometerPrazoDaVenda.php` · `Modules/Producao/Jobs/CriarOsDaVendaJob.php` · `Modules/Producao/Http/Controllers/PrazoDaVendaController.php`); falta mostrar o prazo na aprovação do orçamento (tela de venda).
 
 **Testado em:** `Modules/Producao/Tests/Feature/ProducaoPrazoPelaFilaContratoTest.php` (lane `verticais-pest.yml`).
 
@@ -462,12 +462,14 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 **Aceite:**
 - [x] Para a venda ou orçamento, cada linha cujo produto tem roteiro soma, em cada posto, a fila à frente — Σ das programações `pendente`/`iniciada` do posto na empresa — e as próprias etapas (sem as opcionais), em sequência por bloco, trilhas em paralelo; horas ÷ horas por dia do posto (UC-PCPRZ-01).
 - [x] Linhas da mesma venda disputam os mesmos postos; linha sem roteiro fica fora e vem listada (UC-PCPRZ-02).
-- [x] Posto sem horas por dia e etapa sem posto usam 8 h/dia, e a resposta diz isso em `premissas`; a data é em dias corridos (UC-PCPRZ-01).
+- [x] Posto sem horas por dia e etapa sem posto usam 8 h/dia, e a resposta diz isso em `premissas` (UC-PCPRZ-01).
 - [x] Só leitura; a OS da própria venda não entra na fila dela (UC-PCPRZ-03).
 - [x] `GET /producao/vendas/{id}/prazo` em JSON com `sell.view` ou `producao.access` e o módulo no pacote; venda de outra empresa 404 (UC-PCPRZ-04).
+- [x] Decisão [W] 2026-10-20 — *"Pula sábado, domingo e feriados"*, pelo período de funcionamento já cadastrado: cada dia de produção vale um dia útil; hora útil = turno da produção (`pcp_turnos`) → senão expediente do RH (turno fixo do Essentials; com vários, o de mais funcionários) → senão 08h–18h com aviso; folgas do expediente, sem ele sábado e domingo (UC-PCPRZ-05, UC-PCPRZ-07).
+- [x] Feriados = os do RH da empresa e da loja da venda (`essentials_holidays`, mesma regra do Ponto), lidos pelo contrato `App\Contracts\Rh\CalendarioDaEmpresa`; nenhum feriado fixo no código; sem o Essentials, nenhum feriado, com aviso (UC-PCPRZ-06).
+- [x] Decisão [W] 2026-10-20 — a data prometida fica na venda (`transactions.due_date`, PROJETO_DT_FIM): na aprovação, venda sem data recebe a estimativa; data digitada pelo vendedor não é sobrescrita; a data vai para a OS (`pcp_ordens.prazo_prometido`) (UC-PCPRZ-08).
 - [ ] Mostrar o prazo na aprovação do orçamento (tela de venda).
-- [ ] Gravar a data prometida só por ação explícita do vendedor (decidir se é `transactions.delivery_date`, que hoje é data de entrega do frete).
-- [ ] Descontar fim de semana e o turno da empresa (`pcp_turnos`) e o já apontado da etapa iniciada.
+- [ ] Descontar o já apontado da etapa iniciada.
 
 **Total US: 26** · **Estimate agregado:** ~98h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
 
