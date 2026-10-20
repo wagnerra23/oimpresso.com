@@ -13,11 +13,12 @@
 
 import { describe, it, expect, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/react';
-import SellsTotalBar, {
+import SellsTotalBar from '@/Pages/Sells/_components/SellsTotalBar';
+import {
   motivoSemTotais,
   type FiltrosDaTela,
   type TotaisDoFiltro,
-} from '@/Pages/Sells/_components/SellsTotalBar';
+} from '@/Pages/Sells/_components/totaisDoFiltro';
 
 afterEach(cleanup);
 
