@@ -89,7 +89,7 @@ beforeEach(function () {
     }
 
     $receita = function (int $pid, int $vid): void {
-        $r = DB::table('mfg_recipes')->insertGetId(['product_id' => $pid, 'variation_id' => $vid, 'ingredients' => '', 'total_quantity' => 2,
+        $r = DB::table('mfg_recipes')->insertGetId(['product_id' => $pid, 'variation_id' => $vid, 'total_quantity' => 2,
             'final_price' => 0, 'created_at' => now(), 'updated_at' => now()]);
         DB::table('mfg_recipe_ingredients')->insert(['mfg_recipe_id' => $r, 'variation_id' => $this->vLona, 'quantity' => 5, 'created_at' => now(), 'updated_at' => now()]);
     };
