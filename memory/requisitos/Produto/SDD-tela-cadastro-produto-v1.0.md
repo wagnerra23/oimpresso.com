@@ -6,8 +6,8 @@ type: sdd
 module: Produto
 status: ativo
 owner: wagner
-version: 1.0.7
-last_updated: 2026-07-27
+version: 1.0.8
+last_updated: 2026-10-20
 related_docs:
   - SPEC.md
   - BRIEFING.md
@@ -45,6 +45,16 @@ related_adrs:
 >
 > **Documento-modelo:** [SDD-TEMPLATE.md](../_DesignSystem/SDD-TEMPLATE.md) — formato canônico **extraído deste SDD** (este é o exemplar de origem). _(Até 2026-07-26 esta linha apontava para `../Sells/SDD-tela-vendas-FINAL-v1.2.md`, que **nunca existiu** no repo — link podre corrigido, não apagado.)_
 
+> ### 🔖 Changelog v1.0.8 (2026-10-20) — §6.1: três casos de uso que o benchmark de concorrentes expôs
+> Pesquisa de concorrentes feita para a tela de cadastro (Bling, Tiny/Olist, Conta Azul, Omie, Shopify),
+> cruzada com o §6 inteiro. O §6 já cobria o que eles fazem em variação, preço, estoque, kit, importação
+> e etiqueta. Faltavam três eixos que **todos** os concorrentes BR tratam no cadastro e que o SDD não
+> tinha: **dados fiscais para emitir nota** (`CU-PROD-16`), **peso e dimensões** (`CU-PROD-17`) e
+> **aviso do que falta para emitir nota** (`CU-PROD-18`). `CU-PROD-13` segue reservado (não usado).
+> Correção de premissa feita antes de escrever: o NCM **não é ausente no sistema** — ele é editado na
+> tela de Tributação do módulo fiscal, que já tem sugestão fiscal da Jana. O que falta é o **cadastro**
+> capturar ou apontar isso. **Só §6.1 novo — nenhum CU, fluxo ou risco existente alterado.** [M+C]
+>
 > ### 🔖 Changelog v1.0.7 (2026-07-27) — §5.4.1: as 5 ações em massa do Blade × 1 (quebrada) no React
 > Achado da Camada 1 disparado por [W] (*"existe o bulk do produto na consulta/lista, no blade existe isso"*).
 > Medido: a lista Blade tem **5** ações em massa (excluir · editar · +localização · −localização · desativar),
@@ -891,6 +901,63 @@ a lista mostre valor a quem não pode ver, misture tenant ou esconda item em sil
 > divergências acima aferíveis por leitura direta, sem heurística de tela equivalente.
 > Contrato completo em [`Index.casos.md`](../../../resources/js/Pages/Produto/Index.casos.md).
 
+#### CU-PROD-16 — Dados fiscais mínimos para emitir nota `[must]` 🟡 **parcial**
+
+<!-- curado: benchmark de concorrentes 2026-10-20 + medição do código (ProductController::buildProdutoDetalhe :738-752 · mysql-schema.sql products · Pages/Produto/_components/formulario/) -->
+
+*Dado* um operador que cadastra um produto que vai sair em nota (NF-e ou NFC-e); *quando* salvo o
+cadastro; *então* o produto tem os dados que a nota exige — **NCM** (8 dígitos), **origem da
+mercadoria** e **unidade** — e, quando o produto tem substituição tributária, o **CEST**.
+
+- **Mercado:** Bling e Olist tratam unidade, NCM e origem como obrigatórios para a nota (no Bling a
+  nota não é salva sem o NCM). Conta Azul põe NCM, CEST e origem num bloco "Dados fiscais" do
+  cadastro. Omie tem a aba "Recomendações fiscais" no próprio cadastro.
+- **Hoje no oimpresso:**
+  1. ✅ As colunas existem em `products`: `ncm varchar(10) NOT NULL DEFAULT '0'` e `cest`
+     (`mysql-schema.sql`), além de `cfop_*`, `cst_*` e `origem_mercadoria`.
+  2. ✅ A **origem** já é capturada no cadastro React (`BlocoPrecoImposto.tsx:76`, `UC-PCAD-07`) e a
+     **unidade** também.
+  3. 🔴 **NCM e CEST não aparecem no cadastro React**: `ncm`/`cest` têm 0 ocorrências em
+     `Create.tsx` e em `_components/formulario/`.
+  4. ✅ O NCM é editado na tela de **Tributação** do módulo fiscal (`nfe-brasil.tributacao.index`),
+     que já tem **sugestão fiscal da Jana** que nunca se aplica sozinha (`SugestaoFiscalService`,
+     UC-NFTR-10..13). A ficha do produto mostra o bloco fiscal e o link para lá
+     (`buildProdutoDetalhe :738-752`) — **só** para quem tem o módulo fiscal no pacote e as
+     permissões `fiscal.access` + `nfe.tributacao.manage`.
+  5. ⚠️ Produto cadastrado sem NCM nasce com `ncm = '0'` (o `DEFAULT` da coluna), não com vazio.
+- 🔶 **Decisão [W]:** o NCM entra no **cadastro** (como fazem Bling, Olist e Conta Azul) ou continua
+  só na **Tributação**, com o cadastro apenas avisando (`CU-PROD-18`)? A segunda opção preserva o
+  dono atual do dado fiscal; a primeira tira um passo do operador que não tem o módulo fiscal.
+
+#### CU-PROD-17 — Peso e dimensões do produto `[should]` 🟡 **parcial**
+
+<!-- curado: benchmark de concorrentes 2026-10-20 + medição do código (mysql-schema.sql products · BlocoMaisOpcoes.tsx) -->
+
+*Dado* um produto que vai ser despachado ou anunciado em marketplace; *quando* cadastro;
+*então* informo peso líquido, peso bruto e as dimensões da embalagem (largura, altura, comprimento).
+
+- **Mercado:** Bling, Olist e Conta Azul pedem peso líquido, peso bruto e dimensões no cadastro. A
+  Olist diz que servem à cotação de frete; a Shopee exige dimensões e pesos para publicar, e o
+  Bling também para exportar à Amazon. Nos dois o dado é opcional para a nota.
+- **Hoje no oimpresso:** ✅ só **um** campo de peso (`products.weight varchar(191)`, editado em
+  `BlocoMaisOpcoes.tsx:64-70`). 🔴 Não há peso bruto nem colunas de dimensão em `products`.
+- ⚠️ **Premissa a conferir antes de priorizar:** só vale se o cliente despacha ou vende em
+  marketplace. Para venda de balcão o campo não tem uso (ADR 0105 — sinal antes de backlog).
+
+#### CU-PROD-18 — Aviso do que falta para emitir nota `[should]` ❌ **ausente**
+
+<!-- curado: benchmark de concorrentes 2026-10-20 + protótipo prototipo-ui/cowork/Felipe/erp-shell-v2/Product Cadastro.html -->
+
+*Dado* um produto com dado fiscal faltando ou inválido; *quando* abro ou salvo o cadastro;
+*então* vejo **o que falta** (NCM vazio ou `'0'`, origem vazia, EAN inválido) antes de o produto
+travar uma nota — sem impedir o cadastro de ser salvo.
+
+- **Mercado:** a Omie mostra alertas de NCM desatualizado, EAN inválido e origem não preenchida.
+- **Protótipo:** o `Product Cadastro.html` (Cowork do [F]) já desenha isso no painel lateral —
+  *"Faltam: nome, NCM"*.
+- **Hoje no oimpresso:** ❌ o cadastro React não avisa. O aviso não pode bloquear o salvamento — o
+  cadastro mínimo (`CU-PROD-01`) continua sendo só nome e SKU.
+
 ### 6.2 Vertical comunicação visual (`CV`)
 
 #### CV-01 — Produto/material precificado por m² 🟡 *criar*
@@ -1079,6 +1146,7 @@ a lista mostre valor a quem não pode ver, misture tenant ou esconda item em sil
 
 **Histórico:**
 
+- 2026-10-20 — **§6.1 ganha `CU-PROD-16`, `CU-PROD-17` e `CU-PROD-18`** (v1.0.8): dados fiscais para nota, peso e dimensões, aviso de pendência fiscal. Origem: benchmark de concorrentes da tela de cadastro (Bling, Tiny/Olist, Conta Azul, Omie, Shopify), registrado também na [CAPTERRA-FICHA §11](CAPTERRA-FICHA.md). Nenhum UC novo em `casos.md` — os três dependem de decisão [W] antes de virar contrato com teste. [M+C]
 - 2026-07-27 — **Badge de proveniência nas 12 seções** (v1.0.6). Fecha a dívida que o próprio exemplar criou ao virar template: o [SDD-TEMPLATE.md](../_DesignSystem/SDD-TEMPLATE.md), extraído daqui em 2026-07-26, passou a exigir badge por seção e este documento tinha **zero** (medido: `grep -cE "⚙️|🖐"` → 0). Badges atribuídos **pela tabela do template**, não por julgamento. Mudança de forma: nenhum CU/fluxo/risco/roadmap tocado. [CC]
 - 2026-07-26 (3ª corrida `sdd-from-source`, tela `Produto/Index`) — **§5.3 novo `F8` (lista do catálogo) + §6.1 novo `CU-PROD-15` (consultar o catálogo)**, derivados por triangulação React + Blade + Delphi ([ADR 0351](../../decisions/0351-sdd-from-source.md)). Particularidade do alvo: a "Blade legada" é o **outro branch do mesmo método** `index()` — a paridade é comparação interna do controller. **Achado principal:** a lista React entrega `price`/`cost`/`margin` de todo o catálogo **sem consultar permissão**, enquanto a própria lista Blade gateia as duas colunas com `@can` (`index.blade.php:287,294`) e o Delphi faz o campo sumir (`AR-PROD-015`) — mesmo furo do `CU-PROD-14.1`, agora em lote. **Achado de alcance:** `limit(200)` sem paginação com o KPI anunciando o total (perda silenciosa). **Achado de arquitetura:** `App\Product` **não tem global scope** (`addGlobalScope` = 0) — todo o isolamento do módulo é `where` manual repetido, o que reclassifica o §3.1 (ver ⚠️ abaixo). Trio fechado em [`Index.casos.md`](../../../resources/js/Pages/Produto/Index.casos.md) + `ProdutoIndexContratoTest` (failing-first, lane `Estoque · MySQL`). Nenhum UC ✅ — veredito é da lane. [CC]
   > ⚠️ **Pendência de reconciliação do §3.1 (decisão [W]):** o §3.1 afirma *"`business_id` global scope em `App\Product`"*. Medido nesta corrida: **0** ocorrências de `addGlobalScope` em `app/Product.php` (o model `extends Model` e usa só `LogsActivity`). O §6.1 `CU-PROD-10` já registrou a versão honesta em 2026-07-15 (*"✅ hoje por validação explícita, não por global scope"*) — o §3.1 ficou stale. **Não editei o §3 nesta corrida** (é seção de governança, fora do escopo de escrita do agent); fica proposto pro [W].
