@@ -8,8 +8,10 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Modules\ComunicacaoVisual\Entities\Orcamento;
+use Modules\ComunicacaoVisual\Http\Requests\AprovarOrcamentoRequest;
 use Modules\ComunicacaoVisual\Services\OrcamentoCalculator;
 use Modules\ComunicacaoVisual\Services\OrcamentoGravador;
+use Modules\ComunicacaoVisual\Services\OrcamentoViraOs;
 
 /**
  * OrcamentoController — API JSON de orçamentos de comunicação visual.
@@ -20,6 +22,7 @@ use Modules\ComunicacaoVisual\Services\OrcamentoGravador;
  *   POST /comunicacao-visual/api/calcular       → preview sem persistência
  *   POST /comunicacao-visual/api/orcamentos     → persiste + retorna 201
  *   GET  /comunicacao-visual/api/orcamentos/{id} → retorna com itens
+ *   POST /comunicacao-visual/api/orcamentos/{id}/aprovar → aprova e cria a OS (UC-FLX-01)
  *
  * Princípio server-side authoritative: valores area_m2 / subtotal / total vindos
  * do frontend são DESCARTADOS. O Service recalcula tudo antes de persistir.
@@ -86,6 +89,31 @@ class OrcamentoController extends Controller
         $orcamento = Orcamento::with('itens')->findOrFail($id);
 
         return response()->json($orcamento, 200);
+    }
+
+    // ------------------------------------------------------------------
+    // POST /comunicacao-visual/api/orcamentos/{id}/aprovar
+    // UC-FLX-01 · US-COMVIS-020: aprova e cria a OS com itens, medidas e arquivos.
+    // 201 = OS criada agora · 200 = a OS já existia (reenvio não duplica) · 422 = recusado/expirado
+    // 404 = orçamento de outra empresa (não 403: não confirma que o id existe — UC-CV-05).
+    // ------------------------------------------------------------------
+
+    public function aprovar(AprovarOrcamentoRequest $request, int $id, OrcamentoViraOs $viraOs): JsonResponse
+    {
+        $user = auth()->user();
+        if (! $user->can('superadmin') && ! $user->can('comvis.orcamento.create')) {
+            abort(403, 'Sem permissão para aprovar orçamento (comvis.orcamento.create).');
+        }
+
+        $businessId = (int) (session('user.business_id') ?? session('business.id'));
+
+        try {
+            [$os, $criada] = $viraOs->aprovar($businessId, $id, (int) $user->id);
+        } catch (\DomainException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return response()->json($os, $criada ? 201 : 200);
     }
 
     // ------------------------------------------------------------------
