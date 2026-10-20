@@ -449,6 +449,27 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [ ] Idempotente: retorno do banco repetido não executa a transição duas vezes; OS cancelada não é liberada.
 - [ ] Multi-tenant: o listener recebe o `business_id` no evento e só toca OS e título da mesma empresa; `liberar` em OS de outra empresa → 404; Pest com dois tenants.
 
+### US-PCP-029 · Alocador decide quem e quando começa cada etapa (UC-FLX-10) — **P1**
+
+**Implementado em:** `Modules/Producao/Services/AlocacaoDaEtapa.php` · `Modules/Producao/Http/Controllers/AlocacaoController.php` · `Modules/Producao/Routes/web.php`
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoAlocacaoContratoTest.php` (lane `verticais-pest.yml`).
+
+> owner: wagner · priority: p1 · estimate: 3h · type: story
+
+**Origem:** UC-FLX-10 da tela de fluxos (`app/Domain/Fsm/Modelos/CatalogoModelos.php`, etapa *Liberada* → "Alocador escolhe quem e quando"; `CasosDoPrototipo.php`: *"escolhe operador e horário para não parar máquina nem faltar material"*). Medido em 2026-10-20: `pcp_programacoes` já tem `user_id`, `inicio_previsto` e `fim_previsto`, e o `SituacaoDaOrdem::liberar()` exige o responsável de cada etapa aberta ao liberar — mas só no Liberar, sem rota HTTP, e nada trocava a pessoa ou o horário depois, nem havia fila do posto por início previsto. A US-PCP-015 (calendário arrastar-e-soltar) segue para a tela; a tabela `pcp_schedules` que ela previa não é mais necessária, porque o início previsto mora em `pcp_programacoes`.
+
+**Aceite:**
+- [x] O gestor com `producao.etapa.mover` escolhe o responsável e/ou o início previsto de uma etapa pendente; a duração prevista se mantém (UC-PCALO-01). A situação da OS no FSM não muda.
+- [x] Cada alocação grava em `pcp_eventos` (append-only) quem mudou, quando, o antes e o depois (UC-PCALO-02).
+- [x] Etapa iniciada ou concluída não se realoca (UC-PCALO-03).
+- [x] Responsável tem de ser da mesma empresa e ter `producao.access` (UC-PCALO-04).
+- [x] Operador sem a permissão → 403; etapa ou posto de outra empresa → 404 (UC-PCALO-05).
+- [x] `GET /producao/postos/{id}/fila` lista as etapas abertas do posto pela ordem do início previsto, com o responsável (UC-PCALO-06).
+- [ ] Cadastro de quem trabalha em qual posto ou setor (hoje vale qualquer pessoa da empresa com acesso à Produção).
+- [ ] Tela do alocador (quadro/calendário — US-PCP-015) consumindo os dois endpoints.
+- [ ] Aviso de conflito: mesma pessoa ou mesmo posto com etapas sobrepostas, e material sem saldo para o horário escolhido.
+
 **Total US: 25** · **Estimate agregado:** ~98h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
 
 ## §8 — Regras Gherkin (R-PCP-001..010) — resumo

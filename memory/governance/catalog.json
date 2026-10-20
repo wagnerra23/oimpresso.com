@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 815,
-    "edges": 1114,
+    "nodes": 816,
+    "edges": 1115,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 437,
+      "component": 438,
       "api": 84
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 88,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 437,
+      "hasComponent": 438,
       "dependsOn": 123,
       "delegatesTo": 114,
       "migratesTo": 1,
@@ -4096,6 +4096,13 @@
       "module": "Ponto",
       "name": "RelatorioController",
       "desc": ""
+    },
+    {
+      "id": "component:Producao/AlocacaoController + AlocacaoDaEtapa",
+      "type": "component",
+      "module": "Producao",
+      "name": "AlocacaoController + AlocacaoDaEtapa",
+      "desc": "alocador decide quem e quando começa cada etapa pendente (US-PCP-029 · UC-FLX-10): troca responsável e início previsto em pcp_programacoes com histórico em pcp_eventos, e a fila do posto pela ordem do início; JSON só com producao.etapa.mover"
     },
     {
       "id": "component:Producao/Api/AppApontamentoController",
@@ -12159,6 +12166,12 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Presença e saída do ponto (o apontamento só LÊ, D-PONTO)"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/AlocacaoController + AlocacaoDaEtapa",
+      "type": "hasComponent",
+      "source": "contains"
     },
     {
       "from": "module:Producao",
