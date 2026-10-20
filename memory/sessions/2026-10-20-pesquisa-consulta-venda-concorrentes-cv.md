@@ -10,6 +10,13 @@ outcomes:
 
 # Pesquisa — casos de uso da consulta de vendas
 
+## TL;DR
+
+- Pesquisados 5 ERPs brasileiros e 7 sistemas de gráfica/comunicação visual sobre a lista de vendas.
+- Núcleo: 13 casos que 3 ou mais ERPs têm; 9 faltam na tela (vendedor, duplicar, enviar ao cliente, lote, exportar, ordem de produção, faturamento parcial, impressão em lote, totais do filtro).
+- Comunicação visual: 12 necessidades (etapa da produção, atraso pela entrega, arte, sinal, instalação, duas datas, urgência, parada com motivo, notas separadas, recompra, retrabalho, totais da operação); nenhuma atendida por inteiro.
+- Os itens viraram `[BACKLOG]` sem id em `resources/js/Pages/Sells/Index.casos.md`.
+
 ## O que foi feito
 
 Pedido da Maiara [M]: pesquisar nos concorrentes quais casos de uso a tela de consulta de vendas
