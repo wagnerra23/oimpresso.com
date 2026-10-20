@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 824,
-    "edges": 1123,
+    "nodes": 825,
+    "edges": 1124,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 446,
+      "component": 447,
       "api": 84
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 88,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 446,
+      "hasComponent": 447,
       "dependsOn": 123,
       "delegatesTo": 114,
       "migratesTo": 1,
@@ -4152,6 +4152,13 @@
       "module": "Producao",
       "name": "ApontamentoController",
       "desc": "celular do operador (PWA, thread 04): /producao/apontamento, escritas em JSON para a fila offline; a regra mora no ApontamentoOperadorService"
+    },
+    {
+      "id": "component:Producao/AproveitamentoMidiaController + AproveitamentoDeMidia",
+      "type": "component",
+      "module": "Producao",
+      "name": "AproveitamentoMidiaController + AproveitamentoDeMidia",
+      "desc": "simulador de aproveitamento de mídia na bobina (US-PCP-024 · UC-FLX-13): pcp_bobinas (largura útil, margem, giro por mídia), arranjo em faixas com metros, perda e o uma a uma; aceitar grava pcp_arranjos + pcp_arranjo_os (consumo previsto por OS, rateio pela área) e gera o romaneio de cada OS; simular com producao.access, aceitar com o papel producao.liberar, JSON"
     },
     {
       "id": "component:Producao/ColaboradorCustoController",
@@ -12268,6 +12275,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/ApontamentoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/AproveitamentoMidiaController + AproveitamentoDeMidia",
       "type": "hasComponent",
       "source": "contains"
     },
