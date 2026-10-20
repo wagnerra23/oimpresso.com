@@ -76,6 +76,10 @@ class OrcamentoItem extends Model
         'custo_previsto_m2',
         'custo_previsto',
         'custo_previsto_em',
+        'posto_id',
+        'horas_maquina_previstas',
+        'custo_hora_previsto',
+        'custo_maquina_previsto',
     ];
 
     protected $casts = [
@@ -92,6 +96,10 @@ class OrcamentoItem extends Model
         'custo_previsto_m2' => 'decimal:2',
         'custo_previsto'   => 'decimal:2',
         'custo_previsto_em' => 'date:Y-m-d',
+        'posto_id'         => 'integer',
+        'horas_maquina_previstas' => 'decimal:2',
+        'custo_hora_previsto' => 'decimal:2',
+        'custo_maquina_previsto' => 'decimal:2',
     ];
 
     // ------------------------------------------------------------------

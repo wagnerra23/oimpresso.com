@@ -2,6 +2,7 @@
 
 namespace Modules\ComunicacaoVisual\Services;
 
+use App\Contracts\Producao\CustoHoraDoPosto;
 use Illuminate\Support\Facades\DB;
 use Modules\ComunicacaoVisual\Entities\Orcamento;
 use Modules\ComunicacaoVisual\Entities\OrcamentoItem;
@@ -48,6 +49,39 @@ class OrcamentoGravador
     }
 
     /**
+     * Custo da hora de máquina do item no dia (UC-FLX-33 · US-COMVIS-019). O custo da hora vem de
+     * `pcp_postos.custo_hora` pela interface CustoHoraDoPosto (módulo Producao), sem histórico: o
+     * valor guardado no item é o único registro daquele dia. Custo da máquina = horas × custo da
+     * hora, arredondado a 2 casas, igual ao custo do material.
+     *
+     * Nulo (as quatro colunas) quando: o item não tem posto ou horas, as horas são zero, o módulo
+     * Producao não está ligado, ou o posto não é de máquina, não tem custo ou é de outra empresa
+     * (a interface filtra pelo `$businessId` explícito).
+     *
+     * @return array{posto_id: int, horas: float, custo_hora: float, custo: float}|null
+     */
+    private function custoMaquinaDoDia(int $businessId, array $itemCalc, ?CustoHoraDoPosto $custoHora): ?array
+    {
+        $postoId = (int) ($itemCalc['posto_id'] ?? 0);
+        $horas = round((float) ($itemCalc['horas_maquina'] ?? 0), 2, PHP_ROUND_HALF_UP);
+        if ($custoHora === null || $postoId <= 0 || $horas <= 0) {
+            return null;
+        }
+
+        $hora = $custoHora->custoHora($businessId, $postoId);
+        if ($hora === null) {
+            return null;
+        }
+
+        return [
+            'posto_id'   => $postoId,
+            'horas'      => $horas,
+            'custo_hora' => (float) $hora,
+            'custo'      => round($horas * (float) $hora, 2, PHP_ROUND_HALF_UP),
+        ];
+    }
+
+    /**
      * @param  array  $calculado  saída do OrcamentoCalculator::calcular()
      */
     public function gravar(int $businessId, array $calculado, string $status = 'rascunho'): Orcamento
@@ -73,9 +107,11 @@ class OrcamentoGravador
 
             $custoM2 = $this->custosDoDia($businessId, $calculado['itens']);
             $hoje = now()->toDateString();
+            $custoHora = app()->bound(CustoHoraDoPosto::class) ? app(CustoHoraDoPosto::class) : null;
 
             foreach ($calculado['itens'] as $ordem => $itemCalc) {
                 $m2 = $custoM2[(int) ($itemCalc['material_id'] ?? 0)] ?? null;
+                $maquina = $this->custoMaquinaDoDia($businessId, $itemCalc, $custoHora);
                 OrcamentoItem::create([
                     'orcamento_id'      => $orc->id,
                     'business_id'       => $businessId,
@@ -92,7 +128,12 @@ class OrcamentoGravador
                     // UC-FLX-33: custo do material no dia do orçamento (ver custosDoDia).
                     'custo_previsto_m2' => $m2,
                     'custo_previsto'    => $m2 === null ? null : round((float) $itemCalc['area_m2'] * $m2, 2, PHP_ROUND_HALF_UP),
-                    'custo_previsto_em' => $m2 === null ? null : $hoje,
+                    'custo_previsto_em' => ($m2 === null && $maquina === null) ? null : $hoje,
+                    // UC-FLX-33: hora de máquina do posto no dia (ver custoMaquinaDoDia).
+                    'posto_id'                => $maquina['posto_id'] ?? null,
+                    'horas_maquina_previstas' => $maquina['horas'] ?? null,
+                    'custo_hora_previsto'     => $maquina['custo_hora'] ?? null,
+                    'custo_maquina_previsto'  => $maquina['custo'] ?? null,
                 ]);
             }
 
