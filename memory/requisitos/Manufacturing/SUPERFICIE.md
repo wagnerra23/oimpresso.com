@@ -117,12 +117,13 @@ module: Manufacturing
 - [Report.tsx](../../../resources/js/Pages/Manufacturing/Report.tsx)
 - [Settings.tsx](../../../resources/js/Pages/Manufacturing/Settings.tsx)
 
-## Componentes / apoio de tela — 6
+## Componentes / apoio de tela — 7
 
 - [BuscaInsumo.tsx](../../../resources/js/Pages/Manufacturing/_components/BuscaInsumo.tsx)
 - [ExcluirReceitaDialog.tsx](../../../resources/js/Pages/Manufacturing/_components/ExcluirReceitaDialog.tsx)
 - [FabricacaoAbas.tsx](../../../resources/js/Pages/Manufacturing/_components/FabricacaoAbas.tsx)
 - [FichaPrint.tsx](../../../resources/js/Pages/Manufacturing/_components/FichaPrint.tsx)
+- [Gaveta.tsx](../../../resources/js/Pages/Manufacturing/_components/Gaveta.tsx)
 - [NovaReceitaDialog.tsx](../../../resources/js/Pages/Manufacturing/_components/NovaReceitaDialog.tsx)
 - [OrdemDrawer.tsx](../../../resources/js/Pages/Manufacturing/_components/OrdemDrawer.tsx)
 
