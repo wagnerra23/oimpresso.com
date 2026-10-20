@@ -487,7 +487,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [ ] Quantidade por área (m²) no item da CV: hoje a reserva usa a quantidade da linha na unidade do produto.
 - [ ] Mostrar o reservado no saldo disponível para venda do insumo (hoje nenhuma tela lê `stock_reservations`).
 
-**Total US: 29** · **Estimate agregado:** ~109h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
+**Total US: 30** · **Estimate agregado:** ~112h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
 
 ### US-PCP-026 · Etapas da OS vêm do roteiro do produto (UC-FLX-07) — **P1**
 
@@ -550,6 +550,27 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [x] Decisão [W] 2026-10-20 — a data prometida fica na venda (`transactions.due_date`, PROJETO_DT_FIM): na aprovação, venda sem data recebe a estimativa; data digitada pelo vendedor não é sobrescrita; a data vai para a OS (`pcp_ordens.prazo_prometido`) (UC-PCPRZ-08).
 - [ ] Mostrar o prazo na aprovação do orçamento (tela de venda).
 - [ ] Descontar o já apontado da etapa iniciada.
+
+### US-PCP-027 · Refugo e retrabalho com motivo somam custo à OS (UC-FLX-16) — **P1**
+
+**Implementado em:** `Modules/Producao/Services/RefugoService.php` · `Modules/Producao/Database/Migrations/2026_10_20_160000_create_pcp_refugos_table.php` · `Modules/Producao/Http/Controllers/ApontamentoController.php`
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoRefugoContratoTest.php` (lane `verticais-pest.yml`).
+
+> owner: wagner · priority: p1 · estimate: 3h · type: story
+> blocked_by: US-PCP-021
+
+**Origem:** UC-FLX-16 da tela de fluxos (Acabamento: *refugo com motivo; refugo e retrabalho somam custo à OS*). Medido em 2026-10-20: o cadastro de motivos de refugo por posto já existia (`pcp_motivos.tipo = refugo`, UC-PCV-33) e o "Reprovar no controle" já levava a OS para Retrabalho reabrindo a etapa como etapa nova (`SituacaoDaOrdem::reprovar`, ADR 0436) — mas sem quantidade de peças refugadas, sem rota que o chamasse e sem reposição de material. As horas da etapa de retrabalho e o material baixado já entravam no `CustoRealService`.
+
+**Aceite:**
+- [x] O responsável da etapa iniciada ou feita aponta o refugo: quantidade de peças (até a quantidade da OS), motivo de refugo ativo do posto da etapa e da mesma empresa, quem e quando (UC-PCREF-01, UC-PCREF-05).
+- [x] Material reposto para as peças refugadas passa pelo `ConsumoMaterialService` (baixa pelo lote que saiu); falta de lote recusa tudo, inclusive o refugo (UC-PCREF-02, UC-PCREF-05).
+- [x] Com `retrabalho`, o refugo chama o "Reprovar no controle" do motor (papel `producao.qualidade`): a OS vai para Retrabalho e a etapa nova fica ligada ao refugo; sem o papel, 403 e nada grava (UC-PCREF-03, UC-PCREF-06).
+- [x] O custo real congelado na conclusão soma as horas do retrabalho e o material reposto, sem conta paralela (UC-PCREF-03).
+- [x] Idempotente pela chave da fila offline; tabela `pcp_refugos` com `business_id`, FK e índice (UC-PCREF-04).
+- [x] Endpoint na PWA (`POST /producao/apontamento/refugo`), sem custo na resposta (UC-PCREF-06).
+- [ ] Endpoint no app (`/api/app/producao/apontamentos/refugo`) e campo na tela do operador.
+- [ ] Relatório de refugo por motivo e posto para o gestor.
 
 ## §8 — Regras Gherkin (R-PCP-001..010) — resumo
 

@@ -335,6 +335,63 @@ Status: 🧪
 
 ---
 
+## Refugo e retrabalho com motivo (US-PCP-027 · UC-FLX-16)
+
+> **Âncora:** UC-FLX-16 do catálogo de fluxos (Acabamento: *refugo com motivo; refugo e retrabalho somam
+> custo à OS*), o cadastro de motivos de refugo por posto (UC-PCV-33, `pcp_motivos.tipo = refugo`), o
+> "Reprovar no controle" do processo da OS (ADR 0436: Em execução → Retrabalho, papel
+> `producao.qualidade`) e a baixa de material da US-PCP-021. Nesta entrega é o endpoint da PWA
+> (`POST /producao/apontamento/refugo`); a tela e o app ainda não têm o campo. Prova:
+> `ProducaoRefugoContratoTest`. ESTOQUE e VALOR: regra mestre.
+
+## UC-PCREF-01 · Refugo com quantidade, motivo, quem e quando · `must`
+
+**Dado** a etapa de Impressão do Diego iniciada **Quando** ele aponta 2 peças refugadas com o motivo "Cor" do
+posto **Então** o refugo fica gravado com a etapa, a OS, o motivo, a quantidade, quem e quando; sem material
+nem retrabalho, o estoque e a situação da OS não mudam.
+
+Status: 🧪
+
+## UC-PCREF-02 · Material reposto sai pelo lote · `must` valor
+
+**Dado** em L o lote A (2 un × 10,00) e o B (5 un × 14,00) **Quando** o refugo repõe 3 un de lona **Então** o
+saldo cai 3 e a baixa custa 2 × 10,00 + 1 × 14,00 = 34,00, igual à baixa de material da etapa.
+
+Status: 🧪
+
+## UC-PCREF-03 · Retrabalho e custo do refugo na OS · `must` valor
+
+**Dado** a Impressão feita em 1 h a 30,00 **Quando** o controle aponta o refugo com 3 un de lona e manda para
+retrabalho **Então** a OS vai para Retrabalho com a etapa "Impressão (retrabalho)"; refeita em 0,5 h e com o
+Acabamento em 0,5 h, a OS conclui com custo real 94,00 (pessoa 60,00 + material 34,00) — sem o refugo seriam
+45,00.
+
+Status: 🧪
+
+## UC-PCREF-04 · Reenvio não grava nem baixa duas vezes · `must`
+
+**Dado** a fila offline reenviando a mesma chave **Então** o refugo e a baixa acontecem uma vez só; a mesma
+chave com outra quantidade é recusada.
+
+Status: 🧪
+
+## UC-PCREF-05 · Só motivo de refugo do posto, da empresa · `must`
+
+**Quando** o motivo é de outra empresa, é de pausa ou é de outro posto, a etapa é de outro operador ou ainda
+não começou, a quantidade passa das peças da OS, ou falta lote para o material **Então** nada é gravado nem
+baixado.
+
+Status: 🧪
+
+## UC-PCREF-06 · O operador não vê custo e não manda sozinho para retrabalho · `must`
+
+**Quando** o operador aponta o refugo pela PWA **Então** a resposta não traz custo e o reenvio não grava de
+novo; pedindo retrabalho sem o papel de qualidade **Então** 403 e nada fica (nem o refugo, nem a baixa).
+
+Status: 🧪
+
+---
+
 ## Romaneio de impressão peça a peça (US-PCP-023 · UC-FLX-12)
 
 > **Âncora:** UC-FLX-12 do catálogo de fluxos (*"Pré-impressão → Impressão gera a lista do que foi enviado

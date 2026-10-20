@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **997 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **998 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -15,7 +15,7 @@
 | [`Financeiro`](#financeiro) | 49 | 3 | 0 | 0 | 46 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
 | [`OficinaAuto`](#oficinaauto) | 38 | 0 | 0 | 0 | 37 |
-| [`Producao`](#producao) | 29 | 1 | 0 | 0 | 28 |
+| [`Producao`](#producao) | 30 | 1 | 0 | 0 | 29 |
 | [`NfeBrasil`](#nfebrasil) | 28 | 0 | 0 | 6 | 22 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
@@ -555,6 +555,7 @@
 - **US-PCP-024** — Simulador de aproveitamento de mídia na bobina (UC-FLX-13) — **P2**
 - **US-PCP-025** — Produção só libera com o sinal pago (UC-FLX-28) — **P2**
 - **US-PCP-026** — Etapas da OS vêm do roteiro do produto (UC-FLX-07) — **P1**
+- **US-PCP-027** — Refugo e retrabalho com motivo somam custo à OS (UC-FLX-16) — **P1**
 - **US-PCP-029** — Alocador decide quem e quando começa cada etapa (UC-FLX-10) — **P1**
 - **US-PCP-031** — Reserva o insumo na venda, baixa real na produção (UC-FLX-14) — **P1**
 

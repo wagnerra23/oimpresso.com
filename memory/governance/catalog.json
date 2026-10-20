@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 839,
-    "edges": 1142,
+    "nodes": 840,
+    "edges": 1143,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 459,
+      "component": 460,
       "api": 86
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 90,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 459,
+      "hasComponent": 460,
       "dependsOn": 125,
       "delegatesTo": 116,
       "migratesTo": 1,
@@ -4329,6 +4329,13 @@
       "module": "Producao",
       "name": "PrometerPrazoDaVenda",
       "desc": "na aprovação (CriarOsDaVendaJob), grava a estimativa em transactions.due_date só quando a venda não tem data e copia a data para pcp_ordens.prazo_prometido (US-PCP-028 · UC-FLX-06)"
+    },
+    {
+      "id": "component:Producao/RefugoService",
+      "type": "component",
+      "module": "Producao",
+      "name": "RefugoService",
+      "desc": "refugo com motivo na etapa da OS por item (US-PCP-027 · UC-FLX-16): quantidade e motivo de refugo do posto em pcp_refugos, material reposto pelo ConsumoMaterialService e, com o papel de qualidade, a OS para Retrabalho pelo SituacaoDaOrdem::reprovar"
     },
     {
       "id": "component:Producao/ReservaDeInsumoDaOs",
@@ -12541,6 +12548,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/PrometerPrazoDaVenda",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/RefugoService",
       "type": "hasComponent",
       "source": "contains"
     },
