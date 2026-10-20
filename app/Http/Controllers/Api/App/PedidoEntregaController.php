@@ -31,6 +31,11 @@ use Illuminate\Support\Facades\Validator;
  * `entregar` da FSM pelo ExecuteStageActionService. Qualquer falha desfaz tudo; só o arquivo da
  * assinatura já escrito no disco fica órfão (o registro em `arquivos` volta junto).
  *
+ * Volumes (UC-FLX-23 · US-SELL-073): `volumes` = total de volumes (caixas, rolos, pacotes) entregues,
+ * inteiro de 1 a 9999. É OPCIONAL: o app que já está nos celulares não manda o campo, e recusar
+ * quebraria a entrega dele. Sem o campo o protocolo fica com `volumes` nulo ("não informado") — não
+ * se inventa um número. É total do protocolo, não por item: um volume pode levar várias linhas da venda.
+ *
  * Ajustes da empresa (conferidos aqui, não só no app):
  *  - `app_entrega_exige_assinatura` true → sem `assinatura_png` = 422 campos.assinatura_png.
  *  - `app_entrega_exige_localizacao` true → `lat`/`lng` nulos = 422 campos.lat.
@@ -70,6 +75,7 @@ class PedidoEntregaController extends Controller
             'itens.*.linha_id' => ['required', 'integer'],
             'itens.*.conferido' => ['required', 'boolean'],
             'recebido_por' => ['required', 'string', 'min:2', 'max:120'],
+            'volumes' => ['nullable', 'integer', 'min:1', 'max:9999'],
             'documento' => ['nullable', 'string', 'max:40'],
             'assinatura_png' => ['nullable', 'string'],
             'sem_assinatura_motivo' => ['nullable', 'string', 'min:5', 'max:200'],
@@ -83,6 +89,9 @@ class PedidoEntregaController extends Controller
             'recebido_por.min' => 'Informe o nome de quem recebeu.',
             'recebido_por.max' => 'O nome tem no máximo 120 caracteres.',
             'documento.max' => 'O documento tem no máximo 40 caracteres.',
+            'volumes.integer' => 'Informe os volumes como número inteiro de 1 a 9999.',
+            'volumes.min' => 'Informe os volumes como número inteiro de 1 a 9999.',
+            'volumes.max' => 'Informe os volumes como número inteiro de 1 a 9999.',
             'sem_assinatura_motivo.min' => 'O motivo precisa ter de 5 a 200 caracteres.',
             'sem_assinatura_motivo.max' => 'O motivo precisa ter de 5 a 200 caracteres.',
             'lat.numeric' => 'Localização inválida.', 'lat.between' => 'Localização inválida.',
@@ -113,14 +122,20 @@ class PedidoEntregaController extends Controller
         $lat = isset($d['lat']) ? (float) $d['lat'] : null;
         $lng = isset($d['lng']) ? (float) $d['lng'] : null;
         $precisao = isset($d['precisao_m']) ? (float) $d['precisao_m'] : null;
+        $volumes = isset($d['volumes']) ? (int) $d['volumes'] : null;
         $itens = collect($d['itens'])->map(fn ($i) => [
             'linha_id' => (int) $i['linha_id'], 'conferido' => (bool) $i['conferido'],
         ])->sortBy('linha_id')->values()->all();
 
-        $hash = hash('sha256', (string) json_encode([
+        $partesDoCorpo = [
             $id, $esperada, $itens, $recebidoPor, $documento, $assinaturaTexto !== null ? hash('sha256', $assinaturaTexto) : null,
             $motivo, $lat, $lng, $precisao,
-        ]));
+        ];
+        // Só entra no hash quando veio: o corpo do app antigo (sem volumes) mantém o hash de antes.
+        if ($volumes !== null) {
+            $partesDoCorpo[] = ['volumes' => $volumes];
+        }
+        $hash = hash('sha256', (string) json_encode($partesDoCorpo));
         $ja = $this->idempotencia($bizId, (int) $user->id, $chave);
         if ($ja !== null) {
             return $this->repetida($ja, $hash);
@@ -223,6 +238,7 @@ class PedidoEntregaController extends Controller
                 'recebido_por' => $recebidoPor, 'documento' => $documento, 'com_assinatura' => $arquivoId !== null,
                 'assinatura_arquivo_id' => $arquivoId, 'sem_assinatura_motivo' => $motivo,
                 'lat' => $lat, 'lng' => $lng, 'precisao_m' => $precisao, 'itens' => json_encode($itens),
+                'volumes' => $volumes,
                 'user_id' => (int) $user->id, 'registrado_em' => $registradoEm,
                 'created_at' => $registradoEm, 'updated_at' => $registradoEm,
             ]);
@@ -236,6 +252,7 @@ class PedidoEntregaController extends Controller
                 'protocolo' => $protocolo,
                 'registrado_em' => $registradoEm->copy()->utc()->format('Y-m-d\TH:i:s\Z'),
                 'recebido_por' => $recebidoPor,
+                'volumes' => $volumes,
                 'com_assinatura' => $arquivoId !== null,
                 'pedido' => $pedidos->show($request, $id)->getData(true),
             ];

@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **989 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **990 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -10,7 +10,7 @@
 |---|---:|---:|---:|---:|---:|
 | [`Jana`](#jana) | 83 | 2 | 0 | 0 | 81 |
 | [`Whatsapp`](#whatsapp) | 67 | 0 | 0 | 0 | 67 |
-| [`Sells`](#sells) | 65 | 0 | 0 | 0 | 65 |
+| [`Sells`](#sells) | 66 | 0 | 0 | 0 | 66 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
 | [`Financeiro`](#financeiro) | 49 | 1 | 0 | 0 | 48 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
@@ -301,6 +301,7 @@
 - **US-SELL-069** — Orçamento abaixo da margem mínima só vira venda com aprovação (UC-FLX-35)
 - **US-SELL-070** — Termômetro de acesso da proposta (UC-FLX-04) — **P2**
 - **US-SELL-071** — Pesquisa de satisfação depois da entrega (UC-FLX-25) — **P2**
+- **US-SELL-073** — Volumes no protocolo de entrega (UC-FLX-23) — **P2**
 
 ## Infra
 
