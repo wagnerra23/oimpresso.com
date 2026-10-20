@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 819,
-    "edges": 1118,
+    "nodes": 821,
+    "edges": 1120,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 441,
+      "component": 443,
       "api": 84
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 88,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 441,
+      "hasComponent": 443,
       "dependsOn": 123,
       "delegatesTo": 114,
       "migratesTo": 1,
@@ -2745,6 +2745,20 @@
       "module": "Financeiro",
       "name": "RelatoriosController",
       "desc": ""
+    },
+    {
+      "id": "component:Financeiro/ResyncFromCoreCommand",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "ResyncFromCoreCommand",
+      "desc": "financeiro:resync-from-core re-espelha valor_total inflado (num_uf) com --apply; modo --aberto só leitura lista títulos parciais com aberto divergente das baixas (US-FIN-073)"
+    },
+    {
+      "id": "component:Financeiro/TituloAutoService",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "TituloAutoService",
+      "desc": "espelha venda/compra/despesa em fin_titulos (Observers de transactions e transaction_payments); aberto de venda/compra = bruto − baixas do título (US-FIN-073)"
     },
     {
       "id": "component:Financeiro/UnificadoController",
@@ -8930,6 +8944,18 @@
     {
       "from": "module:Financeiro",
       "to": "component:Financeiro/RelatoriosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "component:Financeiro/ResyncFromCoreCommand",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "component:Financeiro/TituloAutoService",
       "type": "hasComponent",
       "source": "contains"
     },
