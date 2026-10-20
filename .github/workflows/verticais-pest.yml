@@ -141,6 +141,8 @@ on:
       # US-PCP-031 — a reserva do insumo lê a receita pelo contrato (implementado no Manufacturing).
       - 'app/Contracts/Fabricacao/**'
       - 'Modules/Manufacturing/Services/InsumosDaReceitaService.php'
+      # US-PCP-025 — o sinal mínimo da empresa mora nas regras do FSM.
+      - 'app/Domain/Fsm/Modelos/RegrasDaEmpresa.php'
       # US-FISIO-003 — fundo do Fisio (triggers append-only + escopo multi-tenant exigem MySQL).
       - 'Modules/Fisio/**'
       # Etapa 02 T-13 — service worker do portal do paciente (FisioPortalAppTest lê o arquivo).
@@ -270,6 +272,8 @@ jobs:
               # US-PCP-031 — a reserva do insumo lê a receita pelo contrato (implementado no Manufacturing).
               - 'app/Contracts/Fabricacao/**'
               - 'Modules/Manufacturing/Services/InsumosDaReceitaService.php'
+              # US-PCP-025 — o sinal mínimo da empresa mora nas regras do FSM.
+              - 'app/Domain/Fsm/Modelos/RegrasDaEmpresa.php'
               # US-FISIO-003 — fundo do Fisio (triggers append-only + escopo multi-tenant exigem MySQL).
               - 'Modules/Fisio/**'
               # Etapa 02 T-13 — service worker do portal do paciente (FisioPortalAppTest lê o arquivo).
@@ -578,6 +582,7 @@ jobs:
             Modules/ComunicacaoVisual/Tests/Feature/Tier0GuardTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCustoPrevistoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCustoMaquinaPrevistoTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/OrcamentoViraOsContratoTest.php \
             Modules/Repair/Tests/Feature/DeviceModelsInertiaSmokeTest.php \
             Modules/Repair/Tests/Feature/JobSheetShowContratoTest.php \
             Modules/Repair/Tests/Feature/ProducaoOficinaRefactorTest.php \
@@ -647,6 +652,7 @@ jobs:
             Modules/Producao/Tests/Feature/ProducaoMaterialContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoCustoOsAbertaContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoReservaInsumoContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoSinalPagoLiberaContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoRomaneioContratoTest.php \
             Modules/Fisio/Tests/Feature/FisioEsquemaContratoTest.php \
             Modules/Fisio/Tests/Feature/FisioPacienteCrudTest.php \
