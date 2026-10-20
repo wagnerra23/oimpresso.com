@@ -14,7 +14,7 @@ module: Compras
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Compras/**` + `resources/js/Pages/Compras/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 32 arquivos em 13 papéis.
+**Total mapeado:** 34 arquivos em 15 papéis.
 
 ## Controllers — 3
 
@@ -31,6 +31,10 @@ module: Compras
 - [ComprasService.php](../../../Modules/Compras/Services/ComprasService.php)
 - [CustoDoInsumoService.php](../../../Modules/Compras/Services/CustoDoInsumoService.php)
 
+## Models / Entities — 1
+
+- [InsumoMetodoCusto.php](../../../Modules/Compras/Entities/InsumoMetodoCusto.php)
+
 ## Observers — 1
 
 - [TransactionSellLineCustoObserver.php](../../../Modules/Compras/Observers/TransactionSellLineCustoObserver.php)
@@ -43,6 +47,10 @@ module: Compras
 ## Rotas — 1
 
 - [web.php](../../../Modules/Compras/Routes/web.php)
+
+## Migrations (schema) — 1
+
+- [2026_10_20_000001_create_compras_insumo_metodo_custo_table.php](../../../Modules/Compras/Database/Migrations/2026_10_20_000001_create_compras_insumo_metodo_custo_table.php)
 
 ## Config — 1
 
