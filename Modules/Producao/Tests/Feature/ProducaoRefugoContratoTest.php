@@ -87,7 +87,10 @@ beforeEach(function () {
     $this->motCorte = $mot($this->b98, $this->postoAcab->id, 'refugo', 'Corte');
     $this->motCor = $mot($this->b98, $this->postoImp->id, 'refugo', 'Cor');
     $this->motPausaImp = $mot($this->b98, $this->postoImp->id, 'pausa', 'Falta material');
-    $this->motAlheio = $mot($this->b99, null, 'refugo', 'Corte (outra empresa)');
+    // pcp_motivos.posto_id é obrigatório: o motivo da outra empresa fica num posto da outra empresa.
+    $postoAlheio = Posto::withoutGlobalScopes()->create(['business_id' => $this->b99, 'codigo' => 'P-'.uniqid(), 'nome' => 'Acabamento',
+        'tipo_custo' => 'pessoa', 'custo_hora' => '30.00']);
+    $this->motAlheio = $mot($this->b99, (int) $postoAlheio->id, 'refugo', 'Corte (outra empresa)');
 
     $this->ordem = Ordem::withoutGlobalScopes()->create(['business_id' => $this->b98, 'transaction_id' => $venda,
         'transaction_sell_line_id' => random_int(1000000, 9999999), 'product_id' => $this->pid, 'quantidade' => '10.0000',
