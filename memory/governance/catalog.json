@@ -1949,18 +1949,18 @@
       "desc": ""
     },
     {
-      "id": "component:Compras/Entities/InsumoMetodoCusto",
-      "type": "component",
-      "module": "Compras",
-      "name": "Entities/InsumoMetodoCusto",
-      "desc": "model da tabela compras_insumo_metodo_custo, tabela-ponte (business_id, variation_id) com o método próprio do insumo (medio | ultimo), lida quando a regra é por_insumo; variations do core não ganha coluna"
-    },
-    {
       "id": "component:Compras/InstallController",
       "type": "component",
       "module": "Compras",
       "name": "InstallController",
       "desc": ""
+    },
+    {
+      "id": "component:Compras/InsumoMetodoCusto",
+      "type": "component",
+      "module": "Compras",
+      "name": "InsumoMetodoCusto",
+      "desc": "entidade da tabela-ponte compras_insumo_metodo_custo (business_id, variation_id) com o método próprio do insumo (medio | ultimo), lida quando a regra é por_insumo; variations do core não ganha coluna"
     },
     {
       "id": "component:ComunicacaoVisual/ApontamentoController",
@@ -7931,13 +7931,13 @@
     },
     {
       "from": "module:Compras",
-      "to": "component:Compras/Entities/InsumoMetodoCusto",
+      "to": "component:Compras/InstallController",
       "type": "hasComponent",
       "source": "contains"
     },
     {
       "from": "module:Compras",
-      "to": "component:Compras/InstallController",
+      "to": "component:Compras/InsumoMetodoCusto",
       "type": "hasComponent",
       "source": "contains"
     },

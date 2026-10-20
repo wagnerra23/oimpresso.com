@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **990 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **991 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -54,7 +54,7 @@
 | [`LaravelAI`](#laravelai) | 5 | 0 | 0 | 0 | 5 |
 | [`Repair`](#repair) | 5 | 0 | 0 | 0 | 5 |
 | [`Spreadsheet`](#spreadsheet) | 5 | 0 | 0 | 0 | 5 |
-| [`ConsultaOs`](#consultaos) | 3 | 0 | 0 | 0 | 3 |
+| [`ConsultaOs`](#consultaos) | 4 | 0 | 0 | 0 | 4 |
 | [`Dashboard`](#dashboard) | 3 | 0 | 0 | 0 | 3 |
 | [`VozDoCliente`](#vozdocliente) | 3 | 0 | 0 | 0 | 3 |
 | [`ADS`](#ads) | 2 | 0 | 0 | 0 | 2 |
@@ -1357,6 +1357,7 @@
 - **US-CONSULTA-001** — Substituir mock por query real em Modules/Repair `parcial`
 - **US-CONSULTA-002** — Canary 7d em ROTA LIVRE `pendente`
 - **US-CONSULTA-003** — Criar BRIEFING.md após migração real `pendente`
+- **US-CONSULTA-004** — Cliente acompanha o status: aviso a cada mudança + portal atualizado `parcial`
 
 ## Dashboard
 

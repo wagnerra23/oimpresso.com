@@ -177,3 +177,90 @@ describe('Editar produto com as listas do servidor', () => {
     expect(document.querySelector('#tax')?.textContent).toContain('ICMS 18%')
   })
 })
+
+// UC-PCAD-13 e UC-PCAD-14 — o NCM no Novo produto (CU-PROD-16 e CU-PROD-18 do SDD). Decisão [M]
+// 2026-10-20: o NCM entra no cadastro, mas não é obrigatório, porque produto de serviço não tem
+// NCM. Sem NCM a tela só avisa; o envio segue.
+describe('UC-PCAD-13 · UC-PCAD-14 · NCM no Novo produto', () => {
+  const novo = (duplicateProduct: Record<string, unknown> | null = null) =>
+    render(
+      <ProdutoCreate
+        {...(listasDoServidor as never)}
+        barcodeDefault="C128"
+        defaultProfitPercent={25}
+        duplicateProduct={duplicateProduct as never}
+        sellingPriceGroupCount={0}
+        commonSettings={{}}
+        enableExpiry={false}
+        enableLot={false}
+        enableRacks={false}
+      />,
+    )
+  const campoNcm = () => document.querySelector('#ncm') as HTMLInputElement
+  const aviso = () => screen.queryByTestId('ncm-aviso')
+  const salvar = (container: HTMLElement) => {
+    enviado.payload = null
+    fireEvent.submit(container.querySelector('form#produto-create-form') as HTMLFormElement)
+    return enviado.payload as Record<string, unknown> | null
+  }
+  const produtoOriginal = (ncm: string) => ({
+    id: 21, name: 'Lona 440g', brand_id: null, unit_id: 4, category_id: null, sub_category_id: null,
+    tax: null, tax_type: 'exclusive', origem_mercadoria: 0, ncm, barcode_type: 'C128', sku: 'LON-440',
+    alert_quantity: null, weight: null, product_description: null, type: 'single',
+  })
+
+  it('UC-PCAD-14 · sem NCM a tela avisa, e o produto é enviado assim mesmo', () => {
+    const { container } = novo()
+
+    expect(campoNcm().value).toBe('')
+    expect(aviso()?.textContent).toContain('Sem NCM a nota fiscal de mercadoria não sai')
+
+    const envio = salvar(container)
+    expect(envio).not.toBeNull()
+    expect(envio?.ncm).toBe('')
+  })
+
+  it('UC-PCAD-14 · NCM incompleto avisa que são 8 dígitos', () => {
+    novo()
+    fireEvent.change(campoNcm(), { target: { value: '4911' } })
+
+    expect(aviso()?.textContent).toBe('O NCM tem 8 dígitos.')
+  })
+
+  it('UC-PCAD-13 · NCM digitado com pontos vai só com os 8 dígitos, e o aviso some', () => {
+    const { container } = novo()
+    fireEvent.change(campoNcm(), { target: { value: '4911.10.90' } })
+
+    expect(campoNcm().value).toBe('49111090')
+    expect(aviso()).toBeNull()
+    expect(salvar(container)?.ncm).toBe('49111090')
+  })
+
+  it('UC-PCAD-13 · duplicar traz o NCM do original, e o "0" do banco aparece vazio', () => {
+    const comNcm = novo(produtoOriginal('4911.10.90'))
+    expect(campoNcm().value).toBe('49111090')
+    comNcm.unmount()
+
+    novo(produtoOriginal('0'))
+    expect(campoNcm().value).toBe('')
+    expect(aviso()).not.toBeNull()
+  })
+
+  it('UC-PCAD-13 · Editar não mostra o campo NCM (o update() ainda não grava)', () => {
+    render(
+      <ProdutoEdit
+        {...(listasDoServidor as never)}
+        product={{
+          id: 9, name: 'Lona 440g', sku: 'LON-440', type: 'single', brandId: 3, unitId: 5,
+          subUnitIds: null, categoryId: 1, subCategoryId: null, tax: 1, taxType: 'exclusive',
+          origemMercadoria: 0, barcodeType: 'C128', enableStock: true, alertQuantity: null,
+          weight: null, productDescription: null, productLocations: [1], image: null,
+          warrantyId: null, camposPersonalizados: {}, expiryPeriod: null, expiryPeriodType: null,
+        }}
+        subUnits={{}}
+        permissions={{ opening_stock: false, delete: false }}
+      />,
+    )
+    expect(campoNcm()).toBeNull()
+  })
+})

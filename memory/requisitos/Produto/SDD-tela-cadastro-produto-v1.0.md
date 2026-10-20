@@ -932,7 +932,7 @@ mercadoria** e **unidade** — e, quando o produto tem substituição tributári
   5. ⚠️ Produto cadastrado sem NCM nasce com `ncm = '0'` (o `DEFAULT` da coluna), não com vazio.
 - ✅ **Decidido ([M] 2026-10-20, ratificação [W] no merge do PR):** o **NCM entra no cadastro do
   produto**. A tela de Tributação continua podendo editá-lo.
-- **Regra proposta** (conferir com [W] antes de virar UC com teste):
+- **Regra** (implementada no Novo produto: `UC-PCAD-13` e `UC-PCAD-14` do [`Create.casos.md`](../../../resources/js/Pages/Produto/Create.casos.md); o Editar ainda não tem o campo):
   1. O campo NCM aparece no cadastro, aceita só 8 dígitos e `'0'` **não** conta como preenchido.
   2. **Não bloqueia o salvamento.** O cadastro mínimo segue nome + SKU (`CU-PROD-01`): um serviço
      (arte, instalação) não tem NCM e não pode ser travado no cadastro.
@@ -956,7 +956,7 @@ mercadoria** e **unidade** — e, quando o produto tem substituição tributári
 - ⚠️ **Premissa a conferir antes de priorizar:** só vale se o cliente despacha ou vende em
   marketplace. Para venda de balcão o campo não tem uso (ADR 0105 — sinal antes de backlog).
 
-#### CU-PROD-18 — Aviso do que falta para emitir nota `[should]` ❌ **ausente**
+#### CU-PROD-18 — Aviso do que falta para emitir nota `[should]` 🟡 **parcial**
 
 <!-- curado: benchmark de concorrentes 2026-10-20 + protótipo prototipo-ui/cowork/Felipe/erp-shell-v2/Product Cadastro.html -->
 
@@ -967,8 +967,9 @@ travar uma nota — sem impedir o cadastro de ser salvo.
 - **Mercado:** a Omie mostra alertas de NCM desatualizado, EAN inválido e origem não preenchida.
 - **Protótipo:** o `Product Cadastro.html` (Cowork do [F]) já desenha isso no painel lateral —
   *"Faltam: nome, NCM"*.
-- **Hoje no oimpresso:** ❌ o cadastro React não avisa. O aviso não pode bloquear o salvamento — o
-  cadastro mínimo (`CU-PROD-01`) continua sendo só nome e SKU.
+- **Hoje no oimpresso:** 🟡 o Novo produto avisa NCM vazio ou incompleto (`UC-PCAD-14`), sem impedir
+  o salvamento — o cadastro mínimo (`CU-PROD-01`) continua sendo só nome e SKU. Falta olhar a natureza
+  (`CU-PROD-19`) e o EAN.
 
 #### CU-PROD-19 — Natureza fiscal (mercadoria × serviço) e campos da nota de serviço `[must]` 🟡 **parcial**
 
