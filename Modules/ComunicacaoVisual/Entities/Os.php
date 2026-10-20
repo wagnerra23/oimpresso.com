@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\ComunicacaoVisual\Entities\Concerns\EscopoPorNegocioDaSessao;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -46,6 +47,7 @@ class Os extends Model
 {
     use SoftDeletes;
     use LogsActivity;
+    use EscopoPorNegocioDaSessao;
 
     /**
      * Audit trail Spatie ActivityLog (Wave 18 D7 LGPD compliance).
@@ -105,15 +107,11 @@ class Os extends Model
     // Global scope multi-tenant Tier 0 (ADR 0093)
     // ------------------------------------------------------------------
 
+    // O filtro por empresa vem da trait EscopoPorNegocioDaSessao: o mesmo closure que morava
+    // aqui (filtra `comvis_os.business_id` pela sessão; sem sessão não filtra), movido para o
+    // MultiTenantScopeArchitectureTest reconhecê-lo. Comportamento inalterado.
     protected static function booted(): void
     {
-        static::addGlobalScope('business_id', function (Builder $query) {
-            $businessId = session('user.business_id') ?? session('business.id');
-            if ($businessId !== null) {
-                $query->where('comvis_os.business_id', $businessId);
-            }
-        });
-
         static::creating(function (Os $row) {
             if ($row->business_id === null) {
                 $row->business_id = session('user.business_id') ?? session('business.id') ?? 0;
