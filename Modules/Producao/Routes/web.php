@@ -1,5 +1,6 @@
 <?php
 
+use Modules\Producao\Http\Controllers\AlocacaoController;
 use Modules\Producao\Http\Controllers\ApontamentoController;
 use Modules\Producao\Http\Controllers\AprovacaoArteController;
 use Modules\Producao\Http\Controllers\AproveitamentoMidiaController;
@@ -7,8 +8,10 @@ use Modules\Producao\Http\Controllers\ColaboradorCustoController;
 use Modules\Producao\Http\Controllers\EtiquetaOsController;
 use Modules\Producao\Http\Controllers\FerramentasController;
 use Modules\Producao\Http\Controllers\InstallController;
+use Modules\Producao\Http\Controllers\LoteRastreioController;
 use Modules\Producao\Http\Controllers\OrdemCustoController;
 use Modules\Producao\Http\Controllers\PostosController;
+use Modules\Producao\Http\Controllers\PrazoDaVendaController;
 use Modules\Producao\Http\Controllers\RomaneioController;
 use Modules\Producao\Http\Controllers\RoteirosController;
 
@@ -89,13 +92,20 @@ Route::middleware(['throttle:30,1'])
         Route::get('{token}', [AprovacaoArteController::class, 'mostrar'])->where('token', '[A-Za-z0-9]{48}')->name('mostrar');
         Route::post('{token}/aprovar', [AprovacaoArteController::class, 'aprovar'])->where('token', '[A-Za-z0-9]{48}')->name('aprovar');
         Route::post('{token}/recusar', [AprovacaoArteController::class, 'recusar'])->where('token', '[A-Za-z0-9]{48}')->name('recusar');
+        // US-PCP-028 · UC-FLX-06 — prazo de entrega da venda pela fila dos postos (JSON, só leitura).
+        Route::get('vendas/{id}/prazo', [PrazoDaVendaController::class, 'show'])->whereNumber('id')->name('vendas.prazo');
+        // US-COM-025 · UC-FLX-18 — rastreio do rolo: OS que usaram fração do lote + saldo (JSON, quem vê compras).
+        Route::get('lotes/{id}/rastreio', [LoteRastreioController::class, 'show'])->whereNumber('id')->name('lotes.rastreio');
     });
 
+// ── US-PCP-029 · UC-FLX-10 · alocador decide quem e quando começa (JSON, gestor) ──
 // ── US-PCP-023 · UC-FLX-12 · romaneio de impressão peça a peça (JSON; a tela é follow-up) ──
 Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
     ->prefix('producao')
     ->name('producao.')
     ->group(function () {
+        Route::put('etapas/{id}/alocacao', [AlocacaoController::class, 'alocar'])->whereNumber('id')->name('etapas.alocar');
+        Route::get('postos/{postoId}/fila', [AlocacaoController::class, 'fila'])->whereNumber('postoId')->name('postos.fila');
         Route::post('os/{id}/romaneio', [RomaneioController::class, 'store'])->whereNumber('id')->name('os.romaneio.store');
         Route::get('romaneios/{id}', [RomaneioController::class, 'show'])->whereNumber('id')->name('romaneios.show');
     });

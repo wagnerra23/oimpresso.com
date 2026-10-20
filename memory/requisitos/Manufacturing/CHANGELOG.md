@@ -6,6 +6,24 @@ id: requisitos-manufacturing-changelog
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) · [Semver](https://semver.org/).
 
+## [Não lançado] - 2026-10-20 — reconstituição do histórico set/out
+
+> Nenhuma entrada de set/out existia aqui (a última era a Wave 28, de maio). Resumo; detalhe nos PRs.
+
+### Added
+- Waves 29 a 33: Receitas (`/recipe`), Relatório, Configurações, colunas das Ordens e Insumos em Inertia (US-MANU-001 a 005).
+- Editor de ingredientes em React e janela "Nova receita" com cópia (US-MANU-006; #8853, #9059, #9068, #9072).
+- Painel lateral da ordem de produção e indicadores que seguem local e período (#8742, #8743, #8991, #9582).
+
+### Changed
+- **Cutover 2026-09-04:** as telas servem nos endereços canônicos; `?legacy=1` devolve o Blade e `/v2/*` é 301.
+
+### Security
+- Servidor recalcula o custo e só grava/apaga receita da própria empresa (#9051, #8698, #8671, #9071).
+
+### Decisão
+- 2026-10-13: Fabricação × Produção separadas (D1 a D6). Sem código ainda.
+
 ## [0.4.0] - 2026-05-16 — Wave 18 RETRY SATURATION
 
 ### Added (D8 — FormRequests novas, ratio 4 → 7)

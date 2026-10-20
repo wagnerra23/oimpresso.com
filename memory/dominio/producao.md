@@ -45,11 +45,19 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0431-pcp-sai-do-dese
   `correcao_solicitada` (correção com justificativa; o par original fica) e `pendencia_gestor`
   (horas de pessoa acima da presença + 30 min, D-PONTO).
 
+- **Situação da compra que o Producao lê** (`transactions.status`, `vocab`): a coluna é da espinha
+  de vendas e o dono do vocabulário é [`vendas.md`](vendas.md) — a lista abaixo é cópia dela, não
+  vocabulário novo. O Producao só a usa para a baixa do rolo escolhido aceitar lote de compra
+  `received`, o mesmo filtro do `mapPurchaseSell` do núcleo (US-COM-025).
+
 ## Enums canônicos (machine-checked por `dominio:check`)
 
 ```json
 {
   "module": "Producao",
+  "vocab": {
+    "transactions.status": ["received", "pending", "ordered", "draft", "final"]
+  },
   "enums": {
     "pcp_postos.tipo_custo": ["maquina", "pessoa"],
     "pcp_programacoes.status": ["pendente", "iniciada", "concluida", "cancelada"],

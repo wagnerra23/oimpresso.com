@@ -94,10 +94,12 @@ class ApontamentoController extends Controller
         [$biz, $user] = $this->operador($request);
         $d = $request->validate($this->regras() + [
             'programacao_id' => 'required|integer|min:1', 'variation_id' => 'required|integer|min:1', 'quantidade' => 'required|string|max:24',
+            'lote_id' => 'nullable|integer|min:1', // US-COM-025: rolo escolhido; sem ele, o método da empresa.
         ]);
 
         try {
-            $c = $consumo->registrar($biz, $user, (int) $d['programacao_id'], (int) $d['variation_id'], (string) $d['quantidade'], $d['chave'], Carbon::parse($d['momento']));
+            $c = $consumo->registrar($biz, $user, (int) $d['programacao_id'], (int) $d['variation_id'], (string) $d['quantidade'], $d['chave'], Carbon::parse($d['momento']),
+                isset($d['lote_id']) ? (int) $d['lote_id'] : null);
         } catch (ApontamentoRecusado $e) {
             return $this->recusa($e);
         }

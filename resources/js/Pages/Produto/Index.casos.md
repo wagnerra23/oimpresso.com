@@ -568,6 +568,11 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
 > Ficaram aqui só os que a pesquisa recomenda trazer; os que "não valem agora" ou "dependem de
 > conferir" não entraram. Cada um vira UC quando ganhar teste que o defenda. Os marcados `[V0]`
 > mostram estoque e caem na REGRA MESTRE de valor/estoque (dupla prova + antes→depois).
+>
+> **Termos revisados no protótipo (2026-10-20):** na tela, "separado" e "livre" substituem
+> "reservado", "empenhado" e "disponível", que o cliente não entendia. Na lista a linha fica
+> "20 m² separados para OS · 76 m² livres"; no painel, "Tem no estoque", "Separado para OS"
+> (ou "Separado para vendas") e "Livre para usar" (ou "Livre para vender").
 
 **Vestuário (ROTA LIVRE)**
 
@@ -579,10 +584,11 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
   só "N variações"; cada uma aparece no painel. Aceite: Dado um produto variável com 8 variações,
   Quando abro a linha, Então vejo cada variação com SKU e saldo, e a soma das variações é o saldo
   do produto. Fonte: Bling (variações marcadas na lista), Alterdata e Senior (estoque por grade).
-- **[BACKLOG] Separar o estoque reservado do disponível (D5)** `[V0]` — hoje o saldo não desconta
-  reservas. Aceite: Dado 10 un em estoque e uma venda em andamento que reservou 3, Então a lista
-  mostra 7 disponíveis e 3 reservadas. Pergunta em aberto: a ROTA LIVRE (biz=4) usa o fluxo de
-  venda que reserva estoque? Fonte: Conta Azul (aba Reservados), Senior (quantidade em reserva).
+- **[BACKLOG] Mostrar o estoque separado para vendas e o livre (D5)** `[V0]` — hoje o saldo não
+  desconta o que já foi vendido e ainda não saiu. Aceite: Dado 10 un em estoque e uma venda não
+  entregue que separou 3, Então a lista mostra "3 un separadas para vendas · 7 un livres". Pergunta
+  em aberto: a ROTA LIVRE (biz=4) usa o fluxo de venda que separa estoque? Fonte: Conta Azul (aba
+  Reservados), Senior (quantidade em reserva).
 - **[BACKLOG] Excluir sem perder: o excluído pode ser restaurado (D13)** — hoje "Excluir" apaga o
   cadastro, as variações e os preços por grupo, e a confirmação diz que não tem volta. Aceite: Dado
   um produto excluído, Quando filtro a situação "Excluídos", Então ele aparece e "Restaurar" o devolve
@@ -594,16 +600,22 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
   recorte com nome. Aceite: Dado um conjunto de filtros, Quando salvo como "Lonas abaixo do alerta",
   Então ele aparece numa lista de recortes do usuário e abre com os mesmos filtros. Fonte: Shopify
   (visões salvas), Odoo (favoritos).
+- **[BACKLOG] Quantidade vendida por local na aba Estoque do painel** — pedido na revisão do
+  protótipo (2026-10-20). Aceite: a tabela de locais da aba Estoque ganha a coluna "Vendido", com o
+  mesmo número do "Total vendido" do Relatório de estoque para aquele produto e local.
 
 **Comunicação visual**
 
 - **[BACKLOG] Separar material, produto e serviço na consulta (CV1)** — hoje o filtro "Tipo de
   produto" separa Único, Variável e Composição; material não tem marca própria. Aceite: Dado lona
   (material), banner (produto) e instalação (serviço), Quando filtro "Material", Então só a lona
-  aparece. Fonte: shopVOX (produtos × materiais), Calcgraf (insumos e acabados).
-- **[BACKLOG] Material empenhado nas OS abertas × disponível (CV4)** `[V0]` — mesmo pedido do D5,
-  aplicado ao material. Aceite: Dado 50 m² de lona e OS abertas que seguram 20 m², Então a lista
-  mostra 30 m² disponíveis e 20 m² empenhados. Fonte: Calcgraf (material empenhado), shopVOX
+  aparece. No painel fica um rótulo só, "O que é", com a natureza; a forma do cadastro aparece só
+  quando muda algo ("Produto · com 8 variações", "Produto · kit com 4 itens"), e a coluna Tipo sai
+  do padrão da lista (continua no menu Colunas). Fonte: shopVOX (produtos × materiais), Calcgraf
+  (insumos e acabados).
+- **[BACKLOG] Material separado para OS abertas × livre (CV4)** `[V0]` — mesmo pedido do D5,
+  aplicado ao material. Aceite: Dado 50 m² de lona e OS abertas que separaram 20 m², Então a lista
+  mostra "20 m² separados para OS · 30 m² livres". Fonte: Calcgraf (material empenhado), shopVOX
   (quantidade reservada).
 - **[BACKLOG] Saldo do material em rolos e em m² (CV2)** `[V0]` — hoje o saldo aparece numa unidade
   só. Aceite: Dado 2 rolos de 1,60 m × 50 m, Então a lista mostra "2 rolos · 160 m²", e as duas
