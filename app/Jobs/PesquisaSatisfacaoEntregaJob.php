@@ -176,7 +176,7 @@ class PesquisaSatisfacaoEntregaJob implements ShouldQueue
             return null;
         }
 
-        return ($r['enviado'] ?? false) && ! empty($r['referencia']) ? (int) $r['referencia'] : null;
+        return $r['enviado'] && $r['referencia'] !== null ? $r['referencia'] : null;
     }
 
     private function copiarNotasDoWhatsapp(): void
