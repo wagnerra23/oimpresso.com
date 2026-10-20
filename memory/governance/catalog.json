@@ -26,25 +26,25 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 823,
-    "edges": 1122,
+    "nodes": 836,
+    "edges": 1139,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 445,
-      "api": 84
+      "component": 457,
+      "api": 85
     },
     "by_edge_type": {
       "ownsTable": 97,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 88,
+      "providesApi": 89,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 445,
-      "dependsOn": 123,
-      "delegatesTo": 114,
+      "hasComponent": 457,
+      "dependsOn": 125,
+      "delegatesTo": 116,
       "migratesTo": 1,
       "supersedes": 26,
       "supersedesPartially": 71,
@@ -1570,6 +1570,14 @@
       ]
     },
     {
+      "id": "api:/producao/lotes/{id}/rastreio",
+      "type": "api",
+      "prefix": "/producao/lotes/{id}/rastreio",
+      "providers": [
+        "Producao"
+      ]
+    },
+    {
       "id": "api:/product-catalogue/*",
       "type": "api",
       "prefix": "/product-catalogue/*",
@@ -1914,11 +1922,11 @@
       "desc": ""
     },
     {
-      "id": "component:Compras/compras_insumo_metodo_custo",
+      "id": "component:Compras/AplicarCustoDoRecebimento",
       "type": "component",
       "module": "Compras",
-      "name": "compras_insumo_metodo_custo",
-      "desc": "tabela-ponte (business_id, variation_id) com o método próprio do insumo (medio | ultimo), lida quando a regra é por_insumo; variations do core não ganha coluna"
+      "name": "AplicarCustoDoRecebimento",
+      "desc": "compra recebida grava o custo pela regra da empresa e trata o preço (so_custo | aplicar | propor), só quando a empresa gravou a regra (US-COM-026 · UC-FLX-17)"
     },
     {
       "id": "component:Compras/ComprasController",
@@ -1935,6 +1943,13 @@
       "desc": "custo do insumo numa data pelo método da regra da empresa (US-COM-024 · UC-FLX-38); só lê purchase_lines + transactions"
     },
     {
+      "id": "component:Compras/Database/Migrations/2026_10_20_120000_create_compras_propostas_preco_table",
+      "type": "component",
+      "module": "Compras",
+      "name": "Database/Migrations/2026_10_20_120000_create_compras_propostas_preco_table",
+      "desc": "tabela compras_propostas_preco, proposta de preço pendente gerada no recebimento (business_id, variation_id, transaction_id)"
+    },
+    {
       "id": "component:Compras/DataController",
       "type": "component",
       "module": "Compras",
@@ -1947,6 +1962,20 @@
       "module": "Compras",
       "name": "InstallController",
       "desc": ""
+    },
+    {
+      "id": "component:Compras/InsumoMetodoCusto",
+      "type": "component",
+      "module": "Compras",
+      "name": "InsumoMetodoCusto",
+      "desc": "entidade da tabela-ponte compras_insumo_metodo_custo (business_id, variation_id) com o método próprio do insumo (medio | ultimo), lida quando a regra é por_insumo; variations do core não ganha coluna"
+    },
+    {
+      "id": "component:Compras/RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
+      "type": "component",
+      "module": "Compras",
+      "name": "RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
+      "desc": "US-COM-027 · UC-FLX-19 estoque abaixo de alert_quantity vira requisição de compra do núcleo (transactions type=purchase_requisition) por local, teto(mínimo − saldo), sem duplicar item em requisição aberta; não move estoque nem cria pedido; desligado por padrão em business.common_settings"
     },
     {
       "id": "component:ComunicacaoVisual/ApontamentoController",
@@ -2019,6 +2048,13 @@
       "desc": ""
     },
     {
+      "id": "component:ComunicacaoVisual/InstalacaoController",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "InstalacaoController",
+      "desc": "/comunicacao-visual/api/instalacoes, US-COMVIS-007 · UC-FLX-21)"
+    },
+    {
       "id": "component:ComunicacaoVisual/InstallController",
       "type": "component",
       "module": "ComunicacaoVisual",
@@ -2031,6 +2067,13 @@
       "module": "ComunicacaoVisual",
       "name": "OrcamentoController",
       "desc": ""
+    },
+    {
+      "id": "component:ComunicacaoVisual/Services/AgendaInstalacao",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "Services/AgendaInstalacao",
+      "desc": "US-COMVIS-007 · UC-FLX-21)"
     },
     {
       "id": "component:ComunicacaoVisual/Services/OrcamentoViraOs",
@@ -2467,6 +2510,13 @@
       "desc": ""
     },
     {
+      "id": "component:Essentials/CalendarioDaEmpresaService",
+      "type": "component",
+      "module": "Essentials",
+      "name": "CalendarioDaEmpresaService",
+      "desc": "implementa App\\\\Contracts\\\\Rh\\\\CalendarioDaEmpresa: feriados da empresa e da loja (mesma regra do Ponto) e o expediente do turno fixo, para o prazo da produção em dias úteis (US-PCP-028 · UC-FLX-06)"
+    },
+    {
       "id": "component:Essentials/DashboardController",
       "type": "component",
       "module": "Essentials",
@@ -2682,6 +2732,13 @@
       "module": "Financeiro",
       "name": "CoworkSidebarController",
       "desc": "endpoint JSON Mock Cowork (sidebar real via ShellMenuBuilder + 3 camadas habilitação, sem hardcode business_id; ADR 0093 Tier 0)"
+    },
+    {
+      "id": "component:Financeiro/CusteioRkwController + CusteioRkwService",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "CusteioRkwController + CusteioRkwService",
+      "desc": "custeio RKW e ponto de equilíbrio do mês (US-FIN-070 · UC-FLX-20): GET só leitura, aplicar o custo-hora sugerido é POST explícito; horas do PCP pelo contrato app/Contracts/Producao/HorasDosPostos.php (comando financeiro:custeio-rkw)"
     },
     {
       "id": "component:Financeiro/DashboardController",
@@ -4147,6 +4204,13 @@
       "desc": "celular do operador (PWA, thread 04): /producao/apontamento, escritas em JSON para a fila offline; a regra mora no ApontamentoOperadorService"
     },
     {
+      "id": "component:Producao/AproveitamentoMidiaController + AproveitamentoDeMidia",
+      "type": "component",
+      "module": "Producao",
+      "name": "AproveitamentoMidiaController + AproveitamentoDeMidia",
+      "desc": "simulador de aproveitamento de mídia na bobina (US-PCP-024 · UC-FLX-13): pcp_bobinas (largura útil, margem, giro por mídia), arranjo em faixas com metros, perda e o uma a uma; aceitar grava pcp_arranjos + pcp_arranjo_os (consumo previsto por OS, rateio pela área) e gera o romaneio de cada OS; simular com producao.access, aceitar com o papel producao.liberar, JSON"
+    },
+    {
       "id": "component:Producao/ColaboradorCustoController",
       "type": "component",
       "module": "Producao",
@@ -4189,11 +4253,25 @@
       "desc": "ferramentas com código QR (E03)"
     },
     {
+      "id": "component:Producao/HorasDosPostosService",
+      "type": "component",
+      "module": "Producao",
+      "name": "HorasDosPostosService",
+      "desc": "implementa app/Contracts/Producao/HorasDosPostos.php: horas fechadas por posto no mês e troca do custo-hora, para o custeio RKW do Financeiro (US-FIN-070)"
+    },
+    {
       "id": "component:Producao/InstallController",
       "type": "component",
       "module": "Producao",
       "name": "InstallController",
       "desc": "instalação 1-clique (ADR 0024)"
+    },
+    {
+      "id": "component:Producao/LoteRastreioController + RastreioDoRolo",
+      "type": "component",
+      "module": "Producao",
+      "name": "LoteRastreioController + RastreioDoRolo",
+      "desc": "rastreio do rolo: em que OS cada fração do lote foi usada e o saldo, JSON só com purchase.view (US-COM-025 · UC-FLX-18); a baixa da OS aceita o rolo escolhido (lote_id)"
     },
     {
       "id": "component:Producao/Ordem",
@@ -4215,6 +4293,20 @@
       "module": "Producao",
       "name": "PostosController",
       "desc": "postos, máquinas e veículos, com os motivos de pausa e de refugo do posto (UC-PCV-33, E03)"
+    },
+    {
+      "id": "component:Producao/PrazoDaVendaController + PrazoPelaFila",
+      "type": "component",
+      "module": "Producao",
+      "name": "PrazoDaVendaController + PrazoPelaFila",
+      "desc": "prazo de entrega da venda/orçamento pela fila dos postos (Σ programações abertas + etapas do roteiro ÷ horas por dia, em dias úteis pelo CalendarioDeProducao: turno da produção, senão expediente do RH; folgas do expediente e feriados do RH da empresa e da loja, pelo contrato CalendarioDaEmpresa do Rh), JSON só leitura com sell.view ou producao.access (US-PCP-028 · UC-FLX-06)"
+    },
+    {
+      "id": "component:Producao/PrometerPrazoDaVenda",
+      "type": "component",
+      "module": "Producao",
+      "name": "PrometerPrazoDaVenda",
+      "desc": "na aprovação (CriarOsDaVendaJob), grava a estimativa em transactions.due_date só quando a venda não tem data e copia a data para pcp_ordens.prazo_prometido (US-PCP-028 · UC-FLX-06)"
     },
     {
       "id": "component:Producao/ReservaDeInsumoDaOs",
@@ -7826,6 +7918,13 @@
     },
     {
       "from": "module:Compras",
+      "to": "module:Producao",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Rastreio do rolo (em que OS cada fração do lote foi usada, US-COM-025)"
+    },
+    {
+      "from": "module:Compras",
       "to": "module:AssetManagement",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -7847,6 +7946,13 @@
     },
     {
       "from": "module:Compras",
+      "to": "module:Producao",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Rastreio do rolo (em que OS cada fração do lote foi usada, US-COM-025)"
+    },
+    {
+      "from": "module:Compras",
       "to": "adr:0079",
       "type": "governedByAdr",
       "source": "related_adrs"
@@ -7859,7 +7965,7 @@
     },
     {
       "from": "module:Compras",
-      "to": "component:Compras/compras_insumo_metodo_custo",
+      "to": "component:Compras/AplicarCustoDoRecebimento",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -7877,6 +7983,12 @@
     },
     {
       "from": "module:Compras",
+      "to": "component:Compras/Database/Migrations/2026_10_20_120000_create_compras_propostas_preco_table",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
       "to": "component:Compras/DataController",
       "type": "hasComponent",
       "source": "contains"
@@ -7884,6 +7996,18 @@
     {
       "from": "module:Compras",
       "to": "component:Compras/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/InsumoMetodoCusto",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8007,6 +8131,12 @@
     },
     {
       "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/InstalacaoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/InstallController",
       "type": "hasComponent",
       "source": "contains"
@@ -8014,6 +8144,12 @@
     {
       "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/OrcamentoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/Services/AgendaInstalacao",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8639,6 +8775,12 @@
     },
     {
       "from": "module:Essentials",
+      "to": "component:Essentials/CalendarioDaEmpresaService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Essentials",
       "to": "component:Essentials/DashboardController",
       "type": "hasComponent",
       "source": "contains"
@@ -8786,6 +8928,13 @@
     },
     {
       "from": "module:Financeiro",
+      "to": "module:NFSe",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Emissão e cancelamento de NFS-e (o Financeiro só observa a mudança de status para lançar as retenções como baixa — US-FIN-072)"
+    },
+    {
+      "from": "module:Financeiro",
       "to": "module:Compras",
       "type": "dependsOn",
       "source": "depends_on"
@@ -8810,6 +8959,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "module:NFSe",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Emissão e cancelamento de NFS-e (o Financeiro só observa a mudança de status para lançar as retenções como baixa — US-FIN-072)"
     },
     {
       "from": "module:Financeiro",
@@ -8904,6 +9060,12 @@
     {
       "from": "module:Financeiro",
       "to": "component:Financeiro/CoworkSidebarController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "component:Financeiro/CusteioRkwController + CusteioRkwService",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -12260,6 +12422,12 @@
     },
     {
       "from": "module:Producao",
+      "to": "component:Producao/AproveitamentoMidiaController + AproveitamentoDeMidia",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
       "to": "component:Producao/ColaboradorCustoController",
       "type": "hasComponent",
       "source": "contains"
@@ -12296,7 +12464,19 @@
     },
     {
       "from": "module:Producao",
+      "to": "component:Producao/HorasDosPostosService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
       "to": "component:Producao/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/LoteRastreioController + RastreioDoRolo",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -12315,6 +12495,18 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/PostosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/PrazoDaVendaController + PrazoPelaFila",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/PrometerPrazoDaVenda",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -12351,6 +12543,12 @@
     {
       "from": "module:Producao",
       "to": "api:/producao/apontamento/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Producao",
+      "to": "api:/producao/lotes/{id}/rastreio",
       "type": "providesApi",
       "source": "url_prefixes"
     },

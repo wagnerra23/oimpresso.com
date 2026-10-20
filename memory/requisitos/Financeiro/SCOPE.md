@@ -18,6 +18,7 @@ contains:
   - "ContaPagarController"
   - "ContaReceberController"
   - "CoworkSidebarController — endpoint JSON Mock Cowork (sidebar real via ShellMenuBuilder + 3 camadas habilitação, sem hardcode business_id; ADR 0093 Tier 0)"
+  - "CusteioRkwController + CusteioRkwService — custeio RKW e ponto de equilíbrio do mês (US-FIN-070 · UC-FLX-20): GET só leitura, aplicar o custo-hora sugerido é POST explícito; horas do PCP pelo contrato app/Contracts/Producao/HorasDosPostos.php (comando financeiro:custeio-rkw)"
   - "DashboardController"
   - "DataController"
   - "DreController — Wave reaplicação canon 2026-05-20 US-FIN-014a (tela dedicada /financeiro/dre, hierarquia clássica header/item/subtotal com highlight, % RL sinal preservado, Δ% mês ant., export PDF/Excel/CSV; substitui tab DRE legada em RelatoriosController)"
@@ -34,6 +35,7 @@ not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
   - "Tasks Jira-style → Modules/Forja"
   - "MCP server admin → Modules/Forja"
+  - "Emissão e cancelamento de NFS-e (o Financeiro só observa a mudança de status para lançar as retenções como baixa — US-FIN-072) → Modules/NFSe"
 depends_on:
   - Sells
   - Compras

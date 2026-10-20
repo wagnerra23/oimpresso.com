@@ -198,6 +198,7 @@ class NfseEmissaoService
             'aliquota_iss'    => $payload->aliquotaIss,
             'valor_iss'       => $payload->valorIss(),
             'iss_retido'      => $payload->issRetido,
+            'valor_iss_retido' => $payload->valorIssRetido(),
             'retencao_federal_sujeito' => $payload->retencaoFederalSujeito,
             'valor_ret_pis'    => $payload->retPisCentavos / 100,
             'valor_ret_cofins' => $payload->retCofinsCentavos / 100,

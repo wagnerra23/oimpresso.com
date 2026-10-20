@@ -95,6 +95,38 @@ de 2026-10-04 faz com isso (a grade passa a ser o `shared/DataTable`, `density="
 
 **Fora da grade, segue igual:** a busca (protótipo 360×34 com ícone; produção 384×30 sem ícone).
 
+## Gaveta do insumo — 2026-10-19 (medida e corrigida)
+
+**Como foi medido (2026-10-19, [F] viu diferença entre produção e protótipo):** mesma sonda nos
+dois lados, estilo calculado pelo navegador, tema escuro, 1600×900, os mesmos dados de exemplo do
+protótipo. Protótipo: a cópia do git (`prototipo-ui/cowork/Wagner`, frescor verificado contra o Cowork
+vivo em 2026-10-15) servida localmente. Produção: `oimpresso.com` não é alcançável da sessão (o proxy
+devolve 403), então o lado de produção é o código do `main` — que é o que está no ar desde o deploy do
+#9582 — renderizado num harness com o CSS real compilado (Tailwind + `inertia.css` + bundle). Canário
+do harness: a gaveta da ordem, já corrigida e medida em produção hoje, reproduz no harness os mesmos
+resíduos que a medição de produção declarou (sombras equivalentes, fundo atrás do painel, cinzas da
+ADR 0410). **A prova final é o smoke depois do deploy** (LC-30).
+
+**Causa:** a mesma da gaveta da receita (Recipes-visual-comparison.md): moldura antiga do bundle
+(`.mfg-drw`). Passa a usar `Pages/Manufacturing/_components/Gaveta.tsx`.
+
+| dimensão | antes | protótipo | depois |
+|---|---|---|---|
+| moldura (título, ×, corpo `--bg-2`) | moldura antiga | `Drawer` do DS | igual |
+| "Simular variação" e "Receitas afetadas" | rótulo 10px com traço, sem cartão | `DrawerSection` em cartão | igual (cor do rótulo: ADR 0410) |
+| rodapé | **não existia** | "Fechar" | igual |
+| colunas da tabela de 5 | 180 · 130 · 92 · 100 · 76 (estoura o cartão) | nome flexível · 104 · 92 · 96 · 72 | igual (regra do protótipo copiada para o bundle) |
+| margem | `.mfg-pill` com borda | `StatusBadge` | `StatusBadge` do React, o mesmo da coluna Margem de Receitas (suave com ponto — regra AP7, R13 de Recipes) |
+| nome da receita | negrito | peso normal (é link) | peso normal |
+
+Números da sonda: **80 de 197** propriedades iguais antes, **147 de 166** depois. As 19 restantes: o
+recheio interno do × (28×28 nos dois), 3 cinzas da ADR 0410 e o fundo atrás do painel.
+
+**Comportamento:** o `Esc` fechava pela página e pelo `Sheet`, duas visitas ao servidor por tecla; o
+listener da página saiu (teste em `tests/js/manufacturing-gaveta.test.tsx`). **Fora do eixo FORMA:** o
+nome da receita afetada não é link — no protótipo abre a receita, e a aba Receitas não abre uma
+receita pelo endereço.
+
 ## Cobertura desta tela hoje
 
 | camada | estado |

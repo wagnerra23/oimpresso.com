@@ -35,6 +35,34 @@ class ComprasServiceProvider extends ServiceProvider
         // UC-FLX-33: congela o custo do insumo na linha de orçamento (venda em rascunho).
         // Só lê compras; nunca derruba a venda (ver o docblock do observer).
         \App\TransactionSellLine::observe(\Modules\Compras\Observers\TransactionSellLineCustoObserver::class);
+
+        $this->registerCommands();
+        $this->registerCommandSchedules();
+    }
+
+    protected function registerCommands(): void
+    {
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                // US-COM-027 · UC-FLX-19 — estoque mínimo vira requisição de compra (default OFF por business).
+                \Modules\Compras\Console\Commands\RequisicaoEstoqueMinimoCommand::class,
+            ]);
+        }
+    }
+
+    /**
+     * US-COM-027 · UC-FLX-19 — diário. O comando só enfileira job para business com a regra
+     * LIGADA em common_settings (default OFF): agendar não cria requisição para ninguém até o
+     * negócio ligar. Nunca move estoque nem cria pedido de compra.
+     */
+    protected function registerCommandSchedules(): void
+    {
+        $this->callAfterResolving(\Illuminate\Console\Scheduling\Schedule::class, function ($schedule): void {
+            $schedule->command('compras:requisicao-estoque-minimo')
+                ->dailyAt('06:30')
+                ->withoutOverlapping()
+                ->onOneServer();
+        });
     }
 
     public function register(): void
@@ -43,6 +71,8 @@ class ComprasServiceProvider extends ServiceProvider
 
         // O núcleo pede o custo do insumo pela interface, sem importar o módulo.
         $this->app->bind(\App\Contracts\Compras\CustoDoInsumo::class, \Modules\Compras\Services\CustoDoInsumoService::class);
+        // UC-FLX-17: o recebimento da compra aplica a regra de custo e preço da empresa.
+        $this->app->bind(\App\Contracts\Compras\CustoDoRecebimento::class, \Modules\Compras\Services\AplicarCustoDoRecebimento::class);
     }
 
     protected function registerTranslations(): void

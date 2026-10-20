@@ -59,6 +59,9 @@ on:
       # Invariantes R1 (getListPurchases JOIN scoped) vivem no util compartilhado:
       # MultiTenantSqlGuardTest + GapsP1HardeningTest gateiam contra regressão aqui.
       - 'app/Utils/TransactionUtil.php'
+      # US-COM-026: o recebimento da compra chama a regra de custo do módulo.
+      - 'app/Http/Controllers/PurchaseController.php'
+      - 'app/Domain/Fsm/Modelos/RegrasDaEmpresa.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/compras-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -98,6 +101,8 @@ jobs:
               - 'Modules/Compras/**'
               - 'resources/js/Pages/Compras/**'
               - 'app/Utils/TransactionUtil.php'
+              - 'app/Http/Controllers/PurchaseController.php'
+              - 'app/Domain/Fsm/Modelos/RegrasDaEmpresa.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/compras-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -179,6 +184,8 @@ jobs:
             Modules/Compras/Tests/Feature/MultiTenantTest.php \
             Modules/Compras/Tests/Feature/ComprasContratoFiltrosTest.php \
             Modules/Compras/Tests/Feature/CustoDoInsumoServiceTest.php \
+            Modules/Compras/Tests/Feature/RequisicaoEstoqueMinimoContratoTest.php \
+            Modules/Compras/Tests/Feature/AplicarCustoDoRecebimentoTest.php \
             Modules/Compras/Tests/Feature/ComprasExportarContratoTest.php
 
 

@@ -425,7 +425,9 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ### US-PCP-024 · Simulador de aproveitamento de mídia na bobina (UC-FLX-13) — **P2**
 
-**Implementado em:** _pendente_
+**Implementado em:** `Modules/Producao/Services/AproveitamentoDeMidia.php` · `Modules/Producao/Http/Controllers/AproveitamentoMidiaController.php` · `Modules/Producao/Database/Migrations/2026_10_20_200000_create_pcp_aproveitamento_midia_tables.php`
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoAproveitamentoMidiaContratoTest.php` (lane `verticais-pest.yml`) · casos `Apontamento/Index.casos.md` (UC-PCAPV-01..05).
 
 > owner: wagner · priority: p2 · estimate: 8h · type: story
 > blocked_by: US-PCP-023
@@ -433,11 +435,13 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 **Origem:** UC-FLX-13 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:66`, referências Holdprint, printIQ e Calcgraf, porte média, situação `sem`). Na Pré-impressão os jobs vão para a máquina um a um; nada agrupa peças na largura da bobina. `rg -i "nesting|aproveitamento|largura_bobina"` em `Modules/` volta vazio (medido 2026-10-20): o substrato da CV guarda só preço e mínimo por m² (`Modules/ComunicacaoVisual/Entities/Substrato.php:27-30`), sem largura útil da bobina, e "bobina" no PCP aparece só como motivo de pausa (`Modules/Producao/Entities/Motivo.php:35`).
 
 **Aceite:**
-- [ ] O cadastro da mídia passa a ter largura útil da bobina e margem entre peças.
-- [ ] Dado um conjunto de peças de OS na fila da Pré-impressão com a mesma mídia, o simulador propõe um arranjo na largura da bobina (girando a peça quando a mídia aceita) e mostra metros lineares, área útil e % de perda, comparado com imprimir uma a uma.
-- [ ] O PCP aceita o arranjo e ele vira o romaneio de impressão (US-PCP-023), guardando o consumo previsto de mídia por OS (rateio pela área).
-- [ ] Simular é só leitura; aceitar exige `producao.liberar`, sem ela 403.
-- [ ] Multi-tenant: só entram peças/OS e mídias da empresa do usuário; OS de outra empresa no pedido → 404; Pest com dois tenants.
+- [x] A mídia ganha largura útil da bobina, margem entre peças e se a peça pode girar — em `pcp_bobinas` (uma por mídia, do PCP; o cadastro da mídia segue na Comunicação Visual). `PUT /producao/bobinas/{mídia}` (UC-PCAPV-01).
+- [x] Dado um conjunto de OS e uma mídia, o simulador junta as peças dessa mídia (uma por unidade) e propõe o arranjo em faixas na largura da bobina, girando a peça quando a mídia aceita; mostra metros lineares, área útil, área consumida e % de perda, e os mesmos números para imprimir uma a uma (UC-PCAPV-02/03). Peça maior que a bobina é recusada. `POST /producao/aproveitamento/simular`.
+- [x] O PCP aceita o arranjo: ele é recalculado no servidor e gravado (`pcp_arranjos`), com o consumo previsto de mídia por OS rateado pela área (`pcp_arranjo_os`), e vira o romaneio de impressão de cada OS na etapa informada (US-PCP-023) (UC-PCAPV-04). `POST /producao/aproveitamento`.
+- [x] Simular é só leitura (`producao.access`); aceitar exige o papel `producao.liberar`, sem ele 403 (UC-PCAPV-02/04).
+- [x] Multi-tenant: mídia, OS ou etapa de outra empresa → 404 e nada gravado; Pest com os tenants 98 e 99 (UC-PCAPV-05).
+- [ ] Escolher as OS pela fila da Pré-impressão (hoje o PCP informa as OS) e a tela do simulador com o desenho das faixas.
+- [ ] Baixar a mídia pelo consumo previsto do arranjo (hoje o consumo real segue o apontado na etapa, US-PCP-021).
 
 ### US-PCP-025 · Produção só libera com o sinal pago (UC-FLX-28) — **P2**
 
@@ -483,7 +487,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [ ] Quantidade por área (m²) no item da CV: hoje a reserva usa a quantidade da linha na unidade do produto.
 - [ ] Mostrar o reservado no saldo disponível para venda do insumo (hoje nenhuma tela lê `stock_reservations`).
 
-**Total US: 27** · **Estimate agregado:** ~98h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
+**Total US: 28** · **Estimate agregado:** ~106h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
 
 ### US-PCP-026 · Etapas da OS vêm do roteiro do produto (UC-FLX-07) — **P1**
 
@@ -503,6 +507,28 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [x] Multi-tenant: roteiro de outra empresa → 404; produto de outra empresa é recusado; vínculo apontando roteiro de outra empresa conta como produto sem roteiro (UC-PCROT-04).
 - [ ] Seletor de produtos na tela de Roteiros (`Roteiros/Index.tsx`, com charter e gate visual).
 - [ ] Roteiro padrão da empresa para produto sem roteiro (decisão [W]: hoje produto sem roteiro não vira OS).
+
+### US-PCP-028 · Prazo de entrega calculado pela fila (UC-FLX-06) — **P2**
+
+> owner: wagner · priority: p2 · estimate: 6h · status: doing · type: story
+
+**Implementado em:** _pendente_ — o cálculo em dias úteis e a data prometida na aprovação existem (`Modules/Producao/Services/PrazoPelaFila.php` · `Modules/Producao/Services/CalendarioDeProducao.php` · `app/Contracts/Rh/CalendarioDaEmpresa.php` · `Modules/Essentials/Services/CalendarioDaEmpresaService.php` · `Modules/Producao/Services/PrometerPrazoDaVenda.php` · `Modules/Producao/Jobs/CriarOsDaVendaJob.php` · `Modules/Producao/Http/Controllers/PrazoDaVendaController.php`); falta mostrar o prazo na aprovação do orçamento (tela de venda).
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoPrazoPelaFilaContratoTest.php` (lane `verticais-pest.yml`).
+
+**Origem:** UC-FLX-06 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:59`, referências Holdprint e Calcgraf, situação `planejado`, "SPEC do PCP"). Medido em 2026-10-20: o posto já tinha `horas_por_dia` (padrão 10) e `capacidade_por_hora`, as etapas do roteiro têm `horas`, e o `CriarOsDaVenda` programava as etapas sem olhar a fila (`Modules/Producao/Services/CriarOsDaVenda.php:87`); nada calculava a data de entrega. A US-PCP-013 (capacidade dia/semana agregada) é outra pergunta.
+
+**Aceite:**
+- [x] Para a venda ou orçamento, cada linha cujo produto tem roteiro soma, em cada posto, a fila à frente — Σ das programações `pendente`/`iniciada` do posto na empresa — e as próprias etapas (sem as opcionais), em sequência por bloco, trilhas em paralelo; horas ÷ horas por dia do posto (UC-PCPRZ-01).
+- [x] Linhas da mesma venda disputam os mesmos postos; linha sem roteiro fica fora e vem listada (UC-PCPRZ-02).
+- [x] Posto sem horas por dia e etapa sem posto usam 8 h/dia, e a resposta diz isso em `premissas` (UC-PCPRZ-01).
+- [x] Só leitura; a OS da própria venda não entra na fila dela (UC-PCPRZ-03).
+- [x] `GET /producao/vendas/{id}/prazo` em JSON com `sell.view` ou `producao.access` e o módulo no pacote; venda de outra empresa 404 (UC-PCPRZ-04).
+- [x] Decisão [W] 2026-10-20 — *"Pula sábado, domingo e feriados"*, pelo período de funcionamento já cadastrado: cada dia de produção vale um dia útil; hora útil = turno da produção (`pcp_turnos`) → senão expediente do RH (turno fixo do Essentials; com vários, o de mais funcionários) → senão 08h–18h com aviso; folgas do expediente, sem ele sábado e domingo (UC-PCPRZ-05, UC-PCPRZ-07).
+- [x] Feriados = os do RH da empresa e da loja da venda (`essentials_holidays`, mesma regra do Ponto), lidos pelo contrato `App\Contracts\Rh\CalendarioDaEmpresa`; nenhum feriado fixo no código; sem o Essentials, nenhum feriado, com aviso (UC-PCPRZ-06).
+- [x] Decisão [W] 2026-10-20 — a data prometida fica na venda (`transactions.due_date`, PROJETO_DT_FIM): na aprovação, venda sem data recebe a estimativa; data digitada pelo vendedor não é sobrescrita; a data vai para a OS (`pcp_ordens.prazo_prometido`) (UC-PCPRZ-08).
+- [ ] Mostrar o prazo na aprovação do orçamento (tela de venda).
+- [ ] Descontar o já apontado da etapa iniciada.
 
 ## §8 — Regras Gherkin (R-PCP-001..010) — resumo
 
