@@ -46,8 +46,9 @@ final class HorasDosPostosService implements HorasDosPostos
         }
 
         return DB::table('pcp_postos')->where('business_id', $businessId)->whereIn('id', array_keys($segundos))
-            ->orderBy('nome')->get(['id', 'codigo', 'nome', 'custo_hora'])
+            ->orderBy('nome')->get(['id', 'codigo', 'nome', 'setor', 'custo_hora'])
             ->map(fn ($p) => ['posto_id' => (int) $p->id, 'codigo' => (string) $p->codigo, 'nome' => (string) $p->nome,
+                'setor' => ($s = trim((string) $p->setor)) === '' ? null : $s,
                 'custo_hora' => number_format((float) $p->custo_hora, 2, '.', ''), 'segundos' => $segundos[(int) $p->id]])
             ->values()->all();
     }
