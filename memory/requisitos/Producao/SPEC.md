@@ -461,7 +461,8 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [x] Com a regra ligada, `liberar` recusa com motivo (`sinal_pendente`, pago × exigido) enquanto o pago da venda da OS não alcançar o mínimo, inclusive para quem tem `producao.liberar` — UC-PCLIB-05/06.
 - [ ] A OS gerada da venda aprovada fica vinculada ao título do sinal (parcela de sinal e saldo na aprovação — Vendas/Financeiro).
 - [x] Pagamento gravado na venda executa a liberação pela FSM com ator sistema, registrada no histórico da OS; OS com etapa sem responsável fica em `aguardando_liberacao` — UC-PCLIB-07.
-- [ ] Retorno do banco cria o pagamento da venda (hoje o webhook de boleto só grava o evento — PaymentGateway); campo do sinal mínimo na aba Fluxos da empresa.
+- [ ] Retorno do banco cria o pagamento da venda (hoje o webhook de boleto só grava o evento — PaymentGateway).
+- [x] Campo do sinal mínimo na aba Fluxos da empresa (`PATCH /fluxos/sinal`, `FluxosController::sinal`, `AbaEmpresa.tsx`) — UC-FLXT-22.
 - [x] Idempotente: pagamento repetido não executa a transição duas vezes (só age em `aguardando_liberacao`, com trava); OS cancelada não é liberada — UC-PCLIB-07.
 - [x] Multi-tenant: o listener usa o `business_id` do próprio pagamento e só toca OS e venda da mesma empresa; `liberar` em OS de outra empresa → não encontrada (404); Pest 98 × 99 — UC-PCLIB-07.
 

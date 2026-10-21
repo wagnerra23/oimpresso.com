@@ -1083,6 +1083,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::patch('/fluxos/regra', [\App\Http\Controllers\FluxosController::class, 'regra'])->name('fluxos.regra');
     Route::patch('/fluxos/compra', [\App\Http\Controllers\FluxosController::class, 'compra'])->name('fluxos.compra');
     Route::patch('/fluxos/margem', [\App\Http\Controllers\FluxosController::class, 'margem'])->name('fluxos.margem');
+    Route::patch('/fluxos/sinal', [\App\Http\Controllers\FluxosController::class, 'sinal'])->name('fluxos.sinal');
     Route::post('/fluxos/assistente', [\App\Http\Controllers\FluxosController::class, 'assistente'])->middleware('throttle:20,1')->name('fluxos.assistente');
 
     Route::prefix('account')->group(function () {

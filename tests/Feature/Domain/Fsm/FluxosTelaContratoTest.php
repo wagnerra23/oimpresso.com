@@ -1,5 +1,6 @@
 <?php
 // @covers-us US-SELL-069 (UC-FLXT-19: a margem mínima é configurada nesta tela)
+// @covers-us US-PCP-025 (UC-FLXT-22: o sinal mínimo da produção é configurado nesta tela)
 // @covers-us US-PCP-021 (UC-FLXT-20/21: a regra de baixa de material sem OS não executa e não baixa duas vezes)
 
 declare(strict_types=1);
@@ -491,6 +492,42 @@ it('UC-FLXT-19 · quem configura grava a margem mínima do orçamento; vazio des
     flxtEntrar($this, flxtUsuario(['fluxos.ver']));
     expect(flxtPatch($this, '/fluxos/margem', ['margem_minima' => 10])->getStatusCode())->toBe(403);
     expect($gravada())->toBeNull();
+});
+
+it('UC-FLXT-22 · quem configura grava o sinal mínimo da produção; vazio desliga; fora de 0,01–100 é recusado; outra empresa não muda', function () {
+    if (! \Illuminate\Support\Facades\Schema::hasColumn('fsm_modelos_empresa', 'sinal_minimo_pct')) {
+        $this->markTestSkipped('Coluna fsm_modelos_empresa.sinal_minimo_pct ausente (migration 2026_10_20_120000).');
+    }
+    // Empresa vizinha com a regra já gravada: o PATCH da 98 não pode tocá-la (Tier 0).
+    $vizinha = (int) $this->seededSupportClientTenant()->id;
+    DB::table('fsm_modelos_empresa')->updateOrInsert(['business_id' => $vizinha], ['modelo' => 'cv-pequena', 'sinal_minimo_pct' => '40.00']);
+    $daVizinha = fn () => DB::table('fsm_modelos_empresa')->where('business_id', $vizinha)->value('sinal_minimo_pct');
+
+    flxtEntrar($this, flxtUsuario(['fluxos.ver', 'fluxos.configurar']));
+    flxtPostAplicar($this, ['modelo' => 'cv-pequena']);
+    $gravado = fn () => DB::table('fsm_modelos_empresa')->where('business_id', FLXT_BIZ)->value('sinal_minimo_pct');
+
+    // Texto com 2 casas, como a tela manda: chega ao DECIMAL sem passar por float.
+    flxtPatch($this, '/fluxos/sinal', ['sinal_minimo' => '33.33'])->assertRedirect('/fluxos?aba=empresa');
+    expect((string) $gravado())->toBe('33.33');
+    expect(flxtGet($this, '/fluxos?aba=empresa')->json('props.sinal_minimo'))->toBe('33.33');
+
+    foreach (['0', '0.00', '100.01', '-5', 'abc'] as $ruim) {
+        flxtPatch($this, '/fluxos/sinal', ['sinal_minimo' => $ruim])->assertSessionHasErrors('sinal_minimo');
+    }
+    expect((string) $gravado())->toBe('33.33');
+
+    flxtPatch($this, '/fluxos/sinal', ['sinal_minimo' => '100.00'])->assertRedirect('/fluxos?aba=empresa');
+    expect((string) $gravado())->toBe('100.00');
+
+    flxtPatch($this, '/fluxos/sinal', ['sinal_minimo' => null])->assertRedirect('/fluxos?aba=empresa');
+    expect($gravado())->toBeNull();
+    expect(flxtGet($this, '/fluxos?aba=empresa')->json('props.sinal_minimo'))->toBeNull();
+    expect((string) $daVizinha())->toBe('40.00');
+
+    flxtEntrar($this, flxtUsuario(['fluxos.ver']));
+    expect(flxtPatch($this, '/fluxos/sinal', ['sinal_minimo' => '10.00'])->getStatusCode())->toBe(403);
+    expect($gravado())->toBeNull();
 });
 
 /** Regra do UC-FLX-14 gravada na etapa do processo de venda do modelo, na empresa dada. */

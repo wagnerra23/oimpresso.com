@@ -4,7 +4,8 @@
 // (PATCH /fluxos/regra) e a Compra é configurável (PATCH /fluxos/compra, regras de fsm-regras.jsx);
 // os dois exigem fluxos.configurar — sem ela os switches ficam só para leitura.
 // A margem mínima do orçamento (PATCH /fluxos/margem, UC-FLXT-19) não vem do protótipo: foi
-// pedida por [W] em 2026-10-19 e usa os mesmos átomos da Compra (Interruptor + campo).
+// pedida por [W] em 2026-10-19 e usa os mesmos átomos da Compra (Interruptor + campo). O sinal
+// mínimo da produção (PATCH /fluxos/sinal, UC-FLXT-22 · US-PCP-025) segue o mesmo desenho.
 
 import { useEffect, useState } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
@@ -28,6 +29,8 @@ interface Props {
   opcoesCompra: MapaOpcoesCompra;
   /** UC-FLXT-19: margem mínima do orçamento, em % (nula = desligada). */
   margemMinima: number | null;
+  /** UC-FLXT-22: sinal mínimo para liberar a OS, em % da venda, texto decimal (nulo = desligado). */
+  sinalMinimo: string | null;
   podeConfigurar: boolean;
 }
 
@@ -165,9 +168,55 @@ function MargemMinima({ valor, pode }: { valor: number | null; pode: boolean }) 
   );
 }
 
-export default function AbaEmpresa({ empresa, emUso, portes, atividades, ligadas, compra, opcoesCompra, margemMinima, podeConfigurar }: Props) {
+/**
+ * UC-FLXT-22 · sinal mínimo para a produção liberar a OS (UC-FLX-28 · US-PCP-025). Ligado, a OS só
+ * sai de Aguardando liberação quando o pago da venda alcança esse % do total; o pagamento que chega
+ * libera sozinho. Desligado, grava vazio (PATCH /fluxos/sinal).
+ */
+function SinalMinimo({ valor, pode }: { valor: string | null; pode: boolean }) {
+  const ligado = valor !== null;
+  const atual = valor === null ? null : Number(valor);
+  // Vai como texto com 2 casas: o servidor grava em DECIMAL sem passar por float.
+  const gravar = (v: number | null) => router.patch('/fluxos/sinal', { sinal_minimo: v === null ? null : v.toFixed(2) }, salvar);
+  const [rascunho, setRascunho] = useState<number>(atual ?? 0);
+  useEffect(() => setRascunho(atual ?? 0), [atual]);
+
+  return (
+    <section className="flx-card" aria-label="Sinal mínimo para produzir">
+      <div className="flx-cmp">
+        <div className="flx-cmp-r">
+          <Interruptor
+            id="flx-sinal-minimo"
+            titulo="Produção só libera com o sinal pago"
+            sub="A OS espera em Aguardando liberação até a venda ter esse percentual pago"
+            checked={ligado}
+            disabled={!pode}
+            onChange={(v) => gravar(v ? 50 : null)}
+          />
+          {ligado && (
+            <div className="flx-cmp-p">
+              <label className="flx-busca" htmlFor="flx-sinal-minimo-pct">
+                <span className="flx-lbl">Sinal mínimo (%)</span>
+                <NumericInputPtBR
+                  id="flx-sinal-minimo-pct"
+                  value={rascunho}
+                  precision={2}
+                  disabled={!pode}
+                  onChange={setRascunho}
+                  onBlur={() => { if (rascunho !== atual) gravar(rascunho); }}
+                />
+              </label>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default function AbaEmpresa({ empresa, emUso, portes, atividades, ligadas, compra, opcoesCompra, margemMinima, sinalMinimo, podeConfigurar }: Props) {
   const erros = (usePage().props as { errors?: Record<string, string> }).errors;
-  const erro = erros?.regra ?? erros?.margem_minima ?? null;
+  const erro = erros?.regra ?? erros?.margem_minima ?? erros?.sinal_minimo ?? null;
   const verModelos = (
     <Button size="sm" asChild><Link href="/fluxos?aba=modelos">Ver modelos</Link></Button>
   );
@@ -209,6 +258,7 @@ export default function AbaEmpresa({ empresa, emUso, portes, atividades, ligadas
         <Button size="sm" variant="outline" asChild><Link href="/fluxos?aba=modelos">Trocar modelo</Link></Button>
       </div>
       <MargemMinima valor={margemMinima} pode={podeConfigurar} />
+      <SinalMinimo valor={sinalMinimo} pode={podeConfigurar} />
       <div className="flx-procs">
         {emUso.processos.map((p) => {
           const daCompra = p.dominio === 'compra' && compra.length > 0;
