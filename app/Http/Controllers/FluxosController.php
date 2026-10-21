@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Contracts\Producao\ReservaDeInsumo;
 use App\Contracts\Compras\RequisicaoEstoqueMinimo;
 use App\Domain\Fsm\Modelos\AplicarModelo;
 use App\Domain\Fsm\Modelos\CatalogoModelos;
@@ -12,6 +13,7 @@ use App\Domain\Fsm\Modelos\RecomendarModelo;
 use App\Domain\Fsm\Modelos\RegrasCompra;
 use App\Domain\Fsm\Modelos\RegrasDaEmpresa;
 use App\Domain\Fsm\Models\ModeloEmpresa;
+use App\Utils\ModuleUtil;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -110,6 +112,9 @@ class FluxosController extends Controller
             'opcoes_compra' => $comModelo ? RegrasCompra::opcoes() : (object) [],
             // UC-FLX-35 · UC-FLXT-19: margem mínima do orçamento (nula = desligada).
             'margem_minima' => $comModelo ? $regras->margemMinima($businessId) : null,
+            // US-PCP-031 · UC-FLX-14: reserva do insumo na venda (null = empresa sem o módulo Produção).
+            'reserva_insumo' => $comModelo && self::temProducao($businessId)
+                ? app(ReservaDeInsumo::class)->ligada($businessId) : null,
             // UC-FLX-19 · UC-FLXT-24: requisição pelo estoque mínimo (nula = sem o módulo Compras).
             'requisicao_estoque_minimo' => $comModelo && app()->bound(RequisicaoEstoqueMinimo::class)
                 ? app(RequisicaoEstoqueMinimo::class)->ativo($businessId)
@@ -213,6 +218,24 @@ class FluxosController extends Controller
     }
 
     /**
+     * Reserva o insumo na venda (US-PCP-031 · UC-FLX-14). Ligada, a OS criada pela venda aprovada
+     * reserva o material da receita; desligada, nada novo é reservado (o que já foi reservado segue).
+     */
+    public function reserva(Request $request): RedirectResponse
+    {
+        abort_unless($request->user()->can('fluxos.configurar'), 403);
+
+        $dados = $request->validate(['ligada' => ['required', 'boolean']]);
+        // Tier 0 (ADR 0093): a empresa é sempre a da sessão.
+        $businessId = (int) $request->session()->get('user.business_id');
+        abort_unless(self::temProducao($businessId), 404);
+
+        app(ReservaDeInsumo::class)->mudar($businessId, (bool) $dados['ligada']);
+
+        return redirect('/fluxos?aba=empresa');
+    }
+
+    /**
      * Requisição de compra pelo estoque mínimo (UC-FLX-19 · UC-FLXT-24). Ligada, o job diário
      * do Compras cria a requisição do item abaixo do mínimo com o fornecedor da última compra.
      */
@@ -227,6 +250,13 @@ class FluxosController extends Controller
         app(RequisicaoEstoqueMinimo::class)->definir((int) $request->session()->get('user.business_id'), (bool) $dados['ativo']);
 
         return redirect('/fluxos?aba=empresa');
+    }
+
+    /** O interruptor só existe para empresa com o módulo Produção no pacote. */
+    private static function temProducao(int $businessId): bool
+    {
+        return app()->bound(ReservaDeInsumo::class)
+            && (bool) app(ModuleUtil::class)->hasThePermissionInSubscription($businessId, 'producao_module');
     }
 
     /** Erro de regra de negócio vira erro de formulário (Inertia mostra no campo). */

@@ -89,7 +89,7 @@ class RepairStatusController extends Controller
             $statuses = RepairStatus::where('business_id', $business_id)
                 ->orderBy('sort_order')
                 ->orderBy('name')
-                ->get(['id', 'name', 'color', 'sort_order', 'is_completed_status', 'sms_template'])
+                ->get(['id', 'name', 'color', 'sort_order', 'is_completed_status', 'sms_template', 'whatsapp_template_aviso'])
                 ->map(fn ($s) => [
                     'id' => (int) $s->id,
                     'name' => $s->name,
@@ -97,6 +97,7 @@ class RepairStatusController extends Controller
                     'sort_order' => (int) $s->sort_order,
                     'is_completed_status' => (int) $s->is_completed_status,
                     'sms_template' => $s->sms_template,
+                    'whatsapp_template_aviso' => $s->whatsapp_template_aviso,
                     'job_sheets_count' => (int) ($usoPorStatus[$s->id] ?? 0),
                 ])
                 ->values();
@@ -107,6 +108,17 @@ class RepairStatusController extends Controller
         }
 
         // Default: caminho null — view é renderizada por settings (includeIf).
+    }
+
+    /**
+     * Mensagem de WhatsApp que o status manda ao cliente quando a OS entra nele (UC-FLX-24).
+     * Só os dois templates que o número de WhatsApp tem; qualquer outro valor vira "não avisa".
+     */
+    private function avisoTemplate(Request $request): ?string
+    {
+        $valor = (string) $request->input('whatsapp_template_aviso', '');
+
+        return in_array($valor, ['ready', 'waiting_parts'], true) ? $valor : null;
     }
 
     /**
@@ -159,6 +171,7 @@ class RepairStatusController extends Controller
             $input = $request->only(['name', 'color', 'sort_order',
                 'sms_template', 'email_subject', 'email_body', ]);
             $input['is_completed_status'] = ! empty($request->get('is_completed_status')) ? 1 : 0;
+            $input['whatsapp_template_aviso'] = $this->avisoTemplate($request);
             $input['business_id'] = $business_id;
 
             $status = RepairStatus::create($input);
@@ -218,6 +231,7 @@ class RepairStatusController extends Controller
                 $input = $request->only(['name', 'color', 'sort_order',
                     'sms_template', 'email_subject', 'email_body', ]);
                 $input['is_completed_status'] = ! empty($request->get('is_completed_status')) ? 1 : 0;
+                $input['whatsapp_template_aviso'] = $this->avisoTemplate($request);
                 $status = RepairStatus::where('business_id', $business_id)->findOrFail($id);
                 $status->update($input);
 

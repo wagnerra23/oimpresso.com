@@ -58,6 +58,10 @@ aberto, sem sair da tela.
   → `TituloService` → `CnabDirectStrategy`. Requer conta bancária configurada (rodapé linka
   `/financeiro/contas-bancarias`). Span OTel `financeiro.boleto.emitir` (latência gateway + erro).
   Título que já tem boleto mostra `nosso_numero` + status e o botão some.
+- **Lembretes** (botão no cabeçalho): painel lateral com os lembretes da régua de cobrança
+  (US-FIN-071, `fin_titulo_lembretes`), mais recentes primeiro (até 100) — enviado ou não enviado com
+  o motivo (opt-out, sem e-mail, sem cliente, falha) e se virou tarefa do vendedor — e o estado da
+  régua com link para configurar. Prop `Inertia::optional`: só é calculada quando o painel abre.
 - **Novo recebimento**: botão primary redireciona pra `/financeiro/unificado/novo?kind=receivable`
   (o insert manual vive no Unificado — não é reimplementado aqui).
 - **Chrome canon**: `<PageHeader>` v3.8 + `FinanceiroSubNav active="contas-receber"` (ADR 0180).
