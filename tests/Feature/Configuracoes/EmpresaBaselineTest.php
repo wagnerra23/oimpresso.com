@@ -15,7 +15,8 @@ use Illuminate\Support\Facades\Schema;
  * Mapa campo-a-campo: memory/requisitos/Configuracoes/empresa-parity.md (itens `alta`).
  *
  * O teste mais importante é o da SUBSTITUIÇÃO: o POST não é parcial. Checkbox ausente vira 0,
- * `common_settings` ausente vira [] e `enabled_modules` ausente vira null. Uma tela que mande só a
+ * as chaves de `common_settings` que a Blade desenha somem quando ausentes (as de outras features ficam,
+ * desde 2026-10-21) e `enabled_modules` ausente vira null. Uma tela que mande só a
  * aba aberta apaga as outras — é isso que este teste deixa explícito para a F3.
  *
  * Tenant de teste 98 x cliente fictício 99 (ADR 0358).
