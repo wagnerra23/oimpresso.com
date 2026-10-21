@@ -122,6 +122,9 @@ comprovadamente verde e crescer daí — o caminho é converter, um UC por vez.
 | UC-PURSHW-04 | Editar/Excluir só aparecem com a permissão | must | charter Goals · Anti-hooks | `ShowPageTest` | 🧪 estrutural · na lane |
 | UC-PURSHW-05 | A tela não recalcula totais — exibe o que o controller mandou | must `[V0]` | charter Non-Goal 3 | `PurchaseShowTenantContratoTest` | ✅ comportamento (metade backend) · na lane |
 | UC-PURSHW-06 | A Page não decide tenant — `business_id` vem das props | must `[T0]` | charter Non-Goal 4 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `ShowPageTest` | 🧪 estrutural · na lane |
+| UC-PURSHW-07 | Preços propostos pelo recebimento aparecem no detalhe, com aviso da regra em Conferido | must `[T0]` | SPEC US-COM-028 · charter Goals | `PropostasDePrecoContratoTest` | 🧪 sem veredito |
+| UC-PURSHW-08 | Aprovar grava o preço proposto e devolve a margem de antes | must `[V0]` | SPEC US-COM-028 · US-COM-026 (`aplicar`) | `PropostasDePrecoContratoTest` | 🧪 sem veredito |
+| UC-PURSHW-09 | Recusar mantém o preço; aprovar exige `product.update`, a empresa certa e o preço de antes | must `[T0]` `[V0]` | SPEC US-COM-028 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `PropostasDePrecoContratoTest` | 🧪 sem veredito |
 
 ---
 
@@ -259,6 +262,36 @@ comprovadamente verde e crescer daí — o caminho é converter, um UC por vez.
   instrumento certo. Só que ele também não roda — instrumento certo, nunca acionado. A v1 marcava
   *"🧪 estrutural (correto)"* sem `⚠️`; a exceção valia para o eixo do presence-gate, e some no eixo
   da lane.
+
+---
+
+## UC-PURSHW-07 · Preços propostos pelo recebimento aparecem no detalhe · `must` `[T0]`
+
+- **Persona:** dono que deixou a regra de custo em "Propõe novo preço" (Fluxos › Empresa, card Compra).
+- **Aceite:** Dado uma compra recebida que gerou proposta · Quando abro o detalhe · Então a seção
+  "Preços propostos" lista produto, custo antes→depois, preço antes→proposto e a situação. Outra empresa
+  não vê a proposta, nem pelo id da compra. Com a regra em Conferido, a seção avisa que a compra não tem
+  essa etapa e que o recebimento não atualiza custo nem preço.
+- **Teste:** [`PropostasDePrecoContratoTest`](../../../../Modules/Compras/Tests/Feature/PropostasDePrecoContratoTest.php).
+- **Contrato:** SPEC US-COM-028 · charter Goals.
+- **Status: 🧪 sem veredito**
+
+## UC-PURSHW-08 · Aprovar grava o preço proposto e devolve a margem de antes · `must` `[V0]`
+
+- **Aceite:** Dado custo 11,0000/12,1000, preço 15,0000/16,5000 e proposta 18,1500 (imposto 10%) ·
+  Quando aprovo · Então o preço fica 16,5000/18,1500 e a margem 50,0000 — o mesmo que a regra `aplicar`
+  daria no recebimento (segundo caminho, no próprio teste). A proposta fica `aprovada`, com quem e quando.
+- **Teste:** [`PropostasDePrecoContratoTest`](../../../../Modules/Compras/Tests/Feature/PropostasDePrecoContratoTest.php).
+- **Contrato:** SPEC US-COM-028 · US-COM-026 (`aplicar`) · regra mestre de valor (proibicoes.md).
+- **Status: 🧪 sem veredito**
+
+## UC-PURSHW-09 · Recusar mantém o preço; aprovar tem três travas · `must` `[T0]` `[V0]`
+
+- **Aceite:** Recusar não muda a variação. Aprovar recusa quando o preço mudou depois da proposta
+  (sobrescreveria a mudança), devolve 403 sem `product.update` e 404 para proposta de outra empresa.
+- **Teste:** [`PropostasDePrecoContratoTest`](../../../../Modules/Compras/Tests/Feature/PropostasDePrecoContratoTest.php).
+- **Contrato:** SPEC US-COM-028 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
+- **Status: 🧪 sem veredito**
 
 ---
 

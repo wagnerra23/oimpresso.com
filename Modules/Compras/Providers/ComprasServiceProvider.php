@@ -73,6 +73,8 @@ class ComprasServiceProvider extends ServiceProvider
         $this->app->bind(\App\Contracts\Compras\CustoDoInsumo::class, \Modules\Compras\Services\CustoDoInsumoService::class);
         // UC-FLX-17: o recebimento da compra aplica a regra de custo e preço da empresa.
         $this->app->bind(\App\Contracts\Compras\CustoDoRecebimento::class, \Modules\Compras\Services\AplicarCustoDoRecebimento::class);
+        // US-COM-028: o detalhe da compra lista os preços propostos para aprovar ou recusar.
+        $this->app->bind(\App\Contracts\Compras\PropostasDePreco::class, \Modules\Compras\Services\PropostasDePreco::class);
     }
 
     protected function registerTranslations(): void

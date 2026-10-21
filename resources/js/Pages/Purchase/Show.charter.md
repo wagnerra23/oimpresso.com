@@ -44,6 +44,7 @@ Mostrar tudo de uma compra numa página só: fornecedor, empresa/filial, resumo,
 - Bloco de pagamentos (data, método+nota, valor) com empty-state.
 - Bloco de totais: subtotal, desconto (fixo ou %), quebra de impostos, frete, total geral, pago e a pagar (com destaque de saldo).
 - Notas adicionais quando presentes.
+- Seção "Preços propostos" (US-COM-028): as propostas que o recebimento gerou com a regra em "Propõe novo preço", com Aprovar e Recusar por item (`product.update`), e aviso quando a regra está em Conferido. É a única ação que muda dado nesta tela, e muda o preço do produto, não a compra.
 - Ações no header gated por permissão: voltar, imprimir (`/purchases/print/{id}`), editar (`purchase.update`), excluir (`purchase.delete`).
 
 ---

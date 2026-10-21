@@ -11,11 +11,12 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PageHeader from '@/Components/shared/PageHeader';
-import { router } from '@inertiajs/react';
+import { Deferred, router } from '@inertiajs/react';
 import { type ReactNode } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader } from '@/Components/ui/card';
 import { Edit, Trash2, Printer, ArrowLeft, FileText, Download } from 'lucide-react';
+import PrecosPropostos, { type PrecosPropostosPayload } from './_components/PrecosPropostos';
 
 // ---------- Tipos ----------
 
@@ -97,11 +98,13 @@ interface Permissions {
   update: boolean;
   delete: boolean;
   payments: boolean;
+  aprovar_preco: boolean;
 }
 
 interface Props {
   purchase: PurchaseDetail;
   permissions: Permissions;
+  precos_propostos?: PrecosPropostosPayload | null;
 }
 
 // ---------- Helpers ----------
@@ -143,7 +146,7 @@ const PAYMENT_PILL: Record<PaymentStatus, string> = {
 
 // ---------- Página principal ----------
 
-function PurchaseShow({ purchase, permissions }: Props) {
+function PurchaseShow({ purchase, permissions, precos_propostos }: Props) {
   const onDelete = () => {
     if (!confirm(`Confirma exclusão da compra ${purchase.ref_no}?`)) return;
     router.delete(`/purchases/${purchase.id}`);
@@ -288,6 +291,11 @@ function PurchaseShow({ purchase, permissions }: Props) {
           </table>
         </CardContent>
       </Card>
+
+      {/* Preços propostos pelo recebimento (US-COM-028) — prop deferida */}
+      <Deferred data="precos_propostos" fallback={null}>
+        <PrecosPropostos dados={precos_propostos ?? null} podeAprovar={permissions.aprovar_preco} />
+      </Deferred>
 
       {/* Pagamentos + Totais */}
       <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
