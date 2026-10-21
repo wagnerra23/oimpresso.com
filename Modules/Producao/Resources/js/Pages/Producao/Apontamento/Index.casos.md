@@ -91,9 +91,10 @@ Status: 🧪
 
 > **Âncora:** decisão [W] 2026-10-19 — *"a OS baixa do estoque o material apontado em cada etapa, pelo
 > custo do lote que saiu"* — e o UC-FLX-37 do catálogo de fluxos (`fluxos-data.jsx`: *"congela as horas
-> apontadas e o material pelo custo da data da baixa; compra depois não reescreve a OS"*). Nesta entrega
-> são os endpoints (PWA e app); a tela ainda não tem o campo — o Non-Goal "baixa de material" do charter
-> é da thread 08. Prova: `ProducaoMaterialContratoTest`. ESTOQUE e VALOR: regra mestre.
+> apontadas e o material pelo custo da data da baixa; compra depois não reescreve a OS"*). Os endpoints
+> (PWA e app) vieram primeiro; desde 2026-10-21 a tela tem o botão "Material" na etapa rodando, com material,
+> quantidade e rolo (UC-PCMAT-09/10). O estorno segue fora. Prova: `ProducaoMaterialContratoTest`. ESTOQUE e
+> VALOR: regra mestre.
 >
 > Os mesmos UCs cobrem a parte já feita do **UC-FLX-14** (*"Consome do estoque a quantidade real, não a
 > orçada"*, `CasosDoPrototipo.php:67`, situação `parcial`): o que baixa é a quantidade apontada na etapa.
@@ -164,6 +165,26 @@ Status: 🧪
 (`lote_id`) **Então** as 3 saem de B e o custo é 3 × 14,00 = 42,00; sem escolha a baixa segue o FIFO, como antes. Lote de
 outro local, de outro material, de outra empresa, de compra ainda não recebida ou sem saldo para a quantidade inteira é recusado e nada é baixado; a
 mesma chave com outro lote é conflito.
+
+Status: 🧪
+
+## UC-PCMAT-09 · A tela oferece o material da receita e os rolos com saldo · `must` estoque
+
+> UC-FLX-18 (*"o campo do rolo na tela do operador"*). A receita do produto da OS (`InsumosDaReceita`) diz o
+> material; o roteiro não tem material próprio. Prova: `ProducaoMaterialContratoTest`.
+
+**Dado** a OS de 4 un com receita de 0,5 de lona por unidade, e em L os lotes A (2 un, mais antigo) e B (5 un), e em M
+o lote C **Quando** o operador abre "Material" na etapa rodando **Então** vê a lona com previsto 2 e os rolos A (saldo 2)
+e B (saldo 5), nessa ordem, sem o C (outro local), sem material de outra empresa e sem custo. **E** depois de baixar 3
+pelo FIFO o A some (saldo 0) e o B mostra 4, o mesmo saldo da linha da compra.
+
+Status: 🧪
+
+## UC-PCMAT-10 · O rolo escolhido na tela é o que sai · `must` estoque
+
+**Dado** a mesma lista **Quando** o operador escolhe o rolo B e baixa 3 **Então** saem as 3 de B (sobra 2) e o A fica com 2
+— o FIFO teria tirado do A. A quantidade digitada com vírgula sai com ponto (`2,5` → `2.5`; `1.000,25` → `1000.25`) e o
+botão mostra o que vai baixar (vitest `producao-apontamento-quantidade`).
 
 Status: 🧪
 

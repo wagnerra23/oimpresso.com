@@ -32,11 +32,13 @@ inicia, pausa e conclui; o tempo vira custo real e a OS anda para o próximo res
 - Ler QR pela câmera (BarcodeDetector) ou digitar o código; QR de etapa alheia só informa onde está e com quem.
 - Pausar exige motivo do cadastro do posto; concluir passa a OS adiante.
 - Sem internet: guarda o toque com a hora do aparelho e envia depois, sem duplicar.
+- "Material" na etapa rodando: material da receita da OS, quantidade e rolo (lote com saldo no local da venda); sem rolo, o método da empresa (US-PCP-021 · UC-FLX-18). Sem custo na tela.
 - Toque ≥ 44px em todo controle.
 
 ## Non-Goals (nesta fase)
 
 - ❌ Moldura de celular e o texto explicativo do protótipo: são andaime da demonstração.
-- ❌ Baixa de material e refugo (protótipo "Mídia usada", "Registrar refugo"): são da thread 08.
+- ❌ Refugo (protótipo "Registrar refugo"): é da thread 08. A baixa de material entrou em 2026-10-21 (Goals).
+- ❌ Estornar material apontado errado: a regra do material numa venda sem OS é decisão de [W].
 - ❌ Modo terminal fixo na máquina e sobra de material: forma nova do Cowork, ainda fora do espelho (threads 12 e 16).
 - ❌ Escrever no Ponto: ele só é lido (D-PONTO).
