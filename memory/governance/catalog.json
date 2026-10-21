@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 843,
-    "edges": 1146,
+    "nodes": 844,
+    "edges": 1147,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 463,
+      "component": 464,
       "api": 86
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 90,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 463,
+      "hasComponent": 464,
       "dependsOn": 125,
       "delegatesTo": 116,
       "migratesTo": 1,
@@ -1984,6 +1984,13 @@
       "module": "Compras",
       "name": "InsumoMetodoCustoController",
       "desc": "PUT /compras/insumos/{variation}/metodo-custo grava o método do insumo (medio | ultimo) da gaveta de /manufacturing/insumos; empresa da sessão, variação da empresa ou 404, purchase.update (US-COM-024 · UC-FLX-38)"
+    },
+    {
+      "id": "component:Compras/MetodoCustoDoProduto + DataController::product_form_part/after_product_saved",
+      "type": "component",
+      "module": "Compras",
+      "name": "MetodoCustoDoProduto + DataController::product_form_part/after_product_saved",
+      "desc": "campo Método de custo no formulário Blade de novo e de editar produto, aplicado a todas as variações; só roda com o módulo instalado (system.compras_version)"
     },
     {
       "id": "component:Compras/RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
@@ -8058,6 +8065,12 @@
     {
       "from": "module:Compras",
       "to": "component:Compras/InsumoMetodoCustoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/MetodoCustoDoProduto + DataController::product_form_part/after_product_saved",
       "type": "hasComponent",
       "source": "contains"
     },
