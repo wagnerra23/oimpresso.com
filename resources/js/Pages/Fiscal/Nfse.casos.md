@@ -211,9 +211,8 @@ Sem a separação, a NF-e da mesma venda segue recusada por ter serviço (R-NFE-
 - **Teste:** `it('UC-FNFSE-10 · a NF-e da venda separada leva só a parte mercadoria, com o total e o frete dela')`
   e `it('UC-FNFSE-10 · sem a separação a NF-e continua recusando o item de serviço (controle)')` em
   `Modules/NfeBrasil/Tests/Feature/EmissaoSeparadaContratoTest.php`.
-- **Residual declarado:** a NF-e decompõe o vNF pelo `montarItensNfe` de sempre, que **compensa** desconto
-  com frete: a parte de 112,99 sai com vFrete 13,00 e vDesc 0, não vFrete 20,00 e vDesc 7,00. O vNF está
-  certo; a decomposição é a mesma da venda só de mercadoria hoje.
+- **Decomposição no XML:** a parte de 112,99 sai com vFrete 20,00 e vDesc 7,00 (R-NFE-025, #9738). Até
+  2026-10-21 o `montarItensNfe` compensava desconto com frete e ela saía com vFrete 13,00 e vDesc 0.
 - **Status:** 🧪 veredito pendente da lane.
 
 ## UC-FNFSE-11 — A NFS-e da venda separada leva só a parte serviço `[must]`

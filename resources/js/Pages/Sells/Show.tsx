@@ -13,6 +13,7 @@ import {
   ArrowLeft,
   CreditCard,
   Edit,
+  Eye,
   Mail,
   MapPin,
   Package,
@@ -71,6 +72,14 @@ interface Headline {
   location: { id: number; name: string } | null;
   /** ADR 0251 — veículo da venda direta de oficina (placa na consulta). null = sem veículo. */
   vehicle?: { id: number; plate: string; secondary_plate?: string | null } | null;
+  /** UC-FLX-06 — data prometida ao cliente (AAAA-MM-DD). null = sem data. */
+  prazo_prometido?: string | null;
+}
+
+/** "2026-10-26" → "26/10/2026" sem passar por Date (fuso não desloca o dia). */
+function formatDiaMesAno(iso: string | null | undefined): string | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso ?? '');
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : null;
 }
 
 interface SaleLine {
@@ -113,9 +122,21 @@ interface CustoOrcamento {
   itens_mudaram: number;
 }
 
+/**
+ * UC-FLX-04 · quando o cliente abriu o link público do orçamento. Só vem em orçamento
+ * (rascunho de cotação); datas no formato do banco, 'AAAA-MM-DD HH:MM:SS'.
+ */
+interface AcessoOrcamento {
+  aberto: boolean;
+  primeira: string | null;
+  ultima: string | null;
+  vezes: number;
+}
+
 interface ShowDetail {
   lines: SaleLine[];
   custo?: CustoOrcamento | null;
+  acesso?: AcessoOrcamento | null;
   payments: SalePayment[];
   taxes: { order_taxes: Record<string, number>; line_taxes: Record<string, number> };
   activities: Activity[];
@@ -342,6 +363,12 @@ export default function SellsShow(props: SellsShowPageProps) {
               <p className="text-sm text-muted-foreground mt-1">
                 {formatDateTime(headline.transaction_date)}
                 {headline.location ? ` · ${headline.location.name}` : ''}
+                {formatDiaMesAno(headline.prazo_prometido) && (
+                  <span data-testid="prazo-prometido">
+                    {' · '}Entrega prometida:{' '}
+                    <span className="tabular-nums text-foreground">{formatDiaMesAno(headline.prazo_prometido)}</span>
+                  </span>
+                )}
               </p>
             </div>
           </div>
@@ -669,6 +696,38 @@ function CustoDoOrcamento({ custo }: { custo: CustoOrcamento }) {
   );
 }
 
+/** 'AAAA-MM-DD HH:MM:SS' → 'dd/mm hh:mm', pelo texto (sem `new Date()`, que trocaria o fuso). */
+function diaHora(v: string | null): string {
+  if (!v) return '';
+  const [d = '', h = ''] = v.split(' ');
+  const [, m, dia] = d.split('-');
+  return `${dia}/${m} ${h.slice(0, 5)}`.trim();
+}
+
+/** UC-FLX-04 · faixa do termômetro: o cliente já abriu o orçamento? */
+function AcessoDoOrcamento({ acesso }: { acesso: AcessoOrcamento }) {
+  let texto = 'Ainda não aberto pelo cliente';
+  if (acesso.aberto) {
+    texto = `Aberto pelo cliente em ${diaHora(acesso.primeira)}`;
+    if (acesso.vezes > 1) {
+      texto += ` (${acesso.vezes} vezes, a última em ${diaHora(acesso.ultima)})`;
+    }
+  }
+
+  return (
+    <div
+      data-testid="acesso-orcamento"
+      className={
+        'flex items-center gap-2 px-5 py-2.5 border-b border-border bg-muted/20 text-xs '
+        + (acesso.aberto ? 'text-foreground' : 'text-muted-foreground')
+      }
+    >
+      <Eye className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+      <span className="font-medium">{texto}</span>
+    </div>
+  );
+}
+
 /** Custo da linha (guardado e de hoje), só quando o orçamento trouxe custo. */
 function CustoDaLinha({ linha }: { linha?: CustoOrcamento['linhas'][number] }) {
   if (!linha || linha.previsto === null) return null;
@@ -700,6 +759,7 @@ function ShowDetailSections({ detail, headline, timelineRefreshKey = 0 }: ShowDe
           <h2 className="font-semibold text-sm">Itens da venda</h2>
           <span className="ml-auto text-xs text-muted-foreground">{detail.lines.length} item(s)</span>
         </div>
+        {detail.acesso && <AcessoDoOrcamento acesso={detail.acesso} />}
         {detail.custo && <CustoDoOrcamento custo={detail.custo} />}
         {detail.lines.length === 0 ? (
           <EmptyState

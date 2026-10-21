@@ -2689,6 +2689,13 @@ class SellController extends Controller
                         'secondary_plate' => $v->secondary_plate,
                     ])
                     : null,
+                // UC-FLX-06 · US-PCP-028: data prometida ao cliente (PROJETO_DT_FIM). Gravada pelo
+                // vendedor ou, na aprovação, pela fila dos postos (`PrometerPrazoDaVenda`).
+                // Valor CRU da coluna: `$sell->due_date` passa pelo accessor `Transaction::getDueDateAttribute`,
+                // que devolve o vencimento pelo prazo de pagamento (data da venda + pay_term), não esta data.
+                'prazo_prometido' => (\Illuminate\Support\Facades\Schema::hasColumn('transactions', 'due_date') && $sell->getRawOriginal('due_date'))
+                    ? substr((string) $sell->getRawOriginal('due_date'), 0, 10)
+                    : null,
             ];
 
             // Detail payload já calculado acima — encapsular pra defer.
@@ -2709,6 +2716,8 @@ class SellController extends Controller
                     })->values()->toArray(),
                     // UC-FLX-34: custo guardado × custo de hoje no orçamento aberto (nulo fora dele).
                     'custo' => $this->custoDoOrcamento($sell),
+                    // UC-FLX-04: quando o cliente abriu o link público do orçamento (nulo fora de orçamento).
+                    'acesso' => $this->acessoDoOrcamento($sell),
                     'payments' => collect($sell->payment_lines ?? [])->map(function ($p) {
                         return [
                             'id' => (int) $p->id,
@@ -3369,6 +3378,22 @@ class SellController extends Controller
     }
 
     /**
+     * UC-FLX-06 · US-PCP-028 — URL do prazo pela fila (`producao.vendas.prazo`, com `{id}`), ou
+     * null quando a empresa não tem o Produção no pacote: aí a rota responde 403 e a tela nem
+     * pergunta. Mesma condição do `PrazoDaVendaController`.
+     */
+    private function urlDoPrazoPelaFila(int $businessId): ?string
+    {
+        if (! \Illuminate\Support\Facades\Route::has('producao.vendas.prazo')) {
+            return null;
+        }
+        $pode = auth()->user()->can('superadmin')
+            || (new \App\Utils\ModuleUtil())->hasThePermissionInSubscription($businessId, 'producao_module');
+
+        return $pode ? '/producao/vendas/{id}/prazo' : null;
+    }
+
+    /**
      * Display a listing sell quotations.
      *
      * @return \Illuminate\Http\Response
@@ -3425,6 +3450,9 @@ class SellController extends Controller
                     'datatable' => '/sells/draft-dt?is_quotation=1',
                     'back' => '/sells',
                     'convert' => '/sells/convert-to-draft/{id}',
+                    // UC-FLX-06 · US-PCP-028: entrega prevista pela fila dos postos, lida pelo
+                    // diálogo de converter. Nulo sem o Produção no pacote (a rota responderia 403).
+                    'prazo' => $this->urlDoPrazoPelaFila((int) $business_id),
                 ],
             ]);
         }
@@ -3479,6 +3507,16 @@ class SellController extends Controller
 
             if ($is_quotation == 1) {
                 $sells->where('transactions.sub_status', 'quotation');
+
+                // UC-FLX-04: abertura do link público pelo cliente (uma linha por orçamento).
+                $sells->leftJoin('transaction_quote_accesses as tqa', function ($join) {
+                    $join->on('tqa.transaction_id', '=', 'transactions.id')
+                        ->on('tqa.business_id', '=', 'transactions.business_id');
+                })->addSelect(
+                    DB::raw('MAX(tqa.first_opened_at) as quote_first_opened_at'),
+                    DB::raw('MAX(tqa.last_opened_at) as quote_last_opened_at'),
+                    DB::raw('COALESCE(MAX(tqa.open_count), 0) as quote_open_count')
+                );
 
                 if (! auth()->user()->can('quotation.view_all') && auth()->user()->can('quotation.view_own')) {
                     $sells->where('transactions.created_by', request()->session()->get('user.id'));
@@ -3968,6 +4006,33 @@ class SellController extends Controller
 
     /** Diferença entre o custo de hoje e o guardado a partir da qual a linha avisa (5%). */
     private const LIMITE_AVISO_CUSTO = 0.05;
+
+    /**
+     * Termômetro de acesso do orçamento (US-SELL-070 · UC-FLX-04): primeira e última abertura do
+     * link público e quantas vezes abriu. Nulo quando a venda não é orçamento (rascunho de
+     * cotação), que é o mesmo recorte que o QuoteAccessRecorder grava. A linha é lida pelo
+     * business da venda, que o show() já restringiu ao business do usuário.
+     */
+    private function acessoDoOrcamento(Transaction $sell): ?array
+    {
+        if ($sell->status !== 'draft' || $sell->sub_status !== 'quotation') {
+            return null;
+        }
+
+        $linha = DB::table('transaction_quote_accesses')
+            ->where('business_id', (int) $sell->business_id)
+            ->where('transaction_id', (int) $sell->id)
+            ->first(['first_opened_at', 'last_opened_at', 'open_count']);
+
+        $vezes = $linha ? (int) $linha->open_count : 0;
+
+        return [
+            'aberto' => $vezes > 0 && $linha->first_opened_at !== null,
+            'primeira' => $vezes > 0 ? $linha->first_opened_at : null,
+            'ultima' => $vezes > 0 ? $linha->last_opened_at : null,
+            'vezes' => $vezes,
+        ];
+    }
 
     /**
      * Custo do orçamento aberto: o guardado no dia (US-SELL-067) ao lado do custo de hoje
