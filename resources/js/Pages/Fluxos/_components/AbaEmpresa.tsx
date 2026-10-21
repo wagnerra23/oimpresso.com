@@ -7,6 +7,8 @@
 // pedida por [W] em 2026-10-19 e usa os mesmos átomos da Compra (Interruptor + campo).
 // "Reservar material na venda" (PATCH /fluxos/reserva, US-PCP-031 · UC-FLX-14) também não vem do
 // protótipo: usa o mesmo Interruptor e só aparece para empresa com o módulo Produção.
+// A requisição pelo estoque mínimo (PATCH /fluxos/requisicao-estoque-minimo, UC-FLXT-24 · UC-FLX-19)
+// também não vem do protótipo: é o interruptor do job diário do Compras, no card Compra.
 
 import { useEffect, useState } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
@@ -32,6 +34,8 @@ interface Props {
   margemMinima: number | null;
   /** US-PCP-031: reserva do insumo na venda (null = empresa sem o módulo Produção, não mostra). */
   reservaInsumo: boolean | null;
+  /** UC-FLXT-24: requisição pelo estoque mínimo ligada? (nula = sem o módulo Compras). */
+  requisicaoEstoqueMinimo: boolean | null;
   podeConfigurar: boolean;
 }
 
@@ -126,6 +130,28 @@ function CompraRegras({ regras, opcoes, pode }: { regras: RegraCompra[]; opcoes:
 }
 
 /**
+ * UC-FLXT-24 · UC-FLX-19 · ligada, todo dia o Compras cria a requisição do item abaixo do mínimo,
+ * com o fornecedor e o preço da última compra (PATCH /fluxos/requisicao-estoque-minimo).
+ */
+function RequisicaoEstoqueMinimo({ ativo, pode }: { ativo: boolean; pode: boolean }) {
+  return (
+    <div className="flx-cmp">
+      <div className="flx-cmp-r">
+        <Interruptor
+          id="flx-requisicao-estoque-minimo"
+          titulo="Requisição pelo estoque mínimo"
+          sub="Todo dia, o item abaixo do mínimo entra numa requisição de compra com o fornecedor e o preço da última compra"
+          checked={ativo}
+          disabled={!pode}
+          onChange={(v) => router.patch('/fluxos/requisicao-estoque-minimo', { ativo: v }, salvar)}
+        />
+        <span className="flx-uc">UC-FLX-19</span>
+      </div>
+    </div>
+  );
+}
+
+/**
  * UC-FLXT-19 · margem mínima do orçamento (UC-FLX-35). Ligada, converter orçamento em venda abaixo
  * dela exige `sell.aprovar_margem_baixa`; desligada, grava vazio (PATCH /fluxos/margem).
  */
@@ -192,7 +218,7 @@ function ReservaInsumo({ ligada, pode }: { ligada: boolean; pode: boolean }) {
   );
 }
 
-export default function AbaEmpresa({ empresa, emUso, portes, atividades, ligadas, compra, opcoesCompra, margemMinima, reservaInsumo, podeConfigurar }: Props) {
+export default function AbaEmpresa({ empresa, emUso, portes, atividades, ligadas, compra, opcoesCompra, margemMinima, reservaInsumo, requisicaoEstoqueMinimo, podeConfigurar }: Props) {
   const erros = (usePage().props as { errors?: Record<string, string> }).errors;
   const erro = erros?.regra ?? erros?.margem_minima ?? erros?.ligada ?? null;
   const verModelos = (
@@ -257,6 +283,9 @@ export default function AbaEmpresa({ empresa, emUso, portes, atividades, ligadas
               {daCompra
                 ? <CompraRegras regras={compra} opcoes={opcoesCompra} pode={podeConfigurar} />
                 : p.regras.length > 0 && <RegrasLiga p={p} ligadas={ligadas[p.dominio] ?? []} pode={podeConfigurar} />}
+              {p.dominio === 'compra' && requisicaoEstoqueMinimo !== null && (
+                <RequisicaoEstoqueMinimo ativo={requisicaoEstoqueMinimo} pode={podeConfigurar} />
+              )}
             </section>
           );
         })}
