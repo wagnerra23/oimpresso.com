@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader } from '@/Components/ui/card';
 import { AlertTriangle, Check, X } from 'lucide-react';
+import { Inline } from '@/Components/layout';
 
 export interface PrecoProposto {
   id: number;
@@ -54,10 +55,10 @@ export default function PrecosPropostos({ dados, podeAprovar }: { dados: PrecosP
       </CardHeader>
       <CardContent className="px-4 pb-4 text-[13px] space-y-3">
         {dados.aviso && (
-          <div role="note" className="flex gap-2 rounded border border-warning/20 bg-warning-soft px-3 py-2 text-[12px] text-warning-fg">
+          <Inline role="note" gap={2} align="start" wrap={false} className="rounded border border-warning/20 bg-warning-soft px-3 py-2 text-[12px] text-warning-fg">
             <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
             <span>{dados.aviso}</span>
-          </div>
+          </Inline>
         )}
         {mensagem && (
           <p role="status" className={flash?.error ? 'text-[12px] text-destructive' : 'text-[12px] text-success-fg'}>{mensagem}</p>
@@ -90,14 +91,14 @@ export default function PrecosPropostos({ dados, podeAprovar }: { dados: PrecosP
                   </td>
                   <td className="py-2 text-right">
                     {p.status === 'pendente' && podeAprovar ? (
-                      <div className="flex justify-end gap-1.5">
+                      <Inline justify="end" wrap={false} className="gap-1.5">
                         <Button size="sm" variant="outline" disabled={enviando !== null || p.preco_mudou} onClick={() => decidir(p.id, 'aprovar')}>
                           <Check className="h-3.5 w-3.5 mr-1" /> Aprovar
                         </Button>
                         <Button size="sm" variant="outline" disabled={enviando !== null} onClick={() => decidir(p.id, 'recusar')}>
                           <X className="h-3.5 w-3.5 mr-1" /> Recusar
                         </Button>
-                      </div>
+                      </Inline>
                     ) : (
                       <span className="text-muted-foreground">{STATUS_LABEL[p.status]}</span>
                     )}

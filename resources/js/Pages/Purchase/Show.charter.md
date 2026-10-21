@@ -4,6 +4,7 @@ page: /purchases/{id}
 component: resources/js/Pages/Purchase/Show.tsx
 related_prototype: prototipo-ui/cowork/Wagner/compras-page.jsx (DrawerView)
 related_visual_comparison: memory/requisitos/Compras/_telas/show-visual-comparison.md
+related_runbook: memory/requisitos/Compras/_telas/RUNBOOK-purchase-show.md
 related_us: [US-MWART-008]
 owner: wagner
 status: draft

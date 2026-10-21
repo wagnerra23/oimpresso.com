@@ -14,23 +14,25 @@ module: Compras
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Compras/**` + `resources/js/Pages/Compras/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 41 arquivos em 17 papéis.
+**Total mapeado:** 44 arquivos em 17 papéis.
 
-## Controllers — 3
+## Controllers — 4
 
 - [ComprasController.php](../../../Modules/Compras/Http/Controllers/ComprasController.php)
 - [DataController.php](../../../Modules/Compras/Http/Controllers/DataController.php)
 - [InstallController.php](../../../Modules/Compras/Http/Controllers/InstallController.php)
+- [PropostasPrecoController.php](../../../Modules/Compras/Http/Controllers/PropostasPrecoController.php)
 
 ## Requests (validação) — 1
 
 - [ListarComprasRequest.php](../../../Modules/Compras/Http/Requests/ListarComprasRequest.php)
 
-## Services — 4
+## Services — 5
 
 - [AplicarCustoDoRecebimento.php](../../../Modules/Compras/Services/AplicarCustoDoRecebimento.php)
 - [ComprasService.php](../../../Modules/Compras/Services/ComprasService.php)
 - [CustoDoInsumoService.php](../../../Modules/Compras/Services/CustoDoInsumoService.php)
+- [PropostasDePreco.php](../../../Modules/Compras/Services/PropostasDePreco.php)
 - [RequisicaoEstoqueMinimoService.php](../../../Modules/Compras/Services/RequisicaoEstoqueMinimoService.php)
 
 ## Models / Entities — 1
@@ -85,9 +87,9 @@ module: Compras
 
 - [Index.casos.md](../../../resources/js/Pages/Compras/Index.casos.md)
 
-## Testes (Pest) — 14
+## Testes (Pest) — 15
 
-- 14 em [Modules/Compras/Tests/Feature/](../../../Modules/Compras/Tests/Feature)
+- 15 em [Modules/Compras/Tests/Feature/](../../../Modules/Compras/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 3

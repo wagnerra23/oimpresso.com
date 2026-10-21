@@ -617,7 +617,7 @@ Como quem compra, quero que o item que caiu abaixo do mínimo no local apareça 
 
 Como dono que deixou a regra de custo em "Propõe novo preço", quero ver no detalhe da compra recebida os preços propostos e aprovar ou recusar cada um, para que a proposta não fique esquecida numa tabela que ninguém lê.
 
-**Implementado em:** `Modules/Compras/Services/PropostasDePreco.php` · `Modules/Compras/Http/Controllers/PropostasPrecoController.php` · `resources/js/Pages/Purchase/_components/PrecosPropostos.tsx` · `Modules/Compras/Tests/Feature/PropostasDePrecoContratoTest.php`
+**Implementado em:** _pendente_ — código no PR #9714 (serviço `PropostasDePreco`, `PropostasPrecoController`, seção `PrecosPropostos` no detalhe da compra e o `PropostasDePrecoContratoTest`), ainda sem veredito da lane `compras-pest`. A âncora vira path quando o teste ficar verde e a US fechar (ADR 0273 + doneness-lint ADR 0302: `doing` com path conflita).
 
 **Testado em:** `Modules/Compras/Tests/Feature/PropostasDePrecoContratoTest.php`
 
