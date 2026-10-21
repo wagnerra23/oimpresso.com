@@ -98,6 +98,7 @@ interface Props {
   bizName?: string;
   materiais?: Material[];
   podeCriar?: boolean;
+  podeVerCusto?: boolean;
   orcamento?: OrcamentoTela | null;
   orcamentoAusente?: boolean;
   recentes?: OrcamentoResumo[];
@@ -131,12 +132,26 @@ interface ServerItem {
   area_m2: number;
   subtotal: number;
   preco_unitario_m2: number;
+  /** UC-FLX-03 — só vêm para quem vê custo (MargemDoOrcamento). Nulo = material sem custo. */
+  custo?: number | null;
+  margem?: number | null;
+  margem_pct?: number | null;
 }
 interface ServerResult {
   subtotal: number;
   total: number;
   itens: ServerItem[];
+  margem?: {
+    itens_com_custo: number;
+    itens: number;
+    custo: number | null;
+    receita: number;
+    margem: number | null;
+    margem_pct: number | null;
+  };
 }
+
+const PCT = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const NUM = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 3 });
@@ -215,6 +230,7 @@ export default function Index({
   bizName = 'oimpresso',
   materiais = [],
   podeCriar = false,
+  podeVerCusto = false,
   orcamento = null,
   orcamentoAusente = false,
   recentes,
@@ -483,9 +499,10 @@ export default function Index({
               <span className="md:col-span-1 text-right">Subtotal</span>
             </div>
 
-            {itens.map((item) => {
+            {itens.map((item, idx) => {
               const area = areaDe(item);
               const subtotal = subtotalDe(item);
+              const doServidor = conferido?.margem ? conferido.itens[idx] : undefined;
               return (
                 <div
                   key={item.id}
@@ -618,6 +635,24 @@ export default function Index({
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
+
+                  {/* UC-FLX-03: custo e margem da peça, do servidor (mesma regra que o orçamento grava) */}
+                  {doServidor && (
+                    <p data-contract="margem-item" className="col-span-2 text-xs text-muted-foreground md:col-span-12 md:text-right">
+                      {doServidor.custo == null ? (
+                        'Sem custo cadastrado para este material — a margem desta peça não aparece.'
+                      ) : (
+                        <>
+                          Custo <span className="tabular-nums text-foreground">{BRL.format(doServidor.custo)}</span>
+                          {' · '}Margem{' '}
+                          <span className={`tabular-nums font-medium ${(doServidor.margem ?? 0) < 0 ? 'text-destructive' : 'text-foreground'}`}>
+                            {BRL.format(doServidor.margem ?? 0)}
+                            {doServidor.margem_pct != null && ` (${PCT.format(doServidor.margem_pct)}%)`}
+                          </span>
+                        </>
+                      )}
+                    </p>
+                  )}
                 </div>
               );
             })}
@@ -742,6 +777,23 @@ export default function Index({
                     {BRL.format(totalLocal)}
                   </span>
                 </div>
+                {conferido?.margem && (
+                  <p data-contract="margem" className="text-xs text-muted-foreground">
+                    {conferido.margem.margem == null ? (
+                      `Custo cadastrado em ${conferido.margem.itens_com_custo} de ${conferido.margem.itens} ${conferido.margem.itens === 1 ? 'peça' : 'peças'} — a margem do orçamento aparece quando todas tiverem custo.`
+                    ) : (
+                      <>
+                        Custo das peças <span className="tabular-nums text-foreground">{BRL.format(conferido.margem.custo ?? 0)}</span>
+                        {' · '}Margem{' '}
+                        <span className={`tabular-nums font-semibold ${conferido.margem.margem < 0 ? 'text-destructive' : 'text-foreground'}`}>
+                          {BRL.format(conferido.margem.margem)}
+                          {conferido.margem.margem_pct != null && ` (${PCT.format(conferido.margem.margem_pct)}%)`}
+                        </span>
+                        <span> sobre as peças menos o desconto; acabamento, instalação e entrega ficam fora.</span>
+                      </>
+                    )}
+                  </p>
+                )}
                 {totalLocal < 0 && (
                   <p className="text-xs text-destructive">
                     O desconto está maior que o valor do orçamento — o total fica negativo.
@@ -815,6 +867,7 @@ export default function Index({
             <p className="text-xs text-muted-foreground">
               O cálculo na tela é só uma prévia. Ao conferir no servidor, o valor oficial é
               recalculado com as regras da sua loja.
+              {podeVerCusto && !conferido && ' Ao conferir, aparecem o custo e a margem de cada peça.'}
               {podeCriar && editavel && !conferido && ' Salvar só libera depois de conferir: orçamento salvo com número errado vira retrabalho no balcão.'}
               {salvo && !alterado && !osCriada && ` Salvo como ${salvo.numero} — reabra quando quiser pela lista de orçamentos salvos.`}
               {podeAprovar && ' Aprovar cria a OS com o total gravado e não volta atrás.'}

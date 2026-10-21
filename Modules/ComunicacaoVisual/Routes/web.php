@@ -68,6 +68,8 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
                 'materiais' => $materiais,
                 'podeCriar' => auth()->user()->can('superadmin')
                     || auth()->user()->can('comvis.orcamento.create'),
+                // UC-FLX-03: a tela avisa que a margem aparece ao conferir, só para quem vê custo.
+                'podeVerCusto'      => OrcamentoController::podeVerCusto(),
                 'orcamento'         => $orcamento,
                 'orcamentoAusente'  => $reabrirId > 0 && $orcamento === null,
                 'recentes'  => Inertia::defer(fn () => ($businessId === null || ! $podeVerOrc)

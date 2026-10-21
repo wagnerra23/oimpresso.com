@@ -11,6 +11,7 @@ use Illuminate\Validation\Rule;
 use Modules\ComunicacaoVisual\Entities\Orcamento;
 use Modules\ComunicacaoVisual\Entities\Os;
 use Modules\ComunicacaoVisual\Http\Requests\AprovarOrcamentoRequest;
+use Modules\ComunicacaoVisual\Services\MargemDoOrcamento;
 use Modules\ComunicacaoVisual\Services\OrcamentoCalculator;
 use Modules\ComunicacaoVisual\Services\OrcamentoGravador;
 use Modules\ComunicacaoVisual\Services\OrcamentoViraOs;
@@ -60,6 +61,12 @@ class OrcamentoController extends Controller
             $resultado = $this->calculator->calcular($validated);
         } catch (\InvalidArgumentException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        // UC-FLX-03: custo e margem por item só para quem cuida do custo (o cadastro de materiais).
+        // Só acrescenta campos — preço, subtotal e total são os mesmos para todos.
+        if (self::podeVerCusto()) {
+            $resultado = app(MargemDoOrcamento::class)->aplicar($this->businessId(), $resultado);
         }
 
         return response()->json($resultado, 200);
@@ -233,6 +240,14 @@ class OrcamentoController extends Controller
     // ------------------------------------------------------------------
     // Helpers privados
     // ------------------------------------------------------------------
+
+    /** Quem vê custo e margem: superadmin ou quem gerencia o catálogo (onde o custo é cadastrado). */
+    public static function podeVerCusto(): bool
+    {
+        $user = auth()->user();
+
+        return $user !== null && ($user->can('superadmin') || $user->can('comvis.material.manage'));
+    }
 
     private function businessId(): int
     {
