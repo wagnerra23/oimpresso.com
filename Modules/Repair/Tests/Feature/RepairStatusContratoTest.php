@@ -336,3 +336,64 @@ it('UC-RSTIDX-08: a contagem de folhas por status conta só as do próprio tenan
     // Status sem folha vem 0 explícito, não ausente — a tela imprime "0 folha(s)".
     expect($meus->firstWhere('id', $vazio)['job_sheets_count'])->toBe(0);
 });
+
+it('UC-RSTIDX-09: a marca de aviso ao cliente de cada status chega à tela como está no banco', function () {
+    $biz = $this->seededTenant();
+    // Os três valores possíveis, para o assert distinguir "veio null" de "não veio a coluna".
+    $pronto = rstStatus((int) $biz->id, 'Pronto', '#00aa00', 10);
+    $pecas = rstStatus((int) $biz->id, 'Aguardando', '#aaaa00', 20);
+    $semAviso = rstStatus((int) $biz->id, 'Recebido', '#aa0000', 30);
+    DB::table('repair_statuses')->where('id', $pronto)->update(['whatsapp_template_aviso' => 'ready']);
+    DB::table('repair_statuses')->where('id', $pecas)->update(['whatsapp_template_aviso' => 'waiting_parts']);
+
+    $user = rstUser((int) $biz->id);
+    rstSessao((int) $biz->id, (int) $user->id);
+    rstFlagLigada();
+
+    $r = $this->actingAs($user)->get('/repair/status');
+
+    expect($r->status())->toBe(200);
+    $meus = rstSoOsMeus($r->viewData('page')['props']['statuses']);
+    expect($meus->firstWhere('id', $pronto)['whatsapp_template_aviso'])->toBe('ready');
+    expect($meus->firstWhere('id', $pecas)['whatsapp_template_aviso'])->toBe('waiting_parts');
+    expect($meus->firstWhere('id', $semAviso)['whatsapp_template_aviso'])->toBeNull();
+});
+
+it('UC-RSTIDX-10: criar e editar status grava a marca de aviso; valor fora da lista vira "não avisa"; status de outra empresa não muda', function () {
+    $biz = $this->seededTenant();
+    $vizinho = $this->seededSupportClientTenant();
+    $user = rstUser((int) $biz->id);
+    rstSessao((int) $biz->id, (int) $user->id);
+    $ajax = ['X-Requested-With' => 'XMLHttpRequest'];
+
+    $this->actingAs($user)->withHeaders($ajax)->post('/repair/status', [
+        'name' => 'Pronto '.RST_TAG,
+        'sort_order' => 10,
+        'whatsapp_template_aviso' => 'ready',
+    ])->assertJson(['success' => true]);
+    $criado = DB::table('repair_statuses')->where('business_id', $biz->id)->where('name', 'Pronto '.RST_TAG)->first();
+    expect($criado)->not->toBeNull();
+    expect($criado->whatsapp_template_aviso)->toBe('ready');
+
+    // Edição para a outra mensagem.
+    $this->actingAs($user)->withHeaders($ajax)->put("/repair/status/{$criado->id}", [
+        'name' => 'Pronto '.RST_TAG,
+        'whatsapp_template_aviso' => 'waiting_parts',
+    ])->assertJson(['success' => true]);
+    expect(DB::table('repair_statuses')->where('id', $criado->id)->value('whatsapp_template_aviso'))->toBe('waiting_parts');
+
+    // Valor que nenhum número de WhatsApp tem como template não é gravado.
+    $this->actingAs($user)->withHeaders($ajax)->put("/repair/status/{$criado->id}", [
+        'name' => 'Pronto '.RST_TAG,
+        'whatsapp_template_aviso' => 'qualquer_coisa',
+    ])->assertJson(['success' => true]);
+    expect(DB::table('repair_statuses')->where('id', $criado->id)->value('whatsapp_template_aviso'))->toBeNull();
+
+    // Status da outra empresa: a edição não o encontra e ele fica como estava.
+    $deles = rstStatus((int) $vizinho->id, 'Deles', '#123456', 10);
+    $this->actingAs($user)->withHeaders($ajax)->put("/repair/status/{$deles}", [
+        'name' => 'Deles '.RST_TAG,
+        'whatsapp_template_aviso' => 'ready',
+    ])->assertJson(['success' => false]);
+    expect(DB::table('repair_statuses')->where('id', $deles)->value('whatsapp_template_aviso'))->toBeNull();
+});

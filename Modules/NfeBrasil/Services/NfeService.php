@@ -22,6 +22,7 @@ use Modules\NfeBrasil\Services\Tributacao\ProdutoFiscalContext;
 use Modules\RecurringBilling\Models\Invoice;
 use NFePHP\Common\Certificate;
 use NFePHP\NFe\Common\Standardize;
+use NFePHP\NFe\Factories\Contingency;
 use NFePHP\NFe\Make;
 use NFePHP\NFe\Tools;
 use RuntimeException;
@@ -802,7 +803,9 @@ class NfeService
         // Fora de contingência isto devolve tpEmis=1 e o fluxo abaixo é idêntico
         // ao de antes deste PR — a contingência é opt-in por tenant e nasce false.
         $tpEmis = $this->resolverTpEmis($businessId, (string) $modelo);
-        $emContingencia = $tpEmis !== NfeEmissao::TP_EMIS_NORMAL;
+        // US-NFE-071: SVC (6/7) também é contingência, mas TRANSMITE na hora — para a SEFAZ
+        // Virtual. Só EPEC (4) e off-line (9) guardam a nota e param antes da SEFAZ.
+        $emContingencia = in_array($tpEmis, [NfeEmissao::TP_EMIS_EPEC, NfeEmissao::TP_EMIS_OFFLINE_NFCE], true);
 
         // ── 3. Reserva número + cria emissao em transaction CURTA ───────────
         // BUG FIX P0 2026-05-10: SEFAZ HTTP call NUNCA pode rodar dentro de
@@ -840,6 +843,14 @@ class NfeService
             $tools     = $this->criarTools($business, $certData, $emitOverride, (string) $modelo);
             $xmlSigned = $tools->signNFe($xml);
 
+            // US-NFE-071: com SVC/EPEC a lib precisa saber o modo — é ele que manda o lote
+            // para a SEFAZ Virtual (SVC) ou permite o evento EPEC. Armado DEPOIS de assinar:
+            // o XML já sai do buildXml com tpEmis/dhCont/xJust, e a nota normal não passa aqui.
+            $tipoSped = ModoContingencia::tipoSpedNfe($tpEmis);
+            if ($tipoSped !== '') {
+                $tools->contingency = $this->contingenciaSped($businessId, $emissao, $tpEmis, $tipoSped);
+            }
+
             // ── 4b. CONTINGÊNCIA: persiste e PARA aqui (US-NFE-006 / ADR TECH-0002) ──
             // A ADR é explícita: "XML em contingência é gravado ANTES de qualquer call
             // SEFAZ". A nota está emitida e é VÁLIDA — o DANFE sai com o indicador de
@@ -851,6 +862,12 @@ class NfeService
             // sequência sem documento — problema fiscal, não bug de software.
             if ($emContingencia) {
                 $this->persistirXmlContingencia($emissao, $xmlSigned, $businessId, $serie, (int) $numero);
+
+                // US-NFE-071: EPEC só vale com o evento 110140 registrado no Ambiente Nacional.
+                // Vai DEPOIS de persistir: se o AN também falhar, a nota segue guardada.
+                if ($tpEmis === NfeEmissao::TP_EMIS_EPEC) {
+                    $this->registrarEpec($emissao->refresh(), $tools, $xmlSigned);
+                }
 
                 return $emissao->refresh();
             }
@@ -1617,9 +1634,10 @@ class NfeService
      * Devolve 1 (normal) para quem não ligou contingência, que é o default do schema
      * e o caso de 100% dos tenants hoje — por isso a emissão comum sai byte-idêntica.
      *
-     * O modo depende do MODELO, não é escolha livre (Manual SEFAZ / ADR TECH-0002):
-     *   modelo 55 (NF-e)  → 4 = EPEC, autoriza em SVC-AN
-     *   modelo 65 (NFC-e) → 9 = contingência off-line
+     * O modo depende do MODELO (Manual SEFAZ / ADR TECH-0002):
+     *   modelo 55 (NF-e)  → o modo da ativação (US-NFE-071): 4 = EPEC (padrão),
+     *                       6 = SVC-AN, 7 = SVC-RS
+     *   modelo 65 (NFC-e) → 9 = contingência off-line (não existe SEFAZ Virtual de NFC-e)
      * Modelo 67 (CT-e) não tem contingência definida aqui: cai em normal de propósito,
      * porque inventar um tpEmis pra ele seria adivinhar lei fiscal.
      */
@@ -1632,7 +1650,8 @@ class NfeService
         }
 
         return match ($modelo) {
-            '55' => NfeEmissao::TP_EMIS_EPEC,
+            // US-NFE-071: o modo escolhido na ativação (EPEC / SVC-AN / SVC-RS).
+            '55' => ModoContingencia::tpEmisNfe($config->contingencia_modo),
             '65' => NfeEmissao::TP_EMIS_OFFLINE_NFCE,
             default => NfeEmissao::TP_EMIS_NORMAL,
         };
@@ -1664,6 +1683,127 @@ class NfeService
         }
 
         return [$quando->format('Y-m-d\TH:i:sP'), mb_substr($motivo, 0, 256)];
+    }
+
+    /**
+     * US-NFE-071 — o modo de contingência no formato que a sped-nfe lê (`Tools::$contingency`).
+     *
+     * Montado com `load()` e não com `activate()`: o `activate()` não aceita EPEC e pega o
+     * relógio de AGORA; aqui o relógio e o motivo são os da ativação, os mesmos que já estão
+     * no `dhCont`/`xJust` do XML — senão evento e nota contariam horas diferentes.
+     */
+    private function contingenciaSped(int $businessId, NfeEmissao $emissao, int $tpEmis, string $tipo): Contingency
+    {
+        [$dhCont, $xJust] = $this->dadosContingencia($businessId, $emissao);
+
+        $contingencia = new Contingency();
+        $contingencia->load((string) json_encode([
+            'type' => $tipo,
+            'motive' => $xJust,
+            'timestamp' => (int) strtotime($dhCont),
+            'tpEmis' => $tpEmis,
+        ]));
+
+        return $contingencia;
+    }
+
+    /**
+     * US-NFE-071 · UC-FLX-32 — evento EPEC (110140) no Ambiente Nacional.
+     *
+     * O DANFE em EPEC só vale depois de o AN registrar o evento; a nota em si vai à SEFAZ da
+     * UF depois, pelo RetentarContingenciaJob, como qualquer nota em contingência. Sucesso é
+     * cStat 136 ("registrado, mas não vinculado a NF-e" — a NF-e ainda não chegou) ou 135.
+     *
+     * Falha NÃO derruba a emissão: o XML já está guardado e o número já foi consumido. Fica
+     * um evento `rejeitado` com o erro e o motivo da nota diz que o DANFE ainda não vale —
+     * quem lê a nota vê a pendência, em vez de achar que o EPEC saiu.
+     */
+    private function registrarEpec(NfeEmissao $emissao, Tools $tools, string $xmlSigned): NfeEvento
+    {
+        $xml = $xmlSigned;
+        $justificativa = 'EPEC — emissão em contingência';
+
+        try {
+            $resposta = (string) $tools->sefazEPEC($xml);
+        } catch (\Throwable $e) {
+            return $this->falhaEpec($emissao, $justificativa, null, substr($e->getMessage(), 0, 500), []);
+        }
+
+        $std = (new Standardize($resposta))->toStd();
+        $retEvento = $std->retEvento ?? null;
+        if (is_array($retEvento)) {
+            $retEvento = $retEvento[0] ?? null;
+        }
+        $inf = $retEvento->infEvento ?? null;
+        $cstat = (string) ($inf->cStat ?? $std->cStat ?? '999');
+        $xMotivo = (string) ($inf->xMotivo ?? $std->xMotivo ?? '');
+        $payload = [
+            'cStat' => $cstat,
+            'xMotivo' => $xMotivo,
+            'nProt' => isset($inf->nProt) ? (string) $inf->nProt : null,
+            'dhRegEvento' => isset($inf->dhRegEvento) ? (string) $inf->dhRegEvento : null,
+            'chNFe' => isset($inf->chNFe) ? (string) $inf->chNFe : null,
+        ];
+
+        if (! in_array($cstat, ['135', '136'], true)) {
+            return $this->falhaEpec($emissao, $justificativa, $cstat, "cStat {$cstat}: {$xMotivo}", $payload);
+        }
+
+        $emissao->update([
+            'motivo' => 'Emitida em contingência EPEC — evento registrado no Ambiente Nacional; '
+                . 'aguardando transmissão à SEFAZ da UF.',
+            'metadata' => array_merge((array) ($emissao->metadata ?? []), [
+                'epec_cstat' => $cstat,
+                'epec_nprot' => $payload['nProt'],
+                'epec_registrado_em' => $payload['dhRegEvento'],
+            ]),
+        ]);
+
+        Log::info('NfeService: EPEC registrado', [
+            'business_id' => $emissao->business_id,
+            'emissao_id' => $emissao->id,
+            'cstat' => $cstat,
+        ]);
+
+        return NfeEvento::create([
+            'business_id' => $emissao->business_id,
+            'emissao_id' => $emissao->id,
+            'tipo' => '110140',
+            'justificativa' => $justificativa,
+            'status' => 'autorizado',
+            'cstat_evento' => $cstat,
+            'payload_json' => $payload,
+        ]);
+    }
+
+    private function falhaEpec(
+        NfeEmissao $emissao,
+        string $justificativa,
+        ?string $cstat,
+        string $erro,
+        array $payload,
+    ): NfeEvento {
+        $emissao->update([
+            'motivo' => 'Emitida em contingência EPEC, mas o evento não foi registrado no Ambiente Nacional ('
+                . substr($erro, 0, 200) . '). O DANFE só vale com o EPEC registrado.',
+        ]);
+
+        Log::warning('NfeService: EPEC não registrado', [
+            'business_id' => $emissao->business_id,
+            'emissao_id' => $emissao->id,
+            'cstat' => $cstat,
+            'erro' => substr($erro, 0, 300),
+        ]);
+
+        return NfeEvento::create([
+            'business_id' => $emissao->business_id,
+            'emissao_id' => $emissao->id,
+            'tipo' => '110140',
+            'justificativa' => $justificativa,
+            'status' => 'rejeitado',
+            'cstat_evento' => $cstat,
+            'payload_json' => $payload + ['erro' => substr($erro, 0, 500)],
+        ]);
     }
 
     /**
