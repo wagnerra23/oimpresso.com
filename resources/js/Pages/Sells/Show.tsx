@@ -28,6 +28,7 @@ import KpiCard from '@/Components/shared/KpiCard';
 import EmptyState from '@/Components/shared/EmptyState';
 import MercosulPlate from '@/Components/shared/MercosulPlate';
 import { Button } from '@/Components/ui/button';
+import { Inline } from '@/Components/layout';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -699,10 +700,10 @@ function PesquisaDaEntrega({ pesquisa }: { pesquisa: PesquisaEntrega }) {
       : `Não enviada${pesquisa.motivo ? ` — ${MOTIVO_PESQUISA[pesquisa.motivo] ?? pesquisa.motivo}` : ''}`;
   return (
     <section className="rounded-lg border border-border bg-card p-5" data-testid="pesquisa-entrega">
-      <div className="flex items-center gap-2 mb-3">
+      <Inline gap={2} className="mb-3">
         <Smile className="h-4 w-4 text-muted-foreground" />
         <h2 className="font-semibold text-sm">Pesquisa de satisfação</h2>
-      </div>
+      </Inline>
       <div className="space-y-1 text-sm">
         <p className={pesquisa.nota !== null ? 'font-semibold tabular-nums' : 'text-muted-foreground'}>{resumo}</p>
         {pesquisa.atendimento && (
