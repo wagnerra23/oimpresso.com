@@ -529,3 +529,30 @@ function empCorpoBlade($b, array $campos = []): array
         'date_format' => 'd/m/Y', 'time_format' => $b->time_format ?: '24', 'on_product_expiry' => 'keep_selling', 'custom_labels' => [],
     ], $campos);
 }
+
+test('UC-EMP-16 Vendas: ligar a pesquisa depois da entrega e escolher a nota baixa grava o que a rotina lê; desligar mantém a nota', function () {
+    DB::table('business')->where('id', $this->business->id)->update([
+        'common_settings' => json_encode(['is_enabled_export' => '1']), 'custom_labels' => json_encode(['payments' => ['custom_pay_1' => 'Pix']]),
+    ]);
+    $config = app(\App\Services\Sells\PesquisaEntregaConfig::class);
+    // PRÉ-CONDIÇÃO: nasce desligada, nota padrão 2.
+    expect($config->de($this->business->id))->toBe(['ativo' => false, 'nota_baixa' => 2]);
+
+    // O que o interruptor + seletor da aba Vendas mandam (a Blade usa os mesmos nomes de campo).
+    $corpo = empCorpo($this);
+    $corpo['common_settings']['sells_pesquisa_entrega'] = ['nota_baixa' => '3', 'ativo' => '1'];
+    $this->post('/business/update', empFormData($corpo))->assertSessionHas('status.success', 1);
+    expect($config->de($this->business->id))->toBe(['ativo' => true, 'nota_baixa' => 3]);
+    expect(empLinha($this->business->id)['common_settings']['is_enabled_export'])->toBe('1');
+
+    // Desmarcar tira `ativo` (checkbox some do form) e a nota escolhida fica.
+    $corpo = empCorpo($this);
+    unset($corpo['common_settings']['sells_pesquisa_entrega']['ativo']);
+    $this->post('/business/update', empFormData($corpo))->assertSessionHas('status.success', 1);
+    expect($config->de($this->business->id))->toBe(['ativo' => false, 'nota_baixa' => 3]);
+
+    // A Blade da aba Vendas (fallback) desenha os mesmos dois campos.
+    $this->get('/business/settings?classico=1')->assertOk()
+        ->assertSee('common_settings[sells_pesquisa_entrega][ativo]', false)
+        ->assertSee('common_settings[sells_pesquisa_entrega][nota_baixa]', false);
+});

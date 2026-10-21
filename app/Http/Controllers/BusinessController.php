@@ -384,7 +384,9 @@ class BusinessController extends Controller
         'enable_secondary_unit', 'is_product_image_required', 'enable_purchase_order', 'enable_purchase_requisition',
         'default_datatable_page_entries',
         // Aba Financeiro (settings_financeiro): a Blade manda o objeto inteiro, com `ativo` por hidden.
-        'financeiro_regua_cobranca'];
+        'financeiro_regua_cobranca',
+        // Aba Vendas (settings_sales): `ativo` (checkbox) + `nota_baixa` (select sempre presente) — objeto inteiro no POST.
+        'sells_pesquisa_entrega'];
 
     private const SEGREDOS_SMS = ['nexmo_secret', 'twilio_token', 'header_val_1', 'header_val_2', 'header_val_3',
         'param_val_1', 'param_val_2', 'param_val_3', 'param_val_4', 'param_val_5', 'param_val_6', 'param_val_7', 'param_val_8',
