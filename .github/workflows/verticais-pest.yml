@@ -657,6 +657,7 @@ jobs:
             Modules/Producao/Tests/Feature/ProducaoMaterialContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoCustoOsAbertaContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoOperadoresDoPostoContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoPostosOperadoresTelaTest.php \
             Modules/Producao/Tests/Feature/ProducaoPrevistoRealizadoContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoRefugoContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoAprovacaoArteContratoTest.php \
