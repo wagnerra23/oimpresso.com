@@ -61357,5 +61357,26 @@
       "voz-do-cliente-page.jsx": "aa403c92fe1c70727c0ef2762de66c3108db1a518d3f83ccb75571cd9c2abf72"
     },
     "origin": "bundle:d16835e9e37d447a"
+  },
+  {
+    "date": "2026-10-21T18:35:12.027Z",
+    "files": 295,
+    "sync": 3,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 292,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/producao/playbook/00-INDICE.md",
+      "cowork-inbox/producao/playbook/09-instalacao.md",
+      "cowork-inbox/producao/playbook/10-arte-link.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/producao/playbook/00-INDICE.md": "76c46c108fb11d60a9a04986597f4dc1bc300510e0e8c370754fb6c04731db32",
+      "cowork-inbox/producao/playbook/09-instalacao.md": "4f1a55f7e5e38955c90a2802525fa684a0931f40252f2c0c2cdc4bf21fb4dc97",
+      "cowork-inbox/producao/playbook/10-arte-link.md": "973808bd33968114adfecd41d1d70a447c14d5e2218833f8dc83d72e1c5f59ca"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
   }
 ]
