@@ -5,7 +5,7 @@ irmaos: Show.charter.md (lei) · tests/Feature/Sells/SellsShowContratoTest.php (
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-10-20"
+last_run: "2026-10-21"
 ---
 
 # Casos de Uso & Aceite — Detalhe da venda
@@ -199,6 +199,7 @@ last_run: "2026-10-20"
 
 ## Trilha do tempo
 - 2026-10-21 · [CL] UC-VSHOW-20/21 (US-SELL-070 · UC-FLX-04): faixa "aberto pelo cliente" no orçamento, lida de `transaction_quote_accesses` pelo business da venda. Veio do backlog do `Quotations.casos.md`. Teste `QuoteAccessTelaContratoTest`, nasce sem run.
+- 2026-10-21 · [CL] `last_run` 2026-10-20 → 2026-10-21 por conferência, não por run novo: o `Show.tsx` deste PR só acrescenta a faixa `AcessoDoOrcamento` (dentro de `ShowDetailSections`, antes da faixa de custo) e o tipo `AcessoOrcamento`; nada de UC-VSHOW-01..13 muda. Nenhum teste re-rodado aqui.
 - 2026-10-20 · [CL] UC-VSHOW-09..13 (US-SELL-071 · UC-FLX-25): pesquisa de satisfação 2 dias depois da entrega e atendimento na nota baixa. Teste `PesquisaSatisfacaoEntregaContratoTest`, nasce sem run.
 - 2026-10-20 · [CL] `last_run` 2026-07-27 → 2026-10-20 por conferência, não por run novo: desde o `last_run` o `Show.tsx` mudou só em a456273f41 (#9612, US-SELL-068), que acrescenta a faixa de custo do orçamento do UC-VSHOW-08 (63 linhas, só adições). UC-VSHOW-01..08 seguem batendo com a tela; nenhum teste foi re-rodado aqui.
 - 2026-07-27 · [CC] criado — trio fechado pra `Sells/Show` (alvo #1 do débito Tier-0 de `exposicao-tier0.mjs`) com UC-VSHOW-01..07 + `SellsShowContratoTest.php` + lane `sells-pest.yml` (nenhuma das 9 lanes MySQL rodava `tests/Feature/Sells/**`). Casos derivados do charter §Goals/§Non-Goals + RUNBOOK-show + §CU-07; o Controller foi lido só pra confirmar. Ref [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md).

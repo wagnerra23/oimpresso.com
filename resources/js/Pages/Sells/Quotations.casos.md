@@ -4,7 +4,7 @@ irmaos: Quotations.charter.md (lei) · Quotations.tsx
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: cotação é proposta ao cliente que divide a tabela `transactions` com o rascunho e se distingue só por `sub_status = quotation` — quem vê qual cotação, e de qual empresa, não pode mudar num refactor visual.
 owner: wagner
-last_run: "2026-10-06"
+last_run: "2026-10-21"
 last_run_ci: "UC-QUO-01 3/3 verde no CT 100 (19 assertions, 2026-10-06) — veredito da lane PHP / Pest (Sells · MySQL) pendente deste PR"
 ---
 
@@ -93,5 +93,6 @@ Status: 🧪
 
 ## Trilha do tempo
 - 2026-10-21 · [CL] UC-QUO-10 (US-SELL-070 · UC-FLX-04): coluna "Aberto" na lista. O item de backlog do detalhe do orçamento saiu daqui e virou UC-VSHOW-20/21 no `Show.casos.md`, que é a tela onde ele mora. Teste `QuoteAccessTelaContratoTest`, nasce sem run.
+- 2026-10-21 · [CL] `last_run` 2026-10-06 → 2026-10-21 por conferência, não por run novo: o `Quotations.tsx` deste PR só acrescenta a coluna "Aberto" (2 campos lidos do mesmo JSON); filtro de lista, permissões e conversão de UC-QUO-01..04 não mudam. Nenhum teste re-rodado aqui; o `last_run_ci` segue sendo o de 2026-10-06.
 - 2026-10-20 · [CL] UC-QUO-05..08 (US-SELL-070 · UC-FLX-04): termômetro de acesso da proposta e retorno de 48 h. Teste `QuoteAccessTermometroContratoTest`, nasce sem run.
 - 2026-10-06 · [CL] trio completado na thread Q1 do playbook `venda-menu`. Refs: ADR 0104 · ADR 0264 G-1/G-2 · ADR 0358 · US-SELL-061.
