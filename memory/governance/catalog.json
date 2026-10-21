@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 849,
-    "edges": 1154,
+    "nodes": 850,
+    "edges": 1155,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 469,
+      "component": 470,
       "api": 86
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 90,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 469,
+      "hasComponent": 470,
       "dependsOn": 126,
       "delegatesTo": 117,
       "migratesTo": 1,
@@ -4343,6 +4343,13 @@
       "module": "Producao",
       "name": "OrdemCustoController + PrevisaoCustoDaOrdem",
       "desc": "custo da OS aberta: abertura × hoje dos insumos apontados e a previsão pela regra ops da compra (congela | vivo), JSON só com producao.desempenho.ver (US-PCP-022 · UC-FLX-36)"
+    },
+    {
+      "id": "component:Producao/OrdemMaterialController + FaltaDeMaterialDaOs",
+      "type": "component",
+      "module": "Producao",
+      "name": "OrdemMaterialController + FaltaDeMaterialDaOs",
+      "desc": "OS liberada sem material fica em Aguardando material (US-PCP-032 · D3): falta por insumo da receita (necessário × disponível no local menos reservas de outras OS) e compras a caminho, conferir volta para Na fila; chave producao_aguarda_material da empresa, desligada por padrão; ler com producao.access, conferir com o papel producao.liberar, JSON"
     },
     {
       "id": "component:Producao/PainelController + PainelDaProducao + ArteDasOrdens",
@@ -12623,6 +12630,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/OrdemCustoController + PrevisaoCustoDaOrdem",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/OrdemMaterialController + FaltaDeMaterialDaOs",
       "type": "hasComponent",
       "source": "contains"
     },

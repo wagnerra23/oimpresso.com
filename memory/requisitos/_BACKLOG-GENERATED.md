@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1000 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1001 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -15,7 +15,7 @@
 | [`Financeiro`](#financeiro) | 49 | 3 | 0 | 0 | 46 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
 | [`OficinaAuto`](#oficinaauto) | 39 | 0 | 0 | 0 | 38 |
-| [`Producao`](#producao) | 31 | 1 | 0 | 0 | 30 |
+| [`Producao`](#producao) | 32 | 1 | 0 | 0 | 31 |
 | [`NfeBrasil`](#nfebrasil) | 28 | 0 | 0 | 6 | 22 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
@@ -560,6 +560,7 @@
 - **US-PCP-029** — Alocador decide quem e quando começa cada etapa (UC-FLX-10) — **P1**
 - **US-PCP-030** — Operadores por posto: só eles são responsáveis e começam a etapa (UC-FLX-08) — **P1**
 - **US-PCP-031** — Reserva o insumo na venda, baixa real na produção (UC-FLX-14) — **P1**
+- **US-PCP-032** — OS liberada sem material fica Aguardando material (D3) — **P1**
 
 ## NfeBrasil
 
