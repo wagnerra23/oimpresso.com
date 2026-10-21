@@ -866,6 +866,7 @@ class JobSheetController extends Controller
                     event(new \Modules\Repair\Events\RepairStatusChanged(
                         $job_sheet,
                         (string) $newStatusEntity->name,
+                        $newStatusEntity->whatsapp_template_aviso,
                     ));
                 }
             }

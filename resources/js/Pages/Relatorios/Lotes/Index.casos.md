@@ -58,7 +58,15 @@ last_run: "2026-10-07"
 
 - [BACKLOG] Separar a fração usada em OS da venda. Lido na consulta (`consultaLotes`), sem teste: a baixa da OS é uma
   `production_sell` com `sell_line_id`, então desconta o estoque do lote mas soma na coluna "vendido".
-- [BACKLOG] Mostrar o rastreio do rolo nesta tela (hoje só o JSON do UC-RLT-04).
+
+## UC-RLT-06 · Rastrear o rolo a partir da linha do relatório · `must` `[T0]`
+- **Aceite:** Dado um lote meu cujo número aparece em duas compras do mesmo produto · Quando abro a tela nova · Então a
+  linha traz os ids das duas compras (o rastreio é por compra, a linha agrupa por número) · Dado um usuário sem
+  `purchase.view` · Então a linha não mostra "Rastrear" · Dado um usuário com `purchase.view` e o Producao no pacote ·
+  Então mostra, e a gaveta lista, para cada compra, a OS × quantidade usada e o saldo do JSON do UC-RLT-04 · Dado o
+  lote do negócio 99 com o mesmo número · Então o id dele não vem na linha e o rastreio dele responde 404.
+  Teste: `tests/Feature/Relatorios/LotesReportPageTest.php`.
+- **Status: 🧪**
 
 ## Backlog
 - [BACKLOG] Filtros de subcategoria e "só produtos fabricados" (Manufacturing), como a Blade.

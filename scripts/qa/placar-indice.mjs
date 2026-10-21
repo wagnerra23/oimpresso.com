@@ -51,7 +51,15 @@ export class NaoMedi extends Error {
 
 /** Tipos avaliáveis sem recibo. Fora desta lista = NÃO MEDIDA, jamais "falhou". */
 export const TIPOS_ESTRUTURAIS = ['arquivo', 'ausente', 'contem', 'nao_contem', 'json_com_chaves', 'um_de'];
-export const ESTADOS = ['feito', 'em curso', 'proximo', 'pendente', 'bloqueada'];
+// `descartada`: encerrada por decisão declarada no índice (campo `descartada`, com o motivo).
+// Fica FORA do denominador (`entregue X de Y`): não é dívida nem entrega. Antes deste estado,
+// thread cancelada caía em `bloqueada` (campo `bloqueio`) e seguia no Y — medido 2026-10-21,
+// 5 das 9 `bloqueada` dos índices vivos eram decisão encerrada (hrm 05, modulos 02, home 01,
+// patrimonio 05, officeimpresso 03); 3 eram bloqueio real e 1 (crm 05) é fatiamento.
+// O estado NUNCA é inferido do texto do `bloqueio` ("cancelada"/"DESCARTADA" em prosa): a
+// fonte declara o campo, ou a thread segue `bloqueada` (vocabulário como predicado é guard
+// sintático, família com várias lápides no §5).
+export const ESTADOS = ['feito', 'em curso', 'proximo', 'pendente', 'bloqueada', 'descartada'];
 export const BASE_INBOX = 'prototipo-ui/cowork/Wagner/cowork-inbox';
 
 /** Path de dentro do repo: sem raiz absoluta, sem drive do Windows, sem subir com `..`. */
@@ -243,6 +251,9 @@ export function validarIndice(indice) {
     if (ids.has(t.id)) throw new NaoMedi(`thread duplicada: ${t.id}`);
     ids.add(t.id);
     if (!Array.isArray(t.provas)) throw new NaoMedi(`thread ${t.id} sem "provas"`);
+    // `descartada` exige o motivo: um `true` solto tiraria a thread da conta sem dizer por quê.
+    if ('descartada' in t && !(typeof t.descartada === 'string' && t.descartada.trim()))
+      throw new NaoMedi(`thread ${t.id}: "descartada" precisa ser o motivo (texto com a decisão), não ${JSON.stringify(t.descartada)}`);
   }
   const visitados = new Set(), pilha = new Set();
   const visitar = (id) => {
@@ -258,6 +269,9 @@ export function validarIndice(indice) {
   };
   for (const id of ids) visitar(id);
 }
+
+/** Thread que não é dívida: entregue, bloqueada por decisão declarada ou descartada. */
+const FECHADA = (l) => l.estado === 'feito' || l.estado === 'bloqueada' || l.estado === 'descartada';
 
 /** Estado DERIVADO. `_saida-NN.md` é a prova implícita da Lei 2: sem ela, nada é `feito`. */
 export function avaliarIndice(indice, ctx) {
@@ -275,7 +289,8 @@ export function avaliarIndice(indice, ctx) {
     const decisPend = (t.depende_decisoes || []).filter((id) => !(decis[id] && decis[id].respondida));
     const l = {
       id: t.id, titulo: t.titulo || '', dono: t.dono || '?', saida,
-      estado: t.bloqueio ? 'bloqueada' : (saida ? 'em curso' : 'pendente'),
+      estado: t.descartada ? 'descartada' : t.bloqueio ? 'bloqueada' : (saida ? 'em curso' : 'pendente'),
+      descartada: t.descartada ? t.descartada.trim() : null,
       provas, decisPend, depende_threads: t.depende_threads || [],
       naoMedidas: naoMedidas.length, executavel: false,
       migrados: provas.filter((p) => p.migrado).length,
@@ -293,13 +308,13 @@ export function avaliarIndice(indice, ctx) {
     if (resolvidas.has(l.id)) return;
     resolvidas.add(l.id);                       // marca ANTES: validarIndice já barrou ciclo
     for (const id of l.depende_threads) resolver(byId[id]);
-    if (l.estado !== 'bloqueada' && l.pronto && !l.decisPend.length
+    if (l.estado !== 'bloqueada' && l.estado !== 'descartada' && l.pronto && !l.decisPend.length
       && l.depende_threads.every((id) => byId[id].estado === 'feito')) l.estado = 'feito';
   };
   for (const l of linhas) resolver(l);
 
   for (const l of linhas) {
-    if (l.estado === 'bloqueada' || l.estado === 'feito') continue;
+    if (l.estado === 'bloqueada' || l.estado === 'feito' || l.estado === 'descartada') continue;
     l.executavel = l.depende_threads.every((id) => byId[id].estado === 'feito')
       && !l.decisPend.length && !l.provas.some((p) => p.indefinida);
     if (l.executavel && l.estado === 'pendente') l.estado = 'proximo';
@@ -324,7 +339,7 @@ export function avaliarIndice(indice, ctx) {
     if (semReciboVisto.has(l.id)) return;
     semReciboVisto.add(l.id);                   // marca ANTES: validarIndice ja barrou ciclo
     for (const id of l.depende_threads) resolverSemRecibo(byId[id]);
-    l.semRecibo = !l.saida && l.estado !== 'bloqueada'
+    l.semRecibo = !l.saida && l.estado !== 'bloqueada' && l.estado !== 'descartada'
       // >=1 prova EXPLICITA: thread sem prova propria nunca vira `sem recibo` — sem evidencia
       // de entrega, "verde" seria so a ausencia de alguem para reprovar.
       && l.provas.length > 0
@@ -338,18 +353,24 @@ export function avaliarIndice(indice, ctx) {
   // em `feito`, então sem ela uma thread com _saida e provas verdes aparecia como
   // "em curso — sem pendência legível" (Patrimonio 18, PR #8262). Só o RELATO muda.
   const depPend = (l) => l.depende_threads.filter((id) => byId[id].estado !== 'feito');
-  const motivo = (l) => `${l.saida ? '' : 'sem _saida; '}${l.decisPend.length ? 'decisão pendente ' + l.decisPend.join(',') + '; ' : ''}${depPend(l).map((id) => `depende de ${id} (não feita); `).join('')}${l.ausentes.join('; ')}`.replace(/; $/, '');
+  // Dependência DESCARTADA não satisfaz: a thread que dependia dela precisa ser revista pela
+  // fonte (descartar junto, ou largar a dependência) — dar como feita seria fail-open.
+  const depRotulo = (id) => byId[id].estado === 'descartada' ? 'descartada — rever a dependência' : 'não feita';
+  const motivo = (l) => l.estado === 'descartada' ? `descartada: ${l.descartada}`
+    : `${l.saida ? '' : 'sem _saida; '}${l.decisPend.length ? 'decisão pendente ' + l.decisPend.join(',') + '; ' : ''}${depPend(l).map((id) => `depende de ${id} (${depRotulo(id)}); `).join('')}${l.ausentes.join('; ')}`.replace(/; $/, '');
+  const contadas = linhas.filter((l) => l.estado !== 'descartada');
   return {
     modulo: indice.modulo || '(sem módulo)', sha: indice.sha || null,
-    total: linhas.length, feito: cont.feito, cont, linhas, motivo,
+    total: contadas.length, feito: cont.feito, cont, linhas, motivo,
+    descartadas: cont.descartada,
     naoMedidas: linhas.reduce((n, l) => n + l.naoMedidas, 0),
     migrados: linhas.reduce((n, l) => n + l.migrados, 0),
     indecidiveis: linhas.filter((l) => l.indecidivel).length,
     semRecibos: linhas.filter((l) => l.semRecibo).length,
     // `fecha` do módulo: entregue, bloqueada (decisão declarada) ou indecidível (sem
     // instrumento) — o resto é dívida medida, e é só por ela que o --check morde.
-    fecha: linhas.every((l) => l.estado === 'feito' || l.estado === 'bloqueada' || l.indecidivel),
-    falhas: linhas.filter((l) => l.estado !== 'feito' && l.estado !== 'bloqueada')
+    fecha: linhas.every((l) => FECHADA(l) || l.indecidivel),
+    falhas: linhas.filter((l) => !FECHADA(l))
       .map((l) => `${l.id} ${l.titulo} — ${motivo(l)}`),
   };
 }
@@ -384,15 +405,16 @@ export function agregarIndices(root, alvos, { thread = null } = {}) {
   if (thread) {
     for (const m of modulos) {
       m.linhas = m.linhas.filter((l) => l.id === thread);
-      m.total = m.linhas.length;
+      m.total = m.linhas.filter((l) => l.estado !== 'descartada').length;
       m.feito = m.linhas.filter((l) => l.estado === 'feito').length;
       m.naoMedidas = m.linhas.reduce((n, l) => n + l.naoMedidas, 0);
       m.migrados = m.linhas.reduce((n, l) => n + l.migrados, 0);
       m.indecidiveis = m.linhas.filter((l) => l.indecidivel).length;
       m.semRecibos = m.linhas.filter((l) => l.semRecibo).length;
-      m.fecha = m.linhas.every((l) => l.estado === 'feito' || l.estado === 'bloqueada' || l.indecidivel);
-      m.falhas = m.linhas.filter((l) => l.estado !== 'feito' && l.estado !== 'bloqueada').map((l) => `${l.id} ${l.titulo} — ${m.motivo(l)}`);
+      m.fecha = m.linhas.every((l) => FECHADA(l) || l.indecidivel);
+      m.falhas = m.linhas.filter((l) => !FECHADA(l)).map((l) => `${l.id} ${l.titulo} — ${m.motivo(l)}`);
       m.cont = Object.fromEntries(ESTADOS.map((e) => [e, m.linhas.filter((l) => l.estado === e).length]));
+      m.descartadas = m.cont.descartada;
     }
     if (!modulos.some((m) => m.linhas.length)) throw new NaoMedi(`thread "${thread}" não existe em ${alvos.join(', ')}`);
   }
@@ -422,6 +444,9 @@ const cortar = (itens, n, rotulo) => itens.length <= n
   : `${itens.slice(0, n).join(' · ')} · _+${itens.length - n} ${rotulo}_`;
 
 /** `sem recibo` DITO a parte — NUNCA somado a `entregue` (Lei 2). Ver avaliarIndice. */
+/** Descartadas DITAS: fora do denominador, mas nunca somem do relato. */
+const descartadaSufixo = (m) => m.descartadas ? ` · ${m.descartadas} descartada(s) fora da conta` : '';
+
 const semReciboSufixo = (m) => {
   const ids = m.linhas.filter((l) => l.semRecibo).map((l) => l.id);
   return ids.length ? ' · ' + ids.length + ' sem recibo (' + ids.join(', ') + ')' : '';
@@ -432,7 +457,7 @@ export function emitirMdIndice(r) {
   for (const m of r.modulos) {
     // Uma linha por módulo + as ausentes em sub-lista. Antes isto concatenava tudo numa linha
     // só: 2.759 chars, ilegível — e comentário que ninguém lê equivale a não comentar.
-    L.push(`- **${m.modulo}** · entregue ${m.feito} de ${m.total}${m.indecidiveis ? ` · ${m.indecidiveis} indecidível(is)` : ''}` + semReciboSufixo(m));
+    L.push(`- **${m.modulo}** · entregue ${m.feito} de ${m.total}${m.indecidiveis ? ` · ${m.indecidiveis} indecidível(is)` : ''}` + descartadaSufixo(m) + semReciboSufixo(m));
     for (const f of m.falhas.slice(0, 5)) {
       const [cabeca, ...resto] = f.split(' — ');
       L.push(`  - \`${cabeca}\` — ${(resto.join(' — ') || 'pendente').slice(0, 180)}`);
@@ -458,12 +483,14 @@ export function emitirMdIndice(r) {
 
 export function emitirTextoIndice(r, { proximo = false } = {}) {
   for (const m of r.modulos) {
-    console.log(`${m.modulo}: entregue ${m.feito} de ${m.total} · próximo ${m.cont.proximo} · em curso ${m.cont['em curso']} · pendente ${m.cont.pendente} · bloqueada ${m.cont.bloqueada}` + semReciboSufixo(m));
+    console.log(`${m.modulo}: entregue ${m.feito} de ${m.total} · próximo ${m.cont.proximo} · em curso ${m.cont['em curso']} · pendente ${m.cont.pendente} · bloqueada ${m.cont.bloqueada}` + descartadaSufixo(m) + semReciboSufixo(m));
     for (const l of m.linhas) {
       // O motivo é o MESMO texto do `falhas`/`--md`: decisão pendente + _saida + provas.
       // Antes esta linha só mostrava `ausentes[0]`, e decisão pendente saía muda — reprovação
       // sem motivo legível é meio caminho pro gate que ninguém entende e todos ignoram.
-      const cauda = (l.estado === 'feito' || l.estado === 'bloqueada') ? '' : ' — ' + (m.motivo(l) || 'sem pendência legível');
+      const cauda = (l.estado === 'feito' || l.estado === 'bloqueada') ? ''
+        : l.estado === 'descartada' ? ' — ' + m.motivo(l).slice(0, 160)
+        : ' — ' + (m.motivo(l) || 'sem pendência legível');
       console.log(`  ${l.id} [${l.estado.padEnd(9)}]${l.indecidivel ? ' (indecidível)' : ''}${l.semRecibo ? ' (sem recibo)' : ''} ${l.titulo}${cauda}`);
     }
   }

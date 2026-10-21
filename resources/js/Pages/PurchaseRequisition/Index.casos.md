@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: requisição de outro negócio ou de local vetado, ou prazo diferente do da Blade, leva o comprador a repor errado.
 owner: wagner
-last_run: "2026-10-13"
+last_run: "2026-10-21"
 ---
 
 # Casos de Uso & Aceite — Requisições de compra
@@ -47,6 +47,12 @@ last_run: "2026-10-13"
   Então vejo só a parcial · E sem filtro, `sem_pedido` conta as ordenadas e `parciais` conta as parciais da lista.
 - **Status: 🧪**
 
+## UC-REQC-06 · A coluna Fornecedor mostra o fornecedor da requisição · `[T0]`
+- **Aceite:** Dado uma requisição com fornecedor (razão social), uma com fornecedor sem razão social, uma sem
+  fornecedor e uma apontando para fornecedor de outro negócio · Quando a lista carrega · Então vejo a razão
+  social, o nome, vazio e vazio, nessa ordem · E o nome do outro negócio não aparece.
+- **Status: 🧪**
+
 ---
 
 ## Estoque mínimo vira requisição de compra (US-COM-027 · UC-FLX-19)
@@ -55,8 +61,9 @@ last_run: "2026-10-13"
 > fluxos ("Abaixo do mínimo → cria a requisição"). Nesta entrega é o job diário por business
 > (`RequisicaoEstoqueMinimoJob`, agendado via `compras:requisicao-estoque-minimo`) que grava a requisição
 > do núcleo que esta tela lista; a tela não mudou. Mínimo = `products.alert_quantity`. Regra **desligada
-> por padrão** (`business.common_settings['compras_requisicao_estoque_minimo']`). Fornecedor da última
-> compra e a tela de ligar a regra são follow-up da US. Prova:
+> por padrão** (`business.common_settings['compras_requisicao_estoque_minimo']`), ligada na tela Fluxos
+> (aba Fluxos da empresa, card Compra — UC-FLXT-24). A requisição sai com o fornecedor e o preço da
+> última compra recebida do item, uma por local e fornecedor (UC-REQMIN-07). Prova:
 > `Modules/Compras/Tests/Feature/RequisicaoEstoqueMinimoContratoTest.php`, lane `compras-pest.yml`.
 > Nenhum estoque muda; só nasce requisição.
 
@@ -92,6 +99,20 @@ last_run: "2026-10-13"
   99 · E o 99 fica sem requisição.
 - **Status: 🧪**
 
+## UC-REQMIN-07 · A requisição sai com o fornecedor e o preço da última compra · `[T0]` valor
+- **Aceite:** Dado A abaixo do mínimo em L1, comprado do Velho (09,00) e depois do Atual (12,50 · 13,75 com
+  imposto), e ainda uma compra pendente e uma devolvida por inteiro, ambas mais novas · E B comprado do
+  Fornecedor do B (4,20) · E um item nunca comprado · Quando o job roda · Então A entra numa requisição do
+  Atual com 12,50 / 13,75 · E B numa requisição do Fornecedor do B com 4,20 · E o item novo numa requisição
+  sem fornecedor, com preço 0 · E um item novo do Atual entra na requisição aberta dele. VALOR: o preço é
+  provado à mão e pela linha da compra. O preço é sugestão: a requisição não tem total.
+- **Status: 🧪**
+
+## UC-REQMIN-08 · Compra de outro business não vira fornecedor nem preço · `[T0]`
+- **Aceite:** Dado A do 98 abaixo do mínimo e uma compra recebida do 99 com a variação de A · Quando roda o job
+  do 98 · Então a requisição de A sai sem fornecedor e com preço 0 · E o 99 fica sem requisição.
+- **Status: 🧪**
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 - [BACKLOG] Ver o detalhe e excluir pela tela nova (PR próprio).
 - [BACKLOG] KPI "Itens requisitados" e coluna "Pedido gerado" — decisão [W].
@@ -100,3 +121,5 @@ last_run: "2026-10-13"
 - 2026-10-13 · [CL] criado com a F3 da thread `compras/playbook/07`.
 - 2026-10-20 · [CC] UC-REQMIN-01..06 (US-COM-027 · UC-FLX-19): requisição gerada pelo estoque mínimo — job
   diário, sem mudança no `.tsx`; `last_run` intocado. Prova: `RequisicaoEstoqueMinimoContratoTest`.
+- 2026-10-21 · [CC] UC-REQMIN-07/08 (fornecedor e preço da última compra) e UC-REQC-06 (coluna Fornecedor).
+  A regra liga na tela Fluxos (UC-FLXT-24).

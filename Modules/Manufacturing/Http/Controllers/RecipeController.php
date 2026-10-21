@@ -273,6 +273,7 @@ class RecipeController extends Controller
                 ? $this->recipeBomService->usosDoInsumo($variationId, $business_id, $pct)
                 : [],
             'variacao_pct' => $pct,
+            'metodo_custo' => $variationId ? $this->metodoCustoDoInsumo($business_id, $variationId) : null,
             'permissions' => [
                 'prod' => auth()->user()->can('manufacturing.access_production'),
             ],
@@ -282,6 +283,27 @@ class RecipeController extends Controller
             ],
             'recipes_count' => $this->recipeBomService->countRecipes($business_id),
         ]);
+    }
+
+    /**
+     * US-COM-024 · UC-FLX-38 — o método de custo do insumo, para a gaveta de Insumos. O dado é do
+     * módulo Compras e chega pela interface do núcleo; sem o módulo ligado a seção não aparece
+     * (`null`). Gravar é `PUT /compras/insumos/{variation}/metodo-custo`, com `purchase.update`.
+     *
+     * @return array{atual: ?string, empresa: string, editavel: bool}|null
+     */
+    private function metodoCustoDoInsumo(int $business_id, int $variationId): ?array
+    {
+        if (! app()->bound(\App\Contracts\Compras\CustoDoInsumo::class)) {
+            return null;
+        }
+        $custo = app(\App\Contracts\Compras\CustoDoInsumo::class);
+
+        return [
+            'atual' => $custo->metodoDoInsumo($business_id, $variationId),
+            'empresa' => $custo->metodoDaEmpresa($business_id),
+            'editavel' => auth()->user()->can('purchase.update'),
+        ];
     }
 
     /**

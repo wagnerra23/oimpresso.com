@@ -611,5 +611,13 @@
     "route": "/manufacturing/settings",
     "anchor": "Prefixo da referência",
     "baseline": "it_Manufacturing_Settings_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Fisio/Pacientes",
+    "source": "Fisio/Pacientes",
+    "component": "Fisio/Pacientes/Index",
+    "route": "/fisio/pacientes",
+    "anchor": "Novo paciente",
+    "baseline": "it_Fisio_Pacientes_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   }
 ]

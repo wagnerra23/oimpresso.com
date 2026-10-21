@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o apontamento vira custo real e fecha etapa da OS. Errar a etapa aponta tempo no lugar errado; errar a empresa expõe produção alheia; duplicar o envio offline dobra o custo.
 owner: wagner
-last_run: "2026-10-20"
+last_run: "2026-10-21"
 last_run_ci: "_pendente_ — o trio nasce na thread 04. O veredito por UC entra quando a lane verticais-pest rodar; até lá o Status é 🧪."
 ---
 
@@ -82,6 +82,41 @@ Status: 🧪
 **Dado** apontamento de pessoa aberto e saída no ponto às 17:52 **Então** fecha às 17:52 marcado automático;
 sem saída, fecha no fim do turno; horas de pessoa no dia acima da presença + 30 min geram pendência ao gestor;
 o Ponto não é alterado.
+
+Status: 🧪
+
+---
+
+## Produção da impressão no concluir (US-COMVIS-004 · UC-FLX-09)
+
+> **Âncora:** US-COMVIS-004 do `ComunicacaoVisual/SPEC.md` (*"registrar início/fim do trabalho + m² impresso
+> + consumo tinta (CMYK ml)"*) e o UC-FLX-09 do catálogo de fluxos (`CasosDoPrototipo.php:62`). Na linha de
+> máquina que está rodando, o "Concluir etapa" leva junto o m² impresso e a tinta C/M/Y/K em ml, todos
+> opcionais; eles vão na linha `fim` do apontamento, gravada uma vez (append-only). Ficam fora o painel da
+> máquina e a leitura automática do equipamento (UC-FLX-11, decisão D-RIP). Provas:
+> `ProducaoApontamentoContratoTest` (regra) e `ProducaoApontamentoTelaTest` (HTTP).
+
+## UC-PCIMP-01 · Concluir grava m² e tinta na etapa · `must`
+
+**Dado** a etapa do Diego no plotter rodando **Quando** ele conclui informando 12,5 m², tinta C 3,2 ml e K 1 ml
+**Então** a linha `fim` guarda 12,500 m², C 3,20 e K 1,00; M e Y ficam sem valor (não informado ≠ zero). Concluir
+sem informar nada grava o fim como antes, com os campos vazios. Os campos aparecem só na linha de máquina,
+com toque ≥ 44px.
+
+Status: 🧪
+
+## UC-PCIMP-02 · Valor fora do formato recusa o concluir · `must`
+
+**Dado** a mesma etapa **Quando** o valor chega negativo, com letra, com vírgula na API, com casas demais ou com
+dois separadores **Então** o concluir é recusado com `quantidade_invalida`, nada grava e a etapa segue aberta. A
+tela troca a vírgula por ponto antes de enviar.
+
+Status: 🧪
+
+## UC-PCIMP-03 · Reenvio offline não duplica · `must`
+
+**Dado** a fila offline reenviando o mesmo concluir (mesma chave) com m² e tinta **Então** existe uma linha `fim`
+só, com os valores do primeiro envio.
 
 Status: 🧪
 
@@ -307,6 +342,19 @@ token desconhecido também é 404.
 
 Status: 🧪
 
+## UC-PCV-11 · Arte aprovada travada · `must`
+
+> Âncora: `prototipo-ui/cowork/Wagner/cowork-inbox/producao/Producao.casos.md` UC-PCV-11 · thread 10 do playbook
+> (D-ARTE-PAGINA, [W] 2026-10-21: a página `/arte/{token}` fica; a thread 10 é a trava).
+
+**Dado** a arte aprovada **Quando** alguém troca o arquivo da arte (`POST /producao/ordens/{id}/arte/trocar`) **Então**
+a Aprovação do cliente volta como etapa nova "(nova versão)" no mesmo bloco, as etapas seguintes voltam a esperar e
+sai um link novo · Enquanto o cliente não aprova, a arte que vale (`GET /producao/ordens/{id}/arte`) segue sendo a
+última aprovada · Sem arte aprovada, ou com o mesmo arquivo, a troca é recusada e nada muda · OS de outra empresa: 404.
+A arte vigente ainda não aparece na tela do operador (fica para quando os PRs abertos do apontamento entrarem).
+
+Status: 🧪
+
 ## UC-PCOSA-02 · Vivo: a previsão acompanha · `must` valor
 
 **Dado** a regra em "Passam a usar o custo novo" **Então** a previsão é 45,00, o custo do lote segue 30,00 e
@@ -340,9 +388,11 @@ Status: 🧪
 > **Âncora:** UC-FLX-16 do catálogo de fluxos (Acabamento: *refugo com motivo; refugo e retrabalho somam
 > custo à OS*), o cadastro de motivos de refugo por posto (UC-PCV-33, `pcp_motivos.tipo = refugo`), o
 > "Reprovar no controle" do processo da OS (ADR 0436: Em execução → Retrabalho, papel
-> `producao.qualidade`) e a baixa de material da US-PCP-021. Nesta entrega é o endpoint da PWA
-> (`POST /producao/apontamento/refugo`); a tela e o app ainda não têm o campo. Prova:
-> `ProducaoRefugoContratoTest`. ESTOQUE e VALOR: regra mestre.
+> `producao.qualidade`) e a baixa de material da US-PCP-021. O endpoint da PWA é
+> `POST /producao/apontamento/refugo`; desde 2026-10-21 a tela tem o botão "Registrar refugo" na etapa
+> que está rodando (UC-PCREF-07). O app das lojas e o relatório por motivo e posto ainda não. Provas:
+> `ProducaoRefugoContratoTest` (regra) e `ProducaoApontamentoTelaTest` (o que a tela recebe).
+> ESTOQUE e VALOR: regra mestre.
 
 ## UC-PCREF-01 · Refugo com quantidade, motivo, quem e quando · `must`
 
@@ -387,6 +437,15 @@ Status: 🧪
 
 **Quando** o operador aponta o refugo pela PWA **Então** a resposta não traz custo e o reenvio não grava de
 novo; pedindo retrabalho sem o papel de qualidade **Então** 403 e nada fica (nem o refugo, nem a baixa).
+
+Status: 🧪
+
+## UC-PCREF-07 · Registrar refugo pela etapa que está rodando · `must`
+
+**Dado** a etapa de Acabamento do Diego rodando, com o motivo de refugo "Corte torto" e o de pausa "Falta
+material" no posto, e um motivo de refugo de outra empresa **Quando** ele toca em "Registrar refugo" **Então**
+o formulário pede o motivo (só os de refugo daquele posto, da empresa dele), as peças refugadas e se vai para
+retrabalho, com todo controle de toque ≥ 44px; a lista de pausa continua sem os motivos de refugo.
 
 Status: 🧪
 
@@ -526,6 +585,58 @@ Status: 🧪
 
 ---
 
+## Aguardando material (US-PCP-032 · D3)
+
+> **Âncora:** D3 da proposta [2026-10-09-fabricacao-vs-producao-decisao-w](../../../../../../../memory/decisions/proposals/2026-10-09-fabricacao-vs-producao-decisao-w.md)
+> (*"deixar criar a ordem e bloquear iniciar/concluir sem material, com estado 'aguardando material' e atalho
+> para Compras"*, aprovada por [W] em 2026-10-13) e a revisão de 2026-10-21, que pôs o estado na Produção.
+> Necessário = receita × quantidade da OS (a mesma conta da reserva, US-PCP-031); disponível = saldo no local da
+> venda − reservas ativas de outras OS e vendas. Só lê estoque. Chave da empresa
+> `producao_aguarda_material`, desligada por padrão. JSON (`GET /producao/ordens/{id}/material`,
+> `POST /producao/ordens/{id}/material/conferir`); a tela ainda não mostra. Prova: `ProducaoAguardandoMaterialContratoTest`.
+
+## UC-PCMAT-01 · Chave desligada: nada muda · `must`
+
+**Dado** a lona com 3 de saldo e a OS do banner que precisa de 5 **Quando** o PCP libera com a chave da empresa
+desligada **Então** a OS vai para Na fila, como antes, e o saldo segue 3.
+
+Status: 🧪
+
+## UC-PCMAT-02 · Liberada sem material fica Aguardando material e não começa · `must`
+
+**Dado** a chave ligada, saldo 3 e compras da lona pedida (4) e pendente (1), e uma já recebida (9) **Quando** o
+PCP libera **Então** a OS vai para Aguardando material; a lista mostra necessário 5,0000, disponível 3,0000, falta
+2,0000 e 5,0000 a caminho nas duas compras não recebidas · o operador tenta começar a etapa **Então** é recusado e
+nada muda no saldo.
+
+Status: 🧪
+
+## UC-PCMAT-03 · Reserva de outra venda tira do disponível; a da própria OS não · `must`
+
+**Dado** saldo 10, reserva ativa de 5 desta OS, reserva ativa de 6 de outra venda e uma liberada de 50 **Então** o
+disponível é 4,0000 e a falta 1,0000.
+
+Status: 🧪
+
+## UC-PCMAT-04 · Conferir devolve para Na fila quando o material chega · `must`
+
+**Dado** a OS em Aguardando material **Quando** o operador sem o papel `producao.liberar` confere **Então** 403 ·
+**Quando** o PCP confere ainda faltando **Então** fica onde está e a resposta traz a falta · com o saldo em 5
+**Então** volta para Na fila, a lista vem vazia e a etapa começa; o saldo segue 5.
+
+Status: 🧪
+
+## UC-PCMAT-05 · Outra empresa, 404 · `must`
+
+**Quando** o PCP da 98 lê ou confere o material de uma OS da 99 **Então** 404 e a OS da 99 não muda.
+
+Status: 🧪
+
+- **[BACKLOG]** Conferir sozinho quando a compra do insumo é recebida (hoje o PCP confere); mostrar a falta e o
+  atalho para Compras na tela da OS; ligar a chave pela aba Fluxos da empresa.
+
+---
+
 ## Previsto × realizado por OS (US-COMVIS-005 · UC-FLX-15)
 
 > **Âncora:** UC-FLX-15 do catálogo de fluxos (*"Previsto × realizado por OS — congela o custo real e compara
@@ -615,6 +726,20 @@ a OS da 98.
 
 Status: 🧪
 
-- **[BACKLOG]** UC-FLX-28 — parcelas de sinal e saldo geradas na aprovação do orçamento (Vendas/Financeiro) e o
-  retorno do banco criando o pagamento da venda (PaymentGateway): hoje o retorno só grava o evento. O campo do
-  sinal mínimo na aba Fluxos da empresa também falta (o valor é gravado por `RegrasDaEmpresa::mudarSinalMinimo`).
+## UC-PCLIB-08 · O retorno do banco grava o pagamento da venda · `must` valor
+
+**Dado** uma venda de 1.000,00 com cobrança (`origem_type = sale`) e a config
+`paymentgateway.lancar_pagamento_na_venda` ligada **Quando** o banco avisa que a cobrança foi paga com
+30.000 centavos **Então** a venda ganha um pagamento de 300,00 (`transaction_no = PG-COB-<id>`), o status vai
+para parcial e o sinal de 30% passa a constar como pago; o mesmo retorno de novo não duplica. Pago o total, a
+venda fica paga. **E** se o valor não cabe no saldo em aberto (já registrado à mão), nada é lançado e fica no
+log. Cobrança não paga ou que não é de venda é ignorada. Cobrança ou evento de outra empresa nunca paga a venda
+da 98. O business dono do SaaS fica de fora. Desligada a config, nada muda.
+
+Teste: `tests/Feature/PaymentGateway/RetornoDoBancoPagamentoNaVendaContratoTest.php`.
+
+Status: 🧪
+
+- **[BACKLOG]** UC-FLX-28 — parcelas de sinal e saldo geradas na aprovação do orçamento (Vendas/Financeiro);
+  hoje o retorno do banco lança o pagamento na venda inteira (UC-PCLIB-08), sem parcela de sinal separada. O
+  campo do sinal mínimo na aba Fluxos da empresa vem no #9701.

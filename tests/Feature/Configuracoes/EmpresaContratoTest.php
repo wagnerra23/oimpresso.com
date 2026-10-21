@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-EMP-01, UC-EMP-02, UC-EMP-03, UC-EMP-04, UC-EMP-05, UC-EMP-06, UC-EMP-07, UC-EMP-08, UC-EMP-09, UC-EMP-10, UC-EMP-11, UC-EMP-12, UC-EMP-13, UC-EMP-14 (Configuracoes/Empresa/Index.casos.md).
+// Cobre UC-EMP-01, UC-EMP-02, UC-EMP-03, UC-EMP-04, UC-EMP-05, UC-EMP-06, UC-EMP-07, UC-EMP-08, UC-EMP-09, UC-EMP-10, UC-EMP-11, UC-EMP-12, UC-EMP-13, UC-EMP-14, UC-EMP-15 (Configuracoes/Empresa/Index.casos.md).
 
 use App\Business;
 use App\Http\Controllers\BusinessController;
@@ -477,6 +477,36 @@ test('UC-EMP-14 Rótulos: voltam iguais, inclusive tipo e opções do campo de p
     expect($depois['payments']['custom_pay_1'])->toBe('Pix 98');
 });
 
+test('UC-EMP-15 Financeiro: ligar a régua de cobrança grava ativo e dias que o job lê; a Blade mostra e grava igual', function () {
+    $config = app(\Modules\Financeiro\Services\ReguaCobrancaConfig::class);
+    DB::table('business')->where('id', $this->business->id)->update(['date_format' => 'd/m/Y',
+        'common_settings' => json_encode(['default_datatable_page_entries' => '50'])]);
+    expect($config->de($this->business->id))->toBe(['ativo' => false, 'dias' => [1, 5, 15]]);
+
+    // Tela React: o corpo volta com a chave da régua; as outras de common_settings ficam.
+    $corpo = empCorpo($this);
+    $corpo['common_settings']['financeiro_regua_cobranca'] = ['ativo' => '1', 'dias' => '2, 7'];
+    $this->post('/business/update', empFormData($corpo))->assertSessionHas('status.success', 1);
+
+    expect($config->de($this->business->id))->toBe(['ativo' => true, 'dias' => [2, 7]]);
+    expect(empLinha($this->business->id)['common_settings']['default_datatable_page_entries'])->toBe('50');
+    expect(empCorpo($this)['common_settings']['financeiro_regua_cobranca'])->toBe(['ativo' => '1', 'dias' => '2, 7']);
+
+    // Blade: a aba mostra o gravado; desmarcado manda 0 pelo hidden e a régua desliga.
+    $blade = $this->get('/business/settings?classico=1');
+    $blade->assertOk()->assertSee('name="common_settings[financeiro_regua_cobranca][dias]"', false)->assertSee('value="2, 7"', false);
+    $this->post('/business/update', empCorpoBlade($this->business, ['common_settings' => [
+        'financeiro_regua_cobranca' => ['ativo' => '0', 'dias' => '3, 10'],
+    ]]))->assertSessionHas('status.success', 1);
+    expect($config->de($this->business->id))->toBe(['ativo' => false, 'dias' => [3, 10]]);
+
+    // Zero, acima de um ano e repetido não viram etapa.
+    DB::table('business')->where('id', $this->business->id)->update(['common_settings' => json_encode([
+        'financeiro_regua_cobranca' => ['ativo' => '1', 'dias' => '0, 30, 400, 30, 10'],
+    ])]);
+    expect($config->de($this->business->id))->toBe(['ativo' => true, 'dias' => [10, 30]]);
+});
+
 test('UC-EMP-04 controle: a Blade também grava desconto padrão nulo como 0 ao salvar', function () {
     // Prova pedida para o conserto do fixture do UC-EMP-06: null → 0 não é coisa da tela nova.
     // settings_sales.blade.php:10 renderiza @num_format(null) = "0,00"; BusinessController:455 grava num_uf("0,00") = 0.
@@ -499,3 +529,30 @@ function empCorpoBlade($b, array $campos = []): array
         'date_format' => 'd/m/Y', 'time_format' => $b->time_format ?: '24', 'on_product_expiry' => 'keep_selling', 'custom_labels' => [],
     ], $campos);
 }
+
+test('UC-EMP-16 Vendas: ligar a pesquisa depois da entrega e escolher a nota baixa grava o que a rotina lê; desligar mantém a nota', function () {
+    DB::table('business')->where('id', $this->business->id)->update([
+        'common_settings' => json_encode(['is_enabled_export' => '1']), 'custom_labels' => json_encode(['payments' => ['custom_pay_1' => 'Pix']]),
+    ]);
+    $config = app(\App\Services\Sells\PesquisaEntregaConfig::class);
+    // PRÉ-CONDIÇÃO: nasce desligada, nota padrão 2.
+    expect($config->de($this->business->id))->toBe(['ativo' => false, 'nota_baixa' => 2]);
+
+    // O que o interruptor + seletor da aba Vendas mandam (a Blade usa os mesmos nomes de campo).
+    $corpo = empCorpo($this);
+    $corpo['common_settings']['sells_pesquisa_entrega'] = ['nota_baixa' => '3', 'ativo' => '1'];
+    $this->post('/business/update', empFormData($corpo))->assertSessionHas('status.success', 1);
+    expect($config->de($this->business->id))->toBe(['ativo' => true, 'nota_baixa' => 3]);
+    expect(empLinha($this->business->id)['common_settings']['is_enabled_export'])->toBe('1');
+
+    // Desmarcar tira `ativo` (checkbox some do form) e a nota escolhida fica.
+    $corpo = empCorpo($this);
+    unset($corpo['common_settings']['sells_pesquisa_entrega']['ativo']);
+    $this->post('/business/update', empFormData($corpo))->assertSessionHas('status.success', 1);
+    expect($config->de($this->business->id))->toBe(['ativo' => false, 'nota_baixa' => 3]);
+
+    // A Blade da aba Vendas (fallback) desenha os mesmos dois campos.
+    $this->get('/business/settings?classico=1')->assertOk()
+        ->assertSee('common_settings[sells_pesquisa_entrega][ativo]', false)
+        ->assertSee('common_settings[sells_pesquisa_entrega][nota_baixa]', false);
+});

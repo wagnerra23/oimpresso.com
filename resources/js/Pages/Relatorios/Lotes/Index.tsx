@@ -3,24 +3,28 @@
 // (consultaLotes, a mesma consulta do DataTable da Blade), 25 por página no servidor.
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { PageHeader } from '@/Components/PageHeader';
+import { Button } from '@/Components/ui/button';
 import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { Inline, Stack } from '@/Components/layout';
 import { formatDecimalPtBR } from '@/Lib/numberPtBR';
 import { Paginacao, type PaginacaoInfo } from '../_shared/Paginacao';
+import RastreioDoLoteSheet, { type AlvoRastreio } from './_components/RastreioDoLoteSheet';
 
 type Opcao = { id: number; nome: string };
 type Filtros = { location_id: string; category_id: string; brand_id: string; unit_id: string };
 type Linha = {
-  sku: string; produto: string; lote: string; validade: string; vencido: boolean;
+  lote_ids: number[]; sku: string; produto: string; lote: string; validade: string; vencido: boolean;
   estoque: number; vendido: number; ajustado: number; unidade: string;
 };
 type Rodape = { unidade: string; estoque: number; vendido: number; ajustado: number };
 type Props = {
   linhas: Linha[];
   rodape: Rodape[];
+  /** Vê compras e tem o Producao no pacote — o mesmo que o JSON do rastreio exige. */
+  podeRastrear: boolean;
   paginacao: PaginacaoInfo;
   filtros: Filtros;
   locais: Opcao[];
@@ -31,7 +35,8 @@ type Props = {
 
 const TODOS = 'todos';
 
-function LotesIndex({ linhas, rodape, paginacao, filtros, locais, categorias, marcas, unidades }: Props) {
+function LotesIndex({ linhas, rodape, podeRastrear, paginacao, filtros, locais, categorias, marcas, unidades }: Props) {
+  const [rastreio, setRastreio] = useState<AlvoRastreio | null>(null);
   const qtd = (v: number, unidade: string) => `${formatDecimalPtBR(Number(v), 2)} ${unidade}`.trim();
   // Como o __sum_stock da Blade: "10,00 UN, 5,00 KG".
   const porUnidade = (campo: 'estoque' | 'vendido' | 'ajustado') => rodape.map(r => qtd(r[campo], r.unidade)).join(', ') || '0';
@@ -80,11 +85,12 @@ function LotesIndex({ linhas, rodape, paginacao, filtros, locais, categorias, ma
                 <th scope="col" className="px-3 py-2 text-right font-semibold">Estoque</th>
                 <th scope="col" className="px-3 py-2 text-right font-semibold">Vendido</th>
                 <th scope="col" className="px-3 py-2 text-right font-semibold">Ajustado</th>
+                {podeRastrear && <th scope="col" className="px-3 py-2"><span className="sr-only">Ações</span></th>}
               </tr>
             </thead>
             <tbody>
               {linhas.length === 0 ? (
-                <tr><td colSpan={7} className="px-3 py-6 text-center text-muted-foreground">Nenhum lote.</td></tr>
+                <tr><td colSpan={podeRastrear ? 8 : 7} className="px-3 py-6 text-center text-muted-foreground">Nenhum lote.</td></tr>
               ) : linhas.map((l, i) => (
                 <tr key={`${l.sku}-${l.lote}-${i}`} className="border-t">
                   <td className="px-3 py-2 font-mono text-xs">{l.sku}</td>
@@ -96,6 +102,15 @@ function LotesIndex({ linhas, rodape, paginacao, filtros, locais, categorias, ma
                   <td className="px-3 py-2 text-right font-mono tabular-nums whitespace-nowrap">{qtd(l.estoque, l.unidade)}</td>
                   <td className="px-3 py-2 text-right font-mono tabular-nums whitespace-nowrap">{qtd(l.vendido, l.unidade)}</td>
                   <td className="px-3 py-2 text-right font-mono tabular-nums whitespace-nowrap">{qtd(l.ajustado, l.unidade)}</td>
+                  {podeRastrear && (
+                    <td className="px-3 py-2 text-right">
+                      <Button type="button" variant="link" size="xs"
+                        aria-label={`Rastrear o lote ${l.lote}`}
+                        onClick={() => setRastreio({ ids: l.lote_ids, lote: l.lote, produto: l.produto, unidade: l.unidade })}>
+                        Rastrear
+                      </Button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -105,6 +120,7 @@ function LotesIndex({ linhas, rodape, paginacao, filtros, locais, categorias, ma
                 <td className="px-3 py-2 text-right font-mono tabular-nums" data-testid="lt-rodape-estoque">{porUnidade('estoque')}</td>
                 <td className="px-3 py-2 text-right font-mono tabular-nums">{porUnidade('vendido')}</td>
                 <td className="px-3 py-2 text-right font-mono tabular-nums">{porUnidade('ajustado')}</td>
+                {podeRastrear && <td />}
               </tr>
             </tfoot>
           </table>
@@ -112,6 +128,7 @@ function LotesIndex({ linhas, rodape, paginacao, filtros, locais, categorias, ma
 
         <Paginacao info={paginacao} irPara={p => navegar({ page: p })} />
       </Stack>
+      <RastreioDoLoteSheet alvo={rastreio} onFechar={() => setRastreio(null)} />
     </>
   );
 }

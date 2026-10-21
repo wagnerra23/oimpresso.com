@@ -264,3 +264,51 @@ it('UC-PCV-36 · pessoa fecha na saída do ponto; excedente > 30 min vira pendê
         ->and(DB::table('pcp_eventos')->where('business_id', $this->b98)->where('tipo', 'pendencia_gestor')->pluck('user_id')->all())->toBe([$this->felipe])
         ->and(DB::table('ponto_marcacoes')->count())->toBe($marcacoes);
 });
+
+// ── Produção da impressão no concluir (US-COMVIS-004 · UC-FLX-09) ─────────────────────────────
+
+it('UC-PCIMP-01 · concluir a etapa de máquina grava m² impresso e tinta C/M/Y/K na linha fim', function () {
+    $roland = aptPosto($this->b98, 'maquina');
+    $i1 = $this->svc->iniciar($this->b98, $this->diego, aptEtapa($this->b98, $roland, $this->diego, APT_DIA.' 08:00:00'), 'imp1-1', Carbon::parse(APT_DIA.' 08:00:00'));
+    $i2 = $this->svc->iniciar($this->b98, $this->diego, aptEtapa($this->b98, $roland, $this->diego, APT_DIA.' 08:30:00', 502), 'imp1-2', Carbon::parse(APT_DIA.' 08:30:00'));
+
+    $fim = $this->svc->concluir($this->b98, $this->diego, $i1->id, 'imp1-3', Carbon::parse(APT_DIA.' 09:00:00'),
+        ['m2_impresso' => '12.5', 'tinta_ml_c' => '3.2', 'tinta_ml_k' => '1', 'tinta_ml_y' => '']);
+    $linha = DB::table('pcp_apontamentos')->find($fim->id);
+    expect($linha->tipo)->toBe('fim')
+        ->and($linha->m2_impresso)->toBe('12.500')->and($linha->tinta_ml_c)->toBe('3.20')->and($linha->tinta_ml_k)->toBe('1.00')
+        // Vazio e ausente ficam NULL ("não informado"), não zero.
+        ->and($linha->tinta_ml_m)->toBeNull()->and($linha->tinta_ml_y)->toBeNull();
+
+    // Discriminante: concluir sem informar nada grava a linha fim com tudo NULL.
+    $semDados = DB::table('pcp_apontamentos')->find($this->svc->concluir($this->b98, $this->diego, $i2->id, 'imp1-4', Carbon::parse(APT_DIA.' 09:10:00'))->id);
+    expect($semDados->m2_impresso)->toBeNull()->and($semDados->tinta_ml_c)->toBeNull();
+});
+
+it('UC-PCIMP-02 · valor inválido recusa o concluir e nada grava; a etapa segue aberta', function () {
+    $etapa = aptEtapa($this->b98, aptPosto($this->b98, 'maquina'), $this->diego, APT_DIA.' 08:00:00');
+    $i = $this->svc->iniciar($this->b98, $this->diego, $etapa, 'imp2-1', Carbon::parse(APT_DIA.' 08:00:00'));
+
+    foreach ([['m2_impresso' => '12,5'], ['m2_impresso' => '-1'], ['tinta_ml_m' => 'abc'], ['tinta_ml_c' => '1.234'], ['m2_impresso' => '1.000.5']] as $n => $ruim) {
+        expect(aptRecusa(fn () => $this->svc->concluir($this->b98, $this->diego, $i->id, "imp2-x{$n}", Carbon::parse(APT_DIA.' 09:00:00'), $ruim)))->toBe('quantidade_invalida');
+    }
+    expect(aptLinhas($this->b98))->toBe(['inicio'])
+        ->and(DB::table('pcp_programacoes')->where('id', $etapa)->value('status'))->not->toBe('concluida');
+
+    // Controle: o mesmo concluir com valores válidos (3 casas no m², zero na tinta) passa.
+    $this->svc->concluir($this->b98, $this->diego, $i->id, 'imp2-ok', Carbon::parse(APT_DIA.' 09:00:00'), ['m2_impresso' => '0.125', 'tinta_ml_m' => '0']);
+    expect(aptLinhas($this->b98))->toBe(['inicio', 'fim'])
+        ->and(DB::table('pcp_apontamentos')->where('chave_idempotencia', 'imp2-ok')->value('tinta_ml_m'))->toBe('0.00');
+});
+
+it('UC-PCIMP-03 · o reenvio da fila offline com m² e tinta grava uma linha fim só', function () {
+    $i = $this->svc->iniciar($this->b98, $this->diego, aptEtapa($this->b98, aptPosto($this->b98, 'maquina'), $this->diego, APT_DIA.' 08:00:00'),
+        'imp3-1', Carbon::parse(APT_DIA.' 08:00:00'));
+    $dados = ['m2_impresso' => '8', 'tinta_ml_k' => '2.5'];
+
+    $a = $this->svc->concluir($this->b98, $this->diego, $i->id, 'imp3-2', Carbon::parse(APT_DIA.' 09:00:00'), $dados);
+    $b = $this->svc->concluir($this->b98, $this->diego, $i->id, 'imp3-2', Carbon::parse(APT_DIA.' 09:00:00'), $dados);
+    expect($b->id)->toBe($a->id)->and($b->wasRecentlyCreated)->toBeFalse()
+        ->and(DB::table('pcp_apontamentos')->where('inicio_id', $i->id)->count())->toBe(1)
+        ->and(DB::table('pcp_apontamentos')->where('inicio_id', $i->id)->value('m2_impresso'))->toBe('8.000');
+});
