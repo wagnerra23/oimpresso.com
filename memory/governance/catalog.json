@@ -1983,7 +1983,7 @@
       "type": "component",
       "module": "Compras",
       "name": "PropostasPrecoController + PropostasDePreco",
-      "desc": "fila de preços propostos no detalhe da compra: lista, aprova (troca o preço de venda da variação) e recusa (US-COM-028 · UC-FLX-17); núcleo lê pela interface App\\Contracts\\Compras\\PropostasDePreco"
+      "desc": "fila de preços propostos no detalhe da compra: lista, aprova (troca o preço de venda da variação) e recusa (US-COM-028 · UC-FLX-17); núcleo lê pela interface PropostasDePreco (app/Contracts/Compras)"
     },
     {
       "id": "component:Compras/RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
