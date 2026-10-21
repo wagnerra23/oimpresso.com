@@ -2691,8 +2691,10 @@ class SellController extends Controller
                     : null,
                 // UC-FLX-06 · US-PCP-028: data prometida ao cliente (PROJETO_DT_FIM). Gravada pelo
                 // vendedor ou, na aprovação, pela fila dos postos (`PrometerPrazoDaVenda`).
-                'prazo_prometido' => (\Illuminate\Support\Facades\Schema::hasColumn('transactions', 'due_date') && $sell->due_date)
-                    ? substr((string) $sell->due_date, 0, 10)
+                // Valor CRU da coluna: `$sell->due_date` passa pelo accessor `Transaction::getDueDateAttribute`,
+                // que devolve o vencimento pelo prazo de pagamento (data da venda + pay_term), não esta data.
+                'prazo_prometido' => (\Illuminate\Support\Facades\Schema::hasColumn('transactions', 'due_date') && $sell->getRawOriginal('due_date'))
+                    ? substr((string) $sell->getRawOriginal('due_date'), 0, 10)
                     : null,
             ];
 
