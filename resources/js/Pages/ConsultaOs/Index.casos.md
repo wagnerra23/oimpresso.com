@@ -46,6 +46,8 @@ last_run_ci: "0 UC executado — UC-COS-08..11 nascem e UC-COS-01..07 mudam nest
 | UC-COS-12 | Mudar o status da OS avisa o cliente e o portal mostra o status novo | must `[T0]` | US-CONSULTA-004 (UC-FLX-24) | 🧪 |
 | UC-COS-13 | Status com nome da empresa muda o portal mas hoje não avisa (limite) | must | US-CONSULTA-004 limite (1) | 🧪 |
 | UC-COS-14 | Transição pela FSM hoje não avisa nem muda o portal (limite) | must | US-CONSULTA-004 limite (2) | 🧪 |
+| UC-COS-15 | Cliente que recusou WhatsApp não recebe o aviso da OS | must `[T0]` | US-CONSULTA-004 + LGPD opt-out | 🧪 |
+| UC-COS-16 | OS com cliente de outra empresa não avisa ninguém | must `[T0]` | US-CONSULTA-004 + ADR 0093 | 🧪 |
 
 Teste de todos: [`ConsultaOsIndexContratoTest`](../../../../tests/Feature/ConsultaOs/ConsultaOsIndexContratoTest.php),
 lane `PHP / Pest (Unit)` do `ci.yml` (via `.github/ci-sqlite-pest.list`), schema mínimo em SQLite
@@ -174,6 +176,23 @@ rodou teste local ([ADR 0062](../../../../memory/decisions/0062-separacao-runtim
   ação da FSM move a etapa (`RepairFsmActionController::execute`) · Então a etapa muda · E
   nenhum `RepairStatusChanged` é disparado · E o `status_id` que o portal lê fica igual.
 - **Follow-up:** evento genérico de transição da FSM (fora desta US).
+- **Status:** 🧪
+
+## UC-COS-15 · Cliente que recusou WhatsApp não recebe o aviso da OS · `must` `[T0]`
+
+- **Aceite:** Dado um número de WhatsApp da empresa 98 que atende aviso de OS e dois clientes da
+  98 com celular — um com `whatsapp_consent = false`, outro sem resposta (`null`) · Quando a OS de
+  cada um vai para `ready` · Então o de opt-out explícito não recebe job nenhum · E o sem resposta
+  recebe um, pelo número da 98 (`Contact::canReceiveWhatsappNotification`, LGPD: null permite,
+  false bloqueia).
+- **Status:** 🧪
+
+## UC-COS-16 · OS com cliente de outra empresa não avisa ninguém · `must` `[T0]`
+
+- **Aceite:** Dado uma OS da empresa 98 cujo `contact_id` aponta para um cliente da 99 (com
+  celular e consentimento) · Quando o status vai para `ready` · Então nenhum job sai (o contato é
+  buscado com `business_id` da OS, ADR 0093) · E o cliente da própria 98, no mesmo cenário,
+  recebe um job.
 - **Status:** 🧪
 
 ---
