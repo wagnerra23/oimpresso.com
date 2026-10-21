@@ -118,3 +118,12 @@ last_run: "2026-10-13"
   devolvo o corpo sem mexer · Então o objeto volta igual · E quando renomeio um campo, desmarco "obrigatório" e troco o tipo
   do campo de produto · Então só isso muda, e as opções e a outra marcação ficam.
 - **Status: 🧪**
+
+## UC-EMP-15 · Vendas: ligar a pesquisa depois da entrega e escolher a nota baixa · `[dado]`
+- **Por quê:** a pesquisa de satisfação 2 dias depois da entrega (US-SELL-071) só roda para a empresa que ligou
+  `common_settings.sells_pesquisa_entrega` (lido por `PesquisaEntregaConfig`), e até aqui nenhuma tela gravava a chave.
+- **Aceite:** Dado a pesquisa desligada com nota padrão 2 · Quando marco o interruptor na aba Vendas e escolho 3 · Então a
+  rotina lê ligada com nota 3, e as outras chaves de `common_settings` ficam · E quando desmarco · Então lê desligada e a
+  nota 3 fica · E a Blade da aba Vendas desenha os mesmos dois campos.
+- **Teste:** `tests/Feature/Configuracoes/EmpresaContratoTest.php` — `UC-EMP-15`.
+- **Status: 🧪**

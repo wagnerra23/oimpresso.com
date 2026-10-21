@@ -18,6 +18,7 @@ import {
   Package,
   Phone,
   Printer,
+  Smile,
   Trash2,
   Truck,
   User as UserIcon,
@@ -113,9 +114,23 @@ interface CustoOrcamento {
   itens_mudaram: number;
 }
 
+/**
+ * US-SELL-071 · pesquisa de satisfação depois da entrega. Só vem para quem tem `sell.view`.
+ * `atendimento` = tarefa aberta no CRM quando a nota ficou igual ou abaixo do limite da empresa.
+ */
+interface PesquisaEntrega {
+  canal: string;
+  status: string;
+  motivo: string | null;
+  nota: number | null;
+  respondido_em: string | null;
+  atendimento: { id: number; titulo: string; status: string; url: string | null } | null;
+}
+
 interface ShowDetail {
   lines: SaleLine[];
   custo?: CustoOrcamento | null;
+  pesquisa?: PesquisaEntrega | null;
   payments: SalePayment[];
   taxes: { order_taxes: Record<string, number>; line_taxes: Record<string, number> };
   activities: Activity[];
@@ -669,6 +684,40 @@ function CustoDoOrcamento({ custo }: { custo: CustoOrcamento }) {
   );
 }
 
+const CANAL_PESQUISA: Record<string, string> = { whatsapp: 'WhatsApp', email: 'e-mail' };
+const MOTIVO_PESQUISA: Record<string, string> = { opt_out: 'o cliente não aceita mensagens', sem_canal: 'cliente sem WhatsApp nem e-mail',
+  sem_contato: 'venda sem cliente', falha_envio: 'o e-mail falhou', pendente: 'em envio' };
+
+/** US-SELL-071 · nota da pesquisa depois da entrega e o atendimento aberto na nota baixa. */
+function PesquisaDaEntrega({ pesquisa }: { pesquisa: PesquisaEntrega }) {
+  const canal = CANAL_PESQUISA[pesquisa.canal] ?? pesquisa.canal;
+  const quando = pesquisa.respondido_em ? pesquisa.respondido_em.slice(0, 10).split('-').reverse().join('/') : null;
+  const resumo = pesquisa.nota !== null
+    ? `Nota ${pesquisa.nota} de 5${quando ? ` · respondida em ${quando}` : ''}`
+    : pesquisa.status === 'enviado'
+      ? `Enviada por ${canal}, sem resposta ainda`
+      : `Não enviada${pesquisa.motivo ? ` — ${MOTIVO_PESQUISA[pesquisa.motivo] ?? pesquisa.motivo}` : ''}`;
+  return (
+    <section className="rounded-lg border border-border bg-card p-5" data-testid="pesquisa-entrega">
+      <div className="flex items-center gap-2 mb-3">
+        <Smile className="h-4 w-4 text-muted-foreground" />
+        <h2 className="font-semibold text-sm">Pesquisa de satisfação</h2>
+      </div>
+      <div className="space-y-1 text-sm">
+        <p className={pesquisa.nota !== null ? 'font-semibold tabular-nums' : 'text-muted-foreground'}>{resumo}</p>
+        {pesquisa.atendimento && (
+          <p className="text-muted-foreground">
+            Atendimento no CRM: {pesquisa.atendimento.titulo}
+            {pesquisa.atendimento.url && (
+              <> · <a className="underline" href={pesquisa.atendimento.url}>abrir agenda</a></>
+            )}
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}
+
 /** Custo da linha (guardado e de hoje), só quando o orçamento trouxe custo. */
 function CustoDaLinha({ linha }: { linha?: CustoOrcamento['linhas'][number] }) {
   if (!linha || linha.previsto === null) return null;
@@ -809,6 +858,8 @@ function ShowDetailSections({ detail, headline, timelineRefreshKey = 0 }: ShowDe
           </div>
         </section>
       )}
+
+      {detail.pesquisa && <PesquisaDaEntrega pesquisa={detail.pesquisa} />}
 
       {/* Histórico unificado — P4 parking lot #11 (FSM + payments + activities
           + comments + audit num único stream cronológico reverso). */}

@@ -172,6 +172,13 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
     </Inline>
   );
   const ligaCampo = (k: string, rotulo: string, ajuda?: string) => liga(`emp-${k}`, rotulo, !!corpo[k], (v) => muda(k, v), ajuda);
+  // Pesquisa depois da entrega (US-SELL-071): objeto `common_settings.sells_pesquisa_entrega` {ativo, nota_baixa}, lido
+  // por PesquisaEntregaConfig. Desmarcado tira `ativo` (como o checkbox da Blade) e mantém a nota escolhida.
+  const pesquisa = (comum.sells_pesquisa_entrega && !Array.isArray(comum.sells_pesquisa_entrega) ? comum.sells_pesquisa_entrega : {}) as Record<string, Valor>;
+  const mudaPesquisa = (k: 'ativo' | 'nota_baixa', v: string | null) => {
+    const { [k]: _fora, ...resto } = pesquisa;
+    mudaComum('sells_pesquisa_entrega', { nota_baixa: '2', ...resto, ...(v === null ? {} : { [k]: v }) });
+  };
   const ligaComum = (k: string, rotulo: string, ajuda?: string) => liga(`emp-cs-${k}`, rotulo, !!comum[k], (v) => mudaComum(k, v ? '1' : null), ajuda);
   const ligaPos = (k: string, rotulo: string, ajuda?: string) => liga(`emp-pos-${k}`, rotulo, !!pos[k], (v) => mudaPos(k, v ? '1' : null), ajuda);
   const campoPos = (k: string, rotulo: string, ajuda?: string) =>
@@ -385,6 +392,21 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                       {escolhaPos('cmmsn_calculation_type', 'Calcular sobre', CALC_COMISSAO)}
                     </Grid>
                     {ligaPos('is_commission_agent_required', 'Comissionado obrigatório na venda')}
+                  </Stack>
+                  <Stack gap={2}>
+                    {titulo('Pesquisa de satisfação')}
+                    {liga('emp-cs-pesquisa-ativo', 'Enviar pesquisa 2 dias depois da entrega', !!pesquisa.ativo, (v) => mudaPesquisa('ativo', v ? '1' : null),
+                      'nota baixa abre um atendimento no CRM para o vendedor.')}
+                    <Grid cols={2} gap={3}>
+                      {rotulado('emp-cs-pesquisa-nota', 'Nota baixa abre atendimento quando for até', (
+                        <Select value={String(pesquisa.nota_baixa ?? '2')} onValueChange={(v) => mudaPesquisa('nota_baixa', v)}>
+                          <SelectTrigger id="emp-cs-pesquisa-nota"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {['1', '2', '3', '4'].map((n) => <SelectItem key={n} value={n}>{n}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      ), 'Escala de 1 a 5.')}
+                    </Grid>
                   </Stack>
                   <Stack gap={2}>
                     {titulo('Link de pagamento')}
