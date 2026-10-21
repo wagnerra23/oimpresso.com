@@ -79,6 +79,12 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CVOS-06 | Orçamento recusado não vira OS | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 | UC-CVOS-07 | Só quem pode criar orçamento aprova | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 | UC-CVOS-08 | O orçamento aprovado reabre com o número da OS | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVMRG-01 | Cada peça e o orçamento mostram custo e margem | must `[V0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVMRG-02 | Preço, subtotal e total são os mesmos com e sem margem | must `[V0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVMRG-03 | Peça sem custo fica sem margem; o orçamento diz quantas têm | must | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVMRG-04 | Custo de material de outra empresa nunca entra | must `[T0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVMRG-05 | Só quem gerencia materiais vê custo e margem | must | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVMRG-06 | O custo mostrado é o que o orçamento grava | must `[V0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVARQ-01 | Anexar grava o arquivo no orçamento e aprovar o leva para a OS | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVARQ-02 | Formato que a gráfica não usa é recusado | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVARQ-03 | Depois de virar OS o orçamento não recebe nem perde arquivo | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
@@ -529,6 +535,71 @@ mesmo número, e a outra empresa não reabre o orçamento.
 
 Na tela: o rodapé troca "Salvar" por "Aprovar e criar OS" quando o orçamento está gravado igual à
 tela; a confirmação é um segundo clique na mesma linha. Mudança não salva não aprova.
+
+Status: 🧪
+
+## Custo e margem por peça (US-COMVIS-022 · UC-FLX-03)
+
+> Âncora: UC-FLX-03 (margem por item no orçamento) e SPEC US-COMVIS-022. `POST …/api/calcular`
+> passa a devolver, só para quem tem `comvis.material.manage` (ou superadmin), `custo`, `margem` e
+> `margem_pct` por item e um bloco `margem` do orçamento (`MargemDoOrcamento`). O custo vem de
+> `OrcamentoGravador::custosPrevistos`, a regra que o orçamento grava (US-COMVIS-019). Preço,
+> subtotal e total não mudam. Execução: CT 100 MySQL, branch `65bccea49` — 6 passed, e os irmãos
+> de custo previsto seguem verdes (44 passed, 227 assertions); mutação que tira o desconto da
+> receita derruba UC-CVMRG-01 e 05.
+
+Conta do arranjo (Lona custo 8,50/m², venda 30,00/m²):
+
+| Peça | Área | Preço | Custo | Margem |
+|---|---|---|---|---|
+| A 2,000 × 1,500 × 2 | 6,000 m² | 180,00 | 51,00 | 129,00 (71,7%) |
+| B 0,800 × 0,600 × 3 | 1,440 m² | 43,20 | 12,24 | 30,96 (71,7%) |
+| Orçamento | — | 223,20 − 20,00 de desconto = 203,20 | 63,24 | 139,96 (68,9%) |
+
+Extras (R$ 50) somam no total (253,20) e ficam fora da margem: não têm custo cadastrado.
+
+## UC-CVMRG-01 · Cada peça e o orçamento mostram custo e margem · `must` `[V0]`
+
+**Dado** o arranjo acima **Quando** o orçamento é conferido por quem vê custo **Então** cada peça traz
+o custo, a margem em R$ e em % da tabela, e o orçamento traz custo 63,24, receita 203,20 e margem
+139,96 (68,9%) — conferidos à mão e pela fórmula sem banco.
+
+Status: 🧪
+
+## UC-CVMRG-02 · Preço, subtotal e total são os mesmos com e sem margem · `must` `[V0]`
+
+**Dado** o mesmo orçamento **Quando** calculado com e sem a margem **Então** total (253,20),
+subtotal e o preço e o subtotal de cada peça são idênticos.
+
+Status: 🧪
+
+## UC-CVMRG-03 · Peça sem custo fica sem margem; o orçamento diz quantas têm · `must`
+
+**Dado** mais uma peça de material com custo zero e uma sem material **Quando** conferido **Então**
+essas duas vêm sem custo e sem margem, e o orçamento diz "2 de 4" sem margem total — margem com
+peça sem custo enganaria.
+
+Status: 🧪
+
+## UC-CVMRG-04 · Custo de material de outra empresa nunca entra · `must` `[T0]`
+
+**Dado** uma peça com material da empresa 99 (custo 3,00) **Quando** a 98 confere **Então** a peça
+vem sem custo; a mesma peça lida pela 99 tem custo 3,00.
+
+Status: 🧪
+
+## UC-CVMRG-05 · Só quem gerencia materiais vê custo e margem · `must`
+
+**Dado** um usuário de balcão (`comvis.orcamento.create`) e um que também tem
+`comvis.material.manage` **Quando** os dois conferem **Então** só o segundo recebe custo e margem, e o
+total é o mesmo para os dois.
+
+Status: 🧪
+
+## UC-CVMRG-06 · O custo mostrado é o que o orçamento grava · `must` `[V0]`
+
+**Dado** o mesmo cálculo **Quando** ele é mostrado e gravado **Então** o `custo_previsto` de cada
+item gravado é o custo mostrado na tela.
 
 Status: 🧪
 

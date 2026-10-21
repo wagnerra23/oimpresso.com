@@ -3,7 +3,7 @@ id: resources-js-pages-comunicacao-visual-index-charter
 page: /comunicacao-visual
 component: resources/js/Pages/ComunicacaoVisual/Index.tsx
 bundle_source: prototipo-ui/cowork/Wagner/comunicacao-visual-page.jsx  # 2026-09-06 [C]: porte REVERSO do vivo no Cowork (shell: "Telas que existiam no vivo e faltavam no Cowork") — fonte de bundle, não design aprovado (§5 2026-08-28)
-related_us: [US-COMVIS-001, US-COMVIS-020, US-COMVIS-021]
+related_us: [US-COMVIS-001, US-COMVIS-020, US-COMVIS-021, US-COMVIS-022]
 related_us_nota: "2026-09-06 [C]: a tela É a calculadora por m² (US-COMVIS-001 · P0) — declarado ao tocar o charter (charter-us-lint no-new-lie)"
 related_prototype: "n/a — ferramenta bespoke (calculadora de m²) construida do Design System; arquetipo unico no repo (so 1 tela do tipo), sem padrao de tela dedicado"
 status: draft
@@ -27,6 +27,7 @@ Calculadora de orçamento por m² do vertical ComVis (US-COMVIS-001 · P0). É o
 3b. **Salvar e reabrir** (US-COMVIS-021) — "Salvar orçamento" só depois de conferir; a URL ganha `?orcamento={id}` e o cartão "Orçamentos salvos" reabre qualquer um. Reaberto e alterado, "Salvar alterações" regrava o mesmo número; aprovado/recusado/expirado não muda mais (UC-CVSAL-01..06).
 3c. **Aprovar e criar OS** (US-COMVIS-020 · UC-FLX-01) — orçamento gravado e igual à tela troca "Salvar" por "Aprovar e criar OS"; o segundo clique confirma. A OS sai com o total gravado; o reaberto mostra o número dela (UC-CVOS-08).
 3d. **Arquivos do orçamento** (US-COMVIS-020) — com o orçamento salvo, "Anexar arquivo" grava a arte/foto em `media`; ao aprovar vai para a OS. Depois da OS não se anexa nem remove (UC-CVARQ-01..06).
+3e. **Custo e margem por peça** (US-COMVIS-022 · UC-FLX-03) — ao conferir, quem gerencia materiais vê custo e margem de cada peça e do orçamento (peças menos desconto). Peça sem custo cadastrado fica sem margem. Preço e total não mudam (UC-CVMRG-01..06).
 4. **"Em breve nesta tela"** — 3 cartões honestos (Ordens de serviço · Materiais · Apontamentos), sem ação.
 
 Contrato comportamental: [`Index.casos.md`](Index.casos.md).
