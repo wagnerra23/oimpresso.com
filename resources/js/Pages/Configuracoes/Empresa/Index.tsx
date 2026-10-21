@@ -37,7 +37,8 @@ interface Props { corpo: Corpo; logo: string | null; segredos_gravados: string[]
 /** Abas na ordem e nos grupos do protótipo. As de PRONTAS estão na tela nova; as outras abrem na Blade. */
 const ABAS: { g: string; itens: { id: string; label: string }[] }[] = [
   { g: 'Empresa', itens: [{ id: 'negocio', label: 'Negócio' }, { id: 'imposto', label: 'Impostos' }, { id: 'produto', label: 'Produtos' }, { id: 'contato', label: 'Contatos' }] },
-  { g: 'Operação', itens: [{ id: 'venda', label: 'Vendas' }, { id: 'pdv', label: 'Venda no PDV' }, { id: 'compra', label: 'Compras' }, { id: 'pagto', label: 'Pagamento' }] },
+  { g: 'Operação', itens: [{ id: 'venda', label: 'Vendas' }, { id: 'pdv', label: 'Venda no PDV' }, { id: 'compra', label: 'Compras' }, { id: 'pagto', label: 'Pagamento' },
+    { id: 'financeiro', label: 'Financeiro' }] },
   { g: 'Sistema', itens: [{ id: 'painel', label: 'Painel' }, { id: 'sistema', label: 'Sistema' }, { id: 'prefixos', label: 'Prefixos' }] },
   { g: 'Integrações', itens: [{ id: 'email', label: 'E-mail' }, { id: 'sms', label: 'SMS' }, { id: 'fidelidade', label: 'Pontos de fidelidade' },
     { id: 'modulos', label: 'Módulos' }, { id: 'rotulos', label: 'Rótulos personalizados' }] },
@@ -49,6 +50,7 @@ const PRONTAS: Record<string, string> = {
   contato: 'Vale para cliente novo que não tem limite próprio.',
   venda: 'Padrões de desconto, imposto e comissão de toda venda.',
   pagto: 'Contagem de cédulas no recebimento em dinheiro.',
+  financeiro: 'Lembrete por e-mail ao cliente com título a receber vencido.',
   pdv: 'O que o caixa mostra, atalhos de teclado e a balança de código de barras.',
   compra: 'Como a compra entra: status, lote, pedido e moeda do fornecedor.',
   painel: 'O que o painel inicial avisa.',
@@ -245,6 +247,13 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
   const mudaDetalhe = (i: number, k: string, v: string) => mudaRotulo('product_cf_details', String(i), { ...detalhe(i), [k]: v });
   const modulos = Array.isArray(corpo.enabled_modules) ? (corpo.enabled_modules as string[]) : [];
   const metodosCedula = Array.isArray(pos.enable_cash_denomination_for_payment_methods) ? (pos.enable_cash_denomination_for_payment_methods as string[]) : [];
+  // Régua de cobrança (US-FIN-071): `common_settings.financeiro_regua_cobranca` = { ativo, dias }. Os dias
+  // vão como o texto digitado ("1, 5, 15"); ReguaCobrancaConfig::de() lê texto ou lista.
+  const regua = (comum.financeiro_regua_cobranca && !Array.isArray(comum.financeiro_regua_cobranca)
+    ? comum.financeiro_regua_cobranca : {}) as Record<string, Valor>;
+  const reguaAtiva = regua.ativo === true || regua.ativo === 1 || regua.ativo === '1';
+  const reguaDias = Array.isArray(regua.dias) ? regua.dias.join(', ') : regua.dias == null ? '1, 5, 15' : String(regua.dias);
+  const mudaRegua = (k: string, v: Valor) => mudaComum('financeiro_regua_cobranca', { ativo: reguaAtiva ? '1' : '0', dias: reguaDias, [k]: v });
   const titulo = (t: string) => <h3 className="m-0 text-xs font-semibold uppercase text-muted-foreground">{t}</h3>;
   const rotuloAba = ABAS.flatMap((g) => g.itens).find((i) => i.id === aba)?.label;
 
@@ -647,6 +656,22 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                   </Stack>
                   {ligaPos('cash_denomination_strict_check', 'Conferência estrita', 'o total contado tem de bater com o recebido.')}
                 </>
+              )}
+
+              {aba === 'financeiro' && (
+                <Stack gap={3} data-contract="regua-cobranca">
+                  {liga('emp-regua-ativo', 'Enviar lembrete de cobrança', reguaAtiva, (v) => mudaRegua('ativo', v ? '1' : '0'),
+                    'e-mail ao cliente quando o título a receber vence e não é pago.')}
+                  <Grid cols={2} gap={3}>
+                    {rotulado('emp-regua-dias', 'Dias após o vencimento', (
+                      <Input id="emp-regua-dias" inputMode="numeric" value={reguaDias} disabled={!reguaAtiva}
+                        onChange={(e) => mudaRegua('dias', e.target.value)} />
+                    ), 'Separados por vírgula. Na última etapa o vendedor recebe uma tarefa para cobrar.')}
+                  </Grid>
+                  <span className="text-xs text-muted-foreground">
+                    Cliente que recusou e-mail não recebe; o lembrete fica registrado com o motivo em Contas a Receber.
+                  </span>
+                </Stack>
               )}
 
               {aba === 'contato' && (

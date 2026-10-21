@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 846,
-    "edges": 1149,
+    "nodes": 848,
+    "edges": 1153,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 466,
+      "component": 468,
       "api": 86
     },
     "by_edge_type": {
@@ -42,9 +42,9 @@
       "providesApi": 90,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 466,
-      "dependsOn": 125,
-      "delegatesTo": 116,
+      "hasComponent": 468,
+      "dependsOn": 126,
+      "delegatesTo": 117,
       "migratesTo": 1,
       "supersedes": 26,
       "supersedesPartially": 71,
@@ -1986,6 +1986,13 @@
       "desc": "PUT /compras/insumos/{variation}/metodo-custo grava o método do insumo (medio | ultimo) da gaveta de /manufacturing/insumos; empresa da sessão, variação da empresa ou 404, purchase.update (US-COM-024 · UC-FLX-38)"
     },
     {
+      "id": "component:Compras/MetodoCustoDoProduto + DataController::product_form_part/after_product_saved",
+      "type": "component",
+      "module": "Compras",
+      "name": "MetodoCustoDoProduto + DataController::product_form_part/after_product_saved",
+      "desc": "campo Método de custo no formulário Blade de novo e de editar produto, aplicado a todas as variações; só roda com o módulo instalado (system.compras_version)"
+    },
+    {
       "id": "component:Compras/RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
       "type": "component",
       "module": "Compras",
@@ -3874,6 +3881,13 @@
       "module": "OficinaAuto",
       "name": "Public/AprovacaoOsController",
       "desc": "endpoint público SEM auth pra cliente aprovar/rejeitar OS via link WhatsApp + PIN (US-OFICINA-006). Token HMAC carrega business_id assinado. Throttle:30,1 + lockout 5 tentativas PIN."
+    },
+    {
+      "id": "component:OficinaAuto/ServiceOrderAssinaturaController",
+      "type": "component",
+      "module": "OficinaAuto",
+      "name": "ServiceOrderAssinaturaController",
+      "desc": "POST /ordens-servico/{order}/assinatura: assinatura do cliente na entrega (US-OFICINA-048 · UC-FLX-22). PNG ≤ 200 KB no Arquivos, anexado a oficina_os_assinaturas (não à OS). Exigência por empresa via common_settings, desligada por padrão."
     },
     {
       "id": "component:OficinaAuto/ServiceOrderController",
@@ -8084,6 +8098,12 @@
     },
     {
       "from": "module:Compras",
+      "to": "component:Compras/MetodoCustoDoProduto + DataController::product_form_part/after_product_saved",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
       "to": "component:Compras/RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
       "type": "hasComponent",
       "source": "contains"
@@ -11927,6 +11947,12 @@
     },
     {
       "from": "module:OficinaAuto",
+      "to": "component:OficinaAuto/ServiceOrderAssinaturaController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:OficinaAuto",
       "to": "component:OficinaAuto/ServiceOrderController",
       "type": "hasComponent",
       "source": "contains"
@@ -13503,6 +13529,13 @@
     },
     {
       "from": "module:Whatsapp",
+      "to": "module:ComunicacaoVisual",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Agenda de instalação da CV"
+    },
+    {
+      "from": "module:Whatsapp",
       "to": "module:ConsultaOs",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -13542,6 +13575,13 @@
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "OS / Kanban de reparo"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "module:ComunicacaoVisual",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Agenda de instalação da CV"
     },
     {
       "from": "module:Whatsapp",

@@ -48,6 +48,7 @@ contains:
   - "Console/Commands/FeedbackLinkCommand — feedback:link {biz}: gera a URL assinada (30d) do canal público web_form (US-INFRA-002)"
 not_contains:
   - "OS / Kanban de reparo → Modules/Repair (Whatsapp só NOTIFICA status)"
+  - "Agenda de instalação da CV → Modules/ComunicacaoVisual (Whatsapp só AVISA o cliente, ouvindo o evento InstalacaoAgendada)"
   - "Boleto / cobrança recorrente → Modules/RecurringBilling + Modules/PaymentGateway"
   - "Lembrete financeiro (regra de negócio) → Modules/Financeiro"
   - "Bot / memória conversacional / RAG → Modules/Jana"

@@ -8,6 +8,7 @@ status: draft
 last_validated: "2026-10-13"
 parent_module: Configuracoes
 related_adrs: [93, 104, 358]
+related_us: [US-FIN-071]
 tier: A
 charter_version: 1
 related_runbook: memory/requisitos/Configuracoes/RUNBOOK-empresa.md
@@ -30,6 +31,9 @@ aba a aba atrás da mesma flag, sem perder nada do que o salvar da Blade grava.
   Produtos, Contatos) é da tela nova; as outras abrem a Blade por `?classico=1`.
 - Aba Negócio com os campos da `settings_business` da Blade, incluindo o logo (multipart) e "permitir exportar listas".
 - Salvar pelo `POST /business/update` de sempre, devolvendo o corpo inteiro que o servidor montou.
+- Aba **Financeiro** (grupo Operação, também na Blade): liga a régua de cobrança do título vencido (US-FIN-071) e define
+  os dias da régua em `common_settings['financeiro_regua_cobranca']` (UC-EMP-15). Fora do protótipo: a régua não tinha
+  tela, e a aba segue o padrão das abas vizinhas.
 
 ## Non-Goals
 
