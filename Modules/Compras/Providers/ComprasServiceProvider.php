@@ -75,6 +75,8 @@ class ComprasServiceProvider extends ServiceProvider
         $this->app->bind(\App\Contracts\Compras\CustoDoRecebimento::class, \Modules\Compras\Services\AplicarCustoDoRecebimento::class);
         // UC-FLX-19: a tela Fluxos liga e desliga a requisição pelo estoque mínimo.
         $this->app->bind(\App\Contracts\Compras\RequisicaoEstoqueMinimo::class, \Modules\Compras\Services\RequisicaoEstoqueMinimoService::class);
+        // US-COM-028: o detalhe da compra lista os preços propostos para aprovar ou recusar.
+        $this->app->bind(\App\Contracts\Compras\PropostasDePreco::class, \Modules\Compras\Services\PropostasDePreco::class);
     }
 
     protected function registerTranslations(): void

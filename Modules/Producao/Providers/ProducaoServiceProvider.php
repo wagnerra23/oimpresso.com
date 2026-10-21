@@ -87,6 +87,8 @@ class ProducaoServiceProvider extends ServiceProvider
         $this->app->bind(\App\Contracts\Producao\CustoHoraDoPosto::class, \Modules\Producao\Services\CustoHoraDoPostoService::class);
         // US-FIN-070 (custeio RKW): o Financeiro lê horas e troca custo-hora só por aqui.
         $this->app->bind(\App\Contracts\Producao\HorasDosPostos::class, \Modules\Producao\Services\HorasDosPostosService::class);
+        // UC-FLXT-22: o interruptor da reserva de insumo na tela Fluxos (núcleo) chega aqui pelo contrato.
+        $this->app->bind(\App\Contracts\Producao\ReservaDeInsumo::class, \Modules\Producao\Services\ReservaDeInsumoDaOs::class);
     }
 
     protected function registerConfig(): void

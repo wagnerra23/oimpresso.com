@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 843,
-    "edges": 1146,
+    "nodes": 850,
+    "edges": 1155,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 463,
+      "component": 470,
       "api": 86
     },
     "by_edge_type": {
@@ -42,9 +42,9 @@
       "providesApi": 90,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 463,
-      "dependsOn": 125,
-      "delegatesTo": 116,
+      "hasComponent": 470,
+      "dependsOn": 126,
+      "delegatesTo": 117,
       "migratesTo": 1,
       "supersedes": 26,
       "supersedesPartially": 71,
@@ -1986,11 +1986,32 @@
       "desc": "PUT /compras/insumos/{variation}/metodo-custo grava o método do insumo (medio | ultimo) da gaveta de /manufacturing/insumos; empresa da sessão, variação da empresa ou 404, purchase.update (US-COM-024 · UC-FLX-38)"
     },
     {
+      "id": "component:Compras/MetodoCustoDoProduto + DataController::product_form_part/after_product_saved",
+      "type": "component",
+      "module": "Compras",
+      "name": "MetodoCustoDoProduto + DataController::product_form_part/after_product_saved",
+      "desc": "campo Método de custo no formulário Blade de novo e de editar produto, aplicado a todas as variações; só roda com o módulo instalado (system.compras_version)"
+    },
+    {
+      "id": "component:Compras/PropostasPrecoController + PropostasDePreco",
+      "type": "component",
+      "module": "Compras",
+      "name": "PropostasPrecoController + PropostasDePreco",
+      "desc": "fila de preços propostos no detalhe da compra: lista, aprova (troca o preço de venda da variação) e recusa (US-COM-028 · UC-FLX-17); núcleo lê pela interface PropostasDePreco (app/Contracts/Compras)"
+    },
+    {
       "id": "component:Compras/RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
       "type": "component",
       "module": "Compras",
       "name": "RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
       "desc": "US-COM-027 · UC-FLX-19 estoque abaixo de alert_quantity vira requisição de compra do núcleo (transactions type=purchase_requisition) por local, teto(mínimo − saldo), sem duplicar item em requisição aberta; não move estoque nem cria pedido; desligado por padrão em business.common_settings"
+    },
+    {
+      "id": "component:ComunicacaoVisual/AgendaController",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "AgendaController",
+      "desc": "/comunicacao-visual/agenda, US-COMVIS-007 · UC-FLX-21)"
     },
     {
       "id": "component:ComunicacaoVisual/ApontamentoController",
@@ -3869,6 +3890,13 @@
       "desc": "endpoint público SEM auth pra cliente aprovar/rejeitar OS via link WhatsApp + PIN (US-OFICINA-006). Token HMAC carrega business_id assinado. Throttle:30,1 + lockout 5 tentativas PIN."
     },
     {
+      "id": "component:OficinaAuto/ServiceOrderAssinaturaController",
+      "type": "component",
+      "module": "OficinaAuto",
+      "name": "ServiceOrderAssinaturaController",
+      "desc": "POST /ordens-servico/{order}/assinatura: assinatura do cliente na entrega (US-OFICINA-048 · UC-FLX-22). PNG ≤ 200 KB no Arquivos, anexado a oficina_os_assinaturas (não à OS). Exigência por empresa via common_settings, desligada por padrão."
+    },
+    {
       "id": "component:OficinaAuto/ServiceOrderController",
       "type": "component",
       "module": "OficinaAuto",
@@ -4230,7 +4258,7 @@
       "type": "component",
       "module": "Producao",
       "name": "AprovacaoArteController + AprovacaoArteService",
-      "desc": "cliente aprova a arte por link (US-COMVIS-NEW-004 · UC-FLX-02): o operador gera o link da prova da OS por item (token, só o sha256 em pcp_aprovacoes_arte, 7 dias, uso único); a página pública /arte/{token} (Blade, sem login, throttle) aprova — conclui a etapa pelo motor — ou recusa com comentário, reabrindo a arte"
+      "desc": "cliente aprova a arte por link (US-COMVIS-NEW-004 · UC-FLX-02): o operador gera o link da prova da OS por item (token, só o sha256 em pcp_aprovacoes_arte, 7 dias, uso único); a página pública /arte/{token} (Blade, sem login, throttle) aprova — conclui a etapa pelo motor — ou recusa com comentário, reabrindo a arte; trava da arte aprovada (UC-PCV-11): trocar o arquivo reabre a aprovação com link novo e a arte vigente segue a última aprovada (ordens/{id}/arte/trocar, ordens/{id}/arte)"
     },
     {
       "id": "component:Producao/AproveitamentoMidiaController + AproveitamentoDeMidia",
@@ -4317,6 +4345,20 @@
       "desc": "custo da OS aberta: abertura × hoje dos insumos apontados e a previsão pela regra ops da compra (congela | vivo), JSON só com producao.desempenho.ver (US-PCP-022 · UC-FLX-36)"
     },
     {
+      "id": "component:Producao/OrdemMaterialController + FaltaDeMaterialDaOs",
+      "type": "component",
+      "module": "Producao",
+      "name": "OrdemMaterialController + FaltaDeMaterialDaOs",
+      "desc": "OS liberada sem material fica em Aguardando material (US-PCP-032 · D3): falta por insumo da receita (necessário × disponível no local menos reservas de outras OS) e compras a caminho, conferir volta para Na fila; chave producao_aguarda_material da empresa, desligada por padrão; ler com producao.access, conferir com o papel producao.liberar, JSON"
+    },
+    {
+      "id": "component:Producao/PainelController + PainelDaProducao + ArteDasOrdens",
+      "type": "component",
+      "module": "Producao",
+      "name": "PainelController + PainelDaProducao + ArteDasOrdens",
+      "desc": "painel da produção /producao/painel (thread 06 · UC-PCV-01..04, 29 · US-PCP-017): indicadores contados pelos cartões do Quadro, alertas com ação, fila de aprovação de arte (pedido mais recente de pcp_aprovacoes_arte), carga das máquinas hoje e eventos de pcp_eventos; só leitura, producao.access; é o destino do item Produção no menu"
+    },
+    {
       "id": "component:Producao/PostoOperadoresController + OperadoresDoPosto",
       "type": "component",
       "module": "Producao",
@@ -4350,6 +4392,13 @@
       "module": "Producao",
       "name": "PrometerPrazoDaVenda",
       "desc": "na aprovação (CriarOsDaVendaJob), grava a estimativa em transactions.due_date só quando a venda não tem data e copia a data para pcp_ordens.prazo_prometido (US-PCP-028 · UC-FLX-06)"
+    },
+    {
+      "id": "component:Producao/QuadroController + QuadroDaProducao",
+      "type": "component",
+      "module": "Producao",
+      "name": "QuadroController + QuadroDaProducao",
+      "desc": "quadro da produção /producao/quadro (thread 06 · UC-PCV-05): uma OS por cartão na coluna do setor ou da máquina da etapa atual; recebe o Alocar (UC-FLX-10) e o Simular bobina em lote (UC-FLX-13); abre filtrado pela URL (?so=atrasadas|arte, ?agrupar=maquina); Inertia com props deferidas, producao.access"
     },
     {
       "id": "component:Producao/RefugoService",
@@ -8063,6 +8112,18 @@
     },
     {
       "from": "module:Compras",
+      "to": "component:Compras/MetodoCustoDoProduto + DataController::product_form_part/after_product_saved",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/PropostasPrecoController + PropostasDePreco",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
       "to": "component:Compras/RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
       "type": "hasComponent",
       "source": "contains"
@@ -8124,6 +8185,12 @@
       "to": "adr:0121",
       "type": "governedByAdr",
       "source": "related_adrs"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/AgendaController",
+      "type": "hasComponent",
+      "source": "contains"
     },
     {
       "from": "module:ComunicacaoVisual",
@@ -11900,6 +11967,12 @@
     },
     {
       "from": "module:OficinaAuto",
+      "to": "component:OficinaAuto/ServiceOrderAssinaturaController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:OficinaAuto",
       "to": "component:OficinaAuto/ServiceOrderController",
       "type": "hasComponent",
       "source": "contains"
@@ -12562,6 +12635,18 @@
     },
     {
       "from": "module:Producao",
+      "to": "component:Producao/OrdemMaterialController + FaltaDeMaterialDaOs",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/PainelController + PainelDaProducao + ArteDasOrdens",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
       "to": "component:Producao/PostoOperadoresController + OperadoresDoPosto",
       "type": "hasComponent",
       "source": "contains"
@@ -12587,6 +12672,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/PrometerPrazoDaVenda",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/QuadroController + QuadroDaProducao",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -13464,6 +13555,13 @@
     },
     {
       "from": "module:Whatsapp",
+      "to": "module:ComunicacaoVisual",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Agenda de instalação da CV"
+    },
+    {
+      "from": "module:Whatsapp",
       "to": "module:ConsultaOs",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -13503,6 +13601,13 @@
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "OS / Kanban de reparo"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "module:ComunicacaoVisual",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Agenda de instalação da CV"
     },
     {
       "from": "module:Whatsapp",

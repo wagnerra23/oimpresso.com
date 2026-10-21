@@ -3380,11 +3380,15 @@ class ReportController extends Controller
     {
         $filtros = array_filter($request->only(self::FILTROS_LOTES), fn ($v) => $v !== null && $v !== '' && $v !== '0');
 
+        // A linha agrupa variação × número do lote; o rastreio do rolo (US-COM-025) é por linha da compra.
+        // Os ids vão juntos: o mesmo número pode vir em mais de uma compra. Só a tela nova lê esta coluna.
         $pagina = $this->consultaLotes($business_id, $filtros)
+            ->addSelect(DB::raw('GROUP_CONCAT(DISTINCT pl.id ORDER BY pl.id) as lote_ids'))
             ->orderBy('sub_sku', 'asc')->orderBy('pl.lot_number', 'asc')
             ->toBase()->paginate(25)->withQueryString();
 
         $linhas = collect($pagina->items())->map(fn (\stdClass $r): array => [
+            'lote_ids' => array_map('intval', array_filter(explode(',', (string) $r->lote_ids))),
             'sku' => (string) $r->sub_sku,
             'produto' => $r->variation_name != 'DUMMY' ? $r->product.' ('.$r->variation_name.')' : (string) $r->product,
             'lote' => (string) $r->lot_number,
@@ -3402,9 +3406,17 @@ class ReportController extends Controller
             $rodape[] = ['unidade' => (string) $unidade, 'estoque' => (float) $doGrupo->sum('estoque'), 'vendido' => (float) $doGrupo->sum('vendido'), 'ajustado' => (float) $doGrupo->sum('ajustado')];
         }
 
+        // O botão Rastrear só aparece para quem o JSON aceita (LoteRastreioController): vê compras e tem o
+        // Producao no pacote. A rota vem do módulo; sem ele carregado, nada de botão.
+        $usuario = $request->user();
+        $podeRastrear = \Illuminate\Support\Facades\Route::has('producao.lotes.rastreio')
+            && $usuario->can('purchase.view')
+            && ($usuario->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'producao_module'));
+
         return Inertia::render('Relatorios/Lotes/Index', [
             'linhas' => $linhas,
             'rodape' => $rodape,
+            'podeRastrear' => $podeRastrear,
             'paginacao' => ['atual' => $pagina->currentPage(), 'ultima' => $pagina->lastPage(), 'total' => $pagina->total()],
             'filtros' => [
                 'location_id' => (string) ($filtros['location_id'] ?? ''),

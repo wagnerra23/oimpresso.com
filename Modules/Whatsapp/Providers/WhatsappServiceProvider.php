@@ -51,6 +51,8 @@ use Modules\Whatsapp\Http\Middleware\VerifyBaileysWebhookHmac;
 use Modules\Whatsapp\Http\Middleware\VerifyMetaSignature;
 use Modules\Whatsapp\Http\Middleware\VerifyZapiSignature;
 use Modules\Whatsapp\Listeners\DispatchToJanaBot;
+use Modules\ComunicacaoVisual\Events\InstalacaoAgendada;
+use Modules\Whatsapp\Listeners\NotifyInstalacaoCvCustomer;
 use Modules\Whatsapp\Listeners\NotifyRepairCustomer;
 use Modules\Whatsapp\Listeners\TouchCustomerMemoryOnMessage;
 use Modules\Whatsapp\Listeners\PublishMessageReceivedToCentrifugo;
@@ -184,6 +186,12 @@ class WhatsappServiceProvider extends ServiceProvider
         // Evento Modules\Repair\Events\RepairStatusChanged é declarado em Modules/Repair/Events/
         // — dispatch real depende de PR coordenado com Felipe/Maiara modificando JobSheetController.
         Event::listen(RepairStatusChanged::class, [NotifyRepairCustomer::class, 'handleEvent']);
+
+        // CV: instalação agendada → aviso ao cliente com opt-in LGPD (US-COMVIS-007 · UC-FLX-21).
+        // class_exists: o módulo ComunicacaoVisual pode não estar instalado nesta base.
+        if (class_exists(InstalacaoAgendada::class)) {
+            Event::listen(InstalacaoAgendada::class, [NotifyInstalacaoCvCustomer::class, 'handle']);
+        }
 
         // Centrifugo real-time UI (ADR 0058) — publica em whatsapp:business:{id} channel
         Event::listen(WhatsappMessageReceived::class, PublishMessageReceivedToCentrifugo::class);

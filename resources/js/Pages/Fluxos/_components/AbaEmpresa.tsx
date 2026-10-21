@@ -6,6 +6,8 @@
 // A margem mínima do orçamento (PATCH /fluxos/margem, UC-FLXT-19) não vem do protótipo: foi
 // pedida por [W] em 2026-10-19 e usa os mesmos átomos da Compra (Interruptor + campo). O sinal
 // mínimo da produção (PATCH /fluxos/sinal, UC-FLXT-23 · US-PCP-025) segue o mesmo desenho.
+// "Reservar material na venda" (PATCH /fluxos/reserva, US-PCP-031 · UC-FLX-14) também não vem do
+// protótipo: usa o mesmo Interruptor e só aparece para empresa com o módulo Produção.
 // A requisição pelo estoque mínimo (PATCH /fluxos/requisicao-estoque-minimo, UC-FLXT-24 · UC-FLX-19)
 // também não vem do protótipo: é o interruptor do job diário do Compras, no card Compra.
 
@@ -33,6 +35,8 @@ interface Props {
   margemMinima: number | null;
   /** UC-FLXT-23: sinal mínimo para liberar a OS, em % da venda, texto decimal (nulo = desligado). */
   sinalMinimo: string | null;
+  /** US-PCP-031: reserva do insumo na venda (null = empresa sem o módulo Produção, não mostra). */
+  reservaInsumo: boolean | null;
   /** UC-FLXT-24: requisição pelo estoque mínimo ligada? (nula = sem o módulo Compras). */
   requisicaoEstoqueMinimo: boolean | null;
   podeConfigurar: boolean;
@@ -240,9 +244,32 @@ function SinalMinimo({ valor, pode }: { valor: string | null; pode: boolean }) {
   );
 }
 
-export default function AbaEmpresa({ empresa, emUso, portes, atividades, ligadas, compra, opcoesCompra, margemMinima, sinalMinimo, requisicaoEstoqueMinimo, podeConfigurar }: Props) {
+/**
+ * US-PCP-031 · UC-FLX-14 · reserva do insumo na venda. Ligada, a OS criada pela venda aprovada reserva
+ * o material da receita e a produção baixa o real (PATCH /fluxos/reserva). Só aparece com o módulo Produção.
+ */
+function ReservaInsumo({ ligada, pode }: { ligada: boolean; pode: boolean }) {
+  return (
+    <section className="flx-card" aria-label="Reservar material na venda">
+      <div className="flx-cmp">
+        <div className="flx-cmp-r">
+          <Interruptor
+            id="flx-reserva-insumo"
+            titulo="Reservar material na venda"
+            sub="A venda aprovada reserva o material do item feito sob encomenda; a produção baixa o que usou de fato"
+            checked={ligada}
+            disabled={!pode}
+            onChange={(v) => router.patch('/fluxos/reserva', { ligada: v }, salvar)}
+          />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default function AbaEmpresa({ empresa, emUso, portes, atividades, ligadas, compra, opcoesCompra, margemMinima, sinalMinimo, reservaInsumo, requisicaoEstoqueMinimo, podeConfigurar }: Props) {
   const erros = (usePage().props as { errors?: Record<string, string> }).errors;
-  const erro = erros?.regra ?? erros?.margem_minima ?? erros?.sinal_minimo ?? null;
+  const erro = erros?.regra ?? erros?.margem_minima ?? erros?.sinal_minimo ?? erros?.ligada ?? null;
   const verModelos = (
     <Button size="sm" asChild><Link href="/fluxos?aba=modelos">Ver modelos</Link></Button>
   );
@@ -285,6 +312,7 @@ export default function AbaEmpresa({ empresa, emUso, portes, atividades, ligadas
       </div>
       <MargemMinima valor={margemMinima} pode={podeConfigurar} />
       <SinalMinimo valor={sinalMinimo} pode={podeConfigurar} />
+      {reservaInsumo !== null && <ReservaInsumo ligada={reservaInsumo} pode={podeConfigurar} />}
       <div className="flx-procs">
         {emUso.processos.map((p) => {
           const daCompra = p.dominio === 'compra' && compra.length > 0;

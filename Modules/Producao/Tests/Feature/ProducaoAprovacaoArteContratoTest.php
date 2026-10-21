@@ -1,7 +1,8 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PCART-01..05 (Producao/Apontamento/Index.casos.md) — UC-FLX-02 do catálogo de fluxos.
+// Cobre UC-PCART-01..05 e UC-PCV-11 (Producao/Apontamento/Index.casos.md) — UC-FLX-02 do catálogo de fluxos
+// e a trava da arte da thread 10 do playbook de Produção.
 
 use App\Utils\ModuleUtil;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -154,4 +155,69 @@ it('UC-PCART-05 · o designer da própria empresa gera o link (201)', function (
     $pedido = AprovacaoArte::withoutGlobalScopes()->findOrFail($r->json('id'));
     expect((int) $pedido->business_id)->toBe($this->b98)->and($pedido->arquivo)->toBe('https://x.test/b.png');
     $this->get(parse_url($r->json('link'), PHP_URL_PATH))->assertOk()->assertSee('b.png');
+});
+
+// ── UC-PCV-11 · arte aprovada travada (Producao.casos.md · thread 10 do playbook) ──
+// "Dado a arte aprovada · Quando alguém troca o arquivo da arte · Então a OS volta para 'aguardando
+// aprovação' e um novo link é enviado · E o operador abre sempre a versão aprovada."
+
+it('UC-PCV-11 · trocar o arquivo da arte aprovada reabre a aprovação com link novo; a vigente segue a aprovada até o cliente aprovar', function () {
+    $this->partialMock(ModuleUtil::class, fn ($m) => $m->shouldReceive('hasThePermissionInSubscription')
+        ->andReturnUsing(fn ($b, $perm) => $perm === 'producao_module'));
+    $this->post($this->url.'/aprovar')->assertOk();
+    $base = "/producao/ordens/{$this->ordem->id}";
+    expect($this->actingAs($this->designer)->getJson($base.'/arte')->assertOk()->json('arte.arquivo'))
+        ->toBe('https://arquivos.exemplo.test/prova-banner.png');
+
+    $r = $this->postJson($base.'/arte/trocar', ['arquivo' => 'https://arquivos.exemplo.test/prova-banner-v2.png'])->assertCreated();
+
+    // A OS volta a esperar o cliente: Aprovação reaberta como etapa nova no mesmo bloco, a Impressão espera.
+    $nova = Programacao::withoutGlobalScopes()->where('os_tipo', Ordem::OS_TIPO)->where('os_id', $this->ordem->id)
+        ->where('nome', 'Aprovação do cliente (nova versão)')->first();
+    expect($nova)->not->toBeNull()->and($nova->status)->toBe('pendente')->and((int) $nova->bloco)->toBe(2)
+        ->and($this->aprovacao->fresh()->status)->toBe('concluida');
+    expect(fn () => artIniciaImpressao($this))->toThrow(ApontamentoRecusado::class, 'Falta terminar a etapa anterior: Aprovação do cliente (nova versão).');
+    // Link novo, e o operador continua vendo a versão APROVADA (discriminante: v2 ainda não vale).
+    $link = parse_url($r->json('link'), PHP_URL_PATH);
+    expect($link)->not->toBe($this->url)
+        ->and($this->getJson($base.'/arte')->json('arte.arquivo'))->toBe('https://arquivos.exemplo.test/prova-banner.png');
+    expect(DB::table('pcp_eventos')->where('business_id', $this->b98)->where('tipo', AprovacaoArteService::EV_ARQUIVO_TROCADO)
+        ->where('os_id', $this->ordem->id)->count())->toBe(1);
+
+    // O cliente aprova a nova versão: ela passa a valer e a Impressão anda.
+    $this->post($link.'/aprovar')->assertOk();
+    expect($this->getJson($base.'/arte')->json('arte.arquivo'))->toBe('https://arquivos.exemplo.test/prova-banner-v2.png');
+    artIniciaImpressao($this);
+    expect($this->impressao->fresh()->status)->toBe('iniciada');
+});
+
+it('UC-PCV-11 · sem arte aprovada ou com o mesmo arquivo, trocar é recusado e nada muda', function () {
+    $this->partialMock(ModuleUtil::class, fn ($m) => $m->shouldReceive('hasThePermissionInSubscription')
+        ->andReturnUsing(fn ($b, $perm) => $perm === 'producao_module'));
+    $etapas = fn () => Programacao::withoutGlobalScopes()->where('os_tipo', Ordem::OS_TIPO)->where('os_id', $this->ordem->id)->count();
+    $antes = $etapas();
+    $base = "/producao/ordens/{$this->ordem->id}";
+
+    // Prova ainda esperando o cliente: não há arte aprovada para trocar.
+    $this->actingAs($this->designer)->postJson($base.'/arte/trocar', ['arquivo' => 'https://x.test/v2.png'])
+        ->assertStatus(422)->assertJson(['codigo' => ApontamentoRecusado::APROVACAO_ENCERRADA]);
+    expect($this->getJson($base.'/arte')->json('arte'))->toBeNull();
+
+    // Aprovada: o mesmo arquivo não é troca.
+    $this->post($this->url.'/aprovar')->assertOk();
+    $this->postJson($base.'/arte/trocar', ['arquivo' => 'https://arquivos.exemplo.test/prova-banner.png'])->assertStatus(422);
+    expect($etapas())->toBe($antes)
+        ->and(AprovacaoArte::withoutGlobalScopes()->where('ordem_id', $this->ordem->id)->count())->toBe(1);
+});
+
+// Caso separado: a sessão do teste guarda a empresa da primeira requisição (ver o UC-PCART-05 acima).
+it('UC-PCV-11 · OS de outra empresa não troca nem mostra a arte (404)', function () {
+    $this->partialMock(ModuleUtil::class, fn ($m) => $m->shouldReceive('hasThePermissionInSubscription')
+        ->andReturnUsing(fn ($b, $perm) => $perm === 'producao_module'));
+    app(AprovacaoArteService::class)->aprovar($this->link['token']);
+    $alheio = $this->usuarioComPermissoes(['producao.access'], $this->B99);
+
+    $this->actingAs($alheio)->postJson("/producao/ordens/{$this->ordem->id}/arte/trocar", ['arquivo' => 'https://x.test/v9.png'])->assertNotFound();
+    $this->getJson("/producao/ordens/{$this->ordem->id}/arte")->assertNotFound();
+    expect(AprovacaoArte::withoutGlobalScopes()->where('ordem_id', $this->ordem->id)->count())->toBe(1);
 });
