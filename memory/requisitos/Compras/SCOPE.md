@@ -10,6 +10,7 @@ contains:
   - "RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo — US-COM-027 · UC-FLX-19 estoque abaixo de alert_quantity vira requisição de compra do núcleo (transactions type=purchase_requisition) por local, teto(mínimo − saldo), sem duplicar item em requisição aberta; não move estoque nem cria pedido; desligado por padrão em business.common_settings"
   - "AplicarCustoDoRecebimento — compra recebida grava o custo pela regra da empresa e trata o preço (so_custo | aplicar | propor), só quando a empresa gravou a regra (US-COM-026 · UC-FLX-17)"
   - "Database/Migrations/2026_10_20_120000_create_compras_propostas_preco_table — tabela compras_propostas_preco, proposta de preço pendente gerada no recebimento (business_id, variation_id, transaction_id)"
+  - "InsumoMetodoCustoController — PUT /compras/insumos/{variation}/metodo-custo grava o método do insumo (medio | ultimo) da gaveta de /manufacturing/insumos; empresa da sessão, variação da empresa ou 404, purchase.update (US-COM-024 · UC-FLX-38)"
   - "InsumoMetodoCusto — entidade da tabela-ponte compras_insumo_metodo_custo (business_id, variation_id) com o método próprio do insumo (medio | ultimo), lida quando a regra é por_insumo; variations do core não ganha coluna"
   - "PropostasPrecoController + PropostasDePreco — fila de preços propostos no detalhe da compra: lista, aprova (troca o preço de venda da variação) e recusa (US-COM-028 · UC-FLX-17); núcleo lê pela interface PropostasDePreco (app/Contracts/Compras)"
 not_contains:
@@ -26,7 +27,7 @@ related_adrs:
   - 0079-constituicao-oimpresso-7-camadas-governanca
   - 0180-sidebar-v3-5-grupos-ghosts-header
 url_prefixes:
-  - /compras/* (única superfície — cockpit `GET /` · `GET /{id}/detalhe` sob throttle:60,1, Routes/web.php:36; install 1-clique em :23. O CRUD vive em /purchases do núcleo, não aqui)
+  - /compras/* (única superfície — cockpit `GET /` · `GET /{id}/detalhe` sob throttle:60,1, Routes/web.php:36; install 1-clique em :23; `PUT /insumos/{variation}/metodo-custo` no mesmo grupo. O CRUD vive em /purchases do núcleo, não aqui)
 ---
 
 # Modules/Compras — SCOPE

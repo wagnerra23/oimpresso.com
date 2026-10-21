@@ -80,7 +80,10 @@
               <span class="input-group-addon">
                 <i class="fa fa-calendar"></i>
               </span>
-              {!! Form::text('paid_on', @format_datetime($payment_line->paid_on), ['class' => 'form-control', 'readonly', 'required']); !!}
+              {{-- Sem o deslocamento do @format_datetime: o store() rele este campo como hora LOCAL (uf_date), entao
+                   mostrar com +offset gravava o pagamento novo com a hora deslocada (+3h em America/Sao_Paulo,
+                   TransactionPaymentAdicionarHoraTest). Mesmo conserto do modal de edicao (#9392). --}}
+              {!! Form::text('paid_on', app(\App\Utils\Util::class)->format_date_no_shift($payment_line->paid_on, true), ['class' => 'form-control', 'readonly', 'required']); !!}
             </div>
           </div>
         </div>

@@ -520,11 +520,11 @@ Como usuário de teclado/leitor de tela, quero o drawer acessível (WCAG 2.1 AA)
 
 Como quem orça e produz, quero saber quanto um insumo custava num dia qualquer, para que o orçamento e a OS guardem o custo daquele dia e uma compra nova não reescreva o passado. É a base dos casos UC-FLX-33 a 37 da tela de fluxos.
 
-**Implementado em:** `Modules/Compras/Services/CustoDoInsumoService.php` · `Modules/Compras/Database/Migrations/2026_10_20_000001_create_compras_insumo_metodo_custo_table.php` · `Modules/Compras/Entities/InsumoMetodoCusto.php` · `Modules/Compras/Tests/Feature/CustoDoInsumoServiceTest.php`
+**Implementado em:** `Modules/Compras/Services/CustoDoInsumoService.php` · `Modules/Compras/Database/Migrations/2026_10_20_000001_create_compras_insumo_metodo_custo_table.php` · `Modules/Compras/Entities/InsumoMetodoCusto.php` · `Modules/Compras/Tests/Feature/CustoDoInsumoServiceTest.php` · `Modules/Compras/Http/Controllers/InsumoMetodoCustoController.php` · `Modules/Compras/Tests/Feature/InsumoMetodoCustoEndpointTest.php` · `resources/js/Pages/Manufacturing/Insumos.tsx`
 
 - Fonte: `purchase_lines` + `transactions.transaction_date`. O histórico já existia; `variations.dpp_inc_tax` guarda só o último preço.
 - Método: o da regra "Atualizar o custo dos insumos" da empresa (`RegrasCompra`, `metodo`), padrão `medio`.
-- Regra `por_insumo`: cada insumo diz o seu método na tabela-ponte `compras_insumo_metodo_custo` (`variations` é core, não ganha coluna). A tela para editar o método do insumo é follow-up.
+- Regra `por_insumo`: cada insumo diz o seu método na tabela-ponte `compras_insumo_metodo_custo` (`variations` é core, não ganha coluna). O método se escolhe na gaveta do insumo em `/manufacturing/insumos` (seção "Método de custo"), gravado por `PUT /compras/insumos/{variation}/metodo-custo` com `purchase.update`; variação de outra empresa responde 404.
 - Só leitura: o serviço não grava nada.
 
 **Acceptance:**
@@ -535,7 +535,7 @@ Como quem orça e produz, quero saber quanto um insumo custava num dia qualquer,
 - [x] Tier 0: só compras da empresa pedida (teste com a mesma variação em outra empresa)
 - [x] Método `por_insumo`: usa o método gravado no insumo (`medio` ou `ultimo`); insumo sem método → custo nulo com o motivo
 - [x] Tier 0: o método que outra empresa deu ao mesmo insumo não vale
-- [ ] Tela para definir o método do insumo (drawer Insumos)
+- [x] Tela para definir o método do insumo (drawer Insumos)
 - [ ] Consumidores: orçamento (UC-FLX-33) e OS (UC-FLX-37) passam a usar o serviço
 
 ### US-COM-025 · Rastreio do rolo: em que OS cada fração da mídia foi usada (UC-FLX-18) — **P2**
