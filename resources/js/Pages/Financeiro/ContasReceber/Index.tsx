@@ -1,10 +1,12 @@
 // @memcofre tela=/financeiro/contas-receber module=Financeiro
 
 import AppShellV2 from '@/Layouts/AppShellV2';
+import { useState } from 'react';
 import { router, useForm } from '@inertiajs/react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
-import { Receipt, AlertTriangle, CheckCircle2, Circle, Hourglass } from 'lucide-react';
+import { Receipt, AlertTriangle, CheckCircle2, Circle, Hourglass, BellRing } from 'lucide-react';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { toast } from 'sonner';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
@@ -30,10 +32,40 @@ interface Titulo {
   boleto: BoletoInfo | null;
 }
 
+interface Lembrete {
+  id: number;
+  titulo_id: number;
+  numero: string;
+  cliente: string | null;
+  vencimento: string | null;
+  etapa_dias: number;
+  canal: string;
+  status: 'enviado' | 'nao_enviado';
+  motivo: string | null;
+  tarefa: boolean;
+  quando: string;
+}
+
+interface Lembretes {
+  regua: { ativo: boolean; dias: number[] };
+  itens: Lembrete[];
+}
+
 interface Props {
   titulos: Titulo[];
   filtros: { status: string | null; vence_em: string | null };
+  /** Inertia::optional — só chega quando o painel abre (reload com only: ['lembretes']). */
+  lembretes?: Lembretes;
 }
+
+// Motivos gravados pelo ReguaCobrancaJob quando o lembrete não sai.
+const MOTIVOS: Record<string, string> = {
+  opt_out_email: 'Cliente recusou e-mail',
+  sem_email: 'Cliente sem e-mail',
+  sem_contato: 'Título sem cliente',
+  falha_envio: 'Falha no envio',
+  pendente: 'Em processamento',
+};
 
 const STATUS_LABELS: Record<string, { label: string; color: string; icon: typeof Circle }> = {
   aberto: { label: 'Aberto', color: 'bg-blue-100 text-blue-900 dark:bg-blue-900/30 dark:text-blue-200', icon: Circle },
@@ -63,8 +95,70 @@ function StatusPill({ status }: { status: Titulo['status'] }) {
   );
 }
 
-function Index({ titulos, filtros }: Props) {
+function formatDateTime(v: string) {
+  const [data, hora = ''] = v.split(' ');
+  return `${formatDate(data)} ${hora.slice(0, 5)}`.trim();
+}
+
+/** Lembretes da régua de cobrança (US-FIN-071): o que saiu, o que não saiu e por quê. */
+function LembretesPainel({ aberto, onFechar, lembretes }: { aberto: boolean; onFechar: () => void; lembretes?: Lembretes }) {
+  const regua = lembretes?.regua;
+  return (
+    <Sheet open={aberto} onOpenChange={(v) => !v && onFechar()}>
+      <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto" data-contract="lembretes-painel">
+        <SheetHeader>
+          <SheetTitle>Lembretes de cobrança</SheetTitle>
+          <SheetDescription>
+            {!regua
+              ? 'Carregando…'
+              : regua.ativo
+                ? `Régua ligada: e-mail ${regua.dias.map((d) => `D+${d}`).join(', ')} após o vencimento.`
+                : 'Régua desligada: nenhum lembrete sai até ligar.'}{' '}
+            {regua && (
+              <a href="/business/settings" className="underline">Configurar</a>
+            )}
+          </SheetDescription>
+        </SheetHeader>
+        <div className="px-4 pb-4">
+          {lembretes && lembretes.itens.length === 0 && (
+            <p className="text-sm text-muted-foreground py-6 text-center">Nenhum lembrete registrado.</p>
+          )}
+          <ul className="divide-y">
+            {lembretes?.itens.map((l) => (
+              <li key={l.id} className="py-3 text-sm" data-contract="lembrete">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="font-medium">{l.cliente ?? '(sem cliente)'}</span>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">{formatDateTime(l.quando)}</span>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Título <span className="font-mono">{l.numero}</span> · venceu {formatDate(l.vencimento)} · D+{l.etapa_dias} · {l.canal === 'email' ? 'e-mail' : l.canal}
+                </div>
+                <div className="text-xs mt-1">
+                  {l.status === 'enviado'
+                    ? <span className="text-success-fg">Enviado</span>
+                    : <span className="text-warning-fg">Não enviado: {MOTIVOS[l.motivo ?? ''] ?? l.motivo ?? '—'}</span>}
+                  {l.tarefa && <span className="text-muted-foreground"> · tarefa criada para o vendedor</span>}
+                </div>
+              </li>
+            ))}
+          </ul>
+          {lembretes && lembretes.itens.length >= 100 && (
+            <p className="text-xs text-muted-foreground pt-2">Mostrando os 100 mais recentes.</p>
+          )}
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function Index({ titulos, filtros, lembretes }: Props) {
   const emitirForm = useForm({});
+  const [lembretesAberto, setLembretesAberto] = useState(false);
+
+  const abrirLembretes = () => {
+    setLembretesAberto(true);
+    router.reload({ only: ['lembretes'] });
+  };
 
   const filtrar = (key: string, value: string | null) => {
     // D-14: partial reload — só re-busca o que muda com filtro
@@ -99,6 +193,10 @@ function Index({ titulos, filtros }: Props) {
         >
           <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
             <FinanceiroSubNav active="contas-receber" hidePrimary />
+            <Button size="sm" variant="outline" onClick={abrirLembretes} data-contract="abrir-lembretes">
+              <BellRing className="h-4 w-4 mr-1" />
+              Lembretes
+            </Button>
             <PageHeaderPrimary
               label="Novo recebimento"
               onClick={() => router.visit('/financeiro/unificado/novo?kind=receivable')}
@@ -205,6 +303,8 @@ function Index({ titulos, filtros }: Props) {
             </tbody>
           </table>
         </div>
+
+        <LembretesPainel aberto={lembretesAberto} onFechar={() => setLembretesAberto(false)} lembretes={lembretes} />
 
         <Card>
           <CardContent className="pt-6 text-xs text-muted-foreground">

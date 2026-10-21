@@ -161,8 +161,9 @@ Status: 🧪
 > **Âncora:** [US-FIN-071](../../../../../memory/requisitos/Financeiro/SPEC.md) e o UC-FLX-29 do
 > catálogo de fluxos (transição "Vencido → Em cobrança": lembretes D+1, D+5 e D+15 e tarefa ao
 > vendedor). Nesta entrega é o job diário por business (`ReguaCobrancaJob`, agendado via
-> `financeiro:regua-cobranca`) — a tela ainda não mostra o histórico nem configura a régua; WhatsApp,
-> estado "em cobrança" no título e a configuração com permissão são follow-up da US. Régua **desligada
+> `financeiro:regua-cobranca`). O histórico aparece no painel "Lembretes" desta tela (UC-CRREG-08) e a
+> régua liga na aba Financeiro de `/business/settings`; WhatsApp e estado "em cobrança" no título são
+> follow-up da US. Régua **desligada
 > por padrão** (`business.common_settings['financeiro_regua_cobranca']`). Prova:
 > `Modules/Financeiro/Tests/Feature/ReguaCobrancaContratoTest.php`. Não mexe em valor de título.
 
@@ -217,6 +218,18 @@ Status: 🧪
 **Dado** a agenda de tarefas (contrato `App\Contracts\Crm\AgendaDeTarefas`) não ligada e um título
 vencido há 15 dias **Quando** o job roda **Então** o e-mail sai, o lembrete da etapa 15 fica `enviado`
 sem tarefa e nenhuma linha nova aparece em `crm_schedules`.
+
+Status: 🧪
+
+## UC-CRREG-08 · Painel "Lembretes" mostra o que saiu e o que não saiu · `must` Tier 0
+
+**Dado** a régua ligada em A (98) e em B (99), um título de A vencido há 1 dia com cliente que tem
+e-mail, outro de A vencido há 5 dias com cliente que recusou e-mail, e um título de B vencido há 1 dia,
+e o job do dia rodou nos dois **Quando** abro a tela de A **Então** a carga normal não traz os
+lembretes (prop `Inertia::optional`) **E quando** clico em "Lembretes" (reload parcial `only:
+['lembretes']`) **Então** vejo a régua ligada com D+1, D+5 e D+15, o título de D+1 como `enviado`, o
+de D+5 como `nao_enviado` com motivo `opt_out_email`, e nada de B. A régua liga na aba Financeiro de
+`/business/settings` (UC-EMP-15).
 
 Status: 🧪
 
