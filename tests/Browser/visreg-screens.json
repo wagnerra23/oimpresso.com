@@ -619,5 +619,21 @@
     "route": "/fisio/pacientes",
     "anchor": "Novo paciente",
     "baseline": "it_Fisio_Pacientes_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Fisio/Painel",
+    "source": "Fisio/Painel",
+    "component": "Fisio/Painel",
+    "route": "/fisio",
+    "anchor": "Adesão, dor e quem precisa de atenção",
+    "baseline": "it_Fisio_Painel_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Fisio/Biblioteca",
+    "source": "Fisio/Biblioteca",
+    "component": "Fisio/Biblioteca/Index",
+    "route": "/fisio/biblioteca",
+    "anchor": "Biblioteca de exercícios",
+    "baseline": "it_Fisio_Biblioteca_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   }
 ]
