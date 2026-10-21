@@ -25,6 +25,10 @@ interface Titulo {
   cliente_id: number | null;
   valor_total: string;
   valor_aberto: string;
+  /** US-FIN-072: retenções da NFS-e (ISS/PIS/COFINS/CSLL). '0.00' sem retenção. */
+  valor_retido: string;
+  /** valor_total − valor_retido, calculado no servidor. */
+  valor_liquido: string;
   vencimento: string | null;
   status: 'aberto' | 'parcial' | 'quitado' | 'cancelado';
   origem: string;
@@ -247,6 +251,9 @@ function Index({ titulos, filtros, lembretes }: Props) {
                 <th className="px-4 py-2 font-medium">Nº</th>
                 <th className="px-4 py-2 font-medium">Cliente</th>
                 <th className="px-4 py-2 font-medium">Vencimento</th>
+                <th className="px-4 py-2 font-medium text-right">Bruto</th>
+                <th className="px-4 py-2 font-medium text-right">Retido</th>
+                <th className="px-4 py-2 font-medium text-right">Líquido</th>
                 <th className="px-4 py-2 font-medium text-right">Valor aberto</th>
                 <th className="px-4 py-2 font-medium">Status</th>
                 <th className="px-4 py-2 font-medium">Boleto</th>
@@ -256,7 +263,7 @@ function Index({ titulos, filtros, lembretes }: Props) {
             <tbody>
               {titulos.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={10} className="px-4 py-8 text-center text-muted-foreground">
                     Nenhum título encontrado com esses filtros.
                   </td>
                 </tr>
@@ -271,6 +278,11 @@ function Index({ titulos, filtros, lembretes }: Props) {
                     </div>
                   </td>
                   <td className="px-4 py-3">{formatDate(t.vencimento)}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">{formatBRL(t.valor_total)}</td>
+                  <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
+                    {parseFloat(t.valor_retido) > 0 ? formatBRL(t.valor_retido) : '—'}
+                  </td>
+                  <td className="px-4 py-3 text-right tabular-nums">{formatBRL(t.valor_liquido)}</td>
                   <td className="px-4 py-3 text-right font-medium">{formatBRL(t.valor_aberto)}</td>
                   <td className="px-4 py-3">
                     <StatusPill status={t.status} />

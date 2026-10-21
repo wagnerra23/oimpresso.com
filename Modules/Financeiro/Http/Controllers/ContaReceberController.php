@@ -13,6 +13,7 @@ use Inertia\Response;
 use Modules\Financeiro\Models\BoletoRemessa;
 use Modules\Financeiro\Models\Titulo;
 use Modules\Financeiro\Services\ReguaCobrancaConfig;
+use Modules\Financeiro\Services\RetencaoNfseTituloService;
 use Modules\Financeiro\Services\TituloService;
 
 /**
@@ -38,7 +39,7 @@ class ContaReceberController extends Controller
     }
 
 
-    public function index(Request $request): Response|\Illuminate\Http\Response
+    public function index(Request $request, RetencaoNfseTituloService $retencao): Response|\Illuminate\Http\Response
     {
 
         $businessId = $request->session()->get('business.id');
@@ -56,7 +57,9 @@ class ContaReceberController extends Controller
             ->orderBy('vencimento')
             ->limit(100)
             ->get()
-            ->map(function (Titulo $t) {
+            ->map(function (Titulo $t) use ($retencao) {
+                // US-FIN-072: bruto / retido (NFS-e) / líquido, em centavos → string 2 casas.
+                $v = $retencao->valoresDoTitulo($t->valor_total, $t->metadata);
                 $boleto = BoletoRemessa::where('titulo_id', $t->id)
                     ->whereNotIn('status', ['cancelado'])
                     ->orderByDesc('id')
@@ -69,6 +72,8 @@ class ContaReceberController extends Controller
                     'cliente_id' => $t->cliente_id,
                     'valor_total' => $t->valor_total,
                     'valor_aberto' => $t->valor_aberto,
+                    'valor_retido' => number_format($v['retido'] / 100, 2, '.', ''),
+                    'valor_liquido' => number_format($v['liquido'] / 100, 2, '.', ''),
                     'vencimento' => $t->vencimento?->toDateString(),
                     'status' => $t->status,
                     'origem' => $t->origem,
