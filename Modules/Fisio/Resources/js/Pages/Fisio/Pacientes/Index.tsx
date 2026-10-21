@@ -8,7 +8,8 @@
 // busca um contato existente no servidor, ou cria um contato novo (UC-FPI-06/07), e acrescenta
 // só o perfil clínico. Nome e telefone vêm do contato.
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Deferred, Link, router, useForm } from '@inertiajs/react';
+import { Deferred, router, useForm } from '@inertiajs/react';
+import type { ColumnDef } from '@tanstack/react-table';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { Plus, Search } from 'lucide-react';
 import { PageHeader } from '@/Components/PageHeader';
@@ -16,6 +17,8 @@ import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
+import { Inline } from '@/Components/layout';
+import DataTable from '@/Components/shared/DataTable';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { Skeleton } from '@/Components/ui/skeleton';
 import PerfilClinicoCampos, { type PerfilClinico } from '../_components/PerfilClinicoCampos';
@@ -41,6 +44,48 @@ interface Props {
   profissionais?: Profissional[];
 }
 
+// Slot 5 do PT-01 (DataTable). A linha inteira abre a ficha; o DataTable dá a ela papel de botão
+// e Enter/Espaço, para o teclado chegar onde o mouse chega.
+const COLUNAS: ColumnDef<Paciente, unknown>[] = [
+  {
+    id: 'paciente',
+    header: 'Paciente',
+    accessorFn: (p) => p.nome ?? '',
+    cell: ({ row: { original: p } }) => (
+      <div className="min-w-0">
+        <span className="block text-sm font-medium">{p.nome ?? 'Contato sem nome'}</span>
+        <span className="block truncate text-xs text-muted-foreground">{p.main_complaint || 'Sem queixa registrada'}</span>
+      </div>
+    ),
+  },
+  {
+    id: 'condicoes',
+    header: 'Condições',
+    accessorFn: (p) => p.condition_flags.join(', '),
+    cell: ({ row: { original: p } }) => (
+      <Inline wrap gap={1}>
+        {p.condition_flags.map((c) => <Badge key={c} variant="outline">{rotuloCondicao(c)}</Badge>)}
+      </Inline>
+    ),
+  },
+  {
+    id: 'responsavel',
+    header: 'Responsável',
+    accessorFn: (p) => p.responsavel?.nome ?? 'sem responsável',
+    cell: ({ row: { original: p } }) => (
+      <span className="text-xs text-muted-foreground" data-contract="fisio-paciente-responsavel">
+        {p.responsavel?.nome ?? 'sem responsável'}
+      </span>
+    ),
+  },
+  {
+    id: 'sessoes',
+    header: 'Sessões',
+    accessorFn: (p) => p.sessions_per_week,
+    cell: ({ row: { original: p } }) => <span className="text-xs text-muted-foreground">{p.sessions_per_week}× por semana</span>,
+  },
+];
+
 function Lista({ pacientes, q }: { pacientes: Paciente[]; q: string }) {
   if (pacientes.length === 0) {
     return (
@@ -50,21 +95,16 @@ function Lista({ pacientes, q }: { pacientes: Paciente[]; q: string }) {
     );
   }
   return (
-    <ul className="divide-y divide-border" data-contract="fisio-pacientes-lista">
-      {pacientes.map((p) => (
-        <li key={p.id}>
-          <Link href={`/fisio/pacientes/${p.id}`} className="flex flex-wrap items-center gap-3 px-1 py-3 hover:bg-muted/50">
-            <div className="min-w-0 flex-1">
-              <span className="block text-sm font-medium">{p.nome ?? 'Contato sem nome'}</span>
-              <span className="block truncate text-xs text-muted-foreground">{p.main_complaint || 'Sem queixa registrada'}</span>
-            </div>
-            {p.condition_flags.map((c) => <Badge key={c} variant="outline">{rotuloCondicao(c)}</Badge>)}
-            <span className="text-xs text-muted-foreground" data-contract="fisio-paciente-responsavel">Responsável: {p.responsavel?.nome ?? 'sem responsável'}</span>
-            <span className="text-xs text-muted-foreground">{p.sessions_per_week}× por semana</span>
-          </Link>
-        </li>
-      ))}
-    </ul>
+    <div data-contract="fisio-pacientes-lista">
+      <DataTable<Paciente>
+        columns={COLUNAS}
+        data={pacientes}
+        caption="Pacientes"
+        showSearch={false}
+        rowKey={(p) => p.id}
+        onRowClick={(p) => router.visit(`/fisio/pacientes/${p.id}`)}
+      />
+    </div>
   );
 }
 
