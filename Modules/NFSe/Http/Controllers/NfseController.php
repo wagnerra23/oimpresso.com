@@ -15,6 +15,7 @@ use Modules\NFSe\Models\NfseEmissao;
 use Modules\NFSe\Models\NfseProviderConfig;
 use Modules\NFSe\Services\NfseEmissaoService;
 use Modules\NfeBrasil\Services\Nfse\ListaServicoNacional;
+use Modules\NfeBrasil\Services\SeparacaoNotasDaVenda;
 
 /**
  * Rotas operacionais NFSe — US-NFSE-006/008/009.
@@ -177,6 +178,16 @@ class NfseController extends Controller
         $taxRaw    = $tomador?->tax_number ?? $tomador?->cpf_cnpj ?? '';
         $taxDigits = preg_replace('/\D/', '', (string) $taxRaw) ?? '';
 
+        // US-NFE-069 · UC-FLX-27: venda separada emite só a parte serviço, com o total e o código
+        // LC 116 que vêm da separação — o valor do corpo é ignorado (regra mestre de valor).
+        $separacao = null;
+        if ($request->boolean('separada')) {
+            $separacao = $this->parteServico($businessId, $transaction->id);
+            if ($separacao instanceof \Illuminate\Http\JsonResponse) {
+                return $separacao;
+            }
+        }
+
         // Payload no MESMO formato validado do StoreNfseRequest — venda + defaults config.
         $data = [
             'competencia'    => optional($transaction->transaction_date)->format('Y-m') ?? now()->format('Y-m'),
@@ -191,6 +202,11 @@ class NfseController extends Controller
             'iss_retido'     => (bool) $request->input('iss_retido', false),
             'transaction_id' => $transaction->id,
         ];
+        if ($separacao !== null) {
+            $data['valor_servicos'] = $separacao['total'];
+            $data['descricao']      = $request->input('descricao') ?: $separacao['descricao'];
+            $data['lc116_codigo']   = $separacao['lc116'] ?? $data['lc116_codigo'];
+        }
 
         $payload = $this->service->montarPayload($data, $businessId);
         $this->service->despacharEmissaoAsync($payload);
@@ -201,6 +217,52 @@ class NfseController extends Controller
             'rps'            => $payload->rpsNumero,
             'transaction_id' => $transaction->id,
         ], 202);
+    }
+
+    /**
+     * Parte serviço da venda separada, ou a resposta de recusa. Recusa (422/409) quando:
+     * natureza pendente (o contador decide antes — D-NATUREZA), venda sem serviço, serviços
+     * com códigos LC 116 diferentes (uma NFS-e tem um código só), ou NFS-e já emitida/em curso.
+     *
+     * @return array{total:float,descricao:string,lc116:?string}|\Illuminate\Http\JsonResponse
+     */
+    private function parteServico(int $businessId, int $transactionId)
+    {
+        try {
+            $sep = app(SeparacaoNotasDaVenda::class)->separar($businessId, $transactionId);
+        } catch (\RuntimeException $e) {
+            return response()->json(['error' => 'separacao_invalida', 'message' => $e->getMessage()], 422);
+        }
+        if ($sep['pendentes'] !== []) {
+            return response()->json([
+                'error'   => 'natureza_pendente',
+                'message' => 'Produto(s) ' . implode(', ', $sep['pendentes']) . ' com natureza fiscal a decidir: o contador decide antes de faturar.',
+            ], 422);
+        }
+        $parte = $sep[SeparacaoNotasDaVenda::SERVICO];
+        if ($parte['total'] <= 0) {
+            return response()->json(['error' => 'sem_servico', 'message' => 'A venda não tem parte serviço — emita só a NF-e.'], 422);
+        }
+        $codigos = array_values(array_unique(array_filter(array_column($parte['linhas'], 'codigo_servico'))));
+        if (count($codigos) > 1) {
+            return response()->json([
+                'error'   => 'codigos_servico_diferentes',
+                'message' => 'Os serviços da venda têm códigos LC 116 diferentes (' . implode(', ', $codigos) . '): uma NFS-e leva um código só.',
+            ], 422);
+        }
+        if (NfseEmissao::where('business_id', $businessId)->where('transaction_id', $transactionId)
+            ->whereIn('status', ['rascunho', 'processando', 'emitida'])->exists()) {
+            return response()->json(['error' => 'nfse_ja_existe', 'message' => 'Esta venda já tem NFS-e emitida ou em processamento.'], 409);
+        }
+
+        return [
+            'total'     => (float) $parte['total'],
+            'descricao' => 'Serviços da venda: ' . implode('; ', array_map(
+                fn (array $l) => $l['descricao'] . ' (' . rtrim(rtrim(number_format((float) $l['quantidade'], 3, ',', ''), '0'), ',') . ')',
+                $parte['linhas'],
+            )),
+            'lc116'     => $codigos[0] ?? null,
+        ];
     }
 
     // US-NFSE-006: detalhe + status em tempo real

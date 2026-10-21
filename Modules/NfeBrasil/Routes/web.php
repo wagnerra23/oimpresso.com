@@ -172,6 +172,10 @@ Route::middleware(['web', 'auth', 'SetSessionData'])
         Route::get('transactions/{tx}/emissoes', [\Modules\NfeBrasil\Http\Controllers\NfeEmissaoController::class, 'listar'])
             ->whereNumber('tx')
             ->name('transactions.emissoes');
+        // US-NFE-069 · UC-FLX-27: as duas partes (NF-e + NFS-e) antes de confirmar a emissão.
+        Route::get('transactions/{tx}/separacao', [\Modules\NfeBrasil\Http\Controllers\NfeEmissaoController::class, 'separacao'])
+            ->whereNumber('tx')
+            ->name('transactions.separacao');
     });
 
 // US-NFE-MANUAL — POST endpoints de ação fiscal + GET DANFE PDF.

@@ -2,13 +2,14 @@
 // Mostra emissões NFC-e (65) + NFe (55) com badges + ações (emitir/reenviar/PDF).
 // Cancelar fica em PR separado (US-NFE-CANCEL).
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   AlertTriangle,
   CheckCircle2,
   Download,
   ExternalLink,
   FileText,
+  Files,
   Loader2,
   Mail,
   Receipt,
@@ -17,15 +18,58 @@ import {
 import { Button } from '@/Components/ui/button';
 import { FiscalStatusBadge } from '@/Components/NfeBrasil/FiscalStatusBadge';
 import { useEmissoesPorTransaction, type Emissao } from '@/Hooks/useEmissoesPorTransaction';
+import { formatDecimalPtBR } from '@/Lib/numberPtBR';
 
 interface Props {
   saleId: number;
   enabled?: boolean;
 }
 
+// US-NFE-069 · UC-FLX-27 — as duas partes da venda, calculadas pelo servidor (SeparacaoNotasDaVenda).
+// A tela só mostra: nenhum valor é recalculado aqui (regra mestre de valor).
+interface ParteNota {
+  itens: { descricao: string; quantidade: number; bruto: number; codigo_servico: string | null }[];
+  bruto: number;
+  desconto: number;
+  acrescimo: number;
+  frete: number;
+  total: number;
+}
+interface Separacao {
+  separavel: boolean;
+  final_total?: number;
+  mercadoria?: ParteNota;
+  servico?: ParteNota;
+  pendentes?: number[];
+}
+
+const brl = (v: number) => `R$ ${formatDecimalPtBR(v, 2)}`;
+
+function csrf(): string {
+  return (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '';
+}
+
 export default function FiscalSection({ saleId, enabled = true }: Props) {
   const { emissoes, loading, error, isPolling, refetch } = useEmissoesPorTransaction(saleId, { enabled });
-  const [emitting, setEmitting] = useState<'55' | '65' | null>(null);
+  const [emitting, setEmitting] = useState<'55' | '65' | 'duas' | null>(null);
+  const [separacao, setSeparacao] = useState<Separacao | null>(null);
+  const [confirmarDuas, setConfirmarDuas] = useState(false);
+
+  // Só pergunta a separação; sem permissão de NFS-e (403) ou venda de uma natureza só, o botão não aparece.
+  useEffect(() => {
+    if (!enabled) return;
+    let vivo = true;
+    fetch(`/nfe-brasil/api/transactions/${saleId}/separacao`, {
+      headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      credentials: 'same-origin',
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => vivo && setSeparacao(j))
+      .catch(() => vivo && setSeparacao(null));
+    return () => {
+      vivo = false;
+    };
+  }, [saleId, enabled]);
   // `acao`: saída de 1 clique que o servidor devolve com o bloqueio (R-NFE-022 · NCM padrão ausente).
   const [actionMsg, setActionMsg] = useState<{
     tone: 'success' | 'error';
@@ -64,6 +108,49 @@ export default function FiscalSection({ saleId, enabled = true }: Props) {
       refetch();
     } catch (e) {
       setActionMsg({ tone: 'error', text: String((e as Error).message || e) });
+    } finally {
+      setEmitting(null);
+    }
+  }
+
+  // NF-e da parte mercadoria primeiro (síncrona, SEFAZ); só com ela aceita, a NFS-e da parte serviço.
+  async function emitirDuas() {
+    setEmitting('duas');
+    setActionMsg(null);
+    const headers = {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+      'X-CSRF-TOKEN': csrf(),
+    };
+    try {
+      const nfe = await fetch(`/nfe-brasil/transactions/${saleId}/emitir`, {
+        method: 'POST',
+        headers,
+        credentials: 'same-origin',
+        body: JSON.stringify({ modelo: '55', separada: true }),
+      });
+      const jNfe = await nfe.json();
+      if (!nfe.ok) throw new Error(jNfe?.message || jNfe?.error || 'Falha ao emitir a NF-e');
+      if (jNfe?.emissao?.status && !['autorizada', 'pendente', 'enviando', 'contingencia'].includes(jNfe.emissao.status)) {
+        throw new Error(`NF-e não autorizada (${jNfe.emissao.motivo || jNfe.emissao.status}) — a NFS-e não foi enviada.`);
+      }
+
+      const nfse = await fetch(`/nfse/transactions/${saleId}/emitir`, {
+        method: 'POST',
+        headers,
+        credentials: 'same-origin',
+        body: JSON.stringify({ separada: true }),
+      });
+      const jNfse = await nfse.json();
+      if (!nfse.ok) throw new Error(`NF-e emitida, mas a NFS-e falhou: ${jNfse?.message || jNfse?.error || nfse.status}`);
+
+      setConfirmarDuas(false);
+      setActionMsg({ tone: 'success', text: 'NF-e emitida e NFS-e enviada para processamento.' });
+      refetch();
+    } catch (e) {
+      setActionMsg({ tone: 'error', text: String((e as Error).message || e) });
+      refetch();
     } finally {
       setEmitting(null);
     }
@@ -165,6 +252,51 @@ export default function FiscalSection({ saleId, enabled = true }: Props) {
               Emitir NFe
             </Button>
           )}
+          {!hasNfe && separacao?.separavel && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setConfirmarDuas(true)}
+              disabled={emitting !== null || confirmarDuas}
+              data-acao="emitir-nfe-nfse"
+            >
+              <Files size={13} className="mr-1.5" />
+              Emitir NF-e + NFS-e
+            </Button>
+          )}
+        </div>
+      )}
+
+      {confirmarDuas && separacao?.mercadoria && separacao?.servico && (
+        <div className="mt-3 rounded-md border border-border bg-background p-3 text-xs" data-contract="fiscal-duas-notas">
+          <p className="font-medium text-foreground mb-2">A venda sai em duas notas:</p>
+          <div className="grid grid-cols-2 gap-3">
+            <ParteResumo titulo="NF-e · mercadoria" parte={separacao.mercadoria} />
+            <ParteResumo titulo="NFS-e · serviço" parte={separacao.servico} />
+          </div>
+          <p className="mt-2 text-muted-foreground tabular-nums">
+            Soma das duas: <strong className="text-foreground">{brl(separacao.final_total ?? 0)}</strong> (total da venda).
+            Desconto e acréscimo divididos pelo valor de cada parte; frete na NF-e.
+          </p>
+          {(separacao.pendentes?.length ?? 0) > 0 && (
+            <p className="mt-2 text-destructive-fg">
+              <AlertTriangle size={11} className="inline mr-1" />
+              Há produto com natureza fiscal a decidir: o contador decide antes de emitir.
+            </p>
+          )}
+          <div className="mt-3 flex gap-2">
+            <Button
+              size="sm"
+              onClick={emitirDuas}
+              disabled={emitting !== null || (separacao.pendentes?.length ?? 0) > 0}
+            >
+              {emitting === 'duas' && <Loader2 size={13} className="mr-1.5 animate-spin" />}
+              Confirmar e emitir
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setConfirmarDuas(false)} disabled={emitting !== null}>
+              Cancelar
+            </Button>
+          </div>
         </div>
       )}
 
@@ -174,6 +306,30 @@ export default function FiscalSection({ saleId, enabled = true }: Props) {
         </p>
       )}
     </section>
+  );
+}
+
+// ─── Subcomponente — uma das duas partes (NF-e ou NFS-e) ─────────────────────
+
+function ParteResumo({ titulo, parte }: { titulo: string; parte: ParteNota }) {
+  return (
+    <div className="rounded border border-border/60 p-2 tabular-nums">
+      <div className="font-medium text-foreground mb-1">{titulo}</div>
+      <ul className="mb-1 text-muted-foreground">
+        {parte.itens.map((it, i) => (
+          <li key={i} className="truncate" title={it.descricao}>
+            {it.descricao} · {brl(it.bruto)}
+          </li>
+        ))}
+      </ul>
+      <div className="flex justify-between"><span>Bruto</span><span>{brl(parte.bruto)}</span></div>
+      {parte.desconto > 0 && <div className="flex justify-between"><span>Desconto</span><span>− {brl(parte.desconto)}</span></div>}
+      {parte.acrescimo > 0 && <div className="flex justify-between"><span>Acréscimo</span><span>+ {brl(parte.acrescimo)}</span></div>}
+      {parte.frete > 0 && <div className="flex justify-between"><span>Frete</span><span>+ {brl(parte.frete)}</span></div>}
+      <div className="flex justify-between font-semibold text-foreground border-t border-border/60 mt-1 pt-1">
+        <span>Total</span><span>{brl(parte.total)}</span>
+      </div>
+    </div>
   );
 }
 
