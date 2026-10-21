@@ -1986,6 +1986,13 @@
       "desc": "PUT /compras/insumos/{variation}/metodo-custo grava o método do insumo (medio | ultimo) da gaveta de /manufacturing/insumos; empresa da sessão, variação da empresa ou 404, purchase.update (US-COM-024 · UC-FLX-38)"
     },
     {
+      "id": "component:Compras/MetodoCustoDoProduto + DataController::product_form_part/after_product_saved",
+      "type": "component",
+      "module": "Compras",
+      "name": "MetodoCustoDoProduto + DataController::product_form_part/after_product_saved",
+      "desc": "campo Método de custo no formulário Blade de novo e de editar produto, aplicado a todas as variações; só roda com o módulo instalado (system.compras_version)"
+    },
+    {
       "id": "component:Compras/RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
       "type": "component",
       "module": "Compras",
@@ -8065,6 +8072,12 @@
     {
       "from": "module:Compras",
       "to": "component:Compras/InsumoMetodoCustoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/MetodoCustoDoProduto + DataController::product_form_part/after_product_saved",
       "type": "hasComponent",
       "source": "contains"
     },
