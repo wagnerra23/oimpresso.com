@@ -29,8 +29,8 @@
  *  - Acabamentos/instalação/entrega como linhas extras do total (hoje só campo manual).
  */
 import { useMemo, useState, type ReactNode } from 'react';
-import { Head } from '@inertiajs/react';
-import { Plus, Trash2, Calculator, ServerCog, Ruler, Clock, Printer } from 'lucide-react';
+import { Deferred, Head, Link, router } from '@inertiajs/react';
+import { Plus, Trash2, Calculator, ServerCog, Ruler, Clock, Printer, Save, FolderOpen } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { PageHeader } from '@/Components/PageHeader';
@@ -48,11 +48,54 @@ interface Material {
   preco_venda_m2: number;
 }
 
+/** Orçamento gravado, no formato que a calculadora reabre (OrcamentoController::paraTela). */
+interface OrcamentoTela {
+  id: number;
+  numero: string;
+  status: string;
+  desconto: number;
+  extras: number;
+  custo_instalacao: number;
+  custo_entrega: number;
+  total: number;
+  itens: Array<{
+    material_id: number | null;
+    descricao: string;
+    largura_m: number;
+    altura_m: number;
+    quantidade: number;
+    preco_unitario_m2: number;
+  }>;
+}
+
+/** Linha da lista "Orçamentos salvos" (OrcamentoController::recentes). */
+interface OrcamentoResumo {
+  id: number;
+  numero: string;
+  status: string;
+  total: number;
+  data_emissao: string | null;
+  itens: number;
+}
+
 interface Props {
   bizName?: string;
   materiais?: Material[];
   podeCriar?: boolean;
+  orcamento?: OrcamentoTela | null;
+  orcamentoAusente?: boolean;
+  recentes?: OrcamentoResumo[];
 }
+
+/** Status em que o orçamento reaberto ainda grava (espelha OrcamentoController::EDITAVEIS). */
+const EDITAVEIS = ['rascunho', 'enviado'];
+const STATUS_LABEL: Record<string, string> = {
+  rascunho: 'Rascunho',
+  enviado: 'Enviado',
+  aprovado: 'Aprovado',
+  recusado: 'Recusado',
+  expirado: 'Expirado',
+};
 
 /** Linha de item da calculadora (estado local de UI). */
 interface ItemUI {
@@ -83,6 +126,34 @@ const NUM = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 0, maximumFr
 // Sem crypto.randomUUID: fora de secure context (http:// no IP da rede do balcão)
 // ele é undefined e derrubava o render inicial — tela branca, sem mensagem.
 let seqItem = 0;
+function itemDoOrcamento(i: OrcamentoTela['itens'][number]): ItemUI {
+  return { ...novoItem(), ...i, descricao: i.descricao ?? '' };
+}
+
+/** Chamada JSON às APIs do módulo; erro vira Error com a mensagem do servidor em PT-BR. */
+async function chamarApi(method: 'POST' | 'PUT', url: string, body: unknown): Promise<unknown> {
+  const csrf =
+    (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
+  const res = await fetch(url, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      'X-CSRF-TOKEN': csrf,
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) {
+    throw new Error(
+      (data && (data.message as string)) ||
+        `Não consegui falar com o servidor agora (erro ${res.status}). Confira as medidas e tente de novo.`,
+    );
+  }
+  return data;
+}
+
 function novoItem(): ItemUI {
   return {
     id: `i${++seqItem}`,
@@ -120,27 +191,51 @@ function arred(n: number, casas: number): number {
   return (Math.sign(n) * Math.round(deslocado)) / fator;
 }
 
-export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar = false }: Props) {
-  const [itens, setItens] = useState<ItemUI[]>([novoItem()]);
-  const [extras, setExtras] = useState(0); // acabamento/instalação/entrega (manual por ora)
-  const [desconto, setDesconto] = useState(0);
+export default function Index({
+  bizName = 'oimpresso',
+  materiais = [],
+  podeCriar = false,
+  orcamento = null,
+  orcamentoAusente = false,
+  recentes,
+}: Props) {
+  const [itens, setItens] = useState<ItemUI[]>(() =>
+    orcamento && orcamento.itens.length > 0 ? orcamento.itens.map(itemDoOrcamento) : [novoItem()],
+  );
+  const [extras, setExtras] = useState(orcamento?.extras ?? 0); // acabamento/instalação/entrega (manual por ora)
+  const [desconto, setDesconto] = useState(orcamento?.desconto ?? 0);
+  // Instalação e entrega não têm campo na tela, mas o orçamento pode tê-los (app das lojas):
+  // reabrir e gravar de novo não pode zerá-los em silêncio.
+  const instalacao = orcamento?.custo_instalacao ?? 0;
+  const entrega = orcamento?.custo_entrega ?? 0;
   const [conferindo, setConferindo] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [conferido, setConferido] = useState<ServerResult | null>(null);
+  // Orçamento gravado que está na tela (reaberto ou recém-salvo) e se mudou desde a gravação.
+  const [salvo, setSalvo] = useState<{ id: number; numero: string; status: string } | null>(
+    orcamento ? { id: orcamento.id, numero: orcamento.numero, status: orcamento.status } : null,
+  );
+  const [alterado, setAlterado] = useState(false);
+  const [salvando, setSalvando] = useState(false);
+
+  function mexeu() {
+    setConferido(null);
+    setAlterado(true);
+  }
 
   function addItem() {
     setItens((prev) => [...prev, novoItem()]);
-    setConferido(null);
+    mexeu();
   }
 
   function removeItem(id: string) {
     setItens((prev) => (prev.length === 1 ? prev : prev.filter((i) => i.id !== id)));
-    setConferido(null);
+    mexeu();
   }
 
   function patchItem(id: string, patch: Partial<ItemUI>) {
     setItens((prev) => prev.map((i) => (i.id === id ? { ...i, ...patch } : i)));
-    setConferido(null);
+    mexeu();
   }
 
   function escolherMaterial(id: string, materialId: number | null) {
@@ -161,8 +256,12 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
   // desconto maior que o orçamento mostrava R$ 0,00 aqui e um negativo no "vale este".
   // Melhor mostrar o negativo e dizer por quê.
   const totalLocal = useMemo(
-    () => arred(subtotalLocal - arred(Math.max(0, desconto), 2) + arred(Math.max(0, extras), 2), 2),
-    [subtotalLocal, desconto, extras],
+    () =>
+      arred(
+        subtotalLocal - arred(Math.max(0, desconto), 2) + arred(Math.max(0, extras), 2) + instalacao + entrega,
+        2,
+      ),
+    [subtotalLocal, desconto, extras, instalacao, entrega],
   );
 
   // TODAS as linhas: o servidor recusa o orçamento inteiro por causa de uma só
@@ -171,6 +270,27 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
   // Marca a linha que está segurando o botão — só quando há outra linha pronta.
   const algumOk = itens.some(itemOk);
 
+  /** Payload de /calcular e /orcamentos — o mesmo contrato (OrcamentoController::validarPayload). */
+  function montarPayload() {
+    return {
+      data_emissao: new Date().toISOString().slice(0, 10),
+      desconto: Math.max(0, desconto),
+      extras: Math.max(0, extras),
+      custo_instalacao: instalacao,
+      custo_entrega: entrega,
+      itens: itens.map((i) => ({
+        material_id: i.material_id ?? undefined,
+        descricao: i.descricao.trim() || 'Item sem descrição',
+        largura_m: i.largura_m,
+        altura_m: i.altura_m,
+        quantidade: i.quantidade,
+        // Preço sempre enviado (override do operador). O server resolve
+        // material->preco_venda_m2 como fallback caso venha vazio.
+        preco_unitario_m2: i.preco_unitario_m2 > 0 ? i.preco_unitario_m2 : undefined,
+      })),
+    };
+  }
+
   // Confere no servidor (authoritative): o backend recalcula área/subtotal/total
   // e respeita business_id. Se bater com o preview local, dá confiança pra Larissa.
   async function conferirNoServidor() {
@@ -178,44 +298,7 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
     setErro(null);
     setConferido(null);
     try {
-      const csrf =
-        (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
-
-      const payload = {
-        data_emissao: new Date().toISOString().slice(0, 10),
-        desconto: Math.max(0, desconto),
-        extras: Math.max(0, extras),
-        itens: itens.map((i) => ({
-          material_id: i.material_id ?? undefined,
-          descricao: i.descricao.trim() || 'Item sem descrição',
-          largura_m: i.largura_m,
-          altura_m: i.altura_m,
-          quantidade: i.quantidade,
-          // Preço sempre enviado (override do operador). O server resolve
-          // material->preco_venda_m2 como fallback caso venha vazio.
-          preco_unitario_m2: i.preco_unitario_m2 > 0 ? i.preco_unitario_m2 : undefined,
-        })),
-      };
-
-      const res = await fetch('/comunicacao-visual/api/calcular', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-          'X-CSRF-TOKEN': csrf,
-          'X-Requested-With': 'XMLHttpRequest',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json().catch(() => null);
-      if (!res.ok) {
-        throw new Error(
-          (data && (data.message as string)) ||
-            `Não consegui calcular agora (erro ${res.status}). Confira as medidas e tente de novo.`,
-        );
-      }
-      setConferido(data as ServerResult);
+      setConferido((await chamarApi('POST', '/comunicacao-visual/api/calcular', montarPayload())) as ServerResult);
     } catch (e) {
       setErro(e instanceof Error ? e.message : 'Falha inesperada ao conferir no servidor.');
     } finally {
@@ -223,7 +306,32 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
     }
   }
 
+  // Grava o orçamento: POST na 1ª vez, PUT no reaberto. O servidor recalcula tudo de novo e o
+  // número fica o mesmo. A URL passa a ter ?orcamento={id}, então recarregar reabre o mesmo.
+  async function salvarOrcamento() {
+    setSalvando(true);
+    setErro(null);
+    try {
+      const data = (await chamarApi(
+        salvo ? 'PUT' : 'POST',
+        salvo ? `/comunicacao-visual/api/orcamentos/${salvo.id}` : '/comunicacao-visual/api/orcamentos',
+        montarPayload(),
+      )) as { id: number; numero: string; status: string };
+      setSalvo({ id: data.id, numero: data.numero, status: data.status });
+      setAlterado(false);
+      window.history.replaceState(window.history.state, '', `/comunicacao-visual?orcamento=${data.id}`);
+      router.reload({ only: ['recentes'] });
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : 'Falha inesperada ao salvar o orçamento.');
+    } finally {
+      setSalvando(false);
+    }
+  }
+
   const semCatalogo = materiais.length === 0;
+  const editavel = !salvo || EDITAVEIS.includes(salvo.status);
+  // Salvar só depois de conferir (protótipo): orçamento salvo com número errado vira retrabalho.
+  const podeSalvar = podeCriar && editavel && temItemValido && !!conferido && (!salvo || alterado);
 
   return (
     <>
@@ -246,13 +354,39 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
             <CardTitle className="flex items-center gap-2">
               <Calculator className="h-4 w-4 text-primary" />
               Calculadora de m²
+              {salvo && (
+                <span data-contract="orcamento-aberto" className="flex items-center gap-1.5 text-sm font-normal text-muted-foreground">
+                  · <span className="font-mono text-foreground">{salvo.numero}</span>
+                  <Badge variant="outline">{STATUS_LABEL[salvo.status] ?? salvo.status}</Badge>
+                </span>
+              )}
             </CardTitle>
-            <Button type="button" variant="outline" size="sm" onClick={addItem}>
-              <Plus className="mr-1 h-4 w-4" /> Adicionar peça
-            </Button>
+            <div className="flex items-center gap-2">
+              {salvo && (
+                <Button type="button" variant="ghost" size="sm" asChild>
+                  <Link href="/comunicacao-visual">Novo orçamento</Link>
+                </Button>
+              )}
+              <Button type="button" variant="outline" size="sm" onClick={addItem} disabled={!editavel}>
+                <Plus className="mr-1 h-4 w-4" /> Adicionar peça
+              </Button>
+            </div>
           </CardHeader>
 
           <CardContent className="space-y-3">
+            {orcamentoAusente && (
+              <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                Não achei esse orçamento nesta empresa. A calculadora abriu vazia.
+              </div>
+            )}
+
+            {salvo && !editavel && (
+              <div className="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+                O {salvo.numero} está {(STATUS_LABEL[salvo.status] ?? salvo.status).toLowerCase()} e não muda mais.
+                Dá pra conferir as contas; para outro preço, comece um orçamento novo.
+              </div>
+            )}
+
             {semCatalogo && (
               <div className="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
                 Você ainda não tem materiais cadastrados. Pode digitar o preço por m² na mão
@@ -426,7 +560,7 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
                   value={extras}
                   onChange={(e) => {
                     setExtras(Number(e.target.value) || 0);
-                    setConferido(null);
+                    mexeu();
                   }}
                   placeholder="0,00"
                 />
@@ -444,7 +578,7 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
                   value={desconto}
                   onChange={(e) => {
                     setDesconto(Number(e.target.value) || 0);
-                    setConferido(null);
+                    mexeu();
                   }}
                   placeholder="0,00"
                 />
@@ -490,29 +624,53 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
                 )}
               </div>
 
-              <Button
-                type="button"
-                onClick={conferirNoServidor}
-                disabled={!temItemValido || conferindo}
-              >
-                {conferindo ? (
-                  <>Conferindo…</>
-                ) : (
-                  <>
-                    <ServerCog className="mr-2 h-4 w-4" />
-                    Conferir no servidor
-                  </>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={conferirNoServidor}
+                  disabled={!temItemValido || conferindo}
+                >
+                  {conferindo ? (
+                    <>Conferindo…</>
+                  ) : (
+                    <>
+                      <ServerCog className="mr-2 h-4 w-4" />
+                      Conferir no servidor
+                    </>
+                  )}
+                </Button>
+                {podeCriar && (
+                  <Button type="button" onClick={salvarOrcamento} disabled={!podeSalvar || salvando}>
+                    <Save className="mr-2 h-4 w-4" />
+                    {salvando ? 'Salvando…' : salvo ? 'Salvar alterações' : 'Salvar orçamento'}
+                  </Button>
                 )}
-              </Button>
+              </div>
             </div>
 
             <p className="text-xs text-muted-foreground">
               O cálculo na tela é só uma prévia. Ao conferir no servidor, o valor oficial é
-              recalculado com as regras da sua loja.{' '}
-              {podeCriar
-                ? 'Em breve dá pra salvar o orçamento e mandar o PDF no WhatsApp do cliente.'
-                : 'Salvar e enviar orçamento chega em breve.'}
+              recalculado com as regras da sua loja.
+              {podeCriar && editavel && !conferido && ' Salvar só libera depois de conferir: orçamento salvo com número errado vira retrabalho no balcão.'}
+              {salvo && !alterado && ` Salvo como ${salvo.numero} — reabra quando quiser pela lista de orçamentos salvos.`}
+              {salvo && alterado && editavel && ` Há mudanças que ainda não estão no ${salvo.numero}.`}
             </p>
+          </CardContent>
+        </Card>
+
+        {/* Orçamentos salvos — reabrir na calculadora (deferido: lista não entra no 1º paint) */}
+        <Card data-contract="orcamentos-salvos">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm font-medium">
+              <FolderOpen className="h-4 w-4 text-primary" />
+              Orçamentos salvos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Deferred data="recentes" fallback={<p className="text-sm text-muted-foreground">Carregando orçamentos…</p>}>
+              <ListaOrcamentos itens={recentes ?? []} abertoId={salvo?.id ?? null} />
+            </Deferred>
           </CardContent>
         </Card>
 
@@ -545,6 +703,38 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
         </Card>
       </div>
     </>
+  );
+}
+
+function ListaOrcamentos({ itens, abertoId }: { itens: OrcamentoResumo[]; abertoId: number | null }) {
+  if (itens.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        Nenhum orçamento salvo ainda. Monte as peças acima, confira no servidor e salve.
+      </p>
+    );
+  }
+  return (
+    <ul className="divide-y divide-border">
+      {itens.map((o) => (
+        <li key={o.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2 text-sm">
+          <span className="font-mono text-foreground">{o.numero}</span>
+          <Badge variant="outline">{STATUS_LABEL[o.status] ?? o.status}</Badge>
+          <span className="text-muted-foreground">
+            {o.data_emissao ? o.data_emissao.split('-').reverse().join('/') : '—'} · {o.itens}{' '}
+            {o.itens === 1 ? 'peça' : 'peças'}
+          </span>
+          <span className="ml-auto tabular-nums font-medium text-foreground">{BRL.format(o.total)}</span>
+          {o.id === abertoId ? (
+            <span className="text-xs text-muted-foreground">aberto</span>
+          ) : (
+            <Button type="button" variant="ghost" size="sm" asChild>
+              <Link href={`/comunicacao-visual?orcamento=${o.id}`}>Abrir</Link>
+            </Button>
+          )}
+        </li>
+      ))}
+    </ul>
   );
 }
 
