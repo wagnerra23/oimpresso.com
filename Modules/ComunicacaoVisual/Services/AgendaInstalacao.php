@@ -9,6 +9,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Modules\ComunicacaoVisual\Entities\Instalacao;
+use Modules\ComunicacaoVisual\Events\InstalacaoAgendada;
 
 /**
  * Agenda da equipe de instalação (US-COMVIS-007 · UC-FLX-21).
@@ -19,7 +20,10 @@ use Modules\ComunicacaoVisual\Entities\Instalacao;
  * veículo ou alguém da mesma equipe. Sobreposição é `início < fim_existente E fim > início_existente`:
  * horários encostados (um termina às 11:00, o outro começa às 11:00) passam.
  *
- * Fora do escopo: aviso ao cliente, checklist de EPI/ferramentas, reagendamento (nenhum código grava
+ * Depois de gravar, dispara `InstalacaoAgendada`; o aviso ao cliente é do módulo Whatsapp
+ * (`NotifyInstalacaoCvCustomer`, com opt-in LGPD).
+ *
+ * Fora do escopo: checklist de EPI/ferramentas, reagendamento (nenhum código grava
  * `aguardando_reagendamento`) e instalações antigas sem `data_fim` (não ocupam a agenda).
  *
  * Tier 0 (ADR 0093): todo acesso filtra `business_id` explícito — o escopo de sessão do model não
@@ -62,7 +66,7 @@ final class AgendaInstalacao
         }
         $veiculo = $veiculo !== null && trim($veiculo) !== '' ? trim($veiculo) : null;
 
-        return DB::transaction(function () use ($businessId, $os, $inicio, $fim, $equipe, $veiculo, $observacoes) {
+        $instalacao = DB::transaction(function () use ($businessId, $os, $inicio, $fim, $equipe, $veiculo, $observacoes) {
             $sobrepostas = DB::table('cv_instalacoes')
                 ->where('business_id', $businessId)
                 ->whereNull('deleted_at')
@@ -98,6 +102,11 @@ final class AgendaInstalacao
                 'observacoes' => $observacoes,
             ]);
         });
+
+        // Depois do commit: ouvinte de fora (aviso ao cliente) nunca vê instalação que não foi gravada.
+        InstalacaoAgendada::dispatch($businessId, (int) $instalacao->id);
+
+        return $instalacao;
     }
 
     /** Instalações da empresa que tocam a janela, sem as canceladas, em ordem de início. */

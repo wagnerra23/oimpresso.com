@@ -575,6 +575,10 @@ jobs:
         # UC-CVAG-01..03): mesmo arranjo do irmão abaixo (tenant 98×99, pula em sqlite). A primeira execução
         # real é esta lane (Pest não roda local — proibicoes.md); se avermelhar, sai e vira dívida declarada.
         #
+        # ENTRA 2026-10-21 — ComunicacaoVisual/InstalacaoAvisoClienteContratoTest (UC-CVINST-08..10): agendar
+        # avisa o cliente por WhatsApp (evento + listener reais, só o job falso), opt-in LGPD e Tier 0 98×99.
+        # Primeira execução real é esta lane (Pest não roda local); se avermelhar, sai e vira dívida declarada.
+        #
         # ENTRA 2026-10-21 — Repair/ClienteAcompanhaStatusContratoTest (US-CONSULTA-004 ·
         # UC-COS-12/13/15/16): mudar o status avisa o cliente certo e o portal mostra o status;
         # cliente que recusou WhatsApp (LGPD) ou de outra empresa (98 × 99) não recebe aviso.
@@ -601,6 +605,7 @@ jobs:
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCustoMaquinaPrevistoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAgendaContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/AgendaTelaContratoTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAvisoClienteContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoViraOsContratoTest.php \
             Modules/Repair/Tests/Feature/DeviceModelsInertiaSmokeTest.php \
             Modules/Repair/Tests/Feature/JobSheetShowContratoTest.php \
