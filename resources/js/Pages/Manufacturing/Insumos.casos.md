@@ -5,9 +5,13 @@ tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §4.4 + §18.3 — os UC abaixo DERIVAM dele
 owner: wagner
-last_run: "2026-10-19"
+last_run: "2026-10-21"
 ---
 
+> ℹ️ **`last_run` 2026-10-19 → 2026-10-21 (G-6): a gaveta ganhou a seção "Método de custo"** (UC-INSMET-06..09),
+> que grava a escolha `medio` | `ultimo` pelo `PUT /compras/insumos/{variation}/metodo-custo`. Simulação, receitas
+> afetadas e números não mudaram. Casos UC-INSMET-01..09 rodados no CT 100 em 2026-10-21 (17 passed).
+>
 > ℹ️ **`last_run` 2026-10-06 → 2026-10-19 (G-6): forma da gaveta, não regra de negócio.** A gaveta passou a
 > usar a moldura do protótipo (`_components/Gaveta.tsx`): seções em cartão, rodapé com "Fechar", margem no
 > `StatusBadge`. Simulação, receitas afetadas e números são os mesmos. Comportamento: o `Esc` deixou de disparar
