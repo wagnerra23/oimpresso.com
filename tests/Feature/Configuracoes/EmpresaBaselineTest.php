@@ -116,13 +116,14 @@ test('baseline: salvar é substituição total — checkbox, common_settings e e
 });
 
 /**
- * A Blade edita 8 chaves de `common_settings`; outras features gravam as delas no mesmo JSON (régua de
- * cobrança, pesquisa de entrega, ISS retido, reserva de insumo, requisição por estoque mínimo). O salvar
- * da Blade só pode substituir as 8 que ela desenha — trocar o array inteiro apagava as outras.
+ * A Blade edita as chaves de `common_settings` listadas em CHAVES_COMMON_DA_BLADE; outras features gravam as
+ * delas no mesmo JSON (pesquisa de entrega, ISS retido, reserva de insumo, requisição por estoque mínimo). O
+ * salvar da Blade só pode substituir as que ela desenha — trocar o array inteiro apagava as outras.
+ * (Em 2026-10-21 eram 8; a régua de cobrança entrou na lista quando ganhou a aba Financeiro, UC-EMP-15.)
  */
 test('salvar pela Blade não apaga as chaves de common_settings que outras features gravam', function () {
     $deOutrasFeatures = [
-        'financeiro_regua_cobranca' => ['ativo' => true],
+        // `financeiro_regua_cobranca` saiu daqui: a aba Financeiro da Blade desenha a chave e a manda sempre (UC-EMP-15).
         'sells_pesquisa_entrega' => ['ativo' => true],
         'financeiro_iss_retido_ajuste' => ['ativo' => true],
         'producao_reserva_insumo' => ['ativo' => true],
