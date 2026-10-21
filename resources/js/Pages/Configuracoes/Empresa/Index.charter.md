@@ -8,6 +8,7 @@ status: draft
 last_validated: "2026-10-13"
 parent_module: Configuracoes
 related_adrs: [93, 104, 358]
+related_us: [US-FIN-071]
 tier: A
 charter_version: 1
 related_runbook: memory/requisitos/Configuracoes/RUNBOOK-empresa.md
