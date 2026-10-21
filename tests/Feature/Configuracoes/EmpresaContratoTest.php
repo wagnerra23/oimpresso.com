@@ -500,7 +500,7 @@ function empCorpoBlade($b, array $campos = []): array
     ], $campos);
 }
 
-test('UC-EMP-15 Vendas: ligar a pesquisa depois da entrega e escolher a nota baixa grava o que a rotina lê; desligar mantém a nota', function () {
+test('UC-EMP-16 Vendas: ligar a pesquisa depois da entrega e escolher a nota baixa grava o que a rotina lê; desligar mantém a nota', function () {
     DB::table('business')->where('id', $this->business->id)->update([
         'common_settings' => json_encode(['is_enabled_export' => '1']), 'custom_labels' => json_encode(['payments' => ['custom_pay_1' => 'Pix']]),
     ]);
