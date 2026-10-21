@@ -440,9 +440,13 @@ class NfeService
      * REGRA MESTRE VALOR — o total da nota NÃO muda: `vNF` = `valorNota` (o
      * `final_total` da venda, como na fase 2A). O que muda é a decomposição:
      *   vProd_i = round(qCom × vUnCom, 2)
-     *   Δ = valorNota − Σ vProd_i
+     *   vFrete = `frete` da venda, inteiro ([W] 2026-10-21 · R-NFE-025)
+     *   Δ = valorNota − Σ vProd_i − vFrete
      *   Δ < 0 → desconto, rateado (vDesc por item)
-     *   Δ > 0 → primeiro frete (até `frete`), o resto em vOutro, rateados
+     *   Δ > 0 → acréscimo em vOutro, rateado
+     * Antes o frete só entrava até o acréscimo e o desconto o consumia: frete 20,00 com desconto
+     * 7,00 saía como vFrete 13,00 e vDesc 0. Se o desconto passaria do vProd (o `final_total`
+     * não contém o frete declarado), vale a regra antiga, com log.
      *   base_i = vProd_i − vDesc_i + vFrete_i + vOutro_i   (Σ base_i = vNF exato)
      * Rateio em centavos pelo método do maior resto: cada item recebe no máximo
      * 1 centavo acima da parte proporcional, e o desconto nunca passa o vProd do item.
@@ -487,13 +491,20 @@ class NfeService
 
         $totalCent = (int) round($valorNota * 100);
         $somaCent  = array_sum(array_column($itens, 'vprod_cent'));
-        $delta     = $totalCent - $somaCent;
         $pesos     = array_column($itens, 'vprod_cent');
+        $freteCent = (int) round(max($frete, 0) * 100);
+        $delta     = $totalCent - $somaCent - $freteCent;
+        if (-$delta > $somaCent) {
+            // O total não comporta o frete declarado (o desconto passaria do vProd): regra antiga.
+            Log::warning('nfe_frete_fora_do_total', ['business_id' => $businessId, 'v_nf' => $totalCent / 100, 'frete' => $freteCent / 100]);
+            $delta     = $totalCent - $somaCent;
+            $freteCent = $delta > 0 ? min($freteCent, $delta) : 0;
+            $delta    -= $freteCent;
+        }
 
         $descontos = $delta < 0 ? $this->ratearCentavos(-$delta, $pesos) : array_fill(0, count($itens), 0);
-        $freteCent = $delta > 0 ? min((int) round(max($frete, 0) * 100), $delta) : 0;
         $fretes    = $this->ratearCentavos($freteCent, $pesos);
-        $outros    = $this->ratearCentavos(max($delta, 0) - $freteCent, $pesos);
+        $outros    = $this->ratearCentavos(max($delta, 0), $pesos);
 
         // 2. motor por item
         $dets = [];
