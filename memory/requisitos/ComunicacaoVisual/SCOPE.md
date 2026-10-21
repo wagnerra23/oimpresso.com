@@ -14,6 +14,7 @@ contains:
   - "Entities/OrdemProducao (cv_ordens_producao + FSM canon ADR 0143)"
   - "Entities/Instalacao (cv_instalacoes)"
   - "InstalacaoController (agenda da instalação por OS — /comunicacao-visual/api/instalacoes, US-COMVIS-007 · UC-FLX-21)"
+  - "AgendaController (tela da agenda de instalação em semana × equipe — /comunicacao-visual/agenda, US-COMVIS-007 · UC-FLX-21)"
   - "Services/AgendaInstalacao (agenda equipe e veículo na OS; recusa sem janela — US-COMVIS-007 · UC-FLX-21)"
   - "Entities/OsItem (comvis_os_itens — itens da OS copiados do orçamento, UC-FLX-01)"
   - "Services/OrcamentoViraOs (orçamento aprovado vira OS com itens, medidas e arquivos — US-COMVIS-020 · UC-FLX-01)"
