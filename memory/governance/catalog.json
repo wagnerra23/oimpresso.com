@@ -4258,7 +4258,7 @@
       "type": "component",
       "module": "Producao",
       "name": "AprovacaoArteController + AprovacaoArteService",
-      "desc": "cliente aprova a arte por link (US-COMVIS-NEW-004 · UC-FLX-02): o operador gera o link da prova da OS por item (token, só o sha256 em pcp_aprovacoes_arte, 7 dias, uso único); a página pública /arte/{token} (Blade, sem login, throttle) aprova — conclui a etapa pelo motor — ou recusa com comentário, reabrindo a arte"
+      "desc": "cliente aprova a arte por link (US-COMVIS-NEW-004 · UC-FLX-02): o operador gera o link da prova da OS por item (token, só o sha256 em pcp_aprovacoes_arte, 7 dias, uso único); a página pública /arte/{token} (Blade, sem login, throttle) aprova — conclui a etapa pelo motor — ou recusa com comentário, reabrindo a arte; trava da arte aprovada (UC-PCV-11): trocar o arquivo reabre a aprovação com link novo e a arte vigente segue a última aprovada (ordens/{id}/arte/trocar, ordens/{id}/arte)"
     },
     {
       "id": "component:Producao/AproveitamentoMidiaController + AproveitamentoDeMidia",
