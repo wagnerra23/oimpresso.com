@@ -6,11 +6,13 @@ namespace Modules\Financeiro\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Util\OtelHelper;
+use DomainException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as IlluminateResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Financeiro\Exports\DreExport;
+use Modules\Financeiro\Services\CusteioRkwService;
 use Modules\Financeiro\Services\DreService;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -56,8 +58,10 @@ class DreController extends Controller
         [$periodoTipo, $anchorMes] = $this->parseQuery($request);
         $aba = $this->resolveAba($request);
         $anchorData = $this->resolveAnchorData($request);
+        $user = $request->user();
+        $mesCusteio = (string) $request->query('mes', '');
 
-        return OtelHelper::spanBiz('financeiro.dre.index', function () use ($businessId, $periodoTipo, $anchorMes, $aba, $anchorData) {
+        return OtelHelper::spanBiz('financeiro.dre.index', function () use ($businessId, $periodoTipo, $anchorMes, $aba, $anchorData, $user, $mesCusteio) {
             // Tab Demonstrativo: comportamento atual preservado 100%.
             // Tabs Balanço + Balancete: payloads adicionais lazy carregados
             // só quando aba específica está ativa (perf — evita query custosa).
@@ -81,6 +85,11 @@ class DreController extends Controller
                 ? $this->service->montarBalancete($businessId, $periodoTipo, $anchorMes)
                 : null;
 
+            // Aba Custeio (US-FIN-070 · UC-FLX-20): só leitura, o mesmo CusteioRkwService do
+            // GET /financeiro/custeio-rkw. Os postos (custo-hora) só saem com producao.desempenho.ver,
+            // a mesma regra do endpoint; sem ela, a aba mostra o fechamento sem a tabela.
+            $custeio = $aba === 'custeio' ? $this->montarCusteio($businessId, $mesCusteio, $user) : null;
+
             return Inertia::render('Financeiro/Dre/Index', [
                 'meta'                   => fn () => $shape()['meta'],
                 'linhas'                 => fn () => $shape()['linhas'],
@@ -89,6 +98,7 @@ class DreController extends Controller
                 'aba'       => $aba,
                 'balanco'   => $balanco,
                 'balancete' => $balancete,
+                'custeio'   => $custeio,
             ]);
         }, ['op' => 'index', 'periodo_tipo' => $periodoTipo, 'aba' => $aba]);
     }
@@ -234,14 +244,40 @@ class DreController extends Controller
     }
 
     /**
-     * Fase 4 (2026-05-21): tab=demonstrativo (default) | balanco | balancete.
+     * Custeio RKW do mês (aba `custeio`). Mês inválido ou vazio cai no mês anterior, o mesmo
+     * default do endpoint JSON. Postos só com `producao.desempenho.ver` (custo-hora é dado de
+     * desempenho, D-PERM do PCP).
+     *
+     * @return array<string, mixed>
+     */
+    private function montarCusteio(int $businessId, string $mes, $user): array
+    {
+        if (! preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $mes)) {
+            $mes = now()->subMonthNoOverflow()->format('Y-m');
+        }
+        try {
+            $dados = app(CusteioRkwService::class)->calcular($businessId, $mes);
+        } catch (DomainException $e) {
+            return ['mes' => $mes, 'erro' => $e->getMessage()];
+        }
+        $veCusto = $user !== null && $user->can('producao.desempenho.ver');
+        $dados['pode_ver_postos'] = $veCusto;
+        if (! $veCusto) {
+            $dados['postos'] = [];
+        }
+
+        return $dados;
+    }
+
+    /**
+     * Fase 4 (2026-05-21): tab=demonstrativo (default) | balanco | balancete | custeio (US-FIN-070).
      * Qualquer outro valor cai pro default — clamp defensivo anti-injection.
      */
     private function resolveAba(Request $request): string
     {
         $aba = (string) $request->query('aba', 'demonstrativo');
 
-        return in_array($aba, ['demonstrativo', 'balanco', 'balancete'], true)
+        return in_array($aba, ['demonstrativo', 'balanco', 'balancete', 'custeio'], true)
             ? $aba
             : 'demonstrativo';
     }

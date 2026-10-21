@@ -167,10 +167,10 @@ it('UC-FNFSE-10 · a NF-e da venda separada leva só a parte mercadoria, com o t
         ->and($d['dets'][0]['qcom'])->toBe(3.0)
         ->and($d['total']['v_prod'])->toBe(99.99)
         ->and($d['metadata']['separacao']['servico_total'])->toBe(139.50);
-    // Residual declarado (UC-FNFSE-10): o montarItensNfe compensa desconto com frete — 112,99 − 99,99 = 13,00
-    // sai como vFrete 13,00 e vDesc 0, não vFrete 20,00 e vDesc 7,00. Fixado aqui para a mudança ser vista.
-    expect($d['total']['v_frete'])->toBe(13.0)
-        ->and($d['total']['v_desc'])->toBe(0.0);
+    // R-NFE-025 ([W] 2026-10-21, #9738): o frete da parte sai inteiro em vFrete e o desconto dela em vDesc.
+    // Antes saía vFrete 13,00 e vDesc 0 (o desconto consumia o frete).
+    expect($d['total']['v_frete'])->toBe(20.0)
+        ->and($d['total']['v_desc'])->toBe(7.0);
     // os componentes da NF-e fecham o vNF (como a SEFAZ valida)
     expect(round($d['total']['v_prod'] - $d['total']['v_desc'] + $d['total']['v_frete'] + $d['total']['v_outro'], 2))->toBe(112.99);
     // segundo caminho: NF-e + NFS-e = final_total da venda, centavo a centavo
