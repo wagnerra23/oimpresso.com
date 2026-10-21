@@ -5,8 +5,8 @@ irmaos: Create.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o produto que NASCE do cadastro não muda quando a tela vira aba.
 owner: wagner
-last_run: "2026-10-20"
-last_run_ci: "PR #9670 (NCM no Novo produto, UC-PCAD-13/14), 2026-10-20: lane PHP / Pest (Estoque · MySQL), job 118746611325: 497 passed (2401 assertions), 0 skipped, com os 7 casos do UC-PCAD-13; step Comportamento React do job Frontend / Vite build: 80 testes passaram em 12 arquivos, incluindo produto-formulario.test.tsx. Antes: PR #9482, job 116997588268, 485 passed (2356 assertions)."
+last_run: "2026-10-21"
+last_run_ci: "PR #9736 (peso e dimensões, UC-PCAD-16), 2026-10-21: lane PHP / Pest (Estoque · MySQL), job 119380189319: 529 passed (2487 assertions), com os casos UC-PCAD-15 e UC-PCAD-16 verdes; job Frontend / Vite build 119380541571: 96 testes passaram em 12 arquivos, 28 deles em produto-formulario.test.tsx. Antes: PR #9670 (NCM no Novo produto, UC-PCAD-13/14), 2026-10-20: lane PHP / Pest (Estoque · MySQL), job 118746611325: 497 passed (2401 assertions), 0 skipped, com os 7 casos do UC-PCAD-13; step Comportamento React do job Frontend / Vite build: 80 testes passaram em 12 arquivos, incluindo produto-formulario.test.tsx. Antes: PR #9482, job 116997588268, 485 passed (2356 assertions)."
 ---
 
 # Casos de Uso & Aceite — Cadastro de produto
