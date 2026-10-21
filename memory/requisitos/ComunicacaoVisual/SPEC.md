@@ -1228,9 +1228,9 @@ Como quem orça comunicação visual, quero que cada item guarde o custo do mate
 
 > owner: wagner · priority: p0 · estimate: 3h · type: story
 
-**Implementado em:** `Modules/ComunicacaoVisual/Services/OrcamentoViraOs.php` · `Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php` · `Modules/ComunicacaoVisual/Entities/OsItem.php` · `Modules/ComunicacaoVisual/Database/Migrations/2026_10_20_200000_create_comvis_os_itens_table.php`
+**Implementado em:** `Modules/ComunicacaoVisual/Services/OrcamentoViraOs.php` · `Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php` · `Modules/ComunicacaoVisual/Http/Controllers/OrcamentoArquivoController.php` · `Modules/ComunicacaoVisual/Entities/OsItem.php` · `Modules/ComunicacaoVisual/Database/Migrations/2026_10_20_200000_create_comvis_os_itens_table.php`
 
-**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoViraOsContratoTest.php` (lane `verticais-pest.yml`).
+**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoViraOsContratoTest.php` · `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoArquivosContratoTest.php` (lane `verticais-pest.yml`).
 
 > Contrato: `UC-CVOS-01..07` do `resources/js/Pages/ComunicacaoVisual/Index.casos.md`. Parte da US-COMVIS-003 (PCP gráfico): esta US entrega a entrada da OS; o Kanban de etapas segue na 003.
 
@@ -1251,7 +1251,7 @@ Como quem vende comunicação visual, quero que aprovar o orçamento crie a OS c
 - [x] Os arquivos do orçamento passam para a OS, só os da empresa
 - [x] Outra empresa não aprova nem gera OS; recusado não vira OS; sem permissão é recusado
 - [x] Botão "Aprovar e criar OS" no rodapé da calculadora, com confirmação; o reaberto mostra o número da OS (UC-CVOS-08)
-- [ ] Upload de arquivo no orçamento (o orçamento não tem tela de anexos; a cópia cobre o que for anexado pelo `media` do core)
+- [x] Upload de arquivo no orçamento: "Arquivos do orçamento" na calculadora, `POST`/`DELETE …/api/orcamentos/{id}/arquivos`, só antes da OS (UC-CVARQ-01..06)
 
 ---
 

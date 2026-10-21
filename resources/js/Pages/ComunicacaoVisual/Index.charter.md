@@ -26,6 +26,7 @@ Calculadora de orçamento por m² do vertical ComVis (US-COMVIS-001 · P0). É o
 3. **Prévia × oficial** — o total da tela é prévia; o botão "Conferir no servidor" chama `POST /comunicacao-visual/api/calcular` e o valor do servidor é o oficial (UC-CV-01).
 3b. **Salvar e reabrir** (US-COMVIS-021) — "Salvar orçamento" só depois de conferir; a URL ganha `?orcamento={id}` e o cartão "Orçamentos salvos" reabre qualquer um. Reaberto e alterado, "Salvar alterações" regrava o mesmo número; aprovado/recusado/expirado não muda mais (UC-CVSAL-01..06).
 3c. **Aprovar e criar OS** (US-COMVIS-020 · UC-FLX-01) — orçamento gravado e igual à tela troca "Salvar" por "Aprovar e criar OS"; o segundo clique confirma. A OS sai com o total gravado; o reaberto mostra o número dela (UC-CVOS-08).
+3d. **Arquivos do orçamento** (US-COMVIS-020) — com o orçamento salvo, "Anexar arquivo" grava a arte/foto em `media`; ao aprovar vai para a OS. Depois da OS não se anexa nem remove (UC-CVARQ-01..06).
 4. **"Em breve nesta tela"** — 3 cartões honestos (Ordens de serviço · Materiais · Apontamentos), sem ação.
 
 Contrato comportamental: [`Index.casos.md`](Index.casos.md).

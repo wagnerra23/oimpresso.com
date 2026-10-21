@@ -79,6 +79,12 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CVOS-06 | Orçamento recusado não vira OS | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 | UC-CVOS-07 | Só quem pode criar orçamento aprova | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 | UC-CVOS-08 | O orçamento aprovado reabre com o número da OS | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVARQ-01 | Anexar grava o arquivo no orçamento e aprovar o leva para a OS | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVARQ-02 | Formato que a gráfica não usa é recusado | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVARQ-03 | Depois de virar OS o orçamento não recebe nem perde arquivo | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVARQ-04 | Outra empresa não anexa nem remove | must `[T0]` | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVARQ-05 | Sem permissão de criar não anexa nem remove | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVARQ-06 | Remover tira o arquivo e ele não vai para a OS | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVSAL-01 | Salvar grava os valores do servidor, não os da tela | must `[V0]` | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVSAL-02 | Reabrir devolve as peças e os ajustes, e aparece na lista | must | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVSAL-03 | Regravar o reaberto mantém o número e troca as peças | must `[V0]` | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
@@ -523,6 +529,56 @@ mesmo número, e a outra empresa não reabre o orçamento.
 
 Na tela: o rodapé troca "Salvar" por "Aprovar e criar OS" quando o orçamento está gravado igual à
 tela; a confirmação é um segundo clique na mesma linha. Mudança não salva não aprova.
+
+Status: 🧪
+
+## Arquivos do orçamento (US-COMVIS-020 · UC-FLX-01)
+
+> Âncora: SPEC US-COMVIS-020 — os arquivos anexados ao orçamento passam para a OS. Até 2026-10-21
+> nada gravava `media` no orçamento: a cópia existia sem nada para copiar. Agora
+> `POST …/api/orcamentos/{id}/arquivos` (multipart `arquivos[]`) e `DELETE …/arquivos/{media}`,
+> só antes da OS existir. Execução: CT 100 MySQL, branch `7fc1d0862`, disco falso — 6 passed;
+> mutação que tira a trava "já virou OS" derruba o UC-CVARQ-03.
+
+## UC-CVARQ-01 · Anexar grava o arquivo no orçamento e aprovar o leva para a OS · `must`
+
+**Dado** o orçamento enviado **Quando** são anexados `arte-fachada.pdf` e `foto-local.jpg` **Então**
+há dois registros `media` da empresa no orçamento, o reaberto os lista pelo nome, e ao aprovar a OS
+recebe os mesmos dois arquivos.
+
+Status: 🧪
+
+## UC-CVARQ-02 · Formato que a gráfica não usa é recusado · `must`
+
+**Dado** um `.exe` **Quando** ele é anexado **Então** a validação recusa (formatos aceitos: pdf, jpg,
+jpeg, png, svg, ai, eps, cdr, tif, tiff, psd) e nada é gravado.
+
+Status: 🧪
+
+## UC-CVARQ-03 · Depois de virar OS o orçamento não recebe nem perde arquivo · `must`
+
+**Dado** o orçamento aprovado, com OS **Quando** se tenta anexar ou remover **Então** as duas
+respostas são 422 e o arquivo do orçamento continua lá — o da OS é outra linha.
+
+Status: 🧪
+
+## UC-CVARQ-04 · Outra empresa não anexa nem remove · `must` `[T0]`
+
+**Dado** o orçamento da 98 com um arquivo **Quando** a 99 tenta anexar ou remover **Então** as duas
+dão 404 e o arquivo continua.
+
+Status: 🧪
+
+## UC-CVARQ-05 · Sem permissão de criar não anexa nem remove · `must`
+
+**Dado** um usuário só com `comvis.orcamento.view` **Quando** ele anexa ou remove **Então** 403, e nada muda.
+
+Status: 🧪
+
+## UC-CVARQ-06 · Remover tira o arquivo e ele não vai para a OS · `must`
+
+**Dado** dois arquivos anexados **Quando** um é removido e o orçamento é aprovado **Então** a lista
+fica só com o outro e a OS recebe um arquivo.
 
 Status: 🧪
 
