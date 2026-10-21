@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 843,
-    "edges": 1148,
+    "nodes": 844,
+    "edges": 1149,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 463,
+      "component": 464,
       "api": 86
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 90,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 463,
+      "hasComponent": 464,
       "dependsOn": 126,
       "delegatesTo": 117,
       "migratesTo": 1,
@@ -1991,6 +1991,13 @@
       "module": "Compras",
       "name": "RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
       "desc": "US-COM-027 · UC-FLX-19 estoque abaixo de alert_quantity vira requisição de compra do núcleo (transactions type=purchase_requisition) por local, teto(mínimo − saldo), sem duplicar item em requisição aberta; não move estoque nem cria pedido; desligado por padrão em business.common_settings"
+    },
+    {
+      "id": "component:ComunicacaoVisual/AgendaController",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "AgendaController",
+      "desc": "/comunicacao-visual/agenda, US-COMVIS-007 · UC-FLX-21)"
     },
     {
       "id": "component:ComunicacaoVisual/ApontamentoController",
@@ -8124,6 +8131,12 @@
       "to": "adr:0121",
       "type": "governedByAdr",
       "source": "related_adrs"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/AgendaController",
+      "type": "hasComponent",
+      "source": "contains"
     },
     {
       "from": "module:ComunicacaoVisual",

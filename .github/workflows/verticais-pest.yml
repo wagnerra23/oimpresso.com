@@ -571,6 +571,10 @@ jobs:
         # semana, desafio semanal recusado sem tirar XP e aceito pagando +40 uma vez, 10 medalhas
         # derivadas do histórico, decisão do desafio append-only.
         #
+        # ENTRA 2026-10-21 — ComunicacaoVisual/AgendaTelaContratoTest (tela /comunicacao-visual/agenda,
+        # UC-CVAG-01..03): mesmo arranjo do irmão abaixo (tenant 98×99, pula em sqlite). A primeira execução
+        # real é esta lane (Pest não roda local — proibicoes.md); se avermelhar, sai e vira dívida declarada.
+        #
         # ENTRA 2026-10-21 — ComunicacaoVisual/InstalacaoAvisoClienteContratoTest (UC-CVINST-08..10): agendar
         # avisa o cliente por WhatsApp (evento + listener reais, só o job falso), opt-in LGPD e Tier 0 98×99.
         # Primeira execução real é esta lane (Pest não roda local); se avermelhar, sai e vira dívida declarada.
@@ -600,6 +604,7 @@ jobs:
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCustoPrevistoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCustoMaquinaPrevistoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAgendaContratoTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/AgendaTelaContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAvisoClienteContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoViraOsContratoTest.php \
             Modules/Repair/Tests/Feature/DeviceModelsInertiaSmokeTest.php \
