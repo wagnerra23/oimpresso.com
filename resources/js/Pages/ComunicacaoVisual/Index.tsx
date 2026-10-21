@@ -8,6 +8,8 @@
  *    POST /comunicacao-visual/api/calcular (server-side é a fonte de verdade,
  *    respeita business_id Tier 0 — ADR 0093).
  *  - Seletor de material puxa o catálogo do business (preço/m² preenche sozinho).
+ *  - Salvar e reabrir (US-COMVIS-021): "Salvar orçamento" depois de conferir; a URL ganha
+ *    ?orcamento={id} e "Orçamentos salvos" (prop deferida) reabre qualquer um.
  *  - Áreas ainda não migradas (OS/PCP, Materiais, Apontamentos) aparecem como
  *    "em breve" honesto, em PT-BR caloroso (sem jargão técnico/api_hint).
  *
@@ -23,7 +25,7 @@
  * @see memory/requisitos/ComunicacaoVisual/SPEC.md US-COMVIS-001
  *
  * TODO (Sprint 2, quando cliente piloto CV ativar — ADR 0105):
- *  - Salvar orçamento (POST /comunicacao-visual/api/orcamentos) + enviar PDF no WhatsApp.
+ *  - Enviar o PDF do orçamento salvo no WhatsApp.
  *  - Telas próprias: PCP Kanban (US-COMVIS-003), CRUD Materiais (US-COMVIS-002),
  *    Apontamento de máquina (US-COMVIS-004). Por ora as APIs já existem.
  *  - Acabamentos/instalação/entrega como linhas extras do total (hoje só campo manual).

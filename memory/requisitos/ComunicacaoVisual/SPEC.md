@@ -1250,8 +1250,34 @@ Como quem vende comunicação visual, quero que aprovar o orçamento crie a OS c
 - [x] Aprovar de novo não duplica OS, itens nem arquivos
 - [x] Os arquivos do orçamento passam para a OS, só os da empresa
 - [x] Outra empresa não aprova nem gera OS; recusado não vira OS; sem permissão é recusado
-- [ ] Botão "Aprovar" na tela (hoje nenhuma tela salva nem lista orçamentos — ver backlog do `Index.casos.md`)
+- [ ] Botão "Aprovar" na tela (salvar e reabrir entraram na US-COMVIS-021; falta o botão)
 - [ ] Upload de arquivo no orçamento (o orçamento não tem tela de anexos; a cópia cobre o que for anexado pelo `media` do core)
+
+---
+
+### US-COMVIS-021 · Salvar e reabrir o orçamento na calculadora de m² — **P0**
+
+> owner: wagner · priority: p0 · estimate: 3h · type: story
+
+**Implementado em:** `Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php` · `Modules/ComunicacaoVisual/Services/OrcamentoGravador.php` · `Modules/ComunicacaoVisual/Routes/web.php`
+
+**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoSalvarReabrirContratoTest.php` (lane `verticais-pest.yml`).
+
+> Contrato: `UC-CVSAL-01..06` do `resources/js/Pages/ComunicacaoVisual/Index.casos.md`. Pré-requisito da US-COMVIS-020 na tela: sem orçamento salvo não há o que aprovar.
+
+Como quem orça no balcão, quero salvar o orçamento que montei e reabri-lo depois, para não refazer a conta quando o cliente volta.
+
+- "Salvar orçamento" no rodapé do total, liberado depois de "Conferir no servidor" (protótipo `comunicacao-visual-page.jsx`). O servidor recalcula tudo de novo.
+- A tela passa a ter `?orcamento={id}`; "Orçamentos salvos" lista os 20 mais recentes da empresa (prop deferida) e abre qualquer um.
+- Reaberto e alterado, "Salvar alterações" regrava o mesmo número (`PUT`). Aprovado (com OS), recusado ou expirado não regrava (422).
+- Instalação e entrega gravadas pelo app das lojas voltam no reaberto e são regravadas iguais (a tela não tem campo para elas).
+- `store` e `update` exigem `comvis.orcamento.create`; `index` e `show` aceitam `comvis.orcamento.view`. Até aqui `store` e `show` não checavam permissão nenhuma. Outra empresa: 404.
+
+**Aceite:**
+- [x] Salvar grava os valores do servidor
+- [x] Reabrir devolve as peças e os ajustes; a lista traz só a empresa
+- [x] Regravar mantém o número; aprovado/recusado não regrava
+- [x] Sem permissão de criar não salva nem regrava
 
 ---
 
