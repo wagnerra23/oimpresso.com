@@ -1979,6 +1979,13 @@
       "desc": "entidade da tabela-ponte compras_insumo_metodo_custo (business_id, variation_id) com o método próprio do insumo (medio | ultimo), lida quando a regra é por_insumo; variations do core não ganha coluna"
     },
     {
+      "id": "component:Compras/InsumoMetodoCustoController",
+      "type": "component",
+      "module": "Compras",
+      "name": "InsumoMetodoCustoController",
+      "desc": "PUT /compras/insumos/{variation}/metodo-custo grava o método do insumo (medio | ultimo) da gaveta de /manufacturing/insumos; empresa da sessão, variação da empresa ou 404, purchase.update (US-COM-024 · UC-FLX-38)"
+    },
+    {
       "id": "component:Compras/RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
       "type": "component",
       "module": "Compras",
@@ -8052,6 +8059,12 @@
     {
       "from": "module:Compras",
       "to": "component:Compras/InsumoMetodoCusto",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/InsumoMetodoCustoController",
       "type": "hasComponent",
       "source": "contains"
     },

@@ -520,11 +520,11 @@ Como usuário de teclado/leitor de tela, quero o drawer acessível (WCAG 2.1 AA)
 
 Como quem orça e produz, quero saber quanto um insumo custava num dia qualquer, para que o orçamento e a OS guardem o custo daquele dia e uma compra nova não reescreva o passado. É a base dos casos UC-FLX-33 a 37 da tela de fluxos.
 
-**Implementado em:** `Modules/Compras/Services/CustoDoInsumoService.php` · `Modules/Compras/Database/Migrations/2026_10_20_000001_create_compras_insumo_metodo_custo_table.php` · `Modules/Compras/Entities/InsumoMetodoCusto.php` · `Modules/Compras/Tests/Feature/CustoDoInsumoServiceTest.php`
+**Implementado em:** `Modules/Compras/Services/CustoDoInsumoService.php` · `Modules/Compras/Database/Migrations/2026_10_20_000001_create_compras_insumo_metodo_custo_table.php` · `Modules/Compras/Entities/InsumoMetodoCusto.php` · `Modules/Compras/Tests/Feature/CustoDoInsumoServiceTest.php` · `Modules/Compras/Http/Controllers/InsumoMetodoCustoController.php` · `Modules/Compras/Tests/Feature/InsumoMetodoCustoEndpointTest.php` · `resources/js/Pages/Manufacturing/Insumos.tsx`
 
 - Fonte: `purchase_lines` + `transactions.transaction_date`. O histórico já existia; `variations.dpp_inc_tax` guarda só o último preço.
 - Método: o da regra "Atualizar o custo dos insumos" da empresa (`RegrasCompra`, `metodo`), padrão `medio`.
-- Regra `por_insumo`: cada insumo diz o seu método na tabela-ponte `compras_insumo_metodo_custo` (`variations` é core, não ganha coluna). A tela para editar o método do insumo é follow-up.
+- Regra `por_insumo`: cada insumo diz o seu método na tabela-ponte `compras_insumo_metodo_custo` (`variations` é core, não ganha coluna). O método se escolhe na gaveta do insumo em `/manufacturing/insumos` (seção "Método de custo"), gravado por `PUT /compras/insumos/{variation}/metodo-custo` com `purchase.update`; variação de outra empresa responde 404.
 - Só leitura: o serviço não grava nada.
 
 **Acceptance:**
@@ -535,7 +535,7 @@ Como quem orça e produz, quero saber quanto um insumo custava num dia qualquer,
 - [x] Tier 0: só compras da empresa pedida (teste com a mesma variação em outra empresa)
 - [x] Método `por_insumo`: usa o método gravado no insumo (`medio` ou `ultimo`); insumo sem método → custo nulo com o motivo
 - [x] Tier 0: o método que outra empresa deu ao mesmo insumo não vale
-- [ ] Tela para definir o método do insumo (drawer Insumos)
+- [x] Tela para definir o método do insumo (drawer Insumos)
 - [ ] Consumidores: orçamento (UC-FLX-33) e OS (UC-FLX-37) passam a usar o serviço
 
 ### US-COM-025 · Rastreio do rolo: em que OS cada fração da mídia foi usada (UC-FLX-18) — **P2**
@@ -589,12 +589,14 @@ Como dono que configurou a regra "Atualizar o custo dos insumos" na aba Fluxos, 
 
 ### US-COM-027 · Estoque mínimo vira requisição de compra (UC-FLX-19) — **P2**
 
-> owner: — · priority: p2 · estimate: 3h · status: doing · type: story
+> owner: — · priority: p2 · estimate: 3h · status: done · type: story
 > blocked_by: —
 
 Como quem compra, quero que o item que caiu abaixo do mínimo no local apareça sozinho numa requisição de compra, com a quantidade que falta, para não depender de alguém lembrar de olhar o relatório de alerta.
 
-**Implementado em:** _pendente_ — parcial em 2026-10-20: o job diário (`RequisicaoEstoqueMinimoJob` + comando `compras:requisicao-estoque-minimo`, desligado por padrão em `business.common_settings`) gera a requisição do núcleo por local; falta o fornecedor da última compra na requisição e a tela para ligar a regra. A âncora vira path quando a US fechar (ADR 0273 + doneness-lint).
+**Implementado em:** `Modules/Compras/Services/RequisicaoEstoqueMinimoService.php` — job diário (`RequisicaoEstoqueMinimoJob` + `compras:requisicao-estoque-minimo`), ligado na tela Fluxos (`app/Http/Controllers/FluxosController.php` · `requisicaoEstoqueMinimo`, interface `app/Contracts/Compras/RequisicaoEstoqueMinimo.php`); fornecedor visível em `resources/js/Pages/PurchaseRequisition/Index.tsx`.
+
+**Testado em:** `Modules/Compras/Tests/Feature/RequisicaoEstoqueMinimoContratoTest.php` (@covers-us US-COM-027 · UC-REQMIN-01..08). A coluna Fornecedor (UC-REQC-06) e o interruptor em Fluxos (UC-FLXT-24) são provados nos testes de contrato das respectivas telas.
 
 **Origem:** UC-FLX-19 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:72`, "Abaixo do mínimo → Cria a requisição com o fornecedor da última compra", fonte Mubisys, planejado). O que já existia (medido 2026-10-20):
 
@@ -608,8 +610,8 @@ Como quem compra, quero que o item que caiu abaixo do mínimo no local apareça 
 - [x] Desligado por padrão (`business.common_settings['compras_requisicao_estoque_minimo']`). _(UC-REQMIN-04)_
 - [x] Não cria pedido de compra e não move estoque. _(UC-REQMIN-05)_
 - [x] Tier 0: job recebe `$businessId`; produto e local de outro business nunca entram. _(UC-REQMIN-06, 98 × 99)_
-- [ ] A requisição sai com o fornecedor da última compra do item (a requisição do núcleo não tem fornecedor hoje — decidir onde guardar).
-- [ ] Tela para ligar/desligar a regra, com permissão de Compras.
+- [x] A requisição sai com o fornecedor e o preço da última compra recebida do item: o fornecedor vai em `transactions.contact_id`, então há uma requisição automática por local **e fornecedor**; item nunca comprado fica numa sem fornecedor, com preço 0. A lista de requisições ganha a coluna Fornecedor. _(UC-REQMIN-07/08 · UC-REQC-06)_
+- [x] Tela para ligar/desligar a regra: card Compra da aba Fluxos da empresa (`/fluxos?aba=empresa`), com `fluxos.configurar` — a permissão das outras regras da empresa nessa tela, não uma de Compras. _(UC-FLXT-24)_
 
 ### 9.1 Seguradas (feature-wish ADR 0105 — NÃO no backlog ativo)
 
