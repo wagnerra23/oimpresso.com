@@ -11,6 +11,9 @@ const ds = path.join(repo, 'prototipo-ui', 'design-system');
 const host = path.join(repo, 'prototipo-ui', 'cowork', 'Wagner');
 const ler = (p) => fs.readFileSync(p, 'utf8');
 const mascaraDS = (s) => s.replace(/R\$ [1-9][\d.,]*/g, 'R$ —');
+// CPF e CNPJ formatados dos dados de demonstração viram máscara: o HTML mora em memory/, e o
+// gate de PII (.github/scripts/pii-scan.sh) não aceita documento literal fora de prototipo-ui/.
+const mascaraDoc = (s) => s.replace(/\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}/g, 'XX.XXX.XXX/XXXX-XX').replace(/\d{3}\.\d{3}\.\d{3}-\d{2}/g, 'XXX.XXX.XXX-XX');
 
 // 1. Tokens + tipografia do DS, com as fontes self-hosted embutidas como data URI
 let tokens = ler(path.join(ds, 'colors_and_type.css')).replace(
@@ -34,11 +37,11 @@ for (const a of require('./ajustes-artefato.cjs')) {
 const vendaJs = esbuild.transformSync(jsx, {
   loader: 'jsx', jsx: 'transform', target: 'es2019', minify: false, legalComments: 'none',
 }).code;
-const vendaJsMascarado = vendaJs.replace(/R\$ 0,01 perdido/g, 'centavo perdido');
+const vendaJsMascarado = mascaraDoc(vendaJs.replace(/R\$ 0,01 perdido/g, 'centavo perdido'));
 // O bundle do DS e a âncora trazem textos de demonstração com valores em reais (um exemplo de
 // KPI do DS e a frase didática do centavo perdido nas parcelas). Mascarados aqui porque o HTML
 // gerado mora em memory/, onde valor monetário é Tier 0 (scripts/governance/brl-scan-diff.mjs).
-const dsBundle = mascaraDS(ler(path.join(ds, '_ds_bundle.js')));
+const dsBundle = mascaraDoc(mascaraDS(ler(path.join(ds, '_ds_bundle.js'))));
 
 const head = ler(path.join(__dirname, 'createv3-head.html'));
 const app = ler(path.join(__dirname, 'createv3-app.js'));

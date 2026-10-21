@@ -25,7 +25,7 @@ Abra `prototipo/venda-v3-create.html` no navegador. Ele precisa de internet só 
 - A barra do topo troca entre **Nova venda** e **Editar venda**, e entre tema **claro** e **escuro**.
 - É a âncora `venda-v3.jsx` compilada, sem o shell do app. Os dados são de cena e nada é gravado, igual à âncora.
 - **Uma diferença da âncora:** no modal "Lançar item", o desconto tem dois campos ligados, em % e em R$. O total do item passa a usar a mesma conta da linha da grade. Pedido do Luiz em comentário no artefato, 20/10. O ajuste vive em [`prototipo/fonte/ajustes-artefato.cjs`](prototipo/fonte/ajustes-artefato.cjs) e é aplicado por cima da âncora no build; a âncora não foi editada.
-- **Máscara Tier 0 de dinheiro:** o bundle do design system e um texto didático da âncora trazem valores de demonstração em reais. O build troca esses valores por travessão, porque o HTML mora em `memory/`.
+- **Máscaras no build:** o bundle do design system e a âncora trazem valores em reais e CPF/CNPJ de demonstração. Como o HTML mora em `memory/`, o build troca os valores por travessão e os documentos por `XX.XXX.XXX/XXXX-XX` (gates de dinheiro e de PII). Por isso a busca de cliente por dígito do documento não acha esses clientes de exemplo no HTML; na âncora ela funciona.
 
 Para gerar de novo a partir da âncora, rode na raiz do repo (precisa do `node_modules` instalado, por causa do esbuild):
 
