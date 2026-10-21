@@ -5,11 +5,17 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do gestor + critério de aceite verificável (Dado/Quando/Então)
 por_que: o celular só oferece os motivos do posto; motivo de outro posto ou de outra empresa corrompe o registro de pausa e refugo. Custo-hora da pessoa é dado de desempenho.
 owner: wagner
-last_run: "2026-10-20"
+last_run: "2026-10-21"
 last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando a lane verticais-pest rodar o ProducaoRoteirosContratoTest."
 ---
 
 # Casos de Uso & Aceite — Produção · Postos e cadastros (`/producao/postos`)
+
+> ℹ️ **`last_run` 2026-10-20 → 2026-10-21 (G-6) — o `Index.tsx` voltou ao que era.** O 1º commit do #9716 pôs nesta tela o
+> bloco "Custo-hora pelo rateio das despesas fixas" com o botão Aplicar; o 3º commit tirou o bloco por decisão [W] (o sugerido
+> acumulava a parcela fixa a cada aplicação). O `Index.tsx` e o `PostosController.php` ficaram idênticos ao main
+> (`b66f3970e1`). Nenhum handler, prop, rota ou copy desta tela mudou; **nenhum UC foi reexecutado**: o bump registra
+> *trio reconciliado com a tela nesta data*.
 
 > **Âncora:** `prototipo-ui/cowork/Wagner/cowork-inbox/producao/Producao-celular.casos.md` (UC-PCV-33) e a emenda
 > `playbook/E03-cadastros-motivos.md`. Os UCs não derivam do `.tsx`.
