@@ -1,6 +1,7 @@
 <?php
 
 use Inertia\Inertia;
+use Modules\ComunicacaoVisual\Http\Controllers\AgendaController;
 use Modules\ComunicacaoVisual\Http\Controllers\ApontamentoController;
 use Modules\ComunicacaoVisual\Http\Controllers\InstalacaoController;
 use Modules\ComunicacaoVisual\Http\Controllers\InstallController;
@@ -58,6 +59,9 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
                     || auth()->user()->can('comvis.orcamento.create'),
             ]);
         })->name('comunicacao-visual.index');
+
+        // US-COMVIS-007 · UC-FLX-21: agenda de instalação em semana × equipe. Só lê; agendar é o POST da API.
+        Route::get('agenda', [AgendaController::class, 'index'])->name('comunicacao-visual.agenda');
     });
 
 // Rotas Install 1-click (ADR 0024 / BaseModuleInstallController).

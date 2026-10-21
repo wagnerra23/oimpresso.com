@@ -520,11 +520,11 @@ Como usuário de teclado/leitor de tela, quero o drawer acessível (WCAG 2.1 AA)
 
 Como quem orça e produz, quero saber quanto um insumo custava num dia qualquer, para que o orçamento e a OS guardem o custo daquele dia e uma compra nova não reescreva o passado. É a base dos casos UC-FLX-33 a 37 da tela de fluxos.
 
-**Implementado em:** `Modules/Compras/Services/CustoDoInsumoService.php` · `Modules/Compras/Database/Migrations/2026_10_20_000001_create_compras_insumo_metodo_custo_table.php` · `Modules/Compras/Entities/InsumoMetodoCusto.php` · `Modules/Compras/Tests/Feature/CustoDoInsumoServiceTest.php` · `Modules/Compras/Http/Controllers/InsumoMetodoCustoController.php` · `Modules/Compras/Tests/Feature/InsumoMetodoCustoEndpointTest.php` · `resources/js/Pages/Manufacturing/Insumos.tsx`
+**Implementado em:** `Modules/Compras/Services/CustoDoInsumoService.php` · `Modules/Compras/Database/Migrations/2026_10_20_000001_create_compras_insumo_metodo_custo_table.php` · `Modules/Compras/Entities/InsumoMetodoCusto.php` · `Modules/Compras/Tests/Feature/CustoDoInsumoServiceTest.php` · `Modules/Compras/Http/Controllers/InsumoMetodoCustoController.php` · `Modules/Compras/Tests/Feature/InsumoMetodoCustoEndpointTest.php` · `resources/js/Pages/Manufacturing/Insumos.tsx` · `Modules/Compras/Services/MetodoCustoDoProduto.php` · `Modules/Compras/Resources/views/partials/metodo_custo_produto.blade.php` · `Modules/Compras/Tests/Feature/MetodoCustoNoCadastroDoProdutoTest.php`
 
 - Fonte: `purchase_lines` + `transactions.transaction_date`. O histórico já existia; `variations.dpp_inc_tax` guarda só o último preço.
 - Método: o da regra "Atualizar o custo dos insumos" da empresa (`RegrasCompra`, `metodo`), padrão `medio`.
-- Regra `por_insumo`: cada insumo diz o seu método na tabela-ponte `compras_insumo_metodo_custo` (`variations` é core, não ganha coluna). O método se escolhe na gaveta do insumo em `/manufacturing/insumos` (seção "Método de custo"), gravado por `PUT /compras/insumos/{variation}/metodo-custo` com `purchase.update`; variação de outra empresa responde 404.
+- Regra `por_insumo`: cada insumo diz o seu método na tabela-ponte `compras_insumo_metodo_custo` (`variations` é core, não ganha coluna). O método se escolhe na gaveta do insumo em `/manufacturing/insumos` (seção "Método de custo"), gravado por `PUT /compras/insumos/{variation}/metodo-custo` com `purchase.update`; variação de outra empresa responde 404. No cadastro do produto (formulário Blade de novo e de editar) o campo "Método de custo" vale para todas as variações, gravado pelo gancho `after_product_saved` do módulo; só aparece com o módulo Compras instalado (`system.compras_version`).
 - Só leitura: o serviço não grava nada.
 
 **Acceptance:**
@@ -536,6 +536,7 @@ Como quem orça e produz, quero saber quanto um insumo custava num dia qualquer,
 - [x] Método `por_insumo`: usa o método gravado no insumo (`medio` ou `ultimo`); insumo sem método → custo nulo com o motivo
 - [x] Tier 0: o método que outra empresa deu ao mesmo insumo não vale
 - [x] Tela para definir o método do insumo (drawer Insumos)
+- [x] Campo no cadastro do produto, para item que não é ingrediente de receita (matéria-prima ou revenda)
 - [ ] Consumidores: orçamento (UC-FLX-33) e OS (UC-FLX-37) passam a usar o serviço
 
 ### US-COM-025 · Rastreio do rolo: em que OS cada fração da mídia foi usada (UC-FLX-18) — **P2**
