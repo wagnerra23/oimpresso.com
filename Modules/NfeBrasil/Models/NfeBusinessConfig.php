@@ -32,6 +32,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property bool $em_contingencia
  * @property \Illuminate\Support\Carbon|null $contingencia_ativada_em
  * @property string|null $contingencia_motivo
+ * @property string|null $contingencia_modo  US-NFE-071: epec | svc-an | svc-rs (nulo = epec)
  */
 class NfeBusinessConfig extends Model
 {

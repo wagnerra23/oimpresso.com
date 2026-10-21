@@ -292,7 +292,7 @@ describe('US-NFE-071 · UC-FLX-32 · modos SVC-AN/SVC-RS e evento EPEC', functio
 
 describe('US-NFE-071 · ativação com modo (ContingenciaService)', function () {
 
-    it('UC-FNFE-19 · grava o modo escolhido e desativar limpa', function () {
+    it('UC-FCFG-10 · UC-FNFE-19 · grava o modo escolhido e desativar limpa', function () {
         [$a] = modoTenants();
         modoContingencia($a, false);
 
@@ -303,7 +303,7 @@ describe('US-NFE-071 · ativação com modo (ContingenciaService)', function () 
         expect($cfg->contingencia_modo)->toBeNull();
     });
 
-    it('UC-FNFE-19 · recusa a SEFAZ Virtual que não atende a UF do emitente', function () {
+    it('UC-FCFG-10 · UC-FNFE-19 · recusa a SEFAZ Virtual que não atende a UF do emitente', function () {
         [$a] = modoTenants();
         modoContingencia($a, false);
 
@@ -324,7 +324,7 @@ describe('US-NFE-071 · ativação com modo (ContingenciaService)', function () 
         }
     });
 
-    it('UC-FNFE-19 · modo desconhecido é recusado', function () {
+    it('UC-FCFG-10 · UC-FNFE-19 · modo desconhecido é recusado', function () {
         [$a] = modoTenants();
         modoContingencia($a, false);
 
