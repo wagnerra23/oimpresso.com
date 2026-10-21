@@ -4,6 +4,7 @@
 // lote; cada compra é um rolo e vem numa seção própria.
 import { useEffect, useState } from 'react';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
+import { Inline, Stack } from '@/Components/layout';
 import { formatDecimalPtBR } from '@/Lib/numberPtBR';
 
 export type AlvoRastreio = { ids: number[]; lote: string; produto: string; unidade: string };
@@ -43,17 +44,17 @@ export default function RastreioDoLoteSheet({ alvo, onFechar }: { alvo: AlvoRast
           <SheetTitle>Rastreio do lote {alvo?.lote}</SheetTitle>
           <SheetDescription>{alvo?.produto} · em que OS cada fração do rolo foi usada</SheetDescription>
         </SheetHeader>
-        <div className="flex flex-col gap-4 overflow-y-auto px-4 pb-4 text-sm">
+        <Stack gap={4} className="overflow-y-auto px-4 pb-4 text-sm">
           {estado.carregando ? (
             <p className="text-muted-foreground" role="status">Carregando…</p>
           ) : estado.erro ? (
             <p className="text-destructive" role="alert">{estado.erro}</p>
           ) : estado.rolos.map(rolo => (
             <section key={rolo.lote.id} className="rounded-lg border">
-              <header className="flex flex-wrap items-baseline justify-between gap-2 border-b bg-muted px-3 py-2 text-xs">
+              <Inline asChild wrap gap={2} align="baseline" justify="between" className="border-b bg-muted px-3 py-2 text-xs"><header>
                 <span>Recebido em {rolo.lote.recebido_em.slice(0, 10).split('-').reverse().join('/')} · {qtd(rolo.quantidades.recebido)}</span>
                 <span className="font-semibold">Saldo {qtd(rolo.quantidades.saldo)}</span>
-              </header>
+              </header></Inline>
               <table className="w-full">
                 <caption className="sr-only">Frações usadas em OS</caption>
                 <thead className="text-xs uppercase tracking-wider text-muted-foreground">
@@ -89,7 +90,7 @@ export default function RastreioDoLoteSheet({ alvo, onFechar }: { alvo: AlvoRast
               </table>
             </section>
           ))}
-        </div>
+        </Stack>
       </SheetContent>
     </Sheet>
   );
