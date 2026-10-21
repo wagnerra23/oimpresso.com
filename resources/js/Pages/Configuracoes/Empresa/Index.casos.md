@@ -119,6 +119,16 @@ last_run: "2026-10-21"
   do campo de produto · Então só isso muda, e as opções e a outra marcação ficam.
 - **Status: 🧪**
 
+## UC-EMP-15 · Financeiro: ligar a régua de cobrança · `[dado]`
+- **Por quê:** a régua D+1/D+5/D+15 (US-FIN-071, `ReguaCobrancaJob`) nasce desligada e só lia
+  `common_settings['financeiro_regua_cobranca']`, sem tela para ligar. A chave mora no `common_settings`, que o salvar
+  substitui inteiro — a aba tem de devolver as outras chaves como estão.
+- **Aceite:** Dado a régua sem configuração · Então ela está desligada com 1, 5 e 15 · Quando ligo na aba Financeiro com
+  "2, 7" e salvo · Então `ReguaCobrancaConfig::de()` (o que o job lê) diz ligada com 2 e 7, e as outras chaves de
+  `common_settings` ficam · E na tela antiga a aba mostra "2, 7" e desmarcar desliga · E dia 0, acima de 365 ou repetido
+  não vira etapa.
+- **Status: 🧪**
+
 ## UC-EMP-16 · Vendas: ligar a pesquisa depois da entrega e escolher a nota baixa · `[dado]`
 - **Por quê:** a pesquisa de satisfação 2 dias depois da entrega (US-SELL-071) só roda para a empresa que ligou
   `common_settings.sells_pesquisa_entrega` (lido por `PesquisaEntregaConfig`), e até aqui nenhuma tela gravava a chave.
