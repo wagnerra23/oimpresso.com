@@ -155,9 +155,9 @@ module: Producao
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/Index.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.casos.md)
 
-## Testes (Pest) — 26
+## Testes (Pest) — 27
 
-- 26 em [Modules/Producao/Tests/Feature/](../../../Modules/Producao/Tests/Feature)
+- 27 em [Modules/Producao/Tests/Feature/](../../../Modules/Producao/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 6

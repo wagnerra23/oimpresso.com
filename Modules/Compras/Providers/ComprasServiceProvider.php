@@ -73,6 +73,8 @@ class ComprasServiceProvider extends ServiceProvider
         $this->app->bind(\App\Contracts\Compras\CustoDoInsumo::class, \Modules\Compras\Services\CustoDoInsumoService::class);
         // UC-FLX-17: o recebimento da compra aplica a regra de custo e preço da empresa.
         $this->app->bind(\App\Contracts\Compras\CustoDoRecebimento::class, \Modules\Compras\Services\AplicarCustoDoRecebimento::class);
+        // UC-FLX-19: a tela Fluxos liga e desliga a requisição pelo estoque mínimo.
+        $this->app->bind(\App\Contracts\Compras\RequisicaoEstoqueMinimo::class, \Modules\Compras\Services\RequisicaoEstoqueMinimoService::class);
     }
 
     protected function registerTranslations(): void

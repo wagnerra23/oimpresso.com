@@ -5,11 +5,12 @@
 // A regra mora no ApontamentoOperadorService; a tela só mostra, lê o QR e envia com chave.
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router, usePage } from '@inertiajs/react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useId, useState } from 'react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/Components/PageHeader';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Button } from '@/Components/ui/button';
+import { Checkbox } from '@/Components/ui/checkbox';
 import { Input } from '@/Components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Skeleton } from '@/Components/ui/skeleton';
@@ -19,7 +20,9 @@ import { agoraIso, enviar, esvaziar, novaChave, pendentes } from './_lib/fila';
 interface Etapa { id: number; os_tipo: string; os_id: number; posto: string | null; tipo_custo: string | null; inicio_previsto: string; status: string }
 interface Aberto { id: number; posto_id: number; programacao_id: number | null; os_tipo: string | null; os_id: number | null; posto: string | null; tipo_custo: string; desde: string }
 interface Rodando { pessoa: Aberto | null; maquinas: Aberto[]; ponto: { entrada: string | null; saida: string | null } | null }
-interface Props { operador: { id: number; nome: string }; etapas?: Etapa[]; rodando?: Rodando; motivos?: Array<{ id: number; posto_id: number; nome: string }> }
+interface Motivo { id: number; posto_id: number; nome: string }
+interface Props { operador: { id: number; nome: string }; etapas?: Etapa[]; rodando?: Rodando; motivos?: Motivo[]; motivos_refugo?: Motivo[] }
+type Apontar = (url: string, corpo?: Record<string, unknown>) => Promise<boolean>;
 
 const hms = (s: number) => [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60].map((n) => String(n).padStart(2, '0')).join(':');
 
@@ -34,8 +37,8 @@ function Cronometro({ desde }: { desde: string }) {
   return <div role="timer" aria-live="off" aria-label={`Tempo apontado ${hms(seg)}`} className="pcv-crono is-on">{hms(seg)}</div>;
 }
 
-export default function ApontamentoIndex({ operador, motivos = [] }: Props) {
-  // `motivos` é deferido junto com `rodando`; antes de chegar, a pausa fica desabilitada.
+export default function ApontamentoIndex({ operador, motivos = [], motivos_refugo: motivosRefugo = [] }: Props) {
+  // `motivos` e `motivos_refugo` são deferidos junto com `rodando`; antes de chegar, pausa e refugo ficam desabilitados.
   const [codigo, setCodigo] = useState('');
   const [aviso, setAviso] = useState<string | null>(null);
   const [naFila, setNaFila] = useState(() => pendentes(operador.id));
@@ -53,11 +56,12 @@ export default function ApontamentoIndex({ operador, motivos = [] }: Props) {
     return () => window.removeEventListener('online', sincronizar);
   }, [sincronizar]);
 
-  async function apontar(url: string, corpo: Record<string, unknown> = {}) {
+  async function apontar(url: string, corpo: Record<string, unknown> = {}): Promise<boolean> {
     const r = await enviar(operador.id, { url, body: { ...corpo, chave: novaChave(), momento: agoraIso() } });
-    if (r.ok === 'fila') { setNaFila(pendentes(operador.id)); toast('Sem internet: guardado no celular, envia quando voltar.'); return; }
-    if (!r.ok) { toast.error(String(r.json.mensagem ?? 'Não foi possível apontar.')); return; }
+    if (r.ok === 'fila') { setNaFila(pendentes(operador.id)); toast('Sem internet: guardado no celular, envia quando voltar.'); return true; }
+    if (!r.ok) { toast.error(String(r.json.mensagem ?? 'Não foi possível apontar.')); return false; }
     recarregar();
+    return true;
   }
 
   async function lerQr(texto: string) {
@@ -103,7 +107,7 @@ export default function ApontamentoIndex({ operador, motivos = [] }: Props) {
           <section aria-label="Rodando agora" className="pcv-ap">
             <div><span className="pcv-eyebrow">{operador.nome}</span><b className="pcv-ap-t">Rodando agora</b></div>
             <Deferred data="rodando" fallback={<Skeleton className="h-24 w-full" />}>
-              <RodandoAgora renderLinha={(a) => <Linha key={a.id} a={a} motivos={motivos} apontar={apontar} />} />
+              <RodandoAgora renderLinha={(a) => <Linha key={a.id} a={a} motivos={motivos} motivosRefugo={motivosRefugo} apontar={apontar} />} />
             </Deferred>
           </section>
 
@@ -132,8 +136,9 @@ export default function ApontamentoIndex({ operador, motivos = [] }: Props) {
 const CANAIS = [['c', 'C', 'ciano'], ['m', 'M', 'magenta'], ['y', 'Y', 'amarelo'], ['k', 'K', 'preto']] as const;
 const decimal = (v: string) => v.trim().replace(',', '.'); // o serviço só aceita ponto
 
-function Linha({ a, motivos: todos, apontar }: { a: Aberto; motivos: Array<{ id: number; posto_id: number; nome: string }>; apontar: (url: string, corpo?: Record<string, unknown>) => void }) {
+function Linha({ a, motivos: todos, motivosRefugo, apontar }: { a: Aberto; motivos: Motivo[]; motivosRefugo: Motivo[]; apontar: Apontar }) {
   const [motivo, setMotivo] = useState('');
+  const [refugando, setRefugando] = useState(false);
   const [m2, setM2] = useState('');
   const [tinta, setTinta] = useState<Record<string, string>>({});
   const motivos = todos.filter((m) => m.posto_id === a.posto_id); // E04 A4: só os do posto
@@ -182,8 +187,60 @@ function Linha({ a, motivos: todos, apontar }: { a: Aberto; motivos: Array<{ id:
         </Select>
         <Button className="min-h-11" variant="outline" disabled={!motivo} onClick={() => apontar(`/producao/apontamento/${a.id}/pausar`, { motivo_id: Number(motivo) })}>Pausar</Button>
         <Button className="min-h-11" onClick={concluir}>Concluir etapa</Button>
+        {/* US-PCP-027 · UC-FLX-16: refugo só na etapa programada (o endpoint exige a etapa). Forma: `.pcv-ap-ref` do protótipo. */}
+        {a.programacao_id !== null && !refugando && (
+          <button type="button" className="pcv-ap-ref px-3" onClick={() => setRefugando(true)}>Registrar refugo</button>
+        )}
       </div>
+      {refugando && a.programacao_id !== null && (
+        <FormRefugo programacaoId={a.programacao_id} motivos={motivosRefugo.filter((m) => m.posto_id === a.posto_id)}
+          apontar={apontar} fechar={() => setRefugando(false)} />
+      )}
     </div>
+  );
+}
+
+function FormRefugo({ programacaoId, motivos, apontar, fechar }: { programacaoId: number; motivos: Motivo[]; apontar: Apontar; fechar: () => void }) {
+  const id = useId();
+  const [motivo, setMotivo] = useState('');
+  const [quantidade, setQuantidade] = useState('');
+  const [retrabalho, setRetrabalho] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  // O servidor aceita ponto e até 4 casas; o operador digita com vírgula.
+  const qtd = quantidade.trim().replace(',', '.');
+  const valida = /^\d{1,14}(\.\d{1,4})?$/.test(qtd) && Number(qtd) > 0;
+
+  async function registrar(e: React.FormEvent) {
+    e.preventDefault();
+    if (!motivo || !valida) return;
+    setEnviando(true);
+    const ok = await apontar('/producao/apontamento/refugo', { programacao_id: programacaoId, motivo_id: Number(motivo), quantidade: qtd, retrabalho });
+    setEnviando(false);
+    if (ok) { toast.success('Refugo registrado.'); fechar(); }
+  }
+
+  return (
+    <form aria-label="Registrar refugo" className="pcv-ap" onSubmit={registrar}>
+      <Select value={motivo || undefined} onValueChange={setMotivo} disabled={!motivos.length}>
+        <SelectTrigger aria-label="Motivo do refugo" className="min-h-11">
+          <SelectValue placeholder={motivos.length ? 'Motivo do refugo' : 'Sem motivos de refugo cadastrados no posto'} />
+        </SelectTrigger>
+        <SelectContent>
+          {/* Valor vazio quebra o Radix Select (§5 2026-06-29): só motivo com id. */}
+          {motivos.filter((m) => m.id).map((m) => <SelectItem key={m.id} value={String(m.id)}>{m.nome}</SelectItem>)}
+        </SelectContent>
+      </Select>
+      <Input aria-label="Peças refugadas" placeholder="Peças refugadas" inputMode="decimal" value={quantidade}
+        onChange={(e) => setQuantidade(e.target.value)} className="min-h-11" />
+      <label htmlFor={`${id}-retrabalho`} className="flex min-h-11 cursor-pointer items-center gap-3">
+        <Checkbox id={`${id}-retrabalho`} checked={retrabalho} onCheckedChange={(v) => setRetrabalho(v === true)} />
+        <span>Mandar para retrabalho</span>
+      </label>
+      <div className="pcv-bar">
+        <Button type="button" variant="outline" className="min-h-11" onClick={fechar}>Cancelar</Button>
+        <Button type="submit" className="min-h-11" disabled={!motivo || !valida || enviando}>Registrar refugo</Button>
+      </div>
+    </form>
   );
 }
 

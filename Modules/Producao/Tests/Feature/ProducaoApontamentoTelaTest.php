@@ -1,7 +1,8 @@
 <?php
+// @covers-us US-PCP-027
 
 declare(strict_types=1);
-// Cobre, na camada HTTP da PWA, UC-PCV-19, UC-PCV-23 e UC-PCV-34 (Producao/Apontamento/Index.casos.md).
+// Cobre, na camada HTTP da PWA, UC-PCV-19, UC-PCV-23, UC-PCV-34 e UC-PCREF-07 (UC-FLX-16) (Producao/Apontamento/Index.casos.md).
 
 use App\Utils\ModuleUtil;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -104,4 +105,33 @@ it('UC-PCIMP-01 · o Concluir da tela envia m² e tinta e eles chegam à linha f
         'm2_impresso' => '12.5', 'tinta_ml_c' => '3.2', 'tinta_ml_m' => '1', 'tinta_ml_y' => '0.5', 'tinta_ml_k' => '4'])->assertCreated();
     $fim = DB::table('pcp_apontamentos')->where('inicio_id', $inicio)->first();
     expect([$fim->m2_impresso, $fim->tinta_ml_c, $fim->tinta_ml_m, $fim->tinta_ml_y, $fim->tinta_ml_k])->toBe(['12.500', '3.20', '1.00', '0.50', '4.00']);
+});
+
+it('UC-PCREF-07 · UC-FLX-16 · a tela recebe os motivos de refugo da empresa 98, separados dos de pausa', function () {
+    $posto = (int) DB::table('pcp_programacoes')->where('id', $this->etapaDiego)->value('posto_id');
+    $mot = fn (int $biz, int $postoId, string $tipo, string $nome, bool $ativo = true) => (int) DB::table('pcp_motivos')->insertGetId([
+        'business_id' => $biz, 'posto_id' => $postoId, 'tipo' => $tipo, 'nome' => $nome, 'ordem' => 0, 'ativo' => $ativo,
+        'created_at' => now(), 'updated_at' => now()]);
+    $corte = $mot($this->biz->id, $posto, 'refugo', 'Corte torto');
+    $pausa = $mot($this->biz->id, $posto, 'pausa', 'Falta material');
+    $inativo = $mot($this->biz->id, $posto, 'refugo', 'Desativado', false);
+    // Adversário: motivo de refugo da empresa 99, num posto dela (pcp_motivos.posto_id é obrigatório).
+    $b99 = (int) $this->seededSupportClientTenant()->id;
+    $postoAlheio = (int) DB::table('pcp_postos')->insertGetId(['business_id' => $b99, 'codigo' => 'TELA-'.uniqid(), 'nome' => 'Acabamento',
+        'tipo_custo' => 'pessoa', 'custo_hora' => '30.00', 'created_at' => now(), 'updated_at' => now()]);
+    $alheio = $mot($b99, $postoAlheio, 'refugo', 'Corte (outra empresa)');
+
+    $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+    $props = $this->actingAs($this->diego)->get('/producao/apontamento', ['X-Inertia' => 'true', 'X-Requested-With' => 'XMLHttpRequest',
+        'X-Inertia-Version' => (string) $versao, 'X-Inertia-Partial-Data' => 'motivos,motivos_refugo', 'X-Inertia-Partial-Component' => 'Producao/Apontamento/Index'])
+        ->assertOk()->json('props');
+
+    // O formulário filtra pelo posto da etapa: a linha precisa trazer o posto_id. O posto nasce neste teste,
+    // então o recorte por ele isola de motivos que a empresa 98 já tenha em outros postos.
+    $doPosto = fn (array $lista) => array_values(array_filter($lista, fn ($m) => $m['posto_id'] === $posto));
+    expect($doPosto($props['motivos_refugo']))->toBe([['id' => $corte, 'posto_id' => $posto, 'nome' => 'Corte torto']]);
+    $refugo = array_column($props['motivos_refugo'], 'id');
+    expect($refugo)->not->toContain($pausa)->and($refugo)->not->toContain($inativo)->and($refugo)->not->toContain($alheio);
+    // A pausa segue lendo só os seus: o motivo de refugo não aparece na lista de pausa.
+    expect(array_column($doPosto($props['motivos']), 'id'))->toBe([$pausa]);
 });
