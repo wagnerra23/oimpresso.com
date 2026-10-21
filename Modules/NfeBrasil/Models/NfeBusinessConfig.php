@@ -46,6 +46,8 @@ class NfeBusinessConfig extends Model
         // US-NFE-006 / ADR TECH-0002: contingência é decisão POR TENANT (a ADR rejeitou
         // auto-ativação). A observação de que a SEFAZ caiu é global, em nfe_sefaz_status.
         'em_contingencia', 'contingencia_ativada_em', 'contingencia_motivo',
+        // US-NFE-071: epec | svc-an | svc-rs (Services\ModoContingencia). Nulo = epec.
+        'contingencia_modo',
     ];
 
     protected $casts = [

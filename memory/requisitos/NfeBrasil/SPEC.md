@@ -1667,9 +1667,18 @@ Como gestor, quero que a NF-e em contingência use o modo certo para a UF e tenh
 
 **Origem:** o resto da US-NFE-070 (2026-10-20). Não há chamada `sefazEPEC` nem `tpEmis` 6/7 no código.
 
+**Entregue em 2026-10-21 (parcial — a âncora segue `_pendente_` até a marcação no DANFE):** a escolha
+"Modo: SVC-AN · SVC-RS · EPEC" na seção Contingência SEFAZ de `/fiscal/config`, gravada em
+`nfe_business_configs.contingencia_modo` (`Modules/NfeBrasil/Services/ModoContingencia.php`); a ativação recusa a
+SEFAZ Virtual que não atende a UF do emitente (`ContingenciaService::ativar`); em SVC a NF-e sai com tpEmis 6/7 e
+é transmitida na hora com `Tools::$contingency` armado em SVCAN/SVCRS; em EPEC a nota fica guardada e o evento
+110140 vai ao AN (`NfeService::registrarEpec`), com falha registrada como evento `rejeitado` sem perder a nota.
+Casos: `resources/js/Pages/Fiscal/Nfe.casos.md` UC-FNFE-19, 20, 30, 31 · prova `ContingenciaModoTest` (lane
+`nfebrasil-pest`). Fica: a marcação de contingência no DANFE e o smoke em homologação.
+
 **Aceite:**
-- [ ] NF-e modelo 55 pode usar SVC-AN (`tpEmis=6`) ou SVC-RS (`tpEmis=7`) conforme a UF do emitente
-- [ ] Em EPEC (`tpEmis=4`) o evento 110140 é enviado e registrado antes da impressão do DANFE; o DANFE mostra a marcação de contingência
-- [ ] Multi-tenant: o evento de biz=1 nunca usa nota de biz=2 (Pest com os dois tenants)
+- [x] NF-e modelo 55 pode usar SVC-AN (`tpEmis=6`) ou SVC-RS (`tpEmis=7`) conforme a UF do emitente — UC-FNFE-19
+- [ ] Em EPEC (`tpEmis=4`) o evento 110140 é enviado e registrado antes da impressão do DANFE (feito — UC-FNFE-20/30); o DANFE mostra a marcação de contingência (pendente)
+- [x] Multi-tenant: o evento de um tenant nunca grava em outro (Pest com os tenants 98 e 2) — UC-FNFE-31
 - [ ] Smoke fiscal manual contra SEFAZ só em biz=1, homologação
 
