@@ -19,6 +19,12 @@ class PaymentGatewayServiceProvider extends ServiceProvider
         $this->registerTranslations();
         $this->registerConfig();
         $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
+
+        // US-PCP-025: cobrança paga de venda vira pagamento na venda (desligado por config).
+        \Illuminate\Support\Facades\Event::listen(
+            \Modules\PaymentGateway\Events\CobrancaPaga::class,
+            [\Modules\PaymentGateway\Listeners\LancarPagamentoDaCobrancaNaVenda::class, 'handle'],
+        );
     }
 
     /**

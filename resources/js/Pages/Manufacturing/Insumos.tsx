@@ -4,7 +4,8 @@
 // bundle das ondas anteriores; nenhuma classe CSS nova.
 // F1 PLAN: memory/requisitos/Manufacturing/RUNBOOK-insumos.md.
 //
-// US-MANU-005 (SPEC.md). 100% leitura — nenhum POST/PATCH/DELETE parte daqui.
+// US-MANU-005 (SPEC.md). A simulação é leitura. A única escrita é o método de custo do insumo
+// (US-COM-024 · UC-FLX-38), um PUT no módulo Compras, dono da tabela.
 //
 // A SIMULAÇÃO É DO SERVIDOR, não do cliente: mexer no slider dispara um partial reload, e o
 // backend recalcula com a MESMA fórmula de custo do resto do módulo. O cliente formata.
@@ -21,6 +22,7 @@ import { faixaMargem, fmt, num } from './_lib/formato';
 import FabricacaoAbas from './_components/FabricacaoAbas';
 import Gaveta, { BOTAO_SECUNDARIO, SecaoGaveta } from './_components/Gaveta';
 import { Button } from '@/Components/ui/button';
+import { Segmented } from '@/Components/ui/segmented';
 import '../../../css/cowork-manufacturing-bundle.css';
 
 interface LinhaInsumo {
@@ -46,17 +48,32 @@ interface LinhaUso {
   margem_nova: number;
 }
 
+/** Método de custo do insumo (US-COM-024). `null` quando o módulo Compras não está ligado. */
+interface MetodoCusto {
+  atual: 'medio' | 'ultimo' | null;
+  empresa: 'medio' | 'ultimo' | 'por_insumo';
+  editavel: boolean;
+}
+
 interface Props {
   insumos: LinhaInsumo[];
   selecionado: number | null;
   usos: LinhaUso[];
   variacao_pct: number;
+  metodo_custo: MetodoCusto | null;
   permissions: { prod: boolean };
   producao: { total: number; rascunhos: number };
   recipes_count: number;
 }
 
 const ROUTE = '/manufacturing/insumos';
+/** Props que a gaveta recarrega ao abrir/fechar um insumo. */
+const PROPS_GAVETA = ['usos', 'selecionado', 'variacao_pct', 'metodo_custo'];
+
+const OPCOES_METODO = [
+  { value: 'medio', label: 'Médio' },
+  { value: 'ultimo', label: 'Último' },
+];
 
 /** Faixa da margem → tom, a mesma de Receitas (R-10: ≥55 sucesso · ≥45 atenção · abaixo perigo). */
 const TOM_MARGEM = { ok: 'success', warn: 'warning', bad: 'danger' } as const;
@@ -118,11 +135,13 @@ export default function Insumos({
   selecionado,
   usos,
   variacao_pct,
+  metodo_custo,
   permissions,
   producao,
   recipes_count,
 }: Props) {
   const [busca, setBusca] = useState('');
+  const [gravandoMetodo, setGravandoMetodo] = useState(false);
 
   const filtrados = insumos.filter((i) =>
     `${i.nome} ${i.sku}`.toLowerCase().includes(busca.trim().toLowerCase()),
@@ -132,7 +151,7 @@ export default function Insumos({
     router.get(
       ROUTE,
       { insumo: variationId, variacao_pct: pct },
-      { preserveState: true, preserveScroll: true, only: ['usos', 'selecionado', 'variacao_pct'] },
+      { preserveState: true, preserveScroll: true, only: PROPS_GAVETA },
     );
   };
 
@@ -140,7 +159,7 @@ export default function Insumos({
     router.get(
       ROUTE,
       {},
-      { preserveState: true, preserveScroll: true, only: ['usos', 'selecionado', 'variacao_pct'] },
+      { preserveState: true, preserveScroll: true, only: PROPS_GAVETA },
     );
   };
 
@@ -148,6 +167,21 @@ export default function Insumos({
   // de `Gaveta.tsx` (o listener de Esc que morava aqui somado ao do Sheet dava DUAS visitas).
 
   const sel = selecionado ? (insumos.find((i) => i.variation_id === selecionado) ?? null) : null;
+
+  // O servidor valida o método e o dono do insumo; a tela só envia e recarrega o que mudou.
+  const gravarMetodo = (variationId: number, metodo: string) => {
+    router.put(
+      `/compras/insumos/${variationId}/metodo-custo`,
+      { metodo },
+      {
+        preserveState: true,
+        preserveScroll: true,
+        only: ['metodo_custo'],
+        onStart: () => setGravandoMetodo(true),
+        onFinish: () => setGravandoMetodo(false),
+      },
+    );
+  };
 
   return (
     <div className="mfg-root" data-screen-label="Fabricação · Insumos">
@@ -247,6 +281,23 @@ export default function Insumos({
                 </span>
               </div>
             </SecaoGaveta>
+
+            {metodo_custo ? (
+              <SecaoGaveta titulo="Método de custo">
+                <Segmented
+                  value={metodo_custo.atual ?? ''}
+                  onValueChange={(m) => gravarMetodo(sel.variation_id, m)}
+                  options={OPCOES_METODO}
+                  disabled={!metodo_custo.editavel || gravandoMetodo}
+                  aria-label="Método de custo do insumo"
+                  data-contract="metodo-custo"
+                />
+                <p className="mfg-note">
+                  Vale quando a empresa escolheu "por insumo" em Fluxos → Compra.
+                  {metodo_custo.atual === null ? ' Este insumo ainda não tem método definido.' : ''}
+                </p>
+              </SecaoGaveta>
+            ) : null}
 
             <SecaoGaveta titulo="Receitas afetadas">
               <div className="mfg-grp">

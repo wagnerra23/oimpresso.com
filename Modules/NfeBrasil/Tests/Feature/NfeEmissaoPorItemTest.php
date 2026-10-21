@@ -149,6 +149,35 @@ it('R-NFE-025 · acréscimo vira frete (até o frete da venda) e o resto vOutro'
     expect($outro['dets'][0]['voutro'])->toBe(1.0);
 });
 
+it('R-NFE-025 · frete vai inteiro em vFrete e o desconto sai em vDesc, sem um consumir o outro ([W] 2026-10-21)', function () {
+    $chamadas = new ArrayObject();
+    // 3 × 33,33 = 99,99 de produto; frete 20,00; a nota fecha em 112,99 → desconto 7,00.
+    // À mão: 99,99 − 7,00 + 20,00 = 112,99. Antes saía vFrete 13,00 e vDesc 0.
+    $r = montar17([linha17(1, 3, 33.33, '49111090')], 112.99, 20.00, motorFake17($chamadas));
+
+    expect([$r['total']['v_frete'], $r['total']['v_desc'], $r['total']['v_outro'], $r['total']['v_nf']])->toBe([20.0, 7.0, 0.0, 112.99]);
+    expect(round($r['total']['v_prod'] - $r['total']['v_desc'] + $r['total']['v_frete'] + $r['total']['v_outro'], 2))->toBe(112.99);
+    // a base do item (o que o motor tributa) não muda: 99,99 − 7,00 + 20,00
+    expect(array_column($chamadas->getArrayCopy(), 'valor'))->toBe([112.99]);
+
+    // Dois itens: o frete e o desconto rateados pelo vProd, cada um somando o seu total.
+    $chamadas2 = new ArrayObject();
+    $r2 = montar17([linha17(1, 1, 60.00, '49111090'), linha17(2, 1, 40.00, '49111090')], 105.00, 15.00, motorFake17($chamadas2));
+    expect(array_column($r2['dets'], 'vfrete'))->toBe([9.0, 6.0])
+        ->and(array_column($r2['dets'], 'vdesc'))->toBe([6.0, 4.0])
+        ->and(array_column($chamadas2->getArrayCopy(), 'valor'))->toBe([63.0, 42.0]);
+});
+
+it('R-NFE-025 · total que não comporta o frete declarado cai na regra antiga, com log (controle)', function () {
+    Log::spy();
+    $chamadas = new ArrayObject();
+    // produto 10,00, frete 10,00, nota 5,00: desconto de 15,00 passaria do vProd.
+    $r = montar17([linha17(1, 1, 10.00, '49111090')], 5.00, 10.00, motorFake17($chamadas));
+
+    expect([$r['total']['v_frete'], $r['total']['v_desc'], $r['total']['v_nf']])->toBe([0.0, 5.0, 5.0]);
+    Log::shouldHaveReceived('warning')->withArgs(fn ($m) => $m === 'nfe_frete_fora_do_total')->once();
+});
+
 it('R-NFE-025 · linha de valor zero (componente de combo) não vira det', function () {
     $chamadas = new ArrayObject();
     $r = montar17([linha17(1, 1, 30.00, '61091000'), linha17(2, 1, 0.0, '61091000')], 30.00, 0, motorFake17($chamadas));
