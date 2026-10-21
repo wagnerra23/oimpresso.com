@@ -2716,6 +2716,8 @@ class SellController extends Controller
                     })->values()->toArray(),
                     // UC-FLX-34: custo guardado × custo de hoje no orçamento aberto (nulo fora dele).
                     'custo' => $this->custoDoOrcamento($sell),
+                    // US-SELL-071: nota da pesquisa depois da entrega e o atendimento aberto (nulo sem pesquisa ou sem sell.view).
+                    'pesquisa' => $this->pesquisaDaEntrega($sell),
                     // UC-FLX-04: quando o cliente abriu o link público do orçamento (nulo fora de orçamento).
                     'acesso' => $this->acessoDoOrcamento($sell),
                     'payments' => collect($sell->payment_lines ?? [])->map(function ($p) {
@@ -4042,6 +4044,39 @@ class SellController extends Controller
      * Margem = (receita sem imposto − custo) / receita, só sobre as linhas que têm os dois custos.
      * Uma linha "mudou" quando o custo de hoje se afasta do guardado mais que LIMITE_AVISO_CUSTO.
      */
+    /**
+     * Pesquisa de satisfação depois da entrega desta venda (US-SELL-071 · aceite 5). Nulo quando não
+     * houve pesquisa, quando o usuário não tem `sell.view` (quem só vê as próprias vendas não lê a nota)
+     * ou sem a tabela. Tier 0 (ADR 0093): pesquisa e tarefa filtradas pelo business_id da venda.
+     */
+    private function pesquisaDaEntrega(Transaction $sell): ?array
+    {
+        if (! auth()->user()?->can('sell.view') || ! \Illuminate\Support\Facades\Schema::hasTable('transaction_satisfaction_surveys')) {
+            return null;
+        }
+        $p = DB::table('transaction_satisfaction_surveys')->where('business_id', $sell->business_id)
+            ->where('transaction_id', $sell->id)->first(['canal', 'status', 'motivo', 'nota', 'respondido_em', 'atendimento_schedule_id']);
+        if (! $p) {
+            return null;
+        }
+        $atendimento = null;
+        if ($p->atendimento_schedule_id && \Illuminate\Support\Facades\Schema::hasTable('crm_schedules')) {
+            $t = DB::table('crm_schedules')->where('business_id', $sell->business_id)->where('id', $p->atendimento_schedule_id)
+                ->first(['id', 'title', 'status']);
+            $atendimento = $t ? [
+                'id' => (int) $t->id, 'titulo' => (string) $t->title, 'status' => (string) $t->status,
+                'url' => \Illuminate\Support\Facades\Route::has('follow-ups.index') ? route('follow-ups.index') : null,
+            ] : null;
+        }
+
+        return [
+            'canal' => (string) $p->canal, 'status' => (string) $p->status, 'motivo' => $p->motivo ? (string) $p->motivo : null,
+            'nota' => $p->nota === null ? null : (int) $p->nota,
+            'respondido_em' => $p->respondido_em ? (string) $p->respondido_em : null,
+            'atendimento' => $atendimento,
+        ];
+    }
+
     private function custoDoOrcamento(Transaction $sell): ?array
     {
         if ($sell->status !== 'draft' || ! auth()->user()?->can('view_purchase_price')
