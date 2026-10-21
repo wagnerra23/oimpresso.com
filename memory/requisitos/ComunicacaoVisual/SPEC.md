@@ -1250,7 +1250,7 @@ Como quem vende comunicação visual, quero que aprovar o orçamento crie a OS c
 - [x] Aprovar de novo não duplica OS, itens nem arquivos
 - [x] Os arquivos do orçamento passam para a OS, só os da empresa
 - [x] Outra empresa não aprova nem gera OS; recusado não vira OS; sem permissão é recusado
-- [ ] Botão "Aprovar" na tela (salvar e reabrir entraram na US-COMVIS-021; falta o botão)
+- [x] Botão "Aprovar e criar OS" no rodapé da calculadora, com confirmação; o reaberto mostra o número da OS (UC-CVOS-08)
 - [ ] Upload de arquivo no orçamento (o orçamento não tem tela de anexos; a cópia cobre o que for anexado pelo `media` do core)
 
 ---

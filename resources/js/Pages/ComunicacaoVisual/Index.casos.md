@@ -78,6 +78,7 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CVOS-05 | Outra empresa não aprova nem gera OS | must `[T0]` | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 | UC-CVOS-06 | Orçamento recusado não vira OS | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 | UC-CVOS-07 | Só quem pode criar orçamento aprova | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
+| UC-CVOS-08 | O orçamento aprovado reabre com o número da OS | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVSAL-01 | Salvar grava os valores do servidor, não os da tela | must `[V0]` | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVSAL-02 | Reabrir devolve as peças e os ajustes, e aparece na lista | must | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVSAL-03 | Regravar o reaberto mantém o número e troca as peças | must `[V0]` | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
@@ -511,6 +512,17 @@ Status: 🧪
 
 **Quando** um usuário sem `comvis.orcamento.create` aprova **Então** recebe 403 e nada é criado; com a
 permissão, a OS nasce (201).
+
+Status: 🧪
+
+## UC-CVOS-08 · O orçamento aprovado reabre com o número da OS · `must`
+
+**Dado** o orçamento enviado, ainda sem OS (o reaberto vem com `os` nulo) **Quando** ele é aprovado
+**Então** reaberto ele vem `aprovado` com o id e o número da OS que gerou, a lista dos salvos mostra o
+mesmo número, e a outra empresa não reabre o orçamento.
+
+Na tela: o rodapé troca "Salvar" por "Aprovar e criar OS" quando o orçamento está gravado igual à
+tela; a confirmação é um segundo clique na mesma linha. Mudança não salva não aprova.
 
 Status: 🧪
 
