@@ -157,7 +157,13 @@ last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando 
 - **Teste:** `Modules/Producao/Tests/Feature/ProducaoOperadoresDoPostoContratoTest.php`.
 - **Status: 🧪**
 
-- **[BACKLOG]** Tela de Postos com a lista de operadores de cada posto (os endpoints existem; a tela ainda não os mostra).
+## UC-PCOPE-06 · A tela mostra e edita os operadores do posto · `must`
+
+- **Persona:** gestor de produção.
+- **Aceite:** Dado o Plotter com Ana cadastrada · Então a linha do Plotter em `/producao/postos` mostra "Operadores: Ana" · E o Acabamento, sem cadastro, mostra "qualquer pessoa da Produção" · E um usuário da empresa 99 pendurado no cadastro não aparece · Quando o gestor (`producao.etapa.mover`) abre a gaveta do posto · Então o campo "Operadores do posto" oferece só gente da empresa com acesso à Produção · E trocar Ana por Bia grava e a lista recarregada mostra Bia · Dado quem não tem `producao.etapa.mover` · Então vê a lista, mas a gaveta não oferece o campo.
+- **Teste:** `Modules/Producao/Tests/Feature/ProducaoPostosOperadoresTelaTest.php`.
+- **Status: 🧪**
+
 - **[BACKLOG]** Alocador (UC-FLX-10 · US-PCP-029, PR #9647) chamar a mesma regra ao trocar o responsável.
 ## Alocador decide quem e quando começa (US-PCP-029 · UC-FLX-10)
 
@@ -324,6 +330,7 @@ Status: 🧪
 - 2026-10-16 · [CL] thread 03 + E03 do playbook de Produção — trio nasce junto (charter + casos + teste).
 - 2026-10-20 · [CL] UC-PCCH-01/02 documentam o custo-hora que já existe (UC-FLX-20 parcial); o bullet de backlog do custo-hora da pessoa virou o UC-PCCH-02; rateio e ponto de equilíbrio ficam no [BACKLOG] (US-FIN-070).
 - 2026-10-20 · [CL] UC-PCOPE-01..05 — operadores por posto (US-PCP-030 · UC-FLX-08, aprovado por [W] em 2026-10-20).
+- 2026-10-21 · [CL] UC-PCOPE-06 — a tela de Postos mostra os operadores de cada posto e a gaveta tem o campo "Operadores do posto" (US-PCP-030 · UC-FLX-08); o [BACKLOG] da tela virou este caso.
 - 2026-10-20 · [CL] UC-PCALO-01..06 — alocador decide quem e quando começa (US-PCP-029 · UC-FLX-10): endpoints JSON de alocação e fila do posto; a tela é a US-PCP-015.
 - 2026-10-20 · [CL] UC-PCALO-07 — o alocador usa a regra dos operadores do posto (US-PCP-030 · UC-FLX-08), a mesma do Liberar e do início da etapa.
 - 2026-10-20 · [CL] UC-PCPRZ-01..04 — prazo de entrega pela fila dos postos (US-PCP-028 · UC-FLX-06), cálculo em JSON só leitura; tela e data prometida ficam no [BACKLOG].

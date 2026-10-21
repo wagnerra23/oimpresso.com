@@ -49,7 +49,8 @@ aberto, sem sair da tela.
 
 - **Lista de títulos a receber** (`Titulo` `tipo='receber'`, `business_id` da session, `deleted_at`
   nulo), ordenada por vencimento, **até 100** linhas. Colunas: Nº · Cliente (+ origem: `Venda #id`
-  ou origem manual) · Vencimento · **Valor aberto** · Status · Boleto · Ações.
+  ou origem manual) · Vencimento · Bruto · Retido · Líquido (retenções da NFS-e, US-FIN-072) ·
+  **Valor aberto** · Status · Boleto · Ações.
 - **Filtros** (recarga Inertia `preserveState`): por **status** (Todos/Abertos/Parciais/Quitados)
   e por **vencimento** (Qualquer/Hoje/Próx. 7 dias/Atrasados — `atrasado` = vencimento < hoje e
   status ≠ quitado).

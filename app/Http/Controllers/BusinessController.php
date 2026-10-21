@@ -375,6 +375,15 @@ class BusinessController extends Controller
      */
     private const SEGREDOS_EMAIL = ['mail_password'];
 
+    /**
+     * As chaves de `common_settings` que os parciais da Blade (business/partials) desenham. Só elas são
+     * substituídas pelo salvar; as demais são de outras features e não podem sumir quando alguém salva a tela.
+     * EmpresaBaselineTest confere esta lista contra os parciais.
+     */
+    public const CHAVES_COMMON_DA_BLADE = ['is_enabled_export', 'default_credit_limit', 'enable_product_warranty',
+        'enable_secondary_unit', 'is_product_image_required', 'enable_purchase_order', 'enable_purchase_requisition',
+        'default_datatable_page_entries'];
+
     private const SEGREDOS_SMS = ['nexmo_secret', 'twilio_token', 'header_val_1', 'header_val_2', 'header_val_3',
         'param_val_1', 'param_val_2', 'param_val_3', 'param_val_4', 'param_val_5', 'param_val_6', 'param_val_7', 'param_val_8',
         'param_val_9', 'param_val_10'];
@@ -382,7 +391,7 @@ class BusinessController extends Controller
     /**
      * O corpo que a tela React devolve INTEIRO ao postBusinessSettings, no formato que ele lê.
      *
-     * O salvar é substituição total (EmpresaBaselineTest): checkbox, `common_settings`, `enabled_modules`,
+     * O salvar é substituição total (EmpresaBaselineTest): checkbox, as chaves da Blade em `common_settings`, `enabled_modules`,
      * atalhos, `pos_settings` e os números com `num_uf` são sobrescritos quando faltam. Por isso todos vêm
      * daqui, com o valor gravado, e a Page só troca os campos da aba que desenha.
      *
@@ -577,7 +586,11 @@ class BusinessController extends Controller
 
             $business_details['custom_labels'] = json_encode($business_details['custom_labels']);
 
-            $business_details['common_settings'] = ! empty($request->input('common_settings')) ? $request->input('common_settings') : [];
+            // A Blade só desenha as chaves de CHAVES_COMMON_DA_BLADE; o resto do JSON é de outras features e fica.
+            // As da Blade seguem substituídas: checkbox desmarcado não vem no POST e tem de sair.
+            $enviado = (array) ($request->input('common_settings') ?: []);
+            $outrasFeatures = array_diff_key((array) ($business->common_settings ?? []), array_flip(self::CHAVES_COMMON_DA_BLADE));
+            $business_details['common_settings'] = $enviado + $outrasFeatures;
 
             //Enabled modules
             $enabled_modules = $request->input('enabled_modules');
