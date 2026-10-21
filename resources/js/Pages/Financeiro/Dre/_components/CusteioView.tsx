@@ -5,6 +5,7 @@
 // Aplicar o custo-hora sugerido num posto é ação explícita em Produção › Postos (UC-PCCH-05).
 
 import { router } from '@inertiajs/react';
+import { Inline } from '@/Components/layout';
 
 export interface CusteioPosto {
   posto_id: number;
@@ -73,7 +74,7 @@ export function CusteioView({ custeio }: { custeio: CusteioData | null | undefin
 
   return (
     <div data-contract="dre-custeio">
-      <div className="px-6 pt-4 flex flex-wrap items-center gap-3">
+      <Inline gap={3} wrap className="px-6 pt-4">
         <label className="inline-flex items-center gap-2 text-[length:var(--fs-3)] text-[var(--text-dim)]">
           Mês do fechamento
           <input
@@ -88,7 +89,7 @@ export function CusteioView({ custeio }: { custeio: CusteioData | null | undefin
           Fixa e variável vêm da classe de cada conta no{' '}
           <a href="/financeiro/plano-contas" className="underline">plano de contas</a>; conta sem classe fica fora.
         </span>
-      </div>
+      </Inline>
 
       {custeio.erro && (
         <div role="alert" className="mx-6 mt-3 px-4 py-3 rounded-lg text-[length:var(--fs-3)] bg-[var(--neg-soft)] text-[var(--neg)]">
@@ -98,7 +99,7 @@ export function CusteioView({ custeio }: { custeio: CusteioData | null | undefin
 
       {avisos.length > 0 && (
         <ul
-          className="mx-6 mt-3 px-4 py-3 rounded-lg text-[length:var(--fs-3)] flex flex-col gap-1"
+          className="mx-6 mt-3 px-4 py-3 rounded-lg text-[length:var(--fs-3)] space-y-1"
           style={{ background: 'var(--color-warning-soft)', border: '1px solid color-mix(in oklch, var(--color-warning) 40%, transparent)' }}
         >
           {avisos.map((a) => <li key={a}>ⓘ {a}</li>)}
@@ -117,7 +118,7 @@ export function CusteioView({ custeio }: { custeio: CusteioData | null | undefin
 
           <div className="px-6 pt-4 pb-4">
             <div className="bg-[var(--surface)] border border-[var(--border)] rounded-[11px] shadow-[var(--sh-1)] overflow-hidden">
-              <div className="px-5 py-3 border-b border-[var(--border)] flex flex-wrap items-center gap-3">
+              <Inline gap={3} wrap className="px-5 py-3 border-b border-[var(--border)]">
                 <div className="min-w-0">
                   <div className="text-[length:var(--fs-1)] uppercase tracking-widest text-[var(--text-dim)] font-medium">
                     Rateio das despesas fixas pelas horas dos postos
@@ -131,7 +132,7 @@ export function CusteioView({ custeio }: { custeio: CusteioData | null | undefin
                     Aplicar custo-hora nos postos →
                   </a>
                 )}
-              </div>
+              </Inline>
 
               {!custeio.pode_ver_postos ? (
                 <div className="px-6 py-8 text-center text-[length:var(--fs-3)] text-[var(--text-dim)]">
