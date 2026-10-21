@@ -90,6 +90,9 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('vendas/{id}/previsto-realizado', [PrevistoRealizadoController::class, 'venda'])->whereNumber('id')->name('vendas.previsto-realizado');
         // US-COMVIS-NEW-004 · UC-FLX-02 — gera o link da prova para o cliente aprovar (JSON).
         Route::post('ordens/{id}/aprovacao-arte', [AprovacaoArteController::class, 'solicitar'])->whereNumber('id')->name('ordens.aprovacao-arte');
+        // UC-PCV-11 · arte aprovada travada: trocar o arquivo pede nova aprovação; a vigente é a última aprovada (JSON).
+        Route::post('ordens/{id}/arte/trocar', [AprovacaoArteController::class, 'trocar'])->whereNumber('id')->name('ordens.arte.trocar');
+        Route::get('ordens/{id}/arte', [AprovacaoArteController::class, 'vigente'])->whereNumber('id')->name('ordens.arte.vigente');
         // US-PCP-028 · UC-FLX-06 — prazo de entrega da venda pela fila dos postos (JSON, só leitura).
         Route::get('vendas/{id}/prazo', [PrazoDaVendaController::class, 'show'])->whereNumber('id')->name('vendas.prazo');
         // US-COM-025 · UC-FLX-18 — rastreio do rolo: OS que usaram fração do lote + saldo (JSON, quem vê compras).

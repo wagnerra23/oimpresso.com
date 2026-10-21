@@ -1,7 +1,7 @@
 ---
 module: Producao
 purpose: "Camada única de PCP: apontamento de produção por operação, pessoa e tempo, postos com capacidade e custo-hora por empresa, programação e gargalo. Nasceu em 2026-10-15 como esqueleto (ADR 0431); o fundo veio na thread 02 e os cadastros na 03."
-migracao_ui: "n/a — módulo novo, nasce Inertia (sem Blade)"
+migracao_ui: "concluido — telas internas em Inertia; 2 Blade de propósito, fora da migração: a página pública /arte/{token} (sem login; mantida por decisão [W] 2026-10-21) e o PDF da etiqueta da OS"
 contains:
   - "DataController — 3 hooks UltimatePOS (pacote superadmin, permissões; sem item de sidebar enquanto não houver tela)"
   - "InstallController — instalação 1-clique (ADR 0024)"
@@ -26,7 +26,7 @@ contains:
   - "FecharTurnoCommand — producao:fechar-turno a cada 15 min, fecha o cronômetro esquecido no fim do turno ou na saída do ponto"
   - "Api/AppApontamentoController — apontamento do app das lojas com token (/api/app/producao/*, P8 tela 02, inclui motivos-pausa), sobre o ApontamentoOperadorService"
   - "EtiquetaOsController — PDF A4 da OS com o QR da etiqueta (E05 modelo a4_os; PR 07 propostas-app)"
-  - "AprovacaoArteController + AprovacaoArteService — cliente aprova a arte por link (US-COMVIS-NEW-004 · UC-FLX-02): o operador gera o link da prova da OS por item (token, só o sha256 em pcp_aprovacoes_arte, 7 dias, uso único); a página pública /arte/{token} (Blade, sem login, throttle) aprova — conclui a etapa pelo motor — ou recusa com comentário, reabrindo a arte"
+  - "AprovacaoArteController + AprovacaoArteService — cliente aprova a arte por link (US-COMVIS-NEW-004 · UC-FLX-02): o operador gera o link da prova da OS por item (token, só o sha256 em pcp_aprovacoes_arte, 7 dias, uso único); a página pública /arte/{token} (Blade, sem login, throttle) aprova — conclui a etapa pelo motor — ou recusa com comentário, reabrindo a arte; trava da arte aprovada (UC-PCV-11): trocar o arquivo reabre a aprovação com link novo e a arte vigente segue a última aprovada (ordens/{id}/arte/trocar, ordens/{id}/arte)"
   - "Ordem (pcp_ordens) — OS por item que nasce do pedido nos modelos de fluxo; situação no motor FSM pelo ProcessoDaOrdem (ADR 0436)"
   - "SinalDaOrdem — regra 'produção só libera com o sinal pago' (US-PCP-025 · UC-FLX-28): o Liberar recusa abaixo do % mínimo da empresa e o pagamento gravado na venda libera a OS sozinho (liberar_pelo_sinal); só LÊ valor"
 not_contains:
