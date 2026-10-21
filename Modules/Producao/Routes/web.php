@@ -1,14 +1,19 @@
 <?php
 
+use Modules\Producao\Http\Controllers\AlocacaoController;
 use Modules\Producao\Http\Controllers\ApontamentoController;
+use Modules\Producao\Http\Controllers\AprovacaoArteController;
 use Modules\Producao\Http\Controllers\AproveitamentoMidiaController;
 use Modules\Producao\Http\Controllers\ColaboradorCustoController;
 use Modules\Producao\Http\Controllers\EtiquetaOsController;
 use Modules\Producao\Http\Controllers\FerramentasController;
 use Modules\Producao\Http\Controllers\InstallController;
+use Modules\Producao\Http\Controllers\LoteRastreioController;
 use Modules\Producao\Http\Controllers\OrdemCustoController;
 use Modules\Producao\Http\Controllers\PostoOperadoresController;
 use Modules\Producao\Http\Controllers\PostosController;
+use Modules\Producao\Http\Controllers\PrevistoRealizadoController;
+use Modules\Producao\Http\Controllers\PrazoDaVendaController;
 use Modules\Producao\Http\Controllers\RomaneioController;
 use Modules\Producao\Http\Controllers\RoteirosController;
 
@@ -43,6 +48,8 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::post('{inicio}/corrigir', [ApontamentoController::class, 'corrigir'])->whereNumber('inicio')->name('corrigir');
         // US-PCP-021 · UC-FLX-37 — material consumido na etapa (baixa pelo lote que saiu).
         Route::post('material', [ApontamentoController::class, 'material'])->name('material');
+        // US-PCP-027 · UC-FLX-16 — refugo com motivo na etapa (e, se pedido, a OS para Retrabalho).
+        Route::post('refugo', [ApontamentoController::class, 'refugo'])->name('refugo');
     });
 
 // ── Thread 03 + E03 · cadastros (postos, motivos, roteiros, ferramentas, custo-hora) ──
@@ -78,13 +85,38 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('os/{id}/etiqueta', [EtiquetaOsController::class, 'show'])->whereNumber('id')->name('os.etiqueta');
         // US-PCP-022 · UC-FLX-36 — custo da abertura × hoje da OS por item em andamento (JSON, gestor).
         Route::get('ordens/{id}/custo', [OrdemCustoController::class, 'show'])->whereNumber('id')->name('ordens.custo');
+        // US-COMVIS-005 · UC-FLX-15 — previsto × realizado por OS e por venda (JSON, gestor).
+        Route::get('ordens/{id}/previsto-realizado', [PrevistoRealizadoController::class, 'ordem'])->whereNumber('id')->name('ordens.previsto-realizado');
+        Route::get('vendas/{id}/previsto-realizado', [PrevistoRealizadoController::class, 'venda'])->whereNumber('id')->name('vendas.previsto-realizado');
+        // US-COMVIS-NEW-004 · UC-FLX-02 — gera o link da prova para o cliente aprovar (JSON).
+        Route::post('ordens/{id}/aprovacao-arte', [AprovacaoArteController::class, 'solicitar'])->whereNumber('id')->name('ordens.aprovacao-arte');
+        // US-PCP-028 · UC-FLX-06 — prazo de entrega da venda pela fila dos postos (JSON, só leitura).
+        Route::get('vendas/{id}/prazo', [PrazoDaVendaController::class, 'show'])->whereNumber('id')->name('vendas.prazo');
+        // US-COM-025 · UC-FLX-18 — rastreio do rolo: OS que usaram fração do lote + saldo (JSON, quem vê compras).
+        Route::get('lotes/{id}/rastreio', [LoteRastreioController::class, 'show'])->whereNumber('id')->name('lotes.rastreio');
     });
 
+// ── UC-FLX-02 · US-COMVIS-NEW-004 · página pública da prova (sem login) ──
+// A empresa vem do token (só o sha256 fica no banco), nunca da URL. Throttle 30/min/IP contra
+// varredura de token; o `web` do RouteServiceProvider dá sessão + CSRF ao formulário.
+Route::middleware(['throttle:30,1'])
+    ->prefix('arte')
+    ->name('producao.arte.')
+    ->group(function () {
+        Route::get('{token}', [AprovacaoArteController::class, 'mostrar'])->where('token', '[A-Za-z0-9]{48}')->name('mostrar');
+        Route::post('{token}/aprovar', [AprovacaoArteController::class, 'aprovar'])->where('token', '[A-Za-z0-9]{48}')->name('aprovar');
+        Route::post('{token}/recusar', [AprovacaoArteController::class, 'recusar'])->where('token', '[A-Za-z0-9]{48}')->name('recusar');
+    });
+
+// ── US-PCP-029 · UC-FLX-10 · alocador decide quem e quando começa (JSON, gestor) ──
 // ── US-PCP-023 · UC-FLX-12 · romaneio de impressão peça a peça (JSON; a tela é follow-up) ──
+// (os dois num bloco só desde o merge de 2026-10-20; mesmo middleware, rotas distintas)
 Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
     ->prefix('producao')
     ->name('producao.')
     ->group(function () {
+        Route::put('etapas/{id}/alocacao', [AlocacaoController::class, 'alocar'])->whereNumber('id')->name('etapas.alocar');
+        Route::get('postos/{postoId}/fila', [AlocacaoController::class, 'fila'])->whereNumber('postoId')->name('postos.fila');
         Route::post('os/{id}/romaneio', [RomaneioController::class, 'store'])->whereNumber('id')->name('os.romaneio.store');
         Route::get('romaneios/{id}', [RomaneioController::class, 'show'])->whereNumber('id')->name('romaneios.show');
     });
