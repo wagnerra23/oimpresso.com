@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Contracts\Compras\RequisicaoEstoqueMinimo;
 use App\Domain\Fsm\Modelos\AplicarModelo;
 use App\Domain\Fsm\Modelos\CatalogoModelos;
 use App\Domain\Fsm\Modelos\CatalogoProcessos;
@@ -109,6 +110,10 @@ class FluxosController extends Controller
             'opcoes_compra' => $comModelo ? RegrasCompra::opcoes() : (object) [],
             // UC-FLX-35 · UC-FLXT-19: margem mínima do orçamento (nula = desligada).
             'margem_minima' => $comModelo ? $regras->margemMinima($businessId) : null,
+            // UC-FLX-19 · UC-FLXT-24: requisição pelo estoque mínimo (nula = sem o módulo Compras).
+            'requisicao_estoque_minimo' => $comModelo && app()->bound(RequisicaoEstoqueMinimo::class)
+                ? app(RequisicaoEstoqueMinimo::class)->ativo($businessId)
+                : null,
             'pode_configurar' => auth()->user()->can('fluxos.configurar'),
         ]);
     }
@@ -203,6 +208,23 @@ class FluxosController extends Controller
             (int) $request->session()->get('user.business_id'),
             isset($dados['margem_minima']) ? (float) $dados['margem_minima'] : null,
         ));
+
+        return redirect('/fluxos?aba=empresa');
+    }
+
+    /**
+     * Requisição de compra pelo estoque mínimo (UC-FLX-19 · UC-FLXT-24). Ligada, o job diário
+     * do Compras cria a requisição do item abaixo do mínimo com o fornecedor da última compra.
+     */
+    public function requisicaoEstoqueMinimo(Request $request): RedirectResponse
+    {
+        abort_unless($request->user()->can('fluxos.configurar'), 403);
+        abort_unless(app()->bound(RequisicaoEstoqueMinimo::class), 404);
+
+        $dados = $request->validate(['ativo' => ['required', 'boolean']]);
+
+        // Tier 0 (ADR 0093): a empresa é sempre a da sessão.
+        app(RequisicaoEstoqueMinimo::class)->definir((int) $request->session()->get('user.business_id'), (bool) $dados['ativo']);
 
         return redirect('/fluxos?aba=empresa');
     }
