@@ -14,7 +14,7 @@ module: PaymentGateway
 >
 > **O que isto é:** o inventário completo das raízes `Modules/PaymentGateway/**` + `resources/js/Pages/PaymentGateway/**` + `resources/js/Pages/Settings/**` (namespaces Inertia `PaymentGateway`, `Settings`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `PaymentGateway` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 153 arquivos em 16 papéis.
+**Total mapeado:** 154 arquivos em 16 papéis.
 
 ## Controllers — 12
 
@@ -72,13 +72,14 @@ module: PaymentGateway
 - [ProcessarWebhookPixInterJob.php](../../../Modules/PaymentGateway/Jobs/ProcessarWebhookPixInterJob.php)
 - [RetryOrphanWebhookJob.php](../../../Modules/PaymentGateway/Jobs/RetryOrphanWebhookJob.php)
 
-## Events / Listeners — 5
+## Events / Listeners — 6
 
 - [CobrancaCancelada.php](../../../Modules/PaymentGateway/Events/CobrancaCancelada.php)
 - [CobrancaEmitida.php](../../../Modules/PaymentGateway/Events/CobrancaEmitida.php)
 - [CobrancaErro.php](../../../Modules/PaymentGateway/Events/CobrancaErro.php)
 - [CobrancaPaga.php](../../../Modules/PaymentGateway/Events/CobrancaPaga.php)
 - [CobrancaVencida.php](../../../Modules/PaymentGateway/Events/CobrancaVencida.php)
+- [LancarPagamentoDaCobrancaNaVenda.php](../../../Modules/PaymentGateway/Listeners/LancarPagamentoDaCobrancaNaVenda.php)
 
 ## Console / Commands — 8
 
