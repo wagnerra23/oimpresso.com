@@ -134,7 +134,7 @@
     },
     {
       "screen": "Documentacao",
-      "note": "6 arquivo(s)",
+      "note": "7 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -157,6 +157,17 @@
     {
       "screen": "Fiscal",
       "note": "35 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "Fisio",
+      "note": "26 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -222,7 +233,7 @@
     },
     {
       "screen": "Manufacturing",
-      "note": "16 arquivo(s)",
+      "note": "17 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -585,7 +596,7 @@
     },
     {
       "screen": "Produto",
-      "note": "51 arquivo(s)",
+      "note": "53 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -683,18 +694,18 @@
       }
     }
   ],
-  "progressPct": 61,
+  "progressPct": 62,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "f9b406abd",
-  "generatedAt": "2026-10-18T13:28:12.069Z",
+  "measuredAgainstSha": "ff2dd7fff",
+  "generatedAt": "2026-10-21T16:17:45.397Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
   },
   "counts": {
-    "screens": 62,
-    "done": 38,
+    "screens": 63,
+    "done": 39,
     "references": 0
   }
 }
