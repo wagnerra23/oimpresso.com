@@ -59,7 +59,7 @@ UC-FLX-24 do catálogo `/fluxos` ("Cliente acompanha o status"): a cada mudança
 
 **Implementado em:** _parcial_ · `Modules/Repair/Http/Controllers/JobSheetController.php` · `Modules/Repair/Events/RepairStatusChanged.php` · `Modules/Whatsapp/Listeners/NotifyRepairCustomer.php` · `Modules/ConsultaOs/Repositories/RepairConsultaOsRepository.php` · `Modules/Repair/Tests/Feature/ClienteAcompanhaStatusContratoTest.php` · `Modules/Repair/Tests/Feature/RepairFsmActionControllerTest.php` · verificado@83e7f7f (2026-10-20) — medido 2026-10-20. O caminho edição → evento → WhatsApp → portal existe. Dois limites, travados como estado de hoje: **(1)** o aviso só sai para status de nome literal `ready`/`waiting_parts`; com nome da empresa ("Pronto para retirada") o portal muda e o WhatsApp não — `repair_statuses` não tem sinal limpo de "pronto" (`is_completed_status` vale como "Pronto" no kanban e "Entregue" no `startPipeline`), escolher o sinal é decisão [W] (UC-COS-13); **(2)** a transição pela FSM (`RepairFsmActionController::execute`) não dispara `RepairStatusChanged` nem muda o `status_id` que o portal lê (UC-COS-14). Follow-up: evento genérico de transição da FSM.
 
-**Testado em:** `Modules/Repair/Tests/Feature/ClienteAcompanhaStatusContratoTest.php` (UC-COS-12, UC-COS-13) · `Modules/Repair/Tests/Feature/RepairFsmActionControllerTest.php` (UC-COS-14)
+**Testado em:** `Modules/Repair/Tests/Feature/ClienteAcompanhaStatusContratoTest.php` (UC-COS-12, UC-COS-13, UC-COS-31, UC-COS-32) · `Modules/Repair/Tests/Feature/RepairFsmActionControllerTest.php` (UC-COS-14)
 
 ## N/A justificado
 
