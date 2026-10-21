@@ -104,7 +104,7 @@ Charter em **draft**. Tela de CONSULTA de cadastro contábil (~47 entries DCASP 
 
 ## Backlog de casos (sem id — entram quando tiverem teste)
 - **[BACKLOG] Badge de tipo e natureza D/C** — cada conta mostra tipo (receita/despesa/ativo/passivo+patrim.) e natureza débito/crédito.
-- **[BACKLOG] Conta protegida sinaliza cadeado e não é editável aqui** — index é read-only (o Controller só tem `index`).
+- **[BACKLOG] Conta protegida sinaliza cadeado e não é editável aqui** — a tela não edita conta; a única escrita é a classe de custo do custeio (UC-PCCH-08, nos casos de `Producao/Postos`).
 - **[BACKLOG] Filtro por tipo + busca client-side** — sem round-trip ao servidor (`useMemo`).
 - **[BACKLOG] Empty state instrui o seed** — business sem plano vê a instrução, não uma tabela vazia muda.
 - **[BACKLOG] Primary "Nova conta"** — o charter registra que a rota `create` não foi encontrada no Controller: **confirmar existência antes de virar UC** (senão é botão que mente).

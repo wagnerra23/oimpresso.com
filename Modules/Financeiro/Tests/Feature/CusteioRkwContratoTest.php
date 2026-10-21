@@ -1,12 +1,13 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PCCH-03..06 (Modules/Producao/Resources/js/Pages/Producao/Postos/Index.casos.md · US-FIN-070 · UC-FLX-20).
+// Cobre UC-PCCH-03..10 (Modules/Producao/Resources/js/Pages/Producao/Postos/Index.casos.md · US-FIN-070 · UC-FLX-20).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Inertia\Testing\AssertableInertia;
 use Modules\Financeiro\Services\CusteioRkwService;
 
 uses(Tests\TestCase::class, DatabaseTransactions::class);
@@ -199,4 +200,106 @@ it('UC-PCCH-03 o comando só lê, mesmo sem --dry-run', function () {
     expect($code)->toBe(0)
         ->and(Artisan::output())->toContain('130.00')
         ->and(DB::table('pcp_postos')->where('id', $c['a'])->value('custo_hora'))->toBe('30.00');
+});
+
+it('UC-PCCH-07 a aba Custeio da DRE mostra o mesmo fechamento e esconde os postos sem desempenho', function () {
+    $c = rkwCenario($this);
+    session(['user.business_id' => $this->b98, 'business.id' => $this->b98]);
+    // Caminho 2: o JSON do endpoint é o oráculo; a aba tem de trazer os mesmos números.
+    $json = $this->actingAs($this->user)->getJson('/financeiro/custeio-rkw?mes='.RKW_MES)->assertOk()->json();
+
+    $this->actingAs($this->user)->get('/financeiro/dre?aba=custeio&mes='.RKW_MES)
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('Financeiro/Dre/Index')
+            ->where('aba', 'custeio')
+            ->where('custeio.mes', RKW_MES)
+            ->where('custeio.despesas_fixas', '4000.00')
+            ->where('custeio.ponto_equilibrio', $json['ponto_equilibrio'])
+            ->where('custeio.parcela_fixa_por_hora', '100.00')
+            ->where('custeio.pode_ver_postos', true)
+            ->where('custeio.postos', $json['postos']));
+
+    // Só o Financeiro: o fechamento aparece, o custo-hora dos postos não.
+    $soFinanceiro = $this->usuarioComPermissoes(['financeiro.relatorios.view']);
+    $this->actingAs($soFinanceiro)->get('/financeiro/dre?aba=custeio&mes='.RKW_MES)
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('custeio.despesas_fixas', '4000.00')
+            ->where('custeio.pode_ver_postos', false)
+            ->where('custeio.postos', []));
+
+    // Mês inválido cai no mês anterior (o default do endpoint), sem erro.
+    $this->actingAs($this->user)->get('/financeiro/dre?aba=custeio&mes=2031-13')
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('custeio.mes', now()->subMonthNoOverflow()->format('Y-m')));
+
+    // Outra aba não calcula o custeio, e nada foi gravado.
+    $this->actingAs($this->user)->get('/financeiro/dre')
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('custeio', null));
+    expect(DB::table('pcp_postos')->where('id', $c['a'])->value('custo_hora'))->toBe('30.00');
+});
+
+it('UC-PCCH-08 classificar a conta como fixa entra no custeio; outra empresa, outro tipo e sem permissão não gravam', function () {
+    rkwCenario($this);
+    session(['user.business_id' => $this->b98, 'business.id' => $this->b98]);
+    $gestor = $this->usuarioComPermissoes(['financeiro.dashboard.view', 'financeiro.relatorios.view', 'producao.desempenho.ver']);
+    $semClasse = (int) DB::table('fin_planos_conta')->where('business_id', $this->b98)->where('nome', 'ZZ RKW sem classe')
+        ->where('tipo', 'despesa')->orderByDesc('id')->value('id');
+
+    $this->actingAs($gestor)->patch("/financeiro/plano-contas/{$semClasse}/classe-custo", ['classe_custo' => 'fixa'])
+        ->assertRedirect()->assertSessionHasNoErrors();
+    expect(DB::table('fin_planos_conta')->where('id', $semClasse)->value('classe_custo'))->toBe('fixa');
+    // Dois caminhos: os 500,00 dessa conta passam a somar nas fixas (4.000 + 500).
+    expect($this->svc->calcular($this->b98, RKW_MES)['despesas_fixas'])->toBe(number_format(4000 + 500, 2, '.', ''));
+
+    // Vazio tira do custeio.
+    $this->actingAs($gestor)->patch("/financeiro/plano-contas/{$semClasse}/classe-custo", ['classe_custo' => null])->assertRedirect();
+    expect(DB::table('fin_planos_conta')->where('id', $semClasse)->value('classe_custo'))->toBeNull();
+
+    // Conta de receita não entra no custeio.
+    $receita = rkwPlano($this->b98, 'receita', null);
+    $this->actingAs($gestor)->patch("/financeiro/plano-contas/{$receita}/classe-custo", ['classe_custo' => 'fixa'])
+        ->assertSessionHasErrors('classe_custo');
+    expect(DB::table('fin_planos_conta')->where('id', $receita)->value('classe_custo'))->toBeNull();
+
+    // Valor fora da lista é recusado.
+    $this->actingAs($gestor)->patch("/financeiro/plano-contas/{$semClasse}/classe-custo", ['classe_custo' => 'mista'])
+        ->assertSessionHasErrors('classe_custo');
+
+    // Conta da empresa 99 → 404, sem gravar.
+    $conta99 = rkwPlano($this->b99, 'despesa', null);
+    $this->actingAs($gestor)->patch("/financeiro/plano-contas/{$conta99}/classe-custo", ['classe_custo' => 'fixa'])->assertNotFound();
+    expect(DB::table('fin_planos_conta')->where('id', $conta99)->value('classe_custo'))->toBeNull();
+
+    // Sem a permissão do custeio → 403, sem gravar.
+    $soPainel = $this->usuarioComPermissoes(['financeiro.dashboard.view']);
+    $this->actingAs($soPainel)->patch("/financeiro/plano-contas/{$semClasse}/classe-custo", ['classe_custo' => 'variavel'])->assertForbidden();
+    expect(DB::table('fin_planos_conta')->where('id', $semClasse)->value('classe_custo'))->toBeNull();
+});
+
+it('UC-PCCH-10 o centro de custo é o setor do posto: soma os postos do setor e fecha nas fixas (dois caminhos)', function () {
+    $c = rkwCenario($this);
+    DB::table('pcp_postos')->where('id', $c['a'])->update(['setor' => 'Corte']);
+
+    $r = $this->svc->calcular($this->b98, RKW_MES);
+    $f = 3000 + 1000;
+    // Caminho 2: à mão — Corte = posto A (30 h de 40); sem setor = posto B (10 h de 40); sem setor por último.
+    expect($r['setores'])->toBe([
+        ['setor' => 'Corte', 'postos' => 1, 'horas' => '30.00', 'rateio_fixo' => number_format($f * 30 / 40, 2, '.', '')],
+        ['setor' => null, 'postos' => 1, 'horas' => '10.00', 'rateio_fixo' => number_format($f * 10 / 40, 2, '.', '')],
+    ]);
+
+    // Mesmo setor escrito diferente ("corte " minúsculo, com espaço) é o mesmo centro, e a soma bate F.
+    DB::table('pcp_postos')->where('id', $c['b'])->update(['setor' => 'corte ']);
+    $r = $this->svc->calcular($this->b98, RKW_MES);
+    expect($r['setores'])->toHaveCount(1)
+        ->and($r['setores'][0])->toBe(['setor' => 'Corte', 'postos' => 2, 'horas' => '40.00', 'rateio_fixo' => $r['despesas_fixas']])
+        ->and(collect($r['postos'])->firstWhere('posto_id', $c['b'])['setor'])->toBe('corte');
+
+    // A aba Custeio mostra os setores mesmo sem a permissão de desempenho (não há custo-hora neles).
+    session(['user.business_id' => $this->b98, 'business.id' => $this->b98]);
+    $soFinanceiro = $this->usuarioComPermissoes(['financeiro.relatorios.view']);
+    $this->actingAs($soFinanceiro)->get('/financeiro/dre?aba=custeio&mes='.RKW_MES)
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('custeio.setores.0.setor', 'Corte')
+            ->where('custeio.setores.0.rateio_fixo', '4000.00')
+            ->where('custeio.postos', []));
 });

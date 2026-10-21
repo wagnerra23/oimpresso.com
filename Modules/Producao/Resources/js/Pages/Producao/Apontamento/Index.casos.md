@@ -340,9 +340,11 @@ Status: 🧪
 > **Âncora:** UC-FLX-16 do catálogo de fluxos (Acabamento: *refugo com motivo; refugo e retrabalho somam
 > custo à OS*), o cadastro de motivos de refugo por posto (UC-PCV-33, `pcp_motivos.tipo = refugo`), o
 > "Reprovar no controle" do processo da OS (ADR 0436: Em execução → Retrabalho, papel
-> `producao.qualidade`) e a baixa de material da US-PCP-021. Nesta entrega é o endpoint da PWA
-> (`POST /producao/apontamento/refugo`); a tela e o app ainda não têm o campo. Prova:
-> `ProducaoRefugoContratoTest`. ESTOQUE e VALOR: regra mestre.
+> `producao.qualidade`) e a baixa de material da US-PCP-021. O endpoint da PWA é
+> `POST /producao/apontamento/refugo`; desde 2026-10-21 a tela tem o botão "Registrar refugo" na etapa
+> que está rodando (UC-PCREF-07). O app das lojas e o relatório por motivo e posto ainda não. Provas:
+> `ProducaoRefugoContratoTest` (regra) e `ProducaoApontamentoTelaTest` (o que a tela recebe).
+> ESTOQUE e VALOR: regra mestre.
 
 ## UC-PCREF-01 · Refugo com quantidade, motivo, quem e quando · `must`
 
@@ -387,6 +389,15 @@ Status: 🧪
 
 **Quando** o operador aponta o refugo pela PWA **Então** a resposta não traz custo e o reenvio não grava de
 novo; pedindo retrabalho sem o papel de qualidade **Então** 403 e nada fica (nem o refugo, nem a baixa).
+
+Status: 🧪
+
+## UC-PCREF-07 · Registrar refugo pela etapa que está rodando · `must`
+
+**Dado** a etapa de Acabamento do Diego rodando, com o motivo de refugo "Corte torto" e o de pausa "Falta
+material" no posto, e um motivo de refugo de outra empresa **Quando** ele toca em "Registrar refugo" **Então**
+o formulário pede o motivo (só os de refugo daquele posto, da empresa dele), as peças refugadas e se vai para
+retrabalho, com todo controle de toque ≥ 44px; a lista de pausa continua sem os motivos de refugo.
 
 Status: 🧪
 

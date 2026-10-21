@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-RLT-01, UC-RLT-02, UC-RLT-03 (resources/js/Pages/Relatorios/Lotes/Index.casos.md).
+// Cobre UC-RLT-01, UC-RLT-02, UC-RLT-03, UC-RLT-06 (resources/js/Pages/Relatorios/Lotes/Index.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -140,4 +140,47 @@ test('UC-RLT-03 Tier 0 — lote do negócio 99 não aparece; permissão da Blade
     $this->actingAs($this->usuarioComPermissoes([], $this->business));
     $this->withHeaders($this->inertia)->get('/reports/lot-report?tela=nova')->assertForbidden();
     $this->withHeaders([])->get('/reports/lot-report')->assertForbidden();
+});
+
+test('UC-RLT-06 Tier 0 — a linha traz o id do lote; o rastreio abre o meu e responde 404 ao do negócio 99', function () {
+    $local = EstoqueFixture::locationId($this->business->id, '-RLT6');
+    [$pl] = rltCenario($this->business->id, $local, $this->user->id, [['RLT-R', 10, 0, 0, 0]]);
+    // O mesmo número de lote numa 2ª compra do mesmo produto vira a MESMA linha: os dois ids vão juntos.
+    $variacao = (int) DB::table('purchase_lines')->where('id', $pl)->value('variation_id');
+    $produto = (int) DB::table('purchase_lines')->where('id', $pl)->value('product_id');
+    $compra2 = DB::table('transactions')->insertGetId([
+        'business_id' => $this->business->id, 'location_id' => $local, 'type' => 'purchase', 'status' => 'received',
+        'payment_status' => 'paid', 'transaction_date' => '2099-12-02 10:00:00', 'final_total' => 0, 'total_before_tax' => 0,
+        'created_by' => $this->user->id, 'essentials_duration' => 0, 'ref_no' => 'RLT-'.uniqid(), 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $pl2 = DB::table('purchase_lines')->insertGetId(['transaction_id' => $compra2, 'product_id' => $produto, 'variation_id' => $variacao,
+        'quantity' => 4, 'purchase_price' => 1, 'item_tax' => 0, 'lot_number' => 'RLT-R', 'exp_date' => '2099-12-31', 'created_at' => now(), 'updated_at' => now()]);
+
+    // Lote do negócio 99, com o mesmo número.
+    $alheio = $this->seededSupportClientTenant();
+    $donoAlheio = \App\User::factory()->create(['business_id' => $alheio->id])->id;
+    [$plAlheio] = rltCenario($alheio->id, EstoqueFixture::locationId($alheio->id, '-RLT6'), $donoAlheio, [['RLT-R', 50, 0, 0, 0]]);
+
+    // Sem purchase.view: o id vem, o botão não.
+    $props = rltPage($this, $local);
+    expect($props['linhas'])->toHaveCount(1);
+    expect($props['linhas'][0]['lote_ids'])->toBe([$pl, $pl2]);
+    expect($props['podeRastrear'])->toBeFalse();
+
+    // Com purchase.view e o Producao no pacote: o botão aparece e o rastreio responde só ao meu lote.
+    $this->partialMock(\App\Utils\ModuleUtil::class, fn ($m) => $m->shouldReceive('hasThePermissionInSubscription')
+        ->andReturnUsing(fn ($b, $perm) => $perm === 'producao_module'));
+    $comprador = $this->usuarioComPermissoes(['stock_report.view', 'access_all_locations', 'purchase.view'], $this->business);
+    $this->actingAs($comprador);
+    $props = rltPage($this, $local);
+    expect($props['podeRastrear'])->toBeTrue();
+    expect($props['linhas'][0]['lote_ids'])->not->toContain($plAlheio);
+
+    // O 404 sai na leitura do lote (business_id), antes de tocar pcp_consumos: vale em qualquer lane.
+    $this->getJson("/producao/lotes/{$plAlheio}/rastreio")->assertNotFound();
+    // O 200 do meu lote lê pcp_consumos — só onde as migrations do Producao rodaram.
+    if (Schema::hasTable('pcp_consumos')) {
+        $this->getJson("/producao/lotes/{$pl}/rastreio")->assertOk()
+            ->assertJsonPath('lote.id', $pl)->assertJsonPath('fracoes', []);
+    }
 });

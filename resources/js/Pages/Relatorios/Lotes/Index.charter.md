@@ -8,6 +8,7 @@ status: draft
 last_validated: "2026-10-07"
 parent_module: Relatorios
 related_adrs: [93, 104, 358]
+related_us: [US-COM-025]
 tier: A
 charter_version: 1
 mwart_pattern_reuse:
@@ -31,6 +32,7 @@ Mostrar, para cada lote de produto, quanto ainda há em estoque, quanto saiu por
 - Tabela paginada no servidor (25 por página, SKU crescente, como a Blade).
 - Quantidades da mesma consulta do DataTable (`consultaLotes`).
 - Rodapé por unidade somando só a página, como o `__sum_stock` da Blade.
+- Ação "Rastrear" por linha: gaveta com, para cada compra do lote, a OS × quantidade usada e o saldo (US-COM-025 · UC-RLT-06).
 
 ## Non-Goals
 
@@ -44,6 +46,7 @@ Mostrar, para cada lote de produto, quanto ainda há em estoque, quanto saiu por
 | R1 | Ver exige `stock_report.view`, a mesma da Blade | `ReportController::getLotReport` |
 | R2 | Só produtos e compras do negócio da sessão e dos locais permitidos | `consultaLotes` |
 | R3 | Id da request que entra no SQL cru é inteiro | `consultaLotes` (#9008) |
+| R4 | "Rastrear" só para quem vê compras com o Producao no pacote (o mesmo que o JSON exige); lote de outro negócio → 404 | `telaLotes` · `LoteRastreioController` |
 
 ## Refs
 
