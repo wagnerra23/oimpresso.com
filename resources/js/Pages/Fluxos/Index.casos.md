@@ -198,6 +198,18 @@ last_run: "2026-10-20"
 - **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-23").
 - **Status: 🧪**
 
+## UC-FLXT-24 · Quem configura liga e desliga a requisição pelo estoque mínimo
+- **Persona:** dono que quer que o item abaixo do mínimo vire requisição de compra sozinho (UC-FLX-19).
+- **Fonte:** US-COM-027 (SPEC Compras) — o job diário existe e nasce desligado em
+  `business.common_settings['compras_requisicao_estoque_minimo']`; faltava a tela para ligar.
+- **Aceite:** Dado uma empresa com modelo em uso e o módulo Compras · Quando quem tem
+  `fluxos.configurar` liga o interruptor no card Compra da aba Fluxos da empresa · Então a regra fica
+  ligada só para a empresa da sessão, as outras chaves de `common_settings` continuam e a aba mostra
+  ligada · Quando desliga · Então fica desligada · E dado um valor que não é sim/não · Então recebe
+  erro e nada muda · E sem `fluxos.configurar` recebe 403.
+- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-24").
+- **Status: 🧪**
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste)

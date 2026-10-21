@@ -47,6 +47,8 @@ interface Props {
   margem_minima: number | null;
   /** UC-FLXT-23: sinal mínimo para liberar a OS, em % da venda, como texto decimal (nulo = desligado). */
   sinal_minimo: string | null;
+  /** UC-FLXT-24: requisição pelo estoque mínimo ligada? (nula = sem o módulo Compras). */
+  requisicao_estoque_minimo?: boolean | null;
   pode_configurar: boolean;
 }
 
@@ -62,7 +64,7 @@ const PERFIL_INICIAL: Perfil = { porte: 'pequena', ativ: 'cv' };
 
 export default function FluxosIndex({
   aba, modelos, encaixe, portes, atividades, casos_total, casos, processos, processos_total, processo,
-  casos_lista, fontes, estados_caso, dominios, empresa, regras_ligadas, regras_compra, opcoes_compra, margem_minima, sinal_minimo, pode_configurar,
+  casos_lista, fontes, estados_caso, dominios, empresa, regras_ligadas, regras_compra, opcoes_compra, margem_minima, sinal_minimo, requisicao_estoque_minimo, pode_configurar,
 }: Props) {
   // O perfil começa pelo gravado da empresa (quando "Usar modelo" já gravou); senão, o do protótipo.
   const [perfil, setPerfil] = useState<Perfil>({
@@ -128,6 +130,7 @@ export default function FluxosIndex({
               opcoesCompra={opcoes_compra}
               margemMinima={margem_minima ?? null}
               sinalMinimo={sinal_minimo ?? null}
+              requisicaoEstoqueMinimo={requisicao_estoque_minimo ?? null}
               podeConfigurar={pode_configurar}
             />
           )}

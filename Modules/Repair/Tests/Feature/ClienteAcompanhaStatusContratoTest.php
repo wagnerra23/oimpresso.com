@@ -38,7 +38,7 @@ use Tests\Support\WithSeededTenant;
  * TENANT: seededTenant() = 98 contra seededSupportClientTenant() = 99 (ADR 0358). Nunca 4.
  * Roda só em MySQL (schema UltimatePOS) — na lane sqlite pula pelo guard das fixtures.
  *
- * @see resources/js/Pages/ConsultaOs/Index.casos.md (UC-COS-12, UC-COS-13)
+ * @see resources/js/Pages/ConsultaOs/Index.casos.md (UC-COS-12, UC-COS-13, UC-COS-31, UC-COS-32)
  * @see memory/requisitos/ConsultaOs/SPEC.md (US-CONSULTA-004)
  */
 uses(Tests\TestCase::class, WithSeededTenant::class);
@@ -55,14 +55,31 @@ beforeEach(function () {
     }
 
     $GLOBALS['flx24_telefones'] = [];
+    // Teto dos status antes do teste: o que nascer acima dele é fixture deste arquivo.
+    $GLOBALS['flx24_status_teto'] = (int) DB::table('repair_statuses')->max('id');
 });
 
 afterEach(function () {
-    // O tenant 98 é compartilhado no CT 100: o número de WhatsApp fictício não pode ficar
-    // para outros testes do mesmo tenant.
+    // O tenant 98 é compartilhado (CT 100 e a lane verticais-pest, que não recria o banco
+    // entre arquivos): número de WhatsApp, OS, status e clientes fictícios não podem ficar.
+    // Medido 2026-10-21: o status "Recebido" vazio que sobrava daqui virava o "primeiro
+    // status pendente" do RepairDashboardContratoTest (UC-RDSH-02) e mudava a contagem dele.
     if (! empty($GLOBALS['flx24_telefones'] ?? [])) {
         DB::table('whatsapp_business_phones')->whereIn('id', $GLOBALS['flx24_telefones'])->delete();
     }
+
+    $contatos = DB::table('contacts')->where('name', 'like', '%FLX-24%')->pluck('id');
+    if ($contatos->isNotEmpty()) {
+        DB::table('repair_job_sheets')->whereIn('contact_id', $contatos)->delete();
+        DB::table('contacts')->whereIn('id', $contatos)->delete();
+    }
+
+    $teto = (int) ($GLOBALS['flx24_status_teto'] ?? PHP_INT_MAX);
+    DB::table('repair_statuses')
+        ->where('id', '>', $teto)
+        ->whereIn('name', ['Recebido', 'ready', 'Pronto para retirada'])
+        ->whereNotIn('id', DB::table('repair_job_sheets')->select('status_id')->whereNotNull('status_id'))
+        ->delete();
 });
 
 /** Número de WhatsApp do tenant que atende aviso de OS, com os dois templates. */
@@ -190,4 +207,55 @@ it('UC-COS-13: status com nome da empresa muda o portal mas hoje NÃO avisa pelo
     // O portal, que lê status_id, já mostra o status novo.
     $corpo = flx24Portal($this, $numero);
     expect($corpo['ordens'][0]['status']['nome'])->toBe('Pronto para retirada');
+});
+
+it('UC-COS-31: cliente que recusou WhatsApp não recebe o aviso; sem resposta (null) ainda recebe', function () {
+    $biz = $this->seededTenant();
+    $user = Fx::usuario((int) $biz->id);
+    $telefone = flx24Telefone((int) $biz->id);
+
+    $recusou = Fx::cliente((int) $biz->id, (int) $user->id, 'Cliente FLX-24 Recusou');
+    DB::table('contacts')->where('id', $recusou)->update(['mobile' => '+5547900000298', 'whatsapp_consent' => 0]);
+    $semResposta = Fx::cliente((int) $biz->id, (int) $user->id, 'Cliente FLX-24 Sem Resposta');
+    DB::table('contacts')->where('id', $semResposta)->update(['mobile' => '+5547900000398', 'whatsapp_consent' => null]);
+
+    Bus::fake([SendWhatsappMessageJob::class]);
+    $listener = app(\Modules\Whatsapp\Listeners\NotifyRepairCustomer::class);
+
+    // Opt-out explícito (LGPD): nenhum job.
+    $listener->handle((object) ['id' => 9801, 'business_id' => (int) $biz->id, 'contact_id' => $recusou], 'ready');
+    Bus::assertNotDispatched(SendWhatsappMessageJob::class);
+
+    // Controle: mesmo número, mesmo template, contato sem resposta de consentimento → avisa.
+    $listener->handle((object) ['id' => 9802, 'business_id' => (int) $biz->id, 'contact_id' => $semResposta], 'ready');
+    Bus::assertDispatchedTimes(SendWhatsappMessageJob::class, 1);
+    Bus::assertDispatched(SendWhatsappMessageJob::class, fn ($job) => $job->businessId === (int) $biz->id
+        && $job->whatsappBusinessPhoneId === $telefone
+        && $job->to === '+5547900000398');
+});
+
+it('UC-COS-32: OS que aponta para cliente de outra empresa não avisa ninguém', function () {
+    $biz = $this->seededTenant();
+    $vizinho = $this->seededSupportClientTenant();
+    $user = Fx::usuario((int) $biz->id);
+    flx24Telefone((int) $biz->id);
+
+    $donoVizinho = Fx::usuario((int) $vizinho->id, false);
+    $contatoVizinho = Fx::cliente((int) $vizinho->id, (int) $donoVizinho->id, 'Cliente Vizinho FLX-24 Cruzado');
+    DB::table('contacts')->where('id', $contatoVizinho)->update(['mobile' => '+5547900000499', 'whatsapp_consent' => 1]);
+
+    $proprio = Fx::cliente((int) $biz->id, (int) $user->id, 'Cliente FLX-24 Proprio');
+    DB::table('contacts')->where('id', $proprio)->update(['mobile' => '+5547900000598', 'whatsapp_consent' => 1]);
+
+    Bus::fake([SendWhatsappMessageJob::class]);
+    $listener = app(\Modules\Whatsapp\Listeners\NotifyRepairCustomer::class);
+
+    // OS da 98 com contact_id da 99: o número da 98 não pode escrever para o cliente da 99.
+    $listener->handle((object) ['id' => 9803, 'business_id' => (int) $biz->id, 'contact_id' => $contatoVizinho], 'ready');
+    Bus::assertNotDispatched(SendWhatsappMessageJob::class);
+
+    // Controle: o cliente da própria empresa recebe.
+    $listener->handle((object) ['id' => 9804, 'business_id' => (int) $biz->id, 'contact_id' => $proprio], 'ready');
+    Bus::assertDispatchedTimes(SendWhatsappMessageJob::class, 1);
+    Bus::assertDispatched(SendWhatsappMessageJob::class, fn ($job) => $job->to === '+5547900000598');
 });
