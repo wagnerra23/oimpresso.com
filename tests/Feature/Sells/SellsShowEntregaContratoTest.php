@@ -2,7 +2,7 @@
 // @covers-us US-SELL-073
 
 declare(strict_types=1);
-// Cobre UC-VSHOW-15, UC-VSHOW-16 (resources/js/Pages/Sells/Show.casos.md) — UC-FLX-23.
+// Cobre UC-VSHOW-22, UC-VSHOW-23 (resources/js/Pages/Sells/Show.casos.md) — UC-FLX-23.
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -68,7 +68,7 @@ beforeEach(function () {
     $this->produtoNome = (string) DB::table('products')->where('id', $produto->productId)->value('name');
 });
 
-it('UC-VSHOW-15 · a entrega registrada pelo app aparece no detalhe da venda', function () {
+it('UC-VSHOW-22 · a entrega registrada pelo app aparece no detalhe da venda', function () {
     // Controle: sem protocolo, o detalhe chega e a entrega é nula.
     $antes = json_decode(entregaShowGet($this, $this->saleId)->assertStatus(200)->getContent(), true);
     expect($antes['props'])->toHaveKey('detail');
@@ -96,7 +96,7 @@ it('UC-VSHOW-15 · a entrega registrada pelo app aparece no detalhe da venda', f
         ->and($entrega['itens'][0]['conferido'])->toBeTrue();
 });
 
-it('UC-VSHOW-15 · volumes não informados chegam nulos, sem número inventado', function () {
+it('UC-VSHOW-22 · volumes não informados chegam nulos, sem número inventado', function () {
     entregaShowSemear($this->bizId, $this->saleId, (int) $this->user->id, 'João',
         [['linha_id' => $this->lineId, 'conferido' => true]], null);
 
@@ -106,7 +106,7 @@ it('UC-VSHOW-15 · volumes não informados chegam nulos, sem número inventado',
     expect($page['props']['detail']['entrega']['volumes'])->toBeNull();
 });
 
-it('UC-VSHOW-16 · a entrega de outra empresa não aparece na venda (Tier 0)', function () {
+it('UC-VSHOW-23 · a entrega de outra empresa não aparece na venda (Tier 0)', function () {
     $outroBizId = EstoqueFixture::secondBusinessId();
     if ($outroBizId === null) {
         $this->markTestSkipped('DB só tem 1 business — sem par cross-tenant.');

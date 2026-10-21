@@ -99,7 +99,7 @@ last_run: "2026-10-20"
 > [`tela-22-entrega.md`](../../../../memory/requisitos/AppMobile/api/tela-22-entrega.md)), que já guardava
 > itens conferidos e quem recebeu. Esta entrega acrescenta o **total de volumes**, opcional para não
 > quebrar o app que já está nos celulares. A venda é a mesma deste detalhe; desde 2026-10-21 o detalhe mostra o
-> protocolo na seção Entrega (UC-VSHOW-15/16). Prova: `tests/Feature/Sells/AppPedidoEntregaContratoTest.php`.
+> protocolo na seção Entrega (UC-VSHOW-22/23). Prova: `tests/Feature/Sells/AppPedidoEntregaContratoTest.php`.
 
 ## UC-ENTR-01 · O protocolo grava os volumes junto com os itens e quem recebeu · `must`
 - **Aceite:** Dado uma venda na etapa de Entrega com as 2 linhas conferidas · Quando o app registra a entrega com `volumes: 3` · Então a resposta 201 traz `volumes: 3` e `recebido_por`, a linha de `app_entregas` tem `volumes = 3` e os ids das 2 linhas em `itens`, e a venda vai para `delivered`. Repetir a mesma `Idempotency-Key` com `volumes: 3` devolve o mesmo protocolo; com `volumes: 5` → `422 idempotencia_conflito`.
@@ -121,16 +121,16 @@ last_run: "2026-10-20"
 - **Teste:** `tests/Feature/Sells/AppPedidoEntregaContratoTest.php` — `UC-ENTR-04`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
-## UC-VSHOW-15 · A entrega registrada pelo app aparece no detalhe da venda · `must`
+## UC-VSHOW-22 · A entrega registrada pelo app aparece no detalhe da venda · `must`
 - **Persona:** quem atende o cliente que liga perguntando se a mercadoria chegou: abre a venda e vê quando foi entregue, quem recebeu, quantos volumes e os itens, sem pedir ao entregador.
 - **Aceite:** Dado uma venda sem protocolo · Quando abro `/sells/{id}` · Então `detail.entrega` é nulo e a seção Entrega não aparece. Dado o protocolo `ENT-NNNN` gravado pelo app com quem recebeu, 3 volumes, a linha da venda conferida e o motivo de não ter assinatura · Então `detail.entrega` traz protocolo, data, quem recebeu, `volumes: 3`, o item com nome do produto e quantidade, e o motivo; com assinatura, uma URL assinada de 10 min. Volumes não informados chegam nulos e a tela escreve "Não informado".
 - **Âncora:** aceite aberto da US-SELL-073 (`memory/requisitos/Sells/SPEC.md`) + UC-FLX-23 do catálogo de fluxos.
-- **Teste:** `tests/Feature/Sells/SellsShowEntregaContratoTest.php` — `UC-VSHOW-15`.
+- **Teste:** `tests/Feature/Sells/SellsShowEntregaContratoTest.php` — `UC-VSHOW-22`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
-## UC-VSHOW-16 · A entrega de outra empresa não aparece na venda · `[T0]` `must`
+## UC-VSHOW-23 · A entrega de outra empresa não aparece na venda · `[T0]` `must`
 - **Aceite:** Dado uma linha de `app_entregas` de outro business apontando para o mesmo `transaction_id` · Quando abro a venda · Então `detail.entrega` é nulo e o nome de quem recebeu não está no JSON. Controle positivo: gravado o protocolo da própria empresa, ele aparece e o alheio continua fora.
-- **Teste:** `tests/Feature/Sells/SellsShowEntregaContratoTest.php` — `UC-VSHOW-16`.
+- **Teste:** `tests/Feature/Sells/SellsShowEntregaContratoTest.php` — `UC-VSHOW-23`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
 ## UC-VSHOW-08 · O orçamento aberto mostra se o custo mudou desde que foi feito
@@ -197,7 +197,7 @@ last_run: "2026-10-20"
 3. **Cadência:** rodar ao fim de toda mexida em `Sells/Show.tsx` ou em `SellController@show`. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
-- 2026-10-21 · [CC] + UC-VSHOW-15/16 (US-SELL-073 · UC-FLX-23): seção Entrega no detalhe, lida de `app_entregas` pelo business da venda. Teste `SellsShowEntregaContratoTest`, nasce sem run.
+- 2026-10-21 · [CC] + UC-VSHOW-22/23 (US-SELL-073 · UC-FLX-23): seção Entrega no detalhe, lida de `app_entregas` pelo business da venda. Teste `SellsShowEntregaContratoTest`, nasce sem run.
 - 2026-10-20 · [CL] UC-VSHOW-09..13 (US-SELL-071 · UC-FLX-25): pesquisa de satisfação 2 dias depois da entrega e atendimento na nota baixa. Teste `PesquisaSatisfacaoEntregaContratoTest`, nasce sem run.
 - 2026-10-20 · [CL] `last_run` 2026-07-27 → 2026-10-20 por conferência, não por run novo: desde o `last_run` o `Show.tsx` mudou só em a456273f41 (#9612, US-SELL-068), que acrescenta a faixa de custo do orçamento do UC-VSHOW-08 (63 linhas, só adições). UC-VSHOW-01..08 seguem batendo com a tela; nenhum teste foi re-rodado aqui.
 - 2026-07-27 · [CC] criado — trio fechado pra `Sells/Show` (alvo #1 do débito Tier-0 de `exposicao-tier0.mjs`) com UC-VSHOW-01..07 + `SellsShowContratoTest.php` + lane `sells-pest.yml` (nenhuma das 9 lanes MySQL rodava `tests/Feature/Sells/**`). Casos derivados do charter §Goals/§Non-Goals + RUNBOOK-show + §CU-07; o Controller foi lido só pra confirmar. Ref [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md).
