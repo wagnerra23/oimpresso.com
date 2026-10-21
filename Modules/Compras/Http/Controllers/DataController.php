@@ -124,6 +124,8 @@ class DataController extends Controller
      * US-COM-024 · UC-FLX-38 — campo "Método de custo" nos formulários de novo e de editar produto.
      * Só nessas duas telas: o cadastro rápido (quickAdd) também desenha as partes dos módulos, mas o
      * salvar dele (saveQuickProduct) não chama `after_product_saved`, e o campo não gravaria.
+     * O gravar (`after_product_saved`) não repete o gate do pacote: sem o campo no formulário, o
+     * envio não traz `compras_metodo_custo` e nada é gravado.
      */
     public function product_form_part()
     {
@@ -132,7 +134,12 @@ class DataController extends Controller
             return [];
         }
 
+        // Só empresa cujo pacote tem o módulo Compras (o mesmo gate do WooCommerce no formulário).
         $businessId = (int) request()->session()->get('user.business_id');
+        if ($businessId <= 0
+            || ! (new ModuleUtil())->hasThePermissionInSubscription($businessId, 'compras_module', 'superadmin_package')) {
+            return [];
+        }
         $productId = (int) request()->route('product');
 
         return [

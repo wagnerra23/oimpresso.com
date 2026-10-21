@@ -17,7 +17,7 @@ use Tests\Support\WithSeededTenant;
 /**
  * US-COM-024 · UC-FLX-38 — "Método de custo" no cadastro do produto (formulário Blade de editar),
  * gravado pelo gancho `after_product_saved` do módulo Compras no `PUT /products/{id}` real.
- * Cobre UC-INSMET-10..15 (resources/js/Pages/Manufacturing/Insumos.casos.md).
+ * Cobre UC-INSMET-10..16 (resources/js/Pages/Manufacturing/Insumos.casos.md).
  *
  * Âncora de contrato: memory/requisitos/Compras/SPEC.md US-COM-024. Vale para qualquer item
  * comprado (matéria-prima ou revenda): o app não marca tipo de produto.
@@ -198,4 +198,40 @@ it('UC-INSMET-15 · UC-FLX-38 · o método mostrado é o das variações: vazio,
     // Tier 0: a mesma consulta pela outra empresa não enxerga as variações deste produto.
     $outra = $this->seededSupportClientTenant();
     expect($metodo->atual($outra->id, $this->produto->productId))->toBe('');
+});
+
+/** A parte do formulário que o core pede ao módulo, como no GET /products/{id}/edit. */
+function partesDoFormularioDeEditar(int $productId): array
+{
+    $req = Illuminate\Http\Request::create("/products/{$productId}/edit");
+    $req->setLaravelSession(app('session.store'));
+    $rota = app('router')->getRoutes()->match($req);
+    $req->setRouteResolver(fn () => $rota);
+    app()->instance('request', $req);
+
+    return (new Modules\Compras\Http\Controllers\DataController)->product_form_part();
+}
+
+it('UC-INSMET-16 · UC-FLX-38 · o campo só vai ao formulário de quem tem o módulo Compras no pacote', function () {
+    DB::table('compras_insumo_metodo_custo')->insert([
+        'business_id' => $this->biz->id, 'variation_id' => $this->variacoes[0], 'metodo' => 'ultimo',
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    DB::table('compras_insumo_metodo_custo')->insert([
+        'business_id' => $this->biz->id, 'variation_id' => $this->variacoes[1], 'metodo' => 'ultimo',
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    // O tenant de teste não tem assinatura com `compras_module`: nada vai ao formulário.
+    expect(partesDoFormularioDeEditar($this->produto->productId))->toBe([]);
+
+    // Superadmin passa o gate do pacote (ModuleUtil::hasThePermissionInSubscription).
+    $this->user->givePermissionTo(Permission::findOrCreate('superadmin', 'web'));
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+    $this->actingAs($this->user->fresh());
+
+    $parte = partesDoFormularioDeEditar($this->produto->productId);
+    expect($parte['template_path'] ?? null)->toBe('compras::partials.metodo_custo_produto')
+        ->and($parte['template_data']['compras_metodo_custo_atual'])->toBe('ultimo')
+        ->and($parte['template_data']['compras_metodo_custo_editavel'])->toBeTrue();
 });

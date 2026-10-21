@@ -237,6 +237,14 @@ Status: 🧪
 
 Status: 🧪
 
+## UC-INSMET-16 · O campo só aparece para empresa com o módulo Compras no pacote · `must`
+
+**Dado** a empresa sem `compras_module` na assinatura **Quando** o formulário de editar produto pede as
+partes dos módulos **Então** o Compras não manda nada; **Dado** acesso ao pacote (aqui, superadmin)
+**Então** manda o campo com o método atual das variações. É o mesmo gate do WooCommerce no formulário.
+
+Status: 🧪
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
@@ -275,4 +283,4 @@ outra decisão de escopo — não é ajuste de código.
   404, `purchase.update`). Prova: `InsumoMetodoCustoEndpointTest.php`.
 - 2026-10-21 · [W+C] UC-INSMET-10..15: o campo no cadastro do produto (formulário Blade), pelos
   ganchos de módulo. Pedido [W]: *"independente se é matéria prima ou material de revenda é
-  necessário a aplicação de sistema de custo"*. Prova: `MetodoCustoNoCadastroDoProdutoTest.php`.
+  necessário a aplicação de sistema de custo"*. Prova: `MetodoCustoNoCadastroDoProdutoTest.php` (UC-INSMET-10..16).
