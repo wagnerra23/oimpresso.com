@@ -207,9 +207,14 @@ function argVal(flag, def = null) {
   return i !== -1 ? process.argv[i + 1] : def;
 }
 
-function trunca(texto, limite, rotulo) {
+export function trunca(texto, limite, rotulo) {
   if (texto.length <= limite) return { texto, truncado: false };
-  return { texto: `${texto.slice(0, limite)}\n\n[TRUNCADO em ${limite} chars — ${rotulo}]`, truncado: true };
+  // O limite conta unidades UTF-16. Emoji (🧪, ✅…) ocupa duas; cortar entre elas deixa a metade
+  // solta, o JSON.stringify a manda como "\ud83e" e a API da OpenAI recusa o corpo inteiro
+  // (400 invalid_json) — o critic não roda. Aconteceu no PR #9744 (Edit.casos.md, corte em 15000).
+  const ultimo = texto.charCodeAt(limite - 1);
+  const corte = ultimo >= 0xd800 && ultimo <= 0xdbff ? limite - 1 : limite;
+  return { texto: `${texto.slice(0, corte)}\n\n[TRUNCADO em ${limite} chars — ${rotulo}]`, truncado: true };
 }
 
 /** Divide um unified diff em blocos por arquivo (chave = path do lado b/). */
