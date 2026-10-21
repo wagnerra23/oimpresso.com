@@ -2689,6 +2689,11 @@ class SellController extends Controller
                         'secondary_plate' => $v->secondary_plate,
                     ])
                     : null,
+                // UC-FLX-06 · US-PCP-028: data prometida ao cliente (PROJETO_DT_FIM). Gravada pelo
+                // vendedor ou, na aprovação, pela fila dos postos (`PrometerPrazoDaVenda`).
+                'prazo_prometido' => (\Illuminate\Support\Facades\Schema::hasColumn('transactions', 'due_date') && $sell->due_date)
+                    ? substr((string) $sell->due_date, 0, 10)
+                    : null,
             ];
 
             // Detail payload já calculado acima — encapsular pra defer.
@@ -3369,6 +3374,22 @@ class SellController extends Controller
     }
 
     /**
+     * UC-FLX-06 · US-PCP-028 — URL do prazo pela fila (`producao.vendas.prazo`, com `{id}`), ou
+     * null quando a empresa não tem o Produção no pacote: aí a rota responde 403 e a tela nem
+     * pergunta. Mesma condição do `PrazoDaVendaController`.
+     */
+    private function urlDoPrazoPelaFila(int $businessId): ?string
+    {
+        if (! \Illuminate\Support\Facades\Route::has('producao.vendas.prazo')) {
+            return null;
+        }
+        $pode = auth()->user()->can('superadmin')
+            || (new \App\Utils\ModuleUtil())->hasThePermissionInSubscription($businessId, 'producao_module');
+
+        return $pode ? '/producao/vendas/{id}/prazo' : null;
+    }
+
+    /**
      * Display a listing sell quotations.
      *
      * @return \Illuminate\Http\Response
@@ -3425,6 +3446,9 @@ class SellController extends Controller
                     'datatable' => '/sells/draft-dt?is_quotation=1',
                     'back' => '/sells',
                     'convert' => '/sells/convert-to-draft/{id}',
+                    // UC-FLX-06 · US-PCP-028: entrega prevista pela fila dos postos, lida pelo
+                    // diálogo de converter. Nulo sem o Produção no pacote (a rota responderia 403).
+                    'prazo' => $this->urlDoPrazoPelaFila((int) $business_id),
                 ],
             ]);
         }

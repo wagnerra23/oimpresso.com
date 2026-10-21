@@ -165,6 +165,17 @@ last_run: "2026-10-20"
 - **Teste:** `tests/Feature/Sells/PesquisaSatisfacaoEntregaContratoTest.php` — `UC-VSHOW-13`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
+## Entrega prometida no cabeçalho (US-PCP-028 · UC-FLX-06)
+
+> **Âncora:** UC-FLX-06 do catálogo de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php`) + decisão [W]
+> 2026-10-20 registrada no `PrometerPrazoDaVenda`: a data prometida fica na venda (`transactions.due_date`,
+> PROJETO_DT_FIM do Office Comercial), digitada pelo vendedor ou gravada na aprovação pela fila dos postos.
+
+## UC-VSHOW-14 · O cabeçalho mostra a entrega prometida ao cliente · `must`
+- **Aceite:** Dado uma venda com data prometida 30/11/2026 e outra sem data · Quando abro o detalhe · Então a primeira traz `headline.prazo_prometido = 2026-11-30` e o cabeçalho mostra "Entrega prometida: 30/11/2026" ao lado da data e do local; a segunda traz `null` e o cabeçalho não mostra nada de prazo.
+- **Teste:** `tests/Feature/Sells/SellsPrazoEntregaContratoTest.php` — `UC-VSHOW-14`.
+- **Status: 🧪** — roda na lane `sells-pest`; nasce sem run.
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
@@ -185,6 +196,7 @@ last_run: "2026-10-20"
 3. **Cadência:** rodar ao fim de toda mexida em `Sells/Show.tsx` ou em `SellController@show`. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-21 · [CL] UC-VSHOW-14 (US-PCP-028 · UC-FLX-06): entrega prometida no cabeçalho. Teste `SellsPrazoEntregaContratoTest`, nasce sem run.
 - 2026-10-20 · [CL] UC-VSHOW-09..13 (US-SELL-071 · UC-FLX-25): pesquisa de satisfação 2 dias depois da entrega e atendimento na nota baixa. Teste `PesquisaSatisfacaoEntregaContratoTest`, nasce sem run.
 - 2026-10-20 · [CL] `last_run` 2026-07-27 → 2026-10-20 por conferência, não por run novo: desde o `last_run` o `Show.tsx` mudou só em a456273f41 (#9612, US-SELL-068), que acrescenta a faixa de custo do orçamento do UC-VSHOW-08 (63 linhas, só adições). UC-VSHOW-01..08 seguem batendo com a tela; nenhum teste foi re-rodado aqui.
 - 2026-07-27 · [CC] criado — trio fechado pra `Sells/Show` (alvo #1 do débito Tier-0 de `exposicao-tier0.mjs`) com UC-VSHOW-01..07 + `SellsShowContratoTest.php` + lane `sells-pest.yml` (nenhuma das 9 lanes MySQL rodava `tests/Feature/Sells/**`). Casos derivados do charter §Goals/§Non-Goals + RUNBOOK-show + §CU-07; o Controller foi lido só pra confirmar. Ref [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md).

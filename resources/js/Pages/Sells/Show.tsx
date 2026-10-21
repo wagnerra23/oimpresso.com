@@ -71,6 +71,14 @@ interface Headline {
   location: { id: number; name: string } | null;
   /** ADR 0251 — veículo da venda direta de oficina (placa na consulta). null = sem veículo. */
   vehicle?: { id: number; plate: string; secondary_plate?: string | null } | null;
+  /** UC-FLX-06 — data prometida ao cliente (AAAA-MM-DD). null = sem data. */
+  prazo_prometido?: string | null;
+}
+
+/** "2026-10-26" → "26/10/2026" sem passar por Date (fuso não desloca o dia). */
+function formatDiaMesAno(iso: string | null | undefined): string | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso ?? '');
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : null;
 }
 
 interface SaleLine {
@@ -342,6 +350,12 @@ export default function SellsShow(props: SellsShowPageProps) {
               <p className="text-sm text-muted-foreground mt-1">
                 {formatDateTime(headline.transaction_date)}
                 {headline.location ? ` · ${headline.location.name}` : ''}
+                {formatDiaMesAno(headline.prazo_prometido) && (
+                  <span data-testid="prazo-prometido">
+                    {' · '}Entrega prometida:{' '}
+                    <span className="tabular-nums text-foreground">{formatDiaMesAno(headline.prazo_prometido)}</span>
+                  </span>
+                )}
               </p>
             </div>
           </div>
