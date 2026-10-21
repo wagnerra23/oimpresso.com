@@ -275,17 +275,6 @@ it('UC-PCCH-08 classificar a conta como fixa entra no custeio; outra empresa, ou
     expect(DB::table('fin_planos_conta')->where('id', $semClasse)->value('classe_custo'))->toBeNull();
 });
 
-it('UC-PCCH-09 Produção › Postos só oferece aplicar o custo-hora a quem tem as duas permissões', function () {
-    session(['user.business_id' => $this->b98, 'business.id' => $this->b98]);
-    $ambas = $this->usuarioComPermissoes(['producao.access', 'producao.desempenho.ver', 'financeiro.relatorios.view']);
-    $soProducao = $this->usuarioComPermissoes(['producao.access', 'producao.desempenho.ver']);
-
-    $this->actingAs($ambas)->get('/producao/postos')
-        ->assertInertia(fn (AssertableInertia $page) => $page->component('Producao/Postos/Index')->where('pode_aplicar_rkw', true));
-    $this->actingAs($soProducao)->get('/producao/postos')
-        ->assertInertia(fn (AssertableInertia $page) => $page->where('pode_aplicar_rkw', false));
-});
-
 it('UC-PCCH-10 o centro de custo é o setor do posto: soma os postos do setor e fecha nas fixas (dois caminhos)', function () {
     $c = rkwCenario($this);
     DB::table('pcp_postos')->where('id', $c['a'])->update(['setor' => 'Corte']);

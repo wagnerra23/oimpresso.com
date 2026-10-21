@@ -2,7 +2,8 @@
 //
 // Só leitura: os números vêm prontos do CusteioRkwService (o mesmo do GET /financeiro/custeio-rkw),
 // em reais como string com 2 casas. Esta tela só formata — não soma, não divide, não arredonda.
-// Aplicar o custo-hora sugerido num posto é ação explícita em Produção › Postos (UC-PCCH-05).
+// Sem botão de aplicar nesta leva (decisão [W] 2026-10-21): o sugerido é custo-hora gravado + parcela
+// e acumula a cada aplicação; o aplicar volta quando o custo-hora direto for guardado separado.
 
 import { router } from '@inertiajs/react';
 import { Inline } from '@/Components/layout';
@@ -171,11 +172,6 @@ export function CusteioView({ custeio }: { custeio: CusteioData | null | undefin
                     {mesLabel(custeio.mes)} · {num(custeio.horas)} h apontadas · {brl(custeio.parcela_fixa_por_hora)}/h de parcela fixa
                   </div>
                 </div>
-                {custeio.pode_ver_postos && (
-                  <a href="/producao/postos" className="ml-auto text-[length:var(--fs-3)] underline text-[var(--text-dim)] hover:text-[var(--text)]">
-                    Aplicar custo-hora nos postos →
-                  </a>
-                )}
               </Inline>
 
               {!custeio.pode_ver_postos ? (

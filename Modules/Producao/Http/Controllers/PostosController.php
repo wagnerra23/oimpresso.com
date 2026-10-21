@@ -6,7 +6,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -31,11 +30,6 @@ class PostosController extends Controller
         return Inertia::render('Producao/Postos/Index', [
             'motivos_padrao' => Motivo::PADRAO,
             'pode_ver_custo_pessoa' => $veCusto,
-            // US-FIN-070 · UC-PCCH-05: o custo-hora pelo rateio vem do Financeiro (GET/POST
-            // /financeiro/custeio-rkw). O bloco só aparece com as duas permissões do endpoint e o
-            // módulo Financeiro ligado (sem a rota, não há para onde pedir).
-            'pode_aplicar_rkw' => $veCusto && $request->user()->can('financeiro.relatorios.view')
-                && Route::has('financeiro.custeio-rkw.show'),
             'postos' => Inertia::defer(fn () => $this->postos()),
             'ferramentas' => Inertia::defer(fn () => Ferramenta::query()->orderBy('nome')->get(['id', 'codigo_qr', 'nome', 'ativo'])),
             'colaboradores' => Inertia::defer(fn () => $veCusto ? $this->colaboradores($biz) : []),

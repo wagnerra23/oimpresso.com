@@ -98,13 +98,6 @@ last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando 
 - **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
 - **Status: 🧪**
 
-## UC-PCCH-09 · Aplicar o custo-hora em Postos só com as duas permissões · `must`
-
-- **Persona:** gestor do PCP.
-- **Aceite:** Quem tem `producao.desempenho.ver` **e** `financeiro.relatorios.view` vê o bloco "Custo-hora pelo rateio das despesas fixas", com antes → depois por posto e um clique de confirmação antes de gravar (UC-PCCH-05) · Quem tem só a Produção não vê o bloco.
-- **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
-- **Status: 🧪**
-
 ## UC-PCCH-10 · O centro de custo é o setor do posto · `must` valor
 
 - **Persona:** gestor financeiro. Decisão [W] 2026-10-21: o setor é o campo `pcp_postos.setor` do cadastro do posto; agrupa os postos e rateia por setor.
@@ -112,7 +105,7 @@ last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando 
 - **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
 - **Status: 🧪**
 
-- **[BACKLOG]** Aplicar duas vezes o mesmo mês soma a parcela fixa duas vezes: o sugerido é o custo-hora ATUAL + parcela, e depois de aplicar o atual já a contém. A tela tira o botão depois de aplicar, mas só na mesma visita.
+- **[BACKLOG]** Botão "Aplicar custo-hora" em Postos — saiu do #9716 por decisão [W] (2026-10-21). O sugerido é o custo-hora GRAVADO + parcela fixa, e depois de aplicar o gravado já contém a parcela: aplicar de novo o mesmo mês, ou aplicar o mês seguinte, soma outra parcela (fixture F 4.000 / 40 h: posto A 30 → 130 → 230 → 330). O [W] escolheu guardar o custo-hora direto separado da parcela, para o sugerido ser sempre direto + parcela do mês; o botão volta depois disso, em PR próprio. O endpoint `POST /financeiro/custeio-rkw/aplicar/{posto}` (UC-PCCH-05) segue no main.
 
 ---
 
@@ -331,4 +324,4 @@ Status: 🧪
 - 2026-10-20 · [CL] UC-PCPRZ-05..08 — decisão [W]: dias úteis pelo período de funcionamento cadastrado (turno da produção, expediente e feriados do RH) e data prometida gravada na venda e na OS na aprovação; datas de UC-PCPRZ-01/02 recalculadas (24/10→26/10, 25/10→27/10).
 - 2026-10-20 · [CL] UC-PCCH-03..06 — custeio RKW e ponto de equilíbrio (US-FIN-070): cálculo só leitura + aplicar explícito; o [BACKLOG] do rateio virou estes casos.
 - 2026-10-21 · [CL] UC-PCCH-10 — centro de custo por setor (decisão [W]: setor = `pcp_postos.setor`).
-- 2026-10-21 · [CL] UC-PCCH-07..09 — telas do custeio: aba Custeio na DRE, classe fixa/variável no plano de contas, aplicar custo-hora em Postos; [BACKLOG] do aplicar em dobro.
+- 2026-10-21 · [CL] UC-PCCH-07..08 — telas do custeio: aba Custeio na DRE e classe fixa/variável no plano de contas. O botão de aplicar em Postos (era o UC-PCCH-09) saiu por decisão [W] e virou [BACKLOG].
