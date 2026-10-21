@@ -37,6 +37,9 @@ interface QuoteRow {
   total_items: number;
   total_quantity: number;
   added_by: string | null;
+  // UC-FLX-04: abertura do link público pelo cliente ('AAAA-MM-DD HH:MM:SS' do banco).
+  aberto_em: string | null;
+  aberto_vezes: number;
 }
 
 export interface SellsQuotationsPageProps {
@@ -49,6 +52,13 @@ export interface SellsQuotationsPageProps {
   // convert = permissão de venda E a flag enable_convert_draft_to_invoice (mesma condição do Blade).
   permissions: { view_all: boolean; view_own: boolean; convert: boolean };
   urls: { datatable: string; back: string; convert: string };
+}
+
+/** 'AAAA-MM-DD HH:MM:SS' → 'dd/mm hh:mm', pelo texto (sem `new Date()`, que trocaria o fuso). */
+function diaHora(v: string): string {
+  const [d = '', h = ''] = v.split(' ');
+  const [, m, dia] = d.split('-');
+  return `${dia}/${m} ${h.slice(0, 5)}`.trim();
 }
 
 function formatDateTime(input: string): string {
@@ -100,6 +110,8 @@ export default function SellsQuotations(props: SellsQuotationsPageProps) {
         total_items: Number(r.total_items ?? 0),
         total_quantity: Number(r.total_quantity ?? 0),
         added_by: r.added_by ? String(r.added_by) : null,
+        aberto_em: r.quote_first_opened_at ? String(r.quote_first_opened_at) : null,
+        aberto_vezes: Number(r.quote_open_count ?? 0),
       }));
       setRows(items);
     } catch {
@@ -228,6 +240,7 @@ export default function SellsQuotations(props: SellsQuotationsPageProps) {
                   <th className="text-left px-3 py-2 font-medium">Cliente</th>
                   <th className="text-left px-3 py-2 font-medium">Local</th>
                   <th className="text-right px-3 py-2 font-medium">Itens</th>
+                  <th className="text-left px-3 py-2 font-medium">Aberto</th>
                   <th className="text-right px-5 py-2 font-medium">Ações</th>
                 </tr>
               </thead>
@@ -242,6 +255,16 @@ export default function SellsQuotations(props: SellsQuotationsPageProps) {
                     <td className="px-3 py-3">{r.customer_name ?? '—'}</td>
                     <td className="px-3 py-3 text-muted-foreground">{r.business_location}</td>
                     <td className="px-3 py-3 text-right tabular-nums">{r.total_items}</td>
+                    <td className="px-3 py-3 tabular-nums" data-testid="quote-aberto">
+                      {r.aberto_em && r.aberto_vezes > 0 ? (
+                        <span title={`Aberto ${r.aberto_vezes} vez(es) pelo cliente`}>
+                          {diaHora(r.aberto_em)}
+                          {r.aberto_vezes > 1 && <span className="text-muted-foreground"> · {r.aberto_vezes}×</span>}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">Não aberto</span>
+                      )}
+                    </td>
                     <td className="px-5 py-3 text-right">
                       <div className="inline-flex gap-2">
                         <Button variant="outline" size="sm" asChild>
