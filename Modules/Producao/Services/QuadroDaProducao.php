@@ -88,7 +88,11 @@ final class QuadroDaProducao
      */
     public function rotulos(int $businessId, array $refs): array
     {
-        $porTipo = collect($refs)->groupBy(0)->map(fn ($l) => $l->pluck(1)->map(fn ($id) => (int) $id)->unique()->values()->all());
+        $porTipo = [];
+        foreach ($refs as [$tipo, $id]) {
+            $porTipo[$tipo][(int) $id] = (int) $id;
+        }
+        $porTipo = array_map('array_values', $porTipo);
         $cv = $this->osDaCv($businessId, $porTipo[RomaneioDeImpressao::OS_TIPO] ?? []);
         $op = $this->ordens($businessId, $porTipo[Ordem::OS_TIPO] ?? []);
         $saida = [];
