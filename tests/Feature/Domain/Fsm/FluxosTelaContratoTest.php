@@ -1,6 +1,6 @@
 <?php
 // @covers-us US-SELL-069 (UC-FLXT-19: a margem mínima é configurada nesta tela)
-// @covers-us US-PCP-025 (UC-FLXT-22: o sinal mínimo da produção é configurado nesta tela)
+// @covers-us US-PCP-025 (UC-FLXT-23: o sinal mínimo da produção é configurado nesta tela)
 // @covers-us US-PCP-021 (UC-FLXT-20/21: a regra de baixa de material sem OS não executa e não baixa duas vezes)
 
 declare(strict_types=1);
@@ -494,7 +494,7 @@ it('UC-FLXT-19 · quem configura grava a margem mínima do orçamento; vazio des
     expect($gravada())->toBeNull();
 });
 
-it('UC-FLXT-22 · quem configura grava o sinal mínimo da produção; vazio desliga; fora de 0,01–100 é recusado; outra empresa não muda', function () {
+it('UC-FLXT-23 · quem configura grava o sinal mínimo da produção; vazio desliga; fora de 0,01–100 é recusado; outra empresa não muda', function () {
     if (! \Illuminate\Support\Facades\Schema::hasColumn('fsm_modelos_empresa', 'sinal_minimo_pct')) {
         $this->markTestSkipped('Coluna fsm_modelos_empresa.sinal_minimo_pct ausente (migration 2026_10_20_120000).');
     }

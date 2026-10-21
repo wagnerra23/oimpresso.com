@@ -5,7 +5,7 @@
 // os dois exigem fluxos.configurar — sem ela os switches ficam só para leitura.
 // A margem mínima do orçamento (PATCH /fluxos/margem, UC-FLXT-19) não vem do protótipo: foi
 // pedida por [W] em 2026-10-19 e usa os mesmos átomos da Compra (Interruptor + campo). O sinal
-// mínimo da produção (PATCH /fluxos/sinal, UC-FLXT-22 · US-PCP-025) segue o mesmo desenho.
+// mínimo da produção (PATCH /fluxos/sinal, UC-FLXT-23 · US-PCP-025) segue o mesmo desenho.
 
 import { useEffect, useState } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
@@ -29,7 +29,7 @@ interface Props {
   opcoesCompra: MapaOpcoesCompra;
   /** UC-FLXT-19: margem mínima do orçamento, em % (nula = desligada). */
   margemMinima: number | null;
-  /** UC-FLXT-22: sinal mínimo para liberar a OS, em % da venda, texto decimal (nulo = desligado). */
+  /** UC-FLXT-23: sinal mínimo para liberar a OS, em % da venda, texto decimal (nulo = desligado). */
   sinalMinimo: string | null;
   podeConfigurar: boolean;
 }
@@ -169,7 +169,7 @@ function MargemMinima({ valor, pode }: { valor: number | null; pode: boolean }) 
 }
 
 /**
- * UC-FLXT-22 · sinal mínimo para a produção liberar a OS (UC-FLX-28 · US-PCP-025). Ligado, a OS só
+ * UC-FLXT-23 · sinal mínimo para a produção liberar a OS (UC-FLX-28 · US-PCP-025). Ligado, a OS só
  * sai de Aguardando liberação quando o pago da venda alcança esse % do total; o pagamento que chega
  * libera sozinho. Desligado, grava vazio (PATCH /fluxos/sinal).
  */

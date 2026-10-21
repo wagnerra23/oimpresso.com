@@ -187,7 +187,7 @@ last_run: "2026-10-20"
 - **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-21").
 - **Status: 🧪**
 
-## UC-FLXT-22 · Quem configura define o sinal mínimo para a produção liberar a OS
+## UC-FLXT-23 · Quem configura define o sinal mínimo para a produção liberar a OS
 - **Persona:** dono que só quer produzir depois que o cliente pagou o sinal (UC-FLX-28 · US-PCP-025).
 - **Aceite:** Dado uma empresa com modelo em uso · Quando quem tem `fluxos.configurar` grava um sinal
   mínimo entre 0,01% e 100% na aba Fluxos da empresa · Então ele fica gravado, com 2 casas e sem
@@ -195,7 +195,7 @@ last_run: "2026-10-20"
   desligada · E dado 0 ou um valor fora da faixa · Então recebe erro e nada muda · E a regra de outra
   empresa não muda · E sem `fluxos.configurar` recebe 403. VALOR: o campo só grava o percentual; a
   conta pago × exigido é da Produção (UC-PCLIB-04..07).
-- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-22").
+- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-23").
 - **Status: 🧪**
 
 ---

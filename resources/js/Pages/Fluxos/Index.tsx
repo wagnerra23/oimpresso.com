@@ -45,7 +45,7 @@ interface Props {
   opcoes_compra: MapaOpcoesCompra;
   /** UC-FLXT-19: margem mínima do orçamento, em % (nula = desligada). */
   margem_minima: number | null;
-  /** UC-FLXT-22: sinal mínimo para liberar a OS, em % da venda, como texto decimal (nulo = desligado). */
+  /** UC-FLXT-23: sinal mínimo para liberar a OS, em % da venda, como texto decimal (nulo = desligado). */
   sinal_minimo: string | null;
   pode_configurar: boolean;
 }

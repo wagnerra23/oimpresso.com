@@ -109,7 +109,7 @@ class FluxosController extends Controller
             'opcoes_compra' => $comModelo ? RegrasCompra::opcoes() : (object) [],
             // UC-FLX-35 · UC-FLXT-19: margem mínima do orçamento (nula = desligada).
             'margem_minima' => $comModelo ? $regras->margemMinima($businessId) : null,
-            // UC-FLX-28 · UC-FLXT-22: sinal mínimo para liberar a OS, em % da venda (nulo = desligado).
+            // UC-FLX-28 · UC-FLXT-23: sinal mínimo para liberar a OS, em % da venda (nulo = desligado).
             'sinal_minimo' => $comModelo ? $regras->sinalMinimo($businessId) : null,
             'pode_configurar' => auth()->user()->can('fluxos.configurar'),
         ]);
@@ -210,7 +210,7 @@ class FluxosController extends Controller
     }
 
     /**
-     * Sinal mínimo para a produção liberar a OS (UC-FLXT-22 · UC-FLX-28 · US-PCP-025), em % do total
+     * Sinal mínimo para a produção liberar a OS (UC-FLXT-23 · UC-FLX-28 · US-PCP-025), em % do total
      * da venda. Ligado, a OS só sai de Aguardando liberação com esse percentual pago. Vazio desliga.
      * O valor segue como texto até o banco (DECIMAL), sem passar por float.
      */
