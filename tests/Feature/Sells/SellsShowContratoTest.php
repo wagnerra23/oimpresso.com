@@ -365,3 +365,58 @@ it('UC-VSHOW-07 · o histórico da venda chega ao operador com autor e data', fu
         . 'consegue ver quem fez o quê (CU-07 §Estado atual: "registra tudo, mas não tem UI").');
     expect((string) $item['created_at'])->not->toBeEmpty();
 });
+
+// =============================================================================
+// UC-VSHOW-17 — US-SELL-071 aceite 5: o detalhe mostra a nota da pesquisa depois da entrega e o
+//   atendimento aberto, só para quem tem `sell.view`; pesquisa de outro business não aparece.
+// =============================================================================
+
+it('UC-VSHOW-17 · a nota da pesquisa e o atendimento aberto chegam ao detalhe da venda', function () {
+    foreach (['transaction_satisfaction_surveys', 'crm_schedules'] as $t) {
+        if (! Schema::hasTable($t)) {
+            $this->markTestSkipped("{$t} ausente — roda na lane MySQL.");
+        }
+    }
+    $venda = sellsShowVenda($this->bizId);
+    $saleId = $venda['transaction_id'];
+    $tarefa = (int) DB::table('crm_schedules')->insertGetId([
+        'business_id' => $this->bizId, 'title' => 'VSHOW-14 atendimento', 'status' => 'scheduled',
+        'start_datetime' => now(), 'end_datetime' => now()->addHour(), 'schedule_type' => 'call',
+        'allow_notification' => 0, 'created_by' => $this->user->id, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    DB::table('transaction_satisfaction_surveys')->insert([
+        'business_id' => $this->bizId, 'transaction_id' => $saleId, 'canal' => 'whatsapp', 'status' => 'respondido',
+        'nota' => 2, 'respondido_em' => now(), 'atendimento_schedule_id' => $tarefa, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $detalhe = function () use ($saleId) {
+        $r = sellsShowGet($this, $saleId, ['X-Inertia-Partial-Component' => 'Sells/Show', 'X-Inertia-Partial-Data' => 'detail']);
+        $r->assertStatus(200);
+
+        return json_decode($r->getContent(), true)['props']['detail'] ?? null;
+    };
+
+    $d = $detalhe();
+    // PRÉ-CONDIÇÃO ANTI-VÁCUO: a prop deferida chegou.
+    expect($d)->toBeArray()->toHaveKey('lines');
+    expect($d['pesquisa']['nota'])->toBe(2);
+    expect($d['pesquisa']['status'])->toBe('respondido');
+    expect($d['pesquisa']['atendimento']['id'])->toBe($tarefa);
+    expect($d['pesquisa']['atendimento']['titulo'])->toBe('VSHOW-14 atendimento');
+
+    // Tier 0: a tarefa do CRM é lida pelo business da venda — de outro business ela não aparece.
+    $outroBiz = (int) DB::table('business')->where('id', '!=', $this->bizId)->orderBy('id')->value('id');
+    if ($outroBiz) {
+        DB::table('crm_schedules')->where('id', $tarefa)->update(['business_id' => $outroBiz]);
+        expect($detalhe()['pesquisa']['atendimento'])->toBeNull();
+    }
+
+    // Sem `sell.view` (só as próprias vendas), a nota não vai para a tela.
+    $this->user->revokePermissionTo('sell.view');
+    Permission::findOrCreate('view_own_sell_only', 'web');
+    $this->user->givePermissionTo('view_own_sell_only');
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+    DB::table('transactions')->where('id', $saleId)->update(['created_by' => $this->user->id]);
+    $d = $detalhe();
+    expect($d)->toBeArray()->toHaveKey('lines');
+    expect($d['pesquisa'])->toBeNull();
+});

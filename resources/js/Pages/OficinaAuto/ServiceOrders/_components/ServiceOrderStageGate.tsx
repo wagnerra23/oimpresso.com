@@ -12,6 +12,8 @@
 // Requisitos:
 //   - auto   → puxados do sistema (DVI/fotos/itens/aprovação). Bloqueiam.
 //   - manual → conferência humana (checkbox persistido local). Advisory, não bloqueia.
+//   - `assinatura` (entrega, só quando a empresa exige — US-OFICINA-048) → pendente, abre o
+//     quadro de assinatura abaixo da lista; salvar recarrega o gate.
 //
 // CRÍTICO React 19 — useCallback nos handlers. Multi-tenant Tier 0 [ADR 0093]: backend escopa.
 
@@ -20,6 +22,7 @@ import { ArrowRight, Check, Loader2, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Inline } from '@/Components/layout';
+import ServiceOrderSignaturePad from './ServiceOrderSignaturePad';
 
 interface GateRequirement {
   key: string;
@@ -291,6 +294,10 @@ export default function ServiceOrderStageGate({ serviceOrderId, enabled, onChang
               </li>
             ))}
           </ul>
+
+          {items.some((i) => i.key === 'assinatura' && !i.ok) && (
+            <ServiceOrderSignaturePad serviceOrderId={serviceOrderId} onSaved={() => void fetchGate()} />
+          )}
         </>
       )}
 

@@ -74,6 +74,12 @@ on:
       - 'Modules/OficinaAuto/Services/AcoesOsDoApp.php'
       - 'app/Http/Controllers/ServiceOrderFsmActionController.php'
       - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php'
+      - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaAssinaturaTest.php'  # UC-FLX-22 assinatura na entrega
+      - 'Modules/OficinaAuto/Services/AssinaturaEntrega.php'
+      - 'Modules/OficinaAuto/Http/Controllers/ServiceOrderAssinaturaController.php'
+      - 'Modules/OficinaAuto/Entities/OsAssinatura.php'
+      - 'Modules/OficinaAuto/Console/Commands/OficinaEntregaAssinaturaCommand.php'
+      - 'Modules/OficinaAuto/Database/Migrations/2026_10_21_120000_create_oficina_os_assinaturas_table.php'
       - 'routes/api/app/os-arquivos.php'
       - 'app/Contracts/Arquivos/AnexosDoApp.php'
       - 'Modules/Arquivos/Services/AnexosDoAppService.php'
@@ -256,6 +262,12 @@ jobs:
               - 'Modules/OficinaAuto/Services/AcoesOsDoApp.php'
               - 'app/Http/Controllers/ServiceOrderFsmActionController.php'
               - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php'
+              - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaAssinaturaTest.php'  # UC-FLX-22 assinatura na entrega
+              - 'Modules/OficinaAuto/Services/AssinaturaEntrega.php'
+              - 'Modules/OficinaAuto/Http/Controllers/ServiceOrderAssinaturaController.php'
+              - 'Modules/OficinaAuto/Entities/OsAssinatura.php'
+              - 'Modules/OficinaAuto/Console/Commands/OficinaEntregaAssinaturaCommand.php'
+              - 'Modules/OficinaAuto/Database/Migrations/2026_10_21_120000_create_oficina_os_assinaturas_table.php'
               - 'routes/api/app/os-arquivos.php'
               - 'app/Contracts/Arquivos/AnexosDoApp.php'
               - 'Modules/Arquivos/Services/AnexosDoAppService.php'
@@ -496,6 +508,7 @@ jobs:
             tests/Feature/Sells/AppNotificacoesApiContratoTest.php \
             tests/Feature/Sells/AppOsApiContratoTest.php \
             Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php \
+            Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaAssinaturaTest.php \
             tests/Feature/Sells/AppOsArquivosApiContratoTest.php \
             tests/Feature/Sells/AppPedidoEntregaContratoTest.php \
             tests/Feature/Sells/AppOficinaAgendaApiContratoTest.php \

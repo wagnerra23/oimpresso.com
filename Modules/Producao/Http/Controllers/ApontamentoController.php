@@ -84,9 +84,12 @@ class ApontamentoController extends Controller
     public function concluir(Request $request, int $inicio): JsonResponse
     {
         [$biz, $user] = $this->operador($request);
-        $d = $request->validate($this->regras());
+        // US-COMVIS-004: m² impresso e tinta C/M/Y/K são opcionais; o formato quem decide é o serviço.
+        $campos = ['m2_impresso', 'tinta_ml_c', 'tinta_ml_m', 'tinta_ml_y', 'tinta_ml_k'];
+        $d = $request->validate($this->regras() + array_fill_keys($campos, 'nullable|string|max:16'));
 
-        return $this->escrever(fn () => $this->svc->concluir($biz, $user, $inicio, $d['chave'], Carbon::parse($d['momento'])));
+        return $this->escrever(fn () => $this->svc->concluir($biz, $user, $inicio, $d['chave'], Carbon::parse($d['momento']),
+            array_intersect_key($d, array_flip($campos))));
     }
 
     /**
