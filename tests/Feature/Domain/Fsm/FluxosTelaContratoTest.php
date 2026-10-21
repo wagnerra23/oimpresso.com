@@ -320,7 +320,7 @@ it('UC-FLXT-13 · aba Casos de uso traz os casos com fontes, estado, US e os mod
     $uc01 = $casos->firstWhere('id', 'UC-FLX-01');
     expect($uc01['titulo'])->toBe('Orçamento aprovado vira OS sem redigitar');
     expect($uc01['fontes'])->toContain('mubisys');
-    expect($uc01['estado'])->toBe('planejado');
+    expect($uc01['estado'])->toBe('parcial');
     // Modelos que listam UC-FLX-01 no catálogo.
     $esperados = collect(\App\Domain\Fsm\Modelos\CatalogoModelos::modelos())
         ->filter(fn ($m) => in_array('UC-FLX-01', $m['casos'], true))->keys()->values()->all();

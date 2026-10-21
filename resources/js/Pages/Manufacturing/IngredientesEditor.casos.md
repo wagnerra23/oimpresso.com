@@ -151,6 +151,9 @@ last_run: "2026-10-09"
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
+- **[BACKLOG]** (D2 · decisão [W] 2026-10-13) Salvar a composição grava em `product_bom` e `mfg_recipes` passa a ler dela, sem mudar a resposta de `ProductController`, `ProdutoUnificadoController` e `ProductUtil`. Mexe em estoque/valor: REGRA MESTRE (dupla prova + antes→depois). Depende do ADR.
+- **[BACKLOG]** (D4) A composição não mostra "% de desperdício"; ordens já gravadas mantêm o que gravaram.
+- **[BACKLOG]** (D6) A regra de consumo vem da unidade do insumo (m², ml, un, chapa) e a tela mostra a prévia com uma medida de exemplo.
 - **[BACKLOG]** Chego ao editor pelo "Editar ingredientes" da lista de Receitas, sem digitar URL.
   Desde a etapa 3 (2026-10-08) o link leva `&tela=nova`; a prova é de navegador.
 - **[BACKLOG]** O "Custo por <unidade>" do editor é o mesmo da lista de Receitas para a mesma receita.

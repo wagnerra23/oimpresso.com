@@ -138,6 +138,9 @@ on:
       - 'Modules/Crm/Tests/Feature/CrmPropostas*'
       # Thread Producao/02 — fundo do PCP (trigger append-only exige MySQL).
       - 'Modules/Producao/**'
+      # US-PCP-031 — a reserva do insumo lê a receita pelo contrato (implementado no Manufacturing).
+      - 'app/Contracts/Fabricacao/**'
+      - 'Modules/Manufacturing/Services/InsumosDaReceitaService.php'
       # US-PCP-025 — o sinal mínimo da empresa mora nas regras do FSM.
       - 'app/Domain/Fsm/Modelos/RegrasDaEmpresa.php'
       # US-FISIO-003 — fundo do Fisio (triggers append-only + escopo multi-tenant exigem MySQL).
@@ -266,6 +269,9 @@ jobs:
               - 'Modules/Crm/Tests/Feature/CrmPropostas*'
               # Thread Producao/02 — fundo do PCP (trigger append-only exige MySQL).
               - 'Modules/Producao/**'
+              # US-PCP-031 — a reserva do insumo lê a receita pelo contrato (implementado no Manufacturing).
+              - 'app/Contracts/Fabricacao/**'
+              - 'Modules/Manufacturing/Services/InsumosDaReceitaService.php'
               # US-PCP-025 — o sinal mínimo da empresa mora nas regras do FSM.
               - 'app/Domain/Fsm/Modelos/RegrasDaEmpresa.php'
               # US-FISIO-003 — fundo do Fisio (triggers append-only + escopo multi-tenant exigem MySQL).
@@ -650,6 +656,14 @@ jobs:
             Modules/Producao/Tests/Feature/ProducaoFecharTurnoComandoTest.php \
             Modules/Producao/Tests/Feature/ProducaoMaterialContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoCustoOsAbertaContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoOperadoresDoPostoContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoPrevistoRealizadoContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoRefugoContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoAprovacaoArteContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoAlocacaoContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoReservaInsumoContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoPrazoPelaFilaContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoRoloRastreioContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoSinalPagoLiberaContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoRomaneioContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoAproveitamentoMidiaContratoTest.php \

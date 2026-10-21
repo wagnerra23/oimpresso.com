@@ -2,6 +2,8 @@
 
 namespace Modules\Producao\Http\Controllers;
 
+use App\Domain\Fsm\Exceptions\InvalidActionForCurrentStageException;
+use App\Domain\Fsm\Exceptions\UnauthorizedActionException;
 use App\User;
 use App\Utils\ModuleUtil;
 use Illuminate\Http\JsonResponse;
@@ -16,6 +18,7 @@ use Modules\Producao\Entities\Programacao;
 use Modules\Producao\Exceptions\ApontamentoRecusado;
 use Modules\Producao\Services\ApontamentoOperadorService;
 use Modules\Producao\Services\ConsumoMaterialService;
+use Modules\Producao\Services\RefugoService;
 
 /**
  * Celular do operador (PWA web) — thread 04 + E04 do playbook PCP. A regra mora no
@@ -94,16 +97,45 @@ class ApontamentoController extends Controller
         [$biz, $user] = $this->operador($request);
         $d = $request->validate($this->regras() + [
             'programacao_id' => 'required|integer|min:1', 'variation_id' => 'required|integer|min:1', 'quantidade' => 'required|string|max:24',
+            'lote_id' => 'nullable|integer|min:1', // US-COM-025: rolo escolhido; sem ele, o método da empresa.
         ]);
 
         try {
-            $c = $consumo->registrar($biz, $user, (int) $d['programacao_id'], (int) $d['variation_id'], (string) $d['quantidade'], $d['chave'], Carbon::parse($d['momento']));
+            $c = $consumo->registrar($biz, $user, (int) $d['programacao_id'], (int) $d['variation_id'], (string) $d['quantidade'], $d['chave'], Carbon::parse($d['momento']),
+                isset($d['lote_id']) ? (int) $d['lote_id'] : null);
         } catch (ApontamentoRecusado $e) {
             return $this->recusa($e);
         }
 
         return response()->json(['id' => $c->id, 'programacao_id' => $c->programacao_id, 'variation_id' => $c->variation_id,
             'quantidade' => (string) $c->quantidade, 'quantidade_sem_lote' => (string) $c->quantidade_sem_lote], $c->wasRecentlyCreated ? 201 : 200);
+    }
+
+    /**
+     * US-PCP-027 · UC-FLX-16: refugo com motivo na etapa (quantas peças, motivo de refugo do posto),
+     * com material reposto (baixa pelo ConsumoMaterialService) e, se pedido, a OS para Retrabalho
+     * (papel producao.qualidade no motor). A resposta não traz custo (o operador não vê custo).
+     */
+    public function refugo(Request $request, RefugoService $refugos): JsonResponse
+    {
+        [$biz, $user] = $this->operador($request);
+        $d = $request->validate($this->regras() + [
+            'programacao_id' => 'required|integer|min:1', 'motivo_id' => 'required|integer|min:1', 'quantidade' => 'required|string|max:24',
+            'retrabalho' => 'sometimes|boolean', 'materiais' => 'sometimes|array|max:20',
+            'materiais.*.variation_id' => 'required|integer|min:1', 'materiais.*.quantidade' => 'required|string|max:24',
+        ]);
+
+        try {
+            $r = $refugos->registrar($biz, $user, (int) $d['programacao_id'], (int) $d['motivo_id'], (string) $d['quantidade'], $d['chave'],
+                Carbon::parse($d['momento']), array_values($d['materiais'] ?? []), (bool) ($d['retrabalho'] ?? false));
+        } catch (ApontamentoRecusado $e) {
+            return $this->recusa($e);
+        } catch (UnauthorizedActionException|InvalidActionForCurrentStageException $e) {
+            return response()->json(['erro' => 'retrabalho_negado', 'mensagem' => 'Mandar para retrabalho é do controle de qualidade, com a OS em execução.', 'contexto' => []], 403);
+        }
+
+        return response()->json(['id' => $r->id, 'programacao_id' => $r->programacao_id, 'motivo' => $r->motivo, 'quantidade' => (string) $r->quantidade,
+            'retrabalho_programacao_id' => $r->retrabalho_programacao_id], $r->wasRecentlyCreated ? 201 : 200);
     }
 
     public function corrigir(Request $request, int $inicio): JsonResponse

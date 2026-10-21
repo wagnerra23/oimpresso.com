@@ -23,6 +23,7 @@ contains:
   - "ReminderController"
   - "SalesTargetController"
   - "ShiftController"
+  - "CalendarioDaEmpresaService — implementa App\\Contracts\\Rh\\CalendarioDaEmpresa: feriados da empresa e da loja (mesma regra do Ponto) e o expediente do turno fixo, para o prazo da produção em dias úteis (US-PCP-028 · UC-FLX-06)"
   - "ToDoController"
 not_contains:
   - "módulo `Notas` (PROPOSTO — não existe em Modules/) — KB pessoal + tarefas + arquivo cliente"
