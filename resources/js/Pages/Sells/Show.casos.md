@@ -5,7 +5,7 @@ irmaos: Show.charter.md (lei) · tests/Feature/Sells/SellsShowContratoTest.php (
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-10-20"
+last_run: "2026-10-21"
 ---
 
 # Casos de Uso & Aceite — Detalhe da venda
@@ -190,6 +190,7 @@ last_run: "2026-10-20"
 3. **Cadência:** rodar ao fim de toda mexida em `Sells/Show.tsx` ou em `SellController@show`. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-21 · [CL] `last_run` 2026-10-20 → 2026-10-21 por conferência, não por run novo: o `Show.tsx` só ganhou a seção da pesquisa (componente novo + 1 linha no `ShowDetailSections`); UC-VSHOW-01..13 seguem batendo com a tela.
 - 2026-10-21 · [CL] UC-VSHOW-17 sai do backlog: seção "Pesquisa de satisfação" na coluna esquerda (nota + atendimento no CRM, `sell.view`). Teste em `SellsShowContratoTest`, nasce sem run.
 - 2026-10-20 · [CL] UC-VSHOW-09..13 (US-SELL-071 · UC-FLX-25): pesquisa de satisfação 2 dias depois da entrega e atendimento na nota baixa. Teste `PesquisaSatisfacaoEntregaContratoTest`, nasce sem run.
 - 2026-10-20 · [CL] `last_run` 2026-07-27 → 2026-10-20 por conferência, não por run novo: desde o `last_run` o `Show.tsx` mudou só em a456273f41 (#9612, US-SELL-068), que acrescenta a faixa de custo do orçamento do UC-VSHOW-08 (63 linhas, só adições). UC-VSHOW-01..08 seguem batendo com a tela; nenhum teste foi re-rodado aqui.

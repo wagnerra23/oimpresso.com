@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o salvar é substituição total e mexe em margem e pontos; a tela nova não pode mudar valor gravado nem expor segredo.
 owner: wagner
-last_run: "2026-10-13"
+last_run: "2026-10-21"
 ---
 
 # Casos de Uso & Aceite — Configuração da empresa
@@ -127,3 +127,6 @@ last_run: "2026-10-13"
   nota 3 fica · E a Blade da aba Vendas desenha os mesmos dois campos.
 - **Teste:** `tests/Feature/Configuracoes/EmpresaContratoTest.php` — `UC-EMP-16`.
 - **Status: 🧪**
+
+## Trilha do tempo
+- 2026-10-21 · [CL] UC-EMP-16 (pesquisa depois da entrega na aba Vendas). `last_run` 2026-10-13 → 2026-10-21 por conferência, não por run novo: o `Index.tsx` só ganhou o bloco da pesquisa dentro da aba Vendas; UC-EMP-01..14 seguem batendo com a tela.
