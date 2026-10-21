@@ -4,6 +4,7 @@ use Inertia\Inertia;
 use Modules\ComunicacaoVisual\Http\Controllers\ApontamentoController;
 use Modules\ComunicacaoVisual\Http\Controllers\InstalacaoController;
 use Modules\ComunicacaoVisual\Http\Controllers\InstallController;
+use Modules\ComunicacaoVisual\Http\Controllers\OrcamentoArquivoController;
 use Modules\ComunicacaoVisual\Http\Controllers\OrcamentoController;
 
 // Rota raiz do módulo: renderiza Index.tsx — calculadora de orçamento por m²
@@ -120,6 +121,16 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         Route::post('orcamentos/{id}/aprovar', [OrcamentoController::class, 'aprovar'])
             ->whereNumber('id')
             ->name('comvis.api.orcamentos.aprovar');
+
+        // Arquivos do orçamento (arte, foto do local) — copiados para a OS ao aprovar (UC-FLX-01)
+        Route::post('orcamentos/{id}/arquivos', [OrcamentoArquivoController::class, 'store'])
+            ->whereNumber('id')
+            ->name('comvis.api.orcamentos.arquivos.store');
+
+        Route::delete('orcamentos/{id}/arquivos/{media}', [OrcamentoArquivoController::class, 'destroy'])
+            ->whereNumber('id')
+            ->whereNumber('media')
+            ->name('comvis.api.orcamentos.arquivos.destroy');
 
         // Sprint 1 — US-COMVIS-004: Spool Plotter / Apontamento de Produção
         // ATENÇÃO: em-andamento registrado antes de {apontamento} pra evitar conflito de rota

@@ -146,6 +146,7 @@ class OrcamentoController extends Controller
             'total'            => (float) $o->total,
             // UC-FLX-01: a OS que o orçamento gerou ao ser aprovado (null antes disso).
             'os'               => $os ? ['id' => $os->id, 'numero' => $os->numero] : null,
+            'arquivos'         => OrcamentoArquivoController::doOrcamento($businessId, $o->id),
             'itens'            => $o->itens->map(fn ($i) => [
                 'material_id'       => $i->material_id,
                 'descricao'         => $i->descricao,

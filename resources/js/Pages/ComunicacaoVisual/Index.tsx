@@ -32,7 +32,7 @@
  */
 import { useMemo, useState, type ReactNode } from 'react';
 import { Deferred, Head, Link, router } from '@inertiajs/react';
-import { Plus, Trash2, Calculator, ServerCog, Ruler, Clock, Printer, Save, FolderOpen, CheckCircle2 } from 'lucide-react';
+import { Plus, Trash2, Calculator, ServerCog, Ruler, Clock, Printer, Save, FolderOpen, CheckCircle2, Paperclip, X } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { PageHeader } from '@/Components/PageHeader';
@@ -62,6 +62,8 @@ interface OrcamentoTela {
   total: number;
   /** OS que o orçamento gerou ao ser aprovado (UC-FLX-01). */
   os: { id: number; numero: string } | null;
+  /** Arquivos anexados (media do core) — passam para a OS ao aprovar. */
+  arquivos: ArquivoTela[];
   itens: Array<{
     material_id: number | null;
     descricao: string;
@@ -71,6 +73,15 @@ interface OrcamentoTela {
     preco_unitario_m2: number;
   }>;
 }
+
+interface ArquivoTela {
+  id: number;
+  nome: string;
+  url: string;
+}
+
+/** Extensões aceitas (espelha OrcamentoArquivoController::EXTENSOES). */
+const EXTENSOES_ARQUIVO = '.pdf,.jpg,.jpeg,.png,.svg,.ai,.eps,.cdr,.tif,.tiff,.psd';
 
 /** Linha da lista "Orçamentos salvos" (OrcamentoController::recentes). */
 interface OrcamentoResumo {
@@ -137,19 +148,21 @@ function itemDoOrcamento(i: OrcamentoTela['itens'][number]): ItemUI {
   return { ...novoItem(), ...i, descricao: i.descricao ?? '' };
 }
 
-/** Chamada JSON às APIs do módulo; erro vira Error com a mensagem do servidor em PT-BR. */
-async function chamarApi(method: 'POST' | 'PUT', url: string, body: unknown): Promise<unknown> {
+/** Chamada às APIs do módulo; erro vira Error com a mensagem do servidor em PT-BR.
+ *  FormData vai como multipart (o navegador põe o boundary); o resto, JSON. */
+async function chamarApi(method: 'POST' | 'PUT' | 'DELETE', url: string, body?: unknown): Promise<unknown> {
   const csrf =
     (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
+  const multipart = body instanceof FormData;
   const res = await fetch(url, {
     method,
     headers: {
-      'Content-Type': 'application/json',
+      ...(multipart ? {} : { 'Content-Type': 'application/json' }),
       Accept: 'application/json',
       'X-CSRF-TOKEN': csrf,
       'X-Requested-With': 'XMLHttpRequest',
     },
-    body: JSON.stringify(body),
+    body: body === undefined ? undefined : multipart ? (body as FormData) : JSON.stringify(body),
   });
   const data = await res.json().catch(() => null);
   if (!res.ok) {
@@ -228,6 +241,8 @@ export default function Index({
   const [osCriada, setOsCriada] = useState<string | null>(orcamento?.os?.numero ?? null);
   const [confirmandoAprovar, setConfirmandoAprovar] = useState(false);
   const [aprovando, setAprovando] = useState(false);
+  const [arquivos, setArquivos] = useState<ArquivoTela[]>(orcamento?.arquivos ?? []);
+  const [enviandoArquivo, setEnviandoArquivo] = useState(false);
 
   function mexeu() {
     setConferido(null);
@@ -335,6 +350,32 @@ export default function Index({
     } finally {
       setAprovando(false);
       setConfirmandoAprovar(false);
+    }
+  }
+
+  // Anexa a arte/foto ao orçamento gravado. Ao aprovar, os arquivos passam para a OS.
+  async function enviarArquivos(files: FileList | null) {
+    if (!salvo || !files || files.length === 0) return;
+    setEnviandoArquivo(true);
+    setErro(null);
+    try {
+      const fd = new FormData();
+      Array.from(files).forEach((f) => fd.append('arquivos[]', f));
+      setArquivos((await chamarApi('POST', `/comunicacao-visual/api/orcamentos/${salvo.id}/arquivos`, fd)) as ArquivoTela[]);
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : 'Falha inesperada ao enviar o arquivo.');
+    } finally {
+      setEnviandoArquivo(false);
+    }
+  }
+
+  async function removerArquivo(id: number) {
+    if (!salvo) return;
+    setErro(null);
+    try {
+      setArquivos((await chamarApi('DELETE', `/comunicacao-visual/api/orcamentos/${salvo.id}/arquivos/${id}`)) as ArquivoTela[]);
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : 'Falha inesperada ao remover o arquivo.');
     }
   }
 
@@ -619,6 +660,67 @@ export default function Index({
                   placeholder="0,00"
                 />
               </div>
+            </div>
+
+            {/* Arquivos do orçamento (UC-FLX-01) — a arte vai para a OS junto com as peças */}
+            <div data-contract="arquivos" className="space-y-2 rounded-md border border-dashed border-border p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="flex items-center gap-2 text-sm font-medium text-foreground">
+                  <Paperclip className="h-4 w-4 text-primary" aria-hidden="true" />
+                  Arquivos do orçamento
+                </span>
+                {salvo && podeCriar && !osCriada && APROVAVEIS.includes(salvo.status) && (
+                  <label className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm hover:bg-muted focus-within:ring-2 focus-within:ring-ring">
+                    <Plus className="h-4 w-4" aria-hidden="true" />
+                    {enviandoArquivo ? 'Enviando…' : 'Anexar arquivo'}
+                    <input
+                      type="file"
+                      multiple
+                      accept={EXTENSOES_ARQUIVO}
+                      className="sr-only"
+                      disabled={enviandoArquivo}
+                      onChange={(e) => {
+                        void enviarArquivos(e.target.files);
+                        e.target.value = '';
+                      }}
+                    />
+                  </label>
+                )}
+              </div>
+              {!salvo ? (
+                <p className="text-xs text-muted-foreground">
+                  Salve o orçamento para anexar a arte ou a foto do local. Ao aprovar, os arquivos vão para a OS.
+                </p>
+              ) : arquivos.length === 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  Nenhum arquivo. PDF, imagem, AI, EPS, CDR, TIF ou PSD, até 5 MB cada.
+                </p>
+              ) : (
+                <ul className="space-y-1">
+                  {arquivos.map((a) => (
+                    <li key={a.id} className="flex items-center gap-2 text-sm">
+                      <a href={a.url} target="_blank" rel="noreferrer" className="truncate text-primary underline-offset-2 hover:underline">
+                        {a.nome}
+                      </a>
+                      {podeCriar && !osCriada && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="ml-auto h-7 w-7 text-muted-foreground hover:text-destructive"
+                          aria-label={`Remover ${a.nome}`}
+                          onClick={() => void removerArquivo(a.id)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {osCriada && arquivos.length > 0 && (
+                <p className="text-xs text-muted-foreground">Estes arquivos foram para a OS {osCriada}.</p>
+              )}
             </div>
 
             {erro && (
