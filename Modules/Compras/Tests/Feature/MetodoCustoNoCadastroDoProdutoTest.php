@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Product;
 use App\User;
+use App\Utils\ModuleUtil;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -222,14 +223,17 @@ it('UC-INSMET-16 · UC-FLX-38 · o campo só vai ao formulário de quem tem o m�
         'created_at' => now(), 'updated_at' => now(),
     ]);
 
-    // O tenant de teste não tem assinatura com `compras_module`: nada vai ao formulário.
+    // O gate é o pacote da empresa (ModuleUtil::hasThePermissionInSubscription). O teste fixa a
+    // resposta nos dois sentidos, em vez de depender da assinatura que o banco tiver.
+    $pacote = fn (bool $tem) => $this->mock(ModuleUtil::class)
+        ->shouldReceive('hasThePermissionInSubscription')
+        ->with($this->biz->id, 'compras_module', 'superadmin_package')
+        ->andReturn($tem);
+
+    $pacote(false);
     expect(partesDoFormularioDeEditar($this->produto->productId))->toBe([]);
 
-    // Superadmin passa o gate do pacote (ModuleUtil::hasThePermissionInSubscription).
-    $this->user->givePermissionTo(Permission::findOrCreate('superadmin', 'web'));
-    app(PermissionRegistrar::class)->forgetCachedPermissions();
-    $this->actingAs($this->user->fresh());
-
+    $pacote(true);
     $parte = partesDoFormularioDeEditar($this->produto->productId);
     expect($parte['template_path'] ?? null)->toBe('compras::partials.metodo_custo_produto')
         ->and($parte['template_data']['compras_metodo_custo_atual'])->toBe('ultimo')

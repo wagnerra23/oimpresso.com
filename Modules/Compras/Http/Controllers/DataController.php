@@ -137,7 +137,7 @@ class DataController extends Controller
         // Só empresa cujo pacote tem o módulo Compras (o mesmo gate do WooCommerce no formulário).
         $businessId = (int) request()->session()->get('user.business_id');
         if ($businessId <= 0
-            || ! (new ModuleUtil())->hasThePermissionInSubscription($businessId, 'compras_module', 'superadmin_package')) {
+            || ! app(ModuleUtil::class)->hasThePermissionInSubscription($businessId, 'compras_module', 'superadmin_package')) {
             return [];
         }
         $productId = (int) request()->route('product');
