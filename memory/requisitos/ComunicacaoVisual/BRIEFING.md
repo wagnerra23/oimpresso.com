@@ -1,5 +1,8 @@
 ---
 id: requisitos-comunicacao-visual-briefing
+module: ComunicacaoVisual
+status: parcial
+updated_at: "2026-10-21"
 ---
 
 # BRIEFING — ComunicacaoVisual
