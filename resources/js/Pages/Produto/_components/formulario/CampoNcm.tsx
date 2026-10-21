@@ -15,7 +15,7 @@ export function CampoNcm({
   const aviso = error ? null : avisoNcm(value);
 
   return (
-    <div className="col-span-2">
+    <div>
       <Label htmlFor="ncm">NCM</Label>
       <Input
         id="ncm"

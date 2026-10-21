@@ -12,6 +12,7 @@ import {
 import { OrigemMercadoriaField } from '../OrigemMercadoriaField';
 import { CamposPreco } from './CamposPreco';
 import { CampoNcm } from './CampoNcm';
+import { CampoCest } from './CampoCest';
 import type { PrecoSimples } from './precos';
 import type { CamposProduto, DefinirCampo, ErrosProduto, OpcoesProduto } from './tipos';
 import { opcoesDe } from './tipos';
@@ -73,6 +74,7 @@ export function BlocoPrecoImposto({ data, definir, errors, opcoes, preco }: Prop
           </Select>
         </div>
         <CampoNcm value={data.ncm ?? ''} onChange={(v) => definir('ncm', v)} error={errors.ncm} />
+        <CampoCest value={data.cest ?? ''} onChange={(v) => definir('cest', v)} error={errors.cest} />
         <OrigemMercadoriaField
           value={data.origem_mercadoria}
           onChange={(v) => definir('origem_mercadoria', v)}

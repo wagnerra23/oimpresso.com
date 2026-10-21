@@ -43,6 +43,7 @@ last_run_ci: "PR #9670 (NCM no Novo produto, UC-PCAD-13/14), 2026-10-20: lane PH
 | UC-PCAD-12 | Novo produto grava a validade digitada (com o período, como o Blade) | must | `CU-PROD-01` | `produto-formulario.test.tsx` (Vitest) | 🧪 passa |
 | UC-PCAD-13 | Novo produto grava o NCM digitado (8 dígitos), sem exigir NCM | must | `CU-PROD-16` | `CadastroProdutoNcmTest` + `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
 | UC-PCAD-14 | Sem NCM a tela avisa, e o produto é salvo assim mesmo | should | `CU-PROD-18` | `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
+| UC-PCAD-15 | Novo produto grava o CEST digitado (7 dígitos), sem exigir CEST | should | `CU-PROD-16` | `CadastroProdutoCestTest` + `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
 | ~~UC-PCAD-02~~ | ~~Campo obrigatório validado server~~ | — | — | — | ⬛ **retirado** — gap de paridade, não bug |
 | ~~UC-PCAD-03~~ | ~~Defaults conservadores server~~ | — | — | — | ⬛ **retirado** — gap de paridade, não bug |
 | UC-PCAD-05 | Cadastro não aceita insumo de outro business | must `[T0]` | `CU-PROD-01.5` | — | 🔶 **backlog** — achado Tier 0 real, US própria |
@@ -211,6 +212,14 @@ last_run_ci: "PR #9670 (NCM no Novo produto, UC-PCAD-13/14), 2026-10-20: lane PH
 - **Contrato:** `CU-PROD-18` do SDD — o aviso não pode impedir o salvamento; o cadastro mínimo segue nome e SKU (`CU-PROD-01`). Referência de mercado: a Omie avisa NCM, EAN e origem faltando; o protótipo `Product Cadastro.html` (Cowork do [F]) desenha *"Faltam: nome, NCM"*.
 - **Fora deste UC:** o aviso olha só o NCM. Produto **novo** ainda não tem natureza fiscal decidida (quem decide é o contador, depois, na Tributação — `UC-NFTR-32`), então a tela não sabe se ele é serviço. Avisar EAN inválido e mostrar a natureza ficam para quando o Editar e a ficha receberem o `CU-PROD-19`.
 - **Status: 🧪** — escrito junto do código, sem veredito publicado (G-7).
+
+## UC-PCAD-15 · Novo produto grava o CEST digitado, sem exigir CEST · `should`
+- **Persona:** quem cadastra mercadoria com substituição tributária. O CEST vai na nota dessa mercadoria e, sem ele, a nota pode ser rejeitada.
+- **Aceite:** Dado o card "Preço & Imposto" da tela Novo produto · Quando digito o CEST · Então o campo guarda só os dígitos, no máximo 7 (digitar `28.038.00` fica `2803800`) · E o produto nasce com esse CEST · E, sem CEST (campo vazio, ou o Blade, que não manda o campo), o produto é **salvo** com o CEST nulo e **sem aviso**, porque só a mercadoria com substituição tributária precisa dele · E um CEST incompleto mostra *"O CEST tem 7 dígitos."* · E CEST fora do formato (curto, longo, com pontos) é recusado antes de gravar: nenhum produto nasce · E duplicar um produto traz o CEST dele.
+- **Teste:** [`CadastroProdutoCestTest`](../../../../tests/Feature/Produto/CadastroProdutoCestTest.php) — `UC-PCAD-15` (o servidor: grava, vazio, Blade, os três formatos recusados, duplicar) · [`produto-formulario.test.tsx`](../../../../tests/js/produto-formulario.test.tsx) — `UC-PCAD-15` (a tela: sem CEST não avisa, só dígitos, incompleto avisa, duplicar).
+- **Contrato:** `CU-PROD-16` do [SDD](../../../../memory/requisitos/Produto/SDD-tela-cadastro-produto-v1.0.md) (decisão [M] 2026-10-20: o CEST entra no cadastro junto com o NCM) + Convênio ICMS 142/2018, cláusula sexta (o CEST tem 7 dígitos).
+- **Fora deste UC:** saber se o produto tem substituição tributária. A tela não sabe, então não avisa CEST vazio. O CEST na tela **Editar** é o `UC-PEDIT-12` do [`Edit.casos.md`](Edit.casos.md).
+- **Status: 🧪** — escrito junto do código, sem veredito da lane `PHP / Pest (Estoque · MySQL)` nem do job `Frontend / Vite build` (G-7).
 
 ---
 

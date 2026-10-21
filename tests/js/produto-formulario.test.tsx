@@ -314,3 +314,102 @@ describe('UC-PEDIT-11 · NCM no Editar produto', () => {
     expect(salvar(container)?.ncm).toBe('')
   })
 })
+
+// UC-PCAD-15 e UC-PEDIT-12 — o CEST no cadastro. 7 dígitos (Convênio ICMS 142/2018). Só a mercadoria
+// com substituição tributária precisa dele: vazio não avisa; só o CEST incompleto avisa.
+describe('UC-PCAD-15 · UC-PEDIT-12 · CEST no cadastro', () => {
+  const novo = (duplicateProduct: Record<string, unknown> | null = null) =>
+    render(
+      <ProdutoCreate
+        {...(listasDoServidor as never)}
+        barcodeDefault="C128"
+        defaultProfitPercent={25}
+        duplicateProduct={duplicateProduct as never}
+        sellingPriceGroupCount={0}
+        commonSettings={{}}
+        enableExpiry={false}
+        enableLot={false}
+        enableRacks={false}
+      />,
+    )
+  const editar = (cest: string | null) =>
+    render(
+      <ProdutoEdit
+        {...(listasDoServidor as never)}
+        product={{
+          id: 9, name: 'Lona 440g', sku: 'LON-440', type: 'single', brandId: 3, unitId: 5,
+          subUnitIds: null, categoryId: 1, subCategoryId: null, tax: 1, taxType: 'exclusive',
+          origemMercadoria: 0, ncm: '49111090', cest, barcodeType: 'C128', enableStock: true,
+          alertQuantity: null, weight: null, productDescription: null, productLocations: [1],
+          image: null, warrantyId: null, camposPersonalizados: {}, expiryPeriod: null,
+          expiryPeriodType: null,
+        }}
+        subUnits={{}}
+        permissions={{ opening_stock: false, delete: false }}
+      />,
+    )
+  const campoCest = () => document.querySelector('#cest') as HTMLInputElement
+  const aviso = () => screen.queryByTestId('cest-aviso')
+  const salvar = (container: HTMLElement, form: string) => {
+    enviado.payload = null
+    fireEvent.submit(container.querySelector(`form#${form}`) as HTMLFormElement)
+    return enviado.payload as Record<string, unknown> | null
+  }
+
+  it('UC-PCAD-15 · sem CEST não avisa, e o envio leva o campo vazio', () => {
+    const { container } = novo()
+
+    expect(campoCest().value).toBe('')
+    expect(aviso()).toBeNull()
+    expect(salvar(container, 'produto-create-form')?.cest).toBe('')
+  })
+
+  it('UC-PCAD-15 · CEST com pontos vai só com os 7 dígitos', () => {
+    const { container } = novo()
+    fireEvent.change(campoCest(), { target: { value: '28.038.00' } })
+
+    expect(campoCest().value).toBe('2803800')
+    expect(aviso()).toBeNull()
+    expect(salvar(container, 'produto-create-form')?.cest).toBe('2803800')
+  })
+
+  it('UC-PCAD-15 · CEST incompleto avisa que são 7 dígitos', () => {
+    novo()
+    fireEvent.change(campoCest(), { target: { value: '28038' } })
+
+    expect(aviso()?.textContent).toBe('O CEST tem 7 dígitos.')
+  })
+
+  it('UC-PCAD-15 · duplicar traz o CEST do original', () => {
+    novo({
+      id: 21, name: 'Lona 440g', brand_id: null, unit_id: 4, category_id: null, sub_category_id: null,
+      tax: null, tax_type: 'exclusive', origem_mercadoria: 0, ncm: '49111090', cest: '28.038.00',
+      barcode_type: 'C128', sku: 'LON-440', alert_quantity: null, weight: null,
+      product_description: null, type: 'single',
+    })
+    expect(campoCest().value).toBe('2803800')
+  })
+
+  it('UC-PEDIT-12 · mostra o CEST gravado e, sem mexer nele, o envio não leva o campo', () => {
+    const { container } = editar('28.038.00')
+    expect(campoCest().value).toBe('2803800')
+
+    const envio = salvar(container, 'produto-edit-form')
+    expect(envio).not.toBeNull()
+    expect(envio && 'cest' in envio).toBe(false)
+  })
+
+  it('UC-PEDIT-12 · CEST alterado vai no envio', () => {
+    const { container } = editar('2803800')
+    fireEvent.change(campoCest(), { target: { value: '1700100' } })
+
+    expect(salvar(container, 'produto-edit-form')?.cest).toBe('1700100')
+  })
+
+  it('UC-PEDIT-12 · CEST apagado vai vazio no envio', () => {
+    const { container } = editar('2803800')
+    fireEvent.change(campoCest(), { target: { value: '' } })
+
+    expect(salvar(container, 'produto-edit-form')?.cest).toBe('')
+  })
+})

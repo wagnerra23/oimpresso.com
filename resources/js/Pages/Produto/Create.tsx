@@ -16,6 +16,7 @@ import { definidorDe, opcoesDe, tipoSemEditor } from './_components/formulario/t
 import type { OptionMap, OptionStringMap } from './_components/formulario/tipos';
 import { aliquotaDoImposto, camposDePreco, precoInicial } from './_components/formulario/precos';
 import { ncmDoCadastro } from './_components/formulario/ncm';
+import { cestDoCadastro } from './_components/formulario/cest';
 
 const ADVANCED_OPEN_KEY = 'oimpresso.produto.create.advanced.open';
 
@@ -35,6 +36,7 @@ interface ProdutoDuplicate {
   tax_type: 'inclusive' | 'exclusive' | null;
   origem_mercadoria?: number;
   ncm?: string | null;
+  cest?: string | null;
   barcode_type: string | null;
   sku: string;
   alert_quantity: number | null;
@@ -90,6 +92,8 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
     origem_mercadoria: dup?.origem_mercadoria ?? 0,
     // UC-PCAD-13: o NCM só com dígitos; o '0' que o banco grava para "sem NCM" vira vazio.
     ncm: ncmDoCadastro(dup?.ncm),
+    // UC-PCAD-15: o CEST só com dígitos.
+    cest: cestDoCadastro(dup?.cest),
     barcode_type: dup?.barcode_type ?? props.barcodeDefault,
     enable_stock: 1,
     not_for_selling: 0,
