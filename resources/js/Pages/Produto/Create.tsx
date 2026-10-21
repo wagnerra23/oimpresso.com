@@ -37,6 +37,10 @@ interface ProdutoDuplicate {
   origem_mercadoria?: number;
   ncm?: string | null;
   cest?: string | null;
+  peso_liquido?: number | string | null;
+  largura_cm?: number | string | null;
+  altura_cm?: number | string | null;
+  comprimento_cm?: number | string | null;
   barcode_type: string | null;
   sku: string;
   alert_quantity: number | null;
@@ -99,6 +103,11 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
     not_for_selling: 0,
     alert_quantity: dup?.alert_quantity ?? '',
     weight: dup?.weight ?? '',
+    // UC-PCAD-16: peso líquido e dimensões, opcionais.
+    peso_liquido: dup?.peso_liquido ?? '',
+    largura_cm: dup?.largura_cm ?? '',
+    altura_cm: dup?.altura_cm ?? '',
+    comprimento_cm: dup?.comprimento_cm ?? '',
     product_description: dup?.product_description ?? '',
     sub_unit_ids: [] as number[],
     // Um local só: já vem marcado, como no Blade (`$default_location`). Mais de um: quem cadastra escolhe.

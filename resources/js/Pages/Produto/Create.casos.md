@@ -44,6 +44,7 @@ last_run_ci: "PR #9670 (NCM no Novo produto, UC-PCAD-13/14), 2026-10-20: lane PH
 | UC-PCAD-13 | Novo produto grava o NCM digitado (8 dígitos), sem exigir NCM | must | `CU-PROD-16` | `CadastroProdutoNcmTest` + `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
 | UC-PCAD-14 | Sem NCM a tela avisa, e o produto é salvo assim mesmo | should | `CU-PROD-18` | `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
 | UC-PCAD-15 | Novo produto grava o CEST digitado (7 dígitos), sem exigir CEST | should | `CU-PROD-16` | `CadastroProdutoCestTest` + `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
+| UC-PCAD-16 | Novo produto grava peso líquido e dimensões da embalagem, opcionais; o peso de sempre é o peso bruto | should | `CU-PROD-17` | `CadastroProdutoPesoDimensoesTest` + `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
 | ~~UC-PCAD-02~~ | ~~Campo obrigatório validado server~~ | — | — | — | ⬛ **retirado** — gap de paridade, não bug |
 | ~~UC-PCAD-03~~ | ~~Defaults conservadores server~~ | — | — | — | ⬛ **retirado** — gap de paridade, não bug |
 | UC-PCAD-05 | Cadastro não aceita insumo de outro business | must `[T0]` | `CU-PROD-01.5` | — | 🔶 **backlog** — achado Tier 0 real, US própria |
@@ -221,6 +222,14 @@ last_run_ci: "PR #9670 (NCM no Novo produto, UC-PCAD-13/14), 2026-10-20: lane PH
 - **Fora deste UC:** saber se o produto tem substituição tributária. A tela não sabe, então não avisa CEST vazio. O CEST na tela **Editar** é o `UC-PEDIT-12` do [`Edit.casos.md`](Edit.casos.md).
 - **Status: 🧪** — escrito junto do código, sem veredito da lane `PHP / Pest (Estoque · MySQL)` nem do job `Frontend / Vite build` (G-7).
 
+## UC-PCAD-16 · Novo produto grava peso líquido e dimensões da embalagem · `should`
+- **Persona:** quem despacha o produto ou vende em marketplace. Frete e marketplace (Shopee, Amazon) pedem o peso e as medidas da embalagem.
+- **Aceite:** Dado "Mais opções" da tela Novo produto · Então o peso de sempre aparece como **"Peso bruto (kg)"**, com embalagem (é o que o WooCommerce usa no frete), e há os campos **"Peso líquido (kg)"**, **"Largura (cm)"**, **"Altura (cm)"** e **"Comprimento (cm)"** · Quando preencho e salvo · Então o produto nasce com esses valores · E, sem eles (vazios, ou o Blade, que não manda nenhum), o produto é salvo com os quatro nulos · E número negativo, texto ou acima de 99999 é recusado antes de gravar: nenhum produto nasce · E duplicar um produto traz os quatro valores dele.
+- **Teste:** [`CadastroProdutoPesoDimensoesTest`](../../../../tests/Feature/Produto/CadastroProdutoPesoDimensoesTest.php) — `UC-PCAD-16` (o servidor: grava, vazios, Blade, três valores inválidos, duplicar) · [`produto-formulario.test.tsx`](../../../../tests/js/produto-formulario.test.tsx) — `UC-PCAD-16` (a tela: rótulo do peso bruto, campos novos, envio).
+- **Contrato:** `CU-PROD-17` do [SDD](../../../../memory/requisitos/Produto/SDD-tela-cadastro-produto-v1.0.md) — pedido [M] 2026-10-21. O "Peso" que já existia virou o peso bruto, porque é ele que o WooCommerce manda como peso de frete; quem já tinha preenchido não perde nada.
+- **Fora deste UC:** levar o peso e as dimensões para a nota (grupo de volumes do transporte) e para o WooCommerce (só o peso bruto vai hoje). O CEP e a cotação de frete também ficam fora.
+- **Status: 🧪** — escrito junto do código, sem veredito da lane `PHP / Pest (Estoque · MySQL)` nem do job `Frontend / Vite build` (G-7).
+
 ---
 
 ## Pendência de CONTRATO (achado sem caso de uso — não vira UC até `[F]` decidir)
@@ -268,7 +277,6 @@ last_run_ci: "PR #9670 (NCM no Novo produto, UC-PCAD-13/14), 2026-10-20: lane PH
 - **Submit retorna `/products`** — `CU-PROD-01` item 6. É paridade de **navegação**, não de dado;
   o Pest vê o 302 mas o que importa (o operador chega na lista) é smoke da US-PROD-023.
 - **Natureza fiscal (mercadoria × serviço) no cadastro** — `CU-PROD-19`. A natureza existe (`nfe_naturezas_produto`) e é decidida pelo contador na Tributação; o cadastro ainda não a mostra. Vira UC no `Edit.casos.md` ou na ficha, onde o produto já existe.
-- **Peso bruto e dimensões** — `CU-PROD-17`. Não há colunas para isso em `products`; vira UC quando houver sinal de cliente que despacha ou vende em marketplace (ADR 0105).
 - **Casos de comunicação visual** — `CV-06` a `CV-11` do SDD. A maior parte do dado mora no módulo de Comunicação Visual; viram UC com sinal de cliente.
 - **Quick-add inline** — `CU-PROD-08`. Rota e contrato separados (`save_quick_product`); merece
   `casos.md` próprio quando a tela de origem (venda/compra) fechar o trio dela.

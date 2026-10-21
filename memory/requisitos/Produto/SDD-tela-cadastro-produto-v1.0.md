@@ -943,7 +943,7 @@ mercadoria** e **unidade** — e, quando o produto tem substituição tributári
   4. A NF-e já recusa produto marcado como serviço (`NfeService::recusarItensDeServico`); a regra
      acima só antecipa para o cadastro o que a emissão já cobra.
 
-#### CU-PROD-17 — Peso e dimensões do produto `[should]` 🟡 **parcial**
+#### CU-PROD-17 — Peso e dimensões do produto `[should]` ✅ **no cadastro** (2026-10-21)
 
 <!-- curado: benchmark de concorrentes 2026-10-20 + medição do código (mysql-schema.sql products · BlocoMaisOpcoes.tsx) -->
 
@@ -953,8 +953,12 @@ mercadoria** e **unidade** — e, quando o produto tem substituição tributári
 - **Mercado:** Bling, Olist e Conta Azul pedem peso líquido, peso bruto e dimensões no cadastro. A
   Olist diz que servem à cotação de frete; a Shopee exige dimensões e pesos para publicar, e o
   Bling também para exportar à Amazon. Nos dois o dado é opcional para a nota.
-- **Hoje no oimpresso:** ✅ só **um** campo de peso (`products.weight varchar(191)`, editado em
-  `BlocoMaisOpcoes.tsx:64-70`). 🔴 Não há peso bruto nem colunas de dimensão em `products`.
+- **Hoje no oimpresso:** _Em 2026-10-20, ao escrever este CU, havia só **um** campo de peso
+  (`products.weight varchar(191)`) e nenhuma coluna de dimensão._ Em 2026-10-21 ([M] pediu) entraram
+  `peso_liquido` (kg), `largura_cm`, `altura_cm` e `comprimento_cm` (migration
+  `2026_10_21_120000`), no Novo (`UC-PCAD-16`) e no Editar (`UC-PEDIT-13`). O `weight` de sempre
+  passou a ser mostrado como **"Peso bruto (kg)"**, porque é o peso que o WooCommerce manda para o
+  frete. Fora: levar peso e dimensões à nota (volumes do transporte) e ao WooCommerce.
 - ⚠️ **Premissa a conferir antes de priorizar:** só vale se o cliente despacha ou vende em
   marketplace. Para venda de balcão o campo não tem uso (ADR 0105 — sinal antes de backlog).
 

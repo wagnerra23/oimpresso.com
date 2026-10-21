@@ -71,7 +71,13 @@ export interface CamposProduto {
   cest?: string;
   barcode_type: string;
   alert_quantity: number | string;
+  /** Peso bruto em kg, com embalagem: é o peso que o WooCommerce usa no frete. */
   weight: number | string;
+  /** Peso líquido (kg) e dimensões da embalagem (cm) — UC-PCAD-16 e UC-PEDIT-13. Opcionais. */
+  peso_liquido?: number | string;
+  largura_cm?: number | string;
+  altura_cm?: number | string;
+  comprimento_cm?: number | string;
   product_description: string;
   warranty_id: number | string;
   product_custom_field1: string;
@@ -86,7 +92,12 @@ export interface CamposProduto {
 }
 
 /** Os erros de validação que os blocos exibem. */
-export type ErrosProduto = Partial<Record<'name' | 'origem_mercadoria' | 'ncm' | 'cest', string>>;
+export type ErrosProduto = Partial<
+  Record<
+    'name' | 'origem_mercadoria' | 'ncm' | 'cest' | 'peso_liquido' | 'largura_cm' | 'altura_cm' | 'comprimento_cm',
+    string
+  >
+>;
 
 export type DefinirCampo = <K extends keyof CamposProduto>(campo: K, valor: CamposProduto[K]) => void;
 
