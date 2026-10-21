@@ -168,6 +168,15 @@ etapa segue com quem estava.
 
 Status: 🧪
 
+## UC-PCALO-07 · Posto com operadores cadastrados só aceita um deles como responsável · `must`
+
+**Dado** o Plotter com só a op2 cadastrada como operadora (US-PCP-030) e a etapa com a op como responsável
+**Quando** o gestor troca o responsável para a op **Então** é recusado (`responsavel_invalido`, com o posto) e nada
+muda, nem o histórico · mudar só o início previsto segue permitido · trocar para a op2 é aceito. Posto sem
+operadores cadastrados aceita qualquer pessoa da empresa com acesso à Produção (UC-PCALO-01/04).
+
+Status: 🧪
+
 ## UC-PCALO-05 · Operador não aloca; outra empresa não existe · `must`
 
 **Quando** um operador sem permissão de mover etapa tenta alocar ou ver a fila **Então** recebe 403 **E** etapa
@@ -289,6 +298,7 @@ Status: 🧪
 - 2026-10-20 · [CL] UC-PCCH-01/02 documentam o custo-hora que já existe (UC-FLX-20 parcial); o bullet de backlog do custo-hora da pessoa virou o UC-PCCH-02; rateio e ponto de equilíbrio ficam no [BACKLOG] (US-FIN-070).
 - 2026-10-20 · [CL] UC-PCOPE-01..05 — operadores por posto (US-PCP-030 · UC-FLX-08, aprovado por [W] em 2026-10-20).
 - 2026-10-20 · [CL] UC-PCALO-01..06 — alocador decide quem e quando começa (US-PCP-029 · UC-FLX-10): endpoints JSON de alocação e fila do posto; a tela é a US-PCP-015.
+- 2026-10-20 · [CL] UC-PCALO-07 — o alocador usa a regra dos operadores do posto (US-PCP-030 · UC-FLX-08), a mesma do Liberar e do início da etapa.
 - 2026-10-20 · [CL] UC-PCPRZ-01..04 — prazo de entrega pela fila dos postos (US-PCP-028 · UC-FLX-06), cálculo em JSON só leitura; tela e data prometida ficam no [BACKLOG].
 - 2026-10-20 · [CL] UC-PCPRZ-05..08 — decisão [W]: dias úteis pelo período de funcionamento cadastrado (turno da produção, expediente e feriados do RH) e data prometida gravada na venda e na OS na aprovação; datas de UC-PCPRZ-01/02 recalculadas (24/10→26/10, 25/10→27/10).
 - 2026-10-20 · [CL] UC-PCCH-03..06 — custeio RKW e ponto de equilíbrio (US-FIN-070): cálculo só leitura + aplicar explícito; o [BACKLOG] do rateio virou estes casos.

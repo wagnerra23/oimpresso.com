@@ -2,7 +2,8 @@
 // @covers-us US-PCP-029
 
 declare(strict_types=1);
-// Cobre o alocador: quem e quando começa cada etapa (UC-FLX-10 · US-PCP-029).
+// Cobre o alocador: quem e quando começa cada etapa (UC-FLX-10 · US-PCP-029), e o filtro dos
+// operadores do posto (UC-FLX-08 · US-PCP-030, UC-PCALO-07).
 
 use App\Utils\ModuleUtil;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -13,6 +14,7 @@ use Modules\Producao\Entities\Ordem;
 use Modules\Producao\Entities\Posto;
 use Modules\Producao\Entities\Programacao;
 use Modules\Producao\Services\AlocacaoDaEtapa;
+use Modules\Producao\Services\OperadoresDoPosto;
 use Modules\Producao\Services\ProcessoDaOrdem;
 
 uses(Tests\TestCase::class, DatabaseTransactions::class);
@@ -100,6 +102,26 @@ it('UC-PCALO-04 · responsável de outra empresa ou sem acesso à Produção é 
             ->assertStatus(422)->assertJson(['codigo' => 'responsavel_invalido']);
     }
     expect((int) $this->etapa->fresh()->user_id)->toBe((int) $this->op->id);
+});
+
+it('UC-PCALO-07 · posto com operadores cadastrados: o alocador só troca o responsável para um deles', function () {
+    // US-PCP-030 · UC-FLX-08: o Plotter passa a ter só a op2 como operadora.
+    app(OperadoresDoPosto::class)->definir($this->b98, (int) $this->posto->id, [(int) $this->op2->id], (int) $this->gestor->id);
+    $eventos = fn () => Evento::withoutGlobalScopes()->where('business_id', $this->b98)->where('tipo', AlocacaoDaEtapa::EV_ALOCADA)->count();
+    $antes = $eventos();
+
+    // Quem tem acesso à Produção mas não é operador do posto é recusado; nada muda, nem o histórico.
+    $this->actingAs($this->gestor)->putJson("/producao/etapas/{$this->etapa->id}/alocacao", ['user_id' => $this->op->id])
+        ->assertStatus(422)->assertJson(['codigo' => 'responsavel_invalido', 'contexto' => ['posto_id' => (int) $this->posto->id]]);
+    expect((int) $this->etapa->fresh()->user_id)->toBe((int) $this->op->id)->and($eventos())->toBe($antes);
+
+    // Mudar só o horário não troca o responsável: segue permitido.
+    $this->putJson("/producao/etapas/{$this->etapa->id}/alocacao", ['inicio_previsto' => '2026-11-04 08:00:00'])->assertOk()
+        ->assertJson(['user_id' => $this->op->id, 'inicio_previsto' => '2026-11-04 08:00:00']);
+
+    // A operadora do posto é aceita.
+    $this->putJson("/producao/etapas/{$this->etapa->id}/alocacao", ['user_id' => $this->op2->id])->assertOk()->assertJson(['user_id' => $this->op2->id]);
+    expect($eventos())->toBe($antes + 2);
 });
 
 it('UC-PCALO-05 · operador não aloca (403) e etapa ou posto de outra empresa é 404', function () {
