@@ -33,7 +33,9 @@ na bobina (UC-FLX-13).
 ## Goals — Features (faz)
 
 - Quadro por setor ou por máquina; etapa atual = a em andamento, senão a próxima pendente — UC-PCV-05.
-- Filtro por texto, "Atrasadas ou vencendo", setor e responsável (no navegador) — parte do UC-PCV-06.
+- Filtro por texto, "Atrasadas ou vencendo", "Travadas por arte", setor e responsável (no navegador) — parte do UC-PCV-06.
+- Abre já filtrado pela URL (`?so=atrasadas|arte`, `?agrupar=maquina`), que é como o Painel chega aqui — UC-PCV-02.
+- O cartão mostra a arte "Aguardando cliente" ou "Ajuste pedido", da mesma fonte da fila do Painel — UC-PCV-04.
 - "Alocar" no cartão da etapa pendente, só com `producao.etapa.mover` — UC-FLX-10 (US-PCP-029).
 - Marcar OS da CV com peça medida e "Simular bobina" em lote, com cadastro da largura útil quando falta e o
   desenho das faixas; "Aceitar e gerar romaneios" só com o papel `producao.liberar` — UC-FLX-13 (US-PCP-024).
@@ -41,7 +43,7 @@ na bobina (UC-FLX-13).
 ## Non-Goals — Features (NÃO faz, nesta entrega)
 
 - ❌ Mover etapa à mão arrastando o cartão (UC-PCV-07: falta fechar o apontamento aberto no backend).
-- ❌ Painel de eventos ao lado do quadro e a vista Painel (UC-PCV-01..04 continuam na thread 06).
+- ❌ Painel de eventos ao lado do quadro (os eventos estão no Painel, `/producao/painel`).
 - ❌ Aviso de conflito ao alocar (UC-FLX-10: o backend ainda não detecta sobreposição no posto).
 - ❌ Filtro que persiste entre Quadro e Linha (UC-PCV-06 completo depende da thread 07).
 

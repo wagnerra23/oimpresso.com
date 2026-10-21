@@ -1,14 +1,15 @@
 // @memcofre
 //   tela: /producao/quadro
 //   module: Producao
-//   stories: playbook Produção thread 06 (UC-PCV-05, UC-PCV-06) · UC-FLX-10 (US-PCP-029) · UC-FLX-13 (US-PCP-024)
+//   stories: playbook Produção thread 06 (UC-PCV-02, UC-PCV-04, UC-PCV-05, UC-PCV-06) · UC-FLX-10 (US-PCP-029) · UC-FLX-13 (US-PCP-024)
 //   permissao: producao.access · alocar com producao.etapa.mover · aceitar arranjo com o papel producao.liberar
 //
 // Quadro da produção: uma OS por cartão, na coluna do setor (ou da máquina) da etapa atual. Âncora
 // visual: `Quadro` de prototipo-ui/cowork/Wagner/producao-cv-page.jsx (classes `pcv-*` do bundle).
 // Recebe os dois botões que tinham backend sem tela: "Alocar" no cartão (UC-FLX-10) e a ação em lote
 // "Simular bobina" sobre as OS da comunicação visual marcadas (UC-FLX-13).
-// Fora deste corte (thread 06 continua): mover etapa à mão (UC-PCV-07), painel de eventos e o Painel.
+// O Painel (`/producao/painel`) abre esta tela já filtrada pela URL (?so=atrasadas|arte, ?agrupar=maquina).
+// Fora deste corte (thread 06 continua): mover etapa à mão (UC-PCV-07) e o painel de eventos ao lado do quadro.
 import '../../../../../../../resources/css/cowork-producao-bundle.css';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router } from '@inertiajs/react';
@@ -28,10 +29,10 @@ import SimuladorBobina from './_components/SimuladorBobina';
 import { SEM_SETOR, setorDe, vaiNaBobina, type Cartao, type Midia, type Pessoas, type Posto } from './_lib/tipos';
 
 interface Props {
-  hoje: string; pode_alocar: boolean; pode_aceitar_arranjo: boolean; postos: Posto[];
+  hoje: string; filtro: { so: Filtro['so']; agrupar: 'setor' | 'maquina' }; pode_alocar: boolean; pode_aceitar_arranjo: boolean; postos: Posto[];
   cartoes?: Cartao[]; midias?: Midia[]; pessoas?: Pessoas;
 }
-interface Filtro { q: string; so: 'todas' | 'atrasadas'; resp: string; setor: string }
+interface Filtro { q: string; so: 'todas' | 'atrasadas' | 'arte'; resp: string; setor: string }
 const LIMPO: Filtro = { q: '', so: 'todas', resp: '', setor: '' };
 const TODOS = '__todos__';
 const d2 = (iso: string) => iso.slice(8, 10) + '/' + iso.slice(5, 7);
@@ -42,6 +43,7 @@ function passa(c: Cartao, f: Filtro): boolean {
     if (![c.numero, c.cliente, c.titulo].some((v) => v?.toLowerCase().includes(s))) return false;
   }
   if (f.so === 'atrasadas' && c.atraso === null) return false;
+  if (f.so === 'arte' && c.arte === null) return false;
   if (f.resp && c.etapa.responsavel !== f.resp) return false;
   if (f.setor && setorDe(c.etapa) !== f.setor) return false;
   return true;
@@ -62,6 +64,7 @@ function CartaoOs({ c, podeAlocar, marcado, onMarcar, onAlocar }: { c: Cartao; p
         <div className="h-1.5 rounded bg-primary" style={{ width: `${c.progresso}%` }} />
       </div>
       <div className="pcv-card-f">
+        {c.arte && <Badge variant={c.arte === 'ajuste' ? 'danger' : 'warning'}>{c.arte === 'ajuste' ? 'Ajuste pedido' : 'Aguardando cliente'}</Badge>}
         <span className={c.atraso ? 'pcv-late' : ''}>{c.atraso ?? (c.prazo ? 'entrega ' + d2(c.prazo) : 'sem prazo')}</span>
         <span className="pcv-who">{e.responsavel ?? 'sem responsável'} · {d2(e.inicio_previsto)} {e.inicio_previsto.slice(11, 16)}</span>
         {podeAlocar && e.status === 'pendente' && <Button size="sm" variant="ghost" onClick={onAlocar} aria-label={`Alocar ${e.nome ?? 'etapa'} de ${c.numero}`}>Alocar</Button>}
@@ -71,8 +74,8 @@ function CartaoOs({ c, podeAlocar, marcado, onMarcar, onAlocar }: { c: Cartao; p
 }
 
 function Conteudo({ p, cartoes, midias, pessoas }: { p: Props; cartoes: Cartao[]; midias: Midia[]; pessoas: Pessoas }) {
-  const [f, setF] = useState<Filtro>(LIMPO);
-  const [agrupar, setAgrupar] = useState<'setor' | 'maquina'>('setor');
+  const [f, setF] = useState<Filtro>({ ...LIMPO, so: p.filtro?.so ?? 'todas' });
+  const [agrupar, setAgrupar] = useState<'setor' | 'maquina'>(p.filtro?.agrupar ?? 'setor');
   const [marcados, setMarcados] = useState<string[]>([]);
   const [alocando, setAlocando] = useState<Cartao | null>(null);
   const [simulando, setSimulando] = useState(false);
@@ -93,7 +96,8 @@ function Conteudo({ p, cartoes, midias, pessoas }: { p: Props; cartoes: Cartao[]
       <div className="pcv-filtro" role="search" aria-label="Filtrar OS">
         <div className="pcv-filtro-q"><Input value={f.q} placeholder="OS, cliente ou serviço" aria-label="Buscar OS" onChange={(e) => setF({ ...f, q: e.target.value })} /></div>
         <Segmented value={f.so} onValueChange={(v) => v && setF({ ...f, so: v as Filtro['so'] })} aria-label="Situação"
-          options={[{ value: 'todas', label: 'Todas' }, { value: 'atrasadas', label: `Atrasadas ou vencendo (${cartoes.filter((c) => c.atraso).length})` }]} />
+          options={[{ value: 'todas', label: 'Todas' }, { value: 'atrasadas', label: `Atrasadas ou vencendo (${cartoes.filter((c) => c.atraso).length})` },
+            { value: 'arte', label: `Travadas por arte (${cartoes.filter((c) => c.arte).length})` }]} />
         <div className="pcv-filtro-r"><Select value={f.setor || TODOS} onValueChange={(v) => setF({ ...f, setor: v === TODOS ? '' : v })}>
           <SelectTrigger aria-label="Setor"><SelectValue /></SelectTrigger>
           <SelectContent><SelectItem value={TODOS}>Qualquer setor</SelectItem>{setores.filter(Boolean).map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>

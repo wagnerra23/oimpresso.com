@@ -10,6 +10,7 @@ use Modules\Producao\Http\Controllers\FerramentasController;
 use Modules\Producao\Http\Controllers\InstallController;
 use Modules\Producao\Http\Controllers\LoteRastreioController;
 use Modules\Producao\Http\Controllers\OrdemCustoController;
+use Modules\Producao\Http\Controllers\PainelController;
 use Modules\Producao\Http\Controllers\PostoOperadoresController;
 use Modules\Producao\Http\Controllers\PostosController;
 use Modules\Producao\Http\Controllers\PrevistoRealizadoController;
@@ -138,4 +139,6 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
     ->name('producao.')
     ->group(function () {
         Route::get('quadro', [QuadroController::class, 'index'])->name('quadro.index');
+        // Painel (UC-PCV-01..04, 29): o que trava a produção hoje; os indicadores abrem o quadro filtrado.
+        Route::get('painel', [PainelController::class, 'index'])->name('painel.index');
     });

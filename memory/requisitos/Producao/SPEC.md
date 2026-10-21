@@ -333,10 +333,17 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ### US-PCP-017 · Dashboard PCP Inertia (4 cards KPI + Kanban embed + heatmap) — **P1**
 
-**Implementado em:** _pendente_ — sem página `Pages/Pcp/Dashboard` nem rota `/pcp/dashboard` (módulo não construído, ADR 0152)
+**Implementado em:** `Modules/Producao/Resources/js/Pages/Producao/Painel/Index.tsx` · `Modules/Producao/Http/Controllers/PainelController.php` · `Modules/Producao/Services/PainelDaProducao.php` · `Modules/Producao/Services/ArteDasOrdens.php`
 
-> owner: — · priority: p1 · estimate: 8h · status: todo · type: story
-> Charter `.charter.md` obrigatório.
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoQuadroContratoTest.php` (lane `verticais-pest.yml`) · casos `Painel/Index.casos.md` (UC-PCV-01..04, UC-PCV-29).
+
+> owner: wagner · priority: p1 · estimate: 8h · status: done · type: story
+> Charter `.charter.md` obrigatório. A tela é `/producao/painel` (thread 06 do playbook), não `/pcp/dashboard` do blueprint.
+
+- [x] 4 indicadores (OS em produção, atrasadas ou vencendo, arte travando, refugo na semana) que abrem o Quadro filtrado (UC-PCV-01/02).
+- [x] O "Kanban embed" é o próprio Quadro (`/producao/quadro`); o Painel leva até ele pelo filtro da URL e conta pelos mesmos cartões (UC-PCV-03).
+- [x] Alertas com ação, fila de aprovação de arte, carga das máquinas hoje e eventos (UC-PCV-01, 04, 29).
+- [ ] Heatmap e refugo em R$ (thread 07 Linha do tempo e thread 08 Custo).
 
 ### US-PCP-018 · Broadcast Centrifugo (Kanban realtime + fila workstation) — **P2**
 

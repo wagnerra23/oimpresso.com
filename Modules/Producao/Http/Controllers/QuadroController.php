@@ -35,10 +35,16 @@ class QuadroController extends Controller
         $papel = Schema::hasColumn('roles', 'business_id') ? "producao.liberar#{$biz}" : 'producao.liberar';
         $podeAlocar = $user->can('producao.etapa.mover');
         $postos = $this->quadro->postos($biz);
-        $cartoes = fn () => $this->quadro->cartoes($biz, now());
+        // Uma consulta só por pedido: `midias` sai dos mesmos cartões.
+        $memo = null;
+        $cartoes = function () use (&$memo, $biz) { return $memo ??= $this->quadro->cartoes($biz, now()); };
+        // UC-PCV-02: o Painel abre o Quadro já filtrado (?so=atrasadas|arte, ?agrupar=maquina).
+        $so = in_array($request->query('so'), ['atrasadas', 'arte'], true) ? $request->query('so') : 'todas';
+        $agrupar = $request->query('agrupar') === 'maquina' ? 'maquina' : 'setor';
 
         return Inertia::render('Producao/Quadro/Index', [
             'hoje' => now()->toDateString(),
+            'filtro' => ['so' => $so, 'agrupar' => $agrupar],
             'pode_alocar' => $podeAlocar,
             'pode_aceitar_arranjo' => $user->can('superadmin') || $user->hasRole($papel),
             'postos' => $postos,

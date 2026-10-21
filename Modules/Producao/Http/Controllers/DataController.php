@@ -62,7 +62,8 @@ class DataController extends Controller
     /**
      * Item da sidebar desde a thread 03 (primeiras telas: Roteiros e Postos). Três camadas,
      * como o golden do Arquivos: pacote `producao_module` → permissão `producao.access` → item.
-     * O item aponta para Roteiros enquanto o Painel (thread 06) não existe; a 06 troca o destino.
+     * O item apontava para Roteiros até o Painel existir; desde a thread 06 (2026-10-21) abre o Painel,
+     * que é a vista inicial do protótipo (`producao-cv-page.jsx`, VISTAS[0]).
      */
     public function modifyAdminMenu(): void
     {
@@ -82,7 +83,7 @@ class DataController extends Controller
         $segmento_ativo = request()->segment(1) === 'producao';
 
         Menu::modify('admin-sidebar-menu', function ($menu) use ($segmento_ativo) {
-            $menu->url(url('/producao/roteiros'), 'Produção', [
+            $menu->url(url('/producao/painel'), 'Produção', [
                 'icon' => 'fa fa-industry',
                 'active' => $segmento_ativo,
                 // [W] 2026-10-19: Produção fica no grupo PRODUÇÃO do sidebar. Sem `group`

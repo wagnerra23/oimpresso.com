@@ -6,6 +6,8 @@ export interface Etapa {
 export interface Cartao {
   chave: string; os_tipo: string; os_id: number; numero: string; titulo: string | null; cliente: string | null;
   etapa: Etapa; progresso: number; prazo: string | null; atraso: 'atrasada' | 'vence hoje' | null; midias: number[];
+  /** UC-PCV-04 · OS por item com prova sem decisão (aguardando) ou recusada (ajuste); null = não trava. */
+  arte: 'aguardando' | 'ajuste' | null;
 }
 export interface Posto { id: number; nome: string; setor: string | null }
 export interface Pessoa { id: number; nome: string }

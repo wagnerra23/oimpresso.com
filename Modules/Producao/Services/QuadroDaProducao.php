@@ -25,7 +25,7 @@ use Modules\Producao\Entities\Ordem;
  */
 final class QuadroDaProducao
 {
-    public function __construct(private readonly OperadoresDoPosto $operadores) {}
+    public function __construct(private readonly OperadoresDoPosto $operadores, private readonly ArteDasOrdens $arte) {}
 
     /** @return list<array<string, mixed>> */
     public function cartoes(int $businessId, CarbonInterface $hoje): array
@@ -45,6 +45,7 @@ final class QuadroDaProducao
         $nomes = $this->nomes($businessId, $abertas->pluck('user_id'));
         $cv = $this->osDaCv($businessId, $this->ids($porOs, RomaneioDeImpressao::OS_TIPO));
         $op = $this->ordens($businessId, $this->ids($porOs, Ordem::OS_TIPO));
+        $arte = $this->arte->travadas($businessId, $this->ids($porOs, Ordem::OS_TIPO));
 
         $cartoes = [];
         foreach ($porOs as $chave => $es) {
@@ -71,10 +72,33 @@ final class QuadroDaProducao
                 'prazo' => $prazo,
                 'atraso' => $prazo === null ? null : ($prazo < $hoje->toDateString() ? 'atrasada' : ($prazo === $hoje->toDateString() ? 'vence hoje' : null)),
                 'midias' => $dados['midias'] ?? [],
+                // UC-PCV-04: só a OS por item tem prova de arte; "aguardando" ou "ajuste" trava, aprovada não.
+                'arte' => $atual->os_tipo === Ordem::OS_TIPO ? ($arte[$osId]['estado'] ?? null) : null,
             ];
         }
 
         return $cartoes;
+    }
+
+    /**
+     * Número e cliente de cada OS, pela chave `os_tipo:os_id` (para o feed de eventos do Painel).
+     *
+     * @param  list<array{0: string, 1: int}>  $refs
+     * @return array<string, array{numero: string, cliente: ?string}>
+     */
+    public function rotulos(int $businessId, array $refs): array
+    {
+        $porTipo = collect($refs)->groupBy(0)->map(fn ($l) => $l->pluck(1)->map(fn ($id) => (int) $id)->unique()->values()->all());
+        $cv = $this->osDaCv($businessId, $porTipo[RomaneioDeImpressao::OS_TIPO] ?? []);
+        $op = $this->ordens($businessId, $porTipo[Ordem::OS_TIPO] ?? []);
+        $saida = [];
+        foreach ([RomaneioDeImpressao::OS_TIPO => $cv, Ordem::OS_TIPO => $op] as $tipo => $dados) {
+            foreach ($dados as $id => $d) {
+                $saida[$tipo.':'.$id] = ['numero' => (string) $d['numero'], 'cliente' => $d['cliente'] ?? null];
+            }
+        }
+
+        return $saida;
     }
 
     /** @return list<array{id: int, nome: string, setor: ?string}> */
