@@ -185,6 +185,70 @@ Status: 🧪
 
 Status: 🧪
 
+> **No cadastro do produto** — a lista de Insumos só mostra o que é ingrediente de receita, mas o
+> custo vale para qualquer item comprado (matéria-prima ou revenda; o app não marca tipo de
+> produto). O formulário Blade de novo e de editar produto ganha o campo "Método de custo"
+> (Não definido / Médio / Último), aplicado a **todas as variações** do produto. Entra pelos ganchos
+> de módulo do core (`product_form_part` desenha, `after_product_saved` grava) — o `update()` do
+> produto não muda. Prova: `Modules/Compras/Tests/Feature/MetodoCustoNoCadastroDoProdutoTest.php`,
+> no `PUT /products/{id}` real, com o mesmo arranjo B e C na variação 1.
+>
+> ⚠️ Os ganchos só rodam para módulo **instalado** (`system.compras_version`, `ModuleUtil`). Medido
+> em produção em 2026-10-21: a chave não existe (49 chaves `*_version`, nenhuma do Compras). Até o
+> módulo ser instalado, o campo não aparece no formulário.
+
+## UC-INSMET-10 · Escolher o método no cadastro grava em todas as variações · `must` valor
+
+**Dado** um produto variável com duas variações e sem método **Quando** salva o cadastro com Último
+**Então** as duas variações ficam `ultimo` e o custo por insumo da variação 1 em 31/03 é 16,0000;
+**Quando** salva com Médio **Então** as mesmas duas linhas viram `medio` e o custo é 14,6667.
+
+Status: 🧪
+
+## UC-INSMET-11 · Envio sem o campo não muda o método · `must`
+
+**Dado** a variação 1 com `ultimo` **Quando** o produto é salvo sem o campo (a tela React de editar
+não o manda; outro módulo pode mandar só `has_module_data`) **Então** a linha continua `ultimo` —
+ausência não é "apagar".
+
+Status: 🧪
+
+## UC-INSMET-12 · "Não definido" apaga o método das variações · `must`
+
+**Dado** as duas variações com método **Quando** salva com Não definido **Então** as linhas do produto
+somem; com a regra `por_insumo` o custo volta a sair nulo com o motivo.
+
+Status: 🧪
+
+## UC-INSMET-13 · Variações com métodos diferentes ficam como estão · `must`
+
+**Dado** a variação 1 `medio` e a 2 `ultimo` **Quando** o formulário abre **Então** mostra "Variações com
+métodos diferentes (manter)"; salvo assim, nada muda.
+
+Status: 🧪
+
+## UC-INSMET-14 · Sem `purchase.update` o produto salva e o método não · `must`
+
+**Dado** o usuário com `product.update` e sem `purchase.update` **Quando** salva com Último **Então** o
+produto é gravado e nenhuma linha de método. No formulário o campo vem desabilitado.
+
+Status: 🧪
+
+## UC-INSMET-15 · O método mostrado é o das variações, só da empresa · `must`
+
+**Dado** nenhuma, uma ou as duas variações com `ultimo` **Quando** o formulário pede o método
+**Então** mostra vazio, `misto` e `ultimo`; pela outra empresa, o mesmo produto mostra vazio.
+
+Status: 🧪
+
+## UC-INSMET-16 · O campo só aparece para empresa com o módulo Compras no pacote · `must`
+
+**Dado** a empresa sem `compras_module` na assinatura **Quando** o formulário de editar produto pede as
+partes dos módulos **Então** o Compras não manda nada; **Dado** acesso ao pacote (aqui, superadmin)
+**Então** manda o campo com o método atual das variações. É o mesmo gate do WooCommerce no formulário.
+
+Status: 🧪
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
@@ -221,3 +285,6 @@ outra decisão de escopo — não é ajuste de código.
 - 2026-10-21 · [W+C] US-COM-024 · UC-FLX-38: UC-INSMET-06..09, a seção "Método de custo" na gaveta
   e o `PUT /compras/insumos/{variation}/metodo-custo` (empresa da sessão, variação da empresa ou
   404, `purchase.update`). Prova: `InsumoMetodoCustoEndpointTest.php`.
+- 2026-10-21 · [W+C] UC-INSMET-10..15: o campo no cadastro do produto (formulário Blade), pelos
+  ganchos de módulo. Pedido [W]: *"independente se é matéria prima ou material de revenda é
+  necessário a aplicação de sistema de custo"*. Prova: `MetodoCustoNoCadastroDoProdutoTest.php` (UC-INSMET-10..16).

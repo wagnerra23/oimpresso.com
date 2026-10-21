@@ -11,6 +11,7 @@ contains:
   - "AplicarCustoDoRecebimento — compra recebida grava o custo pela regra da empresa e trata o preço (so_custo | aplicar | propor), só quando a empresa gravou a regra (US-COM-026 · UC-FLX-17)"
   - "Database/Migrations/2026_10_20_120000_create_compras_propostas_preco_table — tabela compras_propostas_preco, proposta de preço pendente gerada no recebimento (business_id, variation_id, transaction_id)"
   - "InsumoMetodoCustoController — PUT /compras/insumos/{variation}/metodo-custo grava o método do insumo (medio | ultimo) da gaveta de /manufacturing/insumos; empresa da sessão, variação da empresa ou 404, purchase.update (US-COM-024 · UC-FLX-38)"
+  - "MetodoCustoDoProduto + DataController::product_form_part/after_product_saved — campo Método de custo no formulário Blade de novo e de editar produto, aplicado a todas as variações; só roda com o módulo instalado (system.compras_version)"
   - "InsumoMetodoCusto — entidade da tabela-ponte compras_insumo_metodo_custo (business_id, variation_id) com o método próprio do insumo (medio | ultimo), lida quando a regra é por_insumo; variations do core não ganha coluna"
 not_contains:
   - "Estoque/inventário operacional → Modules/AssetManagement + core UltimatePOS stock"
