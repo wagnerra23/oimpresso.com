@@ -18,7 +18,9 @@ interface HorasDosPostos
      * Postos da empresa com segundos trabalhados no mês, contando só trechos FECHADOS
      * (linha `inicio` + a `pausa`/`fim` que a fecha) cujo início cai no mês.
      *
-     * @return list<array{posto_id: int, codigo: string, nome: string, custo_hora: string, segundos: int}>
+     * `setor` é o texto livre do cadastro do posto (`pcp_postos.setor`); null = posto sem setor.
+     *
+     * @return list<array{posto_id: int, codigo: string, nome: string, setor: ?string, custo_hora: string, segundos: int}>
      */
     public function noMes(int $businessId, string $mes): array;
 
