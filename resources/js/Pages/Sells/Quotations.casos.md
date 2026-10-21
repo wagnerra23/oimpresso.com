@@ -80,7 +80,7 @@ orçamento B nunca aberto **Quando** abro a lista de cotações **Então** a col
 abertura e "2×", e a de B mostra "Não aberto". Âncora: aceite 2 da US-SELL-070 · UC-FLX-04.
 
 - **Dados da lista:** `quote_first_opened_at`, `quote_last_opened_at` e `quote_open_count` no mesmo `GET /sells/draft-dt?is_quotation=1`, lidos de `transaction_quote_accesses` pelo business da cotação.
-- **Teste:** `tests/Feature/Sells/QuoteAccessTelaContratoTest.php` — `UC-QUO-10`. O [T0] (linha de acesso de outro business não vira abertura, também na lista) está no `UC-VSHOW-16` do `Show.casos.md`.
+- **Teste:** `tests/Feature/Sells/QuoteAccessTelaContratoTest.php` — `UC-QUO-10`. O [T0] (linha de acesso de outro business não vira abertura, também na lista) está no `UC-VSHOW-21` do `Show.casos.md`.
 
 Status: 🧪
 
@@ -92,6 +92,6 @@ Status: 🧪
 - **[BACKLOG]** O endpoint de dados `/sells/draft-dt?is_quotation=1` não checa permissão de cotação: **medido 2026-10-06 no CT 100**, um usuário do mesmo business **sem** `quotation.view_all` nem `quotation.view_own` recebeu as duas cotações da fixture. Outro business segue fora (o [T0] vale). Ganha id junto do conserto (gate no `getDraftDatables`).
 
 ## Trilha do tempo
-- 2026-10-21 · [CL] UC-QUO-10 (US-SELL-070 · UC-FLX-04): coluna "Aberto" na lista. O item de backlog do detalhe do orçamento saiu daqui e virou UC-VSHOW-15/16 no `Show.casos.md`, que é a tela onde ele mora. Teste `QuoteAccessTelaContratoTest`, nasce sem run.
+- 2026-10-21 · [CL] UC-QUO-10 (US-SELL-070 · UC-FLX-04): coluna "Aberto" na lista. O item de backlog do detalhe do orçamento saiu daqui e virou UC-VSHOW-20/21 no `Show.casos.md`, que é a tela onde ele mora. Teste `QuoteAccessTelaContratoTest`, nasce sem run.
 - 2026-10-20 · [CL] UC-QUO-05..08 (US-SELL-070 · UC-FLX-04): termômetro de acesso da proposta e retorno de 48 h. Teste `QuoteAccessTermometroContratoTest`, nasce sem run.
 - 2026-10-06 · [CL] trio completado na thread Q1 do playbook `venda-menu`. Refs: ADR 0104 · ADR 0264 G-1/G-2 · ADR 0358 · US-SELL-061.
