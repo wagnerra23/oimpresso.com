@@ -165,10 +165,10 @@ last_run: "2026-10-20"
 - **Teste:** `tests/Feature/Sells/PesquisaSatisfacaoEntregaContratoTest.php` — `UC-VSHOW-13`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
-## UC-VSHOW-15 · O detalhe mostra a nota da pesquisa e o atendimento aberto, só com `sell.view` · `must` `[T0]`
+## UC-VSHOW-17 · O detalhe mostra a nota da pesquisa e o atendimento aberto, só com `sell.view` · `must` `[T0]`
 - **Por quê:** aceite 5 da US-SELL-071 — quem cuida da venda vê como o cliente avaliou a entrega e se já há atendimento.
 - **Aceite:** Dado uma venda com pesquisa respondida com nota 2 e uma tarefa de atendimento do mesmo business · Quando abro o detalhe com `sell.view` · Então chega nota 2, status `respondido` e a tarefa · E se a tarefa for de outro business, ela não aparece · E com só `view_own_sell_only` a pesquisa não vem.
-- **Teste:** `tests/Feature/Sells/SellsShowContratoTest.php` — `UC-VSHOW-15`.
+- **Teste:** `tests/Feature/Sells/SellsShowContratoTest.php` — `UC-VSHOW-17`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
 ---
@@ -190,7 +190,7 @@ last_run: "2026-10-20"
 3. **Cadência:** rodar ao fim de toda mexida em `Sells/Show.tsx` ou em `SellController@show`. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
-- 2026-10-21 · [CL] UC-VSHOW-15 sai do backlog: seção "Pesquisa de satisfação" na coluna esquerda (nota + atendimento no CRM, `sell.view`). Teste em `SellsShowContratoTest`, nasce sem run.
+- 2026-10-21 · [CL] UC-VSHOW-17 sai do backlog: seção "Pesquisa de satisfação" na coluna esquerda (nota + atendimento no CRM, `sell.view`). Teste em `SellsShowContratoTest`, nasce sem run.
 - 2026-10-20 · [CL] UC-VSHOW-09..13 (US-SELL-071 · UC-FLX-25): pesquisa de satisfação 2 dias depois da entrega e atendimento na nota baixa. Teste `PesquisaSatisfacaoEntregaContratoTest`, nasce sem run.
 - 2026-10-20 · [CL] `last_run` 2026-07-27 → 2026-10-20 por conferência, não por run novo: desde o `last_run` o `Show.tsx` mudou só em a456273f41 (#9612, US-SELL-068), que acrescenta a faixa de custo do orçamento do UC-VSHOW-08 (63 linhas, só adições). UC-VSHOW-01..08 seguem batendo com a tela; nenhum teste foi re-rodado aqui.
 - 2026-07-27 · [CC] criado — trio fechado pra `Sells/Show` (alvo #1 do débito Tier-0 de `exposicao-tier0.mjs`) com UC-VSHOW-01..07 + `SellsShowContratoTest.php` + lane `sells-pest.yml` (nenhuma das 9 lanes MySQL rodava `tests/Feature/Sells/**`). Casos derivados do charter §Goals/§Non-Goals + RUNBOOK-show + §CU-07; o Controller foi lido só pra confirmar. Ref [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md).

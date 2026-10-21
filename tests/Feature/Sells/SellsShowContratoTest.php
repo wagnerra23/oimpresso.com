@@ -367,11 +367,11 @@ it('UC-VSHOW-07 · o histórico da venda chega ao operador com autor e data', fu
 });
 
 // =============================================================================
-// UC-VSHOW-15 — US-SELL-071 aceite 5: o detalhe mostra a nota da pesquisa depois da entrega e o
+// UC-VSHOW-17 — US-SELL-071 aceite 5: o detalhe mostra a nota da pesquisa depois da entrega e o
 //   atendimento aberto, só para quem tem `sell.view`; pesquisa de outro business não aparece.
 // =============================================================================
 
-it('UC-VSHOW-15 · a nota da pesquisa e o atendimento aberto chegam ao detalhe da venda', function () {
+it('UC-VSHOW-17 · a nota da pesquisa e o atendimento aberto chegam ao detalhe da venda', function () {
     foreach (['transaction_satisfaction_surveys', 'crm_schedules'] as $t) {
         if (! Schema::hasTable($t)) {
             $this->markTestSkipped("{$t} ausente — roda na lane MySQL.");
