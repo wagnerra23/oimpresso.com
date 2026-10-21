@@ -62,7 +62,8 @@ function cvAvisoFone(int $biz): int
     ]);
 }
 
-function cvAvisoContato(int $biz, int $criadoPor, string $nome, ?string $mobile, ?bool $consente): int
+/** "Sem celular" é string vazia: `contacts.mobile` é NOT NULL no schema (medido na lane MySQL). */
+function cvAvisoContato(int $biz, int $criadoPor, string $nome, string $mobile, ?bool $consente): int
 {
     return (int) DB::table('contacts')->insertGetId([
         'business_id' => $biz, 'type' => 'customer', 'name' => $nome, 'mobile' => $mobile,
@@ -126,7 +127,7 @@ it('UC-CVINST-08 · agendar avisa o cliente pelo número de saída da empresa, c
 it('UC-CVINST-09 · cliente que recusou WhatsApp, sem celular, sem cliente ou sem número de saída ativo: não avisa', function () {
     $recusou = cvAvisoContato($this->biz->id, $this->instalador->id, 'Recusou', '48911112222', false);
     cvAvisoAgendar($this, cvAvisoOs($this->biz->id, $recusou), '07:00', '08:00');
-    cvAvisoAgendar($this, cvAvisoOs($this->biz->id, cvAvisoContato($this->biz->id, $this->instalador->id, 'Sem celular', null, true)), '08:00', '09:00');
+    cvAvisoAgendar($this, cvAvisoOs($this->biz->id, cvAvisoContato($this->biz->id, $this->instalador->id, 'Sem celular', '', true)), '08:00', '09:00');
     cvAvisoAgendar($this, cvAvisoOs($this->biz->id, null), '11:00', '12:00');
     expect(Bus::dispatched(SendWhatsappMessageJob::class)->count())->toBe(0);
 

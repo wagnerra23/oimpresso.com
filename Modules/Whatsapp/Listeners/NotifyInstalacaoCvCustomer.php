@@ -81,7 +81,7 @@ class NotifyInstalacaoCvCustomer
         }
 
         $quando = Carbon::parse($inst->data_agendada);
-        $primeiroNome = trim(explode(' ', trim((string) $contato->name))[0] ?? '');
+        $primeiroNome = trim(explode(' ', trim((string) $contato->name))[0]);
         $texto = sprintf(
             '%s a instalação da OS %s está agendada para %s às %s. Se precisar mudar, responda esta mensagem.',
             $primeiroNome !== '' ? "Olá, {$primeiroNome}!" : 'Olá!',
