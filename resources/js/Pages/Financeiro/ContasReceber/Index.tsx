@@ -7,6 +7,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Receipt, AlertTriangle, CheckCircle2, Circle, Hourglass, BellRing } from 'lucide-react';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
+import { Inline } from '@/Components/layout';
 import { toast } from 'sonner';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
@@ -97,7 +98,7 @@ function StatusPill({ status }: { status: Titulo['status'] }) {
 
 function formatDateTime(v: string) {
   const [data, hora = ''] = v.split(' ');
-  return `${formatDate(data)} ${hora.slice(0, 5)}`.trim();
+  return `${formatDate(data ?? null)} ${hora.slice(0, 5)}`.trim();
 }
 
 /** Lembretes da régua de cobrança (US-FIN-071): o que saiu, o que não saiu e por quê. */
@@ -126,10 +127,10 @@ function LembretesPainel({ aberto, onFechar, lembretes }: { aberto: boolean; onF
           <ul className="divide-y">
             {lembretes?.itens.map((l) => (
               <li key={l.id} className="py-3 text-sm" data-contract="lembrete">
-                <div className="flex items-baseline justify-between gap-2">
+                <Inline align="baseline" justify="between">
                   <span className="font-medium">{l.cliente ?? '(sem cliente)'}</span>
                   <span className="text-xs text-muted-foreground whitespace-nowrap">{formatDateTime(l.quando)}</span>
-                </div>
+                </Inline>
                 <div className="text-xs text-muted-foreground">
                   Título <span className="font-mono">{l.numero}</span> · venceu {formatDate(l.vencimento)} · D+{l.etapa_dias} · {l.canal === 'email' ? 'e-mail' : l.canal}
                 </div>
