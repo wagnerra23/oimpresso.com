@@ -340,6 +340,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 > owner: wagner · priority: p1 · estimate: 8h · status: done · type: story
 > Charter `.charter.md` obrigatório. A tela é `/producao/painel` (thread 06 do playbook), não `/pcp/dashboard` do blueprint.
 
+**Aceite:**
 - [x] 4 indicadores (OS em produção, atrasadas ou vencendo, arte travando, refugo na semana) que abrem o Quadro filtrado (UC-PCV-01/02).
 - [x] O "Kanban embed" é o próprio Quadro (`/producao/quadro`); o Painel leva até ele pelo filtro da URL e conta pelos mesmos cartões (UC-PCV-03).
 - [x] Alertas com ação, fila de aprovação de arte, carga das máquinas hoje e eventos (UC-PCV-01, 04, 29).
