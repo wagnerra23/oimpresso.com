@@ -41,6 +41,10 @@ use Tests\Support\WithSeededTenant;
 uses(Tests\TestCase::class, WithSeededTenant::class);
 
 beforeEach(function () {
+    // A limpeza do afterEach só vale para teste que passou deste beforeEach: o Pest roda o
+    // afterEach também quando o teste é pulado, e na lane sqlite não há `contacts`.
+    $GLOBALS['flx24_preparado'] = false;
+
     if (($motivo = Fx::motivoDeSkip()) !== null) {
         $this->markTestSkipped($motivo);
     }
@@ -54,9 +58,14 @@ beforeEach(function () {
     $GLOBALS['flx24_telefones'] = [];
     // Teto dos status antes do teste: o que nascer acima dele é fixture deste arquivo.
     $GLOBALS['flx24_status_teto'] = (int) DB::table('repair_statuses')->max('id');
+    $GLOBALS['flx24_preparado'] = true;
 });
 
 afterEach(function () {
+    if (! ($GLOBALS['flx24_preparado'] ?? false)) {
+        return;
+    }
+
     // O tenant 98 é compartilhado (CT 100 e a lane verticais-pest, que não recria o banco
     // entre arquivos): número de WhatsApp, OS, status e clientes fictícios não podem ficar.
     // Medido 2026-10-21: o status "Recebido" vazio que sobrava daqui virava o "primeiro
