@@ -38,7 +38,7 @@ use Tests\Support\WithSeededTenant;
  * TENANT: seededTenant() = 98 contra seededSupportClientTenant() = 99 (ADR 0358). Nunca 4.
  * Roda só em MySQL (schema UltimatePOS) — na lane sqlite pula pelo guard das fixtures.
  *
- * @see resources/js/Pages/ConsultaOs/Index.casos.md (UC-COS-12, UC-COS-13, UC-COS-15, UC-COS-16)
+ * @see resources/js/Pages/ConsultaOs/Index.casos.md (UC-COS-12, UC-COS-13, UC-COS-31, UC-COS-32)
  * @see memory/requisitos/ConsultaOs/SPEC.md (US-CONSULTA-004)
  */
 uses(Tests\TestCase::class, WithSeededTenant::class);
@@ -192,7 +192,7 @@ it('UC-COS-13: status com nome da empresa muda o portal mas hoje NÃO avisa pelo
     expect($corpo['ordens'][0]['status']['nome'])->toBe('Pronto para retirada');
 });
 
-it('UC-COS-15: cliente que recusou WhatsApp não recebe o aviso; sem resposta (null) ainda recebe', function () {
+it('UC-COS-31: cliente que recusou WhatsApp não recebe o aviso; sem resposta (null) ainda recebe', function () {
     $biz = $this->seededTenant();
     $user = Fx::usuario((int) $biz->id);
     $telefone = flx24Telefone((int) $biz->id);
@@ -217,7 +217,7 @@ it('UC-COS-15: cliente que recusou WhatsApp não recebe o aviso; sem resposta (n
         && $job->to === '+5547900000398');
 });
 
-it('UC-COS-16: OS que aponta para cliente de outra empresa não avisa ninguém', function () {
+it('UC-COS-32: OS que aponta para cliente de outra empresa não avisa ninguém', function () {
     $biz = $this->seededTenant();
     $vizinho = $this->seededSupportClientTenant();
     $user = Fx::usuario((int) $biz->id);

@@ -62,7 +62,7 @@ on:
       - 'Modules/ComunicacaoVisual/**'
       - 'resources/js/Pages/ComunicacaoVisual/**'
       - 'Modules/Repair/**'
-      # UC-COS-15/16 — o aviso de OS do Repair mora no módulo Whatsapp; sem o listener no
+      # UC-COS-31/32 — o aviso de OS do Repair mora no módulo Whatsapp; sem o listener no
       # trigger, mexer nele não rodaria o contrato que o cobre.
       - 'Modules/Whatsapp/Listeners/NotifyRepairCustomer.php'
       - 'resources/js/Pages/Repair/**'
