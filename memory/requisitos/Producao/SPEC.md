@@ -445,9 +445,9 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ### US-PCP-025 · Produção só libera com o sinal pago (UC-FLX-28) — **P2**
 
-**Implementado em:** `Modules/Producao/Services/SinalDaOrdem.php` · `Modules/Producao/Services/SituacaoDaOrdem.php` · `Modules/Producao/Providers/ProducaoServiceProvider.php` · `database/migrations/2026_10_20_120000_add_sinal_minimo_to_fsm_modelos_empresa.php`
+**Implementado em:** `Modules/PaymentGateway/Listeners/LancarPagamentoDaCobrancaNaVenda.php` · `Modules/Producao/Services/SinalDaOrdem.php` · `Modules/Producao/Services/SituacaoDaOrdem.php` · `Modules/Producao/Providers/ProducaoServiceProvider.php` · `database/migrations/2026_10_20_120000_add_sinal_minimo_to_fsm_modelos_empresa.php`
 
-**Testado em:** `Modules/Producao/Tests/Feature/ProducaoSinalPagoLiberaContratoTest.php` (lane `verticais-pest.yml`) · casos `Apontamento/Index.casos.md` UC-PCLIB-04..07.
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoSinalPagoLiberaContratoTest.php` (lane `verticais-pest.yml`) · `tests/Feature/PaymentGateway/RetornoDoBancoPagamentoNaVendaContratoTest.php` (lane `paymentgateway-pest.yml`) · casos `Apontamento/Index.casos.md` UC-PCLIB-04..08.
 
 > owner: wagner · priority: p2 · estimate: 6h · type: story
 > blocked_by: parcelas de sinal e saldo na aprovação do orçamento (Vendas/Financeiro) · retorno do banco que baixa o título (PaymentGateway)
@@ -461,7 +461,8 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [x] Com a regra ligada, `liberar` recusa com motivo (`sinal_pendente`, pago × exigido) enquanto o pago da venda da OS não alcançar o mínimo, inclusive para quem tem `producao.liberar` — UC-PCLIB-05/06.
 - [ ] A OS gerada da venda aprovada fica vinculada ao título do sinal (parcela de sinal e saldo na aprovação — Vendas/Financeiro).
 - [x] Pagamento gravado na venda executa a liberação pela FSM com ator sistema, registrada no histórico da OS; OS com etapa sem responsável fica em `aguardando_liberacao` — UC-PCLIB-07.
-- [ ] Retorno do banco cria o pagamento da venda (hoje o webhook de boleto só grava o evento — PaymentGateway); campo do sinal mínimo na aba Fluxos da empresa.
+- [x] Retorno do banco cria o pagamento da venda (`Modules/PaymentGateway/Listeners/LancarPagamentoDaCobrancaNaVenda.php`, desligado por `PAYMENTGATEWAY_LANCAR_PAGAMENTO_NA_VENDA`) — UC-PCLIB-08.
+- [ ] Campo do sinal mínimo na aba Fluxos da empresa (#9701).
 - [x] Idempotente: pagamento repetido não executa a transição duas vezes (só age em `aguardando_liberacao`, com trava); OS cancelada não é liberada — UC-PCLIB-07.
 - [x] Multi-tenant: o listener usa o `business_id` do próprio pagamento e só toca OS e venda da mesma empresa; `liberar` em OS de outra empresa → não encontrada (404); Pest 98 × 99 — UC-PCLIB-07.
 
@@ -553,9 +554,9 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ### US-PCP-027 · Refugo e retrabalho com motivo somam custo à OS (UC-FLX-16) — **P1**
 
-**Implementado em:** `Modules/Producao/Services/RefugoService.php` · `Modules/Producao/Database/Migrations/2026_10_20_160000_create_pcp_refugos_table.php` · `Modules/Producao/Http/Controllers/ApontamentoController.php`
+**Implementado em:** `Modules/Producao/Services/RefugoService.php` · `Modules/Producao/Database/Migrations/2026_10_20_160000_create_pcp_refugos_table.php` · `Modules/Producao/Http/Controllers/ApontamentoController.php` · `Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.tsx`
 
-**Testado em:** `Modules/Producao/Tests/Feature/ProducaoRefugoContratoTest.php` (lane `verticais-pest.yml`).
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoRefugoContratoTest.php` · `Modules/Producao/Tests/Feature/ProducaoApontamentoTelaTest.php` (lane `verticais-pest.yml`).
 
 > owner: wagner · priority: p1 · estimate: 3h · type: story
 > blocked_by: US-PCP-021
@@ -569,7 +570,8 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [x] O custo real congelado na conclusão soma as horas do retrabalho e o material reposto, sem conta paralela (UC-PCREF-03).
 - [x] Idempotente pela chave da fila offline; tabela `pcp_refugos` com `business_id`, FK e índice (UC-PCREF-04).
 - [x] Endpoint na PWA (`POST /producao/apontamento/refugo`), sem custo na resposta (UC-PCREF-06).
-- [ ] Endpoint no app (`/api/app/producao/apontamentos/refugo`) e campo na tela do operador.
+- [x] Botão "Registrar refugo" na etapa rodando da tela do operador: motivo de refugo do posto, peças e retrabalho, toque ≥ 44px (UC-PCREF-07, 2026-10-21).
+- [ ] Endpoint no app (`/api/app/producao/apontamentos/refugo`).
 - [ ] Relatório de refugo por motivo e posto para o gestor.
 
 ### US-PCP-030 · Operadores por posto: só eles são responsáveis e começam a etapa (UC-FLX-08) — **P1**
