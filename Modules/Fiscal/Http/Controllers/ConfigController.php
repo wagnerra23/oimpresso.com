@@ -10,6 +10,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Models\NfeCertificado;
+use Modules\NfeBrasil\Services\ModoContingencia;
 use Modules\NfeBrasil\Services\Tributacao\ContadorService;
 
 /**
@@ -97,6 +98,12 @@ class ConfigController extends Controller
                         ? (int) $config->contingencia_ativada_em->diffInDays(now())
                         : null,
                     'motivo'       => $config->contingencia_motivo,
+                    // US-NFE-071 — modo escolhido (nulo = epec, o de antes da escolha) e a
+                    // SEFAZ Virtual da UF do emitente, para a tela indicar qual SVC vale.
+                    // A recusa da SVC errada é do ContingenciaService, não da tela.
+                    'modo'         => $config->contingencia_modo ?: ModoContingencia::EPEC,
+                    'svcDaUf'      => ModoContingencia::svcDaUf($painel['uf'] ?? null),
+                    'uf'           => $painel['uf'] ?? null,
                 ],
             ] : null,
             // Painel fiscal — espelha CertificadoController::status() do NfeBrasil
