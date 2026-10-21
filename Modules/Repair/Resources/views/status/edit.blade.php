@@ -43,6 +43,15 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="form-group">
+                    {!! Form::label('whatsapp_template_aviso', 'Avisar o cliente quando a OS entrar aqui:') !!}
+                    {!! Form::select('whatsapp_template_aviso', ['' => 'Não avisar', 'ready' => 'Mensagem de pronto', 'waiting_parts' => 'Mensagem de aguardando peças'], $status->whatsapp_template_aviso, ['class' => 'form-control', 'id' => 'whatsapp_template_aviso']); !!}
+                    <p class="help-block">Pelo WhatsApp, só para cliente que não recusou receber mensagens.</p>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="form-group">
                     {!! Form::label('sms_template', __( 'repair::lang.sms_template' ) . ':') !!}
                     {!! Form::textarea('sms_template', $status->sms_template, ['class' => 'form-control', 'placeholder' => __( 'repair::lang.sms_template' ), 'rows' => 4, 'id' => 'sms_template']); !!}
                 </div>

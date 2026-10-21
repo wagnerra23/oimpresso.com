@@ -45,6 +45,8 @@ interface Props {
   opcoes_compra: MapaOpcoesCompra;
   /** UC-FLXT-19: margem mínima do orçamento, em % (nula = desligada). */
   margem_minima: number | null;
+  /** US-PCP-031: reserva do insumo na venda (null = empresa sem o módulo Produção). */
+  reserva_insumo?: boolean | null;
   /** UC-FLXT-24: requisição pelo estoque mínimo ligada? (nula = sem o módulo Compras). */
   requisicao_estoque_minimo?: boolean | null;
   pode_configurar: boolean;
@@ -62,7 +64,7 @@ const PERFIL_INICIAL: Perfil = { porte: 'pequena', ativ: 'cv' };
 
 export default function FluxosIndex({
   aba, modelos, encaixe, portes, atividades, casos_total, casos, processos, processos_total, processo,
-  casos_lista, fontes, estados_caso, dominios, empresa, regras_ligadas, regras_compra, opcoes_compra, margem_minima, requisicao_estoque_minimo, pode_configurar,
+  casos_lista, fontes, estados_caso, dominios, empresa, regras_ligadas, regras_compra, opcoes_compra, margem_minima, reserva_insumo, requisicao_estoque_minimo, pode_configurar,
 }: Props) {
   // O perfil começa pelo gravado da empresa (quando "Usar modelo" já gravou); senão, o do protótipo.
   const [perfil, setPerfil] = useState<Perfil>({
@@ -127,6 +129,7 @@ export default function FluxosIndex({
               compra={regras_compra}
               opcoesCompra={opcoes_compra}
               margemMinima={margem_minima ?? null}
+              reservaInsumo={reserva_insumo ?? null}
               requisicaoEstoqueMinimo={requisicao_estoque_minimo ?? null}
               podeConfigurar={pode_configurar}
             />

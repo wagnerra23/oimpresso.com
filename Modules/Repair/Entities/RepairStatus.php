@@ -7,6 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
+/**
+ * @property string|null $whatsapp_template_aviso Mensagem de WhatsApp que o status manda ao
+ *           cliente: 'ready' | 'waiting_parts' | null = não avisa (UC-FLX-24). Coluna de 2026-10-21,
+ *           ainda fora do schema dump que o Larastan lê.
+ */
 class RepairStatus extends Model
 {
     use HasBusinessScope; // ADR 0093 — multi-tenant Tier 0 IRREVOGÁVEL (defesa-em-profundidade)
@@ -26,6 +31,7 @@ class RepairStatus extends Model
                 'sort_order',
                 'is_completed_status',
                 'sms_template',
+                'whatsapp_template_aviso',
                 'email_subject',
                 'email_body',
             ])

@@ -73,6 +73,24 @@ novo cria 0 e A segue com 1.
 
 Status: 🧪
 
+## Entrega prevista ao converter (US-PCP-028 · UC-FLX-06)
+
+> **Âncora:** UC-FLX-06 do catálogo de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php`, *"calcula a
+> entrega pela fila dos postos"*). O cálculo é contrato do Produção (UC-PCPRZ-01..04 em
+> `Modules/Producao/Resources/js/Pages/Producao/Postos/Index.casos.md`); aqui fica o que a tela de cotações
+> recebe e mostra.
+
+## UC-QUO-09 · A confirmação de converter mostra a entrega prevista pela fila · `[T0]` `must`
+
+**Dado** uma cotação do business 98 e o Produção no pacote **Quando** abro "Converter em venda" **Então** a
+confirmação pergunta `GET /producao/vendas/{id}/prazo` e mostra "Entrega prevista: dd/mm" antes do
+Converter; sem roteiro de produção, diz que não há como prever. A Page recebe a URL em `urls.prazo` (null sem
+o Produção no pacote: a confirmação não mostra prazo). A cotação de outro business pela mesma URL dá 404.
+
+**Teste:** `tests/Feature/Sells/SellsPrazoEntregaContratoTest.php` — `UC-QUO-09`.
+
+Status: 🧪
+
 ## UC-QUO-10 · A lista de cotações mostra se o cliente abriu a proposta · `must`
 
 **Dado** no business 98 o orçamento A aberto pelo cliente duas vezes (primeira 20/10 10:00, última 11:30) e o
@@ -92,6 +110,7 @@ Status: 🧪
 - **[BACKLOG]** O endpoint de dados `/sells/draft-dt?is_quotation=1` não checa permissão de cotação: **medido 2026-10-06 no CT 100**, um usuário do mesmo business **sem** `quotation.view_all` nem `quotation.view_own` recebeu as duas cotações da fixture. Outro business segue fora (o [T0] vale). Ganha id junto do conserto (gate no `getDraftDatables`).
 
 ## Trilha do tempo
+- 2026-10-21 · [CL] UC-QUO-09 (US-PCP-028 · UC-FLX-06): entrega prevista na confirmação de converter. Teste `SellsPrazoEntregaContratoTest`, nasce sem run.
 - 2026-10-21 · [CL] UC-QUO-10 (US-SELL-070 · UC-FLX-04): coluna "Aberto" na lista. O item de backlog do detalhe do orçamento saiu daqui e virou UC-VSHOW-20/21 no `Show.casos.md`, que é a tela onde ele mora. Teste `QuoteAccessTelaContratoTest`, nasce sem run.
 - 2026-10-21 · [CL] `last_run` 2026-10-06 → 2026-10-21 por conferência, não por run novo: o `Quotations.tsx` deste PR só acrescenta a coluna "Aberto" (2 campos lidos do mesmo JSON); filtro de lista, permissões e conversão de UC-QUO-01..04 não mudam. Nenhum teste re-rodado aqui; o `last_run_ci` segue sendo o de 2026-10-06.
 - 2026-10-20 · [CL] UC-QUO-05..08 (US-SELL-070 · UC-FLX-04): termômetro de acesso da proposta e retorno de 48 h. Teste `QuoteAccessTermometroContratoTest`, nasce sem run.

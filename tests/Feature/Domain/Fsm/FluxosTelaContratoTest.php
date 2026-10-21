@@ -1,6 +1,7 @@
 <?php
 // @covers-us US-SELL-069 (UC-FLXT-19: a margem mínima é configurada nesta tela)
 // @covers-us US-PCP-021 (UC-FLXT-20/21: a regra de baixa de material sem OS não executa e não baixa duas vezes)
+// @covers-us US-PCP-031 (UC-FLXT-22: o interruptor da reserva de insumo na venda mora nesta tela)
 // @covers-us US-COM-027 (UC-FLXT-24: a requisição pelo estoque mínimo liga e desliga nesta tela)
 
 declare(strict_types=1);
@@ -579,6 +580,51 @@ it('UC-FLXT-21 · venda finalizada do balcão entra em Aprovado sem segunda baix
         // Caminho 2: o saldo de estoque não mexeu.
         expect($saldo())->toBe($saldoAntes);
     }
+});
+
+it('UC-FLXT-22 · quem configura liga e desliga a reserva de material na venda, só na empresa da sessão', function () {
+    if (! class_exists(\Modules\Producao\Services\ReservaDeInsumoDaOs::class)) {
+        $this->markTestSkipped('Modules/Producao ausente.');
+    }
+    // Objeto, não variável: o `fn` externo capturaria uma cópia e desligar o pacote não chegaria ao mock.
+    $pacote = (object) ['producao' => true];
+    $this->partialMock(\App\Utils\ModuleUtil::class, fn ($m) => $m->shouldReceive('hasThePermissionInSubscription')
+        ->andReturnUsing(fn ($b, $perm) => $perm === 'producao_module' && $pacote->producao));
+    $chave = \Modules\Producao\Services\ReservaDeInsumoDaOs::CHAVE;
+    $ajustes = fn (int $biz) => json_decode((string) DB::table('business')->where('id', $biz)->value('common_settings'), true) ?? [];
+    $outra = (int) DB::table('business')->where('id', '!=', FLXT_BIZ)->value('id');
+    $antesOutra = DB::table('business')->where('id', $outra)->value('common_settings');
+    // Uma chave vizinha prova que o interruptor mexe só na dele.
+    DB::table('business')->where('id', FLXT_BIZ)->update(['common_settings' => json_encode(['flxt_vizinha' => 'fica'])]);
+
+    flxtEntrar($this, flxtUsuario(['fluxos.ver', 'fluxos.configurar']));
+    flxtPostAplicar($this, ['modelo' => 'cv-pequena']);
+    expect(flxtGet($this, '/fluxos?aba=empresa')->json('props.reserva_insumo'))->toBeFalse();
+
+    flxtPatch($this, '/fluxos/reserva', ['ligada' => true, 'business_id' => $outra])->assertRedirect('/fluxos?aba=empresa');
+    expect($ajustes(FLXT_BIZ))->toBe(['flxt_vizinha' => 'fica', $chave => 1]);
+    expect(app(\Modules\Producao\Services\ReservaDeInsumoDaOs::class)->ligada(FLXT_BIZ))->toBeTrue();
+    expect(flxtGet($this, '/fluxos?aba=empresa')->json('props.reserva_insumo'))->toBeTrue();
+    // O business_id do formulário é ignorado: a outra empresa não mudou.
+    expect(DB::table('business')->where('id', $outra)->value('common_settings'))->toBe($antesOutra);
+
+    flxtPatch($this, '/fluxos/reserva', ['ligada' => 'talvez'])->assertSessionHasErrors('ligada');
+    expect($ajustes(FLXT_BIZ)[$chave] ?? null)->toBe(1);
+
+    flxtPatch($this, '/fluxos/reserva', ['ligada' => false])->assertRedirect('/fluxos?aba=empresa');
+    expect($ajustes(FLXT_BIZ))->toBe(['flxt_vizinha' => 'fica']);
+
+    // Sem fluxos.configurar: 403 e nada muda.
+    flxtEntrar($this, flxtUsuario(['fluxos.ver']));
+    expect(flxtPatch($this, '/fluxos/reserva', ['ligada' => true])->getStatusCode())->toBe(403);
+    expect($ajustes(FLXT_BIZ))->toBe(['flxt_vizinha' => 'fica']);
+
+    // Sem o módulo Produção no pacote: o interruptor some e o PATCH não existe.
+    $pacote->producao = false;
+    flxtEntrar($this, flxtUsuario(['fluxos.ver', 'fluxos.configurar']));
+    expect(flxtGet($this, '/fluxos?aba=empresa')->json('props.reserva_insumo'))->toBeNull();
+    expect(flxtPatch($this, '/fluxos/reserva', ['ligada' => true])->getStatusCode())->toBe(404);
+    expect($ajustes(FLXT_BIZ))->toBe(['flxt_vizinha' => 'fica']);
 });
 
 it('UC-FLXT-24 · quem configura liga e desliga a requisição pelo estoque mínimo; só na empresa da sessão', function () {

@@ -6,8 +6,13 @@ tecnica: Caso de uso = narrativa do operador + criterio de aceite verificavel (D
 por_que: comportamento e duravel — "a tela e read-only e a cor vem do banco" vale em qualquer refactor
 owner: wagner
 autor: "[C] 2026-09-05"
-last_run: "2026-09-11"
+last_run: "2026-10-21"
 ---
+
+> ℹ️ **`last_run` 2026-09-11 → 2026-10-21 (G-6).** A tela mudou neste PR em duas coisas: cada linha mostra
+> o aviso de WhatsApp do status (UC-RSTIDX-09, novo) e o header passou para `@/Components/PageHeader`
+> (ADR 0409), com o mesmo título, a mesma descrição e o mesmo botão. UC-RSTIDX-01..08 não foram reexecutados
+> por este bump; o resultado deles vem da lane do PR.
 
 > ℹ️ **`last_run` 2026-09-09 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
 > O único toque em `Index.tsx` no [#7224](https://github.com/wagnerra23/oimpresso.com/pull/7224) foi **1 linha(s) de COMENTÁRIO** —
@@ -124,6 +129,29 @@ last_run: "2026-09-11"
   esquecesse o `business_id`, esse aviso **mentiria** sobre quantas folhas ficariam órfãs, e a
   decisão de apagar seria tomada em cima de um número da oficina do vizinho.
 - **Teste:** `RepairStatusContratoTest` — *"UC-RSTIDX-08: a contagem de folhas por status conta só as do próprio tenant (Tier 0 · ADR 0093)"*, com uma folha do vizinho pendurada num status do vizinho.
+- **Status: 🧪**
+
+---
+
+## UC-RSTIDX-09 · Vejo na lista se o status avisa o cliente pelo WhatsApp
+- **Persona:** quem configura o fluxo e quer saber em que passo o cliente recebe mensagem.
+- **Aceite:** Dado um status marcado com a mensagem de pronto, um com aguardando peças e um sem
+  marca · Quando abro `/repair/status` · Então cada linha mostra o aviso dela, e a sem marca mostra
+  "não avisa o cliente".
+- **Fonte:** UC-FLX-24 + US-CONSULTA-004; decisão [W] 2026-10-21 (marca por status, não pelo nome).
+- **Teste:** `RepairStatusContratoTest` — *"UC-RSTIDX-09: a marca de aviso ao cliente de cada status chega à tela como está no banco"*.
+- **Status: 🧪**
+
+---
+
+## UC-RSTIDX-10 · Marco no formulário do status qual mensagem o cliente recebe
+- **Persona:** quem cria ou edita um status.
+- **Aceite:** Dado o formulário de criar ou editar status · Quando escolho "Mensagem de pronto" ou
+  "Mensagem de aguardando peças" · Então a marca é gravada · E um valor fora dessas duas vira "não
+  avisa" · E um status de outra empresa não é alterado.
+- **Por que só duas opções:** cada número de WhatsApp tem dois templates aprovados
+  (`template_repair_ready_name`, `template_repair_waiting_parts_name`).
+- **Teste:** `RepairStatusContratoTest` — *"UC-RSTIDX-10: criar e editar status grava a marca de aviso; valor fora da lista vira "não avisa"; status de outra empresa não muda"*.
 - **Status: 🧪**
 
 ---

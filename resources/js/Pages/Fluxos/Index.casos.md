@@ -187,6 +187,18 @@ last_run: "2026-10-20"
 - **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-21").
 - **Status: 🧪**
 
+## UC-FLXT-22 · Quem configura liga a reserva de material na venda
+- **Persona:** dono de comunicação visual que quer o material do item sob encomenda reservado já na venda
+  aprovada, com a baixa real na produção (US-PCP-031 · UC-FLX-14, decisão [W] 2026-10-20).
+- **Aceite:** Dado uma empresa com modelo em uso e o módulo Produção no pacote · Quando quem tem
+  `fluxos.configurar` liga "Reservar material na venda" na aba Fluxos da empresa · Então
+  `common_settings['producao_reserva_insumo']` fica ligada só na empresa da sessão, as outras chaves de
+  `common_settings` ficam como estavam e a aba mostra ligada · Quando desliga · Então a chave sai · E
+  valor que não é sim/não é recusado · E sem `fluxos.configurar` recebe 403 · E sem o módulo Produção o
+  interruptor não aparece e o PATCH responde 404.
+- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-22").
+- **Status: 🧪**
+
 ## UC-FLXT-24 · Quem configura liga e desliga a requisição pelo estoque mínimo
 - **Persona:** dono que quer que o item abaixo do mínimo vire requisição de compra sozinho (UC-FLX-19).
 - **Fonte:** US-COM-027 (SPEC Compras) — o job diário existe e nasce desligado em
