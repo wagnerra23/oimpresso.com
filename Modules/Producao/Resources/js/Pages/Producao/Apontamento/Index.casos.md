@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o apontamento vira custo real e fecha etapa da OS. Errar a etapa aponta tempo no lugar errado; errar a empresa expõe produção alheia; duplicar o envio offline dobra o custo.
 owner: wagner
-last_run: "2026-10-20"
+last_run: "2026-10-21"
 last_run_ci: "_pendente_ — o trio nasce na thread 04. O veredito por UC entra quando a lane verticais-pest rodar; até lá o Status é 🧪."
 ---
 
@@ -82,6 +82,41 @@ Status: 🧪
 **Dado** apontamento de pessoa aberto e saída no ponto às 17:52 **Então** fecha às 17:52 marcado automático;
 sem saída, fecha no fim do turno; horas de pessoa no dia acima da presença + 30 min geram pendência ao gestor;
 o Ponto não é alterado.
+
+Status: 🧪
+
+---
+
+## Produção da impressão no concluir (US-COMVIS-004 · UC-FLX-09)
+
+> **Âncora:** US-COMVIS-004 do `ComunicacaoVisual/SPEC.md` (*"registrar início/fim do trabalho + m² impresso
+> + consumo tinta (CMYK ml)"*) e o UC-FLX-09 do catálogo de fluxos (`CasosDoPrototipo.php:62`). Na linha de
+> máquina que está rodando, o "Concluir etapa" leva junto o m² impresso e a tinta C/M/Y/K em ml, todos
+> opcionais; eles vão na linha `fim` do apontamento, gravada uma vez (append-only). Ficam fora o painel da
+> máquina e a leitura automática do equipamento (UC-FLX-11, decisão D-RIP). Provas:
+> `ProducaoApontamentoContratoTest` (regra) e `ProducaoApontamentoTelaTest` (HTTP).
+
+## UC-PCIMP-01 · Concluir grava m² e tinta na etapa · `must`
+
+**Dado** a etapa do Diego no plotter rodando **Quando** ele conclui informando 12,5 m², tinta C 3,2 ml e K 1 ml
+**Então** a linha `fim` guarda 12,500 m², C 3,20 e K 1,00; M e Y ficam sem valor (não informado ≠ zero). Concluir
+sem informar nada grava o fim como antes, com os campos vazios. Os campos aparecem só na linha de máquina,
+com toque ≥ 44px.
+
+Status: 🧪
+
+## UC-PCIMP-02 · Valor fora do formato recusa o concluir · `must`
+
+**Dado** a mesma etapa **Quando** o valor chega negativo, com letra, com vírgula na API, com casas demais ou com
+dois separadores **Então** o concluir é recusado com `quantidade_invalida`, nada grava e a etapa segue aberta. A
+tela troca a vírgula por ponto antes de enviar.
+
+Status: 🧪
+
+## UC-PCIMP-03 · Reenvio offline não duplica · `must`
+
+**Dado** a fila offline reenviando o mesmo concluir (mesma chave) com m² e tinta **Então** existe uma linha `fim`
+só, com os valores do primeiro envio.
 
 Status: 🧪
 

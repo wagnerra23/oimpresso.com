@@ -132,15 +132,49 @@ export default function ApontamentoIndex({ operador, motivos = [], motivos_refug
   );
 }
 
+// US-COMVIS-004: tinta gasta por canal, em ml. Rótulo curto no celular; o nome inteiro vai no aria-label.
+const CANAIS = [['c', 'C', 'ciano'], ['m', 'M', 'magenta'], ['y', 'Y', 'amarelo'], ['k', 'K', 'preto']] as const;
+const decimal = (v: string) => v.trim().replace(',', '.'); // o serviço só aceita ponto
+
 function Linha({ a, motivos: todos, motivosRefugo, apontar }: { a: Aberto; motivos: Motivo[]; motivosRefugo: Motivo[]; apontar: Apontar }) {
   const [motivo, setMotivo] = useState('');
   const [refugando, setRefugando] = useState(false);
+  const [m2, setM2] = useState('');
+  const [tinta, setTinta] = useState<Record<string, string>>({});
   const motivos = todos.filter((m) => m.posto_id === a.posto_id); // E04 A4: só os do posto
   const maquina = a.tipo_custo === 'maquina';
+
+  function concluir() {
+    // Campos vazios não vão: no banco, NULL é "não informado", diferente de zero.
+    const corpo: Record<string, string> = {};
+    if (maquina && m2.trim()) corpo.m2_impresso = decimal(m2);
+    if (maquina) CANAIS.forEach(([k]) => { if (tinta[k]?.trim()) corpo[`tinta_ml_${k}`] = decimal(tinta[k]); });
+    apontar(`/producao/apontamento/${a.id}/concluir`, corpo);
+  }
+
   return (
     <div className="pcv-ap">
       <div><span className="pcv-eyebrow">{maquina ? 'Máquina' : 'Você'} · OS {a.os_id}</span><b className="pcv-ap-t">{a.posto ?? 'Etapa'}</b></div>
       <Cronometro desde={a.desde} />
+      {maquina && (
+        <fieldset className="grid gap-2">
+          <legend className="pcv-help">Produção da etapa (opcional, vai junto ao concluir)</legend>
+          <label htmlFor={`ap-m2-${a.id}`} className="grid gap-1 text-sm">
+            m² impresso
+            <Input id={`ap-m2-${a.id}`} inputMode="decimal" placeholder="ex.: 12,5" value={m2} onChange={(e) => setM2(e.target.value)} className="min-h-11" />
+          </label>
+          <span className="text-sm">Tinta (ml)</span>
+          <div className="grid grid-cols-4 gap-2">
+            {CANAIS.map(([k, rotulo, nome]) => (
+              <label key={k} className="grid gap-1 text-sm">
+                {rotulo}
+                <Input inputMode="decimal" aria-label={`Tinta ${nome} em ml`} value={tinta[k] ?? ''}
+                  onChange={(e) => setTinta((t) => ({ ...t, [k]: e.target.value }))} className="min-h-11" />
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      )}
       <div className="pcv-bar">
         <Select value={motivo || undefined} onValueChange={setMotivo} disabled={!motivos.length}>
           <SelectTrigger aria-label="Motivo da pausa" className="min-h-11 min-w-48">
@@ -152,7 +186,7 @@ function Linha({ a, motivos: todos, motivosRefugo, apontar }: { a: Aberto; motiv
           </SelectContent>
         </Select>
         <Button className="min-h-11" variant="outline" disabled={!motivo} onClick={() => apontar(`/producao/apontamento/${a.id}/pausar`, { motivo_id: Number(motivo) })}>Pausar</Button>
-        <Button className="min-h-11" onClick={() => apontar(`/producao/apontamento/${a.id}/concluir`)}>Concluir etapa</Button>
+        <Button className="min-h-11" onClick={concluir}>Concluir etapa</Button>
         {/* US-PCP-027 · UC-FLX-16: refugo só na etapa programada (o endpoint exige a etapa). Forma: `.pcv-ap-ref` do protótipo. */}
         {a.programacao_id !== null && !refugando && (
           <button type="button" className="pcv-ap-ref px-3" onClick={() => setRefugando(true)}>Registrar refugo</button>
