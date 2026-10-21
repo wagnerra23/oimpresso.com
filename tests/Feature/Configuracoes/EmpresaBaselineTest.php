@@ -15,7 +15,8 @@ use Illuminate\Support\Facades\Schema;
  * Mapa campo-a-campo: memory/requisitos/Configuracoes/empresa-parity.md (itens `alta`).
  *
  * O teste mais importante é o da SUBSTITUIÇÃO: o POST não é parcial. Checkbox ausente vira 0,
- * `common_settings` ausente vira [] e `enabled_modules` ausente vira null. Uma tela que mande só a
+ * as chaves de `common_settings` que a Blade desenha somem quando ausentes (as de outras features ficam,
+ * desde 2026-10-21) e `enabled_modules` ausente vira null. Uma tela que mande só a
  * aba aberta apaga as outras — é isso que este teste deixa explícito para a F3.
  *
  * Tenant de teste 98 x cliente fictício 99 (ADR 0358).
@@ -112,4 +113,52 @@ test('baseline: salvar é substituição total — checkbox, common_settings e e
     expect((int) $linha->enable_category)->toBe(0);
     expect(json_decode((string) $linha->common_settings, true))->toBe([]);
     expect($linha->enabled_modules)->toBeNull();
+});
+
+/**
+ * A Blade edita as chaves de `common_settings` listadas em CHAVES_COMMON_DA_BLADE; outras features gravam as
+ * delas no mesmo JSON (pesquisa de entrega, ISS retido, reserva de insumo, requisição por estoque mínimo). O
+ * salvar da Blade só pode substituir as que ela desenha — trocar o array inteiro apagava as outras.
+ * (Em 2026-10-21 eram 8; a régua de cobrança entrou na lista quando ganhou a aba Financeiro, UC-EMP-15.)
+ */
+test('salvar pela Blade não apaga as chaves de common_settings que outras features gravam', function () {
+    $deOutrasFeatures = [
+        // `financeiro_regua_cobranca` saiu daqui: a aba Financeiro da Blade desenha a chave e a manda sempre (UC-EMP-15).
+        'sells_pesquisa_entrega' => ['ativo' => true],
+        'financeiro_iss_retido_ajuste' => ['ativo' => true],
+        'producao_reserva_insumo' => ['ativo' => true],
+        'compras_requisicao_estoque_minimo' => ['ativo' => true],
+    ];
+    DB::table('business')->where('id', $this->business->id)->update([
+        'common_settings' => json_encode($deOutrasFeatures + ['default_datatable_page_entries' => 25, 'enable_product_warranty' => '1']),
+    ]);
+
+    // O que a Blade manda: os campos de texto sempre, o checkbox só quando marcado (aqui, desmarcado).
+    $this->post('/business/update', empresaCorpo($this->business, [
+        'common_settings' => ['default_datatable_page_entries' => '50', 'default_credit_limit' => ''],
+    ]))->assertSessionHas('status.success', 1);
+
+    $gravado = json_decode((string) DB::table('business')->where('id', $this->business->id)->value('common_settings'), true);
+    foreach ($deOutrasFeatures as $chave => $valor) {
+        expect($gravado[$chave] ?? null)->toBe($valor);
+    }
+    expect($gravado['default_datatable_page_entries'])->toBe('50');
+    // Desmarcar checkbox da Blade continua removendo a chave: mesclar tudo deixaria a garantia presa em ligada.
+    expect($gravado)->not->toHaveKey('enable_product_warranty');
+});
+
+test('as chaves de common_settings que o salvar trata como da Blade são as que os parciais da Blade desenham', function () {
+    $naBlade = [];
+    foreach (glob(resource_path('views/business/partials/*.blade.php')) as $parcial) {
+        preg_match_all('/common_settings\[([a-z0-9_]+)\]/', (string) file_get_contents($parcial), $m);
+        $naBlade = array_merge($naBlade, $m[1]);
+    }
+    $naBlade = array_values(array_unique($naBlade));
+    sort($naBlade);
+
+    $doSalvar = \App\Http\Controllers\BusinessController::CHAVES_COMMON_DA_BLADE;
+    sort($doSalvar);
+
+    expect($naBlade)->not->toBe([]);
+    expect($doSalvar)->toBe($naBlade);
 });

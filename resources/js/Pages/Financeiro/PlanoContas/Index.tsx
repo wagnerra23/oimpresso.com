@@ -17,6 +17,7 @@ import FinStatStrip, { FinStat } from '@/Pages/Financeiro/_shared/FinStatStrip';
 import { useBusiness, usePageProps } from '@/Hooks/usePageProps';
 import { Inline } from '@/Components/layout';
 import { brlNoSign } from '@/Pages/Financeiro/Cobranca/_lib/cobranca-shared';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 
 interface PlanoConta {
   id: number;
@@ -26,6 +27,7 @@ interface PlanoConta {
   nivel: number;    // 1=raiz, 4=folha
   parent_id: number | null;
   natureza: 'debito' | 'credito';
+  classe_custo: 'fixa' | 'variavel' | null; // US-FIN-070 — custeio RKW; null = fora do custeio
   aceita_lancamento: boolean;
   protegido: boolean;
 }
@@ -53,6 +55,44 @@ interface Props {
   planos: PlanoConta[];
   stats: Stats;
   movimento?: Movimento; // deferida: undefined até o 2º request
+  pode_classificar_custo?: boolean;
+}
+
+/**
+ * Classe de custo da conta (US-FIN-070 · UC-FLX-20): fixa entra no rateio por hora dos postos,
+ * variável entra na margem de contribuição, "fora" não entra no custeio. Só conta de despesa ou
+ * custo — é dali que saem os títulos a pagar. Quem não pode classificar só lê.
+ */
+const CLASSE_ROTULO = { fixa: 'Fixa', variavel: 'Variável' } as const;
+const FORA = 'fora'; // sentinela: o Radix não aceita value vazio
+function ClasseCustoCelula({ conta, podeEditar }: { conta: PlanoConta; podeEditar: boolean }) {
+  if (conta.tipo !== 'despesa' && conta.tipo !== 'custo') {
+    return <span className="text-[var(--text-mute)]">—</span>;
+  }
+  if (!podeEditar) {
+    return <span className="text-[var(--text-dim)]">{conta.classe_custo ? CLASSE_ROTULO[conta.classe_custo] : '—'}</span>;
+  }
+  const salvar = (v: string) => {
+    const classe = v === FORA ? null : v;
+    if (classe === conta.classe_custo) return;
+    router.patch(`/financeiro/plano-contas/${conta.id}/classe-custo`, { classe_custo: classe }, { preserveScroll: true, preserveState: true });
+  };
+  // Largura no <div> em volta: o .cw-input do trigger fica fora de @layer e põe width:100%,
+  // que venceria um w-* no próprio trigger (§5 2026-10-14).
+  return (
+    <div className="w-[128px]">
+      <Select value={conta.classe_custo ?? FORA} onValueChange={salvar}>
+        <SelectTrigger size="sm" aria-label={`Classe de custo de ${conta.nome}`}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="fixa">Fixa</SelectItem>
+          <SelectItem value="variavel">Variável</SelectItem>
+          <SelectItem value={FORA}>Fora do custeio</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
 }
 
 // FIN-6 (2026-09-23): selo de tipo no formato do protótipo (TelaPContas,
@@ -106,7 +146,7 @@ function MovimentoCelulas({ mov }: { mov: { lancamentos: number; saldo: number }
   );
 }
 
-function FinanceiroPlanoContas({ planos, stats, movimento }: Props) {
+function FinanceiroPlanoContas({ planos, stats, movimento, pode_classificar_custo = false }: Props) {
   const [busca, setBusca] = useState('');
   const [tipoFilter, setTipoFilter] = useState<PlanoConta['tipo'] | 'all'>('all');
 
@@ -226,6 +266,7 @@ function FinanceiroPlanoContas({ planos, stats, movimento }: Props) {
               <th className="px-2 py-2 text-right font-medium w-[80px]">Lanç. mês</th>
               <th className="px-2 py-2 text-right font-medium w-[140px]">Saldo mês</th>
               <th className="px-2 py-2 text-left font-medium w-[80px]">Natureza</th>
+              <th className="px-2 py-2 text-left font-medium w-[130px]" title="Fixa: rateada pelas horas dos postos. Variável: entra na margem de contribuição.">Custeio</th>
               <th className="px-2 py-2 text-center font-medium w-[100px]">Aceita lanç.</th>
               <th className="pl-2 pr-6 py-2 text-center font-medium w-[80px]">Protegido</th>
             </tr>
@@ -261,6 +302,9 @@ function FinanceiroPlanoContas({ planos, stats, movimento }: Props) {
                 </td>
                 <MovimentoCelulas mov={movimento === undefined ? undefined : (movimento.contas[p.id] ?? null)} />
                 <td className="px-2 py-2 text-[var(--text-dim)] text-[length:var(--fs-2)]">{p.natureza}</td>
+                <td className="px-2 py-1 text-[length:var(--fs-2)]">
+                  <ClasseCustoCelula conta={p} podeEditar={pode_classificar_custo} />
+                </td>
                 <td className="px-2 py-2 text-center">
                   {p.aceita_lancamento ? (
                     <FileText size={14} className="text-[var(--pos)] inline" aria-label="Aceita lançamento" />
@@ -275,7 +319,7 @@ function FinanceiroPlanoContas({ planos, stats, movimento }: Props) {
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={8} className="py-12 text-center text-[var(--text-dim)]">
+                <td colSpan={9} className="py-12 text-center text-[var(--text-dim)]">
                   {planos.length === 0
                     ? 'Plano de contas ainda não seedado pra este business. Rode `php artisan tinker --execute=\"(new \\Modules\\Financeiro\\Database\\Seeders\\PlanoContasBrSeeder)->run({biz_id});\"` no SSH.'
                     : 'Nenhuma conta com os filtros atuais.'}

@@ -20,6 +20,9 @@ use Symfony\Component\HttpFoundation\Response;
  * `solicitar` (logado, `producao.access`): gera o link da prova da OS por item e devolve ao
  * operador. O envio por WhatsApp/e-mail com opt-in LGPD é follow-up — aqui o operador copia o link.
  *
+ * `trocar` (logado, `producao.access` · UC-PCV-11): troca o arquivo de uma arte já aprovada e devolve o
+ * link novo; a OS volta a esperar o cliente. `vigente` devolve a última arte aprovada, a que vale para produzir.
+ *
  * `mostrar`/`aprovar`/`recusar` (públicas, sem login, throttle na rota): a página mostra só a prova
  * e o nome da etapa — nenhum dado do cliente. Link inexistente → 404; respondido ou vencido → 410.
  */
@@ -44,6 +47,41 @@ class AprovacaoArteController extends Controller
         }
 
         return response()->json(['id' => $r['id'], 'link' => route('producao.arte.mostrar', $r['token']), 'expira_em' => $r['expira_em']->toIso8601String()], 201);
+    }
+
+    public function trocar(Request $request, int $id): JsonResponse
+    {
+        $biz = $this->empresaComAcesso($request);
+        $arquivo = (string) $request->validate(['arquivo' => ['required', 'url:http,https', 'max:500']])['arquivo'];
+
+        try {
+            $r = $this->service->trocarArquivo($biz, $id, $arquivo, $request->user());
+        } catch (ApontamentoRecusado $e) {
+            return response()->json(['codigo' => $e->codigo, 'mensagem' => $e->getMessage()], $e->codigo === ApontamentoRecusado::NAO_ENCONTRADO ? 404 : 422);
+        }
+
+        return response()->json(['id' => $r['id'], 'link' => route('producao.arte.mostrar', $r['token']), 'expira_em' => $r['expira_em']->toIso8601String()], 201);
+    }
+
+    public function vigente(Request $request, int $id): JsonResponse
+    {
+        $biz = $this->empresaComAcesso($request);
+        try {
+            $this->service->exigirOrdem($biz, $id);
+        } catch (ApontamentoRecusado $e) {
+            return response()->json(['codigo' => $e->codigo, 'mensagem' => $e->getMessage()], 404);
+        }
+
+        return response()->json(['arte' => $this->service->arteVigente($biz, $id)]);
+    }
+
+    private function empresaComAcesso(Request $request): int
+    {
+        $biz = (int) $request->session()->get('user.business_id');
+        $pode = $request->user()?->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($biz, 'producao_module');
+        abort_unless($biz > 0 && $pode && $request->user()->can('producao.access'), 403);
+
+        return $biz;
     }
 
     public function mostrar(string $token): Response

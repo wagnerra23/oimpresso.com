@@ -14,9 +14,9 @@ module: Producao
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Producao/**` + `resources/js/Pages/Producao/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 125 arquivos em 17 papéis.
+**Total mapeado:** 147 arquivos em 17 papéis.
 
-## Controllers — 18
+## Controllers — 21
 
 - [AlocacaoController.php](../../../Modules/Producao/Http/Controllers/AlocacaoController.php)
 - [AppApontamentoController.php](../../../Modules/Producao/Http/Controllers/Api/AppApontamentoController.php)
@@ -30,10 +30,13 @@ module: Producao
 - [InstallController.php](../../../Modules/Producao/Http/Controllers/InstallController.php)
 - [LoteRastreioController.php](../../../Modules/Producao/Http/Controllers/LoteRastreioController.php)
 - [OrdemCustoController.php](../../../Modules/Producao/Http/Controllers/OrdemCustoController.php)
+- [OrdemMaterialController.php](../../../Modules/Producao/Http/Controllers/OrdemMaterialController.php)
+- [PainelController.php](../../../Modules/Producao/Http/Controllers/PainelController.php)
 - [PostoOperadoresController.php](../../../Modules/Producao/Http/Controllers/PostoOperadoresController.php)
 - [PostosController.php](../../../Modules/Producao/Http/Controllers/PostosController.php)
 - [PrazoDaVendaController.php](../../../Modules/Producao/Http/Controllers/PrazoDaVendaController.php)
 - [PrevistoRealizadoController.php](../../../Modules/Producao/Http/Controllers/PrevistoRealizadoController.php)
+- [QuadroController.php](../../../Modules/Producao/Http/Controllers/QuadroController.php)
 - [RomaneioController.php](../../../Modules/Producao/Http/Controllers/RomaneioController.php)
 - [RoteirosController.php](../../../Modules/Producao/Http/Controllers/RoteirosController.php)
 
@@ -41,26 +44,30 @@ module: Producao
 
 - [SalvarRoteiroRequest.php](../../../Modules/Producao/Http/Requests/SalvarRoteiroRequest.php)
 
-## Services — 25
+## Services — 29
 
 - [AlocacaoDaEtapa.php](../../../Modules/Producao/Services/AlocacaoDaEtapa.php)
 - [ApontamentoOperadorService.php](../../../Modules/Producao/Services/ApontamentoOperadorService.php)
 - [ApontamentoService.php](../../../Modules/Producao/Services/ApontamentoService.php)
 - [AprovacaoArteService.php](../../../Modules/Producao/Services/AprovacaoArteService.php)
 - [AproveitamentoDeMidia.php](../../../Modules/Producao/Services/AproveitamentoDeMidia.php)
+- [ArteDasOrdens.php](../../../Modules/Producao/Services/ArteDasOrdens.php)
 - [CalendarioDeProducao.php](../../../Modules/Producao/Services/CalendarioDeProducao.php)
 - [ConsumoMaterialService.php](../../../Modules/Producao/Services/ConsumoMaterialService.php)
 - [CriarOsDaVenda.php](../../../Modules/Producao/Services/CriarOsDaVenda.php)
 - [CustoHoraDoPostoService.php](../../../Modules/Producao/Services/CustoHoraDoPostoService.php)
 - [CustoRealService.php](../../../Modules/Producao/Services/CustoRealService.php)
+- [FaltaDeMaterialDaOs.php](../../../Modules/Producao/Services/FaltaDeMaterialDaOs.php)
 - [HorasDosPostosService.php](../../../Modules/Producao/Services/HorasDosPostosService.php)
 - [OperadoresDoPosto.php](../../../Modules/Producao/Services/OperadoresDoPosto.php)
 - [OsDaVenda.php](../../../Modules/Producao/Services/OsDaVenda.php)
+- [PainelDaProducao.php](../../../Modules/Producao/Services/PainelDaProducao.php)
 - [PrazoPelaFila.php](../../../Modules/Producao/Services/PrazoPelaFila.php)
 - [PrevisaoCustoDaOrdem.php](../../../Modules/Producao/Services/PrevisaoCustoDaOrdem.php)
 - [PrevistoRealizadoDaOrdem.php](../../../Modules/Producao/Services/PrevistoRealizadoDaOrdem.php)
 - [ProcessoDaOrdem.php](../../../Modules/Producao/Services/ProcessoDaOrdem.php)
 - [PrometerPrazoDaVenda.php](../../../Modules/Producao/Services/PrometerPrazoDaVenda.php)
+- [QuadroDaProducao.php](../../../Modules/Producao/Services/QuadroDaProducao.php)
 - [RastreioDoRolo.php](../../../Modules/Producao/Services/RastreioDoRolo.php)
 - [RefugoService.php](../../../Modules/Producao/Services/RefugoService.php)
 - [ReservaDeInsumoDaOs.php](../../../Modules/Producao/Services/ReservaDeInsumoDaOs.php)
@@ -107,7 +114,7 @@ module: Producao
 
 - [web.php](../../../Modules/Producao/Routes/web.php)
 
-## Migrations (schema) — 11
+## Migrations (schema) — 13
 
 - [2026_10_15_000001_create_pcp_fundo_tables.php](../../../Modules/Producao/Database/Migrations/2026_10_15_000001_create_pcp_fundo_tables.php)
 - [2026_10_16_000001_create_pcp_cadastros_tables.php](../../../Modules/Producao/Database/Migrations/2026_10_16_000001_create_pcp_cadastros_tables.php)
@@ -120,6 +127,8 @@ module: Producao
 - [2026_10_20_130000_create_pcp_posto_operadores_table.php](../../../Modules/Producao/Database/Migrations/2026_10_20_130000_create_pcp_posto_operadores_table.php)
 - [2026_10_20_160000_create_pcp_refugos_table.php](../../../Modules/Producao/Database/Migrations/2026_10_20_160000_create_pcp_refugos_table.php)
 - [2026_10_20_200000_create_pcp_aproveitamento_midia_tables.php](../../../Modules/Producao/Database/Migrations/2026_10_20_200000_create_pcp_aproveitamento_midia_tables.php)
+- [2026_10_21_100000_add_impressao_to_pcp_apontamentos.php](../../../Modules/Producao/Database/Migrations/2026_10_21_100000_add_impressao_to_pcp_apontamentos.php)
+- [2026_10_21_200000_add_custo_hora_direto_to_pcp_postos.php](../../../Modules/Producao/Database/Migrations/2026_10_21_200000_add_custo_hora_direto_to_pcp_postos.php)
 
 ## Config — 1
 
@@ -130,39 +139,49 @@ module: Producao
 - [aprovacao-arte.blade.php](../../../Modules/Producao/Resources/views/aprovacao-arte.blade.php)
 - [etiqueta-os.blade.php](../../../Modules/Producao/Resources/views/etiqueta-os.blade.php)
 
-## Telas (Inertia/React) — 3
+## Telas (Inertia/React) — 5
 
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.tsx)
+- [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Painel/Index.tsx)
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/Index.tsx)
+- [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/Index.tsx)
 - [Index.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.tsx)
 
-## Componentes / apoio de tela — 3
+## Componentes / apoio de tela — 5
 
 - [EditorPosto.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/_components/EditorPosto.tsx)
+- [Alocar.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/_components/Alocar.tsx)
+- [SimuladorBobina.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/_components/SimuladorBobina.tsx)
 - [EditorRoteiro.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/_components/EditorRoteiro.tsx)
 - [ProducaoAbas.tsx](../../../Modules/Producao/Resources/js/Pages/Producao/_components/ProducaoAbas.tsx)
 
-## Charters (lei da tela) — 3
+## Charters (lei da tela) — 5
 
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.charter.md)
+- [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Painel/Index.charter.md)
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/Index.charter.md)
+- [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/Index.charter.md)
 - [Index.charter.md](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.charter.md)
 
-## Casos (contrato UC) — 3
+## Casos (contrato UC) — 5
 
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.casos.md)
+- [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Painel/Index.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Postos/Index.casos.md)
+- [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/Index.casos.md)
 - [Index.casos.md](../../../Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.casos.md)
 
-## Testes (Pest) — 26
+## Testes (Pest) — 29
 
-- 26 em [Modules/Producao/Tests/Feature/](../../../Modules/Producao/Tests/Feature)
+- 29 em [Modules/Producao/Tests/Feature/](../../../Modules/Producao/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 6
+## Demais arquivos (manifestos, docs, assets e misc) — 8
 
 - [ApontamentoRecusado.php](../../../Modules/Producao/Exceptions/ApontamentoRecusado.php)
 - [fila.ts](../../../Modules/Producao/Resources/js/Pages/Producao/Apontamento/_lib/fila.ts)
+- [json.ts](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/_lib/json.ts)
+- [tipos.ts](../../../Modules/Producao/Resources/js/Pages/Producao/Quadro/_lib/tipos.ts)
 - [producao.php](../../../Modules/Producao/Resources/lang/pt/producao.php)
 - [composer.json](../../../Modules/Producao/composer.json)
 - [module.json](../../../Modules/Producao/module.json)

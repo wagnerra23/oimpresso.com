@@ -10,10 +10,13 @@ use Modules\Producao\Http\Controllers\FerramentasController;
 use Modules\Producao\Http\Controllers\InstallController;
 use Modules\Producao\Http\Controllers\LoteRastreioController;
 use Modules\Producao\Http\Controllers\OrdemCustoController;
+use Modules\Producao\Http\Controllers\OrdemMaterialController;
+use Modules\Producao\Http\Controllers\PainelController;
 use Modules\Producao\Http\Controllers\PostoOperadoresController;
 use Modules\Producao\Http\Controllers\PostosController;
 use Modules\Producao\Http\Controllers\PrevistoRealizadoController;
 use Modules\Producao\Http\Controllers\PrazoDaVendaController;
+use Modules\Producao\Http\Controllers\QuadroController;
 use Modules\Producao\Http\Controllers\RomaneioController;
 use Modules\Producao\Http\Controllers\RoteirosController;
 
@@ -86,11 +89,17 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('os/{id}/etiqueta', [EtiquetaOsController::class, 'show'])->whereNumber('id')->name('os.etiqueta');
         // US-PCP-022 · UC-FLX-36 — custo da abertura × hoje da OS por item em andamento (JSON, gestor).
         Route::get('ordens/{id}/custo', [OrdemCustoController::class, 'show'])->whereNumber('id')->name('ordens.custo');
+        // D3 · revisão 2026-10-21 — o que falta de material na OS e o conferir que a tira de Aguardando material (JSON).
+        Route::get('ordens/{id}/material', [OrdemMaterialController::class, 'show'])->whereNumber('id')->name('ordens.material');
+        Route::post('ordens/{id}/material/conferir', [OrdemMaterialController::class, 'conferir'])->whereNumber('id')->name('ordens.material.conferir');
         // US-COMVIS-005 · UC-FLX-15 — previsto × realizado por OS e por venda (JSON, gestor).
         Route::get('ordens/{id}/previsto-realizado', [PrevistoRealizadoController::class, 'ordem'])->whereNumber('id')->name('ordens.previsto-realizado');
         Route::get('vendas/{id}/previsto-realizado', [PrevistoRealizadoController::class, 'venda'])->whereNumber('id')->name('vendas.previsto-realizado');
         // US-COMVIS-NEW-004 · UC-FLX-02 — gera o link da prova para o cliente aprovar (JSON).
         Route::post('ordens/{id}/aprovacao-arte', [AprovacaoArteController::class, 'solicitar'])->whereNumber('id')->name('ordens.aprovacao-arte');
+        // UC-PCV-11 · arte aprovada travada: trocar o arquivo pede nova aprovação; a vigente é a última aprovada (JSON).
+        Route::post('ordens/{id}/arte/trocar', [AprovacaoArteController::class, 'trocar'])->whereNumber('id')->name('ordens.arte.trocar');
+        Route::get('ordens/{id}/arte', [AprovacaoArteController::class, 'vigente'])->whereNumber('id')->name('ordens.arte.vigente');
         // US-PCP-028 · UC-FLX-06 — prazo de entrega da venda pela fila dos postos (JSON, só leitura).
         Route::get('vendas/{id}/prazo', [PrazoDaVendaController::class, 'show'])->whereNumber('id')->name('vendas.prazo');
         // US-COM-025 · UC-FLX-18 — rastreio do rolo: OS que usaram fração do lote + saldo (JSON, quem vê compras).
@@ -130,4 +139,14 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::put('bobinas/{material}', [AproveitamentoMidiaController::class, 'bobina'])->whereNumber('material')->name('bobinas.update');
         Route::post('aproveitamento/simular', [AproveitamentoMidiaController::class, 'simular'])->name('aproveitamento.simular');
         Route::post('aproveitamento', [AproveitamentoMidiaController::class, 'aceitar'])->name('aproveitamento.aceitar');
+    });
+
+// ── Thread 06 · Quadro (UC-PCV-05/06) — recebe o alocador (UC-FLX-10) e o simulador de bobina (UC-FLX-13) ──
+Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
+    ->prefix('producao')
+    ->name('producao.')
+    ->group(function () {
+        Route::get('quadro', [QuadroController::class, 'index'])->name('quadro.index');
+        // Painel (UC-PCV-01..04, 29): o que trava a produção hoje; os indicadores abrem o quadro filtrado.
+        Route::get('painel', [PainelController::class, 'index'])->name('painel.index');
     });

@@ -204,5 +204,25 @@
                 {!! Form::text('pos_settings[stripe_secret_key]', $pos_settings['stripe_secret_key'] ?? '', ['class' => 'form-control', 'id' => 'stripe_secret_key']); !!}
             </div>
         </div>
+        {{-- Pesquisa de satisfação 2 dias depois da entrega (US-SELL-071 · PesquisaEntregaConfig). Desligada por padrão. --}}
+        @php($pesquisaEntrega = $common_settings['sells_pesquisa_entrega'] ?? [])
+        <div class="col-md-12">
+            <h4>Pesquisa de satisfação</h4>
+        </div>
+        <div class="col-sm-4">
+            <div class="form-group">
+                <div class="checkbox">
+                    <label>
+                    {!! Form::checkbox('common_settings[sells_pesquisa_entrega][ativo]', 1, !empty($pesquisaEntrega['ativo']), ['class' => 'input-icheck', 'id' => 'sells_pesquisa_entrega_ativo']); !!} Enviar pesquisa 2 dias depois da entrega
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="form-group">
+                {!! Form::label('sells_pesquisa_entrega_nota_baixa', 'Nota baixa abre atendimento quando for até:') !!}
+                {!! Form::select('common_settings[sells_pesquisa_entrega][nota_baixa]', [1 => '1', 2 => '2', 3 => '3', 4 => '4'], $pesquisaEntrega['nota_baixa'] ?? 2, ['class' => 'form-control', 'id' => 'sells_pesquisa_entrega_nota_baixa']); !!}
+            </div>
+        </div>
     </div>
 </div>

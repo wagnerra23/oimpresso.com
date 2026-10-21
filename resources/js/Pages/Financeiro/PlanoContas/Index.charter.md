@@ -42,6 +42,7 @@ Visão da estrutura contábil BR (plano de contas hierárquico, ~47 entries seed
 - ❌ NÃO altera cálculo de valor, saldo ou estoque — é cadastro/estrutura contábil, sem efeito financeiro.
   - _Nota 2026-09-23 (FIN-6b):_ **exibir** o movimento do mês (Lanç. mês / Saldo mês) é leitura e não contradiz isto — nenhum valor é gravado, recalculado ou alterado a partir desta tela. A soma exibida usa a mesma base do DRE e foi provada por dois caminhos (regra mestre de valor).
 - ❌ NÃO cria/edita/exclui conta nesta Page (index é read-only; o Controller só tem `index`). O primário "Novo título" cria um **título** no Unificado (`/financeiro/unificado/novo`), não uma conta do plano — a tela segue read-only para o plano de contas.
+  - Única exceção (2026-10-21, US-FIN-070 · UC-PCCH-08): a coluna **Custeio** grava a classe de custo (fixa/variável/fora) de conta de despesa ou custo, via `PATCH /financeiro/plano-contas/{id}/classe-custo`, para quem tem `financeiro.relatorios.view`. Código, nome, tipo, hierarquia e exclusão continuam fora desta tela.
 - ❌ NÃO lança nem baixa títulos.
 - ❌ NÃO cruza dados entre businesses — query filtra por `business_id` (session `user.business_id`), plano é seedado por tenant; nunca cross-tenant.
 

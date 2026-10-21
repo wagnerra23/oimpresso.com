@@ -170,7 +170,7 @@ related_us: [US-FISCAL-005, US-NFE-069]
 arredondada a 1 centavo e a parte mercadoria absorvendo a sobra. Sem mercadoria, o frete vai para a
 NFS-e e a separação avisa (`frete_sem_mercadoria`).
 
-- **⚠️ Regra proposta, pendente de decisão [W]:** `SeparacaoNotasDaVenda::REGRA_RATEIO`.
+- **Regra decidida por [W] em 2026-10-21** (regra A, contra desconto todo na mercadoria ou todo no serviço): `SeparacaoNotasDaVenda::REGRA_RATEIO`.
 - **Teste:** `it('UC-FNFSE-07 · o desconto é rateado pelo bruto e o frete vai inteiro para a NF-e')`,
   `it('UC-FNFSE-07 · o centavo que não divide fica na mercadoria, nunca some')` e
   `it('UC-FNFSE-07 · venda só de serviço com frete leva o frete para a NFS-e e avisa')`.
@@ -195,10 +195,49 @@ NFS-e e a separação avisa (`frete_sem_mercadoria`).
 **Então** a linha fica na parte mercadoria (como a emissão faz hoje) e o produto volta listado em
 `pendentes` — a separação não escolhe ICMS nem ISS (D-NATUREZA).
 
-- **Em aberto:** o aceite da US-NFE-069 pede que pendente **bloqueie** o faturamento; isso é do
-  disparo no Faturado, não deste PR.
+- **Bloqueio:** o aceite da US-NFE-069 pede que pendente **bloqueie** o faturamento — a separação
+  só lista; quem bloqueia é a emissão das duas notas (UC-FNFSE-12).
 - **Teste:** `it('UC-FNFSE-09 · natureza pendente fica na mercadoria e volta listada, sem decidir imposto')`.
 - **Status:** 🧪 veredito pendente da lane.
+
+## UC-FNFSE-10 — A NF-e da venda separada leva só a parte mercadoria `[must]`
+
+**Dado** a venda mista do UC-FNFSE-07 (3 × 33,33 + instalação 150,00, desconto 17,50, frete 20,00, total 252,49)
+**Quando** a NF-e é emitida com a venda separada (botão "Emitir NF-e + NFS-e")
+**Então** a nota tem só a linha de mercadoria, vNF = pagamento = **112,99**, e guarda na metadata a regra
+e o total da parte serviço (**139,50**); NF-e + NFS-e somam o `final_total`, centavo a centavo.
+Sem a separação, a NF-e da mesma venda segue recusada por ter serviço (R-NFE-034).
+
+- **Teste:** `it('UC-FNFSE-10 · a NF-e da venda separada leva só a parte mercadoria, com o total e o frete dela')`
+  e `it('UC-FNFSE-10 · sem a separação a NF-e continua recusando o item de serviço (controle)')` em
+  `Modules/NfeBrasil/Tests/Feature/EmissaoSeparadaContratoTest.php`.
+- **Decomposição no XML:** a parte de 112,99 sai com vFrete 20,00 e vDesc 7,00 (R-NFE-025, #9738). Até
+  2026-10-21 o `montarItensNfe` compensava desconto com frete e ela saía com vFrete 13,00 e vDesc 0.
+- **Status:** 🧪 veredito pendente da lane.
+
+## UC-FNFSE-11 — A NFS-e da venda separada leva só a parte serviço `[must]`
+
+**Dado** a mesma venda
+**Quando** a NFS-e é pedida com `separada`
+**Então** o valor dos serviços é **139,50** e o código LC 116 é o que o contador gravou na natureza do
+produto (`24.01`); o valor mandado no corpo é ignorado. Sem `separada`, a NFS-e segue com o `final_total`.
+Serviços com códigos diferentes recusam (uma NFS-e leva um código só); NFS-e já em curso para a venda recusa (409).
+
+- **Teste:** `it('UC-FNFSE-11 · a NFS-e da venda separada leva o total da parte serviço e o código do contador, ignorando o valor do corpo')`
+  e `it('UC-FNFSE-11 · sem a separação a NFS-e segue com o final_total da venda (controle)')`.
+- **Status:** 🧪 veredito pendente da lane.
+
+## UC-FNFSE-12 — Natureza pendente bloqueia; a prévia exige permissão e respeita o tenant `[must]` `[T0]`
+
+**Dado** uma venda com produto de natureza `pendente`
+**Quando** pede as duas notas
+**Então** a NFS-e volta 422 `natureza_pendente` sem montar payload e a NF-e separada recusa.
+A prévia das duas partes (`GET /nfe-brasil/api/transactions/{tx}/separacao`) volta 403 sem `nfse.emit`
+e 404 para venda de outra empresa (a dona enxerga a própria).
+
+- **Teste:** `it('UC-FNFSE-12 · natureza pendente bloqueia as duas notas da venda separada')` e
+  `it('UC-FNFSE-12 · a prévia das duas partes exige permissão de NFS-e e não lê venda de outra empresa')`.
+- **Status:** 🧪 veredito pendente da lane (pula fora do MySQL — leia assertions).
 
 ---
 
@@ -223,3 +262,4 @@ NFS-e e a separação avisa (`frete_sem_mercadoria`).
 - 2026-07-03 · [CC] stub criado no Passo 3 do programa de ondas — **0 UC**.
 - 2026-07-27 · [CC] `sdd-from-source` (Onda 1 / S2): **4 UC** derivados do §6 do SDD; todos herdam testes existentes. Registrado que o cabeçalho do `NfseCockpitControllerTest` ainda descreve a rota como quebrada em produção — texto **desatualizado** (a correção pelo schema antigo foi aplicada); não editado aqui para não misturar escopo, reportado no session log.
 - 2026-10-20 · [C] `UC-FNFSE-06..09` — separação da venda em NF-e + NFS-e (US-NFE-069 PR-1, só o serviço que separa; rateio proposto, pendente [W]).
+- 2026-10-21 · [C] `UC-FNFSE-10..12` — emissão das duas notas pelo botão "Emitir NF-e + NFS-e" do drawer (US-NFE-069 PR-2); rateio decidido por [W] (regra A).
