@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Compras\Services;
 
+use App\Contracts\Compras\RequisicaoEstoqueMinimo;
 use App\Utils\Util;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -15,16 +16,19 @@ use Illuminate\Support\Facades\DB;
  *  - lê `variation_location_details` das variações cujo produto tem `alert_quantity` (o "estoque
  *    mínimo" do núcleo, o mesmo que a tela de requisição usa em `getRequisitionProducts`) e cujo
  *    saldo no local está ABAIXO dele;
- *  - por local, grava UMA requisição de compra do núcleo (`transactions.type =
+ *  - por local e fornecedor, grava UMA requisição de compra do núcleo (`transactions.type =
  *    purchase_requisition`, status `ordered` + `purchase_lines`) — ou acrescenta linhas à
- *    requisição automática ainda aberta daquele local;
+ *    requisição automática ainda aberta daquele local e fornecedor;
  *  - quantidade sugerida = teto(mínimo − saldo);
+ *  - fornecedor (`transactions.contact_id`) e preço da linha = os da última compra do item
+ *    (`ultimaCompra`); item nunca comprado vai para a requisição sem fornecedor, com preço 0;
  *  - variação que já está numa requisição aberta (`ordered`/`partial`) do mesmo local fica de fora.
  *
- * Não cria pedido de compra, não mexe em estoque, não toca preço: só nasce a requisição.
+ * Não cria pedido de compra e não mexe em estoque: só nasce a requisição. O preço é sugestão
+ * para o comprador — a requisição não tem total e o pedido gerado dela não lê o preço da linha.
  * Liga/desliga por negócio em `business.common_settings[CHAVE]` — **desligado por padrão**.
  */
-class RequisicaoEstoqueMinimoService
+class RequisicaoEstoqueMinimoService implements RequisicaoEstoqueMinimo
 {
     public const CHAVE = 'compras_requisicao_estoque_minimo';
 
@@ -101,49 +105,79 @@ class RequisicaoEstoqueMinimoService
                 if ($qtd <= 0 || $jaAbertas->has($localId.':'.$r->variation_id)) {
                     continue;
                 }
-                $novas[] = [
+                $ultima = $this->ultimaCompra($businessId, (int) $r->variation_id);
+                $fornecedor = $ultima?->contact_id !== null ? (int) $ultima->contact_id : 0;
+                $novas[$fornecedor][] = [
                     'product_id' => (int) $r->product_id, 'variation_id' => (int) $r->variation_id,
-                    'quantity' => $qtd, 'purchase_price' => 0, 'purchase_price_inc_tax' => 0, 'item_tax' => 0,
+                    'quantity' => $qtd,
+                    'purchase_price' => $ultima?->purchase_price ?? 0,
+                    'purchase_price_inc_tax' => $ultima?->purchase_price_inc_tax ?? 0,
+                    'item_tax' => $ultima?->item_tax ?? 0,
+                    'tax_id' => $ultima?->tax_id,
                     'created_at' => $agora, 'updated_at' => $agora,
                 ];
             }
-            if ($novas === []) {
-                continue;
+
+            foreach ($novas as $fornecedor => $linhas) {
+                $this->gravar($businessId, (int) $localId, $fornecedor === 0 ? null : $fornecedor, $linhas, $donoId, $agora, $resumo);
             }
-
-            DB::transaction(function () use ($businessId, $localId, $novas, $donoId, $agora, &$resumo) {
-                $requisicaoId = DB::table('transactions')
-                    ->where('business_id', $businessId)
-                    ->where('type', 'purchase_requisition')
-                    ->where('location_id', $localId)
-                    ->where('status', 'ordered')
-                    ->where('additional_notes', self::MARCADOR)
-                    ->lockForUpdate()
-                    ->value('id');
-
-                if ($requisicaoId === null) {
-                    $util = app(Util::class);
-                    $contagem = $util->setAndGetReferenceCount('purchase_requisition', $businessId);
-                    $requisicaoId = DB::table('transactions')->insertGetId([
-                        'business_id' => $businessId, 'location_id' => (int) $localId,
-                        'type' => 'purchase_requisition', 'status' => 'ordered',
-                        'ref_no' => $util->generateReferenceNumber('purchase_requisition', $contagem, $businessId),
-                        'transaction_date' => $agora, 'additional_notes' => self::MARCADOR,
-                        'created_by' => $donoId, 'essentials_duration' => 0,
-                        'created_at' => $agora, 'updated_at' => $agora,
-                    ]);
-                    $resumo['requisicoes_criadas']++;
-                }
-
-                DB::table('purchase_lines')->insert(array_map(
-                    fn (array $l) => $l + ['transaction_id' => $requisicaoId],
-                    $novas
-                ));
-                $resumo['linhas'] += count($novas);
-            });
         }
 
         return $resumo;
+    }
+
+    /**
+     * Última compra do item: compra (`purchase`) recebida, não devolvida por inteiro — o mesmo
+     * recorte do custo `ultimo` em CustoDoInsumoService. Empate de data: a linha mais nova.
+     */
+    public function ultimaCompra(int $businessId, int $variationId): ?object
+    {
+        return DB::table('purchase_lines as pl')
+            ->join('transactions as t', 't.id', '=', 'pl.transaction_id')
+            ->where('t.business_id', $businessId)
+            ->where('t.type', 'purchase')
+            ->where('t.status', 'received')
+            ->where('pl.variation_id', $variationId)
+            ->whereRaw('pl.quantity - pl.quantity_returned > 0')
+            ->orderByDesc('t.transaction_date')
+            ->orderByDesc('pl.id')
+            ->first(['t.contact_id', 'pl.purchase_price', 'pl.purchase_price_inc_tax', 'pl.item_tax', 'pl.tax_id']);
+    }
+
+    /** @param array<int, array<string, mixed>> $novas */
+    private function gravar(int $businessId, int $localId, ?int $fornecedorId, array $novas, int $donoId, Carbon $agora, array &$resumo): void
+    {
+        DB::transaction(function () use ($businessId, $localId, $fornecedorId, $novas, $donoId, $agora, &$resumo) {
+            $requisicaoId = DB::table('transactions')
+                ->where('business_id', $businessId)
+                ->where('type', 'purchase_requisition')
+                ->where('location_id', $localId)
+                ->where('status', 'ordered')
+                ->where('additional_notes', self::MARCADOR)
+                ->when($fornecedorId === null, fn ($q) => $q->whereNull('contact_id'), fn ($q) => $q->where('contact_id', $fornecedorId))
+                ->lockForUpdate()
+                ->value('id');
+
+            if ($requisicaoId === null) {
+                $util = app(Util::class);
+                $contagem = $util->setAndGetReferenceCount('purchase_requisition', $businessId);
+                $requisicaoId = DB::table('transactions')->insertGetId([
+                    'business_id' => $businessId, 'location_id' => $localId, 'contact_id' => $fornecedorId,
+                    'type' => 'purchase_requisition', 'status' => 'ordered',
+                    'ref_no' => $util->generateReferenceNumber('purchase_requisition', $contagem, $businessId),
+                    'transaction_date' => $agora, 'additional_notes' => self::MARCADOR,
+                    'created_by' => $donoId, 'essentials_duration' => 0,
+                    'created_at' => $agora, 'updated_at' => $agora,
+                ]);
+                $resumo['requisicoes_criadas']++;
+            }
+
+            DB::table('purchase_lines')->insert(array_map(
+                fn (array $l) => $l + ['transaction_id' => $requisicaoId],
+                $novas
+            ));
+            $resumo['linhas'] += count($novas);
+        });
     }
 
     /** @return array<string, mixed> */

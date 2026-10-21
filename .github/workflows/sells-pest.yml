@@ -406,6 +406,9 @@ jobs:
         # 2026-10-20 — + QuoteAccessTermometroContratoTest (UC-QUO-05..08, US-SELL-070 · UC-FLX-04):
         # abertura do link /quote/{token} gravada (HEAD/prefetch/usuário da empresa fora), página não
         # quebra se gravar falha, retorno de 48 h uma vez só e só no business do job. NASCE SEM RUN.
+        # 2026-10-21 — + QuoteAccessTelaContratoTest (UC-VSHOW-20/21 + UC-QUO-10, US-SELL-070 · UC-FLX-04):
+        # o detalhe do orçamento e a lista de cotações mostram se o cliente abriu, quando e quantas
+        # vezes; outro business recebe 404 e linha de acesso alheia não vira abertura. NASCE SEM RUN.
         # 2026-10-06 — + CommissionSplitAuditTest (UC-COM-01/02, playbook comissões thread 03):
         # trocar split/comissionado grava auditoria antes→depois; PATCH do split não alcança
         # venda nem usuário de outro business. NASCE SEM RUN: vermelho aqui é este arquivo.
@@ -523,6 +526,7 @@ jobs:
             tests/Feature/Sells/SellsPosIndexContratoTest.php \
             tests/Feature/Sells/QuotationConvertTest.php \
             tests/Feature/Sells/QuoteAccessTermometroContratoTest.php \
+            tests/Feature/Sells/QuoteAccessTelaContratoTest.php \
             tests/Feature/Sells/ImportSalesContratoTest.php \
             tests/Feature/Sells/ImportSalesReverterContratoTest.php \
             tests/Feature/Sells/VendasMwartCutoverTest.php \

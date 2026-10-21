@@ -48,6 +48,7 @@ class ApontamentoController extends Controller
             'etapas' => Inertia::defer(fn () => $this->etapas($biz, $user)),
             'rodando' => Inertia::defer(fn () => $this->rodando($biz, $user)),
             'motivos' => Inertia::defer(fn () => $this->motivos($biz)),
+            'motivos_refugo' => Inertia::defer(fn () => $this->svc->motivosDeRefugo($biz)->all()),
         ]);
     }
 

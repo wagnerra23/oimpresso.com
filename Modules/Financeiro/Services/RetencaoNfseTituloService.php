@@ -145,6 +145,27 @@ class RetencaoNfseTituloService
         });
     }
 
+    /**
+     * Bruto, retido e líquido do título para a lista de Contas a Receber. Só leitura, centavos.
+     *
+     * Bruto = `valor_total` (o título mantém o bruto). Retido = `metadata.retencao_nfse.retido_total`
+     * quando a retenção foi lançada ou ficou pendente; estornada ou ausente conta zero.
+     * Líquido = bruto − retido.
+     *
+     * @param  array<string, mixed>|null  $metadata
+     * @return array{bruto: int, retido: int, liquido: int}
+     */
+    public function valoresDoTitulo(mixed $valorTotal, ?array $metadata): array
+    {
+        $bruto = $this->centavos($valorTotal);
+        $registro = $metadata['retencao_nfse'] ?? null;
+        $retido = is_array($registro) && in_array($registro['estado'] ?? null, ['lancado', 'pendente'], true)
+            ? $this->centavos($registro['retido_total'] ?? 0)
+            : 0;
+
+        return ['bruto' => $bruto, 'retido' => $retido, 'liquido' => $bruto - $retido];
+    }
+
     /** Cancelamento da nota: estorna o pagamento/baixa de retenção. Não depende da chave. */
     public function estornar(NfseEmissao $nota): string
     {
