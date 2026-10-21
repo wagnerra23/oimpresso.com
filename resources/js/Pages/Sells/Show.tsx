@@ -15,6 +15,7 @@ import {
   Edit,
   Mail,
   MapPin,
+  PackageCheck,
   Package,
   Phone,
   Printer,
@@ -113,9 +114,26 @@ interface CustoOrcamento {
   itens_mudaram: number;
 }
 
+/**
+ * UC-FLX-23 · US-SELL-073 · protocolo de entrega gravado pelo app das lojas (`app_entregas`).
+ * `volumes` nulo = o app não informou. `assinatura_url` é assinada e vale 10 min.
+ */
+interface EntregaVenda {
+  protocolo: string;
+  registrado_em: string;
+  recebido_por: string;
+  documento: string | null;
+  volumes: number | null;
+  itens: { linha_id: number; produto: string | null; quantidade: number | null; conferido: boolean }[];
+  com_assinatura: boolean;
+  assinatura_url: string | null;
+  sem_assinatura_motivo: string | null;
+}
+
 interface ShowDetail {
   lines: SaleLine[];
   custo?: CustoOrcamento | null;
+  entrega?: EntregaVenda | null;
   payments: SalePayment[];
   taxes: { order_taxes: Record<string, number>; line_taxes: Record<string, number> };
   activities: Activity[];
@@ -478,6 +496,11 @@ export default function SellsShow(props: SellsShowPageProps) {
               </section>
             )}
 
+            {/* UC-FLX-23 · protocolo de entrega do app. Vem no detalhe deferido; sem entrega não aparece. */}
+            <Deferred data="detail" fallback={null}>
+              {props.detail?.entrega ? <EntregaSection entrega={props.detail.entrega} /> : null}
+            </Deferred>
+
             {/* Linhas + pagamentos + atividades — deferred */}
             <Deferred data="detail" fallback={<DetailSkeleton />}>
               <ShowDetailSections
@@ -637,6 +660,58 @@ export default function SellsShow(props: SellsShowPageProps) {
 
 function formatPct(v: number | null): string {
   return v === null ? '—' : `${v.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
+}
+
+/** UC-FLX-23 · protocolo de entrega: data, quem recebeu, volumes, itens e a assinatura. */
+function EntregaSection({ entrega }: { entrega: EntregaVenda }) {
+  return (
+    <section className="rounded-lg border border-border bg-card p-5" data-testid="entrega-venda">
+      <div className="flex items-center gap-2 mb-3">
+        <PackageCheck className="h-4 w-4 text-muted-foreground" />
+        <h2 className="font-semibold text-sm">Entrega</h2>
+        <span className="text-xs text-muted-foreground tabular-nums">{entrega.protocolo}</span>
+      </div>
+      <dl className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+        <div>
+          <dt className="text-xs text-muted-foreground">Entregue em</dt>
+          <dd className="tabular-nums">{formatDateTime(entrega.registrado_em)}</dd>
+        </div>
+        <div>
+          <dt className="text-xs text-muted-foreground">Recebido por</dt>
+          <dd className="font-medium">{entrega.recebido_por}</dd>
+          {entrega.documento && <dd className="text-xs text-muted-foreground">{entrega.documento}</dd>}
+        </div>
+        <div>
+          <dt className="text-xs text-muted-foreground">Volumes</dt>
+          <dd className="tabular-nums">{entrega.volumes ?? 'Não informado'}</dd>
+        </div>
+      </dl>
+      {entrega.itens.length > 0 && (
+        <ul className="mt-3 space-y-1 text-sm">
+          {entrega.itens.map((i) => (
+            <li key={i.linha_id} className="flex items-center justify-between gap-3">
+              <span>{i.produto ?? `Item ${i.linha_id}`}</span>
+              <span className="text-muted-foreground tabular-nums">
+                {i.quantidade !== null && `${i.quantidade.toLocaleString('pt-BR')} · `}
+                {i.conferido ? 'conferido' : 'não conferido'}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="mt-3 text-sm">
+        {entrega.assinatura_url ? (
+          <img
+            src={entrega.assinatura_url}
+            alt={`Assinatura de ${entrega.recebido_por}`}
+            className="h-20 rounded border border-border bg-white"
+          />
+        ) : entrega.sem_assinatura_motivo ? (
+          <p className="text-muted-foreground">Sem assinatura: {entrega.sem_assinatura_motivo}</p>
+        ) : null}
+      </div>
+    </section>
+  );
 }
 
 /** UC-VSHOW-08 · faixa do custo do orçamento: avisa quando o custo de hoje se afastou do guardado. */

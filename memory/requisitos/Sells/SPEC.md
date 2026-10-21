@@ -1602,9 +1602,9 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 
 ### US-SELL-073 · Volumes no protocolo de entrega (UC-FLX-23) — **P2**
 
-**Implementado em:** `app/Http/Controllers/Api/App/PedidoEntregaController.php` · `database/migrations/2026_10_20_160000_add_volumes_to_app_entregas_table.php`
+**Implementado em:** `app/Http/Controllers/Api/App/PedidoEntregaController.php` · `database/migrations/2026_10_20_160000_add_volumes_to_app_entregas_table.php` · `app/Http/Controllers/SellController.php` · `resources/js/Pages/Sells/Show.tsx`
 
-**Testado em:** `tests/Feature/Sells/AppPedidoEntregaContratoTest.php` (lane `sells-pest.yml`) — casos UC-ENTR-01..04 no Show.casos.md do detalhe da venda.
+**Testado em:** `tests/Feature/Sells/AppPedidoEntregaContratoTest.php` e `tests/Feature/Sells/SellsShowEntregaContratoTest.php` (lane `sells-pest.yml`) — casos UC-ENTR-01..04 e UC-VSHOW-14/15 no Show.casos.md do detalhe da venda.
 
 > owner: wagner · priority: p2 · estimate: 1h · type: story
 
@@ -1617,7 +1617,7 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 - [x] `volumes` fora da faixa, fracionado ou texto → `422 campos.volumes`, sem gravar nada.
 - [x] Sem `volumes` (app antigo) a entrega funciona como antes, com `volumes` nulo; a mesma `Idempotency-Key` com o mesmo corpo antigo segue devolvendo a resposta gravada.
 - [x] Pedido de outro business → 404 e nada gravado; o protocolo grava no business do usuário.
-- [ ] O detalhe da venda (`/sells/{id}`) mostra o protocolo, os itens, os volumes e quem recebeu, só para quem vê a venda na empresa.
+- [x] O detalhe da venda (`/sells/{id}`) mostra o protocolo, os itens, os volumes e quem recebeu, só para quem vê a venda na empresa (2026-10-21 · `SellController::entregaDaVenda` + seção Entrega do `Show.tsx` · UC-VSHOW-14/15).
 - [ ] Protocolo da OS da Comunicação Visual (UC-FLX-23 no processo de OS), que hoje não tem protocolo.
 
 **Entregue em 2026-10-20 (backend):** total de volumes, não por item — um volume (caixa, rolo, pacote) pode levar várias linhas da venda, então volume por linha não é bem definido. Opcional porque o app que já está nos celulares não manda o campo; sem ele não se inventa número (fica nulo, "não informado"). O `volumes` só entra no hash de idempotência quando vem, para que o corpo antigo mantenha o hash de antes.

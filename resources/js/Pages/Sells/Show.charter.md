@@ -48,6 +48,7 @@ Mostrar detalhe completo de uma venda — linhas, pagamentos, frete, atividades 
 - Multi-tenant Tier 0: scope `business_id` no controller (ADR 0093)
 - Permission gate: `sell.view` OR `direct_sell.access` OR `view_own_sell_only`
 - Orçamento aberto (rascunho): faixa com o custo guardado no dia do orçamento ao lado do custo de hoje e as duas margens, e o custo por linha; avisa quando o custo de algum item se afastou mais de 5% (UC-VSHOW-08 · US-SELL-068 · UC-FLX-34). Só para quem tem `view_purchase_price` — sem a permissão, o custo não vai no JSON
+- Seção Entrega na coluna esquerda, junto de Cliente/Veículo, quando o app das lojas gravou o protocolo (`app_entregas`): data, quem recebeu, volumes, itens e a assinatura ou o motivo de não ter. Vem no `detail` deferido, filtrada pelo business da venda (UC-VSHOW-14/15 · US-SELL-073 · UC-FLX-23)
 
 ---
 
