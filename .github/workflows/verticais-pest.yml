@@ -683,6 +683,7 @@ jobs:
             Modules/Producao/Tests/Feature/ProducaoAprovacaoArteContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoAlocacaoContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoReservaInsumoContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoAguardandoMaterialContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoPrazoPelaFilaContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoRoloRastreioContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoSinalPagoLiberaContratoTest.php \

@@ -10,6 +10,7 @@ use Modules\Producao\Http\Controllers\FerramentasController;
 use Modules\Producao\Http\Controllers\InstallController;
 use Modules\Producao\Http\Controllers\LoteRastreioController;
 use Modules\Producao\Http\Controllers\OrdemCustoController;
+use Modules\Producao\Http\Controllers\OrdemMaterialController;
 use Modules\Producao\Http\Controllers\PainelController;
 use Modules\Producao\Http\Controllers\PostoOperadoresController;
 use Modules\Producao\Http\Controllers\PostosController;
@@ -87,6 +88,9 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::get('os/{id}/etiqueta', [EtiquetaOsController::class, 'show'])->whereNumber('id')->name('os.etiqueta');
         // US-PCP-022 · UC-FLX-36 — custo da abertura × hoje da OS por item em andamento (JSON, gestor).
         Route::get('ordens/{id}/custo', [OrdemCustoController::class, 'show'])->whereNumber('id')->name('ordens.custo');
+        // D3 · revisão 2026-10-21 — o que falta de material na OS e o conferir que a tira de Aguardando material (JSON).
+        Route::get('ordens/{id}/material', [OrdemMaterialController::class, 'show'])->whereNumber('id')->name('ordens.material');
+        Route::post('ordens/{id}/material/conferir', [OrdemMaterialController::class, 'conferir'])->whereNumber('id')->name('ordens.material.conferir');
         // US-COMVIS-005 · UC-FLX-15 — previsto × realizado por OS e por venda (JSON, gestor).
         Route::get('ordens/{id}/previsto-realizado', [PrevistoRealizadoController::class, 'ordem'])->whereNumber('id')->name('ordens.previsto-realizado');
         Route::get('vendas/{id}/previsto-realizado', [PrevistoRealizadoController::class, 'venda'])->whereNumber('id')->name('vendas.previsto-realizado');

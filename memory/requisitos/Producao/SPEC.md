@@ -496,7 +496,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [ ] Quantidade por área (m²) no item da CV: hoje a reserva usa a quantidade da linha na unidade do produto.
 - [ ] Mostrar o reservado no saldo disponível para venda do insumo (hoje nenhuma tela lê `stock_reservations`).
 
-**Total US: 31** · **Estimate agregado:** ~115h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
+**Total US: 32** · **Estimate agregado:** ~119h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
 
 ### US-PCP-026 · Etapas da OS vêm do roteiro do produto (UC-FLX-07) — **P1**
 
@@ -599,6 +599,27 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [x] Operador de outra empresa ou sem `producao.access` é recusado; posto de outra empresa → 404; sem a permissão → 403 (UC-PCOPE-05).
 - [x] Alocador (US-PCP-029) chama `OperadoresDoPosto::podeAtuar` ao trocar o responsável (UC-PCALO-07).
 - [ ] Tela de Postos mostrando e editando os operadores de cada posto.
+
+### US-PCP-032 · OS liberada sem material fica Aguardando material (D3) — **P1**
+
+**Implementado em:** `Modules/Producao/Services/FaltaDeMaterialDaOs.php` · `Modules/Producao/Services/SituacaoDaOrdem.php` · `Modules/Producao/Http/Controllers/OrdemMaterialController.php`
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoAguardandoMaterialContratoTest.php` (UC-PCMAT-01..05, lane `verticais-pest.yml`).
+
+> owner: wagner · priority: p1 · estimate: 4h · type: story
+> blocked_by: US-PCP-031
+
+**Origem:** D3 da proposta [2026-10-09](../../decisions/proposals/2026-10-09-fabricacao-vs-producao-decisao-w.md), aprovada por [W] em 2026-10-13 — *"deixar criar a ordem e bloquear iniciar/concluir sem material, com estado 'aguardando material'"* — e a revisão de 2026-10-21 (§6), aprovada por [W], que pôs esse estado na Produção.
+
+**Aceite:**
+- [x] Situação nova da OS, Aguardando material, entre o Liberar e a fila. Com a chave `producao_aguarda_material` da empresa ligada, a OS liberada (pela tela ou pelo sinal pago) sem material vai para ela. O motor guarda o que faltava. Chave desligada: nada muda (UC-PCMAT-01/02).
+- [x] Falta por insumo da receita: necessário (receita × quantidade da OS), disponível (saldo no local da venda − reservas ativas de outras OS e vendas), falta e compras ainda não recebidas a caminho (UC-PCMAT-02/03). Só lê estoque.
+- [x] Em Aguardando material a etapa não começa (UC-PCMAT-02). O PCP (`producao.liberar`) confere e a OS volta para Na fila quando não falta mais nada (UC-PCMAT-04). Cancelar item vale também nessa situação.
+- [x] Multi-tenant: OS de outra empresa → 404; reservas e compras lidas só da empresa (UC-PCMAT-05).
+- [ ] Conferir sozinho quando a compra do insumo é recebida.
+- [ ] Mostrar a falta e o atalho para Compras na tela da OS; ligar a chave na aba Fluxos da empresa.
+- [ ] Pedido ao Cowork: o processo "OS e produção por item" do protótipo (`fluxos-processos.jsx`) ganhar o estado Aguardando material, hoje só no código.
+- [ ] Ler a composição do `product_bom` e com a regra de consumo da D6, quando a ADR da Fabricação trocar o contrato `InsumosDaReceita` (§6 da proposta).
 
 ## §8 — Regras Gherkin (R-PCP-001..010) — resumo
 
