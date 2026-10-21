@@ -27,7 +27,7 @@
   "stats": {
     "modules": 37,
     "nodes": 844,
-    "edges": 1147,
+    "edges": 1149,
     "by_node_type": {
       "module": 42,
       "table": 108,
@@ -43,8 +43,8 @@
       "charteredByAdr": 30,
       "governedByAdr": 78,
       "hasComponent": 464,
-      "dependsOn": 125,
-      "delegatesTo": 116,
+      "dependsOn": 126,
+      "delegatesTo": 117,
       "migratesTo": 1,
       "supersedes": 26,
       "supersedesPartially": 71,
@@ -13503,6 +13503,13 @@
     },
     {
       "from": "module:Whatsapp",
+      "to": "module:ComunicacaoVisual",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Agenda de instalação da CV"
+    },
+    {
+      "from": "module:Whatsapp",
       "to": "module:ConsultaOs",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -13542,6 +13549,13 @@
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "OS / Kanban de reparo"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "module:ComunicacaoVisual",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Agenda de instalação da CV"
     },
     {
       "from": "module:Whatsapp",
