@@ -62,8 +62,12 @@ it('Page importa AppShellV2 (Persistent Layout)', function () {
     expect($source)->toMatch('/PurchaseShow\\.layout\\s*=\\s*\\(page/');
 });
 
-it('Page importa PageHeader shared (Cockpit V2 canon)', function () {
-    expect(readPurchaseShow())->toContain('@/Components/shared/PageHeader');
+// 2026-10-21: o detalhe da compra saiu do header antigo (shared/PageHeader, congelado em F4)
+// para o canon — ADR 0409, tela com dívida tocada cura no mesmo PR (#9714).
+it('Page importa o PageHeader canon (ADR 0189/0409), não o shared antigo', function () {
+    $source = readPurchaseShow();
+    expect($source)->toContain("from '@/Components/PageHeader'");
+    expect($source)->not->toContain('@/Components/shared/PageHeader');
 });
 
 it('Page declara interfaces TS canônicas (PurchaseDetail + PurchaseLine + PaymentLine + Permissions)', function () {

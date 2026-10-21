@@ -5,7 +5,7 @@ irmaos: Show.charter.md (lei) · Show.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o escopo por tenant e a ausência do barcode são duráveis — não mudam quando o detalhe ganhar card novo.
 owner: wagner
-last_run: "2026-09-05"
+last_run: "2026-10-21"
 last_run_ci: "✅ 2026-09-05: os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841). Medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. Os 6 UC desta tela tem lane; 2 com defesa de COMPORTAMENTO (PurchaseShowTenantContratoTest) e os demais ESTRUTURAL (presence-gate, LC-11). Nao restatear a mao: rode scripts/qa/uc-lane-coverage.mjs. HISTORICO (fato datado, preservado): 🟡 A lane purchase-pest.yml nasceu e os UC 01 [T0] e 05 [V0] têm contrato de COMPORTAMENTO em PurchaseShowTenantContratoTest — 4 passed, 8 assertions, run no CT 100, mordida verificada por mutação. Os UC 02/03/04/06 seguem 🔴 sem lane, e o 03 tem o critério ERRADO (casa o comentário do bug-fix) — ver §Divergências. Ver §Dívida de prova."
 ---
 
