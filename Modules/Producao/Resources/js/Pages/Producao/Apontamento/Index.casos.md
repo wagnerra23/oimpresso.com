@@ -615,6 +615,20 @@ a OS da 98.
 
 Status: 🧪
 
-- **[BACKLOG]** UC-FLX-28 — parcelas de sinal e saldo geradas na aprovação do orçamento (Vendas/Financeiro) e o
-  retorno do banco criando o pagamento da venda (PaymentGateway): hoje o retorno só grava o evento. O campo do
-  sinal mínimo na aba Fluxos da empresa também falta (o valor é gravado por `RegrasDaEmpresa::mudarSinalMinimo`).
+## UC-PCLIB-08 · O retorno do banco grava o pagamento da venda · `must` valor
+
+**Dado** uma venda de 1.000,00 com cobrança (`origem_type = sale`) e a config
+`paymentgateway.lancar_pagamento_na_venda` ligada **Quando** o banco avisa que a cobrança foi paga com
+30.000 centavos **Então** a venda ganha um pagamento de 300,00 (`transaction_no = PG-COB-<id>`), o status vai
+para parcial e o sinal de 30% passa a constar como pago; o mesmo retorno de novo não duplica. Pago o total, a
+venda fica paga. **E** se o valor não cabe no saldo em aberto (já registrado à mão), nada é lançado e fica no
+log. Cobrança não paga ou que não é de venda é ignorada. Cobrança ou evento de outra empresa nunca paga a venda
+da 98. O business dono do SaaS fica de fora. Desligada a config, nada muda.
+
+Teste: `tests/Feature/PaymentGateway/RetornoDoBancoPagamentoNaVendaContratoTest.php`.
+
+Status: 🧪
+
+- **[BACKLOG]** UC-FLX-28 — parcelas de sinal e saldo geradas na aprovação do orçamento (Vendas/Financeiro);
+  hoje o retorno do banco lança o pagamento na venda inteira (UC-PCLIB-08), sem parcela de sinal separada. O
+  campo do sinal mínimo na aba Fluxos da empresa vem no #9701.

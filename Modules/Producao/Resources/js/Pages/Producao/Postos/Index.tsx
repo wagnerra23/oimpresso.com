@@ -20,13 +20,15 @@ import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Skeleton } from '@/Components/ui/skeleton';
 import ProducaoAbas from '../_components/ProducaoAbas';
-import EditorPosto, { type Posto } from './_components/EditorPosto';
+import EditorPosto, { type Pessoa, type Posto } from './_components/EditorPosto';
 
 interface Ferramenta { id: number; codigo_qr: string; nome: string; ativo: boolean }
 interface Colaborador { id: number; nome: string; custo_hora: string | null }
 interface Props {
   motivos_padrao: Record<'pausa' | 'refugo', string[]>;
   pode_ver_custo_pessoa: boolean;
+  pode_definir_operadores: boolean;
+  usuarios?: Pessoa[];
   postos?: Posto[]; ferramentas?: Ferramenta[]; colaboradores?: Colaborador[];
 }
 
@@ -50,6 +52,7 @@ function ListaPostos({ postos, onEditar }: { postos: Posto[]; onEditar: (p: Post
         <li key={p.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-border p-3" data-contract="producao-posto">
           <div className="min-w-0 flex-1"><b className="text-sm">{p.nome}</b>
             <span className="pcv-help block">{[p.setor, p.veiculo ? p.placa : null, p.tipo_custo === 'maquina' ? 'custo da máquina' : 'custo da pessoa'].filter(Boolean).join(' · ')}</span>
+            {!p.veiculo && <span className="pcv-help block" data-contract="producao-posto-operadores-lista">Operadores: {p.operadores.map((o) => o.nome).join(', ') || 'qualquer pessoa da Produção'}</span>}
             {!p.veiculo && <span className="pcv-help block">Pausa: {p.motivos.pausa.join(', ') || '—'} · Refugo: {p.motivos.refugo.join(', ') || '—'}</span>}</div>
           <span className="mono text-sm">{brl(p.custo_hora)}/h{p.veiculo && p.custo_km ? ` · ${brl(p.custo_km)}/km` : ''}</span>
           {!p.ativo && <Badge variant="outline">Inativo</Badge>}
@@ -87,7 +90,9 @@ function CustoPessoa({ c }: { c: Colaborador }) {
   );
 }
 
-function Conteudo({ postos, ferramentas, colaboradores, podeVerCusto }: { postos: Posto[]; ferramentas: Ferramenta[]; colaboradores: Colaborador[]; podeVerCusto: boolean }) {
+function Conteudo({ postos, ferramentas, colaboradores, usuarios, podeVerCusto, podeDefinirOperadores }: {
+  postos: Posto[]; ferramentas: Ferramenta[]; colaboradores: Colaborador[]; usuarios: Pessoa[]; podeVerCusto: boolean; podeDefinirOperadores: boolean;
+}) {
   const [editando, setEditando] = useState<Posto | 'posto' | 'veiculo' | null>(null);
   return (
     <div className="pcv-body">
@@ -105,17 +110,19 @@ function Conteudo({ postos, ferramentas, colaboradores, podeVerCusto }: { postos
           <ul className="flex flex-col gap-2">{colaboradores.map((c) => <CustoPessoa key={c.id} c={c} />)}</ul>
         </Bloco>
       )}
-      {editando && <EditorPosto posto={typeof editando === 'string' ? null : editando} veiculo={editando === 'veiculo' || (typeof editando !== 'string' && editando.veiculo)} onClose={() => setEditando(null)} />}
+      {editando && <EditorPosto posto={typeof editando === 'string' ? null : editando} veiculo={editando === 'veiculo' || (typeof editando !== 'string' && editando.veiculo)}
+        usuarios={usuarios} podeDefinirOperadores={podeDefinirOperadores} onClose={() => setEditando(null)} />}
     </div>
   );
 }
 
-export default function PostosIndex({ pode_ver_custo_pessoa, postos, ferramentas, colaboradores }: Props) {
+export default function PostosIndex({ pode_ver_custo_pessoa, pode_definir_operadores, postos, ferramentas, colaboradores, usuarios }: Props) {
   return (
     <div className="pcv-root" data-screen-label="Produção · Postos e cadastros">
       <div className="pcv-ph"><PageHeader title="Produção" suffix=" · Postos e cadastros" below={<ProducaoAbas ativa="/producao/postos" />} /></div>
-      <Deferred data={['postos', 'ferramentas', 'colaboradores']} fallback={<div className="pcv-body"><Skeleton className="h-64 w-full" /></div>}>
-        <Conteudo postos={postos ?? []} ferramentas={ferramentas ?? []} colaboradores={colaboradores ?? []} podeVerCusto={pode_ver_custo_pessoa} />
+      <Deferred data={['postos', 'ferramentas', 'colaboradores', 'usuarios']} fallback={<div className="pcv-body"><Skeleton className="h-64 w-full" /></div>}>
+        <Conteudo postos={postos ?? []} ferramentas={ferramentas ?? []} colaboradores={colaboradores ?? []}
+          usuarios={usuarios ?? []} podeVerCusto={pode_ver_custo_pessoa} podeDefinirOperadores={pode_definir_operadores} />
       </Deferred>
     </div>
   );
