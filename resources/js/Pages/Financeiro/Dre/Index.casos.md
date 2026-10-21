@@ -5,8 +5,14 @@ irmaos: charter ao lado (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-10-14"
+last_run: "2026-10-21"
 ---
+
+> ℹ️ **`last_run` 2026-10-14 → 2026-10-21 (G-6) — aba Custeio (US-FIN-070, [#9716](https://github.com/wagnerra23/oimpresso.com/pull/9716)).**
+> Em `Index.tsx` entrou a 4ª aba (`custeio`) no `TabSwitcher`, a prop `custeio` no `only` do reload e o render de `_components/CusteioView.tsx`.
+> As abas Demonstrativo, Balanço e Balancete não mudaram de handler, prop, rota, cálculo nem copy. O caso da aba nova é o
+> **UC-PCCH-07** em `Modules/Producao/Resources/js/Pages/Producao/Postos/Index.casos.md`, citado por `CusteioRkwContratoTest`.
+> **Nenhum UC desta tela foi reexecutado**: o bump registra *trio reconciliado com a tela nesta data*.
 
 > ℹ️ **`last_run` 2026-09-30 → 2026-10-14 (G-6) — tema escuro, thread 03 do playbook `cowork-inbox/tema-escuro`: o que mudou na tela foi só COR.**
 > O [#9318](https://github.com/wagnerra23/oimpresso.com/pull/9318) trocou, em `Index.tsx`, `_components/BalanceteView.tsx` e `_components/BalancoView.tsx`, as cores inline da caixa de aviso por tokens que
