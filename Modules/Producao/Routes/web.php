@@ -10,10 +10,12 @@ use Modules\Producao\Http\Controllers\FerramentasController;
 use Modules\Producao\Http\Controllers\InstallController;
 use Modules\Producao\Http\Controllers\LoteRastreioController;
 use Modules\Producao\Http\Controllers\OrdemCustoController;
+use Modules\Producao\Http\Controllers\PainelController;
 use Modules\Producao\Http\Controllers\PostoOperadoresController;
 use Modules\Producao\Http\Controllers\PostosController;
 use Modules\Producao\Http\Controllers\PrevistoRealizadoController;
 use Modules\Producao\Http\Controllers\PrazoDaVendaController;
+use Modules\Producao\Http\Controllers\QuadroController;
 use Modules\Producao\Http\Controllers\RomaneioController;
 use Modules\Producao\Http\Controllers\RoteirosController;
 
@@ -129,4 +131,14 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::put('bobinas/{material}', [AproveitamentoMidiaController::class, 'bobina'])->whereNumber('material')->name('bobinas.update');
         Route::post('aproveitamento/simular', [AproveitamentoMidiaController::class, 'simular'])->name('aproveitamento.simular');
         Route::post('aproveitamento', [AproveitamentoMidiaController::class, 'aceitar'])->name('aproveitamento.aceitar');
+    });
+
+// ── Thread 06 · Quadro (UC-PCV-05/06) — recebe o alocador (UC-FLX-10) e o simulador de bobina (UC-FLX-13) ──
+Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
+    ->prefix('producao')
+    ->name('producao.')
+    ->group(function () {
+        Route::get('quadro', [QuadroController::class, 'index'])->name('quadro.index');
+        // Painel (UC-PCV-01..04, 29): o que trava a produção hoje; os indicadores abrem o quadro filtrado.
+        Route::get('painel', [PainelController::class, 'index'])->name('painel.index');
     });
