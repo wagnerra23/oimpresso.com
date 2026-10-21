@@ -1,6 +1,7 @@
 <?php
 // @covers-us US-SELL-069 (UC-FLXT-19: a margem mínima é configurada nesta tela)
 // @covers-us US-PCP-021 (UC-FLXT-20/21: a regra de baixa de material sem OS não executa e não baixa duas vezes)
+// @covers-us US-COM-027 (UC-FLXT-22: a requisição pelo estoque mínimo liga e desliga nesta tela)
 
 declare(strict_types=1);
 
@@ -578,4 +579,35 @@ it('UC-FLXT-21 · venda finalizada do balcão entra em Aprovado sem segunda baix
         // Caminho 2: o saldo de estoque não mexeu.
         expect($saldo())->toBe($saldoAntes);
     }
+});
+
+it('UC-FLXT-22 · quem configura liga e desliga a requisição pelo estoque mínimo; só na empresa da sessão', function () {
+    if (! app()->bound(\App\Contracts\Compras\RequisicaoEstoqueMinimo::class)) {
+        $this->markTestSkipped('Módulo Compras não carregado: a interface RequisicaoEstoqueMinimo não está ligada.');
+    }
+    $chave = 'compras_requisicao_estoque_minimo';
+    $settings = fn (int $biz) => json_decode((string) DB::table('business')->where('id', $biz)->value('common_settings'), true) ?? [];
+    // outra chave de common_settings da empresa sobrevive ao interruptor
+    DB::table('business')->where('id', FLXT_BIZ)->update(['common_settings' => json_encode(['flxt_outra' => 'fica'])]);
+    $outroAntes = DB::table('business')->where('id', 99)->value('common_settings');
+
+    flxtEntrar($this, flxtUsuario(['fluxos.ver', 'fluxos.configurar']));
+    flxtPostAplicar($this, ['modelo' => 'cv-pequena']);
+    expect(flxtGet($this, '/fluxos?aba=empresa')->json('props.requisicao_estoque_minimo'))->toBeFalse();
+
+    flxtPatch($this, '/fluxos/requisicao-estoque-minimo', ['ativo' => true])->assertRedirect('/fluxos?aba=empresa');
+    expect($settings(FLXT_BIZ)[$chave])->toBe(['ativo' => true]);
+    expect($settings(FLXT_BIZ)['flxt_outra'])->toBe('fica');
+    expect(flxtGet($this, '/fluxos?aba=empresa')->json('props.requisicao_estoque_minimo'))->toBeTrue();
+    expect(DB::table('business')->where('id', 99)->value('common_settings'))->toBe($outroAntes);
+
+    flxtPatch($this, '/fluxos/requisicao-estoque-minimo', ['ativo' => 'talvez'])->assertSessionHasErrors('ativo');
+    expect($settings(FLXT_BIZ)[$chave])->toBe(['ativo' => true]);
+
+    flxtPatch($this, '/fluxos/requisicao-estoque-minimo', ['ativo' => false])->assertRedirect('/fluxos?aba=empresa');
+    expect($settings(FLXT_BIZ)[$chave])->toBe(['ativo' => false]);
+
+    flxtEntrar($this, flxtUsuario(['fluxos.ver']));
+    expect(flxtPatch($this, '/fluxos/requisicao-estoque-minimo', ['ativo' => true])->getStatusCode())->toBe(403);
+    expect($settings(FLXT_BIZ)[$chave])->toBe(['ativo' => false]);
 });

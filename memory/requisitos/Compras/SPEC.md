@@ -589,12 +589,12 @@ Como dono que configurou a regra "Atualizar o custo dos insumos" na aba Fluxos, 
 
 ### US-COM-027 · Estoque mínimo vira requisição de compra (UC-FLX-19) — **P2**
 
-> owner: — · priority: p2 · estimate: 3h · status: doing · type: story
+> owner: — · priority: p2 · estimate: 3h · status: done · type: story
 > blocked_by: —
 
 Como quem compra, quero que o item que caiu abaixo do mínimo no local apareça sozinho numa requisição de compra, com a quantidade que falta, para não depender de alguém lembrar de olhar o relatório de alerta.
 
-**Implementado em:** _pendente_ — parcial em 2026-10-20: o job diário (`RequisicaoEstoqueMinimoJob` + comando `compras:requisicao-estoque-minimo`, desligado por padrão em `business.common_settings`) gera a requisição do núcleo por local; falta o fornecedor da última compra na requisição e a tela para ligar a regra. A âncora vira path quando a US fechar (ADR 0273 + doneness-lint).
+**Implementado em:** `Modules/Compras/Services/RequisicaoEstoqueMinimoService.php` — job diário (`RequisicaoEstoqueMinimoJob` + `compras:requisicao-estoque-minimo`), ligado na tela Fluxos (`app/Http/Controllers/FluxosController.php` · `requisicaoEstoqueMinimo`, interface `app/Contracts/Compras/RequisicaoEstoqueMinimo.php`); fornecedor visível em `resources/js/Pages/PurchaseRequisition/Index.tsx`.
 
 **Origem:** UC-FLX-19 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:72`, "Abaixo do mínimo → Cria a requisição com o fornecedor da última compra", fonte Mubisys, planejado). O que já existia (medido 2026-10-20):
 
@@ -608,8 +608,8 @@ Como quem compra, quero que o item que caiu abaixo do mínimo no local apareça 
 - [x] Desligado por padrão (`business.common_settings['compras_requisicao_estoque_minimo']`). _(UC-REQMIN-04)_
 - [x] Não cria pedido de compra e não move estoque. _(UC-REQMIN-05)_
 - [x] Tier 0: job recebe `$businessId`; produto e local de outro business nunca entram. _(UC-REQMIN-06, 98 × 99)_
-- [ ] A requisição sai com o fornecedor da última compra do item (a requisição do núcleo não tem fornecedor hoje — decidir onde guardar).
-- [ ] Tela para ligar/desligar a regra, com permissão de Compras.
+- [x] A requisição sai com o fornecedor e o preço da última compra recebida do item: o fornecedor vai em `transactions.contact_id`, então há uma requisição automática por local **e fornecedor**; item nunca comprado fica numa sem fornecedor, com preço 0. A lista de requisições ganha a coluna Fornecedor. _(UC-REQMIN-07/08 · UC-REQC-06)_
+- [x] Tela para ligar/desligar a regra: card Compra da aba Fluxos da empresa (`/fluxos?aba=empresa`), com `fluxos.configurar` — a permissão das outras regras da empresa nessa tela, não uma de Compras. _(UC-FLXT-22)_
 
 ### 9.1 Seguradas (feature-wish ADR 0105 — NÃO no backlog ativo)
 

@@ -11,7 +11,7 @@ use Tests\Support\WithSeededTenant;
 
 /**
  * US-COM-027 · UC-FLX-19 — estoque mínimo vira requisição de compra.
- * Contrato: resources/js/Pages/PurchaseRequisition/Index.casos.md (UC-REQMIN-01..06).
+ * Contrato: resources/js/Pages/PurchaseRequisition/Index.casos.md (UC-REQMIN-01..08).
  *
  * Tenant 98 (ADR 0358) e, como business B, o cliente fictício 99 (nunca o 4).
  *
@@ -229,5 +229,114 @@ it('UC-REQMIN-06 · US-COM-027 · Tier 0: o job de um business não cria requisi
 
     expect(reqMinRequisicoes($this->bizA, $la))->toHaveCount(1);
     expect(reqMinQtd(reqMinRequisicoes($this->bizA, $la)[0]->id, $b['variation']))->toBeNull();
+    expect(reqMinRequisicoes($this->bizB, $lb))->toHaveCount(0);
+});
+
+function reqMinFornecedor(int $biz, string $nome): int
+{
+    $owner = (int) DB::table('business')->where('id', $biz)->value('owner_id');
+
+    return DB::table('contacts')->insertGetId([
+        'business_id' => $biz, 'type' => 'supplier', 'name' => $nome, 'supplier_business_name' => $nome.' LTDA',
+        'contact_id' => 'CT-REQMIN-'.uniqid(), 'created_by' => $owner, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+}
+
+/** Compra do item (`purchase`) com um fornecedor; devolve o id da linha. */
+function reqMinCompra(int $biz, array $p, ?int $fornecedor, string $status, string $data, float $preco, float $comImposto, float $devolvido = 0): int
+{
+    $owner = (int) DB::table('business')->where('id', $biz)->value('owner_id');
+    $tid = DB::table('transactions')->insertGetId([
+        'business_id' => $biz, 'type' => 'purchase', 'status' => $status, 'payment_status' => 'due',
+        'contact_id' => $fornecedor, 'transaction_date' => $data, 'ref_no' => 'REQMIN-C-'.uniqid(),
+        'final_total' => 0, 'total_before_tax' => 0, 'tax_amount' => 0, 'discount_amount' => 0,
+        'created_by' => $owner, 'essentials_duration' => 0, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    return DB::table('purchase_lines')->insertGetId([
+        'transaction_id' => $tid, 'product_id' => $p['product'], 'variation_id' => $p['variation'],
+        'quantity' => 5, 'quantity_returned' => $devolvido, 'pp_without_discount' => $preco,
+        'purchase_price' => $preco, 'purchase_price_inc_tax' => $comImposto, 'item_tax' => round($comImposto - $preco, 4),
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+}
+
+/** @return object{contact_id: ?int, purchase_price: string, purchase_price_inc_tax: string, item_tax: string} */
+function reqMinLinha(int $biz, int $local, int $variation): ?object
+{
+    return DB::table('purchase_lines as pl')->join('transactions as t', 't.id', '=', 'pl.transaction_id')
+        ->where('t.business_id', $biz)->where('t.location_id', $local)->where('t.type', 'purchase_requisition')
+        ->where('pl.variation_id', $variation)
+        ->first(['t.id', 't.contact_id', 'pl.purchase_price', 'pl.purchase_price_inc_tax', 'pl.item_tax']);
+}
+
+it('UC-REQMIN-07 · US-COM-027 · a requisição sai com o fornecedor e o preço da última compra recebida do item', function () {
+    $l1 = reqMinLocal($this->bizA);
+    $a = reqMinProduto($this->bizA, 10);
+    $b = reqMinProduto($this->bizA, 10);
+    $novo = reqMinProduto($this->bizA, 10);
+    reqMinSaldo($a, $l1, 2);
+    reqMinSaldo($b, $l1, 2);
+    reqMinSaldo($novo, $l1, 2);
+    $velho = reqMinFornecedor($this->bizA, 'Fornecedor Velho');
+    $atual = reqMinFornecedor($this->bizA, 'Fornecedor Atual');
+    $outro = reqMinFornecedor($this->bizA, 'Fornecedor do B');
+
+    // A: a última RECEBIDA é a do Atual (12,50 / 13,75). A posterior pendente e a posterior
+    // devolvida por inteiro não contam.
+    reqMinCompra($this->bizA, $a, $velho, 'received', '2026-01-10 09:00:00', 9.00, 9.90);
+    $ultimaA = reqMinCompra($this->bizA, $a, $atual, 'received', '2026-02-10 09:00:00', 12.50, 13.75);
+    reqMinCompra($this->bizA, $a, $velho, 'pending', '2026-03-10 09:00:00', 99.00, 99.00);
+    reqMinCompra($this->bizA, $a, $velho, 'received', '2026-03-11 09:00:00', 88.00, 88.00, 5);
+    $ultimaB = reqMinCompra($this->bizA, $b, $outro, 'received', '2026-02-01 09:00:00', 4.20, 4.20);
+
+    $this->servico->gerar($this->bizA);
+
+    $la = reqMinLinha($this->bizA, $l1, $a['variation']);
+    $lb = reqMinLinha($this->bizA, $l1, $b['variation']);
+    $ln = reqMinLinha($this->bizA, $l1, $novo['variation']);
+
+    // fornecedor no cabeçalho: um por requisição — A e B em requisições diferentes
+    expect((int) $la->contact_id)->toBe($atual);
+    expect((int) $lb->contact_id)->toBe($outro);
+    expect($ln->contact_id)->toBeNull();
+    expect($la->id)->not->toBe($lb->id)->and($la->id)->not->toBe($ln->id);
+    expect(reqMinRequisicoes($this->bizA, $l1))->toHaveCount(3);
+
+    // VALOR — caminho 1: o número à mão · caminho 2: a linha da compra lida direto no banco
+    $compraA = DB::table('purchase_lines')->where('id', $ultimaA)->first();
+    expect((float) $la->purchase_price)->toBe(12.5)->toBe((float) $compraA->purchase_price);
+    expect((float) $la->purchase_price_inc_tax)->toBe(13.75)->toBe((float) $compraA->purchase_price_inc_tax);
+    expect((float) $la->item_tax)->toBe(1.25)->toBe((float) $compraA->item_tax);
+    expect((float) $lb->purchase_price)->toBe(4.2)->toBe((float) DB::table('purchase_lines')->where('id', $ultimaB)->value('purchase_price'));
+    expect((float) $ln->purchase_price)->toBe(0.0);
+    expect((float) $ln->purchase_price_inc_tax)->toBe(0.0);
+
+    // rodar de novo com item novo do mesmo fornecedor entra na requisição dele
+    $c = reqMinProduto($this->bizA, 3);
+    reqMinSaldo($c, $l1, 0);
+    reqMinCompra($this->bizA, $c, $atual, 'received', '2026-02-20 09:00:00', 1.00, 1.00);
+    $this->servico->gerar($this->bizA);
+    expect(reqMinLinha($this->bizA, $l1, $c['variation'])->id)->toBe($la->id);
+    expect(reqMinRequisicoes($this->bizA, $l1))->toHaveCount(3);
+});
+
+it('UC-REQMIN-08 · US-COM-027 · Tier 0: compra de outro business não vira fornecedor nem preço', function () {
+    $la = reqMinLocal($this->bizA);
+    $lb = reqMinLocal($this->bizB);
+    $a = reqMinProduto($this->bizA, 10);
+    reqMinSaldo($a, $la, 0);
+    // compra do 99 com a variação do 98 (dado sujo): nunca pode ser lida pelo 98
+    $alheio = reqMinFornecedor($this->bizB, 'Fornecedor do 99');
+    reqMinCompra($this->bizB, $a, $alheio, 'received', '2026-02-10 09:00:00', 50.00, 50.00);
+
+    $this->servico->gerar($this->bizA);
+
+    $linha = reqMinLinha($this->bizA, $la, $a['variation']);
+    expect($linha)->not->toBeNull();
+    expect($linha->contact_id)->toBeNull();
+    expect((float) $linha->purchase_price)->toBe(0.0);
+    expect($this->servico->ultimaCompra($this->bizA, $a['variation']))->toBeNull();
+    expect($this->servico->ultimaCompra($this->bizB, $a['variation']))->not->toBeNull();
     expect(reqMinRequisicoes($this->bizB, $lb))->toHaveCount(0);
 });
