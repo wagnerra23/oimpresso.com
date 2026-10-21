@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 841,
-    "edges": 1144,
+    "nodes": 842,
+    "edges": 1145,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 461,
+      "component": 462,
       "api": 86
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 90,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 461,
+      "hasComponent": 462,
       "dependsOn": 125,
       "delegatesTo": 116,
       "migratesTo": 1,
@@ -4308,6 +4308,13 @@
       "module": "Producao",
       "name": "OrdemCustoController + PrevisaoCustoDaOrdem",
       "desc": "custo da OS aberta: abertura × hoje dos insumos apontados e a previsão pela regra ops da compra (congela | vivo), JSON só com producao.desempenho.ver (US-PCP-022 · UC-FLX-36)"
+    },
+    {
+      "id": "component:Producao/PostoOperadoresController + OperadoresDoPosto",
+      "type": "component",
+      "module": "Producao",
+      "name": "PostoOperadoresController + OperadoresDoPosto",
+      "desc": "operadores de cada posto em pcp_posto_operadores (US-PCP-030 · UC-FLX-08): posto com cadastro só aceita um deles como responsável no Liberar e para começar a etapa; posto sem cadastro segue como antes"
     },
     {
       "id": "component:Producao/PostosController",
@@ -12537,6 +12544,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/OrdemCustoController + PrevisaoCustoDaOrdem",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/PostoOperadoresController + OperadoresDoPosto",
       "type": "hasComponent",
       "source": "contains"
     },

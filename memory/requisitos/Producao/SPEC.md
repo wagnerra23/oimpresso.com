@@ -487,7 +487,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [ ] Quantidade por área (m²) no item da CV: hoje a reserva usa a quantidade da linha na unidade do produto.
 - [ ] Mostrar o reservado no saldo disponível para venda do insumo (hoje nenhuma tela lê `stock_reservations`).
 
-**Total US: 30** · **Estimate agregado:** ~112h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
+**Total US: 31** · **Estimate agregado:** ~115h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
 
 ### US-PCP-026 · Etapas da OS vêm do roteiro do produto (UC-FLX-07) — **P1**
 
@@ -571,6 +571,24 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [x] Endpoint na PWA (`POST /producao/apontamento/refugo`), sem custo na resposta (UC-PCREF-06).
 - [ ] Endpoint no app (`/api/app/producao/apontamentos/refugo`) e campo na tela do operador.
 - [ ] Relatório de refugo por motivo e posto para o gestor.
+
+### US-PCP-030 · Operadores por posto: só eles são responsáveis e começam a etapa (UC-FLX-08) — **P1**
+
+**Implementado em:** `Modules/Producao/Services/OperadoresDoPosto.php` · `Modules/Producao/Http/Controllers/PostoOperadoresController.php` · `Modules/Producao/Database/Migrations/2026_10_20_130000_create_pcp_posto_operadores_table.php`
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoOperadoresDoPostoContratoTest.php` (lane `verticais-pest.yml`).
+
+> owner: wagner · priority: p1 · estimate: 3h · type: story
+
+**Origem:** aprovação [W] 2026-10-20, a partir do processo "OS e produção por item" (`prototipo-ui/cowork/Wagner/fluxos-modelos.casos.md:164`: *Iniciar etapa · só se: Operador do setor da etapa*) e do UC-FLX-08 (*cada etapa tem setor e responsável*). No legado, `SETOR_FUNCIONARIO` ligava o funcionário ao setor. Medido em 2026-10-20: `SituacaoDaOrdem::liberar()` aceitava qualquer usuário da empresa como responsável, `pcp_postos.setor` é texto livre e não havia ligação posto ↔ pessoa.
+
+**Aceite:**
+- [x] Tabela `pcp_posto_operadores` (`business_id` indexado + FK, chave única empresa + posto + pessoa) e endpoints `GET`/`PUT /producao/postos/{id}/operadores`; gravar exige `producao.etapa.mover` (UC-PCOPE-01).
+- [x] Posto com operadores cadastrados: o Liberar só aceita um deles como responsável (UC-PCOPE-02) e só um deles começa a etapa, mesmo quem já era responsável antes do cadastro (UC-PCOPE-04).
+- [x] Posto sem operadores cadastrados segue como antes (UC-PCOPE-03).
+- [x] Operador de outra empresa ou sem `producao.access` é recusado; posto de outra empresa → 404; sem a permissão → 403 (UC-PCOPE-05).
+- [ ] Alocador (US-PCP-029, PR #9647) chamar `OperadoresDoPosto::podeAtuar` ao trocar o responsável.
+- [ ] Tela de Postos mostrando e editando os operadores de cada posto.
 
 ## §8 — Regras Gherkin (R-PCP-001..010) — resumo
 

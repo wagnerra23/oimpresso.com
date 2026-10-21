@@ -112,6 +112,12 @@ class ApontamentoOperadorService
             throw new ApontamentoRecusado(ApontamentoRecusado::ETAPA_ALHEIA, 'Esta etapa está com outro responsável.',
                 ['programacao_id' => $etapa->id, 'posto_id' => $etapa->posto_id, 'user_id' => $etapa->user_id]);
         }
+        // UC-FLX-08 · US-PCP-030: posto com operadores cadastrados só começa com um deles.
+        $posto = $etapa->posto_id !== null ? (int) $etapa->posto_id : null;
+        if (! app(OperadoresDoPosto::class)->podeAtuar($businessId, $posto, $userId)) {
+            throw new ApontamentoRecusado(ApontamentoRecusado::ETAPA_ALHEIA, 'Você não está cadastrado como operador deste posto.',
+                ['programacao_id' => $etapa->id, 'posto_id' => $etapa->posto_id, 'user_id' => $etapa->user_id]);
+        }
         app(SituacaoDaOrdem::class)->antesDeIniciar($businessId, $etapa);
 
         try {
