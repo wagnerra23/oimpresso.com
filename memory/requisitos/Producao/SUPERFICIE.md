@@ -14,7 +14,7 @@ module: Producao
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Producao/**` + `resources/js/Pages/Producao/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 125 arquivos em 17 papéis.
+**Total mapeado:** 126 arquivos em 17 papéis.
 
 ## Controllers — 18
 
@@ -107,7 +107,7 @@ module: Producao
 
 - [web.php](../../../Modules/Producao/Routes/web.php)
 
-## Migrations (schema) — 11
+## Migrations (schema) — 12
 
 - [2026_10_15_000001_create_pcp_fundo_tables.php](../../../Modules/Producao/Database/Migrations/2026_10_15_000001_create_pcp_fundo_tables.php)
 - [2026_10_16_000001_create_pcp_cadastros_tables.php](../../../Modules/Producao/Database/Migrations/2026_10_16_000001_create_pcp_cadastros_tables.php)
@@ -120,6 +120,7 @@ module: Producao
 - [2026_10_20_130000_create_pcp_posto_operadores_table.php](../../../Modules/Producao/Database/Migrations/2026_10_20_130000_create_pcp_posto_operadores_table.php)
 - [2026_10_20_160000_create_pcp_refugos_table.php](../../../Modules/Producao/Database/Migrations/2026_10_20_160000_create_pcp_refugos_table.php)
 - [2026_10_20_200000_create_pcp_aproveitamento_midia_tables.php](../../../Modules/Producao/Database/Migrations/2026_10_20_200000_create_pcp_aproveitamento_midia_tables.php)
+- [2026_10_21_200000_add_custo_hora_direto_to_pcp_postos.php](../../../Modules/Producao/Database/Migrations/2026_10_21_200000_add_custo_hora_direto_to_pcp_postos.php)
 
 ## Config — 1
 

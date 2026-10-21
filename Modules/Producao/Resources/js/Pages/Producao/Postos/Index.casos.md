@@ -111,7 +111,15 @@ last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando 
 - **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
 - **Status: 🧪**
 
-- **[BACKLOG]** Botão "Aplicar custo-hora" em Postos — saiu do #9716 por decisão [W] (2026-10-21). O sugerido é o custo-hora GRAVADO + parcela fixa, e depois de aplicar o gravado já contém a parcela: aplicar de novo o mesmo mês, ou aplicar o mês seguinte, soma outra parcela (fixture F 4.000 / 40 h: posto A 30 → 130 → 230 → 330). O [W] escolheu guardar o custo-hora direto separado da parcela, para o sugerido ser sempre direto + parcela do mês; o botão volta depois disso, em PR próprio. O endpoint `POST /financeiro/custeio-rkw/aplicar/{posto}` (UC-PCCH-05) segue no main.
+## UC-PCCH-11 · Aplicar de novo não soma outra parcela · `must` valor
+
+- **Persona:** gestor financeiro, fechando um mês depois do outro.
+- **Aceite:** Dado o posto A com 30,00 digitados e parcela fixa de 100,00/h · Quando aplica o custeio · Então o custo-hora vai a 130,00 e os 30,00 ficam guardados como custo-hora direto · E aplicar de novo (o mesmo mês ou outro com a mesma parcela) mantém 130,00, nunca 230,00 · E o sugerido é sempre direto + parcela do mês · E digitar outro custo-hora no posto (40,00) troca o direto e tira a parcela até aplicar de novo (140,00) · E salvar o posto sem mexer no custo-hora mantém o direto.
+- **Origem:** decisão [W] 2026-10-21 (opção a). Antes, o sugerido era o custo-hora gravado + parcela, e cada aplicação somava outra parcela (30 → 130 → 230 → 330).
+- **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
+- **Status: 🧪**
+
+- **[BACKLOG]** Botão "Aplicar custo-hora" em Postos — saiu do #9716 por decisão [W] (2026-10-21). O sugerido é o custo-hora GRAVADO + parcela fixa, e depois de aplicar o gravado já contém a parcela: aplicar de novo o mesmo mês, ou aplicar o mês seguinte, soma outra parcela (fixture F 4.000 / 40 h: posto A 30 → 130 → 230 → 330). O [W] escolheu guardar o custo-hora direto separado da parcela (UC-PCCH-11, `pcp_postos.custo_hora_direto`); o botão volta em PR próprio, depois que ela entrar. O endpoint `POST /financeiro/custeio-rkw/aplicar/{posto}` (UC-PCCH-05) segue no main.
 
 ---
 
@@ -331,3 +339,4 @@ Status: 🧪
 - 2026-10-20 · [CL] UC-PCCH-03..06 — custeio RKW e ponto de equilíbrio (US-FIN-070): cálculo só leitura + aplicar explícito; o [BACKLOG] do rateio virou estes casos.
 - 2026-10-21 · [CL] UC-PCCH-10 — centro de custo por setor (decisão [W]: setor = `pcp_postos.setor`).
 - 2026-10-21 · [CL] UC-PCCH-07..08 — telas do custeio: aba Custeio na DRE e classe fixa/variável no plano de contas. O botão de aplicar em Postos (era o UC-PCCH-09) saiu por decisão [W] e virou [BACKLOG].
+- 2026-10-21 · [CL] UC-PCCH-11 — decisão [W] (opção a): custo-hora direto guardado à parte em `pcp_postos.custo_hora_direto`; o sugerido é sempre direto + parcela do mês e aplicar de novo não soma outra parcela.

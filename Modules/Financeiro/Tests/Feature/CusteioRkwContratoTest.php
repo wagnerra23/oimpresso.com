@@ -175,6 +175,54 @@ it('UC-PCCH-05 aplicar grava o custo-hora sugerido, devolve antes→depois e nã
         ->and(DB::table('pcp_apontamentos')->where('id', $c['apont'])->value('custo_hora'))->toBe('30.00');
 });
 
+it('UC-PCCH-11 aplicar de novo não soma outra parcela: o sugerido é sempre direto + parcela (dois caminhos)', function () {
+    $c = rkwCenario($this);
+    session(['user.business_id' => $this->b98, 'business.id' => $this->b98]);
+    $aplicar = fn () => $this->actingAs($this->user)->postJson('/financeiro/custeio-rkw/aplicar/'.$c['a'].'?mes='.RKW_MES);
+
+    // Caminho 1, à mão: F 4.000,00 em 40 h ⇒ parcela 4.000 ÷ 40 = 100,00/h; direto de A = 30,00 ⇒ 130,00.
+    $parcela = intdiv(400000 * 3600, 40 * 3600);
+    expect($parcela)->toBe(10000);
+
+    $aplicar()->assertOk()->assertJson(['antes' => '30.00', 'depois' => '130.00']);
+    // Antes da decisão [W] 2026-10-21 a segunda aplicação dava 130 → 230. Agora fica em 130.
+    $aplicar()->assertOk()->assertJson(['antes' => '130.00', 'depois' => '130.00']);
+    $aplicar()->assertOk()->assertJson(['antes' => '130.00', 'depois' => '130.00']);
+
+    // Caminho 2, o serviço: depois de aplicar, o atual tem a parcela e o direto não.
+    $a = collect($this->svc->calcular($this->b98, RKW_MES)['postos'])->firstWhere('posto_id', $c['a']);
+    expect($a['custo_hora_atual'])->toBe('130.00')
+        ->and($a['custo_hora_direto'])->toBe('30.00')
+        ->and($a['custo_hora_rkw'])->toBe(number_format((3000 + $parcela) / 100, 2, '.', ''))
+        ->and(DB::table('pcp_postos')->where('id', $c['a'])->value('custo_hora'))->toBe('130.00')
+        ->and(DB::table('pcp_postos')->where('id', $c['a'])->value('custo_hora_direto'))->toBe('30.00')
+        // O posto B não foi aplicado: direto vazio, sugerido = gravado + parcela.
+        ->and(DB::table('pcp_postos')->where('id', $c['b'])->value('custo_hora_direto'))->toBeNull()
+        ->and(DB::table('pcp_postos')->where('id', $c['b'])->value('custo_hora'))->toBe('50.00');
+});
+
+it('UC-PCCH-11 digitar outro custo-hora no posto troca o direto e tira a parcela até aplicar de novo', function () {
+    $c = rkwCenario($this);
+    session(['user.business_id' => $this->b98, 'business.id' => $this->b98]);
+    $this->actingAs($this->user)->postJson('/financeiro/custeio-rkw/aplicar/'.$c['a'].'?mes='.RKW_MES)->assertOk();
+    $posto = (array) DB::table('pcp_postos')->where('id', $c['a'])->first();
+    $corpo = ['codigo' => $posto['codigo'], 'nome' => $posto['nome'], 'tipo_custo' => 'maquina', 'veiculo' => false, 'ativo' => true];
+    $gestor = $this->usuarioComPermissoes(['producao.access', 'financeiro.relatorios.view', 'producao.desempenho.ver']);
+
+    // Salvar sem mexer no custo-hora (130,00) mantém o direto de 30,00.
+    $this->actingAs($gestor)->put('/producao/postos/'.$c['a'], $corpo + ['custo_hora' => '130.00'])->assertSessionHas('status.success', 1);
+    expect(DB::table('pcp_postos')->where('id', $c['a'])->value('custo_hora_direto'))->toBe('30.00');
+
+    // Digitar 40,00: o direto passa a ser o digitado e a parcela sai.
+    $this->actingAs($gestor)->put('/producao/postos/'.$c['a'], $corpo + ['custo_hora' => '40.00'])->assertSessionHas('status.success', 1);
+    expect(DB::table('pcp_postos')->where('id', $c['a'])->value('custo_hora'))->toBe('40.00')
+        ->and(DB::table('pcp_postos')->where('id', $c['a'])->value('custo_hora_direto'))->toBeNull();
+
+    // Aplicar de novo: 40,00 + 100,00.
+    $this->actingAs($this->user)->postJson('/financeiro/custeio-rkw/aplicar/'.$c['a'].'?mes='.RKW_MES)
+        ->assertOk()->assertJson(['antes' => '40.00', 'depois' => '140.00']);
+});
+
 it('UC-PCCH-06 isola por empresa e exige as duas permissões', function () {
     $c = rkwCenario($this);
     session(['user.business_id' => $this->b98, 'business.id' => $this->b98]);
