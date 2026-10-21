@@ -1521,6 +1521,28 @@ Delta #6 do protótipo Cowork "Nova OS" (seção "Fiscal"). Painel **presentacio
 
 **Refs:** ADR 0265 · RUNBOOK memory/requisitos/OficinaAuto/RUNBOOK-erradicacao-locacao.md (P5) · PR #2475 · charter ProducaoOficina/Index.charter.md (v4)
 
+### US-OFICINA-047 · Entrega da OS exige foto do serviço feito (UC-FLX-22)
+
+> owner: — · priority: p2 · estimate: 2h (IA-pair fator 10x ADR 0106) · type: story · origin: catálogo de fluxos UC-FLX-22 (modelo "Oficina mecânica", etapa "Entregue · Fotos do serviço") · 2026-10-20
+> blocked_by: —
+
+O veículo só é entregue ao cliente com foto do serviço feito. Regra `servico_foto` no `StageGateEvaluator`, na ação `entregar` (Pronto p/ retirar → Entregue) do processo `oficina_mecanica_os` — o mesmo gate da US-OFICINA-003 (422 na web com liberação de gerente registrada na trilha; no app, `bloqueado` sem liberação). "Foto do serviço" = imagem anexada à OS ou a item da vistoria enviada a partir da entrada da OS em `em_execucao` na trilha FSM; foto do diagnóstico (antes) e PDF não contam. OS sem essa entrada na trilha (importada/repontuada) aceita qualquer foto da OS. Fotos filtradas pelo `business_id` da OS (o app chama sem sessão).
+
+**Parcial — assinatura fora:** o UC-FLX-22 pede também a assinatura do cliente. Ela não existe na Oficina; o padrão do repo é o da entrega do pedido no app (`app/Http/Controllers/Api/App/PedidoEntregaController.php`, ajuste `app_entrega_exige_assinatura`). Fica para outra US.
+
+**Implementado em:** _parcial_ — `Modules/OficinaAuto/Services/StageGateEvaluator.php` (regra `servico_foto` em `entregar`) · `app/Http/Controllers/ServiceOrderFsmActionController.php` · `Modules/OficinaAuto/Services/AcoesOsDoApp.php` — foto exigida; assinatura falta
+
+**Testado em:** `Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php` — lane `PHP / Pest (Sells · MySQL)`
+
+**Casos:** UC-OSH-12..16 no `.casos.md` do Show da OS (`ServiceOrders/Show.casos.md`).
+
+**DoD:**
+- [x] Regra `servico_foto` na ação `entregar`, data-driven no `StageGateEvaluator` (sem trava paralela)
+- [x] Web: 422 sem foto; gerente/superadmin libera e a trilha guarda `gate_override` + `gate_unmet`
+- [x] App: `bloqueado` sem foto, sem liberação; mesma regra
+- [x] Tier 0: foto de outra empresa apontando para a OS não conta (sem sessão)
+- [ ] Assinatura do cliente na entrega (fora deste PR)
+
 ---
 
 **Última atualização:** 2026-06-09 — US-OFICINA-046 dívida F3 (repontuar kanban Caçambas overdue→expected_completion + remover UI "Locações ativas") — follow-up erradicação ADR 0265 (PR #2475). 2026-06-02 — US-OFICINA-042 painel fiscal NF-e/NFS-e (split presentacional). 2026-06-02 — US-OFICINA-041 gate de aprovação in-screen (status→orcamento dispara WhatsApp). 2026-06-02 — US-OFICINA-040 DVI→orçamento (wire-up Wave 3b). 2026-06-02 — US-OFICINA-038/039 check-in de entrada (combustível + avarias) — delta protótipo Cowork "Nova OS". 2026-05-26 — US-OFICINA-035 DVI Vistoria Digital backend (schema + Model + Service + HTTP API + Pest) — wedge CAPTERRA Repair gap #3. UI Wave 3b. 2026-05-15 — US-OFICINA-026 adicionada (goal #1 CYCLE-06 Martinho prod). 2026-05-10 — SPEC criada **antecipatória** sem cliente piloto. Status `feature-wish` lifecycle `aguarda-sinal-qualificado`. Não codar até gatilho §9 satisfeito. Revisar trimestralmente — se 12 meses sem sinal, considerar arquivar como `historical` (ADR 0095 lifecycle).

@@ -57,6 +57,7 @@ class AppApontamentoController extends Controller
         ApontamentoRecusado::MATERIAL_INVALIDO => [422, 'validacao', 'variation_id'],
         ApontamentoRecusado::QUANTIDADE_INVALIDA => [422, 'validacao', 'quantidade'],
         ApontamentoRecusado::ESTOQUE_INSUFICIENTE => [422, 'estoque_insuficiente', null],
+        ApontamentoRecusado::LOTE_INVALIDO => [422, 'validacao', 'lote_id'],
     ];
 
     public function __construct(
@@ -259,7 +260,7 @@ class AppApontamentoController extends Controller
     }
 
     /**
-     * POST /api/app/producao/apontamentos/material `{ programacao_id, variation_id, quantidade, momento? }` + Idempotency-Key
+     * POST /api/app/producao/apontamentos/material `{ programacao_id, variation_id, quantidade, lote_id?, momento? }` + Idempotency-Key
      * US-PCP-021 · UC-FLX-37: baixa o material da etapa pelo lote que saiu. Sem custo na resposta (é do gestor).
      */
     public function material(Request $request, ConsumoMaterialService $consumo): JsonResponse
@@ -274,6 +275,7 @@ class AppApontamentoController extends Controller
             'programacao_id' => ['required', 'integer', 'min:1'],
             'variation_id' => ['required', 'integer', 'min:1'],
             'quantidade' => ['required', 'string', 'max:24'],
+            'lote_id' => ['nullable', 'integer', 'min:1'],
         ], [
             'programacao_id.required' => 'Informe a etapa.',
             'variation_id.required' => 'Escolha o material.',
@@ -284,7 +286,8 @@ class AppApontamentoController extends Controller
         }
 
         return $this->recusavel(function () use ($bizId, $user, $v, $consumo) {
-            $c = $consumo->registrar($bizId, (int) $user->id, (int) $v['programacao_id'], (int) $v['variation_id'], (string) $v['quantidade'], $v['chave'], $v['momento']);
+            $c = $consumo->registrar($bizId, (int) $user->id, (int) $v['programacao_id'], (int) $v['variation_id'], (string) $v['quantidade'], $v['chave'], $v['momento'],
+                isset($v['lote_id']) ? (int) $v['lote_id'] : null);
 
             return response()->json(['id' => (int) $c->id, 'programacao_id' => (int) $c->programacao_id, 'variation_id' => (int) $c->variation_id,
                 'quantidade' => (string) $c->quantidade, 'quantidade_sem_lote' => (string) $c->quantidade_sem_lote], $c->wasRecentlyCreated ? 201 : 200);

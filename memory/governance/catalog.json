@@ -26,25 +26,25 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 827,
-    "edges": 1128,
+    "nodes": 842,
+    "edges": 1145,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 449,
-      "api": 84
+      "component": 462,
+      "api": 86
     },
     "by_edge_type": {
       "ownsTable": 97,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 88,
+      "providesApi": 90,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 449,
-      "dependsOn": 124,
-      "delegatesTo": 115,
+      "hasComponent": 462,
+      "dependsOn": 125,
+      "delegatesTo": 116,
       "migratesTo": 1,
       "supersedes": 26,
       "supersedesPartially": 71,
@@ -1186,6 +1186,14 @@
       ]
     },
     {
+      "id": "api:/arte/{token}",
+      "type": "api",
+      "prefix": "/arte/{token}",
+      "providers": [
+        "Producao"
+      ]
+    },
+    {
       "id": "api:/asset/*",
       "type": "api",
       "prefix": "/asset/*",
@@ -1570,6 +1578,14 @@
       ]
     },
     {
+      "id": "api:/producao/lotes/{id}/rastreio",
+      "type": "api",
+      "prefix": "/producao/lotes/{id}/rastreio",
+      "providers": [
+        "Producao"
+      ]
+    },
+    {
       "id": "api:/product-catalogue/*",
       "type": "api",
       "prefix": "/product-catalogue/*",
@@ -1914,6 +1930,13 @@
       "desc": ""
     },
     {
+      "id": "component:Compras/AplicarCustoDoRecebimento",
+      "type": "component",
+      "module": "Compras",
+      "name": "AplicarCustoDoRecebimento",
+      "desc": "compra recebida grava o custo pela regra da empresa e trata o preço (so_custo | aplicar | propor), só quando a empresa gravou a regra (US-COM-026 · UC-FLX-17)"
+    },
+    {
       "id": "component:Compras/ComprasController",
       "type": "component",
       "module": "Compras",
@@ -1926,6 +1949,13 @@
       "module": "Compras",
       "name": "CustoDoInsumoService",
       "desc": "custo do insumo numa data pelo método da regra da empresa (US-COM-024 · UC-FLX-38); só lê purchase_lines + transactions"
+    },
+    {
+      "id": "component:Compras/Database/Migrations/2026_10_20_120000_create_compras_propostas_preco_table",
+      "type": "component",
+      "module": "Compras",
+      "name": "Database/Migrations/2026_10_20_120000_create_compras_propostas_preco_table",
+      "desc": "tabela compras_propostas_preco, proposta de preço pendente gerada no recebimento (business_id, variation_id, transaction_id)"
     },
     {
       "id": "component:Compras/DataController",
@@ -1947,6 +1977,13 @@
       "module": "Compras",
       "name": "InsumoMetodoCusto",
       "desc": "entidade da tabela-ponte compras_insumo_metodo_custo (business_id, variation_id) com o método próprio do insumo (medio | ultimo), lida quando a regra é por_insumo; variations do core não ganha coluna"
+    },
+    {
+      "id": "component:Compras/RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
+      "type": "component",
+      "module": "Compras",
+      "name": "RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
+      "desc": "US-COM-027 · UC-FLX-19 estoque abaixo de alert_quantity vira requisição de compra do núcleo (transactions type=purchase_requisition) por local, teto(mínimo − saldo), sem duplicar item em requisição aberta; não move estoque nem cria pedido; desligado por padrão em business.common_settings"
     },
     {
       "id": "component:ComunicacaoVisual/ApontamentoController",
@@ -2479,6 +2516,13 @@
       "module": "Essentials",
       "name": "AttendanceController",
       "desc": ""
+    },
+    {
+      "id": "component:Essentials/CalendarioDaEmpresaService",
+      "type": "component",
+      "module": "Essentials",
+      "name": "CalendarioDaEmpresaService",
+      "desc": "implementa App\\\\Contracts\\\\Rh\\\\CalendarioDaEmpresa: feriados da empresa e da loja (mesma regra do Ponto) e o expediente do turno fixo, para o prazo da produção em dias úteis (US-PCP-028 · UC-FLX-06)"
     },
     {
       "id": "component:Essentials/DashboardController",
@@ -4154,6 +4198,13 @@
       "desc": ""
     },
     {
+      "id": "component:Producao/AlocacaoController + AlocacaoDaEtapa",
+      "type": "component",
+      "module": "Producao",
+      "name": "AlocacaoController + AlocacaoDaEtapa",
+      "desc": "alocador decide quem e quando começa cada etapa pendente (US-PCP-029 · UC-FLX-10): troca responsável e início previsto em pcp_programacoes com histórico em pcp_eventos, e a fila do posto pela ordem do início; JSON só com producao.etapa.mover"
+    },
+    {
       "id": "component:Producao/Api/AppApontamentoController",
       "type": "component",
       "module": "Producao",
@@ -4166,6 +4217,13 @@
       "module": "Producao",
       "name": "ApontamentoController",
       "desc": "celular do operador (PWA, thread 04): /producao/apontamento, escritas em JSON para a fila offline; a regra mora no ApontamentoOperadorService"
+    },
+    {
+      "id": "component:Producao/AprovacaoArteController + AprovacaoArteService",
+      "type": "component",
+      "module": "Producao",
+      "name": "AprovacaoArteController + AprovacaoArteService",
+      "desc": "cliente aprova a arte por link (US-COMVIS-NEW-004 · UC-FLX-02): o operador gera o link da prova da OS por item (token, só o sha256 em pcp_aprovacoes_arte, 7 dias, uso único); a página pública /arte/{token} (Blade, sem login, throttle) aprova — conclui a etapa pelo motor — ou recusa com comentário, reabrindo a arte"
     },
     {
       "id": "component:Producao/AproveitamentoMidiaController + AproveitamentoDeMidia",
@@ -4231,6 +4289,13 @@
       "desc": "instalação 1-clique (ADR 0024)"
     },
     {
+      "id": "component:Producao/LoteRastreioController + RastreioDoRolo",
+      "type": "component",
+      "module": "Producao",
+      "name": "LoteRastreioController + RastreioDoRolo",
+      "desc": "rastreio do rolo: em que OS cada fração do lote foi usada e o saldo, JSON só com purchase.view (US-COM-025 · UC-FLX-18); a baixa da OS aceita o rolo escolhido (lote_id)"
+    },
+    {
       "id": "component:Producao/Ordem",
       "type": "component",
       "module": "Producao",
@@ -4245,11 +4310,53 @@
       "desc": "custo da OS aberta: abertura × hoje dos insumos apontados e a previsão pela regra ops da compra (congela | vivo), JSON só com producao.desempenho.ver (US-PCP-022 · UC-FLX-36)"
     },
     {
+      "id": "component:Producao/PostoOperadoresController + OperadoresDoPosto",
+      "type": "component",
+      "module": "Producao",
+      "name": "PostoOperadoresController + OperadoresDoPosto",
+      "desc": "operadores de cada posto em pcp_posto_operadores (US-PCP-030 · UC-FLX-08): posto com cadastro só aceita um deles como responsável no Liberar e para começar a etapa; posto sem cadastro segue como antes"
+    },
+    {
       "id": "component:Producao/PostosController",
       "type": "component",
       "module": "Producao",
       "name": "PostosController",
       "desc": "postos, máquinas e veículos, com os motivos de pausa e de refugo do posto (UC-PCV-33, E03)"
+    },
+    {
+      "id": "component:Producao/PrazoDaVendaController + PrazoPelaFila",
+      "type": "component",
+      "module": "Producao",
+      "name": "PrazoDaVendaController + PrazoPelaFila",
+      "desc": "prazo de entrega da venda/orçamento pela fila dos postos (Σ programações abertas + etapas do roteiro ÷ horas por dia, em dias úteis pelo CalendarioDeProducao: turno da produção, senão expediente do RH; folgas do expediente e feriados do RH da empresa e da loja, pelo contrato CalendarioDaEmpresa do Rh), JSON só leitura com sell.view ou producao.access (US-PCP-028 · UC-FLX-06)"
+    },
+    {
+      "id": "component:Producao/PrevistoRealizadoController + PrevistoRealizadoDaOrdem",
+      "type": "component",
+      "module": "Producao",
+      "name": "PrevistoRealizadoController + PrevistoRealizadoDaOrdem",
+      "desc": "previsto × realizado por OS e por venda: custo guardado na linha da venda × custo real congelado, diferença e margem, JSON só com producao.desempenho.ver (US-COMVIS-005 · UC-FLX-15)"
+    },
+    {
+      "id": "component:Producao/PrometerPrazoDaVenda",
+      "type": "component",
+      "module": "Producao",
+      "name": "PrometerPrazoDaVenda",
+      "desc": "na aprovação (CriarOsDaVendaJob), grava a estimativa em transactions.due_date só quando a venda não tem data e copia a data para pcp_ordens.prazo_prometido (US-PCP-028 · UC-FLX-06)"
+    },
+    {
+      "id": "component:Producao/RefugoService",
+      "type": "component",
+      "module": "Producao",
+      "name": "RefugoService",
+      "desc": "refugo com motivo na etapa da OS por item (US-PCP-027 · UC-FLX-16): quantidade e motivo de refugo do posto em pcp_refugos, material reposto pelo ConsumoMaterialService e, com o papel de qualidade, a OS para Retrabalho pelo SituacaoDaOrdem::reprovar"
+    },
+    {
+      "id": "component:Producao/ReservaDeInsumoDaOs",
+      "type": "component",
+      "module": "Producao",
+      "name": "ReservaDeInsumoDaOs",
+      "desc": "reserva o insumo na venda, baixa real na produção (US-PCP-031 · UC-FLX-14): a OS do item sob encomenda reserva o insumo da receita (contrato Fabricacao/InsumosDaReceita do núcleo) em stock_reservations; o apontamento abate, a OS encerrada e a venda cancelada liberam; chave producao_reserva_insumo em common_settings, desligada por padrão"
     },
     {
       "id": "component:Producao/RomaneioController + RomaneioDeImpressao",
@@ -7854,6 +7961,13 @@
     },
     {
       "from": "module:Compras",
+      "to": "module:Producao",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Rastreio do rolo (em que OS cada fração do lote foi usada, US-COM-025)"
+    },
+    {
+      "from": "module:Compras",
       "to": "module:AssetManagement",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -7875,6 +7989,13 @@
     },
     {
       "from": "module:Compras",
+      "to": "module:Producao",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Rastreio do rolo (em que OS cada fração do lote foi usada, US-COM-025)"
+    },
+    {
+      "from": "module:Compras",
       "to": "adr:0079",
       "type": "governedByAdr",
       "source": "related_adrs"
@@ -7887,6 +8008,12 @@
     },
     {
       "from": "module:Compras",
+      "to": "component:Compras/AplicarCustoDoRecebimento",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
       "to": "component:Compras/ComprasController",
       "type": "hasComponent",
       "source": "contains"
@@ -7894,6 +8021,12 @@
     {
       "from": "module:Compras",
       "to": "component:Compras/CustoDoInsumoService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/Database/Migrations/2026_10_20_120000_create_compras_propostas_preco_table",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -7912,6 +8045,12 @@
     {
       "from": "module:Compras",
       "to": "component:Compras/InsumoMetodoCusto",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8674,6 +8813,12 @@
     {
       "from": "module:Essentials",
       "to": "component:Essentials/AttendanceController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Essentials",
+      "to": "component:Essentials/CalendarioDaEmpresaService",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -12308,6 +12453,12 @@
     },
     {
       "from": "module:Producao",
+      "to": "component:Producao/AlocacaoController + AlocacaoDaEtapa",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
       "to": "component:Producao/Api/AppApontamentoController",
       "type": "hasComponent",
       "source": "contains"
@@ -12315,6 +12466,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/ApontamentoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/AprovacaoArteController + AprovacaoArteService",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -12374,6 +12531,12 @@
     },
     {
       "from": "module:Producao",
+      "to": "component:Producao/LoteRastreioController + RastreioDoRolo",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
       "to": "component:Producao/Ordem",
       "type": "hasComponent",
       "source": "contains"
@@ -12386,7 +12549,43 @@
     },
     {
       "from": "module:Producao",
+      "to": "component:Producao/PostoOperadoresController + OperadoresDoPosto",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
       "to": "component:Producao/PostosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/PrazoDaVendaController + PrazoPelaFila",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/PrevistoRealizadoController + PrevistoRealizadoDaOrdem",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/PrometerPrazoDaVenda",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/RefugoService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/ReservaDeInsumoDaOs",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -12410,6 +12609,12 @@
     },
     {
       "from": "module:Producao",
+      "to": "api:/arte/{token}",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Producao",
       "to": "api:/producao/*",
       "type": "providesApi",
       "source": "url_prefixes"
@@ -12417,6 +12622,12 @@
     {
       "from": "module:Producao",
       "to": "api:/producao/apontamento/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Producao",
+      "to": "api:/producao/lotes/{id}/rastreio",
       "type": "providesApi",
       "source": "url_prefixes"
     },

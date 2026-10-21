@@ -53,6 +53,10 @@ on:
       - 'database/seeders/FsmProcessoVendaComProducaoSeeder.php'
       - 'database/seeders/FsmProcessoComunicacaoVisualSeeder.php'
       - 'app/Domain/Fsm/Modelos/**'
+      - 'app/Domain/Fsm/Services/ExecuteStageActionService.php'  # Marcar perdido (exige_motivo)
+      - 'app/Domain/Fsm/Models/SaleStageAction.php'  # Marcar perdido (exige_motivo)
+      - 'app/Http/Controllers/SaleFsmActionController.php'  # Marcar perdido (exige_motivo)
+      - 'database/migrations/2026_10_21_120000_add_exige_motivo_to_sale_stage_actions.php'  # Marcar perdido (exige_motivo)
       - 'app/Domain/Fsm/Models/ModeloEmpresa.php'
       - 'database/migrations/2026_10_16_140000_create_fsm_modelos_empresa_table.php'
       - 'app/Http/Controllers/Api/App/PedidoAcaoController.php'  # P1 tela 22 (PR 04 propostas-app)
@@ -66,6 +70,10 @@ on:
       - 'Modules/Producao/Http/Controllers/Api/AppApontamentoController.php'
       - 'Modules/Producao/Services/**'
       - 'app/Http/Controllers/Api/App/OsArquivosController.php'
+      - 'Modules/OficinaAuto/Services/StageGateEvaluator.php'  # UC-FLX-22 foto do serviço na entrega
+      - 'Modules/OficinaAuto/Services/AcoesOsDoApp.php'
+      - 'app/Http/Controllers/ServiceOrderFsmActionController.php'
+      - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php'
       - 'routes/api/app/os-arquivos.php'
       - 'app/Contracts/Arquivos/AnexosDoApp.php'
       - 'Modules/Arquivos/Services/AnexosDoAppService.php'
@@ -227,6 +235,10 @@ jobs:
               - 'database/seeders/FsmProcessoVendaComProducaoSeeder.php'
               - 'database/seeders/FsmProcessoComunicacaoVisualSeeder.php'
               - 'app/Domain/Fsm/Modelos/**'
+              - 'app/Domain/Fsm/Services/ExecuteStageActionService.php'  # Marcar perdido (exige_motivo)
+              - 'app/Domain/Fsm/Models/SaleStageAction.php'  # Marcar perdido (exige_motivo)
+              - 'app/Http/Controllers/SaleFsmActionController.php'  # Marcar perdido (exige_motivo)
+              - 'database/migrations/2026_10_21_120000_add_exige_motivo_to_sale_stage_actions.php'  # Marcar perdido (exige_motivo)
               - 'app/Domain/Fsm/Models/ModeloEmpresa.php'
               - 'database/migrations/2026_10_16_140000_create_fsm_modelos_empresa_table.php'
               - 'app/Http/Controllers/Api/App/PedidoAcaoController.php'  # P1 tela 22 (PR 04 propostas-app)
@@ -240,6 +252,10 @@ jobs:
               - 'Modules/Producao/Http/Controllers/Api/AppApontamentoController.php'
               - 'Modules/Producao/Services/**'
               - 'app/Http/Controllers/Api/App/OsArquivosController.php'
+              - 'Modules/OficinaAuto/Services/StageGateEvaluator.php'  # UC-FLX-22 foto do serviço na entrega
+              - 'Modules/OficinaAuto/Services/AcoesOsDoApp.php'
+              - 'app/Http/Controllers/ServiceOrderFsmActionController.php'
+              - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php'
               - 'routes/api/app/os-arquivos.php'
               - 'app/Contracts/Arquivos/AnexosDoApp.php'
               - 'Modules/Arquivos/Services/AnexosDoAppService.php'
@@ -462,6 +478,7 @@ jobs:
             tests/Feature/Sells/AppPedidosApiContratoTest.php \
             tests/Feature/Sells/AppPedidosPassosProcessoContratoTest.php \
             tests/Feature/Sells/FsmAplicarModeloContratoTest.php \
+            tests/Feature/Sells/FsmMarcarPerdidoContratoTest.php \
             tests/Feature/Sells/FsmCatalogoProcessosContratoTest.php \
             tests/Feature/Sells/AppInicioApiContratoTest.php \
             tests/Feature/Sells/AppPerfilMenuApiContratoTest.php \
@@ -472,6 +489,7 @@ jobs:
             tests/Feature/Sells/FsmPagamentoForaDasEtapasContratoTest.php \
             tests/Feature/Sells/AppNotificacoesApiContratoTest.php \
             tests/Feature/Sells/AppOsApiContratoTest.php \
+            Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php \
             tests/Feature/Sells/AppOsArquivosApiContratoTest.php \
             tests/Feature/Sells/AppPedidoEntregaContratoTest.php \
             tests/Feature/Sells/AppOficinaAgendaApiContratoTest.php \

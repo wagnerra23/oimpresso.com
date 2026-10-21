@@ -544,7 +544,9 @@ Como quem orça e produz, quero saber quanto um insumo custava num dia qualquer,
 
 Como quem compra e controla a mídia (bobina de lona, vinil, papel em rolo), quero abrir um rolo recebido e ver em que OS cada fração dele foi usada e quanto ainda sobra, para saber o custo de cada trabalho e de onde veio o defeito de um lote.
 
-**Implementado em:** _pendente_
+**Implementado em:** `Modules/Producao/Services/RastreioDoRolo.php` · `Modules/Producao/Http/Controllers/LoteRastreioController.php` · `Modules/Producao/Services/ConsumoMaterialService.php`
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoRoloRastreioContratoTest.php` (lane `verticais-pest.yml`).
 
 **Origem:** UC-FLX-18 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:71`, etapa Recebido, fonte Mubisys, porte pequena, sem US até aqui). O que já existe (medido 2026-10-20):
 
@@ -555,11 +557,59 @@ Como quem compra e controla a mídia (bobina de lona, vinil, papel em rolo), que
 O que falta, e é o escopo desta US: a leitura "rolo → OS" (lote, frações por OS, saldo do rolo) e a escolha do rolo na baixa. Fora daqui: tabela `product_batches` própria, FEFO e picker de lote no PDV (US-INV-006 a US-INV-010, Estoque, adiadas por P7).
 
 **Aceite:**
-- [ ] Dado um lote (`purchase_line_id`) recebido, a consulta lista cada OS que usou fração dele: número da OS, etapa, quantidade, data e quem apontou, mais o saldo do rolo (recebido − devolvido − Σ frações).
-- [ ] A soma das frações listadas é igual à quantidade do lote em `transaction_sell_lines_purchase_lines` com `production_purchase`; dois caminhos no teste.
-- [ ] A baixa da OS aceita o lote escolhido (`lot_no_line_id`); sem escolha segue o método da empresa, como hoje; lote de outro produto ou sem saldo recusa.
-- [ ] Tier 0: lote de outra empresa responde 404 e não aparece na lista (teste com a mesma variação em duas empresas, `business_id` em toda consulta).
-- [ ] Só quem tem permissão de ver compras abre o rastreio; sem a permissão, 403.
+- [x] Dado um lote (`purchase_line_id`) recebido, `GET /producao/lotes/{id}/rastreio` lista cada OS que usou fração dele: OS, venda, etapa, quantidade, data e quem apontou, mais o saldo do rolo (recebido − devolvido − vendido − ajustado − usado em produção, as colunas que o `mapPurchaseSell` confere) (UC-RLT-04).
+- [x] A soma das frações listadas é igual à quantidade do lote em `transaction_sell_lines_purchase_lines` das `production_sell`; dois caminhos no teste (UC-RLT-04).
+- [x] A baixa da OS aceita o lote escolhido (`lote_id` → `lot_no_line_id`); sem escolha segue o método da empresa, como hoje; lote de outro material, de outro local, de outra empresa, de compra não recebida ou sem saldo para a quantidade inteira recusa e nada baixa (UC-PCMAT-08).
+- [x] Tier 0: lote de outra empresa responde 404 (teste com lote da empresa 99 do mesmo formato; `business_id` em toda consulta) (UC-RLT-05).
+- [x] Só quem tem `purchase.view` (e o módulo Produção no pacote) abre o rastreio; sem a permissão, 403 (UC-RLT-05).
+- [ ] Tela: o rastreio dentro do relatório de Lotes (hoje só o JSON). Ver o `[BACKLOG]` de `Relatorios/Lotes/Index.casos.md`.
+- [ ] Separar no relatório de Lotes a fração usada em OS da venda (a `consultaLotes` soma a baixa da OS em "vendido").
+
+### US-COM-026 · Compra recebida aplica a regra de custo e preço (UC-FLX-17)
+
+> owner: wagner · priority: p1 · estimate: 3h · status: doing · type: story
+
+Como dono que configurou a regra "Atualizar o custo dos insumos" na aba Fluxos, quero que a compra, ao ficar recebida, grave o custo do insumo pelo método da regra e trate o preço de venda como a regra manda, para que o custo não seja o último preço digitado e o preço não mude sem eu escolher.
+
+**Implementado em:** `Modules/Compras/Services/AplicarCustoDoRecebimento.php` · `Modules/Compras/Tests/Feature/AplicarCustoDoRecebimentoTest.php`
+
+- Origem: UC-FLX-17 da tela de fluxos (etapa Recebido). Até aqui o recebimento não lia `RegrasCompra`: com `business.enable_editing_product_from_purchase` ligado, `ProductUtil::updateProductFromPurchase` gravava o último preço em `variations.default_purchase_price`/`dpp_inc_tax`, inclusive em compra pendente.
+- Só vale para a empresa que gravou a regra de custo (`fsm_modelos_empresa.regras_compra` com a chave `insumo.custo`), ligada e disparando em Recebido. Empresa que nunca gravou a regra: comportamento de antes, sem nenhuma mudança.
+- Custo: `CustoDoInsumoService::naData` (US-COM-024) na data da compra, pelo `metodo` da regra. Custo nulo (sem compra recebida ou método sem resposta): a variação não muda.
+- Preço (`preco`): `so_custo` não muda o preço; `aplicar` recalcula o preço mantendo a margem atual da variação; `propor` grava uma proposta em `compras_propostas_preco` e não muda o preço.
+- Fora daqui (follow-up): a fila de aprovação das propostas (`aprovacao`), `regraEm`, a etapa Conferido e a propagação para os produtos fabricados.
+
+**Acceptance:**
+- [x] Recebimento com a regra grava o custo pelo método da regra, em `default_purchase_price` e `dpp_inc_tax`
+- [x] `so_custo`: preço igual, margem recalculada; `aplicar`: preço novo com a margem de antes; `propor`: proposta pendente com custo e preço antes/depois, preço igual
+- [x] Com a regra, compra pendente não muda custo nem preço (a edição de produto pela compra do core fica desligada)
+- [x] Empresa sem a regra gravada: o core segue como antes (teste do último preço)
+- [x] Tier 0: só variações da empresa da compra; a outra empresa não muda
+- [ ] Fila de aprovação das propostas (Fabricação / Pendências)
+
+### US-COM-027 · Estoque mínimo vira requisição de compra (UC-FLX-19) — **P2**
+
+> owner: — · priority: p2 · estimate: 3h · status: doing · type: story
+> blocked_by: —
+
+Como quem compra, quero que o item que caiu abaixo do mínimo no local apareça sozinho numa requisição de compra, com a quantidade que falta, para não depender de alguém lembrar de olhar o relatório de alerta.
+
+**Implementado em:** _pendente_ — parcial em 2026-10-20: o job diário (`RequisicaoEstoqueMinimoJob` + comando `compras:requisicao-estoque-minimo`, desligado por padrão em `business.common_settings`) gera a requisição do núcleo por local; falta o fornecedor da última compra na requisição e a tela para ligar a regra. A âncora vira path quando a US fechar (ADR 0273 + doneness-lint).
+
+**Origem:** UC-FLX-19 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:72`, "Abaixo do mínimo → Cria a requisição com o fornecedor da última compra", fonte Mubisys, planejado). O que já existia (medido 2026-10-20):
+
+- O mínimo é `products.alert_quantity` (por produto, não por local) — não há campo de mínimo no Compras.
+- A requisição é do núcleo: `transactions.type = purchase_requisition` + `purchase_lines`, criada à mão em `app/Http/Controllers/PurchaseRequisitionController.php:314` (status `ordered`; `partial`/`completed` quando vira pedido).
+- A tela de criar já lista os itens no alerta (`getRequisitionProducts`, `:481`, `qty_available <= alert_quantity`), mas só sob demanda — nada gerava a requisição sozinho.
+
+**Aceite:**
+- [x] Job diário por business: variação com saldo no local ABAIXO de `alert_quantity` entra numa requisição do núcleo daquele local, com quantidade = teto(mínimo − saldo). _(UC-REQMIN-01)_
+- [x] Uma requisição automática aberta por local: rodar de novo acrescenta só o item novo; item já numa requisição aberta (`ordered`/`partial`) do local, automática ou manual, não é pedido de novo. _(UC-REQMIN-02/03)_
+- [x] Desligado por padrão (`business.common_settings['compras_requisicao_estoque_minimo']`). _(UC-REQMIN-04)_
+- [x] Não cria pedido de compra e não move estoque. _(UC-REQMIN-05)_
+- [x] Tier 0: job recebe `$businessId`; produto e local de outro business nunca entram. _(UC-REQMIN-06, 98 × 99)_
+- [ ] A requisição sai com o fornecedor da última compra do item (a requisição do núcleo não tem fornecedor hoje — decidir onde guardar).
+- [ ] Tela para ligar/desligar a regra, com permissão de Compras.
 
 ### 9.1 Seguradas (feature-wish ADR 0105 — NÃO no backlog ativo)
 
