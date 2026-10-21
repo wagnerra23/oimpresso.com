@@ -33,7 +33,10 @@ use Illuminate\Queue\SerializesModels;
  * fica pra PR Repair separado (não conflitar com features ativas).
  *
  * @property object $repair  Instância JobSheet (id, business_id, contact_id, etc)
- * @property string $newStatus  Nome do novo status (ex: 'ready', 'waiting_parts', 'in_progress')
+ * @property string $newStatus  Nome do novo status, como a empresa escreveu
+ * @property string|null $avisoTemplate  Mensagem que o status novo manda ao cliente
+ *           (`repair_statuses.whatsapp_template_aviso`: 'ready' | 'waiting_parts' | null = não avisa).
+ *           Vai no evento para o listener do Whatsapp não ler tabela do Repair.
  */
 class RepairStatusChanged
 {
@@ -42,6 +45,7 @@ class RepairStatusChanged
     public function __construct(
         public readonly object $repair,
         public readonly string $newStatus,
+        public readonly ?string $avisoTemplate = null,
     ) {
     }
 }

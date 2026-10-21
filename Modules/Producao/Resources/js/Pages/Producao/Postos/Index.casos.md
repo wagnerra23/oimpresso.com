@@ -326,7 +326,7 @@ de 26/10. Regra mestre de valor.
 
 Status: 🧪
 
-- **[BACKLOG]** UC-FLX-06 — mostrar o prazo na aprovação do orçamento (tela de venda); descontar o já apontado da etapa iniciada; o Ponto passar a usar o contrato `CalendarioDaEmpresa` em vez de importar `EssentialsHoliday`.
+- **[BACKLOG]** UC-FLX-06 — descontar o já apontado da etapa iniciada; o Ponto passar a usar o contrato `CalendarioDaEmpresa` em vez de importar `EssentialsHoliday`.
 
 ---
 
@@ -339,6 +339,7 @@ Status: 🧪
 - 2026-10-20 · [CL] UC-PCCH-01/02 documentam o custo-hora que já existe (UC-FLX-20 parcial); o bullet de backlog do custo-hora da pessoa virou o UC-PCCH-02; rateio e ponto de equilíbrio ficam no [BACKLOG] (US-FIN-070).
 - 2026-10-20 · [CL] UC-PCOPE-01..05 — operadores por posto (US-PCP-030 · UC-FLX-08, aprovado por [W] em 2026-10-20).
 - 2026-10-21 · [CL] UC-PCOPE-06 — a tela de Postos mostra os operadores de cada posto e a gaveta tem o campo "Operadores do posto" (US-PCP-030 · UC-FLX-08); o [BACKLOG] da tela virou este caso.
+- 2026-10-21 · [CL] `last_run` 2026-10-20 → 2026-10-21 por conferência, não por run novo: depois do `last_run` o `Index.tsx` mudou só em a99d7e4aba (#9699), que acrescenta a linha "Operadores:" na lista e a prop adiada `usuarios` para a gaveta — exatamente o UC-PCOPE-06. Motivos (UC-PCV-33) e custo-hora (UC-PCCH-01..06) não mudaram. O UC-FLX-06 saiu do backlog: o prazo aparece na tela de venda (UC-QUO-09 · UC-VSHOW-14, `Sells/Quotations` e `Sells/Show`). Nenhum teste re-rodado aqui.
 - 2026-10-20 · [CL] UC-PCALO-01..06 — alocador decide quem e quando começa (US-PCP-029 · UC-FLX-10): endpoints JSON de alocação e fila do posto; a tela é a US-PCP-015.
 - 2026-10-20 · [CL] UC-PCALO-07 — o alocador usa a regra dos operadores do posto (US-PCP-030 · UC-FLX-08), a mesma do Liberar e do início da etapa.
 - 2026-10-20 · [CL] UC-PCPRZ-01..04 — prazo de entrega pela fila dos postos (US-PCP-028 · UC-FLX-06), cálculo em JSON só leitura; tela e data prometida ficam no [BACKLOG].

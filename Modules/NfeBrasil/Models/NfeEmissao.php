@@ -85,6 +85,10 @@ class NfeEmissao extends Model
 
     public const TP_EMIS_EPEC = 4;          // NF-e modelo 55
 
+    public const TP_EMIS_SVC_AN = 6;        // NF-e modelo 55 — SEFAZ Virtual do AN (US-NFE-071)
+
+    public const TP_EMIS_SVC_RS = 7;        // NF-e modelo 55 — SEFAZ Virtual do RS (US-NFE-071)
+
     public const TP_EMIS_OFFLINE_NFCE = 9;  // NFC-e modelo 65
 
     /** ADR TECH-0002: 5 falhas de retransmissão => status=rejeitada + alerta ao gestor. */

@@ -74,6 +74,12 @@ on:
       - 'Modules/OficinaAuto/Services/AcoesOsDoApp.php'
       - 'app/Http/Controllers/ServiceOrderFsmActionController.php'
       - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php'
+      - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaAssinaturaTest.php'  # UC-FLX-22 assinatura na entrega
+      - 'Modules/OficinaAuto/Services/AssinaturaEntrega.php'
+      - 'Modules/OficinaAuto/Http/Controllers/ServiceOrderAssinaturaController.php'
+      - 'Modules/OficinaAuto/Entities/OsAssinatura.php'
+      - 'Modules/OficinaAuto/Console/Commands/OficinaEntregaAssinaturaCommand.php'
+      - 'Modules/OficinaAuto/Database/Migrations/2026_10_21_120000_create_oficina_os_assinaturas_table.php'
       - 'routes/api/app/os-arquivos.php'
       - 'app/Contracts/Arquivos/AnexosDoApp.php'
       - 'Modules/Arquivos/Services/AnexosDoAppService.php'
@@ -256,6 +262,12 @@ jobs:
               - 'Modules/OficinaAuto/Services/AcoesOsDoApp.php'
               - 'app/Http/Controllers/ServiceOrderFsmActionController.php'
               - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php'
+              - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaAssinaturaTest.php'  # UC-FLX-22 assinatura na entrega
+              - 'Modules/OficinaAuto/Services/AssinaturaEntrega.php'
+              - 'Modules/OficinaAuto/Http/Controllers/ServiceOrderAssinaturaController.php'
+              - 'Modules/OficinaAuto/Entities/OsAssinatura.php'
+              - 'Modules/OficinaAuto/Console/Commands/OficinaEntregaAssinaturaCommand.php'
+              - 'Modules/OficinaAuto/Database/Migrations/2026_10_21_120000_create_oficina_os_assinaturas_table.php'
               - 'routes/api/app/os-arquivos.php'
               - 'app/Contracts/Arquivos/AnexosDoApp.php'
               - 'Modules/Arquivos/Services/AnexosDoAppService.php'
@@ -459,6 +471,9 @@ jobs:
         # 2026-10-20 — + PesquisaSatisfacaoEntregaContratoTest (UC-VSHOW-09..13, US-SELL-071 · UC-FLX-25):
         # pesquisa 2 dias depois da entrega, uma por venda, opt-out LGPD, nota baixa abre atendimento
         # no CRM, default desligado, tenant 98 × 99. NASCE SEM RUN: vermelho aqui é este arquivo.
+        # 2026-10-21 — + SellsPrazoEntregaContratoTest (UC-QUO-09 · UC-VSHOW-14, US-PCP-028 · UC-FLX-06):
+        # URL do prazo pela fila na Page de cotações, 404 para outro business, data prometida no
+        # detalhe da venda. NASCE SEM RUN: vermelho aqui é este arquivo.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -470,7 +485,7 @@ jobs:
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-sells-junit.xml \
-            tests/Feature/Sells/SellsShowContratoTest.php \
+            tests/Feature/Sells/SellsShowContratoTest.php             tests/Feature/Sells/SellsPrazoEntregaContratoTest.php \
             tests/Feature/Sells/PesquisaSatisfacaoEntregaContratoTest.php \
             tests/Feature/Sells/OrcamentoCustoPrevistoContratoTest.php \
             tests/Feature/Sells/SellsShowCustoOrcamentoContratoTest.php \
@@ -493,6 +508,7 @@ jobs:
             tests/Feature/Sells/AppNotificacoesApiContratoTest.php \
             tests/Feature/Sells/AppOsApiContratoTest.php \
             Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php \
+            Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaAssinaturaTest.php \
             tests/Feature/Sells/AppOsArquivosApiContratoTest.php \
             tests/Feature/Sells/AppPedidoEntregaContratoTest.php \
             tests/Feature/Sells/AppOficinaAgendaApiContratoTest.php \
