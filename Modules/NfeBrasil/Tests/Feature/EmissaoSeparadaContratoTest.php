@@ -92,6 +92,8 @@ function sep2Request(int $biz, array $dados = []): Request
 {
     $r = Request::create('/', 'POST', $dados);
     $r->setLaravelSession(app('session.store'));
+    // Sem isto `$request->user()` é null e todo caso de permissão daria 403 pelo motivo errado.
+    $r->setUserResolver(fn () => auth()->user());
     $r->session()->put(['business.id' => $biz, 'user.business_id' => $biz]);
     session(['business.id' => $biz, 'user.business_id' => $biz]);
 
