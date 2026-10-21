@@ -45,7 +45,7 @@ interface Props {
   opcoes_compra: MapaOpcoesCompra;
   /** UC-FLXT-19: margem mínima do orçamento, em % (nula = desligada). */
   margem_minima: number | null;
-  /** UC-FLXT-22: requisição pelo estoque mínimo ligada? (nula = sem o módulo Compras). */
+  /** UC-FLXT-24: requisição pelo estoque mínimo ligada? (nula = sem o módulo Compras). */
   requisicao_estoque_minimo?: boolean | null;
   pode_configurar: boolean;
 }

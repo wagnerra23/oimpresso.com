@@ -5,7 +5,7 @@
 // os dois exigem fluxos.configurar — sem ela os switches ficam só para leitura.
 // A margem mínima do orçamento (PATCH /fluxos/margem, UC-FLXT-19) não vem do protótipo: foi
 // pedida por [W] em 2026-10-19 e usa os mesmos átomos da Compra (Interruptor + campo).
-// A requisição pelo estoque mínimo (PATCH /fluxos/requisicao-estoque-minimo, UC-FLXT-22 · UC-FLX-19)
+// A requisição pelo estoque mínimo (PATCH /fluxos/requisicao-estoque-minimo, UC-FLXT-24 · UC-FLX-19)
 // também não vem do protótipo: é o interruptor do job diário do Compras, no card Compra.
 
 import { useEffect, useState } from 'react';
@@ -30,7 +30,7 @@ interface Props {
   opcoesCompra: MapaOpcoesCompra;
   /** UC-FLXT-19: margem mínima do orçamento, em % (nula = desligada). */
   margemMinima: number | null;
-  /** UC-FLXT-22: requisição pelo estoque mínimo ligada? (nula = sem o módulo Compras). */
+  /** UC-FLXT-24: requisição pelo estoque mínimo ligada? (nula = sem o módulo Compras). */
   requisicaoEstoqueMinimo: boolean | null;
   podeConfigurar: boolean;
 }
@@ -126,7 +126,7 @@ function CompraRegras({ regras, opcoes, pode }: { regras: RegraCompra[]; opcoes:
 }
 
 /**
- * UC-FLXT-22 · UC-FLX-19 · ligada, todo dia o Compras cria a requisição do item abaixo do mínimo,
+ * UC-FLXT-24 · UC-FLX-19 · ligada, todo dia o Compras cria a requisição do item abaixo do mínimo,
  * com o fornecedor e o preço da última compra (PATCH /fluxos/requisicao-estoque-minimo).
  */
 function RequisicaoEstoqueMinimo({ ativo, pode }: { ativo: boolean; pode: boolean }) {

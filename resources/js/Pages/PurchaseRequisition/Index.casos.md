@@ -62,7 +62,7 @@ last_run: "2026-10-13"
 > (`RequisicaoEstoqueMinimoJob`, agendado via `compras:requisicao-estoque-minimo`) que grava a requisição
 > do núcleo que esta tela lista; a tela não mudou. Mínimo = `products.alert_quantity`. Regra **desligada
 > por padrão** (`business.common_settings['compras_requisicao_estoque_minimo']`), ligada na tela Fluxos
-> (aba Fluxos da empresa, card Compra — UC-FLXT-22). A requisição sai com o fornecedor e o preço da
+> (aba Fluxos da empresa, card Compra — UC-FLXT-24). A requisição sai com o fornecedor e o preço da
 > última compra recebida do item, uma por local e fornecedor (UC-REQMIN-07). Prova:
 > `Modules/Compras/Tests/Feature/RequisicaoEstoqueMinimoContratoTest.php`, lane `compras-pest.yml`.
 > Nenhum estoque muda; só nasce requisição.
@@ -122,4 +122,4 @@ last_run: "2026-10-13"
 - 2026-10-20 · [CC] UC-REQMIN-01..06 (US-COM-027 · UC-FLX-19): requisição gerada pelo estoque mínimo — job
   diário, sem mudança no `.tsx`; `last_run` intocado. Prova: `RequisicaoEstoqueMinimoContratoTest`.
 - 2026-10-21 · [CC] UC-REQMIN-07/08 (fornecedor e preço da última compra) e UC-REQC-06 (coluna Fornecedor).
-  A regra liga na tela Fluxos (UC-FLXT-22).
+  A regra liga na tela Fluxos (UC-FLXT-24).

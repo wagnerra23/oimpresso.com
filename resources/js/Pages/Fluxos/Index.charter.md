@@ -46,7 +46,7 @@ andamento.
 - Margem mínima do orçamento (aba Fluxos da empresa, UC-FLXT-19 · UC-FLX-35): interruptor + campo em %,
   `PATCH /fluxos/margem` com `fluxos.configurar`; vazio desliga. Abaixo dela, converter orçamento em
   venda exige `sell.aprovar_margem_baixa` (decisão [W] 2026-10-19).
-- Requisição pelo estoque mínimo (card Compra da aba Fluxos da empresa, UC-FLXT-22 · UC-FLX-19):
+- Requisição pelo estoque mínimo (card Compra da aba Fluxos da empresa, UC-FLXT-24 · UC-FLX-19):
   interruptor, `PATCH /fluxos/requisicao-estoque-minimo` com `fluxos.configurar`. Liga o job diário do
   Compras (US-COM-027) pela interface `App\Contracts\Compras\RequisicaoEstoqueMinimo`; sem o módulo,
   o interruptor não aparece. Não vem do protótipo.

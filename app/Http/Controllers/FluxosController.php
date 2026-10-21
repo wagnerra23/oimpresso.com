@@ -110,7 +110,7 @@ class FluxosController extends Controller
             'opcoes_compra' => $comModelo ? RegrasCompra::opcoes() : (object) [],
             // UC-FLX-35 · UC-FLXT-19: margem mínima do orçamento (nula = desligada).
             'margem_minima' => $comModelo ? $regras->margemMinima($businessId) : null,
-            // UC-FLX-19 · UC-FLXT-22: requisição pelo estoque mínimo (nula = sem o módulo Compras).
+            // UC-FLX-19 · UC-FLXT-24: requisição pelo estoque mínimo (nula = sem o módulo Compras).
             'requisicao_estoque_minimo' => $comModelo && app()->bound(RequisicaoEstoqueMinimo::class)
                 ? app(RequisicaoEstoqueMinimo::class)->ativo($businessId)
                 : null,
@@ -213,7 +213,7 @@ class FluxosController extends Controller
     }
 
     /**
-     * Requisição de compra pelo estoque mínimo (UC-FLX-19 · UC-FLXT-22). Ligada, o job diário
+     * Requisição de compra pelo estoque mínimo (UC-FLX-19 · UC-FLXT-24). Ligada, o job diário
      * do Compras cria a requisição do item abaixo do mínimo com o fornecedor da última compra.
      */
     public function requisicaoEstoqueMinimo(Request $request): RedirectResponse

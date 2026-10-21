@@ -1,7 +1,7 @@
 <?php
 // @covers-us US-SELL-069 (UC-FLXT-19: a margem mínima é configurada nesta tela)
 // @covers-us US-PCP-021 (UC-FLXT-20/21: a regra de baixa de material sem OS não executa e não baixa duas vezes)
-// @covers-us US-COM-027 (UC-FLXT-22: a requisição pelo estoque mínimo liga e desliga nesta tela)
+// @covers-us US-COM-027 (UC-FLXT-24: a requisição pelo estoque mínimo liga e desliga nesta tela)
 
 declare(strict_types=1);
 
@@ -581,7 +581,7 @@ it('UC-FLXT-21 · venda finalizada do balcão entra em Aprovado sem segunda baix
     }
 });
 
-it('UC-FLXT-22 · quem configura liga e desliga a requisição pelo estoque mínimo; só na empresa da sessão', function () {
+it('UC-FLXT-24 · quem configura liga e desliga a requisição pelo estoque mínimo; só na empresa da sessão', function () {
     if (! app()->bound(\App\Contracts\Compras\RequisicaoEstoqueMinimo::class)) {
         $this->markTestSkipped('Módulo Compras não carregado: a interface RequisicaoEstoqueMinimo não está ligada.');
     }
