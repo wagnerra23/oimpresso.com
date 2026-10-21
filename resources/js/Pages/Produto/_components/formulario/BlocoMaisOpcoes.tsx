@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/Components/ui/select';
-import { Inline } from '@/Components/layout';
+import { Grid, Inline } from '@/Components/layout';
 import type { CamposProduto, DefinirCampo, ErrosProduto, OpcoesProduto } from './tipos';
 import { opcoesDe } from './tipos';
 
@@ -84,7 +84,7 @@ export function BlocoMaisOpcoes({ data, definir, opcoes, errors = {}, chaveAbert
           mudar={(v) => definir('peso_liquido', v)}
           erro={errors.peso_liquido}
         />
-        <div className="col-span-2 grid grid-cols-3 gap-4">
+        <Grid cols={3} gap={4} className="col-span-2">
           <CampoMedida
             id="largura_cm"
             rotulo="Largura (cm)"
@@ -109,7 +109,7 @@ export function BlocoMaisOpcoes({ data, definir, opcoes, errors = {}, chaveAbert
             mudar={(v) => definir('comprimento_cm', v)}
             erro={errors.comprimento_cm}
           />
-        </div>
+        </Grid>
         <div className="col-span-2">
           <Label htmlFor="product_description">Descrição</Label>
           <Textarea
