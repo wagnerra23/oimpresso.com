@@ -48,7 +48,8 @@ export default function ServiceOrderSignaturePad({ serviceOrderId, onSaved }: Pr
     ctx.lineWidth = 2;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.strokeStyle = '#111827';
+    // Tinta preta sobre papel branco: cor fixa de propósito — o PNG vai para o arquivo, não segue o tema.
+    ctx.strokeStyle = '#000000';
   }, []);
 
   const point = (e: React.PointerEvent<HTMLCanvasElement>) => {
