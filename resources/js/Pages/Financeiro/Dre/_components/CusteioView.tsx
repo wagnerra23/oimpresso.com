@@ -11,6 +11,7 @@ export interface CusteioPosto {
   posto_id: number;
   codigo: string;
   nome: string;
+  setor?: string | null;
   horas: string;
   rateio_fixo: string;
   custo_hora_atual: string;
@@ -30,7 +31,16 @@ export interface CusteioData {
   ponto_equilibrio?: string | null;
   avisos?: string[];
   postos?: CusteioPosto[];
+  setores?: CusteioSetor[];
   pode_ver_postos?: boolean;
+}
+
+/** Centro de custo = setor do posto (`pcp_postos.setor`, decisão [W] 2026-10-21): soma dos postos. */
+export interface CusteioSetor {
+  setor: string | null;
+  postos: number;
+  horas: string;
+  rateio_fixo: string;
 }
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 });
@@ -70,6 +80,7 @@ export function CusteioView({ custeio }: { custeio: CusteioData | null | undefin
   };
 
   const postos = custeio.postos ?? [];
+  const setores = custeio.setores ?? [];
   const avisos = custeio.avisos ?? [];
 
   return (
@@ -116,6 +127,39 @@ export function CusteioView({ custeio }: { custeio: CusteioData | null | undefin
             <Kpi rotulo="RECEITA" valor={brl(custeio.receita)} dica="contas de receita, a receber no mês" />
           </div>
 
+          {setores.length > 0 && (
+            <div className="px-6 pt-4">
+              <div className="bg-[var(--surface)] border border-[var(--border)] rounded-[11px] shadow-[var(--sh-1)] overflow-hidden" data-contract="dre-custeio-setores">
+                <div className="px-5 py-3 border-b border-[var(--border)]">
+                  <div className="text-[length:var(--fs-1)] uppercase tracking-widest text-[var(--text-dim)] font-medium">Centro de custo por setor</div>
+                  <div className="text-[length:var(--fs-2)] text-[var(--text-mute)] mt-0.5">
+                    Soma dos postos de cada setor (o setor vem do cadastro do posto em Produção › Postos).
+                  </div>
+                </div>
+                <table className="w-full text-[length:var(--fs-3)] tabular-nums">
+                  <thead>
+                    <tr className="text-[length:var(--fs-1)] uppercase tracking-widest text-[var(--text-dim)] border-b border-[var(--border)] bg-[var(--bg-2)]">
+                      <th className="pl-6 pr-2 py-2 text-left font-medium">Setor</th>
+                      <th className="px-2 py-2 text-right font-medium w-[90px]">Postos</th>
+                      <th className="px-2 py-2 text-right font-medium w-[90px]">Horas</th>
+                      <th className="pl-2 pr-6 py-2 text-right font-medium w-[150px]">Rateio fixo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {setores.map((c) => (
+                      <tr key={c.setor ?? '—'} className="border-b border-[var(--border-2)]" data-contract="dre-custeio-setor">
+                        <td className="pl-6 pr-2 py-2">{c.setor ?? <span className="text-[var(--text-mute)]">Sem setor</span>}</td>
+                        <td className="px-2 py-2 text-right">{c.postos}</td>
+                        <td className="px-2 py-2 text-right">{num(c.horas)}</td>
+                        <td className="pl-2 pr-6 py-2 text-right font-semibold">{brl(c.rateio_fixo)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
           <div className="px-6 pt-4 pb-4">
             <div className="bg-[var(--surface)] border border-[var(--border)] rounded-[11px] shadow-[var(--sh-1)] overflow-hidden">
               <Inline gap={3} wrap className="px-5 py-3 border-b border-[var(--border)]">
@@ -160,6 +204,7 @@ export function CusteioView({ custeio }: { custeio: CusteioData | null | undefin
                         <td className="pl-6 pr-2 py-2">
                           <span className="font-mono text-[length:var(--fs-2)] text-[var(--text-mute)] mr-2">{p.codigo}</span>
                           {p.nome}
+                          {p.setor && <span className="text-[length:var(--fs-2)] text-[var(--text-mute)] ml-2">· {p.setor}</span>}
                         </td>
                         <td className="px-2 py-2 text-right">{num(p.horas)}</td>
                         <td className="px-2 py-2 text-right">{brl(p.rateio_fixo)}</td>

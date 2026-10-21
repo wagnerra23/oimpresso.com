@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PCCH-03..09 (Modules/Producao/Resources/js/Pages/Producao/Postos/Index.casos.md · US-FIN-070 · UC-FLX-20).
+// Cobre UC-PCCH-03..10 (Modules/Producao/Resources/js/Pages/Producao/Postos/Index.casos.md · US-FIN-070 · UC-FLX-20).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Artisan;
@@ -284,4 +284,33 @@ it('UC-PCCH-09 Produção › Postos só oferece aplicar o custo-hora a quem tem
         ->assertInertia(fn (AssertableInertia $page) => $page->component('Producao/Postos/Index')->where('pode_aplicar_rkw', true));
     $this->actingAs($soProducao)->get('/producao/postos')
         ->assertInertia(fn (AssertableInertia $page) => $page->where('pode_aplicar_rkw', false));
+});
+
+it('UC-PCCH-10 o centro de custo é o setor do posto: soma os postos do setor e fecha nas fixas (dois caminhos)', function () {
+    $c = rkwCenario($this);
+    DB::table('pcp_postos')->where('id', $c['a'])->update(['setor' => 'Corte']);
+
+    $r = $this->svc->calcular($this->b98, RKW_MES);
+    $f = 3000 + 1000;
+    // Caminho 2: à mão — Corte = posto A (30 h de 40); sem setor = posto B (10 h de 40); sem setor por último.
+    expect($r['setores'])->toBe([
+        ['setor' => 'Corte', 'postos' => 1, 'horas' => '30.00', 'rateio_fixo' => number_format($f * 30 / 40, 2, '.', '')],
+        ['setor' => null, 'postos' => 1, 'horas' => '10.00', 'rateio_fixo' => number_format($f * 10 / 40, 2, '.', '')],
+    ]);
+
+    // Mesmo setor escrito diferente ("corte " minúsculo, com espaço) é o mesmo centro, e a soma bate F.
+    DB::table('pcp_postos')->where('id', $c['b'])->update(['setor' => 'corte ']);
+    $r = $this->svc->calcular($this->b98, RKW_MES);
+    expect($r['setores'])->toHaveCount(1)
+        ->and($r['setores'][0])->toBe(['setor' => 'Corte', 'postos' => 2, 'horas' => '40.00', 'rateio_fixo' => $r['despesas_fixas']])
+        ->and(collect($r['postos'])->firstWhere('posto_id', $c['b'])['setor'])->toBe('corte');
+
+    // A aba Custeio mostra os setores mesmo sem a permissão de desempenho (não há custo-hora neles).
+    session(['user.business_id' => $this->b98, 'business.id' => $this->b98]);
+    $soFinanceiro = $this->usuarioComPermissoes(['financeiro.relatorios.view']);
+    $this->actingAs($soFinanceiro)->get('/financeiro/dre?aba=custeio&mes='.RKW_MES)
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('custeio.setores.0.setor', 'Corte')
+            ->where('custeio.setores.0.rateio_fixo', '4000.00')
+            ->where('custeio.postos', []));
 });

@@ -105,7 +105,13 @@ last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando 
 - **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
 - **Status: 🧪**
 
-- **[BACKLOG]** Centro de custo por setor (hoje o centro é o posto) — depende de decisão [W]: "setor" é o posto ou outro cadastro.
+## UC-PCCH-10 · O centro de custo é o setor do posto · `must` valor
+
+- **Persona:** gestor financeiro. Decisão [W] 2026-10-21: o setor é o campo `pcp_postos.setor` do cadastro do posto; agrupa os postos e rateia por setor.
+- **Aceite:** Dado o posto A (30 h) no setor "Corte" e o posto B (10 h) sem setor · Então o fechamento traz Corte com 3.000,00 e "sem setor" com 1.000,00, sem setor por último · Quando o posto B passa a "corte " · Então há um setor só, Corte, com 2 postos, 40 h e 4.000,00 (= despesas fixas) · E a aba Custeio da DRE mostra os setores mesmo para quem não vê o custo-hora dos postos.
+- **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
+- **Status: 🧪**
+
 - **[BACKLOG]** Aplicar duas vezes o mesmo mês soma a parcela fixa duas vezes: o sugerido é o custo-hora ATUAL + parcela, e depois de aplicar o atual já a contém. A tela tira o botão depois de aplicar, mas só na mesma visita.
 
 ---
@@ -324,4 +330,5 @@ Status: 🧪
 - 2026-10-20 · [CL] UC-PCPRZ-01..04 — prazo de entrega pela fila dos postos (US-PCP-028 · UC-FLX-06), cálculo em JSON só leitura; tela e data prometida ficam no [BACKLOG].
 - 2026-10-20 · [CL] UC-PCPRZ-05..08 — decisão [W]: dias úteis pelo período de funcionamento cadastrado (turno da produção, expediente e feriados do RH) e data prometida gravada na venda e na OS na aprovação; datas de UC-PCPRZ-01/02 recalculadas (24/10→26/10, 25/10→27/10).
 - 2026-10-20 · [CL] UC-PCCH-03..06 — custeio RKW e ponto de equilíbrio (US-FIN-070): cálculo só leitura + aplicar explícito; o [BACKLOG] do rateio virou estes casos.
+- 2026-10-21 · [CL] UC-PCCH-10 — centro de custo por setor (decisão [W]: setor = `pcp_postos.setor`).
 - 2026-10-21 · [CL] UC-PCCH-07..09 — telas do custeio: aba Custeio na DRE, classe fixa/variável no plano de contas, aplicar custo-hora em Postos; [BACKLOG] do aplicar em dobro.
