@@ -4,6 +4,7 @@
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 
 const ABAS = [
+  { key: '/producao/quadro', label: 'Quadro' },
   { key: '/producao/roteiros', label: 'Roteiros' },
   { key: '/producao/postos', label: 'Postos e cadastros' },
 ];
