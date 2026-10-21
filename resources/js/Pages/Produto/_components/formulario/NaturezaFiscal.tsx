@@ -4,7 +4,9 @@
 // serviço) é o contador, na tela de Tributação. O cadastro só mostra a decisão e leva até lá.
 import type { NaturezaFiscalProduto } from './tipos';
 
-const TEXTOS: Record<string, { titulo: string; detalhe: string }> = {
+type Natureza = 'servico' | 'mercadoria' | 'pendente';
+
+const TEXTOS: Record<Natureza, { titulo: string; detalhe: string }> = {
   servico: {
     titulo: 'Serviço',
     detalhe: 'A nota deste produto é de serviço e não leva NCM.',
@@ -20,7 +22,10 @@ const TEXTOS: Record<string, { titulo: string; detalhe: string }> = {
 };
 
 export function NaturezaFiscal({ natureza }: { natureza: NaturezaFiscalProduto }) {
-  const texto = TEXTOS[natureza.natureza] ?? TEXTOS.pendente;
+  // Valor fora das três naturezas conhecidas é mostrado como "a decidir".
+  const chave: Natureza =
+    natureza.natureza === 'servico' || natureza.natureza === 'mercadoria' ? natureza.natureza : 'pendente';
+  const texto = TEXTOS[chave];
 
   return (
     <div className="col-span-2" data-testid="natureza-fiscal">
