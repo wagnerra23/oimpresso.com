@@ -211,7 +211,7 @@ last_run_ci: "PR #9670 (NCM no Novo produto, UC-PCAD-13/14), 2026-10-20: lane PH
 - **Aceite:** Dada a tela Novo produto · Quando o NCM está vazio · Então aparece embaixo do campo *"Sem NCM a nota fiscal de mercadoria não sai. Dá para salvar e preencher depois."* · E o botão Salvar continua ligado e o envio acontece · E, com menos de 8 dígitos, o aviso diz *"O NCM tem 8 dígitos."* · E, com os 8 dígitos, o aviso some.
 - **Teste:** [`produto-formulario.test.tsx`](../../../../tests/js/produto-formulario.test.tsx) — `UC-PCAD-14` (sem NCM envia, NCM incompleto). Roda no step "Comportamento React" do job `Frontend / Vite build`.
 - **Contrato:** `CU-PROD-18` do SDD — o aviso não pode impedir o salvamento; o cadastro mínimo segue nome e SKU (`CU-PROD-01`). Referência de mercado: a Omie avisa NCM, EAN e origem faltando; o protótipo `Product Cadastro.html` (Cowork do [F]) desenha *"Faltam: nome, NCM"*.
-- **Fora deste UC:** o aviso olha só o NCM. Produto **novo** ainda não tem natureza fiscal decidida (quem decide é o contador, depois, na Tributação — `UC-NFTR-32`), então a tela não sabe se ele é serviço. Avisar EAN inválido e mostrar a natureza ficam para quando o Editar e a ficha receberem o `CU-PROD-19`.
+- **Fora deste UC:** o aviso olha só o NCM. Produto **novo** ainda não tem natureza fiscal decidida (quem decide é o contador, depois, na Tributação — `UC-NFTR-32`), então a tela não sabe se ele é serviço. Avisar EAN inválido e mostrar a natureza ficam para quando o Editar e a ficha receberem o `CU-PROD-19` (o Editar recebeu em 2026-10-21: `UC-PEDIT-14`).
 - **Status: 🧪** — escrito junto do código, sem veredito publicado (G-7).
 
 ## UC-PCAD-15 · Novo produto grava o CEST digitado, sem exigir CEST · `should`
@@ -276,7 +276,7 @@ last_run_ci: "PR #9670 (NCM no Novo produto, UC-PCAD-13/14), 2026-10-20: lane PH
   produto **variável** (`CU-PROD-02` item 2) — vira UC junto com o `casos.md` da grade/variação.
 - **Submit retorna `/products`** — `CU-PROD-01` item 6. É paridade de **navegação**, não de dado;
   o Pest vê o 302 mas o que importa (o operador chega na lista) é smoke da US-PROD-023.
-- **Natureza fiscal (mercadoria × serviço) no cadastro** — `CU-PROD-19`. A natureza existe (`nfe_naturezas_produto`) e é decidida pelo contador na Tributação; o cadastro ainda não a mostra. Vira UC no `Edit.casos.md` ou na ficha, onde o produto já existe.
+- **Natureza fiscal (mercadoria × serviço) no cadastro** — `CU-PROD-19`. A natureza existe (`nfe_naturezas_produto`) e é decidida pelo contador na Tributação. Desde 2026-10-21 o Editar a mostra (`UC-PEDIT-14` em `Edit.casos.md`); no Novo produto não há o que mostrar, porque o produto ainda não existe para o contador decidir. Falta a ficha.
 - **Casos de comunicação visual** — `CV-06` a `CV-11` do SDD. A maior parte do dado mora no módulo de Comunicação Visual; viram UC com sinal de cliente.
 - **Quick-add inline** — `CU-PROD-08`. Rota e contrato separados (`save_quick_product`); merece
   `casos.md` próprio quando a tela de origem (venda/compra) fechar o trio dela.

@@ -776,6 +776,28 @@ class ProductController extends Controller
      * `nfe.tributacao.manage`, a permissão que o simulador cobra: sem ela a tela abriria e
      * recusaria a simulação. null quando qualquer uma falta, ou a rota não existe.
      */
+    /**
+     * Natureza fiscal do produto (mercadoria · serviço · pendente), decidida pelo contador na
+     * Tributação — UC-PEDIT-14 · CU-PROD-19. Vem do módulo fiscal pelo gancho `getModuleData`,
+     * sem importar o módulo (app/ não depende de Modules/). Sem o módulo ou sem decisão: null.
+     *
+     * @return array{natureza: string, codigoServico: string|null, link: string|null}|null
+     */
+    private function naturezaFiscalDoProduto(int $business_id, int $id): ?array
+    {
+        $respostas = $this->moduleUtil->getModuleData('produto_natureza_fiscal', ['business_id' => $business_id, 'product_id' => $id]);
+        $dado = is_array($respostas) ? ($respostas['NfeBrasil'] ?? null) : null;
+        if (! is_array($dado) || empty($dado['natureza'])) {
+            return null;
+        }
+
+        return [
+            'natureza' => (string) $dado['natureza'],
+            'codigoServico' => isset($dado['codigo_servico']) ? (string) $dado['codigo_servico'] : null,
+            'link' => $this->linkTributacaoDoProduto($business_id, $id),
+        ];
+    }
+
     private function linkTributacaoDoProduto(int $business_id, int $id): ?string
     {
         $usuario = auth()->user();
@@ -1775,6 +1797,8 @@ class ProductController extends Controller
                     'larguraCm' => $product->largura_cm ?? null,
                     'alturaCm' => $product->altura_cm ?? null,
                     'comprimentoCm' => $product->comprimento_cm ?? null,
+                    // UC-PEDIT-14: natureza fiscal decidida pelo contador (null = sem decisão registrada).
+                    'naturezaFiscal' => $this->naturezaFiscalDoProduto((int) $business_id, (int) $id),
                     'barcodeType' => (string) ($product->barcode_type ?? 'C128'),
                     'enableStock' => (bool) $product->enable_stock,
                     'alertQuantity' => $alert_quantity,
