@@ -318,6 +318,12 @@ de segurança no servidor (H1 `store`, H2 `get-recipe-details`), ainda sem teste
 > ordem nasce no módulo Produção. **Esta US está cancelada** — o formulário de ordem não será construído aqui. A trava de
 > FSM acima deixa de ser pré-requisito desta tela. As hipóteses H1/H2 seguem valendo para o `store` legado enquanto ele existir
 > (ver US-MANU-008).
+>
+> 🔁 **Revisão de 2026-10-21, aprovada pelo [W]:** a prévia da Fabricação foi repartida item a item
+> entre Fabricação, Produção e Estoque/Compras, e a ADR do §4 foi autorizada com 4 perguntas
+> obrigatórias (regra de consumo no `product_bom`, contrato `InsumosDaReceita` lendo do `product_bom`
+> e recebendo as medidas da peça, tamanho físico da mídia num lugar só, chave única para opcional) —
+> [§6 da proposta](../../decisions/proposals/2026-10-09-fabricacao-vs-producao-decisao-w.md).
 
 **Definition of Done:**
 - [ ] As 6 regras `[FECHADA]` do §6, incluindo: trocar receita/quantidade **zera os overrides** ·
