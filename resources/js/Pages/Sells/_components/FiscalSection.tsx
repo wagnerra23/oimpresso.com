@@ -16,6 +16,7 @@ import {
   Send,
 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
+import { Grid, Inline } from '@/Components/layout';
 import { FiscalStatusBadge } from '@/Components/NfeBrasil/FiscalStatusBadge';
 import { useEmissoesPorTransaction, type Emissao } from '@/Hooks/useEmissoesPorTransaction';
 import { formatDecimalPtBR } from '@/Lib/numberPtBR';
@@ -270,10 +271,10 @@ export default function FiscalSection({ saleId, enabled = true }: Props) {
       {confirmarDuas && separacao?.mercadoria && separacao?.servico && (
         <div className="mt-3 rounded-md border border-border bg-background p-3 text-xs" data-contract="fiscal-duas-notas">
           <p className="font-medium text-foreground mb-2">A venda sai em duas notas:</p>
-          <div className="grid grid-cols-2 gap-3">
+          <Grid cols={2} gap={3}>
             <ParteResumo titulo="NF-e · mercadoria" parte={separacao.mercadoria} />
             <ParteResumo titulo="NFS-e · serviço" parte={separacao.servico} />
-          </div>
+          </Grid>
           <p className="mt-2 text-muted-foreground tabular-nums">
             Soma das duas: <strong className="text-foreground">{brl(separacao.final_total ?? 0)}</strong> (total da venda).
             Desconto e acréscimo divididos pelo valor de cada parte; frete na NF-e.
@@ -284,7 +285,7 @@ export default function FiscalSection({ saleId, enabled = true }: Props) {
               Há produto com natureza fiscal a decidir: o contador decide antes de emitir.
             </p>
           )}
-          <div className="mt-3 flex gap-2">
+          <Inline gap={2} className="mt-3">
             <Button
               size="sm"
               onClick={emitirDuas}
@@ -296,7 +297,7 @@ export default function FiscalSection({ saleId, enabled = true }: Props) {
             <Button variant="ghost" size="sm" onClick={() => setConfirmarDuas(false)} disabled={emitting !== null}>
               Cancelar
             </Button>
-          </div>
+          </Inline>
         </div>
       )}
 
@@ -322,13 +323,13 @@ function ParteResumo({ titulo, parte }: { titulo: string; parte: ParteNota }) {
           </li>
         ))}
       </ul>
-      <div className="flex justify-between"><span>Bruto</span><span>{brl(parte.bruto)}</span></div>
-      {parte.desconto > 0 && <div className="flex justify-between"><span>Desconto</span><span>− {brl(parte.desconto)}</span></div>}
-      {parte.acrescimo > 0 && <div className="flex justify-between"><span>Acréscimo</span><span>+ {brl(parte.acrescimo)}</span></div>}
-      {parte.frete > 0 && <div className="flex justify-between"><span>Frete</span><span>+ {brl(parte.frete)}</span></div>}
-      <div className="flex justify-between font-semibold text-foreground border-t border-border/60 mt-1 pt-1">
+      <Inline justify="between"><span>Bruto</span><span>{brl(parte.bruto)}</span></Inline>
+      {parte.desconto > 0 && <Inline justify="between"><span>Desconto</span><span>− {brl(parte.desconto)}</span></Inline>}
+      {parte.acrescimo > 0 && <Inline justify="between"><span>Acréscimo</span><span>+ {brl(parte.acrescimo)}</span></Inline>}
+      {parte.frete > 0 && <Inline justify="between"><span>Frete</span><span>+ {brl(parte.frete)}</span></Inline>}
+      <Inline justify="between" className="font-semibold text-foreground border-t border-border/60 mt-1 pt-1">
         <span>Total</span><span>{brl(parte.total)}</span>
-      </div>
+      </Inline>
     </div>
   );
 }

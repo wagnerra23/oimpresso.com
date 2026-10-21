@@ -250,8 +250,9 @@ class NfseController extends Controller
                 'message' => 'Os serviços da venda têm códigos LC 116 diferentes (' . implode(', ', $codigos) . '): uma NFS-e leva um código só.',
             ], 422);
         }
-        if (NfseEmissao::where('business_id', $businessId)->where('transaction_id', $transactionId)
-            ->whereIn('status', ['rascunho', 'processando', 'emitida'])->exists()) {
+        $emCurso = NfseEmissao::where('business_id', $businessId)->where('transaction_id', $transactionId)->get()
+            ->contains(fn (NfseEmissao $n) => $n->isPendente() || $n->isEmitida());
+        if ($emCurso) {
             return response()->json(['error' => 'nfse_ja_existe', 'message' => 'Esta venda já tem NFS-e emitida ou em processamento.'], 409);
         }
 
