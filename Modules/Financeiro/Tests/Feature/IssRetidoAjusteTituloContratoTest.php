@@ -244,3 +244,32 @@ it('UC-CRISS-07 · dry-run mostra a baixa de retenção que seria lançada e nã
     expect(issPagamentosRetencao($tx))->toBe(0);
     expect(Artisan::call('financeiro:iss-retido-ajuste', ['--business' => $this->bizA]))->toBe(1);
 });
+
+it('UC-CRISS-08 · a lista mostra bruto 1.000,00, retido 96,50 e líquido 903,50; estornada volta a retido 0', function () {
+    $svc = app(RetencaoNfseTituloService::class);
+    $modelo = fn (int $txId) => \Modules\Financeiro\Models\Titulo::withoutGlobalScopes()->find((int) issTitulo($this->bizA, $txId)->id);
+
+    // chave desligada: nada retido, líquido = bruto
+    $tx0 = issVenda($this->bizA, $this->ownerA);
+    issNota($this->bizA, $tx0)->update(['status' => 'emitida']);
+    $t0 = $modelo($tx0);
+    expect($svc->valoresDoTitulo($t0->valor_total, $t0->metadata))->toBe(['bruto' => 100000, 'retido' => 0, 'liquido' => 100000]);
+
+    issChave($this->bizA, true);
+    $tx = issVenda($this->bizA, $this->ownerA);
+    $nota = issNota($this->bizA, $tx);
+    $nota->update(['status' => 'emitida']);
+    $t = $modelo($tx);
+    $v = $svc->valoresDoTitulo($t->valor_total, $t->metadata);
+
+    // caminho 1: conta à mão (1.000,00 − 96,50 = 903,50)
+    expect($v)->toBe(['bruto' => 100000, 'retido' => 9650, 'liquido' => 90350]);
+    // caminho 2: retido refeito dos campos da nota
+    expect($v['retido'])->toBe((int) round(issRecalculo($nota) * 100));
+    // caminho 3: sem outro pagamento, o líquido é o aberto que a baixa de retenção deixou
+    expect($v['liquido'])->toBe((int) round((float) $t->valor_aberto * 100));
+
+    $nota->update(['status' => 'cancelada']);
+    $te = $modelo($tx);
+    expect($svc->valoresDoTitulo($te->valor_total, $te->metadata))->toBe(['bruto' => 100000, 'retido' => 0, 'liquido' => 100000]);
+});
