@@ -150,11 +150,22 @@ class ApontamentoOperadorService
      */
     public function motivosDePausa(int $businessId, ?int $postoId = null): Collection
     {
+        return $this->motivos($businessId, 'pausa', $postoId);
+    }
+
+    /** US-PCP-027 · UC-FLX-16: os motivos de refugo do posto, para o formulário de refugo da tela. */
+    public function motivosDeRefugo(int $businessId, ?int $postoId = null): Collection
+    {
+        return $this->motivos($businessId, 'refugo', $postoId);
+    }
+
+    private function motivos(int $businessId, string $tipo, ?int $postoId): Collection
+    {
         if (! Schema::hasTable('pcp_motivos')) {
             return collect();
         }
 
-        return DB::table('pcp_motivos')->where('business_id', $businessId)->where('tipo', 'pausa')->where('ativo', true)
+        return DB::table('pcp_motivos')->where('business_id', $businessId)->where('tipo', $tipo)->where('ativo', true)
             ->when($postoId !== null, fn ($q) => $q->where('posto_id', $postoId))
             ->orderBy('posto_id')->orderBy('ordem')->orderBy('nome')->get(['id', 'posto_id', 'nome'])
             ->map(fn ($m) => ['id' => (int) $m->id, 'posto_id' => (int) $m->posto_id, 'nome' => (string) $m->nome])
