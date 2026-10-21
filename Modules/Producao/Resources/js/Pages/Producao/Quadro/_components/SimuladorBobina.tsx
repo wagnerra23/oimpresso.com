@@ -105,7 +105,7 @@ export default function SimuladorBobina({ cartoes, midias, podeAceitar, onClose,
                 <div><Label htmlFor="bob-larg">Largura útil (m)</Label><Input id="bob-larg" inputMode="decimal" value={form.largura} onChange={(e) => setForm({ ...form, largura: e.target.value })} /></div>
                 <div><Label htmlFor="bob-marg">Margem entre peças (m)</Label><Input id="bob-marg" inputMode="decimal" value={form.margem} onChange={(e) => setForm({ ...form, margem: e.target.value })} /></div>
               </div>
-              <label className="flex items-center gap-2 text-sm"><Switch checked={form.girar} onCheckedChange={(v) => setForm({ ...form, girar: v })} /> Pode girar a peça</label>
+              <label htmlFor="sim-bobina-girar" className="flex items-center gap-2 text-sm"><Switch id="sim-bobina-girar" checked={form.girar} onCheckedChange={(v) => setForm({ ...form, girar: v })} /> Pode girar a peça</label>
               <div><Button size="sm" variant="outline" onClick={salvarBobina} disabled={ocupado || form.largura === ''}>Salvar bobina</Button></div>
             </div>
           )}
