@@ -1584,6 +1584,27 @@
           <div class="col-md-12">
             <div class="checkbox">
               <label>
+                {!! Form::checkbox('permissions[]', 'fluxos.ver', in_array('fluxos.ver', $role_permissions), [ 'class' => 'input-icheck']); !!} {{ __( 'role.fluxos.ver' ) }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'fluxos.configurar', in_array('fluxos.configurar', $role_permissions), [ 'class' => 'input-icheck']); !!} {{ __( 'role.fluxos.configurar' ) }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'sell.aprovar_margem_baixa', in_array('sell.aprovar_margem_baixa', $role_permissions), [ 'class' => 'input-icheck']); !!} {{ __( 'role.sell.aprovar_margem_baixa' ) }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
                 {!! Form::checkbox('permissions[]', 'barcode_settings.access', in_array('barcode_settings.access', $role_permissions), 
                 [ 'class' => 'input-icheck']); !!} {{ __( 'role.barcode_settings.access' ) }}
               </label>

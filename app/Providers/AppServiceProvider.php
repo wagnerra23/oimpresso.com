@@ -298,6 +298,10 @@ class AppServiceProvider extends ServiceProvider
         // Ref: ADR 0127 §princípio 3 (causer dual)
         Activity::observe(ActivityCauserKindObserver::class);
 
+        // UC-DRAFT-05: orçamento abaixo da margem mínima da empresa só vira venda com
+        // `sell.aprovar_margem_baixa`. Sem margem configurada, não age.
+        \App\Transaction::observe(\App\Observers\TransactionMargemMinimaObserver::class);
+
         // FSM (parecer juiz 2026-07-21): zera o singleton FsmAuthorizationFlag
         // ANTES de cada job — impede que uma flag não-consumida (exceção antes
         // do save, self-transition não-dirty, Titulo sem guard) vaze autorização
@@ -341,6 +345,12 @@ class AppServiceProvider extends ServiceProvider
         // Avançar etapa da OS pelo app (tela 03): a OficinaAuto registra a implementação real;
         // sem ela, nenhuma OS é encontrada.
         $this->app->bindIf(\App\Contracts\Oficina\AcoesOs::class, \App\Contracts\Oficina\Nulo\SemAcoesOs::class);
+        // Anexos da OS pelo app (P2, tela 03): o módulo Arquivos registra a implementação real;
+        // sem ele, o envio responde 503 sem_configuracao e o conteúdo, 404.
+        $this->app->bindIf(\App\Contracts\Arquivos\AnexosDoApp::class, \App\Contracts\Arquivos\Nulo\SemAnexosDoApp::class);
+        // Área `atendimento` do Início do app (tela 41): o Whatsapp registra a implementação real;
+        // sem ele, a área não aparece.
+        $this->app->bindIf(\App\Contracts\Atendimento\AtendimentoDoApp::class, \App\Contracts\Atendimento\Nulo\SemAtendimentoDoApp::class);
     }
 
     /**

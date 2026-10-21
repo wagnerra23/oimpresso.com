@@ -1,0 +1,11 @@
+{
+    "name": "Producao",
+    "alias": "producao",
+    "description": "Produção (PCP) — camada única de planejamento e controle de produção: apontamento por operação, pessoa e tempo, postos com capacidade e custo-hora por empresa, programação e gargalo. As OS continuam em Repair, ComunicacaoVisual e OficinaAuto (ADR 0431).",
+    "keywords": ["producao", "pcp", "apontamento", "chao-de-fabrica"],
+    "priority": 0,
+    "providers": [
+        "Modules\\Producao\\Providers\\ProducaoServiceProvider"
+    ],
+    "files": []
+}

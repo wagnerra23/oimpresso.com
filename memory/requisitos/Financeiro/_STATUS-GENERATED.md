@@ -16,18 +16,17 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 60 |
+| US no SPEC | 64 |
 | CU no SDD | 16 |
-| Telas (.tsx) | 20 |
-| Telas com `casos.md` | 20 |
-| UC declarados | 112 |
-| UC com teste que os cita | 95 |
+| Telas (.tsx) | 22 |
+| Telas com `casos.md` | 22 |
+| UC declarados | 136 |
+| UC com teste que os cita | 119 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
 | Lacuna | O que falta escrever |
 |---|---|
-| `Index.casos.md` existe mas **não declara nenhum UC** | o contrato de verdade — arquivo presente ≠ tela coberta (LC-11) |
 | `CU-FIN-09` sem UC | caso de uso que o exercite — Boleto do título não duplica o recebível |
 | `CU-FIN-10` sem UC | caso de uso que o exercite — Importar OFX é idempotente por hash |
 | `CU-FIN-11` sem UC | caso de uso que o exercite —  |
@@ -99,6 +98,8 @@ authority: generated
 | US-FIN-066 | `todo` | Elevar tela AssinaturaAtualizar a ≥70 (PageHeader canon + preview de valor) |
 | US-FIN-067 | `todo` | Elevar tela Advisor/Login a ≥70 (DS v4 roxo + @/ui + charter) |
 | US-FIN-069 | `todo` | Baseline de pixel do DRE (#7767) não reproduz o render do CI — visual-regression |
+| US-FIN-070 | `todo` | Custeio RKW e ponto de equilíbrio no fechamento do mês (UC-FLX-20) — **P2** |
+| US-FIN-072 | `todo` | ISS retido ajusta o título para o valor líquido na autorização da NFS-e (UC-FLX- |
 
 ## UC por status
 
@@ -122,6 +123,11 @@ authority: generated
 | UC-CAT-03 | Categorias/Index | 🧪 aguarda veredito da lane |
 | UC-CAT-04 | Categorias/Index | 🧪 aguarda veredito da lane |
 | UC-CAT-05 | Categorias/Index | 🧪 aguarda veredito da lane |
+| UC-CATD-01 | CategoriasDespesa/Index | 🧪 aguarda veredito da lane |
+| UC-CATD-02 | CategoriasDespesa/Index | 🧪 aguarda veredito da lane |
+| UC-CATD-03 | CategoriasDespesa/Index | 🧪 aguarda veredito da lane |
+| UC-CATD-04 | CategoriasDespesa/Index | 🧪 aguarda veredito da lane |
+| UC-CATD-05 | CategoriasDespesa/Index | 🧪 aguarda veredito da lane |
 | UC-COB-01 | Cobranca/Index | 🧪 aguarda veredito da lane |
 | UC-COB-02 | Cobranca/Index | 🧪 aguarda veredito da lane |
 | UC-COB-03 | Cobranca/Index | 🧪 aguarda veredito da lane |
@@ -129,6 +135,17 @@ authority: generated
 | UC-COB-05 | Cobranca/Index | 🧪 aguarda veredito da lane |
 | UC-COB-06 | Cobranca/Index | 🧪 aguarda veredito da lane |
 | UC-COB-07 | Cobranca/Index | 🧪 aguarda veredito da lane |
+| UC-CRAB-01 | ContasReceber/Index | 🧪 aguarda veredito da lane |
+| UC-CRAB-02 | ContasReceber/Index | 🧪 aguarda veredito da lane |
+| UC-CRAB-03 | ContasReceber/Index | 🧪 aguarda veredito da lane |
+| UC-CRAB-04 | ContasReceber/Index | 🧪 aguarda veredito da lane |
+| UC-CRREG-01 | ContasReceber/Index | 🧪 aguarda veredito da lane |
+| UC-CRREG-02 | ContasReceber/Index | 🧪 aguarda veredito da lane |
+| UC-CRREG-03 | ContasReceber/Index | 🧪 aguarda veredito da lane |
+| UC-CRREG-04 | ContasReceber/Index | 🧪 aguarda veredito da lane |
+| UC-CRREG-05 | ContasReceber/Index | 🧪 aguarda veredito da lane |
+| UC-CRREG-06 | ContasReceber/Index | 🧪 aguarda veredito da lane |
+| UC-CRREG-07 | ContasReceber/Index | 🧪 aguarda veredito da lane |
 | UC-CTB-01 | ContasBancarias/Index | 🧪 aguarda veredito da lane |
 | UC-CTB-02 | ContasBancarias/Index | 🧪 aguarda veredito da lane |
 | UC-CTB-03 | ContasBancarias/Index | 📝 sem_teste |
@@ -139,6 +156,13 @@ authority: generated
 | UC-CTD-04 | Configuracoes/Contador | 🧪 aguarda veredito da lane |
 | UC-CTD-05 | Configuracoes/Contador | 🧪 aguarda veredito da lane |
 | UC-DASH-01 | Dashboard/Index | 🧪 aguarda veredito da lane |
+| UC-DESPES-01 | Despesas/Index | 🧪 aguarda veredito da lane |
+| UC-DESPES-02 | Despesas/Index | 🧪 aguarda veredito da lane |
+| UC-DESPES-03 | Despesas/Index | 🧪 aguarda veredito da lane |
+| UC-DESPES-04 | Despesas/Index | 🧪 aguarda veredito da lane |
+| UC-DESPES-05 | Despesas/Index | 🧪 aguarda veredito da lane |
+| UC-DESPES-06 | Despesas/Index | 🧪 aguarda veredito da lane |
+| UC-DESPES-07 | Despesas/Index | 🧪 aguarda veredito da lane |
 | UC-DRE-01 | Dre/Index | 🧪 aguarda veredito da lane |
 | UC-DRE-02 | Dre/Index | 📝 sem_teste |
 | UC-DRE-03 | Dre/Index | 🧪 aguarda veredito da lane |
@@ -187,6 +211,7 @@ authority: generated
 | UC-FLX-05 | Fluxo/Index | 📝 sem_teste |
 | UC-FLX-06 | Fluxo/Index | 🧪 aguarda veredito da lane |
 | UC-FLX-07 | Fluxo/Index | 🧪 aguarda veredito da lane |
+| UC-FLX-29 | ContasReceber/Index | 🧪 aguarda veredito da lane |
 | UC-FPC-01 | PlanoContas/Index | 🧪 aguarda veredito da lane |
 | UC-FPC-02 | PlanoContas/Index | 🧪 aguarda veredito da lane |
 | UC-FPC-03 | PlanoContas/Index | 🧪 aguarda veredito da lane |

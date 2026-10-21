@@ -106,6 +106,8 @@ class DataController extends Controller
             $menu->url(url('/arquivos'), 'Arquivos', [
                 'icon'   => 'fa fa-archive',
                 'active' => $segmento_ativo,
+                // [W] 2026-10-19: Arquivos fica no grupo SISTEMA do sidebar.
+                'group'  => 'sistema',
             ]);
         });
     }

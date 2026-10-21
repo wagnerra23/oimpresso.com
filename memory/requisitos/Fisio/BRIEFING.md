@@ -1,0 +1,59 @@
+---
+id: requisitos-fisio-briefing
+module: Fisio
+status: em-construcao
+status_nota: "ADR 0437 aceita em 2026-10-18; esqueleto de Modules/Fisio no PR #9536 (US-FISIO-002), sem schema nem telas"
+updated_at: "2026-10-18"
+owner: W
+related_adrs: ["0437-modulo-fisio-vertical-fisioterapia"]
+---
+
+# BRIEFING — `Fisio`
+
+> **Função única:** resumo executivo e índice. O BRIEFING aponta para os donos; não recopia SCOPE, SPEC, tópicos ou contratos de tela.
+> **Contrato:** `scripts/memory-schemas/briefing.schema.json`.
+
+## O que é
+
+Vertical de fisioterapia dentro do oimpresso: o profissional monta o programa de exercícios domiciliares, o paciente recebe pelo WhatsApp e faz pelo portal (link + PIN), e o profissional vê quem fez, quem está com dor e quem vai abandonar.
+
+## Estado atual
+
+Decisão aceita ([ADR 0437](../../decisions/0437-modulo-fisio-vertical-fisioterapia.md), 2026-10-18). O esqueleto de `Modules/Fisio` (pacote, permissões, menu condicionado, instalação) está no PR #9536 (US-FISIO-002), junto com a suíte de testes da F1, escrita antes do código. Responsável técnica do conteúdo clínico: Dra. Dejeane.
+
+Em 2026-10-18 entraram, depois do esqueleto: schema (US-003), biblioteca (US-004, parcial), pacientes e prontuário (US-005), questionários (US-011, parcial), o núcleo de cálculo (#9547) e o painel do profissional com a aba Evolução (US-010; o caso de nível e sequência na tabela depende do portal, US-007). O portal do paciente ainda não existe, então o painel abre sem check-ins e mostra estado vazio.
+
+Em 2026-10-18 a ficha do paciente ganhou a exportação do prontuário em PDF (UC-FPS-19..20, [`Show.casos.md`](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Show.casos.md)); cada exportação fica no `activity_log`.
+
+Cadastro de paciente (melhoria do comparativo, 2026-10-18): o contato é escolhido por busca no servidor (nome ou celular, até 20, só da empresa e sem ficha) ou criado na hora como cliente pelo cadastro de contatos do sistema, sem duplicar celular na empresa; contato apagado não vira paciente — casos UC-FPI-05..07 em [`Pacientes/Index.casos.md`](../../../Modules/Fisio/Resources/js/Pages/Fisio/Pacientes/Index.casos.md).
+
+## Portas canônicas
+
+- **Herança geral (componentes/layouts/templates compartilhados):** [`../_Geral/BRIEFING.md`](../_Geral/BRIEFING.md)
+- **Fronteira/ownership:** [`SCOPE.md`](SCOPE.md)
+- **Requisitos:** [`SPEC.md`](SPEC.md)
+- **Execução da F1:** [`HANDOFF-F1.md`](HANDOFF-F1.md)
+- **Especificações por etapa:** [`etapas/`](etapas/)
+- **Telas:** `Modules/Fisio/Resources/js/Pages/Fisio/` + charters/casos ao lado das Pages (a criar)
+
+- **Biblioteca — mídia do exercício próprio (2026-10-18):** a clínica anexa foto ou vídeo MP4 curto ao exercício dela, pelo backbone `Modules/Arquivos`, visível só para a empresa (UC-FBI-05..07, `FisioBibliotecaMidiaTest`).
+
+## Decisões e riscos que exigem atenção
+
+- WhatsApp com canal escolhido pela clínica (`meta_cloud` recomendado, `whatsmeow` com aceite de risco e mitigações, ou `wa.me` manual) — [ADR 0437 §13.1](../../decisions/0437-modulo-fisio-vertical-fisioterapia.md)
+- App do paciente instalável com agendamento no estilo do AppBarber Cliente (link + PIN segue valendo; sem promoção, venda extra nem nota pública) — [ADR 0437 §13.7](../../decisions/0437-modulo-fisio-vertical-fisioterapia.md) e [etapa F3 A14–A21](etapas/04-f3-operacao.md)
+- Linha da Anvisa (o que vira SaMD) — [ADR 0437 §5](../../decisions/0437-modulo-fisio-vertical-fisioterapia.md)
+- Decisões ainda abertas — [ADR 0437 §14](../../decisions/0437-modulo-fisio-vertical-fisioterapia.md)
+- Fisioterapeuta responsável pelo paciente (2026-10-18): a transferência fica no `activity_log`, sem tabela própria; pacientes anteriores à coluna ficam sem responsável até alguém atribuir — [SPEC US-FISIO-005](SPEC.md)
+- Biblioteca com favoritos por profissional e filtros de posição e equipamento (listas fechadas em `Modules/Fisio/Config/config.php`, de `etapas/01-biblioteca.md` §3.3) — casos UC-FBI-08..10 em [`Biblioteca/Index.casos.md`](../../../Modules/Fisio/Resources/js/Pages/Fisio/Biblioteca/Index.casos.md). Os exercícios globais ainda não declaram posição nem equipamento: isso vem com o seed revisado pela Dra. Dejeane.
+
+## Próxima ação verificável
+
+- US-FISIO-001 (trio SDD) e US-FISIO-002 (esqueleto) — dono: [W]/Claude Code — evidência: `feature-lint --check` verde e testes de visibilidade passando.
+
+## Regra de manutenção
+
+1. Mudou requisito: altere `SPEC.md`/charter/casos.
+2. Mudou um tema: altere um único `topicos/<slug>.md` e ajuste só a linha-resumo deste índice.
+3. Conteúdo clínico (biblioteca, protocolos, contraindicações, sinais de alerta, textos ao paciente) só muda com revisão da responsável técnica anotada no PR.
+4. Componente/layout/template compartilhado não é copiado para o módulo: consulte `_Geral`.

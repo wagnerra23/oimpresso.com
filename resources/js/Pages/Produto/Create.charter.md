@@ -58,6 +58,8 @@ Cadastrar produto novo (single/variable/combo) com validação cliente-side Type
 - ❌ Multi-image gallery upload (apenas 1 image — paridade legacy)
 - ❌ NÃO gera SKU client-side (server-side em `store()`)
 - ❌ NÃO modifica método `store()` PHP (out of scope)
+  - _Exceção datada (2026-10-15, UC-PCAD-07): o `store()` passou a aceitar `origem_mercadoria` (0–8), gravado só quando o campo vem. Nada mais do método mudou._
+  - _Exceção datada (2026-10-20, UC-PCAD-13): o `store()` passou a aceitar `ncm` (8 dígitos, só números), gravado só quando o campo vem cheio. Sem NCM o produto nasce com o `'0'` da coluna. Nada mais do método mudou._
 - ❌ NÃO valida SKU duplicate cliente-side (server confirma)
 
 ## UX Targets
@@ -159,3 +161,4 @@ verdade — **nenhum UC os cita de propósito**.
 | 2026-05-15 | [W2-C] | Charter criado em Wave 2 B4 Produto (Agent paralelo W2-C). |
 | 2026-07-17 | [F+CC] | **v2** — fecha o trio (US-PROD-020): + link pro `Create.casos.md`. **§Pest GUARD REVOGADO** (teste fantasma). + §Backlog com "4 vermelhos do CI" **(depois corrigido na v3)**. |
 | 2026-07-17 | [F+CC] | **v3 — correção de rumo ([F] pegou meu erro).** A v2 chamou os 4 vermelhos de "bugs". Errado: analisei a **casca React `Create.tsx`** (draft) como se fosse o cadastro — o real é o **Blade** `create.blade.php` + `store()`. Reclassificado: **02/03 não são bugs** (validação client-side no Blade + defaults no form, por design UltimatePOS) → viraram **§Paridade Blade→React** (grade do que falta migrar). **05** (cross-tenant) = achado Tier 0 real → US própria. **06** (500→404) = corrigido neste PR. §Pendência do preço vira 1ª linha da grade de paridade (o Blade tem preço; a casca React não migrou). |
+| 2026-10-20 | [M+C] | O cadastro ganha o campo NCM (`UC-PCAD-13`) e o aviso de NCM faltando (`UC-PCAD-14`), decisão [M] (`CU-PROD-16`/`CU-PROD-18` do SDD). §Non-Goals: segunda exceção datada ao *"NÃO modifica `store()`"*, no mesmo formato da primeira. O Non-Goal em si não muda: revê-lo é decisão [W]. |

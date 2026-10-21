@@ -7,6 +7,8 @@ namespace App\Http\Controllers\Api\App;
 use App\Domain\Fsm\Models\SaleStageAction;
 use App\Domain\Fsm\Policies\StageActionPolicy;
 use App\Http\Controllers\Controller;
+use App\Services\AppLojas\AcoesDoPedido;
+use App\Services\Sells\SituacaoPagamentoVenda;
 use App\Transaction;
 use App\User;
 use Illuminate\Database\Query\Builder;
@@ -22,8 +24,9 @@ use Illuminate\Support\Facades\DB;
  * sub_type, permissões direct_sell.view / view_own_sell_only / view_commission_agent_sell e
  * locais permitidos. Tier 0 (ADR 0093): business_id do usuário do token, nunca da requisição.
  *
- * As ações de etapa só são LISTADAS (com `pode`); executar fica fora da v1 porque várias
- * reservam/baixam estoque ou cancelam cobrança (regra mestre de valor/estoque).
+ * As ações de etapa listadas são só as da lista segura (AcoesDoPedido); executar é o
+ * PedidoAcaoController (tela 22). As que reservam/baixam estoque ou cancelam cobrança seguem só
+ * na web (regra mestre de valor/estoque).
  */
 class PedidosController extends Controller
 {
@@ -44,6 +47,27 @@ class PedidosController extends Controller
 
     public const ORDEM = ['orcamento', 'aprovacao', 'producao', 'entrega', 'concluido'];
 
+    /**
+     * `etapa.grupo` (contrato antigo) para etapa de processo cuja chave não está em GRUPOS:
+     * derivado do passo gravado na etapa, para app antigo continuar mostrando algo coerente.
+     */
+    private const GRUPO_DO_PASSO = [
+        'orcamento' => 'orcamento', 'aprovado' => 'aprovacao', 'arte' => 'producao',
+        'producao' => 'producao', 'instalacao' => 'entrega', 'faturamento' => 'entrega',
+        'entrega' => 'entrega', 'entregue' => 'concluido', 'concluido' => 'concluido',
+    ];
+
+    public const FILTROS = ['ativos', 'atrasados', 'concluidos', 'cancelados', 'todos'];
+
+    /** Colunas da etapa lidas em toda consulta que monta `item()`. */
+    private const COLUNAS_ETAPA = [
+        'sps.key as etapa_chave', 'sps.name as etapa_nome', 'sps.is_terminal',
+        'sps.process_id', 'sps.passo', 'sps.is_cancelled',
+    ];
+
+    /** @var array<int, list<array{chave:string, rotulo:string}>> passos por processo (cache da requisição) */
+    private array $passosPorProcesso = [];
+
     private const POR_PAGINA = 20;
 
     public function index(Request $request): JsonResponse
@@ -54,7 +78,7 @@ class PedidosController extends Controller
         }
 
         $filtro = (string) $request->query('filtro', 'ativos');
-        if (! in_array($filtro, ['ativos', 'atrasados', 'concluidos', 'todos'], true)) {
+        if (! in_array($filtro, self::FILTROS, true)) {
             $filtro = 'ativos';
         }
         $pagina = max((int) $request->query('pagina', 1), 1);
@@ -68,7 +92,7 @@ class PedidosController extends Controller
             ->get([
                 't.id', 't.invoice_no', 't.final_total', 't.delivery_date',
                 'c.name as cliente', 'c.supplier_business_name as cliente_empresa',
-                'sps.key as etapa_chave', 'sps.name as etapa_nome', 'sps.is_terminal',
+                ...self::COLUNAS_ETAPA,
                 // Resumo do cartão (o v4 mostra o produto): nome do 1º item da venda.
                 DB::raw('(SELECT p.name FROM transaction_sell_lines tsl JOIN products p ON p.id = tsl.product_id'
                     . ' WHERE tsl.transaction_id = t.id AND tsl.parent_sell_line_id IS NULL ORDER BY tsl.id LIMIT 1) as resumo'),
@@ -77,7 +101,7 @@ class PedidosController extends Controller
         $temMais = $linhas->count() > self::POR_PAGINA;
 
         $contadores = [];
-        foreach (['ativos', 'atrasados', 'concluidos', 'todos'] as $f) {
+        foreach (self::FILTROS as $f) {
             $contadores[$f] = $this->filtrar($this->base($user, $busca), $f)->count();
         }
 
@@ -102,7 +126,7 @@ class PedidosController extends Controller
                 't.id', 't.invoice_no', 't.final_total', 't.delivery_date', 't.current_stage_id',
                 'c.id as cliente_id', 'c.name as cliente', 'c.supplier_business_name as cliente_empresa',
                 'c.mobile as cliente_telefone',
-                'sps.key as etapa_chave', 'sps.name as etapa_nome', 'sps.is_terminal',
+                ...self::COLUNAS_ETAPA,
             ]);
 
         if (! $l) {
@@ -113,17 +137,19 @@ class PedidosController extends Controller
             ->leftJoin('products as p', 'tsl.product_id', '=', 'p.id')
             ->where('tsl.transaction_id', $l->id)
             ->whereNull('tsl.parent_sell_line_id')
-            ->get(['p.name as produto', 'tsl.quantity', 'tsl.unit_price_inc_tax'])
+            ->get(['tsl.id', 'p.name as produto', 'tsl.quantity', 'tsl.unit_price_inc_tax'])
             ->map(fn ($s) => [
+                'linha_id' => (int) $s->id,
                 'produto' => (string) $s->produto,
                 'quantidade' => (float) $s->quantity,
                 'total' => round((float) $s->quantity * (float) $s->unit_price_inc_tax, 2),
             ])->values();
 
-        $grupo = self::GRUPOS[$l->etapa_chave] ?? null;
+        $item = $this->item($l);
+        $grupo = $item['etapa']['grupo'] ?? null;
         $atual = $grupo !== null ? array_search($grupo, self::ORDEM, true) : false;
 
-        return response()->json($this->item($l) + [
+        return response()->json($item + [
             'cliente_detalhe' => [
                 'id' => (int) $l->cliente_id,
                 'nome' => $this->nomeCliente($l),
@@ -135,10 +161,35 @@ class PedidosController extends Controller
                 'estado' => $atual === false ? 'futuro' : ($i < $atual ? 'feito' : ($i === $atual ? 'atual' : 'futuro')),
             ])->values(),
             'acoes' => $this->acoes($user, (int) $l->id, $l->current_stage_id),
+            'entrega' => $this->entrega($user, (int) $l->id, $l->current_stage_id),
+            // Só no detalhe: a lista usaria dasVendas() numa consulta só, se [W] pedir.
+            'pagamento' => app(SituacaoPagamentoVenda::class)->daVenda((int) $user->business_id, (int) $l->id),
         ]);
     }
 
-    /** Colunas da aba Produção (decisão [W] 2026-10-02: Produção usa as etapas da VENDA). */
+    /**
+     * Entrega pelo app (POST /pedidos/{id}/entrega, P3 · tela 22): null quando a etapa atual não tem
+     * a ação `entregar`; senão `pode` = o usuário passa no RBAC da FSM e a ação não tem side effect.
+     * Fica fora de `acoes[]` porque não sai pela rota de ação: exige protocolo e assinatura.
+     */
+    private function entrega(User $user, int $id, $stageId): ?array
+    {
+        if ($stageId === null) {
+            return null;
+        }
+        $acao = SaleStageAction::query()->where('stage_id', (int) $stageId)->where('key', 'entregar')->first();
+        if ($acao === null) {
+            return null;
+        }
+        $venda = Transaction::where('business_id', (int) $user->business_id)->find($id);
+
+        return [
+            'pode' => $venda !== null && empty($acao->side_effect_class) && empty($acao->event_class)
+                && app(StageActionPolicy::class)->canExecute($user, $venda, 'entregar'),
+        ];
+    }
+
+    /** Colunas padrão da aba Produção quando nenhuma etapa do processo está marcada `is_producao`. */
     public const COLUNAS_PRODUCAO = ['quote_approved', 'in_production', 'on_hold', 'ready_for_invoice'];
 
     private const POR_COLUNA = 50;
@@ -158,7 +209,7 @@ class PedidosController extends Controller
         // Uma consulta por coluna: o limite vale POR coluna (contrato §5). Com um limit único no
         // total, uma etapa cheia ocupava todas as vagas e esvaziava as outras.
         $colunas = [];
-        foreach (self::COLUNAS_PRODUCAO as $chave) {
+        foreach ($this->colunasProducao($user) as $chave => $rotuloPadrao) {
             $daColuna = fn () => $this->base($user, '')
                 ->where('sps.key', $chave)
                 ->where('sps.is_terminal', false);
@@ -170,18 +221,54 @@ class PedidosController extends Controller
                 ->get([
                     't.id', 't.invoice_no', 't.final_total', 't.delivery_date',
                     'c.name as cliente', 'c.supplier_business_name as cliente_empresa',
-                    'sps.key as etapa_chave', 'sps.name as etapa_nome', 'sps.is_terminal',
+                    ...self::COLUNAS_ETAPA,
                 ]);
 
             $colunas[] = [
                 'id' => $chave,
-                'rotulo' => (string) ($linhas->first()->etapa_nome ?? self::ROTULOS_PADRAO[$chave]),
+                'rotulo' => (string) ($linhas->first()->etapa_nome ?? $rotuloPadrao),
                 'total' => $linhas->count() < self::POR_COLUNA ? $linhas->count() : $daColuna()->count(),
                 'itens' => $linhas->map(fn ($l) => $this->item($l))->values(),
             ];
         }
 
         return response()->json(['colunas' => $colunas]);
+    }
+
+    /**
+     * Colunas da Produção = etapas marcadas `is_producao` dos processos ativos do business que
+     * têm venda (processo seedado e sem uso não acrescenta colunas vazias), na ordem do processo.
+     * Sem nenhuma marcada, cai nas 4 etapas da venda (ROTULOS_PADRAO). Tier 0: só processos
+     * do business do usuário.
+     *
+     * @return array<string, string> chave da etapa => rótulo quando a coluna está vazia
+     */
+    private function colunasProducao(User $user): array
+    {
+        $biz = (int) $user->business_id;
+        $emUso = DB::table('transactions as t')
+            ->join('sale_process_stages as s', 's.id', '=', 't.current_stage_id')
+            ->where('t.business_id', $biz)
+            ->distinct()
+            ->pluck('s.process_id');
+
+        $marcadas = DB::table('sale_process_stages as s')
+            ->join('sale_processes as p', 'p.id', '=', 's.process_id')
+            ->where('p.business_id', $biz)
+            ->where('p.active', true)
+            ->whereIn('s.process_id', $emUso)
+            ->where('s.is_producao', true)
+            ->where('s.is_terminal', false)
+            ->orderBy('p.id')
+            ->orderBy('s.sort_order')
+            ->get(['s.key', 's.name']);
+
+        $colunas = [];
+        foreach ($marcadas as $s) {
+            $colunas[(string) $s->key] ??= (string) $s->name;
+        }
+
+        return $colunas !== [] ? $colunas : self::ROTULOS_PADRAO;
     }
 
     public const STATUS_ORCAMENTO = ['todos', 'rascunho', 'enviado', 'aprovado', 'convertido'];
@@ -418,14 +505,18 @@ class PedidosController extends Controller
             'atrasados' => $q->where('sps.is_terminal', false)
                 ->whereNotNull('t.delivery_date')
                 ->whereDate('t.delivery_date', '<', $hoje),
-            'concluidos' => $q->where('sps.is_terminal', true),
+            'concluidos' => $q->where('sps.is_terminal', true)->where('sps.is_cancelled', false),
+            'cancelados' => $q->where('sps.is_cancelled', true),
             default => $q,
         };
     }
 
     private function item(object $l): array
     {
-        $grupo = self::GRUPOS[$l->etapa_chave] ?? null;
+        $cancelada = (bool) ($l->is_cancelled ?? false);
+        $passo = isset($l->passo) ? (string) $l->passo : null;
+        $grupo = self::GRUPOS[$l->etapa_chave]
+            ?? ($cancelada ? 'cancelado' : (self::GRUPO_DO_PASSO[$passo] ?? null));
         $terminal = (bool) ($l->is_terminal ?? false);
         $prazo = $l->delivery_date ? substr((string) $l->delivery_date, 0, 10) : null;
         $pos = $grupo !== null ? array_search($grupo, self::ORDEM, true) : false;
@@ -442,9 +533,33 @@ class PedidosController extends Controller
                 'chave' => (string) $l->etapa_chave,
                 'rotulo' => (string) $l->etapa_nome,
                 'grupo' => $grupo,
+                'terminal' => $terminal,
+                'cancelada' => $cancelada,
             ],
             'progresso' => $pos === false ? null : $pos / (count(self::ORDEM) - 1),
+            'passos' => isset($l->process_id) ? $this->passos((int) $l->process_id) : [],
+            'passo_atual' => $passo,
         ];
+    }
+
+    /**
+     * Passos do processo, na ordem gravada nas etapas (`passo_ordem`). O process_id vem de uma
+     * linha já filtrada pelo business do usuário (base()).
+     *
+     * @return list<array{chave:string, rotulo:string}>
+     */
+    private function passos(int $processId): array
+    {
+        return $this->passosPorProcesso[$processId] ??= DB::table('sale_process_stages')
+            ->where('process_id', $processId)
+            ->whereNotNull('passo')
+            ->orderBy('passo_ordem')
+            ->orderBy('sort_order')
+            ->get(['passo', 'passo_rotulo'])
+            ->unique('passo')
+            ->map(fn ($s) => ['chave' => (string) $s->passo, 'rotulo' => (string) ($s->passo_rotulo ?? $s->passo)])
+            ->values()
+            ->all();
     }
 
     private function nomeCliente(object $l): string
@@ -452,7 +567,11 @@ class PedidosController extends Controller
         return trim((string) ($l->cliente_empresa ?: $l->cliente)) ?: '—';
     }
 
-    /** Ações da etapa atual, só para mostrar (rótulo + se o usuário poderia executar). */
+    /**
+     * Ações da etapa atual que o app pode executar (POST /pedidos/{id}/acao, tela 22): só as da
+     * lista segura liberadas pelo ajuste `app_acoes_fsm_liberadas` (AcoesDoPedido). As demais
+     * ficam na web e não vêm aqui. `pode` = o usuário passa no RBAC da FSM.
+     */
     private function acoes(User $user, int $id, $stageId): array
     {
         if ($stageId === null) {
@@ -460,14 +579,17 @@ class PedidosController extends Controller
         }
         $venda = Transaction::where('business_id', (int) $user->business_id)->find($id);
         $policy = app(StageActionPolicy::class);
+        $liberadas = AcoesDoPedido::liberadas((int) $user->business_id);
 
         return SaleStageAction::query()
             ->where('stage_id', (int) $stageId)
             ->get()
+            ->filter(fn (SaleStageAction $a) => AcoesDoPedido::podeNoApp($a, $liberadas))
             ->map(fn (SaleStageAction $a) => [
                 'chave' => (string) $a->key,
                 'rotulo' => (string) $a->label,
                 'pode' => $venda ? (bool) $policy->canExecute($user, $venda, $a->key) : false,
+                'pede_motivo' => AcoesDoPedido::pedeMotivo((string) $a->key),
             ])->values()->all();
     }
 }

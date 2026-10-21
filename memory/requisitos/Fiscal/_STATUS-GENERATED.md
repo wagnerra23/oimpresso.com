@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 16 |
 | Telas (.tsx) | 7 |
 | Telas com `casos.md` | 8 |
-| UC declarados | 81 |
-| UC com teste que os cita | 81 |
+| UC declarados | 92 |
+| UC com teste que os cita | 92 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -69,6 +69,8 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-FCFG-05 | Config | 🧪 aguarda veredito da lane |
 | UC-FCFG-06 | Config | 🧪 aguarda veredito da lane |
 | UC-FCFG-07 | Config | 🧪 aguarda veredito da lane |
+| UC-FCFG-08 | Config | 🧪 aguarda veredito da lane |
+| UC-FCFG-09 | Config | 🧪 aguarda veredito da lane |
 | UC-FCKP-01 | Cockpit | 🧪 aguarda veredito da lane |
 | UC-FCKP-02 | Cockpit | 🧪 aguarda veredito da lane |
 | UC-FCKP-03 | Cockpit | 🧪 aguarda veredito da lane |
@@ -100,6 +102,8 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-FEVT-06 | Eventos | 🧪 aguarda veredito da lane |
 | UC-FEVT-07 | Eventos | 🧪 aguarda veredito da lane |
 | UC-FEVT-08 | Eventos | 🧪 aguarda veredito da lane |
+| UC-FLX-26 | Nfe | 🧪 aguarda veredito da lane |
+| UC-FLX-32 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FNFE-01 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FNFE-02 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FNFE-03 | Nfe | 🧪 aguarda veredito da lane |
@@ -113,6 +117,13 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-FNFE-11 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FNFE-12 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FNFE-14 | Nfe | 🧪 aguarda veredito da lane |
+| UC-FNFE-15 | Nfe | 🧪 aguarda veredito da lane |
+| UC-FNFE-16 | Nfe | 🧪 aguarda veredito da lane |
+| UC-FNFE-17 | Nfe | 🧪 aguarda veredito da lane |
+| UC-FNFE-18 | Nfe | 🧪 aguarda veredito da lane |
+| UC-FNFE-21 | Nfe | 🧪 aguarda veredito da lane |
+| UC-FNFE-22 | Nfe | 🧪 aguarda veredito da lane |
+| UC-FNFE-23 | Nfe | 🧪 aguarda veredito da lane |
 | UC-FNFSE-01 | Nfse | 🧪 aguarda veredito da lane |
 | UC-FNFSE-02 | Nfse | 🧪 aguarda veredito da lane |
 | UC-FNFSE-03 | Nfse | 🧪 aguarda veredito da lane |

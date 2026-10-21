@@ -3,6 +3,7 @@ module: ComunicacaoVisual
 purpose: "Vertical gráfica rápida BR (CNAE 1813-0/01), em construção sem piloto: hoje entrega cálculo de orçamento por m2 server-authoritative e apontamento de produção. PCP/FSM, materiais e integração fiscal existem como schema e contrato, não como fluxo navegável."
 migracao_ui: "concluido — 0 Blade servido"
 contains:
+  - "AppOrcamentoRapidoController (orçamento rápido do app das lojas, /api/app/orcamentos — PR 16 propostas-app)"
   - "ApontamentoController"
   - "DataController"
   - "InstallController"
@@ -12,6 +13,10 @@ contains:
   - "Entities/InstalacaoCatalogo (cv_instalacoes_catalogo)"
   - "Entities/OrdemProducao (cv_ordens_producao + FSM canon ADR 0143)"
   - "Entities/Instalacao (cv_instalacoes)"
+  - "InstalacaoController (agenda da instalação por OS — /comunicacao-visual/api/instalacoes, US-COMVIS-007 · UC-FLX-21)"
+  - "Services/AgendaInstalacao (agenda equipe e veículo na OS; recusa sem janela — US-COMVIS-007 · UC-FLX-21)"
+  - "Entities/OsItem (comvis_os_itens — itens da OS copiados do orçamento, UC-FLX-01)"
+  - "Services/OrcamentoViraOs (orçamento aprovado vira OS com itens, medidas e arquivos — US-COMVIS-020 · UC-FLX-01)"
   # Mora em `database/seeders/` (convenção do projeto pros seeders de FSM canon), NÃO sob
   # Modules/ComunicacaoVisual/ — o SDD §5.4.5 já registra isso. Path anotado em 2026-08-10
   # porque a ausência sob o módulo já foi lida como "nunca construído": é código real,

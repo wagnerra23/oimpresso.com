@@ -5,8 +5,14 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: esta tela liga a emissão automática de NFe e edita a cascade tributária — o comportamento é durável mesmo se o layout mudar.
 owner: wagner
-last_run: "2026-10-14"
+last_run: "2026-10-20"
 ---
+
+> ℹ️ **`last_run` 2026-10-14 → 2026-10-20 (G-6), sem re-execução.** A única mudança no `Index.tsx` depois de
+> 2026-10-14 é o [#9450](https://github.com/wagnerra23/oimpresso.com/pull/9450) (2026-10-15): a prop
+> `produtoInicial` repassada ao simulador, que é o UC-NFTR-29 (escrito no mesmo PR). Conferido no diff do
+> commit `f544a6ca3d` restrito ao `Index.tsx`; nenhum outro UC depende dela. O bump marca o trio
+> reconciliado com a tela nesta data, não um re-run: os Status seguem vindo do manifesto G-7.
 
 # Casos de Uso & Aceite — Tributação (regras NCM · templates · gate de emissão automática)
 
@@ -67,6 +73,9 @@ last_run: "2026-10-14"
 | UC-NFTR-23 | A revisão pelo link mostra só regras fiscais, com de → para, e baixa o CSV do Import | must `[T0]` | D-CONTADOR · LGPD minimização · `ImportRegrasCsvService::COLUNAS_OBRIGATORIAS` | `RevisaoContadorLinkTest` | 🧪 |
 | UC-NFTR-24 | A saúde fiscal lista o que vai virar rejeição e o item some ao corrigir | must `[fiscal]` | D-SUPORTE · US-NFE-010 "Filtro Suspeitas" · auditoria 2026-05 bug #3 | `SaudeFiscalTest` | 🧪 |
 | UC-NFTR-25 | "Pronto pra emitir" = nenhuma pendência bloqueante | should `[fiscal]` | D-SUPORTE · UC-TRB-16 | `SaudeFiscalTest` | 🧪 |
+| UC-NFTR-30 | Natureza a decidir não barra a nota e aparece na saúde fiscal (UC-FLX-31) | must `[fiscal]` | R-NFE-034 · D-NATUREZA · US-NFE-068 | `NaturezaFiscalTest` | 🧪 |
+| UC-NFTR-31 | Item que o contador decidiu como serviço não sai em NF-e/NFC-e (UC-FLX-31) | must `[fiscal]` | R-NFE-034 · Súmula 156 STJ · US-NFE-069 (parcial) | `NaturezaFiscalTest` | 🧪 |
+| UC-NFTR-32 | Só o contador decide a natureza, com fonte, e só de produto da própria empresa (UC-FLX-31) | must `[T0]` `[fiscal]` | R-NFE-034 · D-NATUREZA · ADR 0093 | `NaturezaFiscalTest` | 🧪 |
 
 > **Recibo:** ver §Recibo de execução no rodapé — status é o **veredito** da corrida, não leitura de código.
 
@@ -491,10 +500,87 @@ last_run: "2026-10-14"
 - **Contrato:** playbook Fiscal thread 28 (R-FISC-042) · LC 87/1996 · LC 190/2022 · D-ENTRADA.
 - **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
+## UC-NFTR-29 · Vindo do painel de produto, o simulador abre com o produto escolhido · `could` `[T0]`
+
+- **Persona:** quem está na lista de produtos, na aba Fiscal do painel, e quer ver como a nota daquele
+  produto vai sair.
+- **Aceite:** Dado o link "Abrir no módulo Fiscal" do painel de produto (`/nfe-brasil/tributacao?produto={id}#simulador`)
+  · Então o simulador já abre com aquele produto escolhido; falta só o valor e a UF de destino.
+  Produto de outra empresa, id inválido ou sem o parâmetro: a tela abre como sempre, sem produto e sem erro.
+- **Teste:** [`TributacaoIndexContratoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/TributacaoIndexContratoTest.php) — `UC-NFTR-29 · …` (controle positivo com o produto da própria empresa; o do vizinho volta `null`).
+- **Contrato:** protótipo do Produto (`prototipo-ui/cowork/Felipe/produto-blade.jsx`, aba `fiscal` do
+  `DetalheDrawer`: botão "Abrir no módulo Fiscal", destino `fiscal-modulo` com o produto) + UC-PIDX-25 do
+  [`Produto/Index.casos.md`](../../Produto/Index.casos.md). O simulador é o mesmo do UC-NFTR-08: nada é
+  gravado, e o valor não é preenchido de antemão (quem simula digita).
+- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+
+---
+
+## Natureza fiscal do item decide a nota (R-NFE-034 · UC-FLX-31)
+
+> **Âncora:** [R-NFE-034](../../../../../memory/requisitos/NfeBrasil/SPEC.md) (*"Natureza decidida pelo
+> contador vale para o produto"*) e US-NFE-068 (`done`), com a decisão D-NATUREZA de [W] em 2026-10-06
+> (*"o contador, por produto, com fonte registrada; enquanto pendente, emite pelo padrão da UF. A Jana
+> nunca decide."*). É o UC-FLX-31 do catálogo de fluxos (*"Serviço gráfico sob encomenda → NFS-e ·
+> revenda → NF-e · instalação → NFS-e"*), estado **parcial**: o resto é a
+> [US-NFE-069](../../../../../memory/requisitos/NfeBrasil/SPEC.md) (`todo`, bloqueada pela NFS-e real
+> da US-NFE-060). Código conferido, não usado como fonte: `NaturezaFiscalService` (`marcarPendente`,
+> `decidir`) e `NfeService::recusarItensDeServico`.
+>
+> **Por que mora nesta tela:** a pendência aparece no card de saúde fiscal desta tela (UC-NFTR-24) e a
+> decisão exige a mesma permissão dela (`nfe.tributacao.manage`). A tela de decisão ainda não existe
+> (R-NFE-034 *"Fora deste item"*): os casos abaixo provam o serviço e a trava da emissão, não um botão.
+
+## UC-NFTR-30 · Natureza a decidir não barra a nota e aparece na saúde fiscal · `must` `[fiscal]`
+
+- **Persona:** Eliana (contadora) / Larissa abrindo a Tributação.
+- **Aceite:** **Dado** um banner personalizado marcado como natureza pendente **Quando** a venda com ele
+  vai para a NF-e **Então** a nota segue pelo padrão da UF (não é recusada) e a saúde fiscal mostra
+  "natureza a decidir" com o id do banner, como **aviso** (não bloqueante). Controle positivo: depois que
+  o contador decide, marcar o banner como pendente de novo não desfaz a decisão e ele sai da fila.
+- **Teste:** [`NaturezaFiscalTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaFiscalTest.php) — `UC-NFTR-30 · UC-NFTR-31 · R-NFE-034 · natureza decidida pelo contador vale para o produto`.
+- **Contrato:** R-NFE-034 · D-NATUREZA · `SaudeFiscalService` (`natureza_a_decidir`).
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-31 · Item que o contador decidiu como serviço não sai em NF-e/NFC-e · `must` `[fiscal]`
+
+- **Persona:** faturista emitindo a nota da venda.
+- **Aceite:** **Dado** o contador decidiu o banner como "serviço 24.01" com a fonte "Súmula 156 do STJ"
+  **Quando** a venda com o banner vai para a NF-e/NFC-e **Então** a nota **inteira** é recusada dizendo
+  "emita NFS-e" — não sai sem o item, porque o total da nota é o total da venda. A decisão fica gravada
+  com autor, data, fonte e o item da LC 116 (`24.01`). Controle positivo: o mesmo banner decidido como
+  **mercadoria** (fonte "SEFAZ-SP Consulta 10406/2016") emite normalmente, e o código de serviço `24.01`
+  enviado junto é descartado.
+- **Teste:** [`NaturezaFiscalTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaFiscalTest.php) — os 2 casos (`UC-NFTR-30 · UC-NFTR-31 · …` e `UC-NFTR-31 · UC-NFTR-32 · …`).
+- **Contrato:** R-NFE-034 · Súmula 156 do STJ · REGRA MESTRE de valor (a nota não sai com total
+  diferente da venda).
+- **Fora daqui:** dividir a venda em NF-e + NFS-e é a US-NFE-069 (backlog abaixo).
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-32 · Só o contador decide a natureza, com fonte, e só de produto da própria empresa · `must` `[T0]` `[fiscal]`
+
+- **Persona:** qualquer fluxo que tente gravar a natureza — inclusive a Jana.
+- **Aceite:** **Quando** quem decide não tem `nfe.tributacao.manage`, ou tem a permissão mas é de outra
+  empresa **Então** recusa ("Só o contador"). Fonte em branco, serviço sem item da LC 116 no formato
+  `00.00` ou natureza que não seja mercadoria/serviço também recusam — e nada é gravado. Produto de outra
+  empresa não recebe decisão nem pendência ("não encontrado nesta empresa").
+- **Teste:** [`NaturezaFiscalTest`](../../../../../Modules/NfeBrasil/Tests/Feature/NaturezaFiscalTest.php) — `UC-NFTR-31 · UC-NFTR-32 · R-NFE-034 · só o contador decide: …` (tenant fictício 98 e cliente 99, ADR 0358).
+- **Contrato:** D-NATUREZA (a Jana só marca pendente) · ADR 0093.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
 ## Backlog — sem UC até ganhar teste
 
 > Prosa honesta, sem gate. Vira UC quando ganhar teste que o cite (G-2).
 
+- `[BACKLOG]` **Venda com mercadoria e serviço sai em duas notas: NF-e com as mercadorias, NFS-e com os
+  serviços, e a soma das duas fecha o total da venda** (US-NFE-069 · UC-FLX-31). Hoje a NF-e recusa a
+  venda inteira (UC-NFTR-31); a divisão não existe.
+- `[BACKLOG]` **A NFS-e usa o `codigo_servico` gravado na natureza do produto; o padrão da empresa só vale
+  para produto sem natureza decidida** (US-NFE-069). Hoje a NFS-e não lê a natureza.
+- `[BACKLOG]` **Item de instalação sai na NFS-e, mesmo numa OS com material** (US-NFE-069 · UC-FLX-27).
+- `[BACKLOG]` **Produto com natureza pendente bloqueia o faturamento dividido com mensagem que manda o
+  contador decidir** (US-NFE-069). Hoje pendente emite pelo padrão da UF (UC-NFTR-30), que é a regra da
+  NF-e sozinha; o bloqueio vale para a divisão.
 - `[BACKLOG]` **"Perguntar à Jana" responde com fonte e não altera nada** (playbook Fiscal thread 10, UC-NFTR-10b provisório). Não entrou no PR da 10: é chat livre, e a thread entregou só as sugestões estruturadas. Vira UC com o teste `JanaFiscalPerguntaTest`.
 
 - `[BACKLOG]` **`regras` e `templates` são deferidos; `config` é eager.** O charter promete

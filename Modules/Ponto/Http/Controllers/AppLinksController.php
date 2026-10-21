@@ -11,7 +11,8 @@ use Illuminate\Routing\Controller;
  * Arquivos de associação do app de ponto (Capacitor) com o domínio:
  * Android App Links (assetlinks.json) e iOS Universal Links (apple-app-site-association).
  *
- * Lê `pontowr2.app_links` (env de produção). Sem valor válido responde 404 — publicar um
+ * Lê `pontowr2.app_links` (app de ponto pelo env de produção + `outros_android`, ex. o Fisio).
+ * Só entra app com pacote e fingerprint válidos; sem nenhum, responde 404 — publicar um
  * arquivo vazio ou com fingerprint errado faz a loja recusar a verificação em silêncio.
  * Ver memory/requisitos/Ponto/RUNBOOK-publico.md §App Links.
  */
@@ -21,22 +22,34 @@ class AppLinksController extends Controller
 
     public function assetlinks(): JsonResponse
     {
-        $package = trim((string) config('pontowr2.app_links.android_package'));
-        $fingerprints = array_values(array_filter(
-            array_map(fn ($f) => strtoupper(trim($f)), explode(',', (string) config('pontowr2.app_links.android_sha256'))),
-            fn ($f) => preg_match(self::FINGERPRINT, $f) === 1
-        ));
+        $apps = [[
+            'package' => config('pontowr2.app_links.android_package'),
+            'sha256'  => config('pontowr2.app_links.android_sha256'),
+        ], ...(array) config('pontowr2.app_links.outros_android', [])];
 
-        abort_if($package === '' || $fingerprints === [], 404);
+        $declaracoes = [];
+        foreach ($apps as $app) {
+            $package = trim((string) ($app['package'] ?? ''));
+            $fingerprints = array_values(array_filter(
+                array_map(fn ($f) => strtoupper(trim($f)), explode(',', (string) ($app['sha256'] ?? ''))),
+                fn ($f) => preg_match(self::FINGERPRINT, $f) === 1
+            ));
+            if ($package === '' || $fingerprints === []) {
+                continue;
+            }
+            $declaracoes[] = [
+                'relation' => ['delegate_permission/common.handle_all_urls'],
+                'target'   => [
+                    'namespace'                => 'android_app',
+                    'package_name'             => $package,
+                    'sha256_cert_fingerprints' => $fingerprints,
+                ],
+            ];
+        }
 
-        return response()->json([[
-            'relation' => ['delegate_permission/common.handle_all_urls'],
-            'target'   => [
-                'namespace'                => 'android_app',
-                'package_name'             => $package,
-                'sha256_cert_fingerprints' => $fingerprints,
-            ],
-        ]], 200, [], JSON_UNESCAPED_SLASHES);
+        abort_if($declaracoes === [], 404);
+
+        return response()->json($declaracoes, 200, [], JSON_UNESCAPED_SLASHES);
     }
 
     public function appleAppSiteAssociation(): JsonResponse

@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <link rel="stylesheet" href="_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/colors_and_type.css">
+  <link rel="stylesheet" href="_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/styles.css">
+  <script src="_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/_ds_bundle.js"></script>
+  <style>
+    body { margin: 0; background: oklch(0.2 0.006 240); }
+    [data-phone-scroll] { scrollbar-width: none; }
+    [data-phone-scroll]::-webkit-scrollbar { display: none; }
+    [data-phone-scroll] > * { flex-shrink: 0; }
+    a { color: oklch(0.72 0.12 295); text-decoration: none; }
+    a:hover { text-decoration: underline; text-underline-offset: 4px; }
+    input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  </style>
+</helmet>
+
+<section class="cockpit" data-theme="{{ themeAttr }}" style="min-height: 100vh; padding: 56px 64px 96px; background: var(--bg-2); color: var(--text); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 48px;">
+
+  <header style="display: flex; flex-direction: column; gap: 10px; max-width: 900px;">
+    <div style="font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Produção (PCP) · celular · PWA · decisões [W] 15/10/2026</div>
+    <h1 style="color: var(--text); margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.4px;">Produção no celular — operador e instalador</h1>
+    <p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--text-dim); text-wrap: pretty;">As duas pontas de celular da thread 04 (apontamento) e 09 (instalação) do playbook <span style="font-family: var(--font-mono); font-size: 13px;">cowork-inbox/producao</span>. Roda no navegador (D2 · PWA), sem loja. Mesma pele do <a href="Oimpresso Mobile.dc.html">Oimpresso Mobile</a>; toque mínimo de 48px e botão principal de 56px, pensado para luva e mão suja de tinta.</p>
+    <div style="display: flex; gap: 16px; flex-wrap: wrap; font-size: 13.5px;">
+      <a href="#apontamento">Apontamento · A1–A8</a>
+      <a href="#instalacao">Instalação · I1–I6</a>
+      <a href="#concorrentes">O que os concorrentes fazem</a>
+      <a href="Oimpresso Mobile.dc.html">← App das lojas</a>
+    </div>
+  </header>
+
+  <!-- Pesquisa -->
+  <div id="concorrentes" data-screen-label="Concorrentes" style="display: flex; flex-direction: column; gap: 16px; max-width: 1240px;">
+    <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">O que os concorrentes fazem · e onde passamos à frente</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px;">
+      <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 6px;">
+        <span style="font-size: 14px; font-weight: 600;">Mubisys</span>
+        <span style="font-size: 13px; color: var(--text-dim); line-height: 1.5; text-wrap: pretty;">Apontamento manual pelo celular e leitura de QR na tela de Produção. Central de notificações quando a OS troca de setor.</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--warn);">paridade — não é diferencial</span>
+      </div>
+      <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 6px;">
+        <span style="font-size: 14px; font-weight: 600;">shopVOX (GO)</span>
+        <span style="font-size: 13px; color: var(--text-dim); line-height: 1.5; text-wrap: pretty;">Quadro de instalação com agenda por instalador. App atualiza job, sobe foto e colhe aceite do cliente.</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">referência para I1, I5</span>
+      </div>
+      <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 6px;">
+        <span style="font-size: 14px; font-weight: 600;">SignAgent</span>
+        <span style="font-size: 13px; color: var(--text-dim); line-height: 1.5; text-wrap: pretty;">Foto da peça instalada; aprovar ou recusar com comentário do porquê não deu para instalar.</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">referência para I4</span>
+      </div>
+      <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 6px;">
+        <span style="font-size: 14px; font-weight: 600;">Chão de fábrica (FastFlowTrack, Shop Floor Insight)</span>
+        <span style="font-size: 13px; color: var(--text-dim); line-height: 1.5; text-wrap: pretty;">QR por operação, cronômetro ao vivo, botões grandes para luva, avança sozinho para a próxima operação, gestor corrige exceções.</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">referência para A2, A3, A7</span>
+      </div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 8px 24px; padding: 14px 16px; border: 1px solid color-mix(in oklch, var(--accent) 35%, var(--border)); border-radius: 12px; background: color-mix(in oklch, var(--accent) 7%, var(--surface)); font-size: 13px; line-height: 1.5;">
+      <span><b>QR que recusa a etapa errada</b> — lê a etiqueta e diz se a etapa é sua (A2).</span>
+      <span><b>Só a arte aprovada</b> abre no celular, nunca prova antiga (A3).</span>
+      <span><b>Pausa com motivo</b> vira dado de parada por máquina (A4).</span>
+      <span><b>Refugo com motivo</b> entra no custo real da OS (A5).</span>
+      <span><b>Cronômetro esquecido</b> fecha no fim do turno; corrigir pede justificativa (A7).</span>
+      <span><b>Sem internet</b> guarda e envia sem duplicar (A8).</span>
+      <span><b>Não deu para instalar</b> com motivo, foto e reagendamento (I4).</span>
+      <span><b>Protocolo em PDF</b> sai sozinho por WhatsApp ao cliente (I6).</span>
+    </div>
+  </div>
+
+  <!-- Lista lote 2 -->
+  <div id="lista" data-screen-label="Lista lote 2" style="display: flex; flex-direction: column; gap: 12px; max-width: 1240px;">
+    <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Lote 2 · o que falta para passar Holdprint, Zênite e Mubisys</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 8px;">
+      <a href="#a9" style="display: flex; gap: 10px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text);"><span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent); width: 28px;">A9</span><span style="display: flex; flex-direction: column; gap: 2px; font-size: 13px;"><b>Mídia confirmada pelo RIP</b><span style="color: var(--text-dim);">Zênite e Holdprint · precisa integração com o RIP</span></span></a>
+      <a href="#a10" style="display: flex; gap: 10px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text);"><span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent); width: 28px;">A10</span><span style="display: flex; flex-direction: column; gap: 2px; font-size: 13px;"><b>Imprimir junto · mesma mídia</b><span style="color: var(--text-dim);">Holdprint PlanJobs · regra simples na V1</span></span></a>
+      <a href="#a11" style="display: flex; gap: 10px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text);"><span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent); width: 28px;">A11</span><span style="display: flex; flex-direction: column; gap: 2px; font-size: 13px;"><b>Guardar retalho com etiqueta</b><span style="color: var(--text-dim);">Holdprint · estoque fracionado</span></span></a>
+      <a href="#t1" style="display: flex; gap: 10px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text);"><span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent); width: 28px;">T1</span><span style="display: flex; flex-direction: column; gap: 2px; font-size: 13px;"><b>Terminal fixo na máquina</b><span style="color: var(--text-dim);">Mubisys e Holdprint · tablet com crachá QR</span></span></a>
+      <a href="#v1" style="display: flex; gap: 10px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text);"><span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent); width: 28px;">V1</span><span style="display: flex; flex-direction: column; gap: 2px; font-size: 13px;"><b>Visita técnica e medição</b><span style="color: var(--text-dim);">ninguém tem bem feito · vira orçamento</span></span></a>
+      <a href="#i7" style="display: flex; gap: 10px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text);"><span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent); width: 28px;">I7</span><span style="display: flex; flex-direction: column; gap: 2px; font-size: 13px;"><b>Ferramentas e veículo por QR</b><span style="color: var(--text-dim);">Mubisys · almoxarifado</span></span></a>
+      <a href="#i8" style="display: flex; gap: 10px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text);"><span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent); width: 28px;">I8</span><span style="display: flex; flex-direction: column; gap: 2px; font-size: 13px;"><b>Pesquisa de satisfação</b><span style="color: var(--text-dim);">Mubisys · link no WhatsApp após o protocolo</span></span></a>
+      <a href="#l1" style="display: flex; gap: 10px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text);"><span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent); width: 28px;">L1</span><span style="display: flex; flex-direction: column; gap: 2px; font-size: 13px;"><b>Alertas de produção no Início</b><span style="color: var(--text-dim);">HoldApp · vai no app das lojas</span></span></a>
+    </div>
+  </div>
+
+  <!-- Decisões W -->
+  <div id="decisoes" data-screen-label="Decisões W 15-10" style="display: flex; flex-direction: column; gap: 12px; max-width: 1240px;">
+    <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Decisões [W] · 15/10 · e sugestões onde ele pediu</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 8px;">
+      <div style="padding: 12px 14px; border: 1px solid color-mix(in oklch, var(--accent) 40%, var(--border)); border-radius: 10px; background: var(--surface); display: flex; flex-direction: column; gap: 4px; font-size: 13px; line-height: 1.45;"><b>1 · Custo por máquina ou por pessoa</b><span style="color: var(--text-dim);">Máquina e veículo (impressão, transporte): custo da máquina. Resto da produção: custo da pessoa. Um operador pode ter máquina rodando e etapa manual ao mesmo tempo (A1).</span><span style="font-size: 11.5px; font-weight: 600; color: var(--accent);">decidido</span></div>
+      <div style="padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); display: flex; flex-direction: column; gap: 4px; font-size: 13px; line-height: 1.45;"><b>2 · Apontamento × ponto</b><span style="color: var(--text-dim);">Ponto é a fonte legal e nunca é alterado pelo apontamento. Apontado por pessoa ≤ presença no ponto. Diferença acima de 30 min no dia vira pendência para o gestor. Saída no ponto fecha o cronômetro (A7).</span><span style="font-size: 11.5px; font-weight: 600; color: var(--warn);">sugestão</span></div>
+      <div style="padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); display: flex; flex-direction: column; gap: 4px; font-size: 13px; line-height: 1.45;"><b>3 · Celular pessoal ou terminal</b><span style="color: var(--text-dim);">Os dois, por empresa. Terminal (T1) é o padrão nas máquinas. Celular pessoal é opcional, aceito pelo colaborador, só no Wi-Fi da empresa, sem acesso a câmera fora da tela de QR.</span><span style="font-size: 11.5px; font-weight: 600; color: var(--warn);">sugestão</span></div>
+      <div style="padding: 12px 14px; border: 1px solid color-mix(in oklch, var(--accent) 40%, var(--border)); border-radius: 10px; background: var(--surface); display: flex; flex-direction: column; gap: 4px; font-size: 13px; line-height: 1.45;"><b>4 · Etiqueta configurável</b><span style="color: var(--text-dim);">Por empresa: térmica 100×50 com um QR por etapa (grande) ou A4 com um QR por OS e etapas em lista (pequena). O QR de OS abre "escolha sua etapa".</span><span style="font-size: 11.5px; font-weight: 600; color: var(--accent);">decidido</span></div>
+      <div style="padding: 12px 14px; border: 1px solid color-mix(in oklch, var(--accent) 40%, var(--border)); border-radius: 10px; background: var(--surface); display: flex; flex-direction: column; gap: 4px; font-size: 13px; line-height: 1.45;"><b>5 · Terceiros</b><span style="color: var(--text-dim);">Instalador terceirizado entra por link com código, sem conta (I9). Custo = valor combinado; protocolo gera a conta a pagar.</span><span style="font-size: 11.5px; font-weight: 600; color: var(--accent);">decidido</span></div>
+      <div style="padding: 12px 14px; border: 1px solid color-mix(in oklch, var(--accent) 40%, var(--border)); border-radius: 10px; background: var(--surface); display: flex; flex-direction: column; gap: 4px; font-size: 13px; line-height: 1.45;"><b>6 · Fotos sem prazo</b><span style="color: var(--text-dim);">Guardar sempre. Sugestão: comprimir no celular (1600 px, ~300 KB) e manter o original só 90 dias, para o armazenamento não explodir.</span><span style="font-size: 11.5px; font-weight: 600; color: var(--accent);">decidido · ajuste sugerido</span></div>
+      <div style="padding: 12px 14px; border: 1px solid color-mix(in oklch, var(--accent) 40%, var(--border)); border-radius: 10px; background: var(--surface); display: flex; flex-direction: column; gap: 4px; font-size: 13px; line-height: 1.45;"><b>7 · Prova máxima na assinatura</b><span style="color: var(--text-dim);">Traço + código no WhatsApp do cliente + local, hora, aparelho + hash do PDF + fotos carimbadas (I5, I6). Fica como assinatura eletrônica avançada sem certificado.</span><span style="font-size: 11.5px; font-weight: 600; color: var(--accent);">decidido</span></div>
+      <div style="padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); display: flex; flex-direction: column; gap: 4px; font-size: 13px; line-height: 1.45;"><b>8 · Como medir o piloto biz=1</b><span style="color: var(--text-dim);">4 semanas. Passa se: ≥ 90% das etapas com apontamento · ≤ 5% fechadas pelo turno · previsto × real dentro de 20% · 100% das instalações com protocolo.</span><span style="font-size: 11.5px; font-weight: 600; color: var(--warn);">sugestão</span></div>
+    </div>
+  </div>
+
+  <!-- ================= APONTAMENTO ================= -->
+  <div id="apontamento" style="display: flex; flex-direction: column; gap: 6px;">
+    <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Thread 04 · operador de máquina</div>
+    <h2 style="color: var(--text); margin: 0; font-size: 22px; font-weight: 600;">Apontamento</h2>
+    <p style="margin: 0; font-size: 13.5px; color: var(--text-dim); max-width: 760px; text-wrap: pretty;">Diego, impressão, turno 08:00–{{ turnoFim }}. O tempo vira custo real; material e refugo saem dali. Apontamento é append-only — corrigir cria um lançamento novo, nunca apaga.</p>
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px;"><a href="#t1" style="height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); display: flex; align-items: center; gap: 6px; font-size: 12.5px;"><span style="font-family: var(--font-mono); font-weight: 600; color: var(--accent);">T1</span>Terminal</a><span style="font-size: 12px; color: var(--text-mute);">ou</span><a href="#a1" style="height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); display: flex; align-items: center; gap: 6px; font-size: 12.5px;"><span style="font-family: var(--font-mono); font-weight: 600; color: var(--accent);">A1</span>Hoje</a><span style="color: var(--text-mute); font-size: 13px;">→</span><a href="#a2" style="height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); display: flex; align-items: center; gap: 6px; font-size: 12.5px;"><span style="font-family: var(--font-mono); font-weight: 600; color: var(--accent);">A2</span>QR</a><span style="color: var(--text-mute); font-size: 13px;">→</span><a href="#a3" style="height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); display: flex; align-items: center; gap: 6px; font-size: 12.5px;"><span style="font-family: var(--font-mono); font-weight: 600; color: var(--accent);">A3</span>Etapa</a><span style="color: var(--text-mute); font-size: 13px;">→</span><span style="display: flex; gap: 4px; padding: 3px; border: 1px dashed var(--border); border-radius: 8px;"><a href="#a4" style="height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); display: flex; align-items: center; gap: 6px; font-size: 12.5px;"><span style="font-family: var(--font-mono); font-weight: 600; color: var(--accent);">A4</span>Pausa</a><a href="#a5" style="height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); display: flex; align-items: center; gap: 6px; font-size: 12.5px;"><span style="font-family: var(--font-mono); font-weight: 600; color: var(--accent);">A5</span>Refugo</a><a href="#a9" style="height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); display: flex; align-items: center; gap: 6px; font-size: 12.5px;"><span style="font-family: var(--font-mono); font-weight: 600; color: var(--accent);">A9</span>RIP</a></span><span style="color: var(--text-mute); font-size: 13px;">→</span><a href="#a6" style="height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); display: flex; align-items: center; gap: 6px; font-size: 12.5px;"><span style="font-family: var(--font-mono); font-weight: 600; color: var(--accent);">A6</span>Concluída</a><span style="color: var(--text-mute); font-size: 13px;">→</span><span style="display: flex; gap: 4px; padding: 3px; border: 1px dashed var(--border); border-radius: 8px;"><a href="#a10" style="height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); display: flex; align-items: center; gap: 6px; font-size: 12.5px;"><span style="font-family: var(--font-mono); font-weight: 600; color: var(--accent);">A10</span>Junto</a><a href="#a11" style="height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); display: flex; align-items: center; gap: 6px; font-size: 12.5px;"><span style="font-family: var(--font-mono); font-weight: 600; color: var(--accent);">A11</span>Retalho</a></span><span style="font-size: 12px; color: var(--text-mute); margin-left: 6px;">exceções:</span><a href="#a7" style="height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); display: flex; align-items: center; gap: 6px; font-size: 12.5px;"><span style="font-family: var(--font-mono); font-weight: 600; color: var(--accent);">A7</span>Turno</a><a href="#a8" style="height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); display: flex; align-items: center; gap: 6px; font-size: 12.5px;"><span style="font-family: var(--font-mono); font-weight: 600; color: var(--accent);">A8</span>Offline</a></div>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 48px 40px; align-items: flex-start;">
+
+    <!-- A1 -->
+    <div id="a1" data-screen-label="A1 Minhas etapas" style="display: flex; flex-direction: column; gap: 14px; width: 390px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">A1</span>
+        <span style="font-size: 15px; font-weight: 600;">Minhas etapas de hoje</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">UC-PCV-19</span>
+      </div>
+      <div style="width: 390px; height: 844px; box-sizing: border-box; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">{{ sinal }}</span></div>
+        <sc-if value="{{ offline }}" hint-placeholder-val="{{ false }}">
+          <div style="flex-shrink: 0; min-height: 38px; padding: 6px 16px; background: var(--warn); color: oklch(0.22 0.01 80); display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600;">Sem internet · {{ fila }} apontamentos guardados no celular</div>
+        </sc-if>
+        <div style="padding: 8px 16px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px;">
+          <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Avatar" name="Diego Ramos" size="md" hint-size="36px,36px"></x-import>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Impressão · qua, 15 out</div>
+            <div style="font-size: 20px; font-weight: 600; letter-spacing: -0.3px;">Bom dia, Diego</div>
+          </div>
+          <div style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; color: var(--text-dim); position: relative;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+            <span style="position: absolute; top: 11px; right: 11px; width: 8px; height: 8px; border-radius: 99px; background: var(--neg); border: 2px solid var(--bg);"></span>
+          </div>
+        </div>
+        <div data-phone-scroll="" style="flex: 1; overflow-y: auto; padding: 14px 16px 20px; display: flex; flex-direction: column; gap: 16px;">
+          <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border); font-size: 12.5px;">
+            <span style="width: 8px; height: 8px; border-radius: 99px; background: var(--pos);"></span>
+            <span style="flex: 1;">Ponto · entrada <b style="font-family: var(--font-mono);">07:58</b></span>
+            <span style="font-family: var(--font-mono); color: var(--text-dim);">presença 1,7 h · você 0,3 h</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Rodando agora · 2</span>
+            <div role="button" tabIndex="0" style="padding: 14px; border-radius: 14px; border: 2px solid var(--accent); background: color-mix(in oklch, var(--accent) 10%, var(--surface)); display: flex; flex-direction: column; gap: 8px; cursor: pointer;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; background: var(--accent); color: var(--accent-fg);">Máquina</span>
+                <span style="width: 8px; height: 8px; border-radius: 99px; background: {{ crono.dot }};"></span>
+                <span style="margin-left: auto; font-family: var(--font-mono); font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums;">{{ crono.txt }}</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 2px;">
+                <span style="font-size: 16px; font-weight: 600;">Roland VG3-640 · imprimindo</span>
+                <span style="font-size: 12.5px; color: var(--text-dim);">OS-2611 · Supermercado Bom Preço · 6,2 de 9,6 h</span>
+              </div>
+              <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Progress" value="{{ 65 }}" max="{{ 100 }}" hint-size="100%,6px"></x-import>
+              <span style="font-size: 11.5px; color: var(--text-dim);">Custo vai para a máquina · você só acompanha</span>
+            </div>
+            <div role="button" tabIndex="0" style="padding: 14px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface); display: flex; flex-direction: column; gap: 8px; cursor: pointer;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--border); color: var(--text);">Você</span>
+                <span style="width: 8px; height: 8px; border-radius: 99px; background: var(--pos);"></span>
+                <span style="margin-left: auto; font-family: var(--font-mono); font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums;">00:18:40</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 2px;">
+                <span style="font-size: 16px; font-weight: 600;">Acabamento · ilhós</span>
+                <span style="font-size: 12.5px; color: var(--text-dim);">OS-2615 · Ótica Visão · banner 2 vias</span>
+              </div>
+              <span style="font-size: 11.5px; color: var(--text-dim);">Custo vai para você · R$/h do cadastro</span>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; align-items: baseline;"><span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Próximas · na ordem da programação</span></div>
+            <div style="min-height: 64px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); display: flex; align-items: center; gap: 12px;">
+              <span style="font-family: var(--font-mono); font-size: 14px; font-weight: 600; width: 46px;">10:00</span>
+              <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+                <span style="font-size: 14px; font-weight: 600;">Impressão látex</span>
+                <span style="font-size: 12px; color: var(--text-dim);">OS-2619 · Clínica Sorriso · HP Latex 365 · 0,6 h</span>
+              </div>
+            </div>
+            <div style="min-height: 64px; padding: 10px 14px; border: 1px dashed var(--border); border-radius: 12px; background: var(--surface); display: flex; align-items: center; gap: 12px;">
+              <span style="font-family: var(--font-mono); font-size: 14px; font-weight: 600; width: 46px; color: var(--text-mute);">14:30</span>
+              <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+                <span style="font-size: 14px; font-weight: 600;">Adesivo de aplicação</span>
+                <span style="font-size: 12px; color: var(--text-dim);">OS-2608 · Auto Peças Rota · Roland VG3-640 · 1,1 h</span>
+                <span style="font-size: 12px; font-weight: 600; color: var(--warn);">Aguardando arte aprovada</span>
+              </div>
+            </div>
+            <div style="min-height: 64px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); display: flex; align-items: center; gap: 12px;">
+              <span style="font-family: var(--font-mono); font-size: 14px; font-weight: 600; width: 46px;">16:00</span>
+              <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+                <span style="font-size: 14px; font-weight: 600;">Impressão eco-solvente</span>
+                <span style="font-size: 12px; color: var(--text-dim);">OS-2622 · Academia Fit Mais · Roland VG3-640 · 1,4 h</span>
+              </div>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">Hoje</span><span style="font-family: var(--font-mono); font-size: 18px; font-weight: 500;">2,2 h</span><span style="font-size: 11px; color: var(--text-dim);">apontadas</span></div>
+            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">Etapas</span><span style="font-family: var(--font-mono); font-size: 18px; font-weight: 500;">0 de 4</span><span style="font-size: 11px; color: var(--text-dim);">concluídas</span></div>
+            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">Turno</span><span style="font-family: var(--font-mono); font-size: 18px; font-weight: 500;">{{ turnoFim }}</span><span style="font-size: 11px; color: var(--text-dim);">fecha sozinho</span></div>
+          </div>
+        </div>
+        <div style="flex-shrink: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: end; background: var(--surface); border-top: 1px solid var(--border); padding: 6px 8px 22px;">
+          <div style="height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11px; font-weight: 600; color: var(--accent);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"></path></svg>Hoje</div>
+          <div style="display: flex; justify-content: center;"><div style="width: 64px; height: 64px; margin-top: -22px; border-radius: 99px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(0,0,0,0.3);"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"></path></svg></div></div>
+          <div style="height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11px; color: var(--text-dim);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>Meu dia</div>
+        </div>
+      </div>
+      <p style="margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); text-wrap: pretty;"><b>Duas contas de custo (decisão W):</b> máquina e veículo custam por hora da máquina; o resto, por hora da pessoa. O operador pode ter a Roland rodando sozinha e estar no acabamento — dois cronômetros, um não come o outro. Etapa sem arte aparece tracejada e não abre.</p>
+    </div>
+
+    <!-- A2 -->
+    <div id="a2" data-screen-label="A2 Ler QR" style="display: flex; flex-direction: column; gap: 14px; width: 390px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">A2</span>
+        <span style="font-size: 15px; font-weight: 600;">Ler QR da etiqueta</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">UC-PCV-20</span>
+      </div>
+      <div style="width: 390px; height: 844px; box-sizing: border-box; border-radius: 48px; border: 10px solid #0b0b0e; background: oklch(0.16 0.005 240); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35); color: #ffffff;">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:42</span><span style="font-size: 11px; opacity: 0.7;">{{ sinal }}</span></div>
+        <div style="padding: 4px 8px 8px; display: flex; align-items: center; gap: 4px;">
+          <div style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></div>
+          <span style="flex: 1; font-size: 16px; font-weight: 600;">Ler QR</span>
+          <div style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6l1 3H8z"></path><path d="M8 5v4a4 4 0 0 0 8 0V5"></path><path d="M12 13v9"></path></svg></div>
+        </div>
+        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; padding: 40px 24px 0; gap: 18px;">
+          <div style="width: 260px; height: 260px; position: relative; border-radius: 20px; background: repeating-linear-gradient(135deg, rgba(255,255,255,0.04) 0 10px, transparent 10px 20px);">
+            <span style="position: absolute; left: 0; top: 0; width: 44px; height: 44px; border-left: 4px solid #ffffff; border-top: 4px solid #ffffff; border-top-left-radius: 20px;"></span>
+            <span style="position: absolute; right: 0; top: 0; width: 44px; height: 44px; border-right: 4px solid #ffffff; border-top: 4px solid #ffffff; border-top-right-radius: 20px;"></span>
+            <span style="position: absolute; left: 0; bottom: 0; width: 44px; height: 44px; border-left: 4px solid #ffffff; border-bottom: 4px solid #ffffff; border-bottom-left-radius: 20px;"></span>
+            <span style="position: absolute; right: 0; bottom: 0; width: 44px; height: 44px; border-right: 4px solid #ffffff; border-bottom: 4px solid #ffffff; border-bottom-right-radius: 20px;"></span>
+            <span style="position: absolute; left: 20px; right: 20px; top: 128px; height: 2px; background: oklch(0.72 0.15 295); box-shadow: 0 0 12px oklch(0.72 0.15 295);"></span>
+            <span style="position: absolute; left: 0; right: 0; bottom: 14px; text-align: center; font-family: var(--font-mono); font-size: 11px; opacity: 0.6;">câmera do navegador</span>
+          </div>
+          <span style="font-size: 14px; text-align: center; opacity: 0.85;">Aponte para a etiqueta da OS ou da máquina</span>
+          <div style="height: 48px; padding: 0 18px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.25); display: flex; align-items: center; font-size: 14px; font-weight: 600;">Digitar o código</div>
+        </div>
+        <div style="flex-shrink: 0; margin: 0 10px 10px; padding: 16px; border-radius: 22px; background: var(--surface); color: var(--text); display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="width: 32px; height: 32px; border-radius: 99px; background: color-mix(in oklch, var(--pos) 18%, transparent); color: var(--pos); display: flex; align-items: center; justify-content: center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span>
+            <div style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+              <span style="font-size: 15px; font-weight: 600;">É sua — Impressão eco-solvente</span>
+              <span style="font-family: var(--font-mono); font-size: 12px; color: var(--text-dim);">OS-2611 · etapa 2 de 5 · Roland VG3-640</span>
+            </div>
+          </div>
+          <div style="height: 56px; border-radius: 12px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600;">Iniciar agora</div>
+          <div style="padding: 10px 12px; border-radius: 10px; border: 1px solid color-mix(in oklch, var(--warn) 45%, var(--border)); background: color-mix(in oklch, var(--warn) 10%, transparent); font-size: 12.5px; line-height: 1.45;"><b>Se a etapa não for sua:</b> "Esta etiqueta está em Laminação, com Felipe." Nada é apontado.</div>
+        </div>
+      </div>
+      <p style="margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); text-wrap: pretty;">O QR aponta para a etapa, não para a OS inteira (thread 05). A lanterna liga para ler etiqueta em chão escuro; "digitar o código" é a saída quando a etiqueta molhou.</p>
+    </div>
+
+    <!-- A3 -->
+    <div id="a3" data-screen-label="A3 Etapa em andamento" style="display: flex; flex-direction: column; gap: 14px; width: 390px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">A3</span>
+        <span style="font-size: 15px; font-weight: 600;">Etapa · cronômetro</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">UC-PCV-20 · 11 · 16</span>
+      </div>
+      <div style="width: 390px; height: 844px; box-sizing: border-box; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:43</span><span style="font-size: 11px; color: var(--text-dim);">{{ sinal }}</span></div>
+        <sc-if value="{{ offline }}" hint-placeholder-val="{{ false }}">
+          <div style="flex-shrink: 0; min-height: 38px; padding: 6px 16px; background: var(--warn); color: oklch(0.22 0.01 80); display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600;">Sem internet · o cronômetro segue no celular</div>
+        </sc-if>
+        <div style="padding: 4px 8px 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 4px;">
+          <div style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; color: var(--text-dim);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg></div>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+            <span style="font-family: var(--font-mono); font-size: 12px; color: var(--text-dim);">OS-2611 · Supermercado Bom Preço</span>
+            <span style="font-size: 17px; font-weight: 600;">Impressão eco-solvente</span>
+          </div>
+          <span style="margin-right: 8px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; background: var(--accent); color: var(--accent-fg);">Máquina</span>
+        </div>
+        <div data-phone-scroll="" style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px;">
+          <div role="timer" aria-label="Tempo apontado" style="padding: 18px 12px 14px; border-radius: 14px; border: 2px solid {{ crono.cor }}; background: var(--surface); display: flex; flex-direction: column; align-items: center; gap: 6px;">
+            <span style="font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: {{ crono.cor }};">{{ crono.estado }}</span>
+            <span style="font-family: var(--font-mono); font-size: 48px; line-height: 1; font-weight: 600; font-variant-numeric: tabular-nums; color: {{ crono.cor }};">{{ crono.txt }}</span>
+            <span style="font-size: 12.5px; color: var(--text-dim);">previsto 9,6 h · Roland VG3-640</span>
+          </div>
+          <div style="padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); display: flex; align-items: center; gap: 12px;">
+            <div style="width: 52px; height: 52px; border-radius: 8px; background: repeating-linear-gradient(135deg, var(--border) 0 6px, transparent 6px 12px); flex-shrink: 0;"></div>
+            <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-size: 14px; font-weight: 600;">arte-final-v3.pdf</span>
+              <span style="font-size: 12px; color: var(--pos); font-weight: 600;">Aprovada pelo cliente · 13/10 16:20</span>
+              <span style="font-size: 12px; color: var(--text-dim);">Lona 440 g · 6,00 × 1,60 m · 2 vias</span>
+            </div>
+          </div>
+          <label style="display: flex; flex-direction: column; gap: 6px;">
+            <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">Mídia usada até agora (m²)</span>
+            <input inputmode="decimal" value="{{ m2 }}" onChange="{{ setM2 }}" style="height: 52px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: var(--font-mono); font-size: 20px; box-sizing: border-box;">
+            <span style="font-size: 12px; color: var(--text-dim);">Baixa no estoque: Lona frontlight 440 g 3,20 m · empenhado 19,2 m²</span>
+          </label>
+          <div role="button" tabIndex="0" onClick="{{ abrirRefugo }}" style="min-height: 52px; border-radius: 10px; border: 1px dashed color-mix(in oklch, var(--neg) 55%, var(--border)); color: var(--neg); display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14.5px; font-weight: 600; cursor: pointer;">Registrar refugo<sc-if value="{{ temRefugo }}" hint-placeholder-val="{{ false }}"><span style="font-family: var(--font-mono); font-size: 12px; padding: 2px 8px; border-radius: 99px; background: color-mix(in oklch, var(--neg) 16%, transparent);">{{ refugoTotal }} m²</span></sc-if></div>
+          <div style="display: flex; flex-direction: column; gap: 8px; padding-left: 14px; border-left: 1px solid var(--border);">
+            <sc-for list="{{ log }}" as="l" hint-placeholder-count="3">
+              <div style="display: flex; align-items: baseline; gap: 8px; font-size: 13px;"><span style="font-family: var(--font-mono); font-size: 12px; color: var(--text-mute); width: 40px;">{{ l.h }}</span><span>{{ l.t }}</span></div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; padding: 12px 16px 26px; background: var(--surface); border-top: 1px solid var(--border);">
+          <a href="#a1" style="height: 48px; border-radius: 12px; border: 1px dashed color-mix(in oklch, var(--accent) 55%, var(--border)); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 14.5px; font-weight: 600;">Deixar rodando e fazer outra etapa</a>
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px;">
+          <div role="button" tabIndex="0" onClick="{{ crono.toggle }}" style="height: 56px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; cursor: pointer;">{{ crono.btn }}</div>
+          <div role="button" tabIndex="0" onClick="{{ concluir }}" style="height: 56px; border-radius: 12px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; cursor: pointer;">Concluir etapa</div>
+        </div>
+        </div>
+      </div>
+      <p style="margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); text-wrap: pretty;">Interativo: pause, retome e registre refugo. Etapa de máquina deixa o operador sair — o cronômetro é da Roland, não dele (D-CUSTO). Só a versão aprovada da arte abre aqui — prova antiga nem aparece. A medida vem do orçamento, sem redigitar.</p>
+    </div>
+
+    <!-- A4 -->
+    <div id="a4" data-screen-label="A4 Pausa com motivo" style="display: flex; flex-direction: column; gap: 14px; width: 390px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">A4</span>
+        <span style="font-size: 15px; font-weight: 600;">Pausar · motivo</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">UC-PCV-20 · 08</span>
+      </div>
+      <div style="width: 390px; height: 844px; box-sizing: border-box; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>11:05</span><span style="font-size: 11px; color: var(--text-dim);">{{ sinal }}</span></div>
+        <div style="flex: 1; background: rgba(0,0,0,0.45); display: flex; flex-direction: column; justify-content: flex-end;">
+          <div style="background: var(--surface); border-top-left-radius: 22px; border-top-right-radius: 22px; padding: 10px 16px 26px; display: flex; flex-direction: column; gap: 14px;">
+            <span style="align-self: center; width: 40px; height: 4px; border-radius: 99px; background: var(--border);"></span>
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-size: 18px; font-weight: 600;">Por que parou?</span>
+              <span style="font-size: 13px; color: var(--text-dim);">O cronômetro para agora. O motivo mostra ao PCP onde a máquina perde tempo.</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;">
+              <sc-for list="{{ pausas }}" as="p" hint-placeholder-count="6">
+                <div role="button" tabIndex="0" onClick="{{ p.ir }}" style="min-height: 56px; padding: 8px 12px; border-radius: 12px; border: 2px solid {{ p.bd }}; background: {{ p.bg }}; display: flex; align-items: center; font-size: 14px; font-weight: 600; cursor: pointer; box-sizing: border-box;">{{ p.label }}</div>
+              </sc-for>
+            </div>
+            <div style="height: 48px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; font-size: 14px; color: var(--text-mute);">Observação (opcional)</div>
+            <div style="height: 56px; border-radius: 12px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600;">Pausar · {{ pausaSel }}</div>
+            <span style="font-size: 12.5px; color: var(--text-dim); text-align: center;">Manutenção e falta de material avisam o PCP na hora.</span>
+          </div>
+        </div>
+      </div>
+      <p style="margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); text-wrap: pretty;">Um toque, sem digitar. Os motivos vêm do cadastro do posto (thread 03) e alimentam a linha do tempo e o relatório de perdas.</p>
+    </div>
+
+    <!-- A5 -->
+    <div id="a5" data-screen-label="A5 Refugo" style="display: flex; flex-direction: column; gap: 14px; width: 390px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">A5</span>
+        <span style="font-size: 15px; font-weight: 600;">Registrar refugo</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">UC-PCV-17</span>
+      </div>
+      <div style="width: 390px; height: 844px; box-sizing: border-box; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>11:20</span><span style="font-size: 11px; color: var(--text-dim);">{{ sinal }}</span></div>
+        <div style="flex: 1; background: rgba(0,0,0,0.45); display: flex; flex-direction: column; justify-content: flex-end;">
+          <div style="background: var(--surface); border-top-left-radius: 22px; border-top-right-radius: 22px; padding: 10px 16px 26px; display: flex; flex-direction: column; gap: 14px;">
+            <span style="align-self: center; width: 40px; height: 4px; border-radius: 99px; background: var(--border);"></span>
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-size: 18px; font-weight: 600;">Refugo na OS-2611</span>
+              <span style="font-size: 13px; color: var(--text-dim);">Entra no custo real e baixa do estoque como perda.</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">Quanto</span>
+              <div style="display: grid; grid-template-columns: 56px minmax(0, 1fr) 56px; gap: 8px; align-items: center;">
+                <div role="button" tabIndex="0" onClick="{{ refMenos }}" style="height: 56px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer;">−</div>
+                <div style="height: 56px; border-radius: 12px; border: 1px solid var(--border); display: flex; align-items: baseline; justify-content: center; gap: 6px; padding-top: 12px; box-sizing: border-box;"><span style="font-family: var(--font-mono); font-size: 26px; font-weight: 600;">{{ refM2 }}</span><span style="font-size: 13px; color: var(--text-dim);">m²</span></div>
+                <div role="button" tabIndex="0" onClick="{{ refMais }}" style="height: 56px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer;">+</div>
+              </div>
+              <span style="font-size: 12px; color: var(--text-dim);">≈ {{ refValor }} em lona e tinta · passos de 0,2 m²</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">Motivo</span>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <sc-for list="{{ refMotivos }}" as="m" hint-placeholder-count="5">
+                  <div role="button" tabIndex="0" onClick="{{ m.ir }}" style="min-height: 48px; padding: 0 14px; border-radius: 99px; border: 2px solid {{ m.bd }}; background: {{ m.bg }}; display: flex; align-items: center; font-size: 14px; font-weight: 600; cursor: pointer; box-sizing: border-box;">{{ m.label }}</div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="height: 64px; border-radius: 12px; border: 1px dashed var(--border); display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; color: var(--text-dim);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"></path><circle cx="12" cy="13" r="3"></circle></svg>Foto do defeito (opcional)</div>
+            <div role="button" tabIndex="0" onClick="{{ salvarRefugo }}" style="height: 56px; border-radius: 12px; background: var(--neg); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; cursor: pointer;">Registrar {{ refM2 }} m² de refugo</div>
+          </div>
+        </div>
+      </div>
+      <p style="margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); text-wrap: pretty;">Botão vermelho porque é perda. Registrar aqui soma no chip do A3. O valor em reais só aparece para quem tem <span style="font-family: var(--font-mono);">producao.desempenho.ver</span>.</p>
+    </div>
+
+    <!-- A6 -->
+    <div id="a6" data-screen-label="A6 Etapa concluída" style="display: flex; flex-direction: column; gap: 14px; width: 390px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">A6</span>
+        <span style="font-size: 15px; font-weight: 600;">Etapa concluída</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">UC-PCV-21</span>
+      </div>
+      <div style="width: 390px; height: 844px; box-sizing: border-box; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>13:12</span><span style="font-size: 11px; color: var(--text-dim);">{{ sinal }}</span></div>
+        <div data-phone-scroll="" style="flex: 1; overflow-y: auto; padding: 28px 20px 20px; display: flex; flex-direction: column; gap: 18px;">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;">
+            <span style="width: 72px; height: 72px; border-radius: 99px; background: color-mix(in oklch, var(--pos) 18%, transparent); color: var(--pos); display: flex; align-items: center; justify-content: center;"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span>
+            <span style="font-size: 22px; font-weight: 600;">Impressão concluída</span>
+            <span style="font-family: var(--font-mono); font-size: 13px; color: var(--text-dim);">OS-2611 · Supermercado Bom Preço</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">Tempo</span><span style="font-family: var(--font-mono); font-size: 17px; font-weight: 500;">9,1 h</span><span style="font-size: 11px; color: var(--pos);">0,5 h abaixo</span></div>
+            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">Mídia</span><span style="font-family: var(--font-mono); font-size: 17px; font-weight: 500;">19,2 m²</span><span style="font-size: 11px; color: var(--text-dim);">baixada</span></div>
+            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">Refugo</span><span style="font-family: var(--font-mono); font-size: 17px; font-weight: 500; color: var(--neg);">1,2 m²</span><span style="font-size: 11px; color: var(--text-dim);">defeito</span></div>
+          </div>
+          <div style="padding: 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); display: flex; flex-direction: column; gap: 10px;">
+            <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">Passou para</span>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Avatar" name="Felipe Souza" size="md" hint-size="36px,36px"></x-import>
+              <div style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+                <span style="font-size: 15px; font-weight: 600;">Laminação · Felipe</span>
+                <span style="font-size: 12.5px; color: var(--text-dim);">Laminadora a frio · previsto 1,2 h</span>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--pos); font-weight: 600;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path></svg>Felipe foi avisado no celular dele</div>
+          </div>
+          <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.FsmStepper" variant="full" hue="{{ 295 }}" steps="{{ etapasOs }}" hint-size="100%,64px"></x-import>
+        </div>
+        <div style="flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; padding: 12px 16px 26px; background: var(--surface); border-top: 1px solid var(--border);">
+          <div style="height: 56px; border-radius: 12px; background: var(--accent); color: var(--accent-fg); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 15px; font-weight: 600;">Próxima: Impressão látex<span style="font-family: var(--font-mono); font-size: 11.5px; font-weight: 500; opacity: 0.85;">OS-2619 · 10:00 · atrasada 3 h</span></div>
+          <div style="height: 48px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: var(--accent);">Voltar às minhas etapas</div>
+        </div>
+      </div>
+      <p style="margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); text-wrap: pretty;">Fecha a etapa, mostra o resumo e já oferece a próxima. O aviso ao Felipe é notificação dentro do sistema (D-AVISO); WhatsApp só ao cliente.</p>
+    </div>
+
+    <!-- A7 -->
+    <div id="a7" data-screen-label="A7 Fechado no fim do turno" style="display: flex; flex-direction: column; gap: 14px; width: 390px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">A7</span>
+        <span style="font-size: 15px; font-weight: 600;">Fechado no fim do turno</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">UC-PCV-22</span>
+      </div>
+      <div style="width: 390px; height: 844px; box-sizing: border-box; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>08:02</span><span style="font-size: 11px; color: var(--text-dim);">{{ sinal }}</span></div>
+        <div data-phone-scroll="" style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px;">
+          <div style="padding: 16px; border-radius: 14px; border: 1px solid color-mix(in oklch, var(--warn) 50%, var(--border)); background: color-mix(in oklch, var(--warn) 10%, var(--surface)); display: flex; flex-direction: column; gap: 8px;">
+            <span style="font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--warn);">Ontem · cronômetro esquecido</span>
+            <span style="font-size: 17px; font-weight: 600; line-height: 1.3;">Fechamos a etapa Laminação às 17:52, quando você bateu a saída no ponto.</span>
+            <span style="font-size: 13px; color: var(--text-dim); line-height: 1.45;">OS-2604 · Lanchonete do Zé. Sem marcação de saída, fecharia às {{ turnoFim }} (fim do turno). O PCP foi avisado. Se você parou antes, diga a hora certa — o custo da OS usa o horário corrigido.</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">Quando você parou de verdade?</span>
+            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+              <sc-for list="{{ ajustes }}" as="a" hint-placeholder-count="3">
+                <div role="button" tabIndex="0" onClick="{{ a.ir }}" style="height: 56px; border-radius: 12px; border: 2px solid {{ a.bd }}; background: {{ a.bg }}; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 17px; font-weight: 600; cursor: pointer; box-sizing: border-box;">{{ a.label }}</div>
+              </sc-for>
+            </div>
+          </div>
+          <label style="display: flex; flex-direction: column; gap: 6px;">
+            <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">Justificativa · obrigatória</span>
+            <textarea rows="3" style="padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: var(--font-sans); font-size: 14px; resize: none; box-sizing: border-box;">Esqueci de concluir antes de sair. Terminei a laminação às 17:40.</textarea>
+            <span style="font-size: 12px; color: var(--text-dim);">Vira lançamento manual com sua justificativa. O original fica no histórico.</span>
+          </label>
+        </div>
+        <div style="flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; padding: 12px 16px 26px; background: var(--surface); border-top: 1px solid var(--border);">
+          <div style="height: 56px; border-radius: 12px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600;">Corrigir para {{ ajusteSel }}</div>
+          <div style="height: 48px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: var(--accent);">Está certo, manter 17:52</div>
+        </div>
+      </div>
+      <p style="margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); text-wrap: pretty;">Aparece na primeira abertura do dia seguinte. Fecha pela saída no ponto; sem ela, pelo turno da empresa (D-TURNO — mude no Tweak). Apontado nunca passa da presença no ponto. Nunca apaga o original.</p>
+    </div>
+
+    <!-- A8 -->
+    <div id="a8" data-screen-label="A8 Sem internet" style="display: flex; flex-direction: column; gap: 14px; width: 390px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">A8</span>
+        <span style="font-size: 15px; font-weight: 600;">Sem internet · fila</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">UC-PCV-23</span>
+      </div>
+      <div style="width: 390px; height: 844px; box-sizing: border-box; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>15:48</span><span style="font-size: 11px; color: var(--text-dim);">sem sinal</span></div>
+        <div style="flex-shrink: 0; min-height: 38px; padding: 6px 16px; background: var(--warn); color: oklch(0.22 0.01 80); display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l20 20M8.5 16.5a5 5 0 0 1 7 0M5 13a10 10 0 0 1 5.17-2.8M19 13a10 10 0 0 0-2.3-1.6M12 20h.01"></path></svg>Sem internet desde 15:31 · pode continuar</div>
+        <div data-phone-scroll="" style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px;">
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <span style="font-size: 18px; font-weight: 600;">{{ filaN }} apontamentos no celular</span>
+            <span style="font-size: 13px; color: var(--text-dim); line-height: 1.45;">Saem sozinhos quando a internet voltar, com o horário em que você tocou — não com o horário do envio.</span>
+          </div>
+          <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden;">
+            <sc-for list="{{ filaItens }}" as="f" hint-placeholder-count="3">
+              <div style="min-height: 56px; padding: 8px 14px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-2);">
+                <span style="font-family: var(--font-mono); font-size: 13px; font-weight: 600; width: 44px;">{{ f.h }}</span>
+                <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+                  <span style="font-size: 14px; font-weight: 600;">{{ f.t }}</span>
+                  <span style="font-size: 12px; color: var(--text-dim);">{{ f.s }}</span>
+                </div>
+                <span style="font-size: 11.5px; font-weight: 600; color: {{ f.cor }};">{{ f.st }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); font-size: 12.5px; color: var(--text-dim); line-height: 1.45;">Cada toque leva uma chave única. Se o envio repetir, o servidor descarta a cópia — nada duplica no custo.</div>
+        </div>
+        <div style="flex-shrink: 0; padding: 12px 16px 26px; background: var(--surface); border-top: 1px solid var(--border);">
+          <div role="button" tabIndex="0" onClick="{{ enviarFila }}" style="height: 56px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; cursor: pointer;">{{ filaBtn }}</div>
+        </div>
+      </div>
+      <p style="margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); text-wrap: pretty;">Galpão de gráfica costuma ter ponto cego de Wi-Fi. O operador nunca é bloqueado. Ligue "offline" no Tweak para ver a faixa nas outras telas.</p>
+    </div>
+  </div>
+
+  <!-- ================= INSTALAÇÃO ================= -->
+  <div id="instalacao" style="display: flex; flex-direction: column; gap: 6px; padding-top: 24px; border-top: 1px solid var(--border);">
+    <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Thread 09 · equipe de campo</div>
+    <h2 style="color: var(--text); margin: 0; font-size: 22px; font-weight: 600;">Instalação</h2>
+    <p style="margin: 0; font-size: 13.5px; color: var(--text-dim); max-width: 760px; text-wrap: pretty;">Marcos e Júlio, Fiorino ABC-1D23. A OS só chega aqui quando todas as etapas de fábrica fecham. O protocolo com fotos e assinatura é a prova contra "não foi isso que eu pedi".</p>
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px;"><a href="#v1" style="height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); display: flex; align-items: center; gap: 6px; font-size: 12.5px;"><span style="font-family: var(--font-mono); font-weight: 600; color: var(--accent);">V1</span>Visita</a><span style="color: var(--text-mute); font-size: 13px;">→</span><a href="#i7" style="height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); display: flex; align-items: center; gap: 6px; font-size: 12.5px;"><span style="font-family: var(--font-mono); font-weight: 600; color: var(--accent);">I7</span>Separar</a><span style="color: var(--text-mute); font-size: 13px;">→</span><a href="#i1" style="height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); display: flex; align-items: center; gap: 6px; font-size: 12.5px;"><span style="font-family: var(--font-mono); font-weight: 600; color: var(--accent);">I1</span>Agenda</a><span style="color: var(--text-mute); font-size: 13px;">→</span><a href="#i2" style="height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); display: flex; align-items: center; gap: 6px; font-size: 12.5px;"><span style="font-family: var(--font-mono); font-weight: 600; color: var(--accent);">I2</span>Chegada</a><span style="color: var(--text-mute); font-size: 13px;">→</span><a href="#i3" style="height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); display: flex; align-items: center; gap: 6px; font-size: 12.5px;"><span style="font-family: var(--font-mono); font-weight: 600; color: var(--accent);">I3</span>Checklist</a><span style="color: var(--text-mute); font-size: 13px;">→</span><a href="#i5" style="height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); display: flex; align-items: center; gap: 6px; font-size: 12.5px;"><span style="font-family: var(--font-mono); font-weight: 600; color: var(--accent);">I5</span>Assinatura</a><span style="color: var(--text-mute); font-size: 13px;">→</span><a href="#i6" style="height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); display: flex; align-items: center; gap: 6px; font-size: 12.5px;"><span style="font-family: var(--font-mono); font-weight: 600; color: var(--accent);">I6</span>Protocolo</a><span style="color: var(--text-mute); font-size: 13px;">→</span><a href="#i8" style="height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); display: flex; align-items: center; gap: 6px; font-size: 12.5px;"><span style="font-family: var(--font-mono); font-weight: 600; color: var(--accent);">I8</span>Pesquisa</a><span style="font-size: 12px; color: var(--text-mute); margin-left: 6px;">desvio:</span><a href="#i4" style="height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); display: flex; align-items: center; gap: 6px; font-size: 12.5px;"><span style="font-family: var(--font-mono); font-weight: 600; color: var(--accent);">I4</span>Não instalou</a><span style="font-size: 12px; color: var(--text-mute); margin-left: 6px;">terceiro:</span><a href="#i9" style="height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); display: flex; align-items: center; gap: 6px; font-size: 12.5px;"><span style="font-family: var(--font-mono); font-weight: 600; color: var(--accent);">I9</span>Link</a></div>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 48px 40px; align-items: flex-start;">
+
+    <!-- I1 -->
+    <div id="i1" data-screen-label="I1 Agenda" style="display: flex; flex-direction: column; gap: 14px; width: 390px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">I1</span>
+        <span style="font-size: 15px; font-weight: 600;">Agenda da equipe</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">UC-PCV-24</span>
+      </div>
+      <div style="width: 390px; height: 844px; box-sizing: border-box; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>07:48</span><span style="font-size: 11px; color: var(--text-dim);">{{ sinal }}</span></div>
+        <div style="padding: 8px 16px 12px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Instalação · Marcos + Júlio</div>
+              <div style="font-size: 20px; font-weight: 600; letter-spacing: -0.3px;">Hoje, qua 15 out</div>
+            </div>
+            <span style="font-family: var(--font-mono); font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border); color: var(--text-dim);">ABC-1D23</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); height: 44px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; font-size: 13.5px; font-weight: 600;">
+            <div style="display: flex; align-items: center; justify-content: center; background: var(--accent); color: var(--accent-fg);">Hoje · 3</div>
+            <div style="display: flex; align-items: center; justify-content: center; color: var(--text-dim); border-left: 1px solid var(--border);">Amanhã · 2</div>
+            <div style="display: flex; align-items: center; justify-content: center; color: var(--text-dim); border-left: 1px solid var(--border);">Semana</div>
+          </div>
+        </div>
+        <div data-phone-scroll="" style="flex: 1; overflow-y: auto; padding: 14px 16px 20px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="padding: 14px; border-radius: 14px; border: 2px solid var(--accent); background: color-mix(in oklch, var(--accent) 8%, var(--surface)); display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px;"><span style="font-family: var(--font-mono); font-size: 15px; font-weight: 600;">08:30</span><span style="font-size: 12.5px; color: var(--text-dim);">· 3 h</span><span style="margin-left: auto; font-size: 11.5px; font-weight: 700; color: var(--accent); letter-spacing: 0.6px; text-transform: uppercase;">Próxima · 6 km</span></div>
+            <span style="font-size: 16px; font-weight: 600;">Supermercado Bom Preço</span>
+            <span style="font-size: 12.5px; color: var(--text-dim);">OS-2611 · Fachada em lona 6,00 × 1,60 m · andaime</span>
+            <span style="font-size: 12.5px; color: var(--text-dim);">Av. Brasil, 1200 · Centro</span>
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; margin-top: 4px;">
+              <div style="height: 48px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600;">Abrir no mapa</div>
+              <div style="height: 48px; border-radius: 10px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600;">Abrir</div>
+            </div>
+          </div>
+          <div style="min-height: 72px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); display: flex; gap: 12px;">
+            <span style="font-family: var(--font-mono); font-size: 14px; font-weight: 600; width: 46px;">13:00</span>
+            <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-size: 14px; font-weight: 600;">Clínica Sorriso</span>
+              <span style="font-size: 12px; color: var(--text-dim);">OS-2619 · Adesivo em vidro · 1,5 h</span>
+              <span style="font-size: 12px; font-weight: 600; color: var(--warn);">A confirmar com o cliente</span>
+            </div>
+          </div>
+          <div style="min-height: 72px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); display: flex; gap: 12px;">
+            <span style="font-family: var(--font-mono); font-size: 14px; font-weight: 600; width: 46px;">15:30</span>
+            <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-size: 14px; font-weight: 600;">Academia Fit Mais</span>
+              <span style="font-size: 12px; color: var(--text-dim);">OS-2598 · Placa ACM com iluminação · 2 h</span>
+              <span style="font-size: 12px; color: var(--text-dim);">Levar escada 7 m e furadeira</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p style="margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); text-wrap: pretty;">Agenda por equipe, como o quadro de instalação do shopVOX — mas o que levar (andaime, escada) vem da OS, para não voltar à loja.</p>
+    </div>
+
+    <!-- I2 -->
+    <div id="i2" data-screen-label="I2 Chegada" style="display: flex; flex-direction: column; gap: 14px; width: 390px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">I2</span>
+        <span style="font-size: 15px; font-weight: 600;">Chegada no cliente</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">UC-PCV-24</span>
+      </div>
+      <div style="width: 390px; height: 844px; box-sizing: border-box; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>08:27</span><span style="font-size: 11px; color: var(--text-dim);">{{ sinal }}</span></div>
+        <div style="padding: 4px 8px 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 4px;">
+          <div style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; color: var(--text-dim);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg></div>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+            <span style="font-family: var(--font-mono); font-size: 12px; color: var(--text-dim);">I-118 · OS-2611 · 08:30</span>
+            <span style="font-size: 17px; font-weight: 600;">Supermercado Bom Preço</span>
+          </div>
+        </div>
+        <div data-phone-scroll="" style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px;">
+          <div style="height: 140px; border-radius: 12px; border: 1px solid var(--border); background: repeating-linear-gradient(135deg, var(--surface) 0 12px, var(--bg) 12px 24px); position: relative; display: flex; align-items: flex-end; padding: 10px; box-sizing: border-box;">
+            <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-mute);">mapa · Av. Brasil, 1200 · Centro</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+            <div style="height: 56px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 12px; font-weight: 600;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>Rota</div>
+            <div style="height: 56px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 12px; font-weight: 600;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"></path></svg>Ligar</div>
+            <div style="height: 56px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 12px; font-weight: 600;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.6A8.4 8.4 0 1 1 21 11.5z"></path></svg>WhatsApp</div>
+          </div>
+          <div style="padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); display: flex; flex-direction: column; gap: 6px; font-size: 13px;">
+            <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">Responsável no local</span>
+            <span style="font-size: 14px; font-weight: 600;">Sr. Antônio · gerente</span>
+            <span style="color: var(--text-dim);">Entrar pela doca dos fundos. Loja abre às 8h; montar andaime antes de abrir clientes.</span>
+          </div>
+          <div style="padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); display: flex; align-items: center; gap: 12px;">
+            <div style="width: 52px; height: 52px; border-radius: 8px; background: repeating-linear-gradient(135deg, var(--border) 0 6px, transparent 6px 12px); flex-shrink: 0;"></div>
+            <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-size: 14px; font-weight: 600;">arte-final-v3.pdf</span>
+              <span style="font-size: 12px; color: var(--pos); font-weight: 600;">Versão aprovada</span>
+              <span style="font-size: 12px; color: var(--text-dim);">6,00 × 1,60 m · 2 vias · ilhós a cada 50 cm</span>
+            </div>
+          </div>
+          <div style="padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; gap: 6px; font-size: 13px;">
+            <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">Levar</span>
+            <span style="color: var(--text-dim);">Andaime 2 módulos · parafusadeira · abraçadeira nylon 300 mm · EPI altura</span>
+          </div>
+        </div>
+        <div style="flex-shrink: 0; padding: 12px 16px 26px; background: var(--surface); border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px;">
+          <div style="height: 56px; border-radius: 12px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600;">Cheguei · começar</div>
+          <span style="font-size: 11.5px; color: var(--text-mute); text-align: center;">Registra horário e localização da chegada</span>
+        </div>
+      </div>
+      <p style="margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); text-wrap: pretty;">"Cheguei" abre o cronômetro de instalação — o tempo em campo entra no custo real da OS, como o da fábrica.</p>
+    </div>
+
+    <!-- I3 -->
+    <div id="i3" data-screen-label="I3 Checklist e fotos" style="display: flex; flex-direction: column; gap: 14px; width: 390px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">I3</span>
+        <span style="font-size: 15px; font-weight: 600;">Checklist · fotos</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">UC-PCV-25</span>
+      </div>
+      <div style="width: 390px; height: 844px; box-sizing: border-box; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>10:52</span><span style="font-size: 11px; color: var(--text-dim);">{{ sinal }}</span></div>
+        <div style="padding: 4px 16px 12px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; align-items: baseline; gap: 8px;">
+            <span style="font-size: 17px; font-weight: 600; flex: 1;">Supermercado Bom Preço</span>
+            <span style="font-family: var(--font-mono); font-size: 13px; color: var(--accent); font-weight: 600;">{{ checkFeitos }} de {{ checkTotal }}</span>
+          </div>
+          <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Progress" value="{{ checkFeitos }}" max="{{ checkTotal }}" hint-size="100%,6px"></x-import>
+        </div>
+        <div data-phone-scroll="" style="flex: 1; overflow-y: auto; padding: 14px 16px 20px; display: flex; flex-direction: column; gap: 8px;">
+          <sc-for list="{{ checklist }}" as="c" hint-placeholder-count="6">
+            <div role="button" tabIndex="0" onClick="{{ c.ir }}" style="min-height: 60px; padding: 8px 12px; border-radius: 12px; border: 1px solid {{ c.bd }}; background: var(--surface); display: flex; align-items: center; gap: 12px; cursor: pointer; box-sizing: border-box;">
+              <span style="width: 28px; height: 28px; border-radius: 8px; border: 2px solid {{ c.bd }}; background: {{ c.markBg }}; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; flex-shrink: 0; box-sizing: border-box;">{{ c.mark }}</span>
+              <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+                <span style="font-size: 14px; font-weight: 600;">{{ c.label }}</span>
+                <span style="font-size: 12px; color: var(--text-dim);">{{ c.sub }}</span>
+              </div>
+              <sc-if value="{{ c.foto }}" hint-placeholder-val="{{ false }}">
+                <div style="width: 48px; height: 48px; border-radius: 8px; border: 1px dashed var(--border); background: {{ c.fotoBg }}; display: flex; align-items: center; justify-content: center; color: var(--text-mute); flex-shrink: 0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"></path><circle cx="12" cy="13" r="3"></circle></svg></div>
+              </sc-if>
+            </div>
+          </sc-for>
+          <div style="margin-top: 6px; min-height: 48px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: var(--neg);">Não foi possível instalar</div>
+        </div>
+        <div style="flex-shrink: 0; padding: 12px 16px 26px; background: var(--surface); border-top: 1px solid var(--border);">
+          <div style="height: 56px; border-radius: 12px; background: {{ checkBtnBg }}; color: {{ checkBtnFg }}; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600;">{{ checkBtn }}</div>
+        </div>
+      </div>
+      <p style="margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); text-wrap: pretty;">Interativo: toque nos itens. Foto antes e depois são obrigatórias; sem elas não se colhe a assinatura. A foto já sai com data, hora e local carimbados.</p>
+    </div>
+
+    <!-- I4 -->
+    <div id="i4" data-screen-label="I4 Não foi possível instalar" style="display: flex; flex-direction: column; gap: 14px; width: 390px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">I4</span>
+        <span style="font-size: 15px; font-weight: 600;">Não foi possível instalar</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">novo · UC a criar</span>
+      </div>
+      <div style="width: 390px; height: 844px; box-sizing: border-box; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>13:20</span><span style="font-size: 11px; color: var(--text-dim);">{{ sinal }}</span></div>
+        <div style="flex: 1; background: rgba(0,0,0,0.45); display: flex; flex-direction: column; justify-content: flex-end;">
+          <div style="background: var(--surface); border-top-left-radius: 22px; border-top-right-radius: 22px; padding: 10px 16px 26px; display: flex; flex-direction: column; gap: 14px;">
+            <span style="align-self: center; width: 40px; height: 4px; border-radius: 99px; background: var(--border);"></span>
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-size: 18px; font-weight: 600;">O que impediu?</span>
+              <span style="font-size: 13px; color: var(--text-dim);">Clínica Sorriso · OS-2619. A OS volta para a agenda e o balcão é avisado.</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <sc-for list="{{ impedimentos }}" as="m" hint-placeholder-count="5">
+                <div role="button" tabIndex="0" onClick="{{ m.ir }}" style="min-height: 52px; padding: 0 14px; border-radius: 12px; border: 2px solid {{ m.bd }}; background: {{ m.bg }}; display: flex; align-items: center; font-size: 14px; font-weight: 600; cursor: pointer; box-sizing: border-box;">{{ m.label }}</div>
+              </sc-for>
+            </div>
+            <div style="height: 64px; border-radius: 12px; border: 1px dashed var(--border); display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; color: var(--text-dim);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"></path><circle cx="12" cy="13" r="3"></circle></svg>Foto do local · obrigatória</div>
+            <div style="height: 56px; border-radius: 12px; background: var(--neg); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600;">Registrar e pedir reagendamento</div>
+          </div>
+        </div>
+      </div>
+      <p style="margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); text-wrap: pretty;">Inspirado no recusar-com-comentário do SignAgent. A foto prova a visita perdida; o motivo "cliente ausente" pode virar taxa de nova visita (decisão do Wagner).</p>
+    </div>
+
+    <!-- I5 -->
+    <div id="i5" data-screen-label="I5 Assinatura do cliente" style="display: flex; flex-direction: column; gap: 14px; width: 390px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">I5</span>
+        <span style="font-size: 15px; font-weight: 600;">Assinatura do cliente</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">UC-PCV-25</span>
+      </div>
+      <div style="width: 390px; height: 844px; box-sizing: border-box; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>11:14</span><span style="font-size: 11px; color: var(--text-dim);">{{ sinal }}</span></div>
+        <div data-phone-scroll="" style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px;">
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">Entregue ao cliente · leia junto</span>
+            <span style="font-size: 18px; font-weight: 600;">Fachada em lona 6,00 × 1,60 m</span>
+          </div>
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px;">
+            <div style="display: flex; flex-direction: column; gap: 4px;"><div style="height: 96px; border-radius: 10px; border: 1px solid var(--border); background: repeating-linear-gradient(135deg, var(--surface) 0 10px, var(--bg) 10px 20px);"></div><span style="font-size: 11.5px; color: var(--text-dim);">Antes · 08:41</span></div>
+            <div style="display: flex; flex-direction: column; gap: 4px;"><div style="height: 96px; border-radius: 10px; border: 1px solid var(--border); background: repeating-linear-gradient(135deg, var(--surface) 0 10px, var(--bg) 10px 20px);"></div><span style="font-size: 11.5px; color: var(--text-dim);">Depois · 11:02</span></div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--text-dim);">
+            <span>✓ Medidas conferidas com a arte aprovada</span>
+            <span>✓ Fixação com ilhós e abraçadeira</span>
+            <span>✓ Local limpo, sobras recolhidas</span>
+          </div>
+          <div role="button" tabIndex="0" onClick="{{ assinar }}" style="height: 168px; border-radius: 12px; border: 2px dashed {{ assBd }}; background: var(--surface); position: relative; display: flex; align-items: center; justify-content: center; cursor: pointer; box-sizing: border-box;">
+            <sc-if value="{{ assinado }}" hint-placeholder-val="{{ false }}">
+              <svg width="220" height="80" viewBox="0 0 220 80" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text);"><path d="M10 52c14-30 22-34 24-20s-6 24 2 18 16-30 22-24-4 26 4 22 12-16 18-14 2 14 10 12 14-20 22-18 0 18 8 16 18-12 28-14 18 4 30 2"></path></svg>
+            </sc-if>
+            <sc-if value="{{ naoAssinado }}" hint-placeholder-val="{{ true }}">
+              <span style="font-size: 14px; color: var(--text-mute);">Toque para assinar com o dedo</span>
+            </sc-if>
+            <span style="position: absolute; left: 16px; right: 16px; bottom: 28px; border-bottom: 1px solid var(--border);"></span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <span style="font-size: 14px; font-weight: 600;">Antônio Ferreira · gerente</span>
+            <span style="font-size: 12px; color: var(--text-dim);">O protocolo vai para o WhatsApp (47) 9 9812-4410</span>
+          </div>
+          <div style="padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); display: flex; flex-direction: column; gap: 8px;">
+            <span style="font-size: 13px; font-weight: 600;">Código enviado ao WhatsApp do Antônio</span>
+            <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px;">
+              <div style="height: 52px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 22px; font-weight: 600;">4</div>
+              <div style="height: 52px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 22px; font-weight: 600;">8</div>
+              <div style="height: 52px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 22px; font-weight: 600;">1</div>
+              <div style="height: 52px; border-radius: 10px; border: 2px solid var(--accent); background: var(--bg); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 22px; font-weight: 600;"></div>
+            </div>
+            <span style="font-size: 11.5px; color: var(--text-dim); line-height: 1.4;">Prova que quem assinou tem o celular do cliente. Sem sinal: assina só com o dedo e o código vai depois, por link.</span>
+          </div>
+        </div>
+        <div style="flex-shrink: 0; padding: 12px 16px 26px; background: var(--surface); border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px;">
+          <div style="height: 56px; border-radius: 12px; background: {{ assBtnBg }}; color: {{ assBtnFg }}; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600;">Concluir instalação</div>
+          <span role="button" tabIndex="0" onClick="{{ limparAss }}" style="min-height: 32px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: var(--accent); cursor: pointer;">Limpar assinatura</span>
+        </div>
+      </div>
+      <p style="margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); text-wrap: pretty;">O cliente vê fotos e checklist antes de assinar. Prova máxima (decisão W): traço do dedo + código no WhatsApp do cliente + local, hora e aparelho + hash do PDF. Interativo: toque na área.</p>
+    </div>
+
+    <!-- I6 -->
+    <div id="i6" data-screen-label="I6 Protocolo enviado" style="display: flex; flex-direction: column; gap: 14px; width: 390px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">I6</span>
+        <span style="font-size: 15px; font-weight: 600;">Protocolo enviado</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">UC-PCV-25</span>
+      </div>
+      <div style="width: 390px; height: 844px; box-sizing: border-box; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>11:16</span><span style="font-size: 11px; color: var(--text-dim);">{{ sinal }}</span></div>
+        <div data-phone-scroll="" style="flex: 1; overflow-y: auto; padding: 24px 20px 20px; display: flex; flex-direction: column; gap: 18px;">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;">
+            <span style="width: 72px; height: 72px; border-radius: 99px; background: color-mix(in oklch, var(--pos) 18%, transparent); color: var(--pos); display: flex; align-items: center; justify-content: center;"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span>
+            <span style="font-size: 22px; font-weight: 600;">Instalação concluída</span>
+            <span style="font-size: 13px; color: var(--text-dim);">Protocolo enviado ao Antônio por WhatsApp e anexado à OS-2611.</span>
+          </div>
+          <div style="padding: 16px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); display: flex; flex-direction: column; gap: 10px; font-size: 12.5px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.RegistrationMark" size="{{ 18 }}" hint-size="18px,18px"></x-import>
+              <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600;">PROTOCOLO I-118 · PDF</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 4px 10px; color: var(--text-dim);">
+              <span>Cliente</span><span style="color: var(--text);">Supermercado Bom Preço</span>
+              <span>Serviço</span><span style="color: var(--text);">Fachada em lona 6,00 × 1,60 m</span>
+              <span>Equipe</span><span style="color: var(--text);">Marcos + Júlio</span>
+              <span>Em campo</span><span style="color: var(--text); font-family: var(--font-mono);">08:27 → 11:14 · 2,8 h</span>
+              <span>Fotos</span><span style="color: var(--text);">2 antes · 2 depois</span>
+              <span>Assinou</span><span style="color: var(--text);">Antônio Ferreira · 11:14</span>
+              <span>Código</span><span style="color: var(--text);">confirmado no WhatsApp · ••4410</span>
+              <span>Local</span><span style="color: var(--text); font-family: var(--font-mono);">-26,9194 -49,0661 · ±8 m</span>
+              <span>Veículo</span><span style="color: var(--text);">Fiorino ABC-1D23 · 14 km · 3,1 h</span>
+              <span>Hash PDF</span><span style="color: var(--text); font-family: var(--font-mono);">sha256 9f3a…c71e</span>
+            </div>
+          </div>
+          <div style="padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); font-size: 12.5px; color: var(--text-dim); line-height: 1.45;">A OS-2611 foi para <b style="color: var(--text);">Entregue</b>. O financeiro já pode cobrar o saldo.</div>
+        </div>
+        <div style="flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; padding: 12px 16px 26px; background: var(--surface); border-top: 1px solid var(--border);">
+          <div style="height: 56px; border-radius: 12px; background: var(--accent); color: var(--accent-fg); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 15px; font-weight: 600;">Próxima: Clínica Sorriso<span style="font-family: var(--font-mono); font-size: 11.5px; font-weight: 500; opacity: 0.85;">13:00 · 4 km · a confirmar</span></div>
+          <div style="height: 48px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: var(--accent);">Ver protocolo</div>
+        </div>
+      </div>
+      <p style="margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); text-wrap: pretty;">O WhatsApp sai do servidor, não do celular do instalador — funciona mesmo que ele não tenha o número salvo.</p>
+    </div>
+
+    <!-- I9 -->
+    <div id="i9" data-screen-label="I9 Instalador terceirizado" style="display: flex; flex-direction: column; gap: 14px; width: 390px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">I9</span>
+        <span style="font-size: 15px; font-weight: 600;">Instalador terceirizado</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">UC a criar</span>
+      </div>
+      <div style="width: 390px; height: 844px; box-sizing: border-box; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>07:30</span><span style="font-size: 11px; color: var(--text-dim);">4G ▮▮</span></div>
+        <div style="flex-shrink: 0; margin: 0 12px; height: 36px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 12px; color: var(--text-dim);">wr2.oimpresso.com/i/R8X4T</div>
+        <div data-phone-scroll="" style="flex: 1; overflow-y: auto; padding: 18px 16px; display: flex; flex-direction: column; gap: 14px;">
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">WR2 Comunicação Visual · serviço contratado</span>
+            <span style="font-size: 20px; font-weight: 600;">Olá, Rogério</span>
+            <span style="font-size: 13px; color: var(--text-dim);">Sem conta e sem senha. Este link só abre esta instalação e expira quando ela for concluída.</span>
+          </div>
+          <div style="padding: 14px; border-radius: 14px; border: 2px solid var(--accent); background: color-mix(in oklch, var(--accent) 8%, var(--surface)); display: flex; flex-direction: column; gap: 6px;">
+            <span style="font-family: var(--font-mono); font-size: 13px; font-weight: 600;">Sex 17/10 · 08:00 · 4 h</span>
+            <span style="font-size: 16px; font-weight: 600;">Rede Farma Sul · loja 12</span>
+            <span style="font-size: 12.5px; color: var(--text-dim);">Adesivo de vitrine 8 peças · Rua XV, 450 · Blumenau</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 6px 10px; font-size: 13px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface);">
+            <span style="color: var(--text-dim);">Valor combinado</span><span style="font-family: var(--font-mono); font-weight: 600;">R$ 480,00</span>
+            <span style="color: var(--text-dim);">Pagamento</span><span>Pix em até 5 dias após o protocolo</span>
+            <span style="color: var(--text-dim);">Material</span><span>Retirar na WR2 quinta até 18h</span>
+            <span style="color: var(--text-dim);">Contato</span><span>Larissa · balcão</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--text-dim);">
+            <span>✓ Arte aprovada e medidas · abrir PDF</span>
+            <span>✓ Mesmo checklist, fotos e assinatura da equipe (I3–I5)</span>
+            <span>✓ Não vê preço de venda, outros clientes nem a OS inteira</span>
+          </div>
+        </div>
+        <div style="flex-shrink: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; padding: 12px 16px 26px; background: var(--surface); border-top: 1px solid var(--border);">
+          <div role="button" tabIndex="0" style="height: 56px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600;">Recusar</div>
+          <div role="button" tabIndex="0" style="height: 56px; border-radius: 12px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600;">Aceitar serviço</div>
+        </div>
+      </div>
+      <p style="margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); text-wrap: pretty;">Mesmo mecanismo do link com código (D-PROVA). O custo da OS recebe o valor combinado, não horas; o protocolo concluído gera a conta a pagar do terceiro.</p>
+    </div>
+  </div>
+
+  <!-- ================= LOTE 2 ================= -->
+  <div id="lote2" style="display: flex; flex-direction: column; gap: 6px; padding-top: 24px; border-top: 1px solid var(--border);">
+    <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Lote 2 · além da paridade</div>
+    <h2 style="color: var(--text); margin: 0; font-size: 22px; font-weight: 600;">Máquina, mídia, campo e cliente</h2>
+    <p style="margin: 0; font-size: 13.5px; color: var(--text-dim); max-width: 760px; text-wrap: pretty;">Telas que fecham as lacunas contra Holdprint, Zênite e Mubisys. Cada uma pede UC novo no <span style="font-family: var(--font-mono); font-size: 12.5px;">Producao.casos.md</span> antes de virar thread.</p>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 48px 40px; align-items: flex-start;">
+
+    <!-- A9 -->
+    <div id="a9" data-screen-label="A9 Mídia pelo RIP" style="display: flex; flex-direction: column; gap: 14px; width: 390px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">A9</span>
+        <span style="font-size: 15px; font-weight: 600;">Mídia confirmada pelo RIP</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">UC a criar</span>
+      </div>
+      <div style="width: 390px; height: 844px; box-sizing: border-box; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>13:03</span><span style="font-size: 11px; color: var(--text-dim);">{{ sinal }}</span></div>
+        <div style="padding: 4px 16px 12px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column;">
+          <span style="font-family: var(--font-mono); font-size: 12px; color: var(--text-dim);">OS-2611 · Supermercado Bom Preço</span>
+          <span style="font-size: 17px; font-weight: 600;">Impressão eco-solvente</span>
+        </div>
+        <div data-phone-scroll="" style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px;">
+          <div style="padding: 16px; border-radius: 14px; border: 2px solid {{ rip.bd }}; background: var(--surface); display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.RegistrationMark" size="{{ 18 }}" hint-size="18px,18px"></x-import>
+              <span style="font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-mute);">O RIP registrou · 13:02</span>
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 8px;"><span style="font-family: var(--font-mono); font-size: 40px; font-weight: 600; line-height: 1;">19,4</span><span style="font-size: 15px; color: var(--text-dim);">m² impressos</span></div>
+            <div style="display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 4px 10px; font-size: 12.5px; color: var(--text-dim);">
+              <span>Arquivo</span><span style="color: var(--text); font-family: var(--font-mono); font-size: 12px;">bompreco_fachada_v3.pdf</span>
+              <span>Máquina</span><span style="color: var(--text);">Roland VG3-640</span>
+              <span>Mídia</span><span style="color: var(--text);">Lona 440 g · 3,20 m</span>
+              <span>Tinta</span><span style="color: var(--text);">CMYK 214 ml</span>
+              <span>Previsto</span><span style="color: var(--text);">19,2 m² · <span style="color: var(--warn); font-weight: 600;">+0,2 m²</span></span>
+            </div>
+          </div>
+          <div style="padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); font-size: 12.5px; color: var(--text-dim); line-height: 1.45;">Você não digita mais os m². Só confirma — ou corrige se o RIP contou um teste de cor que foi para o lixo.</div>
+          <sc-if value="{{ rip.ok }}" hint-placeholder-val="{{ false }}">
+            <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Alert" tone="success" title="Baixa feita" hint-size="100%,64px">19,4 m² de Lona 440 g saíram do estoque da OS-2611.</x-import>
+          </sc-if>
+        </div>
+        <div style="flex-shrink: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; padding: 12px 16px 26px; background: var(--surface); border-top: 1px solid var(--border);">
+          <div style="height: 56px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600;">Corrigir</div>
+          <div role="button" tabIndex="0" onClick="{{ rip.confirmar }}" style="height: 56px; border-radius: 12px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; cursor: pointer;">{{ rip.btn }}</div>
+        </div>
+      </div>
+      <p style="margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); text-wrap: pretty;">Alcança a Zênite (coleta da máquina) sem perder o controle humano. Sem RIP integrado, a tela cai no campo manual do A3.</p>
+    </div>
+
+    <!-- A10 -->
+    <div id="a10" data-screen-label="A10 Imprimir junto" style="display: flex; flex-direction: column; gap: 14px; width: 390px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">A10</span>
+        <span style="font-size: 15px; font-weight: 600;">Imprimir junto</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">UC-PCV-09 · 26</span>
+      </div>
+      <div style="width: 390px; height: 844px; box-sizing: border-box; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>13:14</span><span style="font-size: 11px; color: var(--text-dim);">{{ sinal }}</span></div>
+        <div style="padding: 8px 16px 12px; border-bottom: 1px solid var(--border);">
+          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Impressão · Roland VG3-640</div>
+          <div style="font-size: 20px; font-weight: 600;">Minhas etapas</div>
+        </div>
+        <div data-phone-scroll="" style="flex: 1; overflow-y: auto; padding: 14px 16px 20px; display: flex; flex-direction: column; gap: 12px;">
+          <sc-if value="{{ junto.pendente }}" hint-placeholder-val="{{ true }}">
+            <div style="padding: 14px; border-radius: 14px; border: 1px solid color-mix(in oklch, var(--accent) 45%, var(--border)); background: color-mix(in oklch, var(--accent) 8%, var(--surface)); display: flex; flex-direction: column; gap: 10px;">
+              <span style="font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--accent);">Sugestão do PCP</span>
+              <span style="font-size: 16px; font-weight: 600; line-height: 1.3;">Imprima a OS-2622 logo depois — mesma lona, sem trocar bobina.</span>
+              <span style="font-size: 12.5px; color: var(--text-dim);">Lona 440 g 3,20 m já está na máquina. Economiza 1 troca (~25 min) e 0,6 m² de sangria.</span>
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px;">
+                <div role="button" tabIndex="0" onClick="{{ junto.nao }}" style="height: 48px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; cursor: pointer;">Agora não</div>
+                <div role="button" tabIndex="0" onClick="{{ junto.sim }}" style="height: 48px; border-radius: 10px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; cursor: pointer;">Juntar</div>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ junto.feito }}" hint-placeholder-val="{{ false }}">
+            <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Alert" tone="{{ junto.tone }}" title="{{ junto.titulo }}" hint-size="100%,64px">{{ junto.msg }}</x-import>
+          </sc-if>
+          <sc-for list="{{ junto.fila }}" as="f" hint-placeholder-count="3">
+            <div style="min-height: 64px; padding: 10px 14px; border: 1px solid {{ f.bd }}; border-radius: 12px; background: var(--surface); display: flex; align-items: center; gap: 12px;">
+              <span style="font-family: var(--font-mono); font-size: 14px; font-weight: 600; width: 46px;">{{ f.h }}</span>
+              <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+                <span style="font-size: 14px; font-weight: 600;">{{ f.t }}</span>
+                <span style="font-size: 12px; color: var(--text-dim);">{{ f.s }}</span>
+              </div>
+              <span style="font-size: 11px; font-weight: 700; color: var(--accent);">{{ f.tag }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <p style="margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); text-wrap: pretty;">Regra simples na V1 (D5): mesma mídia e mesma máquina no dia. O operador aceita; nunca move sozinho (UC-PCV-09). Interativo.</p>
+    </div>
+
+    <!-- A11 -->
+    <div id="a11" data-screen-label="A11 Guardar retalho" style="display: flex; flex-direction: column; gap: 14px; width: 390px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">A11</span>
+        <span style="font-size: 15px; font-weight: 600;">Guardar retalho</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">UC a criar</span>
+      </div>
+      <div style="width: 390px; height: 844px; box-sizing: border-box; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>13:20</span><span style="font-size: 11px; color: var(--text-dim);">{{ sinal }}</span></div>
+        <div style="flex: 1; background: rgba(0,0,0,0.45); display: flex; flex-direction: column; justify-content: flex-end;">
+          <div style="background: var(--surface); border-top-left-radius: 22px; border-top-right-radius: 22px; padding: 10px 16px 26px; display: flex; flex-direction: column; gap: 14px;">
+            <span style="align-self: center; width: 40px; height: 4px; border-radius: 99px; background: var(--border);"></span>
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-size: 18px; font-weight: 600;">Sobrou mídia?</span>
+              <span style="font-size: 13px; color: var(--text-dim);">Lona 440 g · fim da OS-2611. Retalho guardado volta para o estoque fracionado.</span>
+            </div>
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px;">
+              <label style="display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">Largura (m)</span><input inputmode="decimal" value="1,37" style="height: 52px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-family: var(--font-mono); font-size: 20px; box-sizing: border-box; width: 100%;"></label>
+              <label style="display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">Comprimento (m)</span><input inputmode="decimal" value="2,10" style="height: 52px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-family: var(--font-mono); font-size: 20px; box-sizing: border-box; width: 100%;"></label>
+            </div>
+            <div style="padding: 10px 12px; border-radius: 10px; border: 1px solid color-mix(in oklch, var(--pos) 45%, var(--border)); background: color-mix(in oklch, var(--pos) 8%, transparent); font-size: 12.5px; line-height: 1.45;"><b>2,9 m² · serve para 3 OS abertas</b> — OS-2630 banner 1,00 × 2,00 · OS-2633 · OS-2641</div>
+            <sc-if value="{{ sobra.salva }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px dashed var(--border); border-radius: 12px;">
+                <div style="width: 64px; height: 64px; border-radius: 6px; background: repeating-conic-gradient(var(--text) 0 25%, var(--surface) 0 50%) 0 0 / 12px 12px; flex-shrink: 0;"></div>
+                <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-family: var(--font-mono); font-size: 15px; font-weight: 600;">R-0412</span><span style="font-size: 12px; color: var(--text-dim);">Etiqueta enviada à impressora da produção. Cole no rolo.</span></div>
+              </div>
+            </sc-if>
+            <div role="button" tabIndex="0" onClick="{{ sobra.salvar }}" style="height: 56px; border-radius: 12px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; cursor: pointer;">{{ sobra.btn }}</div>
+            <span style="min-height: 32px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: var(--text-dim);">Não sobrou nada aproveitável</span>
+          </div>
+        </div>
+      </div>
+      <p style="margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); text-wrap: pretty;">Abre ao concluir a última etapa de uma mídia. O QR do retalho é lido no A2 quando alguém for usá-lo — e a baixa sai do retalho, não do rolo novo.</p>
+    </div>
+
+    <!-- V1 -->
+    <div id="v1" data-screen-label="V1 Visita técnica" style="display: flex; flex-direction: column; gap: 14px; width: 390px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">V1</span>
+        <span style="font-size: 15px; font-weight: 600;">Visita técnica · medição</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">UC a criar</span>
+      </div>
+      <div style="width: 390px; height: 844px; box-sizing: border-box; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>10:05</span><span style="font-size: 11px; color: var(--text-dim);">{{ sinal }}</span></div>
+        <div style="padding: 4px 16px 12px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column;">
+          <span style="font-family: var(--font-mono); font-size: 12px; color: var(--text-dim);">Visita V-031 · pedido de orçamento</span>
+          <span style="font-size: 17px; font-weight: 600;">Padaria Trigo de Ouro · fachada</span>
+        </div>
+        <div data-phone-scroll="" style="flex: 1; overflow-y: auto; padding: 14px 16px 20px; display: flex; flex-direction: column; gap: 14px;">
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">Fotos do local · {{ visita.fotos }}</span>
+            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px;">
+              <div style="height: 84px; border-radius: 8px; border: 1px solid var(--border); background: repeating-linear-gradient(135deg, var(--surface) 0 8px, var(--bg) 8px 16px);"></div>
+              <div style="height: 84px; border-radius: 8px; border: 1px solid var(--border); background: repeating-linear-gradient(135deg, var(--surface) 0 8px, var(--bg) 8px 16px);"></div>
+              <div role="button" tabIndex="0" onClick="{{ visita.foto }}" style="height: 84px; border-radius: 8px; border: 1px dashed var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 12px; color: var(--text-dim); cursor: pointer;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"></path><circle cx="12" cy="13" r="3"></circle></svg>Foto</div>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+            <label style="display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-mute);">Largura</span><input value="4,80" inputmode="decimal" style="height: 52px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: var(--font-mono); font-size: 18px; box-sizing: border-box; width: 100%;"></label>
+            <label style="display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-mute);">Altura</span><input value="1,20" inputmode="decimal" style="height: 52px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: var(--font-mono); font-size: 18px; box-sizing: border-box; width: 100%;"></label>
+            <label style="display: flex; flex-direction: column; gap: 4px;"><span style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-mute);">Do chão</span><input value="3,10" inputmode="decimal" style="height: 52px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: var(--font-mono); font-size: 18px; box-sizing: border-box; width: 100%;"></label>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">Superfície</span>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+              <sc-for list="{{ visita.paredes }}" as="p" hint-placeholder-count="4">
+                <div role="button" tabIndex="0" onClick="{{ p.ir }}" style="min-height: 44px; padding: 0 14px; border-radius: 99px; border: 2px solid {{ p.bd }}; background: {{ p.bg }}; display: flex; align-items: center; font-size: 13.5px; font-weight: 600; cursor: pointer; box-sizing: border-box;">{{ p.label }}</div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">Acesso para instalar</span>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+              <sc-for list="{{ visita.acessos }}" as="p" hint-placeholder-count="4">
+                <div role="button" tabIndex="0" onClick="{{ p.ir }}" style="min-height: 44px; padding: 0 14px; border-radius: 99px; border: 2px solid {{ p.bd }}; background: {{ p.bg }}; display: flex; align-items: center; font-size: 13.5px; font-weight: 600; cursor: pointer; box-sizing: border-box;">{{ p.label }}</div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); font-size: 12.5px; color: var(--text-dim); line-height: 1.45;">Ponto de energia a 40 cm à direita · calçada estreita, pedir isolamento</div>
+        </div>
+        <div style="flex-shrink: 0; padding: 12px 16px 26px; background: var(--surface); border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px;">
+          <div style="height: 56px; border-radius: 12px; background: var(--accent); color: var(--accent-fg); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 15px; font-weight: 600;">Enviar para orçamento<span style="font-family: var(--font-mono); font-size: 11.5px; font-weight: 500; opacity: 0.85;">5,76 m² · {{ visita.resumo }}</span></div>
+        </div>
+      </div>
+      <p style="margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); text-wrap: pretty;">A medida, a superfície e o acesso já entram no orçamento — e o acesso escolhido vira a lista "Levar" da instalação (I1). Interativo nos chips.</p>
+    </div>
+
+    <!-- I7 -->
+    <div id="i7" data-screen-label="I7 Ferramentas e veículo" style="display: flex; flex-direction: column; gap: 14px; width: 390px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">I7</span>
+        <span style="font-size: 15px; font-weight: 600;">Ferramentas e veículo</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">UC a criar</span>
+      </div>
+      <div style="width: 390px; height: 844px; box-sizing: border-box; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>07:52</span><span style="font-size: 11px; color: var(--text-dim);">{{ sinal }}</span></div>
+        <div style="padding: 4px 16px 12px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 2px;">
+          <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Saída · 3 instalações hoje</span>
+          <div style="display: flex; align-items: baseline; gap: 8px;"><span style="font-size: 20px; font-weight: 600; flex: 1;">Separar o que levar</span><span style="font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--accent);">{{ ferr.feitos }} de {{ ferr.total }}</span></div>
+        </div>
+        <div data-phone-scroll="" style="flex: 1; overflow-y: auto; padding: 14px 16px 20px; display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface);">
+            <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.PlacaVeiculo" placa="ABC1D23" uf="SC" size="sm" hint-size="96px,32px"></x-import>
+            <div style="flex: 1; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 14px; font-weight: 600;">Fiorino</span><span style="font-size: 12px; color: var(--text-dim);">km de saída</span></div>
+            <input value="84.210" inputmode="numeric" style="width: 96px; height: 48px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-family: var(--font-mono); font-size: 16px; text-align: right; box-sizing: border-box;">
+          </div>
+          <sc-for list="{{ ferr.itens }}" as="c" hint-placeholder-count="5">
+            <div role="button" tabIndex="0" onClick="{{ c.ir }}" style="min-height: 60px; padding: 8px 12px; border-radius: 12px; border: 1px solid {{ c.bd }}; background: var(--surface); display: flex; align-items: center; gap: 12px; cursor: pointer; box-sizing: border-box;">
+              <span style="width: 28px; height: 28px; border-radius: 8px; border: 2px solid {{ c.bd }}; background: {{ c.markBg }}; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; flex-shrink: 0; box-sizing: border-box;">{{ c.mark }}</span>
+              <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+                <span style="font-size: 14px; font-weight: 600;">{{ c.label }}</span>
+                <span style="font-size: 12px; color: var(--text-dim);">{{ c.sub }}</span>
+              </div>
+              <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">{{ c.cod }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="flex-shrink: 0; display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 8px; padding: 12px 16px 26px; background: var(--surface); border-top: 1px solid var(--border);">
+          <div style="height: 56px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); display: flex; align-items: center; justify-content: center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"></path></svg></div>
+          <div style="height: 56px; border-radius: 12px; background: {{ ferr.btnBg }}; color: {{ ferr.btnFg }}; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600;">{{ ferr.btn }}</div>
+        </div>
+      </div>
+      <p style="margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); text-wrap: pretty;">A lista vem do acesso registrado na visita (V1) e de cada OS do dia. Ler o QR da ferramenta marca o item; na volta, o que não voltou fica no nome da equipe.</p>
+    </div>
+
+    <!-- I8 -->
+    <div id="i8" data-screen-label="I8 Pesquisa de satisfação" style="display: flex; flex-direction: column; gap: 14px; width: 390px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">I8</span>
+        <span style="font-size: 15px; font-weight: 600;">Pesquisa · celular do cliente</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">UC a criar</span>
+      </div>
+      <div style="width: 390px; height: 844px; box-sizing: border-box; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>16:30</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
+        <div style="flex-shrink: 0; margin: 0 12px; height: 36px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 12px; color: var(--text-dim);">wr2.oimpresso.com/os/K7Q2M</div>
+        <div data-phone-scroll="" style="flex: 1; overflow-y: auto; padding: 20px 18px; display: flex; flex-direction: column; gap: 18px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Avatar" name="WR2 Comunicação Visual" size="md" hint-size="36px,36px"></x-import>
+            <div style="display: flex; flex-direction: column;"><span style="font-size: 14px; font-weight: 600;">WR2 Comunicação Visual</span><span style="font-size: 12px; color: var(--text-dim);">OS-2611 · Fachada em lona</span></div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <span style="font-size: 22px; font-weight: 600; line-height: 1.25;">Antônio, como foi a instalação de hoje?</span>
+            <span style="font-size: 13.5px; color: var(--text-dim);">Marcos e Júlio · 08:27 às 11:14</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px;">
+            <sc-for list="{{ nps.notas }}" as="n" hint-placeholder-count="5">
+              <div role="button" tabIndex="0" onClick="{{ n.ir }}" style="height: 64px; border-radius: 12px; border: 2px solid {{ n.bd }}; background: {{ n.bg }}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; box-sizing: border-box;"><span style="font-family: var(--font-mono); font-size: 20px; font-weight: 600;">{{ n.v }}</span><span style="font-size: 10px; color: var(--text-dim);">{{ n.l }}</span></div>
+            </sc-for>
+          </div>
+          <sc-if value="{{ nps.temNota }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <span style="font-size: 14px; font-weight: 600;">{{ nps.pergunta }}</span>
+              <textarea rows="3" placeholder="Opcional" style="padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: var(--font-sans); font-size: 14px; resize: none; box-sizing: border-box;"></textarea>
+            </div>
+          </sc-if>
+          <div style="padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); display: flex; align-items: center; gap: 10px; font-size: 13px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path></svg><span style="flex: 1;">Protocolo de instalação · PDF</span><span style="color: var(--accent); font-weight: 600;">Abrir</span></div>
+        </div>
+        <div style="flex-shrink: 0; padding: 12px 16px 26px; background: var(--surface); border-top: 1px solid var(--border);">
+          <div style="height: 56px; border-radius: 12px; background: {{ nps.btnBg }}; color: {{ nps.btnFg }}; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600;">Enviar</div>
+        </div>
+      </div>
+      <p style="margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); text-wrap: pretty;">Mesma página com código do Repair (D-PROVA), sem login. Nota 1–2 abre alerta para o gestor no mesmo dia; 5 pede avaliação no Google. Interativo.</p>
+    </div>
+
+    <!-- L1 -->
+    <div id="l1" data-screen-label="L1 Início com alertas de produção" style="display: flex; flex-direction: column; gap: 14px; width: 390px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--text-mute); padding: 2px 8px; border-radius: 6px;">L1</span>
+        <span style="font-size: 15px; font-weight: 600;">Início · alertas de produção</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">app das lojas · Inicio.tsx</span>
+      </div>
+      <div style="width: 390px; height: 844px; box-sizing: border-box; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
+        <div style="padding: 8px 16px 12px; border-bottom: 1px solid var(--border);">
+          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Início · Hoje, 15 out</div>
+          <div style="font-size: 22px; font-weight: 600; letter-spacing: -0.4px;">Bom dia, Wagner</div>
+        </div>
+        <div data-phone-scroll="" style="flex: 1; overflow-y: auto; padding: 14px 16px 20px; display: flex; flex-direction: column; gap: 14px;">
+          <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.KpiCard" hero="{{ true }}" label="Faturamento do mês" value="R$ 184.300" description="Ponto de equilíbrio batido no dia 11 · margem 31%" progress="{{ 74 }}" hint-size="100%,120px"></x-import>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; align-items: baseline;"><span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Produção agora</span><span style="margin-left: auto; font-size: 12px; color: var(--accent);">Abrir quadro</span></div>
+            <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden;">
+              <div style="min-height: 56px; padding: 8px 14px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-2);"><span style="width: 8px; height: 8px; border-radius: 99px; background: var(--neg);"></span><div style="flex: 1; display: flex; flex-direction: column;"><span style="font-size: 13.5px; font-weight: 600;">2 OS atrasadas</span><span style="font-size: 11.5px; color: var(--text-dim);">OS-2619 Clínica Sorriso · OS-2604</span></div></div>
+              <div style="min-height: 56px; padding: 8px 14px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-2);"><span style="width: 8px; height: 8px; border-radius: 99px; background: var(--warn);"></span><div style="flex: 1; display: flex; flex-direction: column;"><span style="font-size: 13.5px; font-weight: 600;">1 parada esperando arte</span><span style="font-size: 11.5px; color: var(--text-dim);">OS-2608 · link reenviado há 2 dias</span></div></div>
+              <div style="min-height: 56px; padding: 8px 14px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-2);"><span style="width: 8px; height: 8px; border-radius: 99px; background: var(--warn);"></span><div style="flex: 1; display: flex; flex-direction: column;"><span style="font-size: 13.5px; font-weight: 600;">Roland VG3-640 acima do turno</span><span style="font-size: 11.5px; color: var(--text-dim);">11,2 h programadas para 10 h</span></div></div>
+              <div style="min-height: 56px; padding: 8px 14px; display: flex; align-items: center; gap: 12px;"><span style="width: 8px; height: 8px; border-radius: 99px; background: var(--neg);"></span><div style="flex: 1; display: flex; flex-direction: column;"><span style="font-size: 13.5px; font-weight: 600;">Nota 2 na pesquisa</span><span style="font-size: 11.5px; color: var(--text-dim);">Auto Peças Rota · "atrasaram 1 hora"</span></div></div>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">Refugo</span><span style="font-family: var(--font-mono); font-size: 18px; font-weight: 500;">2,8%</span><span style="font-size: 11px; color: var(--text-dim);">da mídia · mês</span></div>
+            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">Instalações</span><span style="font-family: var(--font-mono); font-size: 18px; font-weight: 500;">3</span><span style="font-size: 11px; color: var(--text-dim);">hoje</span></div>
+            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">Nota média</span><span style="font-family: var(--font-mono); font-size: 18px; font-weight: 500;">4,6</span><span style="font-size: 11px; color: var(--text-dim);">31 respostas</span></div>
+          </div>
+        </div>
+      </div>
+      <p style="margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); text-wrap: pretty;">Esta vai no <a href="Oimpresso Mobile.dc.html#s01">Início do app das lojas</a> (tela 01), não na PWA. Cada alerta tem uma ação e some quando resolve — sem alerta decorativo (UC-PCV-01).</p>
+    </div>
+  </div>
+
+  <!-- T1 Terminal -->
+  <div id="t1" data-screen-label="T1 Terminal fixo na máquina" style="display: flex; flex-direction: column; gap: 14px;">
+    <div style="display: flex; align-items: baseline; gap: 10px;">
+      <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">T1</span>
+      <span style="font-size: 15px; font-weight: 600;">Terminal fixo na máquina · tablet</span>
+      <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">UC-PCV-19 · 20 · romaneio</span>
+    </div>
+    <div style="width: 1080px; height: 740px; box-sizing: border-box; border-radius: 32px; border: 14px solid #0b0b0e; background: var(--bg); overflow: hidden; display: grid; grid-template-columns: 420px minmax(0, 1fr); box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+      <div style="border-right: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0;">
+        <div style="padding: 20px 22px 14px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 2px;">
+          <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Romaneio · qua 15 out</span>
+          <span style="font-size: 22px; font-weight: 600;">Roland VG3-640</span>
+          <span style="font-size: 13px; color: var(--text-dim);">Lona 440 g 3,20 m carregada · 9,6 de 10 h programadas</span>
+        </div>
+        <div data-phone-scroll="" style="flex: 1; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;">
+          <sc-for list="{{ terminal.fila }}" as="f" hint-placeholder-count="5">
+            <div style="min-height: 64px; padding: 10px 14px; border: {{ f.bdw }} solid {{ f.bd }}; border-radius: 12px; background: var(--surface); display: flex; align-items: center; gap: 12px;">
+              <span style="font-family: var(--font-mono); font-size: 15px; font-weight: 600; width: 50px; color: {{ f.hc }};">{{ f.h }}</span>
+              <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+                <span style="font-size: 14.5px; font-weight: 600;">{{ f.t }}</span>
+                <span style="font-size: 12px; color: var(--text-dim);">{{ f.s }}</span>
+              </div>
+              <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.4px; color: {{ f.tc }};">{{ f.tag }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; padding: 28px 32px; gap: 22px; min-width: 0;">
+        <div style="display: flex; align-items: center; gap: 14px; padding: 18px 20px; border-radius: 16px; border: 2px solid var(--accent); background: color-mix(in oklch, var(--accent) 8%, var(--surface));">
+          <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Avatar" name="Diego Ramos" size="lg" hint-size="44px,44px"></x-import>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+            <span style="font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--accent);">Rodando agora · Diego</span>
+            <span style="font-size: 20px; font-weight: 600;">OS-2611 · Impressão eco-solvente</span>
+            <span style="font-size: 13px; color: var(--text-dim);">Supermercado Bom Preço · arte-final-v3.pdf aprovada</span>
+          </div>
+          <span style="font-family: var(--font-mono); font-size: 40px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--accent);">{{ crono.txt }}</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;">
+          <div role="button" tabIndex="0" onClick="{{ crono.toggle }}" style="height: 88px; border-radius: 16px; border: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 600; cursor: pointer;">{{ crono.btn }}</div>
+          <div style="height: 88px; border-radius: 16px; border: 1px dashed color-mix(in oklch, var(--neg) 55%, var(--border)); color: var(--neg); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 600;">Refugo</div>
+          <div style="height: 88px; border-radius: 16px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 600;">Concluir</div>
+        </div>
+        <div style="flex: 1; border-radius: 16px; border: 1px dashed var(--border); display: grid; grid-template-columns: 160px minmax(0, 1fr); align-items: center; gap: 24px; padding: 24px;">
+          <div style="width: 160px; height: 160px; border-radius: 16px; background: repeating-linear-gradient(135deg, var(--surface) 0 10px, var(--bg) 10px 20px); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 12px; color: var(--text-mute);">câmera</div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <span style="font-size: 24px; font-weight: 600; line-height: 1.25;">Trocou de operador?<br>Mostre o crachá para a câmera.</span>
+            <span style="font-size: 14px; color: var(--text-dim); line-height: 1.5;">Cada um entra com o próprio QR — o tempo fica no nome certo. Quem não tem crachá digita o PIN de 4 dígitos.</span>
+            <div style="display: flex; gap: 8px; margin-top: 6px;"><div style="height: 52px; padding: 0 18px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; font-size: 15px; font-weight: 600;">Digitar PIN</div><div style="height: 52px; padding: 0 18px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; font-size: 15px; font-weight: 600;">Ler etiqueta da OS</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p style="margin: 0; max-width: 1080px; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); text-wrap: pretty;">Para quem não pode usar o celular pessoal na produção. Mesma PWA em modo terminal: fica presa à máquina, mostra o romaneio do dia e troca de operador pelo crachá. Botões de 88px para ler a 1 m de distância. O cronômetro é o mesmo do A3 (interativo).</p>
+  </div>
+  <!-- E1 E2 etiquetas -->
+  <div id="e1" data-screen-label="E1 E2 Etiquetas" style="display: flex; flex-direction: column; gap: 14px;">
+    <div style="display: flex; align-items: baseline; gap: 10px;">
+      <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">E1 · E2</span>
+      <span style="font-size: 15px; font-weight: 600;">Etiqueta configurável por empresa</span>
+      <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">thread 05 · D-ETIQUETA</span>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-start;">
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <span style="font-size: 12.5px; color: var(--text-dim);">E1 · térmica 100 × 50 mm · um QR por etapa · empresa grande</span>
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.ProofFrame" crop-marks="{{ true }}" padding="{{ 28 }}" hint-size="456px,256px">
+          <div style="width: 400px; height: 200px; box-sizing: border-box; background: #ffffff; color: #111; border-radius: 4px; padding: 14px 16px; display: flex; gap: 14px; font-family: var(--font-sans);">
+            <div style="width: 120px; height: 120px; flex-shrink: 0; background: repeating-conic-gradient(#111 0 25%, #fff 0 50%) 0 0 / 15px 15px; outline: 4px solid #fff;"></div>
+            <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px;">
+              <span style="font-family: var(--font-mono); font-size: 22px; font-weight: 700; letter-spacing: -0.5px;">OS-2611</span>
+              <span style="font-size: 15px; font-weight: 700;">2/5 · Impressão</span>
+              <span style="font-size: 12px;">Roland VG3-640 · Lona 440 g</span>
+              <span style="font-size: 12px;">Supermercado Bom Preço</span>
+              <span style="margin-top: auto; font-family: var(--font-mono); font-size: 12px; font-weight: 700; padding: 3px 6px; border: 2px solid #111; align-self: flex-start;">ENTREGA 16/10</span>
+            </div>
+          </div>
+        </x-import>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <span style="font-size: 12.5px; color: var(--text-dim);">E2 · faixa da folha A4 · um QR por OS · empresa pequena</span>
+        <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.ProofFrame" crop-marks="{{ true }}" padding="{{ 28 }}" hint-size="616px,276px">
+          <div style="width: 560px; height: 220px; box-sizing: border-box; background: #ffffff; color: #111; border-radius: 4px; padding: 16px 18px; display: flex; gap: 18px; font-family: var(--font-sans);">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;"><div style="width: 132px; height: 132px; flex-shrink: 0; background: repeating-conic-gradient(#111 0 25%, #fff 0 50%) 0 0 / 17px 17px; outline: 4px solid #fff;"></div><span style="font-family: var(--font-mono); font-size: 11px;">abre "escolha sua etapa"</span></div>
+            <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: baseline; gap: 10px;"><span style="font-family: var(--font-mono); font-size: 20px; font-weight: 700;">OS-2611</span><span style="font-size: 12px;">Supermercado Bom Preço · entrega 16/10</span></div>
+              <div style="display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 4px 8px; font-size: 12.5px; align-items: center;">
+                <span style="width: 12px; height: 12px; border: 1.5px solid #111;"></span><span>1 · Arte</span><span style="font-family: var(--font-mono);">Larissa</span>
+                <span style="width: 12px; height: 12px; border: 1.5px solid #111;"></span><span>2 · Impressão · Roland VG3-640</span><span style="font-family: var(--font-mono);">9,6 h</span>
+                <span style="width: 12px; height: 12px; border: 1.5px solid #111;"></span><span>3 · Laminação</span><span style="font-family: var(--font-mono);">1,2 h</span>
+                <span style="width: 12px; height: 12px; border: 1.5px solid #111;"></span><span>4 · Acabamento · ilhós 50 cm</span><span style="font-family: var(--font-mono);">0,8 h</span>
+                <span style="width: 12px; height: 12px; border: 1.5px solid #111;"></span><span>5 · Instalação · andaime</span><span style="font-family: var(--font-mono);">3 h</span>
+              </div>
+            </div>
+          </div>
+        </x-import>
+      </div>
+    </div>
+    <p style="margin: 0; max-width: 1080px; font-size: 12.5px; line-height: 1.5; color: var(--text-dim); text-wrap: pretty;">Preto sobre branco e QR com margem branca, para ler em chão escuro e etiqueta suja. E1 já aponta a etapa (A2 abre direto); E2 serve a quem imprime a OS em A4 — o QR abre a lista e o operador toca na etapa dele. A data de entrega fica em caixa, legível a 2 m.</p>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;'dark'|'light'&quot;},&quot;rede&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;online&quot;,&quot;offline&quot;],&quot;default&quot;:&quot;online&quot;,&quot;tsType&quot;:&quot;'online'|'offline'&quot;,&quot;section&quot;:&quot;Estado&quot;},&quot;turnoFim&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;18:00&quot;,&quot;17:00&quot;,&quot;22:00&quot;],&quot;default&quot;:&quot;18:00&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Estado&quot;}}">
+class Component extends DCLogic {
+  state = {
+    rodando: true, seg: 2 * 3600 + 14 * 60 + 8, m2: '58',
+    log: [{ h: '09:12', t: 'Retomou' }, { h: '08:05', t: 'Iniciou' }],
+    pausa: 'bobina', refMot: 'defeito', refM2: 1.2, refugo: 0,
+    ajuste: '17:40', check: { 0: true, 1: true, 2: true }, assinado: false,
+    impedimento: 'ausente', enviado: false,
+    ripOk: false, junto: null, sobra: false, parede: 'alvenaria', acesso: 'andaime', fotosVisita: 2,
+    ferr: { 0: true, 3: true }, nota: 0,
+  };
+  componentDidMount() { this.t = setInterval(() => { if (this.state.rodando) this.setState(s => ({ seg: s.seg + 1 })); }, 1000); }
+  componentWillUnmount() { clearInterval(this.t); }
+  agora() { return new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); }
+  marca(t) { this.setState(s => ({ log: [{ h: this.agora(), t }, ...s.log].slice(0, 5) })); }
+  chips(list, sel, key, tone) {
+    const c = tone || 'var(--accent)';
+    return list.map(([id, label]) => ({
+      label, ir: () => this.setState({ [key]: id }),
+      bd: sel === id ? c : 'var(--border)',
+      bg: sel === id ? `color-mix(in oklch, ${c} 14%, var(--surface))` : 'var(--bg)',
+    }));
+  }
+  renderVals() {
+    const s = this.state, fmt = n => n.toFixed(1).replace('.', ',');
+    const hms = [Math.floor(s.seg / 3600), Math.floor(s.seg / 60) % 60, s.seg % 60].map(n => String(n).padStart(2, '0')).join(':');
+    const offline = (this.props.rede ?? 'online') === 'offline';
+    const turnoFim = this.props.turnoFim ?? '18:00';
+    const pausas = [['bobina', 'Troca de bobina'], ['setup', 'Ajuste / setup'], ['material', 'Falta de material'], ['manut', 'Manutenção'], ['arte', 'Dúvida na arte'], ['intervalo', 'Intervalo']];
+    const refs = [['defeito', 'Mídia com defeito'], ['cor', 'Cor errada'], ['cabeca', 'Falha de cabeça'], ['corte', 'Erro de corte'], ['arte', 'Arte errada']];
+    const imped = [['ausente', 'Cliente ausente ou local fechado'], ['local', 'Local diferente do combinado'], ['medida', 'Medida não confere'], ['clima', 'Chuva ou vento'], ['material', 'Faltou material ou ferramenta']];
+    const items = [
+      ['Foto antes', 'Fachada como estava', true], ['Medidas conferidas', '6,00 × 1,60 m com a arte aprovada', false],
+      ['Andaime e EPI', 'Área isolada', false], ['Peça fixada', 'Ilhós + abraçadeira', false],
+      ['Foto depois', 'Mesmo ângulo da foto antes', true], ['Local limpo', 'Sobras recolhidas', false],
+    ];
+    const checklist = items.map(([label, sub, foto], i) => {
+      const ok = !!s.check[i];
+      return { label, sub, foto, ok, mark: ok ? '✓' : '', bd: ok ? 'var(--pos)' : 'var(--border)', markBg: ok ? 'var(--pos)' : 'transparent',
+        fotoBg: ok ? 'repeating-linear-gradient(135deg, var(--border) 0 6px, transparent 6px 12px)' : 'transparent',
+        ir: () => this.setState(st => ({ check: { ...st.check, [i]: !st.check[i] } })) };
+    });
+    const feitos = checklist.filter(c => c.ok).length, completo = feitos === items.length;
+    const fotosOk = !!s.check[0] && !!s.check[4];
+    const filaBase = [
+      { h: '15:44', t: 'Pausou · troca de bobina', s: 'OS-2622 · Impressão eco-solvente' },
+      { h: '15:39', t: 'Mídia usada · 12 m²', s: 'OS-2622 · baixa de Lona 440 g' },
+      { h: '15:33', t: 'Iniciou', s: 'OS-2622 · Impressão eco-solvente' },
+    ];
+    return {
+      themeAttr: this.props.theme ?? 'dark', offline, turnoFim,
+      sinal: offline ? 'sem sinal' : '5G ▮▮▮', fila: 3,
+      crono: {
+        txt: hms, estado: s.rodando ? 'Em andamento' : 'Pausado · ' + (pausas.find(p => p[0] === s.pausa) || [, ''])[1].toLowerCase(),
+        cor: s.rodando ? 'var(--accent)' : 'var(--warn)', dot: s.rodando ? 'var(--pos)' : 'var(--warn)',
+        btn: s.rodando ? 'Pausar' : 'Retomar',
+        toggle: () => { const r = !this.state.rodando; this.setState({ rodando: r }); this.marca(r ? 'Retomou' : 'Pausou · ' + (pausas.find(p => p[0] === this.state.pausa) || [, ''])[1].toLowerCase()); },
+      },
+      concluir: () => { this.setState({ rodando: false }); this.marca('Concluiu a etapa'); },
+      m2: s.m2, setM2: e => this.setState({ m2: e.target.value }),
+      log: s.log, temRefugo: s.refugo > 0, refugoTotal: fmt(s.refugo),
+      abrirRefugo: () => this.setState(st => ({ refugo: +(st.refugo + st.refM2).toFixed(1) }), () => this.marca('Refugo · ' + fmt(this.state.refM2) + ' m²')),
+      pausas: this.chips(pausas, s.pausa, 'pausa'), pausaSel: (pausas.find(p => p[0] === s.pausa) || [, ''])[1].toLowerCase(),
+      refMotivos: this.chips(refs, s.refMot, 'refMot', 'var(--neg)'),
+      refM2: fmt(s.refM2), refValor: 'R$ ' + (s.refM2 * 38.5).toFixed(2).replace('.', ','),
+      refMenos: () => this.setState(st => ({ refM2: Math.max(0.2, +(st.refM2 - 0.2).toFixed(1)) })),
+      refMais: () => this.setState(st => ({ refM2: +(st.refM2 + 0.2).toFixed(1) })),
+      salvarRefugo: () => this.setState(st => ({ refugo: +(st.refugo + st.refM2).toFixed(1) }), () => this.marca('Refugo · ' + fmt(this.state.refM2) + ' m²')),
+      etapasOs: [{ label: 'Arte', state: 'done' }, { label: 'Impressão', state: 'done', meta: '9,1 h' }, { label: 'Laminação', state: 'current', meta: 'Felipe' }, { label: 'Acabamento', state: 'todo' }, { label: 'Instalação', state: 'todo' }],
+      ajustes: this.chips([['17:00', '17:00'], ['17:40', '17:40'], ['outro', 'Outro']], s.ajuste, 'ajuste'),
+      ajusteSel: s.ajuste === 'outro' ? 'outro horário' : s.ajuste,
+      filaN: s.enviado ? 0 : 3,
+      filaItens: filaBase.map(f => ({ ...f, st: s.enviado ? 'Enviado' : 'Na fila', cor: s.enviado ? 'var(--pos)' : 'var(--warn)' })),
+      filaBtn: s.enviado ? 'Tudo enviado' : 'Tentar enviar agora',
+      enviarFila: () => this.setState(st => ({ enviado: !st.enviado })),
+      checklist, checkFeitos: feitos, checkTotal: items.length,
+      checkBtn: completo ? 'Colher assinatura' : fotosOk ? `Faltam ${items.length - feitos} itens` : 'Tire a foto antes e depois',
+      checkBtnBg: completo ? 'var(--accent)' : 'var(--border)', checkBtnFg: completo ? 'var(--accent-fg)' : 'var(--text-mute)',
+      impedimentos: this.chips(imped, s.impedimento, 'impedimento', 'var(--neg)'),
+      assinado: s.assinado, naoAssinado: !s.assinado,
+      assBd: s.assinado ? 'var(--pos)' : 'var(--border)',
+      assBtnBg: s.assinado ? 'var(--accent)' : 'var(--border)', assBtnFg: s.assinado ? 'var(--accent-fg)' : 'var(--text-mute)',
+      assinar: () => this.setState({ assinado: true }), limparAss: () => this.setState({ assinado: false }),
+      rip: { ok: s.ripOk, bd: s.ripOk ? 'var(--pos)' : 'var(--accent)', btn: s.ripOk ? 'Confirmado' : 'Confirmar 19,4 m²', confirmar: () => this.setState({ ripOk: !s.ripOk }) },
+      junto: {
+        pendente: s.junto === null, feito: s.junto !== null,
+        tone: s.junto ? 'success' : 'info', titulo: s.junto ? 'OS-2622 entrou logo depois' : 'Mantida a ordem do PCP',
+        msg: s.junto ? 'O PCP vê a troca na linha do tempo e pode desfazer.' : 'A sugestão some e não volta hoje para essa OS.',
+        sim: () => this.setState({ junto: true }), nao: () => this.setState({ junto: false }),
+        fila: [
+          { h: 'agora', t: 'Impressão eco-solvente', s: 'OS-2611 · Lona 440 g', tag: 'RODANDO', bd: 'var(--accent)' },
+          ...(s.junto ? [{ h: '13:40', t: 'Impressão eco-solvente', s: 'OS-2622 · Lona 440 g · 1,4 h', tag: 'JUNTO', bd: 'var(--border)' }] : []),
+          { h: '14:30', t: 'Adesivo de aplicação', s: 'OS-2608 · Vinil branco 1,37 m', tag: '', bd: 'var(--border)' },
+          ...(s.junto ? [] : [{ h: '16:00', t: 'Impressão eco-solvente', s: 'OS-2622 · Lona 440 g · 1,4 h', tag: '', bd: 'var(--border)' }]),
+        ],
+      },
+      sobra: { salva: s.sobra, btn: s.sobra ? 'Retalho R-0412 guardado' : 'Guardar e imprimir etiqueta', salvar: () => this.setState({ sobra: true }) },
+      visita: {
+        fotos: s.fotosVisita, foto: () => this.setState(st => ({ fotosVisita: st.fotosVisita + 1 })),
+        paredes: this.chips([['alvenaria', 'Alvenaria'], ['acm', 'ACM existente'], ['vidro', 'Vidro'], ['metal', 'Estrutura metálica']], s.parede, 'parede'),
+        acessos: this.chips([['chao', 'Do chão'], ['escada', 'Escada'], ['andaime', 'Andaime'], ['munck', 'Munck']], s.acesso, 'acesso'),
+        resumo: ({ alvenaria: 'alvenaria', acm: 'sobre ACM', vidro: 'vidro', metal: 'estrutura' })[s.parede] + ' · ' + ({ chao: 'do chão', escada: 'escada', andaime: 'andaime', munck: 'munck' })[s.acesso],
+      },
+      ferr: (() => {
+        const it = [['Andaime 2 módulos', 'OS-2611 · Bom Preço', 'AND-02'], ['Escada 7 m', 'OS-2598 · Fit Mais', 'ESC-07'], ['Parafusadeira', 'todas', 'PAR-03'], ['EPI de altura · 2 kits', 'OS-2611', 'EPI-11'], ['Furadeira + broca vídea 8 mm', 'OS-2598', 'FUR-01']];
+        const itens = it.map(([label, sub, cod], i) => { const ok = !!s.ferr[i]; return { label, sub, cod, mark: ok ? '✓' : '', bd: ok ? 'var(--pos)' : 'var(--border)', markBg: ok ? 'var(--pos)' : 'transparent', ir: () => this.setState(st => ({ ferr: { ...st.ferr, [i]: !st.ferr[i] } })) }; });
+        const feitos = itens.filter(x => x.mark).length, ok = feitos === it.length;
+        return { itens, feitos, total: it.length, btn: ok ? 'Sair para a rota' : `Faltam ${it.length - feitos}`, btnBg: ok ? 'var(--accent)' : 'var(--border)', btnFg: ok ? 'var(--accent-fg)' : 'var(--text-mute)' };
+      })(),
+      nps: {
+        notas: [[1, 'Ruim'], [2, ''], [3, 'Ok'], [4, ''], [5, 'Ótima']].map(([v, l]) => ({ v, l, ir: () => this.setState({ nota: v }), bd: s.nota === v ? 'var(--accent)' : 'var(--border)', bg: s.nota === v ? 'color-mix(in oklch, var(--accent) 14%, var(--surface))' : 'var(--surface)' })),
+        temNota: s.nota > 0, pergunta: s.nota >= 4 ? 'Que bom! Quer deixar um recado para a equipe?' : 'O que podemos melhorar?',
+        btnBg: s.nota ? 'var(--accent)' : 'var(--border)', btnFg: s.nota ? 'var(--accent-fg)' : 'var(--text-mute)',
+      },
+      terminal: { fila: [
+        ['08:05', 'OS-2611 · Impressão eco-solvente', 'Supermercado Bom Preço · Diego', 'RODANDO', 'run'],
+        ['10:00', 'OS-2619 · Impressão látex', 'Clínica Sorriso · vai para HP Latex', 'ATRASADA', 'late'],
+        ['13:40', 'OS-2622 · Impressão eco-solvente', 'Academia Fit Mais · mesma lona', 'JUNTO', ''],
+        ['14:30', 'OS-2608 · Adesivo de aplicação', 'Auto Peças Rota · troca para vinil', 'SEM ARTE', 'warn'],
+        ['16:30', 'OS-2627 · Banner 0,90 × 1,20', 'Escola Pequeno Mundo · retalho R-0412', 'RETALHO', ''],
+      ].map(([h, t, sub, tag, k]) => ({ h, t, s: sub, tag, bdw: k === 'run' ? '2px' : '1px', bd: k === 'run' ? 'var(--accent)' : 'var(--border)', hc: k === 'late' ? 'var(--neg)' : 'var(--text)', tc: k === 'late' ? 'var(--neg)' : k === 'warn' ? 'var(--warn)' : 'var(--accent)' })) },
+    };
+  }
+}
+</script>
+</body>
+</html>

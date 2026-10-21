@@ -1,0 +1,22 @@
+{
+  "_": "A1 [CL] 2026-10-15 — playbook producao. Protótipo: rota `pcv-quadro` (app.jsx → ProducaoCvPage view=quadro). Quadro (agrupar por setor, eventos abertos). Tema escuro (default do shell), 1440×900.",
+  "_mapa": "alvo:mapa --rota pcv-quadro --raiz <.pcv-root | .pcv-root > .pcv-body> contra o espelho servido por servirEstatico, 2026-10-15: .pcv-root = div.pcv-ph · nav.ds-tabbar · div.pcv-body; .pcv-body = div.pcv-filtro · div.pcv-bar · div.pcv-quadro.com-ev (div.pcv-board · aside.pcv-evpanel)",
+  "header": {
+    "seletor": ".pcv-root > .pcv-ph"
+  },
+  "abas": {
+    "seletor": ".pcv-root > .ds-tabbar"
+  },
+  "filtro": {
+    "seletor": ".pcv-root > .pcv-body > .pcv-filtro"
+  },
+  "barra": {
+    "seletor": ".pcv-root > .pcv-body > .pcv-bar"
+  },
+  "board": {
+    "seletor": ".pcv-root > .pcv-body > .pcv-quadro > .pcv-board"
+  },
+  "eventos": {
+    "seletor": ".pcv-root > .pcv-body > .pcv-quadro > .pcv-evpanel"
+  }
+}

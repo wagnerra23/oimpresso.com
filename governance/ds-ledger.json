@@ -134,7 +134,7 @@
     },
     {
       "screen": "Documentacao",
-      "note": "6 arquivo(s)",
+      "note": "7 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -157,6 +157,28 @@
     {
       "screen": "Fiscal",
       "note": "35 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "Fisio",
+      "note": "26 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "Fluxos",
+      "note": "9 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -211,7 +233,7 @@
     },
     {
       "screen": "Manufacturing",
-      "note": "16 arquivo(s)",
+      "note": "17 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -245,6 +267,17 @@
     {
       "screen": "Patrimonio",
       "note": "13 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "Producao",
+      "note": "7 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -563,7 +596,7 @@
     },
     {
       "screen": "Produto",
-      "note": "37 arquivo(s)",
+      "note": "53 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -574,7 +607,7 @@
     },
     {
       "screen": "Purchase",
-      "note": "6 arquivo(s)",
+      "note": "7 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -661,18 +694,18 @@
       }
     }
   ],
-  "progressPct": 60,
+  "progressPct": 62,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "e4d1d60a5",
-  "generatedAt": "2026-10-14T14:40:03.260Z",
+  "measuredAgainstSha": "ff2dd7fff",
+  "generatedAt": "2026-10-21T16:17:45.397Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
   },
   "counts": {
-    "screens": 60,
-    "done": 36,
+    "screens": 63,
+    "done": 39,
     "references": 0
   }
 }

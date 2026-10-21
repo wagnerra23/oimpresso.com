@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-09-11"
+last_run: "2026-10-20"
 ---
 
 > ℹ️ **`last_run` 2026-09-06 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
@@ -109,6 +109,35 @@ last_run: "2026-09-11"
 
 ---
 
+## UC-SIDX-04 · A pílula "Rascunhos" mostra só os rascunhos do business, no recorte da permissão `[T0]` `[must]`
+- **Persona:** Larissa (ROTA LIVRE) — deixa a venda pela metade quando o telefone toca e volta pra ela pela consulta de vendas.
+- **Como usa:** abre `/sells`, clica a pílula **Rascunhos** (ou chega por `/sells?pill=rascunho`, link do menu Visões), e na linha usa **Continuar venda**, **Imprimir** ou **Excluir rascunho**; clicar a linha abre o drawer com o selo "Rascunho", sem "Receber" e sem "Devolução".
+- **Aceite:** Dado rascunhos de dois vendedores, uma cotação, uma venda final e um rascunho de outra empresa · Quando a lista pede `status=draft` · Então volta só rascunho comum (`status=draft`, `sub_status` nulo) do business; cotação, venda final e outra empresa nunca aparecem · E com só `draft.view_own` cada vendedor vê o dele · E sem `draft.view_all` nem `draft.view_own` o pedido é 403 e o contador da pílula vem nulo (a pílula some).
+- **Âncora de contrato:** US-SELL-060 aceite 2 (escopo `business_id`) e 3 (só `status = draft`; cotação é tela própria, US-SELL-061) · CU-SELL-08 do [SDD](../../../../memory/requisitos/Sells/SDD-tela-venda-v1.0.md) · o rascunho é o 1º estágio do pipeline da venda (`quote_draft`, `InitialStageResolver`, [ADR 0143](../../../../memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)) · decisão [W] 2026-10-19 (pedido da ROTA LIVRE: "era para estar junta na consulta de vendas").
+- **Teste:** `tests/Feature/Sells/SellsIndexRascunhosContratoTest.php` — `UC-SIDX-04 [T0] a pílula Rascunhos traz só rascunho comum do business…` (lane `PHP / Pest (Sells · MySQL)`).
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane PHP / Pest (Sells · MySQL).
+
+---
+
+## UC-SIDX-05 · Rascunho não entra nas vendas finais nem nos totais de faturado `[V0]` `[T0]` `[must]`
+- **Persona:** Larissa / Kamila — leem "Faturado hoje", "A receber" e o rodapé; rascunho não é dinheiro vendido.
+- **Aceite:** Dado um rascunho de valor conhecido criado no business · Quando a consulta carrega sem a pílula Rascunhos · Então a lista e o totalizador (`totals`) continuam só com venda final (o valor não se move) · E o contador da pílula sobe exatamente 1 com um rascunho comum do business, e não se move com cotação nem com rascunho de outra empresa. No front, os KPIs derivam só das vendas finais (lista à parte para rascunhos — inclusive quando a tela abre direto em `?pill=rascunho`).
+- **Âncora de contrato:** decisão [W] 2026-10-19 ("os totais de faturado continuam só com venda final") · **REGRA MESTRE valor/estoque** ([proibicoes.md](../../../../memory/proibicoes.md)) — total exibido é valor · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
+- **Teste:** `tests/Feature/Sells/SellsIndexRascunhosContratoTest.php` — `UC-SIDX-05 [V0] [T0] rascunho não entra na lista nem nos totais…` (mede `sum_final_total` antes→depois e o contador por delta).
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane PHP / Pest (Sells · MySQL).
+
+---
+
+## UC-SIDX-06 · Totais do filtro abaixo da lista, com os números do servidor `[V0]` `[must]`
+- **Persona:** Larissa / Wagner — "quanto vendi neste período e quanto falta receber?" sem somar linha por linha nem montar relatório; no Delphi o total ficava ao pé do grid.
+- **Como usa:** filtra por período, busca ou pílula Paga/Pendente e lê, abaixo da lista, a quantidade de vendas, o **Pago**, o **A receber** e o **Total do filtro** — de todas as páginas, não só da que está aberta.
+- **Aceite:** Dado `/sells-list-json` devolvendo `totals` para o filtro · Quando a tela termina de carregar sem filtro que rode só no navegador · Então a barra mostra a quantidade e os três valores exatamente como o servidor mandou, em reais com centavos · E com visão salva diferente de "Todas", pílula Faturada/Cancelada ou filtro de origem (que filtram só a página carregada) a barra não mostra número e diz por quê · E em Rascunhos, durante a busca ou sem vendas, a barra não aparece.
+- **Âncora de contrato:** US-SELL-017 (totalizador do filtro inteiro, não da página) · **REGRA MESTRE valor/estoque** ([proibicoes.md](../../../../memory/proibicoes.md)) — a tela só exibe o número calculado no servidor, não soma nada · UC-SIDX-02 (o total do servidor não soma outra empresa) e UC-SIDX-05 (rascunho fora dos totais de faturado) · forma do protótipo `prototipo-ui/cowork/Wagner/vendas-page.jsx` (`vd-totalbar`).
+- **Teste:** `tests/js/sells-index-totais.test.tsx` — `UC-SIDX-06 …` (lane Vitest do `Frontend / Vite build`).
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane Vitest.
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão. Itens SEM token de UC até existir teste real.
@@ -117,11 +146,46 @@ last_run: "2026-09-11"
 - **[BACKLOG] Drawer da venda (documento vivo)** — clicar na linha abre o drawer com FSM/pagamentos; espelhar âncoras pós-DS v6.
 - **[BACKLOG] Imprimir resumo do caixa de hoje** — botão no header; exige stub de print (mesmo padrão UC-11 Oficina).
 
+### Pesquisa de concorrentes 2026-10-20 — núcleo e comunicação visual
+
+> Origem: pesquisa em 5 ERPs brasileiros e 7 sistemas de gráfica/comunicação visual, com fontes, em
+> [`memory/sessions/2026-10-20-pesquisa-consulta-venda-concorrentes-cv.md`](../../../../memory/sessions/2026-10-20-pesquisa-consulta-venda-concorrentes-cv.md).
+> São **propostas**, não contrato: cada item só ganha id quando tiver teste que o defenda (G-2), e os de
+> comunicação visual dependem do fluxo da venda registrar a informação. Premissa: a mesma tela atende o
+> vestuário; o que é de comunicação visual entra na visão **Produção** e só aparece para empresa com o
+> módulo Comunicação Visual.
+
+**Núcleo (3 ou mais ERPs brasileiros têm):**
+- **[BACKLOG] Filtrar por vendedor** — Tiny, Omie, Conta Azul. Não há esse filtro na tela hoje.
+- **[BACKLOG] Duplicar a venda (recompra)** — Bling, Tiny, Omie, Conta Azul.
+- **[BACKLOG] Enviar a venda ao cliente por e-mail ou WhatsApp pela lista** — Bling, Tiny, Omie, Conta Azul.
+- **[BACKLOG] Mudar situação ou etapa de várias vendas de uma vez** — Bling, Tiny, Omie. Passa pelo FSM, nunca por update direto.
+- **[BACKLOG] Exportar a lista para planilha** — Bling, Tiny, Omie. Hoje o botão em lote diz "Em breve".
+- **[BACKLOG] Imprimir várias vendas ou etiquetas de uma vez** — Bling, Tiny, Omie.
+- **[BACKLOG] Gerar ordem de produção a partir de vendas** — Bling, Tiny, Nomus.
+- **[BACKLOG] Faturar só parte da venda** — Tiny, Omie, Nomus.
+
+**Comunicação visual:**
+- **[BACKLOG] Ver na linha a etapa da produção** (arte, impressão, acabamento, instalação, entrega) — shopVOX, CoreBridge, Printavo, DecoNetwork, Ordant. A coluna Pipeline hoje mostra a etapa do fluxo da venda.
+- **[BACKLOG] Atrasadas pela data de entrega, com dias de atraso** — shopVOX, CoreBridge, DecoNetwork, Calcgraf. A visão "Atrasadas" de hoje olha o pagamento (`sla_kind`).
+- **[BACKLOG] Situação da arte na linha** (aguardando cliente, ajuste pedido, aprovada com data e quem aprovou) — 6 dos 9 sistemas de gráfica.
+- **[BACKLOG] Sinal pago e saldo a receber** — Printavo; colunas Pago e A receber já existem na visão Financeira, falta o sinal.
+- **[BACKLOG] Instalação: data, se está confirmada e equipe** — shopVOX, CoreBridge.
+- **[BACKLOG] Segunda data: fim da produção, além da data prometida** — shopVOX. Decisão de produto: campo novo ou derivado da etapa de instalação.
+- **[BACKLOG] Urgência e retrabalho/cortesia como marcadores** — Printavo e Calcgraf (urgência); retrabalho não confirmado em nenhum. Etiqueta genérica (como no Tiny) cobre os dois.
+- **[BACKLOG] Venda parada com motivo** (sem material, esperando cliente) — shopVOX. Diferente de cancelada e de atrasada.
+- **[BACKLOG] Status de cada nota da venda** (NF-e do material e NFS-e da instalação) — Calcgraf. Conferir se a coluna Fiscal já mostra as duas.
+- **[BACKLOG] Recompra levando a arte já aprovada** — shopVOX.
+- **[BACKLOG] Totais da operação** (em produção, atrasadas, aguardando arte, a receber) — Calcgraf, Printavo.
+
 ## Como rodar a suíte
 1. **E2E:** `npm run e2e:check` no harness do CI (e2e-gate) — vereditos viram manifesto via `npm run casos:results` (merge per-UC).
 2. **Cadência:** rodar ao fim de toda mexida em Sells/Index. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-20 · [M+C] **UC-SIDX-06 `[V0]`** — barra de totais do filtro abaixo da lista (US-SELL-017): os `totals` que o servidor já calculava passam a aparecer. A barra não mostra número quando a visão salva, a pílula Faturada/Cancelada ou a origem filtram só a página carregada. Teste `tests/js/sells-index-totais.test.tsx` na lane Vitest do `Frontend / Vite build`.
+- 2026-10-20 · [M+C] Backlog da pesquisa de concorrentes (núcleo + comunicação visual), sem id e sem mudança de comportamento da tela; fontes no [registro da sessão](../../../../memory/sessions/2026-10-20-pesquisa-consulta-venda-concorrentes-cv.md).
+- 2026-10-19 · [CC] **UC-SIDX-04 `[T0]` + UC-SIDX-05 `[V0]`** — pílula "Rascunhos" na consulta de vendas (pedido da ROTA LIVRE: a tela `/sells/drafts` não tinha ações e "era para estar junta na consulta de vendas"; decisão [W]: filtro dentro da consulta, mesmas ações da venda, totais de faturado só com venda final). Teste `SellsIndexRascunhosContratoTest.php` na lane Sells. A tela `/sells/drafts` segue no ar até ser aposentada em PR próprio (só ganhou o conserto do "Itens NaN").
 - 2026-07-27 · [CC] **UC-SIDX-01 `[T0]` + UC-SIDX-02 `[V0]`** derivados pelo agent `sdd-from-source` ([ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md)) junto com o [SDD do módulo](../../../../memory/requisitos/Sells/SDD-tela-venda-v1.0.md) (`CU-SELL-32`/`CU-SELL-33`) + o teste `SellsIndexTenantContratoTest.php` + a lane nova `sells-pest.yml`. Achado que motivou o UC-SIDX-01: a derivação de `has_return` **não é escopada por `business_id`** em nenhum dos 2 sites medidos. **Convenção de id:** os novos usam 3 segmentos (`UC-SIDX-*`) porque o extrator de `scripts/governance/requisitos-status.mjs` exige `UC-XXX-NN` — os antigos `UC-S1x` ficam (renomear quebraria a citação dos testes que já os defendem, G-2). Ver SDD §9 D-4.
 - 2026-07-03 · [CC] UC-S12 "ver que a venda já teve devolução (setinha de retorno)" + contrato em `SellsIndexCoworkPayloadTest.php` — restaura o indicador `has_return`/badge perdido no rewrite Cowork #1032 (payload React nunca selecionava `return_exists`). Incidente reportado por Guilherme @ biz=4 ROTA LIVRE. Ancorado no critério canônico `return_parent_id + type='sell_return'` (ADR 0264 G-2).
 - 2026-07-01 · [CC] UC-S11 "Da lista, iniciar devolução" + spec no `sells-index.spec.ts` — fecha o gap por onde o menu de Ações sumiu no #1032 (adversário ancorado em ADR 0264/0256 + L-24: o que pega a regressão é UC+teste de comportamento, não gate de presença de charter). Refs #3488/#3494/#3499.

@@ -189,6 +189,47 @@ describe('PageHeaderTabs — pill do contador segue o TabBar do DS', () => {
   });
 });
 
+// ─── tone="prototype": cores do protótipo de TELA, opt-in ([F] 2026-10-14) ─────────────
+// O painel de detalhe do produto (`Produto/_components/lista/PainelDetalhe.tsx`) segue o
+// `.cli-moduletopnav-tab` do protótipo: texto ativo `--text`, inativo `--text-dim`, contador
+// inativo `--border-2`. Medido em produção (biz 1, tema escuro): `--text` = oklch(0.94 0.005 90),
+// `--text-dim` = oklch(0.72 0.005 90), `--border-2` = oklch(0.31 0.008 240) — os valores do
+// protótipo. Sem `tone`, tudo segue como nos blocos acima (o DS).
+describe('PageHeaderTabs — tone="prototype" (opt-in, só quem pede)', () => {
+  function renderTom(tone?: 'default' | 'prototype') {
+    const { container } = render(
+      <PageHeaderTabs ghosts={GHOSTS_COM_BADGE} activeGhostKey="unificado" tone={tone} />,
+    );
+    const aba = (sel: 'true' | 'false') =>
+      container.querySelector<HTMLElement>(`[role="tab"][aria-selected="${sel}"]`)!;
+    return { ativa: aba('true'), inativa: aba('false') };
+  }
+
+  it('texto da ativa `--text` e das inativas `--text-dim`, no lugar das cores do DS', () => {
+    const { ativa, inativa } = renderTom('prototype');
+    expect(ativa.className).toMatch(/(^|\s)text-\[var\(--text\)\](\s|$)/);
+    expect(ativa.className).not.toMatch(/(^|\s)text-foreground(\s|$)/);
+    expect(inativa.className).toMatch(/(^|\s)text-\[var\(--text-dim\)\](\s|$)/);
+    expect(inativa.className).not.toMatch(/(^|\s)text-muted-foreground(\s|$)/);
+  });
+
+  it('contador inativo com fundo `--border-2`; o ativo segue `--accent`', () => {
+    const { ativa, inativa } = renderTom('prototype');
+    expect(inativa.querySelector<HTMLElement>('span.rounded-full')!.style.backgroundColor).toBe('var(--border-2)');
+    expect(ativa.querySelector<HTMLElement>('span.rounded-full')!.style.backgroundColor).toBe(BADGE_ATIVO.bg);
+  });
+
+  it('CONTROLE: sem `tone` (e com `tone="default"`) nada muda — as outras telas ficam no DS', () => {
+    for (const tone of [undefined, 'default'] as const) {
+      const { ativa, inativa } = renderTom(tone);
+      expect(ativa.className).toMatch(/(^|\s)text-foreground(\s|$)/);
+      expect(inativa.className).toMatch(/(^|\s)text-muted-foreground(\s|$)/);
+      expect(inativa.querySelector<HTMLElement>('span.rounded-full')!.style.backgroundColor).toBe(BADGE_INATIVO.bg);
+      cleanup();
+    }
+  });
+});
+
 // ─── Primary: o "+" só aparece em ação de criar ──────────────────────────────────────────
 // [W] 2026-09-29: o botão "Painel do ponto" só navega, e o "+" fixo sugeria criar algo.
 // `acao: 'navegar'` é opt-in; o default segue "+ rótulo" para todos os módulos que não declaram.

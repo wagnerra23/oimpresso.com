@@ -124,6 +124,8 @@ const MENU_ICON_MAP: Record<string, LucideIcon> = {
   'base de conhecimento': BookOpen,
   planilha: Sheet,
   suporte: LifeBuoy,
+  // Sistema › Fluxos e regras (ADR 0435): protótipo data.jsx `icon: "cog"`.
+  'fluxos e regras': Settings,
 };
 
 /** Ícone de SUB-TELA (thread 14): o nome vem do dado (`ghost.icon`), no vocabulário do
@@ -584,9 +586,10 @@ export function CompanyPicker({
 // Slot da direita do item: dica do atalho `G X`, visível só no hover/foco da
 // linha. Espelha `ItemEnd` do protótipo (`prototipo-ui/cowork/Wagner/sidebar.jsx:31`),
 // que reserva UMA célula de grid pro slot — assim nada empurra o label.
-// O contador de telas do protótipo (`.sb-ghost-count`) NÃO vem junto: ghost no
-// sidebar contraria a ADR 0180 (ghosts vivem no PageHeader), então por ora o
-// slot tem um ocupante só.
+// O slot tem dois ocupantes: o contador de telas do hub (`.sb-ghost-count`) e a
+// dica do atalho. Até 2026-09-10 este comentário dizia que o contador "não vem
+// junto" por contrariar a ADR 0180 — a cláusula visual dela caiu na emenda
+// daquele dia (UI-0029, PR #7186), e o contador já era passado em `telas=`.
 function ItemEnd({ atalho, telas }: { atalho?: string; telas?: number }) {
   if (!atalho && !telas) return null;
   return (

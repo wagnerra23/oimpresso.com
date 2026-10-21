@@ -4,6 +4,15 @@
   "date": "2026-06-12",
   "scope": "memory/requisitos/**/*.md — só referências na forma 'Modules/<Nome>' (mesma regex token-boundary do knowledge-drift.mjs); forma namespace 'Modules\\<Nome>' fica fora do v1",
   "renames": {
+    "Pcp": {
+      "to": "Producao",
+      "class": "A",
+      "evidence": [
+        "decisao [W] 2026-10-15 D1 (nome da pasta 'Producao', nao Pcp) — prototipo-ui/cowork/Wagner/cowork-inbox/producao/playbook/_DECISOES-W-2026-10-15.md",
+        "ADR 0431 memory/decisions/0431-pcp-sai-do-desejo-modules-producao.md (supersede parcial da 0152; rename memory/requisitos/Pcp -> Producao)",
+        "git mv memory/requisitos/Pcp -> memory/requisitos/Producao no mesmo PR da ADR 0431 (5 arquivos, R100 exceto os editados)"
+      ]
+    },
     "ProjectMgmt": {
       "to": "Forja",
       "class": "A",
@@ -85,10 +94,6 @@
     "IProduction": {
       "class": "B",
       "reason": "prototipo removido sem sucessor (commit 7b6328a0a)"
-    },
-    "Pcp": {
-      "class": "B",
-      "reason": "feature wish, nunca construido (ADR 0152)"
     },
     "Autopecas": {
       "class": "B",

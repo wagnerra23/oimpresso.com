@@ -519,59 +519,42 @@ class ContactController extends Controller
             }
         }
 
-        $reward_enabled = (request()->session()->get('business.enable_rp') == 1 && in_array($type, ['customer'])) ? true : false;
-
-        $users = User::forDropdown($business_id);
-
-        $customer_groups = [];
-        if ($type == 'customer') {
-            $customer_groups = CustomerGroup::forDropdown($business_id);
-        }
-
-        // W1-B3 MWART branch — Inertia render quando flag cliente_index liga.
-        // ADR 0188 — Slot 2 PT-01 multi-type: aceita 4 papéis + 'all'. Permissões
-        // Spatie permanecem mapeadas pra 'customer.*' (UPOS legacy) por simplicidade
-        // operacional — Wagner expande pra 'supplier.*' etc em ondas futuras se time
-        // pedir granularidade por papel.
-        // ADR 0188 + ADR 0246 — 5 papéis canônicos + 'all' agregado.
-        $inertiaTypes = ['customer', 'supplier', 'employee', 'representative', 'other', 'all'];
-        if (in_array($type, $inertiaTypes, true) && $this->shouldRenderInertiaCliente('cliente_index', (int) $business_id)) {
-            return Inertia::render('Cliente/Index', [
-                'activeType' => $type,
-                'kpis' => Inertia::defer(fn () => $this->buildClienteIndexKpis((int) $business_id, $type)),
-                // ADR 0189 v3.1 + LEARNINGS AP18 (2026-05-25): counters por papel canon
-                // pro PageHeader Zona C subnav. Backend devolve count(*) por tipo;
-                // frontend NUNCA recalcula via rows.filter (rows traz só tipo ativo,
-                // server-side filtered → outros tipos retornariam 0 — bug visível).
-                'tab_counts' => Inertia::defer(fn () => $this->buildClienteIndexTabCounts((int) $business_id)),
-                'customers' => Inertia::defer(fn () => $this->buildClienteIndexCustomers((int) $business_id, $type)),
-                'permissions' => [
-                    'create' => auth()->user()->can('customer.create'),
-                    'view' => auth()->user()->can('customer.view') || auth()->user()->can('customer.view_own'),
-                    'import' => auth()->user()->can('customer.create'),
-                    // Exclusão (soft delete) — destroy() já valida o mesmo can()
-                    // + bloqueia se houver transação + escopo business_id (Tier 0).
-                    // OR supplier.delete cobre a aba Fornecedores. Wagner 2026-06-08.
-                    'delete' => auth()->user()->can('customer.delete') || auth()->user()->can('supplier.delete'),
-                ],
-                // Tabela de preço REAL pro drawer Comercial (ADR 0093 scope).
-                // [{id,name}] das customer_groups do business — substitui o
-                // dropdown fake hardcoded (padrao/varejo/atacado/parceiro).
-                // biz=164 Martinho: MECÂNICA / FABRICANTE / FINAL.
-                'priceGroups' => CustomerGroup::where('business_id', $business_id)
-                    ->orderBy('name')
-                    ->get(['id', 'name'])
-                    ->map(fn ($g) => ['id' => (int) $g->id, 'name' => (string) $g->name])
-                    ->all(),
-                // Wagner 2026-05-27 — gate sub-tab "Placas" do OssTab drawer.
-                // Daniela @ Martinho: ve placas no drawer apenas se OficinaAuto
-                // ativo. biz=4 Larissa vestuario nao ve (graceful default false).
-                'oficinaauto_enabled' => (bool) $this->moduleUtil->isModuleInstalled('OficinaAuto'),
-            ]);
-        }
-
-        return view('contact.index')
-            ->with(compact('type', 'reward_enabled', 'customer_groups', 'users'));
+        // Thread cliente/04 ([W] 2026-10-14): a lista é só React. A casca Blade (`contact.index`) foi
+        // apagada e a lista deixou de ler `mwart.cliente_index`, que já valia para todas as empresas.
+        // ADR 0188 + ADR 0246 — os 6 tipos de $types acima. Permissões Spatie seguem mapeadas pra
+        // 'customer.*' (UPOS legacy), com 'supplier.*' só onde o gate acima já distingue.
+        return Inertia::render('Cliente/Index', [
+            'activeType' => $type,
+            'kpis' => Inertia::defer(fn () => $this->buildClienteIndexKpis((int) $business_id, $type)),
+            // ADR 0189 v3.1 + LEARNINGS AP18 (2026-05-25): counters por papel canon
+            // pro PageHeader Zona C subnav. Backend devolve count(*) por tipo;
+            // frontend NUNCA recalcula via rows.filter (rows traz só tipo ativo,
+            // server-side filtered → outros tipos retornariam 0 — bug visível).
+            'tab_counts' => Inertia::defer(fn () => $this->buildClienteIndexTabCounts((int) $business_id)),
+            'customers' => Inertia::defer(fn () => $this->buildClienteIndexCustomers((int) $business_id, $type)),
+            'permissions' => [
+                'create' => auth()->user()->can('customer.create'),
+                'view' => auth()->user()->can('customer.view') || auth()->user()->can('customer.view_own'),
+                'import' => auth()->user()->can('customer.create'),
+                // Exclusão (soft delete) — destroy() já valida o mesmo can()
+                // + bloqueia se houver transação + escopo business_id (Tier 0).
+                // OR supplier.delete cobre a aba Fornecedores. Wagner 2026-06-08.
+                'delete' => auth()->user()->can('customer.delete') || auth()->user()->can('supplier.delete'),
+            ],
+            // Tabela de preço REAL pro drawer Comercial (ADR 0093 scope).
+            // [{id,name}] das customer_groups do business — substitui o
+            // dropdown fake hardcoded (padrao/varejo/atacado/parceiro).
+            // biz=164 Martinho: MECÂNICA / FABRICANTE / FINAL.
+            'priceGroups' => CustomerGroup::where('business_id', $business_id)
+                ->orderBy('name')
+                ->get(['id', 'name'])
+                ->map(fn ($g) => ['id' => (int) $g->id, 'name' => (string) $g->name])
+                ->all(),
+            // Wagner 2026-05-27 — gate sub-tab "Placas" do OssTab drawer.
+            // Daniela @ Martinho: ve placas no drawer apenas se OficinaAuto
+            // ativo. biz=4 Larissa vestuario nao ve (graceful default false).
+            'oficinaauto_enabled' => (bool) $this->moduleUtil->isModuleInstalled('OficinaAuto'),
+        ]);
     }
 
     /**
@@ -998,7 +981,23 @@ class ContactController extends Controller
             ->get()
             ->keyBy('contact_id');
 
-        $rows = $contacts->getCollection()->map(function ($contact) use ($stats, $hasWaveBCols, $hasCanonBrCols, $hasDrawerCols, $hasEmailsExtras, $hasSefazCols, $hasBucketACols, $hasContatoCol, $hasMensagemVendaCol, $vehiclesCountMap, $documentsCountMap) {
+        // Thread cliente/02 ([W] 2026-10-14) — coluna "Última OS" do protótipo: a venda mais recente
+        // de cada contato da página (mesmo critério de last_os_at: type=sell, maior transaction_date,
+        // desempate por id). Escopo business_id explícito (Tier 0, ADR 0093). Uma query por página.
+        $lastOsMap = collect();
+        if (! empty($contactIds)) {
+            $ranked = Transaction::query()
+                ->where('business_id', $business_id)
+                ->whereIn('contact_id', $contactIds)
+                ->where('type', 'sell')
+                ->select('id', 'contact_id', 'invoice_no', DB::raw('ROW_NUMBER() OVER (PARTITION BY contact_id ORDER BY transaction_date DESC, id DESC) AS rn'));
+            $lastOsMap = DB::query()->fromSub($ranked, 'ult')
+                ->where('rn', 1)
+                ->get(['id', 'contact_id', 'invoice_no'])
+                ->keyBy('contact_id');
+        }
+
+        $rows = $contacts->getCollection()->map(function ($contact) use ($stats, $lastOsMap, $hasWaveBCols, $hasCanonBrCols, $hasDrawerCols, $hasEmailsExtras, $hasSefazCols, $hasBucketACols, $hasContatoCol, $hasMensagemVendaCol, $vehiclesCountMap, $documentsCountMap) {
             $row = $stats->get($contact->id);
             $totalOs = $row ? (int) $row->total_os : 0;
             $abertas = $row ? (int) $row->os_abertas : 0;
@@ -1028,6 +1027,10 @@ class ContactController extends Controller
                 'valor_aberto' => $valorAberto,
                 'status' => $status,
                 'last_os_at' => $lastOsAt,
+                // Thread cliente/02 — nº da última OS (link /sells/{id} na lista). null sem venda.
+                'last_os' => ($ult = $lastOsMap->get($contact->id))
+                    ? ['id' => (int) $ult->id, 'invoice_no' => (string) $ult->invoice_no]
+                    : null,
                 // Consumidor/fornecedor padrão (walk-in) — front esconde "Excluir".
                 'is_default' => (bool) $contact->is_default,
                 // Wave G novos campos cadastrais.

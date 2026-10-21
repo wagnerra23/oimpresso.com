@@ -404,8 +404,11 @@ export function lerContratos(dir = DIR_CONTRATO) {
  *   rc 2 + JSON → MEDIDO · 0 bug · frescor NÃO PROVADO (o dono recusa carimbar "igual")
  *   rc 2 sem JSON → NÃO MEDI (lados trocados / identidade da view não provada / arquivo ruim)
  * Nunca colapsa "não medi" em estado da tela (§5 2026-07-29).
+ *
+ * `escopo: 'drawer'` lê a saída de `--check-drawer`: rc 1 é `DIVERGE (a classificar)`, não bug,
+ * e gaveta sem linha DRAWER ou com SEM-DADO é NÃO MEDI mesmo com relatório.
  */
-export function interpretarCompare({ status, stdout, stderr }) {
+export function interpretarCompare({ status, stdout, stderr }, { escopo = 'tela' } = {}) {
   let res = null;
   const s = String(stdout || '');
   const i = s.indexOf('{');
@@ -422,7 +425,11 @@ export function interpretarCompare({ status, stdout, stderr }) {
   }
   const err = String(stderr || '').replace(/\s+/g, ' ').trim();
   let veredito, motivo = '';
-  if (status === 0 && res) veredito = 'IGUAL';
+  const dw = res && Array.isArray(res.rows) ? res.rows.filter((r) => r.dim === 'DRAWER') : [];
+  const dwSemDado = dw.find((r) => r.veredito === 'SEM-DADO');
+  if (escopo === 'drawer' && res && (!dw.length || dwSemDado)) { veredito = 'NÃO MEDI'; motivo = dwSemDado ? `${dwSemDado.campo}: ${dwSemDado.detalhe || ''}` : 'nenhuma gaveta nos snapshots'; }
+  else if (escopo === 'drawer' && status === 1 && res) veredito = 'DIVERGE (a classificar)';
+  else if (status === 0 && res) veredito = 'IGUAL';
   else if (status === 1 && res) veredito = 'DIVERGE (bug)';
   else if (status === 2 && res) { veredito = 'MEDIDO · frescor não provado'; motivo = err.slice(0, 220); }
   else if (status === 2) { veredito = 'NÃO MEDI'; motivo = err.slice(0, 220) || 'design-diff saiu 2 sem relatório'; }
@@ -431,12 +438,13 @@ export function interpretarCompare({ status, stdout, stderr }) {
     rc: status, veredito, motivo,
     bugs: res ? Number(res.bugs || 0) : null,
     shell: res ? Number(res.shell || 0) : null,
+    drawer: res ? Number(res.drawer || 0) : null,
     sameTheme: res ? !!res.sameTheme : null,
     porDim, rows: res ? res.rows : null,
   };
 }
 
-const DIMS = ['D2', 'D4', 'D6', 'D8', 'D9', 'SHELL'];
+const DIMS = ['D2', 'D4', 'D6', 'D8', 'D9', 'SHELL', 'DRAWER'];
 const celulaDim = (d) => (!d ? '—' : d.bug ? `${d.bug} bug` : d.diverge ? `${d.diverge} div` : d.semDado && !d.igual ? 'sem-dado' : 'ok');
 
 /** RESUMO.md — derivado. Regerar, nunca editar. */
@@ -514,6 +522,27 @@ export function lerOverride(slug, dir = DIR_ROLES) {
   const p = join(dir, `${slug}.json`);
   if (!existsSync(p)) return {};
   return JSON.parse(readFileSync(p, 'utf8'));
+}
+
+/**
+ * Passo `abrir` do override (2026-10-19). A gaveta (drawer/Sheet) só existe DEPOIS do clique,
+ * nos dois lados — a produção desmonta o Sheet fechado, o protótipo só monta com estado aberto.
+ *   "abrir": { "prod": "<seletor a clicar>", "design": "<seletor>",
+ *              "espera": "<seletor que prova que abriu>" | { "prod": "...", "design": "..." } }
+ * ou por lado: "prod": { "clicar": "...", "espera": "..." }.
+ * Sem `espera` o passo é RECUSADO: sem prova de que abriu, a página fechada passaria por medida
+ * da gaveta. Lado sem passo → null (aquele lado não clica nada).
+ */
+export function passoAbrir(override, lado) {
+  const a = override && override.abrir;
+  if (!a) return null;
+  const v = a[lado];
+  if (v == null) return null;
+  const clicar = typeof v === 'string' ? v : v && v.clicar;
+  const espera = (v && typeof v === 'object' && v.espera) || (typeof a.espera === 'string' ? a.espera : a.espera && a.espera[lado]);
+  if (!clicar || typeof clicar !== 'string') throw new Error(`abrir.${lado}: falta o seletor a clicar`);
+  if (!espera || typeof espera !== 'string') throw new Error(`abrir.${lado}: falta \`espera\` — sem prova de que abriu, a página fechada passaria por medida da gaveta`);
+  return { clicar, espera };
 }
 
 /** Frescor da âncora no ledger — pelo dono (`ancora.mjs` + `cowork-mirror-freshness`). */
@@ -597,6 +626,13 @@ export async function montarPlano({ filtro = null, urlForcada = null, baseUrl, l
     if (!item.contrato) item.avisoD0 = 'sem contrato — identidade da view NÃO provada (âncora pode servir outra tela)';
     item.roles = { prod: { ...ROLES_PADRAO.prod, ...(override.roles?.prod || {}) }, design: { ...ROLES_PADRAO.design, ...(override.roles?.design || {}) } };
     item.shellOverride = override.shell || null;
+    // GAVETA: com `abrir` no override, a tela ganha uma SEGUNDA medida, com a gaveta aberta, em
+    // `<slug>/gaveta/`. A medida da página fechada não muda — se a gaveta não abrir (no CI pode
+    // não haver ordem semeada), só a dela sai NÃO MEDI. Papéis: `roles.<lado>.drawer`.
+    try {
+      const ab = { prod: passoAbrir(override, 'prod'), design: passoAbrir(override, 'design') };
+      item.abrir = ab.prod || ab.design ? ab : null;
+    } catch (e) { item.abrir = null; item.abrirErro = e.message; }
     item.urlViva = item.rota ? `${baseUrl}${item.rota}` : null;
     plano.push(item);
   }
@@ -634,6 +670,8 @@ function imprimirPlano({ plano, bundle, totalAnchored }, { baseUrl }) {
     console.log(`    vivo     ${p.urlViva || '—'}`);
     console.log(`    D0       ${p.contrato || p.avisoD0}`);
     console.log(`    grava    ${p.dir}/{design,prod,resultado}.json`);
+    if (p.abrir) console.log(`    gaveta   abre (prod: ${p.abrir.prod ? p.abrir.prod.clicar : '—'} · design: ${p.abrir.design ? p.abrir.design.clicar : '—'}) → ${p.dir}/gaveta/`);
+    if (p.abrirErro) console.log(`    ✗ gaveta: ${p.abrirErro}`);
     for (const pr of p.problemas) console.log(`    ✗ ${pr}`);
   }
   const exec = plano.filter((p) => p.executavel).length;
@@ -702,13 +740,28 @@ async function abrirBrowser() {
   catch (e) { throw Object.assign(new Error(`chromium não instalado: ${String(e.message).slice(0, 160)}`), { naoMedi: true }); }
 }
 
+/** Clica e espera a prova de que abriu. Não abriu ⇒ NÃO MEDI, nunca "igual por omissão". */
+async function executarAbrir(page, passo) {
+  if (!passo) return null;
+  const alvo = page.locator(passo.clicar).first();
+  try { await alvo.waitFor({ state: 'visible', timeout: 15000 }); }
+  catch { throw Object.assign(new Error(`abrir: nada visível casa "${passo.clicar}" — não há o que clicar`), { naoMedi: true }); }
+  await alvo.click();
+  try { await page.waitForSelector(passo.espera, { state: 'visible', timeout: 15000 }); }
+  catch { throw Object.assign(new Error(`abrir: cliquei em "${passo.clicar}" e "${passo.espera}" não apareceu em 15s — a gaveta não abriu`), { naoMedi: true }); }
+  // A prova de que abriu pode chegar antes do conteúdo (a produção busca o detalhe por partial
+  // reload, com esqueleto): sem estabilizar, a sonda fotografaria o meio do caminho.
+  await esperarEstavel(page);
+  return passo;
+}
+
 async function medirLado(page, { probe, roles, shell, tema }) {
   if (tema) { await page.evaluate((t) => { document.documentElement.setAttribute('data-theme', t); document.documentElement.classList.toggle('dark', t === 'dark'); }, tema); await page.waitForTimeout(300); }
   await page.evaluate(({ r, s }) => { window.__DD_ROLES = r; if (s) window.__SB_ROLES = s; }, { r: roles, s: shell || null });
   return page.evaluate(probe);
 }
 
-async function renderDesign(browser, { porta, token, idEsperado, probe, roles, shell, tema }) {
+async function renderDesign(browser, { porta, token, idEsperado, probe, roles, shell, tema, abrir = null }) {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   try {
     await ctx.addInitScript((t) => { try { localStorage.setItem('oimpresso.route', t); } catch { /* sem storage */ } }, token);
@@ -720,11 +773,12 @@ async function renderDesign(browser, { porta, token, idEsperado, probe, roles, s
     // Vista que se declara (`data-page`) tem de ser ESTA tela — senão a rota abriu outra.
     const dp = await page.evaluate(() => document.querySelector('[data-page]')?.getAttribute('data-page') || null);
     if (dp && idEsperado && dp !== idEsperado) throw Object.assign(new Error(`a vista declara data-page="${dp}", não ${idEsperado}`), { naoMedi: true });
+    await executarAbrir(page, abrir);
     return await medirLado(page, { probe, roles, shell, tema });
   } finally { await ctx.close(); }
 }
 
-async function renderVivo(browser, { baseUrl, rota, userId, cookie, probe, roles, shell, tema }) {
+async function renderVivo(browser, { baseUrl, rota, userId, cookie, probe, roles, shell, tema, abrir = null }) {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   try {
     const page = await ctx.newPage();
@@ -744,16 +798,63 @@ async function renderVivo(browser, { baseUrl, rota, userId, cookie, probe, roles
     const url = page.url();
     if (/\/login(?:[/?#]|$)/.test(url)) throw Object.assign(new Error(`login falhou — caiu em ${url} (sem /_visreg-login no alvo? passe DESIGN_DIFF_COOKIE)`), { naoMedi: true });
     const componente = await page.evaluate(() => { try { return JSON.parse(document.getElementById('app')?.getAttribute('data-page') || 'null')?.component || null; } catch { return null; } });
+    await executarAbrir(page, abrir);
     const snap = await medirLado(page, { probe, roles, shell, tema });
     return { snap, meta: { urlFinal: url, componenteInertia: componente } };
   } finally { await ctx.close(); }
 }
 
-function compararTela(dir, contrato) {
-  const args = [DESIGN_DIFF, '--compare', join(dir, 'prod.json'), join(dir, 'design.json'), '--json', '--check'];
+function compararTela(dir, contrato, escopo = 'tela') {
+  const args = [DESIGN_DIFF, '--compare', join(dir, 'prod.json'), join(dir, 'design.json'), '--json', escopo === 'drawer' ? '--check-drawer' : '--check'];
   if (contrato) args.push('--contrato', join(ROOT, contrato));
   const r = spawnSync(process.execPath, args, { encoding: 'utf8', cwd: ROOT });
-  return interpretarCompare({ status: r.status, stdout: r.stdout, stderr: r.stderr });
+  return interpretarCompare({ status: r.status, stdout: r.stdout, stderr: r.stderr }, { escopo });
+}
+
+/** A página FECHADA não leva os papéis da gaveta — senão ganharia uma linha "gaveta fechada". */
+export const semGaveta = (roles) => { const { drawer, ...resto } = roles || {}; return resto; };
+
+/**
+ * A SEGUNDA medida da tela: gaveta aberta, só com `title` (referência dos tokens) e `drawer`.
+ * Grava em `<slug>/gaveta/` e compara com `--check-drawer`. Shell e papéis da página ficam fora:
+ * já saíram na medida da página fechada, e repeti-los aqui duplicaria cada divergência.
+ */
+async function medirGaveta(p, { lado, fazDesign, fazProd, browser, espelho, probe, baseUrl, userId, cookie, tema, sha }) {
+  const dirG = join(DIR_MEDIDAS, p.slug, 'gaveta');
+  const g = { id: `${p.id} · gaveta`, module: p.module, source: p.source, target: p.target, token: p.token, lado, frescor: p.frescor, contrato: p.contrato || null, compare: null, veredito: null, motivo: '', medido: false, gaveta: true, dirAbs: dirG };
+  if (p.abrirErro) { g.veredito = 'NÃO MEDI'; g.motivo = p.abrirErro; console.log(`○ ${g.id} — NÃO MEDI: ${g.motivo}`); return g; }
+  mkdirSync(dirG, { recursive: true });
+  g.tentado = true;
+  const soGaveta = (r) => ({ title: r.title, drawer: r.drawer });
+  try {
+    if (fazDesign) {
+      const d = await renderDesign(browser, { porta: espelho.porta, token: p.token, idEsperado: p.id, probe, roles: soGaveta(p.roles.design), shell: null, tema, abrir: p.abrir.design });
+      const txt = JSON.stringify(d, null, 2) + '\n';
+      writeFileSync(join(dirG, 'design.json'), txt);
+      g.designSha = sha(txt);
+    }
+    if (fazProd) {
+      const { snap, meta } = await renderVivo(browser, { baseUrl, rota: p.rota, userId, cookie, probe, roles: soGaveta(p.roles.prod), shell: null, tema, abrir: p.abrir.prod });
+      const txt = JSON.stringify(snap, null, 2) + '\n';
+      writeFileSync(join(dirG, 'prod.json'), txt);
+      g.prodSha = sha(txt);
+      g.meta = meta;
+    }
+    g.medido = true;
+    if (fazDesign && fazProd) {
+      g.compare = compararTela(dirG, null, 'drawer');
+      const ig = (g.compare.rows || []).find((r) => r.campo === 'drawer.iguais');
+      console.log(`${g.compare.rc === 0 ? '●' : g.compare.rc === 1 ? '▲' : '⚠'} ${g.id} — ${g.compare.veredito}${ig ? ` · ${ig.prod} iguais` : ''}${g.compare.motivo ? ` — ${g.compare.motivo}` : ''}`);
+    } else {
+      g.veredito = `MEDIDO · só ${lado} (sem comparação)`;
+      console.log(`● ${g.id} — ${g.veredito}`);
+    }
+  } catch (e) {
+    g.veredito = e.naoMedi ? 'NÃO MEDI' : 'ERRO';
+    g.motivo = String(e.message).slice(0, 220);
+    console.log(`○ ${g.id} — ${g.veredito}: ${g.motivo}`);
+  }
+  return g;
 }
 
 async function rodarLote(planoObj, { baseUrl, userId, cookie, tema, lado = 'ambos' }) {
@@ -768,20 +869,20 @@ async function rodarLote(planoObj, { baseUrl, userId, cookie, tema, lado = 'ambo
   try {
     for (const p of plano) {
       const dir = join(DIR_MEDIDAS, p.slug);
-      const item = { id: p.id, module: p.module, source: p.source, target: p.target, token: p.token, lado, frescor: p.frescor, contrato: p.contrato || null, compare: null, veredito: null, motivo: '', medido: false };
+      const item = { id: p.id, module: p.module, source: p.source, target: p.target, token: p.token, lado, frescor: p.frescor, contrato: p.contrato || null, compare: null, veredito: null, motivo: '', medido: false, dirAbs: dir };
       if (!p.executavel) { item.veredito = 'NÃO MEDI'; item.motivo = (lado === 'design' ? p.problemasDesign : lado === 'prod' ? p.problemasProd : p.problemas).join('; '); resultados.push(item); console.log(`○ ${p.id} — ${item.motivo}`); continue; }
       mkdirSync(dir, { recursive: true });
       item.tentado = true;
       const shell = { prod: p.shellOverride?.prod || shellPadrao.prod || null, design: p.shellOverride?.design || shellPadrao.design || null };
       try {
         if (fazDesign) {
-          const design = await renderDesign(browser, { porta: espelho.porta, token: p.token, idEsperado: p.id, probe, roles: p.roles.design, shell: shell.design, tema });
+          const design = await renderDesign(browser, { porta: espelho.porta, token: p.token, idEsperado: p.id, probe, roles: semGaveta(p.roles.design), shell: shell.design, tema });
           const txt = JSON.stringify(design, null, 2) + '\n';
           writeFileSync(join(dir, 'design.json'), txt);
           item.designSha = sha(txt);
         }
         if (fazProd) {
-          const { snap: prod, meta } = await renderVivo(browser, { baseUrl, rota: p.rota, userId, cookie, probe, roles: p.roles.prod, shell: shell.prod, tema });
+          const { snap: prod, meta } = await renderVivo(browser, { baseUrl, rota: p.rota, userId, cookie, probe, roles: semGaveta(p.roles.prod), shell: shell.prod, tema });
           const txt = JSON.stringify(prod, null, 2) + '\n';
           writeFileSync(join(dir, 'prod.json'), txt);
           item.prodSha = sha(txt);
@@ -803,13 +904,15 @@ async function rodarLote(planoObj, { baseUrl, userId, cookie, tema, lado = 'ambo
         console.log(`○ ${p.id} — ${item.veredito}: ${item.motivo}`);
       }
       resultados.push(item);
+      if (p.abrir || p.abrirErro) resultados.push(await medirGaveta(p, { lado, fazDesign, fazProd, browser, espelho, probe, baseUrl, userId, cookie, tema, sha }));
     }
   } finally {
     await browser.close();
     if (espelho) await espelho.fechar();
   }
   // Sanidade MEDIDA (A-LOTE): duas telas do mesmo módulo com o mesmo design.json = não medi nenhuma.
-  const iguais = colisoesDeHash(resultados.filter((r) => r.medido).map((r) => ({ id: r.id, module: r.module, sha: r.designSha })));
+  // (a gaveta é outro ESTADO da mesma tela, não outra tela — fica fora da colisão)
+  const iguais = colisoesDeHash(resultados.filter((r) => r.medido && !r.gaveta).map((r) => ({ id: r.id, module: r.module, sha: r.designSha })));
   for (const r of resultados) {
     const com = iguais.get(r.id);
     if (!com) continue;
@@ -820,13 +923,15 @@ async function rodarLote(planoObj, { baseUrl, userId, cookie, tema, lado = 'ambo
   for (const r of resultados) {
     if (!r.tentado) continue;
     const { tentado, ...registro } = r;
-    writeFileSync(join(DIR_MEDIDAS, slugDaTela(r.id), 'resultado.json'), JSON.stringify({ ...registro, medidoEm: new Date().toISOString(), baseUrl: fazProd ? baseUrl : null, bundle }, null, 2) + '\n');
+    const { dirAbs, ...semDir } = registro;
+    writeFileSync(join(dirAbs, 'resultado.json'), JSON.stringify({ ...semDir, medidoEm: new Date().toISOString(), baseUrl: fazProd ? baseUrl : null, bundle }, null, 2) + '\n');
   }
   mkdirSync(DIR_MEDIDAS, { recursive: true });
   writeFileSync(RESUMO, gerarResumo(resultados, { baseUrl, bundle, geradoEm: new Date().toISOString() }));
   console.log(`\nRESUMO: ${relative(ROOT, RESUMO).replace(/\\/g, '/')}`);
-  const naoMedi = resultados.filter((r) => !r.medido || r.compare && r.compare.rc === 2 && !r.compare.rows).length;
-  const bugs = resultados.filter((r) => r.compare && r.compare.rc === 1).length;
+  const naoMedi = resultados.filter((r) => !r.medido || r.compare && (r.compare.veredito === 'NÃO MEDI' || r.compare.rc === 2 && !r.compare.rows)).length;
+  // Gaveta divergente é `a classificar`, não bug: não muda o exit 1 do lote.
+  const bugs = resultados.filter((r) => r.compare && r.compare.rc === 1 && !r.gaveta).length;
   return naoMedi ? 2 : bugs ? 1 : 0;
 }
 
@@ -975,6 +1080,30 @@ async function selftest() {
   ok('gerarResumo: contagem por veredito', /- DIVERGE \(bug\): 1/.test(resumo) && /- NÃO MEDI: 1/.test(resumo));
   ok('gerarResumo: se declara DERIVADO e não-gate', /DERIVADO/.test(resumo) && /NÃO é gate/.test(resumo));
 
+  // GAVETA (2026-10-19) — o passo `abrir`, o veredito no escopo dela e a coluna no RESUMO.
+  ok('passoAbrir: forma curta (seletor por lado + espera única)',
+    JSON.stringify(passoAbrir({ abrir: { prod: 'tr', design: 'li', espera: '[role=dialog]' } }, 'prod')) === '{"clicar":"tr","espera":"[role=dialog]"}');
+  ok('passoAbrir: espera por lado', passoAbrir({ abrir: { design: 'li', espera: { prod: '.a', design: '.b' } } }, 'design').espera === '.b');
+  ok('passoAbrir: forma longa { clicar, espera }', passoAbrir({ abrir: { prod: { clicar: 'tr', espera: '.d' } } }, 'prod').clicar === 'tr');
+  ok('passoAbrir: lado sem passo → null; override sem abrir → null',
+    passoAbrir({ abrir: { prod: 'tr', espera: '.d' } }, 'design') === null && passoAbrir({}, 'prod') === null);
+  ok('passoAbrir MORDE: sem `espera` é RECUSADO (a página fechada passaria por gaveta)',
+    (() => { try { passoAbrir({ abrir: { prod: 'tr' } }, 'prod'); return false; } catch (e) { return /espera/.test(e.message); } })());
+  ok('semGaveta: tira só o papel drawer', JSON.stringify(semGaveta({ title: 'h1', drawer: { raiz: 'x' } })) === '{"title":"h1"}');
+  const jDw = (rows, extra = {}) => JSON.stringify({ bugs: 0, shell: 0, drawer: rows.filter((r) => r.veredito === 'DIVERGE (a classificar)').length, sameTheme: true, rows, ...extra });
+  const dwRuim = interpretarCompare({ status: 1, stdout: jDw([{ dim: 'DRAWER', campo: 'drawer.tokens.prod', veredito: 'DIVERGE (a classificar)' }, { dim: 'DRAWER', campo: 'drawer.iguais', prod: '8 de 9', veredito: 'IGUAL' }]), stderr: '' }, { escopo: 'drawer' });
+  ok('interpretarCompare gaveta: rc1 → a classificar, nunca "bug"', dwRuim.veredito === 'DIVERGE (a classificar)' && dwRuim.drawer === 1 && dwRuim.porDim.DRAWER.bug === 0);
+  const dwSemDado = interpretarCompare({ status: 2, stdout: jDw([{ dim: 'DRAWER', campo: 'drawer.presenca', veredito: 'SEM-DADO', detalhe: 'fechada' }]), stderr: '⛔ NÃO MEDI' }, { escopo: 'drawer' });
+  ok('interpretarCompare gaveta MORDE: SEM-DADO com relatório é NÃO MEDI, não "frescor não provado"', dwSemDado.veredito === 'NÃO MEDI' && /presenca/.test(dwSemDado.motivo));
+  ok('interpretarCompare gaveta: snapshot sem gaveta → NÃO MEDI', interpretarCompare({ status: 2, stdout: jDw([]), stderr: '' }, { escopo: 'drawer' }).veredito === 'NÃO MEDI');
+  ok('interpretarCompare gaveta: rc0 com linha → IGUAL', interpretarCompare({ status: 0, stdout: jDw([{ dim: 'DRAWER', campo: 'drawer.iguais', prod: '9 de 9', veredito: 'IGUAL' }]), stderr: '' }, { escopo: 'drawer' }).veredito === 'IGUAL');
+  ok('interpretarCompare CONTROLE: escopo tela não muda (rc1 segue bug)', interpretarCompare({ status: 1, stdout: jsonBug, stderr: '' }).veredito === 'DIVERGE (bug)');
+  ok('gerarResumo: coluna DRAWER mostra a divergência da gaveta',
+    /\| DRAWER \|/.test(gerarResumo([{ id: 'M/Index · gaveta', source: 'm.jsx', token: 'm', compare: dwRuim }])) && /\| 1 div \|/.test(gerarResumo([{ id: 'M/Index · gaveta', source: 'm.jsx', token: 'm', compare: dwRuim }])));
+  const ovReal = lerOverride('Manufacturing--Index');
+  ok('override real: Manufacturing/Index declara o passo abrir dos dois lados',
+    !!passoAbrir(ovReal, 'prod') && !!passoAbrir(ovReal, 'design') && !!ovReal.roles?.prod?.drawer?.raiz && !!ovReal.roles?.design?.drawer?.raiz);
+
   const sr = extrairShellRoles('/* PROD */\nwindow.__SB_ROLES = {\n  "atalhoTopo": ".a"\n};\n\n/* DESIGN */\nwindow.__SB_ROLES = {\n  "atalhoTopo": ".b"\n};');
   ok('extrairShellRoles: lê os dois lados', sr.prod?.atalhoTopo === '.a' && sr.design?.atalhoTopo === '.b');
   const srReal = shellRolesDoDono();
@@ -1006,9 +1135,86 @@ async function selftest() {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════════════
+ * SELFTEST DA SONDA — com navegador (2026-10-19). O `--selftest` acima é hermético e sem
+ * browser, então NÃO prova que a sonda mede: só que o comparador lê bem o que ela devolveria.
+ * Este roda a sonda canônica (`design-diff --probe`) numa página-fixture e o passo `abrir` de
+ * verdade. Exige playwright; sem ele sai 2 (NÃO MEDI), nunca 0.
+ * ═════════════════════════════════════════════════════════════════════════════════════ */
+const FIXTURE_GAVETA = (onde, abre = true) => `<!doctype html><html class="dark"><body>
+<div class="cockpit" style="--border:oklch(.34 .008 240);--bg-2:oklch(.23 .006 240);--surface:oklch(.3 .008 240);--text:oklch(.94 .005 90);--text-dim:oklch(.72 .005 90);--text-mute:oklch(.67 .005 90);--accent:oklch(.7 .15 295);--font-sans:IBM Plex Sans,sans-serif;--font-mono:IBM Plex Mono,monospace">
+<main><h1>Produção</h1><h2>Ordens de produção</h2><section>lista</section><table><tbody><tr><td><button id="abre">2024/0002</button></td></tr></tbody></table></main></div>
+<script>
+document.getElementById('abre').addEventListener('click', () => { if (!${abre}) return; setTimeout(() => {
+  const d = document.createElement('aside');
+  d.setAttribute('role', 'dialog'); d.setAttribute('data-contract', 'drawer');
+  d.style.cssText = 'position:fixed;top:0;right:0;width:680px;height:100%;background:var(--surface);color:var(--text);font-family:var(--font-sans)';
+  d.innerHTML = '<header><h2>2024/0002</h2></header><section style="border:1px solid var(--border);margin:12px"><h4>Custo</h4></section>';
+  ${onde === 'dentro' ? "document.querySelector('.cockpit')" : 'document.body'}.appendChild(d);
+}, 150); });
+</script></body></html>`;
+
+async function selftestSonda() {
+  const checks = [];
+  const ok = (nome, cond, detalhe = '') => checks.push({ nome, ok: !!cond, detalhe });
+  let browser;
+  try { browser = await abrirBrowser(); } catch (e) { console.log(`NÃO MEDI: ${e.message}`); return 2; }
+  const probe = sondaCanonica();
+  const PASSO = { clicar: '#abre', espera: '[data-contract=drawer] section' };
+  // Seletores RELATIVOS de propósito: a página tem o seu h2 e a sua section antes da gaveta,
+  // então só o escopo na raiz faz o título medido ser o da gaveta.
+  const ROLES = { title: 'h1', drawer: { raiz: '[data-contract=drawer]', titulo: 'h2', secao: 'section' } };
+  const medir = async (html, passo) => {
+    const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    try {
+      const page = await ctx.newPage();
+      await page.setContent(html);
+      let erro = null;
+      try { await executarAbrir(page, passo); } catch (e) { erro = e; }
+      const snap = await medirLado(page, { probe, roles: ROLES, shell: null, tema: null });
+      return { snap, erro };
+    } finally { await ctx.close(); }
+  };
+  const { mkdtempSync, rmSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const tmp = mkdtempSync(join(tmpdir(), 'ddl-sonda-'));
+  try {
+    const fora = await medir(FIXTURE_GAVETA('fora'), PASSO);
+    const dentro = await medir(FIXTURE_GAVETA('dentro'), PASSO);
+    const fechada = await medir(FIXTURE_GAVETA('dentro'), null);
+    const naoAbre = await medir(FIXTURE_GAVETA('dentro', false), PASSO);
+    const semAlvo = await medir(FIXTURE_GAVETA('dentro'), { clicar: '#nao-existe', espera: PASSO.espera });
+    const dif = (s) => (s.roles.drawer && s.roles.drawer.tokens && s.roles.drawer.tokens.difereDaPagina) || [];
+    ok('abrir: clica e espera a prova, sem erro', !fora.erro && !dentro.erro && fora.snap.roles.drawer.presente === true);
+    ok('sonda MORDE: portal no <body> — tokens que a página resolve chegam vazios na gaveta',
+      ['--border', '--surface', '--text', '--font-sans'].every((t) => dif(fora.snap).includes(t)), dif(fora.snap).join(' '));
+    ok('sonda CONTROLE: gaveta dentro do .cockpit — nenhum token difere da página', dif(dentro.snap).length === 0, dif(dentro.snap).join(' '));
+    ok('sonda: os papéis são buscados DENTRO da raiz (o h1 da página não vira título)', dentro.snap.roles.drawer.papeis.titulo.texto === '2024/0002');
+    ok('sonda CONTROLE NEGATIVO: sem abrir, a gaveta sai presente:false (nunca medida vazia)', fechada.snap.roles.drawer.presente === false);
+    ok('abrir MORDE: a prova não aparece → NÃO MEDI', !!naoAbre.erro && naoAbre.erro.naoMedi === true && /não apareceu/.test(naoAbre.erro.message));
+    ok('abrir MORDE: nada a clicar → NÃO MEDI', !!semAlvo.erro && semAlvo.erro.naoMedi === true && /nada visível/.test(semAlvo.erro.message));
+    // Ponta a ponta pelo CLI do dono (§5 2026-07-30): a mesma régua que o lote usa.
+    const grava = (nome, s) => { const p = join(tmp, nome); writeFileSync(p, JSON.stringify(s)); return p; };
+    const fFora = grava('fora.json', fora.snap), fDentro = grava('dentro.json', dentro.snap), fFechada = grava('fechada.json', fechada.snap);
+    const cli = (a, b) => spawnSync(process.execPath, [DESIGN_DIFF, '--compare', a, b, '--check-drawer'], { encoding: 'utf8' });
+    const rRuim = cli(fFora, fDentro), rBoa = cli(fDentro, fDentro), rFechada = cli(fFechada, fDentro);
+    ok('CLI: fora × dentro + --check-drawer → exit 1, acusando o token do lado prod', rRuim.status === 1 && /drawer\.tokens\.prod/.test(rRuim.stdout), `rc=${rRuim.status}`);
+    ok('CLI: dentro × dentro → exit 0', rBoa.status === 0, `rc=${rBoa.status} ${String(rBoa.stderr).slice(0, 120)}`);
+    ok('CLI: gaveta fechada → exit 2 (não medi)', rFechada.status === 2, `rc=${rFechada.status}`);
+  } finally {
+    await browser.close();
+    rmSync(tmp, { recursive: true, force: true });
+  }
+  for (const c of checks) console.log(`${c.ok ? 'ok  ' : 'X   '}${c.nome}${c.detalhe ? ' — ' + c.detalhe : ''}`);
+  const falhou = checks.filter((c) => !c.ok).length;
+  console.log(`\n${checks.length - falhou}/${checks.length} ok · sonda canônica num navegador real, página-fixture`);
+  return falhou ? 1 : 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════════════
  * CLI
  * ═════════════════════════════════════════════════════════════════════════════════════ */
 async function main() {
+  if (flag('--selftest-sonda')) return selftestSonda();
   if (flag('--selftest')) return selftest();
   const baseUrl = String(val('--base-url', 'http://127.0.0.1:8000')).replace(/\/+$/, '');
   const filtro = val('--tela');

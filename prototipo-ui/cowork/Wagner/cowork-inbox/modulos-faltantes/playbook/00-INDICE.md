@@ -75,7 +75,7 @@ base: wagnerra23/oimpresso.com@main 2fe69ddc0280 (lido 2026-10-06 17:08 UTC)
         },
         {
           "tipo": "arquivo",
-          "path": "governance/design/contracts/suporte.contract.json"
+          "path": "governance/design/contracts/suporte-log.contract.json"
         },
         {
           "tipo": "arquivo",

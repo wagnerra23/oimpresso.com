@@ -211,10 +211,62 @@ last_run: "2026-10-07"
 - **Regressão que defende:** cartões voltarem a somar a empresa inteira com o filtro ligado, ou o
   contador da aba mudar conforme o filtro de uma tela só.
 - **Status: 🧪**
+
+---
+
+## UC-OP-11 · O painel da ordem monta dentro do `.cockpit` e tem a moldura do protótipo
+- **Persona:** Eliana (produção) — abre uma ordem e precisa distinguir, de relance, o que foi consumido
+  (caixa dos ingredientes) do que custa (quadro do custo), com os números secundários esmaecidos.
+- **Aceite:** Dado a lista de ordens · Quando abro uma ordem · Então o painel monta dentro do `.cockpit`
+  (onde moram as cores e a fonte do Design System), com o × do protótipo no canto e sem o "Close" em
+  inglês; o rodapé tem "Fechar" e, só em rascunho, "Editar ordem" com o lápis.
+- **Fonte:** protótipo `manufacturing-producao.jsx` (`MfgProducaoDrawer`) sobre o `Drawer` do DS +
+  `venda-v3.css` (corpo em `--bg-2`, seções em cartão) + `manufacturing-page.css` L166-167 (× no canto).
+  Medição de 2026-10-19 em [`Index-visual-comparison.md`](../../../memory/requisitos/Manufacturing/Index-visual-comparison.md).
+- **Teste:** `tests/js/manufacturing-ordem-drawer.test.tsx` (lane jsdom). Mordida provada por mutação:
+  sem a prop `container` → 1 failed, por `AssertionError`.
+- **Regressão que defende:** o portal voltar ao `<body>` — a caixa dos ingredientes e o quadro do custo
+  somem, os cinzas viram brancos e a fonte cai para a do sistema, com CI verde.
+- **Status: 🧪**
+---
+
+## UC-OP-12 · Montar a ordem só lê a receita da minha empresa
+- **Persona:** Eliana (produção) — escolhe o produto ao montar a ordem e a tela traz os ingredientes
+  e o custo da receita dele.
+- **Aceite:** Dado uma receita da minha empresa · Quando peço os detalhes dela
+  (GET `/manufacturing/get-recipe-details?variation_id=`) · Então vêm os ingredientes dela · Dado a
+  variação de um produto de outra empresa, ou uma variação que não existe · Quando peço os detalhes ·
+  Então a resposta é 404 e nada da receita alheia aparece.
+- **Fonte:** handoff §9 ("`business_id` pela cadeia `mfg_recipes → variations → products` em toda
+  query") · ADR 0093 · hipótese H2 de `PARIDADE-ordem-producao-blade-vs-prototipo.md`.
+- **Teste:** `OrdemReceitaEmpresaTest.php`
+- **Regressão que defende:** a busca voltar a ser só pelo `variation_id`. Medido no CI: a receita de
+  outra empresa já saía 404 antes do conserto, por acidente (`getSubUnits()` procura a unidade só na
+  empresa da sessão), então não era vazamento observável; a variação inexistente estourava 500
+  (run 39441296307, só com o teste; verde com o conserto na run 39446612104). O conserto deixa a recusa explícita, sem depender do acidente.
+- **Status: 🧪**
+---
+
+## UC-OP-13 · Gravar a ordem só aceita produto da minha empresa
+- **Persona:** Eliana (produção) — grava a ordem de produção de um produto da empresa.
+- **Aceite:** Dado um produto da minha empresa com receita · Quando gravo a ordem
+  (POST `/manufacturing/production`) · Então a ordem é gravada na minha empresa · Dado a variação de
+  um produto de outra empresa · Quando gravo a ordem · Então a resposta é 404 e nenhuma ordem é gravada.
+- **Fonte:** handoff §9 · ADR 0093 · hipótese H1 de `PARIDADE-ordem-producao-blade-vs-prototipo.md`.
+- **Teste:** `OrdemReceitaEmpresaTest.php`
+- **Regressão que defende:** o `store` aceitar `variation_id` de qualquer empresa (o FormRequest só
+  confere `exists:variations,id`). Medido no CI (run 39441296307): a ordem com produto de outra
+  empresa já saía 404 antes do conserto, por acaso (`getSubUnits()` não acha a unidade do insumo alheio),
+  mas DEPOIS de gravar a ordem numa transação deixada aberta (a contagem subiu de 0 para 1 no teste) e de
+  incrementar o contador de referência da empresa. O conserto recusa antes de qualquer escrita. Verde na
+  run 39446612104.
+- **Status: 🧪**
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
+- **[BACKLOG]** (H1 · Tier 0 · estoque) Ordem só aceita produto e local da **minha empresa**: `POST /manufacturing/production` com `variation_id` ou `location_id` de outra empresa recusa e não cria `production_purchase`/`production_sell` nem mexe em estoque. Hoje `StoreProductionRequest` valida `exists:variations,id` sem empresa — **hipótese sem teste** (ver PARIDADE). Vira UC quando o teste vermelho existir (tenant 98 × 99, CT 100).
+- **[BACKLOG]** (D1 · decisão [W] 2026-10-13) A aba "Ordens de produção" é só consulta: nenhum botão leva a `/manufacturing/production/create`; a ordem nasce no módulo Produção. Depende do ADR e do destino em `Modules/Producao`.
 - **[BACKLOG]** O sufixo `fix` aparece só em ordem finalizada, com o `title` verbatim (R-21) —
   comportamento de navegador; lugar é spec Playwright.
 - **[BACKLOG]** O checkbox "Só finalizadas" e o KPI "Finalizadas" governam o MESMO filtro (um
@@ -238,3 +290,6 @@ last_run: "2026-10-07"
   foram tocados; o UC-OP-06 roda em vitest (5 passed local, mordida provada por mutação).
 - 2026-10-07 · [M+C] UC-OP-10: os indicadores seguem local + período (decisão [W] 2026-10-06).
   Valor total conferido por dois caminhos no teste; o antes→depois em produção vai ao [W] antes do merge.
+- 2026-10-20 · [M+C] UC-OP-12 e UC-OP-13 (Tier 0, PR #9652): montar e gravar a ordem só com receita e
+  produto da própria empresa. Vermelho só com o teste na run 39441296307 (500 na variação inexistente; ordem
+  de outra empresa gravada antes do 404 acidental); verde com o conserto na run 39446612104.

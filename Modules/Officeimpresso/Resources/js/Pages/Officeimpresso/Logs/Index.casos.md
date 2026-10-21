@@ -122,11 +122,31 @@ transforma isto em `TypeError`. Migração não pode trocar *"vazio"* por *"queb
 
 **Status:** 🧪 — teste escrito e na allowlist da lane; a lane ainda nao rodou.
 
-**Dado** a feature flag `useV2OfficeimpressoLogs` desligada (o default, porque o
-`fallbackDefaults` não a lista)
+**Dado** a feature flag `useV2OfficeimpressoLogs` desligada explicitamente
 **Quando** a tela é aberta
 **Então** o servidor devolve a **view Blade**, não Inertia.
-**Por quê:** é o que garante que mergear a migração não muda nada pro usuário até [W] ligar.
+**Por quê:** até 2026-10-14 este era o default e garantia que mergear a migração não mudava nada
+pro usuário. Desde que [W] ligou a flag (2026-10-14), é a rota de fuga.
+
+## UC-LOGS-15 · Cutover: sem regra no GrowthBook, abre a tela React · `must`
+
+**Status:** 🧪 — teste escrito e na allowlist da lane; a lane ainda nao rodou.
+
+**Dado** o GrowthBook sem regra para `useV2OfficeimpressoLogs` (decide o `fallbackDefaults`, que a
+lista com `true` desde 2026-10-14, decisão [W])
+**Quando** a tela é aberta por quem tem `officeimpresso.access`
+**Então** a resposta é Inertia com `Officeimpresso/Logs/Index`.
+**Por quê:** prova o estado de produção com o serviço real, sem dublê.
+
+## UC-LOGS-16 · Rota de fuga: flag OFF no GrowthBook volta o Blade · `must`
+
+**Status:** 🧪 — teste escrito e na allowlist da lane; a lane ainda nao rodou.
+
+**Dado** a flag com `defaultValue: false` no GrowthBook
+**Quando** a tela é aberta
+**Então** volta a **view Blade**, sem deploy.
+**E** uma regra OFF só para um negócio **não** desliga a tela do suporte: quem vê todas as empresas
+passa `business_id` nulo à flag (é o filtro da query, não a sessão).
 
 ## UC-LOGS-09 · Flag ON responde Inertia · `must`
 

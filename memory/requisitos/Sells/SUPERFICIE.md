@@ -15,7 +15,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 >
 > **O que isto é:** o módulo `Sells` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Sells/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`transactions`, `transaction_sell_lines`, `transaction_payments`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 207 arquivos em 9 papéis.
+**Total mapeado:** 220 arquivos em 9 papéis.
 
 ## Controllers — 6
 
@@ -26,14 +26,24 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [SellReturnController.php](../../../app/Http/Controllers/SellReturnController.php)
 - [SellTranscriptPdfController.php](../../../app/Http/Controllers/SellTranscriptPdfController.php)
 
-## Motor (Utils/Domínio) — 33
+## Motor (Utils/Domínio) — 44
 
+- [RecomendarModeloFluxoAgent.php](../../../app/Domain/Fsm/Ai/RecomendarModeloFluxoAgent.php)
 - [GuardsFsmTransitions.php](../../../app/Domain/Fsm/Concerns/GuardsFsmTransitions.php)
 - [SideEffectInterface.php](../../../app/Domain/Fsm/Contracts/SideEffectInterface.php)
 - [InvalidActionForCurrentStageException.php](../../../app/Domain/Fsm/Exceptions/InvalidActionForCurrentStageException.php)
 - [UnauthorizedActionException.php](../../../app/Domain/Fsm/Exceptions/UnauthorizedActionException.php)
 - [ExpireStaleReservationsJob.php](../../../app/Domain/Fsm/Jobs/ExpireStaleReservationsJob.php)
 - [ResetFsmAuthorizationFlag.php](../../../app/Domain/Fsm/Listeners/ResetFsmAuthorizationFlag.php)
+- [AplicarModelo.php](../../../app/Domain/Fsm/Modelos/AplicarModelo.php)
+- [CasosDoPrototipo.php](../../../app/Domain/Fsm/Modelos/CasosDoPrototipo.php)
+- [CatalogoModelos.php](../../../app/Domain/Fsm/Modelos/CatalogoModelos.php)
+- [CatalogoProcessos.php](../../../app/Domain/Fsm/Modelos/CatalogoProcessos.php)
+- [ProcessosDoPrototipo.php](../../../app/Domain/Fsm/Modelos/ProcessosDoPrototipo.php)
+- [RecomendarModelo.php](../../../app/Domain/Fsm/Modelos/RecomendarModelo.php)
+- [RegrasCompra.php](../../../app/Domain/Fsm/Modelos/RegrasCompra.php)
+- [RegrasDaEmpresa.php](../../../app/Domain/Fsm/Modelos/RegrasDaEmpresa.php)
+- [ModeloEmpresa.php](../../../app/Domain/Fsm/Models/ModeloEmpresa.php)
 - [SaleProcess.php](../../../app/Domain/Fsm/Models/SaleProcess.php)
 - [SaleProcessStage.php](../../../app/Domain/Fsm/Models/SaleProcessStage.php)
 - [SaleStageAction.php](../../../app/Domain/Fsm/Models/SaleStageAction.php)
@@ -60,6 +70,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [ReservarEstoque.php](../../../app/Domain/Fsm/SideEffects/ReservarEstoque.php)
 - [VoltarCacambaDisponivel.php](../../../app/Domain/Fsm/SideEffects/VoltarCacambaDisponivel.php)
 - [FsmAuthorizationFlag.php](../../../app/Domain/Fsm/Support/FsmAuthorizationFlag.php)
+- [PassosDoProcesso.php](../../../app/Domain/Fsm/Support/PassosDoProcesso.php)
 - [TransactionUtil.php](../../../app/Utils/TransactionUtil.php)
 
 ## Models / Entities — 3
@@ -155,7 +166,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [Show.tsx](../../../resources/js/Pages/Sells/Show.tsx)
 - [Subscriptions.tsx](../../../resources/js/Pages/Sells/Subscriptions.tsx)
 
-## Componentes / apoio de tela — 47
+## Componentes / apoio de tela — 48
 
 - [EditarRemessaSheet.tsx](../../../resources/js/Pages/Sells/Shipments/_components/EditarRemessaSheet.tsx)
 - [CobrancaChip.tsx](../../../resources/js/Pages/Sells/_components/CobrancaChip.tsx)
@@ -190,6 +201,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [SellsDateFilter.tsx](../../../resources/js/Pages/Sells/_components/SellsDateFilter.tsx)
 - [SellsTabelaUnificada.tsx](../../../resources/js/Pages/Sells/_components/SellsTabelaUnificada.tsx)
 - [SellsTabsVisao.tsx](../../../resources/js/Pages/Sells/_components/SellsTabsVisao.tsx)
+- [SellsTotalBar.tsx](../../../resources/js/Pages/Sells/_components/SellsTotalBar.tsx)
 - [VdBulkEmitModal.tsx](../../../resources/js/Pages/Sells/_components/VdBulkEmitModal.tsx)
 - [VdNextActionPanel.tsx](../../../resources/js/Pages/Sells/_components/VdNextActionPanel.tsx)
 - [VdNfeEmitModal.tsx](../../../resources/js/Pages/Sells/_components/VdNfeEmitModal.tsx)
@@ -233,7 +245,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [Show.casos.md](../../../resources/js/Pages/Sells/Show.casos.md)
 - [Subscriptions.casos.md](../../../resources/js/Pages/Sells/Subscriptions.casos.md)
 
-## Demais arquivos (manifestos, docs, assets e misc) — 15
+## Demais arquivos (manifestos, docs, assets e misc) — 16
 
 - [Create.design-spec.json](../../../resources/js/Pages/Sells/Create.design-spec.json)
 - [PaymentRow.test-pending.md](../../../resources/js/Pages/Sells/_components/PaymentRow.test-pending.md)
@@ -242,6 +254,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [precoDaBusca.ts](../../../resources/js/Pages/Sells/_components/precoDaBusca.ts)
 - [reparoVenda.ts](../../../resources/js/Pages/Sells/_components/reparoVenda.ts)
 - [subtipoVenda.ts](../../../resources/js/Pages/Sells/_components/subtipoVenda.ts)
+- [totaisDoFiltro.ts](../../../resources/js/Pages/Sells/_components/totaisDoFiltro.ts)
 - [calculo-item.ts](../../../resources/js/Pages/Sells/_components/v3/calculo-item.ts)
 - [cliente-consulta-dominio.ts](../../../resources/js/Pages/Sells/_components/v3/cliente-consulta-dominio.ts)
 - [colunas-dominio.ts](../../../resources/js/Pages/Sells/_components/v3/colunas-dominio.ts)

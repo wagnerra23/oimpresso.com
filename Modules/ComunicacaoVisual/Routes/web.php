@@ -2,6 +2,7 @@
 
 use Inertia\Inertia;
 use Modules\ComunicacaoVisual\Http\Controllers\ApontamentoController;
+use Modules\ComunicacaoVisual\Http\Controllers\InstalacaoController;
 use Modules\ComunicacaoVisual\Http\Controllers\InstallController;
 use Modules\ComunicacaoVisual\Http\Controllers\OrcamentoController;
 
@@ -91,6 +92,11 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         Route::get('orcamentos/{id}', [OrcamentoController::class, 'show'])
             ->name('comvis.api.orcamentos.show');
 
+        // UC-FLX-01 · US-COMVIS-020: aprovar o orçamento cria a OS sem redigitar (idempotente)
+        Route::post('orcamentos/{id}/aprovar', [OrcamentoController::class, 'aprovar'])
+            ->whereNumber('id')
+            ->name('comvis.api.orcamentos.aprovar');
+
         // Sprint 1 — US-COMVIS-004: Spool Plotter / Apontamento de Produção
         // ATENÇÃO: em-andamento registrado antes de {apontamento} pra evitar conflito de rota
         Route::get('apontamentos/em-andamento', [ApontamentoController::class, 'emAndamento'])
@@ -107,4 +113,12 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
 
         Route::post('apontamentos/{apontamento}/cancelar', [ApontamentoController::class, 'cancelar'])
             ->name('comvis.api.apontamentos.cancelar');
+
+        // US-COMVIS-007 · UC-FLX-21: agenda da equipe de instalação (equipe + veículo; recusa sem janela).
+        Route::get('instalacoes', [InstalacaoController::class, 'index'])
+            ->name('comvis.api.instalacoes.index');
+
+        Route::post('os/{os}/instalacao', [InstalacaoController::class, 'agendar'])
+            ->whereNumber('os')
+            ->name('comvis.api.instalacoes.agendar');
     });

@@ -8,6 +8,7 @@ use App\Domain\Fsm\Models\SaleProcess;
 use App\Domain\Fsm\Models\SaleProcessStage;
 use App\Domain\Fsm\Models\SaleStageAction;
 use App\Domain\Fsm\Models\SaleStageActionRole;
+use App\Domain\Fsm\Support\PassosDoProcesso;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Schema;
 use App\Scopes\ScopeByBusiness;
@@ -143,6 +144,9 @@ class FsmProcessoComunicacaoVisualSeeder extends Seeder
 
         $stages = $this->ensureStages($process);
         $this->ensureActions($stages, $roleMap);
+
+        // Passo do app / cancelada / coluna da Produção (decisão [W] 2026-10-16).
+        PassosDoProcesso::aplicar('os_comunicacao_visual', (int) $process->id);
     }
 
     /**

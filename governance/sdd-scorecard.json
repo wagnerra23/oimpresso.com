@@ -15,35 +15,35 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 86.2,
+      "value": 86.6,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 86.2,
-        "specs_total": 54,
-        "us_total": 1069,
-        "anchor_coverage_pct": 86.2,
+        "coverage_pct": 86.6,
+        "specs_total": 55,
+        "us_total": 1120,
+        "anchor_coverage_pct": 86.6,
         "by_state": {
           "sem_campo": 146,
-          "placeholder": 1,
-          "pendente": 442,
-          "parcial": 125,
-          "anchored_ok": 355,
+          "placeholder": 4,
+          "pendente": 458,
+          "parcial": 129,
+          "anchored_ok": 383,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 929,
-        "fields_placeholder": 1,
-        "fields_grammar_ok": 825,
-        "orphan_fields": 6,
+        "fields_total": 981,
+        "fields_placeholder": 4,
+        "fields_grammar_ok": 843,
+        "orphan_fields": 7,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
         "req_sem_aceite_total": 239,
         "req_sem_covering_test_total": 342,
         "req_teste_vermelho_total": 0,
-        "req_sem_lane_total": 28,
+        "req_sem_lane_total": 13,
         "behavior_known": false,
         "servido_total": 27,
         "nao_servido_total": 82,
@@ -148,13 +148,13 @@
     },
     "ghost_count": {
       "status": "measured",
-      "value": 12,
+      "value": 10,
       "unit": "nomes distintos",
       "direction": "down",
       "target": 0,
       "source": "scripts/governance/knowledge-drift.mjs --json (Modules/<X> citado e inexistente no disco; nomes: rodar a fonte direto)",
       "detail": {
-        "citing_modules": 26
+        "citing_modules": 25
       },
       "stream": "KL"
     },
@@ -166,8 +166,8 @@
       "target": 100,
       "source": "scripts/governance/knowledge-drift.mjs --json (BRIEFING.md presente por módulo)",
       "detail": {
-        "with_door": 83,
-        "modules": 83
+        "with_door": 84,
+        "modules": 84
       },
       "stream": "MEM"
     },
@@ -182,16 +182,16 @@
     },
     "ragas_real_uptime": {
       "status": "measured",
-      "value": 53.3,
+      "value": 50,
       "unit": "%",
       "direction": "up",
       "target": 95,
       "source": "governance/ragas-real-trend.json (transporte CT100→scorecard · órfã governance/ragas-real-trend · ADR 0318 + pattern ADR 0279)",
       "detail": {
-        "weeks_expected": 15,
+        "weeks_expected": 16,
         "weeks_valid": 8,
         "first_scheduled": "2026-07-05",
-        "last_week": "2026-10-11",
+        "last_week": "2026-10-18",
         "latest": {
           "gate_status": "skipped",
           "n_evaluated": 0,
@@ -210,9 +210,9 @@
       "target": 0,
       "source": "memory/requisitos/*/BRIEFING.md frontmatter distilled_at vs UNIÃO(data-git do doc não-gerado mais novo, data-git do código do módulo) — determinístico, ADR 0291 D-D",
       "detail": {
-        "portas": 86,
+        "portas": 87,
         "carimbadas": 15,
-        "sem_carimbo": 71,
+        "sem_carimbo": 72,
         "stale": 9,
         "oldest_distilled_at": "2026-09-06",
         "datadas_por_codigo": 14
@@ -227,7 +227,7 @@
       "target": 1,
       "source": "scripts/governance/knowledge-drift.mjs --json .[].hops → mediana (mesma fórmula do relatório humano · ADR 0270 D-5)",
       "detail": {
-        "modules": 83,
+        "modules": 84,
         "hops_worst": 8
       },
       "stream": "MEM"
@@ -256,10 +256,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 80,
+        "entries_aprovadas": 82,
         "max_error_rate_pct": 1.98,
-        "last_pr": 8969,
-        "last_lote": "gt-g5-lote-8969"
+        "last_pr": 9536,
+        "last_lote": "gt-g5-lote-9536"
       },
       "stream": "GT"
     }

@@ -1203,10 +1203,22 @@ class SellController extends Controller
         // sell.create). Fora dela, o gate de sempre — quem só tem sell.view continua 403 na
         // lista geral.
         $podeListaPos = $listaPos && (auth()->user()->can('sell.view') || auth()->user()->can('sell.create'));
+
+        // Pílula "Rascunhos" da consulta de vendas ([W] 2026-10-19, pedido da ROTA LIVRE): o
+        // rascunho é o 1º estágio do pipeline da venda (`quote_draft`, InitialStageResolver), então
+        // mora na mesma lista. `status=draft` troca o universo de "venda final" para "rascunho comum"
+        // (status draft, sub_status NULL — orçamento e proforma têm tela própria). Ausente ou outro
+        // valor = comportamento de sempre. O gate é o do legado `getDrafts` (draft.view_all|own).
+        $somenteRascunhos = (string) $request->input('status', '') === 'draft';
+        $podeRascunhos = auth()->user()->can('draft.view_all') || auth()->user()->can('draft.view_own');
+        if ($somenteRascunhos && ! $podeRascunhos) {
+            abort(403);
+        }
         if (!auth()->user()->can('direct_sell.view') &&
             !auth()->user()->can('view_own_sell_only') &&
             !auth()->user()->can('view_commission_agent_sell') &&
-            !$podeListaPos) {
+            !$podeListaPos &&
+            !$somenteRascunhos) { // rascunho já passou pelo gate próprio acima
             abort(403);
         }
 
@@ -1285,8 +1297,13 @@ class SellController extends Controller
             ->leftJoin('users as cmsn_user', 'transactions.commission_agent', '=', 'cmsn_user.id')
             ->where('transactions.business_id', $business_id)
             ->where('transactions.type', 'sell')
-            ->where('transactions.status', 'final')
             ->whereNull('transactions.sub_type');
+
+        if ($somenteRascunhos) {
+            $q->where('transactions.status', 'draft')->whereNull('transactions.sub_status');
+        } else {
+            $q->where('transactions.status', 'final');
+        }
 
         if ($isDirectSale !== null) {
             $q->where('transactions.is_direct_sale', $isDirectSale);
@@ -1317,8 +1334,18 @@ class SellController extends Controller
             $q->whereRaw("$dateFieldSql <= ?", [$dateTo]);
         }
 
-        // Permission scope (mesmo padrão do index() AJAX).
-        if (!auth()->user()->can('direct_sell.view')) {
+        // Rascunhos: escopo do legado `getDraftDatables` — quem só tem draft.view_own vê os dele,
+        // e a restrição de local vale como lá.
+        if ($somenteRascunhos) {
+            if (! auth()->user()->can('draft.view_all')) {
+                $q->where('transactions.created_by', request()->session()->get('user.id'));
+            }
+            $permittedLocations = auth()->user()->permitted_locations();
+            if ($permittedLocations !== 'all') {
+                $q->whereIn('transactions.location_id', $permittedLocations);
+            }
+        } elseif (!auth()->user()->can('direct_sell.view')) {
+            // Permission scope (mesmo padrão do index() AJAX).
             $q->where(function ($qq) {
                 if (auth()->user()->hasAnyPermission(['view_own_sell_only', 'access_own_shipping'])) {
                     $qq->where('transactions.created_by', request()->session()->get('user.id'));
@@ -1380,6 +1407,7 @@ class SellController extends Controller
                 'transactions.final_total',
                 \DB::raw('(SELECT COALESCE(SUM(IF(tp.is_return = 0, tp.amount, tp.amount * -1)), 0) FROM transaction_payments as tp WHERE tp.transaction_id = transactions.id) as total_paid'),
                 'transactions.payment_status',
+                'transactions.status',
                 'transactions.shipping_status',
                 'transactions.pay_term_number',
                 'transactions.pay_term_type',
@@ -1552,6 +1580,8 @@ class SellController extends Controller
                     'final_total' => (float) $r->final_total,
                     'total_paid' => (float) $r->total_paid,
                     'payment_status' => $r->payment_status,
+                    // 'final' | 'draft' — a pílula Rascunhos marca a linha e troca as ações.
+                    'status' => $r->status,
                     'shipping_status' => $r->shipping_status,
                     'customer_name' => $r->customer_business ?: $r->customer_name,
                     'customer_secondary' => $r->customer_business && $r->customer_name !== $r->customer_business ? $r->customer_name : null,
@@ -1632,7 +1662,33 @@ class SellController extends Controller
             ],
             // US-SELL-017 — totais sobre o filtro inteiro (não só página).
             'totals' => $totals,
+            // Contador da pílula "Rascunhos" — null para quem não tem permissão de rascunho
+            // (a pílula some). Mesmo escopo da lista de rascunhos, sem os filtros da tela.
+            'drafts_count' => $podeRascunhos ? $this->contarRascunhos((int) $business_id) : null,
         ]);
+    }
+
+    /**
+     * Rascunhos comuns visíveis ao usuário: business (Tier 0), status draft sem sub_status,
+     * só os próprios para quem tem apenas draft.view_own, e locais permitidos.
+     */
+    private function contarRascunhos(int $business_id): int
+    {
+        $q = Transaction::where('business_id', $business_id)
+            ->where('type', 'sell')
+            ->where('status', 'draft')
+            ->whereNull('sub_status')
+            ->whereNull('sub_type');
+
+        if (! auth()->user()->can('draft.view_all')) {
+            $q->where('created_by', request()->session()->get('user.id'));
+        }
+        $permittedLocations = auth()->user()->permitted_locations();
+        if ($permittedLocations !== 'all') {
+            $q->whereIn('location_id', $permittedLocations);
+        }
+
+        return $q->count();
     }
 
     /**
@@ -2651,6 +2707,8 @@ class SellController extends Controller
                             'unit' => optional(optional($line->product)->unit)->short_name ?? '',
                         ];
                     })->values()->toArray(),
+                    // UC-FLX-34: custo guardado × custo de hoje no orçamento aberto (nulo fora dele).
+                    'custo' => $this->custoDoOrcamento($sell),
                     'payments' => collect($sell->payment_lines ?? [])->map(function ($p) {
                         return [
                             'id' => (int) $p->id,
@@ -3906,5 +3964,62 @@ class SellController extends Controller
 
             return $output;
         }
+    }
+
+    /** Diferença entre o custo de hoje e o guardado a partir da qual a linha avisa (5%). */
+    private const LIMITE_AVISO_CUSTO = 0.05;
+
+    /**
+     * Custo do orçamento aberto: o guardado no dia (US-SELL-067) ao lado do custo de hoje
+     * (UC-FLX-34 · US-SELL-068). Nulo quando a venda não é rascunho, quando o usuário não tem
+     * `view_purchase_price` (o custo nem chega ao navegador) ou sem o módulo Compras.
+     *
+     * Margem = (receita sem imposto − custo) / receita, só sobre as linhas que têm os dois custos.
+     * Uma linha "mudou" quando o custo de hoje se afasta do guardado mais que LIMITE_AVISO_CUSTO.
+     */
+    private function custoDoOrcamento(Transaction $sell): ?array
+    {
+        if ($sell->status !== 'draft' || ! auth()->user()?->can('view_purchase_price')
+            || ! app()->bound(\App\Contracts\Compras\CustoDoInsumo::class)) {
+            return null;
+        }
+
+        $custo = app(\App\Contracts\Compras\CustoDoInsumo::class);
+        $hoje = now()->toDateString();
+        $linhas = [];
+        $receita = $previsto = $atual = 0.0;
+        $mudaram = 0;
+        $data = null;
+
+        // getRelationValue: as linhas já vieram carregadas no show(); a forma de propriedade
+        // somaria uma ocorrência à exceção de `$sell_lines` da baseline do PHPStan.
+        foreach ($sell->getRelationValue('sell_lines') ?? [] as $line) {
+            $prev = $line->custo_previsto !== null ? (float) $line->custo_previsto : null;
+            $agora = $line->variation_id ? $custo->naData((int) $sell->business_id, (int) $line->variation_id, $hoje)['custo'] : null;
+            $agora = $agora !== null ? (float) $agora : null;
+            $mudou = $prev !== null && $agora !== null && $prev > 0 && abs($agora - $prev) / $prev > self::LIMITE_AVISO_CUSTO;
+            $mudaram += $mudou ? 1 : 0;
+            $data ??= $line->custo_previsto_em ? \Carbon\Carbon::parse($line->custo_previsto_em)->toDateString() : null;
+
+            if ($prev !== null && $agora !== null) {
+                $qtd = (float) $line->quantity;
+                $receita += (float) $line->unit_price * $qtd;
+                $previsto += $prev * $qtd;
+                $atual += $agora * $qtd;
+            }
+            $linhas[] = ['id' => (int) $line->id, 'previsto' => $prev, 'hoje' => $agora, 'mudou' => $mudou];
+        }
+
+        $margem = fn (float $c) => $receita > 0 ? round(($receita - $c) / $receita * 100, 1) : null;
+
+        return [
+            'data' => $data,
+            'linhas' => $linhas,
+            'total_previsto' => round($previsto, 2),
+            'total_hoje' => round($atual, 2),
+            'margem_prevista_pct' => $margem($previsto),
+            'margem_hoje_pct' => $margem($atual),
+            'itens_mudaram' => $mudaram,
+        ];
     }
 }

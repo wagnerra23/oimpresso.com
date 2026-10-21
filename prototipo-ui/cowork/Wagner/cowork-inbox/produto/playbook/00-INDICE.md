@@ -280,9 +280,25 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/
       "nao_toca": [
         "${PAGES}/"
       ],
-      "provas": [],
-      "nota_provas": "errata do recibo: o gate required recusa contrato sem Page; cada contrato entra no PR da Page dele. O contrato derivado está no _saida desta thread.",
-      "bloqueio": "absorvida — contrato sem Page é reprovado pelo gate required; cada contrato entrou na thread da Page (02 · 04 · 05 · 06). Derivação no _saida-07."
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "governance/design/contracts/produto-cadastros.contract.json"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "governance/design/contracts/produto-etiquetas.contract.json"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "governance/design/contracts/produto-importacao.contract.json"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "governance/design/contracts/produto-atualizar-preco.contract.json"
+        }
+      ],
+      "nota_provas": "absorvida: cada contrato entrou no PR da Page dele (_ERRATA-INDICE-2026-10-14). O check required Contratos de tela prova a aderência."
     },
     {
       "id": "02",
@@ -500,11 +516,16 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/
       ],
       "provas": [
         {
-          "tipo": "execucao",
-          "nota": "menu do Produto aponta pras Pages novas; nenhum item leva a rota Blade aposentada (lista no recibo)"
+          "tipo": "arquivo",
+          "path": "tests/Feature/Produto/ProdutoMenuPermissaoContratoTest.php"
+        },
+        {
+          "tipo": "contem",
+          "path": "app/Http/Middleware/AdminSidebarMenu.php",
+          "padrao": "'?aba=' . $aba"
         }
       ],
-      "nota_provas": "o caminho do menu não foi medido neste turno — fixar no _saida-08.md"
+      "nota_provas": "#8812 + #8899; AdminSidebarMenu.php:261 fixado no _saida-08 (_ERRATA-INDICE-2026-10-14)"
     },
     {
       "id": "09",
@@ -567,10 +588,15 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/
       ],
       "provas": [
         {
-          "tipo": "comparacao",
-          "nota": "drawer do protótipo × Page, design-diff no recibo"
+          "tipo": "arquivo",
+          "path": "prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/_COMPARACAO-10-11-2026-10-14.md"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "resources/js/Pages/Produto/Cadastros/_components/CadastroDrawer.tsx"
         }
-      ]
+      ],
+      "nota_provas": "comparação medida em prod biz=1 (5 abas, 0 DIVERGE bug); comportamento = UC-PCADAP-17..22"
     },
     {
       "id": "11",
@@ -593,10 +619,43 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/
       ],
       "provas": [
         {
-          "tipo": "comparacao",
-          "nota": "drawer do protótipo × Page, design-diff no recibo"
+          "tipo": "arquivo",
+          "path": "prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/_COMPARACAO-10-11-2026-10-14.md"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "resources/js/Pages/Produto/Cadastros/_components/CadastroDrawer.tsx"
         }
-      ]
+      ],
+      "nota_provas": "comparação medida em prod biz=1 (5 abas, 0 DIVERGE bug); comportamento = UC-PCADAP-17..22"
+    },
+    {
+      "id": "12",
+      "titulo": "Cadastros: Grupos de preço em drawer (PR-c)",
+      "dono": "CL",
+      "vaga": 3,
+      "prs": 1,
+      "arquivo": "12-cadastros-form-c.md",
+      "depende_threads": [
+        "11"
+      ],
+      "prefixo": [
+        "resources/js/Pages/Produto/Cadastros/",
+        "app/Http/Controllers/SellingPriceGroupController.php",
+        "app/Http/Controllers/UnitController.php",
+        "tests/Feature/Produto/"
+      ],
+      "nao_toca": [
+        "governance/design/contracts/produto-cadastros.contract.json"
+      ],
+      "provas": [
+        {
+          "tipo": "nao_contem",
+          "path": "resources/js/Pages/Produto/Cadastros/Index.tsx",
+          "padrao": "/selling-price-group/create"
+        }
+      ],
+      "nota_provas": "a aba Grupos de preço deixa de abrir o modal da Blade; prova de comportamento no recibo (UC novo)"
     }
   ],
   "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas 09,10 · 2026-10-05 revisão dos recibos @aacb74f4df18 · 2026-10-07 errata do Code aplicada (_ERRATA-*-2026-10-07.md) @8d231ac7a13f"
@@ -607,4 +666,3 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/
 - `prod-estoque` (relatório de estoque) é de Estoque/Relatórios, não de Produto — fica fora até alguém ser dono.
 - `prod-analises` não tem thread: depende de D5. Sem decisão, não vira pedido.
 - `produto-preco-especial/produto-preco-especial.html` é um `.html` solto aqui no projeto, fora do host único. Sem rota no `app.jsx`; vai ser tratado do lado do Cowork, não pelo Code.
-- Thread 08: o arquivo do menu (`AdminSidebarMenu.php`) é suposição — não li no turno.

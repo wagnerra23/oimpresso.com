@@ -195,6 +195,12 @@ export interface DetalheProdutoDados {
     cst_pis: string;
     cst_cofins: string;
     cst_ipi: string;
+    /** Código da tabela A da NF-e. Hoje é o que a emissão usa para todo item (UC-PIDX-25). */
+    origem: string;
+    /** false enquanto o cadastro não tiver origem por produto — a tela avisa que vale pra todos. */
+    origem_por_produto: boolean;
+    /** Tributação do NfeBrasil com este produto no simulador; null sem o módulo Fiscal no pacote, sem `fiscal.access` ou sem `nfe.tributacao.manage`. */
+    link_modulo: string | null;
   };
   prateleiras: {
     colunas: { prateleira: boolean; fileira: boolean; posicao: boolean };
@@ -274,6 +280,21 @@ export function subLinhaProduto(l: LinhaProduto): string {
 
 export const CHAVE_COLUNAS = 'oimpresso.produto.lista.colunas';
 export const CHAVE_DENSIDADE = 'oimpresso.produto.lista.densa';
+/**
+ * Larguras que a pessoa arrastou, por id de coluna — UC-PIDX-16. Lembradas no navegador, como a
+ * escolha de colunas e a densidade: a ROTA LIVRE refazia o ajuste a cada visita (2026-10-17).
+ */
+export const CHAVE_LARGURAS = 'oimpresso.produto.lista.larguras';
+
+/** Só o que é largura de verdade sai do navegador: número entre o piso do arrasto (48) e 1200. */
+export function largurasValidas(valor: unknown): Record<string, number> {
+  if (!valor || typeof valor !== 'object' || Array.isArray(valor)) return {};
+  const out: Record<string, number> = {};
+  for (const [id, w] of Object.entries(valor as Record<string, unknown>)) {
+    if (typeof w === 'number' && Number.isFinite(w) && w >= 48 && w <= 1200) out[id] = Math.round(w);
+  }
+  return out;
+}
 
 /** Colunas opcionais (o menu "Colunas" do protótipo — PB_COLS + PB_COLS_PADRAO). */
 export interface ColunaOpcional {

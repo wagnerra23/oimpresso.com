@@ -35,18 +35,62 @@ on:
       - 'Modules/ProductCatalogue/Http/Controllers/ProductCatalogueController.php'  # modulos-faltantes 04
       - 'Modules/ProductCatalogue/Services/CatalogueQrService.php'
       - 'app/Transaction.php'
+      - 'Modules/Compras/Observers/TransactionSellLineCustoObserver.php'
+      - 'Modules/Compras/Providers/ComprasServiceProvider.php'
+      - 'app/Contracts/Compras/**'  # UC-FLX-34 custo no detalhe do orcamento
+      - 'app/Observers/TransactionMargemMinimaObserver.php'
+      - 'app/Exceptions/MargemAbaixoDoMinimo.php'
+      - 'database/migrations/2026_10_19_220000_add_margem_minima_to_fsm_modelos_empresa.php'
+      - 'database/migrations/2026_10_19_220100_add_sell_aprovar_margem_baixa_permission.php'
+      - 'app/TransactionSellLine.php'
+      - 'database/migrations/2026_10_19_200000_add_custo_previsto_to_transaction_sell_lines.php'
+      - 'Modules/Compras/Services/CustoDoInsumoService.php'
       - 'app/Http/Controllers/SellCommissionSplitController.php'
       - 'app/Http/Controllers/SellController.php'
       - 'app/Http/Controllers/Api/App/PedidosController.php'
+      - 'app/Domain/Fsm/Support/PassosDoProcesso.php'
+      - 'database/migrations/2026_10_16_120000_add_passo_to_sale_process_stages.php'
+      - 'database/seeders/FsmProcessoVendaComProducaoSeeder.php'
+      - 'database/seeders/FsmProcessoComunicacaoVisualSeeder.php'
+      - 'app/Domain/Fsm/Modelos/**'
+      - 'app/Domain/Fsm/Services/ExecuteStageActionService.php'  # Marcar perdido (exige_motivo)
+      - 'app/Domain/Fsm/Models/SaleStageAction.php'  # Marcar perdido (exige_motivo)
+      - 'app/Http/Controllers/SaleFsmActionController.php'  # Marcar perdido (exige_motivo)
+      - 'database/migrations/2026_10_21_120000_add_exige_motivo_to_sale_stage_actions.php'  # Marcar perdido (exige_motivo)
+      - 'app/Domain/Fsm/Models/ModeloEmpresa.php'
+      - 'database/migrations/2026_10_16_140000_create_fsm_modelos_empresa_table.php'
+      - 'app/Http/Controllers/Api/App/PedidoAcaoController.php'  # P1 tela 22 (PR 04 propostas-app)
+      - 'app/Http/Controllers/Api/App/PedidoEntregaController.php'  # P3 tela 22 entrega (PR 11 propostas-app)
+      - 'database/migrations/2026_10_15_180000_create_app_entregas_table.php'
       - 'app/Http/Controllers/Api/App/InicioController.php'
       - 'app/Http/Controllers/Api/App/PerfilMenuController.php'
       - 'database/migrations/2026_10_02_190000_create_app_menu_preferencias_table.php'
       - 'app/Http/Controllers/Api/App/NotificacoesController.php'
       - 'app/Http/Controllers/Api/App/OficinaController.php'
+      - 'Modules/Producao/Http/Controllers/Api/AppApontamentoController.php'
+      - 'Modules/Producao/Services/**'
+      - 'app/Http/Controllers/Api/App/OsArquivosController.php'
+      - 'Modules/OficinaAuto/Services/StageGateEvaluator.php'  # UC-FLX-22 foto do serviço na entrega
+      - 'Modules/OficinaAuto/Services/AcoesOsDoApp.php'
+      - 'app/Http/Controllers/ServiceOrderFsmActionController.php'
+      - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php'
+      - 'routes/api/app/os-arquivos.php'
+      - 'app/Contracts/Arquivos/AnexosDoApp.php'
+      - 'Modules/Arquivos/Services/AnexosDoAppService.php'
+      - 'Modules/Arquivos/Services/ArquivosService.php'
+      - 'Modules/Arquivos/Database/Migrations/2026_10_15_000001_add_legenda_etapa_to_arquivos.php'
       - 'app/Http/Controllers/Api/App/AgendamentoController.php'
       - 'Modules/OficinaAuto/Database/Migrations/2026_10_06_180000_create_oficina_agendamentos_table.php'
       - 'app/Http/Controllers/Api/App/VendaRapidaController.php'
+      - 'Modules/ComunicacaoVisual/Http/Controllers/AppOrcamentoRapidoController.php'  # orçamento rápido (PR 16 propostas-app)
+      - 'Modules/ComunicacaoVisual/Services/OrcamentoCalculator.php'
+      - 'Modules/ComunicacaoVisual/Services/OrcamentoGravador.php'
+      - 'Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php'
       - 'app/Http/Controllers/Api/App/FinanceiroController.php'
+      - 'app/Http/Controllers/Api/App/FinanceiroRecorrenciasController.php'
+      - 'app/Http/Controllers/Api/App/FinanceiroLancamentosController.php'
+      - 'app/Http/Controllers/Api/App/FinanceiroLancamentoAcoesController.php'
+      - 'routes/api/app/financeiro.php'
       - 'app/Http/Controllers/Api/App/RelatoriosController.php'
       - 'app/Http/Controllers/Api/App/DashboardController.php'
       - 'app/Http/Controllers/Api/App/PagamentosController.php'
@@ -57,10 +101,17 @@ on:
       - 'Modules/Financeiro/Services/UnificadoService.php'
       - 'app/Http/Controllers/Api/App/FiscalController.php'
       - 'app/Services/AppLojas/**'
+      - 'app/Http/Controllers/BusinessController.php'  # ajustes do app (PR 01 propostas-app)
+      - 'resources/views/business/partials/settings_app_lojas.blade.php'
       - 'database/migrations/2026_10_02_160000_create_app_idempotencia_table.php'
       - 'routes/api.php'
       - 'routes/api/app/**'
       - 'app/Http/Controllers/SellPosController.php'
+      # Sob teste em QuoteAccessTermometroContratoTest (US-SELL-070 · UC-FLX-04).
+      - 'app/Services/Sells/QuoteAccessRecorder.php'
+      - 'app/Jobs/QuoteFollowUpJob.php'
+      - 'app/Console/Commands/Sells/QuoteFollowUpCommand.php'
+      - 'database/migrations/2026_10_20_120000_create_transaction_quote_accesses_table.php'
       # Sob teste em SellsCreateV3ContratoTest (UC-V302/V303). Sem este gatilho, mexer no
       # controller do preview não dispararia o teste dele — gate mudo com cara de cobertura.
       - 'app/Http/Controllers/SellsV3Controller.php'
@@ -72,6 +123,11 @@ on:
       - 'app/Http/Controllers/CashRegisterController.php'
       # Sob teste em SellReturnIndexContratoTest (UC-SRIDX-*, lista de devoluções).
       - 'app/Http/Controllers/SellReturnController.php'
+      # Sob teste em PesquisaSatisfacaoEntregaContratoTest (US-SELL-071 · UC-FLX-25).
+      - 'app/Jobs/PesquisaSatisfacaoEntregaJob.php'
+      - 'app/Services/Sells/PesquisaEntregaConfig.php'
+      - 'app/Console/Commands/Sells/PesquisaSatisfacaoEntregaCommand.php'
+      - 'database/migrations/2026_10_20_140000_create_transaction_satisfaction_surveys_table.php'
       - 'resources/js/Pages/SellReturn/**'
       - 'app/Utils/TransactionUtil.php'
       # Sob teste em BuscaProdutoPrecoDeGrupoContratoTest (filterProduct × getVariationGroupPrice).
@@ -133,14 +189,32 @@ jobs:
               - 'Modules/ProductCatalogue/Http/Controllers/ProductCatalogueController.php'
               - 'Modules/ProductCatalogue/Services/CatalogueQrService.php'
               - 'app/Transaction.php'
+              - 'Modules/Compras/Observers/TransactionSellLineCustoObserver.php'
+              - 'Modules/Compras/Providers/ComprasServiceProvider.php'
+              - 'app/Contracts/Compras/**'  # UC-FLX-34 custo no detalhe do orcamento
+              - 'app/Observers/TransactionMargemMinimaObserver.php'
+              - 'app/Exceptions/MargemAbaixoDoMinimo.php'
+              - 'database/migrations/2026_10_19_220000_add_margem_minima_to_fsm_modelos_empresa.php'
+              - 'database/migrations/2026_10_19_220100_add_sell_aprovar_margem_baixa_permission.php'
+              - 'app/TransactionSellLine.php'
+              - 'database/migrations/2026_10_19_200000_add_custo_previsto_to_transaction_sell_lines.php'
+              - 'Modules/Compras/Services/CustoDoInsumoService.php'
               - 'app/Http/Controllers/SellCommissionSplitController.php'
               - 'app/Http/Controllers/SellPosController.php'
+              - 'app/Services/Sells/QuoteAccessRecorder.php'
+              - 'app/Jobs/QuoteFollowUpJob.php'
+              - 'app/Console/Commands/Sells/QuoteFollowUpCommand.php'
+              - 'database/migrations/2026_10_20_120000_create_transaction_quote_accesses_table.php'
               - 'app/Http/Controllers/SellsV3Controller.php'
               - 'app/Http/Controllers/SalesOrderController.php'
               - 'resources/js/Pages/SalesOrder/**'
               - 'app/Utils/CashRegisterUtil.php'
               - 'app/Http/Controllers/CashRegisterController.php'
               - 'app/Http/Controllers/SellReturnController.php'
+              - 'app/Jobs/PesquisaSatisfacaoEntregaJob.php'
+              - 'app/Services/Sells/PesquisaEntregaConfig.php'
+              - 'app/Console/Commands/Sells/PesquisaSatisfacaoEntregaCommand.php'
+              - 'database/migrations/2026_10_20_140000_create_transaction_satisfaction_surveys_table.php'
               - 'resources/js/Pages/SellReturn/**'
               - 'app/Utils/TransactionUtil.php'
               - 'app/Utils/ProductUtil.php'
@@ -156,15 +230,49 @@ jobs:
               - 'config/mwart.php'
               - 'app/Support/Mwart.php'
               - 'app/Http/Controllers/Api/App/PedidosController.php'
+              - 'app/Domain/Fsm/Support/PassosDoProcesso.php'
+              - 'database/migrations/2026_10_16_120000_add_passo_to_sale_process_stages.php'
+              - 'database/seeders/FsmProcessoVendaComProducaoSeeder.php'
+              - 'database/seeders/FsmProcessoComunicacaoVisualSeeder.php'
+              - 'app/Domain/Fsm/Modelos/**'
+              - 'app/Domain/Fsm/Services/ExecuteStageActionService.php'  # Marcar perdido (exige_motivo)
+              - 'app/Domain/Fsm/Models/SaleStageAction.php'  # Marcar perdido (exige_motivo)
+              - 'app/Http/Controllers/SaleFsmActionController.php'  # Marcar perdido (exige_motivo)
+              - 'database/migrations/2026_10_21_120000_add_exige_motivo_to_sale_stage_actions.php'  # Marcar perdido (exige_motivo)
+              - 'app/Domain/Fsm/Models/ModeloEmpresa.php'
+              - 'database/migrations/2026_10_16_140000_create_fsm_modelos_empresa_table.php'
+              - 'app/Http/Controllers/Api/App/PedidoAcaoController.php'  # P1 tela 22 (PR 04 propostas-app)
+              - 'app/Http/Controllers/Api/App/PedidoEntregaController.php'  # P3 tela 22 entrega (PR 11 propostas-app)
+              - 'database/migrations/2026_10_15_180000_create_app_entregas_table.php'
               - 'app/Http/Controllers/Api/App/InicioController.php'
               - 'app/Http/Controllers/Api/App/PerfilMenuController.php'
               - 'database/migrations/2026_10_02_190000_create_app_menu_preferencias_table.php'
               - 'app/Http/Controllers/Api/App/NotificacoesController.php'
               - 'app/Http/Controllers/Api/App/OficinaController.php'
+              - 'Modules/Producao/Http/Controllers/Api/AppApontamentoController.php'
+              - 'Modules/Producao/Services/**'
+              - 'app/Http/Controllers/Api/App/OsArquivosController.php'
+              - 'Modules/OficinaAuto/Services/StageGateEvaluator.php'  # UC-FLX-22 foto do serviço na entrega
+              - 'Modules/OficinaAuto/Services/AcoesOsDoApp.php'
+              - 'app/Http/Controllers/ServiceOrderFsmActionController.php'
+              - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php'
+              - 'routes/api/app/os-arquivos.php'
+              - 'app/Contracts/Arquivos/AnexosDoApp.php'
+              - 'Modules/Arquivos/Services/AnexosDoAppService.php'
+              - 'Modules/Arquivos/Services/ArquivosService.php'
+              - 'Modules/Arquivos/Database/Migrations/2026_10_15_000001_add_legenda_etapa_to_arquivos.php'
               - 'app/Http/Controllers/Api/App/AgendamentoController.php'
               - 'Modules/OficinaAuto/Database/Migrations/2026_10_06_180000_create_oficina_agendamentos_table.php'
               - 'app/Http/Controllers/Api/App/VendaRapidaController.php'
+              - 'Modules/ComunicacaoVisual/Http/Controllers/AppOrcamentoRapidoController.php'  # orçamento rápido (PR 16 propostas-app)
+              - 'Modules/ComunicacaoVisual/Services/OrcamentoCalculator.php'
+              - 'Modules/ComunicacaoVisual/Services/OrcamentoGravador.php'
+              - 'Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php'
               - 'app/Http/Controllers/Api/App/FinanceiroController.php'
+              - 'app/Http/Controllers/Api/App/FinanceiroRecorrenciasController.php'
+              - 'app/Http/Controllers/Api/App/FinanceiroLancamentosController.php'
+              - 'app/Http/Controllers/Api/App/FinanceiroLancamentoAcoesController.php'
+              - 'routes/api/app/financeiro.php'
               - 'app/Http/Controllers/Api/App/RelatoriosController.php'
               - 'app/Http/Controllers/Api/App/DashboardController.php'
               - 'app/Http/Controllers/Api/App/PagamentosController.php'
@@ -175,6 +283,8 @@ jobs:
               - 'Modules/Financeiro/Services/UnificadoService.php'
               - 'app/Http/Controllers/Api/App/FiscalController.php'
               - 'app/Services/AppLojas/**'
+              - 'app/Http/Controllers/BusinessController.php'  # ajustes do app (PR 01 propostas-app)
+              - 'resources/views/business/partials/settings_app_lojas.blade.php'
               - 'database/migrations/2026_10_02_160000_create_app_idempotencia_table.php'
               - 'routes/api.php'
               - 'routes/api/app/**'
@@ -293,6 +403,9 @@ jobs:
         # (total 3.703,50 · estoque 10 → 7, conta à mão e recalculado das linhas) + 2ª
         # conversão 409 sem baixar de novo + [T0] 98 × 99. NASCE SEM RUN.
         #
+        # 2026-10-20 — + QuoteAccessTermometroContratoTest (UC-QUO-05..08, US-SELL-070 · UC-FLX-04):
+        # abertura do link /quote/{token} gravada (HEAD/prefetch/usuário da empresa fora), página não
+        # quebra se gravar falha, retorno de 48 h uma vez só e só no business do job. NASCE SEM RUN.
         # 2026-10-06 — + CommissionSplitAuditTest (UC-COM-01/02, playbook comissões thread 03):
         # trocar split/comissionado grava auditoria antes→depois; PATCH do split não alcança
         # venda nem usuário de outro business. NASCE SEM RUN: vermelho aqui é este arquivo.
@@ -310,6 +423,39 @@ jobs:
         # 2026-10-14 — + SellsDraftsContratoTest (UC-DRAFT-01..04 de `Sells/Drafts.casos.md`, etapa E1):
         # lista de rascunhos por `/sells/draft-dt?is_quotation=0` (view_all × view_own, venda final e
         # tenant 99 fora), 403 da tela e KPI medido por delta. NASCE SEM RUN: vermelho aqui é este arquivo.
+        # 2026-10-15 — + AppAjustesEmpresaContratoTest (UC-APPAJ-01..05, PR 01 do playbook propostas-app):
+        # `ajustes` do /api/app/inicio completo com padrão, tenant 98 × 2, e a aba "App das lojas" de
+        # /business/settings (salvar desliga padrão ligado e não apaga chave que a aba não edita).
+        # 2026-10-15 — + AppProducaoApontamentoContratoTest (UC-APPAPT-01..09, PR 06 do playbook propostas-app):
+        # apontamento por QR com token sobre o ApontamentoOperadorService do PCP (ADR 0431) — etiqueta da
+        # empresa × hash/OS do 99 → 404, app_apontamento_exige_qr, iniciar/pausar/concluir/corrigir com
+        # Idempotency-Key e hora do aparelho, 409 etapa_alheia/em_andamento. NASCE SEM RUN.
+        # 2026-10-15 — + AppPedidoAcaoContratoTest (PR 04 do playbook propostas-app, P1 · tela 22):
+        # POST /api/app/pedidos/{id}/acao só com a lista segura, etapa_esperada → 409, Idempotency-Key,
+        # ajuste app_acoes_fsm_liberadas estreita a lista, outro business → 404 sem mudar a etapa.
+        # 2026-10-15 — + AppOsArquivosApiContratoTest (UC-APPANX-01..08, PR 09 do playbook propostas-app):
+        # anexos da OS no app — lista assinada de 10 min, envio jpg/png/pdf ≤ 10 MB, tenant 98 × 2 → 404,
+        # app_anexos_camera e Idempotency-Key.
+        # 2026-10-15 — + AppRelatoriosLucroComissaoContratoTest (UC-APPLC-01..06, PR 13 do playbook propostas-app):
+        # abas lucratividade e comissoes de /api/app/relatorios, conferidas contra o Lucro/Prejuízo e a
+        # Comissão por vendedor do web; vendedor × gerente × ajuste; tenant 98 × 2. NASCE SEM RUN.
+        # 2026-10-15 — + AppOsArquivosApiContratoTest (UC-APPANX-01..08, PR 09 do playbook propostas-app):
+        # anexos da OS no app — lista assinada de 10 min, envio jpg/png/pdf ≤ 10 MB, tenant 98 × 2 → 404,
+        # app_anexos_camera e Idempotency-Key.
+        # 2026-10-15 — + AppPedidoEntregaContratoTest (PR 11 do playbook propostas-app, P3 · tela 22 entrega):
+        # POST /api/app/pedidos/{id}/entrega — ENT-NNNN por business, assinatura em arquivos, FSM entregar
+        # numa transação (falha desfaz tudo), ajustes app_entrega_exige_*, tenant 98 × 2 → 404.
+        # 2026-10-15 — + AppOrcamentoRapidoContratoTest (UC-APPOR-01..10, PR 16 do playbook propostas-app,
+        # REGRA MESTRE): /api/app/orcamentos/{materiais,calcular} e POST /orcamentos — dupla prova do total
+        # contra a calculadora e a gravação da web, idempotência, tenant 98 × 2, ajuste app_orcamento_rapido.
+        # 2026-10-16 — + FsmRetomarProducaoContratoTest: retomar_producao on_hold → in_production
+        # no processo real venda_com_producao, papel producao.iniciar, motivo no histórico, outro business
+        # não retoma, migration de dados idempotente, POST /api/app/pedidos/{id}/acao.
+        # 2026-10-16 — + FsmPagamentoForaDasEtapasContratoTest: entregar sai de invoiced,
+        # paid → entregar por compatibilidade, migration idempotente, SituacaoPagamentoVenda pelos títulos.
+        # 2026-10-20 — + PesquisaSatisfacaoEntregaContratoTest (UC-VSHOW-09..13, US-SELL-071 · UC-FLX-25):
+        # pesquisa 2 dias depois da entrega, uma por venda, opt-out LGPD, nota baixa abre atendimento
+        # no CRM, default desligado, tenant 98 × 99. NASCE SEM RUN: vermelho aqui é este arquivo.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -322,21 +468,42 @@ jobs:
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-sells-junit.xml \
             tests/Feature/Sells/SellsShowContratoTest.php \
+            tests/Feature/Sells/PesquisaSatisfacaoEntregaContratoTest.php \
+            tests/Feature/Sells/OrcamentoCustoPrevistoContratoTest.php \
+            tests/Feature/Sells/SellsShowCustoOrcamentoContratoTest.php \
+            tests/Feature/Sells/SellsMargemMinimaContratoTest.php \
             tests/Feature/Sells/SellsEditContratoTest.php \
             tests/Feature/Sells/SellsIndexTenantContratoTest.php \
             tests/Feature/Sells/SellsIndexFiltroDataFimContratoTest.php \
             tests/Feature/Sells/AppPedidosApiContratoTest.php \
+            tests/Feature/Sells/AppPedidosPassosProcessoContratoTest.php \
+            tests/Feature/Sells/FsmAplicarModeloContratoTest.php \
+            tests/Feature/Sells/FsmMarcarPerdidoContratoTest.php \
+            tests/Feature/Sells/FsmCatalogoProcessosContratoTest.php \
             tests/Feature/Sells/AppInicioApiContratoTest.php \
             tests/Feature/Sells/AppPerfilMenuApiContratoTest.php \
+            tests/Feature/Sells/AppAjustesEmpresaContratoTest.php \
+            tests/Feature/Sells/AppProducaoApontamentoContratoTest.php \
+            tests/Feature/Sells/AppPedidoAcaoContratoTest.php \
+            tests/Feature/Sells/FsmRetomarProducaoContratoTest.php \
+            tests/Feature/Sells/FsmPagamentoForaDasEtapasContratoTest.php \
             tests/Feature/Sells/AppNotificacoesApiContratoTest.php \
             tests/Feature/Sells/AppOsApiContratoTest.php \
+            Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php \
+            tests/Feature/Sells/AppOsArquivosApiContratoTest.php \
+            tests/Feature/Sells/AppPedidoEntregaContratoTest.php \
             tests/Feature/Sells/AppOficinaAgendaApiContratoTest.php \
             tests/Feature/Sells/AppVendaRapidaProdutosApiContratoTest.php \
             tests/Feature/Sells/AppFinanceiroApiContratoTest.php \
+            tests/Feature/Sells/AppFinanceiroRecorrenciasApiContratoTest.php \
+            tests/Feature/Sells/AppFinanceiroNovoLancamentoApiContratoTest.php \
+            tests/Feature/Sells/AppFinanceiroLancamentoAcoesApiContratoTest.php \
             tests/Feature/Sells/AppFiscalApiContratoTest.php \
             tests/Feature/Sells/AppRelatoriosApiContratoTest.php \
+            tests/Feature/Sells/AppRelatoriosLucroComissaoContratoTest.php \
             tests/Feature/Sells/AppDashboardApiContratoTest.php \
             tests/Feature/Sells/AppVendaRapidaCriarApiContratoTest.php \
+            tests/Feature/Sells/AppOrcamentoRapidoContratoTest.php \
             tests/Feature/Sells/AppPagamentosApiContratoTest.php \
             tests/Feature/Sells/AppPagamentosEscritaContratoTest.php \
             tests/Feature/Sells/SellsCreateV3ContratoTest.php \
@@ -352,6 +519,7 @@ jobs:
             tests/Feature/Sells/DescontosContratoTest.php \
             tests/Feature/Sells/SellsPosIndexContratoTest.php \
             tests/Feature/Sells/QuotationConvertTest.php \
+            tests/Feature/Sells/QuoteAccessTermometroContratoTest.php \
             tests/Feature/Sells/ImportSalesContratoTest.php \
             tests/Feature/Sells/ImportSalesReverterContratoTest.php \
             tests/Feature/Sells/VendasMwartCutoverTest.php \
@@ -359,6 +527,7 @@ jobs:
             tests/Feature/Sells/SellsQuotationsContratoTest.php \
             tests/Feature/Sells/SellsSubscriptionsContratoTest.php \
             tests/Feature/Sells/SellsDraftsContratoTest.php \
+            tests/Feature/Sells/SellsIndexRascunhosContratoTest.php \
             tests/Feature/Sells/CatalogueQrContratoTest.php \
             tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php
 

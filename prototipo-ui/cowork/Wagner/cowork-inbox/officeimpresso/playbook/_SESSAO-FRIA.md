@@ -12,7 +12,7 @@ Leia só: placar (se não for `proximo`, pare) · o `NN-*.md` · o objeto da thr
 |---|---|---|---|---|
 | **01** | L1+L7 escopo na API | CL | `01-seguranca-api.md` | — |
 | **02** | L2 parar de gravar senha | CL | `02-segredo-desktop.md` | — |
-| **03** | Dropar colunas | CL | `03-segredo-desktop.md` | 02 · D4 |
+| **03** | ~~Dropar colunas~~ **encerrada** — senha pertence à integração Officeimpresso, não dropar | CL | `03-segredo-desktop.md` | 02 · D4 |
 | **04** | Estado fora de GET | CL | `04-get.md` | — |
 | **05** | Painel OAuth duplicado | CL | `05-client-duplicado.md` | D1 |
 | **A1** | Alvos | CL | `A1-alvos.md` | D2 |

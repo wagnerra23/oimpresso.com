@@ -147,6 +147,13 @@ interface Props {
    * menu `⋯ Mais`). Use só quando todas as abas ficam inline (`maxVisible` ≥ nº de abas).
    */
   scrollable?: boolean;
+  /**
+   * OPT-IN (painel de detalhe do produto, [F] 2026-10-14): cores do `.cli-moduletopnav-tab` do
+   * protótipo de TELA em vez das do DS — texto da aba ativa `var(--text)`, das inativas e do hover
+   * `var(--text-dim)`/`var(--text)`, e fundo do contador inativo `var(--border-2)` (o DS usa
+   * `--bg-2`; ver o comentário do contador abaixo). Sem a prop nada muda: `'default'` é o de sempre.
+   */
+  tone?: 'default' | 'prototype';
   className?: string;
 }
 
@@ -172,8 +179,10 @@ export default function PageHeaderTabs({
   extraOverflowItems = [],
   density = 'default',
   scrollable = false,
+  tone = 'default',
   className,
 }: Props) {
+  const tomPrototipo = tone === 'prototype';
   const hue = group ? SIDEBAR_GROUP_HUE[group] : undefined;
   const hueStyle = hue !== undefined ? ({ '--gh': hue } as React.CSSProperties) : undefined;
 
@@ -302,7 +311,7 @@ export default function PageHeaderTabs({
                   TAB_DENSITY[density].base,
                   'whitespace-nowrap snap-start -mb-px',
                   'transition-colors border-b-2 border-transparent',
-                  'hover:bg-accent hover:text-accent-foreground',
+                  tomPrototipo ? 'hover:bg-accent hover:text-[var(--text)]' : 'hover:bg-accent hover:text-accent-foreground',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                   // Fidelidade ao protótipo cadastro (`clientes-page.css` `.cli-moduletopnav-tab.active`)
                   // [W] 2026-07-14: aba ATIVA = texto foreground (var(--text) do protótipo, branco)
@@ -311,8 +320,8 @@ export default function PageHeaderTabs({
                   // token `--primary` resolve pra oklch(0.70 …) e destoava do botão (2 roxos no
                   // header). `hue` segue só pro botão primary colorido (out of scope).
                   isActive
-                    ? 'text-foreground font-semibold'
-                    : TAB_DENSITY[density].inactive,
+                    ? cn('text-foreground font-semibold', tomPrototipo && 'text-[var(--text)]')
+                    : cn(TAB_DENSITY[density].inactive, tomPrototipo && 'text-[var(--text-dim)]'),
                 )}
                 style={
                   isActive
@@ -360,7 +369,7 @@ export default function PageHeaderTabs({
                     style={
                       isActive
                         ? { backgroundColor: 'var(--accent)', color: 'var(--accent-fg)' }
-                        : { backgroundColor: 'var(--bg-2)', color: 'var(--text-dim)' }
+                        : { backgroundColor: tomPrototipo ? 'var(--border-2)' : 'var(--bg-2)', color: 'var(--text-dim)' }
                     }
                   >
                     {ghost.badge}

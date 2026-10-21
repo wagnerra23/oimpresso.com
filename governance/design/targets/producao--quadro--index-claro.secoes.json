@@ -1,0 +1,21 @@
+{
+  "_": "A1 [CL] 2026-10-15 — playbook producao. Mesma tela de `producao--quadro--index` no tema CLARO: o tema troca pelo menu do usuário do rodapé da sidebar (Aparência → Claro), que escreve o tweak `theme` do shell (sidebar.jsx UserMenu → window.__setTweak). Medido com --clicar nesses passos e o menu fechado de novo antes de medir.",
+  "header": {
+    "seletor": ".pcv-root > .pcv-ph"
+  },
+  "abas": {
+    "seletor": ".pcv-root > .ds-tabbar"
+  },
+  "filtro": {
+    "seletor": ".pcv-root > .pcv-body > .pcv-filtro"
+  },
+  "barra": {
+    "seletor": ".pcv-root > .pcv-body > .pcv-bar"
+  },
+  "board": {
+    "seletor": ".pcv-root > .pcv-body > .pcv-quadro > .pcv-board"
+  },
+  "eventos": {
+    "seletor": ".pcv-root > .pcv-body > .pcv-quadro > .pcv-evpanel"
+  }
+}

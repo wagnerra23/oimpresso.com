@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a lista é a PORTA do catálogo — se ela esconde produto, esconde preço a quem não devia, ou mistura tenant, todo o resto do ERP herda o erro.
 owner: wagner
-last_run: "2026-10-13"
-last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arquivo fora da quarentena naquele commit): os 6 UC-PIDX passaram. A saída da quarentena da lane vai em PR próprio (o arquivo .github é CODEOWNERS [W])"
+last_run: "2026-10-19"
+last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e915; o run 39296002704 saiu cancelled) — os 12 arquivos Vitest do job passaram, entre eles os 2 da lista que citam UC-PIDX (produto-lista-encaixe e produto-lista-redimensionar) e tests/js/portais-dentro-do-cockpit.test.tsx; a tela mudou nesse dia só no lugar onde os diálogos de exclusão e de local montam (#9590), sem efeito no servidor. Antes: run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arquivo fora da quarentena naquele commit): os 6 UC-PIDX passaram. A saída da quarentena da lane vai em PR próprio (o arquivo .github é CODEOWNERS [W])"
 ---
 
 # Casos de Uso & Aceite — Lista do catálogo (`/products`)
@@ -71,12 +71,17 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 | UC-PIDX-13 | Clicar no cabeçalho de uma coluna ordena a lista no servidor, nas duas direções; por preço só para quem pode ver o preço | should | protótipo (`ListaProdutos`, colunas `sortable`) + `$ordenaveis` de `buildProdutoListaPaginada` + gate de preço (UC-PIDX-03) | `ProdutoListaOrdenacaoTest` (Pest) + `produto-lista-ordenacao.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-14 | "Cadastro rápido" cria o produto com os preços que o formulário Blade gravaria, só na empresa e nos locais permitidos | must `[V0]` `[T0]` | charter v3 §Goals ("Cadastro rápido") + protótipo (`ModalCadastroRapido`) + Blade `quick_add_product` / `saveQuickProduct` + REGRA MESTRE valor | `ProdutoListaCadastroRapidoTest` (Pest) + `produto-cadastro-rapido.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-15 | "Adicionar ou editar estoque inicial" abre em janela e lança o mesmo saldo, linhas e transações que o formulário Blade | must `[V0]` `[T0]` | protótipo (`ModalEstoqueInicial`) + Blade `opening_stock/form-part` / `OpeningStockController@save` + `CU-PROD-04` + REGRA MESTRE estoque | `EstoqueInicialJanelaTest` (Pest) + `produto-estoque-inicial.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
-| UC-PIDX-16 | Arrastar a borda do cabeçalho muda a largura da coluna, sem mexer na ordem nem nas outras colunas | should | protótipo (`ListaProdutos` → `DataGrid` do DS, `startResize`) | `produto-lista-redimensionar.test.tsx` + `datatable-redimensionar.test.tsx` (Vitest) + 1 caso em `tests/a11y-primitives.test.tsx` (roda em lane) | ⬜ nasce neste PR — verde esperado |
+| UC-PIDX-16 | Arrastar a borda do cabeçalho muda a largura da coluna, sem mexer na ordem nem nas outras colunas | should | protótipo (`ListaProdutos` → `DataGrid` do DS, `startResize`) | `produto-lista-redimensionar.test.tsx` + `produto-lista-encaixe.test.tsx` (Vitest, rodam no `Frontend / Vite build`) + `datatable-redimensionar.test.tsx` + 1 caso em `tests/a11y-primitives.test.tsx` (roda em lane) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-17 | "Dados fiscais (NCM/CFOP)" no menu da linha abre o painel do produto já na aba Fiscal | should | protótipo (`acoesDe` + aba `fiscal` do `DetalheDrawer`) | `produto-menu-da-linha.test.tsx` + `produto-painel-detalhe.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-18 | Aba "Relatório de estoque": escolher quantas linhas por página, com os totais iguais em qualquer tamanho; lucro potencial da linha com cor | should `[V0]` | protótipo (`RelatorioEstoque`) + lista Blade (`stock_report_table`, menu de tamanho do DataTable) + REGRA MESTRE valor | `ProdutoListaEstoqueAbaTest` (Pest, roda em lane) + `produto-relatorio-estoque.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-19 | A aba Fiscal do painel mostra o tipo de imposto na venda (inclusivo ou exclusivo) | could | protótipo (aba `fiscal` do `DetalheDrawer`) | `produto-painel-detalhe.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-20 | Painel: composição com "Total líquido", preço da composição e preços de cada item; imagens das variações e dos itens | should `[V0]` | Blade (`combo_product_details`, `variation_images`) + protótipo (`DetalheDrawer`, aba `composicao`) + REGRA MESTRE valor | `ProdutoDetalheTest` (Pest, roda em lane) + `produto-painel-detalhe.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-21 | Produto que não controla estoque tem a aba Estoque no painel, com o aviso de que não gerencia estoque | could | protótipo (aba `estoque` do `DetalheDrawer`, ramo `stockOn` falso) | `produto-painel-detalhe.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
+| UC-PIDX-23 | Produto que sincroniza com o WooCommerce tem a marca ao lado do nome na lista | could | Blade (`ProductController@index`, coluna `product`: `fa-wordpress` quando `! woocommerce_disable_sync`) | `produto-lista-woocommerce.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
+| UC-PIDX-24 | Campos personalizados 1 a 7 como colunas opcionais da lista: só os que a empresa rotulou, com o valor do produto | could | Blade (`product/index.blade.php`: colunas `product_custom_field1..7`, `visible` só com rótulo) + protótipo (`PB_COLS_PADRAO.cf1 = false`) | `ProdutoListaConsultaTest` (Pest, roda em lane) + `produto-lista-campos-personalizados.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
+| UC-PIDX-25 | Aba Fiscal do painel: origem da mercadoria, texto de ajuda e "Abrir no módulo Fiscal" | could | protótipo (aba `fiscal` do `DetalheDrawer`) + emissão (`orig` = `products.origem_mercadoria`) | `ProdutoDetalheTest` (Pest, roda em lane) + `produto-painel-detalhe.test.tsx` (Vitest) + `TributacaoIndexContratoTest` (UC-NFTR-29) | ⬜ nasce neste PR — verde esperado |
+| UC-PIDX-26 | Em tela estreita as colunas encolhem até caber: em 1366px, com o menu aberto, as 12 colunas de saída aparecem sem rolar para o lado | should | reclamação da ROTA LIVRE (2026-10-17, monitor 1366×768) + `memory/regras-time.md` ("monitor 1280px — designs precisam caber") + charter (UX: "cabe em 1280px sem scroll horizontal da página") | `produto-lista-encaixe.test.tsx` (Vitest, roda no `Frontend / Vite build`) | ⬜ nasce neste PR — verde esperado |
+| UC-PIDX-27 | A grade tem altura própria: rola por dentro, com o cabeçalho fixo e a barra de rolar para o lado sempre à vista | should | protótipo (`ListaProdutos`: altura = 72% do corpo, mínimo 260px) + charter (UX: "a tabela rola dentro dela, cabeçalho fixo") | `produto-lista-encaixe.test.tsx` (Vitest, roda no `Frontend / Vite build`) | ⬜ nasce neste PR — verde esperado |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -305,20 +310,22 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
   - a data vai e volta sem deslocamento: salvar sem mexer na data não a altera (na tela Blade a data exibida passa pelo `format_date`, com o deslocamento histórico de 3 horas);
   - com validade ou lote desligados na empresa, a linha existente mantém o que já tinha (o formulário Blade, sem o campo, apagava).
 - **Achado do caminho antigo, NÃO resolvido aqui (hipótese por leitura, ainda sem medição):** ao zerar uma linha existente, o `save()` não chama `updateProductQuantity` (`if ($qty_remaining != 0)`), então o saldo do local não desceria. A janela herda o que o Blade faz — o teste afirma só a igualdade entre os dois caminhos nesse caso. Decisão de conserto é do [W]/[F].
+  - **Medido em 2026-10-15** ([`EstoqueInicialZerarLinhaTest`](../../../../tests/Feature/Produto/EstoqueInicialZerarLinhaTest.php), CT 100 em `8723405fb`): lançar 10 e depois zerar a linha pelo `/opening-stock/save` grava a linha com quantidade 0, mas o saldo do local **fica em 10**. O controle (baixar de 10 para 1) desconta certo, então o defeito é só no zero. O teste está na quarentena da lane de Estoque até o conserto; o conserto mexe em estoque e segue a regra mestre (duas provas e antes→depois) — decisão [W]/[F].
 - **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide (a parte Vitest não roda em lane nenhuma).
 
 ## UC-PIDX-16 · Arrastar a borda da coluna muda a largura dela · `should`
 - **Persona:** Larissa tem produto de nome comprido que aparece cortado; quer abrir a coluna "Produto" e apertar "Locais", como faz numa planilha.
-- **Aceite:** Dada a lista aberta · Quando arrasto a borda direita do cabeçalho de Produto, Locais, Preço de compra, Preço de venda, Estoque atual, Tipo, Categoria, Marca ou Imposto · Então só aquela coluna muda de largura, acompanhando o mouse, e nunca fica menor que 48px; as outras colunas ficam como estavam e a tabela cresce ou encolhe o mesmo tanto (com a barra de rolagem horizontal). Ação e Imagem não têm borda de arrastar, nem a última coluna da grade. Arrastar **não ordena** a lista. A largura fica enquanto a tela está aberta — ordenar, trocar de página, filtrar e ligar ou desligar colunas não a desfazem; recarregar a página volta às larguras de saída.
-- **Teste:** [`produto-lista-redimensionar.test.tsx`](../../../../tests/js/produto-lista-redimensionar.test.tsx) — `UC-PIDX-16` (as colunas de verdade na tabela de verdade) e [`datatable-redimensionar.test.tsx`](../../../../tests/js/datatable-redimensionar.test.tsx) (a tabela, sozinha). Um caso roda em lane: `DataTable resizable…` em [`tests/a11y-primitives.test.tsx`](../../../../tests/a11y-primitives.test.tsx) (lane `datatable-nome-acessivel-gate`).
+- **Aceite:** Dada a lista aberta · Quando arrasto a borda direita do cabeçalho de Produto, Locais, Preço de compra, Preço de venda, Estoque atual, Tipo, Categoria, Marca ou Imposto · Então só aquela coluna muda de largura, acompanhando o mouse, e nunca fica menor que 48px; as outras colunas ficam como estavam e a tabela cresce ou encolhe o mesmo tanto (com a barra de rolagem horizontal). Ação e Imagem não têm borda de arrastar, nem a última coluna da grade. Arrastar **não ordena** a lista. Ordenar, trocar de página, filtrar e ligar ou desligar colunas não desfazem a largura · **E ela fica lembrada no navegador** (desde 2026-10-17): recarregar a página ou voltar da edição de um produto abre com a mesma largura; "Voltar às larguras de saída", no menu "Colunas" (só aparece quando há largura ajustada), desfaz.
+- **Teste:** [`produto-lista-redimensionar.test.tsx`](../../../../tests/js/produto-lista-redimensionar.test.tsx) — `UC-PIDX-16` (as colunas de verdade na tabela de verdade) e [`datatable-redimensionar.test.tsx`](../../../../tests/js/datatable-redimensionar.test.tsx) (a tabela, sozinha); a largura lembrada, em [`produto-lista-encaixe.test.tsx`](../../../../tests/js/produto-lista-encaixe.test.tsx) — `UC-PIDX-16 · a largura arrastada fica lembrada no navegador`. Rodam em lane: `produto-lista-redimensionar` e `produto-lista-encaixe` no Vitest do `Frontend / Vite build` (`.github/workflows/ci.yml`, desde 2026-10-18), e `DataTable resizable…` em [`tests/a11y-primitives.test.tsx`](../../../../tests/a11y-primitives.test.tsx) (lane `datatable-nome-acessivel-gate`).
 - **Contrato:**
   - **Protótipo** — `ListaProdutos` roda no `DataTablePro` do DS (= `DataGrid` com `resizable`); a regra está em `prototipo-ui/design-system/components/DataGrid/DataGrid.jsx` (`startResize`): alça de 7px, piso de 48px, sem alça na coluna `resizable: false` (Ação, Imagem) e na última. O rodapé diz "arraste a borda pra redimensionar".
   - **Medido no protótipo com arrasto real (2026-10-13, 1280px):** +50px levou Produto de 300 para 350 e a tabela de 1704 para 1754; encolher Locais além do piso parou em 48; a ordenação não mudou.
-- **O que NÃO faz, como no protótipo:** não lembra a largura entre visitas (o menu "Colunas" lembra quais colunas aparecem; a largura, não); não tem atalho de teclado nem toque — é só mouse; não tem duplo clique para ajustar ao conteúdo.
+- **O que NÃO faz, como no protótipo:** ~~não lembra a largura entre visitas~~ (valeu até 2026-10-17 — ver a diferença abaixo); não tem atalho de teclado nem toque — é só mouse; não tem duplo clique para ajustar ao conteúdo.
+- **Diferença deliberada do protótipo (2026-10-17, pedido do [F] a partir da reclamação da ROTA LIVRE):** a largura arrastada fica lembrada no navegador (`oimpresso.produto.lista.larguras`), como a escolha de colunas e a densidade. Sem isso, a ROTA LIVRE refazia o ajuste a cada visita: a edição do produto é Blade e recarrega a página na volta.
 - **Diferença deliberada do protótipo:** lá a alça é deslocada 3px para fora da coluna e o cabeçalho vizinho cobre essa parte — sobram 4px úteis (medido com `elementFromPoint`). Aqui os 7px ficam inteiros dentro da coluna, para a borda ser mais fácil de pegar.
 - **Onde mora:** `resizable` é opção nova do `shared/DataTable`, desligada por padrão — as outras telas que usam a tabela não mudam.
 - **Defeito da primeira versão, medido em produção (2026-10-13, logo depois do deploy do #9233):** a largura era guardada dentro da tabela, e a tabela mora dentro de `<Deferred data="lista">`, que a desmonta enquanto a lista recarrega. Ordenar por "Estoque atual" devolveu Produto de 348 para 300 (o nó `<table>` era outro; o rodapé da página, fora do `<Deferred>`, era o mesmo). O aceite acima — "ordenar, trocar de página e filtrar não a desfazem" — estava escrito e era falso. Os testes daquela versão usavam `rerender`, que mantém a tabela montada, e por isso não viam. Conserto: a largura passa a morar na página (`columnWidths` + `onColumnResize`), e o caso `ordenar, trocar de página ou filtrar (a tabela some e volta)…` reproduz o intervalo sem tabela.
-- **Status: ⬜** — nasce neste PR; verde esperado. Dos três arquivos de teste, só o caso do `a11y-primitives` roda em lane.
+- **Status: ⬜** — nasce neste PR; verde esperado. Em 2026-10-17 só o caso do `a11y-primitives` rodava em lane; em 2026-10-18 `produto-lista-redimensionar` e `produto-lista-encaixe` entraram no Vitest do `Frontend / Vite build`.
 
 ## UC-PIDX-17 · "Dados fiscais" no menu da linha abre o painel na aba Fiscal · `should`
 - **Persona:** Larissa vai emitir nota e quer conferir o NCM e o CFOP de um produto sem abrir o cadastro.
@@ -385,7 +392,52 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - **Diferença deliberada:** o protótipo diz "Este produto não gerencia estoque (**enable_stock = 0**) — serviços e composições entram assim." Fica só a primeira frase: o nome da coluna não diz nada a quem usa a tela, e produto composto também pode ter o controle de estoque ligado no cadastro (o formulário não o desliga), então a segunda frase não vale para todo caso.
 - **Status: ⬜** — nasce neste PR; verde esperado. O arquivo de teste não roda em lane.
 
+## UC-PIDX-22 · Produto sem foto mostra "Sem imagem" no painel e "IMG" na lista · `could`
+- **Persona:** Larissa olha a lista e o painel de um produto que nunca teve foto cadastrada; quer ver que ele está sem foto, não um quadro branco que parece imagem quebrada.
+- **Aceite:** Dado um produto sem foto (`products.image` vazio) · Então o servidor manda `imagem = null` na linha da lista e no painel; a coluna Imagem mostra o marcador "IMG" e o painel a caixa escura "Sem imagem" (os dois já existiam na tela para `null`). Produto com foto segue com a mesma URL da Blade (`/uploads/img/…`).
+- **Teste:** [`ProdutoDetalheTest`](../../../../tests/Feature/Produto/ProdutoDetalheTest.php) — `UC-PIDX-22` (painel) e [`ProdutoListaConsultaTest`](../../../../tests/Feature/Produto/ProdutoListaConsultaTest.php) — `UC-PIDX-22` (lista), os dois na lane Estoque · MySQL.
+- **Contrato:** protótipo `produto-blade.jsx` — `.pb-thumb` "IMG" na coluna Imagem e `.pb-img` no `DetalheDrawer`. O acessor `App\Product::image_url` devolve `/img/default.png` quando não há foto; a lista Blade e as outras telas seguem usando o acessor como está — só esta tela troca por `null`.
+- **Medido em produção (biz 1, tema escuro, 2026-10-14):** antes, 73 das 74 miniaturas da 1ª página e o painel do produto 1817 eram `<img src=".../img/default.png">` (sem fundo); simulando a troca no navegador, a caixa do painel fica 168×168, fundo `oklch(0.23 0.006 240)`, borda `oklch(0.34 0.008 240)`, texto `oklch(0.67 0.005 90)` 11px, e a miniatura 30×30 com "IMG" 9px — as regras `.pb-img`/`.pb-thumb` do bundle, iguais às do protótipo.
+- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+
+## UC-PIDX-23 · Produto que sincroniza com o WooCommerce tem a marca ao lado do nome · `could`
+- **Persona:** quem vende também na loja WooCommerce olha a lista e quer saber, sem abrir o produto, quais deles vão para a loja.
+- **Aceite:** Dado o módulo WooCommerce instalado · Quando um produto tem a sincronização ligada (`woocommerce_disable_sync = 0`) · Então a célula Produto mostra uma marca ao lado do nome, com o nome acessível "Sincroniza com o WooCommerce", também no modo compacto. Produto com a sincronização desligada não tem a marca; sem o módulo, nenhum tem (o servidor nem manda o campo `woocommerce_sync`).
+- **Teste:** [`produto-lista-woocommerce.test.tsx`](../../../../tests/js/produto-lista-woocommerce.test.tsx) — `UC-PIDX-23` (não roda em lane). Mutação: trocar a condição por "campo presente" derruba o 1º caso.
+- **Contrato:** lista Blade, `ProductController@index` (coluna `product`): `if ($is_woocommerce && ! $row->woocommerce_disable_sync)` põe `<i class="fab fa-wordpress">` sob o nome. O protótipo não tem a marca (não desenha o WooCommerce na linha); a tela segue a Blade aqui. Ícone: `Globe` (lucide), porque o pacote não tem a marca do WordPress.
+- **Status: ⬜** — nasce neste PR; verde esperado. O arquivo de teste não roda em lane.
+
+## UC-PIDX-24 · Campos personalizados como colunas opcionais da lista · `could`
+- **Persona:** a empresa que usa campos personalizados no cadastro (cor, coleção, fornecedor de origem) quer ver esse dado na lista, sem abrir produto por produto.
+- **Aceite:** Dado que a empresa deu rótulo a um campo personalizado de 1 a 7 (rótulos personalizados da empresa) · Então o menu "Colunas" oferece aquele campo com o rótulo da empresa, desligado por padrão · Quando a pessoa liga · Então a coluna mostra o valor de cada produto, e traço quando o produto não tem. Campo sem rótulo não vira coluna. O servidor manda os campos 1 a 7 de cada linha com os mesmos valores das colunas da lista Blade; do 8 em diante, só no painel.
+- **Teste:** [`ProdutoListaConsultaTest`](../../../../tests/Feature/Produto/ProdutoListaConsultaTest.php) — `UC-PIDX-24` (roda na lane Estoque Pest), compara com o DataTable da Blade; [`produto-lista-campos-personalizados.test.tsx`](../../../../tests/js/produto-lista-campos-personalizados.test.tsx) — `UC-PIDX-24` (não roda em lane). Mutação: tirar a checagem do rótulo em `colunas.tsx` derruba o 4º caso do Vitest.
+- **Contrato:** lista Blade, `product/index.blade.php` (`product_custom_field1..7`, `visible: $('#cf_N').text().length > 0`, rótulo de `custom_labels.product.custom_field_N`). **Divergência deliberada da Blade, pelo protótipo:** na Blade a coluna rotulada aparece de início; aqui começa desligada no menu "Colunas" (`PB_COLS_PADRAO.cf1 = false` em `produto-blade.jsx`). É forma, e na forma o protótipo decide (UI-0029).
+- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+
 ---
+
+## UC-PIDX-25 · Aba Fiscal: origem da mercadoria, texto de ajuda e "Abrir no módulo Fiscal" · `could`
+- **Persona:** quem confere os dados fiscais de um produto antes de vender, sem abrir o cadastro.
+- **Aceite:** Dada a aba Fiscal do painel · Então ela mostra **Origem da mercadoria** depois dos CST e antes de "Imposto aplicável", com o código e o nome da tabela A gravados no próprio produto (`products.origem_mercadoria`; sem escolha, `0 — Nacional`), os mesmos nomes do campo do cadastro · E um **texto de ajuda** que muda conforme o cadastro: sem NCM, diz que a nota usa o NCM padrão da empresa; com NCM, explica a ordem da regra (exceção do produto, regra do NCM, padrão da empresa); com CEST, avisa que a nota não troca o CFOP sozinha · E, quando a empresa tem o módulo **Fiscal** no pacote (`fiscal_module`) **e** a pessoa tem a permissão de acessar o módulo (`fiscal.access`) — as duas checagens do menu Fiscal, decisão [F] 2026-10-16 —, mais a permissão `nfe.tributacao.manage` que o simulador cobra, o botão **"Abrir no módulo Fiscal"**, que leva à Tributação com o produto já escolhido no simulador (UC-NFTR-29). Sem módulo ou sem permissão, o botão não existe.
+- **Teste:** [`ProdutoDetalheTest`](../../../../tests/Feature/Produto/ProdutoDetalheTest.php) — `UC-PIDX-25` (origem do produto, com um 2º produto em 0 como discriminante; produto de outra empresa segue `null`; e as três condições do link, na lane Estoque · MySQL); [`produto-painel-detalhe.test.tsx`](../../../../tests/js/produto-painel-detalhe.test.tsx) — `UC-PIDX-25` (não roda em lane). Mutação: voltar o texto do protótipo para produto sem NCM derruba o 5º caso do Vitest.
+- **Contrato:** protótipo `produto-blade.jsx`, aba `fiscal` do `DetalheDrawer` (NCM, CEST, CFOP, Origem, Imposto aplicável, Tipo de imposto, texto de ajuda e o botão). **Diferenças deliberadas, medidas no código:** ~~(1) o cadastro não tem origem por produto~~ — caiu em 2026-10-15: a origem passou a ser do produto (#9465) e a aba lê `products.origem_mercadoria`, a mesma coluna que as duas emissões usam; o aviso "a origem é a mesma em todas as notas" não aparece mais. (2) O texto do protótipo chama de serviço todo produto sem NCM e diz que, com CEST, a nota sai com CFOP de substituído; a emissão não faz nem uma coisa nem outra (usa o NCM padrão da empresa e não lê o CEST), então o texto foi corrigido. (3) O protótipo leva a um "módulo Fiscal" do produto; a tela que existe é a Tributação do NfeBrasil, com o simulador.
+- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+
+## UC-PIDX-26 · Em tela estreita as colunas encolhem até caber · `should`
+- **Persona:** a ROTA LIVRE usa monitor 1366×768. Na lista de produtos, Tipo, Categoria, Marca, Imposto e SKU ficavam fora da tela, e ela estreitava as colunas à mão a cada visita.
+- **Aceite:** Dada a lista com as 12 colunas de saída numa janela de 1366px com o menu lateral aberto (1.034px para a tabela, medido em produção em 2026-10-17) · Então todas as colunas aparecem, sem rolar para o lado · E cada coluna que pode encolher cede a mesma fração da sua folga (largura do protótipo − piso), sem passar do piso: preço 92px (cabe um preço de quatro dígitos com centavos, como "9.999,99", com o prefixo da moeda), estoque 88 (cabe "4010 UNID"), tipo 96 (cabe a pílula "Composição"), produto 112, e os de texto com o piso do rótulo do cabeçalho (categoria 80, locais 62, marca 64, imposto 60, SKU 58) · E a faixa de preço de produto variável ("‹mínimo› – ‹máximo›") quebra em duas linhas logo depois do traço, sem cortar valor · E texto cortado com "…" mostra o inteiro ao passar o mouse · E o rótulo do cabeçalho de coluna encolhida quebra em duas linhas em vez de invadir a vizinha, e o rótulo de palavra única ("CATEGORIA") cabe inteiro, porque nenhum piso fica abaixo dele · Quando a janela é larga o bastante (a soma das larguras do protótipo cabe — com o menu aberto, a partir de uns 2.080px de janela) · Então nada muda: valem as larguras do protótipo; em 1920px as colunas ficam um pouco abaixo delas (medido em 2026-10-18: Produto 269px em vez de 300), sem rolar para o lado · Quando a pessoa arrasta uma coluna · Então aquela fica com a largura escolhida e as outras se ajustam ao espaço que sobra · Quando nem os pisos cabem (muitas colunas ligadas) · Então a tabela fica nos pisos e a sobra rola para o lado, com a barra à vista (UC-PIDX-27).
+- **Teste:** [`produto-lista-encaixe.test.tsx`](../../../../tests/js/produto-lista-encaixe.test.tsx) — `UC-PIDX-26` (a regra com os números de 1366px, o piso, a coluna arrastada, o `<colgroup>` da tabela de verdade, o rótulo que quebra, a faixa de preço que quebra no traço e o texto inteiro no `title`). **Smoke em produção depois do deploy do #9535 (2026-10-18, 1366×648, menu aberto, empresa 1):** nenhuma coluna fora da tela; tabela de 1.019px numa área de 1.019px; grade com 391px de altura; nenhum preço, estoque ou tipo cortado e 11 faixas de preço quebrando no traço; arrastar Produto para 183px sobreviveu ao F5 (com SKU passando para a direita, alcançável pela barra lateral da grade) e "Voltar às larguras de saída" apagou a chave e devolveu o encaixe; nenhuma falha de rede na carga. **Achado no smoke e corrigido depois:** o rótulo "CATEGORIA" pedia 79px, ficou com 67 e vazava 12px sobre MARCA — os pisos passaram a respeitar o rótulo. **Prévia em produção (2026-10-17, 1366×648, larguras aplicadas no navegador, sem deploy):** nenhuma coluna fora da tela, tabela de 1.019px numa área de 1.019px; nenhum preço cortado com a faixa quebrando; continuam com "…" (texto inteiro no `title`) nomes de produto longos, "Locais" e SKUs de 13 dígitos. Roda no Vitest do `Frontend / Vite build` (desde 2026-10-18). Mutação: desligar o encaixe (`encaixarColunas` devolvendo sempre `{}`) derruba 5 casos.
+- **Contrato:** a reclamação (monitor 1366×768, "todos os campos não aparecem, precisa ficar redimensionando") e a regra do cliente piloto em [`memory/regras-time.md`](../../../../memory/regras-time.md) ("monitor 1280px — designs precisam caber"). **Medido em produção (2026-10-17, janela 1366×648, menu aberto):** espaço da tabela 1.034px; a tabela exigia 1.704px (a soma das larguras do protótipo + a caixa de seleção); inteiras na tela só até Preço de venda, Estoque atual cortada, Tipo, Categoria, Marca, Imposto e SKU fora.
+- **Diferença deliberada do protótipo:** o protótipo mantém as larguras em qualquer tela e a tabela rola para o lado; aqui, em tela estreita, as colunas encolhem. Em tela larga as larguras são as dele. A regra e os pisos moram em `_components/lista/encaixe.ts`.
+- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+
+## UC-PIDX-27 · A grade tem altura própria e a barra de rolar para o lado fica à vista · `should`
+- **Persona:** quem precisa ver uma coluna à direita e não acha a barra de rolar para o lado.
+- **Aceite:** Dada a lista · Então a grade tem altura máxima de 72% da área que rola da página (nunca menos de 260px) · E rola por dentro, com o cabeçalho fixo e a barra de rolar para o lado no fim da grade, à vista · Lista curta não ganha espaço vazio (é altura **máxima**).
+- **Teste:** [`produto-lista-encaixe.test.tsx`](../../../../tests/js/produto-lista-encaixe.test.tsx) — `UC-PIDX-27` (a área que rola fica limitada; sem a opção, a tabela cresce com as linhas, como antes). Roda no Vitest do `Frontend / Vite build` (desde 2026-10-18).
+- **Contrato:** protótipo `produto-blade.jsx`, `ListaProdutos`: altura = `max(260, min(conteúdo, 72% do .pb-body))`, "a rolagem interna com header fixo compensa". Charter (UX): "a tabela rola dentro dela, cabeçalho fixo". **Medido em produção antes (2026-10-17, 1366×648, 75 produtos):** sem altura, a barra de rolar para o lado ficava a 4.097px do topo, numa janela de 648px.
+- **Onde mora:** `scrollMaxHeight` é opção nova do `shared/DataTable` (só no `grid`), desligada por padrão — as outras telas não mudam.
+- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
 
 ## Achados de governança (o trio prometia o que não tinha)
 
@@ -402,12 +454,29 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 | G-d | Charter §Automation Hooks declarava **2 endpoints inexistentes**: `GET /produto` (a rota é `/products`) e `GET /produto/{id}/sheet-data` — varredura contada: `sheet-data` existe **só** para `/sells/{id}` (`routes/web.php:704 (verificado@e2c8397)`), **0** ocorrências para produto. Corrigido no charter (fato). | `grep -rn "sheet-data" routes/ app/` |
 | G-e | Charter §Goals declarava o gate `product.view_own`. Varredura contada em `app/`, `Modules/`, `routes/`, `resources/` (excl. charters): **0** ocorrências — a permissão **não existe** no projeto. O gate real é `product.view` **ou** `product.create` (`:66-68`). Corrigido no charter (fato). | `grep -rn "product.view_own"` |
 | G-f | Charter §Refs apontava `ui_kits/cowork-2026-05-09/prod-page.jsx` — caminho **inexistente**. O blueprint vivo é `prototipo-ui/cowork/Wagner/produtos-page.jsx`, que o próprio frontmatter (`bundle_source`) já declara. Corrigido no charter (fato). | `ls ui_kits/…` → No such file |
-| G-g | O charter está `status: live` (promovido em 2026-07-12 por `charter-promote-signal.mjs`, sinal `route-hits:16`) enquanto o SDD §1.1 e o SPEC afirmam *"as 8 telas existem, nenhuma é `live`"*. **Não reconciliei**: o critério de promoção é decisão de processo, não fato de arquivo. Ver §Divergências. | `Index.charter.md:8,166` × `SDD §1.1` × `SPEC.md:18` |
+| G-g | ✅ **Resolvido 2026-10-15** (ver D-4). O charter está `status: live` (promovido em 2026-07-12 por `charter-promote-signal.mjs`, sinal `route-hits:16`) enquanto o SDD §1.1 e o SPEC afirmam *"as 8 telas existem, nenhuma é `live`"*. **Não reconciliei**: o critério de promoção é decisão de processo, não fato de arquivo. Ver §Divergências. | `Index.charter.md:8,166` × `SDD §1.1` × `SPEC.md:18` |
 
 ---
 
-## Divergências abertas — decisão [W] (não escolhi vencedor)
+## Divergências — resolvidas pela lista nova (2026-10-15)
 
+> ✅ **Resolvidas em 2026-10-15, conferidas no código.** As quatro descrevem a lista de **cartões**,
+> que saiu em 2026-10-10 (charter v3, #9118/#9119/#9124). Não pedem mais decisão do [W]:
+>
+> - **D-1:** a popularidade saiu da tela e do controller (0 ocorrências de `popular` em `Index.tsx`
+>   e no `ProductController`). Os indicadores são os 4 do protótipo (UC-PIDX-07).
+> - **D-2:** clicar na linha abre o painel de detalhe, só com `product.view`
+>   (`Index.tsx`: `onRowClick={pode('view') ? …}`). O gate invertido sumiu com o link.
+> - **D-3:** o menu "Ações" da linha (`_components/lista/AcoesProduto.tsx`) tem as ações da lista
+>   Blade (ver, editar, estoque inicial, histórico, duplicar, código de barras, preços por grupo,
+>   anexo, ativar/desativar, excluir) e mais "Comprar" e "Dados fiscais". As 5 sem Non-Goal entraram.
+> - **D-4:** o `ProductController@index` serve a tela React por padrão; o Blade só com `?classico=1`.
+>   O tráfego de `/products` agora é da tela React. O SPEC já diz que o `Index` é a única tela `live`;
+>   a frase do SDD §1.1 ("zero live") foi corrigida com data neste PR. A dúvida sobre o promotor
+>   automático ler tráfego do Blade nas **outras** telas segue no backlog abaixo — é mecanismo, não esta tela.
+>
+> O texto original segue abaixo, sem mudança, como registro do que se viu em 2026-07-26.
+>
 > Fase 2.6 do `sdd-from-source`: **fato** eu corrijo; **intenção** e **promessa não cumprida** eu
 > registro nos dois lados e levo pro dono. Nenhum item abaixo foi alterado no charter.
 
@@ -422,6 +491,18 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 
 ## Paridade Blade→React (gaps do cutover — decisão [W]/[F], não bug afirmado)
 
+> **Conferido em 2026-10-15** contra a lista nova (`_components/lista/colunas.tsx`, `FiltrosLista.tsx`,
+> `tipos.ts`). A tabela abaixo descreve a lista de cartões e fica como registro. Na lista nova:
+> saldo com unidade (coluna Estoque), imagem, locais, marca, imposto, tipo, os filtros, a seleção em
+> massa com desativar/excluir, a aba "Relatório de estoque", "não para venda" (na 2ª linha da célula
+> Produto) e a ordenação por coluna **existem**. **Ainda faltam:** os custom fields e o selo de
+> WooCommerce sincronizado na linha (o filtro "WooCommerce habilitado" existe, o selo não).
+> _Atualização 2026-10-15 [F+C]: o selo do WooCommerce entrou com o **UC-PIDX-23** (marca ao lado
+> do nome)._
+> _Correção 2026-10-15 [F+C]: os custom fields **não faltavam** — a lista nova tem as colunas 1 a 7
+> desde 2026-10-10 (#9124), no menu "Colunas", só para os campos rotulados. Faltava o teste: entrou
+> com o **UC-PIDX-24**. A nota acima fica como estava (registro do dia)._
+
 > A lista React mostra 6 atributos por card. O **mesmo método** `index()`, no branch DataTables,
 > entrega 14 colunas + 7 filtros + 2 ações em massa. Cada linha é âncora que **não** deve sumir
 > sem Non-Goal declarado.
@@ -432,12 +513,12 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 | **Imagem do produto** | coluna `image` (`:272-274`) | — | ausente (card usa ícone genérico) |
 | **Localizações do produto** | coluna `product_locations` (`:196-200`) | `AR-PROD-055` | ausente |
 | **Marca · unidade · imposto · tipo** | colunas `brand`/`unit`/`tax`/`type` | `AR-PROD-014` (Tipo) | só `unit` chega; resto ausente |
-| **20 custom fields** (7 na grade) | `:326-357` | `AR-PROD-040/041` | ausente |
+| **20 custom fields** (7 na grade) | `:326-357` | — _(a âncora `AR-PROD-040/041` que estava aqui é Plano de Contas e Marca, não campo personalizado)_ | ~~ausente~~ existe: colunas 1 a 7 no menu "Colunas" (só as rotuladas) e os 20 no painel — UC-PIDX-24 (2026-10-15) |
 | **Filtros: tipo · marca · unidade · imposto · localização · not-for-selling** | `resources/views/product/index.blade.php:21-110 (verificado@5d5cac0)` (7 filtros) | `AR-PROD-060` (filtros de consulta) | só categoria + inativos; charter declara Non-Goal p/ "filtros avançados" (backlog) |
 | **Seleção em massa + excluir/desativar selecionados** | `mass_delete` (`:276-278`) + `:438-496` | `AR-PROD-022` (soft-delete) | Non-Goal declarado no charter (`❌ Bulk actions`) — **ok, não é regressão** |
 | **Aba "Relatório de estoque"** (custo, valor de venda, lucro potencial) | 2ª tabela do mesmo Blade (`:617-670`) | `AR-PROD-051/061` | ausente · pareia com `CU-PROD-12` `[V0]` (agregação de valor) |
 | **Badge "não vendável"** (`not_for_selling`) | `:263-264` | — | ausente (só o badge "inativo" migrou) |
-| **Selo WooCommerce sincronizado** | `:266-268` | — | ausente |
+| **Selo WooCommerce sincronizado** | `:266-268` | — | ~~ausente~~ existe — UC-PIDX-23 (2026-10-15) |
 | **Ordenação por qualquer coluna** | DataTables server-side | `AR-PROD-062` (grid agrupável) | ausente (ordem fixa por nome) |
 
 ---
@@ -456,21 +537,110 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
-- **[BACKLOG] Os três denominadores da tela não fecham** — `kpis.total` (todos, sem `modifier`),
+- ✅ **Resolvido 2026-10-15:** a lista é paginada no servidor sem corte (UC-PIDX-01), os indicadores
+  contam as mesmas linhas da lista sem filtro (UC-PIDX-07) e a contagem por categoria saiu com os
+  cartões. Texto original: **[BACKLOG] Os três denominadores da tela não fecham** — `kpis.total` (todos, sem `modifier`),
   `rows` (sem `modifier`, cortado em 200) e `categorias[].count` (**tudo**, inclusive `modifier` e
   inativos). A soma das abas ≠ total do KPI ≠ cards na tela. Não virou UC porque o número correto
   de cada contador depende de qual pergunta a tela responde — decisão de desenho.
-- **[BACKLOG] `stockQty` sempre `null`** — a interface declara (`Index.tsx:56 (verificado@d4afe95)`), o builder manda
+- ✅ **Resolvido 2026-10-15:** a coluna Estoque mostra o saldo com unidade (`colunas.tsx`, id
+  `estoque`; `estoqueTexto` em `tipos.ts`). Texto original: **[BACKLOG] `stockQty` sempre `null`** — a interface declara (`Index.tsx:56 (verificado@d4afe95)`), o builder manda
   `null` fixo (`:465`) e o card **não renderiza**. O Blade tem a coluna `current_stock` com unidade.
   Vira UC quando [W] confirmar que o saldo entra no card (toca `[V0]`: saldo é estoque).
-- **[BACKLOG] Badge "não vendável" (`not_for_selling`)** — existe no Blade (`:263-264`), some no
+- ✅ **Resolvido 2026-10-15:** "não para venda" aparece na 2ª linha da célula Produto
+  (`subLinhaProduto` em `tipos.ts`; some na densidade compacta) e há o filtro "Não para venda".
+  Texto original: **[BACKLOG] Badge "não vendável" (`not_for_selling`)** — existe no Blade (`:263-264`), some no
   React. Sem âncora Delphi clara; 1 fonte só.
-- **[BACKLOG] Filtros avançados** — o charter declara "filtros avançados" como backlog explícito.
+- ✅ **Resolvido 2026-10-15:** `FiltrosLista.tsx` tem tipo, categoria, unidade, imposto, marca,
+  local, situação, modelo do dispositivo, "não para venda" e WooCommerce. Texto original:
+  **[BACKLOG] Filtros avançados** — o charter declara "filtros avançados" como backlog explícito.
   (A ordenação por coluna, que estava neste item, virou o **UC-PIDX-13** em 2026-10-12.)
 - **[BACKLOG] O promotor automático de charter pode estar lendo tráfego do Blade** — `/products`
   serve os dois branches; `route-hits` não distingue. Se confirmado, afeta as 8 telas do módulo e
   qualquer tela em branch dual MWART. É achado de **mecanismo**, não de tela — vira issue de
   governança, não UC.
+
+### Pesquisa de concorrentes (2026-10-20) — casos que a lista ainda não cobre
+
+> Vieram da comparação com 15 sistemas: 11 de catálogo e estoque (Shopify, Olist/Tiny, Omie, Bling,
+> Conta Azul, Senior, Alterdata, Nuvemshop, Square, Zoho, Odoo) e 4 de comunicação visual (Mubisys,
+> Calcgraf, Zênite, shopVOX). O código entre parênteses (D6, CV1…) é o do documento da pesquisa.
+> Ficaram aqui só os que a pesquisa recomenda trazer; os que "não valem agora" ou "dependem de
+> conferir" não entraram. Cada um vira UC quando ganhar teste que o defenda. Os marcados `[V0]`
+> mostram estoque e caem na REGRA MESTRE de valor/estoque (dupla prova + antes→depois).
+>
+> **Termos revisados no protótipo (2026-10-20):** na tela, "separado" e "livre" substituem
+> "reservado", "empenhado" e "disponível", que o cliente não entendia. Na lista a linha fica
+> "20 m² separados para OS · 76 m² livres"; no painel, "Tem no estoque", "Separado para OS"
+> (ou "Separado para vendas") e "Livre para usar" (ou "Livre para vender").
+
+**Vestuário (ROTA LIVRE)**
+
+- **[BACKLOG] Clicar em "Abaixo do alerta" mostra só esses produtos (D6)** — hoje o indicador conta,
+  mas o clique não filtra. Aceite: Dado 3 produtos com estoque ≤ alerta, Quando clico no indicador,
+  Então a lista mostra exatamente esses 3, com a etiqueta do filtro, e um 2º clique devolve a lista
+  inteira. Fonte: Zoho (filtro Low Stock), Conta Azul (aba Esgotado), Nuvemshop (filtro sem estoque).
+- **[BACKLOG] Ver cada cor e tamanho, com saldo, na própria lista (D7)** `[V0]` — hoje a lista diz
+  só "N variações"; cada uma aparece no painel. Aceite: Dado um produto variável com 8 variações,
+  Quando abro a linha, Então vejo cada variação com SKU e saldo, e a soma das variações é o saldo
+  do produto. Fonte: Bling (variações marcadas na lista), Alterdata e Senior (estoque por grade).
+- **[BACKLOG] Mostrar o estoque separado para vendas e o livre (D5)** `[V0]` — hoje o saldo não
+  desconta o que já foi vendido e ainda não saiu. Aceite: Dado 10 un em estoque e uma venda não
+  entregue que separou 3, Então a lista mostra "3 un separadas para vendas · 7 un livres". Pergunta
+  em aberto: a ROTA LIVRE (biz=4) usa o fluxo de venda que separa estoque? Fonte: Conta Azul (aba
+  Reservados), Senior (quantidade em reserva).
+- **[BACKLOG] Excluir sem perder: o excluído pode ser restaurado (D13)** — hoje "Excluir" apaga o
+  cadastro, as variações e os preços por grupo, e a confirmação diz que não tem volta. Aceite: Dado
+  um produto excluído, Quando filtro a situação "Excluídos", Então ele aparece e "Restaurar" o devolve
+  a Ativo com variações e preços. Fonte: Olist/Tiny (situação Excluídos + restaurar).
+- **[BACKLOG] Giro e últimas compras no painel do produto (D8)** — hoje o painel mostra preços,
+  estoque por local e fiscal. Aceite: o painel mostra a quantidade vendida nos últimos 90 dias e as
+  3 últimas compras (fornecedor, data, quantidade). Fonte: Alterdata (consulta de estoque).
+- **[BACKLOG] Recortes salvos com nome (D1)** — hoje os filtros vão para o endereço, mas não há
+  recorte com nome. Aceite: Dado um conjunto de filtros, Quando salvo como "Lonas abaixo do alerta",
+  Então ele aparece numa lista de recortes do usuário e abre com os mesmos filtros. Fonte: Shopify
+  (visões salvas), Odoo (favoritos).
+- **[BACKLOG] Quantidade vendida por local na aba Estoque do painel** — pedido na revisão do
+  protótipo (2026-10-20). Aceite: a tabela de locais da aba Estoque ganha a coluna "Vendido", com o
+  mesmo número do "Total vendido" do Relatório de estoque para aquele produto e local.
+
+**Comunicação visual**
+
+- **[BACKLOG] Separar material, produto e serviço na consulta (CV1)** — hoje o filtro "Tipo de
+  produto" separa Único, Variável e Composição; material não tem marca própria. Aceite: Dado lona
+  (material), banner (produto) e instalação (serviço), Quando filtro "Material", Então só a lona
+  aparece. No painel fica um rótulo só, "O que é", com a natureza; a forma do cadastro aparece só
+  quando muda algo ("Produto · com 8 variações", "Produto · kit com 4 itens"), e a coluna Tipo sai
+  do padrão da lista (continua no menu Colunas). Fonte: shopVOX (produtos × materiais), Calcgraf
+  (insumos e acabados).
+- **[BACKLOG] Material separado para OS abertas × livre (CV4)** `[V0]` — mesmo pedido do D5,
+  aplicado ao material. Aceite: Dado 50 m² de lona e OS abertas que separaram 20 m², Então a lista
+  mostra "20 m² separados para OS · 30 m² livres". Fonte: Calcgraf (material empenhado), shopVOX
+  (quantidade reservada).
+- **[BACKLOG] Saldo do material em rolos e em m² (CV2)** `[V0]` — hoje o saldo aparece numa unidade
+  só. Aceite: Dado 2 rolos de 1,60 m × 50 m, Então a lista mostra "2 rolos · 160 m²", e as duas
+  contas fecham. Fonte: shopVOX (unidade de compra × unidade de venda).
+- **[BACKLOG] Composição com a receita da Fabricação no painel (CV6)** — hoje o painel mostra só
+  os itens de um produto do tipo Composição. Aceite: Dado um produto com receita na Fabricação,
+  Quando abro o painel, Então vejo materiais e quantidades da receita. ⚠️ Conferir com o charter: o
+  Non-Goal "Sub-views de BOM/Insumos ficam em `/products/unificado`" pode valer aqui — decisão [W].
+  Fonte: shopVOX (lista de materiais, mão de obra e máquina do produto).
+- **[BACKLOG] Rastrear o rolo por OS a partir da consulta (CV3)** — a US-COM-025 (Compras) já
+  descreve o rastreio e está pendente; a consulta seria uma porta de entrada. Fonte: Mubisys
+  (estoque fracionado com rastreio da mídia), Calcgraf (controle de bobinas).
+
+Fontes abertas em 2026-10-20: [Shopify](https://help.shopify.com/manual/products/searching-filtering) ·
+[Olist/Tiny](https://ajuda.olist.com/produtos/acoes-em-lote-e-gerenciamento-de-produtos) ·
+[Conta Azul](https://contaazul.com/tutoriais/como-fazer-controle-de-estoque-na-conta-azul) ·
+[Senior](https://documentacao.senior.com.br/gestaoempresarialerp/5.10.4/menu_suprimentos/f211cpr.htm) ·
+[Alterdata](https://ajuda.alterdata.com.br/shop/relatorios-do-shop/consultas-e-relatorios-de-produtos/relatorio-consulta-de-estoque-shop) ·
+[Zoho](https://www.zoho.com/inventory/help/items/item-managing.html) ·
+[Odoo](https://www.odoo.com/documentation/latest/applications/essentials/search.html) ·
+[Bling](https://blog.bling.com.br/?p=9989) ·
+[Nuvemshop](https://atendimento.nuvemshop.com.br/pt_BR/organizar-produtos/como-excluir-produtos-de-forma-rapida) ·
+[Mubisys](https://mubisys.com/producao) ·
+[Calcgraf](https://www.calcgraf.com.br/solucao/estoque/) ·
+[shopVOX](https://shopvox-pro.helpdocs.io/article/htcy37tcab-products-vs-materials-in-shop-vox-pro).
 
 ---
 
@@ -487,6 +657,16 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
+- 2026-10-18 · [F+C] `produto-lista-encaixe` e `produto-lista-redimensionar` (UC-PIDX-16, 26 e 27) entram no Vitest do `Frontend / Vite build`. Foi em PR próprio porque `.github/` pede revisão do [W]; o conserto da tela entrou antes, no #9535.
+- 2026-10-18 · [F+C] **UC-PIDX-26, conserto do smoke:** o rótulo "CATEGORIA" (79px) vazava sobre MARCA com o piso de 66; os pisos passam a respeitar o rótulo do cabeçalho (categoria 80, locais 62, SKU 58, produto 112 para manter a soma), com caso de teste que trava isso.
+- 2026-10-17 · [F+C] **UC-PIDX-26 e UC-PIDX-27 (novos) e UC-PIDX-16 (largura lembrada)**, a partir da reclamação da ROTA LIVRE (monitor 1366×768: colunas fora da tela e ajuste refeito a cada visita). Em tela estreita as colunas encolhem até caber; a grade ganha altura própria, como no protótipo, e a barra de rolar para o lado fica à vista; a largura arrastada passa a ser lembrada no navegador, com "Voltar às larguras de saída" no menu "Colunas". Pôr `produto-lista-redimensionar` e `produto-lista-encaixe` no Vitest do `Frontend / Vite build` fica para PR próprio, porque `.github/` pede revisão do [W].
+- 2026-10-16 · [F+C] **UC-PIDX-25, regra do botão (decisão [F]):** "Abrir no módulo Fiscal" aparece só com o módulo Fiscal no pacote **e** a permissão `fiscal.access`, como o menu Fiscal; continua exigindo `nfe.tributacao.manage`. **Errata da entrada abaixo:** ela concluiu que a empresa 1 usa o Fiscal pelo pacote porque havia um link `/fiscal/config` na barra lateral, e esse link é o alerta de certificado vencido, não o menu. Medido em produção em 2026-10-16: o pacote 1 não tem `fiscal_module` nem `nfebrasil_module`, e das 93 empresas (7 com assinatura ativa) nenhuma tem `fiscal_module`. O botão segue escondido em produção até o módulo Fiscal entrar no pacote da empresa, que é ato do superadmin.
+- 2026-10-15 · [F+C] **UC-PIDX-25, conserto:** o botão "Abrir no módulo Fiscal" checava o pacote `nfebrasil_module` e não aparecia em produção (biz 1, medido: `link_modulo: null` com a permissão concedida — o simulador respondeu 200). O pacote certo é o `fiscal_module`: desde 2026-05-25 o NfeBrasil não publica menu e a Tributação é aberta pelo hub Fiscal.
+- 2026-10-15 · [F+C] **UC-PIDX-25** (aba Fiscal): entram a origem da mercadoria (o valor que a nota usa, com o aviso de que é o mesmo para todos), o texto de ajuda (corrigido onde o protótipo afirmava o que a emissão não faz) e "Abrir no módulo Fiscal", que leva à Tributação com o produto no simulador (UC-NFTR-29). Fecha três dos itens que o UC-PIDX-19 deixou como não feitos.
+- 2026-10-15 · [F+C] **UC-PIDX-24** (lista): os campos personalizados 1 a 7 já eram colunas opcionais (desde #9124) e não tinham teste; o caso entra com teste de servidor (comparado com a Blade) e de tela. A tabela de paridade deixa de dizer "ausente" para custom fields e selo WooCommerce, e perde a âncora errada `AR-PROD-040/041`.
+- 2026-10-15 · [F+C] **UC-PIDX-23** (lista): produto que sincroniza com o WooCommerce passa a ter a marca ao lado do nome, como a lista Blade; o dado (`woocommerce_sync`) já vinha do servidor.
+- 2026-10-15 · [CC] **só documentação:** D-1..D-4 e G-g marcados como resolvidos pela lista nova, com a evidência no código; 4 itens do backlog idem; nota na tabela de paridade com o que ainda falta (custom fields e selo WooCommerce). O SDD §1.1 deixa de dizer "zero live". Nenhum UC muda.
+- 2026-10-14 · [F+C] **UC-PIDX-22** (lista e painel): produto sem foto passa a mostrar "IMG" na coluna Imagem e "Sem imagem" no painel, como no protótipo; o servidor manda `imagem = null` em vez da imagem genérica.
 - 2026-10-14 · [F+C] **UC-PIDX-21** (painel): produto que não controla estoque passa a ter a aba Estoque, com o aviso "Este produto não gerencia estoque." Sem permissão de ver o relatório, a aba continua fora.
 - 2026-10-14 · [F+C] **UC-PIDX-20** (painel): a composição ganha o "Total líquido", o preço de venda da composição e as colunas de preço da Blade por item; as abas Variações e Composição mostram as imagens. Total provado por dois caminhos (à mão e pela janela "Ver" da Blade).
 - 2026-10-14 · [F+C] **UC-PIDX-18 / UC-PIDX-08, conserto:** lucro potencial e linha vermelha de alerta passam a pintar de verdade (cor em `style`; a classe utilitária perdia para `.pb-tbl tbody td` do bundle). A linha vermelha de alerta nunca tinha aparecido.

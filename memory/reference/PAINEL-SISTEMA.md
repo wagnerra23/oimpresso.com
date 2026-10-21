@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-10-13**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-10-21**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -33,21 +33,23 @@ lente: [construir]
 | Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-09-07 |
 | Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-09-29 |
 | Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-09-07 |
-| Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-10-07 |
+| Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-10-20 |
+| Fisio | [BRIEFING](../requisitos/Fisio/BRIEFING.md) | 2026-10-18 |
 | Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-09-15 |
 | Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-09-15 |
-| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-10-02 |
+| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-10-14 |
 | KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-29 |
-| Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-10-09 |
+| Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-10-20 |
 | NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-10-13 |
 | NFSe | [BRIEFING](../requisitos/NFSe/BRIEFING.md) | 2026-10-13 |
 | Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-07-30 |
 | OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-09-15 |
 | PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-09-07 |
-| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-10-08 |
+| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-10-19 |
+| Producao | [BRIEFING](../requisitos/Producao/BRIEFING.md) | 2026-10-15 |
 | ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-07-23 |
 | RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-09-07 |
-| Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-10-01 |
+| Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-10-19 |
 | Spreadsheet | [BRIEFING](../requisitos/Spreadsheet/BRIEFING.md) | 2026-10-13 |
 | Superadmin | [BRIEFING](../requisitos/Superadmin/BRIEFING.md) | 2026-08-11 |
 | Vestuario | [BRIEFING](../requisitos/Vestuario/BRIEFING.md) | 2026-07-28 |
@@ -147,13 +149,13 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **435** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 379 · superseded: 27 · proposto: 16 · deprecated: 11 · rascunho: 1 · recusado: 1.
+- **442** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 383 · superseded: 27 · proposto: 18 · deprecated: 11 · recusado: 2 · rascunho: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 258 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 262 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -414,6 +416,10 @@ lente: [construir]
 - ~~2026-10-06 — `--omission` mandava justificar "no PR/handoff", mas só lê as mensagens de commit da branch e o `--notes`~~
 - ~~2026-10-06 — `test-lane-coverage --pr` reconhecia o passo do Pest pelo NOME: a lane do Financeiro saía "pulou" com o Pest executado e verde~~
 - ~~2026-10-13 — EMENDA da lápide 2026-07-27 (`jana:retention-purge`): no Patrimônio a retenção foi REABERTA pelo [W], como anonimização de campo pessoal~~
+- ~~2026-10-13 — Estado guardado num componente que o `<Deferred>` desmonta: a largura arrastada da coluna sumia ao ordenar, e os testes com `rerender` não viam~~
+- ~~2026-10-13 — EMENDA da emenda acima (retenção no Patrimônio): a reabertura foi REVOGADA por [W] no mesmo dia, e a ADR 0430 foi recusada~~
+- ~~2026-10-14 — Cor por classe utilitária numa célula que o bundle da tela pinta fora de `@layer`: o lucro verde nunca apareceu, e o teste checava a classe (4ª vez do mecanismo, a 1ª no ledger)~~
+- ~~2026-10-19 — EMENDA da lápide 2026-07-10 (redeclaração de token em portal): "re-aplicar o wrapper" faz o seletor casar, mas não entrega token~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -424,14 +430,14 @@ lente: [construir]
 
 ## Rastro
 
-- **618** handoffs · **794** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **624** handoffs · **800** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
-  - `2026-10-09-session-09`
-  - `2026-10-09-session-08`
-  - `2026-10-09-session-07`
-  - `2026-10-09-session-06`
-  - `2026-10-09-session-05`
-  - `2026-10-09-session-04`
+  - `2026-10-20-pesquisa-consulta-venda-concorrentes-cv`
+  - `2026-10-20-arte-casos-de-uso-fabricacao`
+  - `2026-10-18-refutacao-gt-g5-lote-9536-r3`
+  - `2026-10-18-refutacao-gt-g5-lote-9536-r2`
+  - `2026-10-18-refutacao-gt-g5-lote-9536-r1`
+  - `2026-10-15-refutacao-gt-g5-lote-9433-r1`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-10-13 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-10-21 · deriva das fontes canônicas, não as substitui._

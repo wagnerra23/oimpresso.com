@@ -1,0 +1,52 @@
+{
+  "id": "inss-2025",
+  "tipo": "tabela_inss_empregado",
+  "vigencia": { "inicio": "2025-01", "fim": "2025-12" },
+  "fonte": {
+    "orgao": "MPS/MF",
+    "documento": "Portaria Interministerial MPS/MF nº 6, de 10/01/2025, art. 7º e Anexo II",
+    "url": "https://www.gov.br/previdencia/pt-br/assuntos/rpps/legislacao-dos-rpps/2025/PortariaInterministerialMPSMFn6de10jan2025.pdf",
+    "consultado_em": "2026-10-14"
+  },
+  "regra": "Alíquota progressiva: cada alíquota incide só sobre a parcela do salário de contribuição dentro da sua faixa (art. 7º).",
+  "faixas": [
+    { "de": "0.00", "ate": "1518.00", "aliquota": "0.075" },
+    { "de": "1518.01", "ate": "2793.88", "aliquota": "0.09" },
+    { "de": "2793.89", "ate": "4190.83", "aliquota": "0.12" },
+    { "de": "4190.84", "ate": "8157.41", "aliquota": "0.14" }
+  ],
+  "casos": [
+    {
+      "id": "inss-2025-a",
+      "competencia": "2025-12",
+      "salario_contribuicao": "3036.00",
+      "contribuicao": "257.73",
+      "fonte_do_numero": "Receita Federal, Exemplos de Aplicação da Lei 15.270/2025, Exemplo 1 (valor da contribuição previdenciária informado pela RFB)"
+    },
+    {
+      "id": "inss-2025-b",
+      "competencia": "2025-12",
+      "salario_contribuicao": "4000.00",
+      "contribuicao": "373.41",
+      "fonte_do_numero": "Receita Federal, Exemplos de Aplicação da Lei 15.270/2025, Exemplo 2"
+    },
+    {
+      "id": "inss-2025-c",
+      "competencia": "2025-12",
+      "salario_contribuicao": "5000.00",
+      "contribuicao": "509.60",
+      "fonte_do_numero": "Receita Federal, Exemplos de Aplicação da Lei 15.270/2025, Exemplo 3"
+    },
+    {
+      "id": "inss-2025-d",
+      "competencia": "2025-12",
+      "salario_contribuicao": "6000.00",
+      "contribuicao": "649.60",
+      "fonte_do_numero": "Receita Federal, Exemplos de Aplicação da Lei 15.270/2025, Exemplo 4"
+    }
+  ],
+  "notas": [
+    "Competência dos casos é INFERIDA, não declarada pela fonte: a RFB diz só 'salário bruto pago em 02/01/2026'. Os 4 valores são reproduzidos ao centavo por esta tabela (2025) e não pela de 2026, logo o salário é de dezembro/2025 — o pagamento em 01/2026 e a apuração em 12/2025 são o par competencia_pagamento × competencia_apuracao da ADR-mãe §2.5.",
+    "Evidência de política de arredondamento (ADR-mãe §5.2): nos casos c e d, somar as faixas sem arredondar e arredondar UMA vez no fim dá o valor da RFB; arredondar faixa a faixa dá um centavo a menos. É uma fonte só e a RFB não declara o método: hipótese a confirmar com o contador (passo 7), não regra."
+  ]
+}

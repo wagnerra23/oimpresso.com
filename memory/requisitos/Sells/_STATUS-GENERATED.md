@@ -16,19 +16,17 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 60 |
+| US no SPEC | 66 |
 | CU no SDD | 6 |
 | Telas (.tsx) | 11 |
-| Telas com `casos.md` | 9 |
-| UC declarados | 105 |
-| UC com teste que os cita | 104 |
+| Telas com `casos.md` | 11 |
+| UC declarados | 136 |
+| UC com teste que os cita | 135 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
 | Lacuna | O que falta escrever |
 |---|---|
-| Tela `Drafts` sem `casos.md` | o contrato da tela (trio incompleto) |
-| Tela `Subscriptions` sem `casos.md` | o contrato da tela (trio incompleto) |
 | `CU-SELL-05` sem UC | caso de uso que o exercite — Editar linha em pt-BR sem inflar o decimal |
 | `CU-SELL-06` sem UC | caso de uso que o exercite — Venda a prazo (fiado) fecha com saldo devedor |
 | `CU-SELL-30` sem UC | caso de uso que o exercite — Enxergar a cobrança num relance |
@@ -96,19 +94,33 @@ authority: generated
 | US-SELL-057 | `todo` | Skeleton de carregamento no Create + INP < 200ms |
 | US-SELL-058 | `desconhecido` | Redesenho do cadastro de venda em tela PARALELA (`/sells/create-v3`) — sem tocar |
 | US-SELL-059 | `desconhecido` | Editar venda existente (`/sells/{id}/edit`) — guards de prazo, devolução e tenan |
-| US-SELL-060 | `desconhecido` | Listar rascunhos de venda (`/sells/drafts`) |
-| US-SELL-061 | `desconhecido` | Listar cotações (`/sells/quotations`) |
 | US-SELL-062 | `desconhecido` | Listar vendas recorrentes e pausar/retomar (`/sells/subscriptions`) |
 | US-SELL-063 | `desconhecido` | Caixa do dia por forma de pagamento e por origem (`/vendas/caixa`) |
 | US-SELL-064 | `desconhecido` | Listar vendas de POS com rodapé de totais (`/pos`) |
 | US-SELL-065 | `desconhecido` | Cadastro de descontos com ver × editar (`/discount`) |
 | US-SELL-066 | `desconhecido` | Devolução de venda em React — lista e registro (`/sell-return`) |
+| US-SELL-068 | `desconhecido` | Orçamento aberto avisa que o custo mudou (UC-FLX-34) |
+| US-SELL-069 | `desconhecido` | Orçamento abaixo da margem mínima só vira venda com aprovação (UC-FLX-35) |
 
 ## UC por status
 
 | UC | Tela | Status |
 |---|---|---|
 | UC-11 | Index | 🧪 aguarda veredito da lane |
+| UC-DRAFT-01 | Drafts | 🧪 aguarda veredito da lane |
+| UC-DRAFT-02 | Drafts | 🧪 aguarda veredito da lane |
+| UC-DRAFT-03 | Drafts | 🧪 aguarda veredito da lane |
+| UC-DRAFT-04 | Drafts | 🧪 aguarda veredito da lane |
+| UC-DRAFT-05 | Drafts | 🧪 aguarda veredito da lane |
+| UC-ENTR-01 | Show | 🧪 aguarda veredito da lane |
+| UC-ENTR-02 | Show | 🧪 aguarda veredito da lane |
+| UC-ENTR-03 | Show | 🧪 aguarda veredito da lane |
+| UC-ENTR-04 | Show | 🧪 aguarda veredito da lane |
+| UC-FLX-04 | Quotations | 🧪 aguarda veredito da lane |
+| UC-FLX-23 | Show | 🧪 aguarda veredito da lane |
+| UC-FLX-25 | Show | 🧪 aguarda veredito da lane |
+| UC-FLX-34 | Show | 🧪 aguarda veredito da lane |
+| UC-FLX-35 | Drafts | 🧪 aguarda veredito da lane |
 | UC-POS-01 | Pos/Index | 🧪 aguarda veredito da lane |
 | UC-POS-02 | Pos/Index | 🧪 aguarda veredito da lane |
 | UC-POS-03 | Pos/Index | 🧪 aguarda veredito da lane |
@@ -118,6 +130,10 @@ authority: generated
 | UC-POS-07 | Pos/Index | 🧪 stub (não executa) |
 | UC-POS-08 | Pos/Index | 🧪 stub (não executa) |
 | UC-QUO-01 | Quotations | 🧪 aguarda veredito da lane |
+| UC-QUO-05 | Quotations | 🧪 aguarda veredito da lane |
+| UC-QUO-06 | Quotations | 🧪 aguarda veredito da lane |
+| UC-QUO-07 | Quotations | 🧪 aguarda veredito da lane |
+| UC-QUO-08 | Quotations | 🧪 aguarda veredito da lane |
 | UC-REM-01 | Shipments/Index | 🧪 aguarda veredito da lane |
 | UC-REM-02 | Shipments/Index | 🧪 aguarda veredito da lane |
 | UC-REM-03 | Shipments/Index | 🧪 aguarda veredito da lane |
@@ -165,6 +181,13 @@ authority: generated
 | UC-SIDX-01 | Index | 🧪 aguarda veredito da lane |
 | UC-SIDX-02 | Index | 🧪 aguarda veredito da lane |
 | UC-SIDX-03 | Index | 🧪 aguarda veredito da lane |
+| UC-SIDX-04 | Index | 🧪 aguarda veredito da lane |
+| UC-SIDX-05 | Index | 🧪 aguarda veredito da lane |
+| UC-SSUB-01 | Subscriptions | 🧪 aguarda veredito da lane |
+| UC-SSUB-02 | Subscriptions | 🧪 aguarda veredito da lane |
+| UC-SSUB-03 | Subscriptions | 🧪 aguarda veredito da lane |
+| UC-SSUB-04 | Subscriptions | 🧪 aguarda veredito da lane |
+| UC-SSUB-05 | Subscriptions | 🧪 aguarda veredito da lane |
 | UC-V301 | CreateV3 | 🧪 aguarda veredito da lane |
 | UC-V302 | CreateV3 | 🧪 aguarda veredito da lane |
 | UC-V303 | CreateV3 | 🧪 aguarda veredito da lane |
@@ -213,6 +236,12 @@ authority: generated
 | UC-VSHOW-05 | Show | 🧪 aguarda veredito da lane |
 | UC-VSHOW-06 | Show | 🧪 aguarda veredito da lane |
 | UC-VSHOW-07 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-08 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-09 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-10 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-11 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-12 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-13 | Show | 🧪 aguarda veredito da lane |
 
 ---
 

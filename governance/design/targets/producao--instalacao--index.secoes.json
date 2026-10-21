@@ -1,0 +1,16 @@
+{
+  "_": "A1 [CL] 2026-10-15 — playbook producao. Protótipo: rota `pcv-instalacao` (app.jsx → ProducaoCvPage view=instalacao). Instalação. Tema escuro (default do shell), 1440×900.",
+  "_mapa": "alvo:mapa --rota pcv-instalacao --raiz <.pcv-root | .pcv-root > .pcv-body> contra o espelho servido por servirEstatico, 2026-10-15: .pcv-root = div.pcv-ph · nav.ds-tabbar · div.pcv-body; .pcv-body.pcv-inst = section (Agenda de instalação) · div.pcv-phone (checklist no celular)",
+  "header": {
+    "seletor": ".pcv-root > .pcv-ph"
+  },
+  "abas": {
+    "seletor": ".pcv-root > .ds-tabbar"
+  },
+  "agenda": {
+    "seletor": ".pcv-root > .pcv-body > section:nth-child(1)"
+  },
+  "celular": {
+    "seletor": ".pcv-root > .pcv-body > .pcv-phone"
+  }
+}

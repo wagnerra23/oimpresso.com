@@ -2,9 +2,9 @@
 
 namespace Modules\ComunicacaoVisual\Entities;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\ComunicacaoVisual\Entities\Concerns\EscopoPorNegocioDaSessao;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -42,6 +42,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 class OrcamentoItem extends Model
 {
     // Sem SoftDeletes — itens são deletados junto com o orçamento via CASCADE
+    use EscopoPorNegocioDaSessao;
     use LogsActivity;
 
     /**
@@ -72,6 +73,13 @@ class OrcamentoItem extends Model
         'subtotal',
         'observacoes',
         'ordem',
+        'custo_previsto_m2',
+        'custo_previsto',
+        'custo_previsto_em',
+        'posto_id',
+        'horas_maquina_previstas',
+        'custo_hora_previsto',
+        'custo_maquina_previsto',
     ];
 
     protected $casts = [
@@ -85,21 +93,23 @@ class OrcamentoItem extends Model
         'preco_unitario_m2' => 'decimal:2',
         'subtotal'         => 'decimal:2',
         'ordem'            => 'integer',
+        'custo_previsto_m2' => 'decimal:2',
+        'custo_previsto'   => 'decimal:2',
+        'custo_previsto_em' => 'date:Y-m-d',
+        'posto_id'         => 'integer',
+        'horas_maquina_previstas' => 'decimal:2',
+        'custo_hora_previsto' => 'decimal:2',
+        'custo_maquina_previsto' => 'decimal:2',
     ];
 
     // ------------------------------------------------------------------
     // Global scope multi-tenant Tier 0 (ADR 0093)
     // ------------------------------------------------------------------
 
+    // O filtro por empresa vem da trait EscopoPorNegocioDaSessao (mesmo comportamento da
+    // closure que morava aqui até 2026-10-19).
     protected static function booted(): void
     {
-        static::addGlobalScope('business_id', function (Builder $query) {
-            $businessId = session('user.business_id') ?? session('business.id');
-            if ($businessId !== null) {
-                $query->where('comvis_orcamento_itens.business_id', $businessId);
-            }
-        });
-
         static::creating(function (OrcamentoItem $row) {
             if ($row->business_id === null) {
                 $row->business_id = session('user.business_id') ?? session('business.id') ?? 0;

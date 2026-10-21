@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PEDIT-05, UC-PEDIT-06, UC-PEDIT-07 (resources/js/Pages/Produto/Edit.casos.md)
+// Cobre UC-PEDIT-05, UC-PEDIT-06, UC-PEDIT-07, UC-PEDIT-10 (resources/js/Pages/Produto/Edit.casos.md)
 // — G-2 rastreabilidade caso↔teste (ADR 0264).
 
 use App\Product;
@@ -68,12 +68,22 @@ use Tests\Support\EstoqueFixture;
 uses(DatabaseTransactions::class);
 
 /**
- * Payload EXATO do `useForm` de `resources/js/Pages/Produto/Edit.tsx` (18 chaves).
+ * Payload EXATO do `useForm` de `resources/js/Pages/Produto/Edit.tsx`.
  * Reproduz o que a tela React envia hoje — é o INPUT do contrato, não o assert.
+ * Desde o UC-PEDIT-10 a tela devolve os 20 campos personalizados e a validade gravados, no
+ * formato em que ela os manda (`String(expiryPeriod)` do número que o edit() entrega).
  */
 function payloadDaTelaReact(Product $produto): array
 {
-    return [
+    $camposPersonalizados = [];
+    for ($i = 1; $i <= 20; $i++) {
+        $camposPersonalizados['product_custom_field' . $i] = $produto->{'product_custom_field' . $i} ?? '';
+    }
+
+    return $camposPersonalizados + [
+        'expiry_period' => $produto->expiry_period !== null ? (string) (float) $produto->expiry_period : '',
+        'expiry_period_type' => $produto->expiry_period_type ?? '',
+    ] + [
         'name' => $produto->name . ' (editado)',
         'sku' => $produto->sku,
         'brand_id' => $produto->brand_id ?? '',
@@ -88,10 +98,6 @@ function payloadDaTelaReact(Product $produto): array
         'product_description' => $produto->product_description ?? '',
         'product_locations' => [],
         'warranty_id' => $produto->warranty_id ?? '',
-        'product_custom_field1' => $produto->product_custom_field1 ?? '',
-        'product_custom_field2' => $produto->product_custom_field2 ?? '',
-        'product_custom_field3' => $produto->product_custom_field3 ?? '',
-        'product_custom_field4' => $produto->product_custom_field4 ?? '',
     ];
 }
 
@@ -379,4 +385,64 @@ it('UC-PEDIT-08 · `0` explícito DESLIGA a flag (o writer não trava em "só li
     expect((int) $depois->enable_stock)->toBe(0, 'desmarcar na Blade tem que desligar o controle de estoque');
     expect((int) $depois->not_for_selling)->toBe(0, 'desmarcar na Blade tem que desligar `not_for_selling`');
     expect((int) $depois->enable_sr_no)->toBe(0, 'desmarcar na Blade tem que desligar `enable_sr_no`');
+});
+
+// =============================================================================
+// UC-PEDIT-10 — editar pela tela React não apaga os campos personalizados nem a validade.
+//   O update() grava '' em todo `product_custom_fieldN` (1 a 20) que não vem no request e,
+//   com a empresa usando validade, zera a validade que não vem. A tela mandava só os campos
+//   1 a 4 e nenhuma validade. O servidor NÃO muda (o Blade só envia os campos que têm nome:
+//   "ausência preserva" mudaria o Blade, a tela que roda em produção). Quem passa a mandar
+//   tudo é a tela — o edit() entrega o valor gravado, e o Edit.tsx devolve no envio.
+//   Metade 1 (este Pest): o edit() entrega. Metade 2: o PUT com o envio da tela preserva.
+//   O Edit.tsx copiar as props para o envio é o tests/js/produto-editar-preserva.test.tsx.
+// =============================================================================
+
+function peditVisitaInertia(): array
+{
+    return [
+        'X-Inertia' => 'true', 'X-Requested-With' => 'XMLHttpRequest',
+        'X-Inertia-Version' => (string) app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request()),
+    ];
+}
+
+it('UC-PEDIT-10 · editar pela tela React não apaga os campos personalizados nem a validade', function () {
+    $p = EstoqueFixture::singleProduct($this->business->id, enableStock: true);
+
+    $produto = Product::findOrFail($p->productId);
+    $produto->product_custom_field5 = 'Lona fosca';
+    $produto->product_custom_field20 = 'Vinil 3M';
+    $produto->expiry_period = 12;
+    $produto->expiry_period_type = 'months';
+    $produto->save();
+
+    // A empresa usa validade: é o caso em que o update() zera a validade que não vem no envio.
+    session([
+        'business.id' => (int) $this->business->id,
+        'business.enable_product_expiry' => 1,
+        'currency' => ['id' => 1, 'code' => 'BRL', 'symbol' => 'R$', 'thousand_separator' => '.', 'decimal_separator' => ','],
+    ]);
+
+    // Metade 1 — a visita Inertia que abre o Editar entrega o valor gravado.
+    $resposta = $this->withHeaders(peditVisitaInertia())->get("/products/{$p->productId}/edit");
+    expect($resposta->getStatusCode())->toBe(200, 'PRÉ-CONDIÇÃO: a visita Inertia ao Editar tem que abrir a tela.');
+    expect($resposta->json('component'))->toBe('Produto/Edit');
+    expect($resposta->json('props.product.camposPersonalizados.5'))->toBe('Lona fosca');
+    expect($resposta->json('props.product.camposPersonalizados.20'))->toBe('Vinil 3M');
+    expect($resposta->json('props.product.camposPersonalizados.7'))->toBe('');
+    expect((float) $resposta->json('props.product.expiryPeriod'))->toBe(12.0);
+    expect($resposta->json('props.product.expiryPeriodType'))->toBe('months');
+
+    // Metade 2 — o envio da tela (payloadDaTelaReact espelha o useForm do Edit.tsx) preserva tudo.
+    $payload = payloadQueChegaNoSave($produto);
+    $this->put("/products/{$p->productId}", $payload);
+
+    // anti-vácuo: sem isto, "o campo sobreviveu" não distingue PRESERVADO de NUNCA-ESCRITO
+    exigeQueTenhaPersistido($p->productId, $payload['name'], 'UC-PEDIT-10');
+
+    $depois = Product::findOrFail($p->productId);
+    expect($depois->product_custom_field5)->toBe('Lona fosca', 'campo personalizado 5 apagado ao salvar pela tela React');
+    expect($depois->product_custom_field20)->toBe('Vinil 3M', 'campo personalizado 20 apagado ao salvar pela tela React');
+    expect((float) $depois->expiry_period)->toBe(12.0, 'validade zerada ao salvar pela tela React');
+    expect($depois->expiry_period_type)->toBe('months', 'tipo da validade zerado ao salvar pela tela React');
 });

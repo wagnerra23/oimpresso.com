@@ -8,6 +8,7 @@ use App\Domain\Fsm\Models\SaleProcess;
 use App\Domain\Fsm\Models\SaleProcessStage;
 use App\Domain\Fsm\Models\SaleStageAction;
 use App\Domain\Fsm\Models\SaleStageActionRole;
+use App\Domain\Fsm\Support\PassosDoProcesso;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Schema;
 use App\Scopes\ScopeByBusiness;
@@ -22,12 +23,14 @@ use Spatie\Permission\Models\Role;
  *
  * Stages canônicos (11 = 9 lineares + 2 laterais terminais):
  *   quote_draft (initial) → quote_sent → quote_approved → in_production →
- *   ready_for_invoice → invoiced → paid → delivered → completed (terminal)
+ *   ready_for_invoice → invoiced → delivered → completed (terminal)
+ *   paid fica por compatibilidade (invoiced → paid → delivered), fora do caminho padrão (ADR 0434)
  *   Laterais: cancelled (terminal), on_hold
  *
  * Actions (13 com roles e is_critical conforme US-SELL-031):
  *   enviar_orcamento, cliente_aprovou, cliente_rejeitou,
- *   iniciar_producao, pausar_producao, concluir_producao,
+ *   iniciar_producao, pausar_producao, retomar_producao (on_hold → in_production, ADR 0434),
+ *   concluir_producao,
  *   faturar, emitir_nfe, marcar_pago,
  *   entregar, concluir,
  *   cancelar_venda (qualquer stage não-terminal),
@@ -106,6 +109,9 @@ class FsmProcessoVendaComProducaoSeeder extends Seeder
 
         $stages = $this->ensureStages($process);
         $this->ensureActions($stages, $roleMap);
+
+        // Passo do app / cancelada / coluna da Produção (decisão [W] 2026-10-16).
+        PassosDoProcesso::aplicar('venda_com_producao', (int) $process->id);
     }
 
     /**
@@ -175,9 +181,17 @@ class FsmProcessoVendaComProducaoSeeder extends Seeder
             ['quote_approved', 'iniciar_producao', 'Iniciar produção', 'in_production', ['producao.iniciar'], true, null],
             ['quote_approved', 'reabrir_para_revisao', 'Reabrir para revisão (volta orçamento)', 'quote_sent', ['vendas.gerente'], true, 'App\\Domain\\Fsm\\SideEffects\\LiberarReserva'],
             ['in_production', 'pausar_producao', 'Pausar produção', 'on_hold', ['producao.pausar'], false, null],
+            // ADR 0434 (decisão [W] 2026-10-16): volta da espera. Sem ela o pedido pausado só saía
+            // cancelado. Mesmo papel de iniciar, sem side effect (a reserva de estoque não mudou).
+            ['on_hold', 'retomar_producao', 'Retomar produção', 'in_production', ['producao.iniciar'], false, null],
             ['in_production', 'concluir_producao', 'Concluir produção', 'ready_for_invoice', ['producao.concluir'], true, 'App\\Domain\\Fsm\\SideEffects\\ConsumirEstoque'],
             ['ready_for_invoice', 'faturar', 'Faturar', 'invoiced', ['financeiro.faturar'], true, null],
             ['invoiced', 'emitir_nfe', 'Emitir NF-e', null, ['fiscal.emitir'], true, null],
+            // ADR 0434 item 2 (decisão [W] 2026-10-16): pagamento SAI da sequência de etapas. O caminho
+            // padrão é Faturada → Entregue → Concluída; "pago" é situação dos títulos no Financeiro
+            // (App\Services\Sells\SituacaoPagamentoVenda). marcar_pago e a etapa paid ficam por
+            // compatibilidade: quem já usa continua podendo, e pedido parado em paid ainda entrega.
+            ['invoiced', 'entregar', 'Entregar ao cliente', 'delivered', ['logistica.entregar'], false, null],
             ['invoiced', 'marcar_pago', 'Marcar como pago', 'paid', ['financeiro.baixar'], true, null],
             ['paid', 'entregar', 'Entregar ao cliente', 'delivered', ['logistica.entregar'], false, null],
             ['delivered', 'concluir', 'Concluir venda', 'completed', ['vendas.gerente'], false, null],

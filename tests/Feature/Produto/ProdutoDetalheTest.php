@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PIDX-09, UC-PIDX-11, UC-PIDX-12 e UC-PIDX-20 (resources/js/Pages/Produto/Index.casos.md) — G-2 rastreabilidade caso↔teste.
+// Cobre UC-PIDX-09, UC-PIDX-11, UC-PIDX-12, UC-PIDX-20, UC-PIDX-22 e UC-PIDX-25 (resources/js/Pages/Produto/Index.casos.md) — G-2 rastreabilidade caso↔teste.
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -378,4 +378,88 @@ it('UC-PIDX-20 · variações e itens trazem as imagens da variação, só as da
     expect($nomes($d['variacoes'][0]['imagens']))->toBe(['1700000000_pdt_kit.jpg']);
     // A URL é a mesma da Blade (`Media::display_url`).
     expect($d['composicao'][0]['imagens'][0])->toEndWith('/uploads/media/1700000000_pdt_item.jpg');
+});
+
+it('UC-PIDX-22 · produto sem foto chega ao painel com imagem null, não com a imagem genérica', function () {
+    pdtEntrar($this, ['product.view', 'access_all_locations']);
+    $semFoto = EstoqueFixture::singleProduct($this->business->id);
+    $comFoto = EstoqueFixture::singleProduct($this->business->id);
+    DB::table('products')->where('id', $semFoto->productId)->update(['image' => null]);
+    DB::table('products')->where('id', $comFoto->productId)->update(['image' => '1700000000_pdt_foto.jpg']);
+
+    expect(pdtDetalhe($this, $semFoto->productId)['imagem'])->toBeNull();
+    // Com foto, a mesma URL que a Blade usa (acessor `image_url`).
+    expect(pdtDetalhe($this, $comFoto->productId)['imagem'])->toEndWith('/uploads/img/1700000000_pdt_foto.jpg');
+});
+
+/**
+ * Liga ou desliga só o `fiscal_module` no pacote da empresa — o resto do `ModuleUtil` responde
+ * como sempre (uma instância nova, sem mock), pra não mudar o que a tela faz com os outros módulos.
+ */
+function pdtPacoteNfe(bool $ligado): void
+{
+    test()->partialMock(\App\Utils\ModuleUtil::class, function ($m) use ($ligado) {
+        $m->shouldReceive('hasThePermissionInSubscription')->andReturnUsing(
+            fn ($biz, $modulo, $callback = null) => $modulo === 'fiscal_module'
+                ? $ligado
+                : (new \App\Utils\ModuleUtil())->hasThePermissionInSubscription($biz, $modulo, $callback)
+        );
+    });
+}
+
+it('UC-PIDX-25 · a aba Fiscal traz a origem gravada no produto, e diz que ela é por produto', function () {
+    pdtEntrar($this, ['product.view', 'access_all_locations']);
+    $importado = pdtProdutoComPrecos($this->business->id);
+    $nacional = EstoqueFixture::singleProduct($this->business->id);
+    DB::table('products')->where('id', $importado->productId)->update(['origem_mercadoria' => 1]);
+
+    $f = pdtDetalhe($this, $importado->productId)['fiscal'];
+    expect($f['origem'])->toBe('1');
+    expect($f['origem_por_produto'])->toBeTrue();
+
+    // Discriminante: o outro produto, sem escolha, segue com o DEFAULT 0 da coluna — a origem
+    // vem da linha do produto, não de um valor fixo do payload.
+    expect(pdtDetalhe($this, $nacional->productId)['fiscal']['origem'])->toBe('0');
+});
+
+it('UC-PIDX-25 · produto de outra empresa com origem própria não abre no painel', function () {
+    $outro = EstoqueFixture::secondBusinessId();
+    if ($outro === null) {
+        $this->markTestSkipped('Sem 2º business semeado.');
+    }
+    pdtEntrar($this, ['product.view', 'access_all_locations']);
+    $alheio = EstoqueFixture::singleProduct($outro);
+    DB::table('products')->where('id', $alheio->productId)->update(['origem_mercadoria' => 1]);
+    $meu = EstoqueFixture::singleProduct($this->business->id);
+
+    // Anti-vácuo: o próprio produto abre — o null do alheio não é painel quebrado.
+    expect(pdtDetalhe($this, $meu->productId))->not->toBeNull();
+    expect(pdtDetalhe($this, $alheio->productId))->toBeNull();
+});
+
+it('UC-PIDX-25 · "Abrir no módulo Fiscal" só vem com o módulo no pacote E a permissão de acessar o módulo', function () {
+    $p = pdtProdutoComPrecos($this->business->id);
+
+    // Controle positivo: módulo no pacote + fiscal.access + nfe.tributacao.manage → a Tributação com o produto.
+    pdtPacoteNfe(true);
+    pdtEntrar($this, ['product.view', 'access_all_locations', 'fiscal.access', 'nfe.tributacao.manage']);
+    expect(pdtDetalhe($this, $p->productId)['fiscal']['link_modulo'])
+        ->toBe(route('nfe-brasil.tributacao.index', ['produto' => $p->productId]) . '#simulador');
+
+    // Sem a permissão de acessar o módulo (decisão [F] 2026-10-16), mesmo podendo simular: não vem.
+    pdtEntrar($this, ['product.view', 'access_all_locations', 'nfe.tributacao.manage']);
+    expect(pdtDetalhe($this, $p->productId)['fiscal']['link_modulo'])->toBeNull();
+
+    // Com acesso ao módulo, mas sem a permissão do simulador: a tela recusaria a simulação.
+    pdtEntrar($this, ['product.view', 'access_all_locations', 'fiscal.access']);
+    expect(pdtDetalhe($this, $p->productId)['fiscal']['link_modulo'])->toBeNull();
+});
+
+// Teste à parte: o controller fica em cache na rota durante o teste, e o mock do pacote tem de
+// valer desde a 1ª requisição.
+it('UC-PIDX-25 · com a permissão, mas o módulo Fiscal fora do pacote da empresa, o botão não vem', function () {
+    $p = pdtProdutoComPrecos($this->business->id);
+    pdtPacoteNfe(false);
+    pdtEntrar($this, ['product.view', 'access_all_locations', 'fiscal.access', 'nfe.tributacao.manage']);
+    expect(pdtDetalhe($this, $p->productId)['fiscal']['link_modulo'])->toBeNull();
 });

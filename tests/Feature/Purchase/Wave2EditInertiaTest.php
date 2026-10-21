@@ -54,10 +54,12 @@ it('RUNBOOK + visual-comparison existem', function () {
     expect(file_exists(base_path(EDIT_VISUAL_PATH)))->toBeTrue();
 });
 
-it('Page importa AppShellV2 + PageHeader', function () {
+it('Page importa AppShellV2 + PageHeader (canon V2)', function () {
     $source = readEditInertia();
     expect($source)->toContain('@/Layouts/AppShellV2');
-    expect($source)->toContain('@/Components/shared/PageHeader');
+    // Migrado ao canon ao ser tocado (ADR 0409 · catraca do PageHeader), igual ao Create.
+    expect($source)->toContain("from '@/Components/PageHeader'");
+    expect($source)->not->toContain('@/Components/shared/PageHeader');
     expect($source)->toMatch('/PurchaseEdit\\.layout\\s*=/');
 });
 

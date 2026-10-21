@@ -391,6 +391,51 @@ código vivo, erratas do próprio `[CC]`, decisões pendentes `[W]`) e o `## Scr
 - **Frescor:** vale o `Last sync` lido na origem. O bundle transporta o build; `.md` não entra no
   bundle nem no `--export-from` do destino Cowork.
 
+### 10.8 Prazo 2026-12-14 — fechamento do Claude Design standalone e plano de migração
+
+> **Fato datado, lido em 2026-10-15** no artigo oficial da Anthropic
+> [Migrate from standalone Claude Design to Claude](https://support.claude.com/en/articles/17440474-migrate-from-standalone-claude-design-to-claude):
+> *"The standalone Claude Design site (claude.ai/design) will close on December 14, 2026."*
+> O design passa a viver **dentro do Claude, como artifact** — não no Claude Code. O Claude Code
+> segue sendo o destino do handoff design → código, como hoje.
+
+**O que o artigo dizia em 2026-10-15:**
+
+| Item | Migra? | Consequência para nós |
+|---|---|---|
+| Projetos | **não** — continuam no standalone até fechar | as telas somem em 14/12 se não forem exportadas |
+| Design systems | sim, **disparado por quem é dono** (Artifacts → "Migrate team design systems") | vazios e os de tema-starter são pulados |
+| Chats | **não** — apagados depois do fechamento | decisão de design que só existe em chat se perde |
+| Comentários | **não** — apagados | idem |
+| Links públicos | param de funcionar | preview compartilhado por link morre |
+
+O artigo **não** falava da tool `DesignSync`, dos IDs de projeto nem do Claude Code, e dizia que
+o caminho de migrar projetos estava *"coming soon"*. Até sair texto oficial dizendo o contrário,
+o plano assume que **ler do standalone deixa de funcionar em 14/12** — logo o espelho no git é a
+cópia que sobrevive.
+
+**Plano de migração (a fazer antes de 2026-12-14):**
+
+1. **Exportar os 3 projetos de telas em ZIP** — no standalone: Share → Project HTML → "Project
+   archive" → Export (segundo o artigo, não conta no limite de uso). Os 3 são os projetos de
+   papel `telas` do painel ([`protocolo.config.mjs`](../../../scripts/design/protocolo.config.mjs)
+   — IDs, nomes e contas vivem lá, não aqui): o projeto principal das telas (conta [W]), o do
+   Felipe (conta [F], ele exporta) e o do app mobile (conta [W]).
+2. **Importar cada ZIP no espelho** pela rota ZIP da fase −1 do painel (a mesma de sempre: mede
+   primeiro, promove só com aceite). O ZIP traz o projeto inteiro, inclusive o diário `github.md`
+   (§10.7), que hoje só é lido na origem — depois do fechamento, a cópia no git é a única.
+3. **Migrar os design systems** — o projeto DS canônico (conta [W]) e a cópia na conta do [F]
+   (ele migra; a fonte dos dois é o git, ver o painel), pelo botão do Artifacts.
+   Conferir a lista "Couldn't be migrated" e corrigir no standalone enquanto ele existe.
+4. **Salvar dos chats e comentários** o que for decisão de design — destilado no dono canônico
+   (charter, `*.casos.md`, ADR UI), nunca colado como cópia de chat.
+5. **Depois do fechamento**, reavaliar com o texto oficial da época: o que substitui o
+   `DesignSync` como transporte de leitura (§10.6) e se os IDs do painel ainda resolvem. Até lá
+   nada no painel muda — esta seção só registra prazo e plano.
+
+**Dono de cada passo:** 1, 3 e 4 exigem o login de quem é dono do projeto no claude.ai (o agente
+não exporta nem migra por conta alheia); 2 e 5 são do agente Code.
+
 ## 11. Links
 
 - [ADR 0114](../../../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md) — mãe

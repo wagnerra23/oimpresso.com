@@ -1,0 +1,15 @@
+{
+    "name": "oimpresso/fisio",
+    "description": "Fisio — vertical de fisioterapia: programa domiciliar, constância e prontuário (ADR 0437)",
+    "authors": [{"name": "Wagner", "email": "wagnerra@gmail.com"}],
+    "extra": {
+        "laravel": {
+            "providers": ["Modules\\Fisio\\Providers\\FisioServiceProvider"]
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Fisio\\": ""
+        }
+    }
+}

@@ -266,6 +266,61 @@ class DocumentacaoController extends Controller
         ]);
     }
 
+    /**
+     * Casos de uso do catálogo de fluxos (UC-FLX-NN) na documentação do sistema.
+     *
+     * DERIVADO, NÃO ESCRITO: a lista sai de `CasosDoPrototipo::CASOS` em runtime — a mesma
+     * constante que a aba "Casos de uso" de /fluxos consome e que `CatalogoModelosFluxoTest`
+     * compara com o protótipo. Id, título, regra, estado e US nunca são copiados pra markdown
+     * nem pro `.tsx`: mudou o protótipo, exporta de novo, e esta página muda no próximo acesso
+     * (ADR 0256). O estado vem rotulado por `CasosDoPrototipo::ESTADOS`.
+     */
+    public function casos(Request $request): InertiaResponse
+    {
+        $catalogo = \App\Domain\Fsm\Modelos\CasosDoPrototipo::class;
+        $processos = [];
+        $casos = [];
+
+        foreach ($catalogo::CASOS as [$id, $titulo, $processo, $etapa, $regra, $fontes, $porte, $estado, $us]) {
+            $processos[$processo] = true;
+            [$rotuloEstado, $tom] = $catalogo::ESTADOS[$estado];
+
+            $casos[] = [
+                'id' => $id,
+                'titulo' => $titulo,
+                'processo' => $processo,
+                'etapa' => $etapa,
+                'regra' => $regra,
+                'fontes' => array_map(static fn (string $f): string => $catalogo::FONTES[$f][0], $fontes),
+                'porte' => $catalogo::PORTES[$porte][0],
+                'estado' => $estado,
+                'estadoRotulo' => $rotuloEstado,
+                'estadoTom' => $tom,
+                'us' => $us,
+            ];
+        }
+
+        return Inertia::render('Documentacao/CasosDeUso', [
+            'casos' => $casos,
+            // Deferred: varre SPECs e `.casos.md` (cache curto) e consulta o acervo pelo git_path.
+            // A tabela chega no 1º render; os links para os artefatos, logo depois.
+            'artefatos' => Inertia::defer(fn () => app(\App\Services\Documentacao\RastroDosCasos::class)
+                ->paraCasos(
+                    array_map(static fn (array $c): array => ['id' => $c['id'], 'us' => $c['us']], $casos),
+                    fn (array $paths): array => $this->slugsNoAcervo($paths),
+                    self::BLOB,
+                )),
+            'processos' => array_keys($processos),
+            'estados' => array_map(static fn (array $e): array => ['rotulo' => $e[0], 'tom' => $e[1]], $catalogo::ESTADOS),
+            'fonte' => 'app/Domain/Fsm/Modelos/CasosDoPrototipo.php',
+            'blob' => self::BLOB . 'app/Domain/Fsm/Modelos/CasosDoPrototipo.php',
+            'buscaDisponivel' => $this->corpusDisponivel(),
+            'nav' => $this->navegacao($this->lenteAtiva($request)),
+            'atual' => null,
+            'escopo' => ['tipos' => self::TIPOS_DOC, 'prosa' => self::escopoEmProsa()],
+        ]);
+    }
+
     /** `parent_plan` do programa de ondas — o mesmo slug que o `## Status vivo` do plano declara. */
     private const PARENT_PLAN = 'programa-ondas';
 
@@ -719,6 +774,26 @@ class DocumentacaoController extends Controller
             ->whereIn('type', self::TIPOS_DOC)
             ->where('admin_only', false)
             ->whereNull('scope_required');
+    }
+
+    /**
+     * `git_path → slug` dos arquivos que a rota de documento abre — mesma `consultaBase()`, então o
+     * link interno só existe se `/documentacao/{slug}` mostra o documento. Sem corpus, mapa vazio.
+     *
+     * @param  list<string>  $paths
+     * @return array<string, string>
+     */
+    private function slugsNoAcervo(array $paths): array
+    {
+        if (! $this->corpusDisponivel()) {
+            return [];
+        }
+
+        try {
+            return $this->consultaBase()->whereIn('git_path', $paths)->pluck('slug', 'git_path')->all();
+        } catch (\Throwable) {
+            return [];
+        }
     }
 
     /** O corpus vive numa tabela sincronizada por webhook; pode não existir no ambiente. */

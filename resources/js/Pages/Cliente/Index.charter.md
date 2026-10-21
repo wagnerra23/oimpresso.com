@@ -1,6 +1,6 @@
 ---
 id: resources-js-pages-cliente-index-charter
-page: /cliente (canon) · /contacts (legacy dual-render via config('mwart.cliente_index.enabled'))
+page: /cliente (canon) · /contacts redireciona 302 para /cliente desde 2026-10-14 (thread cliente/04)
 component: resources/js/Pages/Cliente/Index.tsx
 related_prototype: prototipo-ui/cowork/Wagner/clientes-page.jsx
 bundle_source: clientes-page.jsx

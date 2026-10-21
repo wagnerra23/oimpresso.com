@@ -118,6 +118,16 @@ Comecei em `a0db7b0177b8` e as últimas leituras já vieram de `2b4a3ec3b48a`. O
       "pergunta": "Quais kinds do StatusBadge do DS entram no shared/StatusBadge de producao?",
       "resposta": "sla + atendimento + frescor, SEM token novo — [W] 2026-09-24. Mapeados nos tons soft que ja existem em ui/badge (success/warning/danger/info/neutral, AP7 da thread 08 vence o fill solido do espelho) + props rel e tone. FORA: fiscal (FiscalStatusBadge e fonte unica — REGISTRY_DS_COMPONENTES, 5 consumidores) e tipo PJ/PF (exigiria --color-tipo-pj/-pf, 0 no repo).",
       "emenda": "[W] 2026-09-24: cores próprias do DS para canais e SLA; Atrasado ≠ Vencido. Usa tokens que JÁ existem (--sla-*, --canal-*-tint/-fg em semantic.tokens.json:198–223) — continua sem token novo."
+    },
+    {
+      "id": "D-ROTULO",
+      "pergunta": "O Label compartilhado de produção (11px · 500 · sem caixa-alta) adota o rótulo de campo do DS (10,5px · 600 · caixa-alta · tracking 0,42px)?",
+      "respondida": true,
+      "destrava": [
+        "09"
+      ],
+      "resposta": "sim — produção adota o rótulo do DS no Label compartilhado; muda todas as telas que o usam",
+      "fonte": "_DECISOES-W-2026-10-15.md"
     }
   ],
   "threads": [
@@ -358,6 +368,32 @@ Comecei em `a0db7b0177b8` e as últimas leituras já vieram de `2b4a3ec3b48a`. O
           "padrao": "className: 'bg-success text-success-foreground hover:bg-success/90'"
         }
       ]
+    },
+    {
+      "id": "09",
+      "titulo": "Label compartilhado adota o rótulo de campo do DS (caixa-alta)",
+      "dono": "CL",
+      "vaga": 3,
+      "prs": 1,
+      "arquivo": "09-rotulo-label.md",
+      "depende_decisoes": [
+        "D-ROTULO"
+      ],
+      "prefixo": [
+        "resources/js/Components/ui/label.tsx",
+        "resources/css/tokens/"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "resources/js/Components/ui/label.tsx",
+          "padrao": "uppercase"
+        }
+      ],
+      "nota_provas": "origem: _COMPARACAO-10-11-2026-10-14 do Produto (DIVERGE a classificar, rótulo do campo). Medir antes/depois em 3 telas com design-diff; não tocar Page."
     }
   ],
   "revisado": "2026-10-07 errata do Code aplicada (_ERRATA-*-2026-10-07.md) @8d231ac7a13f"

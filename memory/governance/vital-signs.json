@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-10-14",
+  "generated_at": "2026-10-21",
   "contrato": "memory/sessions/2026-07-05-arte-maquina-governanca-telas.md §3.2/§3.4/§3.5",
   "fleet": {
-    "telas": 313,
+    "telas": 323,
     "com_scorecard": 209,
-    "charter": 313,
-    "casos": 313,
-    "stale": 284
+    "charter": 323,
+    "casos": 323,
+    "stale": 294
   },
   "modulos": [
     {
@@ -32,7 +32,7 @@
       "nota_min": 68,
       "pior_tela": "ads/Admin/Graph",
       "nota_media": 72,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -60,7 +60,7 @@
       "nota_min": 74,
       "pior_tela": "Arquivos/Index",
       "nota_media": 74,
-      "idade_max_dias": 21,
+      "idade_max_dias": 28,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": false
@@ -74,7 +74,7 @@
       "nota_min": 73,
       "pior_tela": "Atendimento/Macros/Variants",
       "nota_media": 79,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -88,7 +88,7 @@
       "nota_min": 72,
       "pior_tela": "Auditoria/Detail",
       "nota_media": 73,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -102,7 +102,7 @@
       "nota_min": 77,
       "pior_tela": "Backup/Index",
       "nota_media": 77,
-      "idade_max_dias": 21,
+      "idade_max_dias": 28,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": false
@@ -116,7 +116,7 @@
       "nota_min": 72,
       "pior_tela": "Cliente/Map",
       "nota_media": 78,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -144,7 +144,7 @@
       "nota_min": 73,
       "pior_tela": "Compras/Index",
       "nota_media": 73,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -158,7 +158,7 @@
       "nota_min": 72,
       "pior_tela": "ComunicacaoVisual/Index",
       "nota_media": 72,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -186,7 +186,7 @@
       "nota_min": 74,
       "pior_tela": "ConsultaOs/Index",
       "nota_media": 74,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -222,9 +222,9 @@
     {
       "mod": "Documentacao",
       "classe": "resto",
-      "telas": 2,
+      "telas": 3,
       "com_scorecard": 0,
-      "sem_scorecard": 2,
+      "sem_scorecard": 3,
       "nota_min": null,
       "pior_tela": null,
       "nota_media": null,
@@ -242,7 +242,7 @@
       "nota_min": 73,
       "pior_tela": "Essentials/Settings/Index",
       "nota_media": 78,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -256,7 +256,7 @@
       "nota_min": 64,
       "pior_tela": "Financeiro/AssinaturaAtualizar",
       "nota_media": 76,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -270,7 +270,35 @@
       "nota_min": 76,
       "pior_tela": "Fiscal/Nfse",
       "nota_media": 80,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
+      "charter_pct": 100,
+      "casos_pct": 100,
+      "stale": true
+    },
+    {
+      "mod": "Fisio",
+      "classe": "resto",
+      "telas": 5,
+      "com_scorecard": 0,
+      "sem_scorecard": 5,
+      "nota_min": null,
+      "pior_tela": null,
+      "nota_media": null,
+      "idade_max_dias": null,
+      "charter_pct": 100,
+      "casos_pct": 100,
+      "stale": true
+    },
+    {
+      "mod": "Fluxos",
+      "classe": "resto",
+      "telas": 1,
+      "com_scorecard": 0,
+      "sem_scorecard": 1,
+      "nota_min": null,
+      "pior_tela": null,
+      "nota_media": null,
+      "idade_max_dias": null,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -284,7 +312,7 @@
       "nota_min": 76,
       "pior_tela": "Forja/Roadmap/Gantt",
       "nota_media": 78,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -312,7 +340,7 @@
       "nota_min": 73,
       "pior_tela": "governance/Audit",
       "nota_media": 77,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -326,7 +354,7 @@
       "nota_min": 85,
       "pior_tela": "Home/Index",
       "nota_media": 85,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -354,7 +382,7 @@
       "nota_min": 72,
       "pior_tela": "Jana/Memoria",
       "nota_media": 75,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -368,7 +396,7 @@
       "nota_min": 74,
       "pior_tela": "kb/Graph",
       "nota_media": 76,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -382,7 +410,7 @@
       "nota_min": 72,
       "pior_tela": "Manufacturing/Index",
       "nota_media": 72,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -396,7 +424,7 @@
       "nota_min": 80,
       "pior_tela": "Modules/Index",
       "nota_media": 80,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -410,7 +438,7 @@
       "nota_min": 74,
       "pior_tela": "NfeBrasil/Transactions/NfceStatus",
       "nota_media": 79,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -424,7 +452,7 @@
       "nota_min": 77,
       "pior_tela": "Nfse/Emitir",
       "nota_media": 81,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -452,7 +480,7 @@
       "nota_min": 74,
       "pior_tela": "Officeimpresso/Logs/Timeline",
       "nota_media": 75,
-      "idade_max_dias": 21,
+      "idade_max_dias": 28,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -466,7 +494,7 @@
       "nota_min": 72,
       "pior_tela": "OficinaAuto/Vehicles/Edit",
       "nota_media": 78,
-      "idade_max_dias": 103,
+      "idade_max_dias": 110,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -480,7 +508,7 @@
       "nota_min": 75,
       "pior_tela": "Patrimonio/Bens",
       "nota_media": 78,
-      "idade_max_dias": 21,
+      "idade_max_dias": 28,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": false
@@ -494,7 +522,21 @@
       "nota_min": 71,
       "pior_tela": "Ponto/Espelho/Index",
       "nota_media": 80,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
+      "charter_pct": 100,
+      "casos_pct": 100,
+      "stale": true
+    },
+    {
+      "mod": "Producao",
+      "classe": "resto",
+      "telas": 3,
+      "com_scorecard": 0,
+      "sem_scorecard": 3,
+      "nota_min": null,
+      "pior_tela": null,
+      "nota_media": null,
+      "idade_max_dias": null,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -522,7 +564,7 @@
       "nota_min": 70,
       "pior_tela": "Produto/Show",
       "nota_media": 79,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -536,7 +578,7 @@
       "nota_min": 76,
       "pior_tela": "Purchase/Edit",
       "nota_media": 79,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -592,7 +634,7 @@
       "nota_min": 86,
       "pior_tela": "RecurringBilling/Configuracoes/Index",
       "nota_media": 87,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -620,7 +662,7 @@
       "nota_min": 71,
       "pior_tela": "Repair/JobSheet/Edit",
       "nota_media": 77,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -690,7 +732,7 @@
       "nota_min": 72,
       "pior_tela": "Sells/Subscriptions",
       "nota_media": 81,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -704,7 +746,7 @@
       "nota_min": 76,
       "pior_tela": "Settings/PaymentGateways/CnabRetorno",
       "nota_media": 79,
-      "idade_max_dias": 103,
+      "idade_max_dias": 110,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -718,7 +760,7 @@
       "nota_min": 70,
       "pior_tela": "Site/Page",
       "nota_media": 79,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -746,7 +788,7 @@
       "nota_min": 81,
       "pior_tela": "StockAdjustment/Create",
       "nota_media": 82,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -760,7 +802,7 @@
       "nota_min": 82,
       "pior_tela": "StockTransfer/Create",
       "nota_media": 83,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -774,7 +816,7 @@
       "nota_min": 74,
       "pior_tela": "superadmin/Negocios/Index",
       "nota_media": 76,
-      "idade_max_dias": 21,
+      "idade_max_dias": 28,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -802,7 +844,7 @@
       "nota_min": 72,
       "pior_tela": "team-mcp/Team/Index",
       "nota_media": 75,
-      "idade_max_dias": 21,
+      "idade_max_dias": 28,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": false
@@ -816,7 +858,7 @@
       "nota_min": 86,
       "pior_tela": "TransactionPayment/Edit",
       "nota_media": 87,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -830,7 +872,7 @@
       "nota_min": 74,
       "pior_tela": "User/Perfil",
       "nota_media": 74,
-      "idade_max_dias": 21,
+      "idade_max_dias": 28,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": false
@@ -858,7 +900,7 @@
       "nota_min": 75,
       "pior_tela": "Vestuario/Etiquetas/Index",
       "nota_media": 75,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -886,7 +928,7 @@
       "nota_min": 74,
       "pior_tela": "Whatsapp/Templates/Index",
       "nota_media": 80,
-      "idade_max_dias": 101,
+      "idade_max_dias": 108,
       "charter_pct": 100,
       "casos_pct": 100,
       "stale": true
@@ -1014,7 +1056,7 @@
       "stale": true,
       "casos": true,
       "charter": true,
-      "idade": 101,
+      "idade": 108,
       "prioridade": 216
     },
     {
@@ -1025,7 +1067,7 @@
       "stale": true,
       "casos": true,
       "charter": true,
-      "idade": 101,
+      "idade": 108,
       "prioridade": 210
     },
     {
@@ -1036,7 +1078,7 @@
       "stale": true,
       "casos": true,
       "charter": true,
-      "idade": 101,
+      "idade": 108,
       "prioridade": 192
     },
     {
@@ -1047,7 +1089,7 @@
       "stale": true,
       "casos": true,
       "charter": true,
-      "idade": 101,
+      "idade": 108,
       "prioridade": 180
     },
     {
@@ -1058,7 +1100,7 @@
       "stale": true,
       "casos": true,
       "charter": true,
-      "idade": 101,
+      "idade": 108,
       "prioridade": 180
     },
     {
@@ -1069,7 +1111,7 @@
       "stale": true,
       "casos": true,
       "charter": true,
-      "idade": 101,
+      "idade": 108,
       "prioridade": 168
     },
     {
@@ -1080,7 +1122,7 @@
       "stale": true,
       "casos": true,
       "charter": true,
-      "idade": 101,
+      "idade": 108,
       "prioridade": 168
     },
     {
@@ -1091,7 +1133,7 @@
       "stale": true,
       "casos": true,
       "charter": true,
-      "idade": 101,
+      "idade": 108,
       "prioridade": 168
     },
     {
@@ -1102,7 +1144,7 @@
       "stale": true,
       "casos": true,
       "charter": true,
-      "idade": 101,
+      "idade": 108,
       "prioridade": 168
     },
     {
@@ -1113,7 +1155,7 @@
       "stale": true,
       "casos": true,
       "charter": true,
-      "idade": 101,
+      "idade": 108,
       "prioridade": 162
     },
     {
@@ -1124,7 +1166,7 @@
       "stale": true,
       "casos": true,
       "charter": true,
-      "idade": 101,
+      "idade": 108,
       "prioridade": 156
     },
     {
@@ -1135,7 +1177,7 @@
       "stale": true,
       "casos": true,
       "charter": true,
-      "idade": 101,
+      "idade": 108,
       "prioridade": 156
     },
     {
@@ -1146,7 +1188,7 @@
       "stale": true,
       "casos": true,
       "charter": true,
-      "idade": 101,
+      "idade": 108,
       "prioridade": 156
     },
     {
@@ -1271,6 +1313,17 @@
       "prioridade": 150
     },
     {
+      "screen": "Documentacao/CasosDeUso",
+      "mod": "Documentacao",
+      "classe": "resto",
+      "nota": null,
+      "stale": true,
+      "casos": true,
+      "charter": true,
+      "idade": null,
+      "prioridade": 150
+    },
+    {
       "screen": "Documentacao/Index",
       "mod": "Documentacao",
       "classe": "resto",
@@ -1322,7 +1375,7 @@
       "stale": true,
       "casos": true,
       "charter": true,
-      "idade": 101,
+      "idade": 108,
       "prioridade": 150
     },
     {
@@ -1333,7 +1386,7 @@
       "stale": true,
       "casos": true,
       "charter": true,
-      "idade": 101,
+      "idade": 108,
       "prioridade": 150
     },
     {
@@ -1344,7 +1397,18 @@
       "stale": true,
       "casos": true,
       "charter": true,
-      "idade": 101,
+      "idade": 108,
+      "prioridade": 150
+    },
+    {
+      "screen": "Fluxos/Index",
+      "mod": "Fluxos",
+      "classe": "resto",
+      "nota": null,
+      "stale": true,
+      "casos": true,
+      "charter": true,
+      "idade": null,
       "prioridade": 150
     },
     {
@@ -1427,28 +1491,6 @@
     {
       "screen": "Manufacturing/Settings",
       "mod": "Manufacturing",
-      "classe": "resto",
-      "nota": null,
-      "stale": true,
-      "casos": true,
-      "charter": true,
-      "idade": null,
-      "prioridade": 150
-    },
-    {
-      "screen": "NotificationTemplate/Index",
-      "mod": "NotificationTemplate",
-      "classe": "resto",
-      "nota": null,
-      "stale": true,
-      "casos": true,
-      "charter": true,
-      "idade": null,
-      "prioridade": 150
-    },
-    {
-      "screen": "ProductCatalogue/CatalogueQr",
-      "mod": "ProductCatalogue",
       "classe": "resto",
       "nota": null,
       "stale": true,

@@ -1,6 +1,7 @@
 [
   "cockpit.css",
   "cowork-arquivos-bundle.css",
+  "cowork-fluxos-bundle.css",
   "cowork-canon-financeiro-bundle.css",
   "cowork-compras-bundle.css",
   "cowork-documentacao-bundle.css",
@@ -9,6 +10,7 @@
   "cowork-forja-bundle.css",
   "cowork-payment-gateway-bundle.css",
   "cowork-manufacturing-bundle.css",
+  "cowork-producao-bundle.css",
   "fin-cowork.css",
   "fin-curadoria.css",
   "fin-ia.css",

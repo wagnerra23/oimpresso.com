@@ -1,0 +1,381 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI Oimpresso Matriz Cert vence em breve 12 dias restantes IA 3 Visão geral G D Atendimento 6 Cadastro 3 Clientes G C Produtos 12 G P Fabricação 3 Comercial 4 CRM 14 G R Vendas 18 G V Oficina Auto 1 Vestuário 1 Finanças 4 Caixa G X Financeiro 11 G F Cobrança 1 Cobrança Recorrente 3 Fiscal 1 Fiscal 7 Produção 5 Painel de produção 6 Quadro Linha do tempo Custo real × orçado Instalação Apontamento ⋯ mais 1 Ordens de Serviço Entregas e instalação Comunicação Visual Assistência técnica 7 Estoque 3 Compras 4 Movimentações 6 G E Patrimônio 4 RH 3 Ponto HRM 7 Essenciais 6 Sistema 12 Auditoria Fluxos e regras Voz do Cliente Suporte 1 Usuários 3 Preferências Configurações 14 Relatórios 4 Arquivos 3 Base de Conhecimento Planilhas 1 Governança 3 Plataforma 1 WR Wagner Rocha Administrador COMUNICAÇÃO VISUAL · OS COMO PROJETO Produção 6 em produção · 1 atrasadas ou vencendo Nova OS do orçamento Painel Quadro Linha do tempo Custo real × orçado Instalação Apontamento Roteiros OS em produção 6 1 vencem hoje Atrasadas ou vencendo 1 OS-2603 Arte travando 2 aguardando aprovação ou ajuste Refugo na semana R$ 905,00 5 ocorrência(s) Gargalo previsto: Roland VG3-640 passa do turno Carga de 10,4 h para um turno de 10 h. Mover a OS-2608 (adesivo de aplicação, 1,1 h) para a HP Latex 365, que tem 6,9 h livres. Ver na linha do tempo 2 OS esperando arte do cliente OS-2614 (Clínica Sorriso) trava 6,3 h de CNC e UV hoje. OS-2619 pediu ajuste. O link de aprovação foi reenviado às 09:12. Abrir OS-2614 OS-2603 vence hoje e está 7,8% acima do orçado Refugo de 9,4 m² na impressão (banding na cabeça 3). Faltam bainha e ilhós. Abrir OS-2603 Fila de aprovação de arte o cliente aprova pelo link de prova, sem login OS-2614 · Clínica Sorriso link enviado ontem 17:30 · visto 2 vezes Aguardando cliente Reenviar link Abrir OS-2619 · Agência Norte pediu ajuste às 08:47 — \"aumentar o logo e trocar o telefone\" Ajuste pedido Enviar nova prova Abrir Acontecendo agora o que a fábrica fez por último — vem do apontamento, do cliente e do PCP Baixou 58 m² de vinil branco brilho 15/10 11:14 · Diego · Roland VG3-640 OS-2611 Iniciou Bainha + ilhós 15/10 10:52 · Felipe OS-2603 Pausou Corte CNC do ACM — troca de fresa 15/10 10:31 · Marcos · Router CNC 2x3 OS-2608 Reenviou o link de prova ao cliente 15/10 09:12 · Sistema OS-2614 Pediu ajuste: aumentar o logo e trocar o telefone 15/10 08:47 · Cliente OS-2619 Iniciou Impressão eco-solvente (QR na máquina) 15/10 08:05 · Diego · Roland VG3-640 OS-2611 Carga das máquinas hoje horas programadas · turno de 10 h HP Latex 365 HP Latex 365 31% 3,1 h Roland VG3-640 Roland VG3-640 104% 10,4 h Mimaki UJF-6042 Mimaki UJF-6042 36% 3,6 h Plotter de recorte GR2 Plotter de recorte GR2 25% 2,5 h Laminadora a frio Laminadora a frio 7% 0,7 h Router CNC 2x3 Router CNC 2x3 76% 7,6 h Aproveitamento de mídia Lona 440 g · 1,60 m 92.4 % aproveitado 7.6 % sobra Agrupar OS-2619 (roll-up) com a sobra lateral da OS-2603 economiza 3,1 m² (R$ 59). Produtividade por setor (semana) horas apontadas ÷ previstas Setor Previsto Apontado Eficiência Quem Arte e aprovação 8,0 h 8,8 h 91% Ana Impressão 17,3 h 18,6 h 93% Diego Acabamento 4,0 h 3,8 h 105% Felipe Serralheria 6,0 h 7,5 h 80% Marcos Instalação 0,0 h 0,0 h — —",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 79,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5571/"
+  },
+  "nos_totais": 1044,
+  "quieto_ms": 2000,
+  "rota": "pcv",
+  "secoes": {
+    "abas": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "pcv-root",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px 24px"
+      },
+      "filhos": 7,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "pcv-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1180
+      },
+      "seletor": ".pcv-root > .ds-tabbar",
+      "truncado": false
+    },
+    "acontecendo": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "header",
+        "div"
+      ],
+      "rect": {
+        "h": 412,
+        "w": 1132
+      },
+      "seletor": ".pcv-root > .pcv-body > section:nth-child(4)",
+      "truncado": false
+    },
+    "alertas": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "pcv-root",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "0px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pcv-body"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "pcv-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 314,
+        "w": 1132
+      },
+      "seletor": ".pcv-root > .pcv-body > .pcv-alertas",
+      "truncado": false
+    },
+    "carga_midia": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "pcv-root",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "grid",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "16px",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pcv-body"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "pcv-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "section",
+        "section"
+      ],
+      "rect": {
+        "h": 321,
+        "w": 1132
+      },
+      "seletor": ".pcv-root > .pcv-body > .pcv-grid2",
+      "truncado": false
+    },
+    "fila_arte": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "header",
+        "div"
+      ],
+      "rect": {
+        "h": 223,
+        "w": 1132
+      },
+      "seletor": ".pcv-root > .pcv-body > section:nth-child(3)",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "pcv-root",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px 24px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "pcv-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "header"
+      ],
+      "rect": {
+        "h": 97,
+        "w": 1180
+      },
+      "seletor": ".pcv-root > .pcv-ph",
+      "truncado": false
+    },
+    "kpis": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "pcv-root",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "grid",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "12px",
+        "padding": "0px"
+      },
+      "filhos": 4,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pcv-body"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "pcv-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "pcv-kpi-btn",
+        "pcv-kpi-btn",
+        "pcv-kpi-btn",
+        "pcv-kpi-btn"
+      ],
+      "rect": {
+        "h": 98,
+        "w": 1132
+      },
+      "seletor": ".pcv-root > .pcv-body > .pcv-kpis",
+      "truncado": false
+    },
+    "produtividade": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "header",
+        "div"
+      ],
+      "rect": {
+        "h": 291,
+        "w": 1132
+      },
+      "seletor": ".pcv-root > .pcv-body > section:nth-child(6)",
+      "truncado": false
+    }
+  },
+  "tela": "producao--painel--index",
+  "url": "http://127.0.0.1:5571/",
+  "viewport": "1440x900"
+}

@@ -15,7 +15,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 >
 > **O que isto é:** o módulo `Cliente` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Cliente/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`contacts`, `customer_groups`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 376 arquivos em 18 papéis.
+**Total mapeado:** 375 arquivos em 18 papéis.
 
 ## Controllers — 29
 
@@ -73,8 +73,9 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [CheckContactLogin.php](../../../Modules/Crm/Http/Middleware/CheckContactLogin.php)
 - [ContactSidebarMenu.php](../../../Modules/Crm/Http/Middleware/ContactSidebarMenu.php)
 
-## Services — 10
+## Services — 11
 
+- [AgendaDeTarefasDoCrm.php](../../../Modules/Crm/Services/AgendaDeTarefasDoCrm.php)
 - [BrLookupService.php](../../../Modules/Crm/Services/BrLookupService.php)
 - [BuscaCepDoApp.php](../../../Modules/Crm/Services/BuscaCepDoApp.php)
 - [CallLogService.php](../../../Modules/Crm/Services/CallLogService.php)
@@ -158,7 +159,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [config.php](../../../Modules/Crm/Config/config.php)
 - [retention.php](../../../Modules/Crm/Config/retention.php)
 
-## Views (Blade) — 91
+## Views (Blade) — 89
 
 - [create.blade.php](../../../Modules/Crm/Resources/views/booking/create.blade.php)
 - [index.blade.php](../../../Modules/Crm/Resources/views/booking/index.blade.php)
@@ -237,14 +238,12 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [create.blade.php](../../../resources/views/contact/create.blade.php)
 - [edit.blade.php](../../../resources/views/contact/edit.blade.php)
 - [import.blade.php](../../../resources/views/contact/import.blade.php)
-- [index.blade.php](../../../resources/views/contact/index.blade.php)
 - [ledger.blade.php](../../../resources/views/contact/ledger.blade.php)
 - [ledger_format_2.blade.php](../../../resources/views/contact/ledger_format_2.blade.php)
 - [ledger_format_3.blade.php](../../../resources/views/contact/ledger_format_3.blade.php)
 - [contact_info_tab.blade.php](../../../resources/views/contact/partials/contact_info_tab.blade.php)
 - [contact_payments_tab.blade.php](../../../resources/views/contact/partials/contact_payments_tab.blade.php)
 - [documents_and_notes_tab.blade.php](../../../resources/views/contact/partials/documents_and_notes_tab.blade.php)
-- [google_map_styles.blade.php](../../../resources/views/contact/partials/google_map_styles.blade.php)
 - [ledger_purchase_lines_details.blade.php](../../../resources/views/contact/partials/ledger_purchase_lines_details.blade.php)
 - [ledger_tab.blade.php](../../../resources/views/contact/partials/ledger_tab.blade.php)
 - [payment_row.blade.php](../../../resources/views/contact/partials/payment_row.blade.php)

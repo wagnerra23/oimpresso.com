@@ -1,0 +1,25 @@
+{
+  "_": "A1 [CL] 2026-10-15 — playbook producao. Protótipo: rota `pcv-linha` (app.jsx → ProducaoCvPage view=linha). Linha do tempo (hoje). Tema escuro (default do shell), 1440×900.",
+  "_mapa": "alvo:mapa --rota pcv-linha --raiz <.pcv-root | .pcv-root > .pcv-body> contra o espelho servido por servirEstatico, 2026-10-15: .pcv-root = div.pcv-ph · nav.ds-tabbar · div.pcv-body; .pcv-body = div.pcv-filtro · div.pcv-bar · div.pcv-gantt · section (Eventos das máquinas hoje) · div (Alert de sugestão de reprogramação)",
+  "header": {
+    "seletor": ".pcv-root > .pcv-ph"
+  },
+  "abas": {
+    "seletor": ".pcv-root > .ds-tabbar"
+  },
+  "filtro": {
+    "seletor": ".pcv-root > .pcv-body > .pcv-filtro"
+  },
+  "barra": {
+    "seletor": ".pcv-root > .pcv-body > .pcv-bar"
+  },
+  "gantt": {
+    "seletor": ".pcv-root > .pcv-body > .pcv-gantt"
+  },
+  "eventos_maquinas": {
+    "seletor": ".pcv-root > .pcv-body > section:nth-child(4)"
+  },
+  "sugestao": {
+    "seletor": ".pcv-root > .pcv-body > div:nth-child(5)"
+  }
+}

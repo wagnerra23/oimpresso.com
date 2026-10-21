@@ -45,6 +45,9 @@ on:
       - 'resources/js/Pages/Manufacturing/_lib/custo.ts'
       - 'resources/js/Pages/Manufacturing/_components/ExcluirReceitaDialog.tsx'
       - 'tests/js/manufacturing-ingredientes-editor.test.tsx'
+      - 'resources/js/Pages/Manufacturing/_components/OrdemDrawer.tsx'
+      - 'resources/css/cowork-manufacturing-bundle.css'
+      - 'tests/js/manufacturing-ordem-drawer.test.tsx'
       - '.github/workflows/manufacturing-jsdom-gate.yml'
   push:
     branches: [main]
@@ -55,6 +58,9 @@ on:
       - 'resources/js/Pages/Manufacturing/_lib/custo.ts'
       - 'resources/js/Pages/Manufacturing/_components/ExcluirReceitaDialog.tsx'
       - 'tests/js/manufacturing-ingredientes-editor.test.tsx'
+      - 'resources/js/Pages/Manufacturing/_components/OrdemDrawer.tsx'
+      - 'resources/css/cowork-manufacturing-bundle.css'
+      - 'tests/js/manufacturing-ordem-drawer.test.tsx'
 
 concurrency:
   group: manufacturing-jsdom-gate-${{ github.ref }}
@@ -75,11 +81,12 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      - name: UC-OP-06 · UC-OP-10 · UC-INGRED-08..13 (vitest/jsdom)
+      - name: UC-OP-06 · UC-OP-10 · UC-OP-11 · UC-INGRED-08..13 (vitest/jsdom)
         run: |
           npx vitest run \
             tests/js/manufacturing-index-datas.test.tsx \
             tests/js/manufacturing-ingredientes-editor.test.tsx \
+            tests/js/manufacturing-ordem-drawer.test.tsx \
             --reporter=default \
             --reporter=junit \
             --outputFile=test-results/vitest-manufacturing-jsdom-junit.xml

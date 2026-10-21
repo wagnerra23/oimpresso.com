@@ -40,7 +40,7 @@ import {
 type SlaKind = 'fresh' | 'warning' | 'overdue' | 'paid';
 type PaymentStatus = 'paid' | 'due' | 'partial' | string;
 type FiscalStatus = 'pendente' | 'autorizada' | 'rejeitada' | 'denegada' | 'cancelada' | null;
-type PillKey = 'todas' | 'paga' | 'pendente' | 'faturada' | 'cancelada';
+type PillKey = 'todas' | 'paga' | 'pendente' | 'faturada' | 'cancelada' | 'rascunho';
 
 export interface SaleRow {
   id: number;
@@ -50,6 +50,8 @@ export interface SaleRow {
   final_total: number;
   total_paid: number;
   payment_status: PaymentStatus;
+  /** 'final' | 'draft' (pílula Rascunhos). */
+  status?: string;
   customer_name: string | null;
   customer_secondary: string | null;
   location_name: string | null;
@@ -148,6 +150,7 @@ const PILL_STYLE: Record<PillKey, { bg: string; fg: string; label: string }> = {
   pendente: { bg: 'var(--warn-soft)', fg: 'var(--warn)', label: 'Pendente' },
   faturada: { bg: 'var(--accent-soft)', fg: 'var(--accent)', label: 'Faturada' },
   cancelada: { bg: 'var(--neg-soft)', fg: 'var(--neg)', label: 'Cancelada' },
+  rascunho: { bg: 'var(--vd-neutral-soft)', fg: 'var(--vd-neutral)', label: 'Rascunho' },
 };
 
 // ──────────────────────────────────────────────────────────────
@@ -422,7 +425,7 @@ function renderCell(id: ColumnId, v: SaleRow, ctx: CellCtx): ReactNode {
         <td key={id}>
           <span className="os-stage" style={{ background: ctx.ps.bg, color: ctx.ps.fg }}>{ctx.ps.label}</span>
           <div className="vd-row-actions" onClick={(e) => e.stopPropagation()}>
-            {v.payment_status !== 'paid' && (
+            {v.payment_status !== 'paid' && v.status !== 'draft' && (
               <QuickPaymentPopover
                 saleId={v.id}
                 invoiceNo={v.invoice_no}
@@ -482,9 +485,13 @@ function ActionsMenu({
   onChange: () => void;
 }) {
   const isPaid = row.payment_status === 'paid';
+  // Rascunho: "Continuar venda" no lugar de Editar; sem pagamento e sem devolução,
+  // que só existem para venda final (mesmo menu do Blade `sale_pos/draft`).
+  const isDraft = row.status === 'draft';
+  const rotulo = isDraft ? 'o rascunho' : 'a venda';
 
   const handleDelete = async () => {
-    if (!confirm(`Excluir a venda ${row.invoice_no}? Essa ação não pode ser desfeita.`)) return;
+    if (!confirm(`Excluir ${rotulo} ${row.invoice_no}? Essa ação não pode ser desfeita.`)) return;
     try {
       const meta = document.querySelector('meta[name="csrf-token"]');
       const csrf = meta?.getAttribute('content') ?? '';
@@ -499,7 +506,7 @@ function ActionsMenu({
       });
       if (!res.ok) {
         const json = await res.json().catch(() => null);
-        alert(json?.msg ?? 'Falha ao excluir venda.');
+        alert(json?.msg ?? `Falha ao excluir ${rotulo}.`);
         return;
       }
       onChange();
@@ -529,10 +536,10 @@ function ActionsMenu({
         <DropdownMenuItem asChild>
           <a href={`/sells/${row.id}/edit`}>
             <Edit size={14} className="mr-2" />
-            Editar
+            {isDraft ? 'Continuar venda' : 'Editar'}
           </a>
         </DropdownMenuItem>
-        {!isPaid && (
+        {!isPaid && !isDraft && (
           <DropdownMenuItem onClick={onView}>
             <CreditCard size={14} className="mr-2" />
             Adicionar pagamento
@@ -544,15 +551,17 @@ function ActionsMenu({
             Imprimir nota
           </a>
         </DropdownMenuItem>
+        {!isDraft && (
         <DropdownMenuItem asChild>
           <a href={`/sell-return/add/${row.id}`}>
             <Undo2 size={14} className="mr-2" />
             Devolução
           </a>
         </DropdownMenuItem>
+        )}
         <DropdownMenuItem variant="destructive" onClick={handleDelete}>
           <Trash2 size={14} className="mr-2" />
-          Excluir
+          {isDraft ? 'Excluir rascunho' : 'Excluir'}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

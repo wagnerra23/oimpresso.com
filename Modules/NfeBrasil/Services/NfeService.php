@@ -266,9 +266,14 @@ class NfeService
      *   - Pagamento `tpag='99'` (outros) — fase 2B detecta forma real via
      *     `transaction_payments`.
      *
+     * **Venda separada (US-NFE-069 · UC-FLX-27):** com `$separada = true`, a nota sai só com a parte
+     *   MERCADORIA de {@see SeparacaoNotasDaVenda}: as linhas de mercadoria, o total dessa parte como
+     *   vNF e o frete inteiro (regra de rateio decidida por [W] em 2026-10-21). A parte serviço vai
+     *   em NFS-e. A recusa de item de serviço continua valendo sobre as linhas que sobram.
+     *
      * @throws RuntimeException Quando `final_total <= 0`, ncm_default ausente, ou business não encontrado.
      */
-    public function emitirParaTransaction(Transaction $tx, string $modelo = '65'): NfeEmissao
+    public function emitirParaTransaction(Transaction $tx, string $modelo = '65', bool $separada = false): NfeEmissao
     {
         $businessId = (int) $tx->business_id;
 
@@ -297,6 +302,7 @@ class NfeService
         $emitente = $this->resolverEmitente($business, $tx->location_id ? (int) $tx->location_id : null, (string) $modelo);
         $ufOrigem = $emitente['uf'];
         $valorTotal = (float) $tx->final_total;
+        $frete = (float) ($tx->shipping_charges ?? 0);
 
         // Fase 2B (thread 17 · R-NFE-023..025c): um `det` por linha da venda, com o
         // NCM do produto, e o motor chamado POR ITEM. Venda sem linha legível cai no
@@ -317,13 +323,31 @@ class NfeService
             ]];
         }
 
+        // US-NFE-069: venda separada emite só a parte mercadoria (total, frete e linhas da parte).
+        $separacao = null;
+        if ($separada) {
+            $separacao = app(SeparacaoNotasDaVenda::class)->separar($businessId, (int) $tx->id);
+            if ($separacao['pendentes'] !== []) {
+                // D-NATUREZA: pendente bloqueia o faturamento separado; o contador decide antes.
+                throw new RuntimeException('Produto(s) ' . implode(', ', $separacao['pendentes']) . ' com natureza fiscal a decidir.');
+            }
+            $parte = $separacao[SeparacaoNotasDaVenda::MERCADORIA];
+            if ($parte['total'] <= 0) {
+                throw new RuntimeException("Venda {$tx->id} não tem parte mercadoria — emita só a NFS-e.");
+            }
+            $ids = array_column($parte['linhas'], 'sell_line_id');
+            $linhas = array_values(array_filter($linhas, fn (array $l) => in_array($l['sell_line_id'], $ids, true)));
+            $valorTotal = (float) $parte['total'];
+            $frete = (float) $parte['frete'];
+        }
+
         // Thread 29 · R-NFE-034: item de serviço (decidido pelo contador) não sai em NF-e/NFC-e.
         $this->recusarItensDeServico($businessId, $linhas);
 
         $itens = $this->montarItensNfe(
             linhas:         $linhas,
             valorNota:      $valorTotal,
-            frete:          (float) ($tx->shipping_charges ?? 0),
+            frete:          $frete,
             ncmDefault:     $ncmDefault,
             motor:          $motor,
             businessId:     $businessId,
@@ -350,11 +374,19 @@ class NfeService
             ],
             'dets'     => $itens['dets'],
             'total'    => $itens['total'],
-            'metadata' => $itens['metadata'],
+            'metadata' => $separacao === null ? $itens['metadata'] : array_merge((array) $itens['metadata'], [
+                'separacao' => [
+                    'regra'         => $separacao['regra'],
+                    'final_total'   => $separacao['final_total'],
+                    'servico_total' => $separacao[SeparacaoNotasDaVenda::SERVICO]['total'],
+                ],
+            ]),
             // tpag='01' = dinheiro (default conservador). Fase 2B detecta via transaction_payments.
             'pag'         => [['tpag' => '01', 'vpag' => $valorTotal]],
             'valor_total' => $valorTotal,
-            'inf_cpl'     => "Venda PDV #{$tx->id}.",
+            'inf_cpl'     => $separacao === null
+                ? "Venda PDV #{$tx->id}."
+                : "Venda PDV #{$tx->id}. Parte mercadoria; os servicos da venda saem em NFS-e.",
         ];
         if ($emitente['location_id'] !== null) {
             $dadosNfe['emit']        = $emitente['emit'];
@@ -396,7 +428,9 @@ class NfeService
      * Quantidade e preço vêm da linha (`unit_price_inc_tax` = o que o cliente
      * pagou por unidade, já com desconto de linha e imposto UPos).
      *
-     * @return list<array{sell_line_id:int|null,product_id:int|null,cprod:string,xprod:string,ncm:string,unidade:string,quantidade:float,valor_unitario:float}>
+     * `origem` = origem da mercadoria do produto (tabela A, 0–8 · DEFAULT 0 na coluna).
+     *
+     * @return list<array{sell_line_id:int|null,product_id:int|null,cprod:string,xprod:string,ncm:string,origem:int,unidade:string,quantidade:float,valor_unitario:float}>
      */
     protected function linhasDaVenda(int $businessId, int $transactionId): array
     {
@@ -409,7 +443,7 @@ class NfeService
             ->orderBy('tsl.id')
             ->get([
                 'tsl.id as sell_line_id', 'tsl.product_id', 'tsl.quantity', 'tsl.unit_price_inc_tax',
-                'p.name', 'p.sku', 'p.ncm', 'v.sub_sku', 'u.short_name',
+                'p.name', 'p.sku', 'p.ncm', 'p.origem_mercadoria', 'v.sub_sku', 'u.short_name',
             ]);
 
         $linhas = [];
@@ -420,6 +454,7 @@ class NfeService
                 'cprod'          => (string) ($r->sub_sku ?: $r->sku ?: $r->product_id),
                 'xprod'          => (string) $r->name,
                 'ncm'            => (string) ($r->ncm ?? ''),
+                'origem'         => (int) ($r->origem_mercadoria ?? 0),
                 'unidade'        => (string) ($r->short_name ?: 'UN'),
                 'quantidade'     => (float) $r->quantity,
                 'valor_unitario' => (float) $r->unit_price_inc_tax,
@@ -541,7 +576,9 @@ class NfeService
                 'cbenef'  => $tributo->c_benef,
                 'icms'    => [
                     'cst_csosn' => $tributo->csosn ?? $tributo->cst ?? '102',
-                    'orig'      => 0,
+                    // Origem do produto (tabela A). Linha montada sem a chave (teste, chamada
+                    // antiga) segue com 0 — a origem que toda nota usava.
+                    'orig'      => (int) ($it['origem'] ?? 0),
                     'vbc'       => $tributo->base_icms ?? 0,
                     'picms'     => $tributo->aliquota_icms,
                     'vicms'     => $tributo->valor_icms,
@@ -1299,6 +1336,8 @@ class NfeService
         $serieOriginal = $emissao->serie;
         $statusOriginal = $emissao->status;
         $cstatOriginal = $emissao->cstat;
+        // US-NFE-069: a NF-e da parte mercadoria re-emite também separada (senão a recusa de serviço barra).
+        $separada = isset(((array) ($emissao->metadata ?? []))['separacao']);
 
         Log::info('NfeService.retransmitir: iniciando retransmissão', [
             'business_id'    => $businessId,
@@ -1333,7 +1372,7 @@ class NfeService
         // ── 6. Re-emite via fluxo canon emitirParaTransaction ──────────────
         // Cria NfeEmissao NOVA com próximo número (proximoNumeroLocked
         // withTrashed = sequencial monotônico — não reusa numero antigo).
-        $nova = $this->emitirParaTransaction($tx, $modelo);
+        $nova = $this->emitirParaTransaction($tx, $modelo, $separada);
 
         Log::info('NfeService.retransmitir: retransmissão concluída', [
             'business_id'    => $businessId,
@@ -1589,6 +1628,34 @@ class NfeService
     }
 
     /**
+     * US-NFE-070 · UC-FLX-32 — `dhCont` (quando entrou em contingência) e `xJust` (por quê).
+     *
+     * A fonte é a ativação do tenant (`ContingenciaService::ativar`): o relógio original e o
+     * motivo declarado. O schema da SEFAZ pede xJust de 15 a 256 caracteres; o formulário
+     * aceita motivo a partir de 10, então motivo curto ganha o prefixo "Contingencia: " em vez
+     * de ser recusado na hora de emitir. Sem config (não deveria acontecer com tpEmis != 1),
+     * cai no instante da criação da emissão — ainda é a entrada real na contingência.
+     *
+     * @return array{0: string, 1: string}
+     */
+    private function dadosContingencia(int $businessId, NfeEmissao $emissao): array
+    {
+        $config = NfeBusinessConfig::withoutGlobalScopes() // SUPERADMIN: emissão roda em job sem sessão; filtro explícito abaixo.
+            ->where('business_id', $businessId)
+            ->first();
+
+        $quando = $config?->contingencia_ativada_em ?? $emissao->created_at ?? now();
+        $motivo = trim((string) ($config?->contingencia_motivo ?? ''));
+        if ($motivo === '') {
+            $motivo = 'SEFAZ indisponivel - emissao em contingencia';
+        } elseif (mb_strlen($motivo) < 15) {
+            $motivo = 'Contingencia: ' . $motivo;
+        }
+
+        return [$quando->format('Y-m-d\TH:i:sP'), mb_substr($motivo, 0, 256)];
+    }
+
+    /**
      * US-NFE-006 / ADR TECH-0002 — persiste o XML assinado da nota em contingência.
      *
      * Mesmo path de `processarRetorno` (`nfe-brasil/{biz}/notas/{serie}-{numero}.xml`)
@@ -1796,6 +1863,11 @@ class NfeService
         // `tp_emis` tem default 1 no schema, então emissão fora de contingência produz XML
         // byte-idêntico ao de antes deste PR. 4=EPEC (NF-e 55) · 9=off-line (NFC-e 65).
         $stdIde->tpEmis    = (int) ($emissao->tp_emis ?: NfeEmissao::TP_EMIS_NORMAL);
+        // US-NFE-070 · UC-FLX-32 — com tpEmis != 1 a SEFAZ exige dhCont + xJust (rejeita sem eles).
+        // Vêm da ATIVAÇÃO da contingência do tenant; com tpEmis = 1 nada muda no XML.
+        if ($stdIde->tpEmis !== NfeEmissao::TP_EMIS_NORMAL) {
+            [$stdIde->dhCont, $stdIde->xJust] = $this->dadosContingencia((int) $emissao->business_id, $emissao);
+        }
         $stdIde->cDV       = 0;
         $stdIde->tpAmb     = (int) ($emitOverride['ambiente'] ?? $business->ambiente ?? 2);
         // Thread 20 · finNFe=4 na devolução (R-NFE-026). Sem a chave = 1 (normal), XML de sempre.

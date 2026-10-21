@@ -218,6 +218,43 @@ it('a busca acha pelo SKU da variação, pela categoria, pela marca e pelo campo
     expect(plcIdsReact(plcLista($this, ['q' => "CAMPO{$sufixo}"])))->toBe([$comCampo->productId]);
 });
 
+// UC-PIDX-24 · cada linha leva os campos personalizados 1 a 7, os mesmos que a grade Blade mostra
+// (colunas `product_custom_field1..7` do DataTable). O 8 em diante só aparece no painel.
+it('a linha leva os campos personalizados 1 a 7 com os mesmos valores da lista Blade', function () {
+    $biz = $this->bizId;
+    $marcador = 'PLCCF' . strtoupper(bin2hex(random_bytes(3)));
+
+    $p = EstoqueFixture::singleProduct($biz, false);
+    DB::table('products')->where('id', $p->productId)->update([
+        'name' => $marcador,
+        'product_custom_field1' => "AZUL{$marcador}",
+        'product_custom_field7' => "SETE{$marcador}",
+        'product_custom_field8' => "OITO{$marcador}",
+    ]);
+
+    plcLogin($this, plcUsuario($biz, ['product.view', 'access_all_locations']));
+
+    $linhas = plcLista($this, ['q' => $marcador])['data'];
+    expect($linhas)->toHaveCount(1);
+    $campos = $linhas[0]['campos'];
+    expect(array_map('intval', array_keys($campos)))->toBe([1, 2, 3, 4, 5, 6, 7]);
+
+    // Mesma chamada do `plcIdsBlade` (todas as linhas): o valor da coluna sai do próprio DataTable.
+    $resp = $this->get('/products?' . http_build_query(['draw' => 1, 'start' => 0, 'length' => -1]), [
+        'X-Requested-With' => 'XMLHttpRequest',
+        'Accept' => 'application/json',
+    ]);
+    $resp->assertOk();
+    $blade = collect(json_decode($resp->getContent(), true)['data'])->firstWhere('id', $p->productId);
+    expect($blade)->not->toBeNull();
+    for ($i = 1; $i <= 7; $i++) {
+        expect($campos[$i] ?? null)->toBe($blade['product_custom_field' . $i] ?? null);
+    }
+    expect($campos[1])->toBe("AZUL{$marcador}");
+    expect($campos[7])->toBe("SETE{$marcador}");
+    expect(json_encode($linhas[0]))->not->toContain("OITO{$marcador}");
+});
+
 it('a lista pagina no servidor e não corta o catálogo', function () {
     $biz = $this->bizId;
     $marcador = 'PLCPAG' . strtoupper(bin2hex(random_bytes(3)));
@@ -303,4 +340,19 @@ it('o estoque é a soma das variações e marca quem está abaixo do alerta', fu
     expect($linhas[$variavel->productId]['variacoes'])->toBe(2);
     expect($linhas[$semControle->productId]['estoque'])->toBeNull();
     expect($linhas[$semControle->productId]['controla_estoque'])->toBeFalse();
+});
+
+it('UC-PIDX-22 · produto sem foto chega à lista com imagem null, não com a imagem genérica', function () {
+    $biz = $this->bizId;
+    $marcador = 'PLCIMAGEM' . strtoupper(bin2hex(random_bytes(3)));
+    $semFoto = EstoqueFixture::singleProduct($biz);
+    $comFoto = EstoqueFixture::singleProduct($biz);
+    DB::table('products')->where('id', $semFoto->productId)->update(['name' => $marcador . ' A', 'image' => null]);
+    DB::table('products')->where('id', $comFoto->productId)->update(['name' => $marcador . ' B', 'image' => '1700000000_plc_foto.jpg']);
+
+    plcLogin($this, plcUsuario($biz, ['product.view', 'access_all_locations']));
+    $linhas = collect(plcLista($this, ['q' => $marcador])['data'])->keyBy('id');
+
+    expect($linhas[$semFoto->productId]['imagem'])->toBeNull();
+    expect($linhas[$comFoto->productId]['imagem'])->toEndWith('/uploads/img/1700000000_plc_foto.jpg');
 });

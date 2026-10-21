@@ -9,7 +9,7 @@ base: 89f32db43080
 # 02 · 03 · L2
 
 **02:** `:195` e `:214` deixam de gravar `senha`/`contra_senha`. O desktop continua mandando — o backend ignora. Resposta inalterada.
-**03:** só com D4 — migração dropando as colunas + tirar de `fillable` (`Entities/Licenca_Computador.php:59`).
+**03:** ⛔ **NÃO dropar.** `senha`/`contra_senha` pertencem à integração Officeimpresso (Delphi) — [W] D4 "não" (01/10) e 14/10. Colunas e `fillable` ficam; a 03 é guarda (prova `contem 'contra_senha'`), sem migration.
 
 ## Prova
 No JSON do índice.

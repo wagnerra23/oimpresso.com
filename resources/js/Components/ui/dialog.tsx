@@ -51,12 +51,20 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  container,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
+  /**
+   * Onde o portal monta. Sem ele, no <body> (padrão do Radix), como sempre foi.
+   * Os tokens e a fonte do Design System vivem no `.cockpit`; um diálogo cujo conteúdo
+   * consome `var(--text)`, `var(--border)` etc. passa o `.cockpit` aqui para recebê-los,
+   * em vez de redefinir token num CSS à parte (ADR UI-0013 · mesmo contrato do `ui/sheet`).
+   */
+  container?: HTMLElement | null
 }) {
   return (
-    <DialogPortal data-slot="dialog-portal">
+    <DialogPortal data-slot="dialog-portal" container={container ?? undefined}>
       <DialogOverlay />
       <DialogPrimitive.Content
         data-slot="dialog-content"

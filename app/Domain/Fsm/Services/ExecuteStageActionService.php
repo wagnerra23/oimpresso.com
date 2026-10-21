@@ -104,6 +104,11 @@ class ExecuteStageActionService
             );
         }
 
+        // "Marcar perdido" (Enviado → Perdido): o protótipo exige o motivo para a ação passar.
+        if (($action->exige_motivo ?? false) && trim((string) ($payload['motivo'] ?? '')) === '') {
+            throw new InvalidActionForCurrentStageException("Informe o motivo para \"{$action->label}\".");
+        }
+
         $mergedPayload = array_merge($action->side_effect_payload ?? [], $payload);
 
         return DB::transaction(function () use ($subject, $action, $user, $mergedPayload, $currentStageId) {

@@ -138,6 +138,9 @@ return [
     // O `false` abaixo é só fallback de ausência da env. Estado vivo: governance/prod-flags.json
     // (derivado por `php artisan governance:prod-flags`) — não restatear aqui, que apodrece.
 
+    // Thread cliente/04 ([W] 2026-10-14): a LISTA não lê mais esta chave — a casca Blade foi apagada
+    // e /contacts só serve React. Ela segue viva por um uso: o redirecionamento do Show para o drawer
+    // (ContactController@show e a rota /cliente/{id}). O cutover do Show é decisão [W] à parte.
     'cliente_index' => [
         'enabled'      => env('MWART_CLIENTE_INDEX', false),
         'business_ids' => $parseBizIds('MWART_CLIENTE_INDEX_BIZ'),
@@ -175,25 +178,31 @@ return [
 
     // Vendas — cutover das telas React já em produção no GET comum (URL direta, menu).
     // Hoje elas só respondem com `X-Inertia`; sem ele cai no Blade. Cada chave liga a
-    // tela React POR EMPRESA no GET comum. NASCEM DESLIGADAS. Regra em App\Support\Mwart.
+    // tela React POR EMPRESA no GET comum. Regra em App\Support\Mwart.
     // Ligar: MWART_<TELA>=true e MWART_<TELA>_BIZ=1 (lista vazia = todas as empresas).
+    //
+    // C2 do cutover (venda-menu/playbook/02, thread C2): Lista de POS, Remessas e Devoluções
+    // LIGADAS só para biz=1 — decisão [W] 2026-10-14 ("faça então e termine"), depois de 48 h
+    // do C1 sem incidente. Nasceram desligadas no C0; o default do _BIZ agora é '1'. C4 (todas
+    // as empresas) segue esperando o aviso do [W] à ROTA LIVRE. Um `.env` com
+    // MWART_<TELA>=false ainda desliga; MWART_<TELA>_BIZ sobrescreve a lista.
 
     // SellPosController@index → Sells/Pos/Index
     'vendas_pos_index' => [
-        'enabled'      => env('MWART_VENDAS_POS_INDEX', false),
-        'business_ids' => $parseBizIds('MWART_VENDAS_POS_INDEX_BIZ'),
+        'enabled'      => env('MWART_VENDAS_POS_INDEX', true),
+        'business_ids' => $parseBizIds('MWART_VENDAS_POS_INDEX_BIZ', '1'),
     ],
 
     // SellController@shipments → Sells/Shipments/Index
     'vendas_shipments_index' => [
-        'enabled'      => env('MWART_VENDAS_SHIPMENTS_INDEX', false),
-        'business_ids' => $parseBizIds('MWART_VENDAS_SHIPMENTS_INDEX_BIZ'),
+        'enabled'      => env('MWART_VENDAS_SHIPMENTS_INDEX', true),
+        'business_ids' => $parseBizIds('MWART_VENDAS_SHIPMENTS_INDEX_BIZ', '1'),
     ],
 
     // SellReturnController@index → SellReturn/Index
     'vendas_sell_return_index' => [
-        'enabled'      => env('MWART_VENDAS_SELL_RETURN_INDEX', false),
-        'business_ids' => $parseBizIds('MWART_VENDAS_SELL_RETURN_INDEX_BIZ'),
+        'enabled'      => env('MWART_VENDAS_SELL_RETURN_INDEX', true),
+        'business_ids' => $parseBizIds('MWART_VENDAS_SELL_RETURN_INDEX_BIZ', '1'),
     ],
 
     // C1 do cutover (venda-menu/playbook/02, thread C1): Descontos, Importação e Pedido de venda

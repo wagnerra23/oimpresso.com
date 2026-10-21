@@ -62,6 +62,24 @@ class ArquivosService
     }
 
     /**
+     * Anexa com o business EXPLÍCITO — para chamada com token (app das lojas), onde não há sessão.
+     * Mesmo caminho do attach(): dedupe, Curador, vault, trilha. O chamador já conferiu que $owner é
+     * do $businessId (Tier 0, ADR 0093).
+     */
+    public function attachNoNegocio(Model $owner, UploadedFile $file, int $businessId): Arquivo
+    {
+        return OtelHelper::spanBiz('arquivos.attach', function () use ($owner, $file, $businessId) {
+            return $this->attachInternal($owner, $file, [], $businessId);
+        }, [
+            'module'     => 'Arquivos',
+            'owner_type' => $owner::class,
+            'size_bytes' => (int) $file->getSize(),
+            'mime_type'  => $file->getMimeType() ?? 'application/octet-stream',
+            'extension'  => strtolower($file->getClientOriginalExtension() ?: 'bin'),
+        ]);
+    }
+
+    /**
      * Internal attach — extraído pra ser envelopado por OtelHelper::spanBiz (D9.a).
      * Log estruturado emite tamanho + tipo MIME (sem PII — filename redactado).
      */

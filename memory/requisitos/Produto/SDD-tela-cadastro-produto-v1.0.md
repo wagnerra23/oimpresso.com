@@ -6,8 +6,8 @@ type: sdd
 module: Produto
 status: ativo
 owner: wagner
-version: 1.0.7
-last_updated: 2026-07-27
+version: 1.0.8
+last_updated: 2026-10-20
 related_docs:
   - SPEC.md
   - BRIEFING.md
@@ -45,6 +45,21 @@ related_adrs:
 >
 > **Documento-modelo:** [SDD-TEMPLATE.md](../_DesignSystem/SDD-TEMPLATE.md) — formato canônico **extraído deste SDD** (este é o exemplar de origem). _(Até 2026-07-26 esta linha apontava para `../Sells/SDD-tela-vendas-FINAL-v1.2.md`, que **nunca existiu** no repo — link podre corrigido, não apagado.)_
 
+> ### 🔖 Changelog v1.0.8 (2026-10-20) — §6.1: três casos de uso que o benchmark de concorrentes expôs
+> Pesquisa de concorrentes feita para a tela de cadastro (Bling, Tiny/Olist, Conta Azul, Omie, Shopify),
+> cruzada com o §6 inteiro. O §6 já cobria o que eles fazem em variação, preço, estoque, kit, importação
+> e etiqueta. Faltavam três eixos que **todos** os concorrentes BR tratam no cadastro e que o SDD não
+> tinha: **dados fiscais para emitir nota** (`CU-PROD-16`), **peso e dimensões** (`CU-PROD-17`) e
+> **aviso do que falta para emitir nota** (`CU-PROD-18`). `CU-PROD-13` segue reservado (não usado).
+> Correção de premissa feita antes de escrever: o NCM **não é ausente no sistema** — ele é editado na
+> tela de Tributação do módulo fiscal, que já tem sugestão fiscal da Jana. O que falta é o **cadastro**
+> capturar ou apontar isso.
+> **Mesmo dia, segunda rodada:** [M] decidiu que **o NCM entra no cadastro** (ratificação [W] no merge).
+> A pesquisa foi refeita com ERPs de **comunicação visual** (Calcgraf, Mubisys, Zênite, GestãoClick,
+> Nortgraf, Everflow, shopVOX), porque a gráfica que imprime sob encomenda emite nota de **serviço**:
+> o NCM não pode ser exigido de todo produto. Entram `CU-PROD-19` (natureza mercadoria × serviço e
+> campos da nota de serviço) e `CV-06`…`CV-11` (§6.2). **Nenhum CU, fluxo ou risco existente alterado.** [M+C]
+>
 > ### 🔖 Changelog v1.0.7 (2026-07-27) — §5.4.1: as 5 ações em massa do Blade × 1 (quebrada) no React
 > Achado da Camada 1 disparado por [W] (*"existe o bulk do produto na consulta/lista, no blade existe isso"*).
 > Medido: a lista Blade tem **5** ações em massa (excluir · editar · +localização · −localização · desativar),
@@ -186,7 +201,7 @@ A `module-grade 71` (UX/DS das 8 telas) **esconde** três buracos de valor/estoq
 
 > ⚙️ **derivado** — re-rodável de [BRIEFING.md](BRIEFING.md) + rotas reais (`routes/web.php`). Se as rotas ou o BRIEFING mudaram, re-derive esta seção; não remende à mão.
 
-A tela de cadastro de produto é o **registro-mãe do ERP** — nada em Vendas, Compras, Fiscal ou Produção existe sem um produto cadastrado antes. É um **wrapper Inertia/React sobre `App\Product`** do UltimatePOS legacy, em migração Blade→React via processo MWART ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)) — **8 telas React existem, todas `status: draft`/`awaiting-smoke-browser`, zero `live`** (o Blade coexiste como fallback via branch dual no header `X-Inertia`). Finalizar e promover essas telas é a US-PROD-023.
+A tela de cadastro de produto é o **registro-mãe do ERP** — nada em Vendas, Compras, Fiscal ou Produção existe sem um produto cadastrado antes. É um **wrapper Inertia/React sobre `App\Product`** do UltimatePOS legacy, em migração Blade→React via processo MWART ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)) — **8 telas React existem, todas `status: draft`/`awaiting-smoke-browser`, zero `live`** (o Blade coexiste como fallback via branch dual no header `X-Inertia`). Finalizar e promover essas telas é a US-PROD-023. _(Retrato da escrita deste SDD. Em 2026-10-15 a lista `Index` é `live` e a `/products` serve a tela React por padrão, com o Blade só em `?classico=1`. O estado vivo é o `status:` de cada charter.)_
 
 ### 1.0 As duas verticais do produto
 
@@ -891,6 +906,106 @@ a lista mostre valor a quem não pode ver, misture tenant ou esconda item em sil
 > divergências acima aferíveis por leitura direta, sem heurística de tela equivalente.
 > Contrato completo em [`Index.casos.md`](../../../resources/js/Pages/Produto/Index.casos.md).
 
+#### CU-PROD-16 — Dados fiscais mínimos para emitir nota `[must]` 🟡 **parcial**
+
+<!-- curado: benchmark de concorrentes 2026-10-20 + medição do código (ProductController::buildProdutoDetalhe :738-752 · mysql-schema.sql products · Pages/Produto/_components/formulario/) -->
+
+*Dado* um operador que cadastra um produto que vai sair em nota (NF-e ou NFC-e); *quando* salvo o
+cadastro; *então* o produto tem os dados que a nota exige — **NCM** (8 dígitos), **origem da
+mercadoria** e **unidade** — e, quando o produto tem substituição tributária, o **CEST**.
+
+- **Mercado:** Bling e Olist tratam unidade, NCM e origem como obrigatórios para a nota (no Bling a
+  nota não é salva sem o NCM). Conta Azul põe NCM, CEST e origem num bloco "Dados fiscais" do
+  cadastro. Omie tem a aba "Recomendações fiscais" no próprio cadastro.
+- **Hoje no oimpresso:**
+  1. ✅ As colunas existem em `products`: `ncm varchar(10) NOT NULL DEFAULT '0'` e `cest`
+     (`mysql-schema.sql`), além de `cfop_*`, `cst_*` e `origem_mercadoria`.
+  2. ✅ A **origem** já é capturada no cadastro React (`BlocoPrecoImposto.tsx:76`, `UC-PCAD-07`) e a
+     **unidade** também.
+  3. 🔴 **NCM e CEST não aparecem no cadastro React**: `ncm`/`cest` têm 0 ocorrências em
+     `Create.tsx` e em `_components/formulario/`.
+  4. ✅ O NCM é editado na tela de **Tributação** do módulo fiscal (`nfe-brasil.tributacao.index`),
+     que já tem **sugestão fiscal da Jana** que nunca se aplica sozinha (`SugestaoFiscalService`,
+     UC-NFTR-10..13). A ficha do produto mostra o bloco fiscal e o link para lá
+     (`buildProdutoDetalhe :738-752`) — **só** para quem tem o módulo fiscal no pacote e as
+     permissões `fiscal.access` + `nfe.tributacao.manage`.
+  5. ⚠️ Produto cadastrado sem NCM nasce com `ncm = '0'` (o `DEFAULT` da coluna), não com vazio.
+- ✅ **Decidido ([M] 2026-10-20, ratificação [W] no merge do PR):** o **NCM entra no cadastro do
+  produto**. A tela de Tributação continua podendo editá-lo.
+- **Regra** (implementada no Novo produto: `UC-PCAD-13` e `UC-PCAD-14` do [`Create.casos.md`](../../../resources/js/Pages/Produto/Create.casos.md); o Editar ainda não tem o campo):
+  1. O campo NCM aparece no cadastro, aceita só 8 dígitos e `'0'` **não** conta como preenchido.
+  2. **Não bloqueia o salvamento.** O cadastro mínimo segue nome + SKU (`CU-PROD-01`): um serviço
+     (arte, instalação) não tem NCM e não pode ser travado no cadastro.
+  3. Quando a natureza do produto é **mercadoria** ou **pendente**, NCM vazio vira aviso de pendência
+     (`CU-PROD-18`). Quando é **serviço**, o aviso pede o item da LC 116 (`CU-PROD-19`), não o NCM.
+  4. A NF-e já recusa produto marcado como serviço (`NfeService::recusarItensDeServico`); a regra
+     acima só antecipa para o cadastro o que a emissão já cobra.
+
+#### CU-PROD-17 — Peso e dimensões do produto `[should]` 🟡 **parcial**
+
+<!-- curado: benchmark de concorrentes 2026-10-20 + medição do código (mysql-schema.sql products · BlocoMaisOpcoes.tsx) -->
+
+*Dado* um produto que vai ser despachado ou anunciado em marketplace; *quando* cadastro;
+*então* informo peso líquido, peso bruto e as dimensões da embalagem (largura, altura, comprimento).
+
+- **Mercado:** Bling, Olist e Conta Azul pedem peso líquido, peso bruto e dimensões no cadastro. A
+  Olist diz que servem à cotação de frete; a Shopee exige dimensões e pesos para publicar, e o
+  Bling também para exportar à Amazon. Nos dois o dado é opcional para a nota.
+- **Hoje no oimpresso:** ✅ só **um** campo de peso (`products.weight varchar(191)`, editado em
+  `BlocoMaisOpcoes.tsx:64-70`). 🔴 Não há peso bruto nem colunas de dimensão em `products`.
+- ⚠️ **Premissa a conferir antes de priorizar:** só vale se o cliente despacha ou vende em
+  marketplace. Para venda de balcão o campo não tem uso (ADR 0105 — sinal antes de backlog).
+
+#### CU-PROD-18 — Aviso do que falta para emitir nota `[should]` 🟡 **parcial**
+
+<!-- curado: benchmark de concorrentes 2026-10-20 + protótipo prototipo-ui/cowork/Felipe/erp-shell-v2/Product Cadastro.html -->
+
+*Dado* um produto com dado fiscal faltando ou inválido; *quando* abro ou salvo o cadastro;
+*então* vejo **o que falta** (NCM vazio ou `'0'`, origem vazia, EAN inválido) antes de o produto
+travar uma nota — sem impedir o cadastro de ser salvo.
+
+- **Mercado:** a Omie mostra alertas de NCM desatualizado, EAN inválido e origem não preenchida.
+- **Protótipo:** o `Product Cadastro.html` (Cowork do [F]) já desenha isso no painel lateral —
+  *"Faltam: nome, NCM"*.
+- **Hoje no oimpresso:** 🟡 o Novo produto avisa NCM vazio ou incompleto (`UC-PCAD-14`), sem impedir
+  o salvamento — o cadastro mínimo (`CU-PROD-01`) continua sendo só nome e SKU. Falta olhar a natureza
+  (`CU-PROD-19`) e o EAN.
+
+#### CU-PROD-19 — Natureza fiscal (mercadoria × serviço) e campos da nota de serviço `[must]` 🟡 **parcial**
+
+<!-- curado: pesquisa de concorrentes de comunicação visual 2026-10-20 + medição do código (Modules/NfeBrasil · Modules/NFSe) -->
+
+*Dado* uma empresa que vende mercadoria e também serviço (gráfica, comunicação visual); *quando* abro
+o cadastro de um produto; *então* vejo se ele é **mercadoria**, **serviço** ou **pendente**, e o
+cadastro pede os dados da nota certa: NCM para mercadoria, item da LC 116 para serviço.
+
+- **Por que importa:** pela Súmula 156 do STJ, o serviço gráfico personalizado e sob encomenda paga
+  **ISS**; o impresso que vai ser revendido ou industrializado paga **ICMS** (LC 157/2016 e a cautelar da
+  ADI 4389). Banner, placa, adesivo e sinalização caem no item **24.01** da LC 116, não no 13.05. A
+  SEFAZ-SP já tratou esses itens como industrialização (ICMS). **Quem decide o enquadramento é o
+  contador**, não o sistema. _(Fontes na [CAPTERRA-FICHA §11](CAPTERRA-FICHA.md); o mérito da ADI 4389 e
+  a tese final do Tema 816 do STF não foram confirmados.)_
+- **Hoje no oimpresso:**
+  1. ✅ A natureza existe por produto: tabela `nfe_naturezas_produto` (`natureza` mercadoria · servico ·
+     pendente, `codigo_servico` da LC 116, `fonte`, quem decidiu e quando), uma linha por produto
+     (índice único `business_id + product_id`).
+  2. ✅ Só o contador decide, com fonte (`UC-NFTR-32`, tela de Tributação). A NF-e recusa item de serviço
+     (`UC-NFTR-31`).
+  3. 🔴 A natureza **não aparece no cadastro do produto**.
+  4. 🟡 Na NFS-e o código da LC 116 vem do padrão da empresa (`nfse_provider_configs.lc116_codigo_default`),
+     não do produto. O código de tributação nacional (`ctrib_nac`) só existe na emissão.
+  5. 🔴 Código de tributação municipal e NBS não existem no código (o único `cTribMun` é um comentário em
+     `SnNfseAdapter.php:209`).
+- **No cadastro, o que muda:** mostrar a natureza e o item da LC 116 decididos pelo contador (só
+  leitura para quem não tem `nfe.tributacao.manage`) e usar a natureza na regra do aviso
+  (`CU-PROD-16`/`18`).
+- 🔶 **Decisão [W]:** hoje a natureza é **uma por produto**. Se o mesmo item for serviço numa venda e
+  mercadoria em outra (banner sob encomenda × banner de prateleira), ou a empresa cadastra dois
+  produtos ou a natureza passa a ser decidida na venda.
+- ⚠️ **Reforma tributária (IBS/CBS), não medido:** fontes secundárias falam em `cClassTrib` errado
+  quando derivado só do NCM, o que sustentaria uma **exceção por produto** (hoje a regra fica em
+  `nfe_fiscal_rules`, por NCM). Conferir na NT 2025.002 oficial antes de virar caso.
+
 ### 6.2 Vertical comunicação visual (`CV`)
 
 #### CV-01 — Produto/material precificado por m² 🟡 *criar*
@@ -917,6 +1032,38 @@ a lista mostre valor a quem não pode ver, misture tenant ou esconda item em sil
 1. `[V0]` A fonte de preço de comunicação visual é o `OrcamentoCalculator` server-side — o cadastro core **empresta o material**, não duplica a máquina de m².
 2. `[T0]` Lookup de `Material` via Model com global scope (filtra business_id).
 3. `[reg]` Observações livres redactadas (PII) antes de log/span.
+
+#### CV-06 — Tipo de cálculo do material: m², metro linear, peça ou valor fixo 🟡 *estende CV-01*
+1. O CV-01 só trata m². Nortgraf e shopVOX cobram também por metro linear e por peça.
+2. Hoje: `comvis_materiais.unidade` aceita `m2` · `unidade` · `metro_linear`, e `cv_acabamentos.tipo`
+   aceita `m_linear` · `unitario` · `m2` · `fixo` — o dado existe no módulo de Comunicação Visual, não no
+   cadastro de produto.
+
+#### CV-07 — Área mínima de cobrança 🟡 *criar no cadastro*
+1. Peça de 0,1 m² é cobrada como o mínimo do material (Nortgraf).
+2. Hoje: `cv_substratos.minimo_m2` existe no módulo de Comunicação Visual.
+
+#### CV-08 — Largura útil da bobina ou chapa, com perda e emenda 🔴 *criar*
+1. Calcgraf calcula aproveitamento de bobina e emendas; shopVOX configura a perda no material.
+2. Hoje: nem `comvis_materiais` nem `cv_substratos` têm coluna de largura.
+
+#### CV-09 — Material como variação do produto 🔴 *criar*
+1. Um "Banner" com vários substratos (lona 440 g, lona 380 g, vinil) — cada material é uma variação
+   (Nortgraf). O `CU-PROD-02` cobre só a grade tamanho × cor.
+
+#### CV-10 — Serviço de instalação e de arte 🟡 *criar no cadastro*
+1. Instalação com preço base + por m² + por km, e exigência de NR-35 em altura; arte como serviço
+   (Everflow, GestãoClick). O `OF-04` é o equivalente da oficina.
+2. Hoje: `cv_instalacoes_catalogo` existe no módulo de Comunicação Visual. Fiscalmente é serviço
+   (`CU-PROD-19`).
+
+#### CV-11 — Custo de máquina por hora 🔴 *criar no cadastro*
+1. shopVOX tem fórmula de tempo de máquina. Hoje o custo de máquina previsto só existe no orçamento.
+
+> ⚠️ **Fonte fraca, declarada:** Mubisys, Zênite e Calcgraf não têm central de ajuda pública; o que se
+> sabe deles vem de páginas comerciais, assim como GestãoClick, Nortgraf e Everflow. Só o shopVOX tem
+> ajuda aberta. Os CV-06…11 são ponto de partida — viram UC com teste só com sinal de cliente (ADR 0105).
+> E seguem o `CV-05`: o cadastro **empresta** o material do módulo de Comunicação Visual, não duplica.
 
 ### 6.3 Vertical oficina (`OF`)
 
@@ -1079,6 +1226,7 @@ a lista mostre valor a quem não pode ver, misture tenant ou esconda item em sil
 
 **Histórico:**
 
+- 2026-10-20 — **§6.1 ganha `CU-PROD-16`, `CU-PROD-17` e `CU-PROD-18`** (v1.0.8): dados fiscais para nota, peso e dimensões, aviso de pendência fiscal. Origem: benchmark de concorrentes da tela de cadastro (Bling, Tiny/Olist, Conta Azul, Omie, Shopify), registrado também na [CAPTERRA-FICHA §11](CAPTERRA-FICHA.md). Mesmo dia: [M] decidiu que o NCM entra no cadastro; pesquisa refeita com ERPs de comunicação visual, que trouxe `CU-PROD-19` (natureza mercadoria × serviço) e `CV-06`…`CV-11`. Nenhum UC novo em `casos.md` ainda. [M+C]
 - 2026-07-27 — **Badge de proveniência nas 12 seções** (v1.0.6). Fecha a dívida que o próprio exemplar criou ao virar template: o [SDD-TEMPLATE.md](../_DesignSystem/SDD-TEMPLATE.md), extraído daqui em 2026-07-26, passou a exigir badge por seção e este documento tinha **zero** (medido: `grep -cE "⚙️|🖐"` → 0). Badges atribuídos **pela tabela do template**, não por julgamento. Mudança de forma: nenhum CU/fluxo/risco/roadmap tocado. [CC]
 - 2026-07-26 (3ª corrida `sdd-from-source`, tela `Produto/Index`) — **§5.3 novo `F8` (lista do catálogo) + §6.1 novo `CU-PROD-15` (consultar o catálogo)**, derivados por triangulação React + Blade + Delphi ([ADR 0351](../../decisions/0351-sdd-from-source.md)). Particularidade do alvo: a "Blade legada" é o **outro branch do mesmo método** `index()` — a paridade é comparação interna do controller. **Achado principal:** a lista React entrega `price`/`cost`/`margin` de todo o catálogo **sem consultar permissão**, enquanto a própria lista Blade gateia as duas colunas com `@can` (`index.blade.php:287,294`) e o Delphi faz o campo sumir (`AR-PROD-015`) — mesmo furo do `CU-PROD-14.1`, agora em lote. **Achado de alcance:** `limit(200)` sem paginação com o KPI anunciando o total (perda silenciosa). **Achado de arquitetura:** `App\Product` **não tem global scope** (`addGlobalScope` = 0) — todo o isolamento do módulo é `where` manual repetido, o que reclassifica o §3.1 (ver ⚠️ abaixo). Trio fechado em [`Index.casos.md`](../../../resources/js/Pages/Produto/Index.casos.md) + `ProdutoIndexContratoTest` (failing-first, lane `Estoque · MySQL`). Nenhum UC ✅ — veredito é da lane. [CC]
   > ⚠️ **Pendência de reconciliação do §3.1 (decisão [W]):** o §3.1 afirma *"`business_id` global scope em `App\Product`"*. Medido nesta corrida: **0** ocorrências de `addGlobalScope` em `app/Product.php` (o model `extends Model` e usa só `LogsActivity`). O §6.1 `CU-PROD-10` já registrou a versão honesta em 2026-07-15 (*"✅ hoje por validação explícita, não por global scope"*) — o §3.1 ficou stale. **Não editei o §3 nesta corrida** (é seção de governança, fora do escopo de escrita do agent); fica proposto pro [W].

@@ -16,7 +16,7 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 22 |
+| US no SPEC | 25 |
 | CU no SDD | 9 |
 | Telas (.tsx) | 1 |
 | Telas com `casos.md` | 1 |
@@ -33,6 +33,7 @@ authority: generated
 | `US-COM-007` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Fix business_id source: auth() em vez de session() + abort_i |
 | `US-COM-009` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Validar JOIN scope contacts.business_id em TransactionUtil:: |
 | `US-COM-011` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Teste E2E de cálculo custo/total/estoque da compra (Tier 0 v |
+| `US-COM-024` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Custo do insumo numa data, pelo método da empresa (UC-FLX-38 |
 
 ### Backlog — NÃO é lacuna
 
@@ -61,6 +62,8 @@ authority: generated
 | US-COM-020 | `todo` | A11y do drawer (`role=dialog` + focus-trap + `aria-label` + `Esc`) |
 | US-COM-021 | `todo` | Investigar flakiness das baselines dark/empty do VRT e reabilitar no gate L2 |
 | US-COM-022 | `todo` | Lane required de Compras vira árvore-menos-quarentena (vermelha no main há 5 run |
+| US-COM-023 | `todo` | Teste de 7 dias do cockpit Compras na ROTA LIVRE (biz=4) |
+| US-COM-025 | `desconhecido` | Rastreio do rolo: em que OS cada fração da mídia foi usada (UC-FLX-18) — **P2** |
 
 ## UC por status
 

@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **950 tarefas abertas** em **53 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **998 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -10,32 +10,33 @@
 |---|---:|---:|---:|---:|---:|
 | [`Jana`](#jana) | 83 | 2 | 0 | 0 | 81 |
 | [`Whatsapp`](#whatsapp) | 67 | 0 | 0 | 0 | 67 |
-| [`Sells`](#sells) | 60 | 0 | 0 | 0 | 60 |
+| [`Sells`](#sells) | 66 | 0 | 0 | 0 | 66 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
-| [`Financeiro`](#financeiro) | 46 | 0 | 0 | 0 | 46 |
+| [`Financeiro`](#financeiro) | 49 | 3 | 0 | 0 | 46 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
-| [`OficinaAuto`](#oficinaauto) | 37 | 0 | 0 | 0 | 36 |
-| [`NfeBrasil`](#nfebrasil) | 26 | 0 | 0 | 6 | 20 |
+| [`OficinaAuto`](#oficinaauto) | 38 | 0 | 0 | 0 | 37 |
+| [`Producao`](#producao) | 31 | 1 | 0 | 0 | 30 |
+| [`NfeBrasil`](#nfebrasil) | 28 | 0 | 0 | 6 | 22 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
 | [`Marketplaces`](#marketplaces) | 25 | 0 | 0 | 0 | 25 |
 | [`Crm`](#crm) | 23 | 0 | 0 | 0 | 23 |
+| [`Compras`](#compras) | 22 | 2 | 0 | 0 | 19 |
 | [`Fiscal`](#fiscal) | 22 | 0 | 0 | 0 | 22 |
+| [`ComunicacaoVisual`](#comunicacaovisual) | 20 | 0 | 0 | 0 | 20 |
 | [`Connector`](#connector) | 20 | 0 | 0 | 0 | 19 |
-| [`Pcp`](#pcp) | 20 | 0 | 0 | 0 | 20 |
 | [`Forja`](#forja) | 19 | 0 | 1 | 0 | 7 |
 | [`Mwart`](#mwart) | 19 | 0 | 0 | 0 | 19 |
 | [`Vestuario`](#vestuario) | 19 | 0 | 0 | 0 | 19 |
-| [`Compras`](#compras) | 18 | 0 | 0 | 0 | 17 |
-| [`ComunicacaoVisual`](#comunicacaovisual) | 18 | 0 | 0 | 0 | 18 |
 | [`Officeimpresso`](#officeimpresso) | 17 | 0 | 0 | 0 | 17 |
 | [`Accounting`](#accounting) | 16 | 0 | 0 | 0 | 16 |
+| [`Ponto`](#ponto) | 16 | 0 | 0 | 0 | 16 |
 | [`Autopecas`](#autopecas) | 15 | 0 | 0 | 0 | 15 |
 | [`Essentials`](#essentials) | 15 | 0 | 0 | 0 | 15 |
-| [`Ponto`](#ponto) | 15 | 0 | 0 | 0 | 15 |
 | [`Comissao`](#comissao) | 14 | 0 | 0 | 0 | 14 |
 | [`PaymentGateway`](#paymentgateway) | 13 | 0 | 0 | 0 | 13 |
+| [`Fisio`](#fisio) | 12 | 0 | 0 | 0 | 12 |
 | [`NFSe`](#nfse) | 12 | 0 | 0 | 0 | 12 |
 | [`PontoWr2`](#pontowr2) | 12 | 0 | 0 | 0 | 12 |
 | [`Superadmin`](#superadmin) | 11 | 0 | 0 | 0 | 11 |
@@ -44,8 +45,8 @@
 | [`Cliente`](#cliente) | 9 | 1 | 0 | 0 | 8 |
 | [`TaskRegistry`](#taskregistry) | 9 | 0 | 0 | 0 | 9 |
 | [`KB`](#kb) | 8 | 0 | 0 | 0 | 8 |
+| [`Manufacturing`](#manufacturing) | 8 | 0 | 0 | 0 | 8 |
 | [`EvolutionAgent`](#evolutionagent) | 7 | 0 | 0 | 0 | 7 |
-| [`Manufacturing`](#manufacturing) | 7 | 0 | 0 | 0 | 7 |
 | [`TeamMcp`](#teammcp) | 7 | 0 | 0 | 0 | 7 |
 | [`NotificationTemplate`](#notificationtemplate) | 6 | 0 | 0 | 0 | 6 |
 | [`SRS`](#srs) | 6 | 0 | 0 | 0 | 6 |
@@ -53,13 +54,15 @@
 | [`LaravelAI`](#laravelai) | 5 | 0 | 0 | 0 | 5 |
 | [`Repair`](#repair) | 5 | 0 | 0 | 0 | 5 |
 | [`Spreadsheet`](#spreadsheet) | 5 | 0 | 0 | 0 | 5 |
-| [`ConsultaOs`](#consultaos) | 3 | 0 | 0 | 0 | 3 |
+| [`ConsultaOs`](#consultaos) | 4 | 0 | 0 | 0 | 4 |
 | [`Dashboard`](#dashboard) | 3 | 0 | 0 | 0 | 3 |
+| [`VozDoCliente`](#vozdocliente) | 3 | 0 | 0 | 0 | 3 |
 | [`ADS`](#ads) | 2 | 0 | 0 | 0 | 2 |
 | [`Documentacao`](#documentacao) | 2 | 0 | 0 | 0 | 2 |
 | [`MemoriaAutonoma`](#memoriaautonoma) | 2 | 0 | 0 | 0 | 2 |
 | [`Admin`](#admin) | 1 | 0 | 0 | 0 | 1 |
 | [`Auditoria`](#auditoria) | 1 | 0 | 0 | 0 | 1 |
+| [`Estoque`](#estoque) | 1 | 0 | 0 | 0 | 1 |
 | [`Mcp`](#mcp) | 1 | 0 | 0 | 0 | 1 |
 
 
@@ -293,6 +296,12 @@
 - **US-SELL-064** — Listar vendas de POS com rodapé de totais (`/pos`)
 - **US-SELL-065** — Cadastro de descontos com ver × editar (`/discount`)
 - **US-SELL-066** — Devolução de venda em React — lista e registro (`/sell-return`)
+- **US-SELL-067** — Orçamento guarda o custo do dia em cada linha (UC-FLX-33)
+- **US-SELL-068** — Orçamento aberto avisa que o custo mudou (UC-FLX-34)
+- **US-SELL-069** — Orçamento abaixo da margem mínima só vira venda com aprovação (UC-FLX-35)
+- **US-SELL-070** — Termômetro de acesso da proposta (UC-FLX-04) — **P2**
+- **US-SELL-071** — Pesquisa de satisfação depois da entrega (UC-FLX-25) — **P2**
+- **US-SELL-073** — Volumes no protocolo de entrega (UC-FLX-23) — **P2**
 
 ## Infra
 
@@ -353,6 +362,12 @@
 
 ## Financeiro
 
+
+### doing
+
+- **US-FIN-070** — Custeio RKW e ponto de equilíbrio no fechamento do mês (UC-FLX-20) — **P2** _(`p2`)_
+- **US-FIN-071** — Régua de cobrança do título vencido D+1/D+5/D+15 (UC-FLX-29) — **P2** _(`p2`)_
+- **US-FIN-072** — ISS retido ajusta o título para o valor líquido na autorização da NFS-e (UC-FLX-30) — **P2** _(`p2`)_
 
 ### todo
 
@@ -480,6 +495,7 @@
 - **US-OFICINA-020** — Importer Firebird `WR_KANBAN` → `oa_kanban_state` (pré-arte Vargas/Martinho) — **P2** _(`p2`)_
 - **US-OFICINA-021** — Integração FIPE veículo (valor mercado + filtro garantia) — **P2** _(`p2`)_
 - **US-OFICINA-046** — Dívida F3: repontuar kanban Caçambas overdue→expected_completion + remover UI "Locações ativas" _(`p2`)_
+- **US-OFICINA-047** — Entrega da OS exige foto do serviço feito (UC-FLX-22) _(`p2`)_
 - **US-AUTO-001** — Cadastro veículo persistente (placa + chassi + km + ano + modelo + cor) — **P0**
 - **US-AUTO-002** — Consulta CRLV/Renavam por placa (DETRAN/SerPro) — **P0**
 - **US-AUTO-003** — Histórico do veículo (todas OS passadas) — **P0**
@@ -504,6 +520,46 @@
 
 - **US-OFICINA-035** — DVI (Vistoria Digital · Digital Vehicle Inspection) schema + API — **P1** _(`p1`)_
 
+## Producao
+
+
+### doing
+
+- **US-PCP-028** — Prazo de entrega calculado pela fila (UC-FLX-06) — **P2** _(`p2` · @wagner)_
+
+### todo
+
+- **US-PCP-001** — Schema base + migrations (4 tabelas + triggers append-only) — **P0**
+- **US-PCP-002** — DECISÃO D1 — Pcp vs IProduction (renomeação ou módulo novo) — **P0 BLOCKER**
+- **US-PCP-003** — Models + global scopes `HasBusinessScope` — **P0**
+- **US-PCP-004** — CRUD `pcp_workstations` Inertia (Index/Create/Edit) — **P0**
+- **US-PCP-005** — CRUD `pcp_operations` Inertia — **P0**
+- **US-PCP-006** — FSM actions intermediárias (5 actions seed) — **P0**
+- **US-PCP-007** — Service `RegisterAppointment` (idempotent) — **P0**
+- **US-PCP-008** — Endpoint API JWT `POST /api/pcp/scan` — **P0**
+- **US-PCP-009** — PWA mobile shell + scanner QR (camera API) — **P0**
+- **US-PCP-010** — QR token na label OS + endpoint print extended — **P0**
+- **US-PCP-011** — Kanban shared infra adicionar agrupador configurável (8 agrupadores Delphi) — **P0**
+- **US-PCP-012** — Detect bottleneck (cron 15min) + alerta UI + Jana RAG context — **P1**
+- **US-PCP-013** — Capacidade dia/semana view agregada + dashboard card — **P1**
+- **US-PCP-014** — Performance operador (view + dashboard table com permission guard) — **P1**
+- **US-PCP-015** — `pcp_schedules` agendamento drag-drop calendário — **P2**
+- **US-PCP-016** — Integração BoM `MfgRecipe` (consumo automático ao concluir operação) — **P2**
+- **US-PCP-017** — Dashboard PCP Inertia (4 cards KPI + Kanban embed + heatmap) — **P1**
+- **US-PCP-018** — Broadcast Centrifugo (Kanban realtime + fila workstation) — **P2**
+- **US-PCP-019** — Smoke biz=4 ROTA LIVRE (canary 7d + cutover) — **P2**
+- **US-PCP-020** — Documentação RUNBOOK + Charter páginas — **P0**
+- **US-PCP-021** — A OS baixa o material apontado em cada etapa, pelo custo do lote que saiu (UC-FLX-37) — **P1**
+- **US-PCP-022** — A regra da compra (congela | vivo) vale para a OS aberta (UC-FLX-36) — **P1**
+- **US-PCP-023** — Romaneio de impressão peça a peça (UC-FLX-12) — **P2**
+- **US-PCP-024** — Simulador de aproveitamento de mídia na bobina (UC-FLX-13) — **P2**
+- **US-PCP-025** — Produção só libera com o sinal pago (UC-FLX-28) — **P2**
+- **US-PCP-026** — Etapas da OS vêm do roteiro do produto (UC-FLX-07) — **P1**
+- **US-PCP-027** — Refugo e retrabalho com motivo somam custo à OS (UC-FLX-16) — **P1**
+- **US-PCP-029** — Alocador decide quem e quando começa cada etapa (UC-FLX-10) — **P1**
+- **US-PCP-030** — Operadores por posto: só eles são responsáveis e começam a etapa (UC-FLX-08) — **P1**
+- **US-PCP-031** — Reserva o insumo na venda, baixa real na produção (UC-FLX-14) — **P1**
+
 ## NfeBrasil
 
 
@@ -522,6 +578,8 @@
 - **US-NFE-053** — Smoke homologação SEFAZ-SP eventos 210/220 biz=Gold _(`p1` · @wagner · sprint Gold-Reativacao)_
 - **US-NFE-054** — Smoke real homologação SEFAZ-SC biz=1 — 1ª NFC-e cstat 100 (Goal #1 CYCLE-03) _(`p1` · @wagner)_
 - **US-NFE-062** — AuditLog em mutações fiscais NFe (Tributacao, Certificado, Manifestacao) _(`p1` · sprint cycle-04)_
+- **US-NFE-069** — A natureza fiscal do item escolhe a nota: NF-e para mercadoria, NFS-e para serviço e instalação (UC-FLX-31) — **P1** _(`p1` · sprint —)_
+- **US-NFE-071** — Contingência: SVC-AN/SVC-RS, evento EPEC 110140 e marcação no DANFE (UC-FLX-32) — **P1** _(`p1` · sprint —)_
 - **US-NFE-055** — Estabilizar 107 tests broken Modules/NfeBrasil aplicando dual-mode SQLite/MySQL _(`p2`)_
 - **US-NFE-056** — Continuação PR #453 — migrar configBusiness(4) → configBusiness(1) em MotorTributarioServiceTest _(`p2`)_
 - **US-NFE-057** — Schema drift — atualizar fixtures DanfeServicePrefersArquivosTest pós-remoção `arquivos.filename` _(`p2`)_
@@ -693,6 +751,40 @@
 - **US-CRM-062** — MWART CrmDashboard com Recharts · **P2** · 10H
 - **US-CRM-077** — Pattern canon `officeimpresso_codigo` nos 3 importers de contacts (gap ADR 0200) · **P1** · 6H
 
+## Compras
+
+
+### doing
+
+- **US-COM-024** — Custo do insumo numa data, pelo método da empresa (UC-FLX-38) _(`p1` · @wagner)_
+- **US-COM-026** — Compra recebida aplica a regra de custo e preço (UC-FLX-17) _(`p1` · @wagner)_
+
+### todo
+
+- **US-COM-008** — Throttle 60/1 em /compras + FormRequest ListarComprasRequest _(`p0`)_
+- **US-COM-012** — Matching automático XML→produto (EAN + xProd; fallback manual) _(`p0`)_
+- **US-COM-013** — Recebimento parcial (qty recebida por linha ≠ pedida + trânsito residual + autosave check-in) _(`p0`)_
+- **US-COM-022** — Lane required de Compras vira árvore-menos-quarentena (vermelha no main há 5 runs) _(`p0`)_
+- **US-COM-023** — Teste de 7 dias do cockpit Compras na ROTA LIVRE (biz=4) _(`p0` · @maiara · sprint 2026-W44)_
+- **US-COM-010** — Adicionar Compras em config/governance/module_clients.yaml (Larissa biz=4 piloto reportando) _(`p1`)_
+- **US-COM-014** — FSM de estágios PERSISTIDA + auditável _(`p1`)_
+- **US-COM-015** — Teste de invariante de estoque no fluxo de entrada _(`p1`)_
+- **US-COM-016** — Cobrir fluxo `/compras`→contas a pagar (Observer Financeiro) com teste _(`p1`)_
+- **US-COM-018** — Autosave rascunho de compra (`localStorage` `{biz}.{user}` debounced) _(`p2`)_
+- **US-COM-019** — Eager-load `->with(['contact','location'])` em `listarCompras().paginate()` _(`p2`)_
+- **US-COM-021** — Investigar flakiness das baselines dark/empty do VRT e reabilitar no gate L2 _(`p2`)_
+- **US-COM-025** — Rastreio do rolo: em que OS cada fração da mídia foi usada (UC-FLX-18) — **P2** _(`p2` · @wagner)_
+- **US-COM-020** — A11y do drawer (`role=dialog` + focus-trap + `aria-label` + `Esc`) _(`p3`)_
+- **US-COM-001** — Cockpit `/compras` (lista paginada + 4 KPIs + drawer)
+- **US-COM-002** — Criar compra manual
+- **US-COM-003** — Importar XML DF-e como compra (GAP NOVO)
+- **US-COM-004** — Deprecar `/purchases` legacy
+- **US-COM-005** — Entrada matricial tam×cor (GradeMatrixInput)
+
+### retirada
+
+- **US-COM-017** — ~~PiiRedactor no Drawer de compra~~ → RETIRADA (2026-07-03)
+
 ## Fiscal
 
 
@@ -720,6 +812,32 @@
 - **US-FISCAL-018** — Habilitar cockpit Fiscal Larissa biz=4 + canary 7d smoke
 - **US-FISCAL-019** — Cache Redis 60s KPIs + anti-DOS palette LIKE — ✅ Onda ESTABILIZAR
 - **US-FISCAL-020** — Integrar MotorTributarioService NfeBrasil — elimina 6 hardcodes Tier-0 SPED — ✅ Onda CONSOLIDAR
+
+## ComunicacaoVisual
+
+
+### todo
+
+- **US-COMVIS-020** — Orçamento aprovado vira OS sem redigitar (UC-FLX-01) — **P0** _(`p0` · @wagner)_
+- **US-COMVIS-019** — Item do orçamento guarda o custo do material no dia (UC-FLX-33) — **P1** _(`p1` · @wagner)_
+- **US-COMVIS-001** — Cálculo automático por m² (lona, vinil, banner, fachada) — **P0**
+- **US-COMVIS-002** — Cadastro de material com preço por gramatura — **P0**
+- **US-COMVIS-003** — PCP gráfico — fluxo OS multi-etapa com responsável + prazo + custo — **P0**
+- **US-COMVIS-004** — Apontamento de máquina (Roland/Mimaki/Mutoh/HP Latex) — **P1**
+- **US-COMVIS-005** — Pós-cálculo (orçado vs realizado) — **P1**
+- **US-COMVIS-006** — Tabela tributária CNAE 1813-0/01 (CFOP/CSOSN/NCM padrão) — **P0**
+- **US-COMVIS-007** — Gestão de fachada/instalação (agenda + equipe + EPI) — **P1**
+- **US-COMVIS-008** — NFSe automática pra serviço de instalação — **P1**
+- **US-COMVIS-009** — NFe automática a partir de boleto pago — **P0** (já entregue no núcleo)
+- **US-COMVIS-010** — Provador de orçamento online (formulário web público) — **P2**
+- **US-COMVIS-011** — Comissão por OS (vendedor + instalador) — **P1**
+- **US-COMVIS-012** — DAM básico — cliente envia arquivo print-ready — **P2**
+- **US-COMVIS-013** — Bulk update preço material via Jana — **P2**
+- **US-COMVIS-014** — Dashboard "Larissa pergunta no chat às 22h" — **P2**
+- **US-COMVIS-015** — Cadastro de máquina com tinta/CMYK consumption tracking — **P2**
+- **US-COMVIS-016** — CT-e/MDF-e pra entrega — **P3**
+- **US-COMVIS-017** — Importação massiva de clientes/produtos do legacy OfficeImpresso — **P0**
+- **US-COMVIS-018** — Loja whitelabel pra catálogo público — **P3**
 
 ## Connector
 
@@ -749,32 +867,6 @@
 ### in_progress
 
 - **US-CONN-015** — F2 — Pest baseline do ClientController antes de tocar _(`p2` · @[F])_
-
-## Pcp
-
-
-### todo
-
-- **US-PCP-001** — Schema base + migrations (4 tabelas + triggers append-only) — **P0**
-- **US-PCP-002** — DECISÃO D1 — Pcp vs IProduction (renomeação ou módulo novo) — **P0 BLOCKER**
-- **US-PCP-003** — Models + global scopes `HasBusinessScope` — **P0**
-- **US-PCP-004** — CRUD `pcp_workstations` Inertia (Index/Create/Edit) — **P0**
-- **US-PCP-005** — CRUD `pcp_operations` Inertia — **P0**
-- **US-PCP-006** — FSM actions intermediárias (5 actions seed) — **P0**
-- **US-PCP-007** — Service `RegisterAppointment` (idempotent) — **P0**
-- **US-PCP-008** — Endpoint API JWT `POST /api/pcp/scan` — **P0**
-- **US-PCP-009** — PWA mobile shell + scanner QR (camera API) — **P0**
-- **US-PCP-010** — QR token na label OS + endpoint print extended — **P0**
-- **US-PCP-011** — Kanban shared infra adicionar agrupador configurável (8 agrupadores Delphi) — **P0**
-- **US-PCP-012** — Detect bottleneck (cron 15min) + alerta UI + Jana RAG context — **P1**
-- **US-PCP-013** — Capacidade dia/semana view agregada + dashboard card — **P1**
-- **US-PCP-014** — Performance operador (view + dashboard table com permission guard) — **P1**
-- **US-PCP-015** — `pcp_schedules` agendamento drag-drop calendário — **P2**
-- **US-PCP-016** — Integração BoM `MfgRecipe` (consumo automático ao concluir operação) — **P2**
-- **US-PCP-017** — Dashboard PCP Inertia (4 cards KPI + Kanban embed + heatmap) — **P1**
-- **US-PCP-018** — Broadcast Centrifugo (Kanban realtime + fila workstation) — **P2**
-- **US-PCP-019** — Smoke biz=4 ROTA LIVRE (canary 7d + cutover) — **P2**
-- **US-PCP-020** — Documentação RUNBOOK + Charter páginas — **P0**
 
 ## Forja
 
@@ -857,57 +949,6 @@
 - **US-VEST-008** — Múltiplos schemes de invoice convivendo (`2026/NNNN` + `17NNN`) `live`
 - **US-VEST-009** — Sidebar/topnav adaptado por monitor 1280px `live`
 
-## Compras
-
-
-### todo
-
-- **US-COM-008** — Throttle 60/1 em /compras + FormRequest ListarComprasRequest _(`p0`)_
-- **US-COM-012** — Matching automático XML→produto (EAN + xProd; fallback manual) _(`p0`)_
-- **US-COM-013** — Recebimento parcial (qty recebida por linha ≠ pedida + trânsito residual + autosave check-in) _(`p0`)_
-- **US-COM-022** — Lane required de Compras vira árvore-menos-quarentena (vermelha no main há 5 runs) _(`p0`)_
-- **US-COM-010** — Adicionar Compras em config/governance/module_clients.yaml (Larissa biz=4 piloto reportando) _(`p1`)_
-- **US-COM-014** — FSM de estágios PERSISTIDA + auditável _(`p1`)_
-- **US-COM-015** — Teste de invariante de estoque no fluxo de entrada _(`p1`)_
-- **US-COM-016** — Cobrir fluxo `/compras`→contas a pagar (Observer Financeiro) com teste _(`p1`)_
-- **US-COM-018** — Autosave rascunho de compra (`localStorage` `{biz}.{user}` debounced) _(`p2`)_
-- **US-COM-019** — Eager-load `->with(['contact','location'])` em `listarCompras().paginate()` _(`p2`)_
-- **US-COM-021** — Investigar flakiness das baselines dark/empty do VRT e reabilitar no gate L2 _(`p2`)_
-- **US-COM-020** — A11y do drawer (`role=dialog` + focus-trap + `aria-label` + `Esc`) _(`p3`)_
-- **US-COM-001** — Cockpit `/compras` (lista paginada + 4 KPIs + drawer)
-- **US-COM-002** — Criar compra manual
-- **US-COM-003** — Importar XML DF-e como compra (GAP NOVO)
-- **US-COM-004** — Deprecar `/purchases` legacy
-- **US-COM-005** — Entrada matricial tam×cor (GradeMatrixInput)
-
-### retirada
-
-- **US-COM-017** — ~~PiiRedactor no Drawer de compra~~ → RETIRADA (2026-07-03)
-
-## ComunicacaoVisual
-
-
-### todo
-
-- **US-COMVIS-001** — Cálculo automático por m² (lona, vinil, banner, fachada) — **P0**
-- **US-COMVIS-002** — Cadastro de material com preço por gramatura — **P0**
-- **US-COMVIS-003** — PCP gráfico — fluxo OS multi-etapa com responsável + prazo + custo — **P0**
-- **US-COMVIS-004** — Apontamento de máquina (Roland/Mimaki/Mutoh/HP Latex) — **P1**
-- **US-COMVIS-005** — Pós-cálculo (orçado vs realizado) — **P1**
-- **US-COMVIS-006** — Tabela tributária CNAE 1813-0/01 (CFOP/CSOSN/NCM padrão) — **P0**
-- **US-COMVIS-007** — Gestão de fachada/instalação (agenda + equipe + EPI) — **P1**
-- **US-COMVIS-008** — NFSe automática pra serviço de instalação — **P1**
-- **US-COMVIS-009** — NFe automática a partir de boleto pago — **P0** (já entregue no núcleo)
-- **US-COMVIS-010** — Provador de orçamento online (formulário web público) — **P2**
-- **US-COMVIS-011** — Comissão por OS (vendedor + instalador) — **P1**
-- **US-COMVIS-012** — DAM básico — cliente envia arquivo print-ready — **P2**
-- **US-COMVIS-013** — Bulk update preço material via Jana — **P2**
-- **US-COMVIS-014** — Dashboard "Larissa pergunta no chat às 22h" — **P2**
-- **US-COMVIS-015** — Cadastro de máquina com tinta/CMYK consumption tracking — **P2**
-- **US-COMVIS-016** — CT-e/MDF-e pra entrega — **P3**
-- **US-COMVIS-017** — Importação massiva de clientes/produtos do legacy OfficeImpresso — **P0**
-- **US-COMVIS-018** — Loja whitelabel pra catálogo público — **P3**
-
 ## Officeimpresso
 
 
@@ -953,6 +994,28 @@
 - **US-ACCO-009** — Listar Reconcile
 - **US-ACCO-010** — Listar Report
 
+## Ponto
+
+
+### todo
+
+- **US-PONTO-014** — Lane required de Ponto vira arvore-menos-quarentena (vermelha no main ha 5 runs; 27 de 38 testes fora da allowlist) _(`p0`)_
+- **US-PONTO-017** — Presença do dia lida por outro módulo (somente leitura) _(`p1`)_
+- **US-PONTO-016** — Painel de Conformidade CLT da competência (somente leitura) _(`p2`)_
+- **US-PONTO-001** — Relogio web pra registrar entrada/saida (REP-P)
+- **US-PONTO-002** — Marcacao via REP-A (importacao AFD)
+- **US-PONTO-003** — Workflow de intercorrencia (atestado/abono/falta)
+- **US-PONTO-004** — Banco de horas com saldo + creditos/debitos
+- **US-PONTO-005** — Apuracao automatica de jornada (Art. 66 + 71 CLT)
+- **US-PONTO-006** — Geracao AFD legacy pra fiscalizacao MTE (REP-A INMETRO)
+- **US-PONTO-007** — Multi-tenant isolation (Tier 0 IRREVOGAVEL)
+- **US-PONTO-008** — Imutabilidade append-only (Portaria 671/2021)
+- **US-PONTO-009** — Geracao AEJ canon Portaria 671/2021 Anexo VI (CRITICO REGULATORIO)
+- **US-PONTO-010** — Comprovante PDF QR Code (Anexo I §5.5 Portaria 671)
+- **US-PONTO-011** — Fechar o append-only do ledger de banco de horas
+- **US-PONTO-012** — Corrigir os atributos fantasma do modulo (4 instancias)
+- **US-PONTO-013** — Consertar as duas telas que nao persistem
+
 ## Autopecas
 
 
@@ -995,27 +1058,6 @@
 - **US-ESS-014** — Configurações do módulo por business (admin)
 - **US-ESSE-001** — [TODO — título]
 
-## Ponto
-
-
-### todo
-
-- **US-PONTO-014** — Lane required de Ponto vira arvore-menos-quarentena (vermelha no main ha 5 runs; 27 de 38 testes fora da allowlist) _(`p0`)_
-- **US-PONTO-016** — Painel de Conformidade CLT da competência (somente leitura) _(`p2`)_
-- **US-PONTO-001** — Relogio web pra registrar entrada/saida (REP-P)
-- **US-PONTO-002** — Marcacao via REP-A (importacao AFD)
-- **US-PONTO-003** — Workflow de intercorrencia (atestado/abono/falta)
-- **US-PONTO-004** — Banco de horas com saldo + creditos/debitos
-- **US-PONTO-005** — Apuracao automatica de jornada (Art. 66 + 71 CLT)
-- **US-PONTO-006** — Geracao AFD legacy pra fiscalizacao MTE (REP-A INMETRO)
-- **US-PONTO-007** — Multi-tenant isolation (Tier 0 IRREVOGAVEL)
-- **US-PONTO-008** — Imutabilidade append-only (Portaria 671/2021)
-- **US-PONTO-009** — Geracao AEJ canon Portaria 671/2021 Anexo VI (CRITICO REGULATORIO)
-- **US-PONTO-010** — Comprovante PDF QR Code (Anexo I §5.5 Portaria 671)
-- **US-PONTO-011** — Fechar o append-only do ledger de banco de horas
-- **US-PONTO-012** — Corrigir os atributos fantasma do modulo (4 instancias)
-- **US-PONTO-013** — Consertar as duas telas que nao persistem
-
 ## Comissao
 
 
@@ -1054,6 +1096,24 @@
 - **US-PG-007** — Expor URL pública HTTPS do webhook Inter (deploy/proxy CT100)
 - **US-PG-008** — Linkage cobranca_id no webhook genérico + re-resolve do órfão
 - **US-PG-009** — Executar smokes humano-limitados PaymentGateway Onda 5 (biz=1 + canary Larissa)
+
+## Fisio
+
+
+### todo
+
+- **US-FISIO-001** — Trio SDD da F1 e US no SPEC — **P0**
+- **US-FISIO-002** — Esqueleto `Modules/Fisio` (ativação por empresa, permissões, menu condicionado) — **P0**
+- **US-FISIO-003** — Schema, models e append-only de prontuário e ledger do jogo — **P0**
+- **US-FISIO-004** — Biblioteca semeada e revisada pela responsável técnica — **P0**
+- **US-FISIO-005** — Pacientes e prontuário conforme Res. COFFITO 414/2012 — **P0**
+- **US-FISIO-006** — Editor de programa, protocolos-modelo e aviso de contraindicação — **P0**
+- **US-FISIO-007** — Portal do paciente (link + PIN, consentimentos, check-in, telemonitoramento) — **P0**
+- **US-FISIO-008** — Jogo de constância (XP, nível, sequência, missões, pausa por dor) — **P1**
+- **US-FISIO-009** — Lembrete diário e envio do programa por WhatsApp (canal escolhido pela clínica) — **P0**
+- **US-FISIO-010** — Painel, evolução e fila de atenção — **P0**
+- **US-FISIO-011** — Questionários de uso livre (EVA, RMDQ, PSFS, LEFS, SPADI) — **P1**
+- **US-FISIO-012** — Fecha o loop da F1 — **P1**
 
 ## NFSe
 
@@ -1190,19 +1250,6 @@
 - **US-KB-007** — Imprimir SOP balcão físico (ONDA 5) — ⬜ **não começou**
 - **US-KB-008** — `KbController@index` pagina 2000 nós de uma vez — revisar antes de virar dor — ⬜ **não começou**
 
-## EvolutionAgent
-
-
-### todo
-
-- **US-EVOL-001** — Indexar `memory/` em vetor
-- **US-EVOL-002** — Consultar memória via Artisan (chamado pelo CC)
-- **US-EVOL-003** — Ranquear oportunidades por ROI
-- **US-EVOL-004** — Eval golden set
-- **US-EVOL-005** — Subagent CC `evolucao.md`
-- **US-EVOL-006** — Tier-2 autonomia: comentar PR
-- **US-EVOL-007** — Tier-3 autonomia: PR-draft autônomo
-
 ## Manufacturing
 
 
@@ -1215,6 +1262,20 @@
 - **US-MANU-005** — Insumos — impacto reverso e simulador de preço
 - **US-MANU-006** — Editor de ingredientes
 - **US-MANU-007** — Formulário de ordem de produção
+- **US-MANU-008** — Rotas legadas só tocam dado da própria empresa
+
+## EvolutionAgent
+
+
+### todo
+
+- **US-EVOL-001** — Indexar `memory/` em vetor
+- **US-EVOL-002** — Consultar memória via Artisan (chamado pelo CC)
+- **US-EVOL-003** — Ranquear oportunidades por ROI
+- **US-EVOL-004** — Eval golden set
+- **US-EVOL-005** — Subagent CC `evolucao.md`
+- **US-EVOL-006** — Tier-2 autonomia: comentar PR
+- **US-EVOL-007** — Tier-3 autonomia: PR-draft autônomo
 
 ## TeamMcp
 
@@ -1306,6 +1367,7 @@
 - **US-CONSULTA-001** — Substituir mock por query real em Modules/Repair `parcial`
 - **US-CONSULTA-002** — Canary 7d em ROTA LIVRE `pendente`
 - **US-CONSULTA-003** — Criar BRIEFING.md após migração real `pendente`
+- **US-CONSULTA-004** — Cliente acompanha o status: aviso a cada mudança + portal atualizado `parcial`
 
 ## Dashboard
 
@@ -1315,6 +1377,15 @@
 - **US-DASH-001** — Soft wrapper Inertia `/home` (F6 entrega 2026-05-21)
 - **US-DASH-002** — Charts ECharts em Inertia (backlog F1→F4 wave)
 - **US-DASH-003** — Widget registry pluggable em React (backlog ADR nova)
+
+## VozDoCliente
+
+
+### todo
+
+- **US-VOZDOCLIENTE-001** — Botão "Relatar" nas telas do app (porta de entrada da caixa) _(`p1` · @maiara · sprint 2026-W42)_
+- **US-VOZDOCLIENTE-002** — Habilitar o VozDoCliente na biz=1 por 7 dias _(`p1` · @wagner · sprint 2026-W43)_
+- **US-VOZDOCLIENTE-003** — Teste de 7 dias do VozDoCliente na ROTA LIVRE (biz=4) _(`p2` · @maiara · sprint 2026-W45)_
 
 ## ADS
 
@@ -1353,6 +1424,13 @@
 ### todo
 
 - **US-AUDIT-009** — Pages Inertia Index + Detail `parcial`
+
+## Estoque
+
+
+### todo
+
+- **US-ESTOQUE-001** — Toda transferência cai pendente na requisição e só move o estoque quando aprovada _(`p2` · @wagner)_
 
 ## Mcp
 

@@ -17,6 +17,7 @@ import { Grid, Inline } from '@/Components/layout';
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import { brl, qtdComUnidade } from '../../Unificado/_components/catalogo';
 import { TIPO_ROTULO, type AbaDoDetalhe, type DetalheProdutoDados } from './tipos';
+import { ORIGENS_MERCADORIA } from '../origem-mercadoria';
 
 type Aba = AbaDoDetalhe;
 
@@ -24,8 +25,40 @@ const qtd = (n: number) => n.toLocaleString('pt-BR', { minimumFractionDigits: 0,
 const dinheiro = (n: number | undefined | null) => (n === undefined || n === null ? '—' : brl(n));
 /** `tax_type` do produto como a tela o chama; vazio quando o cadastro não diz. */
 const tipoDeImposto = (t: string) => (t === 'inclusive' ? 'Inclusivo' : t === 'exclusive' ? 'Exclusivo' : '');
+
+// Tabela A da NF-e (origem da mercadoria): os mesmos nomes do campo do cadastro.
+const ORIGENS = new Map(ORIGENS_MERCADORIA.map(([codigo, nome]) => [String(codigo), nome]));
+const rotuloOrigem = (o: string) => (ORIGENS.has(o) ? `${o} — ${ORIGENS.get(o)}` : '');
+
+/**
+ * Texto de ajuda da aba Fiscal (UC-PIDX-25). Parte do protótipo, corrigido onde ele afirma o que a
+ * emissão não faz: sem NCM o produto NÃO vira serviço (a nota usa o NCM padrão da empresa), e o CEST
+ * NÃO troca o CFOP da nota (a `NfeService` não lê o CEST). A ordem da regra é a do simulador da
+ * Tributação: exceção do produto → regra do NCM → padrão da empresa.
+ */
+function ajudaFiscal(f: { ncm: string; cest: string }): string {
+  const temNcm = !!f.ncm && f.ncm !== '0';
+  if (!temNcm) {
+    return 'Sem NCM no cadastro: a NF-e usa o NCM padrão da empresa. Se for serviço, a nota é a NFS-e, que não usa NCM.';
+  }
+  const base = 'O NCM escolhe a tributação da nota: primeiro a exceção do produto, depois a regra do NCM e, por fim, o padrão da empresa. Confira antes de emitir.';
+  return f.cest
+    ? `${base} CEST preenchido indica produto com substituição tributária; a nota não troca o CFOP sozinha — confira a regra do NCM.`
+    : base;
+}
 // Produto único tem uma variação interna chamada DUMMY; o protótipo a mostra como "Padrão".
 const nomeDaVariacao = (n: string | null | undefined) => (!n || n === 'DUMMY' ? 'Padrão' : n);
+
+// Cores do rodapé no protótipo (`.os-btn` em styles.css), só neste painel — o `Button` do DS fica
+// como está. O par `dark:` é obrigatório: no tema escuro o `outline` traz `dark:bg-input/30`, que
+// venceria um `bg-…` sem prefixo. Medido em produção (biz 1, tema escuro) em 2026-10-14.
+/** Principal: texto branco (`.os-btn.primary`). */
+const BOTAO_PRINCIPAL = 'text-white hover:bg-[var(--accent-2)]';
+/** Contorno: fundo sólido da superfície (`.os-btn`), não translúcido. */
+const BOTAO_CONTORNO =
+  'bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--border-2)] hover:text-[var(--text)] dark:bg-[var(--surface)] dark:hover:bg-[var(--border-2)]';
+/** "Fechar": texto esmaecido (`.os-btn.ghost`). */
+const BOTAO_FECHAR = 'text-[var(--text-dim)] hover:bg-[var(--border-2)] hover:text-[var(--text)] dark:hover:bg-[var(--border-2)]';
 
 /** Fechar do protótipo: 28×28, raio 6, esmaecido. */
 function Fechar() {
@@ -48,7 +81,10 @@ function TituloDaSecao({ children }: { children: ReactNode }) {
   return <h3 className="mb-3 text-[11px] leading-[1.2] font-bold uppercase tracking-[0.06em] text-[var(--text-mute)]">{children}</h3>;
 }
 
-const TOPO = 'pt-[14px] pr-[18px] pb-[15px] pl-[19px]';
+// Faixa do código + selo + fechar: a do `Drawer` do DS no protótipo (padding 14px 18px e
+// `border-bottom: 1px solid var(--border)`). A borda é a linha entre a faixa e o título; sem ela a
+// faixa compensava com 15px embaixo. Altura igual nos dois: 14 + 28 + 14 + 1 = 57px.
+const TOPO = 'border-b border-[var(--border)] pt-[14px] pr-[18px] pb-[14px] pl-[19px]';
 
 /**
  * Os 3 indicadores da aba Estoque do protótipo (`.pb-kpi`, 3 colunas). Nada é calculado aqui: os
@@ -223,17 +259,22 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
               </SheetDescription>
             </SheetHeader>
 
-            {/* Abas com 39px, a altura da faixa do protótipo (o componente compartilhado tem 36). */}
+            {/* Abas com 39px, a altura da faixa do protótipo (o componente compartilhado tem 36), e as
+                cores de texto e do contador do protótipo (`tone="prototype"`, só neste painel). */}
             <div className="border-b border-[var(--border)] bg-[var(--bg)] px-3 [&_a]:h-[39px]">
               <PageHeaderTabs
                 density="compact"
+                tone="prototype"
                 activeGhostKey={abaAtiva}
                 onGhostChange={(k) => aoMudarAba(k as Aba)}
                 ghosts={abas}
               />
             </div>
 
-            <div className="flex-1 overflow-y-auto px-5 py-4" data-contract="produto-detalhe">
+            {/* Corpo com o fundo mais escuro do protótipo (`--bg-2`), abaixo do cabeçalho e do rodapé em
+                `--surface`: sem ele o corpo herdava o `--surface` e os cartões e a caixa "Sem imagem"
+                sumiam no fundo. Medido em produção, tema escuro, 2026-10-15. */}
+            <div className="flex-1 overflow-y-auto bg-[var(--bg-2)] px-5 py-4" data-contract="produto-detalhe">
               {abaAtiva === 'dados' && (
                 <Grid gap={4} className="grid-cols-[1fr_168px]">
                   <div className="pb-drawer-grid">
@@ -484,9 +525,32 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                   <Dt rotulo="CST PIS" valor={d.fiscal.cst_pis} />
                   <Dt rotulo="CST COFINS" valor={d.fiscal.cst_cofins} />
                   <Dt rotulo="CST IPI" valor={d.fiscal.cst_ipi} />
+                  {/* Origem da mercadoria (UC-PIDX-25): a do próprio produto, a mesma que vai no `orig`
+                      da nota. Na ordem do protótipo: depois do CFOP, antes de "Imposto aplicável". */}
+                  <Dt rotulo="Origem da mercadoria" valor={rotuloOrigem(d.fiscal.origem)} />
                   <Dt rotulo="Imposto aplicável" valor={d.dados.imposto || 'Nenhum'} />
                   {/* Protótipo: a aba Fiscal fecha com o tipo de imposto. O mesmo dado da aba Dados. */}
                   <Dt rotulo="Tipo de imposto na venda" valor={tipoDeImposto(d.dados.tipo_imposto)} />
+                </div>
+              )}
+              {abaAtiva === 'fiscal' && (
+                <div data-contract="produto-detalhe-fiscal-ajuda">
+                  {!d.fiscal.origem_por_produto && (
+                    <p className="pb-help mt-2.5">
+                      A origem é a mesma em todas as notas: o cadastro ainda não guarda a origem de cada produto.
+                    </p>
+                  )}
+                  <p className="pb-help mt-1.5">{ajudaFiscal(d.fiscal)}</p>
+                  {d.fiscal.link_modulo && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-2 h-[26px] px-[10px] text-[11.5px]"
+                      onClick={() => irPara(d.fiscal.link_modulo as string)}
+                    >
+                      Abrir no módulo Fiscal
+                    </Button>
+                  )}
                 </div>
               )}
 
@@ -521,24 +585,24 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
 
             <SheetFooter className="mt-0 flex-row flex-wrap justify-end gap-2 border-t border-[var(--border)] px-[18px] py-3 [&_button]:h-[30px] [&_button]:px-3 [&_button]:text-[12.5px]">
               {podeEditar && (
-                <Button size="sm" onClick={() => irPara(`/products/${d.id}/edit`)}>
+                <Button size="sm" className={BOTAO_PRINCIPAL} onClick={() => irPara(`/products/${d.id}/edit`)}>
                   <Pencil size={13} aria-hidden /> Editar produto
                 </Button>
               )}
               {podeComprar && d.dados.controla_estoque && !d.inativo && (
-                <Button variant="outline" size="sm" onClick={() => irPara(`/purchases/create?produto=${d.id}`)}>
+                <Button variant="outline" size="sm" className={BOTAO_CONTORNO} onClick={() => irPara(`/purchases/create?produto=${d.id}`)}>
                   <Archive size={13} aria-hidden /> Comprar
                 </Button>
               )}
               {podePrecos && (
-                <Button variant="outline" size="sm" onClick={() => irPara(`/products/add-selling-prices/${d.id}`)}>
+                <Button variant="outline" size="sm" className={BOTAO_CONTORNO} onClick={() => irPara(`/products/add-selling-prices/${d.id}`)}>
                   Preços por grupo
                 </Button>
               )}
-              <Button variant="outline" size="sm" onClick={() => window.print()}>
+              <Button variant="outline" size="sm" className={BOTAO_CONTORNO} onClick={() => window.print()}>
                 <Printer size={13} aria-hidden /> Imprimir
               </Button>
-              <Button variant="ghost" size="sm" onClick={aoFechar}>
+              <Button variant="ghost" size="sm" className={BOTAO_FECHAR} onClick={aoFechar}>
                 Fechar
               </Button>
             </SheetFooter>

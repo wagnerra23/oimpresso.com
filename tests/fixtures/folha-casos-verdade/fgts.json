@@ -1,0 +1,21 @@
+{
+  "id": "fgts",
+  "tipo": "aliquota_fgts",
+  "vigencia": { "inicio": "1990-05", "fim": null },
+  "fonte": {
+    "orgao": "Presidência da República",
+    "documento": "Lei nº 8.036/1990, art. 15, caput (texto consolidado)",
+    "url": "https://www.planalto.gov.br/ccivil_03/leis/l8036consol.htm",
+    "consultado_em": "2026-10-14"
+  },
+  "regra": "Depósito de 8% da remuneração paga ou devida no mês anterior, incluídas as parcelas dos arts. 457 e 458 da CLT e a gratificação de Natal.",
+  "aliquota": "0.08",
+  "casos": [
+    { "id": "fgts-a", "competencia": "2025-12", "remuneracao": "3036.00", "deposito": "242.88" },
+    { "id": "fgts-b", "competencia": "2025-12", "remuneracao": "4000.00", "deposito": "320.00" },
+    { "id": "fgts-c", "competencia": "2025-12", "remuneracao": "6000.00", "deposito": "480.00" }
+  ],
+  "notas": [
+    "O número esperado é a alíquota legal aplicada à remuneração com resultado EXATO em centavos — não há arredondamento nem regra nossa envolvida. As remunerações são as dos exemplos da RFB (ver inss-2025.json). Caso com arredondamento de FGTS segue sem fonte."
+  ]
+}

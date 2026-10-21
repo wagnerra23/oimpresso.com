@@ -5,10 +5,13 @@ namespace Modules\ComunicacaoVisual\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\Rule;
 use Modules\ComunicacaoVisual\Entities\Orcamento;
-use Modules\ComunicacaoVisual\Entities\OrcamentoItem;
+use Modules\ComunicacaoVisual\Http\Requests\AprovarOrcamentoRequest;
 use Modules\ComunicacaoVisual\Services\OrcamentoCalculator;
+use Modules\ComunicacaoVisual\Services\OrcamentoGravador;
+use Modules\ComunicacaoVisual\Services\OrcamentoViraOs;
 
 /**
  * OrcamentoController — API JSON de orçamentos de comunicação visual.
@@ -19,6 +22,7 @@ use Modules\ComunicacaoVisual\Services\OrcamentoCalculator;
  *   POST /comunicacao-visual/api/calcular       → preview sem persistência
  *   POST /comunicacao-visual/api/orcamentos     → persiste + retorna 201
  *   GET  /comunicacao-visual/api/orcamentos/{id} → retorna com itens
+ *   POST /comunicacao-visual/api/orcamentos/{id}/aprovar → aprova e cria a OS (UC-FLX-01)
  *
  * Princípio server-side authoritative: valores area_m2 / subtotal / total vindos
  * do frontend são DESCARTADOS. O Service recalcula tudo antes de persistir.
@@ -32,7 +36,8 @@ use Modules\ComunicacaoVisual\Services\OrcamentoCalculator;
 class OrcamentoController extends Controller
 {
     public function __construct(
-        private readonly OrcamentoCalculator $calculator
+        private readonly OrcamentoCalculator $calculator,
+        private readonly OrcamentoGravador $gravador,
     ) {}
 
     // ------------------------------------------------------------------
@@ -68,47 +73,8 @@ class OrcamentoController extends Controller
             return response()->json(['message' => $e->getMessage()], 422);
         }
 
-        $businessId = session('user.business_id') ?? session('business.id');
-        $numero     = $this->gerarNumero($businessId);
-
-        $orcamento = DB::transaction(function () use ($calculado, $validated, $businessId, $numero) {
-            /** @var Orcamento $orc */
-            $orc = Orcamento::create([
-                'business_id'      => $businessId,
-                'numero'           => $numero,
-                'contato_id'       => $calculado['contato_id'],
-                'vendedor_id'      => $calculado['vendedor_id'],
-                'data_emissao'     => $calculado['data_emissao'],
-                'data_validade'    => $calculado['data_validade'],
-                'status'           => 'rascunho',
-                'subtotal'         => $calculado['subtotal'],
-                'desconto'         => $calculado['desconto'],
-                'extras'           => $calculado['extras'],
-                'custo_instalacao' => $calculado['custo_instalacao'],
-                'custo_entrega'    => $calculado['custo_entrega'],
-                'total'            => $calculado['total'],
-                'observacoes'      => $calculado['observacoes'],
-            ]);
-
-            foreach ($calculado['itens'] as $ordem => $itemCalc) {
-                OrcamentoItem::create([
-                    'orcamento_id'     => $orc->id,
-                    'business_id'      => $businessId,
-                    'material_id'      => $itemCalc['material_id'],
-                    'descricao'        => $itemCalc['descricao'],
-                    'largura_m'        => $itemCalc['largura_m'],
-                    'altura_m'         => $itemCalc['altura_m'],
-                    'quantidade'       => $itemCalc['quantidade'],
-                    'area_m2'          => $itemCalc['area_m2'],
-                    'preco_unitario_m2' => $itemCalc['preco_unitario_m2'],
-                    'subtotal'         => $itemCalc['subtotal'],
-                    'observacoes'      => $itemCalc['observacoes'],
-                    'ordem'            => $ordem + 1,
-                ]);
-            }
-
-            return $orc->load('itens');
-        });
+        $businessId = (int) (session('user.business_id') ?? session('business.id'));
+        $orcamento  = $this->gravador->gravar($businessId, $calculado);
 
         return response()->json($orcamento, 201);
     }
@@ -123,6 +89,31 @@ class OrcamentoController extends Controller
         $orcamento = Orcamento::with('itens')->findOrFail($id);
 
         return response()->json($orcamento, 200);
+    }
+
+    // ------------------------------------------------------------------
+    // POST /comunicacao-visual/api/orcamentos/{id}/aprovar
+    // UC-FLX-01 · US-COMVIS-020: aprova e cria a OS com itens, medidas e arquivos.
+    // 201 = OS criada agora · 200 = a OS já existia (reenvio não duplica) · 422 = recusado/expirado
+    // 404 = orçamento de outra empresa (não 403: não confirma que o id existe — UC-CV-05).
+    // ------------------------------------------------------------------
+
+    public function aprovar(AprovarOrcamentoRequest $request, int $id, OrcamentoViraOs $viraOs): JsonResponse
+    {
+        $user = auth()->user();
+        if (! $user->can('superadmin') && ! $user->can('comvis.orcamento.create')) {
+            abort(403, 'Sem permissão para aprovar orçamento (comvis.orcamento.create).');
+        }
+
+        $businessId = (int) (session('user.business_id') ?? session('business.id'));
+
+        try {
+            [$os, $criada] = $viraOs->aprovar($businessId, $id, (int) $user->id);
+        } catch (\DomainException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return response()->json($os, $criada ? 201 : 200);
     }
 
     // ------------------------------------------------------------------
@@ -162,6 +153,9 @@ class OrcamentoController extends Controller
             'itens.*.quantidade'        => ['required', 'integer', 'min:1'],
             'itens.*.preco_unitario_m2' => ['nullable', 'numeric', 'gt:0'],
             'itens.*.observacoes'       => ['nullable', 'string', 'max:500'],
+            // UC-FLX-33: posto e horas de máquina só alimentam o custo previsto, não o preço.
+            'itens.*.posto_id'          => $this->regraPosto(),
+            'itens.*.horas_maquina'     => ['nullable', 'numeric', 'min:0', 'max:999999'],
         ], [
             // Mensagens de validação em PT-BR
             'data_emissao.required'    => 'A data de emissão é obrigatória.',
@@ -181,37 +175,24 @@ class OrcamentoController extends Controller
             'itens.*.quantidade.required' => 'A quantidade do item é obrigatória.',
             'itens.*.quantidade.min'   => 'A quantidade do item deve ser pelo menos 1.',
             'itens.*.preco_unitario_m2.gt' => 'O preço por m² deve ser maior que zero.',
+            'itens.*.posto_id.exists'  => 'O posto informado não existe nesta empresa.',
+            'itens.*.horas_maquina.min' => 'As horas de máquina não podem ser negativas.',
         ]);
     }
 
     /**
-     * Gera número sequencial no formato ORC-YYYY-NNNNN por business.
-     *
-     * Lookup do MAX(numero) filtrando por business_id e ano atual.
-     * Sequência recomeça em 1 a cada ano-civil.
-     *
-     * Multi-tenant Tier 0: filtra explicitamente por business_id.
+     * Posto do PCP do item: precisa ser da empresa da sessão (Tier 0, ADR 0093). Sem o módulo
+     * Producao instalado não há tabela; aí só se exige inteiro e o gravador segue sem custo de
+     * máquina (a interface CustoHoraDoPosto não está ligada).
      */
-    private function gerarNumero(int $businessId): string
+    private function regraPosto(): array
     {
-        $ano     = now()->year;
-        $prefixo = "ORC-{$ano}-";
-
-        // SUPERADMIN: withoutGlobalScopes aqui pois precisamos do MAX real no biz (global scope ativo geraria ambiguidade)
-        $ultimo = Orcamento::withoutGlobalScopes()
-            ->where('business_id', $businessId)
-            ->where('numero', 'LIKE', "{$prefixo}%")
-            ->max('numero');
-
-        if ($ultimo) {
-            // Extrai parte numérica (últimos 5 chars do formato ORC-YYYY-NNNNN)
-            $partes    = explode('-', $ultimo);
-            $ultimoSeq = (int) end($partes);
-            $proximo   = $ultimoSeq + 1;
-        } else {
-            $proximo = 1;
+        $regra = ['nullable', 'integer', 'min:1'];
+        if (Schema::hasTable('pcp_postos')) {
+            $businessId = (int) (session('user.business_id') ?? session('business.id'));
+            $regra[] = Rule::exists('pcp_postos', 'id')->where('business_id', $businessId);
         }
 
-        return $prefixo . str_pad((string) $proximo, 5, '0', STR_PAD_LEFT);
+        return $regra;
     }
 }

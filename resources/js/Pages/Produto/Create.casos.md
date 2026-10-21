@@ -5,8 +5,8 @@ irmaos: Create.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o produto que NASCE do cadastro não muda quando a tela vira aba.
 owner: wagner
-last_run: "2026-07-17"
-last_run_ci: "3 UCs ativos (01/04/06) — todos passam; 02/03 retirados, 05 backlog (correção [F] 2026-07-17)"
+last_run: "2026-10-19"
+last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 485 passed (2356 assertions); UC-PCAD-01/04/05/06/07 verdes. Revalidação depois do refactor que passou as seções do formulário para _components/formulario/ (sem mudança de comportamento: HTML e estado do formulário idênticos antes/depois em 8 cenários no Vitest)"
 ---
 
 # Casos de Uso & Aceite — Cadastro de produto
@@ -36,6 +36,13 @@ last_run_ci: "3 UCs ativos (01/04/06) — todos passam; 02/03 retirados, 05 back
 | UC-PCAD-01 | Cadastro mínimo persiste e o SKU nasce no servidor | must | `CU-PROD-01.2` | `CadastroProdutoContratoTest` | 🧪 passa |
 | UC-PCAD-04 | Custo e preço de venda não inflam no parser pt-BR | must `[V0]` | `CU-PROD-01.4` | `CadastroProdutoContratoTest` | 🧪 passa |
 | UC-PCAD-06 | Duplicar produto de outro business → 404 (não 500) | should `[T0]` | `CU-PROD-07.2` | `CadastroProdutoContratoTest` | 🧪 passa (fix no PR) |
+| UC-PCAD-07 | Produto novo grava a origem da mercadoria escolhida (0–8) | should | `AR-PROD-128` | `ProdutoOrigemMercadoriaTest` | 🧪 passa no CT 100 |
+| UC-PCAD-09 | Novo produto simples nasce com o preço digitado, com a conta do Blade | must `[V0]` | `CU-PROD-01.4` | `produto-preco.test.tsx` (Vitest) | 🧪 passa |
+| UC-PCAD-10 | Novo produto nasce nos locais do negócio (um local só já vem marcado) | must | `CU-PROD-01` | `produto-locais.test.tsx` (Vitest) | 🧪 passa |
+| UC-PCAD-11 | Variável e composto não salvam pela tela React: vão para o cadastro clássico | must | `CU-PROD-02` | `produto-tipo.test.tsx` (Vitest) | 🧪 passa |
+| UC-PCAD-12 | Novo produto grava a validade digitada (com o período, como o Blade) | must | `CU-PROD-01` | `produto-formulario.test.tsx` (Vitest) | 🧪 passa |
+| UC-PCAD-13 | Novo produto grava o NCM digitado (8 dígitos), sem exigir NCM | must | `CU-PROD-16` | `CadastroProdutoNcmTest` + `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
+| UC-PCAD-14 | Sem NCM a tela avisa, e o produto é salvo assim mesmo | should | `CU-PROD-18` | `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
 | ~~UC-PCAD-02~~ | ~~Campo obrigatório validado server~~ | — | — | — | ⬛ **retirado** — gap de paridade, não bug |
 | ~~UC-PCAD-03~~ | ~~Defaults conservadores server~~ | — | — | — | ⬛ **retirado** — gap de paridade, não bug |
 | UC-PCAD-05 | Cadastro não aceita insumo de outro business | must `[T0]` | `CU-PROD-01.5` | — | 🔶 **backlog** — achado Tier 0 real, US própria |
@@ -140,9 +147,77 @@ last_run_ci: "3 UCs ativos (01/04/06) — todos passam; 02/03 retirados, 05 back
 - **Regressão que defende:** o CU crava **404** explicitamente — diferente do `UC-PTAB-02`, onde o 404 era proxy inventado pelo charter. Aqui é o contrato falando. Se o `create()` devolver 200 com o produto alheio no form, é vazamento de leitura.
 - **Status: 🧪 passa (fix no mesmo PR).** Era `Expected 404 but received 500`. **Corrigido** (failing-first, padrão #4300): `ProductController@create` L539 `find()`→`findOrFail()` — o scope de business já estava lá, agora o id alheio dá 404 limpo em vez de crashar em `->name` de null.
 
+## UC-PCAD-07 · Produto novo grava a origem da mercadoria escolhida · `should`
+- **Persona:** quem cadastra produto importado — a origem vai no XML de cada item da nota (`orig`) e, importado, muda a alíquota de ICMS entre estados (4%, Resolução do Senado 13/2012).
+- **Aceite:** Dado o card "Preço & Imposto" · Quando escolho a origem (tabela A da NF-e, códigos 0 a 8) e salvo · Então o produto nasce com aquela origem · E, sem o campo (o Blade não manda), nasce com `0`, a origem que toda nota usava antes.
+- **Teste:** [`ProdutoOrigemMercadoriaTest`](../../../../tests/Feature/Produto/ProdutoOrigemMercadoriaTest.php) — `UC-PCAD-07` (os dois casos).
+- **Contrato:** `AR-PROD-128` (o Office Comercial tinha "Origem da Mercadoria" no cadastro, `PRODUTO.ORIGEM_MERCADORIA`) + tabela A do MOC (`orig` só aceita 0 a 8).
+- **Status: 🧪** — Recibo: CT 100 (`oimpresso-staging`, MySQL `oimpresso_staging`, worktree isolado do branch, sem tocar o checkout compartilhado), 2026-10-15 — **8 passed (19 assertions)**. Bite-test por mutação: emissão de volta a `0`, limite `0,9` no lugar de `0,8`, `update()` sem o guarda `filled` e `linhasDaVenda` sem a coluna — cada uma derruba 1 caso. Não vira ✅ enquanto a lane não publicar o veredito (G-7).
+
+## UC-PCAD-08 · O "Novo produto" da /products abre o cadastro React quando a chave da empresa está ligada · `should`
+- **Persona:** quem cadastra produto pela lista `/products`. A lista navega com página inteira (`Index.tsx`, `window.location.assign`), então quem decide qual cadastro abre é o `ProductController@create`.
+- **Aceite:** Dado a chave `useV2ProdutoCadastro` **desligada** para a empresa (o default) · Quando abro `/products/create` com página inteira · Então abre o cadastro **Blade**, como antes · E, com a chave **ligada**, abre o cadastro **React** (`Produto/Create`) · E `?classico=1` devolve o Blade mesmo com a chave ligada · E uma visita Inertia abre o React com a chave desligada (a regra anterior).
+- **Teste:** [`CadastroProdutoChaveReactTest`](../../../../tests/Feature/Produto/CadastroProdutoChaveReactTest.php) — `UC-PCAD-08` (os quatro casos).
+- **Contrato:** decisão [F] 2026-10-16 — *"O Novo produto da /products deve abrir o cadastro novo (React), no lugar do Blade."* A chave existe porque o formulário React ainda não manda preço (§Pendência de CONTRATO abaixo): ligar para cliente vem depois do preço.
+- **Status: 🧪** — escrito junto do código, ainda sem veredito da lane `PHP / Pest (Estoque · MySQL)` (G-7).
+
+## UC-PCAD-09 · Novo produto simples nasce com o preço digitado, com a conta do Blade · `must` `[V0]`
+- **Persona:** Larissa — cadastra o produto e já define custo e venda. Sem os campos, o produto nascia sem preço e precisava de uma segunda tela para vender.
+- **Aceite:** Dado o card "Preço & Imposto" de um produto **simples** · Quando digito a compra sem imposto · Então a venda é preenchida pelo % de lucro padrão da empresa · E mudar o lucro refaz a venda, e mudar a venda refaz o lucro (compra 0 → lucro 0) · E os dois "com imposto" saem da alíquota do imposto escolhido · E o envio leva `single_dpp`, `single_dpp_inc_tax`, `profit_percent`, `single_dsp` e `single_dsp_inc_tax` com vírgula decimal e sem milhar, com os **mesmos valores que o cadastro Blade grava**.
+- **Teste:** [`produto-preco.test.tsx`](../../../../tests/js/produto-preco.test.tsx) — `UC-PCAD-09` (a conta e o envio pela tela). Roda no step "Comportamento React" do job `Frontend / Vite build`.
+- **Contrato:** `CU-PROD-01` item 4 `[V0]` + REGRA MESTRE de valor (`proibicoes.md`). A conta é a do Blade (`public/js/product.js` com `__add_percent`/`__get_rate` de `functions.js`): exata (Decimal.js) e arredondada como o `accounting.toFixed`.
+- **Prova por dois caminhos (2026-10-16):** 545 casos (compra × lucro × alíquota, e compra × venda) gerados pelo `precos.ts` comparados com as **próprias funções do Blade** extraídas de `functions.js` e rodadas com `decimal.js`, os dois lados lidos pelo **`Util::num_uf` real** (corpo extraído do `Util.php`, PHP 8): **2.725 valores, 0 divergências**. Controle: com a conta em `number` saem 8 divergências (ex.: 123,45 + 10% → 135,80 contra 135,79 do Blade). Mordida: `Create.tsx` sem o preço derruba o caso da tela; a conta em `number` derruba o caso 135,79.
+- **Fora deste UC:** produto **variável** e **composto** (têm editor próprio de preço) e a tela **Editar** (o preço do produto existente segue no Blade). Sem preço digitado o produto nasce com zero, como no Blade.
+- **Status: 🧪** — teste escrito junto do código, sem veredito publicado no manifesto (G-7).
+
+## UC-PCAD-10 · Novo produto nasce nos locais do negócio · `must`
+- **Persona:** quem cadastra e precisa vender o produto. Sem local, o produto nasce sem `product_locations` e não aparece para venda em local nenhum.
+- **Aceite:** Dada a tela Novo produto · Quando a empresa tem **um** local · Então ele já vem marcado e vai no envio · E, com **mais de um**, nenhum vem marcado e vão os que a pessoa marcar.
+- **Teste:** [`produto-locais.test.tsx`](../../../../tests/js/produto-locais.test.tsx) — `UC-PCAD-10` (os dois casos). Roda no step "Comportamento React" do job `Frontend / Vite build`.
+- **Contrato:** paridade com o cadastro Blade — `create.blade.php` (`$default_location`: com um local só, `product_locations[]` já vem com ele) e `ProductController@store` (`product_locations()->sync(...)`). Como no Blade, o campo não é obrigatório.
+- **Mordida (2026-10-16):** `product_locations` de volta a `[]` derruba o caso de um local; tirar o bloco da tela derruba os dois.
+- **Status: 🧪** — teste escrito junto do código, sem veredito publicado no manifesto (G-7).
+
+## UC-PCAD-11 · Variável e composto não salvam pela tela React · `must`
+- **Persona:** quem cadastra produto com grade (tamanho/cor) ou composto. Pela tela React o produto nascia quebrado.
+- **Aceite:** Dado o tipo **Variável** ou **Composto** na tela Novo produto · Então a tela avisa que esse tipo ainda não tem editor aqui · E oferece o link "Cadastrar no formulário clássico" (`/products/create?classico=1`, página inteira) · E o botão Salvar fica desligado e o envio não acontece · E, com **Simples**, nada disso aparece e o envio segue.
+- **Teste:** [`produto-tipo.test.tsx`](../../../../tests/js/produto-tipo.test.tsx) — `UC-PCAD-11` (variável, composto e o controle simples). Roda no step "Comportamento React" do job `Frontend / Vite build`.
+- **Contrato:** `ProductController@store` — variável sem `product_variation` não cria variação nenhuma; composto sem `composition_variation_id` cria a variação sem itens e com preço zero (`item_level_purchase_price_total`/`selling_price` ausentes). Sem variação o produto não entra em venda, compra, OS nem fabricação, que trabalham por `variation_id`.
+- **Mordida (2026-10-16):** sem a trava do envio caem os 2 casos de tipo; sem o aviso também.
+- **Fora deste UC:** o editor de grade e de composição em React (trabalho próprio). Até ele existir, o clássico é o caminho.
+- **Status: 🧪** — teste escrito junto do código, sem veredito publicado no manifesto (G-7).
+
+## UC-PCAD-12 · Novo produto grava a validade digitada · `must`
+- **Persona:** empresa que controla validade de produto (perecível, insumo com prazo). Pela tela React a validade digitada não era gravada.
+- **Aceite:** Dada uma empresa que usa validade · Quando ela calcula a validade pela fabricação (`add_manufacturing`) · Então a tela mostra "Expira em" com o número e o período (meses por padrão, dias ou não aplicável) e o envio leva os dois · E, quando a validade é lançada na compra (`add_expiry`, o padrão da coluna), o campo fica escondido e o envio leva 12 meses · E, sem validade na empresa, o campo não aparece.
+- **Teste:** [`produto-formulario.test.tsx`](../../../../tests/js/produto-formulario.test.tsx) — `UC-PCAD-12` (os três casos). Roda no step "Comportamento React" do job `Frontend / Vite build`.
+- **Contrato:** paridade com o cadastro Blade — `create.blade.php` (`expiry_period_type` com `months` por padrão; com `business.expiry_type == 'add_expiry'` o bloco fica escondido e vai `expiry_period = 12`) e `ProductController@store`, que só grava a validade quando vêm o número **e** o período. A tela mandava o período sempre vazio.
+- **Mordida (2026-10-19):** com o período de volta a vazio caem os 2 casos de validade (`expected '' to be 'months'`); com a tela do `main` também caem os 2. O terceiro (empresa sem validade) é guarda e passa nos dois.
+- **Fora deste UC:** duplicar produto ainda não traz a validade do original (o Blade traz); a tela Editar ainda não mostra a validade (o envio dela é o `UC-PEDIT-10`).
+- **Status: 🧪** — teste escrito junto do código, sem veredito publicado no manifesto (G-7).
+
+## UC-PCAD-13 · Novo produto grava o NCM digitado, sem exigir NCM · `must`
+- **Persona:** quem cadastra mercadoria que sai em nota fiscal. O NCM vai em cada item da nota, e sem ele a nota de mercadoria não sai. Antes deste caso, o cadastro não tinha o campo: o NCM só era editado na tela de Tributação do módulo fiscal, que nem toda empresa tem no pacote.
+- **Aceite:** Dado o card "Preço & Imposto" da tela Novo produto · Quando digito o NCM · Então o campo guarda só os dígitos, no máximo 8 (digitar `4911.10.90` fica `49111090`) · E o produto nasce com esse NCM · E, sem NCM (campo vazio, ou o Blade, que não manda o campo), o produto é **salvo** e nasce com o `'0'` que a coluna usa para "sem NCM" · E NCM fora do formato (curto, longo, com pontos) é recusado antes de gravar: nenhum produto nasce · E duplicar um produto traz o NCM dele, e o `'0'` do banco aparece vazio.
+- **Teste:** [`CadastroProdutoNcmTest`](../../../../tests/Feature/Produto/CadastroProdutoNcmTest.php) — `UC-PCAD-13` (o servidor: grava, vazio, Blade, os três formatos recusados, duplicar) · [`produto-formulario.test.tsx`](../../../../tests/js/produto-formulario.test.tsx) — `UC-PCAD-13` (a tela: só dígitos, duplicar, e o Editar sem o campo).
+- **Contrato:** `CU-PROD-16` do [SDD](../../../../memory/requisitos/Produto/SDD-tela-cadastro-produto-v1.0.md) — decisão [M] 2026-10-20, *"o NCM entra no cadastro do produto"* (ratificação [W] no merge). O NCM não é obrigatório porque produto de **serviço** não tem NCM: pela Súmula 156 do STJ, o serviço gráfico sob encomenda paga ISS e sai em nota de serviço (`CU-PROD-19`). A validação de 8 dígitos é a mesma da tela de Tributação (`SugestaoFiscalService`, `digits:8`).
+- **Fora deste UC:** a tela **Editar** ainda não mostra o NCM, porque o `update()` não lê o campo. Pôr o campo lá exige decidir o que fazer com produto antigo cujo NCM está fora do formato (a edição seria recusada por um campo que a pessoa não mexeu).
+- **Status: 🧪** — escrito junto do código, sem veredito da lane `PHP / Pest (Estoque · MySQL)` nem do job `Frontend / Vite build` (G-7). Mordida por mutação ainda não rodada: não há PHP nem Node na máquina onde foi escrito.
+
+## UC-PCAD-14 · Sem NCM a tela avisa, e o produto é salvo assim mesmo · `should`
+- **Persona:** quem cadastra com pressa e deixa o NCM para depois. O produto sem NCM só trava na hora da nota, longe do cadastro.
+- **Aceite:** Dada a tela Novo produto · Quando o NCM está vazio · Então aparece embaixo do campo *"Sem NCM a nota fiscal de mercadoria não sai. Dá para salvar e preencher depois."* · E o botão Salvar continua ligado e o envio acontece · E, com menos de 8 dígitos, o aviso diz *"O NCM tem 8 dígitos."* · E, com os 8 dígitos, o aviso some.
+- **Teste:** [`produto-formulario.test.tsx`](../../../../tests/js/produto-formulario.test.tsx) — `UC-PCAD-14` (sem NCM envia, NCM incompleto). Roda no step "Comportamento React" do job `Frontend / Vite build`.
+- **Contrato:** `CU-PROD-18` do SDD — o aviso não pode impedir o salvamento; o cadastro mínimo segue nome e SKU (`CU-PROD-01`). Referência de mercado: a Omie avisa NCM, EAN e origem faltando; o protótipo `Product Cadastro.html` (Cowork do [F]) desenha *"Faltam: nome, NCM"*.
+- **Fora deste UC:** o aviso olha só o NCM. Produto **novo** ainda não tem natureza fiscal decidida (quem decide é o contador, depois, na Tributação — `UC-NFTR-32`), então a tela não sabe se ele é serviço. Avisar EAN inválido e mostrar a natureza ficam para quando o Editar e a ficha receberem o `CU-PROD-19`.
+- **Status: 🧪** — escrito junto do código, sem veredito publicado (G-7).
+
 ---
 
 ## Pendência de CONTRATO (achado sem caso de uso — não vira UC até `[F]` decidir)
+
+> ✅ **Resolvida em 2026-10-16 — saída (b), decisão [W].** O preço entrou na tela Novo: `UC-PCAD-09`.
+> O texto abaixo fica como estava (é o registro de por que a tela nasceu sem preço).
 
 > ⚠️ **A tela não manda preço. O card se chama "Preço & Imposto" e não tem campo de preço.**
 >
@@ -183,6 +258,10 @@ last_run_ci: "3 UCs ativos (01/04/06) — todos passam; 02/03 retirados, 05 back
   produto **variável** (`CU-PROD-02` item 2) — vira UC junto com o `casos.md` da grade/variação.
 - **Submit retorna `/products`** — `CU-PROD-01` item 6. É paridade de **navegação**, não de dado;
   o Pest vê o 302 mas o que importa (o operador chega na lista) é smoke da US-PROD-023.
+- **NCM na tela Editar** — `CU-PROD-16`. Falta o `update()` gravar o campo e decidir o que fazer com o NCM antigo fora do formato (ver "Fora deste UC" do `UC-PCAD-13`).
+- **Natureza fiscal (mercadoria × serviço) no cadastro** — `CU-PROD-19`. A natureza existe (`nfe_naturezas_produto`) e é decidida pelo contador na Tributação; o cadastro ainda não a mostra. Vira UC no `Edit.casos.md` ou na ficha, onde o produto já existe.
+- **Peso bruto e dimensões** — `CU-PROD-17`. Não há colunas para isso em `products`; vira UC quando houver sinal de cliente que despacha ou vende em marketplace (ADR 0105).
+- **Casos de comunicação visual** — `CV-06` a `CV-11` do SDD. A maior parte do dado mora no módulo de Comunicação Visual; viram UC com sinal de cliente.
 - **Quick-add inline** — `CU-PROD-08`. Rota e contrato separados (`save_quick_product`); merece
   `casos.md` próprio quando a tela de origem (venda/compra) fechar o trio dela.
 

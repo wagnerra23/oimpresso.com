@@ -6,7 +6,8 @@
 // Preço de venda, Estoque atual, Tipo, Categoria, Marca e Imposto; nenhuma em Ação, Imagem e na
 // última coluna (SKU, no padrão). +50px levou Produto de 300 para 350.
 //
-// ⚠️ Nenhuma lane de CI roda este arquivo ainda (cada lane Vitest lista os próprios specs).
+// Lane: Vitest do `Frontend / Vite build` (.github/workflows/ci.yml), desde 2026-10-18. Cada lane
+// Vitest lista os próprios specs: a lista viva é a de lá.
 // Comando: npx vitest run tests/js/produto-lista-redimensionar.test.tsx
 
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';

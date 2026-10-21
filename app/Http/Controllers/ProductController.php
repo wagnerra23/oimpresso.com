@@ -28,10 +28,17 @@ use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\Facades\DataTables;
 use App\Events\ProductsCreatedOrModified;
 use App\TransactionSellLine;
+use App\Services\FeatureFlagService;
 use Inertia\Inertia;
 
 class ProductController extends Controller
 {
+    /**
+     * Chave por empresa (GrowthBook, default OFF): com ela ligada, /products/create abre o cadastro
+     * React em toda entrada, inclusive o "Novo produto" da /products. [F] 2026-10-16.
+     */
+    private const FLAG_CADASTRO_REACT = 'useV2ProdutoCadastro';
+
     /**
      * All Utils instance.
      */
@@ -566,7 +573,8 @@ class ProductController extends Controller
      * os mesmos gates das variações; `composicao_total_exc` é a soma dos totais dos itens (o
      * "Total líquido" do protótipo), só com `view_purchase_price`. Variações e itens trazem as
      * imagens da variação (`variation_images` da Blade), só as da própria empresa.
-     * Dados fiscais: as colunas do próprio produto; "origem da mercadoria" não existe no banco e não vem.
+     * Dados fiscais: as colunas do próprio produto, inclusive a origem da mercadoria
+     * (`products.origem_mercadoria`, por produto desde 2026-10-15).
      * Produto de outra empresa ⇒ null (Tier 0, ADR 0093).
      *
      * @return array<string, mixed>|null
@@ -697,7 +705,9 @@ class ProductController extends Controller
             'sku' => (string) $produto->sku,
             'tipo' => $tipo,
             'inativo' => (bool) $produto->is_inactive,
-            'imagem' => $produto->image_url,
+            // Sem foto vai null (o painel desenha a caixa "Sem imagem" do protótipo): o acessor
+            // `image_url` devolveria a imagem genérica /img/default.png — UC-PIDX-22.
+            'imagem' => empty($produto->image) ? null : $produto->image_url,
             'dados' => [
                 'codigo_de_barras' => (string) ($produto->barcode_type ?? ''),
                 'unidade' => (string) ($unidade->actual_name ?? ''),
@@ -734,6 +744,12 @@ class ProductController extends Controller
                 'cst_pis' => (string) ($produto->cst_pis ?? ''),
                 'cst_cofins' => (string) ($produto->cst_cofins ?? ''),
                 'cst_ipi' => (string) ($produto->cst_ipi ?? ''),
+                // UC-PIDX-25. A origem do próprio produto (`products.origem_mercadoria`, tabela A da
+                // NF-e), a mesma que as duas emissões usam no `orig` de cada item. Produto sem escolha
+                // fica com o DEFAULT 0 da coluna.
+                'origem' => (string) ($produto->origem_mercadoria ?? 0),
+                'origem_por_produto' => true,
+                'link_modulo' => $this->linkTributacaoDoProduto($business_id, $id),
             ],
             'prateleiras' => [
                 'colunas' => [
@@ -746,6 +762,33 @@ class ProductController extends Controller
                 ])->values(),
             ],
         ];
+    }
+
+    /**
+     * "Abrir no módulo Fiscal" da aba Fiscal (UC-PIDX-25): a Tributação do NfeBrasil, com este produto
+     * já escolhido no simulador. Regra decidida por [F] em 2026-10-16: o botão aparece só com o
+     * módulo Fiscal no pacote da empresa E para quem tem a permissão de acessar o módulo
+     * (`fiscal.access`) — as mesmas duas checagens do menu Fiscal (Modules/Fiscal
+     * DataController::modifyAdminMenu), incluindo o atalho do superadmin. Exige também
+     * `nfe.tributacao.manage`, a permissão que o simulador cobra: sem ela a tela abriria e
+     * recusaria a simulação. null quando qualquer uma falta, ou a rota não existe.
+     */
+    private function linkTributacaoDoProduto(int $business_id, int $id): ?string
+    {
+        $usuario = auth()->user();
+        if (! $usuario || ! \Illuminate\Support\Facades\Route::has('nfe-brasil.tributacao.index')) {
+            return null;
+        }
+        $superadmin = $usuario->can('superadmin');
+        $moduloNoPacote = $superadmin
+            ? $this->moduleUtil->isModuleInstalled('Fiscal')
+            : (bool) $this->moduleUtil->hasThePermissionInSubscription($business_id, 'fiscal_module', 'superadmin_package');
+        $acessaModulo = $superadmin || $usuario->can('fiscal.access');
+        if (! $moduloNoPacote || ! $acessaModulo || ! $usuario->can('nfe.tributacao.manage')) {
+            return null;
+        }
+
+        return route('nfe-brasil.tributacao.index', ['produto' => $id]).'#simulador';
     }
 
     /**
@@ -1050,7 +1093,9 @@ class ProductController extends Controller
                 'unidade_curta' => $row->unidade_curta,
                 'marca' => $row->brand,
                 'imposto' => $row->tax,
-                'imagem' => $row->image_url,
+                // Sem foto vai null (a coluna mostra o marcador "IMG" do protótipo), não a imagem
+                // genérica do acessor `image_url` — UC-PIDX-22.
+                'imagem' => empty($row->image) ? null : $row->image_url,
                 'controla_estoque' => $controla,
                 'estoque' => $estoque,
                 'alerta' => $alerta,
@@ -1140,6 +1185,22 @@ class ProductController extends Controller
     }
 
     /**
+     * O valor gravado dos 20 campos personalizados do produto (1 → 20). O Editar React devolve
+     * todos no envio, porque o update() grava '' em quem não vem no request (UC-PEDIT-10).
+     *
+     * @return array<int, string>
+     */
+    protected function valoresCamposPersonalizados(Product $produto): array
+    {
+        $valores = [];
+        for ($i = 1; $i <= 20; $i++) {
+            $valores[$i] = (string) ($produto->{'product_custom_field' . $i} ?? '');
+        }
+
+        return $valores;
+    }
+
+    /**
      * Show the form for creating a new resource.
      *
      * @return \Illuminate\Http\Response
@@ -1212,7 +1273,17 @@ class ProductController extends Controller
         $pos_module_data = $this->moduleUtil->getModuleData('get_product_screen_top_view');
 
         // Wave 2 B4 Produto (Agent W2-C 2026-05-15) — branch dual Inertia MWART (ADR 0104)
-        if (request()->header('X-Inertia')) {
+        // Visita Inertia abre sempre o React (uma visita Inertia não aceita HTML de volta).
+        // GET de página inteira (o "Novo produto" da /products navega assim) abre o React só com a
+        // chave useV2ProdutoCadastro ligada para a empresa; `?classico=1` mantém o Blade.
+        // Chave desligada (o default): o Blade segue sendo o cadastro, como antes. [F] 2026-10-16.
+        // ⚠️ Ligar para cliente exige antes o preço no formulário React (Create.casos.md §Pendência
+        // de CONTRATO: a tela ainda não manda preço).
+        $telaReact = request()->header('X-Inertia')
+            || (! request()->boolean('classico')
+                && app(FeatureFlagService::class)->isOn(self::FLAG_CADASTRO_REACT, ['business_id' => $business_id]));
+
+        if ($telaReact) {
             return Inertia::render('Produto/Create', [
                 'categories' => $categories,
                 'brands' => $brands,
@@ -1232,6 +1303,8 @@ class ProductController extends Controller
                     'sub_category_id' => $duplicate_product->sub_category_id,
                     'tax' => $duplicate_product->tax,
                     'tax_type' => $duplicate_product->tax_type,
+                    'origem_mercadoria' => (int) ($duplicate_product->origem_mercadoria ?? 0),
+                    'ncm' => (string) ($duplicate_product->ncm ?? ''),
                     'barcode_type' => $duplicate_product->barcode_type,
                     'sku' => (string) ($duplicate_product->sku ?? ''),
                     'alert_quantity' => $duplicate_product->alert_quantity,
@@ -1246,6 +1319,9 @@ class ProductController extends Controller
                 'warranties' => $warranties,
                 'commonSettings' => $common_settings ?? [],
                 'enableExpiry' => session('business.enable_product_expiry') == 1,
+                // UC-PCAD-12: `add_expiry` (padrão da coluna) = a validade é lançada na compra; o Blade
+                // esconde o campo e manda 12 meses. `add_manufacturing` = o campo aparece, vazio.
+                'expiryType' => (string) session('business.expiry_type'),
                 'enableLot' => (bool) ($common_settings['enable_lot_number'] ?? false),
                 'enableRacks' => (bool) session('business.enable_racks'),
             ]);
@@ -1270,6 +1346,38 @@ class ProductController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
+    /**
+     * Origem da mercadoria — tabela A da NF-e, códigos 0 a 8 (AR-PROD-128).
+     *
+     * Fora do `try` de store()/update(): o `catch (\Exception)` deles engoliria a
+     * ValidationException num redirect genérico. Ausente ou vazia ⇒ não valida e não grava.
+     */
+    protected function validarOrigemMercadoria(Request $request): void
+    {
+        $request->validate(
+            ['origem_mercadoria' => ['sometimes', 'nullable', 'integer', 'between:0,8']],
+            [
+                'origem_mercadoria.integer' => 'A origem da mercadoria tem que ser um código de 0 a 8.',
+                'origem_mercadoria.between' => 'A origem da mercadoria tem que ser um código de 0 a 8.',
+            ],
+        );
+    }
+
+    /**
+     * NCM do produto — 8 dígitos, só números (UC-PCAD-13, CU-PROD-16).
+     *
+     * Fora do `try` de store(), pelo mesmo motivo da origem. Ausente ou vazio não valida e não
+     * grava: o produto nasce com o DEFAULT '0' da coluna. Produto de serviço não tem NCM, então
+     * o cadastro não pode exigi-lo (decisão [M] 2026-10-20).
+     */
+    protected function validarNcm(Request $request): void
+    {
+        $request->validate(
+            ['ncm' => ['sometimes', 'nullable', 'digits:8']],
+            ['ncm.digits' => 'O NCM tem 8 dígitos, só números.'],
+        );
+    }
+
     public function store(Request $request)
     {
         if (! auth()->user()->can('product.create')) {
@@ -1299,6 +1407,9 @@ class ProductController extends Controller
             throw \Illuminate\Validation\ValidationException::withMessages($fk_alheio);
         }
 
+        $this->validarOrigemMercadoria($request);
+        $this->validarNcm($request);
+
         try {
             $business_id = $request->session()->get('user.business_id');
             $form_fields = ['name', 'brand_id', 'unit_id', 'category_id', 'tax', 'type', 'barcode_type', 'sku', 'alert_quantity', 'tax_type', 'weight', 'product_description', 'sub_unit_ids', 'preparation_time_in_minutes', 'product_custom_field1', 'product_custom_field2', 'product_custom_field3', 'product_custom_field4', 'product_custom_field5', 'product_custom_field6', 'product_custom_field7', 'product_custom_field8', 'product_custom_field9', 'product_custom_field10', 'product_custom_field11', 'product_custom_field12', 'product_custom_field13', 'product_custom_field14', 'product_custom_field15', 'product_custom_field16', 'product_custom_field17', 'product_custom_field18', 'product_custom_field19', 'product_custom_field20',];
@@ -1314,6 +1425,18 @@ class ProductController extends Controller
 
             $product_details['enable_stock'] = (! empty($request->input('enable_stock')) && $request->input('enable_stock') == 1) ? 1 : 0;
             $product_details['not_for_selling'] = (! empty($request->input('not_for_selling')) && $request->input('not_for_selling') == 1) ? 1 : 0;
+
+            // Origem da mercadoria: só grava quando o formulário manda. O Blade não manda, e o
+            // produto nasce com o DEFAULT 0 da coluna — a mesma origem que a nota usava antes.
+            if ($request->filled('origem_mercadoria')) {
+                $product_details['origem_mercadoria'] = (int) $request->input('origem_mercadoria');
+            }
+
+            // NCM (UC-PCAD-13): só grava quando o formulário manda. O Blade não manda, e vazio
+            // deixa o DEFAULT '0' da coluna.
+            if ($request->filled('ncm')) {
+                $product_details['ncm'] = (string) $request->input('ncm');
+            }
 
             if (! empty($request->input('sub_category_id'))) {
                 $product_details['sub_category_id'] = $request->input('sub_category_id');
@@ -1590,6 +1713,7 @@ class ProductController extends Controller
                     'subCategoryId' => $product->sub_category_id,
                     'tax' => $product->tax,
                     'taxType' => $product->tax_type ?? 'exclusive',
+                    'origemMercadoria' => (int) ($product->origem_mercadoria ?? 0),
                     'barcodeType' => (string) ($product->barcode_type ?? 'C128'),
                     'enableStock' => (bool) $product->enable_stock,
                     'alertQuantity' => $alert_quantity,
@@ -1598,10 +1722,12 @@ class ProductController extends Controller
                     'productLocations' => $product->product_locations->pluck('id')->all(),
                     'image' => $product->image_url,
                     'warrantyId' => $product->warranty_id,
-                    'productCustomField1' => $product->product_custom_field1,
-                    'productCustomField2' => $product->product_custom_field2,
-                    'productCustomField3' => $product->product_custom_field3,
-                    'productCustomField4' => $product->product_custom_field4,
+                    // UC-PEDIT-10: o update() grava '' em todo campo personalizado que não vem no
+                    // request e, com a empresa usando validade, zera a validade que não vem. A tela
+                    // recebe o valor gravado dos 20 campos e da validade para devolvê-los no envio.
+                    'camposPersonalizados' => $this->valoresCamposPersonalizados($product),
+                    'expiryPeriod' => $product->expiry_period !== null ? (float) $product->expiry_period : null,
+                    'expiryPeriodType' => $product->expiry_period_type,
                 ],
                 'categories' => $categories,
                 'brands' => $brands,
@@ -1654,6 +1780,8 @@ class ProductController extends Controller
                 ->where('id', $id)
                 ->firstOrFail();
 
+        $this->validarOrigemMercadoria($request);
+
         try {
             $product_details = $request->only(['name', 'brand_id', 'unit_id', 'category_id', 'tax', 'barcode_type', 'sku', 'alert_quantity', 'tax_type', 'weight', 'product_description', 'sub_unit_ids', 'preparation_time_in_minutes', 'product_custom_field1', 'product_custom_field2', 'product_custom_field3', 'product_custom_field4', 'product_custom_field5', 'product_custom_field6', 'product_custom_field7', 'product_custom_field8', 'product_custom_field9', 'product_custom_field10', 'product_custom_field11', 'product_custom_field12', 'product_custom_field13', 'product_custom_field14', 'product_custom_field15', 'product_custom_field16', 'product_custom_field17', 'product_custom_field18', 'product_custom_field19', 'product_custom_field20',]);
 
@@ -1681,6 +1809,11 @@ class ProductController extends Controller
             $product->alert_quantity = ! empty($product_details['alert_quantity']) ? $this->productUtil->num_uf($product_details['alert_quantity']) : $product_details['alert_quantity'];
             $product->tax_type = $product_details['tax_type'];
             $product->weight = $product_details['weight'];
+            // Origem da mercadoria: só muda quando o formulário manda (o Blade não manda e não
+            // pode zerar a origem que alguém escolheu na tela React).
+            if ($request->filled('origem_mercadoria')) {
+                $product->origem_mercadoria = (int) $request->input('origem_mercadoria');
+            }
             $product->product_custom_field1 = $product_details['product_custom_field1'] ?? '';
             $product->product_custom_field2 = $product_details['product_custom_field2'] ?? '';
             $product->product_custom_field3 = $product_details['product_custom_field3'] ?? '';

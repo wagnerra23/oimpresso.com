@@ -11,6 +11,8 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 > ℹ️ **`last_run` 2026-10-11 → 2026-10-14 (G-6) — tema escuro, thread 03 do playbook `cowork-inbox/tema-escuro`: só COR.**
 > O [#9314](https://github.com/wagnerra23/oimpresso.com/pull/9314) pôs par `dark:` nos selos DE/PARA desta tela, e o #9321 tirou essa mudança: a tela tem o header antigo e qualquer toque nela cai na catraca do PageHeader. O `.tsx` voltou byte a byte ao do `main`; a tela segue na baseline da sonda de tema escuro e volta a ser corrigida quando o header migrar.
 > **Nenhum UC foi reexecutado**: o bump registra *trio reconciliado com a tela nesta data*.
+>
+> ℹ️ **2026-10-14, depois — o header migrou e os selos voltaram.** [W] decidiu migrar o header no mesmo dia: o [#9405](https://github.com/wagnerra23/oimpresso.com/pull/9405) trocou o `PageHeader` antigo pelo canônico, e o PR seguinte trocou a cor fixa dos selos DE/PARA por token (`bg-border` · `bg-success-soft`/`text-success-fg`), que já tem valor no escuro. O par `dark:` do #9314 não serviu: o `ui:lint` conta cor de paleta como R1 e reprovou. Só COR e cabeçalho; **nenhum UC foi reexecutado**.
 
 # Casos de Uso & Aceite — Nova transferência de estoque
 
@@ -52,3 +54,9 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ## Backlog
 - [BACKLOG] R-XFER-004 (origem ≠ destino) só é conferida no cliente (botão desabilitado). `store()` não compara `location_id` com `transfer_location_id`, nem confere se as duas filiais são do business da sessão. Grava quantidade: decisão [W].
+- [BACKLOG] **Toda transferência cai pendente na requisição (US-ESTOQUE-001) — decisões de [F] em 2026-10-15; a tela da requisição fica com o [W].** Hoje quem preenche escolhe a situação (pendente, em trânsito ou concluída) num campo do formulário, e a concluída já move o saldo (UC-TRCRT-03). Vai mudar:
+  - Toda transferência feita aqui nasce **pendente** na tela da requisição e não mexe no estoque (como o UC-TRCRT-04). **Não existe baixa automática.**
+  - Quem tem a **permissão** de aprovar (não uma pessoa fixa) decide na requisição: aprovar executa a transferência; recusar deixa a situação **"recusada"**, no histórico (não exclui).
+  - O campo situação sai deste formulário.
+  - **Depende da tela do [W]:** o "Transferir" do produto (painel e menu da linha da lista de produtos) abre esta tela com produto e local de origem preenchidos.
+  - Mexe em movimentação de estoque: antes de mergear, dupla confirmação do saldo (muda só na aprovação, nunca duas vezes) e o antes → depois apresentado ([`proibicoes.md`](../../../../memory/proibicoes.md) §CÁLCULO DE VALOR ou ESTOQUE).

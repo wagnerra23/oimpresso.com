@@ -38,7 +38,7 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > | Botão "Ações" da linha | 14px | 12px | **corrigido** (12px) |
 > | Título | 22px / 600 | 19px / 700 | mantido — decisão [W] D-PH-0923 (h1 600 em todas as telas, `PageHeader`) |
 > | Linhas da área de filtros | 3 | 2 | não é defeito — a empresa medida tem 2 filtros de módulo (Modelo do dispositivo, WooCommerce) que também existem na lista Blade |
-> | Coluna Imagem | imagem padrão | marcador "IMG" | não é defeito — dado (a produção sempre devolve uma imagem) |
+> | Coluna Imagem | imagem padrão | marcador "IMG" | lido em 2026-10-11 como dado; **reclassificado como defeito por [F] em 2026-10-14 e corrigido** (UC-PIDX-22: o servidor manda `null` quando não há foto, e a tela mostra o "IMG") |
 > | Coluna Categoria | 1 linha | 2 linhas | não é defeito — a 1ª linha medida não tem categoria; a subcategoria aparece quando existe |
 > | Larguras declaradas (`<col>`), checkbox como botão | sim | não | produção à frente, não é defeito |
 >
@@ -123,11 +123,18 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > - Texto das abas: a aba ativa usa a cor de texto do `PageHeaderTabs` (`oklch(0.965 0.004 240)`), que é o
 >   componente das abas do app inteiro; mudar ali muda todas as telas. Não é decisão desta tela.
 > - Texto do botão principal: escuro em produção, branco no protótipo — é o `Button` do Design System.
+> - (2026-10-14) A caixa "Sem imagem" não aparecia em produção para produto sem foto: o servidor mandava a imagem genérica `/img/default.png`. Corrigido no UC-PIDX-22 (`imagem = null`).
 > - Texto da caixa sem foto: "Sem imagem" (o protótipo traz a dica de envio "1:1, até 5 MB", que num
 >   painel só de leitura afirmaria algo que a tela não faz).
 > - Aba Fiscal: a produção mostra as colunas fiscais reais do cadastro (CFOP dentro/fora, CST…); o
 >   protótipo tem um conjunto menor e um botão "Abrir no módulo Fiscal". Em 2026-10-13 entrou o
->   "Tipo de imposto na venda" (UC-PIDX-19). **Não feitos, com motivo medido:** "Origem da
+>   "Tipo de imposto na venda" (UC-PIDX-19). **2026-10-15 (UC-PIDX-25), pedido de [F]: os três itens abaixo
+>   entraram**, sem inventar o que não existe — a origem aparece como o valor que a nota usa (`0 —
+>   Nacional`, fixo nas duas emissões) com o aviso de que é o mesmo para todos; o texto de ajuda é o
+>   do protótipo, corrigido onde ele afirmava o que a emissão não faz; e "Abrir no módulo Fiscal"
+>   leva à Tributação do NfeBrasil com o produto no simulador (UC-NFTR-29), só para quem tem o
+>   módulo Fiscal no pacote e a permissão (a 1ª versão checava o pacote do NfeBrasil e não aparecia;
+>   corrigido no mesmo dia). O registro abaixo fica como era em 2026-10-13. **Não feitos, com motivo medido:** "Origem da
 >   mercadoria" (o campo não existe no cadastro nem no banco), "Abrir no módulo Fiscal" (não há
 >   tela fiscal por produto) e o texto de ajuda (o do protótipo chama de serviço todo produto sem
 >   NCM, o que é falso para cadastro incompleto).
@@ -176,6 +183,40 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > da aba (fundo e altura — `PageHeaderTabs`), texto do botão principal (branco no protótipo),
 > fundo dos botões de contorno (sólido × translúcido) e cor do texto do "Fechar" (cinza × normal) —
 > `Button` do Design System.
+>
+> **Botões do rodapé — ajustados só neste painel em 2026-10-14 (decisão [F]):** o texto do "Editar
+> produto" passa a branco (`rgb(255,255,255)`, `text-white`), o fundo de "Comprar", "Preços por grupo" e
+> "Imprimir" passa a sólido (`var(--surface)` = `oklch(0.3 0.008 240)`) e o texto do "Fechar" a
+> esmaecido (`var(--text-dim)` = `oklch(0.72 0.005 90)`), com os estados de passar o mouse do
+> protótipo (`.os-btn`). O `Button` do DS não muda. Medido em produção antes de publicar, aplicando os
+> mesmos valores por estilo inline no painel aberto. ⚠️ Lição da medição: com a aba do navegador em
+> segundo plano a `transition-all` do botão não avança, e o estilo calculado devolve o valor antigo
+> por segundos — desligue a transição no elemento antes de ler.
+>
+> **Abas — ajustadas só neste painel em 2026-10-14 (decisão [F]):** texto da aba ativa
+> `var(--text)` = `oklch(0.94 0.005 90)` (era `oklch(0.965 0.004 240)`), das inativas `var(--text-dim)`
+> = `oklch(0.72 0.005 90)` (era `oklch(0.74 0.008 240)`) e fundo do contador inativo `var(--border-2)` =
+> `oklch(0.31 0.008 240)` (era `oklch(0.23 0.006 240)`), como no `.cli-moduletopnav-tab` do protótipo.
+> O fundo do contador vem de estilo inline do `PageHeaderTabs`, que classe não vence; por isso o
+> componente ganhou a opção `tone="prototype"`, que só este painel liga — sem ela, todas as outras
+> telas seguem com as cores do DS (casos no `pageHeaderTabsFidelity.spec.tsx`, com controle).
+>
+> **3ª medição, 2026-10-15 (tema escuro, produto variável com 4 variações, mesma sonda):** depois dos
+> dois ajustes acima, botões, abas, contadores (ativo e inativo), rótulos, valores, selo do tipo,
+> caixa "Sem imagem", tabelas e cartões da aba Estoque batem com o protótipo. Sobrou uma diferença:
+> o **corpo do painel** (a área com os dados, entre a faixa das abas e o rodapé) não tinha fundo
+> próprio e herdava o `--surface` = `oklch(0.3 0.008 240)` do cabeçalho; no protótipo ele é
+> `--bg-2` = `oklch(0.23 0.006 240)`, e é isso que destaca os cartões e a caixa "Sem imagem". Corrigido
+> com `bg-[var(--bg-2)]` no corpo (nenhuma regra fora de `@layer` pinta esse elemento — conferido no
+> navegador). Ficam como estão, por serem mínimos: o fundo escurecido atrás do painel (preto a 50% em
+> produção, `oklch(0.15 0 0 / 0.45)` no protótipo) e a sombra do painel.
+>
+> **2026-10-15 — linha entre a faixa do código e o título ([F]):** no protótipo a faixa do código +
+> selo + fechar é a do `Drawer` do DS, com `border-bottom: 1px solid var(--border)` (medido no espelho,
+> PRD-0009: faixa 57px com borda `oklch(0.34 0.008 240)`, título logo em seguida). Em produção a
+> faixa (`TOPO` em `PainelDetalhe.tsx`) não tinha borda e compensava com 15px embaixo. Corrigido:
+> 14px + borda de 1px, mesma altura de 57px. A medição de 2026-10-11 registrou a estrutura
+> ("faixa de selos + fechar (57) e bloco do título (76)") mas não a borda.
 >
 > **De propósito ou por dado:** "Transferir" por local (espera a requisição de transferência);
 > campos da aba Fiscal; coluna "Variação" no estoque de produto variável; Prateleira sem cadastro

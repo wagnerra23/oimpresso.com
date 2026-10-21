@@ -4,7 +4,7 @@ irmaos: Drafts.charter.md (lei) · Drafts.tsx · tests/Feature/Sells/SellsDrafts
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: rascunho é a venda que a Larissa deixa pela metade quando o telefone toca — quem vê qual rascunho, e de qual empresa, não pode mudar num refactor visual.
 owner: wagner
-last_run: "2026-10-14"
+last_run: "2026-10-19"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Sells · MySQL)"
 ---
 
@@ -52,6 +52,14 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Fontes:** charter Mission ("status=draft, sub_status=NULL") e Goals ("1 KPI: total rascunhos pendentes") · US-SELL-060 aceite 2 e 3 ("cotação é tela própria", US-SELL-061) · RUNBOOK-drafts §3.
 - **Teste:** `SellsDraftsContratoTest` — `UC-DRAFT-04 [T0] o KPI de rascunhos pendentes sobe só com rascunho comum…` (medido por delta: o tenant 98 persiste dados de outros testes na lane MySQL).
 - **Regressão que defende:** KPI contando rascunho de outra empresa ou somando cotações.
+- **Status: 🧪**
+
+## UC-DRAFT-05 · Rascunho com margem abaixo do mínimo só vira venda com aprovação `[must]`
+- **Persona:** Wagner — *"o que é negociado nunca é o que é empregado"*: desconto que come a margem precisa de alguém que responda por ele.
+- **Aceite:** Dado uma empresa com margem mínima de 30% e um rascunho cuja margem pelo custo guardado é 20% (receita 100,00, custo guardado 80,00) · Quando um vendedor sem `sell.aprovar_margem_baixa` converte em venda · Então a conversão é recusada com a margem e o mínimo na mensagem e a venda segue rascunho · Quando quem tem a permissão converte · Então vira venda. E sem margem mínima configurada, com margem acima do mínimo, ou sem custo guardado nas linhas · Então converte normalmente.
+- **Fontes:** catálogo da tela de fluxos UC-FLX-35 · decisão [W] 2026-10-19 ("bloqueia a conversão; só quem tem a permissão aprova") · SPEC Sells US-SELL-069 · custo guardado da US-SELL-067.
+- **Teste:** `SellsMargemMinimaContratoTest` — `UC-DRAFT-05 …`.
+- **Regressão que defende:** desconto abaixo do piso passando sem aprovação; ou o bloqueio travando venda de quem não configurou margem.
 - **Status: 🧪**
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
