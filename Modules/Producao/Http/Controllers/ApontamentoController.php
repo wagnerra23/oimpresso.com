@@ -18,6 +18,7 @@ use Modules\Producao\Entities\Programacao;
 use Modules\Producao\Exceptions\ApontamentoRecusado;
 use Modules\Producao\Services\ApontamentoOperadorService;
 use Modules\Producao\Services\ConsumoMaterialService;
+use Modules\Producao\Services\MateriaisDaEtapa;
 use Modules\Producao\Services\RefugoService;
 
 /**
@@ -48,6 +49,8 @@ class ApontamentoController extends Controller
             'etapas' => Inertia::defer(fn () => $this->etapas($biz, $user)),
             'rodando' => Inertia::defer(fn () => $this->rodando($biz, $user)),
             'motivos' => Inertia::defer(fn () => $this->motivos($biz)),
+            // US-PCP-021 · UC-FLX-18: material e rolo de cada etapa aberta (sem custo — é do gestor).
+            'materiais' => Inertia::defer(fn () => $this->materiais($biz, $user)),
         ]);
     }
 
@@ -214,6 +217,15 @@ class ApontamentoController extends Controller
     private function motivos(int $biz): array
     {
         return $this->svc->motivosDePausa($biz)->all();
+    }
+
+    /** @return array<int, list<array<string, mixed>>> por `programacao_id` das etapas rodando agora */
+    private function materiais(int $biz, int $user): array
+    {
+        $r = $this->svc->rodandoAgora($biz, $user, Carbon::now());
+        $ids = collect([$r['pessoa'], ...$r['maquinas']->all()])->filter()->pluck('programacao_id')->filter()->map(fn ($id) => (int) $id)->unique()->values()->all();
+
+        return app(MateriaisDaEtapa::class)->paraEtapas($biz, $ids);
     }
 
     private function etapa(int $biz, Programacao $p): array
