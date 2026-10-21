@@ -70,9 +70,10 @@ class ApontamentoService
         ]);
     }
 
-    public function fechar(int $businessId, int $inicioId, int $por, string $chave, string $origem = 'qr', ?Carbon $momento = null): Apontamento
+    /** `$impressao`: m² impresso e tinta C/M/Y/K já normalizados (US-COMVIS-004), gravados na linha `fim`. */
+    public function fechar(int $businessId, int $inicioId, int $por, string $chave, string $origem = 'qr', ?Carbon $momento = null, array $impressao = []): Apontamento
     {
-        return $this->encerrar('fim', $businessId, $inicioId, $por, $chave, $origem, $momento, null);
+        return $this->encerrar('fim', $businessId, $inicioId, $por, $chave, $origem, $momento, null, $impressao);
     }
 
     /** Pausa fecha o trecho sem concluir a etapa; retomar é um `iniciar` novo. Motivo vem do cadastro do posto (thread 03). */
@@ -81,7 +82,7 @@ class ApontamentoService
         return $this->encerrar('pausa', $businessId, $inicioId, $por, $chave, $origem, $momento, $motivoId);
     }
 
-    private function encerrar(string $tipo, int $businessId, int $inicioId, int $por, string $chave, string $origem, ?Carbon $momento, ?int $motivoId): Apontamento
+    private function encerrar(string $tipo, int $businessId, int $inicioId, int $por, string $chave, string $origem, ?Carbon $momento, ?int $motivoId, array $impressao = []): Apontamento
     {
         if ($existente = $this->porChave($businessId, $chave)) {
             return $existente;
@@ -107,7 +108,7 @@ class ApontamentoService
             'iniciado_por' => $por,
             'momento' => $momento ?? now(),
             'origem' => $origem,
-        ]);
+        ] + $impressao);
     }
 
     /**
