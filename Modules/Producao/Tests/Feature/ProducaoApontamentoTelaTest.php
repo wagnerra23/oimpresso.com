@@ -85,3 +85,23 @@ it('UC-PCV-23 · a fila offline reenvia a mesma chave: 201, depois 200, uma linh
     $this->actingAs($this->diego)->postJson('/producao/apontamento/iniciar', ['chave' => 'tela-23b', 'momento' => '2026-10-15T11:00:00'] + $corpo)
         ->assertStatus(422)->assertJsonPath('erro', 'momento_invalido');
 });
+
+it('UC-PCIMP-01 · o Concluir da tela envia m² e tinta e eles chegam à linha fim; formato errado é 422 e não grava', function () {
+    $maquina = (int) DB::table('pcp_postos')->insertGetId(['business_id' => $this->biz->id, 'codigo' => 'TELA-M-'.uniqid(), 'nome' => 'Plotter',
+        'tipo_custo' => 'maquina', 'custo_hora' => '50.00', 'created_at' => now(), 'updated_at' => now()]);
+    $etapa = (int) DB::table('pcp_programacoes')->insertGetId(['business_id' => $this->biz->id, 'os_tipo' => 'comvis_os', 'os_id' => 703,
+        'posto_id' => $maquina, 'inicio_previsto' => '2026-10-15 08:00:00', 'fim_previsto' => '2026-10-15 09:00:00',
+        'user_id' => $this->diego->id, 'created_by' => $this->diego->id, 'created_at' => now(), 'updated_at' => now()]);
+    $inicio = $this->actingAs($this->diego)->postJson('/producao/apontamento/iniciar', ['programacao_id' => $etapa,
+        'chave' => 'tela-imp-1', 'momento' => '2026-10-15T08:00:00'])->assertCreated()->json('id');
+
+    // Controle negativo primeiro: vírgula não é aceita pelo serviço (a tela troca antes de enviar).
+    $this->actingAs($this->diego)->postJson("/producao/apontamento/{$inicio}/concluir", ['chave' => 'tela-imp-x',
+        'momento' => '2026-10-15T09:00:00', 'm2_impresso' => '12,5'])->assertStatus(422)->assertJsonPath('erro', 'quantidade_invalida');
+    expect(DB::table('pcp_apontamentos')->where('inicio_id', $inicio)->count())->toBe(0);
+
+    $this->actingAs($this->diego)->postJson("/producao/apontamento/{$inicio}/concluir", ['chave' => 'tela-imp-2', 'momento' => '2026-10-15T09:00:00',
+        'm2_impresso' => '12.5', 'tinta_ml_c' => '3.2', 'tinta_ml_m' => '1', 'tinta_ml_y' => '0.5', 'tinta_ml_k' => '4'])->assertCreated();
+    $fim = DB::table('pcp_apontamentos')->where('inicio_id', $inicio)->first();
+    expect([$fim->m2_impresso, $fim->tinta_ml_c, $fim->tinta_ml_m, $fim->tinta_ml_y, $fim->tinta_ml_k])->toBe(['12.500', '3.20', '1.00', '0.50', '4.00']);
+});

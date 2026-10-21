@@ -31,6 +31,7 @@ inicia, pausa e conclui; o tempo vira custo real e a OS anda para o próximo res
 - "Minhas etapas de hoje", na ordem programada.
 - Ler QR pela câmera (BarcodeDetector) ou digitar o código; QR de etapa alheia só informa onde está e com quem.
 - Pausar exige motivo do cadastro do posto; concluir passa a OS adiante.
+- Concluir etapa de máquina leva junto, opcional, o m² impresso e a tinta C/M/Y/K em ml (US-COMVIS-004 · UC-PCIMP-01..03).
 - Sem internet: guarda o toque com a hora do aparelho e envia depois, sem duplicar.
 - Toque ≥ 44px em todo controle.
 
