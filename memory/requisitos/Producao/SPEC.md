@@ -554,9 +554,9 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ### US-PCP-027 · Refugo e retrabalho com motivo somam custo à OS (UC-FLX-16) — **P1**
 
-**Implementado em:** `Modules/Producao/Services/RefugoService.php` · `Modules/Producao/Database/Migrations/2026_10_20_160000_create_pcp_refugos_table.php` · `Modules/Producao/Http/Controllers/ApontamentoController.php`
+**Implementado em:** `Modules/Producao/Services/RefugoService.php` · `Modules/Producao/Database/Migrations/2026_10_20_160000_create_pcp_refugos_table.php` · `Modules/Producao/Http/Controllers/ApontamentoController.php` · `Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.tsx`
 
-**Testado em:** `Modules/Producao/Tests/Feature/ProducaoRefugoContratoTest.php` (lane `verticais-pest.yml`).
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoRefugoContratoTest.php` · `Modules/Producao/Tests/Feature/ProducaoApontamentoTelaTest.php` (lane `verticais-pest.yml`).
 
 > owner: wagner · priority: p1 · estimate: 3h · type: story
 > blocked_by: US-PCP-021
@@ -570,7 +570,8 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [x] O custo real congelado na conclusão soma as horas do retrabalho e o material reposto, sem conta paralela (UC-PCREF-03).
 - [x] Idempotente pela chave da fila offline; tabela `pcp_refugos` com `business_id`, FK e índice (UC-PCREF-04).
 - [x] Endpoint na PWA (`POST /producao/apontamento/refugo`), sem custo na resposta (UC-PCREF-06).
-- [ ] Endpoint no app (`/api/app/producao/apontamentos/refugo`) e campo na tela do operador.
+- [x] Botão "Registrar refugo" na etapa rodando da tela do operador: motivo de refugo do posto, peças e retrabalho, toque ≥ 44px (UC-PCREF-07, 2026-10-21).
+- [ ] Endpoint no app (`/api/app/producao/apontamentos/refugo`).
 - [ ] Relatório de refugo por motivo e posto para o gestor.
 
 ### US-PCP-030 · Operadores por posto: só eles são responsáveis e começam a etapa (UC-FLX-08) — **P1**
