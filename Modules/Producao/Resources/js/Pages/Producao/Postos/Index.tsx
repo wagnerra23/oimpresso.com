@@ -3,6 +3,7 @@
 //   module: Producao
 //   stories: playbook Produção thread 03 + E03 (UC-PCV-33)
 //   permissao: producao.access · custo-hora da pessoa só com producao.desempenho.ver
+//   custeio RKW (US-FIN-070 · UC-PCCH-05): producao.desempenho.ver + financeiro.relatorios.view
 //
 // Cadastros do PCP: postos e máquinas (com os motivos de pausa e de refugo de cada posto),
 // veículos, ferramentas com QR e custo-hora da pessoa. Não há vista própria no protótipo
@@ -21,12 +22,14 @@ import { Input } from '@/Components/ui/input';
 import { Skeleton } from '@/Components/ui/skeleton';
 import ProducaoAbas from '../_components/ProducaoAbas';
 import EditorPosto, { type Posto } from './_components/EditorPosto';
+import CusteioRkw from './_components/CusteioRkw';
 
 interface Ferramenta { id: number; codigo_qr: string; nome: string; ativo: boolean }
 interface Colaborador { id: number; nome: string; custo_hora: string | null }
 interface Props {
   motivos_padrao: Record<'pausa' | 'refugo', string[]>;
   pode_ver_custo_pessoa: boolean;
+  pode_aplicar_rkw?: boolean; // US-FIN-070: producao.desempenho.ver + financeiro.relatorios.view
   postos?: Posto[]; ferramentas?: Ferramenta[]; colaboradores?: Colaborador[];
 }
 
@@ -87,7 +90,7 @@ function CustoPessoa({ c }: { c: Colaborador }) {
   );
 }
 
-function Conteudo({ postos, ferramentas, colaboradores, podeVerCusto }: { postos: Posto[]; ferramentas: Ferramenta[]; colaboradores: Colaborador[]; podeVerCusto: boolean }) {
+function Conteudo({ postos, ferramentas, colaboradores, podeVerCusto, podeAplicarRkw }: { postos: Posto[]; ferramentas: Ferramenta[]; colaboradores: Colaborador[]; podeVerCusto: boolean; podeAplicarRkw: boolean }) {
   const [editando, setEditando] = useState<Posto | 'posto' | 'veiculo' | null>(null);
   return (
     <div className="pcv-body">
@@ -105,17 +108,22 @@ function Conteudo({ postos, ferramentas, colaboradores, podeVerCusto }: { postos
           <ul className="flex flex-col gap-2">{colaboradores.map((c) => <CustoPessoa key={c.id} c={c} />)}</ul>
         </Bloco>
       )}
+      {podeAplicarRkw && (
+        <Bloco titulo="Custo-hora pelo rateio das despesas fixas" nota="As despesas fixas do mês, classificadas no plano de contas do Financeiro, divididas pelas horas apontadas nos postos. Aplicar troca o custo-hora do posto; cada mês se aplica uma vez.">
+          <CusteioRkw />
+        </Bloco>
+      )}
       {editando && <EditorPosto posto={typeof editando === 'string' ? null : editando} veiculo={editando === 'veiculo' || (typeof editando !== 'string' && editando.veiculo)} onClose={() => setEditando(null)} />}
     </div>
   );
 }
 
-export default function PostosIndex({ pode_ver_custo_pessoa, postos, ferramentas, colaboradores }: Props) {
+export default function PostosIndex({ pode_ver_custo_pessoa, pode_aplicar_rkw = false, postos, ferramentas, colaboradores }: Props) {
   return (
     <div className="pcv-root" data-screen-label="Produção · Postos e cadastros">
       <div className="pcv-ph"><PageHeader title="Produção" suffix=" · Postos e cadastros" below={<ProducaoAbas ativa="/producao/postos" />} /></div>
       <Deferred data={['postos', 'ferramentas', 'colaboradores']} fallback={<div className="pcv-body"><Skeleton className="h-64 w-full" /></div>}>
-        <Conteudo postos={postos ?? []} ferramentas={ferramentas ?? []} colaboradores={colaboradores ?? []} podeVerCusto={pode_ver_custo_pessoa} />
+        <Conteudo postos={postos ?? []} ferramentas={ferramentas ?? []} colaboradores={colaboradores ?? []} podeVerCusto={pode_ver_custo_pessoa} podeAplicarRkw={pode_aplicar_rkw} />
       </Deferred>
     </div>
   );

@@ -84,7 +84,29 @@ last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando 
 - **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
 - **Status: 🧪**
 
-- **[BACKLOG]** Centro de custo por setor (hoje o centro é o posto) e tela do fechamento no Financeiro — o cálculo existe em JSON e no comando `financeiro:custeio-rkw`.
+## UC-PCCH-07 · O fechamento tem tela: aba Custeio da DRE · `must` valor
+
+- **Persona:** gestor financeiro (`financeiro.relatorios.view`).
+- **Aceite:** Quando abre `/financeiro/dre?aba=custeio&mes=AAAA-MM` · Então vê despesas fixas, custos variáveis, receita, margem de contribuição, ponto de equilíbrio e o rateio por posto com os MESMOS números do `GET /financeiro/custeio-rkw` (a tela só formata) · E sem `producao.desempenho.ver` vê o fechamento mas não o custo-hora dos postos · E mês inválido cai no mês anterior · E nenhuma outra aba calcula o custeio, e nada é gravado.
+- **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
+- **Status: 🧪**
+
+## UC-PCCH-08 · A conta do plano diz se é fixa ou variável · `must` valor
+
+- **Persona:** gestor financeiro (`financeiro.relatorios.view`), na tela Plano de contas.
+- **Aceite:** Quando marca como fixa uma conta de despesa sem classe que tem 500,00 a pagar no mês · Então as despesas fixas do fechamento passam de 4.000,00 para 4.500,00 · E "Fora do custeio" volta a deixá-la de fora · E conta de receita, valor fora de fixa/variável, conta de outra empresa (404) e usuário sem a permissão (403) não gravam.
+- **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
+- **Status: 🧪**
+
+## UC-PCCH-09 · Aplicar o custo-hora em Postos só com as duas permissões · `must`
+
+- **Persona:** gestor do PCP.
+- **Aceite:** Quem tem `producao.desempenho.ver` **e** `financeiro.relatorios.view` vê o bloco "Custo-hora pelo rateio das despesas fixas", com antes → depois por posto e um clique de confirmação antes de gravar (UC-PCCH-05) · Quem tem só a Produção não vê o bloco.
+- **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
+- **Status: 🧪**
+
+- **[BACKLOG]** Centro de custo por setor (hoje o centro é o posto) — depende de decisão [W]: "setor" é o posto ou outro cadastro.
+- **[BACKLOG]** Aplicar duas vezes o mesmo mês soma a parcela fixa duas vezes: o sugerido é o custo-hora ATUAL + parcela, e depois de aplicar o atual já a contém. A tela tira o botão depois de aplicar, mas só na mesma visita.
 
 ---
 
@@ -302,3 +324,4 @@ Status: 🧪
 - 2026-10-20 · [CL] UC-PCPRZ-01..04 — prazo de entrega pela fila dos postos (US-PCP-028 · UC-FLX-06), cálculo em JSON só leitura; tela e data prometida ficam no [BACKLOG].
 - 2026-10-20 · [CL] UC-PCPRZ-05..08 — decisão [W]: dias úteis pelo período de funcionamento cadastrado (turno da produção, expediente e feriados do RH) e data prometida gravada na venda e na OS na aprovação; datas de UC-PCPRZ-01/02 recalculadas (24/10→26/10, 25/10→27/10).
 - 2026-10-20 · [CL] UC-PCCH-03..06 — custeio RKW e ponto de equilíbrio (US-FIN-070): cálculo só leitura + aplicar explícito; o [BACKLOG] do rateio virou estes casos.
+- 2026-10-21 · [CL] UC-PCCH-07..09 — telas do custeio: aba Custeio na DRE, classe fixa/variável no plano de contas, aplicar custo-hora em Postos; [BACKLOG] do aplicar em dobro.

@@ -3,7 +3,9 @@
 namespace Modules\Financeiro\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Financeiro\Models\PlanoConta;
@@ -45,7 +47,7 @@ class PlanoContaController extends Controller
             ->orderBy('codigo')
             ->get([
                 'id', 'codigo', 'nome', 'tipo', 'nivel', 'parent_id',
-                'natureza', 'aceita_lancamento', 'protegido',
+                'natureza', 'classe_custo', 'aceita_lancamento', 'protegido',
             ]);
 
         // Stats por tipo pra cards canônicos.
@@ -62,10 +64,37 @@ class PlanoContaController extends Controller
         return Inertia::render('Financeiro/PlanoContas/Index', [
             'planos' => $planos,
             'stats' => $stats,
+            // US-FIN-070: quem vê o custeio (financeiro.relatorios.view) classifica as contas dele.
+            'pode_classificar_custo' => $request->user()->can('financeiro.relatorios.view'),
             // FIN-6b — "Lanç. mês" e "Saldo mês" (protótipo TelaPContas). Deferido: é
             // agregado sobre fin_titulos, e a lista não deve esperar por ele. Mesma base
             // de competência do DRE/balancete (DreService::movimentoMesPorConta).
             'movimento' => Inertia::defer(fn () => app(DreService::class)->movimentoMesPorConta($businessId)),
         ]);
+    }
+
+    /**
+     * Classe de custo da conta para o custeio RKW (US-FIN-070 · UC-FLX-20): `fixa` (rateada
+     * pelas horas dos postos), `variavel` (entra na margem de contribuição) ou vazio (fora do
+     * custeio). Só conta de despesa ou custo: é dali que saem os títulos a pagar do custeio.
+     *
+     * Permissão: a mesma do custeio (`financeiro.relatorios.view`). Tier 0: conta de outra
+     * empresa → 404.
+     */
+    public function classeCusto(Request $request, int $id): RedirectResponse
+    {
+        abort_unless($request->user()->can('financeiro.relatorios.view'), 403);
+        $businessId = (int) session('user.business_id');
+        $dados = $request->validate([
+            'classe_custo' => ['nullable', Rule::in(['fixa', 'variavel'])],
+        ]);
+
+        $conta = PlanoConta::query()->where('business_id', $businessId)->findOrFail($id);
+        if (! in_array($conta->tipo, ['despesa', 'custo'], true)) {
+            return back()->withErrors(['classe_custo' => 'Só conta de despesa ou custo entra no custeio.']);
+        }
+        $conta->update(['classe_custo' => $dados['classe_custo'] ?? null]);
+
+        return back()->with('status', ['success' => 1, 'msg' => 'Classe de custo salva.']);
     }
 }
