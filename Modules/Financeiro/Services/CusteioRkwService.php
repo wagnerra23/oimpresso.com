@@ -68,7 +68,7 @@ final class CusteioRkwService
         $setores = [];
         foreach ($horas as $i => $p) {
             $atual = $this->centavos($p['custo_hora']);
-            $direto = $this->centavos($p['custo_hora_direto'] ?? $p['custo_hora']);
+            $direto = $this->centavos($p['custo_hora_direto']);
             $setor = $p['setor'] ?? null;
             // Texto livre: "Corte" e "corte " são o mesmo setor; vale a grafia do 1º posto.
             $chave = $setor === null ? '' : mb_strtolower($setor);
