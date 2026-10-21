@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 846,
-    "edges": 1151,
+    "nodes": 848,
+    "edges": 1153,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 466,
+      "component": 468,
       "api": 86
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 90,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 466,
+      "hasComponent": 468,
       "dependsOn": 126,
       "delegatesTo": 117,
       "migratesTo": 1,
@@ -4338,6 +4338,13 @@
       "desc": "custo da OS aberta: abertura × hoje dos insumos apontados e a previsão pela regra ops da compra (congela | vivo), JSON só com producao.desempenho.ver (US-PCP-022 · UC-FLX-36)"
     },
     {
+      "id": "component:Producao/PainelController + PainelDaProducao + ArteDasOrdens",
+      "type": "component",
+      "module": "Producao",
+      "name": "PainelController + PainelDaProducao + ArteDasOrdens",
+      "desc": "painel da produção /producao/painel (thread 06 · UC-PCV-01..04, 29 · US-PCP-017): indicadores contados pelos cartões do Quadro, alertas com ação, fila de aprovação de arte (pedido mais recente de pcp_aprovacoes_arte), carga das máquinas hoje e eventos de pcp_eventos; só leitura, producao.access; é o destino do item Produção no menu"
+    },
+    {
       "id": "component:Producao/PostoOperadoresController + OperadoresDoPosto",
       "type": "component",
       "module": "Producao",
@@ -4371,6 +4378,13 @@
       "module": "Producao",
       "name": "PrometerPrazoDaVenda",
       "desc": "na aprovação (CriarOsDaVendaJob), grava a estimativa em transactions.due_date só quando a venda não tem data e copia a data para pcp_ordens.prazo_prometido (US-PCP-028 · UC-FLX-06)"
+    },
+    {
+      "id": "component:Producao/QuadroController + QuadroDaProducao",
+      "type": "component",
+      "module": "Producao",
+      "name": "QuadroController + QuadroDaProducao",
+      "desc": "quadro da produção /producao/quadro (thread 06 · UC-PCV-05): uma OS por cartão na coluna do setor ou da máquina da etapa atual; recebe o Alocar (UC-FLX-10) e o Simular bobina em lote (UC-FLX-13); abre filtrado pela URL (?so=atrasadas|arte, ?agrupar=maquina); Inertia com props deferidas, producao.access"
     },
     {
       "id": "component:Producao/RefugoService",
@@ -12601,6 +12615,12 @@
     },
     {
       "from": "module:Producao",
+      "to": "component:Producao/PainelController + PainelDaProducao + ArteDasOrdens",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
       "to": "component:Producao/PostoOperadoresController + OperadoresDoPosto",
       "type": "hasComponent",
       "source": "contains"
@@ -12626,6 +12646,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/PrometerPrazoDaVenda",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/QuadroController + QuadroDaProducao",
       "type": "hasComponent",
       "source": "contains"
     },
