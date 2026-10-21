@@ -9,6 +9,7 @@ use Modules\OficinaAuto\Http\Controllers\Public\AprovacaoOsController;
 use Modules\OficinaAuto\Http\Controllers\ServiceOrderController;
 use Modules\OficinaAuto\Http\Controllers\ServiceOrderItemController;
 use Modules\OficinaAuto\Http\Controllers\ServiceOrderPhotoController;
+use Modules\OficinaAuto\Http\Controllers\ServiceOrderAssinaturaController;
 use Modules\OficinaAuto\Http\Controllers\VehicleController;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -241,6 +242,13 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
             [ServiceOrderPhotoController::class, 'destroy'])
             ->middleware('throttle:30,1')
             ->name('oficinaauto.orders.fotos.destroy');
+
+        // US-OFICINA-048 · UC-FLX-22 — assinatura do cliente colhida no quadro do checklist da
+        // entrega. O PNG fica no Arquivos, anexado à linha de oficina_os_assinaturas (não à OS).
+        Route::post('ordens-servico/{order}/assinatura',
+            [ServiceOrderAssinaturaController::class, 'store'])
+            ->middleware('throttle:30,1')
+            ->name('oficinaauto.orders.assinatura.store');
     });
 
 // ─────────────────────────────────────────────────────────────────────────────

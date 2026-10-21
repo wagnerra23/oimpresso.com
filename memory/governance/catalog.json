@@ -3883,6 +3883,13 @@
       "desc": "endpoint público SEM auth pra cliente aprovar/rejeitar OS via link WhatsApp + PIN (US-OFICINA-006). Token HMAC carrega business_id assinado. Throttle:30,1 + lockout 5 tentativas PIN."
     },
     {
+      "id": "component:OficinaAuto/ServiceOrderAssinaturaController",
+      "type": "component",
+      "module": "OficinaAuto",
+      "name": "ServiceOrderAssinaturaController",
+      "desc": "POST /ordens-servico/{order}/assinatura: assinatura do cliente na entrega (US-OFICINA-048 · UC-FLX-22). PNG ≤ 200 KB no Arquivos, anexado a oficina_os_assinaturas (não à OS). Exigência por empresa via common_settings, desligada por padrão."
+    },
+    {
       "id": "component:OficinaAuto/ServiceOrderController",
       "type": "component",
       "module": "OficinaAuto",
@@ -11921,6 +11928,12 @@
     {
       "from": "module:OficinaAuto",
       "to": "component:OficinaAuto/Public/AprovacaoOsController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:OficinaAuto",
+      "to": "component:OficinaAuto/ServiceOrderAssinaturaController",
       "type": "hasComponent",
       "source": "contains"
     },

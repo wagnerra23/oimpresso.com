@@ -37,13 +37,20 @@ use Modules\OficinaAuto\Entities\ServiceOrder;
  */
 class StageGateEvaluator
 {
+    public function __construct(private AssinaturaEntrega $assinatura)
+    {
+    }
+
     /**
      * Config de requisitos por process_key → action_key → list de regras.
      *
      * Cobre o fluxo real de reparo `oficina_mecanica_os` (ADR 0194 · [W] 2026-06-02).
      * Transições sem regra cadastrada => gate satisfeito (não bloqueia).
      *
-     * @var array<string, array<string, list<array{key:string, label:string, type:string, blocking:bool}>>>
+     * `ajuste` (opcional) = chave de `business.common_settings` que liga a regra; desligada, a regra
+     * nem aparece no checklist.
+     *
+     * @var array<string, array<string, list<array{key:string, label:string, type:string, blocking:bool, ajuste?:string}>>>
      */
     private const RULES = [
         'oficina_mecanica_os' => [
@@ -69,10 +76,13 @@ class StageGateEvaluator
             // Pronto p/ retirar → Entregue: o veículo só sai com foto do serviço feito
             // (US-OFICINA-047 · UC-FLX-22). Fica na entrega, não no concluir_servico, porque é o
             // último ponto antes de o veículo sair e é a etapa que o modelo "Oficina mecânica" do
-            // catálogo marca ("Entregue · Fotos do serviço"). A assinatura do cliente ainda não
-            // existe na Oficina — fica fora desta regra.
+            // catálogo marca ("Entregue · Fotos do serviço").
+            // Assinatura do cliente (US-OFICINA-048 · UC-FLX-22): só entra quando a empresa liga
+            // `common_settings[oficina_entrega_exige_assinatura]` (desligada por padrão) — com ela
+            // desligada o checklist é exatamente o de antes.
             'entregar' => [
                 ['key' => 'servico_foto', 'label' => 'Foto do serviço feito (enviada depois de a OS entrar em execução)', 'type' => 'auto', 'blocking' => true],
+                ['key' => 'assinatura', 'label' => 'Assinatura do cliente', 'type' => 'auto', 'blocking' => true, 'ajuste' => AssinaturaEntrega::CHAVE],
             ],
         ],
     ];
@@ -91,7 +101,12 @@ class StageGateEvaluator
      */
     public function evaluate(ServiceOrder $order, ?string $processKey, string $actionKey): array
     {
-        $rules = self::RULES[$processKey ?? ''][$actionKey] ?? [];
+        $rules = [];
+        foreach (self::RULES[$processKey ?? ''][$actionKey] ?? [] as $regra) {
+            if (! isset($regra['ajuste']) || $this->assinatura->exigida((int) $order->business_id)) {
+                $rules[] = $regra;
+            }
+        }
 
         if (empty($rules)) {
             return [
@@ -104,7 +119,8 @@ class StageGateEvaluator
             ];
         }
 
-        $ctx = $this->context($order, in_array('servico_foto', array_column($rules, 'key'), true));
+        $chaves = array_column($rules, 'key');
+        $ctx = $this->context($order, in_array('servico_foto', $chaves, true), in_array('assinatura', $chaves, true));
 
         $requirements = [];
         $blockingUnmet = 0;
@@ -143,9 +159,9 @@ class StageGateEvaluator
      * `servico_photos` só é calculado quando a transição pede (`$comFotoServico`) — custa uma
      * consulta na trilha FSM.
      *
-     * @return array{dvi_count:int, dvi_photos:int, items_count:int, approval_state:string, servico_photos:int}
+     * @return array{dvi_count:int, dvi_photos:int, items_count:int, approval_state:string, servico_photos:int, assinatura:bool}
      */
-    private function context(ServiceOrder $order, bool $comFotoServico = false): array
+    private function context(ServiceOrder $order, bool $comFotoServico = false, bool $comAssinatura = false): array
     {
         // loadMissing é idempotente — não re-busca relações já carregadas pelo Controller.
         $order->loadMissing([
@@ -167,6 +183,7 @@ class StageGateEvaluator
             'items_count'    => $order->items->count(),
             'approval_state' => $order->approval_state,
             'servico_photos' => $comFotoServico ? $this->fotosDoServico($order) : 0,
+            'assinatura'     => $comAssinatura && $this->assinatura->colhida($order),
         ];
     }
 
@@ -210,7 +227,7 @@ class StageGateEvaluator
     }
 
     /**
-     * @param  array{dvi_count:int, dvi_photos:int, items_count:int, approval_state:string, servico_photos:int}  $ctx
+     * @param  array{dvi_count:int, dvi_photos:int, items_count:int, approval_state:string, servico_photos:int, assinatura:bool}  $ctx
      */
     private function checkRule(string $key, array $ctx): bool
     {
@@ -221,6 +238,7 @@ class StageGateEvaluator
             'tem_item'   => $ctx['items_count'] >= 1,
             'aprovado'   => $ctx['approval_state'] === 'approved',
             'servico_foto' => $ctx['servico_photos'] >= 1,
+            'assinatura' => $ctx['assinatura'],
             'itens_exec' => true, // manual/advisory — operador confere; não bloqueia servidor
             default      => true,
         };
