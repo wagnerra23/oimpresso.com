@@ -31,8 +31,9 @@ use Modules\Whatsapp\Jobs\SendWhatsappMessageJob;
  *
  * **Falha silenciosa:**
  * Se nenhum WhatsappBusinessPhone resolve pra `repair_status` OU template
- * não cadastrado OU cliente não tem mobile, log info e retorna sem
- * disparar Job.
+ * não cadastrado OU cliente não é da empresa da OS OU recusou WhatsApp
+ * (`Contact::canReceiveWhatsappNotification`, LGPD — null permite, false bloqueia)
+ * OU não tem mobile, log info e retorna sem disparar Job.
  *
  * @see memory/requisitos/Whatsapp/SPEC.md US-WA-004, US-WA-040
  * @see memory/decisions/0117-multiplos-numeros-whatsapp-por-business.md
@@ -90,7 +91,15 @@ class NotifyRepairCustomer
             return;
         }
 
-        $contact = $this->resolveContact($repair);
+        $contact = $this->resolveContact($repair, $businessId);
+        if ($contact !== null && ! $contact->canReceiveWhatsappNotification()) {
+            \Log::info('[whatsapp.notify_repair] cliente recusou WhatsApp (LGPD) — skip', [
+                'business_id' => $businessId,
+                'phone_id' => $phone->id,
+                'repair_id' => $repair->id ?? null,
+            ]);
+            return;
+        }
         if ($contact === null || empty($contact->mobile)) {
             \Log::info('[whatsapp.notify_repair] cliente sem mobile — skip', [
                 'business_id' => $businessId,
@@ -117,14 +126,18 @@ class NotifyRepairCustomer
         );
     }
 
-    private function resolveContact(object $repair): ?object
+    private function resolveContact(object $repair, int $businessId): ?\App\Contact
     {
         $contactId = $repair->contact_id ?? null;
         if ($contactId === null) {
             return null;
         }
 
-        // Eloquent Contact é Model core UltimatePOS (não escopa via Scope)
-        return \App\Contact::find($contactId);
+        // Contact (core UltimatePOS) não tem scope de business e o listener roda sem sessão:
+        // o filtro por business_id é explícito — contato de outra empresa nunca recebe (ADR 0093).
+        return \App\Contact::query()
+            ->where('business_id', $businessId)
+            ->where('id', (int) $contactId)
+            ->first();
     }
 }
