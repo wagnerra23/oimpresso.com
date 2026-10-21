@@ -55,14 +55,31 @@ beforeEach(function () {
     }
 
     $GLOBALS['flx24_telefones'] = [];
+    // Teto dos status antes do teste: o que nascer acima dele é fixture deste arquivo.
+    $GLOBALS['flx24_status_teto'] = (int) DB::table('repair_statuses')->max('id');
 });
 
 afterEach(function () {
-    // O tenant 98 é compartilhado no CT 100: o número de WhatsApp fictício não pode ficar
-    // para outros testes do mesmo tenant.
+    // O tenant 98 é compartilhado (CT 100 e a lane verticais-pest, que não recria o banco
+    // entre arquivos): número de WhatsApp, OS, status e clientes fictícios não podem ficar.
+    // Medido 2026-10-21: o status "Recebido" vazio que sobrava daqui virava o "primeiro
+    // status pendente" do RepairDashboardContratoTest (UC-RDSH-02) e mudava a contagem dele.
     if (! empty($GLOBALS['flx24_telefones'] ?? [])) {
         DB::table('whatsapp_business_phones')->whereIn('id', $GLOBALS['flx24_telefones'])->delete();
     }
+
+    $contatos = DB::table('contacts')->where('name', 'like', '%FLX-24%')->pluck('id');
+    if ($contatos->isNotEmpty()) {
+        DB::table('repair_job_sheets')->whereIn('contact_id', $contatos)->delete();
+        DB::table('contacts')->whereIn('id', $contatos)->delete();
+    }
+
+    $teto = (int) ($GLOBALS['flx24_status_teto'] ?? PHP_INT_MAX);
+    DB::table('repair_statuses')
+        ->where('id', '>', $teto)
+        ->whereIn('name', ['Recebido', 'ready', 'Pronto para retirada'])
+        ->whereNotIn('id', DB::table('repair_job_sheets')->select('status_id')->whereNotNull('status_id'))
+        ->delete();
 });
 
 /** Número de WhatsApp do tenant que atende aviso de OS, com os dois templates. */
