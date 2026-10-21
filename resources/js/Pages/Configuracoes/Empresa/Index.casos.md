@@ -118,3 +118,13 @@ last_run: "2026-10-13"
   devolvo o corpo sem mexer · Então o objeto volta igual · E quando renomeio um campo, desmarco "obrigatório" e troco o tipo
   do campo de produto · Então só isso muda, e as opções e a outra marcação ficam.
 - **Status: 🧪**
+
+## UC-EMP-15 · Financeiro: ligar a régua de cobrança · `[dado]`
+- **Por quê:** a régua D+1/D+5/D+15 (US-FIN-071, `ReguaCobrancaJob`) nasce desligada e só lia
+  `common_settings['financeiro_regua_cobranca']`, sem tela para ligar. A chave mora no `common_settings`, que o salvar
+  substitui inteiro — a aba tem de devolver as outras chaves como estão.
+- **Aceite:** Dado a régua sem configuração · Então ela está desligada com 1, 5 e 15 · Quando ligo na aba Financeiro com
+  "2, 7" e salvo · Então `ReguaCobrancaConfig::de()` (o que o job lê) diz ligada com 2 e 7, e as outras chaves de
+  `common_settings` ficam · E na tela antiga a aba mostra "2, 7" e desmarcar desliga · E dia 0, acima de 365 ou repetido
+  não vira etapa.
+- **Status: 🧪**

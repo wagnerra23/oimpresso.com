@@ -185,6 +185,7 @@ jobs:
             Modules/Compras/Tests/Feature/ComprasContratoFiltrosTest.php \
             Modules/Compras/Tests/Feature/CustoDoInsumoServiceTest.php \
             Modules/Compras/Tests/Feature/InsumoMetodoCustoEndpointTest.php \
+            Modules/Compras/Tests/Feature/MetodoCustoNoCadastroDoProdutoTest.php \
             Modules/Compras/Tests/Feature/ComprasInstallGravaVersaoTest.php \
             Modules/Compras/Tests/Feature/RequisicaoEstoqueMinimoContratoTest.php \
             Modules/Compras/Tests/Feature/AplicarCustoDoRecebimentoTest.php \
