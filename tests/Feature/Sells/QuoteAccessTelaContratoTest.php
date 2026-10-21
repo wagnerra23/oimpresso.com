@@ -13,10 +13,10 @@ use Tests\Support\EstoqueFixture;
  * Termômetro de acesso da proposta NA TELA — US-SELL-070 aceites 2 e 5 · UC-FLX-04 (catálogo da
  * tela de fluxos). O backend (gravar a abertura) é o QuoteAccessTermometroContratoTest; aqui é o
  * que o vendedor vê:
- *   UC-VSHOW-14 (Show.casos.md)  — o detalhe do orçamento diz se o cliente abriu, quando e quantas vezes
- *   UC-VSHOW-15 (Show.casos.md)  — [T0] outro business pede o detalhe → 404, e linha de acesso de
+ *   UC-VSHOW-15 (Show.casos.md)  — o detalhe do orçamento diz se o cliente abriu, quando e quantas vezes
+ *   UC-VSHOW-16 (Show.casos.md)  — [T0] outro business pede o detalhe → 404, e linha de acesso de
  *                                   outro business não é lida como abertura deste orçamento
- *   UC-QUO-09  (Quotations.casos.md) — a lista de cotações traz a coluna Aberto
+ *   UC-QUO-10  (Quotations.casos.md) — a lista de cotações traz a coluna Aberto
  *
  * Conta à mão (linhas gravadas direto na tabela-ponte, como o QuoteAccessRecorder deixa):
  *   orçamento A: first 2026-10-20 10:00:00 · last 2026-10-20 11:30:00 · 2 aberturas
@@ -120,7 +120,7 @@ beforeEach(function () {
     qtelaAbertura($this->bizId, $this->orcA, '2026-10-20 10:00:00', '2026-10-20 11:30:00', 2);
 });
 
-it('UC-VSHOW-14 o orçamento aberto mostra a primeira abertura, a última e quantas vezes (UC-FLX-04)', function () {
+it('UC-VSHOW-15 o orçamento aberto mostra a primeira abertura, a última e quantas vezes (UC-FLX-04)', function () {
     $r = qtelaDetalhe($this, $this->orcA);
     $r->assertOk();
     $page = json_decode($r->getContent(), true);
@@ -134,7 +134,7 @@ it('UC-VSHOW-14 o orçamento aberto mostra a primeira abertura, a última e quan
     ]);
 });
 
-it('UC-VSHOW-14 orçamento nunca aberto diz não aberto; venda final e rascunho comum não trazem o bloco', function () {
+it('UC-VSHOW-15 orçamento nunca aberto diz não aberto; venda final e rascunho comum não trazem o bloco', function () {
     $page = json_decode(qtelaDetalhe($this, $this->orcB)->assertOk()->getContent(), true);
     expect($page['props']['detail']['acesso'])->toBe([
         'aberto' => false,
@@ -153,7 +153,7 @@ it('UC-VSHOW-14 orçamento nunca aberto diz não aberto; venda final e rascunho 
     expect($page['props']['detail']['acesso'])->toBeNull();
 });
 
-it('UC-VSHOW-15 [T0] outro business recebe 404 e linha de acesso de outro business não vira abertura', function () {
+it('UC-VSHOW-16 [T0] outro business recebe 404 e linha de acesso de outro business não vira abertura', function () {
     // Usuário do 99 com a mesma permissão pede o orçamento aberto do 98.
     $estranho = $this->usuarioComPermissoes(
         ['sell.view', 'quotation.view_all', 'access_all_locations'],
@@ -183,7 +183,7 @@ it('UC-VSHOW-15 [T0] outro business recebe 404 e linha de acesso de outro busine
     expect($page['props']['detail']['acesso']['vezes'])->toBe(2);
 });
 
-it('UC-QUO-09 a lista de cotações traz quando o cliente abriu e quantas vezes', function () {
+it('UC-QUO-10 a lista de cotações traz quando o cliente abriu e quantas vezes', function () {
     $linhas = qtelaLista($this);
 
     expect($linhas)->toHaveKey($this->orcA)->toHaveKey($this->orcB);

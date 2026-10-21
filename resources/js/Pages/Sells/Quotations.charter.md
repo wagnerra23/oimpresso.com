@@ -38,7 +38,7 @@ Listar cotações (status=draft + sub_status=quotation) — propostas formais en
 - AppShellV2 + PageHeader
 - 1 KPI: total cotações ativas
 - Search inline por nº / cliente
-- Tabela 7 cols (data + nº cotação + cliente + local + itens + aberto + ações) — "aberto" é a primeira abertura do link público pelo cliente e quantas vezes (UC-QUO-09 · US-SELL-070 · UC-FLX-04)
+- Tabela 7 cols (data + nº cotação + cliente + local + itens + aberto + ações) — "aberto" é a primeira abertura do link público pelo cliente e quantas vezes (UC-QUO-10 · US-SELL-070 · UC-FLX-04)
 - Endpoint AJAX DataTables legacy preservado (`/sells/quotations?is_quotation=1`)
 - Actions específicas: Editar + Enviar (PDF cotação no print blade)
 - Customers dropdown deferred

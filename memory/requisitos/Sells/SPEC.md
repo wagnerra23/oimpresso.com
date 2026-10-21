@@ -1562,7 +1562,7 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 
 **Implementado em:** `app/Services/Sells/QuoteAccessRecorder.php` · `app/Jobs/QuoteFollowUpJob.php` · `app/Console/Commands/Sells/QuoteFollowUpCommand.php` · `database/migrations/2026_10_20_120000_create_transaction_quote_accesses_table.php` · `app/Http/Controllers/SellController.php` · `resources/js/Pages/Sells/Show.tsx` · `resources/js/Pages/Sells/Quotations.tsx`
 
-**Testado em:** `tests/Feature/Sells/QuoteAccessTermometroContratoTest.php` (lane `sells-pest.yml`) — casos UC-QUO-05..08 no Quotations.casos.md da tela de cotações · `tests/Feature/Sells/QuoteAccessTelaContratoTest.php` — UC-VSHOW-14/15 no Show.casos.md e UC-QUO-09.
+**Testado em:** `tests/Feature/Sells/QuoteAccessTermometroContratoTest.php` (lane `sells-pest.yml`) — casos UC-QUO-05..08 no Quotations.casos.md da tela de cotações · `tests/Feature/Sells/QuoteAccessTelaContratoTest.php` — UC-VSHOW-15/16 no Show.casos.md e UC-QUO-10.
 
 > owner: wagner · priority: p2 · estimate: 3h · type: story
 
