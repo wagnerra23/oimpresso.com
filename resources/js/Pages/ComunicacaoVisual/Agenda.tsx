@@ -31,6 +31,7 @@ import { Textarea } from '@/Components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import { Grid, Inline, Stack } from '@/Components/layout';
 
 interface Pessoa { id: number; nome: string }
 interface OsOpcao { id: number; numero: string | null; etapa: string }
@@ -94,7 +95,7 @@ export default function Agenda({ bizName = 'oimpresso', semana, equipe, os, inst
       </div>
 
       <div className="space-y-4 p-6">
-        <div className="flex flex-wrap items-center gap-2" data-contract="semana">
+        <Inline wrap gap={2} data-contract="semana">
           <Button type="button" variant="outline" size="sm" onClick={() => irPara(somaDias(semana, -7))}>
             <ChevronLeft className="mr-1 h-4 w-4" aria-hidden="true" /> Semana anterior
           </Button>
@@ -107,9 +108,9 @@ export default function Agenda({ bizName = 'oimpresso', semana, equipe, os, inst
           <span className="ml-2 text-sm font-medium">
             {ddmm(semana)} a {ddmm(domingo)}/{domingo.slice(0, 4)}
           </span>
-        </div>
+        </Inline>
 
-        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_390px]">
+        <Grid cols={1} gap={6} className="items-start xl:grid-cols-[minmax(0,1fr)_390px]">
           <Card data-contract="agenda">
             <CardHeader>
               <CardTitle>Semana × equipe</CardTitle>
@@ -130,7 +131,7 @@ export default function Agenda({ bizName = 'oimpresso', semana, equipe, os, inst
               </CardContent>
             </Card>
           )}
-        </div>
+        </Grid>
       </div>
     </>
   );
@@ -176,11 +177,11 @@ export function GradeSemana({ dias, equipe, instalacoes, hoje }: {
             </th>
             {dias.map((d) => (
               <td key={d.iso} className="border-b border-l border-border p-1.5 align-top" data-celula={`${pessoa.id}:${d.iso}`}>
-                <div className="flex flex-col gap-1.5">
+                <Stack gap={1}>
                   {daPessoaNoDia(pessoa.id, d.iso).map((i) => (
                     <BlocoInstalacao key={i.id} instalacao={i} />
                   ))}
-                </div>
+                </Stack>
               </td>
             ))}
           </tr>
@@ -193,16 +194,16 @@ export function GradeSemana({ dias, equipe, instalacoes, hoje }: {
 function BlocoInstalacao({ instalacao: i }: { instalacao: InstalacaoAgenda }) {
   const [rotulo, tom] = ESTADO[i.status] ?? [i.status, 'neutral'];
   return (
-    <div className="flex flex-col gap-0.5 rounded-md border border-border bg-muted/40 px-2 py-1.5" data-instalacao={i.id}>
+    <Stack gap={0} className="rounded-md border border-border bg-muted/40 px-2 py-1.5" data-instalacao={i.id}>
       <span className="font-mono text-xs font-semibold">{horaDe(i.inicio)}–{horaDe(i.fim)}</span>
       <span className="text-xs">{i.os_numero ? `OS ${i.os_numero}` : `Instalação #${i.id}`}</span>
       {i.veiculo && (
-        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+        <Inline gap={1} className="text-xs text-muted-foreground">
           <Truck className="h-3 w-3" aria-hidden="true" /> {i.veiculo}
-        </span>
+        </Inline>
       )}
       <Badge variant={tom} className="w-fit">{rotulo}</Badge>
-    </div>
+    </Stack>
   );
 }
 
@@ -278,7 +279,8 @@ export function FormAgendar({ equipe, os, diaPadrao, osInicial = '' }: {
         <CardTitle>Agendar instalação</CardTitle>
       </CardHeader>
       <CardContent>
-        <form className="flex flex-col gap-3" onSubmit={agendar}>
+        <Stack asChild gap={3}>
+        <form onSubmit={agendar}>
           {semJanela && (
             <Alert variant="destructive" role="alert" data-contract="bloqueio">
               <AlertTitle>Sem janela — não agendado</AlertTitle>
@@ -296,8 +298,7 @@ export function FormAgendar({ equipe, os, diaPadrao, osInicial = '' }: {
             </Alert>
           )}
 
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="ag-os">OS</Label>
+          <Campo id="ag-os" rotulo="OS">
             <Select value={osId} onValueChange={setOsId}>
               <SelectTrigger id="ag-os" className="w-full">
                 <SelectValue placeholder={os.length ? 'Escolha a OS' : 'Nenhuma OS aberta'} />
@@ -310,41 +311,40 @@ export function FormAgendar({ equipe, os, diaPadrao, osInicial = '' }: {
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </Campo>
 
-          <div className="grid grid-cols-3 gap-2">
-            <div className="col-span-3 flex flex-col gap-1.5">
-              <Label htmlFor="ag-dia">Dia</Label>
-              <Input id="ag-dia" type="date" value={dia} onChange={(e) => setDia(e.target.value)} required />
-            </div>
-            <div className="col-span-3 flex flex-col gap-1.5 sm:col-span-1">
-              <Label htmlFor="ag-inicio">Início</Label>
+          <Campo id="ag-dia" rotulo="Dia">
+            <Input id="ag-dia" type="date" value={dia} onChange={(e) => setDia(e.target.value)} required />
+          </Campo>
+          <Grid cols={2} gap={2}>
+            <Campo id="ag-inicio" rotulo="Início">
               <Input id="ag-inicio" type="time" value={inicio} onChange={(e) => setInicio(e.target.value)} required />
-            </div>
-            <div className="col-span-3 flex flex-col gap-1.5 sm:col-span-1">
-              <Label htmlFor="ag-fim">Fim</Label>
+            </Campo>
+            <Campo id="ag-fim" rotulo="Fim">
               <Input id="ag-fim" type="time" value={fim} onChange={(e) => setFim(e.target.value)} required />
-            </div>
-          </div>
+            </Campo>
+          </Grid>
 
-          <fieldset className="flex flex-col gap-1">
-            <legend className="mb-1 text-sm font-medium">Equipe</legend>
-            {equipe.map((p) => (
-              <label key={p.id} className="flex min-h-9 items-center gap-2 text-sm">
-                <Checkbox checked={escolhidos.includes(p.id)} onCheckedChange={(v) => alternar(p.id, v === true)} />
-                {p.nome || `Pessoa ${p.id}`}
-              </label>
-            ))}
-          </fieldset>
+          <Stack asChild gap={1}>
+            <fieldset>
+              <legend className="mb-1 text-sm font-medium">Equipe</legend>
+              {equipe.map((p) => (
+                <Inline asChild key={p.id} gap={2} className="min-h-9 text-sm">
+                  <label>
+                    <Checkbox checked={escolhidos.includes(p.id)} onCheckedChange={(v) => alternar(p.id, v === true)} />
+                    {p.nome || `Pessoa ${p.id}`}
+                  </label>
+                </Inline>
+              ))}
+            </fieldset>
+          </Stack>
 
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="ag-veiculo">Veículo</Label>
+          <Campo id="ag-veiculo" rotulo="Veículo">
             <Input id="ag-veiculo" value={veiculo} maxLength={60} placeholder="Placa ou apelido" onChange={(e) => setVeiculo(e.target.value)} />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="ag-obs">Observações</Label>
+          </Campo>
+          <Campo id="ag-obs" rotulo="Observações">
             <Textarea id="ag-obs" value={observacoes} maxLength={1000} onChange={(e) => setObservacoes(e.target.value)} />
-          </div>
+          </Campo>
 
           <p className="text-xs text-muted-foreground">
             A agenda recusa quando alguém da equipe ou o veículo já está em outra instalação no mesmo horário.
@@ -353,8 +353,19 @@ export function FormAgendar({ equipe, os, diaPadrao, osInicial = '' }: {
             {enviando ? 'Agendando…' : 'Agendar'}
           </Button>
         </form>
+        </Stack>
       </CardContent>
     </Card>
+  );
+}
+
+/** Rótulo em cima do controle, como nos outros formulários do DS. */
+function Campo({ id, rotulo, children }: { id: string; rotulo: string; children: ReactNode }) {
+  return (
+    <Stack gap={1}>
+      <Label htmlFor={id}>{rotulo}</Label>
+      {children}
+    </Stack>
   );
 }
 
