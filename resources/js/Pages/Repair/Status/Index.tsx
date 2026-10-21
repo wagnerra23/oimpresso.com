@@ -7,7 +7,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Link } from '@inertiajs/react';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Button } from '@/Components/ui/button';
@@ -75,10 +75,9 @@ export default function StatusIndex({ statuses }: PageProps) {
   return (
     <div className="container mx-auto space-y-4 p-4">
       <PageHeader
-        icon="flag"
         title="Status do reparo"
-        description="Cada status carrega cor, ordem, marcação de conclusão e o modelo de SMS disparado ao cliente. A ordem alimenta o kanban da produção."
-        action={
+        subtitle="Cada status carrega cor, ordem, marcação de conclusão e o modelo de SMS disparado ao cliente. A ordem alimenta o kanban da produção."
+        actions={
           <Button asChild>
             <Link href="/repair/status/create">
               <Icon name="plus" className="mr-2 h-4 w-4" />
