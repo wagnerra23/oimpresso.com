@@ -33,8 +33,9 @@ last_run: "2026-10-20"
 > ⚠️ REGRA MESTRE de valor: chave **por business, desligada por padrão**
 > (`business.common_settings['financeiro_iss_retido_ajuste']`); só age na mudança de status da nota;
 > a baixa vai só até o que falta pagar, a diferença fica como pendência. Para notas já autorizadas, só
-> a prévia `financeiro:iss-retido-ajuste --dry-run --business=N`, que não grava. A tela ainda não
-> mostra bruto/retenções/líquido; IR/INSS e o "aplicar" nas notas antigas são follow-up da US.
+> a prévia `financeiro:iss-retido-ajuste --dry-run --business=N`, que não grava. Desde 2026-10-21 a
+> lista mostra Bruto · Retido · Líquido (UC-CRISS-08); IR/INSS e o "aplicar" nas notas antigas seguem
+> como follow-up da US.
 > Prova: `Modules/Financeiro/Tests/Feature/IssRetidoAjusteTituloContratoTest.php`.
 > Caso-base: venda 1.000,00 · ISS 5% retido 50,00 · PIS/COFINS/CSLL 46,50 → baixa 96,50 · aberto 903,50.
 
@@ -91,6 +92,16 @@ Status: 🧪
 **Dado** uma NFS-e autorizada com a chave desligada e a venda ainda com 1.000,00 em aberto **Quando**
 rodo `financeiro:iss-retido-ajuste --dry-run --business=A` **Então** a saída mostra a baixa de 96,50 e o
 aberto indo a 903,50 com ação `baixa`, nada é gravado, e sem `--dry-run` o comando recusa.
+
+Status: 🧪
+
+## UC-CRISS-08 · A lista mostra bruto, retido e líquido · `must` valor
+
+**Dado** o título de V com a retenção de 96,50 lançada **Quando** abro Contas a Receber **Então** a linha
+mostra Bruto 1.000,00 · Retido 96,50 · Líquido 903,50 (conta no servidor, em centavos, a partir de
+`metadata.retencao_nfse.retido_total`). Sem retenção, ou com a chave desligada, Retido mostra "—" e o
+Líquido é o bruto; cancelada a nota (retenção estornada), Retido volta a 0 e o Líquido a 1.000,00. Só
+exibe: nada é gravado.
 
 Status: 🧪
 
@@ -240,6 +251,9 @@ Status: 🧪
   casava e o botão rendia nu (medido em prod: padding 0, radius 0, texto em 2 linhas). Só o chrome do
   header mudou — `label` e `onClick` idênticos; comportamento/cálculo intocados. UCs em débito seguem
   sem teste (sem `Status: ✅`, nada a revalidar via manifesto).
+- 2026-10-21 · [CC] UC-CRISS-08 (US-FIN-072): colunas Bruto · Retido · Líquido na lista. Só leitura;
+  valores calculados em `RetencaoNfseTituloService::valoresDoTitulo` e provados por 3 caminhos em
+  `IssRetidoAjusteTituloContratoTest`.
 - 2026-10-20 · [CC] UC-CRREG-01..07 (US-FIN-071 · UC-FLX-29): primeira cobertura com UC-id desta
   tela — a régua de cobrança é job diário, sem mudança no `.tsx`; `last_run` intocado (nenhum UC
   antigo reexecutado). Prova: `ReguaCobrancaContratoTest`.
