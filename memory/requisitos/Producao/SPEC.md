@@ -333,10 +333,18 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ### US-PCP-017 · Dashboard PCP Inertia (4 cards KPI + Kanban embed + heatmap) — **P1**
 
-**Implementado em:** _pendente_ — sem página `Pages/Pcp/Dashboard` nem rota `/pcp/dashboard` (módulo não construído, ADR 0152)
+**Implementado em:** `Modules/Producao/Resources/js/Pages/Producao/Painel/Index.tsx` · `Modules/Producao/Http/Controllers/PainelController.php` · `Modules/Producao/Services/PainelDaProducao.php` · `Modules/Producao/Services/ArteDasOrdens.php`
 
-> owner: — · priority: p1 · estimate: 8h · status: todo · type: story
-> Charter `.charter.md` obrigatório.
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoQuadroContratoTest.php` (lane `verticais-pest.yml`) · casos `Painel/Index.casos.md` (UC-PCV-01..04, UC-PCV-29).
+
+> owner: wagner · priority: p1 · estimate: 8h · status: done · type: story
+> Charter `.charter.md` obrigatório. A tela é `/producao/painel` (thread 06 do playbook), não `/pcp/dashboard` do blueprint.
+
+**Aceite:**
+- [x] 4 indicadores (OS em produção, atrasadas ou vencendo, arte travando, refugo na semana) que abrem o Quadro filtrado (UC-PCV-01/02).
+- [x] O "Kanban embed" é o próprio Quadro (`/producao/quadro`); o Painel leva até ele pelo filtro da URL e conta pelos mesmos cartões (UC-PCV-03).
+- [x] Alertas com ação, fila de aprovação de arte, carga das máquinas hoje e eventos (UC-PCV-01, 04, 29).
+- [ ] Heatmap e refugo em R$ (thread 07 Linha do tempo e thread 08 Custo).
 
 ### US-PCP-018 · Broadcast Centrifugo (Kanban realtime + fila workstation) — **P2**
 
@@ -425,7 +433,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ### US-PCP-024 · Simulador de aproveitamento de mídia na bobina (UC-FLX-13) — **P2**
 
-**Implementado em:** `Modules/Producao/Services/AproveitamentoDeMidia.php` · `Modules/Producao/Http/Controllers/AproveitamentoMidiaController.php` · `Modules/Producao/Database/Migrations/2026_10_20_200000_create_pcp_aproveitamento_midia_tables.php`
+**Implementado em:** `Modules/Producao/Services/AproveitamentoDeMidia.php` · `Modules/Producao/Http/Controllers/AproveitamentoMidiaController.php` · `Modules/Producao/Resources/js/Pages/Producao/Quadro/_components/SimuladorBobina.tsx` · `Modules/Producao/Database/Migrations/2026_10_20_200000_create_pcp_aproveitamento_midia_tables.php`
 
 **Testado em:** `Modules/Producao/Tests/Feature/ProducaoAproveitamentoMidiaContratoTest.php` (lane `verticais-pest.yml`) · casos `Apontamento/Index.casos.md` (UC-PCAPV-01..05).
 
@@ -440,7 +448,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [x] O PCP aceita o arranjo: ele é recalculado no servidor e gravado (`pcp_arranjos`), com o consumo previsto de mídia por OS rateado pela área (`pcp_arranjo_os`), e vira o romaneio de impressão de cada OS na etapa informada (US-PCP-023) (UC-PCAPV-04). `POST /producao/aproveitamento`.
 - [x] Simular é só leitura (`producao.access`); aceitar exige o papel `producao.liberar`, sem ele 403 (UC-PCAPV-02/04).
 - [x] Multi-tenant: mídia, OS ou etapa de outra empresa → 404 e nada gravado; Pest com os tenants 98 e 99 (UC-PCAPV-05).
-- [ ] Escolher as OS pela fila da Pré-impressão (hoje o PCP informa as OS) e a tela do simulador com o desenho das faixas.
+- [x] A tela: no Quadro (`/producao/quadro`, filtrável pelo setor Pré-impressão) o PCP marca as OS da CV com peça medida e abre "Simular bobina", que cadastra a largura útil quando falta, desenha as faixas e aceita o arranjo (UC-FLX-13 de `Quadro/Index.casos.md`; prova `ProducaoQuadroContratoTest`).
 - [ ] Baixar a mídia pelo consumo previsto do arranjo (hoje o consumo real segue o apontado na etapa, US-PCP-021).
 
 ### US-PCP-025 · Produção só libera com o sinal pago (UC-FLX-28) — **P2**
@@ -511,7 +519,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ### US-PCP-029 · Alocador decide quem e quando começa cada etapa (UC-FLX-10) — **P1**
 
-**Implementado em:** `Modules/Producao/Services/AlocacaoDaEtapa.php` · `Modules/Producao/Http/Controllers/AlocacaoController.php` · `Modules/Producao/Routes/web.php`
+**Implementado em:** `Modules/Producao/Services/AlocacaoDaEtapa.php` · `Modules/Producao/Http/Controllers/AlocacaoController.php` · `Modules/Producao/Resources/js/Pages/Producao/Quadro/_components/Alocar.tsx` · `Modules/Producao/Routes/web.php`
 
 **Testado em:** `Modules/Producao/Tests/Feature/ProducaoAlocacaoContratoTest.php` (lane `verticais-pest.yml`).
 
@@ -527,7 +535,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [x] Operador sem a permissão → 403; etapa ou posto de outra empresa → 404 (UC-PCALO-05).
 - [x] `GET /producao/postos/{id}/fila` lista as etapas abertas do posto pela ordem do início previsto, com o responsável (UC-PCALO-06).
 - [x] Posto com operadores cadastrados (US-PCP-030): o responsável escolhido tem de ser um deles; posto sem cadastro aceita qualquer pessoa da empresa com acesso à Produção (UC-PCALO-07).
-- [ ] Tela do alocador (quadro/calendário — US-PCP-015) consumindo os dois endpoints.
+- [x] Tela do alocador: "Alocar" no cartão do Quadro (`/producao/quadro`) troca responsável e início pela rota de alocação (UC-FLX-10 de `Quadro/Index.casos.md`; prova `ProducaoQuadroContratoTest`). A fila por posto aparece como a vista "Por máquina" do quadro; o `GET` da fila segue sem tela própria.
 - [ ] Aviso de conflito: mesma pessoa ou mesmo posto com etapas sobrepostas, e material sem saldo para o horário escolhido.
 
 ### US-PCP-028 · Prazo de entrega calculado pela fila (UC-FLX-06) — **P2**
