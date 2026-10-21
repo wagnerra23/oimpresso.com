@@ -154,9 +154,9 @@ function Linha({ a, motivos: todos, apontar }: { a: Aberto; motivos: Array<{ id:
       {maquina && (
         <fieldset className="grid gap-2">
           <legend className="pcv-help">Produção da etapa (opcional, vai junto ao concluir)</legend>
-          <label className="grid gap-1 text-sm">
+          <label htmlFor={`ap-m2-${a.id}`} className="grid gap-1 text-sm">
             m² impresso
-            <Input inputMode="decimal" placeholder="ex.: 12,5" value={m2} onChange={(e) => setM2(e.target.value)} className="min-h-11" />
+            <Input id={`ap-m2-${a.id}`} inputMode="decimal" placeholder="ex.: 12,5" value={m2} onChange={(e) => setM2(e.target.value)} className="min-h-11" />
           </label>
           <span className="text-sm">Tinta (ml)</span>
           <div className="grid grid-cols-4 gap-2">
