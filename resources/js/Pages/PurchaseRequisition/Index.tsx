@@ -36,6 +36,8 @@ export interface Requisicao {
   status_rotulo: string;
   necessario_ate: string | null;
   adicionado_por: string;
+  /** UC-REQMIN-07: o da última compra, na requisição pelo estoque mínimo; nulo = sem fornecedor. */
+  fornecedor: string | null;
 }
 interface Lista {
   linhas: Requisicao[];
@@ -107,6 +109,7 @@ function RequisicoesIndex({ filtros, permissoes, requisicoes, opcoes }: Props) {
     { id: 'data', header: 'Data', meta: { mono: true }, cell: ({ row: { original: r } }) => r.data ?? '—' },
     { id: 'ref', header: 'Nº de referência', meta: { mono: true }, cell: ({ row: { original: r } }) => <span className="font-medium">{r.ref}</span> },
     { id: 'local', header: 'Local', cell: ({ row: { original: r } }) => r.local },
+    { id: 'fornecedor', header: 'Fornecedor', cell: ({ row: { original: r } }) => r.fornecedor ?? '—' },
     { id: 'status', header: 'Status', cell: ({ row: { original: r } }) => <Badge variant={TOM_STATUS[r.status] ?? 'outline'}>{r.status_rotulo}</Badge> },
     { id: 'prazo', header: 'Necessário até', meta: { mono: true }, cell: ({ row: { original: r } }) => r.necessario_ate ?? '—' },
     { id: 'quem', header: 'Adicionado por', cell: ({ row: { original: r } }) => r.adicionado_por || '—' },

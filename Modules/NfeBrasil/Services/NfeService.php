@@ -266,9 +266,14 @@ class NfeService
      *   - Pagamento `tpag='99'` (outros) — fase 2B detecta forma real via
      *     `transaction_payments`.
      *
+     * **Venda separada (US-NFE-069 · UC-FLX-27):** com `$separada = true`, a nota sai só com a parte
+     *   MERCADORIA de {@see SeparacaoNotasDaVenda}: as linhas de mercadoria, o total dessa parte como
+     *   vNF e o frete inteiro (regra de rateio decidida por [W] em 2026-10-21). A parte serviço vai
+     *   em NFS-e. A recusa de item de serviço continua valendo sobre as linhas que sobram.
+     *
      * @throws RuntimeException Quando `final_total <= 0`, ncm_default ausente, ou business não encontrado.
      */
-    public function emitirParaTransaction(Transaction $tx, string $modelo = '65'): NfeEmissao
+    public function emitirParaTransaction(Transaction $tx, string $modelo = '65', bool $separada = false): NfeEmissao
     {
         $businessId = (int) $tx->business_id;
 
@@ -297,6 +302,7 @@ class NfeService
         $emitente = $this->resolverEmitente($business, $tx->location_id ? (int) $tx->location_id : null, (string) $modelo);
         $ufOrigem = $emitente['uf'];
         $valorTotal = (float) $tx->final_total;
+        $frete = (float) ($tx->shipping_charges ?? 0);
 
         // Fase 2B (thread 17 · R-NFE-023..025c): um `det` por linha da venda, com o
         // NCM do produto, e o motor chamado POR ITEM. Venda sem linha legível cai no
@@ -317,13 +323,31 @@ class NfeService
             ]];
         }
 
+        // US-NFE-069: venda separada emite só a parte mercadoria (total, frete e linhas da parte).
+        $separacao = null;
+        if ($separada) {
+            $separacao = app(SeparacaoNotasDaVenda::class)->separar($businessId, (int) $tx->id);
+            if ($separacao['pendentes'] !== []) {
+                // D-NATUREZA: pendente bloqueia o faturamento separado; o contador decide antes.
+                throw new RuntimeException('Produto(s) ' . implode(', ', $separacao['pendentes']) . ' com natureza fiscal a decidir.');
+            }
+            $parte = $separacao[SeparacaoNotasDaVenda::MERCADORIA];
+            if ($parte['total'] <= 0) {
+                throw new RuntimeException("Venda {$tx->id} não tem parte mercadoria — emita só a NFS-e.");
+            }
+            $ids = array_column($parte['linhas'], 'sell_line_id');
+            $linhas = array_values(array_filter($linhas, fn (array $l) => in_array($l['sell_line_id'], $ids, true)));
+            $valorTotal = (float) $parte['total'];
+            $frete = (float) $parte['frete'];
+        }
+
         // Thread 29 · R-NFE-034: item de serviço (decidido pelo contador) não sai em NF-e/NFC-e.
         $this->recusarItensDeServico($businessId, $linhas);
 
         $itens = $this->montarItensNfe(
             linhas:         $linhas,
             valorNota:      $valorTotal,
-            frete:          (float) ($tx->shipping_charges ?? 0),
+            frete:          $frete,
             ncmDefault:     $ncmDefault,
             motor:          $motor,
             businessId:     $businessId,
@@ -350,11 +374,19 @@ class NfeService
             ],
             'dets'     => $itens['dets'],
             'total'    => $itens['total'],
-            'metadata' => $itens['metadata'],
+            'metadata' => $separacao === null ? $itens['metadata'] : array_merge((array) $itens['metadata'], [
+                'separacao' => [
+                    'regra'         => $separacao['regra'],
+                    'final_total'   => $separacao['final_total'],
+                    'servico_total' => $separacao[SeparacaoNotasDaVenda::SERVICO]['total'],
+                ],
+            ]),
             // tpag='01' = dinheiro (default conservador). Fase 2B detecta via transaction_payments.
             'pag'         => [['tpag' => '01', 'vpag' => $valorTotal]],
             'valor_total' => $valorTotal,
-            'inf_cpl'     => "Venda PDV #{$tx->id}.",
+            'inf_cpl'     => $separacao === null
+                ? "Venda PDV #{$tx->id}."
+                : "Venda PDV #{$tx->id}. Parte mercadoria; os servicos da venda saem em NFS-e.",
         ];
         if ($emitente['location_id'] !== null) {
             $dadosNfe['emit']        = $emitente['emit'];
@@ -440,9 +472,13 @@ class NfeService
      * REGRA MESTRE VALOR — o total da nota NÃO muda: `vNF` = `valorNota` (o
      * `final_total` da venda, como na fase 2A). O que muda é a decomposição:
      *   vProd_i = round(qCom × vUnCom, 2)
-     *   Δ = valorNota − Σ vProd_i
+     *   vFrete = `frete` da venda, inteiro ([W] 2026-10-21 · R-NFE-025)
+     *   Δ = valorNota − Σ vProd_i − vFrete
      *   Δ < 0 → desconto, rateado (vDesc por item)
-     *   Δ > 0 → primeiro frete (até `frete`), o resto em vOutro, rateados
+     *   Δ > 0 → acréscimo em vOutro, rateado
+     * Antes o frete só entrava até o acréscimo e o desconto o consumia: frete 20,00 com desconto
+     * 7,00 saía como vFrete 13,00 e vDesc 0. Se o desconto passaria do vProd (o `final_total`
+     * não contém o frete declarado), vale a regra antiga, com log.
      *   base_i = vProd_i − vDesc_i + vFrete_i + vOutro_i   (Σ base_i = vNF exato)
      * Rateio em centavos pelo método do maior resto: cada item recebe no máximo
      * 1 centavo acima da parte proporcional, e o desconto nunca passa o vProd do item.
@@ -487,13 +523,20 @@ class NfeService
 
         $totalCent = (int) round($valorNota * 100);
         $somaCent  = array_sum(array_column($itens, 'vprod_cent'));
-        $delta     = $totalCent - $somaCent;
         $pesos     = array_column($itens, 'vprod_cent');
+        $freteCent = (int) round(max($frete, 0) * 100);
+        $delta     = $totalCent - $somaCent - $freteCent;
+        if (-$delta > $somaCent) {
+            // O total não comporta o frete declarado (o desconto passaria do vProd): regra antiga.
+            Log::warning('nfe_frete_fora_do_total', ['business_id' => $businessId, 'v_nf' => $totalCent / 100, 'frete' => $freteCent / 100]);
+            $delta     = $totalCent - $somaCent;
+            $freteCent = $delta > 0 ? min($freteCent, $delta) : 0;
+            $delta    -= $freteCent;
+        }
 
         $descontos = $delta < 0 ? $this->ratearCentavos(-$delta, $pesos) : array_fill(0, count($itens), 0);
-        $freteCent = $delta > 0 ? min((int) round(max($frete, 0) * 100), $delta) : 0;
         $fretes    = $this->ratearCentavos($freteCent, $pesos);
-        $outros    = $this->ratearCentavos(max($delta, 0) - $freteCent, $pesos);
+        $outros    = $this->ratearCentavos(max($delta, 0), $pesos);
 
         // 2. motor por item
         $dets = [];
@@ -1304,6 +1347,8 @@ class NfeService
         $serieOriginal = $emissao->serie;
         $statusOriginal = $emissao->status;
         $cstatOriginal = $emissao->cstat;
+        // US-NFE-069: a NF-e da parte mercadoria re-emite também separada (senão a recusa de serviço barra).
+        $separada = isset(((array) ($emissao->metadata ?? []))['separacao']);
 
         Log::info('NfeService.retransmitir: iniciando retransmissão', [
             'business_id'    => $businessId,
@@ -1338,7 +1383,7 @@ class NfeService
         // ── 6. Re-emite via fluxo canon emitirParaTransaction ──────────────
         // Cria NfeEmissao NOVA com próximo número (proximoNumeroLocked
         // withTrashed = sequencial monotônico — não reusa numero antigo).
-        $nova = $this->emitirParaTransaction($tx, $modelo);
+        $nova = $this->emitirParaTransaction($tx, $modelo, $separada);
 
         Log::info('NfeService.retransmitir: retransmissão concluída', [
             'business_id'    => $businessId,

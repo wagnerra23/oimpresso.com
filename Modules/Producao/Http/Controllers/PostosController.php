@@ -2,6 +2,7 @@
 
 namespace Modules\Producao\Http\Controllers;
 
+use App\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -25,12 +26,17 @@ class PostosController extends Controller
     {
         abort_unless($request->user()->can('producao.access'), 403);
         $veCusto = $request->user()->can('producao.desempenho.ver');
+        $defineOperadores = $request->user()->can('producao.etapa.mover');
         $biz = (int) $request->session()->get('user.business_id');
 
         return Inertia::render('Producao/Postos/Index', [
             'motivos_padrao' => Motivo::PADRAO,
             'pode_ver_custo_pessoa' => $veCusto,
-            'postos' => Inertia::defer(fn () => $this->postos()),
+            'pode_definir_operadores' => $defineOperadores,
+            'postos' => Inertia::defer(fn () => $this->postos($biz)),
+            // US-PCP-030 · UC-FLX-08: candidatos a operador = gente da empresa com acesso à Produção
+            // (a mesma regra que o OperadoresDoPosto::definir confere ao gravar).
+            'usuarios' => Inertia::defer(fn () => $defineOperadores ? $this->candidatosAOperador($biz) : []),
             'ferramentas' => Inertia::defer(fn () => Ferramenta::query()->orderBy('nome')->get(['id', 'codigo_qr', 'nome', 'ativo'])),
             'colaboradores' => Inertia::defer(fn () => $veCusto ? $this->colaboradores($biz) : []),
         ]);
@@ -119,19 +125,34 @@ class PostosController extends Controller
         }
     }
 
-    private function postos(): array
+    private function postos(int $biz): array
     {
         $motivos = Motivo::query()->where('ativo', true)->orderBy('ordem')->get(['posto_id', 'tipo', 'nome'])->groupBy('posto_id');
+        // US-PCP-030: operadores de cada posto (lista vazia = posto sem cadastro, aceita qualquer pessoa).
+        $operadores = DB::table('pcp_posto_operadores as po')->join('users as u', 'u.id', '=', 'po.user_id')
+            ->where('po.business_id', $biz)->where('u.business_id', $biz)
+            ->orderBy('u.first_name')->get(['po.posto_id', 'u.id', 'u.first_name', 'u.last_name'])
+            ->groupBy('posto_id');
 
-        return Posto::query()->orderBy('veiculo')->orderBy('nome')->get()->map(function (Posto $p) use ($motivos) {
+        return Posto::query()->orderBy('veiculo')->orderBy('nome')->get()->map(function (Posto $p) use ($motivos, $operadores) {
             $lista = $motivos->get($p->id, collect());
 
             return $p->only(['id', 'codigo', 'nome', 'setor', 'tipo_custo', 'veiculo', 'placa', 'custo_hora', 'custo_km',
-                'capacidade_por_hora', 'unidade_capacidade', 'ativo']) + ['motivos' => [
+                'capacidade_por_hora', 'unidade_capacidade', 'ativo']) + ['operadores' => $operadores->get($p->id, collect())
+                    ->map(fn ($u) => ['id' => (int) $u->id, 'nome' => trim($u->first_name.' '.$u->last_name)])->values()->all(),
+                    'motivos' => [
                     Motivo::PAUSA => $lista->where('tipo', Motivo::PAUSA)->pluck('nome')->values(),
                     Motivo::REFUGO => $lista->where('tipo', Motivo::REFUGO)->pluck('nome')->values(),
                 ]];
         })->all();
+    }
+
+    /** @return list<array{id: int, nome: string}> */
+    private function candidatosAOperador(int $biz): array
+    {
+        return User::query()->where('business_id', $biz)->where('user_type', 'user')->orderBy('first_name')->get()
+            ->filter(fn (User $u) => $u->can('producao.access'))
+            ->map(fn (User $u) => ['id' => (int) $u->id, 'nome' => trim($u->first_name.' '.$u->last_name)])->values()->all();
     }
 
     private function colaboradores(int $biz): array

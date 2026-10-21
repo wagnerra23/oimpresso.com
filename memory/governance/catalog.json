@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 842,
-    "edges": 1145,
+    "nodes": 843,
+    "edges": 1146,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 462,
+      "component": 463,
       "api": 86
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 90,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 462,
+      "hasComponent": 463,
       "dependsOn": 125,
       "delegatesTo": 116,
       "migratesTo": 1,
@@ -1977,6 +1977,13 @@
       "module": "Compras",
       "name": "InsumoMetodoCusto",
       "desc": "entidade da tabela-ponte compras_insumo_metodo_custo (business_id, variation_id) com o método próprio do insumo (medio | ultimo), lida quando a regra é por_insumo; variations do core não ganha coluna"
+    },
+    {
+      "id": "component:Compras/InsumoMetodoCustoController",
+      "type": "component",
+      "module": "Compras",
+      "name": "InsumoMetodoCustoController",
+      "desc": "PUT /compras/insumos/{variation}/metodo-custo grava o método do insumo (medio | ultimo) da gaveta de /manufacturing/insumos; empresa da sessão, variação da empresa ou 404, purchase.update (US-COM-024 · UC-FLX-38)"
     },
     {
       "id": "component:Compras/RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
@@ -8045,6 +8052,12 @@
     {
       "from": "module:Compras",
       "to": "component:Compras/InsumoMetodoCusto",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/InsumoMetodoCustoController",
       "type": "hasComponent",
       "source": "contains"
     },

@@ -9,6 +9,7 @@ use App\Transaction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Log;
 use Modules\Arquivos\Services\ArquivosService;
 use Modules\NfeBrasil\Events\NFCeAutorizada;
@@ -20,6 +21,7 @@ use Modules\NfeBrasil\Listeners\EnviarDanfePorEmail;
 use Modules\NfeBrasil\Models\NfeEmissao;
 use Modules\NfeBrasil\Services\DanfeService;
 use Modules\NfeBrasil\Services\NfeService;
+use Modules\NfeBrasil\Services\SeparacaoNotasDaVenda;
 
 /**
  * US-NFE-MANUAL · Endpoints pra emissão fiscal manual a partir da UI Sells.
@@ -88,8 +90,21 @@ class NfeEmissaoController extends Controller
             ]);
         }
 
+        // US-NFE-069 · UC-FLX-27: "Emitir NF-e + NFS-e" manda separada=1; a NF-e leva só a parte
+        // mercadoria. Quem dispara a divisão precisa poder emitir a NFS-e também.
+        $separada = $request->boolean('separada');
+        if ($separada) {
+            if (! $request->user()->can('nfse.emit')) {
+                return response()->json(['error' => 'sem_permissao', 'message' => 'Emitir NF-e + NFS-e exige a permissão de emitir NFS-e.'], 403);
+            }
+            $bloqueio = $this->bloqueioDaSeparacao($businessId, $tx);
+            if ($bloqueio !== null) {
+                return $bloqueio;
+            }
+        }
+
         try {
-            $emissao = $this->nfeService->emitirParaTransaction($transaction, $modelo);
+            $emissao = $this->nfeService->emitirParaTransaction($transaction, $modelo, $separada);
         } catch (NcmPadraoAusenteException $e) {
             // R-NFE-022: bloqueio de configuração, não falha do servidor. Devolve a saída de 1 clique.
             return response()->json([
@@ -232,6 +247,75 @@ class NfeEmissaoController extends Controller
             'transaction_id' => $tx,
             'emissoes'       => $emissoes,
         ]);
+    }
+
+    /**
+     * GET /nfe-brasil/api/transactions/{tx}/separacao — US-NFE-069 · UC-FLX-27.
+     *
+     * Mostra as duas partes da venda (NF-e e NFS-e) antes de o usuário confirmar a emissão.
+     * Só lê: a conta é a de SeparacaoNotasDaVenda (regra de rateio decidida por [W] 2026-10-21).
+     */
+    public function separacao(Request $request, int $tx): JsonResponse
+    {
+        $businessId = (int) $request->session()->get('business.id', 0);
+        if ($businessId === 0) {
+            return response()->json(['error' => 'no_business_context'], 400);
+        }
+        if (! $request->user()?->can('nfse.emit')) {
+            return response()->json(['error' => 'sem_permissao'], 403);
+        }
+
+        try {
+            $sep = app(SeparacaoNotasDaVenda::class)->separar($businessId, $tx);
+        } catch (ModelNotFoundException) {
+            return response()->json(['error' => 'transaction_not_found'], 404);
+        } catch (\RuntimeException $e) {
+            return response()->json(['separavel' => false, 'message' => $e->getMessage()]);
+        }
+
+        $parte = fn (array $p) => [
+            'itens'     => array_map(fn (array $l) => [
+                'descricao'      => $l['descricao'],
+                'quantidade'     => $l['quantidade'],
+                'bruto'          => $l['bruto'],
+                'codigo_servico' => $l['codigo_servico'] ?? null,
+            ], $p['linhas']),
+            'bruto'     => $p['bruto'],
+            'desconto'  => $p['desconto'],
+            'acrescimo' => $p['acrescimo'],
+            'frete'     => $p['frete'],
+            'total'     => $p['total'],
+        ];
+
+        return response()->json([
+            'separavel'   => $sep[SeparacaoNotasDaVenda::MERCADORIA]['total'] > 0 && $sep[SeparacaoNotasDaVenda::SERVICO]['total'] > 0,
+            'regra'       => $sep['regra'],
+            'final_total' => $sep['final_total'],
+            'mercadoria'  => $parte($sep[SeparacaoNotasDaVenda::MERCADORIA]),
+            'servico'     => $parte($sep[SeparacaoNotasDaVenda::SERVICO]),
+            'pendentes'   => $sep['pendentes'],
+        ]);
+    }
+
+    /** Recusa a emissão separada quando a venda não tem parte mercadoria ou tem natureza pendente. */
+    private function bloqueioDaSeparacao(int $businessId, int $tx): ?JsonResponse
+    {
+        try {
+            $sep = app(SeparacaoNotasDaVenda::class)->separar($businessId, $tx);
+        } catch (\RuntimeException $e) {
+            return response()->json(['error' => 'separacao_invalida', 'message' => $e->getMessage()], 422);
+        }
+        if ($sep['pendentes'] !== []) {
+            return response()->json([
+                'error'   => 'natureza_pendente',
+                'message' => 'Produto(s) ' . implode(', ', $sep['pendentes']) . ' com natureza fiscal a decidir: o contador decide antes de faturar.',
+            ], 422);
+        }
+        if ($sep[SeparacaoNotasDaVenda::MERCADORIA]['total'] <= 0) {
+            return response()->json(['error' => 'sem_mercadoria', 'message' => 'A venda não tem parte mercadoria — emita só a NFS-e.'], 422);
+        }
+
+        return null;
     }
 
     private function serializeEmissao(NfeEmissao $emissao): array

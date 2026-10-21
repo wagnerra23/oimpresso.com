@@ -17,7 +17,7 @@ use Tests\Support\EstoqueFixture;
  *
  * REGRA MESTRE de valor — duas provas por caso: o esperado é conta à mão (escrita no teste) e
  * cada caso refaz a conta por um segundo caminho, sem banco e em reais (separacaoEsperada).
- * O rateio é PROPOSTA pendente de decisão [W] (SeparacaoNotasDaVenda::REGRA_RATEIO).
+ * O rateio foi decidido por [W] em 2026-10-21 (SeparacaoNotasDaVenda::REGRA_RATEIO).
  *
  * Os casos com banco usam o tenant fictício 98 contra o 99 (ADR 0358) e pulam fora do MySQL —
  * leia assertions, não "0 failed" (LC-13). Os casos sem banco rodam em qualquer lane.
