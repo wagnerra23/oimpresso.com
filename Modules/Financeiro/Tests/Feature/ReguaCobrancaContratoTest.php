@@ -14,7 +14,7 @@ uses(Tests\TestCase::class);
 
 /**
  * US-FIN-071 · UC-FLX-29 — régua de cobrança do título vencido (D+1/D+5/D+15).
- * Contrato: resources/js/Pages/Financeiro/ContasReceber/Index.casos.md (UC-CRREG-01..07).
+ * Contrato: resources/js/Pages/Financeiro/ContasReceber/Index.casos.md (UC-CRREG-01..08).
  *
  * Tenant 98 (ADR 0358) e, como business B, o cliente fictício 99 (nunca o 4). Hoje fixo em
  * 2031-03-20 para os vencimentos não dependerem do relógio; tudo dentro de transação desfeita
@@ -181,4 +181,40 @@ it('UC-CRREG-07 · sem o contrato de agenda ligado (Crm ausente) o lembrete sai 
     expect($l[0]->status)->toBe('enviado');
     expect($l[0]->tarefa_id)->toBeNull();
     expect(DB::table('crm_schedules')->where('business_id', $this->bizA)->count())->toBe($antes);
+});
+
+it('UC-CRREG-08 · o painel Lembretes da tela lista os do business, com o motivo, e só carrega ao abrir', function () {
+    $enviado = reguaTitulo($this->bizA, $this->ownerA, 1, reguaContato($this->bizA, $this->ownerA));
+    $optOut = reguaTitulo($this->bizA, $this->ownerA, 5, reguaContato($this->bizA, $this->ownerA, false));
+    $deB = reguaTitulo($this->bizB, $this->ownerB, 1, reguaContato($this->bizB, $this->ownerB));
+    (new ReguaCobrancaJob($this->bizA, REGUA_HOJE))->handle(app(ReguaCobrancaConfig::class));
+    (new ReguaCobrancaJob($this->bizB, REGUA_HOJE))->handle(app(ReguaCobrancaConfig::class));
+    // Pré-condição anti-vácuo: B tem lembrete, então a ausência dele no painel de A é filtro, não falta de dado.
+    expect(reguaLembretes($deB))->toHaveCount(1);
+
+    $user = $this->usuarioComPermissoes(['financeiro.contas_receber.view'], \App\Business::findOrFail($this->bizA));
+    $versao = (string) app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+    $base = ['X-Inertia' => 'true', 'X-Inertia-Version' => $versao, 'X-Requested-With' => 'XMLHttpRequest'];
+    $chamar = fn (array $headers) => $this->actingAs($user)
+        ->withSession(['user.business_id' => $this->bizA, 'user.id' => $user->id, 'business.id' => $this->bizA])
+        ->withHeaders($headers)
+        ->get('/financeiro/contas-receber');
+
+    // Carga normal: a prop é opcional e não vem.
+    $inicial = $chamar($base);
+    expect($inicial->status())->toBe(200);
+    expect($inicial->json('props'))->not->toHaveKey('lembretes');
+
+    // Abrir o painel = reload parcial pedindo só `lembretes`.
+    $painel = $chamar($base + ['X-Inertia-Partial-Component' => 'Financeiro/ContasReceber/Index', 'X-Inertia-Partial-Data' => 'lembretes']);
+    expect($painel->status())->toBe(200);
+    expect($painel->json('props.lembretes.regua'))->toBe(['ativo' => true, 'dias' => [1, 5, 15]]);
+
+    $itens = collect($painel->json('props.lembretes.itens'))->keyBy('titulo_id');
+    expect($itens->keys()->sort()->values()->all())->toBe(collect([$enviado, $optOut])->sort()->values()->all());
+    expect($itens[$enviado]['status'])->toBe('enviado');
+    expect($itens[$enviado]['etapa_dias'])->toBe(1);
+    expect($itens[$optOut]['status'])->toBe('nao_enviado');
+    expect($itens[$optOut]['motivo'])->toBe('opt_out_email');
+    expect($itens[$optOut]['etapa_dias'])->toBe(5);
 });
