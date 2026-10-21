@@ -107,8 +107,8 @@ last_run: "2026-10-19"
 > **Âncora:** US-COM-024 (`memory/requisitos/Compras/SPEC.md`) e o UC-FLX-38 do catálogo de fluxos
 > (*"custo do insumo guarda o histórico por data"*). Quando a regra "Atualizar o custo dos insumos" da
 > empresa é **Definido em cada insumo** (`por_insumo`), cada insumo diz o seu método na tabela-ponte
-> `compras_insumo_metodo_custo`. Nesta entrega é o serviço (`CustoDoInsumoService`); o campo no drawer
-> desta tela é follow-up. Prova: `Modules/Compras/Tests/Feature/CustoDoInsumoServiceTest.php`. VALOR:
+> `compras_insumo_metodo_custo`. A entrega de 2026-10-20 foi o serviço (`CustoDoInsumoService`); a seção
+> "Método de custo" na gaveta veio em 2026-10-21 (UC-INSMET-06..09). Prova: `Modules/Compras/Tests/Feature/CustoDoInsumoServiceTest.php`. VALOR:
 > regra mestre (conta à mão + segundo caminho em PHP no teste).
 >
 > Arranjo dos casos (31/03): compras recebidas B 10 un × 12,00 e C 30 un × 16,00 com 10 devolvidas.
@@ -148,6 +148,39 @@ pede o custo em 31/03 **Então** o custo é 14,6667 — o método do insumo só 
 
 Status: 🧪
 
+> **Gravação pela gaveta** — seção "Método de custo" (Médio / Último) da gaveta do insumo, gravada
+> por `PUT /compras/insumos/{variation}/metodo-custo`. Prova:
+> `Modules/Compras/Tests/Feature/InsumoMetodoCustoEndpointTest.php` (mesmo arranjo B e C).
+
+## UC-INSMET-06 · Gravar o método pela gaveta muda o custo por insumo · `must` valor
+
+**Dado** o insumo sem método (custo por insumo nulo) **Quando** o usuário escolhe Último **Então** grava
+`ultimo` e o custo por insumo em 31/03 passa a 16,0000; **Quando** troca para Médio **Então** a mesma linha
+vira `medio` (nenhuma duplicada) e o custo passa a 14,6667. Volta para a tela de onde veio.
+
+Status: 🧪
+
+## UC-INSMET-07 · Insumo de outra empresa responde 404 · `must`
+
+**Dado** uma variação de produto de outra empresa **Quando** se tenta gravar o método nela **Então** 404 e
+nenhuma linha é gravada em nenhuma das duas empresas.
+
+Status: 🧪
+
+## UC-INSMET-08 · Sem `purchase.update` não grava · `must`
+
+**Dado** o usuário sem `purchase.update` **Quando** tenta gravar **Então** 403 e nada é gravado. Na tela, o
+controle aparece desabilitado.
+
+Status: 🧪
+
+## UC-INSMET-09 · Só médio ou último · `must`
+
+**Dado** o método `por_insumo` (ou qualquer outro) **Quando** se tenta gravar **Então** erro no campo
+`metodo` e nada é gravado.
+
+Status: 🧪
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
@@ -181,3 +214,6 @@ outra decisão de escopo — não é ajuste de código.
 - 2026-10-20 · [W+C] US-COM-024 · UC-FLX-38: UC-INSMET-01..05, o método de custo por insumo
   (`CustoDoInsumoService` + `compras_insumo_metodo_custo`). Só backend; `Insumos.tsx` não mudou e
   o campo no drawer é follow-up. Prova: `CustoDoInsumoServiceTest.php`.
+- 2026-10-21 · [W+C] US-COM-024 · UC-FLX-38: UC-INSMET-06..09, a seção "Método de custo" na gaveta
+  e o `PUT /compras/insumos/{variation}/metodo-custo` (empresa da sessão, variação da empresa ou
+  404, `purchase.update`). Prova: `InsumoMetodoCustoEndpointTest.php`.
