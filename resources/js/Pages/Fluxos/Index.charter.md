@@ -6,6 +6,7 @@ status: draft
 parent_module: Fluxos
 related_prototype: prototipo-ui/cowork/Wagner/fluxos-page.jsx
 related_runbook: memory/requisitos/Fluxos/RUNBOOK-fluxos-index.md
+related_us: [US-SELL-069, US-PCP-021, US-PCP-031]
 alcance:
   rota: /fluxos
   rota_nome: fluxos.index        # routes/web.php (núcleo, grupo web do ERP)

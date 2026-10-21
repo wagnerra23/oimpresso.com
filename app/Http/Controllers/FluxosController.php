@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Contracts\Producao\ReservaDeInsumo;
 use App\Domain\Fsm\Modelos\AplicarModelo;
 use App\Domain\Fsm\Modelos\CatalogoModelos;
 use App\Domain\Fsm\Modelos\CatalogoProcessos;
@@ -20,7 +21,6 @@ use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use Inertia\Inertia;
 use Inertia\Response;
-use Modules\Producao\Services\ReservaDeInsumoDaOs;
 
 /**
  * Sistema › Fluxos e regras (ADR 0435) — tela dos modelos de fluxo por porte × atividade.
@@ -113,7 +113,7 @@ class FluxosController extends Controller
             'margem_minima' => $comModelo ? $regras->margemMinima($businessId) : null,
             // US-PCP-031 · UC-FLX-14: reserva do insumo na venda (null = empresa sem o módulo Produção).
             'reserva_insumo' => $comModelo && self::temProducao($businessId)
-                ? app(ReservaDeInsumoDaOs::class)->ligada($businessId) : null,
+                ? app(ReservaDeInsumo::class)->ligada($businessId) : null,
             'pode_configurar' => auth()->user()->can('fluxos.configurar'),
         ]);
     }
@@ -225,7 +225,7 @@ class FluxosController extends Controller
         $businessId = (int) $request->session()->get('user.business_id');
         abort_unless(self::temProducao($businessId), 404);
 
-        app(ReservaDeInsumoDaOs::class)->mudar($businessId, (bool) $dados['ligada']);
+        app(ReservaDeInsumo::class)->mudar($businessId, (bool) $dados['ligada']);
 
         return redirect('/fluxos?aba=empresa');
     }
@@ -233,7 +233,7 @@ class FluxosController extends Controller
     /** O interruptor só existe para empresa com o módulo Produção no pacote. */
     private static function temProducao(int $businessId): bool
     {
-        return class_exists(ReservaDeInsumoDaOs::class)
+        return app()->bound(ReservaDeInsumo::class)
             && (bool) app(ModuleUtil::class)->hasThePermissionInSubscription($businessId, 'producao_module');
     }
 

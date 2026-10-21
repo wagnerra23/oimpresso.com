@@ -585,11 +585,10 @@ it('UC-FLXT-22 · quem configura liga e desliga a reserva de material na venda, 
     if (! class_exists(\Modules\Producao\Services\ReservaDeInsumoDaOs::class)) {
         $this->markTestSkipped('Modules/Producao ausente.');
     }
-    $comPacote = true;
+    // Objeto, não variável: o `fn` externo capturaria uma cópia e desligar o pacote não chegaria ao mock.
+    $pacote = (object) ['producao' => true];
     $this->partialMock(\App\Utils\ModuleUtil::class, fn ($m) => $m->shouldReceive('hasThePermissionInSubscription')
-        ->andReturnUsing(function ($b, $perm) use (&$comPacote) {
-            return $perm === 'producao_module' && $comPacote;
-        }));
+        ->andReturnUsing(fn ($b, $perm) => $perm === 'producao_module' && $pacote->producao));
     $chave = \Modules\Producao\Services\ReservaDeInsumoDaOs::CHAVE;
     $ajustes = fn (int $biz) => json_decode((string) DB::table('business')->where('id', $biz)->value('common_settings'), true) ?? [];
     $outra = (int) DB::table('business')->where('id', '!=', FLXT_BIZ)->value('id');
@@ -620,7 +619,7 @@ it('UC-FLXT-22 · quem configura liga e desliga a reserva de material na venda, 
     expect($ajustes(FLXT_BIZ))->toBe(['flxt_vizinha' => 'fica']);
 
     // Sem o módulo Produção no pacote: o interruptor some e o PATCH não existe.
-    $comPacote = false;
+    $pacote->producao = false;
     flxtEntrar($this, flxtUsuario(['fluxos.ver', 'fluxos.configurar']));
     expect(flxtGet($this, '/fluxos?aba=empresa')->json('props.reserva_insumo'))->toBeNull();
     expect(flxtPatch($this, '/fluxos/reserva', ['ligada' => true])->getStatusCode())->toBe(404);

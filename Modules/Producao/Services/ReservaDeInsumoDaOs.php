@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Producao\Services;
 
 use App\Contracts\Fabricacao\InsumosDaReceita;
+use App\Contracts\Producao\ReservaDeInsumo;
 use App\Domain\Fsm\Models\StockReservation;
 use App\Scopes\ScopeByBusiness;
 use Illuminate\Support\Facades\DB;
@@ -37,7 +38,7 @@ use Modules\Producao\Entities\Ordem;
  * `qty_reserved` é o que AINDA está reservado: o apontamento o reduz; chegando a zero a reserva vira
  * `consumed`. O que saiu de fato fica em `pcp_consumos` (US-PCP-021).
  */
-final class ReservaDeInsumoDaOs
+final class ReservaDeInsumoDaOs implements ReservaDeInsumo
 {
     public const CHAVE = 'producao_reserva_insumo';
 
