@@ -291,7 +291,7 @@ de 26/10. Regra mestre de valor.
 
 Status: 🧪
 
-- **[BACKLOG]** UC-FLX-06 — descontar o já apontado da etapa iniciada; o Ponto passar a usar o contrato `CalendarioDaEmpresa` em vez de importar `EssentialsHoliday`.
+- **[BACKLOG]** UC-FLX-06 — mostrar o prazo na aprovação do orçamento (tela de venda); descontar o já apontado da etapa iniciada; o Ponto passar a usar o contrato `CalendarioDaEmpresa` em vez de importar `EssentialsHoliday`.
 
 ---
 
