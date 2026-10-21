@@ -6,8 +6,13 @@ tecnica: Caso de uso = narrativa do operador + criterio de aceite verificavel (D
 por_que: comportamento e duravel — "a tela e read-only e a cor vem do banco" vale em qualquer refactor
 owner: wagner
 autor: "[C] 2026-09-05"
-last_run: "2026-09-11"
+last_run: "2026-10-21"
 ---
+
+> ℹ️ **`last_run` 2026-09-11 → 2026-10-21 (G-6).** A tela mudou neste PR em duas coisas: cada linha mostra
+> o aviso de WhatsApp do status (UC-RSTIDX-09, novo) e o header passou para `@/Components/PageHeader`
+> (ADR 0409), com o mesmo título, a mesma descrição e o mesmo botão. UC-RSTIDX-01..08 não foram reexecutados
+> por este bump; o resultado deles vem da lane do PR.
 
 > ℹ️ **`last_run` 2026-09-09 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
 > O único toque em `Index.tsx` no [#7224](https://github.com/wagnerra23/oimpresso.com/pull/7224) foi **1 linha(s) de COMENTÁRIO** —
