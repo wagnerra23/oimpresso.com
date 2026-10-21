@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Producao\Services;
 
 use App\Contracts\Fabricacao\InsumosDaReceita;
+use App\Domain\Fsm\Models\StockReservation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Producao\Entities\Ordem;
@@ -65,7 +66,7 @@ final class FaltaDeMaterialDaOs
             $saldo = $this->dm((string) DB::table('variation_location_details')->where('variation_id', $vid)
                 ->where('location_id', (int) $local)->value('qty_available'));
             $reservas = DB::table('stock_reservations')->where('business_id', $businessId)
-                ->where('variation_id', $vid)->where('location_id', (int) $local)->where('status', 'active');
+                ->where('variation_id', $vid)->where('location_id', (int) $local)->where('status', StockReservation::STATUS_ACTIVE);
             if ($this->temOrdemNaReserva()) {
                 $reservas->where(fn ($q) => $q->whereNull('pcp_ordem_id')->orWhere('pcp_ordem_id', '!=', $ordem->id));
             }
