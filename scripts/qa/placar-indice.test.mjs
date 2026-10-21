@@ -381,6 +381,36 @@ ok(cli(['--root', sr, '--todos', '--check']).rc === 1,
   ok(j && j.modulos?.[0]?.linhas?.length === N, `PIPE: as ${N} threads chegam — nenhuma cortada no fim`);
 }
 
+// DESCARTADA (2026-10-21): decisão encerrada sai do denominador, e só por campo declarado.
+{
+  const desc = { modulo: 'M', threads: [
+    { id: '01', titulo: 'A', dono: 'CL', provas: [{ tipo: 'arquivo', path: 'a.txt' }] },
+    { id: '02', titulo: 'B', dono: 'CL', descartada: 'D4 [W] 2026-09-29: escala é do Ponto', provas: [{ tipo: 'arquivo', path: 'nao-existe.txt' }] },
+  ] };
+  const rd = root({ indice: desc, saidas: ['01'], arquivos: { 'a.txt': 'x' } });
+  r = cli(['--root', rd, '--todos', '--check']);
+  ok(r.rc === 0, 'DESCARTADA: thread descartada não reprova o --check');
+  ok(/entregue 1 de 1\b/.test(r.out), 'DESCARTADA: sai do denominador ("entregue 1 de 1", não "1 de 2")');
+  ok(/1 descartada\(s\) fora da conta/.test(r.out), 'DESCARTADA: a contagem fora da conta é DITA, não some');
+  ok(/02 \[descartada\].*escala é do Ponto/.test(r.out), 'DESCARTADA: a linha mostra o estado e o motivo declarado');
+  const md = cli(['--root', rd, '--todos', '--md']).out;
+  ok(/entregue 1 de 1 · 1 descartada\(s\) fora da conta/.test(md), 'DESCARTADA: o --md diz a mesma conta');
+
+  // CONTROLE: o mesmo texto em `bloqueio` NÃO descarta — estado não se infere de prosa.
+  const soTexto = { modulo: 'M', threads: [desc.threads[0], { ...desc.threads[1], descartada: undefined, bloqueio: 'cancelada — D4 [W]' }] };
+  r = cli(['--root', root({ indice: soTexto, saidas: ['01'], arquivos: { 'a.txt': 'x' } }), '--todos']);
+  ok(/entregue 1 de 2/.test(r.out) && /\[bloqueada/.test(r.out), 'CONTROLE: "cancelada" só no `bloqueio` segue `bloqueada` e no denominador');
+
+  // Sem motivo → NÃO MEDI (exit 2): `true` solto tiraria a thread da conta sem dizer por quê.
+  r = cli(['--root', root({ indice: { modulo: 'M', threads: [{ ...desc.threads[1], descartada: true }] } }), '--todos']);
+  ok(r.rc === 2, 'DESCARTADA: `descartada: true` sem motivo → exit 2 (não medi)');
+
+  // Dependência de descartada NÃO satisfaz, e o motivo manda rever.
+  const dep = { modulo: 'M', threads: [desc.threads[1], { id: '03', titulo: 'C', dono: 'CL', depende_threads: ['02'], provas: [{ tipo: 'arquivo', path: 'a.txt' }] }] };
+  r = cli(['--root', root({ indice: dep, saidas: ['03'], arquivos: { 'a.txt': 'x' } }), '--todos', '--check']);
+  ok(r.rc === 1 && /depende de 02 \(descartada — rever a dependência\)/.test(r.out), 'DESCARTADA: quem depende dela não vira feito sozinho e o motivo diz por quê');
+}
+
 rmSync(TMP, { recursive: true, force: true });
 console.log(`\n${fails ? `${fails} FALHA(S)` : 'todos os casos passaram'}`);
 process.exit(fails ? 1 : 0);

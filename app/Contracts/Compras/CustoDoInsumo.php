@@ -20,4 +20,10 @@ interface CustoDoInsumo
      * @return array{custo: ?string, metodo: string, data: string, compras: int, ultima_compra_em: ?string, motivo: ?string}
      */
     public function naData(int $businessId, int $variationId, CarbonInterface|string $data, ?string $metodo = null): array;
+
+    /** O método da regra "Atualizar o custo dos insumos" da empresa: `medio`, `ultimo` ou `por_insumo`. */
+    public function metodoDaEmpresa(int $businessId): string;
+
+    /** O método próprio do insumo (`medio` | `ultimo`), ou nulo se o insumo não tem um. */
+    public function metodoDoInsumo(int $businessId, int $variationId): ?string;
 }

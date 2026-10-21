@@ -5,8 +5,8 @@ irmaos: Config.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-v
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-09-04"
-last_run_ci: "0 UC executado nesta corrida — UC-FCFG-05, UC-FCFG-06 e UC-FCFG-07 nascem com testes novos, veredito PENDENTE da lane Pest Fiscal + suíte noturna CT 100; nada foi re-executado localmente (Pest = CT 100, ADR 0062)"
+last_run: "2026-10-21"
+last_run_ci: "UC-FCFG-10 nasce com teste novo (ContingenciaModoTest, 12 passed no CT 100 em 2026-10-21); veredito da lane nfebrasil-pest PENDENTE. Os demais UC não foram re-executados nesta corrida"
 related_us: [US-FISCAL-009]
 ---
 
@@ -75,6 +75,7 @@ related_us: [US-FISCAL-009]
 | UC-FCFG-07 | a troca de ambiente exige destino digitado + motivo, e vira evento | `[must]` | CU-FISC-13 | `TrocaAmbienteCerimoniaTest` | 🧪 |
 | UC-FCFG-08 | o contador é cadastrado por empresa, com o gate da tela | `[must]` `[T0]` | D-CONTADOR · US-NFE-009 | `ContadorCadastroTest` | 🧪 |
 | UC-FCFG-09 | o papel "Contador" tem só tributação, aceite, cockpit fiscal e SPED | `[must]` `[T0]` | D-CONTADOR (caminho 2) | `ContadorCadastroTest` | 🧪 |
+| UC-FCFG-10 | a contingência é ativada com o modo escolhido (SVC-AN · SVC-RS · EPEC), e a SVC errada para a UF é recusada | `[must]` `[fiscal]` | US-NFE-071 | `ContingenciaModoTest` (3) | 🧪 |
 
 ---
 
@@ -250,6 +251,21 @@ cliente, não abre configurações da empresa nem `/fiscal/config` (403);
 - **Teste:** `Modules/Fiscal/Tests/Feature/ContadorCadastroTest.php` — `UC-FCFG-09 · papel Contador sem venda, financeiro, cliente ou configuração`.
 - **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
+## UC-FCFG-10 — A contingência é ativada com o modo escolhido `[must]` `[fiscal]`
+
+**Dado** a seção Contingência SEFAZ desligada
+**Quando** o operador escolhe o modo (SVC-AN, SVC-RS ou EPEC), escreve o motivo e ativa
+**Então** o modo fica gravado em `nfe_business_configs.contingencia_modo` e desativar o limpa;
+**E** a SEFAZ Virtual que não atende a UF do emitente é recusada (a contingência segue desligada);
+**E** modo desconhecido é recusado. A tela abre marcada na SVC da UF; sem UF conhecida, em EPEC.
+
+- **Regressão que defende:** ligar SVC para uma UF que ela não atende — as notas seriam recusadas só
+  na primeira emissão, com a SEFAZ da UF já fora do ar.
+- **Contrato:** US-NFE-071 (*"NF-e modelo 55 pode usar SVC-AN (`tpEmis=6`) ou SVC-RS (`tpEmis=7`)
+  conforme a UF do emitente"*). O que cada modo faz na emissão está em `Nfe.casos.md` UC-FNFE-19/20.
+- **Teste:** `Modules/NfeBrasil/Tests/Feature/ContingenciaModoTest.php` — os três casos `UC-FCFG-10 · …`.
+- **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
 ---
 
 ## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
@@ -275,6 +291,10 @@ cliente, não abre configurações da empresa nem `/fiscal/config` (403);
 
 ## Trilha do tempo
 
+- 2026-10-21 · [C] `UC-FCFG-10` — a seção Contingência SEFAZ ganha a escolha de modo (SVC-AN · SVC-RS ·
+  EPEC, US-NFE-071). Revalidei os UC-FCFG-01..09: a mudança na tela fica só dentro da seção de
+  contingência e nenhum deles a cobre além do UC-FCFG-04 (estado e duração), que segue valendo —
+  o payload ganhou `modo`, `svcDaUf` e `uf`, sem tirar chave.
 - 2026-07-15 · [CC] stub criado no Passo 3 do programa de ondas — **0 UC**.
 - 2026-09-04 · [C] Item A5 (PR 3/3 — cerimônia da troca). A troca de ambiente deixa de ser radio
   + botão e passa a exigir o destino digitado à mão + motivo de 15+, validados NO SERVIDOR; o

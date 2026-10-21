@@ -28,6 +28,8 @@ class StoreEmissaoRequest extends FormRequest
     {
         return [
             'modelo' => ['nullable', 'string', Rule::in(['55', '65'])],
+            // US-NFE-069: NF-e só da parte mercadoria (botão "Emitir NF-e + NFS-e").
+            'separada' => ['sometimes', 'boolean'],
         ];
     }
 

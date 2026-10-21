@@ -18,13 +18,18 @@ interface HorasDosPostos
      * Postos da empresa com segundos trabalhados no mês, contando só trechos FECHADOS
      * (linha `inicio` + a `pausa`/`fim` que a fecha) cujo início cai no mês.
      *
-     * @return list<array{posto_id: int, codigo: string, nome: string, custo_hora: string, segundos: int}>
+     * `setor` é o texto livre do cadastro do posto (`pcp_postos.setor`); null = posto sem setor.
+     * `custo_hora` é o gravado no posto (o que o apontamento copia); `custo_hora_direto` é o
+     * custo sem a parcela fixa do custeio RKW: igual ao gravado enquanto nada foi aplicado.
+     *
+     * @return list<array{posto_id: int, codigo: string, nome: string, setor: ?string, custo_hora: string, custo_hora_direto: string, segundos: int}>
      */
     public function noMes(int $businessId, string $mes): array;
 
     /**
-     * Troca `custo_hora` do posto. Apontamentos já gravados guardam a cópia do custo no
-     * início e NÃO mudam. Null quando o posto não é da empresa.
+     * Troca `custo_hora` do posto pelo custo com a parcela fixa. Na primeira troca o custo
+     * gravado vira o `custo_hora_direto`; nas seguintes o direto não muda. Apontamentos já
+     * gravados guardam a cópia do custo no início e NÃO mudam. Null quando o posto não é da empresa.
      *
      * @return array{antes: string, depois: string}|null
      */
