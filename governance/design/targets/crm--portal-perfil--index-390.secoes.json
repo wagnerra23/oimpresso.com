@@ -1,0 +1,22 @@
+{
+  "_": "A3 [CL] 2026-10-21 — playbook crm. Protótipo: rota `crm-portal-perfil` do espelho (app.jsx:861 → CrmPortalPage view=perfil → crm-portal.jsx, casca própria D6). Prévia Celular 390 (--clicar no 1º botão do seletor de tamanho da tira); mede-se .cp-frame; a tira .cp-preview fica fora.",
+  "header": {
+    "seletor": ".cp-frame .cp-top"
+  },
+  "nav": {
+    "seletor": ".cp-frame .cp-nav"
+  },
+  "nav_celular": {
+    "seletor": ".cp-frame .cp-bottom"
+  },
+  "titulo": {
+    "seletor": ".cp-frame .cp-main > div:first-child"
+  },
+  "dados": {
+    "seletor": "[data-contract=\"portal-perfil\"]"
+  },
+  "senha": {
+    "seletor": "[data-contract=\"portal-senha\"]"
+  },
+  "_mapa": "seletores pela estrutura de crm-portal.jsx:322-360 (cp-frame > cp-root > cp-top · cp-nav · cp-main · cp-bottom) + data-contract portal-* das views (crm-portal.jsx:149-292)."
+}
