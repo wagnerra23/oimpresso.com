@@ -11,6 +11,7 @@ use App\Domain\Fsm\Modelos\RecomendarModelo;
 use App\Domain\Fsm\Modelos\RegrasCompra;
 use App\Domain\Fsm\Modelos\RegrasDaEmpresa;
 use App\Domain\Fsm\Models\ModeloEmpresa;
+use App\Utils\ModuleUtil;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,6 +20,7 @@ use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Producao\Services\ReservaDeInsumoDaOs;
 
 /**
  * Sistema › Fluxos e regras (ADR 0435) — tela dos modelos de fluxo por porte × atividade.
@@ -109,6 +111,9 @@ class FluxosController extends Controller
             'opcoes_compra' => $comModelo ? RegrasCompra::opcoes() : (object) [],
             // UC-FLX-35 · UC-FLXT-19: margem mínima do orçamento (nula = desligada).
             'margem_minima' => $comModelo ? $regras->margemMinima($businessId) : null,
+            // US-PCP-031 · UC-FLX-14: reserva do insumo na venda (null = empresa sem o módulo Produção).
+            'reserva_insumo' => $comModelo && self::temProducao($businessId)
+                ? app(ReservaDeInsumoDaOs::class)->ligada($businessId) : null,
             'pode_configurar' => auth()->user()->can('fluxos.configurar'),
         ]);
     }
@@ -205,6 +210,31 @@ class FluxosController extends Controller
         ));
 
         return redirect('/fluxos?aba=empresa');
+    }
+
+    /**
+     * Reserva o insumo na venda (US-PCP-031 · UC-FLX-14). Ligada, a OS criada pela venda aprovada
+     * reserva o material da receita; desligada, nada novo é reservado (o que já foi reservado segue).
+     */
+    public function reserva(Request $request): RedirectResponse
+    {
+        abort_unless($request->user()->can('fluxos.configurar'), 403);
+
+        $dados = $request->validate(['ligada' => ['required', 'boolean']]);
+        // Tier 0 (ADR 0093): a empresa é sempre a da sessão.
+        $businessId = (int) $request->session()->get('user.business_id');
+        abort_unless(self::temProducao($businessId), 404);
+
+        app(ReservaDeInsumoDaOs::class)->mudar($businessId, (bool) $dados['ligada']);
+
+        return redirect('/fluxos?aba=empresa');
+    }
+
+    /** O interruptor só existe para empresa com o módulo Produção no pacote. */
+    private static function temProducao(int $businessId): bool
+    {
+        return class_exists(ReservaDeInsumoDaOs::class)
+            && (bool) app(ModuleUtil::class)->hasThePermissionInSubscription($businessId, 'producao_module');
     }
 
     /** Erro de regra de negócio vira erro de formulário (Inertia mostra no campo). */

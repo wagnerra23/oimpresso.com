@@ -5,6 +5,8 @@
 // os dois exigem fluxos.configurar — sem ela os switches ficam só para leitura.
 // A margem mínima do orçamento (PATCH /fluxos/margem, UC-FLXT-19) não vem do protótipo: foi
 // pedida por [W] em 2026-10-19 e usa os mesmos átomos da Compra (Interruptor + campo).
+// "Reservar material na venda" (PATCH /fluxos/reserva, US-PCP-031 · UC-FLX-14) também não vem do
+// protótipo: usa o mesmo Interruptor e só aparece para empresa com o módulo Produção.
 
 import { useEffect, useState } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
@@ -28,6 +30,8 @@ interface Props {
   opcoesCompra: MapaOpcoesCompra;
   /** UC-FLXT-19: margem mínima do orçamento, em % (nula = desligada). */
   margemMinima: number | null;
+  /** US-PCP-031: reserva do insumo na venda (null = empresa sem o módulo Produção, não mostra). */
+  reservaInsumo: boolean | null;
   podeConfigurar: boolean;
 }
 
@@ -165,9 +169,32 @@ function MargemMinima({ valor, pode }: { valor: number | null; pode: boolean }) 
   );
 }
 
-export default function AbaEmpresa({ empresa, emUso, portes, atividades, ligadas, compra, opcoesCompra, margemMinima, podeConfigurar }: Props) {
+/**
+ * US-PCP-031 · UC-FLX-14 · reserva do insumo na venda. Ligada, a OS criada pela venda aprovada reserva
+ * o material da receita e a produção baixa o real (PATCH /fluxos/reserva). Só aparece com o módulo Produção.
+ */
+function ReservaInsumo({ ligada, pode }: { ligada: boolean; pode: boolean }) {
+  return (
+    <section className="flx-card" aria-label="Reservar material na venda">
+      <div className="flx-cmp">
+        <div className="flx-cmp-r">
+          <Interruptor
+            id="flx-reserva-insumo"
+            titulo="Reservar material na venda"
+            sub="A venda aprovada reserva o material do item feito sob encomenda; a produção baixa o que usou de fato"
+            checked={ligada}
+            disabled={!pode}
+            onChange={(v) => router.patch('/fluxos/reserva', { ligada: v }, salvar)}
+          />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default function AbaEmpresa({ empresa, emUso, portes, atividades, ligadas, compra, opcoesCompra, margemMinima, reservaInsumo, podeConfigurar }: Props) {
   const erros = (usePage().props as { errors?: Record<string, string> }).errors;
-  const erro = erros?.regra ?? erros?.margem_minima ?? null;
+  const erro = erros?.regra ?? erros?.margem_minima ?? erros?.ligada ?? null;
   const verModelos = (
     <Button size="sm" asChild><Link href="/fluxos?aba=modelos">Ver modelos</Link></Button>
   );
@@ -209,6 +236,7 @@ export default function AbaEmpresa({ empresa, emUso, portes, atividades, ligadas
         <Button size="sm" variant="outline" asChild><Link href="/fluxos?aba=modelos">Trocar modelo</Link></Button>
       </div>
       <MargemMinima valor={margemMinima} pode={podeConfigurar} />
+      {reservaInsumo !== null && <ReservaInsumo ligada={reservaInsumo} pode={podeConfigurar} />}
       <div className="flx-procs">
         {emUso.processos.map((p) => {
           const daCompra = p.dominio === 'compra' && compra.length > 0;

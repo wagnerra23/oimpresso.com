@@ -46,6 +46,10 @@ andamento.
 - Margem mínima do orçamento (aba Fluxos da empresa, UC-FLXT-19 · UC-FLX-35): interruptor + campo em %,
   `PATCH /fluxos/margem` com `fluxos.configurar`; vazio desliga. Abaixo dela, converter orçamento em
   venda exige `sell.aprovar_margem_baixa` (decisão [W] 2026-10-19).
+- Reservar material na venda (aba Fluxos da empresa, US-PCP-031 · UC-FLX-14 · UC-FLXT-22): interruptor
+  só para empresa com o módulo Produção, `PATCH /fluxos/reserva` com `fluxos.configurar`; grava
+  `common_settings['producao_reserva_insumo']` sem tocar as outras chaves. Desligar não libera reserva
+  que já existe.
 - Aba Processos: processos do `CatalogoProcessos` (#9496) agrupados por área; detalhe com estados
   (filtro pelo estado de origem, legenda início/espera/fim/exceção), roteiro em paralelo, tabela de
   transições, comparativo NF-e × NFS-e nos fiscais e "Conversa com" entre processos.

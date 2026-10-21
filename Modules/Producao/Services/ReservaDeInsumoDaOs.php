@@ -50,6 +50,26 @@ final class ReservaDeInsumoDaOs
         return is_array($ajustes) && ! empty($ajustes[self::CHAVE]);
     }
 
+    /**
+     * Liga ou desliga a reserva na empresa (interruptor da aba Fluxos da empresa, PATCH /fluxos/reserva).
+     * Mexe só nesta chave: lê e regrava `common_settings` sob trava, preservando as outras chaves.
+     * Desligar não libera reserva que já existe — ela segue até a OS concluir ou cancelar.
+     */
+    public function mudar(int $businessId, bool $ligada): void
+    {
+        DB::transaction(function () use ($businessId, $ligada) {
+            $bruto = DB::table('business')->where('id', $businessId)->lockForUpdate()->value('common_settings');
+            $ajustes = json_decode((string) $bruto, true);
+            $ajustes = is_array($ajustes) ? $ajustes : [];
+            if ($ligada) {
+                $ajustes[self::CHAVE] = 1;
+            } else {
+                unset($ajustes[self::CHAVE]);
+            }
+            DB::table('business')->where('id', $businessId)->update(['common_settings' => json_encode($ajustes)]);
+        });
+    }
+
     /** Na criação da OS (venda aprovada). @return int reservas criadas agora */
     public function reservar(int $businessId, Ordem $ordem): int
     {
