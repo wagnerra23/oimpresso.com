@@ -342,6 +342,19 @@ token desconhecido também é 404.
 
 Status: 🧪
 
+## UC-PCV-11 · Arte aprovada travada · `must`
+
+> Âncora: `prototipo-ui/cowork/Wagner/cowork-inbox/producao/Producao.casos.md` UC-PCV-11 · thread 10 do playbook
+> (D-ARTE-PAGINA, [W] 2026-10-21: a página `/arte/{token}` fica; a thread 10 é a trava).
+
+**Dado** a arte aprovada **Quando** alguém troca o arquivo da arte (`POST /producao/ordens/{id}/arte/trocar`) **Então**
+a Aprovação do cliente volta como etapa nova "(nova versão)" no mesmo bloco, as etapas seguintes voltam a esperar e
+sai um link novo · Enquanto o cliente não aprova, a arte que vale (`GET /producao/ordens/{id}/arte`) segue sendo a
+última aprovada · Sem arte aprovada, ou com o mesmo arquivo, a troca é recusada e nada muda · OS de outra empresa: 404.
+A arte vigente ainda não aparece na tela do operador (fica para quando os PRs abertos do apontamento entrarem).
+
+Status: 🧪
+
 ## UC-PCOSA-02 · Vivo: a previsão acompanha · `must` valor
 
 **Dado** a regra em "Passam a usar o custo novo" **Então** a previsão é 45,00, o custo do lote segue 30,00 e

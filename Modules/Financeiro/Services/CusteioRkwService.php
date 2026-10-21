@@ -19,7 +19,8 @@ use Illuminate\Support\Facades\DB;
  *
  *   rateio do posto p       = F × h_p ÷ H      (maior resto: a soma bate F ao centavo)
  *   parcela fixa por hora   = F × 3600 ÷ H     (igual para todo posto: o rateio é por hora)
- *   custo-hora RKW sugerido = custo_hora digitado do posto + parcela fixa por hora
+ *   custo-hora RKW sugerido = custo-hora DIRETO do posto + parcela fixa por hora
+ *     (direto = o digitado, guardado à parte na 1ª aplicação; aplicar de novo não soma outra parcela)
  *   margem de contribuição  = (R − V) ÷ R
  *   ponto de equilíbrio     = F ÷ margem = F × R ÷ (R − V);  R ≤ 0 ou R ≤ V → null + aviso
  *   centro de custo (setor) = Σ dos postos do setor (`pcp_postos.setor`, decisão [W] 2026-10-21):
@@ -38,7 +39,7 @@ final class CusteioRkwService
      *   horas: string, parcela_fixa_por_hora: ?string, margem_contribuicao_pct: ?string,
      *   ponto_equilibrio: ?string, avisos: list<string>,
      *   postos: list<array{posto_id: int, codigo: string, nome: string, setor: ?string, horas: string, rateio_fixo: string,
-     *     custo_hora_atual: string, parcela_fixa_por_hora: string, custo_hora_rkw: string}>,
+     *     custo_hora_atual: string, custo_hora_direto: string, parcela_fixa_por_hora: string, custo_hora_rkw: string}>,
      *   setores: list<array{setor: ?string, postos: int, horas: string, rateio_fixo: string}>}
      */
     public function calcular(int $businessId, string $mes): array
@@ -67,6 +68,7 @@ final class CusteioRkwService
         $setores = [];
         foreach ($horas as $i => $p) {
             $atual = $this->centavos($p['custo_hora']);
+            $direto = $this->centavos($p['custo_hora_direto']);
             $setor = $p['setor'] ?? null;
             // Texto livre: "Corte" e "corte " são o mesmo setor; vale a grafia do 1º posto.
             $chave = $setor === null ? '' : mb_strtolower($setor);
@@ -76,8 +78,9 @@ final class CusteioRkwService
             $setores[$chave]['rateio'] += $rateios[$i];
             $postos[] = ['posto_id' => $p['posto_id'], 'codigo' => $p['codigo'], 'nome' => $p['nome'], 'setor' => $setor,
                 'horas' => $this->horas($p['segundos']), 'rateio_fixo' => $this->reais($rateios[$i]),
-                'custo_hora_atual' => $this->reais($atual), 'parcela_fixa_por_hora' => $this->reais((int) $porHora),
-                'custo_hora_rkw' => $this->reais($atual + (int) $porHora)];
+                'custo_hora_atual' => $this->reais($atual), 'custo_hora_direto' => $this->reais($direto),
+                'parcela_fixa_por_hora' => $this->reais((int) $porHora),
+                'custo_hora_rkw' => $this->reais($direto + (int) $porHora)];
         }
 
         // Setores em ordem alfabética; postos sem setor por último.
