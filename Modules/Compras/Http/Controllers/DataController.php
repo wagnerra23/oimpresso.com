@@ -119,4 +119,37 @@ class DataController extends Controller
             )->order(45);
         });
     }
+
+    /**
+     * US-COM-024 · UC-FLX-38 — campo "Método de custo" nos formulários de novo e de editar produto.
+     * Só nessas duas telas: o cadastro rápido (quickAdd) também desenha as partes dos módulos, mas o
+     * salvar dele (saveQuickProduct) não chama `after_product_saved`, e o campo não gravaria.
+     */
+    public function product_form_part()
+    {
+        if (! app()->bound(\App\Contracts\Compras\CustoDoInsumo::class)
+            || ! request()->routeIs('products.create', 'products.edit')) {
+            return [];
+        }
+
+        $businessId = (int) request()->session()->get('user.business_id');
+        $productId = (int) request()->route('product');
+
+        return [
+            'template_path' => 'compras::partials.metodo_custo_produto',
+            'template_data' => [
+                'compras_metodo_custo_atual' => $productId > 0
+                    ? app(\Modules\Compras\Services\MetodoCustoDoProduto::class)->atual($businessId, $productId)
+                    : '',
+                'compras_metodo_custo_empresa' => app(\App\Contracts\Compras\CustoDoInsumo::class)->metodoDaEmpresa($businessId),
+                'compras_metodo_custo_editavel' => (bool) auth()->user()?->can('purchase.update'),
+            ],
+        ];
+    }
+
+    /** Grava o "Método de custo" do formulário de produto (ver MetodoCustoDoProduto). */
+    public function after_product_saved($data)
+    {
+        app(\Modules\Compras\Services\MetodoCustoDoProduto::class)->gravarDoFormulario($data['product'], $data['request']);
+    }
 }
