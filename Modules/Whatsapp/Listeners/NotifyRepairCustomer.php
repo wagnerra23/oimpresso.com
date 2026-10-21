@@ -23,11 +23,11 @@ use Modules\Whatsapp\Jobs\SendWhatsappMessageJob;
  * `JobSheetController::update` dispara `RepairStatusChanged` com o NOME do status quando
  * `status_id` muda. A transição pela FSM (`RepairFsmActionController::execute`) não dispara.
  *
- * **Limite conhecido:** só os nomes literais `ready`/`waiting_parts` avisam. O nome do status
- * é escrito por cada empresa ("Pronto para retirada"), então com nome em português o aviso
- * não sai. `repair_statuses` não tem sinal limpo para "este status é pronto":
- * `is_completed_status` vale como "Pronto" no kanban e como "Entregue" no startPipeline.
- * Escolher o sinal é decisão de produto — travado em ClienteAcompanhaStatusContratoTest (UC-COS-13).
+ * **Qual status avisa (decisão [W] 2026-10-21):** a marca `repair_statuses.whatsapp_template_aviso`
+ * ('ready' | 'waiting_parts' | NULL), configurada em /repair/status, chega pelo evento. O nome do
+ * status não decide mais: até 2026-10-21 só os nomes literais `ready`/`waiting_parts` avisavam, e um
+ * status chamado "Pronto para retirada" não avisava. `is_completed_status` não entra, porque vale
+ * como "Pronto" no kanban e como "Entregue" no startPipeline.
  *
  * **Falha silenciosa:**
  * Se nenhum WhatsappBusinessPhone resolve pra `repair_status` OU template
@@ -48,12 +48,13 @@ class NotifyRepairCustomer
      */
     public function handleEvent(\Modules\Repair\Events\RepairStatusChanged $event): void
     {
-        $this->handle($event->repair, $event->newStatus);
+        // A marca do status decide, não o nome: o nome é escrito por cada empresa.
+        $this->handle($event->repair, (string) ($event->avisoTemplate ?? ''));
     }
 
     /**
      * @param  object  $repair  Esperado: ->business_id, ->contact_id, ->id
-     * @param  string  $newStatus  Esperado: 'ready'|'waiting_parts'|outros (ignora)
+     * @param  string  $newStatus  Mensagem marcada no status: 'ready'|'waiting_parts'; vazio ou outro valor não avisa
      */
     public function handle(object $repair, string $newStatus): void
     {
