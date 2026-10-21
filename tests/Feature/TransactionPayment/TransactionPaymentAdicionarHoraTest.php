@@ -11,7 +11,7 @@ use Spatie\Permission\Models\Permission;
 use Tests\Support\EstoqueFixture;
 
 /**
- * MEDIÇÃO — os modais Blade de ADICIONAR pagamento gravam a hora deslocada?
+ * Os modais Blade de ADICIONAR pagamento não gravam mais a hora deslocada.
  *
  * Irmão do TransactionPaymentModalHoraTest (modal de EDIÇÃO, defeito confirmado no run 38582625593).
  * Os dois modais de adicionar pré-preenchem `paid_on` com `Carbon::now()->toDateTimeString()` e o
@@ -24,7 +24,9 @@ use Tests\Support\EstoqueFixture;
  * CONTRATO medido (não derivado do código): o modal pré-preenche com a hora ATUAL e, confirmado sem
  * mudança, grava a hora atual. Âncora: o mesmo do arquivo irmão (Util::format_date_no_shift tratou
  * hora deslocada em recibo como defeito; ADR 0066 preserva o deslocamento só para exibição antiga).
- * Só MEDE: nenhum código de produção muda junto. Vermelho aqui é achado; o conserto é decisão [W].
+ * Medição (run de 2026-10-14 na lane Financeiro): America/Sao_Paulo vermelho nos 2 modais, UTC verde.
+ * CONSERTO ([W] 2026-10-21): os dois modais passaram a preencher o campo com Util::format_date_no_shift,
+ * como o modal de edição no #9392. Este arquivo fica na lane como prova do conserto.
  *
  * Relógio fixo em 2026-10-01 08:00 de America/Sao_Paulo. Controle: a mesma coisa com a empresa em UTC.
  *
