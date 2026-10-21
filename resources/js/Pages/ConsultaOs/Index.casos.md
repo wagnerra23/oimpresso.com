@@ -44,10 +44,11 @@ last_run_ci: "0 UC executado — UC-COS-08..11 nascem e UC-COS-01..07 mudam nest
 | UC-COS-10 | Celular desligado na config é recusado | must | Goals "celular só se a config ligar" | 🧪 |
 | UC-COS-11 | `/repair-status` leva ao `/consulta-os` | must | charter §2026-10-02 (D-PORTAL) | 🧪 |
 | UC-COS-12 | Mudar o status da OS avisa o cliente e o portal mostra o status novo | must `[T0]` | US-CONSULTA-004 (UC-FLX-24) | 🧪 |
-| UC-COS-13 | Status com nome da empresa muda o portal mas hoje não avisa (limite) | must | US-CONSULTA-004 limite (1) | 🧪 |
+| UC-COS-13 | Status com o nome que a empresa deu avisa quando está marcado | must | US-CONSULTA-004 (marca por status, [W] 2026-10-21) | 🧪 |
 | UC-COS-14 | Transição pela FSM hoje não avisa nem muda o portal (limite) | must | US-CONSULTA-004 limite (2) | 🧪 |
 | UC-COS-31 | Cliente que recusou WhatsApp não recebe o aviso da OS | must `[T0]` | US-CONSULTA-004 + LGPD opt-out | 🧪 |
 | UC-COS-32 | OS com cliente de outra empresa não avisa ninguém | must `[T0]` | US-CONSULTA-004 + ADR 0093 | 🧪 |
+| UC-COS-33 | Status sem marca não avisa, mesmo chamado `ready` | must | US-CONSULTA-004 (marca por status, [W] 2026-10-21) | 🧪 |
 
 Teste de todos: [`ConsultaOsIndexContratoTest`](../../../../tests/Feature/ConsultaOs/ConsultaOsIndexContratoTest.php),
 lane `PHP / Pest (Unit)` do `ci.yml` (via `.github/ci-sqlite-pest.list`), schema mínimo em SQLite
@@ -148,7 +149,8 @@ rodou teste local ([ADR 0062](../../../../memory/decisions/0062-separacao-runtim
 > listener `NotifyRepairCustomer` (Whatsapp) → `SendWhatsappMessageJob`; o portal lê `status_id`.
 > Testes: [`ClienteAcompanhaStatusContratoTest`](../../../../Modules/Repair/Tests/Feature/ClienteAcompanhaStatusContratoTest.php)
 > (MySQL, tenant 98 × 99) e [`RepairFsmActionControllerTest`](../../../../Modules/Repair/Tests/Feature/RepairFsmActionControllerTest.php) (SQLite).
-> UC-COS-13 e UC-COS-14 travam o estado de HOJE — quando o limite for resolvido, o assert inverte.
+> Desde 2026-10-21 quem decide o aviso é a marca `repair_statuses.whatsapp_template_aviso`, configurada
+> em `/repair/status` (decisão [W]). UC-COS-14 ainda trava um limite de hoje: a FSM (PR 2).
 
 ## UC-COS-12 · Mudar o status da OS avisa o cliente e o portal mostra o status novo · `must` `[T0]`
 
@@ -159,15 +161,15 @@ rodou teste local ([ADR 0062](../../../../memory/decisions/0062-separacao-runtim
   da OS devolve só essa OS, com o status novo, sem nº nem nome da OS da 99.
 - **Status:** 🧪
 
-## UC-COS-13 · Status com nome da empresa muda o portal mas hoje não avisa · `must`
+## UC-COS-13 · Status com o nome que a empresa deu avisa quando está marcado · `must`
 
-- **Aceite (estado de hoje):** Dado um status "Pronto para retirada" (`is_completed_status=1`) ·
-  Quando a OS vai para ele · Então o `RepairStatusChanged` sai com esse nome · E o listener do
-  WhatsApp não enfileira nada (só reconhece `ready`/`waiting_parts`) · E o portal já mostra
-  "Pronto para retirada".
-- **Por que não foi consertado:** `repair_statuses` não tem sinal limpo de "pronto" —
-  `is_completed_status` vale como "Pronto" no kanban e como "Entregue" no `startPipeline`;
-  avisar "está pronto" a quem já retirou seria mensagem errada. Escolher o sinal é decisão [W].
+- **Aceite:** Dado um status "Pronto para retirada" marcado com a mensagem de pronto
+  (`whatsapp_template_aviso = 'ready'`) · Quando a OS vai para ele na edição · Então sai um job de
+  WhatsApp com o template de pronto, pelo número da 98, para o celular do cliente · E o portal
+  mostra "Pronto para retirada".
+- **Histórico:** até 2026-10-21 este UC travava o limite oposto: só os nomes literais
+  `ready`/`waiting_parts` avisavam, e "Pronto para retirada" não avisava. `is_completed_status` não
+  virou o sinal porque vale "Pronto" no kanban e "Entregue" no `startPipeline`.
 - **Status:** 🧪
 
 ## UC-COS-14 · Transição pela FSM hoje não avisa nem muda o portal · `must`
@@ -193,6 +195,13 @@ rodou teste local ([ADR 0062](../../../../memory/decisions/0062-separacao-runtim
   celular e consentimento) · Quando o status vai para `ready` · Então nenhum job sai (o contato é
   buscado com `business_id` da OS, ADR 0093) · E o cliente da própria 98, no mesmo cenário,
   recebe um job.
+- **Status:** 🧪
+
+## UC-COS-33 · Status sem marca não avisa, mesmo chamado `ready` · `must`
+
+- **Aceite:** Dado um status com o nome literal `ready` e sem marca, e outro marcado com
+  aguardando peças · Quando a OS vai para o primeiro · Então nenhum job sai · E quando vai para o
+  segundo sai um job com o template de aguardando peças.
 - **Status:** 🧪
 
 ---

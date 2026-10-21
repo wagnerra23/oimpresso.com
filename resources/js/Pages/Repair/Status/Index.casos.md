@@ -128,6 +128,29 @@ last_run: "2026-09-11"
 
 ---
 
+## UC-RSTIDX-09 · Vejo na lista se o status avisa o cliente pelo WhatsApp
+- **Persona:** quem configura o fluxo e quer saber em que passo o cliente recebe mensagem.
+- **Aceite:** Dado um status marcado com a mensagem de pronto, um com aguardando peças e um sem
+  marca · Quando abro `/repair/status` · Então cada linha mostra o aviso dela, e a sem marca mostra
+  "não avisa o cliente".
+- **Fonte:** UC-FLX-24 + US-CONSULTA-004; decisão [W] 2026-10-21 (marca por status, não pelo nome).
+- **Teste:** `RepairStatusContratoTest` — *"UC-RSTIDX-09: a marca de aviso ao cliente de cada status chega à tela como está no banco"*.
+- **Status: 🧪**
+
+---
+
+## UC-RSTIDX-10 · Marco no formulário do status qual mensagem o cliente recebe
+- **Persona:** quem cria ou edita um status.
+- **Aceite:** Dado o formulário de criar ou editar status · Quando escolho "Mensagem de pronto" ou
+  "Mensagem de aguardando peças" · Então a marca é gravada · E um valor fora dessas duas vira "não
+  avisa" · E um status de outra empresa não é alterado.
+- **Por que só duas opções:** cada número de WhatsApp tem dois templates aprovados
+  (`template_repair_ready_name`, `template_repair_waiting_parts_name`).
+- **Teste:** `RepairStatusContratoTest` — *"UC-RSTIDX-10: criar e editar status grava a marca de aviso; valor fora da lista vira "não avisa"; status de outra empresa não muda"*.
+- **Status: 🧪**
+
+---
+
 ## Rastreabilidade
 
 | UC | Defendido por |

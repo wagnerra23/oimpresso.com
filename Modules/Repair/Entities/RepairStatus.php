@@ -26,6 +26,7 @@ class RepairStatus extends Model
                 'sort_order',
                 'is_completed_status',
                 'sms_template',
+                'whatsapp_template_aviso',
                 'email_subject',
                 'email_body',
             ])

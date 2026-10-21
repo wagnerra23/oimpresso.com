@@ -22,6 +22,8 @@ interface StatusRow {
   sort_order: number;
   is_completed_status: number;
   sms_template: string | null;
+  /** Mensagem de WhatsApp que o status manda ao cliente (UC-FLX-24); null = não avisa. */
+  whatsapp_template_aviso: 'ready' | 'waiting_parts' | null;
   /** Quantas folhas de OS usam este status — status_id é FK em job_sheets. */
   job_sheets_count: number;
 }
@@ -60,6 +62,12 @@ function SeloStatus({ name, color }: { name: string; color: string | null }) {
     </span>
   );
 }
+
+/** O que o cliente recebe pelo WhatsApp quando a OS entra no status (repair_statuses.whatsapp_template_aviso). */
+const AVISO_LABEL: Record<string, string> = {
+  ready: 'avisa o cliente: pronto',
+  waiting_parts: 'avisa o cliente: aguardando peças',
+};
 
 export default function StatusIndex({ statuses }: PageProps) {
   const emUso = statuses.filter((s) => s.job_sheets_count > 0).length;
@@ -104,6 +112,8 @@ export default function StatusIndex({ statuses }: PageProps) {
 
                 <span className="col-span-2 text-xs text-foreground/80 xl:col-span-1">
                   {s.is_completed_status === 1 ? 'marcado como concluído' : 'pendente'}
+                  {' · '}
+                  {AVISO_LABEL[s.whatsapp_template_aviso ?? ''] ?? 'não avisa o cliente'}
                 </span>
 
                 {/* Abaixo de xl o protótipo esconde o template (media query 1100px). */}
