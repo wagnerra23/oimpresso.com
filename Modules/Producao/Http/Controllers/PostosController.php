@@ -60,7 +60,12 @@ class PostosController extends Controller
     {
         $biz = $this->autorizar($request);
         $posto = Posto::query()->where('business_id', $biz)->findOrFail($id);
-        $posto->update($this->validarPosto($request, $biz, $posto->id));
+        $dados = $this->validarPosto($request, $biz, $posto->id);
+        // Custo-hora digitado é o direto: se mudou, a parcela do custeio RKW sai até aplicar de novo.
+        if (round((float) $dados['custo_hora'], 2) !== round((float) $posto->custo_hora, 2)) {
+            $dados['custo_hora_direto'] = null;
+        }
+        $posto->update($dados);
 
         return back()->with('status', ['success' => 1, 'msg' => 'Posto salvo.']);
     }

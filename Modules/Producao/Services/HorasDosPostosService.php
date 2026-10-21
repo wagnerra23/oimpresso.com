@@ -46,22 +46,29 @@ final class HorasDosPostosService implements HorasDosPostos
         }
 
         return DB::table('pcp_postos')->where('business_id', $businessId)->whereIn('id', array_keys($segundos))
-            ->orderBy('nome')->get(['id', 'codigo', 'nome', 'setor', 'custo_hora'])
+            ->orderBy('nome')->get(['id', 'codigo', 'nome', 'setor', 'custo_hora', 'custo_hora_direto'])
             ->map(fn ($p) => ['posto_id' => (int) $p->id, 'codigo' => (string) $p->codigo, 'nome' => (string) $p->nome,
                 'setor' => ($s = trim((string) $p->setor)) === '' ? null : $s,
-                'custo_hora' => number_format((float) $p->custo_hora, 2, '.', ''), 'segundos' => $segundos[(int) $p->id]])
+                'custo_hora' => number_format((float) $p->custo_hora, 2, '.', ''),
+                'custo_hora_direto' => number_format((float) ($p->custo_hora_direto ?? $p->custo_hora), 2, '.', ''),
+                'segundos' => $segundos[(int) $p->id]])
             ->values()->all();
     }
 
     public function trocarCustoHora(int $businessId, int $postoId, string $novo): ?array
     {
-        $antes = DB::table('pcp_postos')->where('business_id', $businessId)->where('id', $postoId)->value('custo_hora');
-        if ($antes === null) {
+        $posto = DB::table('pcp_postos')->where('business_id', $businessId)->where('id', $postoId)
+            ->first(['custo_hora', 'custo_hora_direto']);
+        if ($posto === null) {
             return null;
         }
-        DB::table('pcp_postos')->where('business_id', $businessId)->where('id', $postoId)
-            ->update(['custo_hora' => $novo, 'updated_at' => now()]);
+        // O direto é o que foi digitado: guardado na primeira troca, mantido nas seguintes.
+        DB::table('pcp_postos')->where('business_id', $businessId)->where('id', $postoId)->update([
+            'custo_hora_direto' => $posto->custo_hora_direto ?? $posto->custo_hora,
+            'custo_hora' => $novo,
+            'updated_at' => now(),
+        ]);
 
-        return ['antes' => number_format((float) $antes, 2, '.', ''), 'depois' => $novo];
+        return ['antes' => number_format((float) $posto->custo_hora, 2, '.', ''), 'depois' => $novo];
     }
 }
