@@ -13,6 +13,7 @@ contains:
   - "InsumoMetodoCustoController — PUT /compras/insumos/{variation}/metodo-custo grava o método do insumo (medio | ultimo) da gaveta de /manufacturing/insumos; empresa da sessão, variação da empresa ou 404, purchase.update (US-COM-024 · UC-FLX-38)"
   - "MetodoCustoDoProduto + DataController::product_form_part/after_product_saved — campo Método de custo no formulário Blade de novo e de editar produto, aplicado a todas as variações; só roda com o módulo instalado (system.compras_version)"
   - "InsumoMetodoCusto — entidade da tabela-ponte compras_insumo_metodo_custo (business_id, variation_id) com o método próprio do insumo (medio | ultimo), lida quando a regra é por_insumo; variations do core não ganha coluna"
+  - "PropostasPrecoController + PropostasDePreco — fila de preços propostos no detalhe da compra: lista, aprova (troca o preço de venda da variação) e recusa (US-COM-028 · UC-FLX-17); núcleo lê pela interface PropostasDePreco (app/Contracts/Compras)"
 not_contains:
   - "Estoque/inventário operacional → Modules/AssetManagement + core UltimatePOS stock"
   - "Vendas/saídas → core UltimatePOS Sells (NÃO é módulo: telas legacy em app/ + resources/views — ghost-rename-map excluded classe C)"

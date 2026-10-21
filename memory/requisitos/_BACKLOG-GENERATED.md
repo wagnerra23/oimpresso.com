@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **999 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1000 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -21,8 +21,8 @@
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
 | [`Marketplaces`](#marketplaces) | 25 | 0 | 0 | 0 | 25 |
+| [`Compras`](#compras) | 23 | 3 | 0 | 0 | 19 |
 | [`Crm`](#crm) | 23 | 0 | 0 | 0 | 23 |
-| [`Compras`](#compras) | 22 | 2 | 0 | 0 | 19 |
 | [`Fiscal`](#fiscal) | 22 | 0 | 0 | 0 | 22 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 20 | 0 | 0 | 0 | 20 |
 | [`Connector`](#connector) | 20 | 0 | 0 | 0 | 19 |
@@ -723,6 +723,41 @@
 - **US-MKT-024** — Analytics avançado margem real (CMV + frete + taxa + tributos) — **P3** · 10h
 - **US-MKT-025** — Magalu Hub + Americanas drivers (4º + 5º marketplaces) — **P3** · 16h
 
+## Compras
+
+
+### doing
+
+- **US-COM-024** — Custo do insumo numa data, pelo método da empresa (UC-FLX-38) _(`p1` · @wagner)_
+- **US-COM-026** — Compra recebida aplica a regra de custo e preço (UC-FLX-17) _(`p1` · @wagner)_
+- **US-COM-028** — Aprovar ou recusar o preço proposto no detalhe da compra (UC-FLX-17) — **P1** _(`p1` · @wagner)_
+
+### todo
+
+- **US-COM-008** — Throttle 60/1 em /compras + FormRequest ListarComprasRequest _(`p0`)_
+- **US-COM-012** — Matching automático XML→produto (EAN + xProd; fallback manual) _(`p0`)_
+- **US-COM-013** — Recebimento parcial (qty recebida por linha ≠ pedida + trânsito residual + autosave check-in) _(`p0`)_
+- **US-COM-022** — Lane required de Compras vira árvore-menos-quarentena (vermelha no main há 5 runs) _(`p0`)_
+- **US-COM-023** — Teste de 7 dias do cockpit Compras na ROTA LIVRE (biz=4) _(`p0` · @maiara · sprint 2026-W44)_
+- **US-COM-010** — Adicionar Compras em config/governance/module_clients.yaml (Larissa biz=4 piloto reportando) _(`p1`)_
+- **US-COM-014** — FSM de estágios PERSISTIDA + auditável _(`p1`)_
+- **US-COM-015** — Teste de invariante de estoque no fluxo de entrada _(`p1`)_
+- **US-COM-016** — Cobrir fluxo `/compras`→contas a pagar (Observer Financeiro) com teste _(`p1`)_
+- **US-COM-018** — Autosave rascunho de compra (`localStorage` `{biz}.{user}` debounced) _(`p2`)_
+- **US-COM-019** — Eager-load `->with(['contact','location'])` em `listarCompras().paginate()` _(`p2`)_
+- **US-COM-021** — Investigar flakiness das baselines dark/empty do VRT e reabilitar no gate L2 _(`p2`)_
+- **US-COM-025** — Rastreio do rolo: em que OS cada fração da mídia foi usada (UC-FLX-18) — **P2** _(`p2` · @wagner)_
+- **US-COM-020** — A11y do drawer (`role=dialog` + focus-trap + `aria-label` + `Esc`) _(`p3`)_
+- **US-COM-001** — Cockpit `/compras` (lista paginada + 4 KPIs + drawer)
+- **US-COM-002** — Criar compra manual
+- **US-COM-003** — Importar XML DF-e como compra (GAP NOVO)
+- **US-COM-004** — Deprecar `/purchases` legacy
+- **US-COM-005** — Entrada matricial tam×cor (GradeMatrixInput)
+
+### retirada
+
+- **US-COM-017** — ~~PiiRedactor no Drawer de compra~~ → RETIRADA (2026-07-03)
+
 ## Crm
 
 
@@ -751,40 +786,6 @@
 - **US-CRM-061** — MWART tela Lead Show (drawer cockpit pattern V2 ADR 0110) · **P2** · 12H
 - **US-CRM-062** — MWART CrmDashboard com Recharts · **P2** · 10H
 - **US-CRM-077** — Pattern canon `officeimpresso_codigo` nos 3 importers de contacts (gap ADR 0200) · **P1** · 6H
-
-## Compras
-
-
-### doing
-
-- **US-COM-024** — Custo do insumo numa data, pelo método da empresa (UC-FLX-38) _(`p1` · @wagner)_
-- **US-COM-026** — Compra recebida aplica a regra de custo e preço (UC-FLX-17) _(`p1` · @wagner)_
-
-### todo
-
-- **US-COM-008** — Throttle 60/1 em /compras + FormRequest ListarComprasRequest _(`p0`)_
-- **US-COM-012** — Matching automático XML→produto (EAN + xProd; fallback manual) _(`p0`)_
-- **US-COM-013** — Recebimento parcial (qty recebida por linha ≠ pedida + trânsito residual + autosave check-in) _(`p0`)_
-- **US-COM-022** — Lane required de Compras vira árvore-menos-quarentena (vermelha no main há 5 runs) _(`p0`)_
-- **US-COM-023** — Teste de 7 dias do cockpit Compras na ROTA LIVRE (biz=4) _(`p0` · @maiara · sprint 2026-W44)_
-- **US-COM-010** — Adicionar Compras em config/governance/module_clients.yaml (Larissa biz=4 piloto reportando) _(`p1`)_
-- **US-COM-014** — FSM de estágios PERSISTIDA + auditável _(`p1`)_
-- **US-COM-015** — Teste de invariante de estoque no fluxo de entrada _(`p1`)_
-- **US-COM-016** — Cobrir fluxo `/compras`→contas a pagar (Observer Financeiro) com teste _(`p1`)_
-- **US-COM-018** — Autosave rascunho de compra (`localStorage` `{biz}.{user}` debounced) _(`p2`)_
-- **US-COM-019** — Eager-load `->with(['contact','location'])` em `listarCompras().paginate()` _(`p2`)_
-- **US-COM-021** — Investigar flakiness das baselines dark/empty do VRT e reabilitar no gate L2 _(`p2`)_
-- **US-COM-025** — Rastreio do rolo: em que OS cada fração da mídia foi usada (UC-FLX-18) — **P2** _(`p2` · @wagner)_
-- **US-COM-020** — A11y do drawer (`role=dialog` + focus-trap + `aria-label` + `Esc`) _(`p3`)_
-- **US-COM-001** — Cockpit `/compras` (lista paginada + 4 KPIs + drawer)
-- **US-COM-002** — Criar compra manual
-- **US-COM-003** — Importar XML DF-e como compra (GAP NOVO)
-- **US-COM-004** — Deprecar `/purchases` legacy
-- **US-COM-005** — Entrada matricial tam×cor (GradeMatrixInput)
-
-### retirada
-
-- **US-COM-017** — ~~PiiRedactor no Drawer de compra~~ → RETIRADA (2026-07-03)
 
 ## Fiscal
 

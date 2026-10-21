@@ -17,7 +17,8 @@ use InvalidArgumentException;
  * pela OS aberta da Produção (Modules/Producao PrevisaoCustoDaOrdem, US-PCP-022), que mostra custo da
  * abertura × hoje e escolhe a previsão. Desde 2026-10-20 o recebimento da compra lê `metodo` e
  * `preco` da regra de custo quando a empresa a gravou (Modules/Compras AplicarCustoDoRecebimento,
- * US-COM-026); `regraEm` e `aprovacao` ainda não são lidos.
+ * US-COM-026). Desde 2026-10-21 o detalhe da compra lê `aprovacao` e `etapa` para a fila de preços
+ * propostos (Modules/Compras PropostasDePreco, US-COM-028); `regraEm` ainda não é lido.
  * A regra `trava` não pode ser desligada.
  */
 final class RegrasCompra

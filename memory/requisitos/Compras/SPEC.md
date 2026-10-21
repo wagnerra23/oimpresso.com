@@ -586,7 +586,7 @@ Como dono que configurou a regra "Atualizar o custo dos insumos" na aba Fluxos, 
 - [x] Com a regra, compra pendente não muda custo nem preço (a edição de produto pela compra do core fica desligada)
 - [x] Empresa sem a regra gravada: o core segue como antes (teste do último preço)
 - [x] Tier 0: só variações da empresa da compra; a outra empresa não muda
-- [ ] Fila de aprovação das propostas (Fabricação / Pendências)
+- [ ] Fila de aprovação das propostas — a do recebimento é a US-COM-028; Fabricação e Pendências seguem abertas
 
 ### US-COM-027 · Estoque mínimo vira requisição de compra (UC-FLX-19) — **P2**
 
@@ -613,6 +613,31 @@ Como quem compra, quero que o item que caiu abaixo do mínimo no local apareça 
 - [x] Tier 0: job recebe `$businessId`; produto e local de outro business nunca entram. _(UC-REQMIN-06, 98 × 99)_
 - [x] A requisição sai com o fornecedor e o preço da última compra recebida do item: o fornecedor vai em `transactions.contact_id`, então há uma requisição automática por local **e fornecedor**; item nunca comprado fica numa sem fornecedor, com preço 0. A lista de requisições ganha a coluna Fornecedor. _(UC-REQMIN-07/08 · UC-REQC-06)_
 - [x] Tela para ligar/desligar a regra: card Compra da aba Fluxos da empresa (`/fluxos?aba=empresa`), com `fluxos.configurar` — a permissão das outras regras da empresa nessa tela, não uma de Compras. _(UC-FLXT-24)_
+
+### US-COM-028 · Aprovar ou recusar o preço proposto no detalhe da compra (UC-FLX-17) — **P1**
+
+> owner: wagner · priority: p1 · estimate: 3h · status: doing · type: story
+
+Como dono que deixou a regra de custo em "Propõe novo preço", quero ver no detalhe da compra recebida os preços propostos e aprovar ou recusar cada um, para que a proposta não fique esquecida numa tabela que ninguém lê.
+
+**Implementado em:** _pendente_ — código no PR #9714 (serviço `PropostasDePreco`, `PropostasPrecoController`, seção `PrecosPropostos` no detalhe da compra e o `PropostasDePrecoContratoTest`), ainda sem veredito da lane `compras-pest`. A âncora vira path quando o teste ficar verde e a US fechar (ADR 0273 + doneness-lint ADR 0302: `doing` com path conflita).
+
+**Testado em:** `Modules/Compras/Tests/Feature/PropostasDePrecoContratoTest.php`
+
+- Origem: a US-COM-026 grava as propostas em `compras_propostas_preco`, sem lista nem decisão. A regra tem o parâmetro `aprovacao` (`recebimento` padrão · `fabricacao` · `pendencias`); esta US faz o `recebimento`.
+- Aprovar: preço com imposto = `preco_proposto`; sem imposto = com imposto × 100 / (100 + imposto do produto); margem = (preço sem imposto − custo sem imposto atual) / custo × 100. Dá o mesmo resultado do `aplicar` no recebimento. Recusar não mexe na variação.
+- Só aprova se o preço da variação ainda é o `preco_antes` da proposta; se mudou depois, a tela mostra e só deixa recusar.
+- Exige `product.update`. Tier 0: proposta e variação filtradas pela empresa do usuário; proposta de outra empresa = 404.
+- Enquanto `aprovacao` for `fabricacao` ou `pendencias`, a fila aparece aqui com aviso de que o lugar configurado ainda não existe.
+- Regra em Conferido: a compra não tem essa etapa e o recebimento não aplica nada; o detalhe da compra avisa. Tratar a etapa é outro PR.
+
+**Aceite:**
+- [x] Detalhe da compra lista as propostas com custo e preço antes/depois e o status
+- [x] Aprovar grava o preço proposto e devolve a margem de antes (dois caminhos no teste)
+- [x] Recusar mantém o preço; preço mudado depois da proposta bloqueia a aprovação
+- [x] Sem `product.update` = 403; outra empresa = 404
+- [x] Aviso na tela quando a regra está em Conferido
+- [ ] Fila na Fabricação (`aprovacao = fabricacao`) e nas Pendências da Visão geral
 
 ### 9.1 Seguradas (feature-wish ADR 0105 — NÃO no backlog ativo)
 

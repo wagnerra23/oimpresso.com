@@ -876,10 +876,15 @@ class PurchaseController extends Controller
                 'amount_paid' => $amount_paid,
                 'payment_due' => $final_total - $amount_paid,
             ],
+            // US-COM-028: preços propostos pelo recebimento (null = módulo Compras desligado).
+            'precos_propostos' => Inertia::defer(fn () => app()->bound(\App\Contracts\Compras\PropostasDePreco::class)
+                ? app(\App\Contracts\Compras\PropostasDePreco::class)->daCompra((int) $purchase->business_id, (int) $purchase->id)
+                : null),
             'permissions' => [
                 'update' => $user->can('purchase.update'),
                 'delete' => $user->can('purchase.delete'),
                 'payments' => $user->can('purchase.payments') || $user->can('edit_purchase_payment') || $user->can('delete_purchase_payment'),
+                'aprovar_preco' => $user->can('product.update'),
             ],
         ]);
     }

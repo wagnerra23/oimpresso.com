@@ -189,6 +189,7 @@ jobs:
             Modules/Compras/Tests/Feature/ComprasInstallGravaVersaoTest.php \
             Modules/Compras/Tests/Feature/RequisicaoEstoqueMinimoContratoTest.php \
             Modules/Compras/Tests/Feature/AplicarCustoDoRecebimentoTest.php \
+            Modules/Compras/Tests/Feature/PropostasDePrecoContratoTest.php \
             Modules/Compras/Tests/Feature/ComprasExportarContratoTest.php
 
 

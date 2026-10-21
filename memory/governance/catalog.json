@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 848,
-    "edges": 1153,
+    "nodes": 849,
+    "edges": 1154,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 468,
+      "component": 469,
       "api": 86
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 90,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 468,
+      "hasComponent": 469,
       "dependsOn": 126,
       "delegatesTo": 117,
       "migratesTo": 1,
@@ -1991,6 +1991,13 @@
       "module": "Compras",
       "name": "MetodoCustoDoProduto + DataController::product_form_part/after_product_saved",
       "desc": "campo Método de custo no formulário Blade de novo e de editar produto, aplicado a todas as variações; só roda com o módulo instalado (system.compras_version)"
+    },
+    {
+      "id": "component:Compras/PropostasPrecoController + PropostasDePreco",
+      "type": "component",
+      "module": "Compras",
+      "name": "PropostasPrecoController + PropostasDePreco",
+      "desc": "fila de preços propostos no detalhe da compra: lista, aprova (troca o preço de venda da variação) e recusa (US-COM-028 · UC-FLX-17); núcleo lê pela interface PropostasDePreco (app/Contracts/Compras)"
     },
     {
       "id": "component:Compras/RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo",
@@ -8099,6 +8106,12 @@
     {
       "from": "module:Compras",
       "to": "component:Compras/MetodoCustoDoProduto + DataController::product_form_part/after_product_saved",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Compras",
+      "to": "component:Compras/PropostasPrecoController + PropostasDePreco",
       "type": "hasComponent",
       "source": "contains"
     },
