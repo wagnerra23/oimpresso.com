@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Modules\ComunicacaoVisual\Entities\Orcamento;
+use Modules\ComunicacaoVisual\Entities\Os;
 use Modules\ComunicacaoVisual\Http\Requests\AprovarOrcamentoRequest;
 use Modules\ComunicacaoVisual\Services\OrcamentoCalculator;
 use Modules\ComunicacaoVisual\Services\OrcamentoGravador;
@@ -103,11 +104,13 @@ class OrcamentoController extends Controller
         return Orcamento::query()
             ->where('comvis_orcamentos.business_id', $businessId)
             ->withCount('itens')
+            ->with(['os' => fn ($q) => $q->where('business_id', $businessId)->select(['id', 'orcamento_id', 'numero'])])
             ->orderByDesc('id')
             ->limit($limite)
             ->get(['id', 'numero', 'status', 'total', 'data_emissao'])
             ->map(fn (Orcamento $o) => [
                 'id'           => $o->id,
+                'os'           => $o->os?->numero,
                 'numero'       => $o->numero,
                 'status'       => $o->status,
                 'total'        => (float) $o->total,
@@ -130,6 +133,7 @@ class OrcamentoController extends Controller
         if ($o === null) {
             return null;
         }
+        $os = Os::query()->where('business_id', $businessId)->where('orcamento_id', $o->id)->first(['id', 'numero']);
 
         return [
             'id'               => $o->id,
@@ -140,6 +144,8 @@ class OrcamentoController extends Controller
             'custo_instalacao' => (float) $o->custo_instalacao,
             'custo_entrega'    => (float) $o->custo_entrega,
             'total'            => (float) $o->total,
+            // UC-FLX-01: a OS que o orçamento gerou ao ser aprovado (null antes disso).
+            'os'               => $os ? ['id' => $os->id, 'numero' => $os->numero] : null,
             'itens'            => $o->itens->map(fn ($i) => [
                 'material_id'       => $i->material_id,
                 'descricao'         => $i->descricao,

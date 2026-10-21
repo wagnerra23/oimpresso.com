@@ -32,7 +32,7 @@
  */
 import { useMemo, useState, type ReactNode } from 'react';
 import { Deferred, Head, Link, router } from '@inertiajs/react';
-import { Plus, Trash2, Calculator, ServerCog, Ruler, Clock, Printer, Save, FolderOpen } from 'lucide-react';
+import { Plus, Trash2, Calculator, ServerCog, Ruler, Clock, Printer, Save, FolderOpen, CheckCircle2 } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { PageHeader } from '@/Components/PageHeader';
@@ -60,6 +60,8 @@ interface OrcamentoTela {
   custo_instalacao: number;
   custo_entrega: number;
   total: number;
+  /** OS que o orçamento gerou ao ser aprovado (UC-FLX-01). */
+  os: { id: number; numero: string } | null;
   itens: Array<{
     material_id: number | null;
     descricao: string;
@@ -78,6 +80,7 @@ interface OrcamentoResumo {
   total: number;
   data_emissao: string | null;
   itens: number;
+  os: string | null;
 }
 
 interface Props {
@@ -91,6 +94,8 @@ interface Props {
 
 /** Status em que o orçamento reaberto ainda grava (espelha OrcamentoController::EDITAVEIS). */
 const EDITAVEIS = ['rascunho', 'enviado'];
+/** Status que viram OS (espelha OrcamentoViraOs::APROVAVEIS). */
+const APROVAVEIS = ['rascunho', 'enviado', 'aprovado'];
 const STATUS_LABEL: Record<string, string> = {
   rascunho: 'Rascunho',
   enviado: 'Enviado',
@@ -219,6 +224,10 @@ export default function Index({
   );
   const [alterado, setAlterado] = useState(false);
   const [salvando, setSalvando] = useState(false);
+  // UC-FLX-01: aprovar cria a OS. Dois passos na mesma linha (sem diálogo): aprovar não volta atrás.
+  const [osCriada, setOsCriada] = useState<string | null>(orcamento?.os?.numero ?? null);
+  const [confirmandoAprovar, setConfirmandoAprovar] = useState(false);
+  const [aprovando, setAprovando] = useState(false);
 
   function mexeu() {
     setConferido(null);
@@ -308,6 +317,27 @@ export default function Index({
     }
   }
 
+  // Aprova o orçamento gravado e cria a OS com os itens, medidas e arquivos dele (UC-FLX-01).
+  // O servidor não recalcula preço: a OS vale o total gravado. Reenviar devolve a mesma OS.
+  async function aprovarOrcamento() {
+    if (!salvo) return;
+    setAprovando(true);
+    setErro(null);
+    try {
+      const os = (await chamarApi('POST', `/comunicacao-visual/api/orcamentos/${salvo.id}/aprovar`, {})) as {
+        numero: string;
+      };
+      setOsCriada(os.numero);
+      setSalvo({ ...salvo, status: 'aprovado' });
+      router.reload({ only: ['recentes'] });
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : 'Falha inesperada ao aprovar o orçamento.');
+    } finally {
+      setAprovando(false);
+      setConfirmandoAprovar(false);
+    }
+  }
+
   // Grava o orçamento: POST na 1ª vez, PUT no reaberto. O servidor recalcula tudo de novo e o
   // número fica o mesmo. A URL passa a ter ?orcamento={id}, então recarregar reabre o mesmo.
   async function salvarOrcamento() {
@@ -334,6 +364,10 @@ export default function Index({
   const editavel = !salvo || EDITAVEIS.includes(salvo.status);
   // Salvar só depois de conferir (protótipo): orçamento salvo com número errado vira retrabalho.
   const podeSalvar = podeCriar && editavel && temItemValido && !!conferido && (!salvo || alterado);
+  // Aprovar só o que está gravado igual à tela: mudança não salva não pode virar OS.
+  // `aprovado` sem OS (gravado antes desta tela) também aprova: o servidor cria a OS que falta.
+  const podeAprovar =
+    podeCriar && !!salvo && APROVAVEIS.includes(salvo.status) && !alterado && !osCriada;
 
   return (
     <>
@@ -611,6 +645,14 @@ export default function Index({
                     O desconto está maior que o valor do orçamento — o total fica negativo.
                   </p>
                 )}
+                {osCriada && (
+                  <p data-contract="os-criada" className="flex items-center gap-1.5 text-xs">
+                    <Badge className="bg-success-soft text-success-fg border-success/20">
+                      Aprovado · OS {osCriada} criada
+                    </Badge>
+                    <span className="text-muted-foreground">vai para a arte com as peças, medidas e arquivos.</span>
+                  </p>
+                )}
                 {conferido && (
                   <p className="flex items-center gap-1.5 text-xs">
                     {Math.abs(conferido.total - totalLocal) < 0.01 ? (
@@ -642,11 +684,28 @@ export default function Index({
                     </>
                   )}
                 </Button>
-                {podeCriar && (
+                {podeCriar && !podeAprovar && !osCriada && (
                   <Button type="button" onClick={salvarOrcamento} disabled={!podeSalvar || salvando}>
                     <Save className="mr-2 h-4 w-4" />
                     {salvando ? 'Salvando…' : salvo ? 'Salvar alterações' : 'Salvar orçamento'}
                   </Button>
+                )}
+                {podeAprovar && !confirmandoAprovar && (
+                  <Button type="button" data-contract="aprovar" onClick={() => setConfirmandoAprovar(true)}>
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    Aprovar e criar OS
+                  </Button>
+                )}
+                {podeAprovar && confirmandoAprovar && (
+                  <>
+                    <Button type="button" variant="ghost" onClick={() => setConfirmandoAprovar(false)} disabled={aprovando}>
+                      Cancelar
+                    </Button>
+                    <Button type="button" data-contract="aprovar" onClick={aprovarOrcamento} disabled={aprovando}>
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      {aprovando ? 'Aprovando…' : `Confirmar: aprovar ${salvo?.numero}`}
+                    </Button>
+                  </>
                 )}
               </div>
             </div>
@@ -655,7 +714,8 @@ export default function Index({
               O cálculo na tela é só uma prévia. Ao conferir no servidor, o valor oficial é
               recalculado com as regras da sua loja.
               {podeCriar && editavel && !conferido && ' Salvar só libera depois de conferir: orçamento salvo com número errado vira retrabalho no balcão.'}
-              {salvo && !alterado && ` Salvo como ${salvo.numero} — reabra quando quiser pela lista de orçamentos salvos.`}
+              {salvo && !alterado && !osCriada && ` Salvo como ${salvo.numero} — reabra quando quiser pela lista de orçamentos salvos.`}
+              {podeAprovar && ' Aprovar cria a OS com o total gravado e não volta atrás.'}
               {salvo && alterado && editavel && ` Há mudanças que ainda não estão no ${salvo.numero}.`}
             </p>
           </CardContent>
@@ -722,6 +782,7 @@ function ListaOrcamentos({ itens, abertoId }: { itens: OrcamentoResumo[]; aberto
         <li key={o.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2 text-sm">
           <span className="font-mono text-foreground">{o.numero}</span>
           <Badge variant="outline">{STATUS_LABEL[o.status] ?? o.status}</Badge>
+          {o.os && <span className="font-mono text-xs text-muted-foreground">{o.os}</span>}
           <span className="text-muted-foreground">
             {o.data_emissao ? o.data_emissao.split('-').reverse().join('/') : '—'} · {o.itens}{' '}
             {o.itens === 1 ? 'peça' : 'peças'}
