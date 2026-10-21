@@ -22,8 +22,9 @@ use Modules\Producao\Exceptions\ApontamentoRecusado;
  * mantém), nunca a coluna do FSM. Quem mudou e quando fica em `pcp_eventos` (append-only), tipo
  * `etapa_alocada`, com o antes e o depois. Tier 0: tudo por `$businessId` (ADR 0093).
  *
- * Responsável válido = usuário da MESMA empresa com `producao.access`. Ainda não há cadastro de
- * quem trabalha em qual posto; quando houver, a regra entra aqui.
+ * Responsável válido = usuário da MESMA empresa com `producao.access` e, se o posto da etapa tem
+ * operadores cadastrados (US-PCP-030), um deles — a mesma regra do Liberar e do início da etapa
+ * (`OperadoresDoPosto::podeAtuar`). Posto sem cadastro aceita qualquer pessoa, como antes.
  */
 final class AlocacaoDaEtapa
 {
@@ -47,6 +48,11 @@ final class AlocacaoDaEtapa
             if ($etapa->status !== 'pendente') {
                 throw new ApontamentoRecusado(ApontamentoRecusado::ETAPA_ENCERRADA, 'Esta etapa já começou ou terminou: não se realoca.',
                     ['programacao_id' => $etapa->id, 'status' => $etapa->status]);
+            }
+            $posto = $etapa->posto_id !== null ? (int) $etapa->posto_id : null;
+            if ($userId !== null && ! app(OperadoresDoPosto::class)->podeAtuar($businessId, $posto, $userId)) {
+                throw new ApontamentoRecusado(ApontamentoRecusado::RESPONSAVEL_INVALIDO, 'Este posto tem operadores cadastrados e o responsável não é um deles.',
+                    ['programacao_id' => $etapa->id, 'posto_id' => $posto, 'user_id' => $userId]);
             }
 
             $uid = fn () => $etapa->user_id !== null ? (int) $etapa->user_id : null;

@@ -525,7 +525,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [x] Responsável tem de ser da mesma empresa e ter `producao.access` (UC-PCALO-04).
 - [x] Operador sem a permissão → 403; etapa ou posto de outra empresa → 404 (UC-PCALO-05).
 - [x] `GET /producao/postos/{id}/fila` lista as etapas abertas do posto pela ordem do início previsto, com o responsável (UC-PCALO-06).
-- [ ] Cadastro de quem trabalha em qual posto ou setor (hoje vale qualquer pessoa da empresa com acesso à Produção).
+- [x] Posto com operadores cadastrados (US-PCP-030): o responsável escolhido tem de ser um deles; posto sem cadastro aceita qualquer pessoa da empresa com acesso à Produção (UC-PCALO-07).
 - [ ] Tela do alocador (quadro/calendário — US-PCP-015) consumindo os dois endpoints.
 - [ ] Aviso de conflito: mesma pessoa ou mesmo posto com etapas sobrepostas, e material sem saldo para o horário escolhido.
 
@@ -587,7 +587,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [x] Posto com operadores cadastrados: o Liberar só aceita um deles como responsável (UC-PCOPE-02) e só um deles começa a etapa, mesmo quem já era responsável antes do cadastro (UC-PCOPE-04).
 - [x] Posto sem operadores cadastrados segue como antes (UC-PCOPE-03).
 - [x] Operador de outra empresa ou sem `producao.access` é recusado; posto de outra empresa → 404; sem a permissão → 403 (UC-PCOPE-05).
-- [ ] Alocador (US-PCP-029, PR #9647) chamar `OperadoresDoPosto::podeAtuar` ao trocar o responsável.
+- [x] Alocador (US-PCP-029) chama `OperadoresDoPosto::podeAtuar` ao trocar o responsável (UC-PCALO-07).
 - [ ] Tela de Postos mostrando e editando os operadores de cada posto.
 
 ## §8 — Regras Gherkin (R-PCP-001..010) — resumo
