@@ -101,11 +101,12 @@ class StageGateEvaluator
      */
     public function evaluate(ServiceOrder $order, ?string $processKey, string $actionKey): array
     {
-        $rules = self::RULES[$processKey ?? ''][$actionKey] ?? [];
-        $rules = array_values(array_filter(
-            $rules,
-            fn (array $r) => ! isset($r['ajuste']) || $this->assinatura->exigida((int) $order->business_id),
-        ));
+        $rules = [];
+        foreach (self::RULES[$processKey ?? ''][$actionKey] ?? [] as $regra) {
+            if (! isset($regra['ajuste']) || $this->assinatura->exigida((int) $order->business_id)) {
+                $rules[] = $regra;
+            }
+        }
 
         if (empty($rules)) {
             return [

@@ -91,7 +91,7 @@ class AssinaturaEntrega
         $bizId = (int) $order->business_id;
 
         return DB::transaction(function () use ($order, $png, $recebidoPor, $userId, $bizId) {
-            $assinatura = OsAssinatura::withoutGlobalScopes() // business filtrado explícito abaixo
+            $assinatura = OsAssinatura::withoutGlobalScopes() // SUPERADMIN: escopo da sessão trocado pelo business_id da OS, filtrado abaixo
                 ->where('business_id', $bizId)
                 ->where('service_order_id', $order->id)
                 ->lockForUpdate()
@@ -106,6 +106,7 @@ class AssinaturaEntrega
                 ]);
             } else {
                 foreach ($assinatura->arquivos()->get() as $antigo) {
+                    /** @var \Modules\Arquivos\Entities\Arquivo $antigo */
                     $this->arquivos->softDelete($antigo);
                 }
                 $assinatura->update(['recebido_por' => $recebidoPor, 'user_id' => $userId]);
