@@ -32,6 +32,9 @@ class ConsumirEstoque implements SideEffectInterface
             ->where('business_id', $subject->business_id)
             ->where('transaction_id', $subject->getKey())
             ->where('status', StockReservation::STATUS_ACTIVE)
+            // US-PCP-031: reserva de insumo de OS (`pcp_ordem_id`) é baixada pelo apontamento da OS, nunca
+            // aqui — consumir a quantidade reservada somaria uma 2ª baixa à real (regra mestre de estoque).
+            ->when(Schema::hasColumn('stock_reservations', 'pcp_ordem_id'), fn ($q) => $q->whereNull('pcp_ordem_id'))
             ->get();
 
         $hasVld = Schema::hasTable('variation_location_details');

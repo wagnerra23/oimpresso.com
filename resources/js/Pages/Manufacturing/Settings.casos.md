@@ -85,6 +85,7 @@ last_run: "2026-10-06"
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
+- **[BACKLOG]** Gravar configurações exige permissão do módulo: `POST /manufacturing/settings` de usuário com assinatura mas sem a permissão não altera `business.manufacturing_settings` (403). Hoje `SettingsController@store` só checa assinatura/superadmin. Falta o [W] dizer **qual** permissão manda (a Blade nunca teve).
 - **[BACKLOG]** O botão "Atualizar" fica desabilitado enquanto nada mudou e reabilita ao mexer
   em qualquer um dos 3 campos (R-24) — é comportamento de navegador; lugar é spec Playwright.
 - **[BACKLOG]** Submeter persiste e a tela volta com os valores novos (o `redirect()->back()`

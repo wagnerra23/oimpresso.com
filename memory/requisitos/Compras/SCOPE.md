@@ -7,6 +7,7 @@ contains:
   - "DataController"
   - "InstallController"
   - "CustoDoInsumoService — custo do insumo numa data pelo método da regra da empresa (US-COM-024 · UC-FLX-38); só lê purchase_lines + transactions"
+  - "RequisicaoEstoqueMinimoJob + comando compras:requisicao-estoque-minimo — US-COM-027 · UC-FLX-19 estoque abaixo de alert_quantity vira requisição de compra do núcleo (transactions type=purchase_requisition) por local, teto(mínimo − saldo), sem duplicar item em requisição aberta; não move estoque nem cria pedido; desligado por padrão em business.common_settings"
   - "AplicarCustoDoRecebimento — compra recebida grava o custo pela regra da empresa e trata o preço (so_custo | aplicar | propor), só quando a empresa gravou a regra (US-COM-026 · UC-FLX-17)"
   - "Database/Migrations/2026_10_20_120000_create_compras_propostas_preco_table — tabela compras_propostas_preco, proposta de preço pendente gerada no recebimento (business_id, variation_id, transaction_id)"
   - "InsumoMetodoCusto — entidade da tabela-ponte compras_insumo_metodo_custo (business_id, variation_id) com o método próprio do insumo (medio | ultimo), lida quando a regra é por_insumo; variations do core não ganha coluna"
@@ -15,6 +16,7 @@ not_contains:
   - "Vendas/saídas → core UltimatePOS Sells (NÃO é módulo: telas legacy em app/ + resources/views — ghost-rename-map excluded classe C)"
   - "Financeiro de Contas a Pagar → Modules/Financeiro"
   - "NF-e de entrada → Modules/NfeBrasil"
+  - "Rastreio do rolo (em que OS cada fração do lote foi usada, US-COM-025) → Modules/Producao: as frações vêm de pcp_consumos, tabela de lá"
 trust_required: L3
 owner: wagner
 permission_prefix: compras.*

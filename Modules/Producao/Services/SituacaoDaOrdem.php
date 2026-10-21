@@ -152,6 +152,12 @@ final class SituacaoDaOrdem
                 if (! in_array((int) $uid, $validos, true)) {
                     throw new ApontamentoRecusado(ApontamentoRecusado::RESPONSAVEL_INVALIDO, 'Responsável não encontrado nesta empresa.', ['programacao_id' => $prog]);
                 }
+                // UC-FLX-08 · US-PCP-030: posto com operadores cadastrados só aceita um deles.
+                $posto = $abertas[$prog]->posto_id !== null ? (int) $abertas[$prog]->posto_id : null;
+                if (! app(OperadoresDoPosto::class)->podeAtuar($businessId, $posto, (int) $uid)) {
+                    throw new ApontamentoRecusado(ApontamentoRecusado::RESPONSAVEL_INVALIDO,
+                        'Responsável não é operador do posto de '.$abertas[$prog]->nome.'.', ['programacao_id' => $prog, 'posto_id' => $posto]);
+                }
             }
             $sem = $abertas->filter(fn (Programacao $p) => ! isset($responsaveis[$p->id]) && $p->user_id === null)->pluck('nome')->all();
             if ($sem !== []) {
