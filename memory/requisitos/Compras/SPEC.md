@@ -596,6 +596,8 @@ Como quem compra, quero que o item que caiu abaixo do mínimo no local apareça 
 
 **Implementado em:** `Modules/Compras/Services/RequisicaoEstoqueMinimoService.php` — job diário (`RequisicaoEstoqueMinimoJob` + `compras:requisicao-estoque-minimo`), ligado na tela Fluxos (`app/Http/Controllers/FluxosController.php` · `requisicaoEstoqueMinimo`, interface `app/Contracts/Compras/RequisicaoEstoqueMinimo.php`); fornecedor visível em `resources/js/Pages/PurchaseRequisition/Index.tsx`.
 
+**Testado em:** `Modules/Compras/Tests/Feature/RequisicaoEstoqueMinimoContratoTest.php` (@covers-us US-COM-027 · UC-REQMIN-01..08). A coluna Fornecedor (UC-REQC-06) e o interruptor em Fluxos (UC-FLXT-24) são provados nos testes de contrato das respectivas telas.
+
 **Origem:** UC-FLX-19 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:72`, "Abaixo do mínimo → Cria a requisição com o fornecedor da última compra", fonte Mubisys, planejado). O que já existia (medido 2026-10-20):
 
 - O mínimo é `products.alert_quantity` (por produto, não por local) — não há campo de mínimo no Compras.

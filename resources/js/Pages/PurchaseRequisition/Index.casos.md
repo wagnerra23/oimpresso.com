@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: requisição de outro negócio ou de local vetado, ou prazo diferente do da Blade, leva o comprador a repor errado.
 owner: wagner
-last_run: "2026-10-13"
+last_run: "2026-10-21"
 ---
 
 # Casos de Uso & Aceite — Requisições de compra

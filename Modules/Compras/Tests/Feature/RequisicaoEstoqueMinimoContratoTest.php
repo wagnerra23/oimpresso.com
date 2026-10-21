@@ -25,6 +25,8 @@ use Tests\Support\WithSeededTenant;
  *   Local L1 · C mínimo 5,  saldo 12    → nada (acima)
  *   Local L1 · D mínimo 8,  saldo 8     → nada (igual não é abaixo)
  *   Local L2 · A mínimo 10, saldo 9,99  → 1
+ *
+ * @covers-us US-COM-027
  */
 uses(Tests\TestCase::class, DatabaseTransactions::class, WithSeededTenant::class);
 
