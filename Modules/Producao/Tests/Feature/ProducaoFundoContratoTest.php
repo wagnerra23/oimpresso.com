@@ -190,7 +190,7 @@ it('UC-PCV-31 · dois cronômetros: máquina e pessoa', function () {
         ->and(fn () => $this->svc->fechar($this->b98, $pes->id, $this->u98, 'ch-31-acab-fim2'))->toThrow(ModelNotFoundException::class);
 });
 
-it('UC-PCV-32 · custo real soma máquina, pessoa e terceiro — dupla prova', function () {
+it('UC-PCV-32 · UC-PCCH-01 · custo real soma máquina, pessoa e terceiro — dupla prova', function () {
     $roland = pcpPosto($this->b98, 'ROLAND32', Posto::MAQUINA, '42.00');
     $acab = pcpPosto($this->b98, 'ACAB32', Posto::PESSOA, '28.00');
     $t = fn (string $h) => Carbon::parse("2026-10-15 {$h}:00");
@@ -212,7 +212,8 @@ it('UC-PCV-32 · custo real soma máquina, pessoa e terceiro — dupla prova', f
     DB::table('pcp_postos')->where('id', $roland->id)->update(['custo_hora' => '999.00']);
 
     $custo = app(CustoRealService::class)->daOs($this->b98, 'repair_job_sheet', 7001, '480.00');
-    expect($custo)->toBe(['maquina' => '84.00', 'pessoa' => '28.00', 'terceiros' => '480.00', 'total' => '592.00']);
+    // `material` entrou na conta com a US-PCP-021; só a OS por item (pcp_ordem) baixa material.
+    expect($custo)->toBe(['maquina' => '84.00', 'pessoa' => '28.00', 'material' => '0.00', 'terceiros' => '480.00', 'total' => '592.00']);
 
     // Caminho 2, independente do Service: soma no SQL (TIMESTAMPDIFF × custo copiado) + terceiro.
     $sql = (string) DB::table('pcp_apontamentos as i')->join('pcp_apontamentos as f', 'f.inicio_id', '=', 'i.id')

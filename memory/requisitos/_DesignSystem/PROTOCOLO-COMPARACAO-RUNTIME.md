@@ -417,9 +417,16 @@ evidência, ela está **PARCIALMENTE PUBLICADA** — e é assim que se reporta.
 
 **Não usar "igual ao protótipo", "pronta", "completa" ou "fiel" sem anexar a matriz.** Um medidor
 parcial autoriza afirmar **quais dimensões ele comparou**, nunca fidelidade integral: o
-`design-diff` mecaniza D2/D4/D6/D8 e não decide fluxo, drawer, permissão, ícone nem regra de
+`design-diff` mecaniza D2/D4/D6/D8 e não decide fluxo, permissão, ícone nem regra de
 negócio. É a **Regra 0** (acima) aplicada item a item — ela já proíbe declarar "aplicado/pronto"
 sem prova; aqui a prova ganha unidade.
+
+**Gaveta (drawer), desde 2026-10-19:** a **forma** dela passou a ser medida — o override da tela
+(`governance/design/targets/roles/<Mod--Tela>.json`) declara o passo `abrir` (o que clicar e o
+seletor que prova que abriu) e os papéis `roles.<lado>.drawer`; o `design-diff-lote` grava a
+medida em `medidas/<slug>/gaveta/` e o `design-diff --check-drawer` dá o veredito (`a classificar`,
+nunca `bug`), incluindo tokens lidos **dentro** do portal. O que a gaveta **faz** (o que abre,
+o que salva) continua fora, como o resto do fluxo. Até essa data, gaveta ficava fora do medidor.
 
 ### Onde a matriz mora — no artefato que já existe
 

@@ -19,6 +19,7 @@ use Modules\Fisio\Entities\ProgramItem;
 use Modules\Fisio\Services\AparelhosDoPortal;
 use Modules\Fisio\Services\CheckinDoPortal;
 use Modules\Fisio\Services\Consentimentos;
+use Modules\Fisio\Services\DiaLocal;
 use Modules\Fisio\Services\JogoService;
 use Modules\Fisio\Services\PortalTokenService;
 
@@ -98,6 +99,8 @@ class PortalController extends Controller
             'jogo' => $this->jogo->estado($paciente),
             'consentimentos' => $this->consentimentos->situacao($paciente),
             'registrado_hoje' => $deHoje !== null,
+            // O portal só guarda check-in na fila offline quando o aparelho é lembrado (UC-FPP-31).
+            'guardar_offline' => $this->lembrado($request, $linha),
         ];
 
         if ($modo === CheckinDoPortal::MODO_PAUSA) {
@@ -112,7 +115,44 @@ class PortalController extends Controller
             'crise' => ['itens' => $this->checkins->versaoDeCrise($programa)],
             'relato' => $deHoje !== null ? $this->relatoDeHoje($deHoje) : null,
             'red_flags' => array_values(array_map('strval', (array) config('fisio.red_flags', []))),
+            // Missões, desafio e medalhas (T-08c): só fora da pausa — no dia ruim o jogo sai da tela.
+            'constancia' => $this->jogo->constancia($paciente),
         ]));
+    }
+
+    /**
+     * Desafio semanal (T-08c · UC-FPP-34): aceitar com meta n−1 ou n, ou recusar. Mesmos portões
+     * do check-in. 200 decidido · 409 sem oferta hoje ou semana já decidida · 422 meta inválida.
+     * Recusar não tira XP: só grava a recusa.
+     */
+    public function desafio(Request $request, string $token): JsonResponse
+    {
+        $linha = $this->tokens->resolver($token);
+        if ($linha === null) {
+            return $this->linkInvalido();
+        }
+        if (! $this->pinAceito($request, $linha)) {
+            return response()->json(['erro' => 'pin_pendente'], 403);
+        }
+        $paciente = $this->pacienteDe($linha);
+        if (! $this->consentimentos->vigente($paciente, Consentimentos::TELEATENDIMENTO)) {
+            return response()->json(['erro' => 'consentimento_pendente'], 403);
+        }
+
+        $dados = $request->validate([
+            'aceitar' => ['required', 'boolean'],
+            'meta' => ['nullable', 'integer', 'between:1,7'],
+        ]);
+        $aceitar = (bool) $dados['aceitar'];
+        $meta = isset($dados['meta']) ? (int) $dados['meta'] : null;
+        if ($aceitar && ! in_array($meta, JogoService::opcoesDeMeta((int) $paciente->sessions_per_week), true)) {
+            return response()->json(['erro' => 'meta_invalida'], 422);
+        }
+        if (! $this->jogo->decidirDesafio($paciente, $aceitar, $meta)) {
+            return response()->json(['erro' => 'sem_oferta'], 409);
+        }
+
+        return response()->json(['constancia' => $this->jogo->constancia($paciente)]);
     }
 
     /**
@@ -162,10 +202,15 @@ class PortalController extends Controller
     private function offline(Request $request, PortalToken $linha, Response $tela): SymfonyResponse
     {
         $resposta = $tela->toResponse($request);
-        $lembrado = $this->aparelhos->reconhece($linha, $request->cookie($this->aparelhos->nomeCookie($linha)));
-        $resposta->headers->set('X-Fisio-Offline', $lembrado ? 'guardar' : 'nao-guardar');
+        $resposta->headers->set('X-Fisio-Offline', $this->lembrado($request, $linha) ? 'guardar' : 'nao-guardar');
 
         return $resposta;
+    }
+
+    /** Aparelho lembrado deste token (cookie) — só nele o programa e a fila ficam no aparelho. */
+    private function lembrado(Request $request, PortalToken $linha): bool
+    {
+        return $this->aparelhos->reconhece($linha, $request->cookie($this->aparelhos->nomeCookie($linha)));
     }
 
     /**
@@ -284,7 +329,19 @@ class PortalController extends Controller
             'red_flags' => ['nullable', 'array', 'max:20'],
             'red_flags.*' => ['string', Rule::in((array) config('fisio.red_flags', []))],
             'crisis' => ['nullable', 'boolean'],
+            'chave' => ['nullable', 'string', 'regex:/^[A-Za-z0-9-]{8,64}$/'],
+            'dia' => ['nullable', 'date_format:Y-m-d'],
+            'offline' => ['nullable', 'boolean'],
         ]);
+
+        // Fila offline (UC-FPP-30..32): o check-in guardado no aparelho só vale no dia em que o
+        // paciente o fez, e só existe em aparelho lembrado. Nos dois casos nada é gravado.
+        if (isset($dados['dia']) && $dados['dia'] !== DiaLocal::de(now())) {
+            return response()->json(['erro' => 'dia_passou'], 422);
+        }
+        if (($dados['offline'] ?? false) && ! $this->lembrado($request, $linha)) {
+            return response()->json(['erro' => 'fila_so_aparelho_lembrado'], 403);
+        }
 
         $r = $this->checkins->registrar($paciente, $dados);
         $status = $r['criado'] ? 201 : 200;
@@ -303,6 +360,7 @@ class PortalController extends Controller
             'checkin_id' => (int) $checkin->id,
             'xp_ganho' => $r['xp_ganho'],
             'jogo' => $this->jogo->estado($paciente),
+            'constancia' => $this->jogo->constancia($paciente),
         ], $status);
     }
 

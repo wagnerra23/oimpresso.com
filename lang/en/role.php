@@ -29,6 +29,7 @@ return [
     'discount.manage' => 'Add, edit, deactivate and delete discounts',
     'fluxos.ver' => 'View flows and rules',
     'fluxos.configurar' => 'Change the business flow model',
+    'sell.aprovar_margem_baixa' => 'Approve quotation below the minimum margin',
 
     'supplier.view' => 'View supplier',
     'supplier.create' => 'Add supplier',

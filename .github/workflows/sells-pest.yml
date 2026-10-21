@@ -35,6 +35,16 @@ on:
       - 'Modules/ProductCatalogue/Http/Controllers/ProductCatalogueController.php'  # modulos-faltantes 04
       - 'Modules/ProductCatalogue/Services/CatalogueQrService.php'
       - 'app/Transaction.php'
+      - 'Modules/Compras/Observers/TransactionSellLineCustoObserver.php'
+      - 'Modules/Compras/Providers/ComprasServiceProvider.php'
+      - 'app/Contracts/Compras/**'  # UC-FLX-34 custo no detalhe do orcamento
+      - 'app/Observers/TransactionMargemMinimaObserver.php'
+      - 'app/Exceptions/MargemAbaixoDoMinimo.php'
+      - 'database/migrations/2026_10_19_220000_add_margem_minima_to_fsm_modelos_empresa.php'
+      - 'database/migrations/2026_10_19_220100_add_sell_aprovar_margem_baixa_permission.php'
+      - 'app/TransactionSellLine.php'
+      - 'database/migrations/2026_10_19_200000_add_custo_previsto_to_transaction_sell_lines.php'
+      - 'Modules/Compras/Services/CustoDoInsumoService.php'
       - 'app/Http/Controllers/SellCommissionSplitController.php'
       - 'app/Http/Controllers/SellController.php'
       - 'app/Http/Controllers/Api/App/PedidosController.php'
@@ -43,6 +53,10 @@ on:
       - 'database/seeders/FsmProcessoVendaComProducaoSeeder.php'
       - 'database/seeders/FsmProcessoComunicacaoVisualSeeder.php'
       - 'app/Domain/Fsm/Modelos/**'
+      - 'app/Domain/Fsm/Services/ExecuteStageActionService.php'  # Marcar perdido (exige_motivo)
+      - 'app/Domain/Fsm/Models/SaleStageAction.php'  # Marcar perdido (exige_motivo)
+      - 'app/Http/Controllers/SaleFsmActionController.php'  # Marcar perdido (exige_motivo)
+      - 'database/migrations/2026_10_21_120000_add_exige_motivo_to_sale_stage_actions.php'  # Marcar perdido (exige_motivo)
       - 'app/Domain/Fsm/Models/ModeloEmpresa.php'
       - 'database/migrations/2026_10_16_140000_create_fsm_modelos_empresa_table.php'
       - 'app/Http/Controllers/Api/App/PedidoAcaoController.php'  # P1 tela 22 (PR 04 propostas-app)
@@ -56,6 +70,10 @@ on:
       - 'Modules/Producao/Http/Controllers/Api/AppApontamentoController.php'
       - 'Modules/Producao/Services/**'
       - 'app/Http/Controllers/Api/App/OsArquivosController.php'
+      - 'Modules/OficinaAuto/Services/StageGateEvaluator.php'  # UC-FLX-22 foto do serviço na entrega
+      - 'Modules/OficinaAuto/Services/AcoesOsDoApp.php'
+      - 'app/Http/Controllers/ServiceOrderFsmActionController.php'
+      - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php'
       - 'routes/api/app/os-arquivos.php'
       - 'app/Contracts/Arquivos/AnexosDoApp.php'
       - 'Modules/Arquivos/Services/AnexosDoAppService.php'
@@ -89,6 +107,11 @@ on:
       - 'routes/api.php'
       - 'routes/api/app/**'
       - 'app/Http/Controllers/SellPosController.php'
+      # Sob teste em QuoteAccessTermometroContratoTest (US-SELL-070 · UC-FLX-04).
+      - 'app/Services/Sells/QuoteAccessRecorder.php'
+      - 'app/Jobs/QuoteFollowUpJob.php'
+      - 'app/Console/Commands/Sells/QuoteFollowUpCommand.php'
+      - 'database/migrations/2026_10_20_120000_create_transaction_quote_accesses_table.php'
       # Sob teste em SellsCreateV3ContratoTest (UC-V302/V303). Sem este gatilho, mexer no
       # controller do preview não dispararia o teste dele — gate mudo com cara de cobertura.
       - 'app/Http/Controllers/SellsV3Controller.php'
@@ -100,6 +123,11 @@ on:
       - 'app/Http/Controllers/CashRegisterController.php'
       # Sob teste em SellReturnIndexContratoTest (UC-SRIDX-*, lista de devoluções).
       - 'app/Http/Controllers/SellReturnController.php'
+      # Sob teste em PesquisaSatisfacaoEntregaContratoTest (US-SELL-071 · UC-FLX-25).
+      - 'app/Jobs/PesquisaSatisfacaoEntregaJob.php'
+      - 'app/Services/Sells/PesquisaEntregaConfig.php'
+      - 'app/Console/Commands/Sells/PesquisaSatisfacaoEntregaCommand.php'
+      - 'database/migrations/2026_10_20_140000_create_transaction_satisfaction_surveys_table.php'
       - 'resources/js/Pages/SellReturn/**'
       - 'app/Utils/TransactionUtil.php'
       # Sob teste em BuscaProdutoPrecoDeGrupoContratoTest (filterProduct × getVariationGroupPrice).
@@ -161,14 +189,32 @@ jobs:
               - 'Modules/ProductCatalogue/Http/Controllers/ProductCatalogueController.php'
               - 'Modules/ProductCatalogue/Services/CatalogueQrService.php'
               - 'app/Transaction.php'
+              - 'Modules/Compras/Observers/TransactionSellLineCustoObserver.php'
+              - 'Modules/Compras/Providers/ComprasServiceProvider.php'
+              - 'app/Contracts/Compras/**'  # UC-FLX-34 custo no detalhe do orcamento
+              - 'app/Observers/TransactionMargemMinimaObserver.php'
+              - 'app/Exceptions/MargemAbaixoDoMinimo.php'
+              - 'database/migrations/2026_10_19_220000_add_margem_minima_to_fsm_modelos_empresa.php'
+              - 'database/migrations/2026_10_19_220100_add_sell_aprovar_margem_baixa_permission.php'
+              - 'app/TransactionSellLine.php'
+              - 'database/migrations/2026_10_19_200000_add_custo_previsto_to_transaction_sell_lines.php'
+              - 'Modules/Compras/Services/CustoDoInsumoService.php'
               - 'app/Http/Controllers/SellCommissionSplitController.php'
               - 'app/Http/Controllers/SellPosController.php'
+              - 'app/Services/Sells/QuoteAccessRecorder.php'
+              - 'app/Jobs/QuoteFollowUpJob.php'
+              - 'app/Console/Commands/Sells/QuoteFollowUpCommand.php'
+              - 'database/migrations/2026_10_20_120000_create_transaction_quote_accesses_table.php'
               - 'app/Http/Controllers/SellsV3Controller.php'
               - 'app/Http/Controllers/SalesOrderController.php'
               - 'resources/js/Pages/SalesOrder/**'
               - 'app/Utils/CashRegisterUtil.php'
               - 'app/Http/Controllers/CashRegisterController.php'
               - 'app/Http/Controllers/SellReturnController.php'
+              - 'app/Jobs/PesquisaSatisfacaoEntregaJob.php'
+              - 'app/Services/Sells/PesquisaEntregaConfig.php'
+              - 'app/Console/Commands/Sells/PesquisaSatisfacaoEntregaCommand.php'
+              - 'database/migrations/2026_10_20_140000_create_transaction_satisfaction_surveys_table.php'
               - 'resources/js/Pages/SellReturn/**'
               - 'app/Utils/TransactionUtil.php'
               - 'app/Utils/ProductUtil.php'
@@ -189,6 +235,10 @@ jobs:
               - 'database/seeders/FsmProcessoVendaComProducaoSeeder.php'
               - 'database/seeders/FsmProcessoComunicacaoVisualSeeder.php'
               - 'app/Domain/Fsm/Modelos/**'
+              - 'app/Domain/Fsm/Services/ExecuteStageActionService.php'  # Marcar perdido (exige_motivo)
+              - 'app/Domain/Fsm/Models/SaleStageAction.php'  # Marcar perdido (exige_motivo)
+              - 'app/Http/Controllers/SaleFsmActionController.php'  # Marcar perdido (exige_motivo)
+              - 'database/migrations/2026_10_21_120000_add_exige_motivo_to_sale_stage_actions.php'  # Marcar perdido (exige_motivo)
               - 'app/Domain/Fsm/Models/ModeloEmpresa.php'
               - 'database/migrations/2026_10_16_140000_create_fsm_modelos_empresa_table.php'
               - 'app/Http/Controllers/Api/App/PedidoAcaoController.php'  # P1 tela 22 (PR 04 propostas-app)
@@ -202,6 +252,10 @@ jobs:
               - 'Modules/Producao/Http/Controllers/Api/AppApontamentoController.php'
               - 'Modules/Producao/Services/**'
               - 'app/Http/Controllers/Api/App/OsArquivosController.php'
+              - 'Modules/OficinaAuto/Services/StageGateEvaluator.php'  # UC-FLX-22 foto do serviço na entrega
+              - 'Modules/OficinaAuto/Services/AcoesOsDoApp.php'
+              - 'app/Http/Controllers/ServiceOrderFsmActionController.php'
+              - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php'
               - 'routes/api/app/os-arquivos.php'
               - 'app/Contracts/Arquivos/AnexosDoApp.php'
               - 'Modules/Arquivos/Services/AnexosDoAppService.php'
@@ -349,6 +403,9 @@ jobs:
         # (total 3.703,50 · estoque 10 → 7, conta à mão e recalculado das linhas) + 2ª
         # conversão 409 sem baixar de novo + [T0] 98 × 99. NASCE SEM RUN.
         #
+        # 2026-10-20 — + QuoteAccessTermometroContratoTest (UC-QUO-05..08, US-SELL-070 · UC-FLX-04):
+        # abertura do link /quote/{token} gravada (HEAD/prefetch/usuário da empresa fora), página não
+        # quebra se gravar falha, retorno de 48 h uma vez só e só no business do job. NASCE SEM RUN.
         # 2026-10-06 — + CommissionSplitAuditTest (UC-COM-01/02, playbook comissões thread 03):
         # trocar split/comissionado grava auditoria antes→depois; PATCH do split não alcança
         # venda nem usuário de outro business. NASCE SEM RUN: vermelho aqui é este arquivo.
@@ -396,6 +453,9 @@ jobs:
         # não retoma, migration de dados idempotente, POST /api/app/pedidos/{id}/acao.
         # 2026-10-16 — + FsmPagamentoForaDasEtapasContratoTest: entregar sai de invoiced,
         # paid → entregar por compatibilidade, migration idempotente, SituacaoPagamentoVenda pelos títulos.
+        # 2026-10-20 — + PesquisaSatisfacaoEntregaContratoTest (UC-VSHOW-09..13, US-SELL-071 · UC-FLX-25):
+        # pesquisa 2 dias depois da entrega, uma por venda, opt-out LGPD, nota baixa abre atendimento
+        # no CRM, default desligado, tenant 98 × 99. NASCE SEM RUN: vermelho aqui é este arquivo.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -408,12 +468,17 @@ jobs:
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-sells-junit.xml \
             tests/Feature/Sells/SellsShowContratoTest.php \
+            tests/Feature/Sells/PesquisaSatisfacaoEntregaContratoTest.php \
+            tests/Feature/Sells/OrcamentoCustoPrevistoContratoTest.php \
+            tests/Feature/Sells/SellsShowCustoOrcamentoContratoTest.php \
+            tests/Feature/Sells/SellsMargemMinimaContratoTest.php \
             tests/Feature/Sells/SellsEditContratoTest.php \
             tests/Feature/Sells/SellsIndexTenantContratoTest.php \
             tests/Feature/Sells/SellsIndexFiltroDataFimContratoTest.php \
             tests/Feature/Sells/AppPedidosApiContratoTest.php \
             tests/Feature/Sells/AppPedidosPassosProcessoContratoTest.php \
             tests/Feature/Sells/FsmAplicarModeloContratoTest.php \
+            tests/Feature/Sells/FsmMarcarPerdidoContratoTest.php \
             tests/Feature/Sells/FsmCatalogoProcessosContratoTest.php \
             tests/Feature/Sells/AppInicioApiContratoTest.php \
             tests/Feature/Sells/AppPerfilMenuApiContratoTest.php \
@@ -424,6 +489,7 @@ jobs:
             tests/Feature/Sells/FsmPagamentoForaDasEtapasContratoTest.php \
             tests/Feature/Sells/AppNotificacoesApiContratoTest.php \
             tests/Feature/Sells/AppOsApiContratoTest.php \
+            Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php \
             tests/Feature/Sells/AppOsArquivosApiContratoTest.php \
             tests/Feature/Sells/AppPedidoEntregaContratoTest.php \
             tests/Feature/Sells/AppOficinaAgendaApiContratoTest.php \
@@ -453,6 +519,7 @@ jobs:
             tests/Feature/Sells/DescontosContratoTest.php \
             tests/Feature/Sells/SellsPosIndexContratoTest.php \
             tests/Feature/Sells/QuotationConvertTest.php \
+            tests/Feature/Sells/QuoteAccessTermometroContratoTest.php \
             tests/Feature/Sells/ImportSalesContratoTest.php \
             tests/Feature/Sells/ImportSalesReverterContratoTest.php \
             tests/Feature/Sells/VendasMwartCutoverTest.php \

@@ -17,6 +17,8 @@ uses(PontoTestCase::class);
 const ALK_FP_A = 'AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99';
 const ALK_FP_B = '11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00';
 
+beforeEach(fn () => config()->set('pontowr2.app_links.outros_android', []));
+
 it('sem configuração, os dois arquivos respondem 404', function () {
     config()->set('pontowr2.app_links.android_package', '');
     config()->set('pontowr2.app_links.android_sha256', '');
@@ -48,6 +50,32 @@ it('fingerprint só inválido não publica assetlinks', function () {
     config()->set('pontowr2.app_links.android_sha256', 'AA:BB');
 
     $this->get('/.well-known/assetlinks.json')->assertNotFound();
+});
+
+it('outros apps Android (ex. Fisio) entram no mesmo assetlinks, e app inválido fica de fora', function () {
+    config()->set('pontowr2.app_links.android_package', '');
+    config()->set('pontowr2.app_links.outros_android', [
+        ['package' => 'com.oimpresso.fisio', 'sha256' => ALK_FP_A],
+        ['package' => 'com.sem.fingerprint', 'sha256' => 'AA:BB'],
+    ]);
+
+    $this->get('/.well-known/assetlinks.json')
+        ->assertOk()
+        ->assertExactJson([[
+            'relation' => ['delegate_permission/common.handle_all_urls'],
+            'target'   => [
+                'namespace'                => 'android_app',
+                'package_name'             => 'com.oimpresso.fisio',
+                'sha256_cert_fingerprints' => [ALK_FP_A],
+            ],
+        ]]);
+});
+
+it('o Fisio vem configurado por padrão com um fingerprint válido', function () {
+    $fisio = collect((array) require base_path('Modules/Ponto/Config/config.php'))['app_links']['outros_android'][0];
+
+    expect($fisio['package'])->toBe('com.oimpresso.fisio');
+    $this->assertMatchesRegularExpression('/^([0-9A-F]{2}:){31}[0-9A-F]{2}$/', $fisio['sha256']);
 });
 
 it('apple-app-site-association associa o app às rotas do ponto mobile, sem redirect', function () {

@@ -54,8 +54,10 @@ describe('Wave 28 ComVis — D2 cross-tenant defesa Model-level (10 entities)', 
 
         $sem = [];
         foreach ($entities as $entityClass) {
-            $src = file_get_contents((new ReflectionClass($entityClass))->getFileName());
-            if (! str_contains($src, "addGlobalScope('business_id'")) {
+            // Mede o comportamento, não o texto: o escopo pode vir de trait (EscopoPorNegocioDaSessao,
+            // #9611) e o grep no arquivo do model dava falso vermelho. Instanciar dispara o boot.
+            new $entityClass();
+            if (! $entityClass::hasGlobalScope('business_id')) {
                 $sem[] = $entityClass;
             }
         }
@@ -73,7 +75,10 @@ describe('Wave 28 ComVis — D2 cross-tenant defesa Model-level (10 entities)', 
         expect($srcOrc)->toContain("addGlobalScope('business_id'");
 
         // OrcamentoItem: boot() + addGlobalScope (filhote do Orcamento via FK orcamento_id mas também scoped por biz)
-        expect($srcItem)->toContain("addGlobalScope('business_id'");
+        // O escopo vem da trait EscopoPorNegocioDaSessao: confere o escopo registrado, não o texto.
+        new \Modules\ComunicacaoVisual\Entities\OrcamentoItem();
+        expect(\Modules\ComunicacaoVisual\Entities\OrcamentoItem::hasGlobalScope('business_id'))->toBeTrue();
+        expect($srcItem)->toContain('static::creating');
     });
 
     it('W28 D2.c — Wave 26 LogsActivity audit trail mantido em 10/10 entities (não-regressão)', function () {

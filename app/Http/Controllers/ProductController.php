@@ -1185,6 +1185,22 @@ class ProductController extends Controller
     }
 
     /**
+     * O valor gravado dos 20 campos personalizados do produto (1 → 20). O Editar React devolve
+     * todos no envio, porque o update() grava '' em quem não vem no request (UC-PEDIT-10).
+     *
+     * @return array<int, string>
+     */
+    protected function valoresCamposPersonalizados(Product $produto): array
+    {
+        $valores = [];
+        for ($i = 1; $i <= 20; $i++) {
+            $valores[$i] = (string) ($produto->{'product_custom_field' . $i} ?? '');
+        }
+
+        return $valores;
+    }
+
+    /**
      * Show the form for creating a new resource.
      *
      * @return \Illuminate\Http\Response
@@ -1288,6 +1304,7 @@ class ProductController extends Controller
                     'tax' => $duplicate_product->tax,
                     'tax_type' => $duplicate_product->tax_type,
                     'origem_mercadoria' => (int) ($duplicate_product->origem_mercadoria ?? 0),
+                    'ncm' => (string) ($duplicate_product->ncm ?? ''),
                     'barcode_type' => $duplicate_product->barcode_type,
                     'sku' => (string) ($duplicate_product->sku ?? ''),
                     'alert_quantity' => $duplicate_product->alert_quantity,
@@ -1302,6 +1319,9 @@ class ProductController extends Controller
                 'warranties' => $warranties,
                 'commonSettings' => $common_settings ?? [],
                 'enableExpiry' => session('business.enable_product_expiry') == 1,
+                // UC-PCAD-12: `add_expiry` (padrão da coluna) = a validade é lançada na compra; o Blade
+                // esconde o campo e manda 12 meses. `add_manufacturing` = o campo aparece, vazio.
+                'expiryType' => (string) session('business.expiry_type'),
                 'enableLot' => (bool) ($common_settings['enable_lot_number'] ?? false),
                 'enableRacks' => (bool) session('business.enable_racks'),
             ]);
@@ -1343,6 +1363,21 @@ class ProductController extends Controller
         );
     }
 
+    /**
+     * NCM do produto — 8 dígitos, só números (UC-PCAD-13, CU-PROD-16).
+     *
+     * Fora do `try` de store(), pelo mesmo motivo da origem. Ausente ou vazio não valida e não
+     * grava: o produto nasce com o DEFAULT '0' da coluna. Produto de serviço não tem NCM, então
+     * o cadastro não pode exigi-lo (decisão [M] 2026-10-20).
+     */
+    protected function validarNcm(Request $request): void
+    {
+        $request->validate(
+            ['ncm' => ['sometimes', 'nullable', 'digits:8']],
+            ['ncm.digits' => 'O NCM tem 8 dígitos, só números.'],
+        );
+    }
+
     public function store(Request $request)
     {
         if (! auth()->user()->can('product.create')) {
@@ -1373,6 +1408,7 @@ class ProductController extends Controller
         }
 
         $this->validarOrigemMercadoria($request);
+        $this->validarNcm($request);
 
         try {
             $business_id = $request->session()->get('user.business_id');
@@ -1394,6 +1430,12 @@ class ProductController extends Controller
             // produto nasce com o DEFAULT 0 da coluna — a mesma origem que a nota usava antes.
             if ($request->filled('origem_mercadoria')) {
                 $product_details['origem_mercadoria'] = (int) $request->input('origem_mercadoria');
+            }
+
+            // NCM (UC-PCAD-13): só grava quando o formulário manda. O Blade não manda, e vazio
+            // deixa o DEFAULT '0' da coluna.
+            if ($request->filled('ncm')) {
+                $product_details['ncm'] = (string) $request->input('ncm');
             }
 
             if (! empty($request->input('sub_category_id'))) {
@@ -1680,10 +1722,12 @@ class ProductController extends Controller
                     'productLocations' => $product->product_locations->pluck('id')->all(),
                     'image' => $product->image_url,
                     'warrantyId' => $product->warranty_id,
-                    'productCustomField1' => $product->product_custom_field1,
-                    'productCustomField2' => $product->product_custom_field2,
-                    'productCustomField3' => $product->product_custom_field3,
-                    'productCustomField4' => $product->product_custom_field4,
+                    // UC-PEDIT-10: o update() grava '' em todo campo personalizado que não vem no
+                    // request e, com a empresa usando validade, zera a validade que não vem. A tela
+                    // recebe o valor gravado dos 20 campos e da validade para devolvê-los no envio.
+                    'camposPersonalizados' => $this->valoresCamposPersonalizados($product),
+                    'expiryPeriod' => $product->expiry_period !== null ? (float) $product->expiry_period : null,
+                    'expiryPeriodType' => $product->expiry_period_type,
                 ],
                 'categories' => $categories,
                 'brands' => $brands,

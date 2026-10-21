@@ -82,9 +82,13 @@ jobs:
           # são vocabulário de DOMÍNIO correto ali, não regressão do shared Repair.
           # --exclude-dir casa por basename do diretório (não por path), por isso
           # 'Repair' e 'OficinaAuto' em vez de 'Modules/Repair'.
+          # app/Http/Controllers/Api/App/OficinaController.php é a API do app da
+          # oficina (#8687): `km` ali é o mesmo vocabulário de domínio do OficinaAuto.
+          # --exclude casa por basename; o nome é único no repo (medido 2026-10-19).
           MATCHES=$(grep -rnE "\\\$\\w+\\['(plate|vehicle|km|mecanico|aprovacao_pendente)'\\]" \
             --include='*.php' \
             --exclude='*Test.php' \
+            --exclude='OficinaController.php' \
             --exclude-dir='Repair' \
             --exclude-dir='OficinaAuto' \
             Modules/ app/ 2>/dev/null || true)

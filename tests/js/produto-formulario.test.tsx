@@ -5,8 +5,10 @@
 // tela Novo produto aberta pela lista /products/unificado ficava EM BRANCO em produção, com
 // "A <Select.Item /> must have a value prop that is not an empty string" no console.
 // Este teste usa as listas com a chave vazia e prova que as duas telas renderizam.
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
+
+const enviado: { payload: Record<string, unknown> | null } = { payload: null }
 
 vi.mock('@inertiajs/react', async () => {
   const React = await import('react')
@@ -16,10 +18,16 @@ vi.mock('@inertiajs/react', async () => {
       React.createElement('a', { href, ...resto }, children),
     useForm: (inicial: Record<string, unknown>) => {
       const [data, setData] = React.useState(inicial)
+      const transformar = React.useRef((d: Record<string, unknown>) => d)
       return {
         data,
         setData: (k: string, v: unknown) => setData((d) => ({ ...d, [k]: v })),
-        post: vi.fn(),
+        transform: (fn: (d: Record<string, unknown>) => Record<string, unknown>) => {
+          transformar.current = fn
+        },
+        post: () => {
+          enviado.payload = transformar.current(data)
+        },
         put: vi.fn(),
         processing: false,
         errors: {},
@@ -96,6 +104,59 @@ describe('Novo produto com as listas do servidor', () => {
   })
 })
 
+// UC-PCAD-12 — a validade do Novo produto. O ProductController@store só grava a validade quando
+// vêm o número E o período (`expiry_period_type`). A tela mandava o período sempre vazio: a
+// validade digitada era descartada. Agora segue o Blade: meses por padrão; com a validade lançada
+// na compra (`add_expiry`), o campo fica escondido e vai como 12 meses.
+describe('UC-PCAD-12 · Novo produto — validade', () => {
+  const novo = (enableExpiry: boolean, expiryType?: string) =>
+    render(
+      <ProdutoCreate
+        {...(listasDoServidor as never)}
+        barcodeDefault="C128"
+        defaultProfitPercent={25}
+        duplicateProduct={null}
+        sellingPriceGroupCount={0}
+        commonSettings={{}}
+        enableExpiry={enableExpiry}
+        expiryType={expiryType}
+        enableLot={false}
+        enableRacks={false}
+      />,
+    )
+  const salvar = (container: HTMLElement) => {
+    enviado.payload = null
+    fireEvent.submit(container.querySelector('form#produto-create-form') as HTMLFormElement)
+    return enviado.payload as Record<string, unknown>
+  }
+
+  it('validade pela fabricação: "Expira em" em meses, e o envio leva o número com o período', () => {
+    const { container } = novo(true, 'add_manufacturing')
+
+    expect(screen.getByText('Expira em')).toBeTruthy()
+    expect(document.querySelector('#expiry_period_type')?.textContent).toContain('meses')
+    fireEvent.change(document.querySelector('#expiry_period') as HTMLInputElement, { target: { value: '6' } })
+
+    const envio = salvar(container)
+    expect(envio.expiry_period).toBe('6')
+    expect(envio.expiry_period_type).toBe('months')
+  })
+
+  it('validade lançada na compra: campo escondido e o envio leva 12 meses, como o Blade', () => {
+    const { container } = novo(true, 'add_expiry')
+
+    expect(document.querySelector('#expiry_period')).toBeNull()
+    const envio = salvar(container)
+    expect(envio.expiry_period).toBe('12')
+    expect(envio.expiry_period_type).toBe('months')
+  })
+
+  it('empresa sem validade: o campo não aparece', () => {
+    novo(false)
+    expect(document.querySelector('#expiry_period')).toBeNull()
+  })
+})
+
 describe('Editar produto com as listas do servidor', () => {
   it('renderiza as 4 seções e mostra o imposto do produto', () => {
     render(
@@ -106,8 +167,7 @@ describe('Editar produto com as listas do servidor', () => {
           subUnitIds: null, categoryId: 1, subCategoryId: null, tax: 1, taxType: 'exclusive',
           origemMercadoria: 0, barcodeType: 'C128', enableStock: true, alertQuantity: null,
           weight: null, productDescription: null, productLocations: [1], image: null,
-          warrantyId: null, productCustomField1: null, productCustomField2: null,
-          productCustomField3: null, productCustomField4: null,
+          warrantyId: null, camposPersonalizados: {}, expiryPeriod: null, expiryPeriodType: null,
         }}
         subUnits={{}}
         permissions={{ opening_stock: false, delete: false }}
@@ -115,5 +175,92 @@ describe('Editar produto com as listas do servidor', () => {
     )
     for (const s of secoes) expect(screen.getByText(s)).toBeTruthy()
     expect(document.querySelector('#tax')?.textContent).toContain('ICMS 18%')
+  })
+})
+
+// UC-PCAD-13 e UC-PCAD-14 — o NCM no Novo produto (CU-PROD-16 e CU-PROD-18 do SDD). Decisão [M]
+// 2026-10-20: o NCM entra no cadastro, mas não é obrigatório, porque produto de serviço não tem
+// NCM. Sem NCM a tela só avisa; o envio segue.
+describe('UC-PCAD-13 · UC-PCAD-14 · NCM no Novo produto', () => {
+  const novo = (duplicateProduct: Record<string, unknown> | null = null) =>
+    render(
+      <ProdutoCreate
+        {...(listasDoServidor as never)}
+        barcodeDefault="C128"
+        defaultProfitPercent={25}
+        duplicateProduct={duplicateProduct as never}
+        sellingPriceGroupCount={0}
+        commonSettings={{}}
+        enableExpiry={false}
+        enableLot={false}
+        enableRacks={false}
+      />,
+    )
+  const campoNcm = () => document.querySelector('#ncm') as HTMLInputElement
+  const aviso = () => screen.queryByTestId('ncm-aviso')
+  const salvar = (container: HTMLElement) => {
+    enviado.payload = null
+    fireEvent.submit(container.querySelector('form#produto-create-form') as HTMLFormElement)
+    return enviado.payload as Record<string, unknown> | null
+  }
+  const produtoOriginal = (ncm: string) => ({
+    id: 21, name: 'Lona 440g', brand_id: null, unit_id: 4, category_id: null, sub_category_id: null,
+    tax: null, tax_type: 'exclusive', origem_mercadoria: 0, ncm, barcode_type: 'C128', sku: 'LON-440',
+    alert_quantity: null, weight: null, product_description: null, type: 'single',
+  })
+
+  it('UC-PCAD-14 · sem NCM a tela avisa, e o produto é enviado assim mesmo', () => {
+    const { container } = novo()
+
+    expect(campoNcm().value).toBe('')
+    expect(aviso()?.textContent).toContain('Sem NCM a nota fiscal de mercadoria não sai')
+
+    const envio = salvar(container)
+    expect(envio).not.toBeNull()
+    expect(envio?.ncm).toBe('')
+  })
+
+  it('UC-PCAD-14 · NCM incompleto avisa que são 8 dígitos', () => {
+    novo()
+    fireEvent.change(campoNcm(), { target: { value: '4911' } })
+
+    expect(aviso()?.textContent).toBe('O NCM tem 8 dígitos.')
+  })
+
+  it('UC-PCAD-13 · NCM digitado com pontos vai só com os 8 dígitos, e o aviso some', () => {
+    const { container } = novo()
+    fireEvent.change(campoNcm(), { target: { value: '4911.10.90' } })
+
+    expect(campoNcm().value).toBe('49111090')
+    expect(aviso()).toBeNull()
+    expect(salvar(container)?.ncm).toBe('49111090')
+  })
+
+  it('UC-PCAD-13 · duplicar traz o NCM do original, e o "0" do banco aparece vazio', () => {
+    const comNcm = novo(produtoOriginal('4911.10.90'))
+    expect(campoNcm().value).toBe('49111090')
+    comNcm.unmount()
+
+    novo(produtoOriginal('0'))
+    expect(campoNcm().value).toBe('')
+    expect(aviso()).not.toBeNull()
+  })
+
+  it('UC-PCAD-13 · Editar não mostra o campo NCM (o update() ainda não grava)', () => {
+    render(
+      <ProdutoEdit
+        {...(listasDoServidor as never)}
+        product={{
+          id: 9, name: 'Lona 440g', sku: 'LON-440', type: 'single', brandId: 3, unitId: 5,
+          subUnitIds: null, categoryId: 1, subCategoryId: null, tax: 1, taxType: 'exclusive',
+          origemMercadoria: 0, barcodeType: 'C128', enableStock: true, alertQuantity: null,
+          weight: null, productDescription: null, productLocations: [1], image: null,
+          warrantyId: null, camposPersonalizados: {}, expiryPeriod: null, expiryPeriodType: null,
+        }}
+        subUnits={{}}
+        permissions={{ opening_stock: false, delete: false }}
+      />,
+    )
+    expect(campoNcm()).toBeNull()
   })
 })

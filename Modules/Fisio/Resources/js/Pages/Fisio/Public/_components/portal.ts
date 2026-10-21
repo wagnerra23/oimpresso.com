@@ -23,6 +23,13 @@ export interface Jogo {
   dias_cumpridos: number;
 }
 
+/** Missões do dia, desafio da semana e medalhas (T-08c) — JogoService::constancia(). */
+export interface Constancia {
+  missoes: { chave: string; texto: string; cumprida: boolean }[];
+  desafio: { oferecido: boolean; decidido: boolean; aceito: boolean; meta: number | null; opcoes: number[]; cumpridos: number; pago: boolean };
+  medalhas: { codigo: string; nome: string }[];
+}
+
 export interface Relato {
   feitos: number[];
   dor: number | null;
@@ -111,4 +118,82 @@ export function progressoNivel(j: Jogo): number {
 export function registrarAppDoPortal(): void {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
   navigator.serviceWorker.register('/sw-fisio-portal.js', { scope: '/fisio/p/' }).catch(() => undefined);
+}
+
+// ── Fila offline do check-in (etapa 02 §3.6 · T-13 parte 2 · UC-FPP-30..32) ─────────────────
+// Sem rede, o check-in fica guardado no aparelho e vai quando a internet volta. Regras:
+//  - só em aparelho LEMBRADO (`guardar_offline`, decidido pelo servidor): com o PIN só na
+//    sessão nada clínico fica no aparelho, como na tela do dia guardada (UC-FPP-27);
+//  - um item por link e por dia; envio novo substitui o guardado;
+//  - cada envio leva uma `chave`: se a resposta se perdeu e a fila reenvia, o servidor
+//    reconhece a chave e não grava duas vezes;
+//  - o servidor recusa o que não é do dia (`dia_passou`) ou de aparelho não lembrado: a fila
+//    apaga o item, e nada fica guardado à toa.
+
+export interface ItemDaFila { chave: string; dia: string; corpo: Record<string, unknown> }
+
+const chaveDaFila = (token: string) => `fisio-fila-checkin:${token}`;
+
+/** Dia civil do paciente (America/Sao_Paulo, como o DiaLocal do servidor). */
+export function diaDeHoje(): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+}
+
+export function novaChave(): string {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID();
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+}
+
+export function lerFila(token: string): ItemDaFila | null {
+  try {
+    const bruto = localStorage.getItem(chaveDaFila(token));
+    return bruto ? (JSON.parse(bruto) as ItemDaFila) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function guardarNaFila(token: string, item: ItemDaFila): boolean {
+  try {
+    localStorage.setItem(chaveDaFila(token), JSON.stringify(item));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function limparFila(token: string): void {
+  try {
+    localStorage.removeItem(chaveDaFila(token));
+  } catch {
+    /* sem armazenamento: nada guardado */
+  }
+}
+
+/**
+ * Envia o check-in guardado. `enviado` = o servidor aceitou (gravou agora ou já tinha a chave);
+ * `descartado` = recusado de vez (dia passou, aparelho não lembrado, link inválido) e apagado;
+ * `pendente` = ainda sem rede ou erro do servidor: continua na fila.
+ */
+export async function enviarFila(token: string): Promise<'vazia' | 'enviado' | 'descartado' | 'pendente'> {
+  const item = lerFila(token);
+  if (!item) return 'vazia';
+  if (item.dia !== diaDeHoje()) {
+    limparFila(token);
+    return 'descartado';
+  }
+  try {
+    const r = await enviar('POST', `/fisio/p/${token}/checkin`, { ...item.corpo, chave: item.chave, dia: item.dia, offline: true });
+    if (r.status === 200 || r.status === 201) {
+      limparFila(token);
+      return 'enviado';
+    }
+    if (r.status === 403 || r.status === 404 || r.status === 422) {
+      limparFila(token);
+      return 'descartado';
+    }
+    return 'pendente';
+  } catch {
+    return 'pendente';
+  }
 }

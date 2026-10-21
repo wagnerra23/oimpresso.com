@@ -22,7 +22,9 @@ use InvalidArgumentException;
  *
  * Tier 0 (ADR 0093): sempre o `$businessId` recebido — o controller passa o da sessão.
  * Nunca toca documento. Ligar ou desligar não muda nenhuma execução hoje: as regras do catálogo
- * estão todas planejadas (CatalogoModelos), e as da Compra ainda não são lidas no recebimento.
+ * estão todas planejadas (CatalogoModelos). Das da Compra, a de custo dos insumos é lida no
+ * recebimento desde 2026-10-20 (`custoGravado`, US-COM-026), só quando a empresa a gravou.
+ * A baixa de material (UC-FLX-14) não executa de propósito: ver CatalogoModelos::PENDENCIAS.
  */
 final class RegrasDaEmpresa
 {
@@ -92,6 +94,22 @@ final class RegrasDaEmpresa
         return RegrasCompra::daEmpresa($this->linha($businessId)?->regras_compra);
     }
 
+    /**
+     * A regra de custo dos insumos, só se a empresa a gravou (UC-FLX-17 · US-COM-026).
+     * Null = a empresa nunca mexeu nela: o recebimento segue o comportamento de antes.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function custoGravado(int $businessId): ?array
+    {
+        $salvo = $this->linha($businessId)?->regras_compra;
+        if (! isset($salvo[RegrasCompra::CUSTO])) {
+            return null;
+        }
+
+        return collect(RegrasCompra::daEmpresa($salvo))->firstWhere('id', RegrasCompra::CUSTO);
+    }
+
     /** @param array<string, mixed> $params */
     public function mudarCompra(int $businessId, string $id, ?bool $ativo, array $params): void
     {
@@ -101,6 +119,57 @@ final class RegrasDaEmpresa
             $linha = ModeloEmpresa::withoutGlobalScope(ScopeByBusiness::class)
                 ->where('business_id', $businessId)->lockForUpdate()->firstOrFail();
             $linha->regras_compra = RegrasCompra::mudar($linha->regras_compra, $id, $ativo, $params);
+            $linha->save();
+        });
+    }
+
+    /** Margem mínima do orçamento, em % (UC-FLX-35). Nula = regra desligada. */
+    public function margemMinima(int $businessId): ?float
+    {
+        $v = $this->linha($businessId)?->margem_minima_pct;
+
+        return $v === null ? null : (float) $v;
+    }
+
+    /** Grava a margem mínima da empresa; nula desliga a regra. */
+    public function mudarMargemMinima(int $businessId, ?float $pct): void
+    {
+        $this->modeloEmUso($businessId);
+        if ($pct !== null && ($pct < 0 || $pct > 100)) {
+            throw new InvalidArgumentException('A margem mínima vai de 0% a 100%.');
+        }
+
+        DB::transaction(function () use ($businessId, $pct) {
+            $linha = ModeloEmpresa::withoutGlobalScope(ScopeByBusiness::class)
+                ->where('business_id', $businessId)->lockForUpdate()->firstOrFail();
+            $linha->margem_minima_pct = $pct === null ? null : round($pct, 2);
+            $linha->save();
+        });
+    }
+
+    /**
+     * Sinal mínimo para a produção liberar a OS, em % do total da venda (UC-FLX-28 · US-PCP-025).
+     * Nulo = regra desligada. Devolve o decimal como texto, sem passar por float.
+     */
+    public function sinalMinimo(int $businessId): ?string
+    {
+        $v = $this->linha($businessId)?->getRawOriginal('sinal_minimo_pct');
+
+        return $v === null ? null : (string) $v;
+    }
+
+    /** Grava o sinal mínimo da empresa; nulo desliga a regra. De 0,01% a 100%, até 2 casas. */
+    public function mudarSinalMinimo(int $businessId, ?string $pct): void
+    {
+        $this->modeloEmUso($businessId);
+        if ($pct !== null && (preg_match('/^\d{1,3}(\.\d{1,2})?$/', $pct) !== 1 || (float) $pct <= 0 || (float) $pct > 100)) {
+            throw new InvalidArgumentException('O sinal mínimo vai de 0,01% a 100%.');
+        }
+
+        DB::transaction(function () use ($businessId, $pct) {
+            $linha = ModeloEmpresa::withoutGlobalScope(ScopeByBusiness::class)
+                ->where('business_id', $businessId)->lockForUpdate()->firstOrFail();
+            $linha->setAttribute('sinal_minimo_pct', $pct);
             $linha->save();
         });
     }

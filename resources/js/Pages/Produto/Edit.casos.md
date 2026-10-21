@@ -5,7 +5,7 @@ irmaos: Edit.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — editar o cadastro não pode perder o que a tela velha (Blade + Delphi) preservava.
 owner: wagner
-last_run: "2026-10-16"
+last_run: "2026-10-19"
 last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 485 passed (2356 assertions); UC-PEDIT-01 a 09 verdes. Revalidação depois do refactor que passou as seções do formulário para _components/formulario/ (sem mudança de comportamento: HTML e estado do formulário idênticos antes/depois em 3 cenários do Editar no Vitest; o PUT envia os mesmos campos)"
 ---
 
@@ -40,6 +40,7 @@ last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 48
 | UC-PEDIT-07 | Editar não apaga flags que a tela não envia | must | `AR-PROD-003/042` | `ProdutoEditPayloadContratoTest` (Pest) | 🧪 achado CONFIRMADO + **corrigido** |
 | UC-PEDIT-08 | Desligar as 3 flags continua possível pela Blade (`hidden 0`) | must `[V0]` | par obrigatório do 05/07 + `AR-PROD-051/056` | `ProdutoEditPayloadContratoTest` (Pest) | 🧪 nasce verde — trava o par que o revert do #4994 mostrou ser obrigatório |
 | UC-PEDIT-09 | Editar a origem da mercadoria: grava 0–8, recusa fora da tabela, Blade não zera, outra empresa → 404, e a nota leva a origem | should `[T0]` | `AR-PROD-128` + ADR 0093 | `ProdutoOrigemMercadoriaTest` (Pest) | 🧪 passa no CT 100 |
+| UC-PEDIT-10 | Editar pela tela React não apaga os campos personalizados nem a validade | must | `AR-PROD-003/042` + charter Goal | `ProdutoEditPayloadContratoTest` (Pest) + `produto-editar-preserva.test.tsx` (Vitest) | ⬜ Vitest passa; Pest aguarda a lane |
 
 > ⚠️ **UC-PEDIT-01/02/04 DEIXARAM de ser stub em 2026-09-18** — viraram Pest de comportamento no
 > `ProdutoEditContratoTest` (o arquivo que esta nota mandava usar), com `PUT` real, `actingAs` e
@@ -140,6 +141,16 @@ last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 48
 - **Teste:** [`ProdutoOrigemMercadoriaTest`](../../../../tests/Feature/Produto/ProdutoOrigemMercadoriaTest.php) — `UC-PEDIT-09` (6 casos).
 - **Contrato:** `AR-PROD-128` + ADR 0093 (Tier 0) + tabela A do MOC. O "Blade não zera" segue a lição do UC-PEDIT-05/07: o `update()` serve dois clientes, e chave ausente no Blade não pode apagar o que a React escolheu.
 - **Status: 🧪** — Recibo: CT 100 (`oimpresso-staging`, MySQL `oimpresso_staging`, worktree isolado do branch, sem tocar o checkout compartilhado), 2026-10-15 — **8 passed (19 assertions)**. Bite-test por mutação: emissão de volta a `0`, limite `0,9` no lugar de `0,8`, `update()` sem o guarda `filled` e `linhasDaVenda` sem a coluna — cada uma derruba 1 caso. Não vira ✅ enquanto a lane não publicar o veredito (G-7).
+
+---
+
+## UC-PEDIT-10 · Editar pela tela React não apaga os campos personalizados nem a validade · `must`
+- **Persona:** empresa que usa campos personalizados de produto além do 4º (Configurações → rótulos) ou controla validade — corrigir o nome de um produto pela tela nova não pode apagar o que estava preenchido.
+- **Aceite:** Dado um produto com o campo personalizado 5 e o 20 preenchidos e validade de 12 meses, numa empresa que usa validade · Quando abro o Editar e salvo · Então a tela recebe o valor gravado dos 20 campos e da validade, devolve todos no envio, e os 4 valores continuam gravados.
+- **Teste:** [`ProdutoEditPayloadContratoTest`](../../../../tests/Feature/Produto/ProdutoEditPayloadContratoTest.php) — `UC-PEDIT-10` (o `edit()` entrega e o PUT preserva) · [`produto-editar-preserva.test.tsx`](../../../../tests/js/produto-editar-preserva.test.tsx) — `UC-PEDIT-10` (a tela copia o gravado para o envio, 3 casos).
+- **Contrato:** `AR-PROD-003`/`AR-PROD-042` — alterar a ficha preserva o que já estava gravado (mesmo contrato do UC-PEDIT-07).
+- **Regressão que defende:** o `update()` grava `''` em todo `product_custom_fieldN` (1 a 20) que não vem no request e, com `business.enable_product_expiry` ligado, zera `expiry_period`/`expiry_period_type` que não vêm. A tela mandava só os campos 1 a 4 e nenhuma validade. **O servidor não mudou de propósito:** o Blade só envia os campos personalizados que têm nome, então "ausência preserva" mudaria o Blade, a tela que roda em produção (a mesma armadilha do §Diagnóstico do remédio abaixo). A correção é a tela mandar tudo.
+- **Status: ⬜ Vitest passa (3 de 3) e morde:** com o `Edit.tsx` do `main` os 3 casos caem por asserção (`expected '' to be 'Ref. interna'`, `expected undefined to be '12'`). O Pest aguarda a lane `Estoque · MySQL`.
 
 ## Diagnóstico do remédio (2026-07-29) — a correção óbvia é a errada
 
@@ -272,3 +283,4 @@ Nenhuma das vias altera linha existente: o efeito é só sobre edições futuras
 - 2026-07-24 · [F+CC] **B1-controle** — 1º run REAL do agent `sdd-from-source` ([ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md)), que a [errata 0352](../../../../memory/decisions/0352-errata-0351-venue-distiller-citacao-taxonomia.md) admitia nunca ter sido executado. Rodado como grupo de controle **nesta tela** (a que já tinha `casos.md` feito à mão), evidência em [`_b1-controle-Edit.casos.agent.md`](../../../../memory/requisitos/Produto/_b1-controle-Edit.casos.agent.md). Veredito: **abaixo do humano no contrato** (perdeu o UC-PEDIT-01 e o log de Atividade), **acima no payload** — a triangulação React×Blade×Delphi rendeu 4 candidatos que a redação à mão não tinha. Daí nascem **UC-PEDIT-05/06/07**, com Pest failing-first ([`ProdutoEditPayloadContratoTest`](../../../../tests/Feature/Produto/ProdutoEditPayloadContratoTest.php)) e a lane `Estoque · MySQL` estendida — inclusive adotando o `ProdutoEditContratoTest`, que existia **fora de lane** desde ontem ("verde impossível" do `anchor-lint`). Enquadramento corrigido no mesmo dia: **não é incidente de produção** (as telas React do Produto são inalcançáveis — sidebar usa `<a href>` puro, sem header `X-Inertia`; roda o Blade, confirmado por [F]) e sim **bloqueador de migração** — define quando a tela pode ser ligada (MWART F5, [ADR 0104](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)).
 - 2026-07-29 · [C] **diagnóstico do remédio, sem correção** — [W] mandou atacar o eixo estoque; a medição mudou o remédio e a decisão dele foi *"só diagnóstico agora"*. O achado que faltava: o `update()` **serve dois clientes com semânticas opostas** para "chave ausente" (Blade = *desmarcou*, provado pela ausência de hidden nos 3 `Form::checkbox`; React = *não gerencia*, provado por zero ocorrência dos flags no `Edit.tsx`) — logo o fix intuitivo (writer preservar) **quebraria o desligar em produção**, e o `??` isolado **pioraria** a zeragem hoje contida pelo abort. Recibo: run 30366164436 (PR [#4953](https://github.com/wagnerra23/oimpresso.com/pull/4953)), onde `UC-PINIC-01..04` passaram e os 05/06/07 seguem vermelhos. Nada de código de produção tocado. Refs: `proibicoes.md` §REGRA MESTRE · §5 2026-07-15 (correções que brigam entre si).
 - 2026-10-15 · [CL] **UC-PEDIT-09** — origem da mercadoria por produto (`products.origem_mercadoria`, DEFAULT 0): campo no card "Preço & Imposto", validação 0–8 fora do `try`, gravação só quando o campo vem, e as duas emissões passam a ler a origem do produto. Mesmo PR cria o UC-PCAD-07 no Create.
+- 2026-10-19 · [F+C] **UC-PEDIT-10** — o Editar React apagava, ao salvar, os campos personalizados 5 a 20 e a validade (o `update()` grava `''`/zera o que não vem; a tela mandava só os campos 1 a 4). O `edit()` passa a entregar o valor gravado dos 20 campos e da validade, e o `Edit.tsx` devolve todos no envio. O `update()` e o Blade não mudam.

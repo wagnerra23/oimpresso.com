@@ -5,9 +5,13 @@ namespace Modules\ComunicacaoVisual\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\Rule;
 use Modules\ComunicacaoVisual\Entities\Orcamento;
+use Modules\ComunicacaoVisual\Http\Requests\AprovarOrcamentoRequest;
 use Modules\ComunicacaoVisual\Services\OrcamentoCalculator;
 use Modules\ComunicacaoVisual\Services\OrcamentoGravador;
+use Modules\ComunicacaoVisual\Services\OrcamentoViraOs;
 
 /**
  * OrcamentoController — API JSON de orçamentos de comunicação visual.
@@ -18,6 +22,7 @@ use Modules\ComunicacaoVisual\Services\OrcamentoGravador;
  *   POST /comunicacao-visual/api/calcular       → preview sem persistência
  *   POST /comunicacao-visual/api/orcamentos     → persiste + retorna 201
  *   GET  /comunicacao-visual/api/orcamentos/{id} → retorna com itens
+ *   POST /comunicacao-visual/api/orcamentos/{id}/aprovar → aprova e cria a OS (UC-FLX-01)
  *
  * Princípio server-side authoritative: valores area_m2 / subtotal / total vindos
  * do frontend são DESCARTADOS. O Service recalcula tudo antes de persistir.
@@ -87,6 +92,31 @@ class OrcamentoController extends Controller
     }
 
     // ------------------------------------------------------------------
+    // POST /comunicacao-visual/api/orcamentos/{id}/aprovar
+    // UC-FLX-01 · US-COMVIS-020: aprova e cria a OS com itens, medidas e arquivos.
+    // 201 = OS criada agora · 200 = a OS já existia (reenvio não duplica) · 422 = recusado/expirado
+    // 404 = orçamento de outra empresa (não 403: não confirma que o id existe — UC-CV-05).
+    // ------------------------------------------------------------------
+
+    public function aprovar(AprovarOrcamentoRequest $request, int $id, OrcamentoViraOs $viraOs): JsonResponse
+    {
+        $user = auth()->user();
+        if (! $user->can('superadmin') && ! $user->can('comvis.orcamento.create')) {
+            abort(403, 'Sem permissão para aprovar orçamento (comvis.orcamento.create).');
+        }
+
+        $businessId = (int) (session('user.business_id') ?? session('business.id'));
+
+        try {
+            [$os, $criada] = $viraOs->aprovar($businessId, $id, (int) $user->id);
+        } catch (\DomainException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return response()->json($os, $criada ? 201 : 200);
+    }
+
+    // ------------------------------------------------------------------
     // Helpers privados
     // ------------------------------------------------------------------
 
@@ -123,6 +153,9 @@ class OrcamentoController extends Controller
             'itens.*.quantidade'        => ['required', 'integer', 'min:1'],
             'itens.*.preco_unitario_m2' => ['nullable', 'numeric', 'gt:0'],
             'itens.*.observacoes'       => ['nullable', 'string', 'max:500'],
+            // UC-FLX-33: posto e horas de máquina só alimentam o custo previsto, não o preço.
+            'itens.*.posto_id'          => $this->regraPosto(),
+            'itens.*.horas_maquina'     => ['nullable', 'numeric', 'min:0', 'max:999999'],
         ], [
             // Mensagens de validação em PT-BR
             'data_emissao.required'    => 'A data de emissão é obrigatória.',
@@ -142,6 +175,24 @@ class OrcamentoController extends Controller
             'itens.*.quantidade.required' => 'A quantidade do item é obrigatória.',
             'itens.*.quantidade.min'   => 'A quantidade do item deve ser pelo menos 1.',
             'itens.*.preco_unitario_m2.gt' => 'O preço por m² deve ser maior que zero.',
+            'itens.*.posto_id.exists'  => 'O posto informado não existe nesta empresa.',
+            'itens.*.horas_maquina.min' => 'As horas de máquina não podem ser negativas.',
         ]);
+    }
+
+    /**
+     * Posto do PCP do item: precisa ser da empresa da sessão (Tier 0, ADR 0093). Sem o módulo
+     * Producao instalado não há tabela; aí só se exige inteiro e o gravador segue sem custo de
+     * máquina (a interface CustoHoraDoPosto não está ligada).
+     */
+    private function regraPosto(): array
+    {
+        $regra = ['nullable', 'integer', 'min:1'];
+        if (Schema::hasTable('pcp_postos')) {
+            $businessId = (int) (session('user.business_id') ?? session('business.id'));
+            $regra[] = Rule::exists('pcp_postos', 'id')->where('business_id', $businessId);
+        }
+
+        return $regra;
     }
 }

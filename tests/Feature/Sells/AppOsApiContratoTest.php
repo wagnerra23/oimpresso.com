@@ -467,6 +467,20 @@ function appOsAcao(int $stageId, string $chave, string $rotulo, int $alvo, bool 
     return (int) DB::table('sale_stage_actions')->where('stage_id', $stageId)->where('key', $chave)->value('id');
 }
 
+/** Foto (imagem) anexada à OS, no mesmo morph que a web e o app usam. */
+function appOsFotoDaOs(int $bizId, int $os): void
+{
+    if (! Schema::hasTable('arquivos')) {
+        test()->markTestSkipped('Schema ausente (arquivos).');
+    }
+    DB::table('arquivos')->insert([
+        'business_id' => $bizId, 'arquivable_type' => 'Modules\OficinaAuto\Entities\ServiceOrder', 'arquivable_id' => $os,
+        'disk' => 'arquivos', 'storage_path' => 'tests/app-os-servico.png', 'original_name' => 'servico.png',
+        'mime_type' => 'image/png', 'size_bytes' => 68, 'md5' => md5('app-os-servico' . $os), 'bucket' => 'active',
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+}
+
 /** Liga as ações usadas nos casos abaixo e dá ao usuário a permissão de alterar OS. */
 function appOsComAcoes(object $t, bool $comUpdate = true): void
 {
@@ -504,6 +518,8 @@ it('detalhe traz só as ações de avanço da etapa, com o gate; sem permissão 
 it('executar avança a OS pela FSM e devolve o detalhe já na etapa nova', function () {
     appOsComAcoes($this);
     $os = appOsCriar((int) $this->biz->id, $this->etapas['pronto_retirada']);
+    // Entregar exige foto do serviço (US-OFICINA-047 · UC-FLX-22); sem trilha de execução, qualquer foto da OS conta.
+    appOsFotoDaOs((int) $this->biz->id, $os);
 
     $r = $this->postJson("/api/app/os/{$os}/acoes/entregar")->assertOk();
     expect($r->json('id'))->toBe($os);

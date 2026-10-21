@@ -1082,6 +1082,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::post('/fluxos/modelo', [\App\Http\Controllers\FluxosController::class, 'aplicar'])->name('fluxos.modelo.aplicar');
     Route::patch('/fluxos/regra', [\App\Http\Controllers\FluxosController::class, 'regra'])->name('fluxos.regra');
     Route::patch('/fluxos/compra', [\App\Http\Controllers\FluxosController::class, 'compra'])->name('fluxos.compra');
+    Route::patch('/fluxos/margem', [\App\Http\Controllers\FluxosController::class, 'margem'])->name('fluxos.margem');
     Route::post('/fluxos/assistente', [\App\Http\Controllers\FluxosController::class, 'assistente'])->middleware('throttle:20,1')->name('fluxos.assistente');
 
     Route::prefix('account')->group(function () {
@@ -1217,6 +1218,13 @@ Route::middleware(['auth'])->group(function () {
         [\App\Http\Controllers\DocumentacaoController::class, 'programa']
     )->middleware(['setData', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
         ->name('documentacao.programa');
+
+    // Casos de uso do catálogo de fluxos (UC-FLX-NN), derivados de CasosDoPrototipo em runtime.
+    // Antes de /{slug} pelo mesmo motivo de /programa.
+    Route::get('/documentacao/casos-de-uso',
+        [\App\Http\Controllers\DocumentacaoController::class, 'casos']
+    )->middleware(['setData', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
+        ->name('documentacao.casos');
 
     // Documento do acervo. Declarada DEPOIS de /buscar e /programa — sem essa ordem,
     // ambas casariam aqui primeiro e virariam 404 de "documento não encontrado".

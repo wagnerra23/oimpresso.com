@@ -21,6 +21,8 @@ use Illuminate\Support\Str;
  *   quantidade reservada; o UC-FLX-14 pede a consumida). Nunca é executado.
  *
  * Hoje nenhuma regra do protótipo tem side effect idêntico no ERP: todas ficam planejadas.
+ * Quando se sabe por que uma regra planejada não pode executar, o motivo fica em PENDENCIAS e
+ * "Usar modelo" grava junto da regra (AplicarModelo) — a regra diz o que falta, não só "planejado".
  */
 final class CatalogoModelos
 {
@@ -33,6 +35,19 @@ final class CatalogoModelos
     ];
 
     public const DOMINIOS = ['venda' => 'Venda', 'producao' => 'Produção', 'compra' => 'Compra', 'entrega' => 'Entrega', 'financeiro' => 'Financeiro'];
+
+    /**
+     * Saídas laterais por domínio, fora da linha de etapas (como o Cancelado): só entram no
+     * processo do modelo que tem a etapa de origem. Fonte: ProcessosDoPrototipo, Orçamento e venda —
+     * "Enviado → Perdido · Marcar perdido · Motivo obrigatório · Vendedor".
+     *
+     * @var array<string, list<array{de:string, para:string, acao:string, rotulo:string, exige_motivo:bool}>>
+     */
+    public const LATERAIS = [
+        'venda' => [
+            ['de' => 'Enviado', 'para' => 'Perdido', 'acao' => 'marcar_perdido', 'rotulo' => 'Marcar perdido', 'exige_motivo' => true],
+        ],
+    ];
 
     /** Modelo das empresas que usam os processos de antes do catálogo (venda_com_producao e cia.). */
     public const LEGADO = 'legado';
@@ -71,6 +86,28 @@ final class CatalogoModelos
         'UC-FLX-30' => ['ISS retido ajusta o valor do título', 'financeiro'],
         'UC-FLX-31' => ['Natureza fiscal do item decide a nota', 'financeiro'],
         'UC-FLX-32' => ['NF-e em contingência quando a SEFAZ cai', 'financeiro'],
+        'UC-FLX-33' => ['Orçamento aprovado guarda o custo do dia', 'venda'],
+        'UC-FLX-34' => ['Orçamento aberto avisa que o custo mudou', 'venda'],
+        'UC-FLX-35' => ['Preço negociado abaixo da margem pede aprovação', 'venda'],
+        'UC-FLX-36' => ['OS em andamento avisa insumo que mudou de custo', 'producao'],
+        'UC-FLX-37' => ['Material consumido leva o custo do dia da baixa', 'producao'],
+        'UC-FLX-38' => ['Custo do insumo guarda o histórico por data', 'compra'],
+    ];
+
+    /**
+     * UC => por que a regra "ao entrar" desse caso não executa no motor.
+     *
+     * UC-FLX-14 (balcão "Aprovado", brindes "Produção"): os dois são processos de venda sem OS.
+     * - A peça vendida já baixa no núcleo quando a venda é finalizada (SellPosController,
+     *   `decreaseProductQuantity` com `status = final`).
+     * - O material consumido só baixa no apontamento da etapa da OS (ConsumoMaterialService,
+     *   US-PCP-021), e estes modelos não têm processo de produção — CriarOsDaVenda não cria OS.
+     * - O candidato ConsumirEstoque baixa a quantidade RESERVADA: ligado aqui, somaria uma 2ª baixa
+     *   à da venda finalizada. Por isso não vira side effect.
+     * O que é "material consumido" numa venda sem OS (a peça? o insumo pela ficha?) é decisão [W].
+     */
+    public const PENDENCIAS = [
+        'UC-FLX-14' => 'Não executa: venda sem OS (balcão, brindes) baixa a peça quando é finalizada; venda com OS reserva o insumo da receita na aprovação e baixa o consumido no apontamento (US-PCP-031, decisão [W] 2026-10-20). Ligar a baixa aqui baixaria duas vezes.',
     ];
 
     private const ORDEM_PORTE = ['micro' => 0, 'pequena' => 1, 'media' => 2, 'grande' => 3];
@@ -97,7 +134,7 @@ final class CatalogoModelos
                         ['Recebido', 'Custo = último preço; preço de venda não muda', 'UC-FLX-17', null, null],
                     ]],
                 ],
-                'casos' => ['UC-FLX-01', 'UC-FLX-03', 'UC-FLX-14', 'UC-FLX-17', 'UC-FLX-19', 'UC-FLX-23', 'UC-FLX-26'],
+                'casos' => ['UC-FLX-01', 'UC-FLX-03', 'UC-FLX-14', 'UC-FLX-17', 'UC-FLX-19', 'UC-FLX-23', 'UC-FLX-26', 'UC-FLX-33', 'UC-FLX-38'],
             ],
             'cv-pequena' => [
                 'nome' => 'Comunicação visual · pequena', 'para' => 'Produção por OS com arte, aprovação do cliente e instalação própria.',
@@ -118,7 +155,7 @@ final class CatalogoModelos
                         ['Conferido', 'Gera conta a pagar', '', null, null],
                     ]],
                 ],
-                'casos' => ['UC-FLX-01', 'UC-FLX-02', 'UC-FLX-03', 'UC-FLX-08', 'UC-FLX-09', 'UC-FLX-14', 'UC-FLX-15', 'UC-FLX-17', 'UC-FLX-21', 'UC-FLX-23', 'UC-FLX-25', 'UC-FLX-26', 'UC-FLX-27'],
+                'casos' => ['UC-FLX-01', 'UC-FLX-02', 'UC-FLX-03', 'UC-FLX-08', 'UC-FLX-09', 'UC-FLX-14', 'UC-FLX-15', 'UC-FLX-17', 'UC-FLX-21', 'UC-FLX-23', 'UC-FLX-25', 'UC-FLX-26', 'UC-FLX-27', 'UC-FLX-33', 'UC-FLX-34', 'UC-FLX-35', 'UC-FLX-37', 'UC-FLX-38'],
             ],
             'cv-pcp' => [
                 'nome' => 'Comunicação visual · média com PCP', 'para' => 'Vários setores e turnos; o gargalo é decidir o que entra na máquina.',
@@ -140,7 +177,7 @@ final class CatalogoModelos
                         ['Conferido', 'Custo médio; propostas vão à fila da Fabricação', 'UC-FLX-17', null, null],
                     ]],
                 ],
-                'casos' => ['UC-FLX-01', 'UC-FLX-02', 'UC-FLX-04', 'UC-FLX-05', 'UC-FLX-06', 'UC-FLX-07', 'UC-FLX-08', 'UC-FLX-09', 'UC-FLX-10', 'UC-FLX-12', 'UC-FLX-13', 'UC-FLX-15', 'UC-FLX-16', 'UC-FLX-17', 'UC-FLX-19', 'UC-FLX-21', 'UC-FLX-22', 'UC-FLX-24', 'UC-FLX-27'],
+                'casos' => ['UC-FLX-01', 'UC-FLX-02', 'UC-FLX-04', 'UC-FLX-05', 'UC-FLX-06', 'UC-FLX-07', 'UC-FLX-08', 'UC-FLX-09', 'UC-FLX-10', 'UC-FLX-12', 'UC-FLX-13', 'UC-FLX-15', 'UC-FLX-16', 'UC-FLX-17', 'UC-FLX-19', 'UC-FLX-21', 'UC-FLX-22', 'UC-FLX-24', 'UC-FLX-27', 'UC-FLX-33', 'UC-FLX-34', 'UC-FLX-35', 'UC-FLX-36', 'UC-FLX-37', 'UC-FLX-38'],
             ],
             'grafica' => [
                 'nome' => 'Gráfica digital e offset', 'para' => 'Produção seriada; papel e tinta mudam de preço com frequência.',
@@ -161,7 +198,7 @@ final class CatalogoModelos
                         ['Liquidado', 'Custeio RKW no fechamento do mês', 'UC-FLX-20', null, null],
                     ]],
                 ],
-                'casos' => ['UC-FLX-01', 'UC-FLX-02', 'UC-FLX-07', 'UC-FLX-11', 'UC-FLX-13', 'UC-FLX-15', 'UC-FLX-16', 'UC-FLX-17', 'UC-FLX-20'],
+                'casos' => ['UC-FLX-01', 'UC-FLX-02', 'UC-FLX-07', 'UC-FLX-11', 'UC-FLX-13', 'UC-FLX-15', 'UC-FLX-16', 'UC-FLX-17', 'UC-FLX-20', 'UC-FLX-33', 'UC-FLX-36', 'UC-FLX-37', 'UC-FLX-38'],
             ],
             'brindes' => [
                 'nome' => 'Brindes, sublimação e DTF', 'para' => 'Catálogo com variação de cor e tamanho; compra por grade.',
@@ -175,7 +212,7 @@ final class CatalogoModelos
                         ['Recebido', 'Último preço; aplica o preço sozinho', 'UC-FLX-17', null, null],
                     ]],
                 ],
-                'casos' => ['UC-FLX-01', 'UC-FLX-03', 'UC-FLX-14', 'UC-FLX-17', 'UC-FLX-19', 'UC-FLX-24', 'UC-FLX-26'],
+                'casos' => ['UC-FLX-01', 'UC-FLX-03', 'UC-FLX-14', 'UC-FLX-17', 'UC-FLX-19', 'UC-FLX-24', 'UC-FLX-26', 'UC-FLX-33', 'UC-FLX-38'],
             ],
             'instalacao' => [
                 'nome' => 'Fachadas e instalação sob encomenda', 'para' => 'Cada job é um projeto: visita, projeto, produção e equipe em campo.',
@@ -194,7 +231,7 @@ final class CatalogoModelos
                         ['Recebido', 'Custo médio; propõe preço, aprova no recebimento', 'UC-FLX-17', null, null],
                     ]],
                 ],
-                'casos' => ['UC-FLX-02', 'UC-FLX-06', 'UC-FLX-15', 'UC-FLX-17', 'UC-FLX-21', 'UC-FLX-22', 'UC-FLX-23', 'UC-FLX-25', 'UC-FLX-27'],
+                'casos' => ['UC-FLX-02', 'UC-FLX-06', 'UC-FLX-15', 'UC-FLX-17', 'UC-FLX-21', 'UC-FLX-22', 'UC-FLX-23', 'UC-FLX-25', 'UC-FLX-27', 'UC-FLX-33', 'UC-FLX-34', 'UC-FLX-35', 'UC-FLX-37', 'UC-FLX-38'],
             ],
             'oficina' => [
                 'nome' => 'Oficina mecânica', 'para' => 'OS de veículo; a peça comprada destrava o serviço.',

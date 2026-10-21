@@ -82,7 +82,9 @@ jobs:
       - name: Cache composer
         uses: actions/cache@v4
         with:
-          path: ~/.composer/cache
+          path: |
+            ~/.cache/composer
+            ~/.composer/cache
           key: composer-ui-lint-${{ runner.os }}-${{ hashFiles('composer.lock') }}
           restore-keys: composer-ui-lint-${{ runner.os }}-
 
@@ -258,7 +260,9 @@ jobs:
         if: steps.scope.outputs.relevant == 'true'
         uses: actions/cache@v4
         with:
-          path: ~/.composer/cache
+          path: |
+            ~/.cache/composer
+            ~/.composer/cache
           key: composer-design-index-${{ runner.os }}-${{ hashFiles('composer.lock') }}
           restore-keys: composer-design-index-${{ runner.os }}-
 

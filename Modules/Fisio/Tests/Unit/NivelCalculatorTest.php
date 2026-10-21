@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 // Cobre, na regra pura, UC-FPP-17 (Fisio/Public/Portal.casos.md).
+// @covers-us US-FISIO-008
 
 use Modules\Fisio\Services\NivelCalculator;
 

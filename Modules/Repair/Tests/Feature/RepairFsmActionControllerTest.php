@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// @covers-us US-CONSULTA-004 (UC-COS-14 — limite: transição pela FSM não avisa o cliente)
+
 use App\Domain\Fsm\Models\SaleProcess;
 use App\Domain\Fsm\Models\SaleProcessStage;
 use App\Domain\Fsm\Models\SaleStageAction;
@@ -11,7 +13,9 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use App\Scopes\ScopeByBusiness;
+use Illuminate\Support\Facades\Event;
 use Modules\Repair\Entities\JobSheet;
+use Modules\Repair\Events\RepairStatusChanged;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -104,6 +108,10 @@ beforeEach(function () {
     foreach (glob(database_path('migrations/2026_05_11_12*_create_sale_*.php')) ?: [] as $f) {
         (require $f)->up();
     }
+    // ADR 0435: `sale_processes.dominio`/`modelo` (2026-10-16). O listener do Producao (#9519,
+    // CriarOsDaVenda::deveCriar) lê essas colunas a cada `sale_stage_history` criado; sem elas a
+    // transição da OS dava 500 aqui, enquanto em produção a coluna existe.
+    (require database_path('migrations/2026_10_16_140000_create_fsm_modelos_empresa_table.php'))->up();
 
     // Hotfix #643 (2026-05-12): startPipeline cria audit log SEM action_id.
     // Migration 2026_05_12_040001_alter_sale_stage_history_action_id_nullable
@@ -154,6 +162,7 @@ afterEach(function () {
         foreach (array_reverse(glob(database_path('migrations/2026_05_11_12*_create_sale_*.php')) ?: []) as $f) {
             (require $f)->down();
         }
+        Schema::dropIfExists('support_agents');
         foreach (['role_has_permissions', 'model_has_roles', 'model_has_permissions', 'roles', 'permissions', 'users', 'business', 'activity_log'] as $tbl) {
             Schema::dropIfExists($tbl);
         }
@@ -321,4 +330,51 @@ it('5. startPipeline: OS legacy sem stage recebe stage inicial + history audit',
     // Estado persistido
     $fresh = $os->fresh();
     expect($fresh->current_stage_id)->not->toBeNull();
+});
+
+// ─── UC-FLX-24 · limite de hoje: a transição pela FSM não chega ao cliente ───
+
+it('UC-COS-14: transição pela FSM hoje NÃO avisa o cliente nem muda o status que o portal lê', function () {
+    // Contrato do estado ATUAL (2026-10-20), não do desejado: o ExecuteStageActionService só
+    // dispara evento quando a ação tem `event_class`, nenhuma ação de OS tem, e este
+    // controller não sincroniza `status_id` nem dispara RepairStatusChanged. O portal
+    // (/consulta-os) lê `status_id`, então a mudança de etapa fica invisível pro cliente.
+    // Quando existir o evento genérico de transição, este teste inverte.
+    // Tenant fictício 98 (ADR 0358) — business sintético só pro middleware Timezone.
+    DB::table('business')->insert(['id' => 98, 'name' => 'Tenant 98 FLX-24', 'time_zone' => 'America/Sao_Paulo']);
+    // Empresa 98 não é a operadora: o SupportAccessService (AdminSidebarMenu) consulta
+    // support_agents. Em SQLite :memory: a tabela não existe; cria a forma mínima que a
+    // consulta lê (user_id + revoked_at), igual às outras tabelas deste arquivo.
+    if (DB::connection()->getDriverName() === 'sqlite' && ! Schema::hasTable('support_agents')) {
+        Schema::create('support_agents', function (Blueprint $t) {
+            $t->increments('id');
+            $t->unsignedInteger('user_id');
+            $t->timestamp('revoked_at')->nullable();
+            $t->timestamps();
+        });
+    }
+
+    ['recebido' => $r, 'diagnostico' => $d, 'action' => $action] = repairFsmFakeSetup(98);
+    SaleStageActionRole::create(['action_id' => $action->id, 'role_name' => 'repair.tecnico']);
+    Role::firstOrCreate(['name' => 'repair.tecnico', 'guard_name' => 'web']);
+
+    $user = User::forceCreate(['username' => 'u_flx24', 'password' => bcrypt('x'), 'business_id' => 98]);
+    $user->assignRole('repair.tecnico');
+    $this->actingAs($user);
+    session(['user.business_id' => 98]);
+
+    $os = repairFsmCreateOs(98, $r->id);
+    DB::table('repair_job_sheets')->where('id', $os->id)->update(['status_id' => 4242]);
+
+    Event::fake([RepairStatusChanged::class]);
+
+    $this->postJson("/repair/job-sheets/{$os->id}/fsm-action", ['action_key' => 'iniciar_diagnostico'])
+        ->assertOk()
+        ->assertJsonPath('to_stage.key', 'em_diagnostico');
+
+    // A etapa andou (senão o verde abaixo seria por nada ter acontecido)...
+    expect((int) $os->fresh()->current_stage_id)->toBe((int) $d->id);
+    // ...mas o cliente não é avisado e o status do portal fica onde estava.
+    Event::assertNotDispatched(RepairStatusChanged::class);
+    expect((int) DB::table('repair_job_sheets')->where('id', $os->id)->value('status_id'))->toBe(4242);
 });

@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-10-18**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-10-19**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -45,7 +45,7 @@ lente: [construir]
 | Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-07-30 |
 | OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-09-15 |
 | PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-09-07 |
-| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-10-08 |
+| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-10-19 |
 | Producao | [BRIEFING](../requisitos/Producao/BRIEFING.md) | 2026-10-15 |
 | ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-07-23 |
 | RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-09-07 |
@@ -439,4 +439,4 @@ lente: [construir]
   - `2026-10-09-session-08`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-10-18 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-10-19 · deriva das fontes canônicas, não as substitui._

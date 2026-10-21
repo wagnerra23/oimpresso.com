@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (código) · tests/Feature/ConsultaO
 tecnica: Caso de uso = o que o cliente final faz + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a única tela do ERP que fala com o cliente final sem login — o que ela expõe e o que ela recusa não pode mudar sem alguém ver.
 owner: wagner
-related_us: [US-CONSULTA-001]
-last_run: "2026-10-02"
+related_us: [US-CONSULTA-001, US-CONSULTA-004]
+last_run: "2026-10-20"
 last_run_ci: "0 UC executado — UC-COS-08..11 nascem e UC-COS-01..07 mudam neste PR (fonte real do Repair); veredito pendente da lane PHP / Pest (Unit) (ci-sqlite-pest.list)"
 ---
 
@@ -43,6 +43,9 @@ last_run_ci: "0 UC executado — UC-COS-08..11 nascem e UC-COS-01..07 mudam nest
 | UC-COS-09 | Busca cruza empresas — comportamento atual documentado | must `[T0]` | Pendências do charter "identificar a empresa" | 🧪 |
 | UC-COS-10 | Celular desligado na config é recusado | must | Goals "celular só se a config ligar" | 🧪 |
 | UC-COS-11 | `/repair-status` leva ao `/consulta-os` | must | charter §2026-10-02 (D-PORTAL) | 🧪 |
+| UC-COS-12 | Mudar o status da OS avisa o cliente e o portal mostra o status novo | must `[T0]` | US-CONSULTA-004 (UC-FLX-24) | 🧪 |
+| UC-COS-13 | Status com nome da empresa muda o portal mas hoje não avisa (limite) | must | US-CONSULTA-004 limite (1) | 🧪 |
+| UC-COS-14 | Transição pela FSM hoje não avisa nem muda o portal (limite) | must | US-CONSULTA-004 limite (2) | 🧪 |
 
 Teste de todos: [`ConsultaOsIndexContratoTest`](../../../../tests/Feature/ConsultaOs/ConsultaOsIndexContratoTest.php),
 lane `PHP / Pest (Unit)` do `ci.yml` (via `.github/ci-sqlite-pest.list`), schema mínimo em SQLite
@@ -134,6 +137,43 @@ rodou teste local ([ADR 0062](../../../../memory/decisions/0062-separacao-runtim
 
 - **Aceite:** Dado um visitante sem sessão · Quando abre o antigo `/repair-status` · Então é
   redirecionado para `/consulta-os` · E a rota `post-repair-status` continua registrada.
+- **Status:** 🧪
+
+## Cliente acompanha o status — catálogo UC-FLX-24 (US-CONSULTA-004)
+
+> Fonte: catálogo `/fluxos` UC-FLX-24 ("a cada transição avisa o cliente e atualiza o portal") +
+> o caminho real medido em 2026-10-20: `JobSheetController::update` → `RepairStatusChanged` →
+> listener `NotifyRepairCustomer` (Whatsapp) → `SendWhatsappMessageJob`; o portal lê `status_id`.
+> Testes: [`ClienteAcompanhaStatusContratoTest`](../../../../Modules/Repair/Tests/Feature/ClienteAcompanhaStatusContratoTest.php)
+> (MySQL, tenant 98 × 99) e [`RepairFsmActionControllerTest`](../../../../Modules/Repair/Tests/Feature/RepairFsmActionControllerTest.php) (SQLite).
+> UC-COS-13 e UC-COS-14 travam o estado de HOJE — quando o limite for resolvido, o assert inverte.
+
+## UC-COS-12 · Mudar o status da OS avisa o cliente e o portal mostra o status novo · `must` `[T0]`
+
+- **Aceite:** Dado uma OS da empresa 98 com cliente com celular, um número de WhatsApp da empresa
+  que atende aviso de OS, e uma OS da empresa 99 com cliente e número próprios · Quando o status
+  da OS da 98 muda na edição (para um status que o aviso reconhece) · Então sai **um** job de
+  WhatsApp, pelo número da 98, para o celular do cliente da 98 · E `/consulta-os/buscar` pelo nº
+  da OS devolve só essa OS, com o status novo, sem nº nem nome da OS da 99.
+- **Status:** 🧪
+
+## UC-COS-13 · Status com nome da empresa muda o portal mas hoje não avisa · `must`
+
+- **Aceite (estado de hoje):** Dado um status "Pronto para retirada" (`is_completed_status=1`) ·
+  Quando a OS vai para ele · Então o `RepairStatusChanged` sai com esse nome · E o listener do
+  WhatsApp não enfileira nada (só reconhece `ready`/`waiting_parts`) · E o portal já mostra
+  "Pronto para retirada".
+- **Por que não foi consertado:** `repair_statuses` não tem sinal limpo de "pronto" —
+  `is_completed_status` vale como "Pronto" no kanban e como "Entregue" no `startPipeline`;
+  avisar "está pronto" a quem já retirou seria mensagem errada. Escolher o sinal é decisão [W].
+- **Status:** 🧪
+
+## UC-COS-14 · Transição pela FSM hoje não avisa nem muda o portal · `must`
+
+- **Aceite (estado de hoje):** Dado uma OS no pipeline FSM com `status_id` definido · Quando uma
+  ação da FSM move a etapa (`RepairFsmActionController::execute`) · Então a etapa muda · E
+  nenhum `RepairStatusChanged` é disparado · E o `status_id` que o portal lê fica igual.
+- **Follow-up:** evento genérico de transição da FSM (fora desta US).
 - **Status:** 🧪
 
 ---

@@ -20,6 +20,7 @@ use Modules\Producao\Entities\Apontamento;
 use Modules\Producao\Entities\Programacao;
 use Modules\Producao\Exceptions\ApontamentoRecusado;
 use Modules\Producao\Services\ApontamentoOperadorService;
+use Modules\Producao\Services\ConsumoMaterialService;
 
 /**
  * Apontamento de produção pelo app das lojas (P8, tela 02), com token.
@@ -53,6 +54,10 @@ class AppApontamentoController extends Controller
         ApontamentoRecusado::MOMENTO_INVALIDO => [422, 'validacao', 'momento'],
         ApontamentoRecusado::MOTIVO_OBRIGATORIO => [422, 'validacao', 'motivo_id'],
         ApontamentoRecusado::JUSTIFICATIVA_OBRIGATORIA => [422, 'validacao', 'justificativa'],
+        ApontamentoRecusado::MATERIAL_INVALIDO => [422, 'validacao', 'variation_id'],
+        ApontamentoRecusado::QUANTIDADE_INVALIDA => [422, 'validacao', 'quantidade'],
+        ApontamentoRecusado::ESTOQUE_INSUFICIENTE => [422, 'estoque_insuficiente', null],
+        ApontamentoRecusado::LOTE_INVALIDO => [422, 'validacao', 'lote_id'],
     ];
 
     public function __construct(
@@ -251,6 +256,41 @@ class AppApontamentoController extends Controller
 
             return response()->json(['id' => (int) $e->id, 'apontamento_id' => $id, 'situacao' => 'aguardando_gestor'],
                 $e->wasRecentlyCreated ? 201 : 200);
+        });
+    }
+
+    /**
+     * POST /api/app/producao/apontamentos/material `{ programacao_id, variation_id, quantidade, lote_id?, momento? }` + Idempotency-Key
+     * US-PCP-021 · UC-FLX-37: baixa o material da etapa pelo lote que saiu. Sem custo na resposta (é do gestor).
+     */
+    public function material(Request $request, ConsumoMaterialService $consumo): JsonResponse
+    {
+        $user = $request->user();
+        if (! $this->podeApontar($user)) {
+            return $this->semPermissao();
+        }
+        $bizId = (int) $user->business_id;
+
+        $v = $this->validar($request, [
+            'programacao_id' => ['required', 'integer', 'min:1'],
+            'variation_id' => ['required', 'integer', 'min:1'],
+            'quantidade' => ['required', 'string', 'max:24'],
+            'lote_id' => ['nullable', 'integer', 'min:1'],
+        ], [
+            'programacao_id.required' => 'Informe a etapa.',
+            'variation_id.required' => 'Escolha o material.',
+            'quantidade.required' => 'Informe a quantidade.',
+        ]);
+        if ($v instanceof JsonResponse) {
+            return $v;
+        }
+
+        return $this->recusavel(function () use ($bizId, $user, $v, $consumo) {
+            $c = $consumo->registrar($bizId, (int) $user->id, (int) $v['programacao_id'], (int) $v['variation_id'], (string) $v['quantidade'], $v['chave'], $v['momento'],
+                isset($v['lote_id']) ? (int) $v['lote_id'] : null);
+
+            return response()->json(['id' => (int) $c->id, 'programacao_id' => (int) $c->programacao_id, 'variation_id' => (int) $c->variation_id,
+                'quantidade' => (string) $c->quantidade, 'quantidade_sem_lote' => (string) $c->quantidade_sem_lote], $c->wasRecentlyCreated ? 201 : 200);
         });
     }
 

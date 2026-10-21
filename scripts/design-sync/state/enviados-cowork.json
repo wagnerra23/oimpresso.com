@@ -116,6 +116,10 @@
     "cowork-inbox/producao/Producao-celular.casos.md": {
       "sha256": "2a6a6d35849333367fe663f4710e94eef6f279ed8d8bd9cb9f24378486145459",
       "em": "2026-10-15T17:19:39.027Z"
+    },
+    "fluxos-data.jsx": {
+      "sha256": "dce2fe77c34e5f8adf829b5f2b3a8a20d711681799ca1c1c615838d35d39bb75",
+      "em": "2026-10-20T10:41:13.578Z"
     }
   }
 }

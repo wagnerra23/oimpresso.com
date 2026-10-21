@@ -359,7 +359,236 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 > owner: — · priority: p0 · estimate: 3h · status: todo · type: story
 > 1 RUNBOOK por tela MWART + `.charter.md` ao lado de cada `.tsx`.
 
-**Total US: 20** · **Estimate agregado:** ~81h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
+### US-PCP-021 · A OS baixa o material apontado em cada etapa, pelo custo do lote que saiu (UC-FLX-37) — **P1**
+
+**Implementado em:** `Modules/Producao/Services/ConsumoMaterialService.php` · `Modules/Producao/Database/Migrations/2026_10_19_210000_create_pcp_consumos_table.php` · `Modules/Producao/Services/CustoRealService.php` · `app/Domain/Fsm/Modelos/CatalogoModelos.php`
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoMaterialContratoTest.php` (lane `verticais-pest.yml`) · `tests/Feature/Domain/Fsm/FluxosTelaContratoTest.php` (UC-FLXT-20, UC-FLXT-21, lane `domain-pest.yml`).
+
+> owner: wagner · priority: p1 · estimate: 4h · type: story
+
+**Origem:** decisão [W] 2026-10-19 — *"a OS baixa do estoque o material apontado em cada etapa, pelo custo do lote que saiu"* — e o UC-FLX-37 da tela de fluxos. O que se negocia na venda (custo previsto, US-SELL-067) não é o que se emprega na produção: a OS precisa guardar o custo empregado.
+
+**Problema:** a OS por item congelava só as horas apontadas (`pcp_ordens.custo_real`); o material consumido não baixava estoque nem entrava no custo.
+
+**Aceite:**
+- [x] O operador aponta material (variação + quantidade) na etapa dele; a baixa sai do local de estoque da venda que gerou a OS (UC-PCMAT-01).
+- [x] Cada apontamento é uma transação `production_sell` de uma linha (ref `OS-<id>`; uma por baixa porque `uk_tsl_dup_prevent` não aceita a mesma variação duas vezes numa transação), amarrada ao lote pelo `mapPurchaseSell` (`production_purchase`) e tirada do saldo pelo `decreaseProductQuantity`.
+- [x] O custo do material é Σ quantidade de cada lote × `purchase_lines.purchase_price_inc_tax`, guardado na baixa; compra posterior não muda (UC-PCMAT-02). Não usa o `dpp_inc_tax` do dia.
+- [x] O custo real congelado ao concluir o item soma o material (UC-PCMAT-03).
+- [x] Idempotente pela chave da fila offline (UC-PCMAT-04); tabela `pcp_consumos` com `business_id`, FK e índice.
+- [x] Só o responsável da etapa iniciada ou feita, com a OS Em execução ou Pausada; material de outra empresa e sem controle de estoque recusam (UC-PCMAT-05).
+- [x] Sem lote suficiente (empresa que não vende sem estoque) a baixa é recusada inteira (UC-PCMAT-06); empresa que vende sem estoque grava o que faltou em `quantidade_sem_lote`, sem custo.
+- [x] Endpoints na PWA (`POST /producao/apontamento/material`) e no app (`POST /api/app/producao/apontamentos/material`), sem o custo na resposta (UC-PCMAT-07).
+- [x] A regra "ao entrar → baixa o material" (UC-FLX-14) dos modelos de venda sem OS (Balcão enxuto, Brindes) não executa e grava o porquê; venda finalizada que entra na etapa não ganha 2ª baixa (UC-FLXT-20, UC-FLXT-21).
+- [ ] O que é "material consumido" numa venda sem OS (decisão [W]).
+- [ ] Campo de material na tela do operador (Non-Goal da tela até a thread 08).
+- [ ] Estorno de baixa apontada errada.
+
+### US-PCP-022 · A regra da compra (congela | vivo) vale para a OS aberta (UC-FLX-36) — **P1**
+
+**Implementado em:** `Modules/Producao/Services/PrevisaoCustoDaOrdem.php` · `Modules/Producao/Http/Controllers/OrdemCustoController.php`
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoCustoOsAbertaContratoTest.php` (lane `verticais-pest.yml`).
+
+> owner: wagner · priority: p1 · estimate: 3h · type: story
+> blocked_by: US-PCP-021
+
+**Origem:** UC-FLX-36 da tela de fluxos. A regra "Atualizar o custo dos insumos" das etapas da Compra (`RegrasCompra`, parâmetro `ops`) era só configuração gravada; nenhuma OS a lia.
+
+**Aceite:**
+- [x] Para a OS por item aberta, cada material apontado mostra o custo na data de abertura da OS e o de hoje (método da empresa, `App\Contracts\Compras\CustoDoInsumo`), o custo do lote que saiu e se mudou (UC-PCOSA-01).
+- [x] `congela`: a previsão é a da abertura; `vivo`: a previsão é a de hoje; regra desligada ou nunca gravada vale `congela` (UC-PCOSA-01..03).
+- [x] Só leitura: nenhum dos modos muda `pcp_ordens.custo_real` nem o custo das baixas; OS concluída mostra só o congelado (UC-PCOSA-04).
+- [x] `GET /producao/ordens/{id}/custo` em JSON, só com `producao.desempenho.ver`; OS de outra empresa 404 (UC-PCOSA-05).
+- [ ] Mostrar na tela da OS (a Ficha é da thread 08).
+- [ ] Previsão do material ainda não apontado (empenho, D-EMPENHO da thread 08).
+
+### US-PCP-023 · Romaneio de impressão peça a peça (UC-FLX-12) — **P2**
+
+**Implementado em:** `Modules/Producao/Services/RomaneioDeImpressao.php` · `Modules/Producao/Http/Controllers/RomaneioController.php` · `Modules/Producao/Database/Migrations/2026_10_20_000001_create_pcp_romaneios_tables.php`
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoRomaneioContratoTest.php` (lane `verticais-pest.yml`).
+
+> owner: wagner · priority: p2 · estimate: 3h · type: story
+
+**Origem:** UC-FLX-12 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:65`, referência Mubisys, situação `sem`). Na passagem Pré-impressão → Impressão não existe lista do que foi enviado ao setor de impressão e corte: `rg -i "romaneio"` em `Modules/Producao` e `Modules/ComunicacaoVisual` volta vazio (medido 2026-10-20). As dimensões por peça já existem no item do orçamento da CV (`Modules/ComunicacaoVisual/Entities/OrcamentoItem.php:14-31`, largura × altura × quantidade).
+
+**Aceite:**
+- [x] O PCP gera, para uma OS de comunicação visual e a etapa de destino dela, o romaneio com uma linha por peça do orçamento: item, mídia, largura × altura, quantidade e área (UC-PCROM-01). `POST /producao/os/{id}/romaneio` e `GET /producao/romaneios/{id}`, em JSON.
+- [ ] Gerar para um LOTE de OS de uma vez, e na própria passagem para a etapa de impressão (hoje é ação explícita por OS). Acabamento previsto: o item do orçamento não tem esse campo.
+- [x] O romaneio fica gravado (número `ROM-<OS>-vN`, data, quem gerou, posto de destino) e não muda; gerar de novo cria a versão seguinte, e a peça que já saiu numa versão anterior é sinalizada (UC-PCROM-02).
+- [ ] O operador de impressão/corte marca cada peça como impressa/cortada a partir do romaneio, e a marcação aparece na OS.
+- [x] Gerar romaneio exige o papel `producao.liberar`; ler exige `producao.access`; sem isso, 403 (UC-PCROM-03). Marcar peça (responsável da etapa) segue com a marcação.
+- [x] Multi-tenant: romaneio e linhas com `business_id`; romaneio, OS ou etapa de outra empresa → 404; Pest com os tenants 98 e 99 (UC-PCROM-04).
+- [ ] Mostrar o romaneio na tela (impressão do romaneio em PDF).
+
+### US-PCP-024 · Simulador de aproveitamento de mídia na bobina (UC-FLX-13) — **P2**
+
+**Implementado em:** `Modules/Producao/Services/AproveitamentoDeMidia.php` · `Modules/Producao/Http/Controllers/AproveitamentoMidiaController.php` · `Modules/Producao/Database/Migrations/2026_10_20_200000_create_pcp_aproveitamento_midia_tables.php`
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoAproveitamentoMidiaContratoTest.php` (lane `verticais-pest.yml`) · casos `Apontamento/Index.casos.md` (UC-PCAPV-01..05).
+
+> owner: wagner · priority: p2 · estimate: 8h · type: story
+> blocked_by: US-PCP-023
+
+**Origem:** UC-FLX-13 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:66`, referências Holdprint, printIQ e Calcgraf, porte média, situação `sem`). Na Pré-impressão os jobs vão para a máquina um a um; nada agrupa peças na largura da bobina. `rg -i "nesting|aproveitamento|largura_bobina"` em `Modules/` volta vazio (medido 2026-10-20): o substrato da CV guarda só preço e mínimo por m² (`Modules/ComunicacaoVisual/Entities/Substrato.php:27-30`), sem largura útil da bobina, e "bobina" no PCP aparece só como motivo de pausa (`Modules/Producao/Entities/Motivo.php:35`).
+
+**Aceite:**
+- [x] A mídia ganha largura útil da bobina, margem entre peças e se a peça pode girar — em `pcp_bobinas` (uma por mídia, do PCP; o cadastro da mídia segue na Comunicação Visual). `PUT /producao/bobinas/{mídia}` (UC-PCAPV-01).
+- [x] Dado um conjunto de OS e uma mídia, o simulador junta as peças dessa mídia (uma por unidade) e propõe o arranjo em faixas na largura da bobina, girando a peça quando a mídia aceita; mostra metros lineares, área útil, área consumida e % de perda, e os mesmos números para imprimir uma a uma (UC-PCAPV-02/03). Peça maior que a bobina é recusada. `POST /producao/aproveitamento/simular`.
+- [x] O PCP aceita o arranjo: ele é recalculado no servidor e gravado (`pcp_arranjos`), com o consumo previsto de mídia por OS rateado pela área (`pcp_arranjo_os`), e vira o romaneio de impressão de cada OS na etapa informada (US-PCP-023) (UC-PCAPV-04). `POST /producao/aproveitamento`.
+- [x] Simular é só leitura (`producao.access`); aceitar exige o papel `producao.liberar`, sem ele 403 (UC-PCAPV-02/04).
+- [x] Multi-tenant: mídia, OS ou etapa de outra empresa → 404 e nada gravado; Pest com os tenants 98 e 99 (UC-PCAPV-05).
+- [ ] Escolher as OS pela fila da Pré-impressão (hoje o PCP informa as OS) e a tela do simulador com o desenho das faixas.
+- [ ] Baixar a mídia pelo consumo previsto do arranjo (hoje o consumo real segue o apontado na etapa, US-PCP-021).
+
+### US-PCP-025 · Produção só libera com o sinal pago (UC-FLX-28) — **P2**
+
+**Implementado em:** `Modules/Producao/Services/SinalDaOrdem.php` · `Modules/Producao/Services/SituacaoDaOrdem.php` · `Modules/Producao/Providers/ProducaoServiceProvider.php` · `database/migrations/2026_10_20_120000_add_sinal_minimo_to_fsm_modelos_empresa.php`
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoSinalPagoLiberaContratoTest.php` (lane `verticais-pest.yml`) · casos `Apontamento/Index.casos.md` UC-PCLIB-04..07.
+
+> owner: wagner · priority: p2 · estimate: 6h · type: story
+> blocked_by: parcelas de sinal e saldo na aprovação do orçamento (Vendas/Financeiro) · retorno do banco que baixa o título (PaymentGateway)
+
+**Origem:** UC-FLX-28 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:80`, situação `verificar`; medido **parcial** em 2026-10-20). Existe: o estado inicial `aguardando_liberacao` (`Modules/Producao/Services/ProcessoDaOrdem.php:27`) e a transição `liberar` → `na_fila` só com `producao.liberar` (`:45`); `SituacaoDaOrdem::liberar()` confere apenas os responsáveis das etapas (`Modules/Producao/Services/SituacaoDaOrdem.php:131-158`). Falta: aprovar o orçamento não gera parcelas de sinal e saldo (`app/Domain/Fsm/Modelos/CatalogoProcessos.php:74`); o webhook de boleto Inter/C6/Asaas só grava o evento e não libera produção (`CatalogoProcessos.php:105`); não há vínculo título do sinal ↔ OS, nem guarda no `liberar`, nem listener que libere sozinho. A US fica na Produção porque a liberação da OS é dela; gerar as parcelas é do Financeiro/Vendas e baixar pelo retorno do banco é do PaymentGateway.
+
+**Entrega 1 (2026-10-20):** o sinal é um percentual mínimo do `final_total` da venda de origem, pago em `transaction_payments` da mesma empresa (troco descontado), gravado em `fsm_modelos_empresa.sinal_minimo_pct` (nulo = desligado, padrão). A conta é feita em DECIMAL no MySQL; nada de valor é gravado. A liberação automática é a ação FSM `liberar_pelo_sinal` (sem papel: só o sistema a chama), disparada no `TransactionPayment::saved`. Sem parcela de sinal separada ainda.
+
+**Aceite:**
+- [x] A empresa configura se a produção exige sinal (percentual mínimo; `RegrasDaEmpresa::mudarSinalMinimo`); desligado, o `liberar` segue como hoje (só responsáveis) — UC-PCLIB-04.
+- [x] Com a regra ligada, `liberar` recusa com motivo (`sinal_pendente`, pago × exigido) enquanto o pago da venda da OS não alcançar o mínimo, inclusive para quem tem `producao.liberar` — UC-PCLIB-05/06.
+- [ ] A OS gerada da venda aprovada fica vinculada ao título do sinal (parcela de sinal e saldo na aprovação — Vendas/Financeiro).
+- [x] Pagamento gravado na venda executa a liberação pela FSM com ator sistema, registrada no histórico da OS; OS com etapa sem responsável fica em `aguardando_liberacao` — UC-PCLIB-07.
+- [ ] Retorno do banco cria o pagamento da venda (hoje o webhook de boleto só grava o evento — PaymentGateway); campo do sinal mínimo na aba Fluxos da empresa.
+- [x] Idempotente: pagamento repetido não executa a transição duas vezes (só age em `aguardando_liberacao`, com trava); OS cancelada não é liberada — UC-PCLIB-07.
+- [x] Multi-tenant: o listener usa o `business_id` do próprio pagamento e só toca OS e venda da mesma empresa; `liberar` em OS de outra empresa → não encontrada (404); Pest 98 × 99 — UC-PCLIB-07.
+
+### US-PCP-031 · Reserva o insumo na venda, baixa real na produção (UC-FLX-14) — **P1**
+
+**Implementado em:** `Modules/Producao/Services/ReservaDeInsumoDaOs.php` · `Modules/Producao/Database/Migrations/2026_10_20_120000_add_pcp_ordem_id_to_stock_reservations.php` · `app/Contracts/Fabricacao/InsumosDaReceita.php` · `Modules/Manufacturing/Services/InsumosDaReceitaService.php`
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoReservaInsumoContratoTest.php` (UC-PCRES-01..08, lane `verticais-pest.yml`).
+
+> owner: wagner · priority: p1 · estimate: 4h · type: story
+> blocked_by: US-PCP-021
+
+**Origem:** decisão [W] 2026-10-20 — *"Reserva insumo na venda, baixa real na produção"* — para o item feito sob encomenda (banner, placa, adesivo). Fontes: o caso prático da Comunicação Visual (*"reserva 6m² lona em 'aprovado' → consome em 'produção concluída'"*), o UC-FLX-14 (*"Consome do estoque a quantidade real, não a orçada"*) e a decisão [W] 2026-10-15 de que a receita do Manufacturing é a fonte de material. O produto acabado sob encomenda não controla estoque (nunca entra nem sai); a revenda segue baixando na venda; a produção para estoque (ordem de produção do Manufacturing) segue dando entrada no acabado. Revê a US-PCP-016 (consumo automático pela receita ao concluir): a baixa é a apontada, a receita só reserva.
+
+**Aceite:**
+- [x] Venda aprovada: a OS do item sob encomenda (gera OS, produto `enable_stock = 0`, tem receita) reserva cada insumo que controla estoque — receita por unidade × quantidade da OS — em `stock_reservations`, ligada à OS (`pcp_ordem_id`), no local da venda, sem data de expiração e sem mexer no saldo; idempotente (UC-PCRES-01).
+- [x] Produto que controla estoque (revenda) e empresa com a chave desligada não reservam (UC-PCRES-02).
+- [x] O apontamento da etapa baixa a quantidade real (US-PCP-021) e abate da reserva da OS no máximo o que ela tem; consumo além do reservado baixa normalmente; reserva zerada vira `consumed` (UC-PCRES-03, UC-PCRES-04).
+- [x] OS concluída ou cancelada libera o que sobrou; venda cancelada libera todas as reservas das OS dela (UC-PCRES-05, UC-PCRES-06).
+- [x] Chave por empresa `business.common_settings['producao_reserva_insumo']`, desligada por padrão; sem backfill (só reserva OS criada com a chave ligada). Tier 0: receita, reserva e liberação só da empresa (UC-PCRES-07).
+- [x] As ações da venda não tocam a reserva de insumo da OS: `ConsumirEstoque` ("Concluir produção") não a baixa — seria a 2ª baixa do insumo — e `LiberarReserva` ("Reabrir para revisão") não a solta (UC-PCRES-08).
+- [ ] Tela/ajuste para ligar a chave (hoje é dado de `common_settings`).
+- [ ] Quantidade por área (m²) no item da CV: hoje a reserva usa a quantidade da linha na unidade do produto.
+- [ ] Mostrar o reservado no saldo disponível para venda do insumo (hoje nenhuma tela lê `stock_reservations`).
+
+**Total US: 31** · **Estimate agregado:** ~115h IA-pair (≈ ADR 0106 fator 10×) → ~3 sprints (cycles 2-semana).
+
+### US-PCP-026 · Etapas da OS vêm do roteiro do produto (UC-FLX-07) — **P1**
+
+**Implementado em:** _pendente_ — entrega 1 em `Modules/Producao/Services/CriarOsDaVenda.php` (OS por item copia as etapas do roteiro ligado ao produto) e `Modules/Producao/Http/Controllers/RoteirosController.php` (`PUT /producao/roteiros/{id}/produtos`); falta o seletor de produtos na tela de Roteiros.
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoCriarOsDaVendaContratoTest.php` (lane `verticais-pest.yml`) · casos `Roteiros/Index.casos.md` UC-PCROT-01..04.
+
+> owner: wagner · priority: p1 · estimate: 3h · status: doing · type: story
+
+**Origem:** UC-FLX-07 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:60`, referência shopVOX, situação `planejado`) e a regra *"Aprovado → Cria a OP com o roteiro do produto"* dos modelos CV (`app/Domain/Fsm/Modelos/CatalogoModelos.php:156`). Medido em 2026-10-20: a criação já existia (ADR 0436 — `CriarOsDaVenda` lê `pcp_produto_roteiro` e grava uma programação por etapa), mas nenhum código gravava o vínculo produto → roteiro (só os testes), e o vínculo não conferia se o roteiro era da mesma empresa.
+
+**Aceite:**
+- [x] Ao aprovar a venda, a OS por item do produto ligado a um roteiro nasce com uma programação por etapa, na ordem bloco/trilha, com o posto e o tempo previsto (horas) da etapa; a etapa opcional fica de fora (UC-PCROT-01, UC-FLX-07).
+- [x] Produto sem roteiro não gera OS — o comportamento de antes, sem roteiro padrão da empresa (UC-PCROT-02).
+- [x] As programações são cópia do roteiro no dia da aprovação: editar o roteiro depois não muda a OS já criada (UC-PCROT-03).
+- [x] O gestor (`producao.access`) liga produtos ao roteiro por `PUT /producao/roteiros/{id}/produtos`; um produto fica em um roteiro só, e o vínculo vem no payload da tela (`produto_ids`).
+- [x] Multi-tenant: roteiro de outra empresa → 404; produto de outra empresa é recusado; vínculo apontando roteiro de outra empresa conta como produto sem roteiro (UC-PCROT-04).
+- [ ] Seletor de produtos na tela de Roteiros (`Roteiros/Index.tsx`, com charter e gate visual).
+- [ ] Roteiro padrão da empresa para produto sem roteiro (decisão [W]: hoje produto sem roteiro não vira OS).
+
+### US-PCP-029 · Alocador decide quem e quando começa cada etapa (UC-FLX-10) — **P1**
+
+**Implementado em:** `Modules/Producao/Services/AlocacaoDaEtapa.php` · `Modules/Producao/Http/Controllers/AlocacaoController.php` · `Modules/Producao/Routes/web.php`
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoAlocacaoContratoTest.php` (lane `verticais-pest.yml`).
+
+> owner: wagner · priority: p1 · estimate: 3h · type: story
+
+**Origem:** UC-FLX-10 da tela de fluxos (`app/Domain/Fsm/Modelos/CatalogoModelos.php`, etapa *Liberada* → "Alocador escolhe quem e quando"; `CasosDoPrototipo.php`: *"escolhe operador e horário para não parar máquina nem faltar material"*). Medido em 2026-10-20: `pcp_programacoes` já tem `user_id`, `inicio_previsto` e `fim_previsto`, e o `SituacaoDaOrdem::liberar()` exige o responsável de cada etapa aberta ao liberar — mas só no Liberar, sem rota HTTP, e nada trocava a pessoa ou o horário depois, nem havia fila do posto por início previsto. A US-PCP-015 (calendário arrastar-e-soltar) segue para a tela; a tabela `pcp_schedules` que ela previa não é mais necessária, porque o início previsto mora em `pcp_programacoes`.
+
+**Aceite:**
+- [x] O gestor com `producao.etapa.mover` escolhe o responsável e/ou o início previsto de uma etapa pendente; a duração prevista se mantém (UC-PCALO-01). A situação da OS no FSM não muda.
+- [x] Cada alocação grava em `pcp_eventos` (append-only) quem mudou, quando, o antes e o depois (UC-PCALO-02).
+- [x] Etapa iniciada ou concluída não se realoca (UC-PCALO-03).
+- [x] Responsável tem de ser da mesma empresa e ter `producao.access` (UC-PCALO-04).
+- [x] Operador sem a permissão → 403; etapa ou posto de outra empresa → 404 (UC-PCALO-05).
+- [x] `GET /producao/postos/{id}/fila` lista as etapas abertas do posto pela ordem do início previsto, com o responsável (UC-PCALO-06).
+- [x] Posto com operadores cadastrados (US-PCP-030): o responsável escolhido tem de ser um deles; posto sem cadastro aceita qualquer pessoa da empresa com acesso à Produção (UC-PCALO-07).
+- [ ] Tela do alocador (quadro/calendário — US-PCP-015) consumindo os dois endpoints.
+- [ ] Aviso de conflito: mesma pessoa ou mesmo posto com etapas sobrepostas, e material sem saldo para o horário escolhido.
+
+### US-PCP-028 · Prazo de entrega calculado pela fila (UC-FLX-06) — **P2**
+
+> owner: wagner · priority: p2 · estimate: 6h · status: doing · type: story
+
+**Implementado em:** _pendente_ — o cálculo em dias úteis e a data prometida na aprovação existem (`Modules/Producao/Services/PrazoPelaFila.php` · `Modules/Producao/Services/CalendarioDeProducao.php` · `app/Contracts/Rh/CalendarioDaEmpresa.php` · `Modules/Essentials/Services/CalendarioDaEmpresaService.php` · `Modules/Producao/Services/PrometerPrazoDaVenda.php` · `Modules/Producao/Jobs/CriarOsDaVendaJob.php` · `Modules/Producao/Http/Controllers/PrazoDaVendaController.php`); falta mostrar o prazo na aprovação do orçamento (tela de venda).
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoPrazoPelaFilaContratoTest.php` (lane `verticais-pest.yml`).
+
+**Origem:** UC-FLX-06 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:59`, referências Holdprint e Calcgraf, situação `planejado`, "SPEC do PCP"). Medido em 2026-10-20: o posto já tinha `horas_por_dia` (padrão 10) e `capacidade_por_hora`, as etapas do roteiro têm `horas`, e o `CriarOsDaVenda` programava as etapas sem olhar a fila (`Modules/Producao/Services/CriarOsDaVenda.php:87`); nada calculava a data de entrega. A US-PCP-013 (capacidade dia/semana agregada) é outra pergunta.
+
+**Aceite:**
+- [x] Para a venda ou orçamento, cada linha cujo produto tem roteiro soma, em cada posto, a fila à frente — Σ das programações `pendente`/`iniciada` do posto na empresa — e as próprias etapas (sem as opcionais), em sequência por bloco, trilhas em paralelo; horas ÷ horas por dia do posto (UC-PCPRZ-01).
+- [x] Linhas da mesma venda disputam os mesmos postos; linha sem roteiro fica fora e vem listada (UC-PCPRZ-02).
+- [x] Posto sem horas por dia e etapa sem posto usam 8 h/dia, e a resposta diz isso em `premissas` (UC-PCPRZ-01).
+- [x] Só leitura; a OS da própria venda não entra na fila dela (UC-PCPRZ-03).
+- [x] `GET /producao/vendas/{id}/prazo` em JSON com `sell.view` ou `producao.access` e o módulo no pacote; venda de outra empresa 404 (UC-PCPRZ-04).
+- [x] Decisão [W] 2026-10-20 — *"Pula sábado, domingo e feriados"*, pelo período de funcionamento já cadastrado: cada dia de produção vale um dia útil; hora útil = turno da produção (`pcp_turnos`) → senão expediente do RH (turno fixo do Essentials; com vários, o de mais funcionários) → senão 08h–18h com aviso; folgas do expediente, sem ele sábado e domingo (UC-PCPRZ-05, UC-PCPRZ-07).
+- [x] Feriados = os do RH da empresa e da loja da venda (`essentials_holidays`, mesma regra do Ponto), lidos pelo contrato `App\Contracts\Rh\CalendarioDaEmpresa`; nenhum feriado fixo no código; sem o Essentials, nenhum feriado, com aviso (UC-PCPRZ-06).
+- [x] Decisão [W] 2026-10-20 — a data prometida fica na venda (`transactions.due_date`, PROJETO_DT_FIM): na aprovação, venda sem data recebe a estimativa; data digitada pelo vendedor não é sobrescrita; a data vai para a OS (`pcp_ordens.prazo_prometido`) (UC-PCPRZ-08).
+- [ ] Mostrar o prazo na aprovação do orçamento (tela de venda).
+- [ ] Descontar o já apontado da etapa iniciada.
+
+### US-PCP-027 · Refugo e retrabalho com motivo somam custo à OS (UC-FLX-16) — **P1**
+
+**Implementado em:** `Modules/Producao/Services/RefugoService.php` · `Modules/Producao/Database/Migrations/2026_10_20_160000_create_pcp_refugos_table.php` · `Modules/Producao/Http/Controllers/ApontamentoController.php`
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoRefugoContratoTest.php` (lane `verticais-pest.yml`).
+
+> owner: wagner · priority: p1 · estimate: 3h · type: story
+> blocked_by: US-PCP-021
+
+**Origem:** UC-FLX-16 da tela de fluxos (Acabamento: *refugo com motivo; refugo e retrabalho somam custo à OS*). Medido em 2026-10-20: o cadastro de motivos de refugo por posto já existia (`pcp_motivos.tipo = refugo`, UC-PCV-33) e o "Reprovar no controle" já levava a OS para Retrabalho reabrindo a etapa como etapa nova (`SituacaoDaOrdem::reprovar`, ADR 0436) — mas sem quantidade de peças refugadas, sem rota que o chamasse e sem reposição de material. As horas da etapa de retrabalho e o material baixado já entravam no `CustoRealService`.
+
+**Aceite:**
+- [x] O responsável da etapa iniciada ou feita aponta o refugo: quantidade de peças (até a quantidade da OS), motivo de refugo ativo do posto da etapa e da mesma empresa, quem e quando (UC-PCREF-01, UC-PCREF-05).
+- [x] Material reposto para as peças refugadas passa pelo `ConsumoMaterialService` (baixa pelo lote que saiu); falta de lote recusa tudo, inclusive o refugo (UC-PCREF-02, UC-PCREF-05).
+- [x] Com `retrabalho`, o refugo chama o "Reprovar no controle" do motor (papel `producao.qualidade`): a OS vai para Retrabalho e a etapa nova fica ligada ao refugo; sem o papel, 403 e nada grava (UC-PCREF-03, UC-PCREF-06).
+- [x] O custo real congelado na conclusão soma as horas do retrabalho e o material reposto, sem conta paralela (UC-PCREF-03).
+- [x] Idempotente pela chave da fila offline; tabela `pcp_refugos` com `business_id`, FK e índice (UC-PCREF-04).
+- [x] Endpoint na PWA (`POST /producao/apontamento/refugo`), sem custo na resposta (UC-PCREF-06).
+- [ ] Endpoint no app (`/api/app/producao/apontamentos/refugo`) e campo na tela do operador.
+- [ ] Relatório de refugo por motivo e posto para o gestor.
+
+### US-PCP-030 · Operadores por posto: só eles são responsáveis e começam a etapa (UC-FLX-08) — **P1**
+
+**Implementado em:** `Modules/Producao/Services/OperadoresDoPosto.php` · `Modules/Producao/Http/Controllers/PostoOperadoresController.php` · `Modules/Producao/Database/Migrations/2026_10_20_130000_create_pcp_posto_operadores_table.php`
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoOperadoresDoPostoContratoTest.php` (lane `verticais-pest.yml`).
+
+> owner: wagner · priority: p1 · estimate: 3h · type: story
+
+**Origem:** aprovação [W] 2026-10-20, a partir do processo "OS e produção por item" (`prototipo-ui/cowork/Wagner/fluxos-modelos.casos.md:164`: *Iniciar etapa · só se: Operador do setor da etapa*) e do UC-FLX-08 (*cada etapa tem setor e responsável*). No legado, `SETOR_FUNCIONARIO` ligava o funcionário ao setor. Medido em 2026-10-20: `SituacaoDaOrdem::liberar()` aceitava qualquer usuário da empresa como responsável, `pcp_postos.setor` é texto livre e não havia ligação posto ↔ pessoa.
+
+**Aceite:**
+- [x] Tabela `pcp_posto_operadores` (`business_id` indexado + FK, chave única empresa + posto + pessoa) e endpoints `GET`/`PUT /producao/postos/{id}/operadores`; gravar exige `producao.etapa.mover` (UC-PCOPE-01).
+- [x] Posto com operadores cadastrados: o Liberar só aceita um deles como responsável (UC-PCOPE-02) e só um deles começa a etapa, mesmo quem já era responsável antes do cadastro (UC-PCOPE-04).
+- [x] Posto sem operadores cadastrados segue como antes (UC-PCOPE-03).
+- [x] Operador de outra empresa ou sem `producao.access` é recusado; posto de outra empresa → 404; sem a permissão → 403 (UC-PCOPE-05).
+- [x] Alocador (US-PCP-029) chama `OperadoresDoPosto::podeAtuar` ao trocar o responsável (UC-PCALO-07).
+- [ ] Tela de Postos mostrando e editando os operadores de cada posto.
 
 ## §8 — Regras Gherkin (R-PCP-001..010) — resumo
 

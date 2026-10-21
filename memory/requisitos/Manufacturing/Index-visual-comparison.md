@@ -10,7 +10,7 @@ status: rascunho
 # apontada (regex `^inertia_target:\s*["']?(\S+?\.tsx)`, datas em last_updated/date/updated_at).
 # Sem os dois campos, o doc cai no balde "nao-avaliado" e envelhece calado.
 inertia_target: resources/js/Pages/Manufacturing/Index.tsx
-last_updated: "2026-10-05"
+last_updated: "2026-10-19"
 ---
 
 # Comparação design × produção — `Manufacturing/Index` (Ordens de produção)
@@ -239,12 +239,84 @@ total" e soma no indicador "Valor total". O protótipo mostra o rascunho a preç
 indicador diz *"rascunho a preço de hoje"*). Resultado em produção: a mesma ordem aparece com um total na lista
 e com a metade dele no painel. Mudar a lista é mudança de valor exibido — fica para decisão [W].
 
+## Painel da ordem — 2026-10-19 (medido e corrigido)
+
+Pedido [F] com dois prints, protótipo × produção. Mesma sonda nos dois lados: 34 elementos do painel,
+estilo calculado pelo navegador, tema escuro, 1600×900. Protótipo: a cópia do git
+(`prototipo-ui/cowork/Wagner`, `MfgProducaoDrawer`) servida pelo `servirEspelho`, ordem MFG2026/0041.
+Produção: empresa 1, ordem 2024/0002 (rascunho). **Frescor da cópia não provado:** o
+`DesignSync.get_file` no projeto vivo devolveu 404 `project not found` com o login da sessão. A cópia
+abriu na mesma ordem e com os mesmos números do print do protótipo.
+
+**Causa principal (medida):** o painel é portal e montava no `<body>`, fora do `.cockpit`. Ali
+`--border`, `--bg-2`, `--surface`, `--text`, `--text-dim` e `--text-mute` chegavam vazios, e
+`--font-sans`/`--font-mono` eram a pilha do sistema. O `mfg-root` no `SheetContent` fazia os seletores
+do bundle alcançarem o painel, mas sem valor. Controle: copiar as variáveis do `.cockpit` para o painel,
+só no navegador, trouxe de volta a borda da caixa e o separador das linhas (0 → 1px), o quadro do custo
+(fundo `--bg-2`, borda 1px), o `<hr>` (0 → 1px), os cinzas e a IBM Plex.
+
+| dimensão | produção (antes) | protótipo | veredito |
+|---|---|---|---|
+| D4 fonte | do sistema | IBM Plex Sans / Mono | DÍVIDA A FECHAR — corrigida |
+| D6 caixa dos ingredientes, quadro do custo, divisórias | sem borda e sem fundo | borda 1px, fundo `--bg-2` | DÍVIDA — corrigida |
+| D6 cinzas (código, quantidade, preço, rótulos do custo) | brancos | `--text-dim` | DÍVIDA — corrigida |
+| D6 fundos | painel inteiro num tom só | painel `--surface`, corpo `--bg-2`, seções em cartão | DÍVIDA — corrigida |
+| D2 rodapé | 69px, padding 16 | 55px, padding 12/18 | DÍVIDA — corrigida |
+| D4/D6 botões | 36px, raio 6, 14px; "Editar ordem" sem lápis, peso 500 | 30px, raio 8, 12,5px; lápis 13px, peso 600 | DÍVIDA — corrigida |
+| D3 fechar do canto | ícone X numa área de 44px, rótulo "Close" | × de 28px, raio 6, `--text-mute` | DÍVIDA — corrigida |
+| D4 tamanhos (linha, código, rótulo do custo) | 12 · 10 · 12 | 12,5 · 10,5 · 12,5 | DÍVIDA — corrigida na regra-base do bundle |
+| D6 fundo atrás do painel | `bg-black/50` | `oklch(0.15 0 0 / 0.45)` | DÍVIDA — **não corrigida**: o `SheetContent` não aceita classe no fundo; mudar pede mexer no `Sheet` compartilhado |
+| D1 rede | busca parcial (~1,2s, com esqueleto) | instantâneo (dado de mentira) | IGUAL — não recarrega a página |
+
+**Depois, simulado em produção antes do merge:** o HTML exato que o `OrdemDrawer.tsx` novo gera (tirado
+do jsdom, já com as classes resolvidas pelo `cn()`, dados fictícios) montado dentro do `.cockpit`, mais as
+regras do build que ainda não existem em produção (hash conferido). Das **94** propriedades medidas,
+**86** iguais ao protótipo de saída. Das 8 restantes: o raio dos 2 botões (aqui `rounded-lg` é 12px;
+trocado para `rounded-[8px]` e conferido em produção: 8px, com os controles `rounded-md` 6px e
+`rounded-lg` 12px); 2 sombras equivalentes (o Tailwind soma camadas transparentes antes da sombra; a
+sombra visível é a mesma); e 4 declaradas — o fundo atrás do painel (tabela acima), a pilha de fontes
+reserva (a primeira, IBM Plex Sans, é a mesma) e os dois cinzas da ADR 0410: título da seção e código do
+item em `--text-dim` (5,51:1 sobre o cartão) em vez de `--text-mute` (4,57:1 no tema escuro; o claro não
+foi medido). **A prova final é o smoke depois do deploy** (LC-30), não esta simulação.
+
+**No ar, depois do deploy do #9582 (2026-10-19, empresa 1, tema escuro, 1600×900):** o manifesto de
+produção servia `cowork-manufacturing-bundle-C2AGPwX-.css` e `inertia-Cl6372-F.css`, os mesmos hashes do
+build do PR, e o pedaço `OrdemDrawer-*.js` já trazia a moldura nova e o `.cockpit`. Painel real da ordem
+2024/0002 (rascunho), sem nada injetado, depois de duas leituras iguais do número de elementos: monta
+dentro do `.cockpit`, sem o "Close" em inglês, e a mesma comparação dá **87 de 93** propriedades iguais ao
+protótipo, com os botões em 8px. As 6 restantes são as já declaradas acima: 2 sombras equivalentes, o
+fundo atrás do painel, a pilha de fontes reserva e os dois cinzas da ADR 0410. A linha divisória entre
+ingredientes ficou fora da conta: as duas ordens desta empresa têm um ingrediente só. Ordem 2021/0001
+(finalizada): as duas divisórias do custo com 1px, os rótulos do custo congelado presentes e só o botão
+"Fechar" no rodapé.
+
+**Fora do eixo FORMA (seguem do código, não são dívida):** a observação da ordem (a ordem antiga não tem
+esse campo), os links "Fila de produção · ficha do produto" (as telas não existem) e "Editar ordem" só em
+rascunho (a tela antiga não edita ordem finalizada). **Rótulo pendente [W]:** o protótipo diz "Mesma receita
+hoje" e a produção "Mesma ordem a preço de hoje", porque a conta usa a quantidade gravada. Ou o protótipo
+muda, ou o rótulo volta.
+
+**Onde mora a correção:** a moldura está em classes Tailwind no `OrdemDrawer.tsx`, como no painel do
+produto (`Produto/_components/lista/PainelDetalhe.tsx`); o bundle não cresceu (MANUAL-CSS-JS passo 1).
+Os 4 tamanhos foram trocados na regra-base do bundle (`.mfg-ing`, `.mfg-ing .m`, `.mfg-ing .n small`,
+`.mfg-tot dt`), porque utilitário não vence regra do bundle e `!important` é proibido. Os valores são os
+da mesma regra do protótipo (`manufacturing-page.css` L55-62).
+
+**Não coberto:** a troca na regra-base alcança também Receitas, Insumos e o editor de ingredientes, que
+usam as mesmas classes; o valor é o do protótipo, mas essas telas não foram medidas depois da troca. O
+diálogo "Nova receita" também é portal sem `container` (não medido).
+
+**Depois (2026-10-19, mesmo dia):** a moldura deste painel saiu para `_components/Gaveta.tsx` e as
+gavetas de Receitas e Insumos passaram a usá-la — medição em `Recipes-visual-comparison.md` e
+`Insumos-visual-comparison.md`. Este painel não mudou de forma (168 de 203 propriedades iguais no
+mesmo harness, contra 165 antes: a diferença é o botão primário ganhando a borda transparente de 1px do DS).
+
 ## Cobertura desta tela hoje
 
 | camada | estado |
 |---|---|
 | charter | ✓ `Index.charter.md` — **`status: draft`** |
-| casos | ✓ **5 UCs** em `Index.casos.md` |
+| casos | ✓ `Index.casos.md` (contagem viva: `npm run casos:report`) |
 | scorecard | ✓ `memory/governance/scorecards/screens/manufacturing-index.yaml` |
 | e2e / browser | ✗ nenhum |
 | baseline de pixel | ✗ **0 `.snap`** (104 no repo, nenhum do módulo) |

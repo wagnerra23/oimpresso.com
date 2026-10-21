@@ -28,6 +28,29 @@ export function tipoSemEditor(tipo: TipoProduto | undefined): boolean {
 /** O cadastro Blade, mesmo com a chave do cadastro React ligada (ProductController@create). */
 export const URL_CADASTRO_CLASSICO = '/products/create?classico=1';
 
+/** Número de um campo personalizado do produto (`product_custom_field1` … `product_custom_field20`). */
+export type NumeroCampoPersonalizado =
+  | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10
+  | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20;
+
+export type CampoPersonalizado = `product_custom_field${NumeroCampoPersonalizado}`;
+
+/**
+ * Os 20 campos personalizados com o valor gravado, para o Editar devolver no envio (UC-PEDIT-10).
+ * O `ProductController@update` grava '' em todo campo personalizado que não vem no request: sem
+ * isto, salvar pela tela Editar apagava os campos 5 a 20, que a tela não mostra.
+ */
+export function camposPersonalizadosGravados(
+  gravados: Partial<Record<NumeroCampoPersonalizado, string | null>> | null | undefined,
+): Record<CampoPersonalizado, string> {
+  const campos = {} as Record<CampoPersonalizado, string>;
+  for (let n = 1; n <= 20; n++) {
+    const numero = n as NumeroCampoPersonalizado;
+    campos[`product_custom_field${numero}`] = gravados?.[numero] ?? '';
+  }
+  return campos;
+}
+
 /**
  * O que os blocos leem do formulário. Os ids chegam como `number | string` porque o useForm
  * alarga o valor inicial `''` para string. Os quatro campos opcionais existem só no formulário
@@ -42,6 +65,8 @@ export interface CamposProduto {
   tax: number | string;
   tax_type: 'inclusive' | 'exclusive';
   origem_mercadoria: number;
+  /** Novo: o NCM, só dígitos (ncm.ts). O Editar ainda não mostra o campo. */
+  ncm?: string;
   barcode_type: string;
   alert_quantity: number | string;
   weight: number | string;
@@ -53,11 +78,13 @@ export interface CamposProduto {
   enable_stock?: number;
   not_for_selling?: number;
   expiry_period?: string;
+  /** `months` · `days` · `''` (não aplicável). */
+  expiry_period_type?: string;
   product_locations?: number[];
 }
 
 /** Os erros de validação que os blocos exibem. */
-export type ErrosProduto = Partial<Record<'name' | 'origem_mercadoria', string>>;
+export type ErrosProduto = Partial<Record<'name' | 'origem_mercadoria' | 'ncm', string>>;
 
 export type DefinirCampo = <K extends keyof CamposProduto>(campo: K, valor: CamposProduto[K]) => void;
 

@@ -13,8 +13,12 @@ use InvalidArgumentException;
  * ao entrar numa etapa da compra; a de custo dos insumos tem parâmetros (as perguntas viram
  * configuração da etapa). Vale para todas as compras da empresa.
  *
- * Hoje é só configuração gravada: nenhuma regra daqui executa ainda (o recebimento da compra
- * não lê esta configuração). A regra `trava` não pode ser desligada.
+ * Até 2026-10-19 era só configuração gravada. Desde então o parâmetro `ops` da regra de custo é lido
+ * pela OS aberta da Produção (Modules/Producao PrevisaoCustoDaOrdem, US-PCP-022), que mostra custo da
+ * abertura × hoje e escolhe a previsão. Desde 2026-10-20 o recebimento da compra lê `metodo` e
+ * `preco` da regra de custo quando a empresa a gravou (Modules/Compras AplicarCustoDoRecebimento,
+ * US-COM-026); `regraEm` e `aprovacao` ainda não são lidos.
+ * A regra `trava` não pode ser desligada.
  */
 final class RegrasCompra
 {

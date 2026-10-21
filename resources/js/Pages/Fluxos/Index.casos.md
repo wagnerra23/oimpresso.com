@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa + critério de aceite verificável (Dado/Quando/Então), provado por teste citando o id.
 por_que: quem configura o fluxo muda como toda venda anda — o acesso é fronteira de permissão, e o encaixe tem de bater com o catálogo.
 owner: wagner
-last_run: "2026-10-17"
+last_run: "2026-10-20"
 ---
 
 # Casos de Uso & Aceite — Fluxos/Index
@@ -157,8 +157,40 @@ last_run: "2026-10-17"
 - **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-18").
 - **Status: 🧪**
 
+## UC-FLXT-19 · Quem configura define a margem mínima do orçamento
+- **Persona:** dono que não quer orçamento convertido em venda com margem abaixo de um piso (UC-FLX-35).
+- **Aceite:** Dado uma empresa com modelo em uso · Quando quem tem `fluxos.configurar` grava uma margem
+  mínima entre 0 e 100 na aba Fluxos da empresa · Então ela fica gravada só para a empresa da sessão e
+  aparece na aba · Quando apaga o valor · Então a regra fica desligada · E dado um valor fora de 0–100
+  · Então recebe erro e nada muda · E sem `fluxos.configurar` recebe 403.
+- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-19").
+- **Status: 🧪**
+
+## UC-FLXT-20 · A baixa de material dos modelos sem OS diz por que não executa
+- **Persona:** dono que liga o modelo Balcão enxuto (ou Brindes) e lê a regra "Baixa o material do estoque".
+- **Fonte:** UC-FLX-14 do catálogo (`CatalogoModelos`, regra "Aprovado" do balcão e "Produção" dos
+  brindes) + US-PCP-021 (o material consumido baixa no apontamento da etapa da OS).
+- **Aceite:** Dado "Usar modelo" com Balcão enxuto ou Brindes · Então a regra do UC-FLX-14 fica
+  `planejado`, sem side effect, com o `ConsumirEstoque` só como candidato e com a `pendencia` que diz
+  por que não executa (a peça já baixa na venda finalizada; o consumido só baixa no apontamento da OS,
+  que esses modelos não têm) · E a ação que entra na etapa não carrega baixa · E regra sem motivo
+  conhecido não ganha pendência.
+- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-20").
+- **Status: 🧪**
+
+## UC-FLXT-21 · Venda finalizada do balcão entra em Aprovado sem segunda baixa
+- **Persona:** dono do balcão que finaliza a venda (o núcleo já baixa a peça) e depois a aprova no fluxo.
+- **Aceite:** Dado uma venda `final` no processo de venda do Balcão enxuto, na etapa Orçamento, com uma
+  reserva de estoque ativa · Quando avança para Aprovado, com a regra do UC-FLX-14 ligada ou desligada ·
+  Então a venda entra em Aprovado, nenhuma reserva é consumida (nem a de outra empresa) e o saldo de
+  estoque não muda. ESTOQUE: regra mestre — a prova é por dois caminhos (reserva e saldo).
+- **Teste:** `FluxosTelaContratoTest` ("UC-FLXT-21").
+- **Status: 🧪**
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste)
 
-- Nenhum no momento.
+- **[BACKLOG]** UC-FLX-14 — o que é "material consumido" numa venda sem OS (a peça vendida, que o
+  núcleo já baixa? o insumo pela ficha do produto?) é decisão [W]. Até lá a regra só diz por que não
+  executa (UC-FLXT-20).
