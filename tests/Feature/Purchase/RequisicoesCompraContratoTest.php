@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-REQC-01, UC-REQC-02, UC-REQC-03, UC-REQC-04, UC-REQC-05 (PurchaseRequisition/Index.casos.md).
+// Cobre UC-REQC-01, UC-REQC-02, UC-REQC-03, UC-REQC-04, UC-REQC-05, UC-REQC-06 (PurchaseRequisition/Index.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -166,4 +166,33 @@ test('UC-REQC-05 o filtro de status chega ao servidor e os KPIs contam pelo stat
     expect($toda['linhas']->has($concluida))->toBeTrue();
     expect($toda['kpis']['sem_pedido'])->toBe($toda['linhas']->where('status', 'ordered')->count());
     expect($toda['kpis']['parciais'])->toBe($toda['linhas']->where('status', 'partial')->count());
+});
+
+test('UC-REQC-06 Tier 0 — a coluna Fornecedor mostra o fornecedor da requisição; sem fornecedor, vazio', function () {
+    config(['feature-flags.forced_on' => 'useV2ComprasRequisicoes']);
+    $outro = $this->seededSupportClientTenant();
+    $contato = fn (int $biz, string $nome, string $razao) => DB::table('contacts')->insertGetId([
+        'business_id' => $biz, 'type' => 'supplier', 'name' => $nome, 'supplier_business_name' => $razao,
+        'contact_id' => 'CT-REQC-'.uniqid(), 'created_by' => $this->user->id, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $meu = $contato($this->business->id, 'Papelaria', 'PAPELARIA REQC LTDA');
+    $semRazao = $contato($this->business->id, 'Tintas REQC', '');
+    $alheio = $contato($outro->id, 'Alheio', 'FORNECEDOR DO 99 LTDA');
+    $com = 'RQ-FORN-'.uniqid();
+    $soNome = 'RQ-NOME-'.uniqid();
+    $sem = 'RQ-SEM-'.uniqid();
+    $sujo = 'RQ-SUJO-'.uniqid();
+    reqContratoRequisicao($this->business->id, $this->local, $this->user->id, ['ref_no' => $com, 'contact_id' => $meu]);
+    reqContratoRequisicao($this->business->id, $this->local, $this->user->id, ['ref_no' => $soNome, 'contact_id' => $semRazao]);
+    reqContratoRequisicao($this->business->id, $this->local, $this->user->id, ['ref_no' => $sem]);
+    // dado sujo: requisição do 98 apontando para contato do 99 — o nome alheio não pode vazar
+    reqContratoRequisicao($this->business->id, $this->local, $this->user->id, ['ref_no' => $sujo, 'contact_id' => $alheio]);
+
+    $linhas = reqContratoLista($this)['linhas'];
+
+    expect($linhas[$com]['fornecedor'])->toBe('PAPELARIA REQC LTDA');
+    expect($linhas[$soNome]['fornecedor'])->toBe('Tintas REQC');
+    expect($linhas[$sem]['fornecedor'])->toBeNull();
+    expect($linhas->has($sujo))->toBeTrue();      // a requisição aparece (controle positivo)
+    expect($linhas[$sujo]['fornecedor'])->toBeNull();
 });

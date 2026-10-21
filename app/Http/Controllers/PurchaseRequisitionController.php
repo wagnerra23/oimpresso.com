@@ -169,6 +169,10 @@ class PurchaseRequisitionController extends Controller
                     'BS.id'
                 )
                 ->join('users as u', 'transactions.created_by', '=', 'u.id')
+                // UC-REQMIN-07: a requisição pelo estoque mínimo nasce com o fornecedor da última compra.
+                ->leftJoin('contacts as c', function ($j) use ($business_id) {
+                    $j->on('transactions.contact_id', '=', 'c.id')->where('c.business_id', $business_id);
+                })
                 ->where('transactions.business_id', $business_id)
                 ->where('transactions.type', 'purchase_requisition')
                 ->select(
@@ -178,6 +182,7 @@ class PurchaseRequisitionController extends Controller
                     'transactions.status',
                     'BS.name as location_name',
                     'transactions.transaction_date',
+                    DB::raw("COALESCE(NULLIF(c.supplier_business_name, ''), c.name) as fornecedor"),
                     DB::raw("CONCAT(COALESCE(u.surname, ''),' ',COALESCE(u.first_name, ''),' ',COALESCE(u.last_name,'')) as added_by")
                 )
                 ->groupBy('transactions.id');
@@ -243,6 +248,7 @@ class PurchaseRequisitionController extends Controller
             'status_rotulo' => $statuses[$row->status]['label'] ?? $row->status,
             'necessario_ate' => $this->formatarDataComoBlade($row->delivery_date),
             'adicionado_por' => trim(preg_replace('/\s+/', ' ', (string) $row->added_by)),
+            'fornecedor' => $row->fornecedor,
         ])->values();
 
         return [
