@@ -16,6 +16,7 @@ import {
   Eye,
   Mail,
   MapPin,
+  PackageCheck,
   Package,
   Phone,
   Printer,
@@ -28,8 +29,8 @@ import { toast } from 'sonner';
 import KpiCard from '@/Components/shared/KpiCard';
 import EmptyState from '@/Components/shared/EmptyState';
 import MercosulPlate from '@/Components/shared/MercosulPlate';
+import { Grid, Inline } from '@/Components/layout';
 import { Button } from '@/Components/ui/button';
-import { Inline } from '@/Components/layout';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -125,6 +126,22 @@ interface CustoOrcamento {
 }
 
 /**
+ * UC-FLX-23 · US-SELL-073 · protocolo de entrega gravado pelo app das lojas (`app_entregas`).
+ * `volumes` nulo = o app não informou. `assinatura_url` é assinada e vale 10 min.
+ */
+interface EntregaVenda {
+  protocolo: string;
+  registrado_em: string;
+  recebido_por: string;
+  documento: string | null;
+  volumes: number | null;
+  itens: { linha_id: number; produto: string | null; quantidade: number | null; conferido: boolean }[];
+  com_assinatura: boolean;
+  assinatura_url: string | null;
+  sem_assinatura_motivo: string | null;
+}
+
+/**
  * UC-FLX-04 · quando o cliente abriu o link público do orçamento. Só vem em orçamento
  * (rascunho de cotação); datas no formato do banco, 'AAAA-MM-DD HH:MM:SS'.
  */
@@ -151,6 +168,7 @@ interface PesquisaEntrega {
 interface ShowDetail {
   lines: SaleLine[];
   custo?: CustoOrcamento | null;
+  entrega?: EntregaVenda | null;
   acesso?: AcessoOrcamento | null;
   pesquisa?: PesquisaEntrega | null;
   payments: SalePayment[];
@@ -521,6 +539,11 @@ export default function SellsShow(props: SellsShowPageProps) {
               </section>
             )}
 
+            {/* UC-FLX-23 · protocolo de entrega do app. Vem no detalhe deferido; sem entrega não aparece. */}
+            <Deferred data="detail" fallback={null}>
+              {props.detail?.entrega ? <EntregaSection entrega={props.detail.entrega} /> : null}
+            </Deferred>
+
             {/* Linhas + pagamentos + atividades — deferred */}
             <Deferred data="detail" fallback={<DetailSkeleton />}>
               <ShowDetailSections
@@ -680,6 +703,62 @@ export default function SellsShow(props: SellsShowPageProps) {
 
 function formatPct(v: number | null): string {
   return v === null ? '—' : `${v.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
+}
+
+/** UC-FLX-23 · protocolo de entrega: data, quem recebeu, volumes, itens e a assinatura. */
+function EntregaSection({ entrega }: { entrega: EntregaVenda }) {
+  return (
+    <section className="rounded-lg border border-border bg-card p-5" data-testid="entrega-venda">
+      <Inline gap={2} className="mb-3">
+        <PackageCheck className="h-4 w-4 text-muted-foreground" />
+        <h2 className="font-semibold text-sm">Entrega</h2>
+        <span className="text-xs text-muted-foreground tabular-nums">{entrega.protocolo}</span>
+      </Inline>
+      <Grid asChild cols={1} gap={3} className="sm:grid-cols-3 text-sm">
+        <dl>
+        <div>
+          <dt className="text-xs text-muted-foreground">Entregue em</dt>
+          <dd className="tabular-nums">{formatDateTime(entrega.registrado_em)}</dd>
+        </div>
+        <div>
+          <dt className="text-xs text-muted-foreground">Recebido por</dt>
+          <dd className="font-medium">{entrega.recebido_por}</dd>
+          {entrega.documento && <dd className="text-xs text-muted-foreground">{entrega.documento}</dd>}
+        </div>
+        <div>
+          <dt className="text-xs text-muted-foreground">Volumes</dt>
+          <dd className="tabular-nums">{entrega.volumes ?? 'Não informado'}</dd>
+        </div>
+        </dl>
+      </Grid>
+      {entrega.itens.length > 0 && (
+        <ul className="mt-3 space-y-1 text-sm">
+          {entrega.itens.map((i) => (
+            <Inline asChild key={i.linha_id} gap={3} justify="between">
+              <li>
+              <span>{i.produto ?? `Item ${i.linha_id}`}</span>
+              <span className="text-muted-foreground tabular-nums">
+                {i.quantidade !== null && `${i.quantidade.toLocaleString('pt-BR')} · `}
+                {i.conferido ? 'conferido' : 'não conferido'}
+              </span>
+              </li>
+            </Inline>
+          ))}
+        </ul>
+      )}
+      <div className="mt-3 text-sm">
+        {entrega.assinatura_url ? (
+          <img
+            src={entrega.assinatura_url}
+            alt={`Assinatura de ${entrega.recebido_por}`}
+            className="h-20 rounded border border-border bg-white"
+          />
+        ) : entrega.sem_assinatura_motivo ? (
+          <p className="text-muted-foreground">Sem assinatura: {entrega.sem_assinatura_motivo}</p>
+        ) : null}
+      </div>
+    </section>
+  );
 }
 
 /** UC-VSHOW-08 · faixa do custo do orçamento: avisa quando o custo de hoje se afastou do guardado. */
