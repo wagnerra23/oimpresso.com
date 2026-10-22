@@ -126,6 +126,8 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
     ->name('producao.')
     ->group(function () {
         Route::put('etapas/{id}/alocacao', [AlocacaoController::class, 'alocar'])->whereNumber('id')->name('etapas.alocar');
+        // UC-PCV-30 · thread 07 — reprogramar na Linha do tempo (horário e máquina do mesmo setor).
+        Route::put('etapas/{id}/reprogramar', [AlocacaoController::class, 'reprogramar'])->whereNumber('id')->name('etapas.reprogramar');
         Route::get('postos/{postoId}/fila', [AlocacaoController::class, 'fila'])->whereNumber('postoId')->name('postos.fila');
         Route::post('os/{id}/romaneio', [RomaneioController::class, 'store'])->whereNumber('id')->name('os.romaneio.store');
         Route::get('romaneios/{id}', [RomaneioController::class, 'show'])->whereNumber('id')->name('romaneios.show');
