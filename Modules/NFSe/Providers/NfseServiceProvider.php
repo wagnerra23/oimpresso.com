@@ -35,6 +35,9 @@ class NfseServiceProvider extends ServiceProvider
         $this->app->bind(NfseProviderInterface::class, function () {
             return new SnNfseAdapter(config('nfse.ambiente', 'homologacao'));
         });
+
+        // US-SELL-072 — o núcleo pergunta "a venda tem NFS-e válida?" pela tag (trava de edição).
+        $this->app->tag([\Modules\NFSe\Services\NotaDaVendaNfse::class], \App\Contracts\Fiscal\NotaDaVenda::TAG);
     }
 
     protected function registerCommands(): void

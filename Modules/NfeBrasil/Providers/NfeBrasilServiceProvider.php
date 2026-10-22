@@ -70,6 +70,9 @@ class NfeBrasilServiceProvider extends ServiceProvider
         $this->app->register(RouteServiceProvider::class);
 
         $this->registerNfseCancelDrivers();
+
+        // US-SELL-072 — o núcleo pergunta "a venda tem nota válida?" pela tag (trava de edição).
+        $this->app->tag([\Modules\NfeBrasil\Services\NotaDaVendaNfeBrasil::class], \App\Contracts\Fiscal\NotaDaVenda::TAG);
     }
 
     /**

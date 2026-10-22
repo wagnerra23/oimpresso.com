@@ -1604,6 +1604,29 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 
 **Entregue em 2026-10-20 (backend, status segue aberto pelo aceite 5):** tabela-ponte `transaction_satisfaction_surveys` (uma linha por venda, UNIQUE business + venda; não altera `transactions`). Rotina diária `sells:pesquisa-entrega --sync` às 10:00 (`app/Console/Kernel.php`) roda `App\Jobs\PesquisaSatisfacaoEntregaJob` por empresa que ligou em `business.common_settings['sells_pesquisa_entrega']` (`App\Services\Sells\PesquisaEntregaConfig`; desligada por padrão, nota baixa padrão 2 na escala 1-5). Pega a venda pela última entrada em `delivered` no `sale_stage_history`, há 2 a 9 dias, ainda em `delivered`/`completed`. Envia pelo `CsatDispatcher` do WhatsApp na conversa do cliente (a nota volta pelo `CsatResponseParser` e é copiada para a pesquisa), senão por e-mail; cliente sem opt-in fica `nao_enviado` com o motivo. O atendimento é uma tarefa no agendamento do CRM (`crm_schedules`, ligada à venda em `crm_followup_invoices`) para o vendedor — não há entidade de atendimento/ticket ligada à venda no núcleo. Código: `app/Jobs/PesquisaSatisfacaoEntregaJob.php` · `app/Services/Sells/PesquisaEntregaConfig.php` · `app/Console/Commands/Sells/PesquisaSatisfacaoEntregaCommand.php` · `app/Mail/PesquisaSatisfacaoEntregaMail.php` · `database/migrations/2026_10_20_140000_create_transaction_satisfaction_surveys_table.php`. Fora desta entrega: a tela das respostas com `sell.view` e 404 de outro business (aceite 5), a resposta por e-mail (não há leitor) e a tela de ligar/desligar.
 
+### US-SELL-072 · Venda com nota ou pagamento trava itens e valores — **P1**
+
+**Implementado em:** `app/Services/Sells/TravaDaVenda.php` · `app/Contracts/Fiscal/NotaDaVenda.php` · `app/Http/Controllers/SellPosController.php` · `Modules/NfeBrasil/Services/NotaDaVendaNfeBrasil.php` · `Modules/NFSe/Services/NotaDaVendaNfse.php`
+
+**Testado em:** `tests/Feature/Sells/SellsTravaAposNotaContratoTest.php` (lane `sells-pest.yml`) — casos UC-SEDIT-13..18 no Edit.casos.md da tela de edição de venda.
+
+> owner: wagner · priority: p1 · estimate: 4h · type: story
+
+**Origem:** decisão [W] 2026-10-20, textual: *"Trava itens e valores após nota"*. Com nota fiscal autorizada na venda, itens, valores e cliente não se editam — cancela-se a nota antes. Com pagamento, só os valores travam; campos de texto seguem editáveis.
+
+**O que existia (medido 2026-10-20):** a edição de venda só era barrada pelo prazo `transaction_edit_days` e por devolução existente (`SellPosController@edit`, `SellController@edit`, `TransactionUtil::canBeEdited`). Nada olhava nota nem pagamento: o update (`SellPosController@update`, caminho do Blade e da tela React) regravava linhas, total e estoque de venda com NF-e autorizada.
+
+**Aceite:**
+- [x] Venda com NF-e/NFC-e autorizada (ou em contingência) ou NFS-e emitida recusa mudar quantidade, preço, desconto, imposto, frete, despesas, cliente e situação, com a mensagem "Venda com nota autorizada: cancele a nota para alterar itens e valores.", e nada muda (total, linhas, estoque).
+- [x] Com nota, mudar só observação, nota interna ou dados de entrega grava esses campos sem passar pelo recálculo.
+- [x] Nota cancelada não trava.
+- [x] Venda com pagamento (sem nota) recusa mudar valores com "Venda com pagamento: valores não podem ser alterados; estorne o pagamento antes."; observação e cliente seguem editáveis.
+- [x] Venda sem nota nem pagamento edita como antes.
+- [x] Nota de outro business nunca trava a venda.
+- [ ] A tela de edição desabilita os campos travados e mostra o motivo (a prop `trava` já chega em `Sells/Edit`).
+
+**Entregue em 2026-10-20 (servidor):** `TravaDaVenda` responde o que pode ser editado e o `SellPosController@update` recusa antes de qualquer cálculo. A nota é lida pelos módulos fiscais pela tag `App\Contracts\Fiscal\NotaDaVenda::TAG` (o núcleo não importa de módulo). Pagamento = `transaction_payments` sem troco com valor, ou títulos do Financeiro pagos ou parciais (`SituacaoPagamentoVenda`). A decisão lê os números com o mesmo `num_uf` e multiplicador do `createOrUpdateSellLines`; ela não calcula nem grava valor. Fora desta entrega: desabilitar os campos na tela React e no Blade, e os outros caminhos que mexem em valor de venda (edição de pagamento, devolução).
+
 ### US-SELL-073 · Volumes no protocolo de entrega (UC-FLX-23) — **P2**
 
 **Implementado em:** `app/Http/Controllers/Api/App/PedidoEntregaController.php` · `database/migrations/2026_10_20_160000_add_volumes_to_app_entregas_table.php` · `app/Http/Controllers/SellController.php` · `resources/js/Pages/Sells/Show.tsx`
