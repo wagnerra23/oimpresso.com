@@ -48,8 +48,6 @@ on:
       - 'app/Http/Controllers/SellCommissionSplitController.php'
       - 'app/Http/Controllers/SellController.php'
       - 'app/Http/Controllers/Api/App/PedidosController.php'
-      - 'app/Services/AppLojas/EtiquetaProducao.php'  # QR da OS/etapa (AppProducaoApontamentoContratoTest)
-      - 'Modules/Producao/Http/Controllers/Api/AppApontamentoController.php'  # API de apontamento do app
       - 'app/Domain/Fsm/Support/PassosDoProcesso.php'
       - 'database/migrations/2026_10_16_120000_add_passo_to_sale_process_stages.php'
       - 'database/seeders/FsmProcessoVendaComProducaoSeeder.php'
@@ -245,8 +243,6 @@ jobs:
               - 'config/mwart.php'
               - 'app/Support/Mwart.php'
               - 'app/Http/Controllers/Api/App/PedidosController.php'
-              - 'app/Services/AppLojas/EtiquetaProducao.php'  # QR da OS/etapa (AppProducaoApontamentoContratoTest)
-              - 'Modules/Producao/Http/Controllers/Api/AppApontamentoController.php'  # API de apontamento do app
               - 'app/Domain/Fsm/Support/PassosDoProcesso.php'
               - 'database/migrations/2026_10_16_120000_add_passo_to_sale_process_stages.php'
               - 'database/seeders/FsmProcessoVendaComProducaoSeeder.php'
