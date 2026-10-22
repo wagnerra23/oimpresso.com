@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1002 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1003 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -23,8 +23,8 @@
 | [`Marketplaces`](#marketplaces) | 25 | 0 | 0 | 0 | 25 |
 | [`Compras`](#compras) | 23 | 3 | 0 | 0 | 19 |
 | [`Crm`](#crm) | 23 | 0 | 0 | 0 | 23 |
+| [`ComunicacaoVisual`](#comunicacaovisual) | 22 | 0 | 0 | 0 | 22 |
 | [`Fiscal`](#fiscal) | 22 | 0 | 0 | 0 | 22 |
-| [`ComunicacaoVisual`](#comunicacaovisual) | 21 | 0 | 0 | 0 | 21 |
 | [`Connector`](#connector) | 20 | 0 | 0 | 0 | 19 |
 | [`Forja`](#forja) | 19 | 0 | 1 | 0 | 7 |
 | [`Mwart`](#mwart) | 19 | 0 | 0 | 0 | 19 |
@@ -788,6 +788,34 @@
 - **US-CRM-062** — MWART CrmDashboard com Recharts · **P2** · 10H
 - **US-CRM-077** — Pattern canon `officeimpresso_codigo` nos 3 importers de contacts (gap ADR 0200) · **P1** · 6H
 
+## ComunicacaoVisual
+
+
+### todo
+
+- **US-COMVIS-020** — Orçamento aprovado vira OS sem redigitar (UC-FLX-01) — **P0** _(`p0` · @wagner)_
+- **US-COMVIS-021** — Salvar e reabrir o orçamento na calculadora de m² — **P0** _(`p0` · @wagner)_
+- **US-COMVIS-019** — Item do orçamento guarda o custo do material no dia (UC-FLX-33) — **P1** _(`p1` · @wagner)_
+- **US-COMVIS-022** — Custo e margem por peça na calculadora de m² (UC-FLX-03) — **P1** _(`p1` · @wagner)_
+- **US-COMVIS-001** — Cálculo automático por m² (lona, vinil, banner, fachada) — **P0**
+- **US-COMVIS-002** — Cadastro de material com preço por gramatura — **P0**
+- **US-COMVIS-003** — PCP gráfico — fluxo OS multi-etapa com responsável + prazo + custo — **P0**
+- **US-COMVIS-004** — Apontamento de máquina (Roland/Mimaki/Mutoh/HP Latex) — **P1**
+- **US-COMVIS-005** — Pós-cálculo (orçado vs realizado) — **P1**
+- **US-COMVIS-006** — Tabela tributária CNAE 1813-0/01 (CFOP/CSOSN/NCM padrão) — **P0**
+- **US-COMVIS-007** — Gestão de fachada/instalação (agenda + equipe + EPI) — **P1**
+- **US-COMVIS-008** — NFSe automática pra serviço de instalação — **P1**
+- **US-COMVIS-009** — NFe automática a partir de boleto pago — **P0** (já entregue no núcleo)
+- **US-COMVIS-010** — Provador de orçamento online (formulário web público) — **P2**
+- **US-COMVIS-011** — Comissão por OS (vendedor + instalador) — **P1**
+- **US-COMVIS-012** — DAM básico — cliente envia arquivo print-ready — **P2**
+- **US-COMVIS-013** — Bulk update preço material via Jana — **P2**
+- **US-COMVIS-014** — Dashboard "Larissa pergunta no chat às 22h" — **P2**
+- **US-COMVIS-015** — Cadastro de máquina com tinta/CMYK consumption tracking — **P2**
+- **US-COMVIS-016** — CT-e/MDF-e pra entrega — **P3**
+- **US-COMVIS-017** — Importação massiva de clientes/produtos do legacy OfficeImpresso — **P0**
+- **US-COMVIS-018** — Loja whitelabel pra catálogo público — **P3**
+
 ## Fiscal
 
 
@@ -815,33 +843,6 @@
 - **US-FISCAL-018** — Habilitar cockpit Fiscal Larissa biz=4 + canary 7d smoke
 - **US-FISCAL-019** — Cache Redis 60s KPIs + anti-DOS palette LIKE — ✅ Onda ESTABILIZAR
 - **US-FISCAL-020** — Integrar MotorTributarioService NfeBrasil — elimina 6 hardcodes Tier-0 SPED — ✅ Onda CONSOLIDAR
-
-## ComunicacaoVisual
-
-
-### todo
-
-- **US-COMVIS-020** — Orçamento aprovado vira OS sem redigitar (UC-FLX-01) — **P0** _(`p0` · @wagner)_
-- **US-COMVIS-021** — Salvar e reabrir o orçamento na calculadora de m² — **P0** _(`p0` · @wagner)_
-- **US-COMVIS-019** — Item do orçamento guarda o custo do material no dia (UC-FLX-33) — **P1** _(`p1` · @wagner)_
-- **US-COMVIS-001** — Cálculo automático por m² (lona, vinil, banner, fachada) — **P0**
-- **US-COMVIS-002** — Cadastro de material com preço por gramatura — **P0**
-- **US-COMVIS-003** — PCP gráfico — fluxo OS multi-etapa com responsável + prazo + custo — **P0**
-- **US-COMVIS-004** — Apontamento de máquina (Roland/Mimaki/Mutoh/HP Latex) — **P1**
-- **US-COMVIS-005** — Pós-cálculo (orçado vs realizado) — **P1**
-- **US-COMVIS-006** — Tabela tributária CNAE 1813-0/01 (CFOP/CSOSN/NCM padrão) — **P0**
-- **US-COMVIS-007** — Gestão de fachada/instalação (agenda + equipe + EPI) — **P1**
-- **US-COMVIS-008** — NFSe automática pra serviço de instalação — **P1**
-- **US-COMVIS-009** — NFe automática a partir de boleto pago — **P0** (já entregue no núcleo)
-- **US-COMVIS-010** — Provador de orçamento online (formulário web público) — **P2**
-- **US-COMVIS-011** — Comissão por OS (vendedor + instalador) — **P1**
-- **US-COMVIS-012** — DAM básico — cliente envia arquivo print-ready — **P2**
-- **US-COMVIS-013** — Bulk update preço material via Jana — **P2**
-- **US-COMVIS-014** — Dashboard "Larissa pergunta no chat às 22h" — **P2**
-- **US-COMVIS-015** — Cadastro de máquina com tinta/CMYK consumption tracking — **P2**
-- **US-COMVIS-016** — CT-e/MDF-e pra entrega — **P3**
-- **US-COMVIS-017** — Importação massiva de clientes/produtos do legacy OfficeImpresso — **P0**
-- **US-COMVIS-018** — Loja whitelabel pra catálogo público — **P3**
 
 ## Connector
 

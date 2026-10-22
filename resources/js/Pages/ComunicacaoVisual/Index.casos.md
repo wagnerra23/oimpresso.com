@@ -583,7 +583,7 @@ Conta do arranjo (Lona custo 8,50/m², venda 30,00/m²):
 | B 0,800 × 0,600 × 3 | 1,440 m² | 43,20 | 12,24 | 30,96 (71,7%) |
 | Orçamento | — | 223,20 − 20,00 de desconto = 203,20 | 63,24 | 139,96 (68,9%) |
 
-Extras (R$ 50) somam no total (253,20) e ficam fora da margem: não têm custo cadastrado.
+Extras (50,00) somam no total (253,20) e ficam fora da margem: não têm custo cadastrado.
 
 ## UC-CVMRG-01 · Cada peça e o orçamento mostram custo e margem · `must` `[V0]`
 
