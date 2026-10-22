@@ -29,8 +29,8 @@ import { toast } from 'sonner';
 import KpiCard from '@/Components/shared/KpiCard';
 import EmptyState from '@/Components/shared/EmptyState';
 import MercosulPlate from '@/Components/shared/MercosulPlate';
+import { Grid, Inline } from '@/Components/layout';
 import { Button } from '@/Components/ui/button';
-import { Inline } from '@/Components/layout';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -709,12 +709,13 @@ function formatPct(v: number | null): string {
 function EntregaSection({ entrega }: { entrega: EntregaVenda }) {
   return (
     <section className="rounded-lg border border-border bg-card p-5" data-testid="entrega-venda">
-      <div className="flex items-center gap-2 mb-3">
+      <Inline gap={2} className="mb-3">
         <PackageCheck className="h-4 w-4 text-muted-foreground" />
         <h2 className="font-semibold text-sm">Entrega</h2>
         <span className="text-xs text-muted-foreground tabular-nums">{entrega.protocolo}</span>
-      </div>
-      <dl className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+      </Inline>
+      <Grid asChild cols={1} gap={3} className="sm:grid-cols-3 text-sm">
+        <dl>
         <div>
           <dt className="text-xs text-muted-foreground">Entregue em</dt>
           <dd className="tabular-nums">{formatDateTime(entrega.registrado_em)}</dd>
@@ -728,17 +729,20 @@ function EntregaSection({ entrega }: { entrega: EntregaVenda }) {
           <dt className="text-xs text-muted-foreground">Volumes</dt>
           <dd className="tabular-nums">{entrega.volumes ?? 'Não informado'}</dd>
         </div>
-      </dl>
+        </dl>
+      </Grid>
       {entrega.itens.length > 0 && (
         <ul className="mt-3 space-y-1 text-sm">
           {entrega.itens.map((i) => (
-            <li key={i.linha_id} className="flex items-center justify-between gap-3">
+            <Inline asChild key={i.linha_id} gap={3} justify="between">
+              <li>
               <span>{i.produto ?? `Item ${i.linha_id}`}</span>
               <span className="text-muted-foreground tabular-nums">
                 {i.quantidade !== null && `${i.quantidade.toLocaleString('pt-BR')} · `}
                 {i.conferido ? 'conferido' : 'não conferido'}
               </span>
-            </li>
+              </li>
+            </Inline>
           ))}
         </ul>
       )}
