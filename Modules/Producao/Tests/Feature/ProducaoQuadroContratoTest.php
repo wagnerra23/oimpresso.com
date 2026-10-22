@@ -259,7 +259,7 @@ it('UC-PCV-07 · mover pede producao.etapa.mover; OS de outra empresa não se mo
     $this->flushSession();
     $this->actingAs($this->g99)->postJson('/producao/quadro/mover', $corpo)->assertNotFound();
     $this->flushSession();
-    $this->actingAs($this->gestor)->postJson('/producao/quadro/mover', $corpo + ['setor' => 'Expedição'])->assertStatus(422)->assertJson(['codigo' => 'coluna_invalida']);
+    $this->actingAs($this->gestor)->postJson('/producao/quadro/mover', ['setor' => 'Expedição'] + $corpo)->assertStatus(422)->assertJson(['codigo' => 'coluna_invalida']);
     $this->flushSession();
     $this->actingAs($this->gestor)->postJson('/producao/quadro/mover', ['setor' => 'Impressão'] + $corpo)->assertStatus(422)->assertJson(['codigo' => 'coluna_invalida']);
 
