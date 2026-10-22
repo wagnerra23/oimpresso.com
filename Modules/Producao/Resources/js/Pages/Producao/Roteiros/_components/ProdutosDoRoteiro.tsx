@@ -1,6 +1,8 @@
 // "Produtos que usam este roteiro" (UC-FLX-07 · US-PCP-026). Forma: bloco `pcv-rot-prod` da vista
 // Roteiros do protótipo (producao-cv-os.jsx) — chips + "Ligar produto". O combobox é o canon do DS
-// (Popover + Command, busca no servidor com shouldFilter={false}).
+// (Popover + Command, busca no servidor com shouldFilter={false}). As 3 regras do bloco no
+// producao-cv.css (pcv-rot-prod/-chips/pcv-chip) viram Tailwind aqui, para o bundle não crescer
+// (css-size-ratchet): mesmas medidas, mesmos tokens.
 // Cada mudança grava na hora: PUT /producao/roteiros/{id}/produtos substitui a lista do roteiro, e
 // o servidor tira o produto do roteiro em que ele estava (o vínculo é único por produto).
 import { router } from '@inertiajs/react';
@@ -57,11 +59,11 @@ export default function ProdutosDoRoteiro({ roteiroId, produtos }: { roteiroId: 
   const fora = achados.filter((p) => !ids.includes(p.id));
 
   return (
-    <div className="pcv-rot-prod" data-contract="producao-roteiro-produtos">
+    <div className="mt-2.5 flex flex-col gap-1.5 border-t border-[color:var(--border)] pt-2.5" data-contract="producao-roteiro-produtos">
       <span className="pcv-eyebrow" id={`rot-prod-${roteiroId}`}>Produtos que usam este roteiro</span>
-      <div className="pcv-rot-chips" role="list" aria-labelledby={`rot-prod-${roteiroId}`}>
+      <div className="flex flex-wrap items-center gap-1.5" role="list" aria-labelledby={`rot-prod-${roteiroId}`}>
         {produtos.map((p) => (
-          <span key={p.id} role="listitem" className="pcv-chip inline-flex items-center gap-1">
+          <span key={p.id} role="listitem" className="inline-flex items-center gap-1 rounded-full border border-[color:var(--border)] px-2.5 py-0.5 text-[length:var(--fs-3,12.5px)]">
             {p.nome}
             <button type="button" className="-mr-1 inline-flex size-5 items-center justify-center rounded-full hover:bg-muted"
               onClick={() => desligar(p.id)} disabled={salvando} aria-label={`Tirar ${p.nome} deste roteiro`}>
