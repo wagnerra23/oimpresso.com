@@ -326,6 +326,11 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 > owner: wagner · priority: p2 · estimate: 8h · status: done · type: story
 > A agenda é a Linha do tempo por máquina (`/producao/linha`, thread 07 do playbook), sobre `pcp_programacoes` — sem tabela `pcp_schedules` nova nem FullCalendar. Arrastar e Alt+setas chamam `PUT /producao/etapas/{id}/reprogramar`, que recusa sobreposição na máquina de destino.
 
+**Aceite:**
+- [x] Uma linha por máquina com a carga do dia contra a capacidade do posto, travas de arte e de material, estouro do fim do turno e da entrega prometida; "Próximo dia útil" pelo calendário de produção (UC-PCV-08).
+- [x] Reprogramar arrastando (15 em 15 min) ou com Alt+setas, só a etapa pendente, só dentro do setor; recusa choque de horário dizendo com qual OS; troca para máquina com operadores cadastrados pede um deles (UC-PCV-30).
+- [x] Gargalo com uma sugestão aplicável e reversível (UC-PCV-09).
+
 ### US-PCP-016 · Integração BoM `MfgRecipe` (consumo automático ao concluir operação) — **P2**
 
 **Implementado em:** _pendente_ — `MfgRecipe` (Manufacturing) existe pra reuso, mas o hook `apontar_fim_operacao → ConsumirEstoque` do PCP não existe (módulo não construído, ADR 0152)
