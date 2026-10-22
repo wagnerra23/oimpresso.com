@@ -127,12 +127,12 @@ class OrcamentoController extends Controller
      */
     public static function paraTela(int $businessId, int $id): ?array
     {
-        $o = Orcamento::query()->where('comvis_orcamentos.business_id', $businessId)
-            ->with(['itens' => fn ($q) => $q->orderBy('ordem')->orderBy('id')])
-            ->find($id);
+        $o = Orcamento::query()->where('comvis_orcamentos.business_id', $businessId)->find($id);
         if ($o === null) {
             return null;
         }
+        $itens = OrcamentoItem::query()->where('business_id', $businessId)->where('orcamento_id', $o->id)
+            ->orderBy('ordem')->orderBy('id')->get();
 
         return [
             'id'               => $o->id,
@@ -143,7 +143,7 @@ class OrcamentoController extends Controller
             'custo_instalacao' => (float) $o->custo_instalacao,
             'custo_entrega'    => (float) $o->custo_entrega,
             'total'            => (float) $o->total,
-            'itens'            => $o->itens->map(fn (OrcamentoItem $i) => [
+            'itens'            => $itens->map(fn (OrcamentoItem $i) => [
                 'material_id'       => $i->material_id,
                 'descricao'         => $i->descricao,
                 'largura_m'         => (float) $i->largura_m,
