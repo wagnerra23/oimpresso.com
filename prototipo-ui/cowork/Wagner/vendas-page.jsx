@@ -319,14 +319,16 @@ const vdTemEnviado = (modelo) => (VD_ETAPAS_VENDA[modelo] || []).includes("Envia
 // Casos de exemplo da proposta, pelos ids de data-vendas.jsx (só no protótipo):
 //   orçamento abaixo da margem mínima (US-SELL-069) · orçamento perdido (#9695) · venda com devolução (UC-S12)
 const VD_PROPOSTA_CASOS = {
-  "V-7832": { orcamento: true, margem: "margem 12% · mínimo 20%" },
+  "V-7832": { orcamento: true, margem: "12% de 20%" },
   "V-7827": { orcamento: true, perdido: "preço: fechou com outro fornecedor" },
   "V-7824": { devolucao: true },
+  "R-0412": { orcamento: true, rascunho: true },
+  "R-0413": { orcamento: true, rascunho: true },
 };
 function VdPipeModelo({ fsm, modelo, caso }) {
   const etapas = VD_ETAPAS_VENDA[modelo] || [];
   const FsmStepper = VdDS().FsmStepper;
-  const marco = caso.orcamento ? (vdTemEnviado(modelo) ? 2 : 1) : VD_MARCO_FSM[Math.max(0, Math.min(4, fsm))];
+  const marco = caso.rascunho ? 0 : caso.orcamento ? (vdTemEnviado(modelo) ? 2 : 1) : VD_MARCO_FSM[Math.max(0, Math.min(4, fsm))];
   let idx = 0;
   etapas.forEach((e, i) => { if ((VD_MARCO[e] ?? 0) <= marco) idx = i; });
   const fim = !!caso.perdido;
@@ -335,15 +337,40 @@ function VdPipeModelo({ fsm, modelo, caso }) {
   if (fim) steps.push({ label: vdTemEnviado(modelo) ? "Perdido" : "Cancelado", state: "term" });
   return FsmStepper ? <FsmStepper variant="inline" steps={steps} /> : <span>{etapas[idx]}</span>;
 }
-const vdColunasDoModelo = (modelo) => {
-  const cols = (VD_MODELOS_COLUNAS[modelo] || VD_MODELOS_COLUNAS.legado).cols;
+// Visão da lista (charter · ADR 0178): Operacional usa o padrão do modelo; Financeira e Produção
+// são atalhos de colunas, e cada visão guarda a própria escolha. Decisão [W] pendente: manter as
+// três visões ou deixar só o botão Colunas.
+const vdPadraoColunas = (modelo, visao) => {
+  if (visao === "financeira") return ["venda", "data", "cliente", "fiscal", "pagamento", "sinal", "total", "status"];
+  if (visao === "producao") return ["venda", "cliente", "pipeline", "producao", "entrega", modelo === "instalacao" ? "instalacao" : "arte", "total", "status"];
+  return (VD_MODELOS_COLUNAS[modelo] || VD_MODELOS_COLUNAS.legado).cols;
+};
+const vdColunasDoModelo = (modelo, visao) => {
+  const cols = vdPadraoColunas(modelo, visao);
   return VD_COLUNAS.map((c) => ({ ...c, default: cols.includes(c.key) }));
 };
-const vdChaveColunas = (modelo) => "oimpresso.sells.b" + VD_BIZ_ID + ".colunas." + modelo;
-const vdCarregarColunas = (modelo) => {
-  const defs = vdColunasDoModelo(modelo);
+const vdChaveColunas = (modelo, visao) => "oimpresso.sells.b" + VD_BIZ_ID + ".colunas." + modelo + "." + (visao || "operacional");
+const vdCarregarColunas = (modelo, visao) => {
+  const defs = vdColunasDoModelo(modelo, visao);
   const P = VdDS().ColumnPrefs;
-  return P ? P.load(defs, vdChaveColunas(modelo)) : defs.filter((c) => c.fixed || c.default).map((c) => c.key);
+  return P ? P.load(defs, vdChaveColunas(modelo, visao)) : defs.filter((c) => c.fixed || c.default).map((c) => c.key);
+};
+// Filtros avançados (charter · UC-SIDX-03): os 7 tipos de data da consulta de produção.
+const VD_TIPOS_DATA = [
+  { value: "emissao", label: "Emissão" }, { value: "alteracao", label: "Última alteração" }, { value: "nf", label: "Emissão NF" },
+  { value: "faturamento", label: "Faturamento" }, { value: "envio", label: "Envio do faturamento" },
+  { value: "competencia", label: "Competência" }, { value: "prometido", label: "Prometido" },
+];
+const VD_PERIODO_TXT = { dia: "14/05/2026", semana: "08/05/2026 → 14/05/2026", mes: "01/05/2026 → 31/05/2026",
+  ano: "01/01/2026 → 31/12/2026", personalizado: "escolha as datas" };
+// Rascunhos de exemplo (pílula Rascunhos · #9573 · UC-SIDX-04/05): só aparecem na pílula e
+// não entram nos totais de faturado.
+const vdRascunhosExemplo = (lista) => {
+  const vend = (lista[0] || {}).sellerId;
+  const R = (id, time, client, clientNote, unit) => ({ id, date: "2026-05-14", time, client, clientNote, sellerId: vend, origin: "balcão",
+    source: "balcao", vertical: "cv", fsm: 0, fiscal: { nfe: null, nfse: null }, payment: "—", installments: 1, urgent: false,
+    total: vdFmt(unit), totalNum: unit, status: "rascunho", itemsList: [{ sku: "RASC", name: clientNote, qty: 1, unit, type: "produto" }] });
+  return [R("R-0412", "09:05", "Escola Caminho do Saber", "Faixa de formatura 4×1m", 380), R("R-0413", "11:40", "Academia Corpo Ativo", "Adesivação de vidro 6 m²", 1250)];
 };
 
 // Exemplo determinístico por venda, só para o protótipo mostrar as colunas novas.
@@ -392,7 +419,7 @@ function VdColInfo({ info }) {
       {info.sub && <div className="vd-notes">{info.sub}</div>}
     </div>);
 }
-function VdColunasModal({ open, onClose, modelo, setModelo, colunas, ativas, setAtivas }) {
+function VdColunasModal({ open, onClose, modelo, setModelo, colunas, ativas, setAtivas, visao }) {
   const { Modal, ColumnManager, Button, Select } = VdDS();
   if (!open || !Modal || !ColumnManager) return null;
   return (
@@ -405,7 +432,7 @@ function VdColunasModal({ open, onClose, modelo, setModelo, colunas, ativas, set
       </React.Fragment>}>
       <p className="vd-notes" style={{ margin: "0 0 12px" }}>
         <b>Proposta em avaliação.</b> O padrão vem do modelo de fluxo da empresa (Fluxos › Empresa):{" "}
-        <b>{(VD_MODELOS_COLUNAS[modelo] || {}).n}</b>. Quem nunca mexer vê esse padrão, e "Restaurar padrão" volta a ele.
+        <b>{(VD_MODELOS_COLUNAS[modelo] || {}).n}</b>. Quem nunca mexer vê esse padrão, e "Restaurar padrão" volta a ele. Cada visão da lista (Operacional, Financeira, Produção) guarda a própria escolha.
       </p>
       {Select &&
       <div style={{ maxWidth: 360, margin: "0 0 14px" }}>
@@ -415,7 +442,7 @@ function VdColunasModal({ open, onClose, modelo, setModelo, colunas, ativas, set
         </div>
       }
       <ColumnManager columns={colunas} groups={VD_COL_GRUPOS} active={ativas} onChange={setAtivas}
-        storageKey={vdChaveColunas(modelo)} labelActive="Na lista — de cima para baixo é a ordem das colunas" />
+        storageKey={vdChaveColunas(modelo, visao)} labelActive="Na lista — de cima para baixo é a ordem das colunas" />
     </Modal>);
 }
 
@@ -460,9 +487,13 @@ function VendasListPage() {
   // PROPOSTA · botão Colunas (ver VD_COLUNAS). Protótipo: a empresa de exemplo usa o modelo CV pequena.
   const [colModelo, setColModelo] = useStateV("cv-pequena");
   const [colOpen, setColOpen] = useStateV(false);
-  const colDefs = useMemoV(() => vdColunasDoModelo(colModelo), [colModelo]);
-  const [colAtivas, setColAtivas] = useStateV(() => vdCarregarColunas(colModelo));
-  useEffectV(() => {setColAtivas(vdCarregarColunas(colModelo));}, [colModelo]);
+  const [visaoLista, setVisaoLista] = useStateV("operacional");
+  const [filtrosAbertos, setFiltrosAbertos] = useStateV(false);
+  const [periodo, setPeriodo] = useStateV("mes");
+  const [tipoData, setTipoData] = useStateV("emissao");
+  const colDefs = useMemoV(() => vdColunasDoModelo(colModelo, visaoLista), [colModelo, visaoLista]);
+  const [colAtivas, setColAtivas] = useStateV(() => vdCarregarColunas(colModelo, "operacional"));
+  useEffectV(() => {setColAtivas(vdCarregarColunas(colModelo, visaoLista));}, [colModelo, visaoLista]);
   const rowsRef = useRefV([]);
   // Refino #2 KB-9.75: estado da IA no palette
   const [aiPalState, setAiPalState] = useStateV("idle"); // idle | loading | done
@@ -635,9 +666,13 @@ function VendasListPage() {
       (v.fiscal?.nfse?.chave || "").includes(q.replace(/\s/g, ""))
       );
     }
-    if (statusF !== "todas") out = out.filter((v) => v.status === statusF);
+    if (statusF === "rascunhos") out = vdRascunhosExemplo(VENDAS_LIST);
+    else if (statusF !== "todas") out = out.filter((v) => v.status === statusF);
+    // PROPOSTA · período dos filtros avançados: Dia = hoje · Semana = últimos 7 dias · demais = tudo
+    if (periodo === "dia") out = out.filter((v) => v.date === "2026-05-14");
+    else if (periodo === "semana") out = out.filter((v) => v.date >= "2026-05-08");
     return out;
-  }, [VENDAS_LIST, view, topView, subView, query, statusF, VENDEDORES_MAP, favSet]);
+  }, [VENDAS_LIST, view, topView, subView, query, statusF, VENDEDORES_MAP, favSet, periodo]);
 
   // expor pra keyboard handler ler sem fechar sobre o closure
   useEffectV(() => {window.__vendasFiltered = filtered;}, [filtered]);
@@ -689,7 +724,7 @@ function VendasListPage() {
   const sparkData = [3.2, 2.8, 4.1, 3.6, 4.8, 5.2, 3.9, 4.4, 5.8, 4.6, 5.1, 6.3, 5.4, 4.9, 6.8, 7.2, 5.9, 6.4, 7.8, 6.2, 7.5, 8.4, 6.9, 7.8, 9.1, 8.2, 7.6, 8.9, 9.4, kpi_total / 1000];
 
   // counts por status (do filtered)
-  const countBy = (s) => s === "todas" ? filtered.length : filtered.filter((v) => v.status === s).length;
+  const countBy = (s) => s === "rascunhos" ? vdRascunhosExemplo(VENDAS_LIST).length : s === "todas" ? filtered.length : filtered.filter((v) => v.status === s).length;
 
   // selection
   const toggleSel = (id) => setSelected((prev) => {
@@ -829,9 +864,10 @@ function VendasListPage() {
 
   // PROPOSTA · botão Colunas — largura do cabeçalho e célula de cada coluna, na ordem escolhida.
   const VD_COL_TH = {
-    venda: { w: 82 }, data: { w: 80 }, cliente: {}, atendido: { w: 168 }, origem: { w: 138, cls: "vd-col-source" },
-    pipeline: { w: 128, l: "Pipeline" }, producao: { w: 156 }, entrega: { w: 120 }, arte: { w: 136 }, instalacao: { w: 150 },
-    fiscal: { w: 148 }, pagamento: { w: 128 }, sinal: { w: 120 }, total: { w: 110 }, comissao: { w: 90, cls: "vd-col-commission" }, status: { w: 88 },
+    // larguras para caber em 1280 sem rolagem horizontal (charter · UX targets) com o padrão de cada modelo
+    venda: { w: 82 }, data: { w: 80 }, cliente: {}, atendido: { w: 136 }, origem: { w: 138, cls: "vd-col-source" },
+    pipeline: { w: 120, l: "Pipeline" }, producao: { w: 132 }, entrega: { w: 96, l: "Entrega" }, arte: { w: 116 }, instalacao: { w: 132 },
+    fiscal: { w: 130 }, pagamento: { w: 120 }, sinal: { w: 116 }, total: { w: 104 }, comissao: { w: 90, cls: "vd-col-commission" }, status: { w: 88 },
   };
   const vdCelula = (k, v, s, comm, isFav, ex) => {
     switch (k) {
@@ -839,7 +875,9 @@ function VendasListPage() {
                   <td key="venda" className="vd-id">
                     {isFav && <span className="vd-fav" title="Favorita (B)">★</span>}
                     #{v.id}
-                    {(VD_PROPOSTA_CASOS[v.id] || {}).devolucao && <div title="Venda com devolução"><VdColInfo info={{ txt: "↩ Devolução", tone: "warn" }} /></div>}
+                    {(VD_PROPOSTA_CASOS[v.id] || {}).devolucao &&
+                    <span role="img" aria-label="Venda com devolução" title="Venda com devolução"
+                      style={{ marginLeft: 4, fontWeight: 700, color: "var(--color-warning)" }}>↩</span>}
                   </td>
       );
       case "data": return (
@@ -921,19 +959,20 @@ function VendasListPage() {
       );
       case "status": {
         const caso = VD_PROPOSTA_CASOS[v.id] || {};
-        const stKey = caso.perdido ? "cancelada" : caso.orcamento ? "orcamento" : v.status;
+        const stKey = caso.perdido ? "cancelada" : caso.rascunho ? "rascunho" : caso.orcamento ? "orcamento" : v.status;
+        const stDef = VENDAS_STATUS[stKey] || (stKey === "rascunho" ? { label: "Rascunho", color: VENDAS_STATUS.orcamento?.color } : null);
         return (
                   <td key="status">
                     {caso.perdido && vdTemEnviado(colModelo) ?
                     <VdColInfo info={{ txt: "Perdido", tone: "danger" }} /> :
                     <span className="os-stage" style={{
-                      background: (VENDAS_STATUS[stKey]?.color || "#888") + "1f",
-                      color: VENDAS_STATUS[stKey]?.color || "#888"
+                      background: (stDef?.color || "#888") + "1f",
+                      color: stDef?.color || "#888"
                     }}>
-                      {VENDAS_STATUS[stKey]?.label || stKey}
+                      {stDef?.label || stKey}
                     </span>}
                     {caso.perdido && <div className="vd-notes">motivo: {caso.perdido}</div>}
-                    {caso.margem && <div style={{ marginTop: 4 }}><VdColInfo info={{ txt: "Aguardando aprovação da margem", sub: caso.margem, tone: "warn" }} /></div>}
+                    {caso.margem && <div style={{ marginTop: 4 }}><VdColInfo info={{ txt: "Margem baixa", sub: "aguarda aprovação · " + caso.margem, tone: "warn" }} /></div>}
                     <div className="vd-row-actions" onClick={(e) => e.stopPropagation()}>
                       {v.fiscal?.nfe?.status === "ok" &&
                       <button className="vd-row-act" title="Baixar DANFE PDF"><I.archive size={11} /></button>
@@ -1018,6 +1057,9 @@ function VendasListPage() {
         </button>
 
         <div className="os-head-r">
+          <button className="os-btn ghost" onClick={() => window.vdToast?.("Imprimir caixa — protótipo", "ok")}>
+            <I.printer size={11} />Imprimir caixa
+          </button>
           <button className="os-btn primary" onClick={() => window.__vendasSubSetter ? window.__vendasSubSetter("create") : setCreateOpen(true)}>
             <I.plus size={11} />Nova venda <kbd className="kbd-hint">N</kbd>
           </button>
@@ -1162,7 +1204,8 @@ function VendasListPage() {
       }
 
       {/* TOOLBAR — filtros, ACIMA da lista ([W] 2026-06-11 "essa linha vai ficar acima da lista") */}
-      <div className="vd-toolbar vd-filterbar">
+      {/* PROPOSTA · a barra quebra em duas linhas: com Rascunhos, Visão, Filtros e Colunas ela não cabe em 1280 */}
+      <div className="vd-toolbar vd-filterbar" style={{ flexWrap: "wrap", rowGap: 8 }}>
         {/* status tabs + Foco/views + busca na MESMA linha, acima da lista
             ([W] 2026-06-12 "essa linha deve ficar ao lado da de baixo · falta a busca no canto direito") */}
         <window.CliTabs className="os-tabs" ariaLabel="Situação da venda" pad={24}
@@ -1176,6 +1219,13 @@ function VendasListPage() {
             <span className="vd-vista-lbl">Foco</span>
             <window.CliSeg ariaLabel="Foco" size="sm" value={vista} onChange={setVista}
               options={[{ key: "caixa", label: "Caixa" }, { key: "faturamento", label: "Faturamento" }, { key: "comissao", label: "Comissão" }]} />
+          </div>
+
+          {/* PROPOSTA · visão da lista (charter · ADR 0178): cada uma é um atalho de colunas */}
+          <div className="vd-vista">
+            <span className="vd-vista-lbl">Visão</span>
+            <window.CliSeg ariaLabel="Visão da lista" size="sm" value={visaoLista} onChange={setVisaoLista}
+              options={[{ key: "operacional", label: "Operacional" }, { key: "financeira", label: "Financeira" }, { key: "producao", label: "Produção" }]} />
           </div>
 
           <span className="vd-toolbar-sep" />
@@ -1262,6 +1312,10 @@ function VendasListPage() {
           </div>
         </div>
 
+        <button className="vd-views-btn" aria-expanded={filtrosAbertos} onClick={() => setFiltrosAbertos((x) => !x)} style={{ whiteSpace: "nowrap" }}>
+          Filtros avançados {filtrosAbertos ? "▴" : "▾"}
+        </button>
+
         {/* PROPOSTA · botão Colunas (em avaliação pelo [W]) */}
         <button className="vd-views-btn" onClick={() => setColOpen(true)} aria-haspopup="dialog" style={{ whiteSpace: "nowrap" }}
           title="Escolher e ordenar as colunas da lista">
@@ -1275,6 +1329,26 @@ function VendasListPage() {
           {query && <button className="vd-search-x" onClick={() => setQuery("")} title="Limpar" aria-label="Limpar busca"><I.close size={12} /></button>}
         </div>
       </div>
+
+      {/* PROPOSTA · filtros avançados (charter · UC-SIDX-03): período e tipo de data */}
+      {filtrosAbertos &&
+      <div role="group" aria-label="Filtros avançados" style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-end", gap: 16,
+        margin: "0 0 12px", padding: "12px 14px", border: "1px solid var(--border)", borderRadius: "var(--radius-md, 8px)", background: "var(--bg-2)" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <span className="vd-vista-lbl">Período</span>
+          <window.CliSeg ariaLabel="Período" size="sm" value={periodo} onChange={setPeriodo}
+            options={[{ key: "dia", label: "Dia" }, { key: "semana", label: "Semana" }, { key: "mes", label: "Mês" }, { key: "ano", label: "Ano" }, { key: "personalizado", label: "Personalizado" }]} />
+        </div>
+        <div style={{ width: 230 }}>
+          {(() => { const S = VdDS().Select; return S ? <S label="Tipo de data" value={tipoData} onChange={(e) => setTipoData(e.target.value)} options={VD_TIPOS_DATA} /> : null; })()}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <span className="vd-vista-lbl">Aplicado</span>
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: 12.5, color: "var(--text-dim)" }}>{VD_PERIODO_TXT[periodo]}</span>
+        </div>
+        <button className="os-btn ghost" onClick={() => setPeriodo("mes")}>Limpar filtro de data</button>
+      </div>
+      }
 
       {/* TABLE */}
       <div className="os-table-wrap">
@@ -1345,30 +1419,49 @@ function VendasListPage() {
       {!loading && filtered.length > 0 && (() => {
         const tot = filtered.reduce((s, v) => s + v.totalNum, 0);
         const com = filtered.reduce((s, v) => { const ss = VENDEDORES_MAP[v.sellerId] || {}; return s + v.totalNum * (ss.commissionPct || 0); }, 0);
-        const pagas = filtered.filter((v) => v.status === "paga").length;
-        const pend = filtered.filter((v) => v.fsm < 4).length;
+        // PROPOSTA · como a produção (UC-SIDX-06): Pago, A receber e Total do filtro, somando todas as
+        // páginas; rascunho fica fora dos totais (UC-SIDX-05). Comissão aparece no Foco Comissão.
+        const pago = filtered.filter((v) => v.status === "paga").reduce((s, v) => s + v.totalNum, 0);
+        const rasc = statusF === "rascunhos";
+        const Pag = VdDS().Pagination;
         return (
+          <React.Fragment>
           <div className="vd-totalbar">
             <div className="vd-totalbar-l">
-              <b>{filtered.length}</b> {filtered.length === 1 ? "venda" : "vendas"}
-              <span className="vd-totalbar-sub">{pagas} paga{pagas === 1 ? "" : "s"} · {pend} a receber</span>
+              <b>{filtered.length}</b> {rasc ? (filtered.length === 1 ? "rascunho" : "rascunhos") : filtered.length === 1 ? "venda" : "vendas"}
+              <span className="vd-totalbar-sub">{rasc ? "rascunho não entra nos totais de faturado" : "soma de todas as páginas do filtro"}</span>
             </div>
+            {!rasc &&
             <div className="vd-totalbar-r">
+              <div className="vd-totalbar-m">
+                <span className="k">Pago</span>
+                <span className="v">{vdFmt(pago)}</span>
+              </div>
+              <div className="vd-totalbar-m">
+                <span className="k">A receber</span>
+                <span className="v">{vdFmt(tot - pago)}</span>
+              </div>
+              {vista === "comissao" &&
               <div className="vd-totalbar-m">
                 <span className="k">Comissão</span>
                 <span className="v com">{vdFmt(com)}</span>
-              </div>
+              </div>}
               <div className="vd-totalbar-m">
                 <span className="k">Total do filtro</span>
                 <span className="v grand">{vdFmt(tot)}</span>
               </div>
-            </div>
+            </div>}
           </div>
+          {Pag &&
+          <div style={{ marginTop: 8 }}>
+            <Pag page={1} pageCount={1} total={filtered.length} pageSize={50} totalLabel={rasc ? "rascunhos" : "vendas"} prevLabel="Anterior" nextLabel="Próxima" />
+          </div>}
+          </React.Fragment>
         );
       })()}
 
       <VdColunasModal open={colOpen} onClose={() => setColOpen(false)} modelo={colModelo} setModelo={setColModelo}
-        colunas={colDefs} ativas={colAtivas} setAtivas={setColAtivas} />
+        colunas={colDefs} ativas={colAtivas} setAtivas={setColAtivas} visao={visaoLista} />
 
       {/* BULK ACTION BAR */}
       <div className={`vd-bulk ${selected.size > 0 ? "on" : ""}`}>
@@ -1600,7 +1693,7 @@ function VendaDetailDrawer({ venda, onClose, onEdit }) {
         </header>
 
         {window.OiEtapaPainel && <div className="vd-etapa"><window.OiEtapaPainel proc="venda" modo="leitura" docId={v.id}
-          estado={v.status === "cancelada" ? "Cancelado" : ["Orçamento", "Aprovado", "Faturado", "Entregue", "Entregue"][Math.max(0, Math.min(4, effFsm || 0))]}
+          estado={(VD_PROPOSTA_CASOS[v.id] || {}).perdido ? "Perdido" : (VD_PROPOSTA_CASOS[v.id] || {}).rascunho ? "Orçamento" : (VD_PROPOSTA_CASOS[v.id] || {}).orcamento ? "Enviado" : v.status === "cancelada" ? "Cancelado" : ["Orçamento", "Aprovado", "Faturado", "Entregue", "Entregue"][Math.max(0, Math.min(4, effFsm || 0))]}
           bloqueios={() => { const os = vdOsDaVenda(v, effFsm), f = os.filter((o) => o.sit !== "Concluída"); return os.length && f.length ? { "Concluir": "só " + (os.length - f.length) + " de " + os.length + " OS prontas" } : {}; }}
           nota={wantsNFe || wantsNFSe ? "Ao faturar sai: " + [wantsNFe && "NF-e dos produtos", wantsNFSe && "NFS-e dos serviços"].filter(Boolean).join(" + ") + " — conforme a natureza fiscal de cada item." : null} /></div>}
 
@@ -1691,10 +1784,20 @@ function VendaDetailDrawer({ venda, onClose, onEdit }) {
                       {wantsNFSe && !hasNFSe && " serviço(s)"}
                       {" "}sem documento fiscal.
                     </small>
+                    {!hasNFe && wantsNFe && !hasNFSe && wantsNFSe && (() => {
+                      const soma = (t) => (v.itemsList || []).filter((i) => i.type === t).reduce((a, i) => a + i.qty * i.unit, 0);
+                      return <small style={{ display: "block", marginTop: 4 }}>
+                        NF-e · produtos {vdFmt(soma("produto"))} · NFS-e · serviços {vdFmt(soma("servico"))} — desconto rateado pelo bruto, frete na NF-e
+                      </small>;
+                    })()}
                   </div>
+                  {!hasNFe && wantsNFe && !hasNFSe && wantsNFSe ?
+                  <button className="os-btn primary" onClick={() => window.vdToast?.("NF-e e NFS-e enviadas — protótipo", "ok", 3000)}>
+                    Emitir NF-e + NFS-e →
+                  </button> :
                   <button className="os-btn primary" onClick={() => setEmitOpen(!hasNFe && wantsNFe ? "nfe" : "nfse")}>
-                    {!hasNFe && wantsNFe && !hasNFSe && wantsNFSe ? "Emitir NF-e →" : !hasNFe ? "Emitir NF-e →" : "Emitir NFS-e →"}
-                  </button>
+                    {!hasNFe ? "Emitir NF-e →" : "Emitir NFS-e →"}
+                  </button>}
                 </div>
             }
 
