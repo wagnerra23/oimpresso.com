@@ -4,7 +4,8 @@
 // (PATCH /fluxos/regra) e a Compra é configurável (PATCH /fluxos/compra, regras de fsm-regras.jsx);
 // os dois exigem fluxos.configurar — sem ela os switches ficam só para leitura.
 // A margem mínima do orçamento (PATCH /fluxos/margem, UC-FLXT-19) não vem do protótipo: foi
-// pedida por [W] em 2026-10-19 e usa os mesmos átomos da Compra (Interruptor + campo).
+// pedida por [W] em 2026-10-19 e usa os mesmos átomos da Compra (Interruptor + campo). O sinal
+// mínimo da produção (PATCH /fluxos/sinal, UC-FLXT-23 · US-PCP-025) segue o mesmo desenho.
 // "Reservar material na venda" (PATCH /fluxos/reserva, US-PCP-031 · UC-FLX-14) também não vem do
 // protótipo: usa o mesmo Interruptor e só aparece para empresa com o módulo Produção.
 // A requisição pelo estoque mínimo (PATCH /fluxos/requisicao-estoque-minimo, UC-FLXT-24 · UC-FLX-19)
@@ -32,6 +33,8 @@ interface Props {
   opcoesCompra: MapaOpcoesCompra;
   /** UC-FLXT-19: margem mínima do orçamento, em % (nula = desligada). */
   margemMinima: number | null;
+  /** UC-FLXT-23: sinal mínimo para liberar a OS, em % da venda, texto decimal (nulo = desligado). */
+  sinalMinimo: string | null;
   /** US-PCP-031: reserva do insumo na venda (null = empresa sem o módulo Produção, não mostra). */
   reservaInsumo: boolean | null;
   /** UC-FLXT-24: requisição pelo estoque mínimo ligada? (nula = sem o módulo Compras). */
@@ -196,6 +199,52 @@ function MargemMinima({ valor, pode }: { valor: number | null; pode: boolean }) 
 }
 
 /**
+ * UC-FLXT-23 · sinal mínimo para a produção liberar a OS (UC-FLX-28 · US-PCP-025). Ligado, a OS só
+ * sai de Aguardando liberação quando o pago da venda alcança esse % do total; o pagamento que chega
+ * libera sozinho. Desligado, grava vazio (PATCH /fluxos/sinal).
+ */
+function SinalMinimo({ valor, pode }: { valor: string | null; pode: boolean }) {
+  const ligado = valor !== null;
+  const atual = valor === null ? null : Number(valor);
+  // Vai como texto com 2 casas: o servidor grava em DECIMAL sem passar por float.
+  const gravar = (v: number | null) => router.patch('/fluxos/sinal', { sinal_minimo: v === null ? null : v.toFixed(2) }, salvar);
+  const [rascunho, setRascunho] = useState<number>(atual ?? 0);
+  useEffect(() => setRascunho(atual ?? 0), [atual]);
+
+  return (
+    <section className="flx-card" aria-label="Sinal mínimo para produzir">
+      <div className="flx-cmp">
+        <div className="flx-cmp-r">
+          <Interruptor
+            id="flx-sinal-minimo"
+            titulo="Produção só libera com o sinal pago"
+            sub="A OS espera em Aguardando liberação até a venda ter esse percentual pago"
+            checked={ligado}
+            disabled={!pode}
+            onChange={(v) => gravar(v ? 50 : null)}
+          />
+          {ligado && (
+            <div className="flx-cmp-p">
+              <label className="flx-busca" htmlFor="flx-sinal-minimo-pct">
+                <span className="flx-lbl">Sinal mínimo (%)</span>
+                <NumericInputPtBR
+                  id="flx-sinal-minimo-pct"
+                  value={rascunho}
+                  precision={2}
+                  disabled={!pode}
+                  onChange={setRascunho}
+                  onBlur={() => { if (rascunho !== atual) gravar(rascunho); }}
+                />
+              </label>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/**
  * US-PCP-031 · UC-FLX-14 · reserva do insumo na venda. Ligada, a OS criada pela venda aprovada reserva
  * o material da receita e a produção baixa o real (PATCH /fluxos/reserva). Só aparece com o módulo Produção.
  */
@@ -218,9 +267,9 @@ function ReservaInsumo({ ligada, pode }: { ligada: boolean; pode: boolean }) {
   );
 }
 
-export default function AbaEmpresa({ empresa, emUso, portes, atividades, ligadas, compra, opcoesCompra, margemMinima, reservaInsumo, requisicaoEstoqueMinimo, podeConfigurar }: Props) {
+export default function AbaEmpresa({ empresa, emUso, portes, atividades, ligadas, compra, opcoesCompra, margemMinima, sinalMinimo, reservaInsumo, requisicaoEstoqueMinimo, podeConfigurar }: Props) {
   const erros = (usePage().props as { errors?: Record<string, string> }).errors;
-  const erro = erros?.regra ?? erros?.margem_minima ?? erros?.ligada ?? null;
+  const erro = erros?.regra ?? erros?.margem_minima ?? erros?.sinal_minimo ?? erros?.ligada ?? null;
   const verModelos = (
     <Button size="sm" asChild><Link href="/fluxos?aba=modelos">Ver modelos</Link></Button>
   );
@@ -262,6 +311,7 @@ export default function AbaEmpresa({ empresa, emUso, portes, atividades, ligadas
         <Button size="sm" variant="outline" asChild><Link href="/fluxos?aba=modelos">Trocar modelo</Link></Button>
       </div>
       <MargemMinima valor={margemMinima} pode={podeConfigurar} />
+      <SinalMinimo valor={sinalMinimo} pode={podeConfigurar} />
       {reservaInsumo !== null && <ReservaInsumo ligada={reservaInsumo} pode={podeConfigurar} />}
       <div className="flx-procs">
         {emUso.processos.map((p) => {
