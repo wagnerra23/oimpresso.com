@@ -45,6 +45,10 @@ class CusteioRkwCommand extends Command
         $this->table(['Posto', 'Horas', 'Rateio fixo', 'Custo-hora atual', 'Parcela fixa/h', 'Custo-hora RKW'],
             array_map(fn ($p) => [$p['codigo'].' '.$p['nome'], $p['horas'], $p['rateio_fixo'], $p['custo_hora_atual'],
                 $p['parcela_fixa_por_hora'], $p['custo_hora_rkw']], $r['postos']));
+        if ($r['setores'] !== []) {
+            $this->table(['Setor', 'Postos', 'Horas', 'Rateio fixo'], array_map(fn ($c) => [
+                $c['setor'] ?? '(sem setor)', $c['postos'], $c['horas'], $c['rateio_fixo']], $r['setores']));
+        }
         $this->line('Margem de contribuição: '.($r['margem_contribuicao_pct'] ?? '—').'% · ponto de equilíbrio: '.($r['ponto_equilibrio'] ?? '—'));
         foreach ($r['avisos'] as $aviso) {
             $this->warn($aviso);

@@ -2,9 +2,13 @@
 // cadastro (nenhuma conta aqui): o custo real é do CustoRealService (thread 02).
 // Motivos: lista fechada por posto (UC-PCV-33), um por linha. Posto novo nasce com o padrão
 // sugerido pelo servidor (Motivo::PADRAO); a lista se ajusta depois de salvo.
+// Operadores do posto (US-PCP-030 · UC-FLX-08): só quem tem producao.etapa.mover vê e altera.
+// Nenhum marcado = posto sem cadastro, aceita qualquer pessoa da Produção. O endpoint é JSON,
+// então vai por fetch (não pelo router do Inertia) e a lista de postos é recarregada depois.
 import { router, useForm } from '@inertiajs/react';
 import { useLayoutEffect, useState, type ReactNode } from 'react';
 import { Button } from '@/Components/ui/button';
+import { Checkbox } from '@/Components/ui/checkbox';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
@@ -17,15 +21,31 @@ export interface Posto {
   veiculo: boolean; placa: string | null; custo_hora: string; custo_km: string | null;
   capacidade_por_hora: string | null; unidade_capacidade: string | null; ativo: boolean;
   motivos: Record<'pausa' | 'refugo', string[]>;
+  operadores: Pessoa[];
 }
+export interface Pessoa { id: number; nome: string }
 
 const linhas = (t: string) => t.split('\n').map((x) => x.trim()).filter(Boolean);
+
+async function gravarOperadores(postoId: number, userIds: number[]): Promise<string | null> {
+  const csrf = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
+  const r = await fetch(`/producao/postos/${postoId}/operadores`, {
+    method: 'PUT', credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': csrf, 'X-Requested-With': 'XMLHttpRequest' },
+    body: JSON.stringify({ user_ids: userIds }),
+  }).catch(() => null);
+  if (r?.ok) return null;
+  const json = (await r?.json().catch(() => ({}))) as { message?: string } | undefined;
+  return json?.message ?? 'Não foi possível salvar os operadores.';
+}
 
 function Campo({ rotulo, erro, children }: { rotulo: string; erro?: string; children: ReactNode }) {
   return <div><Label>{rotulo}</Label>{children}{erro && <p className="text-xs text-destructive">{erro}</p>}</div>;
 }
 
-export default function EditorPosto({ posto, veiculo, onClose }: { posto: Posto | null; veiculo: boolean; onClose: () => void }) {
+export default function EditorPosto({ posto, veiculo, usuarios, podeDefinirOperadores, onClose }: {
+  posto: Posto | null; veiculo: boolean; usuarios: Pessoa[]; podeDefinirOperadores: boolean; onClose: () => void;
+}) {
   const form = useForm({
     codigo: posto?.codigo ?? '', nome: posto?.nome ?? '', setor: posto?.setor ?? '',
     tipo_custo: posto?.tipo_custo ?? 'maquina', veiculo, placa: posto?.placa ?? '',
@@ -34,6 +54,10 @@ export default function EditorPosto({ posto, veiculo, onClose }: { posto: Posto 
   });
   const [pausa, setPausa] = useState((posto?.motivos.pausa ?? []).join('\n'));
   const [refugo, setRefugo] = useState((posto?.motivos.refugo ?? []).join('\n'));
+  const [operadores, setOperadores] = useState<number[]>((posto?.operadores ?? []).map((o) => o.id));
+  const [erroOperadores, setErroOperadores] = useState<string | null>(null);
+  const alternarOperador = (id: number, marcado: boolean) =>
+    setOperadores((atual) => (marcado ? [...atual, id] : atual.filter((x) => x !== id)));
   // O drawer é um portal: no <body>, fora do `.cockpit`, o `--text-mute` do `.pcv-help` chega
   // vazio e a ajuda sai branca (medido em 2026-10-19 por simulação: a regra do bundle no <body>
   // contra no `.cockpit`, porque a tela devolveu 403 ao usuário medido). Monta dentro do `.cockpit` (lápide §5
@@ -42,12 +66,22 @@ export default function EditorPosto({ posto, veiculo, onClose }: { posto: Posto 
   useLayoutEffect(() => setCockpit(document.querySelector<HTMLElement>('.cockpit')), []);
   const { data, setData, errors, processing } = form;
   const editaMotivos = posto !== null && !veiculo;
+  const editaOperadores = editaMotivos && podeDefinirOperadores;
+  // Só grava se a lista mudou: quem não mexeu no campo não toca o cadastro.
+  const ordenada = (ids: number[]) => [...ids].sort((a, b) => a - b).join(',');
+  const operadoresMudaram = editaOperadores && ordenada(operadores) !== ordenada((posto?.operadores ?? []).map((o) => o.id));
 
+  const salvarOperadores = async () => {
+    if (!posto || !operadoresMudaram) return onClose();
+    const erro = await gravarOperadores(posto.id, operadores);
+    if (erro) return setErroOperadores(erro);
+    router.reload({ only: ['postos'], onSuccess: onClose });
+  };
   const salvarMotivos = () => {
     if (!posto) return onClose();
     router.put(`/producao/postos/${posto.id}/motivos`, { tipo: 'pausa', nomes: linhas(pausa) }, {
       preserveScroll: true,
-      onSuccess: () => router.put(`/producao/postos/${posto.id}/motivos`, { tipo: 'refugo', nomes: linhas(refugo) }, { preserveScroll: true, onSuccess: onClose }),
+      onSuccess: () => router.put(`/producao/postos/${posto.id}/motivos`, { tipo: 'refugo', nomes: linhas(refugo) }, { preserveScroll: true, onSuccess: () => void salvarOperadores() }),
     });
   };
   const salvar = () => {
@@ -95,6 +129,23 @@ export default function EditorPosto({ posto, veiculo, onClose }: { posto: Posto 
               <Campo rotulo="Motivos de pausa (um por linha)"><Textarea rows={6} value={pausa} onChange={(e) => setPausa(e.target.value)} /></Campo>
               <Campo rotulo="Motivos de refugo (um por linha)"><Textarea rows={6} value={refugo} onChange={(e) => setRefugo(e.target.value)} /></Campo>
             </>
+          )}
+          {editaOperadores && (
+            <fieldset className="col-span-2" data-contract="producao-posto-operadores">
+              <legend className="text-sm font-medium">Operadores do posto</legend>
+              <p className="pcv-help">Só eles podem ser responsáveis e começar as etapas deste posto. Nenhum marcado: qualquer pessoa da Produção.</p>
+              {usuarios.length === 0 ? <p className="pcv-help">Ninguém da empresa tem acesso à Produção.</p> : (
+                <ul className="mt-2 grid grid-cols-2 gap-2">
+                  {usuarios.map((u) => (
+                    <li key={u.id} className="flex items-center gap-2 text-sm">
+                      <Checkbox id={`pcp-op-${u.id}`} checked={operadores.includes(u.id)} onCheckedChange={(v) => alternarOperador(u.id, v === true)} />
+                      <Label htmlFor={`pcp-op-${u.id}`} className="font-normal">{u.nome}</Label>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {erroOperadores && <p className="text-xs text-destructive">{erroOperadores}</p>}
+            </fieldset>
           )}
           {!posto && !veiculo && <p className="pcv-help col-span-2">O posto novo já nasce com os motivos sugeridos (troca de bobina, setup, falta de material…). Ajuste depois de salvar.</p>}
         </div>

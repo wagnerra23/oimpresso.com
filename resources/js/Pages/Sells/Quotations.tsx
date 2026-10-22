@@ -37,6 +37,9 @@ interface QuoteRow {
   total_items: number;
   total_quantity: number;
   added_by: string | null;
+  // UC-FLX-04: abertura do link público pelo cliente ('AAAA-MM-DD HH:MM:SS' do banco).
+  aberto_em: string | null;
+  aberto_vezes: number;
 }
 
 export interface SellsQuotationsPageProps {
@@ -48,7 +51,23 @@ export interface SellsQuotationsPageProps {
   };
   // convert = permissão de venda E a flag enable_convert_draft_to_invoice (mesma condição do Blade).
   permissions: { view_all: boolean; view_own: boolean; convert: boolean };
-  urls: { datatable: string; back: string; convert: string };
+  // prazo = rota do Produção com `{id}` (UC-FLX-06); null sem o módulo no pacote.
+  urls: { datatable: string; back: string; convert: string; prazo?: string | null };
+}
+
+/** "2026-10-26" → "26/10" sem passar por Date (fuso não desloca o dia). */
+function formatDiaMes(iso: string | null | undefined): string | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso ?? '');
+  return m ? `${m[3]}/${m[2]}` : null;
+}
+
+type Prazo = { estado: 'carregando' } | { estado: 'pronto'; data: string | null } | { estado: 'falhou' };
+
+/** 'AAAA-MM-DD HH:MM:SS' → 'dd/mm hh:mm', pelo texto (sem `new Date()`, que trocaria o fuso). */
+function diaHora(v: string): string {
+  const [d = '', h = ''] = v.split(' ');
+  const [, m, dia] = d.split('-');
+  return `${dia}/${m} ${h.slice(0, 5)}`.trim();
 }
 
 function formatDateTime(input: string): string {
@@ -67,6 +86,31 @@ export default function SellsQuotations(props: SellsQuotationsPageProps) {
   // Q3: cotação escolhida para converter (abre a confirmação) e trava contra clique duplo.
   const [converter, setConverter] = useState<QuoteRow | null>(null);
   const [convertendo, setConvertendo] = useState<boolean>(false);
+  // UC-FLX-06: entrega prevista pela fila dos postos, consultada ao abrir a confirmação.
+  const [prazo, setPrazo] = useState<Prazo | null>(null);
+
+  useEffect(() => {
+    if (!converter || !urls.prazo) {
+      setPrazo(null);
+      return;
+    }
+    let vivo = true;
+    setPrazo({ estado: 'carregando' });
+    fetch(urls.prazo.replace('{id}', String(converter.id)), {
+      headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      credentials: 'same-origin',
+    })
+      .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
+      .then((json: { data_prevista?: string | null }) => {
+        if (vivo) setPrazo({ estado: 'pronto', data: json.data_prevista ?? null });
+      })
+      .catch(() => {
+        if (vivo) setPrazo({ estado: 'falhou' });
+      });
+    return () => {
+      vivo = false;
+    };
+  }, [converter, urls.prazo]);
 
   // Converter reusa SellPosController@convertToInvoice pela MESMA URL do Blade, em navegação
   // comum (como o app.js do Blade faz): baixa estoque e vira venda final no servidor.
@@ -100,6 +144,8 @@ export default function SellsQuotations(props: SellsQuotationsPageProps) {
         total_items: Number(r.total_items ?? 0),
         total_quantity: Number(r.total_quantity ?? 0),
         added_by: r.added_by ? String(r.added_by) : null,
+        aberto_em: r.quote_first_opened_at ? String(r.quote_first_opened_at) : null,
+        aberto_vezes: Number(r.quote_open_count ?? 0),
       }));
       setRows(items);
     } catch {
@@ -228,6 +274,7 @@ export default function SellsQuotations(props: SellsQuotationsPageProps) {
                   <th className="text-left px-3 py-2 font-medium">Cliente</th>
                   <th className="text-left px-3 py-2 font-medium">Local</th>
                   <th className="text-right px-3 py-2 font-medium">Itens</th>
+                  <th className="text-left px-3 py-2 font-medium">Aberto</th>
                   <th className="text-right px-5 py-2 font-medium">Ações</th>
                 </tr>
               </thead>
@@ -242,6 +289,16 @@ export default function SellsQuotations(props: SellsQuotationsPageProps) {
                     <td className="px-3 py-3">{r.customer_name ?? '—'}</td>
                     <td className="px-3 py-3 text-muted-foreground">{r.business_location}</td>
                     <td className="px-3 py-3 text-right tabular-nums">{r.total_items}</td>
+                    <td className="px-3 py-3 tabular-nums" data-testid="quote-aberto">
+                      {r.aberto_em && r.aberto_vezes > 0 ? (
+                        <span title={`Aberto ${r.aberto_vezes} vez(es) pelo cliente`}>
+                          {diaHora(r.aberto_em)}
+                          {r.aberto_vezes > 1 && <span className="text-muted-foreground"> · {r.aberto_vezes}×</span>}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">Não aberto</span>
+                      )}
+                    </td>
                     <td className="px-5 py-3 text-right">
                       <div className="inline-flex gap-2">
                         <Button variant="outline" size="sm" asChild>
@@ -280,6 +337,17 @@ export default function SellsQuotations(props: SellsQuotationsPageProps) {
                 A cotação sai desta lista.
               </AlertDialogDescription>
             </AlertDialogHeader>
+            {prazo && prazo.estado !== 'falhou' && (
+              <p className="text-sm" data-testid="entrega-prevista" aria-live="polite">
+                {prazo.estado === 'carregando' && <span className="text-muted-foreground">Calculando a entrega…</span>}
+                {prazo.estado === 'pronto' && formatDiaMes(prazo.data) && (
+                  <>Entrega prevista: <strong className="tabular-nums">{formatDiaMes(prazo.data)}</strong></>
+                )}
+                {prazo.estado === 'pronto' && !formatDiaMes(prazo.data) && (
+                  <span className="text-muted-foreground">Sem roteiro de produção para prever a entrega.</span>
+                )}
+              </p>
+            )}
             <AlertDialogFooter>
               <AlertDialogCancel disabled={convertendo}>Cancelar</AlertDialogCancel>
               <AlertDialogAction onClick={confirmarConversao} disabled={convertendo}>

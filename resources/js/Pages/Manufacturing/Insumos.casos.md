@@ -5,9 +5,13 @@ tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §4.4 + §18.3 — os UC abaixo DERIVAM dele
 owner: wagner
-last_run: "2026-10-19"
+last_run: "2026-10-21"
 ---
 
+> ℹ️ **`last_run` 2026-10-19 → 2026-10-21 (G-6): a gaveta ganhou a seção "Método de custo"** (UC-INSMET-06..09),
+> que grava a escolha `medio` | `ultimo` pelo `PUT /compras/insumos/{variation}/metodo-custo`. Simulação, receitas
+> afetadas e números não mudaram. Casos UC-INSMET-01..09 rodados no CT 100 em 2026-10-21 (17 passed).
+>
 > ℹ️ **`last_run` 2026-10-06 → 2026-10-19 (G-6): forma da gaveta, não regra de negócio.** A gaveta passou a
 > usar a moldura do protótipo (`_components/Gaveta.tsx`): seções em cartão, rodapé com "Fechar", margem no
 > `StatusBadge`. Simulação, receitas afetadas e números são os mesmos. Comportamento: o `Esc` deixou de disparar
@@ -107,8 +111,8 @@ last_run: "2026-10-19"
 > **Âncora:** US-COM-024 (`memory/requisitos/Compras/SPEC.md`) e o UC-FLX-38 do catálogo de fluxos
 > (*"custo do insumo guarda o histórico por data"*). Quando a regra "Atualizar o custo dos insumos" da
 > empresa é **Definido em cada insumo** (`por_insumo`), cada insumo diz o seu método na tabela-ponte
-> `compras_insumo_metodo_custo`. Nesta entrega é o serviço (`CustoDoInsumoService`); o campo no drawer
-> desta tela é follow-up. Prova: `Modules/Compras/Tests/Feature/CustoDoInsumoServiceTest.php`. VALOR:
+> `compras_insumo_metodo_custo`. A entrega de 2026-10-20 foi o serviço (`CustoDoInsumoService`); a seção
+> "Método de custo" na gaveta veio em 2026-10-21 (UC-INSMET-06..09). Prova: `Modules/Compras/Tests/Feature/CustoDoInsumoServiceTest.php`. VALOR:
 > regra mestre (conta à mão + segundo caminho em PHP no teste).
 >
 > Arranjo dos casos (31/03): compras recebidas B 10 un × 12,00 e C 30 un × 16,00 com 10 devolvidas.
@@ -148,6 +152,103 @@ pede o custo em 31/03 **Então** o custo é 14,6667 — o método do insumo só 
 
 Status: 🧪
 
+> **Gravação pela gaveta** — seção "Método de custo" (Médio / Último) da gaveta do insumo, gravada
+> por `PUT /compras/insumos/{variation}/metodo-custo`. Prova:
+> `Modules/Compras/Tests/Feature/InsumoMetodoCustoEndpointTest.php` (mesmo arranjo B e C).
+
+## UC-INSMET-06 · Gravar o método pela gaveta muda o custo por insumo · `must` valor
+
+**Dado** o insumo sem método (custo por insumo nulo) **Quando** o usuário escolhe Último **Então** grava
+`ultimo` e o custo por insumo em 31/03 passa a 16,0000; **Quando** troca para Médio **Então** a mesma linha
+vira `medio` (nenhuma duplicada) e o custo passa a 14,6667. Volta para a tela de onde veio.
+
+Status: 🧪
+
+## UC-INSMET-07 · Insumo de outra empresa responde 404 · `must`
+
+**Dado** uma variação de produto de outra empresa **Quando** se tenta gravar o método nela **Então** 404 e
+nenhuma linha é gravada em nenhuma das duas empresas.
+
+Status: 🧪
+
+## UC-INSMET-08 · Sem `purchase.update` não grava · `must`
+
+**Dado** o usuário sem `purchase.update` **Quando** tenta gravar **Então** 403 e nada é gravado. Na tela, o
+controle aparece desabilitado.
+
+Status: 🧪
+
+## UC-INSMET-09 · Só médio ou último · `must`
+
+**Dado** o método `por_insumo` (ou qualquer outro) **Quando** se tenta gravar **Então** erro no campo
+`metodo` e nada é gravado.
+
+Status: 🧪
+
+> **No cadastro do produto** — a lista de Insumos só mostra o que é ingrediente de receita, mas o
+> custo vale para qualquer item comprado (matéria-prima ou revenda; o app não marca tipo de
+> produto). O formulário Blade de novo e de editar produto ganha o campo "Método de custo"
+> (Não definido / Médio / Último), aplicado a **todas as variações** do produto. Entra pelos ganchos
+> de módulo do core (`product_form_part` desenha, `after_product_saved` grava) — o `update()` do
+> produto não muda. Prova: `Modules/Compras/Tests/Feature/MetodoCustoNoCadastroDoProdutoTest.php`,
+> no `PUT /products/{id}` real, com o mesmo arranjo B e C na variação 1.
+>
+> ⚠️ Os ganchos só rodam para módulo **instalado** (`system.compras_version`, `ModuleUtil`). Medido
+> em produção em 2026-10-21: a chave não existe (49 chaves `*_version`, nenhuma do Compras). Até o
+> módulo ser instalado, o campo não aparece no formulário.
+
+## UC-INSMET-10 · Escolher o método no cadastro grava em todas as variações · `must` valor
+
+**Dado** um produto variável com duas variações e sem método **Quando** salva o cadastro com Último
+**Então** as duas variações ficam `ultimo` e o custo por insumo da variação 1 em 31/03 é 16,0000;
+**Quando** salva com Médio **Então** as mesmas duas linhas viram `medio` e o custo é 14,6667.
+
+Status: 🧪
+
+## UC-INSMET-11 · Envio sem o campo não muda o método · `must`
+
+**Dado** a variação 1 com `ultimo` **Quando** o produto é salvo sem o campo (a tela React de editar
+não o manda; outro módulo pode mandar só `has_module_data`) **Então** a linha continua `ultimo` —
+ausência não é "apagar".
+
+Status: 🧪
+
+## UC-INSMET-12 · "Não definido" apaga o método das variações · `must`
+
+**Dado** as duas variações com método **Quando** salva com Não definido **Então** as linhas do produto
+somem; com a regra `por_insumo` o custo volta a sair nulo com o motivo.
+
+Status: 🧪
+
+## UC-INSMET-13 · Variações com métodos diferentes ficam como estão · `must`
+
+**Dado** a variação 1 `medio` e a 2 `ultimo` **Quando** o formulário abre **Então** mostra "Variações com
+métodos diferentes (manter)"; salvo assim, nada muda.
+
+Status: 🧪
+
+## UC-INSMET-14 · Sem `purchase.update` o produto salva e o método não · `must`
+
+**Dado** o usuário com `product.update` e sem `purchase.update` **Quando** salva com Último **Então** o
+produto é gravado e nenhuma linha de método. No formulário o campo vem desabilitado.
+
+Status: 🧪
+
+## UC-INSMET-15 · O método mostrado é o das variações, só da empresa · `must`
+
+**Dado** nenhuma, uma ou as duas variações com `ultimo` **Quando** o formulário pede o método
+**Então** mostra vazio, `misto` e `ultimo`; pela outra empresa, o mesmo produto mostra vazio.
+
+Status: 🧪
+
+## UC-INSMET-16 · O campo só aparece para empresa com o módulo Compras no pacote · `must`
+
+**Dado** a empresa sem `compras_module` na assinatura **Quando** o formulário de editar produto pede as
+partes dos módulos **Então** o Compras não manda nada; **Dado** acesso ao pacote (aqui, superadmin)
+**Então** manda o campo com o método atual das variações. É o mesmo gate do WooCommerce no formulário.
+
+Status: 🧪
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
@@ -181,3 +282,9 @@ outra decisão de escopo — não é ajuste de código.
 - 2026-10-20 · [W+C] US-COM-024 · UC-FLX-38: UC-INSMET-01..05, o método de custo por insumo
   (`CustoDoInsumoService` + `compras_insumo_metodo_custo`). Só backend; `Insumos.tsx` não mudou e
   o campo no drawer é follow-up. Prova: `CustoDoInsumoServiceTest.php`.
+- 2026-10-21 · [W+C] US-COM-024 · UC-FLX-38: UC-INSMET-06..09, a seção "Método de custo" na gaveta
+  e o `PUT /compras/insumos/{variation}/metodo-custo` (empresa da sessão, variação da empresa ou
+  404, `purchase.update`). Prova: `InsumoMetodoCustoEndpointTest.php`.
+- 2026-10-21 · [W+C] UC-INSMET-10..15: o campo no cadastro do produto (formulário Blade), pelos
+  ganchos de módulo. Pedido [W]: *"independente se é matéria prima ou material de revenda é
+  necessário a aplicação de sistema de custo"*. Prova: `MetodoCustoNoCadastroDoProdutoTest.php` (UC-INSMET-10..16).
