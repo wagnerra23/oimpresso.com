@@ -1313,7 +1313,7 @@ function VendasListPage() {
         </div>
 
         <button className="vd-views-btn" aria-expanded={filtrosAbertos} onClick={() => setFiltrosAbertos((x) => !x)} style={{ whiteSpace: "nowrap" }}>
-          Filtros avançados {filtrosAbertos ? "▴" : "▾"}
+          Filtros avançados
         </button>
 
         {/* PROPOSTA · botão Colunas (em avaliação pelo [W]) */}
