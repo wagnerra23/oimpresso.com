@@ -2716,6 +2716,8 @@ class SellController extends Controller
                     })->values()->toArray(),
                     // UC-FLX-34: custo guardado × custo de hoje no orçamento aberto (nulo fora dele).
                     'custo' => $this->custoDoOrcamento($sell),
+                    // UC-FLX-23 · US-SELL-073: protocolo de entrega gravado pelo app (nulo sem entrega).
+                    'entrega' => $this->entregaDaVenda($sell),
                     // US-SELL-071: nota da pesquisa depois da entrega e o atendimento aberto (nulo sem pesquisa ou sem sell.view).
                     'pesquisa' => $this->pesquisaDaEntrega($sell),
                     // UC-FLX-04: quando o cliente abriu o link público do orçamento (nulo fora de orçamento).
@@ -4120,6 +4122,67 @@ class SellController extends Controller
             'margem_prevista_pct' => $margem($previsto),
             'margem_hoje_pct' => $margem($atual),
             'itens_mudaram' => $mudaram,
+        ];
+    }
+
+    /**
+     * UC-FLX-23 · US-SELL-073 — último protocolo de entrega da venda, gravado pelo app das lojas em
+     * `app_entregas` (PedidoEntregaController). Nulo quando a venda não tem entrega.
+     *
+     * Tier 0 (ADR 0093): filtra pelo business da venda, que o show() já resolveu pela sessão; uma
+     * linha de outra empresa apontando para o mesmo transaction_id não aparece.
+     *
+     * A assinatura sai pela URL assinada de 10 min `app.arquivos.conteudo`, a mesma do app: o
+     * business vai dentro da assinatura, então trocar o parâmetro dá 403.
+     */
+    private function entregaDaVenda(Transaction $sell): ?array
+    {
+        if (! \Illuminate\Support\Facades\Schema::hasTable('app_entregas')) {
+            return null;
+        }
+
+        $bizId = (int) $sell->business_id;
+        $e = DB::table('app_entregas')
+            ->where('business_id', $bizId)
+            ->where('transaction_id', (int) $sell->id)
+            ->orderByDesc('id')
+            ->first();
+        if ($e === null) {
+            return null;
+        }
+
+        $linhas = collect($sell->getRelationValue('sell_lines') ?? [])->keyBy('id');
+        $itens = collect(json_decode((string) $e->itens, true) ?: [])->map(function ($i) use ($linhas) {
+            $linha = $linhas->get((int) ($i['linha_id'] ?? 0));
+
+            return [
+                'linha_id' => (int) ($i['linha_id'] ?? 0),
+                'produto' => $linha ? (string) (optional($linha->product)->name ?? '') : null,
+                'quantidade' => $linha ? (float) $linha->quantity : null,
+                'conferido' => (bool) ($i['conferido'] ?? false),
+            ];
+        })->values()->all();
+
+        $assinaturaUrl = null;
+        if ($e->com_assinatura && $e->assinatura_arquivo_id
+            && \Illuminate\Support\Facades\Route::has('app.arquivos.conteudo')) {
+            $assinaturaUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+                'app.arquivos.conteudo',
+                now()->addMinutes(10),
+                ['arquivo' => (int) $e->assinatura_arquivo_id, 'biz' => $bizId],
+            );
+        }
+
+        return [
+            'protocolo' => (string) $e->protocolo,
+            'registrado_em' => (string) $e->registrado_em,
+            'recebido_por' => (string) $e->recebido_por,
+            'documento' => $e->documento !== null ? (string) $e->documento : null,
+            'volumes' => isset($e->volumes) ? (int) $e->volumes : null,
+            'itens' => $itens,
+            'com_assinatura' => (bool) $e->com_assinatura,
+            'assinatura_url' => $assinaturaUrl,
+            'sem_assinatura_motivo' => $e->sem_assinatura_motivo !== null ? (string) $e->sem_assinatura_motivo : null,
         ];
     }
 }

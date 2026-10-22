@@ -36,6 +36,7 @@ final class PainelDaProducao
         AprovacaoArteService::EV_APROVADA => 'Cliente aprovou a arte',
         AprovacaoArteService::EV_RECUSADA => 'Cliente pediu ajuste na arte',
         SituacaoDaOrdem::EV_RETRABALHO => 'Abriu retrabalho',
+        ColunaDoQuadro::EV_MOVIDA => 'Moveu à mão',
     ];
 
     public function __construct(private readonly QuadroDaProducao $quadro, private readonly ArteDasOrdens $arte) {}
@@ -190,8 +191,11 @@ final class PainelDaProducao
 
         return $evs->values()->map(function ($e, $i) use ($dados, $etapas, $nomes, $rotulos) {
             $prog = $dados[$i]['programacao_id'] ?? null;
+            // UC-PCV-07: "Moveu para Acabamento (à mão)", como no protótipo.
+            $texto = $e->tipo === ColunaDoQuadro::EV_MOVIDA && isset($dados[$i]['para'])
+                ? 'Moveu para '.$dados[$i]['para'].' (à mão)' : (self::ROTULOS[$e->tipo] ?? $e->tipo);
 
-            return ['quando' => substr((string) $e->created_at, 0, 16), 'texto' => self::ROTULOS[$e->tipo] ?? $e->tipo,
+            return ['quando' => substr((string) $e->created_at, 0, 16), 'texto' => $texto,
                 'etapa' => $prog !== null ? ($etapas[$prog] ?? null) : null,
                 'quem' => $e->user_id !== null ? ($nomes[(int) $e->user_id] ?? null) : null,
                 'os' => $e->os_tipo !== null ? ($rotulos[$e->os_tipo.':'.$e->os_id]['numero'] ?? null) : null];

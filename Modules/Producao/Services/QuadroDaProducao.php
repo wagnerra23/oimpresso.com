@@ -21,10 +21,18 @@ use Modules\Producao\Entities\Ordem;
  * O cartão leva o que o alocador (UC-FLX-10) e o simulador de bobina (UC-FLX-13) precisam: o id da
  * etapa atual e, nas OS da CV, as mídias com medida no orçamento.
  *
+ * Coluna do cartão (UC-PCV-07): o setor da etapa atual, ou o setor para onde o PCP moveu a OS à mão
+ * (`pcp_quadro_colunas`, gravado por `ColunaDoQuadro`) enquanto o operador não andar com ela.
+ *
  * Tier 0 (ADR 0093): toda consulta por `$businessId` explícito.
  */
 final class QuadroDaProducao
 {
+    public const SEM_SETOR = 'Sem setor';
+
+    /** Eventos que mostram que a OS andou de verdade: depois deles a coluna manual não vale mais. */
+    public const ANDOU = [ApontamentoOperadorService::EV_ETAPA_INICIADA, ApontamentoOperadorService::EV_ETAPA_CONCLUIDA];
+
     public function __construct(private readonly OperadoresDoPosto $operadores, private readonly ArteDasOrdens $arte) {}
 
     /** @return list<array<string, mixed>> */
@@ -46,6 +54,7 @@ final class QuadroDaProducao
         $cv = $this->osDaCv($businessId, $this->ids($porOs, RomaneioDeImpressao::OS_TIPO));
         $op = $this->ordens($businessId, $this->ids($porOs, Ordem::OS_TIPO));
         $arte = $this->arte->travadas($businessId, $this->ids($porOs, Ordem::OS_TIPO));
+        $manual = $this->colunasManuais($businessId);
 
         $cartoes = [];
         foreach ($porOs as $chave => $es) {
@@ -68,6 +77,9 @@ final class QuadroDaProducao
                     'responsavel' => $atual->user_id !== null ? ($nomes[(int) $atual->user_id] ?? null) : null,
                     'inicio_previsto' => Carbon::parse($atual->inicio_previsto)->format('Y-m-d\TH:i'),
                     'fim_previsto' => Carbon::parse($atual->fim_previsto)->format('Y-m-d\TH:i')],
+                // UC-PCV-07: a coluna onde o cartão aparece; `movida` = o PCP pôs ali à mão.
+                'coluna' => $manual[$chave] ?? (trim((string) $posto?->setor) ?: self::SEM_SETOR),
+                'movida' => isset($manual[$chave]),
                 'progresso' => (int) round($feitas / max(1, $es->count()) * 100),
                 'prazo' => $prazo,
                 'atraso' => $prazo === null ? null : ($prazo < $hoje->toDateString() ? 'atrasada' : ($prazo === $hoje->toDateString() ? 'vence hoje' : null)),
@@ -152,6 +164,27 @@ final class QuadroDaProducao
             ->map(fn ($m) => ['id' => (int) $m->id, 'nome' => (string) $m->nome, 'bobina' => ($b = $bobinas[$m->id] ?? null) === null ? null
                 : ['largura_util_m' => (string) $b->largura_util_m, 'margem_m' => (string) $b->margem_m, 'permite_girar' => (bool) $b->permite_girar]])
             ->all();
+    }
+
+    /**
+     * Colunas manuais ainda válidas, pela chave `os_tipo:os_id`: some a que tem evento de etapa
+     * iniciada ou concluída mais novo que o movimento.
+     *
+     * @return array<string, string>
+     */
+    private function colunasManuais(int $businessId): array
+    {
+        $manuais = DB::table('pcp_quadro_colunas')->where('business_id', $businessId)->get(['os_tipo', 'os_id', 'setor', 'ate_evento_id']);
+        if ($manuais->isEmpty()) {
+            return [];
+        }
+        $andou = DB::table('pcp_eventos')->where('business_id', $businessId)->whereIn('tipo', self::ANDOU)
+            ->whereIn('os_id', $manuais->pluck('os_id')->unique()->all())
+            ->groupBy('os_tipo', 'os_id')->selectRaw('os_tipo, os_id, MAX(id) as ultimo')->get()
+            ->mapWithKeys(fn ($e) => [$e->os_tipo.':'.$e->os_id => (int) $e->ultimo]);
+
+        return $manuais->filter(fn ($m) => ($andou[$m->os_tipo.':'.$m->os_id] ?? 0) <= (int) $m->ate_evento_id)
+            ->mapWithKeys(fn ($m) => [$m->os_tipo.':'.$m->os_id => (string) $m->setor])->all();
     }
 
     /** @return list<int> */

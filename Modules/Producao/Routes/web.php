@@ -65,6 +65,7 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::post('roteiros', [RoteirosController::class, 'store'])->name('roteiros.store');
         Route::put('roteiros/{id}', [RoteirosController::class, 'update'])->whereNumber('id')->name('roteiros.update');
         Route::put('roteiros/{id}/produtos', [RoteirosController::class, 'produtos'])->whereNumber('id')->name('roteiros.produtos');
+        Route::get('roteiros/produtos/busca', [RoteirosController::class, 'buscarProdutos'])->name('roteiros.produtos.busca');
 
         Route::get('postos', [PostosController::class, 'index'])->name('postos.index');
         Route::post('postos', [PostosController::class, 'store'])->name('postos.store');
@@ -146,6 +147,8 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
     ->name('producao.')
     ->group(function () {
         Route::get('quadro', [QuadroController::class, 'index'])->name('quadro.index');
+        // UC-PCV-07: o PCP move a OS de coluna à mão (JSON; só troca a coluna e registra o evento).
+        Route::post('quadro/mover', [QuadroController::class, 'mover'])->name('quadro.mover');
         // Painel (UC-PCV-01..04, 29): o que trava a produção hoje; os indicadores abrem o quadro filtrado.
         Route::get('painel', [PainelController::class, 'index'])->name('painel.index');
     });

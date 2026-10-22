@@ -16,12 +16,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/Components/ui/skeleton';
 import '../../../../../../../resources/css/cowork-producao-bundle.css';
 import { agoraIso, enviar, esvaziar, novaChave, pendentes } from './_lib/fila';
+import { quantidadeBr as br, quantidadeParaEnvio } from './_lib/quantidade';
 
 interface Etapa { id: number; os_tipo: string; os_id: number; posto: string | null; tipo_custo: string | null; inicio_previsto: string; status: string }
 interface Aberto { id: number; posto_id: number; programacao_id: number | null; os_tipo: string | null; os_id: number | null; posto: string | null; tipo_custo: string; desde: string }
 interface Rodando { pessoa: Aberto | null; maquinas: Aberto[]; ponto: { entrada: string | null; saida: string | null } | null }
+interface Lote { id: number; lote: string | null; saldo: string; recebido_em: string }
+interface Material { variation_id: number; nome: string; unidade: string | null; previsto: string | null; apontado: string; lotes: Lote[] }
 interface Motivo { id: number; posto_id: number; nome: string }
-interface Props { operador: { id: number; nome: string }; etapas?: Etapa[]; rodando?: Rodando; motivos?: Motivo[]; motivos_refugo?: Motivo[] }
+interface Props { operador: { id: number; nome: string }; etapas?: Etapa[]; rodando?: Rodando; motivos?: Motivo[]; motivos_refugo?: Motivo[]; materiais?: Record<number, Material[]> }
 type Apontar = (url: string, corpo?: Record<string, unknown>) => Promise<boolean>;
 
 const hms = (s: number) => [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60].map((n) => String(n).padStart(2, '0')).join(':');
@@ -37,12 +40,12 @@ function Cronometro({ desde }: { desde: string }) {
   return <div role="timer" aria-live="off" aria-label={`Tempo apontado ${hms(seg)}`} className="pcv-crono is-on">{hms(seg)}</div>;
 }
 
-export default function ApontamentoIndex({ operador, motivos = [], motivos_refugo: motivosRefugo = [] }: Props) {
+export default function ApontamentoIndex({ operador, motivos = [], motivos_refugo: motivosRefugo = [], materiais = {} }: Props) {
   // `motivos` e `motivos_refugo` são deferidos junto com `rodando`; antes de chegar, pausa e refugo ficam desabilitados.
   const [codigo, setCodigo] = useState('');
   const [aviso, setAviso] = useState<string | null>(null);
   const [naFila, setNaFila] = useState(() => pendentes(operador.id));
-  const recarregar = useCallback(() => router.reload({ only: ['etapas', 'rodando'] }), []);
+  const recarregar = useCallback(() => router.reload({ only: ['etapas', 'rodando', 'materiais'] }), []);
 
   const sincronizar = useCallback(async () => {
     const n = await esvaziar(operador.id, (j) => toast.error(String(j.mensagem ?? 'Um apontamento guardado foi recusado.')));
@@ -107,7 +110,7 @@ export default function ApontamentoIndex({ operador, motivos = [], motivos_refug
           <section aria-label="Rodando agora" className="pcv-ap">
             <div><span className="pcv-eyebrow">{operador.nome}</span><b className="pcv-ap-t">Rodando agora</b></div>
             <Deferred data="rodando" fallback={<Skeleton className="h-24 w-full" />}>
-              <RodandoAgora renderLinha={(a) => <Linha key={a.id} a={a} motivos={motivos} motivosRefugo={motivosRefugo} apontar={apontar} />} />
+              <RodandoAgora renderLinha={(a) => <Linha key={a.id} a={a} motivos={motivos} motivosRefugo={motivosRefugo} materiais={a.programacao_id ? materiais[a.programacao_id] ?? [] : []} apontar={apontar} />} />
             </Deferred>
           </section>
 
@@ -136,9 +139,10 @@ export default function ApontamentoIndex({ operador, motivos = [], motivos_refug
 const CANAIS = [['c', 'C', 'ciano'], ['m', 'M', 'magenta'], ['y', 'Y', 'amarelo'], ['k', 'K', 'preto']] as const;
 const decimal = (v: string) => v.trim().replace(',', '.'); // o serviço só aceita ponto
 
-function Linha({ a, motivos: todos, motivosRefugo, apontar }: { a: Aberto; motivos: Motivo[]; motivosRefugo: Motivo[]; apontar: Apontar }) {
+function Linha({ a, motivos: todos, motivosRefugo, materiais, apontar }: { a: Aberto; motivos: Motivo[]; materiais: Material[]; motivosRefugo: Motivo[]; apontar: Apontar }) {
   const [motivo, setMotivo] = useState('');
   const [refugando, setRefugando] = useState(false);
+  const [abrirMaterial, setAbrirMaterial] = useState(false);
   const [m2, setM2] = useState('');
   const [tinta, setTinta] = useState<Record<string, string>>({});
   const motivos = todos.filter((m) => m.posto_id === a.posto_id); // E04 A4: só os do posto
@@ -191,12 +195,52 @@ function Linha({ a, motivos: todos, motivosRefugo, apontar }: { a: Aberto; motiv
         {a.programacao_id !== null && !refugando && (
           <button type="button" className="pcv-ap-ref px-3" onClick={() => setRefugando(true)}>Registrar refugo</button>
         )}
+        {a.programacao_id !== null && <Button className="min-h-11" variant="outline" aria-expanded={abrirMaterial} onClick={() => setAbrirMaterial((v) => !v)}>Material</Button>}
       </div>
+      {abrirMaterial && a.programacao_id !== null && (
+        <FormMaterial materiais={materiais} onEnviar={async (corpo) => { if (await apontar('/producao/apontamento/material', { programacao_id: a.programacao_id, ...corpo })) setAbrirMaterial(false); }} />
+      )}
       {refugando && a.programacao_id !== null && (
         <FormRefugo programacaoId={a.programacao_id} motivos={motivosRefugo.filter((m) => m.posto_id === a.posto_id)}
           apontar={apontar} fechar={() => setRefugando(false)} />
       )}
     </div>
+  );
+}
+
+// US-PCP-021 · UC-FLX-18: material consumido na etapa, com o rolo (lote) de onde saiu. Sem rolo, a baixa
+// segue o método da empresa. Quem confere material, rolo e saldo é o servidor; a tela só oferece o que ele aceitaria.
+function FormMaterial({ materiais, onEnviar }: { materiais: Material[]; onEnviar: (corpo: Record<string, unknown>) => void }) {
+  const [vid, setVid] = useState('');
+  const [qtd, setQtd] = useState('');
+  const [lote, setLote] = useState('auto');
+  const material = materiais.find((m) => String(m.variation_id) === vid);
+  const quantidade = quantidadeParaEnvio(qtd);
+  if (!materiais.length) return <p className="pcv-help">Nenhum material previsto para esta OS.</p>;
+  return (
+    <form className="pcv-bar" aria-label="Apontar material"
+      onSubmit={(e) => { e.preventDefault(); if (!material || !quantidade) return; onEnviar({ variation_id: material.variation_id, quantidade, ...(lote !== 'auto' ? { lote_id: Number(lote) } : {}) }); }}>
+      <Select value={vid || undefined} onValueChange={(v) => { setVid(v); setLote('auto'); }}>
+        <SelectTrigger aria-label="Material" className="min-h-11 min-w-48"><SelectValue placeholder="Material" /></SelectTrigger>
+        <SelectContent>
+          {materiais.filter((m) => m.variation_id).map((m) => (
+            <SelectItem key={m.variation_id} value={String(m.variation_id)}>{m.nome}{m.previsto ? ` · previsto ${br(m.previsto)}` : ''}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Input aria-label="Quantidade" inputMode="decimal" placeholder={`Quantidade${material?.unidade ? ` (${material.unidade})` : ''}`} value={qtd}
+        onChange={(e) => setQtd(e.target.value)} className="min-h-11 w-32" />
+      <Select value={lote} onValueChange={setLote} disabled={!material}>
+        <SelectTrigger aria-label="Rolo" className="min-h-11 min-w-48"><SelectValue placeholder="Rolo" /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="auto">Rolo mais antigo (automático)</SelectItem>
+          {(material?.lotes ?? []).filter((l) => l.id).map((l) => (
+            <SelectItem key={l.id} value={String(l.id)}>{l.lote ?? `Rolo ${l.id}`} · saldo {br(l.saldo)} · {l.recebido_em.split('-').reverse().join('/')}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Button type="submit" className="min-h-11" disabled={!material || !quantidade}>{quantidade && material ? `Baixar ${br(quantidade)}${material.unidade ? ` ${material.unidade}` : ''}` : 'Baixar'}</Button>
+    </form>
   );
 }
 

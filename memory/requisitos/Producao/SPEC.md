@@ -333,9 +333,9 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ### US-PCP-017 · Dashboard PCP Inertia (4 cards KPI + Kanban embed + heatmap) — **P1**
 
-**Implementado em:** `Modules/Producao/Resources/js/Pages/Producao/Painel/Index.tsx` · `Modules/Producao/Http/Controllers/PainelController.php` · `Modules/Producao/Services/PainelDaProducao.php` · `Modules/Producao/Services/ArteDasOrdens.php`
+**Implementado em:** `Modules/Producao/Resources/js/Pages/Producao/Painel/Index.tsx` · `Modules/Producao/Http/Controllers/PainelController.php` · `Modules/Producao/Services/PainelDaProducao.php` · `Modules/Producao/Services/ArteDasOrdens.php` · `Modules/Producao/Services/ColunaDoQuadro.php`
 
-**Testado em:** `Modules/Producao/Tests/Feature/ProducaoQuadroContratoTest.php` (lane `verticais-pest.yml`) · casos `Painel/Index.casos.md` (UC-PCV-01..04, UC-PCV-29).
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoQuadroContratoTest.php` (lane `verticais-pest.yml`) · casos `Painel/Index.casos.md` (UC-PCV-01..04, UC-PCV-29) e `Quadro/Index.casos.md` (UC-PCV-06, UC-PCV-07).
 
 > owner: wagner · priority: p1 · estimate: 8h · status: done · type: story
 > Charter `.charter.md` obrigatório. A tela é `/producao/painel` (thread 06 do playbook), não `/pcp/dashboard` do blueprint.
@@ -343,6 +343,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 **Aceite:**
 - [x] 4 indicadores (OS em produção, atrasadas ou vencendo, arte travando, refugo na semana) que abrem o Quadro filtrado (UC-PCV-01/02).
 - [x] O "Kanban embed" é o próprio Quadro (`/producao/quadro`); o Painel leva até ele pelo filtro da URL e conta pelos mesmos cartões (UC-PCV-03).
+- [x] No Quadro, o filtro inteiro fica na URL com uma regra só para o Quadro e a Linha (UC-PCV-06), e o PCP move a OS de coluna à mão: só a coluna muda, com o evento no histórico (UC-PCV-07).
 - [x] Alertas com ação, fila de aprovação de arte, carga das máquinas hoje e eventos (UC-PCV-01, 04, 29).
 - [ ] Heatmap e refugo em R$ (thread 07 Linha do tempo e thread 08 Custo).
 
@@ -369,7 +370,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ### US-PCP-021 · A OS baixa o material apontado em cada etapa, pelo custo do lote que saiu (UC-FLX-37) — **P1**
 
-**Implementado em:** `Modules/Producao/Services/ConsumoMaterialService.php` · `Modules/Producao/Database/Migrations/2026_10_19_210000_create_pcp_consumos_table.php` · `Modules/Producao/Services/CustoRealService.php` · `app/Domain/Fsm/Modelos/CatalogoModelos.php`
+**Implementado em:** `Modules/Producao/Services/ConsumoMaterialService.php` · `Modules/Producao/Database/Migrations/2026_10_19_210000_create_pcp_consumos_table.php` · `Modules/Producao/Services/CustoRealService.php` · `app/Domain/Fsm/Modelos/CatalogoModelos.php` · `Modules/Producao/Services/MateriaisDaEtapa.php` · `Modules/Producao/Resources/js/Pages/Producao/Apontamento/Index.tsx`
 
 **Testado em:** `Modules/Producao/Tests/Feature/ProducaoMaterialContratoTest.php` (lane `verticais-pest.yml`) · `tests/Feature/Domain/Fsm/FluxosTelaContratoTest.php` (UC-FLXT-20, UC-FLXT-21, lane `domain-pest.yml`).
 
@@ -390,7 +391,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [x] Endpoints na PWA (`POST /producao/apontamento/material`) e no app (`POST /api/app/producao/apontamentos/material`), sem o custo na resposta (UC-PCMAT-07).
 - [x] A regra "ao entrar → baixa o material" (UC-FLX-14) dos modelos de venda sem OS (Balcão enxuto, Brindes) não executa e grava o porquê; venda finalizada que entra na etapa não ganha 2ª baixa (UC-FLXT-20, UC-FLXT-21).
 - [ ] O que é "material consumido" numa venda sem OS (decisão [W]).
-- [ ] Campo de material na tela do operador (Non-Goal da tela até a thread 08).
+- [x] Campo de material na tela do operador: botão "Material" na etapa rodando, com material da receita, quantidade e rolo com saldo no local da venda (UC-PCMAT-09/10).
 - [ ] Estorno de baixa apontada errada.
 
 ### US-PCP-022 · A regra da compra (congela | vivo) vale para a OS aberta (UC-FLX-36) — **P1**

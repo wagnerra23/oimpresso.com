@@ -98,8 +98,8 @@ last_run: "2026-10-21"
 > gravado pela entrega do app (`POST /api/app/pedidos/{id}/entrega`, contrato
 > [`tela-22-entrega.md`](../../../../memory/requisitos/AppMobile/api/tela-22-entrega.md)), que já guardava
 > itens conferidos e quem recebeu. Esta entrega acrescenta o **total de volumes**, opcional para não
-> quebrar o app que já está nos celulares. A venda é a mesma deste detalhe; o detalhe ainda não mostra o
-> protocolo (fica como aceite aberto da US-SELL-073). Prova: `tests/Feature/Sells/AppPedidoEntregaContratoTest.php`.
+> quebrar o app que já está nos celulares. A venda é a mesma deste detalhe; desde 2026-10-21 o detalhe mostra o
+> protocolo na seção Entrega (UC-VSHOW-22/23). Prova: `tests/Feature/Sells/AppPedidoEntregaContratoTest.php`.
 
 ## UC-ENTR-01 · O protocolo grava os volumes junto com os itens e quem recebeu · `must`
 - **Aceite:** Dado uma venda na etapa de Entrega com as 2 linhas conferidas · Quando o app registra a entrega com `volumes: 3` · Então a resposta 201 traz `volumes: 3` e `recebido_por`, a linha de `app_entregas` tem `volumes = 3` e os ids das 2 linhas em `itens`, e a venda vai para `delivered`. Repetir a mesma `Idempotency-Key` com `volumes: 3` devolve o mesmo protocolo; com `volumes: 5` → `422 idempotencia_conflito`.
@@ -119,6 +119,18 @@ last_run: "2026-10-21"
 ## UC-ENTR-04 · Volumes no pedido de outra empresa não grava nada · `[T0]` `must`
 - **Aceite:** Dado uma venda de outro business na etapa de Entrega · Quando o usuário registra a entrega dela com `volumes: 4` · Então `404 nao_encontrado`, nenhuma linha em `app_entregas` e a venda alheia segue em `paid`. Controle positivo: o mesmo corpo na venda da própria empresa grava `volumes = 4` com o `business_id` do usuário.
 - **Teste:** `tests/Feature/Sells/AppPedidoEntregaContratoTest.php` — `UC-ENTR-04`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VSHOW-22 · A entrega registrada pelo app aparece no detalhe da venda · `must`
+- **Persona:** quem atende o cliente que liga perguntando se a mercadoria chegou: abre a venda e vê quando foi entregue, quem recebeu, quantos volumes e os itens, sem pedir ao entregador.
+- **Aceite:** Dado uma venda sem protocolo · Quando abro `/sells/{id}` · Então `detail.entrega` é nulo e a seção Entrega não aparece. Dado o protocolo `ENT-NNNN` gravado pelo app com quem recebeu, 3 volumes, a linha da venda conferida e o motivo de não ter assinatura · Então `detail.entrega` traz protocolo, data, quem recebeu, `volumes: 3`, o item com nome do produto e quantidade, e o motivo; com assinatura, uma URL assinada de 10 min. Volumes não informados chegam nulos e a tela escreve "Não informado".
+- **Âncora:** aceite aberto da US-SELL-073 (`memory/requisitos/Sells/SPEC.md`) + UC-FLX-23 do catálogo de fluxos.
+- **Teste:** `tests/Feature/Sells/SellsShowEntregaContratoTest.php` — `UC-VSHOW-22`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VSHOW-23 · A entrega de outra empresa não aparece na venda · `[T0]` `must`
+- **Aceite:** Dado uma linha de `app_entregas` de outro business apontando para o mesmo `transaction_id` · Quando abro a venda · Então `detail.entrega` é nulo e o nome de quem recebeu não está no JSON. Controle positivo: gravado o protocolo da própria empresa, ele aparece e o alheio continua fora.
+- **Teste:** `tests/Feature/Sells/SellsShowEntregaContratoTest.php` — `UC-VSHOW-23`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
 ## UC-VSHOW-08 · O orçamento aberto mostra se o custo mudou desde que foi feito
@@ -214,6 +226,8 @@ last_run: "2026-10-21"
 3. **Cadência:** rodar ao fim de toda mexida em `Sells/Show.tsx` ou em `SellController@show`. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-21 · [CC] + UC-VSHOW-22/23 (US-SELL-073 · UC-FLX-23): seção Entrega no detalhe, lida de `app_entregas` pelo business da venda. Teste `SellsShowEntregaContratoTest`, nasce sem run.
+- 2026-10-21 · [CC] `last_run` 2026-10-20 → 2026-10-21 por conferência, não por run novo: o diff do `Show.tsx` neste PR só acrescenta a seção Entrega (import do ícone, tipo `EntregaVenda`, um `<Deferred>` e o componente), sem remover nem alterar linha existente; UC-VSHOW-01..13 não dependem dela. Os casos novos 22/23 estão 🧪 até a lane `sells-pest` rodar.
 - 2026-10-21 · [CL] UC-VSHOW-14 (US-PCP-028 · UC-FLX-06): entrega prometida no cabeçalho. Teste `SellsPrazoEntregaContratoTest`, nasce sem run.
 - 2026-10-21 · [CL] UC-VSHOW-20/21 (US-SELL-070 · UC-FLX-04): faixa "aberto pelo cliente" no orçamento, lida de `transaction_quote_accesses` pelo business da venda. Veio do backlog do `Quotations.casos.md`. Teste `QuoteAccessTelaContratoTest`, nasce sem run.
 - 2026-10-21 · [CL] `last_run` 2026-10-20 → 2026-10-21 por conferência, não por run novo: o `Show.tsx` deste PR só acrescenta a faixa `AcessoDoOrcamento` (dentro de `ShowDetailSections`, antes da faixa de custo) e o tipo `AcessoOrcamento`; nada de UC-VSHOW-01..13 muda. Nenhum teste re-rodado aqui.
