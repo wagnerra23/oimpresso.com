@@ -36,6 +36,19 @@ final class CatalogoModelos
 
     public const DOMINIOS = ['venda' => 'Venda', 'producao' => 'Produção', 'compra' => 'Compra', 'entrega' => 'Entrega', 'financeiro' => 'Financeiro'];
 
+    /**
+     * Saídas laterais por domínio, fora da linha de etapas (como o Cancelado): só entram no
+     * processo do modelo que tem a etapa de origem. Fonte: ProcessosDoPrototipo, Orçamento e venda —
+     * "Enviado → Perdido · Marcar perdido · Motivo obrigatório · Vendedor".
+     *
+     * @var array<string, list<array{de:string, para:string, acao:string, rotulo:string, exige_motivo:bool}>>
+     */
+    public const LATERAIS = [
+        'venda' => [
+            ['de' => 'Enviado', 'para' => 'Perdido', 'acao' => 'marcar_perdido', 'rotulo' => 'Marcar perdido', 'exige_motivo' => true],
+        ],
+    ];
+
     /** Modelo das empresas que usam os processos de antes do catálogo (venda_com_producao e cia.). */
     public const LEGADO = 'legado';
 

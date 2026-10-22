@@ -80,6 +80,7 @@ class OficinaAutoServiceProvider extends ServiceProvider
                 \Modules\OficinaAuto\Console\Commands\OficinaAutoMigrationReportCommand::class,
                 \Modules\OficinaAuto\Console\Commands\ImportFirebirdMartinhoCommand::class,
                 \Modules\OficinaAuto\Console\Commands\OficinaBoardDemoCommand::class,
+                \Modules\OficinaAuto\Console\Commands\OficinaEntregaAssinaturaCommand::class,
             ]);
         }
     }

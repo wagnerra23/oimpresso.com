@@ -123,6 +123,20 @@ base: wagnerra23/oimpresso.com@main 0c29a8505b8b (lido 2026-10-15)
       "respondida": true,
       "resposta": "ROADMAP do Pcp",
       "fonte": "_DECISOES-W-2026-10-15.md"
+    },
+    {
+      "id": "D-AGENDA",
+      "pergunta": "Agenda de instalação: da Produção ou da Comunicação Visual?",
+      "respondida": true,
+      "resposta": "uma agenda só, a da ComVis (#9721); a thread 09 fica com checklist, fotos, assinatura e PDF (UC-PCV-25)",
+      "fonte": "decisão [W] 2026-10-21 (conferência dos PRs da Produção)"
+    },
+    {
+      "id": "D-ARTE-PAGINA",
+      "pergunta": "Aprovação de arte: página própria /arte/{token} (#9645) ou bloco em /os/{codigo}?",
+      "respondida": true,
+      "resposta": "mantém a /arte/{token} do #9645; a thread 10 fica com a trava da arte (UC-PCV-11) e o link a partir de /os/{codigo} depois da Repair 06",
+      "fonte": "decisão [W] 2026-10-21 (conferência dos PRs da Produção)"
     }
   ],
   "threads": [
@@ -582,7 +596,7 @@ base: wagnerra23/oimpresso.com@main 0c29a8505b8b (lido 2026-10-15)
     },
     {
       "id": "09",
-      "titulo": "Instalação: agenda, checklist com foto antes/depois e assinatura, protocolo em PDF",
+      "titulo": "Instalação: checklist com foto antes/depois, assinatura e protocolo em PDF (a agenda é a da ComVis)",
       "dono": "CL",
       "vaga": 4,
       "prs": 1,
@@ -592,7 +606,8 @@ base: wagnerra23/oimpresso.com@main 0c29a8505b8b (lido 2026-10-15)
       ],
       "depende_decisoes": [
         "D-PCP",
-        "D1"
+        "D1",
+        "D-AGENDA"
       ],
       "prefixo": [
         "${MPAGES}/Producao/Instalacao/",
@@ -608,19 +623,14 @@ base: wagnerra23/oimpresso.com@main 0c29a8505b8b (lido 2026-10-15)
         {
           "tipo": "contem",
           "path": "${MOD}/Tests/Feature/ProducaoInstalacaoContratoTest.php",
-          "padrao": "UC-PCV-24"
-        },
-        {
-          "tipo": "contem",
-          "path": "${MOD}/Tests/Feature/ProducaoInstalacaoContratoTest.php",
           "padrao": "UC-PCV-25"
         }
       ],
-      "nota_provas": "casos em cowork-inbox/producao/Producao.casos.md"
+      "nota_provas": "casos em cowork-inbox/producao/Producao.casos.md · UC-PCV-24 (agenda) é atendido pela /comunicacao-visual/agenda (#9721, D-AGENDA), lida sem escrever em Modules/ComunicacaoVisual"
     },
     {
       "id": "10",
-      "titulo": "Aprovar arte no link com código (bloco na página /os/{codigo} do Repair 06)",
+      "titulo": "Trava da arte aprovada (UC-PCV-11) e link para a prova a partir de /os/{codigo}",
       "dono": "CL",
       "vaga": 4,
       "prs": 1,
@@ -629,11 +639,14 @@ base: wagnerra23/oimpresso.com@main 0c29a8505b8b (lido 2026-10-15)
         "06"
       ],
       "depende_decisoes": [
-        "D-PROVA"
+        "D-PROVA",
+        "D-ARTE-PAGINA"
       ],
       "prefixo": [
-        "Modules/ConsultaOs/",
-        "${MOD}/Tests/"
+        "${MOD}/Services/",
+        "${MOD}/Http/Controllers/",
+        "${MOD}/Tests/",
+        "Modules/ConsultaOs/"
       ],
       "nao_toca": [
         "Modules/Repair/Http/"
@@ -641,16 +654,11 @@ base: wagnerra23/oimpresso.com@main 0c29a8505b8b (lido 2026-10-15)
       "provas": [
         {
           "tipo": "contem",
-          "path": "${MOD}/Tests/Feature/ProducaoArteContratoTest.php",
-          "padrao": "UC-PCV-04"
-        },
-        {
-          "tipo": "contem",
-          "path": "${MOD}/Tests/Feature/ProducaoArteContratoTest.php",
+          "path": "${MOD}/Tests/Feature/ProducaoAprovacaoArteContratoTest.php",
           "padrao": "UC-PCV-11"
         }
       ],
-      "nota_provas": "casos em cowork-inbox/producao/Producao.casos.md · depende da thread Repair 06"
+      "nota_provas": "casos em cowork-inbox/producao/Producao.casos.md · a página /arte/{token} já existe (#9645, D-ARTE-PAGINA) · a trava não depende de nada; o link em /os/{codigo} depende da thread Repair 06 · UC-PCV-04 (fila de arte) foi entregue no Painel da thread 06"
     },
     {
       "id": "11",

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Producao\Services;
 
 use App\Contracts\Fabricacao\InsumosDaReceita;
+use App\Contracts\Producao\ReservaDeInsumo;
 use App\Domain\Fsm\Models\StockReservation;
 use App\Scopes\ScopeByBusiness;
 use Illuminate\Support\Facades\DB;
@@ -37,7 +38,7 @@ use Modules\Producao\Entities\Ordem;
  * `qty_reserved` é o que AINDA está reservado: o apontamento o reduz; chegando a zero a reserva vira
  * `consumed`. O que saiu de fato fica em `pcp_consumos` (US-PCP-021).
  */
-final class ReservaDeInsumoDaOs
+final class ReservaDeInsumoDaOs implements ReservaDeInsumo
 {
     public const CHAVE = 'producao_reserva_insumo';
 
@@ -48,6 +49,26 @@ final class ReservaDeInsumoDaOs
         $ajustes = json_decode((string) DB::table('business')->where('id', $businessId)->value('common_settings'), true);
 
         return is_array($ajustes) && ! empty($ajustes[self::CHAVE]);
+    }
+
+    /**
+     * Liga ou desliga a reserva na empresa (interruptor da aba Fluxos da empresa, PATCH /fluxos/reserva).
+     * Mexe só nesta chave: lê e regrava `common_settings` sob trava, preservando as outras chaves.
+     * Desligar não libera reserva que já existe — ela segue até a OS concluir ou cancelar.
+     */
+    public function mudar(int $businessId, bool $ligada): void
+    {
+        DB::transaction(function () use ($businessId, $ligada) {
+            $bruto = DB::table('business')->where('id', $businessId)->lockForUpdate()->value('common_settings');
+            $ajustes = json_decode((string) $bruto, true);
+            $ajustes = is_array($ajustes) ? $ajustes : [];
+            if ($ligada) {
+                $ajustes[self::CHAVE] = 1;
+            } else {
+                unset($ajustes[self::CHAVE]);
+            }
+            DB::table('business')->where('id', $businessId)->update(['common_settings' => json_encode($ajustes)]);
+        });
     }
 
     /** Na criação da OS (venda aprovada). @return int reservas criadas agora */

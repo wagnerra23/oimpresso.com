@@ -15,16 +15,18 @@ use RuntimeException;
  * US-NFE-069 · UC-FLX-27 / UC-FLX-31 — separa as linhas de uma venda em parte MERCADORIA (vai
  * para NF-e) e parte SERVIÇO (vai para NFS-e), repartindo desconto, frete e acréscimos.
  *
- * Só calcula. Não emite, não grava, não muda a emissão de hoje: `NfeService::recusarItensDeServico`
- * continua recusando a NF-e com item de serviço, e `NfseController::emitirParaTransaction` não chama
- * este serviço. Ligar a divisão no Faturado é outro PR.
+ * Só calcula; quem emite são os consumidores, ambos com `separada = true` vindo da tela:
+ * `NfeService::emitirParaTransaction` (parte mercadoria em NF-e) e
+ * `NfseController::emitirParaTransaction` do módulo NFSe (parte serviço em NFS-e).
+ * Sem a separação, a NF-e segue recusando item de serviço (R-NFE-034).
  *
  * A natureza vem do que o contador decidiu (`nfe_naturezas_produto`, US-NFE-068): sem linha =
  * mercadoria; `pendente` também fica na mercadoria (é o que a emissão faz hoje) e volta listado
  * em `pendentes`, porque este serviço não escolhe imposto (D-NATUREZA).
  *
  * REGRA MESTRE de valor — a regra de rateio vive só em {@see self::dividir()} e tem nome em
- * {@see self::REGRA_RATEIO}. É PROPOSTA pendente de decisão [W]:
+ * {@see self::REGRA_RATEIO}. Decidida por [W] em 2026-10-21 (regra A, contra "desconto
+ * todo na mercadoria" e "desconto todo no serviço"):
  *   1. bruto da linha = round(quantidade × unit_price_inc_tax, 2), em centavos (o mesmo vProd que
  *      `NfeService::montarItensNfe` usa); linha de valor 0 não entra (NF-e não aceita item zerado).
  *   2. frete (`shipping_charges`) vai INTEIRO para a NF-e, como o `vFrete` que a NF-e já monta.
@@ -36,7 +38,7 @@ use RuntimeException;
  */
 class SeparacaoNotasDaVenda
 {
-    public const REGRA_RATEIO = 'proporcional-ao-bruto · servico-arredonda · mercadoria-absorve-o-centavo · frete-na-nfe (proposta, pendente [W])';
+    public const REGRA_RATEIO = 'proporcional-ao-bruto · servico-arredonda · mercadoria-absorve-o-centavo · frete-na-nfe ([W] 2026-10-21)';
 
     public const MERCADORIA = 'mercadoria';
 

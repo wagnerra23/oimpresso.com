@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a fórmula do m² e o isolamento por business são o que não pode mudar — a tela vai ganhar OS, materiais e apontamento por cima disso, e nenhum deles pode afrouxar o cálculo nem o escopo.
 owner: wagner
-last_run: "2026-10-13"
-last_run_ci: "2026-10-13 (PR contratos de tela, modulos-faltantes thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (e um div sem classe em volta do PageHeader); nenhum UC afirma ancora, nenhum calculo tocado. ---- REGISTRO ANTERIOR: last_run 2026-09-25. 2026-09-25 — GH run 36124963011 (verticais-pest, workflow_dispatch, MySQL, main 2e3f8adb4): MigrationsTest, Tier0GuardTest e MultiTenantTest PASS (lane vermelha só por Cms). CT 100 MySQL (worktree isolado em origin/main 1743f005a, sem run id): 10 arquivos, 58 passed / 10 failed (200 assertions) — ver §Revalidação 2026-09-25. Nenhum UC no manifesto G-7, logo nenhum ✅."
+last_run: "2026-10-21"
+last_run_ci: "2026-10-21 — CT 100 MySQL, cópia isolada do branch a8ada7ef4: OrcamentoSalvarReabrirContratoTest 6 passed (39 assertions) + ViraOs/CustoPrevisto/CustoMaquina 16 passed; sem run id de CI. ---- 2026-10-13 (PR contratos de tela, modulos-faltantes thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (e um div sem classe em volta do PageHeader); nenhum UC afirma ancora, nenhum calculo tocado. ---- REGISTRO ANTERIOR: last_run 2026-09-25. 2026-09-25 — GH run 36124963011 (verticais-pest, workflow_dispatch, MySQL, main 2e3f8adb4): MigrationsTest, Tier0GuardTest e MultiTenantTest PASS (lane vermelha só por Cms). CT 100 MySQL (worktree isolado em origin/main 1743f005a, sem run id): 10 arquivos, 58 passed / 10 failed (200 assertions) — ver §Revalidação 2026-09-25. Nenhum UC no manifesto G-7, logo nenhum ✅."
 ---
 
 # Casos de Uso & Aceite — Hub + Calculadora de m² (`/comunicacao-visual`)
@@ -71,6 +71,9 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CVINST-05 | Equipe de outra empresa é recusada; a agenda da outra empresa nunca conflita | must `[T0]` | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAgendaContratoTest` | 🧪 |
 | UC-CVINST-06 | OS de outra empresa devolve 404 | must `[T0]` | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAgendaContratoTest` | 🧪 |
 | UC-CVINST-07 | Sem permissão não agenda nem lista | must | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAgendaContratoTest` | 🧪 |
+| UC-CVINST-08 | Agendar avisa o cliente por WhatsApp com OS, dia e hora | must `[LGPD]` | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAvisoClienteContratoTest` | 🧪 |
+| UC-CVINST-09 | Cliente que recusou WhatsApp, sem celular, sem cliente ou sem canal ativo não é avisado | must `[LGPD]` | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAvisoClienteContratoTest` | 🧪 |
+| UC-CVINST-10 | Contato e número de outra empresa nunca entram no aviso | must `[T0]` | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAvisoClienteContratoTest` | 🧪 |
 | UC-CVOS-01 | Aprovar cria a OS com os itens e as medidas do orçamento | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 | UC-CVOS-02 | A OS vale o total do orçamento e nenhum valor do orçamento muda | must `[V0]` | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 | UC-CVOS-03 | Aprovar de novo não duplica OS, itens nem arquivos | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
@@ -78,6 +81,25 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CVOS-05 | Outra empresa não aprova nem gera OS | must `[T0]` | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 | UC-CVOS-06 | Orçamento recusado não vira OS | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 | UC-CVOS-07 | Só quem pode criar orçamento aprova | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
+| UC-CVOS-08 | O orçamento aprovado reabre com o número da OS | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVMRG-01 | Cada peça e o orçamento mostram custo e margem | must `[V0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVMRG-02 | Preço, subtotal e total são os mesmos com e sem margem | must `[V0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVMRG-03 | Peça sem custo fica sem margem; o orçamento diz quantas têm | must | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVMRG-04 | Custo de material de outra empresa nunca entra | must `[T0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVMRG-05 | Só quem gerencia materiais vê custo e margem | must | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVMRG-06 | O custo mostrado é o que o orçamento grava | must `[V0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVARQ-01 | Anexar grava o arquivo no orçamento e aprovar o leva para a OS | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVARQ-02 | Formato que a gráfica não usa é recusado | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVARQ-03 | Depois de virar OS o orçamento não recebe nem perde arquivo | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVARQ-04 | Outra empresa não anexa nem remove | must `[T0]` | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVARQ-05 | Sem permissão de criar não anexa nem remove | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVARQ-06 | Remover tira o arquivo e ele não vai para a OS | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoArquivosContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVSAL-01 | Salvar grava os valores do servidor, não os da tela | must `[V0]` | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVSAL-02 | Reabrir devolve as peças e os ajustes, e aparece na lista | must | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVSAL-03 | Regravar o reaberto mantém o número e troca as peças | must `[V0]` | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVSAL-04 | Orçamento que virou OS ou foi recusado não regrava | must | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVSAL-05 | Outra empresa não reabre, não lista nem regrava | must `[T0]` | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVSAL-06 | Sem permissão de criar não salva nem regrava | must | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 
 > 🧪 **Nenhum status aqui é afirmação de verde.** O PR que criou este arquivo não executou teste algum (CT 100/CI —
 > [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)). "Vermelho
@@ -446,6 +468,30 @@ dá 403; com `comvis.os.view` a agenda lista (200); com `comvis.os.update_status
 
 Status: 🧪
 
+## UC-CVINST-08 · Agendar avisa o cliente por WhatsApp com OS, dia e hora · `must` `[LGPD]`
+
+**Dado** a OS cujo orçamento tem cliente com celular, e a empresa com número de saída do WhatsApp **Quando**
+o coordenador agenda 21/10 09:00 **Então** sai na fila uma mensagem para o celular do cliente, pelo número da
+empresa, com o número da OS e "21/10/2026 às 09:00", sem o nome de quem instala nem o veículo. Agenda recusada
+por falta de janela não avisa.
+
+Status: 🧪
+
+## UC-CVINST-09 · Cliente que recusou WhatsApp, sem celular, sem cliente ou sem canal ativo não é avisado · `must` `[LGPD]`
+
+**Quando** o cliente marcou que não aceita WhatsApp (`whatsapp_consent = false`), não tem celular, o orçamento é
+balcão (sem cliente) ou o número da empresa está caído **Então** a instalação é agendada e nenhuma mensagem
+sai. Controle: com o canal de volta, o mesmo cliente recebe.
+
+Status: 🧪
+
+## UC-CVINST-10 · Contato e número de outra empresa nunca entram no aviso · `must` `[T0]`
+
+**Dado** um orçamento da 98 que aponta para um contato da 99 **Então** ninguém é avisado. **Dado** a 98 sem
+número de saída e a 99 com número **Então** o número da 99 não é usado.
+
+Status: 🧪
+
 ## Orçamento aprovado vira OS (US-COMVIS-003 · UC-FLX-01)
 
 > **Âncora:** UC-FLX-01 do catálogo de fluxos (*"Aprovado: cria a OS com itens, medidas e arquivos
@@ -508,6 +554,189 @@ permissão, a OS nasce (201).
 
 Status: 🧪
 
+## UC-CVOS-08 · O orçamento aprovado reabre com o número da OS · `must`
+
+**Dado** o orçamento enviado, ainda sem OS (o reaberto vem com `os` nulo) **Quando** ele é aprovado
+**Então** reaberto ele vem `aprovado` com o id e o número da OS que gerou, a lista dos salvos mostra o
+mesmo número, e a outra empresa não reabre o orçamento.
+
+Na tela: o rodapé troca "Salvar" por "Aprovar e criar OS" quando o orçamento está gravado igual à
+tela; a confirmação é um segundo clique na mesma linha. Mudança não salva não aprova.
+
+Status: 🧪
+
+## Custo e margem por peça (US-COMVIS-022 · UC-FLX-03)
+
+> Âncora: UC-FLX-03 (margem por item no orçamento) e SPEC US-COMVIS-022. `POST …/api/calcular`
+> passa a devolver, só para quem tem `comvis.material.manage` (ou superadmin), `custo`, `margem` e
+> `margem_pct` por item e um bloco `margem` do orçamento (`MargemDoOrcamento`). O custo vem de
+> `OrcamentoGravador::custosPrevistos`, a regra que o orçamento grava (US-COMVIS-019). Preço,
+> subtotal e total não mudam. Execução: CT 100 MySQL, branch `65bccea49` — 6 passed, e os irmãos
+> de custo previsto seguem verdes (44 passed, 227 assertions); mutação que tira o desconto da
+> receita derruba UC-CVMRG-01 e 05.
+
+Conta do arranjo (Lona custo 8,50/m², venda 30,00/m²):
+
+| Peça | Área | Preço | Custo | Margem |
+|---|---|---|---|---|
+| A 2,000 × 1,500 × 2 | 6,000 m² | 180,00 | 51,00 | 129,00 (71,7%) |
+| B 0,800 × 0,600 × 3 | 1,440 m² | 43,20 | 12,24 | 30,96 (71,7%) |
+| Orçamento | — | 223,20 − 20,00 de desconto = 203,20 | 63,24 | 139,96 (68,9%) |
+
+Extras (50,00) somam no total (253,20) e ficam fora da margem: não têm custo cadastrado.
+
+## UC-CVMRG-01 · Cada peça e o orçamento mostram custo e margem · `must` `[V0]`
+
+**Dado** o arranjo acima **Quando** o orçamento é conferido por quem vê custo **Então** cada peça traz
+o custo, a margem em R$ e em % da tabela, e o orçamento traz custo 63,24, receita 203,20 e margem
+139,96 (68,9%) — conferidos à mão e pela fórmula sem banco.
+
+Status: 🧪
+
+## UC-CVMRG-02 · Preço, subtotal e total são os mesmos com e sem margem · `must` `[V0]`
+
+**Dado** o mesmo orçamento **Quando** calculado com e sem a margem **Então** total (253,20),
+subtotal e o preço e o subtotal de cada peça são idênticos.
+
+Status: 🧪
+
+## UC-CVMRG-03 · Peça sem custo fica sem margem; o orçamento diz quantas têm · `must`
+
+**Dado** mais uma peça de material com custo zero e uma sem material **Quando** conferido **Então**
+essas duas vêm sem custo e sem margem, e o orçamento diz "2 de 4" sem margem total — margem com
+peça sem custo enganaria.
+
+Status: 🧪
+
+## UC-CVMRG-04 · Custo de material de outra empresa nunca entra · `must` `[T0]`
+
+**Dado** uma peça com material da empresa 99 (custo 3,00) **Quando** a 98 confere **Então** a peça
+vem sem custo; a mesma peça lida pela 99 tem custo 3,00.
+
+Status: 🧪
+
+## UC-CVMRG-05 · Só quem gerencia materiais vê custo e margem · `must`
+
+**Dado** um usuário de balcão (`comvis.orcamento.create`) e um que também tem
+`comvis.material.manage` **Quando** os dois conferem **Então** só o segundo recebe custo e margem, e o
+total é o mesmo para os dois.
+
+Status: 🧪
+
+## UC-CVMRG-06 · O custo mostrado é o que o orçamento grava · `must` `[V0]`
+
+**Dado** o mesmo cálculo **Quando** ele é mostrado e gravado **Então** o `custo_previsto` de cada
+item gravado é o custo mostrado na tela.
+
+Status: 🧪
+
+## Arquivos do orçamento (US-COMVIS-020 · UC-FLX-01)
+
+> Âncora: SPEC US-COMVIS-020 — os arquivos anexados ao orçamento passam para a OS. Até 2026-10-21
+> nada gravava `media` no orçamento: a cópia existia sem nada para copiar. Agora
+> `POST …/api/orcamentos/{id}/arquivos` (multipart `arquivos[]`) e `DELETE …/arquivos/{media}`,
+> só antes da OS existir. Execução: CT 100 MySQL, branch `7fc1d0862`, disco falso — 6 passed;
+> mutação que tira a trava "já virou OS" derruba o UC-CVARQ-03.
+
+## UC-CVARQ-01 · Anexar grava o arquivo no orçamento e aprovar o leva para a OS · `must`
+
+**Dado** o orçamento enviado **Quando** são anexados `arte-fachada.pdf` e `foto-local.jpg` **Então**
+há dois registros `media` da empresa no orçamento, o reaberto os lista pelo nome, e ao aprovar a OS
+recebe os mesmos dois arquivos.
+
+Status: 🧪
+
+## UC-CVARQ-02 · Formato que a gráfica não usa é recusado · `must`
+
+**Dado** um `.exe` **Quando** ele é anexado **Então** a validação recusa (formatos aceitos: pdf, jpg,
+jpeg, png, svg, ai, eps, cdr, tif, tiff, psd) e nada é gravado.
+
+Status: 🧪
+
+## UC-CVARQ-03 · Depois de virar OS o orçamento não recebe nem perde arquivo · `must`
+
+**Dado** o orçamento aprovado, com OS **Quando** se tenta anexar ou remover **Então** as duas
+respostas são 422 e o arquivo do orçamento continua lá — o da OS é outra linha.
+
+Status: 🧪
+
+## UC-CVARQ-04 · Outra empresa não anexa nem remove · `must` `[T0]`
+
+**Dado** o orçamento da 98 com um arquivo **Quando** a 99 tenta anexar ou remover **Então** as duas
+dão 404 e o arquivo continua.
+
+Status: 🧪
+
+## UC-CVARQ-05 · Sem permissão de criar não anexa nem remove · `must`
+
+**Dado** um usuário só com `comvis.orcamento.view` **Quando** ele anexa ou remove **Então** 403, e nada muda.
+
+Status: 🧪
+
+## UC-CVARQ-06 · Remover tira o arquivo e ele não vai para a OS · `must`
+
+**Dado** dois arquivos anexados **Quando** um é removido e o orçamento é aprovado **Então** a lista
+fica só com o outro e a OS recebe um arquivo.
+
+Status: 🧪
+
+## Salvar e reabrir o orçamento (US-COMVIS-021)
+
+> Âncora: SPEC US-COMVIS-021 e o UC-FLX-01 — aprovar precisa de um orçamento salvo. A tela grava com
+> `POST /comunicacao-visual/api/orcamentos`, lista os salvos com `GET …/api/orcamentos` (e, na rota do
+> hub, a prop deferida `recentes`), reabre por `/comunicacao-visual?orcamento={id}` e regrava o
+> reaberto com `PUT …/api/orcamentos/{id}`. O servidor recalcula tudo nas duas gravações.
+>
+> Execução: CT 100, MySQL, cópia isolada do branch `a8ada7ef4` (2026-10-21) — 6 passed (39 assertions)
+> junto com os irmãos ViraOs/CustoPrevisto (22 passed, 139 assertions). Mutação: tirar o
+> `business_id` explícito do `paraTela` derruba o UC-CVSAL-05. Sem entrada no manifesto G-7, logo 🧪.
+
+## UC-CVSAL-01 · Salvar grava os valores do servidor, não os da tela · `must` `[V0]`
+
+**Dado** Banner 3,000 × 1,500 × 1 a 60,00/m² e Adesivo 2,000 × 1,000 × 3 a 40,00/m², instalação 200,00,
+e um `total`/`subtotal` qualquer vindo do cliente **Quando** o orçamento é salvo **Então** ele nasce
+`rascunho`, número `ORC-AAAA-NNNNN`, na empresa da sessão, com total 710,00 e subtotal 510,00 —
+conferidos à mão e pelo `OrcamentoCalculator` — e os dois itens.
+
+Status: 🧪
+
+## UC-CVSAL-02 · Reabrir devolve as peças e os ajustes, e aparece na lista · `must`
+
+**Dado** o orçamento salvo **Quando** ele é reaberto **Então** volta com as mesmas peças (descrição,
+largura, altura, quantidade, preço por m²), com a instalação de 200,00 (que não tem campo na tela e não
+pode sumir ao regravar) e com o total 710,00; e está na lista dos salvos da empresa.
+
+Status: 🧪
+
+## UC-CVSAL-03 · Regravar o reaberto mantém o número e troca as peças · `must` `[V0]`
+
+**Dado** o orçamento salvo **Quando** ele é regravado com uma Placa 2,000 × 1,000 × 1 a 50,00/m² e a
+mesma instalação **Então** o número é o mesmo (um orçamento só com ele), o total passa a 300,00 —
+conferido à mão e pelo calculator — e o único item é a Placa.
+
+Status: 🧪
+
+## UC-CVSAL-04 · Orçamento que virou OS ou foi recusado não regrava · `must`
+
+**Dado** um orçamento aprovado (com OS) e um recusado **Quando** se tenta regravar qualquer um
+**Então** a resposta é 422 e total e itens ficam como estavam.
+
+Status: 🧪
+
+## UC-CVSAL-05 · Outra empresa não reabre, não lista nem regrava · `must` `[T0]`
+
+**Dado** o orçamento da empresa 98 **Quando** a 99 tenta reabrir, listar ou regravar **Então** reabrir
+devolve nada, a lista da 99 não o traz, regravar dá 404 e o total da 98 não muda.
+
+Status: 🧪
+
+## UC-CVSAL-06 · Sem permissão de criar não salva nem regrava · `must`
+
+**Dado** um usuário só com `comvis.orcamento.view` **Quando** ele tenta salvar ou regravar **Então** a
+resposta é 403 e nenhum orçamento é criado; listar continua permitido.
+
+Status: 🧪
+
 ---
 
 ## Backlog — prosa honesta, sem id (ainda não é UC)
@@ -515,9 +744,8 @@ Status: 🧪
 > Cada item aqui tem contrato em **uma fonte só**, ou não tem código. Vira UC quando ganhar
 > implementação **e** teste que o cite — nunca antes (G-2 / [proibicoes §5](../../../../memory/proibicoes.md) 2026-07-16).
 
-- `[BACKLOG]` **Salvar o orçamento pela tela e mandar o PDF no WhatsApp.** `POST /…/api/orcamentos`
-  existe, está testado e **nenhuma tela o chama** (`git grep "api/orcamentos" -- '*.tsx'` = 0). O
-  botão "salvar" não existe; a copy da tela já diz "chega em breve", honestamente. SDD §5.4.2.
+- `[BACKLOG]` **Mandar o PDF do orçamento salvo no WhatsApp.** Salvar e reabrir entraram em
+  2026-10-21 (UC-CVSAL-01..06); o PDF e o envio não existem. SDD §5.4.2.
 - `[BACKLOG]` **Numeração de orçamento com reserva atômica.** `gerarNumero()` lê `MAX(numero)` fora
   da transação; a corrida é barrada pelo `UNIQUE (business_id, numero)` (erro visível, não corrupção),
   mas não há teste do caso concorrente. SDD §5.4.3 / D-2.

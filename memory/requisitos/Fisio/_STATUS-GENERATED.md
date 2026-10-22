@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 0 |
 | Telas (.tsx) | 5 |
 | Telas com `casos.md` | 6 |
-| UC declarados | 90 |
-| UC com teste que os cita | 90 |
+| UC declarados | 103 |
+| UC com teste que os cita | 103 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -62,11 +62,16 @@ authority: generated
 | UC-FBI-09 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-10 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FBI-11 | Biblioteca/Index | 🧪 aguarda veredito da lane |
+| UC-FBI-12 | Biblioteca/Index | 🧪 aguarda veredito da lane |
 | UC-FJG-01 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
 | UC-FJG-02 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
 | UC-FJG-03 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
 | UC-FJG-04 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
 | UC-FJG-05 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
+| UC-FJG-06 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
+| UC-FJG-07 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
+| UC-FJG-08 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
+| UC-FJG-09 | jogo-constancia (blade) | 🧪 aguarda veredito da lane |
 | UC-FPI-01 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPI-02 | Pacientes/Index | 🧪 aguarda veredito da lane |
 | UC-FPI-03 | Pacientes/Index | 🧪 aguarda veredito da lane |
@@ -83,6 +88,7 @@ authority: generated
 | UC-FPN-06 | Painel | 🧪 aguarda veredito da lane |
 | UC-FPN-07 | Painel | 🧪 aguarda veredito da lane |
 | UC-FPN-08 | Painel | 🧪 aguarda veredito da lane |
+| UC-FPN-09 | Painel | 🧪 aguarda veredito da lane |
 | UC-FPP-01 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPP-02 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPP-03 | Public/Portal | 🧪 aguarda veredito da lane |
@@ -112,6 +118,11 @@ authority: generated
 | UC-FPP-27 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPP-28 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPP-29 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-30 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-31 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-32 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-33 | Public/Portal | 🧪 aguarda veredito da lane |
+| UC-FPP-34 | Public/Portal | 🧪 aguarda veredito da lane |
 | UC-FPS-01 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-02 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-03 | Pacientes/Show | 🧪 aguarda veredito da lane |
@@ -140,6 +151,8 @@ authority: generated
 | UC-FPS-34 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-35 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-FPS-36 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-37 | Pacientes/Show | 🧪 aguarda veredito da lane |
+| UC-FPS-38 | Pacientes/Show | 🧪 aguarda veredito da lane |
 | UC-OAP-01 | Public/Portal | 🧪 aguarda veredito da lane |
 
 ---

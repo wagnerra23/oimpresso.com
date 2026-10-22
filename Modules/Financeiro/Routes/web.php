@@ -249,6 +249,10 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         // que apontava pra /categorias (Onda 16). Tela hierárquica BR 47 entries.
         Route::get('/plano-contas', [PlanoContaController::class, 'index'])
             ->name('plano-contas.index');
+        // US-FIN-070 · UC-FLX-20 — classe de custo da conta (fixa/variável/nenhuma) para o custeio RKW.
+        Route::patch('/plano-contas/{id}/classe-custo', [PlanoContaController::class, 'classeCusto'])
+            ->whereNumber('id')
+            ->name('plano-contas.classe-custo');
 
         // Onda 19 (2026-05-19) #49 — Conciliação OFX MVP.
         // Upload arquivo OFX → parser → linhas pendentes → fuzzy match → user aprova.

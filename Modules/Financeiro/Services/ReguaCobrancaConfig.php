@@ -24,13 +24,22 @@ class ReguaCobrancaConfig
 
     public const DIAS_PADRAO = [1, 5, 15];
 
+    /** Etapa acima de um ano é digitação errada, não régua: fica de fora. */
+    public const DIAS_MAXIMO = 365;
+
     /** @return array{ativo: bool, dias: list<int>} */
     public function de(int $businessId): array
     {
         $config = $this->ler($businessId)[self::CHAVE] ?? [];
+        // A tela de configuração (/business/settings) grava os dias como o texto digitado,
+        // "1, 5, 15"; `definir()` grava lista. As duas formas valem.
+        $brutos = $config['dias'] ?? self::DIAS_PADRAO;
+        if (is_string($brutos)) {
+            $brutos = preg_split('/[^0-9]+/', $brutos, -1, PREG_SPLIT_NO_EMPTY);
+        }
         $dias = array_values(array_unique(array_filter(
-            array_map('intval', (array) ($config['dias'] ?? self::DIAS_PADRAO)),
-            fn (int $d) => $d > 0
+            array_map('intval', (array) $brutos),
+            fn (int $d) => $d > 0 && $d <= self::DIAS_MAXIMO
         )));
         sort($dias);
 

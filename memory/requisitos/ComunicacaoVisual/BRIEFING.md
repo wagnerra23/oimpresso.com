@@ -1,5 +1,8 @@
 ---
 id: requisitos-comunicacao-visual-briefing
+module: ComunicacaoVisual
+status: parcial
+updated_at: "2026-10-21"
 ---
 
 # BRIEFING — ComunicacaoVisual
@@ -13,8 +16,8 @@ ERP vertical para gráfica rápida / comunicação visual BR (CNAE 1813-0/01: lo
 > Estado derivado, não escrito à mão: `node scripts/governance/requisitos-status.mjs ComunicacaoVisual`.
 
 **Capacidades REAIS (existem no código):**
-- **Calculadora de orçamento por m²** (`Index.tsx`): preview client-side + botão "Conferir no servidor". Salvar/PDF/WhatsApp ainda **não** existe (UI diz "em breve"). ⚠️ **Correção 2026-07-28:** a frase *"o seletor de material puxa o catálogo do business"* (abaixo e no docblock do `.tsx`) **é promessa, não fato** — a única rota que renderiza a tela passa só `bizName`, então o seletor fica desabilitado ("Sem catálogo") e o preço/m² é digitado à mão. [SDD §5.4.1](SDD-tela-orcamento-m2-v1.0.md) / `CU-CV-09`.
-- **API de orçamento authoritative** (`OrcamentoController` + `OrcamentoCalculator`): `calcular` (preview), `store` (persiste, numeração `ORC-YYYY-NNNNN` por business), `show`. Frontend só consome `calcular`.
+- **Calculadora de orçamento por m²** (`Index.tsx`): preview client-side + "Conferir no servidor"; o seletor de material recebe o catálogo do business desde 2026-09-23. **Desde 2026-10-21 (PRs #9722 · #9724 · #9726 · onda D):** salvar e reabrir (`?orcamento={id}`, lista dos salvos), "Aprovar e criar OS" (UC-FLX-01), anexar arquivo antes da OS, e custo/margem por peça ao conferir para quem gerencia materiais (UC-FLX-03). PDF/WhatsApp ainda não. _(Registro de 2026-07-28: a tela passava só `bizName` e o seletor ficava em "Sem catálogo".)_
+- **API de orçamento authoritative** (`OrcamentoController` + `OrcamentoCalculator`): `calcular` (preview; com custo/margem via `MargemDoOrcamento` para quem vê custo), `index`/`store`/`show`/`update` (numeração `ORC-YYYY-NNNNN` por business), `aprovar` (vira OS) e arquivos (`OrcamentoArquivoController`). A tela consome todos.
 - **API de apontamento de produção** (`ApontamentoController` + `ApontamentoTracker`): iniciar/finalizar/cancelar/listar; 1 spool ativo por operador, drift/duração server-side, append-only. **Sem UI** — só endpoints.
 - **Multi-tenant Tier 0**: `business_id` global scope em todas as 10 entities. ⚠️ **Correção 2026-07-28:** *"`Tier0GuardTest` cross-tenant verde"* era leitura otimista — o arquivo **aborta inteiro na lane sqlite do PR** (`markTestSkipped`), junto com `MultiTenantTest`, `OrcamentoControllerTest`, `MaterialSeederTest`, `MigrationsTest` e `CustomerJourneyTest` (**6 de 21**). O verde do PR prova que foram *pulados*; o veredito real vem da full-suite noturna (MySQL). [SDD §9 D-7](SDD-tela-orcamento-m2-v1.0.md).
 - **Observabilidade + LGPD**: spans OTel nos Services, `PiiRedactor` em observações, `retention.php`, `comvis:health`.

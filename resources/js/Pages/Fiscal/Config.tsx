@@ -60,7 +60,20 @@ interface Contingencia {
   /** Calculado no SERVIDOR — duração no browser dependeria do relógio do operador. */
   diasAtiva: number | null;
   motivo: string | null;
+  /** US-NFE-071 — modo da NF-e em contingência. */
+  modo?: ModoContingencia;
+  /** SEFAZ Virtual que atende a UF do emitente; null se a UF é desconhecida. */
+  svcDaUf?: 'svc-an' | 'svc-rs' | null;
+  uf?: string | null;
 }
+
+type ModoContingencia = 'epec' | 'svc-an' | 'svc-rs';
+
+const MODOS_CONTINGENCIA: { value: ModoContingencia; rotulo: string; ajuda: string }[] = [
+  { value: 'svc-an', rotulo: 'SVC-AN', ajuda: 'transmite na hora pela SEFAZ Virtual do Ambiente Nacional' },
+  { value: 'svc-rs', rotulo: 'SVC-RS', ajuda: 'transmite na hora pela SEFAZ Virtual do RS' },
+  { value: 'epec', rotulo: 'EPEC', ajuda: 'registra o evento no Ambiente Nacional e guarda a nota até a SEFAZ voltar' },
+];
 
 interface Painel {
   cnpjBusiness: string | null;
@@ -227,7 +240,12 @@ export default function Config({
   // caiu, não SEFAZ"), então ligar é sempre ato humano — e o motivo é barreira, não
   // campo opcional: o fisco pergunta por que a nota saiu com tpEmis != 1.
   const contingencia = config?.contingencia;
-  const contingenciaForm = useForm<{ motivo: string }>({ motivo: '' });
+  // US-NFE-071 — o modo começa na SEFAZ Virtual da UF (transmite na hora); sem UF
+  // conhecida, EPEC. A recusa de SVC errada para a UF é do servidor.
+  const contingenciaForm = useForm<{ motivo: string; modo: ModoContingencia }>({
+    motivo: '',
+    modo: contingencia?.svcDaUf ?? 'epec',
+  });
 
   // Cadastro do contador (thread 15c) → POST /fiscal/config/contador
   const contadorForm = useForm<{ nome: string; email: string; crc: string }>({
@@ -249,10 +267,12 @@ export default function Config({
     contingenciaForm.post('/nfe-brasil/contingencia/ativar', {
       preserveScroll: true,
       onSuccess: () => {
-        toast.success('Contingência ATIVADA — as próximas notas ficam aguardando transmissão.');
+        toast.success(contingenciaForm.data.modo === 'epec'
+          ? 'Contingência ATIVADA — as próximas notas ficam aguardando transmissão.'
+          : 'Contingência ATIVADA — as próximas NF-e vão para a SEFAZ Virtual.');
         contingenciaForm.reset('motivo');
       },
-      onError: () => toast.error('Não foi possível ativar. Confira o motivo.'),
+      onError: () => toast.error('Não foi possível ativar. Confira o motivo e o modo.'),
     });
   };
 
@@ -815,8 +835,14 @@ export default function Config({
                 {typeof contingencia.diasAtiva === 'number' && (
                   <> há <b>{contingencia.diasAtiva === 0 ? 'menos de 1 dia' : `${contingencia.diasAtiva} dia(s)`}</b></>
                 )}
-                {contingencia.ativadaEmBr && <> (desde {contingencia.ativadaEmBr})</>}.
-                {' '}As notas emitidas agora <b>não são transmitidas na hora</b> — ficam aguardando a SEFAZ voltar.
+                {contingencia.ativadaEmBr && <> (desde {contingencia.ativadaEmBr})</>}, modo{' '}
+                <b>{MODOS_CONTINGENCIA.find((m) => m.value === (contingencia.modo ?? 'epec'))?.rotulo}</b>.
+                {' '}
+                {contingencia.modo === 'svc-an' || contingencia.modo === 'svc-rs' ? (
+                  <>As NF-e emitidas agora <b>vão na hora para a SEFAZ Virtual</b>; as NFC-e ficam aguardando a SEFAZ voltar.</>
+                ) : (
+                  <>As notas emitidas agora <b>não são transmitidas na hora</b> — ficam aguardando a SEFAZ voltar.</>
+                )}
               </p>
 
               {contingencia.motivo && (
@@ -848,6 +874,39 @@ export default function Config({
                 mas fica aguardando transmissão — o número fiscal <b>é consumido</b> na hora.
               </p>
               <form onSubmit={ativarContingencia} style={{ marginTop: 12 }}>
+                {/* US-NFE-071 — modo da NF-e. NFC-e segue off-line em qualquer modo
+                    (não existe SEFAZ Virtual de NFC-e). */}
+                <span style={{ display: 'block', fontSize: 13, marginBottom: 6 }}>
+                  Modo <span style={{ color: 'var(--fx-text-mute)' }}>(NF-e — a NFC-e fica off-line)</span>
+                </span>
+                <RadioGroup
+                  aria-label="Modo da contingência"
+                  value={contingenciaForm.data.modo}
+                  onValueChange={(v) => contingenciaForm.setData('modo', v as ModoContingencia)}
+                  style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'center', marginBottom: 6 }}
+                >
+                  {MODOS_CONTINGENCIA.map((m) => (
+                    <label
+                      key={m.value}
+                      htmlFor={`contingencia-modo-${m.value}`}
+                      title={m.ajuda}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13 }}
+                    >
+                      <RadioGroupItem id={`contingencia-modo-${m.value}`} value={m.value} />
+                      <b>{m.rotulo}</b>
+                      {contingencia?.svcDaUf === m.value && (
+                        <small style={{ color: 'var(--fx-text-mute)' }}>(a da sua UF{contingencia.uf ? `, ${contingencia.uf}` : ''})</small>
+                      )}
+                    </label>
+                  ))}
+                </RadioGroup>
+                <small style={{ display: 'block', color: 'var(--fx-text-mute)', marginBottom: 12 }}>
+                  {MODOS_CONTINGENCIA.find((m) => m.value === contingenciaForm.data.modo)?.ajuda}.
+                </small>
+                {contingenciaForm.errors.modo && (
+                  <small style={{ display: 'block', color: 'var(--bad)', marginBottom: 12 }}>{contingenciaForm.errors.modo}</small>
+                )}
+
                 <label htmlFor="contingencia-motivo" style={{ display: 'block', fontSize: 13, marginBottom: 6 }}>
                   Motivo <span style={{ color: 'var(--fx-text-mute)' }}>(fica registrado para o fisco)</span>
                 </label>

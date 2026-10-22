@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o salvar é substituição total e mexe em margem e pontos; a tela nova não pode mudar valor gravado nem expor segredo.
 owner: wagner
-last_run: "2026-10-13"
+last_run: "2026-10-21"
 ---
 
 # Casos de Uso & Aceite — Configuração da empresa
@@ -118,3 +118,25 @@ last_run: "2026-10-13"
   devolvo o corpo sem mexer · Então o objeto volta igual · E quando renomeio um campo, desmarco "obrigatório" e troco o tipo
   do campo de produto · Então só isso muda, e as opções e a outra marcação ficam.
 - **Status: 🧪**
+
+## UC-EMP-15 · Financeiro: ligar a régua de cobrança · `[dado]`
+- **Por quê:** a régua D+1/D+5/D+15 (US-FIN-071, `ReguaCobrancaJob`) nasce desligada e só lia
+  `common_settings['financeiro_regua_cobranca']`, sem tela para ligar. A chave mora no `common_settings`, que o salvar
+  substitui inteiro — a aba tem de devolver as outras chaves como estão.
+- **Aceite:** Dado a régua sem configuração · Então ela está desligada com 1, 5 e 15 · Quando ligo na aba Financeiro com
+  "2, 7" e salvo · Então `ReguaCobrancaConfig::de()` (o que o job lê) diz ligada com 2 e 7, e as outras chaves de
+  `common_settings` ficam · E na tela antiga a aba mostra "2, 7" e desmarcar desliga · E dia 0, acima de 365 ou repetido
+  não vira etapa.
+- **Status: 🧪**
+
+## UC-EMP-16 · Vendas: ligar a pesquisa depois da entrega e escolher a nota baixa · `[dado]`
+- **Por quê:** a pesquisa de satisfação 2 dias depois da entrega (US-SELL-071) só roda para a empresa que ligou
+  `common_settings.sells_pesquisa_entrega` (lido por `PesquisaEntregaConfig`), e até aqui nenhuma tela gravava a chave.
+- **Aceite:** Dado a pesquisa desligada com nota padrão 2 · Quando marco o interruptor na aba Vendas e escolho 3 · Então a
+  rotina lê ligada com nota 3, e as outras chaves de `common_settings` ficam · E quando desmarco · Então lê desligada e a
+  nota 3 fica · E a Blade da aba Vendas desenha os mesmos dois campos.
+- **Teste:** `tests/Feature/Configuracoes/EmpresaContratoTest.php` — `UC-EMP-16`.
+- **Status: 🧪**
+
+## Trilha do tempo
+- 2026-10-21 · [CL] UC-EMP-16 (pesquisa depois da entrega na aba Vendas). `last_run` 2026-10-13 → 2026-10-21 por conferência, não por run novo: o `Index.tsx` só ganhou o bloco da pesquisa dentro da aba Vendas; UC-EMP-01..14 seguem batendo com a tela.
