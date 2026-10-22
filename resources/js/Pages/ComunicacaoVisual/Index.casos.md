@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a fórmula do m² e o isolamento por business são o que não pode mudar — a tela vai ganhar OS, materiais e apontamento por cima disso, e nenhum deles pode afrouxar o cálculo nem o escopo.
 owner: wagner
-last_run: "2026-10-13"
-last_run_ci: "2026-10-13 (PR contratos de tela, modulos-faltantes thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (e um div sem classe em volta do PageHeader); nenhum UC afirma ancora, nenhum calculo tocado. ---- REGISTRO ANTERIOR: last_run 2026-09-25. 2026-09-25 — GH run 36124963011 (verticais-pest, workflow_dispatch, MySQL, main 2e3f8adb4): MigrationsTest, Tier0GuardTest e MultiTenantTest PASS (lane vermelha só por Cms). CT 100 MySQL (worktree isolado em origin/main 1743f005a, sem run id): 10 arquivos, 58 passed / 10 failed (200 assertions) — ver §Revalidação 2026-09-25. Nenhum UC no manifesto G-7, logo nenhum ✅."
+last_run: "2026-10-21"
+last_run_ci: "2026-10-21 — CT 100 MySQL, cópia isolada do branch a8ada7ef4: OrcamentoSalvarReabrirContratoTest 6 passed (39 assertions) + ViraOs/CustoPrevisto/CustoMaquina 16 passed; sem run id de CI. ---- 2026-10-13 (PR contratos de tela, modulos-faltantes thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (e um div sem classe em volta do PageHeader); nenhum UC afirma ancora, nenhum calculo tocado. ---- REGISTRO ANTERIOR: last_run 2026-09-25. 2026-09-25 — GH run 36124963011 (verticais-pest, workflow_dispatch, MySQL, main 2e3f8adb4): MigrationsTest, Tier0GuardTest e MultiTenantTest PASS (lane vermelha só por Cms). CT 100 MySQL (worktree isolado em origin/main 1743f005a, sem run id): 10 arquivos, 58 passed / 10 failed (200 assertions) — ver §Revalidação 2026-09-25. Nenhum UC no manifesto G-7, logo nenhum ✅."
 ---
 
 # Casos de Uso & Aceite — Hub + Calculadora de m² (`/comunicacao-visual`)
@@ -81,6 +81,13 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CVOS-05 | Outra empresa não aprova nem gera OS | must `[T0]` | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 | UC-CVOS-06 | Orçamento recusado não vira OS | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 | UC-CVOS-07 | Só quem pode criar orçamento aprova | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
+| UC-CVOS-08 | O orçamento aprovado reabre com o número da OS | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVSAL-01 | Salvar grava os valores do servidor, não os da tela | must `[V0]` | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVSAL-02 | Reabrir devolve as peças e os ajustes, e aparece na lista | must | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVSAL-03 | Regravar o reaberto mantém o número e troca as peças | must `[V0]` | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVSAL-04 | Orçamento que virou OS ou foi recusado não regrava | must | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVSAL-05 | Outra empresa não reabre, não lista nem regrava | must `[T0]` | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVSAL-06 | Sem permissão de criar não salva nem regrava | must | US-COMVIS-021 | `OrcamentoSalvarReabrirContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 
 > 🧪 **Nenhum status aqui é afirmação de verde.** O PR que criou este arquivo não executou teste algum (CT 100/CI —
 > [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)). "Vermelho
@@ -535,6 +542,74 @@ permissão, a OS nasce (201).
 
 Status: 🧪
 
+## UC-CVOS-08 · O orçamento aprovado reabre com o número da OS · `must`
+
+**Dado** o orçamento enviado, ainda sem OS (o reaberto vem com `os` nulo) **Quando** ele é aprovado
+**Então** reaberto ele vem `aprovado` com o id e o número da OS que gerou, a lista dos salvos mostra o
+mesmo número, e a outra empresa não reabre o orçamento.
+
+Na tela: o rodapé troca "Salvar" por "Aprovar e criar OS" quando o orçamento está gravado igual à
+tela; a confirmação é um segundo clique na mesma linha. Mudança não salva não aprova.
+
+Status: 🧪
+
+## Salvar e reabrir o orçamento (US-COMVIS-021)
+
+> Âncora: SPEC US-COMVIS-021 e o UC-FLX-01 — aprovar precisa de um orçamento salvo. A tela grava com
+> `POST /comunicacao-visual/api/orcamentos`, lista os salvos com `GET …/api/orcamentos` (e, na rota do
+> hub, a prop deferida `recentes`), reabre por `/comunicacao-visual?orcamento={id}` e regrava o
+> reaberto com `PUT …/api/orcamentos/{id}`. O servidor recalcula tudo nas duas gravações.
+>
+> Execução: CT 100, MySQL, cópia isolada do branch `a8ada7ef4` (2026-10-21) — 6 passed (39 assertions)
+> junto com os irmãos ViraOs/CustoPrevisto (22 passed, 139 assertions). Mutação: tirar o
+> `business_id` explícito do `paraTela` derruba o UC-CVSAL-05. Sem entrada no manifesto G-7, logo 🧪.
+
+## UC-CVSAL-01 · Salvar grava os valores do servidor, não os da tela · `must` `[V0]`
+
+**Dado** Banner 3,000 × 1,500 × 1 a 60,00/m² e Adesivo 2,000 × 1,000 × 3 a 40,00/m², instalação 200,00,
+e um `total`/`subtotal` qualquer vindo do cliente **Quando** o orçamento é salvo **Então** ele nasce
+`rascunho`, número `ORC-AAAA-NNNNN`, na empresa da sessão, com total 710,00 e subtotal 510,00 —
+conferidos à mão e pelo `OrcamentoCalculator` — e os dois itens.
+
+Status: 🧪
+
+## UC-CVSAL-02 · Reabrir devolve as peças e os ajustes, e aparece na lista · `must`
+
+**Dado** o orçamento salvo **Quando** ele é reaberto **Então** volta com as mesmas peças (descrição,
+largura, altura, quantidade, preço por m²), com a instalação de 200,00 (que não tem campo na tela e não
+pode sumir ao regravar) e com o total 710,00; e está na lista dos salvos da empresa.
+
+Status: 🧪
+
+## UC-CVSAL-03 · Regravar o reaberto mantém o número e troca as peças · `must` `[V0]`
+
+**Dado** o orçamento salvo **Quando** ele é regravado com uma Placa 2,000 × 1,000 × 1 a 50,00/m² e a
+mesma instalação **Então** o número é o mesmo (um orçamento só com ele), o total passa a 300,00 —
+conferido à mão e pelo calculator — e o único item é a Placa.
+
+Status: 🧪
+
+## UC-CVSAL-04 · Orçamento que virou OS ou foi recusado não regrava · `must`
+
+**Dado** um orçamento aprovado (com OS) e um recusado **Quando** se tenta regravar qualquer um
+**Então** a resposta é 422 e total e itens ficam como estavam.
+
+Status: 🧪
+
+## UC-CVSAL-05 · Outra empresa não reabre, não lista nem regrava · `must` `[T0]`
+
+**Dado** o orçamento da empresa 98 **Quando** a 99 tenta reabrir, listar ou regravar **Então** reabrir
+devolve nada, a lista da 99 não o traz, regravar dá 404 e o total da 98 não muda.
+
+Status: 🧪
+
+## UC-CVSAL-06 · Sem permissão de criar não salva nem regrava · `must`
+
+**Dado** um usuário só com `comvis.orcamento.view` **Quando** ele tenta salvar ou regravar **Então** a
+resposta é 403 e nenhum orçamento é criado; listar continua permitido.
+
+Status: 🧪
+
 ---
 
 ## Backlog — prosa honesta, sem id (ainda não é UC)
@@ -542,9 +617,8 @@ Status: 🧪
 > Cada item aqui tem contrato em **uma fonte só**, ou não tem código. Vira UC quando ganhar
 > implementação **e** teste que o cite — nunca antes (G-2 / [proibicoes §5](../../../../memory/proibicoes.md) 2026-07-16).
 
-- `[BACKLOG]` **Salvar o orçamento pela tela e mandar o PDF no WhatsApp.** `POST /…/api/orcamentos`
-  existe, está testado e **nenhuma tela o chama** (`git grep "api/orcamentos" -- '*.tsx'` = 0). O
-  botão "salvar" não existe; a copy da tela já diz "chega em breve", honestamente. SDD §5.4.2.
+- `[BACKLOG]` **Mandar o PDF do orçamento salvo no WhatsApp.** Salvar e reabrir entraram em
+  2026-10-21 (UC-CVSAL-01..06); o PDF e o envio não existem. SDD §5.4.2.
 - `[BACKLOG]` **Numeração de orçamento com reserva atômica.** `gerarNumero()` lê `MAX(numero)` fora
   da transação; a corrida é barrada pelo `UNIQUE (business_id, numero)` (erro visível, não corrupção),
   mas não há teste do caso concorrente. SDD §5.4.3 / D-2.

@@ -3,7 +3,7 @@ id: resources-js-pages-comunicacao-visual-index-charter
 page: /comunicacao-visual
 component: resources/js/Pages/ComunicacaoVisual/Index.tsx
 bundle_source: prototipo-ui/cowork/Wagner/comunicacao-visual-page.jsx  # 2026-09-06 [C]: porte REVERSO do vivo no Cowork (shell: "Telas que existiam no vivo e faltavam no Cowork") — fonte de bundle, não design aprovado (§5 2026-08-28)
-related_us: [US-COMVIS-001]
+related_us: [US-COMVIS-001, US-COMVIS-020, US-COMVIS-021]
 related_us_nota: "2026-09-06 [C]: a tela É a calculadora por m² (US-COMVIS-001 · P0) — declarado ao tocar o charter (charter-us-lint no-new-lie)"
 related_prototype: "n/a — ferramenta bespoke (calculadora de m²) construida do Design System; arquetipo unico no repo (so 1 tela do tipo), sem padrao de tela dedicado"
 status: draft
@@ -24,6 +24,8 @@ Calculadora de orçamento por m² do vertical ComVis (US-COMVIS-001 · P0). É o
 1. **Peças do orçamento** — linhas com material (catálogo do business), descrição, largura × altura × qtd e R$/m²; área e subtotal por peça calculados na hora.
 2. **Ajustes gerais** — um campo manual de acabamento/instalação/entrega e um de desconto, ambos em R$.
 3. **Prévia × oficial** — o total da tela é prévia; o botão "Conferir no servidor" chama `POST /comunicacao-visual/api/calcular` e o valor do servidor é o oficial (UC-CV-01).
+3b. **Salvar e reabrir** (US-COMVIS-021) — "Salvar orçamento" só depois de conferir; a URL ganha `?orcamento={id}` e o cartão "Orçamentos salvos" reabre qualquer um. Reaberto e alterado, "Salvar alterações" regrava o mesmo número; aprovado/recusado/expirado não muda mais (UC-CVSAL-01..06).
+3c. **Aprovar e criar OS** (US-COMVIS-020 · UC-FLX-01) — orçamento gravado e igual à tela troca "Salvar" por "Aprovar e criar OS"; o segundo clique confirma. A OS sai com o total gravado; o reaberto mostra o número dela (UC-CVOS-08).
 4. **"Em breve nesta tela"** — 3 cartões honestos (Ordens de serviço · Materiais · Apontamentos), sem ação.
 
 Contrato comportamental: [`Index.casos.md`](Index.casos.md).
@@ -32,8 +34,8 @@ Contrato comportamental: [`Index.casos.md`](Index.casos.md).
 
 Tela Inertia **no ar** (`Index.tsx`), servida pela rota `comunicacao-visual.index`. Não é stub.
 
-- ⚠️ A rota hoje entrega **só `bizName`**: `materiais` e `podeCriar` nunca chegam, então o seletor de material fica em "Sem catálogo" mesmo com catálogo semeado — UC-CV-07 (vermelho esperado). O conserto é no backend da rota, fora deste arquivo.
-- Salvar orçamento e enviar PDF ainda não existem na UI (a API `POST …/api/orcamentos` existe).
+- A rota entrega `bizName`, `materiais`, `podeCriar`, `orcamento` (reaberto, eager) e `recentes` (deferido). Até 2026-09-23 entregava só `bizName`.
+- Salvar e reabrir existem desde 2026-10-21. Enviar PDF no WhatsApp ainda não.
 
 ## Próximo (não está na tela — não assuma que está)
 

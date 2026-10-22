@@ -22,7 +22,7 @@ use Tests\Support\WithSeededTenant;
  *
  * Âncora: memory/requisitos/ComunicacaoVisual/SPEC.md US-COMVIS-020 (aceite) e o UC-FLX-01 do
  * catálogo de fluxos ("Aprovado: cria a OS com itens, medidas e arquivos do orçamento").
- * Contrato: resources/js/Pages/ComunicacaoVisual/Index.casos.md UC-CVOS-01..07.
+ * Contrato: resources/js/Pages/ComunicacaoVisual/Index.casos.md UC-CVOS-01..08.
  *
  * Arranjo (tenant 98 contra 99, ADR 0358), conta à mão:
  *   Banner  3,000 × 1,500 × 1 = 4,500 m² × 60,00 = 270,00
@@ -164,4 +164,18 @@ it('UC-CVOS-07 · só quem pode criar orçamento aprova', function () {
     $resp = $aprovar(['comvis.orcamento.create']);
     expect($resp->getStatusCode())->toBe(201)
         ->and(DB::table('comvis_os')->where('orcamento_id', $this->orc->id)->count())->toBe(1);
+});
+
+it('UC-CVOS-08 · o orçamento aprovado reabre com o número da OS, e a lista também o mostra', function () {
+    expect(OrcamentoController::paraTela($this->biz->id, $this->orc->id)['os'])->toBeNull();
+
+    [$os] = app(OrcamentoViraOs::class)->aprovar($this->biz->id, $this->orc->id);
+
+    $tela = OrcamentoController::paraTela($this->biz->id, $this->orc->id);
+    $linha = collect(OrcamentoController::recentes($this->biz->id))->firstWhere('id', $this->orc->id);
+    expect($tela['status'])->toBe('aprovado')
+        ->and($tela['os'])->toBe(['id' => $os->id, 'numero' => $os->numero])
+        ->and($linha['os'])->toBe($os->numero)
+        // A outra empresa não reabre o orçamento, logo não vê a OS dele.
+        ->and(OrcamentoController::paraTela($this->outra->id, $this->orc->id))->toBeNull();
 });

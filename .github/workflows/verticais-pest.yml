@@ -607,6 +607,7 @@ jobs:
             Modules/ComunicacaoVisual/Tests/Feature/AgendaTelaContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAvisoClienteContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoViraOsContratoTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/OrcamentoSalvarReabrirContratoTest.php \
             Modules/Repair/Tests/Feature/DeviceModelsInertiaSmokeTest.php \
             Modules/Repair/Tests/Feature/JobSheetShowContratoTest.php \
             Modules/Repair/Tests/Feature/ProducaoOficinaRefactorTest.php \

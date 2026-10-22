@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1001 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1002 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -24,7 +24,7 @@
 | [`Compras`](#compras) | 23 | 3 | 0 | 0 | 19 |
 | [`Crm`](#crm) | 23 | 0 | 0 | 0 | 23 |
 | [`Fiscal`](#fiscal) | 22 | 0 | 0 | 0 | 22 |
-| [`ComunicacaoVisual`](#comunicacaovisual) | 20 | 0 | 0 | 0 | 20 |
+| [`ComunicacaoVisual`](#comunicacaovisual) | 21 | 0 | 0 | 0 | 21 |
 | [`Connector`](#connector) | 20 | 0 | 0 | 0 | 19 |
 | [`Forja`](#forja) | 19 | 0 | 1 | 0 | 7 |
 | [`Mwart`](#mwart) | 19 | 0 | 0 | 0 | 19 |
@@ -822,6 +822,7 @@
 ### todo
 
 - **US-COMVIS-020** — Orçamento aprovado vira OS sem redigitar (UC-FLX-01) — **P0** _(`p0` · @wagner)_
+- **US-COMVIS-021** — Salvar e reabrir o orçamento na calculadora de m² — **P0** _(`p0` · @wagner)_
 - **US-COMVIS-019** — Item do orçamento guarda o custo do material no dia (UC-FLX-33) — **P1** _(`p1` · @wagner)_
 - **US-COMVIS-001** — Cálculo automático por m² (lona, vinil, banner, fachada) — **P0**
 - **US-COMVIS-002** — Cadastro de material com preço por gramatura — **P0**
