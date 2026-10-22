@@ -19,4 +19,13 @@ interface PropostasDePreco
      * @return array{aprovacao: ?string, aviso: ?string, itens: list<array<string, mixed>>}
      */
     public function daCompra(int $businessId, int $transactionId): array;
+
+    /**
+     * Propostas ainda pendentes dos produtos, agrupadas pelo id do produto, para a consulta de
+     * produto (UC-PIDX-28). Só lê; produto sem proposta pendente não aparece no resultado.
+     *
+     * @param  list<int>  $productIds
+     * @return array<int, list<array{id: int, variacao: ?string, preco_atual: float, preco_proposto: float, preco_mudou: bool, compra_id: int, compra_ref: ?string, compra_data: ?string}>>
+     */
+    public function pendentesDosProdutos(int $businessId, array $productIds): array;
 }

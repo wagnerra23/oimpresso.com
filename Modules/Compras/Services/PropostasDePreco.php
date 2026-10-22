@@ -79,6 +79,47 @@ final class PropostasDePreco implements Contrato
         return ['aprovacao' => $aprovacao, 'aviso' => $aviso, 'itens' => $itens];
     }
 
+    /**
+     * Propostas pendentes por produto, para a consulta de produto (UC-PIDX-28). Mesmo critério de
+     * empresa do `daCompra`: proposta, produto e compra da empresa. Só lê; aprovar e recusar
+     * continuam no detalhe da compra.
+     */
+    public function pendentesDosProdutos(int $businessId, array $productIds): array
+    {
+        if ($productIds === []) {
+            return [];
+        }
+
+        $porProduto = [];
+        DB::table('compras_propostas_preco as cp')
+            ->join('variations as v', 'v.id', '=', 'cp.variation_id')
+            ->join('products as p', 'p.id', '=', 'v.product_id')
+            ->leftJoin('transactions as t', fn ($j) => $j->on('t.id', '=', 'cp.transaction_id')->where('t.business_id', $businessId))
+            ->where('cp.business_id', $businessId)
+            ->where('p.business_id', $businessId)
+            ->where('cp.status', 'pendente')
+            ->whereIn('p.id', $productIds)
+            ->orderBy('cp.id')
+            ->get([
+                'cp.id', 'cp.transaction_id', 'cp.preco_antes', 'cp.preco_proposto', 'p.id as product_id', 'p.type as tipo',
+                'v.name as variacao', 'v.sell_price_inc_tax as preco_atual', 't.ref_no', 't.transaction_date',
+            ])
+            ->each(function ($r) use (&$porProduto) {
+                $porProduto[(int) $r->product_id][] = [
+                    'id' => (int) $r->id,
+                    'variacao' => $r->tipo === 'variable' ? (string) $r->variacao : null,
+                    'preco_atual' => (float) $r->preco_atual,
+                    'preco_proposto' => (float) $r->preco_proposto,
+                    'preco_mudou' => abs((float) $r->preco_atual - (float) $r->preco_antes) >= 0.0001,
+                    'compra_id' => (int) $r->transaction_id,
+                    'compra_ref' => $r->ref_no === null ? null : (string) $r->ref_no,
+                    'compra_data' => $r->transaction_date === null ? null : substr((string) $r->transaction_date, 0, 10),
+                ];
+            });
+
+        return $porProduto;
+    }
+
     /** @return array{variation_id:int, antes:array<string,string>, depois:array<string,string>} */
     public function aprovar(int $businessId, int $propostaId, int $userId): array
     {
