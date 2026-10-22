@@ -71,6 +71,9 @@ const FLX_REFS = [
     'IntercorrenciaController' => \Modules\Ponto\Http\Controllers\IntercorrenciaController::class,
     'AprovacaoController' => \Modules\Ponto\Http\Controllers\AprovacaoController::class,
     'ApuracaoService' => \Modules\Ponto\Services\ApuracaoService::class,
+    'AgendaInstalacao' => \Modules\ComunicacaoVisual\Services\AgendaInstalacao::class,
+    'AplicarModelo' => \App\Domain\Fsm\Modelos\AplicarModelo::class,
+    'ExecuteStageActionService' => \App\Domain\Fsm\Services\ExecuteStageActionService::class,
 ];
 
 /** Seeder que grava cada processo `erp` do protótipo. */
@@ -257,12 +260,15 @@ it('o que a cobertura afirma sobre o código continua verdadeiro', function () {
 
     // Venda, NF-e, NFS-e e cobrança.
     $nfseService = (string) file_get_contents(base_path('Modules/NFSe/Services/NfseEmissaoService.php'));
-    expect(flxChamadores('RetentarContingenciaJob::dispatch'))->toBe([])
+    // US-NFE-070 · UC-FLX-32: o agendamento nfe:retentar-contingencia passou a ser o chamador.
+    expect(flxChamadores('RetentarContingenciaJob::dispatch'))->toBe([flxCaminho('Modules/NfeBrasil/Console/Commands/RetentarContingenciaCommand.php')])
         ->and(flxChamadores('new RetentarContingenciaJob'))->toBe([])
         ->and(flxChamadores('TransactionDocument::create'))->toBe([])
         ->and(flxChamadores('new TransactionDocument'))->toBe([])
         ->and(collect(flxChamadores('moverStage('))->reject(fn ($p) => str_ends_with($p, 'DealPipelineService.php'))->all())->toBe([])
-        ->and(collect(flxChamadores('iss_retido'))->filter(fn ($p) => str_contains($p, 'Modules/Financeiro/'))->all())->toBe([])
+        // US-FIN-072 · UC-FLX-30: o Financeiro passou a lançar a retenção da NFS-e como baixa (desligado por padrão).
+        ->and(class_exists(\Modules\Financeiro\Services\RetencaoNfseTituloService::class))->toBeTrue()
+        ->and(collect(flxChamadores('iss_retido'))->filter(fn ($p) => str_contains($p, 'Modules/Financeiro/'))->isNotEmpty())->toBeTrue()
         ->and(collect(flxChamadores('renegoci'))->filter(fn ($p) => str_contains($p, 'Modules/Financeiro/'))->all())->toBe([])
         // NfseEmissaoService::cancelar chama o provedor como instrução solta: a resposta não é usada.
         ->and(str_contains($nfseService, "\n        \$this->provider->cancelar(\$emissao->numero, \$motivo);\n"))->toBeTrue()
@@ -275,7 +281,11 @@ it('o que a cobertura afirma sobre o código continua verdadeiro', function () {
     // contratos do Modules/Producao (ProducaoCriarOsDaVenda, SituacaoDaOrdem, ConcluirItem).
     expect(str_contains($rotas, 'PurchaseXmlController'))->toBeFalse()
         ->and(collect(flxChamadores("'past_due'"))->filter(fn ($p) => str_contains($p, 'Modules/RecurringBilling/') && preg_match('/status[\'"]?\s*=>\s*[\'"]past_due/', (string) file_get_contents($p)))->all())->toBe([])
-        ->and(collect(flxChamadores('cv_instalacoes'))->filter(fn ($p) => str_contains($p, '/Http/'))->all())->toBe([]);
+        // "o status de reagendamento de cv_instalacoes não é gravado por nenhum código" (Confirmar nova
+        // data = nao): só a Entity cita o valor. A agenda (UC-FLX-21) grava em cv_instalacoes, mas nunca esse status.
+        ->and(collect(flxChamadores("'aguardando_reagendamento'"))->reject(fn ($p) => str_contains($p, '/Entities/'))->all())->toBe([])
+        // controle positivo: a sonda acha o valor onde ele mora (senão o [] acima seria vácuo).
+        ->and(collect(flxChamadores("'aguardando_reagendamento'"))->filter(fn ($p) => str_contains($p, '/Entities/Instalacao.php'))->isNotEmpty())->toBeTrue();
 });
 
 it('ação em etapa terminal é recusada pelo motor, como a cobertura diz', function () {

@@ -43,16 +43,19 @@ function ordemNova(int $biz, int $stageId, int $linha): Ordem
         'transaction_sell_line_id' => $linha, 'product_id' => 1, 'quantidade' => '2.0000', 'current_stage_id' => $stageId]);
 }
 
-it('monta os 7 estados e as 9 transições do protótipo, e aplicar de novo não duplica', function () {
+it('monta os 7 estados e as 9 transições do protótipo (+ o Liberar automático pelo sinal, US-PCP-025, e Aguardando material, US-PCP-032), e aplicar de novo não duplica', function () {
     $svc = app(ProcessoDaOrdem::class);
     $p1 = $svc->garantir($this->b98);
     $p2 = $svc->garantir($this->b98);
 
     expect($p2->id)->toBe($p1->id);
     $estados = SaleProcessStage::where('process_id', $p1->id)->orderBy('sort_order')->pluck('name')->all();
-    expect($estados)->toBe(['Aguardando liberação', 'Na fila', 'Em execução', 'Pausada', 'Retrabalho', 'Concluída', 'Cancelada']);
+    // Aguardando material (US-PCP-032): estado aprovado por [W] em 2026-10-21 (D3), ainda fora do protótipo
+    // fluxos-processos.jsx — pedido ao Cowork registrado no SPEC. Entra com 3 ações: aguardar, material
+    // disponível e cancelar item.
+    expect($estados)->toBe(['Aguardando liberação', 'Aguardando material', 'Na fila', 'Em execução', 'Pausada', 'Retrabalho', 'Concluída', 'Cancelada']);
     $acoes = SaleStageAction::whereIn('stage_id', SaleProcessStage::where('process_id', $p1->id)->pluck('id'))->count();
-    expect($acoes)->toBe(9);
+    expect($acoes)->toBe(13);
     expect(SaleProcessStage::where('process_id', $p1->id)->where('key', 'cancelada')->value('is_cancelled'))->toBeTruthy();
 });
 
@@ -124,7 +127,7 @@ it('as ações do apontamento não pedem papel no motor; as de tela pedem', func
     $p = app(ProcessoDaOrdem::class)->garantir($this->b98);
     $acoes = SaleStageAction::with('roles')->whereIn('stage_id', SaleProcessStage::where('process_id', $p->id)->pluck('id'))->get()->keyBy('key');
 
-    foreach (['iniciar_etapa', 'pausar', 'retomar', 'concluir_etapa', 'concluir_item'] as $k) {
+    foreach (['iniciar_etapa', 'pausar', 'retomar', 'concluir_etapa', 'concluir_item', 'liberar_pelo_sinal'] as $k) {
         expect($acoes[$k]->roles)->toHaveCount(0);
         expect((bool) $acoes[$k]->is_critical)->toBeFalse();
     }

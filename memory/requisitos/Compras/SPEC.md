@@ -520,11 +520,11 @@ Como usuário de teclado/leitor de tela, quero o drawer acessível (WCAG 2.1 AA)
 
 Como quem orça e produz, quero saber quanto um insumo custava num dia qualquer, para que o orçamento e a OS guardem o custo daquele dia e uma compra nova não reescreva o passado. É a base dos casos UC-FLX-33 a 37 da tela de fluxos.
 
-**Implementado em:** `Modules/Compras/Services/CustoDoInsumoService.php` · `Modules/Compras/Database/Migrations/2026_10_20_000001_create_compras_insumo_metodo_custo_table.php` · `Modules/Compras/Entities/InsumoMetodoCusto.php` · `Modules/Compras/Tests/Feature/CustoDoInsumoServiceTest.php`
+**Implementado em:** `Modules/Compras/Services/CustoDoInsumoService.php` · `Modules/Compras/Database/Migrations/2026_10_20_000001_create_compras_insumo_metodo_custo_table.php` · `Modules/Compras/Entities/InsumoMetodoCusto.php` · `Modules/Compras/Tests/Feature/CustoDoInsumoServiceTest.php` · `Modules/Compras/Http/Controllers/InsumoMetodoCustoController.php` · `Modules/Compras/Tests/Feature/InsumoMetodoCustoEndpointTest.php` · `resources/js/Pages/Manufacturing/Insumos.tsx` · `Modules/Compras/Services/MetodoCustoDoProduto.php` · `Modules/Compras/Resources/views/partials/metodo_custo_produto.blade.php` · `Modules/Compras/Tests/Feature/MetodoCustoNoCadastroDoProdutoTest.php`
 
 - Fonte: `purchase_lines` + `transactions.transaction_date`. O histórico já existia; `variations.dpp_inc_tax` guarda só o último preço.
 - Método: o da regra "Atualizar o custo dos insumos" da empresa (`RegrasCompra`, `metodo`), padrão `medio`.
-- Regra `por_insumo`: cada insumo diz o seu método na tabela-ponte `compras_insumo_metodo_custo` (`variations` é core, não ganha coluna). A tela para editar o método do insumo é follow-up.
+- Regra `por_insumo`: cada insumo diz o seu método na tabela-ponte `compras_insumo_metodo_custo` (`variations` é core, não ganha coluna). O método se escolhe na gaveta do insumo em `/manufacturing/insumos` (seção "Método de custo"), gravado por `PUT /compras/insumos/{variation}/metodo-custo` com `purchase.update`; variação de outra empresa responde 404. No cadastro do produto (formulário Blade de novo e de editar) o campo "Método de custo" vale para todas as variações, gravado pelo gancho `after_product_saved` do módulo; só aparece com o módulo Compras instalado (`system.compras_version`).
 - Só leitura: o serviço não grava nada.
 
 **Acceptance:**
@@ -535,7 +535,8 @@ Como quem orça e produz, quero saber quanto um insumo custava num dia qualquer,
 - [x] Tier 0: só compras da empresa pedida (teste com a mesma variação em outra empresa)
 - [x] Método `por_insumo`: usa o método gravado no insumo (`medio` ou `ultimo`); insumo sem método → custo nulo com o motivo
 - [x] Tier 0: o método que outra empresa deu ao mesmo insumo não vale
-- [ ] Tela para definir o método do insumo (drawer Insumos)
+- [x] Tela para definir o método do insumo (drawer Insumos)
+- [x] Campo no cadastro do produto, para item que não é ingrediente de receita (matéria-prima ou revenda)
 - [ ] Consumidores: orçamento (UC-FLX-33) e OS (UC-FLX-37) passam a usar o serviço
 
 ### US-COM-025 · Rastreio do rolo: em que OS cada fração da mídia foi usada (UC-FLX-18) — **P2**
@@ -544,7 +545,9 @@ Como quem orça e produz, quero saber quanto um insumo custava num dia qualquer,
 
 Como quem compra e controla a mídia (bobina de lona, vinil, papel em rolo), quero abrir um rolo recebido e ver em que OS cada fração dele foi usada e quanto ainda sobra, para saber o custo de cada trabalho e de onde veio o defeito de um lote.
 
-**Implementado em:** _pendente_
+**Implementado em:** `Modules/Producao/Services/RastreioDoRolo.php` · `Modules/Producao/Http/Controllers/LoteRastreioController.php` · `Modules/Producao/Services/ConsumoMaterialService.php`
+
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoRoloRastreioContratoTest.php` (lane `verticais-pest.yml`).
 
 **Origem:** UC-FLX-18 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:71`, etapa Recebido, fonte Mubisys, porte pequena, sem US até aqui). O que já existe (medido 2026-10-20):
 
@@ -555,11 +558,86 @@ Como quem compra e controla a mídia (bobina de lona, vinil, papel em rolo), que
 O que falta, e é o escopo desta US: a leitura "rolo → OS" (lote, frações por OS, saldo do rolo) e a escolha do rolo na baixa. Fora daqui: tabela `product_batches` própria, FEFO e picker de lote no PDV (US-INV-006 a US-INV-010, Estoque, adiadas por P7).
 
 **Aceite:**
-- [ ] Dado um lote (`purchase_line_id`) recebido, a consulta lista cada OS que usou fração dele: número da OS, etapa, quantidade, data e quem apontou, mais o saldo do rolo (recebido − devolvido − Σ frações).
-- [ ] A soma das frações listadas é igual à quantidade do lote em `transaction_sell_lines_purchase_lines` com `production_purchase`; dois caminhos no teste.
-- [ ] A baixa da OS aceita o lote escolhido (`lot_no_line_id`); sem escolha segue o método da empresa, como hoje; lote de outro produto ou sem saldo recusa.
-- [ ] Tier 0: lote de outra empresa responde 404 e não aparece na lista (teste com a mesma variação em duas empresas, `business_id` em toda consulta).
-- [ ] Só quem tem permissão de ver compras abre o rastreio; sem a permissão, 403.
+- [x] Dado um lote (`purchase_line_id`) recebido, `GET /producao/lotes/{id}/rastreio` lista cada OS que usou fração dele: OS, venda, etapa, quantidade, data e quem apontou, mais o saldo do rolo (recebido − devolvido − vendido − ajustado − usado em produção, as colunas que o `mapPurchaseSell` confere) (UC-RLT-04).
+- [x] A soma das frações listadas é igual à quantidade do lote em `transaction_sell_lines_purchase_lines` das `production_sell`; dois caminhos no teste (UC-RLT-04).
+- [x] A baixa da OS aceita o lote escolhido (`lote_id` → `lot_no_line_id`); sem escolha segue o método da empresa, como hoje; lote de outro material, de outro local, de outra empresa, de compra não recebida ou sem saldo para a quantidade inteira recusa e nada baixa (UC-PCMAT-08).
+- [x] Tier 0: lote de outra empresa responde 404 (teste com lote da empresa 99 do mesmo formato; `business_id` em toda consulta) (UC-RLT-05).
+- [x] Só quem tem `purchase.view` (e o módulo Produção no pacote) abre o rastreio; sem a permissão, 403 (UC-RLT-05).
+- [ ] Tela: o rastreio dentro do relatório de Lotes (hoje só o JSON). Ver o `[BACKLOG]` de `Relatorios/Lotes/Index.casos.md`.
+- [ ] Separar no relatório de Lotes a fração usada em OS da venda (a `consultaLotes` soma a baixa da OS em "vendido").
+
+### US-COM-026 · Compra recebida aplica a regra de custo e preço (UC-FLX-17)
+
+> owner: wagner · priority: p1 · estimate: 3h · status: doing · type: story
+
+Como dono que configurou a regra "Atualizar o custo dos insumos" na aba Fluxos, quero que a compra, ao ficar recebida, grave o custo do insumo pelo método da regra e trate o preço de venda como a regra manda, para que o custo não seja o último preço digitado e o preço não mude sem eu escolher.
+
+**Implementado em:** `Modules/Compras/Services/AplicarCustoDoRecebimento.php` · `Modules/Compras/Tests/Feature/AplicarCustoDoRecebimentoTest.php`
+
+- Origem: UC-FLX-17 da tela de fluxos (etapa Recebido). Até aqui o recebimento não lia `RegrasCompra`: com `business.enable_editing_product_from_purchase` ligado, `ProductUtil::updateProductFromPurchase` gravava o último preço em `variations.default_purchase_price`/`dpp_inc_tax`, inclusive em compra pendente.
+- Só vale para a empresa que gravou a regra de custo (`fsm_modelos_empresa.regras_compra` com a chave `insumo.custo`), ligada e disparando em Recebido. Empresa que nunca gravou a regra: comportamento de antes, sem nenhuma mudança.
+- Custo: `CustoDoInsumoService::naData` (US-COM-024) na data da compra, pelo `metodo` da regra. Custo nulo (sem compra recebida ou método sem resposta): a variação não muda.
+- Preço (`preco`): `so_custo` não muda o preço; `aplicar` recalcula o preço mantendo a margem atual da variação; `propor` grava uma proposta em `compras_propostas_preco` e não muda o preço.
+- Fora daqui (follow-up): a fila de aprovação das propostas (`aprovacao`), `regraEm`, a etapa Conferido e a propagação para os produtos fabricados.
+
+**Acceptance:**
+- [x] Recebimento com a regra grava o custo pelo método da regra, em `default_purchase_price` e `dpp_inc_tax`
+- [x] `so_custo`: preço igual, margem recalculada; `aplicar`: preço novo com a margem de antes; `propor`: proposta pendente com custo e preço antes/depois, preço igual
+- [x] Com a regra, compra pendente não muda custo nem preço (a edição de produto pela compra do core fica desligada)
+- [x] Empresa sem a regra gravada: o core segue como antes (teste do último preço)
+- [x] Tier 0: só variações da empresa da compra; a outra empresa não muda
+- [ ] Fila de aprovação das propostas — a do recebimento é a US-COM-028; Fabricação e Pendências seguem abertas
+
+### US-COM-027 · Estoque mínimo vira requisição de compra (UC-FLX-19) — **P2**
+
+> owner: — · priority: p2 · estimate: 3h · status: done · type: story
+> blocked_by: —
+
+Como quem compra, quero que o item que caiu abaixo do mínimo no local apareça sozinho numa requisição de compra, com a quantidade que falta, para não depender de alguém lembrar de olhar o relatório de alerta.
+
+**Implementado em:** `Modules/Compras/Services/RequisicaoEstoqueMinimoService.php` — job diário (`RequisicaoEstoqueMinimoJob` + `compras:requisicao-estoque-minimo`), ligado na tela Fluxos (`app/Http/Controllers/FluxosController.php` · `requisicaoEstoqueMinimo`, interface `app/Contracts/Compras/RequisicaoEstoqueMinimo.php`); fornecedor visível em `resources/js/Pages/PurchaseRequisition/Index.tsx`.
+
+**Testado em:** `Modules/Compras/Tests/Feature/RequisicaoEstoqueMinimoContratoTest.php` (@covers-us US-COM-027 · UC-REQMIN-01..08). A coluna Fornecedor (UC-REQC-06) e o interruptor em Fluxos (UC-FLXT-24) são provados nos testes de contrato das respectivas telas.
+
+**Origem:** UC-FLX-19 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:72`, "Abaixo do mínimo → Cria a requisição com o fornecedor da última compra", fonte Mubisys, planejado). O que já existia (medido 2026-10-20):
+
+- O mínimo é `products.alert_quantity` (por produto, não por local) — não há campo de mínimo no Compras.
+- A requisição é do núcleo: `transactions.type = purchase_requisition` + `purchase_lines`, criada à mão em `app/Http/Controllers/PurchaseRequisitionController.php:314` (status `ordered`; `partial`/`completed` quando vira pedido).
+- A tela de criar já lista os itens no alerta (`getRequisitionProducts`, `:481`, `qty_available <= alert_quantity`), mas só sob demanda — nada gerava a requisição sozinho.
+
+**Aceite:**
+- [x] Job diário por business: variação com saldo no local ABAIXO de `alert_quantity` entra numa requisição do núcleo daquele local, com quantidade = teto(mínimo − saldo). _(UC-REQMIN-01)_
+- [x] Uma requisição automática aberta por local: rodar de novo acrescenta só o item novo; item já numa requisição aberta (`ordered`/`partial`) do local, automática ou manual, não é pedido de novo. _(UC-REQMIN-02/03)_
+- [x] Desligado por padrão (`business.common_settings['compras_requisicao_estoque_minimo']`). _(UC-REQMIN-04)_
+- [x] Não cria pedido de compra e não move estoque. _(UC-REQMIN-05)_
+- [x] Tier 0: job recebe `$businessId`; produto e local de outro business nunca entram. _(UC-REQMIN-06, 98 × 99)_
+- [x] A requisição sai com o fornecedor e o preço da última compra recebida do item: o fornecedor vai em `transactions.contact_id`, então há uma requisição automática por local **e fornecedor**; item nunca comprado fica numa sem fornecedor, com preço 0. A lista de requisições ganha a coluna Fornecedor. _(UC-REQMIN-07/08 · UC-REQC-06)_
+- [x] Tela para ligar/desligar a regra: card Compra da aba Fluxos da empresa (`/fluxos?aba=empresa`), com `fluxos.configurar` — a permissão das outras regras da empresa nessa tela, não uma de Compras. _(UC-FLXT-24)_
+
+### US-COM-028 · Aprovar ou recusar o preço proposto no detalhe da compra (UC-FLX-17) — **P1**
+
+> owner: wagner · priority: p1 · estimate: 3h · status: doing · type: story
+
+Como dono que deixou a regra de custo em "Propõe novo preço", quero ver no detalhe da compra recebida os preços propostos e aprovar ou recusar cada um, para que a proposta não fique esquecida numa tabela que ninguém lê.
+
+**Implementado em:** _pendente_ — código no PR #9714 (serviço `PropostasDePreco`, `PropostasPrecoController`, seção `PrecosPropostos` no detalhe da compra e o `PropostasDePrecoContratoTest`), ainda sem veredito da lane `compras-pest`. A âncora vira path quando o teste ficar verde e a US fechar (ADR 0273 + doneness-lint ADR 0302: `doing` com path conflita).
+
+**Testado em:** `Modules/Compras/Tests/Feature/PropostasDePrecoContratoTest.php`
+
+- Origem: a US-COM-026 grava as propostas em `compras_propostas_preco`, sem lista nem decisão. A regra tem o parâmetro `aprovacao` (`recebimento` padrão · `fabricacao` · `pendencias`); esta US faz o `recebimento`.
+- Aprovar: preço com imposto = `preco_proposto`; sem imposto = com imposto × 100 / (100 + imposto do produto); margem = (preço sem imposto − custo sem imposto atual) / custo × 100. Dá o mesmo resultado do `aplicar` no recebimento. Recusar não mexe na variação.
+- Só aprova se o preço da variação ainda é o `preco_antes` da proposta; se mudou depois, a tela mostra e só deixa recusar.
+- Exige `product.update`. Tier 0: proposta e variação filtradas pela empresa do usuário; proposta de outra empresa = 404.
+- Enquanto `aprovacao` for `fabricacao` ou `pendencias`, a fila aparece aqui com aviso de que o lugar configurado ainda não existe.
+- Regra em Conferido: a compra não tem essa etapa e o recebimento não aplica nada; o detalhe da compra avisa. Tratar a etapa é outro PR.
+
+**Aceite:**
+- [x] Detalhe da compra lista as propostas com custo e preço antes/depois e o status
+- [x] Aprovar grava o preço proposto e devolve a margem de antes (dois caminhos no teste)
+- [x] Recusar mantém o preço; preço mudado depois da proposta bloqueia a aprovação
+- [x] Sem `product.update` = 403; outra empresa = 404
+- [x] Aviso na tela quando a regra está em Conferido
+- [ ] Fila na Fabricação (`aprovacao = fabricacao`) e nas Pendências da Visão geral
 
 ### 9.1 Seguradas (feature-wish ADR 0105 — NÃO no backlog ativo)
 

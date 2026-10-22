@@ -4,12 +4,18 @@ namespace Modules\Producao\Providers;
 
 use App\Domain\Fsm\Models\SaleStageHistory;
 use App\Transaction;
+use App\TransactionPayment;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Modules\Producao\Console\FecharTurnoCommand;
 use Modules\Producao\Jobs\CriarOsDaVendaJob;
 use Modules\Producao\Services\CriarOsDaVenda;
+use Modules\Producao\Entities\Ordem;
 use Modules\Producao\Services\OsDaVenda;
+use Modules\Producao\Services\ReservaDeInsumoDaOs;
+use Modules\Producao\Services\SituacaoDaOrdem;
 
 class ProducaoServiceProvider extends ServiceProvider
 {
@@ -42,6 +48,35 @@ class ProducaoServiceProvider extends ServiceProvider
                 app(OsDaVenda::class)->guardar((int) $tx->business_id, (int) $tx->id, $tx->current_stage_id !== null ? (int) $tx->current_stage_id : null);
             }
         });
+
+        // US-PCP-031 · UC-FLX-14: a reserva do insumo da OS sob encomenda acaba quando a OS acaba (o que
+        // sobrou é liberado) ou quando a venda é cancelada. Dentro da transação do motor, no `updated`.
+        Ordem::updated(function (Ordem $o) {
+            if ($o->wasChanged('current_stage_id') && $o->current_stage_id !== null
+                && in_array(DB::table('sale_process_stages')->where('id', $o->current_stage_id)->value('key'), ['concluida', 'cancelada'], true)) {
+                app(ReservaDeInsumoDaOs::class)->liberar((int) $o->business_id, (int) $o->id);
+            }
+        });
+        Transaction::updated(function (Transaction $tx) {
+            if ($tx->type === 'sell' && $tx->wasChanged('current_stage_id') && $tx->current_stage_id !== null
+                && (bool) DB::table('sale_process_stages')->where('id', $tx->current_stage_id)->value('is_cancelled')) {
+                app(ReservaDeInsumoDaOs::class)->liberarDaVenda((int) $tx->business_id, (int) $tx->id);
+            }
+        });
+
+        // US-PCP-025 (UC-FLX-28): pagamento gravado na venda — baixa manual, PDV ou retorno do banco que
+        // cria o pagamento — tenta liberar as OS dessa venda pelo sinal. Usa a empresa do PRÓPRIO
+        // pagamento (Tier 0). Falha aqui nunca derruba o pagamento: só fica no log.
+        TransactionPayment::saved(function (TransactionPayment $tp) {
+            if ($tp->transaction_id === null || $tp->business_id === null || (int) $tp->is_return === 1) {
+                return;
+            }
+            try {
+                app(SituacaoDaOrdem::class)->liberarPeloSinalDaVenda((int) $tp->business_id, (int) $tp->transaction_id);
+            } catch (\Throwable $e) {
+                Log::warning('producao.sinal: falha ao liberar OS pelo pagamento', ['business_id' => $tp->business_id, 'transaction_id' => $tp->transaction_id, 'erro' => $e->getMessage()]);
+            }
+        });
     }
 
     public function register(): void
@@ -50,6 +85,10 @@ class ProducaoServiceProvider extends ServiceProvider
 
         // UC-FLX-33 · US-COMVIS-019: o orçamento da CV guarda o custo da hora de máquina do dia.
         $this->app->bind(\App\Contracts\Producao\CustoHoraDoPosto::class, \Modules\Producao\Services\CustoHoraDoPostoService::class);
+        // US-FIN-070 (custeio RKW): o Financeiro lê horas e troca custo-hora só por aqui.
+        $this->app->bind(\App\Contracts\Producao\HorasDosPostos::class, \Modules\Producao\Services\HorasDosPostosService::class);
+        // UC-FLXT-22: o interruptor da reserva de insumo na tela Fluxos (núcleo) chega aqui pelo contrato.
+        $this->app->bind(\App\Contracts\Producao\ReservaDeInsumo::class, \Modules\Producao\Services\ReservaDeInsumoDaOs::class);
     }
 
     protected function registerConfig(): void

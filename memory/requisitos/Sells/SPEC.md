@@ -539,7 +539,7 @@ transaction_documents
 
 ### US-SELL-017 · Totalizador rodapé (Qtd vendas + Σ R$ filtrado) · **P0**
 
-**Implementado em:** _parcial_ · `app/Http/Controllers/SellController.php` · verificado@176f9bc (2026-07-01) — `inertiaList` calcula e envia payload `totals` (`count`/`sum_final_total`/`sum_total_paid`/`sum_due`, `clone($q)` pós-filtro); `Index.tsx` faz `setTotals(json.totals)` mas o getter `totals` NUNCA é lido/renderizado (sem `tfoot`) — payload morto, é exatamente o bug US-SELL-045; falta a barra de rodapé (DoD central) na UI
+**Implementado em:** `app/Http/Controllers/SellController.php` · `resources/js/Pages/Sells/_components/SellsTotalBar.tsx` · `resources/js/Pages/Sells/Index.tsx` · verificado@9a67342 (2026-10-20) — `inertiaList` calcula `totals` sobre o filtro inteiro (`clone($q)` antes de paginar); a barra abaixo da lista mostra quantidade, Pago, A receber e Total do filtro com esses números, sem somar no navegador, e não mostra número quando a visão salva, a pílula Faturada/Cancelada ou a origem filtram só a página carregada (UC-SIDX-06, `tests/js/sells-index-totais.test.tsx`). Os modos Lista opt-in e Grade Avançada do escopo original saíram da tela em 2026-05-21 e não se aplicam
 
 > owner: — · priority: p0 · estimate: 2h · type: story · origin: sessao-2026-05-11-migration-officeimpresso
 > blocked_by: US-SELL-015
@@ -1063,9 +1063,11 @@ Migrar 14 vendas biz=1 do estado legacy pro FSM canon ADR 0143 (goal #3 CYCLE-06
 
 ### US-SELL-045 · Bug: payload `totals` morto na rede — backend calcula/envia, frontend nunca lê
 
-**Implementado em:** _pendente_ — bug de contrato órfão confirmado em `origin/main`; aguarda DECISÃO DE PRODUTO Wagner (remover cálculo+state morto OU reexibir totalizador do filtro inteiro); sem código até decisão
+**Implementado em:** _parcial_ · `resources/js/Pages/Sells/_components/SellsTotalBar.tsx` · `resources/js/Pages/Sells/Index.tsx` · verificado@9a67342 (2026-10-20) — opção (b), reexibir o totalizador do filtro inteiro, pedida por [M] em 2026-10-20 (ratificação [W] no merge); o payload `totals` volta a ser lido. Falta a parte do DoD sobre o `SellsTotalsTest`: os it() de front em quarentena testam arquivos apagados e o arquivo não roda em nenhuma lane de PR
 
-> owner: — · priority: p2 · estimate: 2h · status: todo · type: story
+**Testado em:** `tests/js/sells-index-totais.test.tsx` (covers US-SELL-045 · UC-SIDX-06; lane Vitest do `Frontend / Vite build`)
+
+> owner: — · priority: p2 · estimate: 2h · type: story
 > blocked_by: —
 
 **Origem:** revisão adversarial da triage Q2 Fase 2b SDD (2026-06-13). Contrato órfão de backend confirmado por leitura de `origin/main`.
@@ -1560,9 +1562,9 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 
 ### US-SELL-070 · Termômetro de acesso da proposta (UC-FLX-04) — **P2**
 
-**Implementado em:** `app/Services/Sells/QuoteAccessRecorder.php` · `app/Jobs/QuoteFollowUpJob.php` · `app/Console/Commands/Sells/QuoteFollowUpCommand.php` · `database/migrations/2026_10_20_120000_create_transaction_quote_accesses_table.php`
+**Implementado em:** `app/Services/Sells/QuoteAccessRecorder.php` · `app/Jobs/QuoteFollowUpJob.php` · `app/Console/Commands/Sells/QuoteFollowUpCommand.php` · `database/migrations/2026_10_20_120000_create_transaction_quote_accesses_table.php` · `app/Http/Controllers/SellController.php` · `resources/js/Pages/Sells/Show.tsx` · `resources/js/Pages/Sells/Quotations.tsx`
 
-**Testado em:** `tests/Feature/Sells/QuoteAccessTermometroContratoTest.php` (lane `sells-pest.yml`) — casos UC-QUO-05..08 no Quotations.casos.md da tela de cotações.
+**Testado em:** `tests/Feature/Sells/QuoteAccessTermometroContratoTest.php` (lane `sells-pest.yml`) — casos UC-QUO-05..08 no Quotations.casos.md da tela de cotações · `tests/Feature/Sells/QuoteAccessTelaContratoTest.php` — UC-VSHOW-20/21 no Show.casos.md e UC-QUO-10.
 
 > owner: wagner · priority: p2 · estimate: 3h · type: story
 
@@ -1572,29 +1574,35 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 
 **Aceite:**
 - [x] Abrir o link público `/quote/{token}` de um orçamento em `quote_sent` grava a primeira abertura e o número de aberturas; acesso de usuário logado da própria empresa não conta.
-- [ ] O detalhe do orçamento mostra "aberto em <data>" ou "não aberto", só para quem tem `sell.view` (ou `direct_sell.view`) na empresa.
+- [x] O detalhe do orçamento mostra "aberto em <data>" ou "não aberto", só para quem tem `sell.view` (ou `direct_sell.view`) na empresa.
 - [x] Orçamento em `quote_sent` há mais de 48 h sem abertura gera uma tarefa de retorno para o vendedor, uma vez só (rodar de novo não duplica).
 - [x] A rotina de 48 h roda por empresa e recebe o `business_id` (job assíncrono não usa sessão); token de outro business não grava nada.
-- [ ] Usuário de outro business que pede o detalhe ou o histórico de abertura recebe 404.
+- [x] Usuário de outro business que pede o detalhe ou o histórico de abertura recebe 404.
 
 **Entregue em 2026-10-20 (backend):** a abertura vai para a tabela-ponte `transaction_quote_accesses` (não altera `transactions`; sem IP nem user agent). HEAD e prefetch do navegador não contam; falha ao gravar não derruba a página. A tarefa de retorno é um agendamento do CRM (`crm_schedules`, tipo ligação, atribuído ao `created_by` do orçamento e ligado à venda em `crm_followup_invoices`); empresa sem as tabelas do CRM não ganha tarefa. Rotina diária `sells:quote-follow-up --sync` às 08:15 (`app/Console/Kernel.php`). Fora desta entrega: a tela ("aberto em <data>" no detalhe, com o 404 de outro business) — o dado já está na tabela.
+
+**Entregue em 2026-10-21 (tela):** o detalhe do orçamento (`/sells/{id}`) ganha a faixa "Aberto pelo cliente em dd/mm hh:mm" (com quantas vezes e a última, se mais de uma) ou "Ainda não aberto pelo cliente", no payload deferido `detail.acesso`; a lista de cotações ganha a coluna "Aberto". A leitura é pelo business da venda. Quem vê é quem abre a venda (gate do `/sells/{id}`: `sell.view`, `direct_sell.access` ou `view_own_sell_only` restrito às próprias). Outro business recebe 404.
 
 ### US-SELL-071 · Pesquisa de satisfação depois da entrega (UC-FLX-25) — **P2**
 
 **Implementado em:** _pendente_
 
-> owner: wagner · priority: p2 · estimate: 4h · type: story
+**Testado em:** `tests/Feature/Sells/PesquisaSatisfacaoEntregaContratoTest.php` (lane `sells-pest.yml`) — casos UC-VSHOW-09..13 no Show.casos.md do detalhe da venda.
+
+> owner: wagner · priority: p2 · estimate: 4h · status: doing · type: story
 
 **Origem:** caso UC-FLX-25 da tela de Fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:78`, fonte de mercado Mubisys) — dois dias depois da entrega, enviar a pesquisa; nota baixa abre atendimento.
 
 **O que existe (medido 2026-10-20):** a etapa de entrega existe (ação `entregar` → `delivered` em `database/seeders/FsmProcessoVendaComProducaoSeeder.php:194` e `:196`). Há pesquisa de satisfação pronta, mas para **conversa** do WhatsApp, não para venda: `Modules/Whatsapp/Services/Csat/CsatDispatcher.php:57` (`dispatchOnResolve`, disparado ao resolver a conversa em `Modules/Whatsapp/Http/Controllers/Admin/InboxController.php:753`), nota 1-5 lida por `Modules/Whatsapp/Services/Csat/CsatResponseParser.php:116`, gravada em `Modules/Whatsapp/Entities/CsatResponse.php`. Nada liga a entrega da venda a uma pesquisa, nem nota baixa a um atendimento.
 
 **Aceite:**
-- [ ] Venda que chega a `delivered` agenda a pesquisa para 2 dias depois; cancelada ou devolvida antes disso, não envia.
-- [ ] A pesquisa sai pelo canal do cliente (reaproveitando o CSAT do WhatsApp quando houver canal) só se o cliente aceita receber (`Contact::canReceiveWhatsappNotification()` / `canReceiveEmailNotification()`), e uma vez por venda.
-- [ ] Nota abaixo do limite configurado pela empresa abre um atendimento ligado à venda e ao cliente.
-- [ ] Job e agendamento recebem o `business_id`; a resposta só se grava na venda da mesma empresa.
+- [x] Venda que chega a `delivered` agenda a pesquisa para 2 dias depois; cancelada ou devolvida antes disso, não envia.
+- [x] A pesquisa sai pelo canal do cliente (reaproveitando o CSAT do WhatsApp quando houver canal) só se o cliente aceita receber (`Contact::canReceiveWhatsappNotification()` / `canReceiveEmailNotification()`), e uma vez por venda.
+- [x] Nota abaixo do limite configurado pela empresa abre um atendimento ligado à venda e ao cliente.
+- [x] Job e agendamento recebem o `business_id`; a resposta só se grava na venda da mesma empresa.
 - [ ] As respostas aparecem para quem tem `sell.view` na empresa; usuário de outro business recebe 404.
+
+**Entregue em 2026-10-20 (backend, status segue aberto pelo aceite 5):** tabela-ponte `transaction_satisfaction_surveys` (uma linha por venda, UNIQUE business + venda; não altera `transactions`). Rotina diária `sells:pesquisa-entrega --sync` às 10:00 (`app/Console/Kernel.php`) roda `App\Jobs\PesquisaSatisfacaoEntregaJob` por empresa que ligou em `business.common_settings['sells_pesquisa_entrega']` (`App\Services\Sells\PesquisaEntregaConfig`; desligada por padrão, nota baixa padrão 2 na escala 1-5). Pega a venda pela última entrada em `delivered` no `sale_stage_history`, há 2 a 9 dias, ainda em `delivered`/`completed`. Envia pelo `CsatDispatcher` do WhatsApp na conversa do cliente (a nota volta pelo `CsatResponseParser` e é copiada para a pesquisa), senão por e-mail; cliente sem opt-in fica `nao_enviado` com o motivo. O atendimento é uma tarefa no agendamento do CRM (`crm_schedules`, ligada à venda em `crm_followup_invoices`) para o vendedor — não há entidade de atendimento/ticket ligada à venda no núcleo. Código: `app/Jobs/PesquisaSatisfacaoEntregaJob.php` · `app/Services/Sells/PesquisaEntregaConfig.php` · `app/Console/Commands/Sells/PesquisaSatisfacaoEntregaCommand.php` · `app/Mail/PesquisaSatisfacaoEntregaMail.php` · `database/migrations/2026_10_20_140000_create_transaction_satisfaction_surveys_table.php`. Fora desta entrega: a tela das respostas com `sell.view` e 404 de outro business (aceite 5), a resposta por e-mail (não há leitor) e a tela de ligar/desligar.
 
 ### US-SELL-072 · Venda com nota ou pagamento trava itens e valores — **P1**
 
@@ -1618,3 +1626,25 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 - [ ] A tela de edição desabilita os campos travados e mostra o motivo (a prop `trava` já chega em `Sells/Edit`).
 
 **Entregue em 2026-10-20 (servidor):** `TravaDaVenda` responde o que pode ser editado e o `SellPosController@update` recusa antes de qualquer cálculo. A nota é lida pelos módulos fiscais pela tag `App\Contracts\Fiscal\NotaDaVenda::TAG` (o núcleo não importa de módulo). Pagamento = `transaction_payments` sem troco com valor, ou títulos do Financeiro pagos ou parciais (`SituacaoPagamentoVenda`). A decisão lê os números com o mesmo `num_uf` e multiplicador do `createOrUpdateSellLines`; ela não calcula nem grava valor. Fora desta entrega: desabilitar os campos na tela React e no Blade, e os outros caminhos que mexem em valor de venda (edição de pagamento, devolução).
+
+### US-SELL-073 · Volumes no protocolo de entrega (UC-FLX-23) — **P2**
+
+**Implementado em:** `app/Http/Controllers/Api/App/PedidoEntregaController.php` · `database/migrations/2026_10_20_160000_add_volumes_to_app_entregas_table.php` · `app/Http/Controllers/SellController.php` · `resources/js/Pages/Sells/Show.tsx`
+
+**Testado em:** `tests/Feature/Sells/AppPedidoEntregaContratoTest.php` e `tests/Feature/Sells/SellsShowEntregaContratoTest.php` (lane `sells-pest.yml`) — casos UC-ENTR-01..04 e UC-VSHOW-22/23 no Show.casos.md do detalhe da venda.
+
+> owner: wagner · priority: p2 · estimate: 1h · type: story
+
+**Origem:** caso UC-FLX-23 da tela de Fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:76`, fontes de mercado Mubisys, Corebridge e Cyrious) — na etapa Entregue, gerar o protocolo com itens, volumes e quem recebeu.
+
+**O que existe (medido 2026-10-20):** o protocolo já existia para a **venda**, pela entrega do app: `POST /api/app/pedidos/{id}/entrega` (`routes/api/app/pedidos.php:18` → `PedidoEntregaController@registrar`, contrato `memory/requisitos/AppMobile/api/tela-22-entrega.md`) grava `ENT-NNNN` por business em `app_entregas` (`database/migrations/2026_10_15_180000_create_app_entregas_table.php`) com os itens conferidos, quem recebeu, documento, assinatura e GPS, e executa a ação `entregar` da FSM na mesma transação. Faltavam os **volumes**: sem coluna e sem campo. Ninguém lê `app_entregas` além do próprio controller (sem tela, PDF ou GET do protocolo). O caso no catálogo aponta `US-COMVIS-007`, mas essa US é da OS da Comunicação Visual, que este protocolo não cobre.
+
+**Aceite:**
+- [x] O app pode mandar `volumes` (total do protocolo, inteiro de 1 a 9999); ele é gravado em `app_entregas.volumes` e devolvido na resposta 201.
+- [x] `volumes` fora da faixa, fracionado ou texto → `422 campos.volumes`, sem gravar nada.
+- [x] Sem `volumes` (app antigo) a entrega funciona como antes, com `volumes` nulo; a mesma `Idempotency-Key` com o mesmo corpo antigo segue devolvendo a resposta gravada.
+- [x] Pedido de outro business → 404 e nada gravado; o protocolo grava no business do usuário.
+- [x] O detalhe da venda (`/sells/{id}`) mostra o protocolo, os itens, os volumes e quem recebeu, só para quem vê a venda na empresa (2026-10-21 · `SellController::entregaDaVenda` + seção Entrega do `Show.tsx` · UC-VSHOW-22/23).
+- [ ] Protocolo da OS da Comunicação Visual (UC-FLX-23 no processo de OS), que hoje não tem protocolo.
+
+**Entregue em 2026-10-20 (backend):** total de volumes, não por item — um volume (caixa, rolo, pacote) pode levar várias linhas da venda, então volume por linha não é bem definido. Opcional porque o app que já está nos celulares não manda o campo; sem ele não se inventa número (fica nulo, "não informado"). O `volumes` só entra no hash de idempotência quando vem, para que o corpo antigo mantenha o hash de antes.

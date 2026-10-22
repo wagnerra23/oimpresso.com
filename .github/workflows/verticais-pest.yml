@@ -62,6 +62,9 @@ on:
       - 'Modules/ComunicacaoVisual/**'
       - 'resources/js/Pages/ComunicacaoVisual/**'
       - 'Modules/Repair/**'
+      # UC-COS-31/32 — o aviso de OS do Repair mora no módulo Whatsapp; sem o listener no
+      # trigger, mexer nele não rodaria o contrato que o cobre.
+      - 'Modules/Whatsapp/Listeners/NotifyRepairCustomer.php'
       - 'resources/js/Pages/Repair/**'
       - 'Modules/Vestuario/**'
       - 'resources/js/Pages/Vestuario/**'
@@ -138,6 +141,11 @@ on:
       - 'Modules/Crm/Tests/Feature/CrmPropostas*'
       # Thread Producao/02 — fundo do PCP (trigger append-only exige MySQL).
       - 'Modules/Producao/**'
+      # US-PCP-031 — a reserva do insumo lê a receita pelo contrato (implementado no Manufacturing).
+      - 'app/Contracts/Fabricacao/**'
+      - 'Modules/Manufacturing/Services/InsumosDaReceitaService.php'
+      # US-PCP-025 — o sinal mínimo da empresa mora nas regras do FSM.
+      - 'app/Domain/Fsm/Modelos/RegrasDaEmpresa.php'
       # US-FISIO-003 — fundo do Fisio (triggers append-only + escopo multi-tenant exigem MySQL).
       - 'Modules/Fisio/**'
       # Etapa 02 T-13 — service worker do portal do paciente (FisioPortalAppTest lê o arquivo).
@@ -183,6 +191,7 @@ jobs:
               - 'Modules/ComunicacaoVisual/**'
               - 'resources/js/Pages/ComunicacaoVisual/**'
               - 'Modules/Repair/**'
+              - 'Modules/Whatsapp/Listeners/NotifyRepairCustomer.php'
               - 'resources/js/Pages/Repair/**'
               - 'Modules/Vestuario/**'
               - 'resources/js/Pages/Vestuario/**'
@@ -264,6 +273,11 @@ jobs:
               - 'Modules/Crm/Tests/Feature/CrmPropostas*'
               # Thread Producao/02 — fundo do PCP (trigger append-only exige MySQL).
               - 'Modules/Producao/**'
+              # US-PCP-031 — a reserva do insumo lê a receita pelo contrato (implementado no Manufacturing).
+              - 'app/Contracts/Fabricacao/**'
+              - 'Modules/Manufacturing/Services/InsumosDaReceitaService.php'
+              # US-PCP-025 — o sinal mínimo da empresa mora nas regras do FSM.
+              - 'app/Domain/Fsm/Modelos/RegrasDaEmpresa.php'
               # US-FISIO-003 — fundo do Fisio (triggers append-only + escopo multi-tenant exigem MySQL).
               - 'Modules/Fisio/**'
               # Etapa 02 T-13 — service worker do portal do paciente (FisioPortalAppTest lê o arquivo).
@@ -556,6 +570,23 @@ jobs:
         # prescrito (o Unit percorre o pool inteiro), +10 uma vez por missão e teto de bônus da
         # semana, desafio semanal recusado sem tirar XP e aceito pagando +40 uma vez, 10 medalhas
         # derivadas do histórico, decisão do desafio append-only.
+        #
+        # ENTRA 2026-10-21 — ComunicacaoVisual/AgendaTelaContratoTest (tela /comunicacao-visual/agenda,
+        # UC-CVAG-01..03): mesmo arranjo do irmão abaixo (tenant 98×99, pula em sqlite). A primeira execução
+        # real é esta lane (Pest não roda local — proibicoes.md); se avermelhar, sai e vira dívida declarada.
+        #
+        # ENTRA 2026-10-21 — ComunicacaoVisual/InstalacaoAvisoClienteContratoTest (UC-CVINST-08..10): agendar
+        # avisa o cliente por WhatsApp (evento + listener reais, só o job falso), opt-in LGPD e Tier 0 98×99.
+        # Primeira execução real é esta lane (Pest não roda local); se avermelhar, sai e vira dívida declarada.
+        #
+        # ENTRA 2026-10-21 — Repair/ClienteAcompanhaStatusContratoTest (US-CONSULTA-004 ·
+        # UC-COS-12/13/15/16): mudar o status avisa o cliente certo e o portal mostra o status;
+        # cliente que recusou WhatsApp (LGPD) ou de outra empresa (98 × 99) não recebe aviso.
+        # Antes não rodava em lane nenhuma (NotifyRepairCustomerTest pula fora de sqlite).
+        #
+        # ENTRA 2026-10-20 — ComunicacaoVisual/InstalacaoAgendaContratoTest (US-COMVIS-007 · UC-FLX-21,
+        # UC-CVINST-01..07): agenda equipe e veículo na OS; conflito de pessoa ou veículo → 422 dizendo
+        # com quem e quando; encostado e cancelada passam; equipe/OS da 99 → 422/404; sem permissão 403.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -572,6 +603,13 @@ jobs:
             Modules/ComunicacaoVisual/Tests/Feature/Tier0GuardTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCustoPrevistoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCustoMaquinaPrevistoTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAgendaContratoTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/AgendaTelaContratoTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAvisoClienteContratoTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/OrcamentoViraOsContratoTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/OrcamentoSalvarReabrirContratoTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/OrcamentoArquivosContratoTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/OrcamentoMargemContratoTest.php \
             Modules/Repair/Tests/Feature/DeviceModelsInertiaSmokeTest.php \
             Modules/Repair/Tests/Feature/JobSheetShowContratoTest.php \
             Modules/Repair/Tests/Feature/ProducaoOficinaRefactorTest.php \
@@ -585,6 +623,7 @@ jobs:
             Modules/Repair/Tests/Feature/DeviceModelsContratoTest.php \
             Modules/Repair/Tests/Feature/RepairStatusContratoTest.php \
             Modules/Repair/Tests/Feature/RepairFormVendaContratoTest.php \
+            Modules/Repair/Tests/Feature/ClienteAcompanhaStatusContratoTest.php \
             Modules/Vestuario/Tests/Feature/SmokeRoutesVestuarioTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminDashboardContratoTest.php \
             Modules/Superadmin/Tests/Feature/SubscriptionLifecycleServiceTest.php \
@@ -636,10 +675,25 @@ jobs:
             Modules/Producao/Tests/Feature/ProducaoLiberarResponsavelContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoApontamentoTelaTest.php \
             Modules/Producao/Tests/Feature/ProducaoRoteirosContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoRoteiroProdutosTelaContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoEtiquetaOsContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoFecharTurnoComandoTest.php \
             Modules/Producao/Tests/Feature/ProducaoMaterialContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoCustoOsAbertaContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoOperadoresDoPostoContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoPostosOperadoresTelaTest.php \
+            Modules/Producao/Tests/Feature/ProducaoPrevistoRealizadoContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoRefugoContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoAprovacaoArteContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoAlocacaoContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoReservaInsumoContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoAguardandoMaterialContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoPrazoPelaFilaContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoRoloRastreioContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoSinalPagoLiberaContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoRomaneioContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoAproveitamentoMidiaContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoQuadroContratoTest.php \
             Modules/Fisio/Tests/Feature/FisioEsquemaContratoTest.php \
             Modules/Fisio/Tests/Feature/FisioPacienteCrudTest.php \
             Modules/Fisio/Tests/Feature/FisioPacienteContatoTest.php \

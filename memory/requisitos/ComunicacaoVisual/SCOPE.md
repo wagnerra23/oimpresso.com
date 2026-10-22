@@ -8,11 +8,18 @@ contains:
   - "DataController"
   - "InstallController"
   - "OrcamentoController"
+  - "OrcamentoArquivoController (arquivos anexados ao orçamento antes de virar OS — /comunicacao-visual/api/orcamentos/{id}/arquivos, UC-FLX-01)"
+  - "Services/MargemDoOrcamento (custo e margem por peça do orçamento — UC-FLX-03)"
   - "Entities/Substrato (cv_substratos)"
   - "Entities/Acabamento (cv_acabamentos)"
   - "Entities/InstalacaoCatalogo (cv_instalacoes_catalogo)"
   - "Entities/OrdemProducao (cv_ordens_producao + FSM canon ADR 0143)"
   - "Entities/Instalacao (cv_instalacoes)"
+  - "InstalacaoController (agenda da instalação por OS — /comunicacao-visual/api/instalacoes, US-COMVIS-007 · UC-FLX-21)"
+  - "AgendaController (tela da agenda de instalação em semana × equipe — /comunicacao-visual/agenda, US-COMVIS-007 · UC-FLX-21)"
+  - "Services/AgendaInstalacao (agenda equipe e veículo na OS; recusa sem janela — US-COMVIS-007 · UC-FLX-21)"
+  - "Entities/OsItem (comvis_os_itens — itens da OS copiados do orçamento, UC-FLX-01)"
+  - "Services/OrcamentoViraOs (orçamento aprovado vira OS com itens, medidas e arquivos — US-COMVIS-020 · UC-FLX-01)"
   # Mora em `database/seeders/` (convenção do projeto pros seeders de FSM canon), NÃO sob
   # Modules/ComunicacaoVisual/ — o SDD §5.4.5 já registra isso. Path anotado em 2026-08-10
   # porque a ausência sob o módulo já foi lida como "nunca construído": é código real,

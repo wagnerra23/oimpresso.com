@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\OficinaAuto\Services;
 
+use Modules\Arquivos\Entities\Arquivo;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Modules\OficinaAuto\Entities\ServiceOrder;
 
 /**
@@ -34,13 +37,20 @@ use Modules\OficinaAuto\Entities\ServiceOrder;
  */
 class StageGateEvaluator
 {
+    public function __construct(private AssinaturaEntrega $assinatura)
+    {
+    }
+
     /**
      * Config de requisitos por process_key → action_key → list de regras.
      *
      * Cobre o fluxo real de reparo `oficina_mecanica_os` (ADR 0194 · [W] 2026-06-02).
      * Transições sem regra cadastrada => gate satisfeito (não bloqueia).
      *
-     * @var array<string, array<string, list<array{key:string, label:string, type:string, blocking:bool}>>>
+     * `ajuste` (opcional) = chave de `business.common_settings` que liga a regra; desligada, a regra
+     * nem aparece no checklist.
+     *
+     * @var array<string, array<string, list<array{key:string, label:string, type:string, blocking:bool, ajuste?:string}>>>
      */
     private const RULES = [
         'oficina_mecanica_os' => [
@@ -63,6 +73,17 @@ class StageGateEvaluator
                 ['key' => 'itens_exec', 'label' => 'Itens do serviço executados (conferir)', 'type' => 'manual', 'blocking' => false],
                 ['key' => 'tem_item',   'label' => 'Orçamento com ≥ 1 item lançado',        'type' => 'auto',   'blocking' => true],
             ],
+            // Pronto p/ retirar → Entregue: o veículo só sai com foto do serviço feito
+            // (US-OFICINA-047 · UC-FLX-22). Fica na entrega, não no concluir_servico, porque é o
+            // último ponto antes de o veículo sair e é a etapa que o modelo "Oficina mecânica" do
+            // catálogo marca ("Entregue · Fotos do serviço").
+            // Assinatura do cliente (US-OFICINA-048 · UC-FLX-22): só entra quando a empresa liga
+            // `common_settings[oficina_entrega_exige_assinatura]` (desligada por padrão) — com ela
+            // desligada o checklist é exatamente o de antes.
+            'entregar' => [
+                ['key' => 'servico_foto', 'label' => 'Foto do serviço feito (enviada depois de a OS entrar em execução)', 'type' => 'auto', 'blocking' => true],
+                ['key' => 'assinatura', 'label' => 'Assinatura do cliente', 'type' => 'auto', 'blocking' => true, 'ajuste' => AssinaturaEntrega::CHAVE],
+            ],
         ],
     ];
 
@@ -80,7 +101,12 @@ class StageGateEvaluator
      */
     public function evaluate(ServiceOrder $order, ?string $processKey, string $actionKey): array
     {
-        $rules = self::RULES[$processKey ?? ''][$actionKey] ?? [];
+        $rules = [];
+        foreach (self::RULES[$processKey ?? ''][$actionKey] ?? [] as $regra) {
+            if (! isset($regra['ajuste']) || $this->assinatura->exigida((int) $order->business_id)) {
+                $rules[] = $regra;
+            }
+        }
 
         if (empty($rules)) {
             return [
@@ -93,7 +119,8 @@ class StageGateEvaluator
             ];
         }
 
-        $ctx = $this->context($order);
+        $chaves = array_column($rules, 'key');
+        $ctx = $this->context($order, in_array('servico_foto', $chaves, true), in_array('assinatura', $chaves, true));
 
         $requirements = [];
         $blockingUnmet = 0;
@@ -129,9 +156,12 @@ class StageGateEvaluator
     /**
      * Snapshot do estado real da OS pros requisitos `auto`.
      *
-     * @return array{dvi_count:int, dvi_photos:int, items_count:int, approval_state:string}
+     * `servico_photos` só é calculado quando a transição pede (`$comFotoServico`) — custa uma
+     * consulta na trilha FSM.
+     *
+     * @return array{dvi_count:int, dvi_photos:int, items_count:int, approval_state:string, servico_photos:int, assinatura:bool}
      */
-    private function context(ServiceOrder $order): array
+    private function context(ServiceOrder $order, bool $comFotoServico = false, bool $comAssinatura = false): array
     {
         // loadMissing é idempotente — não re-busca relações já carregadas pelo Controller.
         $order->loadMissing([
@@ -152,11 +182,52 @@ class StageGateEvaluator
             'dvi_photos'     => $dviItemPhotos + $laudoPhotos,
             'items_count'    => $order->items->count(),
             'approval_state' => $order->approval_state,
+            'servico_photos' => $comFotoServico ? $this->fotosDoServico($order) : 0,
+            'assinatura'     => $comAssinatura && $this->assinatura->colhida($order),
         ];
     }
 
     /**
-     * @param  array{dvi_count:int, dvi_photos:int, items_count:int, approval_state:string}  $ctx
+     * Fotos do serviço feito: as da OS e as dos itens da vistoria enviadas a partir do momento
+     * em que a OS entrou em `em_execucao` (última entrada na trilha FSM do processo da oficina).
+     *
+     * Não existe marcação de "foto do serviço" no arquivo — o laudo e a vistoria usam o mesmo
+     * anexo. A data de envio contra a entrada na execução é o que separa a foto do antes da
+     * foto do depois. Limite: OS que chegou a "Pronto p/ retirar" sem passar por `em_execucao`
+     * na trilha (importada ou repontuada direto) não tem referência — aí qualquer foto da OS
+     * conta, como no gate da vistoria.
+     * Só imagem conta: o app também aceita PDF como anexo da OS, e PDF não é foto do serviço.
+     *
+     * Tier 0 (ADR 0093): o app chama sem sessão, e sem sessão o escopo global do Arquivo não
+     * filtra. Por isso a trilha e as fotos são filtradas pelo business_id da OS aqui.
+     */
+    private function fotosDoServico(ServiceOrder $order): int
+    {
+        $bizId = (int) $order->business_id;
+
+        $inicio = DB::table('sale_stage_history as h')
+            ->join('sale_process_stages as s', 's.id', '=', 'h.to_stage_id')
+            ->join('sale_processes as p', 'p.id', '=', 's.process_id')
+            ->where('h.business_id', $bizId)
+            ->where('p.business_id', $bizId)
+            ->where('h.transaction_id', $order->id)
+            ->where('p.key', 'oficina_mecanica_os')
+            ->where('s.key', 'em_execucao')
+            ->max('h.executed_at');
+        $desde = $inicio !== null ? Carbon::parse($inicio) : null;
+
+        /** @var \Illuminate\Support\Collection<int, Arquivo> $fotos */
+        $fotos = $order->arquivos->concat($order->dviInspectionItems->flatMap(fn ($item) => $item->arquivos));
+
+        return $fotos
+            ->filter(fn ($a) => (int) $a->business_id === $bizId)
+            ->filter(fn ($a) => str_starts_with((string) $a->mime_type, 'image/'))
+            ->filter(fn ($a) => $desde === null || ($a->created_at !== null && $a->created_at->gte($desde)))
+            ->count();
+    }
+
+    /**
+     * @param  array{dvi_count:int, dvi_photos:int, items_count:int, approval_state:string, servico_photos:int, assinatura:bool}  $ctx
      */
     private function checkRule(string $key, array $ctx): bool
     {
@@ -166,6 +237,8 @@ class StageGateEvaluator
             'orcamento'  => $ctx['items_count'] >= 1,
             'tem_item'   => $ctx['items_count'] >= 1,
             'aprovado'   => $ctx['approval_state'] === 'approved',
+            'servico_foto' => $ctx['servico_photos'] >= 1,
+            'assinatura' => $ctx['assinatura'],
             'itens_exec' => true, // manual/advisory — operador confere; não bloqueia servidor
             default      => true,
         };

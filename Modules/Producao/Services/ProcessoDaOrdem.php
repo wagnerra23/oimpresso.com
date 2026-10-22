@@ -25,6 +25,8 @@ final class ProcessoDaOrdem
     /** [chave, nome, inicial, terminal, cancelada] na ordem do protótipo. */
     public const ESTADOS = [
         ['aguardando_liberacao', 'Aguardando liberação', true, false, false],
+        // D3 (proposta 2026-10-09; Produção em 2026-10-21): liberada sem material, a OS espera aqui.
+        ['aguardando_material', 'Aguardando material', false, false, false],
         ['na_fila', 'Na fila', false, false, false],
         ['em_execucao', 'Em execução', false, false, false],
         ['pausada', 'Pausada', false, false, false],
@@ -40,10 +42,19 @@ final class ProcessoDaOrdem
      * Papel null: a ação é disparada pelo apontamento do operador, que já confere se ele é o
      * responsável da etapa (ApontamentoOperadorService). Um segundo portão no motor barraria o
      * celular. As ações de tela (Liberar, Reprovar, Refazer, Cancelar) exigem papel.
+     *
+     * "Liberar pelo sinal pago" é a mesma passagem do Liberar, executada pelo sistema quando o
+     * pagamento da venda alcança o sinal mínimo da empresa (US-PCP-025). Não tem papel porque não
+     * há usuário: só SituacaoDaOrdem::liberarPeloSinal a chama, e ela confere o sinal e os
+     * responsáveis antes. Não é transição do protótipo, é o automático do Liberar.
      */
     public const ACOES = [
         ['aguardando_liberacao', 'liberar', 'Liberar', 'na_fila', false, 'producao.liberar'],
+        ['aguardando_liberacao', 'liberar_pelo_sinal', 'Liberar pelo sinal pago', 'na_fila', false, null],
         ['na_fila', 'iniciar_etapa', 'Iniciar etapa', 'em_execucao', false, null],
+        ['na_fila', 'aguardar_material', 'Aguardar material', 'aguardando_material', false, null],
+        ['aguardando_material', 'material_disponivel', 'Material disponível', 'na_fila', false, null],
+        ['aguardando_material', 'cancelar_item', 'Cancelar item', 'cancelada', true, 'vendas.gerente'],
         ['em_execucao', 'pausar', 'Pausar', 'pausada', false, null],
         ['pausada', 'retomar', 'Retomar', 'em_execucao', false, null],
         ['em_execucao', 'concluir_etapa', 'Concluir etapa', null, false, null],
@@ -73,6 +84,10 @@ final class ProcessoDaOrdem
                     ['process_id' => $process->id, 'key' => $chave],
                     ['name' => $nome, 'sort_order' => $i, 'is_initial' => $inicial, 'is_terminal' => $terminal, 'is_cancelled' => $cancelada],
                 );
+                // Estado novo no meio da lista (Aguardando material): a ordem de exibição acompanha.
+                if ((int) $stages[$chave]->sort_order !== $i) {
+                    $stages[$chave]->forceFill(['sort_order' => $i])->save();
+                }
             }
 
             foreach (self::ACOES as [$de, $chave, $rotulo, $para, $critica, $papel]) {

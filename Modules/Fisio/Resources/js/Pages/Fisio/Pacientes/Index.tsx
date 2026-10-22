@@ -11,10 +11,11 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { Plus, Search } from 'lucide-react';
+import type { ColumnDef } from '@tanstack/react-table';
+import DataTable from '@/Components/shared/DataTable';
 import { PageHeader } from '@/Components/PageHeader';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { Skeleton } from '@/Components/ui/skeleton';
@@ -41,30 +42,60 @@ interface Props {
   profissionais?: Profissional[];
 }
 
+// Colunas do PT-01 (Lista): a tabela do DS (`shared/DataTable`), não uma `<ul>` montada à mão.
+// O nome é um link de verdade (abre em nova aba, Enter pelo teclado); a linha não vira botão.
+const COLUNAS: ColumnDef<Paciente, unknown>[] = [
+  {
+    id: 'nome',
+    accessorFn: (p) => p.nome ?? '',
+    header: 'Paciente',
+    cell: ({ row: { original: p } }) => (
+      <>
+        <Link href={`/fisio/pacientes/${p.id}`} className="block font-medium hover:underline">
+          {p.nome ?? 'Contato sem nome'}
+        </Link>
+        <span className="block truncate text-xs text-muted-foreground">{p.main_complaint || 'Sem queixa registrada'}</span>
+      </>
+    ),
+  },
+  {
+    id: 'condicoes',
+    accessorFn: (p) => p.condition_flags.join(', '),
+    header: 'Condições',
+    cell: ({ row: { original: p } }) => (
+      <span className="flex flex-wrap gap-1">
+        {p.condition_flags.map((c) => <Badge key={c} variant="outline">{rotuloCondicao(c)}</Badge>)}
+      </span>
+    ),
+  },
+  {
+    id: 'responsavel',
+    accessorFn: (p) => p.responsavel?.nome ?? '',
+    header: 'Responsável',
+    cell: ({ row: { original: p } }) => (
+      <span data-contract="fisio-paciente-responsavel">{p.responsavel?.nome ?? 'sem responsável'}</span>
+    ),
+  },
+  {
+    id: 'sessoes',
+    accessorFn: (p) => p.sessions_per_week,
+    header: 'Por semana',
+    meta: { align: 'right' },
+    cell: ({ row: { original: p } }) => `${p.sessions_per_week}×`,
+  },
+];
+
 function Lista({ pacientes, q }: { pacientes: Paciente[]; q: string }) {
-  if (pacientes.length === 0) {
-    return (
-      <p className="py-8 text-center text-sm text-muted-foreground">
-        {q ? `Nenhum paciente ativo com "${q}" no nome.` : 'Nenhum paciente cadastrado ainda.'}
-      </p>
-    );
-  }
   return (
-    <ul className="divide-y divide-border" data-contract="fisio-pacientes-lista">
-      {pacientes.map((p) => (
-        <li key={p.id}>
-          <Link href={`/fisio/pacientes/${p.id}`} className="flex flex-wrap items-center gap-3 px-1 py-3 hover:bg-muted/50">
-            <div className="min-w-0 flex-1">
-              <span className="block text-sm font-medium">{p.nome ?? 'Contato sem nome'}</span>
-              <span className="block truncate text-xs text-muted-foreground">{p.main_complaint || 'Sem queixa registrada'}</span>
-            </div>
-            {p.condition_flags.map((c) => <Badge key={c} variant="outline">{rotuloCondicao(c)}</Badge>)}
-            <span className="text-xs text-muted-foreground" data-contract="fisio-paciente-responsavel">Responsável: {p.responsavel?.nome ?? 'sem responsável'}</span>
-            <span className="text-xs text-muted-foreground">{p.sessions_per_week}× por semana</span>
-          </Link>
-        </li>
-      ))}
-    </ul>
+    <div data-contract="fisio-pacientes-lista">
+      <DataTable<Paciente>
+        columns={COLUNAS}
+        data={pacientes}
+        caption="Pacientes"
+        rowKey={(p) => p.id}
+        emptyMessage={q ? `Nenhum paciente ativo com "${q}" no nome.` : 'Nenhum paciente cadastrado ainda.'}
+      />
+    </div>
   );
 }
 
@@ -148,13 +179,9 @@ export default function PacientesIndex({ filtros, condicoes, pode_editar, pacien
         <Deferred data="profissionais" fallback={null}>
           <FiltroResponsavel valor={filtros.responsavel} profissionais={profissionais ?? []} onChange={(v) => visitar(filtros.q, v)} />
         </Deferred>
-        <Card>
-          <CardContent className="p-4">
-            <Deferred data="pacientes" fallback={<Skeleton className="h-40 w-full" />}>
-              <Lista pacientes={pacientes ?? []} q={filtros.q} />
-            </Deferred>
-          </CardContent>
-        </Card>
+        <Deferred data="pacientes" fallback={<Skeleton className="h-40 w-full" />}>
+          <Lista pacientes={pacientes ?? []} q={filtros.q} />
+        </Deferred>
       </div>
       {criando && <NovoPaciente condicoes={condicoes} onClose={() => setCriando(false)} />}
     </div>

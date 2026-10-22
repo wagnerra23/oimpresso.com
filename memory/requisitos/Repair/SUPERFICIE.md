@@ -14,7 +14,7 @@ module: Repair
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Repair/**` + `resources/js/Pages/Repair/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 217 arquivos em 17 papéis.
+**Total mapeado:** 219 arquivos em 17 papéis.
 
 ## Controllers — 11
 
@@ -67,7 +67,7 @@ module: Repair
 - [api.php](../../../Modules/Repair/Routes/api.php)
 - [web.php](../../../Modules/Repair/Routes/web.php)
 
-## Migrations (schema) — 18
+## Migrations (schema) — 19
 
 - [2019_03_07_155813_make_repair_statuses_table.php](../../../Modules/Repair/Database/Migrations/2019_03_07_155813_make_repair_statuses_table.php)
 - [2019_03_08_120634_add_repair_columns_to_transactions_table.php](../../../Modules/Repair/Database/Migrations/2019_03_08_120634_add_repair_columns_to_transactions_table.php)
@@ -87,6 +87,7 @@ module: Repair
 - [2022_12_23_162847_add_repair_jobsheet_settings_column_to_business_table.php](../../../Modules/Repair/Database/Migrations/2022_12_23_162847_add_repair_jobsheet_settings_column_to_business_table.php)
 - [2026_05_06_180000_add_repair_listing_indexes.php](../../../Modules/Repair/Database/Migrations/2026_05_06_180000_add_repair_listing_indexes.php)
 - [2026_05_12_050001_add_current_stage_id_to_job_sheets.php](../../../Modules/Repair/Database/Migrations/2026_05_12_050001_add_current_stage_id_to_job_sheets.php)
+- [2026_10_21_150000_add_whatsapp_template_aviso_to_repair_statuses.php](../../../Modules/Repair/Database/Migrations/2026_10_21_150000_add_whatsapp_template_aviso_to_repair_statuses.php)
 
 ## Seeders — 1
 
@@ -201,9 +202,9 @@ module: Repair
 - [Show.casos.md](../../../resources/js/Pages/Repair/Show.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Repair/Status/Index.casos.md)
 
-## Testes (Pest) — 37
+## Testes (Pest) — 38
 
-- 36 em [Modules/Repair/Tests/Feature/](../../../Modules/Repair/Tests/Feature)
+- 37 em [Modules/Repair/Tests/Feature/](../../../Modules/Repair/Tests/Feature)
 - 1 em [Modules/Repair/Tests/Support/](../../../Modules/Repair/Tests/Support)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 

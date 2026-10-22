@@ -1,7 +1,7 @@
 // @memcofre
 //   tela: /producao/roteiros
 //   module: Producao
-//   stories: playbook Produção thread 03 (UC-PCV-13)
+//   stories: playbook Produção thread 03 (UC-PCV-13) · US-PCP-026 (UC-FLX-07, produtos do roteiro)
 //   permissao: producao.access
 //
 // Roteiros por família de produto. Âncora de design: alvo producao--roteiros--index (A1) ·
@@ -22,6 +22,7 @@ import { Card, CardContent } from '@/Components/ui/card';
 import { Skeleton } from '@/Components/ui/skeleton';
 import ProducaoAbas from '../_components/ProducaoAbas';
 import EditorRoteiro, { type Etapa, type Item, type Posto, type Roteiro } from './_components/EditorRoteiro';
+import ProdutosDoRoteiro from './_components/ProdutosDoRoteiro';
 
 interface Props { roteiros?: Roteiro[]; postos?: Posto[] }
 
@@ -86,6 +87,7 @@ function Conteudo({ roteiros, postos }: { roteiros: Roteiro[]; postos: Posto[] }
               </div>
               <Fluxo r={r} postos={postos} />
               <p className="pcv-help">Tempo de máquina = quantidade ÷ capacidade do posto. Etapa marcada “só com…” entra na OS quando a opção vem marcada no orçamento.</p>
+              <ProdutosDoRoteiro roteiroId={r.id} produtos={r.produtos ?? []} />
             </CardContent>
           </Card>
         ) : (

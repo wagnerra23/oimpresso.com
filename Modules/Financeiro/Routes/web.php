@@ -159,6 +159,12 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         Route::get('/dre/export-xlsx', [DreController::class, 'exportXlsx'])->name('dre.export-xlsx');
         Route::get('/dre/export-csv', [DreController::class, 'exportCsv'])->name('dre.export-csv');
 
+        // Custeio RKW + ponto de equilíbrio (US-FIN-070). GET só lê; aplicar é ação explícita.
+        Route::get('/custeio-rkw', [\Modules\Financeiro\Http\Controllers\CusteioRkwController::class, 'show'])->name('custeio-rkw.show');
+        Route::post('/custeio-rkw/aplicar/{posto}', [\Modules\Financeiro\Http\Controllers\CusteioRkwController::class, 'aplicar'])
+            ->whereNumber('posto')
+            ->name('custeio-rkw.aplicar');
+
         // Contas a receber (lista + emitir boleto)
         Route::get('/contas-receber', [ContaReceberController::class, 'index'])->name('contas-receber.index');
         Route::post('/contas-receber/{tituloId}/boleto', [ContaReceberController::class, 'emitirBoleto'])
@@ -243,6 +249,10 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         // que apontava pra /categorias (Onda 16). Tela hierárquica BR 47 entries.
         Route::get('/plano-contas', [PlanoContaController::class, 'index'])
             ->name('plano-contas.index');
+        // US-FIN-070 · UC-FLX-20 — classe de custo da conta (fixa/variável/nenhuma) para o custeio RKW.
+        Route::patch('/plano-contas/{id}/classe-custo', [PlanoContaController::class, 'classeCusto'])
+            ->whereNumber('id')
+            ->name('plano-contas.classe-custo');
 
         // Onda 19 (2026-05-19) #49 — Conciliação OFX MVP.
         // Upload arquivo OFX → parser → linhas pendentes → fuzzy match → user aprova.

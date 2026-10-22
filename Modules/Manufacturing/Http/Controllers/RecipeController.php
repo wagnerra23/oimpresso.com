@@ -273,6 +273,7 @@ class RecipeController extends Controller
                 ? $this->recipeBomService->usosDoInsumo($variationId, $business_id, $pct)
                 : [],
             'variacao_pct' => $pct,
+            'metodo_custo' => $variationId ? $this->metodoCustoDoInsumo($business_id, $variationId) : null,
             'permissions' => [
                 'prod' => auth()->user()->can('manufacturing.access_production'),
             ],
@@ -282,6 +283,27 @@ class RecipeController extends Controller
             ],
             'recipes_count' => $this->recipeBomService->countRecipes($business_id),
         ]);
+    }
+
+    /**
+     * US-COM-024 · UC-FLX-38 — o método de custo do insumo, para a gaveta de Insumos. O dado é do
+     * módulo Compras e chega pela interface do núcleo; sem o módulo ligado a seção não aparece
+     * (`null`). Gravar é `PUT /compras/insumos/{variation}/metodo-custo`, com `purchase.update`.
+     *
+     * @return array{atual: ?string, empresa: string, editavel: bool}|null
+     */
+    private function metodoCustoDoInsumo(int $business_id, int $variationId): ?array
+    {
+        if (! app()->bound(\App\Contracts\Compras\CustoDoInsumo::class)) {
+            return null;
+        }
+        $custo = app(\App\Contracts\Compras\CustoDoInsumo::class);
+
+        return [
+            'atual' => $custo->metodoDoInsumo($business_id, $variationId),
+            'empresa' => $custo->metodoDaEmpresa($business_id),
+            'editavel' => auth()->user()->can('purchase.update'),
+        ];
     }
 
     /**
@@ -646,27 +668,34 @@ class RecipeController extends Controller
         $variation_id = request()->input('variation_id');
         $location_id = request()->input('location_id');
 
-        $recipe = MfgRecipe::where('variation_id', $variation_id)
+        // Tier 0 (ADR 0093): antes buscava a receita só pelo variation_id, e quem tinha
+        // access_recipe lia ingredientes e custo da receita de outra empresa (PARIDADE H2).
+        // A receita só é achada pela cadeia variations → products da empresa da sessão; de
+        // outra empresa (ou inexistente, que antes estourava 500 mais abaixo) é 404.
+        // OrdemReceitaEmpresaTest.
+        $recipe = MfgRecipe::query()
+                        ->forBusinessViaProductChain((int) $business_id)
+                        ->where('mfg_recipes.variation_id', $variation_id)
                         ->with(['variation', 'variation.product', 'variation.product.unit', 'sub_unit',
                             'ingredients' => function ($query) {
                                 $query->orderBy('sort_order', 'asc');
                             }, ])
                         ->first();
-
-        $ingredients = [];
-        if (! empty($recipe)) {
-            $ingredients_array = [];
-
-            foreach ($recipe->ingredients as $ingredient) {
-                $ingredient_quantity = $this->mfgUtil->calc_percentage($ingredient->quantity, $ingredient->waste_percent, $ingredient->quantity);
-                $ingredients_array[$ingredient->variation_id] = [
-                    'quantity' => $ingredient_quantity,
-                    'sub_unit_id' => $ingredient->sub_unit_id,
-                    'waste_percent' => $ingredient->waste_percent,
-                ];
-            }
-            $ingredients = $this->mfgUtil->getIngredientDetails($recipe, $business_id, $location_id);
+        if ($recipe === null) {
+            abort(404);
         }
+
+        $ingredients_array = [];
+
+        foreach ($recipe->ingredients as $ingredient) {
+            $ingredient_quantity = $this->mfgUtil->calc_percentage($ingredient->quantity, $ingredient->waste_percent, $ingredient->quantity);
+            $ingredients_array[$ingredient->variation_id] = [
+                'quantity' => $ingredient_quantity,
+                'sub_unit_id' => $ingredient->sub_unit_id,
+                'waste_percent' => $ingredient->waste_percent,
+            ];
+        }
+        $ingredients = $this->mfgUtil->getIngredientDetails($recipe, $business_id, $location_id);
         $business_details = $this->businessUtil->getDetails($business_id);
         $pos_settings = empty($business_details->pos_settings) ? $this->businessUtil->defaultPosSettings() : json_decode($business_details->pos_settings, true);
 

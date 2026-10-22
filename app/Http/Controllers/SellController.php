@@ -2689,6 +2689,13 @@ class SellController extends Controller
                         'secondary_plate' => $v->secondary_plate,
                     ])
                     : null,
+                // UC-FLX-06 · US-PCP-028: data prometida ao cliente (PROJETO_DT_FIM). Gravada pelo
+                // vendedor ou, na aprovação, pela fila dos postos (`PrometerPrazoDaVenda`).
+                // Valor CRU da coluna: `$sell->due_date` passa pelo accessor `Transaction::getDueDateAttribute`,
+                // que devolve o vencimento pelo prazo de pagamento (data da venda + pay_term), não esta data.
+                'prazo_prometido' => (\Illuminate\Support\Facades\Schema::hasColumn('transactions', 'due_date') && $sell->getRawOriginal('due_date'))
+                    ? substr((string) $sell->getRawOriginal('due_date'), 0, 10)
+                    : null,
             ];
 
             // Detail payload já calculado acima — encapsular pra defer.
@@ -2709,6 +2716,12 @@ class SellController extends Controller
                     })->values()->toArray(),
                     // UC-FLX-34: custo guardado × custo de hoje no orçamento aberto (nulo fora dele).
                     'custo' => $this->custoDoOrcamento($sell),
+                    // UC-FLX-23 · US-SELL-073: protocolo de entrega gravado pelo app (nulo sem entrega).
+                    'entrega' => $this->entregaDaVenda($sell),
+                    // US-SELL-071: nota da pesquisa depois da entrega e o atendimento aberto (nulo sem pesquisa ou sem sell.view).
+                    'pesquisa' => $this->pesquisaDaEntrega($sell),
+                    // UC-FLX-04: quando o cliente abriu o link público do orçamento (nulo fora de orçamento).
+                    'acesso' => $this->acessoDoOrcamento($sell),
                     'payments' => collect($sell->payment_lines ?? [])->map(function ($p) {
                         return [
                             'id' => (int) $p->id,
@@ -3372,6 +3385,22 @@ class SellController extends Controller
     }
 
     /**
+     * UC-FLX-06 · US-PCP-028 — URL do prazo pela fila (`producao.vendas.prazo`, com `{id}`), ou
+     * null quando a empresa não tem o Produção no pacote: aí a rota responde 403 e a tela nem
+     * pergunta. Mesma condição do `PrazoDaVendaController`.
+     */
+    private function urlDoPrazoPelaFila(int $businessId): ?string
+    {
+        if (! \Illuminate\Support\Facades\Route::has('producao.vendas.prazo')) {
+            return null;
+        }
+        $pode = auth()->user()->can('superadmin')
+            || (new \App\Utils\ModuleUtil())->hasThePermissionInSubscription($businessId, 'producao_module');
+
+        return $pode ? '/producao/vendas/{id}/prazo' : null;
+    }
+
+    /**
      * Display a listing sell quotations.
      *
      * @return \Illuminate\Http\Response
@@ -3428,6 +3457,9 @@ class SellController extends Controller
                     'datatable' => '/sells/draft-dt?is_quotation=1',
                     'back' => '/sells',
                     'convert' => '/sells/convert-to-draft/{id}',
+                    // UC-FLX-06 · US-PCP-028: entrega prevista pela fila dos postos, lida pelo
+                    // diálogo de converter. Nulo sem o Produção no pacote (a rota responderia 403).
+                    'prazo' => $this->urlDoPrazoPelaFila((int) $business_id),
                 ],
             ]);
         }
@@ -3482,6 +3514,16 @@ class SellController extends Controller
 
             if ($is_quotation == 1) {
                 $sells->where('transactions.sub_status', 'quotation');
+
+                // UC-FLX-04: abertura do link público pelo cliente (uma linha por orçamento).
+                $sells->leftJoin('transaction_quote_accesses as tqa', function ($join) {
+                    $join->on('tqa.transaction_id', '=', 'transactions.id')
+                        ->on('tqa.business_id', '=', 'transactions.business_id');
+                })->addSelect(
+                    DB::raw('MAX(tqa.first_opened_at) as quote_first_opened_at'),
+                    DB::raw('MAX(tqa.last_opened_at) as quote_last_opened_at'),
+                    DB::raw('COALESCE(MAX(tqa.open_count), 0) as quote_open_count')
+                );
 
                 if (! auth()->user()->can('quotation.view_all') && auth()->user()->can('quotation.view_own')) {
                     $sells->where('transactions.created_by', request()->session()->get('user.id'));
@@ -3973,6 +4015,33 @@ class SellController extends Controller
     private const LIMITE_AVISO_CUSTO = 0.05;
 
     /**
+     * Termômetro de acesso do orçamento (US-SELL-070 · UC-FLX-04): primeira e última abertura do
+     * link público e quantas vezes abriu. Nulo quando a venda não é orçamento (rascunho de
+     * cotação), que é o mesmo recorte que o QuoteAccessRecorder grava. A linha é lida pelo
+     * business da venda, que o show() já restringiu ao business do usuário.
+     */
+    private function acessoDoOrcamento(Transaction $sell): ?array
+    {
+        if ($sell->status !== 'draft' || $sell->sub_status !== 'quotation') {
+            return null;
+        }
+
+        $linha = DB::table('transaction_quote_accesses')
+            ->where('business_id', (int) $sell->business_id)
+            ->where('transaction_id', (int) $sell->id)
+            ->first(['first_opened_at', 'last_opened_at', 'open_count']);
+
+        $vezes = $linha ? (int) $linha->open_count : 0;
+
+        return [
+            'aberto' => $vezes > 0 && $linha->first_opened_at !== null,
+            'primeira' => $vezes > 0 ? $linha->first_opened_at : null,
+            'ultima' => $vezes > 0 ? $linha->last_opened_at : null,
+            'vezes' => $vezes,
+        ];
+    }
+
+    /**
      * Custo do orçamento aberto: o guardado no dia (US-SELL-067) ao lado do custo de hoje
      * (UC-FLX-34 · US-SELL-068). Nulo quando a venda não é rascunho, quando o usuário não tem
      * `view_purchase_price` (o custo nem chega ao navegador) ou sem o módulo Compras.
@@ -3980,6 +4049,39 @@ class SellController extends Controller
      * Margem = (receita sem imposto − custo) / receita, só sobre as linhas que têm os dois custos.
      * Uma linha "mudou" quando o custo de hoje se afasta do guardado mais que LIMITE_AVISO_CUSTO.
      */
+    /**
+     * Pesquisa de satisfação depois da entrega desta venda (US-SELL-071 · aceite 5). Nulo quando não
+     * houve pesquisa, quando o usuário não tem `sell.view` (quem só vê as próprias vendas não lê a nota)
+     * ou sem a tabela. Tier 0 (ADR 0093): pesquisa e tarefa filtradas pelo business_id da venda.
+     */
+    private function pesquisaDaEntrega(Transaction $sell): ?array
+    {
+        if (! auth()->user()?->can('sell.view') || ! \Illuminate\Support\Facades\Schema::hasTable('transaction_satisfaction_surveys')) {
+            return null;
+        }
+        $p = DB::table('transaction_satisfaction_surveys')->where('business_id', $sell->business_id)
+            ->where('transaction_id', $sell->id)->first(['canal', 'status', 'motivo', 'nota', 'respondido_em', 'atendimento_schedule_id']);
+        if (! $p) {
+            return null;
+        }
+        $atendimento = null;
+        if ($p->atendimento_schedule_id && \Illuminate\Support\Facades\Schema::hasTable('crm_schedules')) {
+            $t = DB::table('crm_schedules')->where('business_id', $sell->business_id)->where('id', $p->atendimento_schedule_id)
+                ->first(['id', 'title', 'status']);
+            $atendimento = $t ? [
+                'id' => (int) $t->id, 'titulo' => (string) $t->title, 'status' => (string) $t->status,
+                'url' => \Illuminate\Support\Facades\Route::has('follow-ups.index') ? route('follow-ups.index') : null,
+            ] : null;
+        }
+
+        return [
+            'canal' => (string) $p->canal, 'status' => (string) $p->status, 'motivo' => $p->motivo ? (string) $p->motivo : null,
+            'nota' => $p->nota === null ? null : (int) $p->nota,
+            'respondido_em' => $p->respondido_em ? (string) $p->respondido_em : null,
+            'atendimento' => $atendimento,
+        ];
+    }
+
     private function custoDoOrcamento(Transaction $sell): ?array
     {
         if ($sell->status !== 'draft' || ! auth()->user()?->can('view_purchase_price')
@@ -4023,6 +4125,67 @@ class SellController extends Controller
             'margem_prevista_pct' => $margem($previsto),
             'margem_hoje_pct' => $margem($atual),
             'itens_mudaram' => $mudaram,
+        ];
+    }
+
+    /**
+     * UC-FLX-23 · US-SELL-073 — último protocolo de entrega da venda, gravado pelo app das lojas em
+     * `app_entregas` (PedidoEntregaController). Nulo quando a venda não tem entrega.
+     *
+     * Tier 0 (ADR 0093): filtra pelo business da venda, que o show() já resolveu pela sessão; uma
+     * linha de outra empresa apontando para o mesmo transaction_id não aparece.
+     *
+     * A assinatura sai pela URL assinada de 10 min `app.arquivos.conteudo`, a mesma do app: o
+     * business vai dentro da assinatura, então trocar o parâmetro dá 403.
+     */
+    private function entregaDaVenda(Transaction $sell): ?array
+    {
+        if (! \Illuminate\Support\Facades\Schema::hasTable('app_entregas')) {
+            return null;
+        }
+
+        $bizId = (int) $sell->business_id;
+        $e = DB::table('app_entregas')
+            ->where('business_id', $bizId)
+            ->where('transaction_id', (int) $sell->id)
+            ->orderByDesc('id')
+            ->first();
+        if ($e === null) {
+            return null;
+        }
+
+        $linhas = collect($sell->getRelationValue('sell_lines') ?? [])->keyBy('id');
+        $itens = collect(json_decode((string) $e->itens, true) ?: [])->map(function ($i) use ($linhas) {
+            $linha = $linhas->get((int) ($i['linha_id'] ?? 0));
+
+            return [
+                'linha_id' => (int) ($i['linha_id'] ?? 0),
+                'produto' => $linha ? (string) (optional($linha->product)->name ?? '') : null,
+                'quantidade' => $linha ? (float) $linha->quantity : null,
+                'conferido' => (bool) ($i['conferido'] ?? false),
+            ];
+        })->values()->all();
+
+        $assinaturaUrl = null;
+        if ($e->com_assinatura && $e->assinatura_arquivo_id
+            && \Illuminate\Support\Facades\Route::has('app.arquivos.conteudo')) {
+            $assinaturaUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+                'app.arquivos.conteudo',
+                now()->addMinutes(10),
+                ['arquivo' => (int) $e->assinatura_arquivo_id, 'biz' => $bizId],
+            );
+        }
+
+        return [
+            'protocolo' => (string) $e->protocolo,
+            'registrado_em' => (string) $e->registrado_em,
+            'recebido_por' => (string) $e->recebido_por,
+            'documento' => $e->documento !== null ? (string) $e->documento : null,
+            'volumes' => isset($e->volumes) ? (int) $e->volumes : null,
+            'itens' => $itens,
+            'com_assinatura' => (bool) $e->com_assinatura,
+            'assinatura_url' => $assinaturaUrl,
+            'sem_assinatura_motivo' => $e->sem_assinatura_motivo !== null ? (string) $e->sem_assinatura_motivo : null,
         ];
     }
 }

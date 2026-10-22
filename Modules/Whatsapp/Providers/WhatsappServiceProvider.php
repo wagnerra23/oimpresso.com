@@ -51,6 +51,8 @@ use Modules\Whatsapp\Http\Middleware\VerifyBaileysWebhookHmac;
 use Modules\Whatsapp\Http\Middleware\VerifyMetaSignature;
 use Modules\Whatsapp\Http\Middleware\VerifyZapiSignature;
 use Modules\Whatsapp\Listeners\DispatchToJanaBot;
+use Modules\ComunicacaoVisual\Events\InstalacaoAgendada;
+use Modules\Whatsapp\Listeners\NotifyInstalacaoCvCustomer;
 use Modules\Whatsapp\Listeners\NotifyRepairCustomer;
 use Modules\Whatsapp\Listeners\TouchCustomerMemoryOnMessage;
 use Modules\Whatsapp\Listeners\PublishMessageReceivedToCentrifugo;
@@ -185,6 +187,12 @@ class WhatsappServiceProvider extends ServiceProvider
         // — dispatch real depende de PR coordenado com Felipe/Maiara modificando JobSheetController.
         Event::listen(RepairStatusChanged::class, [NotifyRepairCustomer::class, 'handleEvent']);
 
+        // CV: instalação agendada → aviso ao cliente com opt-in LGPD (US-COMVIS-007 · UC-FLX-21).
+        // class_exists: o módulo ComunicacaoVisual pode não estar instalado nesta base.
+        if (class_exists(InstalacaoAgendada::class)) {
+            Event::listen(InstalacaoAgendada::class, [NotifyInstalacaoCvCustomer::class, 'handle']);
+        }
+
         // Centrifugo real-time UI (ADR 0058) — publica em whatsapp:business:{id} channel
         Event::listen(WhatsappMessageReceived::class, PublishMessageReceivedToCentrifugo::class);
         Event::listen(WhatsappMessageSent::class, PublishMessageSentToCentrifugo::class);
@@ -241,6 +249,8 @@ class WhatsappServiceProvider extends ServiceProvider
 
         // Área `atendimento` do Início do app das lojas (tela 41): o núcleo pergunta pelo contrato.
         $this->app->bind(\App\Contracts\Atendimento\AtendimentoDoApp::class, \Modules\Whatsapp\Http\Controllers\Api\AppAtendimentoController::class);
+        // US-SELL-071 — pesquisa de satisfação depois da entrega pelo CSAT do WhatsApp (o núcleo não importa o módulo).
+        $this->app->bind(\App\Contracts\Atendimento\EnviaPesquisaSatisfacao::class, \Modules\Whatsapp\Services\Csat\PesquisaSatisfacaoWhatsapp::class);
 
         // US-WA-072 — Whisper transcription contract. WhisperTranscriber é
         // o único impl nesta fase; Ollama whisper-local vai em US separada.

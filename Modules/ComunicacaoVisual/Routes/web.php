@@ -1,8 +1,11 @@
 <?php
 
 use Inertia\Inertia;
+use Modules\ComunicacaoVisual\Http\Controllers\AgendaController;
 use Modules\ComunicacaoVisual\Http\Controllers\ApontamentoController;
+use Modules\ComunicacaoVisual\Http\Controllers\InstalacaoController;
 use Modules\ComunicacaoVisual\Http\Controllers\InstallController;
+use Modules\ComunicacaoVisual\Http\Controllers\OrcamentoArquivoController;
 use Modules\ComunicacaoVisual\Http\Controllers\OrcamentoController;
 
 // Rota raiz do módulo: renderiza Index.tsx — calculadora de orçamento por m²
@@ -12,7 +15,7 @@ use Modules\ComunicacaoVisual\Http\Controllers\OrcamentoController;
 Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
     ->prefix('comunicacao-visual')
     ->group(function () {
-        Route::get('/', function () {
+        Route::get('/', function (\Illuminate\Http\Request $request) {
             // Permission gate canon — qualquer perm de visualização CV libera o hub.
             if (! auth()->user()->can('superadmin')
                 && ! auth()->user()->can('comvis.orcamento.view')
@@ -50,13 +53,34 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
                     ])
                     ->values();
 
+            // Reabrir (`?orcamento={id}`): EAGER, a calculadora monta as peças no 1º paint.
+            // A lista dos salvos é DEFERIDA (Inertia::defer) — query de lista, não do 1º paint.
+            // Só quem vê orçamento (comvis.os.view sozinho abre o hub, mas não os orçamentos).
+            $podeVerOrc = auth()->user()->can('superadmin')
+                || auth()->user()->can('comvis.orcamento.view')
+                || auth()->user()->can('comvis.orcamento.create');
+            $reabrirId = $podeVerOrc ? (int) $request->query('orcamento', 0) : 0;
+            $orcamento = ($businessId !== null && $reabrirId > 0)
+                ? OrcamentoController::paraTela((int) $businessId, $reabrirId)
+                : null;
+
             return Inertia::render('ComunicacaoVisual/Index', [
                 'bizName'   => session('business.name', 'oimpresso'),
                 'materiais' => $materiais,
                 'podeCriar' => auth()->user()->can('superadmin')
                     || auth()->user()->can('comvis.orcamento.create'),
+                // UC-FLX-03: a tela avisa que a margem aparece ao conferir, só para quem vê custo.
+                'podeVerCusto'      => OrcamentoController::podeVerCusto(),
+                'orcamento'         => $orcamento,
+                'orcamentoAusente'  => $reabrirId > 0 && $orcamento === null,
+                'recentes'  => Inertia::defer(fn () => ($businessId === null || ! $podeVerOrc)
+                    ? []
+                    : OrcamentoController::recentes((int) $businessId)),
             ]);
         })->name('comunicacao-visual.index');
+
+        // US-COMVIS-007 · UC-FLX-21: agenda de instalação em semana × equipe. Só lê; agendar é o POST da API.
+        Route::get('agenda', [AgendaController::class, 'index'])->name('comunicacao-visual.agenda');
     });
 
 // Rotas Install 1-click (ADR 0024 / BaseModuleInstallController).
@@ -83,13 +107,36 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         Route::post('calcular', [OrcamentoController::class, 'calcular'])
             ->name('comvis.api.calcular');
 
-        // Persistência de orçamentos
+        // Persistência de orçamentos — salvar, listar e reabrir (UC-CV-13/14)
+        Route::get('orcamentos', [OrcamentoController::class, 'index'])
+            ->name('comvis.api.orcamentos.index');
+
         Route::post('orcamentos', [OrcamentoController::class, 'store'])
             ->name('comvis.api.orcamentos.store');
 
         // Consulta de orçamento por ID (multi-tenant: global scope filtra automaticamente)
         Route::get('orcamentos/{id}', [OrcamentoController::class, 'show'])
+            ->whereNumber('id')
             ->name('comvis.api.orcamentos.show');
+
+        Route::put('orcamentos/{id}', [OrcamentoController::class, 'update'])
+            ->whereNumber('id')
+            ->name('comvis.api.orcamentos.update');
+
+        // UC-FLX-01 · US-COMVIS-020: aprovar o orçamento cria a OS sem redigitar (idempotente)
+        Route::post('orcamentos/{id}/aprovar', [OrcamentoController::class, 'aprovar'])
+            ->whereNumber('id')
+            ->name('comvis.api.orcamentos.aprovar');
+
+        // Arquivos do orçamento (arte, foto do local) — copiados para a OS ao aprovar (UC-FLX-01)
+        Route::post('orcamentos/{id}/arquivos', [OrcamentoArquivoController::class, 'store'])
+            ->whereNumber('id')
+            ->name('comvis.api.orcamentos.arquivos.store');
+
+        Route::delete('orcamentos/{id}/arquivos/{media}', [OrcamentoArquivoController::class, 'destroy'])
+            ->whereNumber('id')
+            ->whereNumber('media')
+            ->name('comvis.api.orcamentos.arquivos.destroy');
 
         // Sprint 1 — US-COMVIS-004: Spool Plotter / Apontamento de Produção
         // ATENÇÃO: em-andamento registrado antes de {apontamento} pra evitar conflito de rota
@@ -107,4 +154,12 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
 
         Route::post('apontamentos/{apontamento}/cancelar', [ApontamentoController::class, 'cancelar'])
             ->name('comvis.api.apontamentos.cancelar');
+
+        // US-COMVIS-007 · UC-FLX-21: agenda da equipe de instalação (equipe + veículo; recusa sem janela).
+        Route::get('instalacoes', [InstalacaoController::class, 'index'])
+            ->name('comvis.api.instalacoes.index');
+
+        Route::post('os/{os}/instalacao', [InstalacaoController::class, 'agendar'])
+            ->whereNumber('os')
+            ->name('comvis.api.instalacoes.agendar');
     });

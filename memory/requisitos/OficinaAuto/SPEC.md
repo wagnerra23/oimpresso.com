@@ -1521,6 +1521,52 @@ Delta #6 do protótipo Cowork "Nova OS" (seção "Fiscal"). Painel **presentacio
 
 **Refs:** ADR 0265 · RUNBOOK memory/requisitos/OficinaAuto/RUNBOOK-erradicacao-locacao.md (P5) · PR #2475 · charter ProducaoOficina/Index.charter.md (v4)
 
+### US-OFICINA-047 · Entrega da OS exige foto do serviço feito (UC-FLX-22)
+
+> owner: — · priority: p2 · estimate: 2h (IA-pair fator 10x ADR 0106) · type: story · origin: catálogo de fluxos UC-FLX-22 (modelo "Oficina mecânica", etapa "Entregue · Fotos do serviço") · 2026-10-20
+> blocked_by: —
+
+O veículo só é entregue ao cliente com foto do serviço feito. Regra `servico_foto` no `StageGateEvaluator`, na ação `entregar` (Pronto p/ retirar → Entregue) do processo `oficina_mecanica_os` — o mesmo gate da US-OFICINA-003 (422 na web com liberação de gerente registrada na trilha; no app, `bloqueado` sem liberação). "Foto do serviço" = imagem anexada à OS ou a item da vistoria enviada a partir da entrada da OS em `em_execucao` na trilha FSM; foto do diagnóstico (antes) e PDF não contam. OS sem essa entrada na trilha (importada/repontuada) aceita qualquer foto da OS. Fotos filtradas pelo `business_id` da OS (o app chama sem sessão).
+
+**Parcial — assinatura fora:** o UC-FLX-22 pede também a assinatura do cliente. Ela não existe na Oficina; o padrão do repo é o da entrega do pedido no app (`app/Http/Controllers/Api/App/PedidoEntregaController.php`, ajuste `app_entrega_exige_assinatura`). Fica para outra US — entrou na US-OFICINA-048 (2026-10-21).
+
+**Implementado em:** _parcial_ — `Modules/OficinaAuto/Services/StageGateEvaluator.php` (regra `servico_foto` em `entregar`) · `app/Http/Controllers/ServiceOrderFsmActionController.php` · `Modules/OficinaAuto/Services/AcoesOsDoApp.php` — foto exigida; assinatura falta
+
+**Testado em:** `Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php` — lane `PHP / Pest (Sells · MySQL)`
+
+**Casos:** UC-OSH-12..16 no `.casos.md` do Show da OS (`ServiceOrders/Show.casos.md`).
+
+**DoD:**
+- [x] Regra `servico_foto` na ação `entregar`, data-driven no `StageGateEvaluator` (sem trava paralela)
+- [x] Web: 422 sem foto; gerente/superadmin libera e a trilha guarda `gate_override` + `gate_unmet`
+- [x] App: `bloqueado` sem foto, sem liberação; mesma regra
+- [x] Tier 0: foto de outra empresa apontando para a OS não conta (sem sessão)
+- [x] Assinatura do cliente na entrega — US-OFICINA-048
+
+### US-OFICINA-048 · Entrega da OS exige assinatura do cliente, por empresa (UC-FLX-22)
+
+> owner: — · priority: p2 · estimate: 3h (IA-pair fator 10x ADR 0106) · type: story · origin: catálogo de fluxos UC-FLX-22 (complemento da US-OFICINA-047) · 2026-10-21
+> blocked_by: —
+
+A entrega da OS (ação `entregar`, Pronto p/ retirar → Entregue) passa a exigir a assinatura do cliente quando a empresa liga `business.common_settings[oficina_entrega_exige_assinatura]` — **desligada por padrão** (formato do `compras_requisicao_estoque_minimo`; liga/desliga com `php artisan oficina:entrega-assinatura <biz> --ligar|--desligar`). Desligada, o checklist da entrega é o de antes. Regra `assinatura` no `StageGateEvaluator` (mesmo gate e mesma liberação de gerente da US-OFICINA-047).
+
+O quadro de assinatura aparece no checklist da entrega enquanto o requisito está pendente e grava em `POST /oficina-auto/ordens-servico/{order}/assinatura`. O PNG segue o contrato da entrega do pedido no app (`PedidoEntregaController`: data URL, PNG ≤ 200 KB) e fica no Arquivos anexado à linha de `oficina_os_assinaturas` (uma por OS; assinar de novo troca) — não à OS, cujo anexo é foto do laudo e contaria como foto do serviço. Gate filtra a assinatura e o anexo pelo `business_id` da OS (o app chama sem sessão).
+
+**Limite:** o app não colhe assinatura da OS; com o ajuste ligado a entrega pelo app volta `bloqueado` até a assinatura ser colhida na web. Sem tela de configuração para o ajuste (só o comando).
+
+**Implementado em:** `Modules/OficinaAuto/Services/AssinaturaEntrega.php` · `Modules/OficinaAuto/Services/StageGateEvaluator.php` (regra `assinatura` em `entregar`) · `Modules/OficinaAuto/Http/Controllers/ServiceOrderAssinaturaController.php` · `Modules/OficinaAuto/Entities/OsAssinatura.php` · `Modules/OficinaAuto/Console/Commands/OficinaEntregaAssinaturaCommand.php` · `resources/js/Pages/OficinaAuto/ServiceOrders/_components/ServiceOrderSignaturePad.tsx`
+
+**Testado em:** `Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaAssinaturaTest.php` — lane `PHP / Pest (Sells · MySQL)`
+
+**Casos:** UC-OSH-17..22 no `.casos.md` do Show da OS (`ServiceOrders/Show.casos.md`).
+
+**DoD:**
+- [x] Ajuste por empresa, desligado por padrão; comando para ligar/desligar
+- [x] Regra `assinatura` na ação `entregar`, data-driven no `StageGateEvaluator`, só presente com o ajuste ligado
+- [x] Quadro de assinatura no checklist da entrega; PNG ≤ 200 KB no Arquivos, fora da galeria da OS
+- [x] Tier 0: assinatura de outra empresa apontando para a OS não conta
+- [ ] Tela de configuração para o ajuste (fora deste PR)
+
 ---
 
 **Última atualização:** 2026-06-09 — US-OFICINA-046 dívida F3 (repontuar kanban Caçambas overdue→expected_completion + remover UI "Locações ativas") — follow-up erradicação ADR 0265 (PR #2475). 2026-06-02 — US-OFICINA-042 painel fiscal NF-e/NFS-e (split presentacional). 2026-06-02 — US-OFICINA-041 gate de aprovação in-screen (status→orcamento dispara WhatsApp). 2026-06-02 — US-OFICINA-040 DVI→orçamento (wire-up Wave 3b). 2026-06-02 — US-OFICINA-038/039 check-in de entrada (combustível + avarias) — delta protótipo Cowork "Nova OS". 2026-05-26 — US-OFICINA-035 DVI Vistoria Digital backend (schema + Model + Service + HTTP API + Pest) — wedge CAPTERRA Repair gap #3. UI Wave 3b. 2026-05-15 — US-OFICINA-026 adicionada (goal #1 CYCLE-06 Martinho prod). 2026-05-10 — SPEC criada **antecipatória** sem cliente piloto. Status `feature-wish` lifecycle `aguarda-sinal-qualificado`. Não codar até gatilho §9 satisfeito. Revisar trimestralmente — se 12 meses sem sinal, considerar arquivar como `historical` (ADR 0095 lifecycle).

@@ -53,6 +53,10 @@ on:
       - 'database/seeders/FsmProcessoVendaComProducaoSeeder.php'
       - 'database/seeders/FsmProcessoComunicacaoVisualSeeder.php'
       - 'app/Domain/Fsm/Modelos/**'
+      - 'app/Domain/Fsm/Services/ExecuteStageActionService.php'  # Marcar perdido (exige_motivo)
+      - 'app/Domain/Fsm/Models/SaleStageAction.php'  # Marcar perdido (exige_motivo)
+      - 'app/Http/Controllers/SaleFsmActionController.php'  # Marcar perdido (exige_motivo)
+      - 'database/migrations/2026_10_21_120000_add_exige_motivo_to_sale_stage_actions.php'  # Marcar perdido (exige_motivo)
       - 'app/Domain/Fsm/Models/ModeloEmpresa.php'
       - 'database/migrations/2026_10_16_140000_create_fsm_modelos_empresa_table.php'
       - 'app/Http/Controllers/Api/App/PedidoAcaoController.php'  # P1 tela 22 (PR 04 propostas-app)
@@ -66,6 +70,16 @@ on:
       - 'Modules/Producao/Http/Controllers/Api/AppApontamentoController.php'
       - 'Modules/Producao/Services/**'
       - 'app/Http/Controllers/Api/App/OsArquivosController.php'
+      - 'Modules/OficinaAuto/Services/StageGateEvaluator.php'  # UC-FLX-22 foto do serviço na entrega
+      - 'Modules/OficinaAuto/Services/AcoesOsDoApp.php'
+      - 'app/Http/Controllers/ServiceOrderFsmActionController.php'
+      - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php'
+      - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaAssinaturaTest.php'  # UC-FLX-22 assinatura na entrega
+      - 'Modules/OficinaAuto/Services/AssinaturaEntrega.php'
+      - 'Modules/OficinaAuto/Http/Controllers/ServiceOrderAssinaturaController.php'
+      - 'Modules/OficinaAuto/Entities/OsAssinatura.php'
+      - 'Modules/OficinaAuto/Console/Commands/OficinaEntregaAssinaturaCommand.php'
+      - 'Modules/OficinaAuto/Database/Migrations/2026_10_21_120000_create_oficina_os_assinaturas_table.php'
       - 'routes/api/app/os-arquivos.php'
       - 'app/Contracts/Arquivos/AnexosDoApp.php'
       - 'Modules/Arquivos/Services/AnexosDoAppService.php'
@@ -115,6 +129,11 @@ on:
       - 'app/Http/Controllers/CashRegisterController.php'
       # Sob teste em SellReturnIndexContratoTest (UC-SRIDX-*, lista de devoluções).
       - 'app/Http/Controllers/SellReturnController.php'
+      # Sob teste em PesquisaSatisfacaoEntregaContratoTest (US-SELL-071 · UC-FLX-25).
+      - 'app/Jobs/PesquisaSatisfacaoEntregaJob.php'
+      - 'app/Services/Sells/PesquisaEntregaConfig.php'
+      - 'app/Console/Commands/Sells/PesquisaSatisfacaoEntregaCommand.php'
+      - 'database/migrations/2026_10_20_140000_create_transaction_satisfaction_surveys_table.php'
       - 'resources/js/Pages/SellReturn/**'
       - 'app/Utils/TransactionUtil.php'
       # Sob teste em BuscaProdutoPrecoDeGrupoContratoTest (filterProduct × getVariationGroupPrice).
@@ -202,6 +221,10 @@ jobs:
               - 'app/Utils/CashRegisterUtil.php'
               - 'app/Http/Controllers/CashRegisterController.php'
               - 'app/Http/Controllers/SellReturnController.php'
+              - 'app/Jobs/PesquisaSatisfacaoEntregaJob.php'
+              - 'app/Services/Sells/PesquisaEntregaConfig.php'
+              - 'app/Console/Commands/Sells/PesquisaSatisfacaoEntregaCommand.php'
+              - 'database/migrations/2026_10_20_140000_create_transaction_satisfaction_surveys_table.php'
               - 'resources/js/Pages/SellReturn/**'
               - 'app/Utils/TransactionUtil.php'
               - 'app/Utils/ProductUtil.php'
@@ -225,6 +248,10 @@ jobs:
               - 'database/seeders/FsmProcessoVendaComProducaoSeeder.php'
               - 'database/seeders/FsmProcessoComunicacaoVisualSeeder.php'
               - 'app/Domain/Fsm/Modelos/**'
+              - 'app/Domain/Fsm/Services/ExecuteStageActionService.php'  # Marcar perdido (exige_motivo)
+              - 'app/Domain/Fsm/Models/SaleStageAction.php'  # Marcar perdido (exige_motivo)
+              - 'app/Http/Controllers/SaleFsmActionController.php'  # Marcar perdido (exige_motivo)
+              - 'database/migrations/2026_10_21_120000_add_exige_motivo_to_sale_stage_actions.php'  # Marcar perdido (exige_motivo)
               - 'app/Domain/Fsm/Models/ModeloEmpresa.php'
               - 'database/migrations/2026_10_16_140000_create_fsm_modelos_empresa_table.php'
               - 'app/Http/Controllers/Api/App/PedidoAcaoController.php'  # P1 tela 22 (PR 04 propostas-app)
@@ -238,6 +265,16 @@ jobs:
               - 'Modules/Producao/Http/Controllers/Api/AppApontamentoController.php'
               - 'Modules/Producao/Services/**'
               - 'app/Http/Controllers/Api/App/OsArquivosController.php'
+              - 'Modules/OficinaAuto/Services/StageGateEvaluator.php'  # UC-FLX-22 foto do serviço na entrega
+              - 'Modules/OficinaAuto/Services/AcoesOsDoApp.php'
+              - 'app/Http/Controllers/ServiceOrderFsmActionController.php'
+              - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php'
+              - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaAssinaturaTest.php'  # UC-FLX-22 assinatura na entrega
+              - 'Modules/OficinaAuto/Services/AssinaturaEntrega.php'
+              - 'Modules/OficinaAuto/Http/Controllers/ServiceOrderAssinaturaController.php'
+              - 'Modules/OficinaAuto/Entities/OsAssinatura.php'
+              - 'Modules/OficinaAuto/Console/Commands/OficinaEntregaAssinaturaCommand.php'
+              - 'Modules/OficinaAuto/Database/Migrations/2026_10_21_120000_create_oficina_os_assinaturas_table.php'
               - 'routes/api/app/os-arquivos.php'
               - 'app/Contracts/Arquivos/AnexosDoApp.php'
               - 'Modules/Arquivos/Services/AnexosDoAppService.php'
@@ -388,6 +425,9 @@ jobs:
         # 2026-10-20 — + QuoteAccessTermometroContratoTest (UC-QUO-05..08, US-SELL-070 · UC-FLX-04):
         # abertura do link /quote/{token} gravada (HEAD/prefetch/usuário da empresa fora), página não
         # quebra se gravar falha, retorno de 48 h uma vez só e só no business do job. NASCE SEM RUN.
+        # 2026-10-21 — + QuoteAccessTelaContratoTest (UC-VSHOW-20/21 + UC-QUO-10, US-SELL-070 · UC-FLX-04):
+        # o detalhe do orçamento e a lista de cotações mostram se o cliente abriu, quando e quantas
+        # vezes; outro business recebe 404 e linha de acesso alheia não vira abertura. NASCE SEM RUN.
         # 2026-10-06 — + CommissionSplitAuditTest (UC-COM-01/02, playbook comissões thread 03):
         # trocar split/comissionado grava auditoria antes→depois; PATCH do split não alcança
         # venda nem usuário de outro business. NASCE SEM RUN: vermelho aqui é este arquivo.
@@ -435,6 +475,12 @@ jobs:
         # não retoma, migration de dados idempotente, POST /api/app/pedidos/{id}/acao.
         # 2026-10-16 — + FsmPagamentoForaDasEtapasContratoTest: entregar sai de invoiced,
         # paid → entregar por compatibilidade, migration idempotente, SituacaoPagamentoVenda pelos títulos.
+        # 2026-10-20 — + PesquisaSatisfacaoEntregaContratoTest (UC-VSHOW-09..13, US-SELL-071 · UC-FLX-25):
+        # pesquisa 2 dias depois da entrega, uma por venda, opt-out LGPD, nota baixa abre atendimento
+        # no CRM, default desligado, tenant 98 × 99. NASCE SEM RUN: vermelho aqui é este arquivo.
+        # 2026-10-21 — + SellsPrazoEntregaContratoTest (UC-QUO-09 · UC-VSHOW-14, US-PCP-028 · UC-FLX-06):
+        # URL do prazo pela fila na Page de cotações, 404 para outro business, data prometida no
+        # detalhe da venda. NASCE SEM RUN: vermelho aqui é este arquivo.
         # 2026-10-20 — + SellsTravaAposNotaContratoTest (US-SELL-072, UC-SEDIT-13..18): nota autorizada
         # recusa itens/valores/cliente no PUT /pos/{id} e deixa a observação; nota cancelada não trava;
         # pagamento trava só valores; nota do 2º business não trava; sem nota nem pagamento, como antes.
@@ -449,9 +495,11 @@ jobs:
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-sells-junit.xml \
-            tests/Feature/Sells/SellsShowContratoTest.php \
+            tests/Feature/Sells/SellsShowContratoTest.php             tests/Feature/Sells/SellsPrazoEntregaContratoTest.php \
+            tests/Feature/Sells/PesquisaSatisfacaoEntregaContratoTest.php \
             tests/Feature/Sells/OrcamentoCustoPrevistoContratoTest.php \
             tests/Feature/Sells/SellsShowCustoOrcamentoContratoTest.php \
+            tests/Feature/Sells/SellsShowEntregaContratoTest.php \
             tests/Feature/Sells/SellsMargemMinimaContratoTest.php \
             tests/Feature/Sells/SellsEditContratoTest.php \
             tests/Feature/Sells/SellsTravaAposNotaContratoTest.php \
@@ -460,6 +508,7 @@ jobs:
             tests/Feature/Sells/AppPedidosApiContratoTest.php \
             tests/Feature/Sells/AppPedidosPassosProcessoContratoTest.php \
             tests/Feature/Sells/FsmAplicarModeloContratoTest.php \
+            tests/Feature/Sells/FsmMarcarPerdidoContratoTest.php \
             tests/Feature/Sells/FsmCatalogoProcessosContratoTest.php \
             tests/Feature/Sells/AppInicioApiContratoTest.php \
             tests/Feature/Sells/AppPerfilMenuApiContratoTest.php \
@@ -470,6 +519,8 @@ jobs:
             tests/Feature/Sells/FsmPagamentoForaDasEtapasContratoTest.php \
             tests/Feature/Sells/AppNotificacoesApiContratoTest.php \
             tests/Feature/Sells/AppOsApiContratoTest.php \
+            Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php \
+            Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaAssinaturaTest.php \
             tests/Feature/Sells/AppOsArquivosApiContratoTest.php \
             tests/Feature/Sells/AppPedidoEntregaContratoTest.php \
             tests/Feature/Sells/AppOficinaAgendaApiContratoTest.php \
@@ -500,6 +551,7 @@ jobs:
             tests/Feature/Sells/SellsPosIndexContratoTest.php \
             tests/Feature/Sells/QuotationConvertTest.php \
             tests/Feature/Sells/QuoteAccessTermometroContratoTest.php \
+            tests/Feature/Sells/QuoteAccessTelaContratoTest.php \
             tests/Feature/Sells/ImportSalesContratoTest.php \
             tests/Feature/Sells/ImportSalesReverterContratoTest.php \
             tests/Feature/Sells/VendasMwartCutoverTest.php \

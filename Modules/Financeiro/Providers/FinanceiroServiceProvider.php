@@ -73,6 +73,10 @@ class FinanceiroServiceProvider extends ServiceProvider
         \App\TransactionPayment::observe(\Modules\Financeiro\Observers\TransactionPaymentObserver::class);
         // ADR 0183 — observa cash_registers pra detectar fechamento e disparar event
         \App\CashRegister::observe(\Modules\Financeiro\Observers\CashRegisterObserver::class);
+        // US-FIN-072 — NFS-e autorizada/cancelada lança/estorna a baixa de retenção (chave por negócio, default OFF)
+        if (class_exists(\Modules\NFSe\Models\NfseEmissao::class)) {
+            \Modules\NFSe\Models\NfseEmissao::observe(\Modules\Financeiro\Observers\NfseEmissaoRetencaoObserver::class);
+        }
     }
 
     /**
@@ -105,6 +109,8 @@ class FinanceiroServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 \Modules\Financeiro\Console\Commands\InstallCommand::class,
+                // US-FIN-072 — prévia (só --dry-run) do ajuste por retenção da NFS-e.
+                \Modules\Financeiro\Console\Commands\IssRetidoAjusteCommand::class,
                 // Wave 17 D9.c — Health check do módulo (governance v3 saturação 66→81).
                 \Modules\Financeiro\Console\Commands\FinanceiroHealthCommand::class,
                 // Backfill plano_conta_id em titulos NULL — DRE depende disso.
@@ -124,6 +130,10 @@ class FinanceiroServiceProvider extends ServiceProvider
                 // fin_extrato_lancamentos (canônica). Idempotente, --business
                 // obrigatório (Tier 0), --dry default-seguro. Unifica external_id.
                 \Modules\Financeiro\Console\Commands\BackfillExtratoOfxCommand::class,
+                // US-FIN-070 — custeio RKW do mês, só leitura (aplicar é ação na tela).
+                \Modules\Financeiro\Console\Commands\CusteioRkwCommand::class,
+                // US-FIN-071 · UC-FLX-29 — régua de cobrança D+1/D+5/D+15 (default OFF por business).
+                \Modules\Financeiro\Console\Commands\ReguaCobrancaCommand::class,
             ]);
         }
     }
@@ -133,10 +143,15 @@ class FinanceiroServiceProvider extends ServiceProvider
      */
     protected function registerCommandSchedules(): void
     {
-        // $this->app->booted(function () {
-        //     $schedule = $this->app->make(Schedule::class);
-        //     $schedule->command('inspire')->hourly();
-        // });
+        // US-FIN-071 · UC-FLX-29 — régua de cobrança diária. O comando só enfileira job para
+        // business com a régua LIGADA em common_settings (default OFF), então agendar não envia
+        // nada a ninguém até o negócio ligar.
+        $this->callAfterResolving(\Illuminate\Console\Scheduling\Schedule::class, function ($schedule): void {
+            $schedule->command('financeiro:regua-cobranca')
+                ->dailyAt('09:00')
+                ->withoutOverlapping()
+                ->onOneServer();
+        });
     }
 
     /**

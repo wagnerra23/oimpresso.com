@@ -1,0 +1,277 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR Prévia · o portal como o contato vê Contato Rota Livre Transportes Martinho Oficina Agência Norte Celular 390 Tela cheia Claro Escuro Estado Com dados Carregando Erro Vazio Logins de contato Voltar ao CRM WR2 Comunicação Visual Portal do cliente DP Sair Extrato Débitos e créditos da sua conta · saldo devedor R$ 5.110,00 Lançamentos 6 lançamento(s) PDF agosto de 2026 POS-2026-0482 24/08/2026 · Venda R$ 3.120,00 saldo R$ 1.620,00 PGT-0912 24/08/2026 · Pagamento − R$ 1.500,00 saldo R$ 1.620,00 POS-2026-0470 18/08/2026 · Venda R$ 8.420,00 saldo R$ 8.420,00 PGT-0904 18/08/2026 · Pagamento − R$ 8.420,00 saldo R$ 0,00 julho de 2026 POS-2026-0402 21/07/2026 · Venda R$ 5.490,00 saldo R$ 3.490,00 PGT-0871 21/07/2026 · Pagamento − R$ 2.000,00 saldo R$ 3.490,00 Extrato Início Vendas Assistência Pedidos Extrato",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [
+        {
+          "classes": {
+            "dataBr": 6,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {
+            "dataBr": [
+              "24/08/2026",
+              "18/08/2026",
+              "21/07/2026"
+            ]
+          },
+          "nome": "portal-extrato"
+        }
+      ],
+      "drawer": null,
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 78,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5591/"
+  },
+  "clicar": ".cp-preview > div:nth-child(3) > :first-child",
+  "nos_totais": 608,
+  "quieto_ms": 2000,
+  "rota": "crm-portal-extrato",
+  "secoes": {
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "12px",
+        "padding": "8px 14px"
+      },
+      "filhos": 4,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "cp-brand",
+        "sp",
+        "cp-me",
+        "button"
+      ],
+      "rect": {
+        "h": 61,
+        "w": 388
+      },
+      "seletor": ".cp-frame .cp-top",
+      "truncado": false
+    },
+    "lista": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "cp-sec",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 8,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "cp-sec"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "cp-mes",
+        "li",
+        "li",
+        "li",
+        "li",
+        "cp-mes",
+        "li",
+        "li"
+      ],
+      "rect": {
+        "h": 430,
+        "w": 358
+      },
+      "seletor": "[data-contract=\"portal-extrato\"]",
+      "truncado": false
+    },
+    "nav": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "none",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "4px",
+        "padding": "0px 20px"
+      },
+      "filhos": 7,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 0,
+        "w": 0
+      },
+      "seletor": ".cp-frame .cp-nav",
+      "truncado": false
+    },
+    "nav_celular": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "grid",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 5,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 57,
+        "w": 388
+      },
+      "seletor": ".cp-frame .cp-bottom",
+      "truncado": false
+    },
+    "titulo": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "cp-frame",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "cp-main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "cp-root"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "cp-frame"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "cp-h1",
+        "cp-sub"
+      ],
+      "rect": {
+        "h": 70,
+        "w": 360
+      },
+      "seletor": ".cp-frame .cp-main > div:first-child",
+      "truncado": false
+    }
+  },
+  "tela": "crm--portal-extrato--index-390",
+  "url": "http://127.0.0.1:5591/"
+}

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\NfeBrasil\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Modules\NfeBrasil\Services\ModoContingencia;
 
 /**
  * US-NFE-006 / ADR TECH-0002 — ativação manual de contingência.
@@ -25,6 +26,8 @@ class AtivarContingenciaRequest extends FormRequest
             // min:10 pra barrar "teste"/"ok"/"xx": o campo existe pra ser lido por um
             // auditor meses depois. Limite 255 espelha a coluna.
             'motivo' => ['required', 'string', 'min:10', 'max:255'],
+            // US-NFE-071. Ausente = epec (o comportamento de antes da escolha existir).
+            'modo' => ['nullable', 'string', 'in:' . implode(',', ModoContingencia::todos())],
         ];
     }
 
@@ -32,7 +35,8 @@ class AtivarContingenciaRequest extends FormRequest
     {
         return [
             'motivo.required' => 'Informe o motivo da contingência (exigência de auditoria fiscal).',
-            'motivo.min' => 'Descreva o motivo com pelo menos 10 caracteres — ex: "SEFAZ-SC fora do ar desde 14h".',
+            'modo.in' => 'Escolha o modo: EPEC, SVC-AN ou SVC-RS.',
+            'motivo.min' =>'Descreva o motivo com pelo menos 10 caracteres — ex: "SEFAZ-SC fora do ar desde 14h".',
         ];
     }
 }

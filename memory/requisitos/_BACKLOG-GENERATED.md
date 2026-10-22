@@ -2,30 +2,30 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **986 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1004 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
 | Módulo | Abertas | doing | review | blocked | todo/backlog |
 |---|---:|---:|---:|---:|---:|
 | [`Jana`](#jana) | 83 | 2 | 0 | 0 | 81 |
+| [`Sells`](#sells) | 67 | 0 | 0 | 0 | 67 |
 | [`Whatsapp`](#whatsapp) | 67 | 0 | 0 | 0 | 67 |
-| [`Sells`](#sells) | 65 | 0 | 0 | 0 | 65 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
-| [`Financeiro`](#financeiro) | 49 | 0 | 0 | 0 | 49 |
+| [`Financeiro`](#financeiro) | 49 | 3 | 0 | 0 | 46 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
-| [`OficinaAuto`](#oficinaauto) | 37 | 0 | 0 | 0 | 36 |
+| [`OficinaAuto`](#oficinaauto) | 39 | 0 | 0 | 0 | 38 |
+| [`Producao`](#producao) | 32 | 1 | 0 | 0 | 31 |
 | [`NfeBrasil`](#nfebrasil) | 28 | 0 | 0 | 6 | 22 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
 | [`Marketplaces`](#marketplaces) | 25 | 0 | 0 | 0 | 25 |
-| [`Producao`](#producao) | 25 | 0 | 0 | 0 | 25 |
+| [`Compras`](#compras) | 23 | 3 | 0 | 0 | 19 |
 | [`Crm`](#crm) | 23 | 0 | 0 | 0 | 23 |
+| [`ComunicacaoVisual`](#comunicacaovisual) | 22 | 0 | 0 | 0 | 22 |
 | [`Fiscal`](#fiscal) | 22 | 0 | 0 | 0 | 22 |
-| [`Compras`](#compras) | 21 | 1 | 0 | 0 | 19 |
 | [`Connector`](#connector) | 20 | 0 | 0 | 0 | 19 |
-| [`ComunicacaoVisual`](#comunicacaovisual) | 19 | 0 | 0 | 0 | 19 |
 | [`Forja`](#forja) | 19 | 0 | 1 | 0 | 7 |
 | [`Mwart`](#mwart) | 19 | 0 | 0 | 0 | 19 |
 | [`Vestuario`](#vestuario) | 19 | 0 | 0 | 0 | 19 |
@@ -45,8 +45,8 @@
 | [`Cliente`](#cliente) | 9 | 1 | 0 | 0 | 8 |
 | [`TaskRegistry`](#taskregistry) | 9 | 0 | 0 | 0 | 9 |
 | [`KB`](#kb) | 8 | 0 | 0 | 0 | 8 |
+| [`Manufacturing`](#manufacturing) | 8 | 0 | 0 | 0 | 8 |
 | [`EvolutionAgent`](#evolutionagent) | 7 | 0 | 0 | 0 | 7 |
-| [`Manufacturing`](#manufacturing) | 7 | 0 | 0 | 0 | 7 |
 | [`TeamMcp`](#teammcp) | 7 | 0 | 0 | 0 | 7 |
 | [`NotificationTemplate`](#notificationtemplate) | 6 | 0 | 0 | 0 | 6 |
 | [`SRS`](#srs) | 6 | 0 | 0 | 0 | 6 |
@@ -54,7 +54,7 @@
 | [`LaravelAI`](#laravelai) | 5 | 0 | 0 | 0 | 5 |
 | [`Repair`](#repair) | 5 | 0 | 0 | 0 | 5 |
 | [`Spreadsheet`](#spreadsheet) | 5 | 0 | 0 | 0 | 5 |
-| [`ConsultaOs`](#consultaos) | 3 | 0 | 0 | 0 | 3 |
+| [`ConsultaOs`](#consultaos) | 4 | 0 | 0 | 0 | 4 |
 | [`Dashboard`](#dashboard) | 3 | 0 | 0 | 0 | 3 |
 | [`VozDoCliente`](#vozdocliente) | 3 | 0 | 0 | 0 | 3 |
 | [`ADS`](#ads) | 2 | 0 | 0 | 0 | 2 |
@@ -158,6 +158,79 @@
 - **US-COPI-134** — Régua ADR 0318 órfã — schedules staging (ragas-real-eval + recall-eval) sem runner no CT100
 - **US-COPI-138** — Heartbeat langfuse_trace_uptime_24h no HealthCheckCommand
 
+## Sells
+
+
+### todo
+
+- **US-SELL-054** — Offline-first no PDV — fila IndexedDB + reemissão ao reconectar _(`p1`)_
+- **US-SELL-055** — Pix QR no PDV + webhook auto-reconcile ligado à venda/caixa _(`p1`)_
+- **US-SELL-056** — Keyboard-first coeso no Create — hotkeys configuráveis + Enter-avança + F-key pagar _(`p2`)_
+- **US-SELL-057** — Skeleton de carregamento no Create + INP < 200ms _(`p2`)_
+- **US-SELL-001** — Epic — Migrar /sells/create pra MWART
+- **US-SELL-002** — Backend dual Inertia/Blade + feature flag + Pest
+- **US-SELL-003** — Frontend skeleton + AppShellV2 + props contract
+- **US-SELL-004** — Triagem visibilidade campos (18 → 8 visíveis + 10 colapsáveis)
+- **US-SELL-005** — Produtos — busca + tabela + cálculos
+- **US-SELL-006** — Pagamento + frete + descontos colapsáveis
+- **US-SELL-007** — Atalhos + auto-save draft + estados visuais
+- **US-SELL-008** — QA: audit + smoke biz=1 + canary Wagner 7d + rollback plan
+- **US-SELL-009** — Cutover ROTA LIVRE + remover Blade após 30d
+- **US-SELL-010** — Investigar State Machines existentes (Repair, Project, mcp_tasks) + propor ADR padrão FSM canônico
+- **US-SELL-011** — Modelar 4 tabelas FSM canônicas (processes + stages + actions + RBAC)
+- **US-SELL-012** — Gate de emissão NFe por venda (aplicar FSM canônica em Sale)
+- **US-SELL-013** — Reservas de estoque (stock_reservations) — side-effects FSM aplicados
+- **US-SELL-014** — Multi-documento por venda (transaction_documents poly) — N notas atreladas a 1 OS
+- **US-SELL-015** — Modo "Grade Avançada" — toggle + layout densa base · **P0**
+- **US-SELL-016** — Multiseleção + ações em lote (imprimir/exportar/agrupar) · **P0**
+- **US-SELL-017** — Totalizador rodapé (Qtd vendas + Σ R$ filtrado) · **P0**
+- **US-SELL-018** — Filtros multi-data com presets Dia/Semana/Mês/Ano + custom · **P1 confirmado**
+- **US-SELL-019** — Agrupamento drag-to-group por campo do grid · **P1 confirmado**
+- **US-SELL-020** — Especificação campo "Status" (financeiro vs produção vs fiscal — badges separados) · **P2 (rebaixado)**
+- **US-SELL-021** — Especificação campo "Data" (qual data: emissão / NF / faturamento / competência / prometido) · **P0 (subido!)**
+- **US-SELL-022** — Sub-linha de produtos por venda (expandir linha) · **P2 confirmado**
+- **US-SELL-023** — Status produção visível na lista (badge separado) · **P1 (subido!)**
+- **US-SELL-024** — Campo "venda agrupada" explícito · **P1 (subido!)**
+- **US-SELL-025** — Botões agrupamento rápido (1-click) · **P3 confirmado**
+- **US-SELL-026** — Impressão batch de vendas selecionadas (PDF consolidado) · **P2 (subido)**
+- **US-SELL-027** — Schema discovery dinâmico Grade Avançada · **P0 (subida v2!)**
+- **US-SELL-028** — Modules/OficinaAuto — schema com multi-placa (cavalo+reboque) · **P1 (emergente v3 — recalibrada)**
+- **US-SELL-029** — NFe cancelada via SEFAZ não sofre forceDelete (preserva sequencial) · **P0 fiscal**
+- **US-SELL-030** — NfeInutilizacaoService — chama SEFAZ + persiste em `nfe_inutilizacoes` · **P0 fiscal**
+- **US-SELL-031** — Action FSM crítica (is_critical) exige role explícita (fail-secure) · **P1 governança**
+- **US-SELL-032** — Observer bloqueia UPDATE direto em current_stage_id (gateway obrigatório) · **P1 governança**
+- **US-SELL-033** — Processo seed "Venda Com Produção" canônico (9 stages + 12 actions + roles) · **P0 negócio**
+- **US-SELL-034** — Side-effect `CancelarVendaCascade` orquestra NFe + boleto + reserva + notificação · **P1 negócio**
+- **US-SELL-035** — UI timeline de transições FSM (drawer + page) · **P2 UX/auditoria**
+- **US-SELL-036** — FSM rollout — migrar 14 vendas legadas biz=1 via bulk-start-pipeline + canary 7d
+- **US-SELL-040** — Pest integration HTTP full do `SellPosController@store` (caminho B)
+- **US-SELL-041** — NFC-e "emitir agora" no fim do Create (paridade Bling)
+- **US-SELL-042** — Batch no handlePriceGroupChange — elimina N+1 em /products/list
+- **US-SELL-043** — Migrar CSS Cowork (.sells-cowork / vd-*) → tokens DS no Sells/Index
+- **US-SELL-045** — Bug: payload `totals` morto na rede — backend calcula/envia, frontend nunca lê
+- **US-SELL-046** — Bug: viewMode `grade-avancada` órfão — middleware roteia 6 clientes legacy pra UI deletada
+- **US-SELL-047** — Teste de isolamento multi-tenant REAL da tela Sells (ADR 0093) — gap mascarado por grep
+- **US-SELL-048** — Higiene dos snapshots-grep Sells: DELETE/REWRITE por it() (não quarentena) — gated no nº do nightly C1
+- **US-SELL-051** — Migrar dados históricos transaction_date (timezone/format) — afeta ROTA LIVRE
+- **US-SELL-052** — Fechar paridade Sells V2 vs Blade (configure-search · quick-add · preço-diferenciado)
+- **US-SELL-053** — FieldError por campo + auto-open details em erro
+- **US-SELL-058** — Redesenho do cadastro de venda em tela PARALELA (`/sells/create-v3`) — sem tocar na tela que a ROTA LIVRE opera
+- **US-SELL-059** — Editar venda existente (`/sells/{id}/edit`) — guards de prazo, devolução e tenant
+- **US-SELL-060** — Listar rascunhos de venda (`/sells/drafts`)
+- **US-SELL-061** — Listar cotações (`/sells/quotations`)
+- **US-SELL-062** — Listar vendas recorrentes e pausar/retomar (`/sells/subscriptions`)
+- **US-SELL-063** — Caixa do dia por forma de pagamento e por origem (`/vendas/caixa`)
+- **US-SELL-064** — Listar vendas de POS com rodapé de totais (`/pos`)
+- **US-SELL-065** — Cadastro de descontos com ver × editar (`/discount`)
+- **US-SELL-066** — Devolução de venda em React — lista e registro (`/sell-return`)
+- **US-SELL-067** — Orçamento guarda o custo do dia em cada linha (UC-FLX-33)
+- **US-SELL-068** — Orçamento aberto avisa que o custo mudou (UC-FLX-34)
+- **US-SELL-069** — Orçamento abaixo da margem mínima só vira venda com aprovação (UC-FLX-35)
+- **US-SELL-070** — Termômetro de acesso da proposta (UC-FLX-04) — **P2**
+- **US-SELL-071** — Pesquisa de satisfação depois da entrega (UC-FLX-25) — **P2**
+- **US-SELL-072** — Venda com nota ou pagamento trava itens e valores — **P1**
+- **US-SELL-073** — Volumes no protocolo de entrega (UC-FLX-23) — **P2**
+
 ## Whatsapp
 
 
@@ -231,77 +304,6 @@
 - **US-WA-317** — VoC: ContactProfile acumulativo (Gap#3) + auto-tag IA + dashboard (Gap#4)
 - **US-WA-318** — DNS de mídia WhatsApp não resolve → ~48k mídias pending desde ~12/jun
 
-## Sells
-
-
-### todo
-
-- **US-SELL-054** — Offline-first no PDV — fila IndexedDB + reemissão ao reconectar _(`p1`)_
-- **US-SELL-055** — Pix QR no PDV + webhook auto-reconcile ligado à venda/caixa _(`p1`)_
-- **US-SELL-056** — Keyboard-first coeso no Create — hotkeys configuráveis + Enter-avança + F-key pagar _(`p2`)_
-- **US-SELL-057** — Skeleton de carregamento no Create + INP < 200ms _(`p2`)_
-- **US-SELL-001** — Epic — Migrar /sells/create pra MWART
-- **US-SELL-002** — Backend dual Inertia/Blade + feature flag + Pest
-- **US-SELL-003** — Frontend skeleton + AppShellV2 + props contract
-- **US-SELL-004** — Triagem visibilidade campos (18 → 8 visíveis + 10 colapsáveis)
-- **US-SELL-005** — Produtos — busca + tabela + cálculos
-- **US-SELL-006** — Pagamento + frete + descontos colapsáveis
-- **US-SELL-007** — Atalhos + auto-save draft + estados visuais
-- **US-SELL-008** — QA: audit + smoke biz=1 + canary Wagner 7d + rollback plan
-- **US-SELL-009** — Cutover ROTA LIVRE + remover Blade após 30d
-- **US-SELL-010** — Investigar State Machines existentes (Repair, Project, mcp_tasks) + propor ADR padrão FSM canônico
-- **US-SELL-011** — Modelar 4 tabelas FSM canônicas (processes + stages + actions + RBAC)
-- **US-SELL-012** — Gate de emissão NFe por venda (aplicar FSM canônica em Sale)
-- **US-SELL-013** — Reservas de estoque (stock_reservations) — side-effects FSM aplicados
-- **US-SELL-014** — Multi-documento por venda (transaction_documents poly) — N notas atreladas a 1 OS
-- **US-SELL-015** — Modo "Grade Avançada" — toggle + layout densa base · **P0**
-- **US-SELL-016** — Multiseleção + ações em lote (imprimir/exportar/agrupar) · **P0**
-- **US-SELL-017** — Totalizador rodapé (Qtd vendas + Σ R$ filtrado) · **P0**
-- **US-SELL-018** — Filtros multi-data com presets Dia/Semana/Mês/Ano + custom · **P1 confirmado**
-- **US-SELL-019** — Agrupamento drag-to-group por campo do grid · **P1 confirmado**
-- **US-SELL-020** — Especificação campo "Status" (financeiro vs produção vs fiscal — badges separados) · **P2 (rebaixado)**
-- **US-SELL-021** — Especificação campo "Data" (qual data: emissão / NF / faturamento / competência / prometido) · **P0 (subido!)**
-- **US-SELL-022** — Sub-linha de produtos por venda (expandir linha) · **P2 confirmado**
-- **US-SELL-023** — Status produção visível na lista (badge separado) · **P1 (subido!)**
-- **US-SELL-024** — Campo "venda agrupada" explícito · **P1 (subido!)**
-- **US-SELL-025** — Botões agrupamento rápido (1-click) · **P3 confirmado**
-- **US-SELL-026** — Impressão batch de vendas selecionadas (PDF consolidado) · **P2 (subido)**
-- **US-SELL-027** — Schema discovery dinâmico Grade Avançada · **P0 (subida v2!)**
-- **US-SELL-028** — Modules/OficinaAuto — schema com multi-placa (cavalo+reboque) · **P1 (emergente v3 — recalibrada)**
-- **US-SELL-029** — NFe cancelada via SEFAZ não sofre forceDelete (preserva sequencial) · **P0 fiscal**
-- **US-SELL-030** — NfeInutilizacaoService — chama SEFAZ + persiste em `nfe_inutilizacoes` · **P0 fiscal**
-- **US-SELL-031** — Action FSM crítica (is_critical) exige role explícita (fail-secure) · **P1 governança**
-- **US-SELL-032** — Observer bloqueia UPDATE direto em current_stage_id (gateway obrigatório) · **P1 governança**
-- **US-SELL-033** — Processo seed "Venda Com Produção" canônico (9 stages + 12 actions + roles) · **P0 negócio**
-- **US-SELL-034** — Side-effect `CancelarVendaCascade` orquestra NFe + boleto + reserva + notificação · **P1 negócio**
-- **US-SELL-035** — UI timeline de transições FSM (drawer + page) · **P2 UX/auditoria**
-- **US-SELL-036** — FSM rollout — migrar 14 vendas legadas biz=1 via bulk-start-pipeline + canary 7d
-- **US-SELL-040** — Pest integration HTTP full do `SellPosController@store` (caminho B)
-- **US-SELL-041** — NFC-e "emitir agora" no fim do Create (paridade Bling)
-- **US-SELL-042** — Batch no handlePriceGroupChange — elimina N+1 em /products/list
-- **US-SELL-043** — Migrar CSS Cowork (.sells-cowork / vd-*) → tokens DS no Sells/Index
-- **US-SELL-045** — Bug: payload `totals` morto na rede — backend calcula/envia, frontend nunca lê
-- **US-SELL-046** — Bug: viewMode `grade-avancada` órfão — middleware roteia 6 clientes legacy pra UI deletada
-- **US-SELL-047** — Teste de isolamento multi-tenant REAL da tela Sells (ADR 0093) — gap mascarado por grep
-- **US-SELL-048** — Higiene dos snapshots-grep Sells: DELETE/REWRITE por it() (não quarentena) — gated no nº do nightly C1
-- **US-SELL-051** — Migrar dados históricos transaction_date (timezone/format) — afeta ROTA LIVRE
-- **US-SELL-052** — Fechar paridade Sells V2 vs Blade (configure-search · quick-add · preço-diferenciado)
-- **US-SELL-053** — FieldError por campo + auto-open details em erro
-- **US-SELL-058** — Redesenho do cadastro de venda em tela PARALELA (`/sells/create-v3`) — sem tocar na tela que a ROTA LIVRE opera
-- **US-SELL-059** — Editar venda existente (`/sells/{id}/edit`) — guards de prazo, devolução e tenant
-- **US-SELL-060** — Listar rascunhos de venda (`/sells/drafts`)
-- **US-SELL-061** — Listar cotações (`/sells/quotations`)
-- **US-SELL-062** — Listar vendas recorrentes e pausar/retomar (`/sells/subscriptions`)
-- **US-SELL-063** — Caixa do dia por forma de pagamento e por origem (`/vendas/caixa`)
-- **US-SELL-064** — Listar vendas de POS com rodapé de totais (`/pos`)
-- **US-SELL-065** — Cadastro de descontos com ver × editar (`/discount`)
-- **US-SELL-066** — Devolução de venda em React — lista e registro (`/sell-return`)
-- **US-SELL-067** — Orçamento guarda o custo do dia em cada linha (UC-FLX-33)
-- **US-SELL-068** — Orçamento aberto avisa que o custo mudou (UC-FLX-34)
-- **US-SELL-069** — Orçamento abaixo da margem mínima só vira venda com aprovação (UC-FLX-35)
-- **US-SELL-070** — Termômetro de acesso da proposta (UC-FLX-04) — **P2**
-- **US-SELL-071** — Pesquisa de satisfação depois da entrega (UC-FLX-25) — **P2**
-
 ## Infra
 
 
@@ -362,6 +364,12 @@
 ## Financeiro
 
 
+### doing
+
+- **US-FIN-070** — Custeio RKW e ponto de equilíbrio no fechamento do mês (UC-FLX-20) — **P2** _(`p2`)_
+- **US-FIN-071** — Régua de cobrança do título vencido D+1/D+5/D+15 (UC-FLX-29) — **P2** _(`p2`)_
+- **US-FIN-072** — ISS retido ajusta o título para o valor líquido na autorização da NFS-e (UC-FLX-30) — **P2** _(`p2`)_
+
 ### todo
 
 - **US-FIN-014** — Imprimir 2ª via boleto Inter pelo título financeiro (botão na tela /boletos) _(`p1` · @wagner)_
@@ -393,9 +401,6 @@
 - **US-FIN-064** — Redirect ContasReceber/ContasPagar → Unificado (deprecação) _(`p2`)_
 - **US-FIN-065** — Elevar tela Unificado/Novo a ≥70 (form unificado real de cobrança) _(`p2`)_
 - **US-FIN-069** — Baseline de pixel do DRE (#7767) não reproduz o render do CI — visual-regression vermelho em todo PR de escopo global _(`p2` · @wagner)_
-- **US-FIN-070** — Custeio RKW e ponto de equilíbrio no fechamento do mês (UC-FLX-20) — **P2** _(`p2`)_
-- **US-FIN-071** — Régua de cobrança do título vencido D+1/D+5/D+15 (UC-FLX-29) — **P2** _(`p2`)_
-- **US-FIN-072** — ISS retido ajusta o título para o valor líquido na autorização da NFS-e (UC-FLX-30) — **P2** _(`p2`)_
 - **US-FIN-025** — Onda 6 — Cleanup colunas legacy + remover redirects 301 _(`p3` · @wagner)_
 - **US-FIN-042** — Backfill cliente_descricao biz=1 - 52 fin_titulos pre-Onda-Edit NULL _(`p3`)_
 - **US-FIN-066** — Elevar tela AssinaturaAtualizar a ≥70 (PageHeader canon + preview de valor) _(`p3`)_
@@ -491,6 +496,8 @@
 - **US-OFICINA-020** — Importer Firebird `WR_KANBAN` → `oa_kanban_state` (pré-arte Vargas/Martinho) — **P2** _(`p2`)_
 - **US-OFICINA-021** — Integração FIPE veículo (valor mercado + filtro garantia) — **P2** _(`p2`)_
 - **US-OFICINA-046** — Dívida F3: repontuar kanban Caçambas overdue→expected_completion + remover UI "Locações ativas" _(`p2`)_
+- **US-OFICINA-047** — Entrega da OS exige foto do serviço feito (UC-FLX-22) _(`p2`)_
+- **US-OFICINA-048** — Entrega da OS exige assinatura do cliente, por empresa (UC-FLX-22) _(`p2`)_
 - **US-AUTO-001** — Cadastro veículo persistente (placa + chassi + km + ano + modelo + cor) — **P0**
 - **US-AUTO-002** — Consulta CRLV/Renavam por placa (DETRAN/SerPro) — **P0**
 - **US-AUTO-003** — Histórico do veículo (todas OS passadas) — **P0**
@@ -515,6 +522,47 @@
 
 - **US-OFICINA-035** — DVI (Vistoria Digital · Digital Vehicle Inspection) schema + API — **P1** _(`p1`)_
 
+## Producao
+
+
+### doing
+
+- **US-PCP-028** — Prazo de entrega calculado pela fila (UC-FLX-06) — **P2** _(`p2` · @wagner)_
+
+### todo
+
+- **US-PCP-001** — Schema base + migrations (4 tabelas + triggers append-only) — **P0**
+- **US-PCP-002** — DECISÃO D1 — Pcp vs IProduction (renomeação ou módulo novo) — **P0 BLOCKER**
+- **US-PCP-003** — Models + global scopes `HasBusinessScope` — **P0**
+- **US-PCP-004** — CRUD `pcp_workstations` Inertia (Index/Create/Edit) — **P0**
+- **US-PCP-005** — CRUD `pcp_operations` Inertia — **P0**
+- **US-PCP-006** — FSM actions intermediárias (5 actions seed) — **P0**
+- **US-PCP-007** — Service `RegisterAppointment` (idempotent) — **P0**
+- **US-PCP-008** — Endpoint API JWT `POST /api/pcp/scan` — **P0**
+- **US-PCP-009** — PWA mobile shell + scanner QR (camera API) — **P0**
+- **US-PCP-010** — QR token na label OS + endpoint print extended — **P0**
+- **US-PCP-011** — Kanban shared infra adicionar agrupador configurável (8 agrupadores Delphi) — **P0**
+- **US-PCP-012** — Detect bottleneck (cron 15min) + alerta UI + Jana RAG context — **P1**
+- **US-PCP-013** — Capacidade dia/semana view agregada + dashboard card — **P1**
+- **US-PCP-014** — Performance operador (view + dashboard table com permission guard) — **P1**
+- **US-PCP-015** — `pcp_schedules` agendamento drag-drop calendário — **P2**
+- **US-PCP-016** — Integração BoM `MfgRecipe` (consumo automático ao concluir operação) — **P2**
+- **US-PCP-017** — Dashboard PCP Inertia (4 cards KPI + Kanban embed + heatmap) — **P1**
+- **US-PCP-018** — Broadcast Centrifugo (Kanban realtime + fila workstation) — **P2**
+- **US-PCP-019** — Smoke biz=4 ROTA LIVRE (canary 7d + cutover) — **P2**
+- **US-PCP-020** — Documentação RUNBOOK + Charter páginas — **P0**
+- **US-PCP-021** — A OS baixa o material apontado em cada etapa, pelo custo do lote que saiu (UC-FLX-37) — **P1**
+- **US-PCP-022** — A regra da compra (congela | vivo) vale para a OS aberta (UC-FLX-36) — **P1**
+- **US-PCP-023** — Romaneio de impressão peça a peça (UC-FLX-12) — **P2**
+- **US-PCP-024** — Simulador de aproveitamento de mídia na bobina (UC-FLX-13) — **P2**
+- **US-PCP-025** — Produção só libera com o sinal pago (UC-FLX-28) — **P2**
+- **US-PCP-026** — Etapas da OS vêm do roteiro do produto (UC-FLX-07) — **P1**
+- **US-PCP-027** — Refugo e retrabalho com motivo somam custo à OS (UC-FLX-16) — **P1**
+- **US-PCP-029** — Alocador decide quem e quando começa cada etapa (UC-FLX-10) — **P1**
+- **US-PCP-030** — Operadores por posto: só eles são responsáveis e começam a etapa (UC-FLX-08) — **P1**
+- **US-PCP-031** — Reserva o insumo na venda, baixa real na produção (UC-FLX-14) — **P1**
+- **US-PCP-032** — OS liberada sem material fica Aguardando material (D3) — **P1**
+
 ## NfeBrasil
 
 
@@ -534,7 +582,7 @@
 - **US-NFE-054** — Smoke real homologação SEFAZ-SC biz=1 — 1ª NFC-e cstat 100 (Goal #1 CYCLE-03) _(`p1` · @wagner)_
 - **US-NFE-062** — AuditLog em mutações fiscais NFe (Tributacao, Certificado, Manifestacao) _(`p1` · sprint cycle-04)_
 - **US-NFE-069** — A natureza fiscal do item escolhe a nota: NF-e para mercadoria, NFS-e para serviço e instalação (UC-FLX-31) — **P1** _(`p1` · sprint —)_
-- **US-NFE-070** — Contingência completa: retransmissão agendada, SVC-AN/SVC-RS e evento EPEC (UC-FLX-32) — **P1** _(`p1` · sprint —)_
+- **US-NFE-071** — Contingência: SVC-AN/SVC-RS, evento EPEC 110140 e marcação no DANFE (UC-FLX-32) — **P1** _(`p1` · sprint —)_
 - **US-NFE-055** — Estabilizar 107 tests broken Modules/NfeBrasil aplicando dual-mode SQLite/MySQL _(`p2`)_
 - **US-NFE-056** — Continuação PR #453 — migrar configBusiness(4) → configBusiness(1) em MotorTributarioServiceTest _(`p2`)_
 - **US-NFE-057** — Schema drift — atualizar fixtures DanfeServicePrefersArquivosTest pós-remoção `arquivos.filename` _(`p2`)_
@@ -677,36 +725,40 @@
 - **US-MKT-024** — Analytics avançado margem real (CMV + frete + taxa + tributos) — **P3** · 10h
 - **US-MKT-025** — Magalu Hub + Americanas drivers (4º + 5º marketplaces) — **P3** · 16h
 
-## Producao
+## Compras
 
+
+### doing
+
+- **US-COM-024** — Custo do insumo numa data, pelo método da empresa (UC-FLX-38) _(`p1` · @wagner)_
+- **US-COM-026** — Compra recebida aplica a regra de custo e preço (UC-FLX-17) _(`p1` · @wagner)_
+- **US-COM-028** — Aprovar ou recusar o preço proposto no detalhe da compra (UC-FLX-17) — **P1** _(`p1` · @wagner)_
 
 ### todo
 
-- **US-PCP-001** — Schema base + migrations (4 tabelas + triggers append-only) — **P0**
-- **US-PCP-002** — DECISÃO D1 — Pcp vs IProduction (renomeação ou módulo novo) — **P0 BLOCKER**
-- **US-PCP-003** — Models + global scopes `HasBusinessScope` — **P0**
-- **US-PCP-004** — CRUD `pcp_workstations` Inertia (Index/Create/Edit) — **P0**
-- **US-PCP-005** — CRUD `pcp_operations` Inertia — **P0**
-- **US-PCP-006** — FSM actions intermediárias (5 actions seed) — **P0**
-- **US-PCP-007** — Service `RegisterAppointment` (idempotent) — **P0**
-- **US-PCP-008** — Endpoint API JWT `POST /api/pcp/scan` — **P0**
-- **US-PCP-009** — PWA mobile shell + scanner QR (camera API) — **P0**
-- **US-PCP-010** — QR token na label OS + endpoint print extended — **P0**
-- **US-PCP-011** — Kanban shared infra adicionar agrupador configurável (8 agrupadores Delphi) — **P0**
-- **US-PCP-012** — Detect bottleneck (cron 15min) + alerta UI + Jana RAG context — **P1**
-- **US-PCP-013** — Capacidade dia/semana view agregada + dashboard card — **P1**
-- **US-PCP-014** — Performance operador (view + dashboard table com permission guard) — **P1**
-- **US-PCP-015** — `pcp_schedules` agendamento drag-drop calendário — **P2**
-- **US-PCP-016** — Integração BoM `MfgRecipe` (consumo automático ao concluir operação) — **P2**
-- **US-PCP-017** — Dashboard PCP Inertia (4 cards KPI + Kanban embed + heatmap) — **P1**
-- **US-PCP-018** — Broadcast Centrifugo (Kanban realtime + fila workstation) — **P2**
-- **US-PCP-019** — Smoke biz=4 ROTA LIVRE (canary 7d + cutover) — **P2**
-- **US-PCP-020** — Documentação RUNBOOK + Charter páginas — **P0**
-- **US-PCP-021** — A OS baixa o material apontado em cada etapa, pelo custo do lote que saiu (UC-FLX-37) — **P1**
-- **US-PCP-022** — A regra da compra (congela | vivo) vale para a OS aberta (UC-FLX-36) — **P1**
-- **US-PCP-023** — Romaneio de impressão peça a peça (UC-FLX-12) — **P2**
-- **US-PCP-024** — Simulador de aproveitamento de mídia na bobina (UC-FLX-13) — **P2**
-- **US-PCP-025** — Produção só libera com o sinal pago (UC-FLX-28) — **P2**
+- **US-COM-008** — Throttle 60/1 em /compras + FormRequest ListarComprasRequest _(`p0`)_
+- **US-COM-012** — Matching automático XML→produto (EAN + xProd; fallback manual) _(`p0`)_
+- **US-COM-013** — Recebimento parcial (qty recebida por linha ≠ pedida + trânsito residual + autosave check-in) _(`p0`)_
+- **US-COM-022** — Lane required de Compras vira árvore-menos-quarentena (vermelha no main há 5 runs) _(`p0`)_
+- **US-COM-023** — Teste de 7 dias do cockpit Compras na ROTA LIVRE (biz=4) _(`p0` · @maiara · sprint 2026-W44)_
+- **US-COM-010** — Adicionar Compras em config/governance/module_clients.yaml (Larissa biz=4 piloto reportando) _(`p1`)_
+- **US-COM-014** — FSM de estágios PERSISTIDA + auditável _(`p1`)_
+- **US-COM-015** — Teste de invariante de estoque no fluxo de entrada _(`p1`)_
+- **US-COM-016** — Cobrir fluxo `/compras`→contas a pagar (Observer Financeiro) com teste _(`p1`)_
+- **US-COM-018** — Autosave rascunho de compra (`localStorage` `{biz}.{user}` debounced) _(`p2`)_
+- **US-COM-019** — Eager-load `->with(['contact','location'])` em `listarCompras().paginate()` _(`p2`)_
+- **US-COM-021** — Investigar flakiness das baselines dark/empty do VRT e reabilitar no gate L2 _(`p2`)_
+- **US-COM-025** — Rastreio do rolo: em que OS cada fração da mídia foi usada (UC-FLX-18) — **P2** _(`p2` · @wagner)_
+- **US-COM-020** — A11y do drawer (`role=dialog` + focus-trap + `aria-label` + `Esc`) _(`p3`)_
+- **US-COM-001** — Cockpit `/compras` (lista paginada + 4 KPIs + drawer)
+- **US-COM-002** — Criar compra manual
+- **US-COM-003** — Importar XML DF-e como compra (GAP NOVO)
+- **US-COM-004** — Deprecar `/purchases` legacy
+- **US-COM-005** — Entrada matricial tam×cor (GradeMatrixInput)
+
+### retirada
+
+- **US-COM-017** — ~~PiiRedactor no Drawer de compra~~ → RETIRADA (2026-07-03)
 
 ## Crm
 
@@ -737,6 +789,34 @@
 - **US-CRM-062** — MWART CrmDashboard com Recharts · **P2** · 10H
 - **US-CRM-077** — Pattern canon `officeimpresso_codigo` nos 3 importers de contacts (gap ADR 0200) · **P1** · 6H
 
+## ComunicacaoVisual
+
+
+### todo
+
+- **US-COMVIS-020** — Orçamento aprovado vira OS sem redigitar (UC-FLX-01) — **P0** _(`p0` · @wagner)_
+- **US-COMVIS-021** — Salvar e reabrir o orçamento na calculadora de m² — **P0** _(`p0` · @wagner)_
+- **US-COMVIS-019** — Item do orçamento guarda o custo do material no dia (UC-FLX-33) — **P1** _(`p1` · @wagner)_
+- **US-COMVIS-022** — Custo e margem por peça na calculadora de m² (UC-FLX-03) — **P1** _(`p1` · @wagner)_
+- **US-COMVIS-001** — Cálculo automático por m² (lona, vinil, banner, fachada) — **P0**
+- **US-COMVIS-002** — Cadastro de material com preço por gramatura — **P0**
+- **US-COMVIS-003** — PCP gráfico — fluxo OS multi-etapa com responsável + prazo + custo — **P0**
+- **US-COMVIS-004** — Apontamento de máquina (Roland/Mimaki/Mutoh/HP Latex) — **P1**
+- **US-COMVIS-005** — Pós-cálculo (orçado vs realizado) — **P1**
+- **US-COMVIS-006** — Tabela tributária CNAE 1813-0/01 (CFOP/CSOSN/NCM padrão) — **P0**
+- **US-COMVIS-007** — Gestão de fachada/instalação (agenda + equipe + EPI) — **P1**
+- **US-COMVIS-008** — NFSe automática pra serviço de instalação — **P1**
+- **US-COMVIS-009** — NFe automática a partir de boleto pago — **P0** (já entregue no núcleo)
+- **US-COMVIS-010** — Provador de orçamento online (formulário web público) — **P2**
+- **US-COMVIS-011** — Comissão por OS (vendedor + instalador) — **P1**
+- **US-COMVIS-012** — DAM básico — cliente envia arquivo print-ready — **P2**
+- **US-COMVIS-013** — Bulk update preço material via Jana — **P2**
+- **US-COMVIS-014** — Dashboard "Larissa pergunta no chat às 22h" — **P2**
+- **US-COMVIS-015** — Cadastro de máquina com tinta/CMYK consumption tracking — **P2**
+- **US-COMVIS-016** — CT-e/MDF-e pra entrega — **P3**
+- **US-COMVIS-017** — Importação massiva de clientes/produtos do legacy OfficeImpresso — **P0**
+- **US-COMVIS-018** — Loja whitelabel pra catálogo público — **P3**
+
 ## Fiscal
 
 
@@ -764,39 +844,6 @@
 - **US-FISCAL-018** — Habilitar cockpit Fiscal Larissa biz=4 + canary 7d smoke
 - **US-FISCAL-019** — Cache Redis 60s KPIs + anti-DOS palette LIKE — ✅ Onda ESTABILIZAR
 - **US-FISCAL-020** — Integrar MotorTributarioService NfeBrasil — elimina 6 hardcodes Tier-0 SPED — ✅ Onda CONSOLIDAR
-
-## Compras
-
-
-### doing
-
-- **US-COM-024** — Custo do insumo numa data, pelo método da empresa (UC-FLX-38) _(`p1` · @wagner)_
-
-### todo
-
-- **US-COM-008** — Throttle 60/1 em /compras + FormRequest ListarComprasRequest _(`p0`)_
-- **US-COM-012** — Matching automático XML→produto (EAN + xProd; fallback manual) _(`p0`)_
-- **US-COM-013** — Recebimento parcial (qty recebida por linha ≠ pedida + trânsito residual + autosave check-in) _(`p0`)_
-- **US-COM-022** — Lane required de Compras vira árvore-menos-quarentena (vermelha no main há 5 runs) _(`p0`)_
-- **US-COM-023** — Teste de 7 dias do cockpit Compras na ROTA LIVRE (biz=4) _(`p0` · @maiara · sprint 2026-W44)_
-- **US-COM-010** — Adicionar Compras em config/governance/module_clients.yaml (Larissa biz=4 piloto reportando) _(`p1`)_
-- **US-COM-014** — FSM de estágios PERSISTIDA + auditável _(`p1`)_
-- **US-COM-015** — Teste de invariante de estoque no fluxo de entrada _(`p1`)_
-- **US-COM-016** — Cobrir fluxo `/compras`→contas a pagar (Observer Financeiro) com teste _(`p1`)_
-- **US-COM-018** — Autosave rascunho de compra (`localStorage` `{biz}.{user}` debounced) _(`p2`)_
-- **US-COM-019** — Eager-load `->with(['contact','location'])` em `listarCompras().paginate()` _(`p2`)_
-- **US-COM-021** — Investigar flakiness das baselines dark/empty do VRT e reabilitar no gate L2 _(`p2`)_
-- **US-COM-025** — Rastreio do rolo: em que OS cada fração da mídia foi usada (UC-FLX-18) — **P2** _(`p2` · @wagner)_
-- **US-COM-020** — A11y do drawer (`role=dialog` + focus-trap + `aria-label` + `Esc`) _(`p3`)_
-- **US-COM-001** — Cockpit `/compras` (lista paginada + 4 KPIs + drawer)
-- **US-COM-002** — Criar compra manual
-- **US-COM-003** — Importar XML DF-e como compra (GAP NOVO)
-- **US-COM-004** — Deprecar `/purchases` legacy
-- **US-COM-005** — Entrada matricial tam×cor (GradeMatrixInput)
-
-### retirada
-
-- **US-COM-017** — ~~PiiRedactor no Drawer de compra~~ → RETIRADA (2026-07-03)
 
 ## Connector
 
@@ -826,31 +873,6 @@
 ### in_progress
 
 - **US-CONN-015** — F2 — Pest baseline do ClientController antes de tocar _(`p2` · @[F])_
-
-## ComunicacaoVisual
-
-
-### todo
-
-- **US-COMVIS-019** — Item do orçamento guarda o custo do material no dia (UC-FLX-33) — **P1** _(`p1` · @wagner)_
-- **US-COMVIS-001** — Cálculo automático por m² (lona, vinil, banner, fachada) — **P0**
-- **US-COMVIS-002** — Cadastro de material com preço por gramatura — **P0**
-- **US-COMVIS-003** — PCP gráfico — fluxo OS multi-etapa com responsável + prazo + custo — **P0**
-- **US-COMVIS-004** — Apontamento de máquina (Roland/Mimaki/Mutoh/HP Latex) — **P1**
-- **US-COMVIS-005** — Pós-cálculo (orçado vs realizado) — **P1**
-- **US-COMVIS-006** — Tabela tributária CNAE 1813-0/01 (CFOP/CSOSN/NCM padrão) — **P0**
-- **US-COMVIS-007** — Gestão de fachada/instalação (agenda + equipe + EPI) — **P1**
-- **US-COMVIS-008** — NFSe automática pra serviço de instalação — **P1**
-- **US-COMVIS-009** — NFe automática a partir de boleto pago — **P0** (já entregue no núcleo)
-- **US-COMVIS-010** — Provador de orçamento online (formulário web público) — **P2**
-- **US-COMVIS-011** — Comissão por OS (vendedor + instalador) — **P1**
-- **US-COMVIS-012** — DAM básico — cliente envia arquivo print-ready — **P2**
-- **US-COMVIS-013** — Bulk update preço material via Jana — **P2**
-- **US-COMVIS-014** — Dashboard "Larissa pergunta no chat às 22h" — **P2**
-- **US-COMVIS-015** — Cadastro de máquina com tinta/CMYK consumption tracking — **P2**
-- **US-COMVIS-016** — CT-e/MDF-e pra entrega — **P3**
-- **US-COMVIS-017** — Importação massiva de clientes/produtos do legacy OfficeImpresso — **P0**
-- **US-COMVIS-018** — Loja whitelabel pra catálogo público — **P3**
 
 ## Forja
 
@@ -1234,19 +1256,6 @@
 - **US-KB-007** — Imprimir SOP balcão físico (ONDA 5) — ⬜ **não começou**
 - **US-KB-008** — `KbController@index` pagina 2000 nós de uma vez — revisar antes de virar dor — ⬜ **não começou**
 
-## EvolutionAgent
-
-
-### todo
-
-- **US-EVOL-001** — Indexar `memory/` em vetor
-- **US-EVOL-002** — Consultar memória via Artisan (chamado pelo CC)
-- **US-EVOL-003** — Ranquear oportunidades por ROI
-- **US-EVOL-004** — Eval golden set
-- **US-EVOL-005** — Subagent CC `evolucao.md`
-- **US-EVOL-006** — Tier-2 autonomia: comentar PR
-- **US-EVOL-007** — Tier-3 autonomia: PR-draft autônomo
-
 ## Manufacturing
 
 
@@ -1259,6 +1268,20 @@
 - **US-MANU-005** — Insumos — impacto reverso e simulador de preço
 - **US-MANU-006** — Editor de ingredientes
 - **US-MANU-007** — Formulário de ordem de produção
+- **US-MANU-008** — Rotas legadas só tocam dado da própria empresa
+
+## EvolutionAgent
+
+
+### todo
+
+- **US-EVOL-001** — Indexar `memory/` em vetor
+- **US-EVOL-002** — Consultar memória via Artisan (chamado pelo CC)
+- **US-EVOL-003** — Ranquear oportunidades por ROI
+- **US-EVOL-004** — Eval golden set
+- **US-EVOL-005** — Subagent CC `evolucao.md`
+- **US-EVOL-006** — Tier-2 autonomia: comentar PR
+- **US-EVOL-007** — Tier-3 autonomia: PR-draft autônomo
 
 ## TeamMcp
 
@@ -1350,6 +1373,7 @@
 - **US-CONSULTA-001** — Substituir mock por query real em Modules/Repair `parcial`
 - **US-CONSULTA-002** — Canary 7d em ROTA LIVRE `pendente`
 - **US-CONSULTA-003** — Criar BRIEFING.md após migração real `pendente`
+- **US-CONSULTA-004** — Cliente acompanha o status: aviso a cada mudança + portal atualizado `parcial`
 
 ## Dashboard
 

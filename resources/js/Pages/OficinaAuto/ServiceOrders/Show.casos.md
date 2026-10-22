@@ -7,7 +7,7 @@ por_que: comportamento é durável — não muda no refactor; é teste E explica
 owner: wagner
 last_run: "2026-09-09"
 last_run_ci: "2026-09-09 CT100 (oimpresso-staging, main 755f6de79, MySQL oimpresso_staging): 49 passed / 10 failed (146 assertions) nos 12 arquivos citados pelos UCs. As 10 falhas sao PRE-EXISTENTES e nao vem desta tela — o container roda o main SEM a mudanca do PR. Causa medida: 3 do ServiceOrderStagePipelineTest esperam os stages disponivel/locada/recolhida, dominio LOCACAO erradicado (proibicoes.md 2026-06-09 + RUNBOOK-erradicacao-locacao.md, que nomeia este teste entre os 7 pendentes); as demais sao comparacao estrita int x float (145 vs 145.0). Status dos UC segue 🧪 — nenhum sobe a ✅ com este run."
-related_us: [US-OFICINA-001, US-OFICINA-003, US-OFICINA-035, US-OFICINA-038, US-OFICINA-039, US-OFICINA-040, US-OFICINA-041]
+related_us: [US-OFICINA-001, US-OFICINA-003, US-OFICINA-035, US-OFICINA-038, US-OFICINA-039, US-OFICINA-040, US-OFICINA-041, US-OFICINA-047]
 related_cu: [CU-OFI-04, CU-OFI-05, CU-OFI-07, CU-OFI-08, CU-OFI-09, CU-OFI-10, CU-OFI-11, CU-OFI-13, CU-OFI-15, CU-OFI-16]
 ---
 
@@ -100,6 +100,100 @@ related_cu: [CU-OFI-04, CU-OFI-05, CU-OFI-07, CU-OFI-08, CU-OFI-09, CU-OFI-10, C
 
 ---
 
+## Entrega com foto do serviço (US-OFICINA-047 · UC-FLX-22) — parcial: foto exigida, assinatura falta
+
+> **Âncora:** catálogo de fluxos, modelo "Oficina mecânica" (`CatalogoModelos`), processo de venda,
+> etapa **"Entregue · Fotos do serviço"**, e o UC-FLX-22 (*"só conclui com foto do serviço e
+> assinatura do cliente"*). Esta entrega cobre a **foto**. A **assinatura do cliente não existe na
+> Oficina** e fica fora: o único padrão de assinatura do repo é o da entrega do pedido no app
+> (`PedidoEntregaController`, ajuste `app_entrega_exige_assinatura`). Estado do caso: **parcial**.
+>
+> **Onde a regra mora:** `StageGateEvaluator` (mesmo gate do UC-OSH-10), regra `servico_foto` na ação
+> `entregar` (Pronto p/ retirar → Entregue). Não está no `concluir_servico` porque a entrega é o último
+> ponto antes de o veículo sair e é a etapa que o modelo do catálogo marca.
+>
+> **O que é "foto do serviço":** imagem anexada à OS (laudo) ou a um item da vistoria, enviada **a
+> partir** da entrada da OS em `em_execucao` na trilha FSM. O anexo não tem marcação própria de "foto
+> do serviço" — o laudo e a vistoria usam o mesmo anexo —, então a data de envio contra a entrada na
+> execução é o que separa o antes do depois. **Limite:** OS que chegou a Pronto p/ retirar sem passar
+> por `em_execucao` na trilha (importada ou repontuada) não tem referência; aí qualquer foto da OS
+> conta. PDF não conta (o app aceita PDF como anexo).
+>
+> Prova: `Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php` (lane `PHP / Pest (Sells · MySQL)`).
+
+## UC-OSH-12 · Entregar sem foto do serviço é recusado
+- **Persona:** mecânico/atendente no balcão.
+- **Aceite:** Dado uma OS em Pronto p/ retirar que entrou em execução há 1 h, com só a foto do diagnóstico (de antes) e um PDF · Quando pede "Entregar ao cliente" · Então o servidor responde **422** com o requisito `servico_foto` pendente e a OS continua em Pronto p/ retirar.
+- **Regressão que defende:** veículo sai sem registro do serviço feito.
+- **Status: 🧪**
+
+## UC-OSH-13 · Com foto do serviço, a entrega passa
+- **Aceite:** Dado a mesma OS com uma imagem enviada depois de entrar em execução · Quando pede "Entregar ao cliente" · Então a OS vai para **Entregue** e a trilha não marca liberação.
+- **Status: 🧪**
+
+## UC-OSH-14 · Gerente libera sem foto, e a liberação fica na trilha
+- **Aceite:** Dado um usuário com papel gerente da empresa · Quando entrega sem foto **sem** pedir liberação · Então é barrado e vê que pode liberar · Quando pede com liberação · Então entrega, e a trilha guarda `gate_override` e `gate_unmet = [servico_foto]` com o usuário.
+- **Status: 🧪**
+
+## UC-OSH-15 · Foto de outra empresa não conta `[T0]`
+- **Aceite:** Dado uma imagem da empresa 99 apontando para a OS da 98, e nenhuma sessão (como no app) · Quando o gate avalia a entrega · Então a foto **não** conta; a mesma foto na empresa 98 conta (controle positivo).
+- **Regressão que defende:** sem sessão, o escopo global do anexo não filtra — a foto de outro cliente liberaria a entrega.
+- **Status: 🧪**
+
+## UC-OSH-16 · No app a regra é a mesma
+- **Aceite:** Dado a OS sem foto do serviço · Quando o app lista as ações · Então "entregar" vem com o bloqueio dizendo o que falta · Quando o app executa · Então volta `bloqueado` (o app não libera) · Com foto, `ok` e a OS fica Entregue · Outra empresa → `nao_encontrado`.
+- **Status: 🧪**
+
+---
+
+## Assinatura do cliente na entrega (US-OFICINA-048 · UC-FLX-22) — completa o UC-FLX-22
+
+> **Âncora:** UC-FLX-22 (*"só conclui com foto do serviço e assinatura do cliente"*). A foto é a
+> US-OFICINA-047 acima; aqui entra a **assinatura**, no mesmo gate (`StageGateEvaluator`, ação
+> `entregar`), requisito `assinatura`.
+>
+> **Por empresa, desligada por padrão:** `business.common_settings[oficina_entrega_exige_assinatura]`
+> (liga/desliga com `php artisan oficina:entrega-assinatura <biz> --ligar|--desligar`). Desligada,
+> o checklist da entrega é exatamente o de antes (só a foto) — o piloto ao vivo não muda nada.
+>
+> **Onde se colhe:** quadro de assinatura dentro do checklist da entrega (`ServiceOrderSignaturePad`
+> no `ServiceOrderStageGate`), que aparece enquanto o requisito está pendente. O PNG segue o contrato
+> da entrega do pedido no app (data URL, ≤ 200 KB) e fica no módulo Arquivos anexado à linha de
+> `oficina_os_assinaturas` — **não à OS**, cujo anexo é foto do laudo e contaria como foto do serviço.
+>
+> **Limite declarado:** o app não tem quadro de assinatura da OS; com o ajuste ligado, a entrega pelo
+> app volta `bloqueado` até a assinatura ser colhida na web.
+>
+> Prova: `Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaAssinaturaTest.php` (lane `PHP / Pest (Sells · MySQL)`).
+
+## UC-OSH-17 · Desligada por padrão, a entrega não pede assinatura
+- **Aceite:** Dado uma empresa sem o ajuste e uma OS com a foto do serviço · Quando o gate avalia a entrega · Então o checklist é só `servico_foto` e a OS é entregue.
+- **Regressão que defende:** ligar a assinatura em todas as empresas sem pedido (o piloto parar de entregar).
+- **Status: 🧪**
+
+## UC-OSH-18 · Ligada e sem assinatura, a entrega é recusada
+- **Aceite:** Dado o ajuste ligado e a OS com foto mas sem assinatura · Quando pede "Entregar ao cliente" · Então **422** com o único pendente `assinatura`, e a OS continua em Pronto p/ retirar.
+- **Status: 🧪**
+
+## UC-OSH-19 · Com a assinatura salva no quadro, a entrega passa
+- **Aceite:** Dado o ajuste ligado · Quando salva a assinatura (PNG) com o nome de quem recebe · Então **201**, o anexo fica na assinatura (business da OS), a galeria da OS não ganha foto, e "Entregar ao cliente" leva a OS para **Entregue**.
+- **Status: 🧪**
+
+## UC-OSH-20 · Imagem que não é PNG é recusada
+- **Aceite:** Quando envia data URL que não é PNG · Então **422** em `assinatura_png` · Quando envia vazio · Então erro de validação · Em ambos nada é gravado e o requisito segue pendente.
+- **Status: 🧪**
+
+## UC-OSH-21 · Assinatura de outra empresa não conta `[T0]`
+- **Aceite:** Dado uma linha de assinatura (com anexo) da empresa 99 apontando para a OS da 98 · Quando o gate avalia a entrega · Então o requisito `assinatura` segue pendente e a entrega é recusada.
+- **Regressão que defende:** a assinatura de outro cliente liberar a entrega (o gate também roda pelo app, sem sessão).
+- **Status: 🧪**
+
+## UC-OSH-22 · O ajuste liga e desliga por empresa
+- **Aceite:** Quando roda `oficina:entrega-assinatura <biz> --ligar` · Então a empresa passa a exigir e a outra não muda · Com `--desligar` volta a não exigir.
+- **Status: 🧪**
+
+---
+
 ## Rastreabilidade (âncora no SDD §6 · [ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md))
 
 | UC | Peso | Âncora (CU/US) |
@@ -115,6 +209,17 @@ related_cu: [CU-OFI-04, CU-OFI-05, CU-OFI-07, CU-OFI-08, CU-OFI-09, CU-OFI-10, C
 | UC-OSH-09 | must `[V0]` | CU-OFI-16 · US-OFICINA-001 |
 | UC-OSH-10 | should | CU-OFI-08 · US-OFICINA-003 |
 | UC-OSH-11 | must `[T0]` | CU-OFI-15 · US-OFICINA-001 |
+| UC-OSH-12 | must | CU-OFI-08 · US-OFICINA-047 · UC-FLX-22 |
+| UC-OSH-13 | must | CU-OFI-08 · US-OFICINA-047 · UC-FLX-22 |
+| UC-OSH-14 | should | CU-OFI-08 · US-OFICINA-047 · UC-FLX-22 |
+| UC-OSH-15 | must `[T0]` | CU-OFI-15 · US-OFICINA-047 |
+| UC-OSH-16 | must | CU-OFI-08 · US-OFICINA-047 · UC-FLX-22 |
+| UC-OSH-17 | must | CU-OFI-08 · US-OFICINA-048 · UC-FLX-22 |
+| UC-OSH-18 | must | CU-OFI-08 · US-OFICINA-048 · UC-FLX-22 |
+| UC-OSH-19 | must | CU-OFI-08 · US-OFICINA-048 · UC-FLX-22 |
+| UC-OSH-20 | should | CU-OFI-08 · US-OFICINA-048 |
+| UC-OSH-21 | must `[T0]` | CU-OFI-15 · US-OFICINA-048 |
+| UC-OSH-22 | should | US-OFICINA-048 |
 
 > ⚖️ **Força do veredito:** lane `PHP / Pest (OficinaAuto · MySQL)`, criada em 2026-07-27 —
 > **ADVISORY**: reprova fica visível e **não bloqueia merge** (não está em
@@ -138,4 +243,6 @@ related_cu: [CU-OFI-04, CU-OFI-05, CU-OFI-07, CU-OFI-08, CU-OFI-09, CU-OFI-10, C
 - **Cadência:** rodar ao fim de toda mexida na tela. UC que vira ❌ = regressão → lição + conserto antes de seguir.
 
 ## Trilha do tempo
+- 2026-10-21 · [CC] UC-OSH-17..22 — assinatura do cliente na entrega (US-OFICINA-048 · UC-FLX-22), por empresa e desligada por padrão. Fecha o que o UC-OSH-12..16 deixou parcial.
+- 2026-10-20 · [CC] UC-OSH-12..16 — entrega exige foto do serviço (US-OFICINA-047 · UC-FLX-22). Parcial: assinatura do cliente fica fora (não existe na Oficina).
 - 2026-07-03 · [CC] contrato inicial (4 UCs 🧪) a partir do charter + Pest existente (régua por tela Onda 0b). UC sobe pra ✅ quando um run CT100 alimentar o manifesto (dente da régua).

@@ -5,12 +5,17 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do fisioterapeuta + critério de aceite verificável (Dado/Quando/Então)
 por_que: paciente é um contact — duplicar cadastro parte o histórico em dois; meta semanal inválida quebra a adesão; paciente de outra clínica na lista é vazamento Tier 0.
 owner: wagner
-last_run: "2026-10-18"
+last_run: "2026-10-21"
 last_run_ci: "_pendente_ — o trio nasce com a suíte TDD da F1 (antes do código). O veredito entra quando a lane MySQL rodar FisioPacienteCrudTest, FisioMultiTenantTest e FisioModuloVisibilidadeTest."
 related_us: []
 ---
 
 # Casos de Uso & Aceite — Fisio · Pacientes (`/fisio/pacientes`)
+
+> ℹ️ **`last_run` 2026-10-18 → 2026-10-21 (G-6): forma da lista, não regra.** A lista deixou de ser uma `<ul>`
+> montada à mão e passou ao `shared/DataTable` do DS — o PT-01 que o charter declara (o `pt-conformance`
+> reprovava a tela). Colunas: Paciente (nome com link para a ficha + queixa) · Condições · Responsável · Por
+> semana. Dados, busca, filtro e cadastro são os mesmos; o UC-FPI-20 continua valendo (o responsável agora é coluna).
 
 > **Âncora:** ADR 0437 §4 (paciente é contact) e handoff F1 (T-02, T-05). Padrão de tela PT-01 Lista. Os UCs não derivam do `.tsx`.
 >

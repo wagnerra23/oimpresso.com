@@ -28,7 +28,12 @@ final class SituacaoDaOrdem
 {
     public const EV_RETRABALHO = 'retrabalho_aberto';
 
-    public function __construct(private readonly ExecuteStageActionService $fsm, private readonly CustoRealService $custo) {}
+    public function __construct(
+        private readonly ExecuteStageActionService $fsm,
+        private readonly CustoRealService $custo,
+        private readonly SinalDaOrdem $sinal,
+        private readonly ProcessoDaOrdem $processo,
+    ) {}
 
     public function ordem(int $businessId, int $ordemId): Ordem
     {
@@ -45,6 +50,7 @@ final class SituacaoDaOrdem
         $situacao = $this->ordem($businessId, (int) $etapa->os_id)->currentStage?->key;
         $recusa = match ($situacao) {
             'aguardando_liberacao' => 'Esta OS ainda não foi liberada para a produção.',
+            'aguardando_material' => 'Esta OS está aguardando material: o PCP confere quando o material chegar.',
             'retrabalho' => 'Esta OS está em retrabalho: o PCP precisa mandar refazer.',
             'concluida', 'cancelada' => 'Esta OS já foi encerrada.',
             default => null,
@@ -125,12 +131,15 @@ final class SituacaoDaOrdem
      * Liberar: o PCP escolhe o responsável de cada etapa aberta (decisão [W] 16/10, opção c; #9530).
      * `$responsaveis` = programação → usuário. Etapa já com responsável o mantém se não vier no mapa;
      * etapa aberta sem responsável recusa a liberação. Responsável tem de ser da MESMA empresa (Tier 0).
+     * Com a regra "só libera com o sinal pago" ligada, recusa antes enquanto o sinal da venda não chega
+     * ao mínimo — vale também para quem tem `producao.liberar` (US-PCP-025).
      *
      * @param  array<int, int>  $responsaveis
      */
     public function liberar(int $businessId, int $ordemId, User $user, array $responsaveis = []): Ordem
     {
         $ordem = $this->ordem($businessId, $ordemId);
+        $this->sinal->conferir($businessId, $ordem);
 
         return DB::transaction(function () use ($businessId, $ordem, $user, $responsaveis) {
             $abertas = Programacao::query()->where('business_id', $businessId)->where('os_tipo', Ordem::OS_TIPO)->where('os_id', $ordem->id)
@@ -144,6 +153,12 @@ final class SituacaoDaOrdem
                 if (! in_array((int) $uid, $validos, true)) {
                     throw new ApontamentoRecusado(ApontamentoRecusado::RESPONSAVEL_INVALIDO, 'Responsável não encontrado nesta empresa.', ['programacao_id' => $prog]);
                 }
+                // UC-FLX-08 · US-PCP-030: posto com operadores cadastrados só aceita um deles.
+                $posto = $abertas[$prog]->posto_id !== null ? (int) $abertas[$prog]->posto_id : null;
+                if (! app(OperadoresDoPosto::class)->podeAtuar($businessId, $posto, (int) $uid)) {
+                    throw new ApontamentoRecusado(ApontamentoRecusado::RESPONSAVEL_INVALIDO,
+                        'Responsável não é operador do posto de '.$abertas[$prog]->nome.'.', ['programacao_id' => $prog, 'posto_id' => $posto]);
+                }
             }
             $sem = $abertas->filter(fn (Programacao $p) => ! isset($responsaveis[$p->id]) && $p->user_id === null)->pluck('nome')->all();
             if ($sem !== []) {
@@ -154,9 +169,107 @@ final class SituacaoDaOrdem
             foreach ($responsaveis as $prog => $uid) {
                 $abertas[$prog]->forceFill(['user_id' => (int) $uid])->save();
             }
+            $this->aguardarMaterialSeFaltar($businessId, $ordem->fresh(), $user);
 
             return $ordem->fresh();
         });
+    }
+
+    /**
+     * Pagamento registrado na venda (US-PCP-025): com a regra ligada e o sinal alcançado, libera
+     * sozinho cada OS da venda que está em Aguardando liberação e já tem responsável em todas as
+     * etapas abertas. A que falta responsável fica onde está (a pendência é a do Liberar). Devolve
+     * quantas liberou. Tier 0: só OS da `$businessId`.
+     */
+    public function liberarPeloSinalDaVenda(int $businessId, int $transactionId): int
+    {
+        if ($this->sinal->minimo($businessId) === null) {
+            return 0;
+        }
+        $ids = Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)
+            ->where('transaction_id', $transactionId)->pluck('id');
+        $liberadas = 0;
+        foreach ($ids as $id) {
+            try {
+                $liberadas += $this->liberarPeloSinal($businessId, (int) $id) ? 1 : 0;
+            } catch (ApontamentoRecusado) {
+                // Sinal abaixo do mínimo ou etapa sem responsável: a OS segue aguardando.
+            }
+        }
+
+        return $liberadas;
+    }
+
+    /**
+     * Liberar executado pelo sistema (ação `liberar_pelo_sinal`, sem papel). Trava e relê a OS: só
+     * age em Aguardando liberação, então pagamento repetido não libera duas vezes. Confere o sinal e
+     * os responsáveis como o Liberar de tela; o histórico guarda `ator = sistema` e o sinal.
+     */
+    public function liberarPeloSinal(int $businessId, int $ordemId): bool
+    {
+        $this->processo->garantir($businessId);
+
+        return DB::transaction(function () use ($businessId, $ordemId): bool {
+            $ordem = Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)->with('currentStage')->lockForUpdate()->find($ordemId);
+            if (! $ordem || $ordem->currentStage?->key !== 'aguardando_liberacao') {
+                return false;
+            }
+            $this->sinal->conferir($businessId, $ordem);
+            $sem = Programacao::query()->where('business_id', $businessId)->where('os_tipo', Ordem::OS_TIPO)->where('os_id', $ordem->id)
+                ->where('status', 'pendente')->whereNull('user_id')->pluck('nome')->all();
+            if ($sem !== []) {
+                throw new ApontamentoRecusado(ApontamentoRecusado::RESPONSAVEL_INVALIDO, 'Escolha o responsável de: '.implode(', ', $sem).'.');
+            }
+            $s = $this->sinal->situacao($businessId, (int) $ordem->transaction_id, (string) $this->sinal->minimo($businessId));
+            $this->fsm->execute($ordem, 'liberar_pelo_sinal', null, ['ator' => 'sistema', 'sinal_pago' => $s['pago'], 'sinal_exigido' => $s['exigido']]);
+            $this->aguardarMaterialSeFaltar($businessId, $ordem->fresh(), null);
+
+            return true;
+        });
+    }
+
+    /**
+     * Conferir o material da OS que está em Aguardando material (o PCP, depois que a compra chegou):
+     * sem falta, ela volta para Na fila. Em qualquer situação devolve o que falta hoje — é a lista
+     * que a tela mostra. Só lê estoque (regra mestre). Trava e relê a OS: duas conferências ao mesmo
+     * tempo movem uma vez só.
+     *
+     * @return array{situacao: ?string, falta: list<array<string, mixed>>}
+     */
+    public function conferirMaterial(int $businessId, int $ordemId, ?User $user): array
+    {
+        $this->processo->garantir($businessId);
+
+        return DB::transaction(function () use ($businessId, $ordemId, $user): array {
+            $ordem = Ordem::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)->with('currentStage')->lockForUpdate()->find($ordemId)
+                ?? throw new ApontamentoRecusado(ApontamentoRecusado::NAO_ENCONTRADO, 'OS não encontrada.');
+            $falta = app(FaltaDeMaterialDaOs::class)->daOrdem($businessId, $ordem);
+            if ($falta === [] && $ordem->currentStage?->key === 'aguardando_material') {
+                $this->fsm->execute($ordem, 'material_disponivel', $user, ['ator' => $user ? 'pcp' : 'sistema']);
+                $ordem = $ordem->fresh('currentStage');
+            }
+
+            return ['situacao' => $ordem->currentStage?->key, 'falta' => $falta];
+        });
+    }
+
+    /**
+     * Logo depois de liberar (pela tela ou pelo sinal), dentro da mesma transação: com a chave da
+     * empresa ligada e faltando material, a OS vai de Na fila para Aguardando material. O histórico
+     * do motor guarda o que faltava. Chave desligada: nada muda (D3, revisão de 2026-10-21).
+     */
+    private function aguardarMaterialSeFaltar(int $businessId, Ordem $ordem, ?User $user): void
+    {
+        $falta = app(FaltaDeMaterialDaOs::class);
+        if (! $falta->ligada($businessId) || $ordem->currentStage?->key !== 'na_fila') {
+            return;
+        }
+        $lista = $falta->daOrdem($businessId, $ordem);
+        if ($lista === []) {
+            return;
+        }
+        $this->fsm->execute($ordem, 'aguardar_material', $user, ['ator' => $user ? 'pcp' : 'sistema',
+            'falta' => array_map(fn (array $f) => ['variation_id' => $f['variation_id'], 'falta' => $f['falta']], $lista)]);
     }
 
     /** Reprovar no controle: motivo de refugo do cadastro + etapa de origem, que volta como etapa nova. */
@@ -191,7 +304,7 @@ final class SituacaoDaOrdem
         return $ordem->fresh();
     }
 
-    /** Cancelar item: só antes de liberar (nada consumido); as etapas programadas são canceladas. */
+    /** Cancelar item: só antes de começar (aguardando liberação ou material — nada consumido); as etapas programadas são canceladas. */
     public function cancelarItem(int $businessId, int $ordemId, User $user): Ordem
     {
         $ordem = $this->ordem($businessId, $ordemId);

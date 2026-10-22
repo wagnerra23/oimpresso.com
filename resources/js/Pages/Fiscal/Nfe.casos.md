@@ -120,6 +120,17 @@ não tem as migrations do NfeBrasil. É lacuna de ambiente, não defeito do test
 | UC-FNFE-11 | nenhum ícone decorativo chega ao leitor de tela | `[must]` | **—** (mesma nota) | `fiscal-nfe-teclado.test.tsx` | 🧪 |
 | UC-FNFE-12 | a lista não promete o que não tem (separador solto · tecla sem handler) | `[should]` | **—** (mesma nota) | `fiscal-nfe-teclado.test.tsx` (5) | 🧪 |
 | UC-FNFE-14 | a densidade escolhida acompanha a navegação entre as telas de notas | `[should]` | **—** (mesma nota) | `fiscal-densidade.test.tsx` | 🧪 |
+| UC-FNFE-15 | nota em contingência (tpEmis 4/9) sai com `dhCont` + `xJust` da ativação | `[must]` | **—** (US-NFE-070) | `ContingenciaAgendamentoTest` | 🧪 |
+| UC-FNFE-16 | nota normal (tpEmis 1) não leva `dhCont`/`xJust` | `[must]` `[reg]` | **—** (US-NFE-070) | `ContingenciaAgendamentoTest` | 🧪 |
+| UC-FNFE-17 | o agendamento só retransmite quem tem nota pendente e SEFAZ no ar | `[must]` | **—** (US-NFE-070) | `ContingenciaAgendamentoTest` | 🧪 |
+| UC-FNFE-18 | o job de um business nunca transmite nota de outro | `[must]` `[T0]` | **—** (US-NFE-070) | `ContingenciaAgendamentoTest` | 🧪 |
+| UC-FNFE-19 | SVC-AN/SVC-RS: a NF-e sai com tpEmis 6/7 e vai na hora para a SEFAZ Virtual da UF | `[must]` `[fiscal]` | **—** (US-NFE-071) | `ContingenciaModoTest` (7) | 🧪 |
+| UC-FNFE-20 | EPEC: o evento 110140 é registrado no Ambiente Nacional e a nota fica guardada | `[must]` `[fiscal]` | **—** (US-NFE-071) | `ContingenciaModoTest` (2) | 🧪 |
+| UC-FNFE-30 | EPEC recusado ou AN fora: a nota não se perde e o motivo diz que o DANFE ainda não vale | `[must]` | **—** (US-NFE-071) | `ContingenciaModoTest` (2) | 🧪 |
+| UC-FNFE-31 | o EPEC de uma empresa grava evento só nela | `[must]` `[T0]` | **—** (US-NFE-071) | `ContingenciaModoTest` | 🧪 |
+| UC-FNFE-21 | fatura paga emite a NF-e sem ninguém clicar (UC-FLX-26) | `[must]` `[fiscal]` | CU-RB-09 itens 1-2 (SDD RecurringBilling) | `EmitirNFeAoReceberPagamentoTest` (4) | 🧪 |
+| UC-FNFE-22 | com a chave desligada (o padrão) ou fatura não encontrada, nenhuma nota sai (UC-FLX-26) | `[must]` `[fiscal]` | CU-RB-09 item 2 | `EmitirNFeAoReceberPagamentoTest` (2) | 🧪 |
+| UC-FNFE-23 | SEFAZ fora não derruba o pagamento: a emissão volta pra fila (UC-FLX-26) | `[must]` `[fiscal]` | CU-RB-09 item 3 | `EmitirNFeAoReceberPagamentoTest` (3) | 🧪 |
 
 > **Por que esta tabela nasceu em 2026-09-01 (e o que ela NÃO fez):** os 8 UC desta tela já eram
 > provados por teste desde 2026-07-27 — nenhum deles declarava, porém, **qual CU do SDD §6 atende**.
@@ -398,6 +409,145 @@ O Cockpit não é renderizado (recebe ~15 props de payload) e entra por um caso 
 que a pessoa fiscal **faz** (conferir, cancelar, manifestar, inutilizar); nenhum trata de
 preferência de exibição. Ancorar num CU plausível fecharia a lacuna do painel sem lastro (LC-11).
 
+## NF-e em contingência quando a SEFAZ cai (US-NFE-070 · UC-FLX-32)
+
+> **Âncora:** [US-NFE-070](../../../../memory/requisitos/NfeBrasil/SPEC.md) (resto da US-NFE-006) e o
+> UC-FLX-32 do catálogo de fluxos (etapa Validada → Transmitida: *"NF-e em contingência quando a SEFAZ
+> cai"*). Nesta entrega: `dhCont`/`xJust` no XML e a retransmissão agendada (`nfe:retentar-contingencia`,
+> a cada 5 min). SVC-AN/SVC-RS e o evento EPEC 110140 entraram em 2026-10-21 (US-NFE-071,
+> UC-FNFE-19/20/30/31); a marcação de contingência no DANFE segue pendente na US.
+> Coluna CU `—`: o SDD §6 do Fiscal não tem CU de contingência. Prova: `ContingenciaAgendamentoTest`
+> e `ContingenciaModoTest`.
+
+## UC-FNFE-15 · A nota em contingência leva quando e por quê entrou nela · `must`
+
+**Dado** a contingência ligada às 14:05 com o motivo "SEFAZ-RR fora do ar desde 14h" **Quando** sai uma NF-e
+(tpEmis 4) e uma NFC-e (tpEmis 9) **Então** as duas trazem `<dhCont>` com 14:05 do dia e `<xJust>SEFAZ-RR fora
+do ar desde 14h</xJust>`. Motivo de 10 caracteres ("SEFAZ caiu") vira "Contingencia: SEFAZ caiu" (24), porque a
+SEFAZ exige de 15 a 256.
+
+Status: 🧪
+
+## UC-FNFE-16 · A nota normal não muda · `must`
+
+**Dado** a contingência desligada **Quando** sai uma NF-e **Então** o XML tem `<tpEmis>1</tpEmis>` e nenhum
+`<dhCont>` nem `<xJust>`.
+
+Status: 🧪
+
+## UC-FNFE-17 · A retransmissão só sai quando há nota pendente e a SEFAZ responde · `must`
+
+**Dado** a empresa A com 1 nota em contingência e a B só com nota autorizada **Quando** o agendamento roda e o
+ping da SEFAZ de A volta cStat 107 **Então** só A é consultada, 1 job sai para A, nenhum para B, e a UF fica
+`verde` em `nfe_sefaz_status`. Com cStat 108 (SEFAZ paralisada) nada é despachado nem gravado.
+
+Status: 🧪
+
+## UC-FNFE-18 · O job de uma empresa nunca transmite nota de outra · `must`
+
+**Dado** uma nota em contingência em A e outra em B **Quando** roda o job de A **Então** só a nota de A é
+transmitida e a de B continua `contingencia`.
+
+Status: 🧪
+
+## UC-FNFE-19 · No modo SVC a NF-e vai na hora para a SEFAZ Virtual da UF · `must`
+
+**Dado** a contingência ligada em **SVC-AN** **Quando** sai uma NF-e **Então** o XML traz `<tpEmis>6</tpEmis>`
+com `dhCont`/`xJust`, o lote é enviado com a lib armada em `SVCAN` (é isso que troca o webservice) e a nota
+volta autorizada. Em **SVC-RS** é `<tpEmis>7</tpEmis>` e `SVCRS`. A NFC-e não tem SEFAZ Virtual: com SVC
+ligado ela segue off-line (tpEmis 9) e não é enviada. Ativar a SVC que não atende a UF do emitente é
+recusado (a outra SVC recusaria as notas), e a tabela UF → SVC é conferida contra a da `sped-nfe` nas 27 UFs.
+
+Status: 🧪
+
+## UC-FNFE-20 · No modo EPEC o evento 110140 é registrado antes de a nota ir à SEFAZ · `must`
+
+**Dado** a contingência ligada em **EPEC** **Quando** sai uma NF-e **Então** ela fica guardada (`contingencia`,
+tpEmis 4), o lote **não** vai à SEFAZ da UF, o evento 110140 é enviado com a lib armada em `EPEC` e fica
+`autorizado` com cStat 136, e o protocolo vai para o metadata da nota. Quem ativou antes de existir a escolha
+(modo vazio) segue em EPEC.
+
+Status: 🧪
+
+## UC-FNFE-30 · EPEC recusado ou AN fora do ar não perde a nota · `must`
+
+**Dado** o modo EPEC **Quando** o AN devolve cStat de erro, ou o envio do evento lança exceção **Então** a nota
+continua `contingencia` com o XML guardado, o evento 110140 fica `rejeitado` com o cStat ou o erro, e o motivo
+da nota diz "O DANFE só vale com o EPEC registrado".
+
+Status: 🧪
+
+## UC-FNFE-31 · O EPEC de uma empresa grava evento só nela · `must`
+
+**Dado** a empresa A em EPEC **Quando** sai uma NF-e de A **Então** o único evento da nota é de A, e a empresa B
+não ganha evento 110140.
+
+Status: 🧪
+
+---
+
+## Boleto pago emite a NF-e (US-RB-044 · UC-FLX-26)
+
+> **Âncora:** [US-RB-044](../../../../memory/requisitos/RecurringBilling/SPEC.md) (*"Listener InvoicePaid
+> em NfeBrasil — emissão automática NFe55 + DANFE + e-mail"*, `done`) e o `CU-RB-09` do
+> [SDD da cobrança recorrente §6](../../../../memory/requisitos/RecurringBilling/SDD-cobranca-recorrente-v1.0.md)
+> — e o UC-FLX-26 do catálogo de fluxos (*"Boleto pago emite a NF-e · Pago → emite a NF-e sem ninguém
+> clicar"*, estado `producao`). Código conferido, não usado como fonte:
+> `Modules/NfeBrasil/Listeners/EmitirNFeAoReceberPagamento.php` e `NfeService::emitirParaInvoice`.
+>
+> **Por que mora nesta tela:** o fluxo não tem tela própria, e o SDD da cobrança recorrente declara o
+> `CU-RB-09` *"fora da fronteira deste módulo — o listener vive em `Modules/NfeBrasil/`"* (§6, tabela
+> dos CU sem `casos.md`). A regra do mesmo SDD é que fluxo sem tela fica no `casos.md` da tela **do
+> artefato que ele produz** — a NF-e emitida aparece nesta lista. Criar arquivo paralelo seria tipo
+> novo ([ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md) D-B).
+>
+> **Força do veredito, declarada:** `EmitirNFeAoReceberPagamentoTest` não está na lista da lane
+> `nfebrasil-pest` (MySQL); entra pela matriz da `modules-pest` (`vendor/bin/pest Modules/NfeBrasil/Tests`,
+> SQLite em memória) e pula inteiro quando a tabela `rb_invoices` não existe. Se ele executa ou pula
+> naquela lane não foi medido aqui: o `🧪` diz que o teste cita o UC, não que ele rodou — ler a
+> contagem de *assertions* no JUnit antes de subir para ✅.
+
+## UC-FNFE-21 · Fatura paga emite a NF-e sem ninguém clicar · `must`
+
+Status: 🧪 (`EmitirNFeAoReceberPagamentoTest` — `UC-FNFE-21 · …`, 4 casos)
+
+**Dado** a chave `nfebrasil.auto_emission_on_invoice_paid` ligada e a fatura `INV-…` de 199,90 paga
+**Quando** a cobrança recorrente dispara `InvoicePaid` **Então** o listener (registrado pelo
+`NfeBrasilServiceProvider`, na fila `nfe`, nunca síncrono) acha a fatura pela empresa + número do
+documento e pede **uma** emissão a partir dela; autorizada (cStat 100), dispara `NFeAutorizada` — que é o
+que leva o DANFE por e-mail. Rejeitada (cStat 225): a emissão fica gravada como rejeitada e `NFeAutorizada`
+**não** sai.
+
+## UC-FNFE-22 · Com a chave desligada, ou sem a fatura, nenhuma nota sai · `must`
+
+Status: 🧪 (`EmitirNFeAoReceberPagamentoTest` — `UC-FNFE-22 · …`, 2 casos)
+
+**Dado** a chave desligada (o padrão — `CU-RB-09` item 2) **Quando** a fatura `INV-2026-0001` de 199,90 é
+paga **Então** o listener só registra "DISABLED" com o número da fatura e não chama a emissão. **Dado** a
+chave ligada e um número de fatura que não existe (`INV-INEXISTENTE-9999`) **Então** registra aviso
+"Invoice não encontrada" e também não emite.
+
+## UC-FNFE-23 · SEFAZ fora não derruba o pagamento · `must`
+
+Status: 🧪 (`EmitirNFeAoReceberPagamentoTest` — `UC-FNFE-23 · …`, 3 casos)
+
+**Dado** a emissão falhando com "SEFAZ timeout" **Quando** a fatura paga chega ao listener **Então** o erro
+é registrado ("NFe auto-emission falhou") e devolvido à fila, que tenta **3** vezes com **60 s** de
+intervalo; esgotadas as tentativas, `failed()` registra o erro com o número da fatura. O pagamento já foi
+creditado antes e não é desfeito (`CU-RB-09` item 3).
+
+**Fora destes três (backlog, sem id):**
+
+- `[BACKLOG]` **A mesma fatura paga duas vezes não gera duas NF-e.** O SPEC promete idempotência por
+  `transaction_id = invoice.id`; o `emitir()` é idempotente por `transaction_id`
+  (`NfeServiceIdempotenciaRetryTest`), mas nenhum teste passa a mesma fatura duas vezes pelo listener.
+- `[BACKLOG]` **Fatura de outra empresa com o mesmo número não é emitida.** O listener filtra por
+  `business_id` + `numero_documento`; nenhum caso usa duas empresas.
+- `[BACKLOG]` **O teste rodar numa lane com `rb_invoices`** (a `nfebrasil-pest`, MySQL) — ver a força do
+  veredito acima.
+- O e-mail com DANFE + XML é o `EnviarDanfePorEmail` (US-NFE-044, `EnviarDanfePorEmailTest`), fora deste
+  bloco.
+
 ## Backlog de casos (sem id — entram quando um teste de COMPORTAMENTO os cobrir)
 
 - **[~~BACKLOG~~ · 🧪 tem teste, NÃO executa · Tier 0] Gate de permissão `fiscal.nfe.view` bloqueia a leitura da lista** — Dado usuário sem `fiscal.nfe.view` nem `superadmin` · Quando faz `GET /fiscal/nfe` · Então 403. **Corrigido em 2026-09-01:** a redação anterior dizia *"nenhum teste o exercita"* e isso era **falso** — o caso existe em [`GatesPermissaoFiscalTest.php:72`](../../../../Modules/Fiscal/Tests/Feature/GatesPermissaoFiscalTest.php), **com controle negativo** em `:79` (superadmin não recebe 403), e ancora `UC-FNFE-08`. O que é verdade é outra coisa, e a distinção importa: o arquivo inteiro **pula** (`:49-55`) em SQLite e sem `nfe_emissoes`, então o caso **não executa** em nenhuma lane de hoje. *Teste ausente* e *teste que não roda* pedem trabalhos diferentes — o primeiro é escrever, o segundo é dar lane ao módulo (o item de maior alavancagem do plano: 15 de 21 arquivos de teste do Fiscal chamam `markTestSkipped`).
@@ -411,6 +561,20 @@ preferência de exibição. Ancorar num CU plausível fecharia a lacuna do paine
 2. **Cadência:** rodar ao fim de toda mexida na tela. UC ❌ = regressão fiscal.
 
 ## Trilha do tempo
+- 2026-10-21 · [C] `UC-FNFE-19`, `20`, `30`, `31` — SVC-AN/SVC-RS e evento EPEC (US-NFE-071 ·
+  UC-FLX-32). Testes novos em `ContingenciaModoTest`, sem veredito de lane ainda. **Os ids pulam do 20
+  pro 30:** o 21..23 já é do fluxo "boleto pago emite a NF-e", e 24..29 ficam livres para quem estiver
+  abrindo casos nesta tela em paralelo.
+- 2026-10-20 · [C] `UC-FNFE-15..18` — contingência (US-NFE-070 · UC-FLX-32): `dhCont`/`xJust` no XML e
+  retransmissão agendada. Testes novos em `ContingenciaAgendamentoTest`, sem veredito de lane ainda.
+
+- 2026-10-20 · [C] `UC-FNFE-21..23` — o fluxo "boleto pago emite a NF-e" (US-RB-044 · `CU-RB-09` ·
+  UC-FLX-26) ganha casos aqui. Nenhum teste novo e nenhum assert mudou: os 9 casos existentes de
+  `EmitirNFeAoReceberPagamentoTest` passaram a citar o UC no título. **Os ids pulam pro 21 de propósito:**
+  o [#9629](https://github.com/wagnerra23/oimpresso.com/pull/9629) (contingência, UC-FLX-32), aberto em
+  paralelo, usa `UC-FNFE-15..18` nesta mesma tela. Seguindo a regra de 2026-09-04, este lado escolheu um
+  valor que não colide com nenhum estado possível do outro (15..18, e folga até 20) e anuncia no PR.
+  O `13` segue vago.
 - 2026-09-04 · [C] `UC-FNFE-14` — a densidade vira preferência compartilhada. **O id saltou pro
   14, e o 13 fica vago de propósito — vale registrar o mecanismo, porque ele custou 3 rodadas.**
   Este UC e o do [#6731](https://github.com/wagnerra23/oimpresso.com/pull/6731) nasceram ambos
