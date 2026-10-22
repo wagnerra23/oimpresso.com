@@ -1283,6 +1283,32 @@ Como quem orça no balcão, quero salvar o orçamento que montei e reabri-lo dep
 
 ---
 
+### US-COMVIS-022 · Custo e margem por peça na calculadora de m² (UC-FLX-03) — **P1**
+
+> owner: wagner · priority: p1 · estimate: 3h · type: story
+
+**Implementado em:** `Modules/ComunicacaoVisual/Services/MargemDoOrcamento.php` · `Modules/ComunicacaoVisual/Services/OrcamentoGravador.php` · `Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php`
+
+**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoMargemContratoTest.php` (lane `verticais-pest.yml`).
+
+> Contrato: `UC-CVMRG-01..06` do `resources/js/Pages/ComunicacaoVisual/Index.casos.md`.
+
+Como quem orça, quero ver quanto cada peça custa e quanto sobra, para não dar desconto que come a margem.
+
+- `POST /comunicacao-visual/api/calcular` devolve `custo`, `margem` e `margem_pct` por item e o bloco `margem` do orçamento, só para quem tem `comvis.material.manage` (ou superadmin). Para os outros a resposta não muda.
+- Custo do item = custo do material no dia (área × `preco_custo_m2`) + hora de máquina, pela mesma regra que o orçamento grava (US-COMVIS-019). Material sem custo: item sem margem.
+- Margem do orçamento = (subtotal − desconto) − custo das peças, só quando todas as peças têm custo; senão a tela diz quantas têm. Extras, instalação e entrega ficam fora (sem custo cadastrado).
+- Preço, subtotal e total não mudam.
+
+**Aceite:**
+- [x] Custo e margem por peça e do orçamento, conferidos por dois caminhos
+- [x] Preço, subtotal e total iguais com e sem margem
+- [x] Peça sem custo fica sem margem; material de outra empresa não entra
+- [x] Só quem gerencia materiais vê
+- [ ] Alerta de margem abaixo do mínimo ao dar desconto
+
+---
+
 ## 16. Total US recalibrado (base 18 + novas 15 = 33 US)
 
 | Prioridade | US | Total esforço (h IA-pair) |

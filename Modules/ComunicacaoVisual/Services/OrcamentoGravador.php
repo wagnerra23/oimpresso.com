@@ -140,15 +140,39 @@ class OrcamentoGravador
         });
     }
 
-    private function gravarItens(int $businessId, Orcamento $orc, array $itens): void
+    /**
+     * Custo previsto de cada item, pela MESMA regra que a gravação usa (UC-FLX-33): custo do m² do
+     * material e hora de máquina do posto, no dia. A calculadora mostra custo e margem a partir
+     * daqui (UC-FLX-03), então o que a tela mostra é o que o orçamento grava.
+     *
+     * @return array<int, array{m2: ?float, material: ?float, maquina: ?array}> por índice do item
+     */
+    public function custosPrevistos(int $businessId, array $itens): array
     {
         $custoM2 = $this->custosDoDia($businessId, $itens);
-        $hoje = now()->toDateString();
         $custoHora = app()->bound(CustoHoraDoPosto::class) ? app(CustoHoraDoPosto::class) : null;
 
-        foreach ($itens as $ordem => $itemCalc) {
+        $saida = [];
+        foreach ($itens as $i => $itemCalc) {
             $m2 = $custoM2[(int) ($itemCalc['material_id'] ?? 0)] ?? null;
-            $maquina = $this->custoMaquinaDoDia($businessId, $itemCalc, $custoHora);
+            $saida[$i] = [
+                'm2'       => $m2,
+                'material' => $m2 === null ? null : round((float) $itemCalc['area_m2'] * $m2, 2, PHP_ROUND_HALF_UP),
+                'maquina'  => $this->custoMaquinaDoDia($businessId, $itemCalc, $custoHora),
+            ];
+        }
+
+        return $saida;
+    }
+
+    private function gravarItens(int $businessId, Orcamento $orc, array $itens): void
+    {
+        $custos = $this->custosPrevistos($businessId, $itens);
+        $hoje = now()->toDateString();
+
+        foreach ($itens as $ordem => $itemCalc) {
+            $m2 = $custos[$ordem]['m2'];
+            $maquina = $custos[$ordem]['maquina'];
             OrcamentoItem::create([
                 'orcamento_id'      => $orc->id,
                 'business_id'       => $businessId,
@@ -164,7 +188,7 @@ class OrcamentoGravador
                 'ordem'             => $ordem + 1,
                 // UC-FLX-33: custo do material no dia do orçamento (ver custosDoDia).
                 'custo_previsto_m2' => $m2,
-                'custo_previsto'    => $m2 === null ? null : round((float) $itemCalc['area_m2'] * $m2, 2, PHP_ROUND_HALF_UP),
+                'custo_previsto'    => $custos[$ordem]['material'],
                 'custo_previsto_em' => ($m2 === null && $maquina === null) ? null : $hoje,
                 // UC-FLX-33: hora de máquina do posto no dia (ver custoMaquinaDoDia).
                 'posto_id'                => $maquina['posto_id'] ?? null,
