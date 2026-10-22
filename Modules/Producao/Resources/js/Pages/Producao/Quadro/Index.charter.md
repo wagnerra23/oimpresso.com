@@ -33,7 +33,11 @@ na bobina (UC-FLX-13).
 ## Goals — Features (faz)
 
 - Quadro por setor ou por máquina; etapa atual = a em andamento, senão a próxima pendente — UC-PCV-05.
-- Filtro por texto, "Atrasadas ou vencendo", "Travadas por arte", setor e responsável (no navegador) — parte do UC-PCV-06.
+- Filtro por texto, "Atrasadas ou vencendo", "Travadas por arte", setor e responsável, guardado na URL; a regra
+  é `Pages/Producao/_lib/filtro.ts`, a mesma que a Linha do tempo vai usar — UC-PCV-06.
+- Mover a OS para outro setor pelo menu ⋮ ("Mover para …") ou arrastando o cartão, no modo "Por setor", só com
+  `producao.etapa.mover`. Só a coluna muda; o evento "Moveu para X (à mão)" fica no histórico; a coluna manual some
+  quando o operador inicia ou conclui uma etapa — UC-PCV-07.
 - Abre já filtrado pela URL (`?so=atrasadas|arte`, `?agrupar=maquina`), que é como o Painel chega aqui — UC-PCV-02.
 - O cartão mostra a arte "Aguardando cliente" ou "Ajuste pedido", da mesma fonte da fila do Painel — UC-PCV-04.
 - "Alocar" no cartão da etapa pendente, só com `producao.etapa.mover` — UC-FLX-10 (US-PCP-029).
@@ -42,10 +46,10 @@ na bobina (UC-FLX-13).
 
 ## Non-Goals — Features (NÃO faz, nesta entrega)
 
-- ❌ Mover etapa à mão arrastando o cartão (UC-PCV-07: falta fechar o apontamento aberto no backend).
+- ❌ Mover concluir, abrir ou fechar etapa ou apontamento (o protótipo só troca a coluna; ver UC-PCV-07 no casos).
 - ❌ Painel de eventos ao lado do quadro (os eventos estão no Painel, `/producao/painel`).
 - ❌ Aviso de conflito ao alocar (UC-FLX-10: o backend ainda não detecta sobreposição no posto).
-- ❌ Filtro que persiste entre Quadro e Linha (UC-PCV-06 completo depende da thread 07).
+- ❌ A metade "na Linha" do UC-PCV-06: a Linha do tempo é a thread 07, que importa o mesmo `_lib/filtro.ts`.
 
 ## Refs
 

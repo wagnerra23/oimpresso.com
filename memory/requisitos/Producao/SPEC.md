@@ -333,9 +333,9 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ### US-PCP-017 · Dashboard PCP Inertia (4 cards KPI + Kanban embed + heatmap) — **P1**
 
-**Implementado em:** `Modules/Producao/Resources/js/Pages/Producao/Painel/Index.tsx` · `Modules/Producao/Http/Controllers/PainelController.php` · `Modules/Producao/Services/PainelDaProducao.php` · `Modules/Producao/Services/ArteDasOrdens.php`
+**Implementado em:** `Modules/Producao/Resources/js/Pages/Producao/Painel/Index.tsx` · `Modules/Producao/Http/Controllers/PainelController.php` · `Modules/Producao/Services/PainelDaProducao.php` · `Modules/Producao/Services/ArteDasOrdens.php` · `Modules/Producao/Services/ColunaDoQuadro.php`
 
-**Testado em:** `Modules/Producao/Tests/Feature/ProducaoQuadroContratoTest.php` (lane `verticais-pest.yml`) · casos `Painel/Index.casos.md` (UC-PCV-01..04, UC-PCV-29).
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoQuadroContratoTest.php` (lane `verticais-pest.yml`) · casos `Painel/Index.casos.md` (UC-PCV-01..04, UC-PCV-29) e `Quadro/Index.casos.md` (UC-PCV-06, UC-PCV-07).
 
 > owner: wagner · priority: p1 · estimate: 8h · status: done · type: story
 > Charter `.charter.md` obrigatório. A tela é `/producao/painel` (thread 06 do playbook), não `/pcp/dashboard` do blueprint.
@@ -343,6 +343,7 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 **Aceite:**
 - [x] 4 indicadores (OS em produção, atrasadas ou vencendo, arte travando, refugo na semana) que abrem o Quadro filtrado (UC-PCV-01/02).
 - [x] O "Kanban embed" é o próprio Quadro (`/producao/quadro`); o Painel leva até ele pelo filtro da URL e conta pelos mesmos cartões (UC-PCV-03).
+- [x] No Quadro, o filtro inteiro fica na URL com uma regra só para o Quadro e a Linha (UC-PCV-06), e o PCP move a OS de coluna à mão: só a coluna muda, com o evento no histórico (UC-PCV-07).
 - [x] Alertas com ação, fila de aprovação de arte, carga das máquinas hoje e eventos (UC-PCV-01, 04, 29).
 - [ ] Heatmap e refugo em R$ (thread 07 Linha do tempo e thread 08 Custo).
 

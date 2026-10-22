@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 850,
-    "edges": 1155,
+    "nodes": 851,
+    "edges": 1156,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 470,
+      "component": 471,
       "api": 86
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 90,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 470,
+      "hasComponent": 471,
       "dependsOn": 126,
       "delegatesTo": 117,
       "migratesTo": 1,
@@ -4275,6 +4275,13 @@
       "desc": "custo-hora da pessoa, só com producao.desempenho.ver (E03)"
     },
     {
+      "id": "component:Producao/ColunaDoQuadro",
+      "type": "component",
+      "module": "Producao",
+      "name": "ColunaDoQuadro",
+      "desc": "o PCP move a OS de coluna à mão no quadro (thread 06 · UC-PCV-07): grava o setor escolhido em pcp_quadro_colunas e o evento os_movida_quadro em pcp_eventos; não muda etapa, apontamento nem situação; a coluna manual some quando a OS tem etapa iniciada ou concluída depois do movimento; POST /producao/quadro/mover, JSON, producao.etapa.mover"
+    },
+    {
       "id": "component:Producao/ConsumoMaterialService",
       "type": "component",
       "module": "Producao",
@@ -4398,7 +4405,7 @@
       "type": "component",
       "module": "Producao",
       "name": "QuadroController + QuadroDaProducao",
-      "desc": "quadro da produção /producao/quadro (thread 06 · UC-PCV-05): uma OS por cartão na coluna do setor ou da máquina da etapa atual; recebe o Alocar (UC-FLX-10) e o Simular bobina em lote (UC-FLX-13); abre filtrado pela URL (?so=atrasadas|arte, ?agrupar=maquina); Inertia com props deferidas, producao.access"
+      "desc": "quadro da produção /producao/quadro (thread 06 · UC-PCV-05): uma OS por cartão na coluna do setor ou da máquina da etapa atual; recebe o Alocar (UC-FLX-10) e o Simular bobina em lote (UC-FLX-13); abre filtrado pela URL (?so=atrasadas|arte, ?agrupar=maquina) e guarda o filtro inteiro na URL (UC-PCV-06, regra em Pages/Producao/_lib/filtro.ts); Inertia com props deferidas, producao.access"
     },
     {
       "id": "component:Producao/RefugoService",
@@ -12570,6 +12577,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/ColaboradorCustoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/ColunaDoQuadro",
       "type": "hasComponent",
       "source": "contains"
     },
