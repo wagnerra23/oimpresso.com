@@ -15,7 +15,9 @@ use Throwable;
  * route-hits:export — deriva governance/route-hits.json (ledger versionável de
  * execução real) da tabela agregada `route_hits`. Par PRODUTOR do sinal
  * "servido" — mesmo pattern do governance:prod-flags (dry-run default; --write
- * grava; roda no host de PROD; commit manual; NÃO editar o JSON à mão).
+ * grava; roda no host de PROD; NÃO editar o JSON à mão). Publicação: o workflow
+ * route-hits-export.yml roda o dry-run por SSH toda semana e abre auto-PR quando
+ * o conteúdo muda (RUNBOOK-route-hits §Export automático).
  *
  * Seções:
  *   rotas — identidade (nome/URI-pattern) → {hits, ultima_data} na janela
@@ -66,7 +68,7 @@ class RouteHitsExportCommand extends Command
                 'schema' => 'route-hits/v1',
                 'purpose' => 'Ledger de EXECUCAO REAL por rota/pagina em producao (sinal "servido" — eixo runtime da governanca, regua Coverband/Wallarm). Agregado diario, janela movel.',
                 'contrato' => 'rotas[<identidade>] = {hits, ultima_data} na janela; <identidade> = nome canonico Laravel OU URI-pattern (sells/{id}) — NUNCA URL resolvida. pages[<component>] = idem, atribuido via Inertia::render do METODO de action da rota. ZERO PII, ZERO tenant.',
-                'fonte' => 'gerado por `php artisan route-hits:export --write` no host de prod (coleta: middleware ContadorHitsRota → route-hits:flush → tabela route_hits). Commit manual, igual prod-flags.json. NAO editar a mao — re-rodar o comando.',
+                'fonte' => 'gerado por `php artisan route-hits:export --write` no host de prod (coleta: middleware ContadorHitsRota → route-hits:flush → tabela route_hits). Publicado por auto-PR semanal (.github/workflows/route-hits-export.yml, dry-run via SSH). NAO editar a mao — re-rodar o comando.',
                 'nao_e' => 'NAO e prova de correcao (hit != funciona) nem lista de telas existentes (isso e anchor/charter). E prova de USO: 0 hits em Nd = wired-porem-nao-servido.',
                 'consumido_por' => [
                     'scripts/governance/anchor-lint.mjs (advisory servido/nao_servido)',
