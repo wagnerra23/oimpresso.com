@@ -41,6 +41,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Badge } from '@/Components/ui/badge';
+import { Inline } from '@/Components/layout';
 
 interface Material {
   id: number;
@@ -357,13 +358,15 @@ export default function Index({
               <Calculator className="h-4 w-4 text-primary" />
               Calculadora de m²
               {salvo && (
-                <span data-contract="orcamento-aberto" className="flex items-center gap-1.5 text-sm font-normal text-muted-foreground">
-                  · <span className="font-mono text-foreground">{salvo.numero}</span>
-                  <Badge variant="outline">{STATUS_LABEL[salvo.status] ?? salvo.status}</Badge>
-                </span>
+                <Inline asChild gap={1}>
+                  <span data-contract="orcamento-aberto" className="text-sm font-normal text-muted-foreground">
+                    · <span className="font-mono text-foreground">{salvo.numero}</span>
+                    <Badge variant="outline">{STATUS_LABEL[salvo.status] ?? salvo.status}</Badge>
+                  </span>
+                </Inline>
               )}
             </CardTitle>
-            <div className="flex items-center gap-2">
+            <Inline>
               {salvo && (
                 <Button type="button" variant="ghost" size="sm" asChild>
                   <Link href="/comunicacao-visual">Novo orçamento</Link>
@@ -372,7 +375,7 @@ export default function Index({
               <Button type="button" variant="outline" size="sm" onClick={addItem} disabled={!editavel}>
                 <Plus className="mr-1 h-4 w-4" /> Adicionar peça
               </Button>
-            </div>
+            </Inline>
           </CardHeader>
 
           <CardContent className="space-y-3">
@@ -626,7 +629,7 @@ export default function Index({
                 )}
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
+              <Inline wrap>
                 <Button
                   type="button"
                   variant="outline"
@@ -648,7 +651,7 @@ export default function Index({
                     {salvando ? 'Salvando…' : salvo ? 'Salvar alterações' : 'Salvar orçamento'}
                   </Button>
                 )}
-              </div>
+              </Inline>
             </div>
 
             <p className="text-xs text-muted-foreground">
@@ -664,9 +667,13 @@ export default function Index({
         {/* Orçamentos salvos — reabrir na calculadora (deferido: lista não entra no 1º paint) */}
         <Card data-contract="orcamentos-salvos">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-sm font-medium">
-              <FolderOpen className="h-4 w-4 text-primary" />
-              Orçamentos salvos
+            <CardTitle className="text-sm font-medium">
+              <Inline asChild>
+                <span>
+                  <FolderOpen className="h-4 w-4 text-primary" />
+                  Orçamentos salvos
+                </span>
+              </Inline>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -719,7 +726,8 @@ function ListaOrcamentos({ itens, abertoId }: { itens: OrcamentoResumo[]; aberto
   return (
     <ul className="divide-y divide-border">
       {itens.map((o) => (
-        <li key={o.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2 text-sm">
+        <Inline asChild wrap gap={4} key={o.id}>
+        <li className="gap-y-1 py-2 text-sm">
           <span className="font-mono text-foreground">{o.numero}</span>
           <Badge variant="outline">{STATUS_LABEL[o.status] ?? o.status}</Badge>
           <span className="text-muted-foreground">
@@ -735,6 +743,7 @@ function ListaOrcamentos({ itens, abertoId }: { itens: OrcamentoResumo[]; aberto
             </Button>
           )}
         </li>
+        </Inline>
       ))}
     </ul>
   );

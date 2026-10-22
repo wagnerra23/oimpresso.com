@@ -5,10 +5,12 @@ namespace Modules\ComunicacaoVisual\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Modules\ComunicacaoVisual\Entities\Orcamento;
+use Modules\ComunicacaoVisual\Entities\OrcamentoItem;
 use Modules\ComunicacaoVisual\Http\Requests\AprovarOrcamentoRequest;
 use Modules\ComunicacaoVisual\Services\OrcamentoCalculator;
 use Modules\ComunicacaoVisual\Services\OrcamentoGravador;
@@ -111,7 +113,8 @@ class OrcamentoController extends Controller
                 'numero'       => $o->numero,
                 'status'       => $o->status,
                 'total'        => (float) $o->total,
-                'data_emissao' => $o->data_emissao?->toDateString(),
+                // cast 'date' (Carbon), mas o @property da entity diz string: normaliza pelos dois.
+                'data_emissao' => $o->data_emissao ? Carbon::parse($o->data_emissao)->toDateString() : null,
                 'itens'        => (int) $o->itens_count,
             ])
             ->values()
@@ -140,7 +143,7 @@ class OrcamentoController extends Controller
             'custo_instalacao' => (float) $o->custo_instalacao,
             'custo_entrega'    => (float) $o->custo_entrega,
             'total'            => (float) $o->total,
-            'itens'            => $o->itens->map(fn ($i) => [
+            'itens'            => $o->itens->map(fn (OrcamentoItem $i) => [
                 'material_id'       => $i->material_id,
                 'descricao'         => $i->descricao,
                 'largura_m'         => (float) $i->largura_m,

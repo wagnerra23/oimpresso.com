@@ -554,7 +554,7 @@ Status: 🧪
 
 ## UC-CVSAL-01 · Salvar grava os valores do servidor, não os da tela · `must` `[V0]`
 
-**Dado** Banner 3,000 × 1,500 × 1 a R$ 60/m² e Adesivo 2,000 × 1,000 × 3 a R$ 40/m², instalação R$ 200,
+**Dado** Banner 3,000 × 1,500 × 1 a 60,00/m² e Adesivo 2,000 × 1,000 × 3 a 40,00/m², instalação 200,00,
 e um `total`/`subtotal` qualquer vindo do cliente **Quando** o orçamento é salvo **Então** ele nasce
 `rascunho`, número `ORC-AAAA-NNNNN`, na empresa da sessão, com total 710,00 e subtotal 510,00 —
 conferidos à mão e pelo `OrcamentoCalculator` — e os dois itens.
@@ -564,14 +564,14 @@ Status: 🧪
 ## UC-CVSAL-02 · Reabrir devolve as peças e os ajustes, e aparece na lista · `must`
 
 **Dado** o orçamento salvo **Quando** ele é reaberto **Então** volta com as mesmas peças (descrição,
-largura, altura, quantidade, preço por m²), com a instalação de R$ 200 (que não tem campo na tela e não
+largura, altura, quantidade, preço por m²), com a instalação de 200,00 (que não tem campo na tela e não
 pode sumir ao regravar) e com o total 710,00; e está na lista dos salvos da empresa.
 
 Status: 🧪
 
 ## UC-CVSAL-03 · Regravar o reaberto mantém o número e troca as peças · `must` `[V0]`
 
-**Dado** o orçamento salvo **Quando** ele é regravado com uma Placa 2,000 × 1,000 × 1 a R$ 50/m² e a
+**Dado** o orçamento salvo **Quando** ele é regravado com uma Placa 2,000 × 1,000 × 1 a 50,00/m² e a
 mesma instalação **Então** o número é o mesmo (um orçamento só com ele), o total passa a 300,00 —
 conferido à mão e pelo calculator — e o único item é a Placa.
 
