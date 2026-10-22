@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 853,
-    "edges": 1158,
+    "nodes": 854,
+    "edges": 1159,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 473,
+      "component": 474,
       "api": 86
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 90,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 473,
+      "hasComponent": 474,
       "dependsOn": 126,
       "delegatesTo": 117,
       "migratesTo": 1,
@@ -4343,6 +4343,13 @@
       "module": "Producao",
       "name": "InstallController",
       "desc": "instalação 1-clique (ADR 0024)"
+    },
+    {
+      "id": "component:Producao/LinhaController + LinhaDaProducao",
+      "type": "component",
+      "module": "Producao",
+      "name": "LinhaController + LinhaDaProducao",
+      "desc": "linha do tempo por máquina /producao/linha (thread 07 · UC-PCV-08, 09, 30 · US-PCP-015): blocos do dia com carga contra a capacidade do posto, travas de arte e de Aguardando material, estouro do turno e da entrega prometida, próximo dia útil pelo CalendarioDeProducao e uma sugestão de gargalo; reprogramar é AlocacaoController::reprogramar (PUT etapas/{id}/reprogramar, producao.etapa.mover); Inertia com props deferidas, producao.access"
     },
     {
       "id": "component:Producao/LoteRastreioController + RastreioDoRolo",
@@ -12651,6 +12658,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/LinhaController + LinhaDaProducao",
       "type": "hasComponent",
       "source": "contains"
     },
