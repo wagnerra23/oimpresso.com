@@ -68,10 +68,13 @@ export default function ApontamentoIndex({ operador, motivos = [], motivos_refug
   }
 
   async function lerQr(texto: string) {
-    // Formato do QR é da thread 05 (etiqueta): os dois últimos segmentos são o tipo e o id da OS.
+    // Formato do QR (EtiquetaProducao, thread 05): `…:<os_tipo>:<os_id>`; a etiqueta térmica acrescenta
+    // `:e<programacao_id>`, que abre direto aquela etapa em vez de "escolha sua etapa".
     const partes = texto.trim().split(':');
+    const etapaId = /^e[1-9]\d*$/.test(partes[partes.length - 1] ?? '') ? Number(partes.pop()!.slice(1)) : null;
     const [osTipo, osId] = partes.length >= 2 ? partes.slice(-2) : ['comvis_os', partes[0]];
-    const r = await enviar(operador.id, { url: '/producao/apontamento/qr', body: { os_tipo: osTipo, os_id: Number(osId) } });
+    const r = await enviar(operador.id, { url: '/producao/apontamento/qr',
+      body: { os_tipo: osTipo, os_id: Number(osId), ...(etapaId ? { programacao_id: etapaId } : {}) } });
     if (r.ok === 'fila') { setAviso('Sem internet: leia o QR de novo quando a rede voltar.'); return; }
     if (!r.ok) { setAviso(String(r.json.mensagem ?? 'QR não reconhecido.')); return; }
     const etapa = r.json.etapa as Etapa;
