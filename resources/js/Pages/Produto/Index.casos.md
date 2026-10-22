@@ -629,6 +629,14 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
   Então a lista mostra "20 m² separados para vendas · 30 m² livres". Só com o interruptor ligado; o
   próprio UC-FLX-14 lista como falta "a reserva por m² na CV e mostrar o reservado no saldo". Fonte:
   Calcgraf (material empenhado), shopVOX (quantidade reservada).
+  **De onde vem o separado (UC-FLX-14, protótipo de 2026-10-22):** com o interruptor ligado, a aba
+  Estoque do painel mostra Separado e Livre por local (o aviso "Repor" olha o livre) e a tabela "De
+  onde vem o separado", uma linha por venda: cliente, OS, item com a medida (ex.: "Banner 2,00 x
+  1,00 m x 4"), reservado em m², já usado pela produção e o que segue separado, com o total igual ao
+  da lista. Aceite: Dado 20 m² de lona reservados por duas vendas, uma de 8 m² com 2 m² já usados na
+  OS e outra de 14 m², Então a tabela mostra 6 m² e 14 m² separados e o total de 20 m². Produto de
+  revenda (D5) mostra a mesma tabela sem OS e sem "já usado". Depende da reserva por m² existir na
+  venda da CV, que o UC-FLX-14 ainda lista como falta.
 - **[BACKLOG] Saldo do material em rolos e em m² (CV2)** `[V0]` — hoje o saldo aparece numa unidade
   só. Aceite: Dado 2 rolos de 1,60 m × 50 m, Então a lista mostra "2 rolos · 160 m²", e as duas
   contas fecham. Fonte: shopVOX (unidade de compra × unidade de venda).
