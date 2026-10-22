@@ -3866,6 +3866,7 @@
     "memory/requisitos/ComunicacaoVisual/PLANO-MIGRACAO-6-SAUDAVEIS.md",
     "memory/requisitos/ComunicacaoVisual/README.md",
     "memory/requisitos/ComunicacaoVisual/ROADMAP.md",
+    "memory/requisitos/ComunicacaoVisual/RUNBOOK-agenda.md",
     "memory/requisitos/ComunicacaoVisual/RUNBOOK-comunicacao-visual-index.md",
     "memory/requisitos/ComunicacaoVisual/SCOPE.md",
     "memory/requisitos/ComunicacaoVisual/SUPERFICIE.md",
@@ -4481,12 +4482,12 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 4475,
+    "total": 4476,
     "resolved": 3000,
-    "unstamped": 1475,
+    "unstamped": 1476,
     "collisions": 0,
     "by_source": {
-      "unstamped": 1475,
+      "unstamped": 1476,
       "derived-adr": 442,
       "stamped": 1165,
       "derived-handoffs": 619,

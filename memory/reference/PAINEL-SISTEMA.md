@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-10-21**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-10-22**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -27,7 +27,7 @@ lente: [construir]
 | Auditoria | [BRIEFING](../requisitos/Auditoria/BRIEFING.md) | 2026-10-01 |
 | Cms | [BRIEFING](../requisitos/Cms/BRIEFING.md) | 2026-09-15 |
 | Compras | [BRIEFING](../requisitos/Compras/BRIEFING.md) | 2026-09-15 |
-| ComunicacaoVisual | [BRIEFING](../requisitos/ComunicacaoVisual/BRIEFING.md) | 2026-08-12 |
+| ComunicacaoVisual | [BRIEFING](../requisitos/ComunicacaoVisual/BRIEFING.md) | 2026-10-21 |
 | Connector | [BRIEFING](../requisitos/Connector/BRIEFING.md) | 2026-08-03 |
 | ConsultaOs | [BRIEFING](../requisitos/ConsultaOs/BRIEFING.md) | 2026-10-02 |
 | Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-09-07 |
@@ -134,7 +134,7 @@ lente: [construir]
 - Contratos de tela (fidelidade + intenção)
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 154 workflows por classe
+### Censo — 155 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
@@ -142,7 +142,7 @@ lente: [construir]
 |---|---|---|
 | gate (bloqueia/valida PR) | 118 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
-| automacao (cron/dispatch) | 25 | agent-cost-per-pr, agent-pr-outcomes, baseline-folga, briefing-code-staleness, … |
+| automacao (cron/dispatch) | 26 | agent-cost-per-pr, agent-pr-outcomes, baseline-folga, briefing-code-staleness, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
 | governanca | 1 | required-always-run |
 | qualidade | 1 | brl-scan |
@@ -440,4 +440,4 @@ lente: [construir]
   - `2026-10-15-refutacao-gt-g5-lote-9433-r1`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-10-21 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-10-22 · deriva das fontes canônicas, não as substitui._
