@@ -573,6 +573,13 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
 > "reservado", "empenhado" e "disponível", que o cliente não entendia. Na lista a linha fica
 > "20 m² separados para OS · 76 m² livres"; no painel, "Tem no estoque", "Separado para OS"
 > (ou "Separado para vendas") e "Livre para usar" (ou "Livre para vender").
+>
+> **Ajustados às regras e fluxos do Wagner (2026-10-22):** os casos foram conferidos contra os
+> `UC-FLX-*` de `prototipo-ui/cowork/Wagner/fluxos-data.jsx` e os interruptores de Sistema ›
+> Fluxos e regras. Mudou: "separado" só existe com o interruptor "Reservar material na venda" e
+> nasce na venda, então o material também é "separado para vendas"; o eixo produto, material e
+> serviço se chama "Uso", porque "natureza" já é a natureza fiscal. Entraram requisição de compra,
+> natureza fiscal pendente, método de custo e roteiro (bloco "Regras e fluxos", abaixo).
 
 **Vestuário (ROTA LIVRE)**
 
@@ -586,9 +593,10 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
   do produto. Fonte: Bling (variações marcadas na lista), Alterdata e Senior (estoque por grade).
 - **[BACKLOG] Mostrar o estoque separado para vendas e o livre (D5)** `[V0]` — hoje o saldo não
   desconta o que já foi vendido e ainda não saiu. Aceite: Dado 10 un em estoque e uma venda não
-  entregue que separou 3, Então a lista mostra "3 un separadas para vendas · 7 un livres". Pergunta
-  em aberto: a ROTA LIVRE (biz=4) usa o fluxo de venda que separa estoque? Fonte: Conta Azul (aba
-  Reservados), Senior (quantidade em reserva).
+  entregue que separou 3, Então a lista mostra "3 un separadas para vendas · 7 un livres". Só com
+  o interruptor "Reservar material na venda" ligado em Sistema › Fluxos e regras (desligado por
+  padrão, UC-FLX-14); desligado, a linha não aparece. Fonte: Conta Azul (aba Reservados), Senior
+  (quantidade em reserva).
 - **[BACKLOG] Excluir sem perder: o excluído pode ser restaurado (D13)** — hoje "Excluir" apaga o
   cadastro, as variações e os preços por grupo, e a confirmação diz que não tem volta. Aceite: Dado
   um produto excluído, Quando filtro a situação "Excluídos", Então ele aparece e "Restaurar" o devolve
@@ -607,16 +615,20 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
 **Comunicação visual**
 
 - **[BACKLOG] Separar material, produto e serviço na consulta (CV1)** — hoje o filtro "Tipo de
-  produto" separa Único, Variável e Composição; material não tem marca própria. Aceite: Dado lona
-  (material), banner (produto) e instalação (serviço), Quando filtro "Material", Então só a lona
-  aparece. No painel fica um rótulo só, "O que é", com a natureza; a forma do cadastro aparece só
+  produto" separa Único, Variável e Composição; material não tem marca própria. O eixo se chama
+  "Uso" (Para vender, Material, Serviço) e não ganha campo novo: serviço vem da natureza fiscal do
+  produto (UC-FLX-31) e material é o item que entra em alguma receita. Aceite: Dado lona (entra na
+  receita do banner), banner e instalação (natureza fiscal serviço), Quando filtro "Material", Então
+  só a lona aparece. No painel fica um rótulo só, "O que é", com o uso; a forma do cadastro aparece só
   quando muda algo ("Produto · com 8 variações", "Produto · kit com 4 itens"), e a coluna Tipo sai
   do padrão da lista (continua no menu Colunas). Fonte: shopVOX (produtos × materiais), Calcgraf
   (insumos e acabados).
-- **[BACKLOG] Material separado para OS abertas × livre (CV4)** `[V0]` — mesmo pedido do D5,
-  aplicado ao material. Aceite: Dado 50 m² de lona e OS abertas que separaram 20 m², Então a lista
-  mostra "20 m² separados para OS · 30 m² livres". Fonte: Calcgraf (material empenhado), shopVOX
-  (quantidade reservada).
+- **[BACKLOG] Material separado para vendas × livre (CV4)** `[V0]` — mesmo pedido do D5, aplicado
+  ao material. A reserva nasce na venda e a produção abate ao usar o material (UC-FLX-14), por isso
+  o texto é "para vendas", não "para OS". Aceite: Dado 50 m² de lona e vendas que reservaram 20 m²,
+  Então a lista mostra "20 m² separados para vendas · 30 m² livres". Só com o interruptor ligado; o
+  próprio UC-FLX-14 lista como falta "a reserva por m² na CV e mostrar o reservado no saldo". Fonte:
+  Calcgraf (material empenhado), shopVOX (quantidade reservada).
 - **[BACKLOG] Saldo do material em rolos e em m² (CV2)** `[V0]` — hoje o saldo aparece numa unidade
   só. Aceite: Dado 2 rolos de 1,60 m × 50 m, Então a lista mostra "2 rolos · 160 m²", e as duas
   contas fecham. Fonte: shopVOX (unidade de compra × unidade de venda).
@@ -625,9 +637,28 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
   Quando abro o painel, Então vejo materiais e quantidades da receita. ⚠️ Conferir com o charter: o
   Non-Goal "Sub-views de BOM/Insumos ficam em `/products/unificado`" pode valer aqui — decisão [W].
   Fonte: shopVOX (lista de materiais, mão de obra e máquina do produto).
-- **[BACKLOG] Rastrear o rolo por OS a partir da consulta (CV3)** — a US-COM-025 (Compras) já
-  descreve o rastreio e está pendente; a consulta seria uma porta de entrada. Fonte: Mubisys
-  (estoque fracionado com rastreio da mídia), Calcgraf (controle de bobinas).
+- **[BACKLOG] Rastrear o rolo por OS a partir da consulta (CV3)** — cada rolo é um lote, e o
+  relatório de Lotes já mostra em que OS cada rolo foi usado (US-COM-025 · UC-FLX-18, parcial). A
+  consulta seria a porta de entrada: a aba Rolos do painel lista os rolos e leva ao relatório de
+  Lotes. Fonte: Mubisys (estoque fracionado com rastreio da mídia), Calcgraf (controle de bobinas).
+
+**Regras e fluxos do Wagner (2026-10-22)**
+
+- **[BACKLOG] Mostrar a requisição de compra aberta pelo estoque mínimo (UC-FLX-19)** — o job
+  diário já cria a requisição com o fornecedor da última compra quando o interruptor "Requisição
+  pelo estoque mínimo" está ligado (US-COM-027, em produção), mas a consulta não mostra. Aceite:
+  Dado um produto abaixo do mínimo com requisição aberta, Então a linha mostra "Requisição <número>
+  aberta em <data> · <fornecedor>" e o painel repete na aba Estoque.
+- **[BACKLOG] Natureza fiscal pendente na consulta (UC-FLX-31)** — produto com natureza fiscal
+  pendente trava a NF-e da venda até o contador decidir. Aceite: a lista tem o filtro "Natureza
+  fiscal" (mercadoria, serviço, pendente), a linha do pendente tem um selo e o painel mostra a
+  natureza fiscal com o aviso da NF-e travada.
+- **[BACKLOG] Método de custo do insumo no painel (UC-FLX-38)** — cada insumo tem custo médio ou
+  da última compra, com histórico por data (US-COM-024). Aceite: abaixo do custo, o painel diz qual
+  é o método e a data ("custo médio, atualizado em 12/10/2026").
+- **[BACKLOG] Roteiro de produção no painel (UC-FLX-07)** — a OS copia as etapas do roteiro do
+  produto (US-PCP-026). Aceite: a aba "Receita e roteiro" mostra a receita e as etapas numeradas
+  do roteiro; produto sem roteiro não mostra a parte de etapas.
 
 Fontes abertas em 2026-10-20: [Shopify](https://help.shopify.com/manual/products/searching-filtering) ·
 [Olist/Tiny](https://ajuda.olist.com/produtos/acoes-em-lote-e-gerenciamento-de-produtos) ·
