@@ -1,0 +1,169 @@
+name: Route-hits export (ledger de uso real · auto-PR semanal)
+
+# Automatiza o passo 3 do memory/requisitos/Infra/RUNBOOK-route-hits.md.
+#
+# A coleta (middleware ContadorHitsRota) e o flush (cron 00:15 BRT no Kernel)
+# rodam sozinhos em prod e gravam a tabela route_hits. O último passo, exportar
+# a tabela para governance/route-hits.json e commitar, era manual. Parou duas
+# vezes (2026-07-25, religado no #6155; 2026-08-22, religado no #9765), e nas
+# duas o eixo "entrega" do cron-watchdog (G6, limite 60d) ficou vermelho em
+# todo PR. A coleta nunca parou; quem parava era o export.
+#
+# Como funciona:
+#   1. SSH no Hostinger com os mesmos secrets e flags do deploy.yml.
+#   2. Roda `php artisan route-hits:export` em DRY-RUN: o JSON sai no stdout.
+#      Nunca `--write`: o checkout de prod não ganha arquivo sujo, e o próximo
+#      `git reset` do deploy não tem nada a descartar.
+#   3. Recorta o JSON (primeiro `{` até o último `}`), o que tira o rodapé
+#      "dry-run — use --write…", valida com JSON.parse e confere o schema.
+#      Ledger sem nenhuma rota NÃO é publicado: zero rotas quer dizer coleta
+#      desligada ou tabela vazia, e gravar isso apagaria o sinal dos 4 consumidores.
+#   4. Auto-PR só quando o conteúdo muda (peter-evans + COWORK_BOT_PAT, mesmo
+#      padrão do sdd-scorecard-publish.yml, inclusive a limpeza do tracking ref).
+#
+# Fora de escopo, de propósito: governance/prod-flags.json. O dry-run dele faz
+# MERGE com o prod-flags.json do checkout de PROD, que só anda no deploy. Uma
+# edição no main posterior ao último deploy (ex.: #7325) seria desfeita pelo
+# auto-PR. Automatizar exige fazer o merge contra o main, no runner — PR próprio.
+#
+# Registro no GitHub: o push do merge (#9770, 15f8209c18) nao gerou run nenhum
+# (Actions degradado em 2026-10-22, githubstatus) e o workflow nao foi registrado
+# — `gh workflow run` dava 404. Este comentario existe para um push tocar o arquivo
+# de novo e o GitHub registrar o workflow.
+#
+# Nasce sem bloquear nada: não roda em pull_request, e falha aqui só deixa o
+# ledger como estava (o G6 continua sendo quem cobra).
+
+on:
+  schedule:
+    - cron: '30 4 * * 1' # segunda 01:30 BRT — depois do flush de 00:15 BRT
+  workflow_dispatch:
+
+concurrency:
+  group: route-hits-export
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  export:
+    name: Exporta route_hits de prod e aterrissa governance/route-hits.json
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      RDIR: /home/u906587222/domains/oimpresso.com/public_html
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup SSH (receita do deploy.yml)
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+          cat > "$RUNNER_TEMP/ssh_exec.sh" <<'EOF'
+          #!/bin/bash
+          # Flags canônicos Hostinger, iguais ao deploy.yml (IPv4, timeout em minutos, sem mux).
+          ssh -4 \
+              -o BatchMode=yes \
+              -o StrictHostKeyChecking=accept-new \
+              -o ConnectTimeout=180 \
+              -o ConnectionAttempts=3 \
+              -o ServerAliveInterval=3 \
+              -o ServerAliveCountMax=200 \
+              -i ~/.ssh/id_ed25519 -p ${{ secrets.SSH_PORT }} \
+              ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} \
+              "$@"
+          EOF
+          chmod +x "$RUNNER_TEMP/ssh_exec.sh"
+
+      - name: Warm-up do caminho SSH (Hostinger flaky)
+        run: |
+          for i in 1 2 3 4 5; do
+            curl -4 -s -o /dev/null -w "$i:%{http_code} " https://oimpresso.com/login --max-time 15 || true
+          done; echo
+          "$RUNNER_TEMP/ssh_exec.sh" "true" && echo "warm-up SSH OK" \
+            || echo "warm-up SSH frio — o export abaixo tem ConnectionAttempts=3"
+
+      - name: Export em dry-run (stdout; nunca --write no checkout de prod)
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/ssh_exec.sh" "cd $RDIR && php artisan route-hits:export --dias=30 --no-ansi" \
+            > "$RUNNER_TEMP/export-raw.txt"
+          echo "bytes recebidos: $(wc -c < "$RUNNER_TEMP/export-raw.txt")"
+          tail -n 2 "$RUNNER_TEMP/export-raw.txt"
+
+      - name: Recorta, valida e grava o ledger
+        id: ledger
+        run: |
+          set -euo pipefail
+          node - "$RUNNER_TEMP/export-raw.txt" governance/route-hits.json <<'JS'
+          const fs = require('fs');
+          const [src, dst] = process.argv.slice(2);
+          const raw = fs.readFileSync(src, 'utf8');
+          const ini = raw.indexOf('{'), fim = raw.lastIndexOf('}');
+          if (ini < 0 || fim <= ini) { console.error('::error::saída sem JSON — export não rodou'); process.exit(2); }
+          const texto = raw.slice(ini, fim + 1);
+          let j;
+          try { j = JSON.parse(texto); } catch (e) { console.error('::error::JSON inválido: ' + e.message); process.exit(2); }
+          if (j?._meta?.schema !== 'route-hits/v1') { console.error('::error::schema inesperado: ' + j?._meta?.schema); process.exit(2); }
+          const n = Object.keys(j.rotas || {}).length;
+          if (n === 0) { console.error('::error::0 rotas na janela — coleta desligada ou tabela vazia; NÃO publico ledger vazio'); process.exit(2); }
+          const datas = Object.values(j.rotas).map(r => r.ultima_data).sort();
+          fs.writeFileSync(dst, texto + '\n');
+          const resumo = `${n} rotas · ${Object.keys(j.pages || {}).length} pages · janela ${j.janela_dias}d · ultima_data ${datas.at(-1)}`;
+          console.log(resumo);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `resumo=${resumo}\n`);
+          JS
+          if git diff --quiet -- governance/route-hits.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "ledger igual ao do main — nada a publicar."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git diff --stat -- governance/route-hits.json
+          fi
+          { echo "## Route-hits export"; echo "- $(grep '^resumo=' "$GITHUB_OUTPUT" | tail -1 | cut -d= -f2-)"; echo "- mudou: $(grep '^changed=' "$GITHUB_OUTPUT" | tail -1 | cut -d= -f2-)"; } >> "$GITHUB_STEP_SUMMARY"
+
+      # Mesma corrida do sdd-scorecard-publish.yml (medida lá em 2026-09-16): o checkout
+      # traz o tracking ref da branch efêmera de um PR anterior já mergeado e apagado; o
+      # --force-with-lease do peter-evans usa esse ref como lease e o push sai "stale info".
+      - name: Limpa tracking ref residual da branch efêmera
+        if: steps.ledger.outputs.changed == 'true'
+        run: git update-ref -d refs/remotes/origin/chore/route-hits-export # mesmo nome do `branch:` abaixo
+
+      - name: Auto-PR do ledger
+        if: steps.ledger.outputs.changed == 'true'
+        id: cpr
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.COWORK_BOT_PAT }}
+          base: main
+          branch: chore/route-hits-export
+          add-paths: governance/route-hits.json
+          commit-message: |
+            chore(governance): re-exporta route-hits.json (export semanal automático)
+
+            ${{ steps.ledger.outputs.resumo }}
+            Gerado por route-hits-export.yml — dry-run do route-hits:export no host de prod.
+          title: 'chore(governance): re-exporta route-hits.json (${{ steps.ledger.outputs.resumo }})'
+          body: |
+            **Export automático do ledger de uso real** (passo 3 do `RUNBOOK-route-hits.md`).
+
+            ${{ steps.ledger.outputs.resumo }}
+
+            Saída do `php artisan route-hits:export --dias=30` em dry-run no Hostinger, recortada e validada
+            (JSON.parse + schema `route-hits/v1` + pelo menos 1 rota). O checkout de prod não foi escrito.
+
+            🤖 Generated by route-hits-export.yml
+          labels: |
+            governance
+            automated
+          delete-branch: true
+
+      - name: Auto-merge no PR gerado
+        if: steps.cpr.outputs.pull-request-number
+        env:
+          GH_TOKEN: ${{ secrets.COWORK_BOT_PAT }}
+        run: gh pr merge ${{ steps.cpr.outputs.pull-request-number }} --squash --auto --delete-branch

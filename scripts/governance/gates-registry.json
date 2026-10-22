@@ -873,6 +873,12 @@
       "promote_by": "2027-01-13",
       "anchor": "Modules/Spreadsheet/Tests/Feature nao rodava em lane NENHUMA — medido 2026-10-13 com test-lane-coverage.mjs --json: 9 de 9 arquivos orfaos, inclusive o MultiTenantIsolationTest. Roda o SpreadsheetIndexContratoTest (UC-PLAN-01..05, thread telas-soltas/04: dual-render Blade/Inertia atras da flag useV2SpreadsheetIndex e isolamento Tier 0 da lista, cujo orWhere sem agrupar deixava os ramos de compartilhamento escaparem do business_id) e o MultiTenantIsolationTest. MySQL e nao sqlite: autentica usuario, monta permissao Spatie e bate em rota HTTP com sessao de negocio em dois tenants (98 x 99).",
       "promote_by_razao": "Nasce advisory (ADR 0275) porque a area nunca teve execucao conhecida — promocao so com mordida provada (ADR 0336); o flip e de [W]. Sem continue-on-error: advisory = nao bloqueia merge, nunca = nao pode ficar vermelha (lapide 2026-07-09)."
+    },
+    "route-hits-export.yml": {
+      "nome": "Route-hits export — dry-run do route-hits:export no Hostinger (SSH, receita do deploy.yml) aterrissa governance/route-hits.json via auto-PR semanal quando o conteúdo muda; nunca --write no checkout de prod; recusa ledger com 0 rotas",
+      "classe": "automacao",
+      "terminal": "cron",
+      "anchor": "RUNBOOK-route-hits passo 3 · custo medido: export manual parou 2x (2026-07-25 religado #6155; 2026-08-22 religado #9765) e nas duas o eixo entrega do cron-watchdog (G6, 60d) avermelhou todo PR — a coleta (tabela route_hits) nunca parou"
     }
   }
 }
