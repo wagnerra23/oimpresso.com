@@ -298,6 +298,43 @@ const VD_MODELOS_COLUNAS = {
   instalacao: { n: "Fachadas e instalação sob encomenda", cols: ["venda", "cliente", "atendido", "pipeline", "entrega", "instalacao", "fiscal", "total", "status"] },
   oficina: { n: "Oficina mecânica", cols: VD_COLS_HOJE },
 };
+// Etapas da VENDA por modelo (processo "venda" de cada modelo em fluxos-data.jsx). O legado
+// segue o stepper de hoje (FSM_BY_VERTICAL). Todo modelo tem a saída lateral Cancelado; o que
+// tem a etapa Enviado tem também Perdido, com motivo obrigatório (botão "Marcar perdido", #9695).
+const VD_ETAPAS_VENDA = {
+  balcao: ["Orçamento", "Aprovado", "Pronto", "Entregue", "Pago"],
+  "cv-pequena": ["Orçamento", "Aprovado", "Faturado", "Entregue", "Pago"],
+  "cv-pcp": ["Orçamento", "Enviado", "Aprovado", "Faturado", "Entregue", "Pago"],
+  grafica: ["Orçamento", "Aprovado", "Faturado", "Entregue", "Pago"],
+  brindes: ["Orçamento", "Aprovado", "Produção", "Entregue", "Pago"],
+  instalacao: ["Visita técnica", "Projeto", "Orçamento", "Aprovado", "Faturado", "Pago"],
+  oficina: ["Diagnóstico", "Aguardando peça", "Em serviço", "Pronto", "Entregue"],
+};
+// Marco de cada etapa na linha do tempo da venda — posiciona a mesma venda em qualquer modelo.
+const VD_MARCO = { "Visita técnica": 0.4, "Projeto": 0.6, "Orçamento": 1, "Diagnóstico": 1, "Enviado": 2, "Aguardando peça": 2,
+  "Aprovado": 3, "Em serviço": 4, "Produção": 4, "Pronto": 4.5, "Faturado": 5, "Entregue": 6, "Pago": 7 };
+// fsm do protótipo (cv: Orçamento · Pedido · Faturada · Entregue · Paga) → marco
+const VD_MARCO_FSM = [1, 3, 5, 6, 7];
+const vdTemEnviado = (modelo) => (VD_ETAPAS_VENDA[modelo] || []).includes("Enviado");
+// Casos de exemplo da proposta, pelos ids de data-vendas.jsx (só no protótipo):
+//   orçamento abaixo da margem mínima (US-SELL-069) · orçamento perdido (#9695) · venda com devolução (UC-S12)
+const VD_PROPOSTA_CASOS = {
+  "V-7832": { orcamento: true, margem: "margem 12% · mínimo 20%" },
+  "V-7827": { orcamento: true, perdido: "preço: fechou com outro fornecedor" },
+  "V-7824": { devolucao: true },
+};
+function VdPipeModelo({ fsm, modelo, caso }) {
+  const etapas = VD_ETAPAS_VENDA[modelo] || [];
+  const FsmStepper = VdDS().FsmStepper;
+  const marco = caso.orcamento ? (vdTemEnviado(modelo) ? 2 : 1) : VD_MARCO_FSM[Math.max(0, Math.min(4, fsm))];
+  let idx = 0;
+  etapas.forEach((e, i) => { if ((VD_MARCO[e] ?? 0) <= marco) idx = i; });
+  const fim = !!caso.perdido;
+  const steps = etapas.map((e, i) => ({ label: e,
+    state: i < idx || (fim && i === idx) || (marco >= 7 && i === etapas.length - 1) ? "done" : i === idx ? "current" : "todo" }));
+  if (fim) steps.push({ label: vdTemEnviado(modelo) ? "Perdido" : "Cancelado", state: "term" });
+  return FsmStepper ? <FsmStepper variant="inline" steps={steps} /> : <span>{etapas[idx]}</span>;
+}
 const vdColunasDoModelo = (modelo) => {
   const cols = (VD_MODELOS_COLUNAS[modelo] || VD_MODELOS_COLUNAS.legado).cols;
   return VD_COLUNAS.map((c) => ({ ...c, default: cols.includes(c.key) }));
@@ -319,6 +356,8 @@ const vdDiaMes = (iso, mais) => {
 };
 function vdExemploColunas(v, fsm) {
   if (v.vertical === "mec") return {}; // oficina: a OS é do módulo Oficina, não da produção
+  // orçamento ainda não tem OS: ela nasce na aprovação (UC-FLX-01)
+  if ((VD_PROPOSTA_CASOS[v.id] || {}).orcamento) return { producao: { txt: "Sem OS", sub: "a OS nasce na aprovação", tone: "mute" } };
   const n = vdNum(v);
   const os = 1 + n % 3;
   const semSinal = n % 5 === 0 && fsm <= 1;
@@ -800,6 +839,7 @@ function VendasListPage() {
                   <td key="venda" className="vd-id">
                     {isFav && <span className="vd-fav" title="Favorita (B)">★</span>}
                     #{v.id}
+                    {(VD_PROPOSTA_CASOS[v.id] || {}).devolucao && <div title="Venda com devolução"><VdColInfo info={{ txt: "↩ Devolução", tone: "warn" }} /></div>}
                   </td>
       );
       case "data": return (
@@ -853,7 +893,11 @@ function VendasListPage() {
                   </td>
       );
       case "pipeline": return (
-                  <td key="pipeline"><VdStepper fsm={effFsmOf(v)} vertical={v.vertical} /></td>
+                  <td key="pipeline">
+                    {v.vertical === "mec" || colModelo === "legado" ?
+                    <VdStepper fsm={effFsmOf(v)} vertical={v.vertical} /> :
+                    <VdPipeModelo fsm={effFsmOf(v)} modelo={colModelo} caso={VD_PROPOSTA_CASOS[v.id] || {}} />}
+                  </td>
       );
       case "fiscal": return (
                   <td key="fiscal"><VdFiscalCell v={{ ...v, fiscal: effFiscalOf(v) }} /></td>
@@ -875,14 +919,21 @@ function VendasListPage() {
                     {vdFmt(comm)}
                   </td>
       );
-      case "status": return (
+      case "status": {
+        const caso = VD_PROPOSTA_CASOS[v.id] || {};
+        const stKey = caso.perdido ? "cancelada" : caso.orcamento ? "orcamento" : v.status;
+        return (
                   <td key="status">
+                    {caso.perdido && vdTemEnviado(colModelo) ?
+                    <VdColInfo info={{ txt: "Perdido", tone: "danger" }} /> :
                     <span className="os-stage" style={{
-                      background: (VENDAS_STATUS[v.status]?.color || "#888") + "1f",
-                      color: VENDAS_STATUS[v.status]?.color || "#888"
+                      background: (VENDAS_STATUS[stKey]?.color || "#888") + "1f",
+                      color: VENDAS_STATUS[stKey]?.color || "#888"
                     }}>
-                      {VENDAS_STATUS[v.status]?.label || v.status}
-                    </span>
+                      {VENDAS_STATUS[stKey]?.label || stKey}
+                    </span>}
+                    {caso.perdido && <div className="vd-notes">motivo: {caso.perdido}</div>}
+                    {caso.margem && <div style={{ marginTop: 4 }}><VdColInfo info={{ txt: "Aguardando aprovação da margem", sub: caso.margem, tone: "warn" }} /></div>}
                     <div className="vd-row-actions" onClick={(e) => e.stopPropagation()}>
                       {v.fiscal?.nfe?.status === "ok" &&
                       <button className="vd-row-act" title="Baixar DANFE PDF"><I.archive size={11} /></button>
@@ -893,7 +944,8 @@ function VendasListPage() {
                       <button className="vd-row-act" title="Imprimir recibo (R)"><I.printer size={11} /></button>
                     </div>
                   </td>
-      );
+        );
+      }
       case "producao": return <td key="producao"><VdColInfo info={ex["producao"]} /></td>;
       case "entrega": return <td key="entrega"><VdColInfo info={ex["entrega"]} /></td>;
       case "arte": return <td key="arte"><VdColInfo info={ex["arte"]} /></td>;
@@ -901,6 +953,30 @@ function VendasListPage() {
       case "instalacao": return <td key="instalacao"><VdColInfo info={ex["instalacao"]} /></td>;
       default: return null;
     }
+  };
+  // PROPOSTA · menu ⋮ de cada linha, com as ações do charter (Ver detalhes · Editar · Adicionar
+  // pagamento · Imprimir nota · Devolução · Excluir). O Editar avisa o que a nota ou o pagamento
+  // travou (US-SELL-072); orçamento abaixo da margem pede aprovação (US-SELL-069); orçamento de
+  // modelo com Enviado pode ser marcado como perdido (#9695).
+  const vdAcoes = (v) => {
+    const caso = VD_PROPOSTA_CASOS[v.id] || {};
+    const fiscal = effFiscalOf(v) || {};
+    const nota = fiscal.nfe?.status === "ok" || fiscal.nfse?.status === "ok";
+    const paga = v.status === "paga";
+    const fim = !!caso.perdido || v.status === "cancelada";
+    const editar = nota ? "Editar — itens, valores e cliente travados (nota autorizada)"
+      : paga ? "Editar — valores travados (tem pagamento)" : "Editar";
+    return [
+      { label: "Ver detalhes", action: () => setOpenId(v.id) },
+      { label: editar, disabled: fim, action: () => setEditingId(v.id) },
+      caso.margem && { label: "Aprovar margem (só quem tem permissão)", action: () => window.vdToast?.("Margem aprovada — protótipo", "ok") },
+      !fim && !paga && { label: "Adicionar pagamento", action: () => window.vdToast?.("Adicionar pagamento — protótipo", "ok") },
+      { label: "Imprimir nota", disabled: !nota },
+      !fim && !caso.orcamento && { label: "Devolução" },
+      caso.orcamento && !fim && vdTemEnviado(colModelo) && { label: "Marcar perdido (motivo obrigatório)" },
+      { sep: true },
+      { label: "Excluir", danger: true },
+    ];
   };
 
   return (
@@ -1091,7 +1167,7 @@ function VendasListPage() {
             ([W] 2026-06-12 "essa linha deve ficar ao lado da de baixo · falta a busca no canto direito") */}
         <window.CliTabs className="os-tabs" ariaLabel="Situação da venda" pad={24}
           active={statusF} onChange={setStatusF}
-          tabs={["todas", "paga", "pendente", "faturada", "cancelada"].map((s) => ({
+          tabs={["todas", "paga", "pendente", "faturada", "cancelada", "rascunhos"].map((s) => ({
             key: s,
             label: s === "todas" ? "Todas" : VENDAS_STATUS[s]?.label || s.charAt(0).toUpperCase() + s.slice(1),
             n: countBy(s) }))} />
@@ -1216,12 +1292,13 @@ function VendasListPage() {
                   {t.l || (VD_COLUNAS.find((c) => c.key === k) || {}).label}
                 </th>;
               })}
+              <th style={{ width: 40 }}><span className="sr-only">Ações</span></th>
             </tr>
           </thead>
           <tbody>
             {loading && Array.from({ length: 6 }).map((_, i) =>
             <tr key={"sk" + i} className="vd-sk-row">
-                <td colSpan={colAtivas.length + 1}>
+                <td colSpan={colAtivas.length + 2}>
                   <div className="vd-sk-bar" style={{ animationDelay: i * 60 + "ms" }} />
                 </td>
               </tr>
@@ -1242,11 +1319,14 @@ function VendasListPage() {
                     <input type="checkbox" checked={sel} onChange={() => toggleSel(v.id)} />
                   </td>
                   {colAtivas.map((k) => vdCelula(k, v, s, comm, isFav, ex))}
+                  <td onClick={(e) => e.stopPropagation()}>
+                    {window.CliKebab && <window.CliKebab label={"Ações da venda #" + v.id} align="end" size="sm" width={320} items={vdAcoes(v)} />}
+                  </td>
                 </tr>);
 
             })}
             {!loading && filtered.length === 0 &&
-            <tr><td colSpan={colAtivas.length + 1} className="os-empty">
+            <tr><td colSpan={colAtivas.length + 2} className="os-empty">
                 {topView === "atrasadas" && <><b>Tudo dentro do prazo ✓</b><br /><small>Nenhuma venda atrasada. Bom trabalho.</small></>}
                 {topView === "rejeitadas" && <><b>Zero rejeições da SEFAZ ✓</b><br /><small>Todos os documentos fiscais autorizados.</small></>}
                 {topView === "favoritas" && <><b>Sem favoritas ainda</b><br /><small>Foque uma linha com J/K e aperte <kbd>B</kbd> pra pinar.</small></>}
