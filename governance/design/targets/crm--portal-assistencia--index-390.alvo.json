@@ -1,0 +1,293 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR Prévia · o portal como o contato vê Contato Rota Livre Transportes Martinho Oficina Agência Norte Celular 390 Tela cheia Claro Escuro Estado Com dados Carregando Erro Vazio Logins de contato Voltar ao CRM WR2 Comunicação Visual Portal do cliente DP Sair Assistência Equipamentos seus na assistência técnica. As mesmas OS abrem pelo link com código que a loja manda, sem login. Ordem de serviço JS-2026-0418 Plotter de recorte · Roland GR2-540 Orçamento enviado Previsão de entrega 29/08/2026 Orçamento aguardando sua aprovação O valor e o laudo foram enviados pela loja no WhatsApp e no e-mail. Para aprovar, responda a mensagem da loja ou ligue para o balcão. Diagnóstico Recebido em 24/08/2026 Nº de série RL-GR2-88123 Orçamento aguardando sua aprovação Andamento Orçamento enviado pelo WhatsApp 24/08 17:02 Diagnóstico concluído 24/08 15:12 Correia de tração gasta. Equipamento recebido no balcão 24/08 09:40 Código de acompanhamento K7PM-4QXR Copiar link Ordem de serviço JS-2026-0390 Impressora látex · Epson S60600 Pronto p/ retirada Pronto para retirada há 4 dias Retire no balcão, de segunda a sexta, das 8h às 18h. Traga o recibo ou este link. Recebido em 12/08/2026 Nº de série EP-S606-1172 Orçamento aprovado Andamento Pronto para retirada 20/08 08:15 Reparo concluído 19/08 17:30 Equipamento recebido 12/08 10:02 Código de acompanhamento 3HNW-8TQA Copiar link Assistência Início Vendas Assistência Pedidos Extrato",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [
+        {
+          "classes": {
+            "dataBr": 2,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {
+            "dataBr": [
+              "29/08/2026",
+              "24/08/2026"
+            ]
+          },
+          "nome": "os-acompanhamento"
+        },
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "os-orcamento"
+        },
+        {
+          "classes": {
+            "dataBr": 1,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {
+            "dataBr": [
+              "12/08/2026"
+            ]
+          },
+          "nome": "os-acompanhamento"
+        }
+      ],
+      "drawer": null,
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 78,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5591/"
+  },
+  "clicar": ".cp-preview > div:nth-child(3) > :first-child",
+  "nos_totais": 698,
+  "quieto_ms": 2000,
+  "rota": "crm-portal-assistencia",
+  "secoes": {
+    "corpo": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "8px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "16px",
+        "padding": "18px 16px"
+      },
+      "filhos": 7,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "osc-h",
+        "osc-prev",
+        "osc-orc",
+        "osc-fsm",
+        "osc-kv",
+        "section",
+        "osc-foot"
+      ],
+      "rect": {
+        "h": 832,
+        "w": 360
+      },
+      "seletor": ".cp-frame .cp-main > :nth-child(2)",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "12px",
+        "padding": "8px 14px"
+      },
+      "filhos": 4,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "cp-brand",
+        "sp",
+        "cp-me",
+        "button"
+      ],
+      "rect": {
+        "h": 61,
+        "w": 388
+      },
+      "seletor": ".cp-frame .cp-top",
+      "truncado": false
+    },
+    "nav": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "none",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "4px",
+        "padding": "0px 20px"
+      },
+      "filhos": 7,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 0,
+        "w": 0
+      },
+      "seletor": ".cp-frame .cp-nav",
+      "truncado": false
+    },
+    "nav_celular": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "grid",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 5,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 57,
+        "w": 388
+      },
+      "seletor": ".cp-frame .cp-bottom",
+      "truncado": false
+    },
+    "titulo": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "cp-frame",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "cp-main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "cp-root"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "cp-frame"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "cp-h1",
+        "cp-sub"
+      ],
+      "rect": {
+        "h": 70,
+        "w": 360
+      },
+      "seletor": ".cp-frame .cp-main > div:first-child",
+      "truncado": false
+    }
+  },
+  "tela": "crm--portal-assistencia--index-390",
+  "url": "http://127.0.0.1:5591/"
+}

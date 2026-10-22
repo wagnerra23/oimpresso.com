@@ -49,6 +49,18 @@
       "sha256": "4d77165c32657124d87bf829a89ebb9bc3c2c39cad6552ba6f88515d46d8f215",
       "em": "2026-10-15T17:19:39.027Z"
     },
+    "cowork-inbox/producao/playbook/00-INDICE.md": {
+      "sha256": "76c46c108fb11d60a9a04986597f4dc1bc300510e0e8c370754fb6c04731db32",
+      "em": "2026-10-21T18:35:12.089Z"
+    },
+    "cowork-inbox/producao/playbook/09-instalacao.md": {
+      "sha256": "4f1a55f7e5e38955c90a2802525fa684a0931f40252f2c0c2cdc4bf21fb4dc97",
+      "em": "2026-10-21T18:35:12.089Z"
+    },
+    "cowork-inbox/producao/playbook/10-arte-link.md": {
+      "sha256": "973808bd33968114adfecd41d1d70a447c14d5e2218833f8dc83d72e1c5f59ca",
+      "em": "2026-10-21T18:35:12.089Z"
+    },
     "cowork-inbox/producao/playbook/12-terminal.md": {
       "sha256": "c26a6dbad02c88a3bb49c5c7a31d7f33a3ae1ec1a065c2e58fe912fbaa69c6fe",
       "em": "2026-10-15T17:19:39.027Z"
@@ -120,6 +132,14 @@
     "fluxos-data.jsx": {
       "sha256": "dce2fe77c34e5f8adf829b5f2b3a8a20d711681799ca1c1c615838d35d39bb75",
       "em": "2026-10-20T10:41:13.578Z"
+    },
+    "producao-cv-data.jsx": {
+      "sha256": "e79074f624d489c96b1084c2097adb15347fecbef73c27680f1cf6b70a95dae5",
+      "em": "2026-10-22T14:12:17.244Z"
+    },
+    "producao-cv-page.jsx": {
+      "sha256": "46677d264a0c28eb45a43ae6be20c43a4f411590194a6f4627e764e349c2ef3c",
+      "em": "2026-10-22T14:12:17.244Z"
     }
   }
 }

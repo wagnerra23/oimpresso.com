@@ -49,7 +49,8 @@ aberto, sem sair da tela.
 
 - **Lista de títulos a receber** (`Titulo` `tipo='receber'`, `business_id` da session, `deleted_at`
   nulo), ordenada por vencimento, **até 100** linhas. Colunas: Nº · Cliente (+ origem: `Venda #id`
-  ou origem manual) · Vencimento · **Valor aberto** · Status · Boleto · Ações.
+  ou origem manual) · Vencimento · Bruto · Retido · Líquido (retenções da NFS-e, US-FIN-072) ·
+  **Valor aberto** · Status · Boleto · Ações.
 - **Filtros** (recarga Inertia `preserveState`): por **status** (Todos/Abertos/Parciais/Quitados)
   e por **vencimento** (Qualquer/Hoje/Próx. 7 dias/Atrasados — `atrasado` = vencimento < hoje e
   status ≠ quitado).
@@ -57,6 +58,10 @@ aberto, sem sair da tela.
   → `TituloService` → `CnabDirectStrategy`. Requer conta bancária configurada (rodapé linka
   `/financeiro/contas-bancarias`). Span OTel `financeiro.boleto.emitir` (latência gateway + erro).
   Título que já tem boleto mostra `nosso_numero` + status e o botão some.
+- **Lembretes** (botão no cabeçalho): painel lateral com os lembretes da régua de cobrança
+  (US-FIN-071, `fin_titulo_lembretes`), mais recentes primeiro (até 100) — enviado ou não enviado com
+  o motivo (opt-out, sem e-mail, sem cliente, falha) e se virou tarefa do vendedor — e o estado da
+  régua com link para configurar. Prop `Inertia::optional`: só é calculada quando o painel abre.
 - **Novo recebimento**: botão primary redireciona pra `/financeiro/unificado/novo?kind=receivable`
   (o insert manual vive no Unificado — não é reimplementado aqui).
 - **Chrome canon**: `<PageHeader>` v3.8 + `FinanceiroSubNav active="contas-receber"` (ADR 0180).

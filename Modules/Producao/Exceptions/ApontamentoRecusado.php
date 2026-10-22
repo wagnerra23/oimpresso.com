@@ -18,6 +18,7 @@ use DomainException;
  *   os_nao_liberada → 409 (OS por item fora de produção ou etapa anterior aberta; contexto: situação)
  *   material_invalido → 422 campos.variation_id · quantidade_invalida → 422 campos.quantidade · estoque_insuficiente → 422 (material, US-PCP-021)
  *   lote_invalido → 422 campos.lote_id (rolo escolhido de outro material, local ou empresa, ou sem saldo — US-COM-025)
+ *   coluna_invalida → 422 campos.setor (mover no quadro para setor que a empresa não tem, ou o mesmo — UC-PCV-07)
  *   idempotencia_conflito → 422 · momento_invalido → 422 campos.momento · motivo_obrigatorio → 422 campos.motivo_id · justificativa_obrigatoria → 422 campos.justificativa
  */
 class ApontamentoRecusado extends DomainException
@@ -39,6 +40,7 @@ class ApontamentoRecusado extends DomainException
     public const QUANTIDADE_INVALIDA = 'quantidade_invalida';
     public const ESTOQUE_INSUFICIENTE = 'estoque_insuficiente';
     public const LOTE_INVALIDO = 'lote_invalido';
+    public const COLUNA_INVALIDA = 'coluna_invalida';
 
     /** Link de aprovação da arte já respondido ou vencido → 410 (UC-FLX-02). */
     public const APROVACAO_ENCERRADA = 'aprovacao_encerrada';

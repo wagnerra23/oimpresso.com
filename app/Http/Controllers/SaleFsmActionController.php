@@ -84,6 +84,7 @@ class SaleFsmActionController extends Controller
                 ] : null,
                 'is_critical' => (bool) ($a->is_critical ?? false),
                 'requires_confirmation' => (bool) $a->requires_confirmation,
+                'exige_motivo' => (bool) ($a->exige_motivo ?? false),
                 'has_side_effect' => ! empty($a->side_effect_class),
                 'can_execute' => $policy->canExecute($user, $venda, $a->key),
             ];

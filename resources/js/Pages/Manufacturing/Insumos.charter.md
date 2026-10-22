@@ -41,11 +41,20 @@ sofrem, e quanto sobra de margem depois.**
   afetadas com consumo, custo/un atual, custo/un simulado e margem resultante
 - Ordena por mais usados; empate desempata pelo maior peso
 - Fecha com `Esc`, com o ✕ e com clique no scrim
+- Drawer por insumo: seção "Método de custo" (Médio / Último), que grava o método próprio do
+  insumo no módulo Compras (US-COM-024 · UC-FLX-38). Vale quando a empresa escolheu "por insumo"
+  em Fluxos → Compra. Aparece só com o módulo Compras ligado; editar exige `purchase.update`
 
 ## Non-Goals — Features (NÃO faz)
 
-- ❌ **Não escreve nada.** Simular não altera preço nenhum — quem aplica a variação de verdade
-  é uma nota em Compras, e a tela diz isso ao usuário.
+- ❌ **Não escreve preço nem custo.** Simular não altera preço nenhum — quem aplica a variação de
+  verdade é uma nota em Compras, e a tela diz isso ao usuário. A única escrita da tela é a
+  **escolha** do método de custo do insumo (Goals): uma configuração (`medio` | `ultimo`) na
+  tabela-ponte do Compras. Ela não grava preço, não grava custo e não recalcula custo já gravado
+  (`variations.dpp_inc_tax`, `custo_previsto` de orçamento); só muda como as próximas leituras
+  calculam o custo. _2026-10-21 [W+C]: este item dizia
+  "Não escreve nada"; o método de custo (US-COM-024) entrou na gaveta a pedido do levantamento
+  UC-FLX-38, e a frase foi estreitada para o que ela protegia (o preço)._
 - ❌ **Não cria "insumo" como entidade.** A lista é derivada dos ingredientes das receitas; o
   app não tem flag de matéria-prima (RUNBOOK §2).
 - ❌ **Não edita receita** — quem faz isso é o editor de ingredientes (US-MANU-006).
