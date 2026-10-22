@@ -103,22 +103,29 @@ class OrcamentoController extends Controller
     /** Lista curta pra tela (a rota do hub usa o mesmo formato). `business_id` explícito (Tier 0). */
     public static function recentes(int $businessId, int $limite = 20): array
     {
-        return Orcamento::query()
+        $lista = Orcamento::query()
             ->where('comvis_orcamentos.business_id', $businessId)
             ->withCount('itens')
-            ->with(['os' => fn ($q) => $q->where('business_id', $businessId)->select(['id', 'orcamento_id', 'numero'])])
             ->orderByDesc('id')
             ->limit($limite)
-            ->get(['id', 'numero', 'status', 'total', 'data_emissao'])
+            ->get(['id', 'numero', 'status', 'total', 'data_emissao']);
+
+        // UC-FLX-01: número da OS de cada orçamento aprovado, numa consulta só.
+        /** @var array<int, string> $osPorOrcamento */
+        $osPorOrcamento = Os::query()->where('business_id', $businessId)
+            ->whereIn('orcamento_id', $lista->pluck('id')->all())
+            ->pluck('numero', 'orcamento_id')->all();
+
+        return $lista
             ->map(fn (Orcamento $o) => [
                 'id'           => $o->id,
-                'os'           => $o->os?->numero,
+                'os'           => $osPorOrcamento[$o->id] ?? null,
                 'numero'       => $o->numero,
                 'status'       => $o->status,
                 'total'        => (float) $o->total,
                 // cast 'date' (Carbon), mas o @property da entity diz string: normaliza pelos dois.
                 'data_emissao' => $o->data_emissao ? Carbon::parse($o->data_emissao)->toDateString() : null,
-                'itens'        => (int) $o->itens_count,
+                'itens'        => (int) $o->getAttribute('itens_count'),
             ])
             ->values()
             ->all();
