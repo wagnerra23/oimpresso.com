@@ -172,6 +172,9 @@ final class TravaDaVenda
     /** Número do pedido, lido como o update leria (pt-BR via num_uf), em 4 casas. */
     private function n(mixed $v): float
     {
+        // num_uf é feito pra receber o texto digitado em pt-BR ("1.234,56"); o docblock dele diz
+        // int por herança do UltimatePOS. Passar string é o mesmo valor que o update passa.
+        // @phpstan-ignore argument.type
         return round((float) $this->util->num_uf((string) $v), 4);
     }
 

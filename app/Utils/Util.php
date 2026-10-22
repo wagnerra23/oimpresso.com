@@ -25,7 +25,7 @@ class Util
     /**
      * This function unformats a number and returns them in plain eng format
      *
-     * @param  int|float|string|null  $input_number  o número digitado (string pt-BR) ou já numérico
+     * @param  int  $input_number
      * @return float
      */
     public function num_uf($input_number, $currency_details = null)
