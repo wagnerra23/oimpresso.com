@@ -126,6 +126,16 @@
       ]
     },
     {
+      "tela": "ComunicacaoVisual/Agenda",
+      "arquivo": "resources/js/Pages/ComunicacaoVisual/Agenda.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/producao-cv-campo.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Configuracoes/CodigoBarras/Index",
       "arquivo": "resources/js/Pages/Configuracoes/CodigoBarras/Index.tsx",
       "modulo": "core",
@@ -966,6 +976,26 @@
       ]
     },
     {
+      "tela": "Producao/Painel/Index",
+      "arquivo": "Modules/Producao/Resources/js/Pages/Producao/Painel/Index.tsx",
+      "modulo": "Producao",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/producao-cv-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Producao/Quadro/Index",
+      "arquivo": "Modules/Producao/Resources/js/Pages/Producao/Quadro/Index.tsx",
+      "modulo": "Producao",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/producao-cv-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Producao/Roteiros/Index",
       "arquivo": "Modules/Producao/Resources/js/Pages/Producao/Roteiros/Index.tsx",
       "modulo": "Producao",
@@ -1026,5 +1056,5 @@
       ]
     }
   ],
-  "total": 186
+  "total": 189
 }
