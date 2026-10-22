@@ -112,6 +112,8 @@ class FluxosController extends Controller
             'opcoes_compra' => $comModelo ? RegrasCompra::opcoes() : (object) [],
             // UC-FLX-35 · UC-FLXT-19: margem mínima do orçamento (nula = desligada).
             'margem_minima' => $comModelo ? $regras->margemMinima($businessId) : null,
+            // UC-FLX-28 · UC-FLXT-23: sinal mínimo para liberar a OS, em % da venda (nulo = desligado).
+            'sinal_minimo' => $comModelo ? $regras->sinalMinimo($businessId) : null,
             // US-PCP-031 · UC-FLX-14: reserva do insumo na venda (null = empresa sem o módulo Produção).
             'reserva_insumo' => $comModelo && self::temProducao($businessId)
                 ? app(ReservaDeInsumo::class)->ligada($businessId) : null,
@@ -212,6 +214,28 @@ class FluxosController extends Controller
         self::recusarComo('margem_minima', fn () => $regras->mudarMargemMinima(
             (int) $request->session()->get('user.business_id'),
             isset($dados['margem_minima']) ? (float) $dados['margem_minima'] : null,
+        ));
+
+        return redirect('/fluxos?aba=empresa');
+    }
+
+    /**
+     * Sinal mínimo para a produção liberar a OS (UC-FLXT-23 · UC-FLX-28 · US-PCP-025), em % do total
+     * da venda. Ligado, a OS só sai de Aguardando liberação com esse percentual pago. Vazio desliga.
+     * O valor segue como texto até o banco (DECIMAL), sem passar por float.
+     */
+    public function sinal(Request $request, RegrasDaEmpresa $regras): RedirectResponse
+    {
+        abort_unless($request->user()->can('fluxos.configurar'), 403);
+
+        $dados = $request->validate([
+            'sinal_minimo' => ['nullable', 'numeric', 'gt:0', 'max:100'],
+        ]);
+
+        // Tier 0 (ADR 0093): a empresa é sempre a da sessão.
+        self::recusarComo('sinal_minimo', fn () => $regras->mudarSinalMinimo(
+            (int) $request->session()->get('user.business_id'),
+            isset($dados['sinal_minimo']) ? (string) $dados['sinal_minimo'] : null,
         ));
 
         return redirect('/fluxos?aba=empresa');
