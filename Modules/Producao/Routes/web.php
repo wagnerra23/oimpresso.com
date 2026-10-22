@@ -65,6 +65,7 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::post('roteiros', [RoteirosController::class, 'store'])->name('roteiros.store');
         Route::put('roteiros/{id}', [RoteirosController::class, 'update'])->whereNumber('id')->name('roteiros.update');
         Route::put('roteiros/{id}/produtos', [RoteirosController::class, 'produtos'])->whereNumber('id')->name('roteiros.produtos');
+        Route::get('roteiros/produtos/busca', [RoteirosController::class, 'buscarProdutos'])->name('roteiros.produtos.busca');
 
         Route::get('postos', [PostosController::class, 'index'])->name('postos.index');
         Route::post('postos', [PostosController::class, 'store'])->name('postos.store');

@@ -28,8 +28,8 @@ last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando 
 
 > **Âncora:** US-PCP-026 do `memory/requisitos/Producao/SPEC.md` e o UC-FLX-07 do catálogo de fluxos
 > (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:60`: *"Copia o roteiro de etapas do produto para a OS"*;
-> regra *"Aprovado → Cria a OP com o roteiro do produto"* em `CatalogoModelos.php:156`). Nesta entrega é o
-> endpoint que liga produtos ao roteiro e a cópia na aprovação; o seletor na tela ainda não existe.
+> regra *"Aprovado → Cria a OP com o roteiro do produto"* em `CatalogoModelos.php:156`). O endpoint que liga
+> produtos ao roteiro e a cópia na aprovação vieram primeiro; o seletor na tela é o UC-PCROT-05/06.
 > Prova: `ProducaoCriarOsDaVendaContratoTest`.
 
 ## UC-PCROT-01 · A OS nasce com as etapas do roteiro do produto · `must`
@@ -63,9 +63,28 @@ nasce. A 99 não cria OS a partir da venda da 98.
 
 Status: 🧪
 
-- **[BACKLOG]** Seletor de produtos no roteiro, na tela (`Index.tsx` — charter + gate visual).
+## UC-PCROT-05 · O roteiro mostra os produtos que usam ele · `must`
+
+**Dado** o roteiro Lona ligado a "Lona 440 g impressa" e "Banner roll-up" **Quando** o gestor abre o roteiro
+**Então** os dois aparecem pelo nome em "Produtos que usam este roteiro", e um vínculo que aponte produto de
+outra empresa não aparece. Tirar o produto pelo chip grava na hora.
+**Fonte:** bloco `pcv-rot-prod` da vista Roteiros (`producao-cv-os.jsx`, #9517) · UC-FLX-07.
+**Teste:** `Modules/Producao/Tests/Feature/ProducaoRoteiroProdutosTelaContratoTest.php`.
+
+Status: 🧪
+
+## UC-PCROT-06 · "Ligar produto" busca só produto ativo da empresa · `must`
+
+**Quando** o gestor digita ao menos 2 letras do nome ou do código **Então** a lista traz só produtos ativos da
+empresa dele e avisa quando o produto já está em outro roteiro ("sai do roteiro …"). A empresa 99 não acha
+produto da 98; sem `producao.access`, 403.
+**Teste:** `Modules/Producao/Tests/Feature/ProducaoRoteiroProdutosTelaContratoTest.php`.
+
+Status: 🧪
+
 - **[BACKLOG]** Roteiro padrão da empresa para produto sem roteiro (decisão [W]).
 
 ## Trilha do tempo
 - 2026-10-16 · [CL] thread 03 do playbook de Produção — trio nasce junto (charter + casos + teste).
+- 2026-10-21 · [CL] UC-PCROT-05/06 — seletor "Produtos que usam este roteiro" na tela (Popover + Command do DS).
 - 2026-10-20 · [CL] UC-PCROT-01..04 — o produto se liga ao roteiro e a OS copia as etapas na aprovação (US-PCP-026 · UC-FLX-07).
