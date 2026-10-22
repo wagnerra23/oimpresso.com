@@ -132,6 +132,14 @@
     "fluxos-data.jsx": {
       "sha256": "dce2fe77c34e5f8adf829b5f2b3a8a20d711681799ca1c1c615838d35d39bb75",
       "em": "2026-10-20T10:41:13.578Z"
+    },
+    "producao-cv-data.jsx": {
+      "sha256": "e79074f624d489c96b1084c2097adb15347fecbef73c27680f1cf6b70a95dae5",
+      "em": "2026-10-22T14:12:17.244Z"
+    },
+    "producao-cv-page.jsx": {
+      "sha256": "46677d264a0c28eb45a43ae6be20c43a4f411590194a6f4627e764e349c2ef3c",
+      "em": "2026-10-22T14:12:17.244Z"
     }
   }
 }
