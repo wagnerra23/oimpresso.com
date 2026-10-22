@@ -26,6 +26,11 @@ name: Route-hits export (ledger de uso real · auto-PR semanal)
 # edição no main posterior ao último deploy (ex.: #7325) seria desfeita pelo
 # auto-PR. Automatizar exige fazer o merge contra o main, no runner — PR próprio.
 #
+# Registro no GitHub: o push do merge (#9770, 15f8209c18) nao gerou run nenhum
+# (Actions degradado em 2026-10-22, githubstatus) e o workflow nao foi registrado
+# — `gh workflow run` dava 404. Este comentario existe para um push tocar o arquivo
+# de novo e o GitHub registrar o workflow.
+#
 # Nasce sem bloquear nada: não roda em pull_request, e falha aqui só deixa o
 # ledger como estava (o G6 continua sendo quem cobra).
 
