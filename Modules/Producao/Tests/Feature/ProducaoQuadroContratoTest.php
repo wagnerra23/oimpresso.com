@@ -4,7 +4,7 @@
 // @covers-us US-PCP-017
 
 declare(strict_types=1);
-// Cobre UC-PCV-05 e, no Painel, UC-PCV-01..04 e UC-PCV-29 (Producao.casos.md · thread 06 do playbook) e a entrada na tela de UC-FLX-10
+// Cobre UC-PCV-05, UC-PCV-06, UC-PCV-07 e, no Painel, UC-PCV-01..04 e UC-PCV-29 (Producao.casos.md · thread 06 do playbook) e a entrada na tela de UC-FLX-10
 // (alocador) e UC-FLX-13 (simulador de bobina), cujos endpoints já têm contrato próprio.
 
 use App\Utils\ModuleUtil;
@@ -172,6 +172,102 @@ it('UC-FLX-13 · OS da CV com peça medida é marcável e a mídia chega ao simu
     expect($midia['bobina'])->toBe(['largura_util_m' => '1.600', 'margem_m' => '0.020', 'permite_girar' => true]);
 });
 
+/** Uma OS da CV em Impressão (etapa iniciada, com cronômetro aberto) e Acabamento pendente. */
+function qdOsEmImpressao($teste): array
+{
+    $os = qdOs($teste->b98, 'OS-QDV'.random_int(1000, 9999), null);
+    qdEtapa($teste->b98, $os, $teste->pre, 'Arte', '2026-11-03 08:00:00', 'concluida');
+    $imp = qdEtapa($teste->b98, $os, $teste->imp, 'Impressão', '2026-11-03 09:00:00', 'iniciada', $teste->op->id);
+    $aca = qdEtapa($teste->b98, $os, $teste->aca, 'Corte', '2026-11-03 10:00:00', 'pendente');
+    DB::table('pcp_apontamentos')->insert(['business_id' => $teste->b98, 'chave_idempotencia' => 'qdv-'.uniqid(), 'tipo' => 'inicio',
+        'programacao_id' => $imp, 'os_tipo' => 'comvis_os', 'os_id' => $os, 'posto_id' => $teste->imp, 'tipo_custo' => 'maquina',
+        'custo_hora' => '30.00', 'maquina_id' => $teste->imp, 'iniciado_por' => $teste->op->id, 'momento' => '2026-11-03 09:00:00',
+        'origem' => 'qr', 'created_at' => now()]);
+
+    return [$os, $imp, $aca];
+}
+
+/** Retrato do que mover NÃO pode mudar: situação das etapas e linhas de apontamento da OS. */
+function qdEstadoDaOs(int $biz, int $os): array
+{
+    return [
+        DB::table('pcp_programacoes')->where('business_id', $biz)->where('os_id', $os)->orderBy('id')->pluck('status', 'id')->all(),
+        DB::table('pcp_apontamentos')->where('business_id', $biz)->where('os_id', $os)->count(),
+    ];
+}
+
+it('UC-PCV-07 · o PCP move a OS para qualquer setor, para frente ou para trás; só a coluna muda e o evento fica com o nome dele', function () {
+    // Fonte: UC-PCV-07 + protótipo `producao-cv-page.jsx` (menu ⋮ "Mover para" todos os setores menos o
+    // atual, e arrastar para qualquer coluna): mover troca a coluna e registra "Moveu para X (à mão)".
+    [$os] = qdOsEmImpressao($this);
+    $antes = qdEstadoDaOs($this->b98, $os);
+
+    $this->flushSession();
+    $this->actingAs($this->gestor)->postJson('/producao/quadro/mover', ['os_tipo' => 'comvis_os', 'os_id' => $os, 'setor' => 'Acabamento'])
+        ->assertOk()->assertJson(['coluna' => 'Acabamento']);
+    $cartao = collect(qdProps($this, $this->gestor, 'cartoes'))->firstWhere('os_id', $os);
+    expect($cartao['coluna'])->toBe('Acabamento')->and($cartao['movida'])->toBeTrue()
+        // A etapa atual continua sendo a Impressão em andamento: o mover não conclui nem abre etapa.
+        ->and($cartao['etapa']['setor'])->toBe('Impressão')->and($cartao['etapa']['status'])->toBe('iniciada')
+        ->and(qdEstadoDaOs($this->b98, $os))->toBe($antes);
+
+    // Para trás também (Pré-impressão já concluída), e o feed do Painel conta como no protótipo.
+    $this->flushSession();
+    $this->actingAs($this->gestor)->postJson('/producao/quadro/mover', ['os_tipo' => 'comvis_os', 'os_id' => $os, 'setor' => 'Pré-impressão'])->assertOk();
+    expect(collect(qdProps($this, $this->gestor, 'cartoes'))->firstWhere('os_id', $os)['coluna'])->toBe('Pré-impressão')
+        ->and(qdEstadoDaOs($this->b98, $os))->toBe($antes);
+
+    $evs = DB::table('pcp_eventos')->where('business_id', $this->b98)->where('os_id', $os)->where('tipo', 'os_movida_quadro')->orderBy('id')->get();
+    expect($evs)->toHaveCount(2)
+        ->and((int) $evs[0]->user_id)->toBe($this->gestor->id)
+        ->and(json_decode((string) $evs[0]->dados, true))->toBe(['de' => 'Impressão', 'para' => 'Acabamento'])
+        ->and(json_decode((string) $evs[1]->dados, true))->toBe(['de' => 'Acabamento', 'para' => 'Pré-impressão']);
+    $numero = DB::table('comvis_os')->where('id', $os)->value('numero');
+    $feed = collect(pnPainel($this, $this->gestor)['eventos'])->where('os', $numero)->pluck('texto');
+    expect($feed)->toContain('Moveu para Pré-impressão (à mão)')->and($feed)->toContain('Moveu para Acabamento (à mão)');
+});
+
+it('UC-PCV-07 · a coluna manual some quando o operador anda com a OS (etapa iniciada ou concluída depois do movimento)', function () {
+    [$os, $imp] = qdOsEmImpressao($this);
+    // Evento de etapa ANTERIOR ao movimento não desfaz nada (discriminante: o "andou" é o mais novo).
+    DB::table('pcp_eventos')->insert(['business_id' => $this->b98, 'tipo' => 'etapa_iniciada', 'os_tipo' => 'comvis_os', 'os_id' => $os,
+        'posto_id' => $this->imp, 'user_id' => $this->op->id, 'dados' => json_encode(['programacao_id' => $imp]), 'created_at' => now()]);
+    $this->flushSession();
+    $this->actingAs($this->gestor)->postJson('/producao/quadro/mover', ['os_tipo' => 'comvis_os', 'os_id' => $os, 'setor' => 'Acabamento'])->assertOk();
+    expect(collect(qdProps($this, $this->gestor, 'cartoes'))->firstWhere('os_id', $os)['coluna'])->toBe('Acabamento');
+
+    // Um evento de outro tipo (realocação) não conta como andar.
+    DB::table('pcp_eventos')->insert(['business_id' => $this->b98, 'tipo' => 'etapa_alocada', 'os_tipo' => 'comvis_os', 'os_id' => $os,
+        'user_id' => $this->gestor->id, 'dados' => json_encode(['programacao_id' => $imp]), 'created_at' => now()]);
+    expect(collect(qdProps($this, $this->gestor, 'cartoes'))->firstWhere('os_id', $os)['coluna'])->toBe('Acabamento');
+
+    // O operador conclui a etapa: a coluna volta a ser a derivada.
+    DB::table('pcp_eventos')->insert(['business_id' => $this->b98, 'tipo' => 'etapa_concluida', 'os_tipo' => 'comvis_os', 'os_id' => $os,
+        'posto_id' => $this->imp, 'user_id' => $this->op->id, 'dados' => json_encode(['programacao_id' => $imp]), 'created_at' => now()]);
+    $cartao = collect(qdProps($this, $this->gestor, 'cartoes'))->firstWhere('os_id', $os);
+    expect($cartao['coluna'])->toBe('Impressão')->and($cartao['movida'])->toBeFalse();
+});
+
+it('UC-PCV-07 · mover pede producao.etapa.mover; OS de outra empresa não se move e setor estranho é recusado', function () {
+    [$os] = qdOsEmImpressao($this);
+    $antes = qdEstadoDaOs($this->b98, $os);
+    $corpo = ['os_tipo' => 'comvis_os', 'os_id' => $os, 'setor' => 'Acabamento'];
+
+    $this->flushSession();
+    $this->actingAs($this->op)->postJson('/producao/quadro/mover', $corpo)->assertForbidden();
+    // Tier 0: a empresa 99, com a permissão, não alcança a OS da 98 (404) e nada é gravado.
+    $this->flushSession();
+    $this->actingAs($this->g99)->postJson('/producao/quadro/mover', $corpo)->assertNotFound();
+    $this->flushSession();
+    $this->actingAs($this->gestor)->postJson('/producao/quadro/mover', $corpo + ['setor' => 'Expedição'])->assertStatus(422)->assertJson(['codigo' => 'coluna_invalida']);
+    $this->flushSession();
+    $this->actingAs($this->gestor)->postJson('/producao/quadro/mover', ['setor' => 'Impressão'] + $corpo)->assertStatus(422)->assertJson(['codigo' => 'coluna_invalida']);
+
+    expect(DB::table('pcp_quadro_colunas')->where('os_id', $os)->count())->toBe(0)
+        ->and(DB::table('pcp_eventos')->where('os_id', $os)->where('tipo', 'os_movida_quadro')->count())->toBe(0)
+        ->and(qdEstadoDaOs($this->b98, $os))->toBe($antes);
+});
+
 // ── Painel (thread 06 · UC-PCV-01..04, UC-PCV-29 · US-PCP-017) ───────────────────────────────────
 
 /** OS por item (pcp_ordem) com prazo prometido; devolve o id. */
@@ -266,14 +362,31 @@ it('UC-PCV-01 · um alerta por problema, cada um com uma ação; dia limpo não 
 it('UC-PCV-02 · os indicadores abrem o Quadro já filtrado pela URL, e valor estranho volta a "todas"', function () {
     $this->flushSession();
     $this->actingAs($this->gestor)->get('/producao/quadro?so=atrasadas')->assertOk()
-        ->assertInertia(fn ($p) => $p->component('Producao/Quadro/Index', false)->where('filtro', ['so' => 'atrasadas', 'agrupar' => 'setor']));
+        ->assertInertia(fn ($p) => $p->component('Producao/Quadro/Index', false)->where('filtro', ['so' => 'atrasadas', 'agrupar' => 'setor', 'q' => '', 'resp' => '', 'setor' => '']));
     $this->flushSession();
     $this->actingAs($this->gestor)->get('/producao/quadro?so=arte&agrupar=maquina')->assertOk()
-        ->assertInertia(fn ($p) => $p->where('filtro', ['so' => 'arte', 'agrupar' => 'maquina']));
+        ->assertInertia(fn ($p) => $p->where('filtro', ['so' => 'arte', 'agrupar' => 'maquina', 'q' => '', 'resp' => '', 'setor' => '']));
     // Controle negativo: parâmetro fora da lista não vira filtro.
     $this->flushSession();
     $this->actingAs($this->gestor)->get('/producao/quadro?so=qualquer&agrupar=x')->assertOk()
-        ->assertInertia(fn ($p) => $p->where('filtro', ['so' => 'todas', 'agrupar' => 'setor']));
+        ->assertInertia(fn ($p) => $p->where('filtro', ['so' => 'todas', 'agrupar' => 'setor', 'q' => '', 'resp' => '', 'setor' => '']));
+});
+
+it('UC-PCV-06 · o filtro inteiro vem da URL, igual para quem abrir o Quadro ou a Linha, e "Limpar" volta tudo', function () {
+    // Fonte: UC-PCV-06 — "Dado o filtro 'Travadas por arte' + responsável 'Marcos' · Quando troco do Quadro
+    // para a Linha · Então o filtro continua · E 'Limpar' volta tudo". O filtro mora na URL (a regra de
+    // passar é `Pages/Producao/_lib/filtro.ts`, coberta por tests/js/producao-filtro.test.ts).
+    $this->flushSession();
+    $this->actingAs($this->gestor)->get('/producao/quadro?so=arte&resp=Marcos%20Lima&q=%20fachada%20&setor=Impress%C3%A3o')->assertOk()
+        ->assertInertia(fn ($p) => $p->where('filtro', ['so' => 'arte', 'agrupar' => 'setor', 'q' => 'fachada', 'resp' => 'Marcos Lima', 'setor' => 'Impressão']));
+    // "Limpar" = URL sem parâmetro: nada filtrado.
+    $this->flushSession();
+    $this->actingAs($this->gestor)->get('/producao/quadro')->assertOk()
+        ->assertInertia(fn ($p) => $p->where('filtro', ['so' => 'todas', 'agrupar' => 'setor', 'q' => '', 'resp' => '', 'setor' => '']));
+    // Controle negativo: lista no lugar de texto não vira filtro, e texto longo é cortado.
+    $this->flushSession();
+    $this->actingAs($this->gestor)->get('/producao/quadro?resp[]=x&q='.str_repeat('a', 200))->assertOk()
+        ->assertInertia(fn ($p) => $p->where('filtro.resp', '')->where('filtro.q', str_repeat('a', 80)));
 });
 
 it('UC-PCV-04 · fila de arte mostra o que o cliente disse e quando, ajuste primeiro; aprovada não trava', function () {
