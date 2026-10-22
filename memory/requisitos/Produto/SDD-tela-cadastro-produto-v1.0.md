@@ -6,7 +6,7 @@ type: sdd
 module: Produto
 status: ativo
 owner: wagner
-version: 1.0.13
+version: 1.0.14
 last_updated: 2026-10-22
 related_docs:
   - SPEC.md
@@ -694,6 +694,14 @@ A lista Blade (`resources/views/product/partials/product_list.blade.php`, todas 
    do produto (`store`/`update`/`saveQuickProduct`), não deste fluxo, e nenhum teste o exercita.
    Paridade em aberto: o legado tem **dois** limiares (`AR-PROD-053`, Estoque Máx. **e** Mín.); o
    oimpresso tem um (`alert_quantity`).
+   - ✅ **O mínimo já gera requisição de compra** (US-COM-027 · UC-FLX-19, pronta): um job diário,
+     ligado pela empresa em Fluxos, põe numa requisição do local o item com saldo abaixo de
+     `alert_quantity`, com quantidade = mínimo − saldo, o fornecedor e o preço da última compra.
+     Desligado por padrão.
+   - 🎨 **Proposta no protótipo (2026-10-22):** "Quantidade de alerta" passa a se chamar **Estoque
+     mínimo** (mesmo campo) e entra o **Estoque máximo**, campo novo, recuperando o limiar do legado.
+     Com o máximo, a requisição pediria até o máximo (máximo − saldo) em vez de só até o mínimo. ⚠️ Isso
+     muda a regra da US-COM-027, que já está pronta: decisão [W] antes de virar código.
 3. `enable_product_expiry`/`enable_lot_number` habilitam validade/lote. — 🟡 **lote sim, validade
    em aberto**: `UC-PINIC-04` trava o lote; a **validade** fica fora do assert porque os **dois
    writers a parseiam de formas diferentes** (`uf_date` no controller × `Carbon::createFromFormat
@@ -1005,8 +1013,21 @@ cadastro pede os dados da nota certa: NCM para mercadoria, item da LC 116 para s
      "Mercadoria" ou "A decidir pelo contador", com o link para a Tributação. Produto de serviço não recebe
      o aviso de "sem NCM". O núcleo pede o dado ao NfeBrasil pelo gancho `getModuleData`, sem importá-lo.
      Ainda não aparece no **Novo produto** (produto novo não tem decisão) nem na ficha.
-  4. 🟡 Na NFS-e o código da LC 116 vem do padrão da empresa (`nfse_provider_configs.lc116_codigo_default`),
-     não do produto. O código de tributação nacional (`ctrib_nac`) só existe na emissão.
+     - 🎨 **Proposta no protótipo (2026-10-22): o Novo produto mostra "A decidir pelo contador" e,
+       ao salvar, marca a natureza como `pendente`** (`NaturezaFiscalService::marcarPendente`, que já
+       existe), para nenhum serviço novo sair como mercadoria sem o contador ver. ⚠️ **Efeito medido
+       no código (2026-10-22):** `pendente` fica do lado da mercadoria na separação da venda
+       (`SeparacaoNotasDaVenda`) e **trava a NFS-e da venda** — `NfseController::parteServico`
+       devolve `natureza_pendente`: *"o contador decide antes de faturar"*. Ou seja, com a proposta,
+       a venda de um produto recém-cadastrado só emite a NFS-e depois da decisão do contador.
+       Decisão [M]/[W] antes de virar código.
+  4. ✅ **Na NFS-e da venda, o item da LC 116 sai do produto** desde a US-NFE-069 (#9727, 2026-10-21):
+     a separação leva o `codigo_servico` de cada linha, e o `NfseController::parteServico` usa esse
+     código; serviços com códigos diferentes na mesma venda são recusados (uma NFS-e leva um código só).
+     O padrão da empresa (`nfse_provider_configs.lc116_codigo_default`) só vale quando o produto não tem
+     código. _(Correção 2026-10-22: até a v1.0.13 este item dizia que o código vinha sempre do padrão da
+     empresa — era verdade antes do #9727.)_ O protótipo mostra isso no quadro "Editar produto de
+     serviço". O código de tributação nacional (`ctrib_nac`) só existe na emissão.
   5. 🔴 Código de tributação municipal e NBS não existem no código (o único `cTribMun` é um comentário em
      `SnNfseAdapter.php:209`).
 - **No cadastro, o que muda:** mostrar a natureza e o item da LC 116 decididos pelo contador (só
@@ -1286,6 +1307,7 @@ qual é o local padrão.
 
 **Histórico:**
 
+- 2026-10-22 — **Três pendências das regras de fluxo registradas** (v1.0.14): natureza "a decidir" no Novo produto (`CU-PROD-19` item 3, proposta; trava a NFS-e da venda até o contador decidir), item da LC 116 do produto na NFS-e (`CU-PROD-19` item 4, corrigido: já funciona desde o #9727) e estoque mínimo e máximo (`CU-PROD-04` item 2; a requisição pelo mínimo já existe na US-COM-027, o máximo é proposta). [M+C]
 - 2026-10-22 — **`CU-PROD-20`: local padrão decidido pela [M]** (v1.0.13): é o local sugerido na compra, na transferência e na separação; a venda continua baixando do local da venda. O protótipo foi revisado contra as regras de fluxo e ganhou o Método de custo (UC-FLX-38) e os campos que a tela real já tem (Venda com imposto, Não está à venda, Expira em, Garantia). [M+C]
 - 2026-10-22 — **`CU-PROD-20`: duas decisões da [M]** (v1.0.12): endereço em prateleira, fileira e posição (`product_racks`); as duas seções de locais ficam. O local padrão segue em aberto: não há decisão [W] registrada, e a venda baixa do local da venda. [M+C]
 - 2026-10-22 — **§6.1 ganha o `CU-PROD-20`** (v1.0.11): locais de armazenagem e endereço no estoque, pedido da [M] no protótipo. Só no protótipo; três decisões abertas antes de virar código (local padrão × baixa pelo local da venda, endereço em um texto × três campos, seção repetida). [M+C]
