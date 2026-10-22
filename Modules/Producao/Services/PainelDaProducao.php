@@ -171,13 +171,16 @@ final class PainelDaProducao
 
     /**
      * Acontecendo agora (UC-PCV-29): os eventos mais recentes da produção, da mesma tabela que o quadro e o celular gravam.
+     * Com `$dia`, só os eventos de máquina daquele dia — os "Eventos das máquinas" da Linha do tempo (thread 07).
      *
-     * @return list<array{quando: string, texto: string, etapa: ?string, quem: ?string, os: ?string}>
+     * @return list<array{quando: string, texto: string, etapa: ?string, quem: ?string, os: ?string, posto_id: ?int}>
      */
-    private function eventos(int $businessId, int $limite = 8): array
+    public function eventos(int $businessId, int $limite = 8, ?CarbonInterface $dia = null): array
     {
         $evs = DB::table('pcp_eventos')->where('business_id', $businessId)->whereNotIn('tipo', self::FORA_DO_FEED)
-            ->orderByDesc('id')->limit($limite)->get(['tipo', 'os_tipo', 'os_id', 'user_id', 'dados', 'created_at']);
+            ->when($dia !== null, fn ($q) => $q->whereNotNull('posto_id')
+                ->whereBetween('created_at', [$dia->toDateString().' 00:00:00', $dia->toDateString().' 23:59:59']))
+            ->orderByDesc('id')->limit($limite)->get(['tipo', 'os_tipo', 'os_id', 'posto_id', 'user_id', 'dados', 'created_at']);
         if ($evs->isEmpty()) {
             return [];
         }
@@ -194,12 +197,14 @@ final class PainelDaProducao
             $prog = $dados[$i]['programacao_id'] ?? null;
             // UC-PCV-07: "Moveu para Acabamento (à mão)", como no protótipo.
             $texto = $e->tipo === ColunaDoQuadro::EV_MOVIDA && isset($dados[$i]['para'])
-                ? 'Moveu para '.$dados[$i]['para'].' (à mão)' : (self::ROTULOS[$e->tipo] ?? $e->tipo);
+                ? 'Moveu para '.$dados[$i]['para'].' (à mão)'
+                : ($e->tipo === AlocacaoDaEtapa::EV_ALOCADA && ($dados[$i]['origem'] ?? null) === 'linha' ? 'Reprogramou na linha do tempo' : (self::ROTULOS[$e->tipo] ?? $e->tipo));
 
             return ['quando' => substr((string) $e->created_at, 0, 16), 'texto' => $texto,
                 'etapa' => $prog !== null ? ($etapas[$prog] ?? null) : null,
                 'quem' => $e->user_id !== null ? ($nomes[(int) $e->user_id] ?? null) : null,
-                'os' => $e->os_tipo !== null ? ($rotulos[$e->os_tipo.':'.$e->os_id]['numero'] ?? null) : null];
+                'os' => $e->os_tipo !== null ? ($rotulos[$e->os_tipo.':'.$e->os_id]['numero'] ?? null) : null,
+                'posto_id' => $e->posto_id !== null ? (int) $e->posto_id : null];
         })->all();
     }
 

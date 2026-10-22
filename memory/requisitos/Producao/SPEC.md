@@ -319,10 +319,12 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ### US-PCP-015 · `pcp_schedules` agendamento drag-drop calendário — **P2**
 
-**Implementado em:** _pendente_ — sem tabela `pcp_schedules` nem calendário drag-drop (módulo não construído, ADR 0152)
+**Implementado em:** `Modules/Producao/Resources/js/Pages/Producao/Linha/Index.tsx` · `Modules/Producao/Http/Controllers/LinhaController.php` · `Modules/Producao/Services/LinhaDaProducao.php` · `Modules/Producao/Services/AlocacaoDaEtapa.php`
 
-> owner: — · priority: p2 · estimate: 8h · status: todo · type: story
-> React FullCalendar + endpoint PATCH. Validation overlap.
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoLinhaContratoTest.php` (lane `verticais-pest.yml`) · casos `Linha/Index.casos.md` (UC-PCV-08, 09, 30).
+
+> owner: wagner · priority: p2 · estimate: 8h · status: done · type: story
+> A agenda é a Linha do tempo por máquina (`/producao/linha`, thread 07 do playbook), sobre `pcp_programacoes` — sem tabela `pcp_schedules` nova nem FullCalendar. Arrastar e Alt+setas chamam `PUT /producao/etapas/{id}/reprogramar`, que recusa sobreposição na máquina de destino.
 
 ### US-PCP-016 · Integração BoM `MfgRecipe` (consumo automático ao concluir operação) — **P2**
 

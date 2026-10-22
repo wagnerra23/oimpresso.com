@@ -231,3 +231,23 @@ it('UC-PCV-30 · reprogramar exige producao.etapa.mover; etapa de outra empresa 
 
     expect((string) DB::table('pcp_programacoes')->find($e)->inicio_previsto)->toBe("$d 10:00:00");
 });
+
+it('UC-PCV-08 · a tela abre com producao.access e ?dia=proximo pede o próximo dia útil; a linha vem deferida', function () {
+    $this->flushSession();
+    $this->actingAs($this->usuarioComPermissoes([], $this->B98))->get('/producao/linha')->assertForbidden();
+
+    $this->flushSession();
+    $dias = $this->linha->dias($this->b98, now());
+    $this->actingAs($this->op)->get('/producao/linha?dia=proximo&so=arte')->assertOk()
+        ->assertInertia(fn ($p) => $p->component('Producao/Linha/Index', false)
+            ->where('dia', 'proximo')->where('dias.proximo', $dias['proximo'])->where('pode_mover', false)->where('filtro.so', 'arte')
+            ->missing('linha'));
+
+    $this->flushSession();
+    $this->actingAs($this->gestor);
+    $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+    $r = $this->get('/producao/linha', ['X-Inertia' => 'true', 'X-Requested-With' => 'XMLHttpRequest', 'X-Inertia-Version' => (string) $versao,
+        'X-Inertia-Partial-Data' => 'linha', 'X-Inertia-Partial-Component' => 'Producao/Linha/Index']);
+    $r->assertOk();
+    expect(collect($r->json('props.linha.postos'))->pluck('id'))->toContain($this->roland);
+});

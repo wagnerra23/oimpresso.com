@@ -6,6 +6,7 @@ import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 const ABAS = [
   { key: '/producao/painel', label: 'Painel' },
   { key: '/producao/quadro', label: 'Quadro' },
+  { key: '/producao/linha', label: 'Linha do tempo' },
   { key: '/producao/roteiros', label: 'Roteiros' },
   { key: '/producao/postos', label: 'Postos e cadastros' },
 ];
