@@ -70,7 +70,7 @@ final class EtiquetaProducao
             'empresa' => hash_equals(self::hashDaEmpresa($bizId), $m[1]),
             'os_tipo' => $m[2] !== '' ? $m[2] : self::OS_TIPO_PADRAO,
             'pedido_id' => (int) $m[3],
-            'programacao_id' => isset($m[4]) && $m[4] !== '' ? (int) $m[4] : null,
+            'programacao_id' => isset($m[4]) ? (int) $m[4] : null,
         ];
     }
 }
