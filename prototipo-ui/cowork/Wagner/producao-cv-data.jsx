@@ -19,15 +19,24 @@ const SETORES = [
   { id: "expedicao",  nome: "Expedição",        cor: "oklch(0.58 0.04 250)" },
 ];
 
+// Turno da empresa (D-TURNO): configurável em pcp_turnos, padrão 08h–18h. É o fim do turno que marca o estouro na
+// Linha do tempo e que fecha o cronômetro esquecido — não um "18h" fixo na tela.
+const TURNO = { inicio: 8, fim: 18, rotulo: "08h–18h" };
+// Calendário de produção (UC-FLX-06): pula sábado, domingo e feriados cadastrados no RH. "Hoje" é quinta 15/10;
+// o próximo dia útil é sexta 16/10.
+const DIAS = { hoje: { iso: "2026-10-15", rotulo: "Hoje, qui 15/10" }, proximo: { iso: "2026-10-16", rotulo: "Próximo dia útil, sex 16/10" } };
+
 // Postos / máquinas (pcp_workstations) com capacidade por hora
+// horasDia = capacidade do posto no dia (pcp_postos.horas_por_dia, D4) — é contra ela que a carga vira gargalo.
+// operadores = quem pode ser responsável pela etapa naquele posto (UC-FLX-08 · US-PCP-030). `operador` é o principal.
 const MAQUINAS = [
-  { id: "latex",  nome: "HP Latex 365",     setor: "impressao",  cap: "12 m²/h", capH: 12, un: "m²", operador: "Diego" },
-  { id: "eco",    nome: "Roland VG3-640",   setor: "impressao",  cap: "9 m²/h",  capH: 9,  un: "m²", operador: "Diego" },
-  { id: "uv",     nome: "Mimaki UJF-6042",  setor: "impressao",  cap: "4 m²/h",  capH: 4,  un: "m²", operador: "Paula" },
-  { id: "recorte",nome: "Plotter de recorte GR2", setor: "acabamento", cap: "20 m/h", capH: 20, un: "m", operador: "Felipe" },
-  { id: "lamin",  nome: "Laminadora a frio", setor: "acabamento", cap: "30 m²/h", capH: 30, un: "m²", operador: "Felipe" },
-  { id: "cnc",    nome: "Router CNC 2x3",   setor: "serralheria",cap: "3 chapas/h", capH: 3, un: "chapa", operador: "Marcos" },
-  { id: "solda",  nome: "Bancada de solda", setor: "serralheria",cap: "—", capH: 0, un: "h", operador: "Marcos" },
+  { id: "latex",  nome: "HP Latex 365",     setor: "impressao",  cap: "12 m²/h", capH: 12, un: "m²", operador: "Diego", operadores: ["Diego"], horasDia: 10 },
+  { id: "eco",    nome: "Roland VG3-640",   setor: "impressao",  cap: "9 m²/h",  capH: 9,  un: "m²", operador: "Diego", operadores: ["Diego"], horasDia: 10 },
+  { id: "uv",     nome: "Mimaki UJF-6042",  setor: "impressao",  cap: "4 m²/h",  capH: 4,  un: "m²", operador: "Paula", operadores: ["Paula"], horasDia: 8 },
+  { id: "recorte",nome: "Plotter de recorte GR2", setor: "acabamento", cap: "20 m/h", capH: 20, un: "m", operador: "Felipe", operadores: ["Felipe"], horasDia: 10 },
+  { id: "lamin",  nome: "Laminadora a frio", setor: "acabamento", cap: "30 m²/h", capH: 30, un: "m²", operador: "Felipe", operadores: ["Felipe"], horasDia: 10 },
+  { id: "cnc",    nome: "Router CNC 2x3",   setor: "serralheria",cap: "3 chapas/h", capH: 3, un: "chapa", operador: "Marcos", operadores: ["Marcos"], horasDia: 9 },
+  { id: "solda",  nome: "Bancada de solda", setor: "serralheria",cap: "—", capH: 0, un: "h", operador: "Marcos", operadores: ["Marcos"], horasDia: 9 },
 ];
 
 const PESSOAS = {
@@ -90,7 +99,7 @@ const AGENDA = [
   { maq: "eco",     os: "OS-2611", ini: 15.8, fim: 18.9, estado: "fila", conflito: "termina 18h54 — passa do turno (18h)" },
   { maq: "uv",      os: "OS-2614", ini: 13, fim: 16.6, estado: "fila", bloqueio: "arte aguardando aprovação" },
   { maq: "recorte", os: "OS-2611", ini: 15, fim: 17.5, estado: "fila" },
-  { maq: "lamin",   os: "OS-2611", ini: 14.3, fim: 15,  estado: "fila" },
+  { maq: "lamin",   os: "OS-2611", ini: 14.3, fim: 15,  estado: "fila", material: "aguardando material: laminado fosco 1,37 m (compra a caminho)" },
   { maq: "cnc",     os: "OS-2608", ini: 8,  fim: 11.2, estado: "andamento" },
   { maq: "cnc",     os: "OS-2614", ini: 11.5, fim: 14.2, estado: "fila", bloqueio: "arte aguardando aprovação" },
   { maq: "cnc",     os: "OS-2617", ini: 14.5, fim: 16.2, estado: "fila" },
@@ -103,7 +112,7 @@ const ORCAMENTOS = [
   { id: "ORC-1187", cliente: "Pet Shop Amigo", produto: "fachada", desc: "Fachada ACM 6×1 m", qtd: 6, un: "m²", valor: 6900, opcoes: { "com laminação": false }, prazo: "2026-10-28" },
 ];
 
-// Amanhã (16/10) — usado pela linha do tempo
+// Próximo dia útil (sex 16/10) — usado pela linha do tempo. OS-2608 tem entrega prometida para este dia.
 const AGENDA_AMANHA = [
   { maq: "latex", os: "OS-2619", ini: 8, fim: 8.6, estado: "fila" },
   { maq: "eco", os: "OS-2611", ini: 8, fim: 9.6, estado: "fila" },
@@ -111,6 +120,7 @@ const AGENDA_AMANHA = [
   { maq: "lamin", os: "OS-2611", ini: 9.8, fim: 10.5, estado: "fila" },
   { maq: "recorte", os: "OS-2611", ini: 10.5, fim: 12.8, estado: "fila" },
   { maq: "cnc", os: "OS-2617", ini: 8, fim: 9.7, estado: "fila" },
+  { maq: "solda", os: "OS-2608", ini: 8, fim: 10, estado: "fila" },
   { maq: "solda", os: "OS-2617", ini: 10, fim: 18, estado: "fila" },
 ];
 
@@ -159,6 +169,18 @@ const agora = () => { const m = relogio++; return "15/10 " + String(Math.floor(m
 const registrar = (ev) => { EVENTOS.unshift({ quando: agora(), quem: "Você", ...ev }); window.dispatchEvent(new CustomEvent("pcv:evento")); };
 const eventosDe = (os) => EVENTOS.filter((e) => e.os === os);
 
+// Retalhos de mídia guardados (sobra com etiqueta QR) — o sistema avisa quando uma OS pequena cabe num deles
+const RETALHOS = [
+  { id: "RT-031", midia: "Lona 440 g", larg: 1.6, comp: 2.4, origem: "OS-2603", local: "Prateleira B2" },
+  { id: "RT-028", midia: "Vinil branco brilho", larg: 1.37, comp: 1.1, origem: "OS-2590", local: "Prateleira A1" },
+  { id: "RT-024", midia: "Lona 440 g", larg: 0.9, comp: 3.2, origem: "OS-2585", local: "Prateleira B2" },
+];
+// Ferramentas e veículos da instalação (retirar e devolver por QR)
+const FERRAMENTAS = [
+  { id: "FER-07", nome: "Andaime 6 m", tipo: "equipamento" }, { id: "FER-12", nome: "Furadeira de impacto", tipo: "ferramenta" },
+  { id: "FER-15", nome: "Nível a laser", tipo: "ferramenta" }, { id: "VEI-02", nome: "Fiorino ABC-1D23", tipo: "veículo" },
+];
+
 // Instalações (agenda de campo)
 const INSTALACOES = [
   { id: "I-118", os: "OS-2608", cliente: "Padaria Pão Dourado", end: "R. Edgard Ferraz, 412 — Centro, Jaú/SP", dia: "2026-10-16", hora: "08:00", dur: 6, equipe: ["Jonas", "Rafa"], estado: "agendada",
@@ -187,9 +209,9 @@ const ORIGEM = { "OS-2611": ["V-8406", 1, 1, ""], "OS-2608": ["V-8398", 1, 1, ""
   "OS-2603": ["V-8401", 1, 2, ""], "OS-2619": ["V-8401", 2, 2, ""], "OS-2598": ["V-8390", 1, 1, ""] };
 const origemDe = (id) => { const o = ORIGEM[id]; return o ? { venda: o[0], item: o[1], total: o[2], outros: o[3], irmas: Object.keys(ORIGEM).filter((k) => ORIGEM[k][0] === o[0]) } : null; };
 
-// Gargalos: carga hoje por máquina (h previstas na agenda) vs turno 10h
+// Gargalos: carga hoje por máquina (h previstas na agenda) contra a capacidade do posto (horasDia)
 const cargaMaquina = (id) => AGENDA.filter((b) => b.maq === id).reduce((s, b) => s + (b.fim - b.ini), 0);
 
-window.PCVD = { EVENTOS, registrar, eventosDe, HOJE, fmt, d2, h1, dias, SETORES, MAQUINAS, PESSOAS, ROTEIROS, OS, ORCAMENTOS, AGENDA, AGENDA_AMANHA, MATERIAIS, PERDAS, INSTALACOES, ENCAIXE,
+window.PCVD = { TURNO, DIAS, RETALHOS, FERRAMENTAS, EVENTOS, registrar, eventosDe, HOJE, fmt, d2, h1, dias, SETORES, MAQUINAS, PESSOAS, ROTEIROS, OS, ORCAMENTOS, AGENDA, AGENDA_AMANHA, MATERIAIS, PERDAS, INSTALACOES, ENCAIXE,
   etapas, atual, progresso, atraso, desvio, setorDe, maqDe, osDe, origemDe, cargaMaquina };
 })();
