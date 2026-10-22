@@ -322,13 +322,19 @@ const VD_PROPOSTA_CASOS = {
   "V-7832": { orcamento: true, margem: "12% de 20%" },
   "V-7827": { orcamento: true, perdido: "preço: fechou com outro fornecedor" },
   "V-7824": { devolucao: true },
+  // sinal abaixo do mínimo segura a OS (UC-FLX-28 · US-PCP-025)
+  "V-7836": { marco: 3, semSinal: "R$ 0,00 de R$ 1.458,00 · mínimo 30%" },
+  // NFS-e com retenção: o título cobra o líquido (UC-FLX-30 · US-FIN-072)
+  "V-7829": { issRetido: true },
+  // boleto pago emite a NF-e sozinho (UC-FLX-26 · US-RB-044)
+  "V-7826": { nfeAuto: true, payment: "Boleto 1×" },
   "R-0412": { orcamento: true, rascunho: true },
   "R-0413": { orcamento: true, rascunho: true },
 };
 function VdPipeModelo({ fsm, modelo, caso }) {
   const etapas = VD_ETAPAS_VENDA[modelo] || [];
   const FsmStepper = VdDS().FsmStepper;
-  const marco = caso.rascunho ? 0 : caso.orcamento ? (vdTemEnviado(modelo) ? 2 : 1) : VD_MARCO_FSM[Math.max(0, Math.min(4, fsm))];
+  const marco = caso.marco != null ? caso.marco : caso.rascunho ? 0 : caso.orcamento ? (vdTemEnviado(modelo) ? 2 : 1) : VD_MARCO_FSM[Math.max(0, Math.min(4, fsm))];
   let idx = 0;
   etapas.forEach((e, i) => { if ((VD_MARCO[e] ?? 0) <= marco) idx = i; });
   const fim = !!caso.perdido;
@@ -363,6 +369,38 @@ const VD_TIPOS_DATA = [
 ];
 const VD_PERIODO_TXT = { dia: "14/05/2026", semana: "08/05/2026 → 14/05/2026", mes: "01/05/2026 → 31/05/2026",
   ano: "01/01/2026 → 31/12/2026", personalizado: "escolha as datas" };
+// Venda de exemplo aprovada que espera o sinal (só no protótipo).
+const vdVendasExtras = (lista) => {
+  const vend = (lista[1] || lista[0] || {}).sellerId;
+  return [{ id: "V-7836", date: "2026-05-14", time: "16:05", client: "Clínica Sorriso Feliz", clientNote: "Fachada ACM 4×1m + instalação em altura",
+    sellerId: vend, origin: "balcão", source: "balcao", vertical: "cv", fsm: 1, fiscal: { nfe: null, nfse: null }, payment: "Boleto 2×",
+    installments: 2, payTerm: 30, urgent: false, total: vdFmt(4860), totalNum: 4860, status: "pendente",
+    itemsList: [{ sku: "ACM-41", name: "Fachada ACM 4×1m", qty: 1, unit: 4200, type: "produto" },
+      { sku: "INS-001", name: "Instalação em altura", qty: 1, unit: 660, type: "servico" }] }];
+};
+// Retenções da NFS-e sobre os serviços (exemplo: ISS 5% + PIS/COFINS/CSLL 4,65%).
+const vdRetencao = (v) => {
+  if (!(VD_PROPOSTA_CASOS[v.id] || {}).issRetido) return null;
+  const serv = (v.itemsList || []).filter((i) => i.type === "servico").reduce((a, i) => a + i.qty * i.unit, 0);
+  const iss = Math.round(serv * 0.05 * 100) / 100, fed = Math.round(serv * 0.0465 * 100) / 100;
+  return { serv, iss, fed, retido: iss + fed, liquido: v.totalNum - iss - fed };
+};
+// Modelo de fluxo da EMPRESA: a mesma chave da tela Fluxos › Empresa (fluxos-page.jsx), para a lista
+// e o painel do drawer (fsm-etapa.jsx) usarem o mesmo modelo. "legado" = nenhum modelo escolhido.
+const VD_CHAVE_MODELO = "oimpresso.fluxos.modelo.v1";
+const vdLerModeloEmpresa = () => {
+  try { const m = JSON.parse(localStorage.getItem(VD_CHAVE_MODELO) || "null"); return m && VD_MODELOS_COLUNAS[m.id] ? m.id : null; } catch (e) { return null; }
+};
+const vdGravarModeloEmpresa = (id) => {
+  try {
+    if (id === "legado") localStorage.removeItem(VD_CHAVE_MODELO);
+    else {
+      const ant = JSON.parse(localStorage.getItem(VD_CHAVE_MODELO) || "null") || {};
+      if (ant.id !== id) localStorage.setItem(VD_CHAVE_MODELO, JSON.stringify({ ...ant, id, em: new Date().toLocaleDateString("pt-BR") }));
+    }
+    window.dispatchEvent(new Event("oi-etapa"));
+  } catch (e) {}
+};
 // Rascunhos de exemplo (pílula Rascunhos · #9573 · UC-SIDX-04/05): só aparecem na pílula e
 // não entram nos totais de faturado.
 const vdRascunhosExemplo = (lista) => {
@@ -385,6 +423,11 @@ function vdExemploColunas(v, fsm) {
   if (v.vertical === "mec") return {}; // oficina: a OS é do módulo Oficina, não da produção
   // orçamento ainda não tem OS: ela nasce na aprovação (UC-FLX-01)
   if ((VD_PROPOSTA_CASOS[v.id] || {}).orcamento) return { producao: { txt: "Sem OS", sub: "a OS nasce na aprovação", tone: "mute" } };
+  if ((VD_PROPOSTA_CASOS[v.id] || {}).semSinal) {
+    const b = vdExemploColunas({ ...v, id: "1" }, fsm);
+    return { ...b, arte: { txt: "Aprovada", tone: "ok" }, producao: { txt: "Aguardando liberação", sub: "sinal abaixo do mínimo", tone: "danger" },
+      sinal: { txt: "Abaixo do mínimo", sub: VD_PROPOSTA_CASOS[v.id].semSinal, tone: "danger" } };
+  }
   const n = vdNum(v);
   const os = 1 + n % 3;
   const semSinal = n % 5 === 0 && fsm <= 1;
@@ -432,7 +475,7 @@ function VdColunasModal({ open, onClose, modelo, setModelo, colunas, ativas, set
       </React.Fragment>}>
       <p className="vd-notes" style={{ margin: "0 0 12px" }}>
         <b>Proposta em avaliação.</b> O padrão vem do modelo de fluxo da empresa (Fluxos › Empresa):{" "}
-        <b>{(VD_MODELOS_COLUNAS[modelo] || {}).n}</b>. Quem nunca mexer vê esse padrão, e "Restaurar padrão" volta a ele. Cada visão da lista (Operacional, Financeira, Produção) guarda a própria escolha.
+        <b>{(VD_MODELOS_COLUNAS[modelo] || {}).n}</b>. É o mesmo modelo que o painel de etapas do drawer usa. Quem nunca mexer vê esse padrão, e "Restaurar padrão" volta a ele. Cada visão da lista (Operacional, Financeira, Produção) guarda a própria escolha.
       </p>
       {Select &&
       <div style={{ maxWidth: 360, margin: "0 0 14px" }}>
@@ -485,7 +528,8 @@ function VendasListPage() {
     catch (e) {return new Set();}
   });
   // PROPOSTA · botão Colunas (ver VD_COLUNAS). Protótipo: a empresa de exemplo usa o modelo CV pequena.
-  const [colModelo, setColModelo] = useStateV("cv-pequena");
+  const [colModelo, setColModelo] = useStateV(() => vdLerModeloEmpresa() || "cv-pequena");
+  useEffectV(() => {vdGravarModeloEmpresa(colModelo);}, [colModelo]);
   const [colOpen, setColOpen] = useStateV(false);
   const [visaoLista, setVisaoLista] = useStateV("operacional");
   const [filtrosAbertos, setFiltrosAbertos] = useStateV(false);
@@ -640,7 +684,7 @@ function VendasListPage() {
     if (topView === "favoritas") {
       out = VENDAS_LIST.filter((v) => favSet.has(v.id));
     } else {
-      out = VENDAS_LIST.filter(view.filter);
+      out = VENDAS_LIST.concat(vdVendasExtras(VENDAS_LIST)).filter(view.filter);
     }
     if (subView) {
       if (topView === "pendentes") {
@@ -860,7 +904,9 @@ function VendasListPage() {
   }, [palFiltered]);
   const runPal = (it) => it && it.action && it.action();
 
-  const open = openId ? VENDAS_LIST.find((v) => v.id === openId) : null;
+  // PROPOSTA · a venda de exemplo e os rascunhos também abrem no drawer
+  const vdTodasAsVendas = VENDAS_LIST.concat(vdVendasExtras(VENDAS_LIST), vdRascunhosExemplo(VENDAS_LIST));
+  const open = openId ? vdTodasAsVendas.find((v) => v.id === openId) : null;
 
   // PROPOSTA · botão Colunas — largura do cabeçalho e célula de cada coluna, na ordem escolhida.
   const VD_COL_TH = {
@@ -938,15 +984,20 @@ function VendasListPage() {
                   </td>
       );
       case "fiscal": return (
-                  <td key="fiscal"><VdFiscalCell v={{ ...v, fiscal: effFiscalOf(v) }} /></td>
+                  <td key="fiscal">
+                    <VdFiscalCell v={{ ...v, fiscal: effFiscalOf(v) }} />
+                    {(VD_PROPOSTA_CASOS[v.id] || {}).nfeAuto && <div className="vd-notes">emitida ao pagar o boleto</div>}
+                    {vdRetencao(v) && <div className="vd-notes">NFS-e com retenção</div>}
+                  </td>
       );
       case "pagamento": return (
                   <td key="pagamento" className="vd-pay">
                     <div className="vd-pay-top">
-                      <span>{v.payment}</span>
+                      <span>{(VD_PROPOSTA_CASOS[v.id] || {}).payment || v.payment}</span>
                       {v.installments > 1 && <span className="vd-inst">{v.installments}×</span>}
                     </div>
                     <div className="vd-pay-sla"><VdSlaPill v={v} compact /></div>
+                    {vdRetencao(v) && <div className="vd-notes">líquido {vdFmt(vdRetencao(v).liquido)} · retido {vdFmt(vdRetencao(v).retido)}</div>}
                   </td>
       );
       case "total": return (
@@ -1422,6 +1473,8 @@ function VendasListPage() {
         // PROPOSTA · como a produção (UC-SIDX-06): Pago, A receber e Total do filtro, somando todas as
         // páginas; rascunho fica fora dos totais (UC-SIDX-05). Comissão aparece no Foco Comissão.
         const pago = filtered.filter((v) => v.status === "paga").reduce((s, v) => s + v.totalNum, 0);
+        // A receber pelo líquido: retenção da NFS-e entra como baixa do título (UC-FLX-30)
+        const retidos = filtered.filter((v) => v.status !== "paga").reduce((s, v) => s + (vdRetencao(v) ? vdRetencao(v).retido : 0), 0);
         const rasc = statusF === "rascunhos";
         const Pag = VdDS().Pagination;
         return (
@@ -1439,7 +1492,7 @@ function VendasListPage() {
               </div>
               <div className="vd-totalbar-m">
                 <span className="k">A receber</span>
-                <span className="v">{vdFmt(tot - pago)}</span>
+                <span className="v">{vdFmt(tot - pago - retidos)}</span>
               </div>
               {vista === "comissao" &&
               <div className="vd-totalbar-m">
@@ -1502,7 +1555,7 @@ function VendasListPage() {
       {/* DRAWERS */}
       {open && <VendaDetailDrawer venda={open} onClose={() => setOpenId(null)} onEdit={(id) => {setOpenId(null);setEditingId(id);}} />}
       {createOpen && <VendaCreateDrawer onClose={() => setCreateOpen(false)} />}
-      {editingId && <VendaCreateDrawer editing={VENDAS_LIST.find((v) => v.id === editingId)} onClose={() => setEditingId(null)} />}
+      {editingId && <VendaCreateDrawer editing={vdTodasAsVendas.find((v) => v.id === editingId)} onClose={() => setEditingId(null)} />}
 
       {/* ⌘K PALETTE */}
       <div className={`vd-pal-bd ${palOpen ? "on" : ""}`} onClick={() => setPalOpen(false)}>
@@ -1597,7 +1650,10 @@ function VendasListPage() {
 // A venda só conclui quando todas as OS estão concluídas (fluxos-processos.jsx, processo "venda", ação Concluir).
 function vdOsDaVenda(v, fsm) {
   const itens = (v.itemsList || []).filter((it) => it.type === "produto");
+  const caso = VD_PROPOSTA_CASOS[v.id] || {};
+  if (caso.orcamento) return []; // orçamento ainda não tem OS: ela nasce na aprovação (UC-FLX-01)
   if ((fsm || 0) < 1 || v.vertical === "mec") return []; // venda da oficina já nasce da OS de mecânica
+  if (caso.semSinal) return itens.map((it, i) => ({ id: "OS-" + String(v.id).replace(/[^0-9]/g, "") + (i ? "-" + (i + 1) : ""), item: it.name, n: i + 1, sit: "Aguardando liberação" }));
   const base = (v.osIds && v.osIds[0]) || String(v.id).replace(/\D/g, "");
   const sits = (fsm || 0) >= 3 ? ["Concluída"] : ["Em execução", "Pausada", "Na fila", "Concluída"];
   return itens.map((it, i) => ({ id: "OS-" + base + (i ? "-" + (i + 1) : ""), item: it.name, n: i + 1, sit: sits[(i + base.length) % sits.length], motivo: "falta material" }));
@@ -1613,6 +1669,7 @@ function VdProducaoDaVenda({ v, fsm }) {
         <li key={o.id}><button type="button" className="vd-prod-os" onClick={() => window.__selectRoute && window.__selectRoute("pcv-quadro")} aria-label={"Abrir " + o.id}>
           <span className="mono">{o.id}</span><span className="vd-prod-it">Item {o.n} · {o.item}</span>
           <span className={"vd-prod-sit " + (TOM[o.sit] || "")}>{o.sit}{o.sit === "Pausada" ? " — " + o.motivo : ""}</span></button></li>))}</ul>}
+      {(VD_PROPOSTA_CASOS[v.id] || {}).semSinal && <p className="vd-prod-n">Sinal abaixo do mínimo ({VD_PROPOSTA_CASOS[v.id].semSinal}). A OS libera sozinha quando o pagamento do sinal chegar (Fluxos › Empresa · UC-FLX-28).</p>}
       {semOs.length > 0 && <p className="vd-prod-n">Sem OS: {semOs.map((it) => it.name).join(", ")} (serviço ou pronta-entrega).</p>}
     </section>
   );
@@ -1693,7 +1750,7 @@ function VendaDetailDrawer({ venda, onClose, onEdit }) {
         </header>
 
         {window.OiEtapaPainel && <div className="vd-etapa"><window.OiEtapaPainel proc="venda" modo="leitura" docId={v.id}
-          estado={(VD_PROPOSTA_CASOS[v.id] || {}).perdido ? "Perdido" : (VD_PROPOSTA_CASOS[v.id] || {}).rascunho ? "Orçamento" : (VD_PROPOSTA_CASOS[v.id] || {}).orcamento ? "Enviado" : v.status === "cancelada" ? "Cancelado" : ["Orçamento", "Aprovado", "Faturado", "Entregue", "Entregue"][Math.max(0, Math.min(4, effFsm || 0))]}
+          estado={(VD_PROPOSTA_CASOS[v.id] || {}).perdido ? "Perdido" : (VD_PROPOSTA_CASOS[v.id] || {}).rascunho ? "Orçamento" : (VD_PROPOSTA_CASOS[v.id] || {}).orcamento ? "Enviado" : (VD_PROPOSTA_CASOS[v.id] || {}).marco === 3 ? "Aprovado" : v.status === "cancelada" ? "Cancelado" : ["Orçamento", "Aprovado", "Faturado", "Entregue", "Entregue"][Math.max(0, Math.min(4, effFsm || 0))]}
           bloqueios={() => { const os = vdOsDaVenda(v, effFsm), f = os.filter((o) => o.sit !== "Concluída"); return os.length && f.length ? { "Concluir": "só " + (os.length - f.length) + " de " + os.length + " OS prontas" } : {}; }}
           nota={wantsNFe || wantsNFSe ? "Ao faturar sai: " + [wantsNFe && "NF-e dos produtos", wantsNFSe && "NFS-e dos serviços"].filter(Boolean).join(" + ") + " — conforme a natureza fiscal de cada item." : null} /></div>}
 
@@ -1716,7 +1773,10 @@ function VendaDetailDrawer({ venda, onClose, onEdit }) {
         <div className="os-drawer-body vd-drawer-body">
 
           {/* Fatia 2 KB-9.75 — painel de próxima ação FSM */}
-          {window.VdNextActionPanel &&
+          {/* PROPOSTA · um painel de etapa só: o do fluxo (fsm-etapa) já está acima. O antigo aplica a regra
+              do modelo velho ("emita a NF-e antes de faturar"), que contradiz o fluxo novo ("ao faturar sai a
+              NF-e"); ele só aparece se o painel do fluxo não carregar. */}
+          {!window.OiEtapaPainel && window.VdNextActionPanel &&
           <window.VdNextActionPanel venda={v} onOpenEmit={(kind) => setEmitOpen(kind)} />
           }
 
@@ -1801,6 +1861,11 @@ function VendaDetailDrawer({ venda, onClose, onEdit }) {
                 </div>
             }
 
+              {(VD_PROPOSTA_CASOS[v.id] || {}).nfeAuto &&
+            <p className="vd-notes" style={{ margin: "0 0 10px" }}>NF-e emitida automaticamente quando o boleto foi pago (UC-FLX-26).</p>}
+              {vdRetencao(v) &&
+            <p className="vd-notes" style={{ margin: "0 0 10px" }}>NFS-e com retenção: {vdFmt(vdRetencao(v).retido)} retidos viraram baixa no título (UC-FLX-30).</p>}
+
               {/* sub-tabs apenas se mista */}
               {hasNFe && hasNFSe &&
             <div className="vd-fsub">
@@ -1843,7 +1908,7 @@ function VendaDetailDrawer({ venda, onClose, onEdit }) {
               <h3>Pagamento</h3>
               <div className="vd-pay-meta">
                 <dl>
-                  <dt>Forma</dt><dd>{v.payment}</dd>
+                  <dt>Forma</dt><dd>{(VD_PROPOSTA_CASOS[v.id] || {}).payment || v.payment}</dd>
                   <dt>Parcelas</dt><dd>{v.installments > 1 ? `${v.installments}×` : "À vista"}</dd>
                   <dt>Prazo</dt><dd>{v.payTerm || 0} dias <VdSlaPill v={v} /></dd>
                   <dt>Status</dt><dd><span className="os-stage" style={{
@@ -1851,6 +1916,11 @@ function VendaDetailDrawer({ venda, onClose, onEdit }) {
                     color: VENDAS_STATUS[v.status]?.color || "#888"
                   }}>{VENDAS_STATUS[v.status]?.label}</span></dd>
                   <dt>Comissão</dt><dd className="vd-comm">{vdFmt(comm)} <small>({((s.commissionPct || 0) * 100).toFixed(1)}%)</small></dd>
+                  {vdRetencao(v) && <React.Fragment>
+                    <dt>Bruto</dt><dd>{vdFmt(v.totalNum)}</dd>
+                    <dt>Retido</dt><dd>{vdFmt(vdRetencao(v).retido)} <small>(ISS {vdFmt(vdRetencao(v).iss)} · PIS/COFINS/CSLL {vdFmt(vdRetencao(v).fed)})</small></dd>
+                    <dt>Líquido</dt><dd><b>{vdFmt(vdRetencao(v).liquido)}</b> <small>é o que o título cobra</small></dd>
+                  </React.Fragment>}
                 </dl>
               </div>
 
