@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Compras\Http\Controllers\ComprasController;
 use Modules\Compras\Http\Controllers\InstallController;
+use Modules\Compras\Http\Controllers\PropostasPrecoController;
+use Modules\Compras\Http\Controllers\InsumoMetodoCustoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,4 +43,14 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         Route::get('/{id}/detalhe', [ComprasController::class, 'show'])
             ->where('id', '[0-9]+')
             ->name('show');
+        // US-COM-028 · UC-FLX-17: fila de preços propostos pelo recebimento (detalhe da compra).
+        Route::post('/propostas-preco/{id}/aprovar', [PropostasPrecoController::class, 'aprovar'])
+            ->where('id', '[0-9]+')->name('propostas-preco.aprovar');
+        Route::post('/propostas-preco/{id}/recusar', [PropostasPrecoController::class, 'recusar'])
+            ->where('id', '[0-9]+')->name('propostas-preco.recusar');
+        // US-COM-024 · UC-FLX-38: método de custo do insumo, gravado da gaveta de
+        // /manufacturing/insumos. Vale quando a empresa escolheu `por_insumo` em Fluxos → Compra.
+        Route::put('/insumos/{variation}/metodo-custo', [InsumoMetodoCustoController::class, 'update'])
+            ->whereNumber('variation')
+            ->name('insumos.metodo-custo');
     });

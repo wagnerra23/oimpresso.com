@@ -15,7 +15,7 @@ mwart_pattern_reuse:
   blueprint_cowork: "prototipo-ui/cowork/Wagner/compras-extras.jsx"
   blueprint_screenshot_approval: "pendente [W]"
   derived_screens: [RequisicoesCompra]
-  divergence_from_blueprint: "sem o KPI 'Itens requisitados' nem a coluna 'Pedido gerado' (a Blade não tem); ver e excluir na tela clássica"
+  divergence_from_blueprint: "sem o KPI 'Itens requisitados' nem a coluna 'Pedido gerado' (a Blade não tem); ver e excluir na tela clássica; coluna 'Fornecedor' a mais (US-COM-027)"
 related_runbook: memory/requisitos/Compras/_telas/RUNBOOK-purchase-requisition-index.md
 ---
 
@@ -38,6 +38,9 @@ material é necessário — com o mesmo escopo e as mesmas datas que a Blade mos
   e status da Blade.
 - O mesmo SQL da Blade (`PurchaseRequisitionController::consultaRequisicoes`) e as datas formatadas pela mesma expressão
   do `@format_datetime` (com o shift da ADR 0066).
+- Coluna Fornecedor (`transactions.contact_id`, razão social ou nome; vazio sem fornecedor): a requisição pelo
+  estoque mínimo nasce com o da última compra do item (US-COM-027 · UC-REQMIN-07 · UC-REQC-06). Não está no
+  protótipo; o comprador ainda escolhe o fornecedor ao gerar o pedido.
 - KPIs: requisições sem pedido ainda (`ordered`) e parcialmente pedidas (`partial`), contadas na lista.
 - Criar (com `purchase_requisition.create`).
 

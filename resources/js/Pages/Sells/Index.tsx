@@ -49,6 +49,7 @@ import SellsTabelaUnificada, {
   type ColumnId,
   type SaleRow as UnifiedSaleRow,
 } from './_components/SellsTabelaUnificada';
+import SellsTotalBar from './_components/SellsTotalBar';
 import SellsCheatSheet, { SELLS_INDEX_SHORTCUTS } from './_components/SellsCheatSheet';
 // Insights Jana SAIU desta tela (Jana V2 canon). Até 2026-05 era tab embutida aqui via
 // `viewMode === 'insights'` + SellsInsightsView — componente hoje deletado. O destino foi
@@ -1638,6 +1639,18 @@ export default function SellsIndex(props: SellsIndexPageProps): ReactNode {
             }}
           />
         </div>
+
+        {/* Totais do filtro (US-SELL-017 · UC-SIDX-06) — números do servidor, nada somado aqui. */}
+        <SellsTotalBar
+          totais={totals}
+          carregando={loading}
+          filtros={{
+            pill: pillFilter,
+            savedViewId: currentSavedView.id,
+            savedViewLabel: currentSavedView.label,
+            visaoOrigem,
+          }}
+        />
 
         {/* Pagination compacta (preserva contrato US-SELL-008) */}
         {meta && meta.last_page > 1 && (

@@ -5,11 +5,17 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do gestor + critério de aceite verificável (Dado/Quando/Então)
 por_que: o celular só oferece os motivos do posto; motivo de outro posto ou de outra empresa corrompe o registro de pausa e refugo. Custo-hora da pessoa é dado de desempenho.
 owner: wagner
-last_run: "2026-10-20"
+last_run: "2026-10-21"
 last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando a lane verticais-pest rodar o ProducaoRoteirosContratoTest."
 ---
 
 # Casos de Uso & Aceite — Produção · Postos e cadastros (`/producao/postos`)
+
+> ℹ️ **`last_run` 2026-10-20 → 2026-10-21 (G-6) — o `Index.tsx` voltou ao que era.** O 1º commit do #9716 pôs nesta tela o
+> bloco "Custo-hora pelo rateio das despesas fixas" com o botão Aplicar; o 3º commit tirou o bloco por decisão [W] (o sugerido
+> acumulava a parcela fixa a cada aplicação). O `Index.tsx` e o `PostosController.php` ficaram idênticos ao main
+> (`b66f3970e1`). Nenhum handler, prop, rota ou copy desta tela mudou; **nenhum UC foi reexecutado**: o bump registra
+> *trio reconciliado com a tela nesta data*.
 
 > **Âncora:** `prototipo-ui/cowork/Wagner/cowork-inbox/producao/Producao-celular.casos.md` (UC-PCV-33) e a emenda
 > `playbook/E03-cadastros-motivos.md`. Os UCs não derivam do `.tsx`.
@@ -84,7 +90,36 @@ last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando 
 - **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
 - **Status: 🧪**
 
-- **[BACKLOG]** Centro de custo por setor (hoje o centro é o posto) e tela do fechamento no Financeiro — o cálculo existe em JSON e no comando `financeiro:custeio-rkw`.
+## UC-PCCH-07 · O fechamento tem tela: aba Custeio da DRE · `must` valor
+
+- **Persona:** gestor financeiro (`financeiro.relatorios.view`).
+- **Aceite:** Quando abre `/financeiro/dre?aba=custeio&mes=AAAA-MM` · Então vê despesas fixas, custos variáveis, receita, margem de contribuição, ponto de equilíbrio e o rateio por posto com os MESMOS números do `GET /financeiro/custeio-rkw` (a tela só formata) · E sem `producao.desempenho.ver` vê o fechamento mas não o custo-hora dos postos · E mês inválido cai no mês anterior · E nenhuma outra aba calcula o custeio, e nada é gravado.
+- **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
+- **Status: 🧪**
+
+## UC-PCCH-08 · A conta do plano diz se é fixa ou variável · `must` valor
+
+- **Persona:** gestor financeiro (`financeiro.relatorios.view`), na tela Plano de contas.
+- **Aceite:** Quando marca como fixa uma conta de despesa sem classe que tem 500,00 a pagar no mês · Então as despesas fixas do fechamento passam de 4.000,00 para 4.500,00 · E "Fora do custeio" volta a deixá-la de fora · E conta de receita, valor fora de fixa/variável, conta de outra empresa (404) e usuário sem a permissão (403) não gravam.
+- **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
+- **Status: 🧪**
+
+## UC-PCCH-10 · O centro de custo é o setor do posto · `must` valor
+
+- **Persona:** gestor financeiro. Decisão [W] 2026-10-21: o setor é o campo `pcp_postos.setor` do cadastro do posto; agrupa os postos e rateia por setor.
+- **Aceite:** Dado o posto A (30 h) no setor "Corte" e o posto B (10 h) sem setor · Então o fechamento traz Corte com 3.000,00 e "sem setor" com 1.000,00, sem setor por último · Quando o posto B passa a "corte " · Então há um setor só, Corte, com 2 postos, 40 h e 4.000,00 (= despesas fixas) · E a aba Custeio da DRE mostra os setores mesmo para quem não vê o custo-hora dos postos.
+- **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
+- **Status: 🧪**
+
+## UC-PCCH-11 · Aplicar de novo não soma outra parcela · `must` valor
+
+- **Persona:** gestor financeiro, fechando um mês depois do outro.
+- **Aceite:** Dado o posto A com 30,00 digitados e parcela fixa de 100,00/h · Quando aplica o custeio · Então o custo-hora vai a 130,00 e os 30,00 ficam guardados como custo-hora direto · E aplicar de novo (o mesmo mês ou outro com a mesma parcela) mantém 130,00, nunca 230,00 · E o sugerido é sempre direto + parcela do mês · E digitar outro custo-hora no posto (40,00) troca o direto e tira a parcela até aplicar de novo (140,00) · E salvar o posto sem mexer no custo-hora mantém o direto.
+- **Origem:** decisão [W] 2026-10-21 (opção a). Antes, o sugerido era o custo-hora gravado + parcela, e cada aplicação somava outra parcela (30 → 130 → 230 → 330).
+- **Teste:** `Modules/Financeiro/Tests/Feature/CusteioRkwContratoTest.php`.
+- **Status: 🧪**
+
+- **[BACKLOG]** Botão "Aplicar custo-hora" em Postos — saiu do #9716 por decisão [W] (2026-10-21). O sugerido é o custo-hora GRAVADO + parcela fixa, e depois de aplicar o gravado já contém a parcela: aplicar de novo o mesmo mês, ou aplicar o mês seguinte, soma outra parcela (fixture F 4.000 / 40 h: posto A 30 → 130 → 230 → 330). O [W] escolheu guardar o custo-hora direto separado da parcela (UC-PCCH-11, `pcp_postos.custo_hora_direto`); o botão volta em PR próprio, depois que ela entrar. O endpoint `POST /financeiro/custeio-rkw/aplicar/{posto}` (UC-PCCH-05) segue no main.
 
 ---
 
@@ -130,7 +165,13 @@ last_run_ci: "_pendente_ — o trio nasce na thread 03. O veredito entra quando 
 - **Teste:** `Modules/Producao/Tests/Feature/ProducaoOperadoresDoPostoContratoTest.php`.
 - **Status: 🧪**
 
-- **[BACKLOG]** Tela de Postos com a lista de operadores de cada posto (os endpoints existem; a tela ainda não os mostra).
+## UC-PCOPE-06 · A tela mostra e edita os operadores do posto · `must`
+
+- **Persona:** gestor de produção.
+- **Aceite:** Dado o Plotter com Ana cadastrada · Então a linha do Plotter em `/producao/postos` mostra "Operadores: Ana" · E o Acabamento, sem cadastro, mostra "qualquer pessoa da Produção" · E um usuário da empresa 99 pendurado no cadastro não aparece · Quando o gestor (`producao.etapa.mover`) abre a gaveta do posto · Então o campo "Operadores do posto" oferece só gente da empresa com acesso à Produção · E trocar Ana por Bia grava e a lista recarregada mostra Bia · Dado quem não tem `producao.etapa.mover` · Então vê a lista, mas a gaveta não oferece o campo.
+- **Teste:** `Modules/Producao/Tests/Feature/ProducaoPostosOperadoresTelaTest.php`.
+- **Status: 🧪**
+
 - **[BACKLOG]** Alocador (UC-FLX-10 · US-PCP-029, PR #9647) chamar a mesma regra ao trocar o responsável.
 ## Alocador decide quem e quando começa (US-PCP-029 · UC-FLX-10)
 
@@ -285,7 +326,7 @@ de 26/10. Regra mestre de valor.
 
 Status: 🧪
 
-- **[BACKLOG]** UC-FLX-06 — mostrar o prazo na aprovação do orçamento (tela de venda); descontar o já apontado da etapa iniciada; o Ponto passar a usar o contrato `CalendarioDaEmpresa` em vez de importar `EssentialsHoliday`.
+- **[BACKLOG]** UC-FLX-06 — descontar o já apontado da etapa iniciada; o Ponto passar a usar o contrato `CalendarioDaEmpresa` em vez de importar `EssentialsHoliday`.
 
 ---
 
@@ -297,8 +338,13 @@ Status: 🧪
 - 2026-10-16 · [CL] thread 03 + E03 do playbook de Produção — trio nasce junto (charter + casos + teste).
 - 2026-10-20 · [CL] UC-PCCH-01/02 documentam o custo-hora que já existe (UC-FLX-20 parcial); o bullet de backlog do custo-hora da pessoa virou o UC-PCCH-02; rateio e ponto de equilíbrio ficam no [BACKLOG] (US-FIN-070).
 - 2026-10-20 · [CL] UC-PCOPE-01..05 — operadores por posto (US-PCP-030 · UC-FLX-08, aprovado por [W] em 2026-10-20).
+- 2026-10-21 · [CL] UC-PCOPE-06 — a tela de Postos mostra os operadores de cada posto e a gaveta tem o campo "Operadores do posto" (US-PCP-030 · UC-FLX-08); o [BACKLOG] da tela virou este caso.
+- 2026-10-21 · [CL] `last_run` 2026-10-20 → 2026-10-21 por conferência, não por run novo: depois do `last_run` o `Index.tsx` mudou só em a99d7e4aba (#9699), que acrescenta a linha "Operadores:" na lista e a prop adiada `usuarios` para a gaveta — exatamente o UC-PCOPE-06. Motivos (UC-PCV-33) e custo-hora (UC-PCCH-01..06) não mudaram. O UC-FLX-06 saiu do backlog: o prazo aparece na tela de venda (UC-QUO-09 · UC-VSHOW-14, `Sells/Quotations` e `Sells/Show`). Nenhum teste re-rodado aqui.
 - 2026-10-20 · [CL] UC-PCALO-01..06 — alocador decide quem e quando começa (US-PCP-029 · UC-FLX-10): endpoints JSON de alocação e fila do posto; a tela é a US-PCP-015.
 - 2026-10-20 · [CL] UC-PCALO-07 — o alocador usa a regra dos operadores do posto (US-PCP-030 · UC-FLX-08), a mesma do Liberar e do início da etapa.
 - 2026-10-20 · [CL] UC-PCPRZ-01..04 — prazo de entrega pela fila dos postos (US-PCP-028 · UC-FLX-06), cálculo em JSON só leitura; tela e data prometida ficam no [BACKLOG].
 - 2026-10-20 · [CL] UC-PCPRZ-05..08 — decisão [W]: dias úteis pelo período de funcionamento cadastrado (turno da produção, expediente e feriados do RH) e data prometida gravada na venda e na OS na aprovação; datas de UC-PCPRZ-01/02 recalculadas (24/10→26/10, 25/10→27/10).
 - 2026-10-20 · [CL] UC-PCCH-03..06 — custeio RKW e ponto de equilíbrio (US-FIN-070): cálculo só leitura + aplicar explícito; o [BACKLOG] do rateio virou estes casos.
+- 2026-10-21 · [CL] UC-PCCH-10 — centro de custo por setor (decisão [W]: setor = `pcp_postos.setor`).
+- 2026-10-21 · [CL] UC-PCCH-07..08 — telas do custeio: aba Custeio na DRE e classe fixa/variável no plano de contas. O botão de aplicar em Postos (era o UC-PCCH-09) saiu por decisão [W] e virou [BACKLOG].
+- 2026-10-21 · [CL] UC-PCCH-11 — decisão [W] (opção a): custo-hora direto guardado à parte em `pcp_postos.custo_hora_direto`; o sugerido é sempre direto + parcela do mês e aplicar de novo não soma outra parcela.

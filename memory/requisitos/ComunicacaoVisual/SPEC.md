@@ -229,7 +229,7 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 > **Rota:** `GET /comunicacao-visual/api/instalacoes` · `POST /comunicacao-visual/api/os/{os}/instalacao`
 > **Controller/ação:** `InstalacaoController@index` · `InstalacaoController@agendar`
 
-**Implementado em:** _parcial_ — agenda de equipe e veículo com bloqueio sem janela (UC-FLX-21): `Modules/ComunicacaoVisual/Services/AgendaInstalacao.php`, `Modules/ComunicacaoVisual/Http/Controllers/InstalacaoController.php`, `Modules/ComunicacaoVisual/Database/Migrations/2026_10_20_300000_add_agenda_to_cv_instalacoes.php`, `Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAgendaContratoTest.php`. Falta: tela da agenda (calendário), checklist de ferramentas/EPI, endereço/foto, comprovante e comissão.
+**Implementado em:** _parcial_ — agenda de equipe e veículo com bloqueio sem janela (UC-FLX-21): `Modules/ComunicacaoVisual/Services/AgendaInstalacao.php`, `Modules/ComunicacaoVisual/Http/Controllers/InstalacaoController.php`, `Modules/ComunicacaoVisual/Database/Migrations/2026_10_20_300000_add_agenda_to_cv_instalacoes.php`, `Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAgendaContratoTest.php`; tela semana × equipe em `resources/js/Pages/ComunicacaoVisual/Agenda.tsx` + `Modules/ComunicacaoVisual/Http/Controllers/AgendaController.php` (`Modules/ComunicacaoVisual/Tests/Feature/AgendaTelaContratoTest.php`, `tests/js/cv-agenda.test.tsx`); aviso ao cliente em `Modules/ComunicacaoVisual/Events/InstalacaoAgendada.php` + `Modules/Whatsapp/Listeners/NotifyInstalacaoCvCustomer.php` (`Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAvisoClienteContratoTest.php`). Falta: arrastar instalação na grade, checklist de ferramentas/EPI, endereço/foto, comprovante e comissão.
 
 **Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAgendaContratoTest.php` (lane `verticais-pest.yml`).
 
@@ -240,7 +240,9 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 **DoD:**
 - [x] Agenda equipe (users da empresa) e veículo (placa/apelido) na OS da CV, e lista a agenda de uma janela de até 92 dias — UC-FLX-21 · UC-CVINST-01
 - [x] Bloqueia sem janela: sobreposição com instalação agendada/em execução que use alguém da equipe ou o mesmo veículo → 422 dizendo com quem e quando; encostado passa; outra empresa nunca conflita — UC-CVINST-02..06
-- [ ] Agenda calendário (semanal) — drag-drop instalação na slot (tela: follow-up; hoje só API)
+- [x] Avisa o cliente por WhatsApp ao agendar (OS, dia, hora), só com opt-in LGPD e pelo número de saída da empresa — UC-CVINST-08..10
+- [x] Agenda calendário (semanal) em semana × equipe, com a recusa sem janela visível — UC-CVAG-01..04 (`/comunicacao-visual/agenda`)
+- [ ] Drag-drop da instalação na grade
 - [ ] Checklist ferramentas + EPI (NR-35 trabalho em altura — relevante)
 - [ ] Endereço integrado Google Maps + foto da fachada (cliente sobe pré-vistoria)
 - [ ] Comprovante instalação: foto + assinatura digital + GPS coords (LGPD: consent)
@@ -1007,7 +1009,7 @@ Job lê `commission_distribution_json`, calcula valores, cria lançamentos `comi
 
 > **Owner:** — · **Estimate:** 8h · **Status:** doing · **Blocked_by:** US-COMVIS-NEW-001 + ADR 0117 multi-números entregue + LGPD consent contacts
 
-**Implementado em:** _pendente_ — parcial (UC-FLX-02, 2026-10-20): na OS por item do PCP (ADR 0436) o operador gera o link da prova (`POST /producao/ordens/{id}/aprovacao-arte`, token aleatório, só o sha256 no banco, 7 dias) e o cliente aprova ou pede alteração em `/arte/{token}` sem login, uso único; aprovar conclui a etapa "Aprovação do cliente" pelo motor (`SituacaoDaOrdem::aoConcluirEtapa`), recusar reabre a arte com o comentário. Serviço `AprovacaoArteService` do Modules/Producao; contrato UC-PCART-01..05 em `Producao/Apontamento/Index.casos.md`. Falta: envio pelo WhatsApp/e-mail com opt-in LGPD (o link volta ao operador), botão na tela, aviso ao designer na recusa, URL `/b/{slug}/...`
+**Implementado em:** _pendente_ — parcial (UC-FLX-02, 2026-10-20): na OS por item do PCP (ADR 0436) o operador gera o link da prova (`POST /producao/ordens/{id}/aprovacao-arte`, token aleatório, só o sha256 no banco, 7 dias) e o cliente aprova ou pede alteração em `/arte/{token}` sem login, uso único; aprovar conclui a etapa "Aprovação do cliente" pelo motor (`SituacaoDaOrdem::aoConcluirEtapa`), recusar reabre a arte com o comentário. Serviço `AprovacaoArteService` do Modules/Producao; contrato UC-PCART-01..05 em `Producao/Apontamento/Index.casos.md`. Trava da arte (UC-PCV-11, 2026-10-21): depois de aprovada, trocar o arquivo (`POST /producao/ordens/{id}/arte/trocar`) reabre a aprovação com link novo, e a arte vigente (`GET /producao/ordens/{id}/arte`) segue a última aprovada. Falta: envio pelo WhatsApp/e-mail com opt-in LGPD (o link volta ao operador), botão na tela, aviso ao designer na recusa, URL `/b/{slug}/...`
 
 **Como** designer de gráfica
 **Quero** enviar arte (preview imagem) pelo WhatsApp pro cliente final, ele clicar link → ver preview → aprovar/rejeitar em 1 clique
