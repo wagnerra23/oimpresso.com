@@ -178,10 +178,11 @@ it('UC-PCV-30 · reprogramar move horário e máquina do mesmo setor, registra o
         ->assertOk()->assertJson(['posto_id' => $this->latex, 'user_id' => $this->op->id, 'inicio_previsto' => "$d 15:00:00", 'fim_previsto' => "$d 16:00:00"]);
 
     $ev = DB::table('pcp_eventos')->where('business_id', $this->b98)->where('tipo', 'etapa_alocada')->orderByDesc('id')->first();
+    // A coluna JSON do MySQL reordena as chaves: o conteúdo é o contrato, a ordem não (toEqual).
     $dados = json_decode((string) $ev->dados, true);
     expect($dados['origem'])->toBe('linha')
-        ->and($dados['antes'])->toBe(['posto_id' => $this->roland, 'user_id' => (int) $this->op->id, 'inicio_previsto' => "$d 14:30:00"])
-        ->and($dados['depois'])->toBe(['posto_id' => $this->latex, 'user_id' => (int) $this->op->id, 'inicio_previsto' => "$d 15:00:00"])
+        ->and($dados['antes'])->toEqual(['posto_id' => $this->roland, 'user_id' => (int) $this->op->id, 'inicio_previsto' => "$d 14:30:00"])
+        ->and($dados['depois'])->toEqual(['posto_id' => $this->latex, 'user_id' => (int) $this->op->id, 'inicio_previsto' => "$d 15:00:00"])
         ->and(DB::table('pcp_eventos')->where('business_id', $this->b98)->where('tipo', 'aviso_reprogramada')->where('user_id', $this->op->id)->exists())->toBeTrue();
 
     // Passar do fim do turno não recusa: a linha mostra o estouro.
