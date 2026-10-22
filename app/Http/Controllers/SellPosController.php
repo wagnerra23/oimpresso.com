@@ -1443,9 +1443,15 @@ class SellPosController extends Controller
             return null;
         }
 
+        $livres = array_intersect_key($input, array_flip(\App\Services\Sells\TravaDaVenda::CAMPOS_LIVRES));
+        if (array_key_exists('sale_note', $input)) {
+            // O form Blade manda a observação como sale_note (a tela Inertia já foi normalizada no update).
+            $livres['additional_notes'] = $input['sale_note'] !== '' ? $input['sale_note'] : null;
+        }
+
         $antes = clone $venda;
-        DB::transaction(function () use ($venda, $input, $antes) {
-            $venda->forceFill(array_intersect_key($input, array_flip(\App\Services\Sells\TravaDaVenda::CAMPOS_LIVRES)))->save();
+        DB::transaction(function () use ($venda, $livres, $antes) {
+            $venda->forceFill($livres)->save();
             $this->transactionUtil->activityLog($venda, 'edited', $antes);
         });
 
@@ -1462,7 +1468,7 @@ class SellPosController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse|array<string, mixed>
      */
     public function update(Request $request, $id)
     {
@@ -1487,6 +1493,13 @@ class SellPosController extends Controller
             } else {
                 $input['sub_status'] = null;
                 $input['is_quotation'] = 0;
+            }
+
+            // A tela Inertia (Sells/Edit) manda a observação como additional_notes; o form Blade
+            // manda sale_note, que é o campo que o updateSellTransaction grava. Sem isto a
+            // observação da tela Inertia virava null a cada salvamento. Só texto, nenhum valor.
+            if (! array_key_exists('sale_note', $input) && array_key_exists('additional_notes', $input)) {
+                $input['sale_note'] = $input['additional_notes'];
             }
 
             // US-SELL-072 — venda com nota ou pagamento trava itens e valores. Só recusa: não
