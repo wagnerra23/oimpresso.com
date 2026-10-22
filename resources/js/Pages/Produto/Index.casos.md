@@ -659,6 +659,17 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
 - **[BACKLOG] Roteiro de produção no painel (UC-FLX-07)** — a OS copia as etapas do roteiro do
   produto (US-PCP-026). Aceite: a aba "Receita e roteiro" mostra a receita e as etapas numeradas
   do roteiro; produto sem roteiro não mostra a parte de etapas.
+- **[BACKLOG] Preço proposto pela compra recebida (UC-FLX-17)** — no Recebido a compra aplica a
+  regra de custo e preço da empresa, e o detalhe da compra já lista os preços propostos com Aprovar e
+  Recusar (US-COM-026 · US-COM-028); a consulta não mostra que há proposta. Vale só quando a regra da
+  empresa propõe o preço; nas regras em que o preço não muda ou é aplicado sozinho não há o que
+  mostrar. Aceite: Dado um produto que acompanha o custo com preço proposto aguardando aprovação,
+  Então a coluna Preço de venda mostra "proposto <preço> · aguardando" e o painel mostra o preço
+  proposto, a compra de origem e os botões Aprovar e Recusar.
+- **[BACKLOG] Setor de cada etapa do roteiro (UC-FLX-08)** — cada posto tem setor e operadores, e só
+  eles são responsáveis pela etapa (US-PCP-030). Aceite: na aba "Receita e roteiro", cada etapa mostra
+  o setor ("Montagem da estrutura · setor Serralheria"); o responsável não aparece na consulta,
+  porque é escolhido na OS entre os operadores do setor.
 
 Fontes abertas em 2026-10-20: [Shopify](https://help.shopify.com/manual/products/searching-filtering) ·
 [Olist/Tiny](https://ajuda.olist.com/produtos/acoes-em-lote-e-gerenciamento-de-produtos) ·
