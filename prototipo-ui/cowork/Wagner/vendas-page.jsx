@@ -247,6 +247,140 @@ function VdFiscalCard({ kind, doc }) {
 }
 
 // ──────────────────────────────────────────────────────────────
+// PROPOSTA · botão Colunas (2026-10-22 · [M+C]) — NÃO decidido; em avaliação pelo [W] (L-03).
+// O QUÊ: cada pessoa escolhe e ordena as colunas da lista no ColumnManager do DS, o mesmo
+//   mecanismo do grid de itens da Venda V3 (venda-v3.jsx · colunas-dominio.ts no git).
+// PADRÃO: vem do MODELO DE FLUXO da empresa (ADR 0435 · MODELOS de fluxos-data.jsx), escolhido em
+//   Fluxos › Empresa pelo encaixe porte × atividade. Quem nunca abre o botão vê as colunas do
+//   seu modelo: o administrador não precisa configurar nada. "Restaurar padrão" volta a ele.
+// PRODUÇÃO: é processo próprio, uma OS por item (ADR 0435 item 2). A coluna "Produção (OS)"
+//   RESUME as OS da venda; a etapa da venda continua no Pipeline.
+// GUARDA: localStorage com o prefixo por empresa do charter (anti-hook Tier 0
+//   `oimpresso.sells.b<bizId>.`), uma chave por modelo.
+// Os valores das colunas novas são de exemplo (derivados do id da venda), só para o protótipo.
+// ──────────────────────────────────────────────────────────────
+const VdDS = () => window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
+const VD_BIZ_ID = 1; // protótipo: empresa de exemplo
+const VD_COL_GRUPOS = [
+  { key: "venda", label: "Venda" },
+  { key: "producao", label: "Produção e entrega" },
+  { key: "financeiro", label: "Financeiro" },
+];
+// A ordem deste catálogo é a ordem padrão das colunas.
+const VD_COLUNAS = [
+  { key: "venda", label: "Venda", group: "venda", fixed: true },
+  { key: "data", label: "Data", group: "venda" },
+  { key: "cliente", label: "Cliente", group: "venda", fixed: true },
+  { key: "atendido", label: "Atendido por", group: "venda" },
+  { key: "origem", label: "Origem", group: "venda" },
+  { key: "pipeline", label: "Pipeline (etapa da venda)", group: "venda" },
+  { key: "producao", label: "Produção (OS)", group: "producao" },
+  { key: "entrega", label: "Entrega prometida", group: "producao" },
+  { key: "arte", label: "Arte", group: "producao" },
+  { key: "instalacao", label: "Instalação", group: "producao" },
+  { key: "fiscal", label: "Fiscal", group: "financeiro" },
+  { key: "pagamento", label: "Pagamento", group: "financeiro" },
+  { key: "sinal", label: "Sinal", group: "financeiro" },
+  { key: "total", label: "Total", group: "financeiro", fixed: true },
+  { key: "comissao", label: "Comissão", group: "financeiro" },
+  { key: "status", label: "Status", group: "venda" },
+];
+// As colunas de hoje são o padrão do modelo "legado" (ADR 0435 item 7) e dos modelos sem produção.
+// Nomes dos modelos iguais aos de fluxos-data.jsx.
+const VD_COLS_HOJE = ["venda", "data", "cliente", "atendido", "origem", "pipeline", "fiscal", "pagamento", "total", "comissao", "status"];
+const VD_MODELOS_COLUNAS = {
+  legado: { n: "Legado (o fluxo de hoje)", cols: VD_COLS_HOJE },
+  balcao: { n: "Balcão enxuto", cols: VD_COLS_HOJE },
+  "cv-pequena": { n: "Comunicação visual · pequena", cols: ["venda", "cliente", "atendido", "pipeline", "producao", "entrega", "arte", "fiscal", "total", "status"] },
+  "cv-pcp": { n: "Comunicação visual · média com PCP", cols: ["venda", "cliente", "atendido", "pipeline", "producao", "entrega", "fiscal", "total", "status"] },
+  grafica: { n: "Gráfica digital e offset", cols: ["venda", "cliente", "atendido", "pipeline", "producao", "entrega", "fiscal", "pagamento", "total", "status"] },
+  brindes: { n: "Brindes, sublimação e DTF", cols: VD_COLS_HOJE },
+  instalacao: { n: "Fachadas e instalação sob encomenda", cols: ["venda", "cliente", "atendido", "pipeline", "entrega", "instalacao", "fiscal", "total", "status"] },
+  oficina: { n: "Oficina mecânica", cols: VD_COLS_HOJE },
+};
+const vdColunasDoModelo = (modelo) => {
+  const cols = (VD_MODELOS_COLUNAS[modelo] || VD_MODELOS_COLUNAS.legado).cols;
+  return VD_COLUNAS.map((c) => ({ ...c, default: cols.includes(c.key) }));
+};
+const vdChaveColunas = (modelo) => "oimpresso.sells.b" + VD_BIZ_ID + ".colunas." + modelo;
+const vdCarregarColunas = (modelo) => {
+  const defs = vdColunasDoModelo(modelo);
+  const P = VdDS().ColumnPrefs;
+  return P ? P.load(defs, vdChaveColunas(modelo)) : defs.filter((c) => c.fixed || c.default).map((c) => c.key);
+};
+
+// Exemplo determinístico por venda, só para o protótipo mostrar as colunas novas.
+const VD_ETAPAS_EX = ["Arte", "Aprovação do cliente", "Impressão", "Acabamento"];
+const vdNum = (v) => parseInt(String(v.id).replace(/[^0-9]/g, ""), 10) || 0;
+const vdDiaMes = (iso, mais) => {
+  const d = new Date(iso);
+  d.setDate(d.getDate() + mais);
+  return { d, txt: String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0") };
+};
+function vdExemploColunas(v, fsm) {
+  if (v.vertical === "mec") return {}; // oficina: a OS é do módulo Oficina, não da produção
+  const n = vdNum(v);
+  const os = 1 + n % 3;
+  const semSinal = n % 5 === 0 && fsm <= 1;
+  const ent = vdDiaMes(v.date, 3 + n % 7);
+  const atraso = Math.round((VD_TODAY - ent.d) / 86400000);
+  const inst = vdDiaMes(v.date, 5 + n % 5);
+  return {
+    producao: fsm >= 3 ? { txt: os + " de " + os + " OS prontas", tone: "ok" } :
+      semSinal ? { txt: "Aguardando liberação", sub: "sinal abaixo do mínimo", tone: "danger" } :
+      { txt: n % os + " de " + os + " OS prontas", sub: "mais atrasada: " + VD_ETAPAS_EX[n % 4], tone: "warn" },
+    entrega: fsm >= 3 ? { txt: ent.txt, sub: "entregue", tone: "ok" } :
+      atraso > 0 ? { txt: ent.txt, sub: atraso + (atraso === 1 ? " dia" : " dias") + " em atraso", tone: "danger" } :
+      { txt: ent.txt, sub: atraso === 0 ? "é hoje" : "faltam " + -atraso + " dias", tone: "mute" },
+    arte: fsm >= 2 || n % 4 === 0 ? { txt: "Aprovada", tone: "ok" } :
+      n % 4 === 1 ? { txt: "Aguardando cliente", sub: "link enviado", tone: "warn" } :
+      { txt: "Ajuste pedido", sub: "nova versão da arte", tone: "warn" },
+    sinal: fsm >= 4 ? { txt: "Quitado", tone: "ok" } :
+      semSinal ? { txt: "Abaixo do mínimo", tone: "danger" } :
+      { txt: "Pago", sub: "falta o saldo", tone: "ok" },
+    instalacao: n % 3 === 0 ? { txt: "Sem instalação", tone: "mute" } :
+      n % 3 === 1 ? { txt: inst.txt + " · confirmada", tone: "ok" } :
+      { txt: inst.txt + " · a confirmar", tone: "warn" },
+  };
+}
+const VD_TOM = { ok: "sla-fresh", warn: "sla-aging", danger: "sla-late", mute: "outline" };
+function VdColInfo({ info }) {
+  if (!info) return <span className="vd-notes">—</span>;
+  const SB = VdDS().StatusBadge;
+  return (
+    <div>
+      {SB ? <SB tone={VD_TOM[info.tone] || "outline"} label={info.txt} /> : <span>{info.txt}</span>}
+      {info.sub && <div className="vd-notes">{info.sub}</div>}
+    </div>);
+}
+function VdColunasModal({ open, onClose, modelo, setModelo, colunas, ativas, setAtivas }) {
+  const { Modal, ColumnManager, Button, Select } = VdDS();
+  if (!open || !Modal || !ColumnManager) return null;
+  return (
+    <Modal open={open} onClose={onClose} width={860} title="Colunas da lista de vendas"
+      footer={<React.Fragment>
+        <span className="vd-notes" style={{ marginRight: "auto", alignSelf: "center" }}>
+          {ativas.length} de {colunas.length} colunas · a escolha fica salva neste navegador, só para esta empresa
+        </span>
+        {Button ? <Button variant="primary" onClick={onClose}>Fechar</Button> : <button className="os-btn primary" onClick={onClose}>Fechar</button>}
+      </React.Fragment>}>
+      <p className="vd-notes" style={{ margin: "0 0 12px" }}>
+        <b>Proposta em avaliação.</b> O padrão vem do modelo de fluxo da empresa (Fluxos › Empresa):{" "}
+        <b>{(VD_MODELOS_COLUNAS[modelo] || {}).n}</b>. Quem nunca mexer vê esse padrão, e "Restaurar padrão" volta a ele.
+      </p>
+      {Select &&
+      <div style={{ maxWidth: 360, margin: "0 0 14px" }}>
+          <Select label="Simular o modelo de outra empresa (só no protótipo)" value={modelo}
+          onChange={(e) => setModelo(e.target.value)}
+          options={Object.keys(VD_MODELOS_COLUNAS).map((k) => ({ value: k, label: VD_MODELOS_COLUNAS[k].n }))} />
+        </div>
+      }
+      <ColumnManager columns={colunas} groups={VD_COL_GRUPOS} active={ativas} onChange={setAtivas}
+        storageKey={vdChaveColunas(modelo)} labelActive="Na lista — de cima para baixo é a ordem das colunas" />
+    </Modal>);
+}
+
+// ──────────────────────────────────────────────────────────────
 // INDEX — VendasListPage
 // ──────────────────────────────────────────────────────────────
 function VendasListPage() {
@@ -284,6 +418,12 @@ function VendasListPage() {
     try {return new Set(JSON.parse(localStorage.getItem("oimpresso.sells.favs") || "[]"));}
     catch (e) {return new Set();}
   });
+  // PROPOSTA · botão Colunas (ver VD_COLUNAS). Protótipo: a empresa de exemplo usa o modelo CV pequena.
+  const [colModelo, setColModelo] = useStateV("cv-pequena");
+  const [colOpen, setColOpen] = useStateV(false);
+  const colDefs = useMemoV(() => vdColunasDoModelo(colModelo), [colModelo]);
+  const [colAtivas, setColAtivas] = useStateV(() => vdCarregarColunas(colModelo));
+  useEffectV(() => {setColAtivas(vdCarregarColunas(colModelo));}, [colModelo]);
   const rowsRef = useRefV([]);
   // Refino #2 KB-9.75: estado da IA no palette
   const [aiPalState, setAiPalState] = useStateV("idle"); // idle | loading | done
@@ -648,6 +788,121 @@ function VendasListPage() {
 
   const open = openId ? VENDAS_LIST.find((v) => v.id === openId) : null;
 
+  // PROPOSTA · botão Colunas — largura do cabeçalho e célula de cada coluna, na ordem escolhida.
+  const VD_COL_TH = {
+    venda: { w: 82 }, data: { w: 80 }, cliente: {}, atendido: { w: 168 }, origem: { w: 138, cls: "vd-col-source" },
+    pipeline: { w: 128, l: "Pipeline" }, producao: { w: 156 }, entrega: { w: 120 }, arte: { w: 136 }, instalacao: { w: 150 },
+    fiscal: { w: 148 }, pagamento: { w: 128 }, sinal: { w: 120 }, total: { w: 110 }, comissao: { w: 90, cls: "vd-col-commission" }, status: { w: 88 },
+  };
+  const vdCelula = (k, v, s, comm, isFav, ex) => {
+    switch (k) {
+      case "venda": return (
+                  <td key="venda" className="vd-id">
+                    {isFav && <span className="vd-fav" title="Favorita (B)">★</span>}
+                    #{v.id}
+                  </td>
+      );
+      case "data": return (
+                  <td key="data" className="vd-date">
+                    <div>{v.date.slice(8, 10)}/{v.date.slice(5, 7)}</div>
+                    <div className="vd-time">{v.time}</div>
+                  </td>
+      );
+      case "cliente": return (
+                  <td key="cliente" className="vd-client">
+                    {v.vertical === "mec" ?
+                    <div className="vd-client-mec">
+                        <VdPlate value={v.plate} />
+                        <div>
+                          <div className="vd-client-name">{v.vehicle}</div>
+                          <div className="vd-notes">{v.client} · km {v.km}</div>
+                        </div>
+                      </div> :
+
+                    <React.Fragment>
+                        <div className="vd-client-name">{v.client}</div>
+                        <div className="vd-notes">{v.clientNote || v.notes}</div>
+                      </React.Fragment>
+                    }
+                  </td>
+      );
+      case "atendido": return (
+                  <td key="atendido" className="vd-seller-cell">
+                    {v.vertical === "mec" && v.mechanicId ?
+                    <React.Fragment>
+                        <VdAv mid={v.mechanicId} />
+                        <span className="vd-seller-info">
+                          <b>{(window.VENDAS_DATA.MECANICOS_MAP[v.mechanicId]?.name || "").split(" ")[0]}</b>
+                          <small>vend: {(s.abbr || "").toLowerCase()}</small>
+                        </span>
+                      </React.Fragment> :
+
+                    <React.Fragment>
+                        <VdAv sid={v.sellerId} />
+                        <span className="vd-seller-info">
+                          <b>{(s.name || v.seller || "").split(" ")[0]}</b>
+                          <small>{v.origin}</small>
+                        </span>
+                      </React.Fragment>
+                    }
+                  </td>
+      );
+      case "origem": return (
+                  <td key="origem" className="vd-col-source">
+                    <VdSource v={v} onPickOs={(osRef) => console.log("→ abrir OS", osRef)} />
+                  </td>
+      );
+      case "pipeline": return (
+                  <td key="pipeline"><VdStepper fsm={effFsmOf(v)} vertical={v.vertical} /></td>
+      );
+      case "fiscal": return (
+                  <td key="fiscal"><VdFiscalCell v={{ ...v, fiscal: effFiscalOf(v) }} /></td>
+      );
+      case "pagamento": return (
+                  <td key="pagamento" className="vd-pay">
+                    <div className="vd-pay-top">
+                      <span>{v.payment}</span>
+                      {v.installments > 1 && <span className="vd-inst">{v.installments}×</span>}
+                    </div>
+                    <div className="vd-pay-sla"><VdSlaPill v={v} compact /></div>
+                  </td>
+      );
+      case "total": return (
+                  <td key="total" className="vd-total">{v.total}</td>
+      );
+      case "comissao": return (
+                  <td key="comissao" className="vd-total vd-col-commission" style={{ color: "var(--vd-green)", fontWeight: 700 }}>
+                    {vdFmt(comm)}
+                  </td>
+      );
+      case "status": return (
+                  <td key="status">
+                    <span className="os-stage" style={{
+                      background: (VENDAS_STATUS[v.status]?.color || "#888") + "1f",
+                      color: VENDAS_STATUS[v.status]?.color || "#888"
+                    }}>
+                      {VENDAS_STATUS[v.status]?.label || v.status}
+                    </span>
+                    <div className="vd-row-actions" onClick={(e) => e.stopPropagation()}>
+                      {v.fiscal?.nfe?.status === "ok" &&
+                      <button className="vd-row-act" title="Baixar DANFE PDF"><I.archive size={11} /></button>
+                      }
+                      {v.fiscal?.nfe?.status === "ok" &&
+                      <button className="vd-row-act" title="Baixar XML"><I.folder size={11} /></button>
+                      }
+                      <button className="vd-row-act" title="Imprimir recibo (R)"><I.printer size={11} /></button>
+                    </div>
+                  </td>
+      );
+      case "producao": return <td key="producao"><VdColInfo info={ex["producao"]} /></td>;
+      case "entrega": return <td key="entrega"><VdColInfo info={ex["entrega"]} /></td>;
+      case "arte": return <td key="arte"><VdColInfo info={ex["arte"]} /></td>;
+      case "sinal": return <td key="sinal"><VdColInfo info={ex["sinal"]} /></td>;
+      case "instalacao": return <td key="instalacao"><VdColInfo info={ex["instalacao"]} /></td>;
+      default: return null;
+    }
+  };
+
   return (
     <div className={`os-page vendas-page vendas-aplus`} data-vista={vista}>
 
@@ -931,6 +1186,12 @@ function VendasListPage() {
           </div>
         </div>
 
+        {/* PROPOSTA · botão Colunas (em avaliação pelo [W]) */}
+        <button className="vd-views-btn" onClick={() => setColOpen(true)} aria-haspopup="dialog" style={{ whiteSpace: "nowrap" }}
+          title="Escolher e ordenar as colunas da lista">
+          Colunas ({colAtivas.length})
+        </button>
+
         <div className="vd-search" role="search">
           <I.search size={13} />
           <input value={query} onChange={(e) => setQuery(e.target.value)}
@@ -949,23 +1210,18 @@ function VendasListPage() {
                 checked={filtered.length > 0 && selected.size === filtered.length}
                 onChange={toggleAll} />
               </th>
-              <th style={{ width: 82 }}>Venda</th>
-              <th style={{ width: 80 }}>Data</th>
-              <th>Cliente</th>
-              <th style={{ width: 168 }}>Atendido por</th>
-              <th style={{ width: 138 }} className="vd-col-source">Origem</th>
-              <th style={{ width: 128 }}>Pipeline</th>
-              <th style={{ width: 148 }}>Fiscal</th>
-              <th style={{ width: 128 }}>Pagamento</th>
-              <th style={{ width: 110 }}>Total</th>
-              <th style={{ width: 90 }} className="vd-col-commission">Comissão</th>
-              <th style={{ width: 88 }}>Status</th>
+              {colAtivas.map((k) => {
+                const t = VD_COL_TH[k] || {};
+                return <th key={k} style={t.w ? { width: t.w } : undefined} className={t.cls}>
+                  {t.l || (VD_COLUNAS.find((c) => c.key === k) || {}).label}
+                </th>;
+              })}
             </tr>
           </thead>
           <tbody>
             {loading && Array.from({ length: 6 }).map((_, i) =>
             <tr key={"sk" + i} className="vd-sk-row">
-                <td colSpan={12}>
+                <td colSpan={colAtivas.length + 1}>
                   <div className="vd-sk-bar" style={{ animationDelay: i * 60 + "ms" }} />
                 </td>
               </tr>
@@ -976,6 +1232,7 @@ function VendasListPage() {
               const isFav = favSet.has(v.id);
               const s = VENDEDORES_MAP[v.sellerId] || {};
               const comm = v.totalNum * (s.commissionPct || 0);
+              const ex = vdExemploColunas(v, effFsmOf(v));
               return (
                 <tr key={v.id}
                 ref={(el) => {rowsRef.current[ri] = el;}}
@@ -984,87 +1241,12 @@ function VendasListPage() {
                   <td className="vd-chk" onClick={(e) => e.stopPropagation()}>
                     <input type="checkbox" checked={sel} onChange={() => toggleSel(v.id)} />
                   </td>
-                  <td className="vd-id">
-                    {isFav && <span className="vd-fav" title="Favorita (B)">★</span>}
-                    #{v.id}
-                  </td>
-                  <td className="vd-date">
-                    <div>{v.date.slice(8, 10)}/{v.date.slice(5, 7)}</div>
-                    <div className="vd-time">{v.time}</div>
-                  </td>
-                  <td className="vd-client">
-                    {v.vertical === "mec" ?
-                    <div className="vd-client-mec">
-                        <VdPlate value={v.plate} />
-                        <div>
-                          <div className="vd-client-name">{v.vehicle}</div>
-                          <div className="vd-notes">{v.client} · km {v.km}</div>
-                        </div>
-                      </div> :
-
-                    <React.Fragment>
-                        <div className="vd-client-name">{v.client}</div>
-                        <div className="vd-notes">{v.clientNote || v.notes}</div>
-                      </React.Fragment>
-                    }
-                  </td>
-                  <td className="vd-seller-cell">
-                    {v.vertical === "mec" && v.mechanicId ?
-                    <React.Fragment>
-                        <VdAv mid={v.mechanicId} />
-                        <span className="vd-seller-info">
-                          <b>{(window.VENDAS_DATA.MECANICOS_MAP[v.mechanicId]?.name || "").split(" ")[0]}</b>
-                          <small>vend: {(s.abbr || "").toLowerCase()}</small>
-                        </span>
-                      </React.Fragment> :
-
-                    <React.Fragment>
-                        <VdAv sid={v.sellerId} />
-                        <span className="vd-seller-info">
-                          <b>{(s.name || v.seller || "").split(" ")[0]}</b>
-                          <small>{v.origin}</small>
-                        </span>
-                      </React.Fragment>
-                    }
-                  </td>
-                  <td className="vd-col-source">
-                    <VdSource v={v} onPickOs={(osRef) => console.log("→ abrir OS", osRef)} />
-                  </td>
-                  <td><VdStepper fsm={effFsmOf(v)} vertical={v.vertical} /></td>
-                  <td><VdFiscalCell v={{ ...v, fiscal: effFiscalOf(v) }} /></td>
-                  <td className="vd-pay">
-                    <div className="vd-pay-top">
-                      <span>{v.payment}</span>
-                      {v.installments > 1 && <span className="vd-inst">{v.installments}×</span>}
-                    </div>
-                    <div className="vd-pay-sla"><VdSlaPill v={v} compact /></div>
-                  </td>
-                  <td className="vd-total">{v.total}</td>
-                  <td className="vd-total vd-col-commission" style={{ color: "var(--vd-green)", fontWeight: 700 }}>
-                    {vdFmt(comm)}
-                  </td>
-                  <td>
-                    <span className="os-stage" style={{
-                      background: (VENDAS_STATUS[v.status]?.color || "#888") + "1f",
-                      color: VENDAS_STATUS[v.status]?.color || "#888"
-                    }}>
-                      {VENDAS_STATUS[v.status]?.label || v.status}
-                    </span>
-                    <div className="vd-row-actions" onClick={(e) => e.stopPropagation()}>
-                      {v.fiscal?.nfe?.status === "ok" &&
-                      <button className="vd-row-act" title="Baixar DANFE PDF"><I.archive size={11} /></button>
-                      }
-                      {v.fiscal?.nfe?.status === "ok" &&
-                      <button className="vd-row-act" title="Baixar XML"><I.folder size={11} /></button>
-                      }
-                      <button className="vd-row-act" title="Imprimir recibo (R)"><I.printer size={11} /></button>
-                    </div>
-                  </td>
+                  {colAtivas.map((k) => vdCelula(k, v, s, comm, isFav, ex))}
                 </tr>);
 
             })}
             {!loading && filtered.length === 0 &&
-            <tr><td colSpan={12} className="os-empty">
+            <tr><td colSpan={colAtivas.length + 1} className="os-empty">
                 {topView === "atrasadas" && <><b>Tudo dentro do prazo ✓</b><br /><small>Nenhuma venda atrasada. Bom trabalho.</small></>}
                 {topView === "rejeitadas" && <><b>Zero rejeições da SEFAZ ✓</b><br /><small>Todos os documentos fiscais autorizados.</small></>}
                 {topView === "favoritas" && <><b>Sem favoritas ainda</b><br /><small>Foque uma linha com J/K e aperte <kbd>B</kbd> pra pinar.</small></>}
@@ -1104,6 +1286,9 @@ function VendasListPage() {
           </div>
         );
       })()}
+
+      <VdColunasModal open={colOpen} onClose={() => setColOpen(false)} modelo={colModelo} setModelo={setColModelo}
+        colunas={colDefs} ativas={colAtivas} setAtivas={setColAtivas} />
 
       {/* BULK ACTION BAR */}
       <div className={`vd-bulk ${selected.size > 0 ? "on" : ""}`}>
