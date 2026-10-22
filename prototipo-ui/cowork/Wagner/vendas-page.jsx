@@ -315,6 +315,15 @@ const VD_MARCO = { "Visita técnica": 0.4, "Projeto": 0.6, "Orçamento": 1, "Dia
   "Aprovado": 3, "Em serviço": 4, "Produção": 4, "Pronto": 4.5, "Faturado": 5, "Entregue": 6, "Pago": 7 };
 // fsm do protótipo (cv: Orçamento · Pedido · Faturada · Entregue · Paga) → marco
 const VD_MARCO_FSM = [1, 3, 5, 6, 7];
+const VD_REGRAS_VENDA_FALLBACK = { "UC-FLX-06": { "cv-pcp": "Aprovado", instalacao: "Aprovado" }, "UC-FLX-24": { brindes: "Entregue", oficina: "Pronto" } };
+// Etapa da venda em que o modelo liga a regra (ou null). Lê window.FLX quando o catálogo já carregou.
+const vdEtapaDaRegra = (modelo, uc) => {
+  const m = window.FLX && window.FLX.MODELOS.find((x) => x.id === modelo);
+  if (!m) return (VD_REGRAS_VENDA_FALLBACK[uc] || {})[modelo] || null;
+  const p = (m.processos || []).find((x) => x.dom === "venda");
+  const r = p && p.regras.find((x) => x[2] === uc);
+  return r ? r[0] : null;
+};
 const vdTemEnviado = (modelo) => (VD_ETAPAS_VENDA[modelo] || []).includes("Enviado");
 // Casos de exemplo da proposta, pelos ids de data-vendas.jsx (só no protótipo):
 //   orçamento abaixo da margem mínima (US-SELL-069) · orçamento perdido (#9695) · venda com devolução (UC-S12)
@@ -328,6 +337,8 @@ const VD_PROPOSTA_CASOS = {
   "V-7829": { issRetido: true },
   // boleto pago emite a NF-e sozinho (UC-FLX-26 · US-RB-044)
   "V-7826": { nfeAuto: true, payment: "Boleto 1×" },
+  // título vencido entra na régua de cobrança (UC-FLX-29 · US-FIN-071)
+  "V-7818": { cobranca: { venc: "10/05", enviados: ["D+1 enviado em 11/05, por e-mail"], proximos: "D+5 em 15/05 · D+15 em 25/05" } },
   "R-0412": { orcamento: true, rascunho: true },
   "R-0413": { orcamento: true, rascunho: true },
 };
@@ -376,7 +387,12 @@ const vdVendasExtras = (lista) => {
     sellerId: vend, origin: "balcão", source: "balcao", vertical: "cv", fsm: 1, fiscal: { nfe: null, nfse: null }, payment: "Boleto 2×",
     installments: 2, payTerm: 30, urgent: false, total: vdFmt(4860), totalNum: 4860, status: "pendente",
     itemsList: [{ sku: "ACM-41", name: "Fachada ACM 4×1m", qty: 1, unit: 4200, type: "produto" },
-      { sku: "INS-001", name: "Instalação em altura", qty: 1, unit: 660, type: "servico" }] }];
+      { sku: "INS-001", name: "Instalação em altura", qty: 1, unit: 660, type: "servico" }] },
+  { id: "V-7818", date: "2026-04-10", time: "10:20", client: "Escola Novo Saber", clientNote: "Faixas de lona 5×1m · formatura",
+    sellerId: vend, origin: "orçamento", source: "orcamento", vertical: "cv", fsm: 3, osIds: ["4790"],
+    fiscal: { nfe: { status: "ok", numero: "001198", serie: "1", date: "2026-04-10T10:40" }, nfse: null }, payment: "Boleto 30d",
+    installments: 1, payTerm: 30, urgent: true, total: vdFmt(1250), totalNum: 1250, status: "faturada",
+    itemsList: [{ sku: "LON-51", name: "Faixa de lona 5×1m", qty: 5, unit: 250, type: "produto" }] }];
 };
 // Retenções da NFS-e sobre os serviços (exemplo: ISS 5% + PIS/COFINS/CSLL 4,65%).
 const vdRetencao = (v) => {
@@ -419,12 +435,12 @@ const vdDiaMes = (iso, mais) => {
   d.setDate(d.getDate() + mais);
   return { d, txt: String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0") };
 };
-function vdExemploColunas(v, fsm) {
+function vdExemploColunas(v, fsm, modelo) {
   if (v.vertical === "mec") return {}; // oficina: a OS é do módulo Oficina, não da produção
   // orçamento ainda não tem OS: ela nasce na aprovação (UC-FLX-01)
   if ((VD_PROPOSTA_CASOS[v.id] || {}).orcamento) return { producao: { txt: "Sem OS", sub: "a OS nasce na aprovação", tone: "mute" } };
   if ((VD_PROPOSTA_CASOS[v.id] || {}).semSinal) {
-    const b = vdExemploColunas({ ...v, id: "1" }, fsm);
+    const b = vdExemploColunas({ ...v, id: "1" }, fsm, modelo);
     return { ...b, arte: { txt: "Aprovada", tone: "ok" }, producao: { txt: "Aguardando liberação", sub: "sinal abaixo do mínimo", tone: "danger" },
       sinal: { txt: "Abaixo do mínimo", sub: VD_PROPOSTA_CASOS[v.id].semSinal, tone: "danger" } };
   }
@@ -434,13 +450,14 @@ function vdExemploColunas(v, fsm) {
   const ent = vdDiaMes(v.date, 3 + n % 7);
   const atraso = Math.round((VD_TODAY - ent.d) / 86400000);
   const inst = vdDiaMes(v.date, 5 + n % 5);
+  const fila = vdEtapaDaRegra(modelo, "UC-FLX-06") ? "pela fila · " : "";
   return {
     producao: fsm >= 3 ? { txt: os + " de " + os + " OS prontas", tone: "ok" } :
       semSinal ? { txt: "Aguardando liberação", sub: "sinal abaixo do mínimo", tone: "danger" } :
       { txt: n % os + " de " + os + " OS prontas", sub: "mais atrasada: " + VD_ETAPAS_EX[n % 4], tone: "warn" },
     entrega: fsm >= 3 ? { txt: ent.txt, sub: "entregue", tone: "ok" } :
-      atraso > 0 ? { txt: ent.txt, sub: atraso + (atraso === 1 ? " dia" : " dias") + " em atraso", tone: "danger" } :
-      { txt: ent.txt, sub: atraso === 0 ? "é hoje" : "faltam " + -atraso + " dias", tone: "mute" },
+      atraso > 0 ? { txt: ent.txt, sub: fila + atraso + (atraso === 1 ? " dia" : " dias") + " em atraso", tone: "danger" } :
+      { txt: ent.txt, sub: fila + (atraso === 0 ? "é hoje" : "faltam " + -atraso + " dias"), tone: "mute" },
     arte: fsm >= 2 || n % 4 === 0 ? { txt: "Aprovada", tone: "ok" } :
       n % 4 === 1 ? { txt: "Aguardando cliente", sub: "link enviado", tone: "warn" } :
       { txt: "Ajuste pedido", sub: "nova versão da arte", tone: "warn" },
@@ -998,6 +1015,7 @@ function VendasListPage() {
                     </div>
                     <div className="vd-pay-sla"><VdSlaPill v={v} compact /></div>
                     {vdRetencao(v) && <div className="vd-notes">líquido {vdFmt(vdRetencao(v).liquido)} · retido {vdFmt(vdRetencao(v).retido)}</div>}
+                    {(VD_PROPOSTA_CASOS[v.id] || {}).cobranca && <div className="vd-notes">régua: {VD_PROPOSTA_CASOS[v.id].cobranca.enviados.length} lembrete enviado</div>}
                   </td>
       );
       case "total": return (
@@ -1024,6 +1042,7 @@ function VendasListPage() {
                     </span>}
                     {caso.perdido && <div className="vd-notes">motivo: {caso.perdido}</div>}
                     {caso.margem && <div style={{ marginTop: 4 }}><VdColInfo info={{ txt: "Margem baixa", sub: "aguarda aprovação · " + caso.margem, tone: "warn" }} /></div>}
+                    {caso.cobranca && <div style={{ marginTop: 4 }}><VdColInfo info={{ txt: "Em cobrança", sub: "venceu " + caso.cobranca.venc, tone: "danger" }} /></div>}
                     <div className="vd-row-actions" onClick={(e) => e.stopPropagation()}>
                       {v.fiscal?.nfe?.status === "ok" &&
                       <button className="vd-row-act" title="Baixar DANFE PDF"><I.archive size={11} /></button>
@@ -1434,7 +1453,7 @@ function VendasListPage() {
               const isFav = favSet.has(v.id);
               const s = VENDEDORES_MAP[v.sellerId] || {};
               const comm = v.totalNum * (s.commissionPct || 0);
-              const ex = vdExemploColunas(v, effFsmOf(v));
+              const ex = vdExemploColunas(v, effFsmOf(v), colModelo);
               return (
                 <tr key={v.id}
                 ref={(el) => {rowsRef.current[ri] = el;}}
@@ -1670,6 +1689,8 @@ function VdProducaoDaVenda({ v, fsm }) {
           <span className="mono">{o.id}</span><span className="vd-prod-it">Item {o.n} · {o.item}</span>
           <span className={"vd-prod-sit " + (TOM[o.sit] || "")}>{o.sit}{o.sit === "Pausada" ? " — " + o.motivo : ""}</span></button></li>))}</ul>}
       {(VD_PROPOSTA_CASOS[v.id] || {}).semSinal && <p className="vd-prod-n">Sinal abaixo do mínimo ({VD_PROPOSTA_CASOS[v.id].semSinal}). A OS libera sozinha quando o pagamento do sinal chegar (Fluxos › Empresa · UC-FLX-28).</p>}
+      {os.length > 0 && !os.every((o) => o.sit === "Concluída") && vdEtapaDaRegra(vdLerModeloEmpresa(), "UC-FLX-06") &&
+      <p className="vd-prod-n">A data de entrega é calculada pela fila de produção, pela capacidade livre de cada etapa (regra do modelo · UC-FLX-06).</p>}
       {semOs.length > 0 && <p className="vd-prod-n">Sem OS: {semOs.map((it) => it.name).join(", ")} (serviço ou pronta-entrega).</p>}
     </section>
   );
@@ -1921,6 +1942,10 @@ function VendaDetailDrawer({ venda, onClose, onEdit }) {
                     <dt>Retido</dt><dd>{vdFmt(vdRetencao(v).retido)} <small>(ISS {vdFmt(vdRetencao(v).iss)} · PIS/COFINS/CSLL {vdFmt(vdRetencao(v).fed)})</small></dd>
                     <dt>Líquido</dt><dd><b>{vdFmt(vdRetencao(v).liquido)}</b> <small>é o que o título cobra</small></dd>
                   </React.Fragment>}
+                  {(VD_PROPOSTA_CASOS[v.id] || {}).cobranca && <React.Fragment>
+                    <dt>Título</dt><dd><b>Em cobrança</b> <small>venceu em {VD_PROPOSTA_CASOS[v.id].cobranca.venc}</small></dd>
+                    <dt>Régua</dt><dd>{VD_PROPOSTA_CASOS[v.id].cobranca.enviados.join(" · ")} <small>próximos: {VD_PROPOSTA_CASOS[v.id].cobranca.proximos} · tarefa de retorno ao vendedor (UC-FLX-29)</small></dd>
+                  </React.Fragment>}
                 </dl>
               </div>
 
@@ -1982,6 +2007,8 @@ function VendaDetailDrawer({ venda, onClose, onEdit }) {
 
           {tab === "timeline" &&
           <section className="vd-section">
+              {vdEtapaDaRegra(vdLerModeloEmpresa(), "UC-FLX-24") && effFsm >= 3 &&
+            <p className="vd-notes" style={{ margin: "0 0 10px" }}>Cliente avisado por WhatsApp quando a venda ficou em {vdEtapaDaRegra(vdLerModeloEmpresa(), "UC-FLX-24")} (regra do modelo · UC-FLX-24). Só envia para cliente que aceita receber mensagens.</p>}
               {window.VdRichTimeline ?
             <window.VdRichTimeline venda={v} /> :
             window.VdAuditTrail ?
