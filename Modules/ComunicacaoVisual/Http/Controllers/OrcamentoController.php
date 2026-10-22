@@ -5,10 +5,12 @@ namespace Modules\ComunicacaoVisual\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Modules\ComunicacaoVisual\Entities\Orcamento;
+use Modules\ComunicacaoVisual\Entities\OrcamentoItem;
 use Modules\ComunicacaoVisual\Entities\Os;
 use Modules\ComunicacaoVisual\Http\Requests\AprovarOrcamentoRequest;
 use Modules\ComunicacaoVisual\Services\OrcamentoCalculator;
@@ -114,7 +116,8 @@ class OrcamentoController extends Controller
                 'numero'       => $o->numero,
                 'status'       => $o->status,
                 'total'        => (float) $o->total,
-                'data_emissao' => $o->data_emissao?->toDateString(),
+                // cast 'date' (Carbon), mas o @property da entity diz string: normaliza pelos dois.
+                'data_emissao' => $o->data_emissao ? Carbon::parse($o->data_emissao)->toDateString() : null,
                 'itens'        => (int) $o->itens_count,
             ])
             ->values()
@@ -127,12 +130,12 @@ class OrcamentoController extends Controller
      */
     public static function paraTela(int $businessId, int $id): ?array
     {
-        $o = Orcamento::query()->where('comvis_orcamentos.business_id', $businessId)
-            ->with(['itens' => fn ($q) => $q->orderBy('ordem')->orderBy('id')])
-            ->find($id);
+        $o = Orcamento::query()->where('comvis_orcamentos.business_id', $businessId)->find($id);
         if ($o === null) {
             return null;
         }
+        $itens = OrcamentoItem::query()->where('business_id', $businessId)->where('orcamento_id', $o->id)
+            ->orderBy('ordem')->orderBy('id')->get();
         $os = Os::query()->where('business_id', $businessId)->where('orcamento_id', $o->id)->first(['id', 'numero']);
 
         return [
@@ -146,7 +149,7 @@ class OrcamentoController extends Controller
             'total'            => (float) $o->total,
             // UC-FLX-01: a OS que o orçamento gerou ao ser aprovado (null antes disso).
             'os'               => $os ? ['id' => $os->id, 'numero' => $os->numero] : null,
-            'itens'            => $o->itens->map(fn ($i) => [
+            'itens'            => $itens->map(fn (OrcamentoItem $i) => [
                 'material_id'       => $i->material_id,
                 'descricao'         => $i->descricao,
                 'largura_m'         => (float) $i->largura_m,

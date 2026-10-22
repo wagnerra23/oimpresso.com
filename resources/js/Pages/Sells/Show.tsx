@@ -13,11 +13,13 @@ import {
   ArrowLeft,
   CreditCard,
   Edit,
+  Eye,
   Mail,
   MapPin,
   Package,
   Phone,
   Printer,
+  Smile,
   Trash2,
   Truck,
   User as UserIcon,
@@ -27,6 +29,7 @@ import KpiCard from '@/Components/shared/KpiCard';
 import EmptyState from '@/Components/shared/EmptyState';
 import MercosulPlate from '@/Components/shared/MercosulPlate';
 import { Button } from '@/Components/ui/button';
+import { Inline } from '@/Components/layout';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -71,6 +74,14 @@ interface Headline {
   location: { id: number; name: string } | null;
   /** ADR 0251 — veículo da venda direta de oficina (placa na consulta). null = sem veículo. */
   vehicle?: { id: number; plate: string; secondary_plate?: string | null } | null;
+  /** UC-FLX-06 — data prometida ao cliente (AAAA-MM-DD). null = sem data. */
+  prazo_prometido?: string | null;
+}
+
+/** "2026-10-26" → "26/10/2026" sem passar por Date (fuso não desloca o dia). */
+function formatDiaMesAno(iso: string | null | undefined): string | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso ?? '');
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : null;
 }
 
 interface SaleLine {
@@ -113,9 +124,35 @@ interface CustoOrcamento {
   itens_mudaram: number;
 }
 
+/**
+ * UC-FLX-04 · quando o cliente abriu o link público do orçamento. Só vem em orçamento
+ * (rascunho de cotação); datas no formato do banco, 'AAAA-MM-DD HH:MM:SS'.
+ */
+interface AcessoOrcamento {
+  aberto: boolean;
+  primeira: string | null;
+  ultima: string | null;
+  vezes: number;
+}
+
+/**
+ * US-SELL-071 · pesquisa de satisfação depois da entrega. Só vem para quem tem `sell.view`.
+ * `atendimento` = tarefa aberta no CRM quando a nota ficou igual ou abaixo do limite da empresa.
+ */
+interface PesquisaEntrega {
+  canal: string;
+  status: string;
+  motivo: string | null;
+  nota: number | null;
+  respondido_em: string | null;
+  atendimento: { id: number; titulo: string; status: string; url: string | null } | null;
+}
+
 interface ShowDetail {
   lines: SaleLine[];
   custo?: CustoOrcamento | null;
+  acesso?: AcessoOrcamento | null;
+  pesquisa?: PesquisaEntrega | null;
   payments: SalePayment[];
   taxes: { order_taxes: Record<string, number>; line_taxes: Record<string, number> };
   activities: Activity[];
@@ -342,6 +379,12 @@ export default function SellsShow(props: SellsShowPageProps) {
               <p className="text-sm text-muted-foreground mt-1">
                 {formatDateTime(headline.transaction_date)}
                 {headline.location ? ` · ${headline.location.name}` : ''}
+                {formatDiaMesAno(headline.prazo_prometido) && (
+                  <span data-testid="prazo-prometido">
+                    {' · '}Entrega prometida:{' '}
+                    <span className="tabular-nums text-foreground">{formatDiaMesAno(headline.prazo_prometido)}</span>
+                  </span>
+                )}
               </p>
             </div>
           </div>
@@ -669,6 +712,72 @@ function CustoDoOrcamento({ custo }: { custo: CustoOrcamento }) {
   );
 }
 
+/** 'AAAA-MM-DD HH:MM:SS' → 'dd/mm hh:mm', pelo texto (sem `new Date()`, que trocaria o fuso). */
+function diaHora(v: string | null): string {
+  if (!v) return '';
+  const [d = '', h = ''] = v.split(' ');
+  const [, m, dia] = d.split('-');
+  return `${dia}/${m} ${h.slice(0, 5)}`.trim();
+}
+
+/** UC-FLX-04 · faixa do termômetro: o cliente já abriu o orçamento? */
+function AcessoDoOrcamento({ acesso }: { acesso: AcessoOrcamento }) {
+  let texto = 'Ainda não aberto pelo cliente';
+  if (acesso.aberto) {
+    texto = `Aberto pelo cliente em ${diaHora(acesso.primeira)}`;
+    if (acesso.vezes > 1) {
+      texto += ` (${acesso.vezes} vezes, a última em ${diaHora(acesso.ultima)})`;
+    }
+  }
+
+  return (
+    <div
+      data-testid="acesso-orcamento"
+      className={
+        'flex items-center gap-2 px-5 py-2.5 border-b border-border bg-muted/20 text-xs '
+        + (acesso.aberto ? 'text-foreground' : 'text-muted-foreground')
+      }
+    >
+      <Eye className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+      <span className="font-medium">{texto}</span>
+    </div>
+  );
+}
+
+const CANAL_PESQUISA: Record<string, string> = { whatsapp: 'WhatsApp', email: 'e-mail' };
+const MOTIVO_PESQUISA: Record<string, string> = { opt_out: 'o cliente não aceita mensagens', sem_canal: 'cliente sem WhatsApp nem e-mail',
+  sem_contato: 'venda sem cliente', falha_envio: 'o e-mail falhou', pendente: 'em envio' };
+
+/** US-SELL-071 · nota da pesquisa depois da entrega e o atendimento aberto na nota baixa. */
+function PesquisaDaEntrega({ pesquisa }: { pesquisa: PesquisaEntrega }) {
+  const canal = CANAL_PESQUISA[pesquisa.canal] ?? pesquisa.canal;
+  const quando = pesquisa.respondido_em ? pesquisa.respondido_em.slice(0, 10).split('-').reverse().join('/') : null;
+  const resumo = pesquisa.nota !== null
+    ? `Nota ${pesquisa.nota} de 5${quando ? ` · respondida em ${quando}` : ''}`
+    : pesquisa.status === 'enviado'
+      ? `Enviada por ${canal}, sem resposta ainda`
+      : `Não enviada${pesquisa.motivo ? ` — ${MOTIVO_PESQUISA[pesquisa.motivo] ?? pesquisa.motivo}` : ''}`;
+  return (
+    <section className="rounded-lg border border-border bg-card p-5" data-testid="pesquisa-entrega">
+      <Inline gap={2} className="mb-3">
+        <Smile className="h-4 w-4 text-muted-foreground" />
+        <h2 className="font-semibold text-sm">Pesquisa de satisfação</h2>
+      </Inline>
+      <div className="space-y-1 text-sm">
+        <p className={pesquisa.nota !== null ? 'font-semibold tabular-nums' : 'text-muted-foreground'}>{resumo}</p>
+        {pesquisa.atendimento && (
+          <p className="text-muted-foreground">
+            Atendimento no CRM: {pesquisa.atendimento.titulo}
+            {pesquisa.atendimento.url && (
+              <> · <a className="underline" href={pesquisa.atendimento.url}>abrir agenda</a></>
+            )}
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}
+
 /** Custo da linha (guardado e de hoje), só quando o orçamento trouxe custo. */
 function CustoDaLinha({ linha }: { linha?: CustoOrcamento['linhas'][number] }) {
   if (!linha || linha.previsto === null) return null;
@@ -700,6 +809,7 @@ function ShowDetailSections({ detail, headline, timelineRefreshKey = 0 }: ShowDe
           <h2 className="font-semibold text-sm">Itens da venda</h2>
           <span className="ml-auto text-xs text-muted-foreground">{detail.lines.length} item(s)</span>
         </div>
+        {detail.acesso && <AcessoDoOrcamento acesso={detail.acesso} />}
         {detail.custo && <CustoDoOrcamento custo={detail.custo} />}
         {detail.lines.length === 0 ? (
           <EmptyState
@@ -809,6 +919,8 @@ function ShowDetailSections({ detail, headline, timelineRefreshKey = 0 }: ShowDe
           </div>
         </section>
       )}
+
+      {detail.pesquisa && <PesquisaDaEntrega pesquisa={detail.pesquisa} />}
 
       {/* Histórico unificado — P4 parking lot #11 (FSM + payments + activities
           + comments + audit num único stream cronológico reverso). */}

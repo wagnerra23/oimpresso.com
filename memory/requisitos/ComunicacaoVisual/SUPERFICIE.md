@@ -14,10 +14,11 @@ module: ComunicacaoVisual
 >
 > **O que isto é:** o inventário completo das raízes `Modules/ComunicacaoVisual/**` + `resources/js/Pages/ComunicacaoVisual/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 82 arquivos em 15 papéis.
+**Total mapeado:** 90 arquivos em 16 papéis.
 
-## Controllers — 6
+## Controllers — 7
 
+- [AgendaController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/AgendaController.php)
 - [ApontamentoController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/ApontamentoController.php)
 - [AppOrcamentoRapidoController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/AppOrcamentoRapidoController.php)
 - [DataController.php](../../../Modules/ComunicacaoVisual/Http/Controllers/DataController.php)
@@ -55,6 +56,10 @@ module: ComunicacaoVisual
 - [Os.php](../../../Modules/ComunicacaoVisual/Entities/Os.php)
 - [OsItem.php](../../../Modules/ComunicacaoVisual/Entities/OsItem.php)
 - [Substrato.php](../../../Modules/ComunicacaoVisual/Entities/Substrato.php)
+
+## Events / Listeners — 1
+
+- [InstalacaoAgendada.php](../../../Modules/ComunicacaoVisual/Events/InstalacaoAgendada.php)
 
 ## Console / Commands — 2
 
@@ -96,21 +101,24 @@ module: ComunicacaoVisual
 - [config.php](../../../Modules/ComunicacaoVisual/Config/config.php)
 - [retention.php](../../../Modules/ComunicacaoVisual/Config/retention.php)
 
-## Telas (Inertia/React) — 1
+## Telas (Inertia/React) — 2
 
+- [Agenda.tsx](../../../resources/js/Pages/ComunicacaoVisual/Agenda.tsx)
 - [Index.tsx](../../../resources/js/Pages/ComunicacaoVisual/Index.tsx)
 
-## Charters (lei da tela) — 1
+## Charters (lei da tela) — 2
 
+- [Agenda.charter.md](../../../resources/js/Pages/ComunicacaoVisual/Agenda.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/ComunicacaoVisual/Index.charter.md)
 
-## Casos (contrato UC) — 1
+## Casos (contrato UC) — 2
 
+- [Agenda.casos.md](../../../resources/js/Pages/ComunicacaoVisual/Agenda.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/ComunicacaoVisual/Index.casos.md)
 
-## Testes (Pest) — 25
+## Testes (Pest) — 28
 
-- 25 em [Modules/ComunicacaoVisual/Tests/Feature/](../../../Modules/ComunicacaoVisual/Tests/Feature)
+- 28 em [Modules/ComunicacaoVisual/Tests/Feature/](../../../Modules/ComunicacaoVisual/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 4

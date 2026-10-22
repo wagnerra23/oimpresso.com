@@ -1607,9 +1607,9 @@ Como contador, quero decidir por produto se ele é mercadoria (ICMS) ou serviço
 > owner: — · sprint: — · priority: p1 · estimate: 6h · type: story
 > blocked_by: US-NFE-060 (NFS-e ainda é STUB, sem chamada real à Sefin nacional)
 
-**Implementado em:** _parcial_ — `Modules/NfeBrasil/Services/SeparacaoNotasDaVenda.php` · `Modules/NfeBrasil/Tests/Feature/SeparacaoNotasDaVendaContratoTest.php` (só a separação das linhas; disparo no Faturado e emissão em aberto)
+**Implementado em:** _parcial_ — `Modules/NfeBrasil/Services/SeparacaoNotasDaVenda.php` · `Modules/NfeBrasil/Services/NfeService.php` · `Modules/NFSe/Http/Controllers/NfseController.php` · `Modules/NfeBrasil/Http/Controllers/NfeEmissaoController.php` · `resources/js/Pages/Sells/_components/FiscalSection.tsx` · `Modules/NfeBrasil/Tests/Feature/EmissaoSeparadaContratoTest.php` (emissão das duas notas pelo botão do drawer; smoke em homologação e instalação em OS em aberto)
 
-**Testado em:** `Modules/NfeBrasil/Tests/Feature/SeparacaoNotasDaVendaContratoTest.php` (lane `nfebrasil-pest.yml`)
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/SeparacaoNotasDaVendaContratoTest.php` · `Modules/NfeBrasil/Tests/Feature/EmissaoSeparadaContratoTest.php` (lane `nfebrasil-pest.yml`)
 
 Como faturista, quero que a venda ou OS com mercadoria e serviço saia em duas notas — NF-e com as mercadorias e NFS-e com os serviços —, decididas pela natureza fiscal de cada produto, para não ter a NF-e recusada inteira nem a NFS-e com código de serviço errado.
 
@@ -1623,12 +1623,12 @@ Como faturista, quero que a venda ou OS com mercadoria e serviço saia em duas n
 US-NFE-060 cobre só o job de emissão da NFS-e (modelo 56, STUB); esta US cobre a divisão por natureza e o código de serviço por item. UC-FLX-27 ("Uma OS, duas notas") é o caso de OS da mesma divisão.
 
 **Aceite:**
-- [x] **Separar as linhas** (2026-10-20, PR-1): `SeparacaoNotasDaVenda::separar` divide a venda em parte mercadoria e parte serviço pela natureza do produto, com o `codigo_servico` de cada linha de serviço; a soma das duas partes é o `final_total`, centavo a centavo (UC-FNFSE-06..09 em `resources/js/Pages/Fiscal/Nfse.casos.md`). Regra de rateio de desconto, frete e acréscimos em `SeparacaoNotasDaVenda::REGRA_RATEIO` — **proposta, pendente de decisão [W]**
-- [ ] Disparo no Faturado: a venda/OS faturada chama a separação e gera as duas notas (hoje `NfeService::recusarItensDeServico` segue recusando a NF-e com item de serviço, de propósito)
-- [ ] Emissão: a NF-e sai só com a parte mercadoria e a NFS-e só com a parte serviço, cada uma com o total da sua parte
-- [ ] A NFS-e usa o `codigo_servico` gravado na natureza do produto; o default do business só vale para produto sem natureza decidida
+- [x] **Separar as linhas** (2026-10-20, PR-1): `SeparacaoNotasDaVenda::separar` divide a venda em parte mercadoria e parte serviço pela natureza do produto, com o `codigo_servico` de cada linha de serviço; a soma das duas partes é o `final_total`, centavo a centavo (UC-FNFSE-06..09 em `resources/js/Pages/Fiscal/Nfse.casos.md`). Regra de rateio de desconto, frete e acréscimos em `SeparacaoNotasDaVenda::REGRA_RATEIO` — **decidida por [W] em 2026-10-21**: proporcional ao bruto, a parte serviço arredonda e a mercadoria absorve o centavo, frete inteiro na NF-e. [W] 2026-10-21, textual: *"Aprovo o rateio proporcional ao bruto com o frete na NF-e. Pode seguir no UC-27/31."*
+- [x] Disparo pela tela (2026-10-21, PR-2): o botão "Emitir NF-e + NFS-e" da seção Fiscal do drawer mostra as duas partes e, confirmado, emite a NF-e e depois a NFS-e (UC-FNFSE-10..12). A ação FSM "faturar" **não** dispara nota — emissão sempre por clique (charter Sells/Index). Sem a separação, `recusarItensDeServico` segue recusando a NF-e com serviço
+- [x] Emissão (2026-10-21, PR-2): a NF-e sai só com a parte mercadoria (`emitirParaTransaction(..., separada: true)`) e a NFS-e só com a parte serviço; o valor do corpo da requisição é ignorado
+- [x] A NFS-e da venda separada usa o `codigo_servico` gravado na natureza do produto (2026-10-21, PR-2); serviços com códigos diferentes recusam (uma NFS-e leva um código). A NFS-e avulsa e o `TransactionNfseObserver` seguem com o default do business
 - [ ] Item de instalação (natureza `servico`) vai para a NFS-e, mesmo numa OS com material
-- [ ] Produto com natureza `pendente` bloqueia o faturamento com mensagem que manda o contador decidir; não escolhe imposto sozinho (D-NATUREZA)
+- [x] Produto com natureza `pendente` bloqueia a emissão separada com mensagem que manda o contador decidir (2026-10-21, PR-2); não escolhe imposto sozinho (D-NATUREZA)
 - [ ] Multi-tenant: natureza de biz=1 nunca decide nota de biz=2 (Pest com os dois tenants); só quem tem permissão de emitir nota dispara a divisão (403 sem ela)
 - [ ] Smoke fiscal manual contra SEFAZ/Sefin só em biz=1, homologação
 
@@ -1667,9 +1667,18 @@ Como gestor, quero que a NF-e em contingência use o modo certo para a UF e tenh
 
 **Origem:** o resto da US-NFE-070 (2026-10-20). Não há chamada `sefazEPEC` nem `tpEmis` 6/7 no código.
 
+**Entregue em 2026-10-21 (parcial — a âncora segue `_pendente_` até a marcação no DANFE):** a escolha
+"Modo: SVC-AN · SVC-RS · EPEC" na seção Contingência SEFAZ de `/fiscal/config`, gravada em
+`nfe_business_configs.contingencia_modo` (`Modules/NfeBrasil/Services/ModoContingencia.php`); a ativação recusa a
+SEFAZ Virtual que não atende a UF do emitente (`ContingenciaService::ativar`); em SVC a NF-e sai com tpEmis 6/7 e
+é transmitida na hora com `Tools::$contingency` armado em SVCAN/SVCRS; em EPEC a nota fica guardada e o evento
+110140 vai ao AN (`NfeService::registrarEpec`), com falha registrada como evento `rejeitado` sem perder a nota.
+Casos: `resources/js/Pages/Fiscal/Nfe.casos.md` UC-FNFE-19, 20, 30, 31 · prova `ContingenciaModoTest` (lane
+`nfebrasil-pest`). Fica: a marcação de contingência no DANFE e o smoke em homologação.
+
 **Aceite:**
-- [ ] NF-e modelo 55 pode usar SVC-AN (`tpEmis=6`) ou SVC-RS (`tpEmis=7`) conforme a UF do emitente
-- [ ] Em EPEC (`tpEmis=4`) o evento 110140 é enviado e registrado antes da impressão do DANFE; o DANFE mostra a marcação de contingência
-- [ ] Multi-tenant: o evento de biz=1 nunca usa nota de biz=2 (Pest com os dois tenants)
+- [x] NF-e modelo 55 pode usar SVC-AN (`tpEmis=6`) ou SVC-RS (`tpEmis=7`) conforme a UF do emitente — UC-FNFE-19
+- [ ] Em EPEC (`tpEmis=4`) o evento 110140 é enviado e registrado antes da impressão do DANFE (feito — UC-FNFE-20/30); o DANFE mostra a marcação de contingência (pendente)
+- [x] Multi-tenant: o evento de um tenant nunca grava em outro (Pest com os tenants 98 e 2) — UC-FNFE-31
 - [ ] Smoke fiscal manual contra SEFAZ só em biz=1, homologação
 
