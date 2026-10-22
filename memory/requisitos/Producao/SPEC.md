@@ -319,10 +319,17 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ### US-PCP-015 · `pcp_schedules` agendamento drag-drop calendário — **P2**
 
-**Implementado em:** _pendente_ — sem tabela `pcp_schedules` nem calendário drag-drop (módulo não construído, ADR 0152)
+**Implementado em:** `Modules/Producao/Resources/js/Pages/Producao/Linha/Index.tsx` · `Modules/Producao/Http/Controllers/LinhaController.php` · `Modules/Producao/Services/LinhaDaProducao.php` · `Modules/Producao/Services/AlocacaoDaEtapa.php`
 
-> owner: — · priority: p2 · estimate: 8h · status: todo · type: story
-> React FullCalendar + endpoint PATCH. Validation overlap.
+**Testado em:** `Modules/Producao/Tests/Feature/ProducaoLinhaContratoTest.php` (lane `verticais-pest.yml`) · casos `Linha/Index.casos.md` (UC-PCV-08, 09, 30).
+
+> owner: wagner · priority: p2 · estimate: 8h · status: done · type: story
+> A agenda é a Linha do tempo por máquina (`/producao/linha`, thread 07 do playbook), sobre `pcp_programacoes` — sem tabela `pcp_schedules` nova nem FullCalendar. Arrastar e Alt+setas chamam `PUT /producao/etapas/{id}/reprogramar`, que recusa sobreposição na máquina de destino.
+
+**Aceite:**
+- [x] Uma linha por máquina com a carga do dia contra a capacidade do posto, travas de arte e de material, estouro do fim do turno e da entrega prometida; "Próximo dia útil" pelo calendário de produção (UC-PCV-08).
+- [x] Reprogramar arrastando (15 em 15 min) ou com Alt+setas, só a etapa pendente, só dentro do setor; recusa choque de horário dizendo com qual OS; troca para máquina com operadores cadastrados pede um deles (UC-PCV-30).
+- [x] Gargalo com uma sugestão aplicável e reversível (UC-PCV-09).
 
 ### US-PCP-016 · Integração BoM `MfgRecipe` (consumo automático ao concluir operação) — **P2**
 
