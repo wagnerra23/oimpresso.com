@@ -6,7 +6,7 @@ type: sdd
 module: Produto
 status: ativo
 owner: wagner
-version: 1.0.12
+version: 1.0.13
 last_updated: 2026-10-22
 related_docs:
   - SPEC.md
@@ -1049,14 +1049,13 @@ qual é o local padrão.
      `enable_racks`, `enable_row` ou `enable_position`. O `store()` e o `update()` gravam pelo campo
      `product_racks` (`ProductUtil::addRackDetails`); a ficha mostra (`CU-PROD-14`).
 - **Decisões ([M] 2026-10-22):**
-  1. 🔶 **Local padrão — em aberto.** Não há decisão do [W] registrada: procurei nas ADRs, nos SPECs
-     de Estoque, Inventário, Produto, Vendas e Compras e nas proibições. A regra que vale é a do
-     código: **a venda baixa o estoque do local da venda** (`ProductUtil::decreaseProductQuantity`
-     recebe o `location_id` da transação). Não existe local padrão no produto. Duas saídas: o
-     "Padrão" sugere o local na compra, na transferência e na separação, sem mudar a baixa; ou a
-     venda passa a baixar do padrão, o que mexe em estoque (REGRA MESTRE) e é decisão [W]. Enquanto
-     não decidir, o protótipo mostra a coluna Padrão, mas o texto "o padrão é de onde sai a baixa"
-     não vale.
+  1. ✅ **Local padrão = local sugerido.** O padrão é o local que aparece já preenchido na compra, na
+     transferência e na separação; a pessoa pode trocar. A venda continua baixando do local onde ela
+     é feita (`ProductUtil::decreaseProductQuantity` recebe o `location_id` da transação), então a
+     regra de estoque não muda. Não havia decisão do [W] sobre isso: as regras de fluxo (ADR 0435,
+     `fluxos-modelos.casos.md`, `FLUXOS-POR-TIPO-E-PORTE.md`) definem **quando** o material sai
+     (venda, separação, etapa), e o local vem do próprio movimento. É como o Omie faz: o local de
+     estoque marcado como padrão é sugerido no pedido de venda.
   2. ✅ **Endereço em três campos: prateleira, fileira e posição.** Reaproveita o que o sistema já
      guarda (`product_racks`) e permite ordenar a separação de pedidos. O protótipo já mostra os três
      campos. Os campos só aparecem quando a empresa liga `enable_racks`, `enable_row` e
@@ -1287,6 +1286,7 @@ qual é o local padrão.
 
 **Histórico:**
 
+- 2026-10-22 — **`CU-PROD-20`: local padrão decidido pela [M]** (v1.0.13): é o local sugerido na compra, na transferência e na separação; a venda continua baixando do local da venda. O protótipo foi revisado contra as regras de fluxo e ganhou o Método de custo (UC-FLX-38) e os campos que a tela real já tem (Venda com imposto, Não está à venda, Expira em, Garantia). [M+C]
 - 2026-10-22 — **`CU-PROD-20`: duas decisões da [M]** (v1.0.12): endereço em prateleira, fileira e posição (`product_racks`); as duas seções de locais ficam. O local padrão segue em aberto: não há decisão [W] registrada, e a venda baixa do local da venda. [M+C]
 - 2026-10-22 — **§6.1 ganha o `CU-PROD-20`** (v1.0.11): locais de armazenagem e endereço no estoque, pedido da [M] no protótipo. Só no protótipo; três decisões abertas antes de virar código (local padrão × baixa pelo local da venda, endereço em um texto × três campos, seção repetida). [M+C]
 - 2026-10-21 — **`CU-PROD-18` ganha o aviso de EAN** (v1.0.10): `UC-PCAD-17` e `UC-PEDIT-15`. O aviso protege a etiqueta; a nota fiscal não usa o EAN hoje. [M+C]
