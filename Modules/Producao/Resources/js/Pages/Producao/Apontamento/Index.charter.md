@@ -34,11 +34,12 @@ inicia, pausa e conclui; o tempo vira custo real e a OS anda para o próximo res
 - Concluir etapa de máquina leva junto, opcional, o m² impresso e a tinta C/M/Y/K em ml (US-COMVIS-004 · UC-PCIMP-01..03).
 - Registrar refugo na etapa rodando: motivo de refugo do posto, peças e se vai para retrabalho (US-PCP-027 · UC-FLX-16, thread 08, 2026-10-21).
 - Sem internet: guarda o toque com a hora do aparelho e envia depois, sem duplicar.
+- "Material" na etapa rodando: material da receita da OS, quantidade e rolo (lote com saldo no local da venda); sem rolo, o método da empresa (US-PCP-021 · UC-FLX-18). Sem custo na tela.
 - Toque ≥ 44px em todo controle.
 
 ## Non-Goals (nesta fase)
 
 - ❌ Moldura de celular e o texto explicativo do protótipo: são andaime da demonstração.
-- ❌ Baixa de material (protótipo "Mídia usada"): é da thread 08. O "Registrar refugo" da mesma thread entrou em 2026-10-21 (Goals).
+- ❌ Estornar material apontado errado: a regra do material numa venda sem OS é decisão de [W]. A baixa de material e o "Registrar refugo" da thread 08 entraram em 2026-10-21 (Goals).
 - ❌ Modo terminal fixo na máquina e sobra de material: forma nova do Cowork, ainda fora do espelho (threads 12 e 16).
 - ❌ Escrever no Ponto: ele só é lido (D-PONTO).
