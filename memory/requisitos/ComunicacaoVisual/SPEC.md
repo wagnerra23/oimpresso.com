@@ -1230,9 +1230,9 @@ Como quem orça comunicação visual, quero que cada item guarde o custo do mate
 
 > owner: wagner · priority: p0 · estimate: 3h · type: story
 
-**Implementado em:** `Modules/ComunicacaoVisual/Services/OrcamentoViraOs.php` · `Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php` · `Modules/ComunicacaoVisual/Entities/OsItem.php` · `Modules/ComunicacaoVisual/Database/Migrations/2026_10_20_200000_create_comvis_os_itens_table.php`
+**Implementado em:** `Modules/ComunicacaoVisual/Services/OrcamentoViraOs.php` · `Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php` · `Modules/ComunicacaoVisual/Http/Controllers/OrcamentoArquivoController.php` · `Modules/ComunicacaoVisual/Entities/OsItem.php` · `Modules/ComunicacaoVisual/Database/Migrations/2026_10_20_200000_create_comvis_os_itens_table.php`
 
-**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoViraOsContratoTest.php` (lane `verticais-pest.yml`).
+**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoViraOsContratoTest.php` · `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoArquivosContratoTest.php` (lane `verticais-pest.yml`).
 
 > Contrato: `UC-CVOS-01..07` do `resources/js/Pages/ComunicacaoVisual/Index.casos.md`. Parte da US-COMVIS-003 (PCP gráfico): esta US entrega a entrada da OS; o Kanban de etapas segue na 003.
 
@@ -1253,7 +1253,7 @@ Como quem vende comunicação visual, quero que aprovar o orçamento crie a OS c
 - [x] Os arquivos do orçamento passam para a OS, só os da empresa
 - [x] Outra empresa não aprova nem gera OS; recusado não vira OS; sem permissão é recusado
 - [x] Botão "Aprovar e criar OS" no rodapé da calculadora, com confirmação; o reaberto mostra o número da OS (UC-CVOS-08)
-- [ ] Upload de arquivo no orçamento (o orçamento não tem tela de anexos; a cópia cobre o que for anexado pelo `media` do core)
+- [x] Upload de arquivo no orçamento: "Arquivos do orçamento" na calculadora, `POST`/`DELETE …/api/orcamentos/{id}/arquivos`, só antes da OS (UC-CVARQ-01..06)
 
 ---
 
@@ -1280,6 +1280,32 @@ Como quem orça no balcão, quero salvar o orçamento que montei e reabri-lo dep
 - [x] Reabrir devolve as peças e os ajustes; a lista traz só a empresa
 - [x] Regravar mantém o número; aprovado/recusado não regrava
 - [x] Sem permissão de criar não salva nem regrava
+
+---
+
+### US-COMVIS-022 · Custo e margem por peça na calculadora de m² (UC-FLX-03) — **P1**
+
+> owner: wagner · priority: p1 · estimate: 3h · type: story
+
+**Implementado em:** `Modules/ComunicacaoVisual/Services/MargemDoOrcamento.php` · `Modules/ComunicacaoVisual/Services/OrcamentoGravador.php` · `Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php`
+
+**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoMargemContratoTest.php` (lane `verticais-pest.yml`).
+
+> Contrato: `UC-CVMRG-01..06` do `resources/js/Pages/ComunicacaoVisual/Index.casos.md`.
+
+Como quem orça, quero ver quanto cada peça custa e quanto sobra, para não dar desconto que come a margem.
+
+- `POST /comunicacao-visual/api/calcular` devolve `custo`, `margem` e `margem_pct` por item e o bloco `margem` do orçamento, só para quem tem `comvis.material.manage` (ou superadmin). Para os outros a resposta não muda.
+- Custo do item = custo do material no dia (área × `preco_custo_m2`) + hora de máquina, pela mesma regra que o orçamento grava (US-COMVIS-019). Material sem custo: item sem margem.
+- Margem do orçamento = (subtotal − desconto) − custo das peças, só quando todas as peças têm custo; senão a tela diz quantas têm. Extras, instalação e entrega ficam fora (sem custo cadastrado).
+- Preço, subtotal e total não mudam.
+
+**Aceite:**
+- [x] Custo e margem por peça e do orçamento, conferidos por dois caminhos
+- [x] Preço, subtotal e total iguais com e sem margem
+- [x] Peça sem custo fica sem margem; material de outra empresa não entra
+- [x] Só quem gerencia materiais vê
+- [ ] Alerta de margem abaixo do mínimo ao dar desconto
 
 ---
 

@@ -8,6 +8,8 @@ contains:
   - "DataController"
   - "InstallController"
   - "OrcamentoController"
+  - "OrcamentoArquivoController (arquivos anexados ao orçamento antes de virar OS — /comunicacao-visual/api/orcamentos/{id}/arquivos, UC-FLX-01)"
+  - "Services/MargemDoOrcamento (custo e margem por peça do orçamento — UC-FLX-03)"
   - "Entities/Substrato (cv_substratos)"
   - "Entities/Acabamento (cv_acabamentos)"
   - "Entities/InstalacaoCatalogo (cv_instalacoes_catalogo)"

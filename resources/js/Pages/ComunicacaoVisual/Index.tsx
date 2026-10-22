@@ -32,7 +32,7 @@
  */
 import { useMemo, useState, type ReactNode } from 'react';
 import { Deferred, Head, Link, router } from '@inertiajs/react';
-import { Plus, Trash2, Calculator, ServerCog, Ruler, Clock, Printer, Save, FolderOpen, CheckCircle2 } from 'lucide-react';
+import { Plus, Trash2, Calculator, ServerCog, Ruler, Clock, Printer, Save, FolderOpen, CheckCircle2, Paperclip, X } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { PageHeader } from '@/Components/PageHeader';
@@ -63,6 +63,8 @@ interface OrcamentoTela {
   total: number;
   /** OS que o orçamento gerou ao ser aprovado (UC-FLX-01). */
   os: { id: number; numero: string } | null;
+  /** Arquivos anexados (media do core) — passam para a OS ao aprovar. */
+  arquivos: ArquivoTela[];
   itens: Array<{
     material_id: number | null;
     descricao: string;
@@ -72,6 +74,15 @@ interface OrcamentoTela {
     preco_unitario_m2: number;
   }>;
 }
+
+interface ArquivoTela {
+  id: number;
+  nome: string;
+  url: string;
+}
+
+/** Extensões aceitas (espelha OrcamentoArquivoController::EXTENSOES). */
+const EXTENSOES_ARQUIVO = '.pdf,.jpg,.jpeg,.png,.svg,.ai,.eps,.cdr,.tif,.tiff,.psd';
 
 /** Linha da lista "Orçamentos salvos" (OrcamentoController::recentes). */
 interface OrcamentoResumo {
@@ -88,6 +99,7 @@ interface Props {
   bizName?: string;
   materiais?: Material[];
   podeCriar?: boolean;
+  podeVerCusto?: boolean;
   orcamento?: OrcamentoTela | null;
   orcamentoAusente?: boolean;
   recentes?: OrcamentoResumo[];
@@ -121,12 +133,26 @@ interface ServerItem {
   area_m2: number;
   subtotal: number;
   preco_unitario_m2: number;
+  /** UC-FLX-03 — só vêm para quem vê custo (MargemDoOrcamento). Nulo = material sem custo. */
+  custo?: number | null;
+  margem?: number | null;
+  margem_pct?: number | null;
 }
 interface ServerResult {
   subtotal: number;
   total: number;
   itens: ServerItem[];
+  margem?: {
+    itens_com_custo: number;
+    itens: number;
+    custo: number | null;
+    receita: number;
+    margem: number | null;
+    margem_pct: number | null;
+  };
 }
+
+const PCT = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const NUM = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 3 });
@@ -138,19 +164,21 @@ function itemDoOrcamento(i: OrcamentoTela['itens'][number]): ItemUI {
   return { ...novoItem(), ...i, descricao: i.descricao ?? '' };
 }
 
-/** Chamada JSON às APIs do módulo; erro vira Error com a mensagem do servidor em PT-BR. */
-async function chamarApi(method: 'POST' | 'PUT', url: string, body: unknown): Promise<unknown> {
+/** Chamada às APIs do módulo; erro vira Error com a mensagem do servidor em PT-BR.
+ *  FormData vai como multipart (o navegador põe o boundary); o resto, JSON. */
+async function chamarApi(method: 'POST' | 'PUT' | 'DELETE', url: string, body?: unknown): Promise<unknown> {
   const csrf =
     (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
+  const multipart = body instanceof FormData;
   const res = await fetch(url, {
     method,
     headers: {
-      'Content-Type': 'application/json',
+      ...(multipart ? {} : { 'Content-Type': 'application/json' }),
       Accept: 'application/json',
       'X-CSRF-TOKEN': csrf,
       'X-Requested-With': 'XMLHttpRequest',
     },
-    body: JSON.stringify(body),
+    body: body === undefined ? undefined : multipart ? (body as FormData) : JSON.stringify(body),
   });
   const data = await res.json().catch(() => null);
   if (!res.ok) {
@@ -203,6 +231,7 @@ export default function Index({
   bizName = 'oimpresso',
   materiais = [],
   podeCriar = false,
+  podeVerCusto = false,
   orcamento = null,
   orcamentoAusente = false,
   recentes,
@@ -229,6 +258,8 @@ export default function Index({
   const [osCriada, setOsCriada] = useState<string | null>(orcamento?.os?.numero ?? null);
   const [confirmandoAprovar, setConfirmandoAprovar] = useState(false);
   const [aprovando, setAprovando] = useState(false);
+  const [arquivos, setArquivos] = useState<ArquivoTela[]>(orcamento?.arquivos ?? []);
+  const [enviandoArquivo, setEnviandoArquivo] = useState(false);
 
   function mexeu() {
     setConferido(null);
@@ -339,6 +370,32 @@ export default function Index({
     }
   }
 
+  // Anexa a arte/foto ao orçamento gravado. Ao aprovar, os arquivos passam para a OS.
+  async function enviarArquivos(files: FileList | null) {
+    if (!salvo || !files || files.length === 0) return;
+    setEnviandoArquivo(true);
+    setErro(null);
+    try {
+      const fd = new FormData();
+      Array.from(files).forEach((f) => fd.append('arquivos[]', f));
+      setArquivos((await chamarApi('POST', `/comunicacao-visual/api/orcamentos/${salvo.id}/arquivos`, fd)) as ArquivoTela[]);
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : 'Falha inesperada ao enviar o arquivo.');
+    } finally {
+      setEnviandoArquivo(false);
+    }
+  }
+
+  async function removerArquivo(id: number) {
+    if (!salvo) return;
+    setErro(null);
+    try {
+      setArquivos((await chamarApi('DELETE', `/comunicacao-visual/api/orcamentos/${salvo.id}/arquivos/${id}`)) as ArquivoTela[]);
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : 'Falha inesperada ao remover o arquivo.');
+    }
+  }
+
   // Grava o orçamento: POST na 1ª vez, PUT no reaberto. O servidor recalcula tudo de novo e o
   // número fica o mesmo. A URL passa a ter ?orcamento={id}, então recarregar reabre o mesmo.
   async function salvarOrcamento() {
@@ -445,9 +502,10 @@ export default function Index({
               <span className="md:col-span-1 text-right">Subtotal</span>
             </div>
 
-            {itens.map((item) => {
+            {itens.map((item, idx) => {
               const area = areaDe(item);
               const subtotal = subtotalDe(item);
+              const doServidor = conferido?.margem ? conferido.itens[idx] : undefined;
               return (
                 <div
                   key={item.id}
@@ -580,6 +638,24 @@ export default function Index({
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
+
+                  {/* UC-FLX-03: custo e margem da peça, do servidor (mesma regra que o orçamento grava) */}
+                  {doServidor && (
+                    <p data-contract="margem-item" className="col-span-2 text-xs text-muted-foreground md:col-span-12 md:text-right">
+                      {doServidor.custo == null ? (
+                        'Sem custo cadastrado para este material — a margem desta peça não aparece.'
+                      ) : (
+                        <>
+                          Custo <span className="tabular-nums text-foreground">{BRL.format(doServidor.custo)}</span>
+                          {' · '}Margem{' '}
+                          <span className={`tabular-nums font-medium ${(doServidor.margem ?? 0) < 0 ? 'text-destructive' : 'text-foreground'}`}>
+                            {BRL.format(doServidor.margem ?? 0)}
+                            {doServidor.margem_pct != null && ` (${PCT.format(doServidor.margem_pct)}%)`}
+                          </span>
+                        </>
+                      )}
+                    </p>
+                  )}
                 </div>
               );
             })}
@@ -624,6 +700,71 @@ export default function Index({
               </div>
             </div>
 
+            {/* Arquivos do orçamento (UC-FLX-01) — a arte vai para a OS junto com as peças */}
+            <div data-contract="arquivos" className="space-y-2 rounded-md border border-dashed border-border p-3">
+              <Inline wrap justify="between">
+                <Inline asChild>
+                  <span className="text-sm font-medium text-foreground">
+                    <Paperclip className="h-4 w-4 text-primary" aria-hidden="true" />
+                    Arquivos do orçamento
+                  </span>
+                </Inline>
+                {salvo && podeCriar && !osCriada && APROVAVEIS.includes(salvo.status) && (
+                  <label className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm hover:bg-muted focus-within:ring-2 focus-within:ring-ring">
+                    <Plus className="h-4 w-4" aria-hidden="true" />
+                    {enviandoArquivo ? 'Enviando…' : 'Anexar arquivo'}
+                    <input
+                      type="file"
+                      multiple
+                      accept={EXTENSOES_ARQUIVO}
+                      className="sr-only"
+                      disabled={enviandoArquivo}
+                      onChange={(e) => {
+                        void enviarArquivos(e.target.files);
+                        e.target.value = '';
+                      }}
+                    />
+                  </label>
+                )}
+              </Inline>
+              {!salvo ? (
+                <p className="text-xs text-muted-foreground">
+                  Salve o orçamento para anexar a arte ou a foto do local. Ao aprovar, os arquivos vão para a OS.
+                </p>
+              ) : arquivos.length === 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  Nenhum arquivo. PDF, imagem, AI, EPS, CDR, TIF ou PSD, até 5 MB cada.
+                </p>
+              ) : (
+                <ul className="space-y-1">
+                  {arquivos.map((a) => (
+                    <Inline asChild key={a.id}>
+                    <li className="text-sm">
+                      <a href={a.url} target="_blank" rel="noreferrer" className="truncate text-primary underline-offset-2 hover:underline">
+                        {a.nome}
+                      </a>
+                      {podeCriar && !osCriada && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="ml-auto h-7 w-7 text-muted-foreground hover:text-destructive"
+                          aria-label={`Remover ${a.nome}`}
+                          onClick={() => void removerArquivo(a.id)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </li>
+                    </Inline>
+                  ))}
+                </ul>
+              )}
+              {osCriada && arquivos.length > 0 && (
+                <p className="text-xs text-muted-foreground">Estes arquivos foram para a OS {osCriada}.</p>
+              )}
+            </div>
+
             {erro && (
               <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
                 {erro}
@@ -643,6 +784,23 @@ export default function Index({
                     {BRL.format(totalLocal)}
                   </span>
                 </div>
+                {conferido?.margem && (
+                  <p data-contract="margem" className="text-xs text-muted-foreground">
+                    {conferido.margem.margem == null ? (
+                      `Custo cadastrado em ${conferido.margem.itens_com_custo} de ${conferido.margem.itens} ${conferido.margem.itens === 1 ? 'peça' : 'peças'} — a margem do orçamento aparece quando todas tiverem custo.`
+                    ) : (
+                      <>
+                        Custo das peças <span className="tabular-nums text-foreground">{BRL.format(conferido.margem.custo ?? 0)}</span>
+                        {' · '}Margem{' '}
+                        <span className={`tabular-nums font-semibold ${conferido.margem.margem < 0 ? 'text-destructive' : 'text-foreground'}`}>
+                          {BRL.format(conferido.margem.margem)}
+                          {conferido.margem.margem_pct != null && ` (${PCT.format(conferido.margem.margem_pct)}%)`}
+                        </span>
+                        <span> sobre as peças menos o desconto; acabamento, instalação e entrega ficam fora.</span>
+                      </>
+                    )}
+                  </p>
+                )}
                 {totalLocal < 0 && (
                   <p className="text-xs text-destructive">
                     O desconto está maior que o valor do orçamento — o total fica negativo.
@@ -718,6 +876,7 @@ export default function Index({
             <p className="text-xs text-muted-foreground">
               O cálculo na tela é só uma prévia. Ao conferir no servidor, o valor oficial é
               recalculado com as regras da sua loja.
+              {podeVerCusto && !conferido && ' Ao conferir, aparecem o custo e a margem de cada peça.'}
               {podeCriar && editavel && !conferido && ' Salvar só libera depois de conferir: orçamento salvo com número errado vira retrabalho no balcão.'}
               {salvo && !alterado && !osCriada && ` Salvo como ${salvo.numero} — reabra quando quiser pela lista de orçamentos salvos.`}
               {podeAprovar && ' Aprovar cria a OS com o total gravado e não volta atrás.'}

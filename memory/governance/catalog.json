@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 851,
-    "edges": 1156,
+    "nodes": 853,
+    "edges": 1158,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 144,
-      "component": 471,
+      "component": 473,
       "api": 86
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 90,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 471,
+      "hasComponent": 473,
       "dependsOn": 126,
       "delegatesTo": 117,
       "migratesTo": 1,
@@ -2098,6 +2098,13 @@
       "desc": ""
     },
     {
+      "id": "component:ComunicacaoVisual/OrcamentoArquivoController",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "OrcamentoArquivoController",
+      "desc": "/comunicacao-visual/api/orcamentos/{id}/arquivos, UC-FLX-01)"
+    },
+    {
       "id": "component:ComunicacaoVisual/OrcamentoController",
       "type": "component",
       "module": "ComunicacaoVisual",
@@ -2110,6 +2117,13 @@
       "module": "ComunicacaoVisual",
       "name": "Services/AgendaInstalacao",
       "desc": "US-COMVIS-007 · UC-FLX-21)"
+    },
+    {
+      "id": "component:ComunicacaoVisual/Services/MargemDoOrcamento",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "Services/MargemDoOrcamento",
+      "desc": "UC-FLX-03)"
     },
     {
       "id": "component:ComunicacaoVisual/Services/OrcamentoViraOs",
@@ -8273,6 +8287,12 @@
     },
     {
       "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/OrcamentoArquivoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/OrcamentoController",
       "type": "hasComponent",
       "source": "contains"
@@ -8280,6 +8300,12 @@
     {
       "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/Services/AgendaInstalacao",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/Services/MargemDoOrcamento",
       "type": "hasComponent",
       "source": "contains"
     },
