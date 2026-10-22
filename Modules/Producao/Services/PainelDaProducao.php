@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\DB;
 final class PainelDaProducao
 {
     /** Eventos que falam de uma pessoa, não da produção (apontado × presença): ficam fora do feed. */
-    private const FORA_DO_FEED = [ApontamentoOperadorService::EV_PENDENCIA_GESTOR];
+    private const FORA_DO_FEED = [ApontamentoOperadorService::EV_PENDENCIA_GESTOR, AlocacaoDaEtapa::EV_AVISO_REPROGRAMADA];
 
     private const ROTULOS = [
         ApontamentoOperadorService::EV_ETAPA_INICIADA => 'Iniciou',
@@ -107,11 +107,12 @@ final class PainelDaProducao
     }
 
     /**
-     * Carga das máquinas hoje: horas das etapas previstas para começar hoje (exceto canceladas) ÷ horas do dia do posto.
+     * Carga das máquinas no dia: horas das etapas previstas para começar nele (exceto canceladas) ÷ horas do dia do posto.
+     * Pública porque a Linha do tempo (thread 07) mostra o mesmo número por máquina — uma conta só.
      *
      * @return list<array{posto_id: int, nome: string, setor: ?string, horas: float, capacidade: float, pct: int}>
      */
-    private function carga(int $businessId, CarbonInterface $agora): array
+    public function carga(int $businessId, CarbonInterface $agora): array
     {
         $dia = $agora->toDateString();
         $postos = DB::table('pcp_postos')->where('business_id', $businessId)->where('ativo', true)->where('veiculo', false)
