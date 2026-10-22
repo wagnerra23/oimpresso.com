@@ -6,8 +6,8 @@ type: sdd
 module: Produto
 status: ativo
 owner: wagner
-version: 1.0.10
-last_updated: 2026-10-21
+version: 1.0.11
+last_updated: 2026-10-22
 related_docs:
   - SPEC.md
   - BRIEFING.md
@@ -1019,6 +1019,48 @@ cadastro pede os dados da nota certa: NCM para mercadoria, item da LC 116 para s
   quando derivado só do NCM, o que sustentaria uma **exceção por produto** (hoje a regra fica em
   `nfe_fiscal_rules`, por NCM). Conferir na NT 2025.002 oficial antes de virar caso.
 
+#### CU-PROD-20 — Locais de armazenagem e endereço no estoque `[should]` 🎨 **só no protótipo** (2026-10-22)
+
+<!-- curado: pedido [M] 2026-10-22 em comentário no protótipo do cadastro + medição do código (business_locations · variation_location_details · product_racks) -->
+
+*Dado* uma empresa com mais de um local de estoque; *quando* cadastro ou edito um produto; *então*
+digo em quais locais ele fica e **onde, dentro de cada local** (corredor, prateleira, nível, box), e
+qual é o local padrão.
+
+- **Origem:** pedido da [M] em 2026-10-22, num comentário no protótipo: *"Empresas podem ter mais de
+  um local de estoque, e aqui não me possibilita informar em qual está, além de ter um campo de
+  endereço, para poder descrever a localização do produto dentro de X estoque."*
+- **No protótipo** (artefato do cadastro, Novo e Editar): seção Estoque, bloco "Locais de
+  armazenagem", uma linha por local com Padrão (rádio), Local de estoque, Endereço no estoque e a
+  quantidade; "+ Adicionar local de estoque"; total embaixo.
+  - **Novo:** a quantidade é **Qtd. inicial**, digitada.
+  - **Editar:** a quantidade é **Em estoque**, só leitura. Ela muda por compra, venda, ajuste ou
+    transferência, nunca pelo cadastro (senão o estoque muda sem movimento registrado). Local com
+    saldo não pode ser tirado; o botão de remover fica desligado.
+- **O que o sistema já tem (medido em 2026-10-22, não é preciso inventar tabela):**
+  1. O **local de estoque** é o local do negócio (`business_locations`). O saldo por local já existe
+     em `variation_location_details`, e o produto já é ligado aos locais em `product_locations` (a
+     seção "Locais do negócio" do cadastro).
+  2. A **Qtd. inicial** por local é o estoque inicial que já existe (`CU-PROD-04` item 1,
+     `OpeningStockController`), hoje numa tela separada.
+  3. O **endereço dentro do local** já existe como prateleira, fileira e posição por local
+     (`product_racks`: `rack`, `row`, `position`, com `location_id`). Aparece só quando a empresa liga
+     `enable_racks`, `enable_row` ou `enable_position`. O `store()` e o `update()` gravam pelo campo
+     `product_racks` (`ProductUtil::addRackDetails`); a ficha mostra (`CU-PROD-14`).
+- 🔶 **Decisões antes de virar código ([M]/[W]):**
+  1. **"Padrão é de onde sai a baixa nas vendas" não existe hoje.** A venda baixa o estoque do local
+     **da venda** (`ProductUtil::decreaseProductQuantity` recebe o `location_id` da transação), não de
+     um local padrão do produto. Ou o "Padrão" vira outra coisa (por exemplo, o local sugerido na
+     compra ou na transferência), ou muda a regra da venda, o que mexe em estoque (REGRA MESTRE).
+  2. **Endereço em um texto ou em três campos.** O protótipo tem um texto livre ("Corredor A ·
+     Prateleira 03 · Nível 2"); o sistema guarda prateleira, fileira e posição separados, e só se a
+     empresa ligou essas opções. Um texto é mais simples de preencher; três campos permitem filtrar e
+     ordenar a separação de pedidos.
+  3. **"Locais do negócio" e "Locais de armazenagem" ficam repetidos.** O protótipo manteve a seção
+     antiga (onde o produto está disponível) e acrescentou a nova. Provavelmente as duas viram uma.
+- **Casos de uso:** ainda sem id. Estão no backlog do `Create.casos.md` e do `Edit.casos.md` e
+  ganham id quando houver teste que os defenda (G-2).
+
 ### 6.2 Vertical comunicação visual (`CV`)
 
 #### CV-01 — Produto/material precificado por m² 🟡 *criar*
@@ -1239,6 +1281,7 @@ cadastro pede os dados da nota certa: NCM para mercadoria, item da LC 116 para s
 
 **Histórico:**
 
+- 2026-10-22 — **§6.1 ganha o `CU-PROD-20`** (v1.0.11): locais de armazenagem e endereço no estoque, pedido da [M] no protótipo. Só no protótipo; três decisões abertas antes de virar código (local padrão × baixa pelo local da venda, endereço em um texto × três campos, seção repetida). [M+C]
 - 2026-10-21 — **`CU-PROD-18` ganha o aviso de EAN** (v1.0.10): `UC-PCAD-17` e `UC-PEDIT-15`. O aviso protege a etiqueta; a nota fiscal não usa o EAN hoje. [M+C]
 - 2026-10-21 — **`CU-PROD-19` item 3 passa de 🔴 a 🟡** (v1.0.9): o Editar mostra a natureza fiscal decidida pelo contador (`UC-PEDIT-14`) e o aviso de NCM deixa de aparecer para produto de serviço. Falta: Novo produto, ficha, e o item da LC 116 por produto na NFS-e (item 4). [M+C]
 - 2026-10-20 — **§6.1 ganha `CU-PROD-16`, `CU-PROD-17` e `CU-PROD-18`** (v1.0.8): dados fiscais para nota, peso e dimensões, aviso de pendência fiscal. Origem: benchmark de concorrentes da tela de cadastro (Bling, Tiny/Olist, Conta Azul, Omie, Shopify), registrado também na [CAPTERRA-FICHA §11](CAPTERRA-FICHA.md). Mesmo dia: [M] decidiu que o NCM entra no cadastro; pesquisa refeita com ERPs de comunicação visual, que trouxe `CU-PROD-19` (natureza mercadoria × serviço) e `CV-06`…`CV-11`. Nenhum UC novo em `casos.md` ainda. [M+C]
