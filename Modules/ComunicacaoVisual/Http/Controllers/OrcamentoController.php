@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Modules\ComunicacaoVisual\Entities\Orcamento;
 use Modules\ComunicacaoVisual\Entities\OrcamentoItem;
+use Modules\ComunicacaoVisual\Entities\Os;
 use Modules\ComunicacaoVisual\Http\Requests\AprovarOrcamentoRequest;
 use Modules\ComunicacaoVisual\Services\OrcamentoCalculator;
 use Modules\ComunicacaoVisual\Services\OrcamentoGravador;
@@ -102,20 +103,29 @@ class OrcamentoController extends Controller
     /** Lista curta pra tela (a rota do hub usa o mesmo formato). `business_id` explícito (Tier 0). */
     public static function recentes(int $businessId, int $limite = 20): array
     {
-        return Orcamento::query()
+        $lista = Orcamento::query()
             ->where('comvis_orcamentos.business_id', $businessId)
             ->withCount('itens')
             ->orderByDesc('id')
             ->limit($limite)
-            ->get(['id', 'numero', 'status', 'total', 'data_emissao'])
+            ->get(['id', 'numero', 'status', 'total', 'data_emissao']);
+
+        // UC-FLX-01: número da OS de cada orçamento aprovado, numa consulta só.
+        /** @var array<int, string> $osPorOrcamento */
+        $osPorOrcamento = Os::query()->where('business_id', $businessId)
+            ->whereIn('orcamento_id', $lista->pluck('id')->all())
+            ->pluck('numero', 'orcamento_id')->all();
+
+        return $lista
             ->map(fn (Orcamento $o) => [
                 'id'           => $o->id,
+                'os'           => $osPorOrcamento[$o->id] ?? null,
                 'numero'       => $o->numero,
                 'status'       => $o->status,
                 'total'        => (float) $o->total,
                 // cast 'date' (Carbon), mas o @property da entity diz string: normaliza pelos dois.
                 'data_emissao' => $o->data_emissao ? Carbon::parse($o->data_emissao)->toDateString() : null,
-                'itens'        => (int) $o->itens_count,
+                'itens'        => (int) $o->getAttribute('itens_count'),
             ])
             ->values()
             ->all();
@@ -133,6 +143,7 @@ class OrcamentoController extends Controller
         }
         $itens = OrcamentoItem::query()->where('business_id', $businessId)->where('orcamento_id', $o->id)
             ->orderBy('ordem')->orderBy('id')->get();
+        $os = Os::query()->where('business_id', $businessId)->where('orcamento_id', $o->id)->first(['id', 'numero']);
 
         return [
             'id'               => $o->id,
@@ -143,6 +154,8 @@ class OrcamentoController extends Controller
             'custo_instalacao' => (float) $o->custo_instalacao,
             'custo_entrega'    => (float) $o->custo_entrega,
             'total'            => (float) $o->total,
+            // UC-FLX-01: a OS que o orçamento gerou ao ser aprovado (null antes disso).
+            'os'               => $os ? ['id' => $os->id, 'numero' => $os->numero] : null,
             'itens'            => $itens->map(fn (OrcamentoItem $i) => [
                 'material_id'       => $i->material_id,
                 'descricao'         => $i->descricao,
