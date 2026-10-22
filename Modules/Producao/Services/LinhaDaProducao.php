@@ -203,7 +203,7 @@ final class LinhaDaProducao
     {
         $nomes = $this->nomes($businessId, $ids);
 
-        return array_values(array_map(fn ($id) => ['id' => $id, 'nome' => $nomes[$id] ?? ('#'.$id)], $ids));
+        return array_map(fn ($id) => ['id' => $id, 'nome' => $nomes[$id] ?? ('#'.$id)], $ids);
     }
 
     /**
