@@ -6,7 +6,7 @@ type: sdd
 module: Produto
 status: ativo
 owner: wagner
-version: 1.0.14
+version: 1.0.15
 last_updated: 2026-10-22
 related_docs:
   - SPEC.md
@@ -698,10 +698,11 @@ A lista Blade (`resources/views/product/partials/product_list.blade.php`, todas 
      ligado pela empresa em Fluxos, põe numa requisição do local o item com saldo abaixo de
      `alert_quantity`, com quantidade = mínimo − saldo, o fornecedor e o preço da última compra.
      Desligado por padrão.
-   - 🎨 **Proposta no protótipo (2026-10-22):** "Quantidade de alerta" passa a se chamar **Estoque
-     mínimo** (mesmo campo) e entra o **Estoque máximo**, campo novo, recuperando o limiar do legado.
-     Com o máximo, a requisição pediria até o máximo (máximo − saldo) em vez de só até o mínimo. ⚠️ Isso
-     muda a regra da US-COM-027, que já está pronta: decisão [W] antes de virar código.
+   - 🎨 **No protótipo (2026-10-22):** "Quantidade de alerta" passa a se chamar **Estoque mínimo**
+     (mesmo campo).
+   - **Decidido pela [M] em 2026-10-22: não há "Estoque máximo".** A requisição automática segue a
+     US-COM-027 como está, pedindo até o mínimo. O limiar de máximo do legado (`AR-PROD-053`) fica
+     fora, por decisão.
 3. `enable_product_expiry`/`enable_lot_number` habilitam validade/lote. — 🟡 **lote sim, validade
    em aberto**: `UC-PINIC-04` trava o lote; a **validade** fica fora do assert porque os **dois
    writers a parseiam de formas diferentes** (`uf_date` no controller × `Carbon::createFromFormat
@@ -1033,9 +1034,11 @@ cadastro pede os dados da nota certa: NCM para mercadoria, item da LC 116 para s
 - **No cadastro, o que muda:** mostrar a natureza e o item da LC 116 decididos pelo contador (só
   leitura para quem não tem `nfe.tributacao.manage`) e usar a natureza na regra do aviso
   (`CU-PROD-16`/`18`).
-- 🔶 **Decisão [W]:** hoje a natureza é **uma por produto**. Se o mesmo item for serviço numa venda e
-  mercadoria em outra (banner sob encomenda × banner de prateleira), ou a empresa cadastra dois
-  produtos ou a natureza passa a ser decidida na venda.
+- ✅ **Decidido [W] (D-NATUREZA, 2026-10-06), mantido pela [M] em 2026-10-22:** a natureza é **uma por
+  produto**, decidida pelo contador com a fonte; enquanto `pendente`, a NF-e sai pelo padrão da UF com
+  aviso na Saúde fiscal (R-NFE-034). Se o mesmo item for serviço numa venda e mercadoria em outra
+  (banner sob encomenda × banner para revenda), a empresa cadastra dois produtos, como no Bling e no
+  Omie.
 - ⚠️ **Reforma tributária (IBS/CBS), não medido:** fontes secundárias falam em `cClassTrib` errado
   quando derivado só do NCM, o que sustentaria uma **exceção por produto** (hoje a regra fica em
   `nfe_fiscal_rules`, por NCM). Conferir na NT 2025.002 oficial antes de virar caso.
@@ -1307,6 +1310,7 @@ qual é o local padrão.
 
 **Histórico:**
 
+- 2026-10-22 — **Decisões da [M] sobre as pendências de fluxo** (v1.0.15): sem "Estoque máximo"; a requisição segue até o mínimo (`CU-PROD-04` item 2). Natureza uma por produto, mantendo a D-NATUREZA do [W] (`CU-PROD-19`). Roteiro de produção segue a ADR 0436 do [W] (item 3): sem roteiro no produto, a OS usa as etapas de produção do modelo da empresa; o protótipo mostra isso no card Produção. ⚠️ Ainda não funciona: a OS por item (US-PCP-026, #9641) não tem esse padrão, e hoje produto sem roteiro não vira OS (`UC-PCROT-02`). [M+C]
 - 2026-10-22 — **Três pendências das regras de fluxo registradas** (v1.0.14): natureza "a decidir" no Novo produto (`CU-PROD-19` item 3, proposta; trava a NFS-e da venda até o contador decidir), item da LC 116 do produto na NFS-e (`CU-PROD-19` item 4, corrigido: já funciona desde o #9727) e estoque mínimo e máximo (`CU-PROD-04` item 2; a requisição pelo mínimo já existe na US-COM-027, o máximo é proposta). [M+C]
 - 2026-10-22 — **`CU-PROD-20`: local padrão decidido pela [M]** (v1.0.13): é o local sugerido na compra, na transferência e na separação; a venda continua baixando do local da venda. O protótipo foi revisado contra as regras de fluxo e ganhou o Método de custo (UC-FLX-38) e os campos que a tela real já tem (Venda com imposto, Não está à venda, Expira em, Garantia). [M+C]
 - 2026-10-22 — **`CU-PROD-20`: duas decisões da [M]** (v1.0.12): endereço em prateleira, fileira e posição (`product_racks`); as duas seções de locais ficam. O local padrão segue em aberto: não há decisão [W] registrada, e a venda baixa do local da venda. [M+C]
