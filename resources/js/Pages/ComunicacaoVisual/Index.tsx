@@ -41,6 +41,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Badge } from '@/Components/ui/badge';
+import { Inline } from '@/Components/layout';
 
 interface Material {
   id: number;
@@ -448,13 +449,15 @@ export default function Index({
               <Calculator className="h-4 w-4 text-primary" />
               Calculadora de m²
               {salvo && (
-                <span data-contract="orcamento-aberto" className="flex items-center gap-1.5 text-sm font-normal text-muted-foreground">
-                  · <span className="font-mono text-foreground">{salvo.numero}</span>
-                  <Badge variant="outline">{STATUS_LABEL[salvo.status] ?? salvo.status}</Badge>
-                </span>
+                <Inline asChild gap={1}>
+                  <span data-contract="orcamento-aberto" className="text-sm font-normal text-muted-foreground">
+                    · <span className="font-mono text-foreground">{salvo.numero}</span>
+                    <Badge variant="outline">{STATUS_LABEL[salvo.status] ?? salvo.status}</Badge>
+                  </span>
+                </Inline>
               )}
             </CardTitle>
-            <div className="flex items-center gap-2">
+            <Inline>
               {salvo && (
                 <Button type="button" variant="ghost" size="sm" asChild>
                   <Link href="/comunicacao-visual">Novo orçamento</Link>
@@ -463,7 +466,7 @@ export default function Index({
               <Button type="button" variant="outline" size="sm" onClick={addItem} disabled={!editavel}>
                 <Plus className="mr-1 h-4 w-4" /> Adicionar peça
               </Button>
-            </div>
+            </Inline>
           </CardHeader>
 
           <CardContent className="space-y-3">
@@ -699,11 +702,13 @@ export default function Index({
 
             {/* Arquivos do orçamento (UC-FLX-01) — a arte vai para a OS junto com as peças */}
             <div data-contract="arquivos" className="space-y-2 rounded-md border border-dashed border-border p-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="flex items-center gap-2 text-sm font-medium text-foreground">
-                  <Paperclip className="h-4 w-4 text-primary" aria-hidden="true" />
-                  Arquivos do orçamento
-                </span>
+              <Inline wrap justify="between">
+                <Inline asChild>
+                  <span className="text-sm font-medium text-foreground">
+                    <Paperclip className="h-4 w-4 text-primary" aria-hidden="true" />
+                    Arquivos do orçamento
+                  </span>
+                </Inline>
                 {salvo && podeCriar && !osCriada && APROVAVEIS.includes(salvo.status) && (
                   <label className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm hover:bg-muted focus-within:ring-2 focus-within:ring-ring">
                     <Plus className="h-4 w-4" aria-hidden="true" />
@@ -721,7 +726,7 @@ export default function Index({
                     />
                   </label>
                 )}
-              </div>
+              </Inline>
               {!salvo ? (
                 <p className="text-xs text-muted-foreground">
                   Salve o orçamento para anexar a arte ou a foto do local. Ao aprovar, os arquivos vão para a OS.
@@ -733,7 +738,8 @@ export default function Index({
               ) : (
                 <ul className="space-y-1">
                   {arquivos.map((a) => (
-                    <li key={a.id} className="flex items-center gap-2 text-sm">
+                    <Inline asChild key={a.id}>
+                    <li className="text-sm">
                       <a href={a.url} target="_blank" rel="noreferrer" className="truncate text-primary underline-offset-2 hover:underline">
                         {a.nome}
                       </a>
@@ -750,6 +756,7 @@ export default function Index({
                         </Button>
                       )}
                     </li>
+                    </Inline>
                   ))}
                 </ul>
               )}
@@ -800,12 +807,14 @@ export default function Index({
                   </p>
                 )}
                 {osCriada && (
-                  <p data-contract="os-criada" className="flex items-center gap-1.5 text-xs">
-                    <Badge className="bg-success-soft text-success-fg border-success/20">
-                      Aprovado · OS {osCriada} criada
-                    </Badge>
-                    <span className="text-muted-foreground">vai para a arte com as peças, medidas e arquivos.</span>
-                  </p>
+                  <Inline asChild gap={1}>
+                    <p data-contract="os-criada" className="text-xs">
+                      <Badge className="bg-success-soft text-success-fg border-success/20">
+                        Aprovado · OS {osCriada} criada
+                      </Badge>
+                      <span className="text-muted-foreground">vai para a arte com as peças, medidas e arquivos.</span>
+                    </p>
+                  </Inline>
                 )}
                 {conferido && (
                   <p className="flex items-center gap-1.5 text-xs">
@@ -822,7 +831,7 @@ export default function Index({
                 )}
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
+              <Inline wrap>
                 <Button
                   type="button"
                   variant="outline"
@@ -861,7 +870,7 @@ export default function Index({
                     </Button>
                   </>
                 )}
-              </div>
+              </Inline>
             </div>
 
             <p className="text-xs text-muted-foreground">
@@ -879,9 +888,13 @@ export default function Index({
         {/* Orçamentos salvos — reabrir na calculadora (deferido: lista não entra no 1º paint) */}
         <Card data-contract="orcamentos-salvos">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-sm font-medium">
-              <FolderOpen className="h-4 w-4 text-primary" />
-              Orçamentos salvos
+            <CardTitle className="text-sm font-medium">
+              <Inline asChild>
+                <span>
+                  <FolderOpen className="h-4 w-4 text-primary" />
+                  Orçamentos salvos
+                </span>
+              </Inline>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -934,7 +947,8 @@ function ListaOrcamentos({ itens, abertoId }: { itens: OrcamentoResumo[]; aberto
   return (
     <ul className="divide-y divide-border">
       {itens.map((o) => (
-        <li key={o.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2 text-sm">
+        <Inline asChild wrap gap={4} key={o.id}>
+        <li className="gap-y-1 py-2 text-sm">
           <span className="font-mono text-foreground">{o.numero}</span>
           <Badge variant="outline">{STATUS_LABEL[o.status] ?? o.status}</Badge>
           {o.os && <span className="font-mono text-xs text-muted-foreground">{o.os}</span>}
@@ -951,6 +965,7 @@ function ListaOrcamentos({ itens, abertoId }: { itens: OrcamentoResumo[]; aberto
             </Button>
           )}
         </li>
+        </Inline>
       ))}
     </ul>
   );

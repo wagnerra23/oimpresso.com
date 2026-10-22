@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\NfeBrasil\Services;
 
 use App\User;
+use Illuminate\Support\Facades\DB;
 use Modules\NfeBrasil\Exceptions\ContingenciaException;
 use Modules\NfeBrasil\Models\NfeBusinessConfig;
 
@@ -28,10 +29,18 @@ class ContingenciaService
      * a contingência ligada, e mitiga com o banner "ATIVA há N dias". Se cada clique
      * reiniciasse o relógio, o banner nunca envelheceria e a mitigação viraria enfeite.
      *
+     * US-NFE-071: `$modo` escolhe EPEC, SVC-AN ou SVC-RS para a NF-e (ModoContingencia).
+     * SVC só é aceito se for a SEFAZ Virtual da UF do emitente — a outra recusaria as notas,
+     * e descobrir isso na primeira emissão é pior que recusar a ativação.
+     *
      * @param  string  $motivo  Justificativa declarada — exigência de auditoria fiscal.
      */
-    public function ativar(int $businessId, string $motivo, ?User $causer = null): NfeBusinessConfig
-    {
+    public function ativar(
+        int $businessId,
+        string $motivo,
+        ?User $causer = null,
+        string $modo = ModoContingencia::EPEC,
+    ): NfeBusinessConfig {
         $config = $this->configDo($businessId);
 
         $motivo = trim($motivo);
@@ -42,11 +51,24 @@ class ContingenciaService
             throw ContingenciaException::motivoObrigatorio();
         }
 
+        if (! in_array($modo, ModoContingencia::todos(), true)) {
+            throw ContingenciaException::modoInvalido($modo);
+        }
+
+        if (ModoContingencia::ehSvc($modo)) {
+            $uf = $this->ufDoEmitente($businessId);
+            $daUf = ModoContingencia::svcDaUf($uf);
+            if ($daUf !== $modo) {
+                throw ContingenciaException::svcForaDaUf($modo, $uf, $daUf);
+            }
+        }
+
         $jaEstava = (bool) $config->em_contingencia;
 
         $config->update([
             'em_contingencia' => true,
             'contingencia_motivo' => $motivo,
+            'contingencia_modo' => $modo,
             'contingencia_ativada_em' => $jaEstava
                 ? $config->contingencia_ativada_em   // preserva o relógio original
                 : now(),
@@ -58,6 +80,7 @@ class ContingenciaService
             ->withProperties([
                 'business_id' => $businessId,
                 'motivo' => $motivo,
+                'modo' => $modo,
                 'ja_estava_ativa' => $jaEstava,
             ])
             ->log('contingencia.ativada');
@@ -78,6 +101,7 @@ class ContingenciaService
             'em_contingencia' => false,
             'contingencia_ativada_em' => null,
             'contingencia_motivo' => null,
+            'contingencia_modo' => null,
         ]);
 
         activity('nfe.contingencia')
@@ -92,6 +116,21 @@ class ContingenciaService
     public function estaAtiva(int $businessId): bool
     {
         return (bool) $this->configDo($businessId)->em_contingencia;
+    }
+
+    /**
+     * UF do emitente — mesma fonte de `NfeService::resolverUF` (o primeiro local da empresa),
+     * para a checagem da ativação olhar a UF que a emissão vai usar. Sem UF válida devolve
+     * null e o SVC é recusado: não se escolhe SEFAZ Virtual às cegas.
+     */
+    private function ufDoEmitente(int $businessId): ?string
+    {
+        $state = (string) (DB::table('business_locations')
+            ->where('business_id', $businessId)
+            ->orderBy('id')
+            ->value('state') ?? '');
+
+        return preg_match('/^[A-Z]{2}$/', $state) ? $state : null;
     }
 
     /**

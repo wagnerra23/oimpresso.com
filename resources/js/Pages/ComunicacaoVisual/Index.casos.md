@@ -71,6 +71,9 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CVINST-05 | Equipe de outra empresa é recusada; a agenda da outra empresa nunca conflita | must `[T0]` | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAgendaContratoTest` | 🧪 |
 | UC-CVINST-06 | OS de outra empresa devolve 404 | must `[T0]` | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAgendaContratoTest` | 🧪 |
 | UC-CVINST-07 | Sem permissão não agenda nem lista | must | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAgendaContratoTest` | 🧪 |
+| UC-CVINST-08 | Agendar avisa o cliente por WhatsApp com OS, dia e hora | must `[LGPD]` | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAvisoClienteContratoTest` | 🧪 |
+| UC-CVINST-09 | Cliente que recusou WhatsApp, sem celular, sem cliente ou sem canal ativo não é avisado | must `[LGPD]` | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAvisoClienteContratoTest` | 🧪 |
+| UC-CVINST-10 | Contato e número de outra empresa nunca entram no aviso | must `[T0]` | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAvisoClienteContratoTest` | 🧪 |
 | UC-CVOS-01 | Aprovar cria a OS com os itens e as medidas do orçamento | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 | UC-CVOS-02 | A OS vale o total do orçamento e nenhum valor do orçamento muda | must `[V0]` | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 | UC-CVOS-03 | Aprovar de novo não duplica OS, itens nem arquivos | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
@@ -465,6 +468,30 @@ dá 403; com `comvis.os.view` a agenda lista (200); com `comvis.os.update_status
 
 Status: 🧪
 
+## UC-CVINST-08 · Agendar avisa o cliente por WhatsApp com OS, dia e hora · `must` `[LGPD]`
+
+**Dado** a OS cujo orçamento tem cliente com celular, e a empresa com número de saída do WhatsApp **Quando**
+o coordenador agenda 21/10 09:00 **Então** sai na fila uma mensagem para o celular do cliente, pelo número da
+empresa, com o número da OS e "21/10/2026 às 09:00", sem o nome de quem instala nem o veículo. Agenda recusada
+por falta de janela não avisa.
+
+Status: 🧪
+
+## UC-CVINST-09 · Cliente que recusou WhatsApp, sem celular, sem cliente ou sem canal ativo não é avisado · `must` `[LGPD]`
+
+**Quando** o cliente marcou que não aceita WhatsApp (`whatsapp_consent = false`), não tem celular, o orçamento é
+balcão (sem cliente) ou o número da empresa está caído **Então** a instalação é agendada e nenhuma mensagem
+sai. Controle: com o canal de volta, o mesmo cliente recebe.
+
+Status: 🧪
+
+## UC-CVINST-10 · Contato e número de outra empresa nunca entram no aviso · `must` `[T0]`
+
+**Dado** um orçamento da 98 que aponta para um contato da 99 **Então** ninguém é avisado. **Dado** a 98 sem
+número de saída e a 99 com número **Então** o número da 99 não é usado.
+
+Status: 🧪
+
 ## Orçamento aprovado vira OS (US-COMVIS-003 · UC-FLX-01)
 
 > **Âncora:** UC-FLX-01 do catálogo de fluxos (*"Aprovado: cria a OS com itens, medidas e arquivos
@@ -666,7 +693,7 @@ Status: 🧪
 
 ## UC-CVSAL-01 · Salvar grava os valores do servidor, não os da tela · `must` `[V0]`
 
-**Dado** Banner 3,000 × 1,500 × 1 a R$ 60/m² e Adesivo 2,000 × 1,000 × 3 a R$ 40/m², instalação R$ 200,
+**Dado** Banner 3,000 × 1,500 × 1 a 60,00/m² e Adesivo 2,000 × 1,000 × 3 a 40,00/m², instalação 200,00,
 e um `total`/`subtotal` qualquer vindo do cliente **Quando** o orçamento é salvo **Então** ele nasce
 `rascunho`, número `ORC-AAAA-NNNNN`, na empresa da sessão, com total 710,00 e subtotal 510,00 —
 conferidos à mão e pelo `OrcamentoCalculator` — e os dois itens.
@@ -676,14 +703,14 @@ Status: 🧪
 ## UC-CVSAL-02 · Reabrir devolve as peças e os ajustes, e aparece na lista · `must`
 
 **Dado** o orçamento salvo **Quando** ele é reaberto **Então** volta com as mesmas peças (descrição,
-largura, altura, quantidade, preço por m²), com a instalação de R$ 200 (que não tem campo na tela e não
+largura, altura, quantidade, preço por m²), com a instalação de 200,00 (que não tem campo na tela e não
 pode sumir ao regravar) e com o total 710,00; e está na lista dos salvos da empresa.
 
 Status: 🧪
 
 ## UC-CVSAL-03 · Regravar o reaberto mantém o número e troca as peças · `must` `[V0]`
 
-**Dado** o orçamento salvo **Quando** ele é regravado com uma Placa 2,000 × 1,000 × 1 a R$ 50/m² e a
+**Dado** o orçamento salvo **Quando** ele é regravado com uma Placa 2,000 × 1,000 × 1 a 50,00/m² e a
 mesma instalação **Então** o número é o mesmo (um orçamento só com ele), o total passa a 300,00 —
 conferido à mão e pelo calculator — e o único item é a Placa.
 

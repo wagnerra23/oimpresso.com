@@ -539,7 +539,7 @@ transaction_documents
 
 ### US-SELL-017 · Totalizador rodapé (Qtd vendas + Σ R$ filtrado) · **P0**
 
-**Implementado em:** _parcial_ · `app/Http/Controllers/SellController.php` · verificado@176f9bc (2026-07-01) — `inertiaList` calcula e envia payload `totals` (`count`/`sum_final_total`/`sum_total_paid`/`sum_due`, `clone($q)` pós-filtro); `Index.tsx` faz `setTotals(json.totals)` mas o getter `totals` NUNCA é lido/renderizado (sem `tfoot`) — payload morto, é exatamente o bug US-SELL-045; falta a barra de rodapé (DoD central) na UI
+**Implementado em:** `app/Http/Controllers/SellController.php` · `resources/js/Pages/Sells/_components/SellsTotalBar.tsx` · `resources/js/Pages/Sells/Index.tsx` · verificado@9a67342 (2026-10-20) — `inertiaList` calcula `totals` sobre o filtro inteiro (`clone($q)` antes de paginar); a barra abaixo da lista mostra quantidade, Pago, A receber e Total do filtro com esses números, sem somar no navegador, e não mostra número quando a visão salva, a pílula Faturada/Cancelada ou a origem filtram só a página carregada (UC-SIDX-06, `tests/js/sells-index-totais.test.tsx`). Os modos Lista opt-in e Grade Avançada do escopo original saíram da tela em 2026-05-21 e não se aplicam
 
 > owner: — · priority: p0 · estimate: 2h · type: story · origin: sessao-2026-05-11-migration-officeimpresso
 > blocked_by: US-SELL-015
@@ -1063,9 +1063,11 @@ Migrar 14 vendas biz=1 do estado legacy pro FSM canon ADR 0143 (goal #3 CYCLE-06
 
 ### US-SELL-045 · Bug: payload `totals` morto na rede — backend calcula/envia, frontend nunca lê
 
-**Implementado em:** _pendente_ — bug de contrato órfão confirmado em `origin/main`; aguarda DECISÃO DE PRODUTO Wagner (remover cálculo+state morto OU reexibir totalizador do filtro inteiro); sem código até decisão
+**Implementado em:** _parcial_ · `resources/js/Pages/Sells/_components/SellsTotalBar.tsx` · `resources/js/Pages/Sells/Index.tsx` · verificado@9a67342 (2026-10-20) — opção (b), reexibir o totalizador do filtro inteiro, pedida por [M] em 2026-10-20 (ratificação [W] no merge); o payload `totals` volta a ser lido. Falta a parte do DoD sobre o `SellsTotalsTest`: os it() de front em quarentena testam arquivos apagados e o arquivo não roda em nenhuma lane de PR
 
-> owner: — · priority: p2 · estimate: 2h · status: todo · type: story
+**Testado em:** `tests/js/sells-index-totais.test.tsx` (covers US-SELL-045 · UC-SIDX-06; lane Vitest do `Frontend / Vite build`)
+
+> owner: — · priority: p2 · estimate: 2h · type: story
 > blocked_by: —
 
 **Origem:** revisão adversarial da triage Q2 Fase 2b SDD (2026-06-13). Contrato órfão de backend confirmado por leitura de `origin/main`.
@@ -1560,9 +1562,9 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 
 ### US-SELL-070 · Termômetro de acesso da proposta (UC-FLX-04) — **P2**
 
-**Implementado em:** `app/Services/Sells/QuoteAccessRecorder.php` · `app/Jobs/QuoteFollowUpJob.php` · `app/Console/Commands/Sells/QuoteFollowUpCommand.php` · `database/migrations/2026_10_20_120000_create_transaction_quote_accesses_table.php`
+**Implementado em:** `app/Services/Sells/QuoteAccessRecorder.php` · `app/Jobs/QuoteFollowUpJob.php` · `app/Console/Commands/Sells/QuoteFollowUpCommand.php` · `database/migrations/2026_10_20_120000_create_transaction_quote_accesses_table.php` · `app/Http/Controllers/SellController.php` · `resources/js/Pages/Sells/Show.tsx` · `resources/js/Pages/Sells/Quotations.tsx`
 
-**Testado em:** `tests/Feature/Sells/QuoteAccessTermometroContratoTest.php` (lane `sells-pest.yml`) — casos UC-QUO-05..08 no Quotations.casos.md da tela de cotações.
+**Testado em:** `tests/Feature/Sells/QuoteAccessTermometroContratoTest.php` (lane `sells-pest.yml`) — casos UC-QUO-05..08 no Quotations.casos.md da tela de cotações · `tests/Feature/Sells/QuoteAccessTelaContratoTest.php` — UC-VSHOW-20/21 no Show.casos.md e UC-QUO-10.
 
 > owner: wagner · priority: p2 · estimate: 3h · type: story
 
@@ -1572,12 +1574,14 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 
 **Aceite:**
 - [x] Abrir o link público `/quote/{token}` de um orçamento em `quote_sent` grava a primeira abertura e o número de aberturas; acesso de usuário logado da própria empresa não conta.
-- [ ] O detalhe do orçamento mostra "aberto em <data>" ou "não aberto", só para quem tem `sell.view` (ou `direct_sell.view`) na empresa.
+- [x] O detalhe do orçamento mostra "aberto em <data>" ou "não aberto", só para quem tem `sell.view` (ou `direct_sell.view`) na empresa.
 - [x] Orçamento em `quote_sent` há mais de 48 h sem abertura gera uma tarefa de retorno para o vendedor, uma vez só (rodar de novo não duplica).
 - [x] A rotina de 48 h roda por empresa e recebe o `business_id` (job assíncrono não usa sessão); token de outro business não grava nada.
-- [ ] Usuário de outro business que pede o detalhe ou o histórico de abertura recebe 404.
+- [x] Usuário de outro business que pede o detalhe ou o histórico de abertura recebe 404.
 
 **Entregue em 2026-10-20 (backend):** a abertura vai para a tabela-ponte `transaction_quote_accesses` (não altera `transactions`; sem IP nem user agent). HEAD e prefetch do navegador não contam; falha ao gravar não derruba a página. A tarefa de retorno é um agendamento do CRM (`crm_schedules`, tipo ligação, atribuído ao `created_by` do orçamento e ligado à venda em `crm_followup_invoices`); empresa sem as tabelas do CRM não ganha tarefa. Rotina diária `sells:quote-follow-up --sync` às 08:15 (`app/Console/Kernel.php`). Fora desta entrega: a tela ("aberto em <data>" no detalhe, com o 404 de outro business) — o dado já está na tabela.
+
+**Entregue em 2026-10-21 (tela):** o detalhe do orçamento (`/sells/{id}`) ganha a faixa "Aberto pelo cliente em dd/mm hh:mm" (com quantas vezes e a última, se mais de uma) ou "Ainda não aberto pelo cliente", no payload deferido `detail.acesso`; a lista de cotações ganha a coluna "Aberto". A leitura é pelo business da venda. Quem vê é quem abre a venda (gate do `/sells/{id}`: `sell.view`, `direct_sell.access` ou `view_own_sell_only` restrito às próprias). Outro business recebe 404.
 
 ### US-SELL-071 · Pesquisa de satisfação depois da entrega (UC-FLX-25) — **P2**
 
