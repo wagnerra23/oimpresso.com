@@ -257,6 +257,27 @@ last_run: "2026-10-23"
   emitir a nota, Então a nota não sai e a tela lista o que falta, com link para o cadastro do cliente;
   a venda a consumidor final sem identificação segue como hoje. Fonte: grupo do destinatário da NF-e
   (documento, nome, endereço com município e indicador de IE).
+- **[BACKLOG] Em que etapa da produção está cada venda** — detalha o "Ver na linha a etapa da
+  produção" acima. Aceite: Dado uma venda com 2 OS, uma em Impressão e outra em Acabamento, Então a
+  linha mostra "Produção: 0 de 2 prontas · mais atrasada: Impressão", e o filtro "Etapa da produção"
+  lista as vendas com alguma OS na etapa escolhida; venda sem OS não mostra nada. Hoje a coluna
+  Pipeline mostra a etapa da venda (`pipeline_label`), não a da OS (medido em `Index.tsx`,
+  23/10/2026). Fonte: processo "OS e produção por item" de Fluxos; o protótipo da consulta (PR #9771)
+  desenha a coluna Produção (OS).
+- **[BACKLOG] Pedidos em aberto** — Aceite: Dado vendas aprovadas ainda não entregues e outras já
+  entregues ou canceladas, Quando escolho a visão "Em aberto", Então aparecem só as não entregues e
+  não canceladas, pagas ou não, com a etapa de cada uma, e o total da visão soma só elas. Hoje as
+  visões "Pendentes" e "Pendentes pgto." olham o pagamento, não a entrega (medido em `Index.tsx`,
+  23/10/2026).
+- **[BACKLOG] Vendas que falta emitir nota** — Aceite: Dado uma venda paga sem nota e outra a receber
+  sem nota, Quando escolho "Falta emitir nota", Então as duas aparecem; a venda com nota autorizada e
+  a venda marcada para não emitir nota ficam de fora, e a nota rejeitada aparece com o motivo. Hoje a
+  visão "Aguardando faturamento" exige `payment_status !== 'paid'`, então a venda paga sem nota não
+  aparece em nenhuma visão de nota (medido em `Index.tsx`, 23/10/2026).
+- **[BACKLOG] Tipos de venda lançadas** — Aceite: Dado o período escolhido, Então a consulta mostra
+  quantas vendas e quanto de cada tipo (balcão, oficina, online, reparo, entrega futura, venda
+  agrupada), e clicar num tipo filtra a lista. Hoje a visão Origem conta e soma só balcão, oficina e
+  online (medido em `Index.tsx`, 23/10/2026); reparo não entra, e assinatura fica numa tela à parte.
 
 ## Como rodar a suíte
 1. **E2E:** `npm run e2e:check` no harness do CI (e2e-gate) — vereditos viram manifesto via `npm run casos:results` (merge per-UC).
@@ -267,6 +288,7 @@ last_run: "2026-10-23"
 - 2026-10-23 · [M+C] Backlog: faturar só parte da venda, da comparação com concorrentes (Omie), sem id.
 - 2026-10-23 · [M+C] Backlog de venda duplicada com a origem, devolução total ou parcial, garantia e entrega futura, sem id.
 - 2026-10-23 · [M+C] Backlog: emitir a nota com imposto ou dados do cliente faltando, sem id.
+- 2026-10-23 · [M+C] Backlog: etapa da produção, pedidos em aberto, vendas que falta emitir nota e tipos de venda lançadas, sem id.
 - 2026-10-23 · [M+C] Revalidado (G-6): a única mudança em `Index.tsx` depois do last_run 2026-10-20 é a barra de totais do #9672, que já é o UC-SIDX-06 desta tela. Nenhum UC foi reexecutado; last_run 2026-10-20 → 2026-10-23.
 - 2026-10-20 · [M+C] **UC-SIDX-06 `[V0]`** — barra de totais do filtro abaixo da lista (US-SELL-017): os `totals` que o servidor já calculava passam a aparecer. A barra não mostra número quando a visão salva, a pílula Faturada/Cancelada ou a origem filtram só a página carregada. Teste `tests/js/sells-index-totais.test.tsx` na lane Vitest do `Frontend / Vite build`.
 - 2026-10-20 · [M+C] Backlog da pesquisa de concorrentes (núcleo + comunicação visual), sem id e sem mudança de comportamento da tela; fontes no [registro da sessão](../../../../memory/sessions/2026-10-20-pesquisa-consulta-venda-concorrentes-cv.md).
