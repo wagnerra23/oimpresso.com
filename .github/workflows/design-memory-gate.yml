@@ -17,7 +17,7 @@ name: Design-memory gate (advisory)
 #     a sentinela não pode mentir) + drift com `continue-on-error`.
 #   - gates (ex-design-memory-gates.yml): Cowork SSOT guard (hard) + ds-guard §8
 #     nos arquivos tocados + relatório de dívida + integrity-check §15 + selftests
-#     da espinha de import (detectar-telas/ancora/importar-bundle/gerar-contrato/
+#     da espinha de import (detectar-telas/ancora/gerar-contrato/
 #     recortar-regiao/analise-regiao) + ancora-adversário (hard).
 #   - prove (ex-dtcg-equivalence.yml): equivalência DTCG ↔ CSS canônico (tokens
 #     editados no JSON portável, CSS é SAÍDA) + self-test que morde. Dois eixos desde
@@ -41,7 +41,8 @@ name: Design-memory gate (advisory)
 # A redação anterior deste bloco afirmava "os self-tests/guards rodam SEM continue-on-
 # error" e isso era FALSO: dos 20 selftests do arquivo, 9 rodam sem e **11 rodam com**
 # (detectar-telas ×2, ancora, anchor-content, cowork-freshness, importar-bundle, gerar-
-# contrato, recortar-regiao, analise-regiao, gerar-map, consumir-map). A metade dos
+# contrato, recortar-regiao, analise-regiao, gerar-map, consumir-map — contagem anterior a
+# 2026-10-23, quando o importar-bundle saiu com a ADR 0438). A metade dos
 # guards era verdadeira: 2 de 2 rodam sem. Nada foi promovido nem rebaixado ao corrigir
 # a frase — mudou só o texto (promover/rebaixar é decisão [W] · ADR 0314/0336).
 #
@@ -383,8 +384,8 @@ jobs:
         continue-on-error: true
         run: node scripts/design/detectar-telas.test.mjs
       # ancora.mjs (#7 2026-06-30): a âncora de uma tela é computada do charter, nunca um png
-      # de auditoria no olho. importar-bundle: só troca o staging quando extraídos==entries
-      # (delete-before-verify fechado). Ambos selftest puro (rodam em Linux/CI).
+      # de auditoria no olho. Selftest puro (roda em Linux/CI). O importar-bundle, que vivia aqui
+      # ao lado, saiu em 2026-10-23 com a ADR 0438.
       - name: ancora selftest (âncora = charter, não print de auditoria)
         if: always()
         continue-on-error: true
@@ -548,10 +549,6 @@ jobs:
         if: always()
         continue-on-error: true
         run: node scripts/governance/cowork-mirror-freshness.mjs --css-refs
-      - name: importar-bundle selftest (import atômico · verifica antes de trocar)
-        if: always()
-        continue-on-error: true
-        run: node scripts/design/importar-bundle.mjs --selftest
       # adversário permanente: ATAQUE 1 (hook auto-contido, não falha-aberto) é GATE DURO —
       # se o hook voltar a importar ancora.mjs (regride pra fail-open), este step FALHA. Gaps
       # conhecidos (rename/tool-bypass) ficam documentados com fix; mudar de comportamento avisa.
