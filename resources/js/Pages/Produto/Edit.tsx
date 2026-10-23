@@ -12,6 +12,7 @@ import { Save, X } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { ProdutoFormulario } from './_components/formulario/ProdutoFormulario';
 import { camposPersonalizadosGravados, definidorDe } from './_components/formulario/tipos';
+import { ncmDoCadastro } from './_components/formulario/ncm';
 import type { NumeroCampoPersonalizado, OptionMap, OptionStringMap } from './_components/formulario/tipos';
 
 const ADVANCED_OPEN_KEY = 'oimpresso.produto.edit.advanced.open';
@@ -30,6 +31,7 @@ interface ProdutoEditModel {
   taxType: 'inclusive' | 'exclusive';
   /** Origem da mercadoria, tabela A da NF-e (0–8). */
   origemMercadoria?: number;
+  ncm?: string | null;
   barcodeType: string;
   enableStock: boolean;
   alertQuantity: string | null;
@@ -67,7 +69,10 @@ export interface ProdutoEditPageProps {
 
 function ProdutoEdit(props: ProdutoEditPageProps) {
   const p = props.product;
-  const { data, setData, put, processing, errors } = useForm({
+  // UC-PEDIT-11: o NCM gravado, só dígitos. Só vai no envio se a pessoa mexeu nele: um NCM antigo
+  // fora do formato não pode impedir a edição de outro campo.
+  const ncmGravado = ncmDoCadastro(p.ncm);
+  const { data, setData, put, transform, processing, errors } = useForm({
     name: p.name,
     sku: p.sku,
     brand_id: p.brandId ?? '',
@@ -77,6 +82,7 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
     tax: p.tax ?? '',
     tax_type: p.taxType,
     origem_mercadoria: p.origemMercadoria ?? 0,
+    ncm: ncmGravado,
     barcode_type: p.barcodeType,
     alert_quantity: p.alertQuantity ?? '',
     weight: p.weight ?? '',
@@ -92,6 +98,11 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    transform((d) => {
+      if (d.ncm !== ncmGravado) return d;
+      const { ncm: _naoMexido, ...semNcm } = d;
+      return semNcm;
+    });
     put(`/products/${p.id}`);
   };
 

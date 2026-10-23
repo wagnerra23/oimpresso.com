@@ -13,11 +13,10 @@ import { OrigemMercadoriaField } from '../OrigemMercadoriaField';
 import { CamposPreco } from './CamposPreco';
 import { CampoNcm } from './CampoNcm';
 import type { PrecoSimples } from './precos';
-import type { CamposProduto, DefinirCampo, ErrosProduto, ModoFormulario, OpcoesProduto } from './tipos';
+import type { CamposProduto, DefinirCampo, ErrosProduto, OpcoesProduto } from './tipos';
 import { opcoesDe } from './tipos';
 
 interface Props {
-  modo: ModoFormulario;
   data: CamposProduto;
   definir: DefinirCampo;
   errors: ErrosProduto;
@@ -32,7 +31,7 @@ interface Props {
  */
 const SEM_IMPOSTO = 'sem-imposto';
 
-export function BlocoPrecoImposto({ modo, data, definir, errors, opcoes, preco }: Props) {
+export function BlocoPrecoImposto({ data, definir, errors, opcoes, preco }: Props) {
   return (
     <Card>
       <CardHeader>
@@ -73,10 +72,7 @@ export function BlocoPrecoImposto({ modo, data, definir, errors, opcoes, preco }
             </SelectContent>
           </Select>
         </div>
-        {/* NCM só no Novo: o Editar ainda não grava o NCM (o update() não lê o campo). */}
-        {modo === 'novo' && (
-          <CampoNcm value={data.ncm ?? ''} onChange={(v) => definir('ncm', v)} error={errors.ncm} />
-        )}
+        <CampoNcm value={data.ncm ?? ''} onChange={(v) => definir('ncm', v)} error={errors.ncm} />
         <OrigemMercadoriaField
           value={data.origem_mercadoria}
           onChange={(v) => definir('origem_mercadoria', v)}
