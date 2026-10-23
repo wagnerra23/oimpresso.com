@@ -35,9 +35,9 @@
  *   • NÃO tem sonda própria. A sonda é a do dono (`design-diff.mjs --probe`, por subprocesso —
  *     o módulo é CLI-only e importá-lo dispara o CLI). O que este arquivo acrescenta é a
  *     ORQUESTRAÇÃO (seleção · rota do shell · login · loop · resumo), que o dono não cobre.
- *   • NÃO afirma "igual". O `--check` do dono sai 2 (NÃO MEDI) quando o lado design veio do
- *     espelho local e a última rodada de frescor não cobriu o espelho inteiro — e é o estado
- *     de hoje (2026-09-06: 7 de 258 medidos). Esse 2 é registrado como veredito, não engolido.
+ *   • NÃO afirma "igual" sozinho: quando o `--check` do dono sai 2 (NÃO MEDI), isso é registrado
+ *     como veredito, não engolido. (Até 2026-10-23 o 2 também vinha do frescor do espelho contra
+ *     o Cowork; esse guarda saiu com a ADR 0438 — a fonte do protótipo é o git.)
  *
  * ── COMO RODAR ─────────────────────────────────────────────────────────────────────────
  *   node scripts/design/design-diff-lote.mjs --selftest            # partes puras, hermético
@@ -79,11 +79,9 @@
  *   1. LOGIN DO VIVO — depende de `/_visreg-login` (env-guarded) ou do cookie por env. Produção
  *      real fica FORA: lá a rota não existe e a sessão é interativa (ADR 0315 no eixo design;
  *      aqui o mesmo princípio no eixo app).
- *   2. TETO DO ESPELHO — o lado design é o espelho `prototipo-ui/cowork/Wagner/`, não o Cowork vivo.
- *      O `--dry` imprime, por âncora, o estado de frescor lido do ledger (`verificado` / `stale`
- *      / `nunca` / `sem veredito novo`) e conta quantas âncoras selecionadas estão SEM veredito.
- *      Enquanto esse número for > 0, todo `IGUAL` deste driver é "igual a uma cópia de frescor
- *      desconhecido" — e o dono já traduz isso em exit 2. Medir: `cowork-mirror-freshness --sla`.
+ *   2. FONTE DO DESIGN — o lado design é o espelho `prototipo-ui/cowork/Wagner/`, que desde a
+ *      ADR 0438 (2026-10-23) É a fonte do protótipo. O `--dry` deixou de imprimir frescor contra
+ *      o Cowork vivo: não há mais Cowork contra o qual medir.
  *   3. ROTA DO SHELL — a derivação cobre `route === "x"` exato, o `window.X =` do próprio arquivo
  *      da âncora, o basename (`vendas-page.jsx` → `vendas`) e o adaptador de prefixo
  *      (`PG_XPage` → `XPage`). Mockup roteado SÓ por prefixo (`cmp-*`, `est-*`) sem token exato
@@ -399,9 +397,9 @@ export function lerContratos(dir = DIR_CONTRATO) {
 
 /**
  * Interpreta a saída de `design-diff --compare … --json --check`.
- *   rc 0 → IGUAL (0 bug, e a proveniência do espelho foi provada pelo dono)
+ *   rc 0 → IGUAL (0 bug)
  *   rc 1 → DIVERGE (bug)
- *   rc 2 + JSON → MEDIDO · 0 bug · frescor NÃO PROVADO (o dono recusa carimbar "igual")
+ *   rc 2 + JSON → NÃO MEDI com relatório (o dono recusa carimbar "igual": shell/canário/D0)
  *   rc 2 sem JSON → NÃO MEDI (lados trocados / identidade da view não provada / arquivo ruim)
  * Nunca colapsa "não medi" em estado da tela (§5 2026-07-29).
  *
@@ -431,7 +429,7 @@ export function interpretarCompare({ status, stdout, stderr }, { escopo = 'tela'
   else if (escopo === 'drawer' && status === 1 && res) veredito = 'DIVERGE (a classificar)';
   else if (status === 0 && res) veredito = 'IGUAL';
   else if (status === 1 && res) veredito = 'DIVERGE (bug)';
-  else if (status === 2 && res) { veredito = 'MEDIDO · frescor não provado'; motivo = err.slice(0, 220); }
+  else if (status === 2 && res) { veredito = 'NÃO MEDI'; motivo = err.slice(0, 220) || 'design-diff saiu 2 com relatório'; }
   else if (status === 2) { veredito = 'NÃO MEDI'; motivo = err.slice(0, 220) || 'design-diff saiu 2 sem relatório'; }
   else { veredito = 'ERRO'; motivo = (err || `rc=${status}`).slice(0, 220); }
   return {
@@ -454,10 +452,10 @@ export function gerarResumo(resultados, meta = {}) {
     '',
     `> Gerado por \`scripts/design/design-diff-lote.mjs\` em ${meta.geradoEm || new Date().toISOString()}. **Não edite à mão** — re-rode o comando.`,
     `> Base viva: \`${meta.baseUrl || '—'}\` · bundle: \`${meta.bundle || '—'}\` · telas: ${resultados.length}.`,
-    '> Isto NÃO é gate. `IGUAL` só aparece quando o dono (`design-diff --check`) provou a proveniência do espelho; `MEDIDO · frescor não provado` = 0 bug contra uma cópia de frescor desconhecido.',
+    '> Isto NÃO é gate. `IGUAL` = o dono (`design-diff --check`) mediu e não achou bug; `NÃO MEDI` = ele recusou carimbar (motivo na última coluna).',
     '',
-    '| Tela | Fonte | Rota shell | Veredito | bugs | shell | ' + DIMS.join(' | ') + ' | Frescor da âncora | Motivo |',
-    '|---|---|---|---|---|---|' + DIMS.map(() => '---').join('|') + '|---|---|',
+    '| Tela | Fonte | Rota shell | Veredito | bugs | shell | ' + DIMS.join(' | ') + ' | Motivo |',
+    '|---|---|---|---|---|---|' + DIMS.map(() => '---').join('|') + '|---|',
   ];
   for (const r of resultados) {
     const c = r.compare || {};
@@ -465,7 +463,7 @@ export function gerarResumo(resultados, meta = {}) {
       r.id, basename(r.source || ''), r.token || '—', c.veredito || r.veredito || '—',
       c.bugs == null ? '—' : c.bugs, c.shell == null ? '—' : c.shell,
       ...DIMS.map((d) => celulaDim(c.porDim && c.porDim[d])),
-      r.frescor || '—', (c.motivo || r.motivo || '').replace(/\|/g, '/'),
+      (c.motivo || r.motivo || '').replace(/\|/g, '/'),
     ].map((x) => `| ${x} `).join('') + '|');
   }
   const cont = {};
@@ -545,26 +543,6 @@ export function passoAbrir(override, lado) {
   return { clicar, espera };
 }
 
-/** Frescor da âncora no ledger — pelo dono (`ancora.mjs` + `cowork-mirror-freshness`). */
-async function frescorDaFonte(caminhoAncoraRel) {
-  const { frescorDoEspelho, ultimaRodada, entradasDoLedger } = await import('./ancora.mjs');
-  const { ultimaVerificacaoDe } = await import('../governance/cowork-mirror-freshness.mjs');
-  const { createHash } = await import('node:crypto');
-  const abs = join(ROOT, caminhoAncoraRel);
-  const rel = relative(COWORK_DIR, abs).replace(/\\/g, '/');
-  if (!rel || rel.startsWith('..')) return 'fora do espelho';
-  let hash = null;
-  try { hash = createHash('sha256').update(readFileSync(abs)).digest('hex'); } catch { hash = null; }
-  const f = frescorDoEspelho(rel, ultimaRodada(ROOT), hash);
-  if (f.estado === 'verificado') return `verificado ${String(f.data).slice(0, 10)}`;
-  if (f.estado === 'stale') return `STALE ${String(f.data).slice(0, 10)}`;
-  if (f.estado === 'nunca') {
-    const ant = ultimaVerificacaoDe(entradasDoLedger(ROOT), rel);
-    return ant.data ? `sem veredito novo (última ${String(ant.data).slice(0, 10)})` : 'nunca verificado';
-  }
-  return 'sem ledger';
-}
-
 /* ═══════════════════════════════════════════════════════════════════════════════════════
  * PLANO — o que o lote VAI fazer, tela a tela (é o que `--dry` imprime)
  * ═════════════════════════════════════════════════════════════════════════════════════ */
@@ -616,7 +594,6 @@ export async function montarPlano({ filtro = null, urlForcada = null, baseUrl, l
         : !r.ancoras.length ? 'charter sem related_prototype/bundle_source — nada a renderizar do lado design'
         : 'âncora do charter não resolve em arquivo');
     }
-    item.frescor = ancora ? await frescorDaFonte(ancora) : '—';
     // token do shell — POR TELA (ROTAS da âncora) antes da rota do grupo
     const tk = tokenDe(t, ancora, override);
     item.token = tk.token; item.tokenVia = tk.via;
@@ -665,7 +642,6 @@ function imprimirPlano({ plano, bundle, totalAnchored }, { baseUrl }) {
   for (const p of plano) {
     console.log(`${p.executavel ? '●' : '○'} ${p.id}`);
     console.log(`    fonte    ${p.source}${p.ancora && p.ancora !== 'prototipo-ui/cowork/Wagner/' + basename(p.source) ? `  (âncora: ${p.ancora})` : ''}`);
-    console.log(`    frescor  ${p.frescor}`);
     console.log(`    shell    ${p.token ? `route=${p.token} (${p.tokenVia})` : `— ${p.tokenVia || ''}`}`);
     console.log(`    vivo     ${p.urlViva || '—'}`);
     console.log(`    D0       ${p.contrato || p.avisoD0}`);
@@ -675,13 +651,9 @@ function imprimirPlano({ plano, bundle, totalAnchored }, { baseUrl }) {
     for (const pr of p.problemas) console.log(`    ✗ ${pr}`);
   }
   const exec = plano.filter((p) => p.executavel).length;
-  const semFrescor = plano.filter((p) => !/^verificado/.test(p.frescor)).length;
   const semD0 = plano.filter((p) => !p.contrato).length;
   console.log(`\nexecutáveis: ${exec}/${plano.length} · sem rota derivável: ${plano.filter((p) => !p.token).length} · rota parametrizada/sem rota viva: ${plano.filter((p) => !p.rota || rotaViva(p.rota).parametrizada).length}`);
-  const arquivos = new Map();
-  for (const p of plano) if (p.ancora) arquivos.set(p.ancora, p.frescor);
-  const arqSemFrescor = [...arquivos.values()].filter((f) => !/^verificado/.test(f)).length;
-  console.log(`telas cuja âncora está sem veredito de frescor: ${semFrescor}/${plano.length} · arquivos de âncora distintos sem veredito: ${arqSemFrescor}/${arquivos.size} · sem contrato D0: ${semD0}/${plano.length}`);
+  console.log(`sem contrato D0: ${semD0}`);
   console.log('(nada foi gravado — --dry)');
 }
 
@@ -821,7 +793,7 @@ export const semGaveta = (roles) => { const { drawer, ...resto } = roles || {}; 
  */
 async function medirGaveta(p, { lado, fazDesign, fazProd, browser, espelho, probe, baseUrl, userId, cookie, tema, sha }) {
   const dirG = join(DIR_MEDIDAS, p.slug, 'gaveta');
-  const g = { id: `${p.id} · gaveta`, module: p.module, source: p.source, target: p.target, token: p.token, lado, frescor: p.frescor, contrato: p.contrato || null, compare: null, veredito: null, motivo: '', medido: false, gaveta: true, dirAbs: dirG };
+  const g = { id: `${p.id} · gaveta`, module: p.module, source: p.source, target: p.target, token: p.token, lado, contrato: p.contrato || null, compare: null, veredito: null, motivo: '', medido: false, gaveta: true, dirAbs: dirG };
   if (p.abrirErro) { g.veredito = 'NÃO MEDI'; g.motivo = p.abrirErro; console.log(`○ ${g.id} — NÃO MEDI: ${g.motivo}`); return g; }
   mkdirSync(dirG, { recursive: true });
   g.tentado = true;
@@ -869,7 +841,7 @@ async function rodarLote(planoObj, { baseUrl, userId, cookie, tema, lado = 'ambo
   try {
     for (const p of plano) {
       const dir = join(DIR_MEDIDAS, p.slug);
-      const item = { id: p.id, module: p.module, source: p.source, target: p.target, token: p.token, lado, frescor: p.frescor, contrato: p.contrato || null, compare: null, veredito: null, motivo: '', medido: false, dirAbs: dir };
+      const item = { id: p.id, module: p.module, source: p.source, target: p.target, token: p.token, lado, contrato: p.contrato || null, compare: null, veredito: null, motivo: '', medido: false, dirAbs: dir };
       if (!p.executavel) { item.veredito = 'NÃO MEDI'; item.motivo = (lado === 'design' ? p.problemasDesign : lado === 'prod' ? p.problemasProd : p.problemas).join('; '); resultados.push(item); console.log(`○ ${p.id} — ${item.motivo}`); continue; }
       mkdirSync(dir, { recursive: true });
       item.tentado = true;
@@ -1064,14 +1036,14 @@ async function selftest() {
   const c1 = interpretarCompare({ status: 1, stdout: jsonBug, stderr: '' });
   ok('interpretarCompare: rc1 → DIVERGE (bug), conta por dim', c1.veredito === 'DIVERGE (bug)' && c1.porDim.D8.bug === 2 && c1.porDim.SHELL.diverge === 1 && c1.porDim.SHELL.bug === 0);
   const c2 = interpretarCompare({ status: 2, stdout: jsonOk, stderr: '⛔ NÃO MEDI — o lado design veio do espelho local' });
-  ok('interpretarCompare: rc2 COM relatório → medido, frescor não provado (não vira IGUAL)', c2.veredito === 'MEDIDO · frescor não provado' && c2.bugs === 0 && /espelho local/.test(c2.motivo));
+  ok('interpretarCompare: rc2 COM relatório → NÃO MEDI com motivo (não vira IGUAL)', c2.veredito === 'NÃO MEDI' && c2.bugs === 0 && /espelho local/.test(c2.motivo));
   const c2s = interpretarCompare({ status: 2, stdout: '', stderr: '⛔ LADOS TROCADOS' });
   ok('interpretarCompare: rc2 SEM relatório → NÃO MEDI com motivo', c2s.veredito === 'NÃO MEDI' && /LADOS TROCADOS/.test(c2s.motivo) && c2s.bugs === null);
   ok('interpretarCompare: rc inesperado → ERRO', interpretarCompare({ status: 137, stdout: '', stderr: '' }).veredito === 'ERRO');
   ok('interpretarCompare: JSON precedido de prosa ainda parseia', interpretarCompare({ status: 0, stdout: 'aviso\n' + jsonOk, stderr: '' }).bugs === 0);
 
   const resumo = gerarResumo([
-    { id: 'A/Index', source: 'a-page.jsx', token: 'a', frescor: 'nunca verificado', compare: c1 },
+    { id: 'A/Index', source: 'a-page.jsx', token: 'a', compare: c1 },
     { id: 'B/Index', source: 'b-page.jsx', token: null, veredito: 'NÃO MEDI', motivo: 'sem rota | derivável' },
   ], { baseUrl: 'http://x', bundle: 'abc', geradoEm: '2026-09-06T00:00:00Z' });
   ok('gerarResumo: linha por tela + veredito', /\| A\/Index \| a-page\.jsx \| a \| DIVERGE \(bug\) \| 2 \| 1 \|/.test(resumo));

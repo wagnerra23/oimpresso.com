@@ -87,6 +87,7 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
 | UC-PIDX-30 | A requisição de compra aberta do produto aparece na linha e na aba Estoque, com número, data e fornecedor | should `[T0]` | UC-FLX-19 + Compras SPEC US-COM-027 + permissões da lista de requisições | `ProdutoRequisicaoNaturezaCustoContratoTest` (Pest, roda em lane) + `produto-requisicao-natureza-custo.test.tsx` (Vitest) | 🧪 passou no job 120394269474 (lane Estoque · MySQL, commit 3587864, 2026-10-23): 9 testes, 0 pulados, 119 verificações |
 | UC-PIDX-31 | Natureza fiscal: selo na linha, filtro no servidor e a natureza na aba Fiscal, com o aviso do pendente | should `[T0]` | UC-FLX-31 + NfeBrasil US-NFE-068/069 (`NfeService` recusa só a emissão separada com pendente) | `ProdutoRequisicaoNaturezaCustoContratoTest` (Pest, roda em lane) + `produto-requisicao-natureza-custo.test.tsx` (Vitest) | 🧪 passou no job 120394269474 (lane Estoque · MySQL, commit 3587864, 2026-10-23): 9 testes, 0 pulados, 119 verificações |
 | UC-PIDX-32 | Método de custo do insumo na aba Variações, só quando a empresa gravou a regra de custo no Recebido | should | UC-FLX-38 + Compras SPEC US-COM-024/026 (`AplicarCustoDoRecebimento`) + gate de custo (UC-PIDX-03) | `ProdutoRequisicaoNaturezaCustoContratoTest` (Pest, roda em lane) + `produto-requisicao-natureza-custo.test.tsx` (Vitest) | 🧪 passou no job 120394269474 (lane Estoque · MySQL, commit 3587864, 2026-10-23): 9 testes, 0 pulados, 119 verificações |
+| UC-PIDX-33 | Aba Estoque do painel: a tabela de locais mostra quanto foi vendido em cada local | should | protótipo (artefato "Consulta de Produto", 22/10: coluna "Vendido" por local) + pedido da ROTA LIVRE (2026-10-23) | `ProdutoDetalheTest` (lane Estoque · MySQL) + `produto-painel-detalhe.test.tsx` (Vitest, não roda em lane) | ⬜ nasce neste PR — verde esperado |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -479,6 +480,16 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
 - **Contrato:** UC-FLX-38 e Compras SPEC US-COM-024/026. **Diferença do protótipo:** o protótipo mostra o método na aba Dados, abaixo do custo; aqui fica na aba Variações, onde o painel mostra o custo de cada variação.
 - **Status: 🧪** — passou no job 120394269474 (lane Estoque · MySQL, commit 3587864, 2026-10-23): 9 testes, 0 pulados, 119 verificações. O Vitest não roda em lane; passou local (8 casos).
 
+## UC-PIDX-33 · Aba Estoque do painel: quantidade vendida por local · `should`
+- **Persona:** a ROTA LIVRE abre um produto pelo painel e quer saber, sem ir ao Relatório de estoque, quanto daquele item já saiu em cada loja.
+- **Aceite:** Dado um produto que controla estoque, com saldo em dois locais, uma venda finalizada de 5 un no local A com 1 un devolvida e um rascunho de 2 un no mesmo local · Quando abro a aba Estoque do painel · Então a tabela de locais tem a coluna "Vendido", logo antes de "Situação" · E o local A mostra "4 Un" e o B "0 Un" · E o número de cada local é o mesmo "Total vendido" do Relatório de estoque para aquele produto e local (vendas finalizadas, desde sempre, menos as devoluções; rascunho e orçamento ficam fora).
+- **Teste:** [`ProdutoDetalheTest`](../../../../tests/Feature/Produto/ProdutoDetalheTest.php) — `UC-PIDX-33` (o vendido de cada linha do painel contra a conta à mão e contra a soma do JSON do DataTable do relatório) e [`produto-painel-detalhe.test.tsx`](../../../../tests/js/produto-painel-detalhe.test.tsx) — `UC-PIDX-33` (a coluna e a ordem; cada local com o número que o servidor mandou). Mutação conferida em 2026-10-23: mostrar o saldo no lugar do vendido derruba o caso de tela.
+- **Contrato:**
+  - **Protótipo** — artefato "Consulta de Produto" (https://claude.ai/artifact/2Rwvt22eRnijtFFZhkpt67, versão de 22/10), aba Estoque do painel: `<th class="d">Vendido</th>` entre o saldo e a situação, valor por local com a unidade.
+  - **Contas** — nenhuma nova: o número é o `vendido` que `ProductUtil::linhaDoRelatorioEstoque` já punha em cada linha (`total_sold` de `getProductStockDetails`), o mesmo da coluna "Total vendido" do Relatório de estoque. Só a tela passou a mostrá-lo.
+- **Diferenças deliberadas do protótipo:** a coluna "Alerta" continua (o protótipo não a tem); "Separado" e "Livre" não entram, porque dependem do interruptor "Reservar material na venda" (backlog D5).
+- **Status: ⬜** — nasce neste PR; verde esperado. A parte do servidor roda na lane Estoque · MySQL; a parte Vitest não roda em lane nenhuma (pôr o arquivo no Vitest do `Frontend / Vite build` fica para PR próprio, porque `.github/` pede revisão do [W]).
+
 ## Achados de governança (o trio prometia o que não tinha)
 
 > Não são bugs de comportamento — são **contratos frouxos** que deixariam a tela ser promovida
@@ -648,9 +659,6 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
   recorte com nome. Aceite: Dado um conjunto de filtros, Quando salvo como "Lonas abaixo do alerta",
   Então ele aparece numa lista de recortes do usuário e abre com os mesmos filtros. Fonte: Shopify
   (visões salvas), Odoo (favoritos).
-- **[BACKLOG] Quantidade vendida por local na aba Estoque do painel** — pedido na revisão do
-  protótipo (2026-10-20). Aceite: a tabela de locais da aba Estoque ganha a coluna "Vendido", com o
-  mesmo número do "Total vendido" do Relatório de estoque para aquele produto e local.
 
 **Comunicação visual**
 
@@ -718,6 +726,7 @@ Fontes abertas em 2026-10-20: [Shopify](https://help.shopify.com/manual/products
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
+- 2026-10-23 · [M+C] **UC-PIDX-33** (painel, aba Estoque): o backlog "Quantidade vendida por local" vira caso, a pedido da ROTA LIVRE (número 33 porque 28–32 já estão nos rascunhos #9778 e #9785). A tabela de locais ganha a coluna "Vendido", como no artefato "Consulta de Produto" de 22/10; o número já vinha do servidor em cada linha.
 - 2026-10-18 · [F+C] `produto-lista-encaixe` e `produto-lista-redimensionar` (UC-PIDX-16, 26 e 27) entram no Vitest do `Frontend / Vite build`. Foi em PR próprio porque `.github/` pede revisão do [W]; o conserto da tela entrou antes, no #9535.
 - 2026-10-18 · [F+C] **UC-PIDX-26, conserto do smoke:** o rótulo "CATEGORIA" (79px) vazava sobre MARCA com o piso de 66; os pisos passam a respeitar o rótulo do cabeçalho (categoria 80, locais 62, SKU 58, produto 112 para manter a soma), com caso de teste que trava isso.
 - 2026-10-17 · [F+C] **UC-PIDX-26 e UC-PIDX-27 (novos) e UC-PIDX-16 (largura lembrada)**, a partir da reclamação da ROTA LIVRE (monitor 1366×768: colunas fora da tela e ajuste refeito a cada visita). Em tela estreita as colunas encolhem até caber; a grade ganha altura própria, como no protótipo, e a barra de rolar para o lado fica à vista; a largura arrastada passa a ser lembrada no navegador, com "Voltar às larguras de saída" no menu "Colunas". Pôr `produto-lista-redimensionar` e `produto-lista-encaixe` no Vitest do `Frontend / Vite build` fica para PR próprio, porque `.github/` pede revisão do [W].

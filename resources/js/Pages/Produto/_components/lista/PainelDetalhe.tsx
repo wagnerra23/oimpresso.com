@@ -598,6 +598,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                         {d.tipo === 'variable' && <th>Variação</th>}
                         <th className="r">Saldo</th>
                         <th className="r">Alerta</th>
+                        <th className="r">Vendido</th>
                         <th>Situação</th>
                       </tr>
                     </thead>
@@ -612,12 +613,15 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                             </span>
                           </td>
                           <td className="r">{d.dados.alerta === null ? '—' : qtd(d.dados.alerta)}</td>
+                          {/* O "Total vendido" do Relatório de estoque para este local (vendas finalizadas
+                              menos devoluções), que o servidor já manda na linha — nenhuma conta aqui. */}
+                          <td className="r"><span className="pb-stock">{qtdComUnidade(e.vendido, e.unidade)}</span></td>
                           <td>{e.alerta ? <span className="pb-pill off">Repor</span> : <span className="pb-pill combo">Suficiente</span>}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
-                  <p className="pb-help mb-4">Saldo por local, o mesmo de Relatórios → Estoque. O histórico completo fica em Histórico de estoque.</p>
+                  <p className="pb-help mb-4">Saldo e vendido por local, os mesmos de Relatórios → Estoque. O histórico completo fica em Histórico de estoque.</p>
                   {/* UC-PIDX-30 (UC-FLX-19): requisição de compra aberta, do estoque mínimo ou feita à mão. */}
                   {d.requisicao && (
                     <div className="mb-4" data-contract="produto-detalhe-requisicao">
