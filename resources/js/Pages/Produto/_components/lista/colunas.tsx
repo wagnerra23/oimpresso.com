@@ -25,6 +25,7 @@ import { brl } from '../../Unificado/_components/catalogo';
 import AcoesProduto, { type AcaoProduto } from './AcoesProduto';
 import {
   TIPO_ROTULO,
+  dataBr,
   estoqueTexto,
   faixaDePreco,
   subLinhaProduto,
@@ -86,6 +87,21 @@ export function colunasDaLista({ visiveis, densa, permissions, contexto, aoEscol
           </span>
           {/* Marca de quem sincroniza com o WooCommerce, como a lista Blade (`fa-wordpress` sob o
               nome). O servidor só manda o campo quando o módulo está instalado. UC-PIDX-23. */}
+          {/* UC-PIDX-31: natureza fiscal decidida pelo contador. Mercadoria não ganha selo (é o padrão). */}
+          {row.original.natureza_fiscal === 'servico' && (
+            <span className="shrink-0 text-[11px] text-[var(--text-mute)]" data-contract="produto-lista-natureza">
+              Serviço
+            </span>
+          )}
+          {row.original.natureza_fiscal === 'pendente' && (
+            <span
+              className="shrink-0 text-[11px] font-medium text-[var(--warn)]"
+              title="O contador ainda não decidiu se é mercadoria ou serviço. A NF-e comum sai como mercadoria; a emissão separada (NF-e + NFS-e) fica bloqueada."
+              data-contract="produto-lista-natureza"
+            >
+              Fiscal a decidir
+            </span>
+          )}
           {row.original.woocommerce_sync === true && (
             <Globe
               size={12}
@@ -156,11 +172,25 @@ export function colunasDaLista({ visiveis, densa, permissions, contexto, aoEscol
       enableSorting: true,
       accessorFn: (l) => l.estoque,
       meta: { width: 130, align: 'right' },
-      cell: ({ row }) => (
-        <span className={'pb-stock' + (!row.original.controla_estoque ? ' na' : row.original.abaixo_do_alerta ? ' low' : '')}>
-          {estoqueTexto(row.original)}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const saldo = (
+          <span className={'pb-stock' + (!row.original.controla_estoque ? ' na' : row.original.abaixo_do_alerta ? ' low' : '')}>
+            {estoqueTexto(row.original)}
+          </span>
+        );
+        const req = row.original.requisicao;
+        if (!req) return saldo;
+        // UC-PIDX-30 (UC-FLX-19): requisição de compra aberta, do estoque mínimo ou feita à mão.
+        const texto = `Requisição ${req.numero} aberta em ${dataBr(req.data).slice(0, 5)}${req.fornecedor ? ` · ${req.fornecedor}` : ''}`;
+        return (
+          <div className="min-w-0">
+            {saldo}
+            <div className="truncate text-[11px] text-[var(--accent)]" title={texto} data-contract="produto-lista-requisicao">
+              {texto}
+            </div>
+          </div>
+        );
+      },
     });
   }
   if (v('tipo')) {
