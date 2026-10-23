@@ -13,44 +13,17 @@ tier: B
 
 ## O fluxo obrigatório (nenhum passo é opcional)
 
-0. **A fonte EXISTE no git?** (passo novo — 2026-08-11, e é o que faltava)
-   `node scripts/governance/cowork-mirror-freshness.mjs --live-only <list_files.json>`
-   O `--compare` prova que **o que está no espelho** acompanha o vivo; **nunca** que o espelho
-   **cobre** o vivo. São perguntas diferentes e só esta responde *"o time no git tem a fonte?"*.
-   Medido no dia em que nasceu: **25 de 1310 paths fora do espelho, 14 deles protótipo de tela**
-   — incluindo o `jana-merge.jsx`, citado por 21 sites do repo e não versionado.
-   ⚠️ Faltando a fonte, **NÃO compare** — exporte antes (passo 1b).
+1. **Fonte = o arquivo do git, resolvido pela máquina.** `node scripts/design/ancora.mjs <Mod/Tela>`
+   diz qual arquivo sob `prototipo-ui/` é a âncora da tela; é ele que se renderiza do lado design.
+   Até 2026-10-23 os passos 0 e 1 desta skill mediam o espelho contra o Cowork vivo
+   (`--live-only`, `--manifest` → `get_file` → `--compare`). A ADR 0438 tirou o Cowork como fonte,
+   e esses modos saíram do `cowork-mirror-freshness` na onda 2c-2.
 
-1. **Fonte provada primeiro.** `node scripts/governance/cowork-mirror-freshness.mjs --manifest`
-   (v3: âncoras **+ deps de render** do shell) → pull via `DesignSync.get_file` (projeto vivo
-   `019dcfd3-6ef2-7ee6-8512-b1b0e5544e58`) das âncoras + deps globais (`app.jsx` · `styles.css` ·
-   `ds-v6/tokens.css`) + css do módulo → `--compare --check`. `STALE` ⇒ re-exportar ANTES de
-   comparar. Só âncora = cego pra infra (LC-07: o PageHeader roxo do [W] driftou no `app.jsx`
-   e a rodada ficou verde).
-   ⚠️ **Há arquivos HOMÔNIMOS no projeto vivo** (ex.: `jana-merge.jsx` na raiz **e** em
-   `prototipo-ui/cowork/`, com conteúdo DIFERENTE — 943 × 923 linhas). O path canônico é o que
-   o **`cowork` do manifesto** declara, não o que parece mais organizado. Baixar do errado dá
-   `STALE` — e, se você medir um charter contra ele, "corrige" refs que estavam certas
-   (aconteceu em 2026-08-11).
-
-1b. **Baixar é por MÁQUINA, NUNCA transcrever — e há DUAS rotas, com hierarquia.**
-   A hierarquia canônica vive em [`scripts/design/protocolo.config.mjs`](../../../scripts/design/protocolo.config.mjs)
-   (fase `-1`); esta skill **aponta**, não restateia:
-   - **[PRINCIPAL] sincronizar o espelho (muitos arquivos)** → `aplicar-payload.mjs`. Peça o
-     payload em **partes <=256 KiB**, `DesignSync.get_file` de cada (parte >48 KB volta
-     **persistida em disco**, fora do contexto) → `node scripts/design-sync/aplicar-payload.mjs`.
-     O conteúdo vira **dado**; o applier confere bytes por arquivo **antes** de escrever.
-   - **[pontual] 1-3 arquivos avulsos** → `get_file` de cada → salve os JSON num dir →
-     `node scripts/governance/cowork-mirror-freshness.mjs --export-from <dir>`.
-   ⚠️ **A armadilha que fecha a rota pontual:** `get_file` de arquivo **pequeno volta INLINE
-   no contexto** (o piso é uma faixa que varia — não restateie número; meça) — não há JSON
-   em disco pra alimentar o `--export-from`, e escrever dali é
-   **transcrição** (`fidelidade: NÃO PROVADA`). Isso é limite do **transporte**, não do
-   problema: a rota [PRINCIPAL] não tem esse teto. Se você concluir "não há rota fiel para
-   estes arquivos", **está na rota errada** — o `sync/README.md` do Cowork nomeia essa
-   conclusão, no 1º parágrafo, como *"errada como teto absoluto"*.
-   Transcrever à mão produziu um arquivo com 20 linhas a menos que passou despercebido até o
-   `--compare` (2026-08-11), e 10 arquivos com fidelidade não provada em 2026-08-21 (PR #6123).
+1b. **A fonte é o arquivo do git — não há rota de download** ([ADR 0438](../../../memory/decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md), 2026-10-23).
+   Compare contra o arquivo versionado sob `prototipo-ui/`. Se a âncora não existir no git, ela não
+   existe: o Code **gera** ancorado no DS canon ([ADR 0282](../../../memory/decisions/0282-protocolo-v2-colapso-ratificacao.md)),
+   nunca baixa do Cowork. Até 2026-10-23 este passo ensinava as rotas de baixar (`aplicar-payload.mjs`
+   e `--export-from`); o `aplicar-payload` saiu na onda 2a da 0438.
 2. **Mesmo tema nos dois lados.** O tema é o que o Wagner usa (hoje: dark). Comparar light×dark
    invalida D6 inteira.
 2b. **D0 · IDENTIDADE DA VIEW — antes de qualquer dimensão.**
