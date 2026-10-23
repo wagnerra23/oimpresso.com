@@ -88,7 +88,6 @@ import { join, dirname, resolve, relative } from 'node:path';
 import { anchorRelPath } from './anchor-content-check.mjs'; // fonte única: como extrair o path do related_prototype
 import { BUILD_SOURCE_RE } from '../design-sync/bundle-contract.mjs'; // fonte única: que extensão é conteúdo do espelho
 import { pathsForOwner } from '../design-sync/bundle-transaction.mjs'; // fonte única: onde cada CONTA pousa
-import { FONTE_GIT } from '../design/fonte-prototipo.mjs'; // fonte única: de quem a fonte do protótipo é o git (ADR 0433)
 
 const ROOT = process.cwd();
 
@@ -1021,72 +1020,6 @@ export function ultimaVerificacaoDe(entries, cowork) {
   return { data: melhor, hash };
 }
 
-export function unverifiedSince(entries, arquivos, provaBundle = null) {
-  const runs = (Array.isArray(entries) ? entries : []).filter((e) => Array.isArray(e.verified));
-  const mexidoDepois = [], nuncaVerificado = [];
-  let ok = 0;
-  for (const a of arquivos) {
-    // ── PROVA POR BUNDLE (v5 · 2026-08-24) ────────────────────────────────────
-    // O docblock acima diz que o espelho "só deveria mudar por `--export-from`". Isso era
-    // verdade quando este gate nasceu e deixou de ser: o bundle v2 (`aplicar-payload
-    // --require-complete-shell`) é a ROTA PRINCIPAL da fase -1 do painel, e escreve o espelho
-    // com fidelidade provada POR CONSTRUÇÃO — o manifesto carrega o sha256 do estado-alvo lido
-    // do design vivo, e a promoção é atômica contra ele.
-    //
-    // Sem isto o gate acusa a rota canônica: em 2026-08-24 o #6178 sincronizou 71 arquivos
-    // (23 stale + 48 ausentes) com 232/232 hashes conferidos, e o gate marcou 17 como "sem
-    // prova" — porque a única prova que ele conhecia vinha do `get_file`. Um required que
-    // reprova o caminho oficial não é defesa, é parede.
-    //
-    // NÃO AFROUXA — é o mesmo conserto do falso-positivo de merge/squash (2026-08-17): admite
-    // uma 2ª prova de CONTEÚDO, nunca uma isenção. O sha do bundle tem que bater com o byte
-    // no disco; remendo à mão depois da promoção muda o sha e volta a morder. Comparação em
-    // sha256 CRU dos dois lados (é a identidade do bundle) — nunca contra o `hashAtual`, que é
-    // normalizado e mediria outra propriedade.
-    const shaBundle = provaBundle ? provaBundle[a.cowork] : null;
-    if (shaBundle && a.rawSha && shaBundle === a.rawSha) { ok++; continue; }
-
-    const { data: verificadoEm, hash: hashVerificado } = ultimaVerificacaoDe(entries, a.cowork);
-    if (!verificadoEm) { nuncaVerificado.push(a.cowork); continue; }
-    // sem data de commit não se afirma nada (arquivo novo não-commitado): não é achado.
-    // Comparação por INSTANTE, nunca por string — ver `instante()`. Data presente mas
-    // ilegível (de qualquer lado) cai no CONSERVADOR: conta como "depois" e o hash decide,
-    // em vez de um NaN > x = false virar verde mudo.
-    const tCommit = instante(a.lastCommitIso), tVerif = instante(verificadoEm);
-    const commitouDepois = !!a.lastCommitIso && (tCommit == null || tVerif == null || tCommit > tVerif);
-    // CONTEÚDO é o desempate. Sem hash gravado (ledger antigo) cai no comportamento de antes,
-    // que é o conservador: data sozinha. Com hash, merge/squash/rebase param de gritar.
-    const conteudoMudou = hashVerificado == null || a.hashAtual == null
-      ? true
-      : a.hashAtual !== hashVerificado;
-    if (commitouDepois && conteudoMudou) {
-      mexidoDepois.push({ cowork: a.cowork, verificadoEm, commitadoEm: a.lastCommitIso,
-        motivo: hashVerificado == null ? 'sem hash no ledger — só data' : 'hash mudou' });
-    } else ok++;
-  }
-  return { mexidoDepois, nuncaVerificado, ok, comLedger: runs.length };
-}
-
-// ── FONTE NO GIT (ADR 0433 · [W] 2026-10-15) ───────────────────────────────────────────
-// A declaração vive em scripts/design/fonte-prototipo.mjs. A partir de `desde`, o espelho
-// `prototipo-ui/cowork/Wagner/` deixa de ser cópia do Cowork: edição commitada nele é a AUTORIA,
-// não remendo. O que muda é só a leitura de "mexido depois": commit posterior à virada sai da
-// lista de acusação e vai para `autoradoNoGit`, que é RELATADO (nunca calado). Commit anterior à
-// virada segue julgado pela regra antiga — a história não é reescrita.
-export { FONTE_GIT };
-
-export function separarAutoriaNoGit(mexidoDepois, fonte = FONTE_GIT) {
-  const tDesde = fonte ? instante(fonte.desde) : null;
-  if (tDesde == null) return { mexidoDepois, autoradoNoGit: [] };
-  const fica = [], autorado = [];
-  for (const m of mexidoDepois) {
-    const t = instante(m.commitadoEm);
-    // data ilegível não vira isenção: fica na acusação (conservador, §5 2026-07-29)
-    (t != null && t >= tDesde ? autorado : fica).push(m);
-  }
-  return { mexidoDepois: fica, autoradoNoGit: autorado };
-}
-
 export function slaVerdict(entries, nowIso, days = SLA_DAYS) {
   // SÓ rodadas de --compare. Entrada de live-only vive no MESMO ledger e, se caísse por
   // último, responderia aqui por um objeto que esta função não mediu — `stale`/`unchecked`
@@ -1752,6 +1685,12 @@ export function orfaosNaAdicao(adicionados, declarados) {
 // ── CLI ───────────────────────────────────────────────────────────────────────
 function main() {
   const argv = process.argv.slice(2);
+  // --unverified saiu em 2026-10-23 (ADR 0438 D7). Sem esta trava, quem ainda o chamasse
+  // cairia no caminho padrão e sairia 0: verde sem ter medido nada (§5 2026-07-29).
+  if (argv.includes('--unverified')) {
+    console.error('✗ --unverified foi removido em 2026-10-23 (ADR 0438 D7): o check "espelho — mexeu depois de verificar" saiu junto. Nada foi medido.');
+    process.exit(2);
+  }
   const all = argv.includes('--all');
   const cmpIdx = argv.indexOf('--compare');
 
@@ -2191,74 +2130,6 @@ function main() {
       `  Pra medir: o shell precisa carregá-lo, OU rode a rodada com --manifest --all.\n` +
       `  (não muda o exit code: o --check morde só em STALE)\n`,
     );
-    return;
-  }
-
-  // --unverified: quem MEXEU no espelho depois da última prova de fidelidade.
-  // Só git + ledger — roda no CI headless, ao contrário do --compare (auth interativa).
-  if (argv.includes('--unverified')) {
-    // Lápide §5 2026-07-24: data vinda de `git log` num clone RASO mede o PISO, não a história.
-    let raso = false;
-    try { raso = execFileSync('git', ['rev-parse', '--is-shallow-repository']).toString().trim() === 'true'; } catch { /* sem git */ }
-
-    const versionados = execFileSync('git', ['ls-files', MIRROR_REL]).toString().split('\n').filter(Boolean);
-    // UMA passada de log pra todo o diretório: primeira data que aparece por path = a mais recente.
-    const bruto = execFileSync('git', ['log', '--format=@%cI', '--name-only', '--', MIRROR_REL]).toString().split('\n');
-    const dataDe = new Map();
-    let atual = null;
-    for (const ln of bruto) {
-      if (ln.startsWith('@')) { atual = ln.slice(1); continue; }
-      if (ln && atual && !dataDe.has(ln)) dataDe.set(ln, atual);
-    }
-    const arquivos = versionados.map((p) => ({
-      cowork: p.replace(`${MIRROR_REL}/`, ''),
-      lastCommitIso: dataDe.get(p) || null,
-      hashAtual: existsSync(join(ROOT, p)) ? contentHash(readFileSync(join(ROOT, p), 'utf8')) : null,
-      // sha256 dos BYTES (sem encoding): é a identidade que o manifesto do bundle usa.
-      rawSha: existsSync(join(ROOT, p))
-        ? createHash('sha256').update(readFileSync(join(ROOT, p))).digest('hex') : null,
-    }));
-
-    // Bundle promovido = 2ª prova de fidelidade (ver PROVA POR BUNDLE em unverifiedSince).
-    // Ausente/ilegível vira `null`, e null cai no comportamento antigo (só ledger) — nunca
-    // em "verde por omissão": não-conseguir-ler não é prova (§5 2026-07-29).
-    let provaBundle = null;
-    {
-      const b = lerBundlePromovido(); // leitor único — o --sla lê o MESMO arquivo (só a data)
-      if (b && Array.isArray(b.files)) {
-        provaBundle = {};
-        for (const f of b.files) if (f && f.path && f.sha256) provaBundle[f.path] = f.sha256;
-      }
-    }
-
-    const ledger = existsSync(join(ROOT, LEDGER_REL)) ? JSON.parse(readFileSync(join(ROOT, LEDGER_REL), 'utf8')) : [];
-    const r0 = unverifiedSince(Array.isArray(ledger) ? ledger : (ledger.runs || []), arquivos, provaBundle);
-    const { mexidoDepois, autoradoNoGit } = separarAutoriaNoGit(r0.mexidoDepois);
-    const r = { ...r0, mexidoDepois };
-
-    console.log(`\n  MEXEU-DEPOIS-DE-VERIFICAR — espelho vs ledger (${arquivos.length} arquivo(s) versionado(s))\n`);
-    if (raso) console.log('  ⚠ clone RASO — as datas de commit medem o piso da história, não a história (§5 2026-07-24).\n');
-    // Liberação por bundle é DECLARADA: gate que libera calado é indistinguível de gate que não olhou.
-    if (provaBundle) {
-      const cobertos = arquivos.filter((a) => provaBundle[a.cowork] && a.rawSha === provaBundle[a.cowork]).length;
-      console.log(`  📦 bundle promovido cobre ${cobertos} arquivo(s) com sha256 conferido — esses contam como PROVADOS.`);
-      console.log(`     (prova de conteúdo, não isenção: byte que não bate com o manifesto volta a morder)\n`);
-    }
-    if (!r.comLedger) {
-      console.log('  ⬜ nenhuma rodada do ledger registra QUAIS arquivos mediu (campo `verified` nasceu em 2026-08-17).');
-      console.log('     Este modo só tem sinal a partir da próxima `--compare --ledger`. Não é verde: é SEM DADO.\n');
-      process.exit(0);
-    }
-    for (const m of r.mexidoDepois) console.log(`  🔴 MEXIDO-DEPOIS  ${m.cowork}\n       verificado ${m.verificadoEm} · commitado ${m.commitadoEm}`);
-    if (autoradoNoGit.length) {
-      console.log(`  ✎ editados no git depois da virada (fonte = git desde ${FONTE_GIT.desde}, ADR ${FONTE_GIT.adr}): ${autoradoNoGit.length}`);
-      for (const m of autoradoNoGit) console.log(`     ✎ ${m.cowork} · commitado ${m.commitadoEm}`);
-    }
-    console.log(`\n  🔴 mexido-depois: ${r.mexidoDepois.length} · ✓ intactos desde a verificação: ${r.ok} · ⬜ nunca verificados: ${r.nuncaVerificado.length}`);
-    if (r.nuncaVerificado.length) console.log('     (nunca-verificado NÃO bloqueia — forward-only, ADR 0275: puni-lo seria backfill em massa do legado)');
-    if (r.mexidoDepois.length) console.log('\n  Conteúdo do espelho mudou ANTES da virada para o git sem prova de que batia com o Cowork.\n  Rode o ciclo e re-verifique, ou reverta o commit se foi remendo à mão.');
-    if (argv.includes('--check') && r.mexidoDepois.length) process.exit(1);
-    console.log('');
     return;
   }
 

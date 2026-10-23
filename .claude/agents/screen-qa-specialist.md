@@ -83,7 +83,7 @@ Quando o alvo ainda é o **protótipo** (a versão nova de um módulo que vai vi
 **Depois de corrigir (quem corrige é o parent, não você)**
 - Reteste com **os mesmos cenários que falharam**, subir `?v=` do módulo na página para não pegar cache, sintaxe com `esbuild.transformSync(..., {loader:'jsx'})` (com controle negativo) e o porteiro do projeto (`node conferir-export.mjs .` no protótipo da equipe).
 - Envio ao espelho do Wagner (`prototipo-ui/cowork/Wagner/`): atualizar `governance/design/design-lock.json` (`content_hash` + `git_revision` = commit que mudou o protótipo) e os `*.map.json` do módulo com `node scripts/design/gerar-map.mjs <gap.md> --atualizar` (gravar a saída só depois de validar o JSON).
-- O check required **"espelho — mexeu depois de verificar"** não exige mais subir ao Cowork: desde a ADR 0433, edição no espelho posterior a 2026-10-15 sai como "editado no git", sem reprovar. Não há subida ao Cowork desde a ADR 0438 (2026-10-23); escrever no claude.ai/design exige o opt-in escrito ("sobe pro design-sync").
+- O check required **"espelho — mexeu depois de verificar"** foi removido em 2026-10-23 (ADR 0438 D7): a fonte do protótipo é o git e não há subida ao Cowork. Escrever no claude.ai/design exige o opt-in escrito ("sobe pro design-sync").
 - Descrição de PR e mensagem de commit **sem valores em R$**, nem os fictícios do protótipo (o `brl-scan` acusa e commit publicado não se reescreve).
 
 ## Guardrails Tier 0

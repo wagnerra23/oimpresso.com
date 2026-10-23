@@ -273,8 +273,9 @@ export const DS_RUNTIME_SNAPSHOT_DIR = DS_MIRROR_DIR;
 //
 // MAPEAMENTO PROVADO job→context→comando (cada um conferido no .yml, não inferido do
 // nome — o meu 1º palpite pro charter era `ancora-guard.mjs` e estava ERRADO):
-//   · .github/workflows/governance-script-tests.yml  job `espelho-verificado`
-//       name: espelho — mexeu depois de verificar          → --unverified --check
+//   · (até 2026-10-23) .github/workflows/governance-script-tests.yml job `espelho-verificado`,
+//       name: espelho — mexeu depois de verificar → --unverified --check. Demovido pela
+//       ADR 0438 D7; o par saiu de REQUIRED_DO_DOMINIO, como manda o item (b) abaixo.
 //   · .github/workflows/anchor-content-required.yml  job `anchor-content`
 //       name: Ancora de design nao-shell (F2/F6 required)  → anchor-content-check --check
 //   · .github/workflows/anchor-drift.yml             job `charter-live-signal`
@@ -297,7 +298,6 @@ export const PREFLIGHT_GATES = [
   //     avermelhava — e some de novo quando é absorvido com `BASELINE-ABSORB:` (PR #6553).
   'node scripts/governance/cowork-ssot-guard.mjs',
   // REQUIRED do domínio que faltavam (2026-08-21) — ver mapeamento provado acima
-  'node scripts/governance/cowork-mirror-freshness.mjs --unverified --check   # espelho editado sem prova de fidelidade',
   'node scripts/governance/anchor-content-check.mjs --check                   # âncora de design MISSING/SHELL',
   'node scripts/governance/charter-live-signal.mjs --check <charters-tocados> # status:live sem sinal de prod',
   // as 2 LEIs que o required `DS gate` agrega — nenhuma estava aqui (medido 2026-08-21)
@@ -310,9 +310,6 @@ export const PREFLIGHT_GATES = [
 // lista, porque é a lista que ele defende. NÃO é inventário de required do repo — é o
 // recorte do domínio design/espelho, o que este painel governa.
 export const REQUIRED_DO_DOMINIO = [
-  { context: 'espelho — mexeu depois de verificar',
-    cmd: 'node scripts/governance/cowork-mirror-freshness.mjs --unverified --check',
-    workflow: '.github/workflows/governance-script-tests.yml', job: 'espelho-verificado' },
   { context: 'Ancora de design nao-shell (F2/F6 required)',
     cmd: 'node scripts/governance/anchor-content-check.mjs --check',
     workflow: '.github/workflows/anchor-content-required.yml', job: 'anchor-content' },
