@@ -102,6 +102,8 @@ on:
       # so estes 2 arquivos, esta lane NAO disparava e o bite ficava mudo.
       - 'scripts/governance/cowork-mirror-freshness.mjs'
       - 'scripts/governance/cowork-mirror-freshness.test.mjs'
+      - 'scripts/design/ds-runtime-path.mjs'
+      - 'scripts/design/ds-runtime-path.test.mjs'
       - 'scripts/design-sync/alvo.mjs'
       # secao-check (PR-A3) e seus DOIS insumos. O arquivo SOB TESTE entra no gatilho, senao
       # mexer no comparador nao dispara o comparador (§5 2026-08-02 · "gate mudo com cara de
@@ -402,15 +404,18 @@ jobs:
         continue-on-error: true
         run: node scripts/governance/anchor-content-check.mjs --check
       # Frescor do espelho (INDEX §0.2 "diffar antes de concluir" · session 2026-07-06-arte):
-      # o CI headless NÃO lê o Cowork vivo (auth interativa, sem webhook/service-token na
-      # plataforma) — então AQUI não se mede frescor. Mede-se (a) que o comparador classifica
-      # certo (selftest: identidade = hash normalizado por path completo) e (b) que a ROTINA
-      # de dispatch logado rodou dentro do SLA e a última rodada não deixou STALE (ledger
-      # datado e commitado — prova, não promessa). Frescor real = o dispatch logado.
+      # Os checks locais do espelho (refs, órfãos, absent-local, css-refs, preview-ds). O frescor
+      # contra o Cowork saiu em 2026-10-23 (ADR 0438, ondas 2c-2 e 2c-3); o nome do passo ficou.
       - name: cowork-freshness selftest (identidade normalizada por path · morde e libera certo)
         if: always()
         continue-on-error: true
         run: node scripts/governance/cowork-mirror-freshness.test.mjs
+      # Dono de onde `_ds/**` pousa no cache de preview (render-proto-baseline, design-diff-lote,
+      # --preview-ds). Saiu do cowork-mirror-freshness em 2026-10-23 (onda 2c-3), com os asserts.
+      - name: ds-runtime-path (duas formas de bind · controles negativos)
+        if: always()
+        continue-on-error: true
+        run: node scripts/design/ds-runtime-path.test.mjs
       # Os passos `cowork-freshness SLA` e `cowork live-only SLA` moravam aqui até 2026-10-23: auditavam o
       # registro de frescor do espelho contra o Cowork vivo. A ADR 0438 tirou o Cowork como fonte
       # (a fonte é o git) e os modos --sla/--sla-live-only saíram do cowork-mirror-freshness.
