@@ -173,6 +173,9 @@ on:
       - 'Modules/Compras/Services/PropostasDePreco.php'
       - 'app/Contracts/Producao/RoteiroDoProduto.php'
       - 'Modules/Producao/Services/RoteiroDoProdutoService.php'
+      # UC-PIDX-30/31/32 — SOB TESTE do ProdutoRequisicaoNaturezaCustoContratoTest.
+      - 'app/Contracts/Fiscal/NaturezaDoProduto.php'
+      - 'Modules/NfeBrasil/Services/Tributacao/NaturezaDoProdutoConsulta.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/estoque-pest.yml'
       - '.github/estoque-pest-quarantine.list'
@@ -268,6 +271,9 @@ jobs:
               - 'Modules/Compras/Services/PropostasDePreco.php'
               - 'app/Contracts/Producao/RoteiroDoProduto.php'
               - 'Modules/Producao/Services/RoteiroDoProdutoService.php'
+              # UC-PIDX-30/31/32 — SOB TESTE do ProdutoRequisicaoNaturezaCustoContratoTest.
+              - 'app/Contracts/Fiscal/NaturezaDoProduto.php'
+              - 'Modules/NfeBrasil/Services/Tributacao/NaturezaDoProdutoConsulta.php'
               - 'app/Utils/ProductUtil.php'
               - 'app/Utils/TransactionUtil.php'
               - 'database/schema/mysql-schema.sql'

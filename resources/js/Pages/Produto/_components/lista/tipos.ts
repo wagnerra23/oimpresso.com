@@ -41,7 +41,26 @@ export interface LinhaProduto {
    * o preço de venda (mesmo gate); null = nenhuma proposta pendente. `preco` só quando há uma proposta.
    */
   preco_proposto?: { quantidade: number; preco: number | null } | null;
+  /** Natureza fiscal decidida pelo contador (UC-PIDX-31). Ausente = sem o módulo Fiscal. */
+  natureza_fiscal?: NaturezaFiscal;
+  /** Requisição de compra aberta (UC-PIDX-30). Ausente = sem permissão de ver requisições; null = nenhuma. */
+  requisicao?: RequisicaoAberta | null;
 }
+
+export type NaturezaFiscal = 'mercadoria' | 'servico' | 'pendente';
+
+/** Requisição de compra aberta do produto, criada pelo estoque mínimo ou à mão (UC-PIDX-30 · UC-FLX-19). */
+export interface RequisicaoAberta {
+  id: number;
+  numero: string;
+  /** AAAA-MM-DD. */
+  data: string;
+  fornecedor: string | null;
+  url: string;
+}
+
+/** Data AAAA-MM-DD como DD/MM/AAAA. */
+export const dataBr = (d: string | null | undefined) => (d ? d.slice(0, 10).split('-').reverse().join('/') : '');
 
 export type ListaPaginada = PaginatorShape<LinhaProduto> & { per_page: number };
 
@@ -59,6 +78,8 @@ export interface FiltrosLista {
   not_for_selling: boolean;
   woocommerce_enabled: boolean;
   repair_model_id: string | null;
+  /** UC-PIDX-31 — só com o módulo Fiscal. */
+  natureza_fiscal: NaturezaFiscal | null;
   q: string;
   sort: string;
   dir: 'asc' | 'desc';
@@ -186,6 +207,8 @@ export interface DetalheProdutoDados {
     imagens: string[];
     compra_exc?: number;
     compra_inc?: number;
+    /** UC-PIDX-32: só quando a empresa gravou a regra de custo; metodo null = insumo sem método definido. */
+    custo_metodo?: { metodo: 'medio' | 'ultimo' | null; ultima_compra_em: string | null };
     lucro_percentual?: number;
     venda_exc?: number;
     venda_inc?: number;
@@ -229,6 +252,8 @@ export interface DetalheProdutoDados {
     origem_por_produto: boolean;
     /** Tributação do NfeBrasil com este produto no simulador; null sem o módulo Fiscal no pacote, sem `fiscal.access` ou sem `nfe.tributacao.manage`. */
     link_modulo: string | null;
+    /** UC-PIDX-31: null sem o módulo Fiscal. */
+    natureza?: { natureza: NaturezaFiscal; codigo_servico: string | null } | null;
   };
   prateleiras: {
     colunas: { prateleira: boolean; fileira: boolean; posicao: boolean };
@@ -238,6 +263,8 @@ export interface DetalheProdutoDados {
   roteiro?: RoteiroDoProduto | null;
   /** Só vem para quem vê o preço de venda (ausência ≠ lista vazia). */
   precos_propostos?: PrecoPropostoDoProduto[];
+  /** UC-PIDX-30: ausente sem permissão de ver requisições; null = nenhuma aberta. */
+  requisicao?: RequisicaoAberta | null;
 }
 
 export interface Opcao {
@@ -260,6 +287,8 @@ export interface ContextoLista {
   woocommerce: boolean;
   papel: string | null;
   rotulos_campos: Record<string, string | null>;
+  /** O filtro "Natureza fiscal" existe (módulo Fiscal ligado). */
+  natureza_fiscal?: boolean;
 }
 
 export interface PermissoesLista {
@@ -363,6 +392,11 @@ export const TIPOS_PRODUTO: Opcao[] = [
   { id: 'variable', nome: 'Variável' },
   { id: 'combo', nome: 'Composição' },
 ];
+export const NATUREZAS_FISCAIS: Opcao[] = [
+  { id: 'mercadoria', nome: 'Mercadoria (NF-e)' },
+  { id: 'servico', nome: 'Serviço (NFS-e)' },
+  { id: 'pendente', nome: 'A decidir pelo contador' },
+];
 export const SITUACOES: Opcao[] = [
   { id: 'active', nome: 'Ativo' },
   { id: 'inactive', nome: 'Inativo' },
@@ -387,6 +421,7 @@ export function chipsDosFiltros(
   if (f.brand_id) out.push({ chave: 'brand_id', rotulo: `Marca: ${nome(o.marcas, f.brand_id)}` });
   if (f.location_id) out.push({ chave: 'location_id', rotulo: `Local: ${nome(o.locais, f.location_id)}` });
   if (f.active_state) out.push({ chave: 'active_state', rotulo: `Situação: ${nome(SITUACOES, f.active_state)}` });
+  if (f.natureza_fiscal) out.push({ chave: 'natureza_fiscal', rotulo: `Natureza fiscal: ${nome(NATUREZAS_FISCAIS, f.natureza_fiscal)}` });
   if (f.repair_model_id) out.push({ chave: 'repair_model_id', rotulo: `Modelo: ${nome(o.modelos_dispositivo, f.repair_model_id)}` });
   if (f.not_for_selling) out.push({ chave: 'not_for_selling', rotulo: 'Não para venda' });
   if (f.woocommerce_enabled) out.push({ chave: 'woocommerce_enabled', rotulo: 'WooCommerce habilitado' });
