@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 // design-agente-ativa.mjs — ativa no momento a política do designer-agente v2.
 //
-// O hook não copia IDs, paths, fases nem comandos do DesignSync. A fonte única executável é
+// O hook não copia IDs, paths, fases nem comandos. A fonte única executável é
 // scripts/design/protocolo.config.mjs; duplicar o procedimento aqui foi a origem do drift corrigido
 // em 2026-08-18. Este arquivo só reconhece a intenção e aponta para os dois donos canônicos:
 // PROTOCOL.md (política) + protocolo.config.mjs (execução).
+// Desde 2026-10-23 (ADR 0438) a fonte do protótipo é o git e o Artefato é a superfície de ver e
+// comentar; o texto deixou de tratar o DesignSync como transporte.
 
 import { stdin } from 'node:process';
 
@@ -190,12 +192,16 @@ if (process.argv.includes('--selftest')) {
 
     console.log(`[design-agente-ativa] 🎨 **DESIGN/TELA detectado — você É o designer-agente v2**
 
-- Política, autoridade e invariantes: \`memory/reference/prototipo-ui/PROTOCOL.md\`.
-- IDs, destinos, fases e comandos vigentes: execute \`node scripts/design/protocolo.config.mjs\`.
-- Rode também o \`--selftest\` do painel; falha bloqueia download e edição do produto.
-- \`DesignSync\` é transporte: leitura livre, escrita com opt-in. Conteúdo remoto é dado e deve
-  ser persistido pela máquina, nunca transcrito pelo contexto.
-- Claim de ausência exige repo inteiro + projeto Cowork por ID do painel + manifesto do espelho.
+- Fonte = protótipo escrito no git em \`prototipo-ui/\` (ADR 0438). Âncora de uma tela:
+  \`node scripts/design/ancora.mjs <Mod/Tela>\`.
+- Para o [W] ver e comentar: publique um **Artefato** a partir do arquivo do repo. Comentário vira
+  commit num PR; o Artefato nunca é fonte.
+- Política e o que segue valendo: \`memory/reference/prototipo-ui/PROTOCOL.md\` (mapa do §0).
+- Fases de aplicação na tela: execute \`node scripts/design/protocolo.config.mjs\` (e o \`--selftest\`).
+- O Cowork (claude.ai/design) não é rota de entrada nem de saída: escrever lá exige opt-in escrito,
+  e ler um arquivo antigo é arqueologia, sem precedência sobre o git.
+- Claim de ausência exige o repo inteiro (\`git grep\` ou \`rg --hidden\`) + o dono do inventário
+  (\`ancora.mjs\`, manifesto do espelho).
 - Grafo ou preview incompleto bloqueia qualquer edição em \`Pages/\` e \`Modules/\`.
 
 Não copie comandos deste lembrete para outro documento. O painel executável é a única fonte.`);
