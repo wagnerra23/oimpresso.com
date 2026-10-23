@@ -253,6 +253,14 @@ last_run: "2026-10-23"
   série do aparelho onde ela vai; os dois saem na consulta da venda e na garantia. Produto de outro
   tipo não pede nada. O cadastro do produto diz quais modelos usam a pilha
   (Produto/Index.casos.md, mesmo pedido).
+- **[BACKLOG] Montar o kit dentro da venda** (pedido de 2026-10-23) `[V0]` `[E0]` — Aceite: Dado o
+  kit "Cortina completa", Quando o adiciono à venda e escolho os componentes (tecido 4,2 m, trilho 2 m e
+  2 suportes), Então a linha mostra o kit com os componentes e as quantidades, o preço do kit é o da
+  tabela ou a soma dos componentes, conforme o cadastro do kit, e a baixa de estoque sai de cada
+  componente. Trocar um componente refaz o preço e a baixa. Mexe em valor e estoque: Regra Mestre.
+  Hoje o produto do tipo combo (kit) e a composição existem no cadastro
+  (`memory/requisitos/Produto/_telas/bom-combo.casos.md`); a busca da venda reconhece o tipo `combo`,
+  mas não monta os componentes na venda.
 - **[BACKLOG] Emissão NF-e da venda (homolog/stub SEFAZ)** — wire já existe (suítes NfeBrasil); espelhar como UC quando o fluxo de emissão entrar no harness e2e.
 - **[BACKLOG] Fechar o diálogo de rascunho preserva a venda montada** — Dado um rascunho salvo · Quando o operador fecha o diálogo de recuperação SEM escolher (Esc, clique fora) · Então o rascunho **continua** no `localStorage` e a pergunta volta na próxima montagem; só o botão "Descartar" apaga. Exige exercitar `AlertDialog` do Radix no harness e2e (incluindo se `Esc` de fato fecha nesta versão, que não foi verificado). Origem: ROTA LIVRE perdeu venda montada durante janela de 503 do deploy, 2026-08-26.
 

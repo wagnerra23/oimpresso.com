@@ -59,6 +59,11 @@ last_run: "2026-10-06"
   10%, Quando a venda indicada por ela é faturada, Então a comissão da agência nasce sobre o valor
   faturado, separada da do vendedor. Fonte: o representante externo já existe em
   `sales_commission_agents`.
+- [BACKLOG] Percentual de comissão no produto (pedido de 2026-10-23) `[V0]` — Dado o produto
+  "Adesivo recortado" com comissão de 8% e o vendedor com 5%, Quando ele vende esse produto e outro sem
+  percentual, Então a comissão do adesivo usa 8% e a do outro usa 5%. O percentual fica no cadastro do
+  produto. Hoje a comissão é só do comissionado (`users.cmmsn_percent`); o produto não tem o campo.
+  Qual percentual prevalece quando os dois existem é decisão do [W].
 
 ## Trilha do tempo
 - 2026-10-23 · [M+C] Backlog de vendas sem comissionado e de agência como comissionado, sem id.

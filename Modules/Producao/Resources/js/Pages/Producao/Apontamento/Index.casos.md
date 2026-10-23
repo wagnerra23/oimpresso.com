@@ -782,3 +782,13 @@ Status: 🧪
   "instalar no 2º andar, cliente libera o acesso às 8h", Quando a OS do item nasce, Então a instrução
   aparece no apontamento de cada etapa e na ficha impressa, em destaque. Item sem instrução não mostra
   nada. A instrução nasce na venda (Sells/Create.casos.md, mesmo pedido).
+
+## Datas limite da arte, da qualidade e da entrega (pedido de 2026-10-23)
+
+- **[BACKLOG]** A OS tem três datas: arte, qualidade e entrega final — Dado uma venda com entrega
+  final em 30/10, Quando a OS nasce, Então ela traz a data limite para criar a arte (24/10), a data
+  limite para ir ao setor de qualidade (28/10) e a entrega final (30/10); cada data aparece na etapa
+  dela e na ficha impressa, e a etapa que passou da sua data fica marcada como atrasada no apontamento
+  e no Painel. As duas primeiras podem ser mudadas na OS. Hoje a OS tem só o prazo prometido da venda
+  (`pcp_ordens.prazo_prometido`, a entrega final) e o prazo calculado pela fila dos postos
+  (Postos/Index.casos.md, UC-PCPRZ); não há data limite por etapa.
