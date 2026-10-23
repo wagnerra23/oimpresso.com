@@ -26,12 +26,12 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 854,
-    "edges": 1159,
+    "nodes": 856,
+    "edges": 1162,
     "by_node_type": {
       "module": 42,
       "table": 108,
-      "adr": 144,
+      "adr": 146,
       "component": 474,
       "api": 86
     },
@@ -47,7 +47,7 @@
       "delegatesTo": 117,
       "migratesTo": 1,
       "supersedes": 26,
-      "supersedesPartially": 71,
+      "supersedesPartially": 74,
       "supersededBy": 30
     },
     "dangling": 0
@@ -993,6 +993,13 @@
       "exists": true
     },
     {
+      "id": "adr:0412",
+      "type": "adr",
+      "num": "0412",
+      "slug": "0412-retorno-canon-mergeado-ao-cowork-dispensa-opt-in-emenda-0315",
+      "exists": true
+    },
+    {
       "id": "adr:0416",
       "type": "adr",
       "num": "0416",
@@ -1060,6 +1067,13 @@
       "type": "adr",
       "num": "0436",
       "slug": "0436-os-por-item-producao-dona-da-os-do-pedido",
+      "exists": true
+    },
+    {
+      "id": "adr:0438",
+      "type": "adr",
+      "num": "0438",
+      "slug": "0438-artefato-substitui-cowork-como-superficie-do-prototipo",
       "exists": true
     },
     {
@@ -7581,6 +7595,24 @@
     {
       "from": "adr:0436",
       "to": "adr:0431",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0438",
+      "to": "adr:0315",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0438",
+      "to": "adr:0412",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0438",
+      "to": "adr:0433",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
     },
