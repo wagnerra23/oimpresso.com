@@ -502,7 +502,7 @@ lifecycle: ativo
 | `aguardar-deploy.mjs` | ci | 🟢 só lê | — | `memory/governance/shipped/CYCLE-08.md` | espera o 1º deploy CONCLUÍDO (não cancelado) que contenha um commit. |
 | `smoke-bundle.mjs` | ci, script | 🔴 disco | — | `memory/licoes-rejeitadas.md` +2 | o prod serve os assets que ESTE build gerou? |
 
-### 5.8 `scripts/design/` — 25
+### 5.8 `scripts/design/` — 26
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
@@ -518,8 +518,9 @@ lifecycle: ativo
 | `ds-guard.mjs` | ci, script | 🟢 só lê | test | `memory/decisions/0293-governanca-decisao-design-responsavel-registro-veredito.md` +37 | DS-GUARD (defesa tipo-forte) · PROCESSO_MEMORIA_CC.md §8 |
 | `ds-lint-alvos.mjs` | ci, script | 🟢 só lê | — | `memory/reference/prototipo-ui/REGRAS_DS_LINT.md` | serve o `component-registry.json` EM TEMPO DE LINT. |
 | `ds-notas-gerar.mjs` | — | 🟢 só lê | — | — | Gera design-system/components/<Nome>/<Nome>.prompt.md a partir de governance/design/ds-notas-uso.json |
+| `ds-runtime-path.mjs` | ci, script | 🟢 só lê | test | — | onde um artefato de RUNTIME do Design System pousa no cache de preview. |
 | `fingerprint-harness.mjs` | ci, script | 🟢 só lê | — | `memory/proibicoes.md` +5 | Onda 3a do roadmap estado-da-arte (2026-07-08): DRIVER do |
-| `fonte-prototipo.mjs` | agente | 🟢 só lê | — | `memory/decisions/0433-fonte-do-prototipo-passa-ao-git.md` | onde mora a FONTE do protótipo de cada dono (ADR 0433). |
+| `fonte-prototipo.mjs` | — | 🟢 só lê | — | `memory/decisions/0433-fonte-do-prototipo-passa-ao-git.md` | onde mora a FONTE do protótipo de cada dono (ADR 0433). |
 | `gerar-contrato.mjs` | agente, ci, script | 🟢 só lê | — | `memory/requisitos/Sells/vendas-index-gap.md` +31 | W1 do processo região-a-região: deriva o ESQUELETO do |
 | `gerar-map.mjs` | agente, ci, script | 🟢 só lê | — | `memory/requisitos/Financeiro/RUNBOOK-paridade-ondas.md` +59 | deriva o ESQUELETO do <tela>.map.json a partir do <tela>-gap.md. |
 | `gerar-mapas-handoff.js` | — | 🟢 só lê | — | — | (sem descrição no cabeçalho) |
@@ -537,8 +538,8 @@ lifecycle: ativo
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
 | `alvo.mjs` | agente, ci, npm, script | 🔴 disco | — | `memory/governance/shipped/CYCLE-08.md` +3 | PR-A1 do protocolo de export: o ALVO de uma seção vira MEDIDA executável. |
-| `bundle-contract.mjs` | script | 🟢 só lê | — | `memory/decisions/0398-espelho-cowork-recebe-a-arvore-da-conta.md` +6 | Contrato v2 do transporte Design → git. |
-| `bundle-transaction.mjs` | script | 🔴 disco | test | `memory/decisions/0406-o-que-ultimo-importado-decide-emenda-0404.md` +2 | Aplicação transacional de um bundle Design v2. |
+| `bundle-contract.mjs` | script | 🟢 só lê | — | `memory/decisions/0398-espelho-cowork-recebe-a-arvore-da-conta.md` +6 | Contrato do MANIFESTO v2 (`oimpresso-design-manifest/2`) — o que sobrou do transporte. |
+| `bundle-transaction.mjs` | ci, script | 🔴 disco | test | `memory/decisions/0406-o-que-ultimo-importado-decide-emenda-0404.md` +2 | Recibos executáveis por tela (ADR 0384 · emenda 0390) — o que sobrou do bundle-transaction. |
 | `ds-domains-companion.mjs` | agente, ci, script | 🔴 disco | test | `memory/decisions/0389-emenda-0374-escrita-do-espelho-quando-o-get-file-volta-inline.md` +2 | emite o companion `cockpit_domains.css` do espelho Cowork. |
 | `ds-mirror-build.mjs` | agente, script | 🟢 só lê | — | `memory/decisions/0328-ds-transicao-congelado-para-vivo-git-ssot.md` +7 | montador determinístico do colors_and_type.css do espelho a partir do git. |
 | `ds-push.mjs` | ci, npm, script | 🔴 disco | test | `memory/decisions/0335-fechamento-loop-diff-first-ds-sync-nota-honesta.md` +3 | orquestrador determinístico do PUSH git→espelho (passos 1-3 do |
@@ -595,7 +596,7 @@ lifecycle: ativo
 | `ci-steps-falhos.mjs` | ci | 🔴 disco | — | (só sessão/handoff · 1) | escreve no step summary QUAIS steps do job falharam. |
 | `ciclo-completo.mjs` | ci | 🔴 disco | — | `memory/proibicoes.md` +5 | GATE "a tela nasceu (e segue) COMPLETA?" (Constituição UI v2 · UI-0013). |
 | `component-registry-check.mjs` | ci, script | 🟢 só lê | bite-log + test | `memory/decisions/0400-handoff-integrity-required-emenda-0314.md` +19 | sentinela de DRIFT do registro de componentes (Onda O2). |
-| `cowork-mirror-freshness.mjs` | agente, ci, script | 🔴 disco | selftest + test | `memory/decisions/0374-emenda-0315-espelho-cowork-e-rota-prevista.md` +53 | comparador de FRESCOR do espelho Cowork (v2, identidade canônica). |
+| `cowork-mirror-freshness.mjs` | agente, ci, script | 🔴 disco | selftest + test | `memory/decisions/0374-emenda-0315-espelho-cowork-e-rota-prevista.md` +53 | integridade LOCAL do espelho de protótipo (v3, 2026-10-23). |
 | `cowork-ssot-guard.mjs` | ci, script | 🟢 só lê | test | `memory/decisions/0398-espelho-cowork-recebe-a-arvore-da-conta.md` +49 | trava a organização física do protótipo de design. |
 | `criar-tela.mjs` | agente, ci, npm, script | 🔴 disco | — | `memory/decisions/0351-sdd-from-source.md` +32 | GERADOR de tela que NASCE do Padrão de Tela (Constituição UI v2 · UI-0013). |
 | `cron-watchdog.mjs` | agente, ci | 🔴 disco | — | `memory/decisions/0391-regime-de-evolucao-por-loops-blade-fora.md` +27 | G6: heartbeat dos crons de governança (generaliza o auto-canário |

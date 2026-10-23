@@ -8,7 +8,8 @@
  * ledger e cobrava SLA. A ADR 0438 tirou o Cowork do fluxo: a fonte do protótipo é o arquivo do
  * git, e o Artefato é só para ver e comentar. Os modos de frescor saíram na onda 2c-2
  * (--manifest, --compare, --ledger, --sla, --live-only, --sla-live-only, --lista-download,
- * --export-from, --snapshot-from, --check-novos) e o --unverified na 2c-1. Sem modo, sai 2.
+ * --export-from, --snapshot-from, --check-novos) e o --unverified na 2c-1. O --compare-bundle
+ * saiu na 2c-3, com a aplicação de bundle. Sem modo, sai 2.
  *
  * O que FICA é 100% local, sem auth nem rede:
  *   --check-refs     a poda deste PR quebrou o grafo INTERNO do espelho? (deriva do DIFF)
@@ -16,7 +17,6 @@
  *   --absent-local   o shell CARREGA algo que o espelho não tem? (deriva do SHELL)
  *   --css-refs       CSS do design-system aponta para arquivo que não existe?
  *   --preview-ds     repõe as dependências do DS no cache de preview (portão fail-closed)
- *   --compare-bundle espelho × bundle promovido — sai na onda 2c-3, junto com o bundle.
  * --check-refs e --absent-local se completam: apagar o espelho inteiro passa vazio no primeiro
  * (o diff não tem quem carregue) e é pego pelo segundo.
  *
@@ -34,14 +34,12 @@
  *   node scripts/governance/cowork-mirror-freshness.mjs --absent-local
  *   node scripts/governance/cowork-mirror-freshness.mjs --css-refs [--enforce]
  *   node scripts/governance/cowork-mirror-freshness.mjs --preview-ds
- *   node scripts/governance/cowork-mirror-freshness.mjs --compare-bundle [--owner Felipe] [--check]
  */
 
-import { readFileSync, writeFileSync, readdirSync, statSync, existsSync, mkdirSync, mkdtempSync, renameSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, existsSync, mkdirSync, mkdtempSync, renameSync, rmSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { join, dirname, resolve, relative } from 'node:path';
-import { anchorRelPath } from './anchor-content-check.mjs'; // fonte única: como extrair o path do related_prototype
 import { pathsForOwner } from '../design-sync/bundle-transaction.mjs'; // fonte única: onde cada CONTA pousa
 
 const ROOT = process.cwd();
@@ -60,244 +58,6 @@ export function contentHash(bufOrStr) {
   return createHash('sha256').update(normalize(s), 'utf8').digest('hex');
 }
 
-/** Classificação 3-vias (pura, testável) a partir dos dois hashes canônicos. */
-export function classifyMirror({ repoHash, liveHash }) {
-  if (liveHash == null || liveHash === '') return 'LIVE-ABSENT';
-  return repoHash === liveHash ? 'SYNC' : 'STALE';
-}
-
-/** --check só morde em STALE — o único sinal hash-provado de divergência. */
-export function shouldFail(verdicts) {
-  return verdicts.some((v) => v === 'STALE');
-}
-
-/* ═══════════════════════════════════════════════════════════════════════════════════════
- * DEVOLUTIVA DA RECUSA — o que o lado design NÃO tem como saber sozinho
- *
- * POR QUE EXISTE (medido 2026-09-07, no import do ciclo de 07/09): o `exportPlan` acima
- * recusa canon de tela e IMPRIME a lista. Imprimir resolve para quem está olhando o
- * terminal naquele segundo; não resolve para o DESIGN, que é quem produziu o arquivo e
- * quem vai produzi-lo de novo no ciclo seguinte. Naquele import foram 54 recusados, e a
- * sessão (eu) fechou o ciclo sem devolver nada — exatamente o buraco D3/D4 que [W]
- * mandou consertar no mesmo dia.
- *
- * O QUE SÓ ESTE LADO SABE, e é o conteúdo da devolutiva: como o rascunho recusado se
- * compara com o canon VIVO. Medição daquele import, e é o motivo de isto não ser
- * burocracia — 20 charters/casos do Ponto vieram para sobrescrever os do repo, TODOS
- * divergentes e de 3 a 7× MENORES (ex.: `Espelho/Show.casos.md` 2.539 B contra 17.528 B),
- * com `last_run: "—"` contra um canon que registra medição datada. Se a porta tivesse
- * aceitado, teria trocado contrato maduro por esqueleto em silêncio.
- *
- * NÃO É GATE, e não vira: reprovar o design por mandar rascunho puniria o ato de propor.
- * A saída é INFORMAR — e informar com o número do outro lado, que é o que muda a
- * decisão de quem desenha.
- *
- * DERIVADO, não escrito à mão (ADR 0256): o arquivo é REGENERADO a cada export, nunca
- * append. Um registro append de "o que foi recusado" viraria pilha de retratos velhos
- * competindo entre si; o que serve é o retrato de AGORA, com a data da medição.
- *
- * ── HISTÓRICO DE TENTATIVAS (append-only — [W] 2026-09-07: "manter o histórico de
- *    evolução dessas tentativas de todas as máquinas é muito importante") ──────────────
- *
- * 1ª versão (2026-09-07, mesma sessão, REVERTIDA antes do commit): resolvia o alvo pelo
- *   `component:` do frontmatter e comparava BYTES contra ele. Como `component:` aponta o
- *   `.tsx`, a saída comparou um charter de 4.097 B com um componente de 69.748 B e emitiu
- *   veredito "canon mais rico" a partir de grandezas incomensuráveis. Pego no PRIMEIRO
- *   controle positivo, não em revisão — o número saiu plausível, que é como esta classe
- *   atravessa. Conserto: o irmão do `.charter.md` é o `.charter.md` ao lado do componente,
- *   nunca o componente. Pinado pelo assert "IRMÃO, não componente" no teste irmão.
- *
- * 2ª versão (a atual): ao consertar o alvo, apareceu um estado que a 1ª não sabia
- *   representar — tela existe e canon NÃO. Virou `LACUNA-TELA-SEM-CANON`, e é o único
- *   veredito que manda o rascunho ADIANTE em vez de recusá-lo: ali ele não colide com
- *   nada, preenche buraco. Não disparou no corpus de 07/09 (cobertura de charter é
- *   218/218), então é ramo provado por FIXTURE, não por dado real — declarado aqui para
- *   ninguém tratá-lo como medido em produção.
- *
- * 3ª versão (2026-09-08, defeito descoberto no PR #6990): o `exportPlan`/devolutiva não mudou — mudou QUANDO o
- *   arquivo é APAGADO. A 2ª versão removia a devolutiva em toda rodada sem recusa, e um
- *   pouso de UM `.md` avulso apagou o retrato de 54 recusados de 07/09. O erro não estava
- *   no `rmSync`: estava em tratar o universo da RODADA como universo GLOBAL. Agora a
- *   rodada que não pode provar que o retrato acabou o PRESERVA e diz de quando ele é; o
- *   descarte é `--limpar-devolutiva`, declaração do operador. O teste de cobertura que
- *   pareceria a saída certa foi medido e é insatisfazível (ver o bloco no call site).
- *
- * O QUE NÃO SE TENTOU, e por quê: transformar a recusa em GATE. Reprovar o design por
- *   mandar rascunho puniria o ato de propor, e o §5 tem 4 lápides de guard sintático que
- *   reprovava trabalho legítimo. A recusa já existia e funcionava; o que faltava era o
- *   retorno.
- * ═══════════════════════════════════════════════════════════════════════════════════════ */
-
-/** Caminho canônico de um artefato de RUNTIME do Design System dentro do snapshot.
- *  O get_file pode devolver `_ds/<slug>/...`; o shell já escolhe o slug no destino,
- *  portanto persistir esse prefixo de novo criaria `_ds/<slug>/_ds/<slug>/...`.
- *  Template/componente-fonte não entra neste destino: usa `--ds`, não `--ds-runtime`. */
-const DS_RUNTIME_RE = /^(?:_ds_bundle\.js|colors_and_type\.css|cockpit_domains\.css|styles\.css|assets\/)/;
-
-export function dsRuntimeRelPath(path) {
-  const p = String(path || '').replace(/\\/g, '/').replace(/^\.\//, '');
-  const inseguro = (rel) => !rel || rel.startsWith('/') || rel.split('/').includes('..');
-  // DUAS FORMAS de bind, e as duas são legítimas (medido 2026-09-17, PR-A9):
-  //   Wagner  `_ds/<slug>/colors_and_type.css`   — o bind carimba o slug do projeto DS
-  //   Felipe  `_ds/colors_and_type.css`          — bind sem slug; `Felipe/venda-v3/index.html`
-  //                                                 carrega assim nas linhas 38, 39 e 64
-  // Antes só a 1ª resolvia: o regex exige DUAS barras, então o caminho sem slug não casava,
-  // caía na whitelist com o prefixo `_ds/` intacto e dava `throw`. `slug: null` é forma
-  // legítima do outro dono, não erro.
-  //
-  // ORDEM: tenta COM slug primeiro (preserva o comportamento de quem já funcionava) e cai pra
-  // SEM slug — mas cada tentativa só vale se o resultado BATER a whitelist. Isso não é detalhe:
-  //   `_ds/assets/fonts/a.woff2`        com-slug daria `fonts/a.woff2` (não bate) ⇒ cai pro
-  //                                     sem-slug e resolve `assets/fonts/a.woff2`. Correto.
-  //   `_ds/assets/colors_and_type.css`  AMBÍGUO de verdade: as duas leituras batem
-  //                                     (`colors_and_type.css` × `assets/colors_and_type.css`).
-  //                                     Com-slug vence, por regra declarada — nunca por acaso.
-  // Os dois casos estão no teste do dono; sem eles a ordem viraria detalhe de implementação.
-  const comSlug = p.replace(/^_ds\/[^/]+\//, '');
-  if (comSlug !== p && !inseguro(comSlug) && DS_RUNTIME_RE.test(comSlug)) return comSlug;
-
-  const semSlug = p.replace(/^_ds\//, '');
-  if (semSlug !== p && !inseguro(semSlug) && DS_RUNTIME_RE.test(semSlug)) return semSlug;
-
-  const candidato = comSlug !== p ? comSlug : semSlug;
-  if (inseguro(candidato)) throw new Error(`ds-runtime: caminho inseguro "${path}"`);
-  throw new Error(`ds-runtime: "${path}" não é bundle/CSS/asset de runtime; use --ds para fonte/template`);
-}
-
-// ── ROTEAMENTO DO BUNDLE — fonte ÚNICA da regra "onde cada path do bundle pousa" ──────
-// Vivia SÓ dentro do `aplicar-payload.mjs`. Passou pra cá porque o `--compare-bundle`
-// (abaixo) precisa da MESMA regra pra saber ONDE conferir cada arquivo, e duas cópias da
-// mesma regra é o vetor do §5 2026-08-02 (corrigir uma implementação e a outra seguir
-// errada). O applier importa daqui — a direção do import já existia (`dsRuntimeRelPath`).
-// Retorna sempre com '/' — quem precisa de separador de plataforma usa join() no consumidor.
-// ── 2026-09-13 · o `.md` deixou de ter destino PRÓPRIO (decisão [W]) ────────────────────
-// Havia aqui uma perna que mandava todo `.md` pra `…/Wagner/handoffs/<p>` enquanto o irmão
-// `.jsx` da MESMA pasta ia pra `…/Wagner/<p>`. Efeito: uma pasta do Cowork chegava partida em
-// duas, por extensão — `cowork-inbox/ancora/playbook/00-INDICE.md` num lugar e o payload
-// `.mjs` ao lado dele noutro. Isso é a desorganização que [W] nomeou ("deve ser igual ao
-// cowork … facilita muito mais na importação ou leitura lá").
-// A perna também era CÓDIGO MORTO: o `aplicar-payload` recusava `.md` antes de chegar aqui, e
-// a R3 do `cowork-ssot-guard` reprovava `.md` aninhado em `handoffs/` — ou seja, ela roteava
-// pra um destino que o guard proibia. Tirar a perna unifica a árvore e mata a contradição.
-export function destinoDoBundle(rel, owner = 'Wagner') {
-  const p = String(rel || '').split(String.fromCharCode(92)).join('/').replace(/^\.\//, '');
-  if (p.startsWith('_ds/')) return { destinoBase: 'prototipo-ui/design-system', destinoPath: dsRuntimeRelPath(p) };
-  return { destinoBase: pathsForOwner(owner).cowork, destinoPath: p };
-}
-
-/** sha256 do buffer CRU — a mesma conta que o `gerar-payload-partes` faz do lado do vivo.
- *  NÃO é o contentHash: aquele normaliza (BOM/CRLF/newline final) e serve à comparação com
- *  o `get_file`. Misturar os dois daria STALE em 100% dos arquivos com CRLF, e o número
- *  sairia plausível — o pior tipo de erro. Bruto compara com bruto, e só. */
-export function rawHash(buf) {
-  return createHash('sha256').update(buf).digest('hex');
-}
-
-/** Rows do `--compare-bundle` (PURA — recebe o leitor de arquivo, não toca fs direto).
- *
- *  ── POR QUE ISTO NÃO É TAUTOLOGIA (a pergunta que mata instrumentos, §5 2026-07-17) ──
- *  O `liveHash` NÃO sai do espelho: sai do `bundle.manifest.json`, que o
- *  `gerar-payload-partes` calculou do LADO DO VIVO, arquivo por arquivo, antes do transporte.
- *  O `repoHash` sai do disco AGORA. São duas origens independentes, e é por isso que o
- *  veredito significa algo: ele pega o espelho editado À MÃO depois da aplicação — que é
- *  exatamente o remendo de 2026-08-13 que passou 4 dias sem ninguém ver.
- *
- *  ── O QUE ELE **NÃO** PROVA, e o instrumento diz isso em voz alta ────────────────────
- *  Prova igualdade com o vivo **na data de emissão do bundle**, nunca "agora". Bundle de
- *  ontem + tela mexida no Cowork hoje = SYNC honesto aqui e desatualizado no mundo. Por isso
- *  a entrada de ledger é datada com o `generatedAt` do BUNDLE, não com `Date.now()`:
- *  carimbar a hora da leitura faria o SLA acreditar num frescor que ninguém mediu.
- */
-export function rowsDoBundle(bundle, manifest, lerArquivo, owner = 'Wagner') {
-  const rows = [];
-  const cobertos = new Set();
-  // O espelho tem DOIS donos (Wagner/Felipe) e `pathsForOwner` é o único que sabe onde cada
-  // conta pousa. Até 2026-09-17 esta base era o literal `.../Wagner`: lote do Felipe pousava
-  // em `.../Felipe/`, TODO arquivo era lido do path errado e o veredito saía STALE pra tudo
-  // (medido: sync 0 · stale 2 num lote de 2). Falso-vermelho é pior que alarme ausente.
-  const coworkBase = pathsForOwner(owner).cowork;
-  // PR-A9 — com `transforms`, o que POUSA não é o que VIAJOU: a ref do DS é convertida na
-  // aterrissagem. O `sha256` do manifesto descreve o PAYLOAD (pré-transform); o que está no disco
-  // é o pós. Comparar contra o `sha256` marcaria o host STALE em 100% dos ciclos — e aí este
-  // alarme, que é o ÚNICO que pega remendo à mão no espelho, morreria de ruído.
-  // Por isso o gerador declara `shaDepois` por arquivo tocado: é contra ele que se compara.
-  const shaPosTransform = new Map((bundle?.transforms || []).map((t) => [t.path, t.shaDepois]));
-  for (const f of (bundle?.files || [])) {
-    const { destinoBase, destinoPath } = destinoDoBundle(f.path, owner);
-    // O universo do freshness é o espelho DO DONO (`prototipo-ui/cowork/<owner>/`). `_ds/**` pousa
-    // em outro destino e NÃO entra no denominador — contá-los inflaria a cobertura com
-    // arquivos que o --compare nunca mediu (§5 2026-07-27: denominador é o executável).
-    if (destinoBase !== coworkBase) continue;
-    cobertos.add(destinoPath);
-    const buf = lerArquivo(destinoBase + '/' + destinoPath);
-    rows.push({
-      cowork: destinoPath,
-      repoHash: buf == null ? null : rawHash(buf),
-      // FAIL-CLOSED: arquivo do bundle que sumiu do espelho não é SYNC nem silêncio.
-      veredito: buf == null ? 'STALE' : classifyMirror({ repoHash: rawHash(buf), liveHash: shaPosTransform.get(f.path) || f.sha256 }),
-    });
-  }
-  // O que o espelho tem e o bundle NÃO cobriu segue UNCHECKED — nunca vira SYNC por omissão
-  // (LC-13: "0 failed" numa suíte que não rodou). É o mesmo contrato do --compare.
-  for (const m of manifest) {
-    if (!cobertos.has(m.cowork)) rows.push({ cowork: m.cowork, repoHash: m.repoHash, veredito: 'UNCHECKED' });
-  }
-  return rows;
-}
-
-// ── LEDGER + SLA (a metade que o CI headless PODE checar com honestidade) ─────
-// O CI não lê o Cowork vivo (auth interativa). Então o CI NÃO mede frescor — mede se a
-// ROTINA de dispatch rodou dentro do SLA e qual foi o último resultado. Ledger datado,
-// append-only, commitado: prova > promessa (session 2026-07-06-arte-design-code-sync-frescor).
-export const LEDGER_REL = 'scripts/governance/.cowork-freshness-ledger.json';
-
-/** Bundle promovido (`state/active-bundle.json`) — leitor ÚNICO. Ausente/ilegível → null,
- *  nunca objeto vazio: "não consegui ler" não pode virar "não tem nada" (§5 2026-07-29). */
-export function lerBundlePromovido(root = ROOT, rel = 'scripts/design-sync/state/active-bundle.json') {
-  const p = join(root, rel);
-  if (!existsSync(p)) return null;
-  try { return JSON.parse(readFileSync(p, 'utf8')); } catch { return null; }
-}
-
-/** Entrada de ledger (pura, testável) a partir das rows do --compare. */
-export function ledgerEntry(rows, dateIso, meta = {}) {
-  const n = (v) => rows.filter((r) => r.veredito === v).length;
-  const e = {
-    date: dateIso,
-    files: rows.length,
-    sync: n('SYNC'),
-    stale: n('STALE'),
-    liveAbsent: n('LIVE-ABSENT'),
-    unchecked: n('UNCHECKED'),
-    staleList: rows.filter((r) => r.veredito === 'STALE').map((r) => r.cowork),
-    // QUAIS arquivos esta rodada de fato PROVOU idênticos ao vivo. Sem esta lista o ledger
-    // sabe "21 sync" mas não sabe 21 de QUEM — e aí não há como responder a pergunta que o
-    // remendo à mão de 2026-08-13 escapou por 4 dias: "este arquivo mudou DEPOIS da última
-    // vez que alguém provou que ele bate com o vivo?". É o insumo do `--unverified`.
-    // path + HASH. Só o path não basta: merge/squash/rebase reescrevem a data de commit de
-    // todo arquivo tocado sem mudar um byte, e um detector que compara só DATAS acusa isso como
-    // "mexido à mão". Medido 2026-08-17: o squash do #5854 (12:10:47) gerou 6 falsos-positivos
-    // sobre arquivos verificados 10min antes (12:00:45). Com o hash, "commitou depois" só vira
-    // achado quando o CONTEÚDO também mudou.
-    verified: rows.filter((r) => r.veredito === 'SYNC').map((r) => r.cowork),
-    verifiedHash: Object.fromEntries(rows.filter((r) => r.veredito === 'SYNC').map((r) => [r.cowork, r.repoHash])),
-  };
-  // `stale` conta o que DIVERGE AGORA. Numa rodada cujo snapshot veio de `--export-from`,
-  // isso é sempre 0 por construção — o export consertou antes de medir. `stalePreExport`
-  // é o número que responde "o espelho drifta com que frequência?", que é o que a ADR 0324
-  // precisa do ledger. Sem ele a série histórica só sabe dizer 0 e vira carimbo.
-  if (meta.origin) e.origin = meta.origin;
-  // ADR 0389: escrita inline DECLARADA (--origem agente). Viaja pro ledger pra que a rodada
-  // não se passe por export de saída persistida — a mentira, se houver, fica datada aqui.
-  if (meta.origemDeclarada) e.origemDeclarada = meta.origemDeclarada;
-  // Qual projeto do Claude Design foi lido de volta (`pendentes-cowork --conferir --projeto`).
-  // Desde 2026-09-29 o git é a fonte e há 2 projetos sincronizados a partir dele ([W]: "a
-  // maiara deveria poder fazer isso"): a prova pode vir do `w` OU do `copia`, e o ledger
-  // guarda de qual — sem campo = rodada anterior a isto, sempre do `w`.
-  if (meta.projetoCowork) e.projetoCowork = meta.projetoCowork;
-  if (typeof meta.stalePreExport === 'number') e.stalePreExport = meta.stalePreExport;
-  return e;
-}
 
 /** Extrai as DEPS DE RENDER dos src/href de um shell HTML (pura, testável — LC-07).
  *  Regras: strip query/hash (`app.jsx?v=eb2` → `app.jsx`, o cache-bust do exportador) ·
@@ -367,66 +127,6 @@ export function absentLocal(shellHtml, root = ROOT) {
   return { faltando: ausentes.filter((d) => !ignorados.includes(d)), ignorados };
 }
 
-/** Enumera os arquivos-âncora do espelho, keyed por PATH RELATIVO COMPLETO (nunca basename)
- *  + as DEPS DE RENDER do shell (LC-07). `kind`: 'ancora' (tem tela de charter) | 'dep'.
- *  Mesmo conjunto de âncoras que o anchor-content-check enxerga (reusa anchorRelPath). */
-export function buildManifest(root = ROOT, { all = false, shellHtml = null, universo = 'frescor', owner = 'Wagner', extras = [] } = {}) {
-  const PAGES = join(root, 'resources', 'js', 'Pages');
-  // A raiz do espelho é a do DONO: manifesto do Felipe lido da árvore do Wagner devolveria
-  // UNCHECKED pra arquivos de OUTRA conta — denominador de outro universo (§5 2026-07-27).
-  const COWORK = join(root, ...pathsForOwner(owner).cowork.split('/'));
-  const seen = new Map(); // relPath → { cowork, repoPath, repoHash, telas }
-
-  const add = (relPath, telas) => {
-    const abs = join(COWORK, relPath);
-    if (!existsSync(abs)) return; // âncora sumida é território do anchor-content (MISSING)
-    // `_ds/` é BUILD DE PREVIEW (o --preview-ds cria, o .gitignore exclui). Deixá-lo entrar
-    // fazia o denominador do --sla variar por MÁQUINA: 124 aqui, 122 num clone limpo — e o
-    // "mediu 2/124" publicado não era propriedade do repo (§5 2026-07-27, denominador que
-    // nenhuma decisão estabeleceu). Achado do adversário 2026-08-13, reproduzido: escondi os
-    // 2 arquivos e o manifesto caiu 124→122. O universo é o que o GIT versiona.
-    if (relPath.startsWith('_ds/')) return;
-    if (!seen.has(relPath)) {
-      seen.set(relPath, {
-        cowork: relPath,
-        repoPath: `prototipo-ui/cowork/Wagner/${relPath}`,
-        repoHash: contentHash(readFileSync(abs)),
-        telas: [],
-      });
-    }
-    for (const t of telas) if (!seen.get(relPath).telas.includes(t)) seen.get(relPath).telas.push(t);
-  };
-
-  if (all) {
-    walkRel(COWORK, COWORK, [], universo).forEach((rel) => add(rel, []));
-  }
-  for (const charter of walkCharters(PAGES)) {
-    const t = readFileSync(charter, 'utf8');
-    const m = t.match(/^related_prototype:\s*(.+)$/m);
-    if (!m) continue;
-    let rel = anchorRelPath(m[1].trim());
-    if (!rel) continue; // prosa não-resolvível — mesmo escopo que o anchor-content pula
-    if (rel.startsWith('Felipe/')) continue; // outro dono/conta, fora do projeto Cowork Wagner
-    if (rel.startsWith('Wagner/')) rel = rel.slice('Wagner/'.length);
-    const tela = charter.slice(PAGES.length + 1).split('\\').join('/').replace(/\.charter\.md$/, '');
-    add(rel.split('\\').join('/'), [tela]);
-  }
-  // DEPS DE RENDER (LC-07): derivadas do shell, nunca curadas na mão. Dep que não existe
-  // no espelho fica FORA daqui — mas NÃO some mais em silêncio: `absentLocal()` a reporta
-  // (era o buraco que deixou a fiação nova conviver com componente ausente, 2026-08-13).
-  if (shellHtml) for (const dep of parseShellDeps(shellHtml)) add(dep, []);
-  // O SHELL entra no próprio manifesto quando versionado: ele é a fiação, e fiação que não
-  // é medida é a doença nº1. Assim, [W] mexer no shell do Cowork vira STALE na próxima rodada.
-  add('oimpresso.com.html', []);
-  // EXTRAS (2026-09-30): paths que o CHAMADOR leu de volta e quer provar, fora do universo de
-  // frescor. Existe por causa do `pendentes-cowork --conferir` — ver `--incluir-lidos` no CLI.
-  // Passam pelo mesmo `add`: arquivo ausente do espelho e `_ds/` continuam fora.
-  for (const rel of extras) add(rel, []);
-  return [...seen.values()]
-    .map((e) => ({ ...e, kind: e.telas.length ? 'ancora' : 'dep' }))
-    .sort((a, b) => a.cowork.localeCompare(b.cowork));
-}
-
 /** Shell default. Ordem: (1) o VERSIONADO no espelho; (2) o staging fixo de handoff.
  *  Null se não houver — o CLI avisa em vez de omitir em silêncio.
  *
@@ -459,54 +159,6 @@ export function defaultShellPath(root = ROOT, owner = 'Wagner') {
   // estava congelado em 01/jul e conhecia 103 deps quando o vivo já tinha 120.
   // Sem shell no espelho, o certo é dizer que não há — não achar um velho fora do git.
   return null;
-}
-
-function walkCharters(dir, acc = []) {
-  if (!existsSync(dir)) return acc;
-  for (const e of readdirSync(dir)) {
-    const f = join(dir, e);
-    if (statSync(f).isDirectory()) walkCharters(f, acc);
-    else if (f.endsWith('.charter.md')) acc.push(f);
-  }
-  return acc;
-}
-
-/** Anda o espelho devolvendo PATHS RELATIVOS (v1 devolvia basenames — arquivos homônimos em
- *  subdirs sumiam do --all; v2 preserva a identidade).
- *
- *  ⚠️ O ESPELHO TEM DOIS UNIVERSOS, e confundi-los foi um defeito medido (2026-09-16):
- *
- *    `universo: 'frescor'` (default) — O QUE PODE SER COMPARADO com o vivo. Filtra por
- *      extensão de build porque o `--compare` casa hash arquivo-a-arquivo contra o que o
- *      `get_file`/bundle traz; `.php`/`.json` de pedido não têm contraparte a comparar.
- *      (`css|js` entraram em 2026-07-07, LC-07: o `--all` era cego pra folha de estilo, o
- *      vetor exato do drift de design.)
- *
- *    `universo: 'conteudo'` — O QUE O ESPELHO CONTÉM, sem filtro. É o universo do `liveOnly`,
- *      cuja pergunta é de CONTINÊNCIA (*"isto já desceu?"*), não de frescor.
- *
- *  Por que a distinção é defeito e não preciosismo, contado no espelho de 675 arquivos: com o
- *  filtro de frescor o manifesto tem **290** entradas e **0** de `cowork-inbox/` — uma
- *  subárvore de **378** arquivos (87% `.md`). Para ela o `liveOnly` não distinguia PRESENTE de
- *  AUSENTE: classificava **327** paths como *"existe no vivo e NUNCA desceu"* quando estavam
- *  versionados ali, a um `existsSync` de distância. Com `'conteudo'` isso vai a **0**.
- *
- *  ⚠️ Alinhar o filtro de frescor ao `roleForPath` do `bundle-contract` foi TENTADO primeiro e
- *  MEDIDO: leva o manifesto a 633 (336 de `cowork-inbox/`) e derruba os falso-ausentes de 327
- *  para **38** — mas os 38 seguem no disco, logo continuam falsos, só em menor número. O
- *  predicado do contrato responde *"isto é material de bundle?"*, que é a pergunta do frescor;
- *  continência é `existsSync`. Trocar de filtro não conserta conflação de pergunta.
- */
-function walkRel(base, dir = base, acc = [], universo = 'frescor') {
-  if (!existsSync(dir)) return acc;
-  for (const e of readdirSync(dir)) {
-    const f = join(dir, e);
-    if (statSync(f).isDirectory()) walkRel(base, f, acc, universo);
-    else if (universo === 'conteudo' || /\.(jsx|html|css|js)$/i.test(e)) {
-      acc.push(f.slice(base.length + 1).split('\\').join('/'));
-    }
-  }
-  return acc;
 }
 
 // ── PREVIEW-DS: o espelho é versionado, mas NÃO RENDERIZA sozinho (2026-08-13) ────
@@ -730,8 +382,7 @@ export function materializePreviewDs(plano) {
   }
 }
 
-/** Imprime o ABSENT-LOCAL. Não afeta o exit code: `shouldFail()` morde SÓ em STALE, que é o
- *  sinal hash-provado — isso é comportamento DESTE script, provado no self-test, não promessa.
+/** Imprime o ABSENT-LOCAL. Não decide o exit code: quem reprova é o modo `--absent-local`.
  *  Se esta lane bloqueia merge ou não, quem sabe é `governance/required-checks-baseline.json`
  *  (dono único, vigiado por `protection-drift.mjs`): script não afirma o próprio enforcement
  *  em presente (LC-10). Desenho de nascimento em ADR 0275; promoção por mordida em ADR 0336.
@@ -753,7 +404,7 @@ function reportAbsentLocal(shellHtml, stream = process.stdout) {
     `\n  ⛔ ausentes: ${faltando.length} · ⬜ ignorados por design: ${ignorados.length}\n` +
     (faltando.length
       ? `  O que falta se escreve no git, como qualquer protótipo (ADR 0438 D1): crie o arquivo no espelho\n` +
-        `  ou tire a referência do shell.\n  (não muda o exit code: o --check morde só em STALE)\n`
+        `  ou tire a referência do shell.\n`
       : `  ✓ toda dep do shell existe no espelho.\n`),
   );
 }
@@ -902,19 +553,14 @@ function main() {
   // Teste deste script vive no IRMÃO `cowork-mirror-freshness.test.mjs` (wirado em
   // design-memory-gate.yml:239) — que já cobria 9 funções puras. Em 2026-08-11 eu cheguei a
   // escrever um `--selftest` embutido aqui e o REMOVI: seria um 2º dono do mesmo teste, que é
-  // o anti-padrão que este repo cataloga (§5 "duplica régua consolidada" · LC-19). As funções
-  // novas (liveOnly · exportPlan) foram para o irmão.
+  // o anti-padrão que este repo cataloga (§5 "duplica régua consolidada" · LC-19).
 
   // --absent-local: "o shell CARREGA e o espelho NÃO TEM?" — o 4º flanco do cabeçalho, que até
-  // aqui era MEDIDO e INCAPAZ DE REPROVAR: `reportAbsentLocal` só imprime, e o exit code do
-  // --manifest vem do `shouldFail()`, que morde SÓ em STALE. Gate mudo com cara de cobertura.
+  // 2026-08-14 era MEDIDO e INCAPAZ DE REPROVAR: `reportAbsentLocal` só imprimia. Gate mudo com
+  // cara de cobertura.
   //
-  // 100% LOCAL — lê o shell do próprio espelho, zero DesignSync — e por isso É gateável, ao
-  // contrário do --compare/--live-only, que precisam da auth interativa (ADR 0315). A ressalva
-  // do cabeçalho ("rotina de dispatch logado, não gate") vale pro flanco que fala com o VIVO;
-  // este não fala. Responde literalmente "pegou todos os componentes, subpáginas, CSS e JS?"
-  // ([W] 2026-08-14). NÃO substitui o --live-only: aquele vê o que NUNCA desceu; este vê o que
-  // o shell precisa e não está — universos diferentes (LIVE-ONLY, §5 2026-08-11).
+  // 100% LOCAL — lê o shell do próprio espelho, sem rede — e por isso é gateável. Responde
+  // "pegou todos os componentes, subpáginas, CSS e JS?" ([W] 2026-08-14).
   if (argv.includes('--absent-local')) {
     const shellHtml = lerShellHtml();
     if (!shellHtml) {
@@ -1064,74 +710,6 @@ function main() {
     process.exit(1);
   }
 
-  // --compare-bundle [<manifest.json>] [--owner <Wagner|Felipe>] [--check] [--ledger]: veredito
-  // a partir do BUNDLE v2
-  // já promovido, em vez de N chamadas `DesignSync.get_file`.
-  //
-  // POR QUE EXISTE (2026-09-08, [W] "estende o freshness pro bundle"): a rota PRINCIPAL de
-  // conteúdo virou o bundle (gerar-payload-partes -> aplicar-payload, removidos em 2026-10-23), que confere bytes
-  // por arquivo antes de escrever. Mas o ledger só aceitava snapshot vindo de `get_file` por
-  // path — então aplicar o bundle com fidelidade provada NÃO movia o `unchecked`, e fechar
-  // 273 arquivos custava 273 chamadas. Medido nesse dia: bundle promovido, espelho idêntico
-  // (0 mudança), e o --sla continuava dizendo "271 sem veredito". As duas metades do mesmo
-  // sistema não se falavam.
-  //
-  // NÃO é atalho pra medir o vivo: o `liveHash` é o sha256 que o gerador calculou DO VIVO
-  // antes do transporte. O que este modo NÃO faz é ir ao Cowork agora — e por isso a entrada
-  // é datada com o `generatedAt` do bundle. Bundle velho => rodada velha => o --sla cobra.
-  if (argv.includes('--compare-bundle')) {
-    const bi = argv.indexOf('--compare-bundle');
-    const alt = argv[bi + 1] && !argv[bi + 1].startsWith('--') ? argv[bi + 1] : null;
-    // --owner <Wagner|Felipe>: QUAL espelho medir. Sem isto o modo lia o disco do Wagner
-    // para qualquer lote, e o do Felipe nunca teve medição de frescor nenhuma.
-    // `pathsForOwner` é o dono da regra e já recusa dono inválido — fail-closed de graça.
-    const oi = argv.indexOf('--owner');
-    const owner = oi === -1 ? 'Wagner' : argv[oi + 1];
-    let ownerPaths;
-    try { ownerPaths = pathsForOwner(owner); }
-    catch (e) { console.error(`✗ --compare-bundle: ${e.message}`); process.exit(2); }
-    // Cada conta tem seu PRÓPRIO estado (ADR 0405 §"Wagner conserva state/, Felipe recebe
-    // state/Felipe/"): ler o active-bundle do Wagner para medir
-    // o espelho do Felipe compararia um espelho contra o bundle de outra conta.
-    const bundleRel = `${ownerPaths.state}/active-bundle.json`;
-    const bundle = alt
-      ? (existsSync(alt) ? JSON.parse(readFileSync(alt, 'utf8')) : null)
-      : lerBundlePromovido(ROOT, bundleRel);
-    // FAIL-CLOSED: sem bundle não há liveHash, logo não há veredito — nunca verde por ausência.
-    if (!bundle || !Array.isArray(bundle.files) || bundle.files.length === 0) {
-      console.error(`✗ --compare-bundle: bundle promovido ausente ou ilegível (${bundleRel}). O applier do bundle saiu em 2026-10-23 (ADR 0438); este modo sai na onda 2c-3.`);
-      process.exit(2);
-    }
-    const manifestB = buildManifest(ROOT, { all: false, shellHtml: lerShellHtml(ROOT, owner), owner });
-    const ler = (relPath) => { const p = join(ROOT, relPath); return existsSync(p) ? readFileSync(p) : null; };
-    const rows = rowsDoBundle(bundle, manifestB, ler, owner);
-    const conta = (v) => rows.filter((r) => r.veredito === v).length;
-    const nSync = conta('SYNC'), nStale = conta('STALE'), nUnch = conta('UNCHECKED');
-    const dataBundle = bundle.generatedAt || null;
-    console.log(`\n  COMPARE-BUNDLE — espelho de ${owner} × bundle ${String(bundle.bundleId || '').slice(0, 16)} (emitido ${dataBundle || '?'})\n`);
-    console.log(`  ✓ sync: ${nSync} · ⛔ stale: ${nStale} · ⬜ unchecked: ${nUnch}  (de ${rows.length})`);
-    for (const r of rows.filter((x) => x.veredito === 'STALE')) console.log(`     ⛔ STALE  ${r.cowork}`);
-    // O superlativo só fala do MEDIDO, e o denominador anda junto (LC-13 · §5 2026-08-13).
-    console.log(nUnch === 0
-      ? `\n  Cobertura TOTAL do espelho por este bundle.`
-      : `\n  ⚠️ COBERTURA PARCIAL — ${nUnch} arquivo(s) do espelho não estão no bundle: seguem SEM VEREDITO.`);
-    console.log(`  ⚠️ Isto prova igualdade com o vivo NA DATA DE EMISSÃO (${dataBundle || '?'}), não "agora".\n`);
-    if (argv.includes('--ledger')) {
-      if (!dataBundle) {
-        console.error('✗ --ledger recusado: bundle sem `generatedAt`. Datar a rodada com a hora da LEITURA faria o SLA acreditar num frescor que ninguém mediu.');
-        process.exit(2);
-      }
-      const lp = join(ROOT, LEDGER_REL);
-      let entries = [];
-      try { entries = existsSync(lp) ? JSON.parse(readFileSync(lp, 'utf8')) : []; } catch { entries = []; }
-      if (!Array.isArray(entries)) entries = entries.runs || [];
-      entries.push(ledgerEntry(rows, dataBundle, { origin: `bundle:${String(bundle.bundleId || '').slice(0, 16)}` }));
-      writeFileSync(lp, JSON.stringify(entries, null, 2) + '\n');
-      console.log(`  ledger: rodada registrada em ${LEDGER_REL} (origin=bundle, datada de ${dataBundle}). Commite o ledger.\n`);
-    }
-    if (argv.includes('--check') && shouldFail(rows.map((r) => r.veredito))) process.exit(1);
-    return;
-  }
 
   // --css-refs: todo `url()`/`@import` do CSS do espelho resolve pra arquivo que existe?
   // Herda o papel que morreu junto com o `--preview-ds` (ver docblock de `cssRefsMortas`).
@@ -1257,9 +835,10 @@ function main() {
 
   // Sem modo reconhecido: os modos de FRESCOR contra o Cowork (--manifest, --compare, --ledger,
   // --sla, --live-only, --sla-live-only, --lista-download, --export-from, --snapshot-from,
-  // --check-novos) saíram em 2026-10-23 com a ADR 0438 (onda 2c-2): a fonte do protótipo é o git.
+  // --check-novos) saíram em 2026-10-23 com a ADR 0438 (onda 2c-2), e o --compare-bundle na 2c-3:
+  // a fonte do protótipo é o git.
   // Cair aqui é uso errado, e sai 2 — nunca 0, que leria como "medi e está tudo bem" (§5 2026-07-29).
-  console.error('uso: cowork-mirror-freshness.mjs --check-refs | --check-orfaos | --absent-local | --css-refs | --preview-ds | --compare-bundle');
+  console.error('uso: cowork-mirror-freshness.mjs --check-refs | --check-orfaos | --absent-local | --css-refs | --preview-ds');
   console.error('     (os modos de frescor contra o Cowork saíram em 2026-10-23, ADR 0438)');
   process.exit(2);
 }

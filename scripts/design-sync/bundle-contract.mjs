@@ -1,16 +1,17 @@
 // @ts-check
 /**
- * Contrato v2 do transporte Design → git.
+ * Contrato do MANIFESTO v2 (`oimpresso-design-manifest/2`) — o que sobrou do transporte.
  *
- * O manifesto descreve o ESTADO-ALVO inteiro; as partes carregam somente os bytes novos ou
- * modificados. Cada parte repete a identidade do lote e a quantidade total de partes, portanto
- * qualquer subconjunto (inclusive sem a part01) é recusado antes de tocar o espelho.
+ * Até 2026-10-23 este arquivo também validava as PARTES do bundle que vinham do Cowork. A ADR
+ * 0438 tirou a aplicação de bundle (onda 2c-3), e com ela `validateBundleParts`, os digests de
+ * lote e a troca de ref do DS. Fica o manifesto: o `state/active-bundle.json` ainda é o
+ * denominador de telas do relatório de recibos (`bundle-transaction.mjs`), e ele precisa ser
+ * validado ao ler e construído nas fixtures de teste.
  */
 import { createHash } from 'node:crypto';
 import { normalizePayloadPath } from './payload-dependency-graph.mjs';
 
 export const MANIFEST_SCHEMA = 'oimpresso-design-manifest/2';
-export const BUNDLE_SCHEMA = 'oimpresso-design-bundle/2';
 /**
  * FONTE ÚNICA de "que extensão é conteúdo do espelho Cowork".
  *
@@ -118,21 +119,6 @@ export function normalizeDsRequires(dsRequires) {
   return { owner, slug, arquivos };
 }
 
-/**
- * Aplica UMA regra `ds-ref`: troca `de` por `para` so quando e o VALOR de `href="`/`src="`.
- *
- * FONTE UNICA da conversao — o gerador calcula `shaDepois` com ela e o aplicador escreve com
- * ela. Medido 2026-09-21: o gerador usava regex ancorada em href/src e o aplicador fazia
- * `split(de).join(para)` no texto INTEIRO. Qualquer arquivo que citasse o `_ds/<slug>/` fora de
- * atributo (ternario de fallback, comentario) pousaria com sha != `shaDepois` e o lote seria
- * recusado. Sem regex de proposito: nada de barra invertida pra colapsar no transporte (LC-26).
- */
-export function aplicarRefDs(texto, de, para) {
-  let out = String(texto);
-  for (const attr of ['href="', 'src="']) out = out.split(attr + de).join(attr + para);
-  return out;
-}
-
 /** Normaliza `transforms`: paths POSIX, sha minusculo, ordem estavel por path. */
 export function normalizeTransforms(transforms) {
   if (!Array.isArray(transforms)) throw new Error('transforms: esperado array');
@@ -183,7 +169,8 @@ export function createManifest({ source, entry = 'oimpresso.com.html', files, mi
     ...(dsRequires ? { dsRequires: normalizeDsRequires(dsRequires) } : {}),
     // `transforms` — a REGRA de aterrissagem, tambem fora da identidade (mesma classificacao).
     // Cada item carrega `shaDepois`: o sha do arquivo DEPOIS da conversao, que e contra o que o
-    // `--compare-bundle` compara. Sem ele o host ficaria STALE em 100% dos ciclos (§D).
+    // `--compare-bundle` comparava (modo removido em 2026-10-23, onda 2c-3). O campo segue no
+    // manifesto porque os `active-bundle.json` já gravados o carregam e a validação os lê.
     ...(transforms ? { transforms: normalizeTransforms(transforms) } : {}),
     totals: {
       files: list.length,
@@ -240,99 +227,4 @@ export function validateManifest(manifest) {
     if (new Set(normalized).size !== normalized.length) throw new Error(`changes.${key} contém duplicata`);
   }
   return { ...manifest, files };
-}
-
-export function manifestDigest(manifest) {
-  return sha256(stableJson(manifest));
-}
-
-export function changesDigest(changes) {
-  return sha256(stableJson(changes));
-}
-
-function sameList(a, b) {
-  return a.length === b.length && a.every((value, index) => value === b[index]);
-}
-
-export function validateBundleParts(parts, previous = null) {
-  if (!Array.isArray(parts) || !parts.length) throw new Error('nenhuma parte recebida');
-  if (parts.some((part) => part?.schema !== BUNDLE_SCHEMA)) throw new Error('lote mistura schema v2 com payload legado');
-  const firstCore = stableJson(parts[0].bundle);
-  if (parts.some((part) => stableJson(part.bundle) !== firstCore)) throw new Error('partes pertencem a bundles diferentes');
-  const core = parts[0].bundle || {};
-  const total = Number(core.parts);
-  if (!Number.isInteger(total) || total < 1) throw new Error('bundle.parts inválido');
-  if (parts.length !== total) throw new Error(`lote incompleto: recebeu ${parts.length}/${total} partes`);
-  const indices = parts.map((part) => Number(part.part)).sort((a, b) => a - b);
-  const expected = Array.from({ length: total }, (_, i) => i + 1);
-  if (!sameList(indices, expected)) throw new Error(`sequência de partes inválida: recebeu [${indices.join(',')}], esperava [${expected.join(',')}]`);
-  if (new Set(parts.map((part) => part.part)).size !== parts.length) throw new Error('parte duplicada');
-  if (parts.some((part) => part.parts !== total)) throw new Error('campo parts diverge entre envelopes');
-
-  const partOne = parts.find((part) => part.part === 1);
-  if (!partOne?.targetManifest) throw new Error('part01 sem targetManifest');
-  if (parts.some((part) => part.part !== 1 && part.targetManifest)) throw new Error('targetManifest deve existir somente na part01');
-  const manifest = validateManifest(partOne.targetManifest);
-  if (core.id !== manifest.bundleId) throw new Error('bundle.id não bate com targetManifest.bundleId');
-  if (core.baseId !== manifest.baseBundleId) throw new Error('bundle.baseId não bate com targetManifest.baseBundleId');
-  if (core.mode !== manifest.mode) throw new Error('bundle.mode não bate com targetManifest.mode');
-  if (core.manifestSha256 !== manifestDigest(manifest)) throw new Error('manifestSha256 divergente');
-  if (core.changesSha256 !== changesDigest(manifest.changes)) throw new Error('changesSha256 divergente');
-  if (core.files !== manifest.totals.files || core.bytes !== manifest.totals.bytes) throw new Error('totais repetidos no bundle divergem do manifesto');
-  if ((manifest.missing || []).length) throw new Error(`manifesto incompleto: ${manifest.missing.length} ausente(s): ${manifest.missing.join(', ')}`);
-
-  if (manifest.mode === 'delta') {
-    if (!previous) throw new Error(`delta exige estado-base ${manifest.baseBundleId}, mas nenhum estado ativo existe`);
-    const validatedPrevious = validateManifest(previous);
-    if (validatedPrevious.mirrorScope === 'tree' && manifest.mirrorScope !== 'tree') {
-      throw new Error('árvore completa ativa exige novo manifesto de árvore completa; regenere com --full-tree');
-    }
-    if (validatedPrevious.bundleId !== manifest.baseBundleId) throw new Error(`base divergente: ativo ${validatedPrevious.bundleId} · delta exige ${manifest.baseBundleId}`);
-    const expectedChanges = diffManifests(validatedPrevious, manifest.files);
-    for (const key of ['added', 'modified', 'deleted']) {
-      if (!sameList(expectedChanges[key], manifest.changes[key])) throw new Error(`changes.${key} não corresponde ao diff base→alvo`);
-    }
-    if (expectedChanges.unchanged.length !== manifest.changes.unchanged) throw new Error('changes.unchanged não corresponde ao diff base→alvo');
-  } else {
-    const allPaths = manifest.files.map((file) => file.path);
-    if (!sameList(allPaths, manifest.changes.added) || manifest.changes.modified.length || manifest.changes.deleted.length || manifest.changes.unchanged !== 0) {
-      throw new Error('snapshot precisa declarar todos os arquivos como added');
-    }
-  }
-
-  const chunks = parts.flatMap((part) => Array.isArray(part.chunks) ? part.chunks : []);
-  const changedPaths = [...manifest.changes.added, ...manifest.changes.modified].sort();
-  const grouped = new Map();
-  for (const chunk of chunks) {
-    const path = normalizePayloadPath(chunk.path);
-    if (!changedPaths.includes(path)) throw new Error(`chunk extra fora do delta: ${path}`);
-    const compact = String(chunk.content || '').replace(/\s+/g, '');
-    if ((!compact && chunk.bytes !== 0) || !/^[A-Za-z0-9+/]*={0,2}$/.test(compact) || compact.length % 4 !== 0) throw new Error(`base64 inválido: ${path}#${chunk.index}`);
-    const bytes = Buffer.from(compact, 'base64');
-    if (bytes.length !== chunk.bytes) throw new Error(`bytes do chunk divergem: ${path}#${chunk.index}`);
-    if (sha256(bytes) !== chunk.sha256) throw new Error(`sha256 do chunk diverge: ${path}#${chunk.index}`);
-    const list = grouped.get(path) || [];
-    list.push({ ...chunk, path, decoded: bytes });
-    grouped.set(path, list);
-  }
-
-  if (!sameList([...grouped.keys()].sort(), changedPaths)) throw new Error(`conteúdo do delta incompleto: recebeu [${[...grouped.keys()].sort().join(',')}], esperava [${changedPaths.join(',')}]`);
-  const buffers = new Map();
-  const targetByPath = new Map(manifest.files.map((file) => [file.path, file]));
-  for (const path of changedPaths) {
-    const list = grouped.get(path).sort((a, b) => a.index - b.index);
-    const count = list[0]?.count;
-    if (!Number.isInteger(count) || count < 1 || list.length !== count) throw new Error(`chunks incompletos: ${path} (${list.length}/${count || '?'})`);
-    if (!sameList(list.map((chunk) => chunk.index), Array.from({ length: count }, (_, i) => i + 1))) throw new Error(`sequência de chunks inválida: ${path}`);
-    let offset = 0;
-    for (const chunk of list) {
-      if (chunk.offset !== offset || chunk.count !== count) throw new Error(`offset/count de chunk inválido: ${path}#${chunk.index}`);
-      offset += chunk.bytes;
-    }
-    const buffer = Buffer.concat(list.map((chunk) => chunk.decoded));
-    const target = targetByPath.get(path);
-    if (!target || buffer.length !== target.bytes || sha256(buffer) !== target.sha256) throw new Error(`arquivo remontado diverge do manifesto: ${path}`);
-    buffers.set(path, buffer);
-  }
-  return { manifest, buffers };
 }

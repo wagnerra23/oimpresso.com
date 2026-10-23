@@ -9,22 +9,14 @@
 import { readFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync, existsSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
-import { createHash } from 'node:crypto';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   normalize,
   contentHash,
-  shouldFail,
-  buildManifest,
   parseShellDeps,
   defaultShellPath,
-  ledgerEntry,
   lerShellHtml,
-  destinoDoBundle,
-  rowsDoBundle,
-  lerBundlePromovido,
-  dsRuntimeRelPath,
   absentLocal,
   previewDsPlan,
   materializePreviewDs,
@@ -33,9 +25,6 @@ import {
   refsParaDeletado,
   orfaosNaAdicao,
 } from './cowork-mirror-freshness.mjs';
-// `rawHash` saiu do script na onda 2c-2 (sem uso no código); as fixtures do bundle seguem precisando
-// do mesmo sha256 do buffer cru, então ele vive aqui com o corpo idêntico ao que existia lá.
-const rawHash = (buf) => createHash('sha256').update(buf).digest('hex');
 
 let fails = 0;
 const check = (n, c, extra = '') => { console.log(`${c ? '[OK]' : '[FAIL]'} ${n}${c ? '' : '  → ' + extra}`); if (!c) fails++; };
@@ -54,11 +43,6 @@ check('hash é sha256 (64 hex)', /^[0-9a-f]{64}$/.test(contentHash('x')));
 
 // 2. classifyMirror — o coração (3 vias).
 const H1 = contentHash('design v1'), H2 = contentHash('design v2');
-
-// 4. shouldFail (--check) — SÓ STALE morde.
-check('STALE presente → morde', shouldFail(['SYNC', 'STALE', 'UNCHECKED']) === true);
-check('só SYNC → libera', shouldFail(['SYNC', 'SYNC']) === false);
-check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', shouldFail(['UNCHECKED', 'LIVE-ABSENT', 'SYNC']) === false);
 
 // 5. READ-ONLY por contrato (ADR 0315 Eixo B): o fonte não pode invocar método de ESCRITA do
 //    DesignSync. Denylist = métodos de escrita reais do schema da tool (validados na sessão
@@ -138,10 +122,6 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
     { cowork: 'c.jsx', veredito: 'UNCHECKED' },
   ];
   const NOW_TAUT = '2026-07-06T12:00:00.000Z';
-  const e = ledgerEntry(rows, '2026-07-06T12:00:00.000Z');
-  check('ledgerEntry conta por veredito', e.files === 3 && e.sync === 1 && e.stale === 1 && e.unchecked === 1 && e.liveAbsent === 0);
-  check('ledgerEntry lista os STALE por path', e.staleList.length === 1 && e.staleList[0] === 'b.jsx');
-  check('ledgerEntry carrega a data da rodada', e.date === '2026-07-06T12:00:00.000Z');
 
   // ── ANTI-TAUTOLOGIA (adversário 2026-08-13) ─────────────────────────────────
   // O `--export-from … --emit-snapshot` ESCREVE o conteúdo do vivo e SÓ ENTÃO emite o
@@ -153,12 +133,6 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
   // de antes do export. É a mesma família do §5 2026-07-17 (drift-sentinel tautológico).
   // rows PÓS-export: nada diverge, porque o export acabou de escrever o conteúdo do vivo.
   const rowsPosExport = [{ cowork: 'a.jsx', veredito: 'SYNC' }, { cowork: 'b.jsx', veredito: 'SYNC' }];
-  const eExp = ledgerEntry(rowsPosExport, NOW_TAUT, { origin: 'export', stalePreExport: 2 });
-  check('ledger registra a divergência REAL de antes do export (não só o 0 pós-conserto)',
-    eExp.stale === 0 && eExp.stalePreExport === 2 && eExp.origin === 'export');
-  const eNorm = ledgerEntry(rowsPosExport, NOW_TAUT, {});
-  check('CONTROLE: rodada que NÃO veio de export não ganha campo fantasma',
-    eNorm.stalePreExport === undefined && eNorm.origin === undefined);
 
   const NOW = '2026-07-06T12:00:00.000Z';
   const clean = { date: '2026-07-01T12:00:00.000Z', stale: 0, sync: 3, unchecked: 0 };
@@ -171,73 +145,6 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
   // instrumento que existe pra pegar isso. Critério binário e derivado (unchecked===0),
   // nunca limiar inventado: o §5 tem 5 lápides de guard com corte arbitrário.
   const parcial = { ...clean, files: 103, sync: 5, stale: 0, unchecked: 98 };
-}
-
-// ── dsRuntimeRelPath + frescor pós-transform ─────────────────────────────────────
-// O exportPlan, o liveOnly e a recusa de canon de tela saíram em 2026-10-23 com a rota
-// de baixar do Cowork (ADR 0438). Fica o roteamento do runtime do DS, que o
-// --compare-bundle e o --preview-ds ainda usam.
-{
-
-  check('ds-runtime: remove o slug _ds e mantém o path relativo consumido pelo preview',
-    dsRuntimeRelPath('_ds/office-impresso-019dd0/assets/fonts/x.woff2') === 'assets/fonts/x.woff2');
-  // PR-A9 — as DUAS formas de bind. Wagner carimba o slug; Felipe não (medido 2026-09-17:
-  // `Felipe/venda-v3/index.html:38,39,64` carrega `_ds/colors_and_type.css`, `_ds/styles.css`,
-  // `_ds/_ds_bundle.js`). Antes disto o caminho sem slug LANÇAVA: o regex exige duas barras.
-  check('A9: bind SEM slug resolve (a forma do Felipe, que antes lançava)',
-    dsRuntimeRelPath('_ds/colors_and_type.css') === 'colors_and_type.css'
-    && dsRuntimeRelPath('_ds/_ds_bundle.js') === '_ds_bundle.js');
-  // `styles.css` carrega os COMPONENTES do DS e o host do Felipe depende dele — estava fora da
-  // whitelist, então lançava com slug e sem slug.
-  check('A9: styles.css entra na whitelist (com e sem slug)',
-    dsRuntimeRelPath('_ds/styles.css') === 'styles.css'
-    && dsRuntimeRelPath('_ds/slug-x/styles.css') === 'styles.css');
-  // A ordem das tentativas vira CONTRATO aqui, senão é acaso de implementação.
-  check('A9: com-slug só vence quando o resultado bate a whitelist',
-    // com-slug daria `fonts/a.woff2` (não bate) ⇒ cai pro sem-slug
-    dsRuntimeRelPath('_ds/assets/fonts/a.woff2') === 'assets/fonts/a.woff2');
-  check('A9: no caso AMBÍGUO (ambos batem) com-slug vence, por regra declarada',
-    dsRuntimeRelPath('_ds/assets/colors_and_type.css') === 'colors_and_type.css');
-  // CONTROLE NEGATIVO: a whitelist não virou "aceita tudo" — extensão fora segue lançando nas
-  // duas formas. Sem isto, um `return semSlug` sem guarda passaria nos asserts acima.
-  let semSlugForaDaWhitelist = '';
-  try { dsRuntimeRelPath('_ds/qualquer.txt'); } catch (e) { semSlugForaDaWhitelist = String(e.message); }
-  check('CONTROLE A9: path sem slug FORA da whitelist segue lançando',
-    /use --ds/.test(semSlugForaDaWhitelist), semSlugForaDaWhitelist);
-
-  // PR-A9 §F.6 — FRESCOR POS-TRANSFORM. Com `transforms`, o que POUSA nao e o que VIAJOU: a ref
-  // do DS e convertida na aterrissagem. Comparar contra o `sha256` do manifesto (pre-transform)
-  // marcaria o host STALE em 100% dos ciclos — e ai este alarme, que e o UNICO que pega remendo
-  // a mao no espelho (caso de 13/08, 4 dias sem ninguem ver), morreria de ruido.
-  {
-    const shaDe = (t) => createHash('sha256').update(t).digest('hex');
-    const pre = '<link href="_ds/slug/colors_and_type.css">';
-    const pos = '<link href="../../design-system/colors_and_type.css">';
-    const comT = {
-      files: [{ path: 'oimpresso.com.html', bytes: pre.length, sha256: shaDe(pre), role: 'cowork-source' }],
-      transforms: [{ path: 'oimpresso.com.html', regra: 'ds-ref', de: '_ds/slug/', para: '../../design-system/', shaDepois: shaDe(pos) }],
-    };
-    const manDs = [{ cowork: 'oimpresso.com.html', repoPath: 'prototipo-ui/cowork/Wagner/oimpresso.com.html' }];
-    const lerTxt = (txt) => (caminho) => (caminho.endsWith('oimpresso.com.html') ? Buffer.from(txt) : null);
-    check('A9 §F.6a: com transform, disco POS-transform e SYNC (nao STALE por construcao)',
-      rowsDoBundle(comT, manDs, lerTxt(pos))[0].veredito === 'SYNC');
-    check('A9 §F.6b: remendo a mao no host SEGUE virando STALE (o alarme sobrevive)',
-      rowsDoBundle(comT, manDs, lerTxt(pos + '<!--x-->'))[0].veredito === 'STALE');
-    // CONTROLE: sem `transforms` nada muda — compara contra o sha do manifesto, como sempre.
-    check('CONTROLE A9: sem transforms o contrato antigo fica intacto',
-      rowsDoBundle({ files: comT.files }, manDs, lerTxt(pre))[0].veredito === 'SYNC');
-  }
-
-  let templateNoRuntime = '';
-  try { dsRuntimeRelPath('templates/pt-05-dashboard/Pt05Dashboard.dc.html'); }
-  catch (e) { templateNoRuntime = String(e.message); }
-  check('BITE ds-runtime: template não contamina o snapshot de runtime',
-    /use --ds/.test(templateNoRuntime), templateNoRuntime);
-  let traversalNoRuntime = '';
-  try { dsRuntimeRelPath('_ds/ds-teste/assets/../../fora.txt'); }
-  catch (e) { traversalNoRuntime = String(e.message); }
-  check('BITE ds-runtime: path traversal do payload é recusado',
-    /caminho inseguro/.test(traversalNoRuntime), traversalNoRuntime);
 }
 
 // ── ABSENT-LOCAL (2026-08-13): a 3ª doença — o espelho INCOERENTE ────────────────
@@ -353,13 +260,6 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
     check('previewDs: não duplica quando shell e CSS pedem o mesmo arquivo',
       nomes.length === new Set(nomes).size);
   } finally { rmSync(raiz, { recursive: true, force: true }); }
-}
-
-// O SHELL entra no próprio manifesto quando versionado — fiação não medida foi a doença nº1.
-{
-  const man = buildManifest(undefined, { shellHtml: '<script src="app.jsx"></script>' });
-  check('shell versionado entra no manifesto (vira STALE se [W] mexer nele)',
-    man.some((f) => f.cowork === 'oimpresso.com.html'));
 }
 
 // ── lerShellHtml devolve CONTEÚDO, não o caminho ─────────────────────────────────
@@ -630,17 +530,11 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
     !r3.faltando.some((d) => d.startsWith('_ds/')), JSON.stringify(r3));
 }
 
-// ── ledgerEntry + a trava do modo removido ───────────────────────────────────────
-// O --unverified e o required do espelho saíram em 2026-10-23 (ADR 0438 D7); o frescor
-// contra o Cowork saiu na onda 2c-2. O ledgerEntry fica porque o --compare-bundle grava
-// no ledger.
+// ── a trava dos modos removidos ─────────────────────────────────────────────────
+// O --unverified e o required do espelho saíram em 2026-10-23 (ADR 0438 D7), o frescor contra o
+// Cowork na onda 2c-2 e o --compare-bundle na 2c-3, com o ledger. Os dois modos removidos que
+// tinham chokepoint de CI provam aqui que falham ALTO pelo CLI de fora.
 {
-  const e2 = ledgerEntry([{ cowork: 'a.css', veredito: 'SYNC', repoHash: 'H1' }], '2026-08-17T00:00:00.000Z');
-  check('ledgerEntry: grava `verifiedHash` path->hash',
-    e2.verifiedHash && e2.verifiedHash['a.css'] === 'H1', JSON.stringify(e2.verifiedHash));
-  const e = ledgerEntry([{ cowork: 'a.css', veredito: 'SYNC' }, { cowork: 'b.css', veredito: 'STALE' }], '2026-08-17T00:00:00.000Z');
-  check('ledgerEntry: grava `verified` so com os SYNC',
-    Array.isArray(e.verified) && e.verified.length === 1 && e.verified[0] === 'a.css', JSON.stringify(e.verified));
   // o modo removido falha ALTO pelo CLI de fora: sem a trava ele caía no caminho padrão e saía 0
   const aquiRemovido = dirname(fileURLToPath(import.meta.url));
   const cliRemovido = join(aquiRemovido, 'cowork-mirror-freshness.mjs');
@@ -648,62 +542,10 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
   try { execFileSync(process.execPath, [cliRemovido, '--unverified', '--check'], { cwd: dirname(dirname(aquiRemovido)), stdio: 'pipe' }); }
   catch (err) { rcRemovido = err.status ?? -1; }
   check('BITE CLI: --unverified removido sai 2 (nunca verde sem medir)', rcRemovido === 2, String(rcRemovido));
-}
-
-// ── lerBundlePromovido ───────────────────────────────────────────────────────────
-{
-  check('lerBundlePromovido: caminho inexistente → null (não objeto vazio)',
-    lerBundlePromovido(tmpdir(), 'nao-existe-jamais.json') === null);
-}
-
-// ── COMPARE-BUNDLE (2026-09-08) — veredito a partir do bundle v2 promovido ────────────
-// POR QUE ESTES CASOS EXISTEM: o ledger só aceitava snapshot de `get_file` por path, então
-// aplicar o bundle com fidelidade provada não movia o `unchecked` — medido no dia: bundle
-// promovido, espelho idêntico (0 mudança), `--sla` ainda dizendo "271 sem veredito".
-{
-  const H = (s) => rawHash(Buffer.from(s));
-
-  // roteamento — a regra que o applier passou a IMPORTAR daqui (fonte única)
-  // 2026-09-13 (decisão [W]): o `.md` perdeu o destino próprio. Antes ia pra `…/handoffs/`
-  // enquanto o irmão `.jsx` da MESMA pasta ia pra `…/Wagner/` — a pasta do Cowork chegava
-  // partida por extensão. Agora os dois pousam juntos, preservando a árvore da conta.
-  check('bundle 1/8: `.md` pousa no espelho do dono, junto do irmão de build',
-    destinoDoBundle('PEDIDO.md').destinoBase === 'prototipo-ui/cowork/Wagner');
-  check('bundle 1-bis/8: `.md` e `.jsx` da MESMA pasta têm o MESMO destinoBase (árvore não parte)',
-    destinoDoBundle('cowork-inbox/ancora/playbook/00-INDICE.md').destinoBase
-      === destinoDoBundle('cowork-inbox/ancora/ds-anchor-check.mjs').destinoBase);
-  check('bundle 1-ter/8: o caminho relativo é PRESERVADO (forma do Cowork, não a nossa)',
-    destinoDoBundle('cowork-inbox/ancora/playbook/00-INDICE.md').destinoPath
-      === 'cowork-inbox/ancora/playbook/00-INDICE.md');
-  check('bundle 2/8: `_ds/**` roteia pro Design System canônico',
-    destinoDoBundle('_ds/slug-qualquer/colors_and_type.css').destinoBase === 'prototipo-ui/design-system');
-  check('bundle 3/8: o resto pousa no espelho',
-    destinoDoBundle('app.jsx').destinoBase === 'prototipo-ui/cowork/Wagner'
-    && destinoDoBundle('app.jsx').destinoPath === 'app.jsx');
-
-  const manifestFake = [{ cowork: 'app.jsx', repoHash: 'x' }, { cowork: 'orfao.jsx', repoHash: 'y' }];
-  const bundleFake = { files: [{ path: 'app.jsx', sha256: H('conteudo') }] };
-
-  // SYNC: o hash do disco bate com o que o gerador calculou DO VIVO
-  const rSync = rowsDoBundle(bundleFake, manifestFake, (p) => p === 'prototipo-ui/cowork/Wagner/app.jsx' ? Buffer.from('conteudo') : null);
-  check('bundle 4/8: hash do disco == hash do manifesto ⇒ SYNC',
-    rSync.find((r) => r.cowork === 'app.jsx').veredito === 'SYNC');
-
-  // BITE — é o caso que motiva o modo: espelho remendado À MÃO depois da aplicação
-  const rStale = rowsDoBundle(bundleFake, manifestFake, (p) => p === 'prototipo-ui/cowork/Wagner/app.jsx' ? Buffer.from('remendado a mao') : null);
-  check('bundle 5/8: BITE — espelho editado à mão depois de aplicar ⇒ STALE',
-    rStale.find((r) => r.cowork === 'app.jsx').veredito === 'STALE');
-  check('bundle 6/8: e o --check morde nesse caso',
-    shouldFail(rStale.map((r) => r.veredito)) === true);
-
-  // FAIL-CLOSED: sumiu do espelho não é SYNC nem silêncio
-  const rSumiu = rowsDoBundle(bundleFake, manifestFake, () => null);
-  check('bundle 7/8: arquivo do bundle ausente no espelho ⇒ STALE (nunca verde por ausência)',
-    rSumiu.find((r) => r.cowork === 'app.jsx').veredito === 'STALE');
-
-  // O que o bundle não cobre segue SEM VEREDITO — a suíte não mente por omissão (LC-13)
-  check('bundle 8/8: arquivo do espelho fora do bundle ⇒ UNCHECKED, nunca SYNC por omissão',
-    rSync.find((r) => r.cowork === 'orfao.jsx').veredito === 'UNCHECKED');
+  let rcBundle = 0;
+  try { execFileSync(process.execPath, [cliRemovido, '--compare-bundle', '--check'], { cwd: dirname(dirname(aquiRemovido)), stdio: 'pipe' }); }
+  catch (err) { rcBundle = err.status ?? -1; }
+  check('BITE CLI: --compare-bundle removido sai 2 (nunca verde sem medir)', rcBundle === 2, String(rcBundle));
 }
 
 // ── REFS-CHECK — o eixo que herdou o papel morto junto com o `--preview-ds` ──────────────
@@ -782,115 +624,5 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
   rmSync(raiz, { recursive: true, force: true });
 }
 
-// ── O ESPELHO TEM DOIS DONOS — e o --compare-bundle era cego para o do Felipe ────────────
-// Medido 2026-09-17: `rowsDoBundle` fixava a base em `prototipo-ui/cowork/Wagner`. Lote
-// aplicado com `--owner Felipe` pousa em `prototipo-ui/cowork/Felipe/`, então TODO arquivo
-// era lido do path errado e o veredito saía STALE para tudo (sync 0 · stale 2 num lote de 2).
-// Falso-vermelho é pior que alarme ausente: o do Felipe simplesmente não tinha medição.
-// Estes asserts existem para que o alarme MORDA nos dois donos — e continue mordendo no
-// Wagner, que é o controle de não-regressão (sem ele, um "aceita tudo" passaria).
-{
-  const H = (s) => rawHash(Buffer.from(s));
-  const bundle2 = { files: [{ path: 'app.jsx', sha256: H('conteudo') }] };
-  const leitorDe = (base, conteudo) => (p) => (p === base + '/app.jsx' ? Buffer.from(conteudo) : null);
-  // 'AUSENTE' em vez de crashar: um mutante que descarta a row TEM que produzir VEREDITO
-  // de contrato, nunca TypeError — exceção aborta a suíte e os asserts seguintes nem rodam,
-  // e aí 'a mordida' vira contagem de falha, não prova (§5 2026-09-05).
-  const vere = (rows) => (rows.find((r) => r.cowork === 'app.jsx') || {}).veredito || 'AUSENTE';
-
-  // CONTROLE DE NÃO-REGRESSÃO — o default segue Wagner, byte por byte igual ao de antes.
-  check('dono 1/9: CONTROLE — sem `owner`, o destino segue sendo o do Wagner',
-    destinoDoBundle('app.jsx').destinoBase === 'prototipo-ui/cowork/Wagner');
-  check('dono 2/9: CONTROLE — sem `owner`, lote íntegro do Wagner segue SYNC',
-    vere(rowsDoBundle(bundle2, [], leitorDe('prototipo-ui/cowork/Wagner', 'conteudo'))) === 'SYNC');
-
-  // O CONSERTO — o mesmo lote, aplicado na conta do Felipe, é medido no disco DELE.
-  check('dono 3/9: `owner: Felipe` roteia para o espelho do Felipe',
-    destinoDoBundle('app.jsx', 'Felipe').destinoBase === 'prototipo-ui/cowork/Felipe');
-  check('dono 4/9: lote do Felipe aplicado e íntegro ⇒ SYNC (era STALE: lia o path do Wagner)',
-    vere(rowsDoBundle(bundle2, [], leitorDe('prototipo-ui/cowork/Felipe', 'conteudo'), 'Felipe')) === 'SYNC');
-
-  // BITE nos DOIS donos — o alarme que pega remendo à mão não pode existir só para um.
-  check('dono 5/9: BITE — espelho do Felipe remendado à mão ⇒ STALE',
-    vere(rowsDoBundle(bundle2, [], leitorDe('prototipo-ui/cowork/Felipe', 'remendado a mao'), 'Felipe')) === 'STALE');
-  check('dono 6/9: BITE — arquivo ausente no espelho do Felipe ⇒ STALE (fail-closed preservado)',
-    vere(rowsDoBundle(bundle2, [], () => null, 'Felipe')) === 'STALE');
-
-  // ISOLAMENTO — medir a conta errada continua reprovando. Um conserto que "aceitasse tudo"
-  // passaria nos asserts 4 e 5 e cairia aqui: o veredito TEM que depender do dono.
-  check('dono 7/9: ISOLAMENTO — espelho do Felipe medido como Wagner ⇒ STALE (era este o bug)',
-    vere(rowsDoBundle(bundle2, [], leitorDe('prototipo-ui/cowork/Felipe', 'conteudo'))) === 'STALE');
-  check('dono 8/9: ISOLAMENTO — espelho do Wagner medido como Felipe ⇒ STALE',
-    vere(rowsDoBundle(bundle2, [], leitorDe('prototipo-ui/cowork/Wagner', 'conteudo'), 'Felipe')) === 'STALE');
-
-  // FAIL-CLOSED no dono: quem herda a regra herda a recusa do `pathsForOwner`.
-  let recusou = false;
-  try { destinoDoBundle('app.jsx', 'Larissa'); } catch { recusou = true; }
-  check('dono 9/9: dono inválido é RECUSADO, não silenciosamente tratado como Wagner', recusou);
-}
-
-// ── BITE DO CLI — o chokepoint, não o helper ────────────────────────────────────────────
-// Assert sobre função exportada não prova o pipeline (§5 2026-07-30): o `--compare-bundle`
-// também escolhe o `active-bundle.json`, o manifesto e o shell, e os três eram do Wagner.
-// Este bloco exercita o CLI DE FORA, numa árvore que só tem a conta do Felipe.
-{
-  const tmp = mkdtempSync(join(tmpdir(), 'bundle-owner-'));
-  const espelhoF = join(tmp, 'prototipo-ui', 'cowork', 'Felipe');
-  const stateF = join(tmp, 'scripts', 'design-sync', 'state', 'Felipe');
-  mkdirSync(espelhoF, { recursive: true });
-  mkdirSync(stateF, { recursive: true });
-
-  const corpo = 'export const A = 1;';
-  writeFileSync(join(espelhoF, 'app.jsx'), corpo);
-  writeFileSync(join(stateF, 'active-bundle.json'), JSON.stringify({
-    bundleId: 'b-felipe', generatedAt: '2026-09-17T00:00:00Z',
-    files: [{ path: 'app.jsx', sha256: rawHash(Buffer.from(corpo)) }],
-  }));
-
-  const cliOwner = fileURLToPath(new URL('./cowork-mirror-freshness.mjs', import.meta.url));
-  const rodar = (args) => {
-    try { return { code: 0, out: execFileSync(process.execPath, [cliOwner, ...args], { cwd: tmp, encoding: 'utf8' }) }; }
-    catch (e) { return { code: e.status ?? -1, out: (e.stdout || '') + (e.stderr || '') }; }
-  };
-
-  const ok = rodar(['--compare-bundle', '--owner', 'Felipe', '--check']);
-  check('cli-dono 1/6: CLI com --owner Felipe acha o bundle DELE e libera o espelho íntegro',
-    ok.code === 0 && /sync: 1/.test(ok.out), `rc=${ok.code} out=${ok.out.slice(0, 220)}`);
-  check('cli-dono 2/6: e o relatório diz de QUAL dono está falando',
-    /espelho de Felipe/.test(ok.out), ok.out.slice(0, 160));
-
-  // BITE: remendo à mão no espelho do Felipe tem que derrubar o --check.
-  writeFileSync(join(espelhoF, 'app.jsx'), 'export const A = 2; // remendo a mao');
-  const mordeu = rodar(['--compare-bundle', '--owner', 'Felipe', '--check']);
-  check('cli-dono 3/6: BITE — remendo à mão no espelho do Felipe derruba o --check',
-    mordeu.code === 1 && /stale: 1/.test(mordeu.out), `rc=${mordeu.code} out=${mordeu.out.slice(0, 220)}`);
-
-  // CONTROLE POSITIVO: repor o conteúdo faz o MESMO CLI liberar de novo.
-  writeFileSync(join(espelhoF, 'app.jsx'), corpo);
-  check('cli-dono 4/6: CONTROLE — reposto o conteúdo, o mesmo CLI sai 0',
-    rodar(['--compare-bundle', '--owner', 'Felipe', '--check']).code === 0);
-
-  // Nesta árvore não existe conta Wagner: o default NÃO pode herdar o bundle do Felipe.
-  const semWagner = rodar(['--compare-bundle', '--check']);
-  check('cli-dono 5/6: sem --owner, o CLI não enxerga o bundle do Felipe (estados são separados)',
-    semWagner.code === 2 && semWagner.out.includes('Felipe') === false,
-    `rc=${semWagner.code} out=${semWagner.out.slice(0, 220)}`);
-
-  // O denominador tambem e do DONO: manifesto e shell. O que o espelho do Felipe TEM e o
-  // bundle NAO cobre precisa sair como UNCHECKED (LC-13: nunca SYNC por omissao) -- e isso so
-  // acontece se `buildManifest` varrer a arvore DELE e `defaultShellPath` achar o shell DELE.
-  // Sao 3 valores distintos por construcao (2 / 1 / 0), entao nenhum mutante acerta por sorte:
-  //   integro                       -> shell + dep do Felipe no manifesto  => unchecked: 2
-  //   buildManifest fixado em Wagner-> arvore vazia                        => unchecked: 0
-  //   defaultShellPath em Wagner    -> shell nao lido, dep nao entra       => unchecked: 1
-  writeFileSync(join(espelhoF, 'oimpresso.com.html'), '<script src="dep.jsx"></script>');
-  writeFileSync(join(espelhoF, 'dep.jsx'), 'export const D = 1;');
-  const comDenom = rodar(['--compare-bundle', '--owner', 'Felipe']);
-  check('cli-dono 6/6: o denominador vem da arvore E do shell DO DONO (unchecked: 2)',
-    /unchecked: 2/.test(comDenom.out), comDenom.out.slice(0, 260));
-
-  rmSync(tmp, { recursive: true, force: true });
-}
-
-console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + absent-local que MORDE + refs-da-poda + refs-check que MORDE + compare-bundle por dono)');
+console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + absent-local que MORDE + refs-da-poda + refs-check que MORDE + modos removidos saem 2)');
 process.exit(fails ? 1 : 0);
