@@ -74,10 +74,14 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **[BACKLOG]** Motivo da devolução em texto livre no histórico (charter R3) — exige gravar motivo no `store()`.
 - **[BACKLOG]** Aviso de item feito sob medida antes de salvar (charter R4) — o produto não guarda essa informação.
 - **[BACKLOG]** A devolução pode virar saldo a favor do cliente (pedido de 2026-10-23) `[V0]` — Aceite:
-  Dado uma venda paga de 200,00, Quando devolvo um item de 80,00 e escolho "deixar como saldo a favor",
-  Então nenhum dinheiro sai do caixa e o cliente fica com 80,00 a favor, que aparece no drawer do
-  cliente e pode ser usado na próxima venda; escolher "devolver o dinheiro" segue como hoje. Mexe em
-  valor: Regra Mestre. Fonte: US-VEST-021 (crédito em conta do cliente na troca).
+  Dado uma venda paga de 200,00 e um cliente identificado, Quando devolvo um item de 80,00 e o gerente
+  aprova "trocar com crédito", Então nenhum dinheiro sai do caixa e o cliente fica com 80,00 a favor,
+  válidos por 6 meses, que aparecem no drawer do cliente e podem ser usados na próxima venda; escolher
+  "devolver o dinheiro" segue como hoje. Segue o processo "Devolução, troca e garantia" do [W]
+  (`fluxos-processos.jsx`: "Trocar com crédito", aprovado pelo gerente com cliente identificado; "Lançar
+  crédito", com validade de 6 meses). Depende do [W]: o charter desta tela diz "não mudar `store()` nem
+  `addSellReturn()`" (regra escrita na migração), e lançar o crédito ao salvar muda isso. Mexe em valor:
+  Regra Mestre. Verificado contra as regras do [W] em 2026-10-23.
 - **[BACKLOG]** Devolver tudo (pedido de 2026-10-23) `[V0]` `[E0]` — Dado uma venda de 3 itens, Quando
   clico "Devolver tudo", Então cada linha vem com a quantidade que ainda pode voltar e o total é o da
   venda menos o já devolvido; a devolução parcial continua digitando a quantidade de cada linha

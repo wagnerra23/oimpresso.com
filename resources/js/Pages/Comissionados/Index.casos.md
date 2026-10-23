@@ -53,8 +53,11 @@ last_run: "2026-10-06"
 - [BACKLOG] Regra por faixa de meta ou sobre margem — `Modules/Comissao` (ADR 0151, dormente).
 - [BACKLOG] "Ver vendas atribuídas" no menu da linha, abrindo as vendas filtradas pelo agente.
 - [BACKLOG] Vendas sem comissionado (pedido de 2026-10-23) — Dado vendas do período sem vendedor,
-  representante nem agência vinculados, Então a tela mostra quantas são e o total delas, com link para
-  essas vendas na consulta, e nenhuma comissão é calculada para elas. Fonte: UC-FLX-05.
+  representante nem agência vinculados, Então o relatório de comissões mostra quantas são e o total
+  delas, com link para essas vendas na consulta, e nenhuma comissão é calculada para elas. Fonte:
+  UC-FLX-05. Não fica nesta tela: o charter dela não apura período (o relatório é a thread
+  `comissoes/02`, ainda sem tela, que depende da D-COM-2 do [W], comissão sobre venda paga ou
+  faturada). Verificado contra as regras do [W] em 2026-10-23.
 - [BACKLOG] Agência como comissionado (pedido de 2026-10-23) `[V0]` — Dado uma agência cadastrada com
   10%, Quando a venda indicada por ela é faturada, Então a comissão da agência nasce sobre o valor
   faturado, separada da do vendedor. Fonte: o representante externo já existe em

@@ -244,20 +244,11 @@ de D+5 como `nao_enviado` com motivo `opt_out_email`, e nada de B. A régua liga
 
 Status: 🧪
 
-## Casos pedidos em 2026-10-23 — ISS retido e venda agrupada
+## Casos pedidos em 2026-10-23 — mudaram para o Financeiro unificado
 
-- **[BACKLOG]** Total do serviço, retido e recebido em colunas separadas (UC-FLX-30) `[V0]` — Dado o
-  título de 1.000,00 com a baixa de retenção de 96,50 e o cliente pagando 903,50, Então o título mostra
-  "Total do serviço 1.000,00 · retido 96,50 · recebido 903,50", e o relatório de recebimentos soma o
-  recebido e o retido em colunas separadas (o retido não entra no caixa). Fonte: UC-CRISS-02 e 03.
-- **[BACKLOG]** Título de venda agrupada (US-SELL-024) `[V0]` — Dado três vendas de um cliente (300,00,
-  450,00 e 250,00), Quando as agrupo numa cobrança só, Então nasce um título de 1.000,00 que lista as
-  três vendas; pagar o título paga as três; uma venda não entra em dois grupos; cancelar uma venda do
-  grupo antes do pagamento tira o valor dela do título. Mexe em valor: Regra Mestre. Fonte: US-SELL-024
-  e o Delphi (`CODFINANCEIRO_GRUPO`).
-- **[BACKLOG]** Título de cada parte faturada `[V0]` — Dado uma venda de 1.000,00 faturada em duas
-  partes (400,00 e 600,00), Então cada parte tem o seu título; cancelar a nota de uma parte cancela o
-  título dela se ainda não estiver pago. Mexe em valor: Regra Mestre. Fonte: Omie (pedido parcial).
+Esta tela foi aposentada pelo [W] (charter: `deprecated`, superada pelo Financeiro/Unificado, decisão
+de 2026-07-03). Os casos de total do serviço, retido e recebido, de título de venda agrupada e de título
+de cada parte faturada, pedidos em 2026-10-23, estão em `../Unificado/Index.casos.md`. Verificado contra as regras do [W] em 2026-10-23.
 
 1. **Pest (MySQL real):** lane do Financeiro no CT100 — quando os UCs acima ganharem teste.
 2. **Cadência:** rodar ao fim de toda mexida na tela. UC ❌ = regressão → lição + conserto.
@@ -265,6 +256,7 @@ Status: 🧪
 ## Trilha do tempo
 - 2026-10-23 · [M+C] Backlog de ISS retido (total, retido e recebido) e de título de venda agrupada, sem id.
 - 2026-10-23 · [M+C] Backlog: título de cada parte faturada, da comparação com concorrentes (Omie), sem id.
+- 2026-10-23 · [M+C] Os três casos de 2026-10-23 mudaram para `Financeiro/Unificado/Index.casos.md`: esta tela está aposentada.
 - 2026-10-21 · [CC] US-FIN-071: botão "Lembretes" no cabeçalho + painel lateral (UC-CRREG-08). As colunas
   Bruto/Retido/Líquido do #9698 seguem intactas; revalidado após juntar os dois.
 - 2026-10-20 · [CC] US-FIN-073: UC-CRAB-01..04 (aberto do título parcial + relatório `--aberto` só leitura),

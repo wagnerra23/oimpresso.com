@@ -792,6 +792,9 @@ Status: 🧪
   e no Painel. As duas primeiras podem ser mudadas na OS. Hoje a OS tem só o prazo prometido da venda
   (`pcp_ordens.prazo_prometido`, a entrega final) e o prazo calculado pela fila dos postos
   (Postos/Index.casos.md, UC-PCPRZ); não há data limite por etapa.
+  A data prometida segue a decisão [W] de 2026-10-20 (fica na venda e vai para
+  `pcp_ordens.prazo_prometido`), e o número de atrasadas continua um só, pela mesma função do Painel
+  (UC-PCV-03): marcar a etapa atrasada não muda essa contagem sem decisão do [W].
 
 ## Imagens e arte anexadas à OS (pedido de 2026-10-23)
 
@@ -803,14 +806,14 @@ Status: 🧪
 
 ## Terceiro que executa o serviço da OS (pedido de 2026-10-23)
 
-- **[BACKLOG]** Indicar o terceiro que vai executar o serviço `[V0]` — Dado uma OS com a instalação feita
-  por uma empresa de fora, Quando indico o terceiro e o valor combinado com ele, Então nasce uma conta a
-  pagar para ele, separada do custo próprio, a comissão desse serviço é calculada à parte, e a OS mostra
-  "Executado por terceiro". OS sem terceiro não muda. Hoje a OS não registra terceiro. Mexe em valor:
-  Regra Mestre.
-  Aceite adicional (comparação com concorrentes, 2026-10-23): o terceiro pode ser pedido por um pedido
-  de compra gerado da própria OS, ou da etapa que ele executa, e o custo dele aparece separado do custo
-  de material da OS. Fonte: MRPeasy e Tekla (pedido de compra de subcontratação ligado à ordem).
+- **[BACKLOG]** Indicar o terceiro que vai executar o serviço `[V0]` — Segue a decisão D-TERCEIRO do
+  [W] (`cowork-inbox/producao/playbook/_DECISOES-W-2026-10-15-celular.md`) e o UC-PCV-48: Dado uma OS
+  com a instalação feita por um instalador de fora, Quando indico o terceiro e o valor combinado, Então
+  ele recebe um link com código, sem conta no sistema, e o custo da OS passa a ser o valor combinado;
+  Quando ele conclui o protocolo, Então nasce uma conta a pagar desse valor, e a OS mostra o terceiro à
+  parte do custo próprio. A thread 19 da Produção (`playbook/19-terceiro.md`) é a dona da execução.
+  Ficam com o [W], sem regra hoje: a comissão separada desse serviço e o pedido de compra ao terceiro
+  gerado da OS (MRPeasy, Tekla). Mexe em valor: Regra Mestre. Verificado contra as regras do [W] em 2026-10-23.
 
 ## Despesas da OS cobradas do cliente (comparação com concorrentes, 2026-10-23)
 
@@ -819,12 +822,17 @@ Status: 🧪
   entram no faturamento do cliente, separadas do serviço; despesa marcada como não reembolsável fica só
   no custo. Fonte: Omie (despesas reembolsáveis na OS, com anexos, faturadas ao cliente). Hoje a OS não
   tem despesas. Mexe em valor: Regra Mestre.
+  Se a despesa entrar no total da venda, a regra A do [W] de 2026-10-21 (`Fiscal/Nfse.casos.md`)
+  divide esse valor entre a NF-e e a NFS-e pelo bruto; como ela fica separada do serviço é decisão do
+  [W].
 
 ## Tarefas da OS com responsável e prazo (comparação com concorrentes, 2026-10-23)
 
-- **[BACKLOG]** Tarefas paralelas da pré-produção — Dado uma OS que precisa de "comprar a lona",
-  "separar as chapas" e "fechar a arte", Quando crio as três tarefas com responsável e prazo, Então
-  cada responsável é avisado, a OS mostra quantas tarefas faltam, e a tarefa vencida aparece como
-  atrasada no Painel. A OS também guarda duas datas: a da produção e a combinada com o cliente. Fonte:
-  Printavo (tarefas com responsável, prazo e aviso por e-mail; data de produção e data do cliente).
-  Hoje cada etapa grava o seu responsável, mas não há tarefas paralelas com prazo nem aviso.
+- **[BACKLOG]** Tarefas paralelas da pré-produção — Dado uma OS que precisa de "separar as chapas" e
+  "fechar a arte", Quando crio as duas tarefas com responsável e prazo, Então cada responsável recebe o
+  aviso dentro do sistema (D-AVISO do [W]: WhatsApp só para o cliente), a OS mostra quantas tarefas
+  faltam, e a tarefa vencida aparece como atrasada no Painel. Falta de material não vira tarefa: segue o
+  fluxo do [W], em que o item "Em falta" abre requisição de compra e pausa a etapa da OS. A OS também
+  guarda a data da produção e a combinada com o cliente (decisão [W] de 2026-10-20). Fonte: Printavo
+  (tarefas com responsável e prazo). Hoje cada etapa grava o seu responsável, mas não há tarefas
+  paralelas com prazo nem aviso. Verificado contra as regras do [W] em 2026-10-23.

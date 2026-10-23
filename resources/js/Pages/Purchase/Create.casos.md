@@ -414,6 +414,11 @@ Status: 🧪
 > emitidas pela empresa: `SpedIcmsIpiGeneratorService` monta C100/C170/C190 a partir das emissões, e o
 > próprio backlog do SPED lista as entradas como fora do escopo. Os registros citados abaixo são do
 > leiaute da EFD ICMS/IPI; o que entra e como é decisão do contador.
+>
+> ⚠️ Os quatro casos de SPED abaixo (compra, energia, comunicação e CT-e) dependem do [W]: o charter
+> do SPED tem entre os Non-Goals aprovados por ele "❌ Entradas (NF-e contra o CNPJ via DF-e
+> manifestada) — só saídas por ora" (`Fiscal/Sped.charter.md`). O "por ora" deixa a porta aberta, mas
+> quem reabre é ele. Verificado contra as regras do [W] em 2026-10-23.
 
 - `[BACKLOG]` **Compra com unidade de medida diferente da cadastrada** `[V0]` `[E0]` — Dado o produto
   cadastrado em m² e o fornecedor que vende em rolo de 50 m², Quando lanço a compra de 2 rolos,

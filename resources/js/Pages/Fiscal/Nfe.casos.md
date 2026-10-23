@@ -576,13 +576,20 @@ creditado antes e não é desfeito (`CU-RB-09` item 3).
   Dado uma venda com item sem NCM, natureza fiscal a decidir ou cliente sem os dados do destinatário,
   Quando a nota é pedida, Então nada é enviado à SEFAZ, nenhum número é usado e a resposta lista as
   pendências de cada item e do cliente. Fonte: UC-TRB-05 e UC-TRB-16 do protótipo fiscal e UC-FNFSE-12.
-- **[BACKLOG · ⬜ sem teste] Cancelar a nota e emitir outra na mesma venda ou OS** (pedido de
-  2026-10-23) `[V0]` — Dado uma venda com NF-e autorizada que precisa ser corrigida, Quando cancelo a
-  nota dentro do prazo e emito de novo, Então a nota nova fica ligada à mesma venda, a venda mostra as
-  duas (a cancelada com o motivo e a autorizada), o título a receber continua um só e nada sai do
-  estoque de novo. Vale também para a NFS-e da OS. Hoje a emissão só barra nota autorizada ou pendente
-  do mesmo modelo (`NfeEmissaoController::emitir`), então emitir de novo depois de cancelar já passa;
-  não há caso nem teste que prove o vínculo, o título e o estoque.
+  A lista de pendências traz a saída que o UC-TRB-33 decidido exige ("o bloqueio nunca é beco sem
+  saída"): o NCM padrão marcado para revisão.
+- **[BACKLOG · ⬜ sem teste] Cancelar a nota e emitir outra na mesma venda** (pedido de 2026-10-23)
+  `[V0]` `[E0]` — Dado uma venda com NF-e autorizada que precisa ser corrigida, Quando cancelo a nota
+  dentro do prazo, Então valem os efeitos do Cancelar do fluxo de NF-e (o estoque é estornado e o
+  título é cancelado se não estiver pago); Quando emito a nota nova e ela é autorizada, Então valem os
+  efeitos do Retorno 100 (baixa o estoque, se for a regra, e liga ao título), a nota nova fica ligada à
+  mesma venda e a venda mostra as duas, a cancelada com o motivo. Nenhum valor nem estoque fica em dobro
+  ou faltando. Na NFS-e a correção é por **substituição**, não por cancelar e emitir: a nova NFS-e entra
+  no lugar da anterior, fica vinculada a ela e recalcula o título (fluxo de NFS-e, "Substituir"); o
+  cancelamento de NFS-e fica fora da tela da NFS-e (charter). Hoje a emissão só barra nota autorizada
+  ou pendente do mesmo modelo (`NfeEmissaoController::emitir`), então emitir de novo depois de cancelar
+  já passa; não há caso nem teste que prove o vínculo. Fonte: `fluxos-modelos.casos.md` (NF-e:
+  Cancelar e Retorno 100; NFS-e: Substituir). Verificado contra as regras do [W] em 2026-10-23.
 
 ## Como rodar a suíte
 1. **Pest:** lane Fiscal no CT 100 (ADR 0062) — comando no §recibo acima. `AcoesContratoTest` roda em

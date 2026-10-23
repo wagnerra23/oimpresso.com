@@ -176,11 +176,12 @@ last_run: "2026-10-23"
   o sistema calcula (`TransactionUtil::isCustomerCreditLimitExeeded()`) e só avisa. Mexe em valor:
   Regra Mestre.
 - **[BACKLOG] Usar o saldo a favor do cliente na venda** `[V0]` — Aceite: Dado um cliente com 120,00 a
-  favor e uma venda de 500,00, Quando escolho o cliente, Então a venda oferece "Usar 120,00 do saldo a
-  favor"; aceito, entra um pagamento "Adiantamento" de 120,00, ficam 380,00 a receber e o saldo do
-  cliente vai a 0,00; recusado, o saldo fica como estava. Nunca usa mais que o saldo nem mais que o
-  total da venda (o Adiantamento já trava no saldo hoje). Mexe em valor: Regra Mestre. Fonte: protótipo
-  `cliente-drawer760.jsx` ("o vendedor pode recusar"); US-VEST-021.
+  favor e uma venda de 500,00, Quando escolho o cliente, Então a venda já abate os 120,00 (entra um
+  pagamento "Adiantamento" de 120,00, ficam 380,00 a receber e o saldo do cliente vai a 0,00), e o
+  vendedor pode recusar o abatimento, voltando o saldo como estava. Nunca usa mais que o saldo nem mais
+  que o total da venda (o Adiantamento já trava no saldo hoje). Mexe em valor: Regra Mestre. Fonte:
+  protótipo do [W] `cliente-drawer760.jsx` ("créditos a favor, abatidos na próxima venda; o vendedor
+  pode recusar"); US-VEST-021. Verificado contra as regras do [W] em 2026-10-23: o abatimento é automático, e recusar é a exceção.
 - **[BACKLOG] Número do pedido de compra do cliente** — o cliente empresa manda o próprio número de
   pedido e quer vê-lo na nota. Aceite: Dado um cliente que enviou o pedido "4500012345", Quando
   preencho "Pedido do cliente" na venda, Então o número fica gravado na venda, sai em cada OS da venda
@@ -267,10 +268,12 @@ last_run: "2026-10-23"
   isso já funciona pelo grupo do cliente (o grupo aponta a tabela e a venda reprecifica ao escolher o
   cliente), mas não há tabela no próprio cliente: um cliente com preço só dele precisa de um grupo só
   dele. Sem caso nem teste até agora.
-- **[BACKLOG] A tabela de preço segue o tipo de venda** (pedido de 2026-10-23) `[V0]` — Aceite: Dado as
-  tabelas Varejo e Atacado, Quando escolho o tipo de venda "Atacado", Então os itens usam a tabela de
-  atacado, e trocar o tipo refaz os preços dos itens já lançados. Hoje a venda tem o seletor de tabela
-  de preço (`price_group_id`), mas não um tipo de venda que escolha a tabela.
+- **[BACKLOG] A tabela de preço segue o canal de venda** (pedido de 2026-10-23) `[V0]` — Aceite: Dado as
+  tabelas Varejo e Atacado, Quando escolho o canal "Atacado", Então os itens usam a tabela de
+  atacado, e trocar o canal refaz os preços dos itens já lançados. Hoje a venda tem o seletor de tabela
+  de preço (`price_group_id`), mas não um canal que escolha a tabela.
+  Chamado de canal, e não de tipo de venda, porque o [W] já usa "tipo de venda" para balcão, reparo e
+  OS (decisão de 2026-10-01). Verificado contra as regras do [W] em 2026-10-23.
 - **[BACKLOG] Consignação para revendedor** (comparação com concorrentes, 2026-10-23) `[V0]` `[E0]` —
   Aceite: Dado um revendedor que recebe 20 placas em consignação, Quando faço a remessa, Então as 20
   saem do estoque próprio e ficam como "em poder de terceiros", sem conta a receber; Quando ele presta
