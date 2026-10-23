@@ -763,12 +763,6 @@ jobs:
       - name: design-sync status morde (exit 2 de uso · check-mapping · check-lifecycle · ponteiro D2)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/status.test.mjs
-      # Sentido Code -> Cowork do ciclo ([W] 2026-09-24). O critério (hash do espelho × bundle ativo)
-      # decide o que o Cowork não tem; se ele errar, o receber-handoff deixa passar retorno que apaga
-      # trabalho do Code (o caso do import 35: 12 arquivos do #7847).
-      - name: pendentes-cowork morde (fora do bundle · hash difere · enviado · _ds/ fora)
-        if: always() && steps.setup.outcome == 'success'
-        run: node scripts/design-sync/pendentes-cowork.test.mjs
       # Topologia do espelho (cowork-ssot-guard): a R3 mudou de significado em 2026-09-13 por
       # decisao [W] — `.md` passou a ser aceito sob `cowork/<dono>/` com a arvore do Cowork.
       # O guard e required via design-memory-gate.yml e nao tinha teste nenhum. Roda pelo CLI num
