@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a lista é a PORTA do catálogo — se ela esconde produto, esconde preço a quem não devia, ou mistura tenant, todo o resto do ERP herda o erro.
 owner: wagner
-last_run: "2026-10-19"
+last_run: "2026-10-23"
 last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e915; o run 39296002704 saiu cancelled) — os 12 arquivos Vitest do job passaram, entre eles os 2 da lista que citam UC-PIDX (produto-lista-encaixe e produto-lista-redimensionar) e tests/js/portais-dentro-do-cockpit.test.tsx; a tela mudou nesse dia só no lugar onde os diálogos de exclusão e de local montam (#9590), sem efeito no servidor. Antes: run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arquivo fora da quarentena naquele commit): os 6 UC-PIDX passaram. A saída da quarentena da lane vai em PR próprio (o arquivo .github é CODEOWNERS [W])"
 ---
 
