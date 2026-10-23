@@ -168,14 +168,6 @@ on:
       # o teste do BOM existe, sai da quarentena, e o sinal pós-merge dele fica mudo.
       - 'app/Http/Controllers/Inventory/ProductBomController.php'
       - 'app/Domain/Inventory/Services/BomResolver.php'
-      # UC-PIDX-28/29 — SOB TESTE do ProdutoPrecoPropostoERoteiroContratoTest (preço proposto e roteiro na consulta).
-      - 'app/Contracts/Compras/PropostasDePreco.php'
-      - 'Modules/Compras/Services/PropostasDePreco.php'
-      - 'app/Contracts/Producao/RoteiroDoProduto.php'
-      - 'Modules/Producao/Services/RoteiroDoProdutoService.php'
-      # UC-PIDX-30/31/32 — SOB TESTE do ProdutoRequisicaoNaturezaCustoContratoTest.
-      - 'app/Contracts/Fiscal/NaturezaDoProduto.php'
-      - 'Modules/NfeBrasil/Services/Tributacao/NaturezaDoProdutoConsulta.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/estoque-pest.yml'
       - '.github/estoque-pest-quarantine.list'
@@ -266,14 +258,6 @@ jobs:
               # cara de cobertura (§5 2026-08-02). Entram JUNTO com o teste, não depois.
               - 'app/Http/Controllers/Inventory/ProductBomController.php'
               - 'app/Domain/Inventory/Services/BomResolver.php'
-              # UC-PIDX-28/29 — SOB TESTE do ProdutoPrecoPropostoERoteiroContratoTest (preço proposto e roteiro na consulta).
-              - 'app/Contracts/Compras/PropostasDePreco.php'
-              - 'Modules/Compras/Services/PropostasDePreco.php'
-              - 'app/Contracts/Producao/RoteiroDoProduto.php'
-              - 'Modules/Producao/Services/RoteiroDoProdutoService.php'
-              # UC-PIDX-30/31/32 — SOB TESTE do ProdutoRequisicaoNaturezaCustoContratoTest.
-              - 'app/Contracts/Fiscal/NaturezaDoProduto.php'
-              - 'Modules/NfeBrasil/Services/Tributacao/NaturezaDoProdutoConsulta.php'
               - 'app/Utils/ProductUtil.php'
               - 'app/Utils/TransactionUtil.php'
               - 'database/schema/mysql-schema.sql'
