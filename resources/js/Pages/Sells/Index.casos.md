@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-10-20"
+last_run: "2026-10-23"
 ---
 
 > ℹ️ **`last_run` 2026-09-06 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
@@ -212,13 +212,28 @@ last_run: "2026-10-20"
   cliente "4500012345", Quando busco "4500012345", Então a venda aparece, e a linha mostra "Ped.
   cliente 4500012345" abaixo do nome do cliente. A coluna "Pedido do cliente" fica disponível no botão
   Colunas. Fonte: campo `xPed` da NF-e e da NFS-e (o mesmo número vai na nota).
+- **[BACKLOG] Venda com ISS retido: total do serviço × o que o cliente paga (UC-FLX-30)** `[V0]` —
+  Aceite: Dado uma venda de 1.000,00 com a NFS-e autorizada e 96,50 retidos (ISS + federais), Então o
+  drawer mostra "Total do serviço 1.000,00 · retido 96,50 · cliente paga 903,50", o Total da linha
+  segue 1.000,00, a coluna Pagamento diz "retido 96,50" e o A receber dos totais conta só o que falta
+  do líquido. Fonte: US-FIN-072 (a retenção é baixa sem caixa; UC-CRISS-01 a 03 em Contas a receber).
+- **[BACKLOG] Venda sem comissionado** — Aceite: Dado vendas com vendedor, com representante ou
+  agência, e vendas sem ninguém vinculado, Quando filtro "Comissionado: nenhum", Então só aparecem as
+  vendas sem ninguém vinculado, e no Foco Comissão elas mostram "sem comissionado" em vez de 0,00.
+  Fonte: Comissionados (`sales_commission_agents`); UC-FLX-05.
+- **[BACKLOG] Venda agrupada (US-SELL-024)** — várias vendas do mesmo cliente juntadas numa cobrança
+  só. Aceite: Dado três vendas de um cliente agrupadas, Então cada uma mostra o selo "Agrupada" com o
+  número da cobrança, o filtro "Agrupadas" lista só elas e o selo leva às outras vendas do grupo. Venda
+  fora de grupo não mostra selo. Fonte: US-SELL-024 (coluna `is_grouped_invoice`, já no banco) e o
+  Delphi (`CODFINANCEIRO_GRUPO`, em 34% a 65% das vendas dos clientes medidos).
 
 ## Como rodar a suíte
 1. **E2E:** `npm run e2e:check` no harness do CI (e2e-gate) — vereditos viram manifesto via `npm run casos:results` (merge per-UC).
 2. **Cadência:** rodar ao fim de toda mexida em Sells/Index. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
-- 2026-10-23 · [M+C] Backlog "Casos pedidos em 2026-10-23": sinal, arte, estoque mínimo, saldo a favor, limite de crédito e pedido de compra do cliente, sem id e sem mudança de comportamento da tela.
+- 2026-10-23 · [M+C] Backlog "Casos pedidos em 2026-10-23": sinal, arte, estoque mínimo, saldo a favor, limite de crédito, pedido de compra do cliente, ISS retido, venda sem comissionado e venda agrupada, sem id e sem mudança de comportamento da tela.
+- 2026-10-23 · [M+C] Revalidado (G-6): a única mudança em `Index.tsx` depois do last_run 2026-10-20 é a barra de totais do #9672, que já é o UC-SIDX-06 desta tela. Nenhum UC foi reexecutado; last_run 2026-10-20 → 2026-10-23.
 - 2026-10-20 · [M+C] **UC-SIDX-06 `[V0]`** — barra de totais do filtro abaixo da lista (US-SELL-017): os `totals` que o servidor já calculava passam a aparecer. A barra não mostra número quando a visão salva, a pílula Faturada/Cancelada ou a origem filtram só a página carregada. Teste `tests/js/sells-index-totais.test.tsx` na lane Vitest do `Frontend / Vite build`.
 - 2026-10-20 · [M+C] Backlog da pesquisa de concorrentes (núcleo + comunicação visual), sem id e sem mudança de comportamento da tela; fontes no [registro da sessão](../../../../memory/sessions/2026-10-20-pesquisa-consulta-venda-concorrentes-cv.md).
 - 2026-10-19 · [CC] **UC-SIDX-04 `[T0]` + UC-SIDX-05 `[V0]`** — pílula "Rascunhos" na consulta de vendas (pedido da ROTA LIVRE: a tela `/sells/drafts` não tinha ações e "era para estar junta na consulta de vendas"; decisão [W]: filtro dentro da consulta, mesmas ações da venda, totais de faturado só com venda final). Teste `SellsIndexRascunhosContratoTest.php` na lane Sells. A tela `/sells/drafts` segue no ar até ser aposentada em PR próprio (só ganhou o conserto do "Itens NaN").

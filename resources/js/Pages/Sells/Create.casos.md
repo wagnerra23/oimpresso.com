@@ -5,7 +5,7 @@ irmaos: Create.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-10-02"
+last_run: "2026-10-23"
 ---
 
 <!-- REVALIDAÇÃO 2026-10-01 (G-6: o .tsx mudou de novo — UC-S04, preço do grupo ao adicionar).
@@ -186,6 +186,17 @@ last_run: "2026-10-02"
   e vai para a NF-e e a NFS-e no campo `xPed` (o número do item do pedido em `nItemPed`, quando houver).
   Campo opcional; venda sem ele segue como hoje. Fonte: layout da NF-e (grupo do produto) e o schema
   da NFS-e nacional no módulo NfeBrasil (`xPed`).
+- **[BACKLOG] Venda de serviço para cliente que retém ISS (UC-FLX-30)** `[V0]` — Aceite: Dado um
+  cliente marcado no cadastro como tomador que retém ISS e uma venda com instalação de 660,00 (ISS de
+  5%), Quando monto a venda, Então o resumo mostra "ISS retido previsto 33,00 · cliente paga" o total
+  menos 33,00, avisando que o valor exato sai na NFS-e; o total da venda não muda. Mexe em valor: Regra
+  Mestre. Fonte: US-FIN-072 (a retenção vira baixa quando a NFS-e é autorizada).
+- **[BACKLOG] Quem recebe comissão: vendedor, representante, agência ou ninguém** `[V0]` — Aceite:
+  Dado a venda, Quando escolho quem recebe comissão (o vendedor, um representante ou uma agência) ou
+  deixo "Sem comissionado", Então a venda grava a escolha; sem comissionado, nenhuma comissão nasce no
+  faturamento; com comissionado, a comissão nasce pela regra dele (UC-FLX-05). Comissionado de outra
+  empresa nunca aparece na lista. Fonte: Comissionados (`sales_commission_agents`, representante
+  externo).
 - **[BACKLOG] Emissão NF-e da venda (homolog/stub SEFAZ)** — wire já existe (suítes NfeBrasil); espelhar como UC quando o fluxo de emissão entrar no harness e2e.
 - **[BACKLOG] Fechar o diálogo de rascunho preserva a venda montada** — Dado um rascunho salvo · Quando o operador fecha o diálogo de recuperação SEM escolher (Esc, clique fora) · Então o rascunho **continua** no `localStorage` e a pergunta volta na próxima montagem; só o botão "Descartar" apaga. Exige exercitar `AlertDialog` do Radix no harness e2e (incluindo se `Esc` de fato fecha nesta versão, que não foi verificado). Origem: ROTA LIVRE perdeu venda montada durante janela de 503 do deploy, 2026-08-26.
 
@@ -202,3 +213,5 @@ last_run: "2026-10-02"
 - 2026-10-01 · [CL] UC-S04: o autocomplete passou a mandar `price_group`, e o produto adicionado com grupo definido entra pelo preço do grupo, como no POS Blade. Antes, só a troca de grupo reprecificava, e só as linhas que já estavam no carrinho. Medido em prod: nenhuma venda com grupo de preço desde 2026-05-27 (a coluna é gravada: 90 vendas com grupo de 2021 a 2026-04-24, um único business) — defeito latente, nenhum valor gravado muda.
 - 2026-07-02 · [CC] Onda 1.4 (dente de cálculo): UC-S02 declarado com teste no MESMO PR (coordenação 1.3 ↔ 1.4, regra "declarar UC + teste = 1 PR"). Property `num_uf(num_f(x))==x` + golden no totalizador real `calculateInvoiceTotal` (227,90 − 10,05% = 204.99605, não infla) + discriminação RED vs strip-do-ponto + caracterização da divergência `getTotalPaid`(líquido) ≠ `getTotalAmountPaid`(bruto). TEST-ONLY — nenhum método de cálculo alterado.
 - 2026-10-23 · [M+C] Backlog de limite de crédito (avisar ou bloquear), saldo a favor na venda e pedido de compra do cliente, sem id.
+- 2026-10-23 · [M+C] Backlog de ISS retido previsto e de quem recebe comissão, sem id.
+- 2026-10-23 · [M+C] Revalidado (G-6): as mudanças em `Create.tsx` depois do last_run 2026-10-02 são a venda de reparo (#8426, #8439 e #8447), descritas pelos UC-S05, S06 e S07 desta tela. Nenhum UC foi reexecutado; last_run 2026-10-02 → 2026-10-23.
