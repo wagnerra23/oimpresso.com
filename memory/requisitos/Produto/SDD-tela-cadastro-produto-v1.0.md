@@ -922,8 +922,10 @@ mercadoria** e **unidade** — e, quando o produto tem substituição tributári
      (`mysql-schema.sql`), além de `cfop_*`, `cst_*` e `origem_mercadoria`.
   2. ✅ A **origem** já é capturada no cadastro React (`BlocoPrecoImposto.tsx:76`, `UC-PCAD-07`) e a
      **unidade** também.
-  3. 🔴 **NCM e CEST não aparecem no cadastro React**: `ncm`/`cest` têm 0 ocorrências em
-     `Create.tsx` e em `_components/formulario/`.
+  3. 🟡 _Em 2026-10-20, ao escrever este CU, `ncm`/`cest` tinham 0 ocorrências em `Create.tsx` e em
+     `_components/formulario/`._ No mesmo dia o **NCM** entrou no Novo (`UC-PCAD-13`) e no Editar
+     (`UC-PEDIT-11`). Em 2026-10-21 entrou o **CEST**, também no Novo (`UC-PCAD-15`) e no Editar
+     (`UC-PEDIT-12`): 7 dígitos (Convênio ICMS 142/2018), opcional, sem aviso quando vazio.
   4. ✅ O NCM é editado na tela de **Tributação** do módulo fiscal (`nfe-brasil.tributacao.index`),
      que já tem **sugestão fiscal da Jana** que nunca se aplica sozinha (`SugestaoFiscalService`,
      UC-NFTR-10..13). A ficha do produto mostra o bloco fiscal e o link para lá
@@ -932,7 +934,7 @@ mercadoria** e **unidade** — e, quando o produto tem substituição tributári
   5. ⚠️ Produto cadastrado sem NCM nasce com `ncm = '0'` (o `DEFAULT` da coluna), não com vazio.
 - ✅ **Decidido ([M] 2026-10-20, ratificação [W] no merge do PR):** o **NCM entra no cadastro do
   produto**. A tela de Tributação continua podendo editá-lo.
-- **Regra** (implementada no Novo produto: `UC-PCAD-13` e `UC-PCAD-14` do [`Create.casos.md`](../../../resources/js/Pages/Produto/Create.casos.md); o Editar ainda não tem o campo):
+- **Regra** (implementada no Novo produto — `UC-PCAD-13` e `UC-PCAD-14` do [`Create.casos.md`](../../../resources/js/Pages/Produto/Create.casos.md) — e no Editar — `UC-PEDIT-11` do [`Edit.casos.md`](../../../resources/js/Pages/Produto/Edit.casos.md), que só envia o NCM quando a pessoa mexeu nele):
   1. O campo NCM aparece no cadastro, aceita só 8 dígitos e `'0'` **não** conta como preenchido.
   2. **Não bloqueia o salvamento.** O cadastro mínimo segue nome + SKU (`CU-PROD-01`): um serviço
      (arte, instalação) não tem NCM e não pode ser travado no cadastro.
@@ -941,7 +943,7 @@ mercadoria** e **unidade** — e, quando o produto tem substituição tributári
   4. A NF-e já recusa produto marcado como serviço (`NfeService::recusarItensDeServico`); a regra
      acima só antecipa para o cadastro o que a emissão já cobra.
 
-#### CU-PROD-17 — Peso e dimensões do produto `[should]` 🟡 **parcial**
+#### CU-PROD-17 — Peso e dimensões do produto `[should]` ✅ **no cadastro** (2026-10-21)
 
 <!-- curado: benchmark de concorrentes 2026-10-20 + medição do código (mysql-schema.sql products · BlocoMaisOpcoes.tsx) -->
 
@@ -951,8 +953,12 @@ mercadoria** e **unidade** — e, quando o produto tem substituição tributári
 - **Mercado:** Bling, Olist e Conta Azul pedem peso líquido, peso bruto e dimensões no cadastro. A
   Olist diz que servem à cotação de frete; a Shopee exige dimensões e pesos para publicar, e o
   Bling também para exportar à Amazon. Nos dois o dado é opcional para a nota.
-- **Hoje no oimpresso:** ✅ só **um** campo de peso (`products.weight varchar(191)`, editado em
-  `BlocoMaisOpcoes.tsx:64-70`). 🔴 Não há peso bruto nem colunas de dimensão em `products`.
+- **Hoje no oimpresso:** _Em 2026-10-20, ao escrever este CU, havia só **um** campo de peso
+  (`products.weight varchar(191)`) e nenhuma coluna de dimensão._ Em 2026-10-21 ([M] pediu) entraram
+  `peso_liquido` (kg), `largura_cm`, `altura_cm` e `comprimento_cm` (migration
+  `2026_10_21_120000`), no Novo (`UC-PCAD-16`) e no Editar (`UC-PEDIT-13`). O `weight` de sempre
+  passou a ser mostrado como **"Peso bruto (kg)"**, porque é o peso que o WooCommerce manda para o
+  frete. Fora: levar peso e dimensões à nota (volumes do transporte) e ao WooCommerce.
 - ⚠️ **Premissa a conferir antes de priorizar:** só vale se o cliente despacha ou vende em
   marketplace. Para venda de balcão o campo não tem uso (ADR 0105 — sinal antes de backlog).
 
