@@ -261,6 +261,16 @@ last_run: "2026-10-23"
   Hoje o produto do tipo combo (kit) e a composição existem no cadastro
   (`memory/requisitos/Produto/_telas/bom-combo.casos.md`); a busca da venda reconhece o tipo `combo`,
   mas não monta os componentes na venda.
+- **[BACKLOG] A tabela de preço do cliente preenche os preços** (pedido de 2026-10-23) `[V0]` — Aceite:
+  Dado um cliente ligado à tabela "Atacado", Quando o escolho na venda, Então os itens passam a usar os
+  preços dessa tabela, e o vendedor vê qual tabela está valendo; cliente sem tabela usa a padrão. Hoje
+  isso já funciona pelo grupo do cliente (o grupo aponta a tabela e a venda reprecifica ao escolher o
+  cliente), mas não há tabela no próprio cliente: um cliente com preço só dele precisa de um grupo só
+  dele. Sem caso nem teste até agora.
+- **[BACKLOG] A tabela de preço segue o tipo de venda** (pedido de 2026-10-23) `[V0]` — Aceite: Dado as
+  tabelas Varejo e Atacado, Quando escolho o tipo de venda "Atacado", Então os itens usam a tabela de
+  atacado, e trocar o tipo refaz os preços dos itens já lançados. Hoje a venda tem o seletor de tabela
+  de preço (`price_group_id`), mas não um tipo de venda que escolha a tabela.
 - **[BACKLOG] Emissão NF-e da venda (homolog/stub SEFAZ)** — wire já existe (suítes NfeBrasil); espelhar como UC quando o fluxo de emissão entrar no harness e2e.
 - **[BACKLOG] Fechar o diálogo de rascunho preserva a venda montada** — Dado um rascunho salvo · Quando o operador fecha o diálogo de recuperação SEM escolher (Esc, clique fora) · Então o rascunho **continua** no `localStorage` e a pergunta volta na próxima montagem; só o botão "Descartar" apaga. Exige exercitar `AlertDialog` do Radix no harness e2e (incluindo se `Esc` de fato fecha nesta versão, que não foi verificado). Origem: ROTA LIVRE perdeu venda montada durante janela de 503 do deploy, 2026-08-26.
 

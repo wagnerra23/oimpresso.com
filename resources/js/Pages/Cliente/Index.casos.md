@@ -121,6 +121,17 @@ last_run: "2026-10-14"
   mostra zero. Hoje a aba Operações tem Extrato, Vendas, Pagamentos, Documentos, Pessoas,
   Assinaturas, Pontos e Auditoria; não há OS, orçamentos nem devoluções separados, nem total por tipo.
   O protótipo `cliente-drawer760.jsx` traz os totais "OS no total" e "Valor total".
+- **[BACKLOG] Campos obrigatórios no cadastro para a cobrança** (pedido de 2026-10-23) — Aceite: Dado a
+  empresa que define quais dados do cliente são obrigatórios para cobrar (por exemplo CPF ou CNPJ,
+  endereço completo e e-mail de cobrança), Quando gero um boleto ou uma cobrança para um cliente sem um
+  deles, Então a cobrança não sai e a tela lista o que falta, com link para o cadastro; ao salvar o
+  cadastro, a tela avisa os campos de cobrança vazios. Hoje o cadastro não tem essa regra; o caso
+  "Faltam dados para nota" acima trata só da nota fiscal.
+- **[BACKLOG] Desconto para boleto pago antes do vencimento** (pedido de 2026-10-23) `[V0]` — Aceite:
+  Dado um cliente com 2% de desconto para pagamento até 5 dias antes do vencimento, Quando o boleto dele
+  é gerado, Então o boleto já sai com o desconto e a data limite, e o título recebe o desconto só se o
+  pagamento chegar dentro do prazo; cliente sem desconto não muda. Hoje o cadastro não tem o campo e os
+  boletos saem sem desconto. Mexe em valor: Regra Mestre.
 
 ## Rastreabilidade (UC → CU do SDD → US do SPEC)
 

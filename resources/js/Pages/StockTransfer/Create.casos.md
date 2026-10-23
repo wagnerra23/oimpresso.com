@@ -60,3 +60,9 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   - O campo situação sai deste formulário.
   - **Depende da tela do [W]:** o "Transferir" do produto (painel e menu da linha da lista de produtos) abre esta tela com produto e local de origem preenchidos.
   - Mexe em movimentação de estoque: antes de mergear, dupla confirmação do saldo (muda só na aprovação, nunca duas vezes) e o antes → depois apresentado ([`proibicoes.md`](../../../../memory/proibicoes.md) §CÁLCULO DE VALOR ou ESTOQUE).
+- [BACKLOG] **Nota fiscal da transferência entre matriz e filial** (pedido de 2026-10-23) — Dado uma
+  transferência de estoque entre duas filiais da empresa com CNPJ diferentes, Quando ela é concluída,
+  Então sai a NF-e de transferência da origem para o destino, com os itens e valores da transferência,
+  e a nota fica ligada à transferência; filiais com o mesmo CNPJ não pedem nota. CFOP de exemplo: 5.152
+  no mesmo estado e 6.152 entre estados; o contador confirma. Hoje a transferência mexe no estoque e não
+  emite nota.

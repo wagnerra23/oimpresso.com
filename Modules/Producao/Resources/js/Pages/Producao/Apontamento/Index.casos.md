@@ -792,3 +792,19 @@ Status: 🧪
   e no Painel. As duas primeiras podem ser mudadas na OS. Hoje a OS tem só o prazo prometido da venda
   (`pcp_ordens.prazo_prometido`, a entrega final) e o prazo calculado pela fila dos postos
   (Postos/Index.casos.md, UC-PCPRZ); não há data limite por etapa.
+
+## Imagens e arte anexadas à OS (pedido de 2026-10-23)
+
+- **[BACKLOG]** Anexar imagens e a arte à OS — Dado uma OS de fachada, Quando anexo a arte final e duas
+  fotos do local, Então os arquivos ficam na OS, aparecem no apontamento de cada etapa e na ficha
+  impressa (a arte em miniatura), e quem executa abre cada um. Hoje a OS guarda o arquivo da arte que
+  passa pela aprovação do cliente (UC-PCART e UC-PCV-11), mas a tela do operador ainda não mostra essa
+  arte e não há outros anexos.
+
+## Terceiro que executa o serviço da OS (pedido de 2026-10-23)
+
+- **[BACKLOG]** Indicar o terceiro que vai executar o serviço `[V0]` — Dado uma OS com a instalação feita
+  por uma empresa de fora, Quando indico o terceiro e o valor combinado com ele, Então nasce uma conta a
+  pagar para ele, separada do custo próprio, a comissão desse serviço é calculada à parte, e a OS mostra
+  "Executado por terceiro". OS sem terceiro não muda. Hoje a OS não registra terceiro. Mexe em valor:
+  Regra Mestre.
