@@ -65,8 +65,10 @@ export interface CamposProduto {
   tax: number | string;
   tax_type: 'inclusive' | 'exclusive';
   origem_mercadoria: number;
-  /** Novo: o NCM, só dígitos (ncm.ts). O Editar ainda não mostra o campo. */
+  /** O NCM, só dígitos (ncm.ts). O Editar só o envia quando a pessoa mexeu nele. */
   ncm?: string;
+  /** O CEST, só dígitos (cest.ts). O Editar só o envia quando a pessoa mexeu nele. */
+  cest?: string;
   barcode_type: string;
   alert_quantity: number | string;
   weight: number | string;
@@ -84,7 +86,7 @@ export interface CamposProduto {
 }
 
 /** Os erros de validação que os blocos exibem. */
-export type ErrosProduto = Partial<Record<'name' | 'origem_mercadoria' | 'ncm', string>>;
+export type ErrosProduto = Partial<Record<'name' | 'origem_mercadoria' | 'ncm' | 'cest', string>>;
 
 export type DefinirCampo = <K extends keyof CamposProduto>(campo: K, valor: CamposProduto[K]) => void;
 
