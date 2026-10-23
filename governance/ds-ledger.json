@@ -277,7 +277,7 @@
     },
     {
       "screen": "Producao",
-      "note": "16 arquivo(s)",
+      "note": "17 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -697,8 +697,8 @@
   "progressPct": 62,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "439365353",
-  "generatedAt": "2026-10-22T14:38:44.824Z",
+  "measuredAgainstSha": "32317d2ff",
+  "generatedAt": "2026-10-23T14:21:32.802Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
