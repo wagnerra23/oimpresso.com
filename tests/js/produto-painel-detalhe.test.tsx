@@ -21,7 +21,7 @@
 //     preços de cada item (as colunas da Blade) e as imagens dos itens; a aba Variações, as imagens
 //     das variações. Sem permissão, a parte de preço some (nunca zero).
 //
-// Cobre UC-PIDX-09, UC-PIDX-11, UC-PIDX-12, UC-PIDX-17, UC-PIDX-19, UC-PIDX-20, UC-PIDX-21 e UC-PIDX-28 (resources/js/Pages/Produto/Index.casos.md).
+// Cobre UC-PIDX-09, UC-PIDX-11, UC-PIDX-12, UC-PIDX-17, UC-PIDX-19, UC-PIDX-20, UC-PIDX-21 e UC-PIDX-33 (resources/js/Pages/Produto/Index.casos.md).
 // ⚠️ Nenhuma lane de CI roda este arquivo ainda (cada lane Vitest lista os próprios specs).
 // Comando: npx vitest run tests/js/produto-painel-detalhe.test.tsx
 
@@ -380,7 +380,7 @@ describe('UC-PIDX-12 · indicadores da aba Estoque', () => {
   });
 });
 
-describe('UC-PIDX-28 · quantidade vendida por local na aba Estoque', () => {
+describe('UC-PIDX-33 · quantidade vendida por local na aba Estoque', () => {
   const linha = (local: string, estoque: number, vendido: number) => ({
     sku: 'CAM-001', produto: 'Camiseta básica', variacao: '', categoria: 'Camisetas', local, preco: 20, estoque, unidade: 'Un',
     valor_compra: null, valor_venda: null, lucro_potencial: null, vendido, transferido: 0, ajustado: 0, alerta: false,

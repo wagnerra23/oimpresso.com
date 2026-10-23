@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PIDX-09, UC-PIDX-11, UC-PIDX-12, UC-PIDX-20, UC-PIDX-22, UC-PIDX-25 e UC-PIDX-28 (resources/js/Pages/Produto/Index.casos.md) — G-2 rastreabilidade caso↔teste.
+// Cobre UC-PIDX-09, UC-PIDX-11, UC-PIDX-12, UC-PIDX-20, UC-PIDX-22, UC-PIDX-25 e UC-PIDX-33 (resources/js/Pages/Produto/Index.casos.md) — G-2 rastreabilidade caso↔teste.
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -224,7 +224,7 @@ function pdtVenda(int $businessId, object $p, int $local, int $criador, string $
     ]);
 }
 
-it('UC-PIDX-28 · o vendido de cada local é o "Total vendido" do relatório de estoque: vendas finalizadas menos devoluções', function () {
+it('UC-PIDX-33 · o vendido de cada local é o "Total vendido" do relatório de estoque: vendas finalizadas menos devoluções', function () {
     pdtEntrar($this, ['product.view', 'access_all_locations', 'stock_report.view']);
     $p = EstoqueFixture::singleProduct($this->business->id);
     $locais = [];
