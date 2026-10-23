@@ -255,12 +255,16 @@ Status: 🧪
   três vendas; pagar o título paga as três; uma venda não entra em dois grupos; cancelar uma venda do
   grupo antes do pagamento tira o valor dela do título. Mexe em valor: Regra Mestre. Fonte: US-SELL-024
   e o Delphi (`CODFINANCEIRO_GRUPO`).
+- **[BACKLOG]** Título de cada parte faturada `[V0]` — Dado uma venda de 1.000,00 faturada em duas
+  partes (400,00 e 600,00), Então cada parte tem o seu título; cancelar a nota de uma parte cancela o
+  título dela se ainda não estiver pago. Mexe em valor: Regra Mestre. Fonte: Omie (pedido parcial).
 
 1. **Pest (MySQL real):** lane do Financeiro no CT100 — quando os UCs acima ganharem teste.
 2. **Cadência:** rodar ao fim de toda mexida na tela. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
 - 2026-10-23 · [M+C] Backlog de ISS retido (total, retido e recebido) e de título de venda agrupada, sem id.
+- 2026-10-23 · [M+C] Backlog: título de cada parte faturada, da comparação com concorrentes (Omie), sem id.
 - 2026-10-21 · [CC] US-FIN-071: botão "Lembretes" no cabeçalho + painel lateral (UC-CRREG-08). As colunas
   Bruto/Retido/Líquido do #9698 seguem intactas; revalidado após juntar os dois.
 - 2026-10-20 · [CC] US-FIN-073: UC-CRAB-01..04 (aberto do título parcial + relatório `--aberto` só leitura),

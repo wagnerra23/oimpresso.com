@@ -89,6 +89,16 @@ last_run: "2026-09-05"
 
 ---
 
+## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
+
+- **[BACKLOG]** Limite de crédito também na OS (pedido de 2026-10-23) `[V0]` — Dado um cliente com
+  limite de 2.000,00 e 1.800,00 em aberto, Quando abro uma OS com custo estimado de 500,00, Então com a
+  empresa em "avisar" a OS abre com o aviso "passa 300,00 do limite"; em "bloquear" ela não abre. É a
+  mesma escolha da venda (`Sells/Create.casos.md`). Mexe em valor: Regra Mestre. Fonte: Omie (o limite
+  vale para OS, contrato e pedido); US-CRM-081.
+
+---
+
 ## Rastreabilidade
 
 | UC | Defendido por | Eixo |

@@ -171,7 +171,8 @@ last_run: "2026-10-23"
   `[V0]` — detalha o item acima. Aceite: Dado um cliente com limite de 2.000,00 e 1.500,00 em aberto,
   Quando salvo uma venda a prazo de 800,00, Então com a empresa em "avisar" a venda salva e mostra
   "passa 300,00 do limite"; em "bloquear" a venda não salva, o carrinho fica como estava e a mensagem
-  diz quanto passou. O que conta é o valor que fica em aberto: a parte paga no ato não usa limite. Hoje
+  diz quanto passou. O que conta é o valor que fica em aberto: a parte paga no ato não usa limite, e a
+  venda com 100% de adiantamento passa mesmo com o limite estourado, como no Omie. Hoje
   o sistema calcula (`TransactionUtil::isCustomerCreditLimitExeeded()`) e só avisa. Mexe em valor:
   Regra Mestre.
 - **[BACKLOG] Usar o saldo a favor do cliente na venda** `[V0]` — Aceite: Dado um cliente com 120,00 a
@@ -197,6 +198,19 @@ last_run: "2026-10-23"
   faturamento; com comissionado, a comissão nasce pela regra dele (UC-FLX-05). Comissionado de outra
   empresa nunca aparece na lista. Fonte: Comissionados (`sales_commission_agents`, representante
   externo).
+- **[BACKLOG] Crédito disponível ao escolher o cliente** `[V0]` — Aceite: Dado um cliente com limite
+  de 2.000,00 e 1.500,00 em aberto, Quando escolho o cliente na venda, Então o resumo mostra
+  "Disponível 500,00" antes de salvar; cliente sem limite não mostra nada. Fonte: DecoNetwork (crédito
+  restante no orçamento e no pedido); US-CRM-081.
+- **[BACKLOG] A condição do cliente preenche a venda** `[V0]` — Aceite: Dado o cliente com condição
+  própria de sinal de 50% e prazo de 28 dias, Quando faço uma venda para ele, Então a venda vem com
+  esse sinal e esse prazo, e o vendedor pode trocar; cliente sem condição usa a da empresa. Fonte:
+  DecoNetwork (condições por cliente); o caso irmão está em `Cliente/Index.casos.md`.
+- **[BACKLOG] Cobrar o sinal por link** `[V0]` — Aceite: Dado o sinal mínimo de 30% e uma venda
+  aprovada de 1.000,00, Quando gero a cobrança do sinal, Então sai uma cobrança de 300,00 (Pix ou
+  boleto) com link para o cliente, e o vendedor pode trocar o valor; paga, o retorno do banco lança o
+  pagamento na venda e libera a OS (UC-PCLIB-08). Mexe em valor: Regra Mestre. Fonte: Printavo
+  (pedido de pagamento com o valor escolhido); UC-FLX-28.
 - **[BACKLOG] Emissão NF-e da venda (homolog/stub SEFAZ)** — wire já existe (suítes NfeBrasil); espelhar como UC quando o fluxo de emissão entrar no harness e2e.
 - **[BACKLOG] Fechar o diálogo de rascunho preserva a venda montada** — Dado um rascunho salvo · Quando o operador fecha o diálogo de recuperação SEM escolher (Esc, clique fora) · Então o rascunho **continua** no `localStorage` e a pergunta volta na próxima montagem; só o botão "Descartar" apaga. Exige exercitar `AlertDialog` do Radix no harness e2e (incluindo se `Esc` de fato fecha nesta versão, que não foi verificado). Origem: ROTA LIVRE perdeu venda montada durante janela de 503 do deploy, 2026-08-26.
 
@@ -214,4 +228,5 @@ last_run: "2026-10-23"
 - 2026-07-02 · [CC] Onda 1.4 (dente de cálculo): UC-S02 declarado com teste no MESMO PR (coordenação 1.3 ↔ 1.4, regra "declarar UC + teste = 1 PR"). Property `num_uf(num_f(x))==x` + golden no totalizador real `calculateInvoiceTotal` (227,90 − 10,05% = 204.99605, não infla) + discriminação RED vs strip-do-ponto + caracterização da divergência `getTotalPaid`(líquido) ≠ `getTotalAmountPaid`(bruto). TEST-ONLY — nenhum método de cálculo alterado.
 - 2026-10-23 · [M+C] Backlog de limite de crédito (avisar ou bloquear), saldo a favor na venda e pedido de compra do cliente, sem id.
 - 2026-10-23 · [M+C] Backlog de ISS retido previsto e de quem recebe comissão, sem id.
+- 2026-10-23 · [M+C] Backlog da comparação com concorrentes: crédito disponível, condição do cliente e cobrança do sinal por link, sem id; o caso do limite ganhou o aceite do adiantamento (Omie).
 - 2026-10-23 · [M+C] Revalidado (G-6): as mudanças em `Create.tsx` depois do last_run 2026-10-02 são a venda de reparo (#8426, #8439 e #8447), descritas pelos UC-S05, S06 e S07 desta tela. Nenhum UC foi reexecutado; last_run 2026-10-02 → 2026-10-23.
