@@ -54,7 +54,7 @@ const DESIGN = /\b(design|desing|dising|desgin|prot[oó]tipo|protipo|cowork|mock
     console.log(`[design-compare-protocol] ⚠️ **COMPARAÇÃO DESIGN×PROD detectada — protocolo LC-06 (comparação é MEDIDA, nunca no olho)**
 
 Antes de qualquer veredito "igual/aplicado/fiel", cumpra o fluxo da skill \`comparar-design-prod\`:
-1. **Fonte provada**: \`cowork-mirror-freshness --compare --check\` = SYNC (senão está comparando design velho).
+1. **Fonte = o arquivo do git**: \`node scripts/design/ancora.mjs <Mod/Tela>\` diz qual arquivo do protótipo renderizar (ADR 0438).
 2. **Mesmo tema** nos dois lados (o tema do Wagner).
 3. **Mesma sonda medida**: \`node scripts/design/design-diff.mjs --probe\` nos DOIS renders → \`--compare a.json b.json --check\` (D2/D4/D6/D8 medidos).
 4. **D1 rede sempre** (partial-reload) + D3/D5 pelo PROTOCOLO-COMPARACAO-RUNTIME.
