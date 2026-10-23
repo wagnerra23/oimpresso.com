@@ -710,8 +710,8 @@ jobs:
       - name: Registro design-sync-não-é-fonte em settings.json (camada L4 · DesignSync + Skill)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-design-sync-registration.test.mjs
-      # MOTOR compartilhado dos consumidores abaixo (bundle-contract, bundle-transaction e
-      # scripts/design/render-proto-baseline; aplicar-payload e gerar-payload-partes saíram em 2026-10-23, ADR 0438) — era o único sem teste
+      # MOTOR compartilhado do bundle-contract e do scripts/design/render-proto-baseline (a aplicação de
+      # bundle, aplicar-payload e gerar-payload-partes saíram em 2026-10-23, ADR 0438) — era o único sem teste
       # próprio, exercitado só de lado pelos testes dos consumidores. Roda ANTES deles porque
       # uma regressão aqui aparece longe da causa. Mutantes mortos antes de wirar (2026-09-13):
       # normalização de barra invertida do Windows removida → 1 FAIL · guard `fromJs` removido
@@ -724,10 +724,11 @@ jobs:
       - name: payload-dependency-graph MOTOR morde (path POSIX/pacote npm x arquivo/binário folha/ciclo · em memória)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/payload-dependency-graph.test.mjs
-      - name: bundle transacional morde (sequência/SHA/staging/rollback/módulos/evidências)
+      # A aplicação de bundle saiu em 2026-10-23 (ADR 0438, onda 2c-3); o arquivo ficou com os recibos por tela.
+      - name: recibos por tela mordem (ciclo de vida · invalidação por hash · base envelhecida)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/bundle-transaction.test.mjs
-      # O PAINEL que fica em cima do bundle-transaction. `recibos-ci.mjs` o invoca 2× como
+      # O PAINEL que fica em cima dos recibos (bundle-transaction.mjs). `recibos-ci.mjs` o invoca 2× como
       # código real (`--refresh` L129, `--run-test` L121) tratando rc != 0 como erro, e o painel
       # do protocolo o publica em 5 das 6 fases — mas as catracas `--check-mapping` e
       # `--check-lifecycle` nunca tinham sido exercitadas. Cobre só o que é DELE (leitura, exit

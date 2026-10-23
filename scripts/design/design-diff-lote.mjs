@@ -112,7 +112,7 @@ import { createHash } from 'node:crypto';
 import { join, resolve, dirname, basename, extname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { frontmatter } from './_lib-charter.mjs';
-import { dsRuntimeRelPath } from '../governance/cowork-mirror-freshness.mjs';
+import { dsRuntimeRelPath } from './ds-runtime-path.mjs';
 
 const argv = process.argv.slice(2);
 const flag = (n) => argv.includes(n);

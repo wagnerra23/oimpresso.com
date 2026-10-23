@@ -55,7 +55,8 @@ import { join, resolve, dirname, extname, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 import { payloadDependencyGraph } from '../design-sync/payload-dependency-graph.mjs';
-import { previewDsPlan, dsRuntimeRelPath } from '../governance/cowork-mirror-freshness.mjs';
+import { previewDsPlan } from '../governance/cowork-mirror-freshness.mjs';
+import { dsRuntimeRelPath } from './ds-runtime-path.mjs';
 
 import { resolveAncora } from './ancora.mjs';
 import { SNIPPET, rotulosDistintivos, overlapConteudo } from './style-fingerprint.mjs';
