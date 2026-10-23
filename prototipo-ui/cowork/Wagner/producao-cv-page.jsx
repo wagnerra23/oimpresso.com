@@ -1,6 +1,6 @@
 // producao-cv-page.jsx — módulo Produção (comunicação visual): a OS como projeto.
 // Vistas: Painel do gestor · Quadro por setor · Linha do tempo por máquina · Custo real × orçado ·
-// Instalação · Apontamento (celular) · Roteiros. A ficha da OS (projeto) abre em drawer PT-02 de 760px.
+// Instalação · Apontamento (celular) · Roteiros · Postos e cadastros. A ficha da OS (projeto) abre em drawer PT-02 de 760px.
 // Diferenciais sobre o Mubisys (grade 33-grade-producao-concorrentes.md): quadro + linha do tempo, custo real × orçado,
 // refugo com motivo, instalação com foto e assinatura, aprovação de arte online, encaixe na bobina, alerta de gargalo.
 // Casos de uso e como testar: cowork-inbox/producao/Producao.casos.md (UC-PCV-01..28).
@@ -15,6 +15,7 @@ const VISTAS = [
   { key: "painel", label: "Painel" }, { key: "quadro", label: "Quadro" }, { key: "linha", label: "Linha do tempo" },
   { key: "custo", label: "Custo real × orçado" }, { key: "instalacao", label: "Instalação" },
   { key: "apontamento", label: "Apontamento" }, { key: "roteiros", label: "Roteiros" },
+  { key: "postos", label: "Postos e cadastros" },
 ];
 const PRIO = { urgente: ["Urgente", "danger"], alta: ["Alta", "warning"], normal: ["Normal", "neutral"] };
 const ARTE = { aprovada: ["Arte aprovada", "success"], aguardando: ["Aguardando cliente", "warning"], ajuste: ["Ajuste pedido", "danger"] };
@@ -367,6 +368,7 @@ function ProducaoCvPage({ view = "painel", estado = "dados" }) {
     : vista === "linha" ? <Linha onAbrir={setAberta} f={f} setF={setF} />
     : vista === "custo" && O.Custo ? <O.Custo onAbrir={setAberta} />
     : vista === "roteiros" && O.Roteiros ? <O.Roteiros />
+    : vista === "postos" && window.PcvPostos ? <window.PcvPostos.Postos />
     : vista === "instalacao" && C.Instalacao ? <C.Instalacao onAbrir={setAberta} />
     : vista === "apontamento" && C.Apontamento ? <C.Apontamento />
     : <p className="pcv-help" style={{ padding: 24 }}>Carregando…</p>;

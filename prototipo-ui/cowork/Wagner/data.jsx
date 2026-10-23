@@ -133,6 +133,7 @@ const MENU = [
       { id: "pcv-instalacao",  icon: "truck",  label: "Instalação" },
       { id: "pcv-apontamento", icon: "phone",  label: "Apontamento" },
       { id: "pcv-roteiros",    icon: "list",   label: "Roteiros" },
+      { id: "pcv-postos",      icon: "wrench", label: "Postos e cadastros" },
     ]},
     { id: "os",     icon: "orders", label: "Ordens de Serviço" },
     { id: "entregas", icon: "car",  label: "Entregas e instalação" },
