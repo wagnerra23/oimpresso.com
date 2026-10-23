@@ -211,6 +211,18 @@ last_run: "2026-10-23"
   boleto) com link para o cliente, e o vendedor pode trocar o valor; paga, o retorno do banco lança o
   pagamento na venda e libera a OS (UC-PCLIB-08). Mexe em valor: Regra Mestre. Fonte: Printavo
   (pedido de pagamento com o valor escolhido); UC-FLX-28.
+- **[BACKLOG] Duplicar abre a venda nova com a origem** — Aceite: Quando duplico a V-150, Então abre um
+  rascunho com o mesmo cliente e os mesmos itens, sem pagamento, sem nota e com número novo, e o topo
+  mostra "Duplicada de V-150"; a origem fica gravada na venda nova. Hoje a cópia não guarda a origem
+  (`SellController::duplicateSell`, medido em 23/10/2026). Em aberto para o [W]: a cópia mantém os
+  preços da origem ou recalcula pela tabela de hoje.
+- **[BACKLOG] Venda para entrega futura** `[V0]` `[E0]` — Aceite: Dado uma venda marcada "entrega
+  futura" de 1.000 folhetos, Quando faturo, Então sai a nota de simples faturamento com o valor total
+  e o estoque não baixa; a cada entrega sai uma nota de remessa com a quantidade entregue, ligada à de
+  faturamento, e só então o estoque baixa; nunca se entrega mais que o faturado. CFOP de exemplo:
+  5.922 no faturamento, 5.116 (produção própria) ou 5.117 (revenda) na remessa; o CFOP e o destaque
+  do ICMS ficam com o contador. Mexe em valor e estoque: Regra Mestre. Fonte: UC-TRB-24 do protótipo
+  fiscal (falta).
 - **[BACKLOG] Emissão NF-e da venda (homolog/stub SEFAZ)** — wire já existe (suítes NfeBrasil); espelhar como UC quando o fluxo de emissão entrar no harness e2e.
 - **[BACKLOG] Fechar o diálogo de rascunho preserva a venda montada** — Dado um rascunho salvo · Quando o operador fecha o diálogo de recuperação SEM escolher (Esc, clique fora) · Então o rascunho **continua** no `localStorage` e a pergunta volta na próxima montagem; só o botão "Descartar" apaga. Exige exercitar `AlertDialog` do Radix no harness e2e (incluindo se `Esc` de fato fecha nesta versão, que não foi verificado). Origem: ROTA LIVRE perdeu venda montada durante janela de 503 do deploy, 2026-08-26.
 
@@ -229,4 +241,5 @@ last_run: "2026-10-23"
 - 2026-10-23 · [M+C] Backlog de limite de crédito (avisar ou bloquear), saldo a favor na venda e pedido de compra do cliente, sem id.
 - 2026-10-23 · [M+C] Backlog de ISS retido previsto e de quem recebe comissão, sem id.
 - 2026-10-23 · [M+C] Backlog da comparação com concorrentes: crédito disponível, condição do cliente e cobrança do sinal por link, sem id; o caso do limite ganhou o aceite do adiantamento (Omie).
+- 2026-10-23 · [M+C] Backlog de duplicar com a origem e de venda para entrega futura, sem id.
 - 2026-10-23 · [M+C] Revalidado (G-6): as mudanças em `Create.tsx` depois do last_run 2026-10-02 são a venda de reparo (#8426, #8439 e #8447), descritas pelos UC-S05, S06 e S07 desta tela. Nenhum UC foi reexecutado; last_run 2026-10-02 → 2026-10-23.

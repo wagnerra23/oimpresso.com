@@ -230,6 +230,23 @@ last_run: "2026-10-23"
   Aceite: Dado uma venda de 10 placas, Quando faturo 4 · Então nasce a parte "<venda>/1" com as 4
   placas, a nota e o título dela, e a venda mostra "4 de 10 faturadas · faltam 6"; cancelar a nota da
   parte devolve as 4 à venda. Mexe em valor e estoque: Regra Mestre. Fonte: Omie (pedido parcial).
+- **[BACKLOG] Venda duplicada mostra de onde veio** — Aceite: Dado a V-200 duplicada da V-150, Então
+  a linha e o drawer da V-200 mostram "Duplicada de V-150" com link, e o drawer da V-150 mostra
+  "Duplicada em V-200"; vale também para orçamento duplicado. Hoje `SellController::duplicateSell`
+  copia a venda para um rascunho e não guarda a origem (medido em 23/10/2026). Fonte: o backlog
+  "Duplicar a venda (recompra)" acima.
+- **[BACKLOG] Venda devolvida no todo ou em parte** — detalha o UC-S12. Aceite: Dado uma venda de 3
+  itens com 2 devolvidos, Então o Status mostra "Devolução parcial · 2 de 3"; com os 3 devolvidos,
+  "Devolvida"; o ícone de devolução do UC-S12 continua. Fonte: processo "Devolução, troca e garantia"
+  de Fluxos (devolução total ou parcial).
+- **[BACKLOG] Garantia aberta pela venda** `[E0]` — Aceite: Dado uma venda entregue com um item na
+  garantia, Quando abro a garantia pelo menu da venda, Então a troca sai sem cobrança, com a nota de
+  remessa em garantia ligada à venda, e a venda mostra "Garantia aberta"; fora do prazo, a troca pede
+  aprovação do gerente. Fonte: SPEC de Garantia (planejado, cenários A a E) e o processo "Devolução,
+  troca e garantia" de Fluxos.
+- **[BACKLOG] Venda para entrega futura: o que falta entregar** — Aceite: Dado uma venda para entrega
+  futura de 1.000 folhetos com 400 entregues, Então a linha mostra "Entrega futura · faltam 600" e o
+  drawer lista as notas de remessa já emitidas. Fonte: UC-TRB-24 do protótipo fiscal (falta).
 
 ## Como rodar a suíte
 1. **E2E:** `npm run e2e:check` no harness do CI (e2e-gate) — vereditos viram manifesto via `npm run casos:results` (merge per-UC).
@@ -238,6 +255,7 @@ last_run: "2026-10-23"
 ## Trilha do tempo
 - 2026-10-23 · [M+C] Backlog "Casos pedidos em 2026-10-23": sinal, arte, estoque mínimo, saldo a favor, limite de crédito, pedido de compra do cliente, ISS retido, venda sem comissionado e venda agrupada, sem id e sem mudança de comportamento da tela.
 - 2026-10-23 · [M+C] Backlog: faturar só parte da venda, da comparação com concorrentes (Omie), sem id.
+- 2026-10-23 · [M+C] Backlog de venda duplicada com a origem, devolução total ou parcial, garantia e entrega futura, sem id.
 - 2026-10-23 · [M+C] Revalidado (G-6): a única mudança em `Index.tsx` depois do last_run 2026-10-20 é a barra de totais do #9672, que já é o UC-SIDX-06 desta tela. Nenhum UC foi reexecutado; last_run 2026-10-20 → 2026-10-23.
 - 2026-10-20 · [M+C] **UC-SIDX-06 `[V0]`** — barra de totais do filtro abaixo da lista (US-SELL-017): os `totals` que o servidor já calculava passam a aparecer. A barra não mostra número quando a visão salva, a pílula Faturada/Cancelada ou a origem filtram só a página carregada. Teste `tests/js/sells-index-totais.test.tsx` na lane Vitest do `Frontend / Vite build`.
 - 2026-10-20 · [M+C] Backlog da pesquisa de concorrentes (núcleo + comunicação visual), sem id e sem mudança de comportamento da tela; fontes no [registro da sessão](../../../../memory/sessions/2026-10-20-pesquisa-consulta-venda-concorrentes-cv.md).

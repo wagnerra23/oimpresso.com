@@ -96,6 +96,11 @@ last_run: "2026-09-05"
   empresa em "avisar" a OS abre com o aviso "passa 300,00 do limite"; em "bloquear" ela não abre. É a
   mesma escolha da venda (`Sells/Create.casos.md`). Mexe em valor: Regra Mestre. Fonte: Omie (o limite
   vale para OS, contrato e pedido); US-CRM-081.
+- **[BACKLOG]** OS de bem recebido para conserto com nota (pedido de 2026-10-23) — Dado um cliente
+  empresa que manda o equipamento com nota de remessa para conserto, Quando abro a OS, Então informo a
+  chave dessa nota e, na entrega, a nota de retorno sai ligada a ela, separada da cobrança do serviço.
+  CFOP de exemplo: 1.915 na entrada e 5.916 no retorno; o contador confirma. Fonte: UC-TRB-23 do
+  protótipo fiscal (falta).
 
 ---
 

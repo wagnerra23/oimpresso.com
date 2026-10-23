@@ -78,7 +78,16 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   Então nenhum dinheiro sai do caixa e o cliente fica com 80,00 a favor, que aparece no drawer do
   cliente e pode ser usado na próxima venda; escolher "devolver o dinheiro" segue como hoje. Mexe em
   valor: Regra Mestre. Fonte: US-VEST-021 (crédito em conta do cliente na troca).
+- **[BACKLOG]** Devolver tudo (pedido de 2026-10-23) `[V0]` `[E0]` — Dado uma venda de 3 itens, Quando
+  clico "Devolver tudo", Então cada linha vem com a quantidade que ainda pode voltar e o total é o da
+  venda menos o já devolvido; a devolução parcial continua digitando a quantidade de cada linha
+  (UC-SRADD-04). Mexe em valor e estoque: Regra Mestre.
+- **[BACKLOG]** A segunda devolução da mesma venda só aceita o que ainda não voltou (pedido de
+  2026-10-23) `[E0]` — Dado 3 unidades vendidas e 2 já devolvidas, Quando abro a devolução de novo,
+  Então o teto da linha é 1. Fonte: processo "Devolução, troca e garantia" de Fluxos ("quantidade até
+  a vendida, devolução total ou parcial").
 
 ## Trilha do tempo
+- 2026-10-23 · [M+C] Backlog: devolver tudo e segunda devolução da mesma venda, sem id.
 - 2026-10-23 · [M+C] Backlog: a devolução pode virar saldo a favor do cliente, sem id.
 - 2026-10-05 · [CL] trio nascido junto (charter + casos + teste) na thread 03 de venda-menu, PR 2 de 2.
