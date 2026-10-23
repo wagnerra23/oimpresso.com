@@ -24,7 +24,7 @@
 // Refs: ADR 0325 (pull direto) · ADR 0324 (identidade normalizada) · INDEX-DESIGN-MEMORIAS §0.2 ·
 //       memory/reference/prototipo-ui/PROTOCOL.md (política; este arquivo é dono da execução).
 
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -114,7 +114,7 @@ export const CONTAS = {
     //     projeto do [W]. Mesmo conteúdo, dois endereços: não é divergência, e não há o que decidir.
     //   · a fonte dos dois é o git (`prototipo-ui/design-system/`): o DS desta conta PUXA do `main`,
     //     não é espelhado PARA o repo. Por isso não entra em PROJETOS (lá todo projeto tem pasta
-    //     espelho, e o `--procedencia` e o `--de-quem` a leem).
+    //     espelho, e o `--procedencia` a lê; o `--de-quem` saiu em 2026-10-23, ADR 0438).
     //   · conferido pelo Code no pacote de 2026-09-18: o bundle do `019dd02f` é o do `49a36f76`
     //     byte a byte (9.354 linhas) + 11 linhas de alias do nome global antigo.
     dsCopia: { id: '49a36f76-2672-43f6-b955-c6cbb52f7f86', nome: 'WAGNER Office Impresso — Design System', mesmoDsQue: 'designSystem', fonte: 'git main (prototipo-ui/design-system/)' },
@@ -273,8 +273,9 @@ export const DS_RUNTIME_SNAPSHOT_DIR = DS_MIRROR_DIR;
 //
 // MAPEAMENTO PROVADO job→context→comando (cada um conferido no .yml, não inferido do
 // nome — o meu 1º palpite pro charter era `ancora-guard.mjs` e estava ERRADO):
-//   · .github/workflows/governance-script-tests.yml  job `espelho-verificado`
-//       name: espelho — mexeu depois de verificar          → --unverified --check
+//   · (até 2026-10-23) .github/workflows/governance-script-tests.yml job `espelho-verificado`,
+//       name: espelho — mexeu depois de verificar → --unverified --check. Demovido pela
+//       ADR 0438 D7; o par saiu de REQUIRED_DO_DOMINIO, como manda o item (b) abaixo.
 //   · .github/workflows/anchor-content-required.yml  job `anchor-content`
 //       name: Ancora de design nao-shell (F2/F6 required)  → anchor-content-check --check
 //   · .github/workflows/anchor-drift.yml             job `charter-live-signal`
@@ -297,7 +298,6 @@ export const PREFLIGHT_GATES = [
   //     avermelhava — e some de novo quando é absorvido com `BASELINE-ABSORB:` (PR #6553).
   'node scripts/governance/cowork-ssot-guard.mjs',
   // REQUIRED do domínio que faltavam (2026-08-21) — ver mapeamento provado acima
-  'node scripts/governance/cowork-mirror-freshness.mjs --unverified --check   # espelho editado sem prova de fidelidade',
   'node scripts/governance/anchor-content-check.mjs --check                   # âncora de design MISSING/SHELL',
   'node scripts/governance/charter-live-signal.mjs --check <charters-tocados> # status:live sem sinal de prod',
   // as 2 LEIs que o required `DS gate` agrega — nenhuma estava aqui (medido 2026-08-21)
@@ -310,9 +310,6 @@ export const PREFLIGHT_GATES = [
 // lista, porque é a lista que ele defende. NÃO é inventário de required do repo — é o
 // recorte do domínio design/espelho, o que este painel governa.
 export const REQUIRED_DO_DOMINIO = [
-  { context: 'espelho — mexeu depois de verificar',
-    cmd: 'node scripts/governance/cowork-mirror-freshness.mjs --unverified --check',
-    workflow: '.github/workflows/governance-script-tests.yml', job: 'espelho-verificado' },
   { context: 'Ancora de design nao-shell (F2/F6 required)',
     cmd: 'node scripts/governance/anchor-content-check.mjs --check',
     workflow: '.github/workflows/anchor-content-required.yml', job: 'anchor-content' },
@@ -334,169 +331,18 @@ export const REQUIRED_DO_DOMINIO = [
 
 // ── MAPA FASE → comando(s) reais (o "painel" executável do RUNBOOK) ─────────────
 export const FASES = [
-  // ⚠️ FASE −1 RECONCILIADA ([W] 2026-08-13: "não existe mais zip, é direto o protocolo").
-  // Este painel se declara "fonte única" e listava TRÊS caminhos como se fossem alternativas
-  // vivas. Não são: o ZIP é o caminho MORTO. Estado medido no dia da reconciliação:
-  //   · `importar-bundle.mjs` — invocado em CI SÓ como `--selftest`; nenhum import real.
-  //     (Segue vivo como MÓDULO: `render-proto-baseline.mjs` importa `acharBundleRoot` dele.)
-  //   · `check-handoff.ps1 -Zip` — mais fraco ainda: nem `--selftest`, zero invocador. (Os
-  //     hits de "check-handoff" em `.github/` são o `bin/check-handoff-scope.php`, outro
-  //     script, sobre `memory/handoffs/` — não confundir.)
-  //   · a skill `aplicar-prototipo` e o `RUNBOOK-aplicar-prototipo-orquestracao.md` mandavam
-  //     usar `importar-bundle.mjs "<zip>"`. **Dívida PAGA em 2026-08-13**: os dois passaram a
-  //     citar o pull direto; o ZIP ficou como história/lição, marcado sem invocador.
-  // O canônico é o pull direto (ADR 0325) escrito por `--export-from` (ADR 0374, ratificada
-  // 2026-08-13). Os comandos de ZIP saem da lista de FASES — deletar os SCRIPTS é poda de
-  // capacidade, decisão [W], e não se faz de lado dentro de uma reconciliação de redação.
-  // ── QUAL ROTA USAR (2026-08-20) — a lista abaixo tinha DUAS e nenhuma hierarquia ──
-  // Medido nesta data: uma sessao rodou este painel, leu a fase -1, pegou o `--export-from`
-  // (que serve pra arquivo AVULSO) e passou horas concluindo que "nao ha rota fiel" pro
-  // espelho — a conclusao que o `sync/README.md` ja nomeia, no primeiro paragrafo, como
-  // "errada como teto absoluto". As duas rotas apareciam lado a lado, como se fossem
-  // alternativas equivalentes. Nao sao:
-  //
-  //   SINCRONIZAR O ESPELHO (muitos arquivos)  -> aplicar-payload.mjs   [ROTA PRINCIPAL]
-  //   ARQUIVO AVULSO (1-3, ja medido)          -> --export-from         [caso pontual]
-  //
-  // FRONTEIRA MEDIDA do get_file (2026-08-20, testada arquivo a arquivo): conteudo acima de
-  // ~48 KB volta PERSISTIDO em disco (jana-merge.jsx 59 KB, financeiro-page.jsx 128 KB);
-  // abaixo do piso volta INLINE no contexto (jana-merge.css 18 KB, jana-pro.css 7 KB).
-  // So o persistido pode alimentar `--export-from` sem transcrever.
-  // ⚠️ O PISO NAO E ~36 KB — este bloco dizia isso e apodreceu. Refutado por medicao:
-  // `part01` de 40.896 B chegou INLINE (CODE_NOTES.prompt-cowork-payload-gerador-2026-08-22:27,
-  // que ja registrava "o piso desta harness NAO e ~36 KB"), e em 2026-08-27 jana-metas.jsx
-  // (~20 KB) e .css (~3 KB) vieram inline enquanto bundle.manifest.json (60,6 KB) persistiu.
-  // O piso e uma FAIXA que varia com a resposta, nao um corte fixo: o repo ja carregou 4
-  // numeros diferentes (~36 · ~47 · 48-49,1 · 60 KiB). NAO restatear numero aqui — se
-  // precisar do valor de hoje, MEÇA (baixe um arquivo conhecido e veja se persistiu).
-  // COROLARIO que abre a rota: partes de payload <=256 KiB ficam ACIMA da fronteira, entao
-  // persistem — da pra baixar as ~14 partes por get_file e aplicar, SEM URL curta.
-  //
-  // Dono da rota completa: `scripts/design-sync/gerar-payload-partes.mjs` +
-  // `scripts/design-sync/aplicar-payload.mjs` (implementação executável no git).
-  // ⚠️ PONTEIRO CORRIGIDO (medido 2026-08-27): esta linha mandava ler `sync/README.md` NO PROJETO
-  // Cowork via `DesignSync.get_file` — e la ele NAO EXISTE (HTTP 404 not_found). O `list_files`
-  // do projeto mostra `sync/` com o `bundle.manifest.json` e as `payload.partNN.json`, nada mais.
-  // Quem seguisse o ponteiro concluiria "a rota nao tem dono" a partir de um 404 que era do
-  // ponteiro, nao da rota. O README real desceu pelo transporte e vive no git desde entao.
-  { fase: '-1', nome: 'Importar/baixar o design', comandos: [
-      '# [PASSO 0 — DE QUEM E? roda ANTES de qualquer importacao] ([W] 2026-09-11: "antes de',
-      '#   importar, ver de quem e e fazer o processo se ainda nao foi vinculado").',
-      '#   Material importado sem saber a conta de origem e como o espelho ganha arquivo orfao — e,',
-      '#   se a conta nem esta em CONTAS, o --procedencia carimba as telas dela como local-sem-dono',
-      '#   pra sempre e ninguem descobre que faltou VINCULAR. Fail-closed: so `vinculada` libera.',
-      '#   3 vereditos: vinculada (exit 0) · indeterminado (exit 4, o material so embute o cache do',
-      '#   DS — diz o que ele consome, nao de quem e) · nao-vinculada (exit 3, nenhum id conhecido).',
-      'node scripts/design/protocolo.config.mjs --de-quem <dir-extraido-ou-espelho>',
-      '# [ROTA ZIP — 1 COMANDO] [W] entrega o handoff .zip e o Code faz o resto (decisao [W] 2026-09-10:',
-      '#   "o objetivo e eu exportar uma unica vez, sem depender de uma receita manual em cada importacao").',
-      '#   Orquestra o que JA existe, nao reimplementa nada: extrai (CRC-32 conferido) -> audita o sync/ que',
-      '#   veio -> classifica por 3 pontos (zip x espelho x bundle ativo) -> RECUSA SEM DECISAO quando o zip',
-      '#   traz conteudo que JA ESTEVE versionado (isso NAO prova zip velho: pode ser espelho editado aqui,',
-      '#   e ai o pacote PREVALECE — ADR 0404/0406 D3; desempate = identidade do pacote x state/, nao o git)',
-      '#   -> MEDE o live-only pela arvore extraida -> reconcilia o _ds/',
-      '#   pelo dono (projeto DS, #7096) -> rege pelo gerador CANONICO -> valida no --dry.',
-      '#   Sem --apply nao promove NEM registra no ledger. Extracao vai pra tmpdir EFEMERO.',
-      '#   O live-only aqui MATA a rotina separada que so a sessao logada rodava (auth interativa, ADR 0315)',
-      '#   e por isso vencia: o ZIP tem o projeto inteiro, entao a lista sai da arvore de graca ([W] 2026-09-10',
-      '#   "ali esta o bundle inteiro"). O medidor continua sendo o `cowork-mirror-freshness`.',
-      '#   PASSO 0 EMBUTIDO desde 2026-09-14: a rota ZIP chama o --de-quem sozinha e ABORTA se ele nao',
-      '#   liberar. `indeterminado` e o veredito NORMAL de um zip de telas (o id do projeto nao aparece em',
-      '#   path nenhum — so o cache _ds/), e a saida dele e DECLARAR a conta. Conta sem espelho no repo NAO',
-      '#   importa por aqui: o destino de escrita e cowork/Wagner, logo material de outro dono viraria orfao.',
-      'node scripts/design-sync/receber-handoff.mjs --zip <handoff.zip>            # mede + valida',
-      'node scripts/design-sync/receber-handoff.mjs --zip <handoff.zip> --apply    # + promove',
-      'node scripts/design-sync/receber-handoff.mjs --zip <handoff.zip> --conta w  # exigido se o PASSO 0 der indeterminado',
-      '# [PROJETO COPIA-FIEL] protótipo do app das lojas (PROJETOS.mobile) — outra entrada, sem bundle:',
-      'node scripts/design-sync/receber-handoff.mjs --zip <handoff.zip> --projeto mobile           # mostra o que muda',
-      'node scripts/design-sync/receber-handoff.mjs --zip <handoff.zip> --projeto mobile --apply   # grava no espelho (nunca apaga)',
-      '# [PREVIEW DO MOBILE] o espelho NAO tem _ds/ (ADR 0401: DS e linkado, nao copiado). Servidor',
-      '#   estatico comum (python -m http.server) da 404 nos 3 arquivos do DS e nas 7 fontes; o',
-      '#   servirEspelho resolve _ds/<slug>/ lendo prototipo-ui/design-system/ (medido 2026-10-02: 12/12',
-      '#   com 200; o _ds_bundle.js do repo e mais novo que o do zip so por a11y da tabela, sem efeito visual).',
-      'node --input-type=module -e "import(\'./scripts/design/design-diff-lote.mjs\').then(m=>m.servirEspelho(\'mobile/ref/design-v4/project\',5593))"   # abra /Oimpresso%20Mobile.dc.html',
-      'selftest: node scripts/design-sync/receber-handoff.test.mjs',
-      '# [RETORNO Code -> Cowork] ([W] 2026-09-24: "quando for gerar um retorno ja use o upload designsync")',
-      '#   Todo PR que muda o espelho (recibo _saida, errata de playbook, restauracao em cowork-inbox/) SOBE',
-      '#   ao Cowork na mesma sessao, antes do proximo retorno. O criterio e o hash do espelho x bundle ativo,',
-      '#   e o hook libera sem opt-in SO o canal cowork-inbox/ (sem delete, conteudo por localPath).',
-      '#   Rede de seguranca: o receber-handoff [6b] RECUSA retorno que apagaria/sobrescreveria um pendente.',
-      'node scripts/design-sync/pendentes-cowork.mjs --plano                   # o que subir (writes + localDir)',
-      'DesignSync.finalize_plan(projectId, writes, deletes=[], localDir) -> write_files(localPath=rel)',
-      'node scripts/design-sync/pendentes-cowork.mjs --registrar-envio <rels>  # grava sha + data; commite o state',
-      'selftest: node scripts/design-sync/pendentes-cowork.test.mjs',
-      '# [2 PROJETOS] ([W] 2026-09-29 "1 git e dois design"): o git e a fonte; o projeto do [W] e o',
-      '#   PROJETOS.telasFelipe (copia, onde a Maiara ve a tela) recebem copia. Cada conta sobe o seu.',
-      'node scripts/design-sync/pendentes-cowork.mjs --resumo                  # os 2 projetos, 1 linha cada',
-      'node scripts/design-sync/pendentes-cowork.mjs --plano --projeto copia   # o que subir para a copia',
-      'node scripts/design-sync/pendentes-cowork.mjs --conferir <dir> [--projeto copia]  # get_file de volta em <dir>/<rel> -> compara com o git -> registra (w: + ledger do espelho)',
-      '# [ROTA PRINCIPAL] bundle v2 — snapshot inicial; depois delta por manifesto anterior',
-      '# ⚠ A EMISSAO DESTE BUNDLE NAO TEM DONO NEM AUTOMACAO (medido 2026-08-31, contado):',
-      '#   os UNICOS invocadores de `gerar-payload-partes` no repo sao o .test.mjs e o workflow que roda',
-      '#   esse teste. Zero cron, zero hook, zero step de producao. E NAO E BURACO A TAPAR AQUI: o proprio',
-      '#   docblock do script declara que ele roda "na maquina que TEM os arquivos em disco (o lado do',
-      '#   design/Cowork)" — o repo nao os tem, entao hook post-merge daqui e impossivel por construcao.',
-      '#   O irmao `ds-push` (git->espelho) tampouco fecha por CI: ele mesmo diz que NAO faz o upload,',
-      '#   porque finalize_plan/write_files exigem login claude.ai interativo (ADR 0315).',
-      '#   CONSEQUENCIA PRATICA, e e a parte que muda o que voce conclui: o espelho fica atras do vivo por',
-      '#   PADRAO, logo "nao achei no espelho" NUNCA prova ausencia — exige o projeto Cowork por ID.',
-      '#   Numeros e formulacao completa (nao repetidos aqui de proposito — §5 2026-07-17) em',
-      '#   memory/reference/prototipo-ui/COWORK_NOTES.md §"Teto de transporte" e',
-      '#   memory/requisitos/Arquivos/Index-visual-comparison.md. Lapide §5 2026-08-27: o que fecha esta',
-      '#   classe nao e maquina, e a regeracao do bundle do lado Cowork ao fim de todo ciclo de design.',
-      '#   PEDIDO FORMAL dessa regra enviado em 2026-09-01 (recibo: pacote congelado em 24/08 com 3',
-      '#   ciclos fora): memory/reference/prototipo-ui/CODE_NOTES.prompt-cowork-regenerar-bundle-por-ciclo-2026-09-01.md',
-      '#   — o recibo de cumprimento e a linha "bundle regenerado" no github.md (ADR 0387).',
-      '#   DECISAO [W] 2026-09-06 ("2 e 3 ok pode fazer"): regenerar o bundle ao FIM DE TODO CICLO do Cowork e ROTINA',
-      '#   obrigatoria do lado do design, nao pedido. Medido no mesmo dia: bundle remoto == local (24/08, 255/255)',
-      '#   enquanto 23 ancoras abaixo do piso do get_file seguiam sem veredito — so a rotina fecha isso.',
-      'node scripts/design-sync/gerar-payload-partes.mjs --root <design-vivo> --out <sync> [--previous <bundle.manifest.json>]',
-      'node scripts/design-sync/aplicar-payload.mjs <payload.part*.json> --dry --require-complete-shell  # valida lote + estado-alvo em staging',
-      'node scripts/design-sync/aplicar-payload.mjs <payload.part*.json> --require-complete-shell        # promove atomicamente ou restaura tudo',
-      'node scripts/design-sync/status.mjs --check-mapping                                             # lista mudanças + tela/alvo/módulo/ação',
-      '  ^ snapshot baixa tudo uma vez; delta baixa só added/modified. deleted/unchanged não carregam bytes.',
-      '  ^ `_ds` e cache derivado do preview. Manifesto, relatório e evidências ficam em scripts/design-sync/state/.',
-      '  ^ partes <=256 KiB voltam em ARQUIVO pelo get_file; parte ausente/base/hash divergente bloqueiam antes do swap.',
-      'DesignSync.get_file(projectId=COWORK_PROJECT_ID, path=<âncora>)                  # pull direto, agente logado (ADR 0325)',
-      '# [caso pontual] arquivo AVULSO — NAO e a rota de sincronizar o espelho (use o applier acima)',
-      'node scripts/governance/cowork-mirror-freshness.mjs --export-from <dir-jsons>     # escreve o raw.content no espelho (ADR 0374 — transcrever à mão é PROIBIDO)',
-      'node scripts/governance/cowork-mirror-freshness.mjs --export-from <dir> --ds-runtime  # bundle/CSS/fontes → snapshot ÚNICO consumido pelo preview',
-      '# [VALE PRAS DUAS ROTAS] medir e portão — nao sao "caso pontual" (2026-08-21: estavam',
-      '#   sob o cabecalho de avulso, e quem le um cabecalho leva os 4 comandos junto)',
-      'node scripts/governance/cowork-mirror-freshness.mjs --snapshot-from <dir> --emit-snapshot <s>  # MEDIR sem consertar (antes de aplicar/exportar)',
-      'node scripts/governance/cowork-mirror-freshness.mjs --preview-ds                  # PORTÃO fail-closed: exit != 0 PROÍBE editar produto',
-      '# [ORDEM DE OPERACOES] NAO adivinhe o que falta — a maquina enumera. Rode NESTA ordem:',
-      '#  1. --sla                      o espelho esta sendo medido? (2026-08-24 respondeu: mediu 1 de 137)',
-      '#  2. --manifest -> get_file de cada -> --compare snap.json --check      acha o que esta STALE',
-      '#  3. refresque o STALE COMECANDO PELO SHELL (oimpresso.com.html): dele saem as DEPS DE RENDER',
-      '#  4. --manifest de novo -> a secao ABSENT-LOCAL lista TODO arquivo que o shell carrega e o espelho nao tem',
-      '#  5. baixe essa lista — mas ela e SO O 1o NIVEL: deps DIRETAS do shell.',
-      '#  6. --preview-ds               2o NIVEL: grafo CSS recursivo (@import) + fonte por url().',
-      '#     ABSENT-LOCAL le so parseShellDeps (link/script do shell). Quem anda no CSS e o',
-      '#     previewDsPlan(), e ele so roda no --preview-ds. CSS que importa CSS, ou que puxa',
-      '#     .woff2, NAO aparece no passo 4. Medido 2026-08-24: o --preview-ds repos 10 deps',
-      '#     (colors_and_type.css, cockpit_domains.css, _ds_bundle.js e 7 fontes) invisiveis ao 4.',
-      '#  7. o que os passos 4+6 nao cobrem, POR CONSTRUCAO: o que o shell e o CSS nao declaram.',
-      '#     A ponte (cowork-inbox) e um desses — por isso ela tem bloco proprio logo abaixo.',
-      '#  POR QUE a ordem importa (medido 2026-08-24): o ABSENT-LOCAL disse "ausentes: 0" e estava',
-      '#  CERTO sobre o shell que leu — o do espelho, velho, que nao citava arquivos-*. O shell VIVO',
-      '#  cita arquivos-page.jsx, arquivos-data.jsx e modulos-faltantes.css. Shell velho = detector cego,',
-      '#  e o cego responde 0 com confianca. Refresque o shell ANTES de confiar no ABSENT-LOCAL.',
-      '# [PONTE / INTAKE] o PEDIDO vive em cowork-inbox/<modulo>/ — nao e o design, e o QUE fazer com ele.',
-      '#   Medido 2026-08-24: este painel nao citava cowork-inbox em lugar nenhum, entao a',
-      '#   intake so existia em prosa (PROTOCOL 87-88) e a sessao trouxe o .jsx e deixou o pedido pra tras.',
-      'DesignSync.list_files(projectId=COWORK_PROJECT_ID)                              # ache cowork-inbox/<mod>/ e modulos-faltantes/<mod>.*',
-      'DesignSync.get_file(projectId=COWORK_PROJECT_ID, path=cowork-inbox/<mod>/<PEDIDO|PROMPT>.md)',
-      '# .md/canon NAO entra no --export-from: leia o pedido e destile o que for valido no dono canonico (ADR 0390).',
-      '  ^ NAO misture pedido/handoff no lote build-only: a transacao recusa o lote inteiro antes de escrever.',
-      '  ^ NAO traga rascunho de charter/casos/contract: PROTOCOL 10.4 = nao trazer rascunho pro canon.',
-      '    O canon nasce em resources/js/Pages/<Mod>/ via criar-tela.mjs, reconciliado contra SPEC/ADR.',
-      '# [DIARIO / HANDOFF DO DESIGN] github.md e insumo do ciclo, nao copia versionada (ADR 0390):',
-      '#   leia Last sync, achados, erratas e decisoes pendentes [W] antes de decidir o ciclo;',
-      '#   valide contra main e destile apenas o que tiver dono canonico.',
-      '#   Registro, NAO fonte: achado do diario vira trabalho DEPOIS de verificado contra o main.',
-      'DesignSync.get_file(projectId=COWORK_PROJECT_ID, path=github.md)                # leitura livre; destile no dono canonico',
-    ], selftest: 'node scripts/design/handoff-changed.mjs --selftest' },
+  // FASE -1 — a fonte do prototipo e o GIT (ADR 0438, [W] 2026-10-23; ADR 0433 D1).
+  // Ate 2026-10-23 esta fase listava as rotas de BAIXAR do Cowork (ZIP via receber-handoff,
+  // bundle via gerar-payload-partes + aplicar-payload, avulso via --export-from) e o passo
+  // "de quem e?" do ZIP. A 0438 encerrou o Cowork como rota de entrada: os scripts da rota
+  // ZIP e da rota bundle sairam na onda 2a. O que resta da fase e o pedido do Artefato:
+  // a tela que o [W] vai revisar e publicada como Artefato A PARTIR do arquivo do repo,
+  // e o comentario dele volta como commit (0438 D2/D3).
+  { fase: '-1', nome: 'Fonte do prototipo (git)', comandos: [
+      '# A fonte e o arquivo sob prototipo-ui/ no git — nao ha download (ADR 0438 D1).',
+      '# Revisao visual: publique o arquivo do repo como Artefato; comentario vira commit (0438 D2/D3).',
+      '# Ancora da tela: node scripts/design/ancora.mjs <Mod/Tela>',
+    ] },
   { fase: '0/0.5', nome: 'Detectar + manifesto', comandos: [
       'node scripts/design/detectar-telas.mjs --staging <dir> --json --strict',
     ], selftest: 'node scripts/design/detectar-telas.mjs --selftest' },
@@ -549,7 +395,6 @@ function scriptsReferenciados() {
 function conferirFonteUnicaExecutavel() {
   const problemas = [];
   const marcadoresPrivados = [
-    ['comando do applier', /scripts[\\/]design-sync[\\/]aplicar-payload\.mjs/],
     ['comando do preview DS', /scripts[\\/]governance[\\/]cowork-mirror-freshness\.mjs\s+--preview-ds/],
     ['COWORK_PROJECT_ID literal', new RegExp(COWORK_PROJECT_ID.replaceAll('-', '\\-'))],
     ['DESIGN_SYSTEM_PROJECT_ID literal', new RegExp(DESIGN_SYSTEM_PROJECT_ID.replaceAll('-', '\\-'))],
@@ -772,31 +617,6 @@ function selftest() {
     if (na.classe !== 'sem-prototipo') fails.push('procedencia: isNa nao virou sem-prototipo');
   }
 
-  // DE-QUEM — trava os 3 vereditos. O do meio e o que ja errou ao vivo (2026-09-11): um export
-  // do projeto de TELAS carrega o cache `_ds/<uuid-do-DS>/`, e a 1a versao respondia
-  // "designSystem" so por causa disso. Chutar o dono a partir do cache e o bug que isto pina.
-  {
-    const projs = { cowork: { id: "ID-TELAS", conta: "w", espelho: "prototipo-ui/cowork/Wagner/" },
-                    designSystem: { id: "ID-DS", conta: "w", espelho: "prototipo-ui/design-system/" } };
-    const contas = { w: { id: "w", espelhada: true }, x: { id: "x", espelhada: false } };
-    const A = deQuemEhOHandoff(["prototipo-ui/cowork/Wagner/a.jsx", "prototipo-ui/cowork/Wagner/b.css"], projs, contas);
-    const B = deQuemEhOHandoff(["_ds/ds-ID-DS/styles.css", "vendas-page.jsx"], projs, contas);
-    const C = deQuemEhOHandoff(["paginas/tela.jsx", "estilo.css"], projs, contas);
-    const D = deQuemEhOHandoff(["ID-TELAS/app.jsx", "_ds/ds-ID-DS/styles.css"], projs, contas);
-    if (A.veredito !== "vinculada" || A.projeto !== "cowork") fails.push("de-quem: espelho registrado nao deu vinculada");
-    if (B.veredito !== "indeterminado") fails.push("de-quem: CONTROLE NEGATIVO falhou — id so no cache _ds/ virou veredito de dono");
-    if (C.veredito !== "nao-vinculada") fails.push("de-quem: material sem id conhecido nao deu nao-vinculada");
-    if (D.veredito !== "vinculada" || D.projeto !== "cowork") fails.push("de-quem: id FORA do cache devia vencer o cache");
-    // dsCopia: o pacote que ficou so com a COPIA do DS (id fora de PROJETOS) tem de cair em
-    // indeterminado (resolvido por --conta), nunca em nao-vinculada; e o id da copia, mesmo
-    // fora do cache, nunca vira dono.
-    const contasC = { ...contas, f: { id: "f", espelhada: true, dsCopia: { id: "ID-COPIA", mesmoDsQue: "designSystem" } } };
-    const E = deQuemEhOHandoff(["_ds/ds-ID-COPIA/styles.css", "vendas-page.jsx"], projs, contasC);
-    const F = deQuemEhOHandoff(["ID-COPIA/app.jsx"], projs, contasC);
-    if (E.veredito !== "indeterminado") fails.push("de-quem: cache so com a copia do DS (dsCopia) nao deu indeterminado");
-    if (F.veredito === "vinculada") fails.push("de-quem: CONTROLE NEGATIVO falhou — id da copia do DS virou dono do material");
-  }
-
   const scripts = scriptsReferenciados();
   for (const s of scripts) {
     if (!existsSync(join(REPO_ROOT, s))) fails.push(`script referenciado no mapa FASES não existe: ${s}`);
@@ -924,141 +744,6 @@ function procedencia() {
   for (const l of suspeitas) { console.log('  [' + l.classe + '] ' + l.page); console.log('        ' + l.nota); }
 }
 
-/** DE QUEM E ESTE HANDOFF — passo obrigatorio ANTES de importar ([W] 2026-09-11:
- *  "antes de importar, ver de quem e e fazer o processo se ainda nao foi vinculado").
- *
- *  POR QUE existe: importar material sem saber a conta de origem e como o espelho ganha arquivo
- *  orfao. Pior: se a conta nem esta registrada em CONTAS, o --procedencia carimba as telas dela
- *  como "local-sem-dono" pra sempre, e ninguem descobre que faltou VINCULAR. Este passo torna o
- *  desconhecido VISIVEL antes de qualquer escrita, em vez de depois.
- *
- *  DUAS CAMADAS, nesta ordem — a 1a e decisiva, a 2a e indicio:
- *   1. ID NO PROPRIO MATERIAL. Um export do Cowork carrega `_ds/<slug>-<uuid>/` (o cache do DS)
- *      e/ou um manifesto; o UUID ali E o projeto. Achou id conhecido = resposta, nao palpite.
- *   2. SOBREPOSICAO com os espelhos. Fraca por construcao — export DELTA traz so arquivo novo e
- *      da sobreposicao ~0 sendo legitimo. Por isso ela NUNCA sozinha declara "desconhecido":
- *      so reforca a camada 1 ou pede olho humano.
- *
- *  FAIL-CLOSED: sem id reconhecido o veredito e `nao-vinculada` e o comando sai != 0. A direcao
- *  segura aqui e barrar a importacao, nao deixa-la passar carimbando a conta errada.
- *
- *  Pura (recebe os paths e o registro) pra o --selftest exercitar sem tocar disco.
- */
-export function deQuemEhOHandoff(paths, projetos = PROJETOS, contas = CONTAS) {
-  const BARRA = String.fromCharCode(92);
-  const rel = (paths || []).map((p) => String(p).split(BARRA).join("/").replace(/^[.][/]/, ""));
-
-  // camada 0 — o material JA E um espelho registrado? (apontar o comando pro proprio espelho)
-  for (const [chave, p] of Object.entries(projetos)) {
-    if (!p.espelho) continue;
-    const alvoEspelho = p.espelho.replace(/[/]$/, "");
-    if (rel.length && rel.every((x) => x.startsWith(alvoEspelho))) {
-      return { veredito: "vinculada", conta: p.conta, projeto: chave,
-               porque: "o material E o espelho registrado " + p.espelho, placar: [] };
-    }
-  }
-
-  // camada 1 — o uuid aparece em algum path?
-  const achados = [];
-  for (const [chave, p] of Object.entries(projetos)) {
-    if (rel.some((x) => x.includes(p.id))) achados.push({ projeto: chave, id: p.id, conta: p.conta });
-  }
-  // A COPIA do DS numa conta (`CONTAS.<c>.dsCopia`) tem id proprio, fora de PROJETOS. Medido
-  // 2026-09-21: o pacote do [F], depois de ficar com UM DS so (o `49a36f76`), nao trazia mais
-  // nenhum id de PROJETOS e caia em "nao-vinculada" — onde `--conta` nao vale. A copia e o
-  // mesmo DS: entra aqui SO como cache (`ehCopiaDs`), nunca como dono do material.
-  for (const c of Object.values(contas)) {
-    const d = c && c.dsCopia;
-    if (d && d.id && rel.some((x) => x.includes(d.id)))
-      achados.push({ projeto: d.mesmoDsQue || "designSystem", id: d.id, conta: null, ehCopiaDs: true });
-  }
-
-  // camada 2 — sobreposicao com cada espelho (indicio, nunca veredito sozinho)
-  const placar = [];
-  for (const [chave, p] of Object.entries(projetos)) {
-    if (!p.espelho) continue;
-    const pref = p.espelho.replace(/^prototipo-ui[/]/, "");
-    placar.push({ projeto: chave, casam: rel.filter((x) => x.startsWith(pref) || x.startsWith(p.espelho)).length });
-  }
-  placar.sort((a, b) => b.casam - a.casam);
-
-  if (achados.length) {
-    // O cache `_ds/<slug>-<uuid>/` do projeto de TELAS carrega o id do projeto de DS. Entao
-    // "achei o id do DS" NAO quer dizer "este material E o DS" — quer dizer "este material
-    // CONSOME o DS". Dono = o id que aparece FORA do cache.
-    const forasDoCache = achados.filter((a) => !a.ehCopiaDs && rel.some((x) => x.includes(a.id) && !x.includes("_ds/")));
-    if (forasDoCache.length) {
-      const e = forasDoCache[0];
-      return { veredito: "vinculada", conta: e.conta, projeto: e.projeto,
-               porque: "id " + e.id + " encontrado no material (fora do cache _ds/)", placar };
-    }
-    // 3o VEREDITO, e ele e o honesto: o unico id presente esta DENTRO do cache. Isso identifica
-    // o DS embutido, nunca o dono do material. Chutar aqui foi o bug de 2026-09-11 (o fixture de
-    // um export de TELAS respondeu "designSystem" so porque carregava o cache do DS).
-    // Fail-closed com a razao certa — "indeterminado" nao e "conta desconhecida".
-    return { veredito: "indeterminado", conta: null, projeto: null,
-             porque: "o unico id presente (" + achados[0].id + ") aparece SO dentro do cache _ds/"
-               + " — isso diz qual DS o material consome, nao de quem ele e", placar };
-  }
-
-  const semEspelho = Object.values(contas).filter((c) => !c.espelhada).map((c) => c.id);
-  return { veredito: "nao-vinculada", conta: null, projeto: null,
-           porque: "nenhum id de projeto registrado aparece no material"
-             + (semEspelho.length ? " — contas sem espelho hoje: " + semEspelho.join(", ") : ""),
-           placar };
-}
-
-function deQuem(alvo) {
-  if (!alvo) { console.error("uso: --de-quem <dir>"); process.exit(2); }
-  let paths;
-  try {
-    // DISCO, nunca `git ls-files`. Medido 2026-09-11: o `_ds/<slug>-<uuid>/` — que carrega o
-    // identificador — e GITIGNORED no espelho, e material que chega e untracked por definicao.
-    // Listar pelo git devolvia lista sem o unico sinal decisivo, e os dois espelhos REAIS davam
-    // "nao-vinculada": falso-negativo no caso principal, que barraria toda importacao legitima.
-    paths = readdirSync(alvo, { recursive: true, withFileTypes: true })
-      .filter((d) => d.isFile())
-      .map((d) => join(String(d.parentPath || d.path), d.name));
-  } catch (e) {
-    // NAO colapsar "nao consegui listar" em "material vazio": vazio viraria "nao-vinculada" e
-    // isso afirmaria sobre um objeto que nao foi medido (§5 2026-07-29).
-    console.error("DE-QUEM: nao consegui listar " + alvo);
-    process.exit(2);
-  }
-  if (!paths.length) { console.error("DE-QUEM: " + alvo + " nao tem arquivo algum — nada a classificar"); process.exit(2); }
-  const r = deQuemEhOHandoff(paths);
-  console.log("DE QUEM E ESTE HANDOFF — passo anterior a importacao");
-  console.log("");
-  console.log("  material : " + alvo + "  (" + paths.length + " arquivo(s))");
-  console.log("  veredito : " + r.veredito);
-  console.log("  porque   : " + r.porque);
-  if (r.conta) {
-    const c = CONTAS[r.conta] || {};
-    console.log("  conta    : " + r.conta + "  (" + (c.dono || "?") + ")");
-    console.log("  projeto  : " + r.projeto + "  " + (PROJETOS[r.projeto] || {}).id);
-    console.log("");
-    console.log("  OK VINCULADA — pode importar. Siga a Fase -1.");
-    process.exit(0);
-  }
-  console.log("");
-  if (r.veredito === "indeterminado") {
-    console.log("");
-    console.log("  INDETERMINADO — NAO importe ainda, mas o problema NAO e conta nao-vinculada.");
-    console.log("  O material embute o cache de um DS conhecido, o que diz o que ele CONSOME,");
-    console.log("  nao de quem ele e. Resolva perguntando a quem exportou, ou aponte o comando");
-    console.log("  pro espelho registrado se o material ja pousou.");
-    process.exit(4);
-  }
-  console.log("  NAO VINCULADA — NAO importe ainda. Vincule a conta primeiro:");
-  console.log("    1. descubra o projectId (so quem tem o login daquela conta consegue);");
-  console.log("    2. registre em CONTAS[<conta>].projetos + PROJETOS (com a chave espelho);");
-  console.log("    3. rode este comando de novo — tem que dar vinculada antes de importar.");
-  console.log("");
-  console.log("  Sem isso o --procedencia carimba as telas como local-sem-dono e ninguem");
-  console.log("  descobre que faltou vincular. US-_DESIGNSYSTEM-041 trata da conta do Felipe.");
-  process.exit(3);
-}
-
 function painel() {
   console.log('  De qual CONTA vem cada tela?  node scripts/design/protocolo.config.mjs --procedencia [--json]');
   console.log('');
@@ -1080,7 +765,6 @@ if (invokedDirectly) {
   const argv = process.argv.slice(2);
   if (argv.includes('--selftest')) selftest();
   else if (argv.includes('--procedencia')) procedencia();
-  else if (argv.includes('--de-quem')) deQuem(argv[argv.indexOf('--de-quem') + 1]);
   else if (argv.includes('--json')) {
     console.log(JSON.stringify({ projetos: PROJETOS, stagingDir: STAGING_DIR, mirrorDir: MIRROR_DIR, fases: FASES, preflightGates: PREFLIGHT_GATES }, null, 2));
   } else painel();

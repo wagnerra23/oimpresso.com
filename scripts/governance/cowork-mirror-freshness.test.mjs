@@ -15,47 +15,27 @@ import { fileURLToPath } from 'node:url';
 import {
   normalize,
   contentHash,
-  classifyMirror,
-  verdictFor,
   shouldFail,
-  veredictoFinal,
   buildManifest,
   parseShellDeps,
   defaultShellPath,
   ledgerEntry,
   lerShellHtml,
-  slaVerdict,
-  liveOnly,
-  liveOnlyDetalhado,
-  liveOnlyEntry,
   destinoDoBundle,
   rowsDoBundle,
-  rawHash,
-  liveOnlyVerdict,
-  desqualificacaoLiveOnly,
   lerBundlePromovido,
-  LIVE_ONLY_SLA_DAYS,
-  exportPlan,
-  devolutivaDeRecusados,
-  renderDevolutiva,
-  lerRetratoDevolutiva,
-  decodeDesignSyncPayload,
-  artifactHash,
   dsRuntimeRelPath,
   absentLocal,
   previewDsPlan,
   materializePreviewDs,
   cssRefsMortas,
   resolveRefSegura,
-  nasceSemMedicao,
   refsParaDeletado,
   orfaosNaAdicao,
-  unverifiedSince,
-  separarAutoriaNoGit,
-  FONTE_GIT,
-  ultimaVerificacaoDe,
-  SLA_DAYS,
 } from './cowork-mirror-freshness.mjs';
+// `rawHash` saiu do script na onda 2c-2 (sem uso no código); as fixtures do bundle seguem precisando
+// do mesmo sha256 do buffer cru, então ele vive aqui com o corpo idêntico ao que existia lá.
+const rawHash = (buf) => createHash('sha256').update(buf).digest('hex');
 
 let fails = 0;
 const check = (n, c, extra = '') => { console.log(`${c ? '[OK]' : '[FAIL]'} ${n}${c ? '' : '  → ' + extra}`); if (!c) fails++; };
@@ -74,80 +54,11 @@ check('hash é sha256 (64 hex)', /^[0-9a-f]{64}$/.test(contentHash('x')));
 
 // 2. classifyMirror — o coração (3 vias).
 const H1 = contentHash('design v1'), H2 = contentHash('design v2');
-check('hash iguais → SYNC (espelho acompanha o vivo · §0.2)', classifyMirror({ repoHash: H1, liveHash: H1 }) === 'SYNC');
-check('hash diferem → STALE (o vivo avançou, espelho ficou)', classifyMirror({ repoHash: H1, liveHash: H2 }) === 'STALE');
-check('vivo null → LIVE-ABSENT, NÃO stale (rename/delete ≠ divergência)', classifyMirror({ repoHash: H1, liveHash: null }) === 'LIVE-ABSENT');
-check('vivo "" → LIVE-ABSENT (ausência explícita)', classifyMirror({ repoHash: H1, liveHash: '' }) === 'LIVE-ABSENT');
-
-// 3. verdictFor — "não buscado" ≠ "buscado e ausente"; e sem fantasma de prototype (furo #6).
-check('chave fora do snapshot → UNCHECKED (nunca SYNC no silêncio)', verdictFor('x.jsx', H1, {}) === 'UNCHECKED');
-check('presente e igual → SYNC', verdictFor('x.jsx', H1, { 'x.jsx': H1 }) === 'SYNC');
-check('presente e diferente → STALE', verdictFor('x.jsx', H1, { 'x.jsx': H2 }) === 'STALE');
-check('presente e null → LIVE-ABSENT', verdictFor('x.jsx', H1, { 'x.jsx': null }) === 'LIVE-ABSENT');
-check('path homônimo de membro do prototype (toString) → UNCHECKED, não lixo', verdictFor('toString', H1, {}) === 'UNCHECKED');
-check('constructor idem', verdictFor('constructor', H1, {}) === 'UNCHECKED');
 
 // 4. shouldFail (--check) — SÓ STALE morde.
 check('STALE presente → morde', shouldFail(['SYNC', 'STALE', 'UNCHECKED']) === true);
 check('só SYNC → libera', shouldFail(['SYNC', 'SYNC']) === false);
 check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', shouldFail(['UNCHECKED', 'LIVE-ABSENT', 'SYNC']) === false);
-
-// 4b. veredictoFinal — a LINHA FINAL não pode mentir quando se roda sem `--check`.
-//     Bug medido 2026-08-13: `stale: 1` no corpo e `✓ sem espelho STALE` no rodapé, porque o
-//     log verde estava fora do `if (strict …)`. O texto é do FATO; `--check` é só exit code.
-check('1 stale → veredito NEGATIVO', veredictoFinal(1).ok === false);
-// Ancora = MARCADOR de veredito (✓/✗), nao a PALAVRA "STALE": em 2026-08-17 a redacao mudou
-// (o texto parou de afirmar a DIRECAO que o hash nao mede) e 3 asserts quebraram por acoplamento
-// a redacao, nao a comportamento. O contrato aqui e "nao afirma verde quando ha divergencia".
-check('1 stale → texto não afirma verde', !/✓/.test(veredictoFinal(1).texto) && /✗/.test(veredictoFinal(1).texto));
-check('0 stale → veredito positivo', veredictoFinal(0).ok === true && /✓/.test(veredictoFinal(0).texto));
-// CONTROLE NEGATIVO do bite: o veredito NÃO pode depender de flag nenhuma — só do número.
-check('mesmo número → mesmo veredito (independe de --check)',
-  JSON.stringify(veredictoFinal(3)) === JSON.stringify(veredictoFinal(3)) && veredictoFinal(3).ok === false);
-
-// 4c. COBERTURA — "não achei divergência" ≠ "não há divergência" (LC-13: verde por não-medição).
-//     Reproduzido 2026-08-13: 2 medidos de 121, 0 stale, e a linha final afirmava
-//     "✓ sem espelho STALE (divergência hash-provada)" sobre 119 arquivos que ninguém olhou.
-{
-  const parcial = veredictoFinal(0, { total: 121, medidos: 2, semVeredito: 119 });
-  check('cobertura parcial + 0 stale → INCONCLUSIVO, não ✓', parcial.inconclusivo === true && !/^✓/.test(parcial.texto));
-  check('o texto do inconclusivo carrega o DENOMINADOR (medidos e faltantes)',
-    /\b2\b/.test(parcial.texto) && /\b119\b/.test(parcial.texto) && /\b121\b/.test(parcial.texto));
-  check('inconclusivo NÃO afirma "hash-provada" (nada foi provado sobre os 119)',
-    !/hash-provada/.test(parcial.texto));
-
-  const completa = veredictoFinal(0, { total: 121, medidos: 121, semVeredito: 0 });
-  // CONTROLE POSITIVO: cobertura total volta a ser ✓ — o conserto não vira alarme cego.
-  check('CONTROLE: cobertura total + 0 stale → ✓ (não virou alarme permanente)',
-    completa.inconclusivo === undefined && /✓/.test(completa.texto));
-
-  // O sinal DURO vence a cobertura: stale é hash-provado, não depende de quantos faltam.
-  check('1 stale + 119 sem veredito → ✗ STALE (o duro vence o inconclusivo)',
-    veredictoFinal(1, { total: 121, medidos: 2, semVeredito: 119 }).ok === false);
-
-  // ENFORCEMENT INALTERADO: inconclusivo não é falha dura — `--check` morde só em STALE.
-  check('inconclusivo mantém ok=true (não promove cobertura a gate — ADR 0336 é decisão [W])',
-    parcial.ok === true);
-
-  // COMPAT: chamador sem cobertura segue funcionando (o argumento é opcional).
-  check('CONTROLE: sem cobertura → comportamento antigo (✓ sem inconclusivo)',
-    veredictoFinal(0).ok === true && veredictoFinal(0).inconclusivo === undefined);
-}
-{
-  // BITE de integração: o fonte não pode mais imprimir a linha verde fora do veredito.
-  // Conta só CÓDIGO — o docblock do `veredictoFinal` cita o `console.log` bugado de propósito,
-  // e contar comentário como código é o falso-positivo que a medição de hoje catalogou
-  // (`<FinAiAnomalia>` só existia numa linha `//`).
-  const HERE_ = dirname(fileURLToPath(import.meta.url));
-  const semComentario = readFileSync(join(HERE_, 'cowork-mirror-freshness.mjs'), 'utf8')
-    .replace(/\/\*[\s\S]*?\*\//g, '')
-    .replace(/^\s*\/\/.*$/gm, '');
-  const verdes = [...semComentario.matchAll(/console\.log\('✓ sem espelho STALE/g)].length;
-  check('nenhum console.log direto da linha verde (só via veredictoFinal)', verdes === 0, `achei ${verdes}`);
-  // CONTROLE POSITIVO do stripper: ele não pode estar apagando o arquivo inteiro.
-  check('CONTROLE: o stripper preserva o código (veredictoFinal segue no fonte)',
-    /export function veredictoFinal/.test(semComentario));
-}
 
 // 5. READ-ONLY por contrato (ADR 0315 Eixo B): o fonte não pode invocar método de ESCRITA do
 //    DesignSync. Denylist = métodos de escrita reais do schema da tool (validados na sessão
@@ -163,79 +74,7 @@ check('mesmo número → mesmo veredito (independe de --check)',
 // 6. buildManifest — IDENTIDADE POR PATH COMPLETO (o furo #1 do adversário, agora contrato).
 {
   const dir = mkdtempSync(join(tmpdir(), 'mirror-fresh-'));
-  try {
-    const pages = join(dir, 'resources', 'js', 'Pages');
-    const cowork = join(dir, 'prototipo-ui', 'cowork', 'Wagner');
-    mkdirSync(join(cowork, 'a'), { recursive: true });
-    mkdirSync(join(cowork, 'b'), { recursive: true });
-    // COLISÃO: mesmo basename, subdirs diferentes, CONTEÚDO diferente — v1 colapsava, v2 não pode.
-    writeFileSync(join(cowork, 'a', 'x-page.jsx'), 'export const A = 1;\n');
-    writeFileSync(join(cowork, 'b', 'x-page.jsx'), 'export const B = 2;\n');
-    writeFileSync(join(cowork, 'raiz-page.jsx'), 'export const R = 0;\n');
-    const mk = (mod, anchor) => {
-      mkdirSync(join(pages, mod), { recursive: true });
-      writeFileSync(join(pages, mod, 'Tela.charter.md'), `related_prototype: ${anchor}\n`);
-    };
-    mk('ModA', 'prototipo-ui/cowork/Wagner/a/x-page.jsx');
-    mk('ModB', 'prototipo-ui/cowork/Wagner/b/x-page.jsx');
-    mk('ModR', 'raiz-page.jsx'); // nome solto resolve na raiz (compat v1)
-    mk('ModProsa', 'prototipo Cowork "payment-gateway-ui" F1+F1.5'); // prosa → pulada
-    mk('ModMiss', 'sumiu.jsx'); // MISSING → fora do manifesto (território do anchor-content)
-
-    const man = buildManifest(dir);
-    check('homônimos em subdirs = 2 ENTRADAS separadas (não colapsa)', man.filter((m) => m.cowork.endsWith('x-page.jsx')).length === 2,
-      `tem: ${man.map((m) => m.cowork).join(',')}`);
-    const a = man.find((m) => m.cowork === 'a/x-page.jsx');
-    const b = man.find((m) => m.cowork === 'b/x-page.jsx');
-    check('chave é o PATH RELATIVO completo', !!a && !!b);
-    check('homônimos têm hash DIFERENTE (conteúdo difere)', a && b && a.repoHash !== b.repoHash);
-    check('cada tela ancora no path certo', a?.telas.includes('ModA/Tela') && b?.telas.includes('ModB/Tela'));
-    check('nome solto resolve na raiz', man.some((m) => m.cowork === 'raiz-page.jsx' && m.telas.includes('ModR/Tela')));
-    check('prosa e MISSING ficam fora (escopo == anchor-content)', !man.some((m) => /payment|sumiu/.test(m.cowork)));
-    check('repoHash = contentHash(bytes do arquivo)', a?.repoHash === contentHash(readFileSync(join(cowork, 'a', 'x-page.jsx'))));
-    // CRLF no disco ≠ LF no vivo → MESMO hash (identidade normalizada de ponta a ponta)
-    writeFileSync(join(cowork, 'a', 'x-page.jsx'), 'export const A = 1;\r\n');
-    const man2 = buildManifest(dir);
-    check('arquivo CRLF no repo == vivo LF → SYNC (não falso-STALE)',
-      verdictFor('a/x-page.jsx', man2.find((m) => m.cowork === 'a/x-page.jsx').repoHash, { 'a/x-page.jsx': contentHash('export const A = 1;\n') }) === 'SYNC');
-    // --all inclui subdirs por path relativo (v1 sumia com homônimos no --all)
-    const all = buildManifest(dir, { all: true });
-    check('--all enumera por path relativo (2 homônimos presentes)', all.filter((m) => m.cowork.endsWith('x-page.jsx')).length === 2);
-
-    // ── DOIS UNIVERSOS: frescor (o que dá pra comparar) × conteúdo (o que o espelho TEM) ──
-    // Medido 2026-09-16: `cowork-inbox/**` (378 arquivos, 87% .md) ficava FORA do manifesto
-    // inteiro, e o `liveOnly` — cuja pergunta é CONTINÊNCIA — acusava 327 paths versionados
-    // como "existe no vivo e NUNCA desceu". O bite abaixo exercita a CONSEQUÊNCIA, não a flag.
-    mkdirSync(join(cowork, 'cowork-inbox', 'mod', 'playbook'), { recursive: true });
-    writeFileSync(join(cowork, 'cowork-inbox', 'mod', 'playbook', '00-INDICE.md'), '# indice\n');
-    writeFileSync(join(cowork, 'cowork-inbox', 'mod', 'x.contract.json'), '{"a":1}\n');
-    const REL_MD = 'cowork-inbox/mod/playbook/00-INDICE.md';
-    const REL_JSON = 'cowork-inbox/mod/x.contract.json';
-    const temNo = (man, rel) => man.some((m) => m.cowork === rel);
-
-    const uFrescor = buildManifest(dir, { all: true, universo: 'frescor' });
-    const uConteudo = buildManifest(dir, { all: true, universo: 'conteudo' });
-    // CONTROLE: o default NÃO mudou — quem mede frescor continua vendo só material de build.
-    check('CONTROLE universo: default == frescor (assinatura idêntica)',
-      JSON.stringify(uFrescor.map((m) => m.cowork).sort()) === JSON.stringify(all.map((m) => m.cowork).sort()));
-    check('CONTROLE universo=frescor: .md e .json do pedido ficam FORA (o que se compara é build)',
-      !temNo(uFrescor, REL_MD) && !temNo(uFrescor, REL_JSON));
-    check('universo=conteudo: .md E .json entram (o espelho CONTÉM os dois)',
-      temNo(uConteudo, REL_MD) && temNo(uConteudo, REL_JSON));
-
-    // A CONSEQUÊNCIA, que é o defeito que isto conserta: `liveOnly` é continência.
-    const vivo = [REL_MD, REL_JSON, 'a/x-page.jsx'];
-    check('MORDE: com universo=frescor o liveOnly acusa arquivo VERSIONADO como nunca-desceu',
-      liveOnlyDetalhado(vivo, uFrescor).ignorados.concat(liveOnlyDetalhado(vivo, uFrescor).faltando.map((p) => ({ path: p })))
-        .some((i) => i.path === REL_MD));
-    check('SOLTA: com universo=conteudo ele NÃO acusa nenhum dos dois (nem faltando, nem ignorado)',
-      !liveOnlyDetalhado(vivo, uConteudo).faltando.includes(REL_MD)
-      && !liveOnlyDetalhado(vivo, uConteudo).ignorados.some((i) => i.path === REL_MD || i.path === REL_JSON));
-  } finally {
-    rmSync(dir, { recursive: true, force: true });
-  }
 }
-
 
 // 6b. DEPS DE RENDER (LC-07, 2026-07-07) — o furo por onde o drift do PageHeader roxo passou:
 //     a rodada por âncora media financeiro-page.jsx e era CEGA pra app.jsx/styles.css/tokens.
@@ -277,43 +116,6 @@ check('mesmo número → mesmo veredito (independe de --check)',
       && parseShellDeps('<link href="${base}a.css"><link href="b.css">').includes('b.css'));
 
   const dir = mkdtempSync(join(tmpdir(), 'mirror-deps-'));
-  try {
-    const pages = join(dir, 'resources', 'js', 'Pages');
-    const cowork = join(dir, 'prototipo-ui', 'cowork', 'Wagner');
-    mkdirSync(join(cowork, 'ds-v6'), { recursive: true });
-    writeFileSync(join(cowork, 'financeiro-page.jsx'), 'tela');
-    writeFileSync(join(cowork, 'app.jsx'), 'const onColor = "var(--accent)";'); // o drift real de 2026-07-07
-    writeFileSync(join(cowork, 'styles.css'), ':root{--accent:oklch(0.55 0.15 295)}');
-    mkdirSync(join(pages, 'Fin'), { recursive: true });
-    writeFileSync(join(pages, 'Fin', 'Tela.charter.md'), 'related_prototype: financeiro-page.jsx');
-
-    const man = buildManifest(dir, { shellHtml: SHELL });
-    const byPath = Object.fromEntries(man.map((m) => [m.cowork, m]));
-    check('âncora continua entrando, kind=ancora', byPath['financeiro-page.jsx']?.kind === 'ancora');
-    check('app.jsx ENTRA no manifest como dep (o drift de 2026-07-07 não passa mais cego)', byPath['app.jsx']?.kind === 'dep');
-    check('styles.css entra como dep', byPath['styles.css']?.kind === 'dep');
-    check('dep referenciada no shell mas AUSENTE do espelho fica fora (universo = espelho)', !byPath['ds-v6/tokens.css']);
-    check('âncora que TAMBÉM é dep permanece ancora (telas ganham)', byPath['financeiro-page.jsx'].telas.includes('Fin/Tela'));
-    // ── DENOMINADOR LIMPO: `_ds/` NÃO é do espelho (adversário 2026-08-13) ──────
-    // `_ds/<id>/` é o Design System REPOSTO pelo `--preview-ds` a partir do snapshot já
-    // versionado — é build local, gitignored, e NÃO tem contrapartida no projeto Cowork.
-    // Entrando no manifesto ele inflava o total (124 em vez de 122) e nunca poderia sair
-    // de UNCHECKED, porque o vivo não tem esses arquivos pra comparar: cobertura que jamais
-    // fecha por construção. §5 2026-07-27 (denominador inventado).
-    mkdirSync(join(cowork, '_ds', '019dd02f-d2d0-7ba6-a57f-24b3ddd073ac'), { recursive: true });
-    writeFileSync(join(cowork, '_ds', '019dd02f-d2d0-7ba6-a57f-24b3ddd073ac', 'tokens.css'), ':root{}');
-    const comDs = buildManifest(dir, { shellHtml: SHELL, all: true });
-    check('_ds/ (build local do DS) fica FORA do manifesto — não infla o denominador',
-      comDs.every((m) => !m.cowork.startsWith('_ds/')));
-    // sem shell → só âncoras (comportamento antigo preservado; o WARN é do CLI)
-    const semShell = buildManifest(dir, {});
-    check('sem shellHtml → só âncoras (back-compat)', semShell.length === 1 && semShell[0].kind === 'ancora');
-    // STALE de dep morde no --check igual âncora
-    const st = verdictFor('app.jsx', byPath['app.jsx'].repoHash, { 'app.jsx': contentHash('const onColor = DIFERENTE;') });
-    check('dep divergente → STALE (drift de app.jsx agora É detectado)', st === 'STALE' && shouldFail([st]) === true);
-  } finally {
-    rmSync(dir, { recursive: true, force: true });
-  }
   check('defaultShellPath é função exportada (CLI resolve staging)', typeof defaultShellPath === 'function');
 }
 
@@ -322,10 +124,8 @@ check('mesmo número → mesmo veredito (independe de --check)',
   const HERE = dirname(fileURLToPath(import.meta.url));
   const script = join(HERE, 'cowork-mirror-freshness.mjs');
   const run = (args) => { try { execFileSync(process.execPath, [script, ...args], { cwd: dirname(dirname(HERE)), stdio: 'pipe' }); return 0; } catch (e) { return e.status ?? -1; } };
-  check('--compare sem snapshot → exit 2', run(['--compare', join(tmpdir(), 'nao-existe.json')]) === 2);
   const bad = join(tmpdir(), `mf-bad-${process.pid}.json`);
   writeFileSync(bad, '{ nao é json');
-  check('--compare snapshot malformado → exit 2 (JSON.parse capturado)', run(['--compare', bad]) === 2);
   rmSync(bad, { force: true });
 }
 
@@ -364,13 +164,6 @@ check('mesmo número → mesmo veredito (independe de --check)',
   const clean = { date: '2026-07-01T12:00:00.000Z', stale: 0, sync: 3, unchecked: 0 };
   const dirty = { date: '2026-07-01T12:00:00.000Z', stale: 2, sync: 1, unchecked: 0, staleList: ['x.jsx', 'y.jsx'] };
   const old = { date: '2026-06-01T12:00:00.000Z', stale: 0, sync: 3, unchecked: 0 };
-  check('ledger vazio → NEVER-RAN (rotina nunca rodou ≠ tudo bem)', slaVerdict([], NOW).veredito === 'NEVER-RAN');
-  check('rodada recente e limpa → FRESH', slaVerdict([clean], NOW).veredito === 'FRESH');
-  check('rodada além do SLA → OVERDUE', slaVerdict([old], NOW).veredito === 'OVERDUE');
-  check('última rodada com STALE → LAST-STALE (resultado sujo não some no tempo)', slaVerdict([dirty], NOW).veredito === 'LAST-STALE');
-  check('rodada nova limpa APÓS suja → FRESH (só a última conta)', slaVerdict([dirty, clean], NOW).veredito === 'FRESH');
-  check('ageDays calculado', slaVerdict([clean], NOW).ageDays === 5);
-  check('fronteira: exatamente SLA_DAYS não é OVERDUE', slaVerdict([{ ...clean, date: '2026-06-22T12:00:00.000Z' }], NOW, SLA_DAYS).veredito === 'FRESH');
 
   // ── LAST-PARTIAL (2026-08-13): "0 stale" numa rodada que não mediu não é saúde ──
   // Caso REAL do ledger: a rodada de 2026-07-07 tinha `5 sync · 0 stale · 98 unchecked`
@@ -378,143 +171,14 @@ check('mesmo número → mesmo veredito (independe de --check)',
   // instrumento que existe pra pegar isso. Critério binário e derivado (unchecked===0),
   // nunca limiar inventado: o §5 tem 5 lápides de guard com corte arbitrário.
   const parcial = { ...clean, files: 103, sync: 5, stale: 0, unchecked: 98 };
-  check('BITE: rodada 95% UNCHECKED não é FRESH (0 stale sem cobertura não prova nada)',
-    slaVerdict([parcial], NOW).veredito === 'LAST-PARTIAL');
-  check('cobertura sai no veredito (medidos/total), não só a contagem de stale',
-    JSON.stringify(slaVerdict([parcial], NOW).cobertura) === '{"medidos":5,"total":103}');
-  check('CONTROLE: rodada COMPLETA e limpa continua FRESH (parcial não vira FP em todo mundo)',
-    slaVerdict([{ ...clean, unchecked: 0 }], NOW).veredito === 'FRESH');
-  check('PRECEDÊNCIA: stale vence parcial (resultado sujo é pior que cobertura baixa)',
-    slaVerdict([{ ...parcial, stale: 2, staleList: ['a.jsx', 'b.jsx'] }], NOW).veredito === 'LAST-STALE');
-  check('PRECEDÊNCIA: idade vence tudo (rodada velha é OVERDUE mesmo parcial)',
-    slaVerdict([{ ...parcial, date: '2026-01-01T00:00:00.000Z' }], NOW).veredito === 'OVERDUE');
-  check(`SLA_DAYS = 14`, SLA_DAYS === 14);
 }
 
-// ── liveOnly + exportPlan (v3 — 2026-08-11) ──────────────────────────────────────
-// Contrato: o manifesto monta o universo do lado do ESPELHO, então arquivo que existe no
-// VIVO e nunca foi exportado era invisível POR CONSTRUÇÃO (o LIVE-ABSENT cobre o inverso).
-// Incidente: `jana-merge.jsx` vivia no Cowork, era citado por 21 sites do repo — charter,
-// 2 .tsx de produção, workflow, testes — e NÃO estava versionado. Nenhuma ferramenta
-// apontou, porque nenhuma olhava para esse lado. Medido no corpus real: 25 de 1310 paths.
+// ── dsRuntimeRelPath + frescor pós-transform ─────────────────────────────────────
+// O exportPlan, o liveOnly e a recusa de canon de tela saíram em 2026-10-23 com a rota
+// de baixar do Cowork (ADR 0438). Fica o roteamento do runtime do DS, que o
+// --compare-bundle e o --preview-ds ainda usam.
 {
-  const man = [{ cowork: 'chat-jana.jsx' }, { cowork: 'app.jsx' }];
-  check('BITE liveOnly: arquivo do vivo NUNCA exportado aparece',
-    JSON.stringify(liveOnly(['chat-jana.jsx', 'jana-merge.jsx', 'app.jsx'], man)) === '["jana-merge.jsx"]');
-  check('CONTROLE liveOnly: espelho completo não acusa',
-    liveOnly(['chat-jana.jsx', 'app.jsx'], man).length === 0);
-  check('CONTROLE liveOnly: _arquivo/ (morto upstream) não acusa',
-    liveOnly(['_arquivo/velho.jsx'], man).length === 0);
-  check('CONTROLE liveOnly: prototipo-ui/ (cópia do espelho dentro do vivo) não acusa',
-    liveOnly(['prototipo-ui/cowork/Wagner/chat-jana.jsx'], man).length === 0);
-  // INVERTIDO em 2026-08-20. Este caso afirmava "CONTROLE: .md não é protótipo" e
-  // congelava uma premissa MEDIDA COMO FALSA: o `list_files` do projeto vivo traz 174 `.md`
-  // fora de `_arquivo/`, entre eles os F1 das ondas (`SUPERADMIN-F1-2026-08-18.md`), 30+
-  // `PROMPT_PARA_CODE_*.md` e charters/casos escritos do lado do design. Eles dizem COMO
-  // CONSTRUIR A TELA. Fica o BITE (detecta) + o controle do `.png`, que segue fora de
-  // propósito — imagem não é fonte de construção e tem guard próprio (block-ancora-no-olho).
-  check('BITE liveOnly: .md do vivo fica visível como ignorado, não como build ausente',
-    liveOnlyDetalhado(['cowork-inbox/SUPERADMIN-F1-2026-08-18.md'], man).ignorados
-      .some((item) => item.path.endsWith('.md') && /build-only/.test(item.motivo)));
-  check('CONTROLE liveOnly: .png segue fora (não é fonte de construção)',
-    liveOnly(['screenshots/tela.png'], man).length === 0);
-  check('CONTROLE liveOnly: .md em _arquivo/ (morto upstream) NAO acusa',
-    liveOnly(['_arquivo/docs-legado/velho.md'], man).length === 0);
 
-  // O detector conhece o contrato build-only e não cobra canon de tela como fonte ausente.
-  {
-    // 1) CANON DE TELA — o exportPlan RECUSA (PROTOCOL 10.4). Não é allowlist: usa a MESMA
-    //    regra do exportador, provada aqui pelo par com o exportPlan.
-    const canon = ['x/Index.charter.md', 'x/Index.casos.md', 'x/tela.contract.json'];
-    const d = liveOnlyDetalhado(canon, man);
-    check('BITE: canon de tela NAO e acusado de live-only (o exportPlan o RECUSA)',
-      d.faltando.length === 0 && d.ignorados.length === 3, JSON.stringify(d.faltando));
-    check('canon isento sai em `ignorados` COM MOTIVO (nunca some calado)',
-      d.ignorados.every((i) => /RECUSA/.test(i.motivo)), JSON.stringify(d.ignorados[0]));
-    // PAR COM O EXPORTADOR: a isenção só é legítima porque o exportador de fato recusa.
-    // Se um dia ele passar a exportar charter, este assert cai junto e a isenção some.
-    let canonRecusado = '';
-    try { exportPlan(canon.map((p) => ({ path: p, content: 'x\n' }))); }
-    catch (e) { canonRecusado = String(e.message); }
-    check('PAR: o exportPlan recusa o lote inteiro quando encontra canon de tela',
-      /nada foi escrito/.test(canonRecusado) && canon.every((p) => canonRecusado.includes(p)), canonRecusado);
-
-  }
-
-  // exportPlan: a transcrição manual causou STALE em 2026-08-11 (923 ln à mão vs 943 reais)
-  // e ainda me levou a "corrigir" um charter que estava CERTO. A escrita sai do JSON.
-  check('exportPlan: prefixa com o path do espelho',
-    exportPlan([{ path: 'jana-merge.jsx', content: 'x\n' }])[0].relPath === 'prototipo-ui/cowork/Wagner/jana-merge.jsx');
-  check('exportPlan: conteúdo passa INTACTO (sem transcrição)',
-    exportPlan([{ path: 'a.jsx', content: 'l1\nl2\n' }])[0].content === 'l1\nl2\n');
-  let duplicataRecusada = '';
-  try {
-    exportPlan([
-      { path: 'a/origem.jsx', content: 'export const Igual=1;\n' },
-      { path: 'b/copia.jsx', content: 'export const Igual=1;\n' },
-    ]);
-  } catch (e) { duplicataRecusada = String(e.message); }
-  check('exportPlan: conteúdo duplicado recusa a exportação direta inteira',
-    /conteúdo duplicado de a\/origem\.jsx/.test(duplicataRecusada), duplicataRecusada);
-
-  // ── .md no destino Cowork — REESCRITO em 2026-09-16 (decisão [W]) ──────────
-  //
-  // Este caso afirmava ".md recusa o lote Cowork inteiro", pinando a decisão [W] de 2026-09-11
-  // (build-only no export avulso). Em 2026-09-13 a ADR 0398 D2 decidiu que `.md` É conteúdo do
-  // espelho, e emendou os três mecanismos que nomeou — o `exportPlan` era o quarto e ficou para
-  // trás. [W] resolveu a precedência a favor da 0398 em 2026-09-16 ("toque sim resolva"), e a
-  // lista de extensão daqui passou a derivar do `bundle-contract`. O teste é REESCRITO, nunca
-  // desabilitado: o que ele pina agora é o par — `.md` da conta DESCE, canon de tela NÃO.
-  {
-    const lote = [
-      { path: 'cowork-inbox/SUPERADMIN-F1.md', content: '# f1\n' },
-      { path: 'superadmin-page.jsx', content: 'const x=1;\n' },
-    ];
-    const plano = exportPlan(lote);
-    check('SOLTA: .md da conta desce pelo export (ADR 0398 D2 alcança o 4º mecanismo)',
-      plano.length === 2 && plano.some((p) => p.relPath === 'prototipo-ui/cowork/Wagner/cowork-inbox/SUPERADMIN-F1.md'),
-      JSON.stringify(plano.map((p) => p.relPath)));
-    // CONTROLE NEGATIVO — o que a unificação NÃO podia afrouxar: canon de tela segue recusando o
-    // lote inteiro (regra de DONO, não de extensão; ver o docblock do RE_CANON_DE_TELA).
-    let recusado = '';
-    try { exportPlan([{ path: 'x/Index.charter.md', content: '# c\n' }]); } catch (e) { recusado = String(e.message); }
-    check('MORDE: charter.md (canon de tela) ainda recusa o lote inteiro',
-      /nada foi escrito/.test(recusado) && /Index\.charter\.md/.test(recusado), recusado);
-    let recusadoJson = '';
-    try { exportPlan([{ path: 'contrato/a.contract.json', content: '{}\n' }]); } catch (e) { recusadoJson = String(e.message); }
-    check('MORDE: contract.json (canon de tela) ainda recusa, mesmo com json na lista agora',
-      /nada foi escrito/.test(recusadoJson) && /a\.contract\.json/.test(recusadoJson), recusadoJson);
-    // CONTROLE: extensão fora do contrato segue recusando — a união não virou "aceita tudo".
-    let recusadoTxt = '';
-    try { exportPlan([{ path: 'notas.txt', content: 'a\n' }]); } catch (e) { recusadoTxt = String(e.message); }
-    check('MORDE: extensão fora da lista (.txt) segue recusada', /nada foi escrito/.test(recusadoTxt), recusadoTxt);
-    // Design System usa outra raiz e preserva seu contrato próprio.
-    check('CONTROLE: .md legítimo do Design System segue no prefixo DS',
-      exportPlan([{ path: 'x.md', content: 'a\n' }], { prefixo: 'prototipo-ui/design-system/' })[0]
-        .relPath === 'prototipo-ui/design-system/x.md');
-  }
-  // ⚠️ confere a MENSAGEM, não só "lançou": medido por mutação que, com `catch → true`,
-  // remover o guard AINDA passava (Buffer.byteLength(undefined) lança sozinho e mascarava).
-  let msg = '';
-  try { exportPlan([{ path: 'a.jsx' }]); } catch (e) { msg = String(e.message); }
-  check('BITE exportPlan: guard próprio lança citando o path',
-    /export: conteúdo ausente para "a\.jsx"/.test(msg));
-
-  let truncado = '';
-  try {
-    decodeDesignSyncPayload({ path: '_ds/x/_ds_bundle.js', content: 'const MENU = [{', truncated: true }, 'bundle.json');
-  } catch (e) { truncado = String(e.message); }
-  check('BITE DesignSync: truncated:true é falha dura antes da escrita',
-    /TRUNCADO.*nada foi escrito/i.test(truncado), truncado);
-
-  const bytes = Buffer.from([0, 1, 2, 127, 128, 255]);
-  const bin = decodeDesignSyncPayload({ path: 'assets/font.woff2', content: bytes.toString('base64'), isBase64: true });
-  check('DesignSync base64: binário volta byte-idêntico, não como texto base64',
-    bin.binary === true && Buffer.isBuffer(bin.content) && bin.content.equals(bytes));
-  check('exportPlan: binário preserva bytes e tamanho real',
-    exportPlan([bin])[0].bytes === bytes.length && exportPlan([bin])[0].content.equals(bytes));
-  check('artifactHash: binário hasheia bytes crus',
-    artifactHash(bin.content, true) === artifactHash(bytes, true));
   check('ds-runtime: remove o slug _ds e mantém o path relativo consumido pelo preview',
     dsRuntimeRelPath('_ds/office-impresso-019dd0/assets/fonts/x.woff2') === 'assets/fonts/x.woff2');
   // PR-A9 — as DUAS formas de bind. Wagner carimba o slug; Felipe não (medido 2026-09-17:
@@ -601,21 +265,6 @@ check('mesmo número → mesmo veredito (independe de --check)',
   // Remoto e data: URL não é dep do espelho (mesma regra do parseShellDeps).
   check('CONTROLE absentLocal: CDN remoto não vira ausência',
     absentLocal('<script src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>').faltando.length === 0);
-}
-
-// ── CICLO EM 1 DOWNLOAD (2026-08-13) ────────────────────────────────────────────
-// O --export-from passou a emitir o snapshot (--emit-snapshot). O contrato que este
-// assert trava é a CHAVE: o exportPlan devolve `relPath` COM o prefixo do espelho,
-// mas o --compare procura pelo path RELATIVO (o campo `cowork` do manifesto). Emitir
-// com o prefixo errado daria "UNCHECKED" em tudo — verde-por-não-medir, o LC-13 na veia.
-{
-  const plano = exportPlan([{ path: 'app.jsx', content: 'x\n' }, { path: 'venda-v3/sells-ui.jsx', content: 'y\n' }]);
-  const chaves = plano.map((p) => p.relPath.replace(/^prototipo-ui\/cowork\/Wagner\//, ''));
-  check('snapshot emitido usa a MESMA chave do manifesto (relativa, não prefixada)',
-    JSON.stringify(chaves) === '["app.jsx","venda-v3/sells-ui.jsx"]');
-  // o hash emitido tem que ser o do conteúdo NORMALIZADO — senão CRLF daria STALE falso
-  check('hash do snapshot emitido == contentHash do conteúdo (normalizado)',
-    contentHash('a\r\nb\r\n') === contentHash(exportPlan([{ path: 'z.jsx', content: 'a\nb\n' }])[0].content));
 }
 
 // ── PREVIEW-DS (2026-08-13): o espelho versionado NÃO renderiza sozinho ─────────
@@ -713,146 +362,16 @@ check('mesmo número → mesmo veredito (independe de --check)',
     man.some((f) => f.cowork === 'oimpresso.com.html'));
 }
 
-// ── NASCE-SEM-MEDIÇÃO (2026-08-13) ──────────────────────────────────────────────
-// [W]: "garanta todos os novos sempre checados". Os 3 filtros são por DADO — cada um
-// foi medido em 60d de histórico real (251 arquivos adicionados) antes de virar código:
-//   todos ......... 51% fora (ruído: relatório .html)
-//   só jsx/css/js . 38% fora (ruído: subdir com shell próprio)
-//   + raiz ........ 15% fora
-//   + no vivo ..... ~1% fora  ← o sinal
+// ── lerShellHtml devolve CONTEÚDO, não o caminho ─────────────────────────────────
+// Restou do fluxo end-to-end (export → snapshot → compare), que saiu em 2026-10-23 com a
+// rota de baixar do Cowork (ADR 0438). A confusão caminho×conteúdo já quebrou um wire.
 {
-  const man = [{ cowork: 'app.jsx' }, { cowork: 'styles.css' }];
-  const vivos = ['app.jsx', 'styles.css', 'forja-tarefas.jsx']; // norte-app.jsx NÃO está: sumiu do vivo
-
-  const r = nasceSemMedicao(['prototipo-ui/cowork/Wagner/forja-tarefas.jsx'], man, vivos);
-  check('BITE: arquivo novo na raiz, no vivo e fora do manifesto → ACUSA',
-    JSON.stringify(r.acusados) === '["forja-tarefas.jsx"]');
-
-  check('CONTROLE: arquivo novo que JÁ está no manifesto não acusa',
-    nasceSemMedicao(['prototipo-ui/cowork/Wagner/app.jsx'], man, vivos).acusados.length === 0);
-  // filtro 1 — subdir tem shell próprio (venda-v3/, prototipo-ui-patch/): 38%→15% do FP saiu daqui
-  check('CONTROLE: subdir não acusa (tem shell próprio por desenho)',
-    nasceSemMedicao(['prototipo-ui/cowork/Felipe/venda-v3/sells-ui.jsx'], man, vivos).acusados.length === 0);
-  // filtro 2 — .html no espelho é relatório/auditoria, não protótipo: 51%→38% saiu daqui
-  check('CONTROLE: .html não acusa (é relatório, não protótipo de tela)',
-    nasceSemMedicao(['prototipo-ui/cowork/Wagner/Auditoria Financeiro.html'], man, vivos).acusados.length === 0);
-  // filtro 3 — o que sumiu do vivo é resíduo a limpar, não "novo sem medição": 15%→1%
-  {
-    const res = nasceSemMedicao(['prototipo-ui/cowork/Wagner/norte-app.jsx'], man, vivos);
-    check('CONTROLE: sumiu do vivo → vai pra `residuo`, não pra `acusados`',
-      res.acusados.length === 0 && JSON.stringify(res.residuo) === '["norte-app.jsx"]');
-  }
-  // honestidade: sem a lista do vivo o filtro forte não roda — e isso é DECLARADO, não escondido
-  {
-    const sv = nasceSemMedicao(['prototipo-ui/cowork/Wagner/norte-app.jsx'], man, null);
-    check('sem --vivos: marca semVivo e NÃO finge que filtrou',
-      sv.semVivo === true && sv.acusados.length === 1);
-  }
-  check('CONTROLE: lista vazia não inventa acusação', nasceSemMedicao([], man, vivos).acusados.length === 0);
-}
-
-// ── FLUXO END-TO-END (2026-08-13) ────────────────────────────────────────────────
-// Os asserts acima provam PEÇAS. Este prova a TRAVESSIA: get_file(JSON) →
-// --export-from --emit-snapshot → --compare. É onde os contratos se encontram, e
-// onde um erro de junção (chave prefixada, hash de conteúdo cru, snapshot vazio)
-// aparece — nenhum assert de peça isolada pegaria.
-// Roda em sandbox por cwd: não toca o espelho real.
-{
-  const tmp = mkdtempSync(join(tmpdir(), 'cowork-fluxo-'));
+  const tmp = mkdtempSync(join(tmpdir(), 'cowork-shell-'));
   const mirror = join(tmp, 'prototipo-ui', 'cowork', 'Wagner');
   mkdirSync(mirror, { recursive: true });
-  // espelho de partida: 1 arquivo DESATUALIZADO + o shell que o carrega
-  writeFileSync(join(mirror, 'x.jsx'), 'versao ANTIGA\n');
   writeFileSync(join(mirror, 'oimpresso.com.html'), '<script src="x.jsx?v=1"></script>');
-  const dirJson = join(tmp, 'baixados');
-  mkdirSync(dirJson);
-  // o que o DesignSync.get_file devolveria pro arquivo, já ATUALIZADO no vivo
-  writeFileSync(join(dirJson, 'x.json'), JSON.stringify({ path: 'x.jsx', content: 'versao NOVA\n' }));
-
-  const cli = fileURLToPath(new URL('./cowork-mirror-freshness.mjs', import.meta.url));
-  const run = (args) => {
-    try {
-      return { out: execFileSync(process.execPath, [cli, ...args], { cwd: tmp, encoding: 'utf8' }), code: 0 };
-    } catch (e) { return { out: (e.stdout || '') + (e.stderr || ''), code: e.status }; }
-  };
-
-  const snap = join(tmp, 'snap.json');
-  const exp = run(['--export-from', dirJson, '--emit-snapshot', snap]);
-  check('FLUXO 1/3: export escreve o conteúdo do vivo e marca ATUALIZADO',
-    /ATUALIZADO/.test(exp.out) && readFileSync(join(mirror, 'x.jsx'), 'utf8') === 'versao NOVA\n');
-  check('FLUXO 2/3: o snapshot sai do MESMO passo (sem 2º download)', existsSync(snap));
-
-  // o compare tem que dizer SYNC — o espelho acabou de receber o conteúdo do vivo
-  const cmpOk = run(['--compare', snap, '--check']);
-  check('FLUXO 3/3: compare fecha SYNC e --check libera (exit 0)', cmpOk.code === 0);
-
-  // ⚠️ CONTROLE POSITIVO: sem ele o fluxo acima passaria mesmo se o compare fosse cego
-  writeFileSync(join(mirror, 'x.jsx'), 'alguem editou o espelho a mao\n');
-  const cmpBad = run(['--compare', snap, '--check']);
-  check('BITE do fluxo: espelho divergindo do snapshot → --check MORDE (exit 1)',
-    cmpBad.code === 1 && /✗|DIVERGE/i.test(cmpBad.out));
-
-  // ── NASCE-SEM-MEDIÇÃO ligado no export (o `--check-novos` era órfão) ─────────
-  // Discriminação real: dois arquivos nascem, só um está no shell. Se acusar os dois
-  // (ou nenhum), o aviso é decorativo. Foi assim que o wire nasceu quebrado: o call site
-  // passava o CAMINHO do shell onde `parseShellDeps` quer o CONTEÚDO — sem erro, sem dep,
-  // e o arquivo que ESTAVA no shell aparecia como não-medido.
-  writeFileSync(join(dirJson, 'novo-visto.json'), JSON.stringify({ path: 'novo-visto.jsx', content: 'V' }));
-  writeFileSync(join(dirJson, 'novo-cego.json'), JSON.stringify({ path: 'novo-cego.jsx', content: 'C' }));
-  writeFileSync(join(mirror, 'oimpresso.com.html'), '<script src="x.jsx?v=1"></script><script src="novo-visto.jsx"></script>');
-  const nasc = run(['--export-from', dirJson]);
-  check('nasce-sem-medição roda NO export e acusa o que o shell não carrega',
-    /NASCERAM sem entrar no manifesto/.test(nasc.out) && /novo-cego\.jsx/.test(nasc.out));
-  check('CONTROLE: arquivo novo que o shell CARREGA não é acusado',
-    !/ {4}novo-visto\.jsx/.test(nasc.out));
-  check('CONTROLE: re-export sem nascimento não emite o aviso',
-    !/NASCERAM sem entrar/.test(run(['--export-from', dirJson]).out));
   check('lerShellHtml devolve CONTEÚDO (não o caminho) — a confusão que quebrou o wire',
     typeof lerShellHtml === 'function' && (lerShellHtml(tmp) || '').includes('<script'));
-
-  // ── MEDIR ≠ CONSERTAR (resíduo da tautologia, 2026-08-13) ───────────────────
-  // Enquanto `--emit-snapshot` só existia dentro do `--export-from`, a pergunta do [W]
-  // ("se eu alterar o protótipo, ele vê?") era irrespondível: o export escreve antes de
-  // medir, então a resposta era SYNC por construção. O `--snapshot-from` mede sem tocar
-  // no espelho. Os 3 asserts abaixo são o contrato: DETECTA · NÃO ESCREVE · MORDE.
-  writeFileSync(join(mirror, 'x.jsx'), 'ESPELHO ANTIGO\n');
-  const dirVivo = join(tmp, 'vivo-alterado');
-  mkdirSync(dirVivo);
-  writeFileSync(join(dirVivo, 'x.json'), JSON.stringify({ path: 'x.jsx', content: 'W ALTEROU NO COWORK\n' }));
-  const snapMed = join(tmp, 'medicao.json');
-  const med = run(['--snapshot-from', dirVivo, '--emit-snapshot', snapMed]);
-  check('--snapshot-from DETECTA que o vivo divergiu', /DIVERGE/.test(med.out) && med.code === 0);
-  check('--snapshot-from NÃO escreve no espelho (medir ≠ consertar)',
-    readFileSync(join(mirror, 'x.jsx'), 'utf8') === 'ESPELHO ANTIGO\n');
-  const vered = run(['--compare', snapMed, '--check']);
-  check('veredito do snapshot de MEDIÇÃO é STALE e morde (exit 1)',
-    vered.code === 1 && /✗|DIVERGE/i.test(vered.out));
-  check('snapshot de medição se declara `_origin: medicao` (o ledger não o confunde com export)',
-    JSON.parse(readFileSync(snapMed, 'utf8'))._origin === 'medicao');
-
-  // Regressão 2026-08-18: o payload real do _ds_bundle.js veio com truncated:true,
-  // mas o exportador ignorava o metadado e escrevia JS cortado como se fosse fiel.
-  const dirTrunc = join(tmp, 'truncado');
-  mkdirSync(dirTrunc);
-  writeFileSync(join(dirTrunc, 'bundle.json'), JSON.stringify({
-    path: '_ds/x/_ds_bundle.js', content: "const MENU = [{ label: 'Pa", truncated: true,
-  }));
-  const expTrunc = run(['--export-from', dirTrunc]);
-  check('FLUXO BITE: export truncado sai 2, nomeia TRUNCADO e não grava arquivo',
-    expTrunc.code === 2 && /TRUNCADO/.test(expTrunc.out)
-      && !existsSync(join(mirror, '_ds', 'x', '_ds_bundle.js')), expTrunc.out);
-
-  const dirBin = join(tmp, 'binario');
-  mkdirSync(dirBin);
-  const fontBytes = Buffer.from([0, 1, 2, 127, 128, 255]);
-  writeFileSync(join(dirBin, 'font.json'), JSON.stringify({
-    path: '_ds/ds-teste/assets/fonts/x.woff2', content: fontBytes.toString('base64'), isBase64: true,
-  }));
-  const expBin = run(['--export-from', dirBin, '--ds-runtime']);
-  const fontOut = join(tmp, 'prototipo-ui', 'design-system', 'assets', 'fonts', 'x.woff2');
-  check('FLUXO ds-runtime: base64 pousa no snapshot consumido pelo preview, byte-idêntico',
-    expBin.code === 0 && existsSync(fontOut) && readFileSync(fontOut).equals(fontBytes), expBin.out);
-
   rmSync(tmp, { recursive: true, force: true });
 }
 
@@ -1111,537 +630,30 @@ check('mesmo número → mesmo veredito (independe de --check)',
     !r3.faltando.some((d) => d.startsWith('_ds/')), JSON.stringify(r3));
 }
 
-// ── fonte no git (ADR 0433 · [W] 2026-10-15) ────────────────────────────────────────
-// Depois da virada, commit no espelho e autoria: sai da acusacao e vai para autoradoNoGit.
-// Antes da virada a regra antiga continua mordendo. Data ilegivel fica na acusacao.
+// ── ledgerEntry + a trava do modo removido ───────────────────────────────────────
+// O --unverified e o required do espelho saíram em 2026-10-23 (ADR 0438 D7); o frescor
+// contra o Cowork saiu na onda 2c-2. O ledgerEntry fica porque o --compare-bundle grava
+// no ledger.
 {
-  const fonte = { dono: 'Wagner', desde: '2026-10-15T00:00:00-03:00', adr: '0433' };
-  const m = [
-    { cowork: 'antes.jsx', commitadoEm: '2026-10-14T23:59:00-03:00' },
-    { cowork: 'depois.jsx', commitadoEm: '2026-10-15T10:00:00-03:00' },
-    { cowork: 'sem-data.jsx', commitadoEm: 'nao-e-data' },
-  ];
-  const s = separarAutoriaNoGit(m, fonte);
-  check('BITE fonte-git: commit ANTES da virada continua acusado', s.mexidoDepois.some((x) => x.cowork === 'antes.jsx'), JSON.stringify(s));
-  check('fonte-git: commit DEPOIS da virada vira autoria (relatada, nao acusada)', s.autoradoNoGit.length === 1 && s.autoradoNoGit[0].cowork === 'depois.jsx', JSON.stringify(s));
-  check('fonte-git: data ilegivel NAO vira isencao', s.mexidoDepois.some((x) => x.cowork === 'sem-data.jsx'), JSON.stringify(s));
-  check('fonte-git: sem fonte declarada nada muda', separarAutoriaNoGit(m, null).mexidoDepois.length === 3, '');
-  check('fonte-git: FONTE_GIT declara dono, data e ADR', FONTE_GIT.dono === 'Wagner' && !!FONTE_GIT.desde && FONTE_GIT.adr === '0433', JSON.stringify(FONTE_GIT));
-}
-
-// ── unverifiedSince — MEXEU-DEPOIS-DE-VERIFICAR (v4 · 2026-08-17) ────────────────
-// A defesa contra remendo a mao no espelho. Predicado = DUAS DATAS, nunca nome/pasta/vocabulario
-// (escapa da familia das 4 lapides de guard sintatico do §5). O caso real que motivou:
-// 11 sites trocados a mao 33min DEPOIS de uma rodada de frescor, invisiveis por 4 dias.
-{
-  const L = [
-    { date: '2026-08-13T17:00:00.000Z', verified: ['chat-jana.css', 'app.jsx'] },
-    { date: '2026-08-13T21:00:00.000Z', verified: ['app.jsx'] },
-  ];
-  const r = unverifiedSince(L, [
-    { cowork: 'chat-jana.css', lastCommitIso: '2026-08-13T18:01:18.000Z' }, // MEXEU depois das 17:00
-    { cowork: 'app.jsx',       lastCommitIso: '2026-08-13T18:01:18.000Z' }, // verificado 21:00 = DEPOIS do commit
-    { cowork: 'vendas.css',    lastCommitIso: '2026-08-10T10:00:00.000Z' }, // nunca verificado
-    { cowork: 'novo.jsx',      lastCommitIso: null },                        // sem commit ainda
-  ]);
-  check('BITE unverifiedSince: MORDE o arquivo commitado DEPOIS da verificacao',
-    r.mexidoDepois.length === 1 && r.mexidoDepois[0].cowork === 'chat-jana.css', JSON.stringify(r.mexidoDepois));
-  check('unverifiedSince: LIBERA o arquivo cuja verificacao e POSTERIOR ao commit',
-    !r.mexidoDepois.some((m) => m.cowork === 'app.jsx') && r.ok === 1, JSON.stringify(r));
-  check('unverifiedSince: NUNCA-VERIFICADO nao vira mexido-depois (forward-only, nao pune legado)',
-    r.nuncaVerificado.includes('vendas.css') && !r.mexidoDepois.some((m) => m.cowork === 'vendas.css'), JSON.stringify(r));
-  check('unverifiedSince: arquivo SEM data de commit nao vira achado (nao afirma sem dado)',
-    !r.mexidoDepois.some((m) => m.cowork === 'novo.jsx'), JSON.stringify(r.mexidoDepois));
-  // MERGE/SQUASH nao e remendo a mao (falso-positivo medido 2026-08-17).
-  // O squash do #5854 reescreveu a data de commit de 6 arquivos do espelho SEM mudar um byte;
-  // um detector que compara so DATAS acusou os 6. Com o hash no ledger, "commitou depois" so
-  // vira achado quando o CONTEUDO tambem mudou.
-  {
-    const L2 = [{ date: '2026-08-17T12:00:00.000Z', verified: ['a.jsx', 'b.jsx'],
-      verifiedHash: { 'a.jsx': 'HASH_A', 'b.jsx': 'HASH_B' } }];
-    const rSquash = unverifiedSince(L2, [
-      { cowork: 'a.jsx', lastCommitIso: '2026-08-17T12:10:47.000Z', hashAtual: 'HASH_A' }, // squash: data nova, conteudo igual
-      { cowork: 'b.jsx', lastCommitIso: '2026-08-17T12:10:47.000Z', hashAtual: 'OUTRO' },  // mexido de verdade
-    ]);
-    check('unverifiedSince: merge/squash (data nova, hash IGUAL) nao vira achado',
-      !rSquash.mexidoDepois.some((m) => m.cowork === 'a.jsx') && rSquash.ok === 1, JSON.stringify(rSquash));
-    check('BITE unverifiedSince: hash DIFERENTE depois da verificacao ainda MORDE',
-      rSquash.mexidoDepois.length === 1 && rSquash.mexidoDepois[0].cowork === 'b.jsx', JSON.stringify(rSquash.mexidoDepois));
-    // ledger SEM verifiedHash (rodada anterior ao campo) => fallback CONSERVADOR: acusa por data.
-    const rVelhoHash = unverifiedSince([{ date: '2026-08-17T12:00:00.000Z', verified: ['a.jsx'] }],
-      [{ cowork: 'a.jsx', lastCommitIso: '2026-08-17T12:10:47.000Z', hashAtual: 'HASH_A' }]);
-    check('unverifiedSince: sem hash no ledger cai no conservador (acusa por data, nao inventa verde)',
-      rVelhoHash.mexidoDepois.length === 1 && /sem hash/.test(rVelhoHash.mexidoDepois[0].motivo || ''), JSON.stringify(rVelhoHash.mexidoDepois));
-
-    const rInvalidado = unverifiedSince([
-      { date: '2026-08-17T12:00:00.000Z', verified: ['a.jsx'], verifiedHash: { 'a.jsx': 'HASH_A' } },
-      { date: '2026-09-11T18:00:00.000Z', invalidated: ['a.jsx'], kind: 'namespace-invalidation' },
-    ], [{ cowork: 'a.jsx', lastCommitIso: '2026-09-11T18:10:00.000Z', hashAtual: 'OUTRO' }]);
-    check('invalidação de namespace não fabrica prova: volta a NUNCA-VERIFICADO',
-      rInvalidado.nuncaVerificado.includes('a.jsx') && rInvalidado.mexidoDepois.length === 0, JSON.stringify(rInvalidado));
-
-    // ── PROVA POR BUNDLE (v5 · 2026-08-24) ──────────────────────────────────────
-    // O gate nasceu quando `--export-from` era a unica rota de escrita no espelho. O bundle v2
-    // (`aplicar-payload --require-complete-shell`) e a ROTA PRINCIPAL da fase -1 e escreve com
-    // fidelidade provada por construcao. Sem isto o required reprova o caminho oficial: no
-    // #6178, 71 arquivos com 232/232 hashes conferidos foram marcados "sem prova".
-    // O criterio e DURO: so libera com sha256 batendo byte-a-byte.
-    {
-      const Lb = [{ date: '2026-08-20T12:00:00.000Z', verified: ['app.jsx', 'styles.css', 'sidebar.jsx'],
-        verifiedHash: { 'app.jsx': 'H_VELHO', 'styles.css': 'H_VELHO', 'sidebar.jsx': 'H_VELHO' } }];
-      const commit = '2026-08-24T12:00:00.000Z'; // commitado DEPOIS da verificacao, conteudo MUDOU
-      const bundle = { 'app.jsx': 'SHA_BUNDLE_APP', 'styles.css': 'SHA_BUNDLE_STYLES' };
-      const rb = unverifiedSince(Lb, [
-        // promovido pelo bundle: sha do disco == sha do manifesto => PROVADO
-        { cowork: 'app.jsx',    lastCommitIso: commit, hashAtual: 'H_NOVO', rawSha: 'SHA_BUNDLE_APP' },
-        // consta no bundle MAS o byte no disco divergiu (remendo a mao pos-promocao) => MORDE
-        { cowork: 'styles.css', lastCommitIso: commit, hashAtual: 'H_NOVO', rawSha: 'SHA_REMENDADO' },
-        // nem consta no bundle => comportamento antigo, MORDE
-        { cowork: 'sidebar.jsx', lastCommitIso: commit, hashAtual: 'H_NOVO', rawSha: 'SHA_QUALQUER' },
-      ], bundle);
-      check('unverifiedSince: bundle promovido com sha conferido LIBERA (a rota canonica nao e acusada)',
-        !rb.mexidoDepois.some((m) => m.cowork === 'app.jsx'), JSON.stringify(rb.mexidoDepois));
-      check('BITE unverifiedSince: no bundle mas byte DIVERGENTE ainda MORDE (prova, nao isencao)',
-        rb.mexidoDepois.some((m) => m.cowork === 'styles.css'), JSON.stringify(rb.mexidoDepois));
-      check('BITE unverifiedSince: fora do bundle segue mordendo (nao virou passe livre)',
-        rb.mexidoDepois.some((m) => m.cowork === 'sidebar.jsx'), JSON.stringify(rb.mexidoDepois));
-      check('unverifiedSince: prova por bundle acusa exatamente 2 de 3',
-        rb.mexidoDepois.length === 2 && rb.ok === 1, JSON.stringify(rb));
-      // provaBundle ausente => comportamento IDENTICO ao de antes (nao-medir nao vira verde)
-      const rSem = unverifiedSince(Lb, [
-        { cowork: 'app.jsx', lastCommitIso: commit, hashAtual: 'H_NOVO', rawSha: 'SHA_BUNDLE_APP' },
-      ], null);
-      check('BITE unverifiedSince: SEM bundle o mesmo arquivo volta a morder (ausencia != prova)',
-        rSem.mexidoDepois.length === 1 && rSem.mexidoDepois[0].cowork === 'app.jsx', JSON.stringify(rSem.mexidoDepois));
-    }
-    // ── FUSO DO COMMITTER (2026-09-24) ───────────────────────────────────────────
-    // `git log --format=%cI` traz o offset do committer; o ledger grava UTC. Comparar como
-    // STRING dizia "16:51-03:00 < 18:35Z" e deixava passar um commit 19:51Z POSTERIOR a
-    // verificacao (caso real: #7852 passou no gate, o main ficou vermelho apos o squash).
-    {
-      const Lf = [{ date: '2026-09-23T18:35:43.756Z', verified: ['cowork-inbox/home/playbook/00-INDICE.md'],
-        verifiedHash: { 'cowork-inbox/home/playbook/00-INDICE.md': 'H_VERIF' } }];
-      const rFuso = unverifiedSince(Lf, [
-        // 16:51-03:00 = 19:51Z, POSTERIOR a 18:35Z, hash mudou => TEM de morder
-        { cowork: 'cowork-inbox/home/playbook/00-INDICE.md', lastCommitIso: '2026-09-23T16:51:18-03:00', hashAtual: 'H_NOVO' },
-      ]);
-      check('BITE unverifiedSince: commit com offset -03:00 POSTERIOR em tempo real a verificacao MORDE',
-        rFuso.mexidoDepois.length === 1 && rFuso.mexidoDepois[0].cowork === 'cowork-inbox/home/playbook/00-INDICE.md',
-        JSON.stringify(rFuso));
-      // controle negativo: 15:00-03:00 = 18:00Z, ANTERIOR a 18:35Z => libera (por string seria o mesmo; aqui prova o outro sentido)
-      const rAntes = unverifiedSince(Lf, [
-        { cowork: 'cowork-inbox/home/playbook/00-INDICE.md', lastCommitIso: '2026-09-23T15:00:00-03:00', hashAtual: 'H_NOVO' },
-      ]);
-      check('unverifiedSince: commit -03:00 ANTERIOR em tempo real a verificacao LIBERA',
-        rAntes.mexidoDepois.length === 0 && rAntes.ok === 1, JSON.stringify(rAntes));
-      // e a escolha da ULTIMA verificacao tambem e por instante, nao por string
-      const uv = ultimaVerificacaoDe([
-        { date: '2026-09-23T21:00:00-03:00', verified: ['x.jsx'] }, // 00:00Z do dia 24 — a mais recente
-        { date: '2026-09-23T23:00:00.000Z', verified: ['x.jsx'] },
-      ], 'x.jsx');
-      check('ultimaVerificacaoDe: escolhe a mais recente por instante (offset misto)',
-        uv.data === '2026-09-23T21:00:00-03:00', JSON.stringify(uv));
-    }
-    const e2 = ledgerEntry([{ cowork: 'a.css', veredito: 'SYNC', repoHash: 'H1' }], '2026-08-17T00:00:00.000Z');
-    check('ledgerEntry: grava `verifiedHash` path->hash (insumo do desempate)',
-      e2.verifiedHash && e2.verifiedHash['a.css'] === 'H1', JSON.stringify(e2.verifiedHash));
-  }
-
-  // ledger antigo (sem o campo `verified`) nao pode virar verde silencioso: e SEM DADO.
-  const rVelho = unverifiedSince([{ date: '2026-07-06T00:00:00.000Z', files: 3, sync: 1 }],
-    [{ cowork: 'chat-jana.css', lastCommitIso: '2026-08-13T18:01:18.000Z' }]);
-  check('unverifiedSince: rodada SEM `verified` nao conta como prova (comLedger=0)',
-    rVelho.comLedger === 0 && rVelho.mexidoDepois.length === 0 && rVelho.nuncaVerificado.length === 1, JSON.stringify(rVelho));
-  // ledgerEntry passa a gravar QUAIS mediu — sem isso o detector nao tem insumo
+  const e2 = ledgerEntry([{ cowork: 'a.css', veredito: 'SYNC', repoHash: 'H1' }], '2026-08-17T00:00:00.000Z');
+  check('ledgerEntry: grava `verifiedHash` path->hash',
+    e2.verifiedHash && e2.verifiedHash['a.css'] === 'H1', JSON.stringify(e2.verifiedHash));
   const e = ledgerEntry([{ cowork: 'a.css', veredito: 'SYNC' }, { cowork: 'b.css', veredito: 'STALE' }], '2026-08-17T00:00:00.000Z');
-  check('ledgerEntry: grava `verified` so com os SYNC (insumo do --unverified)',
+  check('ledgerEntry: grava `verified` so com os SYNC',
     Array.isArray(e.verified) && e.verified.length === 1 && e.verified[0] === 'a.css', JSON.stringify(e.verified));
+  // o modo removido falha ALTO pelo CLI de fora: sem a trava ele caía no caminho padrão e saía 0
+  const aquiRemovido = dirname(fileURLToPath(import.meta.url));
+  const cliRemovido = join(aquiRemovido, 'cowork-mirror-freshness.mjs');
+  let rcRemovido = 0;
+  try { execFileSync(process.execPath, [cliRemovido, '--unverified', '--check'], { cwd: dirname(dirname(aquiRemovido)), stdio: 'pipe' }); }
+  catch (err) { rcRemovido = err.status ?? -1; }
+  check('BITE CLI: --unverified removido sai 2 (nunca verde sem medir)', rcRemovido === 2, String(rcRemovido));
 }
 
-// ── LIVE-ONLY NO LEDGER (2026-08-24) ────────────────────────────────────────────
-// O flanco `--live-only` era medido a mão e esquecido: em 24/08 a medição achou 47
-// protótipos de tela que nunca desceram e NADA tinha perguntado. Agora a medição vai pro
-// ledger e o CI headless audita o REGISTRO (a medição em si exige auth — ADR 0315).
-// O 1º assert é o BITE do perigo que a própria adição criou: as entradas de live-only
-// moram no MESMO array que as rodadas de --compare, e o slaVerdict lê o ÚLTIMO elemento.
+// ── lerBundlePromovido ───────────────────────────────────────────────────────────
 {
-  const parcial = { date: '2026-08-21T00:00:00.000Z', files: 137, sync: 1, stale: 0, unchecked: 136 };
-  const lo = liveOnlyEntry(['a.jsx'], 237, '2026-08-24T00:00:00.000Z');
-
-  // BITE: sem o filtro por `kind`, o slaVerdict leria a entrada de live-only (sem `stale`
-  // nem `unchecked`) e responderia FRESH — alarme vivo silenciado por adição vizinha.
-  check('slaVerdict: entrada live-only NAO vira veredito do compare (segue LAST-PARTIAL)',
-    slaVerdict([parcial, lo], '2026-08-22T00:00:00.000Z').veredito === 'LAST-PARTIAL',
-    slaVerdict([parcial, lo], '2026-08-22T00:00:00.000Z').veredito);
-  // Controle negativo do mesmo assert: sem a entrada live-only o veredito é o mesmo.
-  check('slaVerdict: veredito identico com e sem a entrada live-only (nao mudei o compare)',
-    slaVerdict([parcial], '2026-08-22T00:00:00.000Z').veredito
-      === slaVerdict([parcial, lo], '2026-08-22T00:00:00.000Z').veredito, 'divergiu');
-
-  // Ledger que só tem rodada de compare não é "live-only OK": é live-only NUNCA MEDIDO.
-  // Colapsar os dois seria afirmar verde sobre o que não se percorreu (§5 2026-07-29).
-  check('liveOnlyVerdict: ledger so de compare => NEVER-RAN (nao OK)',
-    liveOnlyVerdict([parcial], '2026-08-24T00:00:00.000Z').veredito === 'NEVER-RAN');
-
-  check('liveOnlyVerdict: primeira medicao => BASELINE (nao ha anterior pra comparar)',
-    liveOnlyVerdict([lo], '2026-08-24T00:00:00.000Z').veredito === 'BASELINE');
-
-  const velha = liveOnlyEntry(['a.jsx'], 237, '2026-08-01T00:00:00.000Z');
-  check(`liveOnlyVerdict: medicao com mais de ${LIVE_ONLY_SLA_DAYS}d => OVERDUE`,
-    liveOnlyVerdict([velha], '2026-08-24T00:00:00.000Z').veredito === 'OVERDUE');
-
-  // GREW é DELTA: o que entrou desde a medição anterior, com o MESMO denominador.
-  const l1 = liveOnlyEntry(['a.jsx', 'b.css'], 237, '2026-08-22T00:00:00.000Z');
-  const l2 = liveOnlyEntry(['a.jsx', 'b.css', 'c.jsx'], 237, '2026-08-24T00:00:00.000Z');
-  const g = liveOnlyVerdict([l1, l2], '2026-08-24T00:00:00.000Z');
-  check('liveOnlyVerdict: path novo com mesmo denominador => GREW + nomeia o novo',
-    g.veredito === 'GREW' && g.novos.length === 1 && g.novos[0] === 'c.jsx', JSON.stringify(g.novos));
-
-  // CONTROLE NEGATIVO — o piso herdado NÃO pode reprovar pra sempre. Um predicado
-  // absoluto (`liveOnly === 0`) deixaria os 47 de hoje travando o gate eternamente, que é
-  // exatamente o auto-merge parado 9 dias de §5 2026-08-24.
-  const est1 = liveOnlyEntry(['a.jsx', 'b.css'], 237, '2026-08-22T00:00:00.000Z');
-  const est2 = liveOnlyEntry(['b.css', 'a.jsx'], 237, '2026-08-24T00:00:00.000Z');
-  check('liveOnlyVerdict: mesmo conjunto (ordem trocada) => OK, nao GREW (delta, nao absoluto)',
-    liveOnlyVerdict([est1, est2], '2026-08-24T00:00:00.000Z').veredito === 'OK');
-
-  // ANTI-FP: denominador diferente = escopo diferente. `c.jsx` "apareceu", mas pode ter
-  // aparecido porque a 2ª medição olhou mais coisa. Isso é AUSÊNCIA de comparação, não
-  // crescimento — e não pode virar vermelho (§5 2026-07-27, denominador inventado).
-  const s2 = liveOnlyEntry(['a.jsx', 'b.css', 'c.jsx'], 560, '2026-08-24T00:00:00.000Z');
-  const sc = liveOnlyVerdict([l1, s2], '2026-08-24T00:00:00.000Z');
-  check('liveOnlyVerdict: denominador diferente => SCOPE-CHANGED e novos=[] (nao acusa GREW)',
-    sc.veredito === 'SCOPE-CHANGED' && sc.novos.length === 0, sc.veredito);
-
-  check('liveOnlyEntry: grava denominador e lista ordenada (insumo do delta)',
-    l2.kind === 'live-only' && l2.denom === 237 && l2.liveOnly === 3
-      && l2.liveOnlyList.join(',') === 'a.jsx,b.css,c.jsx', JSON.stringify(l2));
-}
-
-// ── ISENÇÃO DO 3º DESTINO (2026-09-01): _ds JÁ pousado no runtime não é live-only ─
-// Medido na rodada real de 2026-09-01: o detector acusou os `_ds/**` como "nunca desceu"
-// com bundle + 2 CSS + fontes JÁ em mirror-snapshot/ (o pouso do --ds-runtime) — o mesmo
-// FP de mecanismo próprio que a isenção dos .md matou em 08-28 (157→147 na re-medição).
-// A classe runtime vem de dsRuntimeRelPath (a régua do PRÓPRIO destino, não cópia).
-{
-  const vivos = ['_ds/slug-x/cockpit_domains.css', '_ds/slug-x/styles.css'];
-  const rt = new Set(['cockpit_domains.css']);
-  const det = liveOnlyDetalhado(vivos, [], { jaEmRuntime: rt });
-  check('live-only: _ds runtime-class JA pousado => ignorado com motivo, nao acusado',
-    !det.faltando.includes('_ds/slug-x/cockpit_domains.css')
-      && det.ignorados.some((i) => i.path === '_ds/slug-x/cockpit_domains.css' && /runtime/.test(i.motivo)),
-    JSON.stringify(det));
-  check('live-only: _ds FORA da classe runtime (styles.css) segue acusado (honesto)',
-    det.faltando.includes('_ds/slug-x/styles.css'), JSON.stringify(det.faltando));
-  check('live-only: sem jaEmRuntime => comportamento antigo (acusa ambos)',
-    liveOnlyDetalhado(vivos, [], {}).faltando.length === 2);
-}
-
-// ── O ENVELOPE DO BUNDLE NÃO É CARGA (2026-09-10) ────────────────────────────────
-// `payload.partNN.json` / `bundle.manifest.json` são o TRANSPORTE que o
-// `gerar-payload-partes.mjs` emite do lado do design — carregam a fonte, não são fonte.
-// MEDIDO na lista live-only de 2026-09-09: 44 dos 74 acusados (59%) eram o próprio
-// mecanismo acusando o próprio envelope, enquanto o `--compare` do mesmo dia media
-// 273/273 EM SYNC. O custo do ruído não é teórico — o [W] reimportou o bundle 7× por
-// causa desse número.
-//
-// A âncora é o NOME que o produtor emite, não o diretório: `--out` é parâmetro, então
-// casar `sync/` deixaria passar o mesmo envelope emitido noutro lugar. Os 3 controles
-// negativos abaixo são o que impede a isenção de virar peneira.
-{
-  const envelope = ['sync/payload.part01.json', 'sync/bundle.manifest.json', 'outro-lugar/payload.part07.json'];
-  const det = liveOnlyDetalhado(envelope, []);
-  check('live-only: envelope do bundle (payload.partNN / bundle.manifest) => ignorado com motivo',
-    det.faltando.length === 0 && det.ignorados.every((i) => /transporte: envelope/.test(i.motivo)),
-    JSON.stringify(det));
-
-  // CONTROLE NEGATIVO — sem estes, a regra viraria peneira e esconderia fonte de verdade.
-  const naoEnvelope = [
-    'sync/patrimonio-page.jsx',      // DENTRO de sync/, mas é protótipo de tela
-    'payload.json',                  // nome parecido, não é o formato do produtor
-    'payload.partABC.json',          // sem dígitos
-    'meu-bundle.manifest.json.bak',  // sufixo: não casa a âncora de fim
-  ];
-  check('live-only: protótipo de tela e nomes parecidos seguem ACUSADOS (isenção não é peneira)',
-    liveOnlyDetalhado(naoEnvelope, []).faltando.length === 4,
-    JSON.stringify(liveOnlyDetalhado(naoEnvelope, []).faltando));
-}
-
-// Modo de documentos aposentado: o espelho agora é estritamente build-only.
-if (false) {
-  const tmp = mkdtempSync(join(tmpdir(), 'freshness-docs-'));
-  mkdirSync(join(tmp, 'prototipo-ui', 'design-docs', 'cowork-inbox'), { recursive: true });
-  mkdirSync(join(tmp, 'scripts', 'governance'), { recursive: true });
-  mkdirSync(join(tmp, 'insumo'), { recursive: true });
-  const cli = join(dirname(fileURLToPath(import.meta.url)), 'cowork-mirror-freshness.mjs');
-  const roda = (args) => {
-    try { return { code: 0, out: execFileSync(process.execPath, [cli, ...args], { cwd: tmp, encoding: 'utf8' }) }; }
-    catch (e) { return { code: e.status ?? -1, out: String(e.stdout || '') + String(e.stderr || '') }; }
-  };
-
-  // sandbox: github.md pousado IGUAL ao vivo · PEDIDO-X.md pousado DIFERENTE do vivo
-  writeFileSync(join(tmp, 'prototipo-ui', 'design-docs', 'github.md'), '# diario v2\n');
-  writeFileSync(join(tmp, 'prototipo-ui', 'design-docs', 'cowork-inbox', 'PEDIDO-X.md'), '# pedido v1\n');
-  writeFileSync(join(tmp, 'insumo', 'a.json'), JSON.stringify({ path: 'github.md', content: '# diario v2\n' }));
-  writeFileSync(join(tmp, 'insumo', 'b.json'), JSON.stringify({ path: 'cowork-inbox/PEDIDO-X.md', content: '# pedido v2 MUDOU\n' }));
-  writeFileSync(join(tmp, 'insumo', 'c.json'), JSON.stringify({ path: 'nunca-desceu.md', content: 'x\n' }));
-  writeFileSync(join(tmp, 'insumo', 'd.json'), JSON.stringify({ path: 'page.jsx', content: 'x\n' }));
-
-  const m = roda(['--docs-compare', join(tmp, 'insumo'), '--ledger']);
-  check('CLI --docs-compare: classifica sync/STALE/sem-copia e ignora nao-.md',
-    m.code === 0 && /sync\s+design-docs\/github\.md/.test(m.out)
-      && /STALE\s+design-docs\/cowork-inbox\/PEDIDO-X\.md/.test(m.out)
-      && /1 STALE/.test(m.out) && /1 sem cópia/.test(m.out) && /de 3 \.md/.test(m.out),
-    `code=${m.code}\n${m.out}`);
-  const ledger = JSON.parse(readFileSync(join(tmp, 'scripts', 'governance', '.cowork-freshness-ledger.json'), 'utf8'));
-  check('CLI --docs-compare --ledger: registra entrada kind=docs',
-    ledger.length === 1 && ledger[0].kind === 'docs' && ledger[0].stale === 1
-      && ledger[0].staleList[0] === 'cowork-inbox/PEDIDO-X.md', JSON.stringify(ledger));
-
-  // --sla-docs sobre o registro: 1ª medição = BASELINE (rc 0) — herdado não reprova.
-  const s1 = roda(['--sla-docs']);
-  check('CLI --sla-docs: primeira medicao => BASELINE, rc 0', s1.code === 0 && /BASELINE/.test(s1.out), `code=${s1.code}`);
-
-  // 2ª medição com stale NOVO (github.md mudou no vivo) => GREW, rc 1 — o bite.
-  writeFileSync(join(tmp, 'insumo', 'a.json'), JSON.stringify({ path: 'github.md', content: '# diario v3 MUDOU\n' }));
-  roda(['--docs-compare', join(tmp, 'insumo'), '--ledger']);
-  const s2cli = roda(['--sla-docs']);
-  check('CLI --sla-docs: stale NOVO desde a medicao anterior => rc 1 e nomeia o path',
-    s2cli.code === 1 && /STALE NOVO/.test(s2cli.out) && /design-docs\/github\.md/.test(s2cli.out),
-    `code=${s2cli.code}\n${s2cli.out}`);
-
-  // 3ª medição idêntica (mesmo staleList) => OK, rc 0 — herdado nunca vira vermelho.
-  roda(['--docs-compare', join(tmp, 'insumo'), '--ledger']);
-  const s3 = roda(['--sla-docs']);
-  check('CLI --sla-docs: staleList herdado estavel => rc 0 (delta, nao absoluto)',
-    s3.code === 0 && /nenhum stale novo/.test(s3.out), `code=${s3.code}\n${s3.out}`);
-
-  // ledger VAZIO => NUNCA MEDIDO, rc 1 — nunca verde mudo (§5 2026-07-29).
-  rmSync(join(tmp, 'scripts', 'governance', '.cowork-freshness-ledger.json'));
-  const s0 = roda(['--sla-docs']);
-  check('CLI --sla-docs: sem medicao registrada => rc 1 NUNCA MEDIDO (nunca verde mudo)',
-    s0.code === 1 && /NUNCA MEDIDO/.test(s0.out), `code=${s0.code}`);
-
-  rmSync(tmp, { recursive: true, force: true });
-}
-
-// ── DESQUALIFICAÇÃO DO EIXO MODIFICADO PELO EIXO NOVO (2026-08-27) ───────────────
-// Contrato: proposal 2026-08-27 §2. Medido no dia: `0 sync · 1 stale · 247 unchecked ·
-// mediu 1/248` — 247 de 248 arquivos do espelho NUNCA foram comparados com o vivo, porque o
-// --compare custa um get_file por arquivo (auth interativa, ADR 0315). O --sla calava sobre o
-// outro eixo, que custa UMA list_files: "existe no vivo e nunca desceu?". Com pendência ali,
-// nenhuma leitura do --compare fala sobre o VIVO — só sobre os arquivos que o espelho conhece.
-//
-// ⚠️ O que estes asserts NÃO podem deixar virar: gate. O predicado é ABSOLUTO (n > 0) e
-// absoluto não gateia — §5 2026-08-24 (piso herdado de 50 travaria o alarme pra sempre). Por
-// isso há CONTROLE explícito de que o exit code do --sla não mudou.
-{
-  const BUNDLE = { generatedAt: '2026-08-24T22:49:15.818Z', files: 255 };
-  const NOW = '2026-08-27T12:00:00.000Z';
-
-  // BITE 1 — há live-only ⇒ desqualifica, e o texto NOMEIA o número e os paths.
-  const comBuraco = liveOnlyVerdict([liveOnlyEntry(['jana-metas.jsx', 'produto-detalhe.jsx'], 248, '2026-08-27T00:00:00.000Z')], NOW);
-  const dqRuim = desqualificacaoLiveOnly(comBuraco, BUNDLE);
-  check('BITE desqualificação: live-only > 0 ⇒ desqualifica e nomeia n + paths',
-    dqRuim.desqualifica === true && dqRuim.motivo === 'FORA-DO-ESPELHO' && dqRuim.n === 2
-      && dqRuim.texto.join('\n').includes('jana-metas.jsx')
-      && /INCONCLUSIVA/.test(dqRuim.texto.join('\n')), JSON.stringify(dqRuim.motivo));
-
-  // CONTROLE NEGATIVO — sem live-only NÃO desqualifica. Sem este assert, um `desqualifica:
-  // true` fixo passaria no BITE 1 e o instrumento viraria parede (o oposto do gate mudo, e
-  // igualmente inútil).
-  const semBuraco = liveOnlyVerdict([liveOnlyEntry([], 248, '2026-08-27T00:00:00.000Z')], NOW);
-  const dqBom = desqualificacaoLiveOnly(semBuraco, BUNDLE);
-  check('CONTROLE: live-only === 0 ⇒ NÃO desqualifica (libera)',
-    dqBom.desqualifica === false && dqBom.motivo === null && dqBom.n === 0, JSON.stringify(dqBom.motivo));
-
-  // NUNCA-MEDIDO ≠ tudo bem. É o mesmo `0 failed` de suíte que não rodou (LC-13): sem a
-  // medição do eixo NOVO, não se sabe se o espelho conhece o vivo inteiro.
-  const dqNunca = desqualificacaoLiveOnly(liveOnlyVerdict([], NOW), BUNDLE);
-  check('BITE: eixo NOVO nunca medido ⇒ desqualifica (não-medição não vira verde)',
-    dqNunca.desqualifica === true && dqNunca.motivo === 'NUNCA-MEDIDO' && dqNunca.n === null, JSON.stringify(dqNunca.motivo));
-
-  // Medição VENCIDA: o número existe mas é velho — o vivo pode ter andado desde então.
-  const dqVelho = desqualificacaoLiveOnly(
-    liveOnlyVerdict([liveOnlyEntry([], 248, '2026-08-01T00:00:00.000Z')], NOW), BUNDLE);
-  check('BITE: medição do eixo NOVO vencida ⇒ desqualifica mesmo com n === 0',
-    dqVelho.desqualifica === true && dqVelho.motivo === 'MEDICAO-VENCIDA', JSON.stringify(dqVelho.motivo));
-
-  // O bundle é DATA, nunca veredito. Testar isso é o guarda-costas da §3.2 da proposal: usar
-  // os 255 sha256 do manifesto como prova de frescor dá `255 sync` sobre um bundle de 3 dias
-  // atrás — o verde falso que a §5 2026-08-25 nomeia. Aqui ele só carimba QUANDO parou.
-  check('bundle entra como DATA (carimbo), não como veredito de frescor',
-    dqRuim.texto.join('\n').includes('emitido em 2026-08-24')
-      && !/\bsync\b/i.test(dqRuim.texto.join('\n')), dqRuim.texto.join('\n'));
-  // Fail-open honesto: sem bundle legível o veredito do eixo NOVO não muda — só o carimbo.
-  const dqSemBundle = desqualificacaoLiveOnly(comBuraco, null);
-  check('CONTROLE: bundle ausente não altera o veredito (só o carimbo da data)',
-    dqSemBundle.desqualifica === dqRuim.desqualifica && dqSemBundle.n === dqRuim.n
-      && dqSemBundle.texto.join('\n').includes('não legível'), JSON.stringify(dqSemBundle.motivo));
-
-  // O residual sai SEMPRE, inclusive no caso liberado: `list_files` vê ausência, nunca
-  // modificação. Sem esta linha um `0 live-only` seria lido como "o espelho está em dia".
-  check('limite de plataforma declarado nos DOIS caminhos (ausência ≠ modificação)',
-    /AUSÊNCIA, nunca MODIFICAÇÃO/.test(dqBom.texto.join('\n'))
-      && /AUSÊNCIA, nunca MODIFICAÇÃO/.test(dqRuim.texto.join('\n')));
-
-  // ── BITE DE CLI (§5 2026-07-30: assert em helper exportado NÃO prova contrato de
-  //    pipeline — o bite tem que exercitar o CLI DE FORA). Fixture = ledger num cwd temp.
-  const HERE2 = dirname(fileURLToPath(import.meta.url));
-  const script2 = join(HERE2, 'cowork-mirror-freshness.mjs');
-  const rodarSla = (ledger) => {
-    const sb = mkdtempSync(join(tmpdir(), 'cmf-sla-'));
-    mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
-    writeFileSync(join(sb, 'scripts', 'governance', '.cowork-freshness-ledger.json'), JSON.stringify(ledger, null, 2));
-    let out = '', status = 0;
-    try { out = execFileSync(process.execPath, [script2, '--sla'], { cwd: sb, encoding: 'utf8', stdio: 'pipe' }); }
-    catch (e) { out = (e.stdout || '') + (e.stderr || ''); status = e.status ?? -1; }
-    rmSync(sb, { recursive: true, force: true });
-    return { out, status };
-  };
-  // Rodada de compare COMPLETA e limpa = o único estado em que o --sla dizia `✓` antes.
-  const hoje = new Date().toISOString();
-  const compareLimpo = { date: hoje, files: 3, sync: 3, stale: 0, unchecked: 0 };
-
-  const cliRuim = rodarSla([compareLimpo, liveOnlyEntry(['jana-metas.jsx'], 248, hoje)]);
-  check('BITE CLI: --compare COMPLETO + live-only pendente ⇒ ⬜ INCONCLUSIVO (não ✓)',
-    /INCONCLUSIVO/.test(cliRuim.out) && !/^✓/m.test(cliRuim.out), cliRuim.out);
-
-  const cliBom = rodarSla([compareLimpo, liveOnlyEntry([], 248, hoje)]);
-  check('CONTROLE CLI: sem live-only ⇒ ✓ COMPLETA (a desqualificação libera)',
-    /^✓ rotina de frescor/m.test(cliBom.out) && !/INCONCLUSIVO/.test(cliBom.out), cliBom.out);
-
-  // ENFORCEMENT INALTERADO — é o assert que impede a próxima sessão de "consertar" isto num
-  // gate. Desqualificação muda a PALAVRA do veredito; o exit code segue o do --compare.
-  check('CONTROLE: desqualificação NÃO muda o exit code (rc 0 nos dois, como o FRESH de antes)',
-    cliRuim.status === 0 && cliBom.status === 0, `ruim=${cliRuim.status} bom=${cliBom.status}`);
-
-  // E no caminho VERMELHO o eixo NOVO também sai — quem for fechar o --compare precisa saber
-  // que fechá-lo não basta enquanto houver arquivo que o espelho nem conhece.
-  const cliVermelho = rodarSla([{ ...compareLimpo, sync: 2, stale: 1, staleList: ['a.jsx'] },
-    liveOnlyEntry(['jana-metas.jsx'], 248, hoje)]);
-  check('eixo NOVO sai TAMBÉM no caminho vermelho (LAST-STALE não engole a desqualificação)',
-    cliVermelho.status === 1 && /jana-metas\.jsx/.test(cliVermelho.out), cliVermelho.out);
-
   check('lerBundlePromovido: caminho inexistente → null (não objeto vazio)',
     lerBundlePromovido(tmpdir(), 'nao-existe-jamais.json') === null);
-}
-
-// ── 12. DEVOLUTIVA DA RECUSA (D3/D4 · 2026-09-07) ──────────────────────────────────
-// O `exportPlan` recusa canon de tela desde sempre e IMPRIMIA a lista. Imprimir informa
-// quem olha o terminal; não informa o DESIGN, que produziu o arquivo e o produz de novo
-// no ciclo seguinte. Estes asserts pinam o que a devolutiva precisa dizer.
-{
-  const raiz = mkdtempSync(join(tmpdir(), 'devolutiva-'));
-  const escrever = (rel, txt) => { mkdirSync(dirname(join(raiz, rel)), { recursive: true }); writeFileSync(join(raiz, rel), txt); };
-
-  // canon vivo MADURO — o caso real de 2026-09-07 (Ponto: 20 de 20 divergiam, vivo 3-7× maior)
-  escrever('resources/js/Pages/Ponto/Espelho/Show.casos.md',
-    '---\nlast_run: "2026-09-04"\n---\n' + 'x'.repeat(9000));
-  // tela existe, canon NÃO — a lacuna que vale mandar adiante
-  escrever('resources/js/Pages/Novo/Tela.tsx', 'export default function T(){}');
-
-  const linhas = devolutivaDeRecusados([
-    { path: 'resources/js/Pages/Ponto/Espelho/Show.casos.md', content: '---\nlast_run: "—"\n---\ncurto' },
-    { path: 'inbox/nova.charter.md', content: '---\ncomponent: resources/js/Pages/Novo/Tela.tsx\n---\nrascunho' },
-    { path: 'inbox/orfa.charter.md', content: '# sem frontmatter nenhum' },
-    { path: 'inbox/x.contract.json', content: '{}' },
-  ], { root: raiz });
-
-  const porPath = Object.fromEntries(linhas.map((l) => [l.path, l]));
-
-  check('BITE: rascunho pobre contra canon maduro ⇒ COLIDE-COM-CANON-MAIS-RICO',
-    porPath['resources/js/Pages/Ponto/Espelho/Show.casos.md'].classe === 'COLIDE-COM-CANON-MAIS-RICO',
-    JSON.stringify(porPath['resources/js/Pages/Ponto/Espelho/Show.casos.md']));
-
-  check('BITE: a devolutiva CITA a data de execução do canon vivo (é o que muda a decisão de lá)',
-    /2026-09-04/.test(porPath['resources/js/Pages/Ponto/Espelho/Show.casos.md'].acao));
-
-  // O defeito que o 1º controle positivo pegou: comparar charter (4 KB) com .tsx (69 KB).
-  check('IRMÃO, não componente: `component: X.tsx` resolve o alvo para X.charter.md',
-    porPath['inbox/nova.charter.md'].alvo === 'resources/js/Pages/Novo/Tela.charter.md',
-    porPath['inbox/nova.charter.md'].alvo);
-
-  check('BITE: tela existe e canon NÃO ⇒ LACUNA-TELA-SEM-CANON (rascunho vira insumo, não lixo)',
-    porPath['inbox/nova.charter.md'].classe === 'LACUNA-TELA-SEM-CANON',
-    porPath['inbox/nova.charter.md'].classe);
-
-  check('CONTROLE NEGATIVO: sem `component:` e fora de Pages/ ⇒ SEM-ALVO-DECLARADO (não inventa alvo)',
-    porPath['inbox/orfa.charter.md'].classe === 'SEM-ALVO-DECLARADO' && porPath['inbox/orfa.charter.md'].alvo === null);
-
-  check('contrato roteia para governance/design/contracts/ pelo nome do arquivo',
-    porPath['inbox/x.contract.json'].alvo === 'governance/design/contracts/x.contract.json');
-
-  const md = renderDevolutiva(linhas, { quando: new Date('2026-09-07T00:00:00Z') });
-  check('render: declara-se DERIVADO (não editar à mão) e datado', /Derivado/.test(md) && /2026-09-07/.test(md));
-  check('render: NÃO se declara gate (a recusa informa, não reprova)', /NÃO é gate/.test(md));
-  check('render: uma linha por recusado, todas na tabela', linhas.every((l) => md.includes(l.path)));
-
-  rmSync(raiz, { recursive: true, force: true });
-}
-
-// ── 13. QUANDO A DEVOLUTIVA PODE SER APAGADA (bite pelo CLI · 2026-09-08) ──────────
-// A seção 12 prova o CONTEÚDO da devolutiva. Esta prova a decisão de APAGÁ-LA, que vive
-// no CLI e não numa função exportada — então o bite roda o comando de FORA (§5 2026-07-30:
-// assert sobre helper exportado não prova contrato de pipeline).
-//
-// O defeito (medido 2026-09-08, PR #6990): o bloco removia a devolutiva em toda rodada sem
-// recusa. Um pouso de UM `.md` avulso — a rota que o painel chama de "caso pontual" — apagou
-// o retrato de 54 recusados de 07/09 imprimindo "nenhuma recusa nesta rodada". Universo da
-// RODADA lido como universo GLOBAL.
-if (false) {
-  const tmp = mkdtempSync(join(tmpdir(), 'devolutiva-cli-'));
-  mkdirSync(join(tmp, 'prototipo-ui', 'cowork', 'Wagner'), { recursive: true });
-  const dirCompleta = join(tmp, 'r-com-recusa'); mkdirSync(dirCompleta);
-  const dirPontual = join(tmp, 'r-pontual'); mkdirSync(dirPontual);
-  writeFileSync(join(dirCompleta, 'a.json'), JSON.stringify({ path: 'telaA.charter.md', content: '---\ncomponent: resources/js/Pages/X/A.tsx\n---\nrascunho' }));
-  writeFileSync(join(dirCompleta, 'b.json'), JSON.stringify({ path: 'comum.jsx', content: 'const x=1\n' }));
-  // rodada PONTUAL: 1 JSON, e um `.md` que NÃO é canon de tela ⇒ zero recusa
-  writeFileSync(join(dirPontual, 'z.json'), JSON.stringify({ path: 'github.md', content: '# nota avulsa\n' }));
-
-  const cliPath = fileURLToPath(new URL('./cowork-mirror-freshness.mjs', import.meta.url));
-  const rodar = (args) => {
-    try { return { out: execFileSync(process.execPath, [cliPath, ...args], { cwd: tmp, encoding: 'utf8' }), code: 0 }; }
-    catch (e) { return { out: (e.stdout || '') + (e.stderr || ''), code: e.status }; }
-  };
-  const devAbs = join(tmp, 'prototipo-ui', 'CODE_NOTES.recusados-canon.md');
-
-  // SETUP + CONTROLE: rodada COM recusa escreve o retrato (o comportamento que não mudou)
-  rodar(['--export-from', dirCompleta]);
-  check('CLI 1/4: rodada COM recusa escreve a devolutiva', existsSync(devAbs));
-
-  // ⚠️ O BITE: é este assert que fica vermelho se alguém voltar o `rmSync` incondicional.
-  const pontual = rodar(['--export-from', dirPontual]);
-  check('BITE: rodada PONTUAL sem recusa NÃO apaga retrato de outra rodada (o defeito de 2026-09-08)',
-    existsSync(devAbs) && /PRESERVADO/.test(pontual.out), pontual.out);
-
-  // "Preservado" sem dizer de quando é não informa nada: o operador não consegue decidir.
-  check('CLI 2/4: a mensagem DIZ de quando é o retrato preservado (data + contagem)',
-    /retrato de \d{4}-\d{2}-\d{2} · \d+ arquivo\(s\)/.test(pontual.out), pontual.out);
-
-  // ESCAPE ANUNCIADO TEM DE FUNCIONAR (§5 2026-07-30 · LC-15): a mensagem acima ensina
-  // `--limpar-devolutiva`. Se a flag fosse decorativa, isto ficaria vermelho.
-  const limpo = rodar(['--export-from', dirPontual, '--limpar-devolutiva']);
-  check('BITE: --limpar-devolutiva (o escape que a mensagem anuncia) DE FATO remove',
-    !existsSync(devAbs) && /removido por --limpar-devolutiva/.test(limpo.out), limpo.out);
-
-  // CONTROLE NEGATIVO: sem retrato no disco, a rodada pontual não cria nada nem quebra
-  const vazio = rodar(['--export-from', dirPontual]);
-  check('CONTROLE NEGATIVO: sem devolutiva no disco, rodada pontual não a inventa nem falha',
-    vazio.code === 0 && !existsSync(devAbs) && !/PRESERVADO|removido/.test(vazio.out), vazio.out);
-
-  // ── a função pura que alimenta a mensagem ──────────────────────────────────────
-  const md = renderDevolutiva(
-    [{ path: 'x.charter.md', classe: 'TELA-A-CRIAR', alvo: 'a/x.charter.md', bytesRascunho: 10, bytesCanon: null, acao: 'crie' }],
-    { quando: new Date('2026-09-07T00:00:00Z') });
-  const lido = lerRetratoDevolutiva(md);
-  check('CLI 3/4: lerRetratoDevolutiva lê data e total do render REAL (não de um formato inventado)',
-    lido && lido.data === '2026-09-07' && lido.total === 1, JSON.stringify(lido));
-  check('CLI 4/4: cabeçalho ilegível ⇒ null (o CLI diz que não leu, não inventa data)',
-    lerRetratoDevolutiva('# arquivo qualquer sem cabeçalho') === null
-    && lerRetratoDevolutiva(null) === null);
-
-  rmSync(tmp, { recursive: true, force: true });
 }
 
 // ── COMPARE-BUNDLE (2026-09-08) — veredito a partir do bundle v2 promovido ────────────
@@ -1880,5 +892,5 @@ if (false) {
   rmSync(tmp, { recursive: true, force: true });
 }
 
-console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + ledger/SLA + live-only + export fiel + absent-local que MORDE + refs-da-poda + refs-check que MORDE + fluxo e2e)');
+console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v3 do comparador de frescor preservado (path completo + hash normalizado + absent-local que MORDE + refs-da-poda + refs-check que MORDE + compare-bundle por dono)');
 process.exit(fails ? 1 : 0);
