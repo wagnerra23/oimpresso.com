@@ -97,6 +97,13 @@ tela. Começa pela ADR."*
   verificar` mede a prova de fidelidade contra o Cowork, que esta decisão encerra. Tirá-lo da
   proteção do `main` é ato do [W] (R10), feito na onda que remover o script dele, com os PRs
   abertos atualizados no mesmo passo (§5 2026-08-08). Até lá ele segue rodando.
+- **D8 — os playbooks de thread passam a ser escritos no git.** [W] 2026-10-23, textual: *"Os
+  playbooks passam a ser escritos aqui no git, como qualquer protótipo: eu peço, você escreve o
+  00-INDICE e as threads, PR e merge."* O `00-INDICE.md` e os `NN-*.md` sob
+  `prototipo-ui/cowork/<dono>/cowork-inbox/<mod>/playbook/` deixam de ser autoria do Cowork: o
+  [W] pede, o agente escreve, e o merge do PR é a aprovação. A regra antiga do `/onda` ("o índice
+  e o resto do playbook são do Cowork — não edite no espelho") cai com esta decisão; o texto dela
+  é trocado na onda 3. O `_saida-NN.md` segue como recibo da thread, sem mudança.
 
 ## Consequências
 
@@ -112,4 +119,5 @@ tela. Começa pela ADR."*
   revisão desta ADR.
 - Ordem das ondas seguintes: (1) remover hooks e skills de transporte; (2) remover scripts e
   workflows de transporte e o check do espelho (D7); (3) ajustar `CLAUDE.md`, `PROTOCOL.md` e o
-  hook `design-agente-ativa` para descrever o caminho Artefato; (4) arquivar o que não é âncora.
+  hook `design-agente-ativa` para descrever o caminho Artefato, e trocar no `/onda` a regra de
+  "não editar o playbook no espelho" pela autoria no git (D8); (4) arquivar o que não é âncora.
