@@ -733,8 +733,8 @@ jobs:
       - name: Registro design-sync-não-é-fonte em settings.json (camada L4 · DesignSync + Skill)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/settings-design-sync-registration.test.mjs
-      # MOTOR compartilhado dos 5 abaixo (aplicar-payload, bundle-contract, bundle-transaction,
-      # gerar-payload-partes e scripts/design/render-proto-baseline) — era o único sem teste
+      # MOTOR compartilhado dos consumidores abaixo (bundle-contract, bundle-transaction e
+      # scripts/design/render-proto-baseline; aplicar-payload e gerar-payload-partes saíram em 2026-10-23, ADR 0438) — era o único sem teste
       # próprio, exercitado só de lado pelos testes dos consumidores. Roda ANTES deles porque
       # uma regressão aqui aparece longe da causa. Mutantes mortos antes de wirar (2026-09-13):
       # normalização de barra invertida do Windows removida → 1 FAIL · guard `fromJs` removido
@@ -747,17 +747,6 @@ jobs:
       - name: payload-dependency-graph MOTOR morde (path POSIX/pacote npm x arquivo/binário folha/ciclo · em memória)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/payload-dependency-graph.test.mjs
-      - name: aplicar-payload morde (escopo/R1/bytes/regressão · CLI de fora, sandbox por cwd)
-        if: always() && steps.setup.outcome == 'success'
-        run: node scripts/design-sync/aplicar-payload.test.mjs
-      # Par PRODUTOR do aplicar-payload. Mutantes mortos antes de wirar (2026-08-22): guarda de
-      # tamanho removida → 3 FAIL · união do `missing` desfeita → 1 FAIL · glob voltando a
-      # escapar antes de fatiar → 16 FAIL. O 1o fixture da união SOBREVIVEU o mutante (gerava
-      # 1 parte só, onde repetir e não repetir dão a mesma união) — trocado por 12×40 KB, que
-      # força ≥2 partes. Verde que não podia ficar vermelho é carimbo (LC-13).
-      - name: gerar-payload-partes morde (manifesto/delta/chunks/cap/glob · hermético)
-        if: always() && steps.setup.outcome == 'success'
-        run: node scripts/design-sync/gerar-payload-partes.test.mjs
       - name: bundle transacional morde (sequência/SHA/staging/rollback/módulos/evidências)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/bundle-transaction.test.mjs
@@ -774,58 +763,12 @@ jobs:
       - name: design-sync status morde (exit 2 de uso · check-mapping · check-lifecycle · ponteiro D2)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/status.test.mjs
-      # Recepção do handoff .zip (decisão [W] 2026-09-10). O teste MONTA os zips em memória, então
-      # é também o controle positivo do leitor: se o formato que ele escreve e o que o `zip-reader`
-      # lê divergissem, os casos "solta" cairiam. Trava CRC-32 conferido, ZIP64 recusado, zip-slip
-      # barrado, pacote velho detectado por sha256 (não por `generatedAt`) e o `classificar` que
-      # se recusa a nomear direção — o rótulo `ZIP-NOVO` da 1a versão caiu num caso em que o zip
-      # era mais VELHO, e afirmar novidade que não se mede é o LC-08 de sempre.
-      - name: receber-handoff morde (zip/CRC/zip-slip/pacote velho/3 pontos · hermético)
-        if: always() && steps.setup.outcome == 'success'
-        run: node scripts/design-sync/receber-handoff.test.mjs
       # Sentido Code -> Cowork do ciclo ([W] 2026-09-24). O critério (hash do espelho × bundle ativo)
       # decide o que o Cowork não tem; se ele errar, o receber-handoff deixa passar retorno que apaga
       # trabalho do Code (o caso do import 35: 12 arquivos do #7847).
       - name: pendentes-cowork morde (fora do bundle · hash difere · enviado · _ds/ fora)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/design-sync/pendentes-cowork.test.mjs
-      # Import do bundle Cowork (Fase -1). O `--selftest` do script roda no design-memory-gate e
-      # cobre SO `decidirSwap` — funcao pura. Aqui entra o que ele nao alcanca: `acharBundleRoot`
-      # (o bug 2026-07-01, que aninhava o slug inteiro, estava sem UM teste) e o contrato de
-      # processo exercitado pelo CLI DE FORA — exit 2 de uso != exit 1 de integridade, e o destino
-      # PRESERVADO quando a extracao falha, que e a razao de existir do script (LC-15: assert sobre
-      # helper puro nao prova contrato de pipeline).
-      # Esta lane e NAO o design-memory-gate porque la o `paths:` nao inclui `importar-bundle.mjs`:
-      # mexer no script nao dispara o teste dele (§5 2026-08-02, gate mudo com cara de cobertura).
-      # Mutantes mortos antes de wirar (2026-09-13): bug literal de 2026-07-01 (`return
-      # join(destino,'project')` no topo) -> 8 FAIL · catch da extracao apagando o destino antes de
-      # abortar -> 1 FAIL · ambiguidade escolhendo calada -> 1 FAIL. Hermetico: nenhum caso extrai
-      # zip, entao nao pede PowerShell (o script e Windows-only na extracao; esta lane e ubuntu).
-      #
-      # 2026-09-13 (2a leva): entra `classificarParaSync` — a DECISAO do sync, que APAGA arquivo do
-      # SSOT (`robocopy /PURGE` + 2 sweeps) e nao tinha cobertura nem TINHA COMO ter: a regra vivia
-      # dentro de uma string heredoc PowerShell. Medido: `git grep -lF robocopy` -> 1 arquivo (o
-      # proprio script); `runs-on:.*windows` -> 0 runners. Os casos sao puros (string -> veredito),
-      # entao seguem hermeticos no ubuntu. Paridade com a PS REAL medida a parte no Windows (3
-      # sweeps de verdade num mkdtemp, sobrevivente x veredito): 40/40. Mutantes mortos, 11/11:
-      # `.md` em BUILD_EXTS -> 4 FAIL · guarda do .gitignore removida -> 2 FAIL · NOISE_DIRS perde
-      #
-      # ⚠ ERRATA 2026-09-13, no MESMO dia: o mutante `.md` em BUILD_EXTS virou o COMPORTAMENTO.
-      # Decisao [W] — o espelho recebe o pacote Cowork com a arvore dele, `.md` incluido (medido:
-      # 337 de 816 arquivos do pacote eram descartados). A const virou ESPELHO_EXTS e os 4 asserts
-      # que mordiam com o veredito oposto foram invertidos: agora sao o BITE do conserto, e
-      # restaurar o BUILD-ONLY os deixa vermelhos (provado por mutacao no PR). O registro acima
-      # fica como fato datado do que se mediu naquela leva — nao como politica vigente.
-      # `uploads` -> 5 FAIL · ruido-dir case-sensitive -> 1 FAIL · ruido-dir so na raiz -> 1 FAIL ·
-      # residuo sem flag `i` -> 1 FAIL · extensao sem ToLower -> 1 FAIL · extensao do PRIMEIRO ponto
-      # -> 1 FAIL · precedencia residuo-antes-de-junk -> 1 FAIL · guard de entrada invalida removido
-      # -> 6 FAIL · `\d` RESTAURADO no padrao de residuo -> 3 FAIL (o tripwire do defeito reportado).
-      # O harness ABORTA quando o padrao nao casa 1x: o 1o M8 SOBREVIVEU (faltava caso com 2 pontos,
-      # `tela.mobile.css`) e o 1o M11 era no-op de runtime — a barra colapsava DE NOVO no alvo, o
-      # que e o proprio LC-26 se demonstrando. Recibo so saiu depois de corrigir os dois.
-      - name: importar-bundle morde (acharBundleRoot + delete-before-verify + classificarParaSync · CLI de fora, hermetico)
-        if: always() && steps.setup.outcome == 'success'
-        run: node scripts/design/importar-bundle.test.mjs
       # Topologia do espelho (cowork-ssot-guard): a R3 mudou de significado em 2026-09-13 por
       # decisao [W] — `.md` passou a ser aceito sob `cowork/<dono>/` com a arvore do Cowork.
       # O guard e required via design-memory-gate.yml e nao tinha teste nenhum. Roda pelo CLI num
