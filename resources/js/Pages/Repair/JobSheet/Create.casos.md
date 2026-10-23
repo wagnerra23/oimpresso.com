@@ -101,6 +101,12 @@ last_run: "2026-09-05"
   chave dessa nota e, na entrega, a nota de retorno sai ligada a ela, separada da cobrança do serviço.
   CFOP de exemplo: 1.915 na entrada e 5.916 no retorno; o contador confirma. Fonte: UC-TRB-23 do
   protótipo fiscal (falta).
+- **[BACKLOG]** Funcionário que executou cada serviço da OS (pedido de 2026-10-23) — Dado uma OS com
+  "troca de pneu" e "balanceamento", Quando cada serviço é feito por um mecânico diferente, Então
+  indico quem executou cada um, o nome sai na ficha da OS e na comissão. Hoje a OS tem um só "Técnico
+  responsável" (`service_staff`) e a OS da Oficina tem um só mecânico responsável
+  (`assigned_user_id`); nenhuma das duas registra quem fez cada serviço. A venda tem o caso irmão
+  (Sells/Create.casos.md).
 
 ---
 

@@ -114,6 +114,13 @@ last_run: "2026-10-14"
   endereço com município ou sem a indicação de contribuinte do ICMS, Então a lista e o drawer mostram
   "Faltam dados para nota" e quais; com os dados completos, o aviso some. Fonte: grupo do destinatário
   da NF-e.
+- **[BACKLOG] Ficha do cliente com OS, devoluções, vendas e orçamentos, cada um com o total**
+  (pedido de 2026-10-23) — Aceite: Dado um cliente com 4 vendas, 2 orçamentos, 1 OS e 1 devolução,
+  Quando abro a ficha dele, Então vejo uma lista por tipo, cada uma com a quantidade e o valor total
+  (vendas, orçamentos, OS e devoluções separados), e cada linha abre o documento. Tipo sem registro
+  mostra zero. Hoje a aba Operações tem Extrato, Vendas, Pagamentos, Documentos, Pessoas,
+  Assinaturas, Pontos e Auditoria; não há OS, orçamentos nem devoluções separados, nem total por tipo.
+  O protótipo `cliente-drawer760.jsx` traz os totais "OS no total" e "Valor total".
 
 ## Rastreabilidade (UC → CU do SDD → US do SPEC)
 

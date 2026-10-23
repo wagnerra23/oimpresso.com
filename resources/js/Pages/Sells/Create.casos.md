@@ -231,6 +231,28 @@ last_run: "2026-10-23"
   CPF ou CNPJ, sem endereço com município ou sem a indicação de contribuinte do ICMS, Quando o escolho
   numa venda, Então o resumo mostra "Faltam dados para a nota" e quais, com link para completar o
   cadastro, sem impedir salvar a venda. Fonte: grupo do destinatário da NF-e.
+- **[BACKLOG] Instrução de execução no item da venda** (pedido de 2026-10-23) — Aceite: Dado uma
+  venda com o item "Fachada em ACM 3 x 1 m", Quando escrevo no item "instalar no 2º andar, cliente
+  libera o acesso às 8h", Então a instrução fica gravada no item, sai na ficha da OS e aparece para
+  quem executa na produção. Item sem instrução não mostra nada. Hoje o Blade grava a nota do item
+  (`sell_line_note`); a venda React não tem o campo. A produção mostra a instrução
+  (Producao/Apontamento/Index.casos.md, mesmo pedido).
+- **[BACKLOG] Venda condicional** (pedido de 2026-10-23) `[V0]` `[E0]` — Aceite: Dado uma venda
+  marcada "condicional" com 5 peças, Quando o cliente leva as peças, Então elas saem do estoque
+  disponível, a venda fica "Condicional em aberto" e não gera conta a receber nem nota de venda; Quando
+  o cliente devolve 3 peças e fica com 2, Então as 3 voltam ao estoque e a venda vira venda normal das 2
+  peças, com valor e conta a receber só delas. Mexe em valor e estoque: Regra Mestre. A nota de
+  remessa, se houver, é decisão do contador.
+- **[BACKLOG] Funcionário que executou o serviço, por item** (pedido de 2026-10-23) — Aceite: Dado uma
+  venda com os serviços "troca de óleo" e "alinhamento", Quando indico quem executou cada um, Então o
+  nome fica gravado no item e aparece na consulta da venda e na comissão de quem executou. Hoje o
+  backend grava `res_service_staff_id` por item (vindo do Blade de restaurante); a venda React não tem
+  o campo. A OS tem o caso irmão (Repair/JobSheet/Create.casos.md).
+- **[BACKLOG] Modelo e série do aparelho na venda da pilha** (pedido de 2026-10-23) — Aceite: Dado um
+  produto do tipo pilha ou bateria, Quando o adiciono à venda, Então informo o modelo e o número de
+  série do aparelho onde ela vai; os dois saem na consulta da venda e na garantia. Produto de outro
+  tipo não pede nada. O cadastro do produto diz quais modelos usam a pilha
+  (Produto/Index.casos.md, mesmo pedido).
 - **[BACKLOG] Emissão NF-e da venda (homolog/stub SEFAZ)** — wire já existe (suítes NfeBrasil); espelhar como UC quando o fluxo de emissão entrar no harness e2e.
 - **[BACKLOG] Fechar o diálogo de rascunho preserva a venda montada** — Dado um rascunho salvo · Quando o operador fecha o diálogo de recuperação SEM escolher (Esc, clique fora) · Então o rascunho **continua** no `localStorage` e a pergunta volta na próxima montagem; só o botão "Descartar" apaga. Exige exercitar `AlertDialog` do Radix no harness e2e (incluindo se `Esc` de fato fecha nesta versão, que não foi verificado). Origem: ROTA LIVRE perdeu venda montada durante janela de 503 do deploy, 2026-08-26.
 

@@ -775,3 +775,10 @@ Status: 🧪
   cliente 4500012345", e a busca do apontamento acha a OS por esse número. Venda sem o número não mostra
   nada. Fonte: o número entra na venda (Sells/Create.casos.md, mesmo pedido) e vai para a NF-e no campo
   `xPed`.
+
+## Instrução de execução do serviço (pedido de 2026-10-23)
+
+- **[BACKLOG]** A OS mostra a instrução escrita no item da venda — Dado um item vendido com a instrução
+  "instalar no 2º andar, cliente libera o acesso às 8h", Quando a OS do item nasce, Então a instrução
+  aparece no apontamento de cada etapa e na ficha impressa, em destaque. Item sem instrução não mostra
+  nada. A instrução nasce na venda (Sells/Create.casos.md, mesmo pedido).

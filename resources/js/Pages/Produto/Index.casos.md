@@ -659,6 +659,11 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
 - **[BACKLOG] Roteiro de produção no painel (UC-FLX-07)** — a OS copia as etapas do roteiro do
   produto (US-PCP-026). Aceite: a aba "Receita e roteiro" mostra a receita e as etapas numeradas
   do roteiro; produto sem roteiro não mostra a parte de etapas.
+- **[BACKLOG] Modelo da pilha do produto** (pedido de 2026-10-23) — Aceite: Dado o produto "Controle
+  de portão" que usa a pilha CR2032, Quando abro o painel dele, Então vejo o modelo da pilha e posso
+  abrir esse produto; e no painel da pilha CR2032 vejo os produtos e aparelhos que a usam. Produto sem
+  pilha não mostra nada. A venda pede o modelo e a série do aparelho (Sells/Create.casos.md, mesmo
+  pedido).
 
 Fontes abertas em 2026-10-20: [Shopify](https://help.shopify.com/manual/products/searching-filtering) ·
 [Olist/Tiny](https://ajuda.olist.com/produtos/acoes-em-lote-e-gerenciamento-de-produtos) ·
