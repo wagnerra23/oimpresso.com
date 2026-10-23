@@ -50,9 +50,6 @@ import {
   nasceSemMedicao,
   refsParaDeletado,
   orfaosNaAdicao,
-  unverifiedSince,
-  separarAutoriaNoGit,
-  FONTE_GIT,
   ultimaVerificacaoDe,
   SLA_DAYS,
 } from './cowork-mirror-freshness.mjs';
@@ -1111,151 +1108,39 @@ check('mesmo número → mesmo veredito (independe de --check)',
     !r3.faltando.some((d) => d.startsWith('_ds/')), JSON.stringify(r3));
 }
 
-// ── fonte no git (ADR 0433 · [W] 2026-10-15) ────────────────────────────────────────
-// Depois da virada, commit no espelho e autoria: sai da acusacao e vai para autoradoNoGit.
-// Antes da virada a regra antiga continua mordendo. Data ilegivel fica na acusacao.
+// ── ultimaVerificacaoDe + ledgerEntry (o que ficou do bloco do --unverified) ─────
+// O modo --unverified e o required "espelho — mexeu depois de verificar" saíram em 2026-10-23
+// (ADR 0438 D7), e com eles o `unverifiedSince` e o `separarAutoriaNoGit`. Estas duas funções
+// FICAM: o `ancora.mjs` lê a última verificação, e o ledger segue escrito pelo --compare até a
+// onda que remover o frescor. As provas delas saíram daqui de dentro com o mesmo conteúdo.
 {
-  const fonte = { dono: 'Wagner', desde: '2026-10-15T00:00:00-03:00', adr: '0433' };
-  const m = [
-    { cowork: 'antes.jsx', commitadoEm: '2026-10-14T23:59:00-03:00' },
-    { cowork: 'depois.jsx', commitadoEm: '2026-10-15T10:00:00-03:00' },
-    { cowork: 'sem-data.jsx', commitadoEm: 'nao-e-data' },
-  ];
-  const s = separarAutoriaNoGit(m, fonte);
-  check('BITE fonte-git: commit ANTES da virada continua acusado', s.mexidoDepois.some((x) => x.cowork === 'antes.jsx'), JSON.stringify(s));
-  check('fonte-git: commit DEPOIS da virada vira autoria (relatada, nao acusada)', s.autoradoNoGit.length === 1 && s.autoradoNoGit[0].cowork === 'depois.jsx', JSON.stringify(s));
-  check('fonte-git: data ilegivel NAO vira isencao', s.mexidoDepois.some((x) => x.cowork === 'sem-data.jsx'), JSON.stringify(s));
-  check('fonte-git: sem fonte declarada nada muda', separarAutoriaNoGit(m, null).mexidoDepois.length === 3, '');
-  check('fonte-git: FONTE_GIT declara dono, data e ADR', FONTE_GIT.dono === 'Wagner' && !!FONTE_GIT.desde && FONTE_GIT.adr === '0433', JSON.stringify(FONTE_GIT));
-}
-
-// ── unverifiedSince — MEXEU-DEPOIS-DE-VERIFICAR (v4 · 2026-08-17) ────────────────
-// A defesa contra remendo a mao no espelho. Predicado = DUAS DATAS, nunca nome/pasta/vocabulario
-// (escapa da familia das 4 lapides de guard sintatico do §5). O caso real que motivou:
-// 11 sites trocados a mao 33min DEPOIS de uma rodada de frescor, invisiveis por 4 dias.
-{
-  const L = [
-    { date: '2026-08-13T17:00:00.000Z', verified: ['chat-jana.css', 'app.jsx'] },
-    { date: '2026-08-13T21:00:00.000Z', verified: ['app.jsx'] },
-  ];
-  const r = unverifiedSince(L, [
-    { cowork: 'chat-jana.css', lastCommitIso: '2026-08-13T18:01:18.000Z' }, // MEXEU depois das 17:00
-    { cowork: 'app.jsx',       lastCommitIso: '2026-08-13T18:01:18.000Z' }, // verificado 21:00 = DEPOIS do commit
-    { cowork: 'vendas.css',    lastCommitIso: '2026-08-10T10:00:00.000Z' }, // nunca verificado
-    { cowork: 'novo.jsx',      lastCommitIso: null },                        // sem commit ainda
-  ]);
-  check('BITE unverifiedSince: MORDE o arquivo commitado DEPOIS da verificacao',
-    r.mexidoDepois.length === 1 && r.mexidoDepois[0].cowork === 'chat-jana.css', JSON.stringify(r.mexidoDepois));
-  check('unverifiedSince: LIBERA o arquivo cuja verificacao e POSTERIOR ao commit',
-    !r.mexidoDepois.some((m) => m.cowork === 'app.jsx') && r.ok === 1, JSON.stringify(r));
-  check('unverifiedSince: NUNCA-VERIFICADO nao vira mexido-depois (forward-only, nao pune legado)',
-    r.nuncaVerificado.includes('vendas.css') && !r.mexidoDepois.some((m) => m.cowork === 'vendas.css'), JSON.stringify(r));
-  check('unverifiedSince: arquivo SEM data de commit nao vira achado (nao afirma sem dado)',
-    !r.mexidoDepois.some((m) => m.cowork === 'novo.jsx'), JSON.stringify(r.mexidoDepois));
-  // MERGE/SQUASH nao e remendo a mao (falso-positivo medido 2026-08-17).
-  // O squash do #5854 reescreveu a data de commit de 6 arquivos do espelho SEM mudar um byte;
-  // um detector que compara so DATAS acusou os 6. Com o hash no ledger, "commitou depois" so
-  // vira achado quando o CONTEUDO tambem mudou.
-  {
-    const L2 = [{ date: '2026-08-17T12:00:00.000Z', verified: ['a.jsx', 'b.jsx'],
-      verifiedHash: { 'a.jsx': 'HASH_A', 'b.jsx': 'HASH_B' } }];
-    const rSquash = unverifiedSince(L2, [
-      { cowork: 'a.jsx', lastCommitIso: '2026-08-17T12:10:47.000Z', hashAtual: 'HASH_A' }, // squash: data nova, conteudo igual
-      { cowork: 'b.jsx', lastCommitIso: '2026-08-17T12:10:47.000Z', hashAtual: 'OUTRO' },  // mexido de verdade
-    ]);
-    check('unverifiedSince: merge/squash (data nova, hash IGUAL) nao vira achado',
-      !rSquash.mexidoDepois.some((m) => m.cowork === 'a.jsx') && rSquash.ok === 1, JSON.stringify(rSquash));
-    check('BITE unverifiedSince: hash DIFERENTE depois da verificacao ainda MORDE',
-      rSquash.mexidoDepois.length === 1 && rSquash.mexidoDepois[0].cowork === 'b.jsx', JSON.stringify(rSquash.mexidoDepois));
-    // ledger SEM verifiedHash (rodada anterior ao campo) => fallback CONSERVADOR: acusa por data.
-    const rVelhoHash = unverifiedSince([{ date: '2026-08-17T12:00:00.000Z', verified: ['a.jsx'] }],
-      [{ cowork: 'a.jsx', lastCommitIso: '2026-08-17T12:10:47.000Z', hashAtual: 'HASH_A' }]);
-    check('unverifiedSince: sem hash no ledger cai no conservador (acusa por data, nao inventa verde)',
-      rVelhoHash.mexidoDepois.length === 1 && /sem hash/.test(rVelhoHash.mexidoDepois[0].motivo || ''), JSON.stringify(rVelhoHash.mexidoDepois));
-
-    const rInvalidado = unverifiedSince([
-      { date: '2026-08-17T12:00:00.000Z', verified: ['a.jsx'], verifiedHash: { 'a.jsx': 'HASH_A' } },
-      { date: '2026-09-11T18:00:00.000Z', invalidated: ['a.jsx'], kind: 'namespace-invalidation' },
-    ], [{ cowork: 'a.jsx', lastCommitIso: '2026-09-11T18:10:00.000Z', hashAtual: 'OUTRO' }]);
-    check('invalidação de namespace não fabrica prova: volta a NUNCA-VERIFICADO',
-      rInvalidado.nuncaVerificado.includes('a.jsx') && rInvalidado.mexidoDepois.length === 0, JSON.stringify(rInvalidado));
-
-    // ── PROVA POR BUNDLE (v5 · 2026-08-24) ──────────────────────────────────────
-    // O gate nasceu quando `--export-from` era a unica rota de escrita no espelho. O bundle v2
-    // (`aplicar-payload --require-complete-shell`) e a ROTA PRINCIPAL da fase -1 e escreve com
-    // fidelidade provada por construcao. Sem isto o required reprova o caminho oficial: no
-    // #6178, 71 arquivos com 232/232 hashes conferidos foram marcados "sem prova".
-    // O criterio e DURO: so libera com sha256 batendo byte-a-byte.
-    {
-      const Lb = [{ date: '2026-08-20T12:00:00.000Z', verified: ['app.jsx', 'styles.css', 'sidebar.jsx'],
-        verifiedHash: { 'app.jsx': 'H_VELHO', 'styles.css': 'H_VELHO', 'sidebar.jsx': 'H_VELHO' } }];
-      const commit = '2026-08-24T12:00:00.000Z'; // commitado DEPOIS da verificacao, conteudo MUDOU
-      const bundle = { 'app.jsx': 'SHA_BUNDLE_APP', 'styles.css': 'SHA_BUNDLE_STYLES' };
-      const rb = unverifiedSince(Lb, [
-        // promovido pelo bundle: sha do disco == sha do manifesto => PROVADO
-        { cowork: 'app.jsx',    lastCommitIso: commit, hashAtual: 'H_NOVO', rawSha: 'SHA_BUNDLE_APP' },
-        // consta no bundle MAS o byte no disco divergiu (remendo a mao pos-promocao) => MORDE
-        { cowork: 'styles.css', lastCommitIso: commit, hashAtual: 'H_NOVO', rawSha: 'SHA_REMENDADO' },
-        // nem consta no bundle => comportamento antigo, MORDE
-        { cowork: 'sidebar.jsx', lastCommitIso: commit, hashAtual: 'H_NOVO', rawSha: 'SHA_QUALQUER' },
-      ], bundle);
-      check('unverifiedSince: bundle promovido com sha conferido LIBERA (a rota canonica nao e acusada)',
-        !rb.mexidoDepois.some((m) => m.cowork === 'app.jsx'), JSON.stringify(rb.mexidoDepois));
-      check('BITE unverifiedSince: no bundle mas byte DIVERGENTE ainda MORDE (prova, nao isencao)',
-        rb.mexidoDepois.some((m) => m.cowork === 'styles.css'), JSON.stringify(rb.mexidoDepois));
-      check('BITE unverifiedSince: fora do bundle segue mordendo (nao virou passe livre)',
-        rb.mexidoDepois.some((m) => m.cowork === 'sidebar.jsx'), JSON.stringify(rb.mexidoDepois));
-      check('unverifiedSince: prova por bundle acusa exatamente 2 de 3',
-        rb.mexidoDepois.length === 2 && rb.ok === 1, JSON.stringify(rb));
-      // provaBundle ausente => comportamento IDENTICO ao de antes (nao-medir nao vira verde)
-      const rSem = unverifiedSince(Lb, [
-        { cowork: 'app.jsx', lastCommitIso: commit, hashAtual: 'H_NOVO', rawSha: 'SHA_BUNDLE_APP' },
-      ], null);
-      check('BITE unverifiedSince: SEM bundle o mesmo arquivo volta a morder (ausencia != prova)',
-        rSem.mexidoDepois.length === 1 && rSem.mexidoDepois[0].cowork === 'app.jsx', JSON.stringify(rSem.mexidoDepois));
-    }
-    // ── FUSO DO COMMITTER (2026-09-24) ───────────────────────────────────────────
-    // `git log --format=%cI` traz o offset do committer; o ledger grava UTC. Comparar como
-    // STRING dizia "16:51-03:00 < 18:35Z" e deixava passar um commit 19:51Z POSTERIOR a
-    // verificacao (caso real: #7852 passou no gate, o main ficou vermelho apos o squash).
-    {
-      const Lf = [{ date: '2026-09-23T18:35:43.756Z', verified: ['cowork-inbox/home/playbook/00-INDICE.md'],
-        verifiedHash: { 'cowork-inbox/home/playbook/00-INDICE.md': 'H_VERIF' } }];
-      const rFuso = unverifiedSince(Lf, [
-        // 16:51-03:00 = 19:51Z, POSTERIOR a 18:35Z, hash mudou => TEM de morder
-        { cowork: 'cowork-inbox/home/playbook/00-INDICE.md', lastCommitIso: '2026-09-23T16:51:18-03:00', hashAtual: 'H_NOVO' },
-      ]);
-      check('BITE unverifiedSince: commit com offset -03:00 POSTERIOR em tempo real a verificacao MORDE',
-        rFuso.mexidoDepois.length === 1 && rFuso.mexidoDepois[0].cowork === 'cowork-inbox/home/playbook/00-INDICE.md',
-        JSON.stringify(rFuso));
-      // controle negativo: 15:00-03:00 = 18:00Z, ANTERIOR a 18:35Z => libera (por string seria o mesmo; aqui prova o outro sentido)
-      const rAntes = unverifiedSince(Lf, [
-        { cowork: 'cowork-inbox/home/playbook/00-INDICE.md', lastCommitIso: '2026-09-23T15:00:00-03:00', hashAtual: 'H_NOVO' },
-      ]);
-      check('unverifiedSince: commit -03:00 ANTERIOR em tempo real a verificacao LIBERA',
-        rAntes.mexidoDepois.length === 0 && rAntes.ok === 1, JSON.stringify(rAntes));
-      // e a escolha da ULTIMA verificacao tambem e por instante, nao por string
-      const uv = ultimaVerificacaoDe([
-        { date: '2026-09-23T21:00:00-03:00', verified: ['x.jsx'] }, // 00:00Z do dia 24 — a mais recente
-        { date: '2026-09-23T23:00:00.000Z', verified: ['x.jsx'] },
-      ], 'x.jsx');
-      check('ultimaVerificacaoDe: escolhe a mais recente por instante (offset misto)',
-        uv.data === '2026-09-23T21:00:00-03:00', JSON.stringify(uv));
-    }
-    const e2 = ledgerEntry([{ cowork: 'a.css', veredito: 'SYNC', repoHash: 'H1' }], '2026-08-17T00:00:00.000Z');
-    check('ledgerEntry: grava `verifiedHash` path->hash (insumo do desempate)',
-      e2.verifiedHash && e2.verifiedHash['a.css'] === 'H1', JSON.stringify(e2.verifiedHash));
-  }
-
-  // ledger antigo (sem o campo `verified`) nao pode virar verde silencioso: e SEM DADO.
-  const rVelho = unverifiedSince([{ date: '2026-07-06T00:00:00.000Z', files: 3, sync: 1 }],
-    [{ cowork: 'chat-jana.css', lastCommitIso: '2026-08-13T18:01:18.000Z' }]);
-  check('unverifiedSince: rodada SEM `verified` nao conta como prova (comLedger=0)',
-    rVelho.comLedger === 0 && rVelho.mexidoDepois.length === 0 && rVelho.nuncaVerificado.length === 1, JSON.stringify(rVelho));
-  // ledgerEntry passa a gravar QUAIS mediu — sem isso o detector nao tem insumo
+  // a escolha da ULTIMA verificacao e por instante, nao por string (offset misto)
+  const uv = ultimaVerificacaoDe([
+    { date: '2026-09-23T21:00:00-03:00', verified: ['x.jsx'] }, // 00:00Z do dia 24 — a mais recente
+    { date: '2026-09-23T23:00:00.000Z', verified: ['x.jsx'] },
+  ], 'x.jsx');
+  check('ultimaVerificacaoDe: escolhe a mais recente por instante (offset misto)',
+    uv.data === '2026-09-23T21:00:00-03:00', JSON.stringify(uv));
+  // invalidacao de namespace nao fabrica prova: a verificacao anterior deixa de valer
+  const inv = ultimaVerificacaoDe([
+    { date: '2026-08-17T12:00:00.000Z', verified: ['a.jsx'], verifiedHash: { 'a.jsx': 'HASH_A' } },
+    { date: '2026-09-11T18:00:00.000Z', invalidated: ['a.jsx'], kind: 'namespace-invalidation' },
+  ], 'a.jsx');
+  check('ultimaVerificacaoDe: invalidação de namespace posterior anula a prova (data e hash nulos)',
+    inv.data === null && inv.hash === null, JSON.stringify(inv));
+  const e2 = ledgerEntry([{ cowork: 'a.css', veredito: 'SYNC', repoHash: 'H1' }], '2026-08-17T00:00:00.000Z');
+  check('ledgerEntry: grava `verifiedHash` path->hash',
+    e2.verifiedHash && e2.verifiedHash['a.css'] === 'H1', JSON.stringify(e2.verifiedHash));
   const e = ledgerEntry([{ cowork: 'a.css', veredito: 'SYNC' }, { cowork: 'b.css', veredito: 'STALE' }], '2026-08-17T00:00:00.000Z');
-  check('ledgerEntry: grava `verified` so com os SYNC (insumo do --unverified)',
+  check('ledgerEntry: grava `verified` so com os SYNC',
     Array.isArray(e.verified) && e.verified.length === 1 && e.verified[0] === 'a.css', JSON.stringify(e.verified));
+  // o modo removido falha ALTO pelo CLI de fora: sem a trava ele caía no caminho padrão e saía 0
+  const aquiRemovido = dirname(fileURLToPath(import.meta.url));
+  const cliRemovido = join(aquiRemovido, 'cowork-mirror-freshness.mjs');
+  let rcRemovido = 0;
+  try { execFileSync(process.execPath, [cliRemovido, '--unverified', '--check'], { cwd: dirname(dirname(aquiRemovido)), stdio: 'pipe' }); }
+  catch (err) { rcRemovido = err.status ?? -1; }
+  check('BITE CLI: --unverified removido sai 2 (nunca verde sem medir)', rcRemovido === 2, String(rcRemovido));
 }
 
 // ── LIVE-ONLY NO LEDGER (2026-08-24) ────────────────────────────────────────────
