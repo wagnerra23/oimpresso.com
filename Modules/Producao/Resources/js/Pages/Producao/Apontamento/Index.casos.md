@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o apontamento vira custo real e fecha etapa da OS. Errar a etapa aponta tempo no lugar errado; errar a empresa expõe produção alheia; duplicar o envio offline dobra o custo.
 owner: wagner
-last_run: "2026-10-21"
+last_run: "2026-10-22"
 last_run_ci: "_pendente_ — o trio nasce na thread 04. O veredito por UC entra quando a lane verticais-pest rodar; até lá o Status é 🧪."
 ---
 
@@ -35,6 +35,9 @@ Status: 🧪
 
 **Quando** lê o QR da OS **Então** abre a etapa dele naquela OS, e Iniciar/Pausar/Concluir gravam
 apontamentos append-only com usuário, máquina e horário; o cronômetro tem `role="timer"` e botões ≥ 44px.
+O QR da **etapa** (sufixo `:e<programacao_id>`, etiqueta térmica · UC-PCV-37 E1, thread 05) abre aquela
+etapa, não a primeira do operador; etapa de outra OS, de outra empresa ou encerrada → "Etapa não encontrada".
+Prova do formato e da leitura: `tests/Feature/Sells/AppProducaoApontamentoContratoTest.php` (UC-PCV-37 E1).
 
 Status: 🧪
 

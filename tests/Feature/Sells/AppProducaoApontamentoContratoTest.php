@@ -384,3 +384,38 @@ it('UC-APPAPT-10 motivos-pausa: só pausa ATIVA do posto, na ordem do gestor; po
     Passport::actingAs($this->usuarioComPermissoes([]), [], 'api');
     $this->getJson('/api/app/producao/motivos-pausa')->assertStatus(403)->assertJsonPath('erro', 'sem_permissao');
 });
+
+it('UC-PCV-37 E1 · QR da etapa (sufixo :e<id>) abre aquela etapa, não a primeira da OS; etapa de outra OS ou do 99 → 404', function () {
+    $os = appAptOs($this->bizId);
+    $primeira = appAptEtapa($this->bizId, $this->posto, $os, (int) $this->user->id, 'pendente', '08:00:00');
+    $segunda = appAptEtapa($this->bizId, appAptPosto($this->bizId), $os, (int) $this->user->id, 'pendente', '09:00:00');
+
+    // O formato: o mesmo código da OS + `:e<programacao_id>`; sem o sufixo, programacao_id é null.
+    $daEtapa = EtiquetaProducao::codigo($this->bizId, $os, EtiquetaProducao::OS_TIPO_PADRAO, $segunda);
+    expect($daEtapa)->toBe(EtiquetaProducao::codigo($this->bizId, $os) . ':e' . $segunda);
+    expect(EtiquetaProducao::ler($daEtapa, $this->bizId))
+        ->toBe(['empresa' => true, 'os_tipo' => 'comvis_os', 'pedido_id' => $os, 'programacao_id' => $segunda]);
+    expect(EtiquetaProducao::ler(EtiquetaProducao::codigo($this->bizId, $os), $this->bizId)['programacao_id'])->toBeNull();
+
+    // Discriminante: o QR da OS abre a primeira etapa do operador; o da etapa abre a segunda.
+    $this->getJson('/api/app/producao/etiqueta/' . rawurlencode(EtiquetaProducao::codigo($this->bizId, $os)))
+        ->assertOk()->assertJsonPath('etapa.programacao_id', $primeira);
+    $this->getJson('/api/app/producao/etiqueta/' . rawurlencode($daEtapa))
+        ->assertOk()->assertJsonPath('etapa.programacao_id', $segunda)->assertJsonPath('pode_apontar', true);
+
+    // Controle negativo: etapa que existe, mas de OUTRA OS da mesma empresa → 404, não cai na etapa da OS do QR.
+    $outraOs = appAptOs($this->bizId);
+    $deOutraOs = appAptEtapa($this->bizId, $this->posto, $outraOs, (int) $this->user->id);
+    $this->getJson('/api/app/producao/etiqueta/' . rawurlencode(EtiquetaProducao::codigo($this->bizId, $os, 'comvis_os', $deOutraOs)))
+        ->assertStatus(404)->assertJsonPath('erro', 'nao_encontrado');
+
+    // Cross-tenant: etapa do 99 pendurada no código da OS do 98 → 404, nada do 99 vaza.
+    $os99 = appAptOs($this->outroBizId);
+    $etapa99 = appAptEtapa($this->outroBizId, appAptPosto($this->outroBizId), $os99, null);
+    $this->getJson('/api/app/producao/etiqueta/' . rawurlencode(EtiquetaProducao::codigo($this->bizId, $os, 'comvis_os', $etapa99)))
+        ->assertStatus(404)->assertJsonPath('erro', 'nao_encontrado');
+
+    // Etapa já concluída não abre pelo QR dela (o encerramento não reabre pela etiqueta).
+    DB::table('pcp_programacoes')->where('id', $segunda)->update(['status' => 'concluida']);
+    $this->getJson('/api/app/producao/etiqueta/' . rawurlencode($daEtapa))->assertStatus(404)->assertJsonPath('erro', 'nao_encontrado');
+});
