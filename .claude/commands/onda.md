@@ -1,5 +1,5 @@
 ---
-description: Abre UMA onda de export Cowork→Code em sessão limpa (§2-quater do PROTOCOLO). Gera o pedido derivado da seção (4 blocos + read-order) com `scripts/design-sync/pedido.mjs` e manda ler o read-order ANTES de qualquer Edit. Uso `/onda <Mod/Tela> <secao> [n.s]` para SEÇÃO de tela, ou `/onda <Modulo> --thread <NN>` para THREAD de playbook (PR-A8).
+description: Abre UMA onda de design em sessão limpa (§2-quater do PROTOCOLO). Gera o pedido derivado da seção (4 blocos + read-order) com `scripts/design-sync/pedido.mjs` e manda ler o read-order ANTES de qualquer Edit. Uso `/onda <Mod/Tela> <secao> [n.s]` para SEÇÃO de tela, ou `/onda <Modulo> --thread <NN>` para THREAD de playbook (PR-A8).
 ---
 
 # /onda — uma onda = uma sessão LIMPA, e ela nasce lida
@@ -58,7 +58,7 @@ NN="$3"
 IDX="prototipo-ui/cowork/Wagner/cowork-inbox/$MOD/playbook/00-INDICE.md"
 
 # 1. PORTAO — sem indice no main, a sessao NAO improvisa.
-test -f "$IDX" || { echo "NAO MEDI: indice '$MOD' ausente no main - o pacote do Cowork nao foi importado. Nada executado."; exit 1; }
+test -f "$IDX" || { echo "NAO MEDI: indice '$MOD' ausente no main - o playbook ainda nao foi escrito. Nada executado."; exit 1; }
 
 # 2. O estado da thread — DERIVADO do repo (provas + _saida), ninguém escreve
 node scripts/qa/placar.mjs --indice "$IDX" --thread "$NN" --proximo
@@ -69,9 +69,10 @@ ls "prototipo-ui/cowork/Wagner/cowork-inbox/$MOD/playbook/$NN"-*.md
 ```
 
 > **Se o passo 1 imprimir `NÃO MEDI`, PARE.** Responda só essa linha e encerre: não rode outro
-> módulo, não varra os 13, não escolha uma thread no lugar da pedida. Índice ausente é **falta de
-> import**, não convite a improvisar — e improvisar é pior que falhar, porque devolve um relatório
-> plausível sobre outra coisa. Peça o handoff do Cowork e pare.
+> módulo, não varra os 13, não escolha uma thread no lugar da pedida. Índice ausente quer dizer que
+> **o playbook não foi escrito**, não é convite a improvisar — e improvisar é pior que falhar, porque
+> devolve um relatório plausível sobre outra coisa. Diga ao [W] que o playbook não existe e pare:
+> escrever o índice é pedido dele, feito num PR próprio (ver abaixo).
 
 **Leia o estado antes de executar** — ele diz se a thread sequer é sua para pegar:
 
@@ -86,7 +87,9 @@ ls "prototipo-ui/cowork/Wagner/cowork-inbox/$MOD/playbook/$NN"-*.md
 
 > **Antes de escrever recibo, desconfie da prova.** Se o padrão da prova já existia no `main` **antes** do índice ser escrito (`git log --reverse -S` mostra commit anterior à data do índice), ela não prova a entrega — não escreva recibo, reporte. Caso real em 2026-09-23: Patrimônio/05 pedia um comando novo, e a prova só checava uma chave de config que existia desde maio.
 
-> **O índice (`00-INDICE.md`) e o resto do playbook são do Cowork — não edite no espelho.** Achou prova com caminho errado, thread que deve ser descartada, errata? Registre no **seu `_saida-NN.md`** (o único arquivo do espelho cujo autor é o Code) e diga no corpo do PR. Editar o índice no espelho derruba o check **required** "espelho — mexeu depois de verificar" no `main` para **todos** os PRs, até alguém reescrever no Cowork e reimportar. Aconteceu 2× em 2026-09-23 (#7843, #7866), e mais dois PRs abertos repetiam (#7856, #7863). Se a correção no índice não puder esperar, peça ao [W] o opt-in de escrita no Cowork e faça a mudança **lá**; ela desce no próximo import.
+> **O playbook é escrito no git, a pedido do [W]** ([ADR 0438](../../memory/decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md) D8, [W] 2026-10-23: *"eu peço, você escreve o 00-INDICE e as threads, PR e merge"*). O `00-INDICE.md` e os `NN-*.md` sob `prototipo-ui/cowork/<dono>/cowork-inbox/<mod>/playbook/` são escritos pelo agente quando o [W] pede, num PR próprio; **o merge desse PR é a aprovação** do playbook. Escreva o índice no formato que o `placar.mjs` lê (prefixo, `nao_toca`, deps, provas, decisões) e rode `node scripts/qa/placar.mjs --indice <00-INDICE.md>` antes de abrir o PR.
+
+> **Dentro de uma thread, não reescreva o índice.** Achou prova com caminho errado, thread que deve ser descartada, errata? Registre no **seu `_saida-NN.md`** e diga no corpo do PR; a correção do índice vai num PR próprio, para a thread continuar sendo 1 prefixo e 1 PR (Leis 1 e 3). _(Até 2026-10-23 o índice era autoria do Cowork, e editá-lo no espelho derrubava o check obrigatório "espelho — mexeu depois de verificar" para todos os PRs — 2× em 2026-09-23, #7843 e #7866. O check saiu da proteção na onda 2c-1 da ADR 0438.)_
 
 **As Leis que o modo thread não afrouxa:** 1 thread = 1 prefixo (Lei 1) · estado só em `_saida` (Lei 2) · 1 PR por thread (Lei 3) · o `nao_toca` do índice é o bloco B "não inventar" (Lei 4).
 
