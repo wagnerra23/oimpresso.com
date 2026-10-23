@@ -178,11 +178,47 @@ last_run: "2026-10-20"
 - **[BACKLOG] Recompra levando a arte já aprovada** — shopVOX.
 - **[BACKLOG] Totais da operação** (em produção, atrasadas, aguardando arte, a receber) — Calcgraf, Printavo.
 
+**Casos pedidos em 2026-10-23 — como a consulta mostra cada regra**
+
+> Sem id: entram quando tiverem teste. As regras em si serão revistas na revisão dos fluxos (modelos,
+> configurações e estados da FSM); estes casos dizem só o que a consulta mostra delas. O protótipo da
+> consulta (PR #9771) já desenha o sinal e a arte.
+
+- **[BACKLOG] Sinal de entrada na linha (UC-FLX-28)** `[V0]` — detalha o "Sinal pago e saldo a
+  receber" acima. Aceite: Dado a empresa com sinal mínimo de 30% e uma venda aprovada de 1.000,00 sem
+  nada pago, Então a coluna Sinal mostra "Abaixo do mínimo · 0,00 de 300,00" e a coluna Produção
+  "Aguardando liberação"; pago o sinal, a coluna Sinal mostra "Pago · falta o saldo" e a OS sai da
+  espera. Empresa sem sinal mínimo não mostra a coluna por padrão. Fonte: US-PCP-025 (a OS espera o
+  sinal; UC-PCLIB-04 a 08 no Apontamento).
+- **[BACKLOG] Situação da arte na linha (UC-FLX-02)** — detalha o item "Situação da arte na linha"
+  acima. Aceite: Dado uma venda com OS em Arte, Então a coluna Arte mostra "Aguardando cliente · link
+  enviado", "Ajuste pedido" com o comentário do cliente ou "Aprovada em <data> por <nome>", lidos da
+  aprovação por link da OS. Venda sem arte não mostra nada. Fonte: US-COMVIS-NEW-004 (UC-PCART no
+  Apontamento).
+- **[BACKLOG] Item que deixou o estoque abaixo do mínimo (UC-FLX-19)** — Aceite: Dado a regra
+  "Requisição pelo estoque mínimo" ligada e uma venda cujo item deixou o produto abaixo do mínimo,
+  Quando abro a venda no drawer, Então o item mostra "abaixo do mínimo · requisição <número> aberta".
+  Regra desligada (padrão), nada aparece. Fonte: US-COM-027 (a requisição nasce sozinha; UC-REQMIN-01 a
+  08 em Requisição de compra).
+- **[BACKLOG] Saldo a favor usado na venda** `[V0]` — Aceite: Dado uma venda de 500,00 que usou 120,00
+  do saldo a favor do cliente, Então a coluna Pagamento mostra "120,00 do saldo a favor", a aba
+  Pagamento do drawer mostra de onde veio o saldo (devolução, troca ou pagamento a mais, com a data) e o
+  A receber dos totais conta 380,00. Fonte: o adiantamento do cliente já paga a venda pela forma
+  "Adiantamento"; US-VEST-021.
+- **[BACKLOG] Venda que passou do limite de crédito** `[V0]` — Aceite: Dado um cliente com limite de
+  2.000,00 e uma venda a prazo salva com o aviso de limite, Então o Status mostra "Acima do limite ·
+  300,00", e o filtro "Acima do limite" lista só essas vendas. Fonte: US-CRM-081.
+- **[BACKLOG] Número do pedido de compra do cliente** — Aceite: Dado uma venda com o pedido do
+  cliente "4500012345", Quando busco "4500012345", Então a venda aparece, e a linha mostra "Ped.
+  cliente 4500012345" abaixo do nome do cliente. A coluna "Pedido do cliente" fica disponível no botão
+  Colunas. Fonte: campo `xPed` da NF-e e da NFS-e (o mesmo número vai na nota).
+
 ## Como rodar a suíte
 1. **E2E:** `npm run e2e:check` no harness do CI (e2e-gate) — vereditos viram manifesto via `npm run casos:results` (merge per-UC).
 2. **Cadência:** rodar ao fim de toda mexida em Sells/Index. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-23 · [M+C] Backlog "Casos pedidos em 2026-10-23": sinal, arte, estoque mínimo, saldo a favor, limite de crédito e pedido de compra do cliente, sem id e sem mudança de comportamento da tela.
 - 2026-10-20 · [M+C] **UC-SIDX-06 `[V0]`** — barra de totais do filtro abaixo da lista (US-SELL-017): os `totals` que o servidor já calculava passam a aparecer. A barra não mostra número quando a visão salva, a pílula Faturada/Cancelada ou a origem filtram só a página carregada. Teste `tests/js/sells-index-totais.test.tsx` na lane Vitest do `Frontend / Vite build`.
 - 2026-10-20 · [M+C] Backlog da pesquisa de concorrentes (núcleo + comunicação visual), sem id e sem mudança de comportamento da tela; fontes no [registro da sessão](../../../../memory/sessions/2026-10-20-pesquisa-consulta-venda-concorrentes-cv.md).
 - 2026-10-19 · [CC] **UC-SIDX-04 `[T0]` + UC-SIDX-05 `[V0]`** — pílula "Rascunhos" na consulta de vendas (pedido da ROTA LIVRE: a tela `/sells/drafts` não tinha ações e "era para estar junta na consulta de vendas"; decisão [W]: filtro dentro da consulta, mesmas ações da venda, totais de faturado só com venda final). Teste `SellsIndexRascunhosContratoTest.php` na lane Sells. A tela `/sells/drafts` segue no ar até ser aposentada em PR próprio (só ganhou o conserto do "Itens NaN").

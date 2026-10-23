@@ -767,3 +767,11 @@ Status: 🧪
 - **[BACKLOG]** UC-FLX-28 — parcelas de sinal e saldo geradas na aprovação do orçamento (Vendas/Financeiro);
   hoje o retorno do banco lança o pagamento na venda inteira (UC-PCLIB-08), sem parcela de sinal separada. O
   campo do sinal mínimo na aba Fluxos da empresa vem no #9701.
+
+## Pedido de compra do cliente na OS (pedido de 2026-10-23)
+
+- **[BACKLOG]** A OS mostra o número do pedido de compra do cliente — Dado uma venda com o pedido do
+  cliente "4500012345", Quando as OS dos itens nascem, Então cada OS e a ficha impressa mostram "Pedido do
+  cliente 4500012345", e a busca do apontamento acha a OS por esse número. Venda sem o número não mostra
+  nada. Fonte: o número entra na venda (Sells/Create.casos.md, mesmo pedido) e vai para a NF-e no campo
+  `xPed`.

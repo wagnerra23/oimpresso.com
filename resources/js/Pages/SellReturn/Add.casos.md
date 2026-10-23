@@ -73,6 +73,12 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **[BACKLOG]** Sem quantidade preenchida, "Salvar devolução" fica desabilitado (era `UC-DEV-02`) — comportamento só do front; entra quando houver teste de navegador para a tela.
 - **[BACKLOG]** Motivo da devolução em texto livre no histórico (charter R3) — exige gravar motivo no `store()`.
 - **[BACKLOG]** Aviso de item feito sob medida antes de salvar (charter R4) — o produto não guarda essa informação.
+- **[BACKLOG]** A devolução pode virar saldo a favor do cliente (pedido de 2026-10-23) `[V0]` — Aceite:
+  Dado uma venda paga de 200,00, Quando devolvo um item de 80,00 e escolho "deixar como saldo a favor",
+  Então nenhum dinheiro sai do caixa e o cliente fica com 80,00 a favor, que aparece no drawer do
+  cliente e pode ser usado na próxima venda; escolher "devolver o dinheiro" segue como hoje. Mexe em
+  valor: Regra Mestre. Fonte: US-VEST-021 (crédito em conta do cliente na troca).
 
 ## Trilha do tempo
+- 2026-10-23 · [M+C] Backlog: a devolução pode virar saldo a favor do cliente, sem id.
 - 2026-10-05 · [CL] trio nascido junto (charter + casos + teste) na thread 03 de venda-menu, PR 2 de 2.

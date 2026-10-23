@@ -91,6 +91,21 @@ last_run: "2026-10-14"
 - **[BACKLOG] 6 dropdowns de filtro (Tipo/Status/UF/Tags/Sem compra/Saldo) filtram** — e2e.
 - **[BACKLOG] A LISTAGEM não devolve cliente de outro tenant** — hoje o cross-tenant do módulo é coberto no `edit` (UC-CEDI-03), no mapa (UC-CMAP-02), no saldo (UC-CLED-04) e nos pagamentos (UC-CSHW-03), mas **não** em `GET /cliente`. O `ClienteKpisServerSideTest` cobre os KPIs por *source-grep*, não a lista. É a lacuna Tier 0 que sobra, e pesa mais aqui porque **`App\Contact` não tem global scope** (0 ocorrências de `addGlobalScope` em `app/Contact.php` — SDD §5.4.2): o isolamento é `where('business_id')` manual. É exatamente o que **US-CRM-080** pede; vira UC quando a US for atendida.
 
+**Casos pedidos em 2026-10-23 — saldo a favor e limite de crédito**
+
+- **[BACKLOG] Saldo a favor do cliente no drawer** `[V0]` — o cliente pode ter dinheiro a favor, vindo
+  de devolução, troca, pagamento a mais ou adiantamento. Aceite: Dado um cliente com 120,00 a favor
+  (80,00 de uma devolução e 40,00 de pagamento a mais), Quando abro o drawer, Então o resumo financeiro
+  mostra "Crédito a favor 120,00" e a lista de onde veio cada parte, com a data. Cliente sem saldo a
+  favor não mostra o bloco. Fonte: protótipo `cliente-drawer760.jsx` ("Créditos a favor — abatidos na
+  próxima venda; o vendedor pode recusar"); o adiantamento lançado no cliente já existe.
+- **[BACKLOG] Limite de crédito: quanto o cliente ainda pode gastar** `[V0]` — o limite é o quanto o
+  cliente pode comprar a prazo. Aceite: Dado um cliente com limite de 2.000,00 e 1.500,00 em aberto,
+  Quando abro o drawer, Então a aba Comercial mostra "Limite 2.000,00 · em aberto 1.500,00 · disponível
+  500,00"; com o em aberto acima do limite, o disponível fica 0,00 e aparece "acima do limite". Cliente
+  sem limite mostra "sem limite". Fonte: US-CRM-081; o campo já existe na aba Comercial
+  (`limite_credito`) e o limite padrão em Configurações › Empresa.
+
 ## Rastreabilidade (UC → CU do SDD → US do SPEC)
 
 | UC | CU (SDD §6) | US (SPEC) |
@@ -109,6 +124,7 @@ last_run: "2026-10-14"
 3. **Cadência:** rodar ao fim de toda mexida em `Index.tsx` ou nos builders do `ContactController` (kpis/customers/sort).
 
 ## Trilha do tempo
+- 2026-10-23 · [M+C] Backlog de saldo a favor e limite de crédito no drawer, sem id.
 - 2026-10-14 · [CL] thread cliente/02 — a tabela segue o protótipo: a foto entra na célula Cliente (sai a coluna própria) e nasce a coluna "Última OS" (UC-CIDX-05). Desta vez **é comportamento**: o `last_run` sobe por mudança real da tela. Os UCs 01–04 (rota/query) não mudam.
 - 2026-07-27 · [CC] chip S-Cliente do passo 5 (agent `sdd-from-source`). **Nenhum UC reescrito** — os 4 seguem como estavam (o módulo já tinha contrato). Duas correções factuais no cabeçalho: (a) "lane ativa" era falso (não havia lane de PR pro Cliente; `ci-sqlite-pest.list` = 0 entradas), (b) a força do veredito agora está declarada (**advisory**, lida do `required-checks-baseline.json`, não deduzida). **+1 `[BACKLOG]`**: cross-tenant da listagem, a lacuna Tier 0 que sobra (US-CRM-080). Refs: [SDD Cliente](../../../../memory/requisitos/Cliente/SDD-cadastro-cliente-v1.0.md) §5.4.2/§8 · [ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md).
 - 2026-07-15 · [CC] revalidação (mudança cosmética DS) — troca de contorno/divisórias hardcoded (`oklch(0.93/0.9 0.004 90)`) por `var(--border)` dark-aware no header + KPI cards. Puramente visual (token de borda); NÃO altera rota/query/KPI backend — os 4 UCs (type=other, paginação, sort, KPIs) seguem válidos, status 🧪 mantidos. `last_run` bumpado (G-6). PR #4285.

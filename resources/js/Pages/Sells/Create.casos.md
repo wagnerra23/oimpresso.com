@@ -164,6 +164,28 @@ last_run: "2026-10-02"
 
 - **[BACKLOG] Venda paga no ato (dinheiro/PIX) fecha sem saldo devedor** — caminho feliz com pagamento integral; exige modelar o bloco de pagamentos no harness.
 - **[BACKLOG] Bloqueio por limite de crédito** — backend devolve `errors.venda` e o carrinho fica intacto (toast 8s) — exige fixture de limite no seed.
+
+**Casos pedidos em 2026-10-23 — limite de crédito, saldo a favor e pedido de compra do cliente**
+
+- **[BACKLOG] Venda acima do limite de crédito avisa ou bloqueia, conforme a empresa (US-CRM-081)**
+  `[V0]` — detalha o item acima. Aceite: Dado um cliente com limite de 2.000,00 e 1.500,00 em aberto,
+  Quando salvo uma venda a prazo de 800,00, Então com a empresa em "avisar" a venda salva e mostra
+  "passa 300,00 do limite"; em "bloquear" a venda não salva, o carrinho fica como estava e a mensagem
+  diz quanto passou. O que conta é o valor que fica em aberto: a parte paga no ato não usa limite. Hoje
+  o sistema calcula (`TransactionUtil::isCustomerCreditLimitExeeded()`) e só avisa. Mexe em valor:
+  Regra Mestre.
+- **[BACKLOG] Usar o saldo a favor do cliente na venda** `[V0]` — Aceite: Dado um cliente com 120,00 a
+  favor e uma venda de 500,00, Quando escolho o cliente, Então a venda oferece "Usar 120,00 do saldo a
+  favor"; aceito, entra um pagamento "Adiantamento" de 120,00, ficam 380,00 a receber e o saldo do
+  cliente vai a 0,00; recusado, o saldo fica como estava. Nunca usa mais que o saldo nem mais que o
+  total da venda (o Adiantamento já trava no saldo hoje). Mexe em valor: Regra Mestre. Fonte: protótipo
+  `cliente-drawer760.jsx` ("o vendedor pode recusar"); US-VEST-021.
+- **[BACKLOG] Número do pedido de compra do cliente** — o cliente empresa manda o próprio número de
+  pedido e quer vê-lo na nota. Aceite: Dado um cliente que enviou o pedido "4500012345", Quando
+  preencho "Pedido do cliente" na venda, Então o número fica gravado na venda, sai em cada OS da venda
+  e vai para a NF-e e a NFS-e no campo `xPed` (o número do item do pedido em `nItemPed`, quando houver).
+  Campo opcional; venda sem ele segue como hoje. Fonte: layout da NF-e (grupo do produto) e o schema
+  da NFS-e nacional no módulo NfeBrasil (`xPed`).
 - **[BACKLOG] Emissão NF-e da venda (homolog/stub SEFAZ)** — wire já existe (suítes NfeBrasil); espelhar como UC quando o fluxo de emissão entrar no harness e2e.
 - **[BACKLOG] Fechar o diálogo de rascunho preserva a venda montada** — Dado um rascunho salvo · Quando o operador fecha o diálogo de recuperação SEM escolher (Esc, clique fora) · Então o rascunho **continua** no `localStorage` e a pergunta volta na próxima montagem; só o botão "Descartar" apaga. Exige exercitar `AlertDialog` do Radix no harness e2e (incluindo se `Esc` de fato fecha nesta versão, que não foi verificado). Origem: ROTA LIVRE perdeu venda montada durante janela de 503 do deploy, 2026-08-26.
 
@@ -179,3 +201,4 @@ last_run: "2026-10-02"
 - 2026-10-02 · [CL] UC-S04, preço de grupo 0 alinhado ao Blade. A anotação de 2026-10-01 ("o Blade trata 0 como sem preço") estava incompleta: medido no MySQL, o Blade usa o fixo 0 e ignora só o percentual 0. O `filterProduct` passou a devolver NULL no percentual que dá 0. Impacto em prod: nenhum (os 3305 preços de grupo são todos fixos).
 - 2026-10-01 · [CL] UC-S04: o autocomplete passou a mandar `price_group`, e o produto adicionado com grupo definido entra pelo preço do grupo, como no POS Blade. Antes, só a troca de grupo reprecificava, e só as linhas que já estavam no carrinho. Medido em prod: nenhuma venda com grupo de preço desde 2026-05-27 (a coluna é gravada: 90 vendas com grupo de 2021 a 2026-04-24, um único business) — defeito latente, nenhum valor gravado muda.
 - 2026-07-02 · [CC] Onda 1.4 (dente de cálculo): UC-S02 declarado com teste no MESMO PR (coordenação 1.3 ↔ 1.4, regra "declarar UC + teste = 1 PR"). Property `num_uf(num_f(x))==x` + golden no totalizador real `calculateInvoiceTotal` (227,90 − 10,05% = 204.99605, não infla) + discriminação RED vs strip-do-ponto + caracterização da divergência `getTotalPaid`(líquido) ≠ `getTotalAmountPaid`(bruto). TEST-ONLY — nenhum método de cálculo alterado.
+- 2026-10-23 · [M+C] Backlog de limite de crédito (avisar ou bloquear), saldo a favor na venda e pedido de compra do cliente, sem id.
