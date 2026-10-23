@@ -5,8 +5,8 @@ irmaos: Edit.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — editar o cadastro não pode perder o que a tela velha (Blade + Delphi) preservava.
 owner: wagner
-last_run: "2026-10-19"
-last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 485 passed (2356 assertions); UC-PEDIT-01 a 09 verdes. Revalidação depois do refactor que passou as seções do formulário para _components/formulario/ (sem mudança de comportamento: HTML e estado do formulário idênticos antes/depois em 3 cenários do Editar no Vitest; o PUT envia os mesmos campos)"
+last_run: "2026-10-21"
+last_run_ci: "PR #9744 (natureza fiscal no Editar, UC-PEDIT-14), 2026-10-21: lane PHP / Pest (Estoque · MySQL), job 119451939591: 533 passed (2508 assertions), com os 4 casos do UC-PEDIT-14 verdes; job Frontend / Vite build 119452570399: 105 testes passaram em 13 arquivos, 32 deles em produto-formulario.test.tsx (UC-PEDIT-11 a 14). Antes: PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 485 passed (2356 assertions); UC-PEDIT-01 a 09 verdes. Revalidação depois do refactor que passou as seções do formulário para _components/formulario/ (sem mudança de comportamento: HTML e estado do formulário idênticos antes/depois em 3 cenários do Editar no Vitest; o PUT envia os mesmos campos)"
 ---
 
 # Casos de Uso & Aceite — Editar produto
@@ -41,6 +41,11 @@ last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 48
 | UC-PEDIT-08 | Desligar as 3 flags continua possível pela Blade (`hidden 0`) | must `[V0]` | par obrigatório do 05/07 + `AR-PROD-051/056` | `ProdutoEditPayloadContratoTest` (Pest) | 🧪 nasce verde — trava o par que o revert do #4994 mostrou ser obrigatório |
 | UC-PEDIT-09 | Editar a origem da mercadoria: grava 0–8, recusa fora da tabela, Blade não zera, outra empresa → 404, e a nota leva a origem | should `[T0]` | `AR-PROD-128` + ADR 0093 | `ProdutoOrigemMercadoriaTest` (Pest) | 🧪 passa no CT 100 |
 | UC-PEDIT-10 | Editar pela tela React não apaga os campos personalizados nem a validade | must | `AR-PROD-003/042` + charter Goal | `ProdutoEditPayloadContratoTest` (Pest) + `produto-editar-preserva.test.tsx` (Vitest) | ⬜ Vitest passa; Pest aguarda a lane |
+| UC-PEDIT-11 | Editar o NCM: grava, apagar volta a sem NCM, fora do formato é recusado, sem mexer não muda, outra empresa → 404 | must `[T0]` | `CU-PROD-16` + ADR 0093 | `CadastroProdutoNcmTest` (Pest) + `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
+| UC-PEDIT-12 | Editar o CEST: grava, apagar volta a sem CEST, fora do formato é recusado, sem mexer não muda, outra empresa → 404 | should `[T0]` | `CU-PROD-16` + ADR 0093 | `CadastroProdutoCestTest` (Pest) + `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
+| UC-PEDIT-13 | Editar peso líquido e dimensões: grava, apagar volta a nulo, inválido é recusado, Blade não muda, outra empresa → 404 | should `[T0]` | `CU-PROD-17` + ADR 0093 | `CadastroProdutoPesoDimensoesTest` (Pest) + `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
+| UC-PEDIT-14 | Ver a natureza fiscal (mercadoria · serviço · a decidir) que o contador decidiu; serviço não recebe o aviso de "sem NCM"; decisão de outra empresa não aparece | should `[T0]` | `CU-PROD-19` + D-NATUREZA + ADR 0093 | `ProdutoNaturezaFiscalCadastroTest` (Pest) + `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
+| UC-PEDIT-15 | Com tipo EAN-13, EAN-8 ou UPC-A, SKU que não vira código de barras válido é avisado; salvar continua liberado | should | `CU-PROD-18` | `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
 
 > ⚠️ **UC-PEDIT-01/02/04 DEIXARAM de ser stub em 2026-09-18** — viraram Pest de comportamento no
 > `ProdutoEditContratoTest` (o arquivo que esta nota mandava usar), com `PUT` real, `actingAs` e
@@ -152,6 +157,47 @@ last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 48
 - **Regressão que defende:** o `update()` grava `''` em todo `product_custom_fieldN` (1 a 20) que não vem no request e, com `business.enable_product_expiry` ligado, zera `expiry_period`/`expiry_period_type` que não vêm. A tela mandava só os campos 1 a 4 e nenhuma validade. **O servidor não mudou de propósito:** o Blade só envia os campos personalizados que têm nome, então "ausência preserva" mudaria o Blade, a tela que roda em produção (a mesma armadilha do §Diagnóstico do remédio abaixo). A correção é a tela mandar tudo.
 - **Status: ⬜ Vitest passa (3 de 3) e morde:** com o `Edit.tsx` do `main` os 3 casos caem por asserção (`expected '' to be 'Ref. interna'`, `expected undefined to be '12'`). O Pest aguarda a lane `Estoque · MySQL`.
 
+---
+
+## UC-PEDIT-11 · Editar o NCM · `must` `[T0]`
+- **Persona:** quem corrige o cadastro de uma mercadoria que vai em nota fiscal. O NCM entrou no Novo produto (`UC-PCAD-13` do `Create.casos.md`); sem ele no Editar, o produto antigo só podia ganhar NCM pela tela de Tributação.
+- **Aceite:** Dado um produto · Quando abro o Editar · Então o campo NCM mostra o NCM gravado, só com dígitos (`4911.10.90` aparece `49111090`) · E, se mudo o NCM e salvo, ele grava · E, se apago o NCM e salvo, o produto volta para "sem NCM" (o `'0'` da coluna) · E um NCM fora do formato é recusado **sem gravar nada** · E, se **não mexo** no NCM, o envio não leva o campo e o NCM gravado fica como estava — mesmo um NCM antigo fora do formato, que mostra o aviso *"O NCM tem 8 dígitos."* mas não impede salvar outro campo · E salvar pelo Blade (que não manda o campo) não muda o NCM · E editar o NCM de produto de outra empresa devolve **404** sem gravar.
+- **Teste:** [`CadastroProdutoNcmTest`](../../../../tests/Feature/Produto/CadastroProdutoNcmTest.php) — `UC-PEDIT-11` (o servidor: grava, apagar, sem o campo, fora do formato, outra empresa, e o `edit()` entregando o NCM) · [`produto-formulario.test.tsx`](../../../../tests/js/produto-formulario.test.tsx) — `UC-PEDIT-11` (a tela: só dígitos, sem mexer não envia, NCM antigo fora do formato não barra, alterar envia, apagar envia vazio).
+- **Contrato:** `CU-PROD-16` do [SDD](../../../../memory/requisitos/Produto/SDD-tela-cadastro-produto-v1.0.md) (decisão [M] 2026-10-20: o NCM entra no cadastro, sem ser obrigatório) + ADR 0093. O "sem mexer não envia" segue a mesma lição do UC-PEDIT-05/07/09: o `update()` atende o Blade e a tela React, e campo ausente não pode mudar o que está gravado.
+- **Status: 🧪** — escrito junto do código, sem veredito da lane `PHP / Pest (Estoque · MySQL)` nem do job `Frontend / Vite build` (G-7).
+
+---
+
+## UC-PEDIT-12 · Editar o CEST · `should` `[T0]`
+- **Persona:** quem corrige o cadastro de uma mercadoria com substituição tributária.
+- **Aceite:** Dado um produto · Quando abro o Editar · Então o campo CEST mostra o CEST gravado, só com dígitos (`28.038.00` aparece `2803800`) · E, se mudo o CEST e salvo, ele grava · E, se apago o CEST e salvo, o produto fica sem CEST (coluna nula) · E um CEST fora do formato é recusado **sem gravar nada** · E, se **não mexo** no CEST, o envio não leva o campo e o CEST gravado fica como estava, mesmo um CEST antigo fora do formato · E salvar pelo Blade (que não manda o campo) não muda o CEST · E editar o CEST de produto de outra empresa devolve **404** sem gravar.
+- **Teste:** [`CadastroProdutoCestTest`](../../../../tests/Feature/Produto/CadastroProdutoCestTest.php) — `UC-PEDIT-12` (o servidor: grava, apagar, sem o campo, fora do formato, outra empresa, e o `edit()` entregando o CEST) · [`produto-formulario.test.tsx`](../../../../tests/js/produto-formulario.test.tsx) — `UC-PEDIT-12` (a tela: mostra só dígitos e, sem mexer, não envia; alterar envia; apagar envia vazio).
+- **Contrato:** `CU-PROD-16` do [SDD](../../../../memory/requisitos/Produto/SDD-tela-cadastro-produto-v1.0.md) + Convênio ICMS 142/2018, cláusula sexta + ADR 0093. Mesma regra do `UC-PEDIT-11` (NCM): o `update()` atende o Blade e a tela React, e campo ausente não muda o que está gravado.
+- **Status: 🧪** — escrito junto do código, sem veredito da lane `PHP / Pest (Estoque · MySQL)` nem do job `Frontend / Vite build` (G-7).
+
+---
+
+## UC-PEDIT-13 · Editar peso líquido e dimensões · `should` `[T0]`
+- **Persona:** quem corrige o cadastro de um produto que vai ser despachado.
+- **Aceite:** Dado um produto · Quando abro o Editar · Então "Mais opções" mostra o "Peso bruto (kg)" de sempre e o peso líquido, a largura, a altura e o comprimento gravados · E, se mudo e salvo, grava · E, se apago um campo e salvo, ele volta a nulo · E um valor inválido (negativo, texto, acima de 99999) é recusado **sem gravar nada** · E salvar pelo Blade (que não manda os campos) não muda o que está gravado · E editar produto de outra empresa devolve **404** sem gravar.
+- **Teste:** [`CadastroProdutoPesoDimensoesTest`](../../../../tests/Feature/Produto/CadastroProdutoPesoDimensoesTest.php) — `UC-PEDIT-13` (o servidor: grava, apagar, Blade, inválido, outra empresa, e o `edit()` entregando os valores) · [`produto-formulario.test.tsx`](../../../../tests/js/produto-formulario.test.tsx) — `UC-PEDIT-13` (a tela: mostra e devolve os valores; apagar envia vazio).
+- **Contrato:** `CU-PROD-17` do [SDD](../../../../memory/requisitos/Produto/SDD-tela-cadastro-produto-v1.0.md) + ADR 0093. A tela sempre manda os quatro campos (são colunas novas, sem dado antigo fora do formato); o Blade não manda, e campo ausente não muda o que está gravado.
+- **Status: 🧪** — escrito junto do código, sem veredito da lane `PHP / Pest (Estoque · MySQL)` nem do job `Frontend / Vite build` (G-7).
+
+## UC-PEDIT-14 · Ver a natureza fiscal do produto · `should` `[T0]`
+- **Persona:** quem corrige o cadastro de um produto que tanto pode ser vendido como mercadoria quanto como serviço (arte, instalação, impressão sob encomenda).
+- **Aceite:** Dado um produto cuja natureza o contador já decidiu na Tributação · Quando abro o Editar · Então "Preço & Imposto" mostra "Natureza fiscal: Serviço" (com o item da LC 116), "Mercadoria" ou "A decidir pelo contador" · E diz que quem decide é o contador, com o link "Ver na Tributação" para quem tem acesso · E, se é serviço e o NCM está vazio, **não** aparece o aviso de "sem NCM" (nota de serviço não leva NCM) · E NCM fora do formato continua avisado · E produto sem decisão não mostra a natureza · E uma decisão gravada com o `business_id` de outra empresa não aparece.
+- **Teste:** [`ProdutoNaturezaFiscalCadastroTest`](../../../../tests/Feature/Produto/ProdutoNaturezaFiscalCadastroTest.php) — `UC-PEDIT-14` (o servidor: serviço com item, mercadoria, sem decisão, decisão de outra empresa) · [`produto-formulario.test.tsx`](../../../../tests/js/produto-formulario.test.tsx) — `UC-PEDIT-14` (a tela: serviço sem aviso de NCM, mercadoria com aviso, formato errado avisado, sem decisão).
+- **Contrato:** `CU-PROD-19` do [SDD](../../../../memory/requisitos/Produto/SDD-tela-cadastro-produto-v1.0.md) + D-NATUREZA ([W] 2026-10-06: o contador decide, por produto, com fonte registrada) + ADR 0093. O cadastro **só mostra**: não grava natureza. O núcleo pede o dado ao módulo fiscal pelo gancho `getModuleData('produto_natureza_fiscal')`, que só responde se o NfeBrasil estiver instalado; sem o módulo, a natureza não aparece e o aviso de NCM fica como era.
+- **Status: 🧪** — escrito junto do código, sem veredito da lane `PHP / Pest (Estoque · MySQL)` nem do job `Frontend / Vite build` (G-7).
+
+## UC-PEDIT-15 · SKU que não vira código EAN válido é avisado · `should`
+- **Persona:** quem corrige o cadastro de uma mercadoria que tem etiqueta com código de barras.
+- **Aceite:** Dado um produto com tipo de código de barras EAN-13, EAN-8 ou UPC-A · Quando abro o Editar ou mudo o SKU · Então, se o SKU tem letra ou símbolo, dígitos demais ou o último dígito errado, aparece o aviso embaixo do tipo de código de barras · E salvar continua liberado · E com Code 128 o mesmo SKU não avisa.
+- **Teste:** [`produto-formulario.test.tsx`](../../../../tests/js/produto-formulario.test.tsx) — `UC-PEDIT-15` (SKU com letra num produto EAN-13 avisa; com Code 128 não).
+- **Contrato:** `CU-PROD-18` do [SDD](../../../../memory/requisitos/Produto/SDD-tela-cadastro-produto-v1.0.md). A regra é a mesma do `UC-PCAD-17` (`Create.casos.md`): a etiqueta recusa esses códigos; a nota fiscal não usa o código hoje.
+- **Status: 🧪** — escrito junto do código, sem veredito do job `Frontend / Vite build` (G-7).
+
 ## Diagnóstico do remédio (2026-07-29) — a correção óbvia é a errada
 
 > ## ⚠️ DESFECHO (2026-09-18): a Via B foi ADOTADA — **com a compensação que faltava**
@@ -262,6 +308,7 @@ Nenhuma das vias altera linha existente: o efeito é só sobre edições futuras
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **Editar produto simples grava os campos do cabeçalho** — o caminho feliz óbvio; vira UC quando o Pest `ProdutoEditContratoTest` cobrir o happy-path (hoje só cobre o cross-tenant; o resto seria tautológico contra o `.tsx`).
+- **Locais de armazenagem e endereço no estoque** — `CU-PROD-20`, pedido da [M] em 2026-10-22, só no protótipo. No Editar: a quantidade aparece como "Em estoque", só leitura (muda por compra, venda, ajuste ou transferência, nunca pelo cadastro), e local com saldo não pode ser tirado. Vira UC quando a tela tiver o bloco e um teste que o cite; decidido em 2026-10-22: endereço em prateleira, fileira e posição, e as duas seções ficam; o local padrão é o local sugerido; a venda continua baixando do local da venda.
 - **Editar Custo/Valor/Margem** (`AR-PROD-006..008`) — só quando a aba Custos existir em git ([F], #4403) e sob a REGRA MESTRE `[V0]`.
 - **[V0] risco a verificar — preço-zero no update via React** (achado lateral do adversário 2026-07-24): `update()` só parseia preço no ramo `type=='single'` lendo `single_dpp` de `$request->only([...])`; a Edit.tsx (`useForm`) **não manda** `single_dpp` → chave ausente → `num_uf(null)` → **potencial gravação de preço 0** (mesmo eixo `[V0]` do incidente ×100k). NÃO afirmado como bug — precisa ler `num_uf(null)` + dupla-confirmação (REGRA MESTRE) + decisão [W]/[F]. Vira UC/US quando investigado (não corrigir cego).
 

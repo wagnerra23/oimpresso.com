@@ -12,18 +12,21 @@ import {
 import { OrigemMercadoriaField } from '../OrigemMercadoriaField';
 import { CamposPreco } from './CamposPreco';
 import { CampoNcm } from './CampoNcm';
+import { CampoCest } from './CampoCest';
+import { NaturezaFiscal } from './NaturezaFiscal';
 import type { PrecoSimples } from './precos';
-import type { CamposProduto, DefinirCampo, ErrosProduto, ModoFormulario, OpcoesProduto } from './tipos';
+import type { CamposProduto, DefinirCampo, ErrosProduto, NaturezaFiscalProduto, OpcoesProduto } from './tipos';
 import { opcoesDe } from './tipos';
 
 interface Props {
-  modo: ModoFormulario;
   data: CamposProduto;
   definir: DefinirCampo;
   errors: ErrosProduto;
   opcoes: OpcoesProduto;
   /** Novo produto simples: o preço. Sem ele (Editar, variável, composto) o card não mostra preço. */
   preco?: { valor: PrecoSimples; mudar: (p: PrecoSimples) => void; aliquota: number };
+  /** Editar: a natureza fiscal decidida pelo contador (UC-PEDIT-14). */
+  naturezaFiscal?: NaturezaFiscalProduto | null;
 }
 
 /**
@@ -32,7 +35,7 @@ interface Props {
  */
 const SEM_IMPOSTO = 'sem-imposto';
 
-export function BlocoPrecoImposto({ modo, data, definir, errors, opcoes, preco }: Props) {
+export function BlocoPrecoImposto({ data, definir, errors, opcoes, preco, naturezaFiscal }: Props) {
   return (
     <Card>
       <CardHeader>
@@ -73,10 +76,14 @@ export function BlocoPrecoImposto({ modo, data, definir, errors, opcoes, preco }
             </SelectContent>
           </Select>
         </div>
-        {/* NCM só no Novo: o Editar ainda não grava o NCM (o update() não lê o campo). */}
-        {modo === 'novo' && (
-          <CampoNcm value={data.ncm ?? ''} onChange={(v) => definir('ncm', v)} error={errors.ncm} />
-        )}
+        <CampoNcm
+          value={data.ncm ?? ''}
+          onChange={(v) => definir('ncm', v)}
+          error={errors.ncm}
+          servico={naturezaFiscal?.natureza === 'servico'}
+        />
+        <CampoCest value={data.cest ?? ''} onChange={(v) => definir('cest', v)} error={errors.cest} />
+        {naturezaFiscal && <NaturezaFiscal natureza={naturezaFiscal} />}
         <OrigemMercadoriaField
           value={data.origem_mercadoria}
           onChange={(v) => definir('origem_mercadoria', v)}

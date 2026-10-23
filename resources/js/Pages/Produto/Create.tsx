@@ -16,6 +16,7 @@ import { definidorDe, opcoesDe, tipoSemEditor } from './_components/formulario/t
 import type { OptionMap, OptionStringMap } from './_components/formulario/tipos';
 import { aliquotaDoImposto, camposDePreco, precoInicial } from './_components/formulario/precos';
 import { ncmDoCadastro } from './_components/formulario/ncm';
+import { cestDoCadastro } from './_components/formulario/cest';
 
 const ADVANCED_OPEN_KEY = 'oimpresso.produto.create.advanced.open';
 
@@ -35,6 +36,11 @@ interface ProdutoDuplicate {
   tax_type: 'inclusive' | 'exclusive' | null;
   origem_mercadoria?: number;
   ncm?: string | null;
+  cest?: string | null;
+  peso_liquido?: number | string | null;
+  largura_cm?: number | string | null;
+  altura_cm?: number | string | null;
+  comprimento_cm?: number | string | null;
   barcode_type: string | null;
   sku: string;
   alert_quantity: number | null;
@@ -90,11 +96,18 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
     origem_mercadoria: dup?.origem_mercadoria ?? 0,
     // UC-PCAD-13: o NCM só com dígitos; o '0' que o banco grava para "sem NCM" vira vazio.
     ncm: ncmDoCadastro(dup?.ncm),
+    // UC-PCAD-15: o CEST só com dígitos.
+    cest: cestDoCadastro(dup?.cest),
     barcode_type: dup?.barcode_type ?? props.barcodeDefault,
     enable_stock: 1,
     not_for_selling: 0,
     alert_quantity: dup?.alert_quantity ?? '',
     weight: dup?.weight ?? '',
+    // UC-PCAD-16: peso líquido e dimensões, opcionais.
+    peso_liquido: dup?.peso_liquido ?? '',
+    largura_cm: dup?.largura_cm ?? '',
+    altura_cm: dup?.altura_cm ?? '',
+    comprimento_cm: dup?.comprimento_cm ?? '',
     product_description: dup?.product_description ?? '',
     sub_unit_ids: [] as number[],
     // Um local só: já vem marcado, como no Blade (`$default_location`). Mais de um: quem cadastra escolhe.
