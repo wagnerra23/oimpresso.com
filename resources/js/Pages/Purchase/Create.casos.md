@@ -408,6 +408,41 @@ Status: 🧪
 - `[BACKLOG]` **Schema 2D nativo.** O charter marca como Non-Goal (*"NÃO cria/edita produto pra montar
   2 eixos nativos — precisaria ADR de schema"*). Fica fora até existir a ADR.
 
+## Entrada de notas e unidade da compra (pedido de 2026-10-23)
+
+> Casos sem id: entram quando tiverem teste. Hoje o SPED (`Fiscal/Sped.casos.md`) gera só as notas
+> emitidas pela empresa: `SpedIcmsIpiGeneratorService` monta C100/C170/C190 a partir das emissões, e o
+> próprio backlog do SPED lista as entradas como fora do escopo. Os registros citados abaixo são do
+> leiaute da EFD ICMS/IPI; o que entra e como é decisão do contador.
+
+- `[BACKLOG]` **Compra com unidade de medida diferente da cadastrada** `[V0]` `[E0]` — Dado o produto
+  cadastrado em m² e o fornecedor que vende em rolo de 50 m², Quando lanço a compra de 2 rolos,
+  Então o estoque entra com 100 m², o custo fica por m² (valor do rolo dividido por 50) e a nota
+  continua mostrando "2 rolos". A conversão fica lembrada para aquele fornecedor e produto, e vale
+  também na nota importada pelo XML. Hoje a tela antiga (Blade) aceita as subunidades do produto
+  (`sub_unit`, com o multiplicador do cadastro); a compra React não tem a escolha da unidade.
+- `[BACKLOG]` **Notas de compra entram no SPED** `[V0]` — Dado uma compra lançada com a nota do
+  fornecedor (modelo 55), Quando gero o SPED da competência, Então a nota sai como entrada (C100 com
+  indicador de entrada, C170 e C190), com o crédito de ICMS que o regime da empresa permitir. Hoje o
+  SPED não traz nenhuma entrada.
+- `[BACKLOG]` **Nota de energia elétrica entra no SPED** `[V0]` — Dado a conta de energia da empresa
+  (modelo 06 ou 66), Quando lanço a nota na entrada com valor, base e ICMS, Então ela sai no SPED da
+  competência nos registros C500 e C590, sem mexer em estoque. Hoje a conta pode entrar como despesa,
+  sem os dados fiscais da nota, e o SPED não tem esse registro.
+- `[BACKLOG]` **Nota de comunicação entra no SPED** `[V0]` — Dado a conta de telefone e internet
+  (modelo 21, 22 ou 62), Quando lanço a nota na entrada, Então ela sai no SPED nos registros D500 e
+  D590, sem mexer em estoque. Hoje a conta pode entrar como despesa, sem os dados fiscais da nota, e o
+  SPED não tem esse registro.
+- `[BACKLOG]` **CT-e do frete entra no SPED** `[V0]` — Dado o CT-e (modelo 57) do frete de uma compra,
+  Quando o lanço na entrada ligado à nota da compra, Então ele sai no SPED nos registros D100 e D190, e
+  o valor do frete pode compor o custo dos itens da compra. Hoje o CT-e não é lançado e o SPED não tem
+  o bloco D.
+- `[BACKLOG]` **Entrada de nota de serviço** `[V0]` — Dado a NFS-e de um prestador com ISS retido,
+  Quando a lanço como entrada de serviço, Então nasce a conta a pagar pelo valor líquido, o ISS retido
+  fica registrado como imposto a recolher, nada entra no estoque e a nota aparece nas notas de entrada.
+  As demais retenções (IR, PIS, COFINS, CSLL e INSS) seguem a mesma linha. Hoje não há entrada de nota
+  de serviço; em que obrigação ela sai é decisão do contador.
+
 ---
 
 ## ⚠️ Divergências que precisam de [W] (não corrigidas aqui — são INTENÇÃO)
