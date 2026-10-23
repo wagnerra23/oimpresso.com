@@ -117,7 +117,11 @@ class AppApontamentoController extends Controller
         ]);
     }
 
-    /** GET /api/app/producao/etiqueta/{codigo} — QR `oimpresso:p:<hash>:<os_tipo>:<os_id>` (ou o antigo sem tipo) ou número digitado. */
+    /**
+     * GET /api/app/producao/etiqueta/{codigo} — QR `oimpresso:p:<hash>:<os_tipo>:<os_id>` (ou o antigo sem tipo) ou número
+     * digitado. O QR da etapa (sufixo `:e<programacao_id>`, etiqueta térmica) abre aquela etapa; etapa que não é desta OS
+     * ou já encerrou → o mesmo 404 de "não existe".
+     */
     public function etiqueta(Request $request, string $codigo): JsonResponse
     {
         $user = $request->user();
@@ -126,13 +130,15 @@ class AppApontamentoController extends Controller
         }
         $bizId = (int) $user->business_id;
 
-        $osId = $this->osDoCodigo($bizId, trim(rawurldecode($codigo)), true);
+        $codigo = trim(rawurldecode($codigo));
+        $osId = $this->osDoCodigo($bizId, $codigo, true);
         if ($osId instanceof JsonResponse) {
             return $osId;
         }
+        $etapaId = EtiquetaProducao::ler($codigo, $bizId)['programacao_id'] ?? null;
 
-        return $this->recusavel(function () use ($bizId, $user, $osId) {
-            $r = $this->apontamento->resolverQr($bizId, (int) $user->id, self::OS_TIPO, $osId);
+        return $this->recusavel(function () use ($bizId, $user, $osId, $etapaId) {
+            $r = $this->apontamento->resolverQr($bizId, (int) $user->id, self::OS_TIPO, $osId, $etapaId);
 
             return response()->json([
                 'pedido' => $this->pedido($bizId, $osId),

@@ -35,6 +35,10 @@ beforeEach(function () {
     Carbon::setTestNow(APT_DIA.' 10:00:00');
     $this->b98 = (int) $this->seededTenant()->id;
     $this->b99 = aptBiz99();
+    // O fim do turno vem do calendário (pcp_turnos → expediente do RH → 08h–18h): o caso fixa o turno
+    // da produção em 08h–18h para não depender do RH que o seed der à empresa 98.
+    DB::table('pcp_turnos')->where('business_id', $this->b98)->delete();
+    DB::table('pcp_turnos')->insert(['business_id' => $this->b98, 'inicio' => '08:00:00', 'fim' => '18:00:00', 'created_at' => now(), 'updated_at' => now()]);
     $this->diego = aptUsuario($this->b98, 'diego');
     $this->felipe = aptUsuario($this->b98, 'felipe');
     $this->svc = app(ApontamentoOperadorService::class);

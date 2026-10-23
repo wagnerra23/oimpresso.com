@@ -178,11 +178,11 @@ lifecycle: ativo
 | `typecheck-gate.yml` | pr+push+manual | — | TypeScript (ratchet vs baseline) — catraca de erros do `tsc --noEmit` por par arquivo\|codigoTS vs config/typecheck-baseline.json. Congela o debito atual e reprova so REGR… |
 | `ui-architecture-gate.yml` | pr+push+manual | `memory/decisions/0271-revisao-gates-ci-estado-real-required-e-subtracao-segura.md` +12 | UI architecture gate |
 | `verticais-pest.yml` | pr+push+manual | `memory/requisitos/Producao/SPEC.md` +17 | Verticais · Pest (MySQL) — ComunicacaoVisual/Repair/Vestuario rodam no MySQL real (skip no sqlite = verde mente); catraca allowlist verde |
-| `visual-regression.yml` | pr+manual | `memory/decisions/0411-snapshot-de-pixel-fora-do-passo-3-da-0409.md` +152 | Visual Regression (Pest 4 Browser) |
+| `visual-regression.yml` | pr+manual | `memory/decisions/0411-snapshot-de-pixel-fora-do-passo-3-da-0409.md` +153 | Visual Regression (Pest 4 Browser) |
 | `whatsapp-pest.yml` | pr+push+manual | `memory/requisitos/AppMobile/api/tela-41-atendimento.md` +2 | Whatsapp · Pest (MySQL) |
 | `xss-content-gate.yml` | pr+push | — | XSS content ratchet (.tsx · dSIH + scheme · funde dsih-gate + scheme-gate · oráculo de conteúdo) |
 
-## 2. Hooks (PreToolUse/PostToolUse/SessionStart) — 54 arquivos
+## 2. Hooks (PreToolUse/PostToolUse/SessionStart) — 52 arquivos
 
 > Fonte viva com evento×matcher×sinal-de-bloqueio: **`.claude/hooks/_HOOKS-INDEX.md`** (auto-gerado).
 >
@@ -216,16 +216,14 @@ lifecycle: ativo
 | `charter-validate.mjs` | PreToolUse(Write\|Edit\|MultiEdit) | test + hook-bites | `memory/decisions/0433-fonte-do-prototipo-passa-ao-git.md` +17 | PreToolUse:Write\|Edit\|MultiEdit (PORTE cross-plataforma do .ps1, advisory). |
 | `check-skills-fresh.mjs` | SessionStart(*) | test | (só sessão/handoff · 1) | SessionStart (PORTE cross-plataforma do .ps1, advisory). |
 | `commit-discipline-check.mjs` | PreToolUse(Bash) | test + hook-bites | `memory/decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md` +7 | PreToolUse:Bash (PORTE cross-plataforma do .ps1). |
-| `design-agente-ativa.mjs` | UserPromptSubmit(*) | — | `memory/proibicoes.md` +8 | ativa no momento a política do designer-agente v2. |
+| `design-agente-ativa.mjs` | UserPromptSubmit(*) | — | `memory/decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md` +9 | ativa no momento a política do designer-agente v2. |
 | `design-compare-protocol.mjs` | UserPromptSubmit(*) | — | `memory/proibicoes.md` +11 | Hook UserPromptSubmit — ATIVA o protocolo de comparação design×prod (LC-06, strike 2). |
-| `design-handoff-reprocess.mjs` | UserPromptSubmit(*) | test | `.claude/skills/design-memoria-reprocess/SKILL.md` +1 | Hook design-handoff-reprocess — detecta o bloco `## new_design_memories` num |
 | `diag-pretooluse-trace.mjs` | PreToolUse(Skill\|DesignSync\|design-login) | — | `memory/decisions/0315-design-sync-claude-design-vs-cowork-charter.md` +3 | INSTRUMENTO DE DIAGNÓSTICO (NÃO é um gate). |
 | `doc-fora-do-rag.mjs` | PreToolUse(Write) | test | `memory/reference/como-escrever-doc-para-o-rag.md` +5 | PreToolUse:Write. ADVISORY (nunca bloqueia). |
 | `ds-preview-materialize.mjs` | SessionStart(*) | test | — | Hook SessionStart — reporta quantas refs `_ds/` o shell do espelho carrega. |
 | `force-r12-closing-signal.mjs` | UserPromptSubmit(*) | — | `memory/decisions/0234-automation-registry-mcp.md` +8 | Hook UserPromptSubmit — FORÇA R12 PROTOCOLO ao detectar sinal de fechamento. |
 | `git-base-freshness-guard.mjs` | SessionStart(*) | test | `memory/reference/prototipo-ui/PROTOCOL.md` +15 | Hook SessionStart — GUARD de base fresca vs `origin/main`. |
 | `handoff-inline.mjs` | SessionStart(*) | test | `memory/08-handoff.md` +1 | SessionStart (PORTE cross-plataforma do comando PowerShell INLINE do settings.json). |
-| `lembrar-subida-cowork.mjs` | PostToolUse(Bash) | test | `memory/decisions/0433-fonte-do-prototipo-passa-ao-git.md` +1 | PostToolUse:Bash. Depois de `gh pr create` ou `git push`, se o |
 | `licoes-code-two-strikes.mjs` | SessionStart(*) | test | `memory/decisions/0391-regime-de-evolucao-por-loops-blade-fora.md` +25 | SessionStart (PORTE cross-plataforma do .ps1, advisory). |
 | `loop-fechar-check.mjs` | SessionStart(*) | test | `memory/decisions/0391-regime-de-evolucao-por-loops-blade-fora.md` +11 | SessionStart (PORTE cross-plataforma do .ps1, advisory). |
 | `maquinas-inventario-no-commit.mjs` | PreToolUse(Bash) | test | `memory/reference/FLUXO-MAQUINAS.md` +5 | o INVOCADOR do `--write` (PreToolUse · Bash · `git commit`) |
@@ -512,10 +510,10 @@ lifecycle: ativo
 | `_lib-charter.mjs` | ci, script | 🟢 só lê | test | `memory/decisions/proposals/documentacao-do-fonte-layout-canonico.md` +6 | helpers compartilhados de leitura de charter/bundle. |
 | `analise-regiao.mjs` | ci | 🟢 só lê | — | `memory/reference/prototipo-ui/RUNBOOK-fidelidade-fingerprint.md` | W3 do processo região-a-região: ROTEIA cada região ao crítico certo, |
 | `ancora-guard.mjs` | ci, script | 🟢 só lê | — | `memory/proibicoes.md` +8 | CATRACA: o protótipo tem 1 lugar fixo e nunca troca de lugar. |
-| `ancora.mjs` | agente, ci, script | 🟢 só lê | bite-log | `memory/decisions/0326-trava-ancora-compare-fingerprint.md` +169 | a ÂNCORA de uma tela é COMPUTADA do charter, nunca escolhida no olho. |
+| `ancora.mjs` | agente, ci, script | 🟢 só lê | bite-log | `memory/decisions/0326-trava-ancora-compare-fingerprint.md` +170 | a ÂNCORA de uma tela é COMPUTADA do charter, nunca escolhida no olho. |
 | `consumir-map.mjs` | ci, script | 🔴 disco | — | `memory/requisitos/Financeiro/RUNBOOK-paridade-ondas.md` +19 | o CONSUMO do <tela>.map.json na FASE 4 (sessão limpa de aplicação). |
 | `design-diff-lote.mjs` | ci, script | 🔴 disco | — | `memory/decisions/0433-fonte-do-prototipo-passa-ao-git.md` +30 | DRIVER que transforma "ancorada" em "comparada por SONDA", em lote. |
-| `design-diff.mjs` | agente, ci, script | 🔴 disco | — | `memory/decisions/0408-medicao-de-paridade-agendada-advisory-emenda-0290.md` +55 | comparador DETERMINÍSTICO design(Cowork vivo) × produção, por MEDIÇÃO. |
+| `design-diff.mjs` | agente, ci, script | 🔴 disco | — | `memory/decisions/0408-medicao-de-paridade-agendada-advisory-emenda-0290.md` +56 | comparador DETERMINÍSTICO design(Cowork vivo) × produção, por MEDIÇÃO. |
 | `design-lock.mjs` | ci, script | 🔴 disco | — | `memory/requisitos/_DesignSystem/PROTOCOLO-COMPARACAO-RUNTIME.md` +3 | a FONTE de uma comparação é DECLARADA e PROVADA, nunca resolvida por sorte. |
 | `detectar-telas.mjs` | agente, ci, npm, script | 🟢 só lê | selftest + test | `memory/decisions/0325-import-prototipo-designsync-pull-direto.md` +24 | Fase 0 + 0.5 do protocolo aplicar-prototipo, como MECANISMO. |
 | `ds-guard.mjs` | ci, script | 🟢 só lê | test | `memory/decisions/0293-governanca-decisao-design-responsavel-registro-veredito.md` +37 | DS-GUARD (defesa tipo-forte) · PROCESSO_MEMORIA_CC.md §8 |
@@ -553,8 +551,8 @@ lifecycle: ativo
 | `gerar-payload-partes.mjs` | ci, script | 🔴 disco | test | `memory/decisions/0389-emenda-0374-escrita-do-espelho-quando-o-get-file-volta-inline.md` +18 | emite snapshot/delta Design v2 em partes de até 256 KiB. |
 | `payload-dependency-graph.mjs` | script | 🟢 só lê | test | (só sessão/handoff · 1) | Grafo estático das dependências LOCAIS alcançáveis a partir de um shell HTML. |
 | `pedido.mjs` | agente, npm, script | 🔴 disco | — | `.claude/commands/onda.md` +2 | PR-A7 do protocolo de export: o PEDIDO DE SEÇÃO vira DERIVADO. |
-| `pendentes-cowork.mjs` | agente, script | 🔴 disco | test | `memory/decisions/0412-retorno-canon-mergeado-ao-cowork-dispensa-opt-in-emenda-0315.md` +8 | o sentido Code -> Cowork do ciclo: o que o espelho tem e o Cowork NÃO tem. |
-| `receber-handoff.mjs` | script | 🔴 disco | test | `memory/decisions/0406-o-que-ultimo-importado-decide-emenda-0404.md` +16 | recebe o ZIP de handoff do Cowork e o transforma em import validado. |
+| `pendentes-cowork.mjs` | agente, script | 🔴 disco | test | `memory/decisions/0412-retorno-canon-mergeado-ao-cowork-dispensa-opt-in-emenda-0315.md` +7 | o sentido Code -> Cowork do ciclo: o que o espelho tem e o Cowork NÃO tem. |
+| `receber-handoff.mjs` | script | 🔴 disco | test | `memory/decisions/0406-o-que-ultimo-importado-decide-emenda-0404.md` +17 | recebe o ZIP de handoff do Cowork e o transforma em import validado. |
 | `recibos-ci.mjs` | ci, script | 🟢 só lê | — | — | grava recibo de TESTE (ADR 0384 D-5) em massa a partir de lanes de CI. |
 | `smoke-consumir.mjs` | ci | 🔴 disco | — | `memory/decisions/0390-emenda-0384-smoke-em-ambiente-controlado.md` +2 | transporta o smoke renderizado no CI até o recibo do Design Sync. |
 | `status.mjs` | agente, ci, npm, script | 🟢 só lê | test | `memory/decisions/0390-emenda-0384-smoke-em-ambiente-controlado.md` +18 | painel operacional do último bundle: o que mudou, onde aplicar, o que está bloqueado — e as 2 catracas do funil (`--check-mapping`, `--check-lifecycle`). |
