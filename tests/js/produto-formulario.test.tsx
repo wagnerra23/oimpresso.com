@@ -28,7 +28,9 @@ vi.mock('@inertiajs/react', async () => {
         post: () => {
           enviado.payload = transformar.current(data)
         },
-        put: vi.fn(),
+        put: () => {
+          enviado.payload = transformar.current(data)
+        },
         processing: false,
         errors: {},
       }
@@ -40,6 +42,7 @@ vi.mock('@/Layouts/AppShellV2', () => ({ default: ({ children }: { children: unk
 import ProdutoCreate from '@/Pages/Produto/Create'
 import ProdutoEdit from '@/Pages/Produto/Edit'
 import { opcoesDe } from '@/Pages/Produto/_components/formulario/tipos'
+import { avisoCodigoBarras, digitoVerificadorGtin } from '@/Pages/Produto/_components/formulario/ean'
 
 // As listas como o ProductController@create/@edit as manda (forDropdown com "show none").
 const listasDoServidor = {
@@ -245,15 +248,19 @@ describe('UC-PCAD-13 · UC-PCAD-14 · NCM no Novo produto', () => {
     expect(campoNcm().value).toBe('')
     expect(aviso()).not.toBeNull()
   })
+})
 
-  it('UC-PCAD-13 · Editar não mostra o campo NCM (o update() ainda não grava)', () => {
+// UC-PEDIT-11 — o NCM na tela Editar. A tela mostra o NCM gravado, só com dígitos, e só o manda
+// quando a pessoa mexeu nele: um NCM antigo fora do formato não pode barrar a edição de outro campo.
+describe('UC-PEDIT-11 · NCM no Editar produto', () => {
+  const editar = (ncm: string | null) =>
     render(
       <ProdutoEdit
         {...(listasDoServidor as never)}
         product={{
           id: 9, name: 'Lona 440g', sku: 'LON-440', type: 'single', brandId: 3, unitId: 5,
           subUnitIds: null, categoryId: 1, subCategoryId: null, tax: 1, taxType: 'exclusive',
-          origemMercadoria: 0, barcodeType: 'C128', enableStock: true, alertQuantity: null,
+          origemMercadoria: 0, ncm, barcodeType: 'C128', enableStock: true, alertQuantity: null,
           weight: null, productDescription: null, productLocations: [1], image: null,
           warrantyId: null, camposPersonalizados: {}, expiryPeriod: null, expiryPeriodType: null,
         }}
@@ -261,6 +268,374 @@ describe('UC-PCAD-13 · UC-PCAD-14 · NCM no Novo produto', () => {
         permissions={{ opening_stock: false, delete: false }}
       />,
     )
-    expect(campoNcm()).toBeNull()
+  const campoNcm = () => document.querySelector('#ncm') as HTMLInputElement
+  const aviso = () => screen.queryByTestId('ncm-aviso')
+  const salvar = (container: HTMLElement) => {
+    enviado.payload = null
+    fireEvent.submit(container.querySelector('form#produto-edit-form') as HTMLFormElement)
+    return enviado.payload as Record<string, unknown> | null
+  }
+
+  it('mostra o NCM gravado só com dígitos', () => {
+    editar('4911.10.90')
+    expect(campoNcm().value).toBe('49111090')
+    expect(aviso()).toBeNull()
+  })
+
+  it('sem mexer no NCM, o envio não leva o campo', () => {
+    const { container } = editar('49111090')
+    fireEvent.change(document.querySelector('#name') as HTMLInputElement, { target: { value: 'Lona 440g fosca' } })
+
+    const envio = salvar(container)
+    expect(envio?.name).toBe('Lona 440g fosca')
+    expect(envio && 'ncm' in envio).toBe(false)
+  })
+
+  it('NCM antigo fora do formato avisa, mas não vai no envio se a pessoa não mexer nele', () => {
+    const { container } = editar('4911')
+    expect(aviso()?.textContent).toBe('O NCM tem 8 dígitos.')
+
+    const envio = salvar(container)
+    expect(envio).not.toBeNull()
+    expect(envio && 'ncm' in envio).toBe(false)
+  })
+
+  it('NCM alterado vai no envio', () => {
+    const { container } = editar('49111090')
+    fireEvent.change(campoNcm(), { target: { value: '3926.90.90' } })
+
+    expect(salvar(container)?.ncm).toBe('39269090')
+  })
+
+  it('NCM apagado vai vazio no envio, e a tela avisa', () => {
+    const { container } = editar('49111090')
+    fireEvent.change(campoNcm(), { target: { value: '' } })
+
+    expect(aviso()?.textContent).toContain('Sem NCM a nota fiscal de mercadoria não sai')
+    expect(salvar(container)?.ncm).toBe('')
+  })
+})
+
+// UC-PCAD-15 e UC-PEDIT-12 — o CEST no cadastro. 7 dígitos (Convênio ICMS 142/2018). Só a mercadoria
+// com substituição tributária precisa dele: vazio não avisa; só o CEST incompleto avisa.
+describe('UC-PCAD-15 · UC-PEDIT-12 · CEST no cadastro', () => {
+  const novo = (duplicateProduct: Record<string, unknown> | null = null) =>
+    render(
+      <ProdutoCreate
+        {...(listasDoServidor as never)}
+        barcodeDefault="C128"
+        defaultProfitPercent={25}
+        duplicateProduct={duplicateProduct as never}
+        sellingPriceGroupCount={0}
+        commonSettings={{}}
+        enableExpiry={false}
+        enableLot={false}
+        enableRacks={false}
+      />,
+    )
+  const editar = (cest: string | null) =>
+    render(
+      <ProdutoEdit
+        {...(listasDoServidor as never)}
+        product={{
+          id: 9, name: 'Lona 440g', sku: 'LON-440', type: 'single', brandId: 3, unitId: 5,
+          subUnitIds: null, categoryId: 1, subCategoryId: null, tax: 1, taxType: 'exclusive',
+          origemMercadoria: 0, ncm: '49111090', cest, barcodeType: 'C128', enableStock: true,
+          alertQuantity: null, weight: null, productDescription: null, productLocations: [1],
+          image: null, warrantyId: null, camposPersonalizados: {}, expiryPeriod: null,
+          expiryPeriodType: null,
+        }}
+        subUnits={{}}
+        permissions={{ opening_stock: false, delete: false }}
+      />,
+    )
+  const campoCest = () => document.querySelector('#cest') as HTMLInputElement
+  const aviso = () => screen.queryByTestId('cest-aviso')
+  const salvar = (container: HTMLElement, form: string) => {
+    enviado.payload = null
+    fireEvent.submit(container.querySelector(`form#${form}`) as HTMLFormElement)
+    return enviado.payload as Record<string, unknown> | null
+  }
+
+  it('UC-PCAD-15 · sem CEST não avisa, e o envio leva o campo vazio', () => {
+    const { container } = novo()
+
+    expect(campoCest().value).toBe('')
+    expect(aviso()).toBeNull()
+    expect(salvar(container, 'produto-create-form')?.cest).toBe('')
+  })
+
+  it('UC-PCAD-15 · CEST com pontos vai só com os 7 dígitos', () => {
+    const { container } = novo()
+    fireEvent.change(campoCest(), { target: { value: '28.038.00' } })
+
+    expect(campoCest().value).toBe('2803800')
+    expect(aviso()).toBeNull()
+    expect(salvar(container, 'produto-create-form')?.cest).toBe('2803800')
+  })
+
+  it('UC-PCAD-15 · CEST incompleto avisa que são 7 dígitos', () => {
+    novo()
+    fireEvent.change(campoCest(), { target: { value: '28038' } })
+
+    expect(aviso()?.textContent).toBe('O CEST tem 7 dígitos.')
+  })
+
+  it('UC-PCAD-15 · duplicar traz o CEST do original', () => {
+    novo({
+      id: 21, name: 'Lona 440g', brand_id: null, unit_id: 4, category_id: null, sub_category_id: null,
+      tax: null, tax_type: 'exclusive', origem_mercadoria: 0, ncm: '49111090', cest: '28.038.00',
+      barcode_type: 'C128', sku: 'LON-440', alert_quantity: null, weight: null,
+      product_description: null, type: 'single',
+    })
+    expect(campoCest().value).toBe('2803800')
+  })
+
+  it('UC-PEDIT-12 · mostra o CEST gravado e, sem mexer nele, o envio não leva o campo', () => {
+    const { container } = editar('28.038.00')
+    expect(campoCest().value).toBe('2803800')
+
+    const envio = salvar(container, 'produto-edit-form')
+    expect(envio).not.toBeNull()
+    expect(envio && 'cest' in envio).toBe(false)
+  })
+
+  it('UC-PEDIT-12 · CEST alterado vai no envio', () => {
+    const { container } = editar('2803800')
+    fireEvent.change(campoCest(), { target: { value: '1700100' } })
+
+    expect(salvar(container, 'produto-edit-form')?.cest).toBe('1700100')
+  })
+
+  it('UC-PEDIT-12 · CEST apagado vai vazio no envio', () => {
+    const { container } = editar('2803800')
+    fireEvent.change(campoCest(), { target: { value: '' } })
+
+    expect(salvar(container, 'produto-edit-form')?.cest).toBe('')
+  })
+})
+
+// UC-PCAD-16 e UC-PEDIT-13 — peso líquido e dimensões da embalagem (CU-PROD-17). O "Peso" de
+// sempre passa a se chamar "Peso bruto (kg)"; os quatro campos novos são opcionais.
+describe('UC-PCAD-16 · UC-PEDIT-13 · peso e dimensões no cadastro', () => {
+  const novo = () =>
+    render(
+      <ProdutoCreate
+        {...(listasDoServidor as never)}
+        barcodeDefault="C128"
+        defaultProfitPercent={25}
+        duplicateProduct={null}
+        sellingPriceGroupCount={0}
+        commonSettings={{}}
+        enableExpiry={false}
+        enableLot={false}
+        enableRacks={false}
+      />,
+    )
+  const editar = () =>
+    render(
+      <ProdutoEdit
+        {...(listasDoServidor as never)}
+        product={{
+          id: 9, name: 'Lona 440g', sku: 'LON-440', type: 'single', brandId: 3, unitId: 5,
+          subUnitIds: null, categoryId: 1, subCategoryId: null, tax: 1, taxType: 'exclusive',
+          origemMercadoria: 0, ncm: '49111090', cest: null, barcodeType: 'C128', enableStock: true,
+          alertQuantity: null, weight: 1.6, pesoLiquido: '1.250', larguraCm: '30.00',
+          alturaCm: '20.50', comprimentoCm: '10.00', productDescription: null, productLocations: [1],
+          image: null, warrantyId: null, camposPersonalizados: {}, expiryPeriod: null,
+          expiryPeriodType: null,
+        }}
+        subUnits={{}}
+        permissions={{ opening_stock: false, delete: false }}
+      />,
+    )
+  const campo = (id: string) => document.querySelector(`#${id}`) as HTMLInputElement
+  const salvar = (container: HTMLElement, form: string) => {
+    enviado.payload = null
+    fireEvent.submit(container.querySelector(`form#${form}`) as HTMLFormElement)
+    return enviado.payload as Record<string, unknown> | null
+  }
+
+  it('UC-PCAD-16 · o peso de sempre aparece como peso bruto, e os campos novos existem', () => {
+    novo()
+    expect(document.querySelector('label[for="weight"]')?.textContent).toBe('Peso bruto (kg)')
+    for (const id of ['peso_liquido', 'largura_cm', 'altura_cm', 'comprimento_cm']) {
+      expect(campo(id)).not.toBeNull()
+    }
+  })
+
+  it('UC-PCAD-16 · o envio leva o peso líquido e as dimensões digitados', () => {
+    const { container } = novo()
+    fireEvent.change(campo('peso_liquido'), { target: { value: '1.25' } })
+    fireEvent.change(campo('largura_cm'), { target: { value: '30' } })
+    fireEvent.change(campo('altura_cm'), { target: { value: '20.5' } })
+    fireEvent.change(campo('comprimento_cm'), { target: { value: '10' } })
+
+    const envio = salvar(container, 'produto-create-form')
+    expect(envio?.peso_liquido).toBe('1.25')
+    expect(envio?.largura_cm).toBe('30')
+    expect(envio?.altura_cm).toBe('20.5')
+    expect(envio?.comprimento_cm).toBe('10')
+  })
+
+  it('UC-PCAD-16 · sem preencher, o envio leva os quatro vazios', () => {
+    const { container } = novo()
+    const envio = salvar(container, 'produto-create-form')
+    for (const id of ['peso_liquido', 'largura_cm', 'altura_cm', 'comprimento_cm']) {
+      expect(envio?.[id]).toBe('')
+    }
+  })
+
+  it('UC-PEDIT-13 · o Editar mostra os valores gravados e os devolve no envio', () => {
+    const { container } = editar()
+    expect(campo('peso_liquido').value).toBe('1.250')
+    expect(campo('largura_cm').value).toBe('30.00')
+
+    const envio = salvar(container, 'produto-edit-form')
+    expect(envio?.peso_liquido).toBe('1.250')
+    expect(envio?.altura_cm).toBe('20.50')
+  })
+
+  it('UC-PEDIT-13 · campo apagado vai vazio no envio', () => {
+    const { container } = editar()
+    fireEvent.change(campo('altura_cm'), { target: { value: '' } })
+
+    expect(salvar(container, 'produto-edit-form')?.altura_cm).toBe('')
+  })
+})
+
+// UC-PEDIT-14 — a natureza fiscal no Editar (CU-PROD-19). Quem decide se o produto é mercadoria ou
+// serviço é o contador, na Tributação; o cadastro só mostra. Produto de serviço não leva NCM, então
+// o aviso de "sem NCM" não aparece para ele.
+describe('UC-PEDIT-14 · natureza fiscal no Editar produto', () => {
+  const editar = (naturezaFiscal: Record<string, unknown> | null, ncm: string | null = null) =>
+    render(
+      <ProdutoEdit
+        {...(listasDoServidor as never)}
+        product={{
+          id: 9, name: 'Arte de banner', sku: 'ART-01', type: 'single', brandId: 3, unitId: 5,
+          subUnitIds: null, categoryId: 1, subCategoryId: null, tax: 2, taxType: 'exclusive',
+          origemMercadoria: 0, ncm, barcodeType: 'C128', enableStock: false, alertQuantity: null,
+          weight: null, productDescription: null, productLocations: [1], image: null,
+          warrantyId: null, camposPersonalizados: {}, expiryPeriod: null, expiryPeriodType: null,
+          naturezaFiscal,
+        } as never}
+        subUnits={{}}
+        permissions={{ opening_stock: false, delete: false }}
+      />,
+    )
+  const natureza = () => screen.queryByTestId('natureza-fiscal')
+  const aviso = () => screen.queryByTestId('ncm-aviso')
+
+  it('produto de serviço mostra a natureza e o item da LC 116, e não avisa a falta de NCM', () => {
+    editar({ natureza: 'servico', codigoServico: '24.01', link: '/nfe-brasil/tributacao?produto=9' })
+
+    expect(natureza()?.textContent).toContain('Serviço')
+    expect(natureza()?.textContent).toContain('item 24.01 da LC 116')
+    expect(natureza()?.querySelector('a')?.getAttribute('href')).toBe('/nfe-brasil/tributacao?produto=9')
+    expect(aviso()).toBeNull()
+  })
+
+  it('produto de mercadoria sem NCM continua com o aviso', () => {
+    editar({ natureza: 'mercadoria', codigoServico: null, link: null })
+
+    expect(natureza()?.textContent).toContain('Mercadoria')
+    expect(aviso()?.textContent).toContain('Sem NCM a nota fiscal de mercadoria não sai')
+  })
+
+  it('produto de serviço com NCM no formato errado ainda avisa o formato', () => {
+    editar({ natureza: 'servico', codigoServico: '24.01', link: null }, '4911')
+
+    expect(aviso()?.textContent).toBe('O NCM tem 8 dígitos.')
+  })
+
+  it('produto sem decisão do contador não mostra a natureza', () => {
+    editar(null)
+
+    expect(natureza()).toBeNull()
+    expect(aviso()?.textContent).toContain('Sem NCM a nota fiscal de mercadoria não sai')
+  })
+})
+
+// UC-PCAD-17 e UC-PEDIT-15 — aviso de código de barras EAN/UPC (CU-PROD-18). O código de barras é o
+// SKU. Com EAN-13, EAN-8 ou UPC-A, SKU com letra ou com o último dígito errado não vira etiqueta
+// (milon/barcode v13.1 recusa). O aviso não impede salvar.
+describe('UC-PCAD-17 · UC-PEDIT-15 · aviso de código de barras EAN', () => {
+  it('UC-PCAD-17 · o dígito verificador segue a regra GS1 nos códigos de exemplo', () => {
+    expect(digitoVerificadorGtin('400638133393')).toBe(1) // EAN-13 4006381333931
+    expect(digitoVerificadorGtin('9638507')).toBe(4) // EAN-8 96385074
+    expect(digitoVerificadorGtin('03600029145')).toBe(2) // UPC-A 036000291452
+  })
+
+  it('UC-PCAD-17 · só avisa nos tipos EAN-13, EAN-8 e UPC-A, e nunca com SKU vazio', () => {
+    expect(avisoCodigoBarras('4006381333931', 'EAN13')).toBeNull()
+    expect(avisoCodigoBarras('96385074', 'EAN8')).toBeNull()
+    expect(avisoCodigoBarras('036000291452', 'UPCA')).toBeNull()
+    expect(avisoCodigoBarras('LON-440', 'C128')).toBeNull()
+    expect(avisoCodigoBarras('', 'EAN13')).toBeNull()
+    // Código mais curto: a etiqueta completa com zeros, então não avisa.
+    expect(avisoCodigoBarras('1234', 'EAN13')).toBeNull()
+
+    expect(avisoCodigoBarras('LON-440', 'EAN13')).toContain('só tem números')
+    expect(avisoCodigoBarras('4006381333932', 'EAN13')).toContain('devia ser 1')
+    expect(avisoCodigoBarras('40063813339310', 'EAN13')).toBe('O EAN-13 tem 13 dígitos, e este SKU tem 14.')
+  })
+
+  const novo = () =>
+    render(
+      <ProdutoCreate
+        {...(listasDoServidor as never)}
+        barcodeDefault="EAN13"
+        defaultProfitPercent={25}
+        duplicateProduct={null}
+        sellingPriceGroupCount={0}
+        commonSettings={{}}
+        enableExpiry={false}
+        enableLot={false}
+        enableRacks={false}
+      />,
+    )
+  const campoSku = () => document.querySelector('#sku') as HTMLInputElement
+  const aviso = () => screen.queryByTestId('ean-aviso')
+
+  it('UC-PCAD-17 · no Novo com EAN-13, SKU com dígito errado avisa e o produto é enviado assim mesmo', () => {
+    const { container } = novo()
+    expect(aviso()).toBeNull()
+
+    fireEvent.change(campoSku(), { target: { value: '4006381333932' } })
+    expect(aviso()?.textContent).toContain('O último dígito do EAN-13 não confere com os outros (devia ser 1)')
+
+    enviado.payload = null
+    fireEvent.submit(container.querySelector('form#produto-create-form') as HTMLFormElement)
+    expect((enviado.payload as Record<string, unknown> | null)?.sku).toBe('4006381333932')
+
+    fireEvent.change(campoSku(), { target: { value: '4006381333931' } })
+    expect(aviso()).toBeNull()
+  })
+
+  const editar = (sku: string, barcodeType: string) =>
+    render(
+      <ProdutoEdit
+        {...(listasDoServidor as never)}
+        product={{
+          id: 9, name: 'Lona 440g', sku, type: 'single', brandId: 3, unitId: 5,
+          subUnitIds: null, categoryId: 1, subCategoryId: null, tax: 1, taxType: 'exclusive',
+          origemMercadoria: 0, barcodeType, enableStock: true, alertQuantity: null,
+          weight: null, productDescription: null, productLocations: [1], image: null,
+          warrantyId: null, camposPersonalizados: {}, expiryPeriod: null, expiryPeriodType: null,
+        }}
+        subUnits={{}}
+        permissions={{ opening_stock: false, delete: false }}
+      />,
+    )
+
+  it('UC-PEDIT-15 · no Editar, SKU com letra num produto EAN-13 avisa', () => {
+    editar('LON-440', 'EAN13')
+    expect(aviso()?.textContent).toContain('O EAN-13 só tem números')
+  })
+
+  it('UC-PEDIT-15 · no Editar, o mesmo SKU com Code 128 não avisa', () => {
+    editar('LON-440', 'C128')
+    expect(aviso()).toBeNull()
   })
 })
