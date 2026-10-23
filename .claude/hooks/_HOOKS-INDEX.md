@@ -9,8 +9,8 @@
 > - O dono de "o que é required no merge" é `governance/required-checks-baseline.json` (vigiado por `protection-drift.mjs`) — a seção de gates abaixo é CÓPIA GERADA dele, re-derivada a cada `--write` e conferida pelo `--check`.
 
 ## Resumo
-- **60** wirings em `settings.json` (5 eventos) · **53** arquivos de hook distintos wired
-- **54** arquivos de hook no disco (+46 `*.test.*` — testes, fora da conta de órfãos)
+- **58** wirings em `settings.json` (5 eventos) · **51** arquivos de hook distintos wired
+- **52** arquivos de hook no disco (+44 `*.test.*` — testes, fora da conta de órfãos)
 - Órfãos (arquivo sem wiring): **1** · Fantasmas (wiring sem arquivo): **0**
 - Gates CI no baseline: **47** classic + **1** ruleset → ponto-de-corte merge
 
@@ -64,7 +64,6 @@
 | PreToolUse | `Artifact` | vista-publicada-padrao.mjs | node | ferramenta (pré-uso do matcher) | — |
 | PreToolUse | `Write` | doc-fora-do-rag.mjs | node | geração (pré-Write/Edit) | — |
 | PostToolUse | `Bash` | post-merge-ui-smoke-required.mjs | node | pós-ação (observa, não corta) | exit-2 |
-| PostToolUse | `Bash` | lembrar-subida-cowork.mjs | node | pós-ação (observa, não corta) | — |
 | PostToolUse | `Write/Edit/MultiEdit` | php-syntax-after-write.mjs | node | pós-ação (observa, não corta) | exit-2 |
 | PostToolUse | `Write/Edit` | audit-creates-tasks.mjs | node | pós-ação (observa, não corta) | — |
 | Stop | `*` | memory-pending.mjs | node | fim de turno | — |
@@ -72,7 +71,6 @@
 | Stop | `*` | nudge-diagnosis-without-evidence.mjs | node | fim de turno | — |
 | Stop | `*` | nudge-auditoria-resposta.mjs | node | fim de turno | — |
 | UserPromptSubmit | `*` | force-r12-closing-signal.mjs | node | prompt (pré-turno) | — |
-| UserPromptSubmit | `*` | design-handoff-reprocess.mjs | node | prompt (pré-turno) | — |
 | UserPromptSubmit | `*` | block-figma-without-optin.mjs | node | prompt (pré-turno) | — |
 | UserPromptSubmit | `*` | block-design-sync-without-optin.mjs | node | prompt (pré-turno) | — |
 | UserPromptSubmit | `*` | design-compare-protocol.mjs | node | prompt (pré-turno) | — |
