@@ -13,25 +13,11 @@ tier: B
 
 ## O fluxo obrigatório (nenhum passo é opcional)
 
-0. **A fonte EXISTE no git?** (passo novo — 2026-08-11, e é o que faltava)
-   `node scripts/governance/cowork-mirror-freshness.mjs --live-only <list_files.json>`
-   O `--compare` prova que **o que está no espelho** acompanha o vivo; **nunca** que o espelho
-   **cobre** o vivo. São perguntas diferentes e só esta responde *"o time no git tem a fonte?"*.
-   Medido no dia em que nasceu: **25 de 1310 paths fora do espelho, 14 deles protótipo de tela**
-   — incluindo o `jana-merge.jsx`, citado por 21 sites do repo e não versionado.
-   ⚠️ Faltando a fonte, **NÃO compare** — exporte antes (passo 1b).
-
-1. **Fonte provada primeiro.** `node scripts/governance/cowork-mirror-freshness.mjs --manifest`
-   (v3: âncoras **+ deps de render** do shell) → pull via `DesignSync.get_file` (projeto vivo
-   `019dcfd3-6ef2-7ee6-8512-b1b0e5544e58`) das âncoras + deps globais (`app.jsx` · `styles.css` ·
-   `ds-v6/tokens.css`) + css do módulo → `--compare --check`. `STALE` ⇒ re-exportar ANTES de
-   comparar. Só âncora = cego pra infra (LC-07: o PageHeader roxo do [W] driftou no `app.jsx`
-   e a rodada ficou verde).
-   ⚠️ **Há arquivos HOMÔNIMOS no projeto vivo** (ex.: `jana-merge.jsx` na raiz **e** em
-   `prototipo-ui/cowork/`, com conteúdo DIFERENTE — 943 × 923 linhas). O path canônico é o que
-   o **`cowork` do manifesto** declara, não o que parece mais organizado. Baixar do errado dá
-   `STALE` — e, se você medir um charter contra ele, "corrige" refs que estavam certas
-   (aconteceu em 2026-08-11).
+1. **Fonte = o arquivo do git, resolvido pela máquina.** `node scripts/design/ancora.mjs <Mod/Tela>`
+   diz qual arquivo sob `prototipo-ui/` é a âncora da tela; é ele que se renderiza do lado design.
+   Até 2026-10-23 os passos 0 e 1 desta skill mediam o espelho contra o Cowork vivo
+   (`--live-only`, `--manifest` → `get_file` → `--compare`). A ADR 0438 tirou o Cowork como fonte,
+   e esses modos saíram do `cowork-mirror-freshness` na onda 2c-2.
 
 1b. **A fonte é o arquivo do git — não há rota de download** ([ADR 0438](../../../memory/decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md), 2026-10-23).
    Compare contra o arquivo versionado sob `prototipo-ui/`. Se a âncora não existir no git, ela não
