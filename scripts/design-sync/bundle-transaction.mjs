@@ -1,23 +1,26 @@
 // @ts-check
 /**
- * Aplicação transacional de um bundle Design v2.
+ * Recibos executáveis por tela (ADR 0384 · emenda 0390) — o que sobrou do bundle-transaction.
  *
- * A transação copia os quatro destinos para staging, aplica o delta, verifica o estado-alvo
- * inteiro e só então troca os diretórios. Falha durante a promoção executa rollback dos swaps
- * já feitos; o cache `_ds` é apenas um dos destinos derivados, nunca o estado do protocolo.
+ * Até 2026-10-23 este arquivo também APLICAVA o bundle Design v2 vindo do Cowork: copiava os
+ * destinos para staging, aplicava o delta, verificava e trocava os diretórios. A ADR 0438 D5
+ * tirou a aplicação de bundle/payload (onda 2c-3): o protótipo é escrito direto no git.
+ *
+ * FICA o registro de recibos por tela — comparação, aplicação, teste e smoke — e o relatório
+ * `state/application-report.json`, que o `design-diff-lote`, o `design-smoke-ci`, o
+ * `detectar-telas` e o painel `status.mjs` consomem. A comparação protótipo × produção é
+ * mantida pela ADR 0438 D6, e estes recibos são o estado dela por tela.
+ *
+ * RESÍDUO DECLARADO: o denominador de telas do relatório ainda é o ÚLTIMO bundle promovido
+ * (`state/active-bundle.json`, congelado no handoff 55). Protótipo novo escrito no git não
+ * entra no relatório até o denominador passar a ser derivado da árvore — trabalho próprio,
+ * fora desta onda.
  */
-import {
-  cpSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync, readdirSync, rmdirSync,
-} from 'node:fs';
-import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { basename, dirname, isAbsolute, join, resolve, sep } from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
-import { payloadDependencyGraph, normalizePayloadPath } from './payload-dependency-graph.mjs';
-import { dsRuntimeRelPath } from '../governance/cowork-mirror-freshness.mjs';
-import {
-  aplicarRefDs, changesDigest, createManifest, manifestDigest, roleForPath, sha256,
-  validateBundleParts, validateManifest,
-} from './bundle-contract.mjs';
+import { normalizePayloadPath } from './payload-dependency-graph.mjs';
+import { roleForPath, sha256, validateManifest } from './bundle-contract.mjs';
 import { buildManifest as detectarTelas } from '../../scripts/design/detectar-telas.mjs';
 import { verificarMapa } from '../governance/design-code-map-check.mjs';
 
@@ -43,80 +46,11 @@ export function pathsForOwner(owner = 'Wagner') {
  */
 export const SMOKE_HOSTS = ['producao', 'staging-ct100', 'ci'];
 
-const BINARY = /\.(?:woff2?|ttf|otf|eot|png|jpe?g|gif|webp|avif|ico|pdf|mp4|webm|zip)$/i;
-
 function resolveInside(root, path) {
   const absRoot = resolve(root);
   const abs = resolve(root, path);
   if (abs !== absRoot && !abs.startsWith(absRoot + sep)) throw new Error(`path sai do root da transação: ${path}`);
   return abs;
-}
-
-function targetForLogical(path, roots) {
-  const rel = normalizePayloadPath(path);
-  if (roleForPath(rel) === 'preview-cache') return { key: 'runtime', rel: dsRuntimeRelPath(rel), root: roots.runtime };
-  return { key: 'cowork', rel, root: roots.cowork };
-}
-
-function assertTransient(path, target, kind) {
-  const parent = dirname(target);
-  const name = basename(path);
-  const expected = `.${basename(target)}.${kind}-`;
-  if (dirname(path) !== parent || !name.startsWith(expected)) throw new Error(`recusa remover path transitório fora do contrato: ${path}`);
-}
-
-function removeTransient(path, target, kind) {
-  if (!existsSync(path)) return;
-  assertTransient(path, target, kind);
-  rmSync(path, { recursive: true, force: true });
-}
-
-function makeStages(root, paths, id) {
-  const roots = Object.fromEntries(Object.entries(paths).map(([key, rel]) => [key, resolveInside(root, rel)]));
-  const entries = Object.entries(roots).map(([key, target]) => {
-    const parent = dirname(target);
-    mkdirSync(parent, { recursive: true });
-    const stage = join(parent, `.${basename(target)}.stage-${id}`);
-    const backup = join(parent, `.${basename(target)}.backup-${id}`);
-    removeTransient(stage, target, 'stage');
-    removeTransient(backup, target, 'backup');
-    if (existsSync(target)) cpSync(target, stage, { recursive: true, force: false, errorOnExist: true });
-    else mkdirSync(stage, { recursive: true });
-    return { key, target, stage, backup, originalExists: existsSync(target) };
-  });
-  return { roots, entries, staged: Object.fromEntries(entries.map((entry) => [entry.key, entry.stage])) };
-}
-
-function cleanStages(entries) {
-  for (const entry of entries) {
-    removeTransient(entry.stage, entry.target, 'stage');
-    removeTransient(entry.backup, entry.target, 'backup');
-  }
-}
-
-function promote(entries, failAfterSwap = 0) {
-  const swapped = [];
-  try {
-    for (const entry of entries) {
-      if (entry.originalExists) renameSync(entry.target, entry.backup);
-      renameSync(entry.stage, entry.target);
-      swapped.push(entry);
-      if (failAfterSwap && swapped.length === failAfterSwap) throw new Error(`falha injetada após swap ${failAfterSwap}`);
-    }
-    for (const entry of swapped) removeTransient(entry.backup, entry.target, 'backup');
-  } catch (error) {
-    for (const entry of [...swapped].reverse()) {
-      if (existsSync(entry.target)) {
-        const failed = join(dirname(entry.target), `.${basename(entry.target)}.stage-rollback-${process.pid}-${Date.now()}`);
-        renameSync(entry.target, failed);
-        assertTransient(failed, entry.target, 'stage');
-        rmSync(failed, { recursive: true, force: true });
-      }
-      if (entry.originalExists && existsSync(entry.backup)) renameSync(entry.backup, entry.target);
-    }
-    cleanStages(entries);
-    throw error;
-  }
 }
 
 function readState(root, paths) {
@@ -369,275 +303,6 @@ export async function buildApplicationReport({ root, stagedCowork, manifest, pre
     screens,
     manifestFiles: manifest.files,
   };
-}
-
-/** PR-A9 — confere o Design System que o pacote DECLARA precisar.
- *
- *  POR QUE EXISTE ([W] 2026-09-17): a escrita do `_ds/**` ficou barrada (o dono do
- *  `design-system/` e o projeto DS, #7096). Isso e certo, mas deixou o DS fora da escrita **e**
- *  fora da medicao — o import conseguia dizer "aplicado" com o DS ausente ou defasado. Aqui o
- *  prototipo declara contra QUE DS foi medido, e a aplicacao confere. Declara, nunca escreve.
- *
- *  TRES desfechos, e so UM bloqueia — porque so um e decidivel:
- *    ausente      -> RECUSA. O prototipo nao renderiza como foi medido. Fail-closed.
- *    divergente   -> RELATA. O espelho e o DONO e pode estar A FRENTE (foi o caso das fontes
- *                    consertadas aqui e velhas no pacote). sha256 NAO diz direcao — o docblock do
- *                    `cowork-mirror-freshness` ja declara isso —, entao recusar afirmaria o que
- *                    nao se mediu.
- *    igual        -> silencio.
- *
- *  Sem `dsRequires` (pacote legado) o veredito e `NAO MEDIDO`, jamais "sem divergencia": "nao
- *  procurei" nunca compartilha linha com "nao achei" (LC-13).
- *
- *  PURA: recebe o leitor, nao toca fs. */
-export function conferirDsRequires(dsRequires, lerDoEspelho) {
-  if (!dsRequires) return { medido: false, ausentes: [], divergentes: [], iguais: 0, total: 0 };
-  const ausentes = [];
-  const divergentes = [];
-  let iguais = 0;
-  for (const item of dsRequires.arquivos || []) {
-    const buffer = lerDoEspelho(item.path);
-    if (buffer == null) { ausentes.push({ ...item }); continue; }
-    const atual = sha256(buffer);
-    if (atual === item.sha256) iguais += 1;
-    else divergentes.push({ path: item.path, esperado: item.sha256, noEspelho: atual });
-  }
-  return { medido: true, owner: dsRequires.owner, slug: dsRequires.slug, ausentes, divergentes, iguais,
-    total: (dsRequires.arquivos || []).length };
-}
-
-/** Linha(s) de veredito do A9 — separada da conferencia pra ser testavel sem fs nem console. */
-export function vereditoDsRequires(r) {
-  if (!r.medido) return ['  ⬜ DS-REQUIRES: NAO MEDIDO — o pacote nao declara `dsRequires` (legado). Isto NAO e "sem divergencia".'];
-  // Identifica pelo DONO sempre, e pelo slug só quando existe — `slug: null` é a forma legítima
-  // do bind sem slug, e imprimir "(null)" faz o veredito parecer defeito.
-  const quem = r.slug ? `${r.owner || '?'} · ${r.slug}` : `${r.owner || '?'} · bind sem slug`;
-  const linhas = [`  DS-REQUIRES (${quem}): ${r.iguais} de ${r.total} conferem`];
-  for (const d of r.divergentes) {
-    linhas.push(`     ⬜ DIVERGE  ${d.path}  esperado ${d.esperado.slice(0, 12)} · espelho ${d.noEspelho.slice(0, 12)}`);
-  }
-  if (r.divergentes.length) {
-    linhas.push('     (RELATO, nao recusa: o espelho e o DONO do DS e pode estar A FRENTE; sha nao diz direcao)');
-  }
-  for (const a of r.ausentes) linhas.push(`     ⛔ AUSENTE  ${a.path}  sha exigido ${a.sha256.slice(0, 12)}`);
-  return linhas;
-}
-
-/**
- * Recibo de thread escrito pelo CODE dentro do espelho: `cowork-inbox/<tema>/playbook/_saida-NN.md`.
- * É o único arquivo do espelho cujo autor é o Code (o placar-de-lista lê daqui). Ele faz ida e
- * volta: o Cowork recebe e reexporta. No intervalo entre o commit do Code e o próximo export do
- * Cowork, ele NÃO está no pacote — e a poda de árvore o apagava. Medido 2026-09-23 no import do
- * handoff (32): 3 `_saida` do placar, commitados no #7741, sumiram com o relatório dizendo `-0`.
- */
-export const RECIBO_CODE_RE = /^cowork-inbox\/[^/]+\/playbook\/_saida-\d+[a-z]?\.md$/;
-
-function writeAndVerifyTarget({ root, staged, manifest, buffers, previous, permiteEscreverDs = false }) {
-  // Só uma árvore completa autoriza poda de arquivos nunca gerenciados pelo manifesto.
-  // Manifestos antigos/de shell não provam ausência de playbooks da conta.
-  if (manifest.mirrorScope === 'tree') {
-    const allowed = new Set(manifest.files.filter((file) => file.role !== 'preview-cache').map((file) => file.path));
-    const podados = [];
-    const preservados = [];
-    function prune(dir, prefix = '') {
-      for (const item of readdirSync(dir, { withFileTypes: true })) {
-        const rel = prefix ? `${prefix}/${item.name}` : item.name;
-        const abs = resolveInside(staged.cowork, rel);
-        if (item.isSymbolicLink()) throw new Error(`link simbólico recusado no espelho: ${rel}`);
-        if (item.isDirectory()) {
-          prune(abs, rel);
-          if (readdirSync(abs).length === 0) rmdirSync(abs);
-        } else if (item.name !== '.gitignore' && !allowed.has(rel)) {
-          // Se o pacote TRAZ o recibo, ele está em `allowed` e a versão do pacote vence. Só o que o
-          // pacote não traz fica — ausência no export não é decisão do Cowork de apagar.
-          if (RECIBO_CODE_RE.test(rel)) { preservados.push(rel); continue; }
-          rmSync(abs, { force: true });
-          podados.push(rel);
-        }
-      }
-    }
-    prune(staged.cowork);
-    // A poda NÃO entra em `changes.deleted` (é o espelho, não o pacote), então o delta do relatório
-    // não a conta. Sem estas linhas, "-0" convivia com arquivo apagado.
-    if (podados.length) {
-      console.log(`  ✂ PODA: ${podados.length} arquivo(s) do espelho fora do manifesto removido(s)`);
-      for (const rel of podados) console.log(`     ✂ ${rel}`);
-    }
-    if (preservados.length) {
-      console.log(`  ⬜ RECIBO PRESERVADO: ${preservados.length} _saida do Code fora do pacote (o Cowork ainda não os reexportou)`);
-      for (const rel of preservados) console.log(`     ⬜ ${rel}`);
-    }
-  }
-  const effectiveDeleted = new Set(manifest.changes.deleted);
-  if (manifest.mode === 'snapshot' && previous) {
-    const targetPaths = new Set(manifest.files.map((file) => file.path));
-    for (const file of previous.files) if (!targetPaths.has(file.path)) effectiveDeleted.add(file.path);
-  }
-  // ⛔ DELETE de `preview-cache` NÃO atravessa pro Design System (incidente 2026-09-17).
-  //
-  // `targetForLogical` mapeia `_ds/<id>/x` → `prototipo-ui/design-system/x` (dsRuntimeRelPath).
-  // Isso está certo pra ESCRITA de conteúdo, e o `receber-handoff` passo [4] já garante que o
-  // repo VENCE ali (o `_ds/` do zip é sobrescrito pelo autoritativo do espelho, dono = projeto
-  // DS #7096). Mas o DELETE não tinha essa proteção: o pacote de telas 25 removeu o cache `_ds/`
-  // do projeto dele — decisão legítima DAQUELE lado — e a transação traduziu isso em apagar 10
-  // arquivos do DS canônico aqui, incluindo `colors_and_type.css` (a fonte dos tokens) e as 4
-  // `ibm-plex-sans-{400,500,600,700}.woff2` que custaram três pacotes pra chegar distintas.
-  //
-  // A regra é a mesma dos dois lados e vale por DONO, não por direção: quem manda no
-  // `design-system/` é o projeto DS. Um export de TELAS nunca o escreve nem o apaga.
-  const deletesRecusados = [];
-  for (const path of [...effectiveDeleted]) {
-    if (permiteEscreverDs || roleForPath(path) !== 'preview-cache') continue;
-    effectiveDeleted.delete(path);
-    deletesRecusados.push(path);
-  }
-  if (deletesRecusados.length) {
-    console.log(`  ⬜ ${deletesRecusados.length} remoção(ões) de _ds/ IGNORADA(S) — dono é o projeto Design System (#7096), não este export.`);
-  }
-  for (const path of effectiveDeleted) {
-    const target = targetForLogical(path, staged);
-    const abs = resolveInside(target.root, target.rel);
-    if (existsSync(abs)) rmSync(abs, { force: true });
-  }
-  // ⛔ ESCRITA de `preview-cache` NÃO atravessa pro Design System ([W] 2026-09-17, textual:
-  //    "importação do protótipo não era para alterar o design system").
-  //
-  // Simétrico ao bloco de DELETE acima, e pela MESMA razão: o dono do `design-system/` é o
-  // projeto DS (#7096), e um export de TELAS não o escreve nem o apaga. Antes disto, todo import
-  // de telas escrevia os `_ds/**` em `prototipo-ui/design-system/` via `dsRuntimeRelPath` —
-  // no-op silencioso quando os bytes batiam, sobrescrita quando não batiam.
-  //
-  // ⚠️ O CRITÉRIO É DONO, NÃO CONTEÚDO. No pacote 26 eu medi "8 de 8 bytes idênticos" e liberei;
-  // o [W] apontou que a pergunta é outra. "Os bytes batem" só descreve ESTE pacote — o arquivo
-  // do `_ds/` que ainda não existisse no DS entraria direto, porque o passo [4] do
-  // `receber-handoff` não tem autoritativo pra reconciliar (`espelho() === null → continue`).
-  //
-  // A rota legítima do DS não passa por aqui: é `cowork-mirror-freshness --export-from --ds`,
-  // que escreve em `design-system/` pelo seu próprio `exportPlan`. Medido: o único consumidor de
-  // `applyBundleTransaction` é o `aplicar-payload.mjs` (rota de telas) + os testes.
-  // PR-A9 — CONVERSAO na aterrissagem ([W] 2026-09-17: "quando for aplicar no Code, faz a
-  // conversao"). O host referencia o `_ds/` do bind de cada projeto; aqui o DS vive em
-  // `prototipo-ui/design-system/`. A regra viaja DECLARADA em `manifest.transforms` e cada item
-  // traz `shaDepois` — o sha do conteudo JA convertido, que e contra o que o estado-alvo e o
-  // `--compare-bundle` conferem. Sem declarar, o host ficaria STALE em 100% dos ciclos.
-  const transformPorPath = new Map((manifest.transforms || []).map((t) => [t.path, t]));
-  const aplicarTransform = (path, buffer) => {
-    const t = transformPorPath.get(path);
-    if (!t) return buffer;
-    return Buffer.from(aplicarRefDs(buffer.toString('utf8'), t.de, t.para), 'utf8');
-  };
-
-  const escritasRecusadas = [];
-  for (const [path, buffer] of buffers) {
-    if (!permiteEscreverDs && roleForPath(path) === 'preview-cache') { escritasRecusadas.push(path); continue; }
-    const target = targetForLogical(path, staged);
-    const abs = resolveInside(target.root, target.rel);
-    mkdirSync(dirname(abs), { recursive: true });
-    writeFileSync(abs, aplicarTransform(path, buffer));
-  }
-  // Converter só o que veio nos BUFFERS não basta: num delta, o arquivo INALTERADO não viaja —
-  // ele já está no staging, vindo do espelho, e lá ainda está pré-conversão. Sem este passo o
-  // estado-alvo diverge de `shaDepois` e o lote é recusado (medido 2026-09-17 no pacote 27, onde
-  // o delta era 0 e o host não viajava). Aplicar de novo num arquivo já convertido é no-op: o
-  // `de` não existe mais no conteúdo.
-  let convertidosDoStaging = 0;
-  for (const [path] of transformPorPath) {
-    if (buffers.has(path)) continue;
-    const target = targetForLogical(path, staged);
-    const abs = resolveInside(target.root, target.rel);
-    if (!existsSync(abs)) continue;
-    const atual = readFileSync(abs);
-    const convertido = aplicarTransform(path, atual);
-    if (!convertido.equals(atual)) { writeFileSync(abs, convertido); convertidosDoStaging += 1; }
-  }
-  if (transformPorPath.size) {
-    console.log(`  ⬜ ${transformPorPath.size} arquivo(s) com ref do DS CONVERTIDA na aterrissagem`
-      + ` (${transformPorPath.size - convertidosDoStaging} do payload · ${convertidosDoStaging} do espelho) — regra declarada no manifesto.`);
-  }
-  if (escritasRecusadas.length) {
-    console.log(`  ⬜ ${escritasRecusadas.length} escrita(s) de _ds/ IGNORADA(S) — dono é o projeto Design System (#7096), não este export de telas.`);
-  }
-
-  const graphFiles = [];
-  for (const file of manifest.files) {
-    // `preview-cache` não é escrito por este transporte (ver bloco acima), então também não
-    // entra no estado-alvo que se confere aqui — cobrá-lo seria exigir o que acabamos de
-    // recusar. Consequência DESEJADA: se o shell referenciar `_ds/**` por path LITERAL, o grafo
-    // abaixo acusa `missing` e o lote é recusado. Esse é o sinal certo, não um bug: um host que
-    // depende do cache do DS não desce pela rota de telas — ele precisa resolver a base em
-    // runtime (`__OI_DS_BASE__`), como o pacote 25 faz.
-    if (!permiteEscreverDs && roleForPath(file.path) === 'preview-cache') continue;
-    const target = targetForLogical(file.path, staged);
-    const abs = resolveInside(target.root, target.rel);
-    if (!existsSync(abs)) throw new Error(`estado-alvo ausente no staging: ${file.path}`);
-    const buffer = readFileSync(abs);
-    // Com transform, o alvo e o sha POS-conversao; o `bytes`/`sha256` do manifesto descreve o
-    // PAYLOAD (pre-transform) e segue conferido nos chunks, antes daqui.
-    const t = transformPorPath.get(file.path);
-    const shaEsperado = t ? t.shaDepois : file.sha256;
-    const bytesConferem = t ? true : buffer.length === file.bytes;
-    if (!bytesConferem || sha256(buffer) !== shaEsperado) throw new Error(`estado-alvo diverge no staging: ${file.path}`);
-    graphFiles.push({ path: file.path, binary: BINARY.test(file.path), content: BINARY.test(file.path) ? null : buffer.toString('utf8') });
-  }
-  for (const path of effectiveDeleted) {
-    const target = targetForLogical(path, staged);
-    if (existsSync(resolveInside(target.root, target.rel))) throw new Error(`remoção não efetivada no staging: ${path}`);
-  }
-  // Os destinos declarados em `transforms` são EXTERNOS ao espelho por desenho (o DS tem dono
-  // próprio). Sem declará-los, o grafo lê `../../design-system/…` como traversal e recusa.
-  const prefixosExternos = [...new Set((manifest.transforms || []).map((t) => t.para))];
-  const graph = payloadDependencyGraph(graphFiles, { entry: manifest.entry, prefixosExternos });
-  if (!graph.entryPresent) throw new Error(`entry ausente no estado-alvo: ${manifest.entry}`);
-  if (graph.missing.length) throw new Error(`grafo do estado-alvo incompleto: ${graph.missing.join(', ')}`);
-  if (graph.unsafe.length) throw new Error(`referência insegura no estado-alvo: ${graph.unsafe.map((item) => `${item.from}→${item.ref}`).join(', ')}`);
-  if (graph.duplicates.length) throw new Error(`paths duplicados no grafo: ${graph.duplicates.join(', ')}`);
-  return graph;
-}
-
-export async function applyBundleTransaction({ root = process.cwd(), parts, dry = false, paths = DEFAULT_PATHS, failAfterSwap = 0, permiteEscreverDs = false }) {
-  const absRoot = resolve(root);
-  const previous = readState(absRoot, paths);
-  const { manifest, buffers } = validateBundleParts(parts, previous);
-  const id = `${manifest.bundleId.slice(0, 12)}-${process.pid}-${Date.now()}`;
-  const stages = makeStages(absRoot, paths, id);
-  try {
-    const graph = writeAndVerifyTarget({ root: absRoot, staged: stages.staged, manifest, buffers, previous, permiteEscreverDs });
-
-    // PR-A9 — ANTES do swap (fail-closed): o DS declarado existe no espelho?
-    // Lemos o `design-system/` REAL, nao o staging: ele nao e escrito por esta rota, entao o
-    // staging so teria a copia. Ausencia RECUSA; divergencia RELATA (o espelho pode estar a frente).
-    const dsCheck = conferirDsRequires(manifest.dsRequires, (rel) => {
-      const abs = resolveInside(resolveInside(absRoot, paths.runtime), rel);
-      return existsSync(abs) ? readFileSync(abs) : null;
-    });
-    for (const linha of vereditoDsRequires(dsCheck)) console.log(linha);
-    if (dsCheck.ausentes.length) {
-      throw new Error(`DS exigido ausente no espelho (${dsCheck.ausentes.length}): `
-        + dsCheck.ausentes.map((a) => `${a.path} (sha ${a.sha256.slice(0, 12)})`).join(', ')
-        + ' — o dono do design-system/ e o projeto DS (#7096); rode o export dele antes.');
-    }
-    if (manifest.mirrorScope === 'tree') {
-      try {
-        execFileSync(process.execPath, [fileURLToPath(new URL('../governance/cowork-ssot-guard.mjs', import.meta.url)),
-          '--cowork-stage', stages.staged.cowork, '--runtime-stage', stages.staged.runtime, '--owner', basename(paths.cowork)],
-        { cwd: absRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
-      } catch (error) {
-        throw new Error(`árvore recusada antes da promoção pelo gate de fonte única: ${error.stderr || error.message}`);
-      }
-    }
-    const currentReportPath = resolveInside(absRoot, join(paths.state, 'application-report.json'));
-    const previousReport = existsSync(currentReportPath) ? JSON.parse(readFileSync(currentReportPath, 'utf8')) : null;
-    const applicationLedger = readApplicationLedger(absRoot, paths);
-    const report = await buildApplicationReport({ root: absRoot, stagedCowork: stages.staged.cowork, manifest, previousReport, applicationLedger });
-    writeFileSync(join(stages.staged.state, 'active-bundle.json'), JSON.stringify(manifest, null, 2) + '\n');
-    writeFileSync(join(stages.staged.state, 'application-report.json'), JSON.stringify(report, null, 2) + '\n');
-    if (dry) cleanStages(stages.entries);
-    else promote(stages.entries, failAfterSwap);
-    return { manifest, report, graph, dry };
-  } catch (error) {
-    cleanStages(stages.entries);
-    throw error;
-  }
 }
 
 export async function refreshApplicationReport({ root = process.cwd(), paths = DEFAULT_PATHS }) {
@@ -904,32 +569,4 @@ function writeApplicationLedger(root, paths, ledger) {
   const temp = `${ledgerPath}.tmp-${process.pid}-${Date.now()}`;
   writeFileSync(temp, JSON.stringify(ledger, null, 2) + '\n');
   renameSync(temp, ledgerPath);
-}
-
-/** Converte um lote completo legado, já validado, em snapshot transacional. */
-export async function applyLegacySnapshotTransaction({ root = process.cwd(), prepared, source = 'legacy-payload', entry = 'oimpresso.com.html', dry = false, paths = DEFAULT_PATHS, failAfterSwap = 0 }) {
-  const files = prepared.map((file) => ({ path: file.rel, bytes: file.conteudo.length, sha256: sha256(file.conteudo) }));
-  const manifest = createManifest({ source, entry, files, missing: [], previous: null });
-  const chunks = prepared.map((file) => ({
-    path: file.rel, index: 1, count: 1, offset: 0, bytes: file.conteudo.length,
-    sha256: sha256(file.conteudo), content: file.conteudo.toString('base64'),
-  }));
-  const core = {
-    id: manifest.bundleId, baseId: null, mode: 'snapshot', source: manifest.source,
-    generatedAt: manifest.generatedAt, entry: manifest.entry, parts: 1,
-    files: manifest.totals.files, bytes: manifest.totals.bytes,
-    manifestSha256: manifestDigest(manifest),
-    changesSha256: changesDigest(manifest.changes),
-  };
-  return applyBundleTransaction({
-    root,
-    parts: [{ schema: 'oimpresso-design-bundle/2', bundle: core, part: 1, parts: 1, targetManifest: manifest, chunks }],
-    dry,
-    paths,
-    failAfterSwap,
-    // Rota LEGADA de lote completo: e por ela que o projeto DS entrega o `_ds/**` (payload com
-    // `source: design-system`). Quem chama aqui declarou a intencao; o bloqueio existe pra rota
-    // v2 de TELAS, que e a que o `receber-handoff --zip` usa.
-    permiteEscreverDs: true,
-  });
 }

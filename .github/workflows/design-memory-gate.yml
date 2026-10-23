@@ -17,7 +17,7 @@ name: Design-memory gate (advisory)
 #     a sentinela não pode mentir) + drift com `continue-on-error`.
 #   - gates (ex-design-memory-gates.yml): Cowork SSOT guard (hard) + ds-guard §8
 #     nos arquivos tocados + relatório de dívida + integrity-check §15 + selftests
-#     da espinha de import (detectar-telas/ancora/importar-bundle/gerar-contrato/
+#     da espinha de import (detectar-telas/ancora/gerar-contrato/
 #     recortar-regiao/analise-regiao) + ancora-adversário (hard).
 #   - prove (ex-dtcg-equivalence.yml): equivalência DTCG ↔ CSS canônico (tokens
 #     editados no JSON portável, CSS é SAÍDA) + self-test que morde. Dois eixos desde
@@ -41,7 +41,8 @@ name: Design-memory gate (advisory)
 # A redação anterior deste bloco afirmava "os self-tests/guards rodam SEM continue-on-
 # error" e isso era FALSO: dos 20 selftests do arquivo, 9 rodam sem e **11 rodam com**
 # (detectar-telas ×2, ancora, anchor-content, cowork-freshness, importar-bundle, gerar-
-# contrato, recortar-regiao, analise-regiao, gerar-map, consumir-map). A metade dos
+# contrato, recortar-regiao, analise-regiao, gerar-map, consumir-map — contagem anterior a
+# 2026-10-23, quando o importar-bundle saiu com a ADR 0438). A metade dos
 # guards era verdadeira: 2 de 2 rodam sem. Nada foi promovido nem rebaixado ao corrigir
 # a frase — mudou só o texto (promover/rebaixar é decisão [W] · ADR 0314/0336).
 #
@@ -101,6 +102,8 @@ on:
       # so estes 2 arquivos, esta lane NAO disparava e o bite ficava mudo.
       - 'scripts/governance/cowork-mirror-freshness.mjs'
       - 'scripts/governance/cowork-mirror-freshness.test.mjs'
+      - 'scripts/design/ds-runtime-path.mjs'
+      - 'scripts/design/ds-runtime-path.test.mjs'
       - 'scripts/design-sync/alvo.mjs'
       # secao-check (PR-A3) e seus DOIS insumos. O arquivo SOB TESTE entra no gatilho, senao
       # mexer no comparador nao dispara o comparador (§5 2026-08-02 · "gate mudo com cara de
@@ -383,8 +386,8 @@ jobs:
         continue-on-error: true
         run: node scripts/design/detectar-telas.test.mjs
       # ancora.mjs (#7 2026-06-30): a âncora de uma tela é computada do charter, nunca um png
-      # de auditoria no olho. importar-bundle: só troca o staging quando extraídos==entries
-      # (delete-before-verify fechado). Ambos selftest puro (rodam em Linux/CI).
+      # de auditoria no olho. Selftest puro (roda em Linux/CI). O importar-bundle, que vivia aqui
+      # ao lado, saiu em 2026-10-23 com a ADR 0438.
       - name: ancora selftest (âncora = charter, não print de auditoria)
         if: always()
         continue-on-error: true
@@ -401,95 +404,21 @@ jobs:
         continue-on-error: true
         run: node scripts/governance/anchor-content-check.mjs --check
       # Frescor do espelho (INDEX §0.2 "diffar antes de concluir" · session 2026-07-06-arte):
-      # o CI headless NÃO lê o Cowork vivo (auth interativa, sem webhook/service-token na
-      # plataforma) — então AQUI não se mede frescor. Mede-se (a) que o comparador classifica
-      # certo (selftest: identidade = hash normalizado por path completo) e (b) que a ROTINA
-      # de dispatch logado rodou dentro do SLA e a última rodada não deixou STALE (ledger
-      # datado e commitado — prova, não promessa). Frescor real = o dispatch logado.
+      # Os checks locais do espelho (refs, órfãos, absent-local, css-refs, preview-ds). O frescor
+      # contra o Cowork saiu em 2026-10-23 (ADR 0438, ondas 2c-2 e 2c-3); o nome do passo ficou.
       - name: cowork-freshness selftest (identidade normalizada por path · morde e libera certo)
         if: always()
         continue-on-error: true
         run: node scripts/governance/cowork-mirror-freshness.test.mjs
-      # O --sla SEMPRE mediu certo; o que faltava era o veredito CHEGAR em alguém. Ele saía
-      # rc=1 dentro de um step `continue-on-error`, então o motivo ficava enterrado no log e
-      # só era lido por quem já suspeitava. Medido em 2026-08-14: rc=1 com "20 sync · 0 stale ·
-      # 98 unchecked · mediu 23/121" ACESO desde 2026-08-13 — e a defasagem do `chat-jana.jsx`
-      # (7 semanas) foi descoberta por tropeço numa sessão, não por este alarme.
-      # NÃO muda enforcement: segue advisory, segue continue-on-error, e o rc real é preservado
-      # (`exit $rc`) — advisory pode ficar vermelho, §5 2026-07-09. O que muda é que o número
-      # vai pro resumo do PR, onde se lê sem abrir log.
-      # "0 stale" NUNCA é o veredito sozinho: ele só cobre o que foi medido, e o denominador
-      # é que diz o resto (§5 2026-07-29 — não afirmar sobre o que não se percorreu).
-      - name: cowork-freshness SLA (rotina de dispatch em dia? · ledger · advisory)
+      # Dono de onde `_ds/**` pousa no cache de preview (render-proto-baseline, design-diff-lote,
+      # --preview-ds). Saiu do cowork-mirror-freshness em 2026-10-23 (onda 2c-3), com os asserts.
+      - name: ds-runtime-path (duas formas de bind · controles negativos)
         if: always()
         continue-on-error: true
-        run: |
-          set +e
-          OUT="${RUNNER_TEMP:-.}/cowork-sla.txt"
-          node scripts/governance/cowork-mirror-freshness.mjs --sla > "$OUT" 2>&1
-          rc=$?
-          cat "$OUT"
-          {
-            echo "### Espelho Cowork — SLA de frescor (advisory)"
-            echo ""
-            # TRÊS estados, não dois. Desde 2026-08-27 o --sla também reporta o eixo NOVO
-            # ("existe no vivo e nunca desceu?") e, havendo pendência ali, sai `⬜ INCONCLUSIVO`
-            # com rc=0 — porque o predicado do eixo NOVO é ABSOLUTO e absoluto não gateia
-            # (§5 2026-08-24). Derivar o rótulo SÓ do rc imprimiria ✅ com INCONCLUSIVO no
-            # corpo: é a doença "verde com vermelho no corpo" que o veredictoFinal cataloga.
-            if [ "$rc" -ne 0 ]; then
-              echo "⚠️ **rotina PARCIAL ou vencida** — \`rc=$rc\`"
-            elif grep -q 'INCONCLUSIVO' "$OUT"; then
-              echo "⬜ **INCONCLUSIVO** — o \`--compare\` fechou, mas há arquivo no Cowork vivo que o espelho não conhece; a leitura não fala sobre o vivo."
-            else
-              echo "✅ rotina de dispatch em dia (e nenhum arquivo do vivo fora do espelho)."
-            fi
-            echo ""
-            echo '```'
-            sed -n '1,12p' "$OUT"
-            echo '```'
-            echo ""
-            echo "_Advisory: não bloqueia merge (dono de \`required\` é \`governance/required-checks-baseline.json\`)._"
-            echo "_Cobertura parcial significa que \`0 stale\` cobre **só o que foi medido** — o resto segue sem veredito._"
-          } >> "$GITHUB_STEP_SUMMARY"
-          exit $rc
-      # LIVE-ONLY SLA — o 2º flanco que o CI headless pode COBRAR sem poder MEDIR. A medição
-      # exige a saída do DesignSync.list_files (auth interativa, ADR 0315), então quem mede é
-      # o agente logado; aqui só se audita o REGISTRO no ledger. Mesma divisão do --sla acima.
-      # Por que nasceu: em 2026-08-24 a medição achou 47 protótipos de tela vivos no Cowork que
-      # nunca desceram (fiscal 5, repair 7, estoque 5, configuracoes 4, patrimonio 4,
-      # governance 4, venda-blade 6, venda-index 2, compras 3, produto 3, catchup 2, +3) — e
-      # nada tinha perguntado, porque os 4 modos que rodavam aqui olham só o que JÁ desceu.
-      # Predicado é DELTA (path que ENTROU desde a medição anterior), nunca absoluto: com
-      # `liveOnly === 0` o piso herdado de 47 travaria o gate pra sempre — §5 2026-08-24.
-      # Denominador diferente entre duas medições sai como SEM COMPARAÇÃO (rc=0), não como
-      # crescimento: escopo distinto não é delta (§5 2026-07-27).
-      # Advisory, como os vizinhos; dono de `required` é governance/required-checks-baseline.json.
-      - name: cowork live-only SLA (o "nunca desceu" foi medido? cresceu? · ledger · advisory)
-        if: always()
-        continue-on-error: true
-        run: |
-          set +e
-          OUT="${RUNNER_TEMP:-.}/cowork-live-only.txt"
-          node scripts/governance/cowork-mirror-freshness.mjs --sla-live-only > "$OUT" 2>&1
-          rc=$?
-          cat "$OUT"
-          {
-            echo "### Espelho Cowork — live-only (advisory)"
-            echo ""
-            if [ "$rc" -eq 0 ]; then
-              echo "✅ medição de live-only registrada e sem path novo."
-            else
-              echo "⚠️ **live-only sem medição recente, ou cresceu** — \`rc=$rc\`"
-            fi
-            echo ""
-            echo '```'
-            sed -n '1,20p' "$OUT"
-            echo '```'
-            echo ""
-            echo "_O CI não mede live-only (exige auth do DesignSync — ADR 0315); ele audita o registro no ledger._"
-          } >> "$GITHUB_STEP_SUMMARY"
-          exit $rc
+        run: node scripts/design/ds-runtime-path.test.mjs
+      # Os passos `cowork-freshness SLA` e `cowork live-only SLA` moravam aqui até 2026-10-23: auditavam o
+      # registro de frescor do espelho contra o Cowork vivo. A ADR 0438 tirou o Cowork como fonte
+      # (a fonte é o git) e os modos --sla/--sla-live-only saíram do cowork-mirror-freshness.
       # Poda do espelho (PR #5763, 96 arquivos): ao contrário do --compare acima, ESTE é 100%
       # local — não precisa da auth interativa do DesignSync, então roda headless no CI. Só
       # olha o que o PR APAGA sob prototipo-ui/cowork/Wagner/ e pergunta se sobrou alguém apontando
@@ -548,10 +477,6 @@ jobs:
         if: always()
         continue-on-error: true
         run: node scripts/governance/cowork-mirror-freshness.mjs --css-refs
-      - name: importar-bundle selftest (import atômico · verifica antes de trocar)
-        if: always()
-        continue-on-error: true
-        run: node scripts/design/importar-bundle.mjs --selftest
       # adversário permanente: ATAQUE 1 (hook auto-contido, não falha-aberto) é GATE DURO —
       # se o hook voltar a importar ancora.mjs (regride pra fail-open), este step FALHA. Gaps
       # conhecidos (rename/tool-bypass) ficam documentados com fix; mudar de comportamento avisa.

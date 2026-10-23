@@ -18,7 +18,7 @@ lifecycle: ativo
 > - Hooks → `.claude/hooks/_HOOKS-INDEX.md` · Skills → `.claude/skills/_SKILLS-INDEX.md`
 > - Gates/Workflows → `scripts/governance/gates-registry.json` · Required → `governance/required-checks-baseline.json`
 
-## 1. Workflows / Gates de CI — 155 (48 contexts required)
+## 1. Workflows / Gates de CI — 154 (47 contexts required)
 
 > `Invocador` = gatilho `on:` do YAML · `Documento` = doc canônico de maior precedência que o cita.
 > **Evidência não é derivável aqui** (medido: 0 de 123): o `gate-selftest` prova que o SCRIPT morde,
@@ -61,7 +61,6 @@ lifecycle: ativo
 | `compras-pest.yml` | pr+push+manual | `memory/decisions/0369-tres-lanes-pest-valor-estoque-lei-required-emenda-0314.md` +14 | Compras · Pest (MySQL) |
 | `connector-pest.yml` | pr+push+manual | — | Connector · Pest (MySQL) |
 | `contrato-de-tela.yml` | pr+push | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +29 | Contrato de Tela — fidelidade visual do trio-de-tela (advisory na adoção · RUNBOOK-contrato-de-tela.md) |
-| `cowork-bundle.yml` | push+manual | `memory/reference/prototipo-ui/COWORK-ESTRUTURA-E-TELAS.md` +2 | cowork-bundle (pacote do espelho · artifact) — PR-A5 do plano COLAR-NO-CODE. Gera as PARTES do bundle v2 a partir de prototipo-ui/cowork/Wagner e as publica como artifact… |
 | `dashboard-pest.yml` | pr+push+manual | `memory/decisions/proposals/2026-09-08-lane-modules-pest-sem-mysql.md` | Dashboard · Pest (MySQL) |
 | `datatable-nome-acessivel-gate.yml` | pr+push+manual | — | DataTable Nome Acessível — a tabela do DS não volta a ser anônima (caption sr-only + scope col) |
 | `deadlink-gate.yml` | pr | `memory/decisions/0347-deadlink-gate-required-emenda-0314.md` +44 | deadlink-gate (ratchet · integridade referencial) — catraca de integridade referencial doc↔doc: links markdown internos mortos no corpo VIVO (memory/** menos história app… |
@@ -256,7 +255,7 @@ lifecycle: ativo
 | Skill | Tier | Documento | Descrição (início) |
 |---|---|---|---|
 | `alinhar-tela` | B | `memory/requisitos/Cliente/audits/ALINHAMENTO-cliente-2026-06-22.md` +2 | Use quando Wagner pedir "alinhar a tela X", "ligar a máquina da tela Y", "o que já tem pronto e o que falta na tela Z", "fidelidade spec↔código de <Mo… |
-| `aplicar-prototipo` | B | `memory/decisions/0325-import-prototipo-designsync-pull-direto.md` +39 | ATIVAR quando Wagner pedir para baixar, comparar, aplicar ou sincronizar protótipo Cowork/Claude Design, inclusive shell completo, bundle, handoff ou … |
+| `aplicar-prototipo` | B | `memory/decisions/0325-import-prototipo-designsync-pull-direto.md` +39 | ATIVAR quando Wagner pedir para comparar ou aplicar protótipo no produto, inclusive várias telas. |
 | `audit-constituicao` | C | `memory/decisions/0120-reverse-supersession-metadata-housekeeping.md` +4 | ATIVAR quando user pedir "audit pós-constituição", "/audit-constituicao", "consolidação geral", "revisão geral desde a constituição", OU trimestralmen… |
 | `audit-to-backlog` | B | `memory/decisions/0213-audit-creates-tasks-loop-fechado.md` +7 | ATIVAR quando user pedir "transformar audit em tasks", "levar audit X pro backlog", "criar tasks do audit", "/audit-to-backlog <doc>", OU quando agent… |
 | `automem-pending` | B | `memory/decisions/0131-tiering-memoria-canonico-local-segredo.md` +8 | BLOQUEADOR — quando user mencionar tópico/módulo OU Edit/Read em path com auto-mem stale pendente migração (ADR 0061), esta skill carrega manifesto AU… |
@@ -424,7 +423,7 @@ lifecycle: ativo
 | `a11y-ratchet.mjs` | ci, npm, script | 🔴 disco | — | `memory/requisitos/_DesignSystem/adr/ui/0032-alvo-de-toque-erp-denso-1280.md` +2 | scripts/a11y-ratchet.mjs — acessibilidade como categoria DETERMINÍSTICA PROTEGIDA. |
 | `adversario-intencao-fluxo.mjs` | ci | 🟢 só lê | test | — | Adversário: procura contraprovas ao contrato, sem aceitar justificativa em prosa. |
 | `auditar-intencao-fluxo.mjs` | ci, script | 🟢 só lê | test | — | Catraca estática: a prosa declara a intenção, mas não mascara evidência ausente. |
-| `bundle-lint.mjs` | ci, npm, script | 🟢 só lê | test | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +6 | esteira ≠ armazém (régua 6 da memória de proveniência). |
+| `bundle-lint.mjs` | ci, npm | 🟢 só lê | test | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +6 | esteira ≠ armazém (régua 6 da memória de proveniência). |
 | `casos-coverage-guard.mjs` | agente, ci, npm, script | 🔴 disco | — | `memory/decisions/0364-trio-de-tela-mora-em-memory-emenda-0264.md` +82 | scripts/casos-coverage-guard.mjs — Gate G-1 (trio-de-tela) + G-2 (rastreabilidade caso↔teste) |
 | `casos-results-collect.mjs` | ci, npm, script | 🟢 só lê | selftest | `memory/08-handoff.md` +5 | scripts/casos-results-collect.mjs — Coletor de test-results → manifesto por-UC (Salto #2, |
 | `components-tree-guard.mjs` | agente, ci, npm, script | 🟢 só lê | — | `memory/decisions/0272-arvore-componentes-canonica.md` +10 | scripts/components-tree-guard.mjs — árvore canônica de Components/ (allowlist + convenção _components) |
@@ -519,44 +518,39 @@ lifecycle: ativo
 | `ds-guard.mjs` | ci, script | 🟢 só lê | test | `memory/decisions/0293-governanca-decisao-design-responsavel-registro-veredito.md` +37 | DS-GUARD (defesa tipo-forte) · PROCESSO_MEMORIA_CC.md §8 |
 | `ds-lint-alvos.mjs` | ci, script | 🟢 só lê | — | `memory/reference/prototipo-ui/REGRAS_DS_LINT.md` | serve o `component-registry.json` EM TEMPO DE LINT. |
 | `ds-notas-gerar.mjs` | — | 🟢 só lê | — | — | Gera design-system/components/<Nome>/<Nome>.prompt.md a partir de governance/design/ds-notas-uso.json |
+| `ds-runtime-path.mjs` | ci, script | 🟢 só lê | test | — | onde um artefato de RUNTIME do Design System pousa no cache de preview. |
 | `fingerprint-harness.mjs` | ci, script | 🟢 só lê | — | `memory/proibicoes.md` +5 | Onda 3a do roadmap estado-da-arte (2026-07-08): DRIVER do |
-| `fonte-prototipo.mjs` | agente, script | 🟢 só lê | — | `memory/decisions/0433-fonte-do-prototipo-passa-ao-git.md` | onde mora a FONTE do protótipo de cada dono (ADR 0433). |
+| `fonte-prototipo.mjs` | — | 🟢 só lê | — | `memory/decisions/0433-fonte-do-prototipo-passa-ao-git.md` | onde mora a FONTE do protótipo de cada dono (ADR 0433). |
 | `gerar-contrato.mjs` | agente, ci, script | 🟢 só lê | — | `memory/requisitos/Sells/vendas-index-gap.md` +31 | W1 do processo região-a-região: deriva o ESQUELETO do |
 | `gerar-map.mjs` | agente, ci, script | 🟢 só lê | — | `memory/requisitos/Financeiro/RUNBOOK-paridade-ondas.md` +59 | deriva o ESQUELETO do <tela>.map.json a partir do <tela>-gap.md. |
 | `gerar-mapas-handoff.js` | — | 🟢 só lê | — | — | (sem descrição no cabeçalho) |
 | `handoff-changed.mjs` | script | 🟢 só lê | selftest | `memory/reference/prototipo-ui/CODE_NOTES.handoff-ds-2026-09-17-recusado-por-r4.md` | PORTÃO BARATO (zero LLM) da Fase −1 do protocolo aplicar-prototipo. |
-| `importar-bundle.mjs` | ci, script | 🔴 disco | test | `memory/decisions/0325-import-prototipo-designsync-pull-direto.md` +9 | IMPORT atômico do ZIP Cowork (Fase −1 como máquina, não receita). |
 | `integrity-check.mjs` | ci, script | 🟢 só lê | test | `memory/decisions/0293-governanca-decisao-design-responsavel-registro-veredito.md` +23 | Testes de Integridade · PROCESSO_MEMORIA_CC.md §15 |
 | `lote-resumo-ci.mjs` | ci, script | 🟢 só lê | — | `memory/decisions/0408-medicao-de-paridade-agendada-advisory-emenda-0290.md` +2 | o CONSUMIDOR do `design-diff-lote`: transforma as medidas em um |
-| `protocolo.config.mjs` | agente, ci, script | 🟢 só lê | — | `memory/decisions/0387-github-md-diario-cowork-aceito-e-tratado.md` +53 | FONTE ÚNICA EXECUTÁVEL do protocolo de aplicação de protótipo (skill |
+| `protocolo.config.mjs` | agente, ci, script | 🟢 só lê | — | `memory/decisions/0387-github-md-diario-cowork-aceito-e-tratado.md` +52 | FONTE ÚNICA EXECUTÁVEL do protocolo de aplicação de protótipo (skill |
 | `recortar-regiao.mjs` | ci, script | 🔴 disco | — | `memory/requisitos/Financeiro/RUNBOOK-paridade-ondas.md` +1 | W2 do processo região-a-região: recorta o screenshot da tela pela |
 | `render-proto-baseline.mjs` | agente, ci, script | 🔴 disco | — | `memory/decisions/0325-import-prototipo-designsync-pull-direto.md` +20 | o DESIGN vira BASELINE versionado (roubo #7 da pesquisa de mercado, |
 | `style-fingerprint.mjs` | agente, ci, script | 🟢 só lê | — | `memory/decisions/0326-trava-ancora-compare-fingerprint.md` +21 | comparador EXAUSTIVO de estilo protótipo × produção, como MECANISMO. |
 | `tema-escuro-probe.mjs` | ci | 🔴 disco | test | — | superfície CLARA no tema escuro, em todas as rotas do espelho. |
 
-### 5.9 `scripts/design-sync/` — 19
+### 5.9 `scripts/design-sync/` — 14
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
 | `alvo.mjs` | agente, ci, npm, script | 🔴 disco | — | `memory/governance/shipped/CYCLE-08.md` +3 | PR-A1 do protocolo de export: o ALVO de uma seção vira MEDIDA executável. |
-| `aplicar-payload.mjs` | agente, script | 🔴 disco | test | `memory/decisions/0406-o-que-ultimo-importado-decide-emenda-0404.md` +23 | consome bundle Design v2 (ou payload legado) sem transcrição. |
-| `bundle-contract.mjs` | script | 🟢 só lê | — | `memory/decisions/0398-espelho-cowork-recebe-a-arvore-da-conta.md` +6 | Contrato v2 do transporte Design → git. |
-| `bundle-transaction.mjs` | script | 🔴 disco | test | `memory/decisions/0406-o-que-ultimo-importado-decide-emenda-0404.md` +2 | Aplicação transacional de um bundle Design v2. |
+| `bundle-contract.mjs` | script | 🟢 só lê | — | `memory/decisions/0398-espelho-cowork-recebe-a-arvore-da-conta.md` +6 | Contrato do MANIFESTO v2 (`oimpresso-design-manifest/2`) — o que sobrou do transporte. |
+| `bundle-transaction.mjs` | ci, script | 🔴 disco | test | `memory/decisions/0406-o-que-ultimo-importado-decide-emenda-0404.md` +2 | Recibos executáveis por tela (ADR 0384 · emenda 0390) — o que sobrou do bundle-transaction. |
 | `ds-domains-companion.mjs` | agente, ci, script | 🔴 disco | test | `memory/decisions/0389-emenda-0374-escrita-do-espelho-quando-o-get-file-volta-inline.md` +2 | emite o companion `cockpit_domains.css` do espelho Cowork. |
 | `ds-mirror-build.mjs` | agente, script | 🟢 só lê | — | `memory/decisions/0328-ds-transicao-congelado-para-vivo-git-ssot.md` +7 | montador determinístico do colors_and_type.css do espelho a partir do git. |
 | `ds-push.mjs` | ci, npm, script | 🔴 disco | test | `memory/decisions/0335-fechamento-loop-diff-first-ds-sync-nota-honesta.md` +3 | orquestrador determinístico do PUSH git→espelho (passos 1-3 do |
 | `ds-token-diff.mjs` | agente, script | 🟢 só lê | test | `memory/decisions/0328-ds-transicao-congelado-para-vivo-git-ssot.md` +16 | motor do protocolo de sync DESIGN → GIT (ADR design→git, emenda 0315). |
 | `ds-token-version.mjs` | ci, npm, script | 🔴 disco | bite-log + test | `memory/decisions/0335-fechamento-loop-diff-first-ds-sync-nota-honesta.md` +4 | semver + changelog do PACOTE DE TOKENS do Design System. |
 | `ds-tokens-build-sync.mjs` | ci, script | 🔴 disco | bite-log | `memory/decisions/0336-gates-design-promocao-por-mordida-provada-emenda-0314.md` +7 | os `_generated-*.css` commitados batem com um build fresco? |
-| `gerar-payload-partes.mjs` | ci, script | 🔴 disco | test | `memory/decisions/0389-emenda-0374-escrita-do-espelho-quando-o-get-file-volta-inline.md` +18 | emite snapshot/delta Design v2 em partes de até 256 KiB. |
 | `payload-dependency-graph.mjs` | script | 🟢 só lê | test | (só sessão/handoff · 1) | Grafo estático das dependências LOCAIS alcançáveis a partir de um shell HTML. |
 | `pedido.mjs` | agente, npm, script | 🔴 disco | — | `.claude/commands/onda.md` +2 | PR-A7 do protocolo de export: o PEDIDO DE SEÇÃO vira DERIVADO. |
-| `pendentes-cowork.mjs` | agente, script | 🔴 disco | test | `memory/decisions/0412-retorno-canon-mergeado-ao-cowork-dispensa-opt-in-emenda-0315.md` +7 | o sentido Code -> Cowork do ciclo: o que o espelho tem e o Cowork NÃO tem. |
-| `receber-handoff.mjs` | script | 🔴 disco | test | `memory/decisions/0406-o-que-ultimo-importado-decide-emenda-0404.md` +17 | recebe o ZIP de handoff do Cowork e o transforma em import validado. |
 | `recibos-ci.mjs` | ci, script | 🟢 só lê | — | — | grava recibo de TESTE (ADR 0384 D-5) em massa a partir de lanes de CI. |
 | `smoke-consumir.mjs` | ci | 🔴 disco | — | `memory/decisions/0390-emenda-0384-smoke-em-ambiente-controlado.md` +2 | transporta o smoke renderizado no CI até o recibo do Design Sync. |
 | `status.mjs` | agente, ci, npm, script | 🟢 só lê | test | `memory/decisions/0390-emenda-0384-smoke-em-ambiente-controlado.md` +18 | painel operacional do último bundle: o que mudou, onde aplicar, o que está bloqueado — e as 2 catracas do funil (`--check-mapping`, `--check-lifecycle`). |
-| `zip-reader.mjs` | script | 🔴 disco | — | — | leitor de ZIP mínimo, sem dependência, com CRC-32 CONFERIDO. |
 
 ### 5.10 `scripts/design/audit/` — 5
 
@@ -575,7 +569,7 @@ lifecycle: ativo
 | `ancora-adversario.eval.mjs` | ci | 🟢 só lê | — | — | o ADVERSÁRIO PERMANENTE do guarda de âncora. |
 | `design-source-of-truth.eval.mjs` | ci | 🟢 só lê | — | `memory/decisions/0299-figma-nao-e-fonte-de-design.md` | baseline ARMADO do enforcement "Figma não é fonte" (camada L5). |
 
-### 5.12 `scripts/governance/` — 119
+### 5.12 `scripts/governance/` — 120
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
@@ -602,11 +596,12 @@ lifecycle: ativo
 | `ci-steps-falhos.mjs` | ci | 🔴 disco | — | (só sessão/handoff · 1) | escreve no step summary QUAIS steps do job falharam. |
 | `ciclo-completo.mjs` | ci | 🔴 disco | — | `memory/proibicoes.md` +5 | GATE "a tela nasceu (e segue) COMPLETA?" (Constituição UI v2 · UI-0013). |
 | `component-registry-check.mjs` | ci, script | 🟢 só lê | bite-log + test | `memory/decisions/0400-handoff-integrity-required-emenda-0314.md` +19 | sentinela de DRIFT do registro de componentes (Onda O2). |
-| `cowork-mirror-freshness.mjs` | agente, ci, script | 🔴 disco | selftest + test | `memory/decisions/0374-emenda-0315-espelho-cowork-e-rota-prevista.md` +53 | comparador de FRESCOR do espelho Cowork (v2, identidade canônica). |
+| `cowork-mirror-freshness.mjs` | agente, ci, script | 🔴 disco | selftest + test | `memory/decisions/0374-emenda-0315-espelho-cowork-e-rota-prevista.md` +53 | integridade LOCAL do espelho de protótipo (v3, 2026-10-23). |
 | `cowork-ssot-guard.mjs` | ci, script | 🟢 só lê | test | `memory/decisions/0398-espelho-cowork-recebe-a-arvore-da-conta.md` +49 | trava a organização física do protótipo de design. |
 | `criar-tela.mjs` | agente, ci, npm, script | 🔴 disco | — | `memory/decisions/0351-sdd-from-source.md` +32 | GERADOR de tela que NASCE do Padrão de Tela (Constituição UI v2 · UI-0013). |
 | `cron-watchdog.mjs` | agente, ci | 🔴 disco | — | `memory/decisions/0391-regime-de-evolucao-por-loops-blade-fora.md` +27 | G6: heartbeat dos crons de governança (generaliza o auto-canário |
 | `deadlink-gate.mjs` | ci, script | 🔴 disco | test | `memory/decisions/0347-deadlink-gate-required-emenda-0314.md` +55 | catraca de integridade referencial doc↔doc (links markdown mortos). |
+| `demote-required.mjs` | — | 🔴 disco | — | — | tira UM check required da proteção clássica de `main`. |
 | `design-code-map-check.mjs` | agente, ci, script | 🔴 disco | bite-log + test | `memory/requisitos/_Governanca/GRADE-MAPAS-VINCULOS-trava-frescor.md` +65 | sentinela da ponte design↔código PERSISTENTE (<tela>.map.json). |
 | `design-gate-bites.mjs` | agente, ci | 🔴 disco | — | `memory/decisions/0410-ratificacao-zero-baseline-no-funil-design.md` +13 | o BITE-LOG dos gates de design (DR-2a da ADR 0336). |
 | `design-return-check.mjs` | ci, script | 🔴 disco | selftest + test | (só sessão/handoff · 3) | Verifica o retorno Code -> Design definido em memory/reference/prototipo-ui/PROTOCOL.md §10.2. |
@@ -629,7 +624,7 @@ lifecycle: ativo
 | `fact-anchor.mjs` | script | 🟢 só lê | test | `memory/decisions/0349-fact-anchor-fail-emenda-0314.md` +15 | lógica PURA do Check T de memory-health.mjs (fact-anchor). |
 | `feature-lint.mjs` | ci, npm, script | 🔴 disco | test | `memory/decisions/0368-funil-admissao-feature-pesquisa-propoe-w-admite.md` +27 | valida o TRIO de feature (requirements.md + plan.md + tasks.md) em |
 | `fiscal-debitos-derive.mjs` | ci | 🔴 disco | — | `memory/requisitos/Fiscal/BRIEFING.md` | - |
-| `flip-required.mjs` | — | 🔴 disco | — | — | promove UM check advisory a required na branch protection de `main`. |
+| `flip-required.mjs` | script | 🔴 disco | — | — | promove UM check advisory a required na branch protection de `main`. |
 | `fluxo-morde.mjs` | ci, script | 🔴 disco | — | `memory/licoes-rejeitadas.md` | EXERCÍCIO DE FOGO DO FLUXO: o método detém um defeito, ou só o comenta? |
 | `fluxo-sistema.mjs` | agente, ci | 🟢 só lê | test | `memory/requisitos/Infra/SPEC.md` +6 | MÉTRICAS DE FLUXO DO SISTEMA INTEIRO (DORA + Flow), medidas. |
 | `funcao-scorecard-calibracao.mjs` | script | 🟢 só lê | test | `memory/requisitos/_Governanca/FUNCAO-SCORECARD-METODO.md` +5 | calibração NÃO-CIRCULAR do juiz funcao-scorecard. |
