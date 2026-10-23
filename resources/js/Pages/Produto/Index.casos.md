@@ -664,6 +664,12 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
   abrir esse produto; e no painel da pilha CR2032 vejo os produtos e aparelhos que a usam. Produto sem
   pilha não mostra nada. A venda pede o modelo e a série do aparelho (Sells/Create.casos.md, mesmo
   pedido).
+- **[BACKLOG] Quantos kits dá para vender** (comparação com concorrentes, 2026-10-23) — Aceite: Dado o
+  kit que leva 2 unidades de A e 1 de B, com 10 de A e 3 de B no local, Quando abro o painel do kit,
+  Então ele mostra "3 kits disponíveis" e qual componente limita (B); a venda não deixa vender mais
+  kits do que isso quando o estoque é controlado. Fonte: Base e Mercado Livre (o estoque do kit sai do
+  componente mais escasso) e Omie (o kit só agrupa; o saldo vem dos componentes). Hoje o painel mostra
+  a composição do kit, mas não calcula quantos kits os componentes permitem.
 
 Fontes abertas em 2026-10-20: [Shopify](https://help.shopify.com/manual/products/searching-filtering) ·
 [Olist/Tiny](https://ajuda.olist.com/produtos/acoes-em-lote-e-gerenciamento-de-produtos) ·

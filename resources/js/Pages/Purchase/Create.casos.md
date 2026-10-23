@@ -421,6 +421,10 @@ Status: 🧪
   continua mostrando "2 rolos". A conversão fica lembrada para aquele fornecedor e produto, e vale
   também na nota importada pelo XML. Hoje a tela antiga (Blade) aceita as subunidades do produto
   (`sub_unit`, com o multiplicador do cadastro); a compra React não tem a escolha da unidade.
+  Aceite adicional (comparação com concorrentes, 2026-10-23): o mesmo produto aceita mais de uma
+  conversão por fornecedor (rolo de 50 m² e rolo de 25 m², por exemplo), e a nota importada usa a
+  conversão da unidade que veio no XML. Fonte: Omie (até 3 fatores de conversão por produto e
+  fornecedor, com a unidade da última nota lembrada).
 - `[BACKLOG]` **Notas de compra entram no SPED** `[V0]` — Dado uma compra lançada com a nota do
   fornecedor (modelo 55), Quando gero o SPED da competência, Então a nota sai como entrada (C100 com
   indicador de entrada, C170 e C190), com o crédito de ICMS que o regime da empresa permitir. Hoje o
@@ -442,6 +446,13 @@ Status: 🧪
   fica registrado como imposto a recolher, nada entra no estoque e a nota aparece nas notas de entrada.
   As demais retenções (IR, PIS, COFINS, CSLL e INSS) seguem a mesma linha. Hoje não há entrada de nota
   de serviço; em que obrigação ela sai é decisão do contador.
+- `[BACKLOG]` **Notas de serviço tomado buscadas sozinhas** (comparação com concorrentes,
+  2026-10-23) `[V0]` — Dado a empresa com a busca ligada, Quando um prestador emite uma NFS-e contra o
+  CNPJ dela, Então a nota aparece numa lista de notas recebidas, o financeiro confere e aprova, e só
+  então nasce a conta a pagar; cada imposto retido vira uma conta a pagar própria, com o vencimento
+  dele. Nota recusada não gera nada. Fonte: Omie (monitoramento das NFS-e tomadas nas prefeituras e no
+  Ambiente Nacional). Hoje as notas que chegam sozinhas são as NF-e da distribuição do DF-e; a NFS-e
+  tomada não chega.
 
 ---
 

@@ -271,6 +271,20 @@ last_run: "2026-10-23"
   tabelas Varejo e Atacado, Quando escolho o tipo de venda "Atacado", Então os itens usam a tabela de
   atacado, e trocar o tipo refaz os preços dos itens já lançados. Hoje a venda tem o seletor de tabela
   de preço (`price_group_id`), mas não um tipo de venda que escolha a tabela.
+- **[BACKLOG] Consignação para revendedor** (comparação com concorrentes, 2026-10-23) `[V0]` `[E0]` —
+  Aceite: Dado um revendedor que recebe 20 placas em consignação, Quando faço a remessa, Então as 20
+  saem do estoque próprio e ficam como "em poder de terceiros", sem conta a receber; Quando ele presta
+  contas de 12 vendidas e devolve 8, Então nasce a venda das 12 com a conta a receber, as 8 voltam ao
+  estoque e o saldo em consignação zera. Mexe em valor e estoque: Regra Mestre. Os CFOP da remessa e
+  do retorno são decisão do contador. Fonte: Omie (consignação, com estoque de terceiros e devolução
+  simbólica). Hoje não existe; a venda condicional (acima) é para o consumidor final.
+- **[BACKLOG] Tabela de preço com validade e por forma de pagamento, vendedor ou região** (comparação
+  com concorrentes, 2026-10-23) `[V0]` — Aceite: Dado a tabela "Promoção de outubro" válida de 01/10 a
+  31/10 e ligada à forma de pagamento Pix, Quando faço uma venda em 15/10 com Pix, Então os itens usam
+  essa tabela; em 01/11, ou com outra forma de pagamento, voltam à tabela que valia antes. O mesmo vale
+  para a tabela ligada a um vendedor, a uma região ou a uma loja. Fonte: Bling (lista de preços com
+  vigência, ligada a contato, vendedor, forma de pagamento, região ou loja). Hoje a tabela vem do grupo
+  do cliente ou do seletor da venda, sem validade nem esses vínculos.
 - **[BACKLOG] Emissão NF-e da venda (homolog/stub SEFAZ)** — wire já existe (suítes NfeBrasil); espelhar como UC quando o fluxo de emissão entrar no harness e2e.
 - **[BACKLOG] Fechar o diálogo de rascunho preserva a venda montada** — Dado um rascunho salvo · Quando o operador fecha o diálogo de recuperação SEM escolher (Esc, clique fora) · Então o rascunho **continua** no `localStorage` e a pergunta volta na próxima montagem; só o botão "Descartar" apaga. Exige exercitar `AlertDialog` do Radix no harness e2e (incluindo se `Esc` de fato fecha nesta versão, que não foi verificado). Origem: ROTA LIVRE perdeu venda montada durante janela de 503 do deploy, 2026-08-26.
 

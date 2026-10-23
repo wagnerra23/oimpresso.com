@@ -86,6 +86,13 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   2026-10-23) `[E0]` — Dado 3 unidades vendidas e 2 já devolvidas, Quando abro a devolução de novo,
   Então o teto da linha é 1. Fonte: processo "Devolução, troca e garantia" de Fluxos ("quantidade até
   a vendida, devolução total ou parcial").
+- **[BACKLOG]** Receber a nota de devolução emitida pelo cliente (comparação com concorrentes,
+  2026-10-23) `[V0]` `[E0]` — Dado um cliente empresa que devolve 2 itens com a própria NF-e de
+  devolução, Quando informo a chave dessa nota (ou ela chega pelo DF-e), Então a devolução é registrada
+  ligada à venda original, com os itens e as quantidades da nota, o estoque volta e o financeiro fica
+  igual ao da devolução que nós emitimos; nota com item que não estava na venda é recusada. Fonte: Omie
+  (importação da NF-e de devolução pela chave ou pelo XML, associada ao pedido de venda). Hoje a nota
+  do cliente pode chegar pela manifestação do DF-e, mas não vira devolução ligada à venda.
 
 ## Trilha do tempo
 - 2026-10-23 · [M+C] Backlog: devolver tudo e segunda devolução da mesma venda, sem id.

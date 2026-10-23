@@ -808,3 +808,23 @@ Status: 🧪
   pagar para ele, separada do custo próprio, a comissão desse serviço é calculada à parte, e a OS mostra
   "Executado por terceiro". OS sem terceiro não muda. Hoje a OS não registra terceiro. Mexe em valor:
   Regra Mestre.
+  Aceite adicional (comparação com concorrentes, 2026-10-23): o terceiro pode ser pedido por um pedido
+  de compra gerado da própria OS, ou da etapa que ele executa, e o custo dele aparece separado do custo
+  de material da OS. Fonte: MRPeasy e Tekla (pedido de compra de subcontratação ligado à ordem).
+
+## Despesas da OS cobradas do cliente (comparação com concorrentes, 2026-10-23)
+
+- **[BACKLOG]** Lançar despesas reembolsáveis na OS `[V0]` — Dado uma instalação fora da cidade, Quando
+  lanço na OS o deslocamento e a hospedagem com o recibo anexado, Então as despesas aparecem na OS e
+  entram no faturamento do cliente, separadas do serviço; despesa marcada como não reembolsável fica só
+  no custo. Fonte: Omie (despesas reembolsáveis na OS, com anexos, faturadas ao cliente). Hoje a OS não
+  tem despesas. Mexe em valor: Regra Mestre.
+
+## Tarefas da OS com responsável e prazo (comparação com concorrentes, 2026-10-23)
+
+- **[BACKLOG]** Tarefas paralelas da pré-produção — Dado uma OS que precisa de "comprar a lona",
+  "separar as chapas" e "fechar a arte", Quando crio as três tarefas com responsável e prazo, Então
+  cada responsável é avisado, a OS mostra quantas tarefas faltam, e a tarefa vencida aparece como
+  atrasada no Painel. A OS também guarda duas datas: a da produção e a combinada com o cliente. Fonte:
+  Printavo (tarefas com responsável, prazo e aviso por e-mail; data de produção e data do cliente).
+  Hoje cada etapa grava o seu responsável, mas não há tarefas paralelas com prazo nem aviso.
