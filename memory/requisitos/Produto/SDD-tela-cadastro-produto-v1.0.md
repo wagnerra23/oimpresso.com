@@ -6,8 +6,8 @@ type: sdd
 module: Produto
 status: ativo
 owner: wagner
-version: 1.0.8
-last_updated: 2026-10-20
+version: 1.0.9
+last_updated: 2026-10-21
 related_docs:
   - SPEC.md
   - BRIEFING.md
@@ -922,8 +922,10 @@ mercadoria** e **unidade** — e, quando o produto tem substituição tributári
      (`mysql-schema.sql`), além de `cfop_*`, `cst_*` e `origem_mercadoria`.
   2. ✅ A **origem** já é capturada no cadastro React (`BlocoPrecoImposto.tsx:76`, `UC-PCAD-07`) e a
      **unidade** também.
-  3. 🔴 **NCM e CEST não aparecem no cadastro React**: `ncm`/`cest` têm 0 ocorrências em
-     `Create.tsx` e em `_components/formulario/`.
+  3. 🟡 _Em 2026-10-20, ao escrever este CU, `ncm`/`cest` tinham 0 ocorrências em `Create.tsx` e em
+     `_components/formulario/`._ No mesmo dia o **NCM** entrou no Novo (`UC-PCAD-13`) e no Editar
+     (`UC-PEDIT-11`). Em 2026-10-21 entrou o **CEST**, também no Novo (`UC-PCAD-15`) e no Editar
+     (`UC-PEDIT-12`): 7 dígitos (Convênio ICMS 142/2018), opcional, sem aviso quando vazio.
   4. ✅ O NCM é editado na tela de **Tributação** do módulo fiscal (`nfe-brasil.tributacao.index`),
      que já tem **sugestão fiscal da Jana** que nunca se aplica sozinha (`SugestaoFiscalService`,
      UC-NFTR-10..13). A ficha do produto mostra o bloco fiscal e o link para lá
@@ -932,7 +934,7 @@ mercadoria** e **unidade** — e, quando o produto tem substituição tributári
   5. ⚠️ Produto cadastrado sem NCM nasce com `ncm = '0'` (o `DEFAULT` da coluna), não com vazio.
 - ✅ **Decidido ([M] 2026-10-20, ratificação [W] no merge do PR):** o **NCM entra no cadastro do
   produto**. A tela de Tributação continua podendo editá-lo.
-- **Regra** (implementada no Novo produto: `UC-PCAD-13` e `UC-PCAD-14` do [`Create.casos.md`](../../../resources/js/Pages/Produto/Create.casos.md); o Editar ainda não tem o campo):
+- **Regra** (implementada no Novo produto — `UC-PCAD-13` e `UC-PCAD-14` do [`Create.casos.md`](../../../resources/js/Pages/Produto/Create.casos.md) — e no Editar — `UC-PEDIT-11` do [`Edit.casos.md`](../../../resources/js/Pages/Produto/Edit.casos.md), que só envia o NCM quando a pessoa mexeu nele):
   1. O campo NCM aparece no cadastro, aceita só 8 dígitos e `'0'` **não** conta como preenchido.
   2. **Não bloqueia o salvamento.** O cadastro mínimo segue nome + SKU (`CU-PROD-01`): um serviço
      (arte, instalação) não tem NCM e não pode ser travado no cadastro.
@@ -941,7 +943,7 @@ mercadoria** e **unidade** — e, quando o produto tem substituição tributári
   4. A NF-e já recusa produto marcado como serviço (`NfeService::recusarItensDeServico`); a regra
      acima só antecipa para o cadastro o que a emissão já cobra.
 
-#### CU-PROD-17 — Peso e dimensões do produto `[should]` 🟡 **parcial**
+#### CU-PROD-17 — Peso e dimensões do produto `[should]` ✅ **no cadastro** (2026-10-21)
 
 <!-- curado: benchmark de concorrentes 2026-10-20 + medição do código (mysql-schema.sql products · BlocoMaisOpcoes.tsx) -->
 
@@ -951,8 +953,12 @@ mercadoria** e **unidade** — e, quando o produto tem substituição tributári
 - **Mercado:** Bling, Olist e Conta Azul pedem peso líquido, peso bruto e dimensões no cadastro. A
   Olist diz que servem à cotação de frete; a Shopee exige dimensões e pesos para publicar, e o
   Bling também para exportar à Amazon. Nos dois o dado é opcional para a nota.
-- **Hoje no oimpresso:** ✅ só **um** campo de peso (`products.weight varchar(191)`, editado em
-  `BlocoMaisOpcoes.tsx:64-70`). 🔴 Não há peso bruto nem colunas de dimensão em `products`.
+- **Hoje no oimpresso:** _Em 2026-10-20, ao escrever este CU, havia só **um** campo de peso
+  (`products.weight varchar(191)`) e nenhuma coluna de dimensão._ Em 2026-10-21 ([M] pediu) entraram
+  `peso_liquido` (kg), `largura_cm`, `altura_cm` e `comprimento_cm` (migration
+  `2026_10_21_120000`), no Novo (`UC-PCAD-16`) e no Editar (`UC-PEDIT-13`). O `weight` de sempre
+  passou a ser mostrado como **"Peso bruto (kg)"**, porque é o peso que o WooCommerce manda para o
+  frete. Fora: levar peso e dimensões à nota (volumes do transporte) e ao WooCommerce.
 - ⚠️ **Premissa a conferir antes de priorizar:** só vale se o cliente despacha ou vende em
   marketplace. Para venda de balcão o campo não tem uso (ADR 0105 — sinal antes de backlog).
 
@@ -991,7 +997,10 @@ cadastro pede os dados da nota certa: NCM para mercadoria, item da LC 116 para s
      (índice único `business_id + product_id`).
   2. ✅ Só o contador decide, com fonte (`UC-NFTR-32`, tela de Tributação). A NF-e recusa item de serviço
      (`UC-NFTR-31`).
-  3. 🔴 A natureza **não aparece no cadastro do produto**.
+  3. 🟡 A natureza aparece no **Editar** (`UC-PEDIT-14`): "Natureza fiscal: Serviço · item 24.01 da LC 116",
+     "Mercadoria" ou "A decidir pelo contador", com o link para a Tributação. Produto de serviço não recebe
+     o aviso de "sem NCM". O núcleo pede o dado ao NfeBrasil pelo gancho `getModuleData`, sem importá-lo.
+     Ainda não aparece no **Novo produto** (produto novo não tem decisão) nem na ficha.
   4. 🟡 Na NFS-e o código da LC 116 vem do padrão da empresa (`nfse_provider_configs.lc116_codigo_default`),
      não do produto. O código de tributação nacional (`ctrib_nac`) só existe na emissão.
   5. 🔴 Código de tributação municipal e NBS não existem no código (o único `cTribMun` é um comentário em
@@ -1226,6 +1235,7 @@ cadastro pede os dados da nota certa: NCM para mercadoria, item da LC 116 para s
 
 **Histórico:**
 
+- 2026-10-21 — **`CU-PROD-19` item 3 passa de 🔴 a 🟡** (v1.0.9): o Editar mostra a natureza fiscal decidida pelo contador (`UC-PEDIT-14`) e o aviso de NCM deixa de aparecer para produto de serviço. Falta: Novo produto, ficha, e o item da LC 116 por produto na NFS-e (item 4). [M+C]
 - 2026-10-20 — **§6.1 ganha `CU-PROD-16`, `CU-PROD-17` e `CU-PROD-18`** (v1.0.8): dados fiscais para nota, peso e dimensões, aviso de pendência fiscal. Origem: benchmark de concorrentes da tela de cadastro (Bling, Tiny/Olist, Conta Azul, Omie, Shopify), registrado também na [CAPTERRA-FICHA §11](CAPTERRA-FICHA.md). Mesmo dia: [M] decidiu que o NCM entra no cadastro; pesquisa refeita com ERPs de comunicação visual, que trouxe `CU-PROD-19` (natureza mercadoria × serviço) e `CV-06`…`CV-11`. Nenhum UC novo em `casos.md` ainda. [M+C]
 - 2026-07-27 — **Badge de proveniência nas 12 seções** (v1.0.6). Fecha a dívida que o próprio exemplar criou ao virar template: o [SDD-TEMPLATE.md](../_DesignSystem/SDD-TEMPLATE.md), extraído daqui em 2026-07-26, passou a exigir badge por seção e este documento tinha **zero** (medido: `grep -cE "⚙️|🖐"` → 0). Badges atribuídos **pela tabela do template**, não por julgamento. Mudança de forma: nenhum CU/fluxo/risco/roadmap tocado. [CC]
 - 2026-07-26 (3ª corrida `sdd-from-source`, tela `Produto/Index`) — **§5.3 novo `F8` (lista do catálogo) + §6.1 novo `CU-PROD-15` (consultar o catálogo)**, derivados por triangulação React + Blade + Delphi ([ADR 0351](../../decisions/0351-sdd-from-source.md)). Particularidade do alvo: a "Blade legada" é o **outro branch do mesmo método** `index()` — a paridade é comparação interna do controller. **Achado principal:** a lista React entrega `price`/`cost`/`margin` de todo o catálogo **sem consultar permissão**, enquanto a própria lista Blade gateia as duas colunas com `@can` (`index.blade.php:287,294`) e o Delphi faz o campo sumir (`AR-PROD-015`) — mesmo furo do `CU-PROD-14.1`, agora em lote. **Achado de alcance:** `limit(200)` sem paginação com o KPI anunciando o total (perda silenciosa). **Achado de arquitetura:** `App\Product` **não tem global scope** (`addGlobalScope` = 0) — todo o isolamento do módulo é `where` manual repetido, o que reclassifica o §3.1 (ver ⚠️ abaixo). Trio fechado em [`Index.casos.md`](../../../resources/js/Pages/Produto/Index.casos.md) + `ProdutoIndexContratoTest` (failing-first, lane `Estoque · MySQL`). Nenhum UC ✅ — veredito é da lane. [CC]

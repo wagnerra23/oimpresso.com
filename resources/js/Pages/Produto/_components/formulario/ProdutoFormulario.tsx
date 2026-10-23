@@ -13,6 +13,7 @@ import type {
   DefinirCampo,
   ErrosProduto,
   ModoFormulario,
+  NaturezaFiscalProduto,
   OpcoesProduto,
 } from './tipos';
 
@@ -33,6 +34,8 @@ interface Props {
   chaveMaisOpcoes: string;
   /** Novo produto simples: o preço, mostrado no card "Preço & Imposto". */
   preco?: { valor: PrecoSimples; mudar: (p: PrecoSimples) => void; aliquota: number };
+  /** Editar: a natureza fiscal decidida pelo contador (UC-PEDIT-14). */
+  naturezaFiscal?: NaturezaFiscalProduto | null;
 }
 
 export function ProdutoFormulario({
@@ -47,6 +50,7 @@ export function ProdutoFormulario({
   mostrarValidade,
   chaveMaisOpcoes,
   preco,
+  naturezaFiscal,
 }: Props) {
   return (
     <form id={id} onSubmit={onSubmit} className="space-y-6">
@@ -61,10 +65,18 @@ export function ProdutoFormulario({
       {modo === 'novo' && opcoes.businessLocations && (
         <BlocoLocais data={data} definir={definir} locais={opcoes.businessLocations} />
       )}
-      <BlocoPrecoImposto modo={modo} data={data} definir={definir} errors={errors} opcoes={opcoes} preco={preco} />
+      <BlocoPrecoImposto
+        data={data}
+        definir={definir}
+        errors={errors}
+        opcoes={opcoes}
+        preco={preco}
+        naturezaFiscal={naturezaFiscal}
+      />
       <BlocoEstoque modo={modo} data={data} definir={definir} opcoes={opcoes} />
       <BlocoMaisOpcoes
         data={data}
+        errors={errors}
         definir={definir}
         opcoes={opcoes}
         chaveAberto={chaveMaisOpcoes}
