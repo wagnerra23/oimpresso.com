@@ -223,6 +223,14 @@ last_run: "2026-10-23"
   5.922 no faturamento, 5.116 (produção própria) ou 5.117 (revenda) na remessa; o CFOP e o destaque
   do ICMS ficam com o contador. Mexe em valor e estoque: Regra Mestre. Fonte: UC-TRB-24 do protótipo
   fiscal (falta).
+- **[BACKLOG] Item com imposto faltando avisa ao montar a venda** — Aceite: Dado um produto sem NCM
+  ou com a natureza fiscal "a decidir pelo contador", Quando o adiciono à venda, Então a linha mostra o
+  que falta para a nota sair, sem impedir salvar a venda. Fonte: CU-PROD-18 (aviso no cadastro do
+  produto) e UC-TRB-16 do protótipo fiscal ("pronto pra emitir").
+- **[BACKLOG] Cliente sem dados para a nota avisa ao ser escolhido** — Aceite: Dado um cliente sem
+  CPF ou CNPJ, sem endereço com município ou sem a indicação de contribuinte do ICMS, Quando o escolho
+  numa venda, Então o resumo mostra "Faltam dados para a nota" e quais, com link para completar o
+  cadastro, sem impedir salvar a venda. Fonte: grupo do destinatário da NF-e.
 - **[BACKLOG] Emissão NF-e da venda (homolog/stub SEFAZ)** — wire já existe (suítes NfeBrasil); espelhar como UC quando o fluxo de emissão entrar no harness e2e.
 - **[BACKLOG] Fechar o diálogo de rascunho preserva a venda montada** — Dado um rascunho salvo · Quando o operador fecha o diálogo de recuperação SEM escolher (Esc, clique fora) · Então o rascunho **continua** no `localStorage` e a pergunta volta na próxima montagem; só o botão "Descartar" apaga. Exige exercitar `AlertDialog` do Radix no harness e2e (incluindo se `Esc` de fato fecha nesta versão, que não foi verificado). Origem: ROTA LIVRE perdeu venda montada durante janela de 503 do deploy, 2026-08-26.
 
@@ -242,4 +250,5 @@ last_run: "2026-10-23"
 - 2026-10-23 · [M+C] Backlog de ISS retido previsto e de quem recebe comissão, sem id.
 - 2026-10-23 · [M+C] Backlog da comparação com concorrentes: crédito disponível, condição do cliente e cobrança do sinal por link, sem id; o caso do limite ganhou o aceite do adiantamento (Omie).
 - 2026-10-23 · [M+C] Backlog de duplicar com a origem e de venda para entrega futura, sem id.
+- 2026-10-23 · [M+C] Backlog: aviso de imposto faltando no item e de dados do cliente faltando para a nota, sem id.
 - 2026-10-23 · [M+C] Revalidado (G-6): as mudanças em `Create.tsx` depois do last_run 2026-10-02 são a venda de reparo (#8426, #8439 e #8447), descritas pelos UC-S05, S06 e S07 desta tela. Nenhum UC foi reexecutado; last_run 2026-10-02 → 2026-10-23.

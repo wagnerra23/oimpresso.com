@@ -572,6 +572,10 @@ creditado antes e não é desfeito (`CU-RB-09` item 3).
   Dado uma venda para entrega futura, Então a nota de simples faturamento e cada nota de remessa ficam
   ligadas, e a tela mostra o saldo a remeter; remessa acima do faturado é recusada. Fonte: UC-TRB-24 do
   protótipo fiscal (falta).
+- **[BACKLOG · ⬜ sem teste] Emissão recusada antes da SEFAZ por pendência** (pedido de 2026-10-23) —
+  Dado uma venda com item sem NCM, natureza fiscal a decidir ou cliente sem os dados do destinatário,
+  Quando a nota é pedida, Então nada é enviado à SEFAZ, nenhum número é usado e a resposta lista as
+  pendências de cada item e do cliente. Fonte: UC-TRB-05 e UC-TRB-16 do protótipo fiscal e UC-FNFSE-12.
 
 ## Como rodar a suíte
 1. **Pest:** lane Fiscal no CT 100 (ADR 0062) — comando no §recibo acima. `AcoesContratoTest` roda em
@@ -579,6 +583,7 @@ creditado antes e não é desfeito (`CU-RB-09` item 3).
 2. **Cadência:** rodar ao fim de toda mexida na tela. UC ❌ = regressão fiscal.
 
 ## Trilha do tempo
+- 2026-10-23 · [M+C] Backlog: emissão recusada antes da SEFAZ por pendência de imposto ou de cliente, sem id.
 - 2026-10-23 · [M+C] Backlog: NF-e de devolução total ou parcial, remessa para conserto, remessa em garantia e notas da venda para entrega futura, sem id.
 - 2026-10-21 · [C] `UC-FNFE-19`, `20`, `30`, `31` — SVC-AN/SVC-RS e evento EPEC (US-NFE-071 ·
   UC-FLX-32). Testes novos em `ContingenciaModoTest`, sem veredito de lane ainda. **Os ids pulam do 20

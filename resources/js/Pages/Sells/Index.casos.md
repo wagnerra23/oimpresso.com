@@ -247,6 +247,16 @@ last_run: "2026-10-23"
 - **[BACKLOG] Venda para entrega futura: o que falta entregar** — Aceite: Dado uma venda para entrega
   futura de 1.000 folhetos com 400 entregues, Então a linha mostra "Entrega futura · faltam 600" e o
   drawer lista as notas de remessa já emitidas. Fonte: UC-TRB-24 do protótipo fiscal (falta).
+- **[BACKLOG] Emitir a nota com imposto faltando** — Aceite: Dado uma venda com um item sem NCM e
+  outro com a natureza fiscal "a decidir pelo contador", Quando clico em emitir a nota no drawer,
+  Então a nota não sai e a tela lista o que falta em cada item, com link para o cadastro do produto e
+  para a Tributação; a venda continua salva. Fonte: UC-TRB-05 do protótipo fiscal (sem NCM bloqueia),
+  UC-FNFSE-12 (natureza pendente bloqueia as duas notas) e CU-PROD-18 (aviso no cadastro).
+- **[BACKLOG] Emitir a nota com dados do cliente faltando** — Aceite: Dado um cliente empresa sem
+  endereço completo (CEP e município) ou sem a indicação de contribuinte do ICMS, Quando clico em
+  emitir a nota, Então a nota não sai e a tela lista o que falta, com link para o cadastro do cliente;
+  a venda a consumidor final sem identificação segue como hoje. Fonte: grupo do destinatário da NF-e
+  (documento, nome, endereço com município e indicador de IE).
 
 ## Como rodar a suíte
 1. **E2E:** `npm run e2e:check` no harness do CI (e2e-gate) — vereditos viram manifesto via `npm run casos:results` (merge per-UC).
@@ -256,6 +266,7 @@ last_run: "2026-10-23"
 - 2026-10-23 · [M+C] Backlog "Casos pedidos em 2026-10-23": sinal, arte, estoque mínimo, saldo a favor, limite de crédito, pedido de compra do cliente, ISS retido, venda sem comissionado e venda agrupada, sem id e sem mudança de comportamento da tela.
 - 2026-10-23 · [M+C] Backlog: faturar só parte da venda, da comparação com concorrentes (Omie), sem id.
 - 2026-10-23 · [M+C] Backlog de venda duplicada com a origem, devolução total ou parcial, garantia e entrega futura, sem id.
+- 2026-10-23 · [M+C] Backlog: emitir a nota com imposto ou dados do cliente faltando, sem id.
 - 2026-10-23 · [M+C] Revalidado (G-6): a única mudança em `Index.tsx` depois do last_run 2026-10-20 é a barra de totais do #9672, que já é o UC-SIDX-06 desta tela. Nenhum UC foi reexecutado; last_run 2026-10-20 → 2026-10-23.
 - 2026-10-20 · [M+C] **UC-SIDX-06 `[V0]`** — barra de totais do filtro abaixo da lista (US-SELL-017): os `totals` que o servidor já calculava passam a aparecer. A barra não mostra número quando a visão salva, a pílula Faturada/Cancelada ou a origem filtram só a página carregada. Teste `tests/js/sells-index-totais.test.tsx` na lane Vitest do `Frontend / Vite build`.
 - 2026-10-20 · [M+C] Backlog da pesquisa de concorrentes (núcleo + comunicação visual), sem id e sem mudança de comportamento da tela; fontes no [registro da sessão](../../../../memory/sessions/2026-10-20-pesquisa-consulta-venda-concorrentes-cv.md).
