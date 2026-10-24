@@ -190,10 +190,14 @@ if (faltando.length) {
 }
 
 let commit = "desconhecido";
+let buildCommit = "desconhecido";
 let dataCommit = new Date().toISOString().slice(0, 10);
 let sujo = null;
 try {
-  commit = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
+  // O commit que vale é o último que mexeu na fonte (HTML + DS), não o HEAD: o build pode rodar
+  // num branch cujo commit some no squash, e a pergunta "de onde saiu esta página" é sobre a fonte.
+  commit = execFileSync("git", ["log", "-1", "--format=%H", "--", BASE, DS], { encoding: "utf8" }).trim() || commit;
+  buildCommit = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
   dataCommit = execFileSync("git", ["log", "-1", "--format=%cs", "--", BASE], { encoding: "utf8" }).trim() || dataCommit;
   sujo = execFileSync("git", ["status", "--porcelain", "--", BASE, DS], { encoding: "utf8" }).trim() !== "";
 } catch {}
@@ -208,11 +212,17 @@ const manifesto = {
   fonte: HTML,
   design_system: DS,
   commit,
+  build_commit: buildCommit,
   arvore_suja: sujo,
   gerado_em: new Date().toISOString(),
   arquivos: Object.fromEntries([...gerados].sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => [k, sha(v)])),
 };
 
+// Só limpa pasta que é saída deste build (tem fonte.json) ou vazia: --out . apagaria o repo.
+if (existsSync(OUT) && readdirSync(OUT).length && !existsSync(join(OUT, "fonte.json"))) {
+  console.error(`✗ ${OUT} não está vazia e não é saída deste build (sem fonte.json) — escolha outra pasta.`);
+  process.exit(2);
+}
 rmSync(OUT, { recursive: true, force: true });
 for (const [k, v] of gerados) {
   const p = join(OUT, k);
