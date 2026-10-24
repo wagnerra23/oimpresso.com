@@ -17,11 +17,16 @@ vi.mock('@inertiajs/react', async () => {
       React.createElement('a', { href, ...resto }, children),
     useForm: (inicial: Record<string, unknown>) => {
       const [data, setData] = React.useState(inicial)
+      // O Edit.tsx passa o envio por `transform` (UC-PEDIT-11: o NCM só vai quando a pessoa mexeu).
+      const transformar = React.useRef((d: Record<string, unknown>) => d)
       return {
         data,
         setData: (k: string, v: unknown) => setData((d) => ({ ...d, [k]: v })),
+        transform: (fn: (d: Record<string, unknown>) => Record<string, unknown>) => {
+          transformar.current = fn
+        },
         put: () => {
-          enviado.payload = data
+          enviado.payload = transformar.current(data)
         },
         processing: false,
         errors: {},
