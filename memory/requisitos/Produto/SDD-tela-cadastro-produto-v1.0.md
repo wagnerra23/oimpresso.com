@@ -924,7 +924,8 @@ mercadoria** e **unidade** — e, quando o produto tem substituição tributári
      **unidade** também.
   3. 🟡 _Em 2026-10-20, ao escrever este CU, `ncm`/`cest` tinham 0 ocorrências em `Create.tsx` e em
      `_components/formulario/`._ No mesmo dia o **NCM** entrou no Novo (`UC-PCAD-13`) e no Editar
-     (`UC-PEDIT-11`). O **CEST** segue fora do cadastro React.
+     (`UC-PEDIT-11`). Em 2026-10-21 entrou o **CEST**, também no Novo (`UC-PCAD-15`) e no Editar
+     (`UC-PEDIT-12`): 7 dígitos (Convênio ICMS 142/2018), opcional, sem aviso quando vazio.
   4. ✅ O NCM é editado na tela de **Tributação** do módulo fiscal (`nfe-brasil.tributacao.index`),
      que já tem **sugestão fiscal da Jana** que nunca se aplica sozinha (`SugestaoFiscalService`,
      UC-NFTR-10..13). A ficha do produto mostra o bloco fiscal e o link para lá

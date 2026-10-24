@@ -1342,6 +1342,7 @@ class ProductController extends Controller
                     'tax_type' => $duplicate_product->tax_type,
                     'origem_mercadoria' => (int) ($duplicate_product->origem_mercadoria ?? 0),
                     'ncm' => (string) ($duplicate_product->ncm ?? ''),
+                    'cest' => (string) ($duplicate_product->cest ?? ''),
                     'barcode_type' => $duplicate_product->barcode_type,
                     'sku' => (string) ($duplicate_product->sku ?? ''),
                     'alert_quantity' => $duplicate_product->alert_quantity,
@@ -1415,6 +1416,21 @@ class ProductController extends Controller
         );
     }
 
+    /**
+     * CEST do produto — 7 dígitos, só números (Convênio ICMS 142/2018, cláusula sexta).
+     * UC-PCAD-15 e UC-PEDIT-12, CU-PROD-16.
+     *
+     * Fora do `try`, como o NCM. Só a mercadoria com substituição tributária precisa do CEST, então
+     * o cadastro não o exige: ausente ou vazio não valida.
+     */
+    protected function validarCest(Request $request): void
+    {
+        $request->validate(
+            ['cest' => ['sometimes', 'nullable', 'digits:7']],
+            ['cest.digits' => 'O CEST tem 7 dígitos, só números.'],
+        );
+    }
+
     public function store(Request $request)
     {
         if (! auth()->user()->can('product.create')) {
@@ -1446,6 +1462,7 @@ class ProductController extends Controller
 
         $this->validarOrigemMercadoria($request);
         $this->validarNcm($request);
+        $this->validarCest($request);
 
         try {
             $business_id = $request->session()->get('user.business_id');
@@ -1473,6 +1490,11 @@ class ProductController extends Controller
             // deixa o DEFAULT '0' da coluna.
             if ($request->filled('ncm')) {
                 $product_details['ncm'] = (string) $request->input('ncm');
+            }
+
+            // CEST (UC-PCAD-15): só grava quando vem cheio; vazio deixa a coluna nula.
+            if ($request->filled('cest')) {
+                $product_details['cest'] = (string) $request->input('cest');
             }
 
             if (! empty($request->input('sub_category_id'))) {
@@ -1752,6 +1774,7 @@ class ProductController extends Controller
                     'taxType' => $product->tax_type ?? 'exclusive',
                     'origemMercadoria' => (int) ($product->origem_mercadoria ?? 0),
                     'ncm' => (string) ($product->ncm ?? ''),
+                    'cest' => (string) ($product->cest ?? ''),
                     'barcodeType' => (string) ($product->barcode_type ?? 'C128'),
                     'enableStock' => (bool) $product->enable_stock,
                     'alertQuantity' => $alert_quantity,
@@ -1820,6 +1843,7 @@ class ProductController extends Controller
 
         $this->validarOrigemMercadoria($request);
         $this->validarNcm($request);
+        $this->validarCest($request);
 
         try {
             $product_details = $request->only(['name', 'brand_id', 'unit_id', 'category_id', 'tax', 'barcode_type', 'sku', 'alert_quantity', 'tax_type', 'weight', 'product_description', 'sub_unit_ids', 'preparation_time_in_minutes', 'product_custom_field1', 'product_custom_field2', 'product_custom_field3', 'product_custom_field4', 'product_custom_field5', 'product_custom_field6', 'product_custom_field7', 'product_custom_field8', 'product_custom_field9', 'product_custom_field10', 'product_custom_field11', 'product_custom_field12', 'product_custom_field13', 'product_custom_field14', 'product_custom_field15', 'product_custom_field16', 'product_custom_field17', 'product_custom_field18', 'product_custom_field19', 'product_custom_field20',]);
@@ -1859,6 +1883,10 @@ class ProductController extends Controller
             // Larastan (que lê as migrations) não a enxerga como propriedade do model.
             if ($request->has('ncm')) {
                 $product->setAttribute('ncm', $request->filled('ncm') ? (string) $request->input('ncm') : '0');
+            }
+            // CEST (UC-PEDIT-12): mesma regra do NCM. Vazio é "sem CEST": a coluna volta a nula.
+            if ($request->has('cest')) {
+                $product->setAttribute('cest', $request->filled('cest') ? (string) $request->input('cest') : null);
             }
             $product->product_custom_field1 = $product_details['product_custom_field1'] ?? '';
             $product->product_custom_field2 = $product_details['product_custom_field2'] ?? '';

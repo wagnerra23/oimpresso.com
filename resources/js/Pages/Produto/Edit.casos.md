@@ -42,6 +42,7 @@ last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 48
 | UC-PEDIT-09 | Editar a origem da mercadoria: grava 0–8, recusa fora da tabela, Blade não zera, outra empresa → 404, e a nota leva a origem | should `[T0]` | `AR-PROD-128` + ADR 0093 | `ProdutoOrigemMercadoriaTest` (Pest) | 🧪 passa no CT 100 |
 | UC-PEDIT-10 | Editar pela tela React não apaga os campos personalizados nem a validade | must | `AR-PROD-003/042` + charter Goal | `ProdutoEditPayloadContratoTest` (Pest) + `produto-editar-preserva.test.tsx` (Vitest) | ⬜ Vitest passa; Pest aguarda a lane |
 | UC-PEDIT-11 | Editar o NCM: grava, apagar volta a sem NCM, fora do formato é recusado, sem mexer não muda, outra empresa → 404 | must `[T0]` | `CU-PROD-16` + ADR 0093 | `CadastroProdutoNcmTest` (Pest) + `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
+| UC-PEDIT-12 | Editar o CEST: grava, apagar volta a sem CEST, fora do formato é recusado, sem mexer não muda, outra empresa → 404 | should `[T0]` | `CU-PROD-16` + ADR 0093 | `CadastroProdutoCestTest` (Pest) + `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
 
 > ⚠️ **UC-PEDIT-01/02/04 DEIXARAM de ser stub em 2026-09-18** — viraram Pest de comportamento no
 > `ProdutoEditContratoTest` (o arquivo que esta nota mandava usar), com `PUT` real, `actingAs` e
@@ -160,6 +161,15 @@ last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 48
 - **Aceite:** Dado um produto · Quando abro o Editar · Então o campo NCM mostra o NCM gravado, só com dígitos (`4911.10.90` aparece `49111090`) · E, se mudo o NCM e salvo, ele grava · E, se apago o NCM e salvo, o produto volta para "sem NCM" (o `'0'` da coluna) · E um NCM fora do formato é recusado **sem gravar nada** · E, se **não mexo** no NCM, o envio não leva o campo e o NCM gravado fica como estava — mesmo um NCM antigo fora do formato, que mostra o aviso *"O NCM tem 8 dígitos."* mas não impede salvar outro campo · E salvar pelo Blade (que não manda o campo) não muda o NCM · E editar o NCM de produto de outra empresa devolve **404** sem gravar.
 - **Teste:** [`CadastroProdutoNcmTest`](../../../../tests/Feature/Produto/CadastroProdutoNcmTest.php) — `UC-PEDIT-11` (o servidor: grava, apagar, sem o campo, fora do formato, outra empresa, e o `edit()` entregando o NCM) · [`produto-formulario.test.tsx`](../../../../tests/js/produto-formulario.test.tsx) — `UC-PEDIT-11` (a tela: só dígitos, sem mexer não envia, NCM antigo fora do formato não barra, alterar envia, apagar envia vazio).
 - **Contrato:** `CU-PROD-16` do [SDD](../../../../memory/requisitos/Produto/SDD-tela-cadastro-produto-v1.0.md) (decisão [M] 2026-10-20: o NCM entra no cadastro, sem ser obrigatório) + ADR 0093. O "sem mexer não envia" segue a mesma lição do UC-PEDIT-05/07/09: o `update()` atende o Blade e a tela React, e campo ausente não pode mudar o que está gravado.
+- **Status: 🧪** — escrito junto do código, sem veredito da lane `PHP / Pest (Estoque · MySQL)` nem do job `Frontend / Vite build` (G-7).
+
+---
+
+## UC-PEDIT-12 · Editar o CEST · `should` `[T0]`
+- **Persona:** quem corrige o cadastro de uma mercadoria com substituição tributária.
+- **Aceite:** Dado um produto · Quando abro o Editar · Então o campo CEST mostra o CEST gravado, só com dígitos (`28.038.00` aparece `2803800`) · E, se mudo o CEST e salvo, ele grava · E, se apago o CEST e salvo, o produto fica sem CEST (coluna nula) · E um CEST fora do formato é recusado **sem gravar nada** · E, se **não mexo** no CEST, o envio não leva o campo e o CEST gravado fica como estava, mesmo um CEST antigo fora do formato · E salvar pelo Blade (que não manda o campo) não muda o CEST · E editar o CEST de produto de outra empresa devolve **404** sem gravar.
+- **Teste:** [`CadastroProdutoCestTest`](../../../../tests/Feature/Produto/CadastroProdutoCestTest.php) — `UC-PEDIT-12` (o servidor: grava, apagar, sem o campo, fora do formato, outra empresa, e o `edit()` entregando o CEST) · [`produto-formulario.test.tsx`](../../../../tests/js/produto-formulario.test.tsx) — `UC-PEDIT-12` (a tela: mostra só dígitos e, sem mexer, não envia; alterar envia; apagar envia vazio).
+- **Contrato:** `CU-PROD-16` do [SDD](../../../../memory/requisitos/Produto/SDD-tela-cadastro-produto-v1.0.md) + Convênio ICMS 142/2018, cláusula sexta + ADR 0093. Mesma regra do `UC-PEDIT-11` (NCM): o `update()` atende o Blade e a tela React, e campo ausente não muda o que está gravado.
 - **Status: 🧪** — escrito junto do código, sem veredito da lane `PHP / Pest (Estoque · MySQL)` nem do job `Frontend / Vite build` (G-7).
 
 ## Diagnóstico do remédio (2026-07-29) — a correção óbvia é a errada
