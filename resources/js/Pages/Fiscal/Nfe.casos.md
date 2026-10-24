@@ -124,6 +124,10 @@ não tem as migrations do NfeBrasil. É lacuna de ambiente, não defeito do test
 | UC-FNFE-16 | nota normal (tpEmis 1) não leva `dhCont`/`xJust` | `[must]` `[reg]` | **—** (US-NFE-070) | `ContingenciaAgendamentoTest` | 🧪 |
 | UC-FNFE-17 | o agendamento só retransmite quem tem nota pendente e SEFAZ no ar | `[must]` | **—** (US-NFE-070) | `ContingenciaAgendamentoTest` | 🧪 |
 | UC-FNFE-18 | o job de um business nunca transmite nota de outro | `[must]` `[T0]` | **—** (US-NFE-070) | `ContingenciaAgendamentoTest` | 🧪 |
+| UC-FNFE-19 | SVC-AN/SVC-RS: a NF-e sai com tpEmis 6/7 e vai na hora para a SEFAZ Virtual da UF | `[must]` `[fiscal]` | **—** (US-NFE-071) | `ContingenciaModoTest` (7) | 🧪 |
+| UC-FNFE-20 | EPEC: o evento 110140 é registrado no Ambiente Nacional e a nota fica guardada | `[must]` `[fiscal]` | **—** (US-NFE-071) | `ContingenciaModoTest` (2) | 🧪 |
+| UC-FNFE-30 | EPEC recusado ou AN fora: a nota não se perde e o motivo diz que o DANFE ainda não vale | `[must]` | **—** (US-NFE-071) | `ContingenciaModoTest` (2) | 🧪 |
+| UC-FNFE-31 | o EPEC de uma empresa grava evento só nela | `[must]` `[T0]` | **—** (US-NFE-071) | `ContingenciaModoTest` | 🧪 |
 | UC-FNFE-21 | fatura paga emite a NF-e sem ninguém clicar (UC-FLX-26) | `[must]` `[fiscal]` | CU-RB-09 itens 1-2 (SDD RecurringBilling) | `EmitirNFeAoReceberPagamentoTest` (4) | 🧪 |
 | UC-FNFE-22 | com a chave desligada (o padrão) ou fatura não encontrada, nenhuma nota sai (UC-FLX-26) | `[must]` `[fiscal]` | CU-RB-09 item 2 | `EmitirNFeAoReceberPagamentoTest` (2) | 🧪 |
 | UC-FNFE-23 | SEFAZ fora não derruba o pagamento: a emissão volta pra fila (UC-FLX-26) | `[must]` `[fiscal]` | CU-RB-09 item 3 | `EmitirNFeAoReceberPagamentoTest` (3) | 🧪 |
@@ -410,8 +414,10 @@ preferência de exibição. Ancorar num CU plausível fecharia a lacuna do paine
 > **Âncora:** [US-NFE-070](../../../../memory/requisitos/NfeBrasil/SPEC.md) (resto da US-NFE-006) e o
 > UC-FLX-32 do catálogo de fluxos (etapa Validada → Transmitida: *"NF-e em contingência quando a SEFAZ
 > cai"*). Nesta entrega: `dhCont`/`xJust` no XML e a retransmissão agendada (`nfe:retentar-contingencia`,
-> a cada 5 min). SVC-AN/SVC-RS, evento EPEC 110140 e a marcação no DANFE seguem pendentes na US.
-> Coluna CU `—`: o SDD §6 do Fiscal não tem CU de contingência. Prova: `ContingenciaAgendamentoTest`.
+> a cada 5 min). SVC-AN/SVC-RS e o evento EPEC 110140 entraram em 2026-10-21 (US-NFE-071,
+> UC-FNFE-19/20/30/31); a marcação de contingência no DANFE segue pendente na US.
+> Coluna CU `—`: o SDD §6 do Fiscal não tem CU de contingência. Prova: `ContingenciaAgendamentoTest`
+> e `ContingenciaModoTest`.
 
 ## UC-FNFE-15 · A nota em contingência leva quando e por quê entrou nela · `must`
 
@@ -441,6 +447,40 @@ Status: 🧪
 
 **Dado** uma nota em contingência em A e outra em B **Quando** roda o job de A **Então** só a nota de A é
 transmitida e a de B continua `contingencia`.
+
+Status: 🧪
+
+## UC-FNFE-19 · No modo SVC a NF-e vai na hora para a SEFAZ Virtual da UF · `must`
+
+**Dado** a contingência ligada em **SVC-AN** **Quando** sai uma NF-e **Então** o XML traz `<tpEmis>6</tpEmis>`
+com `dhCont`/`xJust`, o lote é enviado com a lib armada em `SVCAN` (é isso que troca o webservice) e a nota
+volta autorizada. Em **SVC-RS** é `<tpEmis>7</tpEmis>` e `SVCRS`. A NFC-e não tem SEFAZ Virtual: com SVC
+ligado ela segue off-line (tpEmis 9) e não é enviada. Ativar a SVC que não atende a UF do emitente é
+recusado (a outra SVC recusaria as notas), e a tabela UF → SVC é conferida contra a da `sped-nfe` nas 27 UFs.
+
+Status: 🧪
+
+## UC-FNFE-20 · No modo EPEC o evento 110140 é registrado antes de a nota ir à SEFAZ · `must`
+
+**Dado** a contingência ligada em **EPEC** **Quando** sai uma NF-e **Então** ela fica guardada (`contingencia`,
+tpEmis 4), o lote **não** vai à SEFAZ da UF, o evento 110140 é enviado com a lib armada em `EPEC` e fica
+`autorizado` com cStat 136, e o protocolo vai para o metadata da nota. Quem ativou antes de existir a escolha
+(modo vazio) segue em EPEC.
+
+Status: 🧪
+
+## UC-FNFE-30 · EPEC recusado ou AN fora do ar não perde a nota · `must`
+
+**Dado** o modo EPEC **Quando** o AN devolve cStat de erro, ou o envio do evento lança exceção **Então** a nota
+continua `contingencia` com o XML guardado, o evento 110140 fica `rejeitado` com o cStat ou o erro, e o motivo
+da nota diz "O DANFE só vale com o EPEC registrado".
+
+Status: 🧪
+
+## UC-FNFE-31 · O EPEC de uma empresa grava evento só nela · `must`
+
+**Dado** a empresa A em EPEC **Quando** sai uma NF-e de A **Então** o único evento da nota é de A, e a empresa B
+não ganha evento 110140.
 
 Status: 🧪
 
@@ -521,6 +561,10 @@ creditado antes e não é desfeito (`CU-RB-09` item 3).
 2. **Cadência:** rodar ao fim de toda mexida na tela. UC ❌ = regressão fiscal.
 
 ## Trilha do tempo
+- 2026-10-21 · [C] `UC-FNFE-19`, `20`, `30`, `31` — SVC-AN/SVC-RS e evento EPEC (US-NFE-071 ·
+  UC-FLX-32). Testes novos em `ContingenciaModoTest`, sem veredito de lane ainda. **Os ids pulam do 20
+  pro 30:** o 21..23 já é do fluxo "boleto pago emite a NF-e", e 24..29 ficam livres para quem estiver
+  abrindo casos nesta tela em paralelo.
 - 2026-10-20 · [C] `UC-FNFE-15..18` — contingência (US-NFE-070 · UC-FLX-32): `dhCont`/`xJust` no XML e
   retransmissão agendada. Testes novos em `ContingenciaAgendamentoTest`, sem veredito de lane ainda.
 

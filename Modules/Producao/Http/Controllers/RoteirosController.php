@@ -2,6 +2,7 @@
 
 namespace Modules\Producao\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -86,6 +87,32 @@ class RoteirosController extends Controller
         return back()->with('status', ['success' => 1, 'msg' => 'Produtos do roteiro salvos.']);
     }
 
+    /**
+     * Busca de produto para o seletor "Produtos que usam este roteiro" (UC-FLX-07). Só da empresa da
+     * sessão e só os ativos; responde o roteiro em que o produto já está, porque ligar aqui o tira de lá.
+     */
+    public function buscarProdutos(Request $request): JsonResponse
+    {
+        abort_unless($request->user()->can('producao.access'), 403);
+        $biz = (int) $request->session()->get('user.business_id');
+        $q = trim((string) $request->query('q', ''));
+        if (mb_strlen($q) < 2) {
+            return response()->json([]);
+        }
+        $like = '%'.addcslashes($q, '%_').'%';
+
+        $lista = DB::table('products as p')
+            ->leftJoin('pcp_produto_roteiro as pr', fn ($j) => $j->on('pr.product_id', '=', 'p.id')->on('pr.business_id', '=', 'p.business_id'))
+            ->leftJoin('pcp_roteiros as r', fn ($j) => $j->on('r.id', '=', 'pr.roteiro_id')->on('r.business_id', '=', 'p.business_id'))
+            ->where('p.business_id', $biz)->where('p.is_inactive', 0)
+            ->where(fn ($w) => $w->where('p.name', 'like', $like)->orWhere('p.sku', 'like', $like))
+            ->orderBy('p.name')->limit(20)
+            ->get(['p.id', 'p.name', 'p.sku', 'r.id as roteiro_id', 'r.nome as roteiro_nome']);
+
+        return response()->json($lista->map(fn ($p) => ['id' => (int) $p->id, 'nome' => $p->name, 'sku' => $p->sku,
+            'roteiro_id' => $p->roteiro_id ? (int) $p->roteiro_id : null, 'roteiro_nome' => $p->roteiro_nome])->values());
+    }
+
     /** @param  array<int, array<string, mixed>>  $etapas */
     private function gravarEtapas(Roteiro $roteiro, int $biz, array $etapas): void
     {
@@ -132,9 +159,15 @@ class RoteirosController extends Controller
             return $b;
         }, array_values($blocos));
 
-        $produtos = DB::table('pcp_produto_roteiro')->where('business_id', $r->business_id)->where('roteiro_id', $r->id)
-            ->orderBy('product_id')->pluck('product_id')->map(fn ($p) => (int) $p)->all();
+        // Nome junto do id: a tela mostra o produto ligado sem uma 2ª busca. O join repete a empresa
+        // dos dois lados — vínculo apontando produto de outra empresa não aparece.
+        $produtos = DB::table('pcp_produto_roteiro as pr')
+            ->join('products as p', fn ($j) => $j->on('p.id', '=', 'pr.product_id')->on('p.business_id', '=', 'pr.business_id'))
+            ->where('pr.business_id', $r->business_id)->where('pr.roteiro_id', $r->id)
+            ->orderBy('p.name')->get(['p.id', 'p.name', 'p.sku'])
+            ->map(fn ($p) => ['id' => (int) $p->id, 'nome' => $p->name, 'sku' => $p->sku])->values()->all();
 
-        return ['id' => $r->id, 'familia' => $r->familia, 'nome' => $r->nome, 'etapas' => $etapas, 'produto_ids' => $produtos];
+        return ['id' => $r->id, 'familia' => $r->familia, 'nome' => $r->nome, 'etapas' => $etapas,
+            'produto_ids' => array_column($produtos, 'id'), 'produtos' => $produtos];
     }
 }

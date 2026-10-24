@@ -20,6 +20,7 @@ import {
   normaliza,
   resolverProvider,
   separarDiffPorArquivo,
+  trunca,
 } from './critica.mjs';
 import { readFileSync, writeFileSync, mkdtempSync } from 'node:fs';
 import { join } from 'node:path';
@@ -29,6 +30,20 @@ import { analisaWorkflow, ondeRoda } from '../governance/fluxo-morde.mjs';
 
 let passou = 0;
 function t(nome, fn) { fn(); passou++; console.log(`  ok - ${nome}`); }
+
+t('trunca não deixa metade de emoji no corte (OpenAI 400 invalid_json no PR #9744)', () => {
+  // 🧪 ocupa os índices 9 e 10; o limite 10 cairia entre as duas metades.
+  const texto = 'a'.repeat(9) + '\u{1F9EA}' + 'b'.repeat(10);
+  const { texto: cortado, truncado } = trunca(texto, 10, 'x');
+  assert.equal(truncado, true);
+  assert.equal(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/.test(cortado), false, 'metade de emoji solta no corte');
+  assert.equal(JSON.stringify(cortado).includes('\\ud83e'), false, 'JSON leva a metade escapada');
+  assert.ok(cortado.startsWith('a'.repeat(9) + '\n'));
+  // Controle: sem emoji no ponto de corte, o corte segue no limite.
+  assert.ok(trunca('a'.repeat(20), 10, 'x').texto.startsWith('a'.repeat(10) + '\n'));
+  // Controle: emoji inteiro antes do limite fica inteiro.
+  assert.ok(trunca('a'.repeat(8) + '\u{1F9EA}' + 'b'.repeat(10), 10, 'x').texto.startsWith('a'.repeat(8) + '\u{1F9EA}\n'));
+});
 
 t('separarDiffPorArquivo divide unified diff por path do lado b/', () => {
   const diff = [

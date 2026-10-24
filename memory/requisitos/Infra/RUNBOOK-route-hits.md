@@ -4,14 +4,14 @@ title: "RUNBOOK — route-hits: sinal contínuo de execução real (servido)"
 module: Infra
 owner: W
 status: ativo
-last_validated: "2026-07-09"
+last_validated: "2026-10-22"
 preconditions:
   - "PR de coleta mergeado + deploy Hostinger feito"
   - "Wagner aprovou canary (ROUTE_HITS_ENABLED é default OFF)"
 steps:
   - "Canary: ligar ROUTE_HITS_ENABLED=true no .env de prod + observar 7d"
   - "Flush roda sozinho (schedule daily 00:15 BRT); conferir tabela route_hits"
-  - "Export: php artisan route-hits:export --write + commit do JSON"
+  - "Export: automático (workflow route-hits-export.yml, semanal, auto-PR); manual só como fallback"
 ---
 
 # RUNBOOK — route-hits (sinal "servido")
@@ -36,8 +36,10 @@ Pipeline (4 peças, todas neste repo):
 3. **`route-hits:export [--dias=30] --write`** — tabela → ledger versionável
    `governance/route-hits.json` (`rotas` + `pages` via Reflection do método de
    action → `Inertia::render` literal). Mesmo protocolo do
-   `governance:prod-flags`: roda no host de PROD, commit manual, **nunca editar
-   o JSON à mão**.
+   `governance:prod-flags`: roda no host de PROD, **nunca editar o JSON à
+   mão**. Desde 2026-10-22 quem roda é o workflow
+   [`route-hits-export.yml`](../../../.github/workflows/route-hits-export.yml)
+   (ver §Export automático).
 4. **Consumidores** (PR separado): `anchor-lint.mjs` (advisory
    `servido`/`nao_servido` — "existe+roteado mas 0 hits em Nd") e
    `charter-live-signal.mjs` (3ª fonte de sinal pra `status: live`).
@@ -53,6 +55,32 @@ Pipeline (4 peças, todas neste repo):
 
 Se pesar no shared hosting: `ROUTE_HITS_SAMPLE_RATE=0.25` (amostragem — o
 export registra o rate vigente) ou desligar a flag (kill-switch instantâneo).
+
+## Export automático (desde 2026-10-22)
+
+O passo 3 era manual e parou duas vezes (2026-07-25, religado no #6155;
+2026-08-22, religado no #9765). Nas duas o eixo "entrega" do
+`cron-watchdog.mjs` (G6, limite 60d) ficou vermelho em todo PR, embora a
+coleta nunca tivesse parado.
+
+O workflow [`route-hits-export.yml`](../../../.github/workflows/route-hits-export.yml)
+roda toda segunda 01:30 BRT (e por `workflow_dispatch`):
+
+1. SSH no Hostinger com os secrets e flags do `deploy.yml`.
+2. `php artisan route-hits:export --dias=30` em **dry-run** (stdout). Nunca
+   `--write`: o checkout de prod não fica sujo.
+3. Recorta o JSON, valida (JSON.parse, schema `route-hits/v1`, ≥1 rota) e grava
+   no runner. Zero rotas = coleta desligada ou tabela vazia: o job falha e
+   **não** publica ledger vazio.
+4. Auto-PR `chore/route-hits-export` com auto-merge, só quando o conteúdo muda.
+
+Fallback manual (workflow quebrado): `gh workflow run route-hits-export.yml`;
+se nem isso, o `--write` via SSH + commit, como antes.
+
+`governance/prod-flags.json` **não** entrou: o dry-run dele faz merge com o
+arquivo do checkout de prod, que só anda no deploy, e o auto-PR desfaria
+edições feitas no main depois do último deploy. Segue manual até alguém fazer
+esse merge contra o main, no runner.
 
 ## O que NÃO é
 

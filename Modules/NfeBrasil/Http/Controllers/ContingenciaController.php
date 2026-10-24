@@ -10,6 +10,7 @@ use Illuminate\Routing\Controller;
 use Modules\NfeBrasil\Exceptions\ContingenciaException;
 use Modules\NfeBrasil\Http\Requests\AtivarContingenciaRequest;
 use Modules\NfeBrasil\Services\ContingenciaService;
+use Modules\NfeBrasil\Services\ModoContingencia;
 
 /**
  * US-NFE-006 / ADR TECH-0002 — liga/desliga contingência do tenant.
@@ -26,17 +27,24 @@ class ContingenciaController extends Controller
     {
         $businessId = (int) $request->session()->get('business.id');
 
+        $modo = (string) ($request->input('modo') ?: ModoContingencia::EPEC);
+
         try {
-            $this->contingencia->ativar($businessId, (string) $request->input('motivo'), $request->user());
+            $this->contingencia->ativar($businessId, (string) $request->input('motivo'), $request->user(), $modo);
         } catch (ContingenciaException $e) {
-            return back()->with('error', $e->getMessage());
+            // Erro no campo `modo` (não só flash): a tela mostra a recusa ao lado da escolha.
+            return back()->withErrors(['modo' => $e->getMessage()])->with('error', $e->getMessage());
         }
 
-        return back()->with(
-            'success',
-            'Contingência ATIVADA. As próximas notas saem em contingência e ficam aguardando transmissão — '
-            . 'desative assim que a SEFAZ voltar.'
-        );
+        // A copy depende do modo: SVC transmite na hora; EPEC guarda a nota até a SEFAZ voltar.
+        return back()->with('success', ModoContingencia::ehSvc($modo)
+            ? sprintf(
+                'Contingência %s ATIVADA. As próximas NF-e são transmitidas na hora pela SEFAZ Virtual — '
+                . 'desative assim que a SEFAZ da UF voltar.',
+                ModoContingencia::rotulo($modo),
+            )
+            : 'Contingência ATIVADA. As próximas notas saem em contingência e ficam aguardando transmissão — '
+            . 'desative assim que a SEFAZ voltar.');
     }
 
     public function desativar(Request $request): RedirectResponse

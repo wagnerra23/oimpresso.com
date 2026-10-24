@@ -11,6 +11,7 @@ contains:
   - "ServiceOrderItemController — CRUD HTTP de items lançados na OS (peça/mão-obra/serviço terceiro). Wave 1.3 US-OFICINA-027 — alimenta drawer ServiceOrderRichSheet seção PEÇAS & MÃO DE OBRA + Observer ::computeFinalTotal."
   - "DviInspectionController — CRUD HTTP de items DVI (Vistoria Digital · semáforo ok/atenção/crítico). Wave 3 US-OFICINA-035 — wedge competitivo vs RepairShopr/mHelpDesk."
   - "ServiceOrderPhotoController — CRUD HTTP das fotos do laudo OS-level (Fotos & Laudo · F3 OS-V2-1). Anexo polimórfico da própria ServiceOrder via HasArquivos (distinto da foto POR item DVI em OaInspectionItem). Alimenta o drawer ServiceOrderRichSheet + seção 'Fotos da vistoria' no print A4."
+  - "ServiceOrderAssinaturaController — POST /ordens-servico/{order}/assinatura: assinatura do cliente na entrega (US-OFICINA-048 · UC-FLX-22). PNG ≤ 200 KB no Arquivos, anexado a oficina_os_assinaturas (não à OS). Exigência por empresa via common_settings, desligada por padrão."
   - "VehicleController"
   - "ServiceOrderFsmActionController (app/Http/Controllers — shared FSM canon, espelha SaleFsmActionController)"
 not_contains:

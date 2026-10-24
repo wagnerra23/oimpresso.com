@@ -29,6 +29,8 @@ interface FsmAction {
   target_stage: FsmStage | null;
   is_critical: boolean;
   requires_confirmation: boolean;
+  /** Motor recusa sem motivo (ex.: "Marcar perdido"). Ausente em backend antigo = false. */
+  exige_motivo?: boolean;
   has_side_effect: boolean;
   can_execute: boolean;
 }
@@ -183,7 +185,7 @@ export default function FsmActionPanel({ saleId, enabled, onTransition }: Props)
   };
 
   const executeAction = async (action: FsmAction) => {
-    if (action.requires_confirmation || action.is_critical) {
+    if (action.requires_confirmation || action.is_critical || action.exige_motivo) {
       setConfirmAction(action);
       return;
     }
@@ -338,7 +340,7 @@ export default function FsmActionPanel({ saleId, enabled, onTransition }: Props)
 
             <div className="space-y-1">
               <Label htmlFor="motivo" className="text-xs">
-                Motivo {confirmAction.is_critical ? '(recomendado)' : '(opcional)'}
+                Motivo {confirmAction.exige_motivo ? '(obrigatório)' : confirmAction.is_critical ? '(recomendado)' : '(opcional)'}
               </Label>
               <Textarea
                 id="motivo"
@@ -359,7 +361,7 @@ export default function FsmActionPanel({ saleId, enabled, onTransition }: Props)
                 variant={confirmAction.is_critical ? 'destructive' : 'default'}
                 size="sm"
                 onClick={confirmExecute}
-                disabled={executing}
+                disabled={executing || (Boolean(confirmAction.exige_motivo) && motivo.trim() === '')}
               >
                 {executing ? (
                   <>

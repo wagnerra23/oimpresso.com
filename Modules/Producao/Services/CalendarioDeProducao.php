@@ -52,9 +52,16 @@ final class CalendarioDeProducao
             $premissas[] = sprintf('Hora útil: %s, %s–%s.', $fonte, $hm($abre), $hm($fecha));
         }
 
-        $folgas = $expediente['folgas'] ?? [0, 6];
-        $premissas[] = $expediente === null ? 'Sem expediente no RH: folga no sábado e no domingo.'
-            : 'Folgas da semana: as do expediente do RH «'.$expediente['nome'].'».';
+        // Turno do RH sem dias de folga marcados é cadastro incompleto, não "trabalha todo dia":
+        // vale sábado e domingo, como sem RH (decisão [W] 2026-10-22, caso da WR2 com o turno
+        // 08:00–12:00 sem folga, que fazia sábado e domingo contarem como dia útil).
+        $folgasDoRh = $expediente['folgas'] ?? [];
+        $folgas = $folgasDoRh !== [] ? $folgasDoRh : [0, 6];
+        $premissas[] = match (true) {
+            $expediente === null => 'Sem expediente no RH: folga no sábado e no domingo.',
+            $folgasDoRh === [] => 'O expediente do RH «'.$expediente['nome'].'» não tem folga cadastrada: considerado sábado e domingo.',
+            default => 'Folgas da semana: as do expediente do RH «'.$expediente['nome'].'».',
+        };
 
         $feriados = [];
         if ($rh === null) {

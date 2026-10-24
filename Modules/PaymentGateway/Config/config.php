@@ -16,4 +16,16 @@ return [
     | app/Console/Kernel.php e RetryOrphanWebhookCommand.
     */
     'retry_orphan_webhooks_enabled' => env('PAYMENTGATEWAY_RETRY_ORPHAN_WEBHOOKS_ENABLED', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Retorno do banco lança o pagamento na venda (US-PCP-025 · UC-FLX-28)
+    |--------------------------------------------------------------------------
+    | Default OFF (REGRA MESTRE valor). Ligado, a cobrança paga de uma venda
+    | (origem_type='sale') vira transaction_payments da venda (LancarPagamentoDaCobrancaNaVenda),
+    | e o pagamento libera a OS que espera o sinal. Antes de ligar: conferir se a empresa
+    | registra esses pagamentos à mão (o listener recusa o que não cabe no saldo, mas a ordem
+    | importa: se o retorno chegar antes do lançamento manual, o manual vira o duplicado).
+    */
+    'lancar_pagamento_na_venda' => env('PAYMENTGATEWAY_LANCAR_PAGAMENTO_NA_VENDA', false),
 ];

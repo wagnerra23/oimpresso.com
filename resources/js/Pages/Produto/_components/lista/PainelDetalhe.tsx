@@ -16,7 +16,7 @@ import { Skeleton } from '@/Components/ui/skeleton';
 import { Grid, Inline } from '@/Components/layout';
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import { brl, qtdComUnidade } from '../../Unificado/_components/catalogo';
-import { TIPO_ROTULO, type AbaDoDetalhe, type DetalheProdutoDados } from './tipos';
+import { TIPO_ROTULO, type AbaDoDetalhe, type DetalheProdutoDados, type PrecoPropostoDoProduto, type RoteiroDoProduto } from './tipos';
 import { ORIGENS_MERCADORIA } from '../origem-mercadoria';
 
 type Aba = AbaDoDetalhe;
@@ -167,6 +167,103 @@ function PrecoDaComposicao({ v }: { v: DetalheProdutoDados['variacoes'][number] 
   );
 }
 
+/**
+ * Preços propostos pela compra recebida que aguardam aprovação (UC-PIDX-28 · UC-FLX-17). Só aviso:
+ * aprovar e recusar ficam no detalhe da compra (US-COM-028), porque a consulta não altera preço
+ * (charter, Automation Anti-hooks). O link só vem para quem pode abrir a compra.
+ */
+function PrecosPropostos({ itens, irPara }: { itens: PrecoPropostoDoProduto[]; irPara: (url: string) => void }) {
+  if (itens.length === 0) return null;
+  return (
+    <section aria-label="Preço proposto pela compra" style={{ gridColumn: '1 / -1' }} data-contract="produto-detalhe-precos-propostos">
+      <TituloDaSecao>Preço proposto pela compra</TituloDaSecao>
+      <table className="pb-tbl">
+        <caption className="sr-only">Preços propostos aguardando aprovação</caption>
+        <thead>
+          <tr>
+            <th>Variação</th>
+            <th className="r">Preço atual</th>
+            <th className="r">Proposto</th>
+            <th>Compra</th>
+            <th aria-label="Abrir a compra" />
+          </tr>
+        </thead>
+        <tbody>
+          {itens.map((p) => (
+            <tr key={p.id}>
+              <td>{nomeDaVariacao(p.variacao)}</td>
+              <td className="r">{brl(p.preco_atual)}</td>
+              <td className="r">
+                <b>{brl(p.preco_proposto)}</b>
+              </td>
+              <td>
+                {[p.compra_ref, p.compra_data && p.compra_data.split('-').reverse().join('/')].filter(Boolean).join(' · ') || '—'}
+              </td>
+              <td className="r">
+                {p.compra_url && (
+                  <Button variant="outline" size="sm" className={BOTAO_CONTORNO} onClick={() => irPara(p.compra_url as string)}>
+                    Abrir a compra
+                  </Button>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="pb-help">
+        Aguardando aprovação. Aprove ou recuse no detalhe da compra.
+        {itens.some((p) => p.preco_mudou) && ' O preço de alguma variação mudou depois da proposta: essa só pode ser recusada.'}
+      </p>
+    </section>
+  );
+}
+
+/**
+ * Roteiro de produção do produto, na ordem das etapas, com o posto e o setor de cada uma (UC-PIDX-29 ·
+ * UC-FLX-07 · UC-FLX-08). O responsável não aparece: ele é escolhido na OS, entre os operadores do
+ * posto (US-PCP-030).
+ */
+function RoteiroDoProdutoSecao({ r }: { r: RoteiroDoProduto }) {
+  return (
+    <div data-contract="produto-detalhe-roteiro">
+      <TituloDaSecao>{`Roteiro: ${r.nome}`}</TituloDaSecao>
+      {!r.ativo && <p className="pb-help">Roteiro inativo.</p>}
+      {r.etapas.length === 0 ? (
+        <p className="pb-help">O roteiro não tem etapas cadastradas.</p>
+      ) : (
+        <table className="pb-tbl">
+          <caption className="sr-only">Etapas do roteiro</caption>
+          <thead>
+            <tr>
+              <th className="r">#</th>
+              <th>Etapa</th>
+              <th>Posto</th>
+              <th>Setor</th>
+              <th className="r">Horas</th>
+            </tr>
+          </thead>
+          <tbody>
+            {r.etapas.map((e, i) => (
+              <tr key={`${i}-${e.nome}`}>
+                <td className="r">{i + 1}</td>
+                <td>
+                  {e.nome}
+                  {e.opcional && <span className="text-[var(--text-mute)]"> · opcional</span>}
+                  {e.paralela && <span className="text-[var(--text-mute)]"> · em paralelo</span>}
+                </td>
+                <td>{e.posto ?? '—'}</td>
+                <td>{e.setor ?? '—'}</td>
+                <td className="r">{e.horas === null ? '—' : qtd(e.horas)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      <p className="pb-help">A OS de cada venda copia estas etapas. O responsável é escolhido na OS, entre os operadores do posto.</p>
+    </div>
+  );
+}
+
 function Dt({ rotulo, valor }: { rotulo: string; valor: string | null | undefined }) {
   return (
     <div className="pb-dt">
@@ -212,6 +309,8 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
         // Produto que não controla estoque também tem a aba, com o aviso (protótipo). Sem a
         // permissão de ver o relatório de estoque, a aba segue fora.
         ...(d.estoque !== null || !d.dados.controla_estoque ? [{ key: 'estoque', label: 'Estoque', href: '#' }] : []),
+        // UC-PIDX-29: só aparece quando o produto tem roteiro de produção.
+        ...(d.roteiro ? [{ key: 'roteiro', label: 'Roteiro', href: '#', badge: d.roteiro.etapas.length }] : []),
         { key: 'fiscal', label: 'Fiscal', href: '#' },
         { key: 'prateleira', label: 'Prateleira', href: '#' },
       ]
@@ -319,8 +418,11 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                       {d.dados.descricao}
                     </p>
                   )}
+                  <PrecosPropostos itens={d.precos_propostos ?? []} irPara={irPara} />
                 </Grid>
               )}
+
+              {abaAtiva === 'roteiro' && d.roteiro && <RoteiroDoProdutoSecao r={d.roteiro} />}
 
               {abaAtiva === 'variacoes' && (
                 <div>
@@ -478,6 +580,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                         {d.tipo === 'variable' && <th>Variação</th>}
                         <th className="r">Saldo</th>
                         <th className="r">Alerta</th>
+                        <th className="r">Vendido</th>
                         <th>Situação</th>
                       </tr>
                     </thead>
@@ -492,12 +595,15 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                             </span>
                           </td>
                           <td className="r">{d.dados.alerta === null ? '—' : qtd(d.dados.alerta)}</td>
+                          {/* O "Total vendido" do Relatório de estoque para este local (vendas finalizadas
+                              menos devoluções), que o servidor já manda na linha — nenhuma conta aqui. */}
+                          <td className="r"><span className="pb-stock">{qtdComUnidade(e.vendido, e.unidade)}</span></td>
                           <td>{e.alerta ? <span className="pb-pill off">Repor</span> : <span className="pb-pill combo">Suficiente</span>}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
-                  <p className="pb-help mb-4">Saldo por local, o mesmo de Relatórios → Estoque. O histórico completo fica em Histórico de estoque.</p>
+                  <p className="pb-help mb-4">Saldo e vendido por local, os mesmos de Relatórios → Estoque. O histórico completo fica em Histórico de estoque.</p>
                   {/* Botão pequeno do protótipo (`os-btn sm`): 26px de altura, 11,5px. */}
                   <Button variant="outline" size="sm" className="h-[26px] px-[10px] text-[11.5px]" onClick={() => irPara(`/products/stock-history/${d.id}`)}>
                     Abrir histórico de estoque

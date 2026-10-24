@@ -152,6 +152,16 @@ if (reg) {
   const ids = new Set();
   for (const it of reg.itens) {
     const d = it.detect || {};
+    // Etapa DESCARTADA por decisão (ex.: E8, ADR 0438) não mede mais nada: o contrato dela é
+    // declarar quando e por quê. Exigir um comando aqui obrigaria a inventar uma medição.
+    if (it.descartado === true) {
+      const declarada = typeof it.descartado_em === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(it.descartado_em)
+        && typeof it.razao_descarte === 'string' && it.razao_descarte.length > 0
+        && typeof it.id === 'string' && !ids.has(it.id);
+      ids.add(it.id);
+      check(`regime ${it.gap}: descartada declara data + razao + id unico`, declarada);
+      continue;
+    }
     const completo = d.tipo === 'comando' && typeof d.cmd === 'string' && d.cmd.length > 0
       && (d.op === 'exit0' || ((d.regex || d.contar_linhas) && (Number.isFinite(d.alvo) || d.alvo_grupo)))
       && typeof it.ancora === 'string' && typeof it.executor === 'string' && typeof it.id === 'string' && !ids.has(it.id);

@@ -1,7 +1,7 @@
 ---
 module: Producao
 purpose: "Camada única de PCP: apontamento de produção por operação, pessoa e tempo, postos com capacidade e custo-hora por empresa, programação e gargalo. Nasceu em 2026-10-15 como esqueleto (ADR 0431); o fundo veio na thread 02 e os cadastros na 03."
-migracao_ui: "n/a — módulo novo, nasce Inertia (sem Blade)"
+migracao_ui: "concluido — telas internas em Inertia; 2 Blade de propósito, fora da migração: a página pública /arte/{token} (sem login; mantida por decisão [W] 2026-10-21) e o PDF da etiqueta da OS"
 contains:
   - "DataController — 3 hooks UltimatePOS (pacote superadmin, permissões; sem item de sidebar enquanto não houver tela)"
   - "InstallController — instalação 1-clique (ADR 0024)"
@@ -22,11 +22,16 @@ contains:
   - "PrometerPrazoDaVenda — na aprovação (CriarOsDaVendaJob), grava a estimativa em transactions.due_date só quando a venda não tem data e copia a data para pcp_ordens.prazo_prometido (US-PCP-028 · UC-FLX-06)"
   - "HorasDosPostosService — implementa app/Contracts/Producao/HorasDosPostos.php: horas fechadas por posto no mês e troca do custo-hora, para o custeio RKW do Financeiro (US-FIN-070)"
   - "AproveitamentoMidiaController + AproveitamentoDeMidia — simulador de aproveitamento de mídia na bobina (US-PCP-024 · UC-FLX-13): pcp_bobinas (largura útil, margem, giro por mídia), arranjo em faixas com metros, perda e o uma a uma; aceitar grava pcp_arranjos + pcp_arranjo_os (consumo previsto por OS, rateio pela área) e gera o romaneio de cada OS; simular com producao.access, aceitar com o papel producao.liberar, JSON"
+  - "QuadroController + QuadroDaProducao — quadro da produção /producao/quadro (thread 06 · UC-PCV-05): uma OS por cartão na coluna do setor ou da máquina da etapa atual; recebe o Alocar (UC-FLX-10) e o Simular bobina em lote (UC-FLX-13); abre filtrado pela URL (?so=atrasadas|arte, ?agrupar=maquina) e guarda o filtro inteiro na URL (UC-PCV-06, regra em Pages/Producao/_lib/filtro.ts); Inertia com props deferidas, producao.access"
+  - "ColunaDoQuadro — o PCP move a OS de coluna à mão no quadro (thread 06 · UC-PCV-07): grava o setor escolhido em pcp_quadro_colunas e o evento os_movida_quadro em pcp_eventos; não muda etapa, apontamento nem situação; a coluna manual some quando a OS tem etapa iniciada ou concluída depois do movimento; POST /producao/quadro/mover, JSON, producao.etapa.mover"
+  - "PainelController + PainelDaProducao + ArteDasOrdens — painel da produção /producao/painel (thread 06 · UC-PCV-01..04, 29 · US-PCP-017): indicadores contados pelos cartões do Quadro, alertas com ação, fila de aprovação de arte (pedido mais recente de pcp_aprovacoes_arte), carga das máquinas hoje e eventos de pcp_eventos; só leitura, producao.access; é o destino do item Produção no menu"
+  - "LinhaController + LinhaDaProducao — linha do tempo por máquina /producao/linha (thread 07 · UC-PCV-08, 09, 30 · US-PCP-015): blocos do dia com carga contra a capacidade do posto, travas de arte e de Aguardando material, estouro do turno e da entrega prometida, próximo dia útil pelo CalendarioDeProducao e uma sugestão de gargalo; reprogramar é AlocacaoController::reprogramar (PUT etapas/{id}/reprogramar, producao.etapa.mover); Inertia com props deferidas, producao.access"
   - "RomaneioController + RomaneioDeImpressao — romaneio de impressão peça a peça da OS de comunicação visual (US-PCP-023 · UC-FLX-12): pcp_romaneios + pcp_romaneio_linhas, cópia imutável dos itens do orçamento por versão; gerar com o papel producao.liberar, ler com producao.access, JSON"
+  - "OrdemMaterialController + FaltaDeMaterialDaOs — OS liberada sem material fica em Aguardando material (US-PCP-032 · D3): falta por insumo da receita (necessário × disponível no local menos reservas de outras OS) e compras a caminho, conferir volta para Na fila; chave producao_aguarda_material da empresa, desligada por padrão; ler com producao.access, conferir com o papel producao.liberar, JSON"
   - "FecharTurnoCommand — producao:fechar-turno a cada 15 min, fecha o cronômetro esquecido no fim do turno ou na saída do ponto"
   - "Api/AppApontamentoController — apontamento do app das lojas com token (/api/app/producao/*, P8 tela 02, inclui motivos-pausa), sobre o ApontamentoOperadorService"
   - "EtiquetaOsController — PDF A4 da OS com o QR da etiqueta (E05 modelo a4_os; PR 07 propostas-app)"
-  - "AprovacaoArteController + AprovacaoArteService — cliente aprova a arte por link (US-COMVIS-NEW-004 · UC-FLX-02): o operador gera o link da prova da OS por item (token, só o sha256 em pcp_aprovacoes_arte, 7 dias, uso único); a página pública /arte/{token} (Blade, sem login, throttle) aprova — conclui a etapa pelo motor — ou recusa com comentário, reabrindo a arte"
+  - "AprovacaoArteController + AprovacaoArteService — cliente aprova a arte por link (US-COMVIS-NEW-004 · UC-FLX-02): o operador gera o link da prova da OS por item (token, só o sha256 em pcp_aprovacoes_arte, 7 dias, uso único); a página pública /arte/{token} (Blade, sem login, throttle) aprova — conclui a etapa pelo motor — ou recusa com comentário, reabrindo a arte; trava da arte aprovada (UC-PCV-11): trocar o arquivo reabre a aprovação com link novo e a arte vigente segue a última aprovada (ordens/{id}/arte/trocar, ordens/{id}/arte)"
   - "Ordem (pcp_ordens) — OS por item que nasce do pedido nos modelos de fluxo; situação no motor FSM pelo ProcessoDaOrdem (ADR 0436)"
   - "SinalDaOrdem — regra 'produção só libera com o sinal pago' (US-PCP-025 · UC-FLX-28): o Liberar recusa abaixo do % mínimo da empresa e o pagamento gravado na venda libera a OS sozinho (liberar_pelo_sinal); só LÊ valor"
 not_contains:
@@ -41,7 +46,7 @@ depends_on: []
 owner: wagner
 status: em construção
 url_prefixes:
-  - /producao/* (install 1-clique, os cadastros da thread 03: roteiros, postos, ferramentas, custo-hora, e o PDF da OS com QR em os/{id}/etiqueta, o romaneio de impressão em os/{id}/romaneio e romaneios/{id}, a alocação etapas/{id}/alocacao e a fila postos/{id}/fila, a bobina da mídia em bobinas/{mídia} e o aproveitamento em aproveitamento e aproveitamento/simular — Routes/web.php)
+  - /producao/* (install 1-clique, os cadastros da thread 03: roteiros, postos, ferramentas, custo-hora, e o PDF da OS com QR em os/{id}/etiqueta, o romaneio de impressão em os/{id}/romaneio e romaneios/{id}, a alocação etapas/{id}/alocacao e a fila postos/{id}/fila, a bobina da mídia em bobinas/{mídia} e o aproveitamento em aproveitamento e aproveitamento/simular, o quadro em quadro, o painel em painel, a linha do tempo em linha e o reprogramar em etapas/{id}/reprogramar — Routes/web.php)
   - /producao/apontamento/* (celular do operador, thread 04)
   - /arte/{token} (página pública da prova para o cliente aprovar, sem login — UC-FLX-02)
   - /producao/lotes/{id}/rastreio (rastreio do rolo, US-COM-025)
