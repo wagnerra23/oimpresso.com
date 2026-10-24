@@ -188,8 +188,7 @@ export function montar({ tela, secao, onda, alvo, secoes, ancora, spec, hoje, sh
   p('  2 cada comportamento com o teste que o prova');
   p('  3 node scripts/design/design-diff.mjs --compare <prod.json> <design.json> --check → 0 DIVERGE(bug) neste seletor');
   p('    ⚠️ o --check fala em 3 códigos: 0 igual · 1 divergiu · 2 NÃO MEDI. O 2 NÃO é divergência —');
-  p('       é o design vindo de espelho cuja fidelidade não está provada. Feche a rodada primeiro:');
-  p('       node scripts/governance/cowork-mirror-freshness.mjs --ledger');
+  p('       é a régua recusando carimbar (shell/gaveta/identidade da view não medidos). Leia o motivo.');
   p('    ⚠️ e o "0" só vale se a régua estiver MEDINDO. São DOIS comandos, não um:');
   p('       design-diff.mjs --canario <snap.json>   # 0 a régua morde · 1 comparador cego · 2 sonda não mediu nada');
   p('       design-diff.mjs --selftest              # o canário NÃO cobre comparador quebrado no caminho verde');

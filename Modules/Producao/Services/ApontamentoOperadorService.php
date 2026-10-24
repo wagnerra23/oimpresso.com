@@ -150,11 +150,22 @@ class ApontamentoOperadorService
      */
     public function motivosDePausa(int $businessId, ?int $postoId = null): Collection
     {
+        return $this->motivos($businessId, 'pausa', $postoId);
+    }
+
+    /** US-PCP-027 · UC-FLX-16: os motivos de refugo do posto, para o formulário de refugo da tela. */
+    public function motivosDeRefugo(int $businessId, ?int $postoId = null): Collection
+    {
+        return $this->motivos($businessId, 'refugo', $postoId);
+    }
+
+    private function motivos(int $businessId, string $tipo, ?int $postoId): Collection
+    {
         if (! Schema::hasTable('pcp_motivos')) {
             return collect();
         }
 
-        return DB::table('pcp_motivos')->where('business_id', $businessId)->where('tipo', 'pausa')->where('ativo', true)
+        return DB::table('pcp_motivos')->where('business_id', $businessId)->where('tipo', $tipo)->where('ativo', true)
             ->when($postoId !== null, fn ($q) => $q->where('posto_id', $postoId))
             ->orderBy('posto_id')->orderBy('ordem')->orderBy('nome')->get(['id', 'posto_id', 'nome'])
             ->map(fn ($m) => ['id' => (int) $m->id, 'posto_id' => (int) $m->posto_id, 'nome' => (string) $m->nome])
@@ -177,9 +188,13 @@ class ApontamentoOperadorService
     }
 
     /** UC-PCV-21: conclui a etapa, passa a OS adiante e avisa o próximo responsável. */
-    public function concluir(int $businessId, int $userId, int $inicioId, string $chave, CarbonInterface $momento): Apontamento
+    /**
+     * `$impressao` (US-COMVIS-004 · UC-FLX-09): o que o operador informou ao concluir — `m2_impresso`
+     * e `tinta_ml_c|m|y|k`, cada um opcional. Vai na linha `fim`; valor inválido recusa e nada grava.
+     */
+    public function concluir(int $businessId, int $userId, int $inicioId, string $chave, CarbonInterface $momento, array $impressao = []): Apontamento
     {
-        $fim = $this->encerrar('fim', $businessId, $userId, $inicioId, $chave, $momento, null);
+        $fim = $this->encerrar('fim', $businessId, $userId, $inicioId, $chave, $momento, null, $this->impressao($impressao));
         if (! $fim->wasRecentlyCreated || $fim->tipo !== 'fim' || ! $fim->programacao_id) {
             return $fim;
         }
@@ -257,7 +272,7 @@ class ApontamentoOperadorService
         return $this->evento($businessId, self::EV_CORRECAO, $inicio, $userId, $dados);
     }
 
-    private function encerrar(string $tipo, int $businessId, int $userId, int $inicioId, string $chave, CarbonInterface $momento, ?int $motivoId): Apontamento
+    private function encerrar(string $tipo, int $businessId, int $userId, int $inicioId, string $chave, CarbonInterface $momento, ?int $motivoId, array $impressao = []): Apontamento
     {
         $momento = $this->hora($momento);
         if ($repetido = $this->repeticao($businessId, $chave, $tipo, $momento, inicioId: $inicioId)) {
@@ -285,7 +300,32 @@ class ApontamentoOperadorService
 
         return $tipo === 'pausa'
             ? $this->base->pausar($businessId, $inicio->id, $userId, $chave, $motivoId, 'qr', Carbon::instance($momento))
-            : $this->base->fechar($businessId, $inicio->id, $userId, $chave, 'qr', Carbon::instance($momento));
+            : $this->base->fechar($businessId, $inicio->id, $userId, $chave, 'qr', Carbon::instance($momento), $impressao);
+    }
+
+    /**
+     * Normaliza m² e tinta: número com ponto (a tela troca a vírgula), zero ou mais, sem campo vazio.
+     * m² até 3 casas; tinta em ml até 2. Ausente ou vazio fica fora (coluna NULL = não informado).
+     *
+     * @return array<string, string>
+     */
+    private function impressao(array $dados): array
+    {
+        $campos = ['m2_impresso' => 3, 'tinta_ml_c' => 2, 'tinta_ml_m' => 2, 'tinta_ml_y' => 2, 'tinta_ml_k' => 2];
+        $saida = [];
+        foreach ($campos as $campo => $casas) {
+            $v = trim((string) ($dados[$campo] ?? ''));
+            if ($v === '') {
+                continue;
+            }
+            if (! preg_match('/^\d{1,7}(\.\d{1,'.$casas.'})?$/', $v)) {
+                $nome = $campo === 'm2_impresso' ? 'm² impresso' : 'tinta '.strtoupper(substr($campo, -1));
+                throw new ApontamentoRecusado(ApontamentoRecusado::QUANTIDADE_INVALIDA, "Valor inválido em {$nome}: use número com até {$casas} casas (ex.: 12.5).", ['campo' => $campo]);
+            }
+            $saida[$campo] = $v;
+        }
+
+        return $saida;
     }
 
     /** E04 A4: o motivo vem do cadastro do posto (`pcp_motivos`, thread 03). Antes da 03, só a presença vale. */

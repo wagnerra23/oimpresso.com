@@ -1,0 +1,19 @@
+{
+  "_": "A3 [CL] 2026-10-21 — playbook crm. Protótipo: rota `crm-portal-assistencia` do espelho (app.jsx:861 → CrmPortalPage view=assistencia → crm-portal.jsx, casca própria D6). Mede-se .cp-frame; a tira .cp-preview fica fora.",
+  "header": {
+    "seletor": ".cp-frame .cp-top"
+  },
+  "nav": {
+    "seletor": ".cp-frame .cp-nav"
+  },
+  "nav_celular": {
+    "seletor": ".cp-frame .cp-bottom"
+  },
+  "titulo": {
+    "seletor": ".cp-frame .cp-main > div:first-child"
+  },
+  "corpo": {
+    "seletor": ".cp-frame .cp-main > :nth-child(2)"
+  },
+  "_mapa": "seletores pela estrutura de crm-portal.jsx:322-360 (cp-frame > cp-root > cp-top · cp-nav · cp-main · cp-bottom) + data-contract portal-* das views (crm-portal.jsx:149-292)."
+}

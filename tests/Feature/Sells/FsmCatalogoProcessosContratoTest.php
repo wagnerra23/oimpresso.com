@@ -72,6 +72,8 @@ const FLX_REFS = [
     'AprovacaoController' => \Modules\Ponto\Http\Controllers\AprovacaoController::class,
     'ApuracaoService' => \Modules\Ponto\Services\ApuracaoService::class,
     'AgendaInstalacao' => \Modules\ComunicacaoVisual\Services\AgendaInstalacao::class,
+    'AplicarModelo' => \App\Domain\Fsm\Modelos\AplicarModelo::class,
+    'ExecuteStageActionService' => \App\Domain\Fsm\Services\ExecuteStageActionService::class,
 ];
 
 /** Seeder que grava cada processo `erp` do protótipo. */

@@ -165,16 +165,16 @@
       "area": "Design — espelho Cowork em dia",
       "titulo": "Rotina do espelho Cowork dentro do SLA (rodou <=14d, ultima limpa, sem eixo novo desqualificando)",
       "ancora": "ADR 0374 (espelho = leitura) + ADR 0315 (DesignSync escrita gated) + §5 2026-08-27 (medicao orfa: so o agente autenticado consegue rodar --compare)",
-      "dono_porta_viva": "scripts/governance/cowork-mirror-freshness.mjs --sla",
-      "executor": "Skill aplicar-prototipo (rotina --compare com DesignSync autenticado) ao fim de todo ciclo de design; bundle regerado do lado Cowork",
+      "dono_porta_viva": "(removido) scripts/governance/cowork-mirror-freshness.mjs --sla",
+      "executor": "nenhum — etapa descartada",
       "detect": {
-        "tipo": "comando",
-        "cmd": "node scripts/governance/cowork-mirror-freshness.mjs --sla",
-        "op": "exit0",
-        "exit_pendente": [1],
-        "timeout_ms": 60000
+        "tipo": "manual"
       },
-      "nota": "rc=1 desde 2026-08-13 (SLA violado e MEDIDO — pendente honesto). rc fora de {0,1} = nao medido."
+      "done": false,
+      "descartado": true,
+      "descartado_em": "2026-10-23",
+      "razao_descarte": "ADR 0438: a fonte do prototipo e o git e o Cowork deixou de ser fonte e rota; nao ha mais espelho a manter em dia contra o Cowork. O modo --sla saiu do cowork-mirror-freshness na onda 2c-2.",
+      "nota": "Ate 2026-10-23: rc=1 desde 2026-08-13 (SLA violado e MEDIDO). Descartada pela ADR 0438."
     },
     {
       "id": "regime-e9-crons",

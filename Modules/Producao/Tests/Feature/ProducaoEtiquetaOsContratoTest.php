@@ -91,15 +91,18 @@ it('UC-PCV-28 · o QR lido por outra empresa não é dela; o formato antigo sem 
     $b99 = (int) $this->b99->id;
     $codigo = EtiquetaProducao::codigo($b98, 501);
 
-    expect(EtiquetaProducao::ler($codigo, $b98))->toBe(['empresa' => true, 'os_tipo' => 'comvis_os', 'pedido_id' => 501])
+    expect(EtiquetaProducao::ler($codigo, $b98))->toBe(['empresa' => true, 'os_tipo' => 'comvis_os', 'pedido_id' => 501, 'programacao_id' => null])
         ->and(EtiquetaProducao::ler($codigo, $b99)['empresa'])->toBeFalse();
 
     // Etiqueta impressa antes do tipo no QR (formato do PR 06): segue válida.
     $antigo = EtiquetaProducao::PREFIXO.EtiquetaProducao::hashDaEmpresa($b98).':501';
-    expect(EtiquetaProducao::ler($antigo, $b98))->toBe(['empresa' => true, 'os_tipo' => 'comvis_os', 'pedido_id' => 501]);
+    expect(EtiquetaProducao::ler($antigo, $b98))->toBe(['empresa' => true, 'os_tipo' => 'comvis_os', 'pedido_id' => 501, 'programacao_id' => null]);
 
     // Tela do operador (thread 04) lê os dois últimos segmentos como tipo e id.
     expect(array_slice(explode(':', $codigo), -2))->toBe(['comvis_os', '501'])
         ->and(EtiquetaProducao::ler('oimpresso:p:xyz:comvis_os:501', $b98))->toBeNull()
+        // Sufixo de etapa (thread 05a) só com id válido: `:e0` e `:ex` não são QR.
+        ->and(EtiquetaProducao::ler($codigo.':e0', $b98))->toBeNull()
+        ->and(EtiquetaProducao::ler($codigo.':ex', $b98))->toBeNull()
         ->and(fn () => EtiquetaProducao::codigo($b98, 501, 'Comvis OS'))->toThrow(InvalidArgumentException::class);
 });

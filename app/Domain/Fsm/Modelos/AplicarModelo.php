@@ -18,7 +18,8 @@ use Spatie\Permission\Models\Role;
 /**
  * "Usar modelo" (ADR 0435 itens 5–8): grava o modelo da empresa e monta os processos do modelo
  * no motor FSM daquele business — etapas na ordem com passo, a lateral Cancelado, ação de avançar
- * entre etapas vizinhas, ação de cancelar e as regras "ao entrar" como dado.
+ * entre etapas vizinhas, ação de cancelar, as laterais de CatalogoModelos::LATERAIS (Enviado →
+ * Perdido, com motivo obrigatório) e as regras "ao entrar" como dado.
  *
  * Idempotente (firstOrCreate em tudo; aplicar de novo reaproveita). Tier 0: só lê e grava
  * processos do `$businessId` recebido. Nunca altera documento (`transactions`, OS…), nunca
@@ -142,15 +143,31 @@ final class AplicarModelo
             $this->garantirAcao($stage, 'cancelar', 'Cancelar', $cancelado, true, $papeis[self::PAPEL_CANCELAR]);
         }
 
+        // Laterais (ex.: Enviado → Perdido): etapa final fora dos passos, como o Cancelado; a ação
+        // abre a confirmação e, com exige_motivo, o motor recusa sem motivo.
+        $porNome = collect($stages)->keyBy('name');
+        foreach (CatalogoModelos::LATERAIS[$dominio] ?? [] as $i => $lateral) {
+            $origem = $porNome[$lateral['de']] ?? null;
+            if ($origem === null) {
+                continue;
+            }
+            $destino = SaleProcessStage::firstOrCreate(
+                ['process_id' => $process->id, 'key' => CatalogoModelos::chaveEtapa($lateral['para'])],
+                ['name' => $lateral['para'], 'sort_order' => $ultima + 2 + $i, 'is_initial' => false, 'is_terminal' => true, 'is_cancelled' => true],
+            );
+            $this->garantirAcao($origem, $lateral['acao'], $lateral['rotulo'], $destino, false, $papeis[self::PAPEL_AVANCAR[$dominio] ?? ''] ?? null, null, true, $lateral['exige_motivo']);
+        }
+
         return (int) $process->id;
     }
 
-    private function garantirAcao(SaleProcessStage $de, string $key, string $label, SaleProcessStage $para, bool $critica, ?string $papel, ?string $classe = null): void
+    private function garantirAcao(SaleProcessStage $de, string $key, string $label, SaleProcessStage $para, bool $critica, ?string $papel, ?string $classe = null, ?bool $confirmar = null, bool $exigeMotivo = false): void
     {
-        $acao = SaleStageAction::firstOrCreate(
-            ['stage_id' => $de->id, 'key' => $key],
-            ['label' => $label, 'target_stage_id' => $para->id, 'side_effect_class' => $classe, 'requires_confirmation' => $critica, 'is_critical' => $critica],
-        );
+        $atributos = ['label' => $label, 'target_stage_id' => $para->id, 'side_effect_class' => $classe, 'requires_confirmation' => $confirmar ?? $critica, 'is_critical' => $critica];
+        if ($exigeMotivo && Schema::hasColumn('sale_stage_actions', 'exige_motivo')) {
+            $atributos['exige_motivo'] = true;
+        }
+        $acao = SaleStageAction::firstOrCreate(['stage_id' => $de->id, 'key' => $key], $atributos);
         if ($papel !== null && ! $acao->roles()->where('role_name', $papel)->exists()) {
             SaleStageActionRole::create(['action_id' => $acao->id, 'role_name' => $papel]);
         }

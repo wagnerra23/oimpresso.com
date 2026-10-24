@@ -14,7 +14,7 @@ import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetT
 export interface Posto { id: number; nome: string; setor: string | null }
 export interface Etapa { nome: string; posto_id?: number | null; horas?: string | number | null; opcional_por?: string | null }
 export type Item = Etapa | { paralelo: Etapa[][]; junta: string };
-export interface Roteiro { id: number; familia: string; nome: string; etapas: Item[] }
+export interface Roteiro { id: number; familia: string; nome: string; etapas: Item[]; produtos?: { id: number; nome: string; sku: string | null }[] }
 
 const NENHUM = '__nenhum';
 const vazia = (): Etapa => ({ nome: '', posto_id: null, horas: null, opcional_por: null });

@@ -17,11 +17,11 @@ authority: generated
 | Elo | Quantidade |
 |---|---:|
 | US no SPEC | 11 |
-| CU no SDD | 14 |
+| CU no SDD | 18 |
 | Telas (.tsx) | 12 |
 | Telas com `casos.md` | 16 |
-| UC declarados | 175 |
-| UC com teste que os cita | 158 |
+| UC declarados | 185 |
+| UC com teste que os cita | 168 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -29,6 +29,8 @@ authority: generated
 |---|---|
 | `CU-PROD-09` sem UC | caso de uso que o exercite — Código de barras + etiqueta |
 | `CU-PROD-12` sem UC | caso de uso que o exercite — Correção de valor / agregação de inventário |
+| `CU-PROD-17` sem UC | caso de uso que o exercite — Peso e dimensões do produto |
+| `CU-PROD-19` sem UC | caso de uso que o exercite — Natureza fiscal (mercadoria × serviço) e campos da nota de serviço |
 
 ### Backlog — NÃO é lacuna
 
@@ -71,9 +73,16 @@ authority: generated
 | UC-ETQ-02 | Etiquetas/Index | 🧪 aguarda veredito da lane |
 | UC-ETQ-03 | Etiquetas/Index | 🧪 aguarda veredito da lane |
 | UC-ETQ-05 | Etiquetas/Index | 📝 sem_teste |
+| UC-FLX-07 | Index | 🧪 aguarda veredito da lane |
+| UC-FLX-14 | Index | 🧪 aguarda veredito da lane |
+| UC-FLX-18 | Index | 🧪 aguarda veredito da lane |
+| UC-FLX-19 | Index | 🧪 aguarda veredito da lane |
+| UC-FLX-31 | Index | 🧪 aguarda veredito da lane |
+| UC-FLX-38 | Index | 🧪 aguarda veredito da lane |
 | UC-IMP-01 | Importacao/Index | 🧪 aguarda veredito da lane |
 | UC-IMP-03 | Importacao/Index | 🧪 aguarda veredito da lane |
 | UC-NFTR-29 | Index | 🧪 aguarda veredito da lane |
+| UC-NFTR-32 | Create | 🧪 aguarda veredito da lane |
 | UC-PATPRC-01 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
 | UC-PATPRC-02 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
 | UC-PATPRC-03 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
@@ -104,6 +113,8 @@ authority: generated
 | UC-PCAD-10 | Create | 🧪 aguarda veredito da lane |
 | UC-PCAD-11 | Create | 🧪 aguarda veredito da lane |
 | UC-PCAD-12 | Create | 🧪 aguarda veredito da lane |
+| UC-PCAD-13 | Create | 🧪 aguarda veredito da lane |
+| UC-PCAD-14 | Create | 🧪 aguarda veredito da lane |
 | UC-PCADAP-01 | Cadastros/Index | 🧪 aguarda veredito da lane |
 | UC-PCADAP-02 | Cadastros/Index | 🧪 aguarda veredito da lane |
 | UC-PCADAP-03 | Cadastros/Index | 🧪 aguarda veredito da lane |
@@ -172,6 +183,7 @@ authority: generated
 | UC-PIDX-25 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-26 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-27 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-33 | Index | 🧪 aguarda veredito da lane |
 | UC-PIMP-01 | Importacao/Index | 🧪 aguarda veredito da lane |
 | UC-PIMP-02 | Importacao/Index | 🧪 aguarda veredito da lane |
 | UC-PIMP-03 | Importacao/Index | 🧪 aguarda veredito da lane |

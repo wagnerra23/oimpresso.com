@@ -30,6 +30,9 @@ final class AlocacaoDaEtapa
 {
     public const EV_ALOCADA = 'etapa_alocada';
 
+    /** Aviso no app ao responsável de uma etapa reprogramada na Linha (D-AVISO). `user_id` = quem recebe. */
+    public const EV_AVISO_REPROGRAMADA = 'aviso_reprogramada';
+
     public function alocar(int $businessId, int $programacaoId, User $gestor, ?int $userId, ?string $inicio): Programacao
     {
         if ($userId === null && $inicio === null) {
@@ -72,6 +75,73 @@ final class AlocacaoDaEtapa
             Evento::create(['business_id' => $businessId, 'tipo' => self::EV_ALOCADA, 'os_tipo' => $etapa->os_tipo, 'os_id' => $etapa->os_id,
                 'posto_id' => $etapa->posto_id, 'user_id' => $gestor->id, 'dados' => ['programacao_id' => $etapa->id, 'antes' => $antes,
                     'depois' => ['user_id' => $uid(), 'inicio_previsto' => $etapa->inicio_previsto->toDateTimeString()]]]);
+
+            return $etapa->fresh();
+        });
+    }
+
+    /**
+     * Reprogramar na Linha do tempo (UC-PCV-30 · thread 07): mover a etapa pendente de horário e,
+     * se quiser, para outra máquina do MESMO setor. Mais estrito que o `alocar`, porque a Linha é a
+     * agenda da máquina: recusa outro setor, recusa horário que choca com outra etapa da máquina de
+     * destino (diz com qual OS) e, trocando de máquina, recusa responsável que não opera a de destino
+     * (UC-FLX-08) — o `contexto` traz os operadores para a tela perguntar quem faz.
+     *
+     * Passar do fim do turno ou da entrega prometida NÃO recusa: é aviso, que a Linha calcula.
+     * Grava o mesmo evento `etapa_alocada` (origem `linha`, com a máquina antes e depois) e avisa o
+     * responsável no app (`aviso_reprogramada`, D-AVISO). Desfazer é reprogramar de volta.
+     */
+    public function reprogramar(int $businessId, int $programacaoId, User $gestor, int $postoId, string $inicio, ?int $userId = null): Programacao
+    {
+        if ($userId !== null) {
+            $responsavel = User::query()->where('business_id', $businessId)->find($userId);
+            if (! $responsavel || ! $responsavel->can('producao.access')) {
+                throw new ApontamentoRecusado(ApontamentoRecusado::RESPONSAVEL_INVALIDO, 'Responsável não encontrado nesta empresa ou sem acesso à Produção.');
+            }
+        }
+
+        return DB::transaction(function () use ($businessId, $programacaoId, $gestor, $postoId, $inicio, $userId) {
+            $etapa = Programacao::query()->where('business_id', $businessId)->lockForUpdate()->find($programacaoId)
+                ?? throw new ApontamentoRecusado(ApontamentoRecusado::NAO_ENCONTRADO, 'Etapa não encontrada.');
+            $destino = Posto::query()->where('business_id', $businessId)->where('ativo', true)->find($postoId)
+                ?? throw new ApontamentoRecusado(ApontamentoRecusado::NAO_ENCONTRADO, 'Máquina não encontrada.');
+            if ($etapa->status !== 'pendente') {
+                throw new ApontamentoRecusado(ApontamentoRecusado::ETAPA_ENCERRADA, 'Esta etapa já começou ou terminou: só a etapa que ainda não começou se reprograma.',
+                    ['programacao_id' => $etapa->id, 'status' => $etapa->status]);
+            }
+            $origem = $etapa->posto_id !== null ? Posto::query()->where('business_id', $businessId)->find($etapa->posto_id) : null;
+            if ($origem && trim((string) $origem->setor) !== trim((string) $destino->setor)) {
+                throw new ApontamentoRecusado(ApontamentoRecusado::OUTRO_SETOR, 'Não dá para levar a etapa para '.$destino->nome.': é de outro setor.',
+                    ['setor_origem' => $origem->setor, 'setor_destino' => $destino->setor]);
+            }
+
+            $novoInicio = Carbon::parse($inicio);
+            $novoFim = $novoInicio->copy()->addSeconds((int) $etapa->inicio_previsto->diffInSeconds($etapa->fim_previsto, true));
+            $choca = Programacao::query()->where('business_id', $businessId)->where('posto_id', $destino->id)->where('id', '!=', $etapa->id)
+                ->where('status', '!=', 'cancelada')->where('inicio_previsto', '<', $novoFim)->where('fim_previsto', '>', $novoInicio)
+                ->orderBy('inicio_previsto')->first();
+            if ($choca) {
+                throw new ApontamentoRecusado(ApontamentoRecusado::CHOQUE_DE_HORARIO, 'Choca com outra etapa nesta máquina. Escolha outro horário.',
+                    ['programacao_id' => (int) $choca->id, 'os_tipo' => $choca->os_tipo, 'os_id' => (int) $choca->os_id,
+                        'inicio' => $choca->inicio_previsto->format('H:i'), 'fim' => $choca->fim_previsto->format('H:i')]);
+            }
+            $resp = $userId ?? ($etapa->user_id !== null ? (int) $etapa->user_id : null);
+            if ($resp !== null && ! app(OperadoresDoPosto::class)->podeAtuar($businessId, (int) $destino->id, $resp)) {
+                throw new ApontamentoRecusado(ApontamentoRecusado::OPERADOR_DESTINO, 'Quem responde pela etapa não opera '.$destino->nome.': escolha um operador dela.',
+                    ['posto_id' => (int) $destino->id, 'operadores' => app(OperadoresDoPosto::class)->doPosto($businessId, (int) $destino->id)]);
+            }
+
+            $foto = fn () => ['posto_id' => $etapa->posto_id !== null ? (int) $etapa->posto_id : null,
+                'user_id' => $etapa->user_id !== null ? (int) $etapa->user_id : null, 'inicio_previsto' => $etapa->inicio_previsto->toDateTimeString()];
+            $antes = $foto();
+            $etapa->forceFill(['posto_id' => $destino->id, 'user_id' => $resp, 'inicio_previsto' => $novoInicio, 'fim_previsto' => $novoFim])->save();
+
+            Evento::create(['business_id' => $businessId, 'tipo' => self::EV_ALOCADA, 'os_tipo' => $etapa->os_tipo, 'os_id' => $etapa->os_id,
+                'posto_id' => $etapa->posto_id, 'user_id' => $gestor->id, 'dados' => ['programacao_id' => $etapa->id, 'origem' => 'linha', 'antes' => $antes, 'depois' => $foto()]]);
+            if ($resp !== null) {
+                Evento::create(['business_id' => $businessId, 'tipo' => self::EV_AVISO_REPROGRAMADA, 'os_tipo' => $etapa->os_tipo, 'os_id' => $etapa->os_id,
+                    'posto_id' => $etapa->posto_id, 'user_id' => $resp, 'dados' => ['programacao_id' => $etapa->id]]);
+            }
 
             return $etapa->fresh();
         });

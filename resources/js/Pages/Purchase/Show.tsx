@@ -10,12 +10,14 @@
 // Snapshot paridade: memory/mwart-inventory/purchase/show.snapshot.md
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import PageHeader from '@/Components/shared/PageHeader';
-import { router } from '@inertiajs/react';
+import { PageHeader } from '@/Components/PageHeader';
+import { Icon } from '@/Components/Icon';
+import { Deferred, router } from '@inertiajs/react';
 import { type ReactNode } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader } from '@/Components/ui/card';
 import { Edit, Trash2, Printer, ArrowLeft, FileText, Download } from 'lucide-react';
+import PrecosPropostos, { type PrecosPropostosPayload } from './_components/PrecosPropostos';
 
 // ---------- Tipos ----------
 
@@ -97,11 +99,13 @@ interface Permissions {
   update: boolean;
   delete: boolean;
   payments: boolean;
+  aprovar_preco: boolean;
 }
 
 interface Props {
   purchase: PurchaseDetail;
   permissions: Permissions;
+  precos_propostos?: PrecosPropostosPayload | null;
 }
 
 // ---------- Helpers ----------
@@ -143,7 +147,7 @@ const PAYMENT_PILL: Record<PaymentStatus, string> = {
 
 // ---------- Página principal ----------
 
-function PurchaseShow({ purchase, permissions }: Props) {
+function PurchaseShow({ purchase, permissions, precos_propostos }: Props) {
   const onDelete = () => {
     if (!confirm(`Confirma exclusão da compra ${purchase.ref_no}?`)) return;
     router.delete(`/purchases/${purchase.id}`);
@@ -152,10 +156,10 @@ function PurchaseShow({ purchase, permissions }: Props) {
   return (
     <>
       <PageHeader
-        icon="shopping-cart"
+        leading={<Icon name="shopping-cart" size={18} className="mr-2 inline-block align-[-2px] text-primary" />}
         title={`Compra ${purchase.ref_no || '#' + purchase.id}`}
-        description={
-          <div className="flex gap-2 items-center">
+        subtitle={
+          <span className="inline-flex gap-2 items-center">
             <span className="text-[12px]">{formatDateTime(purchase.transaction_date)}</span>
             <span className={`inline-flex items-center px-1.5 py-0.5 rounded border text-[11px] font-medium ${STATUS_PILL[purchase.status]}`}>
               {STATUS_LABEL[purchase.status]}
@@ -163,10 +167,10 @@ function PurchaseShow({ purchase, permissions }: Props) {
             <span className={`inline-flex items-center px-1.5 py-0.5 rounded border text-[11px] font-medium ${PAYMENT_PILL[purchase.payment_status]}`}>
               {PAYMENT_LABEL[purchase.payment_status]}
             </span>
-          </div>
+          </span>
         }
-        action={
-          <div className="flex gap-2">
+        actions={
+          <>
             <Button variant="outline" size="sm" onClick={() => router.visit('/purchases')}>
               <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
             </Button>
@@ -183,7 +187,7 @@ function PurchaseShow({ purchase, permissions }: Props) {
                 <Trash2 className="h-4 w-4 mr-1" /> Excluir
               </Button>
             )}
-          </div>
+          </>
         }
       />
 
@@ -288,6 +292,11 @@ function PurchaseShow({ purchase, permissions }: Props) {
           </table>
         </CardContent>
       </Card>
+
+      {/* Preços propostos pelo recebimento (US-COM-028) — prop deferida */}
+      <Deferred data="precos_propostos" fallback={null}>
+        <PrecosPropostos dados={precos_propostos ?? null} podeAprovar={permissions.aprovar_preco} />
+      </Deferred>
 
       {/* Pagamentos + Totais */}
       <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">

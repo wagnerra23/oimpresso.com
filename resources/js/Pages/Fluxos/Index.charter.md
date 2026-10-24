@@ -6,6 +6,7 @@ status: draft
 parent_module: Fluxos
 related_prototype: prototipo-ui/cowork/Wagner/fluxos-page.jsx
 related_runbook: memory/requisitos/Fluxos/RUNBOOK-fluxos-index.md
+related_us: [US-COM-027, US-PCP-021, US-PCP-031, US-SELL-069]
 alcance:
   rota: /fluxos
   rota_nome: fluxos.index        # routes/web.php (núcleo, grupo web do ERP)
@@ -46,6 +47,14 @@ andamento.
 - Margem mínima do orçamento (aba Fluxos da empresa, UC-FLXT-19 · UC-FLX-35): interruptor + campo em %,
   `PATCH /fluxos/margem` com `fluxos.configurar`; vazio desliga. Abaixo dela, converter orçamento em
   venda exige `sell.aprovar_margem_baixa` (decisão [W] 2026-10-19).
+- Reservar material na venda (aba Fluxos da empresa, US-PCP-031 · UC-FLX-14 · UC-FLXT-22): interruptor
+  só para empresa com o módulo Produção, `PATCH /fluxos/reserva` com `fluxos.configurar`; grava
+  `common_settings['producao_reserva_insumo']` sem tocar as outras chaves. Desligar não libera reserva
+  que já existe.
+- Requisição pelo estoque mínimo (card Compra da aba Fluxos da empresa, UC-FLXT-24 · UC-FLX-19):
+  interruptor, `PATCH /fluxos/requisicao-estoque-minimo` com `fluxos.configurar`. Liga o job diário do
+  Compras (US-COM-027) pela interface `App\Contracts\Compras\RequisicaoEstoqueMinimo`; sem o módulo,
+  o interruptor não aparece. Não vem do protótipo.
 - Aba Processos: processos do `CatalogoProcessos` (#9496) agrupados por área; detalhe com estados
   (filtro pelo estado de origem, legenda início/espera/fim/exceção), roteiro em paralelo, tabela de
   transições, comparativo NF-e × NFS-e nos fiscais e "Conversa com" entre processos.

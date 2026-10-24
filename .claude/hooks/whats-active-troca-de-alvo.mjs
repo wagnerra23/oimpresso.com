@@ -128,7 +128,6 @@ export const DERIVADOS = [
   /^scripts\/design-sync\/state\//,
   /^memory\/reference\/MAQUINAS-INVENTARIO\.md$/,
   /^memory\/proibicoes\.md$/,
-  /^scripts\/governance\/\.cowork-freshness-ledger\.json$/,
   /\.snap$/,
   /^memory\/08-handoff\.md$/,
   /_HOOKS-INDEX\.md$/,

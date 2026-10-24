@@ -1,0 +1,33 @@
+{
+  "_nota": "Contrato de tela GERADO por criar-tela.mjs junto com o PT-04 Dashboard de Producao/Painel (2026-10-21). Roda em `node scripts/contrato-de-tela.mjs --contract <este-arquivo>`, no mesmo job que já varre todos os *.contract.json. As seções são as do ARQUÉTIPO e as âncoras data-contract correspondentes já nascem no .tsx — âncora e ordem são wiring do agente. A COPY não: veja _pendente_w.",
+  "tela": "Producao/Painel",
+  "fonte": "prototipo-ui/cowork/Wagner/producao-cv-page.jsx",
+  "alvo": [
+    "Modules/Producao/Resources/js/Pages/Producao/Painel/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": [
+        "Produção"
+      ]
+    },
+    {
+      "id": "kpis",
+      "copy": [
+        "OS em produção",
+        "Atrasadas ou vencendo",
+        "Arte travando",
+        "Refugo na semana"
+      ]
+    }
+  ],
+  "ordem": [
+    "cabecalho",
+    "kpis"
+  ],
+  "_pendente_w": [
+    "COPY — cabeçalho e rótulos dos 4 indicadores copiados literalmente da vista Painel de producao-cv-page.jsx (2026-10-21). Copy dos alertas, da fila de arte e do feed é derivada do dado e fica fora do contrato até [W] fixar.",
+    "ESTADOS — `estados` foi omitido de propósito (empty/loading/erro dependem do domínio, não do arquétipo). Declare quando a tela tiver os estados de verdade."
+  ]
+}

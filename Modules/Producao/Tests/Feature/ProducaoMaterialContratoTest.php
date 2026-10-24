@@ -240,3 +240,79 @@ it('UC-PCMAT-07 · PWA e app apontam o material sem mostrar o custo ao operador'
 
     expect(($this->saldo)($this->localL))->toBe('7.0000');                    // 10 − 2 (PWA) − 1 (app)
 });
+
+/**
+ * UC-PCMAT-09/10 — a tela do operador (UC-FLX-18: "o campo do rolo na tela do operador"). ESTOQUE, regra
+ * mestre: o saldo de cada rolo é feito à mão sobre o arranjo e conferido por SQL direto em purchase_lines.
+ *
+ * Receita fingida (o contrato é a interface InsumosDaReceita): 0,5 de lona por unidade; OS de 4 un → 2,0000.
+ * Ela também devolve a lona da empresa 99: material alheio não pode aparecer na lista.
+ */
+function receitaFingida(int $vid, int $vid99): void
+{
+    app()->instance(\App\Contracts\Fabricacao\InsumosDaReceita::class, new class($vid, $vid99) implements \App\Contracts\Fabricacao\InsumosDaReceita
+    {
+        public function __construct(private int $vid, private int $vid99) {}
+
+        public function paraQuantidade(int $businessId, int $variationId, string $quantidade): array
+        {
+            expect($quantidade)->toBe('4.0000');
+
+            return [['product_id' => 0, 'variation_id' => $this->vid, 'quantidade' => '2.0000'], ['product_id' => 0, 'variation_id' => $this->vid99, 'quantidade' => '9.0000']];
+        }
+    });
+}
+
+it('UC-PCMAT-09 · a tela oferece o material da receita e os rolos com saldo no local da venda, sem custo', function () {
+    receitaFingida($this->vid, $this->vid99);
+    DB::table('pcp_ordens')->where('id', $this->ordem->id)->update(['variation_id' => $this->vid, 'quantidade' => '4.0000']);
+    $lista = fn (int $biz) => app(\Modules\Producao\Services\MateriaisDaEtapa::class)->paraEtapas($biz, [$this->etapa->id]);
+    $saldoSql = fn (int $pl) => (string) DB::table('purchase_lines')->where('id', $pl)
+        ->selectRaw('quantity - quantity_sold - quantity_adjusted - quantity_returned - mfg_quantity_used as s')->value('s');
+
+    $antes = $lista($this->b98)[$this->etapa->id];
+    expect(array_column($antes, 'variation_id'))->toBe([$this->vid])                       // a lona da 99 não entra
+        ->and($antes[0]['previsto'])->toBe('2.0000')->and($antes[0]['apontado'])->toBe('0.0000')
+        ->and(array_column($antes[0]['lotes'], 'id'))->toBe([$this->loteA, $this->loteB])  // C é de outro local; A primeiro (mais antigo)
+        ->and(array_column($antes[0]['lotes'], 'saldo'))->toBe(['2.0000', '5.0000'])
+        ->and(json_encode($antes))->not->toContain('custo')->not->toContain('price');
+
+    ($this->iniciar)();
+    ($this->baixar)('3');                                                                   // FIFO: 2 de A + 1 de B
+
+    $depois = $lista($this->b98)[$this->etapa->id][0];
+    // À mão: A 2 − 2 = 0 (sai da lista) · B 5 − 1 = 4. Segundo caminho: SQL direto na linha da compra.
+    expect(array_column($depois['lotes'], 'id'))->toBe([$this->loteB])->and($depois['lotes'][0]['saldo'])->toBe('4.0000')
+        ->and($saldoSql($this->loteB))->toBe('4.0000')->and($saldoSql($this->loteA))->toBe('0.0000')
+        ->and($depois['apontado'])->toBe('3.0000')->and(($this->saldo)($this->localL))->toBe('7.0000');
+
+    // Tier 0: a mesma etapa lida por outra empresa não devolve nada.
+    expect($lista((int) DB::table('business')->where('id', '!=', $this->b98)->value('id')))->toBe([]);
+});
+
+it('UC-PCMAT-10 · o rolo que a tela lista é o que a baixa usa: escolher B tira de B, não do mais antigo', function () {
+    $this->partialMock(ModuleUtil::class, fn ($m) => $m->shouldReceive('hasThePermissionInSubscription')
+        ->andReturnUsing(fn ($b, $perm) => $perm === 'producao_module'));
+    receitaFingida($this->vid, $this->vid99);
+    DB::table('pcp_ordens')->where('id', $this->ordem->id)->update(['variation_id' => $this->vid, 'quantidade' => '4.0000']);
+    ($this->iniciar)();
+
+    $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+    $materiais = $this->actingAs($this->op1)->get('/producao/apontamento', ['X-Inertia' => 'true', 'X-Requested-With' => 'XMLHttpRequest',
+        'X-Inertia-Version' => (string) $versao, 'X-Inertia-Partial-Data' => 'materiais', 'X-Inertia-Partial-Component' => 'Producao/Apontamento/Index'])
+        ->assertOk()->json('props.materiais');
+    expect(array_keys($materiais))->toBe([$this->etapa->id]);
+    $rolos = array_column($materiais[$this->etapa->id][0]['lotes'], 'id');
+    expect($rolos)->toBe([$this->loteA, $this->loteB]);
+
+    $this->actingAs($this->op1)->postJson('/producao/apontamento/material', ['programacao_id' => $this->etapa->id, 'variation_id' => $this->vid,
+        'quantidade' => '3', 'lote_id' => $rolos[1], 'chave' => 'tela-'.uniqid(), 'momento' => now()->toIso8601String()])->assertCreated();
+
+    // À mão: B 5 − 3 = 2 · A intacto em 2 (o FIFO teria tirado 2 de A). Segundo caminho: o vínculo baixa × lote.
+    $linhas = DB::table('purchase_lines')->whereIn('id', [$this->loteA, $this->loteB])->pluck('mfg_quantity_used', 'id');
+    expect((string) $linhas[$this->loteA])->toBe('0.0000')->and((string) $linhas[$this->loteB])->toBe('3.0000')
+        ->and(($this->saldo)($this->localL))->toBe('7.0000');
+    $vinculo = DB::table('transaction_sell_lines_purchase_lines as m')->join('pcp_consumos as c', 'c.transaction_sell_line_id', '=', 'm.sell_line_id')
+        ->where('c.business_id', $this->b98)->where('c.ordem_id', $this->ordem->id)->pluck('m.quantity', 'm.purchase_line_id');
+    expect(array_keys($vinculo->all()))->toBe([$this->loteB])->and((string) $vinculo[$this->loteB])->toBe('3.0000');
+});

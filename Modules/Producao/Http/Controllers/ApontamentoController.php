@@ -18,6 +18,7 @@ use Modules\Producao\Entities\Programacao;
 use Modules\Producao\Exceptions\ApontamentoRecusado;
 use Modules\Producao\Services\ApontamentoOperadorService;
 use Modules\Producao\Services\ConsumoMaterialService;
+use Modules\Producao\Services\MateriaisDaEtapa;
 use Modules\Producao\Services\RefugoService;
 
 /**
@@ -48,6 +49,9 @@ class ApontamentoController extends Controller
             'etapas' => Inertia::defer(fn () => $this->etapas($biz, $user)),
             'rodando' => Inertia::defer(fn () => $this->rodando($biz, $user)),
             'motivos' => Inertia::defer(fn () => $this->motivos($biz)),
+            'motivos_refugo' => Inertia::defer(fn () => $this->svc->motivosDeRefugo($biz)->all()),
+            // US-PCP-021 · UC-FLX-18: material e rolo de cada etapa aberta (sem custo — é do gestor).
+            'materiais' => Inertia::defer(fn () => $this->materiais($biz, $user)),
         ]);
     }
 
@@ -83,9 +87,12 @@ class ApontamentoController extends Controller
     public function concluir(Request $request, int $inicio): JsonResponse
     {
         [$biz, $user] = $this->operador($request);
-        $d = $request->validate($this->regras());
+        // US-COMVIS-004: m² impresso e tinta C/M/Y/K são opcionais; o formato quem decide é o serviço.
+        $campos = ['m2_impresso', 'tinta_ml_c', 'tinta_ml_m', 'tinta_ml_y', 'tinta_ml_k'];
+        $d = $request->validate($this->regras() + array_fill_keys($campos, 'nullable|string|max:16'));
 
-        return $this->escrever(fn () => $this->svc->concluir($biz, $user, $inicio, $d['chave'], Carbon::parse($d['momento'])));
+        return $this->escrever(fn () => $this->svc->concluir($biz, $user, $inicio, $d['chave'], Carbon::parse($d['momento']),
+            array_intersect_key($d, array_flip($campos))));
     }
 
     /**
@@ -214,6 +221,15 @@ class ApontamentoController extends Controller
     private function motivos(int $biz): array
     {
         return $this->svc->motivosDePausa($biz)->all();
+    }
+
+    /** @return array<int, list<array<string, mixed>>> por `programacao_id` das etapas rodando agora */
+    private function materiais(int $biz, int $user): array
+    {
+        $r = $this->svc->rodandoAgora($biz, $user, Carbon::now());
+        $ids = collect([$r['pessoa'], ...$r['maquinas']->all()])->filter()->pluck('programacao_id')->filter()->map(fn ($id) => (int) $id)->unique()->values()->all();
+
+        return app(MateriaisDaEtapa::class)->paraEtapas($biz, $ids);
     }
 
     private function etapa(int $biz, Programacao $p): array
