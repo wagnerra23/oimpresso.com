@@ -44,6 +44,34 @@ class AlocacaoController extends Controller
             'inicio_previsto' => $etapa->inicio_previsto->toDateTimeString(), 'fim_previsto' => $etapa->fim_previsto->toDateTimeString()]);
     }
 
+    /**
+     * Linha do tempo (UC-PCV-30): reprograma a etapa pendente para outro horário e, se quiser, outra
+     * máquina do mesmo setor. As recusas (outro setor, choque de horário, operador do destino) saem
+     * 422 com o `contexto` que a tela precisa para explicar ou perguntar quem faz.
+     */
+    public function reprogramar(Request $request, int $id): JsonResponse
+    {
+        $biz = $this->autorizar($request);
+        $dados = $request->validate([
+            'posto_id' => ['required', 'integer', 'min:1'],
+            'inicio_previsto' => ['required', 'date'],
+            'user_id' => ['nullable', 'integer', 'min:1'],
+        ]);
+
+        try {
+            $etapa = $this->alocacao->reprogramar($biz, $id, $request->user(), (int) $dados['posto_id'], $dados['inicio_previsto'],
+                isset($dados['user_id']) ? (int) $dados['user_id'] : null);
+        } catch (ApontamentoRecusado $e) {
+            abort_if($e->codigo === ApontamentoRecusado::NAO_ENCONTRADO, 404);
+
+            return response()->json(['codigo' => $e->codigo, 'message' => $e->getMessage(), 'contexto' => $e->contexto], 422);
+        }
+
+        return response()->json(['id' => (int) $etapa->id, 'posto_id' => (int) $etapa->posto_id,
+            'user_id' => $etapa->user_id !== null ? (int) $etapa->user_id : null,
+            'inicio_previsto' => $etapa->inicio_previsto->toDateTimeString(), 'fim_previsto' => $etapa->fim_previsto->toDateTimeString()]);
+    }
+
     public function fila(Request $request, int $postoId): JsonResponse
     {
         $biz = $this->autorizar($request);

@@ -15,8 +15,6 @@ import {
   classifyDesignSync,
   isDesignSyncOptInPrompt,
   hasValidOptIn,
-  isRetornoCoworkInbox,
-  RETORNO_PROJECT_ID,
   READ_METHODS,
   OPT_IN_EXEMPLOS,
   denyMessage,
@@ -103,26 +101,13 @@ check('E2E: tool Write → exit 0 (não é DesignSync)', runHook({ hook_event_na
 // método futuro desconhecido SEM opt-in → exit 2 (default-deny end-to-end)
 check('E2E: método futuro sem opt-in → exit 2 (default-deny)', runHook({ hook_event_name: 'PreToolUse', tool_name: 'DesignSync', tool_input: { method: 'sync_everything_v2' } }).code === 2);
 
-// ── RETORNO do Code ao Cowork (sem opt-in, só em cowork-inbox/) ─────────────
-const P = RETORNO_PROJECT_ID;
-const DS_ID = '019dd02f-d2d0-7ba6-a57f-24b3ddd073ac';
+// ── RETORNO ao Cowork: a isenção da ADR 0412 SAIU (ADR 0438, 2026-10-23) ────────
+// Prova invertida, e precisa ser DISCRIMINANTE: o cenário abaixo é exatamente o que a isenção
+// deixava passar (canon mergeado em cowork-inbox/, localDir no espelho, blob igual a origin/main,
+// plano medido antes do write_files). Com a isenção de volta, os dois casos saem exit 0; sem ela,
+// exit 2. Um cenário que já falharia por outro motivo (sem localDir, por exemplo) não provaria nada.
+const P = '019dcfd3-6ef2-7ee6-8512-b1b0e5544e58'; // projeto de TELAS (era RETORNO_PROJECT_ID)
 const rec = 'cowork-inbox/placar/playbook/_saida-01.md';
-check('RETORNO: finalize_plan em cowork-inbox/ libera', isRetornoCoworkInbox({ method: 'finalize_plan', projectId: P, writes: [rec], deletes: [] }));
-check('RETORNO: write_files por localPath libera', isRetornoCoworkInbox({ method: 'write_files', projectId: P, files: [{ path: rec, localPath: rec }] }));
-check('CONTROLE: tela fora de cowork-inbox/ NÃO libera', !isRetornoCoworkInbox({ method: 'finalize_plan', projectId: P, writes: [rec, 'clientes-page.jsx'], deletes: [] }));
-check('CONTROLE: com deleção NÃO libera', !isRetornoCoworkInbox({ method: 'finalize_plan', projectId: P, writes: [rec], deletes: ['cowork-inbox/x.md'] }));
-check('CONTROLE: curinga NÃO libera', !isRetornoCoworkInbox({ method: 'finalize_plan', projectId: P, writes: ['cowork-inbox/**'], deletes: [] }));
-check('CONTROLE: `..` NÃO libera', !isRetornoCoworkInbox({ method: 'finalize_plan', projectId: P, writes: ['cowork-inbox/../styles.css'], deletes: [] }));
-check('CONTROLE: projeto do Design System NÃO libera', !isRetornoCoworkInbox({ method: 'finalize_plan', projectId: DS_ID, writes: [rec], deletes: [] }));
-check('CONTROLE: conteúdo inline (data) NÃO libera', !isRetornoCoworkInbox({ method: 'write_files', projectId: P, files: [{ path: rec, data: 'x' }] }));
-check('CONTROLE: plano vazio NÃO libera', !isRetornoCoworkInbox({ method: 'finalize_plan', projectId: P, writes: [], deletes: [] }));
-check('CONTROLE: delete_files NÃO libera', !isRetornoCoworkInbox({ method: 'delete_files', projectId: P, paths: [rec] }));
-// ADR 0412: o FORMATO sozinho não isenta mais — sem localDir no espelho não há o que medir.
-check('E2E: retorno em cowork-inbox/ SEM localDir medível → exit 2 (formato não basta)', runHook({ hook_event_name: 'PreToolUse', tool_name: 'DesignSync', tool_input: { method: 'finalize_plan', projectId: P, writes: [rec], deletes: [] } }).code === 2);
-
-// ── ADR 0412: isenção = canon JÁ MERGEADO (blob local ≡ origin/main), medido num repo real ──
-// Sandbox git hermético: espelho prototipo-ui/cowork/Wagner, um arquivo mergeado (commit apontado
-// por refs/remotes/origin/main) e variações que NÃO podem passar.
 function g(cwd, ...args) {
   const r = spawnSync('git', args, { cwd, encoding: 'utf8' });
   if (r.status !== 0) throw new Error(`git ${args.join(' ')}: ${r.stderr}`);
@@ -144,53 +129,14 @@ try {
   const ESP = join(SB, 'prototipo-ui', 'cowork', 'Wagner');
   const inbox = join(ESP, 'cowork-inbox', 'placar', 'playbook');
   mkdirSync(inbox, { recursive: true });
-  writeFileSync(join(inbox, '_saida-01.md'), 'recibo mergeado\n');
-  writeFileSync(join(inbox, '_saida-02.md'), 'recibo mergeado 2\n');
+  writeFileSync(join(inbox, '_saida-01.md'), 'recibo mergeado' + String.fromCharCode(10));
   g(SB, 'add', '-A'); g(SB, 'commit', '-q', '-m', 'canon');
   g(SB, 'update-ref', 'refs/remotes/origin/main', 'HEAD');
-  const fin = (writes, extra = {}) => ({ method: 'finalize_plan', projectId: P, localDir: ESP, writes, deletes: [], ...extra });
-  const wf = (files) => ({ method: 'write_files', projectId: P, planId: 'x', files });
-
-  // BOA: arquivo idêntico a origin/main → plano e upload passam sem opt-in
-  check('BITE boa: finalize_plan de canon mergeado → exit 0', runHookIn(SB, fin([rec])).code === 0);
-  check('BITE boa: write_files do mesmo arquivo (localPath === path) → exit 0', runHookIn(SB, wf([{ path: rec, localPath: rec }])).code === 0);
-  // Fora do plano medido
-  check('BITE: write_files de path fora do plano medido → exit 2', runHookIn(SB, wf([{ path: 'cowork-inbox/placar/playbook/_saida-02.md', localPath: 'cowork-inbox/placar/playbook/_saida-02.md' }])).code === 2);
-  // localPath ≠ path (upload de OUTRO arquivo com o nome do medido)
-  check('BITE: localPath diferente do path → exit 2', runHookIn(SB, wf([{ path: rec, localPath: 'cowork-inbox/placar/playbook/_saida-02.md' }])).code === 2);
-  // Disco mudou entre plano e upload
-  writeFileSync(join(inbox, '_saida-01.md'), 'editado depois do plano\n');
-  const mudou = runHookIn(SB, wf([{ path: rec, localPath: rec }]));
-  check('BITE: arquivo editado entre finalize e write → exit 2', mudou.code === 2);
-  // o disco editado deixa de ser canon: cai na medição de origin/main antes da comparação com o plano
-check('BITE: stderr diz o motivo (arquivo deixou de ser canon)', /difere-de-origin-main|mudou-desde-o-plano/.test(mudou.stderr));
-  // Conteúdo NÃO mergeado (difere de origin/main)
-  const naoMerg = runHookIn(SB, fin([rec]));
-  check('BITE: conteúdo local ≠ origin/main → finalize exit 2', naoMerg.code === 2);
-  check('BITE: stderr diz difere-de-origin-main', /difere-de-origin-main/.test(naoMerg.stderr));
-  g(SB, 'checkout', '-q', '--', '.');
-  // Arquivo novo, nunca mergeado
-  writeFileSync(join(inbox, '_saida-09.md'), 'recibo que ainda não foi pro main\n');
-  check('BITE: arquivo ausente em origin/main → exit 2', runHookIn(SB, fin(['cowork-inbox/placar/playbook/_saida-09.md'])).code === 2);
-  // Commitado localmente mas NÃO mergeado (HEAD à frente de origin/main)
-  g(SB, 'add', '-A'); g(SB, 'commit', '-q', '-m', 'local');
-  check('BITE: commitado no branch mas não em origin/main → exit 2', runHookIn(SB, fin(['cowork-inbox/placar/playbook/_saida-09.md'])).code === 2);
-  // localDir fora do espelho (raiz do repo) com path relativo à raiz
-  check('BITE: localDir = raiz do repo (fora do espelho) → exit 2', runHookIn(SB, fin([rec], { localDir: SB })).code === 2);
-  // Projeto do Design System, mesmo com canon idêntico
-  check('BITE: projeto DS com canon idêntico → exit 2', runHookIn(SB, { ...fin([rec]), projectId: DS_ID }).code === 2);
-  // Tela (fora de cowork-inbox/) mergeada: NÃO isenta (fora_do_canal = decisão [W])
-  writeFileSync(join(ESP, 'clientes-page.jsx'), 'x\n');
-  g(SB, 'add', '-A'); g(SB, 'commit', '-q', '-m', 'tela'); g(SB, 'update-ref', 'refs/remotes/origin/main', 'HEAD');
-  check('BITE: tela .jsx mergeada fora de cowork-inbox/ → exit 2', runHookIn(SB, fin(['clientes-page.jsx'])).code === 2);
-  // Controle positivo final: depois do merge o _saida-09 passa (a regra é o main, não a lista)
-  check('BITE boa: _saida-09 depois de mergeado → exit 0', runHookIn(SB, fin(['cowork-inbox/placar/playbook/_saida-09.md'])).code === 0);
-  // Sem repo (localDir num dir solto) → não medi → exit 2 (LC-33)
-  const solto = mkdtempSync(join(tmpdir(), 'ds-solto-'));
-  mkdirSync(join(solto, 'prototipo-ui', 'cowork', 'Wagner', 'cowork-inbox'), { recursive: true });
-  writeFileSync(join(solto, 'prototipo-ui', 'cowork', 'Wagner', 'cowork-inbox', 'a.md'), 'a\n');
-  check('BITE: localDir fora de repo git → exit 2 (não medi ≠ isento)', runHookIn(solto, fin(['cowork-inbox/a.md'], { localDir: join(solto, 'prototipo-ui', 'cowork', 'Wagner') })).code === 2);
-  rmSync(solto, { recursive: true, force: true });
+  const fin = runHookIn(SB, { method: 'finalize_plan', projectId: P, localDir: ESP, writes: [rec], deletes: [] });
+  check('FECHADO: finalize_plan de canon mergeado em cowork-inbox/ sem opt-in → exit 2', fin.code === 2);
+  check('FECHADO: a mensagem diz que não há canal isento (ADR 0438)', /0438/.test(fin.stderr) && /não há canal isento/.test(fin.stderr));
+  const wf = runHookIn(SB, { method: 'write_files', projectId: P, planId: 'x', files: [{ path: rec, localPath: rec }] });
+  check('FECHADO: write_files por localPath em cowork-inbox/ sem opt-in → exit 2', wf.code === 2);
 } finally {
   rmSync(SB, { recursive: true, force: true });
 }

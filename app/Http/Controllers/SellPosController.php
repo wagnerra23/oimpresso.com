@@ -1407,12 +1407,68 @@ class SellPosController extends Controller
     }
 
     /**
+     * US-SELL-072 — aplica a TravaDaVenda ao update. null = seguir o update de sempre.
+     *
+     * Pedido que muda algo travado é recusado com a mensagem da trava. Com nota e nada travado
+     * mudando, grava só os campos de texto livre, sem passar pelo recálculo de linhas, estoque
+     * e pagamento. Com pagamento e valores iguais, segue o update de sempre.
+     *
+     * @param  array<string, mixed>  $input
+     * @return array<string, mixed>|\Illuminate\Http\RedirectResponse|null
+     */
+    private function travaDaVenda(Request $request, int $id, array $input)
+    {
+        $business_id = (int) $request->session()->get('user.business_id');
+        $venda = Transaction::where('business_id', $business_id)->find($id);
+        if ($venda === null || empty($input['products'])) {
+            return null;
+        }
+
+        $trava = app(\App\Services\Sells\TravaDaVenda::class);
+        $estado = $trava->estado($venda);
+        if (! $estado['itens_valores']) {
+            return null;
+        }
+
+        $is_direct_sale = $venda->is_direct_sale == 1;
+        $motivo = $trava->recusa($venda, $input, $estado);
+        if ($motivo !== null) {
+            $output = ['success' => 0, 'msg' => $motivo];
+
+            return $is_direct_sale ? back()->with('status', $output) : $output;
+        }
+
+        $only_payment = ! $is_direct_sale && ! auth()->user()->can('sell.update') && auth()->user()->can('edit_pos_payment');
+        if (! $estado['nota'] || $only_payment) {
+            return null;
+        }
+
+        $livres = array_intersect_key($input, array_flip(\App\Services\Sells\TravaDaVenda::CAMPOS_LIVRES));
+        if (array_key_exists('sale_note', $input)) {
+            // O form Blade manda a observação como sale_note (a tela Inertia já foi normalizada no update).
+            $livres['additional_notes'] = $input['sale_note'] !== '' ? $input['sale_note'] : null;
+        }
+
+        $antes = clone $venda;
+        DB::transaction(function () use ($venda, $livres, $antes) {
+            $venda->forceFill($livres)->save();
+            $this->transactionUtil->activityLog($venda, 'edited', $antes);
+        });
+
+        $output = ['success' => 1, 'msg' => __('lang_v1.updated_success'), 'receipt' => ''];
+
+        return $is_direct_sale
+            ? redirect()->action([\App\Http\Controllers\SellController::class, 'index'])->with('status', $output)
+            : $output;
+    }
+
+    /**
      * Update the specified resource in storage.
      * TODO: Add edit log.
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse|array<string, mixed>
      */
     public function update(Request $request, $id)
     {
@@ -1439,7 +1495,22 @@ class SellPosController extends Controller
                 $input['is_quotation'] = 0;
             }
 
+            // A tela Inertia (Sells/Edit) manda a observação como additional_notes; o form Blade
+            // manda sale_note, que é o campo que o updateSellTransaction grava. Sem isto a
+            // observação da tela Inertia virava null a cada salvamento. Só texto, nenhum valor.
+            if (! array_key_exists('sale_note', $input) && array_key_exists('additional_notes', $input)) {
+                $input['sale_note'] = $input['additional_notes'];
+            }
+
+            // US-SELL-072 — venda com nota ou pagamento trava itens e valores. Só recusa: não
+            // calcula nada. Sem nota nem pagamento, segue o caminho de sempre (abaixo).
+            // ($is_direct_sale definido antes: o catch abaixo o lê.)
             $is_direct_sale = false;
+            $travada = $this->travaDaVenda($request, (int) $id, $input);
+            if ($travada !== null) {
+                return $travada;
+            }
+
             if (!empty($input['products'])) {
                 //Get transaction value before updating.
                 $transaction_before = Transaction::find($id);

@@ -81,7 +81,7 @@ function globRe(g) {
   return new RegExp(`^${s}$`);
 }
 
-const DERIVADOS = [/(^|\/)SUPERFICIE\.md$/, /enviados-cowork[^/]*\.json$/, /\.cowork-freshness-ledger\.json$/];
+const DERIVADOS = [/(^|\/)SUPERFICIE\.md$/, /enviados-cowork[^/]*\.json$/];
 const OK = new Set(['success', 'neutral', 'skipped']);
 const RUIM = new Set(['failure', 'cancelled', 'timed_out', 'action_required', 'startup_failure', 'stale']);
 

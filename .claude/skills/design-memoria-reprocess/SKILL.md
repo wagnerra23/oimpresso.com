@@ -49,7 +49,7 @@ Todo handoff do Claude Design DEVE carregar:
 - ref: <path ou ADR>
 - resumo: <1 linha>
 ```
-> **Enforcement:** o hook `design-handoff-reprocess` detecta esse bloco e dispara esta skill (G2). O handoff **declara**; o hook **executa** — não é lembrete educado (lembrete falha; hook garante — ADR 0224 + R12).
+> **Enforcement:** até 2026-10-23 o hook `design-handoff-reprocess` detectava esse bloco e disparava esta skill (G2). Ele saiu com a [ADR 0438](../../../memory/decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md): o handoff do Claude Design deixou de ser rota de entrada. Os outros gatilhos (b–e) seguem valendo.
 
 ## Invariantes (ADR 0230)
 - **A — idempotência + anti-regressão:** rodar 2× = mesmo resultado; mudança estrutural cria teste com a justificativa medida do porquê não voltar.

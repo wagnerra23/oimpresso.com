@@ -82,10 +82,6 @@ check(
   comecaComTag(rodar('design-compare-protocol', { prompt: 'compare o design com a prod da tela de vendas' }), 'design-compare-protocol'),
 );
 check(
-  'E2E design-handoff-reprocess emite a tag no inicio',
-  comecaComTag(rodar('design-handoff-reprocess', { prompt: 'segue o handoff\n\n## new_design_memories\n- token novo' }), 'design-handoff-reprocess'),
-);
-check(
   'E2E force-r12-closing-signal emite a tag no inicio',
   comecaComTag(rodar('force-r12-closing-signal', { prompt: 'vamos encerrar a sessão' }), 'force-r12-closing-signal'),
 );

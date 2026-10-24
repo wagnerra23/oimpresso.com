@@ -5,8 +5,15 @@ irmaos: Edit.charter.md (lei) · tests/Feature/Sells/SellsEditContratoTest.php (
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-10-02"
+last_run: "2026-10-20"
 ---
+
+<!-- REVALIDAÇÃO 2026-10-20 (US-SELL-072, trava após nota). Este PR não muda o .tsx; a última
+     mudança dele é a seção Reparo (#8578, 2026-10-03), já revalidada no comentário do UC-SEDIT-12
+     abaixo. Muda o servidor: SellPosController@update recusa item/valor/cliente com nota e valor
+     com pagamento, e SellController@edit passa a mandar a prop `trava`. Venda sem nota nem
+     pagamento segue o caminho de antes — UC-SEDIT-01..12 não têm nota nem pagamento no fixture
+     (o UC-SEDIT-10 tem pagamento, mas só faz GET) — status mantidos. UC-SEDIT-13..18 nascem 🧪. -->
 
 <!-- REVALIDAÇÃO 2026-10-02 (G-6: o .tsx mudou — UC-SEDIT-09, conserto da edição React).
      Mudanças no .tsx: pré-fill pelo preço antes do desconto, subtotal na regra do servidor
@@ -177,6 +184,41 @@ last_run: "2026-10-02"
   - salvar manda os mesmos campos do PDV; data ou defeitos esvaziados vão vazios para limpar. Número de série, senha e padrão não limpam (o `ConvertEmptyStringsToNull` vira "" em null e o hook só grava não-nulos — o PDV Blade também não limpa).
 - **Aceite:** Dado uma venda de reparo com status, série, entrega, defeitos e checklist gravados · Quando a tela pede o `form` · Então `reparo.valor` traz esses valores (entrega `2026-10-10T14:00`, defeitos em lista, checklist como objeto) e `reparo.opcoes` traz os status do próprio business · Dado uma venda comum · Então `reparo` é null.
 - **Teste:** `tests/Feature/Sells/SellsEditContratoTest.php` (UC-SEDIT-12, lane `sells-pest`) + `tests/js/sells-reparo-venda.test.ts` (envio da edição, lane `sells-v3-dominio-gate`).
+- **Status: 🧪** _(nasce sem run.)_
+
+---
+
+## Venda com nota ou pagamento trava itens e valores (US-SELL-072)
+
+> **Âncora:** decisão [W] 2026-10-20, textual — *"Trava itens e valores após nota"*. Com nota
+> fiscal válida na venda (NF-e/NFC-e autorizada ou em contingência, NFS-e emitida), itens, valores
+> e cliente não se editam: cancela-se a nota antes. Com pagamento só os valores travam. Campos de
+> texto seguem editáveis. Vale para o update desta tela e do Blade (os dois vão a
+> `SellPosController@update`). VALOR: regra mestre — a trava só recusa, não calcula.
+> Prova: `tests/Feature/Sells/SellsTravaAposNotaContratoTest.php` (lane `sells-pest`).
+
+## UC-SEDIT-13 · Com nota, itens, valores e cliente não mudam
+- **Aceite:** Dado uma venda com NF-e autorizada (ou NFS-e emitida) · Quando o update pede outra quantidade, ou outro cliente · Então volta "Venda com nota autorizada: cancele a nota para alterar itens e valores." e total, linhas e estoque ficam iguais.
+- **Status: 🧪** _(nasce sem run.)_
+
+## UC-SEDIT-14 · Com nota, a observação ainda se edita
+- **Aceite:** Dado uma venda com NF-e autorizada · Quando só a observação muda (valores iguais) · Então a observação é gravada e total, linhas e estoque ficam iguais (não passa pelo recálculo).
+- **Status: 🧪** _(nasce sem run.)_
+
+## UC-SEDIT-15 · Nota cancelada não trava
+- **Aceite:** Dado uma venda cuja NF-e foi cancelada · Quando a quantidade muda · Então o update grava a nova quantidade.
+- **Status: 🧪** _(nasce sem run.)_
+
+## UC-SEDIT-16 · Com pagamento, só os valores travam
+- **Aceite:** Dado uma venda com pagamento registrado e sem nota · Quando a quantidade muda · Então volta "Venda com pagamento: valores não podem ser alterados; estorne o pagamento antes." e nada muda · Quando só a observação muda · Então ela é gravada e o total fica igual.
+- **Status: 🧪** _(nasce sem run.)_
+
+## UC-SEDIT-17 · Nota de outro business não trava esta venda
+- **Aceite:** Dado uma NF-e autorizada do 2º business apontando para o mesmo `transaction_id` de uma venda do business 98 · Quando a quantidade muda · Então o update grava (Tier 0).
+- **Status: 🧪** _(nasce sem run.)_
+
+## UC-SEDIT-18 · Sem nota nem pagamento, a edição é a de antes
+- **Aceite:** Dado uma venda de 2 × 50,00 = 100,00 sem nota nem pagamento · Quando a quantidade vai a 3 · Então o total fica 150,00 e o estoque cai de 8 para 7, como antes desta US.
 - **Status: 🧪** _(nasce sem run.)_
 
 ---

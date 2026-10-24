@@ -8,14 +8,8 @@
 // bifurcação — as cópias de `walk` divergiam no skip-set — e até aqui nada provava que ela
 // morde: sem `.test.mjs`, sem `--selftest`. Era a lib de maior alcance da cadeia sem prova.
 //
-// ⚠️ `scripts/design/importar-bundle.mjs` aparece naquele grep mas NÃO importa: a menção é um
-// comentário sobre uma RÉPLICA À MÃO do skip-set numa lista PowerShell (`$noise`). Contá-lo como
-// consumidor seria o §5 2026-08-10 ("um comentário lido como import"). A paridade que o
-// comentário declara é PARCIAL hoje — medido 2026-09-13: o `$noise` traz 6 dos 8 nomes (faltam
-// `node_modules` e `.git`) e 2 extras. Este teste NÃO asserta essa paridade: não medi a intenção
-// (bundle baixado não costuma trazer `.git`), e assertar o que não medi inventaria contrato —
-// anti-padrão inventado é pior que ausente. Quem mantém o importar-bundle decide. Reproduzir:
-//   node scripts/design/_lib-charter.test.mjs --replica-importar-bundle
+// (Até 2026-10-23 o `importar-bundle.mjs` também aparecia naquele grep, só por comentário, e
+// este cabeçalho explicava por que não contava como consumidor. Ele saiu na onda 2a da ADR 0438.)
 //
 // O CONTRATO É O QUE OS CONSUMIDORES ESPERAM, não o que a função parece fazer. Cada caso cita o
 // call-site que o exige. Os quatro que mais doem se quebrarem:
@@ -38,24 +32,11 @@
 // Par MORDE/SOLTA em cada regra: sem o par, uma guarda que diz "sim" pra tudo passa por
 // não-execução (LC-13). Node puro, sem deps/rede/DB. Fixtures no tmpdir do Node — nunca "/tmp"
 // literal, que no Windows não é o mesmo diretório pro Bash e pro Node (§5 2026-08-21).
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, relative, sep, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join, relative, sep } from 'node:path';
 import { read, frontmatter, walk, SKIP_DIRS } from './_lib-charter.mjs';
 
-const AQUI = dirname(fileURLToPath(import.meta.url));
-
-// Sonda do achado do cabeçalho: quais nomes do SKIP_DIRS o importar-bundle NÃO replica.
-// Fica atrás de flag de propósito — é REPORTE, não prova: assertar drift de terceiro faria este
-// teste nascer vermelho por dívida que não é dele, e vermelho que não pode ficar verde é ruído.
-if (process.argv.includes('--replica-importar-bundle')) {
-  const ib = readFileSync(join(AQUI, 'importar-bundle.mjs'), 'utf8');
-  const aspa = String.fromCharCode(39);
-  const faltando = [...SKIP_DIRS].filter((d) => !ib.includes(aspa + d + aspa));
-  console.log(`SKIP_DIRS = ${[...SKIP_DIRS].length} nomes; ausentes do $noise do importar-bundle: ${JSON.stringify(faltando)}`);
-  process.exit(0);
-}
 
 let fails = 0;
 let total = 0; // contado, nunca escrito a mao — numero de doc que nao se deriva apodrece (§5 2026-07-17).

@@ -81,14 +81,12 @@ full-reload. Comportamento **antes** de pixel.
 
 ## Procedimento (passo a passo)
 
-0. **Provar frescor da fonte** — `node scripts/governance/cowork-mirror-freshness.mjs --compare <snap>`
-   pro arquivo da tela **E pras DEPS DE RENDER dela** (`--manifest` v3 já enumera: âncoras + o que
-   o shell carrega — `app.jsx`, `styles.css`, `ds-v6/tokens.css`, css do módulo); `STALE` ⇒
-   re-exportar do Cowork ANTES de comparar. (Sem isso, você compara contra design velho — o erro
-   do v1; e SÓ âncora é cego pro drift de infra — o furo LC-07 por onde o PageHeader roxo do [W]
-   passou em 2026-07-07: rodada "3 SYNC" verde com `app.jsx` STALE.)
-1. **Abrir os DOIS** — prod (Chrome logado) + o Cowork vivo (mesma tela, mesmo tema — o tema é
-   escolha do Wagner; comparar no MESMO tema).
+0. **Resolver a fonte no git** — `node scripts/design/ancora.mjs <Mod/Tela>`. Desde 2026-10-23
+   (ADR 0438) o protótipo é o arquivo versionado em `prototipo-ui/`; não há mais frescor a provar
+   contra o Cowork. Até essa data este passo era `cowork-mirror-freshness --compare` (com as deps
+   de render do furo LC-07, 2026-07-07); o modo saiu na onda 2c-2.
+1. **Abrir os DOIS** — prod (Chrome logado) + o protótipo servido a partir do git (mesma tela,
+   mesmo tema — o tema é escolha do Wagner; comparar no MESMO tema).
 2. **Rodar a MESMA sonda D1–D8** nos dois → JSON estruturado por dimensão. Para D2/D4/D6/D8, use
    a sonda de `node scripts/design/design-diff.mjs --probe` (idêntica nos dois lados) → `--compare`
    dá o veredito MEDIDO. **Nunca** conclua "igual" por screenshot — o print não distingue center×left.
