@@ -39,6 +39,9 @@ class ProductController extends Controller
      */
     private const FLAG_CADASTRO_REACT = 'useV2ProdutoCadastro';
 
+    /** Peso líquido (kg) e dimensões da embalagem (cm) — UC-PCAD-16 e UC-PEDIT-13, CU-PROD-17. */
+    private const PESO_E_DIMENSOES = ['peso_liquido', 'largura_cm', 'altura_cm', 'comprimento_cm'];
+
     /**
      * All Utils instance.
      */
@@ -1343,6 +1346,10 @@ class ProductController extends Controller
                     'origem_mercadoria' => (int) ($duplicate_product->origem_mercadoria ?? 0),
                     'ncm' => (string) ($duplicate_product->ncm ?? ''),
                     'cest' => (string) ($duplicate_product->cest ?? ''),
+                    'peso_liquido' => $duplicate_product->peso_liquido ?? null,
+                    'largura_cm' => $duplicate_product->largura_cm ?? null,
+                    'altura_cm' => $duplicate_product->altura_cm ?? null,
+                    'comprimento_cm' => $duplicate_product->comprimento_cm ?? null,
                     'barcode_type' => $duplicate_product->barcode_type,
                     'sku' => (string) ($duplicate_product->sku ?? ''),
                     'alert_quantity' => $duplicate_product->alert_quantity,
@@ -1431,6 +1438,24 @@ class ProductController extends Controller
         );
     }
 
+    /**
+     * Peso líquido e dimensões: número de 0 a 99999, com ponto decimal (a tela manda assim).
+     * Fora do `try`, como a origem. Ausente ou vazio não valida: os quatro são opcionais.
+     */
+    protected function validarPesoEDimensoes(Request $request): void
+    {
+        $regra = ['sometimes', 'nullable', 'numeric', 'min:0', 'max:99999'];
+        $request->validate(
+            array_fill_keys(self::PESO_E_DIMENSOES, $regra),
+            [
+                'peso_liquido.*' => 'O peso líquido tem que ser um número de 0 a 99999 kg.',
+                'largura_cm.*' => 'A largura tem que ser um número de 0 a 99999 cm.',
+                'altura_cm.*' => 'A altura tem que ser um número de 0 a 99999 cm.',
+                'comprimento_cm.*' => 'O comprimento tem que ser um número de 0 a 99999 cm.',
+            ],
+        );
+    }
+
     public function store(Request $request)
     {
         if (! auth()->user()->can('product.create')) {
@@ -1463,6 +1488,7 @@ class ProductController extends Controller
         $this->validarOrigemMercadoria($request);
         $this->validarNcm($request);
         $this->validarCest($request);
+        $this->validarPesoEDimensoes($request);
 
         try {
             $business_id = $request->session()->get('user.business_id');
@@ -1495,6 +1521,13 @@ class ProductController extends Controller
             // CEST (UC-PCAD-15): só grava quando vem cheio; vazio deixa a coluna nula.
             if ($request->filled('cest')) {
                 $product_details['cest'] = (string) $request->input('cest');
+            }
+
+            // Peso líquido e dimensões (UC-PCAD-16): só grava o que vem preenchido; o resto fica nulo.
+            foreach (self::PESO_E_DIMENSOES as $campo) {
+                if ($request->filled($campo)) {
+                    $product_details[$campo] = $request->input($campo);
+                }
             }
 
             if (! empty($request->input('sub_category_id'))) {
@@ -1775,6 +1808,10 @@ class ProductController extends Controller
                     'origemMercadoria' => (int) ($product->origem_mercadoria ?? 0),
                     'ncm' => (string) ($product->ncm ?? ''),
                     'cest' => (string) ($product->cest ?? ''),
+                    'pesoLiquido' => $product->peso_liquido ?? null,
+                    'larguraCm' => $product->largura_cm ?? null,
+                    'alturaCm' => $product->altura_cm ?? null,
+                    'comprimentoCm' => $product->comprimento_cm ?? null,
                     'barcodeType' => (string) ($product->barcode_type ?? 'C128'),
                     'enableStock' => (bool) $product->enable_stock,
                     'alertQuantity' => $alert_quantity,
@@ -1844,6 +1881,7 @@ class ProductController extends Controller
         $this->validarOrigemMercadoria($request);
         $this->validarNcm($request);
         $this->validarCest($request);
+        $this->validarPesoEDimensoes($request);
 
         try {
             $product_details = $request->only(['name', 'brand_id', 'unit_id', 'category_id', 'tax', 'barcode_type', 'sku', 'alert_quantity', 'tax_type', 'weight', 'product_description', 'sub_unit_ids', 'preparation_time_in_minutes', 'product_custom_field1', 'product_custom_field2', 'product_custom_field3', 'product_custom_field4', 'product_custom_field5', 'product_custom_field6', 'product_custom_field7', 'product_custom_field8', 'product_custom_field9', 'product_custom_field10', 'product_custom_field11', 'product_custom_field12', 'product_custom_field13', 'product_custom_field14', 'product_custom_field15', 'product_custom_field16', 'product_custom_field17', 'product_custom_field18', 'product_custom_field19', 'product_custom_field20',]);
@@ -1887,6 +1925,13 @@ class ProductController extends Controller
             // CEST (UC-PEDIT-12): mesma regra do NCM. Vazio é "sem CEST": a coluna volta a nula.
             if ($request->has('cest')) {
                 $product->setAttribute('cest', $request->filled('cest') ? (string) $request->input('cest') : null);
+            }
+            // Peso líquido e dimensões (UC-PEDIT-13): só mexe no campo que vem; vazio volta a nulo.
+            // O Blade não manda nenhum dos quatro e não muda nada.
+            foreach (self::PESO_E_DIMENSOES as $campo) {
+                if ($request->has($campo)) {
+                    $product->setAttribute($campo, $request->filled($campo) ? $request->input($campo) : null);
+                }
             }
             $product->product_custom_field1 = $product_details['product_custom_field1'] ?? '';
             $product->product_custom_field2 = $product_details['product_custom_field2'] ?? '';

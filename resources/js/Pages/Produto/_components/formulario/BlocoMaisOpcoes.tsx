@@ -12,8 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/Components/ui/select';
-import { Inline } from '@/Components/layout';
-import type { CamposProduto, DefinirCampo, OpcoesProduto } from './tipos';
+import { Grid, Inline } from '@/Components/layout';
+import type { CamposProduto, DefinirCampo, ErrosProduto, OpcoesProduto } from './tipos';
 import { opcoesDe } from './tipos';
 
 /** O Select do Radix não aceita item com valor vazio: "não aplicável" é `''` no envio. */
@@ -23,6 +23,8 @@ interface Props {
   data: CamposProduto;
   definir: DefinirCampo;
   opcoes: OpcoesProduto;
+  /** Os erros de validação do peso líquido e das dimensões. */
+  errors?: ErrosProduto;
   /** Chave do localStorage que lembra se a seção ficou aberta. */
   chaveAberto: string;
   /**
@@ -32,7 +34,7 @@ interface Props {
   mostrarValidade?: boolean;
 }
 
-export function BlocoMaisOpcoes({ data, definir, opcoes, chaveAberto, mostrarValidade }: Props) {
+export function BlocoMaisOpcoes({ data, definir, opcoes, errors = {}, chaveAberto, mostrarValidade }: Props) {
   const [aberto, setAberto] = useState<boolean>(() => {
     try {
       return localStorage.getItem(chaveAberto) === '1';
@@ -60,17 +62,54 @@ export function BlocoMaisOpcoes({ data, definir, opcoes, chaveAberto, mostrarVal
         Mais opções
       </summary>
       <div className="px-6 pb-4 grid grid-cols-2 gap-4">
+        {/* UC-PCAD-16 e UC-PEDIT-13: o "Peso" de sempre é o peso bruto, que o WooCommerce usa no frete. */}
         <div>
-          <Label htmlFor="weight">Peso</Label>
+          <Label htmlFor="weight">Peso bruto (kg)</Label>
           <Input
             id="weight"
             type="number"
             step="0.001"
+            min="0"
             value={String(data.weight ?? '')}
             onChange={(e) => definir('weight', e.target.value)}
             className="tabular-nums"
           />
+          <p className="text-[12px] text-muted-foreground mt-1">Com embalagem. É o peso usado no frete.</p>
         </div>
+        <CampoMedida
+          id="peso_liquido"
+          rotulo="Peso líquido (kg)"
+          passo="0.001"
+          valor={data.peso_liquido}
+          mudar={(v) => definir('peso_liquido', v)}
+          erro={errors.peso_liquido}
+        />
+        <Grid cols={3} gap={4} className="col-span-2">
+          <CampoMedida
+            id="largura_cm"
+            rotulo="Largura (cm)"
+            passo="0.01"
+            valor={data.largura_cm}
+            mudar={(v) => definir('largura_cm', v)}
+            erro={errors.largura_cm}
+          />
+          <CampoMedida
+            id="altura_cm"
+            rotulo="Altura (cm)"
+            passo="0.01"
+            valor={data.altura_cm}
+            mudar={(v) => definir('altura_cm', v)}
+            erro={errors.altura_cm}
+          />
+          <CampoMedida
+            id="comprimento_cm"
+            rotulo="Comprimento (cm)"
+            passo="0.01"
+            valor={data.comprimento_cm}
+            mudar={(v) => definir('comprimento_cm', v)}
+            erro={errors.comprimento_cm}
+          />
+        </Grid>
         <div className="col-span-2">
           <Label htmlFor="product_description">Descrição</Label>
           <Textarea
@@ -147,5 +186,39 @@ export function BlocoMaisOpcoes({ data, definir, opcoes, chaveAberto, mostrarVal
         )}
       </div>
     </details>
+  );
+}
+
+/** Um número opcional do produto (peso em kg ou medida da embalagem em cm), com o erro do servidor. */
+function CampoMedida({
+  id,
+  rotulo,
+  passo,
+  valor,
+  mudar,
+  erro,
+}: {
+  id: string;
+  rotulo: string;
+  passo: string;
+  valor: number | string | undefined;
+  mudar: (v: string) => void;
+  erro?: string;
+}) {
+  return (
+    <div>
+      <Label htmlFor={id}>{rotulo}</Label>
+      <Input
+        id={id}
+        type="number"
+        step={passo}
+        min="0"
+        value={String(valor ?? '')}
+        onChange={(e) => mudar(e.target.value)}
+        aria-invalid={erro ? true : undefined}
+        className="tabular-nums"
+      />
+      {erro && <p className="text-[12px] text-destructive mt-1">{erro}</p>}
+    </div>
   );
 }

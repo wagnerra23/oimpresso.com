@@ -43,6 +43,7 @@ last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 48
 | UC-PEDIT-10 | Editar pela tela React não apaga os campos personalizados nem a validade | must | `AR-PROD-003/042` + charter Goal | `ProdutoEditPayloadContratoTest` (Pest) + `produto-editar-preserva.test.tsx` (Vitest) | ⬜ Vitest passa; Pest aguarda a lane |
 | UC-PEDIT-11 | Editar o NCM: grava, apagar volta a sem NCM, fora do formato é recusado, sem mexer não muda, outra empresa → 404 | must `[T0]` | `CU-PROD-16` + ADR 0093 | `CadastroProdutoNcmTest` (Pest) + `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
 | UC-PEDIT-12 | Editar o CEST: grava, apagar volta a sem CEST, fora do formato é recusado, sem mexer não muda, outra empresa → 404 | should `[T0]` | `CU-PROD-16` + ADR 0093 | `CadastroProdutoCestTest` (Pest) + `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
+| UC-PEDIT-13 | Editar peso líquido e dimensões: grava, apagar volta a nulo, inválido é recusado, Blade não muda, outra empresa → 404 | should `[T0]` | `CU-PROD-17` + ADR 0093 | `CadastroProdutoPesoDimensoesTest` (Pest) + `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
 
 > ⚠️ **UC-PEDIT-01/02/04 DEIXARAM de ser stub em 2026-09-18** — viraram Pest de comportamento no
 > `ProdutoEditContratoTest` (o arquivo que esta nota mandava usar), com `PUT` real, `actingAs` e
@@ -170,6 +171,15 @@ last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 48
 - **Aceite:** Dado um produto · Quando abro o Editar · Então o campo CEST mostra o CEST gravado, só com dígitos (`28.038.00` aparece `2803800`) · E, se mudo o CEST e salvo, ele grava · E, se apago o CEST e salvo, o produto fica sem CEST (coluna nula) · E um CEST fora do formato é recusado **sem gravar nada** · E, se **não mexo** no CEST, o envio não leva o campo e o CEST gravado fica como estava, mesmo um CEST antigo fora do formato · E salvar pelo Blade (que não manda o campo) não muda o CEST · E editar o CEST de produto de outra empresa devolve **404** sem gravar.
 - **Teste:** [`CadastroProdutoCestTest`](../../../../tests/Feature/Produto/CadastroProdutoCestTest.php) — `UC-PEDIT-12` (o servidor: grava, apagar, sem o campo, fora do formato, outra empresa, e o `edit()` entregando o CEST) · [`produto-formulario.test.tsx`](../../../../tests/js/produto-formulario.test.tsx) — `UC-PEDIT-12` (a tela: mostra só dígitos e, sem mexer, não envia; alterar envia; apagar envia vazio).
 - **Contrato:** `CU-PROD-16` do [SDD](../../../../memory/requisitos/Produto/SDD-tela-cadastro-produto-v1.0.md) + Convênio ICMS 142/2018, cláusula sexta + ADR 0093. Mesma regra do `UC-PEDIT-11` (NCM): o `update()` atende o Blade e a tela React, e campo ausente não muda o que está gravado.
+- **Status: 🧪** — escrito junto do código, sem veredito da lane `PHP / Pest (Estoque · MySQL)` nem do job `Frontend / Vite build` (G-7).
+
+---
+
+## UC-PEDIT-13 · Editar peso líquido e dimensões · `should` `[T0]`
+- **Persona:** quem corrige o cadastro de um produto que vai ser despachado.
+- **Aceite:** Dado um produto · Quando abro o Editar · Então "Mais opções" mostra o "Peso bruto (kg)" de sempre e o peso líquido, a largura, a altura e o comprimento gravados · E, se mudo e salvo, grava · E, se apago um campo e salvo, ele volta a nulo · E um valor inválido (negativo, texto, acima de 99999) é recusado **sem gravar nada** · E salvar pelo Blade (que não manda os campos) não muda o que está gravado · E editar produto de outra empresa devolve **404** sem gravar.
+- **Teste:** [`CadastroProdutoPesoDimensoesTest`](../../../../tests/Feature/Produto/CadastroProdutoPesoDimensoesTest.php) — `UC-PEDIT-13` (o servidor: grava, apagar, Blade, inválido, outra empresa, e o `edit()` entregando os valores) · [`produto-formulario.test.tsx`](../../../../tests/js/produto-formulario.test.tsx) — `UC-PEDIT-13` (a tela: mostra e devolve os valores; apagar envia vazio).
+- **Contrato:** `CU-PROD-17` do [SDD](../../../../memory/requisitos/Produto/SDD-tela-cadastro-produto-v1.0.md) + ADR 0093. A tela sempre manda os quatro campos (são colunas novas, sem dado antigo fora do formato); o Blade não manda, e campo ausente não muda o que está gravado.
 - **Status: 🧪** — escrito junto do código, sem veredito da lane `PHP / Pest (Estoque · MySQL)` nem do job `Frontend / Vite build` (G-7).
 
 ## Diagnóstico do remédio (2026-07-29) — a correção óbvia é a errada

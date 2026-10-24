@@ -61,6 +61,7 @@ Cadastrar produto novo (single/variable/combo) com validação cliente-side Type
   - _Exceção datada (2026-10-15, UC-PCAD-07): o `store()` passou a aceitar `origem_mercadoria` (0–8), gravado só quando o campo vem. Nada mais do método mudou._
   - _Exceção datada (2026-10-20, UC-PCAD-13): o `store()` passou a aceitar `ncm` (8 dígitos, só números), gravado só quando o campo vem cheio. Sem NCM o produto nasce com o `'0'` da coluna. Nada mais do método mudou._
   - _Exceção datada (2026-10-21, UC-PCAD-15): o `store()` passou a aceitar `cest` (7 dígitos, só números), gravado só quando o campo vem cheio. Sem CEST a coluna fica nula. Nada mais do método mudou._
+  - _Exceção datada (2026-10-21, UC-PCAD-16): o `store()` passou a aceitar `peso_liquido`, `largura_cm`, `altura_cm` e `comprimento_cm` (números de 0 a 99999, colunas novas em `products`), gravados só quando vêm cheios. Nada mais do método mudou._
 - ❌ NÃO valida SKU duplicate cliente-side (server confirma)
 
 ## UX Targets
@@ -164,3 +165,4 @@ verdade — **nenhum UC os cita de propósito**.
 | 2026-07-17 | [F+CC] | **v3 — correção de rumo ([F] pegou meu erro).** A v2 chamou os 4 vermelhos de "bugs". Errado: analisei a **casca React `Create.tsx`** (draft) como se fosse o cadastro — o real é o **Blade** `create.blade.php` + `store()`. Reclassificado: **02/03 não são bugs** (validação client-side no Blade + defaults no form, por design UltimatePOS) → viraram **§Paridade Blade→React** (grade do que falta migrar). **05** (cross-tenant) = achado Tier 0 real → US própria. **06** (500→404) = corrigido neste PR. §Pendência do preço vira 1ª linha da grade de paridade (o Blade tem preço; a casca React não migrou). |
 | 2026-10-20 | [M+C] | O cadastro ganha o campo NCM (`UC-PCAD-13`) e o aviso de NCM faltando (`UC-PCAD-14`), decisão [M] (`CU-PROD-16`/`CU-PROD-18` do SDD). §Non-Goals: segunda exceção datada ao *"NÃO modifica `store()`"*, no mesmo formato da primeira. O Non-Goal em si não muda: revê-lo é decisão [W]. |
 | 2026-10-21 | [M+C] | O cadastro ganha o campo CEST (`UC-PCAD-15`), ao lado do NCM. §Non-Goals: terceira exceção datada ao *"NÃO modifica `store()`"*, no mesmo formato das anteriores. |
+| 2026-10-21 | [M+C] | "Mais opções" ganha peso líquido e dimensões da embalagem (`UC-PCAD-16`), e o "Peso" de sempre passa a se chamar "Peso bruto (kg)". §Non-Goals: quarta exceção datada ao *"NÃO modifica `store()`"*. |

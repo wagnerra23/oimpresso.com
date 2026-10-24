@@ -34,6 +34,10 @@ interface ProdutoEditModel {
   origemMercadoria?: number;
   ncm?: string | null;
   cest?: string | null;
+  pesoLiquido?: number | string | null;
+  larguraCm?: number | string | null;
+  alturaCm?: number | string | null;
+  comprimentoCm?: number | string | null;
   barcodeType: string;
   enableStock: boolean;
   alertQuantity: string | null;
@@ -91,6 +95,11 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
     barcode_type: p.barcodeType,
     alert_quantity: p.alertQuantity ?? '',
     weight: p.weight ?? '',
+    // UC-PEDIT-13: peso líquido e dimensões gravados; vazio no envio volta a nulo.
+    peso_liquido: p.pesoLiquido ?? '',
+    largura_cm: p.larguraCm ?? '',
+    altura_cm: p.alturaCm ?? '',
+    comprimento_cm: p.comprimentoCm ?? '',
     product_description: p.productDescription ?? '',
     product_locations: p.productLocations,
     warranty_id: p.warrantyId ?? '',

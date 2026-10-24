@@ -65,6 +65,7 @@ export function ProdutoFormulario({
       <BlocoEstoque modo={modo} data={data} definir={definir} opcoes={opcoes} />
       <BlocoMaisOpcoes
         data={data}
+        errors={errors}
         definir={definir}
         opcoes={opcoes}
         chaveAberto={chaveMaisOpcoes}

@@ -413,3 +413,92 @@ describe('UC-PCAD-15 · UC-PEDIT-12 · CEST no cadastro', () => {
     expect(salvar(container, 'produto-edit-form')?.cest).toBe('')
   })
 })
+
+// UC-PCAD-16 e UC-PEDIT-13 — peso líquido e dimensões da embalagem (CU-PROD-17). O "Peso" de
+// sempre passa a se chamar "Peso bruto (kg)"; os quatro campos novos são opcionais.
+describe('UC-PCAD-16 · UC-PEDIT-13 · peso e dimensões no cadastro', () => {
+  const novo = () =>
+    render(
+      <ProdutoCreate
+        {...(listasDoServidor as never)}
+        barcodeDefault="C128"
+        defaultProfitPercent={25}
+        duplicateProduct={null}
+        sellingPriceGroupCount={0}
+        commonSettings={{}}
+        enableExpiry={false}
+        enableLot={false}
+        enableRacks={false}
+      />,
+    )
+  const editar = () =>
+    render(
+      <ProdutoEdit
+        {...(listasDoServidor as never)}
+        product={{
+          id: 9, name: 'Lona 440g', sku: 'LON-440', type: 'single', brandId: 3, unitId: 5,
+          subUnitIds: null, categoryId: 1, subCategoryId: null, tax: 1, taxType: 'exclusive',
+          origemMercadoria: 0, ncm: '49111090', cest: null, barcodeType: 'C128', enableStock: true,
+          alertQuantity: null, weight: 1.6, pesoLiquido: '1.250', larguraCm: '30.00',
+          alturaCm: '20.50', comprimentoCm: '10.00', productDescription: null, productLocations: [1],
+          image: null, warrantyId: null, camposPersonalizados: {}, expiryPeriod: null,
+          expiryPeriodType: null,
+        }}
+        subUnits={{}}
+        permissions={{ opening_stock: false, delete: false }}
+      />,
+    )
+  const campo = (id: string) => document.querySelector(`#${id}`) as HTMLInputElement
+  const salvar = (container: HTMLElement, form: string) => {
+    enviado.payload = null
+    fireEvent.submit(container.querySelector(`form#${form}`) as HTMLFormElement)
+    return enviado.payload as Record<string, unknown> | null
+  }
+
+  it('UC-PCAD-16 · o peso de sempre aparece como peso bruto, e os campos novos existem', () => {
+    novo()
+    expect(document.querySelector('label[for="weight"]')?.textContent).toBe('Peso bruto (kg)')
+    for (const id of ['peso_liquido', 'largura_cm', 'altura_cm', 'comprimento_cm']) {
+      expect(campo(id)).not.toBeNull()
+    }
+  })
+
+  it('UC-PCAD-16 · o envio leva o peso líquido e as dimensões digitados', () => {
+    const { container } = novo()
+    fireEvent.change(campo('peso_liquido'), { target: { value: '1.25' } })
+    fireEvent.change(campo('largura_cm'), { target: { value: '30' } })
+    fireEvent.change(campo('altura_cm'), { target: { value: '20.5' } })
+    fireEvent.change(campo('comprimento_cm'), { target: { value: '10' } })
+
+    const envio = salvar(container, 'produto-create-form')
+    expect(envio?.peso_liquido).toBe('1.25')
+    expect(envio?.largura_cm).toBe('30')
+    expect(envio?.altura_cm).toBe('20.5')
+    expect(envio?.comprimento_cm).toBe('10')
+  })
+
+  it('UC-PCAD-16 · sem preencher, o envio leva os quatro vazios', () => {
+    const { container } = novo()
+    const envio = salvar(container, 'produto-create-form')
+    for (const id of ['peso_liquido', 'largura_cm', 'altura_cm', 'comprimento_cm']) {
+      expect(envio?.[id]).toBe('')
+    }
+  })
+
+  it('UC-PEDIT-13 · o Editar mostra os valores gravados e os devolve no envio', () => {
+    const { container } = editar()
+    expect(campo('peso_liquido').value).toBe('1.250')
+    expect(campo('largura_cm').value).toBe('30.00')
+
+    const envio = salvar(container, 'produto-edit-form')
+    expect(envio?.peso_liquido).toBe('1.250')
+    expect(envio?.altura_cm).toBe('20.50')
+  })
+
+  it('UC-PEDIT-13 · campo apagado vai vazio no envio', () => {
+    const { container } = editar()
+    fireEvent.change(campo('altura_cm'), { target: { value: '' } })
+
+    expect(salvar(container, 'produto-edit-form')?.altura_cm).toBe('')
+  })
+})
