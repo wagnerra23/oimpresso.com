@@ -12,6 +12,12 @@
 > como rota, frescor do espelho, subida de DS, o check obrigatório do espelho) saiu nas ondas 1–2c
 > daquela ADR. As seções abaixo que descrevem esse transporte ficam como **histórico**; o mapa do §0
 > diz o que segue valendo. Os números das seções não mudam (código e hooks os citam).
+>
+> **Publicar o protótipo como Artefato:** `node scripts/design/build-artefato-prototipo.mjs --out <pasta>`
+> gera a página inteira a partir do `oimpresso.com.html` e dos `.jsx` do git (compilados, como o pacote
+> antigo do Cowork fazia) e grava `fonte.json` com o commit de origem. Rode com a árvore commitada (o
+> script sai 3 se houver alteração pendente em `prototipo-ui/`) e publique a pasta inteira na URL
+> registrada em [`VISTAS-PUBLICADAS.md`](../VISTAS-PUBLICADAS.md) §protótipo. Nunca edite a página publicada.
 
 ## 0. Mapa de vigência (v2 — leia isto primeiro)
 
