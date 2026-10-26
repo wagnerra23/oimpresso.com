@@ -47,3 +47,12 @@ Decisões de [F] em 2026-10-15. A tela da requisição é do [W].
 - Depois disso: o "Transferir" do produto (painel e menu da linha da lista de produtos) abre a tela de transferência com produto e local de origem preenchidos.
 - Estoque Tier 0: dupla confirmação do saldo (só muda na aprovação, nunca duas vezes) e antes→depois apresentado antes do merge.
 - Detalhe: [`StockTransfer/Create.casos.md`](../../../resources/js/Pages/StockTransfer/Create.casos.md) e [`Index.casos.md`](../../../resources/js/Pages/StockTransfer/Index.casos.md), §Backlog.
+
+### US-ESTOQUE-003 · Sugestão de reposição e curva ABC por produto
+
+> owner: wagner · priority: p2 · estimate: 12h · status: todo · type: story · origin: lacunas-concorrencia-2026-10-25
+> blocked_by: —
+
+**Implementado em:** _pendente_ — não iniciada.
+
+Hoje existe alerta de estoque baixo e requisição por estoque mínimo (`RequisicaoEstoqueMinimoService`). Faltam a curva ABC (por faturamento e por margem, no período) e a sugestão de quanto comprar pelo giro e pelo prazo do fornecedor. Só leitura: não muda valor nem estoque.
