@@ -94,6 +94,8 @@ final class CancelamentoDaVenda
                     continue;
                 }
                 // Mesmo caminho da devolução: libera o lote de compra da parte que ainda estava vendida.
+                // O docblock legado tipa os parâmetros como `obj`/`decimal`, tipos que não existem.
+                /** @phpstan-ignore argument.type */
                 $this->transactionUtil->updateQuantitySoldFromSellLine($linha, $linha->quantity, $linha->quantity_returned, false);
                 $this->productUtil->updateProductQuantity((int) $venda->location_id, $linha->product_id, $linha->variation_id, $resta, 0, null, false);
                 $linhas++;
@@ -102,9 +104,8 @@ final class CancelamentoDaVenda
 
         $reservas = $this->devolverReservasConsumidas($businessId, $venda);
 
-        $venda->status = 'cancelled';
-        $venda->cancelled_at = now();
-        $venda->save();
+        // forceFill: o Larastan tipa `status` pelo enum da migration original, sem 'cancelled'.
+        $venda->forceFill(['status' => 'cancelled', 'cancelled_at' => now()])->save();
 
         $titulo = false;
         $servico = '\\Modules\\Financeiro\\Services\\TituloAutoService';
