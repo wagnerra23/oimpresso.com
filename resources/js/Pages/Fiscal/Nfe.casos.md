@@ -535,6 +535,21 @@ preencher em Tributação."; com a interna, com cliente contribuinte, na mesma U
 
 Status: 🧪
 
+## UC-FNFE-49 · O ICMS-ST vai na nota e soma no valor total · `must`
+
+**Dado** um item de 1.000,00 de SC para contribuinte no RJ, regra CST 10, ICMS 12%, MVA 40% e interna do RJ 18%
+**Quando** sai a NF-e **Então** o ICMS10 leva base ST 1.400,00, MVA 40, alíquota ST 18 e ST 132,00; o total leva
+vBCST 1.400,00 e vST 132,00; o vNF e o pagamento são 1.132,00 (regra W16 do leiaute). Com CSOSN 202, idem.
+
+Status: 🧪
+
+## UC-FNFE-50 · Regra com MVA e CST sem ST é recusada · `must`
+
+**Dado** a mesma regra com CST 00 **Quando** pede a NF-e **Então** é recusada com "não leva ST — ajuste a regra em
+Tributação".
+
+Status: 🧪
+
 ## UC-FNFE-55 · Destinatário informado por quem emite vence o cliente da venda · `must`
 
 **Dado** uma NF-e (modelo 55) emitida com um destinatário informado (ex. o comprador de um pedido de

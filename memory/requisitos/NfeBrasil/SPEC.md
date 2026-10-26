@@ -757,6 +757,22 @@ E sem a interna do RJ cadastrada a nota é recusada com "Alíquota interna de RJ
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeDifalNoXmlTest.php` · `Modules/NfeBrasil/Tests/Feature/NfeDestinatarioDaVendaTest.php` (lane `nfebrasil-pest`).
 **Fora deste item:** empresa do Simples sai com o grupo e DIFAL zero quando a UF não cobra (R-NFE-035) — se a SEFAZ aceita assim só o smoke em homologação confirma; a guia GNRE do DIFAL; o `pICMSInter` é a alíquota ICMS da regra, então a regra interestadual tem de ter 4%, 7% ou 12%.
 
+### R-NFE-043 · O ICMS-ST do motor vai ao XML e soma no vNF
+
+```gherkin
+Dado um item de 1.000,00 de SC para contribuinte no RJ, regra CST 10, ICMS próprio 12%, MVA 40%, interna do RJ 18% (fixture)
+Quando sai a NF-e
+Então o ICMS10 leva modBCST 4, pMVAST 40, vBCST 1.400,00, pICMSST 18 e vICMSST 132,00 (1.400 × 0,18 − 120)
+E o ICMSTot leva vBCST 1.400,00 e vST 132,00, o vNF é 1.132,00 e o pagamento acompanha o vNF
+E CSOSN 202 também leva o ST; regra com MVA mas CST/CSOSN sem ST (ex. CST 00) é recusada com a saída
+E sem ST o vNF segue igual ao total da venda
+```
+
+**Contrato:** leiaute NF-e 4.00, regra W16 (rejeição 610 — "Total da NF difere do somatório"): vNF = vProd − vDesc − vICMSDeson + vST + vFCPST + vFrete + vSeg + vOutro + vII + vIPI + vIPIDevol. [W] 2026-10-26: "não é decisão minha, é regra do leiaute — siga".
+**Implementação:** `Modules/NfeBrasil/Services/NfeService.php` (`stDoItem`, `preencherSt`, `montarItensNfe`, `buildXml`, `emitirParaTransaction`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeIcmsStNoXmlTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** FCP-ST; ST em operação interna (a interna da própria UF ainda não chega ao motor — só a do destino interestadual); a venda continua com `final_total` sem o ST, então a nota com ST vale mais que a venda no caixa e o título do Financeiro.
+
 ### R-NFE-046 · Destinatário e CFOP informados por quem emite (pedido de marketplace)
 
 ```gherkin
@@ -1736,7 +1752,7 @@ Casos: `resources/js/Pages/Fiscal/Nfe.casos.md` UC-FNFE-19, 20, 30, 31 · prova 
 > owner: — · sprint: — · priority: p0 · estimate: 8h · type: story
 > blocked_by: —
 
-**Implementado em:** _parcial_ — `Modules/NfeBrasil/Services/NfeService.php` (destinatário real, destino no motor e DIFAL no XML, R-NFE-036/037) · `Modules/NfeBrasil/Tests/Feature/NfeDestinatarioDaVendaTest.php` · `Modules/NfeBrasil/Tests/Feature/NfeDifalNoXmlTest.php` (falta gravar o ICMS-ST no XML)
+**Implementado em:** _parcial_ — `Modules/NfeBrasil/Services/NfeService.php` (destinatário real, destino no motor, DIFAL e ICMS-ST no XML, R-NFE-036/037/043) · `Modules/NfeBrasil/Tests/Feature/NfeDestinatarioDaVendaTest.php` · `Modules/NfeBrasil/Tests/Feature/NfeDifalNoXmlTest.php` · `Modules/NfeBrasil/Tests/Feature/NfeIcmsStNoXmlTest.php` (falta o smoke SEFAZ)
 
 Como empresa que vende para outro estado, quero que a NF-e saia para o meu cliente, com a UF dele, e leve o ICMS-ST e o DIFAL que o motor já calcula, para não emitir nota com imposto zerado numa operação interestadual.
 
@@ -1745,7 +1761,7 @@ Como empresa que vende para outro estado, quero que a NF-e saia para o meu clien
 **Aceite:**
 - [x] A NF-e (55) da venda com cliente identificado leva o destinatário dele, e o motor recebe UF, contribuinte e interna do destino — R-NFE-036, UC-FNFE-32/33
 - [x] O XML grava o DIFAL no grupo `ICMSUFDest` e nos totais, sem mudar o vNF — R-NFE-037, UC-FNFE-34/35
-- [ ] O XML grava o ICMS-ST no grupo do CST/CSOSN com ST e soma o vST ao vNF — **decisão [W]**: o ST entra por cima do total da venda?
+- [x] O XML grava o ICMS-ST no grupo do CST/CSOSN com ST e soma o vST ao vNF (regra W16 do leiaute; [W] 2026-10-26) — R-NFE-043, UC-FNFE-49/50
 - [x] Interestadual a não contribuinte sem interna cadastrada recusa a nota com a saída (cadastrar a interna), em vez de emitir DIFAL zero — UC-FNFE-36
 - [ ] Multi-tenant: o contato e a tabela por UF são lidos só do tenant da venda (Pest com os tenants 98 e 99)
 - [ ] Smoke fiscal manual contra SEFAZ só em biz=1, homologação (depende do certificado A1 de biz=1; em 2026-05-09 ele valia até 2026-08-06 — conferir antes)
