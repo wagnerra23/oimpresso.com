@@ -1984,9 +1984,17 @@ class NfeService
      * `legacy` (default de TODOS os business hoje) → null → `new Make(null)` ≡ `new Make()`
      * atual → schema PL_009_V4, XML byte-idêntico. Só `full`/`hybrid_2026` (opt-in
      * explícito pós homologação) → `PL_010_V1`, habilitando o grupo UB (IBS/CBS, PR-D).
+     *
+     * ADR 0442 (emenda a 0321): emitente do regime normal (CRT 3) usa `PL_010_V1` sempre, sem
+     * opt-in — o grupo IBS/CBS é obrigatório para ele desde 03/08/2026 (Ato Conjunto RFB/CGIBS
+     * nº 4/2026). CRT 1 e 2 (Simples) seguem a flag como antes, XML byte-idêntico.
      */
-    private function schemaReforma(int $businessId): ?string
+    private function schemaReforma(int $businessId, int $crt = 1): ?string
     {
+        if ($crt === 3) {
+            return 'PL_010_V1';
+        }
+
         $modo = NfeBusinessConfig::where('business_id', $businessId)
             ->value('reforma_tributaria_modo') ?: 'legacy';
 
@@ -2000,7 +2008,8 @@ class NfeService
     {
         // Legacy → new Make(null) ≡ new Make() (byte-idêntico); full → new Make('PL_010_V1').
         // O mesmo modo governa a serialização do grupo UB (IBS/CBS) nos itens (PR-D).
-        $schemaReforma = $this->schemaReforma($business->id);
+        // ADR 0442: o CRT decide antes do Make (mesma conta do bloco emit, abaixo).
+        $schemaReforma = $this->schemaReforma($business->id, (int) ($emitOverride['crt'] ?? $business->regime ?? 1));
         $nfe = new Make($schemaReforma);
 
         $std         = new \stdClass();
