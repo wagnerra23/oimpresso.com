@@ -450,6 +450,24 @@ transmitida e a de B continua `contingencia`.
 
 Status: 🧪
 
+## UC-FNFE-47 · Regime normal emite o grupo IBS/CBS sem precisar ligar nada · `must`
+
+> **Âncora:** [ADR 0442](../../../../memory/decisions/0442-ibscbs-automatico-regime-normal-emenda-0321.md)
+> (emenda a 0321) · US-FISCAL-021. Prova: `SerializacaoIbsCbsTest` (XML montado pelo `buildXml`).
+
+**Dado** um emitente CRT 3 com `reforma_tributaria_modo = legacy` e regra com CST 000, cClassTrib 000001, IBS 0,1% e
+CBS 8,8% **Quando** sai uma NF-e de 1.000,00 **Então** o item leva o grupo IBS/CBS (vIBSUF 1,00 · vCBS 88,00) e o vNF
+continua 1.000,00.
+
+Status: 🧪
+
+## UC-FNFE-48 · Simples segue byte-idêntico · `must`
+
+**Dado** um emitente CRT 1 ou 2 em `legacy` **Quando** sai a NF-e, com ou sem IBS/CBS na regra **Então** o XML é o
+mesmo de antes, sem grupo.
+
+Status: 🧪
+
 ## UC-FNFE-19 · No modo SVC a NF-e vai na hora para a SEFAZ Virtual da UF · `must`
 
 **Dado** a contingência ligada em **SVC-AN** **Quando** sai uma NF-e **Então** o XML traz `<tpEmis>6</tpEmis>`
