@@ -630,6 +630,10 @@ class ProductController extends Controller
 
         // Variações: os campos de `single_product_details` / `variable_product_details`. Sem a permissão
         // a CHAVE não existe — ausência não é zero.
+        // UC-PIDX-32 (UC-FLX-38): o método de custo só vale quando a empresa gravou a regra "Atualizar o
+        // custo dos insumos" e ela dispara no Recebido — sem isso o custo é o último preço digitado.
+        $metodoDaRegra = $verCusto ? $this->metodoDeCustoDaEmpresa($business_id) : null;
+
         $variacoes = [];
         foreach ($modelosVariacao as $v) {
             $porGrupo = $v->group_prices->keyBy('price_group_id');
@@ -643,6 +647,9 @@ class ProductController extends Controller
             if ($verCusto) {
                 $linha['compra_exc'] = (float) $v->default_purchase_price;
                 $linha['compra_inc'] = (float) $v->dpp_inc_tax;
+                if ($metodoDaRegra !== null) {
+                    $linha['custo_metodo'] = $this->metodoDeCustoDaVariacao($business_id, (int) $v->id, $metodoDaRegra);
+                }
             }
             if ($verPreco) {
                 if ($verCusto) {
@@ -791,7 +798,90 @@ class ProductController extends Controller
             'roteiro' => app()->bound(\App\Contracts\Producao\RoteiroDoProduto::class)
                 ? app(\App\Contracts\Producao\RoteiroDoProduto::class)->doProduto($business_id, $id)
                 : null,
-        ] + ($verPreco ? ['precos_propostos' => $this->precosPropostosDoProduto($business_id, $id)] : []);
+        ] + ($verPreco ? ['precos_propostos' => $this->precosPropostosDoProduto($business_id, $id)] : [])
+          + (($requisicao = $this->requisicoesAbertasDosProdutos($business_id, [$id])) !== null ? ['requisicao' => $requisicao[$id] ?? null] : []);
+    }
+
+    /**
+     * UC-PIDX-30 (UC-FLX-19): a requisição de compra aberta (`ordered` ou `partial`) mais recente de cada
+     * produto — a que o estoque mínimo cria sozinho (US-COM-027) ou uma feita à mão. Mesmas permissões da
+     * lista de requisições: `purchase_requisition.view_all` vê todas; `view_own`, só as que a pessoa criou;
+     * sem nenhuma das duas, null (a chave não vai para a tela). Só leitura; Tier 0: só a empresa.
+     *
+     * @param  list<int>  $ids
+     * @return array<int, array{id: int, numero: string, data: string, fornecedor: ?string, url: string}>|null
+     */
+    protected function requisicoesAbertasDosProdutos(int $business_id, array $ids): ?array
+    {
+        $u = auth()->user();
+        $todas = (bool) $u->can('purchase_requisition.view_all');
+        if (! $todas && ! $u->can('purchase_requisition.view_own')) {
+            return null;
+        }
+        if ($ids === []) {
+            return [];
+        }
+        $consulta = DB::table('purchase_lines as pl')
+            ->join('transactions as t', 't.id', '=', 'pl.transaction_id')
+            ->leftJoin('contacts as c', fn ($j) => $j->on('c.id', '=', 't.contact_id')->where('c.business_id', $business_id))
+            ->where('t.business_id', $business_id)
+            ->where('t.type', 'purchase_requisition')
+            ->whereIn('t.status', ['ordered', 'partial'])
+            ->whereIn('pl.product_id', $ids);
+        if (! $todas) {
+            $consulta->where('t.created_by', $u->id);
+        }
+        $porProduto = [];
+        // Ordem crescente: a mais recente de cada produto fica por último e vence.
+        foreach ($consulta->orderBy('t.transaction_date')->orderBy('t.id')
+            ->get(['pl.product_id', 't.id', 't.ref_no', 't.transaction_date', 'c.name', 'c.supplier_business_name']) as $r) {
+            $fornecedor = trim((string) ($r->supplier_business_name ?: $r->name));
+            $porProduto[(int) $r->product_id] = [
+                'id' => (int) $r->id,
+                'numero' => (string) $r->ref_no,
+                'data' => substr((string) $r->transaction_date, 0, 10),
+                'fornecedor' => $fornecedor === '' ? null : $fornecedor,
+                'url' => '/purchase-requisition/' . (int) $r->id,
+            ];
+        }
+
+        return $porProduto;
+    }
+
+    /**
+     * Método da regra de custo da empresa (`medio`, `ultimo` ou `por_insumo`), só quando a regra está
+     * gravada, ligada e dispara no Recebido — as mesmas condições em que o recebimento a aplica
+     * (AplicarCustoDoRecebimento). Sem o módulo Compras, null.
+     */
+    protected function metodoDeCustoDaEmpresa(int $business_id): ?string
+    {
+        if (! app()->bound(\App\Contracts\Compras\CustoDoInsumo::class)) {
+            return null;
+        }
+        $regra = app(\App\Domain\Fsm\Modelos\RegrasDaEmpresa::class)->custoGravado($business_id);
+        if ($regra === null || empty($regra['ativo']) || ($regra['params']['etapa'] ?? null) !== 'recebido') {
+            return null;
+        }
+
+        return (string) ($regra['params']['metodo'] ?? 'medio');
+    }
+
+    /**
+     * UC-PIDX-32: o método que vale para a variação (o do insumo, quando a regra é "por insumo") e a data
+     * da última compra recebida, que é quando o custo mudou pela última vez.
+     *
+     * @return array{metodo: ?string, ultima_compra_em: ?string}
+     */
+    protected function metodoDeCustoDaVariacao(int $business_id, int $variationId, string $metodoDaRegra): array
+    {
+        $custo = app(\App\Contracts\Compras\CustoDoInsumo::class);
+        $metodo = $metodoDaRegra === 'por_insumo' ? $custo->metodoDoInsumo($business_id, $variationId) : $metodoDaRegra;
+        if ($metodo === null) {
+            return ['metodo' => null, 'ultima_compra_em' => null];
+        }
+        $r = $custo->naData($business_id, $variationId, now(), $metodo);
+
+        return ['metodo' => $metodo, 'ultima_compra_em' => $r['ultima_compra_em'] === null ? null : substr((string) $r['ultima_compra_em'], 0, 10)];
     }
 
     /**
@@ -1157,12 +1247,15 @@ class ProductController extends Controller
             : [];
 
         $idsDaPagina = array_values(array_map('intval', $pagina->getCollection()->pluck('id')->all()));
+        // UC-PIDX-30: requisição de compra aberta (sem permissão de ver requisições a chave não vem).
+        $requisicoes = $this->requisicoesAbertasDosProdutos($business_id, $idsDaPagina);
+
         // UC-PIDX-31: natureza fiscal (sem o módulo Fiscal a chave não vem).
         $naturezas = app()->bound(\App\Contracts\Fiscal\NaturezaDoProduto::class)
             ? app(\App\Contracts\Fiscal\NaturezaDoProduto::class)->dosProdutos($business_id, $idsDaPagina)
             : null;
 
-        $pagina->through(function ($row) use ($podeVerCusto, $podeVerPreco, $is_woocommerce, $propostas, $naturezas) {
+        $pagina->through(function ($row) use ($podeVerCusto, $podeVerPreco, $is_woocommerce, $propostas, $requisicoes, $naturezas) {
             $controla = (bool) $row->enable_stock;
             $estoque = $controla ? (float) ($row->current_stock ?? 0) : null;
             $alerta = $row->alert_quantity === null ? null : (float) $row->alert_quantity;
@@ -1201,6 +1294,9 @@ class ProductController extends Controller
             ];
             if ($is_woocommerce) {
                 $linha['woocommerce_sync'] = ! $row->woocommerce_disable_sync;
+            }
+            if ($requisicoes !== null) {
+                $linha['requisicao'] = $requisicoes[(int) $row->id] ?? null;
             }
             if ($naturezas !== null) {
                 $linha['natureza_fiscal'] = $naturezas[(int) $row->id]['natureza'] ?? 'mercadoria';

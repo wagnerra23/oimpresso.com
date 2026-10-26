@@ -25,6 +25,7 @@ import { brl } from '../../Unificado/_components/catalogo';
 import AcoesProduto, { type AcaoProduto } from './AcoesProduto';
 import {
   TIPO_ROTULO,
+  dataBr,
   estoqueTexto,
   faixaDePreco,
   subLinhaProduto,
@@ -171,11 +172,25 @@ export function colunasDaLista({ visiveis, densa, permissions, contexto, aoEscol
       enableSorting: true,
       accessorFn: (l) => l.estoque,
       meta: { width: 130, align: 'right' },
-      cell: ({ row }) => (
-        <span className={'pb-stock' + (!row.original.controla_estoque ? ' na' : row.original.abaixo_do_alerta ? ' low' : '')}>
-          {estoqueTexto(row.original)}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const saldo = (
+          <span className={'pb-stock' + (!row.original.controla_estoque ? ' na' : row.original.abaixo_do_alerta ? ' low' : '')}>
+            {estoqueTexto(row.original)}
+          </span>
+        );
+        const req = row.original.requisicao;
+        if (!req) return saldo;
+        // UC-PIDX-30 (UC-FLX-19): requisição de compra aberta, do estoque mínimo ou feita à mão.
+        const texto = `Requisição ${req.numero} aberta em ${dataBr(req.data).slice(0, 5)}${req.fornecedor ? ` · ${req.fornecedor}` : ''}`;
+        return (
+          <div className="min-w-0">
+            {saldo}
+            <div className="truncate text-[11px] text-[var(--accent)]" title={texto} data-contract="produto-lista-requisicao">
+              {texto}
+            </div>
+          </div>
+        );
+      },
     });
   }
   if (v('tipo')) {
