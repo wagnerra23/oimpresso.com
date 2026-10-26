@@ -305,7 +305,10 @@ class NfeService
         // é um estabelecimento emissor próprio; senão, do business, como antes.
         $emitente = $this->resolverEmitente($business, $tx->location_id ? (int) $tx->location_id : null, (string) $modelo);
         $ufOrigem = $emitente['uf'];
-        $valorTotal = (float) $tx->final_total;
+        // US-SELL-078 · o `final_total` da venda já inclui o ICMS-ST cobrado no fechamento
+        // ([W] 2026-10-26). A nota parte da base SEM o ST e o soma de volta no vNF (R-NFE-043):
+        // vNF = (final_total − icms_st_valor) + vST = final_total. Sem a coluna, ST 0 como antes.
+        $valorTotal = $this->baseDaNota($tx);
         $frete = (float) ($tx->shipping_charges ?? 0);
 
         // Fase 2B (thread 17 · R-NFE-023..025c): um `det` por linha da venda, com o
@@ -421,6 +424,15 @@ class NfeService
     }
 
     /**
+     * US-SELL-078 · base da nota: o `final_total` da venda sem o ICMS-ST que ela já cobrou. A nota
+     * soma o vST de volta (R-NFE-043), então vNF = final_total. Venda sem ST: o próprio total.
+     */
+    public function baseDaNota(Transaction $tx): float
+    {
+        return (float) $tx->final_total - (float) ($tx->icms_st_valor ?? 0);
+    }
+
+    /**
      * R-NFE-036 · destinatário da NF-e (55) de venda: o cliente da venda, lido no mesmo tenant.
      * Null = sem cliente identificado (sem contato, ou contato sem CPF/CNPJ) → consumidor anônimo.
      */
@@ -533,7 +545,7 @@ class NfeService
     }
 
     /** Interna do destino (decimal) da tabela por UF; null se o contador ainda não cadastrou. */
-    private function internaDoDestino(int $businessId, string $ufOrigem, string $ufDestino): ?float
+    public function internaDoDestino(int $businessId, string $ufOrigem, string $ufDestino): ?float
     {
         try {
             return NfeIcmsUf::aliquotaInterna($businessId, $ufOrigem, $ufDestino);
@@ -577,7 +589,7 @@ class NfeService
      *
      * @return list<array{sell_line_id:int|null,product_id:int|null,cprod:string,xprod:string,ncm:string,origem:int,unidade:string,quantidade:float,valor_unitario:float}>
      */
-    protected function linhasDaVenda(int $businessId, int $transactionId): array
+    public function linhasDaVenda(int $businessId, int $transactionId): array
     {
         $rows = DB::table('transaction_sell_lines as tsl')
             ->join('products as p', 'p.id', '=', 'tsl.product_id')

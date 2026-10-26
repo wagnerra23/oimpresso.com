@@ -805,6 +805,8 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::post('/sells/{id}/quick-payment', [SellController::class, 'quickPayment']);
     // Onda 4d.5 — Wire-up emissão real via PaymentGatewayContract::emitirX().
     // Chip "Emitir cobrança" no footer drawer Sells (ADR 0144 + 0170).
+    // US-SELL-078 — ICMS-ST do carrinho pela mesma conta da NF-e (a tela mostra no total).
+    Route::post('/sells/icms-st', [\App\Http\Controllers\SellIcmsStController::class, 'calcular'])->name('sells.icms-st');
     Route::post('/sells/{id}/emitir-cobranca', [SellController::class, 'emitirCobranca'])
         ->whereNumber('id')
         ->name('sells.emitir-cobranca');
