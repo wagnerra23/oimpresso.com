@@ -7,7 +7,7 @@
 ## Resumo
 - **444** arquivos · **429** números únicos · máx **0439**
 - **ADRs ATIVOS (lifecycle ativo): 397** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 384 · superseded 27 · proposto 19 · deprecated 11 · recusado 2 · rascunho 1
+- Por status: aceito 385 · superseded 27 · proposto 18 · deprecated 11 · recusado 2 · rascunho 1
 - Por lifecycle: ativo 397 · substituido 27 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
@@ -482,4 +482,4 @@ _(nenhuma)_
 | 0436 | proposto | ativo | decision | OS por item: a OS que nasce do pedido mora no Modules/Producao e anda no motor F |
 | 0437 | aceito | ativo | decision | Módulo Fisio — vertical de fisioterapia no oimpresso: o paciente faz o exercício |
 | 0438 | aceito | ativo | decision | O Artefato substitui o Cowork como lugar de ver e comentar o protótipo; o transp |
-| 0439 | proposto | ativo | decision | Ativação do módulo Marketplaces por decisão [W]: um módulo com drivers, Mercado  |
+| 0439 | aceito | ativo | decision | Ativação do módulo Marketplaces por decisão [W]: um módulo com drivers, Mercado  |
