@@ -1675,7 +1675,7 @@ Casos: `resources/js/Pages/Fiscal/Nfe.casos.md` UC-FNFE-15..18.
 
 ### US-NFE-073 · XML do mês enviado ao contador sem ninguém lembrar — **P1**
 
-> owner: — · sprint: — · priority: p1 · estimate: 6h · status: doing · type: story
+> owner: — · sprint: — · priority: p1 · estimate: 6h · type: story
 > blocked_by: —
 
 **Implementado em:** _parcial_ — `Modules/NfeBrasil/Services/PacoteXmlContadorService.php` · `Modules/NfeBrasil/Console/Commands/EnviarXmlContadorCommand.php` · `Modules/NfeBrasil/Tests/Feature/EnviarXmlContadorTest.php` (backend + agenda desligada; falta o drawer do cockpit com dado real)
