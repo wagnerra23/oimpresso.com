@@ -99,6 +99,7 @@ class OrcamentoGravador
                 'subtotal'         => $calculado['subtotal'],
                 'desconto'         => $calculado['desconto'],
                 'extras'           => $calculado['extras'],
+                'acabamentos'      => $calculado['acabamentos'] ?? 0,
                 'custo_instalacao' => $calculado['custo_instalacao'],
                 'custo_entrega'    => $calculado['custo_entrega'],
                 'total'            => $calculado['total'],
@@ -127,6 +128,7 @@ class OrcamentoGravador
                 'subtotal'         => $calculado['subtotal'],
                 'desconto'         => $calculado['desconto'],
                 'extras'           => $calculado['extras'],
+                'acabamentos'      => $calculado['acabamentos'] ?? 0,
                 'custo_instalacao' => $calculado['custo_instalacao'],
                 'custo_entrega'    => $calculado['custo_entrega'],
                 'total'            => $calculado['total'],
@@ -184,6 +186,10 @@ class OrcamentoGravador
                 'area_m2'           => $itemCalc['area_m2'],
                 'preco_unitario_m2' => $itemCalc['preco_unitario_m2'],
                 'subtotal'          => $itemCalc['subtotal'],
+                // US-COMVIS-001: área que o cliente paga (mínimo por peça) e acabamentos do dia.
+                'area_cobrada_m2'   => $itemCalc['area_cobrada_m2'] ?? null,
+                'valor_acabamentos' => $itemCalc['valor_acabamentos'] ?? 0,
+                'acabamentos_json'  => empty($itemCalc['acabamentos']) ? null : $itemCalc['acabamentos'],
                 'observacoes'       => $itemCalc['observacoes'],
                 'ordem'             => $ordem + 1,
                 // UC-FLX-33: custo do material no dia do orçamento (ver custosDoDia).
