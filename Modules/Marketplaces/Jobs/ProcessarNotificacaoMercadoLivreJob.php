@@ -46,6 +46,7 @@ class ProcessarNotificacaoMercadoLivreJob implements ShouldQueue
 
     public function handle(ContasVendedor $contas): void
     {
+        // SUPERADMIN: job em fila sem sessão; a empresa vem do construtor e entra explícita na consulta.
         $log = WebhookRecebido::withoutGlobalScopes()->where('business_id', $this->businessId)->where('id', $this->logId)->first();
         $conta = ContaVendedor::withoutGlobalScopes()->where('business_id', $this->businessId)->where('id', $this->contaId)->first();
         if ($log === null || $conta === null) {
@@ -83,7 +84,7 @@ class ProcessarNotificacaoMercadoLivreJob implements ShouldQueue
     private function gravarPedido(ContaVendedor $conta, array $p, string $apiBase): void
     {
         // firstOrNew com a empresa explícita: a chave única do banco (empresa, marketplace, id)
-        // garante que notificação repetida atualiza em vez de duplicar.
+        // SUPERADMIN: garante que notificação repetida atualiza em vez de duplicar.
         $pedido = PedidoMarketplace::withoutGlobalScopes()->firstOrNew([
             'business_id' => $this->businessId,
             'marketplace_id' => (int) $conta->marketplace_id,
@@ -141,6 +142,7 @@ class ProcessarNotificacaoMercadoLivreJob implements ShouldQueue
 
     private function registrar(WebhookRecebido $recebido, string $status, ?string $erro): void
     {
+        // SUPERADMIN: job em fila sem sessão; a empresa vem do construtor e entra explícita na consulta.
         WebhookRecebido::withoutGlobalScopes()->create([
             'business_id' => $this->businessId,
             'marketplace_id' => (int) $recebido->marketplace_id,

@@ -37,6 +37,7 @@ class VirarVendaJob implements ShouldQueue, ShouldBeUnique
 
     public function handle(PedidoParaVenda $conversor): void
     {
+        // SUPERADMIN: job em fila sem sessão; a empresa vem do construtor e entra explícita na consulta.
         $pedido = PedidoMarketplace::withoutGlobalScopes()
             ->where('business_id', $this->businessId)
             ->where('id', $this->pedidoId)
