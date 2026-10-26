@@ -1,10 +1,10 @@
 ---
 id: requisitos-marketplaces-spec
 module: Marketplaces
-status: rascunho
-version: "1.0"
-last_updated: "2026-06-13"
-lifecycle: aguarda-sinal-qualificado
+status: ativo
+version: "1.1"
+last_updated: "2026-10-26"
+lifecycle: em-construcao
 piloto: ROTA LIVRE (Modules/Vestuario — sinal natural se Larissa ativar venda ML) OU 1º OfficeImpresso saudável com venda ML ativa (Vargas/Mhundo)
 piloto_previsao: depende de (a) Larissa confirmar interesse ML/Shopee OU (b) 1º cliente OfficeImpresso reportar "vendo em ML, quero integrar"
 cnae_aplicavel: cross-vertical (qualquer cliente que vende online — não tem CNAE próprio)
@@ -21,12 +21,16 @@ related_adrs:
   - "0117-multiplos-numeros-whatsapp-por-business"
   - "0119-migration-factory-capacidade-institucional"
   - "0129-state-machine-canonica-fsm-rbac"
+  - "0439-ativacao-modulo-marketplaces-mercado-livre-primeiro"
+  - "0382-remove-trava-de-sinal-para-trabalho-dirigido-por-w"
 related_proposals: [proposals/drafts/marketplaces-modulo-cross-vertical.md]
 last_review: 2026-05-12
 owner: [W]
 ---
 
 # Especificação funcional — Marketplaces (planejado — não existe) (cross-vertical)
+
+> **2026-10-26 — ativado por decisão [W]** ([ADR 0439](../../decisions/0439-ativacao-modulo-marketplaces-mercado-livre-primeiro.md), pela [ADR 0382](../../decisions/0382-remove-trava-de-sinal-para-trabalho-dirigido-por-w.md)): Mercado Livre primeiro, ordem do §11.2. Os textos abaixo que falam em "aguarda sinal" e "não codar" são o registro de antes da ativação (2026-05-12) e valem como história, não como estado.
 
 > Convenção do ID: `US-MKT-NNN` para user stories, `R-MKT-NNN` para regras Gherkin.
 > **Modulo NÃO existe em código.** SPEC **antecipatório** — formaliza contrato de construção SE/QUANDO (a) Larissa (ROTA LIVRE biz=4 ativa) reportar venda marketplace OU (b) 1+ OfficeImpresso saudável (Vargas/Extreme/Gold/Mhundo) confirmar "vendo em ML/Shopee, preciso integrar com NFe" ([ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) gatilho).
