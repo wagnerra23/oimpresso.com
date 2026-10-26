@@ -3,7 +3,7 @@ slug: 0439-ativacao-modulo-marketplaces-mercado-livre-primeiro
 number: 439
 title: "Ativação do módulo Marketplaces por decisão [W]: um módulo com drivers, Mercado Livre primeiro"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
