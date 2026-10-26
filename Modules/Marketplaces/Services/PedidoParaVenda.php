@@ -96,7 +96,7 @@ class PedidoParaVenda
 
         try {
             return DB::transaction(function () use ($pedido, $businessId) {
-                // Trava a linha: duas notificações do mesmo pedido em paralelo não criam duas vendas.
+                // SUPERADMIN: Trava a linha: duas notificações do mesmo pedido em paralelo não criam duas vendas.
                 $travado = PedidoMarketplace::withoutGlobalScopes()->where('business_id', $businessId)
                     ->where('id', $pedido->id)->lockForUpdate()->first();
                 if ($travado === null || $travado->transaction_id !== null) {
@@ -106,6 +106,7 @@ class PedidoParaVenda
                     return 'pedido ainda não está pago no Mercado Livre';
                 }
 
+                // SUPERADMIN: roda dentro de job sem sessão; business_id explícito na consulta.
                 $conta = ContaVendedor::withoutGlobalScopes()->where('business_id', $businessId)->where('id', $travado->account_id)->first();
                 $local = $conta?->location_id
                     ? BusinessLocation::query()->where('business_id', $businessId)->where('id', $conta->location_id)->first()
@@ -178,6 +179,7 @@ class PedidoParaVenda
     private function variacao(int $businessId, int $marketplaceId, string $itemId, string $sku): ?Variation
     {
         if ($itemId !== '') {
+            // SUPERADMIN: roda dentro de job sem sessão; business_id explícito na consulta.
             $anuncio = Anuncio::withoutGlobalScopes()->where('business_id', $businessId)
                 ->where('marketplace_id', $marketplaceId)->where('item_id_external', $itemId)->first();
             if ($anuncio !== null) {
