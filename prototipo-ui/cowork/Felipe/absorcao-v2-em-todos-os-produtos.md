@@ -6,26 +6,29 @@ Lista para verificação. **Nada foi implementado** — cada item espera SIM / N
 
 ## §-2 Decisões de 26/10/2026 que mudam itens deste documento
 
-O [F] comentou a âncora da tela (este `produto-blade.jsx`) em 26/10 e o protótipo mudou no PR #9925.
-O texto abaixo é de 28/08 e fica como estava; esta seção diz o que deixou de valer.
+O [F] comentou a âncora da tela (este `produto-blade.jsx`) em 26/10 e, na conversa do mesmo dia,
+fechou a regra do imposto: aparece por relevância, não por permissão, porque imposto não é segredo
+(sai impresso na nota). O protótipo mudou no PR #9925. O texto abaixo é de 28/08 e fica como estava;
+esta seção diz o que deixou de valer.
 
-- **§2.3 e as tabelas do drawer:** "(excl.)" e "(incl.)" viraram "sem imposto" e "com imposto" nas
-  tabelas de Composição e de Variações.
+- **§2.3 e as tabelas do drawer:** sem imposto no produto, as tabelas de Variações e Composição têm
+  uma coluna de preço só; com imposto, "(excl.)" e "(incl.)" viraram "sem imposto" e "com imposto".
 - **§5, "Comprar → módulo Compras":** a ligação saiu. Não há mais "Comprar este produto" no menu
   Ações nem "Comprar" no rodapé do drawer: a consulta não é a tela de compras.
 - **§5, item 3 ("Gerar OP"):** decidido. O botão saiu do rodapé do drawer: a ordem de produção começa
   na produção, não na consulta. A pergunta CV × Fabricação deixa de existir.
-- **§5, "Dados fiscais → Fiscal", e §13 (papel × o que vê):** a aba Fiscal, o "Dados fiscais
-  (NCM/CFOP)" do menu, a coluna e o filtro Imposto e a coluna Imposto dos dois exports só existem
-  para quem tem `fiscal.access`, a permissão do módulo Fiscal. Ela entrou em `produto-perms.jsx` fora
-  da lista `TODAS`; entre os papéis simulados, só o Administrador a tem. "Imposto aplicável" e "Tipo
-  de imposto na venda" saíram da aba Dados e ficam só na aba Fiscal. A parte dos exports foi estendida
-  pelo agente, pela mesma regra.
-- **§12 (colunas exportadas):** a lista de 13 colunas vale para quem tem `fiscal.access`; sem ela, a
-  coluna Imposto não sai (são 12).
+- **Preço de venda:** a lista, os exports e a aba Dados mostram o preço com o imposto do produto, que
+  é o que a venda cobra, com nota ou sem (a lista do protótipo mostrava o preço sem imposto). A aba
+  Dados começa pelo preço; com imposto, mostra também o preço sem imposto e o imposto aplicável.
+- **§5, "Dados fiscais → Fiscal":** a aba Fiscal e o "Dados fiscais (NCM/CFOP)" do menu só existem em
+  empresa que emite nota (Tweak "Empresa emite nota"). A aba começa dizendo se o produto está pronto
+  para nota. Não dependem de papel: o §13 (papel × o que vê) segue valendo como estava.
+- **§12 (colunas exportadas):** a coluna Imposto sai só se a empresa tem alíquota cadastrada (Tweak
+  "Empresa tem alíquota de imposto"); sem alíquota são 12 colunas. Compra e Venda saem com imposto,
+  os mesmos números da grade.
 
-Na produção nada disso mudou ainda. O registro do que falta, e dos três itens de imposto que esperam
-o [W] por contrariar o charter da tela ("Função a menos que a lista Blade"), está em
+Chegou a entrar neste PR, e foi descartado no mesmo dia, esconder o imposto por permissão
+(`fiscal.access`). Na produção nada disso mudou ainda; o registro do que falta está em
 `resources/js/Pages/Produto/Index.casos.md`, backlog "Decisões do [F] de 2026-10-26".
 
 ---

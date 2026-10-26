@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 18 |
 | Telas (.tsx) | 12 |
 | Telas com `casos.md` | 16 |
-| UC declarados | 196 |
-| UC com teste que os cita | 179 |
+| UC declarados | 199 |
+| UC com teste que os cita | 182 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -117,6 +117,7 @@ authority: generated
 | UC-PCAD-14 | Create | 🧪 aguarda veredito da lane |
 | UC-PCAD-15 | Create | 🧪 aguarda veredito da lane |
 | UC-PCAD-16 | Create | 🧪 aguarda veredito da lane |
+| UC-PCAD-17 | Create | 🧪 aguarda veredito da lane |
 | UC-PCADAP-01 | Cadastros/Index | 🧪 aguarda veredito da lane |
 | UC-PCADAP-02 | Cadastros/Index | 🧪 aguarda veredito da lane |
 | UC-PCADAP-03 | Cadastros/Index | 🧪 aguarda veredito da lane |
@@ -154,6 +155,7 @@ authority: generated
 | UC-PEDIT-12 | Edit | 🧪 aguarda veredito da lane |
 | UC-PEDIT-13 | Edit | 🧪 aguarda veredito da lane |
 | UC-PEDIT-14 | Edit | 🧪 aguarda veredito da lane |
+| UC-PEDIT-15 | Edit | 🧪 aguarda veredito da lane |
 | UC-PETQ-01 | Etiquetas/Index | 🧪 aguarda veredito da lane |
 | UC-PETQ-02 | Etiquetas/Index | 🧪 aguarda veredito da lane |
 | UC-PETQ-03 | Etiquetas/Index | 🧪 aguarda veredito da lane |
@@ -192,6 +194,7 @@ authority: generated
 | UC-PIDX-27 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-28 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-29 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-30 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-33 | Index | 🧪 aguarda veredito da lane |
 | UC-PIMP-01 | Importacao/Index | 🧪 aguarda veredito da lane |
 | UC-PIMP-02 | Importacao/Index | 🧪 aguarda veredito da lane |
