@@ -663,6 +663,21 @@ E filial incompleta, com a série da matriz, ou apontando local de outra empresa
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeFilialNumeracaoTest.php` · `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` (lane `nfebrasil-pest`).
 **Fora deste item:** o motor ainda não lê a interestadual da tabela (é o fallback da thread 09); o certificado continua o do business; a cobrança recorrente (`emitirParaInvoice`) segue emitindo pelo business — ver `_saida-26.md`.
 
+### R-NFE-040 · Item do regime normal sai com base e alíquotas em percentual
+
+```gherkin
+Dado uma regra do regime normal com CST 00, ICMS 0,18, PIS 0,0165 e COFINS 0,076 (fração, como a régua guarda)
+Quando um item de 1.000,00 vai à NF-e
+Então o item leva vBC 1.000,00, pICMS 18, vICMS 180,00, pPIS 1,65 e pCOFINS 7,6, e o ICMSTot leva vBC 1.000,00
+E vBC × pICMS / 100 = vICMS (a conta que a SEFAZ confere)
+E com base reduzida (benefício) a base é a do motor; Simples, CST sem ICMS ou alíquota zero seguem com base 0
+```
+
+**Contrato:** NF-e leiaute 4.00 — `pICMS`, `pPIS` e `pCOFINS` são percentuais (TDec_0302a04); `UpsertRegraTributariaRequest` guarda fração ("0.18 = 18%").
+**Implementação:** `Modules/NfeBrasil/Services/NfeService.php` (`montarItensNfe`, `emitirParaInvoice`, `baseIcmsDoItem`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeAliquotaPercentualTest.php` · `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` · `Modules/NfeBrasil/Tests/Feature/NfeDevolucaoTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** CST de PIS/COFINS do regime normal com base (hoje `07` fixo, R-NFE-025b) e o ICMS-ST.
+
 ### R-NFE-032 · Série e numeração são do local emissor (o certificado segue o do business)
 
 ```gherkin
