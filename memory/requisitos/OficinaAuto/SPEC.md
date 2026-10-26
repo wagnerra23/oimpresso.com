@@ -379,7 +379,7 @@ Estimate Fase 4: ~80h IA-pair fator 10x = ~2 semanas Felipe (PWA scaffold + 5 sc
 > owner: — · priority: p0 · estimate: 6h · type: story · origin: ADR-0143
 > blocked_by: US-OFICINA-001 (done)
 
-**Implementado em:** _parcial_ · `Modules/OficinaAuto/Database/Migrations/2026_05_13_010001_add_current_stage_id_to_service_orders.php` · `Modules/OficinaAuto/Database/Seeders/OficinaAutoFsmSeeder.php` · `app/Http/Controllers/ServiceOrderFsmActionController.php` · `resources/js/Pages/OficinaAuto/ServiceOrders/_components/ServiceOrderFsmActionPanel.tsx` · `Modules/OficinaAuto/Tests/Feature/FsmTransitionTest.php` · verificado@dd3ed7c (2026-07-01) — falta trait GuardsFsmTransitions no ServiceOrder (UPDATE direto em current_stage_id desguardado); seeder com 9 stages vs 15×19 do DoD; FsmTransitionTest 3 casos vs 15
+**Implementado em:** _parcial_ · `Modules/OficinaAuto/Database/Migrations/2026_05_13_010001_add_current_stage_id_to_service_orders.php` · `Modules/OficinaAuto/Database/Seeders/OficinaAutoFsmSeeder.php` · `app/Http/Controllers/ServiceOrderFsmActionController.php` · `resources/js/Pages/OficinaAuto/ServiceOrders/_components/ServiceOrderFsmActionPanel.tsx` · `Modules/OficinaAuto/Tests/Feature/FsmTransitionTest.php` · `Modules/OficinaAuto/Entities/ServiceOrder.php` · `Modules/OficinaAuto/Tests/Feature/ServiceOrderGuardsFsmTest.php` · verificado@dd3ed7c (2026-07-01) — trava GuardsFsmTransitions no ServiceOrder entregue em 2026-10-26 (antes o UPDATE direto em current_stage_id passava sem erro); seguem abertos: seeder com 9 stages vs 15×19 do DoD; FsmTransitionTest 3 casos vs 15
 
 - Adicionar `current_stage_id` em `service_orders` migration
 - Criar seeder `FsmProcessoOficinaAutoPadraoSeeder` (15 stages × 19 actions × roles)
@@ -1528,7 +1528,7 @@ Delta #6 do protótipo Cowork "Nova OS" (seção "Fiscal"). Painel **presentacio
 
 O veículo só é entregue ao cliente com foto do serviço feito. Regra `servico_foto` no `StageGateEvaluator`, na ação `entregar` (Pronto p/ retirar → Entregue) do processo `oficina_mecanica_os` — o mesmo gate da US-OFICINA-003 (422 na web com liberação de gerente registrada na trilha; no app, `bloqueado` sem liberação). "Foto do serviço" = imagem anexada à OS ou a item da vistoria enviada a partir da entrada da OS em `em_execucao` na trilha FSM; foto do diagnóstico (antes) e PDF não contam. OS sem essa entrada na trilha (importada/repontuada) aceita qualquer foto da OS. Fotos filtradas pelo `business_id` da OS (o app chama sem sessão).
 
-**Parcial — assinatura fora:** o UC-FLX-22 pede também a assinatura do cliente. Ela não existe na Oficina; o padrão do repo é o da entrega do pedido no app (`app/Http/Controllers/Api/App/PedidoEntregaController.php`, ajuste `app_entrega_exige_assinatura`). Fica para outra US.
+**Parcial — assinatura fora:** o UC-FLX-22 pede também a assinatura do cliente. Ela não existe na Oficina; o padrão do repo é o da entrega do pedido no app (`app/Http/Controllers/Api/App/PedidoEntregaController.php`, ajuste `app_entrega_exige_assinatura`). Fica para outra US — entrou na US-OFICINA-048 (2026-10-21).
 
 **Implementado em:** _parcial_ — `Modules/OficinaAuto/Services/StageGateEvaluator.php` (regra `servico_foto` em `entregar`) · `app/Http/Controllers/ServiceOrderFsmActionController.php` · `Modules/OficinaAuto/Services/AcoesOsDoApp.php` — foto exigida; assinatura falta
 
@@ -1541,7 +1541,31 @@ O veículo só é entregue ao cliente com foto do serviço feito. Regra `servico
 - [x] Web: 422 sem foto; gerente/superadmin libera e a trilha guarda `gate_override` + `gate_unmet`
 - [x] App: `bloqueado` sem foto, sem liberação; mesma regra
 - [x] Tier 0: foto de outra empresa apontando para a OS não conta (sem sessão)
-- [ ] Assinatura do cliente na entrega (fora deste PR)
+- [x] Assinatura do cliente na entrega — US-OFICINA-048
+
+### US-OFICINA-048 · Entrega da OS exige assinatura do cliente, por empresa (UC-FLX-22)
+
+> owner: — · priority: p2 · estimate: 3h (IA-pair fator 10x ADR 0106) · type: story · origin: catálogo de fluxos UC-FLX-22 (complemento da US-OFICINA-047) · 2026-10-21
+> blocked_by: —
+
+A entrega da OS (ação `entregar`, Pronto p/ retirar → Entregue) passa a exigir a assinatura do cliente quando a empresa liga `business.common_settings[oficina_entrega_exige_assinatura]` — **desligada por padrão** (formato do `compras_requisicao_estoque_minimo`; liga/desliga com `php artisan oficina:entrega-assinatura <biz> --ligar|--desligar`). Desligada, o checklist da entrega é o de antes. Regra `assinatura` no `StageGateEvaluator` (mesmo gate e mesma liberação de gerente da US-OFICINA-047).
+
+O quadro de assinatura aparece no checklist da entrega enquanto o requisito está pendente e grava em `POST /oficina-auto/ordens-servico/{order}/assinatura`. O PNG segue o contrato da entrega do pedido no app (`PedidoEntregaController`: data URL, PNG ≤ 200 KB) e fica no Arquivos anexado à linha de `oficina_os_assinaturas` (uma por OS; assinar de novo troca) — não à OS, cujo anexo é foto do laudo e contaria como foto do serviço. Gate filtra a assinatura e o anexo pelo `business_id` da OS (o app chama sem sessão).
+
+**Limite:** o app não colhe assinatura da OS; com o ajuste ligado a entrega pelo app volta `bloqueado` até a assinatura ser colhida na web. Sem tela de configuração para o ajuste (só o comando).
+
+**Implementado em:** `Modules/OficinaAuto/Services/AssinaturaEntrega.php` · `Modules/OficinaAuto/Services/StageGateEvaluator.php` (regra `assinatura` em `entregar`) · `Modules/OficinaAuto/Http/Controllers/ServiceOrderAssinaturaController.php` · `Modules/OficinaAuto/Entities/OsAssinatura.php` · `Modules/OficinaAuto/Console/Commands/OficinaEntregaAssinaturaCommand.php` · `resources/js/Pages/OficinaAuto/ServiceOrders/_components/ServiceOrderSignaturePad.tsx`
+
+**Testado em:** `Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaAssinaturaTest.php` — lane `PHP / Pest (Sells · MySQL)`
+
+**Casos:** UC-OSH-17..22 no `.casos.md` do Show da OS (`ServiceOrders/Show.casos.md`).
+
+**DoD:**
+- [x] Ajuste por empresa, desligado por padrão; comando para ligar/desligar
+- [x] Regra `assinatura` na ação `entregar`, data-driven no `StageGateEvaluator`, só presente com o ajuste ligado
+- [x] Quadro de assinatura no checklist da entrega; PNG ≤ 200 KB no Arquivos, fora da galeria da OS
+- [x] Tier 0: assinatura de outra empresa apontando para a OS não conta
+- [ ] Tela de configuração para o ajuste (fora deste PR)
 
 ---
 

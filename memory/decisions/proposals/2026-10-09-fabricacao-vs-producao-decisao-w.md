@@ -181,7 +181,82 @@ Blade faz hoje — vira insumo do módulo de Produção. A proposta anterior das
   sai de conversa com cliente, não deste documento.
 - Duas hipóteses de segurança no servidor da ordem (H1 e H2, na grade) seguem com tarefa própria.
 
+
+## 6. Revisão de 2026-10-21 — a prévia da Fabricação e o que já existe na Produção
+
+> **Aprovado por [W] em 2026-10-21** (chat da sessão de Produção: *"Aprovado"*), sobre a análise
+> da prévia que [M] montou (receita com regra de consumo, desperdício fora da receita, aguardando
+> material, ordens só consulta, e 9 pontos tirados dos concorrentes). Medido em `origin/main` de
+> 2026-10-21.
+
+**Caminho da Fabricação:** sim para a receita — regra de consumo por insumo (D6), modelos prontos,
+prévia com peça de exemplo, receita dentro de receita, acabamento opcional e histórico da receita.
+Não se redesenha na Fabricação o que é execução: isso é da Produção, e boa parte já existe.
+
+| Item da prévia | Onde fica | Estado em 2026-10-21 |
+|---|---|---|
+| Desperdício real com motivo | Produção | Existe — refugo com motivo do posto, material reposto pelo lote e custo na OS (US-PCP-027, #9644). Na Fabricação só sai o campo da tela (D4) |
+| Aguardando material | Produção | A OS não tem esse estado; entra na Produção (aprovado nesta revisão) |
+| Reserva do material para a ordem | Produção | Existe (US-PCP-031, #9657) |
+| Bobina aberta com saldo em metros | Estoque/Compras | Existe — rastreio do rolo por OS (US-COM-025, #9636) |
+| Lote e validade | Estoque/Compras | Lote da compra existe (US-COM-025); validade não é da receita |
+| Custo de máquina por hora e mão de obra por etapa | Produção | Existe — custo-hora do posto e da pessoa, custo da OS aberta (US-PCP-022) |
+| Previsto × realizado | Produção | Existe (US-COMVIS-005, #9642) |
+| Ordem impressa com custo | Produção | PDF da OS existe, sem custo. Custo é do gestor — decisão [W] em aberto (abaixo) |
+| Criar e editar ordem | Produção | A OS nasce sozinha da venda aprovada (ADR 0436); **não há criação manual** — decisão [W] em aberto (abaixo) |
+
+**A ADR prevista no §4 está autorizada** e tem de responder, antes de qualquer código:
+
+1. **Onde grava a regra de consumo da D6** no `product_bom` (a fonte escolhida na D2).
+2. **O contrato `App\Contracts\Fabricacao\InsumosDaReceita` passa a ler do `product_bom` e a
+   receber as medidas da peça.** Hoje ele lê `mfg_recipes` (implementado em
+   `Modules/Manufacturing/Services/InsumosDaReceitaService.php`) e recebe só a quantidade
+   (`paraQuantidade`). A reserva de insumo da Produção (US-PCP-031) consome esse contrato, e o FSM
+   das vendas com produção consome o `product_bom` pelo `BomResolver`: **há duas fontes de composição
+   consumindo estoque hoje**, contra a D2. O contrato é o ponto de troca — a Produção não precisa
+   mudar —, mas consumo por área, perímetro, a cada X cm ou aproveitamento de chapa exige largura ×
+   altura da peça, que a assinatura atual não carrega. Mexe em estoque: REGRA MESTRE.
+3. **Onde mora o tamanho físico da mídia** (largura útil da bobina, tamanho da chapa), **uma vez
+   só**, com Fabricação e Produção lendo de lá. Hoje a Produção guarda a largura útil numa tabela
+   própria, `pcp_bobinas` (simulador de aproveitamento, US-PCP-024, #9666); a regra de aproveitamento
+   da chapa da prévia precisaria do mesmo dado. A ADR decide se `pcp_bobinas` vira esse cadastro ou
+   passa a ler dele — sem nascer um segundo.
+4. **A mesma chave para material opcional e etapa opcional.** O roteiro do produto na Produção já
+   tem etapa opcional (`pcp_roteiro_etapas.opcional_por`, US-PCP-026); o acabamento opcional da
+   receita precisa usar a mesma chave do pedido, senão entra material sem a etapa ou a etapa sem o
+   material.
+
+**Em aberto para [W]** (fora da ADR): (a) existe ordem de produção sem venda (fabricar para
+estoque)? (b) a ordem impressa leva custo, que hoje só o gestor vê?
+
+## 7. Respostas de 2026-10-23 — desperdício, ordem sem venda e custo na ordem impressa
+
+> **Confirmado por [F] com o [W] na sexta-feira, 2026-10-23**, e passado ao chat da sessão da
+> Fabricação em 2026-10-25. Responde as duas perguntas em aberto do §6 e confirma a D4.
+
+| # | Pergunta | Resposta |
+|---|---|---|
+| 1 | Onde fica o desperdício | **Somente na Produção.** A receita (composição) não tem % de desperdício. A perda real é registrada na ordem, com motivo. Confirma a D4 |
+| 2 | Existe ordem de produção sem venda (§6, pergunta a) | **Sim.** Além da OS que nasce da venda aprovada (ADR 0436), dá para criar uma ordem para estoque. Ela é criada na Produção; na Fabricação existe só o atalho |
+| 3 | A ordem impressa leva custo (§6, pergunta b) | **Sim.** A ordem impressa sai com o custo (insumos, processo e total). A via de produção, sem custo, continua como opção |
+
+O que isto muda no que está escrito acima:
+
+- O §6 dizia que "não há criação manual" da ordem. Com a resposta 2, a criação manual existe, só
+  para estoque. A OS da venda continua nascendo sozinha.
+- A frase da D4 sobre a CV ("a perda planejada fica no cálculo do orçamento") não foi rediscutida
+  nesta conversa. A resposta 1 trata da composição e da ordem.
+- Fica para a ADR do §4 e para a Produção: como a ordem para estoque dá entrada do produto no
+  estoque, e quem pode ver o custo na tela e imprimir a ordem com custo.
+
+A prévia da Fabricação no artefato (versão 24, 2026-10-25) já segue as três respostas: tirou os
+restos do % de desperdício da receita (filtro da lista, histórico e ficha técnica impressa),
+mantém "Nova ordem para estoque" na Produção e abre a ordem impressa com o mapa de custo.
+
 ---
 **Trilha:** 2026-10-09 — escrito a pedido de [M], respondendo à revisão do [W] no #9086. Mesmo
 dia: acrescentados os dados medidos em dois bancos do legado (§2b), a D2 reescrita com eles e a D6
 (composição sem fórmula), a pedido de [M]. [M+C]
+2026-10-21 — §6, revisão da prévia da Fabricação aprovada por [W] (sessão de Produção). [CC]
+2026-10-25 — §7, respostas do [W] de 2026-10-23 (desperdício só na Produção, ordem sem venda,
+custo na ordem impressa), repassadas por [F]. [F+C]

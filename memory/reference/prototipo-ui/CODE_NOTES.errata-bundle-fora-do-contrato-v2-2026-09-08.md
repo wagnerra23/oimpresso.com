@@ -65,9 +65,9 @@ vocabulário de `changes` que acompanha o outro dialeto (4).
 | chaves de `changes` | `added, modified, deleted, unchanged` → **ok 113** | `added, changed, removed` → viola 113 |
 | `targetManifest` | **1 de 43** partes → ok 150 | 43 de 43 → viola 150 |
 
-O gerador **deste repo** ([`gerar-payload-partes.mjs:260`](../../../scripts/design-sync/gerar-payload-partes.mjs))
+O gerador **deste repo** (`scripts/design-sync/gerar-payload-partes.mjs:260` — removido em 2026-10-23, ADR 0438)
 emite `added/modified/deleted/unchanged` — o dialeto do pacote de 31/08 — e o teste dele
-([`gerar-payload-partes.test.mjs:86`](../../../scripts/design-sync/gerar-payload-partes.test.mjs)) **já assere**
+(`scripts/design-sync/gerar-payload-partes.test.mjs:86` — removido junto) **já assere**
 *"manifesto-alvo existe somente na part01"*. Os dois pacotes declaram o mesmo `schema:
 oimpresso-design-manifest/2`; o de hoje declara v2 e viola v2. O contrato não mudou desde 24/08.
 

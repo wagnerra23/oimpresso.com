@@ -26,6 +26,11 @@ use Modules\Producao\Exceptions\ApontamentoRecusado;
  * muda a situação: a etapa de arte volta como etapa nova "(alteração)", com o comentário no evento;
  * a aprovação fica pendente e a próxima etapa espera (regra do bloco anterior).
  *
+ * Trava (UC-PCV-11): arte aprovada não se troca em silêncio. `trocarArquivo` é o único caminho para
+ * mudar o arquivo depois da aprovação — reabre a Aprovação do cliente como etapa nova "(nova versão)"
+ * no mesmo bloco (as etapas seguintes voltam a esperar) e gera link novo. Enquanto o cliente não
+ * aprova a nova versão, `arteVigente` continua devolvendo a última aprovada.
+ *
  * Tier 0: o token carrega a empresa; tudo depois dele filtra pelo `business_id` do pedido.
  */
 final class AprovacaoArteService
@@ -37,6 +42,8 @@ final class AprovacaoArteService
     public const EV_APROVADA = 'arte_aprovada';
 
     public const EV_RECUSADA = 'arte_recusada';
+
+    public const EV_ARQUIVO_TROCADO = 'arte_arquivo_trocado';
 
     public function __construct(private readonly SituacaoDaOrdem $situacao) {}
 
@@ -63,6 +70,66 @@ final class AprovacaoArteService
         $this->evento($pedido, self::EV_SOLICITADA, $user->id, []);
 
         return ['id' => (int) $pedido->id, 'token' => $token, 'expira_em' => $pedido->expira_em];
+    }
+
+    /**
+     * UC-PCV-11 · troca o arquivo de uma arte já aprovada: a OS volta a esperar a aprovação do cliente.
+     *
+     * @return array{id: int, token: string, expira_em: Carbon}
+     */
+    public function trocarArquivo(int $businessId, int $ordemId, string $arquivo, User $user): array
+    {
+        return DB::transaction(function () use ($businessId, $ordemId, $arquivo, $user) {
+            $ordem = $this->situacao->ordem($businessId, $ordemId);
+            if (in_array($ordem->currentStage?->key, ['concluida', 'cancelada'], true)) {
+                throw new ApontamentoRecusado(ApontamentoRecusado::ETAPA_ENCERRADA, 'Esta OS já foi encerrada.');
+            }
+            $ultimo = AprovacaoArte::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)
+                ->where('ordem_id', $ordem->id)->orderByDesc('id')->lockForUpdate()->first();
+            if ($ultimo === null || $ultimo->decisao !== AprovacaoArte::APROVADA) {
+                throw new ApontamentoRecusado(ApontamentoRecusado::APROVACAO_ENCERRADA, $ultimo === null || $ultimo->decisao === null
+                    ? 'Ainda não há arte aprovada: peça a aprovação do cliente.'
+                    : 'O cliente pediu ajuste: mande a nova prova pela aprovação pendente.');
+            }
+            if ($ultimo->arquivo === $arquivo) {
+                throw new ApontamentoRecusado(ApontamentoRecusado::APROVACAO_ENCERRADA, 'Este é o arquivo já aprovado.');
+            }
+            $aprovacao = Programacao::query()->where('business_id', $businessId)->where('os_tipo', Ordem::OS_TIPO)
+                ->where('os_id', $ordem->id)->findOrFail($ultimo->programacao_id);
+            $nova = $aprovacao->replicate(['status', 'created_at', 'updated_at']);
+            $nova->fill(['status' => 'pendente', 'nome' => $aprovacao->nome.' (nova versão)', 'inicio_previsto' => now(),
+                'fim_previsto' => now()->addSeconds($aprovacao->inicio_previsto->diffInSeconds($aprovacao->fim_previsto)), 'created_by' => $user->id])->save();
+
+            $token = Str::random(48);
+            $pedido = AprovacaoArte::withoutGlobalScope(ScopeByBusiness::class)->create([
+                'business_id' => $businessId, 'ordem_id' => $ordem->id, 'programacao_id' => $nova->id,
+                'arte_programacao_id' => $ultimo->arte_programacao_id, 'token_hash' => self::hash($token), 'arquivo' => $arquivo,
+                'expira_em' => now()->addDays(self::DIAS_VALIDADE), 'created_by' => $user->id,
+            ]);
+            $this->evento($pedido, self::EV_ARQUIVO_TROCADO, $user->id, ['aprovacao_anterior_id' => $ultimo->id]);
+
+            return ['id' => (int) $pedido->id, 'token' => $token, 'expira_em' => $pedido->expira_em];
+        });
+    }
+
+    /** A OS existe nesta empresa? (404 para OS de outra empresa — Tier 0). */
+    public function exigirOrdem(int $businessId, int $ordemId): void
+    {
+        $this->situacao->ordem($businessId, $ordemId);
+    }
+
+    /**
+     * UC-PCV-11 · a arte que vale para produzir: o arquivo do último pedido APROVADO, mesmo que haja
+     * uma versão nova esperando o cliente. Null = OS ainda sem arte aprovada.
+     *
+     * @return array{arquivo: string, aprovada_em: string}|null
+     */
+    public function arteVigente(int $businessId, int $ordemId): ?array
+    {
+        $p = AprovacaoArte::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $businessId)->where('ordem_id', $ordemId)
+            ->where('decisao', AprovacaoArte::APROVADA)->orderByDesc('decidido_em')->orderByDesc('id')->first();
+
+        return $p === null ? null : ['arquivo' => (string) $p->arquivo, 'aprovada_em' => $p->decidido_em->toIso8601String()];
     }
 
     /** Pedido ainda aberto para o token — vencido, decidido ou com a etapa fechada → recusa. */

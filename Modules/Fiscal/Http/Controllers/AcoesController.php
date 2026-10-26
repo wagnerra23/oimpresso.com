@@ -8,6 +8,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Log;
 use Modules\NfeBrasil\Models\NfeDfeRecebido;
 use Modules\NfeBrasil\Models\NfeEmissao;
+use Modules\NfeBrasil\Services\DevolucaoService;
 use Modules\NfeBrasil\Services\Manifestacao\ManifestacaoService;
 use Modules\NfeBrasil\Services\NfeCartaCorrecaoService;
 use Modules\NfeBrasil\Services\NfeInutilizacaoService;
@@ -524,6 +525,63 @@ class AcoesController extends Controller
             ]);
 
             return back()->with('error', 'Retransmissão falhou: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * POST /fiscal/acoes/nfe/{emissao}/devolucao
+     *
+     * R-NFE-039 · emite a NF-e de devolução (finNFe 4, refNFe da origem) de uma nota autorizada.
+     * A base e as alíquotas vêm do XML da nota de origem (R-NFE-026/027, DevolucaoService); aqui só
+     * permissão, empresa da sessão e as quantidades por item (`itens[nItem] = quantidade`).
+     */
+    public function devolucao(Request $request, DevolucaoService $devolucao, int $emissao): RedirectResponse
+    {
+        if (! auth()->user()->can('superadmin') && ! auth()->user()->can('fiscal.nfe.acoes')) {
+            abort(403, 'Sem permissão fiscal.nfe.acoes');
+        }
+
+        $data = $request->validate([
+            'itens'   => ['required', 'array', 'min:1'],
+            'itens.*' => ['required', 'numeric', 'gt:0'],
+        ]);
+
+        $businessId = (int) session('user.business_id');
+
+        $origem = NfeEmissao::query()
+            ->where('id', $emissao)
+            ->where('business_id', $businessId)
+            ->firstOrFail();
+
+        $quantidades = [];
+        foreach ($data['itens'] as $nItem => $qtd) {
+            $quantidades[(int) $nItem] = (float) $qtd;
+        }
+
+        try {
+            $nova = $devolucao->emitirDevolucao($businessId, (int) $origem->id, $quantidades);
+
+            Log::info('Fiscal.acoes.devolucao ok', [
+                'business_id'      => $businessId,
+                'nfe_origem_id'    => $origem->id,
+                'nfe_devolucao_id' => $nova->id,
+                'status'           => $nova->status,
+            ]);
+
+            return back()->with(
+                $nova->status === 'autorizada' ? 'success' : 'error',
+                $nova->status === 'autorizada'
+                    ? "NF-e de devolução nº {$nova->numero} autorizada · cstat {$nova->cstat}"
+                    : "NF-e de devolução enviada · status {$nova->status} · cstat {$nova->cstat} · {$nova->motivo}",
+            );
+        } catch (\Throwable $e) {
+            Log::error('Fiscal.acoes.devolucao falhou', [
+                'business_id'   => $businessId,
+                'nfe_origem_id' => $origem->id,
+                'error'         => $e->getMessage(),
+            ]);
+
+            return back()->with('error', 'Devolução falhou: ' . $e->getMessage());
         }
     }
 }

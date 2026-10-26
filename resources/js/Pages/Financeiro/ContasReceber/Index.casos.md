@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-10-20"
+last_run: "2026-10-21"
 ---
 
 # Casos de Uso & Aceite — Contas a Receber
@@ -33,8 +33,9 @@ last_run: "2026-10-20"
 > ⚠️ REGRA MESTRE de valor: chave **por business, desligada por padrão**
 > (`business.common_settings['financeiro_iss_retido_ajuste']`); só age na mudança de status da nota;
 > a baixa vai só até o que falta pagar, a diferença fica como pendência. Para notas já autorizadas, só
-> a prévia `financeiro:iss-retido-ajuste --dry-run --business=N`, que não grava. A tela ainda não
-> mostra bruto/retenções/líquido; IR/INSS e o "aplicar" nas notas antigas são follow-up da US.
+> a prévia `financeiro:iss-retido-ajuste --dry-run --business=N`, que não grava. Desde 2026-10-21 a
+> lista mostra Bruto · Retido · Líquido (UC-CRISS-08); IR/INSS e o "aplicar" nas notas antigas seguem
+> como follow-up da US.
 > Prova: `Modules/Financeiro/Tests/Feature/IssRetidoAjusteTituloContratoTest.php`.
 > Caso-base: venda 1.000,00 · ISS 5% retido 50,00 · PIS/COFINS/CSLL 46,50 → baixa 96,50 · aberto 903,50.
 
@@ -91,6 +92,16 @@ Status: 🧪
 **Dado** uma NFS-e autorizada com a chave desligada e a venda ainda com 1.000,00 em aberto **Quando**
 rodo `financeiro:iss-retido-ajuste --dry-run --business=A` **Então** a saída mostra a baixa de 96,50 e o
 aberto indo a 903,50 com ação `baixa`, nada é gravado, e sem `--dry-run` o comando recusa.
+
+Status: 🧪
+
+## UC-CRISS-08 · A lista mostra bruto, retido e líquido · `must` valor
+
+**Dado** o título de V com a retenção de 96,50 lançada **Quando** abro Contas a Receber **Então** a linha
+mostra Bruto 1.000,00 · Retido 96,50 · Líquido 903,50 (conta no servidor, em centavos, a partir de
+`metadata.retencao_nfse.retido_total`). Sem retenção, ou com a chave desligada, Retido mostra "—" e o
+Líquido é o bruto; cancelada a nota (retenção estornada), Retido volta a 0 e o Líquido a 1.000,00. Só
+exibe: nada é gravado.
 
 Status: 🧪
 
@@ -161,8 +172,9 @@ Status: 🧪
 > **Âncora:** [US-FIN-071](../../../../../memory/requisitos/Financeiro/SPEC.md) e o UC-FLX-29 do
 > catálogo de fluxos (transição "Vencido → Em cobrança": lembretes D+1, D+5 e D+15 e tarefa ao
 > vendedor). Nesta entrega é o job diário por business (`ReguaCobrancaJob`, agendado via
-> `financeiro:regua-cobranca`) — a tela ainda não mostra o histórico nem configura a régua; WhatsApp,
-> estado "em cobrança" no título e a configuração com permissão são follow-up da US. Régua **desligada
+> `financeiro:regua-cobranca`). O histórico aparece no painel "Lembretes" desta tela (UC-CRREG-08) e a
+> régua liga na aba Financeiro de `/business/settings`; WhatsApp e estado "em cobrança" no título são
+> follow-up da US. Régua **desligada
 > por padrão** (`business.common_settings['financeiro_regua_cobranca']`). Prova:
 > `Modules/Financeiro/Tests/Feature/ReguaCobrancaContratoTest.php`. Não mexe em valor de título.
 
@@ -220,11 +232,33 @@ sem tarefa e nenhuma linha nova aparece em `crm_schedules`.
 
 Status: 🧪
 
-## Como rodar a suíte
+## UC-CRREG-08 · Painel "Lembretes" mostra o que saiu e o que não saiu · `must` Tier 0
+
+**Dado** a régua ligada em A (98) e em B (99), um título de A vencido há 1 dia com cliente que tem
+e-mail, outro de A vencido há 5 dias com cliente que recusou e-mail, e um título de B vencido há 1 dia,
+e o job do dia rodou nos dois **Quando** abro a tela de A **Então** a carga normal não traz os
+lembretes (prop `Inertia::optional`) **E quando** clico em "Lembretes" (reload parcial `only:
+['lembretes']`) **Então** vejo a régua ligada com D+1, D+5 e D+15, o título de D+1 como `enviado`, o
+de D+5 como `nao_enviado` com motivo `opt_out_email`, e nada de B. A régua liga na aba Financeiro de
+`/business/settings` (UC-EMP-15).
+
+Status: 🧪
+
+## Casos pedidos em 2026-10-23 — mudaram para o Financeiro unificado
+
+Esta tela foi aposentada pelo [W] (charter: `deprecated`, superada pelo Financeiro/Unificado, decisão
+de 2026-07-03). Os casos de total do serviço, retido e recebido, de título de venda agrupada e de título
+de cada parte faturada, pedidos em 2026-10-23, estão em `../Unificado/Index.casos.md`. Verificado contra as regras do [W] em 2026-10-23.
+
 1. **Pest (MySQL real):** lane do Financeiro no CT100 — quando os UCs acima ganharem teste.
 2. **Cadência:** rodar ao fim de toda mexida na tela. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-23 · [M+C] Backlog de ISS retido (total, retido e recebido) e de título de venda agrupada, sem id.
+- 2026-10-23 · [M+C] Backlog: título de cada parte faturada, da comparação com concorrentes (Omie), sem id.
+- 2026-10-23 · [M+C] Os três casos de 2026-10-23 mudaram para `Financeiro/Unificado/Index.casos.md`: esta tela está aposentada.
+- 2026-10-21 · [CC] US-FIN-071: botão "Lembretes" no cabeçalho + painel lateral (UC-CRREG-08). As colunas
+  Bruto/Retido/Líquido do #9698 seguem intactas; revalidado após juntar os dois.
 - 2026-10-20 · [CC] US-FIN-073: UC-CRAB-01..04 (aberto do título parcial + relatório `--aberto` só leitura),
   provados por `AbertoVendaParcialContratoTest` na lane financeiro-pest. Nenhum título existente muda no deploy.
 - 2026-07-03 · [CC] criado na Onda de correção Financeiro (régua por tela, [ADR 0320]): charter +
@@ -240,6 +274,9 @@ Status: 🧪
   casava e o botão rendia nu (medido em prod: padding 0, radius 0, texto em 2 linhas). Só o chrome do
   header mudou — `label` e `onClick` idênticos; comportamento/cálculo intocados. UCs em débito seguem
   sem teste (sem `Status: ✅`, nada a revalidar via manifesto).
+- 2026-10-21 · [CC] UC-CRISS-08 (US-FIN-072): colunas Bruto · Retido · Líquido na lista. Só leitura;
+  valores calculados em `RetencaoNfseTituloService::valoresDoTitulo` e provados por 3 caminhos em
+  `IssRetidoAjusteTituloContratoTest`.
 - 2026-10-20 · [CC] UC-CRREG-01..07 (US-FIN-071 · UC-FLX-29): primeira cobertura com UC-id desta
   tela — a régua de cobrança é job diário, sem mudança no `.tsx`; `last_run` intocado (nenhum UC
   antigo reexecutado). Prova: `ReguaCobrancaContratoTest`.

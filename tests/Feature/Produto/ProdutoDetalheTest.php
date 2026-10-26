@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PIDX-09, UC-PIDX-11, UC-PIDX-12, UC-PIDX-20, UC-PIDX-22 e UC-PIDX-25 (resources/js/Pages/Produto/Index.casos.md) — G-2 rastreabilidade caso↔teste.
+// Cobre UC-PIDX-09, UC-PIDX-11, UC-PIDX-12, UC-PIDX-20, UC-PIDX-22, UC-PIDX-25 e UC-PIDX-33 (resources/js/Pages/Produto/Index.casos.md) — G-2 rastreabilidade caso↔teste.
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -187,7 +187,7 @@ function pdtProdutoEmDoisLocais($teste): object
 function pdtSomaDataTable($teste, int $productId): array
 {
     $colunas = [];
-    foreach ([['sku', 'variations.sub_sku'], ['stock', 'stock'], ['stock_price', 'stock_price'], ['stock_value_by_sale_price', 'stock_value_by_sale_price'], ['potential_profit', 'potential_profit']] as $i => [$d, $n]) {
+    foreach ([['sku', 'variations.sub_sku'], ['stock', 'stock'], ['stock_price', 'stock_price'], ['stock_value_by_sale_price', 'stock_value_by_sale_price'], ['potential_profit', 'potential_profit'], ['total_sold', 'total_sold']] as $i => [$d, $n]) {
         $colunas[$i] = ['data' => $d, 'name' => $n, 'searchable' => 'false', 'orderable' => 'false', 'search' => ['value' => '', 'regex' => 'false']];
     }
     $dt = $teste->get('/reports/stock-report?' . http_build_query(['draw' => 1, 'start' => 0, 'length' => -1, 'columns' => $colunas,
@@ -196,17 +196,63 @@ function pdtSomaDataTable($teste, int $productId): array
     $dt->assertOk();
     expect($dt->json('error'))->toBeNull();
     $orig = fn ($v) => (float) (preg_match('/data-orig-value="([^"]*)"/', (string) $v, $m) ? $m[1] : 0);
-    $soma = ['linhas' => 0, 'estoque' => 0.0, 'valor_compra' => 0.0, 'valor_venda' => 0.0, 'lucro_potencial' => 0.0];
+    $soma = ['linhas' => 0, 'estoque' => 0.0, 'valor_compra' => 0.0, 'valor_venda' => 0.0, 'lucro_potencial' => 0.0, 'vendido' => 0.0];
     foreach ($dt->json('data') as $l) {
         $soma['linhas']++;
         $soma['estoque'] += $orig($l['stock'] ?? '');
         $soma['valor_compra'] += $orig($l['stock_price'] ?? '');
         $soma['valor_venda'] += $orig($l['stock_value_by_sale_price'] ?? '');
         $soma['lucro_potencial'] += $orig($l['potential_profit'] ?? '');
+        $soma['vendido'] += $orig($l['total_sold'] ?? '');
     }
 
     return $soma;
 }
+
+/** Venda do produto num local, com status e quantidade devolvida. */
+function pdtVenda(int $businessId, object $p, int $local, int $criador, string $status, float $qtd, float $devolvido): void
+{
+    $venda = DB::table('transactions')->insertGetId([
+        'business_id' => $businessId, 'location_id' => $local, 'type' => 'sell', 'status' => $status, 'payment_status' => 'paid',
+        'transaction_date' => '2099-01-02 10:00:00', 'final_total' => $qtd * 20, 'total_before_tax' => $qtd * 20,
+        'created_by' => $criador, 'essentials_duration' => 0, 'invoice_no' => 'PDT-' . uniqid(), 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    DB::table('transaction_sell_lines')->insert([
+        'transaction_id' => $venda, 'product_id' => $p->productId, 'variation_id' => $p->variations[0]['variation_id'], 'quantity' => $qtd,
+        'quantity_returned' => $devolvido, 'unit_price' => 20, 'unit_price_inc_tax' => 20, 'unit_price_before_discount' => 20,
+        'item_tax' => 0, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+}
+
+it('UC-PIDX-33 · o vendido de cada local é o "Total vendido" do relatório de estoque: vendas finalizadas menos devoluções', function () {
+    pdtEntrar($this, ['product.view', 'access_all_locations', 'stock_report.view']);
+    $p = EstoqueFixture::singleProduct($this->business->id);
+    $locais = [];
+    $ids = [];
+    foreach (['A' => 7, 'B' => 3] as $nome => $qtd) {
+        $local = EstoqueFixture::locationId($this->business->id, '-PDT-V' . $nome . '-' . uniqid());
+        DB::table('product_locations')->insert(['product_id' => $p->productId, 'location_id' => $local]);
+        EstoqueFixture::setStock($p, 0, $local, $qtd);
+        $locais[$nome] = (string) DB::table('business_locations')->where('id', $local)->value('name');
+        $ids[$nome] = $local;
+    }
+    // No local A: uma venda finalizada de 5 com 1 devolvido, e um rascunho de 2 que não é venda.
+    pdtVenda($this->business->id, $p, $ids['A'], $this->user->id, 'final', 5, 1);
+    pdtVenda($this->business->id, $p, $ids['A'], $this->user->id, 'draft', 2, 0);
+
+    $d = pdtDetalhe($this, $p->productId);
+    $porLocal = collect($d['estoque'])->mapWithKeys(fn ($l) => [$l['local'] => $l['vendido']]);
+
+    // Anti-vácuo: os dois locais vieram — o zero do B não é linha faltando.
+    expect($porLocal)->toHaveCount(2);
+    // Caminho 1 — conta à mão: A = 5 − 1 devolvido (o rascunho fica fora); B não vendeu.
+    expect(abs($porLocal[$locais['A']] - 4))->toBeLessThan(0.005);
+    expect(abs($porLocal[$locais['B']] - 0))->toBeLessThan(0.005);
+    // Caminho 2 — o código da Blade (DataTable de Relatórios → Estoque), somado linha a linha.
+    $dt = pdtSomaDataTable($this, $p->productId);
+    expect($dt['linhas'])->toBe(2);
+    expect(abs($dt['vendido'] - $porLocal->sum()))->toBeLessThan(0.005);
+});
 
 it('UC-PIDX-12 · os indicadores da aba Estoque são a soma das linhas do relatório de estoque do produto', function () {
     pdtEntrar($this, ['product.view', 'access_all_locations', 'stock_report.view', 'view_product_stock_value', 'access_default_selling_price']);

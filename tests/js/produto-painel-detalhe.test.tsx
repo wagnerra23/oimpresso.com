@@ -21,7 +21,7 @@
 //     preços de cada item (as colunas da Blade) e as imagens dos itens; a aba Variações, as imagens
 //     das variações. Sem permissão, a parte de preço some (nunca zero).
 //
-// Cobre UC-PIDX-09, UC-PIDX-11, UC-PIDX-12, UC-PIDX-17, UC-PIDX-19, UC-PIDX-20 e UC-PIDX-21 (resources/js/Pages/Produto/Index.casos.md).
+// Cobre UC-PIDX-09, UC-PIDX-11, UC-PIDX-12, UC-PIDX-17, UC-PIDX-19, UC-PIDX-20, UC-PIDX-21 e UC-PIDX-33 (resources/js/Pages/Produto/Index.casos.md).
 // ⚠️ Nenhuma lane de CI roda este arquivo ainda (cada lane Vitest lista os próprios specs).
 // Comando: npx vitest run tests/js/produto-painel-detalhe.test.tsx
 
@@ -377,6 +377,31 @@ describe('UC-PIDX-12 · indicadores da aba Estoque', () => {
     const { painel } = abrir(comEstoque(null));
     expect(indicadores(painel)).toBeNull();
     expect(painel.getByText('Matriz')).toBeTruthy();
+  });
+});
+
+describe('UC-PIDX-33 · quantidade vendida por local na aba Estoque', () => {
+  const linha = (local: string, estoque: number, vendido: number) => ({
+    sku: 'CAM-001', produto: 'Camiseta básica', variacao: '', categoria: 'Camisetas', local, preco: 20, estoque, unidade: 'Un',
+    valor_compra: null, valor_venda: null, lucro_potencial: null, vendido, transferido: 0, ajustado: 0, alerta: false,
+  });
+  const tabela = (painel: ReturnType<typeof within>) => {
+    fireEvent.click(painel.getByRole('tab', { name: 'Estoque' }));
+    return within(painel.getByRole('table', { name: 'Estoque por local' }));
+  };
+
+  it('a tabela tem a coluna "Vendido", antes de "Situação"', () => {
+    const { painel } = abrir(detalhe({ estoque: [linha('Matriz', 7, 4)] }));
+    const cabecalho = tabela(painel).getAllByRole('columnheader').map((c) => c.textContent);
+    expect(cabecalho).toEqual(['Local', 'Saldo', 'Alerta', 'Vendido', 'Situação']);
+  });
+
+  it('cada local mostra o vendido que o servidor mandou para ele, com a unidade', () => {
+    // Números diferentes do saldo e entre si: se a tela trocasse de coluna ou somasse, não bateria.
+    const { painel } = abrir(detalhe({ estoque: [linha('Matriz', 7, 4), linha('Filial', 3, 0)] }));
+    const linhas = tabela(painel).getAllByRole('row').slice(1).map((r) =>
+      within(r).getAllByRole('cell').map((c) => (c.textContent ?? '').replace(/\s+/g, ' ').trim()));
+    expect(linhas.map((l) => [l[0], l[3]])).toEqual([['Matriz', '4 Un'], ['Filial', '0 Un']]);
   });
 });
 

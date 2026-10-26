@@ -6,10 +6,11 @@
 //   • sem o badge do código: o protótipo inventa o próximo código no cliente; aqui ele é
 //     gerado pelo SERVIDOR no `store()` (prefixo + sequência por empresa) e prever no cliente
 //     mostraria um número que pode não ser o gravado. O subtítulo já diz de onde ele vem.
-//   • "Depreciação" SEM a unidade "(anos)": o protótipo rotula anos, o README do módulo diz
-//     "% ao ano" e o Blade não diz nada. A coluna já tem dado gravado pelo Blade — escolher
-//     uma unidade no rótulo mudaria o SIGNIFICADO desse dado. Fica como o Blade: sem unidade.
-//     (Também sem o default por categoria: `DEP_PADRAO` é dado de mock, não regra do módulo.)
+//   • O campo da depreciação é "Vida útil (anos)", como no protótipo, desde 2026-10-26: a decisão
+//     [W] (US-ASSET-009) fixou a depreciação gerencial linear por anos. Até ali ficava sem unidade
+//     porque o README dizia "% ao ano"; medido em produção na mesma data: 1 bem e nenhum com o
+//     campo preenchido, então a unidade não reinterpreta dado de ninguém. O padrão por categoria
+//     (`DEP_PADRAO` do protótipo) ainda não existe: vem com a configuração por categoria.
 //   • "Fornecedor / contrato" grava em `asset_warranties.additional_note` — é a única coluna
 //     de texto da garantia. O custo adicional (que o protótipo não desenha) vai 0, como o
 //     Blade fazia com o campo em branco.
@@ -274,8 +275,9 @@ export default function CadastroBemDrawer({ aberto, onClose, locais, categorias,
                   <NumericInputPtBR id="cb-qtd" value={f.quantidade} precision={2}
                     aria-invalid={!!erros.quantidade || undefined} onChange={(n) => set('quantidade', n)} />
                 </Campo>
-                <Campo id="cb-dep" rotulo="Depreciação">
-                  <NumericInputPtBR id="cb-dep" value={f.depreciacao ?? 0} precision={2}
+                <Campo id="cb-dep" rotulo="Vida útil (anos)"
+                  ajuda="Para a depreciação gerencial linear: máquina 10, informática e veículo 5. Vazio = não deprecia.">
+                  <NumericInputPtBR id="cb-dep" value={f.depreciacao ?? 0} precision={1}
                     onChange={(n) => set('depreciacao', n === 0 ? null : n)} />
                 </Campo>
                 <Inline gap={3} align="end" className="pb-1">

@@ -383,6 +383,20 @@ Então o XML original ainda está lá, com hash SHA256 batendo com `nfe_emissoes
 **Implementação:** Storage `storage/app/nfe-brasil/{business_id}/xmls/{ano}/{mes}/{chave}.xml` (read-only após escrita); `xml_hash` na tabela; rotina diária verifica integridade.
 **Testado em:** _lacuna — XmlImutabilidadeTest não existe; nenhum teste valida `xml_hash` SHA256 batendo nem imutabilidade read-only do XML após 5 anos_.
 
+### R-NFE-045 · A config da SEFAZ leva o CSC da empresa com o nome que a lib lê
+
+```gherkin
+Dado uma empresa com CSC e id do CSC cadastrados (business.csc / business.csc_id)
+Quando a NFC-e é assinada
+Então a configuração da sped-nfe leva CSC e CSCid com esses valores (as chaves que Common\Tools::addQRCode lê)
+E empresa sem CSC leva vazio — no QR Code versão 3 a lib não exige o CSC
+```
+
+**Contrato:** sped-nfe `Common\Tools::addQRCode` (lança "faltam dados CSC e/ou CSCId" fora do QR v3).
+**Implementação:** `Modules/NfeBrasil/Services/NfeService.php` (`montarConfigSefaz`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfceCscConfigTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** o CSC também vai vazio em `NfeCartaCorrecaoService` e `NfeInutilizacaoService` (eventos de NF-e, onde a lib não usa o CSC).
+
 ### R-NFE-011 · Schema CBS/IBS vazio em 2026, preenchido conforme legislação
 
 ```gherkin
@@ -631,6 +645,21 @@ E devolução rejeitada, de outra nota ou de outra empresa não consome saldo
 **Implementação:** `Modules/NfeBrasil/Services/DevolucaoService.php` (`montarDevolucao`, rateio pela quantidade acumulada · `saldoDevolvido`).
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeDevolucaoTest.php` (lane `nfebrasil-pest`).
 
+### R-NFE-039 · A NF-e de devolução tem rota, com permissão e na empresa da sessão
+
+```gherkin
+Dado uma NF-e autorizada da empresa A
+Quando o fiscal com a permissão fiscal.nfe.acoes pede POST /fiscal/acoes/nfe/{id}/devolucao com itens[1]=2 e itens[3]=0,5
+Então o DevolucaoService recebe a empresa A, a nota e {1: 2, 3: 0,5} (R-NFE-026/027 fazem o resto)
+E sem a permissão a resposta é 403; sem item, ou com quantidade zero, negativa ou não numérica, não passa da validação
+E a nota de outra empresa não é achada (404) e o serviço não é chamado
+```
+
+**Contrato:** US-NFE-064 (a devolução copia a nota de origem) · ADR 0093.
+**Implementação:** `Modules/Fiscal/Http/Controllers/AcoesController.php` (`devolucao`) · `Modules/Fiscal/Routes/web.php` (`fiscal.acoes.nfe.devolucao`).
+**Testado em:** `Modules/Fiscal/Tests/Feature/AcoesDevolucaoTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** o botão "Emitir devolução" na tela da nota (escolher itens e quantidades) e o vínculo com a devolução de venda do estoque (`sell_return`).
+
 ### R-NFE-030 · Base reduzida e cBenef no item
 
 ```gherkin
@@ -662,6 +691,21 @@ E filial incompleta, com a série da matriz, ou apontando local de outra empresa
 **Implementação:** migração `2026_10_14_000002_create_nfe_locais_emissores_table` · `Modules/NfeBrasil/Models/NfeLocalEmissor.php` · `Modules/NfeBrasil/Services/NfeService.php` (`resolverEmitente`, `emitirParaTransaction`).
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeFilialNumeracaoTest.php` · `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` (lane `nfebrasil-pest`).
 **Fora deste item:** o motor ainda não lê a interestadual da tabela (é o fallback da thread 09); o certificado continua o do business; a cobrança recorrente (`emitirParaInvoice`) segue emitindo pelo business — ver `_saida-26.md`.
+
+### R-NFE-040 · Item do regime normal sai com base e alíquotas em percentual
+
+```gherkin
+Dado uma regra do regime normal com CST 00, ICMS 0,18, PIS 0,0165 e COFINS 0,076 (fração, como a régua guarda)
+Quando um item de 1.000,00 vai à NF-e
+Então o item leva vBC 1.000,00, pICMS 18, vICMS 180,00, pPIS 1,65 e pCOFINS 7,6, e o ICMSTot leva vBC 1.000,00
+E vBC × pICMS / 100 = vICMS (a conta que a SEFAZ confere)
+E com base reduzida (benefício) a base é a do motor; Simples, CST sem ICMS ou alíquota zero seguem com base 0
+```
+
+**Contrato:** NF-e leiaute 4.00 — `pICMS`, `pPIS` e `pCOFINS` são percentuais (TDec_0302a04); `UpsertRegraTributariaRequest` guarda fração ("0.18 = 18%").
+**Implementação:** `Modules/NfeBrasil/Services/NfeService.php` (`montarItensNfe`, `emitirParaInvoice`, `baseIcmsDoItem`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeAliquotaPercentualTest.php` · `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` · `Modules/NfeBrasil/Tests/Feature/NfeDevolucaoTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** CST de PIS/COFINS do regime normal com base (hoje `07` fixo, R-NFE-025b) e o ICMS-ST.
 
 ### R-NFE-032 · Série e numeração são do local emissor (o certificado segue o do business)
 
@@ -1555,11 +1599,11 @@ Salvar em `memory/requisitos/NfeBrasil/smoke-2026-05-10.md`:
 > owner: — · sprint: — · priority: p1 · estimate: 3h · status: done · type: story
 > blocked_by: —
 
-**Implementado em:** `Modules/NfeBrasil/Services/DevolucaoService.php` · `Modules/NfeBrasil/Services/NfeService.php` · `Modules/NfeBrasil/Tests/Feature/NfeDevolucaoTest.php`
+**Implementado em:** `Modules/NfeBrasil/Services/DevolucaoService.php` · `Modules/NfeBrasil/Services/NfeService.php` · `Modules/NfeBrasil/Tests/Feature/NfeDevolucaoTest.php` · `Modules/Fiscal/Http/Controllers/AcoesController.php` (rota, R-NFE-039) · `Modules/Fiscal/Tests/Feature/AcoesDevolucaoTest.php`
 
 Como contador, quero que a NF-e de devolução use a base e as alíquotas da nota de origem — não a regra de hoje — para estornar exatamente o crédito ou débito que a venda gerou.
 
-**Critérios de aceite:** R-NFE-026 · R-NFE-027.
+**Critérios de aceite:** R-NFE-026 · R-NFE-027 · R-NFE-039 (rota com permissão e empresa da sessão, 2026-10-26; o botão na tela da nota segue pendente).
 
 **Disparo:** playbook Fiscal thread 20 (`prototipo-ui/cowork/Wagner/cowork-inbox/fiscal/playbook/20-devolucao.md`) · UC-TRB-13.
 
@@ -1607,9 +1651,9 @@ Como contador, quero decidir por produto se ele é mercadoria (ICMS) ou serviço
 > owner: — · sprint: — · priority: p1 · estimate: 6h · type: story
 > blocked_by: US-NFE-060 (NFS-e ainda é STUB, sem chamada real à Sefin nacional)
 
-**Implementado em:** _parcial_ — `Modules/NfeBrasil/Services/SeparacaoNotasDaVenda.php` · `Modules/NfeBrasil/Tests/Feature/SeparacaoNotasDaVendaContratoTest.php` (só a separação das linhas; disparo no Faturado e emissão em aberto)
+**Implementado em:** _parcial_ — `Modules/NfeBrasil/Services/SeparacaoNotasDaVenda.php` · `Modules/NfeBrasil/Services/NfeService.php` · `Modules/NFSe/Http/Controllers/NfseController.php` · `Modules/NfeBrasil/Http/Controllers/NfeEmissaoController.php` · `resources/js/Pages/Sells/_components/FiscalSection.tsx` · `Modules/NfeBrasil/Tests/Feature/EmissaoSeparadaContratoTest.php` (emissão das duas notas pelo botão do drawer; smoke em homologação e instalação em OS em aberto)
 
-**Testado em:** `Modules/NfeBrasil/Tests/Feature/SeparacaoNotasDaVendaContratoTest.php` (lane `nfebrasil-pest.yml`)
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/SeparacaoNotasDaVendaContratoTest.php` · `Modules/NfeBrasil/Tests/Feature/EmissaoSeparadaContratoTest.php` (lane `nfebrasil-pest.yml`)
 
 Como faturista, quero que a venda ou OS com mercadoria e serviço saia em duas notas — NF-e com as mercadorias e NFS-e com os serviços —, decididas pela natureza fiscal de cada produto, para não ter a NF-e recusada inteira nem a NFS-e com código de serviço errado.
 
@@ -1623,12 +1667,12 @@ Como faturista, quero que a venda ou OS com mercadoria e serviço saia em duas n
 US-NFE-060 cobre só o job de emissão da NFS-e (modelo 56, STUB); esta US cobre a divisão por natureza e o código de serviço por item. UC-FLX-27 ("Uma OS, duas notas") é o caso de OS da mesma divisão.
 
 **Aceite:**
-- [x] **Separar as linhas** (2026-10-20, PR-1): `SeparacaoNotasDaVenda::separar` divide a venda em parte mercadoria e parte serviço pela natureza do produto, com o `codigo_servico` de cada linha de serviço; a soma das duas partes é o `final_total`, centavo a centavo (UC-FNFSE-06..09 em `resources/js/Pages/Fiscal/Nfse.casos.md`). Regra de rateio de desconto, frete e acréscimos em `SeparacaoNotasDaVenda::REGRA_RATEIO` — **proposta, pendente de decisão [W]**
-- [ ] Disparo no Faturado: a venda/OS faturada chama a separação e gera as duas notas (hoje `NfeService::recusarItensDeServico` segue recusando a NF-e com item de serviço, de propósito)
-- [ ] Emissão: a NF-e sai só com a parte mercadoria e a NFS-e só com a parte serviço, cada uma com o total da sua parte
-- [ ] A NFS-e usa o `codigo_servico` gravado na natureza do produto; o default do business só vale para produto sem natureza decidida
+- [x] **Separar as linhas** (2026-10-20, PR-1): `SeparacaoNotasDaVenda::separar` divide a venda em parte mercadoria e parte serviço pela natureza do produto, com o `codigo_servico` de cada linha de serviço; a soma das duas partes é o `final_total`, centavo a centavo (UC-FNFSE-06..09 em `resources/js/Pages/Fiscal/Nfse.casos.md`). Regra de rateio de desconto, frete e acréscimos em `SeparacaoNotasDaVenda::REGRA_RATEIO` — **decidida por [W] em 2026-10-21**: proporcional ao bruto, a parte serviço arredonda e a mercadoria absorve o centavo, frete inteiro na NF-e. [W] 2026-10-21, textual: *"Aprovo o rateio proporcional ao bruto com o frete na NF-e. Pode seguir no UC-27/31."*
+- [x] Disparo pela tela (2026-10-21, PR-2): o botão "Emitir NF-e + NFS-e" da seção Fiscal do drawer mostra as duas partes e, confirmado, emite a NF-e e depois a NFS-e (UC-FNFSE-10..12). A ação FSM "faturar" **não** dispara nota — emissão sempre por clique (charter Sells/Index). Sem a separação, `recusarItensDeServico` segue recusando a NF-e com serviço
+- [x] Emissão (2026-10-21, PR-2): a NF-e sai só com a parte mercadoria (`emitirParaTransaction(..., separada: true)`) e a NFS-e só com a parte serviço; o valor do corpo da requisição é ignorado
+- [x] A NFS-e da venda separada usa o `codigo_servico` gravado na natureza do produto (2026-10-21, PR-2); serviços com códigos diferentes recusam (uma NFS-e leva um código). A NFS-e avulsa e o `TransactionNfseObserver` seguem com o default do business
 - [ ] Item de instalação (natureza `servico`) vai para a NFS-e, mesmo numa OS com material
-- [ ] Produto com natureza `pendente` bloqueia o faturamento com mensagem que manda o contador decidir; não escolhe imposto sozinho (D-NATUREZA)
+- [x] Produto com natureza `pendente` bloqueia a emissão separada com mensagem que manda o contador decidir (2026-10-21, PR-2); não escolhe imposto sozinho (D-NATUREZA)
 - [ ] Multi-tenant: natureza de biz=1 nunca decide nota de biz=2 (Pest com os dois tenants); só quem tem permissão de emitir nota dispara a divisão (403 sem ela)
 - [ ] Smoke fiscal manual contra SEFAZ/Sefin só em biz=1, homologação
 
@@ -1667,9 +1711,18 @@ Como gestor, quero que a NF-e em contingência use o modo certo para a UF e tenh
 
 **Origem:** o resto da US-NFE-070 (2026-10-20). Não há chamada `sefazEPEC` nem `tpEmis` 6/7 no código.
 
+**Entregue em 2026-10-21 (parcial — a âncora segue `_pendente_` até a marcação no DANFE):** a escolha
+"Modo: SVC-AN · SVC-RS · EPEC" na seção Contingência SEFAZ de `/fiscal/config`, gravada em
+`nfe_business_configs.contingencia_modo` (`Modules/NfeBrasil/Services/ModoContingencia.php`); a ativação recusa a
+SEFAZ Virtual que não atende a UF do emitente (`ContingenciaService::ativar`); em SVC a NF-e sai com tpEmis 6/7 e
+é transmitida na hora com `Tools::$contingency` armado em SVCAN/SVCRS; em EPEC a nota fica guardada e o evento
+110140 vai ao AN (`NfeService::registrarEpec`), com falha registrada como evento `rejeitado` sem perder a nota.
+Casos: `resources/js/Pages/Fiscal/Nfe.casos.md` UC-FNFE-19, 20, 30, 31 · prova `ContingenciaModoTest` (lane
+`nfebrasil-pest`). Fica: a marcação de contingência no DANFE e o smoke em homologação.
+
 **Aceite:**
-- [ ] NF-e modelo 55 pode usar SVC-AN (`tpEmis=6`) ou SVC-RS (`tpEmis=7`) conforme a UF do emitente
-- [ ] Em EPEC (`tpEmis=4`) o evento 110140 é enviado e registrado antes da impressão do DANFE; o DANFE mostra a marcação de contingência
-- [ ] Multi-tenant: o evento de biz=1 nunca usa nota de biz=2 (Pest com os dois tenants)
+- [x] NF-e modelo 55 pode usar SVC-AN (`tpEmis=6`) ou SVC-RS (`tpEmis=7`) conforme a UF do emitente — UC-FNFE-19
+- [ ] Em EPEC (`tpEmis=4`) o evento 110140 é enviado e registrado antes da impressão do DANFE (feito — UC-FNFE-20/30); o DANFE mostra a marcação de contingência (pendente)
+- [x] Multi-tenant: o evento de um tenant nunca grava em outro (Pest com os tenants 98 e 2) — UC-FNFE-31
 - [ ] Smoke fiscal manual contra SEFAZ só em biz=1, homologação
 

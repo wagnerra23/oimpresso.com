@@ -89,6 +89,27 @@ last_run: "2026-09-05"
 
 ---
 
+## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
+
+- **[BACKLOG]** Limite de crédito também na OS (pedido de 2026-10-23) `[V0]` — Dado um cliente com
+  limite de 2.000,00 e 1.800,00 em aberto, Quando abro uma OS com custo estimado de 500,00, Então com a
+  empresa em "avisar" a OS abre com o aviso "passa 300,00 do limite"; em "bloquear" ela não abre. É a
+  mesma escolha da venda (`Sells/Create.casos.md`). Mexe em valor: Regra Mestre. Fonte: Omie (o limite
+  vale para OS, contrato e pedido); US-CRM-081.
+- **[BACKLOG]** OS de bem recebido para conserto com nota (pedido de 2026-10-23) — Dado um cliente
+  empresa que manda o equipamento com nota de remessa para conserto, Quando abro a OS, Então informo a
+  chave dessa nota e, na entrega, a nota de retorno sai ligada a ela, separada da cobrança do serviço.
+  CFOP de exemplo: 1.915 na entrada e 5.916 no retorno; o contador confirma. Fonte: UC-TRB-23 do
+  protótipo fiscal (falta).
+- **[BACKLOG]** Funcionário que executou cada serviço da OS (pedido de 2026-10-23) — Dado uma OS com
+  "troca de pneu" e "balanceamento", Quando cada serviço é feito por um mecânico diferente, Então
+  indico quem executou cada um, o nome sai na ficha da OS e na comissão. Hoje a OS tem um só "Técnico
+  responsável" (`service_staff`) e a OS da Oficina tem um só mecânico responsável
+  (`assigned_user_id`); nenhuma das duas registra quem fez cada serviço. A venda tem o caso irmão
+  (Sells/Create.casos.md).
+
+---
+
 ## Rastreabilidade
 
 | UC | Defendido por | Eixo |

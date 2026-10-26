@@ -764,7 +764,31 @@ class ProductController extends Controller
                     'local' => (string) $r->name, 'prateleira' => (string) ($r->rack ?? ''), 'fileira' => (string) ($r->row ?? ''), 'posicao' => (string) ($r->position ?? ''),
                 ])->values(),
             ],
-        ];
+            // UC-PIDX-29 (UC-FLX-07 · UC-FLX-08): o roteiro ligado ao produto, com o posto e o setor
+            // de cada etapa. null sem o módulo Produção ou sem roteiro. Só leitura.
+            'roteiro' => app()->bound(\App\Contracts\Producao\RoteiroDoProduto::class)
+                ? app(\App\Contracts\Producao\RoteiroDoProduto::class)->doProduto($business_id, $id)
+                : null,
+        ] + ($verPreco ? ['precos_propostos' => $this->precosPropostosDoProduto($business_id, $id)] : []);
+    }
+
+    /**
+     * UC-PIDX-28 (UC-FLX-17): preços propostos pela compra recebida que aguardam aprovação. A chave só
+     * vai para quem vê o preço de venda (gate da UC-PIDX-03). Só leitura: aprovar e recusar ficam no
+     * detalhe da compra (US-COM-028) — a consulta não altera preço (charter, Automation Anti-hooks).
+     * O link da compra só vai para quem pode abri-la (`purchase.view`).
+     *
+     * @return list<array<string, mixed>>
+     */
+    protected function precosPropostosDoProduto(int $business_id, int $id): array
+    {
+        if (! app()->bound(\App\Contracts\Compras\PropostasDePreco::class)) {
+            return [];
+        }
+        $abreCompra = (bool) auth()->user()->can('purchase.view');
+        $itens = app(\App\Contracts\Compras\PropostasDePreco::class)->pendentesDosProdutos($business_id, [$id])[$id] ?? [];
+
+        return array_map(fn (array $p): array => $p + ['compra_url' => $abreCompra ? '/purchases/' . $p['compra_id'] : null], $itens);
     }
 
     /**
@@ -1101,7 +1125,16 @@ class ProductController extends Controller
             : $f['per_page'];
         $pagina = $query->paginate($porPagina, ['*'], 'page', $f['page'])->withQueryString();
 
-        $pagina->through(function ($row) use ($podeVerCusto, $podeVerPreco, $is_woocommerce) {
+        // UC-PIDX-28 (UC-FLX-17): preços propostos pela compra recebida, aguardando aprovação, numa
+        // consulta só para a página. Só para quem vê o preço de venda; sem o módulo Compras, nada.
+        $propostas = $podeVerPreco && app()->bound(\App\Contracts\Compras\PropostasDePreco::class)
+            ? app(\App\Contracts\Compras\PropostasDePreco::class)->pendentesDosProdutos(
+                $business_id,
+                array_values(array_map('intval', $pagina->getCollection()->pluck('id')->all()))
+            )
+            : [];
+
+        $pagina->through(function ($row) use ($podeVerCusto, $podeVerPreco, $is_woocommerce, $propostas) {
             $controla = (bool) $row->enable_stock;
             $estoque = $controla ? (float) ($row->current_stock ?? 0) : null;
             $alerta = $row->alert_quantity === null ? null : (float) $row->alert_quantity;
@@ -1148,6 +1181,10 @@ class ProductController extends Controller
             if ($podeVerPreco) {
                 $linha['venda_min'] = (float) $row->min_price;
                 $linha['venda_max'] = (float) $row->max_price;
+                $pendentes = $propostas[(int) $row->id] ?? [];
+                $linha['preco_proposto'] = $pendentes === []
+                    ? null
+                    : ['quantidade' => count($pendentes), 'preco' => count($pendentes) === 1 ? $pendentes[0]['preco_proposto'] : null];
             }
 
             return $linha;

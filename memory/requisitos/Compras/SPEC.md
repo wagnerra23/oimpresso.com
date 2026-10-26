@@ -363,6 +363,8 @@ Como user, quero registrar recebimento parcial (qty recebida por linha diferente
 
 **Refs:** CAPTERRA C03 ❌. Líderes: Lightspeed/Shopify/Zoho.
 
+**Decisão (coordenação 2026-10-26, a partir da recomendação da frente Compras):** o recebimento parcial vai **pelo pedido de compra**, que o UltimatePOS já recebe em partes (`purchase_lines.po_quantity_purchased`, status `ordered → partial → completed` em `TransactionUtil::updatePurchaseOrderStatus`). Sem coluna nova: cada entrega vira uma compra ligada ao pedido, e o que falta fica no pedido. A tela React de compra passa a deixar escolher o pedido e mostra por linha Pedido / Já recebido / A receber. A opção do protótipo (quantidade recebida dentro da compra, com resíduo em trânsito, `CmpRecebimento` em `fsm-regras.jsx`) foi descartada porque mudaria quando o estoque entra. Mexe em estoque: regra mestre (dupla prova + antes→depois). Depende da US-COM-029 (trava entre empresas no mesmo caminho). O "autosave do check-in" do aceite acima sai do escopo desta US.
+
 ### US-COM-014 · FSM de estágios PERSISTIDA + auditável
 
 > owner: — · priority: p1 · estimate: M · status: todo · type: story · parent_plan: programa-ondas · tags: [capterra-gap, onda-2.1] · cycle: —
@@ -520,11 +522,11 @@ Como usuário de teclado/leitor de tela, quero o drawer acessível (WCAG 2.1 AA)
 
 Como quem orça e produz, quero saber quanto um insumo custava num dia qualquer, para que o orçamento e a OS guardem o custo daquele dia e uma compra nova não reescreva o passado. É a base dos casos UC-FLX-33 a 37 da tela de fluxos.
 
-**Implementado em:** `Modules/Compras/Services/CustoDoInsumoService.php` · `Modules/Compras/Database/Migrations/2026_10_20_000001_create_compras_insumo_metodo_custo_table.php` · `Modules/Compras/Entities/InsumoMetodoCusto.php` · `Modules/Compras/Tests/Feature/CustoDoInsumoServiceTest.php`
+**Implementado em:** `Modules/Compras/Services/CustoDoInsumoService.php` · `Modules/Compras/Database/Migrations/2026_10_20_000001_create_compras_insumo_metodo_custo_table.php` · `Modules/Compras/Entities/InsumoMetodoCusto.php` · `Modules/Compras/Tests/Feature/CustoDoInsumoServiceTest.php` · `Modules/Compras/Http/Controllers/InsumoMetodoCustoController.php` · `Modules/Compras/Tests/Feature/InsumoMetodoCustoEndpointTest.php` · `resources/js/Pages/Manufacturing/Insumos.tsx` · `Modules/Compras/Services/MetodoCustoDoProduto.php` · `Modules/Compras/Resources/views/partials/metodo_custo_produto.blade.php` · `Modules/Compras/Tests/Feature/MetodoCustoNoCadastroDoProdutoTest.php`
 
 - Fonte: `purchase_lines` + `transactions.transaction_date`. O histórico já existia; `variations.dpp_inc_tax` guarda só o último preço.
 - Método: o da regra "Atualizar o custo dos insumos" da empresa (`RegrasCompra`, `metodo`), padrão `medio`.
-- Regra `por_insumo`: cada insumo diz o seu método na tabela-ponte `compras_insumo_metodo_custo` (`variations` é core, não ganha coluna). A tela para editar o método do insumo é follow-up.
+- Regra `por_insumo`: cada insumo diz o seu método na tabela-ponte `compras_insumo_metodo_custo` (`variations` é core, não ganha coluna). O método se escolhe na gaveta do insumo em `/manufacturing/insumos` (seção "Método de custo"), gravado por `PUT /compras/insumos/{variation}/metodo-custo` com `purchase.update`; variação de outra empresa responde 404. No cadastro do produto (formulário Blade de novo e de editar) o campo "Método de custo" vale para todas as variações, gravado pelo gancho `after_product_saved` do módulo; só aparece com o módulo Compras instalado (`system.compras_version`).
 - Só leitura: o serviço não grava nada.
 
 **Acceptance:**
@@ -535,7 +537,8 @@ Como quem orça e produz, quero saber quanto um insumo custava num dia qualquer,
 - [x] Tier 0: só compras da empresa pedida (teste com a mesma variação em outra empresa)
 - [x] Método `por_insumo`: usa o método gravado no insumo (`medio` ou `ultimo`); insumo sem método → custo nulo com o motivo
 - [x] Tier 0: o método que outra empresa deu ao mesmo insumo não vale
-- [ ] Tela para definir o método do insumo (drawer Insumos)
+- [x] Tela para definir o método do insumo (drawer Insumos)
+- [x] Campo no cadastro do produto, para item que não é ingrediente de receita (matéria-prima ou revenda)
 - [ ] Consumidores: orçamento (UC-FLX-33) e OS (UC-FLX-37) passam a usar o serviço
 
 ### US-COM-025 · Rastreio do rolo: em que OS cada fração da mídia foi usada (UC-FLX-18) — **P2**
@@ -585,16 +588,18 @@ Como dono que configurou a regra "Atualizar o custo dos insumos" na aba Fluxos, 
 - [x] Com a regra, compra pendente não muda custo nem preço (a edição de produto pela compra do core fica desligada)
 - [x] Empresa sem a regra gravada: o core segue como antes (teste do último preço)
 - [x] Tier 0: só variações da empresa da compra; a outra empresa não muda
-- [ ] Fila de aprovação das propostas (Fabricação / Pendências)
+- [ ] Fila de aprovação das propostas — a do recebimento é a US-COM-028; Fabricação e Pendências seguem abertas
 
 ### US-COM-027 · Estoque mínimo vira requisição de compra (UC-FLX-19) — **P2**
 
-> owner: — · priority: p2 · estimate: 3h · status: doing · type: story
+> owner: — · priority: p2 · estimate: 3h · status: done · type: story
 > blocked_by: —
 
 Como quem compra, quero que o item que caiu abaixo do mínimo no local apareça sozinho numa requisição de compra, com a quantidade que falta, para não depender de alguém lembrar de olhar o relatório de alerta.
 
-**Implementado em:** _pendente_ — parcial em 2026-10-20: o job diário (`RequisicaoEstoqueMinimoJob` + comando `compras:requisicao-estoque-minimo`, desligado por padrão em `business.common_settings`) gera a requisição do núcleo por local; falta o fornecedor da última compra na requisição e a tela para ligar a regra. A âncora vira path quando a US fechar (ADR 0273 + doneness-lint).
+**Implementado em:** `Modules/Compras/Services/RequisicaoEstoqueMinimoService.php` — job diário (`RequisicaoEstoqueMinimoJob` + `compras:requisicao-estoque-minimo`), ligado na tela Fluxos (`app/Http/Controllers/FluxosController.php` · `requisicaoEstoqueMinimo`, interface `app/Contracts/Compras/RequisicaoEstoqueMinimo.php`); fornecedor visível em `resources/js/Pages/PurchaseRequisition/Index.tsx`.
+
+**Testado em:** `Modules/Compras/Tests/Feature/RequisicaoEstoqueMinimoContratoTest.php` (@covers-us US-COM-027 · UC-REQMIN-01..08). A coluna Fornecedor (UC-REQC-06) e o interruptor em Fluxos (UC-FLXT-24) são provados nos testes de contrato das respectivas telas.
 
 **Origem:** UC-FLX-19 da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php:72`, "Abaixo do mínimo → Cria a requisição com o fornecedor da última compra", fonte Mubisys, planejado). O que já existia (medido 2026-10-20):
 
@@ -608,14 +613,92 @@ Como quem compra, quero que o item que caiu abaixo do mínimo no local apareça 
 - [x] Desligado por padrão (`business.common_settings['compras_requisicao_estoque_minimo']`). _(UC-REQMIN-04)_
 - [x] Não cria pedido de compra e não move estoque. _(UC-REQMIN-05)_
 - [x] Tier 0: job recebe `$businessId`; produto e local de outro business nunca entram. _(UC-REQMIN-06, 98 × 99)_
-- [ ] A requisição sai com o fornecedor da última compra do item (a requisição do núcleo não tem fornecedor hoje — decidir onde guardar).
-- [ ] Tela para ligar/desligar a regra, com permissão de Compras.
+- [x] A requisição sai com o fornecedor e o preço da última compra recebida do item: o fornecedor vai em `transactions.contact_id`, então há uma requisição automática por local **e fornecedor**; item nunca comprado fica numa sem fornecedor, com preço 0. A lista de requisições ganha a coluna Fornecedor. _(UC-REQMIN-07/08 · UC-REQC-06)_
+- [x] Tela para ligar/desligar a regra: card Compra da aba Fluxos da empresa (`/fluxos?aba=empresa`), com `fluxos.configurar` — a permissão das outras regras da empresa nessa tela, não uma de Compras. _(UC-FLXT-24)_
+
+### US-COM-030 · MRP: necessidade de compra somando todas as OS, com prazo do fornecedor — **P1**
+
+> owner: — · priority: p1 · status: todo · type: story
+> blocked_by: —
+
+Como comprador, quero ver numa lista só quanto falta de cada insumo somando todas as OS abertas e o estoque mínimo, por local, e até quando preciso pedir pelo prazo de entrega do fornecedor, para não comprar OS por OS nem descobrir a falta quando a OS já está parada.
+
+**Implementado em:** _pendente_
+
+- Origem: lacunas de 2026-10-25 (P1 Compras). Ordem MRP → cotação → qualidade e desenho ancorado no DS e no padrão de tela: **decisão coordenação 2026-10-26**.
+- Reaproveita a falta de material por OS (`Modules/Producao/Services/FaltaDeMaterialDaOs.php`) e o estoque mínimo que já vira requisição (US-COM-027, `RequisicaoEstoqueMinimoService`). Não cria um segundo cálculo de falta.
+- Campo novo: prazo de entrega em dias por (produto, fornecedor), por empresa. Data para pedir = data em que a primeira OS precisa do insumo − prazo do fornecedor.
+- Daqui sai a requisição de compra (e, depois, a cotação da US-COM-031).
+- Tier 0: tudo filtrado pela empresa do usuário.
+
+### US-COM-031 · Cotação de compra entre fornecedores — **P1**
+
+> owner: — · priority: p1 · status: todo · type: story
+> blocked_by: US-COM-030
+
+Como comprador, quero pedir preço e prazo a vários fornecedores para os itens de uma requisição, comparar as respostas lado a lado e transformar a melhor em pedido de compra, para não decidir pela memória nem por telefone.
+
+**Implementado em:** _pendente_
+
+- Origem: lacunas de 2026-10-25 (P1 Compras). Decisão coordenação 2026-10-26 (ordem e desenho).
+- Itens podem vir da requisição de compra ou de outro módulo: a frente Verticais (Oficina, "catálogo de peças por veículo com cotação") vai consumir esta mesma cotação, sem criar uma própria (combinado em 2026-10-26).
+- A cotação vencedora vira `transactions.type = purchase_order` pelo fluxo existente, e o pedido entra no recebimento parcial (US-COM-013).
+
+### US-COM-032 · Aprovação do pedido de compra por alçada de valor — **P2**
+
+> owner: — · priority: p2 · status: todo · type: story
+> blocked_by: —
+
+Como dono, quero que o pedido de compra acima do limite de quem o fez espere a aprovação de gerente ou diretoria, com os limites de valor configurados pela minha empresa, para que compra grande não saia sem alguém ver.
+
+**Implementado em:** _pendente_
+
+- **Decisão [W] 2026-10-26:** a alçada fica **no pedido de compra**, com limites de valor configuráveis por empresa (comprador, gerente, diretoria). Tira da seção 9.1 o item "Aprovação / workflow multi-nível (alçada)".
+- O protótipo de Fluxos já põe a alçada em Requisição → Pedido (`prototipo-ui/cowork/Wagner/fluxos-processos.jsx`).
+- Hoje o pedido nasce sem passo de aprovação (`PurchaseOrderController@store`).
+
+### US-COM-033 · Avaliação automática do fornecedor por entrega — **P3**
+
+> owner: — · priority: p3 · status: todo · type: story
+> blocked_by: US-COM-013
+
+Como comprador, quero ver por fornecedor quantas entregas chegaram no prazo e completas, calculado das entregas registradas, para escolher fornecedor com dado e não com impressão.
+
+**Implementado em:** _pendente_
+
+- **Decisão coordenação 2026-10-26:** automática, derivada do recebimento parcial pelo pedido (US-COM-013), sem nota digitada. Tira da seção 9.1 o item "Supplier scorecard".
+- Prazo cumprido: data da compra que recebe × data de entrega prevista do pedido. Completa: soma recebida × soma pedida por linha.
+
+### US-COM-028 · Aprovar ou recusar o preço proposto no detalhe da compra (UC-FLX-17) — **P1**
+
+> owner: wagner · priority: p1 · estimate: 3h · status: doing · type: story
+
+Como dono que deixou a regra de custo em "Propõe novo preço", quero ver no detalhe da compra recebida os preços propostos e aprovar ou recusar cada um, para que a proposta não fique esquecida numa tabela que ninguém lê.
+
+**Implementado em:** _pendente_ — código no PR #9714 (serviço `PropostasDePreco`, `PropostasPrecoController`, seção `PrecosPropostos` no detalhe da compra e o `PropostasDePrecoContratoTest`), ainda sem veredito da lane `compras-pest`. A âncora vira path quando o teste ficar verde e a US fechar (ADR 0273 + doneness-lint ADR 0302: `doing` com path conflita).
+
+**Testado em:** `Modules/Compras/Tests/Feature/PropostasDePrecoContratoTest.php`
+
+- Origem: a US-COM-026 grava as propostas em `compras_propostas_preco`, sem lista nem decisão. A regra tem o parâmetro `aprovacao` (`recebimento` padrão · `fabricacao` · `pendencias`); esta US faz o `recebimento`.
+- Aprovar: preço com imposto = `preco_proposto`; sem imposto = com imposto × 100 / (100 + imposto do produto); margem = (preço sem imposto − custo sem imposto atual) / custo × 100. Dá o mesmo resultado do `aplicar` no recebimento. Recusar não mexe na variação.
+- Só aprova se o preço da variação ainda é o `preco_antes` da proposta; se mudou depois, a tela mostra e só deixa recusar.
+- Exige `product.update`. Tier 0: proposta e variação filtradas pela empresa do usuário; proposta de outra empresa = 404.
+- Enquanto `aprovacao` for `fabricacao` ou `pendencias`, a fila aparece aqui com aviso de que o lugar configurado ainda não existe.
+- Regra em Conferido: a compra não tem essa etapa e o recebimento não aplica nada; o detalhe da compra avisa. Tratar a etapa é outro PR.
+
+**Aceite:**
+- [x] Detalhe da compra lista as propostas com custo e preço antes/depois e o status
+- [x] Aprovar grava o preço proposto e devolve a margem de antes (dois caminhos no teste)
+- [x] Recusar mantém o preço; preço mudado depois da proposta bloqueia a aprovação
+- [x] Sem `product.update` = 403; outra empresa = 404
+- [x] Aviso na tela quando a regra está em Conferido
+- [ ] Fila na Fabricação (`aprovacao = fabricacao`) e nas Pendências da Visão geral
 
 ### 9.1 Seguradas (feature-wish ADR 0105 — NÃO no backlog ativo)
 
 Sem dor reportada por cliente / sinal qualificado, estas **não** viram US ativa (ADR 0105 — cliente como sinal). Ficam catalogadas como wish, reabrem com sinal:
 
 - **3-way match (PO↔Recebimento↔NF-e)** (C05, P0-teto) — só com overpayment reportado; depende US-COM-003+013.
-- **Supplier scorecard (OTIF/lead-time/defect/fill-rate)** (C11, P1) — sem dor reportada.
-- **Aprovação / workflow multi-nível (alçada)** (C12, P1) — PME loja (Larissa) pode não precisar.
+- ~~**Supplier scorecard (OTIF/lead-time/defect/fill-rate)** (C11, P1) — sem dor reportada.~~ → ativa como US-COM-033 (decisão coordenação 2026-10-26).
+- ~~**Aprovação / workflow multi-nível (alçada)** (C12, P1) — PME loja (Larissa) pode não precisar.~~ → ativa como US-COM-032 (decisão [W] 2026-10-26).
 - **Atalhos de teclado com handlers** (C19, P3) — declarados no footer sem funcionar; Larissa não é power-user (risco de expectativa frustrada baixa prioridade).

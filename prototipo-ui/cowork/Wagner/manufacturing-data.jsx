@@ -54,7 +54,7 @@ const GRUPOS = ["Substrato", "Tinta", "Acabamento", "Estrutura", "Aplicação", 
 
 const RECIPES = [
   { id: 1, name: "Banner lona 440g — acabado", sku: "MFG-0001", cat: "Comunicação visual", sub: "Banner", qtd: 10, un: "m²",
-    waste: 4, extra: 18, custoTipo: "fixo", venda: 62.00, atualizado: "hoje 08:12", produto: "PROD-BAN-440",
+    extra: 18, custoTipo: "fixo", venda: 62.00, atualizado: "hoje 08:12", produto: "PROD-BAN-440",
     subUn: "m linear", subFator: 1.5,
     grupos: [
       { g: "Substrato", itens: [{ sku: "INS-004", q: 10.4 }] },
@@ -62,46 +62,46 @@ const RECIPES = [
       { g: "Acabamento", itens: [{ sku: "INS-014", q: 0.028, subUn: "cx (500 un)", mult: 500 }, { sku: "INS-031", q: 2 }] },
     ] },
   { id: 2, name: "Adesivo vinil recortado", sku: "MFG-0002", cat: "Comunicação visual", sub: "Adesivo", qtd: 5, un: "m²",
-    waste: 12, extra: 8, custoTipo: "percentual", venda: 78.00, atualizado: "hoje 08:12", produto: "PROD-ADE-REC",
+    extra: 8, custoTipo: "percentual", venda: 78.00, atualizado: "hoje 08:12", produto: "PROD-ADE-REC",
     grupos: [
       { g: "Substrato", itens: [{ sku: "PROD-022", q: 5.6 }] },
       { g: "Tinta", itens: [{ sku: "INS-022", q: 0.14 }] },
       { g: "Acabamento", itens: [{ sku: "INS-041", q: 5.6 }, { sku: "INS-055", q: 0.05 }] },
     ] },
   { id: 3, name: "Fachada ACM 3mm — módulo 1m²", sku: "MFG-0003", cat: "Comunicação visual", sub: "Fachada", qtd: 1, un: "m²",
-    waste: 8, extra: 45, custoTipo: "fixo", venda: 480.00, atualizado: "ontem 17:40", produto: "PROD-ACM-MOD",
+    extra: 45, custoTipo: "fixo", venda: 480.00, atualizado: "ontem 17:40", produto: "PROD-ACM-MOD",
     grupos: [
       { g: "Estrutura", itens: [{ sku: "INS-060", q: 1.1 }, { sku: "INS-062", q: 3.2 }] },
       { g: "Aplicação", itens: [{ sku: "PROD-022", q: 1.1 }, { sku: "INS-070", q: 18 }] },
     ] },
   { id: 4, name: "Placa PS 2mm A3", sku: "MFG-0004", cat: "Comunicação visual", sub: "Placa", qtd: 20, un: "un",
-    waste: 3, extra: 0, custoTipo: "fixo", venda: 24.00, atualizado: "hoje 08:12", produto: "PROD-PLA-A3",
+    extra: 0, custoTipo: "fixo", venda: 24.00, atualizado: "hoje 08:12", produto: "PROD-PLA-A3",
     subUn: "cx (10 un)", subFator: 0.1,
     grupos: [
       { g: "Substrato", itens: [{ sku: "INS-081", q: 3.1 }] },
       { g: "Aplicação", itens: [{ sku: "PROD-023", q: 3.1 }] },
     ] },
   { id: 5, name: "Camiseta DTF — estampa A4", sku: "MFG-0005", cat: "Têxtil", sub: "Camiseta", qtd: 1, un: "un",
-    waste: 6, extra: 12, custoTipo: "percentual", venda: 59.90, atualizado: "hoje 07:55", produto: "PROD-CAM-DTF",
+    extra: 12, custoTipo: "percentual", venda: 59.90, atualizado: "hoje 07:55", produto: "PROD-CAM-DTF",
     grupos: [
       { g: "Peça", itens: [{ sku: "PROD-310", q: 1 }] },
       { g: "Estampa", itens: [{ sku: "INS-092", q: 1 }, { sku: "INS-093", q: 0.012 }] },
     ] },
   { id: 6, name: "Caneca sublimada 325ml", sku: "MFG-0006", cat: "Brindes", sub: "Caneca", qtd: 1, un: "un",
-    waste: 5, extra: 1.8, custoTipo: "unidade", venda: 34.90, atualizado: "12/08 16:20", produto: "PROD-CAN-325",
+    extra: 1.8, custoTipo: "unidade", venda: 34.90, atualizado: "12/08 16:20", produto: "PROD-CAN-325",
     grupos: [
       { g: "Peça", itens: [{ sku: "PROD-402", q: 1 }] },
       { g: "Estampa", itens: [{ sku: "INS-101", q: 1 }, { sku: "INS-102", q: 0.004 }] },
     ] },
   { id: 7, name: "Lona blackout 2 faces 3x1m", sku: "MFG-0007", cat: "Comunicação visual", sub: "Banner", qtd: 3, un: "m²",
-    waste: 4, extra: 22, custoTipo: "fixo", venda: 96.00, atualizado: "hoje 08:12", produto: "PROD-BAN-BLK",
+    extra: 22, custoTipo: "fixo", venda: 96.00, atualizado: "hoje 08:12", produto: "PROD-BAN-BLK",
     grupos: [
       { g: "Substrato", itens: [{ sku: "PROD-201", q: 3.2 }] },
       { g: "Tinta", itens: [{ sku: "INS-022", q: 0.13 }] },
       { g: "Acabamento", itens: [{ sku: "INS-014", q: 10 }] },
     ] },
   { id: 8, name: "Wind banner 2,8m — kit", sku: "MFG-0008", cat: "Comunicação visual", sub: "Estrutura", qtd: 1, un: "un",
-    waste: 0, extra: 0, custoTipo: "fixo", venda: 320.00, atualizado: "05/08 11:02", produto: "PROD-WND-28",
+    extra: 0, custoTipo: "fixo", venda: 320.00, atualizado: "05/08 11:02", produto: "PROD-WND-28",
     grupos: [
       { g: "Estrutura", itens: [{ sku: "INS-120", q: 1 }, { sku: "INS-121", q: 1 }] },
       { g: "Tecido", itens: [{ sku: "INS-122", q: 2.4 }] },
@@ -139,7 +139,10 @@ function custos(r) {
     : r.custoTipo === "unidade" ? Number(r.extra || 0) * Number(r.qtd || 0)
     : Number(r.extra || 0);
   const total = ing + extra;
-  const qtdLiq = r.qtd - r.qtd * (r.waste / 100);
+  // Decisão [W], confirmada por Felipe com o Wagner em 23/10: desperdício é somente na Produção (D4).
+  // A receita não tem % de desperdício; a perda real vai para a ordem. O custo unitário não muda:
+  // ele sempre dividiu pela quantidade produzida.
+  const qtdLiq = r.qtd;
   const unit = r.qtd > 0 ? total / r.qtd : 0;
   const margem = r.venda > 0 ? (r.venda - unit) / r.venda * 100 : 0;
   return { ing, extra, total, qtdLiq, unit, margem };

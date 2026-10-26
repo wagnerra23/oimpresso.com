@@ -33,9 +33,9 @@
 // defeito de medição, que é a LC-33.
 //
 // ── O QUE ELE NÃO AFIRMA ─────────────────────────────────────────────────────────────────
-// Verde aqui NÃO é "está igual ao design" (T7). T7 exige a fonte provada fresca
-// (`cowork-mirror-freshness --compare <snap>`, que precisa de `DesignSync.get_file` — auth
-// interativa, ADR 0315: NÃO roda em CI) + `design-diff --compare --check` nos dois renders.
+// Verde aqui NÃO é "está igual ao design" (T7). T7 exige `design-diff --compare --check` nos dois
+// renders, com o lado design vindo do arquivo do git (a fonte desde a ADR 0438; até 2026-10-23
+// também exigia provar o espelho fresco contra o Cowork vivo).
 // Este gate responde outra pergunta, e só ela: "o render ainda tem os slots que o alvo declara?"
 //
 // Uso:

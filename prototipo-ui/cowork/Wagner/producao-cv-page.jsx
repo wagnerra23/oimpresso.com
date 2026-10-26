@@ -1,6 +1,6 @@
 // producao-cv-page.jsx — módulo Produção (comunicação visual): a OS como projeto.
 // Vistas: Painel do gestor · Quadro por setor · Linha do tempo por máquina · Custo real × orçado ·
-// Instalação · Apontamento (celular) · Roteiros. A ficha da OS (projeto) abre em drawer PT-02 de 760px.
+// Instalação · Apontamento (celular) · Roteiros · Postos e cadastros. A ficha da OS (projeto) abre em drawer PT-02 de 760px.
 // Diferenciais sobre o Mubisys (grade 33-grade-producao-concorrentes.md): quadro + linha do tempo, custo real × orçado,
 // refugo com motivo, instalação com foto e assinatura, aprovação de arte online, encaixe na bobina, alerta de gargalo.
 // Casos de uso e como testar: cowork-inbox/producao/Producao.casos.md (UC-PCV-01..28).
@@ -15,6 +15,7 @@ const VISTAS = [
   { key: "painel", label: "Painel" }, { key: "quadro", label: "Quadro" }, { key: "linha", label: "Linha do tempo" },
   { key: "custo", label: "Custo real × orçado" }, { key: "instalacao", label: "Instalação" },
   { key: "apontamento", label: "Apontamento" }, { key: "roteiros", label: "Roteiros" },
+  { key: "postos", label: "Postos e cadastros" },
 ];
 const PRIO = { urgente: ["Urgente", "danger"], alta: ["Alta", "warning"], normal: ["Normal", "neutral"] };
 const ARTE = { aprovada: ["Arte aprovada", "success"], aguardando: ["Aguardando cliente", "warning"], ajuste: ["Ajuste pedido", "danger"] };
@@ -218,34 +219,55 @@ function Quadro({ onAbrir, f, setF }) {
 // ── Linha do tempo por máquina ──
 // Arrastar um bloco: na horizontal muda o horário (encaixa de 15 em 15 min); para outra linha, só para máquina
 // do MESMO setor (impressão ↔ impressão). Teclado: foco no bloco + Alt+←/→ (15 min) e Alt+↑/↓ (máquina do setor).
-// Recusa sobreposição; passar das 18h marca estouro; bloco travado por arte move, mas segue travado.
+// Regras de Fluxos que valem aqui (main, 2026-10-19..21), na mesma ordem em que o `mover` confere:
+//   · só etapa que NÃO começou se reprograma (alocador UC-FLX-10): concluída e em andamento ficam fixas, com o motivo;
+//   · outro setor não aceita; choque com outro bloco recusa e diz com qual OS;
+//   · máquina com operadores cadastrados (UC-FLX-08): se o responsável não opera a de destino, pergunta quem faz;
+//   · o estouro é o fim do turno DA EMPRESA (pcp_turnos), e a carga vira gargalo contra a capacidade do POSTO;
+//   · passar da entrega prometida ao cliente (US-PCP-028) move, mas avisa, como o estouro de turno;
+//   · bloco travado por arte ou por falta de material (D3) move, mas segue travado.
 const SNAP = 0.25;
 function Linha({ onAbrir, f, setF }) {
   const D = P(); const { Alert, Segmented, Button, Widget } = DS();
+  const T = D.TURNO;
   const eventos = useEventos();
   const [maqEv, setMaqEv] = useState(null);
   const [dia, setDia] = useState("hoje");
-  const [ag, setAg] = useState(() => ({ hoje: D.AGENDA.map((b, k) => ({ ...b, k })), amanha: D.AGENDA_AMANHA.map((b, k) => ({ ...b, k: 100 + k })) }));
+  const [ag, setAg] = useState(() => ({ hoje: D.AGENDA.map((b, k) => ({ ...b, k })), proximo: D.AGENDA_AMANHA.map((b, k) => ({ ...b, k: 100 + k })) }));
   const [aplicado, setAplicado] = useState(false);
   const [msg, setMsg] = useState(null);
+  const [escolha, setEscolha] = useState(null);
   const [arr, setArr] = useState(null);
   const H0 = 8, H1 = 19, horas = Array.from({ length: H1 - H0 + 1 }, (_, i) => H0 + i);
   const pos = (h) => ((h - H0) / (H1 - H0)) * 100;
   const agoraH = 11.3;
   const blocos = ag[dia];
+  const diaIso = D.DIAS[dia].iso;
   const visiveis = blocos.filter((b) => { const o = D.osDe(b.os); return !o || passa(D, o, f); });
   const hhmm = (h) => String(Math.floor(h)).padStart(2, "0") + ":" + String(Math.round((h % 1) * 60)).padStart(2, "0");
-  const mover = (k, maqId, ini, origem) => {
+  // Responsável da etapa do bloco: o que o bloco já carrega (depois de uma troca) ou o da etapa da OS naquela máquina.
+  const respDe = (b) => { if (b.resp) return b.resp; const o = D.osDe(b.os); const e = o && D.etapas(o).find((x) => x.maq === b.maq && x.estado !== "feito"); return e ? e.resp : D.maqDe(b.maq).operador; };
+  const travaDe = (b) => [b.bloqueio, b.material].filter(Boolean).join(" · ");
+  // Entrega prometida: terminar depois do fim do turno no dia prometido (ou em dia posterior) atrasa a entrega.
+  const passaDaPromessa = (b, nf) => { const o = D.osDe(b.os); return o && (diaIso > o.prazo || (diaIso === o.prazo && nf > T.fim)) ? o.prazo : null; };
+  const mover = (k, maqId, ini, origem, respEscolhido) => {
     const b = blocos.find((x) => x.k === k); if (!b) return false;
     const mOrig = D.maqDe(b.maq), mDest = D.maqDe(maqId);
+    if (b.estado !== "fila") { setMsg({ tone: "warn", t: b.os + " " + (b.estado === "feito" ? "já foi concluída" : "já começou") + " em " + mOrig.nome + ": só a etapa que ainda não começou se reprograma." + (b.estado === "andamento" ? " Para mudar, o operador pausa ou conclui no apontamento." : "") }); return false; }
     if (mDest.setor !== mOrig.setor) { setMsg({ tone: "warn", t: "Não dá para levar " + b.os + " para " + mDest.nome + ": é de outro setor (" + D.setorDe(mDest.setor).nome + ")." }); return false; }
     const dur = b.fim - b.ini; let ni = Math.max(H0, Math.min(H1 - dur, Math.round(ini / SNAP) * SNAP)); const nf = ni + dur;
     const choca = blocos.find((x) => x.k !== k && x.maq === maqId && ni < x.fim && nf > x.ini);
     if (choca) { setMsg({ tone: "warn", t: "Choca com " + choca.os + " (" + hhmm(choca.ini) + "–" + hhmm(choca.fim) + ") em " + mDest.nome + ". Escolha outro horário." }); return false; }
-    const conf = nf > 18 ? "termina " + hhmm(nf) + " — passa do turno (18h)" : null;
-    setAg({ ...ag, [dia]: blocos.map((x) => x.k === k ? { ...x, maq: maqId, ini: ni, fim: nf, conflito: conf, movido: true } : x) });
-    D.registrar({ os: b.os, tipo: "pcp", maq: maqId, texto: "Reprogramou " + (maqId !== b.maq ? "de " + mOrig.nome + " para " + mDest.nome + ", " : "") + hhmm(ni) + "–" + hhmm(nf) + (origem === "teclado" ? " (teclado)" : "") + (conf ? " — passa do turno" : "") });
-    setMsg(conf ? { tone: "danger", t: b.os + " agora passa do turno em " + mDest.nome + "." } : { tone: "success", t: b.os + " reprogramada: " + mDest.nome + ", " + hhmm(ni) + "–" + hhmm(nf) + ". " + mDest.operador + " foi avisado no app." });
+    const resp = respEscolhido || respDe(b);
+    if (maqId !== b.maq && mDest.operadores.length && !mDest.operadores.includes(resp)) { setEscolha({ k, maqId, ini: ni, origem, resp, opcoes: mDest.operadores }); setMsg(null); return false; }
+    const turno = nf > T.fim ? "termina " + hhmm(nf) + " — passa do fim do turno (" + hhmm(T.fim) + ")" : null;
+    const promessa = passaDaPromessa(b, nf);
+    const conf = [turno, promessa ? "passa da entrega prometida (" + D.d2(promessa) + ")" : null].filter(Boolean).join(" · ") || null;
+    setAg({ ...ag, [dia]: blocos.map((x) => x.k === k ? { ...x, maq: maqId, ini: ni, fim: nf, conflito: conf, movido: true, resp } : x) });
+    setEscolha(null);
+    D.registrar({ os: b.os, tipo: "pcp", maq: maqId, texto: "Reprogramou " + (maqId !== b.maq ? "de " + mOrig.nome + " para " + mDest.nome + ", " : "") + hhmm(ni) + "–" + hhmm(nf) + (resp !== respDe(b) ? " · responsável " + resp : "") + (origem === "teclado" ? " (teclado)" : "") + (conf ? " — " + conf : "") });
+    const aviso = resp + (resp !== respDe(b) ? " passa a responder pela etapa e recebeu o aviso no app." : " recebeu o aviso no app.");
+    setMsg(conf ? { tone: "danger", t: b.os + " em " + mDest.nome + ", " + hhmm(ni) + "–" + hhmm(nf) + ": " + conf + ". " + aviso } : { tone: "success", t: b.os + " reprogramada: " + mDest.nome + ", " + hhmm(ni) + "–" + hhmm(nf) + ". " + aviso });
     return true;
   };
   const aplicar = (sim) => {
@@ -257,7 +279,7 @@ function Linha({ onAbrir, f, setF }) {
   };
   const arrRef = React.useRef(null);
   const pegarBloco = (e, b) => {
-    if (e.button !== 0 || b.estado === "feito") return;
+    if (e.button !== 0 || b.estado !== "fila") return;
     const track = e.currentTarget.parentElement; const w = track.getBoundingClientRect().width;
     e.preventDefault(); document.body.classList.add("pcv-arrastando"); window.getSelection && window.getSelection().removeAllRanges();
     arrRef.current = { k: b.k, maq: b.maq, x0: e.clientX, ini0: b.ini, w, ini: b.ini, over: b.maq, moveu: false };
@@ -274,28 +296,33 @@ function Linha({ onAbrir, f, setF }) {
     if (e.key === "ArrowRight" || e.key === "ArrowLeft") { e.preventDefault(); mover(b.k, b.maq, b.ini + (e.key === "ArrowRight" ? SNAP : -SNAP), "teclado"); }
     if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); const alvo = mesmos[ix + (e.key === "ArrowDown" ? 1 : -1)]; if (alvo) mover(b.k, alvo.id, b.ini, "teclado"); }
   };
+  const bEsc = escolha && blocos.find((x) => x.k === escolha.k);
   return (
     <div className="pcv-body">
       <BarraFiltro f={f} setF={setF} />
       <div className="pcv-bar">
-        {Segmented && <Segmented size="sm" value={dia} onChange={(v) => { setDia(v); setMsg(null); }} options={[{ value: "hoje", label: "Hoje, 15/10" }, { value: "amanha", label: "Amanhã, 16/10" }]} />}
-        <span className="pcv-help">Arraste um bloco para mudar o horário ou levar para outra máquina do mesmo setor. No teclado: Alt + setas. Tracejado = travado por arte · borda vermelha = passa do turno (18h).</span>
+        {Segmented && <Segmented size="sm" value={dia} onChange={(v) => { setDia(v); setMsg(null); setEscolha(null); }} options={[{ value: "hoje", label: D.DIAS.hoje.rotulo }, { value: "proximo", label: D.DIAS.proximo.rotulo }]} />}
+        <span className="pcv-help">Arraste um bloco que ainda não começou para mudar o horário ou levar para outra máquina do mesmo setor. No teclado: Alt + setas. Tracejado = travado por arte ou falta de material · borda vermelha = passa do fim do turno ({T.rotulo}) ou da entrega prometida. O dia seguinte pula sábado, domingo e feriados.</span>
       </div>
-      {msg && Alert && <Alert tone={msg.tone} title={msg.tone === "warn" ? "Não movido" : msg.tone === "danger" ? "Movido, mas passa do turno" : "Movido"} onClose={() => setMsg(null)}>{msg.t}</Alert>}
-      <div className="pcv-gantt" role="table" aria-label={"Linha do tempo por máquina — " + (dia === "hoje" ? "hoje" : "amanhã")}>
+      {msg && Alert && <Alert tone={msg.tone} title={msg.tone === "warn" ? "Não movido" : msg.tone === "danger" ? "Movido, com aviso" : "Movido"} onClose={() => setMsg(null)}>{msg.t}</Alert>}
+      {escolha && bEsc && Alert && <Alert tone="info" title={"Quem faz na " + D.maqDe(escolha.maqId).nome + "?"} onClose={() => setEscolha(null)}>
+        {escolha.resp} não opera a {D.maqDe(escolha.maqId).nome}. Escolha um operador dela para levar {bEsc.os} ({hhmm(escolha.ini)}–{hhmm(escolha.ini + bEsc.fim - bEsc.ini)}); quem você escolher passa a responder pela etapa e recebe o aviso no app.
+        <div className="pcv-al-a">{escolha.opcoes.map((p) => Button && <Button key={p} size="sm" variant="primary" onClick={() => mover(escolha.k, escolha.maqId, escolha.ini, escolha.origem, p)}>{p}</Button>)}{Button && <Button size="sm" onClick={() => setEscolha(null)}>Cancelar</Button>}</div>
+      </Alert>}
+      <div className="pcv-gantt" role="table" aria-label={"Linha do tempo por máquina — " + D.DIAS[dia].rotulo}>
         <div className="pcv-g-row pcv-g-head" role="row"><div className="pcv-g-lab" role="columnheader">Máquina</div><div className="pcv-g-track" role="columnheader">{horas.map((h) => <span key={h} style={{ left: pos(h) + "%" }}>{String(h).padStart(2, "0")}h</span>)}</div></div>
         {D.MAQUINAS.map((m) => { const carga = visiveis.filter((b) => b.maq === m.id).reduce((s, b) => s + (b.fim - b.ini), 0); const pode = arr && D.maqDe(arr.maq).setor === m.setor; return (
           <div className={"pcv-g-row" + (arr ? (pode ? (arr.over === m.id ? " is-alvo is-sobre" : " is-alvo") : " is-fora") : "")} role="row" key={m.id} data-maq={m.id}>
-            <div className="pcv-g-lab" role="rowheader"><button className="pcv-g-maq" onClick={() => setMaqEv(m.id)} aria-label={"Ver eventos de " + m.nome}><b>{m.nome}</b></button><small>{m.cap} · {m.operador} · <span className={carga > 10 ? "pcv-late" : ""}>{D.h1(carga)} h</span></small></div>
+            <div className="pcv-g-lab" role="rowheader"><button className="pcv-g-maq" onClick={() => setMaqEv(m.id)} aria-label={"Ver eventos de " + m.nome}><b>{m.nome}</b></button><small>{m.cap} · {m.operadores.join(", ")} · <span className={m.horasDia && carga > m.horasDia ? "pcv-late" : ""}>{D.h1(carga)} de {D.h1(m.horasDia)} h</span></small></div>
             <div className="pcv-g-track" role="cell">
               {dia === "hoje" && <i className="pcv-g-now" style={{ left: pos(agoraH) + "%" }} aria-hidden="true" />}
-              <i className="pcv-g-fim" style={{ left: pos(18) + "%" }} aria-hidden="true" />
+              <i className="pcv-g-fim" style={{ left: pos(T.fim) + "%" }} aria-hidden="true" />
               {arr && arr.over === m.id && (() => { const b = blocos.find((x) => x.k === arr.k); const dur = b.fim - b.ini; return <i className="pcv-g-prev" style={{ left: pos(Math.max(H0, arr.ini)) + "%", width: (pos(Math.max(H0, arr.ini) + dur) - pos(Math.max(H0, arr.ini))) + "%" }} aria-hidden="true"><span>{hhmm(Math.max(H0, arr.ini))}</span></i>; })()}
-              {visiveis.filter((b) => b.maq === m.id).map((b) => { const o = D.osDe(b.os); return (
-                <button key={b.k} className={"pcv-g-blk is-" + b.estado + (b.bloqueio ? " is-bloq" : "") + (b.conflito ? " is-conf" : "") + (b.movido ? " is-mov" : "") + (arr && arr.k === b.k ? " is-arr" : "") + (b.estado !== "feito" ? " is-movel" : "")}
+              {visiveis.filter((b) => b.maq === m.id).map((b) => { const o = D.osDe(b.os); const trava = travaDe(b); const fixo = b.estado !== "fila"; return (
+                <button key={b.k} className={"pcv-g-blk is-" + b.estado + (trava ? " is-bloq" : "") + (b.conflito ? " is-conf" : "") + (b.movido ? " is-mov" : "") + (arr && arr.k === b.k ? " is-arr" : "") + (fixo ? "" : " is-movel")}
                   style={{ left: pos(b.ini) + "%", width: (pos(b.fim) - pos(b.ini)) + "%", "--c": D.setorDe(m.setor).cor }}
-                  aria-label={`${b.os}, ${o ? o.cliente : ""}, ${hhmm(b.ini)} a ${hhmm(b.fim)} em ${m.nome}${b.bloqueio ? ", " + b.bloqueio : ""}${b.conflito ? ", " + b.conflito : ""}. Enter abre; Alt+setas move.`}
-                  title={`${b.os} · ${hhmm(b.ini)}–${hhmm(b.fim)}${b.bloqueio ? " — " + b.bloqueio : ""}${b.conflito ? " — " + b.conflito : ""}`}
+                  aria-label={`${b.os}, ${o ? o.cliente : ""}, ${hhmm(b.ini)} a ${hhmm(b.fim)} em ${m.nome}, responsável ${respDe(b)}${trava ? ", " + trava : ""}${b.conflito ? ", " + b.conflito : ""}${fixo ? (b.estado === "feito" ? ", concluída" : ", em andamento, não se reprograma") : ""}. Enter abre${fixo ? "" : "; Alt+setas move"}.`}
+                  title={`${b.os} · ${hhmm(b.ini)}–${hhmm(b.fim)} · ${respDe(b)}${trava ? " — " + trava : ""}${b.conflito ? " — " + b.conflito : ""}`}
                   onPointerDown={(e) => pegarBloco(e, b)} onKeyDown={(e) => tecla(e, b)}
                   onClick={() => { if (window.__pcvArrastou) return; onAbrir(b.os); }}><b className="mono">{b.os}</b><span>{o ? o.cliente : ""}</span></button>); })}
             </div>
@@ -304,9 +331,12 @@ function Linha({ onAbrir, f, setF }) {
       {dia === "hoje" && Widget && <Widget title="Eventos das máquinas hoje" note={maqEv ? (D.maqDe(maqEv) || {}).nome : "todas as máquinas — clique numa máquina para filtrar"} actions={maqEv && <button className="pcv-link" onClick={() => setMaqEv(null)}>Ver todas</button>} flush>
         <Feed eventos={eventos.filter((e) => e.maq && e.quando.startsWith("15/10") && (!maqEv || e.maq === maqEv))} onAbrir={onAbrir} max={12} compacto vazio="Sem eventos desta máquina hoje." />
       </Widget>}
+      {dia === "hoje" && Alert && (() => { const b = blocos.find((x) => x.os === "OS-2619" && x.maq === "latex"); const junto = b && Math.abs(b.ini - 9.5) < 0.01; return junto
+        ? <Alert tone="success" title="Agrupado por mídia">OS-2619 entrou logo depois da OS-2603 na HP Latex, com a mesma Lona 440 g. Uma troca de mídia a menos (~12 min).</Alert>
+        : b && <Alert tone="info" title="Mesma mídia: dá para agrupar">OS-2603 e OS-2619 usam Lona 440 g na HP Latex. Programar a OS-2619 logo depois (09:30) evita uma troca de mídia (~12 min). Regra simples; o encaixe na bobina é da versão 2.<div className="pcv-al-a"><Button size="sm" onClick={() => mover(b.k, "latex", 9.5, "agrupar")}>Agrupar</Button></div></Alert>; })()}
       {dia === "hoje" && Alert && (aplicado
-        ? <Alert tone="success" title="Reprogramado">OS-2608 foi para a HP Latex 365 às 10:45. A Roland VG3-640 fecha o turno com 9,3 h e termina às 17h36. O Diego foi avisado no app.<div className="pcv-al-a"><Button size="sm" onClick={() => aplicar(false)}>Desfazer</Button></div></Alert>
-        : <Alert tone="info" title="Sugestão de reprogramação">Mover OS-2608 (1,1 h) da Roland VG3-640 para a HP Latex 365 às 10:45 tira a Roland do vermelho (10,4 h → 9,3 h) sem atrasar a fachada. Ou arraste o bloco você mesmo.<div className="pcv-al-a"><Button size="sm" variant="primary" onClick={() => aplicar(true)}>Aplicar</Button></div></Alert>)}
+        ? <Alert tone="success" title="Reprogramado">OS-2608 foi para a HP Latex 365 às 10:45. A Roland VG3-640 fecha o dia com 9,3 de 10 h e termina às 17h36. O Diego foi avisado no app.<div className="pcv-al-a"><Button size="sm" onClick={() => aplicar(false)}>Desfazer</Button></div></Alert>
+        : <Alert tone="info" title="Sugestão de reprogramação">Mover OS-2608 (1,1 h) da Roland VG3-640 para a HP Latex 365 às 10:45 tira a Roland do vermelho (10,4 h → 9,3 h, capacidade de 10 h no dia) sem atrasar a fachada. O Diego opera as duas, então o responsável não muda. Ou arraste o bloco você mesmo.<div className="pcv-al-a"><Button size="sm" variant="primary" onClick={() => aplicar(true)}>Aplicar</Button></div></Alert>)}
     </div>
   );
 }
@@ -338,6 +368,7 @@ function ProducaoCvPage({ view = "painel", estado = "dados" }) {
     : vista === "linha" ? <Linha onAbrir={setAberta} f={f} setF={setF} />
     : vista === "custo" && O.Custo ? <O.Custo onAbrir={setAberta} />
     : vista === "roteiros" && O.Roteiros ? <O.Roteiros />
+    : vista === "postos" && window.PcvPostos ? <window.PcvPostos.Postos />
     : vista === "instalacao" && C.Instalacao ? <C.Instalacao onAbrir={setAberta} />
     : vista === "apontamento" && C.Apontamento ? <C.Apontamento />
     : <p className="pcv-help" style={{ padding: 24 }}>Carregando…</p>;

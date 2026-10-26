@@ -2,7 +2,7 @@
 //   tela: /financeiro/dre
 //   module: Financeiro
 //   status: live
-//   stories: US-FIN-014a, US-FIN-014d (balanco), US-FIN-014e (balancete)
+//   stories: US-FIN-014a, US-FIN-014d (balanco), US-FIN-014e (balancete), US-FIN-070 (custeio)
 //   adrs: ui/0114, 0093, 0104, 0107, 0109
 //   tests: Modules/Financeiro/Tests/Feature/DreControllerTest, DreBalancoBalanceteTest
 //
@@ -20,6 +20,7 @@ import { useState, type ReactNode } from 'react';
 import { Download } from 'lucide-react';
 import { BalancoView, type BalancoData } from './_components/BalancoView';
 import { BalanceteView, type BalanceteData } from './_components/BalanceteView';
+import { CusteioView, type CusteioData } from './_components/CusteioView';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
 
@@ -58,7 +59,8 @@ interface LinhaSubtotal {
 type Linha = LinhaH | LinhaI | LinhaSubtotal;
 
 // Fase 4 (2026-05-21): tabs Demonstrativo / Balanço / Balancete
-type AbaAtiva = 'demonstrativo' | 'balanco' | 'balancete';
+// US-FIN-070 (2026-10-21): + Custeio (RKW e ponto de equilíbrio), só leitura.
+type AbaAtiva = 'demonstrativo' | 'balanco' | 'balancete' | 'custeio';
 
 // ---------- Props vindas do DreController (PR B) ----------
 
@@ -82,6 +84,7 @@ interface Props {
   aba?: AbaAtiva;
   balanco?: BalancoData | null;
   balancete?: BalanceteData | null;
+  custeio?: CusteioData | null;
 }
 
 // ---------- Helpers ----------
@@ -116,7 +119,7 @@ function TabSwitcher({ aba }: { aba: AbaAtiva }) {
     router.visit(`/financeiro/dre?aba=${alvo}`, {
       preserveScroll: true,
       replace: true,
-      only: ['aba', 'balanco', 'balancete'],
+      only: ['aba', 'balanco', 'balancete', 'custeio'],
     });
   };
 
@@ -124,6 +127,7 @@ function TabSwitcher({ aba }: { aba: AbaAtiva }) {
     { id: 'demonstrativo', label: 'Demonstrativo', hint: 'DRE' },
     { id: 'balanco', label: 'Balanço', hint: 'patrimonial' },
     { id: 'balancete', label: 'Balancete', hint: 'verificação' },
+    { id: 'custeio', label: 'Custeio', hint: 'ponto de equilíbrio' },
   ];
 
   return (
@@ -169,6 +173,7 @@ function FinanceiroDre({
   aba,
   balanco,
   balancete,
+  custeio,
 }: Props) {
   // F1: só "mes" funcional. Demais opções renderizam disabled com tooltip
   // "Em breve" (Q4 do visual-comparison; backlog US-FIN-DRE-PERIODOS).
@@ -189,7 +194,9 @@ function FinanceiroDre({
             ? 'Balanço Patrimonial'
             : abaAtiva === 'balancete'
               ? 'Balancete de Verificação'
-              : 'DRE / Relatórios')
+              : abaAtiva === 'custeio'
+                ? 'Custeio e ponto de equilíbrio'
+                : 'DRE / Relatórios')
         }
         subtitle={<>{meta.periodo_label} · {meta.business_name} · caixa unificado</>}
       >
@@ -231,6 +238,7 @@ function FinanceiroDre({
 
       {abaAtiva === 'balanco' && <BalancoView balanco={balanco ?? null} />}
       {abaAtiva === 'balancete' && <BalanceteView balancete={balancete ?? null} />}
+      {abaAtiva === 'custeio' && <CusteioView custeio={custeio ?? null} />}
 
       {abaAtiva === 'demonstrativo' && (
         <>

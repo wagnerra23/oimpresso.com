@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-10-19"
+last_run: "2026-10-23"
 ---
 
 > ℹ️ **`last_run` 2026-09-06 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
@@ -128,6 +128,16 @@ last_run: "2026-10-19"
 
 ---
 
+## UC-SIDX-06 · Totais do filtro abaixo da lista, com os números do servidor `[V0]` `[must]`
+- **Persona:** Larissa / Wagner — "quanto vendi neste período e quanto falta receber?" sem somar linha por linha nem montar relatório; no Delphi o total ficava ao pé do grid.
+- **Como usa:** filtra por período, busca ou pílula Paga/Pendente e lê, abaixo da lista, a quantidade de vendas, o **Pago**, o **A receber** e o **Total do filtro** — de todas as páginas, não só da que está aberta.
+- **Aceite:** Dado `/sells-list-json` devolvendo `totals` para o filtro · Quando a tela termina de carregar sem filtro que rode só no navegador · Então a barra mostra a quantidade e os três valores exatamente como o servidor mandou, em reais com centavos · E com visão salva diferente de "Todas", pílula Faturada/Cancelada ou filtro de origem (que filtram só a página carregada) a barra não mostra número e diz por quê · E em Rascunhos, durante a busca ou sem vendas, a barra não aparece.
+- **Âncora de contrato:** US-SELL-017 (totalizador do filtro inteiro, não da página) · **REGRA MESTRE valor/estoque** ([proibicoes.md](../../../../memory/proibicoes.md)) — a tela só exibe o número calculado no servidor, não soma nada · UC-SIDX-02 (o total do servidor não soma outra empresa) e UC-SIDX-05 (rascunho fora dos totais de faturado) · forma do protótipo `prototipo-ui/cowork/Wagner/vendas-page.jsx` (`vd-totalbar`).
+- **Teste:** `tests/js/sells-index-totais.test.tsx` — `UC-SIDX-06 …` (lane Vitest do `Frontend / Vite build`).
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane Vitest.
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão. Itens SEM token de UC até existir teste real.
@@ -136,11 +146,152 @@ last_run: "2026-10-19"
 - **[BACKLOG] Drawer da venda (documento vivo)** — clicar na linha abre o drawer com FSM/pagamentos; espelhar âncoras pós-DS v6.
 - **[BACKLOG] Imprimir resumo do caixa de hoje** — botão no header; exige stub de print (mesmo padrão UC-11 Oficina).
 
+### Pesquisa de concorrentes 2026-10-20 — núcleo e comunicação visual
+
+> Origem: pesquisa em 5 ERPs brasileiros e 7 sistemas de gráfica/comunicação visual, com fontes, em
+> [`memory/sessions/2026-10-20-pesquisa-consulta-venda-concorrentes-cv.md`](../../../../memory/sessions/2026-10-20-pesquisa-consulta-venda-concorrentes-cv.md).
+> São **propostas**, não contrato: cada item só ganha id quando tiver teste que o defenda (G-2), e os de
+> comunicação visual dependem do fluxo da venda registrar a informação. Premissa: a mesma tela atende o
+> vestuário; o que é de comunicação visual entra na visão **Produção** e só aparece para empresa com o
+> módulo Comunicação Visual.
+
+**Núcleo (3 ou mais ERPs brasileiros têm):**
+- **[BACKLOG] Filtrar por vendedor** — Tiny, Omie, Conta Azul. Não há esse filtro na tela hoje.
+- **[BACKLOG] Duplicar a venda (recompra)** — Bling, Tiny, Omie, Conta Azul.
+- **[BACKLOG] Enviar a venda ao cliente por e-mail ou WhatsApp pela lista** — Bling, Tiny, Omie, Conta Azul.
+- **[BACKLOG] Mudar situação ou etapa de várias vendas de uma vez** — Bling, Tiny, Omie. Passa pelo FSM, nunca por update direto.
+- **[BACKLOG] Exportar a lista para planilha** — Bling, Tiny, Omie. Hoje o botão em lote diz "Em breve".
+- **[BACKLOG] Imprimir várias vendas ou etiquetas de uma vez** — Bling, Tiny, Omie.
+- **[BACKLOG] Gerar ordem de produção a partir de vendas** — Bling, Tiny, Nomus.
+- **[BACKLOG] Faturar só parte da venda** — Tiny, Omie, Nomus.
+
+**Comunicação visual:**
+- **[BACKLOG] Ver na linha a etapa da produção** (arte, impressão, acabamento, instalação, entrega) — shopVOX, CoreBridge, Printavo, DecoNetwork, Ordant. A coluna Pipeline hoje mostra a etapa do fluxo da venda.
+- **[BACKLOG] Atrasadas pela data de entrega, com dias de atraso** — shopVOX, CoreBridge, DecoNetwork, Calcgraf. A visão "Atrasadas" de hoje olha o pagamento (`sla_kind`).
+- **[BACKLOG] Situação da arte na linha** (aguardando cliente, ajuste pedido, aprovada com data e quem aprovou) — 6 dos 9 sistemas de gráfica.
+- **[BACKLOG] Sinal pago e saldo a receber** — Printavo; colunas Pago e A receber já existem na visão Financeira, falta o sinal.
+- **[BACKLOG] Instalação: data, se está confirmada e equipe** — shopVOX, CoreBridge.
+- **[BACKLOG] Segunda data: fim da produção, além da data prometida** — shopVOX. Decisão de produto: campo novo ou derivado da etapa de instalação.
+- **[BACKLOG] Urgência e retrabalho/cortesia como marcadores** — Printavo e Calcgraf (urgência); retrabalho não confirmado em nenhum. Etiqueta genérica (como no Tiny) cobre os dois.
+- **[BACKLOG] Venda parada com motivo** (sem material, esperando cliente) — shopVOX. Diferente de cancelada e de atrasada.
+- **[BACKLOG] Status de cada nota da venda** (NF-e do material e NFS-e da instalação) — Calcgraf. Conferir se a coluna Fiscal já mostra as duas.
+- **[BACKLOG] Recompra levando a arte já aprovada** — shopVOX.
+- **[BACKLOG] Totais da operação** (em produção, atrasadas, aguardando arte, a receber) — Calcgraf, Printavo.
+
+**Casos pedidos em 2026-10-23 — como a consulta mostra cada regra**
+
+> Sem id: entram quando tiverem teste. As regras em si serão revistas na revisão dos fluxos (modelos,
+> configurações e estados da FSM); estes casos dizem só o que a consulta mostra delas. O protótipo da
+> consulta (PR #9771) já desenha o sinal e a arte.
+
+- **[BACKLOG] Sinal de entrada na linha (UC-FLX-28)** `[V0]` — detalha o "Sinal pago e saldo a
+  receber" acima. Aceite: Dado a empresa com sinal mínimo de 30% e uma venda aprovada de 1.000,00 sem
+  nada pago, Então a coluna Sinal mostra "Abaixo do mínimo · 0,00 de 300,00" e a coluna Produção
+  "Aguardando liberação"; pago o sinal, a coluna Sinal mostra "Pago · falta o saldo" e a OS sai da
+  espera. Empresa sem sinal mínimo não mostra a coluna por padrão. Fonte: US-PCP-025 (a OS espera o
+  sinal; UC-PCLIB-04 a 08 no Apontamento).
+- **[BACKLOG] Situação da arte na linha (UC-FLX-02)** — detalha o item "Situação da arte na linha"
+  acima. Aceite: Dado uma venda com OS em Arte, Então a coluna Arte mostra "Aguardando cliente · link
+  enviado", "Ajuste pedido" com o comentário do cliente ou "Aprovada em <data> por <nome>", lidos da
+  aprovação por link da OS. Venda sem arte não mostra nada. Fonte: US-COMVIS-NEW-004 (UC-PCART no
+  Apontamento).
+- **[BACKLOG] Item que deixou o estoque abaixo do mínimo (UC-FLX-19)** — Aceite: Dado a regra
+  "Requisição pelo estoque mínimo" ligada e uma venda cujo item deixou o produto abaixo do mínimo,
+  Quando abro a venda no drawer, Então o item mostra "abaixo do mínimo · requisição <número> aberta".
+  Regra desligada (padrão), nada aparece. Fonte: US-COM-027 (a requisição nasce sozinha; UC-REQMIN-01 a
+  08 em Requisição de compra).
+- **[BACKLOG] Saldo a favor usado na venda** `[V0]` — Aceite: Dado uma venda de 500,00 que usou 120,00
+  do saldo a favor do cliente, Então a coluna Pagamento mostra "120,00 do saldo a favor", a aba
+  Pagamento do drawer mostra de onde veio o saldo (devolução, troca ou pagamento a mais, com a data) e o
+  A receber dos totais conta 380,00. Fonte: o adiantamento do cliente já paga a venda pela forma
+  "Adiantamento"; US-VEST-021.
+- **[BACKLOG] Venda que passou do limite de crédito** `[V0]` — Aceite: Dado um cliente com limite de
+  2.000,00 e uma venda a prazo salva com o aviso de limite, Então o Status mostra "Acima do limite ·
+  300,00", e o filtro "Acima do limite" lista só essas vendas. Fonte: US-CRM-081.
+- **[BACKLOG] Número do pedido de compra do cliente** — Aceite: Dado uma venda com o pedido do
+  cliente "4500012345", Quando busco "4500012345", Então a venda aparece, e a linha mostra "Ped.
+  cliente 4500012345" abaixo do nome do cliente. A coluna "Pedido do cliente" fica disponível no botão
+  Colunas. Fonte: campo `xPed` da NF-e e da NFS-e (o mesmo número vai na nota).
+- **[BACKLOG] Venda com ISS retido: total do serviço × o que o cliente paga (UC-FLX-30)** `[V0]` —
+  Aceite: Dado uma venda de 1.000,00 com a NFS-e autorizada e 96,50 retidos (ISS + federais), Então o
+  drawer mostra "Total do serviço 1.000,00 · retido 96,50 · cliente paga 903,50", o Total da linha
+  segue 1.000,00, a coluna Pagamento diz "retido 96,50" e o A receber dos totais conta só o que falta
+  do líquido. Fonte: US-FIN-072 (a retenção é baixa sem caixa; UC-CRISS-01 a 03 em Contas a receber).
+- **[BACKLOG] Venda sem comissionado** — Aceite: Dado vendas com vendedor, com representante ou
+  agência, e vendas sem ninguém vinculado, Quando filtro "Comissionado: nenhum", Então só aparecem as
+  vendas sem ninguém vinculado, e no Foco Comissão elas mostram "sem comissionado" em vez de 0,00.
+  Fonte: Comissionados (`sales_commission_agents`); UC-FLX-05.
+- **[BACKLOG] Venda agrupada (US-SELL-024)** — várias vendas do mesmo cliente juntadas numa cobrança
+  só. Aceite: Dado três vendas de um cliente agrupadas, Então cada uma mostra o selo "Agrupada" com o
+  número da cobrança, o filtro "Agrupadas" lista só elas e o selo leva às outras vendas do grupo. Venda
+  fora de grupo não mostra selo. Fonte: US-SELL-024 (coluna `is_grouped_invoice`, já no banco) e o
+  Delphi (`CODFINANCEIRO_GRUPO`, em 34% a 65% das vendas dos clientes medidos).
+- **[BACKLOG] Faturar só parte da venda** `[V0]` — detalha o "Faturar só parte da venda" acima.
+  Aceite: Dado uma venda de 10 placas, Quando faturo 4 · Então nasce a parte "<venda>/1" com as 4
+  placas, a nota e o título dela, e a venda mostra "4 de 10 faturadas · faltam 6"; cancelar a nota da
+  parte devolve as 4 à venda. Mexe em valor e estoque: Regra Mestre. Fonte: Omie (pedido parcial).
+- **[BACKLOG] Venda duplicada mostra de onde veio** — Aceite: Dado a V-200 duplicada da V-150, Então
+  a linha e o drawer da V-200 mostram "Duplicada de V-150" com link, e o drawer da V-150 mostra
+  "Duplicada em V-200"; vale também para orçamento duplicado. Hoje `SellController::duplicateSell`
+  copia a venda para um rascunho e não guarda a origem (medido em 23/10/2026). Fonte: o backlog
+  "Duplicar a venda (recompra)" acima.
+- **[BACKLOG] Venda devolvida no todo ou em parte** — detalha o UC-S12. Aceite: Dado uma venda de 3
+  itens com 2 devolvidos, Então o Status mostra "Devolução parcial · 2 de 3"; com os 3 devolvidos,
+  "Devolvida"; o ícone de devolução do UC-S12 continua. Fonte: processo "Devolução, troca e garantia"
+  de Fluxos (devolução total ou parcial).
+- **[BACKLOG] Garantia aberta pela venda** `[E0]` — Aceite: Dado uma venda entregue com um item na
+  garantia, Quando abro a garantia pelo menu da venda, Então a troca sai sem cobrança, com a nota de
+  remessa em garantia ligada à venda, e a venda mostra "Garantia aberta"; fora do prazo, a troca pede
+  aprovação do gerente. Fonte: SPEC de Garantia (planejado, cenários A a E) e o processo "Devolução,
+  troca e garantia" de Fluxos.
+- **[BACKLOG] Venda para entrega futura: o que falta entregar** — Aceite: Dado uma venda para entrega
+  futura de 1.000 folhetos com 400 entregues, Então a linha mostra "Entrega futura · faltam 600" e o
+  drawer lista as notas de remessa já emitidas. Fonte: UC-TRB-24 do protótipo fiscal (falta).
+- **[BACKLOG] Emitir a nota com imposto faltando** — Aceite: Dado uma venda com um item sem NCM e
+  outro com a natureza fiscal "a decidir pelo contador", Quando clico em emitir a nota no drawer,
+  Então a nota não sai e a tela lista o que falta em cada item, com link para o cadastro do produto e
+  para a Tributação; a venda continua salva. Fonte: UC-TRB-05 do protótipo fiscal (sem NCM bloqueia),
+  UC-FNFSE-12 (natureza pendente bloqueia as duas notas) e CU-PROD-18 (aviso no cadastro).
+- **[BACKLOG] Emitir a nota com dados do cliente faltando** — Aceite: Dado um cliente empresa sem
+  endereço completo (CEP e município) ou sem a indicação de contribuinte do ICMS, Quando clico em
+  emitir a nota, Então a nota não sai e a tela lista o que falta, com link para o cadastro do cliente;
+  a venda a consumidor final sem identificação segue como hoje. Fonte: grupo do destinatário da NF-e
+  (documento, nome, endereço com município e indicador de IE).
+- **[BACKLOG] Em que etapa da produção está cada venda** — detalha o "Ver na linha a etapa da
+  produção" acima. Aceite: Dado uma venda com 2 OS, uma em Impressão e outra em Acabamento, Então a
+  linha mostra "Produção: 0 de 2 prontas · mais atrasada: Impressão", e o filtro "Etapa da produção"
+  lista as vendas com alguma OS na etapa escolhida; venda sem OS não mostra nada. Hoje a coluna
+  Pipeline mostra a etapa da venda (`pipeline_label`), não a da OS (medido em `Index.tsx`,
+  23/10/2026). Fonte: processo "OS e produção por item" de Fluxos; o protótipo da consulta (PR #9771)
+  desenha a coluna Produção (OS).
+- **[BACKLOG] Pedidos em aberto** — Aceite: Dado vendas aprovadas ainda não entregues e outras já
+  entregues ou canceladas, Quando escolho a visão "Em aberto", Então aparecem só as não entregues e
+  não canceladas, pagas ou não, com a etapa de cada uma, e o total da visão soma só elas. Hoje as
+  visões "Pendentes" e "Pendentes pgto." olham o pagamento, não a entrega (medido em `Index.tsx`,
+  23/10/2026).
+- **[BACKLOG] Vendas que falta emitir nota** — Aceite: Dado uma venda paga sem nota e outra a receber
+  sem nota, Quando escolho "Falta emitir nota", Então as duas aparecem; a venda com nota autorizada e
+  a venda marcada para não emitir nota ficam de fora, e a nota rejeitada aparece com o motivo. Hoje a
+  visão "Aguardando faturamento" exige `payment_status !== 'paid'`, então a venda paga sem nota não
+  aparece em nenhuma visão de nota (medido em `Index.tsx`, 23/10/2026).
+- **[BACKLOG] Tipos de venda lançadas** — Aceite: Dado o período escolhido, Então a consulta mostra
+  quantas vendas e quanto de cada tipo (balcão, oficina, online, reparo, entrega futura, venda
+  agrupada), e clicar num tipo filtra a lista. Hoje a visão Origem conta e soma só balcão, oficina e
+  online (medido em `Index.tsx`, 23/10/2026); reparo não entra, e assinatura fica numa tela à parte.
+
 ## Como rodar a suíte
 1. **E2E:** `npm run e2e:check` no harness do CI (e2e-gate) — vereditos viram manifesto via `npm run casos:results` (merge per-UC).
 2. **Cadência:** rodar ao fim de toda mexida em Sells/Index. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-23 · [M+C] Backlog "Casos pedidos em 2026-10-23": sinal, arte, estoque mínimo, saldo a favor, limite de crédito, pedido de compra do cliente, ISS retido, venda sem comissionado e venda agrupada, sem id e sem mudança de comportamento da tela.
+- 2026-10-23 · [M+C] Backlog: faturar só parte da venda, da comparação com concorrentes (Omie), sem id.
+- 2026-10-23 · [M+C] Backlog de venda duplicada com a origem, devolução total ou parcial, garantia e entrega futura, sem id.
+- 2026-10-23 · [M+C] Backlog: emitir a nota com imposto ou dados do cliente faltando, sem id.
+- 2026-10-23 · [M+C] Backlog: etapa da produção, pedidos em aberto, vendas que falta emitir nota e tipos de venda lançadas, sem id.
+- 2026-10-23 · [M+C] Revalidado (G-6): a única mudança em `Index.tsx` depois do last_run 2026-10-20 é a barra de totais do #9672, que já é o UC-SIDX-06 desta tela. Nenhum UC foi reexecutado; last_run 2026-10-20 → 2026-10-23.
+- 2026-10-20 · [M+C] **UC-SIDX-06 `[V0]`** — barra de totais do filtro abaixo da lista (US-SELL-017): os `totals` que o servidor já calculava passam a aparecer. A barra não mostra número quando a visão salva, a pílula Faturada/Cancelada ou a origem filtram só a página carregada. Teste `tests/js/sells-index-totais.test.tsx` na lane Vitest do `Frontend / Vite build`.
+- 2026-10-20 · [M+C] Backlog da pesquisa de concorrentes (núcleo + comunicação visual), sem id e sem mudança de comportamento da tela; fontes no [registro da sessão](../../../../memory/sessions/2026-10-20-pesquisa-consulta-venda-concorrentes-cv.md).
 - 2026-10-19 · [CC] **UC-SIDX-04 `[T0]` + UC-SIDX-05 `[V0]`** — pílula "Rascunhos" na consulta de vendas (pedido da ROTA LIVRE: a tela `/sells/drafts` não tinha ações e "era para estar junta na consulta de vendas"; decisão [W]: filtro dentro da consulta, mesmas ações da venda, totais de faturado só com venda final). Teste `SellsIndexRascunhosContratoTest.php` na lane Sells. A tela `/sells/drafts` segue no ar até ser aposentada em PR próprio (só ganhou o conserto do "Itens NaN").
 - 2026-07-27 · [CC] **UC-SIDX-01 `[T0]` + UC-SIDX-02 `[V0]`** derivados pelo agent `sdd-from-source` ([ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md)) junto com o [SDD do módulo](../../../../memory/requisitos/Sells/SDD-tela-venda-v1.0.md) (`CU-SELL-32`/`CU-SELL-33`) + o teste `SellsIndexTenantContratoTest.php` + a lane nova `sells-pest.yml`. Achado que motivou o UC-SIDX-01: a derivação de `has_return` **não é escopada por `business_id`** em nenhum dos 2 sites medidos. **Convenção de id:** os novos usam 3 segmentos (`UC-SIDX-*`) porque o extrator de `scripts/governance/requisitos-status.mjs` exige `UC-XXX-NN` — os antigos `UC-S1x` ficam (renomear quebraria a citação dos testes que já os defendem, G-2). Ver SDD §9 D-4.
 - 2026-07-03 · [CC] UC-S12 "ver que a venda já teve devolução (setinha de retorno)" + contrato em `SellsIndexCoworkPayloadTest.php` — restaura o indicador `has_return`/badge perdido no rewrite Cowork #1032 (payload React nunca selecionava `return_exists`). Incidente reportado por Guilherme @ biz=4 ROTA LIVRE. Ancorado no critério canônico `return_parent_id + type='sell_return'` (ADR 0264 G-2).

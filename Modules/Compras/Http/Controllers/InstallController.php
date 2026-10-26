@@ -3,6 +3,7 @@
 namespace Modules\Compras\Http\Controllers;
 
 use App\Http\Controllers\Concerns\ConfirmaInstalacaoPorPost;
+use App\System;
 use App\Utils\Util;
 use Artisan;
 use Exception;
@@ -19,6 +20,14 @@ use Illuminate\Routing\Controller;
 class InstallController extends Controller
 {
     use ConfirmaInstalacaoPorPost;
+
+    /**
+     * `system.compras_version` é o que o core lê para saber se o módulo está instalado
+     * (ModuleUtil::isModuleInstalled). Sem ela, getModuleData pula o Compras: os ganchos do
+     * formulário de produto e o menu nunca rodam. O install antigo não gravava a chave (medido em
+     * produção em 2026-10-21: ausente). É o mesmo que o BaseModuleInstallController faz.
+     */
+    private const CHAVE_VERSAO = 'compras_version';
 
     protected Util $commonUtil;
 
@@ -41,6 +50,7 @@ class InstallController extends Controller
             // Wave 1: scaffold — sem migrations novas.
             Artisan::call('module:publish-migration');
             Artisan::call('migrate', ['--force' => true]);
+            $this->gravarVersao();
             Artisan::call('cache:clear');
 
             $output = 'Compras: instalado com sucesso.';
@@ -65,7 +75,8 @@ class InstallController extends Controller
         }
 
         try {
-            // Wave 1: scaffold — sem rollback de migration ainda.
+            // Sem rollback de migration: só tira a marca de instalado.
+            System::removeProperty(self::CHAVE_VERSAO);
             $output = 'Compras: desinstalado.';
         } catch (Exception $e) {
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
@@ -90,6 +101,7 @@ class InstallController extends Controller
         try {
             Artisan::call('module:publish-migration');
             Artisan::call('migrate', ['--force' => true]);
+            $this->gravarVersao();
             Artisan::call('cache:clear');
 
             $output = 'Compras: atualizado.';
@@ -101,5 +113,15 @@ class InstallController extends Controller
         return redirect()
             ->action([\App\Http\Controllers\Install\ModulesController::class, 'index'])
             ->with('status', ['success' => true, 'msg' => $output]);
+    }
+
+    private function gravarVersao(): void
+    {
+        $versao = (string) config('compras.module_version', '1.0');
+        if (empty(System::getProperty(self::CHAVE_VERSAO))) {
+            System::addProperty(self::CHAVE_VERSAO, $versao);
+        } else {
+            System::setProperty(self::CHAVE_VERSAO, $versao);
+        }
     }
 }

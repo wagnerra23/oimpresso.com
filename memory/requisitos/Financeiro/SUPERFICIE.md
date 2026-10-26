@@ -14,7 +14,7 @@ module: Financeiro
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 373 arquivos em 22 papéis.
+**Total mapeado:** 376 arquivos em 22 papéis.
 
 ## Controllers — 25
 
@@ -124,7 +124,7 @@ module: Financeiro
 - [OnTituloCriadoLog.php](../../../Modules/Financeiro/Listeners/OnTituloCriadoLog.php)
 - [ProcessAsaasPixWebhookListener.php](../../../Modules/Financeiro/Listeners/ProcessAsaasPixWebhookListener.php)
 
-## Console / Commands — 10
+## Console / Commands — 11
 
 - [BackfillExtratoOfxCommand.php](../../../Modules/Financeiro/Console/Commands/BackfillExtratoOfxCommand.php)
 - [BackfillPlanoContaCommand.php](../../../Modules/Financeiro/Console/Commands/BackfillPlanoContaCommand.php)
@@ -133,6 +133,7 @@ module: Financeiro
 - [FinanceiroHealthCommand.php](../../../Modules/Financeiro/Console/Commands/FinanceiroHealthCommand.php)
 - [InstallCommand.php](../../../Modules/Financeiro/Console/Commands/InstallCommand.php)
 - [IssRetidoAjusteCommand.php](../../../Modules/Financeiro/Console/Commands/IssRetidoAjusteCommand.php)
+- [PluggySyncCommand.php](../../../Modules/Financeiro/Console/Commands/PluggySyncCommand.php)
 - [ProvisionSmokeTenantCommand.php](../../../Modules/Financeiro/Console/Commands/ProvisionSmokeTenantCommand.php)
 - [ReguaCobrancaCommand.php](../../../Modules/Financeiro/Console/Commands/ReguaCobrancaCommand.php)
 - [ResyncFromCoreCommand.php](../../../Modules/Financeiro/Console/Commands/ResyncFromCoreCommand.php)
@@ -223,7 +224,7 @@ module: Financeiro
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Unificado/Index.tsx)
 - [Novo.tsx](../../../resources/js/Pages/Financeiro/Unificado/Novo.tsx)
 
-## Componentes / apoio de tela — 39
+## Componentes / apoio de tela — 40
 
 - [CategoriaSheet.tsx](../../../resources/js/Pages/Financeiro/Categorias/components/CategoriaSheet.tsx)
 - [AiResumoMes.tsx](../../../resources/js/Pages/Financeiro/Cobranca/_components/AiResumoMes.tsx)
@@ -237,6 +238,7 @@ module: Financeiro
 - [NovaDespesaSheet.tsx](../../../resources/js/Pages/Financeiro/Despesas/_components/NovaDespesaSheet.tsx)
 - [BalanceteView.tsx](../../../resources/js/Pages/Financeiro/Dre/_components/BalanceteView.tsx)
 - [BalancoView.tsx](../../../resources/js/Pages/Financeiro/Dre/_components/BalancoView.tsx)
+- [CusteioView.tsx](../../../resources/js/Pages/Financeiro/Dre/_components/CusteioView.tsx)
 - [ClienteCombobox.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/ClienteCombobox.tsx)
 - [FinAgeing.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/FinAgeing.tsx)
 - [FinAnexosPanel.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/FinAnexosPanel.tsx)
@@ -315,9 +317,9 @@ module: Financeiro
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Unificado/Index.casos.md)
 - [Novo.casos.md](../../../resources/js/Pages/Financeiro/Unificado/Novo.casos.md)
 
-## Testes (Pest) — 91
+## Testes (Pest) — 92
 
-- 86 em [Modules/Financeiro/Tests/Feature/](../../../Modules/Financeiro/Tests/Feature)
+- 87 em [Modules/Financeiro/Tests/Feature/](../../../Modules/Financeiro/Tests/Feature)
 - 1 em [Modules/Financeiro/Tests/Feature/Advisor/](../../../Modules/Financeiro/Tests/Feature/Advisor)
 - 4 em [Modules/Financeiro/Tests/Unit/](../../../Modules/Financeiro/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._

@@ -64,7 +64,7 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 > **Controller/ação:** `OrcamentoController@calcular`
 > **Permissão Spatie:** `comvis.orcamento.create`
 
-**Implementado em:** _parcial_ · `Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php` · `OrcamentoController@calcular` · `Modules/ComunicacaoVisual/Services/OrcamentoCalculator.php` · verificado@0bb65dd (2026-07-02) — cálculo base + rota `comvis.api.calcular` vivos; falta acabamentos[] no cálculo (Entity `Acabamento` existe mas o calculator não a usa; `extras` é input flat), mínimo cobrado configurável (`material.minimo_m2` — hoje só há `estoque_minimo_m2`), preview PDF + envio WhatsApp 1-clique
+**Implementado em:** _parcial_ · `Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php` · `OrcamentoController@calcular` · `Modules/ComunicacaoVisual/Services/OrcamentoCalculator.php` · `Modules/ComunicacaoVisual/Database/Migrations/2026_10_26_100000_add_minimo_e_acabamentos_ao_orcamento_cv.php` · `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoMinimoAcabamentoContratoTest.php` · verificado@0bb65dd (2026-07-02) — cálculo base + rota `comvis.api.calcular` vivos; em 2026-10-26 o cálculo ganhou mínimo cobrado por peça (`comvis_materiais.minimo_m2`), acabamentos por item (`cv_acabamentos`, base pelo tipo), perda % e emenda (`perda_pct`, `largura_bobina_m`, `preco_solda_m`), no backend (UC-CVPRC-01..04; `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoPerdaEmendaContratoTest.php`); faltam o cadastro de materiais e acabamentos na tela, a escolha de acabamento na calculadora, preview PDF + envio WhatsApp 1-clique
 
 **Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCalculatorTest.php` · `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoControllerTest.php`
 
@@ -78,6 +78,7 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 - [ ] Form: largura (m) + altura (m) + qtd + material + acabamentos[] + instalação? + entrega?
 - [ ] Cálculo: `area_m2 = largura × altura`; `subtotal = area_m2 × material.preco_m2 × qtd`; `extras = sum(acabamentos.preco)`; `total = subtotal + extras + instalacao + entrega`
 - [ ] Mínimo cobrado configurável (`material.minimo_m2` — ex: 0,5m² mesmo se peça é menor)
+- [ ] **Perda % e emenda — decisão [W] 2026-10-26:** a perda % de cada material soma na área cobrada da peça (depois do mínimo: `max(L × A, mínimo) × (1 + perda/100)`). A emenda entra quando a peça passa da largura da bobina: (N − 1) emendas × lado × preço do metro de solda, cadastrado no material (N = tiras do menor lado; cada emenda tem o tamanho do maior lado). Os dois campos são opcionais e orçamento já existente não muda.
 - [ ] Preview PDF + envio WhatsApp 1-clique
 - [ ] Test Pest: 6+ casos (banner 3x1,5 frontlight, lona 5x2 blackout, vinil adesivo recortado, ACM com instalação, brinde unitário, etc.)
 - [ ] Multi-tenant scope `business_id` (skill `multi-tenant-patterns`)
@@ -119,7 +120,7 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 > **Controller/ação:** `OsController`
 > **Reusa:** [Modules/Repair](../../../Modules/Repair) Kanban drag-drop (PR #363) — Modules/Repair é shared infrastructure ([ADR 0121 §P8](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md))
 
-**Implementado em:** _pendente_ — migration `cv_ordens_producao` + Entity `OrdemProducao` existem, mas Kanban PCP (OsController + Page Inertia + drag-drop) não construído
+**Implementado em:** _pendente_ — o quadro por etapa existe no `Modules/Producao` (`/producao/quadro`, `QuadroDaProducao`, ADR 0431/0436) e já lê `comvis_os`; medido em 2026-10-26 que a OS criada pelo orçamento aprovado (`OrcamentoViraOs`) não ganha etapas em `pcp_programacoes`, então não aparece no quadro (roteiro a decidir pelo [W]). `cv_ordens_producao`/`OrdemProducao` segue sem fluxo (a OS por item da venda é a `pcp_ordens`)
 
 > A entrada da OS (orçamento aprovado vira OS com itens, medidas e arquivos — UC-FLX-01) está na US-COMVIS-020. Aqui fica o Kanban de etapas.
 
@@ -229,7 +230,7 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 > **Rota:** `GET /comunicacao-visual/api/instalacoes` · `POST /comunicacao-visual/api/os/{os}/instalacao`
 > **Controller/ação:** `InstalacaoController@index` · `InstalacaoController@agendar`
 
-**Implementado em:** _parcial_ — agenda de equipe e veículo com bloqueio sem janela (UC-FLX-21): `Modules/ComunicacaoVisual/Services/AgendaInstalacao.php`, `Modules/ComunicacaoVisual/Http/Controllers/InstalacaoController.php`, `Modules/ComunicacaoVisual/Database/Migrations/2026_10_20_300000_add_agenda_to_cv_instalacoes.php`, `Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAgendaContratoTest.php`. Falta: tela da agenda (calendário), checklist de ferramentas/EPI, endereço/foto, comprovante e comissão.
+**Implementado em:** _parcial_ — agenda de equipe e veículo com bloqueio sem janela (UC-FLX-21): `Modules/ComunicacaoVisual/Services/AgendaInstalacao.php`, `Modules/ComunicacaoVisual/Http/Controllers/InstalacaoController.php`, `Modules/ComunicacaoVisual/Database/Migrations/2026_10_20_300000_add_agenda_to_cv_instalacoes.php`, `Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAgendaContratoTest.php`; tela semana × equipe em `resources/js/Pages/ComunicacaoVisual/Agenda.tsx` + `Modules/ComunicacaoVisual/Http/Controllers/AgendaController.php` (`Modules/ComunicacaoVisual/Tests/Feature/AgendaTelaContratoTest.php`, `tests/js/cv-agenda.test.tsx`); aviso ao cliente em `Modules/ComunicacaoVisual/Events/InstalacaoAgendada.php` + `Modules/Whatsapp/Listeners/NotifyInstalacaoCvCustomer.php` (`Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAvisoClienteContratoTest.php`). Falta: arrastar instalação na grade, checklist de ferramentas/EPI, endereço/foto, comprovante e comissão.
 
 **Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAgendaContratoTest.php` (lane `verticais-pest.yml`).
 
@@ -240,7 +241,9 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 **DoD:**
 - [x] Agenda equipe (users da empresa) e veículo (placa/apelido) na OS da CV, e lista a agenda de uma janela de até 92 dias — UC-FLX-21 · UC-CVINST-01
 - [x] Bloqueia sem janela: sobreposição com instalação agendada/em execução que use alguém da equipe ou o mesmo veículo → 422 dizendo com quem e quando; encostado passa; outra empresa nunca conflita — UC-CVINST-02..06
-- [ ] Agenda calendário (semanal) — drag-drop instalação na slot (tela: follow-up; hoje só API)
+- [x] Avisa o cliente por WhatsApp ao agendar (OS, dia, hora), só com opt-in LGPD e pelo número de saída da empresa — UC-CVINST-08..10
+- [x] Agenda calendário (semanal) em semana × equipe, com a recusa sem janela visível — UC-CVAG-01..04 (`/comunicacao-visual/agenda`)
+- [ ] Drag-drop da instalação na grade
 - [ ] Checklist ferramentas + EPI (NR-35 trabalho em altura — relevante)
 - [ ] Endereço integrado Google Maps + foto da fachada (cliente sobe pré-vistoria)
 - [ ] Comprovante instalação: foto + assinatura digital + GPS coords (LGPD: consent)
@@ -1007,7 +1010,7 @@ Job lê `commission_distribution_json`, calcula valores, cria lançamentos `comi
 
 > **Owner:** — · **Estimate:** 8h · **Status:** doing · **Blocked_by:** US-COMVIS-NEW-001 + ADR 0117 multi-números entregue + LGPD consent contacts
 
-**Implementado em:** _pendente_ — parcial (UC-FLX-02, 2026-10-20): na OS por item do PCP (ADR 0436) o operador gera o link da prova (`POST /producao/ordens/{id}/aprovacao-arte`, token aleatório, só o sha256 no banco, 7 dias) e o cliente aprova ou pede alteração em `/arte/{token}` sem login, uso único; aprovar conclui a etapa "Aprovação do cliente" pelo motor (`SituacaoDaOrdem::aoConcluirEtapa`), recusar reabre a arte com o comentário. Serviço `AprovacaoArteService` do Modules/Producao; contrato UC-PCART-01..05 em `Producao/Apontamento/Index.casos.md`. Falta: envio pelo WhatsApp/e-mail com opt-in LGPD (o link volta ao operador), botão na tela, aviso ao designer na recusa, URL `/b/{slug}/...`
+**Implementado em:** _pendente_ — parcial (UC-FLX-02, 2026-10-20): na OS por item do PCP (ADR 0436) o operador gera o link da prova (`POST /producao/ordens/{id}/aprovacao-arte`, token aleatório, só o sha256 no banco, 7 dias) e o cliente aprova ou pede alteração em `/arte/{token}` sem login, uso único; aprovar conclui a etapa "Aprovação do cliente" pelo motor (`SituacaoDaOrdem::aoConcluirEtapa`), recusar reabre a arte com o comentário. Serviço `AprovacaoArteService` do Modules/Producao; contrato UC-PCART-01..05 em `Producao/Apontamento/Index.casos.md`. Trava da arte (UC-PCV-11, 2026-10-21): depois de aprovada, trocar o arquivo (`POST /producao/ordens/{id}/arte/trocar`) reabre a aprovação com link novo, e a arte vigente (`GET /producao/ordens/{id}/arte`) segue a última aprovada. Falta: envio pelo WhatsApp/e-mail com opt-in LGPD (o link volta ao operador), botão na tela, aviso ao designer na recusa, URL `/b/{slug}/...`
 
 **Como** designer de gráfica
 **Quero** enviar arte (preview imagem) pelo WhatsApp pro cliente final, ele clicar link → ver preview → aprovar/rejeitar em 1 clique
@@ -1228,9 +1231,9 @@ Como quem orça comunicação visual, quero que cada item guarde o custo do mate
 
 > owner: wagner · priority: p0 · estimate: 3h · type: story
 
-**Implementado em:** `Modules/ComunicacaoVisual/Services/OrcamentoViraOs.php` · `Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php` · `Modules/ComunicacaoVisual/Entities/OsItem.php` · `Modules/ComunicacaoVisual/Database/Migrations/2026_10_20_200000_create_comvis_os_itens_table.php`
+**Implementado em:** `Modules/ComunicacaoVisual/Services/OrcamentoViraOs.php` · `Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php` · `Modules/ComunicacaoVisual/Http/Controllers/OrcamentoArquivoController.php` · `Modules/ComunicacaoVisual/Entities/OsItem.php` · `Modules/ComunicacaoVisual/Database/Migrations/2026_10_20_200000_create_comvis_os_itens_table.php`
 
-**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoViraOsContratoTest.php` (lane `verticais-pest.yml`).
+**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoViraOsContratoTest.php` · `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoArquivosContratoTest.php` (lane `verticais-pest.yml`).
 
 > Contrato: `UC-CVOS-01..07` do `resources/js/Pages/ComunicacaoVisual/Index.casos.md`. Parte da US-COMVIS-003 (PCP gráfico): esta US entrega a entrada da OS; o Kanban de etapas segue na 003.
 
@@ -1250,8 +1253,60 @@ Como quem vende comunicação visual, quero que aprovar o orçamento crie a OS c
 - [x] Aprovar de novo não duplica OS, itens nem arquivos
 - [x] Os arquivos do orçamento passam para a OS, só os da empresa
 - [x] Outra empresa não aprova nem gera OS; recusado não vira OS; sem permissão é recusado
-- [ ] Botão "Aprovar" na tela (hoje nenhuma tela salva nem lista orçamentos — ver backlog do `Index.casos.md`)
-- [ ] Upload de arquivo no orçamento (o orçamento não tem tela de anexos; a cópia cobre o que for anexado pelo `media` do core)
+- [x] Botão "Aprovar e criar OS" no rodapé da calculadora, com confirmação; o reaberto mostra o número da OS (UC-CVOS-08)
+- [x] Upload de arquivo no orçamento: "Arquivos do orçamento" na calculadora, `POST`/`DELETE …/api/orcamentos/{id}/arquivos`, só antes da OS (UC-CVARQ-01..06)
+
+---
+
+### US-COMVIS-021 · Salvar e reabrir o orçamento na calculadora de m² — **P0**
+
+> owner: wagner · priority: p0 · estimate: 3h · type: story
+
+**Implementado em:** `Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php` · `Modules/ComunicacaoVisual/Services/OrcamentoGravador.php` · `Modules/ComunicacaoVisual/Routes/web.php`
+
+**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoSalvarReabrirContratoTest.php` (lane `verticais-pest.yml`).
+
+> Contrato: `UC-CVSAL-01..06` do `resources/js/Pages/ComunicacaoVisual/Index.casos.md`. Pré-requisito da US-COMVIS-020 na tela: sem orçamento salvo não há o que aprovar.
+
+Como quem orça no balcão, quero salvar o orçamento que montei e reabri-lo depois, para não refazer a conta quando o cliente volta.
+
+- "Salvar orçamento" no rodapé do total, liberado depois de "Conferir no servidor" (protótipo `comunicacao-visual-page.jsx`). O servidor recalcula tudo de novo.
+- A tela passa a ter `?orcamento={id}`; "Orçamentos salvos" lista os 20 mais recentes da empresa (prop deferida) e abre qualquer um.
+- Reaberto e alterado, "Salvar alterações" regrava o mesmo número (`PUT`). Aprovado (com OS), recusado ou expirado não regrava (422).
+- Instalação e entrega gravadas pelo app das lojas voltam no reaberto e são regravadas iguais (a tela não tem campo para elas).
+- `store` e `update` exigem `comvis.orcamento.create`; `index` e `show` aceitam `comvis.orcamento.view`. Até aqui `store` e `show` não checavam permissão nenhuma. Outra empresa: 404.
+
+**Aceite:**
+- [x] Salvar grava os valores do servidor
+- [x] Reabrir devolve as peças e os ajustes; a lista traz só a empresa
+- [x] Regravar mantém o número; aprovado/recusado não regrava
+- [x] Sem permissão de criar não salva nem regrava
+
+---
+
+### US-COMVIS-022 · Custo e margem por peça na calculadora de m² (UC-FLX-03) — **P1**
+
+> owner: wagner · priority: p1 · estimate: 3h · type: story
+
+**Implementado em:** `Modules/ComunicacaoVisual/Services/MargemDoOrcamento.php` · `Modules/ComunicacaoVisual/Services/OrcamentoGravador.php` · `Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php`
+
+**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoMargemContratoTest.php` (lane `verticais-pest.yml`).
+
+> Contrato: `UC-CVMRG-01..06` do `resources/js/Pages/ComunicacaoVisual/Index.casos.md`.
+
+Como quem orça, quero ver quanto cada peça custa e quanto sobra, para não dar desconto que come a margem.
+
+- `POST /comunicacao-visual/api/calcular` devolve `custo`, `margem` e `margem_pct` por item e o bloco `margem` do orçamento, só para quem tem `comvis.material.manage` (ou superadmin). Para os outros a resposta não muda.
+- Custo do item = custo do material no dia (área × `preco_custo_m2`) + hora de máquina, pela mesma regra que o orçamento grava (US-COMVIS-019). Material sem custo: item sem margem.
+- Margem do orçamento = (subtotal − desconto) − custo das peças, só quando todas as peças têm custo; senão a tela diz quantas têm. Extras, instalação e entrega ficam fora (sem custo cadastrado).
+- Preço, subtotal e total não mudam.
+
+**Aceite:**
+- [x] Custo e margem por peça e do orçamento, conferidos por dois caminhos
+- [x] Preço, subtotal e total iguais com e sem margem
+- [x] Peça sem custo fica sem margem; material de outra empresa não entra
+- [x] Só quem gerencia materiais vê
+- [ ] Alerta de margem abaixo do mínimo ao dar desconto
 
 ---
 

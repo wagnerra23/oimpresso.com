@@ -99,46 +99,110 @@ class OrcamentoGravador
                 'subtotal'         => $calculado['subtotal'],
                 'desconto'         => $calculado['desconto'],
                 'extras'           => $calculado['extras'],
+                'acabamentos'      => $calculado['acabamentos'] ?? 0,
                 'custo_instalacao' => $calculado['custo_instalacao'],
                 'custo_entrega'    => $calculado['custo_entrega'],
                 'total'            => $calculado['total'],
                 'observacoes'      => $calculado['observacoes'],
             ]);
 
-            $custoM2 = $this->custosDoDia($businessId, $calculado['itens']);
-            $hoje = now()->toDateString();
-            $custoHora = app()->bound(CustoHoraDoPosto::class) ? app(CustoHoraDoPosto::class) : null;
-
-            foreach ($calculado['itens'] as $ordem => $itemCalc) {
-                $m2 = $custoM2[(int) ($itemCalc['material_id'] ?? 0)] ?? null;
-                $maquina = $this->custoMaquinaDoDia($businessId, $itemCalc, $custoHora);
-                OrcamentoItem::create([
-                    'orcamento_id'      => $orc->id,
-                    'business_id'       => $businessId,
-                    'material_id'       => $itemCalc['material_id'],
-                    'descricao'         => $itemCalc['descricao'],
-                    'largura_m'         => $itemCalc['largura_m'],
-                    'altura_m'          => $itemCalc['altura_m'],
-                    'quantidade'        => $itemCalc['quantidade'],
-                    'area_m2'           => $itemCalc['area_m2'],
-                    'preco_unitario_m2' => $itemCalc['preco_unitario_m2'],
-                    'subtotal'          => $itemCalc['subtotal'],
-                    'observacoes'       => $itemCalc['observacoes'],
-                    'ordem'             => $ordem + 1,
-                    // UC-FLX-33: custo do material no dia do orçamento (ver custosDoDia).
-                    'custo_previsto_m2' => $m2,
-                    'custo_previsto'    => $m2 === null ? null : round((float) $itemCalc['area_m2'] * $m2, 2, PHP_ROUND_HALF_UP),
-                    'custo_previsto_em' => ($m2 === null && $maquina === null) ? null : $hoje,
-                    // UC-FLX-33: hora de máquina do posto no dia (ver custoMaquinaDoDia).
-                    'posto_id'                => $maquina['posto_id'] ?? null,
-                    'horas_maquina_previstas' => $maquina['horas'] ?? null,
-                    'custo_hora_previsto'     => $maquina['custo_hora'] ?? null,
-                    'custo_maquina_previsto'  => $maquina['custo'] ?? null,
-                ]);
-            }
+            $this->gravarItens($businessId, $orc, $calculado['itens']);
 
             return $orc->load('itens');
         });
+    }
+
+    /**
+     * Regrava um orçamento já salvo com os valores recalculados (reabrir e salvar de novo).
+     * Mesmo número, mesmo status; os itens antigos saem e os novos entram, na mesma transação.
+     * Quem chama garante que o orçamento é do `$businessId` e ainda pode mudar (sem OS).
+     */
+    public function regravar(int $businessId, Orcamento $orc, array $calculado): Orcamento
+    {
+        return DB::transaction(function () use ($businessId, $orc, $calculado) {
+            $orc->fill([
+                'contato_id'       => $calculado['contato_id'],
+                'vendedor_id'      => $calculado['vendedor_id'],
+                'data_emissao'     => $calculado['data_emissao'],
+                'data_validade'    => $calculado['data_validade'],
+                'subtotal'         => $calculado['subtotal'],
+                'desconto'         => $calculado['desconto'],
+                'extras'           => $calculado['extras'],
+                'acabamentos'      => $calculado['acabamentos'] ?? 0,
+                'custo_instalacao' => $calculado['custo_instalacao'],
+                'custo_entrega'    => $calculado['custo_entrega'],
+                'total'            => $calculado['total'],
+                'observacoes'      => $calculado['observacoes'],
+            ])->save();
+
+            OrcamentoItem::query()->where('business_id', $businessId)->where('orcamento_id', $orc->id)->delete();
+            $this->gravarItens($businessId, $orc, $calculado['itens']);
+
+            return $orc->load('itens');
+        });
+    }
+
+    /**
+     * Custo previsto de cada item, pela MESMA regra que a gravação usa (UC-FLX-33): custo do m² do
+     * material e hora de máquina do posto, no dia. A calculadora mostra custo e margem a partir
+     * daqui (UC-FLX-03), então o que a tela mostra é o que o orçamento grava.
+     *
+     * @return array<int, array{m2: ?float, material: ?float, maquina: ?array}> por índice do item
+     */
+    public function custosPrevistos(int $businessId, array $itens): array
+    {
+        $custoM2 = $this->custosDoDia($businessId, $itens);
+        $custoHora = app()->bound(CustoHoraDoPosto::class) ? app(CustoHoraDoPosto::class) : null;
+
+        $saida = [];
+        foreach ($itens as $i => $itemCalc) {
+            $m2 = $custoM2[(int) ($itemCalc['material_id'] ?? 0)] ?? null;
+            $saida[$i] = [
+                'm2'       => $m2,
+                'material' => $m2 === null ? null : round((float) $itemCalc['area_m2'] * $m2, 2, PHP_ROUND_HALF_UP),
+                'maquina'  => $this->custoMaquinaDoDia($businessId, $itemCalc, $custoHora),
+            ];
+        }
+
+        return $saida;
+    }
+
+    private function gravarItens(int $businessId, Orcamento $orc, array $itens): void
+    {
+        $custos = $this->custosPrevistos($businessId, $itens);
+        $hoje = now()->toDateString();
+
+        foreach ($itens as $ordem => $itemCalc) {
+            $m2 = $custos[$ordem]['m2'];
+            $maquina = $custos[$ordem]['maquina'];
+            OrcamentoItem::create([
+                'orcamento_id'      => $orc->id,
+                'business_id'       => $businessId,
+                'material_id'       => $itemCalc['material_id'],
+                'descricao'         => $itemCalc['descricao'],
+                'largura_m'         => $itemCalc['largura_m'],
+                'altura_m'          => $itemCalc['altura_m'],
+                'quantidade'        => $itemCalc['quantidade'],
+                'area_m2'           => $itemCalc['area_m2'],
+                'preco_unitario_m2' => $itemCalc['preco_unitario_m2'],
+                'subtotal'          => $itemCalc['subtotal'],
+                // US-COMVIS-001: área que o cliente paga (mínimo por peça) e acabamentos do dia.
+                'area_cobrada_m2'   => $itemCalc['area_cobrada_m2'] ?? null,
+                'valor_acabamentos' => $itemCalc['valor_acabamentos'] ?? 0,
+                'acabamentos_json'  => empty($itemCalc['acabamentos']) ? null : $itemCalc['acabamentos'],
+                'observacoes'       => $itemCalc['observacoes'],
+                'ordem'             => $ordem + 1,
+                // UC-FLX-33: custo do material no dia do orçamento (ver custosDoDia).
+                'custo_previsto_m2' => $m2,
+                'custo_previsto'    => $custos[$ordem]['material'],
+                'custo_previsto_em' => ($m2 === null && $maquina === null) ? null : $hoje,
+                // UC-FLX-33: hora de máquina do posto no dia (ver custoMaquinaDoDia).
+                'posto_id'                => $maquina['posto_id'] ?? null,
+                'horas_maquina_previstas' => $maquina['horas'] ?? null,
+                'custo_hora_previsto'     => $maquina['custo_hora'] ?? null,
+                'custo_maquina_previsto'  => $maquina['custo'] ?? null,
+            ]);
+        }
     }
 
     /**

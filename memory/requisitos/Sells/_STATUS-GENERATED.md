@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 66 |
+| US no SPEC | 67 |
 | CU no SDD | 6 |
 | Telas (.tsx) | 11 |
 | Telas com `casos.md` | 11 |
-| UC declarados | 136 |
-| UC com teste que os cita | 135 |
+| UC declarados | 154 |
+| UC com teste que os cita | 153 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -69,7 +69,6 @@ authority: generated
 | US-SELL-009 | `todo` | Cutover ROTA LIVRE + remover Blade após 30d |
 | US-SELL-015 | `todo` | Modo "Grade Avançada" — toggle + layout densa base · **P0** |
 | US-SELL-016 | `desconhecido` | Multiseleção + ações em lote (imprimir/exportar/agrupar) · **P0** |
-| US-SELL-017 | `desconhecido` | Totalizador rodapé (Qtd vendas + Σ R$ filtrado) · **P0** |
 | US-SELL-019 | `todo` | Agrupamento drag-to-group por campo do grid · **P1 confirmado** |
 | US-SELL-020 | `todo` | Especificação campo "Status" (financeiro vs produção vs fiscal — badges separado |
 | US-SELL-022 | `todo` | Sub-linha de produtos por venda (expandir linha) · **P2 confirmado** |
@@ -82,7 +81,7 @@ authority: generated
 | US-SELL-041 | `todo` | NFC-e "emitir agora" no fim do Create (paridade Bling) |
 | US-SELL-042 | `todo` | Batch no handlePriceGroupChange — elimina N+1 em /products/list |
 | US-SELL-043 | `todo` | Migrar CSS Cowork (.sells-cowork / vd-*) → tokens DS no Sells/Index |
-| US-SELL-045 | `todo` | Bug: payload `totals` morto na rede — backend calcula/envia, frontend nunca lê |
+| US-SELL-045 | `desconhecido` | Bug: payload `totals` morto na rede — backend calcula/envia, frontend nunca lê |
 | US-SELL-046 | `todo` | Bug: viewMode `grade-avancada` órfão — middleware roteia 6 clientes legacy pra U |
 | US-SELL-047 | `todo` | Teste de isolamento multi-tenant REAL da tela Sells (ADR 0093) — gap mascarado p |
 | US-SELL-048 | `todo` | Higiene dos snapshots-grep Sells: DELETE/REWRITE por it() (não quarentena) — gat |
@@ -101,6 +100,7 @@ authority: generated
 | US-SELL-066 | `desconhecido` | Devolução de venda em React — lista e registro (`/sell-return`) |
 | US-SELL-068 | `desconhecido` | Orçamento aberto avisa que o custo mudou (UC-FLX-34) |
 | US-SELL-069 | `desconhecido` | Orçamento abaixo da margem mínima só vira venda com aprovação (UC-FLX-35) |
+| US-SELL-072 | `desconhecido` | Venda com nota ou pagamento trava itens e valores — **P1** |
 
 ## UC por status
 
@@ -117,10 +117,13 @@ authority: generated
 | UC-ENTR-03 | Show | 🧪 aguarda veredito da lane |
 | UC-ENTR-04 | Show | 🧪 aguarda veredito da lane |
 | UC-FLX-04 | Quotations | 🧪 aguarda veredito da lane |
+| UC-FLX-06 | Quotations | 🧪 aguarda veredito da lane |
+| UC-FLX-14 | Drafts | 🧪 aguarda veredito da lane |
 | UC-FLX-23 | Show | 🧪 aguarda veredito da lane |
 | UC-FLX-25 | Show | 🧪 aguarda veredito da lane |
 | UC-FLX-34 | Show | 🧪 aguarda veredito da lane |
 | UC-FLX-35 | Drafts | 🧪 aguarda veredito da lane |
+| UC-PCPRZ-01 | Quotations | 🧪 aguarda veredito da lane |
 | UC-POS-01 | Pos/Index | 🧪 aguarda veredito da lane |
 | UC-POS-02 | Pos/Index | 🧪 aguarda veredito da lane |
 | UC-POS-03 | Pos/Index | 🧪 aguarda veredito da lane |
@@ -134,6 +137,8 @@ authority: generated
 | UC-QUO-06 | Quotations | 🧪 aguarda veredito da lane |
 | UC-QUO-07 | Quotations | 🧪 aguarda veredito da lane |
 | UC-QUO-08 | Quotations | 🧪 aguarda veredito da lane |
+| UC-QUO-09 | Quotations | 🧪 aguarda veredito da lane |
+| UC-QUO-10 | Quotations | 🧪 aguarda veredito da lane |
 | UC-REM-01 | Shipments/Index | 🧪 aguarda veredito da lane |
 | UC-REM-02 | Shipments/Index | 🧪 aguarda veredito da lane |
 | UC-REM-03 | Shipments/Index | 🧪 aguarda veredito da lane |
@@ -178,11 +183,18 @@ authority: generated
 | UC-SEDIT-10 | Edit | 🧪 aguarda veredito da lane |
 | UC-SEDIT-11 | Edit | 🧪 aguarda veredito da lane |
 | UC-SEDIT-12 | Edit | 🧪 aguarda veredito da lane |
+| UC-SEDIT-13 | Edit | 🧪 aguarda veredito da lane |
+| UC-SEDIT-14 | Edit | 🧪 aguarda veredito da lane |
+| UC-SEDIT-15 | Edit | 🧪 aguarda veredito da lane |
+| UC-SEDIT-16 | Edit | 🧪 aguarda veredito da lane |
+| UC-SEDIT-17 | Edit | 🧪 aguarda veredito da lane |
+| UC-SEDIT-18 | Edit | 🧪 aguarda veredito da lane |
 | UC-SIDX-01 | Index | 🧪 aguarda veredito da lane |
 | UC-SIDX-02 | Index | 🧪 aguarda veredito da lane |
 | UC-SIDX-03 | Index | 🧪 aguarda veredito da lane |
 | UC-SIDX-04 | Index | 🧪 aguarda veredito da lane |
 | UC-SIDX-05 | Index | 🧪 aguarda veredito da lane |
+| UC-SIDX-06 | Index | 🧪 aguarda veredito da lane |
 | UC-SSUB-01 | Subscriptions | 🧪 aguarda veredito da lane |
 | UC-SSUB-02 | Subscriptions | 🧪 aguarda veredito da lane |
 | UC-SSUB-03 | Subscriptions | 🧪 aguarda veredito da lane |
@@ -242,6 +254,12 @@ authority: generated
 | UC-VSHOW-11 | Show | 🧪 aguarda veredito da lane |
 | UC-VSHOW-12 | Show | 🧪 aguarda veredito da lane |
 | UC-VSHOW-13 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-14 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-17 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-20 | Quotations | 🧪 aguarda veredito da lane |
+| UC-VSHOW-21 | Quotations | 🧪 aguarda veredito da lane |
+| UC-VSHOW-22 | Show | 🧪 aguarda veredito da lane |
+| UC-VSHOW-23 | Show | 🧪 aguarda veredito da lane |
 
 ---
 

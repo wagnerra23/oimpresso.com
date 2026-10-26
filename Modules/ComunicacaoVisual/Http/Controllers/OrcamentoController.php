@@ -5,10 +5,15 @@ namespace Modules\ComunicacaoVisual\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Modules\ComunicacaoVisual\Entities\Orcamento;
+use Modules\ComunicacaoVisual\Entities\OrcamentoItem;
+use Modules\ComunicacaoVisual\Entities\Os;
 use Modules\ComunicacaoVisual\Http\Requests\AprovarOrcamentoRequest;
+use Modules\ComunicacaoVisual\Services\MargemDoOrcamento;
 use Modules\ComunicacaoVisual\Services\OrcamentoCalculator;
 use Modules\ComunicacaoVisual\Services\OrcamentoGravador;
 use Modules\ComunicacaoVisual\Services\OrcamentoViraOs;
@@ -20,8 +25,10 @@ use Modules\ComunicacaoVisual\Services\OrcamentoViraOs;
  *
  * Endpoints:
  *   POST /comunicacao-visual/api/calcular       → preview sem persistência
+ *   GET  /comunicacao-visual/api/orcamentos     → últimos orçamentos da empresa (reabrir)
  *   POST /comunicacao-visual/api/orcamentos     → persiste + retorna 201
  *   GET  /comunicacao-visual/api/orcamentos/{id} → retorna com itens
+ *   PUT  /comunicacao-visual/api/orcamentos/{id} → regrava o orçamento reaberto (sem OS)
  *   POST /comunicacao-visual/api/orcamentos/{id}/aprovar → aprova e cria a OS (UC-FLX-01)
  *
  * Princípio server-side authoritative: valores area_m2 / subtotal / total vindos
@@ -35,6 +42,9 @@ use Modules\ComunicacaoVisual\Services\OrcamentoViraOs;
  */
 class OrcamentoController extends Controller
 {
+    /** Status em que o orçamento reaberto ainda pode ser regravado. */
+    public const EDITAVEIS = ['rascunho', 'enviado'];
+
     public function __construct(
         private readonly OrcamentoCalculator $calculator,
         private readonly OrcamentoGravador $gravador,
@@ -50,9 +60,15 @@ class OrcamentoController extends Controller
         $validated = $this->validarPayload($request);
 
         try {
-            $resultado = $this->calculator->calcular($validated);
+            $resultado = $this->calculator->calcular($validated, $this->businessId());
         } catch (\InvalidArgumentException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        // UC-FLX-03: custo e margem por item só para quem cuida do custo (o cadastro de materiais).
+        // Só acrescenta campos — preço, subtotal e total são os mesmos para todos.
+        if (self::podeVerCusto()) {
+            $resultado = app(MargemDoOrcamento::class)->aplicar($this->businessId(), $resultado);
         }
 
         return response()->json($resultado, 200);
@@ -65,18 +81,139 @@ class OrcamentoController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        $this->exigirCriar();
         $validated = $this->validarPayload($request);
 
         try {
-            $calculado = $this->calculator->calcular($validated);
+            $calculado = $this->calculator->calcular($validated, $this->businessId());
         } catch (\InvalidArgumentException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }
 
-        $businessId = (int) (session('user.business_id') ?? session('business.id'));
-        $orcamento  = $this->gravador->gravar($businessId, $calculado);
+        $orcamento = $this->gravador->gravar($this->businessId(), $calculado);
 
         return response()->json($orcamento, 201);
+    }
+
+    // ------------------------------------------------------------------
+    // GET /comunicacao-visual/api/orcamentos
+    // Os 20 mais recentes da empresa, pra reabrir na calculadora.
+    // ------------------------------------------------------------------
+
+    public function index(): JsonResponse
+    {
+        $this->exigirVer();
+
+        return response()->json(self::recentes($this->businessId()), 200);
+    }
+
+    /** Lista curta pra tela (a rota do hub usa o mesmo formato). `business_id` explícito (Tier 0). */
+    public static function recentes(int $businessId, int $limite = 20): array
+    {
+        $lista = Orcamento::query()
+            ->where('comvis_orcamentos.business_id', $businessId)
+            ->withCount('itens')
+            ->orderByDesc('id')
+            ->limit($limite)
+            ->get(['id', 'numero', 'status', 'total', 'data_emissao']);
+
+        // UC-FLX-01: número da OS de cada orçamento aprovado, numa consulta só.
+        /** @var array<int, string> $osPorOrcamento */
+        $osPorOrcamento = Os::query()->where('business_id', $businessId)
+            ->whereIn('orcamento_id', $lista->pluck('id')->all())
+            ->pluck('numero', 'orcamento_id')->all();
+
+        return $lista
+            ->map(fn (Orcamento $o) => [
+                'id'           => $o->id,
+                'os'           => $osPorOrcamento[$o->id] ?? null,
+                'numero'       => $o->numero,
+                'status'       => $o->status,
+                'total'        => (float) $o->total,
+                // cast 'date' (Carbon), mas o @property da entity diz string: normaliza pelos dois.
+                'data_emissao' => $o->data_emissao ? Carbon::parse($o->data_emissao)->toDateString() : null,
+                'itens'        => (int) $o->getAttribute('itens_count'),
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Orçamento no formato que a calculadora reabre (`?orcamento={id}` no hub). Null se não for da
+     * empresa (o `business_id` explícito vale mesmo sem sessão, ADR 0093).
+     */
+    public static function paraTela(int $businessId, int $id): ?array
+    {
+        $o = Orcamento::query()->where('comvis_orcamentos.business_id', $businessId)->find($id);
+        if ($o === null) {
+            return null;
+        }
+        $itens = OrcamentoItem::query()->where('business_id', $businessId)->where('orcamento_id', $o->id)
+            ->orderBy('ordem')->orderBy('id')->get();
+        $os = Os::query()->where('business_id', $businessId)->where('orcamento_id', $o->id)->first(['id', 'numero']);
+
+        return [
+            'id'               => $o->id,
+            'numero'           => $o->numero,
+            'status'           => $o->status,
+            'desconto'         => (float) $o->desconto,
+            'extras'           => (float) $o->extras,
+            'custo_instalacao' => (float) $o->custo_instalacao,
+            'custo_entrega'    => (float) $o->custo_entrega,
+            'total'            => (float) $o->total,
+            // UC-FLX-01: a OS que o orçamento gerou ao ser aprovado (null antes disso).
+            'os'               => $os ? ['id' => $os->id, 'numero' => $os->numero] : null,
+            'arquivos'         => OrcamentoArquivoController::doOrcamento($businessId, $o->id),
+            'itens'            => $itens->map(fn (OrcamentoItem $i) => [
+                'material_id'       => $i->material_id,
+                'descricao'         => $i->descricao,
+                'largura_m'         => (float) $i->largura_m,
+                'altura_m'          => (float) $i->altura_m,
+                'quantidade'        => (int) $i->quantidade,
+                'preco_unitario_m2' => (float) $i->preco_unitario_m2,
+                // US-COMVIS-001: reabrir devolve os acabamentos escolhidos (o preço é recalculado).
+                'acabamentos'       => array_map(fn (array $a) => array_filter([
+                    'acabamento_id' => (int) $a['acabamento_id'],
+                    'metros'        => $a['tipo'] === 'm_linear' ? (float) $a['base'] : null,
+                    'quantidade'    => $a['tipo'] === 'unitario' ? (float) $a['base'] : null,
+                ], fn ($v) => $v !== null), array_values(array_filter(
+                    $i->acabamentos_json ?? [],
+                    fn (array $a) => ! empty($a['acabamento_id']), // a emenda é recalculada, não escolhida
+                ))),
+            ])->values()->all(),
+        ];
+    }
+
+    // ------------------------------------------------------------------
+    // PUT /comunicacao-visual/api/orcamentos/{id}
+    // Regrava o orçamento reaberto com os valores recalculados no servidor. Mesmo número.
+    // 422 se já virou OS ou foi recusado/expirado: aí o orçamento é registro, não rascunho.
+    // ------------------------------------------------------------------
+
+    public function update(Request $request, int $id): JsonResponse
+    {
+        $this->exigirCriar();
+        $businessId = $this->businessId();
+        $validated = $this->validarPayload($request);
+
+        try {
+            $calculado = $this->calculator->calcular($validated, $this->businessId());
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        // Trava a linha: aprovar ao mesmo tempo (OrcamentoViraOs também trava) espera esta gravação.
+        return DB::transaction(function () use ($businessId, $id, $calculado) {
+            $orcamento = Orcamento::query()->where('comvis_orcamentos.business_id', $businessId)
+                ->whereKey($id)->lockForUpdate()->firstOrFail();
+
+            if (! in_array($orcamento->status, self::EDITAVEIS, true)
+                || $orcamento->os()->where('business_id', $businessId)->exists()) {
+                return response()->json(['message' => "O orçamento {$orcamento->numero} está {$orcamento->status} e não pode mais ser alterado."], 422);
+            }
+
+            return response()->json($this->gravador->regravar($businessId, $orcamento, $calculado), 200);
+        });
     }
 
     // ------------------------------------------------------------------
@@ -86,7 +223,10 @@ class OrcamentoController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        $orcamento = Orcamento::with('itens')->findOrFail($id);
+        $this->exigirVer();
+        $orcamento = Orcamento::with('itens')
+            ->where('comvis_orcamentos.business_id', $this->businessId())
+            ->findOrFail($id);
 
         return response()->json($orcamento, 200);
     }
@@ -119,6 +259,35 @@ class OrcamentoController extends Controller
     // ------------------------------------------------------------------
     // Helpers privados
     // ------------------------------------------------------------------
+
+    /** Quem vê custo e margem: superadmin ou quem gerencia o catálogo (onde o custo é cadastrado). */
+    public static function podeVerCusto(): bool
+    {
+        $user = auth()->user();
+
+        return $user !== null && ($user->can('superadmin') || $user->can('comvis.material.manage'));
+    }
+
+    private function businessId(): int
+    {
+        return (int) (session('user.business_id') ?? session('business.id'));
+    }
+
+    private function exigirCriar(): void
+    {
+        $user = auth()->user();
+        if (! $user->can('superadmin') && ! $user->can('comvis.orcamento.create')) {
+            abort(403, 'Sem permissão para salvar orçamento (comvis.orcamento.create).');
+        }
+    }
+
+    private function exigirVer(): void
+    {
+        $user = auth()->user();
+        if (! $user->can('superadmin') && ! $user->can('comvis.orcamento.view') && ! $user->can('comvis.orcamento.create')) {
+            abort(403, 'Sem permissão para ver orçamento (comvis.orcamento.view).');
+        }
+    }
 
     /**
      * Validação centralizada usada por calcular() e store().
@@ -156,6 +325,11 @@ class OrcamentoController extends Controller
             // UC-FLX-33: posto e horas de máquina só alimentam o custo previsto, não o preço.
             'itens.*.posto_id'          => $this->regraPosto(),
             'itens.*.horas_maquina'     => ['nullable', 'numeric', 'min:0', 'max:999999'],
+            // US-COMVIS-001: acabamentos do catálogo da empresa; metros/quantidade substituem a base padrão.
+            'itens.*.acabamentos'                 => ['nullable', 'array', 'max:20'],
+            'itens.*.acabamentos.*.acabamento_id' => ['required', 'integer', 'min:1'],
+            'itens.*.acabamentos.*.metros'        => ['nullable', 'numeric', 'gt:0', 'max:99999'],
+            'itens.*.acabamentos.*.quantidade'    => ['nullable', 'numeric', 'gt:0', 'max:99999'],
         ], [
             // Mensagens de validação em PT-BR
             'data_emissao.required'    => 'A data de emissão é obrigatória.',

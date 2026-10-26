@@ -2,7 +2,7 @@
 id: requisitos-financeiro-briefing
 module: Financeiro
 status: producao
-updated_at: "2026-09-06"
+updated_at: "2026-10-26"
 distilled_at: "2026-09-06"
 distilled_by: jana:distill-module-truth
 ---
@@ -15,6 +15,7 @@ Visão unificada de Contas a Receber, Contas a Pagar, Fluxo de Caixa, Cobrança 
 ## Capacidades
 - Boleto real via Banco Inter (ADR 0170 `paymentgateway-extracao-camada-cobranca`, arquivada — a extração já é fato no código; Inter/C6/Asaas/BcbPix já plugados no PaymentGateway; habilitação por business é decisão [W] — estado de flag em prod não é fato de repo, ver `memory/what-oimpresso.md` §Padrão arquitetural, linha `Modules/PaymentGateway`).
 - Conciliação de extrato com match sugerido por score (`ConciliacaoController`, `POST /financeiro/conciliacao/{lineId}/match`). O evento `TituloCriado` tem listener de audit log (`OnTituloCriadoLog`) — log, não conciliação.
+- Extrato automático via Pluggy (Open Finance, US-FIN-074): `financeiro:pluggy-sync` grava o extrato das contas com `metadata.pluggy.account_id` em `fin_extrato_lancamentos`, que a Conciliação lê junto com o OFX. **Desligado e fora do caminho:** decisão [W] 2026-10-26 — extrato automático é pelo banco direto (Inter via `SyncBankStatementsJob`), sem agregador; o comando do Pluggy fica como base inerte.
 - Workflow de aprovação com visão AR/AP integrada (`aprovacao_status` em `fin_titulos`).
 - Ações em lote na Visão Unificada (`POST /financeiro/unificado/bulk`) com confirmação e audit trail (até 500 títulos por chamada — limite de contrato do endpoint, US-FIN-031/#3905).
 - Bridge de despesas → títulos (`financeiro:bridge-expense-to-titulos`), corrigida após quebrar em produção (US-FIN-068: filtrava `transactions.deleted_at`, coluna inexistente; o comando não é agendado, então a falha era silenciosa).

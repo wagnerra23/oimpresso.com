@@ -21,6 +21,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 import type { ReactNode } from 'react';
 import { Globe } from 'lucide-react';
 import { Inline } from '@/Components/layout';
+import { brl } from '../../Unificado/_components/catalogo';
 import AcoesProduto, { type AcaoProduto } from './AcoesProduto';
 import {
   TIPO_ROTULO,
@@ -128,7 +129,24 @@ export function colunasDaLista({ visiveis, densa, permissions, contexto, aoEscol
       enableSorting: true,
       accessorFn: (l) => l.venda_max ?? null,
       meta: { width: 150, align: 'right' },
-      cell: ({ row }) => preco(faixaDePreco(row.original.tipo, row.original.venda_min, row.original.venda_max)),
+      cell: ({ row }) => {
+        const proposto = row.original.preco_proposto;
+        if (!proposto) return preco(faixaDePreco(row.original.tipo, row.original.venda_min, row.original.venda_max));
+        // UC-PIDX-28 (UC-FLX-17): a compra recebida propôs preço novo, que espera aprovação no
+        // detalhe da compra. Só aviso: a lista não muda preço.
+        const texto =
+          proposto.quantidade === 1 && proposto.preco !== null
+            ? `proposto ${brl(proposto.preco)} · aguardando`
+            : `${proposto.quantidade} preços propostos · aguardando`;
+        return (
+          <div className="min-w-0">
+            {preco(faixaDePreco(row.original.tipo, row.original.venda_min, row.original.venda_max))}
+            <div className="truncate text-[11px] font-medium text-[var(--warn)]" title={texto} data-contract="produto-lista-preco-proposto">
+              {texto}
+            </div>
+          </div>
+        );
+      },
     });
   }
   if (v('estoque')) {

@@ -5,8 +5,8 @@ irmaos: Edit.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — editar o cadastro não pode perder o que a tela velha (Blade + Delphi) preservava.
 owner: wagner
-last_run: "2026-10-21"
-last_run_ci: "PR #9744 (natureza fiscal no Editar, UC-PEDIT-14), 2026-10-21: lane PHP / Pest (Estoque · MySQL), job 119451939591: 533 passed (2508 assertions), com os 4 casos do UC-PEDIT-14 verdes; job Frontend / Vite build 119452570399: 105 testes passaram em 13 arquivos, 32 deles em produto-formulario.test.tsx (UC-PEDIT-11 a 14). Antes: PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 485 passed (2356 assertions); UC-PEDIT-01 a 09 verdes. Revalidação depois do refactor que passou as seções do formulário para _components/formulario/ (sem mudança de comportamento: HTML e estado do formulário idênticos antes/depois em 3 cenários do Editar no Vitest; o PUT envia os mesmos campos)"
+last_run: "2026-10-26"
+last_run_ci: "PR #9747 (aviso de SKU que não vira código EAN, UC-PEDIT-15), 2026-10-26, head 9918672 com o #9744 já no main: job Frontend / Vite build 121560485044: 114 testes passaram em 14 arquivos, 37 deles em produto-formulario.test.tsx. A tela Edit.tsx é a mesma, byte a byte, que o #9744 validou em 21/10; a data mudou só pela entrada dele no main. Antes: PR #9744 (natureza fiscal no Editar, UC-PEDIT-14), 2026-10-21: lane PHP / Pest (Estoque · MySQL), job 119451939591: 533 passed (2508 assertions), com os 4 casos do UC-PEDIT-14 verdes; job Frontend / Vite build 119452570399: 105 testes passaram em 13 arquivos, 32 deles em produto-formulario.test.tsx (UC-PEDIT-11 a 14). Antes: PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 485 passed (2356 assertions); UC-PEDIT-01 a 09 verdes. Revalidação depois do refactor que passou as seções do formulário para _components/formulario/ (sem mudança de comportamento: HTML e estado do formulário idênticos antes/depois em 3 cenários do Editar no Vitest; o PUT envia os mesmos campos)"
 ---
 
 # Casos de Uso & Aceite — Editar produto

@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **442** arquivos · **427** números únicos · máx **0437**
-- **ADRs ATIVOS (lifecycle ativo): 395** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 383 · superseded 27 · proposto 18 · deprecated 11 · recusado 2 · rascunho 1
-- Por lifecycle: ativo 395 · substituido 27 · arquivado 20
+- **444** arquivos · **429** números únicos · máx **0440**
+- **ADRs ATIVOS (lifecycle ativo): 397** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 384 · superseded 27 · proposto 19 · deprecated 11 · recusado 2 · rascunho 1
+- Por lifecycle: ativo 397 · substituido 27 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -36,7 +36,7 @@ _(nenhuma)_
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 - **0430** Retenção LGPD do Patrimônio anonimiza campo pessoal, nunca apaga linha nem trilh · recusada 2026-10-13 — No Patrimônio não há retenção LGPD: vale a lápide de 2026-07-27 (num ERP o dado tem dever de guarda; o controle é por pe
 
-## Todas as ADRs (442)
+## Todas as ADRs (444)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -481,3 +481,5 @@ _(nenhuma)_
 | 0435 | proposto | ativo | decision | Fluxos por modelo (porte × atividade): a empresa escolhe um modelo e o modelo mo |
 | 0436 | proposto | ativo | decision | OS por item: a OS que nasce do pedido mora no Modules/Producao e anda no motor F |
 | 0437 | aceito | ativo | decision | Módulo Fisio — vertical de fisioterapia no oimpresso: o paciente faz o exercício |
+| 0438 | aceito | ativo | decision | O Artefato substitui o Cowork como lugar de ver e comentar o protótipo; o transp |
+| 0440 | proposto | ativo | decision | A Jana propõe a ação, o usuário confirma, e só então o sistema grava |

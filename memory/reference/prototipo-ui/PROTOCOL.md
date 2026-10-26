@@ -5,6 +5,19 @@
 > **Última revisão:** 2026-08-18 (execução consolidada em `protocolo.config.mjs`; este documento
 > é dono somente da política, autoridade e invariantes do loop v2)
 > **🔁 v2 (colapso) — ratificado em [ADR 0282](../../../memory/decisions/0282-protocolo-v2-colapso-ratificacao.md) (2026-06-17):** 6→2 papéis · 7→3 fases · memória=git SSOT · intake=Issues/`cowork-inbox` · gates=CI (a11y-axe required) · code write-path com review-gate. **O overlay autônomo do §2 é o modelo principal da v2.** v1 preservado (append-only — o histórico fica).
+> **⚠️ 2026-10-23 — [ADR 0438](../../../memory/decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md): o Cowork sai do fluxo.** A fonte do protótipo é o arquivo
+> versionado em `prototipo-ui/` (escrito aqui no git, como qualquer código); o **Artefato** publicado a
+> partir desse arquivo é só a superfície de ver e comentar, e comentário vira commit num PR. O Cowork
+> (claude.ai/design) deixa de ser rota de entrada e de saída: o transporte (bundle, payload, `get_file`
+> como rota, frescor do espelho, subida de DS, o check obrigatório do espelho) saiu nas ondas 1–2c
+> daquela ADR. As seções abaixo que descrevem esse transporte ficam como **histórico**; o mapa do §0
+> diz o que segue valendo. Os números das seções não mudam (código e hooks os citam).
+>
+> **Publicar o protótipo como Artefato:** `node scripts/design/build-artefato-prototipo.mjs --out <pasta>`
+> gera a página inteira a partir do `oimpresso.com.html` e dos `.jsx` do git (compilados, como o pacote
+> antigo do Cowork fazia) e grava `fonte.json` com o commit de origem. Rode com a árvore commitada (o
+> script sai 3 se houver alteração pendente em `prototipo-ui/`) e publique a pasta inteira na URL
+> registrada em [`VISTAS-PUBLICADAS.md`](../VISTAS-PUBLICADAS.md) §protótipo. Nunca edite a página publicada.
 
 ## 0. Mapa de vigência (v2 — leia isto primeiro)
 
@@ -21,7 +34,11 @@
 | §7 Batch | ✅ VIGENTE | adaptar o F0 ao intake v2 (1 Issue com N telas); resto vale |
 | §8 Anti-padrões | 🟡 parcial | `SYNC_LOG` append-only, backpressure, não-editar-protótipo seguem; itens de aprovação síncrona `[W]`/screenshot → superados (CI) |
 | §9 Ciclo de vida `prototipos/` | 🟡 parcial | fluxo de arquivos segue; aprovações humanas citadas → gates CI |
-| §10 (10.1–10.6) + Esteira≠armazém | ✅ **VIGENTE** | gatilhos ida/retorno, gate §10.4 (Passo 0), bundle §10.5, acesso direto DesignSync §10.6, régua 6 |
+| §10.1 Gatilho de IDA · §10.5 bundle · §10.6 DesignSync · §10.7 `github.md` | 🪦 superado (2026-10-23) | descreviam o transporte com o Cowork, que a [ADR 0438](../../../memory/decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md) tirou do fluxo. Ficam como histórico |
+| §10.2 Gatilho de RETORNO · §10.3 | 🟡 parcial (2026-10-23) | os 3 canais (`ds:report:write` · `SYNC_LOG` · `HANDOFF`) seguem como registro no git; o leitor `[CC]` web que eles alimentavam saiu com o Cowork |
+| §10.4 gate de validação (Passo 0) | ✅ **VIGENTE** | o Passo 0 (ancorar em `origin/main` fresco) é citado pelo hook `git-base-freshness-guard.mjs` e vale para qualquer trabalho |
+| §10.8 prazo 2026-12-14 | ✅ VIGENTE, com o passo 2 ajustado | ver a nota datada na seção |
+| Esteira≠armazém | ✅ **VIGENTE** | régua 6 |
 | §11 Links | ✅ referência | — |
 
 **Estado vivo (SEM contagem cacheada aqui — a lista dos required vive em [`governance/required-checks-baseline.json`](../../../governance/required-checks-baseline.json), enforced por `protection-drift.mjs`; contagens cacheadas em doc apodreceram 18→22→24 entre jun–jul/2026):** `enforce_admins:true` · `reviews:0`. `visual-regression` **é** required; **a11y-axe e PR UI Judge são advisory hoje** — a frase "a11y-axe required" do banner refletia a Onda C da 0282 e foi alterada depois pela poda [ADR 0314](../../../memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md) (required = só Tier-0). Estado vivo de merge/enforcement: **[AUTOMACAO-LOOP-AUTONOMO.md](AUTOMACAO-LOOP-AUTONOMO.md) §2–§3** (casa declarada — ex.: `gh pr merge --admin` MORTO pós-ADR 0271).
@@ -35,10 +52,10 @@ Na **v2** ([ADR 0282](../../../memory/decisions/0282-protocolo-v2-colapso-ratifi
 | Via | O que é | Onde |
 |---|---|---|
 | 1. Protótipo Cowork no repo | `prototipos/<tela>/` read-only — fonte de design Tier 0 ([ADR 0299](../../../memory/decisions/0299-figma-nao-e-fonte-de-design.md)) | git |
-| 2. **`DesignSync`** | tool nativa — lê/escreve o projeto claude.ai/design **fresco** (agente desktop/GUI com login claude.ai) | §10.6 |
+| 2. ~~**`DesignSync`**~~ → **Artefato** | até 2026-10-23 a tool `DesignSync` lia/escrevia o projeto claude.ai/design. Desde a [ADR 0438](../../../memory/decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md), o agente escreve o protótipo direto no git e publica um Artefato para o [W] ver e comentar | §10.6 (histórico) |
 | 3. Plugin Claude Design | skills `design:design-system` / `-critique` / `-handoff` / `ux-copy` / `accessibility-review` | local |
 
-**Corolário (anti-padrão — mata o incidente):** é **proibido** tratar design como dependência externa — dizer *"precisa vir do Cowork / esperar handoff"* ou *"me autorize a desenhar"* quando falta a fonte visual de uma tela. Nesse caso o agente **gera** (via 2/3 acima, ancorado no DS canon), valida pelos **gates CI** (visual-regression + PR UI Judge) e abre PR. **Soberania [W] Tier 0** é sobre **merge · produto · token/componente novo** ([ADR 0282] "o ouro": constituição/ADR/token = só [W]), **não** sobre "posso desenhar". Onde há protótipo, ele **é** a fonte (§1/§9); onde não há, é fluxo MWART direto — nunca se espera insumo externo.
+**Corolário (anti-padrão — mata o incidente):** é **proibido** tratar design como dependência externa — dizer *"precisa vir do Cowork / esperar handoff"* ou *"me autorize a desenhar"* quando falta a fonte visual de uma tela. Nesse caso o agente **gera** (escrevendo o protótipo no git e usando a via 3, ancorado no DS canon), valida pelos **gates CI** (visual-regression + PR UI Judge) e abre PR. **Soberania [W] Tier 0** é sobre **merge · produto · token/componente novo** ([ADR 0282] "o ouro": constituição/ADR/token = só [W]), **não** sobre "posso desenhar". Onde há protótipo, ele **é** a fonte (§1/§9); onde não há, é fluxo MWART direto — nunca se espera insumo externo.
 
 ## 1. Os 6 papéis
 
@@ -212,6 +229,8 @@ O loop tem **dois** gatilhos, não um. O genérico do Claude Design é só IDA �
 
 ### 10.1 Gatilho de IDA — `[CC]`/`[W]` → `[CL]` (substitui os snippets genéricos)
 
+> **🪦 Superado em 2026-10-23 ([ADR 0438](../../../memory/decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md) D4/D5).** O pedido chega no chat ou num comentário do Artefato, e o agente escreve o protótipo no git. Não há mais prompt vindo do Claude Design para salvar e validar.
+
 ```
 <roadmap/tarefa> — executar via protocolo prototipo-ui (ADR 0114 + ADR 0239).
 
@@ -282,6 +301,8 @@ Todo `PROMPT_PARA_CODE` / comando de sync do `[CC]` é **proposta, não ordem**.
 
 ### 10.5 Handoff bundle estruturado (Claude Design oficial) — entra como PROPOSTA, nunca autoridade
 
+> **🪦 Superado em 2026-10-23 ([ADR 0438](../../../memory/decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md) D4/D5).** A aplicação de bundle saiu do repo na onda 2c-3 (`applyBundleTransaction`, validação das partes). O que ficou do `bundle-transaction.mjs` são os recibos por tela (ADR 0384).
+
 > **Origem:** 2026-06-06 — pesquisa profunda do **Claude Design (Anthropic Labs, 17/abr/2026)** e seu handoff Claude Design→Claude Code. Dossiê: [memory/sessions/2026-06-06-arte-claude-design-handoff.md](../../../memory/sessions/2026-06-06-arte-claude-design-handoff.md).
 
 O Claude Design oficial empacota o design num **bundle estruturado** (spec machine-readable: estrutura de componentes + design tokens usados no canvas + hierarquia de layout + assets) que o Claude Code lê direto, **sem inferir de pixels** (mesma família de modelo). O **formato** é superior ao nosso export HTML (`visual-source.html`) + mapeamento manual CSS→Tailwind (F3 do RUNBOOK-replicar-prototipo-cowork) — é **ali** que nasce perda de tradução / regressão visual.
@@ -305,6 +326,8 @@ O Claude Design oficial empacota o design num **bundle estruturado** (spec machi
 > 🔁 **2026-07-07:** o "formato fantasma" parcialmente materializou — o harness Claude Code agora expõe a tool **`DesignSync`** (leitura E escrita de projetos design-system do claude.ai/design via API real). Ver **§10.6** — a parte de LEITURA do F-C deixa de ser especulativa; o parser de bundle tar segue reativo.
 
 ### 10.6 Acesso direto ao projeto Claude Design — tool `DesignSync` + skill `/design-sync` (sempre pegar o FRESCO)
+
+> **🪦 Superado em 2026-10-23 ([ADR 0438](../../../memory/decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md) D4/D5).** O `DesignSync` deixou de ser transporte do protótipo: a fonte é o git, e escrever no claude.ai/design segue exigindo opt-in escrito (hook `block-design-sync-without-optin`). Ler um arquivo antigo do Cowork continua possível até o fechamento, como arqueologia, sem precedência sobre o git.
 
 > **Origem:** 2026-07-07 — Felipe: *"incluir acesso direto ao /design-sync ajudaria a sempre pegar atualizado e comparar com o mais fresco economizando tempo"* (ref. artigo oficial [Comece com Claude Design](https://support.claude.com/pt/articles/14604416-comece-com-claude-design)). O dossiê [2026-06-06](../../../memory/sessions/2026-06-06-arte-claude-design-handoff.md) mandou "não construir contra formato fantasma" — **a tool agora existe e foi sondada empiricamente nesta data**: o harness Claude Code expõe `DesignSync` (pareada com a skill `/design-sync`), API real de leitura/escrita de projetos design-system do claude.ai/design.
 
@@ -376,6 +399,8 @@ como fonte única.
 
 ### 10.7 `github.md` — diário lido na origem, sem cópia-sombra (ADR 0390)
 
+> **🪦 Superado em 2026-10-23 ([ADR 0438](../../../memory/decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md) D4/D5).** Sem Cowork no fluxo não há diário na origem a ler. O que for decisão vai para o dono canônico (charter, `*.casos.md`, ADR UI).
+
 O projeto Cowork mantém um diário de bordo, `github.md`: `## Last sync` (data + hash de árvore),
 um bloco `### Updated in this project` por ciclo (o que mudou no protótipo, achados 🔴 lidos do
 código vivo, erratas do próprio `[CC]`, decisões pendentes `[W]`) e o `## Screen map`
@@ -421,7 +446,7 @@ cópia que sobrevive.
    papel `telas` do painel ([`protocolo.config.mjs`](../../../scripts/design/protocolo.config.mjs)
    — IDs, nomes e contas vivem lá, não aqui): o projeto principal das telas (conta [W]), o do
    Felipe (conta [F], ele exporta) e o do app mobile (conta [W]).
-2. **Importar cada ZIP no espelho** pela rota ZIP da fase −1 do painel (a mesma de sempre: mede
+2. **Importar cada ZIP no espelho** ⚠️ *(2026-10-23: a rota ZIP — `receber-handoff.mjs` — saiu na onda 2a da [ADR 0438](../../../memory/decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md); o ZIP é descompactado no espelho num PR comum, e o que importa é o arquivo chegar ao git antes de 14/12)* pela rota ZIP da fase −1 do painel (a mesma de sempre: mede
    primeiro, promove só com aceite). O ZIP traz o projeto inteiro, inclusive o diário `github.md`
    (§10.7), que hoje só é lido na origem — depois do fechamento, a cópia no git é a única.
 3. **Migrar os design systems** — o projeto DS canônico (conta [W]) e a cópia na conta do [F]

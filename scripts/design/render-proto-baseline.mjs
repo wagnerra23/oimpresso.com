@@ -45,7 +45,7 @@
 //   node scripts/design/render-proto-baseline.mjs --selftest                   # hermético, morde/libera
 //
 // Reusa (1 fato = 1 lugar): resolveAncora (ancora.mjs) · SNIPPET (style-fingerprint.mjs, a MESMA
-// string do --snippet) · computeGitSha (gerar-map.mjs) · acharBundleRoot (importar-bundle.mjs) ·
+// string do --snippet) · computeGitSha (gerar-map.mjs) · acharBundleRoot (veio do importar-bundle.mjs, removido na onda 2a da ADR 0438) ·
 // MIRROR_DIR (protocolo.config.mjs) · chaveCelula (fingerprint-harness.mjs).
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, statSync, mkdtempSync, unlinkSync, rmdirSync, rmSync } from 'node:fs';
@@ -55,7 +55,8 @@ import { join, resolve, dirname, extname, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 import { payloadDependencyGraph } from '../design-sync/payload-dependency-graph.mjs';
-import { previewDsPlan, dsRuntimeRelPath } from '../governance/cowork-mirror-freshness.mjs';
+import { previewDsPlan } from '../governance/cowork-mirror-freshness.mjs';
+import { dsRuntimeRelPath } from './ds-runtime-path.mjs';
 
 import { resolveAncora } from './ancora.mjs';
 import { SNIPPET, rotulosDistintivos, overlapConteudo } from './style-fingerprint.mjs';
@@ -64,12 +65,35 @@ import { SNIPPET, rotulosDistintivos, overlapConteudo } from './style-fingerprin
 // acusa STALE em 9/9 baselines onde o salvo é PREFIXO do atual — o sha não mudou, o FORMATO
 // mudou. `shaBate` aceita o abreviado como prefixo (contrato de abreviação do próprio git).
 import { computeGitSha, shaBate } from './gerar-map.mjs';
-import { acharBundleRoot } from './importar-bundle.mjs';
 import { MIRROR_DIR, DS_MIRROR_DIR, normalize, contentHash } from './protocolo.config.mjs';
 import { chaveCelula } from './fingerprint-harness.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)); // prototipo-ui/
 const REPO = resolve(HERE, '../..');
+
+// acharBundleRoot morava no importar-bundle.mjs, que saiu na onda 2a da ADR 0438 (2026-10-23,
+// rota ZIP encerrada). Este arquivo era o único consumidor vivo dela, então ela mudou de casa
+// com o corpo intacto.
+// ── acha a RAIZ real do bundle — o zip abre em `<slug>/project/`, NÃO em `project/` no topo;
+//    assumir `destino/project` aninha o slug inteiro (bug 2026-07-01). Marca FORTE = host+app juntos;
+//    ordena os candidatos (determinístico) e avisa em ambiguidade em vez de first-wins cego (adv A3).
+function acharBundleRoot(destino) {
+  const forte = (d) => existsSync(join(d, 'oimpresso.com.html')) && existsSync(join(d, 'app.jsx'));
+  const fraco = (d) => existsSync(join(d, 'oimpresso.com.html')) || existsSync(join(d, 'app.jsx'));
+  let subs = [];
+  try { subs = readdirSync(destino, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort(); } catch {}
+  // `new Set`: com o bundle abrindo em `project/` no topo, `join(destino,'project')` e o `project`
+  // vindo de `subs` sao o MESMO path — sem dedupe, `fortes` vinha com 2 entradas IGUAIS e o
+  // aviso de ambiguidade disparava no caso mais simples que existe (achado pelo bite-test,
+  // 2026-09-13). Set preserva a ordem de insercao, entao a precedencia dos candidatos nao muda.
+  const cands = [...new Set([join(destino, 'project'), ...subs.map((s) => join(destino, s, 'project')), ...subs.map((s) => join(destino, s)), destino])];
+  const fortes = cands.filter((c) => existsSync(c) && forte(c));
+  if (fortes.length === 1) return fortes[0];
+  if (fortes.length > 1) { console.error(`⚠ raiz ambígua (${fortes.length} dirs com host+app): ${fortes.join(' | ')} — usando o 1º ordenado`); return fortes[0]; }
+  const fracos = cands.filter((c) => existsSync(c) && fraco(c));
+  if (fracos.length) { console.error(`⚠ nenhuma raiz FORTE (host+app juntos); caindo pra marca fraca: ${fracos[0]}`); return fracos[0]; }
+  console.error(`⚠ nenhum host-marker achado em ${destino} — usando destino cru (pode aninhar)`); return destino;
+}
 export const VERSION = 1;
 
 // Identidade do render local inteiro, incluindo CSS, shell e runtime do DS.

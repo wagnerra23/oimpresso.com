@@ -4,7 +4,7 @@ irmaos: Quotations.charter.md (lei) · Quotations.tsx
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: cotação é proposta ao cliente que divide a tabela `transactions` com o rascunho e se distingue só por `sub_status = quotation` — quem vê qual cotação, e de qual empresa, não pode mudar num refactor visual.
 owner: wagner
-last_run: "2026-10-06"
+last_run: "2026-10-21"
 last_run_ci: "UC-QUO-01 3/3 verde no CT 100 (19 assertions, 2026-10-06) — veredito da lane PHP / Pest (Sells · MySQL) pendente deste PR"
 ---
 
@@ -73,14 +73,50 @@ novo cria 0 e A segue com 1.
 
 Status: 🧪
 
+## Entrega prevista ao converter (US-PCP-028 · UC-FLX-06)
+
+> **Âncora:** UC-FLX-06 do catálogo de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php`, *"calcula a
+> entrega pela fila dos postos"*). O cálculo é contrato do Produção (UC-PCPRZ-01..04 em
+> `Modules/Producao/Resources/js/Pages/Producao/Postos/Index.casos.md`); aqui fica o que a tela de cotações
+> recebe e mostra.
+
+## UC-QUO-09 · A confirmação de converter mostra a entrega prevista pela fila · `[T0]` `must`
+
+**Dado** uma cotação do business 98 e o Produção no pacote **Quando** abro "Converter em venda" **Então** a
+confirmação pergunta `GET /producao/vendas/{id}/prazo` e mostra "Entrega prevista: dd/mm" antes do
+Converter; sem roteiro de produção, diz que não há como prever. A Page recebe a URL em `urls.prazo` (null sem
+o Produção no pacote: a confirmação não mostra prazo). A cotação de outro business pela mesma URL dá 404.
+
+**Teste:** `tests/Feature/Sells/SellsPrazoEntregaContratoTest.php` — `UC-QUO-09`.
+
+Status: 🧪
+
+## UC-QUO-10 · A lista de cotações mostra se o cliente abriu a proposta · `must`
+
+**Dado** no business 98 o orçamento A aberto pelo cliente duas vezes (primeira 20/10 10:00, última 11:30) e o
+orçamento B nunca aberto **Quando** abro a lista de cotações **Então** a coluna "Aberto" de A mostra a primeira
+abertura e "2×", e a de B mostra "Não aberto". Âncora: aceite 2 da US-SELL-070 · UC-FLX-04.
+
+- **Dados da lista:** `quote_first_opened_at`, `quote_last_opened_at` e `quote_open_count` no mesmo `GET /sells/draft-dt?is_quotation=1`, lidos de `transaction_quote_accesses` pelo business da cotação.
+- **Teste:** `tests/Feature/Sells/QuoteAccessTelaContratoTest.php` — `UC-QUO-10`. O [T0] (linha de acesso de outro business não vira abertura, também na lista) está no `UC-VSHOW-21` do `Show.casos.md`.
+
+Status: 🧪
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** Enviar abre o documento da cotação (título "Orçamento", validade), não o da venda; a venda final segue com o layout de nota (2º caso da ficha `03-orcamentos.md`). **Medido 2026-10-06:** o botão "Enviar" da Page aponta `/sells/{id}/print?quotation=1`, e `SellPosController@printInvoice` só tem ramo `ajax()` — em navegação comum o corpo volta vazio. O Blade usa a impressão por AJAX e `quotation.downloadPdf`. Ganha id junto do conserto do botão.
 - **[BACKLOG]** Salvar cotação não baixa estoque nem gera título; finalizar a venda gera os dois (3º caso da ficha). Exige `POST /pos` real com lastro de compra (receita do `SellsRepairSubtipoContratoTest`) — intent próprio.
 - **[BACKLOG]** Converter preserva itens, quantidades e preços; 2ª conversão → 409 (4º caso da ficha). É da thread **Q3** (`QuotationConvertTest`), que promove o caso quando o teste existir.
-- **[BACKLOG]** O detalhe do orçamento mostra "aberto em <data>" ou "não aberto" para quem tem `sell.view`/`direct_sell.view`, e outro business recebe 404 (aceites 2 e 5 da US-SELL-070). O dado já está em `transaction_quote_accesses`.
 - **[BACKLOG]** O endpoint de dados `/sells/draft-dt?is_quotation=1` não checa permissão de cotação: **medido 2026-10-06 no CT 100**, um usuário do mesmo business **sem** `quotation.view_all` nem `quotation.view_own` recebeu as duas cotações da fixture. Outro business segue fora (o [T0] vale). Ganha id junto do conserto (gate no `getDraftDatables`).
+- **[BACKLOG]** Orçamento duplicado mostra de onde veio (pedido de 2026-10-23) — Dado o orçamento
+  O-80 duplicado do O-75, Então o O-80 mostra "Duplicado de O-75" com link e o O-75 mostra "Duplicado
+  em O-80"; converter o O-80 em venda leva a origem junto. Hoje a duplicação não guarda a origem
+  (`SellController::duplicateSell`, medido em 23/10/2026).
 
 ## Trilha do tempo
+- 2026-10-23 · [M+C] Backlog: orçamento duplicado mostra de onde veio, sem id.
+- 2026-10-21 · [CL] UC-QUO-09 (US-PCP-028 · UC-FLX-06): entrega prevista na confirmação de converter. Teste `SellsPrazoEntregaContratoTest`, nasce sem run.
+- 2026-10-21 · [CL] UC-QUO-10 (US-SELL-070 · UC-FLX-04): coluna "Aberto" na lista. O item de backlog do detalhe do orçamento saiu daqui e virou UC-VSHOW-20/21 no `Show.casos.md`, que é a tela onde ele mora. Teste `QuoteAccessTelaContratoTest`, nasce sem run.
+- 2026-10-21 · [CL] `last_run` 2026-10-06 → 2026-10-21 por conferência, não por run novo: o `Quotations.tsx` deste PR só acrescenta a coluna "Aberto" (2 campos lidos do mesmo JSON); filtro de lista, permissões e conversão de UC-QUO-01..04 não mudam. Nenhum teste re-rodado aqui; o `last_run_ci` segue sendo o de 2026-10-06.
 - 2026-10-20 · [CL] UC-QUO-05..08 (US-SELL-070 · UC-FLX-04): termômetro de acesso da proposta e retorno de 48 h. Teste `QuoteAccessTermometroContratoTest`, nasce sem run.
 - 2026-10-06 · [CL] trio completado na thread Q1 do playbook `venda-menu`. Refs: ADR 0104 · ADR 0264 G-1/G-2 · ADR 0358 · US-SELL-061.

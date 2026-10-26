@@ -5,7 +5,7 @@ irmaos: Show.charter.md (lei) · tests/Feature/Sells/SellsShowContratoTest.php (
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-10-20"
+last_run: "2026-10-21"
 ---
 
 # Casos de Uso & Aceite — Detalhe da venda
@@ -98,8 +98,8 @@ last_run: "2026-10-20"
 > gravado pela entrega do app (`POST /api/app/pedidos/{id}/entrega`, contrato
 > [`tela-22-entrega.md`](../../../../memory/requisitos/AppMobile/api/tela-22-entrega.md)), que já guardava
 > itens conferidos e quem recebeu. Esta entrega acrescenta o **total de volumes**, opcional para não
-> quebrar o app que já está nos celulares. A venda é a mesma deste detalhe; o detalhe ainda não mostra o
-> protocolo (fica como aceite aberto da US-SELL-073). Prova: `tests/Feature/Sells/AppPedidoEntregaContratoTest.php`.
+> quebrar o app que já está nos celulares. A venda é a mesma deste detalhe; desde 2026-10-21 o detalhe mostra o
+> protocolo na seção Entrega (UC-VSHOW-22/23). Prova: `tests/Feature/Sells/AppPedidoEntregaContratoTest.php`.
 
 ## UC-ENTR-01 · O protocolo grava os volumes junto com os itens e quem recebeu · `must`
 - **Aceite:** Dado uma venda na etapa de Entrega com as 2 linhas conferidas · Quando o app registra a entrega com `volumes: 3` · Então a resposta 201 traz `volumes: 3` e `recebido_por`, a linha de `app_entregas` tem `volumes = 3` e os ids das 2 linhas em `itens`, e a venda vai para `delivered`. Repetir a mesma `Idempotency-Key` com `volumes: 3` devolve o mesmo protocolo; com `volumes: 5` → `422 idempotencia_conflito`.
@@ -121,11 +121,36 @@ last_run: "2026-10-20"
 - **Teste:** `tests/Feature/Sells/AppPedidoEntregaContratoTest.php` — `UC-ENTR-04`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
+## UC-VSHOW-22 · A entrega registrada pelo app aparece no detalhe da venda · `must`
+- **Persona:** quem atende o cliente que liga perguntando se a mercadoria chegou: abre a venda e vê quando foi entregue, quem recebeu, quantos volumes e os itens, sem pedir ao entregador.
+- **Aceite:** Dado uma venda sem protocolo · Quando abro `/sells/{id}` · Então `detail.entrega` é nulo e a seção Entrega não aparece. Dado o protocolo `ENT-NNNN` gravado pelo app com quem recebeu, 3 volumes, a linha da venda conferida e o motivo de não ter assinatura · Então `detail.entrega` traz protocolo, data, quem recebeu, `volumes: 3`, o item com nome do produto e quantidade, e o motivo; com assinatura, uma URL assinada de 10 min. Volumes não informados chegam nulos e a tela escreve "Não informado".
+- **Âncora:** aceite aberto da US-SELL-073 (`memory/requisitos/Sells/SPEC.md`) + UC-FLX-23 do catálogo de fluxos.
+- **Teste:** `tests/Feature/Sells/SellsShowEntregaContratoTest.php` — `UC-VSHOW-22`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VSHOW-23 · A entrega de outra empresa não aparece na venda · `[T0]` `must`
+- **Aceite:** Dado uma linha de `app_entregas` de outro business apontando para o mesmo `transaction_id` · Quando abro a venda · Então `detail.entrega` é nulo e o nome de quem recebeu não está no JSON. Controle positivo: gravado o protocolo da própria empresa, ele aparece e o alheio continua fora.
+- **Teste:** `tests/Feature/Sells/SellsShowEntregaContratoTest.php` — `UC-VSHOW-23`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
 ## UC-VSHOW-08 · O orçamento aberto mostra se o custo mudou desde que foi feito
 - **Persona:** Wagner — *"o que é negociado nunca é o que é empregado"*: ao reabrir um orçamento, quer ver com que custo ele foi calculado e quanto da margem sobrou com o custo de hoje.
 - **Aceite:** Dado um orçamento (venda em rascunho) cuja linha guardou custo 20,00 no dia, e uma compra recebida hoje a 30,00 · Quando abro `/sells/{id}` com `view_purchase_price` · Então `detail.custo` traz, para a linha, guardado 20,00 e hoje 30,00 marcada como mudou, totais 40,00 → 60,00 e margem 60,0% → 40,0%. Sem a permissão, `detail.custo` é nulo e nenhum custo vai no JSON. Venda finalizada não traz o bloco.
 - **Âncora:** catálogo da tela de fluxos UC-FLX-34 (`prototipo-ui/cowork/Wagner/fluxos-data.jsx`) + SPEC Sells US-SELL-067/068 + gate de custo `view_purchase_price` do Blade (`Produto/Index.casos.md` UC sobre `view_purchase_price`).
 - **Teste:** `tests/Feature/Sells/SellsShowCustoOrcamentoContratoTest.php` — números à mão no cabeçalho do teste; usuários novos com permissões exatas (o admin do seed liberaria tudo).
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VSHOW-20 · O orçamento aberto mostra se o cliente já abriu a proposta · `must`
+- **Persona:** vendedor que mandou o link do orçamento e precisa saber se ligar de volta.
+- **Aceite:** Dado um orçamento aberto pelo cliente duas vezes (primeira 20/10 10:00, última 11:30) e outro nunca aberto · Quando abro `/sells/{id}` · Então `detail.acesso` traz `aberto: true`, as duas datas e `vezes: 2` no primeiro, e `aberto: false`, `vezes: 0` no segundo; a tela mostra "Aberto pelo cliente em 20/10 10:00 (2 vezes, a última em 20/10 11:30)" ou "Ainda não aberto pelo cliente". Venda finalizada e rascunho comum não trazem o bloco (`acesso` nulo).
+- **Âncora:** aceite 2 da US-SELL-070 (`memory/requisitos/Sells/SPEC.md`) + UC-FLX-04 do catálogo da tela de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php`). O gate de quem vê é o do próprio `/sells/{id}` (UC-VSHOW-02/03).
+- **Teste:** `tests/Feature/Sells/QuoteAccessTelaContratoTest.php` — `UC-VSHOW-20`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VSHOW-21 · Outro business não vê a abertura do orçamento · `[T0]` `must`
+- **Aceite:** Dado o orçamento aberto do business 98 · Quando um usuário do 99 com `sell.view` pede o detalhe · Então 404 e nada da abertura no corpo. E uma linha de acesso gravada com o business 99 apontando para um orçamento do 98 não conta: o detalhe e a lista seguem "não aberto" para ele. Controle positivo: o dono do 98 lê as 2 aberturas do orçamento A.
+- **Âncora:** aceite 5 da US-SELL-070 + ADR 0093.
+- **Teste:** `tests/Feature/Sells/QuoteAccessTelaContratoTest.php` — `UC-VSHOW-21`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
 ---
@@ -165,6 +190,23 @@ last_run: "2026-10-20"
 - **Teste:** `tests/Feature/Sells/PesquisaSatisfacaoEntregaContratoTest.php` — `UC-VSHOW-13`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
+## Entrega prometida no cabeçalho (US-PCP-028 · UC-FLX-06)
+
+> **Âncora:** UC-FLX-06 do catálogo de fluxos (`app/Domain/Fsm/Modelos/CasosDoPrototipo.php`) + decisão [W]
+> 2026-10-20 registrada no `PrometerPrazoDaVenda`: a data prometida fica na venda (`transactions.due_date`,
+> PROJETO_DT_FIM do Office Comercial), digitada pelo vendedor ou gravada na aprovação pela fila dos postos.
+
+## UC-VSHOW-14 · O cabeçalho mostra a entrega prometida ao cliente · `must`
+- **Aceite:** Dado uma venda com data prometida 30/11/2026 e outra sem data · Quando abro o detalhe · Então a primeira traz `headline.prazo_prometido = 2026-11-30` e o cabeçalho mostra "Entrega prometida: 30/11/2026" ao lado da data e do local; a segunda traz `null` e o cabeçalho não mostra nada de prazo.
+- **Teste:** `tests/Feature/Sells/SellsPrazoEntregaContratoTest.php` — `UC-VSHOW-14`.
+- **Status: 🧪** — roda na lane `sells-pest`; nasce sem run.
+
+## UC-VSHOW-17 · O detalhe mostra a nota da pesquisa e o atendimento aberto, só com `sell.view` · `must` `[T0]`
+- **Por quê:** aceite 5 da US-SELL-071 — quem cuida da venda vê como o cliente avaliou a entrega e se já há atendimento.
+- **Aceite:** Dado uma venda com pesquisa respondida com nota 2 e uma tarefa de atendimento do mesmo business · Quando abro o detalhe com `sell.view` · Então chega nota 2, status `respondido` e a tarefa · E se a tarefa for de outro business, ela não aparece · E com só `view_own_sell_only` a pesquisa não vem.
+- **Teste:** `tests/Feature/Sells/SellsShowContratoTest.php` — `UC-VSHOW-17`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
@@ -175,7 +217,6 @@ last_run: "2026-10-20"
 - **[BACKLOG] Timeline de transições FSM completa** — `sale_stage_history` com autor, estágio de origem/destino, papel exigido e badges de side-effect (o corpo do §CU-07). Exige pipeline FSM semeado na fixture; hoje só a trilha `activity_log` é coberta (UC-VSHOW-07).
 - **[BACKLOG] Fallback Blade preservado** — requisição sem `X-Inertia` continua caindo em `sale_pos.show` (charter §Endpoints + `RUNBOOK-show.md` §10 "NÃO esquecer fallback Blade"). Exige harness que renderize a Blade legacy sem o build do front.
 - **[BACKLOG] Os 4 gaps de gestão pós-venda do charter** — aprovação do cliente, transportadora/rastreio/entrega, seleção de tipo de NF com parcelas, e histórico de pedidos no perfil do cliente. Estão marcados 🟡 (sem cobertura) em `Show.charter.md` §UCs cobertos e continuam **fora** do escopo entregue da tela — viram UC quando a feature existir e tiver teste.
-- **[BACKLOG] Respostas da pesquisa de entrega na tela** — o detalhe da venda mostra a nota e o atendimento aberto, só para quem tem `sell.view` na empresa; outro business recebe 404 (aceite 5 da US-SELL-071). O dado já está em `transaction_satisfaction_surveys`.
 - **[BACKLOG] Resposta da pesquisa por e-mail** — hoje só a nota do WhatsApp (lida pelo `CsatResponseParser`) volta para a venda; resposta de e-mail não tem leitor.
 - **[BACKLOG] Atalhos de teclado E / P / Esc** — charter §Goals; hoje só há assert estrutural (`SellsShowCoworkTest` casa a string `e.key === 'e'`), que não prova o comportamento. Exige E2E Playwright.
 
@@ -185,6 +226,13 @@ last_run: "2026-10-20"
 3. **Cadência:** rodar ao fim de toda mexida em `Sells/Show.tsx` ou em `SellController@show`. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-21 · [CC] + UC-VSHOW-22/23 (US-SELL-073 · UC-FLX-23): seção Entrega no detalhe, lida de `app_entregas` pelo business da venda. Teste `SellsShowEntregaContratoTest`, nasce sem run.
+- 2026-10-21 · [CC] `last_run` 2026-10-20 → 2026-10-21 por conferência, não por run novo: o diff do `Show.tsx` neste PR só acrescenta a seção Entrega (import do ícone, tipo `EntregaVenda`, um `<Deferred>` e o componente), sem remover nem alterar linha existente; UC-VSHOW-01..13 não dependem dela. Os casos novos 22/23 estão 🧪 até a lane `sells-pest` rodar.
+- 2026-10-21 · [CL] UC-VSHOW-14 (US-PCP-028 · UC-FLX-06): entrega prometida no cabeçalho. Teste `SellsPrazoEntregaContratoTest`, nasce sem run.
+- 2026-10-21 · [CL] UC-VSHOW-20/21 (US-SELL-070 · UC-FLX-04): faixa "aberto pelo cliente" no orçamento, lida de `transaction_quote_accesses` pelo business da venda. Veio do backlog do `Quotations.casos.md`. Teste `QuoteAccessTelaContratoTest`, nasce sem run.
+- 2026-10-21 · [CL] `last_run` 2026-10-20 → 2026-10-21 por conferência, não por run novo: o `Show.tsx` deste PR só acrescenta a faixa `AcessoDoOrcamento` (dentro de `ShowDetailSections`, antes da faixa de custo) e o tipo `AcessoOrcamento`; nada de UC-VSHOW-01..13 muda. Nenhum teste re-rodado aqui.
+- 2026-10-21 · [CL] `last_run` 2026-10-20 → 2026-10-21 por conferência, não por run novo: o `Show.tsx` só ganhou a seção da pesquisa (componente novo + 1 linha no `ShowDetailSections`); UC-VSHOW-01..13 seguem batendo com a tela.
+- 2026-10-21 · [CL] UC-VSHOW-17 sai do backlog: seção "Pesquisa de satisfação" na coluna esquerda (nota + atendimento no CRM, `sell.view`). Teste em `SellsShowContratoTest`, nasce sem run.
 - 2026-10-20 · [CL] UC-VSHOW-09..13 (US-SELL-071 · UC-FLX-25): pesquisa de satisfação 2 dias depois da entrega e atendimento na nota baixa. Teste `PesquisaSatisfacaoEntregaContratoTest`, nasce sem run.
 - 2026-10-20 · [CL] `last_run` 2026-07-27 → 2026-10-20 por conferência, não por run novo: desde o `last_run` o `Show.tsx` mudou só em a456273f41 (#9612, US-SELL-068), que acrescenta a faixa de custo do orçamento do UC-VSHOW-08 (63 linhas, só adições). UC-VSHOW-01..08 seguem batendo com a tela; nenhum teste foi re-rodado aqui.
 - 2026-07-27 · [CC] criado — trio fechado pra `Sells/Show` (alvo #1 do débito Tier-0 de `exposicao-tier0.mjs`) com UC-VSHOW-01..07 + `SellsShowContratoTest.php` + lane `sells-pest.yml` (nenhuma das 9 lanes MySQL rodava `tests/Feature/Sells/**`). Casos derivados do charter §Goals/§Non-Goals + RUNBOOK-show + §CU-07; o Controller foi lido só pra confirmar. Ref [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md).

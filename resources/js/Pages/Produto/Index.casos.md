@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: a lista é a PORTA do catálogo — se ela esconde produto, esconde preço a quem não devia, ou mistura tenant, todo o resto do ERP herda o erro.
 owner: wagner
 last_run: "2026-10-19"
-last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e915; o run 39296002704 saiu cancelled) — os 12 arquivos Vitest do job passaram, entre eles os 2 da lista que citam UC-PIDX (produto-lista-encaixe e produto-lista-redimensionar) e tests/js/portais-dentro-do-cockpit.test.tsx; a tela mudou nesse dia só no lugar onde os diálogos de exclusão e de local montam (#9590), sem efeito no servidor. Antes: run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arquivo fora da quarentena naquele commit): os 6 UC-PIDX passaram. A saída da quarentena da lane vai em PR próprio (o arquivo .github é CODEOWNERS [W])"
+last_run_ci: "2026-10-23: run 39945557255 (lane Estoque · MySQL, main 53e7995, disparada à mão): 497 testes, 0 falhas, 0 pulados, com todos os arquivos Pest da lista; job 120384523098 (Frontend / Vite build, mesmo commit): os 2 arquivos Vitest da lista que rodam em lane passaram; os outros 8 arquivos Vitest da lista não rodam em lane e passaram local (133 de 133). Antes: 2026-10-19, job 118208572139."
 ---
 
 # Casos de Uso & Aceite — Lista do catálogo (`/products`)
@@ -56,32 +56,36 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
 
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
-| UC-PIDX-01 | Todo produto do catálogo é alcançável na lista (sem corte silencioso) | must | Blade DataTables server-side + `AR-PROD-022/023` | `ProdutoIndexContratoTest` (Pest) | ⬜ reescrito 2026-10-10 — verde esperado |
-| UC-PIDX-02 | Busca é resolvida no servidor e acha por SKU de variação (`sub_sku`) | must | Blade `filterColumn('products.sku')` + `CU-PROD-02` | `ProdutoIndexContratoTest` (Pest) | ⬜ reescrito 2026-10-10 — verde esperado |
-| UC-PIDX-03 | Preço e custo na lista respeitam a permissão de vê-los | must | Blade `@can` ×2 (`resources/views/product/index.blade.php:287 (verificado@5d5cac0),294`) + `AR-PROD-015` | `ProdutoIndexContratoTest` (Pest) | ⬜ reescrito 2026-10-10 (era 🧪 corrigido 2026-09-18) |
-| UC-PIDX-04 | Lista e total só enxergam o business atual | must `[T0]` | `CU-PROD-10` + ADR 0093 + charter §Anti-hooks | `ProdutoIndexContratoTest` (Pest) | ⬜ guard — verde esperado |
-| UC-PIDX-05 | Abrir a lista não escreve no banco (GET é leitura pura) | must | charter §Anti-hooks + `AR-PROD-064` | `ProdutoIndexContratoTest` (Pest) | ⬜ guard — verde esperado |
-| UC-PIDX-06 | Filtro de inativos (Situação) é resolvido no servidor | should | `AR-PROD-003/022` + Blade `active_state` | `ProdutoIndexContratoTest` (Pest) | ⬜ reescrito 2026-10-10 — verde esperado |
-| UC-PIDX-07 | Os 4 indicadores contam o catálogo inteiro; o valor é o total do relatório de estoque | must | charter v3 §Goals + decisão [F] 2026-10-10 (opção B) + Blade `stock_report.view`/`view_product_stock_value` | `ProdutoListaKpisTest` (Pest) | ⬜ nasce neste PR — verde esperado |
-| UC-PIDX-08 | A aba "Relatório de estoque" mostra as linhas de Relatórios → Estoque com os filtros da tela e totaliza TODAS as linhas | must | charter v3 §Goals + Blade `#product_stock_report` (`@can('stock_report.view')`) | `ProdutoListaEstoqueAbaTest` (Pest) | ⬜ nasce neste PR — verde esperado |
-| UC-PIDX-09 | O painel de detalhe mostra o conteúdo da janela "Ver" da Blade, com os mesmos gates, e só do produto da empresa | must `[T0]` | charter v3 §Goals + Blade `ProductController::view` + ADR 0093 | `ProdutoDetalheTest` (Pest) | ⬜ nasce neste PR — verde esperado |
-| UC-PIDX-10 | "Exportar filtrados" traz as mesmas linhas da lista, em CSV, com preço só para quem pode ver | should | charter v3 §Goals + protótipo (rodapé, `exportarCsv`) + gate de preço da lista (UC-PIDX-03) | `ProdutoListaExportarTest` (Pest) | ⬜ nasce neste PR — verde esperado |
-| UC-PIDX-11 | "Comprar" abre a nova compra com o produto | should | protótipo (`acoesDe`, rodapé do `DetalheDrawer`) + pedido [F] 2026-10-11 | `ProdutoDetalheTest` (Pest) | ⬜ verde esperado |
-| UC-PIDX-12 | Os 3 indicadores da aba Estoque do painel são a soma das linhas do relatório de estoque do produto | must | protótipo (`DetalheDrawer`, aba Estoque) + contas de `linhaDoRelatorioEstoque` + Blade `view_product_stock_value` | `ProdutoDetalheTest` (Pest) | ⬜ nasce neste PR — verde esperado |
-| UC-PIDX-13 | Clicar no cabeçalho de uma coluna ordena a lista no servidor, nas duas direções; por preço só para quem pode ver o preço | should | protótipo (`ListaProdutos`, colunas `sortable`) + `$ordenaveis` de `buildProdutoListaPaginada` + gate de preço (UC-PIDX-03) | `ProdutoListaOrdenacaoTest` (Pest) + `produto-lista-ordenacao.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
-| UC-PIDX-14 | "Cadastro rápido" cria o produto com os preços que o formulário Blade gravaria, só na empresa e nos locais permitidos | must `[V0]` `[T0]` | charter v3 §Goals ("Cadastro rápido") + protótipo (`ModalCadastroRapido`) + Blade `quick_add_product` / `saveQuickProduct` + REGRA MESTRE valor | `ProdutoListaCadastroRapidoTest` (Pest) + `produto-cadastro-rapido.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
-| UC-PIDX-15 | "Adicionar ou editar estoque inicial" abre em janela e lança o mesmo saldo, linhas e transações que o formulário Blade | must `[V0]` `[T0]` | protótipo (`ModalEstoqueInicial`) + Blade `opening_stock/form-part` / `OpeningStockController@save` + `CU-PROD-04` + REGRA MESTRE estoque | `EstoqueInicialJanelaTest` (Pest) + `produto-estoque-inicial.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
-| UC-PIDX-16 | Arrastar a borda do cabeçalho muda a largura da coluna, sem mexer na ordem nem nas outras colunas | should | protótipo (`ListaProdutos` → `DataGrid` do DS, `startResize`) | `produto-lista-redimensionar.test.tsx` + `produto-lista-encaixe.test.tsx` (Vitest, rodam no `Frontend / Vite build`) + `datatable-redimensionar.test.tsx` + 1 caso em `tests/a11y-primitives.test.tsx` (roda em lane) | ⬜ nasce neste PR — verde esperado |
-| UC-PIDX-17 | "Dados fiscais (NCM/CFOP)" no menu da linha abre o painel do produto já na aba Fiscal | should | protótipo (`acoesDe` + aba `fiscal` do `DetalheDrawer`) | `produto-menu-da-linha.test.tsx` + `produto-painel-detalhe.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
-| UC-PIDX-18 | Aba "Relatório de estoque": escolher quantas linhas por página, com os totais iguais em qualquer tamanho; lucro potencial da linha com cor | should `[V0]` | protótipo (`RelatorioEstoque`) + lista Blade (`stock_report_table`, menu de tamanho do DataTable) + REGRA MESTRE valor | `ProdutoListaEstoqueAbaTest` (Pest, roda em lane) + `produto-relatorio-estoque.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
-| UC-PIDX-19 | A aba Fiscal do painel mostra o tipo de imposto na venda (inclusivo ou exclusivo) | could | protótipo (aba `fiscal` do `DetalheDrawer`) | `produto-painel-detalhe.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
-| UC-PIDX-20 | Painel: composição com "Total líquido", preço da composição e preços de cada item; imagens das variações e dos itens | should `[V0]` | Blade (`combo_product_details`, `variation_images`) + protótipo (`DetalheDrawer`, aba `composicao`) + REGRA MESTRE valor | `ProdutoDetalheTest` (Pest, roda em lane) + `produto-painel-detalhe.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
-| UC-PIDX-21 | Produto que não controla estoque tem a aba Estoque no painel, com o aviso de que não gerencia estoque | could | protótipo (aba `estoque` do `DetalheDrawer`, ramo `stockOn` falso) | `produto-painel-detalhe.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
-| UC-PIDX-23 | Produto que sincroniza com o WooCommerce tem a marca ao lado do nome na lista | could | Blade (`ProductController@index`, coluna `product`: `fa-wordpress` quando `! woocommerce_disable_sync`) | `produto-lista-woocommerce.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
-| UC-PIDX-24 | Campos personalizados 1 a 7 como colunas opcionais da lista: só os que a empresa rotulou, com o valor do produto | could | Blade (`product/index.blade.php`: colunas `product_custom_field1..7`, `visible` só com rótulo) + protótipo (`PB_COLS_PADRAO.cf1 = false`) | `ProdutoListaConsultaTest` (Pest, roda em lane) + `produto-lista-campos-personalizados.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
-| UC-PIDX-25 | Aba Fiscal do painel: origem da mercadoria, texto de ajuda e "Abrir no módulo Fiscal" | could | protótipo (aba `fiscal` do `DetalheDrawer`) + emissão (`orig` = `products.origem_mercadoria`) | `ProdutoDetalheTest` (Pest, roda em lane) + `produto-painel-detalhe.test.tsx` (Vitest) + `TributacaoIndexContratoTest` (UC-NFTR-29) | ⬜ nasce neste PR — verde esperado |
-| UC-PIDX-26 | Em tela estreita as colunas encolhem até caber: em 1366px, com o menu aberto, as 12 colunas de saída aparecem sem rolar para o lado | should | reclamação da ROTA LIVRE (2026-10-17, monitor 1366×768) + `memory/regras-time.md` ("monitor 1280px — designs precisam caber") + charter (UX: "cabe em 1280px sem scroll horizontal da página") | `produto-lista-encaixe.test.tsx` (Vitest, roda no `Frontend / Vite build`) | ⬜ nasce neste PR — verde esperado |
-| UC-PIDX-27 | A grade tem altura própria: rola por dentro, com o cabeçalho fixo e a barra de rolar para o lado sempre à vista | should | protótipo (`ListaProdutos`: altura = 72% do corpo, mínimo 260px) + charter (UX: "a tabela rola dentro dela, cabeçalho fixo") | `produto-lista-encaixe.test.tsx` (Vitest, roda no `Frontend / Vite build`) | ⬜ nasce neste PR — verde esperado |
+| UC-PIDX-01 | Todo produto do catálogo é alcançável na lista (sem corte silencioso) | must | Blade DataTables server-side + `AR-PROD-022/023` | `ProdutoIndexContratoTest` (Pest) | 🧪 passou 2026-10-23 — Pest na lane (run 39945557255) |
+| UC-PIDX-02 | Busca é resolvida no servidor e acha por SKU de variação (`sub_sku`) | must | Blade `filterColumn('products.sku')` + `CU-PROD-02` | `ProdutoIndexContratoTest` (Pest) | 🧪 passou 2026-10-23 — Pest na lane (run 39945557255) |
+| UC-PIDX-03 | Preço e custo na lista respeitam a permissão de vê-los | must | Blade `@can` ×2 (`resources/views/product/index.blade.php:287 (verificado@5d5cac0),294`) + `AR-PROD-015` | `ProdutoIndexContratoTest` (Pest) | 🧪 passou 2026-10-23 — Pest na lane (run 39945557255) |
+| UC-PIDX-04 | Lista e total só enxergam o business atual | must `[T0]` | `CU-PROD-10` + ADR 0093 + charter §Anti-hooks | `ProdutoIndexContratoTest` (Pest) | 🧪 passou 2026-10-23 — Pest na lane (run 39945557255) |
+| UC-PIDX-05 | Abrir a lista não escreve no banco (GET é leitura pura) | must | charter §Anti-hooks + `AR-PROD-064` | `ProdutoIndexContratoTest` (Pest) | 🧪 passou 2026-10-23 — Pest na lane (run 39945557255) |
+| UC-PIDX-06 | Filtro de inativos (Situação) é resolvido no servidor | should | `AR-PROD-003/022` + Blade `active_state` | `ProdutoIndexContratoTest` (Pest) | 🧪 passou 2026-10-23 — Pest na lane (run 39945557255) |
+| UC-PIDX-07 | Os 4 indicadores contam o catálogo inteiro; o valor é o total do relatório de estoque | must | charter v3 §Goals + decisão [F] 2026-10-10 (opção B) + Blade `stock_report.view`/`view_product_stock_value` | `ProdutoListaKpisTest` (Pest) | 🧪 passou 2026-10-23 — Pest na lane (run 39945557255) |
+| UC-PIDX-08 | A aba "Relatório de estoque" mostra as linhas de Relatórios → Estoque com os filtros da tela e totaliza TODAS as linhas | must | charter v3 §Goals + Blade `#product_stock_report` (`@can('stock_report.view')`) | `ProdutoListaEstoqueAbaTest` (Pest) | 🧪 passou 2026-10-23 — Pest na lane (run 39945557255) |
+| UC-PIDX-09 | O painel de detalhe mostra o conteúdo da janela "Ver" da Blade, com os mesmos gates, e só do produto da empresa | must `[T0]` | charter v3 §Goals + Blade `ProductController::view` + ADR 0093 | `ProdutoDetalheTest` (Pest) | 🧪 passou 2026-10-23 — Pest na lane (run 39945557255) |
+| UC-PIDX-10 | "Exportar filtrados" traz as mesmas linhas da lista, em CSV, com preço só para quem pode ver | should | charter v3 §Goals + protótipo (rodapé, `exportarCsv`) + gate de preço da lista (UC-PIDX-03) | `ProdutoListaExportarTest` (Pest) | 🧪 passou 2026-10-23 — Pest na lane (run 39945557255) |
+| UC-PIDX-11 | "Comprar" abre a nova compra com o produto | should | protótipo (`acoesDe`, rodapé do `DetalheDrawer`) + pedido [F] 2026-10-11 | `ProdutoDetalheTest` (Pest) | 🧪 passou 2026-10-23 — Pest na lane (run 39945557255) |
+| UC-PIDX-12 | Os 3 indicadores da aba Estoque do painel são a soma das linhas do relatório de estoque do produto | must | protótipo (`DetalheDrawer`, aba Estoque) + contas de `linhaDoRelatorioEstoque` + Blade `view_product_stock_value` | `ProdutoDetalheTest` (Pest) | 🧪 passou 2026-10-23 — Pest na lane (run 39945557255) |
+| UC-PIDX-13 | Clicar no cabeçalho de uma coluna ordena a lista no servidor, nas duas direções; por preço só para quem pode ver o preço | should | protótipo (`ListaProdutos`, colunas `sortable`) + `$ordenaveis` de `buildProdutoListaPaginada` + gate de preço (UC-PIDX-03) | `ProdutoListaOrdenacaoTest` (Pest) + `produto-lista-ordenacao.test.tsx` (Vitest) | 🧪 passou 2026-10-23 — Pest na lane (run 39945557255) + Vitest local |
+| UC-PIDX-14 | "Cadastro rápido" cria o produto com os preços que o formulário Blade gravaria, só na empresa e nos locais permitidos | must `[V0]` `[T0]` | charter v3 §Goals ("Cadastro rápido") + protótipo (`ModalCadastroRapido`) + Blade `quick_add_product` / `saveQuickProduct` + REGRA MESTRE valor | `ProdutoListaCadastroRapidoTest` (Pest) + `produto-cadastro-rapido.test.tsx` (Vitest) | 🧪 passou 2026-10-23 — Pest na lane (run 39945557255) + Vitest local |
+| UC-PIDX-15 | "Adicionar ou editar estoque inicial" abre em janela e lança o mesmo saldo, linhas e transações que o formulário Blade | must `[V0]` `[T0]` | protótipo (`ModalEstoqueInicial`) + Blade `opening_stock/form-part` / `OpeningStockController@save` + `CU-PROD-04` + REGRA MESTRE estoque | `EstoqueInicialJanelaTest` (Pest) + `produto-estoque-inicial.test.tsx` (Vitest) | 🧪 passou 2026-10-23 — Pest na lane (run 39945557255) + Vitest local |
+| UC-PIDX-16 | Arrastar a borda do cabeçalho muda a largura da coluna, sem mexer na ordem nem nas outras colunas | should | protótipo (`ListaProdutos` → `DataGrid` do DS, `startResize`) | `produto-lista-redimensionar.test.tsx` + `produto-lista-encaixe.test.tsx` (Vitest, rodam no `Frontend / Vite build`) + `datatable-redimensionar.test.tsx` + 1 caso em `tests/a11y-primitives.test.tsx` (roda em lane) | 🧪 passou 2026-10-23 — Vitest no Frontend (job 120384523098) |
+| UC-PIDX-17 | "Dados fiscais (NCM/CFOP)" no menu da linha abre o painel do produto já na aba Fiscal | should | protótipo (`acoesDe` + aba `fiscal` do `DetalheDrawer`) | `produto-menu-da-linha.test.tsx` + `produto-painel-detalhe.test.tsx` (Vitest) | 🧪 passou 2026-10-23 — Vitest local |
+| UC-PIDX-18 | Aba "Relatório de estoque": escolher quantas linhas por página, com os totais iguais em qualquer tamanho; lucro potencial da linha com cor | should `[V0]` | protótipo (`RelatorioEstoque`) + lista Blade (`stock_report_table`, menu de tamanho do DataTable) + REGRA MESTRE valor | `ProdutoListaEstoqueAbaTest` (Pest, roda em lane) + `produto-relatorio-estoque.test.tsx` (Vitest) | 🧪 passou 2026-10-23 — Pest na lane (run 39945557255) + Vitest local |
+| UC-PIDX-19 | A aba Fiscal do painel mostra o tipo de imposto na venda (inclusivo ou exclusivo) | could | protótipo (aba `fiscal` do `DetalheDrawer`) | `produto-painel-detalhe.test.tsx` (Vitest) | 🧪 passou 2026-10-23 — Vitest local |
+| UC-PIDX-20 | Painel: composição com "Total líquido", preço da composição e preços de cada item; imagens das variações e dos itens | should `[V0]` | Blade (`combo_product_details`, `variation_images`) + protótipo (`DetalheDrawer`, aba `composicao`) + REGRA MESTRE valor | `ProdutoDetalheTest` (Pest, roda em lane) + `produto-painel-detalhe.test.tsx` (Vitest) | 🧪 passou 2026-10-23 — Pest na lane (run 39945557255) + Vitest local |
+| UC-PIDX-21 | Produto que não controla estoque tem a aba Estoque no painel, com o aviso de que não gerencia estoque | could | protótipo (aba `estoque` do `DetalheDrawer`, ramo `stockOn` falso) | `produto-painel-detalhe.test.tsx` (Vitest) | 🧪 passou 2026-10-23 — Vitest local |
+| UC-PIDX-22 | Produto sem foto mostra "Sem imagem" no painel e "IMG" na lista | could | protótipo (`.pb-thumb` "IMG" e `.pb-img` do `DetalheDrawer`) | `ProdutoDetalheTest` + `ProdutoListaConsultaTest` (Pest, roda em lane) | 🧪 passou 2026-10-23 — Pest na lane (run 39945557255) |
+| UC-PIDX-23 | Produto que sincroniza com o WooCommerce tem a marca ao lado do nome na lista | could | Blade (`ProductController@index`, coluna `product`: `fa-wordpress` quando `! woocommerce_disable_sync`) | `produto-lista-woocommerce.test.tsx` (Vitest) | 🧪 passou 2026-10-23 — Vitest local |
+| UC-PIDX-24 | Campos personalizados 1 a 7 como colunas opcionais da lista: só os que a empresa rotulou, com o valor do produto | could | Blade (`product/index.blade.php`: colunas `product_custom_field1..7`, `visible` só com rótulo) + protótipo (`PB_COLS_PADRAO.cf1 = false`) | `ProdutoListaConsultaTest` (Pest, roda em lane) + `produto-lista-campos-personalizados.test.tsx` (Vitest) | 🧪 passou 2026-10-23 — Pest na lane (run 39945557255) + Vitest local |
+| UC-PIDX-25 | Aba Fiscal do painel: origem da mercadoria, texto de ajuda e "Abrir no módulo Fiscal" | could | protótipo (aba `fiscal` do `DetalheDrawer`) + emissão (`orig` = `products.origem_mercadoria`) | `ProdutoDetalheTest` (Pest, roda em lane) + `produto-painel-detalhe.test.tsx` (Vitest) + `TributacaoIndexContratoTest` (UC-NFTR-29) | 🧪 passou 2026-10-23 — Pest na lane (run 39945557255) + Vitest local |
+| UC-PIDX-26 | Em tela estreita as colunas encolhem até caber: em 1366px, com o menu aberto, as 12 colunas de saída aparecem sem rolar para o lado | should | reclamação da ROTA LIVRE (2026-10-17, monitor 1366×768) + `memory/regras-time.md` ("monitor 1280px — designs precisam caber") + charter (UX: "cabe em 1280px sem scroll horizontal da página") | `produto-lista-encaixe.test.tsx` (Vitest, roda no `Frontend / Vite build`) | 🧪 passou 2026-10-23 — Vitest no Frontend (job 120384523098) |
+| UC-PIDX-27 | A grade tem altura própria: rola por dentro, com o cabeçalho fixo e a barra de rolar para o lado sempre à vista | should | protótipo (`ListaProdutos`: altura = 72% do corpo, mínimo 260px) + charter (UX: "a tabela rola dentro dela, cabeçalho fixo") | `produto-lista-encaixe.test.tsx` (Vitest, roda no `Frontend / Vite build`) | 🧪 passou 2026-10-23 — Vitest no Frontend (job 120384523098) |
+| UC-PIDX-28 | Preço proposto pela compra recebida, aguardando aprovação, na linha e no painel; aprovar e recusar ficam na compra | should `[T0]` | UC-FLX-17 + Compras SPEC US-COM-026/028 + charter §Automation Anti-hooks (a consulta não altera preço) + gate de preço (UC-PIDX-03) | `ProdutoPrecoPropostoERoteiroContratoTest` (Pest, roda em lane) + `produto-preco-proposto-roteiro.test.tsx` (Vitest) | 🧪 passou no job 120005347082 (lane Estoque · MySQL, commit 730f065c, 2026-10-22): 7 testes, 0 pulados, 64 verificações |
+| UC-PIDX-29 | Aba Roteiro do painel: as etapas do roteiro do produto, na ordem, com o posto e o setor de cada uma | should `[T0]` | UC-FLX-07 + UC-FLX-08 + Produção SPEC US-PCP-026/030 + ADR 0093 | `ProdutoPrecoPropostoERoteiroContratoTest` (Pest, roda em lane) + `produto-preco-proposto-roteiro.test.tsx` (Vitest) | 🧪 passou no job 120005347082 (lane Estoque · MySQL, commit 730f065c, 2026-10-22): 7 testes, 0 pulados, 64 verificações |
+| UC-PIDX-33 | Aba Estoque do painel: a tabela de locais mostra quanto foi vendido em cada local | should | protótipo (artefato "Consulta de Produto", 22/10: coluna "Vendido" por local) + pedido da ROTA LIVRE (2026-10-23) | `ProdutoDetalheTest` (lane Estoque · MySQL) + `produto-painel-detalhe.test.tsx` (Vitest, não roda em lane) | ⬜ nasce neste PR — verde esperado |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -118,7 +122,7 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
   - **Delphi `AR-PROD-022/023`** — *"Consultar — abre busca/listagem de produtos"* e *"o cadastro vira inativo e **some da lista, mas fica acessível por filtro**"*: no legado a lista é o caminho garantido pra chegar em **qualquer** produto; o que tira algo da vista é **filtro declarado**, nunca um corte invisível.
 - **Regressão que defende:** `buildProdutoIndexRows` (`:425-448`) fecha com `->orderBy('products.name')->limit(200)` e **não há paginação em lugar nenhum** — nem prop, nem `<Deferred>` incremental, nem link. Varredura contada em `Index.tsx`: **0** ocorrências de `page`/`paginate`/`next`. O KPI "Total de produtos" (`buildProdutoIndexKpis:382-385`) conta o catálogo **inteiro**. Resultado: com 1.000 produtos, a tela anuncia 1.000 e entrega 200 — os 800 que sobram são os do fim do alfabeto, e **nada na tela diz que foram cortados**. O `EmptyState` ("Ajuste filtros ou cadastre o primeiro produto") reforça a leitura errada.
 - **Nota de denominador:** os três builders usam recortes **diferentes** — `kpis.total` exclui `type='modifier'` e conta tudo; `rows` exclui `modifier` e corta em 200; `categorias` (`:477-494`) conta **todos** os produtos da categoria (inclusive `modifier` e inativos). Os números da mesma tela não fecham entre si. O UC trava o eixo principal (alcance); a divergência de contadores está no §Backlog.
-- **Status: ⬜** — reescrito 2026-10-10 para a lista no desenho do protótipo (prop `lista`, a MESMA consulta da lista Blade, paginada e buscada no servidor — #9119/#9124); verde esperado. Só a lane decide.
+- **Status: 🧪** — passou (2026-10-23). Pest na lane Estoque · MySQL, run 39945557255 (main 53e7995, 2026-10-23): 497 testes, 0 falhas, 0 pulados.
 
 ---
 
@@ -132,7 +136,7 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
   - **`AR-PROD-023`** (Delphi) — *"Consultar — abre busca/listagem"*.
 - **Regressão que defende:** o `filters.busca` chega ao controller (`:345`) e é **devolvido à página sem ser usado em query nenhuma** — `buildProdutoIndexRows` não recebe o termo (`:350` passa só `$business_id`). A filtragem acontece **no cliente** (`Index.tsx:126-131 (verificado@d4afe95)`), sobre `r.name` e `r.sku` do **produto-pai**, dentro do recorte de 200 do UC-PIDX-01. Varredura contada: `sub_sku` aparece **0 vezes** em `Index.tsx` e **0 vezes** nos 3 builders. Logo, buscar pela etiqueta da variação **não acha nada**, e buscar por nome só acha entre os 200 primeiros.
 - **Por que o teste precisa do assert negativo:** como o servidor **ignora** o termo, um teste que só pergunte *"o produto buscado veio?"* passaria **por acidente** (ele vem porque vem tudo). O caso assere também que quem **não** casa fica de fora — sem isso o teste mediria não-execução (`proibicoes.md` §5, 2026-07-24).
-- **Status: ⬜** — reescrito 2026-10-10 para a lista no desenho do protótipo (prop `lista`, a MESMA consulta da lista Blade, paginada e buscada no servidor — #9119/#9124); verde esperado. Só a lane decide.
+- **Status: 🧪** — passou (2026-10-23). Pest na lane Estoque · MySQL, run 39945557255 (main 53e7995, 2026-10-23): 497 testes, 0 falhas, 0 pulados.
 
 ---
 
@@ -146,7 +150,7 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
   - **Precedente do módulo** — `UC-PSHOW-01` (mesma família, na ficha) já está em failing-first; este é o mesmo furo na porta de entrada, onde o dado sai em **lote**.
 - **Regressão que defende:** `buildProdutoIndexRows` (`:450-471`) monta **`price`**, **`cost`** e **`margin`** para **toda** linha, sem consultar permissão alguma. As únicas permissões que o branch Inertia lê são `create`/`update`/`delete`/`opening_stock` (`:352-357`) — varredura contada de `view_purchase_price|access_default_selling_price` em `ProductController.php`: **0**. O card renderiza `fmtBRL(row.price)` (`Index.tsx:403 (verificado@d4afe95)`) sem gate; `cost` e `margin` não são renderizados mas **viajam no JSON das props** — visíveis no HTML da página. Ligar a lista React hoje **derruba um gate de custo que o Blade e o Delphi têm**, e em escala (todo o catálogo de uma vez, não um produto por vez).
 - **Não é `[V0]`:** não altera cálculo de valor — gateia **exibição**. A REGRA MESTRE (dupla-confirmação + antes→depois) não se aplica; marcar `[V0]` aqui inflaria o ritual sem proteger nada.
-- **Status: ⬜** — reescrito 2026-10-10 para a lista no desenho do protótipo (prop `lista`, a MESMA consulta da lista Blade, paginada e buscada no servidor — #9119/#9124); verde esperado. Só a lane decide. A lista nova só emite `compra_*`/`venda_*` com a permissão.
+- **Status: 🧪** — passou (2026-10-23). Pest na lane Estoque · MySQL, run 39945557255 (main 53e7995, 2026-10-23): 497 testes, 0 falhas, 0 pulados.
   _(Antes:)_ 🧪 **corrigido em 2026-09-18**, junto com o irmão `UC-PSHOW-01` (mesmo furo, mesma
   família). `index()` resolve as duas permissões uma vez e passa ao builder; `buildProdutoIndexRows`
   só emite `price` com `access_default_selling_price`, `cost` com `view_purchase_price`, e `margin`
@@ -169,7 +173,7 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
 - **Contrato:** `CU-PROD-10` `[T0]` (SDD §6.1) + [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) + o próprio `Index.charter.md` §Automation Anti-hooks (*"❌ Não acessa produto de outro `business_id`"*) e §Pest GUARD, que **promete** `it('isolates products by business_id')`.
 - **Regressão que defende:** é um **guard** (espera-se verde — os 3 builders carimbam `where('business_id', $businessId)`), e o valor é travá-lo, porque a contenção aqui é **acidental, não estrutural**: varredura contada em `app/Product.php` — **0** ocorrências de `addGlobalScope`; o model `extends Model` e usa só `LogsActivity`. **`App\Product` não tem global scope de `business_id`.** Todo o isolamento do módulo depende de cada query lembrar do `where` — e a família já reincidiu duas vezes (`UC-PTAB-04`, cross-tenant gravando em `variation_group_prices`, [#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300); `UC-PEDIT-03`, `first()` → 500 em vez de 404).
 - **⚠️ Achado de contrato (documentado, não afirmado como vazamento):** `buildProdutoIndexCategorias` (`:479-486`) faz `leftJoin('products', 'products.category_id', '=', 'categories.id')` e conta `COUNT(products.id)` **sem** carimbar `products.business_id`. Hoje isso não vaza porque `category_id` de um produto aponta pra categoria do próprio business — mas a contenção é **coincidência de dado**, não guard: num model sem global scope, a próxima agregação que junte `products` sem `where` vaza. O teste trava o invariante observável (contador não conta o alheio); **não** fabrico dado corrompido pra "provar" vazamento que hoje não ocorre.
-- **Status: ⬜** — verde esperado; sem veredito até a lane rodar.
+- **Status: 🧪** — passou (2026-10-23). Pest na lane Estoque · MySQL, run 39945557255 (main 53e7995, 2026-10-23): 497 testes, 0 falhas, 0 pulados.
 
 ---
 
@@ -179,7 +183,7 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
 - **Teste:** [`ProdutoIndexContratoTest`](../../../../tests/Feature/Produto/ProdutoIndexContratoTest.php) — `UC-PIDX-05`.
 - **Contrato:** `Index.charter.md` §Automation Anti-hooks — *"❌ Não escreve no banco (read-only)"*, *"❌ Não roda jobs"*, *"❌ Não dispara emails"* — + **`AR-PROD-064`** (movimento é append-only; consulta não muta) + `CU-PROD-15.4`.
 - **Regressão que defende:** é **guard**, e o irmão prova que a família existe neste módulo: `productStockHistory` **faz UPDATE dentro de um GET** no branch `ajax()` (documentado em `CU-PROD-11` / `StockHistory.casos.md`). A lista é o GET mais chamado do módulo; se um dia alguém pendurar "atualiza popularidade ao listar" (o `popularity` está hardcoded 0 esperando implementação — §Backlog), o teste morde.
-- **Status: ⬜** — verde esperado.
+- **Status: 🧪** — passou (2026-10-23). Pest na lane Estoque · MySQL, run 39945557255 (main 53e7995, 2026-10-23): 497 testes, 0 falhas, 0 pulados.
 
 ---
 
@@ -192,7 +196,7 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
   - **Delphi `AR-PROD-022`** — *"o cadastro vira inativo e some da lista, mas fica acessível por filtro de excluídos/inativos"*; **`AR-PROD-003`** — *"produto inativo não some do cadastro, só do fluxo de venda"*.
   - **Charter** §Goals — *"Toggle 'Mostrar inativos' (default: oculto)"*.
 - **Regressão que defende:** `filters.mostrarInativos` é lido (`:347`) e **devolvido sem uso**; `buildProdutoIndexRows` não filtra por `is_inactive` — manda ativos e inativos sempre. O ocultamento acontece no cliente (`Index.tsx:120-122 (verificado@d4afe95)`), **depois** do corte de 200: um catálogo com muitos inativos gasta as 200 vagas com linhas que a tela vai esconder, e produtos ativos legítimos somem da vista (composição com UC-PIDX-01). Pelo mesmo caminho, o badge do Blade para `not_for_selling` (`:263-264`) não tem par no React — §Backlog.
-- **Status: ⬜** — reescrito 2026-10-10 para a lista no desenho do protótipo (prop `lista`, a MESMA consulta da lista Blade, paginada e buscada no servidor — #9119/#9124); verde esperado. Só a lane decide.
+- **Status: 🧪** — passou (2026-10-23). Pest na lane Estoque · MySQL, run 39945557255 (main 53e7995, 2026-10-23): 497 testes, 0 falhas, 0 pulados.
 
 
 ---
@@ -206,7 +210,7 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
   - **Decisão [F] 2026-10-10** — opção **B**: o total da aba "Relatório de estoque" (soma das linhas), não o "estoque de fechamento" do topo de Relatórios → Estoque (`getOpeningClosingStock`, outro conjunto de compras, ~0,1% de diferença medida em produção na biz 1).
   - **Blade** — as colunas de valor do relatório só com `view_product_stock_value`; o resumo de valor só com `stock_report.view` + `view_product_stock_value` (`ReportController::getStockValue`).
 - **Prova dupla do valor (regra mestre):** (1) igual à soma linha a linha do JSON do DataTable do relatório (o código da lista Blade); (2) a variação com uma compra conhecida é a conta à mão. Em produção (biz 1, 2026-10-10) a soma no banco só da coluna `stock_price` deu diferença 0 contra a soma linha a linha da consulta completa.
-- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+- **Status: 🧪** — passou (2026-10-23). Pest na lane Estoque · MySQL, run 39945557255 (main 53e7995, 2026-10-23): 497 testes, 0 falhas, 0 pulados.
 
 
 ---
@@ -219,7 +223,7 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
   - **Charter v3** §Goals — *"Abas: Todos os produtos (com contagem) e Relatório de estoque (as colunas da lista Blade, com totais), esta só com `stock_report.view`"*.
   - **Blade** — a aba `#product_stock_report` (`product/index.blade.php`, `@can('stock_report.view')`) pede `/reports/stock-report` com os filtros da lista (local, categoria, marca, unidade, tipo, situação, "não para venda", modelo). O rodapé dela somava só a página; o protótipo (`RelatorioEstoque`) soma todas — e é esse total que o indicador do topo mostra (decisão [F] 2026-10-10, opção B).
   - **Contas** — as de `ProductUtil::linhaDoRelatorioEstoque` (movidas do `ReportController` no #9128, sem mudança), as mesmas da tela de Relatórios → Estoque.
-- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+- **Status: 🧪** — passou (2026-10-23). Pest na lane Estoque · MySQL, run 39945557255 (main 53e7995, 2026-10-23): 497 testes, 0 falhas, 0 pulados.
 
 
 ---
@@ -233,7 +237,7 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
   - **Blade** — `ProductController::view` + `product/view-modal.blade.php` (e `single_/variable_/combo_product_details`): os gates `@can('view_purchase_price')` e `@can('access_default_selling_price')`, preço por grupo só dos grupos permitidos, estoque por local carregado de `/reports/stock-report` (pede `stock_report.view`).
   - **ADR 0093** — `Product::where('business_id', …)`: produto de outra empresa não abre.
 - **Divergência deliberada, mais restrita que a Blade:** o total da composição pelo custo só vem com `view_purchase_price` (a Blade mostrava a coluna a todos). E "origem da mercadoria" (protótipo) não vem: o campo não existe no banco.
-- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+- **Status: 🧪** — passou (2026-10-23). Pest na lane Estoque · MySQL, run 39945557255 (main 53e7995, 2026-10-23): 497 testes, 0 falhas, 0 pulados.
 
 
 ---
@@ -246,7 +250,7 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
   - **Protótipo** — rodapé da vista `lista`: "Exportar filtrados" (`exportarCsv(ordenados)`).
   - **Lista** — as linhas saem de `buildProdutoListaPaginada` (a mesma consulta, filtros, busca e ordem da tela); o gate de preço é o do UC-PIDX-03 (sem permissão a coluna não existe).
   - A "Baixar Excel" do cabeçalho segue sendo a exportação completa da Blade (`/products/download-excel`).
-- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+- **Status: 🧪** — passou (2026-10-23). Pest na lane Estoque · MySQL, run 39945557255 (main 53e7995, 2026-10-23): 497 testes, 0 falhas, 0 pulados.
 
 ## UC-PIDX-11 · "Comprar" abre a nova compra com o produto · `should`
 - **Persona:** Larissa vê na lista que um produto está acabando e quer repor sem ter de procurá-lo de novo na compra.
@@ -255,7 +259,7 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
 - **Contrato:**
   - **Protótipo** — `acoesDe` ("Comprar este produto") e rodapé do `DetalheDrawer` ("Comprar"); pedido [F] 2026-10-11 *"abre preenchido com o produto"*.
   - **Compra** — produto inativo ou sem controle de estoque não aparece na busca da compra (`getProducts`); por isso a ação some nesses casos, em vez de abrir uma compra vazia.
-- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+- **Status: 🧪** — passou (2026-10-23). Pest na lane Estoque · MySQL, run 39945557255 (main 53e7995, 2026-10-23): 497 testes, 0 falhas, 0 pulados.
 
 ## UC-PIDX-12 · Os 3 indicadores da aba Estoque do painel somam o relatório de estoque do produto · `must`
 - **Persona:** Larissa abre o painel de um produto e quer ver de relance quanto tem dele, quanto isso vale pelo que pagou e por quanto venderia — sem ir a Relatórios → Estoque e somar local por local.
@@ -266,7 +270,7 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
   - **Contas** — nenhuma nova: `ProductUtil::linhaDoRelatorioEstoque` por linha e `ProductUtil::somaDasLinhasDoEstoque` para somar — a MESMA função do rodapé da aba "Relatório de estoque" (UC-PIDX-08).
   - **Blade** — valores do estoque só com `view_product_stock_value` (colunas do relatório de estoque).
 - **Divergência deliberada do protótipo:** a legenda do custo diz "pelo preço pago nas compras" (o protótipo diz "preço de compra padrão"). O campo do relatório é o que resta de cada compra recebida × o preço pago nela, não estoque × preço de compra do cadastro — é a mesma legenda do indicador do topo da lista (UC-PIDX-07).
-- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+- **Status: 🧪** — passou (2026-10-23). Pest na lane Estoque · MySQL, run 39945557255 (main 53e7995, 2026-10-23): 497 testes, 0 falhas, 0 pulados.
 
 ## UC-PIDX-13 · Clicar no cabeçalho ordena a lista, nas duas direções · `should`
 - **Persona:** Larissa quer ver primeiro o que tem mais estoque, ou achar um produto pela marca — clica no nome da coluna, como fazia na lista antiga.
@@ -276,7 +280,7 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
   - **Protótipo** — `ListaProdutos`: as colunas com `sortable` e o rodapé "clique no cabeçalho pra ordenar".
   - **Servidor** — `$ordenaveis` em `ProductController::buildProdutoListaPaginada`; `compra`/`venda` só entram com `view_purchase_price` / `access_default_selling_price`.
 - **Achado que originou o caso (medido em produção, 2026-10-12):** o rodapé prometia a ordenação, mas o cabeçalho era texto puro e o clique não fazia nada. As 8 colunas declaravam `enableSorting: true` sem `accessorFn` (a tabela só desenha o botão com ele), e a tela não informava à tabela a ordem atual (sem isso o segundo clique não inverte). Typecheck, build e CI estavam verdes.
-- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide (a parte Vitest não roda em lane nenhuma).
+- **Status: 🧪** — passou (2026-10-23). Pest na lane Estoque · MySQL, run 39945557255 (main 53e7995, 2026-10-23): 497 testes, 0 falhas, 0 pulados · Vitest local em 2026-10-23 (main 53e7995): os 133 testes dos arquivos da lista passaram (estes arquivos não rodam em lane).
 
 ## UC-PIDX-14 · "Cadastro rápido" cria o produto com os preços que o formulário Blade gravaria · `must` `[V0]` `[T0]`
 - **Persona:** Larissa está com o cliente na frente e o produto ainda não existe no catálogo. Quer cadastrar o mínimo — nome, unidade e os dois preços — e completar o resto depois.
@@ -292,7 +296,7 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
   - a margem vai com 4 casas (o Blade arredondava na tela, 2 casas) — a coluna guarda 4, e margem com 2 casas não reconstitui o preço (lição do charter de Preços por grupo);
   - com mais de um local, escolher ao menos um é obrigatório (no Blade o campo podia ficar vazio e o produto não aparecia em local nenhum) — decisão [F];
   - preço só com vírgula decimal e sem milhar; "12.125" é recusado em vez de adivinhado.
-- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide (a parte Vitest não roda em lane nenhuma).
+- **Status: 🧪** — passou (2026-10-23). Pest na lane Estoque · MySQL, run 39945557255 (main 53e7995, 2026-10-23): 497 testes, 0 falhas, 0 pulados · Vitest local em 2026-10-23 (main 53e7995): os 133 testes dos arquivos da lista passaram (estes arquivos não rodam em lane).
 
 ## UC-PIDX-15 · Estoque inicial em janela, com o mesmo saldo que o formulário Blade · `must` `[V0]` `[T0]`
 - **Persona:** Larissa acabou de cadastrar um produto e quer informar quanto já tem dele em cada loja, sem sair da lista.
@@ -311,7 +315,7 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
   - com validade ou lote desligados na empresa, a linha existente mantém o que já tinha (o formulário Blade, sem o campo, apagava).
 - **Achado do caminho antigo, NÃO resolvido aqui (hipótese por leitura, ainda sem medição):** ao zerar uma linha existente, o `save()` não chama `updateProductQuantity` (`if ($qty_remaining != 0)`), então o saldo do local não desceria. A janela herda o que o Blade faz — o teste afirma só a igualdade entre os dois caminhos nesse caso. Decisão de conserto é do [W]/[F].
   - **Medido em 2026-10-15** ([`EstoqueInicialZerarLinhaTest`](../../../../tests/Feature/Produto/EstoqueInicialZerarLinhaTest.php), CT 100 em `8723405fb`): lançar 10 e depois zerar a linha pelo `/opening-stock/save` grava a linha com quantidade 0, mas o saldo do local **fica em 10**. O controle (baixar de 10 para 1) desconta certo, então o defeito é só no zero. O teste está na quarentena da lane de Estoque até o conserto; o conserto mexe em estoque e segue a regra mestre (duas provas e antes→depois) — decisão [W]/[F].
-- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide (a parte Vitest não roda em lane nenhuma).
+- **Status: 🧪** — passou (2026-10-23). Pest na lane Estoque · MySQL, run 39945557255 (main 53e7995, 2026-10-23): 497 testes, 0 falhas, 0 pulados · Vitest local em 2026-10-23 (main 53e7995): os 133 testes dos arquivos da lista passaram (estes arquivos não rodam em lane).
 
 ## UC-PIDX-16 · Arrastar a borda da coluna muda a largura dela · `should`
 - **Persona:** Larissa tem produto de nome comprido que aparece cortado; quer abrir a coluna "Produto" e apertar "Locais", como faz numa planilha.
@@ -325,7 +329,7 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
 - **Diferença deliberada do protótipo:** lá a alça é deslocada 3px para fora da coluna e o cabeçalho vizinho cobre essa parte — sobram 4px úteis (medido com `elementFromPoint`). Aqui os 7px ficam inteiros dentro da coluna, para a borda ser mais fácil de pegar.
 - **Onde mora:** `resizable` é opção nova do `shared/DataTable`, desligada por padrão — as outras telas que usam a tabela não mudam.
 - **Defeito da primeira versão, medido em produção (2026-10-13, logo depois do deploy do #9233):** a largura era guardada dentro da tabela, e a tabela mora dentro de `<Deferred data="lista">`, que a desmonta enquanto a lista recarrega. Ordenar por "Estoque atual" devolveu Produto de 348 para 300 (o nó `<table>` era outro; o rodapé da página, fora do `<Deferred>`, era o mesmo). O aceite acima — "ordenar, trocar de página e filtrar não a desfazem" — estava escrito e era falso. Os testes daquela versão usavam `rerender`, que mantém a tabela montada, e por isso não viam. Conserto: a largura passa a morar na página (`columnWidths` + `onColumnResize`), e o caso `ordenar, trocar de página ou filtrar (a tabela some e volta)…` reproduz o intervalo sem tabela.
-- **Status: ⬜** — nasce neste PR; verde esperado. Em 2026-10-17 só o caso do `a11y-primitives` rodava em lane; em 2026-10-18 `produto-lista-redimensionar` e `produto-lista-encaixe` entraram no Vitest do `Frontend / Vite build`.
+- **Status: 🧪** — passou (2026-10-23). Vitest no Frontend / Vite build, job 120384523098 (main 53e7995, 2026-10-23).
 
 ## UC-PIDX-17 · "Dados fiscais" no menu da linha abre o painel na aba Fiscal · `should`
 - **Persona:** Larissa vai emitir nota e quer conferir o NCM e o CFOP de um produto sem abrir o cadastro.
@@ -337,7 +341,7 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
 - **Diferença deliberada do protótipo:** lá `onAcao("fiscal")` faz o mesmo que o "Ver" (`setVer(p)`), e o painel nasce sempre em "Dados" — o item leva o nome de fiscal e cai na aba errada. Aqui ele abre na aba Fiscal.
 - **Efeito no "Ver":** a aba ativa do painel passou a ser guardada pela página, e cada abertura recomeça na aba pedida. Antes o painel guardava a aba e ficava montado entre uma abertura e outra. Medido em produção em 2026-10-13, antes desta mudança: abrir o produto "2" pelo "Ver", ir para Estoque, fechar e abrir o "55555555555" pelo "Ver" caiu em Estoque. No protótipo o painel sempre abre em Dados.
 - **Não coberto por teste:** a ligação dentro de `Produto/Index.tsx` (a ação `fiscal` chamar a abertura com a aba Fiscal) — nenhum teste renderiza a página inteira. Conferido em produção depois do deploy.
-- **Status: ⬜** — nasce neste PR; verde esperado. Nenhum dos dois arquivos de teste roda em lane.
+- **Status: 🧪** — passou (2026-10-23). Vitest local em 2026-10-23 (main 53e7995): os 133 testes dos arquivos da lista passaram (estes arquivos não rodam em lane).
 
 ## UC-PIDX-18 · Aba "Relatório de estoque": linhas por página e lucro potencial com cor · `should` `[V0]`
 - **Persona:** Larissa confere o estoque de uma categoria inteira e não quer passar página por página; e quer bater o olho no que dá lucro.
@@ -354,7 +358,7 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
   - o rodapé mantém "Página X de Y · N linhas" com Anterior/Próxima; o protótipo usa páginas numeradas.
 - **Linha em alerta de estoque:** a linha inteira continua vermelha, como na Blade; a célula do lucro segue a regra dela (verde se positivo).
 - **Defeito achado no teste em produção (2026-10-14, depois do deploy do #9324):** as classes de cor chegavam ao DOM e a célula continuava na cor comum — a cor computada era a mesma nas 40 linhas de lucro positivo, nas 3 negativas e no total. Causa medida: o bundle da tela tem `.pb-tbl tbody td { color: var(--text) }` fora das camadas do Tailwind, e regra sem camada vence `@layer utilities`. A linha vermelha de alerta estava inerte desde que entrou (#9129, 2026-10-10), por **outra** causa: herança — a classe ficava no `<tr>`, e cada `td` declara cor própria, o que vence o valor herdado com camada ou sem. E a mensagem de lista vazia ("Nenhum produto com estoque…") pedia a cor apagada por classe e saía na cor comum, pela causa do lucro. Conserto: o lucro pede a cor em `style`, e a linha de alerta troca o `--text` dela — conferido contra o CSS real da tela antes de subir.
-- **Status: ⬜** — nasce neste PR; verde esperado. A parte do servidor roda na lane Estoque · MySQL; a parte Vitest não roda em lane nenhuma.
+- **Status: 🧪** — passou (2026-10-23). Pest na lane Estoque · MySQL, run 39945557255 (main 53e7995, 2026-10-23): 497 testes, 0 falhas, 0 pulados · Vitest local em 2026-10-23 (main 53e7995): os 133 testes dos arquivos da lista passaram (estes arquivos não rodam em lane).
 
 ## UC-PIDX-19 · A aba Fiscal do painel mostra o tipo de imposto na venda · `could`
 - **Persona:** Larissa confere os dados fiscais de um produto e quer ver, no mesmo lugar, se o preço dele já inclui o imposto.
@@ -367,7 +371,7 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
   - **Texto de ajuda** — o do protótipo afirma, para todo produto sem NCM, "Serviço: sai em NFS-e por ISS"; com dado real, produto sem NCM pode ser só cadastro incompleto. Fica de fora até existir uma frase conferida.
   - **"Transferir" por local (aba Estoque)** — entra com a requisição de transferência.
   - **"Gerar OP" (rodapé de composição)** — a Fabricação produz por receita de uma variação; composição não é receita, e não há tela de destino.
-- **Status: ⬜** — nasce neste PR; verde esperado. O arquivo de teste não roda em lane.
+- **Status: 🧪** — passou (2026-10-23). Vitest local em 2026-10-23 (main 53e7995): os 133 testes dos arquivos da lista passaram (estes arquivos não rodam em lane).
 
 ## UC-PIDX-20 · Painel: composição com total, preço e preços dos itens; imagens das variações · `should` `[V0]`
 - **Persona:** Larissa abre um produto composto (um kit) e quer ver, sem sair da lista, quanto custa montá-lo, por quanto ele é vendido e o preço de cada item — como via na janela "Ver" da Blade; e as fotos das variações.
@@ -382,7 +386,7 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
   - as colunas de preço da Blade ficam numa tabela à parte, "Preços dos itens", e as imagens numa seção abaixo, em vez de tudo numa tabela só. Medido em produção em 2026-10-14: com todas as colunas, a tabela teria 973 px num painel de 779 px; é o mesmo arranjo que a aba Variações já usa com "Preços por grupo";
   - o preço da composição sai sem e com imposto: a Blade mostrava o com imposto, o protótipo o sem imposto;
   - a Blade mostrava o preço da composição a qualquer um; aqui ele segue `access_default_selling_price`, como os outros preços do painel.
-- **Status: ⬜** — nasce neste PR; verde esperado. A parte do servidor roda na lane Estoque · MySQL; a parte Vitest não roda em lane nenhuma.
+- **Status: 🧪** — passou (2026-10-23). Pest na lane Estoque · MySQL, run 39945557255 (main 53e7995, 2026-10-23): 497 testes, 0 falhas, 0 pulados · Vitest local em 2026-10-23 (main 53e7995): os 133 testes dos arquivos da lista passaram (estes arquivos não rodam em lane).
 
 ## UC-PIDX-21 · Produto que não controla estoque mostra o aviso na aba Estoque · `could`
 - **Persona:** Larissa abre um serviço (ou qualquer produto sem controle de estoque) e procura o saldo; em vez de a aba sumir, quer saber que esse produto não tem estoque.
@@ -390,7 +394,7 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
 - **Teste:** [`produto-painel-detalhe.test.tsx`](../../../../tests/js/produto-painel-detalhe.test.tsx) — `UC-PIDX-21`.
 - **Contrato:** protótipo — aba `estoque` do `DetalheDrawer`: `{p.stockOn ? … : <p className="pb-help">Este produto não gerencia estoque (…)</p>}`. O dado é o `enable_stock` que a aba Dados já mostra ("Gerenciar estoque"); nada novo vem do servidor, que já não manda saldo desse produto.
 - **Diferença deliberada:** o protótipo diz "Este produto não gerencia estoque (**enable_stock = 0**) — serviços e composições entram assim." Fica só a primeira frase: o nome da coluna não diz nada a quem usa a tela, e produto composto também pode ter o controle de estoque ligado no cadastro (o formulário não o desliga), então a segunda frase não vale para todo caso.
-- **Status: ⬜** — nasce neste PR; verde esperado. O arquivo de teste não roda em lane.
+- **Status: 🧪** — passou (2026-10-23). Vitest local em 2026-10-23 (main 53e7995): os 133 testes dos arquivos da lista passaram (estes arquivos não rodam em lane).
 
 ## UC-PIDX-22 · Produto sem foto mostra "Sem imagem" no painel e "IMG" na lista · `could`
 - **Persona:** Larissa olha a lista e o painel de um produto que nunca teve foto cadastrada; quer ver que ele está sem foto, não um quadro branco que parece imagem quebrada.
@@ -398,21 +402,21 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
 - **Teste:** [`ProdutoDetalheTest`](../../../../tests/Feature/Produto/ProdutoDetalheTest.php) — `UC-PIDX-22` (painel) e [`ProdutoListaConsultaTest`](../../../../tests/Feature/Produto/ProdutoListaConsultaTest.php) — `UC-PIDX-22` (lista), os dois na lane Estoque · MySQL.
 - **Contrato:** protótipo `produto-blade.jsx` — `.pb-thumb` "IMG" na coluna Imagem e `.pb-img` no `DetalheDrawer`. O acessor `App\Product::image_url` devolve `/img/default.png` quando não há foto; a lista Blade e as outras telas seguem usando o acessor como está — só esta tela troca por `null`.
 - **Medido em produção (biz 1, tema escuro, 2026-10-14):** antes, 73 das 74 miniaturas da 1ª página e o painel do produto 1817 eram `<img src=".../img/default.png">` (sem fundo); simulando a troca no navegador, a caixa do painel fica 168×168, fundo `oklch(0.23 0.006 240)`, borda `oklch(0.34 0.008 240)`, texto `oklch(0.67 0.005 90)` 11px, e a miniatura 30×30 com "IMG" 9px — as regras `.pb-img`/`.pb-thumb` do bundle, iguais às do protótipo.
-- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+- **Status: 🧪** — passou (2026-10-23). Pest na lane Estoque · MySQL, run 39945557255 (main 53e7995, 2026-10-23): 497 testes, 0 falhas, 0 pulados.
 
 ## UC-PIDX-23 · Produto que sincroniza com o WooCommerce tem a marca ao lado do nome · `could`
 - **Persona:** quem vende também na loja WooCommerce olha a lista e quer saber, sem abrir o produto, quais deles vão para a loja.
 - **Aceite:** Dado o módulo WooCommerce instalado · Quando um produto tem a sincronização ligada (`woocommerce_disable_sync = 0`) · Então a célula Produto mostra uma marca ao lado do nome, com o nome acessível "Sincroniza com o WooCommerce", também no modo compacto. Produto com a sincronização desligada não tem a marca; sem o módulo, nenhum tem (o servidor nem manda o campo `woocommerce_sync`).
 - **Teste:** [`produto-lista-woocommerce.test.tsx`](../../../../tests/js/produto-lista-woocommerce.test.tsx) — `UC-PIDX-23` (não roda em lane). Mutação: trocar a condição por "campo presente" derruba o 1º caso.
 - **Contrato:** lista Blade, `ProductController@index` (coluna `product`): `if ($is_woocommerce && ! $row->woocommerce_disable_sync)` põe `<i class="fab fa-wordpress">` sob o nome. O protótipo não tem a marca (não desenha o WooCommerce na linha); a tela segue a Blade aqui. Ícone: `Globe` (lucide), porque o pacote não tem a marca do WordPress.
-- **Status: ⬜** — nasce neste PR; verde esperado. O arquivo de teste não roda em lane.
+- **Status: 🧪** — passou (2026-10-23). Vitest local em 2026-10-23 (main 53e7995): os 133 testes dos arquivos da lista passaram (estes arquivos não rodam em lane).
 
 ## UC-PIDX-24 · Campos personalizados como colunas opcionais da lista · `could`
 - **Persona:** a empresa que usa campos personalizados no cadastro (cor, coleção, fornecedor de origem) quer ver esse dado na lista, sem abrir produto por produto.
 - **Aceite:** Dado que a empresa deu rótulo a um campo personalizado de 1 a 7 (rótulos personalizados da empresa) · Então o menu "Colunas" oferece aquele campo com o rótulo da empresa, desligado por padrão · Quando a pessoa liga · Então a coluna mostra o valor de cada produto, e traço quando o produto não tem. Campo sem rótulo não vira coluna. O servidor manda os campos 1 a 7 de cada linha com os mesmos valores das colunas da lista Blade; do 8 em diante, só no painel.
 - **Teste:** [`ProdutoListaConsultaTest`](../../../../tests/Feature/Produto/ProdutoListaConsultaTest.php) — `UC-PIDX-24` (roda na lane Estoque Pest), compara com o DataTable da Blade; [`produto-lista-campos-personalizados.test.tsx`](../../../../tests/js/produto-lista-campos-personalizados.test.tsx) — `UC-PIDX-24` (não roda em lane). Mutação: tirar a checagem do rótulo em `colunas.tsx` derruba o 4º caso do Vitest.
 - **Contrato:** lista Blade, `product/index.blade.php` (`product_custom_field1..7`, `visible: $('#cf_N').text().length > 0`, rótulo de `custom_labels.product.custom_field_N`). **Divergência deliberada da Blade, pelo protótipo:** na Blade a coluna rotulada aparece de início; aqui começa desligada no menu "Colunas" (`PB_COLS_PADRAO.cf1 = false` em `produto-blade.jsx`). É forma, e na forma o protótipo decide (UI-0029).
-- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+- **Status: 🧪** — passou (2026-10-23). Pest na lane Estoque · MySQL, run 39945557255 (main 53e7995, 2026-10-23): 497 testes, 0 falhas, 0 pulados · Vitest local em 2026-10-23 (main 53e7995): os 133 testes dos arquivos da lista passaram (estes arquivos não rodam em lane).
 
 ---
 
@@ -421,7 +425,7 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
 - **Aceite:** Dada a aba Fiscal do painel · Então ela mostra **Origem da mercadoria** depois dos CST e antes de "Imposto aplicável", com o código e o nome da tabela A gravados no próprio produto (`products.origem_mercadoria`; sem escolha, `0 — Nacional`), os mesmos nomes do campo do cadastro · E um **texto de ajuda** que muda conforme o cadastro: sem NCM, diz que a nota usa o NCM padrão da empresa; com NCM, explica a ordem da regra (exceção do produto, regra do NCM, padrão da empresa); com CEST, avisa que a nota não troca o CFOP sozinha · E, quando a empresa tem o módulo **Fiscal** no pacote (`fiscal_module`) **e** a pessoa tem a permissão de acessar o módulo (`fiscal.access`) — as duas checagens do menu Fiscal, decisão [F] 2026-10-16 —, mais a permissão `nfe.tributacao.manage` que o simulador cobra, o botão **"Abrir no módulo Fiscal"**, que leva à Tributação com o produto já escolhido no simulador (UC-NFTR-29). Sem módulo ou sem permissão, o botão não existe.
 - **Teste:** [`ProdutoDetalheTest`](../../../../tests/Feature/Produto/ProdutoDetalheTest.php) — `UC-PIDX-25` (origem do produto, com um 2º produto em 0 como discriminante; produto de outra empresa segue `null`; e as três condições do link, na lane Estoque · MySQL); [`produto-painel-detalhe.test.tsx`](../../../../tests/js/produto-painel-detalhe.test.tsx) — `UC-PIDX-25` (não roda em lane). Mutação: voltar o texto do protótipo para produto sem NCM derruba o 5º caso do Vitest.
 - **Contrato:** protótipo `produto-blade.jsx`, aba `fiscal` do `DetalheDrawer` (NCM, CEST, CFOP, Origem, Imposto aplicável, Tipo de imposto, texto de ajuda e o botão). **Diferenças deliberadas, medidas no código:** ~~(1) o cadastro não tem origem por produto~~ — caiu em 2026-10-15: a origem passou a ser do produto (#9465) e a aba lê `products.origem_mercadoria`, a mesma coluna que as duas emissões usam; o aviso "a origem é a mesma em todas as notas" não aparece mais. (2) O texto do protótipo chama de serviço todo produto sem NCM e diz que, com CEST, a nota sai com CFOP de substituído; a emissão não faz nem uma coisa nem outra (usa o NCM padrão da empresa e não lê o CEST), então o texto foi corrigido. (3) O protótipo leva a um "módulo Fiscal" do produto; a tela que existe é a Tributação do NfeBrasil, com o simulador.
-- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+- **Status: 🧪** — passou (2026-10-23). Pest na lane Estoque · MySQL, run 39945557255 (main 53e7995, 2026-10-23): 497 testes, 0 falhas, 0 pulados · Vitest local em 2026-10-23 (main 53e7995): os 133 testes dos arquivos da lista passaram (estes arquivos não rodam em lane).
 
 ## UC-PIDX-26 · Em tela estreita as colunas encolhem até caber · `should`
 - **Persona:** a ROTA LIVRE usa monitor 1366×768. Na lista de produtos, Tipo, Categoria, Marca, Imposto e SKU ficavam fora da tela, e ela estreitava as colunas à mão a cada visita.
@@ -429,7 +433,7 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
 - **Teste:** [`produto-lista-encaixe.test.tsx`](../../../../tests/js/produto-lista-encaixe.test.tsx) — `UC-PIDX-26` (a regra com os números de 1366px, o piso, a coluna arrastada, o `<colgroup>` da tabela de verdade, o rótulo que quebra, a faixa de preço que quebra no traço e o texto inteiro no `title`). **Smoke em produção depois do deploy do #9535 (2026-10-18, 1366×648, menu aberto, empresa 1):** nenhuma coluna fora da tela; tabela de 1.019px numa área de 1.019px; grade com 391px de altura; nenhum preço, estoque ou tipo cortado e 11 faixas de preço quebrando no traço; arrastar Produto para 183px sobreviveu ao F5 (com SKU passando para a direita, alcançável pela barra lateral da grade) e "Voltar às larguras de saída" apagou a chave e devolveu o encaixe; nenhuma falha de rede na carga. **Achado no smoke e corrigido depois:** o rótulo "CATEGORIA" pedia 79px, ficou com 67 e vazava 12px sobre MARCA — os pisos passaram a respeitar o rótulo. **Prévia em produção (2026-10-17, 1366×648, larguras aplicadas no navegador, sem deploy):** nenhuma coluna fora da tela, tabela de 1.019px numa área de 1.019px; nenhum preço cortado com a faixa quebrando; continuam com "…" (texto inteiro no `title`) nomes de produto longos, "Locais" e SKUs de 13 dígitos. Roda no Vitest do `Frontend / Vite build` (desde 2026-10-18). Mutação: desligar o encaixe (`encaixarColunas` devolvendo sempre `{}`) derruba 5 casos.
 - **Contrato:** a reclamação (monitor 1366×768, "todos os campos não aparecem, precisa ficar redimensionando") e a regra do cliente piloto em [`memory/regras-time.md`](../../../../memory/regras-time.md) ("monitor 1280px — designs precisam caber"). **Medido em produção (2026-10-17, janela 1366×648, menu aberto):** espaço da tabela 1.034px; a tabela exigia 1.704px (a soma das larguras do protótipo + a caixa de seleção); inteiras na tela só até Preço de venda, Estoque atual cortada, Tipo, Categoria, Marca, Imposto e SKU fora.
 - **Diferença deliberada do protótipo:** o protótipo mantém as larguras em qualquer tela e a tabela rola para o lado; aqui, em tela estreita, as colunas encolhem. Em tela larga as larguras são as dele. A regra e os pisos moram em `_components/lista/encaixe.ts`.
-- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+- **Status: 🧪** — passou (2026-10-23). Vitest no Frontend / Vite build, job 120384523098 (main 53e7995, 2026-10-23).
 
 ## UC-PIDX-27 · A grade tem altura própria e a barra de rolar para o lado fica à vista · `should`
 - **Persona:** quem precisa ver uma coluna à direita e não acha a barra de rolar para o lado.
@@ -437,7 +441,31 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
 - **Teste:** [`produto-lista-encaixe.test.tsx`](../../../../tests/js/produto-lista-encaixe.test.tsx) — `UC-PIDX-27` (a área que rola fica limitada; sem a opção, a tabela cresce com as linhas, como antes). Roda no Vitest do `Frontend / Vite build` (desde 2026-10-18).
 - **Contrato:** protótipo `produto-blade.jsx`, `ListaProdutos`: altura = `max(260, min(conteúdo, 72% do .pb-body))`, "a rolagem interna com header fixo compensa". Charter (UX): "a tabela rola dentro dela, cabeçalho fixo". **Medido em produção antes (2026-10-17, 1366×648, 75 produtos):** sem altura, a barra de rolar para o lado ficava a 4.097px do topo, numa janela de 648px.
 - **Onde mora:** `scrollMaxHeight` é opção nova do `shared/DataTable` (só no `grid`), desligada por padrão — as outras telas não mudam.
-- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+- **Status: 🧪** — passou (2026-10-23). Vitest no Frontend / Vite build, job 120384523098 (main 53e7995, 2026-10-23).
+
+## UC-PIDX-28 · Preço proposto pela compra recebida, aguardando aprovação · `should` `[T0]`
+- **Persona:** o dono que deixou a regra de custo em "Propõe novo preço" e consulta o produto sem saber que há um preço esperando decisão.
+- **Aceite:** Dado um produto que acompanha o custo e uma compra recebida que gravou proposta pendente (`compras_propostas_preco`, US-COM-026) · Então a coluna "Preço de venda" mostra o preço gravado e, abaixo, "proposto ‹preço› · aguardando" (com mais de uma proposta pendente, "‹N› preços propostos · aguardando") · E o painel, na aba Dados, lista cada proposta pendente com a variação, o preço atual, o proposto e a compra de origem (número e data) · E o botão "Abrir a compra" leva ao detalhe da compra, onde se aprova ou recusa (US-COM-028); sem `purchase.view` o botão não existe · E, se o preço mudou depois da proposta, o painel avisa que ela só pode ser recusada · Quando a proposta já foi aprovada ou recusada · Então ela não aparece · Quando a pessoa não pode ver o preço de venda (`access_default_selling_price`) · Então nem a linha nem o painel trazem a proposta (a chave não vem, como em UC-PIDX-03) · Proposta gravada com outra empresa não aparece (Tier 0).
+- **Teste:** [`ProdutoPrecoPropostoERoteiroContratoTest`](../../../../tests/Feature/Produto/ProdutoPrecoPropostoERoteiroContratoTest.php) — `UC-PIDX-28` (valores comparados com a linha gravada, propostas decididas, preço mudado, gate de preço, link da compra e outra empresa; lane Estoque · MySQL); [`produto-preco-proposto-roteiro.test.tsx`](../../../../tests/js/produto-preco-proposto-roteiro.test.tsx) — `UC-PIDX-28` (o que a célula e o painel desenham, e que não há Aprovar nem Recusar; não roda em lane). Mutação: tirar o aviso da célula derruba 2 casos do Vitest.
+- **Contrato:** UC-FLX-17 (`prototipo-ui/cowork/Wagner/fluxos-data.jsx`) e Compras SPEC US-COM-026/028. **Diferença deliberada do protótipo:** o protótipo tem Aprovar e Recusar no próprio painel; aqui a consulta só avisa e leva à compra, porque o charter desta tela (Automation Anti-hooks, decisão [W]) proíbe a consulta de alterar preço e de criar escrita nova. Decidir pela consulta exige mudar o charter.
+- **Status: 🧪** — passou no job 120005347082 (lane Estoque · MySQL, commit 730f065c, 2026-10-22): 7 testes, 0 pulados, 64 verificações. O Vitest não roda em lane; passou local (8 casos).
+
+## UC-PIDX-29 · Aba Roteiro: as etapas do roteiro do produto, com o posto e o setor · `should` `[T0]`
+- **Persona:** quem vende ou planeja e quer saber por quais setores o produto passa antes de virar OS.
+- **Aceite:** Dado um produto ligado a um roteiro (`pcp_produto_roteiro`, o mesmo vínculo que a OS usa ao nascer, US-PCP-026) · Então o painel tem a aba "Roteiro", com as etapas na ordem do roteiro (bloco, trilha, ordem), cada uma com o posto e o setor do posto, e as horas previstas · E etapa opcional e etapa em paralelo vêm marcadas · E o responsável não aparece: ele é escolhido na OS, entre os operadores do posto (US-PCP-030) · Quando o produto não tem roteiro, ou a empresa não tem o módulo Produção · Então a aba não existe · Vínculo apontando roteiro de outra empresa conta como produto sem roteiro (Tier 0, como na OS, UC-PCROT-04).
+- **Teste:** [`ProdutoPrecoPropostoERoteiroContratoTest`](../../../../tests/Feature/Produto/ProdutoPrecoPropostoERoteiroContratoTest.php) — `UC-PIDX-29` (ordem com etapas gravadas fora de ordem, posto e setor, etapa sem posto, produto sem roteiro e roteiro de outra empresa; lane Estoque · MySQL); [`produto-preco-proposto-roteiro.test.tsx`](../../../../tests/js/produto-preco-proposto-roteiro.test.tsx) — `UC-PIDX-29` (a aba só com roteiro e a tabela com posto e setor; não roda em lane). Mutação: trocar a coluna Setor pelo posto derruba o caso da tabela.
+- **Contrato:** UC-FLX-07 e UC-FLX-08 (`prototipo-ui/cowork/Wagner/fluxos-data.jsx`) e Produção SPEC US-PCP-026/030. O protótipo junta receita e roteiro numa aba "Receita e roteiro"; a receita na consulta é outro caso (CV6, backlog), por isso aqui a aba é só "Roteiro".
+- **Status: 🧪** — passou no job 120005347082 (lane Estoque · MySQL, commit 730f065c, 2026-10-22): 7 testes, 0 pulados, 64 verificações. O Vitest não roda em lane; passou local (8 casos).
+
+## UC-PIDX-33 · Aba Estoque do painel: quantidade vendida por local · `should`
+- **Persona:** a ROTA LIVRE abre um produto pelo painel e quer saber, sem ir ao Relatório de estoque, quanto daquele item já saiu em cada loja.
+- **Aceite:** Dado um produto que controla estoque, com saldo em dois locais, uma venda finalizada de 5 un no local A com 1 un devolvida e um rascunho de 2 un no mesmo local · Quando abro a aba Estoque do painel · Então a tabela de locais tem a coluna "Vendido", logo antes de "Situação" · E o local A mostra "4 Un" e o B "0 Un" · E o número de cada local é o mesmo "Total vendido" do Relatório de estoque para aquele produto e local (vendas finalizadas, desde sempre, menos as devoluções; rascunho e orçamento ficam fora).
+- **Teste:** [`ProdutoDetalheTest`](../../../../tests/Feature/Produto/ProdutoDetalheTest.php) — `UC-PIDX-33` (o vendido de cada linha do painel contra a conta à mão e contra a soma do JSON do DataTable do relatório) e [`produto-painel-detalhe.test.tsx`](../../../../tests/js/produto-painel-detalhe.test.tsx) — `UC-PIDX-33` (a coluna e a ordem; cada local com o número que o servidor mandou). Mutação conferida em 2026-10-23: mostrar o saldo no lugar do vendido derruba o caso de tela.
+- **Contrato:**
+  - **Protótipo** — artefato "Consulta de Produto" (https://claude.ai/artifact/2Rwvt22eRnijtFFZhkpt67, versão de 22/10), aba Estoque do painel: `<th class="d">Vendido</th>` entre o saldo e a situação, valor por local com a unidade.
+  - **Contas** — nenhuma nova: o número é o `vendido` que `ProductUtil::linhaDoRelatorioEstoque` já punha em cada linha (`total_sold` de `getProductStockDetails`), o mesmo da coluna "Total vendido" do Relatório de estoque. Só a tela passou a mostrá-lo.
+- **Diferenças deliberadas do protótipo:** a coluna "Alerta" continua (o protótipo não a tem); "Separado" e "Livre" não entram, porque dependem do interruptor "Reservar material na venda" (backlog D5).
+- **Status: ⬜** — nasce neste PR; verde esperado. A parte do servidor roda na lane Estoque · MySQL; a parte Vitest não roda em lane nenhuma (pôr o arquivo no Vitest do `Frontend / Vite build` fica para PR próprio, porque `.github/` pede revisão do [W]).
 
 ## Achados de governança (o trio prometia o que não tinha)
 
@@ -573,6 +601,13 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
 > "reservado", "empenhado" e "disponível", que o cliente não entendia. Na lista a linha fica
 > "20 m² separados para OS · 76 m² livres"; no painel, "Tem no estoque", "Separado para OS"
 > (ou "Separado para vendas") e "Livre para usar" (ou "Livre para vender").
+>
+> **Ajustados às regras e fluxos do Wagner (2026-10-22):** os casos foram conferidos contra os
+> `UC-FLX-*` de `prototipo-ui/cowork/Wagner/fluxos-data.jsx` e os interruptores de Sistema ›
+> Fluxos e regras. Mudou: "separado" só existe com o interruptor "Reservar material na venda" e
+> nasce na venda, então o material também é "separado para vendas"; o eixo produto, material e
+> serviço se chama "Uso", porque "natureza" já é a natureza fiscal. Entraram requisição de compra,
+> natureza fiscal pendente, método de custo e roteiro (bloco "Regras e fluxos", abaixo).
 
 **Vestuário (ROTA LIVRE)**
 
@@ -586,9 +621,10 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
   do produto. Fonte: Bling (variações marcadas na lista), Alterdata e Senior (estoque por grade).
 - **[BACKLOG] Mostrar o estoque separado para vendas e o livre (D5)** `[V0]` — hoje o saldo não
   desconta o que já foi vendido e ainda não saiu. Aceite: Dado 10 un em estoque e uma venda não
-  entregue que separou 3, Então a lista mostra "3 un separadas para vendas · 7 un livres". Pergunta
-  em aberto: a ROTA LIVRE (biz=4) usa o fluxo de venda que separa estoque? Fonte: Conta Azul (aba
-  Reservados), Senior (quantidade em reserva).
+  entregue que separou 3, Então a lista mostra "3 un separadas para vendas · 7 un livres". Só com
+  o interruptor "Reservar material na venda" ligado em Sistema › Fluxos e regras (desligado por
+  padrão, UC-FLX-14); desligado, a linha não aparece. Fonte: Conta Azul (aba Reservados), Senior
+  (quantidade em reserva).
 - **[BACKLOG] Excluir sem perder: o excluído pode ser restaurado (D13)** — hoje "Excluir" apaga o
   cadastro, as variações e os preços por grupo, e a confirmação diz que não tem volta. Aceite: Dado
   um produto excluído, Quando filtro a situação "Excluídos", Então ele aparece e "Restaurar" o devolve
@@ -600,23 +636,32 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
   recorte com nome. Aceite: Dado um conjunto de filtros, Quando salvo como "Lonas abaixo do alerta",
   Então ele aparece numa lista de recortes do usuário e abre com os mesmos filtros. Fonte: Shopify
   (visões salvas), Odoo (favoritos).
-- **[BACKLOG] Quantidade vendida por local na aba Estoque do painel** — pedido na revisão do
-  protótipo (2026-10-20). Aceite: a tabela de locais da aba Estoque ganha a coluna "Vendido", com o
-  mesmo número do "Total vendido" do Relatório de estoque para aquele produto e local.
 
 **Comunicação visual**
 
 - **[BACKLOG] Separar material, produto e serviço na consulta (CV1)** — hoje o filtro "Tipo de
-  produto" separa Único, Variável e Composição; material não tem marca própria. Aceite: Dado lona
-  (material), banner (produto) e instalação (serviço), Quando filtro "Material", Então só a lona
-  aparece. No painel fica um rótulo só, "O que é", com a natureza; a forma do cadastro aparece só
+  produto" separa Único, Variável e Composição; material não tem marca própria. O eixo se chama
+  "Uso" (Para vender, Material, Serviço) e não ganha campo novo: serviço vem da natureza fiscal do
+  produto (UC-FLX-31) e material é o item que entra em alguma receita. Aceite: Dado lona (entra na
+  receita do banner), banner e instalação (natureza fiscal serviço), Quando filtro "Material", Então
+  só a lona aparece. No painel fica um rótulo só, "O que é", com o uso; a forma do cadastro aparece só
   quando muda algo ("Produto · com 8 variações", "Produto · kit com 4 itens"), e a coluna Tipo sai
   do padrão da lista (continua no menu Colunas). Fonte: shopVOX (produtos × materiais), Calcgraf
   (insumos e acabados).
-- **[BACKLOG] Material separado para OS abertas × livre (CV4)** `[V0]` — mesmo pedido do D5,
-  aplicado ao material. Aceite: Dado 50 m² de lona e OS abertas que separaram 20 m², Então a lista
-  mostra "20 m² separados para OS · 30 m² livres". Fonte: Calcgraf (material empenhado), shopVOX
-  (quantidade reservada).
+- **[BACKLOG] Material separado para vendas × livre (CV4)** `[V0]` — mesmo pedido do D5, aplicado
+  ao material. A reserva nasce na venda e a produção abate ao usar o material (UC-FLX-14), por isso
+  o texto é "para vendas", não "para OS". Aceite: Dado 50 m² de lona e vendas que reservaram 20 m²,
+  Então a lista mostra "20 m² separados para vendas · 30 m² livres". Só com o interruptor ligado; o
+  próprio UC-FLX-14 lista como falta "a reserva por m² na CV e mostrar o reservado no saldo". Fonte:
+  Calcgraf (material empenhado), shopVOX (quantidade reservada).
+  **De onde vem o separado (UC-FLX-14, protótipo de 2026-10-22):** com o interruptor ligado, a aba
+  Estoque do painel mostra Separado e Livre por local (o aviso "Repor" olha o livre) e a tabela "De
+  onde vem o separado", uma linha por venda: cliente, OS, item com a medida (ex.: "Banner 2,00 x
+  1,00 m x 4"), reservado em m², já usado pela produção e o que segue separado, com o total igual ao
+  da lista. Aceite: Dado 20 m² de lona reservados por duas vendas, uma de 8 m² com 2 m² já usados na
+  OS e outra de 14 m², Então a tabela mostra 6 m² e 14 m² separados e o total de 20 m². Produto de
+  revenda (D5) mostra a mesma tabela sem OS e sem "já usado". Depende da reserva por m² existir na
+  venda da CV, que o UC-FLX-14 ainda lista como falta.
 - **[BACKLOG] Saldo do material em rolos e em m² (CV2)** `[V0]` — hoje o saldo aparece numa unidade
   só. Aceite: Dado 2 rolos de 1,60 m × 50 m, Então a lista mostra "2 rolos · 160 m²", e as duas
   contas fecham. Fonte: shopVOX (unidade de compra × unidade de venda).
@@ -625,9 +670,38 @@ last_run_ci: "2026-10-19: job 118208572139 (Frontend / Vite build, commit f467e9
   Quando abro o painel, Então vejo materiais e quantidades da receita. ⚠️ Conferir com o charter: o
   Non-Goal "Sub-views de BOM/Insumos ficam em `/products/unificado`" pode valer aqui — decisão [W].
   Fonte: shopVOX (lista de materiais, mão de obra e máquina do produto).
-- **[BACKLOG] Rastrear o rolo por OS a partir da consulta (CV3)** — a US-COM-025 (Compras) já
-  descreve o rastreio e está pendente; a consulta seria uma porta de entrada. Fonte: Mubisys
-  (estoque fracionado com rastreio da mídia), Calcgraf (controle de bobinas).
+- **[BACKLOG] Rastrear o rolo por OS a partir da consulta (CV3)** — cada rolo é um lote, e o
+  relatório de Lotes já mostra em que OS cada rolo foi usado (US-COM-025 · UC-FLX-18, parcial). A
+  consulta seria a porta de entrada: a aba Rolos do painel lista os rolos e leva ao relatório de
+  Lotes. Fonte: Mubisys (estoque fracionado com rastreio da mídia), Calcgraf (controle de bobinas).
+
+**Regras e fluxos do Wagner (2026-10-22)**
+
+- **[BACKLOG] Mostrar a requisição de compra aberta pelo estoque mínimo (UC-FLX-19)** — o job
+  diário já cria a requisição com o fornecedor da última compra quando o interruptor "Requisição
+  pelo estoque mínimo" está ligado (US-COM-027, em produção), mas a consulta não mostra. Aceite:
+  Dado um produto abaixo do mínimo com requisição aberta, Então a linha mostra "Requisição <número>
+  aberta em <data> · <fornecedor>" e o painel repete na aba Estoque.
+- **[BACKLOG] Natureza fiscal pendente na consulta (UC-FLX-31)** — produto com natureza fiscal
+  pendente trava a NF-e da venda até o contador decidir. Aceite: a lista tem o filtro "Natureza
+  fiscal" (mercadoria, serviço, pendente), a linha do pendente tem um selo e o painel mostra a
+  natureza fiscal com o aviso da NF-e travada.
+- **[BACKLOG] Método de custo do insumo no painel (UC-FLX-38)** — cada insumo tem custo médio ou
+  da última compra, com histórico por data (US-COM-024). Aceite: abaixo do custo, o painel diz qual
+  é o método e a data ("custo médio, atualizado em 12/10/2026").
+- Roteiro de produção (UC-FLX-07), preço proposto pela compra (UC-FLX-17) e setor de cada etapa
+  (UC-FLX-08) saíram deste backlog em 2026-10-22: viraram UC-PIDX-28 e UC-PIDX-29, com teste.
+- **[BACKLOG] Modelo da pilha do produto** (pedido de 2026-10-23) — Aceite: Dado o produto "Controle
+  de portão" que usa a pilha CR2032, Quando abro o painel dele, Então vejo o modelo da pilha e posso
+  abrir esse produto; e no painel da pilha CR2032 vejo os produtos e aparelhos que a usam. Produto sem
+  pilha não mostra nada. A venda pede o modelo e a série do aparelho (Sells/Create.casos.md, mesmo
+  pedido).
+- **[BACKLOG] Quantos kits dá para vender** (comparação com concorrentes, 2026-10-23) — Aceite: Dado o
+  kit que leva 2 unidades de A e 1 de B, com 10 de A e 3 de B no local, Quando abro o painel do kit,
+  Então ele mostra "3 kits disponíveis" e qual componente limita (B); a venda não deixa vender mais
+  kits do que isso quando o estoque é controlado. Fonte: Base e Mercado Livre (o estoque do kit sai do
+  componente mais escasso) e Omie (o kit só agrupa; o saldo vem dos componentes). Hoje o painel mostra
+  a composição do kit, mas não calcula quantos kits os componentes permitem.
 
 Fontes abertas em 2026-10-20: [Shopify](https://help.shopify.com/manual/products/searching-filtering) ·
 [Olist/Tiny](https://ajuda.olist.com/produtos/acoes-em-lote-e-gerenciamento-de-produtos) ·
@@ -657,6 +731,7 @@ Fontes abertas em 2026-10-20: [Shopify](https://help.shopify.com/manual/products
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
+- 2026-10-23 · [M+C] **UC-PIDX-33** (painel, aba Estoque): o backlog "Quantidade vendida por local" vira caso, a pedido da ROTA LIVRE (número 33 porque 28–32 já estão nos rascunhos #9778 e #9785). A tabela de locais ganha a coluna "Vendido", como no artefato "Consulta de Produto" de 22/10; o número já vinha do servidor em cada linha.
 - 2026-10-18 · [F+C] `produto-lista-encaixe` e `produto-lista-redimensionar` (UC-PIDX-16, 26 e 27) entram no Vitest do `Frontend / Vite build`. Foi em PR próprio porque `.github/` pede revisão do [W]; o conserto da tela entrou antes, no #9535.
 - 2026-10-18 · [F+C] **UC-PIDX-26, conserto do smoke:** o rótulo "CATEGORIA" (79px) vazava sobre MARCA com o piso de 66; os pisos passam a respeitar o rótulo do cabeçalho (categoria 80, locais 62, SKU 58, produto 112 para manter a soma), com caso de teste que trava isso.
 - 2026-10-17 · [F+C] **UC-PIDX-26 e UC-PIDX-27 (novos) e UC-PIDX-16 (largura lembrada)**, a partir da reclamação da ROTA LIVRE (monitor 1366×768: colunas fora da tela e ajuste refeito a cada visita). Em tela estreita as colunas encolhem até caber; a grade ganha altura própria, como no protótipo, e a barra de rolar para o lado fica à vista; a largura arrastada passa a ser lembrada no navegador, com "Voltar às larguras de saída" no menu "Colunas". Pôr `produto-lista-redimensionar` e `produto-lista-encaixe` no Vitest do `Frontend / Vite build` fica para PR próprio, porque `.github/` pede revisão do [W].

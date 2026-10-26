@@ -291,6 +291,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/ContingenciaEmissaoTest.php \
             Modules/NfeBrasil/Tests/Feature/ContingenciaRetransmissaoTest.php \
             Modules/NfeBrasil/Tests/Feature/ContingenciaAgendamentoTest.php \
+            Modules/NfeBrasil/Tests/Feature/ContingenciaModoTest.php \
             tests/Feature/Calculo/CalculoTributarioTest.php \
             Modules/Fiscal/Tests/Feature/CockpitMultiTenantTest.php \
             Modules/Fiscal/Tests/Feature/NfeCockpitMultiTenantTest.php \
@@ -303,8 +304,11 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/NfeEmissaoPorItemTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeDevolucaoTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeFilialNumeracaoTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfceCscConfigTest.php \
             Modules/NfeBrasil/Tests/Feature/NaturezaFiscalTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeAliquotaPercentualTest.php \
             Modules/NfeBrasil/Tests/Feature/SeparacaoNotasDaVendaContratoTest.php \
+            Modules/NfeBrasil/Tests/Feature/EmissaoSeparadaContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/TributacaoControllerTest.php \
             Modules/NfeBrasil/Tests/Feature/EmpresaFiscalLookupTest.php \
             Modules/NfeBrasil/Tests/Feature/TributacaoTemplateSugestaoTest.php \
@@ -313,6 +317,7 @@ jobs:
             Modules/Fiscal/Tests/Feature/PaletteSearchControllerTest.php \
             Modules/Fiscal/Tests/Feature/AcoesContratoTest.php \
             Modules/Fiscal/Tests/Feature/AcoesControllerTest.php \
+            Modules/Fiscal/Tests/Feature/AcoesDevolucaoTest.php \
             Modules/Fiscal/Tests/Feature/CockpitCacheTest.php \
             Modules/Fiscal/Tests/Feature/GatesPermissaoFiscalTest.php \
             Modules/Fiscal/Tests/Feature/SidebarConsolidacaoTest.php \
