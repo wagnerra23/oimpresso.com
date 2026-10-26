@@ -28,15 +28,12 @@
 //
 // Exit: 0 = âncora resolvida | 1 = sem charter (NÃO invente — registre/pergunte) | 2 = uso
 
-import { existsSync, statSync, readFileSync } from 'node:fs';
-import { createHash } from 'node:crypto';
+import { existsSync, statSync } from 'node:fs';
 import { join, resolve, dirname, basename, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ehPrintSemantico } from '../../.claude/hooks/block-ancora-no-olho.mjs';
 import { read, frontmatter, walk } from './_lib-charter.mjs';
 import { isAuxiliaryPagePath, raizesDePages } from '../qa/page-path.mjs';
-import { ultimaVerificacaoDe, KIND_LIVE_ONLY, liveOnlyVerdict } from '../governance/cowork-mirror-freshness.mjs';
-import { COWORK_PROJECT_ID } from './protocolo.config.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)); // prototipo-ui/
 const REPO_DEFAULT = resolve(HERE, '../..');
@@ -228,154 +225,6 @@ export function declaracoesNaoAncora({ charterSrc = '', canonRefSrc = null } = {
     });
   }
   return out;
-}
-
-// ── FRESCOR DA ÂNCORA ────────────────────────────────────────────────────────────
-//
-// O `✓` desta ferramenta sempre significou "abri o arquivo e não achei fantasma". Ele
-// NUNCA significou "este arquivo é o design vivo" — e leitor nenhum sabia disso.
-//
-// Custo medido em 2026-08-26: uma sessão rodou `ancora.mjs Arquivos/Index`, leu
-// `âncora ✓`, abriu o `arquivos-page.jsx` do espelho e comparou com produção. O espelho
-// era de 24/08; o Cowork vivo tinha 4 mudanças de 26/08 (chips em PT-BR, coluna
-// renomeada, selo de prazo, ações de linha). A sessão concluiu que a divergência era
-// "copy adaptada de propósito" — atribuiu INTENÇÃO de designer a uma defasagem do
-// próprio espelho. Quem pegou foi o [W], no olho, olhando o protótipo vivo.
-//
-// O fato existia e era consultável: o ledger de frescor registrava `verified:
-// ["oimpresso.com.html"]` — UM arquivo de 242. O `arquivos-page.jsx` nunca tinha sido
-// verificado. Esta ferramenta tinha como saber e não perguntava.
-//
-// Aqui o `✓` do conteúdo é preservado (mede outra coisa, e mede bem); o que entra é uma
-// linha SEPARADA que diz o estado de verificação. Não bloqueia nada e não muda exit code
-// — é reporter. O que ele para de fazer é deixar o leitor supor frescor.
-const LEDGER_REL = 'scripts/governance/.cowork-freshness-ledger.json';
-
-/**
- * TODAS as entradas do ledger — o ledger é append-only e cada rodada mede um subconjunto.
- * Existe porque `ultimaRodada()` sozinha respondia "nunca verificado" pra todo arquivo fora
- * da ÚLTIMA linha. Medido 2026-08-27: 20 de 20 âncoras, FALSO em 12 (60%).
- */
-export function entradasDoLedger(raizGit = REPO_DEFAULT) {
-  try {
-    const bruto = JSON.parse(readFileSync(join(raizGit, LEDGER_REL), 'utf8'));
-    return Array.isArray(bruto) ? bruto : (bruto.entries || []);
-  } catch {
-    return [];
-  }
-}
-
-/** Última rodada **de `--compare`** do ledger de frescor, ou `null` quando não há ledger legível.
- *
- * ⚠️ FILTRA `live-only`, e o motivo é medido. As duas espécies de rodada moram no MESMO
- * array append-only, mas respondem a perguntas diferentes: `--compare` mede "o espelho bate
- * com o vivo?" (arquivo a arquivo, produz `verified`/`staleList`); `--live-only` mede "o que
- * existe no vivo e nunca desceu?" (não olha arquivo do espelho, não produz veredito de
- * frescor de nenhum). Pegar a ÚLTIMA entrada crua faz uma rodada de live-only sequestrar o
- * papel de "última rodada" e DEGRADAR o veredito de todo arquivo: quem estava `STALE`
- * (medido e divergente) vira `SEM VEREDITO NOVO` (não medido) — troca informação por
- * ausência dela, silenciosamente.
- *
- * Medido em 2026-08-27, no próprio repo: uma rodada de `--live-only --ledger` (`14:16:35Z`)
- * empurrou a de compare (`2026-08-26T22:07:08Z`) e o `Jana/Index` saiu de `STALE` para
- * `SEM VEREDITO NOVO` sem que o espelho tivesse mudado um byte.
- *
- * O irmão `cowork-mirror-freshness.mjs` já se protege disso no `slaVerdict` (com selftest
- * "entrada live-only NAO vira veredito do compare"); este consumidor lia o mesmo array sem
- * a mesma guarda. Não é régua nova — é a guarda existente aplicada ao segundo leitor.
- */
-export function ultimaRodada(raizGit = REPO_DEFAULT) {
-  try {
-    const bruto = JSON.parse(readFileSync(join(raizGit, LEDGER_REL), 'utf8'));
-    const entradas = Array.isArray(bruto) ? bruto : (bruto.entries || []);
-    const deCompare = entradas.filter((e) => e && e.kind !== KIND_LIVE_ONLY);
-    return deCompare.length ? deCompare[deCompare.length - 1] : null;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Estado de verificação de UM arquivo do espelho — puro, pra ser testável.
- *
- * `verificado` exige as DUAS pernas: estar na lista `verified` da rodada E o hash local
- * ainda bater com o `verifiedHash` registrado. Sem a segunda, uma edição posterior ao
- * export herdaria o selo de uma medição que já não descreve o arquivo.
- *
- * @returns {{estado:'verificado'|'stale'|'nunca'|'sem-ledger', data?:string}}
- */
-export function frescorDoEspelho(relPath, rodada, hashLocal) {
-  if (!rodada) return { estado: 'sem-ledger' };
-  if ((rodada.staleList || []).includes(relPath)) return { estado: 'stale', data: rodada.date };
-  if (!(rodada.verified || []).includes(relPath)) return { estado: 'nunca', data: rodada.date };
-  const registrado = (rodada.verifiedHash || {})[relPath];
-  if (registrado && hashLocal && registrado !== hashLocal) return { estado: 'stale', data: rodada.date };
-  return { estado: 'verificado', data: rodada.date };
-}
-
-// ── EIXO COBERTURA — o que o `✓ frescor` NÃO diz ────────────────────────────────
-//
-// O bloco FRESCOR acima nasceu do incidente de 2026-08-26 e fechou o eixo CONTEÚDO:
-// "este arquivo do espelho bate com o vivo?". Ficou aberto o eixo vizinho, e ele derrubou
-// outra sessão em 2026-09-09 (Patrimonio/Index): o `✓ verificado` foi lido como "a fonte
-// está em dia, posso trabalhar pelo espelho" — e o espelho não COBRE o vivo.
-//
-// As duas perguntas são diferentes, e o próprio sistema já sabia da segunda: no mesmo dia,
-// `cowork-mirror-freshness --sla` devolvia ⬜ INCONCLUSIVO com "98 arquivo(s) existem no
-// VIVO e não estão no espelho" — enquanto esta ferramenta imprimia um `✓` limpo. Régua cujo
-// universo vem do lado que a gente controla mede a NOSSA diligência, não a realidade.
-//
-// Não é régua nova: o dono do eixo é `liveOnlyVerdict` (cowork-mirror-freshness), e aqui só
-// se LÊ o veredito dele. Reporter puro — não bloqueia, não muda exit code. E imprime a rota
-// da fonte viva, porque foi ela que resolveu o caso: ir direto no projeto por ID.
-//
-/**
- * Linhas de aviso do eixo COBERTURA, ou `[]` quando não há o que dizer.
- * Puro (recebe as entradas e o instante) pra ser testável pelo `--selftest`.
- *
- * @param {Array} entradasLedger todas as entradas do ledger (append-only)
- * @param {string} relEspelho    caminho do arquivo, relativo ao espelho
- * @returns {string[]}
- */
-export function avisoDeCobertura(entradasLedger, relEspelho, nowIso = new Date().toISOString()) {
-  const v = liveOnlyVerdict(entradasLedger, nowIso);
-  const rota = `                 Fonte viva: DesignSync.get_file(projectId=${COWORK_PROJECT_ID}, path=${relEspelho})`;
-
-  // Nunca medido / vencido: ausência de medição não é cobertura boa (§5 2026-07-29).
-  if (v.veredito === 'NEVER-RAN') {
-    return [
-      '              ⚠️ cobertura: NUNCA MEDIDA — ninguém mediu o que existe no vivo e não desceu.',
-      '                 O ✓ acima fala deste arquivo; ele não prova que a fonte da tela está toda aqui.',
-      rota,
-    ];
-  }
-  if (v.veredito === 'OVERDUE') {
-    return [
-      `              ⚠️ cobertura: MEDIÇÃO VENCIDA — última em ${v.last.date} (há ${v.ageDays}d).`,
-      '                 O que entrou no vivo depois disso é invisível para o espelho.',
-      rota,
-    ];
-  }
-
-  const faltando = v.last?.liveOnly ?? 0;
-  if (faltando > 0) {
-    const denom = v.last?.denom ? ` de ${v.last.denom}` : '';
-    return [
-      `              ⚠️ cobertura: o espelho NÃO cobre o vivo — ${faltando} arquivo(s)${denom} existem lá e nunca desceram (medido ${v.last.date}).`,
-      '                 O ✓ acima fala deste arquivo; ele não prova que a fonte da tela está toda aqui.',
-      rota,
-    ];
-  }
-  return [];
-}
-
-/** sha256 do arquivo, ou `null` quando não abre (não inventa hash pra não fabricar veredito). */
-function hashDoArquivo(caminho) {
-  try {
-    return createHash('sha256').update(readFileSync(caminho)).digest('hex');
-  } catch {
-    return null;
-  }
 }
 
 const RE_TOKEN_ARQUIVO = /[\w.\-/]+\.(?:jsx|html|css|tsx)\b/i;
@@ -804,9 +653,6 @@ async function printResolve(r) {
       // (staging pra âncora de bundle). Passar só uma era o defeito de 2026-08-25.
       const raizGit = r.repoRoot || REPO_DEFAULT;
       const raizLeitura = a.raiz || raizGit;
-      // Uma leitura do ledger por âncora — barata, e mantém a função de frescor pura.
-      const rodadaFrescor = ultimaRodada(raizGit);
-      const entradasFrescor = entradasDoLedger(raizGit);
       // CLASSIFICAR antes de medir. `null` = o valor não nomeia arquivo nenhum: isso não é
       // "não consegui medir", é "não há o que ler" — colapsar os dois num ⚠️ só inflava o
       // balde de não-medidos com 11 charters que nunca teriam arquivo pra abrir.
@@ -838,40 +684,6 @@ async function printResolve(r) {
       // senão o leitor não sabe se o ✓/⚠️ fala do arquivo que ele acha que declarou.
       if (caminho !== desasparValor(a.valor)) console.log(`              → resolvido em: ${caminho}`);
 
-      // Frescor — eixo INDEPENDENTE do selo acima (ver bloco FRESCOR DA ÂNCORA no topo).
-      // Só faz sentido pro espelho do Cowork: `.tsx` do repo e arquivo de fora do espelho
-      // não são retrato de nada, e cobrar frescor deles seria alarme falso por construção.
-      const relEspelho = relative(join(raizGit, LUGAR_FIXO), caminho).replace(/\\/g, '/');
-      if (relEspelho && !relEspelho.startsWith('..')) {
-        const f = frescorDoEspelho(relEspelho, rodadaFrescor, hashDoArquivo(caminho));
-        if (f.estado === 'verificado') {
-          console.log(`              ✓ frescor: verificado contra o Cowork vivo em ${f.data} — fala DESTE arquivo`);
-          for (const linha of avisoDeCobertura(entradasFrescor, relEspelho)) console.log(linha);
-        } else if (f.estado === 'stale') {
-          console.log(`              ✗ frescor: STALE — o Cowork vivo mudou depois da última medição (${f.data}).`);
-          console.log('                 O que você abrir aqui NÃO é o design atual. Refresque antes de comparar.');
-        } else if (f.estado === 'nunca') {
-          // NÃO afirmar "nunca" sem ter varrido o ledger inteiro: `f.estado` só conhece a
-          // ÚLTIMA rodada. O oráculo de "quando este arquivo foi verificado" é do dono
-          // (cowork-mirror-freshness::ultimaVerificacaoDe), que varre todas as entradas.
-          const ant = ultimaVerificacaoDe(entradasFrescor, relEspelho);
-          const medidos = (rodadaFrescor?.sync ?? 0) + (rodadaFrescor?.stale ?? 0);
-          const totalLedger = rodadaFrescor?.files ?? null;
-          const cobertura = totalLedger ? ` (mediu ${medidos} de ${totalLedger})` : '';
-          if (ant.data) {
-            console.log(`              ⚠️ frescor: SEM VEREDITO NOVO — verificado em ${ant.data}, e a última rodada (${f.data})${cobertura} não o incluiu.`);
-            console.log('                 Verificação antiga NÃO prova frescor de hoje — o Cowork vivo pode ter mudado desde então.');
-          } else {
-            console.log(`              ⚠️ frescor: NUNCA VERIFICADO — nenhuma rodada do ledger mediu este arquivo. Última rodada: ${f.data}${cobertura}.`);
-          }
-          console.log('                 O `✓` acima fala do CONTEÚDO (li o arquivo, sem fantasma), não do frescor.');
-          console.log('                 Este arquivo pode ser uma cópia velha do Cowork vivo, e ninguém mediu.');
-          console.log('                 Medir: node scripts/governance/cowork-mirror-freshness.mjs --sla');
-        } else {
-          console.log('              ⚠️ frescor: SEM LEDGER — nenhuma rodada de medição registrada.');
-          console.log('                 Ausência de ledger é ausência de medição, não saúde.');
-        }
-      }
       if (!d.lido) {
         console.log('              ⚠️ NÃO MEDIDO — o arquivo da âncora não pôde ser LIDO neste path.');
         console.log('                 Zero fantasma aqui é AUSÊNCIA DE MEDIÇÃO, não saúde.');
@@ -1619,102 +1431,6 @@ async function selftest() {
   try { await printResolve(await resolveAncora('Fixo/Index', { repoRoot: fxBRepo })); } finally { console.log = logDiv; }
   t('CONTROLE divergente: com UMA âncora só, o rótulo `também declarado` NÃO aparece',
     !capUm.join('\n').includes('também declarado'));
-
-  // ── FRESCOR: os 4 estados + o controle que impede o selo herdado ──────────────
-  // A rodada de fixture imita a forma real do ledger (date/verified/verifiedHash/staleList).
-  const rodada = {
-    date: '2026-08-24T21:57:19.692Z',
-    verified: ['oimpresso.com.html'],
-    verifiedHash: { 'oimpresso.com.html': 'aaa111' },
-    staleList: ['clientes-page.jsx'],
-  };
-
-  t('FRESCOR: arquivo medido, hash ainda batendo → verificado',
-    frescorDoEspelho('oimpresso.com.html', rodada, 'aaa111').estado === 'verificado');
-
-  t('FRESCOR: arquivo fora da rodada → NUNCA (é o caso do arquivos-page.jsx em 2026-08-26)',
-    frescorDoEspelho('arquivos-page.jsx', rodada, 'bbb222').estado === 'nunca');
-
-  t('FRESCOR: arquivo na staleList → stale',
-    frescorDoEspelho('clientes-page.jsx', rodada, 'ccc333').estado === 'stale');
-
-  t('FRESCOR: sem ledger não vira verde — ausência de medição não é saúde',
-    frescorDoEspelho('qualquer.jsx', null, 'ddd444').estado === 'sem-ledger');
-
-  // O controle que dá sentido ao resto: estar na lista `verified` NÃO basta se o arquivo
-  // mudou depois. Sem esta perna, uma edição local herdaria o selo de uma medição velha —
-  // que é a forma exata do defeito que este bloco inteiro existe pra impedir.
-  t('CONTROLE FRESCOR: medido mas hash MUDOU → stale, não verificado',
-    frescorDoEspelho('oimpresso.com.html', rodada, 'HASH-DIFERENTE').estado === 'stale');
-
-  t('CONTROLE FRESCOR: medido e sem hash registrado não inventa stale',
-    frescorDoEspelho('x.jsx', { ...rodada, verified: ['x.jsx'], verifiedHash: {} }, 'zzz').estado === 'verificado');
-
-  // ── COBERTURA: o eixo que o `✓ frescor` NÃO cobre (incidente 2026-09-09) ──────
-  // Duas rodadas com o MESMO denominador: sem isso o veredito sai SCOPE-CHANGED (não
-  // comparável) e o assert mediria outra coisa que não a cobertura.
-  const AGORA = '2026-09-09T12:00:00.000Z';
-  const loFalta = [
-    { date: '2026-09-07T10:00:00.000Z', kind: KIND_LIVE_ONLY, liveOnly: 2, denom: 748, liveOnlyList: ['a.jsx', 'b.jsx'] },
-    { date: '2026-09-08T11:47:11.090Z', kind: KIND_LIVE_ONLY, liveOnly: 2, denom: 748, liveOnlyList: ['a.jsx', 'b.jsx'] },
-  ];
-
-  t('COBERTURA: espelho não cobre o vivo → avisa, com o número e a rota da fonte viva',
-    (() => {
-      const l = avisoDeCobertura(loFalta, 'patrimonio-page.jsx', AGORA);
-      return l.length === 3
-        && l[0].includes('2 arquivo(s) de 748')
-        && l[2].includes(COWORK_PROJECT_ID)
-        && l[2].includes('patrimonio-page.jsx');
-    })());
-
-  // O controle que dá sentido ao assert acima: se o espelho COBRE o vivo, o aviso some.
-  // Sem esta perna o aviso seria carimbo — texto que aparece sempre não informa nada.
-  t('CONTROLE COBERTURA: nada faltando no vivo → NENHUM aviso (não é carimbo)',
-    avisoDeCobertura(
-      loFalta.map((e) => ({ ...e, liveOnly: 0, liveOnlyList: [] })),
-      'patrimonio-page.jsx',
-      AGORA,
-    ).length === 0);
-
-  t('COBERTURA: ledger sem nenhuma rodada de live-only → NUNCA MEDIDA (ausência ≠ saúde)',
-    avisoDeCobertura([], 'x.jsx', AGORA)[0].includes('NUNCA MEDIDA'));
-
-  // Medição velha não vira silêncio: o que entrou no vivo depois dela é invisível.
-  t('COBERTURA: medição fora do SLA → MEDIÇÃO VENCIDA, não OK',
-    avisoDeCobertura(
-      [{ date: '2026-01-01T00:00:00.000Z', kind: KIND_LIVE_ONLY, liveOnly: 0, denom: 748, liveOnlyList: [] }],
-      'x.jsx',
-      AGORA,
-    )[0].includes('VENCIDA'));
-
-  // ── LEDGER APPEND-ONLY: o oráculo é o dono, e ele varre TODAS as rodadas ──────
-  // Regressão de 2026-08-27: este arquivo lia `entradas[entradas.length - 1]` e afirmava
-  // "NUNCA VERIFICADO" pra tudo que não estivesse na ÚLTIMA linha. Medido: 20 de 20 âncoras,
-  // FALSO em 12 (60%) — `clientes-page.jsx` e `vendas-page.jsx` tinham sido verificados em
-  // 2026-08-17 e o reporter dizia que nunca. Cada rodada mede ~1 arquivo, então a última
-  // linha nunca descreve o conjunto (§5 2026-08-11: listagem parcial não é prova de ausência).
-  const ledgerFx = [
-    { date: '2026-08-17T12:41:33.794Z', verified: ['clientes-page.jsx'], verifiedHash: { 'clientes-page.jsx': 'v17' } },
-    { date: '2026-08-26T22:07:08.661Z', verified: [], staleList: ['jana-merge.jsx'] },
-  ];
-
-  t('BITE LEDGER: verificado em rodada ANTIGA é achado — a última linha não é o ledger',
-    ultimaVerificacaoDe(ledgerFx, 'clientes-page.jsx').data === '2026-08-17T12:41:33.794Z');
-
-  t('CONTROLE LEDGER: arquivo que nenhuma rodada mediu segue sem data — não inventa verificação',
-    ultimaVerificacaoDe(ledgerFx, 'nunca-medido.jsx').data === null);
-
-  // Sem este, "varrer todas" poderia estar devolvendo a PRIMEIRA em vez da mais recente.
-  t('CONTROLE LEDGER: entre duas verificações do mesmo arquivo vence a MAIS RECENTE',
-    ultimaVerificacaoDe([
-      { date: '2026-01-01T00:00:00.000Z', verified: ['x.jsx'], verifiedHash: { 'x.jsx': 'velho' } },
-      { date: '2026-08-01T00:00:00.000Z', verified: ['x.jsx'], verifiedHash: { 'x.jsx': 'novo' } },
-    ], 'x.jsx').hash === 'novo');
-
-  // O eixo frescor NUNCA vira ✓ por ter sido medido no passado: verificação antiga é ⚠️.
-  t('CONTROLE FRESCOR: verificação antiga NÃO promove a verificado no estado da última rodada',
-    frescorDoEspelho('clientes-page.jsx', ledgerFx[1], 'v17').estado === 'nunca');
 
   // ── BITE: charter de SHELL (thread 16 do playbook sidebar) ─────────────────
   // Charter em `Components/cockpit/` precisa resolver pela query, e o `.tsx` do shell vira o

@@ -28,7 +28,7 @@ Você (Cowork) tem que **adotar a estrutura nova + reconstruir** como exporta:
    Quem roda é o **Code**, num PR — você não roda gerador nenhum. O import **sincroniza com `/PURGE`**:
    o que não estiver no zip **some do espelho**, então o zip é o **estado da conta**, nunca um incremento.
    O **pacote em partes** deixou de ser tarefa sua: é gerado no **CI**, a cada push em
-   `prototipo-ui/cowork/Wagner/**` ([`cowork-bundle.yml`](../../../.github/workflows/cowork-bundle.yml)),
+   `prototipo-ui/cowork/Wagner/**` (`.github/workflows/cowork-bundle.yml` — removido em 2026-10-23, ADR 0438),
    e esse workflow **não commita nada** — nada entra no espelho por aquela porta.
    `.md` **viaja** no pacote, desde que viva **dentro de um dono** (R3 do guard, decisão [W] 2026-09-13).
 5. Pendência sua → `COWORK_NOTES.md` "📥 Pendentes"; leia o retorno do Code em `CODE_NOTES.md` + `FRESCOR`.

@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 853,
-    "edges": 1158,
+    "nodes": 856,
+    "edges": 1162,
     "by_node_type": {
       "module": 42,
       "table": 108,
-      "adr": 144,
-      "component": 473,
+      "adr": 146,
+      "component": 474,
       "api": 86
     },
     "by_edge_type": {
@@ -42,12 +42,12 @@
       "providesApi": 90,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 473,
+      "hasComponent": 474,
       "dependsOn": 126,
       "delegatesTo": 117,
       "migratesTo": 1,
       "supersedes": 26,
-      "supersedesPartially": 71,
+      "supersedesPartially": 74,
       "supersededBy": 30
     },
     "dangling": 0
@@ -993,6 +993,13 @@
       "exists": true
     },
     {
+      "id": "adr:0412",
+      "type": "adr",
+      "num": "0412",
+      "slug": "0412-retorno-canon-mergeado-ao-cowork-dispensa-opt-in-emenda-0315",
+      "exists": true
+    },
+    {
       "id": "adr:0416",
       "type": "adr",
       "num": "0416",
@@ -1060,6 +1067,13 @@
       "type": "adr",
       "num": "0436",
       "slug": "0436-os-por-item-producao-dona-da-os-do-pedido",
+      "exists": true
+    },
+    {
+      "id": "adr:0438",
+      "type": "adr",
+      "num": "0438",
+      "slug": "0438-artefato-substitui-cowork-como-superficie-do-prototipo",
       "exists": true
     },
     {
@@ -4345,6 +4359,13 @@
       "desc": "instalação 1-clique (ADR 0024)"
     },
     {
+      "id": "component:Producao/LinhaController + LinhaDaProducao",
+      "type": "component",
+      "module": "Producao",
+      "name": "LinhaController + LinhaDaProducao",
+      "desc": "linha do tempo por máquina /producao/linha (thread 07 · UC-PCV-08, 09, 30 · US-PCP-015): blocos do dia com carga contra a capacidade do posto, travas de arte e de Aguardando material, estouro do turno e da entrega prometida, próximo dia útil pelo CalendarioDeProducao e uma sugestão de gargalo; reprogramar é AlocacaoController::reprogramar (PUT etapas/{id}/reprogramar, producao.etapa.mover); Inertia com props deferidas, producao.access"
+    },
+    {
       "id": "component:Producao/LoteRastreioController + RastreioDoRolo",
       "type": "component",
       "module": "Producao",
@@ -7574,6 +7595,24 @@
     {
       "from": "adr:0436",
       "to": "adr:0431",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0438",
+      "to": "adr:0315",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0438",
+      "to": "adr:0412",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0438",
+      "to": "adr:0433",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
     },
@@ -12651,6 +12690,12 @@
     {
       "from": "module:Producao",
       "to": "component:Producao/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/LinhaController + LinhaDaProducao",
       "type": "hasComponent",
       "source": "contains"
     },

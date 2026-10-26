@@ -108,8 +108,13 @@ Status: 🧪
 - **[BACKLOG]** Salvar cotação não baixa estoque nem gera título; finalizar a venda gera os dois (3º caso da ficha). Exige `POST /pos` real com lastro de compra (receita do `SellsRepairSubtipoContratoTest`) — intent próprio.
 - **[BACKLOG]** Converter preserva itens, quantidades e preços; 2ª conversão → 409 (4º caso da ficha). É da thread **Q3** (`QuotationConvertTest`), que promove o caso quando o teste existir.
 - **[BACKLOG]** O endpoint de dados `/sells/draft-dt?is_quotation=1` não checa permissão de cotação: **medido 2026-10-06 no CT 100**, um usuário do mesmo business **sem** `quotation.view_all` nem `quotation.view_own` recebeu as duas cotações da fixture. Outro business segue fora (o [T0] vale). Ganha id junto do conserto (gate no `getDraftDatables`).
+- **[BACKLOG]** Orçamento duplicado mostra de onde veio (pedido de 2026-10-23) — Dado o orçamento
+  O-80 duplicado do O-75, Então o O-80 mostra "Duplicado de O-75" com link e o O-75 mostra "Duplicado
+  em O-80"; converter o O-80 em venda leva a origem junto. Hoje a duplicação não guarda a origem
+  (`SellController::duplicateSell`, medido em 23/10/2026).
 
 ## Trilha do tempo
+- 2026-10-23 · [M+C] Backlog: orçamento duplicado mostra de onde veio, sem id.
 - 2026-10-21 · [CL] UC-QUO-09 (US-PCP-028 · UC-FLX-06): entrega prevista na confirmação de converter. Teste `SellsPrazoEntregaContratoTest`, nasce sem run.
 - 2026-10-21 · [CL] UC-QUO-10 (US-SELL-070 · UC-FLX-04): coluna "Aberto" na lista. O item de backlog do detalhe do orçamento saiu daqui e virou UC-VSHOW-20/21 no `Show.casos.md`, que é a tela onde ele mora. Teste `QuoteAccessTelaContratoTest`, nasce sem run.
 - 2026-10-21 · [CL] `last_run` 2026-10-06 → 2026-10-21 por conferência, não por run novo: o `Quotations.tsx` deste PR só acrescenta a coluna "Aberto" (2 campos lidos do mesmo JSON); filtro de lista, permissões e conversão de UC-QUO-01..04 não mudam. Nenhum teste re-rodado aqui; o `last_run_ci` segue sendo o de 2026-10-06.

@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o apontamento vira custo real e fecha etapa da OS. Errar a etapa aponta tempo no lugar errado; errar a empresa expõe produção alheia; duplicar o envio offline dobra o custo.
 owner: wagner
-last_run: "2026-10-21"
+last_run: "2026-10-22"
 last_run_ci: "_pendente_ — o trio nasce na thread 04. O veredito por UC entra quando a lane verticais-pest rodar; até lá o Status é 🧪."
 ---
 
@@ -35,6 +35,9 @@ Status: 🧪
 
 **Quando** lê o QR da OS **Então** abre a etapa dele naquela OS, e Iniciar/Pausar/Concluir gravam
 apontamentos append-only com usuário, máquina e horário; o cronômetro tem `role="timer"` e botões ≥ 44px.
+O QR da **etapa** (sufixo `:e<programacao_id>`, etiqueta térmica · UC-PCV-37 E1, thread 05) abre aquela
+etapa, não a primeira do operador; etapa de outra OS, de outra empresa ou encerrada → "Etapa não encontrada".
+Prova do formato e da leitura: `tests/Feature/Sells/AppProducaoApontamentoContratoTest.php` (UC-PCV-37 E1).
 
 Status: 🧪
 
@@ -764,3 +767,72 @@ Status: 🧪
 - **[BACKLOG]** UC-FLX-28 — parcelas de sinal e saldo geradas na aprovação do orçamento (Vendas/Financeiro);
   hoje o retorno do banco lança o pagamento na venda inteira (UC-PCLIB-08), sem parcela de sinal separada. O
   campo do sinal mínimo na aba Fluxos da empresa vem no #9701.
+
+## Pedido de compra do cliente na OS (pedido de 2026-10-23)
+
+- **[BACKLOG]** A OS mostra o número do pedido de compra do cliente — Dado uma venda com o pedido do
+  cliente "4500012345", Quando as OS dos itens nascem, Então cada OS e a ficha impressa mostram "Pedido do
+  cliente 4500012345", e a busca do apontamento acha a OS por esse número. Venda sem o número não mostra
+  nada. Fonte: o número entra na venda (Sells/Create.casos.md, mesmo pedido) e vai para a NF-e no campo
+  `xPed`.
+
+## Instrução de execução do serviço (pedido de 2026-10-23)
+
+- **[BACKLOG]** A OS mostra a instrução escrita no item da venda — Dado um item vendido com a instrução
+  "instalar no 2º andar, cliente libera o acesso às 8h", Quando a OS do item nasce, Então a instrução
+  aparece no apontamento de cada etapa e na ficha impressa, em destaque. Item sem instrução não mostra
+  nada. A instrução nasce na venda (Sells/Create.casos.md, mesmo pedido).
+
+## Datas limite da arte, da qualidade e da entrega (pedido de 2026-10-23)
+
+- **[BACKLOG]** A OS tem três datas: arte, qualidade e entrega final — Dado uma venda com entrega
+  final em 30/10, Quando a OS nasce, Então ela traz a data limite para criar a arte (24/10), a data
+  limite para ir ao setor de qualidade (28/10) e a entrega final (30/10); cada data aparece na etapa
+  dela e na ficha impressa, e a etapa que passou da sua data fica marcada como atrasada no apontamento
+  e no Painel. As duas primeiras podem ser mudadas na OS. Hoje a OS tem só o prazo prometido da venda
+  (`pcp_ordens.prazo_prometido`, a entrega final) e o prazo calculado pela fila dos postos
+  (Postos/Index.casos.md, UC-PCPRZ); não há data limite por etapa.
+  A data prometida segue a decisão [W] de 2026-10-20 (fica na venda e vai para
+  `pcp_ordens.prazo_prometido`), e o número de atrasadas continua um só, pela mesma função do Painel
+  (UC-PCV-03): marcar a etapa atrasada não muda essa contagem sem decisão do [W].
+
+## Imagens e arte anexadas à OS (pedido de 2026-10-23)
+
+- **[BACKLOG]** Anexar imagens e a arte à OS — Dado uma OS de fachada, Quando anexo a arte final e duas
+  fotos do local, Então os arquivos ficam na OS, aparecem no apontamento de cada etapa e na ficha
+  impressa (a arte em miniatura), e quem executa abre cada um. Hoje a OS guarda o arquivo da arte que
+  passa pela aprovação do cliente (UC-PCART e UC-PCV-11), mas a tela do operador ainda não mostra essa
+  arte e não há outros anexos.
+
+## Terceiro que executa o serviço da OS (pedido de 2026-10-23)
+
+- **[BACKLOG]** Indicar o terceiro que vai executar o serviço `[V0]` — Segue a decisão D-TERCEIRO do
+  [W] (`cowork-inbox/producao/playbook/_DECISOES-W-2026-10-15-celular.md`) e o UC-PCV-48: Dado uma OS
+  com a instalação feita por um instalador de fora, Quando indico o terceiro e o valor combinado, Então
+  ele recebe um link com código, sem conta no sistema, e o custo da OS passa a ser o valor combinado;
+  Quando ele conclui o protocolo, Então nasce uma conta a pagar desse valor, e a OS mostra o terceiro à
+  parte do custo próprio. A thread 19 da Produção (`playbook/19-terceiro.md`) é a dona da execução.
+  Ficam com o [W], sem regra hoje: a comissão separada desse serviço e o pedido de compra ao terceiro
+  gerado da OS (MRPeasy, Tekla). Mexe em valor: Regra Mestre. Verificado contra as regras do [W] em 2026-10-23.
+
+## Despesas da OS cobradas do cliente (comparação com concorrentes, 2026-10-23)
+
+- **[BACKLOG]** Lançar despesas reembolsáveis na OS `[V0]` — Dado uma instalação fora da cidade, Quando
+  lanço na OS o deslocamento e a hospedagem com o recibo anexado, Então as despesas aparecem na OS e
+  entram no faturamento do cliente, separadas do serviço; despesa marcada como não reembolsável fica só
+  no custo. Fonte: Omie (despesas reembolsáveis na OS, com anexos, faturadas ao cliente). Hoje a OS não
+  tem despesas. Mexe em valor: Regra Mestre.
+  Se a despesa entrar no total da venda, a regra A do [W] de 2026-10-21 (`Fiscal/Nfse.casos.md`)
+  divide esse valor entre a NF-e e a NFS-e pelo bruto; como ela fica separada do serviço é decisão do
+  [W].
+
+## Tarefas da OS com responsável e prazo (comparação com concorrentes, 2026-10-23)
+
+- **[BACKLOG]** Tarefas paralelas da pré-produção — Dado uma OS que precisa de "separar as chapas" e
+  "fechar a arte", Quando crio as duas tarefas com responsável e prazo, Então cada responsável recebe o
+  aviso dentro do sistema (D-AVISO do [W]: WhatsApp só para o cliente), a OS mostra quantas tarefas
+  faltam, e a tarefa vencida aparece como atrasada no Painel. Falta de material não vira tarefa: segue o
+  fluxo do [W], em que o item "Em falta" abre requisição de compra e pausa a etapa da OS. A OS também
+  guarda a data da produção e a combinada com o cliente (decisão [W] de 2026-10-20). Fonte: Printavo
+  (tarefas com responsável e prazo). Hoje cada etapa grava o seu responsável, mas não há tarefas
+  paralelas com prazo nem aviso. Verificado contra as regras do [W] em 2026-10-23.

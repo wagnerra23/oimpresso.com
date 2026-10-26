@@ -694,6 +694,8 @@ jobs:
             Modules/Producao/Tests/Feature/ProducaoRomaneioContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoAproveitamentoMidiaContratoTest.php \
             Modules/Producao/Tests/Feature/ProducaoQuadroContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoLinhaContratoTest.php \
+            Modules/Producao/Tests/Feature/ProducaoTurnoCalendarioContratoTest.php \
             Modules/Fisio/Tests/Feature/FisioEsquemaContratoTest.php \
             Modules/Fisio/Tests/Feature/FisioPacienteCrudTest.php \
             Modules/Fisio/Tests/Feature/FisioPacienteContatoTest.php \

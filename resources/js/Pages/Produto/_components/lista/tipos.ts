@@ -36,6 +36,11 @@ export interface LinhaProduto {
   compra_max?: number;
   venda_min?: number;
   venda_max?: number;
+  /**
+   * Preço proposto pela compra recebida, aguardando aprovação (UC-PIDX-28 · UC-FLX-17). Vem junto com
+   * o preço de venda (mesmo gate); null = nenhuma proposta pendente. `preco` só quando há uma proposta.
+   */
+  preco_proposto?: { quantidade: number; preco: number | null } | null;
 }
 
 export type ListaPaginada = PaginatorShape<LinhaProduto> & { per_page: number };
@@ -122,7 +127,30 @@ export interface RelatorioEstoqueLista {
 
 /** Painel de detalhe (ProductController::buildProdutoDetalhe). Chave de preço ausente = sem permissão. */
 /** Abas do painel de detalhe. Quem abre o painel escolhe em qual ele começa. */
-export type AbaDoDetalhe = 'dados' | 'variacoes' | 'composicao' | 'estoque' | 'fiscal' | 'prateleira';
+export type AbaDoDetalhe = 'dados' | 'variacoes' | 'composicao' | 'estoque' | 'roteiro' | 'fiscal' | 'prateleira';
+
+/** Preço proposto pela compra recebida, aguardando aprovação (UC-PIDX-28). */
+export interface PrecoPropostoDoProduto {
+  id: number;
+  /** Nome da variação; null em produto que não é variável. */
+  variacao: string | null;
+  preco_atual: number;
+  preco_proposto: number;
+  /** O preço mudou depois da proposta: no detalhe da compra ela só pode ser recusada. */
+  preco_mudou: boolean;
+  compra_ref: string | null;
+  /** AAAA-MM-DD. */
+  compra_data: string | null;
+  /** Detalhe da compra, onde se aprova ou recusa; null sem `purchase.view`. */
+  compra_url: string | null;
+}
+
+/** Roteiro de produção do produto, com o posto e o setor de cada etapa (UC-PIDX-29). */
+export interface RoteiroDoProduto {
+  nome: string;
+  ativo: boolean;
+  etapas: Array<{ nome: string; posto: string | null; setor: string | null; horas: number | null; opcional: boolean; paralela: boolean }>;
+}
 
 export interface DetalheProdutoDados {
   id: number;
@@ -206,6 +234,10 @@ export interface DetalheProdutoDados {
     colunas: { prateleira: boolean; fileira: boolean; posicao: boolean };
     linhas: Array<{ local: string; prateleira: string; fileira: string; posicao: string }>;
   };
+  /** null = sem o módulo Produção ou produto sem roteiro. */
+  roteiro?: RoteiroDoProduto | null;
+  /** Só vem para quem vê o preço de venda (ausência ≠ lista vazia). */
+  precos_propostos?: PrecoPropostoDoProduto[];
 }
 
 export interface Opcao {

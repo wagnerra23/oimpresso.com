@@ -90,7 +90,7 @@
     },
     {
       "screen": "ComunicacaoVisual",
-      "note": "1 arquivo(s)",
+      "note": "2 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -145,7 +145,7 @@
     },
     {
       "screen": "Financeiro",
-      "note": "65 arquivo(s)",
+      "note": "66 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -277,7 +277,7 @@
     },
     {
       "screen": "Producao",
-      "note": "7 arquivo(s)",
+      "note": "17 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -343,7 +343,7 @@
     },
     {
       "screen": "Relatorios",
-      "note": "21 arquivo(s)",
+      "note": "22 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -409,7 +409,7 @@
     },
     {
       "screen": "Sells",
-      "note": "71 arquivo(s)",
+      "note": "73 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -574,7 +574,7 @@
     },
     {
       "screen": "OficinaAuto",
-      "note": "32 arquivo(s)",
+      "note": "33 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -596,7 +596,7 @@
     },
     {
       "screen": "Produto",
-      "note": "53 arquivo(s)",
+      "note": "55 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -607,7 +607,7 @@
     },
     {
       "screen": "Purchase",
-      "note": "7 arquivo(s)",
+      "note": "8 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -697,8 +697,8 @@
   "progressPct": 62,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "ff2dd7fff",
-  "generatedAt": "2026-10-21T16:17:45.397Z",
+  "measuredAgainstSha": "675a58428",
+  "generatedAt": "2026-10-25T13:51:48.972Z",
   "treeGuard": {
     "pass": true,
     "violations": 0

@@ -4,7 +4,7 @@ description: Catálogo curado das páginas publicadas em claude.ai — tema, lin
 type: index
 authority: canonical
 lifecycle: ativo
-updated_at: "2026-08-03"
+updated_at: "2026-10-24"
 related_adrs:
   - "0256-knowledge-survival-meia-vida-catraca-sentinela"
   - "0270-ciclo-de-vida-da-informacao-porta-unica-destilacao-decaimento"
@@ -326,6 +326,37 @@ não pode fazer sozinha. Dono em git: o módulo respectivo.
 > 4 passos, 3 deles do dono: criar a empresa `SMOKE TESTE`, ligar o módulo Financeiro nela, e guardar
 > login e senha nos segredos do GitHub. A empresa é fake e vazia **de propósito** — o robô manda print
 > para um provedor externo, e cliente real vazaria razão social e valores.
+
+## Tema: protótipo
+
+O protótipo do [W] publicado para ver e comentar ([ADR 0438](../decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md) D2).
+Dono em git: [`prototipo-ui/cowork/Wagner/oimpresso.com.html`](../../prototipo-ui/cowork/Wagner/oimpresso.com.html)
+e os `.jsx` que ele carrega. A página **não se edita**: se divergir do arquivo, vale o arquivo e ela é
+republicada com `node scripts/design/build-artefato-prototipo.mjs --out <pasta>`. O `fonte.json`
+publicado junto diz de qual commit ela saiu.
+
+| Data | Vista | Estado |
+|---|---|---|
+| 2026-10-24 | 👁 [Oimpresso ERP — Chat](https://claude.ai/artifact/24ovtZ7zidbtD2D7BLKzQf) | **viva** |
+
+> Até 2026-10-23 esta página era o pacote antigo do Cowork remendado à mão, segmento a segmento, sem
+> script no repo. Em 2026-10-24 o build passou a gerá-la inteira a partir do git. Antes de republicar,
+> o conteúdo foi comparado: 170 dos 191 módulos diferidos saíram idênticos depois de normalizados pelo
+> mesmo compilador, os outros 21 só diferem no helper de spread, e CSS, Design System e imagens têm
+> o mesmo tamanho dos publicados. A página que estava no ar já batia com o git; faltava poder refazê-la.
+
+## Tema: casos de uso dos fluxos
+
+Relatório sobre os casos de uso da tela `/fluxos`. Dono em git:
+[`prototipo-ui/cowork/Wagner/fluxos-data.jsx`](../../prototipo-ui/cowork/Wagner/fluxos-data.jsx).
+
+| Data | Vista | Estado |
+|---|---|---|
+| 2026-10-20 | 👁 [Custo orçado × empregado](https://claude.ai/artifact/C1fwsECo81ts7SXnK3823Y) | **viva** |
+
+> Rodapé corrigido em 2026-10-24: dizia que os estados dos casos 33 a 38 "não subiram ao projeto
+> Cowork (depende de opt-in)", caminho que a ADR 0438 encerrou, e chamava de abertos os PRs #9621 e
+> #9623, mergeados em 2026-10-20.
 
 ---
 

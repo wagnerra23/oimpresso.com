@@ -8,6 +8,7 @@ use Modules\Producao\Http\Controllers\ColaboradorCustoController;
 use Modules\Producao\Http\Controllers\EtiquetaOsController;
 use Modules\Producao\Http\Controllers\FerramentasController;
 use Modules\Producao\Http\Controllers\InstallController;
+use Modules\Producao\Http\Controllers\LinhaController;
 use Modules\Producao\Http\Controllers\LoteRastreioController;
 use Modules\Producao\Http\Controllers\OrdemCustoController;
 use Modules\Producao\Http\Controllers\OrdemMaterialController;
@@ -126,6 +127,8 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
     ->name('producao.')
     ->group(function () {
         Route::put('etapas/{id}/alocacao', [AlocacaoController::class, 'alocar'])->whereNumber('id')->name('etapas.alocar');
+        // UC-PCV-30 · thread 07 — reprogramar na Linha do tempo (horário e máquina do mesmo setor).
+        Route::put('etapas/{id}/reprogramar', [AlocacaoController::class, 'reprogramar'])->whereNumber('id')->name('etapas.reprogramar');
         Route::get('postos/{postoId}/fila', [AlocacaoController::class, 'fila'])->whereNumber('postoId')->name('postos.fila');
         Route::post('os/{id}/romaneio', [RomaneioController::class, 'store'])->whereNumber('id')->name('os.romaneio.store');
         Route::get('romaneios/{id}', [RomaneioController::class, 'show'])->whereNumber('id')->name('romaneios.show');
@@ -151,4 +154,12 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::post('quadro/mover', [QuadroController::class, 'mover'])->name('quadro.mover');
         // Painel (UC-PCV-01..04, 29): o que trava a produção hoje; os indicadores abrem o quadro filtrado.
         Route::get('painel', [PainelController::class, 'index'])->name('painel.index');
+    });
+
+// ── Thread 07 · Linha do tempo por máquina (UC-PCV-08, 09, 30) — reprogramar é PUT etapas/{id}/reprogramar ──
+Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
+    ->prefix('producao')
+    ->name('producao.')
+    ->group(function () {
+        Route::get('linha', [LinhaController::class, 'index'])->name('linha.index');
     });
