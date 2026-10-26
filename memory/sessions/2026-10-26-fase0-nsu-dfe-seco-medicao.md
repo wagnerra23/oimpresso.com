@@ -13,7 +13,7 @@ ADR `memory/decisions/proposals/2026-10-06-entrada-xml-compra.md` §4, fase 0 (d
 de 2026-10-26). Medição só de leitura no Hostinger em 2026-10-26, por `php artisan tinker` com SELECTs e
 `grep` no `laravel.log`. Nenhum dado foi escrito. Valores de CNPJ não aparecem aqui, só comprimentos.
 
-## Resposta curta
+## TL;DR
 
 A busca roda todo dia e **morre antes de chamar a SEFAZ**. São quatro causas somadas; consertar só a
 primeira que aparece no log não basta.
