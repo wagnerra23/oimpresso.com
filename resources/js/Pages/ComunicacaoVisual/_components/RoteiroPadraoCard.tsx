@@ -9,7 +9,7 @@ import { Button } from '@/Components/ui/button';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
-import { Inline } from '@/Components/layout';
+import { Inline, Stack } from '@/Components/layout';
 
 interface Roteiro {
   id: number;
@@ -93,7 +93,7 @@ export function RoteiroPadraoCard() {
             Nenhum roteiro ativo. Cadastre um na tela de Roteiros da produção.
           </p>
         ) : (
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+          <Stack gap={2} className="sm:flex-row sm:items-end">
             <div className="flex-1 space-y-1">
               <Label htmlFor="roteiro-padrao">Roteiro padrão</Label>
               <Select value={escolhido} onValueChange={setEscolhido}>
@@ -113,7 +113,7 @@ export function RoteiroPadraoCard() {
             <Button type="button" onClick={salvar} disabled={salvando || escolhido === atual}>
               {salvando ? 'Salvando…' : 'Salvar roteiro'}
             </Button>
-          </div>
+          </Stack>
         )}
         {msg && (
           <p role="status" className={msg.tipo === 'erro' ? 'text-sm text-destructive' : 'text-sm text-muted-foreground'}>
