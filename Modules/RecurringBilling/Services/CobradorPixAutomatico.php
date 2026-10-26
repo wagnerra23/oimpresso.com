@@ -8,6 +8,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\PaymentGateway\Dto\EmitirCobrancaInput;
+use Modules\PaymentGateway\Models\Cobranca;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 use Modules\PaymentGateway\Services\PaymentGatewayService;
 
@@ -87,7 +88,8 @@ class CobradorPixAutomatico
                 'acao' => 'cobrar',
             ];
 
-            $tentativas = DB::table('cobrancas')
+            // SUPERADMIN: roda no comando agendado (sem sessão); o escopo vem do business_id explícito.
+            $tentativas = Cobranca::withoutGlobalScopes()
                 ->where('business_id', $businessId)
                 ->where('origem_type', 'invoice')
                 ->where('origem_id', (int) $f->id)
@@ -134,8 +136,9 @@ class CobradorPixAutomatico
                     (string) $mandato['id_rec'],
                 );
             } catch (\Throwable $e) {
-                DB::table('cobrancas')->where('business_id', $businessId)->where('idempotency_key', $chave)
-                    ->update(['status' => 'erro', 'updated_at' => now()]);
+                // SUPERADMIN: mesmo contexto sem sessão; filtra pelo business_id explícito.
+                Cobranca::withoutGlobalScopes()->where('business_id', $businessId)->where('idempotency_key', $chave)
+                    ->update(['status' => 'erro']);
                 Log::warning('[rb.pix_automatico] cobrança do ciclo falhou', [
                     'business_id' => $businessId, 'fatura_id' => $f->id, 'erro' => $e->getMessage(),
                 ]);
