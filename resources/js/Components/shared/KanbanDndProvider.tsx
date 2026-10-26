@@ -1,4 +1,5 @@
-// Drag-and-drop provider pro Kanban da Oficina (Quadro de OS — ADR 0265).
+// Drag-and-drop provider genérico de Kanban (PT-05) — nasceu no Quadro de OS da Oficina (ADR 0265);
+// em Components/shared desde 2026-10-26, quando o funil de vendas do Crm (US-CRM-092) virou o 2º consumidor.
 //
 // Wrapper @dnd-kit/core (DndContext + sensors + DragOverlay):
 //   - PointerSensor com activationConstraint distance:8 → evita drag acidental

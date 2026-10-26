@@ -178,8 +178,10 @@ class DataController extends Controller
                                 'href'     => '/crm/leads/create',
                                 'shortcut' => 'N',
                             ],
-                            'ghosts'   => [
+                            'ghosts'   => array_values(array_filter([
                                 ['key' => 'dashboard',      'label' => 'Dashboard',      'href' => '/crm/dashboard'],
+                                // US-CRM-092 · ADR 0441 — o funil só aparece para quem pode vê-lo.
+                                auth()->user()?->can('crm.funil.ver') ? ['key' => 'funil', 'label' => 'Funil', 'href' => '/crm/funil'] : null,
                                 ['key' => 'leads',          'label' => 'Leads',          'href' => '/crm/leads'],
                                 ['key' => 'follow-ups',     'label' => 'Follow-ups',     'href' => '/crm/follow-ups'],
                                 ['key' => 'campaigns',      'label' => 'Campanhas',      'href' => '/crm/campaigns'],
@@ -188,7 +190,7 @@ class DataController extends Controller
                                 ['key' => 'reports',        'label' => 'Relatórios',     'href' => '/crm/reports'],
                                 ['key' => 'proposals',      'label' => 'Propostas',      'href' => '/crm/proposals'],
                                 ['key' => 'settings',       'label' => 'Configurações',  'href' => '/crm/settings'],
-                            ],
+                            ])),
                         ]
                     )->order(29); // Wagner 2026-05-22: Crm ACIMA de Vendas core (order 30)
                     // Antes order 86 — caía após Vendas. ADR 0180 sidebar v3 ordem canon
