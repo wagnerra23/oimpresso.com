@@ -264,6 +264,13 @@ function RoteiroDoProdutoSecao({ r }: { r: RoteiroDoProduto }) {
   );
 }
 
+/** UC-PIDX-31: a natureza fiscal como a tela a chama. */
+function rotuloNatureza(n: { natureza: string; codigo_servico: string | null }): string {
+  if (n.natureza === 'servico') return `Serviço (NFS-e)${n.codigo_servico ? ` · item ${n.codigo_servico} da LC 116` : ''}`;
+  if (n.natureza === 'pendente') return 'A decidir pelo contador';
+  return 'Mercadoria (NF-e)';
+}
+
 function Dt({ rotulo, valor }: { rotulo: string; valor: string | null | undefined }) {
   return (
     <div className="pb-dt">
@@ -637,7 +644,15 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                   <Dt rotulo="Imposto aplicável" valor={d.dados.imposto || 'Nenhum'} />
                   {/* Protótipo: a aba Fiscal fecha com o tipo de imposto. O mesmo dado da aba Dados. */}
                   <Dt rotulo="Tipo de imposto na venda" valor={tipoDeImposto(d.dados.tipo_imposto)} />
+                  {/* UC-PIDX-31: só com o módulo Fiscal. */}
+                  {d.fiscal.natureza && <Dt rotulo="Natureza fiscal" valor={rotuloNatureza(d.fiscal.natureza)} />}
                 </div>
+              )}
+              {abaAtiva === 'fiscal' && d.fiscal.natureza?.natureza === 'pendente' && (
+                <p className="pb-help mt-2.5 text-[var(--warn)]" data-contract="produto-detalhe-natureza-pendente">
+                  O contador ainda não decidiu se este produto é mercadoria ou serviço. A NF-e comum sai como mercadoria; a emissão
+                  separada (NF-e + NFS-e) fica bloqueada até a decisão.
+                </p>
               )}
               {abaAtiva === 'fiscal' && (
                 <div data-contract="produto-detalhe-fiscal-ajuda">

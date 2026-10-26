@@ -85,6 +85,7 @@ last_run_ci: "2026-10-23: run 39945557255 (lane Estoque · MySQL, main 53e7995, 
 | UC-PIDX-27 | A grade tem altura própria: rola por dentro, com o cabeçalho fixo e a barra de rolar para o lado sempre à vista | should | protótipo (`ListaProdutos`: altura = 72% do corpo, mínimo 260px) + charter (UX: "a tabela rola dentro dela, cabeçalho fixo") | `produto-lista-encaixe.test.tsx` (Vitest, roda no `Frontend / Vite build`) | 🧪 passou 2026-10-23 — Vitest no Frontend (job 120384523098) |
 | UC-PIDX-28 | Preço proposto pela compra recebida, aguardando aprovação, na linha e no painel; aprovar e recusar ficam na compra | should `[T0]` | UC-FLX-17 + Compras SPEC US-COM-026/028 + charter §Automation Anti-hooks (a consulta não altera preço) + gate de preço (UC-PIDX-03) | `ProdutoPrecoPropostoERoteiroContratoTest` (Pest, roda em lane) + `produto-preco-proposto-roteiro.test.tsx` (Vitest) | 🧪 passou no job 120005347082 (lane Estoque · MySQL, commit 730f065c, 2026-10-22): 7 testes, 0 pulados, 64 verificações |
 | UC-PIDX-29 | Aba Roteiro do painel: as etapas do roteiro do produto, na ordem, com o posto e o setor de cada uma | should `[T0]` | UC-FLX-07 + UC-FLX-08 + Produção SPEC US-PCP-026/030 + ADR 0093 | `ProdutoPrecoPropostoERoteiroContratoTest` (Pest, roda em lane) + `produto-preco-proposto-roteiro.test.tsx` (Vitest) | 🧪 passou no job 120005347082 (lane Estoque · MySQL, commit 730f065c, 2026-10-22): 7 testes, 0 pulados, 64 verificações |
+| UC-PIDX-31 | Natureza fiscal: selo na linha, filtro no servidor e a natureza na aba Fiscal, com o aviso do pendente | should `[T0]` | UC-FLX-31 + NfeBrasil US-NFE-068/069 (`NfeService` recusa só a emissão separada com pendente) | `ProdutoNaturezaFiscalConsultaContratoTest` (Pest, roda em lane) + `produto-natureza-fiscal-consulta.test.tsx` (Vitest) | 🧪 escrito, sem veredito nesta divisão. Junto com os outros dois casos, no #9785, passou no job 120394269474 (lane Estoque · MySQL, commit 3587864, 2026-10-23) |
 | UC-PIDX-33 | Aba Estoque do painel: a tabela de locais mostra quanto foi vendido em cada local | should | protótipo (artefato "Consulta de Produto", 22/10: coluna "Vendido" por local) + pedido da ROTA LIVRE (2026-10-23) | `ProdutoDetalheTest` (lane Estoque · MySQL) + `produto-painel-detalhe.test.tsx` (Vitest, não roda em lane) | ⬜ nasce neste PR — verde esperado |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
@@ -457,6 +458,13 @@ last_run_ci: "2026-10-23: run 39945557255 (lane Estoque · MySQL, main 53e7995, 
 - **Contrato:** UC-FLX-07 e UC-FLX-08 (`prototipo-ui/cowork/Wagner/fluxos-data.jsx`) e Produção SPEC US-PCP-026/030. O protótipo junta receita e roteiro numa aba "Receita e roteiro"; a receita na consulta é outro caso (CV6, backlog), por isso aqui a aba é só "Roteiro".
 - **Status: 🧪** — passou no job 120005347082 (lane Estoque · MySQL, commit 730f065c, 2026-10-22): 7 testes, 0 pulados, 64 verificações. O Vitest não roda em lane; passou local (8 casos).
 
+## UC-PIDX-31 · Natureza fiscal: selo, filtro e aba Fiscal · `should` `[T0]`
+- **Persona:** quem vende e quem fatura, para saber antes da nota se o produto é mercadoria ou serviço, e o contador, para achar os que ainda precisa decidir.
+- **Aceite:** Dada a natureza fiscal decidida pelo contador (`nfe_naturezas_produto`, US-NFE-068; produto sem decisão é mercadoria) · Então a linha mostra "Serviço" ou, quando pendente, "Fiscal a decidir"; mercadoria não ganha selo · E o filtro "Natureza fiscal" (Mercadoria, Serviço, A decidir pelo contador) é resolvido no servidor, com chip (o CSV exportado usa a mesma consulta e sai com o mesmo filtro, sem teste próprio) · E a aba Fiscal mostra a natureza, com o item da LC 116 quando é serviço · Quando pendente · Então o painel avisa que a NF-e comum sai como mercadoria e que a emissão separada (NF-e + NFS-e) fica bloqueada até a decisão · Sem o módulo Fiscal, nem o filtro nem a natureza aparecem · Decisão gravada com outra empresa não vale para o produto (Tier 0).
+- **Teste:** [`ProdutoNaturezaFiscalConsultaContratoTest`](../../../../tests/Feature/Produto/ProdutoNaturezaFiscalConsultaContratoTest.php) e [`produto-natureza-fiscal-consulta.test.tsx`](../../../../tests/js/produto-natureza-fiscal-consulta.test.tsx) (o Vitest não roda em lane) — `UC-PIDX-31` (as três naturezas, o filtro nas três opções com controle sem filtro, o item da LC 116 e outra empresa). Mutação: tirar o selo de pendente e a linha da aba Fiscal derruba 2 casos do Vitest.
+- **Contrato:** UC-FLX-31 e NfeBrasil `SeparacaoNotasDaVenda` + `NfeService` (o pendente bloqueia a emissão separada; a NF-e comum segue como mercadoria). **Correção de 2026-10-23:** o caso do backlog dizia que o pendente "trava a NF-e da venda"; o código bloqueia só a emissão separada. A aba "Relatório de estoque" não usa este filtro, como já não usa a busca.
+- **Status: 🧪** — escrito, sem veredito nesta divisão. Junto com os outros dois casos, no #9785, passou no job 120394269474 (lane Estoque · MySQL, commit 3587864, 2026-10-23). O Vitest não roda em lane.
+
 ## UC-PIDX-33 · Aba Estoque do painel: quantidade vendida por local · `should`
 - **Persona:** a ROTA LIVRE abre um produto pelo painel e quer saber, sem ir ao Relatório de estoque, quanto daquele item já saiu em cada loja.
 - **Aceite:** Dado um produto que controla estoque, com saldo em dois locais, uma venda finalizada de 5 un no local A com 1 un devolvida e um rascunho de 2 un no mesmo local · Quando abro a aba Estoque do painel · Então a tabela de locais tem a coluna "Vendido", logo antes de "Situação" · E o local A mostra "4 Un" e o B "0 Un" · E o número de cada local é o mesmo "Total vendido" do Relatório de estoque para aquele produto e local (vendas finalizadas, desde sempre, menos as devoluções; rascunho e orçamento ficam fora).
@@ -682,13 +690,11 @@ last_run_ci: "2026-10-23: run 39945557255 (lane Estoque · MySQL, main 53e7995, 
   pelo estoque mínimo" está ligado (US-COM-027, em produção), mas a consulta não mostra. Aceite:
   Dado um produto abaixo do mínimo com requisição aberta, Então a linha mostra "Requisição <número>
   aberta em <data> · <fornecedor>" e o painel repete na aba Estoque.
-- **[BACKLOG] Natureza fiscal pendente na consulta (UC-FLX-31)** — produto com natureza fiscal
-  pendente trava a NF-e da venda até o contador decidir. Aceite: a lista tem o filtro "Natureza
-  fiscal" (mercadoria, serviço, pendente), a linha do pendente tem um selo e o painel mostra a
-  natureza fiscal com o aviso da NF-e travada.
 - **[BACKLOG] Método de custo do insumo no painel (UC-FLX-38)** — cada insumo tem custo médio ou
   da última compra, com histórico por data (US-COM-024). Aceite: abaixo do custo, o painel diz qual
   é o método e a data ("custo médio, atualizado em 12/10/2026").
+- Natureza fiscal (UC-FLX-31) saiu deste backlog em 2026-10-26: virou UC-PIDX-31, com teste. O texto antigo dizia
+  que o pendente "trava a NF-e da venda"; o código bloqueia só a emissão separada (NF-e + NFS-e).
 - Roteiro de produção (UC-FLX-07), preço proposto pela compra (UC-FLX-17) e setor de cada etapa
   (UC-FLX-08) saíram deste backlog em 2026-10-22: viraram UC-PIDX-28 e UC-PIDX-29, com teste.
 - **[BACKLOG] Modelo da pilha do produto** (pedido de 2026-10-23) — Aceite: Dado o produto "Controle
