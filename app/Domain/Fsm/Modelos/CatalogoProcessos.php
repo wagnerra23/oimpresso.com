@@ -55,7 +55,7 @@ final class CatalogoProcessos
         'devolucao' => [
             'Analisar' => ['nao', 'Não existe ocorrência pós-venda no ERP: a devolução começa direto no lançamento.'],
             'Aprovar refação' => ['nao', 'Nenhum código cria OS de retrabalho; as ações de garantia das OS semeadas só mudam a etapa.'],
-            'Aprovar devolução' => ['nao', 'Sem ocorrência no ERP. A NF-e de devolução tem serviço (Modules/NfeBrasil/Services/DevolucaoService::emitirDevolucao) sem rota nem chamador fora dos testes; DevolucaoController (legado) não tem rota.'],
+            'Aprovar devolução' => ['nao', 'Sem ocorrência no ERP. Não há passo de aprovação. A NF-e de devolução existe e tem rota: POST fiscal/acoes/nfe/{emissao}/devolucao (fiscal.acoes.nfe.devolucao) → Modules/Fiscal/Http/Controllers/AcoesController@devolucao, que exige a permissão fiscal.nfe.acoes (ou superadmin) e chama Modules/NfeBrasil/Services/DevolucaoService::emitirDevolucao (R-NFE-039). O estorno do título não acontece (ver Estornar valor). DevolucaoController (legado) não tem rota.'],
             'Aprovar troca com crédito' => ['nao', 'Sem ocorrência no ERP (ver Analisar).'],
             'Negar' => ['nao', 'Sem ocorrência no ERP (ver Analisar).'],
             'Concluir refação' => ['nao', 'Depende da OS de retrabalho, que não existe.'],

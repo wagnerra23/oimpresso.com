@@ -2,15 +2,15 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1014 tarefas abertas** em **57 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1016 tarefas abertas** em **57 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
 | Módulo | Abertas | doing | review | blocked | todo/backlog |
 |---|---:|---:|---:|---:|---:|
 | [`Jana`](#jana) | 83 | 2 | 0 | 0 | 81 |
+| [`Whatsapp`](#whatsapp) | 69 | 0 | 0 | 0 | 69 |
 | [`Sells`](#sells) | 68 | 1 | 0 | 0 | 67 |
-| [`Whatsapp`](#whatsapp) | 67 | 0 | 0 | 0 | 67 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
 | [`Financeiro`](#financeiro) | 49 | 4 | 0 | 0 | 45 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
@@ -159,6 +159,81 @@
 - **US-COPI-134** — Régua ADR 0318 órfã — schedules staging (ragas-real-eval + recall-eval) sem runner no CT100
 - **US-COPI-138** — Heartbeat langfuse_trace_uptime_24h no HealthCheckCommand
 
+## Whatsapp
+
+
+### todo
+
+- **US-WA-001** — Wizard 2 passos — Z-API hoje + Meta Cloud em paralelo
+- **US-WA-002** — Driver Interface + ZapiDriver + MetaCloudDriver + NullDriver
+- **US-WA-003** — Enviar mensagem template (Job assíncrono)
+- **US-WA-004** — Listener Repair: status `ready` dispara WhatsApp
+- **US-WA-010** — Receber webhook Meta + assinatura HMAC
+- **US-WA-011** — Processar mensagem recebida (Job)
+- **US-WA-012** — Inbox UI (Cockpit pattern)
+- **US-WA-013** — Templates UI (sync Meta Business Manager)
+- **US-WA-014** — Driver Health Check + fallback automático
+- **US-WA-020** — Listener DispatchToJanaBot
+- **US-WA-021** — Métricas conversation (custo, deflection, tempo resposta)
+- **US-WA-022** — ~~UX simplificada onboarding Baileys~~ [DEPRECATED 2026-05-27]
+- **US-WA-040** — Múltiplos números por business — driver + escopo de atendimento per-phone (Sprint 4)
+- **US-WA-041** — Métricas conversation (custo/deflection/tempo) — acelerar US-WA-021
+- **US-WA-042** — Mídia outbound — anexar imagem/PDF na conversa (UI upload)
+- **US-WA-043** — Mídia inbound — processar foto/PDF/audio recebido do cliente
+- **US-WA-044** — Permissions UI per-phone (multi-select atendentes em Settings/Edit)
+- **US-WA-045** — Botões interativos (HSM com CTAs)
+- **US-WA-046** — List messages (cardápio: orçar / acompanhar OS / segunda via)
+- **US-WA-047** — Tags / labels em conversa (classificar por dept/etapa)
+- **US-WA-048** — Quick replies / atalhos atendente (respostas pré-definidas)
+- **US-WA-049** — A/B testing templates (variantes A/B com tracking deflection)
+- **US-WA-050** — Voice transcription inbound (whisper.cpp local CT 100)
+- **US-WA-051** — FICHA v2 — Wagner-curate ux_heuristics + automation_targets
+- **US-WA-052** — AUDIT-LOG.md shell + 1ª entrada audit 2026-05-10
+- **US-WA-053** — UX /whatsapp/conversations — composer no rodapé + sidebar colapsável + responsivo monitor pequeno
+- **US-WA-055** — UX polish round 2 + skill `wagner-request-refiner`
+- **US-WA-056** — Omnichannel Fase 0 — schema polimórfico (channels + conversations + messages)
+- **US-WA-057** — Mover conversa pra outro número/canal (admin reclassifica)
+- **US-WA-058** — Inbox omnichannel — envio outbound via Channel (shim Phone, drivers intactos)
+- **US-WA-059** — Inbox omnichannel — real-time via Centrifugo (novo schema)
+- **US-WA-060** — Sync daemon-node source do CT 100 pra Modules/Whatsapp/daemon-node/
+- **US-WA-061** — Drift webhook legacy Z-API/Meta — observability + cutover plan
+- **US-WA-062** — Busca local na conversa (Ctrl+F dentro da thread)
+- **US-WA-063** — Tags classificadoras com seed defaults + catálogo per-business
+- **US-WA-064** — Vincular Contact UltimatePOS a conversa + resolver @lid JID
+- **US-WA-066** — Polling fallback 5s SEMPRE + bloquear contato
+- **US-WA-067** — Limpar tela Configurações WhatsApp — apagar 7 blocos de driver/LGPD
+- **US-WA-068** — Tab "Usuários do canal" dentro de Canais (ACL per-canal visível)
+- **US-WA-069** — Validar canal=fila — Suporte não vê inbox do Financeiro
+- **US-WA-070** — Sidebar/rotas — Canais vira entrada principal de Atendimento, Settings velha morre
+- **US-WA-071** — Notas internas (private notes) MVP — toggle Reply/Note estilo Chatwoot
+- **US-WA-072** — Mídia (imagens, áudio, docs) inbound + outbound + Whisper transcrição
+- **US-WA-073** — ADR — Notas internas como sinal de treino pra Jana (design 4 slash commands)
+- **US-WA-074** — Slash /lembrar — atendente grava fato sobre cliente em copiloto_memoria_facts
+- **US-WA-075** — Slash /corrigir — marca mensagem do bot como errada (training signal Jana)
+- **US-WA-076** — Slash /lembrete — cria lembrete agendado pro atendente
+- **US-WA-077** — Slash /config bot=off — toggle Jana per-contact (override global)
+- **US-WA-078** — Fix banDetector falso positivo loggedOut/forbidden vira 'session_expired'
+- **US-WA-079** — Fix daemon SIGTERM revoga session (sock.logout → sock.end) preserva pareamento em restart
+- **US-WA-089** — Re-parear channels Baileys Jana (id=8) + Suporte (id=10) após purge auth_state
+- **US-WA-091** — Remover legacy /whatsapp/conversations (URL deprecation)
+- **US-WA-093** — LID resolution custom + backfill (workaround pré-Baileys 7.x)
+- **US-WA-094** — Anti-cross-contact P0 (incident 2026-05-14)
+- **US-WA-095** — Caixa Unificada v4 redesign (em F1 PLAN)
+- **US-WA-301** — Filas DB + drawer config (label/hue/sla/dist/members/trigger_tags)
+- **US-WA-302** — Assignee picker no Contexto (select operators ativos)
+- **US-WA-303** — Slash macros inline + Templates picker inline no composer
+- **US-WA-304** — Drawer "Canais e contas" agrupado por type (vs link /canais)
+- **US-WA-305** — Mover conversa entre filas (override manual da heurística tag→fila)
+- **US-WA-306** — Broadcast cross-canal real (janela 24h Meta + opt-in LGPD)
+- **US-WA-307** — + Nova conversa (ContactPickerModal + template inicial + novo channel)
+- **US-WA-311** — Triagem automática no inbox — score + prioridade P1-P4 pro operador (L1)
+- **US-WA-315** — Fechar gaps #6 nonce / #9 failover / #10 circuit-breaker (channel-reliability whatsmeow)
+- **US-WA-316** — Customer 360 sidebar + inferência IA (ondas 2-5 voz-cliente)
+- **US-WA-317** — VoC: ContactProfile acumulativo (Gap#3) + auto-tag IA + dashboard (Gap#4)
+- **US-WA-318** — DNS de mídia WhatsApp não resolve → ~48k mídias pending desde ~12/jun
+- **US-WA-324** — Bot de atendimento com menu — opção leva à fila, coleta o nome, depois humano
+- **US-WA-327** — Tela de configurar o menu do bot por canal
+
 ## Sells
 
 
@@ -235,79 +310,6 @@
 - **US-SELL-071** — Pesquisa de satisfação depois da entrega (UC-FLX-25) — **P2**
 - **US-SELL-072** — Venda com nota ou pagamento trava itens e valores — **P1**
 - **US-SELL-073** — Volumes no protocolo de entrega (UC-FLX-23) — **P2**
-
-## Whatsapp
-
-
-### todo
-
-- **US-WA-001** — Wizard 2 passos — Z-API hoje + Meta Cloud em paralelo
-- **US-WA-002** — Driver Interface + ZapiDriver + MetaCloudDriver + NullDriver
-- **US-WA-003** — Enviar mensagem template (Job assíncrono)
-- **US-WA-004** — Listener Repair: status `ready` dispara WhatsApp
-- **US-WA-010** — Receber webhook Meta + assinatura HMAC
-- **US-WA-011** — Processar mensagem recebida (Job)
-- **US-WA-012** — Inbox UI (Cockpit pattern)
-- **US-WA-013** — Templates UI (sync Meta Business Manager)
-- **US-WA-014** — Driver Health Check + fallback automático
-- **US-WA-020** — Listener DispatchToJanaBot
-- **US-WA-021** — Métricas conversation (custo, deflection, tempo resposta)
-- **US-WA-022** — ~~UX simplificada onboarding Baileys~~ [DEPRECATED 2026-05-27]
-- **US-WA-040** — Múltiplos números por business — driver + escopo de atendimento per-phone (Sprint 4)
-- **US-WA-041** — Métricas conversation (custo/deflection/tempo) — acelerar US-WA-021
-- **US-WA-042** — Mídia outbound — anexar imagem/PDF na conversa (UI upload)
-- **US-WA-043** — Mídia inbound — processar foto/PDF/audio recebido do cliente
-- **US-WA-044** — Permissions UI per-phone (multi-select atendentes em Settings/Edit)
-- **US-WA-045** — Botões interativos (HSM com CTAs)
-- **US-WA-046** — List messages (cardápio: orçar / acompanhar OS / segunda via)
-- **US-WA-047** — Tags / labels em conversa (classificar por dept/etapa)
-- **US-WA-048** — Quick replies / atalhos atendente (respostas pré-definidas)
-- **US-WA-049** — A/B testing templates (variantes A/B com tracking deflection)
-- **US-WA-050** — Voice transcription inbound (whisper.cpp local CT 100)
-- **US-WA-051** — FICHA v2 — Wagner-curate ux_heuristics + automation_targets
-- **US-WA-052** — AUDIT-LOG.md shell + 1ª entrada audit 2026-05-10
-- **US-WA-053** — UX /whatsapp/conversations — composer no rodapé + sidebar colapsável + responsivo monitor pequeno
-- **US-WA-055** — UX polish round 2 + skill `wagner-request-refiner`
-- **US-WA-056** — Omnichannel Fase 0 — schema polimórfico (channels + conversations + messages)
-- **US-WA-057** — Mover conversa pra outro número/canal (admin reclassifica)
-- **US-WA-058** — Inbox omnichannel — envio outbound via Channel (shim Phone, drivers intactos)
-- **US-WA-059** — Inbox omnichannel — real-time via Centrifugo (novo schema)
-- **US-WA-060** — Sync daemon-node source do CT 100 pra Modules/Whatsapp/daemon-node/
-- **US-WA-061** — Drift webhook legacy Z-API/Meta — observability + cutover plan
-- **US-WA-062** — Busca local na conversa (Ctrl+F dentro da thread)
-- **US-WA-063** — Tags classificadoras com seed defaults + catálogo per-business
-- **US-WA-064** — Vincular Contact UltimatePOS a conversa + resolver @lid JID
-- **US-WA-066** — Polling fallback 5s SEMPRE + bloquear contato
-- **US-WA-067** — Limpar tela Configurações WhatsApp — apagar 7 blocos de driver/LGPD
-- **US-WA-068** — Tab "Usuários do canal" dentro de Canais (ACL per-canal visível)
-- **US-WA-069** — Validar canal=fila — Suporte não vê inbox do Financeiro
-- **US-WA-070** — Sidebar/rotas — Canais vira entrada principal de Atendimento, Settings velha morre
-- **US-WA-071** — Notas internas (private notes) MVP — toggle Reply/Note estilo Chatwoot
-- **US-WA-072** — Mídia (imagens, áudio, docs) inbound + outbound + Whisper transcrição
-- **US-WA-073** — ADR — Notas internas como sinal de treino pra Jana (design 4 slash commands)
-- **US-WA-074** — Slash /lembrar — atendente grava fato sobre cliente em copiloto_memoria_facts
-- **US-WA-075** — Slash /corrigir — marca mensagem do bot como errada (training signal Jana)
-- **US-WA-076** — Slash /lembrete — cria lembrete agendado pro atendente
-- **US-WA-077** — Slash /config bot=off — toggle Jana per-contact (override global)
-- **US-WA-078** — Fix banDetector falso positivo loggedOut/forbidden vira 'session_expired'
-- **US-WA-079** — Fix daemon SIGTERM revoga session (sock.logout → sock.end) preserva pareamento em restart
-- **US-WA-089** — Re-parear channels Baileys Jana (id=8) + Suporte (id=10) após purge auth_state
-- **US-WA-091** — Remover legacy /whatsapp/conversations (URL deprecation)
-- **US-WA-093** — LID resolution custom + backfill (workaround pré-Baileys 7.x)
-- **US-WA-094** — Anti-cross-contact P0 (incident 2026-05-14)
-- **US-WA-095** — Caixa Unificada v4 redesign (em F1 PLAN)
-- **US-WA-301** — Filas DB + drawer config (label/hue/sla/dist/members/trigger_tags)
-- **US-WA-302** — Assignee picker no Contexto (select operators ativos)
-- **US-WA-303** — Slash macros inline + Templates picker inline no composer
-- **US-WA-304** — Drawer "Canais e contas" agrupado por type (vs link /canais)
-- **US-WA-305** — Mover conversa entre filas (override manual da heurística tag→fila)
-- **US-WA-306** — Broadcast cross-canal real (janela 24h Meta + opt-in LGPD)
-- **US-WA-307** — + Nova conversa (ContactPickerModal + template inicial + novo channel)
-- **US-WA-311** — Triagem automática no inbox — score + prioridade P1-P4 pro operador (L1)
-- **US-WA-315** — Fechar gaps #6 nonce / #9 failover / #10 circuit-breaker (channel-reliability whatsmeow)
-- **US-WA-316** — Customer 360 sidebar + inferência IA (ondas 2-5 voz-cliente)
-- **US-WA-317** — VoC: ContactProfile acumulativo (Gap#3) + auto-tag IA + dashboard (Gap#4)
-- **US-WA-318** — DNS de mídia WhatsApp não resolve → ~48k mídias pending desde ~12/jun
 
 ## Infra
 
