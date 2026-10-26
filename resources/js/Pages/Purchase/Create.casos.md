@@ -5,9 +5,11 @@ irmaos: Create.charter.md (lei) · Create.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o contrato da grade (1 célula = 1 variation_id, 1 POST único) e o ownership das variations são duráveis — não mudam quando a tela ganhar campo novo.
 owner: wagner
-last_run: "2026-10-20"
+last_run: "2026-10-26"
 last_run_ci: "✅ 2026-09-05: os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841). Medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. Os 7 UC desta tela tem lane; 3 com defesa de COMPORTAMENTO (PurchaseGradeMatrixTest, que emite request e cujo bloco cross-tenant hoje roda em MySQL real) e 4 ESTRUTURAL (Wave2Create*, presence-gate LC-11). Nao restatear a mao: rode scripts/qa/uc-lane-coverage.mjs. ⚠ O TEXTO A SEGUIR ESTA SUPERADO e fica como fato datado - os dois numeros dele ja nasciam falsos (a pasta tem 10 arquivos, nao 8; e 4 ja rodavam quando foi escrito): 🔴 A DIVIDA CONTINUA ABERTA — NENHUM teste de tests/Feature/Purchase/ roda em lane alguma (8 arquivos orfaos de CI); o uc-lane-coverage reprova estes UC por isso e esta certo. Ver §Divida de prova. O bump de 2026-09-04 -> 2026-09-05 NAO paga essa divida e nao afirma execucao: ele registra a REVISAO exigida pelo G-6 depois que o .tsx foi tocado. O que foi revisado, e verificavel: o diff contra 153a65b558 (commit que criou este arquivo) e exatamente 5 atributos `data-contract` em <Card>, zero mudanca de logica/props/copy; e nenhum dos 7 UC depende de atributo/DOM/seletor (grep por data-contract|atributo|DOM|seletor|className neste arquivo: rc=1, zero hits) — os 7 sao de backend/tenant/dado. TENTATIVA DE PROVA REAL, e por que ela NAO vale como recibo: rodei tests/Feature/Purchase/ no CT 100 (90 passed, 6 failed, 6 skipped, 214 assertions), mas o checkout do container esta em c1abe9548f (2026-08-26) e NAO contem as ancoras (grep -c data-contract = 0). Run de outra arvore nao prova esta — citar aquele numero aqui seria medir a coisa errada."
 ---
+
+> ℹ️ **`last_run` 2026-10-20 → 2026-10-26 (G-6): entraram o UC-PURCRE-12 (pedidos abertos + estoque por dois caminhos) e o UC-PURCRE-13 (a tela traz o pedido).** A `Create.tsx` ganhou o bloco "Receber de um pedido de compra" e o campo `purchase_order_ids`; nenhum UC antigo mudou nem foi reexecutado.
 
 > ℹ️ **`last_run` 2026-10-16 → 2026-10-20 (G-6): entraram os UC-PURCUS-01..06 (US-COM-026).** O bump é a revisão do arquivo ao ganhar o bloco novo; nenhum UC antigo foi reexecutado. Os novos estão 🧪 até a lane `compras-pest` rodar `AplicarCustoDoRecebimentoTest`.
 
@@ -480,6 +482,20 @@ Status: 🧪
 - **Contrato:** SPEC US-COM-013 + regra mestre de estoque. A trava contra pedido de outra empresa no
   `store()` é a US-COM-029.
 - **Status: 🧪 comportamento · na lane**
+
+## UC-PURCRE-13 · Escolher o pedido traz as linhas com o que falta receber · `must`
+
+- **Persona:** quem recebe a mercadoria e lança a compra (Larissa, biz=4).
+- **Aceite:** Dado uma empresa que usa pedido de compra e um fornecedor escolhido com pedido aberto ·
+  Quando a pessoa escolhe o pedido em "Receber de um pedido de compra" e clica em Trazer itens ·
+  Então cada linha do pedido entra na compra com a quantidade que falta, o preço do pedido e a
+  indicação "Pedido · já recebido · a receber" embaixo do nome; a quantidade pode ser ajustada para
+  o que chegou, e acima do que falta a linha avisa "acima do pedido". O pedido trazido não aparece
+  de novo na lista. Sem fornecedor, ou sem pedido aberto, o bloco não aparece.
+- **Teste:** [`tests/purchase-receber-do-pedido.test.tsx`](../../../../tests/purchase-receber-do-pedido.test.tsx)
+  (vitest; mutação `quantity: l.pedido` derruba o assert com `expected 10 to be 6`).
+- **Contrato:** SPEC US-COM-013. Quem grava é o UC-PURCRE-12.
+- **Status: 🧪 comportamento**
 
 ---
 
