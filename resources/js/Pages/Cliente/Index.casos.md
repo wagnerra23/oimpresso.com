@@ -91,6 +91,48 @@ last_run: "2026-10-14"
 - **[BACKLOG] 6 dropdowns de filtro (Tipo/Status/UF/Tags/Sem compra/Saldo) filtram** — e2e.
 - **[BACKLOG] A LISTAGEM não devolve cliente de outro tenant** — hoje o cross-tenant do módulo é coberto no `edit` (UC-CEDI-03), no mapa (UC-CMAP-02), no saldo (UC-CLED-04) e nos pagamentos (UC-CSHW-03), mas **não** em `GET /cliente`. O `ClienteKpisServerSideTest` cobre os KPIs por *source-grep*, não a lista. É a lacuna Tier 0 que sobra, e pesa mais aqui porque **`App\Contact` não tem global scope** (0 ocorrências de `addGlobalScope` em `app/Contact.php` — SDD §5.4.2): o isolamento é `where('business_id')` manual. É exatamente o que **US-CRM-080** pede; vira UC quando a US for atendida.
 
+**Casos pedidos em 2026-10-23 — saldo a favor e limite de crédito**
+
+- **[BACKLOG] Saldo a favor do cliente no drawer** `[V0]` — o cliente pode ter dinheiro a favor, vindo
+  de devolução, troca, pagamento a mais ou adiantamento. Aceite: Dado um cliente com 120,00 a favor
+  (80,00 de uma devolução e 40,00 de pagamento a mais), Quando abro o drawer, Então o resumo financeiro
+  mostra "Crédito a favor 120,00" e a lista de onde veio cada parte, com a data. Cliente sem saldo a
+  favor não mostra o bloco. Fonte: protótipo `cliente-drawer760.jsx` ("Créditos a favor — abatidos na
+  próxima venda; o vendedor pode recusar"); o adiantamento lançado no cliente já existe.
+- **[BACKLOG] Limite de crédito: quanto o cliente ainda pode gastar** `[V0]` — o limite é o quanto o
+  cliente pode comprar a prazo. Aceite: Dado um cliente com limite de 2.000,00 e 1.500,00 em aberto,
+  Quando abro o drawer, Então a aba Comercial mostra "Limite 2.000,00 · em aberto 1.500,00 · disponível
+  500,00"; com o em aberto acima do limite, o disponível fica 0,00 e aparece "acima do limite". Cliente
+  sem limite mostra "sem limite". Fonte: US-CRM-081; o campo já existe na aba Comercial
+  (`limite_credito`) e o limite padrão em Configurações › Empresa.
+- **[BACKLOG] Condição de pagamento do cliente: sinal e prazo** `[V0]` — Aceite: Dado a empresa com
+  sinal mínimo de 30%, Quando defino para o cliente sinal de 50% e prazo de 28 dias na aba Comercial,
+  Então as vendas dele vêm com essa condição, e o vendedor pode trocar na venda; cliente sem condição
+  própria usa a da empresa. Fonte: DecoNetwork (condições por cliente e por empresa cliente);
+  UC-FLX-28.
+- **[BACKLOG] "Faltam dados para nota" no cliente** — Aceite: Dado um cliente sem CPF ou CNPJ, sem
+  endereço com município ou sem a indicação de contribuinte do ICMS, Então a lista e o drawer mostram
+  "Faltam dados para nota" e quais; com os dados completos, o aviso some. Fonte: grupo do destinatário
+  da NF-e.
+- **[BACKLOG] Ficha do cliente com OS, devoluções, vendas e orçamentos, cada um com o total**
+  (pedido de 2026-10-23) — Aceite: Dado um cliente com 4 vendas, 2 orçamentos, 1 OS e 1 devolução,
+  Quando abro a ficha dele, Então vejo uma lista por tipo, cada uma com a quantidade e o valor total
+  (vendas, orçamentos, OS e devoluções separados), e cada linha abre o documento. Tipo sem registro
+  mostra zero. Hoje a aba Operações tem Extrato, Vendas, Pagamentos, Documentos, Pessoas,
+  Assinaturas, Pontos e Auditoria; não há OS, orçamentos nem devoluções separados, nem total por tipo.
+  O protótipo `cliente-drawer760.jsx` traz os totais "OS no total" e "Valor total".
+- **[BACKLOG] Campos obrigatórios no cadastro para a cobrança** (pedido de 2026-10-23) — Aceite: Dado a
+  empresa que define quais dados do cliente são obrigatórios para cobrar (por exemplo CPF ou CNPJ,
+  endereço completo e e-mail de cobrança), Quando gero um boleto ou uma cobrança para um cliente sem um
+  deles, Então a cobrança não sai e a tela lista o que falta, com link para o cadastro; ao salvar o
+  cadastro, a tela avisa os campos de cobrança vazios. Hoje o cadastro não tem essa regra; o caso
+  "Faltam dados para nota" acima trata só da nota fiscal.
+- **[BACKLOG] Desconto para boleto pago antes do vencimento** (pedido de 2026-10-23) `[V0]` — Aceite:
+  Dado um cliente com 2% de desconto para pagamento até 5 dias antes do vencimento, Quando o boleto dele
+  é gerado, Então o boleto já sai com o desconto e a data limite, e o título recebe o desconto só se o
+  pagamento chegar dentro do prazo; cliente sem desconto não muda. Hoje o cadastro não tem o campo e os
+  boletos saem sem desconto. Mexe em valor: Regra Mestre.
+
 ## Rastreabilidade (UC → CU do SDD → US do SPEC)
 
 | UC | CU (SDD §6) | US (SPEC) |
@@ -109,6 +151,9 @@ last_run: "2026-10-14"
 3. **Cadência:** rodar ao fim de toda mexida em `Index.tsx` ou nos builders do `ContactController` (kpis/customers/sort).
 
 ## Trilha do tempo
+- 2026-10-23 · [M+C] Backlog de saldo a favor e limite de crédito no drawer, sem id.
+- 2026-10-23 · [M+C] Backlog: condição de pagamento do cliente (sinal e prazo), da comparação com concorrentes (DecoNetwork), sem id.
+- 2026-10-23 · [M+C] Backlog: aviso de dados faltando para a nota, sem id.
 - 2026-10-14 · [CL] thread cliente/02 — a tabela segue o protótipo: a foto entra na célula Cliente (sai a coluna própria) e nasce a coluna "Última OS" (UC-CIDX-05). Desta vez **é comportamento**: o `last_run` sobe por mudança real da tela. Os UCs 01–04 (rota/query) não mudam.
 - 2026-07-27 · [CC] chip S-Cliente do passo 5 (agent `sdd-from-source`). **Nenhum UC reescrito** — os 4 seguem como estavam (o módulo já tinha contrato). Duas correções factuais no cabeçalho: (a) "lane ativa" era falso (não havia lane de PR pro Cliente; `ci-sqlite-pest.list` = 0 entradas), (b) a força do veredito agora está declarada (**advisory**, lida do `required-checks-baseline.json`, não deduzida). **+1 `[BACKLOG]`**: cross-tenant da listagem, a lacuna Tier 0 que sobra (US-CRM-080). Refs: [SDD Cliente](../../../../memory/requisitos/Cliente/SDD-cadastro-cliente-v1.0.md) §5.4.2/§8 · [ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md).
 - 2026-07-15 · [CC] revalidação (mudança cosmética DS) — troca de contorno/divisórias hardcoded (`oklch(0.93/0.9 0.004 90)`) por `var(--border)` dark-aware no header + KPI cards. Puramente visual (token de borda); NÃO altera rota/query/KPI backend — os 4 UCs (type=other, paginação, sort, KPIs) seguem válidos, status 🧪 mantidos. `last_run` bumpado (G-6). PR #4285.
