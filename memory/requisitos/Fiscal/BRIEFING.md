@@ -2,7 +2,7 @@
 id: requisitos-fiscal-briefing
 module: Fiscal
 status: parcial
-updated_at: "2026-10-20"
+updated_at: "2026-10-26"
 distilled_at: "2026-10-20"
 distilled_by: jana:distill-module-truth
 ---
@@ -25,6 +25,7 @@ O módulo Fiscal atua como um cockpit unificado, consolidando nota fiscal eletr�
 ## Gaps
 - O gerador do SPED apresenta hardcodes que impedem a exportação completa (GAP-FISCAL-003); depende de correções em configurações e permissões.
 - O rollout para ROTA LIVRE (biz=4) está em pré-canary, aguardando testes manuais antes da promoção.
+- Pré-voo da NFC-e automática (2026-10-26, [W] 2026-10-26): nenhuma empresa foi ligada. A biz=4 e a biz=164 emitiam pelo Delphi (WR Comercial/OfficeImpresso), que está sendo migrado — ligar aqui duplicaria a nota; virou cutover por empresa (US-NFE-074 do NfeBrasil). A biz=1 estava ligada, mas com o certificado A1 vencido em 2026-08-06 e sem credenciamento NFC-e na SEFAZ-SC (rejeição 781).
 
 ## Última mudança
 Em 2026-10-20 (PR #9632), o `Nfe.casos.md` ganhou os casos UC-FNFE-21..23 da NF-e emitida quando a fatura da cobrança recorrente é paga (US-RB-044 · UC-FLX-26); nenhum código de tela mudou, os testes existentes do listener passaram a citar os casos, e o `_lib/debitos-conhecidos.ts` foi regerado pelo `fiscal-debitos-derive`. Em 2026-10-07 (playbook Fiscal thread 15c, PR #9018), o card **Envio de documentos** de `/fiscal/config` deixou de declarar "ainda não existe campo": a empresa cadastra o contador (tabela `nfe_contadores`, do NfeBrasil) e salvar cria o papel "Contador". O drawer "Enviar p/ contabilidade" do cockpit segue mockado (thread 28). Em 2026-09-09, as 7 abas do cockpit voltaram aos rótulos e à ordem do protótipo; antes disso, em 2026-09-08, os 8 inventários de paridade do Fiscal + NfeBrasil foram vinculados e as 2 telas silenciosas fechadas, e em 2026-09-06 a lane MySQL passou a EXECUTAR os 3 testes da tela Dfe. Em 2026-09-04 tinham saído as melhorias da onda 10 do SPED — prévia do arquivo de referência, correções das ações de manifestação e ajuste das permissões de operação administrativa.
