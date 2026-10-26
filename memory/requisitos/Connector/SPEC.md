@@ -246,7 +246,7 @@ o veredito, a US segue pendente — arquivo existir não é teste passar (LC-13)
 > owner: — · priority: p1 · estimate: 12h · status: todo · type: story
 > blocked_by: —
 
-**Implementado em:** _pendente_ — planejada (lacunas 2026-10-25); nenhum código de webhook de saída no disco
+**Implementado em:** _parcial_ · `Modules/Connector/Services/WebhookSaida/DisparadorWebhookSaida.php` · `Modules/Connector/Jobs/EnviarWebhookSaidaJob.php` · `Modules/Connector/Listeners/VendaFinalizadaParaWebhookSaida.php` · `Modules/Connector/Tests/Feature/ConnectorWebhookSaidaContratoTest.php` — 2026-10-26: núcleo + evento `venda.finalizada`; faltam o cadastro do destino pela API, os eventos de cliente, venda cancelada e estoque, e a página no OpenAPI
 
 Origem: levantamento de lacunas 2026-10-25 (P1 Plataforma — API pública e webhooks de saída).
 - A empresa cadastra URL de destino + eventos (venda finalizada, venda cancelada, cliente criado/alterado, estoque alterado).

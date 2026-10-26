@@ -14,7 +14,7 @@ module: Connector
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Connector/**` + `resources/js/Pages/Connector/**` + `resources/js/Pages/Api/**` (namespaces Inertia `Connector`, `Api`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `Connector` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 121 arquivos em 16 papéis.
+**Total mapeado:** 128 arquivos em 19 papéis.
 
 ## Controllers — 29
 
@@ -70,10 +70,24 @@ module: Connector
 
 - [CheckDemo.php](../../../Modules/Connector/Http/Middleware/CheckDemo.php)
 
-## Services — 2
+## Services — 3
 
 - [ContactPayloadValidatorService.php](../../../Modules/Connector/Services/ContactPayloadValidatorService.php)
 - [DelphiSyncService.php](../../../Modules/Connector/Services/DelphiSyncService.php)
+- [DisparadorWebhookSaida.php](../../../Modules/Connector/Services/WebhookSaida/DisparadorWebhookSaida.php)
+
+## Models / Entities — 2
+
+- [WebhookDestino.php](../../../Modules/Connector/Entities/WebhookDestino.php)
+- [WebhookEntrega.php](../../../Modules/Connector/Entities/WebhookEntrega.php)
+
+## Jobs — 1
+
+- [EnviarWebhookSaidaJob.php](../../../Modules/Connector/Jobs/EnviarWebhookSaidaJob.php)
+
+## Events / Listeners — 1
+
+- [VendaFinalizadaParaWebhookSaida.php](../../../Modules/Connector/Listeners/VendaFinalizadaParaWebhookSaida.php)
 
 ## Console / Commands — 1
 
@@ -90,9 +104,10 @@ module: Connector
 - [api.php](../../../Modules/Connector/Routes/api.php)
 - [web.php](../../../Modules/Connector/Routes/web.php)
 
-## Migrations (schema) — 1
+## Migrations (schema) — 2
 
 - [2020_08_18_123107_add_connector_module_version_to_system_table.php](../../../Modules/Connector/Database/Migrations/2020_08_18_123107_add_connector_module_version_to_system_table.php)
+- [2026_10_26_000001_create_connector_webhooks_saida_tables.php](../../../Modules/Connector/Database/Migrations/2026_10_26_000001_create_connector_webhooks_saida_tables.php)
 
 ## Seeders — 1
 
@@ -119,9 +134,9 @@ module: Connector
 
 - [Index.casos.md](../../../Modules/Connector/Resources/js/Pages/Api/Index.casos.md)
 
-## Testes (Pest) — 13
+## Testes (Pest) — 14
 
-- 13 em [Modules/Connector/Tests/Feature/](../../../Modules/Connector/Tests/Feature)
+- 14 em [Modules/Connector/Tests/Feature/](../../../Modules/Connector/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 47

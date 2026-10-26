@@ -172,6 +172,7 @@ jobs:
             Modules/Connector/Tests/Feature/ApiClientsPanelTest.php \
             Modules/Connector/Tests/Feature/AuthApiTest.php \
             Modules/Connector/Tests/Feature/ClientControllerBaselineTest.php \
+            Modules/Connector/Tests/Feature/ConnectorWebhookSaidaContratoTest.php \
             Modules/Connector/Tests/Feature/CustomerJourneyTest.php \
             Modules/Connector/Tests/Feature/LicencaComputadorApiEscopoTest.php \
             Modules/Connector/Tests/Feature/LicencaComputadorSegredoDesktopTest.php \
