@@ -72,7 +72,10 @@ class AcoesController extends Controller
      *  - Envio evento 110111 SEFAZ
      *  - Persistir NfeEvento (cstat 135 = homologado)
      *  - Update NfeEmissao.status='cancelada'
-     *  - Dispara FSM cascade ADR 0143 (refund gateway + notificação cliente — biz=1 LIVE)
+     *
+     * Até 2026-10-26 esta lista dizia "dispara FSM cascade ADR 0143" — medido: o NfeService::cancelar
+     * não dispara FSM nenhuma. Agora, com `escopo=venda` (R-NFE-044), este método executa a ação FSM
+     * `cancelar_venda` da venda depois de a nota ser cancelada; com `escopo=nota` (padrão) só a nota.
      */
     public function cancelarNfe(Request $request, NfeService $nfeService, int $emissao): RedirectResponse
     {
@@ -82,7 +85,11 @@ class AcoesController extends Controller
 
         $data = $request->validate([
             'motivo' => ['required', 'string', 'min:15', 'max:255'],
+            // R-NFE-044 · a tela pergunta: só a nota (para reemitir) ou a venda junto. Sem o campo,
+            // só a nota — o comportamento de antes, para quem ainda não manda a escolha.
+            'escopo' => ['sometimes', 'string', 'in:nota,venda'],
         ]);
+        $cancelarVenda = ($data['escopo'] ?? 'nota') === 'venda';
 
         $businessId = (int) session('user.business_id');
 
@@ -107,7 +114,17 @@ class AcoesController extends Controller
                 'cstat_evento'   => $evento->cstat_evento,
             ]);
 
-            return back()->with('success', "NFe {$nfeEmissao->numero} cancelada · cstat {$evento->cstat_evento}");
+            $msg = "NFe {$nfeEmissao->numero} cancelada · cstat {$evento->cstat_evento}";
+            if (! $cancelarVenda) {
+                return back()->with('success', $msg);
+            }
+
+            // R-NFE-044 · "cancelar a venda junto": a ação FSM `cancelar_venda` da venda da nota, que
+            // roda o CancelarVendaCascade (notas por job idempotente, boleto pendente, reserva de
+            // estoque, aviso ao cliente). A nota já cancelada não é cancelada de novo.
+            [$ok, $msgVenda] = $this->cancelarVendaDaNota($businessId, $nfeEmissao, $data['motivo']);
+
+            return back()->with($ok ? 'success' : 'error', "{$msg}. {$msgVenda}");
         } catch (\Throwable $e) {
             Log::error('Fiscal.acoes.cancelarNfe falhou', [
                 'business_id'    => $businessId,
@@ -117,6 +134,39 @@ class AcoesController extends Controller
 
             return back()->with('error', 'Cancelamento falhou: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * R-NFE-044 · cancela a venda de uma nota pela ação FSM `cancelar_venda` (mesmo tenant).
+     *
+     * @return array{0: bool, 1: string}
+     */
+    protected function cancelarVendaDaNota(int $businessId, NfeEmissao $nota, string $motivo): array
+    {
+        $venda = \App\Transaction::query()
+            ->where('business_id', $businessId)
+            ->where('id', (int) $nota->transaction_id)
+            ->where('type', 'sell')
+            ->first();
+        if ($venda === null) {
+            return [false, 'A nota não tem venda nesta empresa — nada mais foi cancelado.'];
+        }
+        if (empty($venda->current_stage_id)) {
+            return [false, "A venda #{$venda->id} não está no fluxo de vendas; cancele-a pela tela de Vendas."];
+        }
+
+        try {
+            app(\App\Domain\Fsm\Services\ExecuteStageActionService::class)
+                ->execute($venda, 'cancelar_venda', auth()->user(), ['motivo' => $motivo]);
+        } catch (\Throwable $e) {
+            Log::warning('Fiscal.acoes.cancelarNfe: venda não cancelada', [
+                'business_id' => $businessId, 'transaction_id' => $venda->id, 'error' => $e->getMessage(),
+            ]);
+
+            return [false, "A venda #{$venda->id} não foi cancelada: {$e->getMessage()}"];
+        }
+
+        return [true, "Venda #{$venda->id} cancelada (boleto pendente estornado, reserva de estoque liberada e cliente avisado)."];
     }
 
     /**
