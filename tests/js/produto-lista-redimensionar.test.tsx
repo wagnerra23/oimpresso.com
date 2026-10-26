@@ -39,7 +39,7 @@ const TUDO: PermissoesLista = {
   create: true, update: true, delete: true, opening_stock: true, view: true, stock_report: true,
   etiquetas: true, view_purchase_price: true, access_default_selling_price: true,
 };
-const CONTEXTO = { empresa: 'Empresa de teste', grupos_de_preco: 1, woocommerce: false, papel: null, rotulos_campos: {} };
+const CONTEXTO = { empresa: 'Empresa de teste', grupos_de_preco: 1, emite_nota: true, woocommerce: false, papel: null, rotulos_campos: {} };
 
 /** As colunas que a tela mostra de saída (o padrão do menu "Colunas"). */
 const PADRAO = ['Ação', 'Imagem', 'Produto', 'Locais', 'Preço de compra un.', 'Preço de venda', 'Estoque atual', 'Tipo', 'Categoria', 'Marca', 'Imposto', 'SKU'];

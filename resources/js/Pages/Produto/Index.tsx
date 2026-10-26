@@ -868,6 +868,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
         aoFechar={fecharDetalhe}
         podeEditar={pode('update')}
         podePrecos={pode('create') && contexto.grupos_de_preco > 0}
+        emiteNota={contexto.emite_nota}
         irPara={irPara}
       />
     </>

@@ -292,6 +292,8 @@ class ProductController extends Controller
                     'empresa' => (string) (request()->session()->get('business.name') ?? ''),
                     'grupos_de_preco' => (int) $selling_price_group_count,
                     'woocommerce' => (bool) $is_woocommerce,
+                    // Aba Fiscal e "Dados fiscais" só em empresa que emite nota (UC-PIDX-17 e 25).
+                    'emite_nota' => $this->moduloFiscalNoPacote($business_id),
                     'rotulos_campos' => $this->rotulosCamposProduto(),
                     // Papel do usuário, como a linha de contexto do protótipo ("papel: Administrador").
                     // O nome do role no UltimatePOS carrega o sufixo `#<business_id>` — sai da tela.
@@ -868,6 +870,18 @@ class ProductController extends Controller
         ];
     }
 
+    /**
+     * A empresa emite nota? O teste é ter o módulo Fiscal no pacote, o mesmo que já decidia o botão
+     * "Abrir no módulo Fiscal"; o superadmin vale pelo módulo instalado. Decide a aba Fiscal do painel e o "Dados fiscais" do menu
+     * da linha (decisão [F] 2026-10-26: muitas empresas vendem sem nota, e aí a aba só atrapalha).
+     */
+    private function moduloFiscalNoPacote(int $business_id): bool
+    {
+        return auth()->user()?->can('superadmin')
+            ? (bool) $this->moduleUtil->isModuleInstalled('Fiscal')
+            : (bool) $this->moduleUtil->hasThePermissionInSubscription($business_id, 'fiscal_module', 'superadmin_package');
+    }
+
     private function linkTributacaoDoProduto(int $business_id, int $id): ?string
     {
         $usuario = auth()->user();
@@ -875,11 +889,8 @@ class ProductController extends Controller
             return null;
         }
         $superadmin = $usuario->can('superadmin');
-        $moduloNoPacote = $superadmin
-            ? $this->moduleUtil->isModuleInstalled('Fiscal')
-            : (bool) $this->moduleUtil->hasThePermissionInSubscription($business_id, 'fiscal_module', 'superadmin_package');
         $acessaModulo = $superadmin || $usuario->can('fiscal.access');
-        if (! $moduloNoPacote || ! $acessaModulo || ! $usuario->can('nfe.tributacao.manage')) {
+        if (! $this->moduloFiscalNoPacote($business_id) || ! $acessaModulo || ! $usuario->can('nfe.tributacao.manage')) {
             return null;
         }
 

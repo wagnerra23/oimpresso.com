@@ -275,6 +275,8 @@ export interface ContextoLista {
   empresa: string;
   grupos_de_preco: number;
   woocommerce: boolean;
+  /** Módulo Fiscal no pacote da empresa: decide a aba Fiscal do painel e o "Dados fiscais" do menu. */
+  emite_nota: boolean;
   papel: string | null;
   rotulos_campos: Record<string, string | null>;
 }

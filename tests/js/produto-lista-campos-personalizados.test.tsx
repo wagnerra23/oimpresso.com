@@ -48,7 +48,7 @@ const PERMISSOES: PermissoesLista = {
 };
 // A empresa rotulou o campo 1 ("Cor") e o 3 ("Coleção"); o 2 ficou sem rótulo.
 const ROTULOS: Record<string, string | null> = { '1': 'Cor', '2': null, '3': 'Coleção', '4': null, '5': null, '6': null, '7': null };
-const CONTEXTO = { empresa: 'Empresa de teste', grupos_de_preco: 1, woocommerce: false, papel: null, rotulos_campos: ROTULOS };
+const CONTEXTO = { empresa: 'Empresa de teste', grupos_de_preco: 1, emite_nota: true, woocommerce: false, papel: null, rotulos_campos: ROTULOS };
 
 function montar(visiveis: Record<string, boolean>) {
   const colunas = colunasDaLista({ visiveis, densa: false, permissions: PERMISSOES, contexto: CONTEXTO, aoEscolher: () => undefined });

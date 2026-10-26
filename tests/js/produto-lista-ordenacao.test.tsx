@@ -56,7 +56,7 @@ const TUDO: PermissoesLista = {
   create: true, update: true, delete: true, opening_stock: true, view: true, stock_report: true,
   etiquetas: true, view_purchase_price: true, access_default_selling_price: true,
 };
-const CONTEXTO = { empresa: 'Empresa de teste', grupos_de_preco: 1, woocommerce: false, papel: null, rotulos_campos: {} };
+const CONTEXTO = { empresa: 'Empresa de teste', grupos_de_preco: 1, emite_nota: true, woocommerce: false, papel: null, rotulos_campos: {} };
 
 /** Todas as colunas opcionais ligadas (inclusive "IMEI / série", que nasce desligada). */
 const todasVisiveis = (): Record<string, boolean> => {
