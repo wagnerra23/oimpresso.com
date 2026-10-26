@@ -27,13 +27,32 @@ class ReguaCobrancaConfig
     /** Etapa acima de um ano é digitação errada, não régua: fica de fora. */
     public const DIAS_MAXIMO = 365;
 
-    /** @return array{ativo: bool, dias: list<int>} */
+    /**
+     * `dias` = etapas DEPOIS do vencimento (padrão 1/5/15). `dias_antes` = avisos ANTES do
+     * vencimento (US-FIN-033) — **vazio por padrão**: negócio que já tem a régua ligada não passa
+     * a mandar aviso novo aos clientes por efeito de deploy; ele escolhe os dias.
+     *
+     * @return array{ativo: bool, dias: list<int>, dias_antes: list<int>}
+     */
     public function de(int $businessId): array
     {
         $config = $this->ler($businessId)[self::CHAVE] ?? [];
-        // A tela de configuração (/business/settings) grava os dias como o texto digitado,
-        // "1, 5, 15"; `definir()` grava lista. As duas formas valem.
-        $brutos = $config['dias'] ?? self::DIAS_PADRAO;
+
+        return [
+            'ativo' => (bool) ($config['ativo'] ?? false),
+            'dias' => $this->lista($config['dias'] ?? self::DIAS_PADRAO) ?: self::DIAS_PADRAO,
+            'dias_antes' => $this->lista($config['dias_antes'] ?? []),
+        ];
+    }
+
+    /**
+     * A tela de configuração (/business/settings) grava os dias como o texto digitado,
+     * "1, 5, 15"; `definir()` grava lista. As duas formas valem.
+     *
+     * @return list<int>
+     */
+    private function lista(mixed $brutos): array
+    {
         if (is_string($brutos)) {
             $brutos = preg_split('/[^0-9]+/', $brutos, -1, PREG_SPLIT_NO_EMPTY);
         }
@@ -43,20 +62,23 @@ class ReguaCobrancaConfig
         )));
         sort($dias);
 
-        return [
-            'ativo' => (bool) ($config['ativo'] ?? false),
-            'dias' => $dias ?: self::DIAS_PADRAO,
-        ];
+        return $dias;
     }
 
     /**
      * @param  list<int>|null  $dias
-     * @return array{ativo: bool, dias: list<int>}
+     * @param  list<int>|null  $diasAntes
+     * @return array{ativo: bool, dias: list<int>, dias_antes: list<int>}
      */
-    public function definir(int $businessId, bool $ativo, ?array $dias = null): array
+    public function definir(int $businessId, bool $ativo, ?array $dias = null, ?array $diasAntes = null): array
     {
+        $atual = $this->de($businessId);
         $settings = $this->ler($businessId);
-        $settings[self::CHAVE] = ['ativo' => $ativo, 'dias' => $dias ?? $this->de($businessId)['dias']];
+        $settings[self::CHAVE] = [
+            'ativo' => $ativo,
+            'dias' => $dias ?? $atual['dias'],
+            'dias_antes' => $diasAntes ?? $atual['dias_antes'],
+        ];
 
         DB::table('business')->where('id', $businessId)->update(['common_settings' => json_encode($settings)]);
 

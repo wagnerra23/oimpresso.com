@@ -14,6 +14,7 @@ use Modules\NfeBrasil\Models\NfeDfeNsuState;
 use Modules\NfeBrasil\Models\NfeDfeRecebido;
 use Modules\NfeBrasil\Services\CertificadoService;
 use Modules\NfeBrasil\Services\Concerns\ResolveUfEmitente;
+use Modules\NfeBrasil\Support\CnpjDoEmitente;
 use NFePHP\Common\Certificate;
 use NFePHP\NFe\Tools;
 use RuntimeException;
@@ -382,12 +383,13 @@ class DistribuicaoDfeService
      */
     private function buildConfig(int $businessId): array
     {
-        $row = DB::table('business')->select(['name', 'tax_number_1'])->where('id', $businessId)->first();
+        $row = DB::table('business')->select(['name'])->where('id', $businessId)->first();
         return [
             'atualizacao' => date('Y-m-d H:i:s'),
             'tpAmb'       => (int) config('nfebrasil.ambiente', 2),
             'razaosocial' => (string) ($row->name ?? ''),
-            'cnpj'        => preg_replace('/\D/', '', (string) ($row->tax_number_1 ?? '')),
+            // R-NFE-041: titular do certificado → business.cnpj → tax_number_1; vazio recusa.
+            'cnpj'        => CnpjDoEmitente::obrigatorio($businessId),
             'siglaUF'     => $this->resolverUfEmitente($businessId),
             'schemes'     => 'PL_009_V4',
             'versao'      => '4.00',
