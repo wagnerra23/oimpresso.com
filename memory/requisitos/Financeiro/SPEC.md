@@ -1251,6 +1251,53 @@ Onboarding novo cliente: migra 500+ títulos da planilha legacy num upload. Hoje
 **Refs:** CAPTERRA-INVENTARIO bucket ❌ A5 · COMPARATIVO matriz "Importação massiva P2"
 **LOC estimado:** ~150
 
+### US-FIN-075 · Centro de custo com rateio no título
+
+> owner: — · priority: p2 · estimate: 16h · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_
+
+**Origem:** lacuna P2 do levantamento de concorrência de 2026-10-25. `fin_titulos` não tem centro de custo nem rateio (o `CusteioRkwService` só custeia posto do PCP).
+
+⚠️ **REGRA MESTRE — VALOR**: rateio reparte valor de título.
+
+**Aceite:**
+- [ ] Centros de custo por business (cadastro simples, `business_id` indexado).
+- [ ] Título pode ser rateado em N centros, por % ou por valor; a soma fecha 100% / o valor do título, em centavos (prova por dois caminhos).
+- [ ] DRE e fluxo de caixa filtram por centro de custo.
+- [ ] Tela nasce de fonte de design (protótipo) antes do `.tsx`.
+
+### US-FIN-076 · Orçado × realizado no fluxo de caixa
+
+> owner: — · priority: p2 · estimate: 12h · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_
+
+**Origem:** lacuna P2 do levantamento de 2026-10-25. `FluxoCaixaService::projetar` só projeta 35 dias pelos títulos em aberto; não há orçamento.
+
+**Aceite:**
+- [ ] Orçamento mensal por plano de contas, por business.
+- [ ] Fluxo de caixa e DRE mostram orçado, realizado e diferença no mês (prova por dois caminhos).
+- [ ] Tela nasce de fonte de design (protótipo) antes do `.tsx`.
+
+### US-FIN-077 · Exportar lançamentos contábeis (Domínio, Alterdata, Questor)
+
+> owner: — · priority: p2 · estimate: 16h · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_
+
+**Origem:** lacuna P2 do levantamento de 2026-10-25 (aparece também na lista da frente Plataforma). Só existe `DreExport`.
+
+**Aceite:**
+- [ ] Exporta as baixas/títulos do período como lançamentos contábeis (débito/crédito pelo plano de contas) no layout de importação de cada sistema: Domínio, Alterdata, Questor.
+- [ ] Arquivo validado por um contador-piloto em cada layout antes de dar a US por feita.
+- [ ] Sem valor de cliente em fixture versionada.
+
+**Depende de:** especificação oficial de cada layout; coordenar com a frente Plataforma para um exportador só.
+
 ### US-FIN-035 · Repetir lançamento próximo mês + Combobox autocomplete contraparte
 
 > owner: — · sprint: Onda 29 · priority: p2 · estimate: 4h · type: story
