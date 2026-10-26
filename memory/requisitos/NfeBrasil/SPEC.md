@@ -73,6 +73,17 @@ na_justified:
 - [ ] PDF gerado via `eduardokum/sped-da` salvo em `storage/app/nfe-brasil/{business_id}/danfe/{chave}.pdf`
 - [ ] Test Feature: emissão happy path + idempotência + rejeição cStat 217 + isolamento
 
+**Pré-voo da NFC-e automática — medido em produção em 2026-10-26 (só leitura), [W] 2026-10-26:**
+nenhuma empresa passou nos quatro itens (certificado A1 válido · CSC e série · ambiente de produção · não emitir por
+outro sistema), e nenhuma foi ligada.
+- **biz=1 (WR2):** estava ligada (`auto_emission_enabled`), mas o certificado A1 tinha vencido em 2026-08-06 e a
+  SEFAZ-SC recusava as NFC-e com 781 ("emissor não habilitado") — faltava o credenciamento NFC-e. Nenhuma venda nos
+  30 dias anteriores.
+- **biz=4 (ROTA LIVRE):** emitia pelo Delphi (WR Comercial/OfficeImpresso), o sistema que está sendo migrado para o
+  oimpresso — [W] 2026-10-26: *"emite pelo sistema Delphi meu o que esta sendo migrado"*. Ligar aqui duplicaria a nota.
+- **biz=164 (Martinho):** emitia NF-e pelo Delphi (as notas no oimpresso eram importadas, `legacy_source`).
+Ligar a NFC-e nessas empresas é passo de cutover da migração (US-NFE-074), não um toggle.
+
 ### US-NFE-003 · Visualizar e reimprimir NFCe/NFe emitida
 
 > **Área:** Emissao
@@ -1753,3 +1764,21 @@ Casos: `resources/js/Pages/Fiscal/Nfe.casos.md` UC-FNFE-19, 20, 30, 31 · prova 
 - [x] Multi-tenant: o evento de um tenant nunca grava em outro (Pest com os tenants 98 e 2) — UC-FNFE-31
 - [ ] Smoke fiscal manual contra SEFAZ só em biz=1, homologação
 
+
+### US-NFE-074 · Cutover da emissão Delphi → oimpresso, por empresa — **Backlog**
+
+> owner: — · sprint: — · priority: p1 · estimate: 4h · status: todo · type: story
+> blocked_by: decisão [W] por empresa (data do cutover)
+
+**Implementado em:** _pendente_ — registro de backlog, nada executado.
+
+Como empresa que ainda emite pelo Delphi (WR Comercial/OfficeImpresso), quero passar a emitir pelo oimpresso num dia combinado, sem duplicar nota nem repetir número, para terminar a migração.
+
+**Origem:** pré-voo da NFC-e automática de 2026-10-26 (US-NFE-002) — biz=4 e biz=164 emitiam pelo Delphi; [W] 2026-10-26.
+
+**Antes de ligar, por empresa (checklist):**
+- [ ] Certificado A1 da empresa cadastrado no oimpresso e dentro da validade
+- [ ] Ambiente de produção configurado para a empresa
+- [ ] Credenciamento NFC-e na SEFAZ da UF (SEFAZ-SC para as empresas de hoje)
+- [ ] Série e numeração que **não** colidam com as que o Delphi já usou — medir a última numeração do Delphi por série antes de definir
+- [ ] Desligar a emissão no Delphi e ligar aqui no **mesmo dia**, com aviso prévio ao cliente e canary, conforme a F5 do MWART (ADR 0104)
