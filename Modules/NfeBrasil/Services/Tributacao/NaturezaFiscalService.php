@@ -124,6 +124,29 @@ class NaturezaFiscalService
             ->all();
     }
 
+    /**
+     * Natureza de um produto da empresa, para mostrar no cadastro (UC-PEDIT-14 · CU-PROD-19).
+     * Sem linha (ou sem a tabela) devolve null: o cadastro não mostra nada.
+     *
+     * @return array{natureza: string, codigo_servico: string|null}|null
+     */
+    public function daProduto(int $businessId, int $productId): ?array
+    {
+        if (! self::disponivel()) {
+            return null;
+        }
+
+        $linha = NfeNaturezaProduto::withoutGlobalScopes() // SUPERADMIN: chamado pelo cadastro de produto; escopo no where
+            ->where('business_id', $businessId)
+            ->where('product_id', $productId)
+            ->first(['natureza', 'codigo_servico']);
+
+        return $linha === null ? null : [
+            'natureza' => (string) $linha->natureza,
+            'codigo_servico' => $linha->codigo_servico !== null ? (string) $linha->codigo_servico : null,
+        ];
+    }
+
     private function produtoDaEmpresa(int $businessId, int $productId): void
     {
         if (! DB::table('products')->where('business_id', $businessId)->where('id', $productId)->exists()) {

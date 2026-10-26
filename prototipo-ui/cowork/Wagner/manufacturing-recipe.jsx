@@ -78,7 +78,7 @@ function MfgNovaReceita({ recipes, onClose, onCreate }) {
             <option>m²</option><option>un</option><option>m</option><option>kg</option><option>L</option>
           </Select>
         </div>
-        <Select label="Clonar ingredientes de" help="opcional — copia grupos, quantidades e desperdício da receita escolhida"
+        <Select label="Clonar ingredientes de" help="opcional — copia grupos e quantidades da receita escolhida"
           value={clone} onChange={(e) => setClone(e.target.value)}>
           <option value="">Começar vazia</option>
           {recipes.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
@@ -149,7 +149,6 @@ function MfgIngredientesEditor({ recipe, settings, perms, onSave, onCancel, onDe
   const erros = {};
   if (!String(r.name || "").trim()) erros.name = "Informe o nome da receita.";
   if (!(r.qtd > 0)) erros.qtd = "Precisa ser maior que zero.";
-  if (!(r.waste >= 0 && r.waste < 100)) erros.waste = "Use de 0 a menos de 100%.";
   if (!(r.extra >= 0)) erros.extra = "Não pode ser negativo.";
   if (!(r.venda >= 0)) erros.venda = "Não pode ser negativo.";
   if (r.subUn && !(r.subFator > 0)) erros.subFator = "Precisa ser maior que zero.";
@@ -244,9 +243,8 @@ function MfgIngredientesEditor({ recipe, settings, perms, onSave, onCancel, onDe
                 <input className="mfg-inp" type="number" min="0" step="0.01" value={r.subFator || 1} disabled={!podeEditar || !r.subUn} onChange={(e) => set({ subFator: Number(e.target.value) })} />
               </Campo>
             </div>
-            <Campo label="Desperdício (%)" erro={erros.waste} hint={"rende " + num(c.qtdLiq, 2) + " " + r.un + " de " + num(r.qtd, 2)}>
-              <input className="mfg-inp" type="number" min="0" max="100" step="0.5" value={r.waste} disabled={!podeEditar} onChange={(e) => set({ waste: Number(e.target.value) })} />
-            </Campo>
+            {/* Decisão [W], confirmada por Felipe com o Wagner em 23/10: desperdício é somente na Produção. */}
+            <p className="mfg-note" style={{ margin: "-2px 0 0" }}>A receita não tem % de desperdício: a perda real é registrada na ordem de produção.</p>
             <div className="mfg-row2">
               <Select label="Custo extra" value={r.custoTipo} disabled={!podeEditar} onChange={(e) => set({ custoTipo: e.target.value })}>
                 <option value="fixo">Valor fixo</option><option value="percentual">% dos ingredientes</option><option value="unidade">Por unidade produzida</option>
