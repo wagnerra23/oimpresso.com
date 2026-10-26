@@ -21,10 +21,6 @@ class EmitirNfeAoEnviar implements SideEffectInterface
             return;
         }
 
-<<<<<<< HEAD:Modules/Marketplaces/SideEffects/EmitirNfeAoEnviar.php
         EmitirNfeDoPedidoJob::dispatch((int) $subject->getAttribute('business_id'), (int) $subject->getKey())->afterCommit();
-=======
-        AvaliarNfeDoPedidoJob::dispatch((int) $subject->getAttribute('business_id'), (int) $subject->getKey())->afterCommit();
->>>>>>> claude/mkt-009b-destinatario:Modules/Marketplaces/SideEffects/AvaliarNfeAoEnviar.php
     }
 }
