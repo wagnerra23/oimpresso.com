@@ -303,6 +303,13 @@ function RoteiroDoProdutoSecao({ r }: { r: RoteiroDoProduto }) {
   );
 }
 
+/** UC-PIDX-32: o método de custo da variação, com a data da última compra recebida. */
+function textoMetodoCusto(m: { metodo: 'medio' | 'ultimo' | null; ultima_compra_em: string | null }): string {
+  if (m.metodo === null) return 'sem método definido';
+  const base = m.metodo === 'medio' ? 'custo médio' : 'última compra';
+  return m.ultima_compra_em ? `${base} · ${dataBr(m.ultima_compra_em)}` : `${base} · sem compra recebida`;
+}
+
 function Dt({ rotulo, valor }: { rotulo: string; valor: string | null | undefined }) {
   return (
     <div className="pb-dt">
@@ -337,6 +344,8 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
   const custo = (d?.variacoes ?? []).some((v) => v.compra_exc !== undefined);
   const venda = (d?.variacoes ?? []).some((v) => v.venda_exc !== undefined);
   const lucro = (d?.variacoes ?? []).some((v) => v.lucro_percentual !== undefined);
+  // UC-PIDX-32: só quando a empresa gravou a regra de custo (o servidor manda o campo).
+  const metodoCusto = (d?.variacoes ?? []).some((v) => v.custo_metodo !== undefined);
   const grupos = d?.variacoes[0]?.grupos ?? [];
   // Imposto não é segredo (sai impresso na nota), então nada aqui depende de permissão; aparece onde
   // é útil (decisão [F] 2026-10-26): junto do preço na aba Dados, e as tabelas só separam "sem" e
@@ -492,6 +501,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                         <th>SKU</th>
                         {custo && variacoesComImposto && <th className="r">Compra sem imposto</th>}
                         {custo && <th className="r">{variacoesComImposto ? 'Compra com imposto' : 'Compra'}</th>}
+                        {metodoCusto && <th>Método do custo</th>}
                         {lucro && <th className="r">% lucro</th>}
                         {venda && variacoesComImposto && <th className="r">Venda sem imposto</th>}
                         {venda && <th className="r">{variacoesComImposto ? 'Venda com imposto' : 'Venda'}</th>}
@@ -504,6 +514,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                           <td className="m">{v.sku}</td>
                           {custo && variacoesComImposto && <td className="r">{dinheiro(v.compra_exc)}</td>}
                           {custo && <td className="r">{dinheiro(v.compra_inc)}</td>}
+                          {metodoCusto && <td data-contract="produto-detalhe-metodo-custo">{v.custo_metodo ? textoMetodoCusto(v.custo_metodo) : '—'}</td>}
                           {lucro && <td className="r">{v.lucro_percentual === undefined ? '—' : `${qtd(v.lucro_percentual)} %`}</td>}
                           {venda && variacoesComImposto && <td className="r">{dinheiro(v.venda_exc)}</td>}
                           {venda && <td className="r">{dinheiro(v.venda_inc)}</td>}

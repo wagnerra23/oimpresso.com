@@ -420,6 +420,24 @@ E o XML emitido NÃO inclui blocos CBS/IBS
 **Implementação:** Schema flexível; `MotorTributarioService` skip CBS/IBS se rule é NULL.
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/OndaIbsCbsScaffoldTest.php` (schema flexível IBS/CBS: colunas nullable `cst_ibs`/`cst_cbs`/`aliquota_ibs`/`aliquota_cbs` em `$fillable` + casts; cascade do motor coberto por `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php`).
 
+### R-NFE-044 · Cancelar a NF-e pergunta: só a nota ou a venda junto
+
+```gherkin
+Dado uma NF-e autorizada de uma venda da empresa, no fluxo de vendas (FSM)
+Quando o fiscal cancela a nota escolhendo "venda junto"
+Então a nota é cancelada na SEFAZ (evento 110111) e a venda recebe a ação FSM cancelar_venda com o mesmo motivo
+E escolhendo "só a nota" (ou sem escolha, como antes) só a nota é cancelada, para reemitir
+E venda de outra empresa não é achada; venda fora do fluxo não é cancelada e a mensagem manda cancelar em Vendas
+E escolha diferente de nota/venda não passa da validação
+```
+
+**Contrato:** decisão [W] 2026-10-26 ("ao cancelar, o sistema pergunta"). O que a ação `cancelar_venda` faz é o `CancelarVendaCascade`: cancela as notas por job idempotente, estorna boleto pendente, libera **reserva** de estoque e avisa o cliente.
+**Implementação:** `Modules/Fiscal/Http/Controllers/AcoesController.php` (`cancelarNfe`, `cancelarVendaDaNota`).
+**Testado em:** `Modules/Fiscal/Tests/Feature/AcoesCancelarEscopoTest.php` (lane `nfebrasil-pest`).
+**Fora deste item (até a US-SELL-077, #9911):** o cascade **não** devolvia ao estoque o que a venda já baixou nem cancelava o título do Financeiro (medido em 2026-10-26 — `LiberarReserva` "NÃO mexe em qty_available"). Com a US-SELL-077 a venda vira `cancelled`, o estoque volta e o título sem pagamento é cancelado; venda com dinheiro recebido **não** cancela.
+**Conferência antes da nota (2026-10-26):** com "venda junto", o controller confere antes de cancelar a nota se a venda pode ser cancelada (`recusaDaVenda`: sem venda na empresa, fora do fluxo, ou as pendências do `CancelamentoDaVenda` — dinheiro recebido). Recusou → **nada** é cancelado, nem a nota (o cancelamento na SEFAZ é irreversível). Prova: `AcoesCancelarEscopoTest` UC-FNFE-54.
+**Tela:** `resources/js/Pages/Fiscal/_components/NotaDrawer.tsx` (modal com as duas opções; padrão "só a nota") · teste `tests/js/fiscal-nfe-cancelar-escopo.test.tsx` (lane `fiscal-teclado-gate`).
+
 ### R-NFE-012 · Não-emissão NÃO bloqueia venda (assíncrono)
 
 ```gherkin
