@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Financeiro\Services;
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\PaymentGateway\Models\Cobranca;
 
 /**
  * Como o cliente paga um título a receber — para a régua de cobrança pôr na mensagem
@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Schema;
  * mandar o cliente pagar um Pix que já foi pago ou cancelado é pior do que não mandar nada.
  *
  * Só lê. Não emite cobrança nem gera link novo — título sem cobrança segue sem meio de pagar.
+ * Lê pelo Model do dono (`Modules\PaymentGateway\Models\Cobranca`), não por `DB::table`.
  * Tier 0 (ADR 0093): `business_id` explícito em toda consulta.
  */
 class MeioDePagarDoTitulo
@@ -36,7 +37,8 @@ class MeioDePagarDoTitulo
             return null;
         }
 
-        $cobranca = DB::table('cobrancas')
+        // SUPERADMIN: roda no job da régua (sem sessão); o escopo de empresa vem do business_id explícito.
+        $cobranca = Cobranca::withoutGlobalScopes()
             ->where('business_id', $businessId)
             ->whereIn('status', self::COBRANCA_PAGAVEL)
             ->where(function ($q) use ($titulo) {
