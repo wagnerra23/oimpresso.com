@@ -865,6 +865,8 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::post('/purchases/check_ref_number', [PurchaseController::class, 'checkRefNumber']);
     // US-COM-005 — layout da grade tam×cor pra produto variável (Tier 0 via business_id da sessão).
     Route::get('/purchases/grade-matrix', [PurchaseController::class, 'gradeMatrix'])->name('purchases.grade-matrix');
+    // US-COM-013 — pedidos de compra abertos do fornecedor, para receber em partes.
+    Route::get('/purchases/pedidos-abertos', [PurchaseController::class, 'pedidosAbertos'])->name('purchases.pedidos-abertos');
     Route::resource('purchases', PurchaseController::class)->except(['show']);
 
     // As rotas /sells (subscriptions, drafts, quotations, duplicate, convert-to-draft,

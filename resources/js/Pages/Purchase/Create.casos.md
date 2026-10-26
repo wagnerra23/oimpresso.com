@@ -461,6 +461,28 @@ Status: 🧪
 
 ---
 
+## Receber o pedido de compra em partes (US-COM-013)
+
+> **Âncora:** US-COM-013 do [SPEC de Compras](../../../../memory/requisitos/Compras/SPEC.md), com a
+> decisão da coordenação de 2026-10-26: o recebimento parcial vai pelo pedido de compra
+> (`po_quantity_purchased`), sem coluna nova. ESTOQUE: regra mestre.
+
+## UC-PURCRE-12 · O pedido de 10 recebe 4 e depois 6, e só o que chegou entra no estoque · `must` `[V0]` `[T0]`
+
+- **Persona:** quem recebe a mercadoria e lança a compra (Larissa, biz=4).
+- **Aceite:** Dado um pedido de compra de 10 unidades de um fornecedor · Quando a pessoa lança uma
+  compra recebida de 4 ligada a esse pedido · Então o estoque sobe 4, o pedido fica Parcial e a
+  lista de pedidos abertos do fornecedor mostra 6 a receber · E quando lança outra compra de 6 ·
+  Então o estoque fica em 10, o pedido fica Concluído e sai da lista. Pedido de fornecedor de outra
+  empresa nunca aparece na lista.
+- **Teste:** [`RecebimentoParcialPedidoTest`](../../../../Modules/Compras/Tests/Feature/RecebimentoParcialPedidoTest.php)
+  (lane compras-pest; estoque conferido por dois caminhos: saldo gravado e soma das compras recebidas).
+- **Contrato:** SPEC US-COM-013 + regra mestre de estoque. A trava contra pedido de outra empresa no
+  `store()` é a US-COM-029.
+- **Status: 🧪 comportamento · na lane**
+
+---
+
 ## ⚠️ Divergências que precisam de [W] (não corrigidas aqui — são INTENÇÃO)
 
 1. **A grade aguarda smoke/canary de [W].** O charter v2 traz
