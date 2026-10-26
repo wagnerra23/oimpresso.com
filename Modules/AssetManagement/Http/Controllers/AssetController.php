@@ -897,9 +897,9 @@ class AssetController extends Controller
      * entra por join com `assets` filtrando `assets.business_id`. As duas consultas do ramo
      * nao-admin filtravam so `receiver`; reescritas aqui, nascem com `business_id`.
      *
-     * Dois numeros do prototipo NAO renderizam, e devolvem `null` (o front mostra "—"):
-     * valor residual (depreciacao nunca e calculada — RESIDUO 6, decisao [W]) e custo de
-     * manutencao (`asset_maintenances` nao tem coluna de valor — RESIDUO 3). Ver
+     * O valor residual e a depreciacao gerencial linear (US-ASSET-009, decisao [W] 2026-10-26; era
+     * null ate essa data — RESIDUO 6). O custo de manutencao segue `null` (o front mostra "—"):
+     * `asset_maintenances` nao tem coluna de valor — RESIDUO 3. Ver
      * memory/requisitos/AssetManagement/RUNBOOK-patrimonio-index.md §3.
      */
     public function dashboard()
@@ -934,7 +934,10 @@ class AssetController extends Controller
         ]);
     }
 
-    /** Os 4 KPIs do topo. `valorResidual` e null DE PROPOSITO — ver docblock do dashboard(). */
+    /**
+     * Os 4 KPIs do topo. `valorResidual` e a depreciacao GERENCIAL linear (US-ASSET-009, decisao [W]
+     * 2026-10-26) dos bens com vida util e data de compra; null quando nenhum bem tem prazo.
+     */
     private function painelKpis($business_id, $is_admin)
     {
         if (! $is_admin) {
@@ -957,9 +960,12 @@ class AssetController extends Controller
             ->toBase()
             ->first();
 
+        $dep = app(\Modules\AssetManagement\Services\DepreciacaoGerencial::class)->doPatrimonio((int) $business_id);
+
         return [
             'bruto' => (float) $bens->bruto,
-            'valorResidual' => null,
+            'valorResidual' => $dep['residual'],
+            'residualSemPrazo' => $dep['sem_prazo'],
             'unidades' => (float) $bens->unidades,
             'totalBens' => (int) $bens->total_bens,
             'alocados' => (float) $mov->alocado - (float) $mov->revogado,

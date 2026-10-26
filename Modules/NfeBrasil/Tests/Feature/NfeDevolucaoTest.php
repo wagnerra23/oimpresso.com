@@ -149,7 +149,8 @@ it('R-NFE-026 · devolução copia a origem', function () {
         {
             return new TributoCalculado(
                 cfop: '5102', csosn: null, cst: '00',
-                aliquota_icms: 12.0, aliquota_pis: 1.65, aliquota_cofins: 7.6, aliquota_ipi: 0.0,
+                // Fração, como a régua guarda (UpsertRegraTributariaRequest: "0.18 = 18%"); o XML leva 12 (R-NFE-040).
+                aliquota_icms: 0.12, aliquota_pis: 0.0165, aliquota_cofins: 0.076, aliquota_ipi: 0.0,
                 valor_icms: round($produto->valor * 0.12, 2), valor_pis: 0.0, valor_cofins: 0.0, valor_ipi: 0.0,
                 nivel_usado: 2,
             );
