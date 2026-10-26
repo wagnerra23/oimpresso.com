@@ -55,8 +55,11 @@ class AvaliarNfeDoPedidoJob implements ShouldQueue
         if ($pedido->shipping_type === 'fulfillment') {
             return $nao('venda saída do estoque Full: CFOP depende de decisão do contador');
         }
-        if (empty($destinatario['documento']) || $cfop === null) {
+        if (empty($destinatario['documento']) || empty($destinatario['uf'])) {
             return $nao('destinatário incompleto (documento e UF vêm do billing_info do ML)');
+        }
+        if ($cfop === null) {
+            return $nao('CFOP do marketplace não configurado (depende do contador)');
         }
 
         return ['pode' => true, 'motivo' => null, 'cfop' => $cfop];
