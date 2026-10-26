@@ -27,7 +27,7 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  */
 it('US-MKT-009 · formato novo (identification/address/taxes) vira as chaves de contacts', function () {
     $d = DestinatarioMercadoLivre::mapear(['billing_info' => [
-        'name' => 'Loja Teste', 'identification' => ['type' => 'CNPJ', 'number' => '11.222.333/0001-81'],
+        'name' => 'Loja Teste', 'identification' => ['type' => 'CNPJ', 'number' => '11.222.333/0001-81'], // pii-allowlist (CNPJ sintético de teste)
         'address' => ['street_name' => 'Rua A', 'street_number' => '10', 'neighborhood' => 'Centro', 'city_name' => 'Tubarão',
             'state' => ['code' => 'BR-SC', 'name' => 'Santa Catarina'], 'zip_code' => '88700-000'],
         'taxes' => ['inscriptions' => ['state_registration' => '123456789']],
