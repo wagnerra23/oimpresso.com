@@ -502,3 +502,56 @@ describe('UC-PCAD-16 · UC-PEDIT-13 · peso e dimensões no cadastro', () => {
     expect(salvar(container, 'produto-edit-form')?.altura_cm).toBe('')
   })
 })
+
+// UC-PEDIT-14 — a natureza fiscal no Editar (CU-PROD-19). Quem decide se o produto é mercadoria ou
+// serviço é o contador, na Tributação; o cadastro só mostra. Produto de serviço não leva NCM, então
+// o aviso de "sem NCM" não aparece para ele.
+describe('UC-PEDIT-14 · natureza fiscal no Editar produto', () => {
+  const editar = (naturezaFiscal: Record<string, unknown> | null, ncm: string | null = null) =>
+    render(
+      <ProdutoEdit
+        {...(listasDoServidor as never)}
+        product={{
+          id: 9, name: 'Arte de banner', sku: 'ART-01', type: 'single', brandId: 3, unitId: 5,
+          subUnitIds: null, categoryId: 1, subCategoryId: null, tax: 2, taxType: 'exclusive',
+          origemMercadoria: 0, ncm, barcodeType: 'C128', enableStock: false, alertQuantity: null,
+          weight: null, productDescription: null, productLocations: [1], image: null,
+          warrantyId: null, camposPersonalizados: {}, expiryPeriod: null, expiryPeriodType: null,
+          naturezaFiscal,
+        } as never}
+        subUnits={{}}
+        permissions={{ opening_stock: false, delete: false }}
+      />,
+    )
+  const natureza = () => screen.queryByTestId('natureza-fiscal')
+  const aviso = () => screen.queryByTestId('ncm-aviso')
+
+  it('produto de serviço mostra a natureza e o item da LC 116, e não avisa a falta de NCM', () => {
+    editar({ natureza: 'servico', codigoServico: '24.01', link: '/nfe-brasil/tributacao?produto=9' })
+
+    expect(natureza()?.textContent).toContain('Serviço')
+    expect(natureza()?.textContent).toContain('item 24.01 da LC 116')
+    expect(natureza()?.querySelector('a')?.getAttribute('href')).toBe('/nfe-brasil/tributacao?produto=9')
+    expect(aviso()).toBeNull()
+  })
+
+  it('produto de mercadoria sem NCM continua com o aviso', () => {
+    editar({ natureza: 'mercadoria', codigoServico: null, link: null })
+
+    expect(natureza()?.textContent).toContain('Mercadoria')
+    expect(aviso()?.textContent).toContain('Sem NCM a nota fiscal de mercadoria não sai')
+  })
+
+  it('produto de serviço com NCM no formato errado ainda avisa o formato', () => {
+    editar({ natureza: 'servico', codigoServico: '24.01', link: null }, '4911')
+
+    expect(aviso()?.textContent).toBe('O NCM tem 8 dígitos.')
+  })
+
+  it('produto sem decisão do contador não mostra a natureza', () => {
+    editar(null)
+
+    expect(natureza()).toBeNull()
+    expect(aviso()?.textContent).toContain('Sem NCM a nota fiscal de mercadoria não sai')
+  })
+})

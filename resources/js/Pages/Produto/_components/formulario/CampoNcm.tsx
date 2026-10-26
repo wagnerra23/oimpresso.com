@@ -7,12 +7,15 @@ export function CampoNcm({
   value,
   onChange,
   error,
+  servico = false,
 }: {
   value: string;
   onChange: (v: string) => void;
   error?: string;
+  /** UC-PEDIT-14: produto de serviço não leva NCM; vazio não avisa. */
+  servico?: boolean;
 }) {
-  const aviso = error ? null : avisoNcm(value);
+  const aviso = error || (servico && value === '') ? null : avisoNcm(value);
 
   return (
     <div>
