@@ -142,6 +142,14 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 
 **Implementado em:** _parcial_ · `Modules/Ponto/Services/AejService.php` · `Modules/Ponto/Http/Controllers/RelatorioController.php` · `Modules/Ponto/Tests/Feature/RelatorioLegalContratoTest.php` · verificado@93d6a5d11c (2026-10-26) — o AEJ leiaute 002 sai desde o #8242 (ADR 0420, UC-RELIDX-10..12), recusando dado legal ausente. Falta a assinatura CAdES `.p7s`, que depende do e-CNPJ A1 e de ADR nova (ADR 0413 D2). Ate 2026-09-29 esta linha dizia `_pendente_` com `abort(501)`, o que era verdade naquela data
 
+**Testado em:** `Modules/Ponto/Tests/Feature/RelatorioLegalContratoTest.php` (UC-RELIDX-10..12)
+
+**Aceite:** (estado medido em 2026-10-26)
+- [x] Leiaute AEJ versão "002" do MTE, ISO 8859-1, lendo a apuração (ADR 0420)
+- [x] Dado legal ausente (CPF, PTRP, motivo de marcação manual) recusa com a contagem, nunca inventa campo
+- [x] Só o empregador da sessão entra no arquivo (Tier 0, ADR 0093)
+- [ ] Assinatura CAdES `.p7s` — depende do e-CNPJ A1 e de ADR nova (ADR 0413 D2)
+
 **Como** RH,
 **quero** gerar arquivo AEJ (Arquivo Eletronico de Jornada) com assinatura CAdES `.p7s`,
 **para que** fiscalizacao MTE aceite auditoria (REP-P canon pos-2021).
