@@ -146,6 +146,9 @@ class SaleFsmActionController extends Controller
             return response()->json(['error' => $e->getMessage()], 403);
         } catch (InvalidActionForCurrentStageException $e) {
             return response()->json(['error' => $e->getMessage()], 422);
+        } catch (\App\Services\Sells\VendaNaoCancelavelException $e) {
+            // [W] 2026-10-26: venda paga não cancela; a mensagem diz o que falta para liberar.
+            return response()->json(['error' => $e->getMessage(), 'pendencias' => $e->pendencias], 422);
         } catch (\Throwable $e) {
             \Log::error('SaleFsmActionController: falha execute', [
                 'business_id' => $businessId,
