@@ -175,6 +175,25 @@ Construir BaileysDriver custom resolve as 3 dores principais (schema, logs, mét
 - Mercado top (Take Blip): 8×4 + 8×2 + 10×1 + 2×0.5 = **59**
 - oimpresso Sprint 1-3 alvo: 8×4 + 5×2 + 4×1 + 1×0.5 = **46.5** (78% do top, no nosso perfil é suficiente)
 
+### 5.1 Reconciliação com o código (medido 2026-10-26)
+
+> A tabela da §2 e o score acima são o **retrato de 2026-05-07** e ficam como estão. Vários itens que ela marca como backlog **já foram entregues**; o estado vivo por capacidade é o [CAPTERRA-INVENTARIO §Refresh 2026-05-15](CAPTERRA-INVENTARIO.md). Conferido no `origin/main` de 2026-10-26 (`93d6a5d11c`):
+
+| Capacidade | Ficha (2026-05-07) | Código hoje | Evidência |
+|---|---|---|---|
+| C-108 Respostas rápidas / macros | 🟡 Backlog | ✅ entregue, com variantes A/B | `Services/Macros/MacroExecutor.php` · rota `atendimento.macros.*` · `MacrosCrudTest`, `MacroVariantPickerTest` |
+| C-107 Métricas | ✅ Sprint 3 (previsto) | ✅ entregue | `Services/Metrics/MetricsAggregator.php` · rota `atendimento.metricas.index` · `MetricsSnapshotBuilderTest` |
+| C-106 Tags | 🟡 Backlog | ✅ entregue (CRUD, filtro, seed padrão) | `Entities/Tag.php` · rota `atendimento.inbox.update_tags` · `ConversationTagsTest` (US-WA-063) |
+| C-103 Mídia saindo | 🟡 Sprint 2.5 | ✅ entregue | `Jobs/SendMediaJob.php` · `MediaMessageTest` (US-WA-072) |
+| C-104 Mídia chegando | 🟡 Backlog | ✅ entregue, com transcrição de áudio | `Jobs/DownloadMediaJob.php` · `Jobs/TranscribeAudioJob.php` · `MediaInboundProcessedTest` (US-WA-072) |
+| C-201/C-202 Botões e lista | 🟡 Backlog | ✅ entregue | `Jobs/SendInteractiveJob.php` (tipo `list`) · `InboxSendInteractiveTest` (US-WA-045/045b) |
+| CSAT pós-atendimento | não listado | ✅ entregue | `Services/Csat/CsatDispatcher.php` · rota `atendimento.csat.index` · `CsatFlowTest` |
+| SLA com escalonamento | não listado | ✅ entregue | `Services/Sla/SlaEnforcer.php` · `SlaScanCommandTest` |
+| C-205 NF-e/boleto anexo | ✅ diferencial | 🟡 mecanismo pronto, desligado | Aviso automático com anexo por URL (US-WA-319), aviso de venda pela API (US-WA-320) e DANFE da NF-e autorizada (US-WA-321) — PRs #9817/#9822/#9830, atrás de flag; boleto pela régua do Financeiro |
+| C-204 Pix copia-e-cola | 🟡 Backlog | 🟡 ainda ausente no WhatsApp | vai como texto no aviso de cobrança da régua do Financeiro (US-WA-038) |
+
+**Continua ausente de verdade** (levantamento de concorrência 2026-10-25): disparo real de campanha em massa (o broadcast é pré-checagem + rascunho, ADR 0268 — fase 2 com gate [W]), bot que responde o cliente com menu (adiado pelo [PLANO-ATENDIMENTO-AUTOMATICO](PLANO-ATENDIMENTO-AUTOMATICO.md) §0) e Instagram/Messenger/e-mail na mesma caixa (`ChannelDriverFactory` lança `NotImplementedDriverException`; ADR 0135, gated por sinal de cliente).
+
 ## 6. Diferenciais únicos do oimpresso (não-replicáveis pelos BSPs)
 
 1. **Integração nativa ERP transacional** (C-206) — nenhum BSP envia status OS, NFe paga, boleto vencido amarrados ao ledger Financeiro. Take Blip integra como "API client", não nativo.
