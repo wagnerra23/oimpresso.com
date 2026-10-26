@@ -2073,7 +2073,7 @@ Falta: listener na autorização que ache o título via `transaction_id` e o aju
 
 ### US-FIN-074 · Extrato automático via Pluggy (Open Finance) entra na conciliação — **P0**
 
-> owner: — · priority: p2 · estimate: 10h · status: doing · type: story
+> owner: — · priority: p2 · estimate: 10h · status: done · type: story
 > blocked_by: —
 
 **Implementado em:** `Modules/Financeiro/Console/Commands/PluggySyncCommand.php` (`financeiro:pluggy-sync`), `Modules/Financeiro/Services/Integrations/PluggyBankSyncService.php` (`tipoCanonico`), `Modules/Financeiro/Services/Integrations/PluggyClient.php` (`listTransactions` paginado), `Modules/Financeiro/Tests/Feature/PluggySyncContratoTest.php`
