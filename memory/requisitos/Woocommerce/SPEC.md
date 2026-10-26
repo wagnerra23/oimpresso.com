@@ -80,7 +80,7 @@ related_adrs:
 > owner: — · priority: p1 · estimate: 8h · status: todo · type: story
 > blocked_by: —
 
-**Implementado em:** _pendente_ — planejada (lacunas 2026-10-25); hoje o estoque só vai à Woo pelo sync manual de produtos
+**Implementado em:** _parcial_ · `Modules/Woocommerce/Jobs/EnviarEstoqueWooJob.php` · `Modules/Woocommerce/Listeners/EstoqueMudouParaWoo.php` · `Modules/Woocommerce/Tests/Feature/EstoqueVoltaParaWooContratoTest.php` — 2026-10-26: produto simples; produto variável (estoque por variação, como o `syncProductVariations`) fica para o próximo PR
 
 Origem: levantamento de lacunas 2026-10-25 (P1 Plataforma — WooCommerce atualizado com estoque de volta).
 - Hoje o estoque só vai para a Woo quando alguém roda o sync de produtos; venda no balcão não atualiza a loja.
