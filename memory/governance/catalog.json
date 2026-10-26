@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 858,
-    "edges": 1164,
+    "nodes": 859,
+    "edges": 1165,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 146,
-      "component": 476,
+      "component": 477,
       "api": 86
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 90,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 476,
+      "hasComponent": 477,
       "dependsOn": 126,
       "delegatesTo": 117,
       "migratesTo": 1,
@@ -4854,6 +4854,13 @@
       "module": "VozDoCliente",
       "name": "SinalController",
       "desc": "grava o sinal (store) e mostra a caixa de triagem (index)"
+    },
+    {
+      "id": "component:Whatsapp/Admin/BotMenuController",
+      "type": "component",
+      "module": "Whatsapp",
+      "name": "Admin/BotMenuController",
+      "desc": "menu do bot por canal (opções → fila, captura de nome, saudação) PUT /atendimento/canais/{id}/menu-bot (US-WA-327); motor em Services/BotMenu, atrás de WHATSAPP_BOT_MENU_ENABLED"
     },
     {
       "id": "component:Whatsapp/Admin/BroadcastController",
@@ -13760,6 +13767,12 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "OS / Kanban de reparo"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "component:Whatsapp/Admin/BotMenuController",
+      "type": "hasComponent",
+      "source": "contains"
     },
     {
       "from": "module:Whatsapp",
