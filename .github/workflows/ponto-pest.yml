@@ -363,6 +363,7 @@ jobs:
             Modules/Ponto/Tests/Feature/IntercorrenciaContratoTest.php \
             Modules/Ponto/Tests/Feature/LicencaAbonaDiaContratoTest.php \
             Modules/Ponto/Tests/Feature/FeriadoApuracaoContratoTest.php \
+            Modules/Ponto/Tests/Feature/EspelhoCienciaContratoTest.php \
             Modules/Ponto/Tests/Feature/ConformidadeContratoTest.php \
             Modules/Ponto/Tests/Feature/AbasContadoresContratoTest.php \
             Modules/Ponto/Tests/Feature/TraducaoModuleLabelContratoTest.php \
