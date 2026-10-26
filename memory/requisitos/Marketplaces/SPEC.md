@@ -444,7 +444,13 @@ Driver pattern: classe `MarketplaceDriver` abstrata + `MercadoLivreDriver`, `Sho
 
 ### US-MKT-007 · Pedido ML → cria `mkt_orders` + transaction UltimatePOS + FSM stage initial — **P0** · 8h
 
-**Implementado em:** _pendente_ — módulo não construído (US planejada): sem `ProcessMercadoLivreOrderJob`, sem tabela `mkt_orders`, sem processo FSM `venda_marketplace` no disco
+**Implementado em:** _parcial_ · `Modules/Marketplaces/Services/PedidoParaVenda.php` · `Modules/Marketplaces/Jobs/VirarVendaJob.php` · `Modules/Marketplaces/Database/Migrations/2026_10_26_000003_add_location_id_to_mkt_account_credentials.php` — 2026-10-26: pedido pago vira venda final no local da conta, com baixa de estoque; falta o estágio FSM `venda_marketplace` (próximo PR)
+
+**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesPedidoViraVendaContratoTest.php`
+
+**DoD:** pedido pago vira venda final no local da conta com final_total igual ao total do ML e igual à soma das linhas, e o estoque baixa a quantidade vendida; repetir não cria segunda venda nem baixa de novo; total que não bate, pedido não pago ou conta sem local não criam venda nem mexem no estoque; SKU de outra empresa nunca é usado.
+
+> **Decisões [W] 2026-10-26 (antes do código):** o estoque baixa **quando o ML confirma pago**; a venda entra no **local escolhido ao conectar a conta** (`mkt_account_credentials.location_id`; sem local, o pedido não vira venda). Fixado na implementação: preço da linha = `unit_price` do ML com 2 casas, e o total das linhas tem de bater com o `total_amount` do ML (dupla prova; diferença > 1 centavo recusa); sem pagamento lançado — a venda nasce `due` até a conciliação do Mercado Pago (D6, US-MKT-015); cliente = consumidor final da empresa (o ML esconde o comprador); item ligado por `mkt_listings.item_id_external` e, sem anúncio, pelo `seller_sku` = `sub_sku` de produto da mesma empresa. O texto abaixo é o plano de 2026-05.
 
 - Job `ProcessMercadoLivreOrderJob` lê pedido ML completo + buyer + items + shipping
 - Cria `Transaction` UltimatePOS + `TransactionSellLines` + `Contact` (buyer com email/phone hash — PII redacted em log)

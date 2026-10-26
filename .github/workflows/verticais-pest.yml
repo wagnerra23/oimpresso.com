@@ -728,6 +728,7 @@ jobs:
             Modules/Marketplaces/Tests/Feature/MarketplacesOAuthMercadoLivreContratoTest.php \
             Modules/Marketplaces/Tests/Feature/MarketplacesRenovacaoTokenContratoTest.php \
             Modules/Marketplaces/Tests/Feature/MarketplacesNotificacaoMercadoLivreContratoTest.php \
+            Modules/Marketplaces/Tests/Feature/MarketplacesPedidoViraVendaContratoTest.php \
             Modules/Fisio/Tests/Feature/FisioEvolucaoTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalAcessoTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalSemLoginTest.php \
