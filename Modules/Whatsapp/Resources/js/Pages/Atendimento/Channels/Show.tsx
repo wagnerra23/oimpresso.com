@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import { Card } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
@@ -96,11 +96,11 @@ export default function ChannelShow({ channel, users, availableUsers, audit, men
   const TypeIcon = channel.type.startsWith('whatsapp_') ? MessageCircle : Plug;
 
   return (
-    <div className="p-4 space-y-4">
+    <>
       <PageHeader
-        icon={TypeIcon}
+        leading={<TypeIcon className="h-5 w-5 text-primary" aria-hidden="true" />}
         title={channel.label}
-        description={
+        subtitle={
           <span className="flex items-center gap-2 text-xs">
             <span className="text-muted-foreground">{channel.type}</span>
             <Badge variant="outline" className="text-[10px]">{channel.status}</Badge>
@@ -112,7 +112,7 @@ export default function ChannelShow({ channel, users, availableUsers, audit, men
             )}
           </span>
         }
-        action={
+        actions={
           <Button asChild variant="outline" size="sm">
             <Link href={route('atendimento.channels.index')} data-testid="channel-show-back">
               <ArrowLeft size={14} className="mr-1.5" aria-hidden />
@@ -122,6 +122,7 @@ export default function ChannelShow({ channel, users, availableUsers, audit, men
         }
       />
 
+      <div className="p-4 space-y-4">
       {/* Tabs nav — D-14 perf: contador `users` deferred, mostra '…' até resolver */}
       <div className="flex items-center gap-1 border-b" role="tablist" aria-label="Seções do canal">
         <TabButton
@@ -208,7 +209,8 @@ export default function ChannelShow({ channel, users, availableUsers, audit, men
           <HistoryTab audit={audit ?? []} />
         </Deferred>
       )}
-    </div>
+      </div>
+    </>
   );
 }
 
