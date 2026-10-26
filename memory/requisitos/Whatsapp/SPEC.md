@@ -2012,7 +2012,7 @@ Refs: ROADMAP-SDD (sweep do mês)
 
 ### US-WA-319 · Notificador reutilizável de aviso automático ao cliente por WhatsApp (texto + anexo)
 
-**Implementado em:** `Modules/Whatsapp/Services/Notify/NotificadorClienteWhatsapp.php` · `Modules/Whatsapp/Services/Notify/ResultadoNotificacao.php` · `Modules/Whatsapp/Tests/Feature/NotificadorClienteWhatsappContratoTest.php`
+**Implementado em:** `Modules/Whatsapp/Services/Notify/NotificadorClienteWhatsapp.php` · `Modules/Whatsapp/Services/Notify/ResultadoNotificacao.php` · `Modules/Whatsapp/Jobs/DespacharMensagemDoSistemaJob.php` · `Modules/Whatsapp/Tests/Feature/NotificadorClienteWhatsappContratoTest.php`
 
 **Testado em:** `Modules/Whatsapp/Tests/Feature/NotificadorClienteWhatsappContratoTest.php`
 
@@ -2022,11 +2022,12 @@ Refs: ROADMAP-SDD (sweep do mês)
 **Origem:** lacuna P0 do levantamento de concorrência de 2026-10-25 — `NotificationUtil::autoSendNotification` com `auto_send_wa_notif` só gera link `wa.me` para alguém clicar; cada módulo que avisa pela API (`NotifyRepairCustomer`, `NotifyInstalacaoCvCustomer`) repete as próprias travas. Consumidores previstos: aviso de venda/pagamento do núcleo (próxima US) e régua de cobrança do Financeiro.
 
 **Critérios de aceite:**
-1. Enfileira 1 mensagem de texto e 1 mensagem de mídia por anexo (URL absoluta, `document`|`image`), pela API, sem clique humano.
-2. Evento `billing` usa o número marcado para cobrança (fallback no de saída padrão); `outbound_default` usa o de saída padrão. Número caído (`disconnected`/`banned`) ou de outra empresa não serve.
-3. Contato só da mesma empresa (Tier 0, ADR 0093).
+1. Enfileira a mensagem pela API, sem clique humano, na conversa do cliente no canal (reaproveita por cliente ou número; senão cria), `sender_kind=system`; o envio ao daemon vai para a fila (`DespacharMensagemDoSistemaJob`), uma vez só.
+2. Canal = schema omnichannel (`channels`), o vivo em produção (medido 2026-10-26: 0 linhas em `whatsapp_business_phones`, 2 canais whatsmeow). `billing` prefere `handles_billing`, com fallback em `handles_outbound_default`; `outbound_default` usa o de saída. Canal caído (`disconnected`/`banned`), inativo ou de outra empresa não serve.
+3. Contato só da mesma empresa (Tier 0, ADR 0093); celular sem DDI ganha 55.
 4. LGPD: `Contact::canReceiveWhatsappNotification()` falso bloqueia; null permite. Sem celular não envia.
-5. Nunca lança por falta de pré-condição: devolve o motivo (`enviado`, `sem_numero_configurado`, `contato_nao_encontrado`, `recusou_whatsapp`, `sem_celular`) para quem chamou escolher outro canal. Anexo ou evento inválido é erro de quem chamou (exceção).
+5. Os canais vivos só enviam texto: anexos (URL absoluta, `document`|`image`) viram links no fim da mensagem.
+6. Nunca lança por falta de pré-condição: devolve o motivo (`enviado`, `sem_numero_configurado`, `contato_nao_encontrado`, `recusou_whatsapp`, `sem_celular`). Anexo ou evento inválido é erro de quem chamou (exceção).
 
 ### US-WA-320 · Aviso de venda do núcleo enviado pela API do WhatsApp em vez de link (flag)
 
@@ -2061,7 +2062,7 @@ Ligar em produção é decisão [W].
 
 **Critérios de aceite:**
 1. Flag `whatsapp.aviso_automatico.danfe_enabled` (env `WHATSAPP_AVISO_DANFE_ENABLED`) desligada: nada sai.
-2. Ligada: ao `NFeAutorizada`, o cliente da venda (`transactions.contact_id`, mesma empresa) recebe texto + DANFE como documento pelo `NotificadorClienteWhatsapp` (US-WA-319, com LGPD e número).
+2. Ligada: ao `NFeAutorizada`, o cliente da venda (`transactions.contact_id`, mesma empresa) recebe texto + link assinado da DANFE pelo `NotificadorClienteWhatsapp` (US-WA-319, com LGPD e canal; os canais vivos só enviam texto).
 3. Emissão sem venda ou não autorizada: não avisa.
 4. Rota `nfe-brasil.danfe-publica` (GET `/nfe-brasil/danfe/{business}/{emissao}`): só com assinatura válida (7 dias no link gerado); sem assinatura ou adulterada → 403; emissão de outra empresa ou não autorizada → 404.
 

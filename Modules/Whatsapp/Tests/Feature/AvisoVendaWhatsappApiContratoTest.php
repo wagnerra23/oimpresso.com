@@ -9,14 +9,15 @@ use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
-use Modules\Whatsapp\Jobs\SendWhatsappMessageJob;
+use Modules\Whatsapp\Entities\Channel;
+use Modules\Whatsapp\Jobs\DespacharMensagemDoSistemaJob;
 use Tests\Support\WithSeededTenant;
 
 /**
  * Aviso de venda do núcleo enviado pela API do WhatsApp em vez de link (US-WA-320).
  *
  * Âncora: SPEC US-WA-320 (critérios 1-4). Caminho real: `NotificationUtil::autoSendNotification`
- * → `NotificadorClienteWhatsapp` → `SendWhatsappMessageJob` (só o job é falso).
+ * → `NotificadorClienteWhatsapp` → `DespacharMensagemDoSistemaJob` (só o job é falso).
  *
  * Tenant 98 (ADR 0358). ⚠️ SKIP em SQLite (LC-13).
  */
@@ -26,15 +27,15 @@ beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite'
         || ! Schema::hasColumn('contacts', 'whatsapp_consent')
         || ! Schema::hasColumn('notification_templates', 'auto_send_wa_notif')
-        || ! Schema::hasTable('whatsapp_business_phones')) {
-        $this->markTestSkipped('Requer MySQL com notification_templates, consentimento em contacts e whatsapp_business_phones.');
+        || ! Schema::hasColumn('channels', 'handles_outbound_default')) {
+        $this->markTestSkipped('Requer MySQL com notification_templates, consentimento em contacts e channels.handles_*.');
     }
     try {
         $this->biz = $this->seededTenant();
     } catch (\Throwable $e) {
         $this->markTestSkipped('Schema UltimatePOS ausente: '.$e->getMessage());
     }
-    Bus::fake([SendWhatsappMessageJob::class]);
+    Bus::fake([DespacharMensagemDoSistemaJob::class]);
     $criador = \App\User::factory()->create(['business_id' => $this->biz->id]);
 
     DB::table('notification_templates')->where('business_id', $this->biz->id)->where('template_for', 'new_sale')->delete();
@@ -42,11 +43,13 @@ beforeEach(function () {
         'business_id' => $this->biz->id, 'template_for' => 'new_sale', 'whatsapp_text' => 'Obrigado pela compra!',
         'auto_send' => 0, 'auto_send_sms' => 0, 'auto_send_wa_notif' => 1, 'created_at' => now(), 'updated_at' => now(),
     ]);
-    $this->fone = (int) DB::table('whatsapp_business_phones')->insertGetId([
-        'business_id' => $this->biz->id, 'phone_uuid' => (string) Str::uuid(), 'label' => 'Aviso venda teste',
-        'driver' => 'meta_cloud', 'fallback_driver' => 'meta_cloud', 'handles_outbound_default' => true,
-        'created_at' => now(), 'updated_at' => now(),
-    ]);
+    $this->canal = (int) Channel::query()->withoutGlobalScopes()->forceCreate([
+        'business_id' => $this->biz->id, 'channel_uuid' => (string) Str::uuid(), 'label' => 'Aviso venda teste',
+        'type' => Channel::TYPE_WHATSAPP_WHATSMEOW, 'status' => 'active', 'channel_health' => 'healthy',
+        'handles_outbound_default' => true, 'display_identifier' => '+55 47 3'.random_int(100, 999).'-'.random_int(1000, 9999),
+    ])->id;
+    $this->enviadas = fn () => DB::table('messages')->where('business_id', $this->biz->id)
+        ->where('direction', 'outbound')->where('sender_kind', 'system')->get();
     $this->contato = function (?bool $consente) use ($criador) {
         $id = (int) DB::table('contacts')->insertGetId([
             'business_id' => $this->biz->id, 'type' => 'customer', 'name' => 'Cliente Aviso', 'mobile' => '48988887777',
@@ -70,7 +73,8 @@ it('US-WA-320 · flag desligada: comportamento de sempre, link wa.me e nada pela
     $link = ($this->avisar)(($this->contato)(null));
 
     expect($link)->toContain('48988887777')->toContain(urlencode('Obrigado pela compra!'));
-    expect(Bus::dispatched(SendWhatsappMessageJob::class)->count())->toBe(0);
+    expect(($this->enviadas)())->toHaveCount(0);
+    Bus::assertNotDispatched(DespacharMensagemDoSistemaJob::class);
 });
 
 it('US-WA-320 · flag ligada: envia pela API pelo número da empresa e não devolve link', function () {
@@ -79,25 +83,24 @@ it('US-WA-320 · flag ligada: envia pela API pelo número da empresa e não devo
     $link = ($this->avisar)(($this->contato)(true));
 
     expect($link)->toBe('');
-    $jobs = Bus::dispatched(SendWhatsappMessageJob::class)->values()->all();
-    expect($jobs)->toHaveCount(1);
-    expect($jobs[0]->businessId)->toBe($this->biz->id)
-        ->and($jobs[0]->whatsappBusinessPhoneId)->toBe($this->fone)
-        ->and($jobs[0]->kind)->toBe('freeform')
-        ->and($jobs[0]->payload['body'])->toBe('Obrigado pela compra!');
+    $msgs = ($this->enviadas)();
+    expect($msgs)->toHaveCount(1)
+        ->and($msgs[0]->body)->toBe('Obrigado pela compra!')
+        ->and((int) DB::table('conversations')->where('id', $msgs[0]->conversation_id)->value('channel_id'))->toBe($this->canal);
+    Bus::assertDispatched(DespacharMensagemDoSistemaJob::class, fn ($j) => $j->businessId === $this->biz->id && $j->messageId === (int) $msgs[0]->id);
 });
 
 it('US-WA-320 · flag ligada, cliente recusou WhatsApp: nem API nem link', function () {
     config(['whatsapp.aviso_automatico.enabled' => true]);
 
     expect(($this->avisar)(($this->contato)(false)))->toBe('');
-    expect(Bus::dispatched(SendWhatsappMessageJob::class)->count())->toBe(0);
+    expect(($this->enviadas)())->toHaveCount(0);
 });
 
 it('US-WA-320 · flag ligada, empresa sem número de saída: volta ao link manual', function () {
     config(['whatsapp.aviso_automatico.enabled' => true]);
-    DB::table('whatsapp_business_phones')->where('id', $this->fone)->update(['handles_outbound_default' => false]);
+    DB::table('channels')->where('id', $this->canal)->update(['handles_outbound_default' => false]);
 
     expect(($this->avisar)(($this->contato)(null)))->toContain('48988887777');
-    expect(Bus::dispatched(SendWhatsappMessageJob::class)->count())->toBe(0);
+    expect(($this->enviadas)())->toHaveCount(0);
 });

@@ -14,7 +14,7 @@ module: Whatsapp
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Whatsapp/**` + `resources/js/Pages/Whatsapp/**` + `resources/js/Pages/Atendimento/**` (namespaces Inertia `Whatsapp`, `Atendimento`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `Whatsapp` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 445 arquivos em 20 papéis.
+**Total mapeado:** 446 arquivos em 20 papéis.
 
 ## Controllers — 24
 
@@ -152,10 +152,11 @@ module: Whatsapp
 - [MessageObserver.php](../../../Modules/Whatsapp/Observers/MessageObserver.php)
 - [WhatsappMessageObserver.php](../../../Modules/Whatsapp/Observers/WhatsappMessageObserver.php)
 
-## Jobs — 17
+## Jobs — 18
 
 - [BackfillLidConversationsJob.php](../../../Modules/Whatsapp/Jobs/BackfillLidConversationsJob.php)
 - [DeleteBaileysInstanceJob.php](../../../Modules/Whatsapp/Jobs/DeleteBaileysInstanceJob.php)
+- [DespacharMensagemDoSistemaJob.php](../../../Modules/Whatsapp/Jobs/DespacharMensagemDoSistemaJob.php)
 - [DispatchCsatJob.php](../../../Modules/Whatsapp/Jobs/DispatchCsatJob.php)
 - [DownloadMediaJob.php](../../../Modules/Whatsapp/Jobs/DownloadMediaJob.php)
 - [NotificarClienteCancelamentoJob.php](../../../Modules/Whatsapp/Jobs/NotificarClienteCancelamentoJob.php)

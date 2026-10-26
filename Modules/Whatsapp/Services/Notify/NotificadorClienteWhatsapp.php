@@ -7,31 +7,35 @@ namespace Modules\Whatsapp\Services\Notify;
 use App\Contact;
 use App\Scopes\ScopeByBusiness;
 use Illuminate\Support\Facades\Log;
-use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
-use Modules\Whatsapp\Jobs\SendWhatsappMessageJob;
+use Modules\Whatsapp\Entities\Channel;
+use Modules\Whatsapp\Entities\Conversation;
+use Modules\Whatsapp\Entities\Message;
+use Modules\Whatsapp\Jobs\DespacharMensagemDoSistemaJob;
 
 /**
  * Aviso automático ao cliente por WhatsApp, pela API, sem clique humano (US-WA-319).
  *
  * Um ponto só para todo módulo que precisa avisar o cliente de um evento — venda, pagamento,
- * cobrança, OS — com texto e anexos (boleto, DANFE, Pix). Antes, cada módulo repetia as mesmas
- * travas num listener próprio (`NotifyRepairCustomer`, `NotifyInstalacaoCvCustomer`) e o núcleo
+ * cobrança, OS — com texto e anexos (boleto, DANFE, Pix). Antes, o núcleo
  * (`NotificationUtil::autoSendNotification`) só gerava um link para alguém clicar.
  *
+ * Envia pelo schema omnichannel (`channels`/`conversations`/`messages`), o mesmo da Caixa
+ * Unificada: medido em 2026-10-26, produção tem 0 linhas em `whatsapp_business_phones` e os
+ * canais vivos são `channels` whatsmeow — um aviso resolvido pela tabela antiga nunca sairia.
+ *
  * Travas, na ordem:
- * 1. **Número:** `billing` usa o número marcado para cobrança (com fallback no de saída padrão,
- *    `WhatsappBusinessPhone::resolveForEvent`); `outbound_default` usa o de saída padrão. Número
- *    caído (`disconnected`/`banned`) conta como ausente.
- * 2. **Cliente:** sempre o da MESMA empresa (Tier 0, ADR 0093) — contato de outra empresa não recebe.
+ * 1. **Canal:** canal WhatsApp ativo da empresa. `billing` prefere o marcado para cobrança
+ *    (`handles_billing`), com fallback no de saída padrão; `outbound_default` usa o de saída
+ *    padrão (`handles_outbound_default`). Canal com saúde `disconnected`/`banned` não serve.
+ * 2. **Cliente:** sempre o da MESMA empresa (Tier 0, ADR 0093).
  * 3. **LGPD:** `Contact::canReceiveWhatsappNotification()` — opt-out explícito bloqueia, null permite.
  * 4. **Celular** preenchido.
  *
- * Nada é enviado no request: enfileira 1 `SendWhatsappMessageJob` freeform com o texto e 1 `media`
- * por anexo. Nunca lança por falta de pré-condição — devolve o motivo e loga sem PII. Quem gera o
- * anexo gera também a URL (assinada/temporária); este serviço só a repassa ao driver.
- *
- * ⚠️ Texto livre fora da janela de 24h é recusado pela Meta Cloud; no driver não-oficial passa.
- * Template HSM por evento é passo seguinte, não deste serviço.
+ * A conversa do cliente no canal é reaproveitada (por cliente ou número) ou criada; a mensagem
+ * nasce `queued`, `sender_kind=system`, e o envio ao daemon vai para a fila
+ * (`DespacharMensagemDoSistemaJob`). Os canais vivos só enviam texto, então os anexos viram
+ * links no fim da mensagem (a URL é de quem chamou, assinada/temporária). Nunca lança por falta
+ * de pré-condição — devolve o motivo e loga sem PII.
  */
 class NotificadorClienteWhatsapp
 {
@@ -39,8 +43,10 @@ class NotificadorClienteWhatsapp
 
     public const TIPOS_ANEXO = ['document', 'image'];
 
-    /** Saúde em que o módulo Whatsapp não entrega nem pelo fallback. */
+    /** Saúde em que o canal não entrega. */
     private const CAIDO = ['disconnected', 'banned'];
+
+    private const TIPOS_CANAL = [Channel::TYPE_WHATSAPP_WHATSMEOW, Channel::TYPE_WHATSAPP_BAILEYS];
 
     /**
      * @param  list<array{url: string, type?: string, caption?: string|null}>  $anexos
@@ -53,9 +59,9 @@ class NotificadorClienteWhatsapp
         $anexos = array_map(fn ($a) => $this->validarAnexo($a), $anexos);
         $ctx = ['business_id' => $businessId, 'contact_id' => $contactId, 'evento' => $evento];
 
-        $phone = $this->resolverNumero($businessId, $evento);
-        if ($phone === null) {
-            Log::info('[whatsapp.notificador] sem número ativo para o evento — skip', $ctx);
+        $canal = $this->resolverCanal($businessId, $evento);
+        if ($canal === null) {
+            Log::info('[whatsapp.notificador] sem canal ativo para o evento — skip', $ctx);
 
             return ResultadoNotificacao::SemNumeroConfigurado;
         }
@@ -71,38 +77,95 @@ class NotificadorClienteWhatsapp
 
             return ResultadoNotificacao::RecusouWhatsapp;
         }
-        $para = trim((string) ($contato->mobile ?? ''));
-        if ($para === '') {
-            Log::info('[whatsapp.notificador] cliente sem celular — skip', $ctx);
+        $numero = self::numeroE164((string) ($contato->mobile ?? ''));
+        if ($numero === null) {
+            Log::info('[whatsapp.notificador] cliente sem celular válido — skip', $ctx);
 
             return ResultadoNotificacao::SemCelular;
         }
 
-        SendWhatsappMessageJob::dispatch($businessId, (int) $phone->id, $para, 'freeform', ['body' => $texto]);
-        foreach ($anexos as $anexo) {
-            SendWhatsappMessageJob::dispatch($businessId, (int) $phone->id, $para, 'media', $anexo);
-        }
+        $conversa = $this->conversaDoCliente($businessId, $canal, $contato, $numero);
+        $corpo = $this->comAnexos($texto, $anexos);
+        $mensagem = Message::query()->create([
+            'business_id' => $businessId,
+            'conversation_id' => $conversa->id,
+            'direction' => Message::DIRECTION_OUTBOUND,
+            'provider' => $canal->type,
+            'type' => 'text',
+            'body' => $corpo,
+            'status' => 'queued',
+            'sender_kind' => 'system',
+            'is_internal_note' => false,
+        ]);
+        $conversa->forceFill(['last_outbound_at' => now(), 'last_message_at' => now()])->save();
+
+        DespacharMensagemDoSistemaJob::dispatch($businessId, (int) $mensagem->id);
 
         return ResultadoNotificacao::Enviado;
     }
 
-    private function resolverNumero(int $businessId, string $evento): ?WhatsappBusinessPhone
+    /** Celular brasileiro sem DDI ganha 55; o resultado é o `customer_external_id` canônico ("+55…"). */
+    public static function numeroE164(string $celular): ?string
     {
-        $phone = $evento === 'billing'
-            ? WhatsappBusinessPhone::resolveForEvent($businessId, 'billing')
-            // SUPERADMIN: chamado de job/listener sem sessão; filtro explícito por business_id (ADR 0093).
-            : WhatsappBusinessPhone::query()
-                ->withoutGlobalScope(ScopeByBusiness::class)
-                ->where('business_id', $businessId)
-                ->where('handles_outbound_default', true)
-                ->orderBy('id')
-                ->first();
-
-        if ($phone === null || in_array((string) $phone->driver_health, self::CAIDO, true)) {
+        $digitos = preg_replace('/\D+/', '', $celular) ?? '';
+        if (strlen($digitos) < 10) {
             return null;
         }
+        if (strlen($digitos) <= 11) {
+            $digitos = '55'.$digitos;
+        }
 
-        return $phone;
+        return '+'.$digitos;
+    }
+
+    private function resolverCanal(int $businessId, string $evento): ?Channel
+    {
+        // SUPERADMIN: chamado de job/listener sem sessão; filtro explícito por business_id (ADR 0093).
+        $base = Channel::query()->withoutGlobalScope(ScopeByBusiness::class)
+            ->where('business_id', $businessId)
+            ->whereIn('type', self::TIPOS_CANAL)
+            ->where('status', 'active')
+            ->whereNotIn('channel_health', self::CAIDO)
+            ->orderBy('id');
+
+        $especifico = $evento === 'billing' ? (clone $base)->where('handles_billing', true)->first() : null;
+
+        return $especifico ?? (clone $base)->where('handles_outbound_default', true)->first();
+    }
+
+    private function conversaDoCliente(int $businessId, Channel $canal, Contact $contato, string $numero): Conversation
+    {
+        // SUPERADMIN: idem — conversa da empresa e do canal resolvidos acima.
+        $q = Conversation::query()->withoutGlobalScope(ScopeByBusiness::class)
+            ->where('business_id', $businessId)->where('channel_id', $canal->id);
+
+        $conversa = (clone $q)->where('contact_id', $contato->id)->orderByDesc('last_message_at')->first()
+            ?? (clone $q)->where('customer_external_id', $numero)->first();
+        if ($conversa !== null) {
+            if ($conversa->contact_id === null) {
+                $conversa->forceFill(['contact_id' => $contato->id])->save();
+            }
+
+            return $conversa;
+        }
+
+        return Conversation::query()->withoutGlobalScope(ScopeByBusiness::class)->create([
+            'business_id' => $businessId,
+            'channel_id' => $canal->id,
+            'contact_id' => $contato->id,
+            'customer_external_id' => $numero,
+            'contact_name' => (string) ($contato->name ?: $numero),
+            'status' => 'open',
+            'last_message_at' => now(),
+        ]);
+    }
+
+    /** @param list<array{url: string, type: string, caption: string|null}> $anexos */
+    private function comAnexos(string $texto, array $anexos): string
+    {
+        $linhas = array_map(fn ($a) => ($a['caption'] ? $a['caption'].': ' : '').$a['url'], $anexos);
+
+        return $linhas === [] ? $texto : trim($texto)."\n\n".implode("\n", $linhas);
     }
 
     /**

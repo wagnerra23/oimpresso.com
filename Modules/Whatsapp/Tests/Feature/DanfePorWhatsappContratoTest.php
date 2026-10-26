@@ -12,14 +12,15 @@ use Illuminate\Support\Str;
 use Modules\NfeBrasil\Events\NFeAutorizada;
 use Modules\NfeBrasil\Models\NfeEmissao;
 use Modules\NfeBrasil\Services\DanfeService;
-use Modules\Whatsapp\Jobs\SendWhatsappMessageJob;
+use Modules\Whatsapp\Entities\Channel;
+use Modules\Whatsapp\Jobs\DespacharMensagemDoSistemaJob;
 use Tests\Support\WithSeededTenant;
 
 /**
  * NF-e autorizada → DANFE ao cliente por WhatsApp, por link assinado (US-WA-321).
  *
  * Âncora: SPEC US-WA-321 (critérios 1-4). Caminho real: evento `NFeAutorizada` → listener registrado
- * no provider do Whatsapp → `NotificadorClienteWhatsapp` → `SendWhatsappMessageJob` (só o job e o
+ * no provider do Whatsapp → `NotificadorClienteWhatsapp` → `DespacharMensagemDoSistemaJob` (só o job e o
  * gerador de PDF são falsos). Rota pública: middleware `signed` real.
  *
  * Tenant 98 contra 99 (ADR 0358). ⚠️ SKIP em SQLite (LC-13).
@@ -30,8 +31,8 @@ beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite'
         || ! Schema::hasTable('nfe_emissoes')
         || ! Schema::hasColumn('contacts', 'whatsapp_consent')
-        || ! Schema::hasTable('whatsapp_business_phones')) {
-        $this->markTestSkipped('Requer MySQL com nfe_emissoes, consentimento em contacts e whatsapp_business_phones.');
+        || ! Schema::hasColumn('channels', 'handles_outbound_default')) {
+        $this->markTestSkipped('Requer MySQL com nfe_emissoes, consentimento em contacts e channels.handles_*.');
     }
     try {
         $this->biz = $this->seededTenant();
@@ -43,14 +44,16 @@ beforeEach(function () {
     if ($local === null) {
         $this->markTestSkipped('Tenant 98 sem business_location semeada.');
     }
-    Bus::fake([SendWhatsappMessageJob::class]);
+    Bus::fake([DespacharMensagemDoSistemaJob::class]);
     $criador = \App\User::factory()->create(['business_id' => $this->biz->id]);
 
-    $this->fone = (int) DB::table('whatsapp_business_phones')->insertGetId([
-        'business_id' => $this->biz->id, 'phone_uuid' => (string) Str::uuid(), 'label' => 'DANFE teste',
-        'driver' => 'meta_cloud', 'fallback_driver' => 'meta_cloud', 'handles_outbound_default' => true,
-        'created_at' => now(), 'updated_at' => now(),
+    Channel::query()->withoutGlobalScopes()->forceCreate([
+        'business_id' => $this->biz->id, 'channel_uuid' => (string) Str::uuid(), 'label' => 'DANFE teste',
+        'type' => Channel::TYPE_WHATSAPP_WHATSMEOW, 'status' => 'active', 'channel_health' => 'healthy',
+        'handles_outbound_default' => true, 'display_identifier' => '+55 47 3'.random_int(100, 999).'-'.random_int(1000, 9999),
     ]);
+    $this->enviadas = fn () => DB::table('messages')->where('business_id', $this->biz->id)
+        ->where('direction', 'outbound')->where('sender_kind', 'system')->pluck('body')->all();
     $contato = (int) DB::table('contacts')->insertGetId([
         'business_id' => $this->biz->id, 'type' => 'customer', 'name' => 'Cliente DANFE', 'mobile' => '48988887777',
         'whatsapp_consent' => true, 'contact_status' => 'active', 'created_by' => $criador->id,
@@ -79,25 +82,21 @@ it('US-WA-321 · flag desligada: NF-e autorizada não manda nada por WhatsApp', 
 
     event(new NFeAutorizada(($this->emissao)()));
 
-    expect(Bus::dispatched(SendWhatsappMessageJob::class)->count())->toBe(0);
+    expect(($this->enviadas)())->toBe([]);
 });
 
-it('US-WA-321 · flag ligada: texto + DANFE como documento, por link assinado da própria empresa', function () {
+it('US-WA-321 · flag ligada: texto + link assinado da DANFE da própria empresa', function () {
     config(['whatsapp.aviso_automatico.danfe_enabled' => true]);
     $nfe = ($this->emissao)();
 
     event(new NFeAutorizada($nfe));
 
-    $jobs = Bus::dispatched(SendWhatsappMessageJob::class)->values()->all();
-    expect($jobs)->toHaveCount(2);
-    expect($jobs[0]->kind)->toBe('freeform')
-        ->and($jobs[0]->payload['body'])->toContain("nº {$nfe->numero}")
-        ->and($jobs[0]->whatsappBusinessPhoneId)->toBe($this->fone);
-    $anexo = $jobs[1]->payload;
-    expect($jobs[1]->kind)->toBe('media')
-        ->and($anexo['type'])->toBe('document')
-        ->and($anexo['url'])->toContain("/nfe-brasil/danfe/{$this->biz->id}/{$nfe->id}")
-        ->and(URL::hasValidSignature(\Illuminate\Http\Request::create($anexo['url'])))->toBeTrue();
+    $msgs = ($this->enviadas)();
+    expect($msgs)->toHaveCount(1)->and($msgs[0])->toContain("nº {$nfe->numero}")->toContain('DANFE NF-e');
+    // O canal só envia texto: a DANFE vai como link assinado no fim da mensagem.
+    expect(preg_match('#(https?://\S+/nfe-brasil/danfe/'.$this->biz->id.'/'.$nfe->id.'\S*)#', $msgs[0], $m))->toBe(1)
+        ->and(URL::hasValidSignature(\Illuminate\Http\Request::create($m[1])))->toBeTrue();
+    Bus::assertDispatchedTimes(DespacharMensagemDoSistemaJob::class, 1);
 });
 
 it('US-WA-321 · emissão sem venda ou não autorizada: não avisa', function () {
@@ -108,7 +107,7 @@ it('US-WA-321 · emissão sem venda ou não autorizada: não avisa', function ()
     DB::table('nfe_emissoes')->where('id', $semVenda->id)->update(['transaction_id' => null]);
     event(new NFeAutorizada($semVenda->fresh()));
 
-    expect(Bus::dispatched(SendWhatsappMessageJob::class)->count())->toBe(0);
+    expect(($this->enviadas)())->toBe([]);
 });
 
 it('US-WA-321 · link público: assinado serve o PDF; sem assinatura, adulterado ou de outra empresa não', function () {
