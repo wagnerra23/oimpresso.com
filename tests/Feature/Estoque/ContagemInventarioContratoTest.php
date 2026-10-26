@@ -221,3 +221,27 @@ it('[T0] outra empresa não aprova a minha contagem', function () {
     expect(fn () => $this->svc->aprovar($outro, $id, $this->user))->toThrow(ContagemInventarioException::class, 'não encontrada');
     expect(($this->saldoAntes)($p))->toBe(4.0);
 });
+
+it('2ª prova: o saldo recalculado pelos movimentos anda junto com o saldo gravado', function () {
+    // Conta independente: ProductUtil::getVariationStockMisMatch soma compras, estoque inicial,
+    // ajustes e vendas e devolve o saldo calculado. Se o ajuste da contagem gravou o movimento
+    // certo, (gravado − calculado) é o mesmo antes e depois de aprovar.
+    $falta = ($this->produto)(10);
+    $sobra = ($this->produto)(4);
+    contagemLote($this, $falta, '10');
+    $util = app(\App\Utils\ProductUtil::class);
+    $gap = function ($p) use ($util) {
+        $r = $util->getVariationStockMisMatch($this->biz, $p->variations[0]['variation_id'], $this->loc)->first();
+
+        return round((float) $r->stock - (float) $r->total_stock_calculated, 4);
+    };
+    $antes = [$gap($falta), $gap($sobra)];
+
+    $id = $this->svc->abrir($this->biz, $this->loc, $this->user);
+    $this->svc->registrar($this->biz, $id, $falta->variations[0]['variation_id'], '7', $this->user, 'substituir');
+    $this->svc->registrar($this->biz, $id, $sobra->variations[0]['variation_id'], '6', $this->user, 'substituir');
+    $this->svc->fechar($this->biz, $id, $this->user);
+    $this->svc->aprovar($this->biz, $id, $this->user);
+
+    expect([$gap($falta), $gap($sobra)])->toBe($antes);
+});
