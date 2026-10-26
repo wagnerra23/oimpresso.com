@@ -148,7 +148,7 @@ module: NfeBrasil
 - [api.php](../../../Modules/NfeBrasil/Routes/api.php)
 - [web.php](../../../Modules/NfeBrasil/Routes/web.php)
 
-## Migrations (schema) — 34
+## Migrations (schema) — 35
 
 - [2026_05_06_002000_create_nfe_certificados_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_05_06_002000_create_nfe_certificados_table.php)
 - [2026_05_06_002001_create_nfe_emissoes_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_05_06_002001_create_nfe_emissoes_table.php)
@@ -184,6 +184,7 @@ module: NfeBrasil
 - [2026_10_14_000003_create_nfe_naturezas_produto_e_difal_simples.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_14_000003_create_nfe_naturezas_produto_e_difal_simples.php)
 - [2026_10_20_000001_add_valor_iss_retido_to_nfse_emissoes.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_20_000001_add_valor_iss_retido_to_nfse_emissoes.php)
 - [2026_10_21_000000_add_contingencia_modo_to_nfe_business_configs.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_21_000000_add_contingencia_modo_to_nfe_business_configs.php)
+- [2026_10_27_000001_add_entrada_compra_to_nfe_dfe_tables.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_27_000001_add_entrada_compra_to_nfe_dfe_tables.php)
 
 ## Seeders — 2
 

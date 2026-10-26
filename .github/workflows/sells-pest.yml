@@ -77,6 +77,8 @@ on:
       - 'app/Http/Controllers/ServiceOrderFsmActionController.php'
       - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php'
       - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaAssinaturaTest.php'  # UC-FLX-22 assinatura na entrega
+      - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderGuardsFsmTest.php'  # US-OFICINA-006 trava FSM
+      - 'Modules/OficinaAuto/Entities/ServiceOrder.php'
       - 'Modules/OficinaAuto/Services/AssinaturaEntrega.php'
       - 'Modules/OficinaAuto/Http/Controllers/ServiceOrderAssinaturaController.php'
       - 'Modules/OficinaAuto/Entities/OsAssinatura.php'
@@ -274,6 +276,8 @@ jobs:
               - 'app/Http/Controllers/ServiceOrderFsmActionController.php'
               - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php'
               - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaAssinaturaTest.php'  # UC-FLX-22 assinatura na entrega
+              - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderGuardsFsmTest.php'  # US-OFICINA-006 trava FSM
+              - 'Modules/OficinaAuto/Entities/ServiceOrder.php'
               - 'Modules/OficinaAuto/Services/AssinaturaEntrega.php'
               - 'Modules/OficinaAuto/Http/Controllers/ServiceOrderAssinaturaController.php'
               - 'Modules/OficinaAuto/Entities/OsAssinatura.php'
@@ -525,6 +529,7 @@ jobs:
             tests/Feature/Sells/AppOsApiContratoTest.php \
             Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php \
             Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaAssinaturaTest.php \
+            Modules/OficinaAuto/Tests/Feature/ServiceOrderGuardsFsmTest.php \
             tests/Feature/Sells/AppOsArquivosApiContratoTest.php \
             tests/Feature/Sells/AppPedidoEntregaContratoTest.php \
             tests/Feature/Sells/AppOficinaAgendaApiContratoTest.php \
