@@ -9,7 +9,7 @@
 // sem redefinir nenhum (ADR UI-0013). As medidas da moldura são as do `DetalheDrawer` do protótipo.
 
 import { useEffect, useState, type ReactNode } from 'react';
-import { Archive, Pencil, Printer, X } from 'lucide-react';
+import { Pencil, Printer, X } from 'lucide-react';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { Button } from '@/Components/ui/button';
 import { Skeleton } from '@/Components/ui/skeleton';
@@ -285,12 +285,10 @@ interface Props {
   aoFechar: () => void;
   podeEditar: boolean;
   podePrecos: boolean;
-  /** `purchase.create` — o "Comprar" abre a nova compra com este produto. */
-  podeComprar: boolean;
   irPara: (url: string) => void;
 }
 
-export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarAba, aoFechar, podeEditar, podePrecos, podeComprar, irPara }: Props) {
+export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarAba, aoFechar, podeEditar, podePrecos, irPara }: Props) {
   // O `.cockpit` é o contêiner que entrega os tokens e a fonte do Design System.
   const [cockpit, setCockpit] = useState<HTMLElement | null>(null);
   useEffect(() => setCockpit(document.querySelector<HTMLElement>('.cockpit')), []);
@@ -433,11 +431,11 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                       <tr>
                         <th>Variação</th>
                         <th>SKU</th>
-                        {custo && <th className="r">Compra (excl.)</th>}
-                        {custo && <th className="r">Compra (incl.)</th>}
+                        {custo && <th className="r">Compra sem imposto</th>}
+                        {custo && <th className="r">Compra com imposto</th>}
                         {lucro && <th className="r">% lucro</th>}
-                        {venda && <th className="r">Venda (excl.)</th>}
-                        {venda && <th className="r">Venda (incl.)</th>}
+                        {venda && <th className="r">Venda sem imposto</th>}
+                        {venda && <th className="r">Venda com imposto</th>}
                       </tr>
                     </thead>
                     <tbody>
@@ -504,8 +502,8 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                         <th>Produto</th>
                         <th>SKU</th>
                         <th className="r">Qtd</th>
-                        {custo && <th className="r">Compra (excl.)</th>}
-                        {custo && <th className="r">Total (excl.)</th>}
+                        {custo && <th className="r">Compra sem imposto</th>}
+                        {custo && <th className="r">Total sem imposto</th>}
                       </tr>
                     </thead>
                     <tbody>
@@ -543,10 +541,10 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                         <thead>
                           <tr>
                             <th>Item</th>
-                            {custo && <th className="r">Compra (incl.)</th>}
+                            {custo && <th className="r">Compra com imposto</th>}
                             {lucro && <th className="r">% lucro</th>}
-                            {venda && <th className="r">Venda (excl.)</th>}
-                            {venda && <th className="r">Venda (incl.)</th>}
+                            {venda && <th className="r">Venda sem imposto</th>}
+                            {venda && <th className="r">Venda com imposto</th>}
                           </tr>
                         </thead>
                         <tbody>
@@ -707,11 +705,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                   <Pencil size={13} aria-hidden /> Editar produto
                 </Button>
               )}
-              {podeComprar && d.dados.controla_estoque && !d.inativo && (
-                <Button variant="outline" size="sm" className={BOTAO_CONTORNO} onClick={() => irPara(`/purchases/create?produto=${d.id}`)}>
-                  <Archive size={13} aria-hidden /> Comprar
-                </Button>
-              )}
+              {/* Sem "Comprar": a consulta não é a tela de compras (decisão [F] 2026-10-26, UC-PIDX-11). */}
               {podePrecos && (
                 <Button variant="outline" size="sm" className={BOTAO_CONTORNO} onClick={() => irPara(`/products/add-selling-prices/${d.id}`)}>
                   Preços por grupo
