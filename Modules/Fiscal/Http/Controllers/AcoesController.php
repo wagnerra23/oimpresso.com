@@ -104,6 +104,12 @@ class AcoesController extends Controller
             return back()->with('error', "Apenas notas autorizadas podem ser canceladas. Status atual: {$nfeEmissao->status}");
         }
 
+        // R-NFE-044 · com "venda junto", confere ANTES se a venda pode ser cancelada — senão a nota
+        // ficaria cancelada na SEFAZ (irreversível) com a venda de pé. Recusou: nada é cancelado.
+        if ($cancelarVenda && ($recusa = $this->recusaDaVenda($businessId, $nfeEmissao)) !== null) {
+            return back()->with('error', "Nada foi cancelado. {$recusa}");
+        }
+
         try {
             $evento = $nfeService->cancelar($businessId, $nfeEmissao->id, $data['motivo']);
 
@@ -143,17 +149,10 @@ class AcoesController extends Controller
      */
     protected function cancelarVendaDaNota(int $businessId, NfeEmissao $nota, string $motivo): array
     {
-        $venda = \App\Transaction::query()
-            ->where('business_id', $businessId)
-            ->where('id', (int) $nota->transaction_id)
-            ->where('type', 'sell')
-            ->first();
-        if ($venda === null) {
-            return [false, 'A nota não tem venda nesta empresa — nada mais foi cancelado.'];
+        if (($recusa = $this->recusaDaVenda($businessId, $nota)) !== null) {
+            return [false, $recusa];
         }
-        if (empty($venda->current_stage_id)) {
-            return [false, "A venda #{$venda->id} não está no fluxo de vendas; cancele-a pela tela de Vendas."];
-        }
+        $venda = $this->vendaDaNota($businessId, $nota);
 
         try {
             app(\App\Domain\Fsm\Services\ExecuteStageActionService::class)
@@ -166,7 +165,41 @@ class AcoesController extends Controller
             return [false, "A venda #{$venda->id} não foi cancelada: {$e->getMessage()}"];
         }
 
-        return [true, "Venda #{$venda->id} cancelada (boleto pendente estornado, reserva de estoque liberada e cliente avisado)."];
+        return [true, "Venda #{$venda->id} cancelada."];
+    }
+
+    private function vendaDaNota(int $businessId, NfeEmissao $nota): ?\App\Transaction
+    {
+        return \App\Transaction::query()
+            ->where('business_id', $businessId)
+            ->where('id', (int) $nota->transaction_id)
+            ->where('type', 'sell')
+            ->first();
+    }
+
+    /**
+     * R-NFE-044 · por que a venda da nota NÃO pode ser cancelada (null = pode). Usa as pendências do
+     * cancelamento da venda (US-SELL-077, `App\Services\Sells\CancelamentoDaVenda`: venda com dinheiro
+     * recebido não cancela) quando o serviço existe — o texto vem dele, não é repetido aqui.
+     */
+    protected function recusaDaVenda(int $businessId, NfeEmissao $nota): ?string
+    {
+        $venda = $this->vendaDaNota($businessId, $nota);
+        if ($venda === null) {
+            return 'A nota não tem venda nesta empresa — nada mais foi cancelado.';
+        }
+        if (empty($venda->current_stage_id)) {
+            return "A venda #{$venda->id} não está no fluxo de vendas; cancele-a pela tela de Vendas.";
+        }
+        $servico = 'App\\Services\\Sells\\CancelamentoDaVenda';
+        if (class_exists($servico)) {
+            $pendencias = app($servico)->pendencias($businessId, (int) $venda->id);
+            if ($pendencias !== []) {
+                return implode(' ', $pendencias);
+            }
+        }
+
+        return null;
     }
 
     /**

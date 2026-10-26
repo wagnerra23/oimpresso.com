@@ -52,9 +52,10 @@ describe('UC-FNFE-51 · cancelar pergunta o escopo', () => {
     expect(post.mock.calls[0][1]).toEqual({ motivo: 'Cliente desistiu da compra inteira', escopo: 'venda' });
   });
 
-  it('a opção da venda diz o que NÃO é estornado', () => {
+  it('a opção da venda diz o que acontece e quando não cancela (US-SELL-077)', () => {
     abrirModal();
 
-    expect(screen.getByText(/Estoque já baixado e título do financeiro não são estornados/)).toBeTruthy();
+    expect(screen.getByText(/o estoque volta e o\s+título sem pagamento é cancelado/)).toBeTruthy();
+    expect(screen.getByText(/Venda com dinheiro recebido não cancela/)).toBeTruthy();
   });
 });
