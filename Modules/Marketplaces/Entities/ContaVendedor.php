@@ -27,6 +27,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property int|null $location_id
+ * @property-read Marketplace|null $marketplace
  */
 class ContaVendedor extends Model
 {
@@ -56,6 +57,7 @@ class ContaVendedor extends Model
         'last_refresh_at' => 'datetime',
     ];
 
+    /** @return BelongsTo<Marketplace, $this> */
     public function marketplace(): BelongsTo
     {
         return $this->belongsTo(Marketplace::class, 'marketplace_id');
