@@ -263,6 +263,23 @@ Status: 🧪
 com o business errado não carrega o evento.
 Status: 🧪
 
+## UC-RBPA-11 · Pedir a autorização do Pix Automático gera o QR com o valor da assinatura · `must` `[V0]`
+Fonte: SPEC US-RB-020 + API Pix BCB v2.10.0 (jornada 2: `/locrec` → `/rec` com `loc` → `GET /rec` com `dadosQR`).
+Teste: `MandatoPixAutomaticoContratoTest`.
+**Dado** uma assinatura ativa com plano mensal de 106,07 e cliente com CPF **Quando** peço a autorização **Então** o
+banco recebe a recorrência com `valorRec = "106.07"`, `MENSAL`, início no próximo vencimento, o CPF do cliente e o
+`loc` criado; o mandato grava `id_rec`, `status = CRIADA`, o Pix copia e cola e 10.607 centavos.
+Status: 🧪
+
+## UC-RBPA-12 · Pedir de novo não cria outra recorrência · `must`
+**Dado** um mandato `CRIADA` ou `APROVADA` **Quando** peço de novo **Então** volta o mesmo QR e nada vai ao banco.
+Status: 🧪
+
+## UC-RBPA-13 · A rota respeita flag, empresa e credencial · `must` `[T0]`
+**Então** flag desligada → 404; assinatura de outra empresa → 404 (e o mandato dela não muda); empresa sem credencial
+do Pix Automático → 422 com a mensagem; com tudo certo → o QR na resposta.
+Status: 🧪
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = **órfão** = viola o `casos-gate` e **bloqueia o
