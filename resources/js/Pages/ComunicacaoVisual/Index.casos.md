@@ -82,6 +82,8 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CVOS-06 | Orçamento recusado não vira OS | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 | UC-CVOS-07 | Só quem pode criar orçamento aprova | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 | UC-CVOS-08 | O orçamento aprovado reabre com o número da OS | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVOS-09 | A OS aprovada nasce com o roteiro padrão e aparece no quadro do PCP | must | US-COMVIS-003 · decisão [W] 2026-10-26 | `OsRoteiroPadraoContratoTest` | 🧪 |
+| UC-CVOS-10 | O padrão só aceita roteiro ativo da própria empresa | must `[T0]` | US-COMVIS-003 · decisão [W] 2026-10-26 | `OsRoteiroPadraoContratoTest` | 🧪 |
 | UC-CVMRG-01 | Cada peça e o orçamento mostram custo e margem | must `[V0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVMRG-02 | Preço, subtotal e total são os mesmos com e sem margem | must `[V0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVMRG-03 | Peça sem custo fica sem margem; o orçamento diz quantas têm | must | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
@@ -562,6 +564,23 @@ mesmo número, e a outra empresa não reabre o orçamento.
 
 Na tela: o rodapé troca "Salvar" por "Aprovar e criar OS" quando o orçamento está gravado igual à
 tela; a confirmação é um segundo clique na mesma linha. Mudança não salva não aprova.
+
+Status: 🧪
+
+## UC-CVOS-09 · A OS aprovada nasce com o roteiro padrão e aparece no quadro do PCP · `must`
+
+**Dado** que a empresa escolheu um roteiro padrão **Quando** um orçamento vira OS (pela tela ou pelo
+cliente no link) **Então** a OS ganha uma etapa do PCP por etapa não opcional do roteiro, em ordem, e
+aparece em `/producao/quadro`. As etapas ficam no nome de quem aprovou; sem usuário (aceite pelo link),
+no do dono da empresa. Sem padrão, a OS nasce como antes, sem etapas.
+
+Status: 🧪
+
+## UC-CVOS-10 · O padrão só aceita roteiro ativo da própria empresa · `must` `[T0]`
+
+**Dado** quem cuida do catálogo **Quando** escolhe o roteiro padrão **Então** roteiro de outra empresa ou
+inativo dá 422 e nada muda; um roteiro ativo da empresa vira o padrão; vazio tira o padrão. Um roteiro
+de outra empresa gravado à mão no ajuste não gera etapa nenhuma.
 
 Status: 🧪
 

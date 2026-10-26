@@ -119,7 +119,9 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 > **Controller/ação:** `OsController`
 > **Reusa:** [Modules/Repair](../../../Modules/Repair) Kanban drag-drop (PR #363) — Modules/Repair é shared infrastructure ([ADR 0121 §P8](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md))
 
-**Implementado em:** _pendente_ — migration `cv_ordens_producao` + Entity `OrdemProducao` existem, mas Kanban PCP (OsController + Page Inertia + drag-drop) não construído
+**Implementado em:** _parcial_ · `Modules/ComunicacaoVisual/Services/RoteiroPadraoDaOs.php` · `Modules/ComunicacaoVisual/Http/Controllers/RoteiroPadraoController.php` · `Modules/Producao/Services/ProgramacaoDoRoteiro.php` · `app/Contracts/Producao/ProgramacaoDaOs.php` · `Modules/ComunicacaoVisual/Tests/Feature/OsRoteiroPadraoContratoTest.php` — o quadro por etapa é o do `Modules/Producao` (`/producao/quadro`, ADR 0431/0436), que já lê `comvis_os`; desde 2026-10-26 a OS que nasce do orçamento ganha as etapas do roteiro padrão da empresa e aparece nele (UC-CVOS-09/10). Faltam a tela para escolher o padrão (hoje só a API `GET/PUT /comunicacao-visual/api/roteiro-padrao`) e trocar o roteiro de uma OS à mão. `cv_ordens_producao`/`OrdemProducao` segue sem fluxo
+
+> **Decisão [W] 2026-10-26:** toda OS de comunicação visual nasce com o roteiro padrão da empresa, e o operador pode trocar à mão depois (opção (b) entre: operador escolhe ao aprovar · padrão da empresa · roteiro por material).
 
 > A entrada da OS (orçamento aprovado vira OS com itens, medidas e arquivos — UC-FLX-01) está na US-COMVIS-020. Aqui fica o Kanban de etapas.
 
