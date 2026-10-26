@@ -2028,3 +2028,24 @@ Refs: ROADMAP-SDD (sweep do mês)
 4. LGPD: `Contact::canReceiveWhatsappNotification()` falso bloqueia; null permite. Sem celular não envia.
 5. Os canais vivos só enviam texto: anexos (URL absoluta, `document`|`image`) viram links no fim da mensagem.
 6. Nunca lança por falta de pré-condição: devolve o motivo (`enviado`, `sem_numero_configurado`, `contato_nao_encontrado`, `recusou_whatsapp`, `sem_celular`). Anexo ou evento inválido é erro de quem chamou (exceção).
+
+### US-WA-326 · Régua de relacionamento por WhatsApp — aniversário e recompra
+
+**Implementado em:** `Modules/Whatsapp/Services/Regua/ReguaDeRelacionamento.php` · `Modules/Whatsapp/Console/Commands/ReguaRelacionamentoCommand.php` · `Modules/Whatsapp/Database/Migrations/2026_10_26_000003_create_whatsapp_regua_relacionamento_tables.php`
+
+**Testado em:** `Modules/Whatsapp/Tests/Feature/ReguaRelacionamentoContratoTest.php`
+
+> owner: — · priority: p2 · estimate: 6h · type: story
+> blocked_by: US-WA-319
+
+**Origem:** lacuna P2 do levantamento de 2026-10-25 (régua de aniversário e recompra, ausente fora do CRM antigo); destravada por [W] em 2026-10-26.
+
+**Critérios de aceite:**
+1. Flag `whatsapp.regua_relacionamento.enabled` (env `WHATSAPP_REGUA_RELACIONAMENTO_ENABLED`) desligada, ou régua da empresa inativa: nada sai.
+2. Aniversário: cliente com `aniversario_mmdd` do dia (sem ele, mês/dia de `dob`); uma vez por ano.
+3. Recompra: última venda final do cliente há exatamente `dias_sem_compra` dias; uma vez por última compra; quem comprou depois sai da régua.
+4. Marketing: só cliente com opt-in de marketing (`whatsapp_opt_in_at`, ADR 0268); o notificador ainda confere a recusa de WhatsApp, o celular e o canal.
+5. Anti-ban: envios espaçados 20–45s pela fila (agendados, não em rajada) e no máximo 150 por empresa e régua por dia.
+6. Rodar de novo no mesmo dia não repete (`whatsapp_regua_envios`, chave única por empresa, tipo, cliente e ocasião). Cron diário 10h BRT em produção.
+
+Ligar em produção é decisão [W]. Tela para a empresa configurar texto e liga/desliga: US seguinte.
