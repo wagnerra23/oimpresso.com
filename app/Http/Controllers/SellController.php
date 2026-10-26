@@ -2045,6 +2045,9 @@ class SellController extends Controller
                 'paga_em' => $cob->paga_em?->toIso8601String(),
                 'emitida_em' => $cob->created_at?->toIso8601String(),
                 'erro_msg' => null, // payload_gateway pode ter; backlog
+                // US-SELL-055 — o código para o cliente pagar só enquanto a cobrança vale.
+                'pix_emv' => in_array($kind, ['pending', 'overdue'], true) ? $cob->pix_emv : null,
+                'linha_digitavel' => in_array($kind, ['pending', 'overdue'], true) ? $cob->linha_digitavel : null,
             ],
         ];
     }

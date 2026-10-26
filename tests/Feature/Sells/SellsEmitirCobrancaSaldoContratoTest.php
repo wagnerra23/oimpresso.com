@@ -131,3 +131,22 @@ it('UC-VCOB-04 cobrança paga só libera nova cobrança depois de lançada na ve
     ($this->emitir)()->assertOk();
     expect($this->recebido->valorCentavos)->toBe(30000);
 });
+
+it('UC-VCOB-05 o detalhe da venda traz o Pix copia-e-cola só enquanto a cobrança vale', function () {
+    $id = ($this->cobranca)('emitida', 50000, now()->addDays(3)->toDateString());
+    DB::table('cobrancas')->where('id', $id)->update(['pix_emv' => '00020126PIXTESTE']);
+
+    $abrir = fn () => $this->actingAs($this->user)
+        ->withSession(['user.business_id' => $this->bizId, 'business.id' => $this->bizId])
+        ->getJson("/sells/{$this->venda->id}/sheet-data");
+
+    $abrir()->assertOk()
+        ->assertJsonPath('cobranca.kind', 'pending')
+        ->assertJsonPath('cobranca.cob.pix_emv', '00020126PIXTESTE');
+
+    // Paga: o código não é mais mostrado.
+    DB::table('cobrancas')->where('id', $id)->update(['status' => 'paga', 'paga_em' => now()]);
+    $abrir()->assertOk()
+        ->assertJsonPath('cobranca.kind', 'paid')
+        ->assertJsonPath('cobranca.cob.pix_emv', null);
+});
