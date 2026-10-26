@@ -182,17 +182,14 @@ it('UC-FERIAS-06 · licença e tipo do tenant adversário não abatem nada (ADR 
     expect($p[0]['dias_gozados'])->toBe(0);
 });
 
-it('UC-FERIAS-07 · alerta lista o vencido e o que vence na antecedência; não lista o adversário nem o sem admissão', function () {
+it('UC-FERIAS-07 · alerta lista o vencido do empregador e não o do adversário; sem admissão não há período', function () {
+    // `user_id` é NOT NULL e único em ponto_colaborador_config: um colaborador por usuário.
+    $userAlheio = \App\User::where('business_id', $this->adversario->id)->first();
+    if (! $userAlheio) {
+        $this->markTestSkipped('Sem user no tenant adversário — seed mínimo não rodou.');
+    }
     $vencido = feriasColaborador($this->tenant->id, $this->user->id, '2024-01-10');
-    $semAdmissao = Colaborador::forceCreate([
-        // `user_id` é único em ponto_colaborador_config: os dois colaboradores extras vão sem usuário.
-        'business_id' => $this->tenant->id, 'user_id' => null,
-        'matricula' => FERIAS_MARCADOR . '-sem', 'controla_ponto' => true,
-    ]);
-    $alheio = Colaborador::forceCreate([
-        'business_id' => $this->adversario->id, 'user_id' => null,
-        'matricula' => FERIAS_MARCADOR . '-alheio', 'controla_ponto' => true, 'admissao' => '2023-01-10',
-    ]);
+    $alheio  = feriasColaborador($this->adversario->id, $userAlheio->id, '2023-01-10');
 
     $alertas = collect($this->svc->alertas($this->tenant->id, $this->hoje, 60))
         ->filter(fn ($a) => str_starts_with((string) $a['matricula'], FERIAS_MARCADOR));
@@ -201,6 +198,9 @@ it('UC-FERIAS-07 · alerta lista o vencido e o que vence na antecedência; não 
     expect($ids)->toBe([(int) $vencido->id]);
     // Com 60 dias de antecedência só o vencido entra; o 2º período vence em 75 dias.
     expect($alertas->pluck('periodo.situacao')->all())->toBe([FeriasService::SITUACAO_VENCIDO]);
-    expect($ids)->not->toContain((int) $semAdmissao->id);
     expect($ids)->not->toContain((int) $alheio->id);
+
+    // Sem a data de admissão não há período (nem alerta inventado).
+    $semAdmissao = new Colaborador(['business_id' => $this->tenant->id]);
+    expect($this->svc->periodos($semAdmissao, $this->hoje))->toBe([]);
 });
