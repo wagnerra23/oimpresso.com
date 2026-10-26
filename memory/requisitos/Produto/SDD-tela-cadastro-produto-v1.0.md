@@ -6,8 +6,8 @@ type: sdd
 module: Produto
 status: ativo
 owner: wagner
-version: 1.0.10
-last_updated: 2026-10-21
+version: 1.0.16
+last_updated: 2026-10-22
 related_docs:
   - SPEC.md
   - BRIEFING.md
@@ -1019,6 +1019,54 @@ cadastro pede os dados da nota certa: NCM para mercadoria, item da LC 116 para s
   quando derivado só do NCM, o que sustentaria uma **exceção por produto** (hoje a regra fica em
   `nfe_fiscal_rules`, por NCM). Conferir na NT 2025.002 oficial antes de virar caso.
 
+#### CU-PROD-21 — Política de preço do produto `[should]` 🎨 **só no protótipo** (2026-10-22)
+
+<!-- curado: regra da compra em Fluxos (RegrasCompra.php, fsm-regras.jsx) + receita da Fabricação (manufacturing-recipe.jsx) + US-PROD-030 + medição do código em 2026-10-22 -->
+
+*Dado* um produto cujo custo muda quando a compra de um insumo é recebida; *quando* cadastro ou edito
+o produto; *então* escolho o que acontece com o preço de venda dele: fica parado, acompanha o custo ou
+volta para uma margem alvo.
+
+- **Origem:** pedido do [W] em 2026-10-06 (US-PROD-030), textual: *"tem produto que deve ser sempre
+  atualizado o preço a cada compra, ou modificação do item da composição. e tem produto que existe
+  tabela de preço dos vendedores e o cliente não quer mudar o valor toda hora então ele escolhe manter
+  desatualizado."* A regra da compra em Fluxos pergunta "Quais produtos seguem" e uma das respostas é
+  "Política de preço do produto" (`app/Domain/Fsm/Modelos/RegrasCompra.php`, parâmetro `regraEm`). O
+  protótipo de Fluxos anota: *"falta o campo no cadastro"* (`fluxos-modelos.casos.md`).
+- **As três opções** (nomes do protótipo do [W]: receita da Fabricação, `manufacturing-recipe.jsx`, e
+  regra da compra, `fsm-regras.jsx`):
+  1. **Preço fixo — só a margem muda.**
+  2. **Acompanha o custo — mantém o markup.**
+  3. **Margem alvo — recalcula pelo custo**, com o campo **Margem alvo (%)**, que só aparece nessa
+     opção.
+- **Produto novo começa com Preço fixo.** É a resposta do [W] à pergunta 1 da US-PROD-030 (2026-10-06,
+  "mantém o preço") e o padrão do protótipo (`{ tipo: "fixo" }`).
+- **Quem decide o quê:** a **política do produto** diz quais produtos seguem a regra. A **regra da
+  compra da empresa**, em Fluxos, diz o que acontece com eles: só recalcula o custo, propõe o preço
+  novo para alguém aprovar, ou aplica o preço novo sozinho.
+- **O que o sistema já tem (medido em 2026-10-22):**
+  1. ✅ A regra da compra é aplicada no recebimento (US-COM-026, `AplicarCustoDoRecebimento`,
+     2026-10-20), e o preço proposto vai para uma fila de aprovação no detalhe da compra (US-COM-028,
+     `PropostasDePreco`, 2026-10-21).
+  2. 🔴 Não existe coluna de política em `products` nem em `variations`, e o parâmetro `regraEm` ainda
+     não é lido (comentário de `RegrasCompra.php`). Hoje a regra da compra vale para **todos** os
+     produtos da empresa.
+- **No protótipo** (artefato do cadastro, bloco Preço & Imposto): no **Novo**, "Política de preço" com
+  Preço fixo; no **Editar**, o exemplo usa Margem alvo com 45%. A ajuda diz que a regra da compra em
+  Fluxos decide se o preço novo entra sozinho ou vai para aprovação.
+- **⚠️ O SPEC está atrás do fluxo:** a US-PROD-030 usa outros nomes (*mantém o preço · atualiza na
+  hora · atualiza com confirmação*) e põe "com confirmação" no produto. Datas conferidas no git: o
+  protótipo do [W] entrou no repositório em 2026-10-06 17:11 UTC (handoff 48, #8806) e o SPEC no mesmo
+  dia, às 18:57 UTC (#8818). O que veio depois seguiu o protótipo: a ADR 0435 (2026-10-16, *"o fluxo
+  do pedido segue o protótipo Fluxos e regras"*) e a regra da compra no código (2026-10-16 a 21), que
+  pôs a escolha "propõe para aprovação" na empresa. Decidido pela [M] em 2026-10-22: **seguem os nomes
+  de Fluxos e da Fabricação.** A US-PROD-030 precisa ser atualizada com esses nomes; não foi feito
+  neste documento.
+- **Ainda em aberto, sem presumir:** as outras respostas do [W] na US-PROD-030 (tabelas de preço,
+  aviso na receita, vários níveis da composição) não falam dos três nomes novos; a migração do legado
+  (`TEM_MARGEM_FIXA_CONTIBUICAO`) precisa ser refeita para eles.
+- **Casos de uso:** ainda sem id; ganham id quando houver teste que os defenda (G-2).
+
 ### 6.2 Vertical comunicação visual (`CV`)
 
 #### CV-01 — Produto/material precificado por m² 🟡 *criar*
@@ -1239,6 +1287,7 @@ cadastro pede os dados da nota certa: NCM para mercadoria, item da LC 116 para s
 
 **Histórico:**
 
+- 2026-10-22 — **`CU-PROD-21`: política de preço do produto** (v1.0.16): três opções com os nomes de Fluxos e da Fabricação (Preço fixo · Acompanha o custo · Margem alvo), produto novo com Preço fixo, só no protótipo. Registrado que a US-PROD-030 usa outros nomes e ficou atrás do fluxo decidido depois (ADR 0435 e regra da compra no código). [M+C]
 - 2026-10-21 — **`CU-PROD-18` ganha o aviso de EAN** (v1.0.10): `UC-PCAD-17` e `UC-PEDIT-15`. O aviso protege a etiqueta; a nota fiscal não usa o EAN hoje. [M+C]
 - 2026-10-21 — **`CU-PROD-19` item 3 passa de 🔴 a 🟡** (v1.0.9): o Editar mostra a natureza fiscal decidida pelo contador (`UC-PEDIT-14`) e o aviso de NCM deixa de aparecer para produto de serviço. Falta: Novo produto, ficha, e o item da LC 116 por produto na NFS-e (item 4). [M+C]
 - 2026-10-20 — **§6.1 ganha `CU-PROD-16`, `CU-PROD-17` e `CU-PROD-18`** (v1.0.8): dados fiscais para nota, peso e dimensões, aviso de pendência fiscal. Origem: benchmark de concorrentes da tela de cadastro (Bling, Tiny/Olist, Conta Azul, Omie, Shopify), registrado também na [CAPTERRA-FICHA §11](CAPTERRA-FICHA.md). Mesmo dia: [M] decidiu que o NCM entra no cadastro; pesquisa refeita com ERPs de comunicação visual, que trouxe `CU-PROD-19` (natureza mercadoria × serviço) e `CV-06`…`CV-11`. Nenhum UC novo em `casos.md` ainda. [M+C]
