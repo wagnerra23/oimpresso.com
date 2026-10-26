@@ -182,3 +182,28 @@ it('UC-VCAN-08 venda sem pagamento: o título do Financeiro fica cancelado, não
     expect($t)->not->toBeNull();
     expect($t->status)->toBe('cancelado');
 });
+
+it('UC-VCAN-09 a venda cancelada sai do extrato do cliente', function () {
+    // O extrato (getLedgerDetails → __transactionQuery) contava tudo que não era rascunho.
+    $cliente = (int) DB::table('contacts')->insertGetId([
+        'business_id' => $this->biz, 'type' => 'customer', 'name' => 'Cliente extrato', 'contact_id' => 'EX-' . uniqid(),
+        'created_by' => $this->user, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $nova = fn (string $status, float $total) => DB::table('transactions')->insertGetId([
+        'business_id' => $this->biz, 'location_id' => $this->loc, 'type' => 'sell', 'status' => $status,
+        'payment_status' => 'due', 'contact_id' => $cliente, 'transaction_date' => now(), 'final_total' => $total,
+        'created_by' => $this->user, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $nova('final', 100.0);
+    $nova('cancelled', 60.0);
+    $nova('draft', 30.0);
+    // O método lê request()->session(); a requisição de teste não vem com a sessão ligada.
+    request()->setLaravelSession(app('session.store'));
+    session(['user.business_id' => $this->biz]);
+
+    $util = app(\App\Utils\TransactionUtil::class);
+    $m = new ReflectionMethod($util, '__transactionQuery');
+    $soma = (float) $m->invoke($util, $cliente, null)->sum('final_total');
+
+    expect($soma)->toBe(100.0);
+});
