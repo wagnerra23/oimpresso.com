@@ -22,6 +22,12 @@ use Illuminate\Support\Facades\Schema;
 class MeioDePagarDoTitulo
 {
     /**
+     * `cobrancas.status` ainda pagável — vocabulário do PaymentGateway (enum da tabela `cobrancas`),
+     * não o de `fin_titulos.status` que o dicionário do Financeiro governa.
+     */
+    private const COBRANCA_PAGAVEL = ['emitida', 'vencida'];
+
+    /**
      * @return array{linha_digitavel: ?string, pix_copia_cola: ?string, boleto_url: ?string}|null
      */
     public function de(int $businessId, object $titulo): ?array
@@ -32,7 +38,7 @@ class MeioDePagarDoTitulo
 
         $cobranca = DB::table('cobrancas')
             ->where('business_id', $businessId)
-            ->whereIn('status', ['emitida', 'vencida'])
+            ->whereIn('status', self::COBRANCA_PAGAVEL)
             ->where(function ($q) use ($titulo) {
                 $q->where(fn ($q) => $q->where('origem_type', 'fin_titulo')->where('origem_id', (int) $titulo->id));
                 if (($titulo->origem ?? null) === 'venda' && ! empty($titulo->origem_id)) {
