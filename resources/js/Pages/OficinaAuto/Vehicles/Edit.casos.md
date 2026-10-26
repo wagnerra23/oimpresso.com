@@ -5,8 +5,8 @@ irmaos: Edit.charter.md (lei) · ../../../../../memory/requisitos/OficinaAuto/SD
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-10-06"
-last_run_ci: "2026-10-06 revalidado: a tela ganhou o campo opcional Próxima revisão (km) — nenhum UC existente muda; o campo é provado por web cadastro e edição aceitam a próxima revisão (tests/Feature/Sells/AppOsApiContratoTest.php). Antes: 0 UC executado, trio nasceu em 2026-09-23"
+last_run: "2026-10-26"
+last_run_ci: "2026-10-26 revalidado: a tela ganhou o campo opcional Próxima revisão (data) — nenhum UC existente muda; o campo é provado por UC-OVREV-02 (Modules/OficinaAuto/Tests/Feature/LembreteRevisaoContratoTest.php, 8 passed no CT 100, cópia isolada do branch). ---- 2026-10-06 revalidado: a tela ganhou o campo opcional Próxima revisão (km) — nenhum UC existente muda; o campo é provado por web cadastro e edição aceitam a próxima revisão (tests/Feature/Sells/AppOsApiContratoTest.php). Antes: 0 UC executado, trio nasceu em 2026-09-23"
 related_us: [US-OFICINA-001, US-OFICINA-002]
 related_cu: [CU-OFI-02]
 ---
@@ -69,6 +69,8 @@ related_cu: [CU-OFI-02]
   cliente entra na lista, desde que tenha consentido (`whatsapp_consent` sim; vazio ou não, fica de
   fora). Cada meta avisa uma vez; aviso recusado pelo envio não conta; meta nova avisa de novo. Sem o
   envio do WhatsApp ligado, nada sai e nada é registrado.
+  A data se informa no campo "Próxima revisão (data)" do cadastro (criar e editar); data inválida
+  volta com erro e não grava; apagar o campo tira a meta.
 - **Teste:** `Modules/OficinaAuto/Tests/Feature/LembreteRevisaoContratoTest.php`
 - **Status: 🧪**
 
@@ -80,4 +82,3 @@ related_cu: [CU-OFI-02]
   `Index.casos.md` UC-OVI-02 e no `Show.casos.md` UC-OVS-02; falta o caso específico da edição).
 - `[BACKLOG]` A tela de edição tem **paridade exata de campos** com a de cadastro — hoje isso é
   afirmado pelo charter, não por teste.
-- `[BACKLOG]` Campo "Próxima revisão (data)" no formulário do veículo: a coluna `next_service_date` existe desde 2026-10-26 (US-AUTO-014), a tela ainda não a mostra.
