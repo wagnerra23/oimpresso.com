@@ -2009,3 +2009,19 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 3. Reconciliar com os proposals existentes (`whatsapp-fila-inbound-worker-ct100.md` / `whatsapp-ingestao-perda-zero.md`) — esta US é a execução, não duplicar escopo.
 
 Refs: ROADMAP-SDD (sweep do mês)
+
+### US-WA-319 · Notificador reutilizável de aviso automático ao cliente por WhatsApp (texto + anexo)
+
+**Implementado em:** `Modules/Whatsapp/Services/Notify/NotificadorClienteWhatsapp.php` · `Modules/Whatsapp/Services/Notify/ResultadoNotificacao.php` · `Modules/Whatsapp/Tests/Feature/NotificadorClienteWhatsappContratoTest.php`
+
+> owner: — · priority: p0 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** lacuna P0 do levantamento de concorrência de 2026-10-25 — `NotificationUtil::autoSendNotification` com `auto_send_wa_notif` só gera link `wa.me` para alguém clicar; cada módulo que avisa pela API (`NotifyRepairCustomer`, `NotifyInstalacaoCvCustomer`) repete as próprias travas. Consumidores previstos: aviso de venda/pagamento do núcleo (próxima US) e régua de cobrança do Financeiro.
+
+**Critérios de aceite:**
+1. Enfileira 1 mensagem de texto e 1 mensagem de mídia por anexo (URL absoluta, `document`|`image`), pela API, sem clique humano.
+2. Evento `billing` usa o número marcado para cobrança (fallback no de saída padrão); `outbound_default` usa o de saída padrão. Número caído (`disconnected`/`banned`) ou de outra empresa não serve.
+3. Contato só da mesma empresa (Tier 0, ADR 0093).
+4. LGPD: `Contact::canReceiveWhatsappNotification()` falso bloqueia; null permite. Sem celular não envia.
+5. Nunca lança por falta de pré-condição: devolve o motivo (`enviado`, `sem_numero_configurado`, `contato_nao_encontrado`, `recusou_whatsapp`, `sem_celular`) para quem chamou escolher outro canal. Anexo ou evento inválido é erro de quem chamou (exceção).

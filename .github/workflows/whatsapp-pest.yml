@@ -141,6 +141,8 @@ jobs:
         # 2026-10-15 — + AppAtendimentoApiContratoTest (UC-APPAT-01..09, PR 18 do playbook propostas-app,
         # tela 41 do app): /api/app/atendimento por cima da Caixa Unificada; trava LGPD sem consentimento,
         # Idempotency-Key, tenant 98 x 2. Daemon falso (Http::fake) - nenhuma mensagem real sai.
+        # 2026-10-26 — + NotificadorClienteWhatsappContratoTest (US-WA-319): aviso automatico por WhatsApp
+        # com anexo. CT 100 MySQL: 5 passed / 25 assertions; mutante sem filtro business_id no contato -> 1 failed.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -154,6 +156,7 @@ jobs:
             --log-junit test-results/pest-whatsapp-junit.xml \
             Modules/Whatsapp/Tests/Feature/RegisterWhatsappPermissionsCommandTest.php \
             Modules/Whatsapp/Tests/Feature/AppAtendimentoApiContratoTest.php \
+            Modules/Whatsapp/Tests/Feature/NotificadorClienteWhatsappContratoTest.php \
             Modules/Whatsapp/Tests/Feature/EmployeePerformanceDiasAtivosTest.php \
             Modules/Whatsapp/Tests/Feature/ChannelDisplayIdentifierIndexTest.php \
             Modules/Whatsapp/Tests/Feature/CentrifugoPublishTest.php \
