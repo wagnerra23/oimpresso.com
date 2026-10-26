@@ -532,6 +532,9 @@ Status: 🧪
 **Dado** a venda a não contribuinte no RJ e a interna do RJ não cadastrada na tabela por UF **Quando** pede a
 NF-e **Então** a emissão é recusada com "Alíquota interna de RJ não cadastrada. Peça ao contador para
 preencher em Tributação."; com a interna, com cliente contribuinte, na mesma UF ou sem cliente, não recusa.
+
+Status: 🧪
+
 ## UC-FNFE-55 · Destinatário informado por quem emite vence o cliente da venda · `must`
 
 **Dado** uma NF-e (modelo 55) emitida com um destinatário informado (ex. o comprador de um pedido de
