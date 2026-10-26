@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1004 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1011 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -16,6 +16,7 @@
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
 | [`OficinaAuto`](#oficinaauto) | 39 | 0 | 0 | 0 | 38 |
 | [`Producao`](#producao) | 32 | 1 | 0 | 0 | 31 |
+| [`Fiscal`](#fiscal) | 29 | 0 | 0 | 0 | 29 |
 | [`NfeBrasil`](#nfebrasil) | 28 | 0 | 0 | 6 | 22 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
@@ -24,7 +25,6 @@
 | [`Compras`](#compras) | 23 | 3 | 0 | 0 | 19 |
 | [`Crm`](#crm) | 23 | 0 | 0 | 0 | 23 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 22 | 0 | 0 | 0 | 22 |
-| [`Fiscal`](#fiscal) | 22 | 0 | 0 | 0 | 22 |
 | [`Connector`](#connector) | 20 | 0 | 0 | 0 | 19 |
 | [`Forja`](#forja) | 19 | 0 | 1 | 0 | 7 |
 | [`Mwart`](#mwart) | 19 | 0 | 0 | 0 | 19 |
@@ -563,6 +563,41 @@
 - **US-PCP-031** — Reserva o insumo na venda, baixa real na produção (UC-FLX-14) — **P1**
 - **US-PCP-032** — OS liberada sem material fica Aguardando material (D3) — **P1**
 
+## Fiscal
+
+
+### todo
+
+- **US-FISCAL-021** — IBS/CBS cálculo no MotorTributarioService (Onda 6 — sair do scaffold) _(`p0` · @wagner)_
+- **US-FISCAL-025** — IBS/CBS na NF-e de todo emissor do regime normal — **Legal** _(`p0`)_
+- **US-FISCAL-026** — IBS/CBS na DPS da NFS-e nacional — **Legal** _(`p1`)_
+- **US-FISCAL-027** — NFS-e em município fora do padrão nacional — **Legal** _(`p1`)_
+- **US-FISCAL-024** — IBS/CBS — split UF/Município na régua fiscal (coluna de schema) _(`p2`)_
+- **US-FISCAL-028** — SPED EFD-ICMS/IPI blocos D e K — **P2** _(`p2`)_
+- **US-FISCAL-029** — MDF-e e CT-e no módulo novo — **P2** _(`p2`)_
+- **US-FISCAL-030** — Apuração do DAS e guia GNRE — **P3** _(`p3`)_
+- **US-FISCAL-031** — Split payment (LC 214/2025) e EFD-Reinf — **P3** _(`p3`)_
+- **US-FISCAL-001** — Cockpit NF-e · NFC-e (sub-página 2)
+- **US-FISCAL-002** — Cockpit (sub-página 1) — ✅ PR #2 Wave
+- **US-FISCAL-003** — ⌘K palette cross-fiscal — **backlog PR #3**
+- **US-FISCAL-004** — Ações de mutação — **backlog PR #4**
+- **US-FISCAL-005** — NFS-e (sub-página 3) — ✅ PR #2 Wave
+- **US-FISCAL-006** — Manifesto DF-e (sub-página 4) — **backlog PR #6**
+- **US-FISCAL-007** — Eventos (sub-página 5) — ✅ PR #2 Wave
+- **US-FISCAL-008** — DF-e manifesto (sub-página 4) — ✅ PR #3 Wave
+- **US-FISCAL-009** — Cert/Cfg fiscal (sub-página 6) — ✅ PR #3 Wave
+- **US-FISCAL-010** — SPED & Livros (sub-página 7) — ✅ PR #3 Wave (placeholder)
+- **US-FISCAL-011** — SPED Fiscal complete + PIS/COFINS — **backlog PR #10**
+- **US-FISCAL-012** — Ações mutação NFe + DF-e — ✅ PR #4 Wave
+- **US-FISCAL-013** — CC-e (Carta de Correção) + Inutilização faixa — ✅ PR #5 Wave
+- **US-FISCAL-014** — Retransmitir NFe rejeitada/denegada — ✅ PR #6 Wave
+- **US-FISCAL-015** — ⌘K palette cross-fiscal — ✅ PR #7 Wave
+- **US-FISCAL-016** — Gerador SPED EFD-ICMS/IPI MVP — ✅ PR #8 Wave
+- **US-FISCAL-017** — SPED EFD-ICMS/IPI Bloco E + Bloco H — ✅ PR #9 Wave
+- **US-FISCAL-018** — Habilitar cockpit Fiscal Larissa biz=4 + canary 7d smoke
+- **US-FISCAL-019** — Cache Redis 60s KPIs + anti-DOS palette LIKE — ✅ Onda ESTABILIZAR
+- **US-FISCAL-020** — Integrar MotorTributarioService NfeBrasil — elimina 6 hardcodes Tier-0 SPED — ✅ Onda CONSOLIDAR
+
 ## NfeBrasil
 
 
@@ -816,34 +851,6 @@
 - **US-COMVIS-016** — CT-e/MDF-e pra entrega — **P3**
 - **US-COMVIS-017** — Importação massiva de clientes/produtos do legacy OfficeImpresso — **P0**
 - **US-COMVIS-018** — Loja whitelabel pra catálogo público — **P3**
-
-## Fiscal
-
-
-### todo
-
-- **US-FISCAL-021** — IBS/CBS cálculo no MotorTributarioService (Onda 6 — sair do scaffold) _(`p0` · @wagner)_
-- **US-FISCAL-024** — IBS/CBS — split UF/Município na régua fiscal (coluna de schema) _(`p2`)_
-- **US-FISCAL-001** — Cockpit NF-e · NFC-e (sub-página 2)
-- **US-FISCAL-002** — Cockpit (sub-página 1) — ✅ PR #2 Wave
-- **US-FISCAL-003** — ⌘K palette cross-fiscal — **backlog PR #3**
-- **US-FISCAL-004** — Ações de mutação — **backlog PR #4**
-- **US-FISCAL-005** — NFS-e (sub-página 3) — ✅ PR #2 Wave
-- **US-FISCAL-006** — Manifesto DF-e (sub-página 4) — **backlog PR #6**
-- **US-FISCAL-007** — Eventos (sub-página 5) — ✅ PR #2 Wave
-- **US-FISCAL-008** — DF-e manifesto (sub-página 4) — ✅ PR #3 Wave
-- **US-FISCAL-009** — Cert/Cfg fiscal (sub-página 6) — ✅ PR #3 Wave
-- **US-FISCAL-010** — SPED & Livros (sub-página 7) — ✅ PR #3 Wave (placeholder)
-- **US-FISCAL-011** — SPED Fiscal complete + PIS/COFINS — **backlog PR #10**
-- **US-FISCAL-012** — Ações mutação NFe + DF-e — ✅ PR #4 Wave
-- **US-FISCAL-013** — CC-e (Carta de Correção) + Inutilização faixa — ✅ PR #5 Wave
-- **US-FISCAL-014** — Retransmitir NFe rejeitada/denegada — ✅ PR #6 Wave
-- **US-FISCAL-015** — ⌘K palette cross-fiscal — ✅ PR #7 Wave
-- **US-FISCAL-016** — Gerador SPED EFD-ICMS/IPI MVP — ✅ PR #8 Wave
-- **US-FISCAL-017** — SPED EFD-ICMS/IPI Bloco E + Bloco H — ✅ PR #9 Wave
-- **US-FISCAL-018** — Habilitar cockpit Fiscal Larissa biz=4 + canary 7d smoke
-- **US-FISCAL-019** — Cache Redis 60s KPIs + anti-DOS palette LIKE — ✅ Onda ESTABILIZAR
-- **US-FISCAL-020** — Integrar MotorTributarioService NfeBrasil — elimina 6 hardcodes Tier-0 SPED — ✅ Onda CONSOLIDAR
 
 ## Connector
 
