@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1004 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1005 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -26,9 +26,9 @@
 | [`ComunicacaoVisual`](#comunicacaovisual) | 22 | 0 | 0 | 0 | 22 |
 | [`Fiscal`](#fiscal) | 22 | 0 | 0 | 0 | 22 |
 | [`Connector`](#connector) | 20 | 0 | 0 | 0 | 19 |
+| [`Vestuario`](#vestuario) | 20 | 0 | 0 | 0 | 20 |
 | [`Forja`](#forja) | 19 | 0 | 1 | 0 | 7 |
 | [`Mwart`](#mwart) | 19 | 0 | 0 | 0 | 19 |
-| [`Vestuario`](#vestuario) | 19 | 0 | 0 | 0 | 19 |
 | [`Officeimpresso`](#officeimpresso) | 17 | 0 | 0 | 0 | 17 |
 | [`Accounting`](#accounting) | 16 | 0 | 0 | 0 | 16 |
 | [`Ponto`](#ponto) | 16 | 0 | 0 | 0 | 16 |
@@ -874,6 +874,32 @@
 
 - **US-CONN-015** — F2 — Pest baseline do ClientController antes de tocar _(`p2` · @[F])_
 
+## Vestuario
+
+
+### todo
+
+- **US-VEST-021** — Devolução/troca com prazo CDC + crédito em conta-cliente `p0` _(`p0`)_
+- **US-VEST-022** — Comissão de vendedor (% sobre venda + meta) `p1` _(`p1`)_
+- **US-VEST-023** — Liquidação por categoria/marca/estação (desconto em massa) `p1` _(`p1`)_
+- **US-VEST-024** — Programa fidelidade (R$ [redacted Tier 0] = 1 ponto) com resgate em desconto `p1` _(`p1`)_
+- **US-VEST-029** — Atributo "estação" (verão/inverno/meia-estação/atemporal) `p1` _(`p1`)_
+- **US-VEST-031** — Sugestão de compra por tamanho pela curva de venda `p1` _(`p1`)_
+- **US-VEST-025** — Vale-presente / cartão presente (gift card) `p2` _(`p2`)_
+- **US-VEST-026** — Crediário próprio (layaway / parcelado loja) `p2` _(`p2`)_
+- **US-VEST-027** — Provador / fila / pré-venda (separação reserva 24h) `p3` _(`p3`)_
+- **US-VEST-028** — Vendas externas (sacoleira / venda direta) `p3` _(`p3`)_
+- **US-VEST-030** — Ecommerce (loja virtual / WhatsApp catálogo) `p3` _(`p3`)_
+- **US-VEST-001** — Cadastro de produto com variações tamanho + cor `live`
+- **US-VEST-002** — Venda balcão (PDV) com leitor de código de barras `live`
+- **US-VEST-003** — Emissão de NFC-e modelo 65 a partir do POS `live (parcial — biz=4 não usa hoje, mas infra existe)`
+- **US-VEST-004** — Histórico de vendas com filtros (cliente, período, vendedor) `live`
+- **US-VEST-005** — Estoque por localização (matriz tamanho × cor × loja) `live`
+- **US-VEST-006** — Compra (purchase) com fornecedor + recebimento `live`
+- **US-VEST-007** — Conta a receber (boleto Asaas) e a pagar `live`
+- **US-VEST-008** — Múltiplos schemes de invoice convivendo (`2026/NNNN` + `17NNN`) `live`
+- **US-VEST-009** — Sidebar/topnav adaptado por monitor 1280px `live`
+
 ## Forja
 
 
@@ -929,31 +955,6 @@
 - **US-MWART-019** — Onda 6a — Despesas: QA e paridade alta (F4) _(`p2`)_
 - **US-MWART-010** — Onda 7 — migrar Configurações, admin & documentos e desligar Blade _(`p3`)_
 - **US-MWART-012** — Onda 9 — migrar Acesso & onboarding e remover /login/old _(`p3`)_
-
-## Vestuario
-
-
-### todo
-
-- **US-VEST-021** — Devolução/troca com prazo CDC + crédito em conta-cliente `p0` _(`p0`)_
-- **US-VEST-022** — Comissão de vendedor (% sobre venda + meta) `p1` _(`p1`)_
-- **US-VEST-023** — Liquidação por categoria/marca/estação (desconto em massa) `p1` _(`p1`)_
-- **US-VEST-024** — Programa fidelidade (R$ [redacted Tier 0] = 1 ponto) com resgate em desconto `p1` _(`p1`)_
-- **US-VEST-029** — Atributo "estação" (verão/inverno/meia-estação/atemporal) `p1` _(`p1`)_
-- **US-VEST-025** — Vale-presente / cartão presente (gift card) `p2` _(`p2`)_
-- **US-VEST-026** — Crediário próprio (layaway / parcelado loja) `p2` _(`p2`)_
-- **US-VEST-027** — Provador / fila / pré-venda (separação reserva 24h) `p3` _(`p3`)_
-- **US-VEST-028** — Vendas externas (sacoleira / venda direta) `p3` _(`p3`)_
-- **US-VEST-030** — Ecommerce (loja virtual / WhatsApp catálogo) `p3` _(`p3`)_
-- **US-VEST-001** — Cadastro de produto com variações tamanho + cor `live`
-- **US-VEST-002** — Venda balcão (PDV) com leitor de código de barras `live`
-- **US-VEST-003** — Emissão de NFC-e modelo 65 a partir do POS `live (parcial — biz=4 não usa hoje, mas infra existe)`
-- **US-VEST-004** — Histórico de vendas com filtros (cliente, período, vendedor) `live`
-- **US-VEST-005** — Estoque por localização (matriz tamanho × cor × loja) `live`
-- **US-VEST-006** — Compra (purchase) com fornecedor + recebimento `live`
-- **US-VEST-007** — Conta a receber (boleto Asaas) e a pagar `live`
-- **US-VEST-008** — Múltiplos schemes de invoice convivendo (`2026/NNNN` + `17NNN`) `live`
-- **US-VEST-009** — Sidebar/topnav adaptado por monitor 1280px `live`
 
 ## Officeimpresso
 

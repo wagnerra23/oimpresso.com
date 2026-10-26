@@ -341,7 +341,7 @@ ROTA LIVRE usa Asaas como adapter de boleto + extrato (Inter PJ planejado em US-
 
 > owner: — · priority: p1 · estimate: 8h · status: todo · type: story
 > blocked_by: —
-> **Implementado em:** _parcial_ · `Modules/Vestuario/Services/CurvaDeCompra.php` · `Modules/Vestuario/Http/Controllers/CurvaCompraController.php` — cálculo e endpoint `GET /vestuario/curva-compra`; falta o botão "Sugerir pela curva" na tela da compra
+> **Implementado em:** _parcial_ · `Modules/Vestuario/Services/CurvaDeCompra.php` · `Modules/Vestuario/Http/Controllers/CurvaCompraController.php` — cálculo e endpoint GET /vestuario/curva-compra; falta o botão "Sugerir pela curva" na tela da compra
 > **Testado em:** `Modules/Vestuario/Tests/Feature/CurvaDeCompraContratoTest.php`
 > Contrato: `UC-VCUR-01..03` em `memory/requisitos/Vestuario/_telas/curva-de-compra.casos.md`.
 
