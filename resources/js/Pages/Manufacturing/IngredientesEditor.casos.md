@@ -23,7 +23,8 @@ last_run: "2026-10-09"
 - **Aceite:** Dado uma receita com 1 ingrediente de 4,00 em "caixa com 5", quantidade 0,5, no grupo
   "Impressão", rendimento 2, desperdício 10% e 2,50 fixo · Quando abro o editor · Então vejo o grupo, a
   linha com o custo unitário de hoje (4,00), a quantidade, a caixa escolhida, as unidades que o insumo
-  aceita (a dele ×1 e a caixa ×5) e os campos da receita como estão gravados.
+  aceita (a dele ×1 e a caixa ×5) e os campos da receita como estão gravados. O desperdício vem nos
+  dados, sem campo na tela (UC-INGRED-14).
 - **Fonte:** handoff §5 (coluna principal e lateral).
 - **Teste:** `Modules/Manufacturing/Tests/Feature/EditorIngredientesTest.php`
 - **Status: 🧪**
@@ -108,7 +109,7 @@ last_run: "2026-10-09"
 ## UC-INGRED-10 · Quem só consulta não vê salvar, excluir nem campo ativo
 - **Persona:** Eliana (produção) — só com `manufacturing.access_recipe`.
 - **Aceite:** Dado usuário sem permissão de gravar · Quando abro o editor · Então não existem "Salvar
-  receita", "Excluir receita" nem "Remover"; Quantidade produzida, Desperdício e Instruções estão
+  receita", "Excluir receita" nem "Remover"; Quantidade produzida e Instruções estão
   desabilitados; a quantidade dos ingredientes é texto; aparece "Sua permissão é apenas de leitura
   (manufacturing.access_recipe)." e o botão de saída diz "Voltar para Receitas".
 - **Fonte:** handoff §5 regra 3. A recusa no servidor é o UC-INGRED-03.
@@ -149,10 +150,23 @@ last_run: "2026-10-09"
 
 ---
 
+## UC-INGRED-14 · A composição não mostra desperdício e salvar mantém o % gravado
+- **Persona:** Wagner — monta a ficha do banner; a perda real ele registra na ordem de produção.
+- **Aceite:** Dado uma receita com 8% de desperdício gravado · Quando abro o editor · Então não há campo
+  nem texto de desperdício · Quando salvo · Então o envio leva `waste_percent` = 8, o mesmo de antes
+  (a tela não zera o que não mostra).
+- **Fonte:** D4 — decisão [W] 2026-10-23, desperdício é somente na Produção (§7 da decisão
+  Fabricação × Produção). Apagar o dado gravado é outra decisão (D4); a ordem Blade ainda usa o % da
+  receita para sugerir as unidades perdidas.
+- **Teste:** `tests/js/manufacturing-ingredientes-editor.test.tsx`. Mutação mandando 0 no salvar →
+  1 failed.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** (D2 · decisão [W] 2026-10-13) Salvar a composição grava em `product_bom` e `mfg_recipes` passa a ler dela, sem mudar a resposta de `ProductController`, `ProdutoUnificadoController` e `ProductUtil`. Mexe em estoque/valor: REGRA MESTRE (dupla prova + antes→depois). Depende do ADR.
-- **[BACKLOG]** (D4) A composição não mostra "% de desperdício"; ordens já gravadas mantêm o que gravaram.
 - **[BACKLOG]** (D6) A regra de consumo vem da unidade do insumo (m², ml, un, chapa) e a tela mostra a prévia com uma medida de exemplo.
 - **[BACKLOG]** Chego ao editor pelo "Editar ingredientes" da lista de Receitas, sem digitar URL.
   Desde a etapa 3 (2026-10-08) o link leva `&tela=nova`; a prova é de navegador.
@@ -169,3 +183,5 @@ last_run: "2026-10-09"
 - 2026-10-09 · [M+C] As 6 regras de tela do §5 saem do backlog como UC-INGRED-08..13, com
   `tests/js/manufacturing-ingredientes-editor.test.tsx` (19 testes) na lane `manufacturing-jsdom-gate`.
   Cada bloco tem controle positivo; mordida provada por 8 mutações, restauro conferido por hash.
+- 2026-10-25 · [F+C] D4 aplicada (decisão [W] 2026-10-23): o campo "Desperdício (%)" e a validação dele
+  saíram do editor; o valor gravado vai no salvar como veio. O item D4 do backlog virou UC-INGRED-14.
