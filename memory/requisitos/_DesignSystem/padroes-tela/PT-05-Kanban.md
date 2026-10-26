@@ -39,7 +39,7 @@ Por que `Board.tsx` é o arquétipo Kanban:
 | Eixo | Board.tsx (eleito) | Repair/ProducaoOficina (consumidor c/ drift) |
 |---|---|---|
 | **Board rolável** | `repeat(n, minmax(228px,1fr))` em wrapper `overflow-auto` ([Board.tsx:670-673](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx), [:908-910](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx)) — rola X/Y, não estoura viewport | `grid grid-cols-5` fixo ([Index.tsx:249](../../../../resources/js/Pages/Repair/ProducaoOficina/Index.tsx)) — não rola em tablet retrato |
-| **Drag touch** | `@dnd-kit/core` `PointerSensor` (mouse+touch) + `KeyboardSensor` a11y ([KanbanDndProvider.tsx:81-82](../../../../resources/js/Components/shared/KanbanDndProvider.tsx)) | HTML5 `draggable`/`onDragStart` — não dispara em touch |
+| **Drag touch** | `@dnd-kit/core` `PointerSensor` (mouse+touch) + `KeyboardSensor` a11y ([KanbanDndProvider.tsx:81-82](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/_components/KanbanDndProvider.tsx)) | HTML5 `draggable`/`onDragStart` — não dispara em touch |
 | **Transição validada** | mapping FSM FROM→TO ([Board.tsx:271-302](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx)) + `DragConfirmDialog` ([:946](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx)) antes do POST | POST direto sem confirmação |
 | **KPI/token** | `BoardKpiCard` com `kpiTone()` semântico + `rounded-lg` + `ring-primary` ([BoardKpiCard.tsx:41-55](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/_components/board/BoardKpiCard.tsx)) | `bg-blue-*` cru |
 
@@ -72,8 +72,8 @@ Por que `Board.tsx` é o arquétipo Kanban:
 
 | # | Regra | Evidência no golden |
 |---|---|---|
-| **R1** | Drag usa `@dnd-kit/core` (`PointerSensor`+`KeyboardSensor`), **NÃO** HTML5 `draggable`? | [KanbanDndProvider.tsx:81-82](../../../../resources/js/Components/shared/KanbanDndProvider.tsx) · [Board.tsx:909](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx) |
-| **R2** | `PointerSensor` tem `activationConstraint.distance` (≥8) pra clique-abre-drawer não virar drag? | [KanbanDndProvider.tsx:82](../../../../resources/js/Components/shared/KanbanDndProvider.tsx) (`distance: 8`) |
+| **R1** | Drag usa `@dnd-kit/core` (`PointerSensor`+`KeyboardSensor`), **NÃO** HTML5 `draggable`? | [KanbanDndProvider.tsx:81-82](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/_components/KanbanDndProvider.tsx) · [Board.tsx:909](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx) |
+| **R2** | `PointerSensor` tem `activationConstraint.distance` (≥8) pra clique-abre-drawer não virar drag? | [KanbanDndProvider.tsx:82](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/_components/KanbanDndProvider.tsx) (`distance: 8`) |
 | **R3** | Transição de coluna passa por mapping FSM (FROM→TO→action) **antes** de persistir? | [Board.tsx:271-302](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx) + `handleDragMove` [:398](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx) |
 | **R4** | Ação `isCritical` abre `DragConfirmDialog` antes do POST — drop nunca persiste direto? | isCritical [:230,234,246](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx) · dialog [:946](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx) · `handleConfirm` [:426](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx) |
 | **R5** | Persistência via endpoint FSM `/fsm/execute` + `router.reload({only})` — **não** muta `current_stage_id` direto ([ADR 0143](../../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md))? | fetch [:431](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx) · reload [:391](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx) |
