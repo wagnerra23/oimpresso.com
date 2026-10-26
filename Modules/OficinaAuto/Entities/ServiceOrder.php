@@ -2,6 +2,7 @@
 
 namespace Modules\OficinaAuto\Entities;
 
+use App\Domain\Fsm\Concerns\GuardsFsmTransitions;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -57,6 +58,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 class ServiceOrder extends Model
 {
+    use GuardsFsmTransitions; // US-OFICINA-006 — bloqueia UPDATE direto em current_stage_id sem ExecuteStageActionService/ServiceOrderPipelineStarter (ADR 0129/0143), igual a JobSheet
     use HasArquivos; // Gap 1 (2026-05-26) — anexo OS-level laudo geral / foto chassi via Modules/Arquivos backbone (ADR 0123). Complementa foto inline por item DVI (OaInspectionItem).
     use LogsActivity; // D7.b LGPD audit trail (Wave 14)
     use SoftDeletes;
