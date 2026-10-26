@@ -5,7 +5,7 @@ irmaos: Create.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-10-02"
+last_run: "2026-10-26"
 ---
 
 <!-- REVALIDAÇÃO 2026-10-01 (G-6: o .tsx mudou de novo — UC-S04, preço do grupo ao adicionar).
@@ -67,6 +67,13 @@ last_run: "2026-10-02"
      O que está afirmado aqui é o ALCANCE do diff — medido — não um veredito de
      execução. O comportamento novo em si ainda não tem teste: está no Backlog
      abaixo, sem id, conforme G-2. -->
+
+<!-- REVALIDAÇÃO 2026-10-26 (G-6: o .tsx mudou depois do last_run de 02/10).
+     Commits no .tsx depois de 02/10, medidos com `git log --since=2026-10-01 -- Sells/Create.tsx`
+     (clone completo): #8439 (03/10, checklist pré-reparo, senha/padrão e modelos filtrados) e
+     #8447 (03/10, venda de reparo aberta a partir da OS). Os dois já trazem o próprio caso neste
+     arquivo — UC-S06 e UC-S07 — e mantêm o 🧪. A seção nova desta edição (UC-VST-01..05, ICMS-ST,
+     US-SELL-078) é do servidor e não toca o .tsx. Nenhum UC muda de status. -->
 
 <!-- REVALIDAÇÃO 2026-10-02 (G-6: o .tsx mudou depois do last_run de 01/10).
      Única mudança no .tsx: `osOrigem` entrou nas dependências do useMemo do `draftKey`
