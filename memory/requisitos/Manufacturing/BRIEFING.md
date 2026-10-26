@@ -3,7 +3,7 @@ id: requisitos-manufacturing-briefing
 module: Manufacturing
 status: parcial
 status_nota: "Migração Inertia com CUTOVER concluído em 2026-09-04 — as 5 telas servem nos endereços canônicos (/manufacturing/recipe, /production, /report, /settings, /insumos), com ?legacy=1 devolvendo o Blade no mesmo endereço e /v2/* como 301. O editor de ingredientes (US-MANU-006) entrou em 2026-10-08 atrás de ?tela=nova, com as 6 regras de tela provadas em vitest. Falta a US-MANU-007 (formulário de ordem, travada por decisão FSM). Sem pilot dedicado; provê custeio/BOM."
-updated_at: "2026-10-20"
+updated_at: "2026-10-25"
 owner: W
 related_adrs:
   - 0011-alinhamento-padrao-jana
@@ -41,6 +41,7 @@ Estado do código (leitura de 2026-10-20, `origin/main` `40463a2b18`): **nada di
 - A ordem `production_purchase` ainda é criada, finalizada e baixa estoque aqui (Blade); os botões de criar apontam para `/manufacturing/production/create`. `Modules/Producao` já existe (ADR 0431 e 0436).
 - `product_bom` aparece em 0 arquivos de `Modules/Manufacturing` e `Pages/Manufacturing`; o editor grava em `mfg_recipes`, lida por `ProductController`, `ProdutoUnificadoController` e `ProductUtil`.
 - `waste_percent` segue na receita, no custo e no editor. Não há estado "aguardando material" nem regra de consumo pela unidade.
+- **2026-10-25 — D4 aplicada nas telas** (decisão [W] 2026-10-23: desperdício é somente na Produção): a lista de Receitas perdeu o cartão e o filtro "Desperdício ≥ 8%"; lista, gaveta e ficha mostram a quantidade produzida; o editor perdeu o campo. O `waste_percent` **continua gravado** e o editor o envia como veio: a ordem Blade ainda usa o % da receita para sugerir as unidades perdidas, e o % por ingrediente ainda aumenta a baixa de estoque na produção. Apagar ou parar de usar o dado é decisão própria (mexe em estoque).
 - Hipóteses de risco sem teste (Tier 0): H1 `store`, H2 `get-recipe-details`, H3 `update-product-prices` e `SettingsController@store` sem permissão do módulo — ver US-MANU-008 no SPEC.
 
 ## Correção de frescor (briefing estava STALE)

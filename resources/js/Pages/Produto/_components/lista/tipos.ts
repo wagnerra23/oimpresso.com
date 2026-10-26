@@ -41,7 +41,22 @@ export interface LinhaProduto {
    * o preço de venda (mesmo gate); null = nenhuma proposta pendente. `preco` só quando há uma proposta.
    */
   preco_proposto?: { quantidade: number; preco: number | null } | null;
+  /** Requisição de compra aberta (UC-PIDX-30). Ausente = sem permissão de ver requisições; null = nenhuma. */
+  requisicao?: RequisicaoAberta | null;
 }
+
+/** Requisição de compra aberta do produto, criada pelo estoque mínimo ou à mão (UC-PIDX-30 · UC-FLX-19). */
+export interface RequisicaoAberta {
+  id: number;
+  numero: string;
+  /** AAAA-MM-DD. */
+  data: string;
+  fornecedor: string | null;
+  url: string;
+}
+
+/** Data AAAA-MM-DD como DD/MM/AAAA. */
+export const dataBr = (d: string | null | undefined) => (d ? d.slice(0, 10).split('-').reverse().join('/') : '');
 
 export type ListaPaginada = PaginatorShape<LinhaProduto> & { per_page: number };
 
@@ -238,6 +253,8 @@ export interface DetalheProdutoDados {
   roteiro?: RoteiroDoProduto | null;
   /** Só vem para quem vê o preço de venda (ausência ≠ lista vazia). */
   precos_propostos?: PrecoPropostoDoProduto[];
+  /** UC-PIDX-30: ausente sem permissão de ver requisições; null = nenhuma aberta. */
+  requisicao?: RequisicaoAberta | null;
 }
 
 export interface Opcao {

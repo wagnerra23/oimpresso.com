@@ -2117,3 +2117,27 @@ Falta: listener na autorização que ache o título via `transaction_id` e o aju
 
 **Fora desta US:** nenhum título existente muda no deploy — o fix vale nas próximas re-sincronizações. Corrigir os já gravados é decisão [W] depois de ver o `--aberto` rodado em produção, por business.
 
+
+### US-FIN-074 · Extrato automático via Pluggy (Open Finance) entra na conciliação — **P0**
+
+> owner: — · priority: p2 · estimate: 10h · status: done · type: story
+> blocked_by: —
+
+**Implementado em:** `Modules/Financeiro/Console/Commands/PluggySyncCommand.php` (`financeiro:pluggy-sync`), `Modules/Financeiro/Services/Integrations/PluggyBankSyncService.php` (`tipoCanonico`), `Modules/Financeiro/Services/Integrations/PluggyClient.php` (`listTransactions` paginado), `Modules/Financeiro/Tests/Feature/PluggySyncContratoTest.php`
+
+**Testado em:** `Modules/Financeiro/Tests/Feature/PluggySyncContratoTest.php`
+
+**Origem:** lacuna P0 "Extrato bancário automático" do levantamento de concorrência de 2026-10-25. O cliente e o serviço do Pluggy existiam com `PLUGGY_ENABLED=false` e **nenhum invocador** (sem comando, job, rota ou tela). Medido em 2026-10-26 no `main`: o serviço gravava `tipo = 'credito'|'debito'` numa coluna `char(1)` que o sync Inter e a Conciliação (`ConciliacaoController::normalizeApi`) tratam como `C`/`D`; com `strict=false` o MySQL trunca para `c`/`d` e o débito chegaria à Conciliação com valor **positivo**. O `listTransactions` lia só a 1ª página de 200.
+
+⚠️ **REGRA MESTRE — VALOR** ([proibicoes.md](../../proibicoes.md)): o sinal do lançamento do extrato é valor exibido e conciliado.
+
+**Aceite:**
+
+_PR 1 — sync:_
+- [x] Lançamento Pluggy grava `tipo` `C`/`D`; o campo `type` (`CREDIT`/`DEBIT`) do Pluggy vale sobre o sinal do `amount` (UC-FCC-17). Provado por dois caminhos: a linha gravada e o valor com sinal que a Conciliação monta para ela.
+- [x] `listTransactions` percorre todas as páginas; corte acima de 50 páginas é logado (UC-FCC-17).
+- [x] `financeiro:pluggy-sync` sincroniza as contas com `metadata.pluggy.account_id`, cada uma no próprio business, idempotente; com a flag desligada não chama a API (UC-FCC-18). Agendado 07:15 só com `PLUGGY_ENABLED=true`.
+
+**Decisão [W] 2026-10-26 — extrato pelo banco direto, sem agregador.** O Pluggy **não** é o caminho escolhido: nada de webhook, tela de vínculo nem contratação. O extrato automático segue pelas APIs dos próprios bancos, começando pelo Inter, que já existe (`SyncBankStatementsJob`, US-RB-045/046). O que este PR deixa (sinal do débito, paginação, comando atrás de `PLUGGY_ENABLED`, que segue **desligada**) fica como base inerte; o `tipoCanonico` vale para qualquer origem que grave em `fin_extrato_lancamentos`.
+
+**Fechada nesta forma:** os itens de webhook e tela de vínculo saem do escopo por decisão [W].
