@@ -84,7 +84,7 @@ class ContactController extends Controller
         $query = Transaction::where('transactions.business_id', $businessId)
             ->where('contact_id', $contactId)
             ->where('type', 'sell')
-            ->where('status', '!=', 'draft')
+            ->whereNotIn('status', ['draft', 'cancelled'])
             ->leftJoin('business_locations as bl', 'transactions.location_id', '=', 'bl.id')
             ->select(
                 'transactions.id',
@@ -641,7 +641,7 @@ class ContactController extends Controller
 
         // "Sem compra 90d" (risco churn) = JÁ comprou (venda não-draft) mas NADA nos
         // últimos 90d. Alinha com a FrescorPill (last_purchase_at = MAX(transaction_date
-        // WHERE status != 'draft')) — não conta nunca-comprou (esses são "sem histórico",
+        // WHERE status NOT IN ('draft','cancelled'))) — não conta nunca-comprou (esses são "sem histórico",
         // não churn). Subquery scoped por business_id (Tier 0 explícito · ADR 0093).
         $sem_compra_90d = (clone $base)
             ->whereExists(function ($q) use ($business_id) {
@@ -649,14 +649,14 @@ class ContactController extends Controller
                   ->whereColumn('transactions.contact_id', 'contacts.id')
                   ->where('transactions.business_id', $business_id)
                   ->where('transactions.type', 'sell')
-                  ->where('transactions.status', '!=', 'draft');
+                  ->whereNotIn('transactions.status', ['draft', 'cancelled']);
             })
             ->whereNotExists(function ($q) use ($business_id) {
                 $q->select(DB::raw(1))->from('transactions')
                   ->whereColumn('transactions.contact_id', 'contacts.id')
                   ->where('transactions.business_id', $business_id)
                   ->where('transactions.type', 'sell')
-                  ->where('transactions.status', '!=', 'draft')
+                  ->whereNotIn('transactions.status', ['draft', 'cancelled'])
                   ->where('transactions.transaction_date', '>=', now()->subDays(90));
             })
             ->count();
