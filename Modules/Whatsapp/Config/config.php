@@ -148,6 +148,14 @@ return [
     'queue' => env('WHATSAPP_QUEUE', 'whatsapp'),
 
     /*
+     * US-WA-324 — bot de atendimento com menu (opção → fila, pergunta de nome, depois humano).
+     * Desligado por padrão: ligar em produção é decisão [W]. O menu também precisa estar ativo no canal.
+     */
+    'bot_menu' => [
+        'enabled' => (bool) env('WHATSAPP_BOT_MENU_ENABLED', false),
+    ],
+
+    /*
      * Caixa Unificada v4 (RUNBOOK-inbox-caixa-unificada-v4.md §4).
      *
      * Filas de atendimento APENAS VISUAIS (sem persistência DB nesta passada).
