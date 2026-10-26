@@ -24,7 +24,7 @@ export interface LinhaNecessidade {
 
 const num = (n: number) => n.toLocaleString('pt-BR', { maximumFractionDigits: 4 });
 
-export const colunasNecessidade: ColumnDef<LinhaNecessidade, unknown>[] = [
+const colunasNecessidade: ColumnDef<LinhaNecessidade, unknown>[] = [
   { id: 'insumo', header: 'Insumo', cell: ({ row: { original: l } }) => <span className="font-medium">{l.insumo}</span> },
   { id: 'local', header: 'Local', cell: ({ row: { original: l } }) => l.local },
   { id: 'necessidade', header: 'Comprar', meta: { mono: true }, cell: ({ row: { original: l } }) => <strong>{num(l.necessidade)}</strong> },
