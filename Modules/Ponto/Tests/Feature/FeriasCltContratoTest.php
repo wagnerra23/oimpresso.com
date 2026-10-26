@@ -21,6 +21,7 @@ uses(PontoTestCase::class);
  * Tier 0 (ADR 0093): tenant fictício 98 vs adversário 99 (ADR 0358). NUNCA biz=4, nunca biz=1.
  * Sem `RefreshDatabase` — a lane `ponto-pest` proíbe. Limpeza por id coletado e por marcador.
  *
+ * @covers-us US-PONTO-018
  * @see \Modules\Ponto\Services\FeriasService
  */
 
