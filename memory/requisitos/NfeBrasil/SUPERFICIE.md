@@ -14,7 +14,7 @@ module: NfeBrasil
 >
 > **O que isto é:** o inventário completo das raízes `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 307 arquivos em 19 papéis.
+**Total mapeado:** 308 arquivos em 19 papéis.
 
 ## Controllers — 16
 
@@ -148,7 +148,7 @@ module: NfeBrasil
 - [api.php](../../../Modules/NfeBrasil/Routes/api.php)
 - [web.php](../../../Modules/NfeBrasil/Routes/web.php)
 
-## Migrations (schema) — 34
+## Migrations (schema) — 35
 
 - [2026_05_06_002000_create_nfe_certificados_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_05_06_002000_create_nfe_certificados_table.php)
 - [2026_05_06_002001_create_nfe_emissoes_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_05_06_002001_create_nfe_emissoes_table.php)
@@ -184,6 +184,7 @@ module: NfeBrasil
 - [2026_10_14_000003_create_nfe_naturezas_produto_e_difal_simples.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_14_000003_create_nfe_naturezas_produto_e_difal_simples.php)
 - [2026_10_20_000001_add_valor_iss_retido_to_nfse_emissoes.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_20_000001_add_valor_iss_retido_to_nfse_emissoes.php)
 - [2026_10_21_000000_add_contingencia_modo_to_nfe_business_configs.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_21_000000_add_contingencia_modo_to_nfe_business_configs.php)
+- [2026_10_27_000001_add_entrada_compra_to_nfe_dfe_tables.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_27_000001_add_entrada_compra_to_nfe_dfe_tables.php)
 
 ## Seeders — 2
 
