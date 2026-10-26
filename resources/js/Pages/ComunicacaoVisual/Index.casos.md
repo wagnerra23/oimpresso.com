@@ -84,6 +84,7 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CVOS-08 | O orçamento aprovado reabre com o número da OS | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVOS-09 | A OS aprovada nasce com o roteiro padrão e aparece no quadro do PCP | must | US-COMVIS-003 · decisão [W] 2026-10-26 | `OsRoteiroPadraoContratoTest` | 🧪 |
 | UC-CVOS-10 | O padrão só aceita roteiro ativo da própria empresa | must `[T0]` | US-COMVIS-003 · decisão [W] 2026-10-26 | `OsRoteiroPadraoContratoTest` | 🧪 |
+| UC-CVOS-11 | O hub mostra e troca o roteiro padrão para quem cuida do catálogo | should | US-COMVIS-003 · decisão [W] 2026-10-26 | `tests/js/cv-roteiro-padrao.test.tsx` | 🧪 |
 | UC-CVMRG-01 | Cada peça e o orçamento mostram custo e margem | must `[V0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVMRG-02 | Preço, subtotal e total são os mesmos com e sem margem | must `[V0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVMRG-03 | Peça sem custo fica sem margem; o orçamento diz quantas têm | must | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
@@ -581,6 +582,16 @@ Status: 🧪
 **Dado** quem cuida do catálogo **Quando** escolhe o roteiro padrão **Então** roteiro de outra empresa ou
 inativo dá 422 e nada muda; um roteiro ativo da empresa vira o padrão; vazio tira o padrão. Um roteiro
 de outra empresa gravado à mão no ajuste não gera etapa nenhuma.
+
+Status: 🧪
+
+## UC-CVOS-11 · O hub mostra e troca o roteiro padrão para quem cuida do catálogo · `should`
+
+**Dado** quem cuida do catálogo (`comvis.material.manage`) **Quando** abre o hub **Então** o cartão
+"Roteiro da produção" mostra o roteiro padrão atual e os roteiros ativos; "Salvar roteiro" só libera
+quando a escolha muda; sem roteiro ativo, diz para cadastrar na tela de Roteiros da produção.
+
+Teste: `tests/js/cv-roteiro-padrao.test.tsx`
 
 Status: 🧪
 
