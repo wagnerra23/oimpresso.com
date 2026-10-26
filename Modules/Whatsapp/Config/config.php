@@ -148,6 +148,14 @@ return [
     'queue' => env('WHATSAPP_QUEUE', 'whatsapp'),
 
     /*
+     * US-WA-320 — aviso de venda/pagamento do núcleo (NotificationUtil, `auto_send_wa_notif`) enviado
+     * pela API em vez de link wa.me. Desligado por padrão: ligar em produção é decisão [W].
+     */
+    'aviso_automatico' => [
+        'enabled' => (bool) env('WHATSAPP_AVISO_AUTOMATICO_ENABLED', false),
+    ],
+
+    /*
      * Caixa Unificada v4 (RUNBOOK-inbox-caixa-unificada-v4.md §4).
      *
      * Filas de atendimento APENAS VISUAIS (sem persistência DB nesta passada).
