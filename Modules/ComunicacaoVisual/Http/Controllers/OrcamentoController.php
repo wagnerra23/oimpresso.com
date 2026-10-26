@@ -60,7 +60,7 @@ class OrcamentoController extends Controller
         $validated = $this->validarPayload($request);
 
         try {
-            $resultado = $this->calculator->calcular($validated);
+            $resultado = $this->calculator->calcular($validated, $this->businessId());
         } catch (\InvalidArgumentException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }
@@ -85,7 +85,7 @@ class OrcamentoController extends Controller
         $validated = $this->validarPayload($request);
 
         try {
-            $calculado = $this->calculator->calcular($validated);
+            $calculado = $this->calculator->calcular($validated, $this->businessId());
         } catch (\InvalidArgumentException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }
@@ -171,6 +171,12 @@ class OrcamentoController extends Controller
                 'altura_m'          => (float) $i->altura_m,
                 'quantidade'        => (int) $i->quantidade,
                 'preco_unitario_m2' => (float) $i->preco_unitario_m2,
+                // US-COMVIS-001: reabrir devolve os acabamentos escolhidos (o preço é recalculado).
+                'acabamentos'       => array_map(fn (array $a) => array_filter([
+                    'acabamento_id' => (int) $a['acabamento_id'],
+                    'metros'        => $a['tipo'] === 'm_linear' ? (float) $a['base'] : null,
+                    'quantidade'    => $a['tipo'] === 'unitario' ? (float) $a['base'] : null,
+                ], fn ($v) => $v !== null), $i->acabamentos_json ?? []),
             ])->values()->all(),
         ];
     }
@@ -188,7 +194,7 @@ class OrcamentoController extends Controller
         $validated = $this->validarPayload($request);
 
         try {
-            $calculado = $this->calculator->calcular($validated);
+            $calculado = $this->calculator->calcular($validated, $this->businessId());
         } catch (\InvalidArgumentException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }
@@ -316,6 +322,11 @@ class OrcamentoController extends Controller
             // UC-FLX-33: posto e horas de máquina só alimentam o custo previsto, não o preço.
             'itens.*.posto_id'          => $this->regraPosto(),
             'itens.*.horas_maquina'     => ['nullable', 'numeric', 'min:0', 'max:999999'],
+            // US-COMVIS-001: acabamentos do catálogo da empresa; metros/quantidade substituem a base padrão.
+            'itens.*.acabamentos'                 => ['nullable', 'array', 'max:20'],
+            'itens.*.acabamentos.*.acabamento_id' => ['required', 'integer', 'min:1'],
+            'itens.*.acabamentos.*.metros'        => ['nullable', 'numeric', 'gt:0', 'max:99999'],
+            'itens.*.acabamentos.*.quantidade'    => ['nullable', 'numeric', 'gt:0', 'max:99999'],
         ], [
             // Mensagens de validação em PT-BR
             'data_emissao.required'    => 'A data de emissão é obrigatória.',
