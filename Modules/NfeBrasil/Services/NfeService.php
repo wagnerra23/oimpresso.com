@@ -19,6 +19,7 @@ use Modules\NfeBrasil\Models\NfeEmissao;
 use Modules\NfeBrasil\Models\NfeLocalEmissor;
 use Modules\NfeBrasil\Models\NfeEvento;
 use Modules\NfeBrasil\Services\Tributacao\ProdutoFiscalContext;
+use Modules\NfeBrasil\Services\Tributacao\TributoCalculado;
 use Modules\RecurringBilling\Models\Invoice;
 use NFePHP\Common\Certificate;
 use NFePHP\NFe\Common\Standardize;
@@ -187,21 +188,22 @@ class NfeService
                 'icms'    => [
                     'cst_csosn' => $tributo->csosn ?? $tributo->cst ?? '102',
                     'orig'      => 0,
-                    'vbc'       => $tributo->base_icms ?? 0,
-                    'picms'     => $tributo->aliquota_icms,
+                    'vbc'       => $this->baseIcmsDoItem($tributo, (float) $invoice->valor),
+                    // R-NFE-040: a régua guarda fração (0,18); o XML leva percentual (18,00).
+                    'picms'     => round($tributo->aliquota_icms * 100, 4),
                     'vicms'     => $tributo->valor_icms,
                     'pred_bc'   => round($tributo->reducao_base * 100, 4),
                 ],
                 'pis'     => [
                     'cst'   => '07', // 07 = isenta — default seguro Simples Nacional
                     'vbc'   => 0,
-                    'ppis'  => $tributo->aliquota_pis,
+                    'ppis'  => round($tributo->aliquota_pis * 100, 4),
                     'vpis'  => $tributo->valor_pis,
                 ],
                 'cofins'  => [
                     'cst'      => '07',
                     'vbc'      => 0,
-                    'pcofins'  => $tributo->aliquota_cofins,
+                    'pcofins'  => round($tributo->aliquota_cofins * 100, 4),
                     'vcofins'  => $tributo->valor_cofins,
                 ],
                 // IBS/CBS (Reforma · US-FISCAL-021 PR-D). Serializado só quando o business
@@ -220,7 +222,7 @@ class NfeService
             ]],
             'total' => [
                 'v_prod'    => (float) $invoice->valor,
-                'v_bc_icms' => $tributo->base_icms ?? 0, // thread 25: soma dos vBC (0 sem benefício)
+                'v_bc_icms' => $this->baseIcmsDoItem($tributo, (float) $invoice->valor), // R-NFE-040
                 'v_icms'    => $tributo->valor_icms,
                 'v_pis'     => $tributo->valor_pis,
                 'v_cofins'  => $tributo->valor_cofins,
@@ -591,8 +593,9 @@ class NfeService
                     // Origem do produto (tabela A). Linha montada sem a chave (teste, chamada
                     // antiga) segue com 0 — a origem que toda nota usava.
                     'orig'      => (int) ($it['origem'] ?? 0),
-                    'vbc'       => $tributo->base_icms ?? 0,
-                    'picms'     => $tributo->aliquota_icms,
+                    'vbc'       => $this->baseIcmsDoItem($tributo, $base),
+                    // R-NFE-040: a régua guarda fração (0,18); o XML leva percentual (18,00).
+                    'picms'     => round($tributo->aliquota_icms * 100, 4),
                     'vicms'     => $tributo->valor_icms,
                     'pred_bc'   => round($tributo->reducao_base * 100, 4),
                 ],
@@ -601,13 +604,13 @@ class NfeService
                 'pis'     => [
                     'cst'   => '07',
                     'vbc'   => 0,
-                    'ppis'  => $tributo->aliquota_pis,
+                    'ppis'  => round($tributo->aliquota_pis * 100, 4),
                     'vpis'  => $tributo->valor_pis,
                 ],
                 'cofins'  => [
                     'cst'      => '07',
                     'vbc'      => 0,
-                    'pcofins'  => $tributo->aliquota_cofins,
+                    'pcofins'  => round($tributo->aliquota_cofins * 100, 4),
                     'vcofins'  => $tributo->valor_cofins,
                 ],
                 'ibscbs'  => [
@@ -623,7 +626,7 @@ class NfeService
                 'nivel_tributacao' => $tributo->nivel_usado,
             ];
 
-            $tot['v_bc_icms'] += $tributo->base_icms ?? 0; // thread 25: só soma quando há benefício
+            $tot['v_bc_icms'] += $this->baseIcmsDoItem($tributo, $base); // R-NFE-040 (thread 25: benefício)
             $tot['v_icms']   += $tributo->valor_icms;
             $tot['v_pis']    += $tributo->valor_pis;
             $tot['v_cofins'] += $tributo->valor_cofins;
@@ -654,6 +657,23 @@ class NfeService
             ],
             'metadata' => $ncmPadraoUsado === [] ? null : ['itens_ncm_padrao' => $ncmPadraoUsado],
         ];
+    }
+
+    /**
+     * R-NFE-040 · base do ICMS que vai ao item. Com benefício (base reduzida, thread 25) é a do
+     * motor. Sem ela, item do regime normal com CST tributado e alíquota leva a base do item —
+     * o vICMS é base × alíquota e a SEFAZ confere a conta. Simples e CST sem ICMS seguem 0.
+     */
+    private function baseIcmsDoItem(TributoCalculado $tributo, float $base): float
+    {
+        if ($tributo->base_icms !== null) {
+            return $tributo->base_icms;
+        }
+        $regimeNormalTributado = $tributo->csosn === null
+            && in_array((string) $tributo->cst, ['00', '10', '51', '90'], true)
+            && $tributo->aliquota_icms > 0;
+
+        return $regimeNormalTributado ? round($base, 2) : 0.0;
     }
 
     /**
@@ -1623,8 +1643,12 @@ class NfeService
             'siglaUF'     => $uf,
             'schemes'     => 'PL_009_V4',
             'versao'      => '4.00',
-            'tokenCSC'    => '',
-            'idCSC'       => '',
+            // R-NFE-045: a sped-nfe lê `CSC`/`CSCid` (Common\Tools::addQRCode) para o QR Code da
+            // NFC-e anterior à versão 3; até 2026-10-26 iam `tokenCSC`/`idCSC` vazios, que ela não
+            // lê. O CSC é o cadastrado na empresa (`business.csc`/`csc_id`, o mesmo que a
+            // consulta de cadastro já usa). No QR v3 a lib não exige o CSC.
+            'CSC'         => (string) ($business->csc ?? ''),
+            'CSCid'       => (string) ($business->csc_id ?? ''),
         ]);
     }
 
@@ -1960,9 +1984,17 @@ class NfeService
      * `legacy` (default de TODOS os business hoje) → null → `new Make(null)` ≡ `new Make()`
      * atual → schema PL_009_V4, XML byte-idêntico. Só `full`/`hybrid_2026` (opt-in
      * explícito pós homologação) → `PL_010_V1`, habilitando o grupo UB (IBS/CBS, PR-D).
+     *
+     * ADR 0442 (emenda a 0321): emitente do regime normal (CRT 3) usa `PL_010_V1` sempre, sem
+     * opt-in — o grupo IBS/CBS é obrigatório para ele desde 03/08/2026 (Ato Conjunto RFB/CGIBS
+     * nº 4/2026). CRT 1 e 2 (Simples) seguem a flag como antes, XML byte-idêntico.
      */
-    private function schemaReforma(int $businessId): ?string
+    private function schemaReforma(int $businessId, int $crt = 1): ?string
     {
+        if ($crt === 3) {
+            return 'PL_010_V1';
+        }
+
         $modo = NfeBusinessConfig::where('business_id', $businessId)
             ->value('reforma_tributaria_modo') ?: 'legacy';
 
@@ -1976,7 +2008,8 @@ class NfeService
     {
         // Legacy → new Make(null) ≡ new Make() (byte-idêntico); full → new Make('PL_010_V1').
         // O mesmo modo governa a serialização do grupo UB (IBS/CBS) nos itens (PR-D).
-        $schemaReforma = $this->schemaReforma($business->id);
+        // ADR 0442: o CRT decide antes do Make (mesma conta do bloco emit, abaixo).
+        $schemaReforma = $this->schemaReforma($business->id, (int) ($emitOverride['crt'] ?? $business->regime ?? 1));
         $nfe = new Make($schemaReforma);
 
         $std         = new \stdClass();
