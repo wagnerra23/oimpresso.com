@@ -9,12 +9,12 @@ return [
     /*
      * The HTML <title> for the generated documentation. If this is empty, Scribe will infer it from config('app.name').
      */
-    'title' => "UltimatePOS API Documentation",
+    'title' => 'oimpresso — API Connector',
 
     /*
      * A short description of your API. Will be included in the docs webpage, Postman collection and OpenAPI spec.
      */
-    'description' => 'UltimatePOS API Documentation',
+    'description' => 'API REST do oimpresso para integrações externas (/connector/api). US-CONN-013.',
 
     /*
      * The base URL displayed in the docs. If this is empty, Scribe will use the value of config('app.url').
@@ -36,7 +36,9 @@ return [
                 /*
                  * Match only routes whose paths match this pattern (use * as a wildcard to match any characters). Example: 'users/*'.
                  */
-                'prefixes' => ['oauth/*', 'connector/*'],
+                // US-CONN-013 AC-1: só a API do Connector. `connector/*` pegava também as telas web
+                // do módulo, e `oauth/*` documentaria a autenticação do Passport fora do escopo.
+                'prefixes' => ['connector/api/*'],
 
                 /*
                  * Match only routes whose domains match this pattern (use * as a wildcard to match any characters). Example: 'api.*'.
@@ -63,6 +65,7 @@ return [
              */
             'exclude' => [
                 // '/health', 'admin.*'
+                'oauth/*',
             ],
 
             /*
@@ -87,7 +90,9 @@ return [
                      * API calls will be made only for routes in this group matching these HTTP methods (GET, POST, etc).
                      * List the methods here or use '*' to mean all methods. Leave empty to disable API calls.
                      */
-                    'methods' => ['GET'],
+                    // US-CONN-013 AC-2: a geração nunca executa endpoint (nem GET): leria dado de
+                    // cliente e poderia ter efeito colateral. Exemplos vêm de docblock/atributo.
+                    'methods' => [],
 
                     /*
                      * Laravel config variables which should be set for the API call.
@@ -148,7 +153,8 @@ return [
          * HTML documentation, assets and Postman collection will be generated to this folder.
          * Source Markdown will still be in resources/docs.
          */
-        'output_path' => 'public/docs',
+        // US-CONN-013 AC-5: fora da pasta servida pela web até [W]/[F] decidirem a audiência.
+        'output_path' => 'storage/app/scribe-connector',
     ],
 
     /*
@@ -159,7 +165,7 @@ return [
          * Whether to automatically create a docs endpoint for you to view your generated docs.
          * If this is false, you can still set up routing manually.
          */
-        'add_routes' => true,
+        'add_routes' => false,
 
         /*
          * URL path to use for the docs endpoint (if `add_routes` is true).
@@ -247,7 +253,7 @@ return [
          * Any extra authentication-related info for your users. For instance, you can describe how to find or generate their auth credentials.
          * Markdown and HTML are supported.
          */
-        'extra_info' => '<p><strong>Getting access_token</strong></p><ol><li><strong>Get client_id &amp; client_secret: </strong>Login to your account. Go to Connector &gt; Clients, click on Create Client button.</li><li><strong>Requesting Tokens: </strong>Send request with client_id, client_secret, username &amp; password as given in <a href="https://laravel.com/docs/9.x/passport#requesting-password-grant-tokens" target="_blank">laravel documentation</a>. In response, you get access_token</li></ol>',
+        'extra_info' => '<p><strong>Como obter o access_token</strong></p><ol><li><strong>client_id e client_secret:</strong> no oimpresso, abra Conector &gt; Clientes e crie um cliente.</li><li><strong>Token:</strong> envie client_id, client_secret, usuário e senha pelo password grant do Passport (POST /oauth/token). A resposta traz o access_token, que vai no cabeçalho Authorization: Bearer.</li></ol>',
     ],
 
     /*
@@ -357,21 +363,23 @@ INTRO
      * The format you pass to `date` will be passed to PhP's `date()` function.
      * The format you pass to `git` can be either "short" or "long".
      */
-    'last_updated' => 'Last updated: {date:F j, Y}',
+    // US-CONN-013 AC-7: carimbo por commit (data mudaria o artefato a cada dia).
+    'last_updated' => 'Gerado do commit {git:short}',
 
     'examples' => [
         /*
          * If you would like the package to generate the same example values for parameters on each run,
          * set this to any number (eg. 1234)
          */
-        'faker_seed' => null,
+        'faker_seed' => 1234,
 
         /*
          * With API resources and transformers, Scribe tries to generate example models to use in your API responses.
          * By default, Scribe will try the model's factory, and if that fails, try fetching the first from the database.
          * You can reorder or remove strategies here.
          */
-        'models_source' => ['factoryCreate', 'factoryMake', 'databaseFirst'],
+        // US-CONN-013 AC-3: nunca lê (databaseFirst) nem grava (factoryCreate) registro real.
+        'models_source' => ['factoryMake'],
     ],
 
     /**
@@ -412,7 +420,6 @@ INTRO
             Strategies\Responses\UseApiResourceTags::class,
             Strategies\Responses\UseResponseTag::class,
             Strategies\Responses\UseResponseFileTag::class,
-            Strategies\Responses\ResponseCalls::class,
         ],
         'responseFields' => [
             Strategies\ResponseFields\GetFromResponseFieldAttribute::class,

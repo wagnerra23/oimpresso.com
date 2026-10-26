@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-10-25**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-10-26**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -32,7 +32,7 @@ lente: [construir]
 | ConsultaOs | [BRIEFING](../requisitos/ConsultaOs/BRIEFING.md) | 2026-10-02 |
 | Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-09-07 |
 | Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-09-29 |
-| Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-09-07 |
+| Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-10-26 |
 | Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-10-20 |
 | Fisio | [BRIEFING](../requisitos/Fisio/BRIEFING.md) | 2026-10-18 |
 | Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-09-15 |
@@ -439,4 +439,4 @@ lente: [construir]
   - `2026-10-15-refutacao-gt-g5-lote-9433-r1`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-10-25 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-10-26 · deriva das fontes canônicas, não as substitui._

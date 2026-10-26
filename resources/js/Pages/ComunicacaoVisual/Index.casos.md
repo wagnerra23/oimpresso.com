@@ -64,6 +64,10 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CV-10 | O hub abre pra quem tem permissão e renderiza a calculadora | must | `CU-CV-01` itens 1-2 | `ContratoTelaOrcamentoTest` | 🧪 ⏭ PR-skip |
 | UC-CV-11 | Salvar o orçamento grava os valores do servidor, atomicamente | should | `CU-CV-05` itens 1-4 | `OrcamentoControllerTest` | 🧪 ⏭ PR-skip |
 | UC-CV-12 | O catálogo de partida nasce completo, idempotente e isolado | should | `CU-CV-07` itens 1-3 | `MaterialSeederTest` | 🧪 ⏭ PR-skip |
+| UC-CVPRC-01 | Peça menor que o mínimo do material é cobrada pelo mínimo | must `[V0]` | `CU-CV-02` · DoD US-COMVIS-001 (mínimo) | `OrcamentoMinimoAcabamentoContratoTest` | 🧪 |
+| UC-CVPRC-02 | Acabamento do catálogo entra no total pela base do tipo dele | must `[V0]` `[T0]` | `CU-CV-02` · DoD US-COMVIS-001 (acabamentos) · SPEC §12.1 | `OrcamentoMinimoAcabamentoContratoTest` | 🧪 |
+| UC-CVPRC-03 | Perda % do material soma na área cobrada | must `[V0]` | Decisão [W] 2026-10-26 · US-COMVIS-001 | `OrcamentoPerdaEmendaContratoTest` | 🧪 |
+| UC-CVPRC-04 | Peça maior que a bobina leva emenda cobrada por metro de solda | must `[V0]` `[T0]` | Decisão [W] 2026-10-26 · US-COMVIS-001 | `OrcamentoPerdaEmendaContratoTest` | 🧪 |
 | UC-CVINST-01 | Agenda equipe e veículo na OS e a agenda da janela lista a instalação | must | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAgendaContratoTest` | 🧪 |
 | UC-CVINST-02 | Alguém da equipe ocupado na janela bloqueia, dizendo com quem e quando | must | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAgendaContratoTest` | 🧪 |
 | UC-CVINST-03 | O mesmo veículo na janela bloqueia, mesmo escrito de outro jeito | must | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAgendaContratoTest` | 🧪 |
@@ -402,6 +406,63 @@ e marcar ✅ sem ela é `status:unverified` (G-7).
 - ⚠️ Este caso prova que o catálogo **existe no banco**, não que a operadora o vê — quem prova a
   tela é o UC-CV-07 (até 2026-09-23 a rota não entregava o catálogo; SDD §5.4.1).
 - **Status: 🧪 ⏭ PR-skip** — arquivo pula em SQLite; veredito da full-suite noturna.
+
+---
+
+## UC-CVPRC-01 · Peça menor que o mínimo do material é cobrada pelo mínimo · `must` `[V0]`
+
+- **Persona:** vendedor de gráfica orçando plaquinha de 30 × 40 cm — a gráfica não corta, imprime e
+  acaba uma peça por menos que o mínimo dela.
+- **Aceite:** Dado um material com mínimo de 0,5 m² por peça · Quando o item tem peças menores · Então
+  cada peça é cobrada como 0,5 m² (`area_cobrada_m2`), a área física (`area_m2`, base do custo) não
+  muda, e peça maior que o mínimo segue pela própria área. Material sem mínimo, ou de outra empresa,
+  não aplica mínimo nenhum: o orçamento sai com os mesmos números de antes.
+- **Teste:** [`OrcamentoMinimoAcabamentoContratoTest`](../../../../Modules/ComunicacaoVisual/Tests/Feature/OrcamentoMinimoAcabamentoContratoTest.php)
+  — cada valor é conta à mão, refeita por um segundo caminho sem banco.
+- **Contrato:** DoD da `US-COMVIS-001` no SPEC (*"mínimo cobrado configurável (`material.minimo_m2`)"*)
+  · `CU-CV-02` do SDD (o servidor é a fonte do valor) · SDD §5.4.6 / D-8.
+- **Status: 🧪** — verde no CT 100 em 2026-10-26 (cópia isolada do branch); veredito da lane pendente.
+
+---
+
+## UC-CVPRC-02 · Acabamento do catálogo entra no total pela base do tipo dele · `must` `[V0]` `[T0]`
+
+- **Persona:** vendedor que soma bainha, ilhós, laminação e arte num banner sem abrir planilha.
+- **Aceite:** Dado acabamentos cadastrados da empresa · Quando o item os escolhe · Então cada um vale
+  base × preço, com a base pelo tipo (SPEC §12.1): `m_linear` = metros informados ou o perímetro da
+  peça × quantidade; `m2` = área física; `unitario` = quantidade informada ou nº de peças; `fixo` = 1.
+  A soma vai para `acabamentos` e entra no total; o subtotal do material não muda. Acabamento de outra
+  empresa, inativo ou sem empresa conhecida é recusado. Gravar guarda o acabamento e o preço do dia.
+- **Teste:** [`OrcamentoMinimoAcabamentoContratoTest`](../../../../Modules/ComunicacaoVisual/Tests/Feature/OrcamentoMinimoAcabamentoContratoTest.php)
+- **Contrato:** DoD da `US-COMVIS-001` (*"acabamentos[]"*, *"extras = sum(acabamentos.preco)"*) ·
+  SPEC §12.1 (`cv_acabamentos.tipo`) · `CU-CV-02` do SDD.
+- **Status: 🧪** — verde no CT 100 em 2026-10-26 (cópia isolada do branch); veredito da lane pendente.
+
+---
+
+## UC-CVPRC-03 · Perda % do material soma na área cobrada · `must` `[V0]`
+
+- **Persona:** vendedor de gráfica orçando lona, que perde material no corte e na margem de refile.
+- **Aceite:** Dado um material com perda de 10% · Quando o item é calculado · Então a área cobrada é
+  `max(L × A, mínimo) × 1,10 × quantidade` (3 × 1,5 → 4,95 m²) e a área física não muda. Com mínimo, a
+  perda incide sobre o mínimo.
+- **Teste:** [`OrcamentoPerdaEmendaContratoTest`](../../../../Modules/ComunicacaoVisual/Tests/Feature/OrcamentoPerdaEmendaContratoTest.php)
+- **Contrato:** decisão [W] 2026-10-26 no DoD da US-COMVIS-001.
+- **Status: 🧪** — verde no CT 100 em 2026-10-26 (cópia isolada do branch); veredito da lane pendente.
+
+---
+
+## UC-CVPRC-04 · Peça maior que a bobina leva emenda cobrada por metro de solda · `must` `[V0]` `[T0]`
+
+- **Persona:** vendedor orçando fachada de 5 × 3 m numa lona de bobina 1,60 m.
+- **Aceite:** Dado um material com largura de bobina e preço do metro de solda · Quando os DOIS lados da
+  peça passam da bobina · Então entra a linha "Emenda (solda)" = (N − 1) × maior lado × preço × quantidade,
+  com N = tiras do menor lado (5 × 3 → 1 emenda de 5 m). Peça que cabe girada, material sem preço de
+  solda, ou de outra empresa, não leva emenda. Reabrir o orçamento não devolve a emenda como acabamento
+  escolhido (ela é recalculada).
+- **Teste:** [`OrcamentoPerdaEmendaContratoTest`](../../../../Modules/ComunicacaoVisual/Tests/Feature/OrcamentoPerdaEmendaContratoTest.php)
+- **Contrato:** decisão [W] 2026-10-26 no DoD da US-COMVIS-001.
+- **Status: 🧪** — verde no CT 100 em 2026-10-26 (cópia isolada do branch); veredito da lane pendente.
 
 ---
 
@@ -779,15 +840,13 @@ Status: 🧪
 - `[BACKLOG]` **Numeração de orçamento com reserva atômica.** `gerarNumero()` lê `MAX(numero)` fora
   da transação; a corrida é barrada pelo `UNIQUE (business_id, numero)` (erro visível, não corrupção),
   mas não há teste do caso concorrente. SDD §5.4.3 / D-2.
-- `[BACKLOG]` **Mínimo cobrado por material (`minimo_m2`).** O DoD da US-COMVIS-001 pede; a tabela
-  `comvis_materiais` tem `estoque_minimo_m2` (estoque, outra coisa) e **não tem** `minimo_m2`; o
-  calculator não aplica piso. SDD §5.4.6.
 - `[BACKLOG]` **CRUD de materiais.** Sem ele o catálogo do UC-CV-07 nasce vazio na prática — só
   existe seeder. SDD §6 CU-CV-07 item 4.
 - `[BACKLOG]` **Seed da tributária CNAE 1813 + wizard de onboarding.** Os NCM/CFOP do ramo (4911.10,
   4911.99, 3919, 7610, 9405 · 5101/5102/5933/5949) não são populados por nada. SDD §6 CU-CV-10 itens 2-3.
-- `[BACKLOG]` **Acabamentos, instalação e entrega como linhas do orçamento.** Hoje são um campo
-  "extras" manual único na tela; a Entity `Acabamento` existe e o calculator não a usa.
+- `[BACKLOG]` **Escolher o acabamento na calculadora; instalação e entrega como linhas.** O cálculo
+  já soma acabamentos do catálogo (UC-CVPRC-02, 2026-10-26), mas a tela ainda só tem o campo
+  "extras" manual, e não há cadastro de acabamentos nem de mínimo do material.
 - `[BACKLOG]` **Migrar o `<select>` nativo da linha de item pro `<Select>` do DS.** Resíduo declarado
   no próprio `.tsx` com `eslint-disable` justificado. ⚠️ ao fazer, usar
   [`<SafeSelectItem>`](../../../../memory/requisitos/_DesignSystem/SAFE-SELECT-ITEM.md) — `value=""`
