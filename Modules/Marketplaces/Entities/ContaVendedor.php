@@ -10,6 +10,23 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Conta do vendedor num marketplace (mkt_account_credentials). Uma empresa pode ter mais de
  * uma conta no mesmo marketplace (padrão da ADR 0117). Tokens cifrados no banco pelo cast
  * `encrypted` e fora de toArray()/JSON.
+ *
+ * @property int $id
+ * @property int $business_id
+ * @property int $marketplace_id
+ * @property string $seller_id_external
+ * @property string|null $seller_nickname
+ * @property string|null $access_token
+ * @property string|null $refresh_token
+ * @property \Illuminate\Support\Carbon|null $access_token_expires_at
+ * @property \Illuminate\Support\Carbon|null $refresh_token_expires_at
+ * @property array|null $oauth_state
+ * @property \Illuminate\Support\Carbon|null $last_sync_at
+ * @property \Illuminate\Support\Carbon|null $last_refresh_at
+ * @property string $status
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property int|null $location_id
  */
 class ContaVendedor extends Model
 {
