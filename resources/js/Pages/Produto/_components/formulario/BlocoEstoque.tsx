@@ -13,6 +13,7 @@ import {
 } from '@/Components/ui/select';
 import type { CamposProduto, DefinirCampo, ModoFormulario, OpcoesProduto } from './tipos';
 import { opcoesDe } from './tipos';
+import { avisoCodigoBarras } from './ean';
 
 interface Props {
   modo: ModoFormulario;
@@ -22,6 +23,8 @@ interface Props {
 }
 
 export function BlocoEstoque({ modo, data, definir, opcoes }: Props) {
+  const avisoEan = avisoCodigoBarras(data.sku, data.barcode_type);
+
   return (
     <Card>
       <CardHeader>
@@ -75,6 +78,11 @@ export function BlocoEstoque({ modo, data, definir, opcoes }: Props) {
               ))}
             </SelectContent>
           </Select>
+          {avisoEan && (
+            <p data-testid="ean-aviso" className="text-[12px] text-warning-fg mt-1">
+              {avisoEan}
+            </p>
+          )}
         </div>
       </CardContent>
     </Card>

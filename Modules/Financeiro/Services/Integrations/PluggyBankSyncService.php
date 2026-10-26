@@ -123,7 +123,7 @@ class PluggyBankSyncService
         $idempotencyKey = $this->buildIdempotencyKey($pluggyId);
 
         $amount = (float) ($tx['amount'] ?? 0.0);
-        $tipo   = $amount >= 0 ? 'credito' : 'debito';
+        $tipo   = $this->tipoCanonico($tx, $amount);
         $valor  = abs($amount);
         $data   = isset($tx['date']) ? Carbon::parse($tx['date'])->toDateString() : Carbon::now()->toDateString();
 
@@ -155,6 +155,30 @@ class PluggyBankSyncService
         ExtratoLancamento::create($payload);
 
         return 'imported';
+    }
+
+    /**
+     * `fin_extrato_lancamentos.tipo` é `char(1)` com `C`/`D` — é o que a Conciliação lê
+     * (`ConciliacaoController::normalizeApi`) e o que o sync Inter grava. Antes gravava
+     * `credito`/`debito`: com `strict=false` o MySQL truncava para `c`/`d`, e a linha de
+     * débito aparecia na Conciliação como valor POSITIVO.
+     *
+     * O campo `type` do Pluggy (`CREDIT`/`DEBIT`) vale sobre o sinal do `amount`, porque em
+     * conta de cartão o sinal é invertido; sem `type`, decide o sinal.
+     *
+     * @param array<string, mixed> $tx
+     */
+    public function tipoCanonico(array $tx, float $amount): string
+    {
+        $type = strtoupper((string) ($tx['type'] ?? ''));
+        if ($type === 'CREDIT') {
+            return 'C';
+        }
+        if ($type === 'DEBIT') {
+            return 'D';
+        }
+
+        return $amount >= 0 ? 'C' : 'D';
     }
 
     /**
