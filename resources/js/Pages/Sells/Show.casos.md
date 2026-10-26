@@ -226,7 +226,7 @@ last_run: "2026-10-21"
 - **Status: 🧪** — roda na lane `sells-pest`.
 
 ## UC-VCAN-03 · Venda com dinheiro recebido não cancela e diz o que falta `[V0]` `[must]`
-- **Aceite:** Dado a venda com R$ 60,00 recebidos · Quando peço o cancelamento (direto ou pela ação FSM) · Então é recusado com "A venda tem R$ 60,00 recebidos (1 pagamento(s)). Estorne ou devolva esse valor ao cliente no Financeiro e cancele de novo.", e nada muda: saldo 7, venda `final`.
+- **Aceite:** Dado a venda com R$ 60,00 recebidos · Quando peço o cancelamento (direto ou pela ação FSM) · Então é recusado com "A venda tem R$ 60,00 recebidos (1 pagamento(s)). Devolva ou remova os pagamentos na própria venda e cancele de novo.", e nada muda: saldo 7, venda `final`.
 - **Teste:** `tests/Feature/Sells/CancelamentoDaVendaContratoTest.php` — `UC-VCAN-03`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
