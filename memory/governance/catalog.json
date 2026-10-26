@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 865,
-    "edges": 1178,
+    "nodes": 866,
+    "edges": 1179,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 146,
-      "component": 480,
+      "component": 481,
       "api": 88
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 92,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 480,
+      "hasComponent": 481,
       "dependsOn": 131,
       "delegatesTo": 120,
       "migratesTo": 1,
@@ -2140,6 +2140,13 @@
       "module": "ComunicacaoVisual",
       "name": "OrcamentoController",
       "desc": ""
+    },
+    {
+      "id": "component:ComunicacaoVisual/RoteiroPadraoController",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "RoteiroPadraoController",
+      "desc": "GET/PUT /comunicacao-visual/api/roteiro-padrao, US-COMVIS-003 · UC-CVOS-09..11)"
     },
     {
       "id": "component:ComunicacaoVisual/Services/AgendaInstalacao",
@@ -8404,6 +8411,12 @@
     {
       "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/OrcamentoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/RoteiroPadraoController",
       "type": "hasComponent",
       "source": "contains"
     },

@@ -93,6 +93,8 @@ class EspelhoController extends Controller
             'mes'    => $mes,
             'totais' => Inertia::defer(fn () => $this->buildTotaisEspelho((int) $businessId, (int) $colaboradorId, (int) $ano, (int) $mesNum)),
             'linhas' => Inertia::defer(fn () => $this->buildLinhasEspelho((int) $businessId, (int) $colaboradorId, (int) $ano, (int) $mesNum)),
+            // US-PONTO-020: o colaborador deu ciência deste mês? Deferido — conferir recalcula o espelho.
+            'ciencia' => Inertia::defer(fn () => app(\Modules\Ponto\Services\EspelhoCienciaService::class)->estado($colaborador, (int) $ano, (int) $mesNum)),
         ]);
     }
 
