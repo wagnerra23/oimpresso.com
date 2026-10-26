@@ -2043,3 +2043,20 @@ Refs: ROADMAP-SDD (sweep do mês)
 5. `payment_received`/`payment_reminder` usam o número de cobrança; o resto, o de saída padrão.
 
 Ligar em produção é decisão [W].
+
+### US-WA-321 · NF-e autorizada manda a DANFE ao cliente por WhatsApp (anexo por link assinado)
+
+**Implementado em:** `Modules/Whatsapp/Listeners/EnviarDanfePorWhatsapp.php` · `Modules/NfeBrasil/Http/Controllers/DanfePublicaController.php` · `Modules/Whatsapp/Tests/Feature/DanfePorWhatsappContratoTest.php`
+
+> owner: — · priority: p0 · estimate: 3h · type: story
+> blocked_by: US-WA-319
+
+**Origem:** lacuna P0 do levantamento de 2026-10-25 (aviso por WhatsApp com anexo de NF-e). Par do `EnviarDanfePorEmail` (US-NFE-044) pelo outro canal.
+
+**Critérios de aceite:**
+1. Flag `whatsapp.aviso_automatico.danfe_enabled` (env `WHATSAPP_AVISO_DANFE_ENABLED`) desligada: nada sai.
+2. Ligada: ao `NFeAutorizada`, o cliente da venda (`transactions.contact_id`, mesma empresa) recebe texto + DANFE como documento pelo `NotificadorClienteWhatsapp` (US-WA-319, com LGPD e número).
+3. Emissão sem venda ou não autorizada: não avisa.
+4. Rota `nfe-brasil.danfe-publica` (GET `/nfe-brasil/danfe/{business}/{emissao}`): só com assinatura válida (7 dias no link gerado); sem assinatura ou adulterada → 403; emissão de outra empresa ou não autorizada → 404.
+
+Ligar em produção é decisão [W].

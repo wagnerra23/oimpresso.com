@@ -153,6 +153,8 @@ return [
      */
     'aviso_automatico' => [
         'enabled' => (bool) env('WHATSAPP_AVISO_AUTOMATICO_ENABLED', false),
+        // US-WA-321 — NF-e autorizada manda a DANFE em PDF ao cliente. Desligado por padrão.
+        'danfe_enabled' => (bool) env('WHATSAPP_AVISO_DANFE_ENABLED', false),
     ],
 
     /*
