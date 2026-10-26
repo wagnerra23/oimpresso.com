@@ -211,6 +211,30 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 
 ---
 
+## UC-FDFE-11 — A busca das notas recebidas usa o CNPJ que a empresa tem `[must]`
+
+**Dado** a empresa sem certificado com titular, com `tax_number_1` vazio e o CNPJ em `business.cnpj` (o caso do biz=1 em produção, medido no #9833)
+**Quando** a busca de DF-e monta a configuração da SEFAZ
+**Então** usa o CNPJ de `business.cnpj`; o valor padrão `00.000.000/0000-00` não conta e cai no `tax_number_1`; o titular do certificado, quando existe, vem primeiro.
+
+- **Âncora:** R-NFE-041 do SPEC do NfeBrasil · US-NFE-051. Mesmo CNPJ para a manifestação.
+- **Teste:** `DfeCnpjEAlarmeTest` — `UC-FDFE-11 · …` (2 casos) · **Status:** 🧪 verde no CT 100 (MySQL) em 2026-10-26, tenant 98 × 99.
+
+## UC-FDFE-12 — Sem CNPJ a busca é recusada com a saída `[must]`
+
+**Dado** a empresa sem CNPJ em nenhum dos três lugares **Quando** a busca vai começar **Então** é recusada com "CNPJ da empresa … não configurado — preencha em Fiscal › Configuração", em vez de ir à SEFAZ com CNPJ vazio.
+
+- **Teste:** `DfeCnpjEAlarmeTest` — `UC-FDFE-12 · …` · **Status:** 🧪 verde no CT 100 em 2026-10-26.
+
+## UC-FDFE-13 — Falha definitiva da busca vira alerta da empresa, um por dia `[must]` `[T0]`
+
+**Dado** o job de busca falhando nas 3 tentativas **Quando** ele desiste **Então** grava em `mcp_alertas_eventos` um alerta `dfe_busca_falhou` aberto, severidade alta, com o último erro, só da empresa — duas falhas no mesmo dia são um alerta só.
+
+- **Âncora:** R-NFE-042. Origem: 69 falhas seguidas em `failed_jobs` desde 2026-07-03 sem ninguém ver.
+- **Teste:** `DfeCnpjEAlarmeTest` — `UC-FDFE-13 · …` · **Status:** 🧪 verde no CT 100 em 2026-10-26.
+
+---
+
 ## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
 
 - **[BACKLOG · 🧪 em revisão] Nenhuma manifestação chegava à SEFAZ, por nenhum caminho** — `ManifestacaoService::buildConfig()` e `DistribuicaoDfeService::buildConfig()` fazem `select(['name','tax_number_1','state'])` em `business`. A coluna `state` **não existe**: 133 colunas no schema canônico (`database/schema/mysql-schema.sql`), 133 no staging CT 100 e 133 em produção Hostinger, sem `state` nos três — e nenhuma das 43 migrations que tocam `business` a cria. Toda manifestação morre em `SQLSTATE[42S22] Unknown column 'state'`, incluindo o `ManifestacaoController::bulkConfirmar` do próprio NfeBrasil. Os dois sites já carregam `?? 'SP'`, e o docblock diz *"UF default 35 (SP) — manifestação é nacional, mas Tools exige cUF"* — o default parece ter sido sempre a intenção, e a coluna no `select` o acidente. **Era motor fiscal, e a decisão [W] veio em 2026-09-04:** consertar pelo `resolverUF` canônico. Feito no PR [#6748](https://github.com/wagnerra23/oimpresso.com/pull/6748), nos **dois** sites (a lápide §5 2026-08-02 é explícita sobre corrigir só um de N) — e ali apareceram mais **dois** defeitos empilhados atrás deste. O #6748 **mergeou em 2026-09-04 13:59** — o item fica aqui até esta tela ganhar um UC que prove a manifestação ponta-a-ponta, que é o que falta para ele sair de vez.

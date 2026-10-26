@@ -40,10 +40,10 @@ afterEach(function () {
 
 function cnpj41(int $biz, ?string $cnpj, ?string $tax1): void
 {
-    DB::table('business')->where('id', $biz)->update(['cnpj' => $cnpj ?? '00.000.000/0000-00', 'tax_number_1' => $tax1]);
+    DB::table('business')->where('id', $biz)->update(['cnpj' => $cnpj ?? '00.000.000/0000-00', 'tax_number_1' => $tax1]); # pii-allowlist: valor padrão da coluna business.cnpj
 }
 
-it('UC-FNFE-44 · sem certificado, o CNPJ vem do business.cnpj quando o tax_number_1 está vazio (o caso do biz=1)', function () {
+it('UC-FDFE-11 · sem certificado, o CNPJ vem do business.cnpj quando o tax_number_1 está vazio (o caso do biz=1)', function () {
     if (DB::table('nfe_certificados')->where('business_id', $this->a)->where('ativo', true)->whereNotNull('cnpj_titular')->exists()) {
         $this->markTestSkipped('o tenant 98 tem certificado ativo com titular neste banco');
     }
@@ -52,7 +52,7 @@ it('UC-FNFE-44 · sem certificado, o CNPJ vem do business.cnpj quando o tax_numb
     expect(CnpjDoEmitente::resolver($this->a))->toBe('11222333000181');
 });
 
-it('UC-FNFE-44 · o valor padrão 00.000.000/0000-00 não conta; cai no tax_number_1', function () {
+it('UC-FDFE-11 · o valor padrão da coluna (só zeros) não conta; cai no tax_number_1', function () {
     if (DB::table('nfe_certificados')->where('business_id', $this->a)->where('ativo', true)->whereNotNull('cnpj_titular')->exists()) {
         $this->markTestSkipped('o tenant 98 tem certificado ativo com titular neste banco');
     }
@@ -61,7 +61,7 @@ it('UC-FNFE-44 · o valor padrão 00.000.000/0000-00 não conta; cai no tax_numb
     expect(CnpjDoEmitente::resolver($this->a))->toBe('11222333000181');
 });
 
-it('UC-FNFE-45 · sem CNPJ em lugar nenhum a busca é recusada com a saída, nunca vai vazia', function () {
+it('UC-FDFE-12 · sem CNPJ em lugar nenhum a busca é recusada com a saída, nunca vai vazia', function () {
     if (DB::table('nfe_certificados')->where('business_id', $this->a)->where('ativo', true)->whereNotNull('cnpj_titular')->exists()) {
         $this->markTestSkipped('o tenant 98 tem certificado ativo com titular neste banco');
     }
@@ -72,7 +72,7 @@ it('UC-FNFE-45 · sem CNPJ em lugar nenhum a busca é recusada com a saída, nun
         ->toThrow(RuntimeException::class, 'não configurado — preencha em Fiscal › Configuração');
 });
 
-it('UC-FNFE-46 · a falha definitiva do job grava um alerta por empresa e por dia', function () {
+it('UC-FDFE-13 · a falha definitiva do job grava um alerta por empresa e por dia', function () {
     $job = new BuscarDfesRecebidosJob($this->a);
     $job->failed(new RuntimeException('CNPJ da empresa não configurado'));
     $job->failed(new RuntimeException('Certificado vencido'));
@@ -85,7 +85,7 @@ it('UC-FNFE-46 · a falha definitiva do job grava um alerta por empresa e por di
     expect(DB::table('mcp_alertas_eventos')->where('business_id', $this->b)->where('tipo', BuscarDfesRecebidosJob::TIPO_ALERTA)->count())->toBe(0);
 });
 
-it('UC-FNFE-46 · o cockpit Fiscal mostra a falha só para a própria empresa, e some quando arquivada', function () {
+it('UC-FCKP-14 · o cockpit Fiscal mostra a falha só para a própria empresa, e some quando arquivada', function () {
     (new BuscarDfesRecebidosJob($this->a))->failed(new RuntimeException('Certificado vencido'));
 
     $m = new ReflectionMethod(CockpitController::class, 'ultimaFalhaBuscaDfe');
