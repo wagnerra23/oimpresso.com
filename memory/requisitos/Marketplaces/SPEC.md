@@ -472,9 +472,9 @@ Driver pattern: classe `MarketplaceDriver` abstrata + `MercadoLivreDriver`, `Sho
 
 ### US-MKT-009 · NFe automática ao emitir → CFOP marketplace resolver + dispatch SEFAZ — **P0** · 7h
 
-**Implementado em:** _parcial_ · `Modules/Marketplaces/Services/Fiscal/CfopDoPedido.php` · `Modules/Marketplaces/SideEffects/AvaliarNfeAoEnviar.php` · `Modules/Marketplaces/Jobs/AvaliarNfeDoPedidoJob.php` — 2026-10-26: CFOP provisório (SPEC §5) configurável e avaliação da nota no `marcar_enviado`, atrás da flag `marketplaces.nfe.automatica` (desligada); **nenhuma nota é emitida ainda**. Faltam: destinatário pelo `billing_info` do ML, o NfeService aceitar o CFOP do marketplace (combinar com a frente Fiscal) e o envio do XML ao ML. Depende de [W] + contador conferirem o CFOP (D5)
+**Implementado em:** _parcial_ · `Modules/Marketplaces/Services/Fiscal/CfopDoPedido.php` · `Modules/Marketplaces/SideEffects/AvaliarNfeAoEnviar.php` · `Modules/Marketplaces/Jobs/AvaliarNfeDoPedidoJob.php` — 2026-10-26: CFOP provisório (SPEC §5) configurável e avaliação da nota no `marcar_enviado`, atrás da flag `marketplaces.nfe.automatica` (desligada); **nenhuma nota é emitida ainda**. 2026-10-26 (2): o pedido pago busca o faturamento no ML e guarda o destinatário nas chaves de `contacts` (`Modules/Marketplaces/Services/MercadoLivre/DestinatarioMercadoLivre.php`; nomes dos campos do ML a reconferir contra resposta real). Interface combinada com a frente Fiscal: `NfeService::emitirParaTransaction($tx, '55', separada: false, destinatarioExterno: [...], cfop: ...)`. Faltam: ligar essa chamada quando o PR da Fiscal sair e o envio do XML ao ML. Depende de [W] + contador conferirem o CFOP (D5)
 
-**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesNfePedidoContratoTest.php`
+**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesNfePedidoContratoTest.php` · `Modules/Marketplaces/Tests/Feature/MarketplacesDestinatarioContratoTest.php`
 
 **DoD:** CFOP 5102 na mesma UF e 6102 em outra, sem CFOP para Full ou UF ausente; flag desligada não põe nada na fila; flag ligada só deixa a nota sair com destinatário completo e fora do Full; outra empresa nunca avalia a venda da 98.
 

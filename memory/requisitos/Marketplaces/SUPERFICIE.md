@@ -14,7 +14,7 @@ module: Marketplaces
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Marketplaces/**` + `resources/js/Pages/Marketplaces/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 46 arquivos em 16 papéis.
+**Total mapeado:** 48 arquivos em 16 papéis.
 
 ## Controllers — 5
 
@@ -28,12 +28,13 @@ module: Marketplaces
 
 - [MarketplacesLiberado.php](../../../Modules/Marketplaces/Http/Middleware/MarketplacesLiberado.php)
 
-## Services — 6
+## Services — 7
 
 - [ContasVendedor.php](../../../Modules/Marketplaces/Services/ContasVendedor.php)
 - [CfopDoPedido.php](../../../Modules/Marketplaces/Services/Fiscal/CfopDoPedido.php)
 - [IniciarPipelineMarketplace.php](../../../Modules/Marketplaces/Services/IniciarPipelineMarketplace.php)
 - [MarketplacesAcesso.php](../../../Modules/Marketplaces/Services/MarketplacesAcesso.php)
+- [DestinatarioMercadoLivre.php](../../../Modules/Marketplaces/Services/MercadoLivre/DestinatarioMercadoLivre.php)
 - [MercadoLivreOAuth.php](../../../Modules/Marketplaces/Services/MercadoLivre/MercadoLivreOAuth.php)
 - [PedidoParaVenda.php](../../../Modules/Marketplaces/Services/PedidoParaVenda.php)
 
@@ -91,9 +92,9 @@ module: Marketplaces
 
 - [Pedidos.casos.md](../../../resources/js/Pages/Marketplaces/Pedidos.casos.md)
 
-## Testes (Pest) — 8
+## Testes (Pest) — 9
 
-- 8 em [Modules/Marketplaces/Tests/Feature/](../../../Modules/Marketplaces/Tests/Feature)
+- 9 em [Modules/Marketplaces/Tests/Feature/](../../../Modules/Marketplaces/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 5
