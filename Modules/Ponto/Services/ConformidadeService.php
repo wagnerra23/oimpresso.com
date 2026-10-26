@@ -7,7 +7,7 @@ use Modules\Ponto\Entities\ApuracaoDia;
 use Modules\Ponto\Entities\Colaborador;
 
 /**
- * Painel de Conformidade CLT — as 6 verificações da competência (thread 05 do playbook Ponto).
+ * Painel de Conformidade CLT — as 7 verificações da competência (thread 05 do playbook Ponto).
  *
  * SOMENTE LEITURA (ADR 0413 D0): nada aqui escreve. A correção acontece em Intercorrências
  * ou no Espelho.
@@ -36,7 +36,14 @@ class ConformidadeService
         'he'             => ['Hora extra acima do limite diário', 'CLT Art. 59 — até 2h/dia', 'warn'],
         'nsr'            => ['NSR fora de sequência', 'Portaria MTP 671/2021 Anexo I — NSR sequencial', 'danger'],
         'sem_pis'        => ['Colaborador ativo sem PIS', null, 'warn'],
+        // US-PONTO-018. `warn`, não `danger`: a nota da tela chama de "regra dura" só Art. 66 e
+        // Art. 71, e mudar o que é duro é decisão [W], não efeito colateral de verificação nova.
+        'ferias_vencidas' => ['Férias vencidas', 'CLT Art. 137 — concedidas fora do período concessivo pagam em dobro', 'warn'],
     ];
+
+    public function __construct(private readonly FeriasService $ferias)
+    {
+    }
 
     public const ESTADO_SEM_COLABORADORES = 'sem_colaboradores';
     public const ESTADO_SEM_APURACAO = 'sem_apuracao';
@@ -94,6 +101,25 @@ class ConformidadeService
         foreach ($colabs as $c) {
             if ($c->controla_ponto && $c->desligamento === null && trim((string) $c->pis) === '') {
                 $casos['sem_pis'][] = $this->caso($c, null, 'sem PIS', '—', 'a importação de AFD rejeita a marcação sem PIS cadastrado');
+            }
+        }
+
+        // Férias vencidas (US-PONTO-018): vêm do cadastro + apuração + licenças, não do dia — como o
+        // "sem PIS", contam mesmo sem dia apurado na competência. Data de referência: o fim da
+        // competência, ou hoje se ela ainda não acabou.
+        $ref = $fim->copy()->startOfDay()->min(now()->startOfDay());
+        $ativos = $colabs->filter(fn (Colaborador $c) => $c->controla_ponto && $c->desligamento === null);
+        foreach ($this->ferias->periodosEmLote($businessId, $ativos, $ref) as $colabId => $periodos) {
+            foreach ($periodos as $p) {
+                if ($p['situacao'] === FeriasService::SITUACAO_VENCIDO) {
+                    $casos['ferias_vencidas'][] = $this->caso(
+                        $colabs->get($colabId),
+                        $p['concessivo_fim'],
+                        $p['saldo'] . ' dias de saldo',
+                        'conceder até ' . Carbon::parse($p['concessivo_fim'])->format('d/m/Y'),
+                        'período aquisitivo ' . Carbon::parse($p['inicio'])->format('d/m/Y') . ' a ' . Carbon::parse($p['fim'])->format('d/m/Y')
+                    );
+                }
             }
         }
 

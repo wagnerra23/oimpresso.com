@@ -2142,6 +2142,13 @@
       "desc": ""
     },
     {
+      "id": "component:ComunicacaoVisual/RoteiroPadraoController",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "RoteiroPadraoController",
+      "desc": "GET/PUT /comunicacao-visual/api/roteiro-padrao, US-COMVIS-003 · UC-CVOS-09..11)"
+    },
+    {
       "id": "component:ComunicacaoVisual/Services/AgendaInstalacao",
       "type": "component",
       "module": "ComunicacaoVisual",
@@ -8411,6 +8418,12 @@
     {
       "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/OrcamentoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/RoteiroPadraoController",
       "type": "hasComponent",
       "source": "contains"
     },
