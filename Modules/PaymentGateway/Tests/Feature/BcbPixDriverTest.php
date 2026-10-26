@@ -49,7 +49,7 @@ function bcbInput(array $over = []): EmitirCobrancaInput
         'businessId' => 98, 'contactId' => 700, 'valorCentavos' => 10607,
         'vencimento' => new DateTimeImmutable('2031-04-15'), 'descricao' => 'Mensalidade Oimpresso',
         'idempotencyKey' => 'rb-inv-55-2031-04', 'origemType' => 'invoice', 'origemId' => 55,
-        'meta' => ['payer_cpf_cnpj' => '123.456.789-01', 'payer_name' => 'Cliente Teste', 'periodicidade' => 'MENSAL'],
+        'meta' => ['payer_cpf_cnpj' => '123.456.789-01', 'payer_name' => 'Cliente Teste', 'periodicidade' => 'MENSAL'], // pii-allowlist (fixture de teste, documento fictício)
     ], $over));
 }
 
@@ -103,7 +103,7 @@ it('recorrência com CNPJ manda cnpj, não cpf; documento inválido é recusado'
         '*/oauth/token' => Http::response(['access_token' => 'tk'], 200),
         '*/v2/rec' => Http::response(['idRec' => 'RR-pj', 'status' => 'CRIADA'], 201),
     ]);
-    (new BcbPixDriver())->emitirPixAutomatico(bcbInput(['meta' => ['payer_cpf_cnpj' => '12.345.678/0001-00']]), $this->cred);
+    (new BcbPixDriver())->emitirPixAutomatico(bcbInput(['meta' => ['payer_cpf_cnpj' => '12.345.678/0001-00']]), $this->cred); // pii-allowlist (fixture de teste, documento fictício)
     Http::assertSent(fn ($req) => str_ends_with($req->url(), '/v2/rec')
         && $req['vinculo']['devedor'] === ['cnpj' => '12345678000100']);
 
