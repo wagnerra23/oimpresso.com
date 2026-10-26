@@ -75,6 +75,32 @@ related_adrs:
 - Endpoint: POST `/woocommerce/webhook/{business_id}/order-updated`
 - Aceite: refunded reverte Transaction (cria refund); cancelled marca cancelada + libera estoque; idempotente por `wh_id` Woo
 
+### US-WOO-007 · Estoque do ERP volta para a loja WooCommerce sozinho quando muda
+
+> owner: — · priority: p1 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_ — planejada (lacunas 2026-10-25); hoje o estoque só vai à Woo pelo sync manual de produtos
+
+Origem: levantamento de lacunas 2026-10-25 (P1 Plataforma — WooCommerce atualizado com estoque de volta).
+- Hoje o estoque só vai para a Woo quando alguém roda o sync de produtos; venda no balcão não atualiza a loja.
+- Mudança de estoque de produto já sincronizado (`woocommerce_product_id` preenchido) agenda job com `business_id` que envia só `stock_quantity` daquele produto/variação, com debounce por produto.
+- Respeita `disable_woocommerce_sync` e a configuração de local da Woo.
+- Não altera o estoque do ERP (só lê). Regra mestre de estoque: prova por dois caminhos do valor enviado.
+- Teste com HTTP falso da Woo: produto da 98 nunca vai para a loja da 99.
+
+### US-WOO-008 · Contrato do WooCommerce 8/9 na API REST v3 (pedido e produto)
+
+> owner: — · priority: p1 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_ — planejada (lacunas 2026-10-25); o código foi escrito para Woo 3.x–6.x e nunca testado nas versões atuais
+
+Origem: levantamento de lacunas 2026-10-25 (P1 Plataforma — WooCommerce sem teste nas versões novas).
+- Fixtures de resposta (anonimizadas) do WooCommerce 8.x e 9.x para pedido, produto e variação.
+- Testes que passam `formatOrderToSale` e `syncProd` por essas fixtures e afirmam os campos que o ERP grava.
+- Divergência encontrada vira correção no mesmo épico, um PR por campo.
+
 ## Anti-padrões (NÃO fazer)
 
 - ❌ Armazenar `consumer_secret` em plaintext — sempre `Crypt::encrypt`
