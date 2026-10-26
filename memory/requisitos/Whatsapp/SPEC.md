@@ -2030,7 +2030,7 @@ Refs: ROADMAP-SDD (sweep do mês)
 
 **Implementado em:** `app/Utils/NotificationUtil.php` · `Modules/Whatsapp/Config/config.php` · `Modules/Whatsapp/Tests/Feature/AvisoVendaWhatsappApiContratoTest.php`
 
-> owner: — · priority: p0 · estimate: 3h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 3h · type: story
 > blocked_by: US-WA-319
 
 **Origem:** lacuna P0 do levantamento de 2026-10-25 — `NotificationUtil.php` com `auto_send_wa_notif` só gerava link `wa.me` para o atendente clicar. Chamadores medidos em 2026-10-26: todos com `new_sale` (`SellPosController` ×4, `RecurringInvoice`, `RegistrarVendaRapida`, API `Connector`).
