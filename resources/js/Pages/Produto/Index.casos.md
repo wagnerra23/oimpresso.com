@@ -85,6 +85,7 @@ last_run_ci: "2026-10-23: run 39945557255 (lane Estoque · MySQL, main 53e7995, 
 | UC-PIDX-27 | A grade tem altura própria: rola por dentro, com o cabeçalho fixo e a barra de rolar para o lado sempre à vista | should | protótipo (`ListaProdutos`: altura = 72% do corpo, mínimo 260px) + charter (UX: "a tabela rola dentro dela, cabeçalho fixo") | `produto-lista-encaixe.test.tsx` (Vitest, roda no `Frontend / Vite build`) | 🧪 passou 2026-10-23 — Vitest no Frontend (job 120384523098) |
 | UC-PIDX-28 | Preço proposto pela compra recebida, aguardando aprovação, na linha e no painel; aprovar e recusar ficam na compra | should `[T0]` | UC-FLX-17 + Compras SPEC US-COM-026/028 + charter §Automation Anti-hooks (a consulta não altera preço) + gate de preço (UC-PIDX-03) | `ProdutoPrecoPropostoERoteiroContratoTest` (Pest, roda em lane) + `produto-preco-proposto-roteiro.test.tsx` (Vitest) | 🧪 passou no job 120005347082 (lane Estoque · MySQL, commit 730f065c, 2026-10-22): 7 testes, 0 pulados, 64 verificações |
 | UC-PIDX-29 | Aba Roteiro do painel: as etapas do roteiro do produto, na ordem, com o posto e o setor de cada uma | should `[T0]` | UC-FLX-07 + UC-FLX-08 + Produção SPEC US-PCP-026/030 + ADR 0093 | `ProdutoPrecoPropostoERoteiroContratoTest` (Pest, roda em lane) + `produto-preco-proposto-roteiro.test.tsx` (Vitest) | 🧪 passou no job 120005347082 (lane Estoque · MySQL, commit 730f065c, 2026-10-22): 7 testes, 0 pulados, 64 verificações |
+| UC-PIDX-30 | A requisição de compra aberta do produto aparece na linha e na aba Estoque, com número, data e fornecedor | should `[T0]` | UC-FLX-19 + Compras SPEC US-COM-027 + permissões da lista de requisições | `ProdutoRequisicaoAbertaContratoTest` (Pest, roda em lane) + `produto-requisicao-aberta.test.tsx` (Vitest) | 🧪 escrito, sem veredito nesta divisão. Junto com os outros dois casos, no #9785, passou no job 120394269474 (lane Estoque · MySQL, commit 3587864, 2026-10-23) |
 | UC-PIDX-32 | Método de custo do insumo na aba Variações, só quando a empresa gravou a regra de custo no Recebido | should | UC-FLX-38 + Compras SPEC US-COM-024/026 (`AplicarCustoDoRecebimento`) + gate de custo (UC-PIDX-03) | `ProdutoMetodoDeCustoContratoTest` (Pest, roda em lane) + `produto-metodo-custo.test.tsx` (Vitest) | 🧪 escrito, sem veredito nesta divisão. Junto com os outros dois casos, no #9785, passou no job 120394269474 (lane Estoque · MySQL, commit 3587864, 2026-10-23) |
 | UC-PIDX-33 | Aba Estoque do painel: a tabela de locais mostra quanto foi vendido em cada local | should | protótipo (artefato "Consulta de Produto", 22/10: coluna "Vendido" por local) + pedido da ROTA LIVRE (2026-10-23) | `ProdutoDetalheTest` (lane Estoque · MySQL) + `produto-painel-detalhe.test.tsx` (Vitest, não roda em lane) | ⬜ nasce neste PR — verde esperado |
 
@@ -458,6 +459,13 @@ last_run_ci: "2026-10-23: run 39945557255 (lane Estoque · MySQL, main 53e7995, 
 - **Contrato:** UC-FLX-07 e UC-FLX-08 (`prototipo-ui/cowork/Wagner/fluxos-data.jsx`) e Produção SPEC US-PCP-026/030. O protótipo junta receita e roteiro numa aba "Receita e roteiro"; a receita na consulta é outro caso (CV6, backlog), por isso aqui a aba é só "Roteiro".
 - **Status: 🧪** — passou no job 120005347082 (lane Estoque · MySQL, commit 730f065c, 2026-10-22): 7 testes, 0 pulados, 64 verificações. O Vitest não roda em lane; passou local (8 casos).
 
+## UC-PIDX-30 · Requisição de compra aberta na linha e na aba Estoque · `should` `[T0]`
+- **Persona:** quem compra e olha a consulta para decidir se precisa pedir mais material.
+- **Aceite:** Dado um produto com requisição de compra aberta (`transactions.type = purchase_requisition`, status `ordered` ou `partial`) — a que o estoque mínimo cria sozinho (US-COM-027) ou uma feita à mão · Então a célula "Estoque atual" mostra, abaixo do saldo, "Requisição ‹número› aberta em ‹dia/mês› · ‹fornecedor›", da requisição aberta mais recente · E a aba Estoque do painel repete a requisição com o botão "Abrir a requisição" · Quando a requisição já foi atendida (`completed`) · Então não aparece · Quem tem `purchase_requisition.view_all` vê todas; quem tem só `view_own`, as que criou; sem nenhuma das duas, a chave não vem · Requisição de outra empresa não aparece (Tier 0).
+- **Teste:** [`ProdutoRequisicaoAbertaContratoTest`](../../../../tests/Feature/Produto/ProdutoRequisicaoAbertaContratoTest.php) e [`produto-requisicao-aberta.test.tsx`](../../../../tests/js/produto-requisicao-aberta.test.tsx) (o Vitest não roda em lane) — `UC-PIDX-30` (a mais recente vence, `completed` fica fora, as duas permissões, outra empresa). Mutação: tirar a linha da célula derruba o caso da célula no Vitest.
+- **Contrato:** UC-FLX-19 (`prototipo-ui/cowork/Wagner/fluxos-data.jsx`) e Compras SPEC US-COM-027. **Diferença do protótipo:** o protótipo só mostra a requisição quando o produto está abaixo do alerta; aqui ela aparece sempre que houver uma aberta, porque a requisição feita à mão também conta e o alerta pode ter mudado depois.
+- **Status: 🧪** — escrito, sem veredito nesta divisão. Junto com os outros dois casos, no #9785, passou no job 120394269474 (lane Estoque · MySQL, commit 3587864, 2026-10-23). O Vitest não roda em lane.
+
 ## UC-PIDX-32 · Método de custo do insumo na aba Variações · `should`
 - **Persona:** quem forma preço e quer saber de onde vem o custo que está vendo.
 - **Aceite:** Dada a empresa que gravou a regra "Atualizar o custo dos insumos" ligada e disparando no Recebido (as mesmas condições em que o recebimento a aplica, `AplicarCustoDoRecebimento`) · Então a aba Variações ganha a coluna "Método do custo", com "custo médio" ou "última compra" e a data da última compra recebida · Quando a regra é "definido em cada insumo" · Então vale o método do insumo, e insumo sem método mostra "sem método definido" · Sem a regra gravada, com a regra em Conferido, desligada, ou para quem não vê custo · Então a coluna não existe, porque o custo ali é o último preço digitado.
@@ -685,15 +693,11 @@ last_run_ci: "2026-10-23: run 39945557255 (lane Estoque · MySQL, main 53e7995, 
 
 **Regras e fluxos do Wagner (2026-10-22)**
 
-- **[BACKLOG] Mostrar a requisição de compra aberta pelo estoque mínimo (UC-FLX-19)** — o job
-  diário já cria a requisição com o fornecedor da última compra quando o interruptor "Requisição
-  pelo estoque mínimo" está ligado (US-COM-027, em produção), mas a consulta não mostra. Aceite:
-  Dado um produto abaixo do mínimo com requisição aberta, Então a linha mostra "Requisição <número>
-  aberta em <data> · <fornecedor>" e o painel repete na aba Estoque.
 - **[BACKLOG] Natureza fiscal pendente na consulta (UC-FLX-31)** — produto com natureza fiscal
   pendente trava a NF-e da venda até o contador decidir. Aceite: a lista tem o filtro "Natureza
   fiscal" (mercadoria, serviço, pendente), a linha do pendente tem um selo e o painel mostra a
   natureza fiscal com o aviso da NF-e travada.
+- Requisição de compra aberta (UC-FLX-19) saiu deste backlog em 2026-10-26: virou UC-PIDX-30, com teste.
 - Método de custo do insumo (UC-FLX-38) saiu deste backlog em 2026-10-26: virou UC-PIDX-32, com teste.
 - Roteiro de produção (UC-FLX-07), preço proposto pela compra (UC-FLX-17) e setor de cada etapa
   (UC-FLX-08) saíram deste backlog em 2026-10-22: viraram UC-PIDX-28 e UC-PIDX-29, com teste.
