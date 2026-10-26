@@ -5,12 +5,12 @@ component: Modules/Whatsapp/Resources/js/Pages/Atendimento/Channels/Show.tsx
 related_prototype: n/a (herda PT-03 Detalhe; segue o Padrão de Tela)
 owner: wagner
 status: draft
-last_validated: "2026-07-11"
+last_validated: "2026-10-26"
 parent_module: Whatsapp
 related_us: [US-WA-068]
 related_adrs: [114, 101, 93, 135]
 tier: B
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — /atendimento/canais/{id} (DRAFT)
@@ -33,6 +33,7 @@ Dar ao gestor do atendimento a visão completa de um canal — configuração, s
 - Aba Histórico (deferred): tabela append-style de grants/revokes (quem concedeu/revogou e quando), com badge ativo/revogado.
 - Para canais `whatsapp_baileys`, botão "Re-parear" sempre visível — gera novo QR/pairing code chamando `atendimento.channels.connect` e faz poll de status via `atendimento.channels.status` (3s) até `connected`, então recarrega só `channel`.
 - Botão "Voltar" pra lista de canais (`atendimento.channels.index`).
+- Aba Menu do bot (deferred, US-WA-327 · 2026-10-26): liga/desliga o bot de menu do canal, saudação, até 9 opções (número, rótulo, fila da empresa, resposta) e "perguntar o nome"; grava via `atendimento.channels.menu_bot`. Avisa quando a flag do sistema (`WHATSAPP_BOT_MENU_ENABLED`) está desligada.
 
 ---
 
