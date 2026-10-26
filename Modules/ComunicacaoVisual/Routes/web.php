@@ -5,6 +5,7 @@ use Modules\ComunicacaoVisual\Http\Controllers\AgendaController;
 use Modules\ComunicacaoVisual\Http\Controllers\ApontamentoController;
 use Modules\ComunicacaoVisual\Http\Controllers\InstalacaoController;
 use Modules\ComunicacaoVisual\Http\Controllers\InstallController;
+use Modules\ComunicacaoVisual\Http\Controllers\OrcamentoAceiteController;
 use Modules\ComunicacaoVisual\Http\Controllers\OrcamentoArquivoController;
 use Modules\ComunicacaoVisual\Http\Controllers\OrcamentoController;
 
@@ -127,6 +128,11 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         Route::post('orcamentos/{id}/aprovar', [OrcamentoController::class, 'aprovar'])
             ->whereNumber('id')
             ->name('comvis.api.orcamentos.aprovar');
+
+        // US-COMVIS-023: link para o cliente aceitar o orçamento (token só nesta resposta)
+        Route::post('orcamentos/{id}/link', [OrcamentoAceiteController::class, 'gerar'])
+            ->whereNumber('id')
+            ->name('comvis.api.orcamentos.link');
 
         // Arquivos do orçamento (arte, foto do local) — copiados para a OS ao aprovar (UC-FLX-01)
         Route::post('orcamentos/{id}/arquivos', [OrcamentoArquivoController::class, 'store'])

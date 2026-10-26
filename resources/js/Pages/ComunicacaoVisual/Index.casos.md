@@ -739,6 +739,31 @@ Status: 🧪
 
 ---
 
+## Aceite do orçamento pelo link (US-COMVIS-023)
+
+> Contrato: a US-COMVIS-023 do SPEC. Prova: `OrcamentoAceiteLinkContratoTest` (lane `verticais-pest`).
+> A página pública ainda não existe; estes casos cobrem o serviço e a rota que gera o link.
+
+## UC-CVACE-01 · Gerar o link guarda só o hash e vale para a empresa do orçamento · `must` `[T0]`
+
+**Dado** um orçamento salvo em rascunho **Quando** o operador gera o link **Então** sai um token de
+48 caracteres, o banco guarda só o sha256 dele, o orçamento passa a `enviado` e a leitura pelo token
+mostra itens e total, sem custo. Gerar de novo fecha o link anterior. Orçamento de outra empresa não
+gera link (404), nem pelo serviço nem pelo controller.
+
+Status: 🧪
+
+## UC-CVACE-02 · O cliente decide uma vez: aceitar vira OS com o total gravado, ajuste volta a rascunho · `must` `[V0]`
+
+**Dado** um link aberto **Quando** o cliente aceita **Então** o orçamento vira OS pelo mesmo caminho da
+tela, com `valor_total` igual ao `total` gravado, e o link não decide de novo. **Quando** pede ajuste
+com um comentário **Então** o orçamento volta a rascunho, sem OS; sem comentário, recusa. Link vencido,
+validade passada ou orçamento já aprovado não decidem.
+
+Status: 🧪
+
+---
+
 ## Backlog — prosa honesta, sem id (ainda não é UC)
 
 > Cada item aqui tem contrato em **uma fonte só**, ou não tem código. Vira UC quando ganhar
