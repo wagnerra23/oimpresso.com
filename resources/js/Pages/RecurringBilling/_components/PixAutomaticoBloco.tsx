@@ -6,6 +6,7 @@ import { useState } from 'react';
 import QRCode from 'react-qr-code';
 import { Copy, RefreshCw } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
+import { Inline } from '@/Components/layout';
 
 export type PixAutoStatus = 'CRIADA' | 'APROVADA' | 'REJEITADA' | 'EXPIRADA' | 'CANCELADA';
 
@@ -69,7 +70,7 @@ export default function PixAutomaticoBloco({
       </p>
 
       {mandato.status === 'CRIADA' && mandato.pix_copia_cola && (
-        <div className="mt-3 flex items-start gap-3">
+        <Inline gap={3} align="start" className="mt-3">
           {/* Preto no branco nos dois temas: QR invertido no tema escuro nem todo app de banco lê. */}
           <div className="shrink-0 rounded border border-border bg-[white] p-1.5">
             <QRCode value={mandato.pix_copia_cola} size={88} fgColor="black" bgColor="white" title="QR Code da autorização do Pix Automático" />
@@ -81,7 +82,7 @@ export default function PixAutomaticoBloco({
               {copiado ? 'Copiado!' : 'Copiar Pix copia e cola'}
             </Button>
           </div>
-        </div>
+        </Inline>
       )}
 
       {PEDE_DE_NOVO.includes(mandato.status) && (
