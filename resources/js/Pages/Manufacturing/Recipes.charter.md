@@ -38,13 +38,15 @@ smoke: "2026-09-03 — render prod OK (Chrome MCP, sessão WR2 Sistemas): /manuf
 ## Mission
 
 Responder, com o preço de insumo de **hoje**, quanto custa produzir cada item fabricado — e
-apontar as três consequências disso: qual receita está com margem magra, qual desperdiça, e
-quanto o custo mudou desde a última compra.
+apontar as consequências disso: qual receita está com margem magra e quanto o custo mudou desde a
+última compra. (Até 2026-10-25 a missão citava também "qual desperdiça"; saiu pela D4 — decisão
+[W] 2026-10-23: desperdício é somente na Produção, §7 da decisão Fabricação × Produção.)
 
 ## Goals — Features (faz)
 
 - Lista as receitas do business com custo **recalculado na leitura** (nunca `ingredients_cost`)
-- 4 KPIs: custo médio/unidade · margem < 45% (filtra) · desperdício ≥ 8% (filtra) · produção do mês
+- 3 KPIs: custo médio/unidade · margem < 45% (filtra) · produção do mês. O de desperdício ≥ 8% saiu
+  em 2026-10-25 (D4); o `waste_percent` gravado não é apagado
 - Busca por nome, SKU, categoria e subcategoria; chips de categoria; ordenação por 7 colunas
 - Drawer de leitura: grupos de ingredientes com subtotal, quadro de custo e a nota que explica
   por que o número muda sozinho

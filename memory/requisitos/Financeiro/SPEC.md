@@ -1206,10 +1206,12 @@ Fecha ciclo PaymentGateway Onda 5 dogfooding. InterDriver mTLS cert upload funci
 
 ### US-FIN-033 · Notificações vencimento próximo (e-mail + WhatsApp X dias antes)
 
-> owner: — · sprint: Onda 27 · priority: p2 · estimate: 4h · status: todo · type: story
+> owner: — · sprint: Onda 27 · priority: p0 · estimate: 4h · status: doing · type: story
 > blocked_by: —
 
-**Implementado em:** _pendente_ — comando `financeiro:notificar-vencimentos` + config `dias_aviso_antecipado` + tabela `fin_notificacoes_enviadas` nunca construídos.
+**Implementado em:** _pendente_ — parcial em 2026-10-26: o aviso por e-mail antes do vencimento entrou no job da régua que já existe (`ReguaCobrancaJob`, config `dias_antes`, coluna `fin_titulo_lembretes.fase`; UC-CRREG-09/10), em vez do comando, da config e da tabela paralelos que o desenho original abaixo previa — seriam um segundo dono do mesmo envio. Campo `dias_antes` na aba Financeiro de `/business/settings` (UC-EMP-15) e meio de pagar na mensagem — Pix copia e cola, linha digitável ou link do boleto da cobrança ainda pagável do título ou da venda de origem (`MeioDePagarDoTitulo`, UC-CRREG-11). Falta WhatsApp (pelo `NotificadorClienteWhatsapp` da frente CRM). A âncora vira path quando a US fechar.
+
+> **2026-10-26 — prioridade P0** pelo levantamento de concorrência de 2026-10-25 (régua só avisava depois do vencimento, e só por e-mail). `dias_antes` nasce **vazio**: negócio com a régua já ligada não passa a mandar aviso novo por efeito de deploy.
 
 Schedule diário avisa cliente X dias antes vencimento (cobrar antes de atrasar) + lembra Eliana de pagar boletos PJ próprios.
 
@@ -2070,3 +2072,27 @@ Falta: listener na autorização que ache o título via `transaction_id` e o aju
 
 **Fora desta US:** nenhum título existente muda no deploy — o fix vale nas próximas re-sincronizações. Corrigir os já gravados é decisão [W] depois de ver o `--aberto` rodado em produção, por business.
 
+
+### US-FIN-074 · Extrato automático via Pluggy (Open Finance) entra na conciliação — **P0**
+
+> owner: — · priority: p2 · estimate: 10h · status: done · type: story
+> blocked_by: —
+
+**Implementado em:** `Modules/Financeiro/Console/Commands/PluggySyncCommand.php` (`financeiro:pluggy-sync`), `Modules/Financeiro/Services/Integrations/PluggyBankSyncService.php` (`tipoCanonico`), `Modules/Financeiro/Services/Integrations/PluggyClient.php` (`listTransactions` paginado), `Modules/Financeiro/Tests/Feature/PluggySyncContratoTest.php`
+
+**Testado em:** `Modules/Financeiro/Tests/Feature/PluggySyncContratoTest.php`
+
+**Origem:** lacuna P0 "Extrato bancário automático" do levantamento de concorrência de 2026-10-25. O cliente e o serviço do Pluggy existiam com `PLUGGY_ENABLED=false` e **nenhum invocador** (sem comando, job, rota ou tela). Medido em 2026-10-26 no `main`: o serviço gravava `tipo = 'credito'|'debito'` numa coluna `char(1)` que o sync Inter e a Conciliação (`ConciliacaoController::normalizeApi`) tratam como `C`/`D`; com `strict=false` o MySQL trunca para `c`/`d` e o débito chegaria à Conciliação com valor **positivo**. O `listTransactions` lia só a 1ª página de 200.
+
+⚠️ **REGRA MESTRE — VALOR** ([proibicoes.md](../../proibicoes.md)): o sinal do lançamento do extrato é valor exibido e conciliado.
+
+**Aceite:**
+
+_PR 1 — sync:_
+- [x] Lançamento Pluggy grava `tipo` `C`/`D`; o campo `type` (`CREDIT`/`DEBIT`) do Pluggy vale sobre o sinal do `amount` (UC-FCC-17). Provado por dois caminhos: a linha gravada e o valor com sinal que a Conciliação monta para ela.
+- [x] `listTransactions` percorre todas as páginas; corte acima de 50 páginas é logado (UC-FCC-17).
+- [x] `financeiro:pluggy-sync` sincroniza as contas com `metadata.pluggy.account_id`, cada uma no próprio business, idempotente; com a flag desligada não chama a API (UC-FCC-18). Agendado 07:15 só com `PLUGGY_ENABLED=true`.
+
+**Decisão [W] 2026-10-26 — extrato pelo banco direto, sem agregador.** O Pluggy **não** é o caminho escolhido: nada de webhook, tela de vínculo nem contratação. O extrato automático segue pelas APIs dos próprios bancos, começando pelo Inter, que já existe (`SyncBankStatementsJob`, US-RB-045/046). O que este PR deixa (sinal do débito, paginação, comando atrás de `PLUGGY_ENABLED`, que segue **desligada**) fica como base inerte; o `tipoCanonico` vale para qualquer origem que grave em `fin_extrato_lancamentos`.
+
+**Fechada nesta forma:** os itens de webhook e tela de vínculo saem do escopo por decisão [W].
