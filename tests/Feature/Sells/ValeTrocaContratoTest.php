@@ -10,10 +10,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * UC-SRET-VT-01..05 · US-VEST-021 — vale-troca: o valor da devolução vira saldo de Adiantamento
+ * UC-SRETVT-01..05 · US-VEST-021 — vale-troca: o valor da devolução vira saldo de Adiantamento
  * do cliente (decisão [W] 2026-10-26), o saldo que o caixa já aceita como forma de pagamento.
  *
- * Âncora: resources/js/Pages/SellReturn/Index.casos.md (UC-SRET-VT-*), derivado da US-VEST-021.
+ * Âncora: resources/js/Pages/SellReturn/Index.casos.md (UC-SRETVT-*), derivado da US-VEST-021.
  *
  * Números feitos à mão (cliente começa com saldo 20,00):
  *   devolução de 150,00 → vale de 150,00 → saldo 170,00, devolução paga
@@ -49,7 +49,7 @@ beforeEach(function () {
         ->postJson("/sell-return/{$id}/vale-troca");
 });
 
-it('UC-SRET-VT-01 a devolução vira saldo do cliente e fica paga', function () {
+it('UC-SRETVT-01 a devolução vira saldo do cliente e fica paga', function () {
     $dev = ($this->devolucao)();
 
     ($this->vale)($dev->id)->assertOk()
@@ -62,7 +62,7 @@ it('UC-SRET-VT-01 a devolução vira saldo do cliente e fica paga', function () 
     expect([$tp->method, $tp->transaction_no, (int) $tp->payment_for])->toBe(['advance', 'VT-' . $dev->id, $this->cliente]);
 });
 
-it('UC-SRET-VT-02 credita só o que falta pagar da devolução', function () {
+it('UC-SRETVT-02 credita só o que falta pagar da devolução', function () {
     $dev = ($this->devolucao)();
     DB::table('transaction_payments')->insert([
         'business_id' => $this->bizId, 'transaction_id' => $dev->id, 'amount' => '50.0000', 'is_return' => 0,
@@ -73,7 +73,7 @@ it('UC-SRET-VT-02 credita só o que falta pagar da devolução', function () {
     expect(($this->saldo)())->toBe('120.0000');
 });
 
-it('UC-SRET-VT-03 devolução já paga não vira vale de novo', function () {
+it('UC-SRETVT-03 devolução já paga não vira vale de novo', function () {
     $dev = ($this->devolucao)();
     ($this->vale)($dev->id)->assertOk();
 
@@ -81,7 +81,7 @@ it('UC-SRET-VT-03 devolução já paga não vira vale de novo', function () {
     expect(($this->saldo)())->toBe('170.0000');
 });
 
-it('UC-SRET-VT-04 apagar o vale tira do saldo o que ele pôs', function () {
+it('UC-SRETVT-04 apagar o vale tira do saldo o que ele pôs', function () {
     $dev = ($this->devolucao)();
     ($this->vale)($dev->id)->assertOk();
     expect(($this->saldo)())->toBe('170.0000');
@@ -92,7 +92,7 @@ it('UC-SRET-VT-04 apagar o vale tira do saldo o que ele pôs', function () {
     expect(($this->saldo)())->toBe('20.0000');
 });
 
-it('UC-SRET-VT-05 [T0] devolução de outra empresa não vira vale', function () {
+it('UC-SRETVT-05 [T0] devolução de outra empresa não vira vale', function () {
     $outro = (int) DB::table('business')->where('id', '!=', $this->bizId)->orderBy('id')->value('id');
     if ($outro === 0) {
         $this->markTestSkipped('Só um business semeado.');
@@ -109,7 +109,7 @@ it('UC-SRET-VT-05 [T0] devolução de outra empresa não vira vale', function ()
     expect((string) DB::table('contacts')->where('id', $alheio)->value('balance'))->toBe('0.0000');
 });
 
-it('UC-SRADD-VT-01 a tela de registro pede o vale pela venda de origem', function () {
+it('UC-SRADDV-01 a tela de registro pede o vale pela venda de origem', function () {
     $venda = Transaction::create([
         'business_id' => $this->bizId, 'type' => 'sell', 'status' => 'final', 'payment_status' => 'paid',
         'contact_id' => $this->cliente, 'invoice_no' => 'V-' . uniqid(), 'transaction_date' => now(),
@@ -132,7 +132,7 @@ it('UC-SRADD-VT-01 a tela de registro pede o vale pela venda de origem', functio
         ->assertStatus(404);
 });
 
-it('UC-SRADD-VT-02 devolução do Cliente padrão não vira vale', function () {
+it('UC-SRADDV-02 devolução do Cliente padrão não vira vale', function () {
     $padrao = (int) DB::table('contacts')->insertGetId([
         'business_id' => $this->bizId, 'type' => 'customer', 'name' => 'Cliente padrão teste', 'is_default' => 1,
         'contact_id' => 'VTP-' . uniqid(), 'balance' => '0.0000', 'created_by' => $this->user->id,

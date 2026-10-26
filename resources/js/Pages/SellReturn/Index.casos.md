@@ -13,7 +13,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
      Commits no Index.tsx depois de 01/10, medidos com `git log --since=2026-10-01 -- SellReturn/Index.tsx`:
      #8487 (02/10) é o próprio nascimento da tela, com estes casos; #8634 (05/10) só trocou o
      "Editar" de <a> para <Link> (visita Inertia ao SellReturn/Add), o que a regra L4 do charter já
-     descreve. A seção nova desta edição (UC-SRET-VT-*, vale-troca, US-VEST-021) é do servidor e não
+     descreve. A seção nova desta edição (UC-SRETVT-*, vale-troca, US-VEST-021) é do servidor e não
      toca o .tsx. Nenhum UC muda de status. -->
 
 # Casos de Uso & Aceite — Devolução de venda · lista
@@ -87,29 +87,29 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 > saldo de **Adiantamento** do cliente (`contacts.balance`), que o caixa já aceita como forma de pagamento e já trava
 > no saldo. Endpoint `POST /sell-return/{id}/vale-troca`. Prova: `tests/Feature/Sells/ValeTrocaContratoTest.php`.
 
-## UC-SRET-VT-01 · A devolução vira saldo do cliente e fica paga `[V0]` `[must]`
+## UC-SRETVT-01 · A devolução vira saldo do cliente e fica paga `[V0]` `[must]`
 - **Aceite:** Dado um cliente com saldo 20,00 e uma devolução de 150,00 · Quando vira vale-troca · Então o saldo vai a 170,00, a devolução fica paga e o pagamento dela é `advance` com `VT-<id>`. Nenhum dinheiro sai do caixa.
-- **Teste:** `tests/Feature/Sells/ValeTrocaContratoTest.php` — `UC-SRET-VT-01`.
+- **Teste:** `tests/Feature/Sells/ValeTrocaContratoTest.php` — `UC-SRETVT-01`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
-## UC-SRET-VT-02 · Credita só o que falta pagar da devolução `[V0]` `[must]`
+## UC-SRETVT-02 · Credita só o que falta pagar da devolução `[V0]` `[must]`
 - **Aceite:** Dado uma devolução de 150,00 com 50,00 já devolvidos em dinheiro · Quando vira vale · Então o vale é de 100,00 e o saldo vai de 20,00 a 120,00.
-- **Teste:** `tests/Feature/Sells/ValeTrocaContratoTest.php` — `UC-SRET-VT-02`.
+- **Teste:** `tests/Feature/Sells/ValeTrocaContratoTest.php` — `UC-SRETVT-02`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
-## UC-SRET-VT-03 · Devolução já paga não vira vale de novo `[V0]` `[must]`
+## UC-SRETVT-03 · Devolução já paga não vira vale de novo `[V0]` `[must]`
 - **Aceite:** Dado uma devolução já virada vale · Quando peço o vale de novo · Então `422 sem_saldo` e o saldo não muda.
-- **Teste:** `tests/Feature/Sells/ValeTrocaContratoTest.php` — `UC-SRET-VT-03`.
+- **Teste:** `tests/Feature/Sells/ValeTrocaContratoTest.php` — `UC-SRETVT-03`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
-## UC-SRET-VT-04 · Apagar o vale tira do saldo o que ele pôs `[V0]` `[must]`
+## UC-SRETVT-04 · Apagar o vale tira do saldo o que ele pôs `[V0]` `[must]`
 - **Aceite:** Dado o vale de 150,00 (saldo 170,00) · Quando o pagamento do vale é apagado · Então o saldo volta a 20,00.
-- **Teste:** `tests/Feature/Sells/ValeTrocaContratoTest.php` — `UC-SRET-VT-04`.
+- **Teste:** `tests/Feature/Sells/ValeTrocaContratoTest.php` — `UC-SRETVT-04`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
-## UC-SRET-VT-05 · Devolução de outra empresa não vira vale `[T0]` `[must]`
+## UC-SRETVT-05 · Devolução de outra empresa não vira vale `[T0]` `[must]`
 - **Aceite:** Dado uma devolução de outro business · Quando peço o vale · Então `404`, nenhum pagamento e o saldo do cliente alheio não muda.
-- **Teste:** `tests/Feature/Sells/ValeTrocaContratoTest.php` — `UC-SRET-VT-05`.
+- **Teste:** `tests/Feature/Sells/ValeTrocaContratoTest.php` — `UC-SRETVT-05`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
 ## Backlog de casos

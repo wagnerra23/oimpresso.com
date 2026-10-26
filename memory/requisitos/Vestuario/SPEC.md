@@ -212,7 +212,7 @@ ROTA LIVRE usa Asaas como adapter de boleto + extrato (Inter PJ planejado em US-
 > owner: — · priority: p0 · estimate: 16h · status: doing · type: story
 > blocked_by: —
 
-**Implementado em:** _pendente_ — em andamento. Decisão [W] 2026-10-26: o crédito é o saldo de **Adiantamento** do cliente (`contacts.balance`), que o caixa já aceita; `vest_creditos_cliente` fica sem uso. Feito: a devolução vira saldo (`POST /sell-return/{id}/vale-troca`, `App\Services\Sells\ValeTrocaService`, UC-SRET-VT-01..05 em `SellReturn/Index.casos.md`). Falta o botão na tela de devolução e o prazo CDC com sobreposição do gestor.
+**Implementado em:** _pendente_ — em andamento. Decisão [W] 2026-10-26: o crédito é o saldo de **Adiantamento** do cliente (`contacts.balance`), que o caixa já aceita; `vest_creditos_cliente` fica sem uso. Feito: a devolução vira saldo (`POST /sell-return/{id}/vale-troca`, `App\Services\Sells\ValeTrocaService`, UC-SRETVT-01..05 em `SellReturn/Index.casos.md`). Falta o botão na tela de devolução e o prazo CDC com sobreposição do gestor.
 
 **Contexto.** CDC (Lei 8.078/90 art. 49) garante 7 dias devolução compras online + prazo legal 30d defeitos. Vestuário é setor com **alta taxa de troca por tamanho** (~15-25% segundo Linx Retail Insights). Hoje ROTA LIVRE faz troca via "criar venda nova + cancelar antiga" — perde rastreabilidade e quebra DRE. Concorrentes (Linx, ProMoz) têm fluxo dedicado **Devolução** que gera crédito automático na ficha do cliente, usável próxima compra.
 

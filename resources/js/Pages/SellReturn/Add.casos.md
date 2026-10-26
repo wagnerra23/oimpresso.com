@@ -72,16 +72,16 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 > **Âncora:** US-VEST-021 e decisão [W] de 2026-10-26: o vale-troca entra **no registro da devolução**, ao salvar, e
 > não é estorno. O valor vira saldo de Adiantamento do cliente (regras do saldo em `SellReturn/Index.casos.md`,
-> UC-SRET-VT-*). Prova: `tests/Feature/Sells/ValeTrocaContratoTest.php`.
+> UC-SRETVT-*). Prova: `tests/Feature/Sells/ValeTrocaContratoTest.php`.
 
-## UC-SRADD-VT-01 · A tela pede o vale pela venda de origem `[V0]` `[must]`
+## UC-SRADDV-01 · A tela pede o vale pela venda de origem `[V0]` `[must]`
 - **Aceite:** Dado uma venda com a devolução de 150,00 já salva e o cliente com saldo 20,00 · Quando a tela pede o vale pela venda (`POST /sell-return/vale-troca-da-venda/{venda}`) · Então o vale é de 150,00 e o saldo vai a 170,00. Venda sem devolução → `404`.
-- **Teste:** `tests/Feature/Sells/ValeTrocaContratoTest.php` — `UC-SRADD-VT-01`.
+- **Teste:** `tests/Feature/Sells/ValeTrocaContratoTest.php` — `UC-SRADDV-01`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
-## UC-SRADD-VT-02 · Devolução do Cliente padrão não vira vale `[V0]` `[must]`
+## UC-SRADDV-02 · Devolução do Cliente padrão não vira vale `[V0]` `[must]`
 - **Aceite:** Dado uma devolução do Cliente padrão (consumidor sem cadastro) · Quando peço o vale · Então `422 cliente_padrao`, nenhum pagamento e nenhum saldo. Na tela, a opção Vale-troca aparece desabilitada e diz por quê.
-- **Teste:** `tests/Feature/Sells/ValeTrocaContratoTest.php` — `UC-SRADD-VT-02`.
+- **Teste:** `tests/Feature/Sells/ValeTrocaContratoTest.php` — `UC-SRADDV-02`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
 ## Backlog de casos
