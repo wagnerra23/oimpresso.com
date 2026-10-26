@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1019 tarefas abertas** em **57 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1022 tarefas abertas** em **57 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -11,8 +11,8 @@
 | [`Jana`](#jana) | 83 | 2 | 0 | 0 | 81 |
 | [`Whatsapp`](#whatsapp) | 71 | 0 | 0 | 0 | 71 |
 | [`Sells`](#sells) | 68 | 1 | 0 | 0 | 67 |
+| [`Financeiro`](#financeiro) | 52 | 4 | 0 | 0 | 48 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
-| [`Financeiro`](#financeiro) | 49 | 4 | 0 | 0 | 45 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
 | [`OficinaAuto`](#oficinaauto) | 39 | 0 | 0 | 0 | 38 |
 | [`Producao`](#producao) | 33 | 1 | 0 | 0 | 32 |
@@ -313,6 +313,67 @@
 - **US-SELL-072** — Venda com nota ou pagamento trava itens e valores — **P1**
 - **US-SELL-073** — Volumes no protocolo de entrega (UC-FLX-23) — **P2**
 
+## Financeiro
+
+
+### doing
+
+- **US-FIN-033** — Notificações vencimento próximo (e-mail + WhatsApp X dias antes) _(`p0` · sprint Onda 27)_
+- **US-FIN-070** — Custeio RKW e ponto de equilíbrio no fechamento do mês (UC-FLX-20) — **P2** _(`p2`)_
+- **US-FIN-071** — Régua de cobrança do título vencido D+1/D+5/D+15 (UC-FLX-29) — **P2** _(`p2`)_
+- **US-FIN-072** — ISS retido ajusta o título para o valor líquido na autorização da NFS-e (UC-FLX-30) — **P2** _(`p2`)_
+
+### todo
+
+- **US-FIN-014** — Imprimir 2ª via boleto Inter pelo título financeiro (botão na tela /boletos) _(`p1` · @wagner)_
+- **US-FIN-016** — Auto-emite boleto Inter ao criar titulo_receber (Observer + Job idempotente) _(`p1` · @wagner)_
+- **US-FIN-017** — Boletos — Sheet Emitir multi-título (bulk emission) _(`p1` · @wagner)_
+- **US-FIN-030** — Aging buckets <30/30-60/60-90/90+ no header Unificado + filtro _(`p1` · sprint Onda 24)_
+- **US-FIN-043** — Coleta pre-migracao Financeiro Delphi cliente piloto (Maiara) _(`p1` · @maiara)_
+- **US-FIN-044** — SicoobApiDriver nativo (OAuth2 + mTLS + webhook real-time) _(`p1` · @wagner)_
+- **US-FIN-045** — Wizard bank-first 2-step (banco → modo conexão) _(`p1`)_
+- **US-FIN-055** — Purgar coluna-fantasma transactions.total_remaining_amount (resto Financeiro + TituloAutoService) _(`p1`)_
+- **US-FIN-058** — Reparar 59 boletos órfãos + 3.372 fin_titulos com origem_id bug (Firebird) _(`p1`)_
+- **US-FIN-059** — Observers Sells/Compras→Financeiro: try/catch + report() (nunca propagar) + idealmente Job afterCommit _(`p1`)_
+- **US-FIN-060** — Reabilitar acesso OpenAI gpt-4o do BoletoOcrService (403 silencioso em prod) _(`p1`)_
+- **US-FIN-018** — Boletos — Sheet Remessa/Retorno CNAB upload + processing _(`p2` · @wagner)_
+- **US-FIN-019** — Boletos — Drawer timeline cronológica rica via activity_log Spatie _(`p2` · @wagner)_
+- **US-FIN-020** — Boletos — Jobs automáticos cobrança (lembrete + ativa + protesto) _(`p2` · @wagner)_
+- **US-FIN-021** — Fluxo de caixa — Margem mínima configurável via business_settings _(`p2` · @wagner)_
+- **US-FIN-022** — Onda 4d.6.1 — Widget Asaas JS tokenização cartão (PCI-DSS) _(`p2` · @wagner)_
+- **US-FIN-023** — Onda 4d.6.2 — SheetNovaCobranca UI tipo=card (campos cartão) _(`p2` · @wagner)_
+- **US-FIN-024** — Onda 5 — Dogfooding Superadmin (Plan SaaS Oimpresso Premium biz=1) _(`p2` · @wagner)_
+- **US-FIN-034** — Importação massiva CSV/Excel — mapping wizard + dry-run + commit _(`p2` · sprint Onda 28)_
+- **US-FIN-035** — Repetir lançamento próximo mês + Combobox autocomplete contraparte _(`p2` · sprint Onda 29)_
+- **US-FIN-036** — PWA básico Financeiro — manifest + service worker + offline cache + install prompt _(`p2` · sprint Onda 30)_
+- **US-FIN-039** — Artisan command financeiro:vincular-baixas-sem-conta - reconciliacao posterior _(`p2`)_
+- **US-FIN-040** — Artisan command financeiro:health-check cron daily 06:00 BRT - detecta gaps bridge _(`p2`)_
+- **US-FIN-041** — Onda 6 Accounting DROP TABLE - 6 vazias + ARCHIVE 2 seed + DELETE permissions _(`p2`)_
+- **US-FIN-061** — Otimizar LCP das telas núcleo (Financeiro/Unificado + Sells) — verificar prod real + reduzir bundle JS _(`p2`)_
+- **US-FIN-064** — Redirect ContasReceber/ContasPagar → Unificado (deprecação) _(`p2`)_
+- **US-FIN-065** — Elevar tela Unificado/Novo a ≥70 (form unificado real de cobrança) _(`p2`)_
+- **US-FIN-069** — Baseline de pixel do DRE (#7767) não reproduz o render do CI — visual-regression vermelho em todo PR de escopo global _(`p2` · @wagner)_
+- **US-FIN-075** — Centro de custo com rateio no título _(`p2`)_
+- **US-FIN-076** — Orçado × realizado no fluxo de caixa _(`p2`)_
+- **US-FIN-077** — Exportar lançamentos contábeis (Domínio, Alterdata, Questor) _(`p2`)_
+- **US-FIN-025** — Onda 6 — Cleanup colunas legacy + remover redirects 301 _(`p3` · @wagner)_
+- **US-FIN-042** — Backfill cliente_descricao biz=1 - 52 fin_titulos pre-Onda-Edit NULL _(`p3`)_
+- **US-FIN-066** — Elevar tela AssinaturaAtualizar a ≥70 (PageHeader canon + preview de valor) _(`p3`)_
+- **US-FIN-067** — Elevar tela Advisor/Login a ≥70 (DS v4 roxo + @/ui + charter) _(`p3`)_
+- **US-FIN-001** — Listar Contas a Receber em aberto
+- **US-FIN-002** — Lançar título a receber manual
+- **US-FIN-003** — Baixar título (parcial ou total)
+- **US-FIN-004** — Listar Contas a Pagar com vencimento próximo
+- **US-FIN-005** — Cadastrar título a pagar com upload de boleto OCR
+- **US-FIN-006** — Pagar título (registrar saída do caixa)
+- **US-FIN-007** — Visualizar fluxo de caixa projetado
+- **US-FIN-008** — Cadastrar conta bancária
+- **US-FIN-009** — Importar extrato OFX e conciliar
+- **US-FIN-010** — Emitir boleto bancário (CNAB ou via gateway)
+- **US-FIN-011** — DRE (Demonstração de Resultado)
+- **US-FIN-012** — Aging de inadimplência
+- **US-FIN-013** — Dashboard unificado de títulos (4 estados na mesma tela)
+
 ## Infra
 
 
@@ -369,64 +430,6 @@
 - **US-INFRA-051** — Exportar OIMPRESSO_MCP_TOKEN no ambiente (luiz)
 - **US-INFRA-052** — Exportar OIMPRESSO_MCP_TOKEN no ambiente (eliana)
 - **US-INFRA-053** — Token MCP novo (luiz) — o #22 foi revogado em 16/09
-
-## Financeiro
-
-
-### doing
-
-- **US-FIN-033** — Notificações vencimento próximo (e-mail + WhatsApp X dias antes) _(`p0` · sprint Onda 27)_
-- **US-FIN-070** — Custeio RKW e ponto de equilíbrio no fechamento do mês (UC-FLX-20) — **P2** _(`p2`)_
-- **US-FIN-071** — Régua de cobrança do título vencido D+1/D+5/D+15 (UC-FLX-29) — **P2** _(`p2`)_
-- **US-FIN-072** — ISS retido ajusta o título para o valor líquido na autorização da NFS-e (UC-FLX-30) — **P2** _(`p2`)_
-
-### todo
-
-- **US-FIN-014** — Imprimir 2ª via boleto Inter pelo título financeiro (botão na tela /boletos) _(`p1` · @wagner)_
-- **US-FIN-016** — Auto-emite boleto Inter ao criar titulo_receber (Observer + Job idempotente) _(`p1` · @wagner)_
-- **US-FIN-017** — Boletos — Sheet Emitir multi-título (bulk emission) _(`p1` · @wagner)_
-- **US-FIN-030** — Aging buckets <30/30-60/60-90/90+ no header Unificado + filtro _(`p1` · sprint Onda 24)_
-- **US-FIN-043** — Coleta pre-migracao Financeiro Delphi cliente piloto (Maiara) _(`p1` · @maiara)_
-- **US-FIN-044** — SicoobApiDriver nativo (OAuth2 + mTLS + webhook real-time) _(`p1` · @wagner)_
-- **US-FIN-045** — Wizard bank-first 2-step (banco → modo conexão) _(`p1`)_
-- **US-FIN-055** — Purgar coluna-fantasma transactions.total_remaining_amount (resto Financeiro + TituloAutoService) _(`p1`)_
-- **US-FIN-058** — Reparar 59 boletos órfãos + 3.372 fin_titulos com origem_id bug (Firebird) _(`p1`)_
-- **US-FIN-059** — Observers Sells/Compras→Financeiro: try/catch + report() (nunca propagar) + idealmente Job afterCommit _(`p1`)_
-- **US-FIN-060** — Reabilitar acesso OpenAI gpt-4o do BoletoOcrService (403 silencioso em prod) _(`p1`)_
-- **US-FIN-018** — Boletos — Sheet Remessa/Retorno CNAB upload + processing _(`p2` · @wagner)_
-- **US-FIN-019** — Boletos — Drawer timeline cronológica rica via activity_log Spatie _(`p2` · @wagner)_
-- **US-FIN-020** — Boletos — Jobs automáticos cobrança (lembrete + ativa + protesto) _(`p2` · @wagner)_
-- **US-FIN-021** — Fluxo de caixa — Margem mínima configurável via business_settings _(`p2` · @wagner)_
-- **US-FIN-022** — Onda 4d.6.1 — Widget Asaas JS tokenização cartão (PCI-DSS) _(`p2` · @wagner)_
-- **US-FIN-023** — Onda 4d.6.2 — SheetNovaCobranca UI tipo=card (campos cartão) _(`p2` · @wagner)_
-- **US-FIN-024** — Onda 5 — Dogfooding Superadmin (Plan SaaS Oimpresso Premium biz=1) _(`p2` · @wagner)_
-- **US-FIN-034** — Importação massiva CSV/Excel — mapping wizard + dry-run + commit _(`p2` · sprint Onda 28)_
-- **US-FIN-035** — Repetir lançamento próximo mês + Combobox autocomplete contraparte _(`p2` · sprint Onda 29)_
-- **US-FIN-036** — PWA básico Financeiro — manifest + service worker + offline cache + install prompt _(`p2` · sprint Onda 30)_
-- **US-FIN-039** — Artisan command financeiro:vincular-baixas-sem-conta - reconciliacao posterior _(`p2`)_
-- **US-FIN-040** — Artisan command financeiro:health-check cron daily 06:00 BRT - detecta gaps bridge _(`p2`)_
-- **US-FIN-041** — Onda 6 Accounting DROP TABLE - 6 vazias + ARCHIVE 2 seed + DELETE permissions _(`p2`)_
-- **US-FIN-061** — Otimizar LCP das telas núcleo (Financeiro/Unificado + Sells) — verificar prod real + reduzir bundle JS _(`p2`)_
-- **US-FIN-064** — Redirect ContasReceber/ContasPagar → Unificado (deprecação) _(`p2`)_
-- **US-FIN-065** — Elevar tela Unificado/Novo a ≥70 (form unificado real de cobrança) _(`p2`)_
-- **US-FIN-069** — Baseline de pixel do DRE (#7767) não reproduz o render do CI — visual-regression vermelho em todo PR de escopo global _(`p2` · @wagner)_
-- **US-FIN-025** — Onda 6 — Cleanup colunas legacy + remover redirects 301 _(`p3` · @wagner)_
-- **US-FIN-042** — Backfill cliente_descricao biz=1 - 52 fin_titulos pre-Onda-Edit NULL _(`p3`)_
-- **US-FIN-066** — Elevar tela AssinaturaAtualizar a ≥70 (PageHeader canon + preview de valor) _(`p3`)_
-- **US-FIN-067** — Elevar tela Advisor/Login a ≥70 (DS v4 roxo + @/ui + charter) _(`p3`)_
-- **US-FIN-001** — Listar Contas a Receber em aberto
-- **US-FIN-002** — Lançar título a receber manual
-- **US-FIN-003** — Baixar título (parcial ou total)
-- **US-FIN-004** — Listar Contas a Pagar com vencimento próximo
-- **US-FIN-005** — Cadastrar título a pagar com upload de boleto OCR
-- **US-FIN-006** — Pagar título (registrar saída do caixa)
-- **US-FIN-007** — Visualizar fluxo de caixa projetado
-- **US-FIN-008** — Cadastrar conta bancária
-- **US-FIN-009** — Importar extrato OFX e conciliar
-- **US-FIN-010** — Emitir boleto bancário (CNAB ou via gateway)
-- **US-FIN-011** — DRE (Demonstração de Resultado)
-- **US-FIN-012** — Aging de inadimplência
-- **US-FIN-013** — Dashboard unificado de títulos (4 estados na mesma tela)
 
 ## Governance
 
