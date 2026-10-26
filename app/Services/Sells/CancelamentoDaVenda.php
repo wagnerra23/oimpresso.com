@@ -21,6 +21,9 @@ use Illuminate\Support\Facades\Schema;
  *
  * 1. **Venda paga não cancela.** Com dinheiro recebido (pagamentos líquidos > 0), lança
  *    `VendaNaoCancelavelException` dizendo quanto foi recebido e o que fazer para liberar.
+ *    O caminho é a própria venda (remover/devolver o pagamento): o Financeiro recusa estornar
+ *    baixa que veio de pagamento de venda (`FinanceiroLancamentoAcoesController::estornar`).
+ *    Esta checagem é o que garante que o `cancelarSeExistir` só roda sem pagamento.
  * 2. **Estoque volta exatamente pelo caminho que saiu:**
  *    - venda `final`: cada linha devolve `quantidade − já devolvida` (a devolução já repôs o
  *      resto) e libera o lote de compra pelo mesmo caminho da devolução
@@ -59,7 +62,7 @@ final class CancelamentoDaVenda
         if ((float) $r->recebido > 0) {
             $valor = number_format((float) $r->recebido, 2, ',', '.');
 
-            return ["A venda tem R$ {$valor} recebidos ({$r->n} pagamento(s)). Estorne ou devolva esse valor ao cliente no Financeiro e cancele de novo."];
+            return ["A venda tem R$ {$valor} recebidos ({$r->n} pagamento(s)). Devolva ou remova os pagamentos na própria venda e cancele de novo."];
         }
 
         return [];
