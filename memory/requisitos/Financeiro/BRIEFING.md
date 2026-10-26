@@ -2,7 +2,7 @@
 id: requisitos-financeiro-briefing
 module: Financeiro
 status: producao
-updated_at: "2026-09-06"
+updated_at: "2026-10-26"
 distilled_at: "2026-09-06"
 distilled_by: jana:distill-module-truth
 ---
@@ -15,13 +15,14 @@ Visão unificada de Contas a Receber, Contas a Pagar, Fluxo de Caixa, Cobrança 
 ## Capacidades
 - Boleto real via Banco Inter (ADR 0170 `paymentgateway-extracao-camada-cobranca`, arquivada — a extração já é fato no código; Inter/C6/Asaas/BcbPix já plugados no PaymentGateway; habilitação por business é decisão [W] — estado de flag em prod não é fato de repo, ver `memory/what-oimpresso.md` §Padrão arquitetural, linha `Modules/PaymentGateway`).
 - Conciliação de extrato com match sugerido por score (`ConciliacaoController`, `POST /financeiro/conciliacao/{lineId}/match`). O evento `TituloCriado` tem listener de audit log (`OnTituloCriadoLog`) — log, não conciliação.
+- Extrato automático via Pluggy (Open Finance, US-FIN-074): `financeiro:pluggy-sync` grava o extrato das contas com `metadata.pluggy.account_id` em `fin_extrato_lancamentos`, que a Conciliação lê junto com o OFX. **Desligado e fora do caminho:** decisão [W] 2026-10-26 — extrato automático é pelo banco direto (Inter via `SyncBankStatementsJob`), sem agregador; o comando do Pluggy fica como base inerte.
 - Workflow de aprovação com visão AR/AP integrada (`aprovacao_status` em `fin_titulos`).
 - Ações em lote na Visão Unificada (`POST /financeiro/unificado/bulk`) com confirmação e audit trail (até 500 títulos por chamada — limite de contrato do endpoint, US-FIN-031/#3905).
 - Bridge de despesas → títulos (`financeiro:bridge-expense-to-titulos`), corrigida após quebrar em produção (US-FIN-068: filtrava `transactions.deleted_at`, coluna inexistente; o comando não é agendado, então a falha era silenciosa).
 
 ## Gaps
 - Sicoob aguarda credenciais sandbox do cliente.
-- Mobile/PWA e notificações de vencimento não implementados.
+- Mobile/PWA não implementado. Régua de cobrança (US-FIN-071/033): e-mail depois do vencimento e, com `dias_antes` configurado, antes dele (desligada por padrão, por business); faltam WhatsApp, link de pagamento no texto e o campo `dias_antes` na tela de configuração.
 - Importação CSV pendente. O parser de retorno CNAB vive no `PaymentGateway` (`CnabRetornoProcessor` + tela `Settings/PaymentGateways/CnabRetorno`) desde a extração da ADR 0170 — o gap do Financeiro é só o CSV.
 - Testes em quarentena (quarentenado não roda na lane e portanto não produz veredito): lista e razões em `.github/financeiro-pest-quarantine.list` (lane `financeiro-pest.yml`, cujo context `PHP / Pest (Financeiro · MySQL)` consta de `governance/required-checks-baseline.json`); a triagem de 2026-08-02/03 (buckets A–E da própria lista) separou teste podre, RefreshDatabase, DB-dependente falhando, skip total e flake por ordem — re-rode a lista, não copie a triagem.
 - US-FIN-055 aberta (`total_remaining_amount`). Os demais defeitos vivos saem do bucket C de `.github/financeiro-pest-quarantine.list` — re-rode, não copie; em 2026-08-05 a triagem registrou uma suspeita não fechada em `aprovacao_status` (US-FIN-027/028), e nenhum dono a rastreia hoje.

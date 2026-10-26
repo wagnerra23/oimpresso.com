@@ -5,8 +5,8 @@ irmaos: Edit.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — editar o cadastro não pode perder o que a tela velha (Blade + Delphi) preservava.
 owner: wagner
-last_run: "2026-10-19"
-last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 485 passed (2356 assertions); UC-PEDIT-01 a 09 verdes. Revalidação depois do refactor que passou as seções do formulário para _components/formulario/ (sem mudança de comportamento: HTML e estado do formulário idênticos antes/depois em 3 cenários do Editar no Vitest; o PUT envia os mesmos campos)"
+last_run: "2026-10-26"
+last_run_ci: "PR #9747 (aviso de SKU que não vira código EAN, UC-PEDIT-15), 2026-10-26, head 9918672 com o #9744 já no main: job Frontend / Vite build 121560485044: 114 testes passaram em 14 arquivos, 37 deles em produto-formulario.test.tsx. A tela Edit.tsx é a mesma, byte a byte, que o #9744 validou em 21/10; a data mudou só pela entrada dele no main. Antes: PR #9744 (natureza fiscal no Editar, UC-PEDIT-14), 2026-10-21: lane PHP / Pest (Estoque · MySQL), job 119451939591: 533 passed (2508 assertions), com os 4 casos do UC-PEDIT-14 verdes; job Frontend / Vite build 119452570399: 105 testes passaram em 13 arquivos, 32 deles em produto-formulario.test.tsx (UC-PEDIT-11 a 14). Antes: PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 485 passed (2356 assertions); UC-PEDIT-01 a 09 verdes. Revalidação depois do refactor que passou as seções do formulário para _components/formulario/ (sem mudança de comportamento: HTML e estado do formulário idênticos antes/depois em 3 cenários do Editar no Vitest; o PUT envia os mesmos campos)"
 ---
 
 # Casos de Uso & Aceite — Editar produto
@@ -45,6 +45,7 @@ last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 48
 | UC-PEDIT-12 | Editar o CEST: grava, apagar volta a sem CEST, fora do formato é recusado, sem mexer não muda, outra empresa → 404 | should `[T0]` | `CU-PROD-16` + ADR 0093 | `CadastroProdutoCestTest` (Pest) + `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
 | UC-PEDIT-13 | Editar peso líquido e dimensões: grava, apagar volta a nulo, inválido é recusado, Blade não muda, outra empresa → 404 | should `[T0]` | `CU-PROD-17` + ADR 0093 | `CadastroProdutoPesoDimensoesTest` (Pest) + `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
 | UC-PEDIT-14 | Ver a natureza fiscal (mercadoria · serviço · a decidir) que o contador decidiu; serviço não recebe o aviso de "sem NCM"; decisão de outra empresa não aparece | should `[T0]` | `CU-PROD-19` + D-NATUREZA + ADR 0093 | `ProdutoNaturezaFiscalCadastroTest` (Pest) + `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
+| UC-PEDIT-15 | Com tipo EAN-13, EAN-8 ou UPC-A, SKU que não vira código de barras válido é avisado; salvar continua liberado | should | `CU-PROD-18` | `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
 
 > ⚠️ **UC-PEDIT-01/02/04 DEIXARAM de ser stub em 2026-09-18** — viraram Pest de comportamento no
 > `ProdutoEditContratoTest` (o arquivo que esta nota mandava usar), com `PUT` real, `actingAs` e
@@ -189,6 +190,13 @@ last_run_ci: "PR #9482, lane PHP / Pest (Estoque · MySQL), job 116997588268: 48
 - **Teste:** [`ProdutoNaturezaFiscalCadastroTest`](../../../../tests/Feature/Produto/ProdutoNaturezaFiscalCadastroTest.php) — `UC-PEDIT-14` (o servidor: serviço com item, mercadoria, sem decisão, decisão de outra empresa) · [`produto-formulario.test.tsx`](../../../../tests/js/produto-formulario.test.tsx) — `UC-PEDIT-14` (a tela: serviço sem aviso de NCM, mercadoria com aviso, formato errado avisado, sem decisão).
 - **Contrato:** `CU-PROD-19` do [SDD](../../../../memory/requisitos/Produto/SDD-tela-cadastro-produto-v1.0.md) + D-NATUREZA ([W] 2026-10-06: o contador decide, por produto, com fonte registrada) + ADR 0093. O cadastro **só mostra**: não grava natureza. O núcleo pede o dado ao módulo fiscal pelo gancho `getModuleData('produto_natureza_fiscal')`, que só responde se o NfeBrasil estiver instalado; sem o módulo, a natureza não aparece e o aviso de NCM fica como era.
 - **Status: 🧪** — escrito junto do código, sem veredito da lane `PHP / Pest (Estoque · MySQL)` nem do job `Frontend / Vite build` (G-7).
+
+## UC-PEDIT-15 · SKU que não vira código EAN válido é avisado · `should`
+- **Persona:** quem corrige o cadastro de uma mercadoria que tem etiqueta com código de barras.
+- **Aceite:** Dado um produto com tipo de código de barras EAN-13, EAN-8 ou UPC-A · Quando abro o Editar ou mudo o SKU · Então, se o SKU tem letra ou símbolo, dígitos demais ou o último dígito errado, aparece o aviso embaixo do tipo de código de barras · E salvar continua liberado · E com Code 128 o mesmo SKU não avisa.
+- **Teste:** [`produto-formulario.test.tsx`](../../../../tests/js/produto-formulario.test.tsx) — `UC-PEDIT-15` (SKU com letra num produto EAN-13 avisa; com Code 128 não).
+- **Contrato:** `CU-PROD-18` do [SDD](../../../../memory/requisitos/Produto/SDD-tela-cadastro-produto-v1.0.md). A regra é a mesma do `UC-PCAD-17` (`Create.casos.md`): a etiqueta recusa esses códigos; a nota fiscal não usa o código hoje.
+- **Status: 🧪** — escrito junto do código, sem veredito do job `Frontend / Vite build` (G-7).
 
 ## Diagnóstico do remédio (2026-07-29) — a correção óbvia é a errada
 
