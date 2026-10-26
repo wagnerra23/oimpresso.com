@@ -102,6 +102,8 @@ interface Props {
   unlinked?: boolean;
   mediaInbound24h?: boolean;
   inboundAging?: '6h' | '12h' | '24h' | '48h' | '7d' | null;
+  /** US-WA-323 — flag do disparo real da campanha (US-WA-322). */
+  broadcastDisparoHabilitado?: boolean;
   orderBy?: 'last_message' | 'inbound';
   activeTagIds?: number[];
   accountFilter: number | null;
@@ -124,7 +126,7 @@ export default function CaixaUnificadaIndex({
   statusFilter, channelTypeFilter, accountFilter, queueFilter, q,
   thread, messages, customerContext, centrifugoConfig, unhealthyChannels,
   queues, defaultQueue: _defaultQueue,
-  within24h, unlinked, mediaInbound24h, inboundAging, orderBy, activeTagIds,
+  within24h, unlinked, mediaInbound24h, inboundAging, orderBy, activeTagIds, broadcastDisparoHabilitado = false,
 }: Props) {
   // US-WA-301 — painel Filas (Sheet in-place)
   const [filasOpen, setFilasOpen] = useState(false);
@@ -594,6 +596,7 @@ export default function CaixaUnificadaIndex({
           onOpenChange={setBroadcastOpen}
           accounts={availableAccounts ?? []}
           templates={availableTemplates ?? []}
+          disparoHabilitado={broadcastDisparoHabilitado}
         />
 
       </div>
