@@ -1147,7 +1147,7 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 ### US-RB-057 · Cobrança paga pelo PaymentGateway marca a fatura da assinatura como paga e dispara InvoicePaid
 
-> owner: — · priority: p0 · estimate: 4h · status: doing · type: story
+> owner: — · priority: p0 · estimate: 4h · status: done · type: story
 > blocked_by: —
 
 **Implementado em:** `Modules/RecurringBilling/Listeners/MarcarFaturaPagaDaCobranca.php` (registrado no `RecurringBillingServiceProvider`), `Modules/RecurringBilling/Tests/Feature/FaturaPagaPorCobrancaContratoTest.php`
