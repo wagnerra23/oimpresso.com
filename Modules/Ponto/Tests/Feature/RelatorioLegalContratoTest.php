@@ -19,6 +19,8 @@ uses(PontoTestCase::class);
 /**
  * Contrato dos relatórios LEGAIS do catálogo — hoje, o AFD (ADR 0413 W7: AFD → AEJ).
  *
+ * @covers-us US-PONTO-009 (AEJ leiaute 002: UC-RELIDX-10..12)
+ *
  * Âncora (não o código): Portaria MTP 671/2021 + "Leiaute do Arquivo Fonte de Dados - AFD"
  * (gov.br/trabalho-e-emprego, versão "004"), com as posições que o AfdLeiaute671ContratoTest
  * já ancora:
