@@ -31,6 +31,13 @@
               {!! Form::radio('leave_count_interval', null, empty($leave_type->leave_count_interval)); !!} @lang('lang_v1.none')
             </label>
         </div>
+
+        {{-- US-PONTO-018: licença aprovada deste tipo abate o saldo de férias da CLT no Ponto. --}}
+        <div class="form-group">
+            <label class="checkbox-inline">
+              {!! Form::checkbox('ferias_clt', 1, (bool) $leave_type->ferias_clt); !!} Conta como férias (CLT)
+            </label>
+        </div>
     </div>
 
     <div class="modal-footer">
