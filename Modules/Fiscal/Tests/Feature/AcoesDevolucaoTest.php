@@ -13,7 +13,7 @@ use Modules\Fiscal\Http\Controllers\AcoesController;
 use Modules\NfeBrasil\Models\NfeEmissao;
 use Modules\NfeBrasil\Services\DevolucaoService;
 use Symfony\Component\HttpKernel\Exception\HttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 uses(Tests\TestCase::class);
 
@@ -115,7 +115,7 @@ it('UC-FNFE-41 · a nota de outra empresa não é achada; a da empresa vai ao se
         $c = new AcoesController();
 
         $e = devCapturar(fn () => $c->devolucao(Request::create('/x', 'POST', ['itens' => [1 => 1]]), devServicoFalso($chamadas), $idB));
-        expect($e)->toBeInstanceOf(NotFoundHttpException::class);
+        expect($e)->toBeInstanceOf(ModelNotFoundException::class); // o handler responde 404
         expect(count($chamadas))->toBe(0);
 
         $c->devolucao(Request::create('/x', 'POST', ['itens' => ['1' => '2', '3' => '0.5']]), devServicoFalso($chamadas), $idA);
