@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-FIN-074
 // Cobre UC-FCC-17..18 (resources/js/Pages/Financeiro/Conciliacao/Index.casos.md · US-FIN-074).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;

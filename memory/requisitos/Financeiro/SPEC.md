@@ -2084,12 +2084,14 @@ Falta: listener na autorização que ache o título via `transaction_id` e o aju
 
 ⚠️ **REGRA MESTRE — VALOR** ([proibicoes.md](../../proibicoes.md)): o sinal do lançamento do extrato é valor exibido e conciliado.
 
-**Aceite (PR 1 — sync):**
+**Aceite:**
+
+_PR 1 — sync:_
 - [x] Lançamento Pluggy grava `tipo` `C`/`D`; o campo `type` (`CREDIT`/`DEBIT`) do Pluggy vale sobre o sinal do `amount` (UC-FCC-17). Provado por dois caminhos: a linha gravada e o valor com sinal que a Conciliação monta para ela.
 - [x] `listTransactions` percorre todas as páginas; corte acima de 50 páginas é logado (UC-FCC-17).
 - [x] `financeiro:pluggy-sync` sincroniza as contas com `metadata.pluggy.account_id`, cada uma no próprio business, idempotente; com a flag desligada não chama a API (UC-FCC-18). Agendado 07:15 só com `PLUGGY_ENABLED=true`.
 
-**Aceite (PRs seguintes):**
+_PRs seguintes:_
 - [ ] Webhook `POST /webhooks/pluggy` com HMAC (`verifyWebhookSignature`) dispara o sync da conta.
 - [ ] Tela de vínculo: o widget Pluggy Connect (token de `createConnectToken`) grava `metadata.pluggy.account_id` na conta bancária.
 
