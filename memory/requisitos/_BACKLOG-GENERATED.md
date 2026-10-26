@@ -2,26 +2,26 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1004 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1015 tarefas abertas** em **57 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
 | Módulo | Abertas | doing | review | blocked | todo/backlog |
 |---|---:|---:|---:|---:|---:|
 | [`Jana`](#jana) | 83 | 2 | 0 | 0 | 81 |
+| [`Whatsapp`](#whatsapp) | 69 | 0 | 0 | 0 | 69 |
 | [`Sells`](#sells) | 67 | 0 | 0 | 0 | 67 |
-| [`Whatsapp`](#whatsapp) | 67 | 0 | 0 | 0 | 67 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
-| [`Financeiro`](#financeiro) | 49 | 3 | 0 | 0 | 46 |
+| [`Financeiro`](#financeiro) | 49 | 4 | 0 | 0 | 45 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
 | [`OficinaAuto`](#oficinaauto) | 39 | 0 | 0 | 0 | 38 |
-| [`Producao`](#producao) | 32 | 1 | 0 | 0 | 31 |
-| [`NfeBrasil`](#nfebrasil) | 28 | 0 | 0 | 6 | 22 |
+| [`Producao`](#producao) | 33 | 1 | 0 | 0 | 32 |
+| [`NfeBrasil`](#nfebrasil) | 29 | 0 | 0 | 6 | 23 |
+| [`Compras`](#compras) | 27 | 3 | 0 | 0 | 23 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
 | [`Marketplaces`](#marketplaces) | 25 | 0 | 0 | 0 | 25 |
-| [`Compras`](#compras) | 23 | 3 | 0 | 0 | 19 |
 | [`Crm`](#crm) | 23 | 0 | 0 | 0 | 23 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 22 | 0 | 0 | 0 | 22 |
 | [`Fiscal`](#fiscal) | 22 | 0 | 0 | 0 | 22 |
@@ -30,8 +30,8 @@
 | [`Mwart`](#mwart) | 19 | 0 | 0 | 0 | 19 |
 | [`Vestuario`](#vestuario) | 19 | 0 | 0 | 0 | 19 |
 | [`Officeimpresso`](#officeimpresso) | 17 | 0 | 0 | 0 | 17 |
+| [`Ponto`](#ponto) | 17 | 0 | 0 | 0 | 17 |
 | [`Accounting`](#accounting) | 16 | 0 | 0 | 0 | 16 |
-| [`Ponto`](#ponto) | 16 | 0 | 0 | 0 | 16 |
 | [`Autopecas`](#autopecas) | 15 | 0 | 0 | 0 | 15 |
 | [`Essentials`](#essentials) | 15 | 0 | 0 | 0 | 15 |
 | [`Comissao`](#comissao) | 14 | 0 | 0 | 0 | 14 |
@@ -58,6 +58,7 @@
 | [`Dashboard`](#dashboard) | 3 | 0 | 0 | 0 | 3 |
 | [`VozDoCliente`](#vozdocliente) | 3 | 0 | 0 | 0 | 3 |
 | [`ADS`](#ads) | 2 | 0 | 0 | 0 | 2 |
+| [`AssetManagement`](#assetmanagement) | 2 | 0 | 0 | 0 | 2 |
 | [`Documentacao`](#documentacao) | 2 | 0 | 0 | 0 | 2 |
 | [`MemoriaAutonoma`](#memoriaautonoma) | 2 | 0 | 0 | 0 | 2 |
 | [`Admin`](#admin) | 1 | 0 | 0 | 0 | 1 |
@@ -158,6 +159,81 @@
 - **US-COPI-134** — Régua ADR 0318 órfã — schedules staging (ragas-real-eval + recall-eval) sem runner no CT100
 - **US-COPI-138** — Heartbeat langfuse_trace_uptime_24h no HealthCheckCommand
 
+## Whatsapp
+
+
+### todo
+
+- **US-WA-001** — Wizard 2 passos — Z-API hoje + Meta Cloud em paralelo
+- **US-WA-002** — Driver Interface + ZapiDriver + MetaCloudDriver + NullDriver
+- **US-WA-003** — Enviar mensagem template (Job assíncrono)
+- **US-WA-004** — Listener Repair: status `ready` dispara WhatsApp
+- **US-WA-010** — Receber webhook Meta + assinatura HMAC
+- **US-WA-011** — Processar mensagem recebida (Job)
+- **US-WA-012** — Inbox UI (Cockpit pattern)
+- **US-WA-013** — Templates UI (sync Meta Business Manager)
+- **US-WA-014** — Driver Health Check + fallback automático
+- **US-WA-020** — Listener DispatchToJanaBot
+- **US-WA-021** — Métricas conversation (custo, deflection, tempo resposta)
+- **US-WA-022** — ~~UX simplificada onboarding Baileys~~ [DEPRECATED 2026-05-27]
+- **US-WA-040** — Múltiplos números por business — driver + escopo de atendimento per-phone (Sprint 4)
+- **US-WA-041** — Métricas conversation (custo/deflection/tempo) — acelerar US-WA-021
+- **US-WA-042** — Mídia outbound — anexar imagem/PDF na conversa (UI upload)
+- **US-WA-043** — Mídia inbound — processar foto/PDF/audio recebido do cliente
+- **US-WA-044** — Permissions UI per-phone (multi-select atendentes em Settings/Edit)
+- **US-WA-045** — Botões interativos (HSM com CTAs)
+- **US-WA-046** — List messages (cardápio: orçar / acompanhar OS / segunda via)
+- **US-WA-047** — Tags / labels em conversa (classificar por dept/etapa)
+- **US-WA-048** — Quick replies / atalhos atendente (respostas pré-definidas)
+- **US-WA-049** — A/B testing templates (variantes A/B com tracking deflection)
+- **US-WA-050** — Voice transcription inbound (whisper.cpp local CT 100)
+- **US-WA-051** — FICHA v2 — Wagner-curate ux_heuristics + automation_targets
+- **US-WA-052** — AUDIT-LOG.md shell + 1ª entrada audit 2026-05-10
+- **US-WA-053** — UX /whatsapp/conversations — composer no rodapé + sidebar colapsável + responsivo monitor pequeno
+- **US-WA-055** — UX polish round 2 + skill `wagner-request-refiner`
+- **US-WA-056** — Omnichannel Fase 0 — schema polimórfico (channels + conversations + messages)
+- **US-WA-057** — Mover conversa pra outro número/canal (admin reclassifica)
+- **US-WA-058** — Inbox omnichannel — envio outbound via Channel (shim Phone, drivers intactos)
+- **US-WA-059** — Inbox omnichannel — real-time via Centrifugo (novo schema)
+- **US-WA-060** — Sync daemon-node source do CT 100 pra Modules/Whatsapp/daemon-node/
+- **US-WA-061** — Drift webhook legacy Z-API/Meta — observability + cutover plan
+- **US-WA-062** — Busca local na conversa (Ctrl+F dentro da thread)
+- **US-WA-063** — Tags classificadoras com seed defaults + catálogo per-business
+- **US-WA-064** — Vincular Contact UltimatePOS a conversa + resolver @lid JID
+- **US-WA-066** — Polling fallback 5s SEMPRE + bloquear contato
+- **US-WA-067** — Limpar tela Configurações WhatsApp — apagar 7 blocos de driver/LGPD
+- **US-WA-068** — Tab "Usuários do canal" dentro de Canais (ACL per-canal visível)
+- **US-WA-069** — Validar canal=fila — Suporte não vê inbox do Financeiro
+- **US-WA-070** — Sidebar/rotas — Canais vira entrada principal de Atendimento, Settings velha morre
+- **US-WA-071** — Notas internas (private notes) MVP — toggle Reply/Note estilo Chatwoot
+- **US-WA-072** — Mídia (imagens, áudio, docs) inbound + outbound + Whisper transcrição
+- **US-WA-073** — ADR — Notas internas como sinal de treino pra Jana (design 4 slash commands)
+- **US-WA-074** — Slash /lembrar — atendente grava fato sobre cliente em copiloto_memoria_facts
+- **US-WA-075** — Slash /corrigir — marca mensagem do bot como errada (training signal Jana)
+- **US-WA-076** — Slash /lembrete — cria lembrete agendado pro atendente
+- **US-WA-077** — Slash /config bot=off — toggle Jana per-contact (override global)
+- **US-WA-078** — Fix banDetector falso positivo loggedOut/forbidden vira 'session_expired'
+- **US-WA-079** — Fix daemon SIGTERM revoga session (sock.logout → sock.end) preserva pareamento em restart
+- **US-WA-089** — Re-parear channels Baileys Jana (id=8) + Suporte (id=10) após purge auth_state
+- **US-WA-091** — Remover legacy /whatsapp/conversations (URL deprecation)
+- **US-WA-093** — LID resolution custom + backfill (workaround pré-Baileys 7.x)
+- **US-WA-094** — Anti-cross-contact P0 (incident 2026-05-14)
+- **US-WA-095** — Caixa Unificada v4 redesign (em F1 PLAN)
+- **US-WA-301** — Filas DB + drawer config (label/hue/sla/dist/members/trigger_tags)
+- **US-WA-302** — Assignee picker no Contexto (select operators ativos)
+- **US-WA-303** — Slash macros inline + Templates picker inline no composer
+- **US-WA-304** — Drawer "Canais e contas" agrupado por type (vs link /canais)
+- **US-WA-305** — Mover conversa entre filas (override manual da heurística tag→fila)
+- **US-WA-306** — Broadcast cross-canal real (janela 24h Meta + opt-in LGPD)
+- **US-WA-307** — + Nova conversa (ContactPickerModal + template inicial + novo channel)
+- **US-WA-311** — Triagem automática no inbox — score + prioridade P1-P4 pro operador (L1)
+- **US-WA-315** — Fechar gaps #6 nonce / #9 failover / #10 circuit-breaker (channel-reliability whatsmeow)
+- **US-WA-316** — Customer 360 sidebar + inferência IA (ondas 2-5 voz-cliente)
+- **US-WA-317** — VoC: ContactProfile acumulativo (Gap#3) + auto-tag IA + dashboard (Gap#4)
+- **US-WA-318** — DNS de mídia WhatsApp não resolve → ~48k mídias pending desde ~12/jun
+- **US-WA-324** — Bot de atendimento com menu — opção leva à fila, coleta o nome, depois humano
+- **US-WA-327** — Tela de configurar o menu do bot por canal
+
 ## Sells
 
 
@@ -231,79 +307,6 @@
 - **US-SELL-072** — Venda com nota ou pagamento trava itens e valores — **P1**
 - **US-SELL-073** — Volumes no protocolo de entrega (UC-FLX-23) — **P2**
 
-## Whatsapp
-
-
-### todo
-
-- **US-WA-001** — Wizard 2 passos — Z-API hoje + Meta Cloud em paralelo
-- **US-WA-002** — Driver Interface + ZapiDriver + MetaCloudDriver + NullDriver
-- **US-WA-003** — Enviar mensagem template (Job assíncrono)
-- **US-WA-004** — Listener Repair: status `ready` dispara WhatsApp
-- **US-WA-010** — Receber webhook Meta + assinatura HMAC
-- **US-WA-011** — Processar mensagem recebida (Job)
-- **US-WA-012** — Inbox UI (Cockpit pattern)
-- **US-WA-013** — Templates UI (sync Meta Business Manager)
-- **US-WA-014** — Driver Health Check + fallback automático
-- **US-WA-020** — Listener DispatchToJanaBot
-- **US-WA-021** — Métricas conversation (custo, deflection, tempo resposta)
-- **US-WA-022** — ~~UX simplificada onboarding Baileys~~ [DEPRECATED 2026-05-27]
-- **US-WA-040** — Múltiplos números por business — driver + escopo de atendimento per-phone (Sprint 4)
-- **US-WA-041** — Métricas conversation (custo/deflection/tempo) — acelerar US-WA-021
-- **US-WA-042** — Mídia outbound — anexar imagem/PDF na conversa (UI upload)
-- **US-WA-043** — Mídia inbound — processar foto/PDF/audio recebido do cliente
-- **US-WA-044** — Permissions UI per-phone (multi-select atendentes em Settings/Edit)
-- **US-WA-045** — Botões interativos (HSM com CTAs)
-- **US-WA-046** — List messages (cardápio: orçar / acompanhar OS / segunda via)
-- **US-WA-047** — Tags / labels em conversa (classificar por dept/etapa)
-- **US-WA-048** — Quick replies / atalhos atendente (respostas pré-definidas)
-- **US-WA-049** — A/B testing templates (variantes A/B com tracking deflection)
-- **US-WA-050** — Voice transcription inbound (whisper.cpp local CT 100)
-- **US-WA-051** — FICHA v2 — Wagner-curate ux_heuristics + automation_targets
-- **US-WA-052** — AUDIT-LOG.md shell + 1ª entrada audit 2026-05-10
-- **US-WA-053** — UX /whatsapp/conversations — composer no rodapé + sidebar colapsável + responsivo monitor pequeno
-- **US-WA-055** — UX polish round 2 + skill `wagner-request-refiner`
-- **US-WA-056** — Omnichannel Fase 0 — schema polimórfico (channels + conversations + messages)
-- **US-WA-057** — Mover conversa pra outro número/canal (admin reclassifica)
-- **US-WA-058** — Inbox omnichannel — envio outbound via Channel (shim Phone, drivers intactos)
-- **US-WA-059** — Inbox omnichannel — real-time via Centrifugo (novo schema)
-- **US-WA-060** — Sync daemon-node source do CT 100 pra Modules/Whatsapp/daemon-node/
-- **US-WA-061** — Drift webhook legacy Z-API/Meta — observability + cutover plan
-- **US-WA-062** — Busca local na conversa (Ctrl+F dentro da thread)
-- **US-WA-063** — Tags classificadoras com seed defaults + catálogo per-business
-- **US-WA-064** — Vincular Contact UltimatePOS a conversa + resolver @lid JID
-- **US-WA-066** — Polling fallback 5s SEMPRE + bloquear contato
-- **US-WA-067** — Limpar tela Configurações WhatsApp — apagar 7 blocos de driver/LGPD
-- **US-WA-068** — Tab "Usuários do canal" dentro de Canais (ACL per-canal visível)
-- **US-WA-069** — Validar canal=fila — Suporte não vê inbox do Financeiro
-- **US-WA-070** — Sidebar/rotas — Canais vira entrada principal de Atendimento, Settings velha morre
-- **US-WA-071** — Notas internas (private notes) MVP — toggle Reply/Note estilo Chatwoot
-- **US-WA-072** — Mídia (imagens, áudio, docs) inbound + outbound + Whisper transcrição
-- **US-WA-073** — ADR — Notas internas como sinal de treino pra Jana (design 4 slash commands)
-- **US-WA-074** — Slash /lembrar — atendente grava fato sobre cliente em copiloto_memoria_facts
-- **US-WA-075** — Slash /corrigir — marca mensagem do bot como errada (training signal Jana)
-- **US-WA-076** — Slash /lembrete — cria lembrete agendado pro atendente
-- **US-WA-077** — Slash /config bot=off — toggle Jana per-contact (override global)
-- **US-WA-078** — Fix banDetector falso positivo loggedOut/forbidden vira 'session_expired'
-- **US-WA-079** — Fix daemon SIGTERM revoga session (sock.logout → sock.end) preserva pareamento em restart
-- **US-WA-089** — Re-parear channels Baileys Jana (id=8) + Suporte (id=10) após purge auth_state
-- **US-WA-091** — Remover legacy /whatsapp/conversations (URL deprecation)
-- **US-WA-093** — LID resolution custom + backfill (workaround pré-Baileys 7.x)
-- **US-WA-094** — Anti-cross-contact P0 (incident 2026-05-14)
-- **US-WA-095** — Caixa Unificada v4 redesign (em F1 PLAN)
-- **US-WA-301** — Filas DB + drawer config (label/hue/sla/dist/members/trigger_tags)
-- **US-WA-302** — Assignee picker no Contexto (select operators ativos)
-- **US-WA-303** — Slash macros inline + Templates picker inline no composer
-- **US-WA-304** — Drawer "Canais e contas" agrupado por type (vs link /canais)
-- **US-WA-305** — Mover conversa entre filas (override manual da heurística tag→fila)
-- **US-WA-306** — Broadcast cross-canal real (janela 24h Meta + opt-in LGPD)
-- **US-WA-307** — + Nova conversa (ContactPickerModal + template inicial + novo channel)
-- **US-WA-311** — Triagem automática no inbox — score + prioridade P1-P4 pro operador (L1)
-- **US-WA-315** — Fechar gaps #6 nonce / #9 failover / #10 circuit-breaker (channel-reliability whatsmeow)
-- **US-WA-316** — Customer 360 sidebar + inferência IA (ondas 2-5 voz-cliente)
-- **US-WA-317** — VoC: ContactProfile acumulativo (Gap#3) + auto-tag IA + dashboard (Gap#4)
-- **US-WA-318** — DNS de mídia WhatsApp não resolve → ~48k mídias pending desde ~12/jun
-
 ## Infra
 
 
@@ -366,6 +369,7 @@
 
 ### doing
 
+- **US-FIN-033** — Notificações vencimento próximo (e-mail + WhatsApp X dias antes) _(`p0` · sprint Onda 27)_
 - **US-FIN-070** — Custeio RKW e ponto de equilíbrio no fechamento do mês (UC-FLX-20) — **P2** _(`p2`)_
 - **US-FIN-071** — Régua de cobrança do título vencido D+1/D+5/D+15 (UC-FLX-29) — **P2** _(`p2`)_
 - **US-FIN-072** — ISS retido ajusta o título para o valor líquido na autorização da NFS-e (UC-FLX-30) — **P2** _(`p2`)_
@@ -390,7 +394,6 @@
 - **US-FIN-022** — Onda 4d.6.1 — Widget Asaas JS tokenização cartão (PCI-DSS) _(`p2` · @wagner)_
 - **US-FIN-023** — Onda 4d.6.2 — SheetNovaCobranca UI tipo=card (campos cartão) _(`p2` · @wagner)_
 - **US-FIN-024** — Onda 5 — Dogfooding Superadmin (Plan SaaS Oimpresso Premium biz=1) _(`p2` · @wagner)_
-- **US-FIN-033** — Notificações vencimento próximo (e-mail + WhatsApp X dias antes) _(`p2` · sprint Onda 27)_
 - **US-FIN-034** — Importação massiva CSV/Excel — mapping wizard + dry-run + commit _(`p2` · sprint Onda 28)_
 - **US-FIN-035** — Repetir lançamento próximo mês + Combobox autocomplete contraparte _(`p2` · sprint Onda 29)_
 - **US-FIN-036** — PWA básico Financeiro — manifest + service worker + offline cache + install prompt _(`p2` · sprint Onda 30)_
@@ -531,6 +534,7 @@
 
 ### todo
 
+- **US-PCP-033** — Inspeção e não conformidade na etapa da OS — **P2** _(`p2`)_
 - **US-PCP-001** — Schema base + migrations (4 tabelas + triggers append-only) — **P0**
 - **US-PCP-002** — DECISÃO D1 — Pcp vs IProduction (renomeação ou módulo novo) — **P0 BLOCKER**
 - **US-PCP-003** — Models + global scopes `HasBusinessScope` — **P0**
@@ -583,6 +587,7 @@
 - **US-NFE-062** — AuditLog em mutações fiscais NFe (Tributacao, Certificado, Manifestacao) _(`p1` · sprint cycle-04)_
 - **US-NFE-069** — A natureza fiscal do item escolhe a nota: NF-e para mercadoria, NFS-e para serviço e instalação (UC-FLX-31) — **P1** _(`p1` · sprint —)_
 - **US-NFE-071** — Contingência: SVC-AN/SVC-RS, evento EPEC 110140 e marcação no DANFE (UC-FLX-32) — **P1** _(`p1` · sprint —)_
+- **US-NFE-074** — Cutover da emissão Delphi → oimpresso, por empresa — **Backlog** _(`p1` · sprint —)_
 - **US-NFE-055** — Estabilizar 107 tests broken Modules/NfeBrasil aplicando dual-mode SQLite/MySQL _(`p2`)_
 - **US-NFE-056** — Continuação PR #453 — migrar configBusiness(4) → configBusiness(1) em MotorTributarioServiceTest _(`p2`)_
 - **US-NFE-057** — Schema drift — atualizar fixtures DanfeServicePrefersArquivosTest pós-remoção `arquivos.filename` _(`p2`)_
@@ -599,6 +604,45 @@
 - **US-NFE-008** — Manifestar NF-e recebida (destinatário)
 - **US-NFE-009** — Gerar SPED Fiscal/EFD ICMS-IPI mensal
 - **US-NFE-010** — Cadastrar regra tributária por NCM (motor)
+
+## Compras
+
+
+### doing
+
+- **US-COM-024** — Custo do insumo numa data, pelo método da empresa (UC-FLX-38) _(`p1` · @wagner)_
+- **US-COM-026** — Compra recebida aplica a regra de custo e preço (UC-FLX-17) _(`p1` · @wagner)_
+- **US-COM-028** — Aprovar ou recusar o preço proposto no detalhe da compra (UC-FLX-17) — **P1** _(`p1` · @wagner)_
+
+### todo
+
+- **US-COM-008** — Throttle 60/1 em /compras + FormRequest ListarComprasRequest _(`p0`)_
+- **US-COM-012** — Matching automático XML→produto (EAN + xProd; fallback manual) _(`p0`)_
+- **US-COM-013** — Recebimento parcial (qty recebida por linha ≠ pedida + trânsito residual + autosave check-in) _(`p0`)_
+- **US-COM-022** — Lane required de Compras vira árvore-menos-quarentena (vermelha no main há 5 runs) _(`p0`)_
+- **US-COM-023** — Teste de 7 dias do cockpit Compras na ROTA LIVRE (biz=4) _(`p0` · @maiara · sprint 2026-W44)_
+- **US-COM-010** — Adicionar Compras em config/governance/module_clients.yaml (Larissa biz=4 piloto reportando) _(`p1`)_
+- **US-COM-014** — FSM de estágios PERSISTIDA + auditável _(`p1`)_
+- **US-COM-015** — Teste de invariante de estoque no fluxo de entrada _(`p1`)_
+- **US-COM-016** — Cobrir fluxo `/compras`→contas a pagar (Observer Financeiro) com teste _(`p1`)_
+- **US-COM-030** — MRP: necessidade de compra somando todas as OS, com prazo do fornecedor — **P1** _(`p1`)_
+- **US-COM-031** — Cotação de compra entre fornecedores — **P1** _(`p1`)_
+- **US-COM-018** — Autosave rascunho de compra (`localStorage` `{biz}.{user}` debounced) _(`p2`)_
+- **US-COM-019** — Eager-load `->with(['contact','location'])` em `listarCompras().paginate()` _(`p2`)_
+- **US-COM-021** — Investigar flakiness das baselines dark/empty do VRT e reabilitar no gate L2 _(`p2`)_
+- **US-COM-025** — Rastreio do rolo: em que OS cada fração da mídia foi usada (UC-FLX-18) — **P2** _(`p2` · @wagner)_
+- **US-COM-032** — Aprovação do pedido de compra por alçada de valor — **P2** _(`p2`)_
+- **US-COM-020** — A11y do drawer (`role=dialog` + focus-trap + `aria-label` + `Esc`) _(`p3`)_
+- **US-COM-033** — Avaliação automática do fornecedor por entrega — **P3** _(`p3`)_
+- **US-COM-001** — Cockpit `/compras` (lista paginada + 4 KPIs + drawer)
+- **US-COM-002** — Criar compra manual
+- **US-COM-003** — Importar XML DF-e como compra (GAP NOVO)
+- **US-COM-004** — Deprecar `/purchases` legacy
+- **US-COM-005** — Entrada matricial tam×cor (GradeMatrixInput)
+
+### retirada
+
+- **US-COM-017** — ~~PiiRedactor no Drawer de compra~~ → RETIRADA (2026-07-03)
 
 ## RecurringBilling
 
@@ -724,41 +768,6 @@
 - **US-MKT-023** — Pricing dinâmico copilot competitor watch — **P3** · 14h
 - **US-MKT-024** — Analytics avançado margem real (CMV + frete + taxa + tributos) — **P3** · 10h
 - **US-MKT-025** — Magalu Hub + Americanas drivers (4º + 5º marketplaces) — **P3** · 16h
-
-## Compras
-
-
-### doing
-
-- **US-COM-024** — Custo do insumo numa data, pelo método da empresa (UC-FLX-38) _(`p1` · @wagner)_
-- **US-COM-026** — Compra recebida aplica a regra de custo e preço (UC-FLX-17) _(`p1` · @wagner)_
-- **US-COM-028** — Aprovar ou recusar o preço proposto no detalhe da compra (UC-FLX-17) — **P1** _(`p1` · @wagner)_
-
-### todo
-
-- **US-COM-008** — Throttle 60/1 em /compras + FormRequest ListarComprasRequest _(`p0`)_
-- **US-COM-012** — Matching automático XML→produto (EAN + xProd; fallback manual) _(`p0`)_
-- **US-COM-013** — Recebimento parcial (qty recebida por linha ≠ pedida + trânsito residual + autosave check-in) _(`p0`)_
-- **US-COM-022** — Lane required de Compras vira árvore-menos-quarentena (vermelha no main há 5 runs) _(`p0`)_
-- **US-COM-023** — Teste de 7 dias do cockpit Compras na ROTA LIVRE (biz=4) _(`p0` · @maiara · sprint 2026-W44)_
-- **US-COM-010** — Adicionar Compras em config/governance/module_clients.yaml (Larissa biz=4 piloto reportando) _(`p1`)_
-- **US-COM-014** — FSM de estágios PERSISTIDA + auditável _(`p1`)_
-- **US-COM-015** — Teste de invariante de estoque no fluxo de entrada _(`p1`)_
-- **US-COM-016** — Cobrir fluxo `/compras`→contas a pagar (Observer Financeiro) com teste _(`p1`)_
-- **US-COM-018** — Autosave rascunho de compra (`localStorage` `{biz}.{user}` debounced) _(`p2`)_
-- **US-COM-019** — Eager-load `->with(['contact','location'])` em `listarCompras().paginate()` _(`p2`)_
-- **US-COM-021** — Investigar flakiness das baselines dark/empty do VRT e reabilitar no gate L2 _(`p2`)_
-- **US-COM-025** — Rastreio do rolo: em que OS cada fração da mídia foi usada (UC-FLX-18) — **P2** _(`p2` · @wagner)_
-- **US-COM-020** — A11y do drawer (`role=dialog` + focus-trap + `aria-label` + `Esc`) _(`p3`)_
-- **US-COM-001** — Cockpit `/compras` (lista paginada + 4 KPIs + drawer)
-- **US-COM-002** — Criar compra manual
-- **US-COM-003** — Importar XML DF-e como compra (GAP NOVO)
-- **US-COM-004** — Deprecar `/purchases` legacy
-- **US-COM-005** — Entrada matricial tam×cor (GradeMatrixInput)
-
-### retirada
-
-- **US-COM-017** — ~~PiiRedactor no Drawer de compra~~ → RETIRADA (2026-07-03)
 
 ## Crm
 
@@ -978,6 +987,29 @@
 - **US-OI-016** — F4: QA da `Empresas/Index` — os itens `alta` viram teste
 - **US-OI-017** — F5: cutover das 3 telas da Onda 2 e sunset dos Blades
 
+## Ponto
+
+
+### todo
+
+- **US-PONTO-014** — Lane required de Ponto vira arvore-menos-quarentena (vermelha no main ha 5 runs; 27 de 38 testes fora da allowlist) _(`p0`)_
+- **US-PONTO-018** — Férias CLT: período aquisitivo, concessivo, dias de direito e alerta de férias vencidas _(`p0`)_
+- **US-PONTO-017** — Presença do dia lida por outro módulo (somente leitura) _(`p1`)_
+- **US-PONTO-016** — Painel de Conformidade CLT da competência (somente leitura) _(`p2`)_
+- **US-PONTO-001** — Relogio web pra registrar entrada/saida (REP-P)
+- **US-PONTO-002** — Marcacao via REP-A (importacao AFD)
+- **US-PONTO-003** — Workflow de intercorrencia (atestado/abono/falta)
+- **US-PONTO-004** — Banco de horas com saldo + creditos/debitos
+- **US-PONTO-005** — Apuracao automatica de jornada (Art. 66 + 71 CLT)
+- **US-PONTO-006** — Geracao AFD legacy pra fiscalizacao MTE (REP-A INMETRO)
+- **US-PONTO-007** — Multi-tenant isolation (Tier 0 IRREVOGAVEL)
+- **US-PONTO-008** — Imutabilidade append-only (Portaria 671/2021)
+- **US-PONTO-009** — Geracao AEJ canon Portaria 671/2021 Anexo VI (CRITICO REGULATORIO)
+- **US-PONTO-010** — Comprovante PDF QR Code (Anexo I §5.5 Portaria 671)
+- **US-PONTO-011** — Fechar o append-only do ledger de banco de horas
+- **US-PONTO-012** — Corrigir os atributos fantasma do modulo (4 instancias)
+- **US-PONTO-013** — Consertar as duas telas que nao persistem
+
 ## Accounting
 
 
@@ -999,28 +1031,6 @@
 - **US-ACCO-008** — Ver detalhe de Journal Entry
 - **US-ACCO-009** — Listar Reconcile
 - **US-ACCO-010** — Listar Report
-
-## Ponto
-
-
-### todo
-
-- **US-PONTO-014** — Lane required de Ponto vira arvore-menos-quarentena (vermelha no main ha 5 runs; 27 de 38 testes fora da allowlist) _(`p0`)_
-- **US-PONTO-017** — Presença do dia lida por outro módulo (somente leitura) _(`p1`)_
-- **US-PONTO-016** — Painel de Conformidade CLT da competência (somente leitura) _(`p2`)_
-- **US-PONTO-001** — Relogio web pra registrar entrada/saida (REP-P)
-- **US-PONTO-002** — Marcacao via REP-A (importacao AFD)
-- **US-PONTO-003** — Workflow de intercorrencia (atestado/abono/falta)
-- **US-PONTO-004** — Banco de horas com saldo + creditos/debitos
-- **US-PONTO-005** — Apuracao automatica de jornada (Art. 66 + 71 CLT)
-- **US-PONTO-006** — Geracao AFD legacy pra fiscalizacao MTE (REP-A INMETRO)
-- **US-PONTO-007** — Multi-tenant isolation (Tier 0 IRREVOGAVEL)
-- **US-PONTO-008** — Imutabilidade append-only (Portaria 671/2021)
-- **US-PONTO-009** — Geracao AEJ canon Portaria 671/2021 Anexo VI (CRITICO REGULATORIO)
-- **US-PONTO-010** — Comprovante PDF QR Code (Anexo I §5.5 Portaria 671)
-- **US-PONTO-011** — Fechar o append-only do ledger de banco de horas
-- **US-PONTO-012** — Corrigir os atributos fantasma do modulo (4 instancias)
-- **US-PONTO-013** — Consertar as duas telas que nao persistem
 
 ## Autopecas
 
@@ -1400,6 +1410,14 @@
 
 - **US-ADS-001** — Audit Tier 0 — escopar os ~85 DB::table('mcp_*') crus por business_id _(`p1`)_
 - **US-ADS-002** — Elevar tela Admin/Graph a ≥70 (extrair HEX inline p/ tokens + a11y) _(`p3`)_
+
+## AssetManagement
+
+
+### todo
+
+- **US-ASSET-009** — Depreciação gerencial linear por categoria — **P2** _(`p2`)_
+- **US-ASSET-010** — Manutenção preventiva com próxima data por bem — **P2** _(`p2`)_
 
 ## Documentacao
 
