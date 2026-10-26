@@ -13,6 +13,7 @@ use Modules\NfeBrasil\Models\NfeDfeEvento;
 use Modules\NfeBrasil\Models\NfeDfeRecebido;
 use Modules\NfeBrasil\Services\CertificadoService;
 use Modules\NfeBrasil\Services\Concerns\ResolveUfEmitente;
+use Modules\NfeBrasil\Support\CnpjDoEmitente;
 use NFePHP\Common\Certificate;
 use NFePHP\NFe\Common\Standardize;
 use NFePHP\NFe\Tools;
@@ -263,8 +264,9 @@ class ManifestacaoService
      */
     private function buildConfig(int $businessId): array
     {
-        $row = DB::table('business')->select(['name', 'tax_number_1'])->where('id', $businessId)->first();
-        $cnpj = $row->tax_number_1 ?? null;
+        $row = DB::table('business')->select(['name'])->where('id', $businessId)->first();
+        // R-NFE-041: titular do certificado → business.cnpj → tax_number_1; vazio recusa.
+        $cnpj = CnpjDoEmitente::obrigatorio($businessId);
         $razaoSocial = $row->name ?? '';
         $siglaUf = $this->resolverUfEmitente($businessId);
 
