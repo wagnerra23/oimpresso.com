@@ -316,6 +316,11 @@ Route::group([
         ->whereNumber('id')
         ->middleware('can:whatsapp.settings.manage')
         ->name('atendimento.channels.show');
+    // US-WA-327 — menu do bot de atendimento do canal (motor US-WA-324).
+    Route::put('/canais/{id}/menu-bot', [\Modules\Whatsapp\Http\Controllers\Admin\BotMenuController::class, 'update'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.channels.menu_bot');
 
     Route::delete('/canais/{id}', [ChannelsController::class, 'destroy'])
         ->whereNumber('id')

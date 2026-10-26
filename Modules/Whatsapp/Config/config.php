@@ -148,6 +148,14 @@ return [
     'queue' => env('WHATSAPP_QUEUE', 'whatsapp'),
 
     /*
+     * US-WA-324 — bot de atendimento com menu (opção → fila, pergunta de nome, depois humano).
+     * Desligado por padrão: ligar em produção é decisão [W]. O menu também precisa estar ativo no canal.
+     */
+    'bot_menu' => [
+        'enabled' => (bool) env('WHATSAPP_BOT_MENU_ENABLED', false),
+    ],
+
+    /*
      * US-WA-322 (ADR 0268 fase 2) — disparo real de campanha, com salvaguardas anti-ban.
      * Desligado por padrão: ligar em produção é decisão [W].
      */
