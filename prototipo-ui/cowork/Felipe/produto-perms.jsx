@@ -4,12 +4,6 @@
 //   BrandController ...... brand.view · brand.create · brand.update · brand.delete
 //   TaxonomyController ... category.view · category.create · category.update · category.delete (só quando category_type == 'product')
 //   BarcodeController .... barcode_settings.access (configuração da etiqueta, não a impressão)
-//   Fiscal ............... fiscal.access (Modules/Fiscal/Http/Controllers/CockpitController.php:46,
-//                          lido em 2026-10-26). Aqui decide quem vê os dados de imposto do produto:
-//                          a aba Fiscal do painel e o "Dados fiscais" do menu Ações ([F] 2026-10-26,
-//                          comentário na âncora). Na produção de 2026-10-26 esses dados NÃO têm gate
-//                          próprio: vão para quem abre o produto (product.view ou product.create,
-//                          ProductController::buildProdutoDetalhe).
 // 🔴 SEM GATE NENHUM no legado (achado A-P1): WarrantyController, VariationTemplateController,
 //   SellingPriceGroupController, LabelsController, ImportProductsController e
 //   ImportOpeningStockController — as rotas (routes/web.php 613-615, 711-712, 729-730, 748-753, 838)
@@ -23,14 +17,10 @@ const TODAS = [
   "category.view", "category.create", "category.update", "category.delete",
   "barcode_settings.access",
 ];
-// Fora de TODAS de propósito: o gerente de catálogo não ganha acesso ao fiscal só por cuidar do
-// cadastro. No sistema, quem vê é quem recebeu a permissão no papel (Gerenciamento de usuários ›
-// Papéis, rota /roles).
-const FISCAL = "fiscal.access";
 
 // Papéis simulados do protótipo — combinações que o balcão realmente usa.
 const PAPEIS = {
-  "administrador": { label: "Administrador", perms: [...TODAS, FISCAL] },
+  "administrador": { label: "Administrador", perms: TODAS },
   "gerente": { label: "Gerente de catálogo", perms: TODAS.filter((p) => !p.endsWith(".delete")) },
   "balcao": { label: "Balcão (só ver)", perms: ["unit.view", "brand.view", "category.view"] },
   "sem-acesso": { label: "Sem acesso ao cadastro", perms: [] },
@@ -58,5 +48,5 @@ const criar = (papel) => {
   };
 };
 
-window.ProdutoPerms = { TODAS, FISCAL, PAPEIS, SEM_GATE, criar };
+window.ProdutoPerms = { TODAS, PAPEIS, SEM_GATE, criar };
 })();

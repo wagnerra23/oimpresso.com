@@ -89,6 +89,19 @@ const priceSpan = (p, key) => {
   const min = Math.min(...arr), max = Math.max(...arr);
   return min === max ? fmtBRL(min) : fmtBRL(min) + " – " + fmtBRL(max);
 };
+// Contexto da empresa, simulado nos Tweaks ([F] 2026-10-26). `emiteNota` = módulo Fiscal no pacote
+// (o mesmo teste do botão "Abrir no módulo Fiscal" na produção). `temAliquota` = a empresa cadastrou
+// alguma alíquota de imposto; sem nenhuma, todo produto fica em "Nenhum".
+const EMPRESA_PADRAO = { emiteNota: true, temAliquota: true };
+const impostoDe = (p, empresa) => (empresa.temAliquota ? p.tax : "Nenhum");
+const temImposto = (p, empresa) => taxRate(impostoDe(p, empresa)) > 0;
+// Preço com o imposto do produto: é o que a venda cobra, com nota ou sem (sell_price_inc_tax na
+// produção — a busca da venda, a linha da venda Blade e a lista usam esse campo).
+const faixaComImposto = (p, key, empresa) => {
+  const arr = p.variations.map((x) => incTax(x[key], impostoDe(p, empresa)));
+  const min = Math.min(...arr), max = Math.max(...arr);
+  return min === max ? fmtBRL(min) : fmtBRL(min) + " – " + fmtBRL(max);
+};
 // Histórico de estoque (stock_history_details.blade.php) — determinístico a partir do id.
 const stockHistory = (p) => {
   const kinds = [["Compra", 1], ["Venda", -1], ["Estoque inicial", 1], ["Ajuste de estoque", -1], ["Transferência (entrada)", 1], ["Devolução de venda", 1], ["Venda", -1]];
@@ -225,14 +238,15 @@ function Modal({ titulo, onClose, children, acoes, largura = 720 }) {
 }
 
 // ─────────── Filtros (components.filters do index.blade.php) ───────────
-// O filtro Imposto só aparece com fiscal.access ([F] 2026-10-26), como a coluna e a aba Fiscal.
-function Filtros({ f, setF, verFiscal }) {
+// O filtro Imposto só aparece se a empresa tem alíquota cadastrada ([F] 2026-10-26): sem nenhuma,
+// todo produto é "Nenhum" e o filtro não separa nada.
+function Filtros({ f, setF, empresa }) {
   const [aberto, setAberto] = useState(true);
   const set = (k) => (val) => setF({ ...f, [k]: val });
   return (
     <Widget contrato="produto-filtros" titulo={<><Ic name="search" size={13} /> Filtros</>} nota={aberto ? null : "recolhidos"}>
       <div className="pb-filters-h" style={{ marginBottom: aberto ? 12 : 0 }}>
-        <span className="pb-help">Mesmos filtros do índice de produtos: tipo, categoria, unidade, {verFiscal ? "imposto, " : ""}marca, local e situação.</span>
+        <span className="pb-help">Mesmos filtros do índice de produtos: tipo, categoria, unidade, {empresa.temAliquota ? "imposto, " : ""}marca, local e situação.</span>
         <button className="os-btn sm ghost" onClick={() => setAberto((a) => !a)}>{aberto ? "Recolher" : "Expandir"}</button>
       </div>
       {aberto &&
@@ -240,7 +254,7 @@ function Filtros({ f, setF, verFiscal }) {
           <Fld label="Tipo de produto"><Sel value={f.type} onChange={set("type")} options={[{ id: "single", name: "Único" }, { id: "variable", name: "Variável" }, { id: "combo", name: "Composição" }]} vazio="Todos" /></Fld>
           <Fld label="Categoria"><Sel value={f.cat} onChange={set("cat")} options={CATEGORIES} vazio="Todas" /></Fld>
           <Fld label="Unidade"><Sel value={f.unit} onChange={set("unit")} options={UNITS.map((u) => u.short)} vazio="Todas" /></Fld>
-          {verFiscal && <Fld label="Imposto"><Sel value={f.tax} onChange={set("tax")} options={TAXES.map((t) => t.name)} vazio="Todos" /></Fld>}
+          {empresa.temAliquota && <Fld label="Imposto"><Sel value={f.tax} onChange={set("tax")} options={TAXES.map((t) => t.name)} vazio="Todos" /></Fld>}
           <Fld label="Marca"><Sel value={f.brand} onChange={set("brand")} options={BRANDS} vazio="Todas" /></Fld>
           <Fld label="Local do negócio"><Sel value={f.loc} onChange={set("loc")} options={LOCATIONS} vazio="Todos" /></Fld>
           <Fld label="Situação"><Sel value={f.active} onChange={set("active")} options={[{ id: "active", name: "Ativo" }, { id: "inactive", name: "Inativo" }]} vazio="Todos" /></Fld>
@@ -260,15 +274,15 @@ const PB_COLS = [
   { id: "categoria", l: "Categoria" }, { id: "marca", l: "Marca" }, { id: "imposto", l: "Imposto" },
   { id: "sku", l: "SKU" }, { id: "serie", l: "IMEI / série" }, { id: "cf1", l: "Campo personalizado 1" },
 ];
-const PB_COLS_PADRAO = { imagem: true, locais: true, compra: true, venda: true, estoque: true, tipo: true, categoria: true, marca: true, imposto: true, sku: true, serie: false, cf1: false };
-// Colunas que só existem para quem tem fiscal.access ([F] 2026-10-26): sem a permissão, a coluna
-// não aparece na grade, no menu de colunas nem na exportação.
-const PB_COLS_FISCAIS = ["imposto"];
-const colunaPermitida = (id, verFiscal) => verFiscal || !PB_COLS_FISCAIS.includes(id);
+// Imposto nasce desligada ([F] 2026-10-26): quem precisa liga no menu Colunas.
+const PB_COLS_PADRAO = { imagem: true, locais: true, compra: true, venda: true, estoque: true, tipo: true, categoria: true, marca: true, imposto: false, sku: true, serie: false, cf1: false };
+// A coluna Imposto só existe se a empresa tem alíquota cadastrada — na grade, no menu Colunas e na
+// exportação. Não é permissão: imposto não é segredo, sai impresso na nota.
+const colunaExiste = (id, empresa) => id !== "imposto" || empresa.temAliquota;
 
 // A lista roda no DataTablePro do DS: header fixo, resize de coluna por arrasto,
 // ordenação e seleção internas, densidade. As colunas do blade viram `columns`.
-function ListaProdutos({ rows, sel, setSel, onAcao, densa, cols, selSeq, perms }) {
+function ListaProdutos({ rows, sel, setSel, onAcao, densa, cols, selSeq, empresa }) {
   const { DataTablePro, EmptyState } = DS();
   // Altura da grade: cabe o conteúdo em lista curta (sem rolagem dupla) e limita
   // a ~72% do corpo rolável em lista longa, onde a rolagem interna com header fixo compensa.
@@ -299,8 +313,8 @@ function ListaProdutos({ rows, sel, setSel, onAcao, densa, cols, selSeq, perms }
     // Sem "Comprar este produto": a consulta não é a tela de compras ([F] 2026-10-26).
     { l: "Transferir entre locais", ic: "layers", on: () => onAcao("transferir", p) },
     { l: "Usar em uma OS", ic: "orders", on: () => onAcao("os", p) },
-    // Dado de imposto só para quem tem fiscal.access ([F] 2026-10-26) — ver produto-perms.jsx.
-    ...(perms.can("fiscal.access") ? [{ l: "Dados fiscais (NCM/CFOP)", ic: "quote", on: () => onAcao("fiscal", p) }] : []),
+    // Só em empresa que emite nota, como a aba Fiscal do painel ([F] 2026-10-26).
+    ...(empresa.emiteNota ? [{ l: "Dados fiscais (NCM/CFOP)", ic: "quote", on: () => onAcao("fiscal", p) }] : []),
     "-",
     { l: p.active ? "Desativar" : "Ativar", ic: "cog", on: () => onAcao("toggle", p) },
     { l: "Excluir", ic: "x", tone: "danger", on: () => onAcao("excluir", p) },
@@ -324,8 +338,7 @@ function ListaProdutos({ rows, sel, setSel, onAcao, densa, cols, selSeq, perms }
     { key: "serie", label: "IMEI / série", col: "serie", width: 110 },
     { key: "cf1", label: "Campo personalizado 1", col: "cf1", width: 170 },
   ];
-  const verFiscal = perms.can("fiscal.access");
-  const columns = TODAS.filter((c) => !c.col || (cols[c.col] && colunaPermitida(c.col, verFiscal)));
+  const columns = TODAS.filter((c) => !c.col || (cols[c.col] && colunaExiste(c.col, empresa)));
 
   const linhas = rows.map((p) => ({
     id: p.id,
@@ -342,15 +355,17 @@ function ListaProdutos({ rows, sel, setSel, onAcao, densa, cols, selSeq, perms }
           p.type === "variable" ? p.variations.length + " variações" : null].filter(Boolean).join(" · "),
       },
       locais: p.locs.map((id) => LOCATIONS.find((l) => l.id === id).name).join(", ") || "—",
-      compra: priceSpan(p, "dpp"),
-      venda: priceSpan(p, "dsp"),
+      // Com o imposto do produto, como a lista da produção (dpp_inc_tax / sell_price_inc_tax): o preço
+      // de venda é o que o vendedor informa ao cliente e o que a venda cobra.
+      compra: faixaComImposto(p, "dpp", empresa),
+      venda: faixaComImposto(p, "dsp", empresa),
       estoque: p.stockOn
         ? <span className={"pb-stock" + (p.alert != null && p.stock <= p.alert ? " low" : "")}>{fmtQty(p.stock)} {p.unit}</span>
         : <span className="pb-stock na">—</span>,
       tipo: <span className={"pb-pill " + p.type}>{TYPE_LABEL[p.type]}</span>,
       categoria: { primary: p.cat, sub: p.sub },
       marca: p.brand,
-      imposto: p.tax,
+      imposto: impostoDe(p, empresa),
       sku: p.sku,
       serie: p.srNo ? "Sim" : "—",
       cf1: (p.cf || {})[1] || "—",
@@ -380,7 +395,7 @@ function ListaProdutos({ rows, sel, setSel, onAcao, densa, cols, selSeq, perms }
 }
 
 // ─────────── Aba "Relatório de estoque" (report.partials.stock_report_table) ───────────
-function RelatorioEstoque({ rows }) {
+function RelatorioEstoque({ rows, empresa }) {
   const { Pagination } = DS();
   const [page, setPage] = useState(1);
   const [porPagina, setPorPagina] = useState(25);
@@ -391,11 +406,11 @@ function RelatorioEstoque({ rows }) {
         const locId = p.locs[i % p.locs.length] || p.locs[0];
         const qtd = Math.round((p.stock || 0) / p.variations.length);
         out.push({ key: p.id + "-" + i, sku: va.sku, prod: p.name, varName: va.name, cat: p.cat, loc: LOCATIONS.find((l) => l.id === locId).name, unit: p.unit,
-          preco: incTax(va.dsp, p.tax), qtd, custo: qtd * va.dpp, venda: qtd * va.dsp, vendido: (p.id * 11 + i * 7) % 90, transf: (p.id * 3 + i) % 12, ajust: (p.id + i) % 6 });
+          preco: incTax(va.dsp, impostoDe(p, empresa)), qtd, custo: qtd * va.dpp, venda: qtd * va.dsp, vendido: (p.id * 11 + i * 7) % 90, transf: (p.id * 3 + i) % 12, ajust: (p.id + i) % 6 });
       });
     });
     return out;
-  }, [rows]);
+  }, [rows, empresa]);
   const tot = lin.reduce((a, r) => ({ qtd: a.qtd + r.qtd, custo: a.custo + r.custo, venda: a.venda + r.venda, vendido: a.vendido + r.vendido, transf: a.transf + r.transf, ajust: a.ajust + r.ajust }), { qtd: 0, custo: 0, venda: 0, vendido: 0, transf: 0, ajust: 0 });
   const pageCount = Math.max(1, Math.ceil(lin.length / porPagina));
   const pagina = Math.min(page, pageCount);
@@ -441,12 +456,15 @@ function RelatorioEstoque({ rows }) {
 }
 
 // ─────────── Drawer de detalhe (view-modal.blade.php + *_product_details) ───────────
-function DetalheDrawer({ p, onClose, onIr, perms }) {
+function DetalheDrawer({ p, onClose, onIr, empresa }) {
   const [aba, setAba] = useState("dados");
-  // A aba Fiscal (NCM, CEST, CFOP, origem, imposto aplicável e tipo de imposto) só aparece para quem
-  // tem fiscal.access ([F] 2026-10-26). O imposto saiu da aba Dados pelo mesmo motivo.
-  const verFiscal = perms.can("fiscal.access");
-  const abas = [{ id: "dados", l: "Dados" }, { id: p.type === "combo" ? "composicao" : "variacoes", l: p.type === "combo" ? "Composição" : "Variações", n: p.type === "combo" ? p.combo.length : p.variations.length }, { id: "estoque", l: "Estoque" }, ...(verFiscal ? [{ id: "fiscal", l: "Fiscal" }] : []), { id: "prateleira", l: "Prateleira" }];
+  // Imposto não é segredo (sai impresso na nota), então nada aqui depende de permissão ([F] 2026-10-26):
+  // - o imposto aplicável fica junto do preço, na aba Dados, e só aparece se o produto tem imposto;
+  // - sem imposto, as tabelas de preço têm uma coluna só (sem e com imposto seriam iguais);
+  // - a aba Fiscal (NCM, CEST, CFOP, origem) só existe em empresa que emite nota.
+  const comImposto = temImposto(p, empresa);
+  const imposto = impostoDe(p, empresa);
+  const abas = [{ id: "dados", l: "Dados" }, { id: p.type === "combo" ? "composicao" : "variacoes", l: p.type === "combo" ? "Composição" : "Variações", n: p.type === "combo" ? p.combo.length : p.variations.length }, { id: "estoque", l: "Estoque" }, ...(empresa.emiteNota ? [{ id: "fiscal", l: "Fiscal" }] : []), { id: "prateleira", l: "Prateleira" }];
   const fs = p.fiscal || {};
   const { Drawer } = DS();
   const dt = (label, val) => <div className="pb-dt"><span>{label}</span><b>{val || "—"}</b></div>;
@@ -481,6 +499,9 @@ function DetalheDrawer({ p, onClose, onIr, perms }) {
             <div className="os-drawer-section">
               <div style={{ display: "grid", gridTemplateColumns: "1fr 168px", gap: 16 }}>
                 <div className="pb-drawer-grid">
+                  {dt("Preço de venda", faixaComImposto(p, "dsp", empresa))}
+                  {comImposto && dt("Preço sem imposto", priceSpan(p, "dsp"))}
+                  {comImposto && dt("Imposto aplicável", imposto + " · " + (p.taxType === "inclusive" ? "inclusivo" : "exclusivo"))}
                   {dt("SKU", p.sku)}{dt("Tipo de código de barras", p.barcode)}{dt("Unidade", p.unit)}
                   {dt("Marca", p.brand)}{dt("Categoria", p.cat)}{dt("Subcategoria", p.sub)}
                   {dt("Peso", p.weight)}
@@ -491,6 +512,7 @@ function DetalheDrawer({ p, onClose, onIr, perms }) {
                 </div>
                 <div className="pb-img">Imagem do produto<br />(1:1, até 5 MB)</div>
               </div>
+              {comImposto && <p className="pb-help" style={{ marginTop: 10 }}>O preço de venda já inclui o imposto aplicável. É o valor que a venda cobra, com nota ou sem.</p>}
               {p.desc && <p style={{ marginTop: 14, fontSize: 12.5, color: "var(--text-dim)", lineHeight: 1.5 }}>{p.desc}</p>}
             </div>}
 
@@ -498,11 +520,14 @@ function DetalheDrawer({ p, onClose, onIr, perms }) {
             <div className="os-drawer-section">
               <h3>Variações</h3>
               <table className="pb-tbl">
-                <thead><tr><th>Variação</th><th>SKU</th><th className="r">Compra sem imposto</th><th className="r">Compra com imposto</th><th className="r">% lucro</th><th className="r">Venda sem imposto</th><th className="r">Venda com imposto</th></tr></thead>
+                {comImposto
+                  ? <thead><tr><th>Variação</th><th>SKU</th><th className="r">Compra sem imposto</th><th className="r">Compra com imposto</th><th className="r">% lucro</th><th className="r">Venda sem imposto</th><th className="r">Venda com imposto</th></tr></thead>
+                  : <thead><tr><th>Variação</th><th>SKU</th><th className="r">Compra</th><th className="r">% lucro</th><th className="r">Venda</th></tr></thead>}
                 <tbody>{p.variations.map((va) => (
                   <tr key={va.sku}><td>{va.name}</td><td className="m">{va.sku}</td>
-                    <td className="r">{fmtBRL(va.dpp)}</td><td className="r">{fmtBRL(incTax(va.dpp, p.tax))}</td>
-                    <td className="r">{fmtQty(va.profit)} %</td><td className="r">{fmtBRL(va.dsp)}</td><td className="r">{fmtBRL(incTax(va.dsp, p.tax))}</td></tr>))}
+                    {comImposto && <td className="r">{fmtBRL(va.dpp)}</td>}<td className="r">{fmtBRL(incTax(va.dpp, imposto))}</td>
+                    <td className="r">{fmtQty(va.profit)} %</td>
+                    {comImposto && <td className="r">{fmtBRL(va.dsp)}</td>}<td className="r">{fmtBRL(incTax(va.dsp, imposto))}</td></tr>))}
                 </tbody>
               </table>
               <div style={{ marginTop: 10 }}>
@@ -511,7 +536,8 @@ function DetalheDrawer({ p, onClose, onIr, perms }) {
                   <thead><tr><th>Variação</th>{PRICE_GROUPS.map((g) => <th key={g.id} className="r">{g.name}</th>)}</tr></thead>
                   <tbody>{p.variations.map((va) => (
                     <tr key={va.sku}><td>{va.name}</td>
-                      {PRICE_GROUPS.map((g, i) => <td key={g.id} className="r">{fmtBRL(va.dsp * [1, 0.9, 0.85, 0.75][i])}</td>)}</tr>))}
+                      {/* Sobre o preço com imposto, como na venda (percentual × sell_price_inc_tax). */}
+                      {PRICE_GROUPS.map((g, i) => <td key={g.id} className="r">{fmtBRL(incTax(va.dsp, imposto) * [1, 0.9, 0.85, 0.75][i])}</td>)}</tr>))}
                   </tbody>
                 </table>
               </div>
@@ -521,13 +547,13 @@ function DetalheDrawer({ p, onClose, onIr, perms }) {
             <div className="os-drawer-section">
               <h3>Composição</h3>
               <table className="pb-tbl">
-                <thead><tr><th>Produto</th><th>SKU</th><th className="r">Qtd</th><th className="r">Compra sem imposto</th><th className="r">Total sem imposto</th></tr></thead>
+                <thead><tr><th>Produto</th><th>SKU</th><th className="r">Qtd</th><th className="r">{comImposto ? "Compra sem imposto" : "Compra"}</th><th className="r">{comImposto ? "Total sem imposto" : "Total"}</th></tr></thead>
                 <tbody>{p.combo.map((c) => (
                   <tr key={c.sku}><td><b>{c.name}</b></td><td className="m">{c.sku}</td><td className="r">{fmtQty(c.qty)} {c.unit}</td><td className="r">{fmtBRL(c.dpp)}</td><td className="r">{fmtBRL(c.qty * c.dpp)}</td></tr>))}
                 </tbody>
                 <tfoot><tr><td colSpan={4}><b>Total líquido</b></td><td className="r"><b>{fmtBRL(p.combo.reduce((s, c) => s + c.qty * c.dpp, 0))}</b></td></tr></tfoot>
               </table>
-              <p className="pb-help" style={{ marginTop: 8 }}>Preço de venda padrão da composição: <b>{fmtBRL(p.variations[0].dsp)}</b> · % de lucro {fmtQty(p.variations[0].profit)} %.</p>
+              <p className="pb-help" style={{ marginTop: 8 }}>Preço de venda padrão da composição: <b>{fmtBRL(incTax(p.variations[0].dsp, imposto))}</b>{comImposto && <> (sem imposto {fmtBRL(p.variations[0].dsp)})</>} · % de lucro {fmtQty(p.variations[0].profit)} %.</p>
             </div>}
 
           {aba === "estoque" &&
@@ -562,24 +588,28 @@ function DetalheDrawer({ p, onClose, onIr, perms }) {
               </> : <p className="pb-help">Este produto não gerencia estoque (<b>enable_stock = 0</b>) — serviços e composições entram assim.</p>}
             </div>}
 
-          {aba === "fiscal" && verFiscal &&
+          {aba === "fiscal" && empresa.emiteNota &&
             <div className="os-drawer-section">
               <h3>Dados fiscais</h3>
+              {/* A aba começa dizendo se o produto está pronto para nota ([F] 2026-10-26). */}
+              <p className="pb-help" style={{ marginBottom: 10 }} data-contract="produto-fiscal-pronto">
+                {fs.ncm
+                  ? <><span className="pb-pill combo">Pronto para nota</span> NCM preenchido.</>
+                  : <><span className="pb-pill off">Sem NCM</span> A nota sai com o NCM padrão da empresa. Se for serviço, a nota é a NFS-e, que não usa NCM.</>}
+              </p>
               <div className="pb-drawer-grid">
-                {dt("NCM", fs.ncm ? fs.ncm : "não aplicável (serviço)")}
+                {dt("NCM", fs.ncm || "—")}
                 {dt("CEST", fs.cest || "—")}
                 {dt("CFOP padrão de venda", (CFOPS.find((c) => c.id === fs.cfop) || {}).name || "—")}
                 {dt("Origem da mercadoria", (ORIGENS.find((o) => o.id === fs.origem) || {}).name || "—")}
-                {dt("Imposto aplicável", p.tax)}
-                {dt("Tipo de imposto na venda", p.taxType === "inclusive" ? "Inclusivo" : "Exclusivo")}
               </div>
-              <p className="pb-help" style={{ marginTop: 10 }}>
-                {fs.cest
-                  ? "Produto com substituição tributária (CEST preenchido) — a NF-e sai com CFOP de substituído."
-                  : fs.ncm
-                    ? "Sem substituição tributária. O NCM manda na tributação; conferir antes de emitir NF-e."
-                    : "Serviço: sai em NFS-e por ISS, não tem NCM."}
-              </p>
+              {/* Texto da produção (UC-PIDX-25): a emissão usa o NCM padrão sem NCM no cadastro e não
+                  troca o CFOP pelo CEST — o texto antigo daqui afirmava as duas coisas. */}
+              {fs.ncm &&
+                <p className="pb-help" style={{ marginTop: 10 }}>
+                  O NCM escolhe a tributação da nota: primeiro a exceção do produto, depois a regra do NCM e, por fim, o padrão da empresa. Confira antes de emitir.
+                  {fs.cest && " CEST preenchido indica produto com substituição tributária; a nota não troca o CFOP sozinha — confira a regra do NCM."}
+                </p>}
               <button className="os-btn sm" style={{ marginTop: 8 }} onClick={() => onIr("fiscal-modulo", p)}>Abrir no módulo Fiscal</button>
             </div>}
 
@@ -717,7 +747,7 @@ function ModalEtiquetas({ produtos, onClose }) {
 }
 
 // Menu de colunas (o `visible` do DataTable, agora visível pro operador).
-function MenuColunas({ cols, setCols, verFiscal }) {
+function MenuColunas({ cols, setCols, empresa }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   useEffect(() => {
@@ -726,7 +756,7 @@ function MenuColunas({ cols, setCols, verFiscal }) {
     document.addEventListener("mousedown", off);
     return () => document.removeEventListener("mousedown", off);
   }, [open]);
-  const opcoes = PB_COLS.filter((c) => colunaPermitida(c.id, verFiscal));
+  const opcoes = PB_COLS.filter((c) => colunaExiste(c.id, empresa));
   const n = opcoes.filter((c) => cols[c.id]).length;
   return (
     <div className="pb-kebab" ref={ref}>
@@ -746,12 +776,14 @@ function MenuColunas({ cols, setCols, verFiscal }) {
 }
 
 // Exporta o que está na tela (o `downloadExcel` do controller) — CSV com ; pra abrir no Excel PT-BR.
-// Sem fiscal.access a coluna Imposto não vai para o arquivo — é a mesma coluna da grade.
-function exportarCsv(lista, verFiscal) {
-  const fiscal = (x) => (verFiscal ? [x] : []);
-  const cab = ["Produto", "SKU", "Tipo", "Categoria", "Subcategoria", "Marca", "Unidade", ...fiscal("Imposto"), "Compra", "Venda", "Estoque", "Locais", "Situação"];
-  const linhas = lista.map((p) => [p.name, p.sku, TYPE_LABEL[p.type], p.cat, p.sub, p.brand, p.unit, ...fiscal(p.tax),
-    String(p.variations[0].dpp).replace(".", ","), String(p.variations[0].dsp).replace(".", ","),
+// A coluna Imposto só vai para o arquivo se a empresa tem alíquota cadastrada, como na grade.
+// Compra e Venda saem com o imposto do produto, os mesmos números da grade.
+function exportarCsv(lista, empresa) {
+  const imp = (x) => (empresa.temAliquota ? [x] : []);
+  const num = (n) => (Math.round(n * 100) / 100).toFixed(2).replace(".", ",");
+  const cab = ["Produto", "SKU", "Tipo", "Categoria", "Subcategoria", "Marca", "Unidade", ...imp("Imposto"), "Compra", "Venda", "Estoque", "Locais", "Situação"];
+  const linhas = lista.map((p) => [p.name, p.sku, TYPE_LABEL[p.type], p.cat, p.sub, p.brand, p.unit, ...imp(impostoDe(p, empresa)),
+    num(incTax(p.variations[0].dpp, impostoDe(p, empresa))), num(incTax(p.variations[0].dsp, impostoDe(p, empresa))),
     p.stockOn ? String(p.stock) : "", p.locs.map((id) => LOCATIONS.find((l) => l.id === id).name).join(" / "), p.active ? "Ativo" : "Inativo"]);
   const csv = "\uFEFF" + [cab, ...linhas].map((r) => r.map((c) => '"' + String(c == null ? "" : c).replace(/"/g, '""') + '"').join(";")).join("\r\n");
   const a = document.createElement("a");
@@ -762,7 +794,7 @@ function exportarCsv(lista, verFiscal) {
 }
 
 // ─────────── Tela lista (index.blade.php) ───────────
-function TelaLista({ aba, setAba, onIr, avisar, perms }) {
+function TelaLista({ aba, setAba, onIr, avisar, empresa = EMPRESA_PADRAO }) {
   const VAZIO_F = { type: "", cat: "", unit: "", tax: "", brand: "", loc: "", active: "", nfs: false };
   // Chegou filtrada de outro lugar? (contagem clicada em Cadastros de apoio → window.__PBFiltro)
   const [f, setF] = useState(() => { const x = window.__PBFiltro; window.__PBFiltro = null; return x ? { ...VAZIO_F, ...x } : VAZIO_F; });
@@ -801,13 +833,12 @@ function TelaLista({ aba, setAba, onIr, avisar, perms }) {
     return () => document.removeEventListener("keydown", onKey);
   }, [onIr]);
 
-  // Sem fiscal.access o filtro Imposto não existe, nem guardado de antes (troca de papel na mesma sessão).
-  const verFiscal = perms.can("fiscal.access");
+  // Sem alíquota cadastrada o filtro Imposto não existe, nem guardado de antes (troca nos Tweaks).
   const filtrados = useMemo(() => PRODUCTS.filter((p) => {
     if (f.type && p.type !== f.type) return false;
     if (f.cat && p.cat !== f.cat) return false;
     if (f.unit && p.unit !== f.unit) return false;
-    if (verFiscal && f.tax && p.tax !== f.tax) return false;
+    if (empresa.temAliquota && f.tax && p.tax !== f.tax) return false;
     if (f.brand && p.brand !== f.brand) return false;
     if (f.loc && !p.locs.includes(Number(f.loc))) return false;
     if (f.active === "active" && !p.active) return false;
@@ -815,7 +846,7 @@ function TelaLista({ aba, setAba, onIr, avisar, perms }) {
     if (f.nfs && !p.notForSelling) return false;
     if (busca && !(p.name + p.sku).toLowerCase().includes(busca.toLowerCase())) return false;
     return true;
-  }), [f, busca, verFiscal]);
+  }), [f, busca, empresa]);
 
   // A grade do DS ordena internamente; aqui só garantimos a ordem inicial (nome A→Z).
   const ordenados = useMemo(() => [...filtrados].sort((a, b) => a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1), [filtrados]);
@@ -826,7 +857,7 @@ function TelaLista({ aba, setAba, onIr, avisar, perms }) {
   if (f.type) chips.push({ k: "type", l: "Tipo", v: TYPE_LABEL[f.type] });
   if (f.cat) chips.push({ k: "cat", l: "Categoria", v: f.cat });
   if (f.unit) chips.push({ k: "unit", l: "Unidade", v: f.unit });
-  if (verFiscal && f.tax) chips.push({ k: "tax", l: "Imposto", v: f.tax });
+  if (empresa.temAliquota && f.tax) chips.push({ k: "tax", l: "Imposto", v: f.tax });
   if (f.brand) chips.push({ k: "brand", l: "Marca", v: f.brand });
   if (f.loc) chips.push({ k: "loc", l: "Local", v: (LOCATIONS.find((l) => l.id === Number(f.loc)) || {}).name });
   if (f.active) chips.push({ k: "active", l: "Situação", v: f.active === "active" ? "Ativo" : "Inativo" });
@@ -895,7 +926,7 @@ function TelaLista({ aba, setAba, onIr, avisar, perms }) {
     <>
       <div className="pb-kpis" data-contract="produto-kpis">{kpisNode}</div>
 
-      <Filtros f={f} setF={setF} verFiscal={verFiscal} />
+      <Filtros f={f} setF={setF} empresa={empresa} />
 
       <Widget flush titulo={<><Ic name="product" size={13} /> {aba === "lista" ? "Todos os produtos" : "Relatório de estoque"}</>} nota={ordenados.length + " de " + PRODUCTS.length}>
         {/* Onda 0d (28/08): as duas abas passam a ser o `TabBar` do DS (_ds_bundle.js L6605).
@@ -922,7 +953,7 @@ function TelaLista({ aba, setAba, onIr, avisar, perms }) {
             <button className={densa ? "" : "on"} onClick={() => setDensa(false)}>Confortável</button>
             <button className={densa ? "on" : ""} onClick={() => setDensa(true)}>Compacto</button>
           </div>
-          <MenuColunas cols={cols} setCols={setCols} verFiscal={verFiscal} />
+          <MenuColunas cols={cols} setCols={setCols} empresa={empresa} />
           <button className="os-btn sm" onClick={() => setRapido(true)}><Ic name="plus" size={12} /> Cadastro rápido</button>
         </div>
 
@@ -940,14 +971,14 @@ function TelaLista({ aba, setAba, onIr, avisar, perms }) {
             ? <div style={{ padding: "14px 16px" }}>{Skeleton
                 ? <Skeleton variant="row" count={8} />
                 : <p className="pb-help">Carregando produtos…</p>}</div>
-            : <ListaProdutos rows={rows} sel={sel} setSel={limparOuSetar} onAcao={onAcao} densa={densa} cols={cols} selSeq={selSeq} perms={perms} />)
-          : <RelatorioEstoque rows={filtrados} />}
+            : <ListaProdutos rows={rows} sel={sel} setSel={limparOuSetar} onAcao={onAcao} densa={densa} cols={cols} selSeq={selSeq} empresa={empresa} />)
+          : <RelatorioEstoque rows={filtrados} empresa={empresa} />}
 
         {aba === "lista" &&
           <div className="pb-pag" data-contract="produto-rodape-lista">
             <span>{ordenados.length} produto(s) na grade · clique no cabeçalho pra ordenar, arraste a borda pra redimensionar</span>
             <div className="sp" />
-            <button className="os-btn sm" onClick={() => { exportarCsv(ordenados, verFiscal); avisar(ordenados.length + " produto(s) exportados com os filtros atuais.", "ok"); }}><Ic name="sheet" size={12} /> Exportar filtrados</button>
+            <button className="os-btn sm" onClick={() => { exportarCsv(ordenados, empresa); avisar(ordenados.length + " produto(s) exportados com os filtros atuais.", "ok"); }}><Ic name="sheet" size={12} /> Exportar filtrados</button>
           </div>}
       </Widget>
 
@@ -964,7 +995,7 @@ function TelaLista({ aba, setAba, onIr, avisar, perms }) {
           <button className="icon-btn" title="Limpar seleção" onClick={limparSel}>✕</button>
         </div>}
 
-      {ver && <DetalheDrawer p={ver} onClose={() => setVer(null)} onIr={(a, p) => { setVer(null); onIr(a, p); }} perms={perms} />}
+      {ver && <DetalheDrawer p={ver} onClose={() => setVer(null)} onIr={(a, p) => { setVer(null); onIr(a, p); }} empresa={empresa} />}
       {inicial && <ModalEstoqueInicial p={inicial} onClose={() => setInicial(null)} avisar={avisar} />}
       {locModal && <ModalLocalizacao modo={locModal} n={sel.length} onClose={() => setLocModal(null)} avisar={avisar} />}
       {rapido && <ModalCadastroRapido onClose={() => setRapido(false)} avisar={avisar} />}
@@ -995,7 +1026,9 @@ function PaletaProduto({ aberta, onClose, onIr }) {
   return <Command open={aberta} onClose={onClose} groups={[{ label: "Telas do módulo", items: telas }, { label: "Produtos", items: prods }]} />;
 }
 
-function ProdutoBladePage({ view = "lista", estado = "dados", dense = false, papel = "administrador" }) {
+function ProdutoBladePage({ view = "lista", estado = "dados", dense = false, papel = "administrador", emiteNota = true, temAliquota = true }) {
+  // Contexto da empresa (Tweaks): decide aba Fiscal e coluna/filtro Imposto — ver EMPRESA_PADRAO.
+  const empresa = useMemo(() => ({ emiteNota, temAliquota }), [emiteNota, temAliquota]);
   const M = MP();
   const [tela, setTela] = useState(view === "estoque" ? "lista" : view);
   const [aba, setAba] = useState(view === "estoque" ? "estoque" : "lista");
@@ -1046,7 +1079,7 @@ function ProdutoBladePage({ view = "lista", estado = "dados", dense = false, pap
           glyph={<Ic name="product" />}
           acoes={<>
             {tela !== "lista" && <button className="os-btn" onClick={() => setTela("lista")}>← Voltar à lista</button>}
-            <button className="os-btn" onClick={() => { exportarCsv(PRODUCTS, perms.can("fiscal.access")); avisar("Catálogo exportado em CSV (abre no Excel).", "ok"); }}><Ic name="sheet" size={13} /> Baixar Excel</button>
+            <button className="os-btn" onClick={() => { exportarCsv(PRODUCTS, empresa); avisar("Catálogo exportado em CSV (abre no Excel).", "ok"); }}><Ic name="sheet" size={13} /> Baixar Excel</button>
             <button className="os-btn primary" onClick={() => { setAlvo(null); setTela("form"); }}><Ic name="plus" size={13} /> Novo produto</button>
           </>} />}
 
@@ -1059,7 +1092,7 @@ function ProdutoBladePage({ view = "lista", estado = "dados", dense = false, pap
             <button className="os-btn sm" onClick={() => irPara(entrada.origem, { volta: true })}>Voltar e usar</button>
             <button className="icon-btn" aria-label="Dispensar" onClick={() => setEntrada(null)}>✕</button>
           </div>}
-        {tela === "lista" && <TelaLista aba={aba} setAba={setAba} onIr={onIr} avisar={avisar} perms={perms} />}
+        {tela === "lista" && <TelaLista aba={aba} setAba={setAba} onIr={onIr} avisar={avisar} empresa={empresa} />}
         {tela === "form" && (F.FormProduto ? <F.FormProduto produto={alvo} onSair={() => setTela("lista")} onIr={onIr} avisar={avisar} /> : null)}
         {tela === "historico" && (F.Historico ? <F.Historico produto={alvo || PRODUCTS[0]} avisar={avisar} /> : null)}
         {tela === "precos" && (F.Precos ? <F.Precos produto={alvo || PRODUCTS[0]} onSair={() => setTela("lista")} avisar={avisar} /> : null)}
