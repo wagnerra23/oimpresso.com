@@ -65,10 +65,10 @@ last_run: "2026-10-26"
 
 ---
 
-## UC-CHS-BOT-01 · O menu do bot que salvo é o que o bot responde
+## UC-CNLD-06 · O menu do bot que salvo é o que o bot responde
 - **Persona:** gestor do atendimento configurando a recepção do canal.
 - **Aceite:** Dado um canal da minha empresa e uma fila minha · Quando salvo saudação e opções na aba Menu do bot · Então o canal fica com um menu só (salvar de novo atualiza) e a próxima mensagem do cliente recebe essa saudação com as opções; canal de outra empresa dá 404, fila de outra empresa e número de opção repetido são recusados.
-- **Teste:** `Modules/Whatsapp/Tests/Feature/BotMenuConfigContratoTest.php` — `UC-CHS-BOT-01 · US-WA-327 · salvar grava o menu do canal e o bot passa a responder com ele` (+ o caso de recusa do arquivo).
+- **Teste:** `Modules/Whatsapp/Tests/Feature/BotMenuConfigContratoTest.php` — `UC-CNLD-06 · US-WA-327 · salvar grava o menu do canal e o bot passa a responder com ele` (+ o caso de recusa do arquivo).
 - **Regressão que defende:** US-WA-324/327 — a tela gravar num formato que o motor não lê (o bot ficaria mudo com a configuração "salva").
 - **Status: 🧪** — CT 100 MySQL 2026-10-26: 2 passed (12 assertions); mutante aceitando fila de outra empresa → 1 failed.
 

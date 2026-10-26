@@ -19,7 +19,7 @@ use Tests\Support\WithSeededTenant;
  * Configuração do menu do bot por canal (US-WA-327) — o que a aba "Menu do bot" grava é o que o
  * motor (US-WA-324) lê.
  *
- * Âncora: SPEC US-WA-327 (critérios 1-4) e `Channels/Show.casos.md` UC-CHS-BOT-01.
+ * Âncora: SPEC US-WA-327 (critérios 1-4) e `Channels/Show.casos.md` UC-CNLD-06.
  * Tenant 98 contra 99 (ADR 0358). Daemon falso. ⚠️ SKIP em SQLite (LC-13).
  */
 uses(Tests\TestCase::class, DatabaseTransactions::class, WithSeededTenant::class);
@@ -59,7 +59,7 @@ beforeEach(function () {
     ];
 });
 
-it('UC-CHS-BOT-01 · US-WA-327 · salvar grava o menu do canal e o bot passa a responder com ele', function () {
+it('UC-CNLD-06 · US-WA-327 · salvar grava o menu do canal e o bot passa a responder com ele', function () {
     ($this->fila)($this->biz->id, 'fin-cfg');
     $canal = ($this->canal)($this->biz->id);
 
