@@ -201,6 +201,8 @@ export interface DetalheProdutoDados {
     imagens: string[];
     compra_exc?: number;
     compra_inc?: number;
+    /** UC-PIDX-32: só quando a empresa gravou a regra de custo; metodo null = insumo sem método definido. */
+    custo_metodo?: { metodo: 'medio' | 'ultimo' | null; ultima_compra_em: string | null };
     lucro_percentual?: number;
     venda_exc?: number;
     venda_inc?: number;
