@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Marketplaces\Http\Controllers\ContasController;
 use Modules\Marketplaces\Http\Controllers\InstallController;
 use Modules\Marketplaces\Http\Controllers\NotificacoesMercadoLivreController;
+use Modules\Marketplaces\Http\Controllers\PedidosController;
 use Modules\Marketplaces\Http\Middleware\MarketplacesLiberado;
 
 /*
@@ -30,6 +31,7 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
     ->group(function () {
         Route::get('contas/mercado-livre/conectar', [ContasController::class, 'conectar'])->name('contas.mercado_livre.conectar');
         Route::get('oauth/callback/mercado-livre', [ContasController::class, 'callback'])->name('oauth.mercado_livre.callback');
+        Route::patch('contas/{conta}/local', [PedidosController::class, 'definirLocal'])->whereNumber('conta')->name('contas.local');
     });
 
 /*
@@ -39,3 +41,15 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
 Route::middleware(['throttle:300,1'])
     ->post('/webhook/marketplaces/mercado-livre', [NotificacoesMercadoLivreController::class, 'receber'])
     ->name('marketplaces.webhook.mercado_livre');
+
+/*
+ * Tela de pedidos (US-MKT-008). Basta o pacote + `marketplaces.access`; escolher o local da conta
+ * exige a permissão de conectar contas (grupo acima).
+ */
+Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin',
+    MarketplacesLiberado::class])
+    ->prefix('marketplaces')
+    ->name('marketplaces.')
+    ->group(function () {
+        Route::get('pedidos', [PedidosController::class, 'index'])->name('pedidos');
+    });

@@ -14,14 +14,15 @@ module: Marketplaces
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Marketplaces/**` + `resources/js/Pages/Marketplaces/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 41 arquivos em 13 papéis.
+**Total mapeado:** 46 arquivos em 16 papéis.
 
-## Controllers — 4
+## Controllers — 5
 
 - [ContasController.php](../../../Modules/Marketplaces/Http/Controllers/ContasController.php)
 - [DataController.php](../../../Modules/Marketplaces/Http/Controllers/DataController.php)
 - [InstallController.php](../../../Modules/Marketplaces/Http/Controllers/InstallController.php)
 - [NotificacoesMercadoLivreController.php](../../../Modules/Marketplaces/Http/Controllers/NotificacoesMercadoLivreController.php)
+- [PedidosController.php](../../../Modules/Marketplaces/Http/Controllers/PedidosController.php)
 
 ## Middleware — 1
 
@@ -78,9 +79,21 @@ module: Marketplaces
 
 - [config.php](../../../Modules/Marketplaces/Config/config.php)
 
-## Testes (Pest) — 7
+## Telas (Inertia/React) — 1
 
-- 7 em [Modules/Marketplaces/Tests/Feature/](../../../Modules/Marketplaces/Tests/Feature)
+- [Pedidos.tsx](../../../resources/js/Pages/Marketplaces/Pedidos.tsx)
+
+## Charters (lei da tela) — 1
+
+- [Pedidos.charter.md](../../../resources/js/Pages/Marketplaces/Pedidos.charter.md)
+
+## Casos (contrato UC) — 1
+
+- [Pedidos.casos.md](../../../resources/js/Pages/Marketplaces/Pedidos.casos.md)
+
+## Testes (Pest) — 8
+
+- 8 em [Modules/Marketplaces/Tests/Feature/](../../../Modules/Marketplaces/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 5

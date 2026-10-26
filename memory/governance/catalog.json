@@ -26,23 +26,23 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 867,
-    "edges": 1180,
+    "nodes": 869,
+    "edges": 1182,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 146,
-      "component": 481,
-      "api": 89
+      "component": 482,
+      "api": 90
     },
     "by_edge_type": {
       "ownsTable": 97,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 93,
+      "providesApi": 94,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 481,
+      "hasComponent": 482,
       "dependsOn": 131,
       "delegatesTo": 120,
       "migratesTo": 1,
@@ -1467,6 +1467,14 @@
       "id": "api:/marketplaces/install",
       "type": "api",
       "prefix": "/marketplaces/install",
+      "providers": [
+        "Marketplaces"
+      ]
+    },
+    {
+      "id": "api:/marketplaces/pedidos",
+      "type": "api",
+      "prefix": "/marketplaces/pedidos",
       "providers": [
         "Marketplaces"
       ]
@@ -3765,6 +3773,13 @@
       "module": "Marketplaces",
       "name": "NotificacoesMercadoLivreController",
       "desc": "recebe as notificações do ML e busca o pedido na API com o token da conta (US-MKT-006)"
+    },
+    {
+      "id": "component:Marketplaces/PedidosController",
+      "type": "component",
+      "module": "Marketplaces",
+      "name": "PedidosController",
+      "desc": "tela Pedidos dos marketplaces (lista, filtro com/sem venda, local de venda da conta) — US-MKT-008"
     },
     {
       "id": "component:Marketplaces/Renovação do token do vendedor sob demanda e de hora em hora",
@@ -11643,6 +11658,12 @@
     },
     {
       "from": "module:Marketplaces",
+      "to": "component:Marketplaces/PedidosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Marketplaces",
       "to": "component:Marketplaces/Renovação do token do vendedor sob demanda e de hora em hora",
       "type": "hasComponent",
       "source": "contains"
@@ -11656,6 +11677,12 @@
     {
       "from": "module:Marketplaces",
       "to": "api:/marketplaces/install",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "api:/marketplaces/pedidos",
       "type": "providesApi",
       "source": "url_prefixes"
     },
