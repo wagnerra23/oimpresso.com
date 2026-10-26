@@ -12,7 +12,7 @@
 | [`Sells`](#sells) | 67 | 0 | 0 | 0 | 67 |
 | [`Whatsapp`](#whatsapp) | 67 | 0 | 0 | 0 | 67 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
-| [`Financeiro`](#financeiro) | 49 | 3 | 0 | 0 | 46 |
+| [`Financeiro`](#financeiro) | 49 | 4 | 0 | 0 | 45 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
 | [`OficinaAuto`](#oficinaauto) | 39 | 0 | 0 | 0 | 38 |
 | [`Producao`](#producao) | 33 | 1 | 0 | 0 | 32 |
@@ -367,6 +367,7 @@
 
 ### doing
 
+- **US-FIN-033** — Notificações vencimento próximo (e-mail + WhatsApp X dias antes) _(`p0` · sprint Onda 27)_
 - **US-FIN-070** — Custeio RKW e ponto de equilíbrio no fechamento do mês (UC-FLX-20) — **P2** _(`p2`)_
 - **US-FIN-071** — Régua de cobrança do título vencido D+1/D+5/D+15 (UC-FLX-29) — **P2** _(`p2`)_
 - **US-FIN-072** — ISS retido ajusta o título para o valor líquido na autorização da NFS-e (UC-FLX-30) — **P2** _(`p2`)_
@@ -391,7 +392,6 @@
 - **US-FIN-022** — Onda 4d.6.1 — Widget Asaas JS tokenização cartão (PCI-DSS) _(`p2` · @wagner)_
 - **US-FIN-023** — Onda 4d.6.2 — SheetNovaCobranca UI tipo=card (campos cartão) _(`p2` · @wagner)_
 - **US-FIN-024** — Onda 5 — Dogfooding Superadmin (Plan SaaS Oimpresso Premium biz=1) _(`p2` · @wagner)_
-- **US-FIN-033** — Notificações vencimento próximo (e-mail + WhatsApp X dias antes) _(`p2` · sprint Onda 27)_
 - **US-FIN-034** — Importação massiva CSV/Excel — mapping wizard + dry-run + commit _(`p2` · sprint Onda 28)_
 - **US-FIN-035** — Repetir lançamento próximo mês + Combobox autocomplete contraparte _(`p2` · sprint Onda 29)_
 - **US-FIN-036** — PWA básico Financeiro — manifest + service worker + offline cache + install prompt _(`p2` · sprint Onda 30)_
