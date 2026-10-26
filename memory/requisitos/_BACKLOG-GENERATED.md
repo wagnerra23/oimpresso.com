@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1004 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1005 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -21,7 +21,7 @@
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
 | [`Marketplaces`](#marketplaces) | 25 | 0 | 0 | 0 | 25 |
-| [`Compras`](#compras) | 23 | 3 | 0 | 0 | 19 |
+| [`Compras`](#compras) | 24 | 4 | 0 | 0 | 19 |
 | [`Crm`](#crm) | 23 | 0 | 0 | 0 | 23 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 22 | 0 | 0 | 0 | 22 |
 | [`Fiscal`](#fiscal) | 22 | 0 | 0 | 0 | 22 |
@@ -730,6 +730,7 @@
 
 ### doing
 
+- **US-COM-029** — Compra a partir de pedido não aceita pedido nem linha de outra empresa — **P0** _(`p0`)_
 - **US-COM-024** — Custo do insumo numa data, pelo método da empresa (UC-FLX-38) _(`p1` · @wagner)_
 - **US-COM-026** — Compra recebida aplica a regra de custo e preço (UC-FLX-17) _(`p1` · @wagner)_
 - **US-COM-028** — Aprovar ou recusar o preço proposto no detalhe da compra (UC-FLX-17) — **P1** _(`p1` · @wagner)_
