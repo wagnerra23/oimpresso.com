@@ -370,8 +370,12 @@ class BusinessController extends Controller
     private function ajustesAppLojas(array $pos): array
     {
         $valores = \App\Services\AppLojas\AjustesDaEmpresa::completar($pos);
+        // Tipo largo de propósito: com o literal da constante o PHPStan dá o `tipo === 'bool'` como sempre verdadeiro hoje,
+        // mas é o mesmo filtro da Blade e precisa valer quando entrar chave de lista na tela.
+        /** @var array<string, array{tipo: string, rotulo: string, ajuda: string, na_tela: bool}> $chaves */
+        $chaves = \App\Services\AppLojas\AjustesDaEmpresa::CHAVES;
         $saida = [];
-        foreach (\App\Services\AppLojas\AjustesDaEmpresa::CHAVES as $chave => $c) {
+        foreach ($chaves as $chave => $c) {
             if ($c['na_tela'] && $c['tipo'] === 'bool') {
                 $saida[] = ['chave' => $chave, 'rotulo' => $c['rotulo'], 'ajuda' => $c['ajuda'], 'valor' => (bool) $valores[$chave]];
             }
