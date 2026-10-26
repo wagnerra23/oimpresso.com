@@ -614,6 +614,8 @@ jobs:
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoSalvarReabrirContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoArquivosContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoMargemContratoTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/OrcamentoMinimoAcabamentoContratoTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/OrcamentoPerdaEmendaContratoTest.php \
             Modules/Repair/Tests/Feature/DeviceModelsInertiaSmokeTest.php \
             Modules/Repair/Tests/Feature/JobSheetShowContratoTest.php \
             Modules/Repair/Tests/Feature/ProducaoOficinaRefactorTest.php \
