@@ -14,7 +14,7 @@ module: Marketplaces
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Marketplaces/**` + `resources/js/Pages/Marketplaces/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 37 arquivos em 13 papéis.
+**Total mapeado:** 41 arquivos em 13 papéis.
 
 ## Controllers — 4
 
@@ -27,9 +27,10 @@ module: Marketplaces
 
 - [MarketplacesLiberado.php](../../../Modules/Marketplaces/Http/Middleware/MarketplacesLiberado.php)
 
-## Services — 5
+## Services — 6
 
 - [ContasVendedor.php](../../../Modules/Marketplaces/Services/ContasVendedor.php)
+- [CfopDoPedido.php](../../../Modules/Marketplaces/Services/Fiscal/CfopDoPedido.php)
 - [IniciarPipelineMarketplace.php](../../../Modules/Marketplaces/Services/IniciarPipelineMarketplace.php)
 - [MarketplacesAcesso.php](../../../Modules/Marketplaces/Services/MarketplacesAcesso.php)
 - [MercadoLivreOAuth.php](../../../Modules/Marketplaces/Services/MercadoLivre/MercadoLivreOAuth.php)
@@ -43,8 +44,9 @@ module: Marketplaces
 - [PedidoMarketplace.php](../../../Modules/Marketplaces/Entities/PedidoMarketplace.php)
 - [WebhookRecebido.php](../../../Modules/Marketplaces/Entities/WebhookRecebido.php)
 
-## Jobs — 3
+## Jobs — 4
 
+- [AvaliarNfeDoPedidoJob.php](../../../Modules/Marketplaces/Jobs/AvaliarNfeDoPedidoJob.php)
 - [ProcessarNotificacaoMercadoLivreJob.php](../../../Modules/Marketplaces/Jobs/ProcessarNotificacaoMercadoLivreJob.php)
 - [RenovarTokenContaJob.php](../../../Modules/Marketplaces/Jobs/RenovarTokenContaJob.php)
 - [VirarVendaJob.php](../../../Modules/Marketplaces/Jobs/VirarVendaJob.php)
@@ -76,14 +78,15 @@ module: Marketplaces
 
 - [config.php](../../../Modules/Marketplaces/Config/config.php)
 
-## Testes (Pest) — 6
+## Testes (Pest) — 7
 
-- 6 em [Modules/Marketplaces/Tests/Feature/](../../../Modules/Marketplaces/Tests/Feature)
+- 7 em [Modules/Marketplaces/Tests/Feature/](../../../Modules/Marketplaces/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 4
+## Demais arquivos (manifestos, docs, assets e misc) — 5
 
 - [marketplaces.php](../../../Modules/Marketplaces/Resources/lang/pt-BR/marketplaces.php)
+- [AvaliarNfeAoEnviar.php](../../../Modules/Marketplaces/SideEffects/AvaliarNfeAoEnviar.php)
 - [composer.json](../../../Modules/Marketplaces/composer.json)
 - [module.json](../../../Modules/Marketplaces/module.json)
 - [SCOPE.md](../../../memory/requisitos/Marketplaces/SCOPE.md)

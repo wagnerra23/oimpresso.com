@@ -468,7 +468,11 @@ Driver pattern: classe `MarketplaceDriver` abstrata + `MercadoLivreDriver`, `Sho
 
 ### US-MKT-009 · NFe automática ao emitir → CFOP marketplace resolver + dispatch SEFAZ — **P0** · 7h
 
-**Implementado em:** _pendente_ — módulo não construído (US planejada): sem `OrderMarketplaceFaturadoListener` nem `MarketplaceCFOPResolver` no disco
+**Implementado em:** _parcial_ · `Modules/Marketplaces/Services/Fiscal/CfopDoPedido.php` · `Modules/Marketplaces/SideEffects/AvaliarNfeAoEnviar.php` · `Modules/Marketplaces/Jobs/AvaliarNfeDoPedidoJob.php` — 2026-10-26: CFOP provisório (SPEC §5) configurável e avaliação da nota no `marcar_enviado`, atrás da flag `marketplaces.nfe.automatica` (desligada); **nenhuma nota é emitida ainda**. Faltam: destinatário pelo `billing_info` do ML, o NfeService aceitar o CFOP do marketplace (combinar com a frente Fiscal) e o envio do XML ao ML. Depende de [W] + contador conferirem o CFOP (D5)
+
+**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesNfePedidoContratoTest.php`
+
+**DoD:** CFOP 5102 na mesma UF e 6102 em outra, sem CFOP para Full ou UF ausente; flag desligada não põe nada na fila; flag ligada só deixa a nota sair com destinatário completo e fora do Full; outra empresa nunca avalia a venda da 98.
 
 - Listener `OrderMarketplaceFaturadoListener` no event FSM action `emitir_nfe`
 - Service `MarketplaceCFOPResolver` aplica mapping §5 (per-categoria + override business)

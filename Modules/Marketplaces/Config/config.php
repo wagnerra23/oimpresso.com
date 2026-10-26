@@ -23,4 +23,14 @@ return [
         'authorize_url' => env('MERCADOLIVRE_AUTHORIZE_URL', 'https://auth.mercadolivre.com.br/authorization'),
         'token_url' => env('MERCADOLIVRE_TOKEN_URL', 'https://api.mercadolibre.com/oauth/token'),
     ],
+
+    /*
+     * NF-e do pedido de marketplace (US-MKT-009 · ADR 0439 D5). DESLIGADA até [W] conferir o CFOP
+     * com o contador. Os CFOP abaixo são o mapeamento provisório do SPEC §5.
+     */
+    'nfe' => [
+        'automatica' => (bool) env('MARKETPLACES_NFE_AUTOMATICA', false),
+        'cfop_mesma_uf' => env('MARKETPLACES_CFOP_MESMA_UF', '5102'),
+        'cfop_outra_uf' => env('MARKETPLACES_CFOP_OUTRA_UF', '6102'),
+    ],
 ];

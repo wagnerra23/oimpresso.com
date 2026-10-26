@@ -27,7 +27,8 @@ use Spatie\Permission\Models\Role;
  *
  * Ações críticas (🔒, RBAC obrigatório): marcar_enviado, confirmar_entrega, cancelar_pedido.
  * `cancelar_pedido` usa o CancelarVendaCascade do núcleo (estorno de estoque, NF-e, avisos).
- * A NF-e do pedido (US-MKT-009) entra em `marcar_enviado` atrás de flag, em PR próprio.
+ * `marcar_enviado` põe na fila a avaliação da NF-e do pedido (US-MKT-009), que só age com a flag
+ * `marketplaces.nfe.automatica` ligada.
  *
  * Papéis por empresa (`roles.business_id` NOT NULL no UltimatePOS → sufixo `#{biz}`):
  * marketplaces.atendimento, marketplaces.gerente, marketplaces.system (o próprio sistema, quando a
@@ -89,7 +90,7 @@ class FsmProcessoVendaMarketplaceSeeder extends Seeder
         $cascata = 'App\\Domain\\Fsm\\SideEffects\\CancelarVendaCascade';
         // [etapa de origem, chave, rótulo, destino, papéis, crítica, efeito]
         $acoes = [
-            ['pedido_recebido', 'marcar_enviado', 'Marcar como enviado', 'enviado', ['marketplaces.atendimento', 'marketplaces.gerente', 'marketplaces.system'], true, null],
+            ['pedido_recebido', 'marcar_enviado', 'Marcar como enviado', 'enviado', ['marketplaces.atendimento', 'marketplaces.gerente', 'marketplaces.system'], true, 'Modules\\Marketplaces\\SideEffects\\AvaliarNfeAoEnviar'],
             ['enviado', 'confirmar_entrega', 'Confirmar entrega', 'entregue', ['marketplaces.atendimento', 'marketplaces.gerente', 'marketplaces.system'], true, null],
             ['pedido_recebido', 'cancelar_pedido', 'Cancelar pedido', 'cancelado', ['marketplaces.gerente', 'marketplaces.system'], true, $cascata],
             ['enviado', 'cancelar_pedido', 'Cancelar pedido', 'cancelado', ['marketplaces.gerente', 'marketplaces.system'], true, $cascata],
@@ -106,6 +107,10 @@ class FsmProcessoVendaMarketplaceSeeder extends Seeder
                     'is_critical' => $critica,
                 ],
             );
+            // Seed de versão anterior sem o efeito colateral: atualiza só esse campo.
+            if ($acao->side_effect_class !== $efeito) {
+                $acao->forceFill(['side_effect_class' => $efeito])->save();
+            }
             $existentes = $acao->roles->pluck('role_name')->all();
             foreach ($quem as $papel) {
                 $nome = $papeis[$papel];
