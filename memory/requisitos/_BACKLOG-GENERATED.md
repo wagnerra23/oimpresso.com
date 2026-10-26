@@ -571,10 +571,10 @@
 - **US-FISCAL-021** — IBS/CBS cálculo no MotorTributarioService (Onda 6 — sair do scaffold) _(`p0` · @wagner)_
 - **US-FISCAL-025** — IBS/CBS na NF-e de todo emissor do regime normal — **Legal** _(`p0`)_
 - **US-FISCAL-026** — IBS/CBS na DPS da NFS-e nacional — **Legal** _(`p1`)_
-- **US-FISCAL-027** — NFS-e em município fora do padrão nacional — **Legal** _(`p1`)_
 - **US-FISCAL-024** — IBS/CBS — split UF/Município na régua fiscal (coluna de schema) _(`p2`)_
 - **US-FISCAL-028** — SPED EFD-ICMS/IPI blocos D e K — **P2** _(`p2`)_
 - **US-FISCAL-029** — MDF-e e CT-e no módulo novo — **P2** _(`p2`)_
+- **US-FISCAL-027** — NFS-e em município fora do padrão nacional — **Legal** _(`p3`)_
 - **US-FISCAL-030** — Apuração do DAS e guia GNRE — **P3** _(`p3`)_
 - **US-FISCAL-031** — Split payment (LC 214/2025) e EFD-Reinf — **P3** _(`p3`)_
 - **US-FISCAL-001** — Cockpit NF-e · NFC-e (sub-página 2)

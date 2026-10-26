@@ -625,7 +625,7 @@ Then deve receber 403 Forbidden
 ### US-FISCAL-025 · IBS/CBS na NF-e de todo emissor do regime normal — **Legal**
 
 > owner: — · priority: p0 · estimate: 4h · status: todo · type: story
-> blocked_by: decisão [W] (emenda da ADR 0321, que liga o grupo só por opt-in)
+> blocked_by: — ([W] 2026-10-26: ligar automático para todo CRT 3, por ADR nova que emenda a 0321)
 
 **Implementado em:** _pendente_ — hoje o grupo UB só sai com `nfe_business_configs.reforma_tributaria_modo` em `full`/`hybrid_2026` (`NfeService::schemaReforma`).
 
@@ -644,8 +644,8 @@ Como prestador do regime normal, quero que a DPS leve finNFSe, indFinal, cIndOp,
 
 ### US-FISCAL-027 · NFS-e em município fora do padrão nacional — **Legal**
 
-> owner: — · priority: p1 · estimate: 16h · status: todo · type: epic
-> blocked_by: decisão [W] — quais municípios/provedores (ABRASF, GINFES, IPM…), com cliente que precise
+> owner: — · priority: p3 · estimate: 16h · status: todo · type: epic
+> blocked_by: backlog — [W] 2026-10-26: "nenhum município por ora"; não construir até haver município com cliente que precise
 
 **Implementado em:** _pendente_ — só o emissor nacional emite; o padrão ABRASF só cancela (`AbrasfV204CancelDriver.php`).
 
