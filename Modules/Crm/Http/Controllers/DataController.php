@@ -423,6 +423,10 @@ class DataController extends Controller
             ];
         }
 
+        // US-CRM-092 · ADR 0441 — funil de vendas em kanban. Ninguém tem por padrão.
+        $permissions[] = ['value' => 'crm.funil.ver', 'label' => 'Funil de vendas: ver', 'default' => false];
+        $permissions[] = ['value' => 'crm.funil.editar', 'label' => 'Funil de vendas: criar e mover negócios', 'default' => false];
+
         return $permissions;
     }
 
