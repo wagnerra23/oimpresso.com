@@ -2,7 +2,7 @@
 // @covers-us US-RB-020
 
 declare(strict_types=1);
-// Cobre UC-RBPA-11..13 (resources/js/Pages/RecurringBilling/Index.casos.md).
+// Cobre UC-RBPA-11..14 (resources/js/Pages/RecurringBilling/Index.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -115,4 +115,26 @@ it('UC-RBPA-13 · pela rota: flag desligada 404, outra empresa 404, sem credenci
     mpaCred($this->b98->id);
     $post($sub98)->assertOk()->assertJsonPath('mandato.pix_copia_cola', '00020126180014br.gov.bcb.pix-QR-TESTE');
     expect(json_decode((string) DB::table('rb_subscriptions')->where('id', $sub99)->value('metadata'), true))->toBe([]);
+});
+
+it('UC-RBPA-14 · o drawer só recebe o bloco com o recurso ligado, e o QR só enquanto aguarda o cliente', function () {
+    $sub = mpaAssinatura($this->b98->id);
+    $carregar = fn () => \Modules\RecurringBilling\Models\Subscription::withoutGlobalScopes()->with(['plan', 'contact'])->findOrFail($sub);
+
+    config(['recurringbilling.cobrar_pix_automatico' => false]);
+    expect(\Modules\RecurringBilling\Http\Presenters\SubscriptionIndexPresenter::toDrawerPayload($carregar())['pix_automatico'])->toBeNull();
+
+    config(['recurringbilling.cobrar_pix_automatico' => true]);
+    expect(\Modules\RecurringBilling\Http\Presenters\SubscriptionIndexPresenter::toDrawerPayload($carregar())['pix_automatico'])
+        ->toBe(['status' => null, 'pix_copia_cola' => null]);
+
+    DB::table('rb_subscriptions')->where('id', $sub)->update(['metadata' => json_encode(['pix_automatico' => [
+        'status' => 'CRIADA', 'id_rec' => 'RR-x', 'pix_copia_cola' => 'QR-CRIADA']])]);
+    expect(\Modules\RecurringBilling\Http\Presenters\SubscriptionIndexPresenter::toDrawerPayload($carregar())['pix_automatico'])
+        ->toBe(['status' => 'CRIADA', 'pix_copia_cola' => 'QR-CRIADA']);
+
+    DB::table('rb_subscriptions')->where('id', $sub)->update(['metadata' => json_encode(['pix_automatico' => [
+        'status' => 'APROVADA', 'id_rec' => 'RR-x', 'pix_copia_cola' => 'QR-VELHO']])]);
+    expect(\Modules\RecurringBilling\Http\Presenters\SubscriptionIndexPresenter::toDrawerPayload($carregar())['pix_automatico'])
+        ->toBe(['status' => 'APROVADA', 'pix_copia_cola' => null]);
 });
