@@ -35,6 +35,8 @@ aba a aba atrás da mesma flag, sem perder nada do que o salvar da Blade grava.
   os dias da régua — depois do vencimento e, vazio por padrão, antes dele (US-FIN-033) — em
   `common_settings['financeiro_regua_cobranca']` (UC-EMP-15). Fora do protótipo: a régua não tinha
   tela, e a aba segue o padrão das abas vizinhas.
+- Aba **App das lojas** (grupo Integrações, na Blade desde o #9442): liga e desliga os ajustes `pos_settings.app_*` que o
+  app lê, com chave, rótulo e padrão vindos de `AjustesDaEmpresa::CHAVES` (UC-EMP-17). Fora do protótipo, como o Financeiro.
 
 ## Non-Goals
 
