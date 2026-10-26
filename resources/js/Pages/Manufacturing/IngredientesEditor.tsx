@@ -96,7 +96,6 @@ export default function IngredientesEditor({ produto, receita, grupos, grupos_da
   // O protótipo deixa salvar só sem erro, e diz qual (QA 2026-09-29): nunca botão desativado mudo.
   const erros: Record<string, string> = {};
   if (!(data.total_quantity > 0)) erros.total_quantity = 'Precisa ser maior que zero.';
-  if (!(data.waste_percent >= 0 && data.waste_percent < 100)) erros.waste_percent = 'Use de 0 a menos de 100%.';
   if (!(data.extra_cost >= 0)) erros.extra_cost = 'Não pode ser negativo.';
   const nLinhasInvalidas = data.grupos.reduce((s, g) => s + g.itens.filter((l) => !(l.quantidade > 0)).length, 0);
   const motivoBloqueio = nIng === 0
@@ -295,13 +294,9 @@ export default function IngredientesEditor({ produto, receita, grupos, grupos_da
                   onChange={(v) => setData('sub_unit_id', deValor(v))}
                 />
               </Campo>
-              <Campo
-                rotulo="Desperdício (%)"
-                erro={erros.waste_percent}
-                dica={`rende ${num(c.rendimento, 2)} ${produto.unidade} de ${num(data.total_quantity, 2)}`}
-              >
-                <NumericInputPtBR value={data.waste_percent} disabled={!podeEditar} aria-label="Desperdício em porcentagem" onChange={(n) => setData('waste_percent', n)} />
-              </Campo>
+              {/* Sem campo de desperdício: decisão [W] 2026-10-23 (D4, §7 da decisão Fabricação × Produção): desperdício é somente na Produção. O valor gravado
+                  não é apagado — `data.waste_percent` vai no salvar como veio (apagar o dado é outra decisão,
+                  D4), porque a ordem Blade ainda o usa para sugerir as unidades perdidas. */}
               <Campo rotulo="Custo extra">
                 <Escolha
                   rotulo="Tipo do custo extra"
