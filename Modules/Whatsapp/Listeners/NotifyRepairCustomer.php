@@ -4,39 +4,32 @@ declare(strict_types=1);
 
 namespace Modules\Whatsapp\Listeners;
 
-use Modules\Whatsapp\Entities\WhatsappBusinessPhone;
-use Modules\Whatsapp\Jobs\SendWhatsappMessageJob;
+use Illuminate\Support\Facades\DB;
+use Modules\Whatsapp\Services\Notify\NotificadorClienteWhatsapp;
 
 /**
- * Listener — quando OS Repair muda pra `ready`/`waiting_parts`, dispara Whatsapp.
+ * Listener — quando o status da OS do Repair tem marca de aviso, avisa o cliente por WhatsApp.
  *
  * Cumpre [ADR Repair tech/0001](../../requisitos/Repair/adr/tech/0001-auto-sms-em-mudanca-de-status-critico.md)
- * que decidiu auto-notificar cliente, mas SMS é caro. Whatsapp template
- * = R$ [redacted Tier 0] (Meta Cloud) ou freeform Z-API incluído (driver default).
- *
- * **Multi-números (ADR 0117 — US-WA-040):**
- * Resolve número via `WhatsappBusinessPhone::resolveForEvent($bizId, 'repair_status')`.
- * Se nenhum phone tem `handles_repair_status=true`, fallback pra phone com
- * `handles_outbound_default=true`. Se nenhum atende, falha silenciosa (log info).
+ * (auto-notificar o cliente em mudança de status crítico).
  *
  * **Plugagem no Repair (medido 2026-10-20, UC-FLX-24):**
- * `JobSheetController::update` dispara `RepairStatusChanged` com o NOME do status quando
- * `status_id` muda. A transição pela FSM (`RepairFsmActionController::execute`) não dispara.
+ * `JobSheetController::update` dispara `RepairStatusChanged` quando `status_id` muda. A transição
+ * pela FSM (`RepairFsmActionController::execute`) não dispara.
  *
  * **Qual status avisa (decisão [W] 2026-10-21):** a marca `repair_statuses.whatsapp_template_aviso`
  * ('ready' | 'waiting_parts' | NULL), configurada em /repair/status, chega pelo evento. O nome do
- * status não decide mais: até 2026-10-21 só os nomes literais `ready`/`waiting_parts` avisavam, e um
- * status chamado "Pronto para retirada" não avisava. `is_completed_status` não entra, porque vale
- * como "Pronto" no kanban e como "Entregue" no startPipeline.
+ * status não decide. `is_completed_status` não entra, porque vale como "Pronto" no kanban e como
+ * "Entregue" no startPipeline.
  *
- * **Falha silenciosa:**
- * Se nenhum WhatsappBusinessPhone resolve pra `repair_status` OU template
- * não cadastrado OU cliente não é da empresa da OS OU recusou WhatsApp
- * (`Contact::canReceiveWhatsappNotification`, LGPD — null permite, false bloqueia)
- * OU não tem mobile, log info e retorna sem disparar Job.
+ * **Envio (US-WA-319, 2026-10-26):** pelo `NotificadorClienteWhatsapp`, evento `repair_status` —
+ * canal marcado para OS (`handles_repair_status`), senão o de saída padrão. Até 2026-10-26 este
+ * listener resolvia número por `whatsapp_business_phones` e mandava template HSM; medido em
+ * produção, essa tabela tem 0 linhas e o aviso nunca saía. O notificador aplica as travas
+ * (cliente da mesma empresa, `Contact::canReceiveWhatsappNotification`, celular, canal no ar) e
+ * falta de pré-condição sai em log, sem exceção.
  *
- * @see memory/requisitos/Whatsapp/SPEC.md US-WA-004, US-WA-040
- * @see memory/decisions/0117-multiplos-numeros-whatsapp-por-business.md
+ * @see memory/requisitos/Whatsapp/SPEC.md US-WA-004, US-WA-319
  */
 class NotifyRepairCustomer
 {
@@ -53,7 +46,7 @@ class NotifyRepairCustomer
     }
 
     /**
-     * @param  object  $repair  Esperado: ->business_id, ->contact_id, ->id
+     * @param  object  $repair  Esperado: ->business_id, ->contact_id, ->id (e ->job_sheet_no, se houver)
      * @param  string  $newStatus  Mensagem marcada no status: 'ready'|'waiting_parts'; vazio ou outro valor não avisa
      */
     public function handle(object $repair, string $newStatus): void
@@ -61,84 +54,21 @@ class NotifyRepairCustomer
         if (! in_array($newStatus, ['ready', 'waiting_parts'], true)) {
             return;
         }
-
         $businessId = (int) ($repair->business_id ?? 0);
-        if ($businessId === 0) {
+        $contactId = (int) ($repair->contact_id ?? 0);
+        if ($businessId === 0 || $contactId === 0) {
             return;
         }
 
-        // Resolve qual número Whatsapp atende repair_status (ADR 0117 §Q2)
-        $phone = WhatsappBusinessPhone::resolveForEvent($businessId, 'repair_status');
+        $nome = (string) (DB::table('contacts')->where('business_id', $businessId)->where('id', $contactId)->value('name') ?? '');
+        $primeiro = trim(explode(' ', trim($nome))[0]);
+        $saudacao = $primeiro !== '' ? "Olá, {$primeiro}!" : 'Olá!';
+        $os = (string) ($repair->job_sheet_no ?? $repair->id ?? '');
 
-        if ($phone === null) {
-            \Log::info('[whatsapp.notify_repair] business sem phone configurado pra repair_status — skip', [
-                'business_id' => $businessId,
-                'repair_id' => $repair->id ?? null,
-            ]);
-            return;
-        }
+        $texto = $newStatus === 'ready'
+            ? "{$saudacao} Sua OS nº {$os} está pronta para retirada."
+            : "{$saudacao} Sua OS nº {$os} está aguardando peça. Avisamos assim que chegar.";
 
-        $templateName = $newStatus === 'ready'
-            ? $phone->template_repair_ready_name
-            : $phone->template_repair_waiting_parts_name;
-
-        if (empty($templateName)) {
-            \Log::info('[whatsapp.notify_repair] template não cadastrado no phone — skip', [
-                'business_id' => $businessId,
-                'phone_id' => $phone->id,
-                'phone_label' => $phone->label,
-                'status' => $newStatus,
-            ]);
-            return;
-        }
-
-        $contact = $this->resolveContact($repair, $businessId);
-        if ($contact !== null && ! $contact->canReceiveWhatsappNotification()) {
-            \Log::info('[whatsapp.notify_repair] cliente recusou WhatsApp (LGPD) — skip', [
-                'business_id' => $businessId,
-                'phone_id' => $phone->id,
-                'repair_id' => $repair->id ?? null,
-            ]);
-            return;
-        }
-        if ($contact === null || empty($contact->mobile)) {
-            \Log::info('[whatsapp.notify_repair] cliente sem mobile — skip', [
-                'business_id' => $businessId,
-                'phone_id' => $phone->id,
-                'repair_id' => $repair->id ?? null,
-            ]);
-            return;
-        }
-
-        SendWhatsappMessageJob::dispatch(
-            $businessId,
-            $phone->id,
-            $contact->mobile,
-            'template',
-            [
-                'name' => $templateName,
-                'params' => [
-                    'customer_name' => $contact->name ?? 'Cliente',
-                    'repair_id' => (string) ($repair->id ?? ''),
-                    'ready_at' => now()->format('d/m/Y H:i'),
-                ],
-                'locale' => 'pt_BR',
-            ],
-        );
-    }
-
-    private function resolveContact(object $repair, int $businessId): ?\App\Contact
-    {
-        $contactId = $repair->contact_id ?? null;
-        if ($contactId === null) {
-            return null;
-        }
-
-        // Contact (core UltimatePOS) não tem scope de business e o listener roda sem sessão:
-        // o filtro por business_id é explícito — contato de outra empresa nunca recebe (ADR 0093).
-        return \App\Contact::query()
-            ->where('business_id', $businessId)
-            ->where('id', (int) $contactId)
-            ->first();
+        app(NotificadorClienteWhatsapp::class)->notificar($businessId, $contactId, 'repair_status', $texto);
     }
 }

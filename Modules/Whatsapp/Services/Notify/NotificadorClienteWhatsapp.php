@@ -25,8 +25,9 @@ use Modules\Whatsapp\Jobs\DespacharMensagemDoSistemaJob;
  *
  * Travas, na ordem:
  * 1. **Canal:** canal WhatsApp ativo da empresa. `billing` prefere o marcado para cobrança
- *    (`handles_billing`), com fallback no de saída padrão; `outbound_default` usa o de saída
- *    padrão (`handles_outbound_default`). Canal com saúde `disconnected`/`banned` não serve.
+ *    (`handles_billing`) e `repair_status` o marcado para OS (`handles_repair_status`), com
+ *    fallback no de saída padrão; `outbound_default` usa o de saída padrão
+ *    (`handles_outbound_default`). Canal com saúde `disconnected`/`banned` não serve.
  * 2. **Cliente:** sempre o da MESMA empresa (Tier 0, ADR 0093).
  * 3. **LGPD:** `Contact::canReceiveWhatsappNotification()` — opt-out explícito bloqueia, null permite.
  * 4. **Celular** preenchido.
@@ -39,7 +40,10 @@ use Modules\Whatsapp\Jobs\DespacharMensagemDoSistemaJob;
  */
 class NotificadorClienteWhatsapp
 {
-    public const EVENTOS = ['billing', 'outbound_default'];
+    public const EVENTOS = ['billing', 'repair_status', 'outbound_default'];
+
+    /** Marca do canal que atende cada evento; sem canal marcado, vale o de saída padrão. */
+    private const MARCA_DO_EVENTO = ['billing' => 'handles_billing', 'repair_status' => 'handles_repair_status'];
 
     public const TIPOS_ANEXO = ['document', 'image'];
 
@@ -132,7 +136,8 @@ class NotificadorClienteWhatsapp
             ->whereNotIn('channel_health', self::CAIDO)
             ->orderBy('id');
 
-        $especifico = $evento === 'billing' ? (clone $base)->where('handles_billing', true)->first() : null;
+        $marca = self::MARCA_DO_EVENTO[$evento] ?? null;
+        $especifico = $marca !== null ? (clone $base)->where($marca, true)->first() : null;
 
         return $especifico ?? (clone $base)->where('handles_outbound_default', true)->first();
     }
