@@ -191,3 +191,31 @@ it('UC-REPP-23 · a tela "Meu espelho" mostra o último mês fechado e, depois d
     $this->assertNotNull($depois->json('props.ciencia_espelho.ciencia.ciente_em'));
     $this->assertTrue($depois->json('props.ciencia_espelho.ciencia.confere'));
 });
+
+it('UC-ESPSH-06 · o espelho do RH mostra se o colaborador deu ciência do mês, e de que colaborador do próprio empregador', function () {
+    $gestor = User::query()->where('business_id', CIEN_BIZ)->first() ?? $this->markTestSkipped('Nenhum user no biz 98.');
+    \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'ponto.access', 'guard_name' => 'web']);
+    $gestor->givePermissionTo('ponto.access');
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+    $colab = cienUsuario(CIEN_BIZ);
+    $colabId = (int) DB::table('ponto_colaborador_config')->where('user_id', $colab->id)->value('id');
+    $mesAberto = '2099-02';
+    cienFechar(CIEN_BIZ, $colab->id);
+
+    // O colaborador dá ciência pelo app.
+    Passport::actingAs($colab, [], 'api');
+    $this->postJson('/ponto/api/espelho/ciencia', ['mes' => CIEN_MES])->assertStatus(201);
+
+    session(['user.business_id' => CIEN_BIZ, 'business.id' => CIEN_BIZ]);
+    $this->actingAs($gestor, 'web');
+
+    $fechado = $this->inertiaPartialGet("/ponto/espelho/{$colabId}?mes=" . CIEN_MES, ['ciencia'], 'Ponto/Espelho/Show')->assertOk();
+    $this->assertTrue($fechado->json('props.ciencia.competencia_fechada'));
+    $this->assertNotNull($fechado->json('props.ciencia.ciencia.ciente_em'));
+    $this->assertTrue($fechado->json('props.ciencia.ciencia.confere'));
+
+    $aberto = $this->inertiaPartialGet("/ponto/espelho/{$colabId}?mes={$mesAberto}", ['ciencia'], 'Ponto/Espelho/Show')->assertOk();
+    $this->assertFalse($aberto->json('props.ciencia.competencia_fechada'));
+    $this->assertNull($aberto->json('props.ciencia.ciencia'));
+});

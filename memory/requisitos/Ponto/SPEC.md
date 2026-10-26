@@ -406,7 +406,7 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 
 > owner: — · priority: p0 · estimate: 10h · type: story
 
-**Implementado em:** _parcial_ · `Modules/Ponto/Services/FeriasService.php` · `Modules/Essentials/Database/Migrations/2026_10_26_000001_add_ferias_clt_to_essentials_leave_types.php` · `Modules/Ponto/Tests/Feature/FeriasCltContratoTest.php` — PR 1/3: domínio. Faltam a marcação do tipo de licença na tela de Tipos do HRM (PR 2) e o alerta na tela de Conformidade (PR 3)
+**Implementado em:** _parcial_ · `Modules/Ponto/Services/FeriasService.php` · `Modules/Essentials/Database/Migrations/2026_10_26_000001_add_ferias_clt_to_essentials_leave_types.php` · `Modules/Ponto/Tests/Feature/FeriasCltContratoTest.php` · `Modules/Ponto/Services/ConformidadeService.php` · `Modules/Ponto/Tests/Feature/ConformidadeContratoTest.php` — PR 1/3 domínio e PR 3/3 alerta na Conformidade (UC-CONF-10). A marcação do tipo de licença na tela de Tipos do HRM é o PR 2
 **Testado em:** `Modules/Ponto/Tests/Feature/FeriasCltContratoTest.php`
 
 **Como** RH (Eliana na correção, Wagner no risco),
@@ -421,14 +421,14 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 - [x] Alerta por empregador: vencidos e os que vencem dentro da antecedência
 - [x] `business_id` explícito em toda consulta; teste cross-tenant 98 × 99
 - [ ] Marcar o tipo de licença como férias na tela de Tipos do HRM (PR 2)
-- [ ] Alerta visível na tela de Conformidade (PR 3)
+- [x] Alerta visível na tela de Conformidade: 7ª verificação "Férias vencidas" (UC-CONF-10)
 - Fora, por ser valor: 1/3 constitucional e abono pecuniário em dinheiro — vão com a folha. Fora por falta de dado: perda do direito do art. 133 (afastamento)
 
 ### US-PONTO-020 · Ciência do espelho mensal pelo colaborador
 
 > owner: — · priority: p1 · estimate: 6h · type: story
 
-**Implementado em:** _parcial_ · `Modules/Ponto/Services/EspelhoCienciaService.php` · `Modules/Ponto/Entities/EspelhoCiencia.php` · `Modules/Ponto/Database/Migrations/2026_10_26_000001_create_ponto_espelho_ciencias_table.php` · `Modules/Ponto/Http/Controllers/Api/MobileMarcacaoController.php` · `Modules/Ponto/Tests/Feature/EspelhoCienciaContratoTest.php` · `resources/js/Pages/Ponto/Mobile/_components/CienciaEspelho.tsx` — domínio, API do app e o aviso "Dou ciência" no "Meu espelho". Falta a ciência visível ao gestor no Espelho
+**Implementado em:** `Modules/Ponto/Services/EspelhoCienciaService.php` · `Modules/Ponto/Entities/EspelhoCiencia.php` · `Modules/Ponto/Database/Migrations/2026_10_26_000001_create_ponto_espelho_ciencias_table.php` · `Modules/Ponto/Http/Controllers/Api/MobileMarcacaoController.php` · `Modules/Ponto/Http/Controllers/EspelhoController.php` · `Modules/Ponto/Tests/Feature/EspelhoCienciaContratoTest.php` · `resources/js/Pages/Ponto/Mobile/_components/CienciaEspelho.tsx` — domínio, API do app, aviso "Dou ciência" no "Meu espelho" (UC-REPP-23) e ciência visível ao RH no Espelho (UC-ESPSH-06)
 **Testado em:** `Modules/Ponto/Tests/Feature/EspelhoCienciaContratoTest.php`
 
 **Como** colaborador,
@@ -443,4 +443,4 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 - [x] Append-only: model e trigger MySQL recusam UPDATE/DELETE (UC-REPP-20)
 - [x] Fechamento de outro empregador não libera (UC-REPP-21, Tier 0)
 - [x] Aviso "Dou ciência" do último mês fechado no "Meu espelho" (UC-REPP-23)
-- [ ] Ciência visível ao gestor no Espelho do colaborador
+- [x] Ciência visível ao RH no Espelho do colaborador (UC-ESPSH-06)
