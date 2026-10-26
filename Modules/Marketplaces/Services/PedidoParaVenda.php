@@ -42,6 +42,7 @@ class PedidoParaVenda
         private TransactionUtil $transactionUtil,
         private ProductUtil $productUtil,
         private ContactUtil $contactUtil,
+        private IniciarPipelineMarketplace $pipeline,
     ) {
     }
 
@@ -161,6 +162,9 @@ class PedidoParaVenda
                     'location_id' => (int) $local->id,
                     'pos_settings' => $business->pos_settings,
                 ], $venda->sell_lines, 'purchase');
+
+                // Estágio inicial do processo `venda_marketplace` (ADR 0143), na mesma transação.
+                $this->pipeline->iniciar($venda->fresh(), $userId, 'mercado_livre:'.$travado->order_id_external);
 
                 $travado->forceFill(['transaction_id' => (int) $venda->id])->save();
 
