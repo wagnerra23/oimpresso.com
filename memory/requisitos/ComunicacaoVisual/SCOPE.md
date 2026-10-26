@@ -9,6 +9,7 @@ contains:
   - "InstallController"
   - "OrcamentoController"
   - "OrcamentoArquivoController (arquivos anexados ao orçamento antes de virar OS — /comunicacao-visual/api/orcamentos/{id}/arquivos, UC-FLX-01)"
+  - "RoteiroPadraoController (roteiro padrão da OS da gráfica — GET/PUT /comunicacao-visual/api/roteiro-padrao, US-COMVIS-003 · UC-CVOS-09..11)"
   - "Services/MargemDoOrcamento (custo e margem por peça do orçamento — UC-FLX-03)"
   - "Entities/Substrato (cv_substratos)"
   - "Entities/Acabamento (cv_acabamentos)"
