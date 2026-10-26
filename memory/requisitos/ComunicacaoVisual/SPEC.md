@@ -64,7 +64,7 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 > **Controller/ação:** `OrcamentoController@calcular`
 > **Permissão Spatie:** `comvis.orcamento.create`
 
-**Implementado em:** _parcial_ · `Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php` · `OrcamentoController@calcular` · `Modules/ComunicacaoVisual/Services/OrcamentoCalculator.php` · `Modules/ComunicacaoVisual/Database/Migrations/2026_10_26_100000_add_minimo_e_acabamentos_ao_orcamento_cv.php` · `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoMinimoAcabamentoContratoTest.php` · verificado@0bb65dd (2026-07-02) — cálculo base + rota `comvis.api.calcular` vivos; em 2026-10-26 o cálculo ganhou mínimo cobrado por peça (`comvis_materiais.minimo_m2`) e acabamentos por item (`cv_acabamentos`, base pelo tipo), no backend (UC-CVPRC-01/02); faltam o cadastro de materiais e acabamentos na tela, a escolha de acabamento na calculadora, preview PDF + envio WhatsApp 1-clique
+**Implementado em:** _parcial_ · `Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php` · `OrcamentoController@calcular` · `Modules/ComunicacaoVisual/Services/OrcamentoCalculator.php` · `Modules/ComunicacaoVisual/Database/Migrations/2026_10_26_100000_add_minimo_e_acabamentos_ao_orcamento_cv.php` · `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoMinimoAcabamentoContratoTest.php` · verificado@0bb65dd (2026-07-02) — cálculo base + rota `comvis.api.calcular` vivos; em 2026-10-26 o cálculo ganhou mínimo cobrado por peça (`comvis_materiais.minimo_m2`), acabamentos por item (`cv_acabamentos`, base pelo tipo), perda % e emenda (`perda_pct`, `largura_bobina_m`, `preco_solda_m`), no backend (UC-CVPRC-01..04; `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoPerdaEmendaContratoTest.php`); faltam o cadastro de materiais e acabamentos na tela, a escolha de acabamento na calculadora, preview PDF + envio WhatsApp 1-clique
 
 **Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoCalculatorTest.php` · `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoControllerTest.php`
 
@@ -78,6 +78,7 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 - [ ] Form: largura (m) + altura (m) + qtd + material + acabamentos[] + instalação? + entrega?
 - [ ] Cálculo: `area_m2 = largura × altura`; `subtotal = area_m2 × material.preco_m2 × qtd`; `extras = sum(acabamentos.preco)`; `total = subtotal + extras + instalacao + entrega`
 - [ ] Mínimo cobrado configurável (`material.minimo_m2` — ex: 0,5m² mesmo se peça é menor)
+- [ ] **Perda % e emenda — decisão [W] 2026-10-26:** a perda % de cada material soma na área cobrada da peça (depois do mínimo: `max(L × A, mínimo) × (1 + perda/100)`). A emenda entra quando a peça passa da largura da bobina: (N − 1) emendas × lado × preço do metro de solda, cadastrado no material (N = tiras do menor lado; cada emenda tem o tamanho do maior lado). Os dois campos são opcionais e orçamento já existente não muda.
 - [ ] Preview PDF + envio WhatsApp 1-clique
 - [ ] Test Pest: 6+ casos (banner 3x1,5 frontlight, lona 5x2 blackout, vinil adesivo recortado, ACM com instalação, brinde unitário, etc.)
 - [ ] Multi-tenant scope `business_id` (skill `multi-tenant-patterns`)
