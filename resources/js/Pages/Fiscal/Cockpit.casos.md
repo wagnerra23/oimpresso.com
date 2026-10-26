@@ -250,6 +250,18 @@ related_us: [US-FISCAL-002, US-FISCAL-019]
 
 ---
 
+## UC-FCKP-14 — Falha da busca das notas recebidas aparece em vermelho no cockpit `[must]` `[T0]`
+
+**Dado** um alerta `dfe_busca_falhou` aberto da empresa nos últimos 3 dias (gravado pelo job, `UC-FDFE-13`)
+**Quando** alguém abre o cockpit Fiscal
+**Então** a fila de alertas mostra, em `crit`, "A busca das notas recebidas na SEFAZ falhou" com o erro e o atalho para a configuração; a empresa vizinha não vê o alerta da outra; arquivado, some.
+
+- **Âncora:** R-NFE-042 do SPEC do NfeBrasil. Origem: o job falhava todo dia desde 2026-07-03 e só o `failed_jobs` sabia (#9833).
+- **Teste:** `DfeCnpjEAlarmeTest` — `UC-FCKP-14 · …` (invoca `CockpitController::ultimaFalhaBuscaDfe`). O render do alerta é o mesmo de todo item da fila (`UC-FCKP-08`, `goto`/`icon` já cobertos).
+- **Status:** 🧪 verde no CT 100 (MySQL) em 2026-10-26, tenant 98 × 99. Screenshot de produção só depois do deploy.
+
+---
+
 ## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
 
 - **[ATENDIDO em 2026-09-04 → `UC-FCKP-13`] As 4 superfícies de demonstração que SOBRARAM** — o item nasceu sem id porque faltava contrato dizendo qual das três saídas era a certa (fonte real × esconder atrás de flag × declarar Non-Goal). [W] decidiu pela primeira — marcar a procedência na tela — e o caso virou `UC-FCKP-13` acima, com teste que o cita. _As quatro seguem servindo dado inventado: o que mudou é que a tela passou a dizer isso._

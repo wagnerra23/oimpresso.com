@@ -33,6 +33,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
+import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Inline } from '@/Components/layout';
@@ -43,6 +44,8 @@ interface LeaveType {
   max_leave_count: number | null;
   leave_count_interval: 'month' | 'year' | null;
   leaves_count: number;
+  /** US-PONTO-018: licença aprovada deste tipo abate o saldo de férias da CLT no Ponto. */
+  ferias_clt: boolean;
 }
 
 interface Props {
@@ -192,7 +195,14 @@ export default function TiposIndex({ tipos, can_manage }: Props) {
                     <tbody className="divide-y divide-border">
                       {rows.map((t) => (
                         <tr key={t.id} className="hover:bg-accent/30">
-                          <td className="p-3 font-medium">{t.leave_type}</td>
+                          <td className="p-3 font-medium">
+                            {t.leave_type}
+                            {t.ferias_clt && (
+                              <Badge variant="secondary" className="ml-2" data-contract="ferias-clt">
+                                férias CLT
+                              </Badge>
+                            )}
+                          </td>
                           <td className="p-3 text-right tabular-nums">{limiteLabel(t)}</td>
                           <td className="p-3 text-xs">{intervaloLabel(t)}</td>
                           <td className="p-3 text-right tabular-nums">{t.leaves_count}</td>
