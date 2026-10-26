@@ -205,6 +205,43 @@ last_run_ci: "2026-10-13 (PR contratos de tela, recorrente thread 01) — REVALI
 
 ---
 
+## Cobrança automática pelo Pix Automático do BCB (US-RB-021 · decisão [W] 2026-10-26)
+
+> Motor sem tela: o comando `rb:cobrar-pix-automatico` (06:00, só com `RB_COBRAR_PIX_AUTOMATICO=true`)
+> cobra a fatura das assinaturas desta tela que têm recorrência Pix Automático aprovada. Fonte:
+> SPEC US-RB-021 + API Pix do BCB v2.10.0 (`/cobr` criada pelo recebedor de 10 a 2 dias antes do
+> vencimento). Teste: [`CobrarPixAutomaticoContratoTest`](../../../../Modules/RecurringBilling/Tests/Feature/CobrarPixAutomaticoContratoTest.php).
+
+## UC-RBPA-01 · Fatura da assinatura com recorrência aprovada é cobrada no ciclo, pelo valor dela · `must` `[V0]`
+**Dado** uma assinatura mensal de 106,07 com recorrência `APROVADA` vencendo em 5 dias **Quando** o motor roda
+**Então** a fatura é gerada (106,07, vencimento certo) e nasce 1 cobrança `pix_recv` `emitida` de 10.607 centavos,
+e o banco recebe `valor.original = "106.07"` com o `idRec` da assinatura — os três batem.
+Status: 🧪
+
+## UC-RBPA-02 · Fora da janela de 10 a 2 dias, ou sem recorrência aprovada, não cobra · `must` `[V0]`
+**Dado** vencimentos em 1 e em 11 dias, e assinaturas com recorrência `CRIADA` ou sem recorrência que já têm
+fatura aberta dentro da janela **Quando** o motor roda **Então** nenhuma cobrança nasce e nada vai ao banco.
+Status: 🧪
+
+## UC-RBPA-03 · Rodar duas vezes no mesmo dia não cobra duas vezes · `must` `[V0]`
+**Quando** o motor roda duas vezes **Então** existe 1 cobrança e a 2ª rodada reporta `ja_cobrada`.
+Status: 🧪
+
+## UC-RBPA-04 · Erro do banco fica registrado e a rodada seguinte tenta de novo · `must`
+**Dado** o banco devolvendo erro na 1ª tentativa **Então** a cobrança fica `erro`, e a rodada seguinte cria outra
+com chave (e txid) diferente, que sai `emitida`.
+Status: 🧪
+
+## UC-RBPA-05 · `--dry-run` mostra o que seria cobrado sem gravar nem chamar o banco · `must`
+**Quando** rodo `rb:cobrar-pix-automatico --dry-run` **Então** ele informa as faturas ainda a gerar e as que seriam
+cobradas, e nenhuma fatura, cobrança ou chamada ao banco acontece.
+Status: 🧪
+
+## UC-RBPA-06 · Um business não toca o outro; flag desligada não cobra · `must` `[T0]`
+**Dado** 98 e 99 com assinatura e credencial **Quando** o motor roda para a 98 **Então** a 99 fica sem fatura e sem
+cobrança; e com a flag desligada o comando não cobra ninguém.
+Status: 🧪
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = **órfão** = viola o `casos-gate` e **bloqueia o

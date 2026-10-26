@@ -255,7 +255,7 @@ status: ativo
 > **Área:** PaymentInstructions
 > **Service:** `PixAutomaticoCharger::charge()`
 
-**Implementado em:** _pendente_ — `PixAutomaticoCharger` e `pa_payment_instructions` não existem; depende do sub-módulo PixAutomatico (US-RB-020), ainda não construído no RecurringBilling
+**Implementado em:** _pendente_ — parcial em 2026-10-26: o motor que cobra a fatura pela recorrência aprovada existe (`CobradorPixAutomatico` + `rb:cobrar-pix-automatico`, flag `RB_COBRAR_PIX_AUTOMATICO` desligada; `BcbPixDriver::emitirCobrancaRecorrente`; UC-RBPA-01..06). Falta a jornada de aprovação do mandato (US-RB-020, que grava `metadata.pix_automatico`) e o webhook da cobrança → `CobrancaPaga` → fatura paga (US-RB-057). O desenho `PixAutomaticoCharger`/`pa_payment_instructions` abaixo foi substituído pela tabela `cobrancas` do PaymentGateway, que já é a dona da cobrança emitida.
 
 **Como** Sistema (em `InvoiceController@charge` quando contract.payment_method = 'pix_automatico')
 **Quero** debitar via PSP usando autorização ativa
