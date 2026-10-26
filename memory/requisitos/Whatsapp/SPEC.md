@@ -2014,6 +2014,8 @@ Refs: ROADMAP-SDD (sweep do mês)
 
 **Implementado em:** `Modules/Whatsapp/Services/Notify/NotificadorClienteWhatsapp.php` · `Modules/Whatsapp/Services/Notify/ResultadoNotificacao.php` · `Modules/Whatsapp/Tests/Feature/NotificadorClienteWhatsappContratoTest.php`
 
+**Testado em:** `Modules/Whatsapp/Tests/Feature/NotificadorClienteWhatsappContratoTest.php`
+
 > owner: — · priority: p0 · estimate: 4h · type: story
 > blocked_by: —
 
