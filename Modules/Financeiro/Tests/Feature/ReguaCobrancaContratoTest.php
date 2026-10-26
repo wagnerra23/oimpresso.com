@@ -208,7 +208,7 @@ it('UC-CRREG-08 · o painel Lembretes da tela lista os do business, com o motivo
     // Abrir o painel = reload parcial pedindo só `lembretes`.
     $painel = $chamar($base + ['X-Inertia-Partial-Component' => 'Financeiro/ContasReceber/Index', 'X-Inertia-Partial-Data' => 'lembretes']);
     expect($painel->status())->toBe(200);
-    expect($painel->json('props.lembretes.regua'))->toBe(['ativo' => true, 'dias' => [1, 5, 15]]);
+    expect($painel->json('props.lembretes.regua'))->toBe(['ativo' => true, 'dias' => [1, 5, 15], 'dias_antes' => []]);
 
     $itens = collect($painel->json('props.lembretes.itens'))->keyBy('titulo_id');
     expect($itens->keys()->sort()->values()->all())->toBe(collect([$enviado, $optOut])->sort()->values()->all());
@@ -217,4 +217,43 @@ it('UC-CRREG-08 · o painel Lembretes da tela lista os do business, com o motivo
     expect($itens[$optOut]['status'])->toBe('nao_enviado');
     expect($itens[$optOut]['motivo'])->toBe('opt_out_email');
     expect($itens[$optOut]['etapa_dias'])->toBe(5);
+});
+
+it('UC-CRREG-09 · aviso antes do vencimento só com dias_antes configurado, sem tarefa', function () {
+    // Sem dias_antes (o padrão): título que vence em 3 dias não recebe nada.
+    $semConfig = reguaTitulo($this->bizA, $this->ownerA, -3, reguaContato($this->bizA, $this->ownerA));
+    (new ReguaCobrancaJob($this->bizA, REGUA_HOJE))->handle(app(ReguaCobrancaConfig::class));
+    expect(reguaLembretes($semConfig))->toHaveCount(0);
+
+    app(ReguaCobrancaConfig::class)->definir($this->bizA, true, null, [3]);
+    $vence3 = reguaTitulo($this->bizA, $this->ownerA, -3, reguaContato($this->bizA, $this->ownerA));
+    $vence2 = reguaTitulo($this->bizA, $this->ownerA, -2, reguaContato($this->bizA, $this->ownerA));
+    $antes = DB::table('crm_schedules')->where('business_id', $this->bizA)->count();
+
+    (new ReguaCobrancaJob($this->bizA, REGUA_HOJE))->handle(app(ReguaCobrancaConfig::class));
+
+    $l = reguaLembretes($vence3);
+    expect($l)->toHaveCount(1);
+    expect($l[0]->fase)->toBe('antes');
+    expect((int) $l[0]->etapa_dias)->toBe(3);
+    expect($l[0]->status)->toBe('enviado');
+    expect($l[0]->tarefa_id)->toBeNull();
+    expect(reguaLembretes($vence2))->toHaveCount(0); // D-2 não é etapa
+    expect(DB::table('crm_schedules')->where('business_id', $this->bizA)->count())->toBe($antes);
+    Mail::assertSent(LembreteCobrancaMail::class, fn ($m) => $m->tituloId === $vence3
+        && $m->fase === 'antes' && str_contains($m->build()->subject, 'vence em 3 dia'));
+});
+
+it('UC-CRREG-10 · aviso D-3 e lembrete D+3 do mesmo título convivem (UNIQUE por fase)', function () {
+    app(ReguaCobrancaConfig::class)->definir($this->bizA, true, [3], [3]);
+    $titulo = reguaTitulo($this->bizA, $this->ownerA, -3, reguaContato($this->bizA, $this->ownerA));
+    $depois = \Illuminate\Support\Carbon::parse(REGUA_HOJE)->addDays(6)->toDateString();
+
+    (new ReguaCobrancaJob($this->bizA, REGUA_HOJE))->handle(app(ReguaCobrancaConfig::class));
+    (new ReguaCobrancaJob($this->bizA, $depois))->handle(app(ReguaCobrancaConfig::class));
+    (new ReguaCobrancaJob($this->bizA, $depois))->handle(app(ReguaCobrancaConfig::class)); // idempotente
+
+    $fases = reguaLembretes($titulo)->map(fn ($l) => $l->fase.':'.$l->etapa_dias)->sort()->values()->all();
+    expect($fases)->toBe(['antes:3', 'apos:3']);
+    Mail::assertSent(LembreteCobrancaMail::class, 2);
 });

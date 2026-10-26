@@ -24,8 +24,10 @@ use Modules\Financeiro\Services\ReguaCobrancaConfig;
  * Para UM business (Tier 0, ADR 0093 — `$businessId` no constructor; job não tem session):
  *  1. régua desligada (default) → não faz nada;
  *  2. pega os títulos a receber em aberto/parcial cujo vencimento caiu EXATAMENTE há D dias,
- *     para cada D da régua (padrão 1/5/15). D+2 não é etapa → nada;
- *  3. por (título, etapa) grava uma linha em `fin_titulo_lembretes` — o UNIQUE garante um
+ *     para cada D da régua (padrão 1/5/15). D+2 não é etapa → nada. Com `dias_antes`
+ *     (US-FIN-033, vazio por padrão) também os que vencem EXATAMENTE daqui a D dias — fase
+ *     `antes`, só aviso: não cria tarefa;
+ *  3. por (título, fase, etapa) grava uma linha em `fin_titulo_lembretes` — o UNIQUE garante um
  *     envio só, mesmo rodando duas vezes no dia;
  *  4. envia e-mail se `Contact::canReceiveEmailNotification()`; opt-out / sem e-mail / sem
  *     contato ficam como `nao_enviado` com o motivo (LGPD — proibicoes.md §FSM);
@@ -59,7 +61,12 @@ class ReguaCobrancaJob implements ShouldQueue
         $ultima = max($config['dias']);
         $etapaPorData = [];
         foreach ($config['dias'] as $d) {
-            $etapaPorData[$hoje->copy()->subDays($d)->toDateString()] = $d;
+            $etapaPorData[$hoje->copy()->subDays($d)->toDateString()] = ['apos', $d];
+        }
+        if (Schema::hasColumn('fin_titulo_lembretes', 'fase')) {
+            foreach ($config['dias_antes'] as $d) {
+                $etapaPorData[$hoje->copy()->addDays($d)->toDateString()] = ['antes', $d];
+            }
         }
 
         $titulos = DB::table('fin_titulos')
@@ -72,14 +79,14 @@ class ReguaCobrancaJob implements ShouldQueue
             ->get(['id', 'numero', 'cliente_id', 'vencimento', 'valor_aberto', 'origem', 'origem_id']);
 
         foreach ($titulos as $titulo) {
-            $etapa = $etapaPorData[Carbon::parse($titulo->vencimento)->toDateString()];
-            $this->processar($titulo, $etapa, $etapa === $ultima);
+            [$fase, $etapa] = $etapaPorData[Carbon::parse($titulo->vencimento)->toDateString()];
+            $this->processar($titulo, $fase, $etapa, $fase === 'apos' && $etapa === $ultima);
         }
     }
 
-    private function processar(object $titulo, int $etapa, bool $ultima): void
+    private function processar(object $titulo, string $fase, int $etapa, bool $ultima): void
     {
-        $inseridos = DB::table('fin_titulo_lembretes')->insertOrIgnore([
+        $linha = [
             'business_id' => $this->businessId,
             'titulo_id' => $titulo->id,
             'etapa_dias' => $etapa,
@@ -88,7 +95,11 @@ class ReguaCobrancaJob implements ShouldQueue
             'motivo' => 'pendente',
             'created_at' => now(),
             'updated_at' => now(),
-        ]);
+        ];
+        if ($fase === 'antes') {
+            $linha['fase'] = 'antes'; // `apos` é o default da coluna (e o único valor antes dela existir)
+        }
+        $inseridos = DB::table('fin_titulo_lembretes')->insertOrIgnore($linha);
         if ($inseridos === 0) {
             return; // já processado nesta etapa — idempotência
         }
@@ -99,12 +110,13 @@ class ReguaCobrancaJob implements ShouldQueue
                 ->find($titulo->cliente_id)
             : null;
 
-        [$status, $motivo] = $this->enviarEmail($titulo, $etapa, $contato);
+        [$status, $motivo] = $this->enviarEmail($titulo, $fase, $etapa, $contato);
 
         DB::table('fin_titulo_lembretes')
             ->where('business_id', $this->businessId)
             ->where('titulo_id', $titulo->id)
             ->where('etapa_dias', $etapa)
+            ->when(Schema::hasColumn('fin_titulo_lembretes', 'fase'), fn ($q) => $q->where('fase', $fase))
             ->update([
                 'status' => $status,
                 'motivo' => $motivo,
@@ -115,7 +127,7 @@ class ReguaCobrancaJob implements ShouldQueue
     }
 
     /** @return array{0: string, 1: ?string} */
-    private function enviarEmail(object $titulo, int $etapa, ?Contact $contato): array
+    private function enviarEmail(object $titulo, string $fase, int $etapa, ?Contact $contato): array
     {
         if ($contato === null) {
             return ['nao_enviado', 'sem_contato'];
@@ -128,12 +140,15 @@ class ReguaCobrancaJob implements ShouldQueue
             return ['nao_enviado', 'sem_email'];
         }
 
-        $corpo = "Olá, {$contato->name}.\n\nO título {$titulo->numero}, vencido em "
-            .Carbon::parse($titulo->vencimento)->format('d/m/Y')
-            .', segue em aberto. Se já pagou, desconsidere esta mensagem.';
+        $vencimento = Carbon::parse($titulo->vencimento)->format('d/m/Y');
+        $corpo = $fase === 'antes'
+            ? "Olá, {$contato->name}.\n\nO título {$titulo->numero} vence em {$vencimento}. "
+                .'Se já pagou, desconsidere esta mensagem.'
+            : "Olá, {$contato->name}.\n\nO título {$titulo->numero}, vencido em {$vencimento}, "
+                .'segue em aberto. Se já pagou, desconsidere esta mensagem.';
 
         try {
-            Mail::to($email)->send(new LembreteCobrancaMail($this->businessId, (int) $titulo->id, $etapa, $corpo));
+            Mail::to($email)->send(new LembreteCobrancaMail($this->businessId, (int) $titulo->id, $etapa, $corpo, $fase));
         } catch (\Throwable $e) {
             Log::error('[financeiro.regua_cobranca] falha no e-mail', [
                 'business_id' => $this->businessId, 'titulo_id' => $titulo->id, 'error' => $e->getMessage(),

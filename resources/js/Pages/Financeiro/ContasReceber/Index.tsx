@@ -44,6 +44,7 @@ interface Lembrete {
   cliente: string | null;
   vencimento: string | null;
   etapa_dias: number;
+  fase: 'antes' | 'apos';
   canal: string;
   status: 'enviado' | 'nao_enviado';
   motivo: string | null;
@@ -52,7 +53,7 @@ interface Lembrete {
 }
 
 interface Lembretes {
-  regua: { ativo: boolean; dias: number[] };
+  regua: { ativo: boolean; dias: number[]; dias_antes: number[] };
   itens: Lembrete[];
 }
 
@@ -117,7 +118,7 @@ function LembretesPainel({ aberto, onFechar, lembretes }: { aberto: boolean; onF
             {!regua
               ? 'Carregando…'
               : regua.ativo
-                ? `Régua ligada: e-mail ${regua.dias.map((d) => `D+${d}`).join(', ')} após o vencimento.`
+                ? `Régua ligada: e-mail ${[...regua.dias_antes.map((d) => `D-${d}`), ...regua.dias.map((d) => `D+${d}`)].join(', ')}.`
                 : 'Régua desligada: nenhum lembrete sai até ligar.'}{' '}
             {regua && (
               <a href="/business/settings" className="underline">Configurar</a>
@@ -136,7 +137,7 @@ function LembretesPainel({ aberto, onFechar, lembretes }: { aberto: boolean; onF
                   <span className="text-xs text-muted-foreground whitespace-nowrap">{formatDateTime(l.quando)}</span>
                 </Inline>
                 <div className="text-xs text-muted-foreground">
-                  Título <span className="font-mono">{l.numero}</span> · venceu {formatDate(l.vencimento)} · D+{l.etapa_dias} · {l.canal === 'email' ? 'e-mail' : l.canal}
+                  Título <span className="font-mono">{l.numero}</span> · {l.fase === 'antes' ? 'vence' : 'venceu'} {formatDate(l.vencimento)} · D{l.fase === 'antes' ? '-' : '+'}{l.etapa_dias} · {l.canal === 'email' ? 'e-mail' : l.canal}
                 </div>
                 <div className="text-xs mt-1">
                   {l.status === 'enviado'
