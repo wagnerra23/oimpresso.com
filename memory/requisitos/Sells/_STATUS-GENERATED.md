@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 66 |
+| US no SPEC | 67 |
 | CU no SDD | 6 |
 | Telas (.tsx) | 11 |
 | Telas com `casos.md` | 11 |
-| UC declarados | 147 |
-| UC com teste que os cita | 146 |
+| UC declarados | 154 |
+| UC com teste que os cita | 153 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -100,6 +100,7 @@ authority: generated
 | US-SELL-066 | `desconhecido` | Devolução de venda em React — lista e registro (`/sell-return`) |
 | US-SELL-068 | `desconhecido` | Orçamento aberto avisa que o custo mudou (UC-FLX-34) |
 | US-SELL-069 | `desconhecido` | Orçamento abaixo da margem mínima só vira venda com aprovação (UC-FLX-35) |
+| US-SELL-072 | `desconhecido` | Venda com nota ou pagamento trava itens e valores — **P1** |
 
 ## UC por status
 
@@ -117,6 +118,7 @@ authority: generated
 | UC-ENTR-04 | Show | 🧪 aguarda veredito da lane |
 | UC-FLX-04 | Quotations | 🧪 aguarda veredito da lane |
 | UC-FLX-06 | Quotations | 🧪 aguarda veredito da lane |
+| UC-FLX-14 | Drafts | 🧪 aguarda veredito da lane |
 | UC-FLX-23 | Show | 🧪 aguarda veredito da lane |
 | UC-FLX-25 | Show | 🧪 aguarda veredito da lane |
 | UC-FLX-34 | Show | 🧪 aguarda veredito da lane |
@@ -181,6 +183,12 @@ authority: generated
 | UC-SEDIT-10 | Edit | 🧪 aguarda veredito da lane |
 | UC-SEDIT-11 | Edit | 🧪 aguarda veredito da lane |
 | UC-SEDIT-12 | Edit | 🧪 aguarda veredito da lane |
+| UC-SEDIT-13 | Edit | 🧪 aguarda veredito da lane |
+| UC-SEDIT-14 | Edit | 🧪 aguarda veredito da lane |
+| UC-SEDIT-15 | Edit | 🧪 aguarda veredito da lane |
+| UC-SEDIT-16 | Edit | 🧪 aguarda veredito da lane |
+| UC-SEDIT-17 | Edit | 🧪 aguarda veredito da lane |
+| UC-SEDIT-18 | Edit | 🧪 aguarda veredito da lane |
 | UC-SIDX-01 | Index | 🧪 aguarda veredito da lane |
 | UC-SIDX-02 | Index | 🧪 aguarda veredito da lane |
 | UC-SIDX-03 | Index | 🧪 aguarda veredito da lane |

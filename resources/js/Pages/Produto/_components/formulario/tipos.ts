@@ -91,6 +91,16 @@ export interface CamposProduto {
   product_locations?: number[];
 }
 
+/**
+ * Natureza fiscal do produto, decidida pelo contador na Tributação (UC-PEDIT-14). Só o Editar
+ * recebe: produto novo ainda não tem natureza decidida.
+ */
+export interface NaturezaFiscalProduto {
+  natureza: 'mercadoria' | 'servico' | 'pendente' | string;
+  codigoServico: string | null;
+  link: string | null;
+}
+
 /** Os erros de validação que os blocos exibem. */
 export type ErrosProduto = Partial<
   Record<
