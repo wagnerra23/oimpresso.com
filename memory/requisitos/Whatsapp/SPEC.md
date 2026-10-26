@@ -2014,6 +2014,8 @@ Refs: ROADMAP-SDD (sweep do mês)
 
 **Implementado em:** `Modules/Whatsapp/Jobs/DispararBroadcastJob.php` · `Modules/Whatsapp/Jobs/EnviarItemBroadcastJob.php` · `Modules/Whatsapp/Services/Broadcast/PlanoDeDisparo.php` · `Modules/Whatsapp/Database/Migrations/2026_10_26_000001_add_contadores_to_whatsapp_broadcasts.php` · `Modules/Whatsapp/Tests/Feature/BroadcastDisparoContratoTest.php`
 
+**Testado em:** `Modules/Whatsapp/Tests/Feature/BroadcastDisparoContratoTest.php`
+
 > owner: — · priority: p1 · estimate: 8h · type: story
 > blocked_by: —
 
