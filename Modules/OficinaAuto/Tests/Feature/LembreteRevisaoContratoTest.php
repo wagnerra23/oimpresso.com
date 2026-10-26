@@ -177,3 +177,22 @@ it('UC-OVREV-02 · sem o Modules/Whatsapp ligado, nada sai e nada é registrado;
     $this->artisan('oficinaauto:lembretes-revisao', ['--business' => $this->biz, '--dry-run' => true])->assertSuccessful();
     expect(DB::table('oficina_lembretes_revisao')->where('business_id', $this->biz)->exists())->toBeFalse();
 });
+
+it('UC-OVREV-02 · salvar a data no cadastro do veículo grava a meta; vazio tira', function () {
+    $c = ($this->contato)($this->biz, true);
+    $v = ($this->veiculo)($this->biz, $c, null);
+    $user = $this->usuarioComPermissoes(['oficinaauto.vehicle.update'], $this->seededTenant());
+    $sessao = ['user.business_id' => $this->biz, 'business.id' => $this->biz, 'user.id' => $user->id];
+    $placa = DB::table('vehicles')->where('id', $v)->value('plate');
+    $put = fn (?string $data) => $this->actingAs($user)->withSession($sessao)
+        ->put("/oficina-auto/veiculos/{$v}", ['plate' => $placa, 'vehicle_type' => 'caminhao', 'next_service_date' => $data]);
+
+    $put('2027-03-15')->assertSessionHasNoErrors();
+    expect(substr((string) DB::table('vehicles')->where('id', $v)->value('next_service_date'), 0, 10))->toBe('2027-03-15');
+
+    $put('não é data')->assertSessionHasErrors('next_service_date');
+    expect(substr((string) DB::table('vehicles')->where('id', $v)->value('next_service_date'), 0, 10))->toBe('2027-03-15');
+
+    $put(null)->assertSessionHasNoErrors();
+    expect(DB::table('vehicles')->where('id', $v)->value('next_service_date'))->toBeNull();
+});
