@@ -5,6 +5,7 @@ namespace Modules\ComunicacaoVisual\Entities;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\ComunicacaoVisual\Entities\Concerns\EscopoPorNegocioDaSessao;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -36,6 +37,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 class Material extends Model
 {
+    use EscopoPorNegocioDaSessao; // Tier 0 ADR 0093 — mesmo filtro da closure antiga, reconhecido pelo MultiTenantScopeArchitectureTest
     use SoftDeletes;
     use LogsActivity;
 
@@ -84,13 +86,7 @@ class Material extends Model
 
     protected static function booted(): void
     {
-        static::addGlobalScope('business_id', function (Builder $query) {
-            $businessId = session('user.business_id') ?? session('business.id');
-            if ($businessId !== null) {
-                $query->where('comvis_materiais.business_id', $businessId);
-            }
-        });
-
+        // Escopo por empresa: trait EscopoPorNegocioDaSessao (mesmo filtro, movido para trait).
         static::creating(function (Material $row) {
             if ($row->business_id === null) {
                 $row->business_id = session('user.business_id') ?? session('business.id') ?? 0;
