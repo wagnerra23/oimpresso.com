@@ -225,13 +225,14 @@ function Modal({ titulo, onClose, children, acoes, largura = 720 }) {
 }
 
 // ─────────── Filtros (components.filters do index.blade.php) ───────────
-function Filtros({ f, setF }) {
+// O filtro Imposto só aparece com fiscal.access ([F] 2026-10-26), como a coluna e a aba Fiscal.
+function Filtros({ f, setF, verFiscal }) {
   const [aberto, setAberto] = useState(true);
   const set = (k) => (val) => setF({ ...f, [k]: val });
   return (
     <Widget contrato="produto-filtros" titulo={<><Ic name="search" size={13} /> Filtros</>} nota={aberto ? null : "recolhidos"}>
       <div className="pb-filters-h" style={{ marginBottom: aberto ? 12 : 0 }}>
-        <span className="pb-help">Mesmos filtros do índice de produtos: tipo, categoria, unidade, imposto, marca, local e situação.</span>
+        <span className="pb-help">Mesmos filtros do índice de produtos: tipo, categoria, unidade, {verFiscal ? "imposto, " : ""}marca, local e situação.</span>
         <button className="os-btn sm ghost" onClick={() => setAberto((a) => !a)}>{aberto ? "Recolher" : "Expandir"}</button>
       </div>
       {aberto &&
@@ -239,7 +240,7 @@ function Filtros({ f, setF }) {
           <Fld label="Tipo de produto"><Sel value={f.type} onChange={set("type")} options={[{ id: "single", name: "Único" }, { id: "variable", name: "Variável" }, { id: "combo", name: "Composição" }]} vazio="Todos" /></Fld>
           <Fld label="Categoria"><Sel value={f.cat} onChange={set("cat")} options={CATEGORIES} vazio="Todas" /></Fld>
           <Fld label="Unidade"><Sel value={f.unit} onChange={set("unit")} options={UNITS.map((u) => u.short)} vazio="Todas" /></Fld>
-          <Fld label="Imposto"><Sel value={f.tax} onChange={set("tax")} options={TAXES.map((t) => t.name)} vazio="Todos" /></Fld>
+          {verFiscal && <Fld label="Imposto"><Sel value={f.tax} onChange={set("tax")} options={TAXES.map((t) => t.name)} vazio="Todos" /></Fld>}
           <Fld label="Marca"><Sel value={f.brand} onChange={set("brand")} options={BRANDS} vazio="Todas" /></Fld>
           <Fld label="Local do negócio"><Sel value={f.loc} onChange={set("loc")} options={LOCATIONS} vazio="Todos" /></Fld>
           <Fld label="Situação"><Sel value={f.active} onChange={set("active")} options={[{ id: "active", name: "Ativo" }, { id: "inactive", name: "Inativo" }]} vazio="Todos" /></Fld>
@@ -260,6 +261,10 @@ const PB_COLS = [
   { id: "sku", l: "SKU" }, { id: "serie", l: "IMEI / série" }, { id: "cf1", l: "Campo personalizado 1" },
 ];
 const PB_COLS_PADRAO = { imagem: true, locais: true, compra: true, venda: true, estoque: true, tipo: true, categoria: true, marca: true, imposto: true, sku: true, serie: false, cf1: false };
+// Colunas que só existem para quem tem fiscal.access ([F] 2026-10-26): sem a permissão, a coluna
+// não aparece na grade, no menu de colunas nem na exportação.
+const PB_COLS_FISCAIS = ["imposto"];
+const colunaPermitida = (id, verFiscal) => verFiscal || !PB_COLS_FISCAIS.includes(id);
 
 // A lista roda no DataTablePro do DS: header fixo, resize de coluna por arrasto,
 // ordenação e seleção internas, densidade. As colunas do blade viram `columns`.
@@ -319,7 +324,8 @@ function ListaProdutos({ rows, sel, setSel, onAcao, densa, cols, selSeq, perms }
     { key: "serie", label: "IMEI / série", col: "serie", width: 110 },
     { key: "cf1", label: "Campo personalizado 1", col: "cf1", width: 170 },
   ];
-  const columns = TODAS.filter((c) => !c.col || cols[c.col]);
+  const verFiscal = perms.can("fiscal.access");
+  const columns = TODAS.filter((c) => !c.col || (cols[c.col] && colunaPermitida(c.col, verFiscal)));
 
   const linhas = rows.map((p) => ({
     id: p.id,
@@ -711,7 +717,7 @@ function ModalEtiquetas({ produtos, onClose }) {
 }
 
 // Menu de colunas (o `visible` do DataTable, agora visível pro operador).
-function MenuColunas({ cols, setCols }) {
+function MenuColunas({ cols, setCols, verFiscal }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   useEffect(() => {
@@ -720,13 +726,14 @@ function MenuColunas({ cols, setCols }) {
     document.addEventListener("mousedown", off);
     return () => document.removeEventListener("mousedown", off);
   }, [open]);
-  const n = PB_COLS.filter((c) => cols[c.id]).length;
+  const opcoes = PB_COLS.filter((c) => colunaPermitida(c.id, verFiscal));
+  const n = opcoes.filter((c) => cols[c.id]).length;
   return (
     <div className="pb-kebab" ref={ref}>
       <button className="os-btn sm" onClick={() => setOpen((o) => !o)}><Ic name="grid" size={12} /> Colunas <span className="m" style={{ opacity: .6 }}>{n}</span></button>
       {open &&
         <div className="pb-menu pb-menu-dir" role="menu">
-          {PB_COLS.map((c) => (
+          {opcoes.map((c) => (
             <button key={c.id} onClick={() => setCols({ ...cols, [c.id]: !cols[c.id] })}>
               <span style={{ width: 12, color: "var(--accent)" }}>{cols[c.id] ? "✓" : ""}</span>{c.l}
             </button>
@@ -739,9 +746,11 @@ function MenuColunas({ cols, setCols }) {
 }
 
 // Exporta o que está na tela (o `downloadExcel` do controller) — CSV com ; pra abrir no Excel PT-BR.
-function exportarCsv(lista) {
-  const cab = ["Produto", "SKU", "Tipo", "Categoria", "Subcategoria", "Marca", "Unidade", "Imposto", "Compra", "Venda", "Estoque", "Locais", "Situação"];
-  const linhas = lista.map((p) => [p.name, p.sku, TYPE_LABEL[p.type], p.cat, p.sub, p.brand, p.unit, p.tax,
+// Sem fiscal.access a coluna Imposto não vai para o arquivo — é a mesma coluna da grade.
+function exportarCsv(lista, verFiscal) {
+  const fiscal = (x) => (verFiscal ? [x] : []);
+  const cab = ["Produto", "SKU", "Tipo", "Categoria", "Subcategoria", "Marca", "Unidade", ...fiscal("Imposto"), "Compra", "Venda", "Estoque", "Locais", "Situação"];
+  const linhas = lista.map((p) => [p.name, p.sku, TYPE_LABEL[p.type], p.cat, p.sub, p.brand, p.unit, ...fiscal(p.tax),
     String(p.variations[0].dpp).replace(".", ","), String(p.variations[0].dsp).replace(".", ","),
     p.stockOn ? String(p.stock) : "", p.locs.map((id) => LOCATIONS.find((l) => l.id === id).name).join(" / "), p.active ? "Ativo" : "Inativo"]);
   const csv = "\uFEFF" + [cab, ...linhas].map((r) => r.map((c) => '"' + String(c == null ? "" : c).replace(/"/g, '""') + '"').join(";")).join("\r\n");
@@ -792,11 +801,13 @@ function TelaLista({ aba, setAba, onIr, avisar, perms }) {
     return () => document.removeEventListener("keydown", onKey);
   }, [onIr]);
 
+  // Sem fiscal.access o filtro Imposto não existe, nem guardado de antes (troca de papel na mesma sessão).
+  const verFiscal = perms.can("fiscal.access");
   const filtrados = useMemo(() => PRODUCTS.filter((p) => {
     if (f.type && p.type !== f.type) return false;
     if (f.cat && p.cat !== f.cat) return false;
     if (f.unit && p.unit !== f.unit) return false;
-    if (f.tax && p.tax !== f.tax) return false;
+    if (verFiscal && f.tax && p.tax !== f.tax) return false;
     if (f.brand && p.brand !== f.brand) return false;
     if (f.loc && !p.locs.includes(Number(f.loc))) return false;
     if (f.active === "active" && !p.active) return false;
@@ -804,7 +815,7 @@ function TelaLista({ aba, setAba, onIr, avisar, perms }) {
     if (f.nfs && !p.notForSelling) return false;
     if (busca && !(p.name + p.sku).toLowerCase().includes(busca.toLowerCase())) return false;
     return true;
-  }), [f, busca]);
+  }), [f, busca, verFiscal]);
 
   // A grade do DS ordena internamente; aqui só garantimos a ordem inicial (nome A→Z).
   const ordenados = useMemo(() => [...filtrados].sort((a, b) => a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1), [filtrados]);
@@ -815,7 +826,7 @@ function TelaLista({ aba, setAba, onIr, avisar, perms }) {
   if (f.type) chips.push({ k: "type", l: "Tipo", v: TYPE_LABEL[f.type] });
   if (f.cat) chips.push({ k: "cat", l: "Categoria", v: f.cat });
   if (f.unit) chips.push({ k: "unit", l: "Unidade", v: f.unit });
-  if (f.tax) chips.push({ k: "tax", l: "Imposto", v: f.tax });
+  if (verFiscal && f.tax) chips.push({ k: "tax", l: "Imposto", v: f.tax });
   if (f.brand) chips.push({ k: "brand", l: "Marca", v: f.brand });
   if (f.loc) chips.push({ k: "loc", l: "Local", v: (LOCATIONS.find((l) => l.id === Number(f.loc)) || {}).name });
   if (f.active) chips.push({ k: "active", l: "Situação", v: f.active === "active" ? "Ativo" : "Inativo" });
@@ -884,7 +895,7 @@ function TelaLista({ aba, setAba, onIr, avisar, perms }) {
     <>
       <div className="pb-kpis" data-contract="produto-kpis">{kpisNode}</div>
 
-      <Filtros f={f} setF={setF} />
+      <Filtros f={f} setF={setF} verFiscal={verFiscal} />
 
       <Widget flush titulo={<><Ic name="product" size={13} /> {aba === "lista" ? "Todos os produtos" : "Relatório de estoque"}</>} nota={ordenados.length + " de " + PRODUCTS.length}>
         {/* Onda 0d (28/08): as duas abas passam a ser o `TabBar` do DS (_ds_bundle.js L6605).
@@ -911,7 +922,7 @@ function TelaLista({ aba, setAba, onIr, avisar, perms }) {
             <button className={densa ? "" : "on"} onClick={() => setDensa(false)}>Confortável</button>
             <button className={densa ? "on" : ""} onClick={() => setDensa(true)}>Compacto</button>
           </div>
-          <MenuColunas cols={cols} setCols={setCols} />
+          <MenuColunas cols={cols} setCols={setCols} verFiscal={verFiscal} />
           <button className="os-btn sm" onClick={() => setRapido(true)}><Ic name="plus" size={12} /> Cadastro rápido</button>
         </div>
 
@@ -936,7 +947,7 @@ function TelaLista({ aba, setAba, onIr, avisar, perms }) {
           <div className="pb-pag" data-contract="produto-rodape-lista">
             <span>{ordenados.length} produto(s) na grade · clique no cabeçalho pra ordenar, arraste a borda pra redimensionar</span>
             <div className="sp" />
-            <button className="os-btn sm" onClick={() => { exportarCsv(ordenados); avisar(ordenados.length + " produto(s) exportados com os filtros atuais.", "ok"); }}><Ic name="sheet" size={12} /> Exportar filtrados</button>
+            <button className="os-btn sm" onClick={() => { exportarCsv(ordenados, verFiscal); avisar(ordenados.length + " produto(s) exportados com os filtros atuais.", "ok"); }}><Ic name="sheet" size={12} /> Exportar filtrados</button>
           </div>}
       </Widget>
 
@@ -1035,7 +1046,7 @@ function ProdutoBladePage({ view = "lista", estado = "dados", dense = false, pap
           glyph={<Ic name="product" />}
           acoes={<>
             {tela !== "lista" && <button className="os-btn" onClick={() => setTela("lista")}>← Voltar à lista</button>}
-            <button className="os-btn" onClick={() => { exportarCsv(PRODUCTS); avisar("Catálogo exportado em CSV (abre no Excel).", "ok"); }}><Ic name="sheet" size={13} /> Baixar Excel</button>
+            <button className="os-btn" onClick={() => { exportarCsv(PRODUCTS, perms.can("fiscal.access")); avisar("Catálogo exportado em CSV (abre no Excel).", "ok"); }}><Ic name="sheet" size={13} /> Baixar Excel</button>
             <button className="os-btn primary" onClick={() => { setAlvo(null); setTela("form"); }}><Ic name="plus" size={13} /> Novo produto</button>
           </>} />}
 
