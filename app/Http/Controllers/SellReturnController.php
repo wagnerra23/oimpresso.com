@@ -801,4 +801,34 @@ class SellReturnController extends Controller
             'redirect_url' => action([\App\Http\Controllers\SellReturnController::class, 'add'], [$sell->id]),
         ];
     }
+
+    /**
+     * Vale-troca (US-VEST-021) — POST /sell-return/{id}/vale-troca.
+     *
+     * O valor em aberto da devolução vira saldo de Adiantamento do cliente, que o caixa aceita
+     * como forma de pagamento. Quem só vê as próprias devoluções só credita as suas.
+     * Tier 0: a devolução é buscada no business da sessão (ValeTrocaService).
+     */
+    public function valeTroca(Request $request, int $id)
+    {
+        $user = auth()->user();
+        $businessId = (int) $request->session()->get('user.business_id');
+        if (! $user->can('access_sell_return')) {
+            $propria = $user->can('access_own_sell_return') && Transaction::where('business_id', $businessId)
+                ->where('type', 'sell_return')->where('id', $id)->where('created_by', $user->id)->exists();
+            if (! $propria) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
+        try {
+            $r = app(\App\Services\Sells\ValeTrocaService::class)->creditar($businessId, $id, (int) $user->id);
+        } catch (\App\Services\Sells\ValeTrocaException $e) {
+            $status = $e->codigo === 'nao_encontrada' ? 404 : 422;
+
+            return response()->json(['erro' => $e->codigo, 'mensagem' => $e->getMessage()], $status);
+        }
+
+        return response()->json($r);
+    }
 }
