@@ -88,7 +88,7 @@ it('recorrência: POST /v2/rec com vinculo.devedor, valorRec em texto e escopos 
 
     expect($r->gatewayExternalId)->toBe('RR1234567820240115abcdefghijk')->and($r->tipo)->toBe('pix_recv');
     Http::assertSent(fn ($req) => str_ends_with($req->url(), '/oauth/token')
-        && $req['scope'] === 'rec.read rec.write cobr.read cobr.write solicrec.read solicrec.write');
+        && $req['scope'] === 'rec.read rec.write cobr.read cobr.write solicrec.read solicrec.write payloadlocationrec.read payloadlocationrec.write');
     Http::assertSent(fn ($req) => $req->method() === 'POST' && str_ends_with($req->url(), '/v2/rec')
         && $req['vinculo']['devedor'] === ['cpf' => '12345678901', 'nome' => 'Cliente Teste']
         && $req['vinculo']['contrato'] === 'rb-inv-55-2031-04'

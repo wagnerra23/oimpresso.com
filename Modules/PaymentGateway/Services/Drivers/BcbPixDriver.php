@@ -62,7 +62,7 @@ use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 class BcbPixDriver implements PaymentDriverContract, CobrancaRecorrenteDriver
 {
     /** Escopos OAuth da API Pix BCB (securitySchemes da v2.10.0). */
-    private const ESCOPOS = 'rec.read rec.write cobr.read cobr.write solicrec.read solicrec.write';
+    private const ESCOPOS = 'rec.read rec.write cobr.read cobr.write solicrec.read solicrec.write payloadlocationrec.read payloadlocationrec.write';
 
     private array $tokenCache = [];
 
@@ -125,6 +125,10 @@ class BcbPixDriver implements PaymentDriverContract, CobrancaRecorrenteDriver
             ],
             'politicaRetentativa' => $input->meta['politica_retentativa'] ?? 'NAO_PERMITE',
         ];
+        // Jornada 2 (QR da recorrência): a location criada em `/locrec` vai no `loc` da recorrência.
+        if (! empty($input->meta['loc_id'])) {
+            $payload['loc'] = (int) $input->meta['loc_id'];
+        }
 
         $response = HttpClientFactory::send(fn () => $this->client($cred)->post('/v2/rec', $payload));
 
@@ -256,6 +260,50 @@ class BcbPixDriver implements PaymentDriverContract, CobrancaRecorrenteDriver
             'BcbPix mandato não tem refund individual via API. ' .
             'Revogue o mandato (cancelar) + faça devolução PIX manual da cobrança específica.'
         );
+    }
+
+    /**
+     * Location do QR da recorrência — `POST /v2/locrec` (jornada 2 da API Pix BCB v2.10.0). O `id`
+     * vai no `loc` da recorrência; o QR (`dadosQR.pixCopiaECola`) sai depois em `GET /rec/{idRec}`.
+     *
+     * @return array{id: int, location: string}
+     */
+    public function criarLocationRecorrencia(object $cred): array
+    {
+        $this->assertCredential($cred);
+        $response = HttpClientFactory::send(fn () => $this->client($cred)->post('/v2/locrec'));
+        if ($response->failed()) {
+            throw new GatewayUnavailableException(
+                "BcbPix location da recorrência falhou ({$response->status()}): " . substr($response->body(), 0, 200)
+            );
+        }
+        $data = $response->json() ?? [];
+        if (empty($data['id'])) {
+            throw new GatewayUnavailableException('BcbPix location da recorrência: resposta sem id');
+        }
+
+        return ['id' => (int) $data['id'], 'location' => (string) ($data['location'] ?? '')];
+    }
+
+    /**
+     * Recorrência completa — `GET /v2/rec/{idRec}`: status e, na jornada 2, `dadosQR.pixCopiaECola`.
+     *
+     * @return array<string, mixed>
+     */
+    public function consultarRecorrencia(object $cred, string $idRec): array
+    {
+        $this->assertCredential($cred);
+        if ($idRec === '') {
+            throw new InvalidPayerException('BcbPix consultar recorrência exige idRec');
+        }
+        $response = HttpClientFactory::send(fn () => $this->client($cred)->get("/v2/rec/{$idRec}"));
+        if ($response->failed()) {
+            throw new GatewayUnavailableException(
+                "BcbPix consultar recorrência falhou ({$response->status()}): " . substr($response->body(), 0, 200)
+            );
+        }
+
+        return (array) ($response->json() ?? []);
     }
 
     public function consultar(object $cobranca, object $cred): CobrancaStatus
