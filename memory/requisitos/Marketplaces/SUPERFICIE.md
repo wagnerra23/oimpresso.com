@@ -14,13 +14,14 @@ module: Marketplaces
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Marketplaces/**` + `resources/js/Pages/Marketplaces/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 27 arquivos em 12 papéis.
+**Total mapeado:** 30 arquivos em 12 papéis.
 
-## Controllers — 3
+## Controllers — 4
 
 - [ContasController.php](../../../Modules/Marketplaces/Http/Controllers/ContasController.php)
 - [DataController.php](../../../Modules/Marketplaces/Http/Controllers/DataController.php)
 - [InstallController.php](../../../Modules/Marketplaces/Http/Controllers/InstallController.php)
+- [NotificacoesMercadoLivreController.php](../../../Modules/Marketplaces/Http/Controllers/NotificacoesMercadoLivreController.php)
 
 ## Middleware — 1
 
@@ -40,8 +41,9 @@ module: Marketplaces
 - [PedidoMarketplace.php](../../../Modules/Marketplaces/Entities/PedidoMarketplace.php)
 - [WebhookRecebido.php](../../../Modules/Marketplaces/Entities/WebhookRecebido.php)
 
-## Jobs — 1
+## Jobs — 2
 
+- [ProcessarNotificacaoMercadoLivreJob.php](../../../Modules/Marketplaces/Jobs/ProcessarNotificacaoMercadoLivreJob.php)
 - [RenovarTokenContaJob.php](../../../Modules/Marketplaces/Jobs/RenovarTokenContaJob.php)
 
 ## Console / Commands — 1
@@ -66,9 +68,9 @@ module: Marketplaces
 
 - [config.php](../../../Modules/Marketplaces/Config/config.php)
 
-## Testes (Pest) — 3
+## Testes (Pest) — 4
 
-- 3 em [Modules/Marketplaces/Tests/Feature/](../../../Modules/Marketplaces/Tests/Feature)
+- 4 em [Modules/Marketplaces/Tests/Feature/](../../../Modules/Marketplaces/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 4

@@ -26,23 +26,23 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 865,
-    "edges": 1178,
+    "nodes": 867,
+    "edges": 1180,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 146,
-      "component": 480,
-      "api": 88
+      "component": 481,
+      "api": 89
     },
     "by_edge_type": {
       "ownsTable": 97,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 92,
+      "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 480,
+      "hasComponent": 481,
       "dependsOn": 131,
       "delegatesTo": 120,
       "migratesTo": 1,
@@ -1757,6 +1757,14 @@
       "prefix": "/webhook/*",
       "providers": [
         "Woocommerce"
+      ]
+    },
+    {
+      "id": "api:/webhook/marketplaces/mercado-livre",
+      "type": "api",
+      "prefix": "/webhook/marketplaces/mercado-livre",
+      "providers": [
+        "Marketplaces"
       ]
     },
     {
@@ -3750,6 +3758,13 @@
       "module": "Marketplaces",
       "name": "InstallController",
       "desc": ""
+    },
+    {
+      "id": "component:Marketplaces/NotificacoesMercadoLivreController",
+      "type": "component",
+      "module": "Marketplaces",
+      "name": "NotificacoesMercadoLivreController",
+      "desc": "recebe as notificações do ML e busca o pedido na API com o token da conta (US-MKT-006)"
     },
     {
       "id": "component:Marketplaces/Renovação do token do vendedor sob demanda e de hora em hora",
@@ -11622,6 +11637,12 @@
     },
     {
       "from": "module:Marketplaces",
+      "to": "component:Marketplaces/NotificacoesMercadoLivreController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Marketplaces",
       "to": "component:Marketplaces/Renovação do token do vendedor sob demanda e de hora em hora",
       "type": "hasComponent",
       "source": "contains"
@@ -11635,6 +11656,12 @@
     {
       "from": "module:Marketplaces",
       "to": "api:/marketplaces/install",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "api:/webhook/marketplaces/mercado-livre",
       "type": "providesApi",
       "source": "url_prefixes"
     },

@@ -416,7 +416,9 @@ Driver pattern: classe `MarketplaceDriver` abstrata + `MercadoLivreDriver`, `Sho
 
 ### US-MKT-006 · Webhook receiver ML orders_v2 + idempotency-key — **P0** · 5h
 
-**Implementado em:** _pendente_ — módulo não construído (US planejada): rota `POST /webhooks/marketplace/{key}`, middleware HMAC e `ProcessMarketplaceWebhookJob` não existem no disco
+**Implementado em:** `Modules/Marketplaces/Http/Controllers/NotificacoesMercadoLivreController.php` · `Modules/Marketplaces/Jobs/ProcessarNotificacaoMercadoLivreJob.php` · `Modules/Marketplaces/Tests/Feature/MarketplacesNotificacaoMercadoLivreContratoTest.php`
+
+> **2026-10-26 — premissa corrigida antes do código.** O desenho abaixo pede HMAC por `webhook_secret`. A notificação do **Mercado Livre não traz assinatura**: os campos são `resource`, `user_id`, `topic`, `application_id` e `attempts`, e o detalhe se busca pela API com o token do vendedor. O `x-signature` com HMAC que aparece em busca é do **Mercado Pago**, outro produto. (A página oficial do ML devolveu 403 para leitura automática; a conclusão veio da documentação indexada e de guias, e deve ser reconferida contra uma notificação real quando o app existir.) A defesa implementada é não confiar no conteúdo: `application_id` precisa ser o nosso, `user_id` precisa ser vendedor conectado (a empresa sai da conta), e o pedido é lido da API com o token daquela conta, recusando pedido de outro vendedor. Rota: `POST /webhook/marketplaces/mercado-livre`. O texto original fica como registro do plano de 2026-05.
 
 - Rota pública `POST /webhooks/marketplace/{marketplace_key}` (sem auth Laravel — HMAC valida)
 - Middleware `ValidateMarketplaceWebhookSignature` valida HMAC SHA256 com `webhook_secret` por account
