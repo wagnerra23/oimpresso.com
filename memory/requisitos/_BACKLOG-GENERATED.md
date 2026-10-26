@@ -2,14 +2,14 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1007 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1008 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
 | Módulo | Abertas | doing | review | blocked | todo/backlog |
 |---|---:|---:|---:|---:|---:|
 | [`Jana`](#jana) | 83 | 2 | 0 | 0 | 81 |
-| [`Whatsapp`](#whatsapp) | 70 | 0 | 0 | 0 | 70 |
+| [`Whatsapp`](#whatsapp) | 71 | 0 | 0 | 0 | 71 |
 | [`Sells`](#sells) | 67 | 0 | 0 | 0 | 67 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
 | [`Financeiro`](#financeiro) | 49 | 3 | 0 | 0 | 46 |
@@ -233,6 +233,7 @@
 - **US-WA-319** — Notificador reutilizável de aviso automático ao cliente por WhatsApp (texto + anexo)
 - **US-WA-320** — Aviso de venda do núcleo enviado pela API do WhatsApp em vez de link (flag)
 - **US-WA-321** — NF-e autorizada manda a DANFE ao cliente por WhatsApp (anexo por link assinado)
+- **US-WA-325** — Avisos de OS pronta e de instalação saem pelo canal vivo (notificador)
 
 ## Sells
 
