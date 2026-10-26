@@ -23,6 +23,12 @@ class RecurringBillingServiceProvider extends ServiceProvider
         $this->registerViews();
         $this->registerObservers();
         $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
+
+        // US-RB-057: cobrança paga (origem_type=invoice) → fatura paga + InvoicePaid (desligado por config).
+        \Illuminate\Support\Facades\Event::listen(
+            \Modules\PaymentGateway\Events\CobrancaPaga::class,
+            [\Modules\RecurringBilling\Listeners\MarcarFaturaPagaDaCobranca::class, 'handle'],
+        );
     }
 
     /**
