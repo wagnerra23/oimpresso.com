@@ -43,6 +43,9 @@ export interface LinhaProduto {
   preco_proposto?: { quantidade: number; preco: number | null } | null;
 }
 
+/** Data AAAA-MM-DD como DD/MM/AAAA. */
+export const dataBr = (d: string | null | undefined) => (d ? d.slice(0, 10).split('-').reverse().join('/') : '');
+
 export type ListaPaginada = PaginatorShape<LinhaProduto> & { per_page: number };
 
 /** Opções de linhas por página — as MESMAS da lista Blade (`common.js` aLengthMenu); -1 = todas. */
@@ -186,6 +189,8 @@ export interface DetalheProdutoDados {
     imagens: string[];
     compra_exc?: number;
     compra_inc?: number;
+    /** UC-PIDX-32: só quando a empresa gravou a regra de custo; metodo null = insumo sem método definido. */
+    custo_metodo?: { metodo: 'medio' | 'ultimo' | null; ultima_compra_em: string | null };
     lucro_percentual?: number;
     venda_exc?: number;
     venda_inc?: number;
