@@ -149,8 +149,8 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **445** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 385 · superseded: 27 · proposto: 19 · deprecated: 11 · recusado: 2 · rascunho: 1.
+- **446** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 386 · superseded: 27 · proposto: 19 · deprecated: 11 · recusado: 2 · rascunho: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
@@ -430,14 +430,14 @@ lente: [construir]
 
 ## Rastro
 
-- **624** handoffs · **800** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **624** handoffs · **801** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-10-26-fase0-nsu-dfe-seco-medicao`
   - `2026-10-20-pesquisa-consulta-venda-concorrentes-cv`
   - `2026-10-20-arte-casos-de-uso-fabricacao`
   - `2026-10-18-refutacao-gt-g5-lote-9536-r3`
   - `2026-10-18-refutacao-gt-g5-lote-9536-r2`
   - `2026-10-18-refutacao-gt-g5-lote-9536-r1`
-  - `2026-10-15-refutacao-gt-g5-lote-9433-r1`
 
 ---
 _Gerado por `scripts/governance/system-map.mjs` · 2026-10-26 · deriva das fontes canônicas, não as substitui._
