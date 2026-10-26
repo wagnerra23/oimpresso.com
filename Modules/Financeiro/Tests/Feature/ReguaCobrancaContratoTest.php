@@ -257,3 +257,51 @@ it('UC-CRREG-10 · aviso D-3 e lembrete D+3 do mesmo título convivem (UNIQUE po
     expect($fases)->toBe(['antes:3', 'apos:3']);
     Mail::assertSent(LembreteCobrancaMail::class, 2);
 });
+
+function reguaCobranca(int $biz, string $origemType, int $origemId, string $status, array $over = []): int
+{
+    return DB::table('cobrancas')->insertGetId(array_merge([
+        'business_id' => $biz, 'tipo' => 'pix_cobv', 'status' => $status, 'valor_centavos' => 10000,
+        'vencimento' => REGUA_HOJE, 'contact_id' => 1, 'descricao' => 'Teste régua meio de pagar',
+        'idempotency_key' => uniqid('regua', true), 'origem_type' => $origemType, 'origem_id' => $origemId,
+        'created_at' => now(), 'updated_at' => now(),
+    ], $over));
+}
+
+it('UC-CRREG-11 · a mensagem leva o meio de pagar da cobrança aberta do título, nunca de cobrança paga ou de outro business', function () {
+    if (! Schema::hasTable('cobrancas')) {
+        $this->markTestSkipped('cobrancas ausente — rode migrate.');
+    }
+    $comPix = reguaTitulo($this->bizA, $this->ownerA, 1, reguaContato($this->bizA, $this->ownerA));
+    reguaCobranca($this->bizA, 'fin_titulo', $comPix, 'emitida', ['pix_emv' => 'PIX-ABERTO-A']);
+
+    $soPaga = reguaTitulo($this->bizA, $this->ownerA, 1, reguaContato($this->bizA, $this->ownerA));
+    reguaCobranca($this->bizA, 'fin_titulo', $soPaga, 'paga', ['pix_emv' => 'PIX-JA-PAGO']);
+    // Cobrança de OUTRO business apontando para o mesmo id de título: nunca entra (Tier 0).
+    reguaCobranca($this->bizB, 'fin_titulo', $soPaga, 'emitida', ['pix_emv' => 'PIX-DO-B']);
+
+    $venda = 900000000 + random_int(1, 99999);
+    $deVenda = reguaTitulo($this->bizA, $this->ownerA, 5, reguaContato($this->bizA, $this->ownerA),
+        ['origem' => 'venda', 'origem_id' => $venda]);
+    reguaCobranca($this->bizA, 'sale', $venda, 'vencida', ['tipo' => 'boleto', 'linha_digitavel' => '23790.00000 LINHA-DA-VENDA']);
+
+    (new ReguaCobrancaJob($this->bizA, REGUA_HOJE))->handle(app(ReguaCobrancaConfig::class));
+
+    $corpoDe = function (int $tituloId): string {
+        $corpo = null;
+        Mail::assertSent(LembreteCobrancaMail::class, function ($m) use ($tituloId, &$corpo) {
+            if ($m->tituloId === $tituloId) {
+                $corpo = $m->corpo;
+            }
+
+            return $m->tituloId === $tituloId;
+        });
+
+        return (string) $corpo;
+    };
+
+    expect($corpoDe($comPix))->toContain('Pix copia e cola: PIX-ABERTO-A');
+    expect($corpoDe($soPaga))->not->toContain('PIX-')
+        ->and($corpoDe($soPaga))->not->toContain('copia e cola');
+    expect($corpoDe($deVenda))->toContain('Linha digitável do boleto: 23790.00000 LINHA-DA-VENDA');
+});

@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Modules\Financeiro\Mail\LembreteCobrancaMail;
+use Modules\Financeiro\Services\MeioDePagarDoTitulo;
 use Modules\Financeiro\Services\ReguaCobrancaConfig;
 
 /**
@@ -146,6 +147,8 @@ class ReguaCobrancaJob implements ShouldQueue
                 .'Se já pagou, desconsidere esta mensagem.'
             : "Olá, {$contato->name}.\n\nO título {$titulo->numero}, vencido em {$vencimento}, "
                 .'segue em aberto. Se já pagou, desconsidere esta mensagem.';
+        $meioDePagar = app(MeioDePagarDoTitulo::class);
+        $corpo .= $meioDePagar->paragrafo($meioDePagar->de($this->businessId, $titulo));
 
         try {
             Mail::to($email)->send(new LembreteCobrancaMail($this->businessId, (int) $titulo->id, $etapa, $corpo, $fase));
