@@ -4900,6 +4900,13 @@
       "desc": "grava o sinal (store) e mostra a caixa de triagem (index)"
     },
     {
+      "id": "component:Whatsapp/Admin/BotMenuController",
+      "type": "component",
+      "module": "Whatsapp",
+      "name": "Admin/BotMenuController",
+      "desc": "menu do bot por canal (opções → fila, captura de nome, saudação) PUT /atendimento/canais/{id}/menu-bot (US-WA-327); motor em Services/BotMenu, atrás de WHATSAPP_BOT_MENU_ENABLED"
+    },
+    {
       "id": "component:Whatsapp/Admin/BroadcastController",
       "type": "component",
       "module": "Whatsapp",
@@ -13907,6 +13914,12 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "OS / Kanban de reparo"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "component:Whatsapp/Admin/BotMenuController",
+      "type": "hasComponent",
+      "source": "contains"
     },
     {
       "from": "module:Whatsapp",
