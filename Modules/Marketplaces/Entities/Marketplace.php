@@ -13,6 +13,17 @@ use LogicException;
  * `governance/multi-tenant-global-model-contract.json`. Como o catálogo vale para todas as
  * empresas, este Model NÃO escreve: criar, alterar ou apagar lança exceção. Só a migration de
  * seed do catálogo escreve, por `DB::table`, e nenhuma rota do módulo expõe escrita aqui.
+ *
+ * @property int $id
+ * @property string $slug
+ * @property string $nome
+ * @property string|null $api_base_url
+ * @property string|null $oauth_authorize_url
+ * @property string|null $oauth_token_url
+ * @property string|null $docs_url
+ * @property bool $ativo
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
  */
 class Marketplace extends Model
 {
