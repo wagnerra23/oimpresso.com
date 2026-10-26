@@ -16,7 +16,7 @@ use Tests\Support\WithSeededTenant;
  *
  * Âncora: DoD da US-COMVIS-001 no SPEC (*"mínimo cobrado configurável (`material.minimo_m2` —
  * ex: 0,5m² mesmo se peça é menor)"* e *"extras = sum(acabamentos.preco)"*) + a tabela de
- * acabamentos do SPEC §12.1 (tipo m_linear | unitario | m2 | fixo). Casos UC-CV-13 e UC-CV-14
+ * acabamentos do SPEC §12.1 (tipo m_linear | unitario | m2 | fixo). Casos UC-CVPRC-01 e UC-CVPRC-02
  * do `Index.casos.md`.
  *
  * REGRA MESTRE de valor: cada valor esperado é conta à mão, refeita pelo segundo caminho
@@ -66,7 +66,7 @@ function contaMinimo(float $l, float $a, int $q, ?float $minimo, float $precoM2)
     return round(round($peca * $q, 3) * $precoM2, 2);
 }
 
-it('UC-CV-13 · sem mínimo nem acabamento, o orçamento sai com os mesmos números de antes', function () {
+it('UC-CVPRC-01 · sem mínimo nem acabamento, o orçamento sai com os mesmos números de antes', function () {
     $r = app(OrcamentoCalculator::class)->calcular(cvPayload([[
         'descricao' => 'Banner', 'largura_m' => 3.0, 'altura_m' => 1.5, 'quantidade' => 1, 'preco_unitario_m2' => 60.0,
     ]], 50.0), $this->biz);
@@ -79,7 +79,7 @@ it('UC-CV-13 · sem mínimo nem acabamento, o orçamento sai com os mesmos núme
         ->and($r['total'])->toBe(320.0);
 });
 
-it('UC-CV-13 · peça menor que o mínimo do material é cobrada pelo mínimo; a área física não muda', function () {
+it('UC-CVPRC-01 · peça menor que o mínimo do material é cobrada pelo mínimo; a área física não muda', function () {
     $mat = ($this->material)($this->biz, 0.5);
     $r = app(OrcamentoCalculator::class)->calcular(cvPayload([[
         'material_id' => $mat, 'descricao' => 'Plaquinha', 'largura_m' => 0.3, 'altura_m' => 0.4, 'quantidade' => 5,
@@ -94,7 +94,7 @@ it('UC-CV-13 · peça menor que o mínimo do material é cobrada pelo mínimo; a
         ->and($r['total'])->toBe(100.0);
 });
 
-it('UC-CV-13 · peça maior que o mínimo segue pela área dela', function () {
+it('UC-CVPRC-01 · peça maior que o mínimo segue pela área dela', function () {
     $mat = ($this->material)($this->biz, 0.5);
     $r = app(OrcamentoCalculator::class)->calcular(cvPayload([[
         'material_id' => $mat, 'descricao' => 'Placa', 'largura_m' => 1.0, 'altura_m' => 1.0, 'quantidade' => 2,
@@ -104,7 +104,7 @@ it('UC-CV-13 · peça maior que o mínimo segue pela área dela', function () {
     expect($r['itens'][0]['area_cobrada_m2'])->toBe(2.0)->and($r['itens'][0]['subtotal'])->toBe(80.0);
 });
 
-it('UC-CV-13 · material de outra empresa não empresta o mínimo dele [T0]', function () {
+it('UC-CVPRC-01 · material de outra empresa não empresta o mínimo dele [T0]', function () {
     $matOutra = ($this->material)($this->outra, 0.5);
     $r = app(OrcamentoCalculator::class)->calcular(cvPayload([[
         'material_id' => $matOutra, 'descricao' => 'Plaquinha', 'largura_m' => 0.3, 'altura_m' => 0.4,
@@ -116,7 +116,7 @@ it('UC-CV-13 · material de outra empresa não empresta o mínimo dele [T0]', fu
         ->and($r['itens'][0]['subtotal'])->toBe(24.0);
 });
 
-it('UC-CV-14 · os 4 tipos de acabamento entram no total pela base de cada um', function () {
+it('UC-CVPRC-02 · os 4 tipos de acabamento entram no total pela base de cada um', function () {
     $bainha = ($this->acabamento)($this->biz, 'm_linear', 3.0);
     $ilhos = ($this->acabamento)($this->biz, 'unitario', 0.8);
     $lamina = ($this->acabamento)($this->biz, 'm2', 12.0);
@@ -141,7 +141,7 @@ it('UC-CV-14 · os 4 tipos de acabamento entram no total pela base de cada um', 
         ->and($r['total'])->toBe(749.8);               // 540 + 209,80
 });
 
-it('UC-CV-14 · acabamento de outra empresa, inativo ou sem empresa conhecida é recusado [T0]', function () {
+it('UC-CVPRC-02 · acabamento de outra empresa, inativo ou sem empresa conhecida é recusado [T0]', function () {
     $item = fn (int $id) => [[
         'descricao' => 'Banner', 'largura_m' => 1.0, 'altura_m' => 1.0, 'quantidade' => 1, 'preco_unitario_m2' => 60.0,
         'acabamentos' => [['acabamento_id' => $id]],
@@ -159,7 +159,7 @@ it('UC-CV-14 · acabamento de outra empresa, inativo ou sem empresa conhecida é
     expect($calc->calcular(cvPayload($item($meu)), $this->biz)['acabamentos'])->toBe(35.0);
 });
 
-it('UC-CV-14 · gravar guarda a área cobrada, os acabamentos do dia e o total com eles', function () {
+it('UC-CVPRC-02 · gravar guarda a área cobrada, os acabamentos do dia e o total com eles', function () {
     $mat = ($this->material)($this->biz, 0.5);
     $arte = ($this->acabamento)($this->biz, 'fixo', 35.0);
     $calculado = app(OrcamentoCalculator::class)->calcular(cvPayload([[

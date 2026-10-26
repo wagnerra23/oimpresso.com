@@ -64,8 +64,8 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CV-10 | O hub abre pra quem tem permissão e renderiza a calculadora | must | `CU-CV-01` itens 1-2 | `ContratoTelaOrcamentoTest` | 🧪 ⏭ PR-skip |
 | UC-CV-11 | Salvar o orçamento grava os valores do servidor, atomicamente | should | `CU-CV-05` itens 1-4 | `OrcamentoControllerTest` | 🧪 ⏭ PR-skip |
 | UC-CV-12 | O catálogo de partida nasce completo, idempotente e isolado | should | `CU-CV-07` itens 1-3 | `MaterialSeederTest` | 🧪 ⏭ PR-skip |
-| UC-CV-13 | Peça menor que o mínimo do material é cobrada pelo mínimo | must `[V0]` | `CU-CV-02` · DoD US-COMVIS-001 (mínimo) | `OrcamentoMinimoAcabamentoContratoTest` | 🧪 |
-| UC-CV-14 | Acabamento do catálogo entra no total pela base do tipo dele | must `[V0]` `[T0]` | `CU-CV-02` · DoD US-COMVIS-001 (acabamentos) · SPEC §12.1 | `OrcamentoMinimoAcabamentoContratoTest` | 🧪 |
+| UC-CVPRC-01 | Peça menor que o mínimo do material é cobrada pelo mínimo | must `[V0]` | `CU-CV-02` · DoD US-COMVIS-001 (mínimo) | `OrcamentoMinimoAcabamentoContratoTest` | 🧪 |
+| UC-CVPRC-02 | Acabamento do catálogo entra no total pela base do tipo dele | must `[V0]` `[T0]` | `CU-CV-02` · DoD US-COMVIS-001 (acabamentos) · SPEC §12.1 | `OrcamentoMinimoAcabamentoContratoTest` | 🧪 |
 | UC-CVINST-01 | Agenda equipe e veículo na OS e a agenda da janela lista a instalação | must | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAgendaContratoTest` | 🧪 |
 | UC-CVINST-02 | Alguém da equipe ocupado na janela bloqueia, dizendo com quem e quando | must | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAgendaContratoTest` | 🧪 |
 | UC-CVINST-03 | O mesmo veículo na janela bloqueia, mesmo escrito de outro jeito | must | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAgendaContratoTest` | 🧪 |
@@ -404,7 +404,7 @@ e marcar ✅ sem ela é `status:unverified` (G-7).
 
 ---
 
-## UC-CV-13 · Peça menor que o mínimo do material é cobrada pelo mínimo · `must` `[V0]`
+## UC-CVPRC-01 · Peça menor que o mínimo do material é cobrada pelo mínimo · `must` `[V0]`
 
 - **Persona:** vendedor de gráfica orçando plaquinha de 30 × 40 cm — a gráfica não corta, imprime e
   acaba uma peça por menos que o mínimo dela.
@@ -420,7 +420,7 @@ e marcar ✅ sem ela é `status:unverified` (G-7).
 
 ---
 
-## UC-CV-14 · Acabamento do catálogo entra no total pela base do tipo dele · `must` `[V0]` `[T0]`
+## UC-CVPRC-02 · Acabamento do catálogo entra no total pela base do tipo dele · `must` `[V0]` `[T0]`
 
 - **Persona:** vendedor que soma bainha, ilhós, laminação e arte num banner sem abrir planilha.
 - **Aceite:** Dado acabamentos cadastrados da empresa · Quando o item os escolhe · Então cada um vale
@@ -782,15 +782,13 @@ Status: 🧪
 - `[BACKLOG]` **Numeração de orçamento com reserva atômica.** `gerarNumero()` lê `MAX(numero)` fora
   da transação; a corrida é barrada pelo `UNIQUE (business_id, numero)` (erro visível, não corrupção),
   mas não há teste do caso concorrente. SDD §5.4.3 / D-2.
-- `[BACKLOG]` **Mínimo cobrado por material (`minimo_m2`).** O DoD da US-COMVIS-001 pede; a tabela
-  `comvis_materiais` tem `estoque_minimo_m2` (estoque, outra coisa) e **não tem** `minimo_m2`; o
-  calculator não aplica piso. SDD §5.4.6.
 - `[BACKLOG]` **CRUD de materiais.** Sem ele o catálogo do UC-CV-07 nasce vazio na prática — só
   existe seeder. SDD §6 CU-CV-07 item 4.
 - `[BACKLOG]` **Seed da tributária CNAE 1813 + wizard de onboarding.** Os NCM/CFOP do ramo (4911.10,
   4911.99, 3919, 7610, 9405 · 5101/5102/5933/5949) não são populados por nada. SDD §6 CU-CV-10 itens 2-3.
-- `[BACKLOG]` **Acabamentos, instalação e entrega como linhas do orçamento.** Hoje são um campo
-  "extras" manual único na tela; a Entity `Acabamento` existe e o calculator não a usa.
+- `[BACKLOG]` **Escolher o acabamento na calculadora; instalação e entrega como linhas.** O cálculo
+  já soma acabamentos do catálogo (UC-CVPRC-02, 2026-10-26), mas a tela ainda só tem o campo
+  "extras" manual, e não há cadastro de acabamentos nem de mínimo do material.
 - `[BACKLOG]` **Migrar o `<select>` nativo da linha de item pro `<Select>` do DS.** Resíduo declarado
   no próprio `.tsx` com `eslint-disable` justificado. ⚠️ ao fazer, usar
   [`<SafeSelectItem>`](../../../../memory/requisitos/_DesignSystem/SAFE-SELECT-ITEM.md) — `value=""`
