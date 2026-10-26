@@ -2014,6 +2014,8 @@ Refs: ROADMAP-SDD (sweep do mês)
 
 **Implementado em:** `Modules/Whatsapp/Services/Notify/NotificadorClienteWhatsapp.php` · `Modules/Whatsapp/Services/Notify/ResultadoNotificacao.php` · `Modules/Whatsapp/Tests/Feature/NotificadorClienteWhatsappContratoTest.php`
 
+**Testado em:** `Modules/Whatsapp/Tests/Feature/NotificadorClienteWhatsappContratoTest.php`
+
 > owner: — · priority: p0 · estimate: 4h · type: story
 > blocked_by: —
 
@@ -2029,6 +2031,8 @@ Refs: ROADMAP-SDD (sweep do mês)
 ### US-WA-320 · Aviso de venda do núcleo enviado pela API do WhatsApp em vez de link (flag)
 
 **Implementado em:** `app/Utils/NotificationUtil.php` · `Modules/Whatsapp/Config/config.php` · `Modules/Whatsapp/Tests/Feature/AvisoVendaWhatsappApiContratoTest.php`
+
+**Testado em:** `Modules/Whatsapp/Tests/Feature/AvisoVendaWhatsappApiContratoTest.php`
 
 > owner: — · priority: p0 · estimate: 3h · type: story
 > blocked_by: US-WA-319
