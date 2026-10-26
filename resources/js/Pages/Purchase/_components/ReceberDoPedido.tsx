@@ -8,6 +8,7 @@ import { PackageCheck } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { FieldError } from '@/Components/ui/field-state';
+import { Inline } from '@/Components/layout';
 
 export interface LinhaDoPedido {
   purchase_order_line_id: number;
@@ -107,15 +108,15 @@ export default function ReceberDoPedido({ contactId, locationId, jaUsados, onPic
 
   return (
     <div className="mb-3 rounded-lg border border-border bg-muted/40 p-3" data-contract="purchase-receber-pedido">
-      <div className="flex items-center gap-2 mb-2">
+      <Inline className="mb-2">
         <PackageCheck className="h-3.5 w-3.5 text-muted-foreground" />
         <span className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium flex-1">
           Receber de um pedido de compra
         </span>
-      </div>
+      </Inline>
       <FieldError className="mb-2">{erro}</FieldError>
       {disponiveis.length > 0 && (
-        <div className="flex items-center gap-2">
+        <Inline>
           <Select value={escolhido} onValueChange={setEscolhido}>
             <SelectTrigger aria-label="Pedido de compra" className="flex-1 text-[13px]">
               <SelectValue placeholder="Escolha o pedido que chegou" />
@@ -137,7 +138,7 @@ export default function ReceberDoPedido({ contactId, locationId, jaUsados, onPic
           <Button type="button" size="sm" onClick={trazer} disabled={!escolhido}>
             Trazer itens
           </Button>
-        </div>
+        </Inline>
       )}
       <p className="text-[11px] text-muted-foreground mt-2">
         Os itens entram com a quantidade que falta. Ajuste para o que chegou; o resto fica no pedido.
