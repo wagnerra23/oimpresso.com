@@ -484,6 +484,31 @@ E a mesma regra com csosn=201 calcula a ST
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` (lane `nfebrasil-pest`).
 **Fora deste item:** CST 60 (regime normal, mesma situação) ainda não é tratado.
 
+### R-NFE-041 · Busca de DF-e e manifestação usam o CNPJ que a empresa tem
+
+```gherkin
+Dado a empresa sem titular no certificado, com tax_number_1 vazio e business.cnpj preenchido (biz=1 em produção, #9833)
+Quando a busca de DF-e ou a manifestação montam a configuração da SEFAZ
+Então o CNPJ é o do business.cnpj; o valor padrão da coluna (só zeros) não conta e cai no tax_number_1; o titular do certificado vem primeiro
+E sem CNPJ em nenhum dos três a chamada é recusada com "CNPJ da empresa … não configurado — preencha em Fiscal › Configuração"
+```
+
+**Implementação:** `Modules/NfeBrasil/Support/CnpjDoEmitente.php` · `Modules/NfeBrasil/Services/Manifestacao/DistribuicaoDfeService.php` e `ManifestacaoService.php` (`buildConfig`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/DfeCnpjEAlarmeTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** o ambiente (`nfebrasil.ambiente` nulo em produção → homologação) — ligar `ambiente=1` é decisão [W] depois deste conserto; o `EmpresaFiscalLookupService` segue com a ordem dele (titular → `tax_number_1`).
+
+### R-NFE-042 · Falha da busca de DF-e vira alarme visível
+
+```gherkin
+Dado o BuscarDfesRecebidosJob falhando nas 3 tentativas
+Quando ele desiste
+Então grava um alerta dfe_busca_falhou (aberto, severidade alta, com o último erro) em mcp_alertas_eventos, um por empresa e por dia
+E o cockpit Fiscal da empresa mostra o alerta em crit nos 3 dias seguintes, até alguém arquivá-lo; a empresa vizinha não o vê
+```
+
+**Implementação:** `Modules/NfeBrasil/Jobs/BuscarDfesRecebidosJob.php` (`failed`) · `Modules/Fiscal/Http/Controllers/CockpitController.php` (`computeAlerts`, `ultimaFalhaBuscaDfe`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/DfeCnpjEAlarmeTest.php` (lane `nfebrasil-pest`).
+
 ### R-NFE-017 · DIFAL só para não contribuinte em outra UF
 
 ```gherkin
@@ -1130,6 +1155,8 @@ Implementar `Modules/NfeBrasil/Services/Manifestacao/ManifestacaoService.php` en
 **Implementado em:** `Modules/NfeBrasil/Services/Manifestacao/DistribuicaoDfeService.php` · `Modules/NfeBrasil/Jobs/BuscarDfesRecebidosJob.php` · verificado@3b425d8 (2026-06-24) — sefazDistDFe por NSU + Job agendado diário
 
 Implementar `Modules/NfeBrasil/Services/Manifestacao/DistribuicaoDfeService.php` envolvendo `Tools::sefazDistDFe($lastNSU)` + Job agendado.
+
+**2026-10-26 · R-NFE-041/042:** o job falhava todo dia desde 2026-07-03 (69 falhas, medido no #9833) porque o CNPJ vinha só do `tax_number_1`, vazio no biz=1. Agora o CNPJ segue titular → `business.cnpj` → `tax_number_1` e a falha definitiva vira alerta no cockpit Fiscal.
 
 **Acceptance criteria:**
 - Tabela `nfe_dfe_nsu_state` (business_id, last_nsu unsignedBigInteger, ultimo_check_em) — guarda cursor por business
