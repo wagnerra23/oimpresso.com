@@ -35,6 +35,16 @@ it('US-MKT-009 · CFOP: mesma UF 5102, outra UF 6102, Full e UF ausente sem CFOP
         ->and(CfopDoPedido::resolver('', 'SP', 'me2'))->toBeNull();
 });
 
+it('US-MKT-009 · sem CFOP configurado pelo contador, ou CFOP fora de 1xxx-7xxx, não há CFOP', function () {
+    config(['marketplaces.nfe.cfop_mesma_uf' => null, 'marketplaces.nfe.cfop_outra_uf' => '']);
+    expect(CfopDoPedido::resolver('SC', 'SC', 'me2'))->toBeNull()
+        ->and(CfopDoPedido::resolver('SC', 'SP', 'me2'))->toBeNull();
+
+    config(['marketplaces.nfe.cfop_mesma_uf' => '9102', 'marketplaces.nfe.cfop_outra_uf' => '61']);
+    expect(CfopDoPedido::resolver('SC', 'SC', 'me2'))->toBeNull()
+        ->and(CfopDoPedido::resolver('SC', 'SP', 'me2'))->toBeNull();
+});
+
 it('US-MKT-009 · flag desligada: marcar como enviado não põe nada na fila', function () {
     Queue::fake();
     config(['marketplaces.nfe.automatica' => false]);
@@ -74,6 +84,10 @@ it('US-MKT-009 · flag ligada: a nota só pode sair com destinatário completo e
 
     $pedido->forceFill(['buyer_external' => ['id' => 1, 'documento' => '00000000000', 'uf' => 'SP']])->save();
     expect(AvaliarNfeDoPedidoJob::avaliar($biz, $tx))->toBe(['pode' => true, 'motivo' => null, 'cfop' => '6102']);
+
+    config(['marketplaces.nfe.cfop_outra_uf' => null]);
+    expect(AvaliarNfeDoPedidoJob::avaliar($biz, $tx))->toMatchArray(['pode' => false, 'motivo' => 'CFOP do marketplace não configurado (depende do contador)']);
+    config(['marketplaces.nfe.cfop_outra_uf' => '6102']);
 
     $pedido->forceFill(['shipping_type' => 'fulfillment'])->save();
     expect(AvaliarNfeDoPedidoJob::avaliar($biz, $tx)['pode'])->toBeFalse();
