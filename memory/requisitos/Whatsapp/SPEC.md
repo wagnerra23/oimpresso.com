@@ -2014,7 +2014,7 @@ Refs: ROADMAP-SDD (sweep do mês)
 
 **Implementado em:** `Modules/Whatsapp/Services/Notify/NotificadorClienteWhatsapp.php` · `Modules/Whatsapp/Services/Notify/ResultadoNotificacao.php` · `Modules/Whatsapp/Tests/Feature/NotificadorClienteWhatsappContratoTest.php`
 
-> owner: — · priority: p0 · estimate: 4h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 4h · type: story
 > blocked_by: —
 
 **Origem:** lacuna P0 do levantamento de concorrência de 2026-10-25 — `NotificationUtil::autoSendNotification` com `auto_send_wa_notif` só gera link `wa.me` para alguém clicar; cada módulo que avisa pela API (`NotifyRepairCustomer`, `NotifyInstalacaoCvCustomer`) repete as próprias travas. Consumidores previstos: aviso de venda/pagamento do núcleo (próxima US) e régua de cobrança do Financeiro.
