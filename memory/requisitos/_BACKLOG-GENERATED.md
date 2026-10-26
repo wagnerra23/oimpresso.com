@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1015 tarefas abertas** em **57 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1016 tarefas abertas** em **57 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -10,7 +10,7 @@
 |---|---:|---:|---:|---:|---:|
 | [`Jana`](#jana) | 83 | 2 | 0 | 0 | 81 |
 | [`Whatsapp`](#whatsapp) | 69 | 0 | 0 | 0 | 69 |
-| [`Sells`](#sells) | 67 | 0 | 0 | 0 | 67 |
+| [`Sells`](#sells) | 68 | 1 | 0 | 0 | 67 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
 | [`Financeiro`](#financeiro) | 49 | 4 | 0 | 0 | 45 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
@@ -236,6 +236,10 @@
 
 ## Sells
 
+
+### doing
+
+- **US-SELL-077** — Cancelar a venda devolve o estoque, tira a venda dos relatórios e cancela o título _(`p0` · @wagner)_
 
 ### todo
 
