@@ -63,7 +63,7 @@ last_run_ci: "2026-10-13 (PR contratos de tela, recorrente thread 01) — REVALI
 | UC-RBSUB-02 | Validação recusa contato ausente, enum inválido e data no passado | must | `CU-RB-02` 2 | `Wave21NewSubscriptionTest` | 🧪 |
 | UC-RBSUB-03 | Busca de cliente não vaza outro business nem tipo errado | must `[T0]` | `CU-RB-02` 3 | `Wave21NewSubscriptionTest` | 🧪 |
 | UC-RBSUB-04 | Editar cobrança: 404 cross-tenant · 422 se cancelada | must `[T0]` `[V0]` | `CU-RB-04` | `Wave23EditarAssinaturaTest` | 🧪 |
-| UC-RBSUB-05 | **Assinatura criada tem que ser faturável** | must `[V0]` | `CU-RB-02` 5 | `PlanoSemFaturaContratoTest` | ❌ **vermelho esperado** |
+| UC-RBSUB-05 | **Assinatura criada tem que ser faturável** | must `[V0]` | `CU-RB-02` 5 | `PlanoSemFaturaContratoTest` · `AssinaturaNegociadaSchemaRealContratoTest` | 🧪 |
 | UC-RBSUB-06 | MRR normaliza o ciclo e churn ignora trial | must `[V0]` | `CU-RB-14` 2/3 | `Wave4PresenterIndexTest` | 🧪 |
 | UC-RBSUB-07 | Status visual deriva do estado do banco (5 estados) | must | `CU-RB-14` 1 | `Wave4PresenterIndexTest` | 🧪 |
 | UC-RBSUB-08 | Ciclo de vida completo (criar → pausar → retomar → cancelar) sem vazar tenant | must `[T0]` | `CU-RB-05` · `CU-RB-10` | `CustomerJourneyTest` | 🧪 |
@@ -134,7 +134,7 @@ last_run_ci: "2026-10-13 (PR contratos de tela, recorrente thread 01) — REVALI
 
 ---
 
-## UC-RBSUB-05 · A assinatura criada tem que ser faturável · `must` `[V0]` 🔴
+## UC-RBSUB-05 · A assinatura criada tem que ser faturável · `must` `[V0]`
 - **Persona:** Wagner cadastra uma assinatura com valor negociado (ex.: R$ 187,00, que não é o valor
   cheio de nenhum plano). Espera que ela cobre.
 - **Aceite:** Dado uma assinatura ativa criada pelo fluxo real (`POST /recurring-billing`) com
@@ -153,6 +153,14 @@ last_run_ci: "2026-10-13 (PR contratos de tela, recorrente thread 01) — REVALI
   anulam (o gerador cair pra `metadata.valor` × o `store()` recusar valor sem plano × criar plano
   implícito), e escolher remédio antes do diagnóstico é o erro catalogado em
   [proibicoes §5](../../../../memory/proibicoes.md) 2026-07-15.
+- **Desfecho (fato datado, o texto acima fica):** [W] escolheu o remédio "a" em 2026-10-19 e o #9606 ensinou o
+  gerador a faturar por `metadata.valor`/`metadata.ciclo`. **Medido em 2026-10-26:** os dois testes desta linha
+  (`PlanoSemFaturaContratoTest` e `Wave21NewSubscriptionTest`) usam schema sintético com `plan_id` **nulável**,
+  mas a migration e a produção têm `NOT NULL` — no MySQL real o `store()` estourava `1048 Column 'plan_id'
+  cannot be null` e a assinatura negociada nunca existia. A migration `make_plan_id_nullable_on_rb_subscriptions`
+  fecha isso, e [`AssinaturaNegociadaSchemaRealContratoTest`](../../../../Modules/RecurringBilling/Tests/Feature/AssinaturaNegociadaSchemaRealContratoTest.php)
+  prova no schema real: criada sem plano pelo `store()` e faturada pelo gerador com o valor negociado.
+- **Status: 🧪** — verde no CT 100 (MySQL real); a lane `modules-pest` dá o veredito.
 
 ---
 
@@ -222,6 +230,10 @@ last_run_ci: "2026-10-13 (PR contratos de tela, recorrente thread 01) — REVALI
   precisa de contrato antes de virar UC.
 - **[BACKLOG]** `Inertia::defer` em `subscriptions`/`kpis` (`CU-RB-14` item 5) — nenhum teste hoje
   prova que a prop **não** vem no render inicial.
+- **[BACKLOG]** Limite de crédito também no contrato (pedido de 2026-10-23) `[V0]` — Dado um cliente
+  acima do limite de crédito, Quando crio uma assinatura para ele, Então com a empresa em "avisar" ela
+  nasce com o aviso de quanto passou; em "bloquear" ela não nasce. É a mesma escolha da venda. Fonte:
+  Omie (o limite vale para OS, contrato e pedido); US-CRM-081.
 
 ---
 
