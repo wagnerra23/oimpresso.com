@@ -36,7 +36,10 @@ final class ValeTrocaService
     /** O pagamento é um vale-troca? (Adiantamento lançado numa devolução.) */
     public static function ehVale(TransactionPayment $pagamento): bool
     {
-        if ($pagamento->method !== 'advance' || empty($pagamento->transaction_id)) {
+        // Lido cru: o Larastan tipa `method` pelo enum da migration original, que não
+        // lista 'advance' (o valor entrou depois). O banco aceita e grava 'advance'.
+        $metodo = (string) ($pagamento->getAttributes()['method'] ?? '');
+        if ($metodo !== 'advance' || empty($pagamento->transaction_id)) {
             return false;
         }
 
