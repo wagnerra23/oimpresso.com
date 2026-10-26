@@ -631,6 +631,21 @@ E devolução rejeitada, de outra nota ou de outra empresa não consome saldo
 **Implementação:** `Modules/NfeBrasil/Services/DevolucaoService.php` (`montarDevolucao`, rateio pela quantidade acumulada · `saldoDevolvido`).
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeDevolucaoTest.php` (lane `nfebrasil-pest`).
 
+### R-NFE-039 · A NF-e de devolução tem rota, com permissão e na empresa da sessão
+
+```gherkin
+Dado uma NF-e autorizada da empresa A
+Quando o fiscal com a permissão fiscal.nfe.acoes pede POST /fiscal/acoes/nfe/{id}/devolucao com itens[1]=2 e itens[3]=0,5
+Então o DevolucaoService recebe a empresa A, a nota e {1: 2, 3: 0,5} (R-NFE-026/027 fazem o resto)
+E sem a permissão a resposta é 403; sem item, ou com quantidade zero, negativa ou não numérica, não passa da validação
+E a nota de outra empresa não é achada (404) e o serviço não é chamado
+```
+
+**Contrato:** US-NFE-064 (a devolução copia a nota de origem) · ADR 0093.
+**Implementação:** `Modules/Fiscal/Http/Controllers/AcoesController.php` (`devolucao`) · `Modules/Fiscal/Routes/web.php` (`fiscal.acoes.nfe.devolucao`).
+**Testado em:** `Modules/Fiscal/Tests/Feature/AcoesDevolucaoTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** o botão "Emitir devolução" na tela da nota (escolher itens e quantidades) e o vínculo com a devolução de venda do estoque (`sell_return`).
+
 ### R-NFE-030 · Base reduzida e cBenef no item
 
 ```gherkin
@@ -1555,11 +1570,11 @@ Salvar em `memory/requisitos/NfeBrasil/smoke-2026-05-10.md`:
 > owner: — · sprint: — · priority: p1 · estimate: 3h · status: done · type: story
 > blocked_by: —
 
-**Implementado em:** `Modules/NfeBrasil/Services/DevolucaoService.php` · `Modules/NfeBrasil/Services/NfeService.php` · `Modules/NfeBrasil/Tests/Feature/NfeDevolucaoTest.php`
+**Implementado em:** `Modules/NfeBrasil/Services/DevolucaoService.php` · `Modules/NfeBrasil/Services/NfeService.php` · `Modules/NfeBrasil/Tests/Feature/NfeDevolucaoTest.php` · `Modules/Fiscal/Http/Controllers/AcoesController.php` (rota, R-NFE-039) · `Modules/Fiscal/Tests/Feature/AcoesDevolucaoTest.php`
 
 Como contador, quero que a NF-e de devolução use a base e as alíquotas da nota de origem — não a regra de hoje — para estornar exatamente o crédito ou débito que a venda gerou.
 
-**Critérios de aceite:** R-NFE-026 · R-NFE-027.
+**Critérios de aceite:** R-NFE-026 · R-NFE-027 · R-NFE-039 (rota com permissão e empresa da sessão, 2026-10-26; o botão na tela da nota segue pendente).
 
 **Disparo:** playbook Fiscal thread 20 (`prototipo-ui/cowork/Wagner/cowork-inbox/fiscal/playbook/20-devolucao.md`) · UC-TRB-13.
 
