@@ -264,6 +264,16 @@ e-mails: rodar duas vezes no mesmo dia não duplica.
 
 Status: 🧪
 
+## UC-CRREG-11 · A mensagem leva o meio de pagar da cobrança aberta · `must` Tier 0
+
+Fonte: lacuna P0 "régua com link de pagamento" (levantamento 2026-10-25) + SPEC US-FIN-033.
+**Dado** um título com cobrança `emitida` dele (`origem_type = fin_titulo`) com Pix copia e cola, outro cuja única
+cobrança está `paga` (e uma cobrança de OUTRO business aponta para o mesmo id), e um título de venda cuja venda tem
+cobrança `vencida` com linha digitável **Quando** o job roda **Então** o primeiro e-mail traz o Pix copia e cola, o
+segundo não traz meio de pagar nenhum, e o terceiro traz a linha digitável da cobrança da venda.
+
+Status: 🧪
+
 ## Como rodar a suíte
 1. **Pest (MySQL real):** lane do Financeiro no CT100 — quando os UCs acima ganharem teste.
 2. **Cadência:** rodar ao fim de toda mexida na tela. UC ❌ = regressão → lição + conserto.
