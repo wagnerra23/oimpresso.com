@@ -195,6 +195,12 @@ class WhatsappServiceProvider extends ServiceProvider
             Event::listen(InstalacaoAgendada::class, [NotifyInstalacaoCvCustomer::class, 'handle']);
         }
 
+        // NF-e autorizada → DANFE por WhatsApp (US-WA-321; flag whatsapp.aviso_automatico.danfe_enabled).
+        // class_exists: o NfeBrasil pode não estar instalado nesta base.
+        if (class_exists(\Modules\NfeBrasil\Events\NFeAutorizada::class)) {
+            Event::listen(\Modules\NfeBrasil\Events\NFeAutorizada::class, [\Modules\Whatsapp\Listeners\EnviarDanfePorWhatsapp::class, 'handle']);
+        }
+
         // Centrifugo real-time UI (ADR 0058) — publica em whatsapp:business:{id} channel
         Event::listen(WhatsappMessageReceived::class, PublishMessageReceivedToCentrifugo::class);
         Event::listen(WhatsappMessageSent::class, PublishMessageSentToCentrifugo::class);
