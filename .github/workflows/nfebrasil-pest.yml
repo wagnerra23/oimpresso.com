@@ -304,6 +304,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/NfeEmissaoPorItemTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeDevolucaoTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeFilialNumeracaoTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfceCscConfigTest.php \
             Modules/NfeBrasil/Tests/Feature/NaturezaFiscalTest.php \
             Modules/NfeBrasil/Tests/Feature/SeparacaoNotasDaVendaContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/EmissaoSeparadaContratoTest.php \

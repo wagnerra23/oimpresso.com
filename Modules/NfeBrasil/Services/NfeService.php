@@ -1623,8 +1623,12 @@ class NfeService
             'siglaUF'     => $uf,
             'schemes'     => 'PL_009_V4',
             'versao'      => '4.00',
-            'tokenCSC'    => '',
-            'idCSC'       => '',
+            // R-NFE-045: a sped-nfe lê `CSC`/`CSCid` (Common\Tools::addQRCode) para o QR Code da
+            // NFC-e anterior à versão 3; até 2026-10-26 iam `tokenCSC`/`idCSC` vazios, que ela não
+            // lê. O CSC é o cadastrado na empresa (`business.csc`/`csc_id`, o mesmo que a
+            // consulta de cadastro já usa). No QR v3 a lib não exige o CSC.
+            'CSC'         => (string) ($business->csc ?? ''),
+            'CSCid'       => (string) ($business->csc_id ?? ''),
         ]);
     }
 
