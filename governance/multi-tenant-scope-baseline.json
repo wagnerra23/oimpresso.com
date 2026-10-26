@@ -52,7 +52,6 @@
                           "Modules/Officeimpresso/Entities/Licenca_Computador.php",
                           "Modules/Officeimpresso/Entities/LicencaLog.php",
                           "Modules/OficinaAuto/Entities/OaInspectionItem.php",
-                          "Modules/OficinaAuto/Entities/ServiceOrder.php",
                           "Modules/OficinaAuto/Entities/ServiceOrderItem.php",
                           "Modules/OficinaAuto/Entities/Vehicle.php",
                           "Modules/Spreadsheet/Entities/Spreadsheet.php",
