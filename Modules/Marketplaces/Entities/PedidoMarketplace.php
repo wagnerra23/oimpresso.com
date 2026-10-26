@@ -32,6 +32,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property \Illuminate\Support\Carbon|null $processed_at
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read ContaVendedor|null $conta
  */
 class PedidoMarketplace extends Model
 {
@@ -58,6 +59,7 @@ class PedidoMarketplace extends Model
         'processed_at' => 'datetime',
     ];
 
+    /** @return BelongsTo<ContaVendedor, $this> */
     public function conta(): BelongsTo
     {
         return $this->belongsTo(ContaVendedor::class, 'account_id');
