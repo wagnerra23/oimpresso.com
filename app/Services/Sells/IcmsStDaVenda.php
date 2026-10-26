@@ -27,7 +27,8 @@ use Illuminate\Support\Facades\Schema;
  */
 final class IcmsStDaVenda
 {
-    private const NFE = '\\Modules\\NfeBrasil\\Services\\NfeService';
+    // Sem barra inicial: é a chave do container (app()), que precisa ser igual ao nome da classe.
+    private const NFE = 'Modules\\NfeBrasil\\Services\\NfeService';
 
     /** ST das linhas do carrinho (antes de gravar). `itens`: variation_id, quantidade, valor_unitario. */
     public function doCarrinho(int $businessId, ?int $locationId, ?int $contactId, array $itens, float $valorSemSt, float $frete): float
