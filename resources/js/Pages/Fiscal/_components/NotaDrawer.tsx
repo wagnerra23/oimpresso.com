@@ -23,6 +23,7 @@ import {
 } from '../_lib/fiscal-helpers';
 
 import DrawerBase from './_shared/DrawerBase';
+import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
 
 export interface NotaRow {
   id: number;
@@ -159,6 +160,8 @@ export default function NotaDrawer({ nota, sefazCodes, onClose }: NotaDrawerProp
   const [cceOpen, setCceOpen] = useState(false);
   const [retransmitOpen, setRetransmitOpen] = useState(false);
   const [motivo, setMotivo] = useState('');
+  // R-NFE-044 · decisão [W] 2026-10-26: ao cancelar, perguntar se a venda vai junto.
+  const [escopo, setEscopo] = useState<'nota' | 'venda'>('nota');
   const [textoCce, setTextoCce] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -187,6 +190,7 @@ export default function NotaDrawer({ nota, sefazCodes, onClose }: NotaDrawerProp
     setCceOpen(false);
     setRetransmitOpen(false);
     setMotivo('');
+    setEscopo('nota');
     setTextoCce('');
   }, [nota?.id]);
 
@@ -194,12 +198,13 @@ export default function NotaDrawer({ nota, sefazCodes, onClose }: NotaDrawerProp
     if (motivo.trim().length < 15) return;
     if (!nota) return;
     setBusy(true);
-    router.post(`/fiscal/acoes/nfe/${nota.id}/cancelar`, { motivo }, {
+    router.post(`/fiscal/acoes/nfe/${nota.id}/cancelar`, { motivo, escopo }, {
       preserveScroll: true,
       onFinish: () => {
         setBusy(false);
         setCancelOpen(false);
         setMotivo('');
+        setEscopo('nota');
         onClose();
       },
     });
@@ -490,8 +495,30 @@ export default function NotaDrawer({ nota, sefazCodes, onClose }: NotaDrawerProp
             </h3>
             <p style={{ fontSize: 12.5, color: 'var(--fx-text-dim)', margin: '0 0 14px' }}>
               Justificativa obrigatória (mín. 15 chars · regra CONFAZ).
-              Cancelamento aciona FSM cascade ADR 0143 — refund gateway + notif cliente (se biz=1).
             </p>
+            <RadioGroup
+              value={escopo}
+              onValueChange={(v) => setEscopo(v === 'venda' ? 'venda' : 'nota')}
+              disabled={busy}
+              aria-label="O que cancelar"
+              data-contract="cancelar-escopo"
+              style={{ display: 'grid', gap: 8, margin: '0 0 14px' }}
+            >
+              <label htmlFor="cancelar-escopo-nota" style={{ display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: 12.5 }}>
+                <RadioGroupItem value="nota" id="cancelar-escopo-nota" />
+                <span>
+                  <strong>Só a nota</strong> — a venda continua, para reemitir a nota.
+                </span>
+              </label>
+              <label htmlFor="cancelar-escopo-venda" style={{ display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: 12.5 }}>
+                <RadioGroupItem value="venda" id="cancelar-escopo-venda" />
+                <span>
+                  <strong>A venda junto</strong> — a venda é cancelada (sai dos relatórios), o estoque volta e o
+                  título sem pagamento é cancelado. Venda com dinheiro recebido não cancela: devolva ou remova os
+                  pagamentos na própria venda antes.
+                </span>
+              </label>
+            </RadioGroup>
             <textarea
               value={motivo}
               onChange={(e) => setMotivo(e.target.value)}
@@ -521,7 +548,7 @@ export default function NotaDrawer({ nota, sefazCodes, onClose }: NotaDrawerProp
                 onClick={handleCancelar}
                 disabled={busy || motivo.trim().length < 15}
               >
-                {busy ? 'Cancelando…' : 'Confirmar cancelamento'}
+                {busy ? 'Cancelando…' : escopo === 'venda' ? 'Cancelar nota e venda' : 'Cancelar só a nota'}
               </Button>
             </div>
           </div>
