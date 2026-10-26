@@ -99,6 +99,7 @@ jobs:
           filters: |
             compras:
               - 'Modules/Compras/**'
+              - 'Modules/NfeBrasil/Database/Migrations/2026_10_27_000001_add_entrada_compra_to_nfe_dfe_tables.php'
               - 'resources/js/Pages/Compras/**'
               - 'app/Utils/TransactionUtil.php'
               - 'app/Http/Controllers/PurchaseController.php'
@@ -192,6 +193,7 @@ jobs:
             Modules/Compras/Tests/Feature/AplicarCustoDoRecebimentoTest.php \
             Modules/Compras/Tests/Feature/PropostasDePrecoContratoTest.php \
             Modules/Compras/Tests/Feature/RecebimentoParcialPedidoTest.php \
+            Modules/Compras/Tests/Feature/EntradaXmlSchemaTest.php \
             Modules/Compras/Tests/Feature/ComprasExportarContratoTest.php
 
 

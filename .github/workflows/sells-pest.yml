@@ -48,6 +48,8 @@ on:
       - 'app/Http/Controllers/SellCommissionSplitController.php'
       - 'app/Http/Controllers/SellController.php'
       - 'app/Http/Controllers/Api/App/PedidosController.php'
+      - 'app/Services/AppLojas/EtiquetaProducao.php'  # QR da OS/etapa (AppProducaoApontamentoContratoTest)
+      - 'Modules/Producao/Http/Controllers/Api/AppApontamentoController.php'  # API de apontamento do app
       - 'app/Domain/Fsm/Support/PassosDoProcesso.php'
       - 'database/migrations/2026_10_16_120000_add_passo_to_sale_process_stages.php'
       - 'database/seeders/FsmProcessoVendaComProducaoSeeder.php'
@@ -75,6 +77,8 @@ on:
       - 'app/Http/Controllers/ServiceOrderFsmActionController.php'
       - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php'
       - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaAssinaturaTest.php'  # UC-FLX-22 assinatura na entrega
+      - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderGuardsFsmTest.php'  # US-OFICINA-006 trava FSM
+      - 'Modules/OficinaAuto/Entities/ServiceOrder.php'
       - 'Modules/OficinaAuto/Services/AssinaturaEntrega.php'
       - 'Modules/OficinaAuto/Http/Controllers/ServiceOrderAssinaturaController.php'
       - 'Modules/OficinaAuto/Entities/OsAssinatura.php'
@@ -243,6 +247,8 @@ jobs:
               - 'config/mwart.php'
               - 'app/Support/Mwart.php'
               - 'app/Http/Controllers/Api/App/PedidosController.php'
+              - 'app/Services/AppLojas/EtiquetaProducao.php'  # QR da OS/etapa (AppProducaoApontamentoContratoTest)
+              - 'Modules/Producao/Http/Controllers/Api/AppApontamentoController.php'  # API de apontamento do app
               - 'app/Domain/Fsm/Support/PassosDoProcesso.php'
               - 'database/migrations/2026_10_16_120000_add_passo_to_sale_process_stages.php'
               - 'database/seeders/FsmProcessoVendaComProducaoSeeder.php'
@@ -270,6 +276,8 @@ jobs:
               - 'app/Http/Controllers/ServiceOrderFsmActionController.php'
               - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php'
               - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaAssinaturaTest.php'  # UC-FLX-22 assinatura na entrega
+              - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderGuardsFsmTest.php'  # US-OFICINA-006 trava FSM
+              - 'Modules/OficinaAuto/Entities/ServiceOrder.php'
               - 'Modules/OficinaAuto/Services/AssinaturaEntrega.php'
               - 'Modules/OficinaAuto/Http/Controllers/ServiceOrderAssinaturaController.php'
               - 'Modules/OficinaAuto/Entities/OsAssinatura.php'
@@ -521,6 +529,7 @@ jobs:
             tests/Feature/Sells/AppOsApiContratoTest.php \
             Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php \
             Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaAssinaturaTest.php \
+            Modules/OficinaAuto/Tests/Feature/ServiceOrderGuardsFsmTest.php \
             tests/Feature/Sells/AppOsArquivosApiContratoTest.php \
             tests/Feature/Sells/AppPedidoEntregaContratoTest.php \
             tests/Feature/Sells/AppOficinaAgendaApiContratoTest.php \
