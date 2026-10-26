@@ -2295,7 +2295,7 @@ e fica como tal.
 > owner: — · priority: p1 · estimate: 16h · status: todo · type: story
 > blocked_by: US-COPI-142
 
-**Implementado em:** _pendente_ — planejada (lacunas 2026-10-25); as tools do chat são só de leitura (`ChatCopilotoAgent::tools()`) e atrás de flag
+**Implementado em:** _pendente_ — planejada (lacunas 2026-10-25); as tools do chat só leem (`ChatCopilotoAgent::tools()`), ligadas em produção desde 2026-07-17 (US-COPI-142)
 
 Origem: levantamento de lacunas 2026-10-25 (P1 Plataforma — IA que executa ações com aprovação). Pede ADR nova antes do código (proposta pela frente Plataforma).
 - A Jana nunca grava direto: ela devolve uma proposta de ação (tipo, alvo, campos) que a tela mostra num cartão com Confirmar/Cancelar.
