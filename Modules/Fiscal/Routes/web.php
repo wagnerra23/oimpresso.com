@@ -132,6 +132,12 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
             ->middleware('throttle:30,1')
             ->name('acoes.nfe.retransmitir');
 
+        // R-NFE-039 · NF-e de devolução de uma nota autorizada (delega DevolucaoService).
+        Route::post('/acoes/nfe/{emissao}/devolucao', [AcoesController::class, 'devolucao'])
+            ->whereNumber('emissao')
+            ->middleware('throttle:30,1')
+            ->name('acoes.nfe.devolucao');
+
         // ─── PR #7 Wave: ⌘K palette cross-fiscal ────────────────────────
         // Busca global em notas + DF-e (throttle 60/min — usuário digita rápido).
         Route::get('/palette/search', [PaletteSearchController::class, 'search'])
