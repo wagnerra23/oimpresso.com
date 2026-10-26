@@ -173,6 +173,8 @@ class CaixaUnificadaController extends Controller
             'unlinked' => $unlinked,
             'mediaInbound24h' => $mediaInbound24h,
             'inboundAging' => $inboundAging,
+            // US-WA-323 — o botão "Salvar e disparar" só liga com a flag do disparo real (US-WA-322).
+            'broadcastDisparoHabilitado' => (bool) config('whatsapp.broadcast.disparo_enabled', false),
             'orderBy' => $orderBy,
             'activeTagIds' => array_values($activeTagIds),
             'thread' => $thread,

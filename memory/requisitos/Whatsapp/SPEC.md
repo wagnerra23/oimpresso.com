@@ -2030,3 +2030,19 @@ Refs: ROADMAP-SDD (sweep do mês)
 6. Contadores `total/enviados/falhas/pulados`; campanha vira `done` quando a soma chega ao total.
 
 Ligar em produção é decisão [W]. Botão de disparar/cancelar na tela: US seguinte.
+
+### US-WA-323 · Campanha por WhatsApp — "Salvar e disparar" e cancelar na Caixa Unificada
+
+**Implementado em:** `Modules/Whatsapp/Http/Controllers/Admin/BroadcastController.php` · `Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/_components/BroadcastSheet.tsx` · `Modules/Whatsapp/Tests/Feature/BroadcastDispararEndpointContratoTest.php`
+
+**Testado em:** `Modules/Whatsapp/Tests/Feature/BroadcastDispararEndpointContratoTest.php`
+
+> owner: — · priority: p1 · estimate: 4h · type: story
+> blocked_by: US-WA-322
+
+**Critérios de aceite:**
+1. Botão "Salvar e disparar" no painel de campanha: ligado só com `WHATSAPP_BROADCAST_DISPARO_ENABLED` e texto livre; desligado, diz por quê.
+2. `store` com `disparar=true`: flag desligada ou template → recusa sem gravar; canal com campanha em `dispatching` → recusa (uma por vez por canal, para o limite anti-ban valer).
+3. Ligada: grava a campanha e agenda `DispararBroadcastJob` (US-WA-322) da própria empresa.
+4. `POST /atendimento/broadcast/{id}/cancelar` (`can:whatsapp.send` + acesso ao canal): `dispatching → cancelled`; os envios agendados não saem. Campanha de outra empresa: 404.
+5. Contrato da tela: `UC-CXU-19` em `CaixaUnificada/Index.casos.md`.
