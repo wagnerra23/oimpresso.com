@@ -2031,3 +2031,18 @@ Refs: ROADMAP-SDD (sweep do mês)
 6. Falha no envio: a conversa segue na fila humana (princípio 8).
 
 Ligar em produção é decisão [W]. Tela para configurar o menu do canal: US seguinte.
+
+### US-WA-327 · Tela de configurar o menu do bot por canal
+
+**Implementado em:** `Modules/Whatsapp/Http/Controllers/Admin/BotMenuController.php` · `Modules/Whatsapp/Resources/js/Pages/Atendimento/Channels/_components/BotMenuTab.tsx` · `Modules/Whatsapp/Resources/js/Pages/Atendimento/Channels/Show.tsx`
+
+**Testado em:** `Modules/Whatsapp/Tests/Feature/BotMenuConfigContratoTest.php`
+
+> owner: — · priority: p1 · estimate: 4h · type: story
+> blocked_by: US-WA-324
+
+**Critérios de aceite:**
+1. Aba "Menu do bot" em `/atendimento/canais/{id}` (permissão `whatsapp.settings.manage`): liga/desliga, saudação, até 9 opções (número, rótulo, fila da empresa, resposta) e "perguntar o nome".
+2. `PUT /atendimento/canais/{id}/menu-bot` grava um menu por canal (salvar de novo atualiza); canal de outra empresa → 404; fila de outra empresa e número repetido → recusados.
+3. O que a tela grava é o que o `MenuDeAtendimento` (US-WA-324) lê.
+4. Com a flag do sistema desligada, a aba avisa que o menu só responde depois de ligado.
