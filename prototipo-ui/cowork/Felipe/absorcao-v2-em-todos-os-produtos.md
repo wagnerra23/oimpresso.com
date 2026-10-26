@@ -4,6 +4,32 @@ Lista para verificação. **Nada foi implementado** — cada item espera SIM / N
 
 ---
 
+## §-2 Decisões de 26/10/2026 que mudam itens deste documento
+
+O [F] comentou a âncora da tela (este `produto-blade.jsx`) em 26/10 e o protótipo mudou no PR #9925.
+O texto abaixo é de 28/08 e fica como estava; esta seção diz o que deixou de valer.
+
+- **§2.3 e as tabelas do drawer:** "(excl.)" e "(incl.)" viraram "sem imposto" e "com imposto" nas
+  tabelas de Composição e de Variações.
+- **§5, "Comprar → módulo Compras":** a ligação saiu. Não há mais "Comprar este produto" no menu
+  Ações nem "Comprar" no rodapé do drawer: a consulta não é a tela de compras.
+- **§5, item 3 ("Gerar OP"):** decidido. O botão saiu do rodapé do drawer: a ordem de produção começa
+  na produção, não na consulta. A pergunta CV × Fabricação deixa de existir.
+- **§5, "Dados fiscais → Fiscal", e §13 (papel × o que vê):** a aba Fiscal, o "Dados fiscais
+  (NCM/CFOP)" do menu, a coluna e o filtro Imposto e a coluna Imposto dos dois exports só existem
+  para quem tem `fiscal.access`, a permissão do módulo Fiscal. Ela entrou em `produto-perms.jsx` fora
+  da lista `TODAS`; entre os papéis simulados, só o Administrador a tem. "Imposto aplicável" e "Tipo
+  de imposto na venda" saíram da aba Dados e ficam só na aba Fiscal. A parte dos exports foi estendida
+  pelo agente, pela mesma regra.
+- **§12 (colunas exportadas):** a lista de 13 colunas vale para quem tem `fiscal.access`; sem ela, a
+  coluna Imposto não sai (são 12).
+
+Na produção nada disso mudou ainda. O registro do que falta, e dos três itens de imposto que esperam
+o [W] por contrariar o charter da tela ("Função a menos que a lista Blade"), está em
+`resources/js/Pages/Produto/Index.casos.md`, backlog "Decisões do [F] de 2026-10-26".
+
+---
+
 ## §-1 Alvo confirmado, e uma errata retratada (28/08/2026)
 
 **O §1 está certo.** A tela é a `Todos os produtos` do protótipo — `produto-blade.jsx`, rota

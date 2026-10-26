@@ -88,6 +88,30 @@ função da lista Blade que roda hoje em produção.
 - Multi-tenant: `business_id` explícito em toda consulta (não há global scope em `App\Product`).
 - Permission gate: `product.view` **ou** `product.create` (`ProductController@index`, 403).
 
+> **Decidido por [F] em 2026-10-26 (comentários na âncora), ainda não na produção.** O protótipo
+> (`produto-blade.jsx`, PR #9925) já mudou. A tela em produção segue como descrito acima até o PR
+> que levar a mudança, e esse PR reescreve os casos e os testes junto.
+> - Sai o "Comprar" do menu Ações e do rodapé do painel: a consulta não é a tela de compras. Muda o
+>   UC-PIDX-11.
+> - O rodapé do painel não tem "Gerar OP": a ordem de produção começa na produção. A produção nunca
+>   teve o botão; o protótipo deixou de ter.
+> - A aba Fiscal e o "Dados fiscais (NCM/CFOP)" do menu só aparecem com `fiscal.access`, a permissão
+>   do módulo Fiscal. Hoje vão a quem abre o produto. Muda os UC-PIDX-17, 19 e 25.
+> - "Imposto aplicável" e "Tipo de imposto na venda" saem da aba Dados e ficam só na aba Fiscal.
+> - A coluna Imposto e o filtro Imposto da lista só aparecem com `fiscal.access`. No protótipo, o CSV
+>   de "Exportar filtrados" também perde a coluna Imposto sem a permissão; isso foi estendido pelo
+>   agente, pela mesma regra, e o [F] pode desfazer.
+> - Nas tabelas de Variações e Composição, "(excl.)" e "(incl.)" viram "sem imposto" e "com imposto".
+>
+> ⚠️ **Os itens de imposto conflitam com o Non-Goal "Função a menos que a lista Blade" e com o
+> UC-PIDX-09.** A lista Blade mostra a coluna e o filtro de imposto, e a janela "Ver" mostra o imposto
+> aplicável e o tipo (esta pede só `product.view`), sem permissão própria para o imposto
+> (`resources/views/product/index.blade.php:63-67,317-318` e `view-modal.blade.php:94-100`,
+> verificado@83d7c45). Com a decisão, quem não tem `fiscal.access` passa a ver menos que na Blade. O
+> Non-Goal é do [W] (v3 autorizada por ele em 2026-10-10), então levar esses itens à produção pede a
+> palavra dele. Comprar, Gerar OP, os rótulos e os campos só fiscais (NCM, CEST, CFOP, CST) não têm
+> esse conflito: não existem na lista nem na janela "Ver" da Blade.
+
 ---
 
 ## Non-Goals — Features (NÃO faz)

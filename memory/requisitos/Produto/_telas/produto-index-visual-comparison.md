@@ -225,6 +225,34 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > porque os botões dele não herdam a fonte do sistema — defeito do protótipo, não copiado.
 > **Não medido:** aba Composição em produção (a empresa de teste não tem produto composto), tema
 > claro, estados de passar o mouse e de foco.
+>
+> ### 2026-10-26 — decisões do [F] na âncora: o protótipo mudou, a produção ainda não
+>
+> O [F] comentou a âncora (`prototipo-ui/cowork/Felipe/produto-blade.jsx`) e pediu, no mesmo dia, o
+> limite também na coluna e no filtro Imposto da lista. O protótipo mudou no PR #9925. A produção
+> foi **lida no código** do `main` em 83d7c45, não medida na tela.
+>
+> | Item | Protótipo depois do #9925 | Produção em 2026-10-26 | O que falta |
+> |---|---|---|---|
+> | "Comprar" (menu Ações e rodapé do painel) | não existe | aparece com `purchase.create` (`AcoesProduto.tsx:74`, `PainelDetalhe.tsx:698-700`) | levar; reescreve o UC-PIDX-11 |
+> | "Gerar OP" (rodapé do painel) | não existe | nunca existiu | nada; a pendência registrada em 2026-10-13, acima, deixa de existir |
+> | Aba Fiscal e "Dados fiscais (NCM/CFOP)" do menu | só com `fiscal.access` | a quem abre o produto (`PainelDetalhe.tsx:314`, `AcoesProduto.tsx:77`) | levar; muda os UC-PIDX-17, 19 e 25 |
+> | "Imposto aplicável" e "Tipo de imposto na venda" na aba Dados | não existem (ficam só na aba Fiscal) | presentes (`PainelDetalhe.tsx:386-387`) | levar, depois da palavra do [W] |
+> | Coluna e filtro Imposto da lista | só com `fiscal.access` | a todos (`colunas.tsx:198-199`, `FiltrosLista.tsx:85`) | levar, depois da palavra do [W] |
+> | Coluna Imposto no CSV de "Exportar filtrados" e no "Baixar Excel" | sem a coluna para quem não tem `fiscal.access` (estendido pelo agente, pela mesma regra) | com a coluna para todos (`ProductController.php:1039`; `app/Exports/ProductsExport.php`) | o [F] confirma a extensão e o [W] decide, como nos dois itens acima; o "Baixar Excel" é o arquivo de reimportação da Blade, e tirar a coluna muda esse arquivo |
+> | "(excl.)" e "(incl.)" nas tabelas de Variações e Composição | "sem imposto" e "com imposto" | "(excl.)" e "(incl.)" (`PainelDetalhe.tsx:436-440,507-508,546-549`) | levar; é rótulo, sem conflito |
+>
+> **Por que três itens esperam o [W]:** a lista Blade mostra o filtro e a coluna de imposto, e a
+> janela "Ver" mostra o imposto aplicável e o tipo, a quem pode ver o produto, sem permissão própria
+> (`resources/views/product/index.blade.php:63-67,317-318`, `view-modal.blade.php:94-100`). Com a
+> decisão, quem não tem `fiscal.access` vê menos que na Blade. O charter tem o Non-Goal "Função a
+> menos que a lista Blade", autorizado pelo [W] em 2026-10-10.
+>
+> **Medido no protótipo** (Playwright, 1440px, papel simulado nos Tweaks): o Administrador, o único
+> papel simulado com `fiscal.access`, vê a aba Fiscal, o "Dados fiscais", a coluna e o filtro
+> Imposto, e baixa "Exportar filtrados" e "Baixar Excel" com a coluna Imposto; o Balcão não vê nenhum
+> deles, o menu de colunas cai de 10 para 9 opções e os dois arquivos saem sem a coluna. Nos dois
+> papéis: sem "Comprar" e sem "Gerar OP", 0 erro no console.
 
 > **Tipo de tela:** list cockpit list+detail (drawer pattern)
 > **Persona:** Larissa (ROTA LIVRE biz=4), 1280px

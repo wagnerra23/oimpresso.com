@@ -237,6 +237,7 @@ last_run_ci: "2026-10-23: run 39945557255 (lane Estoque · MySQL, main 53e7995, 
   - **Blade** — `ProductController::view` + `product/view-modal.blade.php` (e `single_/variable_/combo_product_details`): os gates `@can('view_purchase_price')` e `@can('access_default_selling_price')`, preço por grupo só dos grupos permitidos, estoque por local carregado de `/reports/stock-report` (pede `stock_report.view`).
   - **ADR 0093** — `Product::where('business_id', …)`: produto de outra empresa não abre.
 - **Divergência deliberada, mais restrita que a Blade:** o total da composição pelo custo só vem com `view_purchase_price` (a Blade mostrava a coluna a todos). E "origem da mercadoria" (protótipo) não vem: o campo não existe no banco.
+- ⚠️ **Conflito aberto em 2026-10-26:** o [F] decidiu que o imposto do produto só aparece com `fiscal.access`. A janela "Ver" da Blade mostra o imposto aplicável e o tipo de imposto a quem pode ver o produto (`resources/views/product/view-modal.blade.php:94-100`, verificado@83d7c45). Levar a decisão à produção deixa este caso mais restrito que a Blade, e o charter tem o Non-Goal "Função a menos que a lista Blade", autorizado pelo [W]. Por isso a mudança espera a palavra do [W]. Ver o backlog "Decisões do [F] de 2026-10-26".
 - **Status: 🧪** — passou (2026-10-23). Pest na lane Estoque · MySQL, run 39945557255 (main 53e7995, 2026-10-23): 497 testes, 0 falhas, 0 pulados.
 
 
@@ -250,6 +251,7 @@ last_run_ci: "2026-10-23: run 39945557255 (lane Estoque · MySQL, main 53e7995, 
   - **Protótipo** — rodapé da vista `lista`: "Exportar filtrados" (`exportarCsv(ordenados)`).
   - **Lista** — as linhas saem de `buildProdutoListaPaginada` (a mesma consulta, filtros, busca e ordem da tela); o gate de preço é o do UC-PIDX-03 (sem permissão a coluna não existe).
   - A "Baixar Excel" do cabeçalho segue sendo a exportação completa da Blade (`/products/download-excel`).
+- **Decisão de 2026-10-26, ainda não na produção:** com a coluna Imposto limitada a `fiscal.access` ([F]), o protótipo também tira a coluna Imposto do CSV para quem não tem a permissão. Essa parte foi estendida pelo agente, pela mesma regra, e o [F] pode desfazer. Hoje o CSV leva "Imposto" a todos (`ProductController.php:1039`, verificado@83d7c45). Ver o backlog "Decisões do [F] de 2026-10-26".
 - **Status: 🧪** — passou (2026-10-23). Pest na lane Estoque · MySQL, run 39945557255 (main 53e7995, 2026-10-23): 497 testes, 0 falhas, 0 pulados.
 
 ## UC-PIDX-11 · "Comprar" abre a nova compra com o produto · `should`
@@ -257,8 +259,9 @@ last_run_ci: "2026-10-23: run 39945557255 (lane Estoque · MySQL, main 53e7995, 
 - **Aceite:** Dado um produto ativo e com controle de estoque, e a permissão de criar compra · Quando escolho "Comprar este produto" no menu da linha, ou "Comprar" no painel de detalhe · Então abre a nova compra já com esse produto (UC-PURCRE-09). Sem a permissão, ou com produto inativo ou sem controle de estoque, a ação não aparece.
 - **Teste:** [`ProdutoDetalheTest`](../../../../tests/Feature/Produto/ProdutoDetalheTest.php) — `UC-PIDX-11` (a permissão); o que a compra faz com o produto é o UC-PURCRE-09, em [`PurchaseGradeMatrixTest`](../../../../tests/Feature/Purchase/PurchaseGradeMatrixTest.php).
 - **Contrato:**
-  - **Protótipo** — `acoesDe` ("Comprar este produto") e rodapé do `DetalheDrawer` ("Comprar"); pedido [F] 2026-10-11 *"abre preenchido com o produto"*.
+  - **Protótipo** — `acoesDe` ("Comprar este produto") e rodapé do `DetalheDrawer` ("Comprar"); pedido [F] 2026-10-11 *"abre preenchido com o produto"*. Os dois saíram do protótipo em 2026-10-26 (#9925); ver abaixo.
   - **Compra** — produto inativo ou sem controle de estoque não aparece na busca da compra (`getProducts`); por isso a ação some nesses casos, em vez de abrir uma compra vazia.
+- **Decisão [F] de 2026-10-26, ainda não na produção:** o "Comprar" sai do menu e do painel, porque a consulta não é a tela de compras. O caso e o teste continuam valendo enquanto a produção tiver o botão. O PR que tirar o botão reescreve este caso e o teste no mesmo PR. Ver o backlog "Decisões do [F] de 2026-10-26".
 - **Status: 🧪** — passou (2026-10-23). Pest na lane Estoque · MySQL, run 39945557255 (main 53e7995, 2026-10-23): 497 testes, 0 falhas, 0 pulados.
 
 ## UC-PIDX-12 · Os 3 indicadores da aba Estoque do painel somam o relatório de estoque do produto · `must`
@@ -341,6 +344,7 @@ last_run_ci: "2026-10-23: run 39945557255 (lane Estoque · MySQL, main 53e7995, 
 - **Diferença deliberada do protótipo:** lá `onAcao("fiscal")` faz o mesmo que o "Ver" (`setVer(p)`), e o painel nasce sempre em "Dados" — o item leva o nome de fiscal e cai na aba errada. Aqui ele abre na aba Fiscal.
 - **Efeito no "Ver":** a aba ativa do painel passou a ser guardada pela página, e cada abertura recomeça na aba pedida. Antes o painel guardava a aba e ficava montado entre uma abertura e outra. Medido em produção em 2026-10-13, antes desta mudança: abrir o produto "2" pelo "Ver", ir para Estoque, fechar e abrir o "55555555555" pelo "Ver" caiu em Estoque. No protótipo o painel sempre abre em Dados.
 - **Não coberto por teste:** a ligação dentro de `Produto/Index.tsx` (a ação `fiscal` chamar a abertura com a aba Fiscal) — nenhum teste renderiza a página inteira. Conferido em produção depois do deploy.
+- **Decisão [F] de 2026-10-26, ainda não na produção:** o item passa a exigir `fiscal.access`, e não só a permissão de ver o produto. No protótipo já é assim (#9925). Ver o backlog "Decisões do [F] de 2026-10-26".
 - **Status: 🧪** — passou (2026-10-23). Vitest local em 2026-10-23 (main 53e7995): os 133 testes dos arquivos da lista passaram (estes arquivos não rodam em lane).
 
 ## UC-PIDX-18 · Aba "Relatório de estoque": linhas por página e lucro potencial com cor · `should` `[V0]`
@@ -370,7 +374,8 @@ last_run_ci: "2026-10-23: run 39945557255 (lane Estoque · MySQL, main 53e7995, 
   - **"Abrir no módulo Fiscal"** — não há tela fiscal por produto para onde levar.
   - **Texto de ajuda** — o do protótipo afirma, para todo produto sem NCM, "Serviço: sai em NFS-e por ISS"; com dado real, produto sem NCM pode ser só cadastro incompleto. Fica de fora até existir uma frase conferida.
   - **"Transferir" por local (aba Estoque)** — entra com a requisição de transferência.
-  - **"Gerar OP" (rodapé de composição)** — a Fabricação produz por receita de uma variação; composição não é receita, e não há tela de destino.
+  - **"Gerar OP" (rodapé de composição)** — a Fabricação produz por receita de uma variação; composição não é receita, e não há tela de destino. Em 2026-10-26 o botão saiu também do protótipo, por decisão [F] ("ordem de produção se inicia na produção"), e deixou de ser pendência.
+- **Decisão [F] de 2026-10-26, ainda não na produção:** a aba Fiscal inteira passa a exigir `fiscal.access`, e "Imposto aplicável" e "Tipo de imposto na venda" saem da aba Dados. Com isso, a última frase do Aceite ("A aba Dados continua mostrando o mesmo valor") deixa de valer quando a mudança for para a produção. Ver o backlog "Decisões do [F] de 2026-10-26".
 - **Status: 🧪** — passou (2026-10-23). Vitest local em 2026-10-23 (main 53e7995): os 133 testes dos arquivos da lista passaram (estes arquivos não rodam em lane).
 
 ## UC-PIDX-20 · Painel: composição com total, preço e preços dos itens; imagens das variações · `should` `[V0]`
@@ -425,6 +430,7 @@ last_run_ci: "2026-10-23: run 39945557255 (lane Estoque · MySQL, main 53e7995, 
 - **Aceite:** Dada a aba Fiscal do painel · Então ela mostra **Origem da mercadoria** depois dos CST e antes de "Imposto aplicável", com o código e o nome da tabela A gravados no próprio produto (`products.origem_mercadoria`; sem escolha, `0 — Nacional`), os mesmos nomes do campo do cadastro · E um **texto de ajuda** que muda conforme o cadastro: sem NCM, diz que a nota usa o NCM padrão da empresa; com NCM, explica a ordem da regra (exceção do produto, regra do NCM, padrão da empresa); com CEST, avisa que a nota não troca o CFOP sozinha · E, quando a empresa tem o módulo **Fiscal** no pacote (`fiscal_module`) **e** a pessoa tem a permissão de acessar o módulo (`fiscal.access`) — as duas checagens do menu Fiscal, decisão [F] 2026-10-16 —, mais a permissão `nfe.tributacao.manage` que o simulador cobra, o botão **"Abrir no módulo Fiscal"**, que leva à Tributação com o produto já escolhido no simulador (UC-NFTR-29). Sem módulo ou sem permissão, o botão não existe.
 - **Teste:** [`ProdutoDetalheTest`](../../../../tests/Feature/Produto/ProdutoDetalheTest.php) — `UC-PIDX-25` (origem do produto, com um 2º produto em 0 como discriminante; produto de outra empresa segue `null`; e as três condições do link, na lane Estoque · MySQL); [`produto-painel-detalhe.test.tsx`](../../../../tests/js/produto-painel-detalhe.test.tsx) — `UC-PIDX-25` (não roda em lane). Mutação: voltar o texto do protótipo para produto sem NCM derruba o 5º caso do Vitest.
 - **Contrato:** protótipo `produto-blade.jsx`, aba `fiscal` do `DetalheDrawer` (NCM, CEST, CFOP, Origem, Imposto aplicável, Tipo de imposto, texto de ajuda e o botão). **Diferenças deliberadas, medidas no código:** ~~(1) o cadastro não tem origem por produto~~ — caiu em 2026-10-15: a origem passou a ser do produto (#9465) e a aba lê `products.origem_mercadoria`, a mesma coluna que as duas emissões usam; o aviso "a origem é a mesma em todas as notas" não aparece mais. (2) O texto do protótipo chama de serviço todo produto sem NCM e diz que, com CEST, a nota sai com CFOP de substituído; a emissão não faz nem uma coisa nem outra (usa o NCM padrão da empresa e não lê o CEST), então o texto foi corrigido. (3) O protótipo leva a um "módulo Fiscal" do produto; a tela que existe é a Tributação do NfeBrasil, com o simulador.
+- **Decisão [F] de 2026-10-26, ainda não na produção:** a aba inteira passa a exigir `fiscal.access`; hoje só o botão exige. Ver o backlog "Decisões do [F] de 2026-10-26".
 - **Status: 🧪** — passou (2026-10-23). Pest na lane Estoque · MySQL, run 39945557255 (main 53e7995, 2026-10-23): 497 testes, 0 falhas, 0 pulados · Vitest local em 2026-10-23 (main 53e7995): os 133 testes dos arquivos da lista passaram (estes arquivos não rodam em lane).
 
 ## UC-PIDX-26 · Em tela estreita as colunas encolhem até caber · `should`
@@ -716,6 +722,47 @@ Fontes abertas em 2026-10-20: [Shopify](https://help.shopify.com/manual/products
 [Calcgraf](https://www.calcgraf.com.br/solucao/estoque/) ·
 [shopVOX](https://shopvox-pro.helpdocs.io/article/htcy37tcab-products-vs-materials-in-shop-vox-pro).
 
+### Decisões do [F] de 2026-10-26 (comentários na âncora) — ainda não na produção
+
+O [F] comentou a âncora da tela (`prototipo-ui/cowork/Felipe/produto-blade.jsx`) em 2026-10-26, e o
+protótipo foi alterado no PR #9925. A produção segue como os casos acima descrevem. Cada item abaixo
+vira caso, com teste, no PR que o levar à produção; os casos que ele contradiz são reescritos no
+mesmo PR. As referências de código são do `main` em 83d7c45.
+
+- **[BACKLOG] A consulta não oferece compra** — Aceite: Dado qualquer produto e qualquer permissão ·
+  Quando abro o menu Ações da linha ou o painel de detalhe · Então não há "Comprar este produto" nem
+  "Comprar". Hoje: `AcoesProduto.tsx:74` e `PainelDetalhe.tsx:698-700`, com `purchase.create`.
+  Substitui o UC-PIDX-11.
+- **[BACKLOG] Dados de imposto só com `fiscal.access`** — Aceite: Dado um usuário sem
+  `fiscal.access` · Quando abro a lista e o painel · Então não há aba Fiscal, nem "Dados fiscais
+  (NCM/CFOP)" no menu, nem coluna e filtro Imposto na lista, nem "Imposto aplicável" e "Tipo de
+  imposto na venda" no painel, nem a coluna Imposto no CSV de "Exportar filtrados"; com
+  `fiscal.access`, tudo aparece como hoje. A proposta é cortar também no servidor, como o gate de
+  preço do UC-PIDX-03 (sem a permissão, a chave não vem). Hoje: aba sem gate
+  (`PainelDetalhe.tsx:314`), imposto na aba Dados (`PainelDetalhe.tsx:386-387`), item do menu com a
+  permissão de ver o produto (`AcoesProduto.tsx:77`), filtro (`FiltrosLista.tsx:85`), coluna
+  (`colunas.tsx:198-199`), e o servidor manda `imposto`, `tipo_imposto` e `fiscal` a quem abre o
+  produto (`ProductController.php:721-722,741`) e "Imposto" no CSV (`ProductController.php:1039`).
+  Muda os UC-PIDX-09, 10, 17, 19 e 25.
+  - ⚠️ **Precisa da palavra do [W] antes de virar caso.** A lista Blade mostra o filtro e a coluna de
+    imposto (`resources/views/product/index.blade.php:63-67,317-318`) e a janela "Ver" mostra o
+    imposto aplicável e o tipo (`view-modal.blade.php:94-100`), a quem pode ver o produto. Com a
+    decisão, quem não tem `fiscal.access` vê menos que na Blade, contra o Non-Goal do charter "Função
+    a menos que a lista Blade", autorizado pelo [W] em 2026-10-10. NCM, CEST, CFOP e CST não têm esse
+    conflito: a Blade não os mostra.
+  - **Também a decidir:** o "Baixar Excel" do cabeçalho exporta o catálogo no formato de importação
+    da Blade, com as colunas "APPLICABLE TAX" e "Selling Price Tax Type" (`app/Exports/ProductsExport.php`).
+    No protótipo ele segue a mesma regra do CSV. Na produção, tirar essas colunas muda o arquivo que
+    serve para reimportar o catálogo.
+- **[BACKLOG] Rótulos sem abreviação nas tabelas de preço do painel** — Aceite: Dadas as tabelas de
+  Variações e Composição do painel · Então os cabeçalhos dizem "Compra sem imposto", "Compra com
+  imposto", "Venda sem imposto", "Venda com imposto" e "Total sem imposto", não "(excl.)" e "(incl.)".
+  Hoje: `PainelDetalhe.tsx:436-440,507-508,546-549`. É rótulo (eixo FORMA, em que o protótipo
+  manda); não muda dado nem permissão.
+
+O "Gerar OP" também saiu do protótipo nesse dia; a produção nunca o teve (ver UC-PIDX-19), então não
+há item aqui.
+
 ---
 
 ## Refs
@@ -731,6 +778,7 @@ Fontes abertas em 2026-10-20: [Shopify](https://help.shopify.com/manual/products
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
+- 2026-10-26 · [F+C] **só documentação:** as decisões do [F] na âncora (Comprar sai, Gerar OP sai, imposto só com `fiscal.access`, rótulos "sem/com imposto") entram como backlog, com nota nos UC-PIDX-09, 10, 11, 17, 19 e 25. O protótipo mudou no #9925; a produção não. Nenhum caso, teste ou status muda. Os itens de imposto esperam o [W], por conflitarem com o Non-Goal "Função a menos que a lista Blade".
 - 2026-10-23 · [M+C] **UC-PIDX-33** (painel, aba Estoque): o backlog "Quantidade vendida por local" vira caso, a pedido da ROTA LIVRE (número 33 porque 28–32 já estão nos rascunhos #9778 e #9785). A tabela de locais ganha a coluna "Vendido", como no artefato "Consulta de Produto" de 22/10; o número já vinha do servidor em cada linha.
 - 2026-10-18 · [F+C] `produto-lista-encaixe` e `produto-lista-redimensionar` (UC-PIDX-16, 26 e 27) entram no Vitest do `Frontend / Vite build`. Foi em PR próprio porque `.github/` pede revisão do [W]; o conserto da tela entrou antes, no #9535.
 - 2026-10-18 · [F+C] **UC-PIDX-26, conserto do smoke:** o rótulo "CATEGORIA" (79px) vazava sobre MARCA com o piso de 66; os pisos passam a respeitar o rótulo do cabeçalho (categoria 80, locais 62, SKU 58, produto 112 para manter a soma), com caso de teste que trava isso.
