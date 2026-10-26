@@ -65,20 +65,27 @@ function pluggyConta(int $biz, ?string $pluggyAccountId): int
     ]);
 }
 
-/** Pluggy fake: 2 páginas — débito de 50,00 sem `type` e crédito de 120,00; 2ª página com débito de cartão. */
-function pluggyFakeDuasPaginas(string $sufixo): void
+/**
+ * Pluggy fake: 2 páginas — débito de 50,00 sem `type` e crédito de 120,00; 2ª página com débito
+ * de cartão. `$runs` repete as 2 páginas: um 2º `Http::fake` NÃO substitui o 1º (o stub antigo
+ * casa primeiro), então os runs do mesmo teste precisam caber numa sequência só.
+ */
+function pluggyFakeDuasPaginas(string $sufixo, int $runs = 1): void
 {
+    $seq = Http::sequence();
+    for ($i = 0; $i < $runs; $i++) {
+        $seq->push(['page' => 1, 'totalPages' => 2, 'results' => [
+            ['id' => "tx-deb-{$sufixo}", 'date' => '2031-03-10', 'description' => 'PEST boleto pago', 'amount' => -50.00],
+            ['id' => "tx-cre-{$sufixo}", 'date' => '2031-03-11', 'description' => 'PEST PIX recebido', 'amount' => 120.00, 'type' => 'CREDIT'],
+        ]], 200)->push(['page' => 2, 'totalPages' => 2, 'results' => [
+            // Cartão: amount positivo, mas `type` DEBIT — o `type` vale.
+            ['id' => "tx-car-{$sufixo}", 'date' => '2031-03-12', 'description' => 'PEST compra cartão', 'amount' => 30.00, 'type' => 'DEBIT'],
+        ]], 200);
+    }
+
     Http::fake([
         'api.pluggy.ai/auth' => Http::response(['apiKey' => 'fake-key'], 200),
-        'api.pluggy.ai/transactions*' => Http::sequence()
-            ->push(['page' => 1, 'totalPages' => 2, 'results' => [
-                ['id' => "tx-deb-{$sufixo}", 'date' => '2031-03-10', 'description' => 'PEST boleto pago', 'amount' => -50.00],
-                ['id' => "tx-cre-{$sufixo}", 'date' => '2031-03-11', 'description' => 'PEST PIX recebido', 'amount' => 120.00, 'type' => 'CREDIT'],
-            ]], 200)
-            ->push(['page' => 2, 'totalPages' => 2, 'results' => [
-                // Cartão: amount positivo, mas `type` DEBIT — o `type` vale.
-                ['id' => "tx-car-{$sufixo}", 'date' => '2031-03-12', 'description' => 'PEST compra cartão', 'amount' => 30.00, 'type' => 'DEBIT'],
-            ]], 200),
+        'api.pluggy.ai/transactions*' => $seq,
     ]);
 }
 
@@ -135,10 +142,9 @@ it('UC-FCC-18 · sync grava no business da própria conta, ignora conta sem vín
     $sufixo = uniqid();
     $conta98 = pluggyConta($this->b98, "acc-{$sufixo}");
     $conta99SemVinculo = pluggyConta($this->b99, null);
-    pluggyFakeDuasPaginas($sufixo);
+    pluggyFakeDuasPaginas($sufixo, runs: 2);
 
     expect(Artisan::call('financeiro:pluggy-sync'))->toBe(0);
-    pluggyFakeDuasPaginas($sufixo);
     expect(Artisan::call('financeiro:pluggy-sync'))->toBe(0);
 
     $linhas = DB::table('fin_extrato_lancamentos')->where('conta_bancaria_id', $conta98)->get();
