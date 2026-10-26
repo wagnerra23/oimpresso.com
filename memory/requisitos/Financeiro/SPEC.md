@@ -2070,3 +2070,27 @@ Falta: listener na autorização que ache o título via `transaction_id` e o aju
 
 **Fora desta US:** nenhum título existente muda no deploy — o fix vale nas próximas re-sincronizações. Corrigir os já gravados é decisão [W] depois de ver o `--aberto` rodado em produção, por business.
 
+
+### US-FIN-074 · Extrato automático via Pluggy (Open Finance) entra na conciliação — **P0**
+
+> owner: — · priority: p0 · estimate: 10h · status: doing · type: story
+> blocked_by: —
+
+**Implementado em:** `Modules/Financeiro/Console/Commands/PluggySyncCommand.php` (`financeiro:pluggy-sync`), `Modules/Financeiro/Services/Integrations/PluggyBankSyncService.php` (`tipoCanonico`), `Modules/Financeiro/Services/Integrations/PluggyClient.php` (`listTransactions` paginado), `Modules/Financeiro/Tests/Feature/PluggySyncContratoTest.php`
+
+**Testado em:** `Modules/Financeiro/Tests/Feature/PluggySyncContratoTest.php`
+
+**Origem:** lacuna P0 "Extrato bancário automático" do levantamento de concorrência de 2026-10-25. O cliente e o serviço do Pluggy existiam com `PLUGGY_ENABLED=false` e **nenhum invocador** (sem comando, job, rota ou tela). Medido em 2026-10-26 no `main`: o serviço gravava `tipo = 'credito'|'debito'` numa coluna `char(1)` que o sync Inter e a Conciliação (`ConciliacaoController::normalizeApi`) tratam como `C`/`D`; com `strict=false` o MySQL trunca para `c`/`d` e o débito chegaria à Conciliação com valor **positivo**. O `listTransactions` lia só a 1ª página de 200.
+
+⚠️ **REGRA MESTRE — VALOR** ([proibicoes.md](../../proibicoes.md)): o sinal do lançamento do extrato é valor exibido e conciliado.
+
+**Aceite (PR 1 — sync):**
+- [x] Lançamento Pluggy grava `tipo` `C`/`D`; o campo `type` (`CREDIT`/`DEBIT`) do Pluggy vale sobre o sinal do `amount` (UC-FCC-17). Provado por dois caminhos: a linha gravada e o valor com sinal que a Conciliação monta para ela.
+- [x] `listTransactions` percorre todas as páginas; corte acima de 50 páginas é logado (UC-FCC-17).
+- [x] `financeiro:pluggy-sync` sincroniza as contas com `metadata.pluggy.account_id`, cada uma no próprio business, idempotente; com a flag desligada não chama a API (UC-FCC-18). Agendado 07:15 só com `PLUGGY_ENABLED=true`.
+
+**Aceite (PRs seguintes):**
+- [ ] Webhook `POST /webhooks/pluggy` com HMAC (`verifyWebhookSignature`) dispara o sync da conta.
+- [ ] Tela de vínculo: o widget Pluggy Connect (token de `createConnectToken`) grava `metadata.pluggy.account_id` na conta bancária.
+
+**Depende do [W]:** contratar o Pluggy (credenciais) e ligar `PLUGGY_ENABLED` em produção. O SPEC do RecurringBilling (US-RB-045) registra o plano "Inter direto, sem agregador" — confirmar se o Pluggy segue como caminho para os outros bancos.
