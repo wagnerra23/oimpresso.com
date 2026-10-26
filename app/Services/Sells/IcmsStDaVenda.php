@@ -126,7 +126,7 @@ final class IcmsStDaVenda
      */
     private function linhasDoCarrinho(int $businessId, array $itens): array
     {
-        $ids = array_values(array_unique(array_map(fn ($i) => (int) ($i['variation_id'] ?? 0), $itens)));
+        $ids = array_values(array_unique(array_map(fn ($i) => (int) $i['variation_id'], $itens)));
         $rows = DB::table('variations as v')
             ->join('products as p', 'p.id', '=', 'v.product_id')
             ->leftJoin('units as u', 'u.id', '=', 'p.unit_id')
@@ -136,7 +136,7 @@ final class IcmsStDaVenda
 
         $linhas = [];
         foreach ($itens as $i) {
-            $r = $rows->get((int) ($i['variation_id'] ?? 0));
+            $r = $rows->get((int) $i['variation_id']);
             if ($r === null) {
                 continue;
             }

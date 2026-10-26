@@ -157,6 +157,37 @@ last_run: "2026-10-02"
 
 ---
 
+## ICMS-ST no total da venda (US-SELL-078 · [W] 2026-10-26)
+
+> **Âncora:** US-SELL-078 (`memory/requisitos/Sells/SPEC.md`). O ST é calculado pela conta da NF-e (R-NFE-043) e
+> entra no fechamento da venda. Números do fixture do Fiscal: item de 1.000,00 de SC para contribuinte no RJ, ICMS
+> 12%, MVA 40%, interna do RJ 18% → ST 132,00. Prova: `tests/Feature/Sells/IcmsStNaVendaContratoTest.php`.
+
+## UC-VST-01 · O caixa recebe o ST do carrinho pela conta da NF-e `[V0]` `[must]`
+- **Aceite:** Dado o carrinho com o item de 1.000,00 e cliente contribuinte no RJ · Quando a tela pede o ST (`POST /sells/icms-st`) · Então recebe `132.00`.
+- **Teste:** `tests/Feature/Sells/IcmsStNaVendaContratoTest.php` — `UC-VST-01`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VST-02 · Ao gravar, total da venda = vNF = título `[V0]` `[must]`
+- **Aceite:** Dado a venda gravada com total 1.132,00 e ST enviado 132,00 · Então a venda guarda `icms_st_valor = 132`, a base da nota é 1.000,00, o vNF é 1.132,00 e o título do Financeiro nasce com 1.132,00.
+- **Teste:** `tests/Feature/Sells/IcmsStNaVendaContratoTest.php` — `UC-VST-02`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VST-03 · Total enviado sem o ST é recusado com o valor certo `[V0]` `[must]`
+- **Aceite:** Dado a mesma venda gravada com total 1.000,00 e ST enviado 0 · Então a gravação é recusada com "O ICMS-ST desta venda é R$ 132,00, mas o total enviado considerou R$ 0,00. Atualize a venda e salve de novo."
+- **Teste:** `tests/Feature/Sells/IcmsStNaVendaContratoTest.php` — `UC-VST-03`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VST-04 · Cliente da mesma UF não tem ST `[V0]` `[must]`
+- **Aceite:** Dado cliente contribuinte em SC (mesma UF do emitente) · Então o ST é 0 e a venda segue como hoje.
+- **Teste:** `tests/Feature/Sells/IcmsStNaVendaContratoTest.php` — `UC-VST-04`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VST-05 · Venda sem cliente identificado não tem ST `[V0]` `[must]`
+- **Aceite:** Dado venda sem cliente · Então o ST é 0.
+- **Teste:** `tests/Feature/Sells/IcmsStNaVendaContratoTest.php` — `UC-VST-05`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão. Itens abaixo SEM token de UC de
