@@ -246,9 +246,17 @@ Status: 🧪 (`AcoesCancelarEscopoTest` — `UC-FNFE-51 · …`)
 **Dado** a nota de uma venda da empresa no fluxo de vendas **Quando** o fiscal escolhe "venda junto" **Então** a venda
 recebe a ação `cancelar_venda` com o mesmo motivo (o cascade estorna boleto pendente, libera a reserva de estoque e avisa
 o cliente); venda fora do fluxo não é cancelada e a mensagem manda cancelar em Vendas; venda de outra empresa não é
-achada. **Não** devolve estoque já baixado nem cancela o título (fora do cascade — R-NFE-044).
+achada. Com a US-SELL-077 (#9911) o cancelamento da venda devolve o estoque e cancela o título sem pagamento.
 
 Status: 🧪 (`AcoesCancelarEscopoTest` — `UC-FNFE-52 · …`, MySQL, tenant 98 × 99)
+
+## UC-FNFE-54 — Venda com dinheiro recebido: nada é cancelado, nem a nota · `must` `[T0]`
+
+**Dado** a nota de uma venda com um pagamento recebido **Quando** o fiscal escolhe "venda junto" **Então** a resposta diz
+"Nada foi cancelado." com a pendência do cancelamento da venda ("A venda tem … recebidos…"), a nota segue autorizada e
+a SEFAZ nem é chamada. Âncora: R-NFE-044 · US-SELL-077.
+
+Status: 🧪 (`AcoesCancelarEscopoTest` — `UC-FNFE-54 · …`; pula sem o `CancelamentoDaVenda` do #9911, verde com ele no CT 100)
 
 ## UC-FNFE-05 — Carta de Correção respeita texto 15–1000 e sequência 1–20
 Status: 🧪 (`AcoesContratoTest::UC-FNFE-05 · texto fora de 15–1000` / `n_seq fora de 1–20` / `aceita válido` — **passam**)

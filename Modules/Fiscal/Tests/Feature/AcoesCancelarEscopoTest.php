@@ -116,3 +116,53 @@ it('UC-FNFE-52 · "venda junto" chama cancelar_venda só para a venda da empresa
         DB::table('transactions')->whereIn('id', $ids)->delete();
     }
 });
+
+it('UC-FNFE-54 · venda com dinheiro recebido: nada é cancelado, nem a nota', function () {
+    if (! class_exists('App\Services\Sells\CancelamentoDaVenda')) {
+        $this->markTestSkipped('depende do CancelamentoDaVenda da US-SELL-077 (#9911)');
+    }
+    if (DB::getDriverName() !== 'mysql' || ! Schema::hasTable('nfe_emissoes') || ! Schema::hasTable('sale_process_stages')) {
+        $this->markTestSkipped('precisa do schema MySQL de transactions, nfe_emissoes e sale_process_stages');
+    }
+    $a = $this->seededTenant()->id;
+    $stage = DB::table('sale_process_stages')->value('id');
+    if ($stage === null) {
+        $this->markTestSkipped('sem estágio de fluxo de vendas neste banco');
+    }
+    $user = DB::table('users')->where('business_id', $a)->value('id') ?? 1;
+    $tx = DB::table('transactions')->insertGetId([
+        'business_id' => $a, 'type' => 'sell', 'status' => 'final', 'payment_status' => 'paid',
+        'transaction_date' => now(), 'ref_no' => 'CANCESC-'.uniqid(), 'final_total' => 60, 'total_before_tax' => 60,
+        'tax_amount' => 0, 'discount_amount' => 0, 'created_by' => $user, 'essentials_duration' => 0,
+        'current_stage_id' => $stage, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    DB::table('transaction_payments')->insert([
+        'transaction_id' => $tx, 'business_id' => $a, 'amount' => 60, 'method' => 'cash', 'is_return' => 0,
+        'paid_on' => now(), 'created_by' => $user, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $nota = DB::table('nfe_emissoes')->insertGetId([
+        'business_id' => $a, 'transaction_id' => $tx, 'modelo' => '55', 'serie' => '954', 'numero' => 9_540_001,
+        'status' => 'autorizada', 'valor_total' => 60, 'emitido_em' => now(), 'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    try {
+        escopoUsuario();
+        session(['user.business_id' => $a]);
+        $nfe = Mockery::mock(NfeService::class);
+        $nfe->shouldNotReceive('cancelar');
+
+        (new AcoesController())->cancelarNfe(
+            Request::create('/x', 'POST', ['motivo' => 'Cliente desistiu da compra inteira', 'escopo' => 'venda']),
+            $nfe,
+            $nota,
+        );
+
+        expect((string) session('error'))->toContain('Nada foi cancelado.')
+            ->and((string) session('error'))->toContain('recebidos');
+        expect(DB::table('nfe_emissoes')->where('id', $nota)->value('status'))->toBe('autorizada');
+    } finally {
+        DB::table('nfe_emissoes')->where('id', $nota)->delete();
+        DB::table('transaction_payments')->where('transaction_id', $tx)->delete();
+        DB::table('transactions')->where('id', $tx)->delete();
+    }
+});

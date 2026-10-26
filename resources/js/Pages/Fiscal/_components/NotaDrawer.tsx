@@ -513,8 +513,9 @@ export default function NotaDrawer({ nota, sefazCodes, onClose }: NotaDrawerProp
               <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: 12.5 }}>
                 <RadioGroupItem value="venda" id="cancelar-escopo-venda" />
                 <span>
-                  <strong>A venda junto</strong> — estorna o boleto pendente, libera a reserva de estoque e avisa
-                  o cliente. Estoque já baixado e título do financeiro não são estornados.
+                  <strong>A venda junto</strong> — a venda é cancelada (sai dos relatórios), o estoque volta e o
+                  título sem pagamento é cancelado. Venda com dinheiro recebido não cancela: devolva ou remova os
+                  pagamentos na própria venda antes.
                 </span>
               </label>
             </RadioGroup>
