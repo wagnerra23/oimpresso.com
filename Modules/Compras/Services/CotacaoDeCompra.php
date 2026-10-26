@@ -13,8 +13,8 @@ use InvalidArgumentException;
  *
  * O comprador abre a cotação com os itens (avulsos, de uma requisição de compra, ou de outro módulo
  * pelo `origem`/`origem_id` — a Oficina consome esta mesma cotação), convida fornecedores, digita o
- * preço e o prazo que cada um respondeu, e compara. Fechar e gerar o pedido de compra é outro passo
- * (mexe em valor, regra mestre), fora deste serviço.
+ * preço e o prazo que cada um respondeu, compara e fecha: `fechar()` gera o pedido de compra de
+ * cada fornecedor vencedor (mexe em valor, regra mestre — ver o docblock dele).
  *
  * Comparação por item: vence o menor preço unitário; empate, o menor prazo; ainda empatado, quem
  * respondeu primeiro. Item sem resposta fica sem vencedor.
@@ -150,6 +150,83 @@ final class CotacaoDeCompra
             })->values()->all();
     }
 
+    /**
+     * Fecha a cotação e gera UM pedido de compra (`transactions.type = purchase_order`, status
+     * `ordered`) por fornecedor vencedor, com as linhas que ele ganhou. Mexe em VALOR (regra mestre):
+     *   linha  = quantidade × preço respondido (sem imposto nem desconto — a cotação não os tem)
+     *   pedido = soma das linhas, em `total_before_tax` e `final_total`
+     * `delivery_date` = hoje + o maior prazo respondido pelo fornecedor nas linhas dele.
+     * Sem escolha, vale o melhor de `comparar()`; item sem resposta não entra em pedido nenhum.
+     * O pedido não move estoque nem gera conta a pagar (só a compra recebida faz isso).
+     *
+     * @param  array<int,int>  $escolhas  item_id → contact_id, para trocar o vencedor de um item
+     * @return list<int> ids dos pedidos criados
+     */
+    public function fechar(int $businessId, int $cotacaoId, int $userId, array $escolhas = []): array
+    {
+        return DB::transaction(function () use ($businessId, $cotacaoId, $userId, $escolhas) {
+            $cotacao = DB::table('compras_cotacoes')->where('business_id', $businessId)->where('id', $cotacaoId)
+                ->lockForUpdate()->first(['id', 'ref_no', 'location_id', 'status']);
+            if ($cotacao === null) {
+                throw new InvalidArgumentException('Cotação inválida para este negócio.');
+            }
+            if ($cotacao->status !== self::ABERTA) {
+                throw new InvalidArgumentException('A cotação não está aberta.');
+            }
+
+            $porFornecedor = [];
+            foreach ($this->comparar($businessId, (int) $cotacao->id) as $item) {
+                $vencedor = $escolhas[$item['item_id']] ?? $item['melhor_contact_id'];
+                if ($vencedor === null) {
+                    continue;
+                }
+                $resposta = collect($item['respostas'])->firstWhere('contact_id', (int) $vencedor);
+                if ($resposta === null) {
+                    throw new InvalidArgumentException('O fornecedor escolhido não respondeu este item.');
+                }
+                $porFornecedor[(int) $vencedor][] = $item + ['resposta' => $resposta];
+            }
+
+            $util = app(Util::class);
+            $agora = now();
+            $pedidos = [];
+            foreach ($porFornecedor as $contactId => $itens) {
+                $total = 0; // dez-milésimos² → convertido no fim
+                $linhas = [];
+                $prazo = 0;
+                foreach ($itens as $i) {
+                    $total += self::dm($i['quantidade']) * self::dm($i['resposta']['preco_unitario']);
+                    $prazo = max($prazo, (int) ($i['resposta']['prazo_dias'] ?? 0));
+                    $linhas[] = [
+                        'product_id' => (int) DB::table('compras_cotacao_itens')->where('id', $i['item_id'])->value('product_id'),
+                        'variation_id' => $i['variation_id'], 'quantity' => $i['quantidade'],
+                        'pp_without_discount' => $i['resposta']['preco_unitario'], 'discount_percent' => 0,
+                        'purchase_price' => $i['resposta']['preco_unitario'], 'purchase_price_inc_tax' => $i['resposta']['preco_unitario'],
+                        'item_tax' => 0, 'created_at' => $agora, 'updated_at' => $agora,
+                    ];
+                }
+                $totalTxt = self::txt(intdiv($total + 5000, 10000)); // de 10⁻⁸ para 10⁻⁴, arredondado
+                $n = $util->setAndGetReferenceCount('purchase_order', $businessId);
+                $pedidoId = DB::table('transactions')->insertGetId([
+                    'business_id' => $businessId, 'location_id' => (int) $cotacao->location_id, 'contact_id' => $contactId,
+                    'type' => 'purchase_order', 'status' => 'ordered',
+                    'ref_no' => $util->generateReferenceNumber('purchase_order', $n, $businessId),
+                    'transaction_date' => $agora, 'delivery_date' => $agora->copy()->addDays($prazo),
+                    'total_before_tax' => $totalTxt, 'final_total' => $totalTxt, 'tax_amount' => 0, 'discount_amount' => 0,
+                    'additional_notes' => 'Gerado da cotação '.$cotacao->ref_no,
+                    'created_by' => $userId, 'essentials_duration' => 0, 'created_at' => $agora, 'updated_at' => $agora,
+                ]);
+                DB::table('purchase_lines')->insert(array_map(fn ($l) => $l + ['transaction_id' => $pedidoId], $linhas));
+                DB::table('compras_cotacao_itens')->whereIn('id', array_column($itens, 'item_id'))->update(['vencedor_contact_id' => $contactId]);
+                $pedidos[] = $pedidoId;
+            }
+
+            DB::table('compras_cotacoes')->where('id', $cotacao->id)->update(['status' => 'fechada', 'fechada_em' => $agora, 'updated_at' => $agora]);
+
+            return $pedidos;
+        });
+    }
+
     private function aberta(int $businessId, int $cotacaoId): object
     {
         $c = DB::table('compras_cotacoes')->where('business_id', $businessId)->where('id', $cotacaoId)->first(['id', 'status']);
@@ -161,6 +238,11 @@ final class CotacaoDeCompra
         }
 
         return $c;
+    }
+
+    private static function txt(int $n): string
+    {
+        return ($n < 0 ? '-' : '').sprintf('%d.%04d', intdiv(abs($n), 10000), abs($n) % 10000);
     }
 
     /** DECIMAL(22,4) em dez-milésimos inteiros, para comparar preço sem float. */
