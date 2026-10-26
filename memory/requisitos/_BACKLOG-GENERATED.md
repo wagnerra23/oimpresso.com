@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1004 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1005 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -17,7 +17,7 @@
 | [`OficinaAuto`](#oficinaauto) | 39 | 0 | 0 | 0 | 38 |
 | [`Producao`](#producao) | 32 | 1 | 0 | 0 | 31 |
 | [`NfeBrasil`](#nfebrasil) | 28 | 0 | 0 | 6 | 22 |
-| [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
+| [`RecurringBilling`](#recurringbilling) | 27 | 1 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
 | [`Marketplaces`](#marketplaces) | 25 | 0 | 0 | 0 | 25 |
@@ -602,6 +602,10 @@
 
 ## RecurringBilling
 
+
+### doing
+
+- **US-RB-057** — Cobrança paga pelo PaymentGateway marca a fatura da assinatura como paga e dispara InvoicePaid _(`p0`)_
 
 ### todo
 
