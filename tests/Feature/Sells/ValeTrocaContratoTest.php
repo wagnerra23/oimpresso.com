@@ -108,3 +108,39 @@ it('UC-SRET-VT-05 [T0] devolução de outra empresa não vira vale', function ()
     expect(DB::table('transaction_payments')->where('transaction_id', $dev->id)->count())->toBe(0);
     expect((string) DB::table('contacts')->where('id', $alheio)->value('balance'))->toBe('0.0000');
 });
+
+it('UC-SRADD-VT-01 a tela de registro pede o vale pela venda de origem', function () {
+    $venda = Transaction::create([
+        'business_id' => $this->bizId, 'type' => 'sell', 'status' => 'final', 'payment_status' => 'paid',
+        'contact_id' => $this->cliente, 'invoice_no' => 'V-' . uniqid(), 'transaction_date' => now(),
+        'final_total' => 300.00, 'total_before_tax' => 300.00, 'tax_amount' => 0, 'discount_amount' => 0,
+        'created_by' => $this->user->id,
+    ]);
+    $dev = ($this->devolucao)();
+    DB::table('transactions')->where('id', $dev->id)->update(['return_parent_id' => $venda->id]);
+
+    $this->actingAs($this->user)
+        ->withSession(['user.business_id' => $this->bizId, 'business.id' => $this->bizId, 'business.enabled_modules' => []])
+        ->postJson("/sell-return/vale-troca-da-venda/{$venda->id}")
+        ->assertOk()->assertJsonPath('valor', '150.0000');
+    expect(($this->saldo)())->toBe('170.0000');
+
+    // Venda sem devolução: 404, nada muda.
+    $this->actingAs($this->user)
+        ->withSession(['user.business_id' => $this->bizId, 'business.id' => $this->bizId, 'business.enabled_modules' => []])
+        ->postJson('/sell-return/vale-troca-da-venda/' . ($venda->id + 999999))
+        ->assertStatus(404);
+});
+
+it('UC-SRADD-VT-02 devolução do Cliente padrão não vira vale', function () {
+    $padrao = (int) DB::table('contacts')->insertGetId([
+        'business_id' => $this->bizId, 'type' => 'customer', 'name' => 'Cliente padrão teste', 'is_default' => 1,
+        'contact_id' => 'VTP-' . uniqid(), 'balance' => '0.0000', 'created_by' => $this->user->id,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $dev = ($this->devolucao)(0, $padrao);
+
+    ($this->vale)($dev->id)->assertStatus(422)->assertJsonPath('erro', 'cliente_padrao');
+    expect((string) DB::table('contacts')->where('id', $padrao)->value('balance'))->toBe('0.0000');
+    expect(DB::table('transaction_payments')->where('transaction_id', $dev->id)->count())->toBe(0);
+});
