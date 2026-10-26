@@ -244,11 +244,19 @@ de D+5 como `nao_enviado` com motivo `opt_out_email`, e nada de B. A régua liga
 
 Status: 🧪
 
-## Como rodar a suíte
+## Casos pedidos em 2026-10-23 — mudaram para o Financeiro unificado
+
+Esta tela foi aposentada pelo [W] (charter: `deprecated`, superada pelo Financeiro/Unificado, decisão
+de 2026-07-03). Os casos de total do serviço, retido e recebido, de título de venda agrupada e de título
+de cada parte faturada, pedidos em 2026-10-23, estão em `../Unificado/Index.casos.md`. Verificado contra as regras do [W] em 2026-10-23.
+
 1. **Pest (MySQL real):** lane do Financeiro no CT100 — quando os UCs acima ganharem teste.
 2. **Cadência:** rodar ao fim de toda mexida na tela. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-23 · [M+C] Backlog de ISS retido (total, retido e recebido) e de título de venda agrupada, sem id.
+- 2026-10-23 · [M+C] Backlog: título de cada parte faturada, da comparação com concorrentes (Omie), sem id.
+- 2026-10-23 · [M+C] Os três casos de 2026-10-23 mudaram para `Financeiro/Unificado/Index.casos.md`: esta tela está aposentada.
 - 2026-10-21 · [CC] US-FIN-071: botão "Lembretes" no cabeçalho + painel lateral (UC-CRREG-08). As colunas
   Bruto/Retido/Líquido do #9698 seguem intactas; revalidado após juntar os dois.
 - 2026-10-20 · [CC] US-FIN-073: UC-CRAB-01..04 (aberto do título parcial + relatório `--aberto` só leitura),

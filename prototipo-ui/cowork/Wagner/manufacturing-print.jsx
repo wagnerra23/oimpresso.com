@@ -50,7 +50,7 @@ function Folha({ r, c, semCusto, hoje }) {
 
       <section className="mfg-sheet-cotas">
         <div className="cota"><span className="l">Lote da receita</span><Dimension value={num(r.qtd, 2) + " " + r.un} /></div>
-        <div className="cota"><span className="l">Rendimento líquido</span><Dimension value={num(c.qtdLiq, 2) + " " + r.un} /><small>desperdício {num(r.waste, 0)}%</small></div>
+        <div className="cota"><span className="l">Rendimento</span><Dimension value={num(c.qtdLiq, 2) + " " + r.un} /><small>desperdício só na ordem de produção</small></div>
         {r.subUn && <div className="cota"><span className="l">Em sub-unidade</span><Dimension value={num(c.qtdLiq * r.subFator, 2) + " " + r.subUn} /></div>}
         {!semCusto && <div className="cota hi"><span className="l">Custo por {r.un}</span><Dimension value={fmt(c.unit)} /><small>venda {fmt(r.venda)} · margem {num(c.margem, 1)}%</small></div>}
         {semCusto && <div className="cota hi"><span className="l">Conferir antes de iniciar</span><Dimension value={nIng + " itens"} /><small>separar tudo na bancada</small></div>}
