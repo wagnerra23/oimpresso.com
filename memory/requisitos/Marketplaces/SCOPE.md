@@ -6,6 +6,7 @@ contains:
   - "DataController"
   - "InstallController"
   - "ContasController — conectar a conta do vendedor no Mercado Livre por OAuth (US-MKT-003)"
+  - "Renovação do token do vendedor sob demanda e de hora em hora (marketplaces:renovar-tokens, US-MKT-003)"
   - "Catálogo global de marketplaces (mkt_marketplaces) e conta do vendedor por empresa com token cifrado (mkt_account_credentials)"
   - "Anúncios (mkt_listings), pedidos recebidos (mkt_orders) e log de webhook append-only (mkt_webhook_log) — US-MKT-001"
 not_contains:

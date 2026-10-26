@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 864,
-    "edges": 1177,
+    "nodes": 865,
+    "edges": 1178,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 146,
-      "component": 479,
+      "component": 480,
       "api": 88
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 92,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 479,
+      "hasComponent": 480,
       "dependsOn": 131,
       "delegatesTo": 120,
       "migratesTo": 1,
@@ -3749,6 +3749,13 @@
       "type": "component",
       "module": "Marketplaces",
       "name": "InstallController",
+      "desc": ""
+    },
+    {
+      "id": "component:Marketplaces/Renovação do token do vendedor sob demanda e de hora em hora",
+      "type": "component",
+      "module": "Marketplaces",
+      "name": "Renovação do token do vendedor sob demanda e de hora em hora",
       "desc": ""
     },
     {
@@ -11610,6 +11617,12 @@
     {
       "from": "module:Marketplaces",
       "to": "component:Marketplaces/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "component:Marketplaces/Renovação do token do vendedor sob demanda e de hora em hora",
       "type": "hasComponent",
       "source": "contains"
     },
