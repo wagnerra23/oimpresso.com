@@ -102,10 +102,13 @@ it('UC-VST-02 ao gravar, a venda guarda o ST e venda = vNF = título', function 
 
     expect((string) DB::table('transactions')->where('id', $venda->id)->value('icms_st_valor'))->toBe('132.0000');
 
-    // 2º caminho: a emissão parte de final_total − ST (NfeService::emitirParaTransaction) e soma o vST.
+    // 2º caminho: a emissão parte de baseDaNota (= final_total − ST, a mesma chamada do
+    // emitirParaTransaction) e o montarItensNfe soma o vST de volta.
     $nfe = app(NfeService::class);
+    $base = $nfe->baseDaNota(Transaction::findOrFail($venda->id));
+    expect($base)->toBe(1000.0);
     $notas = $nfe->montarItensNfe(
-        linhas: $nfe->linhasDaVenda($this->biz, $venda->id), valorNota: 1132.0 - 132.0, frete: 0,
+        linhas: $nfe->linhasDaVenda($this->biz, $venda->id), valorNota: $base, frete: 0,
         ncmDefault: '49111090', motor: app(MotorTributarioService::class), businessId: $this->biz,
         ufOrigem: 'SC', ufDestino: 'RJ', internaDestino: 0.18, destinatarioContribuinte: true,
     );
@@ -114,9 +117,8 @@ it('UC-VST-02 ao gravar, a venda guarda o ST e venda = vNF = título', function 
     // Título do Financeiro nasce do final_total (que já traz o ST).
     if (class_exists(\Modules\Financeiro\Services\TituloAutoService::class) && Schema::hasTable('fin_titulos')) {
         $titulo = app(\Modules\Financeiro\Services\TituloAutoService::class)->sincronizarDeTransacao(Transaction::findOrFail($venda->id));
-        if ($titulo !== null) {
-            expect((float) $titulo->valor_total)->toBe(1132.0);
-        }
+        expect($titulo)->not->toBeNull();
+        expect((float) $titulo->valor_total)->toBe(1132.0);
     }
 });
 

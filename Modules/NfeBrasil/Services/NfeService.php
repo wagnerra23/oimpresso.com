@@ -308,7 +308,7 @@ class NfeService
         // US-SELL-078 · o `final_total` da venda já inclui o ICMS-ST cobrado no fechamento
         // ([W] 2026-10-26). A nota parte da base SEM o ST e o soma de volta no vNF (R-NFE-043):
         // vNF = (final_total − icms_st_valor) + vST = final_total. Sem a coluna, ST 0 como antes.
-        $valorTotal = (float) $tx->final_total - (float) ($tx->icms_st_valor ?? 0);
+        $valorTotal = $this->baseDaNota($tx);
         $frete = (float) ($tx->shipping_charges ?? 0);
 
         // Fase 2B (thread 17 · R-NFE-023..025c): um `det` por linha da venda, com o
@@ -421,6 +421,15 @@ class NfeService
         }
 
         return $this->emitir($businessId, $dadosNfe);
+    }
+
+    /**
+     * US-SELL-078 · base da nota: o `final_total` da venda sem o ICMS-ST que ela já cobrou. A nota
+     * soma o vST de volta (R-NFE-043), então vNF = final_total. Venda sem ST: o próprio total.
+     */
+    public function baseDaNota(Transaction $tx): float
+    {
+        return (float) $tx->final_total - (float) ($tx->icms_st_valor ?? 0);
     }
 
     /**
