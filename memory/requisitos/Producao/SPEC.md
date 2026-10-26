@@ -629,6 +629,17 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 - [ ] Pedido ao Cowork: o processo "OS e produção por item" do protótipo (`fluxos-processos.jsx`) ganhar o estado Aguardando material, hoje só no código.
 - [ ] Ler a composição do `product_bom` e com a regra de consumo da D6, quando a ADR da Fabricação trocar o contrato `InsumosDaReceita` (§6 da proposta).
 
+
+### US-PCP-033 · Inspeção e não conformidade na etapa da OS — **P2**
+
+> owner: — · priority: p2 · status: todo · type: story
+
+Como responsável pela qualidade, quero registrar a inspeção de uma etapa (aprovada ou não conforme, com motivo e foto) e acompanhar a não conformidade até a ação que a resolve, para que o mesmo defeito não volte sem ninguém saber por quê.
+
+**Implementado em:** _pendente_
+
+- Origem: lacunas de 2026-10-25 (P2 "controle de qualidade e não conformidade"). Ordem MRP → cotação → qualidade: **decisão coordenação 2026-10-26**.
+- Amplia o que existe: o refugo com motivo e o "Reprovar no controle" (papel `producao.qualidade`, US-PCP-027) já mandam a OS para retrabalho. Falta a inspeção que aprova, a não conformidade como registro próprio e a ação corretiva.
 ## §8 — Regras Gherkin (R-PCP-001..010) — resumo
 
 - R-PCP-001 — `pcp_appointments` é append-only (trigger MySQL bloqueia UPDATE não-finished_at + DELETE total)
