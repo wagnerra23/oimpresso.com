@@ -263,7 +263,7 @@ const PB_COLS_PADRAO = { imagem: true, locais: true, compra: true, venda: true, 
 
 // A lista roda no DataTablePro do DS: header fixo, resize de coluna por arrasto,
 // ordenação e seleção internas, densidade. As colunas do blade viram `columns`.
-function ListaProdutos({ rows, sel, setSel, onAcao, densa, cols, selSeq }) {
+function ListaProdutos({ rows, sel, setSel, onAcao, densa, cols, selSeq, perms }) {
   const { DataTablePro, EmptyState } = DS();
   // Altura da grade: cabe o conteúdo em lista curta (sem rolagem dupla) e limita
   // a ~72% do corpo rolável em lista longa, onde a rolagem interna com header fixo compensa.
@@ -291,10 +291,11 @@ function ListaProdutos({ rows, sel, setSel, onAcao, densa, cols, selSeq }) {
     { l: "Gerar código de barras", ic: "print", on: () => onAcao("barras", p) },
     { l: "Adicionar ou editar preços por grupo", ic: "cash", on: () => onAcao("precos", p) },
     "-",
-    { l: "Comprar este produto", ic: "archive", on: () => onAcao("comprar", p) },
+    // Sem "Comprar este produto": a consulta não é a tela de compras ([F] 2026-10-26).
     { l: "Transferir entre locais", ic: "layers", on: () => onAcao("transferir", p) },
     { l: "Usar em uma OS", ic: "orders", on: () => onAcao("os", p) },
-    { l: "Dados fiscais (NCM/CFOP)", ic: "quote", on: () => onAcao("fiscal", p) },
+    // Dado de imposto só para quem tem fiscal.access ([F] 2026-10-26) — ver produto-perms.jsx.
+    ...(perms.can("fiscal.access") ? [{ l: "Dados fiscais (NCM/CFOP)", ic: "quote", on: () => onAcao("fiscal", p) }] : []),
     "-",
     { l: p.active ? "Desativar" : "Ativar", ic: "cog", on: () => onAcao("toggle", p) },
     { l: "Excluir", ic: "x", tone: "danger", on: () => onAcao("excluir", p) },
@@ -434,9 +435,12 @@ function RelatorioEstoque({ rows }) {
 }
 
 // ─────────── Drawer de detalhe (view-modal.blade.php + *_product_details) ───────────
-function DetalheDrawer({ p, onClose, onIr }) {
+function DetalheDrawer({ p, onClose, onIr, perms }) {
   const [aba, setAba] = useState("dados");
-  const abas = [{ id: "dados", l: "Dados" }, { id: p.type === "combo" ? "composicao" : "variacoes", l: p.type === "combo" ? "Composição" : "Variações", n: p.type === "combo" ? p.combo.length : p.variations.length }, { id: "estoque", l: "Estoque" }, { id: "fiscal", l: "Fiscal" }, { id: "prateleira", l: "Prateleira" }];
+  // A aba Fiscal (NCM, CEST, CFOP, origem, imposto aplicável e tipo de imposto) só aparece para quem
+  // tem fiscal.access ([F] 2026-10-26). O imposto saiu da aba Dados pelo mesmo motivo.
+  const verFiscal = perms.can("fiscal.access");
+  const abas = [{ id: "dados", l: "Dados" }, { id: p.type === "combo" ? "composicao" : "variacoes", l: p.type === "combo" ? "Composição" : "Variações", n: p.type === "combo" ? p.combo.length : p.variations.length }, { id: "estoque", l: "Estoque" }, ...(verFiscal ? [{ id: "fiscal", l: "Fiscal" }] : []), { id: "prateleira", l: "Prateleira" }];
   const fs = p.fiscal || {};
   const { Drawer } = DS();
   const dt = (label, val) => <div className="pb-dt"><span>{label}</span><b>{val || "—"}</b></div>;
@@ -451,8 +455,8 @@ function DetalheDrawer({ p, onClose, onIr }) {
           </span>}
           footer={<>
             <button className="os-btn primary" onClick={() => onIr("editar", p)}><Ic name="pencil" size={13} /> Editar produto</button>
-            <button className="os-btn" onClick={() => onIr("comprar", p)}><Ic name="archive" size={13} /> Comprar</button>
-            {p.type === "combo" && <button className="os-btn" onClick={() => onIr("producao", p)}><Ic name="layers" size={13} /> Gerar OP</button>}
+            {/* Sem "Comprar" (a consulta não é a tela de compras) e sem "Gerar OP" (a ordem de
+                produção começa na Produção) — [F] 2026-10-26, comentários na âncora. */}
             <button className="os-btn" onClick={() => onIr("precos", p)}>Preços por grupo</button>
             <button className="os-btn" onClick={() => window.print()}><Ic name="print" size={13} /> Imprimir</button>
             <button className="os-btn ghost" onClick={onClose}>Fechar</button>
@@ -473,7 +477,7 @@ function DetalheDrawer({ p, onClose, onIr }) {
                 <div className="pb-drawer-grid">
                   {dt("SKU", p.sku)}{dt("Tipo de código de barras", p.barcode)}{dt("Unidade", p.unit)}
                   {dt("Marca", p.brand)}{dt("Categoria", p.cat)}{dt("Subcategoria", p.sub)}
-                  {dt("Imposto aplicável", p.tax)}{dt("Tipo de imposto na venda", p.taxType === "inclusive" ? "Inclusivo" : "Exclusivo")}{dt("Peso", p.weight)}
+                  {dt("Peso", p.weight)}
                   {dt("Gerenciar estoque", p.stockOn ? "Sim" : "Não")}{dt("Quantidade de alerta", p.alert != null ? fmtQty(p.alert) : "—")}{dt("Expira em", p.expiry ? p.expiry + (p.expiryType === "days" ? " dias" : " meses") : "Não aplicável")}
                   {dt("Disponível nos locais", p.locs.map((id) => LOCATIONS.find((l) => l.id === id).name).join(", "))}
                   {dt("Não para venda", p.notForSelling ? "Sim" : "Não")}
@@ -488,7 +492,7 @@ function DetalheDrawer({ p, onClose, onIr }) {
             <div className="os-drawer-section">
               <h3>Variações</h3>
               <table className="pb-tbl">
-                <thead><tr><th>Variação</th><th>SKU</th><th className="r">Compra (excl.)</th><th className="r">Compra (incl.)</th><th className="r">% lucro</th><th className="r">Venda (excl.)</th><th className="r">Venda (incl.)</th></tr></thead>
+                <thead><tr><th>Variação</th><th>SKU</th><th className="r">Compra sem imposto</th><th className="r">Compra com imposto</th><th className="r">% lucro</th><th className="r">Venda sem imposto</th><th className="r">Venda com imposto</th></tr></thead>
                 <tbody>{p.variations.map((va) => (
                   <tr key={va.sku}><td>{va.name}</td><td className="m">{va.sku}</td>
                     <td className="r">{fmtBRL(va.dpp)}</td><td className="r">{fmtBRL(incTax(va.dpp, p.tax))}</td>
@@ -511,7 +515,7 @@ function DetalheDrawer({ p, onClose, onIr }) {
             <div className="os-drawer-section">
               <h3>Composição</h3>
               <table className="pb-tbl">
-                <thead><tr><th>Produto</th><th>SKU</th><th className="r">Qtd</th><th className="r">Compra (excl.)</th><th className="r">Total (excl.)</th></tr></thead>
+                <thead><tr><th>Produto</th><th>SKU</th><th className="r">Qtd</th><th className="r">Compra sem imposto</th><th className="r">Total sem imposto</th></tr></thead>
                 <tbody>{p.combo.map((c) => (
                   <tr key={c.sku}><td><b>{c.name}</b></td><td className="m">{c.sku}</td><td className="r">{fmtQty(c.qty)} {c.unit}</td><td className="r">{fmtBRL(c.dpp)}</td><td className="r">{fmtBRL(c.qty * c.dpp)}</td></tr>))}
                 </tbody>
@@ -552,7 +556,7 @@ function DetalheDrawer({ p, onClose, onIr }) {
               </> : <p className="pb-help">Este produto não gerencia estoque (<b>enable_stock = 0</b>) — serviços e composições entram assim.</p>}
             </div>}
 
-          {aba === "fiscal" &&
+          {aba === "fiscal" && verFiscal &&
             <div className="os-drawer-section">
               <h3>Dados fiscais</h3>
               <div className="pb-drawer-grid">
@@ -749,7 +753,7 @@ function exportarCsv(lista) {
 }
 
 // ─────────── Tela lista (index.blade.php) ───────────
-function TelaLista({ aba, setAba, onIr, avisar }) {
+function TelaLista({ aba, setAba, onIr, avisar, perms }) {
   const VAZIO_F = { type: "", cat: "", unit: "", tax: "", brand: "", loc: "", active: "", nfs: false };
   // Chegou filtrada de outro lugar? (contagem clicada em Cadastros de apoio → window.__PBFiltro)
   const [f, setF] = useState(() => { const x = window.__PBFiltro; window.__PBFiltro = null; return x ? { ...VAZIO_F, ...x } : VAZIO_F; });
@@ -832,7 +836,6 @@ function TelaLista({ aba, setAba, onIr, avisar }) {
     if (a === "editar" || a === "historico" || a === "precos") return onIr(a, p);
     if (a === "duplicar") return onIr("editar", { ...p, name: p.name + " (cópia)", sku: "" });
     if (a === "barras") { window.__PBEtiquetas = [p]; return onIr("etiquetas", p); }
-    if (a === "comprar") { irPara("compras", { produto: p.sku, nome: p.name, acao: "novo-item" }); return avisar("Abrindo Compras com “" + p.name + "” no item novo.", "ok"); }
     if (a === "transferir") { irPara("compras", { produto: p.sku, nome: p.name, acao: "transferencia" }); return avisar("Transferência entre locais: " + p.name + ".", "ok"); }
     if (a === "os") { irPara("os", { produto: p.sku, nome: p.name, acao: "novo-item" }); return avisar("Abrindo Ordens de Serviço com o produto no orçamento.", "ok"); }
     if (a === "fiscal") return setVer(p);
@@ -926,7 +929,7 @@ function TelaLista({ aba, setAba, onIr, avisar }) {
             ? <div style={{ padding: "14px 16px" }}>{Skeleton
                 ? <Skeleton variant="row" count={8} />
                 : <p className="pb-help">Carregando produtos…</p>}</div>
-            : <ListaProdutos rows={rows} sel={sel} setSel={limparOuSetar} onAcao={onAcao} densa={densa} cols={cols} selSeq={selSeq} />)
+            : <ListaProdutos rows={rows} sel={sel} setSel={limparOuSetar} onAcao={onAcao} densa={densa} cols={cols} selSeq={selSeq} perms={perms} />)
           : <RelatorioEstoque rows={filtrados} />}
 
         {aba === "lista" &&
@@ -950,7 +953,7 @@ function TelaLista({ aba, setAba, onIr, avisar }) {
           <button className="icon-btn" title="Limpar seleção" onClick={limparSel}>✕</button>
         </div>}
 
-      {ver && <DetalheDrawer p={ver} onClose={() => setVer(null)} onIr={(a, p) => { setVer(null); onIr(a, p); }} />}
+      {ver && <DetalheDrawer p={ver} onClose={() => setVer(null)} onIr={(a, p) => { setVer(null); onIr(a, p); }} perms={perms} />}
       {inicial && <ModalEstoqueInicial p={inicial} onClose={() => setInicial(null)} avisar={avisar} />}
       {locModal && <ModalLocalizacao modo={locModal} n={sel.length} onClose={() => setLocModal(null)} avisar={avisar} />}
       {rapido && <ModalCadastroRapido onClose={() => setRapido(false)} avisar={avisar} />}
@@ -1003,9 +1006,7 @@ function ProdutoBladePage({ view = "lista", estado = "dados", dense = false, pap
   useEffect(() => { setTela(view === "estoque" ? "lista" : view); setAba(view === "estoque" ? "estoque" : "lista"); }, [view]);
 
   const CROSS = {
-    comprar:        { rota: "compras", acao: "novo-item",     msg: (p) => "Compras aberto com “" + p.name + "” no item novo." },
     transferir:     { rota: "compras", acao: "transferencia", msg: (p) => "Transferência de “" + p.name + "” entre locais." },
-    producao:       { rota: "cv",      acao: "nova-op",       msg: (p) => "OP gerada a partir da composição “" + p.name + "”." },
     os:             { rota: "os",      acao: "novo-item",     msg: (p) => "OS aberta com “" + p.name + "” no orçamento." },
     "fiscal-modulo":{ rota: "fiscal",  acao: "produto",       msg: (p) => "Dados fiscais de “" + p.name + "” no módulo Fiscal." },
   };
@@ -1047,7 +1048,7 @@ function ProdutoBladePage({ view = "lista", estado = "dados", dense = false, pap
             <button className="os-btn sm" onClick={() => irPara(entrada.origem, { volta: true })}>Voltar e usar</button>
             <button className="icon-btn" aria-label="Dispensar" onClick={() => setEntrada(null)}>✕</button>
           </div>}
-        {tela === "lista" && <TelaLista aba={aba} setAba={setAba} onIr={onIr} avisar={avisar} />}
+        {tela === "lista" && <TelaLista aba={aba} setAba={setAba} onIr={onIr} avisar={avisar} perms={perms} />}
         {tela === "form" && (F.FormProduto ? <F.FormProduto produto={alvo} onSair={() => setTela("lista")} onIr={onIr} avisar={avisar} /> : null)}
         {tela === "historico" && (F.Historico ? <F.Historico produto={alvo || PRODUCTS[0]} avisar={avisar} /> : null)}
         {tela === "precos" && (F.Precos ? <F.Precos produto={alvo || PRODUCTS[0]} onSair={() => setTela("lista")} avisar={avisar} /> : null)}
