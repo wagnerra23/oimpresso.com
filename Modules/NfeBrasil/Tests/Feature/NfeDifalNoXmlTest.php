@@ -97,7 +97,7 @@ it('UC-FNFE-34 · venda a não contribuinte de outra UF leva o grupo ICMSUFDest 
     expect(tag37($xml, 'ICMSUFDest', 'vBCUFDest'))->toBe('1000.00');
     expect(tag37($xml, 'ICMSUFDest', 'pICMSUFDest'))->toBe('20.0000');
     expect(tag37($xml, 'ICMSUFDest', 'pICMSInter'))->toBe('12.00');
-    expect(tag37($xml, 'ICMSUFDest', 'pICMSInterPart'))->toBe('100.00');
+    expect(tag37($xml, 'ICMSUFDest', 'pICMSInterPart'))->toBe('100'); // a lib escreve a partilha fixa sem casas
     expect(tag37($xml, 'ICMSUFDest', 'vICMSUFDest'))->toBe('80.00');
     expect(tag37($xml, 'ICMSUFDest', 'pFCPUFDest'))->toBe('2.0000');
     expect(tag37($xml, 'ICMSUFDest', 'vFCPUFDest'))->toBe('20.00');
@@ -113,7 +113,8 @@ it('UC-FNFE-35 · item sem DIFAL não leva o grupo e o total fica zero, como ant
     $xml = xmlDifal37(null);
 
     expect(str_contains($xml, '<ICMSUFDest>'))->toBeFalse();
-    expect(tag37($xml, 'ICMSTot', 'vICMSUFDest'))->toBe('0.00');
+    // Sem DIFAL o total segue omitido pela lib (valor zero), igual ao XML de antes.
+    expect(tag37($xml, 'ICMSTot', 'vICMSUFDest'))->toBeNull();
     expect(tag37($xml, 'ICMSTot', 'vNF'))->toBe('1000.00');
 });
 
