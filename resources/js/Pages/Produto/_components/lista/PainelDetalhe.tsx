@@ -16,7 +16,7 @@ import { Skeleton } from '@/Components/ui/skeleton';
 import { Grid, Inline } from '@/Components/layout';
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import { brl, qtdComUnidade } from '../../Unificado/_components/catalogo';
-import { TIPO_ROTULO, type AbaDoDetalhe, type DetalheProdutoDados, type PrecoPropostoDoProduto, type RoteiroDoProduto } from './tipos';
+import { TIPO_ROTULO, dataBr, type AbaDoDetalhe, type DetalheProdutoDados, type PrecoPropostoDoProduto, type RoteiroDoProduto } from './tipos';
 import { ORIGENS_MERCADORIA } from '../origem-mercadoria';
 
 type Aba = AbaDoDetalhe;
@@ -604,6 +604,18 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                     </tbody>
                   </table>
                   <p className="pb-help mb-4">Saldo e vendido por local, os mesmos de Relatórios → Estoque. O histórico completo fica em Histórico de estoque.</p>
+                  {/* UC-PIDX-30 (UC-FLX-19): requisição de compra aberta, do estoque mínimo ou feita à mão. */}
+                  {d.requisicao && (
+                    <div className="mb-4" data-contract="produto-detalhe-requisicao">
+                      <p className="pb-help mb-1.5">
+                        Requisição de compra <b>{d.requisicao.numero}</b> aberta em {dataBr(d.requisicao.data)}
+                        {d.requisicao.fornecedor ? `, para ${d.requisicao.fornecedor}` : ''}.
+                      </p>
+                      <Button variant="outline" size="sm" className="h-[26px] px-[10px] text-[11.5px]" onClick={() => d.requisicao && irPara(d.requisicao.url)}>
+                        Abrir a requisição
+                      </Button>
+                    </div>
+                  )}
                   {/* Botão pequeno do protótipo (`os-btn sm`): 26px de altura, 11,5px. */}
                   <Button variant="outline" size="sm" className="h-[26px] px-[10px] text-[11.5px]" onClick={() => irPara(`/products/stock-history/${d.id}`)}>
                     Abrir histórico de estoque
