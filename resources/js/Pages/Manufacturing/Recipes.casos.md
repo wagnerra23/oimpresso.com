@@ -179,12 +179,14 @@ last_run: "2026-10-19"
 
 ---
 
-## UC-RECIPE-10 · Os cartões de margem e desperdício filtram a lista; os números do topo contam todas
+## UC-RECIPE-10 · O cartão de margem filtra a lista; os números do topo contam todas
 - **Persona:** Wagner — quer achar as receitas com margem magra sem perder o tamanho do cadastro.
-- **Aceite:** Dado margens 44,9 · 45 · 60 e desperdícios 7,99 · 8 · 0 · Quando ligo "Margem abaixo de
-  45%" · Então só aparece a de 44,9 (45 fica fora) · Quando ligo "Desperdício ≥ 8%" · Então só a de 8
-  (7,99 fica fora). E os 4 números do topo seguem contando **todas** as receitas, com ou sem filtro.
-- **Fonte:** **R-05** + §4.2 (e a ambiguidade do KPI 1 registrada abaixo).
+- **Aceite:** Dado margens 44,9 · 45 · 60 · Quando ligo "Margem abaixo de 45%" · Então só aparece a de
+  44,9 (45 fica fora). Não existe mais o cartão "Desperdício ≥ 8%": `kpi=custo` na URL não filtra, e a
+  lista volta inteira. Os números do topo seguem contando **todas** as receitas, com ou sem filtro.
+- **Fonte:** **R-05** + §4.2 (e a ambiguidade do KPI 1 registrada abaixo). O cartão de desperdício
+  saiu pela D4 — decisão [W] 2026-10-23, desperdício é somente na Produção (§7 da decisão
+  Fabricação × Produção).
 - **Teste:** `Wave29RecipeInertiaTest.php`
 - **Regressão que defende:** trocar `<` por `<=` no limite de 45, ou o KPI passar a contar só a página.
 - **Status: 🧪**
@@ -224,7 +226,8 @@ last_run: "2026-10-19"
 - **Persona:** Wagner — monta a receita de um banner novo a partir da do banner parecido.
 - **Aceite:** Dado uma receita com 5% de desperdício, custo extra de 12 **percentual**, instruções e um
   ingrediente no grupo "Grupo da original" · Quando abro o editor copiando dela · Então ele vem com o
-  ingrediente, o desperdício, o custo extra **com o mesmo tipo** e as instruções · Quando salvo a cópia
+  ingrediente, o desperdício (nos dados, sem campo na tela — UC-INGRED-14), o custo extra **com o mesmo
+  tipo** e as instruções · Quando salvo a cópia
   com o grupo renomeado · Então a cópia ganha um grupo próprio com o novo nome, o grupo da original
   continua "Grupo da original", e o preço de venda do produto de destino não muda. Editar a própria
   receita continua renomeando o grupo dela no lugar.
@@ -295,6 +298,20 @@ last_run: "2026-10-19"
 - **Teste:** `ExcluirReceitaEmpresaTest.php`
 - **Regressão que defende:** o `destroy` apagar pelo id sem conferir a empresa (era assim até
   2026-10-08: vermelho na run 37839147800, 200 no lugar de 404).
+- **Status: 🧪**
+
+---
+
+## UC-RECIPE-20 · A coluna Quantidade mostra e ordena pela quantidade produzida
+- **Persona:** Wagner — confere quanto cada receita produz.
+- **Aceite:** Dado uma receita que produz 10 com 50% de desperdício gravado e outra que produz 8 sem
+  desperdício · Quando ordeno por Quantidade · Então a de 8 vem antes da de 10 (pelo rendimento, 5,
+  viria depois). A lista, a gaveta e a ficha mostram a quantidade produzida; nenhuma mostra desperdício.
+- **Fonte:** D4 — decisão [W] 2026-10-23, desperdício é somente na Produção (§7 da decisão
+  Fabricação × Produção).
+- **Teste:** `Wave29RecipeInertiaTest.php`
+- **Regressão que defende:** a lista voltar a mostrar um rendimento reduzido por um desperdício que a
+  tela não exibe mais.
 - **Status: 🧪**
 
 ---
@@ -371,3 +388,7 @@ decisão de quem escreveu o §4.2, não minha. Fica registrado em vez de silenci
   passou a achar a receita pela cadeia de empresa (404 fora dela). UC-RECIPE-19 +
   `ExcluirReceitaEmpresaTest.php`. É o endpoint que o botão "Excluir receita" da tela nova vai usar
   (US-MANU-006 etapa 3).
+- 2026-10-25 · [F+C] D4 aplicada (decisão [W] 2026-10-23: desperdício é somente na Produção). Saiu o
+  cartão e o filtro "Desperdício ≥ 8%" e a linha "Desperdício" da gaveta; Quantidade, gaveta e ficha
+  mostram a quantidade produzida. UC-RECIPE-10 reescrito, UC-RECIPE-20 novo. O `waste_percent` gravado
+  não é apagado (a ordem Blade ainda o usa para sugerir as unidades perdidas).
