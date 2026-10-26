@@ -14,7 +14,7 @@ module: Producao
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Producao/**` + `resources/js/Pages/Producao/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 162 arquivos em 17 papéis.
+**Total mapeado:** 163 arquivos em 17 papéis.
 
 ## Controllers — 22
 
@@ -45,7 +45,7 @@ module: Producao
 
 - [SalvarRoteiroRequest.php](../../../Modules/Producao/Http/Requests/SalvarRoteiroRequest.php)
 
-## Services — 33
+## Services — 34
 
 - [AlocacaoDaEtapa.php](../../../Modules/Producao/Services/AlocacaoDaEtapa.php)
 - [ApontamentoOperadorService.php](../../../Modules/Producao/Services/ApontamentoOperadorService.php)
@@ -70,6 +70,7 @@ module: Producao
 - [PrevisaoCustoDaOrdem.php](../../../Modules/Producao/Services/PrevisaoCustoDaOrdem.php)
 - [PrevistoRealizadoDaOrdem.php](../../../Modules/Producao/Services/PrevistoRealizadoDaOrdem.php)
 - [ProcessoDaOrdem.php](../../../Modules/Producao/Services/ProcessoDaOrdem.php)
+- [ProgramacaoDoRoteiro.php](../../../Modules/Producao/Services/ProgramacaoDoRoteiro.php)
 - [PrometerPrazoDaVenda.php](../../../Modules/Producao/Services/PrometerPrazoDaVenda.php)
 - [QuadroDaProducao.php](../../../Modules/Producao/Services/QuadroDaProducao.php)
 - [RastreioDoRolo.php](../../../Modules/Producao/Services/RastreioDoRolo.php)
