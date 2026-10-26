@@ -6,8 +6,8 @@ type: sdd
 module: Produto
 status: ativo
 owner: wagner
-version: 1.0.10
-last_updated: 2026-10-21
+version: 1.0.15
+last_updated: 2026-10-22
 related_docs:
   - SPEC.md
   - BRIEFING.md
@@ -694,6 +694,15 @@ A lista Blade (`resources/views/product/partials/product_list.blade.php`, todas 
    do produto (`store`/`update`/`saveQuickProduct`), não deste fluxo, e nenhum teste o exercita.
    Paridade em aberto: o legado tem **dois** limiares (`AR-PROD-053`, Estoque Máx. **e** Mín.); o
    oimpresso tem um (`alert_quantity`).
+   - ✅ **O mínimo já gera requisição de compra** (US-COM-027 · UC-FLX-19, pronta): um job diário,
+     ligado pela empresa em Fluxos, põe numa requisição do local o item com saldo abaixo de
+     `alert_quantity`, com quantidade = mínimo − saldo, o fornecedor e o preço da última compra.
+     Desligado por padrão.
+   - 🎨 **No protótipo (2026-10-22):** "Quantidade de alerta" passa a se chamar **Estoque mínimo**
+     (mesmo campo).
+   - **Decidido pela [M] em 2026-10-22: não há "Estoque máximo".** A requisição automática segue a
+     US-COM-027 como está, pedindo até o mínimo. O limiar de máximo do legado (`AR-PROD-053`) fica
+     fora, por decisão.
 3. `enable_product_expiry`/`enable_lot_number` habilitam validade/lote. — 🟡 **lote sim, validade
    em aberto**: `UC-PINIC-04` trava o lote; a **validade** fica fora do assert porque os **dois
    writers a parseiam de formas diferentes** (`uf_date` no controller × `Carbon::createFromFormat
@@ -1005,16 +1014,31 @@ cadastro pede os dados da nota certa: NCM para mercadoria, item da LC 116 para s
      "Mercadoria" ou "A decidir pelo contador", com o link para a Tributação. Produto de serviço não recebe
      o aviso de "sem NCM". O núcleo pede o dado ao NfeBrasil pelo gancho `getModuleData`, sem importá-lo.
      Ainda não aparece no **Novo produto** (produto novo não tem decisão) nem na ficha.
-  4. 🟡 Na NFS-e o código da LC 116 vem do padrão da empresa (`nfse_provider_configs.lc116_codigo_default`),
-     não do produto. O código de tributação nacional (`ctrib_nac`) só existe na emissão.
+     - 🎨 **Proposta no protótipo (2026-10-22): o Novo produto mostra "A decidir pelo contador" e,
+       ao salvar, marca a natureza como `pendente`** (`NaturezaFiscalService::marcarPendente`, que já
+       existe), para nenhum serviço novo sair como mercadoria sem o contador ver. ⚠️ **Efeito medido
+       no código (2026-10-22):** `pendente` fica do lado da mercadoria na separação da venda
+       (`SeparacaoNotasDaVenda`) e **trava a NFS-e da venda** — `NfseController::parteServico`
+       devolve `natureza_pendente`: *"o contador decide antes de faturar"*. Ou seja, com a proposta,
+       a venda de um produto recém-cadastrado só emite a NFS-e depois da decisão do contador.
+       Decisão [M]/[W] antes de virar código.
+  4. ✅ **Na NFS-e da venda, o item da LC 116 sai do produto** desde a US-NFE-069 (#9727, 2026-10-21):
+     a separação leva o `codigo_servico` de cada linha, e o `NfseController::parteServico` usa esse
+     código; serviços com códigos diferentes na mesma venda são recusados (uma NFS-e leva um código só).
+     O padrão da empresa (`nfse_provider_configs.lc116_codigo_default`) só vale quando o produto não tem
+     código. _(Correção 2026-10-22: até a v1.0.13 este item dizia que o código vinha sempre do padrão da
+     empresa — era verdade antes do #9727.)_ O protótipo mostra isso no quadro "Editar produto de
+     serviço". O código de tributação nacional (`ctrib_nac`) só existe na emissão.
   5. 🔴 Código de tributação municipal e NBS não existem no código (o único `cTribMun` é um comentário em
      `SnNfseAdapter.php:209`).
 - **No cadastro, o que muda:** mostrar a natureza e o item da LC 116 decididos pelo contador (só
   leitura para quem não tem `nfe.tributacao.manage`) e usar a natureza na regra do aviso
   (`CU-PROD-16`/`18`).
-- 🔶 **Decisão [W]:** hoje a natureza é **uma por produto**. Se o mesmo item for serviço numa venda e
-  mercadoria em outra (banner sob encomenda × banner de prateleira), ou a empresa cadastra dois
-  produtos ou a natureza passa a ser decidida na venda.
+- ✅ **Decidido [W] (D-NATUREZA, 2026-10-06), mantido pela [M] em 2026-10-22:** a natureza é **uma por
+  produto**, decidida pelo contador com a fonte; enquanto `pendente`, a NF-e sai pelo padrão da UF com
+  aviso na Saúde fiscal (R-NFE-034). Se o mesmo item for serviço numa venda e mercadoria em outra
+  (banner sob encomenda × banner para revenda), a empresa cadastra dois produtos, como no Bling e no
+  Omie.
 - ⚠️ **Reforma tributária (IBS/CBS), não medido:** fontes secundárias falam em `cClassTrib` errado
   quando derivado só do NCM, o que sustentaria uma **exceção por produto** (hoje a regra fica em
   `nfe_fiscal_rules`, por NCM). Conferir na NT 2025.002 oficial antes de virar caso.
@@ -1239,6 +1263,8 @@ cadastro pede os dados da nota certa: NCM para mercadoria, item da LC 116 para s
 
 **Histórico:**
 
+- 2026-10-22 — **Decisões da [M] sobre as pendências de fluxo** (v1.0.15): sem "Estoque máximo"; a requisição segue até o mínimo (`CU-PROD-04` item 2). Natureza uma por produto, mantendo a D-NATUREZA do [W] (`CU-PROD-19`). Roteiro de produção segue a ADR 0436 do [W] (item 3): sem roteiro no produto, a OS usa as etapas de produção do modelo da empresa; o protótipo mostra isso no card Produção. ⚠️ Ainda não funciona: a OS por item (US-PCP-026, #9641) não tem esse padrão, e hoje produto sem roteiro não vira OS (`UC-PCROT-02`). [M+C]
+- 2026-10-22 — **Três pendências das regras de fluxo registradas** (v1.0.14): natureza "a decidir" no Novo produto (`CU-PROD-19` item 3, proposta; trava a NFS-e da venda até o contador decidir), item da LC 116 do produto na NFS-e (`CU-PROD-19` item 4, corrigido: já funciona desde o #9727) e estoque mínimo e máximo (`CU-PROD-04` item 2; a requisição pelo mínimo já existe na US-COM-027, o máximo é proposta). [M+C]
 - 2026-10-21 — **`CU-PROD-18` ganha o aviso de EAN** (v1.0.10): `UC-PCAD-17` e `UC-PEDIT-15`. O aviso protege a etiqueta; a nota fiscal não usa o EAN hoje. [M+C]
 - 2026-10-21 — **`CU-PROD-19` item 3 passa de 🔴 a 🟡** (v1.0.9): o Editar mostra a natureza fiscal decidida pelo contador (`UC-PEDIT-14`) e o aviso de NCM deixa de aparecer para produto de serviço. Falta: Novo produto, ficha, e o item da LC 116 por produto na NFS-e (item 4). [M+C]
 - 2026-10-20 — **§6.1 ganha `CU-PROD-16`, `CU-PROD-17` e `CU-PROD-18`** (v1.0.8): dados fiscais para nota, peso e dimensões, aviso de pendência fiscal. Origem: benchmark de concorrentes da tela de cadastro (Bling, Tiny/Olist, Conta Azul, Omie, Shopify), registrado também na [CAPTERRA-FICHA §11](CAPTERRA-FICHA.md). Mesmo dia: [M] decidiu que o NCM entra no cadastro; pesquisa refeita com ERPs de comunicação visual, que trouxe `CU-PROD-19` (natureza mercadoria × serviço) e `CV-06`…`CV-11`. Nenhum UC novo em `casos.md` ainda. [M+C]
