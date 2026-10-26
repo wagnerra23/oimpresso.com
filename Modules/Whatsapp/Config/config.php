@@ -148,6 +148,14 @@ return [
     'queue' => env('WHATSAPP_QUEUE', 'whatsapp'),
 
     /*
+     * US-WA-320 — aviso de venda/pagamento do núcleo (NotificationUtil, `auto_send_wa_notif`) enviado
+     * pela API em vez de link wa.me. Desligado por padrão: ligar em produção é decisão [W].
+     */
+    'aviso_automatico' => [
+        'enabled' => (bool) env('WHATSAPP_AVISO_AUTOMATICO_ENABLED', false),
+    ],
+
+    /*
      * US-WA-326 — régua de relacionamento (aniversário e recompra), só para quem deu opt-in de
      * marketing. Desligada por padrão: ligar em produção é decisão [W]. Cada empresa ainda liga a
      * sua régua em whatsapp_reguas_relacionamento.
