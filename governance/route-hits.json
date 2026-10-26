@@ -14,7 +14,7 @@
     "sample_rate": 1,
     "rotas": {
         "/": {
-            "hits": 105,
+            "hits": 104,
             "ultima_data": "2026-10-20"
         },
         "ads.admin.tools.index": {
@@ -101,14 +101,6 @@
             "hits": 462,
             "ultima_data": "2026-10-10"
         },
-        "governance.admin.dashboard": {
-            "hits": 1,
-            "ultima_data": "2026-09-22"
-        },
-        "governance.admin.dashboard.legacy": {
-            "hits": 1,
-            "ultima_data": "2026-09-22"
-        },
         "home": {
             "hits": 7,
             "ultima_data": "2026-10-05"
@@ -117,16 +109,12 @@
             "hits": 8,
             "ultima_data": "2026-10-05"
         },
-        "jana.index": {
-            "hits": 1,
-            "ultima_data": "2026-09-22"
-        },
         "labels/show": {
             "hits": 3,
             "ultima_data": "2026-10-11"
         },
         "login": {
-            "hits": 271,
+            "hits": 267,
             "ultima_data": "2026-10-20"
         },
         "manufacturing.editor-receita.insumos": {
@@ -419,10 +407,6 @@
             "hits": 8,
             "ultima_data": "2026-10-05"
         },
-        "Jana/Index": {
-            "hits": 1,
-            "ultima_data": "2026-09-22"
-        },
         "NfeBrasil/Tributacao/ConfigDefault": {
             "hits": 3,
             "ultima_data": "2026-10-11"
@@ -504,11 +488,11 @@
             "ultima_data": "2026-09-26"
         },
         "Site/Home": {
-            "hits": 105,
+            "hits": 104,
             "ultima_data": "2026-10-20"
         },
         "Site/Login": {
-            "hits": 542,
+            "hits": 534,
             "ultima_data": "2026-10-20"
         },
         "Site/Pricing": {
@@ -526,10 +510,6 @@
         "ads/Admin/Tools": {
             "hits": 1,
             "ultima_data": "2026-10-11"
-        },
-        "governance/Dashboard": {
-            "hits": 1,
-            "ultima_data": "2026-09-22"
         }
     }
 }
