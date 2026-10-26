@@ -379,6 +379,10 @@ Webhook ML `claims` topic dispara:
 
 **Implementado em:** `Modules/Marketplaces/Database/Migrations/2026_10_26_000001_create_mkt_tables.php` · `Modules/Marketplaces/Entities/` · `Modules/Marketplaces/Tests/Feature/MarketplacesEsquemaContratoTest.php`
 
+**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesEsquemaContratoTest.php`
+
+**DoD:** as tabelas da empresa têm business_id com FK; os models filtram por empresa (98 não vê 99); token cifrado no banco; pedido externo único por empresa; log de webhook recusa UPDATE/DELETE.
+
 > 2026-10-26: entram as 5 tabelas do primeiro pedido ponta a ponta (§3.1–3.4 e §3.6). As outras 4 (§3.5 envios, §3.7 disputas, §3.8 regras de preço, §3.9 reputação) nascem com as US que as usam (010, 014, 017, 016). Teste no tenant 98 contra o 99 ([ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)); o "biz=1 vs biz=99" abaixo é a redação de 2026-05.
 
 Migrations + Models todas com `business_id` + `HasBusinessScope` ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)) + Pest isolation biz=1 vs biz=99 ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md)).
@@ -387,11 +391,19 @@ Migrations + Models todas com `business_id` + `HasBusinessScope` ([ADR 0093](../
 
 **Implementado em:** _parcial_ · `Modules/Marketplaces/Database/Migrations/2026_10_26_000002_seed_mkt_marketplaces.php` · `Modules/Marketplaces/Tests/Feature/MarketplacesOAuthMercadoLivreContratoTest.php` — 2026-10-26: catálogo por migration idempotente (ML ativo, Shopee e Amazon inativos); a tela do superadmin para ativar/desativar ainda não existe
 
+**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesOAuthMercadoLivreContratoTest.php`
+
+**DoD:** o catálogo traz o Mercado Livre ativo e Shopee e Amazon cadastrados inativos, por migration que não sobrescreve o que o superadmin mudou.
+
 Seeder com Mercado Livre + Shopee + Amazon BR. UI admin superadmin pra ativar/desativar.
 
 ### US-MKT-003 · OAuth2 Mercado Livre — authorization code flow + refresh token — **P0** · 6h
 
 **Implementado em:** _parcial_ · `Modules/Marketplaces/Services/MercadoLivre/MercadoLivreOAuth.php` · `Modules/Marketplaces/Http/Controllers/ContasController.php` · `Modules/Marketplaces/Tests/Feature/MarketplacesOAuthMercadoLivreContratoTest.php` · `Modules/Marketplaces/Jobs/RenovarTokenContaJob.php` · `Modules/Marketplaces/Tests/Feature/MarketplacesRenovacaoTokenContratoTest.php` — 2026-10-26: conectar + callback com state da sessão e token cifrado por empresa; renovação sob demanda e de hora em hora (o access token do ML vale ~6 h, então "diária" não bastaria); falta a página `Connect.tsx`; credencial do app ML é [W]
+
+**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesOAuthMercadoLivreContratoTest.php` · `Modules/Marketplaces/Tests/Feature/MarketplacesRenovacaoTokenContratoTest.php`
+
+**DoD:** conectar redireciona para a autorização do ML com state da sessão; só empresa com pacote e usuário com permissão conecta; callback só aceita o state da própria sessão; token cifrado na conta da empresa da sessão, sem duplicar ao reconectar.
 
 - Page `Marketplaces/Connect.tsx` — botão "Conectar Mercado Livre"
 - Redirect → `https://auth.mercadolibre.com.br/authorization?response_type=code&client_id={app_id}&redirect_uri={callback}`
