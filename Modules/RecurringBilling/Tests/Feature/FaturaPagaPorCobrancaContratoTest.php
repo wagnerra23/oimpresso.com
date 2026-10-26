@@ -63,7 +63,9 @@ it('US-RB-057 · cobrança paga do valor da fatura marca paga, grava pago_em e d
     $c = ($this->cobranca)($this->b98, $f, 15000);
     $l = app(MarcarFaturaPagaDaCobranca::class);
 
-    expect($l->marcar(($this->evento)($c, $this->b98, 15000)))->toBe('paga');
+    // Pelo evento: prova que o listener está registrado no CobrancaPaga.
+    event(($this->evento)($c, $this->b98, 15000));
+    expect(($this->fat)($f)->status)->toBe('paid');
     expect($l->marcar(($this->evento)($c, $this->b98, 15000)))->toBe('ja_paga'); // retorno repetido
 
     $linha = ($this->fat)($f);
