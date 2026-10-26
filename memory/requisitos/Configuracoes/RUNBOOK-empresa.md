@@ -60,6 +60,8 @@ Trilho vira seletor abaixo de 768px. `data-contract`: `page-header`, `abas`, `ab
 - [x] F3-5a: E-mail e SMS (UC-EMP-12)
 - [x] F3-5b: Pontos de fidelidade + Módulos (UC-EMP-13)
 - [x] F3-5c: Rótulos personalizados (UC-EMP-14) — **as 16 abas estão na tela nova**
+- [x] Financeiro: régua de cobrança (UC-EMP-15)
+- [x] App das lojas (UC-EMP-17) — **18 de 18 abas da Blade** na tela nova (medido 2026-10-26: 19 parciais `business/partials/settings_*.blade.php`; a balança é seção da aba Venda no PDV)
 - [ ] Smoke biz=1 (F4) · cutover (F5, decisão [W])
 
 ## 10. Pegadinhas
