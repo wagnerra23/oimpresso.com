@@ -237,6 +237,11 @@ last_run: "2026-10-21"
 - **Teste:** `tests/Feature/Sells/SellsEmitirCobrancaSaldoContratoTest.php` — `UC-VCOB-04`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
+## UC-VCOB-05 · O drawer de cobrança mostra o Pix para o cliente pagar · `must`
+- **Aceite:** Dado uma cobrança Pix da venda emitida e no prazo · Quando abro o detalhe da venda · Então `cobranca.cob.pix_emv` traz o copia-e-cola, e o drawer mostra o QR, o texto e o botão Copiar. Depois que a cobrança é paga, `pix_emv` volta nulo e o código some. Logo após emitir, o drawer fica aberto mostrando o código.
+- **Teste:** `tests/Feature/Sells/SellsEmitirCobrancaSaldoContratoTest.php` — `UC-VCOB-05`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão (e o `casos-gate` é required com
