@@ -48,7 +48,7 @@ class Material extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['nome', 'categoria', 'preco_venda_m2', 'preco_custo_m2', 'estoque_minimo_m2', 'minimo_m2', 'ativo'])
+            ->logOnly(['nome', 'categoria', 'preco_venda_m2', 'preco_custo_m2', 'estoque_minimo_m2', 'minimo_m2', 'perda_pct', 'largura_bobina_m', 'preco_solda_m', 'ativo'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->useLogName('comvis.material');
@@ -66,6 +66,9 @@ class Material extends Model
         'preco_venda_m2',
         'estoque_minimo_m2',
         'minimo_m2',
+        'perda_pct',
+        'largura_bobina_m',
+        'preco_solda_m',
         'ativo',
         'observacoes',
     ];
@@ -77,6 +80,9 @@ class Material extends Model
         'preco_venda_m2'    => 'decimal:2',
         'estoque_minimo_m2' => 'decimal:2',
         'minimo_m2'         => 'decimal:3',
+        'perda_pct'         => 'decimal:2',
+        'largura_bobina_m'  => 'decimal:3',
+        'preco_solda_m'     => 'decimal:2',
         'ativo'             => 'boolean',
     ];
 
