@@ -2032,6 +2032,8 @@ Refs: ROADMAP-SDD (sweep do mês)
 
 **Implementado em:** `app/Utils/NotificationUtil.php` · `Modules/Whatsapp/Config/config.php` · `Modules/Whatsapp/Tests/Feature/AvisoVendaWhatsappApiContratoTest.php`
 
+**Testado em:** `Modules/Whatsapp/Tests/Feature/AvisoVendaWhatsappApiContratoTest.php`
+
 > owner: — · priority: p0 · estimate: 3h · type: story
 > blocked_by: US-WA-319
 
