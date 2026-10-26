@@ -2035,6 +2035,8 @@ Ligar em produção é decisão [W]. Botão de disparar/cancelar na tela: US seg
 
 **Implementado em:** `Modules/Whatsapp/Http/Controllers/Admin/BroadcastController.php` · `Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/_components/BroadcastSheet.tsx` · `Modules/Whatsapp/Tests/Feature/BroadcastDispararEndpointContratoTest.php`
 
+**Testado em:** `Modules/Whatsapp/Tests/Feature/BroadcastDispararEndpointContratoTest.php`
+
 > owner: — · priority: p1 · estimate: 4h · type: story
 > blocked_by: US-WA-322
 
