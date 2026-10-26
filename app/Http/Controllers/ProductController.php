@@ -769,7 +769,54 @@ class ProductController extends Controller
             'roteiro' => app()->bound(\App\Contracts\Producao\RoteiroDoProduto::class)
                 ? app(\App\Contracts\Producao\RoteiroDoProduto::class)->doProduto($business_id, $id)
                 : null,
-        ] + ($verPreco ? ['precos_propostos' => $this->precosPropostosDoProduto($business_id, $id)] : []);
+        ] + ($verPreco ? ['precos_propostos' => $this->precosPropostosDoProduto($business_id, $id)] : [])
+          + (($requisicao = $this->requisicoesAbertasDosProdutos($business_id, [$id])) !== null ? ['requisicao' => $requisicao[$id] ?? null] : []);
+    }
+
+    /**
+     * UC-PIDX-30 (UC-FLX-19): a requisição de compra aberta (`ordered` ou `partial`) mais recente de cada
+     * produto — a que o estoque mínimo cria sozinho (US-COM-027) ou uma feita à mão. Mesmas permissões da
+     * lista de requisições: `purchase_requisition.view_all` vê todas; `view_own`, só as que a pessoa criou;
+     * sem nenhuma das duas, null (a chave não vai para a tela). Só leitura; Tier 0: só a empresa.
+     *
+     * @param  list<int>  $ids
+     * @return array<int, array{id: int, numero: string, data: string, fornecedor: ?string, url: string}>|null
+     */
+    protected function requisicoesAbertasDosProdutos(int $business_id, array $ids): ?array
+    {
+        $u = auth()->user();
+        $todas = (bool) $u->can('purchase_requisition.view_all');
+        if (! $todas && ! $u->can('purchase_requisition.view_own')) {
+            return null;
+        }
+        if ($ids === []) {
+            return [];
+        }
+        $consulta = DB::table('purchase_lines as pl')
+            ->join('transactions as t', 't.id', '=', 'pl.transaction_id')
+            ->leftJoin('contacts as c', fn ($j) => $j->on('c.id', '=', 't.contact_id')->where('c.business_id', $business_id))
+            ->where('t.business_id', $business_id)
+            ->where('t.type', 'purchase_requisition')
+            ->whereIn('t.status', ['ordered', 'partial'])
+            ->whereIn('pl.product_id', $ids);
+        if (! $todas) {
+            $consulta->where('t.created_by', $u->id);
+        }
+        $porProduto = [];
+        // Ordem crescente: a mais recente de cada produto fica por último e vence.
+        foreach ($consulta->orderBy('t.transaction_date')->orderBy('t.id')
+            ->get(['pl.product_id', 't.id', 't.ref_no', 't.transaction_date', 'c.name', 'c.supplier_business_name']) as $r) {
+            $fornecedor = trim((string) ($r->supplier_business_name ?: $r->name));
+            $porProduto[(int) $r->product_id] = [
+                'id' => (int) $r->id,
+                'numero' => (string) $r->ref_no,
+                'data' => substr((string) $r->transaction_date, 0, 10),
+                'fornecedor' => $fornecedor === '' ? null : $fornecedor,
+                'url' => '/purchase-requisition/' . (int) $r->id,
+            ];
+        }
+
+        return $porProduto;
     }
 
     /**
@@ -1134,7 +1181,11 @@ class ProductController extends Controller
             )
             : [];
 
-        $pagina->through(function ($row) use ($podeVerCusto, $podeVerPreco, $is_woocommerce, $propostas) {
+        $idsDaPagina = array_values(array_map('intval', $pagina->getCollection()->pluck('id')->all()));
+        // UC-PIDX-30: requisição de compra aberta (sem permissão de ver requisições a chave não vem).
+        $requisicoes = $this->requisicoesAbertasDosProdutos($business_id, $idsDaPagina);
+
+        $pagina->through(function ($row) use ($podeVerCusto, $podeVerPreco, $is_woocommerce, $propostas, $requisicoes) {
             $controla = (bool) $row->enable_stock;
             $estoque = $controla ? (float) ($row->current_stock ?? 0) : null;
             $alerta = $row->alert_quantity === null ? null : (float) $row->alert_quantity;
@@ -1173,6 +1224,9 @@ class ProductController extends Controller
             ];
             if ($is_woocommerce) {
                 $linha['woocommerce_sync'] = ! $row->woocommerce_disable_sync;
+            }
+            if ($requisicoes !== null) {
+                $linha['requisicao'] = $requisicoes[(int) $row->id] ?? null;
             }
             if ($podeVerCusto) {
                 $linha['compra_min'] = (float) $row->min_purchase_price;
