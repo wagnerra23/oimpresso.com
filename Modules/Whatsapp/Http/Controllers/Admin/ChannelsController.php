@@ -147,6 +147,12 @@ class ChannelsController extends Controller
             'users' => Inertia::defer(fn () => $this->buildChannelUsersPayload($businessId, $channel->id)),
             'availableUsers' => Inertia::defer(fn () => $this->buildAvailableUsersPayload($businessId, $channel->id)),
             'audit' => Inertia::defer(fn () => $this->buildAuditPayload($businessId, $channel->id)),
+            // US-WA-327 — aba "Menu do bot": o menu do canal (ou null) e as filas da empresa.
+            'menuBot' => Inertia::defer(fn () => [
+                'menu' => BotMenuController::doCanal($businessId, (int) $channel->id),
+                'filas' => BotMenuController::filas($businessId),
+                'ligado_no_sistema' => (bool) config('whatsapp.bot_menu.enabled', false),
+            ]),
         ]);
     }
 
