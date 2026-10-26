@@ -88,6 +88,40 @@ função da lista Blade que roda hoje em produção.
 - Multi-tenant: `business_id` explícito em toda consulta (não há global scope em `App\Product`).
 - Permission gate: `product.view` **ou** `product.create` (`ProductController@index`, 403).
 
+> **Decidido por [F] em 2026-10-26 (comentários na âncora e conversa), ainda não na produção.** O
+> protótipo (`produto-blade.jsx`, PR #9925) já mudou. A tela em produção segue como descrito acima
+> até o PR que levar a mudança, e esse PR reescreve os casos e os testes junto.
+> - **Quem usa:** o administrador (cadastro, preço, estoque, nota) e o vendedor de balcão, que procura
+>   o produto e informa o preço ao cliente. Muitas vendas saem sem nota ([F]); quem decide é cada
+>   venda, pelo processo "Venda Sem Nota" ou "Venda Com Nota" (`memory/requisitos/Sells/SPEC.md`), e
+>   não o produto.
+> - Sai o "Comprar" do menu Ações e do rodapé do painel: a consulta não é a tela de compras. Muda o
+>   UC-PIDX-11.
+> - O rodapé do painel não tem "Gerar OP": a ordem de produção começa na produção. A produção nunca
+>   teve o botão; o protótipo deixou de ter.
+> - **Imposto aparece por relevância, não por permissão:** imposto não é segredo, sai impresso na nota.
+>   - O preço de venda mostrado é o que a venda cobra: o preço com o imposto do produto
+>     (`sell_price_inc_tax`), com nota ou sem. É o número que o vendedor informa ao cliente, e é o
+>     que a lista já mostra hoje.
+>   - Aba Dados: "Preço de venda" primeiro; se o produto tem imposto, também o preço sem imposto e o
+>     imposto aplicável (com o tipo), com uma frase dizendo que o preço já inclui o imposto. Muda o
+>     UC-PIDX-19.
+>   - Tabelas de Variações e Composição: sem imposto, uma coluna de preço só; com imposto, as duas,
+>     com os rótulos "sem imposto" e "com imposto" no lugar de "(excl.)" e "(incl.)".
+>   - Aba Fiscal e "Dados fiscais (NCM/CFOP)" do menu: só em empresa que emite nota (módulo Fiscal no
+>     pacote, o mesmo teste do botão "Abrir no módulo Fiscal"). A aba começa dizendo se o produto
+>     está pronto para nota, por exemplo "Sem NCM: a nota sai com o NCM padrão da empresa". Muda os
+>     UC-PIDX-17 e 25.
+>   - Coluna e filtro Imposto da lista: só se a empresa tem alíquota cadastrada; a coluna nasce
+>     desligada e fica no menu Colunas. Os dois exports seguem a regra da coluna.
+>
+> Nada disso esconde da tela nova o que a lista Blade mostra, então não entra no Non-Goal "Função a
+> menos que a lista Blade". Uma diferença pequena, de propósito: a janela "Ver" da Blade escreve
+> "Imposto aplicável: Nenhum"; a tela nova omite a linha quando não há imposto, porque o preço
+> mostrado já é o final. **Descartado no mesmo dia:** esconder o imposto por permissão
+> (`fiscal.access`). Escondia de quem vende um dado que a nota imprime, e deixava a tela nova mostrar
+> menos que a Blade.
+
 ---
 
 ## Non-Goals — Features (NÃO faz)
