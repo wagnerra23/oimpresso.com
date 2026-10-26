@@ -762,6 +762,17 @@ validade passada ou orçamento já aprovado não decidem.
 
 Status: 🧪
 
+## UC-CVACE-03 · A calculadora gera o link e entrega pronto para o WhatsApp · `should`
+
+**Dado** um orçamento gravado, igual à tela e ainda não aprovado **Quando** o vendedor clica "Enviar no
+WhatsApp" **Então** a tela chama `POST /comunicacao-visual/api/orcamentos/{id}/link`, mostra o link e
+oferece "Copiar link" e "Abrir no WhatsApp" (`wa.me` com o número do orçamento e o link na mensagem).
+Orçamento já aprovado não oferece o link (o serviço recusaria).
+
+Teste: `tests/js/cv-aceite-link.test.tsx`
+
+Status: 🧪
+
 ---
 
 ## Backlog — prosa honesta, sem id (ainda não é UC)
