@@ -13,9 +13,18 @@ ADR `memory/decisions/proposals/2026-10-06-entrada-xml-compra.md` §4, fase 0 (d
 de 2026-10-26). Medição só de leitura no Hostinger em 2026-10-26, por `php artisan tinker` com SELECTs e
 `grep` no `laravel.log`. Nenhum dado foi escrito. Valores de CNPJ não aparecem aqui, só comprimentos.
 
+> ⚠️ **Correção (mesmo dia, depois da medição da frente Fiscal):** a causa 3 abaixo dizia que a biz=1
+> "não tem CNPJ". **Errado:** medi `business.tax_number_1` e `nfe_certificados.cnpj_titular` (ambos
+> vazios) e não olhei `business.cnpj`, que tem os 14 dígitos. O defeito é dos serviços, que montavam o
+> CNPJ só do `tax_number_1` — consertado pela frente Fiscal no #9873 (titular → `business.cnpj` →
+> `tax_number_1`, recusa sem CNPJ e alerta `dfe_busca_falhou` no cockpit). E há uma **5ª causa** que eu
+> não medi: o único certificado ativo (biz=1) **venceu em 2026-08-06** (`nfe_certificados.valido_ate`,
+> conferido em 2026-10-26). Com o CNPJ resolvido, a busca ainda falharia até um certificado válido ser
+> cadastrado.
+
 ## TL;DR
 
-A busca roda todo dia e **morre antes de chamar a SEFAZ**. São quatro causas somadas; consertar só a
+A busca roda todo dia e **morre antes de chamar a SEFAZ**. São cinco causas somadas; consertar só a
 primeira que aparece no log não basta.
 
 | # | Causa | Medido |
@@ -24,6 +33,7 @@ primeira que aparece no log não basta.
 | 2 | De 2026-07-03 a 2026-09-02 o job falhava lendo `business.state`, coluna que não existe | 44 linhas em `failed_jobs` com `Unknown column 'state'`. Corrigido em 2026-09-04 (`resolverUfEmitente`) |
 | 3 | Desde 2026-09-05 falha porque a biz=1 **não tem CNPJ** | 25 linhas em `failed_jobs` com `config.json não é válido [cnpj] ... ^[A-Z0-9]{11,14}`, a última em 2026-10-26 06:17. `business.tax_number_1` da biz=1 tem 0 dígitos e `nfe_certificados.cnpj_titular` também tem 0 |
 | 4 | Mesmo sem erro, a busca iria para **homologação** | `config('nfebrasil.ambiente')` é nulo em produção; `DistribuicaoDfeService::buildTools/buildConfig` usam o padrão `2` (homologação), que não devolve nota real |
+| 5 | O certificado ativo da biz=1 **venceu em 2026-08-06** | `nfe_certificados.valido_ate = 2026-08-06`, `ativo = 1` (medido em 2026-10-26, depois do alerta da frente Fiscal) |
 
 Outros fatos medidos: ambiente `live`, fila `database`, `jobs` pendentes = 0, `nfe_dfe_recebidos` = 0;
 o agendamento `nfebrasil:dist-dfe-puxar` (06:15) roda neste ambiente (`runsInEnvironment` = sim).
