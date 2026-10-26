@@ -409,6 +409,26 @@ O Cockpit não é renderizado (recebe ~15 props de payload) e entra por um caso 
 que a pessoa fiscal **faz** (conferir, cancelar, manifestar, inutilizar); nenhum trata de
 preferência de exibição. Ancorar num CU plausível fecharia a lacuna do painel sem lastro (LC-11).
 
+## Item do regime normal com base e alíquota em percentual (R-NFE-040)
+
+> **Âncora:** R-NFE-040 do [SPEC do NfeBrasil](../../../../memory/requisitos/NfeBrasil/SPEC.md). Prova:
+> `NfeAliquotaPercentualTest` (sem banco, motor falso com alíquotas em fração como a régua guarda).
+
+## UC-FNFE-42 · Regime normal: base cheia e alíquota em percentual · `must`
+
+**Dado** uma regra CST 00 com ICMS 0,18, PIS 0,0165 e COFINS 0,076 **Quando** um item de 1.000,00 vai à nota
+**Então** sai vBC 1.000,00, pICMS 18, vICMS 180,00, pPIS 1,65, pCOFINS 7,6 e o total vBC 1.000,00; com base
+reduzida pelo benefício (600,00), a base é 600,00.
+
+Status: 🧪
+
+## UC-FNFE-43 · Simples e CST sem ICMS ficam como antes · `must`
+
+**Dado** CSOSN 102, CST 40 ou CST 00 com alíquota zero **Quando** o item vai à nota **Então** a base do ICMS
+fica 0 no item e no total.
+
+Status: 🧪
+
 ## NF-e em contingência quando a SEFAZ cai (US-NFE-070 · UC-FLX-32)
 
 > **Âncora:** [US-NFE-070](../../../../memory/requisitos/NfeBrasil/SPEC.md) (resto da US-NFE-006) e o
