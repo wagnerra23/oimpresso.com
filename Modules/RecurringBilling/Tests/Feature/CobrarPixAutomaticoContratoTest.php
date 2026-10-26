@@ -108,6 +108,14 @@ it('UC-RBPA-02 · fora da janela de 10 a 2 dias, ou sem recorrência aprovada, n
     $longe = paAssinatura($this->b98, 11);
     $criada = paAssinatura($this->b98, 5, 'CRIADA');
     $semMandato = paAssinatura($this->b98, 5, null);
+    // Discriminante: as duas sem recorrência aprovada JÁ têm fatura aberta dentro da janela (gerada
+    // por outro caminho). Sem a checagem do mandato no cobrador, elas seriam cobradas.
+    foreach ([$criada, $semMandato] as $s) {
+        $sub = DB::table('rb_subscriptions')->where('id', $s)->first();
+        DB::table('rb_invoices')->insert(['business_id' => $this->b98, 'subscription_id' => $s, 'contact_id' => $sub->contact_id,
+            'numero_documento' => 'PA-'.uniqid(), 'valor' => '106.07', 'status' => 'open', 'vencimento' => '2031-03-25',
+            'created_at' => now(), 'updated_at' => now()]);
+    }
     paBancoOk();
 
     app(CobradorPixAutomatico::class)->cobrar($this->b98, PA_HOJE);
