@@ -409,7 +409,8 @@ E escolha diferente de nota/venda não passa da validação
 **Contrato:** decisão [W] 2026-10-26 ("ao cancelar, o sistema pergunta"). O que a ação `cancelar_venda` faz é o `CancelarVendaCascade`: cancela as notas por job idempotente, estorna boleto pendente, libera **reserva** de estoque e avisa o cliente.
 **Implementação:** `Modules/Fiscal/Http/Controllers/AcoesController.php` (`cancelarNfe`, `cancelarVendaDaNota`).
 **Testado em:** `Modules/Fiscal/Tests/Feature/AcoesCancelarEscopoTest.php` (lane `nfebrasil-pest`).
-**Fora deste item:** o cascade **não** devolve ao estoque o que a venda já baixou nem cancela o título do Financeiro (medido em 2026-10-26 — `LiberarReserva` "NÃO mexe em qty_available") — estender é decisão [W] com as frentes Vendas/Estoque e Financeiro; a pergunta na tela (`NotaDrawer`) vem no PR seguinte.
+**Fora deste item:** o cascade **não** devolve ao estoque o que a venda já baixou nem cancela o título do Financeiro (medido em 2026-10-26 — `LiberarReserva` "NÃO mexe em qty_available") — estender é decisão [W] com as frentes Vendas/Estoque e Financeiro.
+**Tela:** `resources/js/Pages/Fiscal/_components/NotaDrawer.tsx` (modal com as duas opções; padrão "só a nota") · teste `tests/js/fiscal-nfe-cancelar-escopo.test.tsx` (lane `fiscal-teclado-gate`).
 
 ### R-NFE-012 · Não-emissão NÃO bloqueia venda (assíncrono)
 
