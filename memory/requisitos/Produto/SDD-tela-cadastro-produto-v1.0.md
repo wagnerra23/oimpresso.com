@@ -6,7 +6,7 @@ type: sdd
 module: Produto
 status: ativo
 owner: wagner
-version: 1.0.16
+version: 1.0.13
 last_updated: 2026-10-22
 related_docs:
   - SPEC.md
@@ -694,15 +694,6 @@ A lista Blade (`resources/views/product/partials/product_list.blade.php`, todas 
    do produto (`store`/`update`/`saveQuickProduct`), não deste fluxo, e nenhum teste o exercita.
    Paridade em aberto: o legado tem **dois** limiares (`AR-PROD-053`, Estoque Máx. **e** Mín.); o
    oimpresso tem um (`alert_quantity`).
-   - ✅ **O mínimo já gera requisição de compra** (US-COM-027 · UC-FLX-19, pronta): um job diário,
-     ligado pela empresa em Fluxos, põe numa requisição do local o item com saldo abaixo de
-     `alert_quantity`, com quantidade = mínimo − saldo, o fornecedor e o preço da última compra.
-     Desligado por padrão.
-   - 🎨 **No protótipo (2026-10-22):** "Quantidade de alerta" passa a se chamar **Estoque mínimo**
-     (mesmo campo).
-   - **Decidido pela [M] em 2026-10-22: não há "Estoque máximo".** A requisição automática segue a
-     US-COM-027 como está, pedindo até o mínimo. O limiar de máximo do legado (`AR-PROD-053`) fica
-     fora, por decisão.
 3. `enable_product_expiry`/`enable_lot_number` habilitam validade/lote. — 🟡 **lote sim, validade
    em aberto**: `UC-PINIC-04` trava o lote; a **validade** fica fora do assert porque os **dois
    writers a parseiam de formas diferentes** (`uf_date` no controller × `Carbon::createFromFormat
@@ -1014,31 +1005,16 @@ cadastro pede os dados da nota certa: NCM para mercadoria, item da LC 116 para s
      "Mercadoria" ou "A decidir pelo contador", com o link para a Tributação. Produto de serviço não recebe
      o aviso de "sem NCM". O núcleo pede o dado ao NfeBrasil pelo gancho `getModuleData`, sem importá-lo.
      Ainda não aparece no **Novo produto** (produto novo não tem decisão) nem na ficha.
-     - 🎨 **Proposta no protótipo (2026-10-22): o Novo produto mostra "A decidir pelo contador" e,
-       ao salvar, marca a natureza como `pendente`** (`NaturezaFiscalService::marcarPendente`, que já
-       existe), para nenhum serviço novo sair como mercadoria sem o contador ver. ⚠️ **Efeito medido
-       no código (2026-10-22):** `pendente` fica do lado da mercadoria na separação da venda
-       (`SeparacaoNotasDaVenda`) e **trava a NFS-e da venda** — `NfseController::parteServico`
-       devolve `natureza_pendente`: *"o contador decide antes de faturar"*. Ou seja, com a proposta,
-       a venda de um produto recém-cadastrado só emite a NFS-e depois da decisão do contador.
-       Decisão [M]/[W] antes de virar código.
-  4. ✅ **Na NFS-e da venda, o item da LC 116 sai do produto** desde a US-NFE-069 (#9727, 2026-10-21):
-     a separação leva o `codigo_servico` de cada linha, e o `NfseController::parteServico` usa esse
-     código; serviços com códigos diferentes na mesma venda são recusados (uma NFS-e leva um código só).
-     O padrão da empresa (`nfse_provider_configs.lc116_codigo_default`) só vale quando o produto não tem
-     código. _(Correção 2026-10-22: até a v1.0.13 este item dizia que o código vinha sempre do padrão da
-     empresa — era verdade antes do #9727.)_ O protótipo mostra isso no quadro "Editar produto de
-     serviço". O código de tributação nacional (`ctrib_nac`) só existe na emissão.
+  4. 🟡 Na NFS-e o código da LC 116 vem do padrão da empresa (`nfse_provider_configs.lc116_codigo_default`),
+     não do produto. O código de tributação nacional (`ctrib_nac`) só existe na emissão.
   5. 🔴 Código de tributação municipal e NBS não existem no código (o único `cTribMun` é um comentário em
      `SnNfseAdapter.php:209`).
 - **No cadastro, o que muda:** mostrar a natureza e o item da LC 116 decididos pelo contador (só
   leitura para quem não tem `nfe.tributacao.manage`) e usar a natureza na regra do aviso
   (`CU-PROD-16`/`18`).
-- ✅ **Decidido [W] (D-NATUREZA, 2026-10-06), mantido pela [M] em 2026-10-22:** a natureza é **uma por
-  produto**, decidida pelo contador com a fonte; enquanto `pendente`, a NF-e sai pelo padrão da UF com
-  aviso na Saúde fiscal (R-NFE-034). Se o mesmo item for serviço numa venda e mercadoria em outra
-  (banner sob encomenda × banner para revenda), a empresa cadastra dois produtos, como no Bling e no
-  Omie.
+- 🔶 **Decisão [W]:** hoje a natureza é **uma por produto**. Se o mesmo item for serviço numa venda e
+  mercadoria em outra (banner sob encomenda × banner de prateleira), ou a empresa cadastra dois
+  produtos ou a natureza passa a ser decidida na venda.
 - ⚠️ **Reforma tributária (IBS/CBS), não medido:** fontes secundárias falam em `cClassTrib` errado
   quando derivado só do NCM, o que sustentaria uma **exceção por produto** (hoje a regra fica em
   `nfe_fiscal_rules`, por NCM). Conferir na NT 2025.002 oficial antes de virar caso.
@@ -1089,54 +1065,6 @@ qual é o local padrão.
      depósito e vendido na loja).
 - **Casos de uso:** ainda sem id. Estão no backlog do `Create.casos.md` e do `Edit.casos.md` e
   ganham id quando houver teste que os defenda (G-2).
-
-#### CU-PROD-21 — Política de preço do produto `[should]` 🎨 **só no protótipo** (2026-10-22)
-
-<!-- curado: regra da compra em Fluxos (RegrasCompra.php, fsm-regras.jsx) + receita da Fabricação (manufacturing-recipe.jsx) + US-PROD-030 + medição do código em 2026-10-22 -->
-
-*Dado* um produto cujo custo muda quando a compra de um insumo é recebida; *quando* cadastro ou edito
-o produto; *então* escolho o que acontece com o preço de venda dele: fica parado, acompanha o custo ou
-volta para uma margem alvo.
-
-- **Origem:** pedido do [W] em 2026-10-06 (US-PROD-030), textual: *"tem produto que deve ser sempre
-  atualizado o preço a cada compra, ou modificação do item da composição. e tem produto que existe
-  tabela de preço dos vendedores e o cliente não quer mudar o valor toda hora então ele escolhe manter
-  desatualizado."* A regra da compra em Fluxos pergunta "Quais produtos seguem" e uma das respostas é
-  "Política de preço do produto" (`app/Domain/Fsm/Modelos/RegrasCompra.php`, parâmetro `regraEm`). O
-  protótipo de Fluxos anota: *"falta o campo no cadastro"* (`fluxos-modelos.casos.md`).
-- **As três opções** (nomes do protótipo do [W]: receita da Fabricação, `manufacturing-recipe.jsx`, e
-  regra da compra, `fsm-regras.jsx`):
-  1. **Preço fixo — só a margem muda.**
-  2. **Acompanha o custo — mantém o markup.**
-  3. **Margem alvo — recalcula pelo custo**, com o campo **Margem alvo (%)**, que só aparece nessa
-     opção.
-- **Produto novo começa com Preço fixo.** É a resposta do [W] à pergunta 1 da US-PROD-030 (2026-10-06,
-  "mantém o preço") e o padrão do protótipo (`{ tipo: "fixo" }`).
-- **Quem decide o quê:** a **política do produto** diz quais produtos seguem a regra. A **regra da
-  compra da empresa**, em Fluxos, diz o que acontece com eles: só recalcula o custo, propõe o preço
-  novo para alguém aprovar, ou aplica o preço novo sozinho.
-- **O que o sistema já tem (medido em 2026-10-22):**
-  1. ✅ A regra da compra é aplicada no recebimento (US-COM-026, `AplicarCustoDoRecebimento`,
-     2026-10-20), e o preço proposto vai para uma fila de aprovação no detalhe da compra (US-COM-028,
-     `PropostasDePreco`, 2026-10-21).
-  2. 🔴 Não existe coluna de política em `products` nem em `variations`, e o parâmetro `regraEm` ainda
-     não é lido (comentário de `RegrasCompra.php`). Hoje a regra da compra vale para **todos** os
-     produtos da empresa.
-- **No protótipo** (artefato do cadastro, bloco Preço & Imposto): no **Novo**, "Política de preço" com
-  Preço fixo; no **Editar**, o exemplo usa Margem alvo com 45%. A ajuda diz que a regra da compra em
-  Fluxos decide se o preço novo entra sozinho ou vai para aprovação.
-- **⚠️ O SPEC está atrás do fluxo:** a US-PROD-030 usa outros nomes (*mantém o preço · atualiza na
-  hora · atualiza com confirmação*) e põe "com confirmação" no produto. Datas conferidas no git: o
-  protótipo do [W] entrou no repositório em 2026-10-06 17:11 UTC (handoff 48, #8806) e o SPEC no mesmo
-  dia, às 18:57 UTC (#8818). O que veio depois seguiu o protótipo: a ADR 0435 (2026-10-16, *"o fluxo
-  do pedido segue o protótipo Fluxos e regras"*) e a regra da compra no código (2026-10-16 a 21), que
-  pôs a escolha "propõe para aprovação" na empresa. Decidido pela [M] em 2026-10-22: **seguem os nomes
-  de Fluxos e da Fabricação.** A US-PROD-030 precisa ser atualizada com esses nomes; não foi feito
-  neste documento.
-- **Ainda em aberto, sem presumir:** as outras respostas do [W] na US-PROD-030 (tabelas de preço,
-  aviso na receita, vários níveis da composição) não falam dos três nomes novos; a migração do legado
-  (`TEM_MARGEM_FIXA_CONTIBUICAO`) precisa ser refeita para eles.
-- **Casos de uso:** ainda sem id; ganham id quando houver teste que os defenda (G-2).
 
 ### 6.2 Vertical comunicação visual (`CV`)
 
@@ -1358,9 +1286,6 @@ volta para uma margem alvo.
 
 **Histórico:**
 
-- 2026-10-22 — **`CU-PROD-21`: política de preço do produto** (v1.0.16): três opções com os nomes de Fluxos e da Fabricação (Preço fixo · Acompanha o custo · Margem alvo), produto novo com Preço fixo, só no protótipo. Registrado que a US-PROD-030 usa outros nomes e ficou atrás do fluxo decidido depois (ADR 0435 e regra da compra no código). [M+C]
-- 2026-10-22 — **Decisões da [M] sobre as pendências de fluxo** (v1.0.15): sem "Estoque máximo"; a requisição segue até o mínimo (`CU-PROD-04` item 2). Natureza uma por produto, mantendo a D-NATUREZA do [W] (`CU-PROD-19`). Roteiro de produção segue a ADR 0436 do [W] (item 3): sem roteiro no produto, a OS usa as etapas de produção do modelo da empresa; o protótipo mostra isso no card Produção. ⚠️ Ainda não funciona: a OS por item (US-PCP-026, #9641) não tem esse padrão, e hoje produto sem roteiro não vira OS (`UC-PCROT-02`). [M+C]
-- 2026-10-22 — **Três pendências das regras de fluxo registradas** (v1.0.14): natureza "a decidir" no Novo produto (`CU-PROD-19` item 3, proposta; trava a NFS-e da venda até o contador decidir), item da LC 116 do produto na NFS-e (`CU-PROD-19` item 4, corrigido: já funciona desde o #9727) e estoque mínimo e máximo (`CU-PROD-04` item 2; a requisição pelo mínimo já existe na US-COM-027, o máximo é proposta). [M+C]
 - 2026-10-22 — **`CU-PROD-20`: local padrão decidido pela [M]** (v1.0.13): é o local sugerido na compra, na transferência e na separação; a venda continua baixando do local da venda. O protótipo foi revisado contra as regras de fluxo e ganhou o Método de custo (UC-FLX-38) e os campos que a tela real já tem (Venda com imposto, Não está à venda, Expira em, Garantia). [M+C]
 - 2026-10-22 — **`CU-PROD-20`: duas decisões da [M]** (v1.0.12): endereço em prateleira, fileira e posição (`product_racks`); as duas seções de locais ficam. O local padrão segue em aberto: não há decisão [W] registrada, e a venda baixa do local da venda. [M+C]
 - 2026-10-22 — **§6.1 ganha o `CU-PROD-20`** (v1.0.11): locais de armazenagem e endereço no estoque, pedido da [M] no protótipo. Só no protótipo; três decisões abertas antes de virar código (local padrão × baixa pelo local da venda, endereço em um texto × três campos, seção repetida). [M+C]
