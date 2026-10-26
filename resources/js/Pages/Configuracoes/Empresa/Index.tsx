@@ -260,7 +260,9 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
     ? comum.financeiro_regua_cobranca : {}) as Record<string, Valor>;
   const reguaAtiva = regua.ativo === true || regua.ativo === 1 || regua.ativo === '1';
   const reguaDias = Array.isArray(regua.dias) ? regua.dias.join(', ') : regua.dias == null ? '1, 5, 15' : String(regua.dias);
-  const mudaRegua = (k: string, v: Valor) => mudaComum('financeiro_regua_cobranca', { ativo: reguaAtiva ? '1' : '0', dias: reguaDias, [k]: v });
+  // US-FIN-033: `dias_antes` (aviso antes do vencimento) nasce vazio — sem ele, nenhum aviso sai antes.
+  const reguaDiasAntes = Array.isArray(regua.dias_antes) ? regua.dias_antes.join(', ') : regua.dias_antes == null ? '' : String(regua.dias_antes);
+  const mudaRegua = (k: string, v: Valor) => mudaComum('financeiro_regua_cobranca', { ativo: reguaAtiva ? '1' : '0', dias: reguaDias, dias_antes: reguaDiasAntes, [k]: v });
   const titulo = (t: string) => <h3 className="m-0 text-xs font-semibold uppercase text-muted-foreground">{t}</h3>;
   const rotuloAba = ABAS.flatMap((g) => g.itens).find((i) => i.id === aba)?.label;
 
@@ -683,12 +685,16 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
               {aba === 'financeiro' && (
                 <Stack gap={3} data-contract="regua-cobranca">
                   {liga('emp-regua-ativo', 'Enviar lembrete de cobrança', reguaAtiva, (v) => mudaRegua('ativo', v ? '1' : '0'),
-                    'e-mail ao cliente quando o título a receber vence e não é pago.')}
+                    'e-mail ao cliente antes de o título a receber vencer e depois, se não for pago.')}
                   <Grid cols={2} gap={3}>
                     {rotulado('emp-regua-dias', 'Dias após o vencimento', (
                       <Input id="emp-regua-dias" inputMode="numeric" value={reguaDias} disabled={!reguaAtiva}
                         onChange={(e) => mudaRegua('dias', e.target.value)} />
                     ), 'Separados por vírgula. Na última etapa o vendedor recebe uma tarefa para cobrar.')}
+                    {rotulado('emp-regua-dias-antes', 'Dias antes do vencimento', (
+                      <Input id="emp-regua-dias-antes" inputMode="numeric" value={reguaDiasAntes} disabled={!reguaAtiva}
+                        placeholder="ex.: 3" onChange={(e) => mudaRegua('dias_antes', e.target.value)} />
+                    ), 'Vazio = não avisa antes. Ex.: 3 avisa três dias antes de vencer.')}
                   </Grid>
                   <span className="text-xs text-muted-foreground">
                     Cliente que recusou e-mail não recebe; o lembrete fica registrado com o motivo em Contas a Receber.
