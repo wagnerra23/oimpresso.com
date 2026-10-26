@@ -423,3 +423,24 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 - [ ] Marcar o tipo de licença como férias na tela de Tipos do HRM (PR 2)
 - [x] Alerta visível na tela de Conformidade: 7ª verificação "Férias vencidas" (UC-CONF-10)
 - Fora, por ser valor: 1/3 constitucional e abono pecuniário em dinheiro — vão com a folha. Fora por falta de dado: perda do direito do art. 133 (afastamento)
+
+### US-PONTO-020 · Ciência do espelho mensal pelo colaborador
+
+> owner: — · priority: p1 · estimate: 6h · type: story
+
+**Implementado em:** _parcial_ · `Modules/Ponto/Services/EspelhoCienciaService.php` · `Modules/Ponto/Entities/EspelhoCiencia.php` · `Modules/Ponto/Database/Migrations/2026_10_26_000001_create_ponto_espelho_ciencias_table.php` · `Modules/Ponto/Http/Controllers/Api/MobileMarcacaoController.php` · `Modules/Ponto/Tests/Feature/EspelhoCienciaContratoTest.php` · `Modules/Ponto/Http/Controllers/EspelhoController.php` — domínio, API do app e a ciência visível ao RH no Espelho (UC-ESPSH-06). O aviso "Dou ciência" na tela do colaborador vem no #9854
+**Testado em:** `Modules/Ponto/Tests/Feature/EspelhoCienciaContratoTest.php`
+
+**Como** colaborador,
+**quero** declarar que vi e concordo com o meu espelho do mês,
+**para que** a empresa tenha registro da minha ciência sem papel assinado.
+
+**Decisão de desenho:** só para competência **fechada** (ADR 0413): é o único espelho que não muda depois. Grava o SHA-256 do espelho que o colaborador viu; se uma anulação posterior o mudar, a ciência continua e passa a "não confere". Não é assinatura ICP, não grava IP (US-PONTO-001) nem biometria (ADR 0383).
+
+**Aceite:**
+- [x] `POST /ponto/api/espelho/ciencia` (e `/ponto/mobile/espelho/ciencia` na tela web): 201 com mês fechado, 422 com mês aberto, 409 se já deu ciência (UC-REPP-17..19)
+- [x] `GET /ponto/api/espelho` traz `competencia_fechada` e `ciencia { ciente_em, confere }` (UC-REPP-18, UC-REPP-22)
+- [x] Append-only: model e trigger MySQL recusam UPDATE/DELETE (UC-REPP-20)
+- [x] Fechamento de outro empregador não libera (UC-REPP-21, Tier 0)
+- [ ] Aviso "Dou ciência" no "Meu espelho" (#9854)
+- [x] Ciência visível ao RH no Espelho do colaborador (UC-ESPSH-06)
