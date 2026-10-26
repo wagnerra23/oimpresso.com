@@ -242,6 +242,27 @@ Status: 🧪
 cobrança; e com a flag desligada o comando não cobra ninguém.
 Status: 🧪
 
+## UC-RBPA-07 · Cobrança do ciclo liquidada vira paga, com o valor dela · `must` `[V0]`
+Fonte: API Pix BCB v2.10.0 (webhook `cobsr[]`, status `CONCLUIDA`). Teste: `WebhookPixAutomaticoContratoTest`.
+**Dado** uma cobrança `pix_recv` emitida de 10.607 centavos **Quando** chega o webhook com o `txid` dela em
+`CONCLUIDA` **Então** ela fica `paga` com `valor_pago_centavos = 10607` e a data da liquidação, e sai 1
+`CobrancaPaga` com esse valor (a fatura vira paga pelo listener da US-RB-057); reentrega não repete.
+Status: 🧪
+
+## UC-RBPA-08 · Recorrência aprovada atualiza o mandato; cobrança rejeitada vira erro · `must`
+**Quando** chega `recs[]` com `APROVADA` **Então** o mandato da assinatura com aquele `idRec` passa a `APROVADA`
+(é o que o motor exige para cobrar). E `REJEITADA` deixa a cobrança em `erro`, mas `CANCELADA` não desfaz uma
+cobrança já paga.
+Status: 🧪
+
+## UC-RBPA-09 · Flag desligada: o webhook fica gravado sem processar · `must`
+Status: 🧪
+
+## UC-RBPA-10 · Um business não paga cobrança do outro · `must` `[T0]`
+**Dado** a mesma `txid` numa cobrança da 99 **Quando** o evento é da 98 **Então** nada muda na 99; e o job pedido
+com o business errado não carrega o evento.
+Status: 🧪
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = **órfão** = viola o `casos-gate` e **bloqueia o
