@@ -5,6 +5,7 @@ namespace Modules\ComunicacaoVisual\Services;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Modules\ComunicacaoVisual\Entities\Orcamento;
 
 /**
  * Cliente aceita o orçamento da gráfica pelo link (US-COMVIS-023).
@@ -42,7 +43,7 @@ final class AceiteDoOrcamento
         return DB::transaction(function () use ($businessId, $orcamentoId, $userId) {
             $orc = DB::table('comvis_orcamentos')->where('business_id', $businessId)->where('id', $orcamentoId)
                 ->whereNull('deleted_at')->lockForUpdate()->first()
-                ?? throw (new \Illuminate\Database\Eloquent\ModelNotFoundException())->setModel('comvis_orcamentos', [$orcamentoId]);
+                ?? throw (new \Illuminate\Database\Eloquent\ModelNotFoundException())->setModel(Orcamento::class, [$orcamentoId]);
             if (! in_array($orc->status, self::ABERTOS, true)) {
                 throw new \DomainException("Orçamento {$orc->status} não vai mais ao cliente.");
             }
