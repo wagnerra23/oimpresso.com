@@ -1717,7 +1717,7 @@ Casos: `resources/js/Pages/Fiscal/Nfe.casos.md` UC-FNFE-19, 20, 30, 31 · prova 
 
 ### US-NFE-072 · ICMS-ST e DIFAL chegam à NF-e da venda interestadual — **Legal**
 
-> owner: — · sprint: — · priority: p0 · estimate: 8h · status: doing · type: story
+> owner: — · sprint: — · priority: p0 · estimate: 8h · type: story
 > blocked_by: —
 
 **Implementado em:** _parcial_ — `Modules/NfeBrasil/Services/NfeService.php` (destinatário real, destino no motor e DIFAL no XML, R-NFE-036/037) · `Modules/NfeBrasil/Tests/Feature/NfeDestinatarioDaVendaTest.php` · `Modules/NfeBrasil/Tests/Feature/NfeDifalNoXmlTest.php` (falta gravar o ICMS-ST no XML)
