@@ -183,6 +183,7 @@ O pior dos quatro nao era numero errado: era o `erro_mensagem`. Uma importacao A
 
 ## Atualizado
 
+- **2026-10-26** — Exportação para a folha (US-PONTO-019): os cards Horas Extras, Banco de Horas e Atrasos e Faltas do catálogo geram CSV por competência, um colaborador por linha, lido da apuração (#9845). O eSocial segue indisponível.
 - **2026-09-15** — US-PONTO-015 registra as 3 restrições [W] do Fechamento de competência (D1/D2/D4 do handoff 19). Sem código: a US nasce `todo` + `blocked_by` decisão [W]. A 4ª decisão do mesmo ciclo (**D3**, recusar grava anulação `ORIGEM_ANULACAO` sem alterar a marcação) **já estava implementada** — 14 arquivos, e os serviços de apuração excluem os registros de anulação.
 - **2026-05-16** — Wave Massive: criado SPEC.md + BRIEFING.md + Pest multi-tenant append-only/cross-tenant (US-PONTO-007 + US-PONTO-008 status `done`)
 
