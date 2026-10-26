@@ -401,3 +401,25 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 - [x] `business_id` explícito em toda consulta, sem depender da sessão; teste cross-tenant 98 × 99
 - [x] Marcação anulada e a própria linha de anulação não contam
 - [x] Mesma escolha de batidas do `ApuracaoService::carregarMarcacoes` (1ª entrada, última saída, 1º par de almoço)
+
+### US-PONTO-018 · Férias CLT: período aquisitivo, concessivo, dias de direito e alerta de férias vencidas
+
+> owner: — · priority: p0 · estimate: 10h · type: story
+
+**Implementado em:** _parcial_ · `Modules/Ponto/Services/FeriasService.php` · `Modules/Essentials/Database/Migrations/2026_10_26_000001_add_ferias_clt_to_essentials_leave_types.php` · `Modules/Ponto/Tests/Feature/FeriasCltContratoTest.php` — PR 1/3: domínio. Faltam a marcação do tipo de licença na tela de Tipos do HRM (PR 2) e o alerta na tela de Conformidade (PR 3)
+**Testado em:** `Modules/Ponto/Tests/Feature/FeriasCltContratoTest.php`
+
+**Como** RH (Eliana na correção, Wagner no risco),
+**quero** ver, por colaborador, os períodos de férias com dias de direito, gozados, saldo e quando vencem,
+**para que** nenhuma férias passe do período concessivo e vire pagamento em dobro (CLT art. 137).
+
+**Aceite:**
+- [x] Aquisitivo de 12 meses a partir da admissão; concessivo dos 12 meses seguintes (CLT arts. 130 e 134)
+- [x] Dias de direito pela tabela do art. 130, com as faltas injustificadas lidas da apuração (dia previsto sem batida e com falta cheia; licença e intercorrência aprovadas já zeram a falta)
+- [x] Dias gozados = licenças aprovadas do HRM de tipo com `ferias_clt = true`, abatidas do período mais antigo já completo
+- [x] Situação por período: em aquisição, a gozar (com dias para vencer), vencido, quitado
+- [x] Alerta por empregador: vencidos e os que vencem dentro da antecedência
+- [x] `business_id` explícito em toda consulta; teste cross-tenant 98 × 99
+- [ ] Marcar o tipo de licença como férias na tela de Tipos do HRM (PR 2)
+- [ ] Alerta visível na tela de Conformidade (PR 3)
+- Fora, por ser valor: 1/3 constitucional e abono pecuniário em dinheiro — vão com a folha. Fora por falta de dado: perda do direito do art. 133 (afastamento)

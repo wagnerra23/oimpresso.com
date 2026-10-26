@@ -62,6 +62,7 @@ aberto, sem sair da tela.
   (US-FIN-071, `fin_titulo_lembretes`), mais recentes primeiro (até 100) — enviado ou não enviado com
   o motivo (opt-out, sem e-mail, sem cliente, falha) e se virou tarefa do vendedor — e o estado da
   régua com link para configurar. Prop `Inertia::optional`: só é calculada quando o painel abre.
+  Aviso antes do vencimento (US-FIN-033) aparece como `D-N` ("vence"); lembrete depois, como `D+N` ("venceu").
 - **Novo recebimento**: botão primary redireciona pra `/financeiro/unificado/novo?kind=receivable`
   (o insert manual vive no Unificado — não é reimplementado aqui).
 - **Chrome canon**: `<PageHeader>` v3.8 + `FinanceiroSubNav active="contas-receber"` (ADR 0180).
