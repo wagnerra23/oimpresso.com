@@ -739,7 +739,23 @@ E venda sem cliente com CPF/CNPJ, e toda NFC-e, seguem com o consumidor anônimo
 **Contrato:** NF-e leiaute 4.00, grupo E (destinatário) e campo `idDest` (1 interna · 2 interestadual); `indIEDest` 1/2/9 conforme o cadastro do cliente.
 **Implementação:** `Modules/NfeBrasil/Services/NfeService.php` (`emitirParaTransaction`, `destinatarioDaVenda`, `destinatarioDoContato`, `internaDoDestino`, `montarItensNfe`).
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeDestinatarioDaVendaTest.php` (lane `nfebrasil-pest`).
-**Fora deste item:** gravar o ICMS-ST e o DIFAL no XML (o motor calcula, o XML ainda leva zero) — próximo PR da US-NFE-072; recusar a nota quando falta a interna do destino.
+**Fora deste item:** gravar o ICMS-ST no XML (R-NFE-037 grava só o DIFAL).
+
+### R-NFE-037 · O DIFAL da venda a não contribuinte de outra UF vai ao XML
+
+```gherkin
+Dado uma venda de SC para não contribuinte no RJ, ICMS interestadual 12%, interna do RJ 20%, FCP 2%, item de 1.000,00 (fixture)
+Quando sai a NF-e
+Então o item leva o grupo ICMSUFDest com vBCUFDest 1.000,00, pICMSUFDest 20,0000, pICMSInter 12,00, partilha 100, vICMSUFDest 80,00 e vFCPUFDest 20,00
+E o ICMSTot leva vICMSUFDest 80,00 e vFCPUFDest 20,00, com o vNF igual ao total da venda (1.000,00)
+E contribuinte, ou mesma UF, não leva o grupo, e o XML fica como antes
+E sem a interna do RJ cadastrada a nota é recusada com "Alíquota interna de RJ não cadastrada"
+```
+
+**Contrato:** CF art. 155, § 2º, VII e VIII, b (EC 87/2015) e ADCT art. 99 (partilha 100% para o destino desde 2019); NF-e leiaute 4.00, grupo NA (ICMSUFDest). A SEFAZ exige o grupo na operação interestadual com consumidor final não contribuinte.
+**Implementação:** `Modules/NfeBrasil/Services/NfeService.php` (`montarItensNfe` monta o `difal` do item; `adicionarItem` emite `tagICMSUFDest`; `buildXml` soma no ICMSTot; `garantirInternaDoDifal` recusa sem a interna).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeDifalNoXmlTest.php` · `Modules/NfeBrasil/Tests/Feature/NfeDestinatarioDaVendaTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** empresa do Simples sai com o grupo e DIFAL zero quando a UF não cobra (R-NFE-035) — se a SEFAZ aceita assim só o smoke em homologação confirma; a guia GNRE do DIFAL; o `pICMSInter` é a alíquota ICMS da regra, então a regra interestadual tem de ter 4%, 7% ou 12%.
 
 ### R-NFSE-004 · A NFS-e lê o certificado da config pelo CertificadoService
 
@@ -1704,7 +1720,7 @@ Casos: `resources/js/Pages/Fiscal/Nfe.casos.md` UC-FNFE-19, 20, 30, 31 · prova 
 > owner: — · sprint: — · priority: p0 · estimate: 8h · type: story
 > blocked_by: —
 
-**Implementado em:** _parcial_ — `Modules/NfeBrasil/Services/NfeService.php` (destinatário real e destino no motor, R-NFE-036) · `Modules/NfeBrasil/Tests/Feature/NfeDestinatarioDaVendaTest.php` (falta gravar ST e DIFAL no XML)
+**Implementado em:** _parcial_ — `Modules/NfeBrasil/Services/NfeService.php` (destinatário real, destino no motor e DIFAL no XML, R-NFE-036/037) · `Modules/NfeBrasil/Tests/Feature/NfeDestinatarioDaVendaTest.php` · `Modules/NfeBrasil/Tests/Feature/NfeDifalNoXmlTest.php` (falta gravar o ICMS-ST no XML)
 
 Como empresa que vende para outro estado, quero que a NF-e saia para o meu cliente, com a UF dele, e leve o ICMS-ST e o DIFAL que o motor já calcula, para não emitir nota com imposto zerado numa operação interestadual.
 
@@ -1712,8 +1728,8 @@ Como empresa que vende para outro estado, quero que a NF-e saia para o meu clien
 
 **Aceite:**
 - [x] A NF-e (55) da venda com cliente identificado leva o destinatário dele, e o motor recebe UF, contribuinte e interna do destino — R-NFE-036, UC-FNFE-32/33
-- [ ] O XML grava o DIFAL no grupo `ICMSUFDest` e nos totais, sem mudar o vNF
+- [x] O XML grava o DIFAL no grupo `ICMSUFDest` e nos totais, sem mudar o vNF — R-NFE-037, UC-FNFE-34/35
 - [ ] O XML grava o ICMS-ST no grupo do CST/CSOSN com ST e soma o vST ao vNF — **decisão [W]**: o ST entra por cima do total da venda?
-- [ ] Interestadual a não contribuinte sem interna cadastrada recusa a nota com a saída (cadastrar a interna), em vez de emitir DIFAL zero
+- [x] Interestadual a não contribuinte sem interna cadastrada recusa a nota com a saída (cadastrar a interna), em vez de emitir DIFAL zero — UC-FNFE-36
 - [ ] Multi-tenant: o contato e a tabela por UF são lidos só do tenant da venda (Pest com os tenants 98 e 99)
 - [ ] Smoke fiscal manual contra SEFAZ só em biz=1, homologação (depende do certificado A1 de biz=1; em 2026-05-09 ele valia até 2026-08-06 — conferir antes)

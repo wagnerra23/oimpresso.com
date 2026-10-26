@@ -486,12 +486,13 @@ Status: 🧪
 
 ---
 
-## A NF-e da venda sai para o cliente (US-NFE-072 · R-NFE-036)
+## A NF-e da venda sai para o cliente, com o DIFAL (US-NFE-072 · R-NFE-036/037)
 
 > **Âncora:** [US-NFE-072](../../../../memory/requisitos/NfeBrasil/SPEC.md) e a regra R-NFE-036 do
-> SPEC do NfeBrasil (leiaute 4.00, grupo E do destinatário e `idDest`). Mora nesta tela porque a nota
+> SPEC do NfeBrasil (leiaute 4.00, grupo E do destinatário e `idDest`) e a R-NFE-037 (grupo NA, ICMSUFDest). Mora nesta tela porque a nota
 > emitida aparece nesta lista. Coluna CU `—`: o SDD §6 do Fiscal não tem CU de emissão a partir da
-> venda. Prova: `NfeDestinatarioDaVendaTest` (sem banco: contato como objeto, motor falso).
+> venda. Prova: `NfeDestinatarioDaVendaTest` (sem banco: contato como objeto, motor falso) e
+> `NfeDifalNoXmlTest` (XML montado pelo `buildXml`, sem SEFAZ).
 
 ## UC-FNFE-32 · Cliente identificado vira o destinatário, e o destino chega ao motor · `must`
 
@@ -507,6 +508,30 @@ Status: 🧪
 **Dado** um contato sem CPF/CNPJ, ou a NFC-e **Quando** sai a nota **Então** não há destinatário do cadastro,
 o motor é chamado como sempre (mesma UF, CFOP 5102) e o vNF é o total da venda. UF inválida no cadastro
 mantém a operação interna.
+
+Status: 🧪
+
+## UC-FNFE-34 · Venda a não contribuinte de outra UF leva o DIFAL na nota · `must`
+
+**Dado** um item de 1.000,00 de SC para não contribuinte no RJ, ICMS interestadual 12%, interna do RJ 20% e
+FCP 2% **Quando** sai a NF-e **Então** o item leva o grupo `ICMSUFDest` com base 1.000,00, interna 20,0000,
+interestadual 12,00, partilha 100, DIFAL 80,00 e FCP 20,00; o `ICMSTot` soma 80,00 e 20,00; o vNF fica
+1.000,00 (R-NFE-037).
+
+Status: 🧪
+
+## UC-FNFE-35 · Contribuinte, ou mesma UF, não leva DIFAL · `must`
+
+**Dado** o mesmo item vendido a um contribuinte no RJ, ou a um cliente de SC **Quando** sai a NF-e **Então**
+o item não leva `ICMSUFDest` e o total do grupo fica como antes.
+
+Status: 🧪
+
+## UC-FNFE-36 · Sem a interna do destino a nota é recusada com a saída · `must`
+
+**Dado** a venda a não contribuinte no RJ e a interna do RJ não cadastrada na tabela por UF **Quando** pede a
+NF-e **Então** a emissão é recusada com "Alíquota interna de RJ não cadastrada. Peça ao contador para
+preencher em Tributação."; com a interna, com cliente contribuinte, na mesma UF ou sem cliente, não recusa.
 
 Status: 🧪
 
