@@ -401,7 +401,7 @@ Seeder com Mercado Livre + Shopee + Amazon BR. UI admin superadmin pra ativar/de
 
 **Implementado em:** _parcial_ · `Modules/Marketplaces/Services/MercadoLivre/MercadoLivreOAuth.php` · `Modules/Marketplaces/Http/Controllers/ContasController.php` · `Modules/Marketplaces/Tests/Feature/MarketplacesOAuthMercadoLivreContratoTest.php` · `Modules/Marketplaces/Jobs/RenovarTokenContaJob.php` · `Modules/Marketplaces/Tests/Feature/MarketplacesRenovacaoTokenContratoTest.php` — 2026-10-26: conectar + callback com state da sessão e token cifrado por empresa; renovação sob demanda e de hora em hora (o access token do ML vale ~6 h, então "diária" não bastaria); falta a página `Connect.tsx`; credencial do app ML é [W]
 
-**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesOAuthMercadoLivreContratoTest.php`
+**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesOAuthMercadoLivreContratoTest.php` · `Modules/Marketplaces/Tests/Feature/MarketplacesRenovacaoTokenContratoTest.php`
 
 **DoD:** conectar redireciona para a autorização do ML com state da sessão; só empresa com pacote e usuário com permissão conecta; callback só aceita o state da própria sessão; token cifrado na conta da empresa da sessão, sem duplicar ao reconectar.
 
