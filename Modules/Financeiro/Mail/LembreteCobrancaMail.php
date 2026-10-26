@@ -6,7 +6,7 @@ namespace Modules\Financeiro\Mail;
 
 use Illuminate\Mail\Mailable;
 
-/** Lembrete de título vencido (US-FIN-071 · UC-FLX-29). Texto simples. */
+/** Lembrete da régua: título vencido (US-FIN-071) ou a vencer (`fase = antes`, US-FIN-033). Texto simples. */
 class LembreteCobrancaMail extends Mailable
 {
     public function __construct(
@@ -14,11 +14,16 @@ class LembreteCobrancaMail extends Mailable
         public readonly int $tituloId,
         public readonly int $etapaDias,
         public readonly string $corpo,
+        public readonly string $fase = 'apos',
     ) {}
 
     public function build(): self
     {
-        return $this->subject('Lembrete: título vencido há '.$this->etapaDias.' dia(s)')
+        $assunto = $this->fase === 'antes'
+            ? 'Lembrete: título vence em '.$this->etapaDias.' dia(s)'
+            : 'Lembrete: título vencido há '.$this->etapaDias.' dia(s)';
+
+        return $this->subject($assunto)
             ->html(nl2br(e($this->corpo)));
     }
 }
