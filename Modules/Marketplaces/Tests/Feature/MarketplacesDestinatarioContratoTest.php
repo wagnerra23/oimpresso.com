@@ -56,6 +56,14 @@ it('US-MKT-009 · formato legado (doc_number + additional_info) e pessoa física
         ->and($d['neighborhood'])->toBeNull();
 });
 
+it('US-MKT-009 · código IBGE só com 7 dígitos; id interno do ML não vira código', function () {
+    $base = ['doc_number' => '12345678909'];
+    expect(DestinatarioMercadoLivre::mapear(['billing_info' => $base + ['address' => ['city' => ['id' => '4218707', 'name' => 'Tubarão']]]]))
+        ->toMatchArray(['city' => 'Tubarão', 'city_code' => '4218707'])
+        ->and(DestinatarioMercadoLivre::mapear(['billing_info' => $base + ['address' => ['city' => ['id' => 'TUxCQ1RVQjUyMDQ', 'name' => 'Tubarão']]]]))
+        ->toMatchArray(['city' => 'Tubarão', 'city_code' => null]);
+});
+
 it('US-MKT-009 · sem CPF ou CNPJ válido não há destinatário', function () {
     expect(DestinatarioMercadoLivre::mapear(['billing_info' => ['doc_number' => null]]))->toBeNull()
         ->and(DestinatarioMercadoLivre::mapear(['billing_info' => ['doc_number' => '123']]))->toBeNull()
