@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-10-21"
+last_run: "2026-10-26"
 ---
 
 # Casos de Uso & Aceite — Contas a Receber
@@ -240,7 +240,37 @@ e o job do dia rodou nos dois **Quando** abro a tela de A **Então** a carga nor
 lembretes (prop `Inertia::optional`) **E quando** clico em "Lembretes" (reload parcial `only:
 ['lembretes']`) **Então** vejo a régua ligada com D+1, D+5 e D+15, o título de D+1 como `enviado`, o
 de D+5 como `nao_enviado` com motivo `opt_out_email`, e nada de B. A régua liga na aba Financeiro de
-`/business/settings` (UC-EMP-15).
+`/business/settings` (UC-EMP-15). A régua chega com `dias_antes` (vazio por padrão, US-FIN-033) e cada item com
+`fase` (`antes`|`apos`); o painel mostra `D-3` para aviso antes do vencimento e `D+3` para o lembrete depois.
+
+Status: 🧪
+
+## UC-CRREG-09 · Aviso antes do vencimento só com `dias_antes`, sem tarefa · `must`
+
+Fonte: SPEC US-FIN-033 (avisar o cliente X dias antes do vencimento).
+**Dado** régua ligada sem `dias_antes` (o padrão) e um título que vence em 3 dias **Quando** o job roda
+**Então** nada é registrado. **Dado** `dias_antes = [3]`, um título que vence em 3 dias e outro em 2
+**Quando** o job roda **Então** o de 3 dias recebe 1 lembrete `fase = antes`, etapa 3, `enviado`, com
+assunto "vence em 3 dia(s)" e **sem** tarefa no CRM; o de 2 dias não recebe nada.
+
+Status: 🧪
+
+## UC-CRREG-10 · Aviso D-3 e lembrete D+3 do mesmo título convivem · `must`
+
+Fonte: SPEC US-FIN-033 (idempotência por título, tipo e etapa).
+**Dado** `dias = [3]` e `dias_antes = [3]` e um título que vence em 3 dias **Quando** o job roda hoje e
+de novo (duas vezes) 6 dias depois **Então** o título tem 2 lembretes — `antes:3` e `apos:3` — e saem 2
+e-mails: rodar duas vezes no mesmo dia não duplica.
+
+Status: 🧪
+
+## UC-CRREG-11 · A mensagem leva o meio de pagar da cobrança aberta · `must` Tier 0
+
+Fonte: lacuna P0 "régua com link de pagamento" (levantamento 2026-10-25) + SPEC US-FIN-033.
+**Dado** um título com cobrança `emitida` dele (`origem_type = fin_titulo`) com Pix copia e cola, outro cuja única
+cobrança está `paga` (e uma cobrança de OUTRO business aponta para o mesmo id), e um título de venda cuja venda tem
+cobrança `vencida` com linha digitável **Quando** o job roda **Então** o primeiro e-mail traz o Pix copia e cola, o
+segundo não traz meio de pagar nenhum, e o terceiro traz a linha digitável da cobrança da venda.
 
 Status: 🧪
 
