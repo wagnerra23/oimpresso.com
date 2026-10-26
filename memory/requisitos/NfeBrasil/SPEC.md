@@ -475,7 +475,7 @@ E a mesma regra com csosn=201 calcula a ST
 ```gherkin
 Dado a empresa sem titular no certificado, com tax_number_1 vazio e business.cnpj preenchido (biz=1 em produção, #9833)
 Quando a busca de DF-e ou a manifestação montam a configuração da SEFAZ
-Então o CNPJ é o do business.cnpj; o padrão 00.000.000/0000-00 não conta e cai no tax_number_1; o titular do certificado vem primeiro
+Então o CNPJ é o do business.cnpj; o valor padrão da coluna (só zeros) não conta e cai no tax_number_1; o titular do certificado vem primeiro
 E sem CNPJ em nenhum dos três a chamada é recusada com "CNPJ da empresa … não configurado — preencha em Fiscal › Configuração"
 ```
 

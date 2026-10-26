@@ -215,7 +215,7 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 
 **Dado** a empresa sem certificado com titular, com `tax_number_1` vazio e o CNPJ em `business.cnpj` (o caso do biz=1 em produção, medido no #9833)
 **Quando** a busca de DF-e monta a configuração da SEFAZ
-**Então** usa o CNPJ de `business.cnpj`; o valor padrão `00.000.000/0000-00` não conta e cai no `tax_number_1`; o titular do certificado, quando existe, vem primeiro.
+**Então** usa o CNPJ de `business.cnpj`; o valor padrão da coluna (só zeros) não conta e cai no `tax_number_1`; o titular do certificado, quando existe, vem primeiro.
 
 - **Âncora:** R-NFE-041 do SPEC do NfeBrasil · US-NFE-051. Mesmo CNPJ para a manifestação.
 - **Teste:** `DfeCnpjEAlarmeTest` — `UC-FDFE-11 · …` (2 casos) · **Status:** 🧪 verde no CT 100 (MySQL) em 2026-10-26, tenant 98 × 99.

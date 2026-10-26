@@ -13,7 +13,7 @@ use RuntimeException;
  *
  * Ordem: o titular do certificado ativo → `business.cnpj` (o campo que a emissão usa em
  * `NfeService::buildXml`) → `business.tax_number_1`. O valor padrão da coluna `business.cnpj`
- * ("00.000.000/0000-00") não conta. Sem nenhum dos três a chamada é recusada com a saída —
+ * (só zeros) não conta. Sem nenhum dos três a chamada é recusada com a saída —
  * nunca vai à SEFAZ com CNPJ vazio.
  *
  * Origem: em produção o biz=1 tinha `cnpj_titular` e `tax_number_1` vazios e só `business.cnpj`
