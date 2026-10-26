@@ -550,6 +550,23 @@ Tributação".
 
 Status: 🧪
 
+## UC-FNFE-55 · Destinatário informado por quem emite vence o cliente da venda · `must`
+
+**Dado** uma NF-e (modelo 55) emitida com um destinatário informado (ex. o comprador de um pedido de
+marketplace), com as chaves de `contacts` **Quando** sai a nota **Então** o destinatário é o informado,
+com CPF só com dígitos, a UF dele e `ind_ie_dest` 9 quando não há IE; informado sem CPF/CNPJ, a emissão
+recusa em vez de sair para o consumidor anônimo. Âncora: R-NFE-046 / US-NFE-075.
+
+Status: 🧪
+
+## UC-FNFE-56 · CFOP informado por quem emite vence o da regra · `must`
+
+**Dado** uma NF-e emitida com um CFOP informado **Quando** os itens são montados **Então** todos saem com
+esse CFOP e o resto do item fica igual; CFOP fora de 4 dígitos de 1xxx a 7xxx recusa. O valor do CFOP é
+de quem chama. Âncora: R-NFE-046 / US-NFE-075.
+
+Status: 🧪
+
 ---
 
 ## Boleto pago emite a NF-e (US-RB-044 · UC-FLX-26)

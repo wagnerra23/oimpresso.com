@@ -773,6 +773,22 @@ E sem ST o vNF segue igual ao total da venda
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeIcmsStNoXmlTest.php` (lane `nfebrasil-pest`).
 **Fora deste item:** FCP-ST; ST em operação interna (a interna da própria UF ainda não chega ao motor — só a do destino interestadual); a venda continua com `final_total` sem o ST, então a nota com ST vale mais que a venda no caixa e o título do Financeiro.
 
+### R-NFE-046 · Destinatário e CFOP informados por quem emite (pedido de marketplace)
+
+```gherkin
+Dado uma venda cujo comprador veio de fora do cadastro (ex. pedido de marketplace)
+Quando emito a NF-e (modelo 55) informando esse destinatário, com as chaves de `contacts`
+Então o <dest> leva o documento, o endereço e a UF desse destinatário, e não o cliente da venda
+E destinatário informado sem CPF/CNPJ válido recusa a emissão, sem cair no consumidor anônimo
+Quando informo também um CFOP de 4 dígitos (1xxx a 7xxx)
+Então todos os itens saem com esse CFOP no lugar do da regra, e CFOP fora do formato recusa
+E sem destinatário nem CFOP informados a emissão é a do R-NFE-036
+```
+
+**Contrato:** NF-e leiaute 4.00, grupo E (destinatário) e campo `CFOP` do item (I08). O valor do CFOP é de quem chama: nada no `NfeService` fixa CFOP de marketplace.
+**Implementação:** `Modules/NfeBrasil/Services/NfeService.php` (`emitirParaTransaction`, `destinatarioDaEmissao`, `comCfop`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeDestinatarioExternoCfopTest.php` (lane `nfebrasil-pest`).
+
 ### R-NFSE-004 · A NFS-e lê o certificado da config pelo CertificadoService
 
 ```gherkin
@@ -1749,3 +1765,20 @@ Como empresa que vende para outro estado, quero que a NF-e saia para o meu clien
 - [x] Interestadual a não contribuinte sem interna cadastrada recusa a nota com a saída (cadastrar a interna), em vez de emitir DIFAL zero — UC-FNFE-36
 - [ ] Multi-tenant: o contato e a tabela por UF são lidos só do tenant da venda (Pest com os tenants 98 e 99)
 - [ ] Smoke fiscal manual contra SEFAZ só em biz=1, homologação (depende do certificado A1 de biz=1; em 2026-05-09 ele valia até 2026-08-06 — conferir antes)
+
+### US-NFE-075 · NF-e com destinatário e CFOP vindos de fora da venda (pedido de marketplace) — **P1**
+
+> owner: — · sprint: — · priority: p1 · estimate: 3h · type: story
+> blocked_by: —
+
+**Implementado em:** `Modules/NfeBrasil/Services/NfeService.php` (`emitirParaTransaction`, `destinatarioDaEmissao`, `comCfop`) · `Modules/NfeBrasil/Tests/Feature/NfeDestinatarioExternoCfopTest.php`
+
+Como integração de marketplace, quero emitir a NF-e do pedido pago informando quem compra e o CFOP da operação, para que a nota saia para o comprador do marketplace e com o CFOP que a empresa configurou.
+
+**Origem:** pedido da frente Plataforma de 2026-10-26: o PR #9908 deixa pronta, atrás da flag desligada `marketplaces.nfe.automatica`, a emissão da NF-e do pedido pago no Mercado Livre, e faltavam duas entradas no `NfeService`. O CFOP definitivo é decisão do contador; por isso o valor vem de quem chama e nada aqui fixa CFOP.
+
+**Aceite:**
+- [x] O destinatário externo (chaves de `contacts`) vence o cliente da venda; sem CPF/CNPJ a emissão recusa — R-NFE-046, UC-FNFE-55
+- [x] O CFOP informado vence o da regra em todos os itens; fora do formato recusa — R-NFE-046, UC-FNFE-56
+- [x] Sem os dois parâmetros a emissão é a de antes (R-NFE-036)
+- [ ] O de-para do comprador do marketplace para as chaves de `contacts` e o CFOP configurável ficam na integração do marketplace (PR #9908, frente Plataforma)

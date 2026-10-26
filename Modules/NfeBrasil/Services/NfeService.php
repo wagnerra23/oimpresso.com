@@ -277,7 +277,19 @@ class NfeService
      *
      * @throws RuntimeException Quando `final_total <= 0`, ncm_default ausente, ou business não encontrado.
      */
-    public function emitirParaTransaction(Transaction $tx, string $modelo = '65', bool $separada = false): NfeEmissao
+    /**
+     * @param array<string,mixed>|null $destinatarioExterno R-NFE-046 · destinatário vindo de fora do cadastro (ex.
+     *        pedido de marketplace), com as chaves de `contacts`; vence o cliente da venda. Só NF-e (55).
+     * @param string|null $cfop R-NFE-046 · CFOP de 4 dígitos que vence o da regra em todos os itens (ex. o do pedido
+     *        de marketplace, configurável lá). Null = o CFOP da regra, como antes.
+     */
+    public function emitirParaTransaction(
+        Transaction $tx,
+        string $modelo = '65',
+        bool $separada = false,
+        ?array $destinatarioExterno = null,
+        ?string $cfop = null,
+    ): NfeEmissao
     {
         $businessId = (int) $tx->business_id;
 
@@ -355,7 +367,9 @@ class NfeService
         // endereço e UF. Sem cliente com CPF/CNPJ, e sempre na NFC-e, segue o consumidor anônimo
         // da própria UF, como antes. A UF e o contribuinte do destino chegam ao motor (CFOP 6xxx,
         // regra por UF, DIFAL); a interna do destino vem da tabela por UF quando cadastrada.
-        $destReal = (string) $modelo === '55' ? $this->destinatarioDaVenda($tx, $ufOrigem) : null;
+        $destReal = (string) $modelo === '55'
+            ? $this->destinatarioDaEmissao($tx, $ufOrigem, $destinatarioExterno)
+            : null;
         $ufDestino = $destReal['uf'] ?? $ufOrigem;
         $contribuinte = $destReal === null ? null : $destReal['ind_ie_dest'] === '1';
         $interna = $destReal === null || $ufDestino === $ufOrigem
@@ -378,6 +392,9 @@ class NfeService
             internaDestino: $interna,
             destinatarioContribuinte: $contribuinte,
         );
+        if ($cfop !== null) {
+            $itens['dets'] = self::comCfop($itens['dets'], $cfop);
+        }
 
         $dadosNfe = [
             'transaction_id' => $tx->id,
@@ -430,6 +447,40 @@ class NfeService
     public function baseDaNota(Transaction $tx): float
     {
         return (float) $tx->final_total - (float) ($tx->icms_st_valor ?? 0);
+    }
+
+    /**
+     * R-NFE-046 · destinatário da NF-e: o externo (ex. pedido de marketplace) quando vier, senão o
+     * cliente da venda (R-NFE-036). Externo sem CPF/CNPJ recusa — não cai no cliente da venda nem no
+     * consumidor anônimo, porque quem o mandou disse quem é o destinatário.
+     *
+     * @param array<string,mixed>|null $externo
+     * @return array<string,mixed>|null
+     */
+    public function destinatarioDaEmissao(Transaction $tx, string $ufOrigem, ?array $externo): ?array
+    {
+        if ($externo === null) {
+            return $this->destinatarioDaVenda($tx, $ufOrigem);
+        }
+
+        return $this->destinatarioDoContato((object) $externo, $ufOrigem)
+            ?? throw new RuntimeException('Destinatário informado sem CPF/CNPJ válido — a NF-e não sai sem documento do destinatário.');
+    }
+
+    /**
+     * R-NFE-046 · o CFOP informado vence o da regra em todos os itens. 4 dígitos começando por 1–7
+     * (entrada/saída × estado/fora/exterior); outro formato recusa. O valor é de quem chama.
+     *
+     * @param list<array<string,mixed>> $dets
+     * @return list<array<string,mixed>>
+     */
+    public static function comCfop(array $dets, string $cfop): array
+    {
+        if (! preg_match('/^[1-7]\d{3}$/', $cfop)) {
+            throw new RuntimeException("CFOP inválido: {$cfop} (4 dígitos, de 1xxx a 7xxx).");
+        }
+
+        return array_map(fn (array $d) => ['cfop' => $cfop] + $d, $dets);
     }
 
     /**
