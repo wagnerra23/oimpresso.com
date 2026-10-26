@@ -30,6 +30,8 @@ final class OrcamentoViraOs
     /** Status de orçamento que podem ser aprovados (aprovado = reenvio idempotente). */
     public const APROVAVEIS = ['rascunho', 'enviado', 'aprovado'];
 
+    public function __construct(private readonly RoteiroPadraoDaOs $roteiroPadrao) {}
+
     /**
      * @return array{0: Os, 1: bool} a OS e se ela foi criada agora
      *
@@ -86,6 +88,8 @@ final class OrcamentoViraOs
             }
 
             $this->copiarArquivos($businessId, $orc, $os, $userId);
+            // US-COMVIS-003 (decisão [W] 2026-10-26): entra no quadro do PCP com o roteiro padrão.
+            $this->roteiroPadrao->programar($businessId, $os, $userId);
 
             return [$os->load('itens'), true];
         });
