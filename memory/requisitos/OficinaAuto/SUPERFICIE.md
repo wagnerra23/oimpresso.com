@@ -14,7 +14,7 @@ module: OficinaAuto
 >
 > **O que isto é:** o inventário completo das raízes `Modules/OficinaAuto/**` + `resources/js/Pages/OficinaAuto/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 187 arquivos em 18 papéis.
+**Total mapeado:** 188 arquivos em 18 papéis.
 
 ## Controllers — 10
 
@@ -148,11 +148,12 @@ module: OficinaAuto
 - [Index.tsx](../../../resources/js/Pages/OficinaAuto/Vehicles/Index.tsx)
 - [Show.tsx](../../../resources/js/Pages/OficinaAuto/Vehicles/Show.tsx)
 
-## Componentes / apoio de tela — 21
+## Componentes / apoio de tela — 22
 
 - [DragConfirmDialog.tsx](../../../resources/js/Pages/OficinaAuto/ProducaoOficina/_components/DragConfirmDialog.tsx)
 - [DviInlineEditor.tsx](../../../resources/js/Pages/OficinaAuto/ProducaoOficina/_components/DviInlineEditor.tsx)
 - [DviPhotoGrid.tsx](../../../resources/js/Pages/OficinaAuto/ProducaoOficina/_components/DviPhotoGrid.tsx)
+- [KanbanDndProvider.tsx](../../../resources/js/Pages/OficinaAuto/ProducaoOficina/_components/KanbanDndProvider.tsx)
 - [LaudoPhotoSection.tsx](../../../resources/js/Pages/OficinaAuto/ProducaoOficina/_components/LaudoPhotoSection.tsx)
 - [ServiceOrderRichSheet.tsx](../../../resources/js/Pages/OficinaAuto/ProducaoOficina/_components/ServiceOrderRichSheet.tsx)
 - [ApprovalGateCard.tsx](../../../resources/js/Pages/OficinaAuto/ServiceOrders/_components/ApprovalGateCard.tsx)

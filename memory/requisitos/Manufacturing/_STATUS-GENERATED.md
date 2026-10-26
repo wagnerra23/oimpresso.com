@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 7 |
+| US no SPEC | 8 |
 | CU no SDD | 0 |
 | Telas (.tsx) | 6 |
 | Telas com `casos.md` | 6 |
-| UC declarados | 67 |
-| UC com teste que os cita | 66 |
+| UC declarados | 82 |
+| UC com teste que os cita | 81 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -43,6 +43,7 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | US-MANU-005 | `desconhecido` | Insumos — impacto reverso e simulador de preço |
 | US-MANU-006 | `desconhecido` | Editor de ingredientes |
 | US-MANU-007 | `desconhecido` | Formulário de ordem de produção |
+| US-MANU-008 | `desconhecido` | Rotas legadas só tocam dado da própria empresa |
 
 ## UC por status
 
@@ -69,6 +70,7 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-INGRED-11 | IngredientesEditor | 🧪 aguarda veredito da lane |
 | UC-INGRED-12 | IngredientesEditor | 🧪 aguarda veredito da lane |
 | UC-INGRED-13 | IngredientesEditor | 🧪 aguarda veredito da lane |
+| UC-INGRED-14 | IngredientesEditor | 🧪 aguarda veredito da lane |
 | UC-INS-01 | Insumos | 🧪 aguarda veredito da lane |
 | UC-INS-02 | Insumos | 🧪 aguarda veredito da lane |
 | UC-INS-03 | Insumos | 🧪 aguarda veredito da lane |
@@ -79,6 +81,17 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-INSMET-03 | Insumos | 🧪 aguarda veredito da lane |
 | UC-INSMET-04 | Insumos | 🧪 aguarda veredito da lane |
 | UC-INSMET-05 | Insumos | 🧪 aguarda veredito da lane |
+| UC-INSMET-06 | Insumos | 🧪 aguarda veredito da lane |
+| UC-INSMET-07 | Insumos | 🧪 aguarda veredito da lane |
+| UC-INSMET-08 | Insumos | 🧪 aguarda veredito da lane |
+| UC-INSMET-09 | Insumos | 🧪 aguarda veredito da lane |
+| UC-INSMET-10 | Insumos | 🧪 aguarda veredito da lane |
+| UC-INSMET-11 | Insumos | 🧪 aguarda veredito da lane |
+| UC-INSMET-12 | Insumos | 🧪 aguarda veredito da lane |
+| UC-INSMET-13 | Insumos | 🧪 aguarda veredito da lane |
+| UC-INSMET-14 | Insumos | 🧪 aguarda veredito da lane |
+| UC-INSMET-15 | Insumos | 🧪 aguarda veredito da lane |
+| UC-INSMET-16 | Insumos | 🧪 aguarda veredito da lane |
 | UC-OP-01 | Index | 🧪 aguarda veredito da lane |
 | UC-OP-02 | Index | 🧪 aguarda veredito da lane |
 | UC-OP-03 | Index | 🧪 aguarda veredito da lane |
@@ -90,6 +103,8 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-OP-09 | Index | 🧪 aguarda veredito da lane |
 | UC-OP-10 | Index | 🧪 aguarda veredito da lane |
 | UC-OP-11 | Index | 🧪 aguarda veredito da lane |
+| UC-OP-12 | Index | 🧪 aguarda veredito da lane |
+| UC-OP-13 | Index | 🧪 aguarda veredito da lane |
 | UC-RECIPE-00 | Recipes | 🧪 aguarda veredito da lane |
 | UC-RECIPE-01 | Recipes | 🧪 aguarda veredito da lane |
 | UC-RECIPE-02 | Recipes | 🧪 aguarda veredito da lane |
@@ -110,6 +125,7 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-RECIPE-17 | Recipes | 🧪 aguarda veredito da lane |
 | UC-RECIPE-18 | Recipes | 🧪 aguarda veredito da lane |
 | UC-RECIPE-19 | Recipes | 🧪 aguarda veredito da lane |
+| UC-RECIPE-20 | Recipes | 🧪 aguarda veredito da lane |
 | UC-REPORT-00 | Report | 🧪 aguarda veredito da lane |
 | UC-REPORT-01 | Report | 🧪 aguarda veredito da lane |
 | UC-REPORT-02 | Report | 🧪 aguarda veredito da lane |

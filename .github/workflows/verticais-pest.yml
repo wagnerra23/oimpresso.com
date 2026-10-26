@@ -95,7 +95,7 @@ on:
       # Thread Crm/02 — a lista de leads virou Inertia; o contrato dela roda aqui.
       - 'Modules/Crm/Http/Controllers/LeadController.php'
       - 'Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php'
-      # US-CRM-092 · ADR 0441 — funil de vendas em kanban.
+      # US-CRM-092 — funil de vendas em kanban.
       - 'Modules/Crm/Http/Controllers/FunilController.php'
       - 'Modules/Crm/Services/DealPipelineService.php'
       - 'Modules/Crm/Tests/Feature/CrmFunilContratoTest.php'
@@ -232,7 +232,7 @@ jobs:
               # Thread Crm/02 — a lista de leads virou Inertia; o contrato dela roda aqui.
               - 'Modules/Crm/Http/Controllers/LeadController.php'
               - 'Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php'
-              # US-CRM-092 · ADR 0441 — funil de vendas em kanban.
+              # US-CRM-092 — funil de vendas em kanban.
               - 'Modules/Crm/Http/Controllers/FunilController.php'
               - 'Modules/Crm/Services/DealPipelineService.php'
               - 'Modules/Crm/Tests/Feature/CrmFunilContratoTest.php'
