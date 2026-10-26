@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a lista é a PORTA do catálogo — se ela esconde produto, esconde preço a quem não devia, ou mistura tenant, todo o resto do ERP herda o erro.
 owner: wagner
-last_run: "2026-10-19"
+last_run: "2026-10-26"
 last_run_ci: "2026-10-23: run 39945557255 (lane Estoque · MySQL, main 53e7995, disparada à mão): 497 testes, 0 falhas, 0 pulados, com todos os arquivos Pest da lista; job 120384523098 (Frontend / Vite build, mesmo commit): os 2 arquivos Vitest da lista que rodam em lane passaram; os outros 8 arquivos Vitest da lista não rodam em lane e passaram local (133 de 133). Antes: 2026-10-19, job 118208572139."
 ---
 
@@ -86,6 +86,7 @@ last_run_ci: "2026-10-23: run 39945557255 (lane Estoque · MySQL, main 53e7995, 
 | UC-PIDX-28 | Preço proposto pela compra recebida, aguardando aprovação, na linha e no painel; aprovar e recusar ficam na compra | should `[T0]` | UC-FLX-17 + Compras SPEC US-COM-026/028 + charter §Automation Anti-hooks (a consulta não altera preço) + gate de preço (UC-PIDX-03) | `ProdutoPrecoPropostoERoteiroContratoTest` (Pest, roda em lane) + `produto-preco-proposto-roteiro.test.tsx` (Vitest) | 🧪 passou no job 120005347082 (lane Estoque · MySQL, commit 730f065c, 2026-10-22): 7 testes, 0 pulados, 64 verificações |
 | UC-PIDX-29 | Aba Roteiro do painel: as etapas do roteiro do produto, na ordem, com o posto e o setor de cada uma | should `[T0]` | UC-FLX-07 + UC-FLX-08 + Produção SPEC US-PCP-026/030 + ADR 0093 | `ProdutoPrecoPropostoERoteiroContratoTest` (Pest, roda em lane) + `produto-preco-proposto-roteiro.test.tsx` (Vitest) | 🧪 passou no job 120005347082 (lane Estoque · MySQL, commit 730f065c, 2026-10-22): 7 testes, 0 pulados, 64 verificações |
 | UC-PIDX-30 | A requisição de compra aberta do produto aparece na linha e na aba Estoque, com número, data e fornecedor | should `[T0]` | UC-FLX-19 + Compras SPEC US-COM-027 + permissões da lista de requisições | `ProdutoRequisicaoAbertaContratoTest` (Pest, roda em lane) + `produto-requisicao-aberta.test.tsx` (Vitest) | 🧪 escrito, sem veredito nesta divisão. Junto com os outros dois casos, no #9785, passou no job 120394269474 (lane Estoque · MySQL, commit 3587864, 2026-10-23) |
+| UC-PIDX-32 | Método de custo do insumo na aba Variações, só quando a empresa gravou a regra de custo no Recebido | should | UC-FLX-38 + Compras SPEC US-COM-024/026 (`AplicarCustoDoRecebimento`) + gate de custo (UC-PIDX-03) | `ProdutoMetodoDeCustoContratoTest` (Pest, roda em lane) + `produto-metodo-custo.test.tsx` (Vitest) | 🧪 escrito, sem veredito nesta divisão. Junto com os outros dois casos, no #9785, passou no job 120394269474 (lane Estoque · MySQL, commit 3587864, 2026-10-23) |
 | UC-PIDX-33 | Aba Estoque do painel: a tabela de locais mostra quanto foi vendido em cada local | should | protótipo (artefato "Consulta de Produto", 22/10: coluna "Vendido" por local) + pedido da ROTA LIVRE (2026-10-23) | `ProdutoDetalheTest` (lane Estoque · MySQL) + `produto-painel-detalhe.test.tsx` (Vitest, não roda em lane) | ⬜ nasce neste PR — verde esperado |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
@@ -468,6 +469,13 @@ last_run_ci: "2026-10-23: run 39945557255 (lane Estoque · MySQL, main 53e7995, 
 - **Contrato:** UC-FLX-19 (`prototipo-ui/cowork/Wagner/fluxos-data.jsx`) e Compras SPEC US-COM-027. **Diferença do protótipo:** o protótipo só mostra a requisição quando o produto está abaixo do alerta; aqui ela aparece sempre que houver uma aberta, porque a requisição feita à mão também conta e o alerta pode ter mudado depois.
 - **Status: 🧪** — escrito, sem veredito nesta divisão. Junto com os outros dois casos, no #9785, passou no job 120394269474 (lane Estoque · MySQL, commit 3587864, 2026-10-23). O Vitest não roda em lane.
 
+## UC-PIDX-32 · Método de custo do insumo na aba Variações · `should`
+- **Persona:** quem forma preço e quer saber de onde vem o custo que está vendo.
+- **Aceite:** Dada a empresa que gravou a regra "Atualizar o custo dos insumos" ligada e disparando no Recebido (as mesmas condições em que o recebimento a aplica, `AplicarCustoDoRecebimento`) · Então a aba Variações ganha a coluna "Método do custo", com "custo médio" ou "última compra" e a data da última compra recebida · Quando a regra é "definido em cada insumo" · Então vale o método do insumo, e insumo sem método mostra "sem método definido" · Sem a regra gravada, com a regra em Conferido, desligada, ou para quem não vê custo · Então a coluna não existe, porque o custo ali é o último preço digitado.
+- **Teste:** [`ProdutoMetodoDeCustoContratoTest`](../../../../tests/Feature/Produto/ProdutoMetodoDeCustoContratoTest.php) e [`produto-metodo-custo.test.tsx`](../../../../tests/js/produto-metodo-custo.test.tsx) (o Vitest não roda em lane) — `UC-PIDX-32` (médio e último com a data da última compra; sem regra, Conferido, desligada e sem permissão). Mutação: tirar a coluna derruba o caso do Vitest.
+- **Contrato:** UC-FLX-38 e Compras SPEC US-COM-024/026. **Diferença do protótipo:** o protótipo mostra o método na aba Dados, abaixo do custo; aqui fica na aba Variações, onde o painel mostra o custo de cada variação.
+- **Status: 🧪** — escrito, sem veredito nesta divisão. Junto com os outros dois casos, no #9785, passou no job 120394269474 (lane Estoque · MySQL, commit 3587864, 2026-10-23). O Vitest não roda em lane.
+
 ## UC-PIDX-33 · Aba Estoque do painel: quantidade vendida por local · `should`
 - **Persona:** a ROTA LIVRE abre um produto pelo painel e quer saber, sem ir ao Relatório de estoque, quanto daquele item já saiu em cada loja.
 - **Aceite:** Dado um produto que controla estoque, com saldo em dois locais, uma venda finalizada de 5 un no local A com 1 un devolvida e um rascunho de 2 un no mesmo local · Quando abro a aba Estoque do painel · Então a tabela de locais tem a coluna "Vendido", logo antes de "Situação" · E o local A mostra "4 Un" e o B "0 Un" · E o número de cada local é o mesmo "Total vendido" do Relatório de estoque para aquele produto e local (vendas finalizadas, desde sempre, menos as devoluções; rascunho e orçamento ficam fora).
@@ -701,10 +709,8 @@ last_run_ci: "2026-10-23: run 39945557255 (lane Estoque · MySQL, main 53e7995, 
   pendente trava a NF-e da venda até o contador decidir. Aceite: a lista tem o filtro "Natureza
   fiscal" (mercadoria, serviço, pendente), a linha do pendente tem um selo e o painel mostra a
   natureza fiscal com o aviso da NF-e travada.
-- **[BACKLOG] Método de custo do insumo no painel (UC-FLX-38)** — cada insumo tem custo médio ou
-  da última compra, com histórico por data (US-COM-024). Aceite: abaixo do custo, o painel diz qual
-  é o método e a data ("custo médio, atualizado em 12/10/2026").
 - Requisição de compra aberta (UC-FLX-19) saiu deste backlog em 2026-10-26: virou UC-PIDX-30, com teste.
+- Método de custo do insumo (UC-FLX-38) saiu deste backlog em 2026-10-26: virou UC-PIDX-32, com teste.
 - Roteiro de produção (UC-FLX-07), preço proposto pela compra (UC-FLX-17) e setor de cada etapa
   (UC-FLX-08) saíram deste backlog em 2026-10-22: viraram UC-PIDX-28 e UC-PIDX-29, com teste.
 - **[BACKLOG] Modelo da pilha do produto** (pedido de 2026-10-23) — Aceite: Dado o produto "Controle

@@ -195,6 +195,7 @@ authority: generated
 | UC-PIDX-28 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-29 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-30 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-32 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-33 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-34 | Index | 🧪 aguarda veredito da lane |
 | UC-PIMP-01 | Importacao/Index | 🧪 aguarda veredito da lane |

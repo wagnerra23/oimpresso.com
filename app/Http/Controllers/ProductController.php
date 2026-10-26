@@ -613,6 +613,10 @@ class ProductController extends Controller
 
         // Variações: os campos de `single_product_details` / `variable_product_details`. Sem a permissão
         // a CHAVE não existe — ausência não é zero.
+        // UC-PIDX-32 (UC-FLX-38): o método de custo só vale quando a empresa gravou a regra "Atualizar o
+        // custo dos insumos" e ela dispara no Recebido — sem isso o custo é o último preço digitado.
+        $metodoDaRegra = $verCusto ? $this->metodoDeCustoDaEmpresa($business_id) : null;
+
         $variacoes = [];
         foreach ($modelosVariacao as $v) {
             $porGrupo = $v->group_prices->keyBy('price_group_id');
@@ -626,6 +630,9 @@ class ProductController extends Controller
             if ($verCusto) {
                 $linha['compra_exc'] = (float) $v->default_purchase_price;
                 $linha['compra_inc'] = (float) $v->dpp_inc_tax;
+                if ($metodoDaRegra !== null) {
+                    $linha['custo_metodo'] = $this->metodoDeCustoDaVariacao($business_id, (int) $v->id, $metodoDaRegra);
+                }
             }
             if ($verPreco) {
                 if ($verCusto) {
@@ -818,6 +825,42 @@ class ProductController extends Controller
         }
 
         return $porProduto;
+    }
+
+    /**
+     * Método da regra de custo da empresa (`medio`, `ultimo` ou `por_insumo`), só quando a regra está
+     * gravada, ligada e dispara no Recebido — as mesmas condições em que o recebimento a aplica
+     * (AplicarCustoDoRecebimento). Sem o módulo Compras, null.
+     */
+    protected function metodoDeCustoDaEmpresa(int $business_id): ?string
+    {
+        if (! app()->bound(\App\Contracts\Compras\CustoDoInsumo::class)) {
+            return null;
+        }
+        $regra = app(\App\Domain\Fsm\Modelos\RegrasDaEmpresa::class)->custoGravado($business_id);
+        if ($regra === null || empty($regra['ativo']) || ($regra['params']['etapa'] ?? null) !== 'recebido') {
+            return null;
+        }
+
+        return (string) ($regra['params']['metodo'] ?? 'medio');
+    }
+
+    /**
+     * UC-PIDX-32: o método que vale para a variação (o do insumo, quando a regra é "por insumo") e a data
+     * da última compra recebida, que é quando o custo mudou pela última vez.
+     *
+     * @return array{metodo: ?string, ultima_compra_em: ?string}
+     */
+    protected function metodoDeCustoDaVariacao(int $business_id, int $variationId, string $metodoDaRegra): array
+    {
+        $custo = app(\App\Contracts\Compras\CustoDoInsumo::class);
+        $metodo = $metodoDaRegra === 'por_insumo' ? $custo->metodoDoInsumo($business_id, $variationId) : $metodoDaRegra;
+        if ($metodo === null) {
+            return ['metodo' => null, 'ultima_compra_em' => null];
+        }
+        $r = $custo->naData($business_id, $variationId, now(), $metodo);
+
+        return ['metodo' => $metodo, 'ultima_compra_em' => $r['ultima_compra_em'] === null ? null : substr((string) $r['ultima_compra_em'], 0, 10)];
     }
 
     /**
