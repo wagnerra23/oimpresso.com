@@ -371,6 +371,10 @@ class NfeService
         $interna = $destReal === null || $ufDestino === $ufOrigem
             ? null
             : $this->internaDoDestino($businessId, $ufOrigem, $ufDestino);
+        // R-NFE-037: venda a não contribuinte de outra UF leva o grupo ICMSUFDest, que exige a
+        // alíquota interna do destino (a SEFAZ rejeita a nota sem o grupo). Sem a interna
+        // cadastrada a nota é recusada com a saída — nunca sai com DIFAL zero por falta de dado.
+        $this->garantirInternaDoDifal($destReal !== null, $ufOrigem, $ufDestino, $contribuinte, $interna);
 
         $itens = $this->montarItensNfe(
             linhas:         $linhas,
@@ -524,6 +528,14 @@ class NfeService
             'cep'           => preg_replace('/\D/', '', (string) ($c->zip_code ?? '')),
             'email'         => ($c->email ?? '') ?: null,
         ], fn ($v) => $v !== null);
+    }
+
+    /** R-NFE-037 · interestadual a não contribuinte sem interna do destino: recusa com a saída. */
+    private function garantirInternaDoDifal(bool $temDestinatario, string $ufOrigem, string $ufDestino, ?bool $contribuinte, ?float $interna): void
+    {
+        if ($temDestinatario && $ufDestino !== $ufOrigem && $contribuinte === false && $interna === null) {
+            throw AliquotaInternaNaoCadastradaException::para($ufDestino);
+        }
     }
 
     /** Interna do destino (decimal) da tabela por UF; null se o contador ainda não cadastrou. */
@@ -682,7 +694,9 @@ class NfeService
         // 2. motor por item
         $dets = [];
         $ncmPadraoUsado = [];
-        $tot = ['v_bc_icms' => 0.0, 'v_icms' => 0.0, 'v_pis' => 0.0, 'v_cofins' => 0.0, 'v_ibs' => 0.0, 'v_cbs' => 0.0];
+        $tot = ['v_bc_icms' => 0.0, 'v_icms' => 0.0, 'v_pis' => 0.0, 'v_cofins' => 0.0, 'v_ibs' => 0.0, 'v_cbs' => 0.0,
+            'v_icms_uf_dest' => 0.0, 'v_fcp_uf_dest' => 0.0];
+        $temDifal = $internaDestino !== null && $destinatarioContribuinte === false && $ufOrigem !== $ufDestino;
         foreach ($itens as $i => $it) {
             $ncm = preg_replace('/\D/', '', (string) $it['ncm']);
             if (strlen($ncm) !== 8 || $ncm === '00000000') {
@@ -767,7 +781,21 @@ class NfeService
                     'valor_cbs'    => $tributo->valor_cbs,
                 ],
                 'nivel_tributacao' => $tributo->nivel_usado,
+                // R-NFE-037: DIFAL da venda a não contribuinte de outra UF (grupo ICMSUFDest).
+                // Os valores são os do motor (R-NFE-017/035); o vNF não muda.
+                'difal' => $temDifal ? [
+                    'vbc'       => $base,
+                    'p_interna' => $internaDestino,
+                    'p_inter'   => $tributo->aliquota_icms,
+                    'p_fcp'     => (float) ($tributo->fcp ?? 0),
+                    'v_fcp'     => $tributo->valor_fcp,
+                    'v_difal'   => $tributo->valor_difal,
+                ] : null,
             ];
+            if ($temDifal) {
+                $tot['v_icms_uf_dest'] += $tributo->valor_difal;
+                $tot['v_fcp_uf_dest']  += $tributo->valor_fcp;
+            }
 
             $tot['v_bc_icms'] += $tributo->base_icms ?? 0; // thread 25: só soma quando há benefício
             $tot['v_icms']   += $tributo->valor_icms;
@@ -793,6 +821,8 @@ class NfeService
                 'v_cofins'  => round($tot['v_cofins'], 2),
                 'v_ibs'     => round($tot['v_ibs'], 2),
                 'v_cbs'     => round($tot['v_cbs'], 2),
+                'v_icms_uf_dest' => round($tot['v_icms_uf_dest'], 2),
+                'v_fcp_uf_dest'  => round($tot['v_fcp_uf_dest'], 2),
                 'v_nf'      => $totalCent / 100.0,
                 'v_desc'    => array_sum($descontos) / 100.0,
                 'v_frete'   => array_sum($fretes) / 100.0,
@@ -2300,8 +2330,9 @@ class NfeService
         $stdICMSTot->vBC         = $this->fmt($total['v_bc_icms'] ?? 0);
         $stdICMSTot->vICMS       = $this->fmt($total['v_icms'] ?? 0);
         $stdICMSTot->vICMSDeson  = 0.00;
-        $stdICMSTot->vFCPUFDest  = 0.00;
-        $stdICMSTot->vICMSUFDest = 0.00;
+        // R-NFE-037: soma do grupo ICMSUFDest dos itens (0 quando a nota não tem DIFAL, como antes).
+        $stdICMSTot->vFCPUFDest  = (float) ($total['v_fcp_uf_dest'] ?? 0) > 0 ? $this->fmt((float) $total['v_fcp_uf_dest']) : 0.00;
+        $stdICMSTot->vICMSUFDest = (float) ($total['v_icms_uf_dest'] ?? 0) > 0 ? $this->fmt((float) $total['v_icms_uf_dest']) : 0.00;
         $stdICMSTot->vICMSUFRemet = 0.00;
         $stdICMSTot->vFCP        = 0.00;
         $stdICMSTot->vBCST       = 0.00;
@@ -2481,6 +2512,26 @@ class NfeService
         $stdCOFINS->pCOFINS = $this->fmt((float) ($cofins['pcofins'] ?? 0));
         $stdCOFINS->vCOFINS = $this->fmt((float) ($cofins['vcofins'] ?? 0));
         $nfe->tagCOFINS($stdCOFINS);
+
+        // R-NFE-037: grupo NA (ICMSUFDest) — alíquotas em percentual, partilha 100% para o destino
+        // desde 2019 (EC 87/2015, art. 99 do ADCT). Sem a chave, o item sai como antes.
+        if (! empty($det['difal'])) {
+            $d = $det['difal'];
+            $stdDifal                 = new \stdClass();
+            $stdDifal->item           = $item;
+            $stdDifal->vBCUFDest      = $this->fmt((float) $d['vbc']);
+            if ((float) $d['p_fcp'] > 0) {
+                $stdDifal->vBCFCPUFDest = $this->fmt((float) $d['vbc']);
+                $stdDifal->pFCPUFDest   = $this->fmt((float) $d['p_fcp'] * 100, 4);
+                $stdDifal->vFCPUFDest   = $this->fmt((float) $d['v_fcp']);
+            }
+            $stdDifal->pICMSUFDest    = $this->fmt((float) $d['p_interna'] * 100, 4);
+            $stdDifal->pICMSInter     = $this->fmt((float) $d['p_inter'] * 100, 2);
+            $stdDifal->pICMSInterPart = 100;
+            $stdDifal->vICMSUFDest    = $this->fmt((float) $d['v_difal']);
+            $stdDifal->vICMSUFRemet   = $this->fmt(0);
+            $nfe->tagICMSUFDest($stdDifal);
+        }
 
         // ── IBS/CBS (Reforma Tributária · grupo UB · NT 2025.002 · PL_010_V1) ──
         // Serializa SÓ quando (a) o business está opt-in (schema PL_010 ativo) E
