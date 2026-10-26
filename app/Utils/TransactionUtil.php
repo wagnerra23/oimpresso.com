@@ -5517,7 +5517,7 @@ class TransactionUtil extends Util
 
         $query = Transaction::where('transactions.contact_id', $contact_id)
                         ->where('transactions.business_id', $business_id)
-                        ->where('transactions.status', '!=', 'draft')
+                        ->whereNotIn('transactions.status', ['draft', 'cancelled'])
                         ->whereIn('transactions.type', $transaction_type_keys);
 
         if (! empty($start) && ! empty($end)) {

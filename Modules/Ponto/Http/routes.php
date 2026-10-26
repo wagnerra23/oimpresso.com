@@ -149,6 +149,7 @@ Route::group(
         Route::post('/mobile/marcar', [MobileMarcacaoController::class, 'registrar'])->name('ponto.mobile.marcar');
         Route::get('/mobile/marcacoes/hoje', [MobileMarcacaoController::class, 'marcacoesHoje'])->name('ponto.mobile.marcacoes.hoje');
         Route::post('/mobile/intercorrencias', [MobileMarcacaoController::class, 'criarIntercorrencia'])->name('ponto.mobile.intercorrencias.store');
+        Route::post('/mobile/espelho/ciencia', [MobileMarcacaoController::class, 'darCienciaEspelho'])->name('ponto.mobile.espelho.ciencia');
         // Lembrete de bater ponto (ADR 0423): o app Capacitor registra o token do aparelho.
         Route::post('/mobile/push/dispositivo', [\Modules\Ponto\Http\Controllers\Api\PushDispositivoController::class, 'registrar'])->name('ponto.mobile.push.registrar');
         Route::delete('/mobile/push/dispositivo', [\Modules\Ponto\Http\Controllers\Api\PushDispositivoController::class, 'desativar'])->name('ponto.mobile.push.desativar');
@@ -195,6 +196,8 @@ Route::group(
         Route::get('/saldo', [MobileMarcacaoController::class, 'saldo'])->name('ponto.api.saldo');
         Route::get('/me', [MobileMarcacaoController::class, 'me'])->name('ponto.api.me');
         Route::get('/espelho', [MobileMarcacaoController::class, 'espelho'])->name('ponto.api.espelho');
+        // US-PONTO-020: ciência do colaborador no espelho de competência fechada (append-only).
+        Route::post('/espelho/ciencia', [MobileMarcacaoController::class, 'darCienciaEspelho'])->name('ponto.api.espelho.ciencia');
         Route::get('/intercorrencias/tipos', [MobileMarcacaoController::class, 'tiposIntercorrencia'])->name('ponto.api.intercorrencias.tipos');
 
         // Intercorrências (justificar = cria e submete)

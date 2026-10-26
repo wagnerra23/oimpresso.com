@@ -5,7 +5,7 @@ irmaos: Show.charter.md (lei) · SDD-espelho-e-jornada-v1.0.md §5.3 F2 + §6.1 
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o espelho é o documento que sustenta fechamento de folha e defesa em fiscalização — o que ele deixa de mostrar vira verba trabalhista.
 owner: wagner
-last_run: "2026-09-28"
+last_run: "2026-10-26"
 last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 ---
 
@@ -35,6 +35,7 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 | UC-ESPSH-03 | Marcação anulada não conta como jornada | must | `CU-PONTO-13` + Portaria 671/2021 | `EspelhoContratoTest` | ✅ verde na lane |
 | UC-ESPSH-04 | Espelho de colaborador de outro empregador → 404 | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `EspelhoContratoTest` | ✅ verde na lane |
 | UC-ESPSH-05 | Totais e linhas chegam sob demanda, sem quebrar o contrato | should | `CU-PONTO-01` + charter §Automation hooks | `EspelhoContratoTest` | ✅ verde na lane |
+| UC-ESPSH-06 | O RH vê se o colaborador deu ciência do mês | should | US-PONTO-020 + ADR 0413 | `EspelhoCienciaContratoTest` | 🧪 sem veredito |
 
 **[BACKLOG]** (contrato em 1 fonte só — vira UC quando ganhar 2ª âncora e teste):
 
@@ -154,6 +155,14 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 - **Regressão que defende:** `defer` mal aplicado degrada de duas formas opostas — ou tudo volta eager
   (perde o ganho de p95), ou a prop diferida nunca resolve (tela fica em skeleton eterno). O UC prova que
   o dado **chega** quando pedido.
+- **Status: 🧪 sem veredito.**
+
+## UC-ESPSH-06 · O RH vê se o colaborador deu ciência do mês · `should`
+
+- **Persona:** RH conferindo o fechamento.
+- **Aceite:** Dado um mês fechado em que o colaborador deu ciência pelo app · Quando abro o espelho dele · Então vejo "Ciência do colaborador: dada em dd/mm/aaaa" (e o aviso, se o espelho mudou depois). Dado um mês ainda aberto · Então vejo que o mês não foi fechado, sem ciência. Mês fechado sem ciência aparece como pendente.
+- **Teste:** `EspelhoCienciaContratoTest.php` — `UC-ESPSH-06`.
+- **Contrato:** US-PONTO-020 · ADR 0413 (só competência fechada aceita ciência). Linha fora da folha de impressão (`print:hidden`): a folha impressa segue com as assinaturas do contrato.
 - **Status: 🧪 sem veredito.**
 
 ## Pendências sem id (prosa — viram UC quando ganharem teste que as cite)
