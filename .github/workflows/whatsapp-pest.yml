@@ -55,6 +55,7 @@ on:
       - 'app/Contracts/Atendimento/**'
       - 'routes/api/app/atendimento.php'
       - 'app/Utils/NotificationUtil.php'
+      - 'Modules/NfeBrasil/Http/Controllers/DanfePublicaController.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/whatsapp-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -96,6 +97,7 @@ jobs:
               - 'app/Contracts/Atendimento/**'
               - 'routes/api/app/atendimento.php'
               - 'app/Utils/NotificationUtil.php'
+              - 'Modules/NfeBrasil/Http/Controllers/DanfePublicaController.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/whatsapp-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -160,6 +162,7 @@ jobs:
             Modules/Whatsapp/Tests/Feature/AppAtendimentoApiContratoTest.php \
             Modules/Whatsapp/Tests/Feature/NotificadorClienteWhatsappContratoTest.php \
             Modules/Whatsapp/Tests/Feature/AvisoVendaWhatsappApiContratoTest.php \
+            Modules/Whatsapp/Tests/Feature/DanfePorWhatsappContratoTest.php \
             Modules/Whatsapp/Tests/Feature/EmployeePerformanceDiasAtivosTest.php \
             Modules/Whatsapp/Tests/Feature/ChannelDisplayIdentifierIndexTest.php \
             Modules/Whatsapp/Tests/Feature/CentrifugoPublishTest.php \

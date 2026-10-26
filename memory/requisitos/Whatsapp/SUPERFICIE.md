@@ -14,7 +14,7 @@ module: Whatsapp
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Whatsapp/**` + `resources/js/Pages/Whatsapp/**` + `resources/js/Pages/Atendimento/**` (namespaces Inertia `Whatsapp`, `Atendimento`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `Whatsapp` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 443 arquivos em 20 papéis.
+**Total mapeado:** 445 arquivos em 20 papéis.
 
 ## Controllers — 24
 
@@ -173,7 +173,7 @@ module: Whatsapp
 - [TranscribeAudioJob.php](../../../Modules/Whatsapp/Jobs/TranscribeAudioJob.php)
 - [WhatsappDriverHealthCheckJob.php](../../../Modules/Whatsapp/Jobs/WhatsappDriverHealthCheckJob.php)
 
-## Events / Listeners — 13
+## Events / Listeners — 14
 
 - [OmnichannelMessageReceived.php](../../../Modules/Whatsapp/Events/OmnichannelMessageReceived.php)
 - [OmnichannelMessageSent.php](../../../Modules/Whatsapp/Events/OmnichannelMessageSent.php)
@@ -182,6 +182,7 @@ module: Whatsapp
 - [WhatsappMessageReceived.php](../../../Modules/Whatsapp/Events/WhatsappMessageReceived.php)
 - [WhatsappMessageSent.php](../../../Modules/Whatsapp/Events/WhatsappMessageSent.php)
 - [DispatchToJanaBot.php](../../../Modules/Whatsapp/Listeners/DispatchToJanaBot.php)
+- [EnviarDanfePorWhatsapp.php](../../../Modules/Whatsapp/Listeners/EnviarDanfePorWhatsapp.php)
 - [NotifyInstalacaoCvCustomer.php](../../../Modules/Whatsapp/Listeners/NotifyInstalacaoCvCustomer.php)
 - [NotifyRepairCustomer.php](../../../Modules/Whatsapp/Listeners/NotifyRepairCustomer.php)
 - [PublishMessageReceivedToCentrifugo.php](../../../Modules/Whatsapp/Listeners/PublishMessageReceivedToCentrifugo.php)
@@ -369,9 +370,9 @@ module: Whatsapp
 - [Settings.casos.md](../../../resources/js/Pages/Whatsapp/Settings.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Whatsapp/Templates/Index.casos.md)
 
-## Testes (Pest) — 126
+## Testes (Pest) — 127
 
-- 126 em [Modules/Whatsapp/Tests/Feature/](../../../Modules/Whatsapp/Tests/Feature)
+- 127 em [Modules/Whatsapp/Tests/Feature/](../../../Modules/Whatsapp/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 18
