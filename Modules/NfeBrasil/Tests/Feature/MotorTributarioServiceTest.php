@@ -793,9 +793,11 @@ it('R-NFE-030 · base reduzida e cBenef no item', function () {
         ->and($d1['icms']['pred_bc'])->toBe(33.33)
         ->and($d1['icms']['vicms'])->toBe(72.0)
         ->and($d2['cbenef'])->toBeNull()
-        ->and($d2['icms']['vbc'])->toBe(0)          // sem benefício: como antes
+        // Sem benefício, CST 00: base cheia (R-NFE-040). Antes saía 0 com vICMS 108,00, conta que a
+        // SEFAZ recusa (vICMS = vBC × pICMS).
+        ->and($d2['icms']['vbc'])->toBe(600.0)
         ->and($d2['icms']['pred_bc'])->toBe(0.0)
-        ->and($itens['total']['v_bc_icms'])->toBe(400.02)
+        ->and($itens['total']['v_bc_icms'])->toBe(1000.02) // 400,02 + 600,00
         ->and($itens['total']['v_icms'])->toBe(180.0); // 72,00 + 108,00
 
     // E no XML: <cBenef> no item com benefício, <pRedBC> no ICMS20; nada disso no outro item.

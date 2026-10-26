@@ -409,6 +409,26 @@ O Cockpit não é renderizado (recebe ~15 props de payload) e entra por um caso 
 que a pessoa fiscal **faz** (conferir, cancelar, manifestar, inutilizar); nenhum trata de
 preferência de exibição. Ancorar num CU plausível fecharia a lacuna do painel sem lastro (LC-11).
 
+## Item do regime normal com base e alíquota em percentual (R-NFE-040)
+
+> **Âncora:** R-NFE-040 do [SPEC do NfeBrasil](../../../../memory/requisitos/NfeBrasil/SPEC.md). Prova:
+> `NfeAliquotaPercentualTest` (sem banco, motor falso com alíquotas em fração como a régua guarda).
+
+## UC-FNFE-42 · Regime normal: base cheia e alíquota em percentual · `must`
+
+**Dado** uma regra CST 00 com ICMS 0,18, PIS 0,0165 e COFINS 0,076 **Quando** um item de 1.000,00 vai à nota
+**Então** sai vBC 1.000,00, pICMS 18, vICMS 180,00, pPIS 1,65, pCOFINS 7,6 e o total vBC 1.000,00; com base
+reduzida pelo benefício (600,00), a base é 600,00.
+
+Status: 🧪
+
+## UC-FNFE-43 · Simples e CST sem ICMS ficam como antes · `must`
+
+**Dado** CSOSN 102, CST 40 ou CST 00 com alíquota zero **Quando** o item vai à nota **Então** a base do ICMS
+fica 0 no item e no total.
+
+Status: 🧪
+
 ## NF-e em contingência quando a SEFAZ cai (US-NFE-070 · UC-FLX-32)
 
 > **Âncora:** [US-NFE-070](../../../../memory/requisitos/NfeBrasil/SPEC.md) (resto da US-NFE-006) e o
@@ -474,6 +494,23 @@ Status: 🧪
 **Dado** o modo EPEC **Quando** o AN devolve cStat de erro, ou o envio do evento lança exceção **Então** a nota
 continua `contingencia` com o XML guardado, o evento 110140 fica `rejeitado` com o cStat ou o erro, e o motivo
 da nota diz "O DANFE só vale com o EPEC registrado".
+
+Status: 🧪
+
+## UC-FNFE-40 · Devolução exige a permissão e quantidade válida · `must`
+
+> **Âncora:** R-NFE-039 do [SPEC do NfeBrasil](../../../../memory/requisitos/NfeBrasil/SPEC.md) (rota da
+> NF-e de devolução, US-NFE-064). Prova: `AcoesDevolucaoTest`, que invoca o `AcoesController`.
+
+**Dado** uma NF-e autorizada **Quando** quem não tem `fiscal.nfe.acoes` pede a devolução **Então** 403. Sem item,
+ou com quantidade 0, negativa ou não numérica, o pedido não passa da validação; 2,5 passa.
+
+Status: 🧪
+
+## UC-FNFE-41 · A devolução só acha nota da própria empresa · `must`
+
+**Dado** uma nota autorizada da empresa A e outra da B **Quando** A pede a devolução da nota de B **Então** não é
+achada (404) e nada é emitido; da nota de A, o serviço recebe a empresa A, a nota e as quantidades por item.
 
 Status: 🧪
 
