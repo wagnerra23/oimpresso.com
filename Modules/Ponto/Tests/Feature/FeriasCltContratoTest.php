@@ -28,8 +28,14 @@ const FERIAS_MARCADOR = 'US-PONTO-018-FERIAS';
 
 $GLOBALS['ferias_ids'] = ['tipos' => [], 'licencas' => [], 'apuracoes' => []];
 
-function feriasColaborador(int $bizId, int $userId, string $admissao): Colaborador
+/** Colaborador com user próprio: `user_id` é NOT NULL e único em ponto_colaborador_config. */
+function feriasColaborador(int $bizId, string $admissao): Colaborador
 {
+    $userId = DB::table('users')->insertGetId([
+        'first_name' => 'FERIAS teste', 'username' => 'ferias_' . uniqid(), 'password' => 'x',
+        'business_id' => $bizId, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+
     return Colaborador::forceCreate([
         'business_id'    => $bizId,
         'user_id'        => $userId,
@@ -74,6 +80,11 @@ function feriasFalta(Colaborador $c, string $data): void
 }
 
 afterEach(function () {
+    // Tudo roda dentro de uma transação (users, colaboradores, licenças, apuração): o rollback
+    // desfaz; os deletes abaixo são a segunda camada se a transação não estiver aberta.
+    if (DB::transactionLevel() > 0) {
+        DB::rollBack();
+    }
     $ids = $GLOBALS['ferias_ids'];
     DB::table('essentials_leaves')->whereIn('id', $ids['licencas'] ?: [0])->delete();
     DB::table('essentials_leave_types')->whereIn('id', $ids['tipos'] ?: [0])->delete();
@@ -102,6 +113,7 @@ beforeEach(function () {
         $this->markTestSkipped('Sem user no tenant canônico — seed mínimo não rodou.');
     }
     $this->svc  = app(FeriasService::class);
+    DB::beginTransaction();
     $this->hoje = Carbon::parse('2026-10-26');
 });
 
@@ -113,7 +125,7 @@ it('UC-FERIAS-01 · tabela do art. 130: dias de direito por faltas injustificada
 });
 
 it('UC-FERIAS-02 · períodos desde a admissão: aquisitivo de 12 meses e concessivo dos 12 seguintes', function () {
-    $c = feriasColaborador($this->tenant->id, $this->user->id, '2024-01-10');
+    $c = feriasColaborador($this->tenant->id, '2024-01-10');
 
     $p = $this->svc->periodos($c, $this->hoje);
 
@@ -128,7 +140,7 @@ it('UC-FERIAS-02 · períodos desde a admissão: aquisitivo de 12 meses e conces
 });
 
 it('UC-FERIAS-03 · faltas injustificadas do aquisitivo reduzem os dias (6 faltas → 24 dias)', function () {
-    $c = feriasColaborador($this->tenant->id, $this->user->id, '2024-01-10');
+    $c = feriasColaborador($this->tenant->id, '2024-01-10');
     foreach (['2025-02-03', '2025-02-04', '2025-02-05', '2025-02-06', '2025-02-07', '2025-02-10'] as $d) {
         feriasFalta($c, $d);
     }
@@ -141,13 +153,13 @@ it('UC-FERIAS-03 · faltas injustificadas do aquisitivo reduzem os dias (6 falta
 });
 
 it('UC-FERIAS-04 · só licença aprovada de tipo marcado como férias abate o saldo, do período mais antigo', function () {
-    $c = feriasColaborador($this->tenant->id, $this->user->id, '2024-01-10');
+    $c = feriasColaborador($this->tenant->id, '2024-01-10');
     $ferias = feriasTipo($this->tenant->id, true);
     $outro  = feriasTipo($this->tenant->id, false);
 
-    feriasLicenca($this->tenant->id, $this->user->id, $ferias, '2025-03-03', '2025-03-22');            // 20 dias
-    feriasLicenca($this->tenant->id, $this->user->id, $outro, '2025-04-01', '2025-04-10');             // não é férias
-    feriasLicenca($this->tenant->id, $this->user->id, $ferias, '2025-05-01', '2025-05-05', 'pending');  // não aprovada
+    feriasLicenca($this->tenant->id, $c->user_id, $ferias, '2025-03-03', '2025-03-22');            // 20 dias
+    feriasLicenca($this->tenant->id, $c->user_id, $outro, '2025-04-01', '2025-04-10');             // não é férias
+    feriasLicenca($this->tenant->id, $c->user_id, $ferias, '2025-05-01', '2025-05-05', 'pending');  // não aprovada
 
     $p = $this->svc->periodos($c, $this->hoje);
 
@@ -158,9 +170,9 @@ it('UC-FERIAS-04 · só licença aprovada de tipo marcado como férias abate o s
 });
 
 it('UC-FERIAS-05 · gozo que cobre o saldo quita o período; o excedente vai para o seguinte', function () {
-    $c = feriasColaborador($this->tenant->id, $this->user->id, '2024-01-10');
+    $c = feriasColaborador($this->tenant->id, '2024-01-10');
     $ferias = feriasTipo($this->tenant->id, true);
-    feriasLicenca($this->tenant->id, $this->user->id, $ferias, '2026-02-02', '2026-03-13'); // 40 dias
+    feriasLicenca($this->tenant->id, $c->user_id, $ferias, '2026-02-02', '2026-03-13'); // 40 dias
 
     $p = $this->svc->periodos($c, $this->hoje);
 
@@ -170,12 +182,12 @@ it('UC-FERIAS-05 · gozo que cobre o saldo quita o período; o excedente vai par
 });
 
 it('UC-FERIAS-06 · licença e tipo do tenant adversário não abatem nada (ADR 0093)', function () {
-    $c = feriasColaborador($this->tenant->id, $this->user->id, '2024-01-10');
+    $c = feriasColaborador($this->tenant->id, '2024-01-10');
     $tipoAlheio = feriasTipo($this->adversario->id, true);
-    feriasLicenca($this->adversario->id, $this->user->id, $tipoAlheio, '2025-03-03', '2025-04-01');
+    feriasLicenca($this->adversario->id, $c->user_id, $tipoAlheio, '2025-03-03', '2025-04-01');
     // Tipo do 98 marcado como férias, mas a licença é do 99: também não conta.
     $tipoMeu = feriasTipo($this->tenant->id, true);
-    feriasLicenca($this->adversario->id, $this->user->id, $tipoMeu, '2025-05-04', '2025-05-20');
+    feriasLicenca($this->adversario->id, $c->user_id, $tipoMeu, '2025-05-04', '2025-05-20');
 
     $p = $this->svc->periodos($c, $this->hoje);
 
@@ -183,13 +195,8 @@ it('UC-FERIAS-06 · licença e tipo do tenant adversário não abatem nada (ADR 
 });
 
 it('UC-FERIAS-07 · alerta lista o vencido do empregador e não o do adversário; sem admissão não há período', function () {
-    // `user_id` é NOT NULL e único em ponto_colaborador_config: um colaborador por usuário.
-    $userAlheio = \App\User::where('business_id', $this->adversario->id)->first();
-    if (! $userAlheio) {
-        $this->markTestSkipped('Sem user no tenant adversário — seed mínimo não rodou.');
-    }
-    $vencido = feriasColaborador($this->tenant->id, $this->user->id, '2024-01-10');
-    $alheio  = feriasColaborador($this->adversario->id, $userAlheio->id, '2023-01-10');
+    $vencido = feriasColaborador($this->tenant->id, '2024-01-10');
+    $alheio  = feriasColaborador($this->adversario->id, '2023-01-10');
 
     $alertas = collect($this->svc->alertas($this->tenant->id, $this->hoje, 60))
         ->filter(fn ($a) => str_starts_with((string) $a['matricula'], FERIAS_MARCADOR));
