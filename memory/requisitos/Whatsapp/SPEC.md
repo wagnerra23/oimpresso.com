@@ -2052,6 +2052,8 @@ Ligar em produção é decisão [W].
 
 **Implementado em:** `Modules/Whatsapp/Listeners/EnviarDanfePorWhatsapp.php` · `Modules/NfeBrasil/Http/Controllers/DanfePublicaController.php` · `Modules/Whatsapp/Tests/Feature/DanfePorWhatsappContratoTest.php`
 
+**Testado em:** `Modules/Whatsapp/Tests/Feature/DanfePorWhatsappContratoTest.php`
+
 > owner: — · priority: p0 · estimate: 3h · type: story
 > blocked_by: US-WA-319
 
