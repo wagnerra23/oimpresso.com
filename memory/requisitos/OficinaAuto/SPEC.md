@@ -379,7 +379,7 @@ Estimate Fase 4: ~80h IA-pair fator 10x = ~2 semanas Felipe (PWA scaffold + 5 sc
 > owner: — · priority: p0 · estimate: 6h · type: story · origin: ADR-0143
 > blocked_by: US-OFICINA-001 (done)
 
-**Implementado em:** _parcial_ · `Modules/OficinaAuto/Database/Migrations/2026_05_13_010001_add_current_stage_id_to_service_orders.php` · `Modules/OficinaAuto/Database/Seeders/OficinaAutoFsmSeeder.php` · `app/Http/Controllers/ServiceOrderFsmActionController.php` · `resources/js/Pages/OficinaAuto/ServiceOrders/_components/ServiceOrderFsmActionPanel.tsx` · `Modules/OficinaAuto/Tests/Feature/FsmTransitionTest.php` · verificado@dd3ed7c (2026-07-01) — falta trait GuardsFsmTransitions no ServiceOrder (UPDATE direto em current_stage_id desguardado); seeder com 9 stages vs 15×19 do DoD; FsmTransitionTest 3 casos vs 15
+**Implementado em:** _parcial_ · `Modules/OficinaAuto/Database/Migrations/2026_05_13_010001_add_current_stage_id_to_service_orders.php` · `Modules/OficinaAuto/Database/Seeders/OficinaAutoFsmSeeder.php` · `app/Http/Controllers/ServiceOrderFsmActionController.php` · `resources/js/Pages/OficinaAuto/ServiceOrders/_components/ServiceOrderFsmActionPanel.tsx` · `Modules/OficinaAuto/Tests/Feature/FsmTransitionTest.php` · `Modules/OficinaAuto/Entities/ServiceOrder.php` · `Modules/OficinaAuto/Tests/Feature/ServiceOrderGuardsFsmTest.php` · verificado@dd3ed7c (2026-07-01) — trava GuardsFsmTransitions no ServiceOrder entregue em 2026-10-26 (antes o UPDATE direto em current_stage_id passava sem erro); seguem abertos: seeder com 9 stages vs 15×19 do DoD; FsmTransitionTest 3 casos vs 15
 
 - Adicionar `current_stage_id` em `service_orders` migration
 - Criar seeder `FsmProcessoOficinaAutoPadraoSeeder` (15 stages × 19 actions × roles)

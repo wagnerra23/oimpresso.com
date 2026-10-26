@@ -3,7 +3,7 @@ id: requisitos-asset-management-briefing
 module: AssetManagement
 status: producao
 status_nota: "em produção; as 5 listas já são Inertia em Pages/Patrimonio, os formulários de escrita ainda migram (threads 16–20 do playbook)"
-updated_at: "2026-09-30"
+updated_at: "2026-10-26"
 owner: W
 related_adrs: [0394-endereco-de-ui-do-patrimonio-pages-patrimonio, 0414-patrimonio-auditoria-deep-link-e-formularios-em-drawer-react, 0104-processo-mwart-canonico-unico-caminho, 0093-multi-tenant-isolation-tier-0, 0409-zero-baseline-de-tolerancia-conformidade-absoluta]
 ---
@@ -42,7 +42,7 @@ colaboradores, manutenção e garantia. Transversal a todos os verticais. O cód
 ## Decisões e riscos que exigem atenção
 
 - **Sem escopo global de business:** `Asset`, `AssetMaintenance`, `AssetTransaction` e `AssetWarranty` constam como `grandfathered` em `governance/multi-tenant-scope-baseline.json` — isolamento por filtro manual em cada consulta. Dívida transitória da [ADR 0409](../../decisions/0409-zero-baseline-de-tolerancia-conformidade-absoluta.md): tocar uma dessas entidades acorda a dívida no mesmo PR.
-- **Depreciação não é calculada:** o Painel mostra "Valor residual —" (`valorResidual = null` de propósito). A regra (linear/SAC, com qual fonte) é decisão [W] — RESÍDUO 6 do playbook, `US-ASSET-W01` no SPEC.
+- **Depreciação gerencial (desde 2026-10-26, em PR):** decisão [W] da US-ASSET-009 — linear pela vida útil em anos do bem, mostrada como **gerencial** (nunca contábil). O campo do cadastro passou a ser "Vida útil (anos)"; sem nenhum bem com vida útil, o Painel segue mostrando "Valor residual —". Falta o prazo padrão por categoria nas Configurações. Até essa data a depreciação não era calculada (RESÍDUO 6).
 - **Custo de manutenção:** `asset_maintenances` não tem coluna de valor; o Painel mostra "—", não zero.
 - **Retenção automática:** descartada por decisão [W] (thread 05 do playbook, bloqueada).
 - **Faixa de abas do módulo não aparece no tenant de visreg** (sem assinatura do módulo): regressão nas abas passa verde no gate visual. Ponto cego declarado no docblock do `VisregTenantSeeder`.

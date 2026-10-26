@@ -119,7 +119,7 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 > **Controller/ação:** `OsController`
 > **Reusa:** [Modules/Repair](../../../Modules/Repair) Kanban drag-drop (PR #363) — Modules/Repair é shared infrastructure ([ADR 0121 §P8](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md))
 
-**Implementado em:** _pendente_ — migration `cv_ordens_producao` + Entity `OrdemProducao` existem, mas Kanban PCP (OsController + Page Inertia + drag-drop) não construído
+**Implementado em:** _pendente_ — o quadro por etapa existe no `Modules/Producao` (`/producao/quadro`, `QuadroDaProducao`, ADR 0431/0436) e já lê `comvis_os`; medido em 2026-10-26 que a OS criada pelo orçamento aprovado (`OrcamentoViraOs`) não ganha etapas em `pcp_programacoes`, então não aparece no quadro (roteiro a decidir pelo [W]). `cv_ordens_producao`/`OrdemProducao` segue sem fluxo (a OS por item da venda é a `pcp_ordens`)
 
 > A entrada da OS (orçamento aprovado vira OS com itens, medidas e arquivos — UC-FLX-01) está na US-COMVIS-020. Aqui fica o Kanban de etapas.
 
