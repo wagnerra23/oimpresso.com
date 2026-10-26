@@ -21,6 +21,7 @@ use Modules\NfeBrasil\Models\NfeIcmsUf;
 use Modules\NfeBrasil\Models\NfeLocalEmissor;
 use Modules\NfeBrasil\Models\NfeEvento;
 use Modules\NfeBrasil\Services\Tributacao\ProdutoFiscalContext;
+use Modules\NfeBrasil\Services\Tributacao\TributoCalculado;
 use Modules\RecurringBilling\Models\Invoice;
 use NFePHP\Common\Certificate;
 use NFePHP\NFe\Common\Standardize;
@@ -402,8 +403,10 @@ class NfeService
                 ],
             ]),
             // tpag='01' = dinheiro (default conservador). Fase 2B detecta via transaction_payments.
-            'pag'         => [['tpag' => '01', 'vpag' => $valorTotal]],
-            'valor_total' => $valorTotal,
+            // R-NFE-043: com ICMS-ST o vNF passa do total da venda; o pagamento acompanha o vNF
+            // (sem ST, v_nf == $valorTotal, como antes).
+            'pag'         => [['tpag' => '01', 'vpag' => $itens['total']['v_nf']]],
+            'valor_total' => $itens['total']['v_nf'],
             'inf_cpl'     => $separacao === null
                 ? "Venda PDV #{$tx->id}."
                 : "Venda PDV #{$tx->id}. Parte mercadoria; os servicos da venda saem em NFS-e.",
@@ -477,6 +480,48 @@ class NfeService
             'cep'           => preg_replace('/\D/', '', (string) ($c->zip_code ?? '')),
             'email'         => ($c->email ?? '') ?: null,
         ], fn ($v) => $v !== null);
+    }
+
+    /** R-NFE-043 · grava no grupo ICMS do item os campos do ST (modBCST, pMVAST, vBCST, pICMSST, vICMSST). */
+    private function preencherSt(\stdClass $std, ?array $st): void
+    {
+        if ($st === null) {
+            return;
+        }
+        $std->modBCST = (int) $st['modbcst'];
+        $std->pMVAST  = $this->fmt((float) $st['pmvast'], 4);
+        $std->vBCST   = $this->fmt((float) $st['vbcst']);
+        $std->pICMSST = $this->fmt((float) $st['picmsst'], 4);
+        $std->vICMSST = $this->fmt((float) $st['vicmsst']);
+    }
+
+    /** CST (regime normal) e CSOSN (Simples) que levam ICMS-ST retido pelo emitente. */
+    private const CST_COM_ST = ['10', '30', '70', '90', '201', '202', '203', '900'];
+
+    /**
+     * R-NFE-043 · campos do ICMS-ST do item, a partir do motor (R-NFE-015: base pela MVA, ST =
+     * base × interna − ICMS próprio). Null sem ST. Regra com MVA e ST calculado, mas CST/CSOSN que
+     * não leva ST, é recusada — sairia nota com imposto que o código da situação diz não existir.
+     *
+     * @return array<string,float|int>|null
+     */
+    private function stDoItem(TributoCalculado $tributo, ?float $internaDestino): ?array
+    {
+        if ($tributo->valor_st <= 0) {
+            return null;
+        }
+        $cst = (string) ($tributo->csosn ?? $tributo->cst ?? '');
+        if (! in_array($cst, self::CST_COM_ST, true)) {
+            throw new RuntimeException("A regra fiscal calcula ICMS-ST (MVA) mas o CST/CSOSN {$cst} não leva ST — ajuste a regra em Tributação (ex.: CST 10 ou CSOSN 202).");
+        }
+
+        return [
+            'modbcst' => 4, // 4 = margem de valor agregado (%)
+            'pmvast'  => round((float) ($tributo->mva ?? 0) * 100, 4),
+            'vbcst'   => $tributo->base_st,
+            'picmsst' => round((float) $internaDestino * 100, 4),
+            'vicmsst' => $tributo->valor_st,
+        ];
     }
 
     /** R-NFE-037 · interestadual a não contribuinte sem interna do destino: recusa com a saída. */
@@ -644,7 +689,7 @@ class NfeService
         $dets = [];
         $ncmPadraoUsado = [];
         $tot = ['v_bc_icms' => 0.0, 'v_icms' => 0.0, 'v_pis' => 0.0, 'v_cofins' => 0.0, 'v_ibs' => 0.0, 'v_cbs' => 0.0,
-            'v_icms_uf_dest' => 0.0, 'v_fcp_uf_dest' => 0.0];
+            'v_icms_uf_dest' => 0.0, 'v_fcp_uf_dest' => 0.0, 'v_bc_st' => 0.0, 'v_st' => 0.0];
         $temDifal = $internaDestino !== null && $destinatarioContribuinte === false && $ufOrigem !== $ufDestino;
         foreach ($itens as $i => $it) {
             $ncm = preg_replace('/\D/', '', (string) $it['ncm']);
@@ -704,6 +749,8 @@ class NfeService
                     'picms'     => $tributo->aliquota_icms,
                     'vicms'     => $tributo->valor_icms,
                     'pred_bc'   => round($tributo->reducao_base * 100, 4),
+                    // R-NFE-043: ICMS-ST do motor (R-NFE-015) no grupo do CST/CSOSN com ST.
+                    'st'        => $this->stDoItem($tributo, $internaDestino),
                 ],
                 // R-NFE-025b: `nfe_fiscal_rules` não guarda CST de PIS/COFINS hoje — o
                 // motor não devolve. '07' segue como fallback, logado abaixo.
@@ -745,6 +792,10 @@ class NfeService
                 $tot['v_icms_uf_dest'] += $tributo->valor_difal;
                 $tot['v_fcp_uf_dest']  += $tributo->valor_fcp;
             }
+            if ($tributo->valor_st > 0) {
+                $tot['v_bc_st'] += $tributo->base_st;
+                $tot['v_st']    += $tributo->valor_st;
+            }
 
             $tot['v_bc_icms'] += $tributo->base_icms ?? 0; // thread 25: só soma quando há benefício
             $tot['v_icms']   += $tributo->valor_icms;
@@ -772,7 +823,11 @@ class NfeService
                 'v_cbs'     => round($tot['v_cbs'], 2),
                 'v_icms_uf_dest' => round($tot['v_icms_uf_dest'], 2),
                 'v_fcp_uf_dest'  => round($tot['v_fcp_uf_dest'], 2),
-                'v_nf'      => $totalCent / 100.0,
+                'v_bc_st'   => round($tot['v_bc_st'], 2),
+                'v_st'      => round($tot['v_st'], 2),
+                // R-NFE-043 · leiaute W16: vNF = vProd − vDesc + vST + vFrete + vSeg + vOutro + vII + vIPI.
+                // O ST entra por cima do total da venda (o comprador paga o imposto retido).
+                'v_nf'      => ($totalCent + (int) round($tot['v_st'] * 100)) / 100.0,
                 'v_desc'    => array_sum($descontos) / 100.0,
                 'v_frete'   => array_sum($fretes) / 100.0,
                 'v_outro'   => array_sum($outros) / 100.0,
@@ -2284,8 +2339,9 @@ class NfeService
         $stdICMSTot->vICMSUFDest = (float) ($total['v_icms_uf_dest'] ?? 0) > 0 ? $this->fmt((float) $total['v_icms_uf_dest']) : 0.00;
         $stdICMSTot->vICMSUFRemet = 0.00;
         $stdICMSTot->vFCP        = 0.00;
-        $stdICMSTot->vBCST       = 0.00;
-        $stdICMSTot->vST         = 0.00;
+        // R-NFE-043: soma do ST dos itens (0 sem ST, como antes).
+        $stdICMSTot->vBCST       = (float) ($total['v_bc_st'] ?? 0) > 0 ? $this->fmt((float) $total['v_bc_st']) : 0.00;
+        $stdICMSTot->vST         = (float) ($total['v_st'] ?? 0) > 0 ? $this->fmt((float) $total['v_st']) : 0.00;
         $stdICMSTot->vFCPST      = 0.00;
         $stdICMSTot->vFCPSTRet   = 0.00;
         $stdICMSTot->vProd       = $this->fmt($total['v_prod'] ?? 0);
@@ -2423,6 +2479,7 @@ class NfeService
             $stdICMS->vBC    = $this->fmt((float) ($icms['vbc'] ?? 0));
             $stdICMS->pICMS  = $this->fmt((float) ($icms['picms'] ?? 0));
             $stdICMS->vICMS  = $this->fmt((float) ($icms['vicms'] ?? 0));
+            $this->preencherSt($stdICMS, $icms['st'] ?? null);
             $nfe->tagICMS($stdICMS);
         } else {
             // Simples Nacional — CSOSN
@@ -2438,6 +2495,12 @@ class NfeService
                 $stdICMSSN->vBC    = $this->fmt((float) ($icms['vbc'] ?? 0));
                 $stdICMSSN->pICMS  = $this->fmt((float) ($icms['picms'] ?? 0));
                 $stdICMSSN->vICMS  = $this->fmt((float) ($icms['vicms'] ?? 0));
+            }
+            $this->preencherSt($stdICMSSN, $icms['st'] ?? null);
+            if (! empty($icms['st']) && $cstCsosn === '201') {
+                // CSOSN 201 exige o crédito do Simples; sem cadastro dele, 0 (a regra não guarda).
+                $stdICMSSN->pCredSN     = $this->fmt(0, 4);
+                $stdICMSSN->vCredICMSSN = $this->fmt(0);
             }
             $nfe->tagICMSSN($stdICMSSN);
         }
