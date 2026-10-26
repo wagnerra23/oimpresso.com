@@ -132,6 +132,20 @@ it('UC-FNFE-32 · o destino chega ao motor: UF, contribuinte e interna — e o t
     expect($r['dets'][0]['cfop'])->toBe('6102');
     expect($r['total']['v_nf'])->toBe(1000.0);
     expect($r['total']['v_icms'])->toBe(120.0);
+    // R-NFE-037: o item leva o grupo do DIFAL com os valores do motor, e o total soma.
+    expect($r['dets'][0]['difal'])->toMatchArray(['vbc' => 1000.0, 'p_interna' => 0.20, 'p_inter' => 0.12, 'v_difal' => 80.0]);
+    expect($r['total']['v_icms_uf_dest'])->toBe(80.0);
+});
+
+it('UC-FNFE-35 · contribuinte em outra UF não leva grupo de DIFAL', function () {
+    $r = app(NfeService::class)->montarItensNfe(
+        linhas: [linha36(1000.00)], valorNota: 1000.00, frete: 0, ncmDefault: '49111090',
+        motor: motorFake36(new ArrayObject()), businessId: 98, ufOrigem: 'SC', ufDestino: 'RJ',
+        internaDestino: 0.20, destinatarioContribuinte: true,
+    );
+
+    expect($r['dets'][0]['difal'])->toBeNull();
+    expect($r['total']['v_icms_uf_dest'])->toBe(0.0);
 });
 
 it('UC-FNFE-33 · sem dado de destino a chamada ao motor é a de sempre (NFC-e e anônimo)', function () {
