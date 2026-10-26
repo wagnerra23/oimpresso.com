@@ -255,6 +255,11 @@ last_run: "2026-10-21"
 - **Teste:** `tests/Feature/Sells/CancelamentoDaVendaContratoTest.php` — `UC-VCAN-08`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
+## UC-VCAN-09 · A venda cancelada sai do extrato e do histórico do cliente `[V0]` `[must]`
+- **Aceite:** Dado um cliente com uma venda final de 100,00, uma cancelada de 60,00 e um rascunho de 30,00 · Quando o extrato soma as vendas · Então soma 100,00. O mesmo filtro (fora `draft` e `cancelled`) vale para a lista de clientes, o histórico de compras do CRM e o LTV da Caixa Unificada.
+- **Teste:** `tests/Feature/Sells/CancelamentoDaVendaContratoTest.php` — `UC-VCAN-09`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão (e o `casos-gate` é required com
