@@ -60,6 +60,11 @@ final class ValeTrocaService
             if (empty($dev->contact_id)) {
                 throw new ValeTrocaException('sem_cliente', 'Devolução sem cliente: o vale precisa de um cliente para guardar o saldo.');
             }
+            // O "Cliente padrão" (consumidor sem cadastro) é um só para todos: o saldo seria de qualquer um.
+            $padrao = (bool) DB::table('contacts')->where('business_id', $businessId)->where('id', $dev->contact_id)->value('is_default');
+            if ($padrao) {
+                throw new ValeTrocaException('cliente_padrao', 'Cadastre o cliente antes: o vale fica no saldo dele, e o Cliente padrão é de todos.');
+            }
 
             $valor = (string) DB::selectOne(
                 'SELECT CAST(t.final_total - COALESCE((SELECT SUM(IF(tp.is_return = 0, tp.amount, -tp.amount))
