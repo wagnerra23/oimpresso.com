@@ -48,6 +48,7 @@ class MandatoPixAutomatico
             throw new \DomainException('Só assinatura ativa pede autorização de Pix Automático.');
         }
 
+        // SUPERADMIN: mesma origem do business acima; a credencial é filtrada por ele.
         $credencial = PaymentGatewayCredential::withoutGlobalScopes()
             ->where('business_id', $businessId)->where('gateway_key', 'bcb_pix')->where('ativo', true)
             ->orderByDesc('id')->first();
