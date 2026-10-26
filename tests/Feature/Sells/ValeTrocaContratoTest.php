@@ -17,7 +17,9 @@ use Illuminate\Support\Facades\Schema;
  *
  * Números feitos à mão (cliente começa com saldo 20,00):
  *   devolução de 150,00 → vale de 150,00 → saldo 170,00, devolução paga
- *   apagar o vale → saldo volta a 20,00 (antes do conserto do listener: 320,00)
+ *   apagar o vale → saldo volta a 20,00 (o caso confere 170,00 antes de apagar: com os listeners
+ *   antigos ia a −130,00 e voltava a 20,00 — ida e volta erradas se anulam, então só o saldo do
+ *   meio discrimina)
  *   devolução de 150,00 com 50,00 já pagos em dinheiro → vale de 100,00 → saldo 120,00
  */
 uses(DatabaseTransactions::class, \Tests\Support\WithSeededTenant::class);
@@ -82,6 +84,7 @@ it('UC-SRET-VT-03 devolução já paga não vira vale de novo', function () {
 it('UC-SRET-VT-04 apagar o vale tira do saldo o que ele pôs', function () {
     $dev = ($this->devolucao)();
     ($this->vale)($dev->id)->assertOk();
+    expect(($this->saldo)())->toBe('170.0000');
     $tp = TransactionPayment::where('transaction_id', $dev->id)->firstOrFail();
 
     TransactionPayment::deletePayment($tp);
