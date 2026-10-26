@@ -222,6 +222,10 @@ last_run_ci: "2026-10-13 (PR contratos de tela, recorrente thread 01) — REVALI
   precisa de contrato antes de virar UC.
 - **[BACKLOG]** `Inertia::defer` em `subscriptions`/`kpis` (`CU-RB-14` item 5) — nenhum teste hoje
   prova que a prop **não** vem no render inicial.
+- **[BACKLOG]** Limite de crédito também no contrato (pedido de 2026-10-23) `[V0]` — Dado um cliente
+  acima do limite de crédito, Quando crio uma assinatura para ele, Então com a empresa em "avisar" ela
+  nasce com o aviso de quanto passou; em "bloquear" ela não nasce. É a mesma escolha da venda. Fonte:
+  Omie (o limite vale para OS, contrato e pedido); US-CRM-081.
 
 ---
 
