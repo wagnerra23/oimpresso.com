@@ -173,7 +173,7 @@ it('aprovar tira a falta e lança a sobra, com os valores pelo custo', function 
     $linha = DB::table('stock_adjustment_lines')->where('transaction_id', $ajuste->id)->first();
     expect([(string) $linha->quantity, (string) $linha->unit_price])->toBe(['3.0000', '12.5000']);
     // A falta casou no lote de compra (FIFO), como o ajuste manual.
-    expect(DB::table('stock_adjustment_lines_purchase_lines')->where('stock_adjustment_line_id', $linha->id)->sum('quantity'))->toEqual(3);
+    expect(DB::table('transaction_sell_lines_purchase_lines')->where('stock_adjustment_line_id', $linha->id)->sum('quantity'))->toEqual(3);
 
     $entrada = DB::table('transactions')->where('id', $r['entrada_transaction_id'])->first();
     expect([$entrada->type, $entrada->opening_stock_product_id, (string) $entrada->final_total])->toBe(['opening_stock', null, '25.0000']);
