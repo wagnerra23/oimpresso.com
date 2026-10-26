@@ -15,9 +15,9 @@ tabelas_dominio: ["contacts", "customer_groups"]
 >
 > **O que isto é:** o módulo `Cliente` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Cliente/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`contacts`, `customer_groups`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 381 arquivos em 18 papéis.
+**Total mapeado:** 375 arquivos em 18 papéis.
 
-## Controllers — 30
+## Controllers — 29
 
 - [CallLogController.php](../../../Modules/Crm/Http/Controllers/CallLogController.php)
 - [CampaignController.php](../../../Modules/Crm/Http/Controllers/CampaignController.php)
@@ -35,7 +35,6 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [CrmSettingsController.php](../../../Modules/Crm/Http/Controllers/CrmSettingsController.php)
 - [DashboardController.php](../../../Modules/Crm/Http/Controllers/DashboardController.php)
 - [DataController.php](../../../Modules/Crm/Http/Controllers/DataController.php)
-- [FunilController.php](../../../Modules/Crm/Http/Controllers/FunilController.php)
 - [InstallController.php](../../../Modules/Crm/Http/Controllers/InstallController.php)
 - [LeadController.php](../../../Modules/Crm/Http/Controllers/LeadController.php)
 - [LedgerController.php](../../../Modules/Crm/Http/Controllers/LedgerController.php)
@@ -252,13 +251,12 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [subscriptions.blade.php](../../../resources/views/contact/partials/subscriptions.blade.php)
 - [show.blade.php](../../../resources/views/contact/show.blade.php)
 
-## Telas (Inertia/React) — 19
+## Telas (Inertia/React) — 18
 
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/Index.tsx)
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Campanhas/Index.tsx)
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Chamadas/Index.tsx)
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Configuracoes/Index.tsx)
-- [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Funil/Index.tsx)
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Leads/Index.tsx)
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Logins/Index.tsx)
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Painel/Index.tsx)
@@ -274,14 +272,13 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [Map.tsx](../../../resources/js/Pages/Cliente/Map.tsx)
 - [Show.tsx](../../../resources/js/Pages/Cliente/Show.tsx)
 
-## Componentes / apoio de tela — 38
+## Componentes / apoio de tela — 37
 
 - [DrawerAcompanhamento.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/_components/DrawerAcompanhamento.tsx)
 - [FormAcompanhamento.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/_components/FormAcompanhamento.tsx)
 - [FormAntecipado.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/_components/FormAntecipado.tsx)
 - [FormRecorrente.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/_components/FormRecorrente.tsx)
 - [FormRegistro.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/_components/FormRegistro.tsx)
-- [FunilQuadro.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Funil/_components/FunilQuadro.tsx)
 - [ActiveChip.tsx](../../../resources/js/Pages/Cliente/_components/ActiveChip.tsx)
 - [Avatar.tsx](../../../resources/js/Pages/Cliente/_components/Avatar.tsx)
 - [KpiStripClickable.tsx](../../../resources/js/Pages/Cliente/_components/KpiStripClickable.tsx)
@@ -315,13 +312,12 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [SubscriptionsTab.tsx](../../../resources/js/Pages/Cliente/_show/SubscriptionsTab.tsx)
 - [VehiclesTab.tsx](../../../resources/js/Pages/Cliente/_show/VehiclesTab.tsx)
 
-## Charters (lei da tela) — 19
+## Charters (lei da tela) — 18
 
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/Index.charter.md)
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Campanhas/Index.charter.md)
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Chamadas/Index.charter.md)
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Configuracoes/Index.charter.md)
-- [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Funil/Index.charter.md)
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Leads/Index.charter.md)
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Logins/Index.charter.md)
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Painel/Index.charter.md)
@@ -337,13 +333,12 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [Map.charter.md](../../../resources/js/Pages/Cliente/Map.charter.md)
 - [Show.charter.md](../../../resources/js/Pages/Cliente/Show.charter.md)
 
-## Casos (contrato UC) — 19
+## Casos (contrato UC) — 18
 
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/Index.casos.md)
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Campanhas/Index.casos.md)
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Chamadas/Index.casos.md)
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Configuracoes/Index.casos.md)
-- [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Funil/Index.casos.md)
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Leads/Index.casos.md)
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Logins/Index.casos.md)
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Painel/Index.casos.md)
@@ -359,9 +354,9 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [Map.casos.md](../../../resources/js/Pages/Cliente/Map.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/Cliente/Show.casos.md)
 
-## Testes (Pest) — 40
+## Testes (Pest) — 39
 
-- 40 em [Modules/Crm/Tests/Feature/](../../../Modules/Crm/Tests/Feature)
+- 39 em [Modules/Crm/Tests/Feature/](../../../Modules/Crm/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 47

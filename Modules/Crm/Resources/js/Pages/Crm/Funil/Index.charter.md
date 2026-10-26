@@ -2,7 +2,7 @@
 id: modules-crm-pages-crm-funil-index-charter
 page: /crm/funil
 component: Modules/Crm/Resources/js/Pages/Crm/Funil/Index.tsx
-related_prototype: prototipo-ui/cowork/Felipe/erp-shell-v2/crm-page.jsx
+related_prototype: n/a (herda PT-05 Kanban; segue o Padrão de Tela)
 owner: wagner
 status: draft
 last_validated: "2026-10-26"
@@ -53,5 +53,5 @@ vale cada etapa e quanto deve fechar no mês, e deixar mover o negócio de etapa
 ## Refs
 
 - Padrão de Tela: [PT-05 Kanban](../../../../../../../memory/requisitos/_DesignSystem/padroes-tela/PT-05-Kanban.md) (`Components/shared/KanbanDndProvider`).
-- Protótipo: `prototipo-ui/cowork/Felipe/erp-shell-v2/crm-page.jsx` (kanban com arrastar, painel e filtros).
+- Protótipo: não há tela de funil no lugar fixo `prototipo-ui/cowork/Wagner/`; a tela segue o PT-05 Kanban. O `crm-page.jsx` do shell antigo do Felipe serviu só de referência de leitura (fora do lugar fixo, não é âncora).
 - Constituição UI v2: UI-0013.
