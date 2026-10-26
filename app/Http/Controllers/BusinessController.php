@@ -347,7 +347,7 @@ class BusinessController extends Controller
                     array_map(fn ($k) => 'sms.'.$k, array_values(array_filter(self::SEGREDOS_SMS, fn ($k) => ! empty(((array) $business->sms_settings)[$k] ?? null)))),
                 ),
                 'email_superadmin' => ! empty($allow_superadmin_email_settings),
-                'app_lojas' => $this->ajustesAppLojas((array) $pos_settings),
+                'app_lojas' => $this->ajustesAppLojas((array) $pos_settings, \App\Services\AppLojas\AjustesDaEmpresa::CHAVES),
                 'opcoes' => \Inertia\Inertia::defer(fn () => [
                     'moedas' => $currencies, 'fusos' => $timezone_list, 'meses' => $months,
                     'metodos' => $accounting_methods, 'formatos_data' => $date_formats, 'unidades' => $units_dropdown,
@@ -365,15 +365,15 @@ class BusinessController extends Controller
      * Aba "App das lojas": os mesmos ajustes que a Blade `settings_app_lojas` desenha (bool e `na_tela`), com rótulo,
      * ajuda e o valor atual vindos de AjustesDaEmpresa — a tela não copia texto nem padrão.
      *
+     * As chaves chegam por parâmetro com tipo largo: lido direto da constante, o PHPStan dá o `tipo === 'bool'` como
+     * sempre verdadeiro hoje (a única chave de lista também está fora da tela), mas é o mesmo filtro da Blade.
+     *
+     * @param  array<string, array{tipo: string, rotulo: string, ajuda: string, na_tela: bool}>  $chaves
      * @return list<array{chave: string, rotulo: string, ajuda: string, valor: bool}>
      */
-    private function ajustesAppLojas(array $pos): array
+    private function ajustesAppLojas(array $pos, array $chaves): array
     {
         $valores = \App\Services\AppLojas\AjustesDaEmpresa::completar($pos);
-        // Tipo largo de propósito: com o literal da constante o PHPStan dá o `tipo === 'bool'` como sempre verdadeiro hoje,
-        // mas é o mesmo filtro da Blade e precisa valer quando entrar chave de lista na tela.
-        /** @var array<string, array{tipo: string, rotulo: string, ajuda: string, na_tela: bool}> $chaves */
-        $chaves = \App\Services\AppLojas\AjustesDaEmpresa::CHAVES;
         $saida = [];
         foreach ($chaves as $chave => $c) {
             if ($c['na_tela'] && $c['tipo'] === 'bool') {
