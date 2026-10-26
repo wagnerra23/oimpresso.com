@@ -21,6 +21,6 @@ class AvaliarNfeAoEnviar implements SideEffectInterface
             return;
         }
 
-        AvaliarNfeDoPedidoJob::dispatch((int) $subject->business_id, (int) $subject->getKey())->afterCommit();
+        AvaliarNfeDoPedidoJob::dispatch((int) $subject->getAttribute('business_id'), (int) $subject->getKey())->afterCommit();
     }
 }
