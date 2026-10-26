@@ -229,8 +229,34 @@ Não se redesenha na Fabricação o que é execução: isso é da Produção, e 
 **Em aberto para [W]** (fora da ADR): (a) existe ordem de produção sem venda (fabricar para
 estoque)? (b) a ordem impressa leva custo, que hoje só o gestor vê?
 
+## 7. Respostas de 2026-10-23 — desperdício, ordem sem venda e custo na ordem impressa
+
+> **Confirmado por [F] com o [W] na sexta-feira, 2026-10-23**, e passado ao chat da sessão da
+> Fabricação em 2026-10-25. Responde as duas perguntas em aberto do §6 e confirma a D4.
+
+| # | Pergunta | Resposta |
+|---|---|---|
+| 1 | Onde fica o desperdício | **Somente na Produção.** A receita (composição) não tem % de desperdício. A perda real é registrada na ordem, com motivo. Confirma a D4 |
+| 2 | Existe ordem de produção sem venda (§6, pergunta a) | **Sim.** Além da OS que nasce da venda aprovada (ADR 0436), dá para criar uma ordem para estoque. Ela é criada na Produção; na Fabricação existe só o atalho |
+| 3 | A ordem impressa leva custo (§6, pergunta b) | **Sim.** A ordem impressa sai com o custo (insumos, processo e total). A via de produção, sem custo, continua como opção |
+
+O que isto muda no que está escrito acima:
+
+- O §6 dizia que "não há criação manual" da ordem. Com a resposta 2, a criação manual existe, só
+  para estoque. A OS da venda continua nascendo sozinha.
+- A frase da D4 sobre a CV ("a perda planejada fica no cálculo do orçamento") não foi rediscutida
+  nesta conversa. A resposta 1 trata da composição e da ordem.
+- Fica para a ADR do §4 e para a Produção: como a ordem para estoque dá entrada do produto no
+  estoque, e quem pode ver o custo na tela e imprimir a ordem com custo.
+
+A prévia da Fabricação no artefato (versão 24, 2026-10-25) já segue as três respostas: tirou os
+restos do % de desperdício da receita (filtro da lista, histórico e ficha técnica impressa),
+mantém "Nova ordem para estoque" na Produção e abre a ordem impressa com o mapa de custo.
+
 ---
 **Trilha:** 2026-10-09 — escrito a pedido de [M], respondendo à revisão do [W] no #9086. Mesmo
 dia: acrescentados os dados medidos em dois bancos do legado (§2b), a D2 reescrita com eles e a D6
 (composição sem fórmula), a pedido de [M]. [M+C]
 2026-10-21 — §6, revisão da prévia da Fabricação aprovada por [W] (sessão de Produção). [CC]
+2026-10-25 — §7, respostas do [W] de 2026-10-23 (desperdício só na Produção, ordem sem venda,
+custo na ordem impressa), repassadas por [F]. [F+C]
