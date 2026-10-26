@@ -120,7 +120,10 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 > **Controller/ação:** `OsController`
 > **Reusa:** [Modules/Repair](../../../Modules/Repair) Kanban drag-drop (PR #363) — Modules/Repair é shared infrastructure ([ADR 0121 §P8](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md))
 
-**Implementado em:** _pendente_ — o quadro por etapa existe no `Modules/Producao` (`/producao/quadro`, `QuadroDaProducao`, ADR 0431/0436) e já lê `comvis_os`; medido em 2026-10-26 que a OS criada pelo orçamento aprovado (`OrcamentoViraOs`) não ganha etapas em `pcp_programacoes`, então não aparece no quadro (roteiro a decidir pelo [W]). `cv_ordens_producao`/`OrdemProducao` segue sem fluxo (a OS por item da venda é a `pcp_ordens`)
+**Implementado em:** _parcial_ · `Modules/ComunicacaoVisual/Services/RoteiroPadraoDaOs.php` · `Modules/ComunicacaoVisual/Http/Controllers/RoteiroPadraoController.php` · `Modules/Producao/Services/ProgramacaoDoRoteiro.php` · `app/Contracts/Producao/ProgramacaoDaOs.php` · `Modules/ComunicacaoVisual/Tests/Feature/OsRoteiroPadraoContratoTest.php` — o quadro por etapa é o do `Modules/Producao` (`/producao/quadro`, ADR 0431/0436), que já lê `comvis_os`; desde 2026-10-26 a OS que nasce do orçamento ganha as etapas do roteiro padrão da empresa e aparece nele (UC-CVOS-09/10). O padrão se escolhe no cartão "Roteiro da produção" do hub (`resources/js/Pages/ComunicacaoVisual/_components/RoteiroPadraoCard.tsx`, sobre a API GET/PUT /comunicacao-visual/api/roteiro-padrao). Falta trocar o roteiro de uma OS à mão. `cv_ordens_producao`/`OrdemProducao` segue sem fluxo
+**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OsRoteiroPadraoContratoTest.php` (lane `verticais-pest.yml`)
+
+> **Decisão [W] 2026-10-26:** toda OS de comunicação visual nasce com o roteiro padrão da empresa, e o operador pode trocar à mão depois (opção (b) entre: operador escolhe ao aprovar · padrão da empresa · roteiro por material).
 
 > A entrada da OS (orçamento aprovado vira OS com itens, medidas e arquivos — UC-FLX-01) está na US-COMVIS-020. Aqui fica o Kanban de etapas.
 

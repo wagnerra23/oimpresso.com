@@ -406,7 +406,7 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 
 > owner: — · priority: p0 · estimate: 10h · type: story
 
-**Implementado em:** _parcial_ · `Modules/Ponto/Services/FeriasService.php` · `Modules/Essentials/Database/Migrations/2026_10_26_000001_add_ferias_clt_to_essentials_leave_types.php` · `Modules/Ponto/Tests/Feature/FeriasCltContratoTest.php` — PR 1/3: domínio. Faltam a marcação do tipo de licença na tela de Tipos do HRM (PR 2) e o alerta na tela de Conformidade (PR 3)
+**Implementado em:** _parcial_ · `Modules/Ponto/Services/FeriasService.php` · `Modules/Essentials/Database/Migrations/2026_10_26_000001_add_ferias_clt_to_essentials_leave_types.php` · `Modules/Ponto/Tests/Feature/FeriasCltContratoTest.php` · `Modules/Ponto/Services/ConformidadeService.php` · `Modules/Ponto/Tests/Feature/ConformidadeContratoTest.php` — PR 1/3 domínio e PR 3/3 alerta na Conformidade (UC-CONF-10). A marcação do tipo de licença na tela de Tipos do HRM é o PR 2
 **Testado em:** `Modules/Ponto/Tests/Feature/FeriasCltContratoTest.php`
 
 **Como** RH (Eliana na correção, Wagner no risco),
@@ -421,7 +421,7 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 - [x] Alerta por empregador: vencidos e os que vencem dentro da antecedência
 - [x] `business_id` explícito em toda consulta; teste cross-tenant 98 × 99
 - [ ] Marcar o tipo de licença como férias na tela de Tipos do HRM (PR 2)
-- [ ] Alerta visível na tela de Conformidade (PR 3)
+- [x] Alerta visível na tela de Conformidade: 7ª verificação "Férias vencidas" (UC-CONF-10)
 - Fora, por ser valor: 1/3 constitucional e abono pecuniário em dinheiro — vão com a folha. Fora por falta de dado: perda do direito do art. 133 (afastamento)
 
 ### US-PONTO-019 · Exportação do ponto para folha e contabilidade: Horas Extras, Banco de Horas e Atrasos/Faltas por competência
@@ -441,3 +441,24 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 - [x] Falta conta como dia só quando é cheia e sem trabalho, a mesma regra das férias (US-PONTO-018)
 - [x] Só o empregador da sessão (UC-RELIDX-16, Tier 0)
 - [ ] Leiautes próprios de Domínio, Alterdata e Questor — fora; é a lacuna P2 "Exportação para Domínio, Alterdata e Questor" da frente Plataforma
+
+### US-PONTO-020 · Ciência do espelho mensal pelo colaborador
+
+> owner: — · priority: p1 · estimate: 6h · type: story
+
+**Implementado em:** _parcial_ · `Modules/Ponto/Services/EspelhoCienciaService.php` · `Modules/Ponto/Entities/EspelhoCiencia.php` · `Modules/Ponto/Database/Migrations/2026_10_26_000001_create_ponto_espelho_ciencias_table.php` · `Modules/Ponto/Http/Controllers/Api/MobileMarcacaoController.php` · `Modules/Ponto/Tests/Feature/EspelhoCienciaContratoTest.php` · `Modules/Ponto/Http/Controllers/EspelhoController.php` — domínio, API do app e a ciência visível ao RH no Espelho (UC-ESPSH-06). O aviso "Dou ciência" na tela do colaborador vem no #9854
+**Testado em:** `Modules/Ponto/Tests/Feature/EspelhoCienciaContratoTest.php`
+
+**Como** colaborador,
+**quero** declarar que vi e concordo com o meu espelho do mês,
+**para que** a empresa tenha registro da minha ciência sem papel assinado.
+
+**Decisão de desenho:** só para competência **fechada** (ADR 0413): é o único espelho que não muda depois. Grava o SHA-256 do espelho que o colaborador viu; se uma anulação posterior o mudar, a ciência continua e passa a "não confere". Não é assinatura ICP, não grava IP (US-PONTO-001) nem biometria (ADR 0383).
+
+**Aceite:**
+- [x] `POST /ponto/api/espelho/ciencia` (e `/ponto/mobile/espelho/ciencia` na tela web): 201 com mês fechado, 422 com mês aberto, 409 se já deu ciência (UC-REPP-17..19)
+- [x] `GET /ponto/api/espelho` traz `competencia_fechada` e `ciencia { ciente_em, confere }` (UC-REPP-18, UC-REPP-22)
+- [x] Append-only: model e trigger MySQL recusam UPDATE/DELETE (UC-REPP-20)
+- [x] Fechamento de outro empregador não libera (UC-REPP-21, Tier 0)
+- [ ] Aviso "Dou ciência" no "Meu espelho" (#9854)
+- [x] Ciência visível ao RH no Espelho do colaborador (UC-ESPSH-06)
