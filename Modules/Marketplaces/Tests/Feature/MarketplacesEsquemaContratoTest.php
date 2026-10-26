@@ -36,7 +36,16 @@ beforeEach(function () {
     $this->b99 = (int) $this->seededSupportClientTenant()->id;
     $this->u98 = $this->usuarioComPermissoes(['marketplaces.access'], $this->seededTenant());
     $this->u99 = $this->usuarioComPermissoes(['marketplaces.access'], $this->seededSupportClientTenant());
-    $this->ml = Marketplace::query()->firstOrCreate(['slug' => 'mercado_livre_teste'], ['nome' => 'Mercado Livre (teste)']);
+    // Catálogo é somente leitura pelo Model: a fixture entra por DB::table, como o seed.
+    DB::table('mkt_marketplaces')->insertOrIgnore(['slug' => 'mercado_livre_teste', 'nome' => 'Mercado Livre (teste)', 'created_at' => now(), 'updated_at' => now()]);
+    $this->ml = Marketplace::query()->where('slug', 'mercado_livre_teste')->firstOrFail();
+});
+
+it('US-MKT-001 · catálogo global: o Model não cria, não altera e não apaga', function () {
+    expect(fn () => Marketplace::query()->create(['slug' => 'outro_'.uniqid(), 'nome' => 'Outro']))->toThrow(LogicException::class);
+    expect(fn () => $this->ml->forceFill(['nome' => 'Alterado'])->save())->toThrow(LogicException::class);
+    expect(fn () => $this->ml->delete())->toThrow(LogicException::class);
+    expect(DB::table('mkt_marketplaces')->where('id', $this->ml->id)->value('nome'))->toBe('Mercado Livre (teste)');
 });
 
 function mktComo($t, $user): void
