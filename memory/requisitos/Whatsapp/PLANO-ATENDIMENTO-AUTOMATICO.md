@@ -27,7 +27,7 @@ id: requisitos-whatsapp-plano-atendimento-automatico
 | E1 JANA Pro MVP (brief operador) | US-COPI-201..205 | a criar | 0 |
 | E2 Triagem no inbox | US-WA-311 | todo | 0 |
 | E3 Cobrança Asaas + 5 beta | US-COPI-211..215 | a criar | 0 |
-| E4 Bot responde cliente | US-WA-BOT-001 | adiada (§6) | 0 |
+| E4 Bot responde cliente | US-WA-324 (menu de regras, sem IA) | destravada por [W] 2026-10-26 — motor em PR atrás de `WHATSAPP_BOT_MENU_ENABLED`; tela de configuração a seguir | 50 |
 | E5 Entidade ticket | — | não agora (decisão §7) | 0 |
 
 > Como evoluir este plano: **edita no lugar + bump `reviewed_at`** (plano é vivo, fonte única — [ADR 0256](../../decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md)/0294). Pivô de decisão → ADR nova. Histórico = git.
