@@ -170,6 +170,8 @@ status: ativo
 
 ### US-RB-011 · Salvar cartão tokenizado de cliente
 
+> **Backlog por decisão [W] 2026-10-26 — cartão recorrente fica para depois.** Por enquanto a assinatura é cobrada só por Pix Automático (BCB, US-RB-021) e boleto. Esta US não entra em ciclo até nova decisão do [W]; o levantamento de concorrência de 2026-10-25 a listou como P1 ("cartão recorrente com nova tentativa automática").
+
 > **Área:** Cards
 > **Rota:** `POST /payment-gateway/cards`
 > **Permissão:** cliente final (portal) ou Larissa (admin)
@@ -206,6 +208,8 @@ status: ativo
 - [ ] Test Feature: assinatura inválida 401 + idempotência + dispatch correto
 
 ### US-RB-013 · Smart retry em soft decline
+
+> **Backlog por decisão [W] 2026-10-26 — cartão recorrente fica para depois.** Por enquanto a assinatura é cobrada só por Pix Automático (BCB, US-RB-021) e boleto. Esta US não entra em ciclo até nova decisão do [W]; o levantamento de concorrência de 2026-10-25 a listou como P1 ("cartão recorrente com nova tentativa automática").
 
 > **Área:** SmartRetries
 > **Service:** `SmartRetryScheduler::schedule()`
