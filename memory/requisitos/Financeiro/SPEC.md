@@ -2073,7 +2073,7 @@ Falta: listener na autorização que ache o título via `transaction_id` e o aju
 
 ### US-FIN-074 · Extrato automático via Pluggy (Open Finance) entra na conciliação — **P0**
 
-> owner: — · priority: p0 · estimate: 10h · status: doing · type: story
+> owner: — · priority: p2 · estimate: 10h · status: doing · type: story
 > blocked_by: —
 
 **Implementado em:** `Modules/Financeiro/Console/Commands/PluggySyncCommand.php` (`financeiro:pluggy-sync`), `Modules/Financeiro/Services/Integrations/PluggyBankSyncService.php` (`tipoCanonico`), `Modules/Financeiro/Services/Integrations/PluggyClient.php` (`listTransactions` paginado), `Modules/Financeiro/Tests/Feature/PluggySyncContratoTest.php`
@@ -2091,8 +2091,6 @@ _PR 1 — sync:_
 - [x] `listTransactions` percorre todas as páginas; corte acima de 50 páginas é logado (UC-FCC-17).
 - [x] `financeiro:pluggy-sync` sincroniza as contas com `metadata.pluggy.account_id`, cada uma no próprio business, idempotente; com a flag desligada não chama a API (UC-FCC-18). Agendado 07:15 só com `PLUGGY_ENABLED=true`.
 
-_PRs seguintes:_
-- [ ] Webhook `POST /webhooks/pluggy` com HMAC (`verifyWebhookSignature`) dispara o sync da conta.
-- [ ] Tela de vínculo: o widget Pluggy Connect (token de `createConnectToken`) grava `metadata.pluggy.account_id` na conta bancária.
+**Decisão [W] 2026-10-26 — extrato pelo banco direto, sem agregador.** O Pluggy **não** é o caminho escolhido: nada de webhook, tela de vínculo nem contratação. O extrato automático segue pelas APIs dos próprios bancos, começando pelo Inter, que já existe (`SyncBankStatementsJob`, US-RB-045/046). O que este PR deixa (sinal do débito, paginação, comando atrás de `PLUGGY_ENABLED`, que segue **desligada**) fica como base inerte; o `tipoCanonico` vale para qualquer origem que grave em `fin_extrato_lancamentos`.
 
-**Depende do [W]:** contratar o Pluggy (credenciais) e ligar `PLUGGY_ENABLED` em produção. O SPEC do RecurringBilling (US-RB-045) registra o plano "Inter direto, sem agregador" — confirmar se o Pluggy segue como caminho para os outros bancos.
+**Fechada nesta forma:** os itens de webhook e tela de vínculo saem do escopo por decisão [W].

@@ -366,10 +366,10 @@
 
 ### doing
 
-- **US-FIN-074** — Extrato automático via Pluggy (Open Finance) entra na conciliação — **P0** _(`p0`)_
 - **US-FIN-070** — Custeio RKW e ponto de equilíbrio no fechamento do mês (UC-FLX-20) — **P2** _(`p2`)_
 - **US-FIN-071** — Régua de cobrança do título vencido D+1/D+5/D+15 (UC-FLX-29) — **P2** _(`p2`)_
 - **US-FIN-072** — ISS retido ajusta o título para o valor líquido na autorização da NFS-e (UC-FLX-30) — **P2** _(`p2`)_
+- **US-FIN-074** — Extrato automático via Pluggy (Open Finance) entra na conciliação — **P0** _(`p2`)_
 
 ### todo
 
