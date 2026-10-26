@@ -1206,10 +1206,12 @@ Fecha ciclo PaymentGateway Onda 5 dogfooding. InterDriver mTLS cert upload funci
 
 ### US-FIN-033 · Notificações vencimento próximo (e-mail + WhatsApp X dias antes)
 
-> owner: — · sprint: Onda 27 · priority: p2 · estimate: 4h · status: todo · type: story
+> owner: — · sprint: Onda 27 · priority: p0 · estimate: 4h · status: doing · type: story
 > blocked_by: —
 
-**Implementado em:** _pendente_ — comando `financeiro:notificar-vencimentos` + config `dias_aviso_antecipado` + tabela `fin_notificacoes_enviadas` nunca construídos.
+**Implementado em:** _pendente_ — parcial em 2026-10-26: o aviso por e-mail antes do vencimento entrou no job da régua que já existe (`ReguaCobrancaJob`, config `dias_antes`, coluna `fin_titulo_lembretes.fase`; UC-CRREG-09/10), em vez do comando, da config e da tabela paralelos que o desenho original abaixo previa — seriam um segundo dono do mesmo envio. Campo `dias_antes` na aba Financeiro de `/business/settings` (UC-EMP-15) e meio de pagar na mensagem — Pix copia e cola, linha digitável ou link do boleto da cobrança ainda pagável do título ou da venda de origem (`MeioDePagarDoTitulo`, UC-CRREG-11). Falta WhatsApp (pelo `NotificadorClienteWhatsapp` da frente CRM). A âncora vira path quando a US fechar.
+
+> **2026-10-26 — prioridade P0** pelo levantamento de concorrência de 2026-10-25 (régua só avisava depois do vencimento, e só por e-mail). `dias_antes` nasce **vazio**: negócio com a régua já ligada não passa a mandar aviso novo por efeito de deploy.
 
 Schedule diário avisa cliente X dias antes vencimento (cobrar antes de atrasar) + lembra Eliana de pagar boletos PJ próprios.
 

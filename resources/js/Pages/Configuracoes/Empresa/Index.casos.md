@@ -127,6 +127,9 @@ last_run: "2026-10-21"
   "2, 7" e salvo · Então `ReguaCobrancaConfig::de()` (o que o job lê) diz ligada com 2 e 7, e as outras chaves de
   `common_settings` ficam · E na tela antiga a aba mostra "2, 7" e desmarcar desliga · E dia 0, acima de 365 ou repetido
   não vira etapa.
+- **Aviso antes do vencimento (US-FIN-033, 2026-10-26):** "Dias antes do vencimento" nasce vazio (não avisa antes) ·
+  Quando informo "3" e salvo · Então o job lê `dias_antes = [3]` · E a tela antiga mostra e regrava o campo, porque o
+  salvar substitui o objeto da régua inteiro (sem o campo na Blade, salvar por ela apagaria o valor).
 - **Status: 🧪**
 
 ## UC-EMP-16 · Vendas: ligar a pesquisa depois da entrega e escolher a nota baixa · `[dado]`

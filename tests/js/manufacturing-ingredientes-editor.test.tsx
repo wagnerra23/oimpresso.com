@@ -163,11 +163,31 @@ describe('UC-INGRED-10 · quem só consulta abre em leitura, sem salvar nem excl
     expect(screen.queryByRole('button', { name: 'Excluir receita' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Remover Tinta solvente' })).toBeNull();
     expect(screen.queryByLabelText('Quantidade de Tinta solvente')).toBeNull();
-    for (const rotulo of ['Quantidade produzida', 'Desperdício em porcentagem', 'Instruções']) {
+    for (const rotulo of ['Quantidade produzida', 'Instruções']) {
       expect((screen.getByLabelText(rotulo) as HTMLInputElement).disabled).toBe(true);
     }
     expect(screen.getByText('Sua permissão é apenas de leitura (manufacturing.access_recipe).')).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Voltar para Receitas' }).getAttribute('href')).toBe('/manufacturing/recipe');
+  });
+});
+
+describe('UC-INGRED-14 · a composição não mostra desperdício e o salvar mantém o % gravado (D4)', () => {
+  // Decisão [W] 2026-10-23: desperdício é somente na Produção. O campo sai da tela; o valor gravado
+  // não é apagado, porque a ordem Blade ainda o usa para sugerir as unidades perdidas.
+  const comDesperdicio = () => props({ receita: { ...props().receita, waste_percent: 8 } });
+
+  it('UC-INGRED-14 o editor não tem campo nem texto de desperdício', () => {
+    render(<IngredientesEditor {...comDesperdicio()} />);
+    expect(screen.queryByLabelText('Desperdício em porcentagem')).toBeNull();
+    expect(document.body.textContent).not.toMatch(/desperd/i);
+  });
+
+  it('UC-INGRED-14 salvar envia o % que já estava gravado, sem zerar', () => {
+    render(<IngredientesEditor {...comDesperdicio()} />);
+    fireEvent.click(salvar()!);
+    expect(visitSpy).toHaveBeenCalledTimes(1);
+    const opcoes = visitSpy.mock.calls[0][1] as { data: Record<string, unknown> };
+    expect(opcoes.data.waste_percent).toBe('8');
   });
 });
 
