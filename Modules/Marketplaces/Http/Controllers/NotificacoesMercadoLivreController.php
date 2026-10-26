@@ -48,7 +48,7 @@ class NotificacoesMercadoLivreController extends Controller
             return response()->json(['ok' => true]);
         }
 
-        // Sem sessão (chamada do ML): a empresa vem de cada conta conectada deste vendedor.
+        // SUPERADMIN: Sem sessão (chamada do ML): a empresa vem de cada conta conectada deste vendedor.
         $contas = ContaVendedor::withoutGlobalScopes()
             ->where('marketplace_id', $ml->id)
             ->where('seller_id_external', $vendedor)
@@ -56,6 +56,7 @@ class NotificacoesMercadoLivreController extends Controller
             ->get(['id', 'business_id']);
 
         foreach ($contas as $conta) {
+            // SUPERADMIN: webhook público sem sessão; a empresa vem da conta conectada e entra explícita na consulta.
             $log = WebhookRecebido::withoutGlobalScopes()->create([
                 'business_id' => (int) $conta->business_id,
                 'marketplace_id' => (int) $ml->id,

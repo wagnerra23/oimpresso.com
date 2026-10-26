@@ -38,6 +38,7 @@ class RenovarTokenContaJob implements ShouldQueue, ShouldBeUnique
 
     public function handle(ContasVendedor $contas): void
     {
+        // SUPERADMIN: job em fila sem sessão; a empresa vem do construtor e entra explícita na consulta.
         $conta = ContaVendedor::withoutGlobalScopes()
             ->where('business_id', $this->businessId)
             ->where('id', $this->contaId)
