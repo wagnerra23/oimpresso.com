@@ -409,6 +409,26 @@ O Cockpit não é renderizado (recebe ~15 props de payload) e entra por um caso 
 que a pessoa fiscal **faz** (conferir, cancelar, manifestar, inutilizar); nenhum trata de
 preferência de exibição. Ancorar num CU plausível fecharia a lacuna do painel sem lastro (LC-11).
 
+## Item do regime normal com base e alíquota em percentual (R-NFE-040)
+
+> **Âncora:** R-NFE-040 do [SPEC do NfeBrasil](../../../../memory/requisitos/NfeBrasil/SPEC.md). Prova:
+> `NfeAliquotaPercentualTest` (sem banco, motor falso com alíquotas em fração como a régua guarda).
+
+## UC-FNFE-42 · Regime normal: base cheia e alíquota em percentual · `must`
+
+**Dado** uma regra CST 00 com ICMS 0,18, PIS 0,0165 e COFINS 0,076 **Quando** um item de 1.000,00 vai à nota
+**Então** sai vBC 1.000,00, pICMS 18, vICMS 180,00, pPIS 1,65, pCOFINS 7,6 e o total vBC 1.000,00; com base
+reduzida pelo benefício (600,00), a base é 600,00.
+
+Status: 🧪
+
+## UC-FNFE-43 · Simples e CST sem ICMS ficam como antes · `must`
+
+**Dado** CSOSN 102, CST 40 ou CST 00 com alíquota zero **Quando** o item vai à nota **Então** a base do ICMS
+fica 0 no item e no total.
+
+Status: 🧪
+
 ## NF-e em contingência quando a SEFAZ cai (US-NFE-070 · UC-FLX-32)
 
 > **Âncora:** [US-NFE-070](../../../../memory/requisitos/NfeBrasil/SPEC.md) (resto da US-NFE-006) e o
@@ -474,6 +494,23 @@ Status: 🧪
 **Dado** o modo EPEC **Quando** o AN devolve cStat de erro, ou o envio do evento lança exceção **Então** a nota
 continua `contingencia` com o XML guardado, o evento 110140 fica `rejeitado` com o cStat ou o erro, e o motivo
 da nota diz "O DANFE só vale com o EPEC registrado".
+
+Status: 🧪
+
+## UC-FNFE-40 · Devolução exige a permissão e quantidade válida · `must`
+
+> **Âncora:** R-NFE-039 do [SPEC do NfeBrasil](../../../../memory/requisitos/NfeBrasil/SPEC.md) (rota da
+> NF-e de devolução, US-NFE-064). Prova: `AcoesDevolucaoTest`, que invoca o `AcoesController`.
+
+**Dado** uma NF-e autorizada **Quando** quem não tem `fiscal.nfe.acoes` pede a devolução **Então** 403. Sem item,
+ou com quantidade 0, negativa ou não numérica, o pedido não passa da validação; 2,5 passa.
+
+Status: 🧪
+
+## UC-FNFE-41 · A devolução só acha nota da própria empresa · `must`
+
+**Dado** uma nota autorizada da empresa A e outra da B **Quando** A pede a devolução da nota de B **Então** não é
+achada (404) e nada é emitido; da nota de A, o serviço recebe a empresa A, a nota e as quantidades por item.
 
 Status: 🧪
 
@@ -554,6 +591,42 @@ creditado antes e não é desfeito (`CU-RB-09` item 3).
 - **[BACKLOG · ⬜ sem teste] Lista deferida filtra por tab/status/busca com paginação 50** — `rows` é `Inertia::defer`; sem teste do payload filtrado (`buildRowsPayload`, ordem `emitido_em DESC`).
 - **[BACKLOG · ⬜ sem teste] Retransmitir só aceita nota `rejeitada`/`denegada`/`erro_envio`** — Dado nota em outro status · Quando pede retransmissão · Então volta com erro sem chamar o Service. **Não é testável sem banco**: no `AcoesController::retransmitir` a whitelist é checada **depois** do `firstOrFail()`, logo exige `nfe_emissoes` — indisponível nas duas lanes de hoje (ver §recibo). O caso que existia aqui assertava um array literal escrito no próprio teste e foi removido em 2026-07-28 (não defendia nada). _Parcialmente coberto desde 2026-09-01 pelo `UC-FNFE-09`, que prova **estaticamente** que a whitelist do Service é exatamente essa e que ela rejeita — o que falta aqui é o caminho de **runtime**, e ele segue esperando lane com as migrations do NfeBrasil._
 - **[BACKLOG · 🟡 parcialmente coberto] Drawer: mapa "Jana sugere" por cstat rejeitado, pílula temporal na linha** — comportamento de UI, sem cobertura Feature nem E2E (a tela não aparece em `tests/Browser`). **Reduzido em 2026-09-03:** a metade "atalhos J/K + Enter" saiu deste item e virou `UC-FNFE-10`, com teste de render que morde (4 mutações provadas). O que fica aqui é o que segue descoberto: o mapa guiado por `cstat` e a pílula temporal.
+- **[BACKLOG · ⬜ sem teste] NF-e de devolução total ou parcial** (pedido de 2026-10-23) `[V0]` — Dado
+  uma venda com NF-e autorizada e 2 de 3 itens devolvidos, Quando emito a devolução, Então a NF-e de
+  devolução referencia a chave da original e leva só os 2 itens; com tudo devolvido, leva a nota
+  inteira. Fonte: UC-TRB-13 do protótipo fiscal (proposta) e o processo "Devolução, troca e garantia".
+- **[BACKLOG · ⬜ sem teste] Remessa para conserto e o retorno** (pedido de 2026-10-23) `[E0]` — Dado um
+  bem enviado para conserto, Quando emito a remessa, Então a nota fica "aguardando retorno" e o bem não
+  sai do estoque como venda; ao registrar a volta, a nota de retorno fica ligada à remessa e o saldo
+  pendente zera. CFOP de exemplo: 5.915 na remessa e 1.916 na volta; o contador confirma. Fonte:
+  UC-TRB-23 do protótipo fiscal (falta).
+- **[BACKLOG · ⬜ sem teste] Remessa em garantia** (pedido de 2026-10-23) `[E0]` — Dado a troca de uma
+  peça em garantia, Quando emito a nota, Então ela sai sem cobrança, como remessa em garantia, com
+  referência à NF-e da venda; a peça com defeito que volta entra com a nota de entrada. CFOP do SPEC de
+  Garantia: 5.949 na saída e 1.949 na entrada; o contador confirma. Fonte: SPEC de Garantia §1 e §5
+  (planejado).
+- **[BACKLOG · ⬜ sem teste] Notas da venda para entrega futura** (pedido de 2026-10-23) `[V0]` `[E0]` —
+  Dado uma venda para entrega futura, Então a nota de simples faturamento e cada nota de remessa ficam
+  ligadas, e a tela mostra o saldo a remeter; remessa acima do faturado é recusada. Fonte: UC-TRB-24 do
+  protótipo fiscal (falta).
+- **[BACKLOG · ⬜ sem teste] Emissão recusada antes da SEFAZ por pendência** (pedido de 2026-10-23) —
+  Dado uma venda com item sem NCM, natureza fiscal a decidir ou cliente sem os dados do destinatário,
+  Quando a nota é pedida, Então nada é enviado à SEFAZ, nenhum número é usado e a resposta lista as
+  pendências de cada item e do cliente. Fonte: UC-TRB-05 e UC-TRB-16 do protótipo fiscal e UC-FNFSE-12.
+  A lista de pendências traz a saída que o UC-TRB-33 decidido exige ("o bloqueio nunca é beco sem
+  saída"): o NCM padrão marcado para revisão.
+- **[BACKLOG · ⬜ sem teste] Cancelar a nota e emitir outra na mesma venda** (pedido de 2026-10-23)
+  `[V0]` `[E0]` — Dado uma venda com NF-e autorizada que precisa ser corrigida, Quando cancelo a nota
+  dentro do prazo, Então valem os efeitos do Cancelar do fluxo de NF-e (o estoque é estornado e o
+  título é cancelado se não estiver pago); Quando emito a nota nova e ela é autorizada, Então valem os
+  efeitos do Retorno 100 (baixa o estoque, se for a regra, e liga ao título), a nota nova fica ligada à
+  mesma venda e a venda mostra as duas, a cancelada com o motivo. Nenhum valor nem estoque fica em dobro
+  ou faltando. Na NFS-e a correção é por **substituição**, não por cancelar e emitir: a nova NFS-e entra
+  no lugar da anterior, fica vinculada a ela e recalcula o título (fluxo de NFS-e, "Substituir"); o
+  cancelamento de NFS-e fica fora da tela da NFS-e (charter). Hoje a emissão só barra nota autorizada
+  ou pendente do mesmo modelo (`NfeEmissaoController::emitir`), então emitir de novo depois de cancelar
+  já passa; não há caso nem teste que prove o vínculo. Fonte: `fluxos-modelos.casos.md` (NF-e:
+  Cancelar e Retorno 100; NFS-e: Substituir). Verificado contra as regras do [W] em 2026-10-23.
 
 ## Como rodar a suíte
 1. **Pest:** lane Fiscal no CT 100 (ADR 0062) — comando no §recibo acima. `AcoesContratoTest` roda em
@@ -561,6 +634,8 @@ creditado antes e não é desfeito (`CU-RB-09` item 3).
 2. **Cadência:** rodar ao fim de toda mexida na tela. UC ❌ = regressão fiscal.
 
 ## Trilha do tempo
+- 2026-10-23 · [M+C] Backlog: emissão recusada antes da SEFAZ por pendência de imposto ou de cliente, sem id.
+- 2026-10-23 · [M+C] Backlog: NF-e de devolução total ou parcial, remessa para conserto, remessa em garantia e notas da venda para entrega futura, sem id.
 - 2026-10-21 · [C] `UC-FNFE-19`, `20`, `30`, `31` — SVC-AN/SVC-RS e evento EPEC (US-NFE-071 ·
   UC-FLX-32). Testes novos em `ContingenciaModoTest`, sem veredito de lane ainda. **Os ids pulam do 20
   pro 30:** o 21..23 já é do fluxo "boleto pago emite a NF-e", e 24..29 ficam livres para quem estiver
