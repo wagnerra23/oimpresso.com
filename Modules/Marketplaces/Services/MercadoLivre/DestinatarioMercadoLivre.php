@@ -80,12 +80,22 @@ class DestinatarioMercadoLivre
             'address_line_1' => self::texto($endereco['street_name'] ?? $extra['STREET_NAME'] ?? null),
             'numero' => self::texto($endereco['street_number'] ?? $extra['STREET_NUMBER'] ?? null),
             'neighborhood' => self::texto($endereco['neighborhood'] ?? $extra['NEIGHBORHOOD'] ?? null),
-            'city' => self::texto($endereco['city_name'] ?? $extra['CITY_NAME'] ?? null),
-            'city_code' => null,
+            // Nome da cidade como o ML devolve, sem abreviar: o NfeService acha o código do município
+            // por UF + começo do nome (e, sem achar, usaria o do emitente).
+            'city' => self::texto($endereco['city_name'] ?? $endereco['city']['name'] ?? $extra['CITY_NAME'] ?? null),
+            // Código IBGE só quando vier com 7 dígitos; o id interno de cidade do ML não é IBGE.
+            'city_code' => self::ibge($endereco['city']['id'] ?? $endereco['city_code'] ?? null),
             'state' => $uf,
             'zip_code' => self::digitos($endereco['zip_code'] ?? $extra['ZIP_CODE'] ?? null),
             'email' => null,
         ];
+    }
+
+    private static function ibge(mixed $v): ?string
+    {
+        $d = self::digitos($v);
+
+        return $d !== null && strlen($d) === 7 ? $d : null;
     }
 
     private static function digitos(mixed $v): ?string
