@@ -27,7 +27,8 @@ import { Plus, Trash2, Search, ShoppingCart, ArrowLeft, Save, LayoutGrid } from 
 import GradeMatrixInput, { type GradeCell } from '@/Pages/Purchase/_components/GradeMatrixInput';
 import GradeProductCombobox, { type PickedProduct } from '@/Pages/Purchase/_components/GradeProductCombobox';
 import SupplierCombobox from '@/Pages/Purchase/_components/SupplierCombobox';
-import ReceberDoPedido, { linhasDoPedido, type PedidoAberto } from '@/Pages/Purchase/_components/ReceberDoPedido';
+import ReceberDoPedido from '@/Pages/Purchase/_components/ReceberDoPedido';
+import { linhasDoPedido, type PedidoAberto } from '@/Pages/Purchase/_components/pedidoAberto';
 
 // ---------- Tipos ----------
 

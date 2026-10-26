@@ -7,7 +7,8 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, cleanup, waitFor } from '@testing-library/react';
 
-import ReceberDoPedido, { linhasDoPedido, type PedidoAberto } from '@/Pages/Purchase/_components/ReceberDoPedido';
+import ReceberDoPedido from '@/Pages/Purchase/_components/ReceberDoPedido';
+import { linhasDoPedido, type PedidoAberto } from '@/Pages/Purchase/_components/pedidoAberto';
 
 afterEach(() => {
   cleanup();
