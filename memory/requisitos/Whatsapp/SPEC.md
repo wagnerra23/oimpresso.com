@@ -237,7 +237,7 @@ Reabrir só se Evolution mudar substancialmente esses 3 pontos (improvável; nã
 
 ### US-WA-004 · Listener Repair: status `ready` dispara WhatsApp
 
-**Implementado em:** `Modules/Whatsapp/Listeners/NotifyRepairCustomer.php` · `Modules/Whatsapp/Tests/Feature/NotifyRepairCustomerTest.php` · verificado@dd3ed7c (2026-07-01)
+**Implementado em:** `Modules/Whatsapp/Listeners/NotifyRepairCustomer.php` · `Modules/Repair/Tests/Feature/ClienteAcompanhaStatusContratoTest.php` · verificado@dd3ed7c (2026-07-01); envio pelo notificador desde 2026-10-26 (US-WA-325) — o `NotifyRepairCustomerTest` original saiu
 
 > owner: wagner · sprint: 1 · priority: p2 · status: done
 
@@ -2028,3 +2028,20 @@ Refs: ROADMAP-SDD (sweep do mês)
 4. LGPD: `Contact::canReceiveWhatsappNotification()` falso bloqueia; null permite. Sem celular não envia.
 5. Os canais vivos só enviam texto: anexos (URL absoluta, `document`|`image`) viram links no fim da mensagem.
 6. Nunca lança por falta de pré-condição: devolve o motivo (`enviado`, `sem_numero_configurado`, `contato_nao_encontrado`, `recusou_whatsapp`, `sem_celular`). Anexo ou evento inválido é erro de quem chamou (exceção).
+
+### US-WA-325 · Avisos de OS pronta e de instalação saem pelo canal vivo (notificador)
+
+**Implementado em:** `Modules/Whatsapp/Listeners/NotifyRepairCustomer.php` · `Modules/Whatsapp/Listeners/NotifyInstalacaoCvCustomer.php` · `Modules/Whatsapp/Services/Notify/NotificadorClienteWhatsapp.php`
+
+**Testado em:** `Modules/Repair/Tests/Feature/ClienteAcompanhaStatusContratoTest.php` · `Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAvisoClienteContratoTest.php`
+
+> owner: — · priority: p0 · estimate: 3h · type: story
+> blocked_by: US-WA-319
+
+**Origem:** medido em produção em 2026-10-26 — `whatsapp_business_phones` tem 0 linhas; os canais vivos são `channels` whatsmeow. Os avisos de OS pronta/aguardando peça (US-WA-004) e de instalação agendada (US-COMVIS-007) resolviam número por aquela tabela e **nunca saíam**. Item "OS pronta" do P0 do levantamento de 2026-10-25.
+
+**Critérios de aceite:**
+1. Status de OS com marca `ready`/`waiting_parts` → texto "Sua OS nº N está pronta para retirada" / "está aguardando peça" pelo `NotificadorClienteWhatsapp`, evento `repair_status` (canal com `handles_repair_status`, senão o de saída padrão).
+2. Instalação agendada → mesmo texto de antes (OS, dia e hora; sem instalador nem veículo) pelo notificador, evento `outbound_default`.
+3. Travas do notificador valem nos dois: cliente da mesma empresa, opt-out LGPD, celular, canal no ar.
+4. O teste `NotifyRepairCustomerTest` (schema sintético, só rodava em sqlite e não estava em lane nenhuma) sai; o contrato fica com `ClienteAcompanhaStatusContratoTest` e `InstalacaoAvisoClienteContratoTest`, que rodam no MySQL da lane `verticais-pest`.
