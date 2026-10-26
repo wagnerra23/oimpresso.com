@@ -22,7 +22,7 @@ Visão unificada de Contas a Receber, Contas a Pagar, Fluxo de Caixa, Cobrança 
 
 ## Gaps
 - Sicoob aguarda credenciais sandbox do cliente.
-- Mobile/PWA e notificações de vencimento não implementados.
+- Mobile/PWA não implementado. Régua de cobrança (US-FIN-071/033): e-mail depois do vencimento e, com `dias_antes` configurado, antes dele (desligada por padrão, por business); faltam WhatsApp, link de pagamento no texto e o campo `dias_antes` na tela de configuração.
 - Importação CSV pendente. O parser de retorno CNAB vive no `PaymentGateway` (`CnabRetornoProcessor` + tela `Settings/PaymentGateways/CnabRetorno`) desde a extração da ADR 0170 — o gap do Financeiro é só o CSV.
 - Testes em quarentena (quarentenado não roda na lane e portanto não produz veredito): lista e razões em `.github/financeiro-pest-quarantine.list` (lane `financeiro-pest.yml`, cujo context `PHP / Pest (Financeiro · MySQL)` consta de `governance/required-checks-baseline.json`); a triagem de 2026-08-02/03 (buckets A–E da própria lista) separou teste podre, RefreshDatabase, DB-dependente falhando, skip total e flake por ordem — re-rode a lista, não copie a triagem.
 - US-FIN-055 aberta (`total_remaining_amount`). Os demais defeitos vivos saem do bucket C de `.github/financeiro-pest-quarantine.list` — re-rode, não copie; em 2026-08-05 a triagem registrou uma suspeita não fechada em `aprovacao_status` (US-FIN-027/028), e nenhum dono a rastreia hoje.

@@ -60,6 +60,7 @@ on:
       - 'resources/css/fiscal-cockpit.css'
       - 'tests/js/fiscal-nfe-teclado.test.tsx'
       - 'tests/js/fiscal-nfe-sefaz-pilula.test.tsx'
+      - 'tests/js/fiscal-nfe-cancelar-escopo.test.tsx'
       - 'tests/js/fiscal-cockpit-teclado.test.tsx'
       - 'tests/js/setup.ts'
       - '.github/workflows/fiscal-teclado-gate.yml'
@@ -84,6 +85,7 @@ on:
       - 'resources/css/fiscal-cockpit.css'
       - 'tests/js/fiscal-nfe-teclado.test.tsx'
       - 'tests/js/fiscal-nfe-sefaz-pilula.test.tsx'
+      - 'tests/js/fiscal-nfe-cancelar-escopo.test.tsx'
       - 'tests/js/fiscal-cockpit-teclado.test.tsx'
       - 'tests/js/setup.ts'
       # o workflow entra no gatilho de push porque é o run de `main` que o publisher
@@ -122,6 +124,7 @@ jobs:
           npx vitest run \
             tests/js/fiscal-nfe-teclado.test.tsx \
             tests/js/fiscal-nfe-sefaz-pilula.test.tsx \
+            tests/js/fiscal-nfe-cancelar-escopo.test.tsx \
             tests/js/fiscal-cockpit-teclado.test.tsx \
             --reporter=default \
             --reporter=junit \
