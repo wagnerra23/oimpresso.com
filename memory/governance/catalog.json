@@ -25,26 +25,26 @@
     "supersededBy"
   ],
   "stats": {
-    "modules": 37,
-    "nodes": 856,
-    "edges": 1162,
+    "modules": 38,
+    "nodes": 862,
+    "edges": 1175,
     "by_node_type": {
-      "module": 42,
+      "module": 43,
       "table": 108,
       "adr": 146,
-      "component": 474,
-      "api": 86
+      "component": 478,
+      "api": 87
     },
     "by_edge_type": {
       "ownsTable": 97,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 90,
+      "providesApi": 91,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 474,
-      "dependsOn": 126,
-      "delegatesTo": 117,
+      "hasComponent": 478,
+      "dependsOn": 131,
+      "delegatesTo": 120,
       "migratesTo": 1,
       "supersedes": 26,
       "supersedesPartially": 74,
@@ -1453,6 +1453,14 @@
       "prefix": "/manufacturing/*",
       "providers": [
         "Manufacturing"
+      ]
+    },
+    {
+      "id": "api:/marketplaces/install",
+      "type": "api",
+      "prefix": "/marketplaces/install",
+      "providers": [
+        "Marketplaces"
       ]
     },
     {
@@ -3701,6 +3709,34 @@
       "desc": ""
     },
     {
+      "id": "component:Marketplaces/Anúncios",
+      "type": "component",
+      "module": "Marketplaces",
+      "name": "Anúncios",
+      "desc": "US-MKT-001"
+    },
+    {
+      "id": "component:Marketplaces/Catálogo global de marketplaces",
+      "type": "component",
+      "module": "Marketplaces",
+      "name": "Catálogo global de marketplaces",
+      "desc": ""
+    },
+    {
+      "id": "component:Marketplaces/DataController",
+      "type": "component",
+      "module": "Marketplaces",
+      "name": "DataController",
+      "desc": ""
+    },
+    {
+      "id": "component:Marketplaces/InstallController",
+      "type": "component",
+      "module": "Marketplaces",
+      "name": "InstallController",
+      "desc": ""
+    },
+    {
       "id": "component:NfeBrasil/CertificadoController",
       "type": "component",
       "module": "NfeBrasil",
@@ -5369,6 +5405,19 @@
       "permission_prefix": "manufacturing.*",
       "charter_adr": "0080",
       "path": "memory/requisitos/Manufacturing/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
+    },
+    {
+      "id": "module:Marketplaces",
+      "type": "module",
+      "module": "Marketplaces",
+      "purpose": "Integração com marketplaces brasileiros (Mercado Livre primeiro; Shopee, Amazon e Magalu depois): o pedido do marketplace vira venda no núcleo com NF-e e rastreio, e anúncio e estoque ficam sincronizados. Cross-vertical. Ativado pela ADR 0439 em 2026-10-26.",
+      "trust": "",
+      "owner": "wagner",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "path": "memory/requisitos/Marketplaces/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -11462,6 +11511,90 @@
     {
       "from": "module:Manufacturing",
       "to": "api:/manufacturing/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "module:Financeiro",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Recebíveis do Mercado Pago"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "module:NfeBrasil",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Emissão de NF-e"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "module:Woocommerce",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Loja própria WordPress/WooCommerce"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "module:Financeiro",
+      "type": "dependsOn",
+      "source": "depends_on"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "module:Financeiro",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Recebíveis do Mercado Pago"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "module:NfeBrasil",
+      "type": "dependsOn",
+      "source": "depends_on"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "module:NfeBrasil",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Emissão de NF-e"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "module:Woocommerce",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Loja própria WordPress/WooCommerce"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "component:Marketplaces/Anúncios",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "component:Marketplaces/Catálogo global de marketplaces",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "component:Marketplaces/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "component:Marketplaces/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "api:/marketplaces/install",
       "type": "providesApi",
       "source": "url_prefixes"
     },
