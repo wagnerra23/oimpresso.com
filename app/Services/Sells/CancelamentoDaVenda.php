@@ -95,7 +95,7 @@ final class CancelamentoDaVenda
                 }
                 // Mesmo caminho da devolução: libera o lote de compra da parte que ainda estava vendida.
                 // O docblock legado tipa os parâmetros como `obj`/`decimal`, tipos que não existem.
-                /** @phpstan-ignore argument.type */
+                /** @phpstan-ignore argument.type, argument.type, argument.type */
                 $this->transactionUtil->updateQuantitySoldFromSellLine($linha, $linha->quantity, $linha->quantity_returned, false);
                 $this->productUtil->updateProductQuantity((int) $venda->location_id, $linha->product_id, $linha->variation_id, $resta, 0, null, false);
                 $linhas++;
