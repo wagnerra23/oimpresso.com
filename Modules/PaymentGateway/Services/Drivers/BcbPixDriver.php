@@ -326,23 +326,31 @@ class BcbPixDriver implements PaymentDriverContract, CobrancaRecorrenteDriver
         }
     }
 
+    /**
+     * Webhooks da API Pix BCB v2.10.0 (`cobRWebhookNotification1` / `recWebhookNotification1`):
+     *   - cobrança recorrente: `{ cobsr: [{ idRec, txid, status, … }] }` → id externo = `txid`
+     *     (é o que a cobrança gravou em `gateway_external_id`);
+     *   - recorrência:         `{ recs:  [{ idRec, status, … }] }`        → id externo = `idRec`.
+     * O resolver usa o 1º item para ligar a cobrança; o `ProcessarWebhookBcbPixJob` percorre todos.
+     * Formatos antigos (`pix[].infoPagador.idRec`, `idRec` solto) seguem aceitos.
+     */
     public function processWebhook(array $payload, object $cred): ?object
     {
-        // Webhook BCB padrão: pix[] (lista de cobranças confirmadas) OU
-        // rec[] (atualizações de mandato).
-        $idRec = (string) (
-            $payload['idRec']
+        $externo = (string) (
+            $payload['cobsr'][0]['txid']
+            ?? $payload['recs'][0]['idRec']
+            ?? $payload['idRec']
             ?? $payload['rec']['idRec']
             ?? $payload['pix'][0]['infoPagador']['idRec']
             ?? ''
         );
 
-        if ($idRec === '') {
+        if ($externo === '') {
             return null;
         }
 
         return (object) [
-            'gateway_external_id' => $idRec,
+            'gateway_external_id' => $externo,
             'gateway_key'         => $this->key(),
             'raw_payload'         => $payload,
         ];

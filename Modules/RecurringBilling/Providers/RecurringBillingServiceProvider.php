@@ -23,6 +23,12 @@ class RecurringBillingServiceProvider extends ServiceProvider
         $this->registerViews();
         $this->registerObservers();
         $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
+
+        // US-RB-020/021: o banco mudou o status da recorrência Pix Automático → o mandato acompanha.
+        \Illuminate\Support\Facades\Event::listen(
+            \Modules\PaymentGateway\Events\RecorrenciaPixAtualizada::class,
+            [\Modules\RecurringBilling\Listeners\AtualizarMandatoDaAssinatura::class, 'handle'],
+        );
     }
 
     /**

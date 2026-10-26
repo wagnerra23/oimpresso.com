@@ -187,6 +187,12 @@ it('healthCheck OK e down', function () {
     expect((new BcbPixDriver())->healthCheck($this->cred)->ok)->toBeFalse();
 });
 
+it('processWebhook lê os formatos da spec: cobsr[].txid e recs[].idRec', function () {
+    $d = new BcbPixDriver();
+    expect($d->processWebhook(['cobsr' => [['idRec' => 'RR-9', 'txid' => 'TX-cobr-1', 'status' => 'CONCLUIDA']]], $this->cred)->gateway_external_id)->toBe('TX-cobr-1')
+        ->and($d->processWebhook(['recs' => [['idRec' => 'RR-rec-1', 'status' => 'APROVADA']]], $this->cred)->gateway_external_id)->toBe('RR-rec-1');
+});
+
 it('processWebhook extrai idRec do payload BCB', function () {
     $d = new BcbPixDriver();
     expect($d->processWebhook(['pix' => [['valor' => '99.90', 'infoPagador' => ['idRec' => 'RR-001']]]], $this->cred)->gateway_external_id)->toBe('RR-001')
