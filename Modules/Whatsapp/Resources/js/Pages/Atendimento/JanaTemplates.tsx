@@ -7,7 +7,7 @@
 //   permissao: whatsapp.settings.manage
 
 import { useState, type FormEvent } from 'react';
-import { router } from '@inertiajs/react';
+import { Deferred, router } from '@inertiajs/react';
 import { Loader2 } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
@@ -17,6 +17,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Switch } from '@/Components/ui/switch';
+import ReguaRelacionamentoCard, { type ReguasPayload } from './_components/ReguaRelacionamentoCard';
 
 interface ConfigForUi {
   bot_enabled: boolean;
@@ -28,9 +29,11 @@ interface ConfigForUi {
 
 interface Props {
   config: ConfigForUi | null;
+  /** US-WA-328 — régua de relacionamento (deferida). */
+  reguas?: ReguasPayload;
 }
 
-export default function JanaTemplates({ config }: Props) {
+export default function JanaTemplates({ config, reguas }: Props) {
   const [botEnabled, setBotEnabled] = useState(config?.bot_enabled ?? false);
   const [tplReady, setTplReady] = useState(config?.template_repair_ready_name ?? '');
   const [tplWaiting, setTplWaiting] = useState(config?.template_repair_waiting_parts_name ?? '');
@@ -105,6 +108,10 @@ export default function JanaTemplates({ config }: Props) {
           </Button>
         </div>
       </form>
+
+      <Deferred data="reguas" fallback={<Card className="p-4 text-sm text-muted-foreground">Carregando a régua de relacionamento…</Card>}>
+        {reguas ? <ReguaRelacionamentoCard dados={reguas} /> : <></>}
+      </Deferred>
     </div>
   );
 }

@@ -54,8 +54,9 @@ class NotificadorClienteWhatsapp
 
     /**
      * @param  list<array{url: string, type?: string, caption?: string|null}>  $anexos
+     * @param  \DateTimeInterface|null  $quando  envio agendado (régua/anti-ban); null = assim que a fila pegar
      */
-    public function notificar(int $businessId, int $contactId, string $evento, string $texto, array $anexos = []): ResultadoNotificacao
+    public function notificar(int $businessId, int $contactId, string $evento, string $texto, array $anexos = [], ?\DateTimeInterface $quando = null): ResultadoNotificacao
     {
         if (! in_array($evento, self::EVENTOS, true)) {
             throw new \InvalidArgumentException("Evento '{$evento}' inválido. Use: ".implode('|', self::EVENTOS).'.');
@@ -103,7 +104,10 @@ class NotificadorClienteWhatsapp
         ]);
         $conversa->forceFill(['last_outbound_at' => now(), 'last_message_at' => now()])->save();
 
-        DespacharMensagemDoSistemaJob::dispatch($businessId, (int) $mensagem->id);
+        $job = DespacharMensagemDoSistemaJob::dispatch($businessId, (int) $mensagem->id);
+        if ($quando !== null) {
+            $job->delay($quando);
+        }
 
         return ResultadoNotificacao::Enviado;
     }

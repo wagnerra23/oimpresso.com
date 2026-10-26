@@ -2085,3 +2085,37 @@ Ligar em produção é decisão [W].
 3. Travas do notificador valem nos dois: cliente da mesma empresa, opt-out LGPD, celular, canal no ar.
 4. O teste `NotifyRepairCustomerTest` (schema sintético, só rodava em sqlite e não estava em lane nenhuma) sai; o contrato fica com `ClienteAcompanhaStatusContratoTest` e `InstalacaoAvisoClienteContratoTest`, que rodam no MySQL da lane `verticais-pest`.
 
+### US-WA-326 · Régua de relacionamento por WhatsApp — aniversário e recompra
+
+**Implementado em:** `Modules/Whatsapp/Services/Regua/ReguaDeRelacionamento.php` · `Modules/Whatsapp/Console/Commands/ReguaRelacionamentoCommand.php` · `Modules/Whatsapp/Database/Migrations/2026_10_26_000003_create_whatsapp_regua_relacionamento_tables.php`
+
+**Testado em:** `Modules/Whatsapp/Tests/Feature/ReguaRelacionamentoContratoTest.php`
+
+> owner: — · priority: p2 · estimate: 6h · type: story
+> blocked_by: US-WA-319
+
+**Origem:** lacuna P2 do levantamento de 2026-10-25 (régua de aniversário e recompra, ausente fora do CRM antigo); destravada por [W] em 2026-10-26.
+
+**Critérios de aceite:**
+1. Flag `whatsapp.regua_relacionamento.enabled` (env `WHATSAPP_REGUA_RELACIONAMENTO_ENABLED`) desligada, ou régua da empresa inativa: nada sai.
+2. Aniversário: cliente com `aniversario_mmdd` do dia (sem ele, mês/dia de `dob`); uma vez por ano.
+3. Recompra: última venda final do cliente há exatamente `dias_sem_compra` dias; uma vez por última compra; quem comprou depois sai da régua.
+4. Marketing: só cliente com opt-in de marketing (`whatsapp_opt_in_at`, ADR 0268); o notificador ainda confere a recusa de WhatsApp, o celular e o canal.
+5. Anti-ban: envios espaçados 20–45s pela fila (agendados, não em rajada) e no máximo 150 por empresa e régua por dia.
+6. Rodar de novo no mesmo dia não repete (`whatsapp_regua_envios`, chave única por empresa, tipo, cliente e ocasião). Cron diário 10h BRT em produção.
+
+Ligar em produção é decisão [W]. Tela para a empresa configurar texto e liga/desliga: US seguinte.
+
+### US-WA-328 · Tela de configurar a régua de relacionamento da empresa
+
+**Implementado em:** `Modules/Whatsapp/Http/Controllers/Admin/ReguaRelacionamentoController.php` · `Modules/Whatsapp/Resources/js/Pages/Atendimento/_components/ReguaRelacionamentoCard.tsx` · `Modules/Whatsapp/Resources/js/Pages/Atendimento/JanaTemplates.tsx`
+
+**Testado em:** `Modules/Whatsapp/Tests/Feature/ReguaRelacionamentoConfigContratoTest.php`
+
+> owner: — · priority: p2 · estimate: 3h · type: story
+> blocked_by: US-WA-326
+
+**Critérios de aceite:**
+1. Card "Régua de relacionamento" em `/atendimento/canais/jana-templates` (permissão `whatsapp.settings.manage`): aniversário e recompra, cada um com liga/desliga e mensagem (`{nome}` = primeiro nome); recompra com dias depois da última compra (7–365).
+2. `PUT /atendimento/canais/regua-relacionamento` grava uma linha por empresa e tipo (salvar de novo atualiza), só da empresa da sessão.
+3. Com a flag do sistema desligada, o card avisa que as mensagens só saem depois de ligada.

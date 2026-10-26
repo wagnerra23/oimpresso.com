@@ -5,7 +5,7 @@ irmaos: JanaTemplates.charter.md (lei)
 tecnica: Caso de uso = narrativa do admin + critério de aceite verificável (Dado/Quando/Então)
 por_que: o nome do template HSM é o que dispara a mensagem de "OS pronta" e "boleto vence" para o cliente; gravar no business errado manda aviso com o template de outra empresa, e mexer no driver daqui desconecta o canal.
 owner: wagner
-last_run: "2026-09-30"
+last_run: "2026-10-26"
 ---
 
 # Casos de Uso & Aceite — Bot Jana + templates HSM
@@ -47,6 +47,15 @@ last_run: "2026-09-30"
 - **Teste:** `tests/Feature/Whatsapp/AtendimentoMacrosJanaTemplatesContratoTest.php` — `UC-JTPL-03 — salvar no business sem configuração cria a dele e não altera a de outro business (Tier 0)`.
 - **Regressão que defende:** **Tier 0** (ADR 0093) — Goal do charter "global scope `business_id`".
 - **Status: 🧪** — passou na lane sqlite do CI (run 36801631015, 2026-10-01); ✅ quando `casos:results` regravar o manifesto.
+
+---
+
+## UC-JT-REGUA-01 · A régua de relacionamento é configurada por empresa
+- **Persona:** dono da loja escrevendo a mensagem de aniversário e a de recompra.
+- **Aceite:** Dado a minha empresa · Quando salvo a régua de aniversário e a de recompra (com os dias) · Então fica uma linha por tipo só da minha empresa e salvar de novo atualiza; tipo inventado, recompra sem dias ou com menos de 7 dias são recusados.
+- **Teste:** `Modules/Whatsapp/Tests/Feature/ReguaRelacionamentoConfigContratoTest.php` — `UC-JT-REGUA-01 · US-WA-328 · salvar grava a régua da própria empresa, uma linha por tipo` (+ o caso de recusa).
+- **Regressão que defende:** US-WA-326/328 — régua de outra empresa ou recompra com "1 dia" (mensagem no dia seguinte a toda compra).
+- **Status: 🧪** — CT 100 MySQL 2026-10-26: 2 passed (9 assertions); sem o mínimo de 7 dias, 1 failed.
 
 ---
 

@@ -106,6 +106,8 @@ class WhatsappServiceProvider extends ServiceProvider
                 // US-INFRA-002 — gera o link assinado do canal público de feedback
                 // (o órgão sensor da ADR 0334; sem ele o [W] não tem o que mandar ao cliente).
                 FeedbackLinkCommand::class,
+                // US-WA-326 — régua de relacionamento (aniversário e recompra), 1×/dia.
+                \Modules\Whatsapp\Console\Commands\ReguaRelacionamentoCommand::class,
                 // Guardião 6 camadas anti-mídia-perdida
                 ScanMediaDriftCommand::class,           // Camada 5 — scan drift daily
                 BackfillMediaDownloadCommand::class,    // Bonus — backfill one-shot
