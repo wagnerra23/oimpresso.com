@@ -36,7 +36,7 @@ doc_raiz: ./DOC-RAIZ-ESTOQUE.md
 > owner: wagner · priority: p0 · estimate: 24h · status: doing · type: story · origin: lacunas-concorrencia-2026-10-25
 > blocked_by: —
 
-**Implementado em:** `app/Services/Estoque/ContagemInventarioService.php` (parte 1: abrir, contar, fechar e divergência) · `database/migrations/2026_10_26_120000_create_estoque_contagens_tables.php` — prova em `tests/Feature/Estoque/ContagemInventarioContratoTest.php`. Partes 2 (aprovar o ajuste) e 3 (tela com coletor) _pendentes_.
+**Implementado em:** _pendente_ — parte 1 feita (abrir, contar, fechar e divergência em `App\Services\Estoque\ContagemInventarioService`, prova em `tests/Feature/Estoque/ContagemInventarioContratoTest.php`); faltam aprovar o ajuste e a tela com coletor.
 
 Lacuna P0 do levantamento de 2026-10-25: `CatalogoProcessos.php` (processo `inventario`) dizia que não existe contagem, nem tabela nem rota, e que o ajuste de estoque só tira e não vem de contagem.
 
