@@ -234,7 +234,7 @@ status: ativo
 > **Rota:** `POST /pix-automatico/authorizations`
 > **Permissão:** `pix-automatico.authorizations.manage`
 
-**Implementado em:** _pendente_ — o sub-módulo PixAutomatico (autorização JRC/BCB: `pa_authorizations`, QR de autorização, status created→activated via webhook) não foi construído no RecurringBilling; o Pix Automático Asaas em `Modules/Financeiro` é capacidade distinta (não cobre esta US)
+**Implementado em:** _pendente_ — parcial em 2026-10-26: backend da jornada 2 do BCB (`MandatoPixAutomatico` + `POST /recurring-billing/{id}/pix-automatico`, flag `RB_COBRAR_PIX_AUTOMATICO`): cria a recorrência com QR e grava o mandato em `rb_subscriptions.metadata.pix_automatico` (no lugar da tabela `pa_authorizations` do desenho abaixo); o webhook da recorrência ativa o mandato (UC-RBPA-08/11..13). Tela: bloco "Pix Automático" no drawer da assinatura (`_components/PixAutomaticoBloco.tsx`, QR via `react-qr-code`), só com a flag ligada (UC-RBPA-14); forma gerada no protótipo `cobranca-recorrente-page.jsx` (`PixAutoCard`). O Pix Automático Asaas em `Modules/Financeiro` ficou fora por decisão [W] 2026-10-26.
 
 **Como** Larissa-financeiro
 **Quero** gerar QR code de autorização pix automático pro cliente apontar app
@@ -255,7 +255,7 @@ status: ativo
 > **Área:** PaymentInstructions
 > **Service:** `PixAutomaticoCharger::charge()`
 
-**Implementado em:** _pendente_ — parcial em 2026-10-26: o motor que cobra a fatura pela recorrência aprovada existe (`CobradorPixAutomatico` + `rb:cobrar-pix-automatico`, flag `RB_COBRAR_PIX_AUTOMATICO` desligada; `BcbPixDriver::emitirCobrancaRecorrente`; UC-RBPA-01..06). Falta a jornada de aprovação do mandato (US-RB-020, que grava `metadata.pix_automatico`) e o webhook da cobrança → `CobrancaPaga` → fatura paga (US-RB-057). O desenho `PixAutomaticoCharger`/`pa_payment_instructions` abaixo foi substituído pela tabela `cobrancas` do PaymentGateway, que já é a dona da cobrança emitida.
+**Implementado em:** _pendente_ — parcial em 2026-10-26: o motor que cobra a fatura pela recorrência aprovada existe (`CobradorPixAutomatico` + `rb:cobrar-pix-automatico`, flag `RB_COBRAR_PIX_AUTOMATICO` desligada; `BcbPixDriver::emitirCobrancaRecorrente`; UC-RBPA-01..06). Webhooks no formato da spec (`cobsr[]`/`recs[]`): `ProcessarWebhookBcbPixJob` paga a cobrança do ciclo pelo `ReconciliarCobrancaService` (→ `CobrancaPaga` → fatura paga, US-RB-057) e o mandato acompanha o status da recorrência (`AtualizarMandatoDaAssinatura`); UC-RBPA-07..10. Falta a jornada de aprovação do mandato (US-RB-020, que grava `metadata.pix_automatico`). O desenho `PixAutomaticoCharger`/`pa_payment_instructions` abaixo foi substituído pela tabela `cobrancas` do PaymentGateway, que já é a dona da cobrança emitida.
 
 **Como** Sistema (em `InvoiceController@charge` quando contract.payment_method = 'pix_automatico')
 **Quero** debitar via PSP usando autorização ativa

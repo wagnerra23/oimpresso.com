@@ -62,7 +62,7 @@ use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 class BcbPixDriver implements PaymentDriverContract, CobrancaRecorrenteDriver
 {
     /** Escopos OAuth da API Pix BCB (securitySchemes da v2.10.0). */
-    private const ESCOPOS = 'rec.read rec.write cobr.read cobr.write solicrec.read solicrec.write';
+    private const ESCOPOS = 'rec.read rec.write cobr.read cobr.write solicrec.read solicrec.write payloadlocationrec.read payloadlocationrec.write';
 
     private array $tokenCache = [];
 
@@ -125,6 +125,10 @@ class BcbPixDriver implements PaymentDriverContract, CobrancaRecorrenteDriver
             ],
             'politicaRetentativa' => $input->meta['politica_retentativa'] ?? 'NAO_PERMITE',
         ];
+        // Jornada 2 (QR da recorrência): a location criada em `/locrec` vai no `loc` da recorrência.
+        if (! empty($input->meta['loc_id'])) {
+            $payload['loc'] = (int) $input->meta['loc_id'];
+        }
 
         $response = HttpClientFactory::send(fn () => $this->client($cred)->post('/v2/rec', $payload));
 
@@ -258,6 +262,50 @@ class BcbPixDriver implements PaymentDriverContract, CobrancaRecorrenteDriver
         );
     }
 
+    /**
+     * Location do QR da recorrência — `POST /v2/locrec` (jornada 2 da API Pix BCB v2.10.0). O `id`
+     * vai no `loc` da recorrência; o QR (`dadosQR.pixCopiaECola`) sai depois em `GET /rec/{idRec}`.
+     *
+     * @return array{id: int, location: string}
+     */
+    public function criarLocationRecorrencia(object $cred): array
+    {
+        $this->assertCredential($cred);
+        $response = HttpClientFactory::send(fn () => $this->client($cred)->post('/v2/locrec'));
+        if ($response->failed()) {
+            throw new GatewayUnavailableException(
+                "BcbPix location da recorrência falhou ({$response->status()}): " . substr($response->body(), 0, 200)
+            );
+        }
+        $data = $response->json() ?? [];
+        if (empty($data['id'])) {
+            throw new GatewayUnavailableException('BcbPix location da recorrência: resposta sem id');
+        }
+
+        return ['id' => (int) $data['id'], 'location' => (string) ($data['location'] ?? '')];
+    }
+
+    /**
+     * Recorrência completa — `GET /v2/rec/{idRec}`: status e, na jornada 2, `dadosQR.pixCopiaECola`.
+     *
+     * @return array<string, mixed>
+     */
+    public function consultarRecorrencia(object $cred, string $idRec): array
+    {
+        $this->assertCredential($cred);
+        if ($idRec === '') {
+            throw new InvalidPayerException('BcbPix consultar recorrência exige idRec');
+        }
+        $response = HttpClientFactory::send(fn () => $this->client($cred)->get("/v2/rec/{$idRec}"));
+        if ($response->failed()) {
+            throw new GatewayUnavailableException(
+                "BcbPix consultar recorrência falhou ({$response->status()}): " . substr($response->body(), 0, 200)
+            );
+        }
+
+        return (array) ($response->json() ?? []);
+    }
+
     public function consultar(object $cobranca, object $cred): CobrancaStatus
     {
         $this->assertCredential($cred);
@@ -326,23 +374,31 @@ class BcbPixDriver implements PaymentDriverContract, CobrancaRecorrenteDriver
         }
     }
 
+    /**
+     * Webhooks da API Pix BCB v2.10.0 (`cobRWebhookNotification1` / `recWebhookNotification1`):
+     *   - cobrança recorrente: `{ cobsr: [{ idRec, txid, status, … }] }` → id externo = `txid`
+     *     (é o que a cobrança gravou em `gateway_external_id`);
+     *   - recorrência:         `{ recs:  [{ idRec, status, … }] }`        → id externo = `idRec`.
+     * O resolver usa o 1º item para ligar a cobrança; o `ProcessarWebhookBcbPixJob` percorre todos.
+     * Formatos antigos (`pix[].infoPagador.idRec`, `idRec` solto) seguem aceitos.
+     */
     public function processWebhook(array $payload, object $cred): ?object
     {
-        // Webhook BCB padrão: pix[] (lista de cobranças confirmadas) OU
-        // rec[] (atualizações de mandato).
-        $idRec = (string) (
-            $payload['idRec']
+        $externo = (string) (
+            $payload['cobsr'][0]['txid']
+            ?? $payload['recs'][0]['idRec']
+            ?? $payload['idRec']
             ?? $payload['rec']['idRec']
             ?? $payload['pix'][0]['infoPagador']['idRec']
             ?? ''
         );
 
-        if ($idRec === '') {
+        if ($externo === '') {
             return null;
         }
 
         return (object) [
-            'gateway_external_id' => $idRec,
+            'gateway_external_id' => $externo,
             'gateway_key'         => $this->key(),
             'raw_payload'         => $payload,
         ];

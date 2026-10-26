@@ -242,6 +242,50 @@ Status: 🧪
 cobrança; e com a flag desligada o comando não cobra ninguém.
 Status: 🧪
 
+## UC-RBPA-07 · Cobrança do ciclo liquidada vira paga, com o valor dela · `must` `[V0]`
+Fonte: API Pix BCB v2.10.0 (webhook `cobsr[]`, status `CONCLUIDA`). Teste: `WebhookPixAutomaticoContratoTest`.
+**Dado** uma cobrança `pix_recv` emitida de 10.607 centavos **Quando** chega o webhook com o `txid` dela em
+`CONCLUIDA` **Então** ela fica `paga` com `valor_pago_centavos = 10607` e a data da liquidação, e sai 1
+`CobrancaPaga` com esse valor (a fatura vira paga pelo listener da US-RB-057); reentrega não repete.
+Status: 🧪
+
+## UC-RBPA-08 · Recorrência aprovada atualiza o mandato; cobrança rejeitada vira erro · `must`
+**Quando** chega `recs[]` com `APROVADA` **Então** o mandato da assinatura com aquele `idRec` passa a `APROVADA`
+(é o que o motor exige para cobrar). E `REJEITADA` deixa a cobrança em `erro`, mas `CANCELADA` não desfaz uma
+cobrança já paga.
+Status: 🧪
+
+## UC-RBPA-09 · Flag desligada: o webhook fica gravado sem processar · `must`
+Status: 🧪
+
+## UC-RBPA-10 · Um business não paga cobrança do outro · `must` `[T0]`
+**Dado** a mesma `txid` numa cobrança da 99 **Quando** o evento é da 98 **Então** nada muda na 99; e o job pedido
+com o business errado não carrega o evento.
+Status: 🧪
+
+## UC-RBPA-11 · Pedir a autorização do Pix Automático gera o QR com o valor da assinatura · `must` `[V0]`
+Fonte: SPEC US-RB-020 + API Pix BCB v2.10.0 (jornada 2: `/locrec` → `/rec` com `loc` → `GET /rec` com `dadosQR`).
+Teste: `MandatoPixAutomaticoContratoTest`.
+**Dado** uma assinatura ativa com plano mensal de 106,07 e cliente com CPF **Quando** peço a autorização **Então** o
+banco recebe a recorrência com `valorRec = "106.07"`, `MENSAL`, início no próximo vencimento, o CPF do cliente e o
+`loc` criado; o mandato grava `id_rec`, `status = CRIADA`, o Pix copia e cola e 10.607 centavos.
+Status: 🧪
+
+## UC-RBPA-12 · Pedir de novo não cria outra recorrência · `must`
+**Dado** um mandato `CRIADA` ou `APROVADA` **Quando** peço de novo **Então** volta o mesmo QR e nada vai ao banco.
+Status: 🧪
+
+## UC-RBPA-13 · A rota respeita flag, empresa e credencial · `must` `[T0]`
+**Então** flag desligada → 404; assinatura de outra empresa → 404 (e o mandato dela não muda); empresa sem credencial
+do Pix Automático → 422 com a mensagem; com tudo certo → o QR na resposta.
+Status: 🧪
+
+## UC-RBPA-14 · O drawer mostra o bloco Pix Automático só com o recurso ligado · `must`
+**Dado** `RB_COBRAR_PIX_AUTOMATICO` desligada **Então** o drawer não recebe o bloco (`pix_automatico = null`). Ligada,
+sem mandato → status nulo e o botão "Pedir autorização"; `CRIADA` → o QR e o Pix copia e cola; `APROVADA` → sem QR.
+Teste: `MandatoPixAutomaticoContratoTest`.
+Status: 🧪
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = **órfão** = viola o `casos-gate` e **bloqueia o
