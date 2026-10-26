@@ -14,7 +14,7 @@ module: RecurringBilling
 >
 > **O que isto é:** o inventário completo das raízes `Modules/RecurringBilling/**` + `resources/js/Pages/RecurringBilling/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 178 arquivos em 20 papéis.
+**Total mapeado:** 179 arquivos em 20 papéis.
 
 ## Controllers — 11
 
@@ -141,11 +141,12 @@ module: RecurringBilling
 - [Edit.tsx](../../../resources/js/Pages/RecurringBilling/Planos/Edit.tsx)
 - [Index.tsx](../../../resources/js/Pages/RecurringBilling/Planos/Index.tsx)
 
-## Componentes / apoio de tela — 7
+## Componentes / apoio de tela — 8
 
 - [CheatSheet.tsx](../../../resources/js/Pages/RecurringBilling/_components/CheatSheet.tsx)
 - [CmdPalette.tsx](../../../resources/js/Pages/RecurringBilling/_components/CmdPalette.tsx)
 - [JanaPanel.tsx](../../../resources/js/Pages/RecurringBilling/_components/JanaPanel.tsx)
+- [PixAutomaticoBloco.tsx](../../../resources/js/Pages/RecurringBilling/_components/PixAutomaticoBloco.tsx)
 - [PresentationMode.tsx](../../../resources/js/Pages/RecurringBilling/_components/PresentationMode.tsx)
 - [Sparkline.tsx](../../../resources/js/Pages/RecurringBilling/_components/Sparkline.tsx)
 - [TourOnboarding.tsx](../../../resources/js/Pages/RecurringBilling/_components/TourOnboarding.tsx)

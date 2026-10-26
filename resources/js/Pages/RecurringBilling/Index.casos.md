@@ -280,6 +280,12 @@ Status: 🧪
 do Pix Automático → 422 com a mensagem; com tudo certo → o QR na resposta.
 Status: 🧪
 
+## UC-RBPA-14 · O drawer mostra o bloco Pix Automático só com o recurso ligado · `must`
+**Dado** `RB_COBRAR_PIX_AUTOMATICO` desligada **Então** o drawer não recebe o bloco (`pix_automatico = null`). Ligada,
+sem mandato → status nulo e o botão "Pedir autorização"; `CRIADA` → o QR e o Pix copia e cola; `APROVADA` → sem QR.
+Teste: `MandatoPixAutomaticoContratoTest`.
+Status: 🧪
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = **órfão** = viola o `casos-gate` e **bloqueia o
