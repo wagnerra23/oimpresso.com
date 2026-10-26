@@ -32,7 +32,8 @@ aba a aba atrás da mesma flag, sem perder nada do que o salvar da Blade grava.
 - Aba Negócio com os campos da `settings_business` da Blade, incluindo o logo (multipart) e "permitir exportar listas".
 - Salvar pelo `POST /business/update` de sempre, devolvendo o corpo inteiro que o servidor montou.
 - Aba **Financeiro** (grupo Operação, também na Blade): liga a régua de cobrança do título vencido (US-FIN-071) e define
-  os dias da régua em `common_settings['financeiro_regua_cobranca']` (UC-EMP-15). Fora do protótipo: a régua não tinha
+  os dias da régua — depois do vencimento e, vazio por padrão, antes dele (US-FIN-033) — em
+  `common_settings['financeiro_regua_cobranca']` (UC-EMP-15). Fora do protótipo: a régua não tinha
   tela, e a aba segue o padrão das abas vizinhas.
 
 ## Non-Goals
