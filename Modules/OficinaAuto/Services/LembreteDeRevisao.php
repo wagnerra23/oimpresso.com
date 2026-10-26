@@ -109,9 +109,9 @@ final class LembreteDeRevisao
         $avisa = app(AvisaClienteWhatsapp::class);
         foreach ($pendentes as $p) {
             $r = $avisa->avisar($businessId, $p['contact_id'], $p['texto']);
-            if (! ($r['enviado'] ?? false)) {
+            if (! $r['enviado']) {
                 $placar['recusados']++;
-                Log::info('oficina.lembrete_revisao.recusado', ['business_id' => $businessId, 'vehicle_id' => $p['vehicle_id'], 'motivo' => $r['motivo'] ?? null]);
+                Log::info('oficina.lembrete_revisao.recusado', ['business_id' => $businessId, 'vehicle_id' => $p['vehicle_id'], 'motivo' => $r['motivo']]);
 
                 continue;
             }
