@@ -23,7 +23,7 @@ function contato36(array $campos = []): object
 {
     return (object) array_merge([
         'name' => 'Cliente Fixture', 'supplier_business_name' => null,
-        'tax_number' => '11.222.333/0001-81', 'cpf_cnpj' => null,
+        'tax_number' => '11.222.333/0001-81', 'cpf_cnpj' => null, # pii-allowlist: CNPJ fictício de fixture
         'inscricao_estadual' => '12.345.678', 'ie' => null, 'indicador_ie' => null,
         'address_line_1' => 'Rua das Flores', 'numero' => '100', 'neighborhood' => 'Centro',
         'bairro' => null, 'city' => 'Rio de Janeiro', 'city_code' => '3304557',
@@ -106,7 +106,7 @@ it('UC-FNFE-32 · sem IE é não contribuinte (9) e não leva tag IE; indicador 
     expect($isento['ind_ie_dest'])->toBe('2');
     expect($isento)->not->toHaveKey('ie');
 
-    $cpf = $svc->destinatarioDoContato(contato36(['tax_number' => '529.982.247-25', 'inscricao_estadual' => null]), 'SC');
+    $cpf = $svc->destinatarioDoContato(contato36(['tax_number' => '529.982.247-25', 'inscricao_estadual' => null]), 'SC'); # pii-allowlist: CPF fictício de fixture
     expect($cpf['cpf'])->toBe('52998224725');
     expect($cpf)->not->toHaveKey('cnpj');
 });

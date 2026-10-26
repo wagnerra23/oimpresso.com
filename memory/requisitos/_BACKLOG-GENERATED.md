@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1004 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1005 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -16,7 +16,7 @@
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
 | [`OficinaAuto`](#oficinaauto) | 39 | 0 | 0 | 0 | 38 |
 | [`Producao`](#producao) | 32 | 1 | 0 | 0 | 31 |
-| [`NfeBrasil`](#nfebrasil) | 28 | 0 | 0 | 6 | 22 |
+| [`NfeBrasil`](#nfebrasil) | 29 | 0 | 0 | 6 | 23 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
@@ -577,6 +577,7 @@
 
 ### todo
 
+- **US-NFE-072** — ICMS-ST e DIFAL chegam à NF-e da venda interestadual — **Legal** _(`p0` · sprint —)_
 - **US-NFE-042** — Discovery técnico instalação Gold Comunicação Visual _(`p1` · @wagner · sprint Gold-Reativacao)_
 - **US-NFE-053** — Smoke homologação SEFAZ-SP eventos 210/220 biz=Gold _(`p1` · @wagner · sprint Gold-Reativacao)_
 - **US-NFE-054** — Smoke real homologação SEFAZ-SC biz=1 — 1ª NFC-e cstat 100 (Goal #1 CYCLE-03) _(`p1` · @wagner)_
