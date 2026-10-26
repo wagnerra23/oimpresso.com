@@ -125,6 +125,7 @@ on:
       # US-ESTOQUE-002 — contagem de inventário (serviço + migration SOB TESTE).
       - 'app/Services/Estoque/**'
       - 'database/migrations/2026_10_26_120000_create_estoque_contagens_tables.php'
+      - 'database/migrations/2026_10_26_130000_add_ajuste_ids_to_estoque_contagens.php'
       # Cutover pelo menu · thread 04 — o teste das 4 telas mora em CutoverMenu/.
       - 'tests/Feature/CutoverMenu/EstoqueSemXInertiaTest.php'
       - 'app/Http/Controllers/StockAdjustmentController.php'
@@ -219,6 +220,7 @@ jobs:
               # US-ESTOQUE-002 — contagem de inventário (serviço + migration SOB TESTE).
               - 'app/Services/Estoque/**'
               - 'database/migrations/2026_10_26_120000_create_estoque_contagens_tables.php'
+              - 'database/migrations/2026_10_26_130000_add_ajuste_ids_to_estoque_contagens.php'
               # Cutover pelo menu · thread 04 — o teste das 4 telas mora em CutoverMenu/.
               - 'tests/Feature/CutoverMenu/EstoqueSemXInertiaTest.php'
               - 'app/Http/Controllers/StockAdjustmentController.php'
