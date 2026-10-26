@@ -122,6 +122,9 @@ on:
       # Junto vão os arquivos SOB TESTE das 4 telas (§5 2026-08-02: sem eles no trigger,
       # mexer na tela não dispara o teste dela — gate mudo com cara de cobertura).
       - 'tests/Feature/Stock/**'
+      # US-ESTOQUE-002 — contagem de inventário (serviço + migration SOB TESTE).
+      - 'app/Services/Estoque/**'
+      - 'database/migrations/2026_10_26_120000_create_estoque_contagens_tables.php'
       # Cutover pelo menu · thread 04 — o teste das 4 telas mora em CutoverMenu/.
       - 'tests/Feature/CutoverMenu/EstoqueSemXInertiaTest.php'
       - 'app/Http/Controllers/StockAdjustmentController.php'
@@ -213,6 +216,9 @@ jobs:
               # Mesma dupla do bloco `paths:` do trigger, e pela mesma razão: entram JUNTO,
               # nunca depois (é o 4º eixo da divergência que os comentários acima catalogam).
               - 'tests/Feature/Stock/**'
+              # US-ESTOQUE-002 — contagem de inventário (serviço + migration SOB TESTE).
+              - 'app/Services/Estoque/**'
+              - 'database/migrations/2026_10_26_120000_create_estoque_contagens_tables.php'
               # Cutover pelo menu · thread 04 — o teste das 4 telas mora em CutoverMenu/.
               - 'tests/Feature/CutoverMenu/EstoqueSemXInertiaTest.php'
               - 'app/Http/Controllers/StockAdjustmentController.php'
