@@ -61,8 +61,9 @@ export default function Conformidade({ mes, painel }: Props) {
   const cobertura = painel?.cobertura;
   const apurado = cobertura?.estado === 'apurado';
   const semDado = !apurado;
-  // "Sem PIS" vem do cadastro, não da apuração: segue contado mesmo sem dia apurado.
-  const daApuracao = (v: Verificacao) => v.id !== 'sem_pis';
+  // "Sem PIS" vem do cadastro e "férias vencidas" do histórico inteiro (US-PONTO-018), não da
+  // apuração da competência: seguem contados mesmo sem dia apurado no mês.
+  const daApuracao = (v: Verificacao) => v.id !== 'sem_pis' && v.id !== 'ferias_vencidas';
   const semPis = verificacoes.find((v) => v.id === 'sem_pis')?.total ?? 0;
   const notaSemDado =
     cobertura?.estado === 'sem_colaboradores'
