@@ -91,9 +91,32 @@ Owner [Claude] — Wave I-W 2026-05-16.
 
 **Implementado em:** `Modules/AssetManagement/Tests/Feature/MultiTenantIsolationTest.php` · `Modules/AssetManagement/Tests/Feature/CrossTenantAssetTest.php` · verificado@dad0b11 (2026-07-02)
 
+### US-ASSET-009 · Depreciação gerencial linear por categoria — **P2**
+
+> owner: — · priority: p2 · status: todo · type: story
+
+Como dono, quero ver quanto cada bem já perdeu de valor e quanto vale hoje, calculado de forma linear pelo prazo da categoria (editável no bem), para saber o valor do meu patrimônio sem esperar o contador.
+
+**Implementado em:** _pendente_
+
+- **Decisão [W] 2026-10-26:** opção A, linear por categoria com prazo padrão editável no bem. Mostrar como valor **GERENCIAL**, rotulado assim, nunca como contábil. Promove o wish US-ASSET-W01 (só a parte linear; SAC e taxa fiscal ficam fora).
+- Até esta data o painel devolvia `null` para o valor residual ("depreciação nunca é calculada", RESÍDUO 6 em `AssetController::dashboard`).
+- Regra do protótipo do Patrimônio (`prototipo-ui/cowork/Wagner/patrimonio-data.jsx`, `depreciacao()`): meses desde a compra ÷ (prazo em anos × 12), limitado a 100%; residual = valor × quantidade × (1 − fração). Mexe em valor exibido: regra mestre (dupla prova).
+
+### US-ASSET-010 · Manutenção preventiva com próxima data por bem — **P2**
+
+> owner: — · priority: p2 · status: todo · type: story
+
+Como responsável pelo patrimônio, quero cadastrar a cada quantos dias um bem precisa de manutenção e ver os que estão vencendo, para não descobrir a falha só quando o bem para.
+
+**Implementado em:** _pendente_
+
+- Origem: lacunas de 2026-10-25 (P2 "depreciação e manutenção preventiva"). Não depende da US-ASSET-009.
+- Hoje só existe o registro de manutenção feita (US-ASSET-004) e o aviso por e-mail dela (US-ASSET-006).
+
 ## Backlog (feature wish — sem sinal qualificado ADR 0105)
 
-- 🔒 US-ASSET-W01: Depreciação automática linear/SAC (depreciation_rate + book_value)
+- ~~🔒 US-ASSET-W01: Depreciação automática linear/SAC (depreciation_rate + book_value)~~ → parte linear ativa como US-ASSET-009 (decisão [W] 2026-10-26)
 - 🔒 US-ASSET-W02: Transferência entre filiais (transfer between BusinessLocations)
 - 🔒 US-ASSET-W03: Disposal/baixa contábil com motivo + data
 - 🔒 US-ASSET-W04: QR code físico no ativo + scan mobile pra check-in/out

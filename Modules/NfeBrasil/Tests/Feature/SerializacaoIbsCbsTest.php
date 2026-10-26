@@ -38,14 +38,14 @@ const IBSCBS_BIZ = 999999;
  *
  * @param  array<string,mixed>|null  $ibscbs  sub-array IBS/CBS do item (null = item sem reforma)
  */
-function montarXmlIbsCbs(?array $ibscbs, float $vProd = 1000.00): string
+function montarXmlIbsCbs(?array $ibscbs, float $vProd = 1000.00, int $crt = 3): string
 {
     $svc = new NfeService(\Mockery::mock(CertificadoService::class));
 
     $business = (object) [
         'id'               => IBSCBS_BIZ,
         'cidade_id'        => 0,
-        'regime'           => 3, // CRT 3 = Regime Normal (ICMS por CST)
+        'regime'           => $crt, // CRT 3 = Regime Normal (ICMS por CST)
         'ambiente'         => 2, // homologação
         'numero_serie_nfe' => '1',
         'ncm_padrao'       => '61091000',
@@ -59,7 +59,7 @@ function montarXmlIbsCbs(?array $ibscbs, float $vProd = 1000.00): string
         'razao_social'  => 'EMPRESA TESTE REFORMA LTDA',
         'nome_fantasia' => 'TESTE REFORMA',
         'ie'            => '110042490114',
-        'crt'           => 3,
+        'crt'           => $crt,
         'logradouro'    => 'RUA DE TESTE',
         'numero_end'    => '100',
         'bairro'        => 'CENTRO',
@@ -88,7 +88,7 @@ function montarXmlIbsCbs(?array $ibscbs, float $vProd = 1000.00): string
         'vuntrib' => $vProd,
         'ind_tot' => 1,
         'icms'    => [
-            'cst_csosn' => '00', // tributada integralmente (CRT 3)
+            'cst_csosn' => $crt === 3 ? '00' : '102', // tributada integralmente (CRT 3)
             'orig'      => 0,
             'modbc'     => 3,
             'vbc'       => $vProd,
@@ -333,13 +333,38 @@ it('cross-check numérico: valor do MotorTributarioService é o que sai no XML',
     expect((float) tag($frag, 'vCBS'))->toBe(round(1000.00 * 0.088, 2));   // 88.00
 })->group('nfe');
 
-it('modo legacy → sem grupo UB (byte-idêntico ao XML de hoje)', function () {
+// ADR 0442 (emenda a 0321): o "legacy sem grupo" vale para o Simples (CRT 1/2). O regime normal
+// (CRT 3) passa a emitir o grupo sem opt-in — este caso dizia o contrário para CRT 3 e foi reescrito.
+it('modo legacy, Simples (CRT 1) → sem grupo UB (byte-idêntico ao XML de hoje)', function () {
     configModo('legacy');
-    $xml = montarXmlIbsCbs(ibscbsExemplo());
+    $xml = montarXmlIbsCbs(ibscbsExemplo(), crt: 1);
 
     expect($xml)->not->toContain('IBSCBS')
         ->not->toContain('gIBSUF')
         ->not->toContain('gCBS');
+})->group('nfe');
+
+it('UC-FNFE-47 · ADR 0442 · regime normal (CRT 3) em modo legacy emite o grupo UB sem opt-in', function () {
+    configModo('legacy');
+    $xml = montarXmlIbsCbs(ibscbsExemplo());
+    $ub = fragIbsCbs($xml);
+
+    expect($ub)->not->toBe('')
+        ->and(tag($ub, 'CST'))->toBe('000')
+        ->and(tag($ub, 'cClassTrib'))->toBe('000001')
+        ->and(tag($ub, 'vIBSUF'))->toBe('1.00')   // 1.000,00 × 0,1%
+        ->and(tag($ub, 'vCBS'))->toBe('88.00');   // 1.000,00 × 8,8%
+    // O valor da nota não muda com o grupo (vNF = total da venda).
+    expect(tag($xml, 'vNF'))->toBe('1000.00');
+})->group('nfe');
+
+it('UC-FNFE-48 · ADR 0442 · Simples (CRT 1/2) segue byte-idêntico com e sem a mudança', function () {
+    configModo('legacy');
+    foreach ([1, 2] as $crt) {
+        $antes = normalizarVolatil(montarXmlIbsCbs(null, crt: $crt));
+        $comRegra = normalizarVolatil(montarXmlIbsCbs(ibscbsExemplo(), crt: $crt));
+        expect($comRegra)->toBe($antes); // a regra com IBS/CBS não muda o XML do Simples em legacy
+    }
 })->group('nfe');
 
 it('modo full mas item SEM cst IBS/CBS → grupo omitido (inerte)', function () {

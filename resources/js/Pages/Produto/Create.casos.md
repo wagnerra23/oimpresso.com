@@ -45,6 +45,7 @@ last_run_ci: "PR #9736 (peso e dimensões, UC-PCAD-16), 2026-10-24, head f58ef91
 | UC-PCAD-14 | Sem NCM a tela avisa, e o produto é salvo assim mesmo | should | `CU-PROD-18` | `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
 | UC-PCAD-15 | Novo produto grava o CEST digitado (7 dígitos), sem exigir CEST | should | `CU-PROD-16` | `CadastroProdutoCestTest` + `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
 | UC-PCAD-16 | Novo produto grava peso líquido e dimensões da embalagem, opcionais; o peso de sempre é o peso bruto | should | `CU-PROD-17` | `CadastroProdutoPesoDimensoesTest` + `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
+| UC-PCAD-17 | Com tipo EAN-13, EAN-8 ou UPC-A, SKU que não vira código de barras válido é avisado; o produto é salvo assim mesmo | should | `CU-PROD-18` | `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
 | ~~UC-PCAD-02~~ | ~~Campo obrigatório validado server~~ | — | — | — | ⬛ **retirado** — gap de paridade, não bug |
 | ~~UC-PCAD-03~~ | ~~Defaults conservadores server~~ | — | — | — | ⬛ **retirado** — gap de paridade, não bug |
 | UC-PCAD-05 | Cadastro não aceita insumo de outro business | must `[T0]` | `CU-PROD-01.5` | — | 🔶 **backlog** — achado Tier 0 real, US própria |
@@ -229,6 +230,15 @@ last_run_ci: "PR #9736 (peso e dimensões, UC-PCAD-16), 2026-10-24, head f58ef91
 - **Contrato:** `CU-PROD-17` do [SDD](../../../../memory/requisitos/Produto/SDD-tela-cadastro-produto-v1.0.md) — pedido [M] 2026-10-21. O "Peso" que já existia virou o peso bruto, porque é ele que o WooCommerce manda como peso de frete; quem já tinha preenchido não perde nada.
 - **Fora deste UC:** levar o peso e as dimensões para a nota (grupo de volumes do transporte) e para o WooCommerce (só o peso bruto vai hoje). O CEP e a cotação de frete também ficam fora.
 - **Status: 🧪** — escrito junto do código, sem veredito da lane `PHP / Pest (Estoque · MySQL)` nem do job `Frontend / Vite build` (G-7).
+
+---
+
+## UC-PCAD-17 · SKU que não vira código EAN válido é avisado · `should`
+- **Persona:** quem cadastra mercadoria com código de barras de fábrica e imprime etiqueta.
+- **Aceite:** Dado o "Tipo de código de barras" EAN-13, EAN-8 ou UPC-A · Quando o SKU tem letra ou símbolo, tem dígitos demais, ou o último dígito não confere com os outros (regra GS1) · Então aparece um aviso embaixo do tipo de código de barras, dizendo o que está errado e, no dígito, qual devia ser · E o produto é salvo assim mesmo · E SKU vazio (gerado pelo servidor), SKU mais curto e os tipos Code 128, Code 39 e UPC-E não avisam.
+- **Teste:** [`produto-formulario.test.tsx`](../../../../tests/js/produto-formulario.test.tsx) — `UC-PCAD-17` (a regra do dígito nos códigos de exemplo da GS1, os casos que avisam e os que não avisam, e o Novo produto com EAN-13: avisa, envia, e o aviso some com o código certo).
+- **Contrato:** `CU-PROD-18` do [SDD](../../../../memory/requisitos/Produto/SDD-tela-cadastro-produto-v1.0.md). O código de barras do produto é o SKU. Com esses tipos, a biblioteca da etiqueta (milon/barcode v13.1) recusa SKU com letra ou com o último dígito errado, e a etiqueta não sai; código mais curto ela completa com zeros. A nota fiscal **não** usa esse código hoje: o emissor do NfeBrasil manda "SEM GTIN".
+- **Status: 🧪** — escrito junto do código, sem veredito do job `Frontend / Vite build` (G-7).
 
 ---
 
