@@ -240,8 +240,8 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > | Aba Dados | "Preço de venda" primeiro; com imposto, também o preço sem imposto, o imposto aplicável e a frase de que o preço já o inclui | sem preço; "Imposto aplicável" e "Tipo de imposto na venda" sempre (`PainelDetalhe.tsx:386-387`) | **feito** com o UC-PIDX-19 reescrito |
 > | Tabelas de Variações e Composição | sem imposto, uma coluna de preço; com imposto, "sem imposto" e "com imposto" | sempre as duas colunas, com "(excl.)" e "(incl.)" (`PainelDetalhe.tsx:436-440,507-508,546-549`) | rótulos **feitos** junto com o UC-PIDX-11; coluna única **feita** com o UC-PIDX-19 (decide pelos valores: uma coluna quando sem e com imposto são iguais) |
 > | Aba Fiscal e "Dados fiscais (NCM/CFOP)" do menu | só em empresa que emite nota; a aba começa dizendo se o produto está pronto para nota | sempre (`PainelDetalhe.tsx:314`, `AcoesProduto.tsx:77`) | **feito** (UC-PIDX-17 e 25): o servidor manda `contexto.emite_nota`, com o mesmo teste de pacote do botão "Abrir no módulo Fiscal" |
-> | Coluna e filtro Imposto da lista | só se a empresa tem alíquota; a coluna nasce desligada | sempre (`colunas.tsx:213`, `FiltrosLista.tsx:85`) | levar |
-> | Coluna Imposto nos dois exports | segue a coluna; Compra e Venda com imposto, como a grade | "Imposto" sempre (`ProductController.php:1086`; `app/Exports/ProductsExport.php`) | levar o CSV; o "Baixar Excel" é o arquivo de reimportação da Blade, e mexer nele é decisão à parte |
+> | Coluna e filtro Imposto da lista | só se a empresa tem alíquota; a coluna nasce desligada | sempre (`colunas.tsx:213`, `FiltrosLista.tsx:85`) | **feito** (UC-PIDX-34) |
+> | Coluna Imposto nos dois exports | segue a coluna; Compra e Venda com imposto, como a grade | "Imposto" sempre (`ProductController.php:1086`; `app/Exports/ProductsExport.php`) | CSV **feito** (UC-PIDX-34); o "Baixar Excel" é o arquivo de reimportação da Blade, e mexer nele é decisão à parte |
 >
 > Sem conflito com o Non-Goal "Função a menos que a lista Blade": nada do que a Blade mostra deixa de
 > existir na tela nova. **Descartado no mesmo dia:** esconder o imposto por permissão

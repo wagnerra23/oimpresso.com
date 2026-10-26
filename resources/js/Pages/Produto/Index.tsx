@@ -66,8 +66,10 @@ import MenuColunas from './_components/lista/MenuColunas';
 import {
   CHAVE_COLUNAS,
   CHAVE_DENSIDADE,
+  CHAVE_IMPOSTO_DESLIGADO,
   POR_PAGINA,
   chipsDosFiltros,
+  colunasGuardadas,
   colunasOpcionais,
   visibilidadePadrao,
   type ContextoLista,
@@ -186,10 +188,12 @@ interface Confirmacao {
 const hhmm = () => new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
 function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto, permissions }: ProdutoIndexPageProps) {
-  const opcionais = useMemo(() => colunasOpcionais(contexto.rotulos_campos), [contexto.rotulos_campos]);
+  // Coluna e filtro Imposto só em empresa com alíquota cadastrada (decisão [F] 2026-10-26).
+  const temAliquota = opcoes.impostos.length > 0;
+  const opcionais = useMemo(() => colunasOpcionais(contexto.rotulos_campos, temAliquota), [contexto.rotulos_campos, temAliquota]);
   const [visiveis, setVisiveis] = useState<Record<string, boolean>>(() => ({
     ...visibilidadePadrao(opcionais),
-    ...lerLocal<Record<string, boolean>>(CHAVE_COLUNAS, {}),
+    ...colunasGuardadas(lerLocal<Record<string, boolean>>(CHAVE_COLUNAS, {}), lerLocal<boolean>(CHAVE_IMPOSTO_DESLIGADO, false)),
   }));
   const [densa, setDensa] = useState<boolean>(() => lerLocal<boolean>(CHAVE_DENSIDADE, false));
   const [busca, setBusca] = useState(filtros.q);
@@ -232,6 +236,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
   const buscaRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => gravarLocal(CHAVE_COLUNAS, visiveis), [visiveis]);
+  useEffect(() => gravarLocal(CHAVE_IMPOSTO_DESLIGADO, true), []);
   useEffect(() => gravarLocal(CHAVE_DENSIDADE, densa), [densa]);
 
   // Espaço da página e da tabela: as colunas encaixam na largura da tabela (UC-PIDX-26) e a grade
@@ -357,9 +362,10 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
 
   // ── Colunas: as do protótipo, definidas em _components/lista/colunas.tsx ──
   const colunasDoPrototipo = useMemo(
-    () => colunasDaLista({ visiveis, densa, permissions, contexto, aoEscolher }),
+    // Sem alíquota a coluna não existe, nem que o navegador a tenha guardado ligada.
+    () => colunasDaLista({ visiveis: temAliquota ? visiveis : { ...visiveis, imposto: false }, densa, permissions, contexto, aoEscolher }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [visiveis, densa, permissions, contexto],
+    [visiveis, densa, permissions, contexto, temAliquota],
   );
   // Tela estreita: as colunas encolhem até caber (UC-PIDX-26). Do espaço da tabela saem a caixa de
   // seleção (34px) e a barra de rolagem vertical que a grade passa a ter (16px).
