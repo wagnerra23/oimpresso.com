@@ -1,0 +1,176 @@
+{
+  "url": "https://staging.oimpresso.com/documentacao/programa",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 7
+  },
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Programa de documentação · Trilha D Não é escrever documentação — é manter um sistema que mede, traduz, publica, opera, detecta drift e aprende. ← Documentação Ver plano no git Ciclo Ondas Caminhos Pronto & batimento Comece aqui Domínio 5 01 Venda 02 Título 03 Nota fiscal 04 Estágio (máquina de estados) 05 Ordem de Serviço Fluxos 5 06 Venda, do balcão à nota 07 Cancelamento 08 Deploy 09 Design, do Cowork à tela 10 As máquinas, do seu editor ao deploy Técnico 2 11 Arquitetura e módulos 12 Painel do sistema Governança 2 13 Como uma decisão vira lei 14 O programa de documentação (Trilha D) memory/requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md renderizado a cada acesso Ondas 11 da tabela § D.3 do plano Estações do ciclo 11 fecha em aprender → medir de novo Tasks do programa 0 parent_plan=programa-ondas no MCP Ondas em andamento nenhuma derivado das tasks, não do plano O ciclo completo 01 Descobrir a máquina, o hook, o MCP, o módulo ou o fluxo que entra nesta volta. 02 Medir o estado real abrir fonte/configuração, executar inventário/probe e guardar o ID estável. 03 Classificar e localizar o dono qual camada, e qual arquivo já responde por ela. 04 Priorizar o gap criticidade × impacto. Achado adjacente vira task nova, nunca desvio da etapa em curso. 05 Documentar no dono existente corrigir o arquivo que já responde pelo assunto; nunca criar resumo paralelo. 06 Validar tecnicamente fonte, links, diagrama, dependências, tenant, PII e ausência de segredo. 07 Validar operacionalmente executar o runbook no ambiente correto e atualizar `last_validated` somente quando o resultado real bateu. 08 Publicar provar pelo `documentation-loop` que o ID sumiu (alteração de data não fecha), abrir PR de uma intenção, [W] ratifica pelo merge, e a rota humana atualiza no deploy ou no `quick-sync`. 09 Operar e observar o documento em uso, com health-check e vital-signs por trás. 10 Incidente ou drift a realidade discorda do que está escrito. 11 Aprender e corrigir runbook, lição ou decisão — **e voltar à estação 2.** O ciclo **não termina em publicar**: a estação 11 devolve o aprendizado à medição, e a volta seguinte começa sabendo mais. É isso que separa o programa de uma campanha de escrita. estação 11 → estação 02 · o aprendizado reentra na medição; publicar não encerra Dono deste texto: memory/requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md — a tela renderiza o plano, não é cópia commitada. O estado de execução vem das tasks MCP ( , agrupadas por ), nunca desta página. Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 4,
+      "tag": "DIV",
+      "overflowX": false,
+      "items": [
+        {
+          "label": "Ondas11da tabe",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Estações do ci",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Tasks do progr",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Ondas em andam",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.22 0.01 80)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        }
+      ]
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "cabecalho",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "kpis",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 1
+        },
+        "exemplos": {
+          "snakeCru": [
+            "parent_plan"
+          ]
+        }
+      }
+    ],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null,
+    "drawer": null
+  }
+}

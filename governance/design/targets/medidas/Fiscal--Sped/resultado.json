@@ -1,0 +1,32 @@
+{
+  "id": "Fiscal/Sped",
+  "module": "Fiscal",
+  "source": "fiscal-page.jsx",
+  "target": "resources/js/Pages/Fiscal/Sped.tsx",
+  "token": "fiscal-sped",
+  "lado": "ambos",
+  "contrato": "governance/design/contracts/fiscal-sped.contract.json",
+  "compare": {
+    "rc": 2,
+    "veredito": "NÃO MEDI",
+    "motivo": "⛔ NÃO MEDI — identidade da view não provada: assimetria estrutural: 7 x 1 copies — um lado so casou copy de shell Nenhuma copy pinada do contrato apareceu no render, ou a sonda é anterior ao D0. Isto NÃO é divergência de",
+    "bugs": null,
+    "shell": null,
+    "drawer": null,
+    "sameTheme": null,
+    "porDim": {},
+    "rows": null
+  },
+  "veredito": null,
+  "motivo": "",
+  "medido": true,
+  "designSha": "d0718def517c28a40bc9b67c43cea90ae2d89a8ae36f6afacddea2a1dca1ae1a",
+  "prodSha": "a92cc496fbf8272dc36bf938326c8eae60b2f7663662ffbe74a37f98be65f407",
+  "meta": {
+    "urlFinal": "https://staging.oimpresso.com/fiscal/sped",
+    "componenteInertia": null
+  },
+  "medidoEm": "2026-10-26T07:56:13.116Z",
+  "baseUrl": "https://staging.oimpresso.com",
+  "bundle": "d16835e9e37d447aa8207922e8dcd24c10c5b8e483341dc41ce4a563f2ea7c38"
+}

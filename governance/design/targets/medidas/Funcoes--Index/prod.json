@@ -1,0 +1,190 @@
+{
+  "url": "https://staging.oimpresso.com/roles",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 6
+  },
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Funções e permissões 185 funções no negócio Nova função Funções do negócio Função Usuários Administração 1 usuário Admin6ab560f1aa985 Padrão 0 usuários Admin6ab56a7bc1abb Padrão 0 usuários Admin6ab5703349f01 Padrão 0 usuários Admin6ac6389a93522 Padrão 0 usuários Admin6ac6398c4694b Padrão 0 usuários Admin6ac639e387495 Padrão 0 usuários Admin6ac63ad026c1f Padrão 0 usuários Admin6ac63b276adb6 Padrão 0 usuários Admin6ac7d24b2604e Padrão 0 usuários Admin6ac7d39bae4bf Padrão 0 usuários Atacado6ab5617f5b38e 0 usuários Atacado6ab5672c0bdca 0 usuários Atacado6ab570ea5eb81 0 usuários Atacado6ac638b386796 0 usuários Atacado6ac639775fa78 0 usuários Atacado6ac639bab0048 0 usuários Atacado6ac63aadacbc4 0 usuários Atacado6ac63b10714a2 0 usuários Atacado6ac7d29e3b1cd 0 usuários Atacado6ad230dc2c927 0 usuários AutoTeste6ab562ac8d91f 1 usuário AutoTeste6ab562ad9f6bc 1 usuário AutoTeste6ab562aec76f4 1 usuário AutoTeste6ab56a3ba9ba7 1 usuário AutoTeste6ab56a3ca1c88 1 usuário AutoTeste6ab56a3dcbf78 1 usuário AutoTeste6ab56ec679957 1 usuário AutoTeste6ab56ec79189b 1 usuário AutoTeste6ab56ec88d8c3 1 usuário AutoTeste6ac638e248f52 1 usuário AutoTeste6ac638e2e8495 1 usuário AutoTeste6ac638e3b7f02 1 usuário AutoTeste6ac63922cea92 1 usuário AutoTeste6ac63923c11b5 1 usuário AutoTeste6ac639249211c 1 usuário AutoTeste6ac63a0232b00 1 usuário AutoTeste6ac63a031cf09 1 usuário AutoTeste6ac63a03dc25a 1 usuário AutoTeste6ac63aa6d719b 1 usuário AutoTeste6ac63aa7a973b 1 usuário AutoTeste6ac63aa8aa84b 1 usuário AutoTeste6ac63b406058f 1 usuário AutoTeste6ac63b414bba4 1 usuário AutoTeste6ac63b4256a32 1 usuário AutoTeste6ac7d1f23a82b 1 usuário AutoTeste6ac7d1f2e9444 1 usuário AutoTeste6ac7d1f38dfb6 1 usuário AutoTeste6ac7d2036ee99 1 usuário AutoTeste6ac7d20491649 1 usuário AutoTeste6ac7d205b5fe2 1 usuário AutoTeste6ac7d37da4965 1 usuário AutoTeste6ac7d37ed1106 1 usuário AutoTeste6ac7d37ff41c3 1 usuário BalcaoRenomeado6ab562ae1b4cf 0 usuários BalcaoRenomeado6ab56a3d2c7ed 0 usuários BalcaoRenomeado6ab56ec6e5496 0 usuários BalcaoRenomeado6ac638e3f07f5 0 usuários BalcaoRenomeado6ac6392316114 0 usuários BalcaoRenomeado6ac63a042f59b 0 usuários BalcaoRenomeado6ac63aa90b3e5 0 usuários BalcaoRenomeado6ac63b42ba577 0 usuários BalcaoRenomeado6ac7d1f417047 0 usuários BalcaoRenomeado6ac7d2051322a 0 usuários BalcaoRenomeado6ac7d37f57c2e 0 usuários CatTeste6ab5617c13a83 1 usuário CatTeste6ab5617d245df 1 usuário CatTeste6ab5617e2f1c4 1 usuário CatTeste6ab5617f27344 1 usuário CatTeste6ab567291b708 1 usuário CatTeste6ab5672a0d8ac 1 usuário CatTeste6ab5672aefce3 1 usuário CatTeste6ab5672bd4c72 1 usuário CatTeste6ab570e5ce55f 1 usuário CatTeste6ab570e7218b9 1 usuário CatTeste6ab570e865723 1 usuário CatTeste6ab570e9b32b1 1 usuário CatTeste6ac638b092178 1 usuário CatTeste6ac638b1719ad 1 usuário CatTeste6ac638b2627a0 1 usuário CatTeste6ac638b367136 1 usuário CatTeste6ac63975c4f59 1 usuário CatTeste6ac639770dda2 1 usuário CatTeste6ac63978ac910 1 usuário CatTeste6ac6397a4a151 1 usuário CatTeste6ac639b7b12ef 1 usuário CatTeste6ac639b8c4c1c 1 usuário CatTeste6ac639ba5b65f 1 usuário CatTeste6ac639bbeef9c 1 usuário CatTeste6ac63aa9bf670 1 usuário CatTeste6ac63aaad1e0a 1 usuário CatTeste6ac63aac1e216 1 usuário CatTeste6ac63aad74600 1 usuário CatTeste6ac63b0ef2bae 1 usuário CatTeste6ac63b103400a 1 usuário CatTeste6ac63b119fdba 1 usuário CatTeste6ac63b131a0a3 1 usuário CatTeste6ac7d29c3a9da 1 usuário CatTeste6ac7d29de2e41 1 usuário CatTeste6ac7d29f9134f 1 usuário CatTeste6ac7d2a0e2875 1 usuário CatTeste6ad230d9803a9 1 usuário CatTeste6ad230dba89aa 1 usuário CatTeste6ad230ddc445b 1 usuário CatTeste6ad230e00d9eb 1 usuário comvis.atendimento 0 usuários comvis.designer 0 usuários comvis.estoque 0 usuários comvis.financeiro 0 usuários comvis.fiscal 0 usuários comvis.gerente 0 usuários comvis.instalador 0 usuários comvis.logistica 0 usuários comvis.operador 0 usuários comvis.system 0 usuários EmUso6ab560f2bd5ff 1 usuário EmUso6ab56a79f3bd5 1 usuário EmUso6ab570346f1e3 1 usuário EmUso6ac63899a8080 1 usuário EmUso6ac6398dc79f1 1 usuário EmUso6ac639e52323e 1 usuário EmUso6ac63ace764c4 1 usuário EmUso6ac63b2954672 1 usuário EmUso6ac7d24d5034c 1 usuário EmUso6ac7d39ab4e79 1 usuário Escopo6ab5617d5afc2 0 usuários Escopo6ab5672945536 0 usuários Escopo6ab570e8ecb08 0 usuários Escopo6ac638b18c9d9 0 usuários Escopo6ac63978da693 0 usuários Escopo6ac639b922e1f 0 usuários Escopo6ac63aac51bdf 0 usuários Escopo6ac63b135bf4b 0 usuários Escopo6ac7d29c8954c 0 usuários Escopo6ad230de4b84e 0 usuários Forjado6ab5617e618ac 0 usuários Forjado6ab5672b250f0 0 usuários Forjado6ab570e667c96 0 usuários Forjado6ac638b0af64f 0 usuários Forjado6ac6397a78add 0 usuários Forjado6ac639b7df994 0 usuários Forjado6ac63aa9eef42 0 usuários Forjado6ac63b0f39fbb 0 usuários Forjado6ac7d29fdfd84 0 usuários Forjado6ad230e0880ac 0 usuários Legitimo6ab5617c4d46f 0 usuários Legitimo6ab5672a35f0c 0 usuários Legitimo6ab570e7a60d4 0 usuários Legitimo6ac638b27f6d2 0 usuários Legitimo6ac63975ef77f 0 usuários Legitimo6ac639bc2ab47 0 usuários Legitimo6ac63aab149fc 0 usuários Legitimo6ac63b11dc811 0 usuários Legitimo6ac7d2a13ce9b 0 usuários Legitimo6ad230d9efeba 0 usuários OperadorDel6ab560f1bbb08 1 usuário OperadorDel6ab560f250614 1 usuário OperadorDel6ab560f2d0b1d 1 usuário OperadorDel6ab56a7a0430e 1 usuário OperadorDel6ab56a7ad533d 1 usuário OperadorDel6ab56a7bc4908 1 usuário OperadorDel6ab5703351575 1 usuário OperadorDel6ab57035661a3 1 usuário OperadorDel6ab570368462a 1 usuário OperadorDel6ac63899117d2 1 usuário OperadorDel6ac63899b20e1 1 usuário OperadorDel6ac6389a9686d 1 usuário OperadorDel6ac6398c4913a 1 usuário OperadorDel6ac6398d0b909 1 usuário OperadorDel6ac6398dd6cf8 1 usuário OperadorDel6ac639e39c2bf 1 usuário OperadorDel6ac639e4649ce 1 usuário OperadorDel6ac639e539b1e 1 usuário OperadorDel6ac63ace80d9e 1 usuário OperadorDel6ac63acf51b07 1 usuário OperadorDel6ac63ad040c49 1 usuário OperadorDel6ac63b2786d8b 1 usuário OperadorDel6ac63b2870b09 1 usuário OperadorDel6ac63b2971a4c 1 usuário OperadorDel6ac7d24b3889e 1 usuário OperadorDel6ac7d24c493f0 1 usuário OperadorDel6ac7d24d5508b 1 usuário OperadorDel6ac7d39abc73a 1 usuário OperadorDel6ac7d39bca615 1 usuário OperadorDel6ac7d39cd4872 1 usuário Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "page-header",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "toolbar",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "funcoes-table",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 60.2,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 14,
+        "weight": "500",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 25.2,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": "BUTTON",
+        "align": "right",
+        "larguraPct": 14.6,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 14,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 185,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null,
+    "drawer": null
+  }
+}

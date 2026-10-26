@@ -1,0 +1,216 @@
+{
+  "url": "http://127.0.0.1:34583/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 79
+  },
+  "theme": "dark",
+  "assinatura": "OI WR Apuração de comissão este mês · 3 agentes em aberto Comissionados Ver no financeiro Fechar período Usuários Funções e permissões Comissionados Apuração de comissão Base de cálculo R$ 152.800 Comissão apurada R$ 4.672 Já pago R$ 1.867 A pagar R$ 2.805 Este mês Mês anterior Trimestre Só vendas faturadas Nada disso existe no backend hoje O legado guarda só no cadastro. Para virar produção precisa de agente na venda , regra por agente (fixa/faixa/margem), fechamento por período e o título a pagar . Decisão D6 do trio. Comissionado Regra Faturado Meta Comissão Situação LS Larissa Souza 4 vendas · base R$ 40.400 2,5% % fixo sobre o faturado R$ 40.400 90% R$ 1.010,00 Em aberto Extrato BC Bruno Carvalho 2 vendas · base R$ 53.300 3% / 4% % por faixa de meta R$ 53.300 89% R$ 1.599,00 Em aberto Extrato PG Patrícia Gomes 2 vendas · base R$ 39.900 3,5% % fixo sobre o faturado R$ 39.900 80% R$ 1.396,50 Pago em 05/08 Extrato JL Joana Lima 1 venda · base R$ 9.800 2% % fixo sobre o faturado R$ 9.800 39% R$ 196,00 Em aberto Extrato RN Ricardo Neves 1 venda · base R$ 9.400 5% % sobre a margem R$ 26.700 134% R$ 470,00 Pago em 08/08 Extrato Total do período R$ 170.100 R$ 4.671,50 R$ 2.805,00 a pagar Fechar o período trava a apuração: novas vendas com data dentro dele passam a contar no período seguinte. O pagamento vira título a pagar no Financeiro — nunca baixa direto no caixa.",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": {
+      "bg": "oklch(0.7 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "oklch(0.7 0.15 295)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 3.4,
+        "mono": false,
+        "corPropria": null,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 22.3,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "600",
+        "blocos": 3,
+        "pill": {
+          "radius": "50%",
+          "borda": false,
+          "bg": "oklch(0.32 0.064 201)",
+          "dot": false
+        }
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 15.1,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "600",
+        "blocos": 2,
+        "pill": {
+          "radius": "999px",
+          "borda": false,
+          "bg": "oklch(0.33 0.09 295)",
+          "dot": false
+        }
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 10.8,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 17.3,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "600",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 11.5,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 6,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 12.1,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 7,
+        "tag": "BUTTON",
+        "align": "right",
+        "larguraPct": 7.4,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 5,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "ocultos": 0,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          },
+          "blocos": 0,
+          "texto": "",
+          "textoProprio": false
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null,
+    "drawer": null
+  }
+}

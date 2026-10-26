@@ -1,0 +1,196 @@
+{
+  "url": "http://127.0.0.1:55479/oimpresso.com.html",
+  "theme": "dark",
+  "assinatura": "OI Oimpresso Matriz IA 3 Visão geral G D Atendimento 6 Cadastro 3 Clientes G C Produtos 12 G P Fabricação 3 Comercial 4 CRM 14 G R Vendas 19 G V Oficina Auto 1 Nova OS Vestuário 1 Finanças 4 Caixa G X Financeiro 11 G F Cobrança 1 Cobrança Recorrente 3 Fiscal 1 Fiscal 6 Produção 3 Ordens de Serviço Comunicação Visual Assistência técnica 7 Estoque 3 Compras 4 Movimentações 6 G E Patrimônio 4 RH 3 Ponto HRM 7 Essenciais 6 Sistema 10 Auditoria Voz do Cliente Suporte 1 Usuários 3 Preferências Configurações 11 Relatórios 4 Arquivos 3 Base de Conhecimento Planilhas 1 Plataforma 4 WR Wagner Rocha Administrador Nova Ordem de Serviço OS #4821 · aberta hoje 09:14 Recepção Diagnóstico 3 Orçamento 4 Aprovação 5 Execução 6 Pronto Oficina Com. Visual Vestuário BRASIL RBA-2H78 Honda Civic EXL 2019 Prata · chassi 9BWZZZ377VT004251 Quilometragem 84.220 km Última revisão 72.000 km Mecânico João Lima Combustível 35 % — ~1/3 tanque Marcos Aleixo (11) 9 8821-4490 Cliente desde 2021 · 6 OS Check-in do veículo Estado de entrada — protege a oficina e o cliente Relato do cliente Cliente relata barulho metálico na frente ao frear e pedal de freio baixo. Pediu também revisão de óleo. Avarias na entrada Risco porta dir. Amassado para-choque Para-brisa trincado marcar Fotos de entrada Frente Lateral + adicionar Inspeção Diagnóstico item a item — reprovado vira orçamento 2 reprovados · 2 atenção Pastilhas dianteiras espessura 2mm — abaixo do mínimo 2 fotos + orçamento Disco dianteiro sulco perceptível 2 fotos Óleo do motor vencido / nível baixo foto + orçamento Pneus sulco ok, 4mm foto Suspensão dianteira sem folga foto Bateria 12.3V — observar foto Itens da OS Serviço (mão de obra) e peças — naturezas fiscais distintas Serviços 2 Peças 4 / Troca de pastilhas + disco dianteiro JL João Lima 1,5h R$ 180,00 R$ 180,00 × Troca de óleo + filtro PS Pedro Souza 0,5h R$ 60,00 R$ 60,00 × Mão de obra R$ 240,00 Peças R$ 925,00 Desconto R$ 0,00 Total da OS R$ 1.165,00 Aprovação do cliente Aguardando aprovação A execução não inicia sem o cliente autorizar. Envie o orçamento com as fotos da inspeção. Enviar orçamento por WhatsApp Fiscal NF-e 55 Peças mercadoria R$ 925,00 NFS-e Mão de obra serviço R$ 240,00 Garantia de 90 dias em serviço e peça Peças R$ 925,00 Mão de obra R$ 240,00 Total R$ 1.165,00 Cancelar Salvar rascunho Avançar p/ Aprovação",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 16,
+      "weight": "600",
+      "color": "oklch(0.965 0.004 240)"
+    },
+    "primary": {
+      "bg": "oklch(0.228 0.01 282)",
+      "color": "oklch(0.58 0.009 282)",
+      "border": "oklch(0.3 0.012 282)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 3,
+          "css": {
+            "height": "34px",
+            "minHeight": "0px",
+            "padding": "0px 10px",
+            "margin": "0px",
+            "gap": "10px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13px",
+            "fontWeight": "400",
+            "lineHeight": "18.85px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "6px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "243px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 243,
+            "h": 34
+          },
+          "icone": {
+            "w": 16,
+            "h": 16,
+            "strokeWidth": "1.6px"
+          }
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 32,
+          "css": {
+            "height": "34px",
+            "minHeight": "0px",
+            "padding": "0px 10px 0px 18px",
+            "margin": "0px",
+            "gap": "10px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13px",
+            "fontWeight": "400",
+            "lineHeight": "18.85px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "6px",
+            "borderWidth": "0px 0px 0px 2px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "243px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 243,
+            "h": 34
+          },
+          "icone": {
+            "w": 16,
+            "h": 16,
+            "strokeWidth": "1.6px"
+          }
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 9,
+          "css": {
+            "height": "25px",
+            "minHeight": "0px",
+            "padding": "6px 10px",
+            "margin": "0px",
+            "gap": "8px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "10px",
+            "fontWeight": "600",
+            "lineHeight": "normal",
+            "letterSpacing": "0.6px",
+            "textTransform": "uppercase",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "4px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "243px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 243,
+            "h": 25
+          },
+          "icone": {
+            "w": 10,
+            "h": 10,
+            "strokeWidth": "1.6px"
+          }
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "1487px",
+            "minHeight": "0px",
+            "padding": "8px",
+            "margin": "0px",
+            "gap": "normal",
+            "display": "block",
+            "alignItems": "normal",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "259px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 259,
+            "h": 1487
+          },
+          "icone": {
+            "w": 16,
+            "h": 16,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": [
+        {
+          "i": 0,
+          "rotulo": "IA3",
+          "atual": null
+        },
+        {
+          "i": 1,
+          "rotulo": "Visão geralG D",
+          "atual": null
+        },
+        {
+          "i": 2,
+          "rotulo": "Atendimento6",
+          "atual": null
+        }
+      ]
+    }
+  }
+}

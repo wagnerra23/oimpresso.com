@@ -1,0 +1,171 @@
+{
+  "url": "http://127.0.0.1:34583/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 80
+  },
+  "theme": "dark",
+  "assinatura": "OI WR Modelos de notificação O que o sistema escreve por você — e-mail, SMS e WhatsApp, com as tags do documento Restaurar padrão desta Salvar / Notificações Extrato do cliente Cliente Nova venda auto Pagamento recebido Lembrete de pagamento auto Novo orçamento Nova reserva Fornecedor Novo pedido Pagamento efetuado Itens recebidos Itens pendentes Ordem de compra 11 modelos nesta empresa. Modelo vazio não é enviado. Nova venda Pode sair sozinha ao finalizar a venda — marque os canais abaixo. E-mail SMS WhatsApp Assunto Cópia (CC) Cópia oculta (BCC) Corpo do e-mail N I ≡ ↗ Visual HTML Olá {contact_name}, Sua venda {invoice_number} foi registrada. Total: {total_amount} Pago: {paid_amount} Em aberto: {due_amount} Documento: {invoice_url} Obrigado por comprar com a gente. {business_name} 204 caracteres Tags disponíveis Clique para inserir no último campo focado — agora em corpo . Empresa {business_name} {business_logo} Documento {invoice_number} {invoice_url} {total_amount} {paid_amount} {due_amount} {cumulative_due_amount} {due_date} Local {location_name} {location_address} {location_email} {location_phone} + 4 personalizados Contato {contact_name} {contact_business_name} + 10 personalizados Venda + 9 personalizados Envio automático 1 de 3 canais E-mail Precisa de e-mail no cadastro SMS Consome créditos do gateway WhatsApp Usa a conexão do Atendimento Com envio automático ligado, a notificação sai no momento em que a venda é finalizada (precisa de e-mail/celular no cadastro do cliente). Prévia tags resolvidas com dados de exemplo Obrigado pela compra — ROTA LIVRE Comunicação Visual ROTA LIVRE <contato@rotalivre.com.br> → martinho@oficina.com.br Olá Martinho Ferreira, Sua venda VD-2318 foi registrada. Total: R$ 1.240,00 Pago: R$ 640,00 Em aberto: R$ 600,00 Documento: oimpresso.com/i/2318 Obrigado por comprar com a gente. ROTA LIVRE Comunicação Visual Enviar teste pra mim O teste usa os mesmos dados de exemplo da prévia.",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": {
+      "bg": "oklch(0.7 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "oklch(0.7 0.15 295)"
+    },
+    "filterRows": null,
+    "contratos": [
+      {
+        "nome": "lista-modelos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "cabecalho-modelo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "editor-canal",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 7
+        },
+        "exemplos": {
+          "snakeCru": [
+            "contact_name",
+            "invoice_number",
+            "total_amount"
+          ]
+        }
+      },
+      {
+        "nome": "tags-disponiveis",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 15
+        },
+        "exemplos": {
+          "snakeCru": [
+            "business_name",
+            "business_logo",
+            "invoice_number"
+          ]
+        }
+      },
+      {
+        "nome": "envio-automatico",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "previa",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      }
+    ],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "ocultos": 0,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          },
+          "blocos": 0,
+          "texto": "",
+          "textoProprio": false
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null,
+    "drawer": null
+  }
+}

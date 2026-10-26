@@ -1,0 +1,269 @@
+{
+  "url": "http://127.0.0.1:34583/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 79
+  },
+  "theme": "dark",
+  "assinatura": "OI WR Máquinas Cadastradas O cadastro é populado por /connector/api/processa-dados-cliente ; cada linha mostra o último acesso registrado. Empresas Licenças Clientes OAuth Importar do Firebird Logs Máquinas cadastradas 13 total de equipamentos Máquinas bloqueadas 3 bloqueio individual Empresas bloqueadas 1 bloqueio em massa Acessos 24h 9 processa-dados-cliente Estado atual 13 de 13 Empresa Location / CNPJ Máquina HD Versão IP Último login Estado no último login Estado atual Ações ROTA LIVRE Comunicação Visual ROTA LIVRE Comunicação Visual CNPJ 23.456.789/0001-01 BALCAO-01 9F31-A7C2-1B04-77DE 6.7.14 189.45.12.88 19/08/2026 10:33:58 Liberada Ativa Bloquear máquina ROTA LIVRE Comunicação Visual ROTA LIVRE Comunicação Visual CNPJ 23.456.789/0001-01 BALCAO-02 77C0-2DE4-91AA-3F18 6.7.14 189.45.12.88 04/09/2021 00:00:00 (cadastro) — Ativa Bloquear máquina ROTA LIVRE Comunicação Visual ROTA LIVRE Comunicação Visual CNPJ 23.456.789/0001-01 PRODUCAO-PLOT 2A88-CF10-5501-B2C9 6.7.12 189.45.12.90 11/01/2023 00:00:00 (cadastro) — Ativa Bloquear máquina ROTA LIVRE — Zona Leste ROTA LIVRE — Zona Leste CNPJ 23.456.789/0002-92 ZL-CAIXA D1E0-4471-88AC-0092 6.7.12 177.92.4.31 18/02/2024 00:00:00 (cadastro) — Ativa Bloquear máquina Martinho Oficina Martinho Oficina CNPJ 34.567.890/0001-12 MARTINHO-PC 7C02-DE41-2210-4F8B 6.7.09 201.17.88.140 04/02/2026 00:00:00 (cadastro) — Ativa Bloquear máquina Martinho Oficina Martinho Oficina CNPJ 34.567.890/0001-12 OFICINA-BOX 3PkQ-8bL2-7741-CC02 6.5.02 201.17.88.141 19/04/2026 00:00:00 (cadastro) — Ativa Bloquear máquina Grupo Sinaliza Grupo Sinaliza CNPJ 45.678.901/0001-23 SINALIZA-CX1 B4A2-9910-71DE-0043 6.7.14 200.140.7.19 09/07/2020 00:00:00 (cadastro) — Ativa Bloquear máquina Sinaliza — Canoas Sinaliza — Canoas CNPJ 45.678.901/0002-04 CANOAS-CX1 6610-BB84-2F19-A700 6.7.14 200.140.7.55 18/08/2026 18:44:10 Liberada Ativa Bloquear máquina Copiadora Central Copiadora Central CNPJ 56.789.012/0001-34 CC-BALCAO 0F19-3320-1187-AB2C 6.5.02 186.220.31.7 02/04/2018 00:00:00 (cadastro) — Ativa Bloquear máquina Print Ideal Print Ideal CNPJ 67.890.123/0001-45 PI-CAIXA A730-1180-4402-91FF 6.7.09 179.108.9.44 19/08/2026 09:12:07 Bloqueada Empresa bloqueada Desbloquear empresa Print Ideal Print Ideal CNPJ 67.890.123/0001-45 PI-PRODUCAO C002-7781-3322-1D40 6.7.09 179.108.9.45 19/08/2026 08:55:33 Bloqueada Empresa bloqueada Desbloquear empresa Print Ideal Print Ideal CNPJ 67.890.123/0001-45 PI-NOTEBOOK E551-0098-7741-3B20 6.7.09 179.108.9.61 07/08/2026 00:00:00 (cadastro) — Empresa bloqueada Desbloquear empresa WR2 Comunicação Visual WR2 Comunicação Visual CNPJ 12.345.678/0001-90 WR2-DEV01 1122-4002-9F31-0AA8 6.7.14 192.168.0.21 12/03/2019 00:00:00 (cadastro) — Ativa Bloquear máquina",
+  "roles": {
+    "kpi": {
+      "count": 4,
+      "tag": "DIV",
+      "overflowX": false,
+      "items": [
+        {
+          "label": "Máquinas cadas",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.94 0.005 90)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Máquinas bloqu",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.94 0.005 90)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Empresas bloqu",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.94 0.005 90)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Acessos 24h9pr",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.94 0.005 90)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        }
+      ]
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": 13,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "500",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 13,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "500",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": 9.3,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "500",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": 11.3,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "500",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 5.3,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 8,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 6,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 10.7,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 7,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 8,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "9999px",
+          "borda": true,
+          "bg": "oklch(0.68 0.13 162)",
+          "dot": false
+        }
+      },
+      {
+        "col": 8,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 10,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "9999px",
+          "borda": true,
+          "bg": "oklch(0.68 0.13 162)",
+          "dot": false
+        }
+      },
+      {
+        "col": 9,
+        "tag": "BUTTON",
+        "align": "right",
+        "larguraPct": 11.3,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "500",
+        "blocos": 1,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "fixed",
+      "colunasDeclaradas": 10,
+      "linhas": 13,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "ocultos": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "ocultos": 0,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          },
+          "blocos": 0,
+          "texto": "",
+          "textoProprio": false
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null,
+    "drawer": null
+  }
+}
