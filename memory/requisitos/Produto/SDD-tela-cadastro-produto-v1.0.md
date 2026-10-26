@@ -6,7 +6,7 @@ type: sdd
 module: Produto
 status: ativo
 owner: wagner
-version: 1.0.9
+version: 1.0.10
 last_updated: 2026-10-21
 related_docs:
   - SPEC.md
@@ -974,8 +974,12 @@ travar uma nota — sem impedir o cadastro de ser salvo.
 - **Protótipo:** o `Product Cadastro.html` (Cowork do [F]) já desenha isso no painel lateral —
   *"Faltam: nome, NCM"*.
 - **Hoje no oimpresso:** 🟡 o Novo produto avisa NCM vazio ou incompleto (`UC-PCAD-14`), sem impedir
-  o salvamento — o cadastro mínimo (`CU-PROD-01`) continua sendo só nome e SKU. Falta olhar a natureza
-  (`CU-PROD-19`) e o EAN.
+  o salvamento — o cadastro mínimo (`CU-PROD-01`) continua sendo só nome e SKU. O Editar não avisa
+  falta de NCM em produto de serviço (`UC-PEDIT-14`). Com tipo EAN-13, EAN-8 ou UPC-A, o Novo e o
+  Editar avisam SKU que não vira código de barras válido (`UC-PCAD-17` e `UC-PEDIT-15`): letra, dígito
+  a mais ou dígito verificador errado. Esse aviso protege a **etiqueta** (a biblioteca recusa o
+  código); a nota fiscal não usa o EAN hoje, porque o emissor do NfeBrasil manda "SEM GTIN". Falta a
+  origem vazia.
 
 #### CU-PROD-19 — Natureza fiscal (mercadoria × serviço) e campos da nota de serviço `[must]` 🟡 **parcial**
 
@@ -1235,6 +1239,7 @@ cadastro pede os dados da nota certa: NCM para mercadoria, item da LC 116 para s
 
 **Histórico:**
 
+- 2026-10-21 — **`CU-PROD-18` ganha o aviso de EAN** (v1.0.10): `UC-PCAD-17` e `UC-PEDIT-15`. O aviso protege a etiqueta; a nota fiscal não usa o EAN hoje. [M+C]
 - 2026-10-21 — **`CU-PROD-19` item 3 passa de 🔴 a 🟡** (v1.0.9): o Editar mostra a natureza fiscal decidida pelo contador (`UC-PEDIT-14`) e o aviso de NCM deixa de aparecer para produto de serviço. Falta: Novo produto, ficha, e o item da LC 116 por produto na NFS-e (item 4). [M+C]
 - 2026-10-20 — **§6.1 ganha `CU-PROD-16`, `CU-PROD-17` e `CU-PROD-18`** (v1.0.8): dados fiscais para nota, peso e dimensões, aviso de pendência fiscal. Origem: benchmark de concorrentes da tela de cadastro (Bling, Tiny/Olist, Conta Azul, Omie, Shopify), registrado também na [CAPTERRA-FICHA §11](CAPTERRA-FICHA.md). Mesmo dia: [M] decidiu que o NCM entra no cadastro; pesquisa refeita com ERPs de comunicação visual, que trouxe `CU-PROD-19` (natureza mercadoria × serviço) e `CV-06`…`CV-11`. Nenhum UC novo em `casos.md` ainda. [M+C]
 - 2026-07-27 — **Badge de proveniência nas 12 seções** (v1.0.6). Fecha a dívida que o próprio exemplar criou ao virar template: o [SDD-TEMPLATE.md](../_DesignSystem/SDD-TEMPLATE.md), extraído daqui em 2026-07-26, passou a exigir badge por seção e este documento tinha **zero** (medido: `grep -cE "⚙️|🖐"` → 0). Badges atribuídos **pela tabela do template**, não por julgamento. Mudança de forma: nenhum CU/fluxo/risco/roadmap tocado. [CC]
