@@ -383,6 +383,20 @@ Então o XML original ainda está lá, com hash SHA256 batendo com `nfe_emissoes
 **Implementação:** Storage `storage/app/nfe-brasil/{business_id}/xmls/{ano}/{mes}/{chave}.xml` (read-only após escrita); `xml_hash` na tabela; rotina diária verifica integridade.
 **Testado em:** _lacuna — XmlImutabilidadeTest não existe; nenhum teste valida `xml_hash` SHA256 batendo nem imutabilidade read-only do XML após 5 anos_.
 
+### R-NFE-045 · A config da SEFAZ leva o CSC da empresa com o nome que a lib lê
+
+```gherkin
+Dado uma empresa com CSC e id do CSC cadastrados (business.csc / business.csc_id)
+Quando a NFC-e é assinada
+Então a configuração da sped-nfe leva CSC e CSCid com esses valores (as chaves que Common\Tools::addQRCode lê)
+E empresa sem CSC leva vazio — no QR Code versão 3 a lib não exige o CSC
+```
+
+**Contrato:** sped-nfe `Common\Tools::addQRCode` (lança "faltam dados CSC e/ou CSCId" fora do QR v3).
+**Implementação:** `Modules/NfeBrasil/Services/NfeService.php` (`montarConfigSefaz`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfceCscConfigTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** o CSC também vai vazio em `NfeCartaCorrecaoService` e `NfeInutilizacaoService` (eventos de NF-e, onde a lib não usa o CSC).
+
 ### R-NFE-011 · Schema CBS/IBS vazio em 2026, preenchido conforme legislação
 
 ```gherkin
