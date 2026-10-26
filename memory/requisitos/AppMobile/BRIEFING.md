@@ -2,7 +2,7 @@
 module: AppMobile
 status: em-construcao
 status_nota: "Telas próprias no app oimpresso-app (decisão [W] 2026-10-01, 2ª); a base /m dentro do ERP foi revertida."
-updated_at: "2026-10-15"
+updated_at: "2026-10-26"
 distilled_at: "2026-10-15"
 distilled_by: "manual [CL] — 2026-10-15: relidos a ADR 0432 e os 7 contratos ⬜ das propostas P1–P9 (api/tela-02, 03-anexos, 04, 13-lucratividade, 22-avancar-etapa, 22-entrega, 41); entraram a regra da biometria e o ponteiro para os contratos. Base anterior: reversão do /m de 2026-10-01 (#8463, #8465) e MAPA-DE-DADOS-v1 (#8462). O app não tem módulo próprio no ERP (é um repo à parte, oimpresso-app), então o destilador automático não cobre esta porta. Ajustes da empresa (PR 01 propostas-app) em 2026-10-15."
 owner: W
@@ -28,9 +28,16 @@ design-v4 em `mobile/ref/design-v4/`).
 ## Desenho vigente
 
 - Telas escritas **no próprio app** (React + Vite empacotado no Capacitor, sem `server.url`).
-- Dados do ERP por **API com token Passport**, pelo HTTP nativo do Capacitor. Hoje a API existe
-  só para o Ponto (`/ponto/api`); as demais telas precisam de endpoint novo no ERP, um por tela,
-  com isolamento `business_id` (ADR 0093) e teste cross-tenant no tenant 98 (ADR 0358).
+- Dados do ERP por **API com token Passport**, pelo HTTP nativo do Capacitor, em `/api/app/*`
+  (`routes/api.php` carrega um arquivo por área de `routes/api/app/`; controllers em
+  `app/Http/Controllers/Api/App/`). A API **não é mais só o Ponto**: em 2026-10-26 havia 21 áreas
+  (início, pedidos, venda, produtos, pessoas, financeiro, pagamentos, fiscal, oficina, produção,
+  orçamentos, tarefas, relatórios, chat, atendimento, notificações, equipe, ponto e outras) —
+  a lista viva é `ls routes/api/app/`, não este parágrafo. O Ponto segue também em `/ponto/api`.
+  Tela nova continua pedindo endpoint próprio, com isolamento `business_id` (ADR 0093) e teste
+  cross-tenant no tenant 98 (ADR 0358).
+- O que falta para o app estar **nas lojas** (Google Play/App Store) mora no repo
+  `wagnerra23/oimpresso-app`, não no ERP: build assinado, contas de desenvolvedor e publicação.
 
 ## Ajustes da empresa
 

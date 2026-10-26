@@ -34,6 +34,27 @@ use Menu;
 class DataController extends Controller
 {
     /**
+     * Natureza fiscal do produto para o cadastro (UC-PEDIT-14 · CU-PROD-19).
+     *
+     * O `ProductController` (núcleo) pede via `ModuleUtil::getModuleData('produto_natureza_fiscal')`
+     * para não importar este módulo (DependencyDirectionTest: app/ não depende de Modules/).
+     * O `business_id` vem da sessão de quem chama; produto de outra empresa devolve null.
+     *
+     * @param  array{business_id?: int, product_id?: int}  $args
+     * @return array{natureza: string, codigo_servico: string|null}|null
+     */
+    public function produto_natureza_fiscal($args = [])
+    {
+        $businessId = (int) ($args['business_id'] ?? 0);
+        $productId = (int) ($args['product_id'] ?? 0);
+        if ($businessId <= 0 || $productId <= 0) {
+            return null;
+        }
+
+        return app(\Modules\NfeBrasil\Services\Tributacao\NaturezaFiscalService::class)->daProduto($businessId, $productId);
+    }
+
+    /**
      * Feature flag do módulo para Superadmin > Packages.
      *
      * @return array
