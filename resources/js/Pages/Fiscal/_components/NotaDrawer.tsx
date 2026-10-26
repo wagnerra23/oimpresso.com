@@ -504,13 +504,13 @@ export default function NotaDrawer({ nota, sefazCodes, onClose }: NotaDrawerProp
               data-contract="cancelar-escopo"
               style={{ display: 'grid', gap: 8, margin: '0 0 14px' }}
             >
-              <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: 12.5 }}>
+              <label htmlFor="cancelar-escopo-nota" style={{ display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: 12.5 }}>
                 <RadioGroupItem value="nota" id="cancelar-escopo-nota" />
                 <span>
                   <strong>Só a nota</strong> — a venda continua, para reemitir a nota.
                 </span>
               </label>
-              <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: 12.5 }}>
+              <label htmlFor="cancelar-escopo-venda" style={{ display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: 12.5 }}>
                 <RadioGroupItem value="venda" id="cancelar-escopo-venda" />
                 <span>
                   <strong>A venda junto</strong> — a venda é cancelada (sai dos relatórios), o estoque volta e o
