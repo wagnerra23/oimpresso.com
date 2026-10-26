@@ -85,8 +85,12 @@ it('US-MKT-009 · flag ligada: a nota só pode sair com destinatário completo e
     $pedido->forceFill(['buyer_external' => ['id' => 1, 'documento' => '12345678909', 'uf' => 'SP']])->save();
     expect(EmitirNfeDoPedidoJob::avaliar($biz, $tx)['pode'])->toBeFalse(); // sem o destinatário completo do faturamento
 
-    $pedido->forceFill(['buyer_external' => ['id' => 1, 'documento' => '12345678909', 'uf' => 'SP', 'destinatario' => ['tax_number' => '12345678909', 'name' => 'Ana Teste', 'state' => 'SP']]])->save();
-    expect(EmitirNfeDoPedidoJob::avaliar($biz, $tx))->toMatchArray(['pode' => true, 'motivo' => null, 'cfop' => '6102', 'destinatario' => ['tax_number' => '12345678909', 'name' => 'Ana Teste', 'state' => 'SP']]);
+    $pedido->forceFill(['buyer_external' => ['id' => 1, 'documento' => '12345678909', 'uf' => 'SP', 'destinatario' => ['tax_number' => '12345678909', 'name' => 'Ana Teste', 'state' => 'SP', 'city' => 'Cidade Inexistente Teste', 'city_code' => null]]])->save();
+    // Município fora da tabela de cidades: o NfeService usaria o do emitente → não pode sair.
+    expect(EmitirNfeDoPedidoJob::avaliar($biz, $tx))->toMatchArray(['pode' => false, 'motivo' => 'município do destinatário não encontrado na tabela de cidades']);
+
+    $pedido->forceFill(['buyer_external' => ['id' => 1, 'documento' => '12345678909', 'uf' => 'SP', 'destinatario' => ['tax_number' => '12345678909', 'name' => 'Ana Teste', 'state' => 'SP', 'city' => 'Sao Paulo', 'city_code' => '3550308']]])->save();
+    expect(EmitirNfeDoPedidoJob::avaliar($biz, $tx))->toMatchArray(['pode' => true, 'motivo' => null, 'cfop' => '6102']);
 
     // Emite pelo NfeService com o destinatário e o CFOP (dublê: nenhum teste fala com a SEFAZ).
     $nfe = Mockery::mock(\Modules\NfeBrasil\Services\NfeService::class);

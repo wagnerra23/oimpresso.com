@@ -10,6 +10,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Marketplaces\Entities\PedidoMarketplace;
 use Modules\Marketplaces\Services\Fiscal\CfopDoPedido;
@@ -66,7 +67,31 @@ class EmitirNfeDoPedidoJob implements ShouldQueue
             return $nao('CFOP do marketplace não configurado (depende do contador)');
         }
 
-        return ['pode' => true, 'motivo' => null, 'cfop' => $cfop, 'destinatario' => (array) $destinatario['destinatario']];
+        $dest = (array) $destinatario['destinatario'];
+        if (empty($dest['city_code']) && ! self::municipioEncontrado($dest)) {
+            // Sem código, o NfeService usaria o município do EMITENTE: a nota sairia errada.
+            return $nao('município do destinatário não encontrado na tabela de cidades');
+        }
+
+        return ['pode' => true, 'motivo' => null, 'cfop' => $cfop, 'destinatario' => $dest];
+    }
+
+    /**
+     * Mesma busca que o NfeService faz quando falta o código do município: UF + `descricao LIKE
+     * <nome em maiúsculas>%` em `cidades`. Reproduzida aqui para recusar ANTES de emitir.
+     *
+     * @param  array<string, mixed>  $dest
+     */
+    private static function municipioEncontrado(array $dest): bool
+    {
+        $cidade = strtoupper(substr((string) ($dest['city'] ?? ''), 0, 40));
+        if ($cidade === '' || empty($dest['state'])) {
+            return false;
+        }
+
+        return DB::table('cidades')->where('uf', strtoupper((string) $dest['state']))
+            ->where('descricao', 'like', $cidade.'%')->whereNull('deleted_at')
+            ->whereNotNull('officeimpresso_codigo')->exists();
     }
 
     public function handle(): void
