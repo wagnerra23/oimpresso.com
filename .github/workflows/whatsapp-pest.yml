@@ -154,6 +154,7 @@ jobs:
             --log-junit test-results/pest-whatsapp-junit.xml \
             Modules/Whatsapp/Tests/Feature/RegisterWhatsappPermissionsCommandTest.php \
             Modules/Whatsapp/Tests/Feature/AppAtendimentoApiContratoTest.php \
+            Modules/Whatsapp/Tests/Feature/BotMenuAtendimentoContratoTest.php \
             Modules/Whatsapp/Tests/Feature/EmployeePerformanceDiasAtivosTest.php \
             Modules/Whatsapp/Tests/Feature/ChannelDisplayIdentifierIndexTest.php \
             Modules/Whatsapp/Tests/Feature/CentrifugoPublishTest.php \
