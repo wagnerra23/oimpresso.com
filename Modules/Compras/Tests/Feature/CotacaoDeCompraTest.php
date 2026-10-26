@@ -113,3 +113,80 @@ it('não aceita fornecedor, requisição nem cotação de outra empresa', functi
     expect(fn () => $this->svc->comparar($this->outra, $id))->toThrow(InvalidArgumentException::class, 'Cotação inválida para este negócio.');
     expect(fn () => $this->svc->responder($this->biz, $id, $this->alheio, []))->toThrow(InvalidArgumentException::class, 'Este fornecedor não foi convidado para a cotação.');
 });
+
+// ─── Fechar: gera o pedido de compra de cada vencedor (VALOR — regra mestre) ─────────────────
+// Esperado escrito à mão a partir do cenário do topo:
+//   vencedores padrão: B leva lona (10 × 9,50 = 95,00) e tinta (2 × 20,00 = 40,00) → pedido B = 135,00
+//   trocando a lona para A: pedido A = 10 × 10,00 = 100,00 · pedido B = 40,00
+// Dois caminhos: o cabeçalho gravado (`final_total`) e a soma das linhas gravadas (quantidade × preço).
+
+function cotResponderCenario($t, int $id): array
+{
+    $itens = DB::table('compras_cotacao_itens')->where('cotacao_id', $id)->orderBy('id')->pluck('id')->all();
+    $t->svc->responder($t->biz, $id, $t->a, [
+        $itens[0] => ['preco_unitario' => '10.00', 'prazo_dias' => 5],
+        $itens[1] => ['preco_unitario' => '20.00', 'prazo_dias' => 7],
+    ]);
+    $t->svc->responder($t->biz, $id, $t->b, [
+        $itens[0] => ['preco_unitario' => '9.50', 'prazo_dias' => 10],
+        $itens[1] => ['preco_unitario' => '20.00', 'prazo_dias' => 3],
+    ]);
+
+    return $itens;
+}
+
+function cotPedido(int $pedidoId): array
+{
+    $tx = DB::table('transactions')->where('id', $pedidoId)->first();
+    $somaLinhas = (float) DB::table('purchase_lines')->where('transaction_id', $pedidoId)
+        ->selectRaw('COALESCE(SUM(quantity * purchase_price), 0) as s')->value('s');
+
+    return ['tx' => $tx, 'linhas' => round($somaLinhas, 2)];
+}
+
+it('fechar gera um pedido por vencedor, com o total pelos dois caminhos', function () {
+    $id = cotCriar($this);
+    cotResponderCenario($this, $id);
+
+    $pedidos = $this->svc->fechar($this->biz, $id, $this->uid);
+
+    expect($pedidos)->toHaveCount(1);
+    $p = cotPedido($pedidos[0]);
+    expect($p['tx']->type)->toBe('purchase_order');
+    expect($p['tx']->status)->toBe('ordered');
+    expect((int) $p['tx']->contact_id)->toBe($this->b);
+    expect((int) $p['tx']->business_id)->toBe($this->biz);
+    expect(round((float) $p['tx']->final_total, 2))->toBe(135.0);      // caminho 1: cabeçalho
+    expect($p['linhas'])->toBe(135.0);                                 // caminho 2: linhas
+    expect(DB::table('purchase_lines')->where('transaction_id', $pedidos[0])->count())->toBe(2);
+    expect(substr((string) $p['tx']->delivery_date, 0, 10))->toBe(now()->addDays(10)->toDateString());
+    expect(DB::table('compras_cotacoes')->where('id', $id)->value('status'))->toBe('fechada');
+});
+
+it('trocar o vencedor de um item divide em dois pedidos com os totais certos', function () {
+    $id = cotCriar($this);
+    $itens = cotResponderCenario($this, $id);
+
+    $pedidos = $this->svc->fechar($this->biz, $id, $this->uid, [$itens[0] => $this->a]);
+
+    $porFornecedor = collect($pedidos)->mapWithKeys(fn ($p) => [(int) DB::table('transactions')->where('id', $p)->value('contact_id') => cotPedido($p)]);
+    expect(round((float) $porFornecedor[$this->a]['tx']->final_total, 2))->toBe(100.0);
+    expect($porFornecedor[$this->a]['linhas'])->toBe(100.0);
+    expect(round((float) $porFornecedor[$this->b]['tx']->final_total, 2))->toBe(40.0);
+    expect($porFornecedor[$this->b]['linhas'])->toBe(40.0);
+    expect((int) DB::table('compras_cotacao_itens')->where('id', $itens[0])->value('vencedor_contact_id'))->toBe($this->a);
+});
+
+it('não fecha duas vezes, nem com fornecedor que não respondeu, nem a cotação de outra empresa', function () {
+    $id = cotCriar($this);
+    $itens = cotResponderCenario($this, $id);
+
+    expect(fn () => $this->svc->fechar($this->biz, $id, $this->uid, [$itens[2] => $this->a]))
+        ->toThrow(InvalidArgumentException::class, 'O fornecedor escolhido não respondeu este item.');
+    if ($this->outra > 0) {
+        expect(fn () => $this->svc->fechar($this->outra, $id, $this->uid))->toThrow(InvalidArgumentException::class, 'Cotação inválida para este negócio.');
+    }
+
+    $this->svc->fechar($this->biz, $id, $this->uid);
+    expect(fn () => $this->svc->fechar($this->biz, $id, $this->uid))->toThrow(InvalidArgumentException::class, 'A cotação não está aberta.');
+});
