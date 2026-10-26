@@ -486,6 +486,32 @@ Status: 🧪
 
 ---
 
+## A NF-e da venda sai para o cliente (US-NFE-072 · R-NFE-036)
+
+> **Âncora:** [US-NFE-072](../../../../memory/requisitos/NfeBrasil/SPEC.md) e a regra R-NFE-036 do
+> SPEC do NfeBrasil (leiaute 4.00, grupo E do destinatário e `idDest`). Mora nesta tela porque a nota
+> emitida aparece nesta lista. Coluna CU `—`: o SDD §6 do Fiscal não tem CU de emissão a partir da
+> venda. Prova: `NfeDestinatarioDaVendaTest` (sem banco: contato como objeto, motor falso).
+
+## UC-FNFE-32 · Cliente identificado vira o destinatário, e o destino chega ao motor · `must`
+
+**Dado** uma venda de SC para um cliente com CNPJ, IE e endereço no RJ **Quando** sai a NF-e (modelo 55)
+**Então** o destinatário leva o CNPJ só com dígitos, a IE, o código IBGE e a UF RJ, com `ind_ie_dest` 1;
+cliente sem IE é 9 e não leva IE; o indicador cadastrado (2, isento) prevalece. O motor recebe a UF RJ,
+`contribuinte` e a interna do RJ; um item de 1.000,00 sai com CFOP 6102 e o vNF continua 1.000,00.
+
+Status: 🧪
+
+## UC-FNFE-33 · Sem cliente identificado a nota é a de antes · `must`
+
+**Dado** um contato sem CPF/CNPJ, ou a NFC-e **Quando** sai a nota **Então** não há destinatário do cadastro,
+o motor é chamado como sempre (mesma UF, CFOP 5102) e o vNF é o total da venda. UF inválida no cadastro
+mantém a operação interna.
+
+Status: 🧪
+
+---
+
 ## Boleto pago emite a NF-e (US-RB-044 · UC-FLX-26)
 
 > **Âncora:** [US-RB-044](../../../../memory/requisitos/RecurringBilling/SPEC.md) (*"Listener InvoicePaid

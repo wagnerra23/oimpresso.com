@@ -13,9 +13,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use InvalidArgumentException;
+use Modules\NfeBrasil\Exceptions\AliquotaInternaNaoCadastradaException;
 use Modules\NfeBrasil\Exceptions\NcmPadraoAusenteException;
 use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Models\NfeEmissao;
+use Modules\NfeBrasil\Models\NfeIcmsUf;
 use Modules\NfeBrasil\Models\NfeLocalEmissor;
 use Modules\NfeBrasil\Models\NfeEvento;
 use Modules\NfeBrasil\Services\Tributacao\ProdutoFiscalContext;
@@ -345,6 +347,17 @@ class NfeService
         // Thread 29 · R-NFE-034: item de serviço (decidido pelo contador) não sai em NF-e/NFC-e.
         $this->recusarItensDeServico($businessId, $linhas);
 
+        // R-NFE-036: NF-e (55) de venda com cliente identificado sai para ele — documento, IE,
+        // endereço e UF. Sem cliente com CPF/CNPJ, e sempre na NFC-e, segue o consumidor anônimo
+        // da própria UF, como antes. A UF e o contribuinte do destino chegam ao motor (CFOP 6xxx,
+        // regra por UF, DIFAL); a interna do destino vem da tabela por UF quando cadastrada.
+        $destReal = (string) $modelo === '55' ? $this->destinatarioDaVenda($tx, $ufOrigem) : null;
+        $ufDestino = $destReal['uf'] ?? $ufOrigem;
+        $contribuinte = $destReal === null ? null : $destReal['ind_ie_dest'] === '1';
+        $interna = $destReal === null || $ufDestino === $ufOrigem
+            ? null
+            : $this->internaDoDestino($businessId, $ufOrigem, $ufDestino);
+
         $itens = $this->montarItensNfe(
             linhas:         $linhas,
             valorNota:      $valorTotal,
@@ -353,14 +366,16 @@ class NfeService
             motor:          $motor,
             businessId:     $businessId,
             ufOrigem:       $ufOrigem,
-            ufDestino:      $ufOrigem, // NFC-e é sempre intra-estadual (varejo balcão)
+            ufDestino:      $ufDestino,
+            internaDestino: $interna,
+            destinatarioContribuinte: $contribuinte,
         );
 
         $dadosNfe = [
             'transaction_id' => $tx->id,
             'modelo'         => $modelo,
-            'nat_op'         => 'VENDA AO CONSUMIDOR',
-            'dest' => [
+            'nat_op'         => $destReal === null ? 'VENDA AO CONSUMIDOR' : 'VENDA DE MERCADORIA',
+            'dest' => $destReal ?? [
                 // NFC-e B2C anônimo: doc é opcional. Se Transaction tiver contact_id
                 // com CPF, fase 2B preenche. Por ora, default anônimo.
                 'nome'         => 'CONSUMIDOR FINAL',
@@ -396,6 +411,78 @@ class NfeService
         }
 
         return $this->emitir($businessId, $dadosNfe);
+    }
+
+    /**
+     * R-NFE-036 · destinatário da NF-e (55) de venda: o cliente da venda, lido no mesmo tenant.
+     * Null = sem cliente identificado (sem contato, ou contato sem CPF/CNPJ) → consumidor anônimo.
+     */
+    protected function destinatarioDaVenda(Transaction $tx, string $ufOrigem): ?array
+    {
+        if (empty($tx->contact_id)) {
+            return null;
+        }
+        $contato = DB::table('contacts')
+            ->where('business_id', (int) $tx->business_id)
+            ->where('id', (int) $tx->contact_id)
+            ->first();
+
+        return $contato === null ? null : $this->destinatarioDoContato($contato, $ufOrigem);
+    }
+
+    /**
+     * R-NFE-036 · monta o `dest` a partir do cadastro do cliente. Sem DB (testável).
+     *
+     * IE: `inscricao_estadual` (canon NF-e) ou o espelho `ie` do drawer. `ind_ie_dest` vem do
+     * `indicador_ie` cadastrado (1 contribuinte · 2 isento · 9 não contribuinte); sem ele, IE
+     * preenchida = 1, vazia = 9. UF inválida cai na UF do emitente (operação interna).
+     *
+     * @return array<string,mixed>|null
+     */
+    public function destinatarioDoContato(object $c, string $ufOrigem): ?array
+    {
+        $doc = Cnpj::documentoFiscal((string) (($c->tax_number ?? '') ?: ($c->cpf_cnpj ?? '')));
+        if (! in_array(strlen($doc), [11, 14], true)) {
+            return null;
+        }
+
+        $ie  = preg_replace('/\D/', '', (string) (($c->inscricao_estadual ?? '') ?: ($c->ie ?? '')));
+        $ind = (string) ($c->indicador_ie ?? '');
+        if (! in_array($ind, ['1', '2', '9'], true)) {
+            $ind = $ie !== '' ? '1' : '9';
+        }
+        $uf = strtoupper(trim((string) ($c->state ?? '')));
+        if (! preg_match('/^[A-Z]{2}$/', $uf)) {
+            $uf = $ufOrigem;
+        }
+        $codMun = preg_replace('/\D/', '', (string) ($c->city_code ?? ''));
+        $nome = (string) (($c->supplier_business_name ?? '') ?: ($c->name ?? ''));
+
+        return array_filter([
+            strlen($doc) === 14 ? 'cnpj' : 'cpf' => $doc,
+            'nome'          => substr($nome !== '' ? $nome : 'CLIENTE', 0, 60),
+            'ind_ie_dest'   => $ind,
+            'ie'            => $ind === '1' && $ie !== '' ? $ie : null,
+            'logradouro'    => substr((string) (($c->address_line_1 ?? '') ?: 'NAO INFORMADO'), 0, 60),
+            'numero'        => substr((string) (($c->numero ?? '') ?: 'SN'), 0, 60),
+            'bairro'        => substr((string) (($c->neighborhood ?? '') ?: (($c->bairro ?? '') ?: 'CENTRO')), 0, 60),
+            'municipio'     => substr((string) (($c->city ?? '') ?: 'NAO INFORMADO'), 0, 60),
+            // 9999999 = o buildXml procura o código pela UF + nome da cidade, como já fazia.
+            'cod_municipio' => strlen($codMun) === 7 ? $codMun : '9999999',
+            'uf'            => $uf,
+            'cep'           => preg_replace('/\D/', '', (string) ($c->zip_code ?? '')),
+            'email'         => ($c->email ?? '') ?: null,
+        ], fn ($v) => $v !== null);
+    }
+
+    /** Interna do destino (decimal) da tabela por UF; null se o contador ainda não cadastrou. */
+    private function internaDoDestino(int $businessId, string $ufOrigem, string $ufDestino): ?float
+    {
+        try {
+            return NfeIcmsUf::aliquotaInterna($businessId, $ufOrigem, $ufDestino);
+        } catch (AliquotaInternaNaoCadastradaException) {
+            return null;
+        }
     }
 
     /**
@@ -500,6 +587,8 @@ class NfeService
         int $businessId,
         string $ufOrigem,
         string $ufDestino,
+        ?float $internaDestino = null,
+        ?bool $destinatarioContribuinte = null,
     ): array {
         // R-NFE-024 controle: sem NCM padrão válido não há saída — mesma recusa do
         // R-NFE-022 em emitirParaTransaction (defesa em profundidade, sem DB).
@@ -551,19 +640,25 @@ class NfeService
             }
 
             $base = ($it['vprod_cent'] - $descontos[$i] + $fretes[$i] + $outros[$i]) / 100.0;
-            $tributo = $motor->calcular(
-                new ProdutoFiscalContext(
-                    ncm:         $ncm,
-                    valor:       $base,
-                    // R-NFE-025 (N1): `products` não tem `fiscal_rule_override_id` no schema
-                    // hoje — a coluna é migration de outra lane 🔴. Até lá, null.
-                    fiscal_rule_override_id: null,
-                    description: (string) $it['xprod'],
-                ),
-                businessId: $businessId,
-                ufOrigem:   $ufOrigem,
-                ufDestino:  $ufDestino,
+            $contexto = new ProdutoFiscalContext(
+                ncm:         $ncm,
+                valor:       $base,
+                // R-NFE-025 (N1): `products` não tem `fiscal_rule_override_id` no schema
+                // hoje — a coluna é migration de outra lane 🔴. Até lá, null.
+                fiscal_rule_override_id: null,
+                description: (string) $it['xprod'],
             );
+            // R-NFE-036: sem dado de destino (NFC-e, consumidor anônimo) a chamada é a de sempre.
+            $tributo = $internaDestino === null && $destinatarioContribuinte === null
+                ? $motor->calcular($contexto, businessId: $businessId, ufOrigem: $ufOrigem, ufDestino: $ufDestino)
+                : $motor->calcularComDestino(
+                    $contexto,
+                    businessId: $businessId,
+                    ufOrigem: $ufOrigem,
+                    ufDestino: $ufDestino,
+                    aliquotaInternaDestino: $internaDestino,
+                    destinatarioContribuinte: $destinatarioContribuinte,
+                );
 
             $vprod = $it['vprod_cent'] / 100.0;
             $dets[] = [

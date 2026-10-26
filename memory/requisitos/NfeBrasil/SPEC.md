@@ -725,6 +725,22 @@ E um CNPJ só numérico continua válido, com o mesmo DV de antes
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/CnpjAlfanumericoTest.php` (lane `nfebrasil-pest`).
 **Fora deste item:** emitente com CNPJ alfanumérico, chave de acesso, QR Code, máscara no front e o XSD do sped-nfe (que ainda declara `TCnpj` como `[0-9]{14}`) — ver `_saida-27.md` da thread 27 do playbook Fiscal.
 
+### R-NFE-036 · A NF-e da venda sai para o cliente da venda
+
+```gherkin
+Dado uma venda de SC com cliente cadastrado com CNPJ, IE e endereço no RJ
+Quando emito a NF-e (modelo 55) dessa venda
+Então o <dest> leva o CNPJ, a IE, o endereço e a UF RJ do cliente, e o idDest é 2 (interestadual)
+E o motor recebe a UF RJ, se o cliente é contribuinte e a alíquota interna do RJ (quando cadastrada)
+E o vNF continua igual ao total da venda
+E venda sem cliente com CPF/CNPJ, e toda NFC-e, seguem com o consumidor anônimo da própria UF, como antes
+```
+
+**Contrato:** NF-e leiaute 4.00, grupo E (destinatário) e campo `idDest` (1 interna · 2 interestadual); `indIEDest` 1/2/9 conforme o cadastro do cliente.
+**Implementação:** `Modules/NfeBrasil/Services/NfeService.php` (`emitirParaTransaction`, `destinatarioDaVenda`, `destinatarioDoContato`, `internaDoDestino`, `montarItensNfe`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeDestinatarioDaVendaTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** gravar o ICMS-ST e o DIFAL no XML (o motor calcula, o XML ainda leva zero) — próximo PR da US-NFE-072; recusar a nota quando falta a interna do destino.
+
 ### R-NFSE-004 · A NFS-e lê o certificado da config pelo CertificadoService
 
 ```gherkin
@@ -1682,3 +1698,22 @@ Casos: `resources/js/Pages/Fiscal/Nfe.casos.md` UC-FNFE-19, 20, 30, 31 · prova 
 - [x] Multi-tenant: o evento de um tenant nunca grava em outro (Pest com os tenants 98 e 2) — UC-FNFE-31
 - [ ] Smoke fiscal manual contra SEFAZ só em biz=1, homologação
 
+
+### US-NFE-072 · ICMS-ST e DIFAL chegam à NF-e da venda interestadual — **Legal**
+
+> owner: — · sprint: — · priority: p0 · estimate: 8h · status: doing · type: story
+> blocked_by: —
+
+**Implementado em:** _parcial_ — `Modules/NfeBrasil/Services/NfeService.php` (destinatário real e destino no motor, R-NFE-036) · `Modules/NfeBrasil/Tests/Feature/NfeDestinatarioDaVendaTest.php` (falta gravar ST e DIFAL no XML)
+
+Como empresa que vende para outro estado, quero que a NF-e saia para o meu cliente, com a UF dele, e leve o ICMS-ST e o DIFAL que o motor já calcula, para não emitir nota com imposto zerado numa operação interestadual.
+
+**Origem:** levantamento de lacunas de 2026-10-25 (item "ICMS-ST e DIFAL no XML da NF-e", obrigação legal). Medido em 2026-10-26 no `main`: o motor calcula ST, FCP e DIFAL (R-NFE-015..017, thread 06), mas (1) a NF-e da venda saía sempre para "CONSUMIDOR FINAL" na própria UF, então nenhuma venda chegava ao motor como interestadual, e (2) o `buildXml` grava `vBCST`, `vST`, `vICMSUFDest` e `vFCPUFDest` como zero e não emite os grupos de ST nem o `ICMSUFDest`.
+
+**Aceite:**
+- [x] A NF-e (55) da venda com cliente identificado leva o destinatário dele, e o motor recebe UF, contribuinte e interna do destino — R-NFE-036, UC-FNFE-32/33
+- [ ] O XML grava o DIFAL no grupo `ICMSUFDest` e nos totais, sem mudar o vNF
+- [ ] O XML grava o ICMS-ST no grupo do CST/CSOSN com ST e soma o vST ao vNF — **decisão [W]**: o ST entra por cima do total da venda?
+- [ ] Interestadual a não contribuinte sem interna cadastrada recusa a nota com a saída (cadastrar a interna), em vez de emitir DIFAL zero
+- [ ] Multi-tenant: o contato e a tabela por UF são lidos só do tenant da venda (Pest com os tenants 98 e 99)
+- [ ] Smoke fiscal manual contra SEFAZ só em biz=1, homologação (depende do certificado A1 de biz=1; em 2026-05-09 ele valia até 2026-08-06 — conferir antes)
