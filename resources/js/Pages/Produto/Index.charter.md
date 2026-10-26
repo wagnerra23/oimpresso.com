@@ -76,9 +76,10 @@ função da lista Blade que roda hoje em produção.
   Blade (25 a 1000 e todas) e o mesmo padrão (configuração da empresa).
 - Menu **Ações** por produto — união do protótipo com a lista Blade, com as MESMAS permissões:
   Ver, Editar, Estoque inicial, Histórico de estoque, Duplicar, Gerar código de barras, Preços por
-  grupo, Baixar anexo, Ativar/Desativar, Excluir; Comprar; e Dados fiscais (abre o painel na aba
-  Fiscal). Transferir entra com a requisição de transferência; "Usar em OS" saiu por decisão [F]
-  de 2026-10-11.
+  grupo, Baixar anexo, Ativar/Desativar, Excluir; e Dados fiscais (abre o painel na aba Fiscal).
+  Transferir entra com a requisição de transferência; "Usar em OS" saiu por decisão [F] de
+  2026-10-11; "Comprar" saiu por decisão [F] de 2026-10-26 (a consulta não é a tela de compras,
+  UC-PIDX-11).
 - Seleção em massa: Edição em massa, Adicionar/Remover do local, Etiquetas, Desativar, Excluir e
   WooCommerce Sync (só com o módulo).
 - Painel de detalhe (Sheet) com Dados · Variações/Composição · Estoque · Fiscal · Prateleira. Abre em
@@ -95,8 +96,8 @@ função da lista Blade que roda hoje em produção.
 >   o produto e informa o preço ao cliente. Muitas vendas saem sem nota ([F]); quem decide é cada
 >   venda, pelo processo "Venda Sem Nota" ou "Venda Com Nota" (`memory/requisitos/Sells/SPEC.md`), e
 >   não o produto.
-> - Sai o "Comprar" do menu Ações e do rodapé do painel: a consulta não é a tela de compras. Muda o
->   UC-PIDX-11.
+> - **Feito:** sai o "Comprar" do menu Ações e do rodapé do painel, porque a consulta não é a tela de
+>   compras (UC-PIDX-11 reescrito, com teste).
 > - O rodapé do painel não tem "Gerar OP": a ordem de produção começa na produção. A produção nunca
 >   teve o botão; o protótipo deixou de ter.
 > - **Imposto aparece por relevância, não por permissão:** imposto não é segredo, sai impresso na nota.
@@ -107,7 +108,8 @@ função da lista Blade que roda hoje em produção.
 >     imposto aplicável (com o tipo), com uma frase dizendo que o preço já inclui o imposto. Muda o
 >     UC-PIDX-19.
 >   - Tabelas de Variações e Composição: sem imposto, uma coluna de preço só; com imposto, as duas,
->     com os rótulos "sem imposto" e "com imposto" no lugar de "(excl.)" e "(incl.)".
+>     com os rótulos "sem imposto" e "com imposto" no lugar de "(excl.)" e "(incl.)". **Os rótulos já
+>     estão na produção** (junto com o UC-PIDX-11); falta a coluna única.
 >   - Aba Fiscal e "Dados fiscais (NCM/CFOP)" do menu: só em empresa que emite nota (módulo Fiscal no
 >     pacote, o mesmo teste do botão "Abrir no módulo Fiscal"). A aba começa dizendo se o produto
 >     está pronto para nota, por exemplo "Sem NCM: a nota sai com o NCM padrão da empresa". Muda os
