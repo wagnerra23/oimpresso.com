@@ -497,6 +497,23 @@ da nota diz "O DANFE só vale com o EPEC registrado".
 
 Status: 🧪
 
+## UC-FNFE-40 · Devolução exige a permissão e quantidade válida · `must`
+
+> **Âncora:** R-NFE-039 do [SPEC do NfeBrasil](../../../../memory/requisitos/NfeBrasil/SPEC.md) (rota da
+> NF-e de devolução, US-NFE-064). Prova: `AcoesDevolucaoTest`, que invoca o `AcoesController`.
+
+**Dado** uma NF-e autorizada **Quando** quem não tem `fiscal.nfe.acoes` pede a devolução **Então** 403. Sem item,
+ou com quantidade 0, negativa ou não numérica, o pedido não passa da validação; 2,5 passa.
+
+Status: 🧪
+
+## UC-FNFE-41 · A devolução só acha nota da própria empresa · `must`
+
+**Dado** uma nota autorizada da empresa A e outra da B **Quando** A pede a devolução da nota de B **Então** não é
+achada (404) e nada é emitido; da nota de A, o serviço recebe a empresa A, a nota e as quantidades por item.
+
+Status: 🧪
+
 ## UC-FNFE-31 · O EPEC de uma empresa grava evento só nela · `must`
 
 **Dado** a empresa A em EPEC **Quando** sai uma NF-e de A **Então** o único evento da nota é de A, e a empresa B
