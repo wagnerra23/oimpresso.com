@@ -56,9 +56,11 @@ o que está parado ou sem cobertura de garantia.**
 > declarado. Os Non-Goals de produto (o que a tela deliberadamente não deve fazer) seguem
 > pendentes de [W]: `charter-write` é proibida de inferi-los.
 
-- ❌ **Não calcula depreciação nem valor residual.** A coluna `assets.depreciation` é gravada como
-  texto livre e nunca lida para conta nenhuma; a regra (linear ou SAC, com que fonte contábil) é
-  decisão [W] — RESÍDUO 6 do playbook, dono `SPEC.md:96 US-ASSET-W01`. O KPI mostra `—`.
+- ~~❌ **Não calcula depreciação nem valor residual.**~~ **Superado em 2026-10-26** pela decisão [W]
+  (US-ASSET-009): o valor residual é a depreciação **gerencial** linear pela vida útil em anos do
+  bem (`assets.depreciation`), rotulada como gerencial. ❌ **Não é contábil**: não usa taxa fiscal
+  nem SAC, e o card nunca se apresenta como valor contábil. Sem nenhum bem com vida útil, o KPI
+  segue mostrando `—` (UC-PAT-02).
 - ❌ **Não mostra custo de manutenção.** `asset_maintenances` não tem coluna de valor. RESÍDUO 3
   do playbook. A lista e o total mostram `—`, não zero.
 - ❌ **Não cria rota nem tela para Garantias ou Auditoria.** As duas abas existem no protótipo;
