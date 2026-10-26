@@ -64,6 +64,8 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CV-10 | O hub abre pra quem tem permissão e renderiza a calculadora | must | `CU-CV-01` itens 1-2 | `ContratoTelaOrcamentoTest` | 🧪 ⏭ PR-skip |
 | UC-CV-11 | Salvar o orçamento grava os valores do servidor, atomicamente | should | `CU-CV-05` itens 1-4 | `OrcamentoControllerTest` | 🧪 ⏭ PR-skip |
 | UC-CV-12 | O catálogo de partida nasce completo, idempotente e isolado | should | `CU-CV-07` itens 1-3 | `MaterialSeederTest` | 🧪 ⏭ PR-skip |
+| UC-CV-13 | Peça menor que o mínimo do material é cobrada pelo mínimo | must `[V0]` | `CU-CV-02` · DoD US-COMVIS-001 (mínimo) | `OrcamentoMinimoAcabamentoContratoTest` | 🧪 |
+| UC-CV-14 | Acabamento do catálogo entra no total pela base do tipo dele | must `[V0]` `[T0]` | `CU-CV-02` · DoD US-COMVIS-001 (acabamentos) · SPEC §12.1 | `OrcamentoMinimoAcabamentoContratoTest` | 🧪 |
 | UC-CVINST-01 | Agenda equipe e veículo na OS e a agenda da janela lista a instalação | must | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAgendaContratoTest` | 🧪 |
 | UC-CVINST-02 | Alguém da equipe ocupado na janela bloqueia, dizendo com quem e quando | must | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAgendaContratoTest` | 🧪 |
 | UC-CVINST-03 | O mesmo veículo na janela bloqueia, mesmo escrito de outro jeito | must | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAgendaContratoTest` | 🧪 |
@@ -399,6 +401,37 @@ e marcar ✅ sem ela é `status:unverified` (G-7).
 - ⚠️ Este caso prova que o catálogo **existe no banco**, não que a operadora o vê — quem prova a
   tela é o UC-CV-07 (até 2026-09-23 a rota não entregava o catálogo; SDD §5.4.1).
 - **Status: 🧪 ⏭ PR-skip** — arquivo pula em SQLite; veredito da full-suite noturna.
+
+---
+
+## UC-CV-13 · Peça menor que o mínimo do material é cobrada pelo mínimo · `must` `[V0]`
+
+- **Persona:** vendedor de gráfica orçando plaquinha de 30 × 40 cm — a gráfica não corta, imprime e
+  acaba uma peça por menos que o mínimo dela.
+- **Aceite:** Dado um material com mínimo de 0,5 m² por peça · Quando o item tem peças menores · Então
+  cada peça é cobrada como 0,5 m² (`area_cobrada_m2`), a área física (`area_m2`, base do custo) não
+  muda, e peça maior que o mínimo segue pela própria área. Material sem mínimo, ou de outra empresa,
+  não aplica mínimo nenhum: o orçamento sai com os mesmos números de antes.
+- **Teste:** [`OrcamentoMinimoAcabamentoContratoTest`](../../../../Modules/ComunicacaoVisual/Tests/Feature/OrcamentoMinimoAcabamentoContratoTest.php)
+  — cada valor é conta à mão, refeita por um segundo caminho sem banco.
+- **Contrato:** DoD da `US-COMVIS-001` no SPEC (*"mínimo cobrado configurável (`material.minimo_m2`)"*)
+  · `CU-CV-02` do SDD (o servidor é a fonte do valor) · SDD §5.4.6 / D-8.
+- **Status: 🧪** — verde no CT 100 em 2026-10-26 (cópia isolada do branch); veredito da lane pendente.
+
+---
+
+## UC-CV-14 · Acabamento do catálogo entra no total pela base do tipo dele · `must` `[V0]` `[T0]`
+
+- **Persona:** vendedor que soma bainha, ilhós, laminação e arte num banner sem abrir planilha.
+- **Aceite:** Dado acabamentos cadastrados da empresa · Quando o item os escolhe · Então cada um vale
+  base × preço, com a base pelo tipo (SPEC §12.1): `m_linear` = metros informados ou o perímetro da
+  peça × quantidade; `m2` = área física; `unitario` = quantidade informada ou nº de peças; `fixo` = 1.
+  A soma vai para `acabamentos` e entra no total; o subtotal do material não muda. Acabamento de outra
+  empresa, inativo ou sem empresa conhecida é recusado. Gravar guarda o acabamento e o preço do dia.
+- **Teste:** [`OrcamentoMinimoAcabamentoContratoTest`](../../../../Modules/ComunicacaoVisual/Tests/Feature/OrcamentoMinimoAcabamentoContratoTest.php)
+- **Contrato:** DoD da `US-COMVIS-001` (*"acabamentos[]"*, *"extras = sum(acabamentos.preco)"*) ·
+  SPEC §12.1 (`cv_acabamentos.tipo`) · `CU-CV-02` do SDD.
+- **Status: 🧪** — verde no CT 100 em 2026-10-26 (cópia isolada do branch); veredito da lane pendente.
 
 ---
 
