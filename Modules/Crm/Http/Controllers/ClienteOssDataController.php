@@ -159,7 +159,7 @@ class ClienteOssDataController extends Controller
         $query = Transaction::where('transactions.business_id', $businessId)
             ->where('contact_id', $contact->id)
             ->where('type', 'sell')
-            ->where('status', '!=', 'draft')
+            ->whereNotIn('status', ['draft', 'cancelled'])
             ->leftJoin('business_locations as bl', 'transactions.location_id', '=', 'bl.id')
             ->select(
                 'transactions.id',
