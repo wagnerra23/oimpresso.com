@@ -43,7 +43,7 @@ beforeEach(function () {
     ]);
     $this->saldo = fn () => (string) DB::table('contacts')->where('id', $this->cliente)->value('balance');
     $this->vale = fn (int $id) => $this->actingAs($this->user)
-        ->withSession(['user.business_id' => $this->bizId, 'business.id' => $this->bizId])
+        ->withSession(['user.business_id' => $this->bizId, 'business.id' => $this->bizId, 'business.enabled_modules' => []])
         ->postJson("/sell-return/{$id}/vale-troca");
 });
 
