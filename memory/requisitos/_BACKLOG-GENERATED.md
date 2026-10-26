@@ -2,14 +2,14 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1004 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1008 tarefas abertas** em **56 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
 | Módulo | Abertas | doing | review | blocked | todo/backlog |
 |---|---:|---:|---:|---:|---:|
 | [`Jana`](#jana) | 83 | 2 | 0 | 0 | 81 |
-| [`Sells`](#sells) | 67 | 0 | 0 | 0 | 67 |
+| [`Sells`](#sells) | 70 | 0 | 0 | 0 | 70 |
 | [`Whatsapp`](#whatsapp) | 67 | 0 | 0 | 0 | 67 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
 | [`Financeiro`](#financeiro) | 49 | 3 | 0 | 0 | 46 |
@@ -59,10 +59,10 @@
 | [`VozDoCliente`](#vozdocliente) | 3 | 0 | 0 | 0 | 3 |
 | [`ADS`](#ads) | 2 | 0 | 0 | 0 | 2 |
 | [`Documentacao`](#documentacao) | 2 | 0 | 0 | 0 | 2 |
+| [`Estoque`](#estoque) | 2 | 0 | 0 | 0 | 2 |
 | [`MemoriaAutonoma`](#memoriaautonoma) | 2 | 0 | 0 | 0 | 2 |
 | [`Admin`](#admin) | 1 | 0 | 0 | 0 | 1 |
 | [`Auditoria`](#auditoria) | 1 | 0 | 0 | 0 | 1 |
-| [`Estoque`](#estoque) | 1 | 0 | 0 | 0 | 1 |
 | [`Mcp`](#mcp) | 1 | 0 | 0 | 0 | 1 |
 
 
@@ -165,8 +165,11 @@
 
 - **US-SELL-054** — Offline-first no PDV — fila IndexedDB + reemissão ao reconectar _(`p1`)_
 - **US-SELL-055** — Pix QR no PDV + webhook auto-reconcile ligado à venda/caixa _(`p1`)_
+- **US-SELL-074** — Cliente aprova o orçamento pelo link público, e a aprovação vira pedido _(`p1` · @wagner)_
+- **US-SELL-075** — Maquininha integrada ao caixa (TEF): o valor vai para a máquina e a resposta preenche o pagamento _(`p1` · @wagner)_
 - **US-SELL-056** — Keyboard-first coeso no Create — hotkeys configuráveis + Enter-avança + F-key pagar _(`p2`)_
 - **US-SELL-057** — Skeleton de carregamento no Create + INP < 200ms _(`p2`)_
+- **US-SELL-076** — Cupom de desconto e promoção leve X pague Y no caixa novo _(`p2` · @wagner)_
 - **US-SELL-001** — Epic — Migrar /sells/create pra MWART
 - **US-SELL-002** — Backend dual Inertia/Blade + feature flag + Pest
 - **US-SELL-003** — Frontend skeleton + AppShellV2 + props contract
@@ -1409,6 +1412,14 @@
 - **US-DOC-001** — Migrar a superfície `/documentacao` de Blade para Inertia/React
 - **US-DOC-002** — Tela do Programa (Trilha D) cruzando plano em git e tasks MCP
 
+## Estoque
+
+
+### todo
+
+- **US-ESTOQUE-001** — Toda transferência cai pendente na requisição e só move o estoque quando aprovada _(`p2` · @wagner)_
+- **US-ESTOQUE-003** — Sugestão de reposição e curva ABC por produto _(`p2` · @wagner)_
+
 ## MemoriaAutonoma
 
 
@@ -1430,13 +1441,6 @@
 ### todo
 
 - **US-AUDIT-009** — Pages Inertia Index + Detail `parcial`
-
-## Estoque
-
-
-### todo
-
-- **US-ESTOQUE-001** — Toda transferência cai pendente na requisição e só move o estoque quando aprovada _(`p2` · @wagner)_
 
 ## Mcp
 
