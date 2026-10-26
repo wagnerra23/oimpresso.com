@@ -158,6 +158,7 @@ jobs:
             Modules/Whatsapp/Tests/Feature/AppAtendimentoApiContratoTest.php \
             Modules/Whatsapp/Tests/Feature/NotificadorClienteWhatsappContratoTest.php \
             Modules/Whatsapp/Tests/Feature/ReguaRelacionamentoContratoTest.php \
+            Modules/Whatsapp/Tests/Feature/ReguaRelacionamentoConfigContratoTest.php \
             Modules/Whatsapp/Tests/Feature/EmployeePerformanceDiasAtivosTest.php \
             Modules/Whatsapp/Tests/Feature/ChannelDisplayIdentifierIndexTest.php \
             Modules/Whatsapp/Tests/Feature/CentrifugoPublishTest.php \

@@ -14,9 +14,9 @@ module: Whatsapp
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Whatsapp/**` + `resources/js/Pages/Whatsapp/**` + `resources/js/Pages/Atendimento/**` (namespaces Inertia `Whatsapp`, `Atendimento`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `Whatsapp` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 447 arquivos em 20 papéis.
+**Total mapeado:** 450 arquivos em 20 papéis.
 
-## Controllers — 24
+## Controllers — 25
 
 - [BroadcastController.php](../../../Modules/Whatsapp/Http/Controllers/Admin/BroadcastController.php)
 - [CaixaUnificadaController.php](../../../Modules/Whatsapp/Http/Controllers/Admin/CaixaUnificadaController.php)
@@ -29,6 +29,7 @@ module: Whatsapp
 - [MacrosController.php](../../../Modules/Whatsapp/Http/Controllers/Admin/MacrosController.php)
 - [MetricsController.php](../../../Modules/Whatsapp/Http/Controllers/Admin/MetricsController.php)
 - [QueuesController.php](../../../Modules/Whatsapp/Http/Controllers/Admin/QueuesController.php)
+- [ReguaRelacionamentoController.php](../../../Modules/Whatsapp/Http/Controllers/Admin/ReguaRelacionamentoController.php)
 - [SettingsController.php](../../../Modules/Whatsapp/Http/Controllers/Admin/SettingsController.php)
 - [TemplatesController.php](../../../Modules/Whatsapp/Http/Controllers/Admin/TemplatesController.php)
 - [AppAtendimentoController.php](../../../Modules/Whatsapp/Http/Controllers/Api/AppAtendimentoController.php)
@@ -311,7 +312,7 @@ module: Whatsapp
 - [Settings.tsx](../../../resources/js/Pages/Whatsapp/Settings.tsx)
 - [Index.tsx](../../../resources/js/Pages/Whatsapp/Templates/Index.tsx)
 
-## Componentes / apoio de tela — 30
+## Componentes / apoio de tela — 31
 
 - [BroadcastSheet.tsx](../../../Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/_components/BroadcastSheet.tsx)
 - [ChannelHealthBanner.tsx](../../../Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/_components/ChannelHealthBanner.tsx)
@@ -331,6 +332,7 @@ module: Whatsapp
 - [QueuesSheet.tsx](../../../Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/_components/QueuesSheet.tsx)
 - [ReconnectModal.tsx](../../../Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/_components/ReconnectModal.tsx)
 - [ChannelUsersTab.tsx](../../../Modules/Whatsapp/Resources/js/Pages/Atendimento/Channels/_components/ChannelUsersTab.tsx)
+- [ReguaRelacionamentoCard.tsx](../../../Modules/Whatsapp/Resources/js/Pages/Atendimento/_components/ReguaRelacionamentoCard.tsx)
 - [Avatar.tsx](../../../resources/js/Pages/Whatsapp/_components/Avatar.tsx)
 - [CaptureFeedbackSheet.tsx](../../../resources/js/Pages/Whatsapp/_components/CaptureFeedbackSheet.tsx)
 - [ContactPickerModal.tsx](../../../resources/js/Pages/Whatsapp/_components/ContactPickerModal.tsx)
@@ -372,9 +374,9 @@ module: Whatsapp
 - [Settings.casos.md](../../../resources/js/Pages/Whatsapp/Settings.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Whatsapp/Templates/Index.casos.md)
 
-## Testes (Pest) — 127
+## Testes (Pest) — 128
 
-- 127 em [Modules/Whatsapp/Tests/Feature/](../../../Modules/Whatsapp/Tests/Feature)
+- 128 em [Modules/Whatsapp/Tests/Feature/](../../../Modules/Whatsapp/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 18
