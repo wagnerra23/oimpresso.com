@@ -398,7 +398,7 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 
 > owner: — · priority: p1 · estimate: 6h · type: story
 
-**Implementado em:** _parcial_ · `Modules/Ponto/Services/EspelhoCienciaService.php` · `Modules/Ponto/Entities/EspelhoCiencia.php` · `Modules/Ponto/Database/Migrations/2026_10_26_000001_create_ponto_espelho_ciencias_table.php` · `Modules/Ponto/Http/Controllers/Api/MobileMarcacaoController.php` · `Modules/Ponto/Tests/Feature/EspelhoCienciaContratoTest.php` — PR 1/2: domínio e API do app. Falta o botão no "Meu espelho" e a ciência visível ao gestor (PR 2)
+**Implementado em:** _parcial_ · `Modules/Ponto/Services/EspelhoCienciaService.php` · `Modules/Ponto/Entities/EspelhoCiencia.php` · `Modules/Ponto/Database/Migrations/2026_10_26_000001_create_ponto_espelho_ciencias_table.php` · `Modules/Ponto/Http/Controllers/Api/MobileMarcacaoController.php` · `Modules/Ponto/Tests/Feature/EspelhoCienciaContratoTest.php` · `resources/js/Pages/Ponto/Mobile/_components/CienciaEspelho.tsx` — domínio, API do app e o aviso "Dou ciência" no "Meu espelho". Falta a ciência visível ao gestor no Espelho
 **Testado em:** `Modules/Ponto/Tests/Feature/EspelhoCienciaContratoTest.php`
 
 **Como** colaborador,
@@ -412,4 +412,5 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 - [x] `GET /ponto/api/espelho` traz `competencia_fechada` e `ciencia { ciente_em, confere }` (UC-REPP-18, UC-REPP-22)
 - [x] Append-only: model e trigger MySQL recusam UPDATE/DELETE (UC-REPP-20)
 - [x] Fechamento de outro empregador não libera (UC-REPP-21, Tier 0)
-- [ ] Botão "Dou ciência" no "Meu espelho" e coluna de ciência no espelho do gestor (PR 2)
+- [x] Aviso "Dou ciência" do último mês fechado no "Meu espelho" (UC-REPP-23)
+- [ ] Ciência visível ao gestor no Espelho do colaborador
