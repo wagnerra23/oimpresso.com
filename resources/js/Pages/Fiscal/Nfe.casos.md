@@ -455,6 +455,15 @@ Status: 🧪
 
 Status: 🧪
 
+## UC-FNFE-53 · A NFC-e é assinada com o CSC que a empresa cadastrou · `must`
+
+> **Âncora:** R-NFE-045 do [SPEC do NfeBrasil](../../../../memory/requisitos/NfeBrasil/SPEC.md). Prova: `NfceCscConfigTest`.
+
+**Dado** a empresa com CSC e id do CSC cadastrados **Quando** a NFC-e vai ser assinada **Então** a configuração da
+`sped-nfe` leva `CSC` e `CSCid` com esses valores; sem CSC cadastrado, leva vazio.
+
+Status: 🧪
+
 ## UC-FNFE-17 · A retransmissão só sai quando há nota pendente e a SEFAZ responde · `must`
 
 **Dado** a empresa A com 1 nota em contingência e a B só com nota autorizada **Quando** o agendamento roda e o
