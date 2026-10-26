@@ -14,7 +14,7 @@ module: Financeiro
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 375 arquivos em 22 papéis.
+**Total mapeado:** 376 arquivos em 22 papéis.
 
 ## Controllers — 25
 
@@ -61,7 +61,7 @@ module: Financeiro
 
 - [AdvisorViewScope.php](../../../Modules/Financeiro/Http/Middleware/AdvisorViewScope.php)
 
-## Services — 15
+## Services — 16
 
 - [BoletoOcrService.php](../../../Modules/Financeiro/Services/BoletoOcrService.php)
 - [CusteioRkwService.php](../../../Modules/Financeiro/Services/CusteioRkwService.php)
@@ -73,6 +73,7 @@ module: Financeiro
 - [PluggyBankSyncService.php](../../../Modules/Financeiro/Services/Integrations/PluggyBankSyncService.php)
 - [PluggyClient.php](../../../Modules/Financeiro/Services/Integrations/PluggyClient.php)
 - [LinhaDigitavelValidator.php](../../../Modules/Financeiro/Services/LinhaDigitavelValidator.php)
+- [MeioDePagarDoTitulo.php](../../../Modules/Financeiro/Services/MeioDePagarDoTitulo.php)
 - [ReguaCobrancaConfig.php](../../../Modules/Financeiro/Services/ReguaCobrancaConfig.php)
 - [RetencaoNfseTituloService.php](../../../Modules/Financeiro/Services/RetencaoNfseTituloService.php)
 - [TituloAutoService.php](../../../Modules/Financeiro/Services/TituloAutoService.php)
