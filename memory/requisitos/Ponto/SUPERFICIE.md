@@ -14,7 +14,7 @@ module: Ponto
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Ponto/**` + `resources/js/Pages/Ponto/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 266 arquivos em 18 papéis.
+**Total mapeado:** 268 arquivos em 18 papéis.
 
 ## Controllers — 18
 
@@ -51,7 +51,7 @@ module: Ponto
 
 - [CheckPontoAccess.php](../../../Modules/Ponto/Http/Middleware/CheckPontoAccess.php)
 
-## Services — 20
+## Services — 21
 
 - [AbasContadoresService.php](../../../Modules/Ponto/Services/AbasContadoresService.php)
 - [AejService.php](../../../Modules/Ponto/Services/AejService.php)
@@ -60,6 +60,7 @@ module: Ponto
 - [BancoHorasService.php](../../../Modules/Ponto/Services/BancoHorasService.php)
 - [ConformidadeService.php](../../../Modules/Ponto/Services/ConformidadeService.php)
 - [CpfNaoCadastradoException.php](../../../Modules/Ponto/Services/CpfNaoCadastradoException.php)
+- [ExportacaoFolhaService.php](../../../Modules/Ponto/Services/ExportacaoFolhaService.php)
 - [FechamentoService.php](../../../Modules/Ponto/Services/FechamentoService.php)
 - [FilaGestorDoApp.php](../../../Modules/Ponto/Services/FilaGestorDoApp.php)
 - [FilaGestorRepPService.php](../../../Modules/Ponto/Services/FilaGestorRepPService.php)
@@ -241,9 +242,9 @@ module: Ponto
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Relatorios/Index.casos.md)
 - [Welcome.casos.md](../../../resources/js/Pages/Ponto/Welcome.casos.md)
 
-## Testes (Pest) — 73
+## Testes (Pest) — 74
 
-- 71 em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature)
+- 72 em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature)
 - 2 em [Modules/Ponto/Tests/Unit/](../../../Modules/Ponto/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
