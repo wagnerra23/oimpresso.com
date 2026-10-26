@@ -302,7 +302,6 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvServiceTest.php \
             Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeEmissaoPorItemTest.php \
-            Modules/NfeBrasil/Tests/Feature/EnviarXmlContadorTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeDevolucaoTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeFilialNumeracaoTest.php \
             Modules/NfeBrasil/Tests/Feature/NaturezaFiscalTest.php \
@@ -344,6 +343,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/SaudeFiscalTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeBloqueioComSaidaTest.php \
             Modules/NfeBrasil/Tests/Feature/FechamentoContadorTest.php \
+            Modules/NfeBrasil/Tests/Feature/EnviarXmlContadorTest.php \
             Modules/Fiscal/Tests/Feature/ContadorCadastroTest.php
 
 
