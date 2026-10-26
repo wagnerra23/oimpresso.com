@@ -234,6 +234,22 @@ Então o Controller recusa com erro no campo `motivo`; com motivo válido, a val
 Âncora: US-FISCAL-012 + Ajuste SINIEF 07/2005 (justificativa mínima).
 **Pronto quando:** a asserção usa a regra **do Controller** — afrouxá-la lá derruba este UC.
 
+## UC-FNFE-51 — Cancelar pergunta o escopo: só a nota ou a venda junto · `must`
+
+**Dado** uma NF-e autorizada **Quando** o fiscal cancela **Então** escolhe "só a nota" (para reemitir; o padrão, como
+antes) ou "venda junto"; qualquer outro valor não passa da validação. Âncora: R-NFE-044 · decisão [W] 2026-10-26.
+
+Status: 🧪 (`AcoesCancelarEscopoTest` — `UC-FNFE-51 · …`)
+
+## UC-FNFE-52 — "Venda junto" cancela a venda pelo fluxo, só na própria empresa · `must` `[T0]`
+
+**Dado** a nota de uma venda da empresa no fluxo de vendas **Quando** o fiscal escolhe "venda junto" **Então** a venda
+recebe a ação `cancelar_venda` com o mesmo motivo (o cascade estorna boleto pendente, libera a reserva de estoque e avisa
+o cliente); venda fora do fluxo não é cancelada e a mensagem manda cancelar em Vendas; venda de outra empresa não é
+achada. **Não** devolve estoque já baixado nem cancela o título (fora do cascade — R-NFE-044).
+
+Status: 🧪 (`AcoesCancelarEscopoTest` — `UC-FNFE-52 · …`, MySQL, tenant 98 × 99)
+
 ## UC-FNFE-05 — Carta de Correção respeita texto 15–1000 e sequência 1–20
 Status: 🧪 (`AcoesContratoTest::UC-FNFE-05 · texto fora de 15–1000` / `n_seq fora de 1–20` / `aceita válido` — **passam**)
 Dado uma CC-e · Quando o texto sai da faixa de 15 a 1000 caracteres, ou a sequência sai de 1 a 20 ·
