@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace App\Services\Estoque;
 
+use App\Events\StockAdjustmentCreatedOrModified;
+use App\PurchaseLine;
+use App\Transaction;
+use App\Utils\ProductUtil;
+use App\Utils\TransactionUtil;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -27,6 +32,11 @@ final class ContagemInventarioService
 {
     public const MODO_SOMAR = 'somar';
     public const MODO_SUBSTITUIR = 'substituir';
+
+    public function __construct(
+        private readonly ProductUtil $productUtil,
+        private readonly TransactionUtil $transactionUtil,
+    ) {}
 
     /** Abre uma contagem no local. Só uma contagem aberta por local de cada vez. */
     public function abrir(int $businessId, int $locationId, int $userId, ?string $descricao = null): int
@@ -209,5 +219,141 @@ final class ContagemInventarioService
             'custo_unitario' => (string) $r->custo_unitario,
             'valor_diferenca' => (string) $r->valor_diferenca,
         ])->all();
+    }
+
+    /**
+     * Aprova o ajuste de uma contagem FECHADA (parte 2). Escreve no estoque — regra mestre.
+     *
+     * - FALTA (contado < saldo guardado): um ajuste de estoque (`stock_adjustment`, o mesmo do
+     *   StockAdjustmentController), uma linha por item, ao custo de compra padrão; tira do saldo e
+     *   amarra no lote de compra (FIFO/LIFO) como o ajuste manual faz.
+     * - SOBRA (contado > saldo guardado): uma entrada `opening_stock` SEM produto dono
+     *   (`opening_stock_product_id` nulo), com uma linha de compra por item ao custo de compra.
+     *   O lote existe para as vendas seguintes casarem no FIFO, e a tela de estoque inicial do
+     *   produto (que filtra por `opening_stock_product_id`) não vê nem apaga esta entrada.
+     * - A diferença é aplicada sobre o saldo de AGORA: o que foi vendido depois da contagem já
+     *   saiu do saldo e não é cobrado de novo.
+     * - Tudo numa transação; a contagem vira `ajustada` e guarda os dois movimentos.
+     *
+     * @return array{ajuste_transaction_id:?int, entrada_transaction_id:?int, itens_falta:int, itens_sobra:int, valor_falta:string, valor_sobra:string}
+     */
+    public function aprovar(int $businessId, int $contagemId, int $userId): array
+    {
+        return DB::transaction(function () use ($businessId, $contagemId, $userId) {
+            $contagem = DB::table('estoque_contagens')
+                ->where('business_id', $businessId)->where('id', $contagemId)
+                ->lockForUpdate()->first(['id', 'location_id', 'status']);
+            if ($contagem === null) {
+                throw new ContagemInventarioException('nao_encontrada', 'Contagem não encontrada.');
+            }
+            if ($contagem->status !== 'fechada') {
+                throw new ContagemInventarioException('nao_fechada', 'Só uma contagem fechada pode ter o ajuste aprovado.');
+            }
+
+            $itens = $this->divergencias($businessId, $contagemId, true);
+            $faltas = array_values(array_filter($itens, fn ($i) => (float) $i['diferenca'] < 0));
+            $sobras = array_values(array_filter($itens, fn ($i) => (float) $i['diferenca'] > 0));
+
+            // Totais em DECIMAL no MySQL (nenhum float somando dinheiro).
+            $totais = DB::selectOne(
+                'SELECT
+                    CAST(COALESCE(SUM(IF(i.qtd_contada < i.saldo_no_momento, ROUND((i.saldo_no_momento - i.qtd_contada) * COALESCE(v.default_purchase_price, 0), 2), 0)), 0) AS DECIMAL(22,2)) AS falta,
+                    CAST(COALESCE(SUM(IF(i.qtd_contada > i.saldo_no_momento, ROUND((i.qtd_contada - i.saldo_no_momento) * COALESCE(v.default_purchase_price, 0), 2), 0)), 0) AS DECIMAL(22,2)) AS sobra
+                 FROM estoque_contagem_itens i JOIN variations v ON v.id = i.variation_id
+                 WHERE i.contagem_id = ? AND i.business_id = ?',
+                [$contagemId, $businessId],
+            );
+
+            $agora = now()->format('Y-m-d H:i:s');
+            $nota = 'Contagem de inventário #' . $contagemId;
+            $ajusteId = null;
+            $entradaId = null;
+
+            if ($faltas !== []) {
+                $ref = $this->transactionUtil->setAndGetReferenceCount('stock_adjustment', $businessId);
+                $ajuste = Transaction::create([
+                    'business_id' => $businessId,
+                    'location_id' => $contagem->location_id,
+                    'type' => 'stock_adjustment',
+                    'adjustment_type' => 'normal',
+                    'transaction_date' => $agora,
+                    'ref_no' => $this->transactionUtil->generateReferenceNumber('stock_adjustment', $ref, $businessId),
+                    'final_total' => (string) $totais->falta,
+                    'total_amount_recovered' => 0,
+                    'additional_notes' => $nota . ' — falta',
+                    'created_by' => $userId,
+                ]);
+                $linhas = [];
+                foreach ($faltas as $i) {
+                    $qtd = ltrim($i['diferenca'], '-');
+                    $linhas[] = [
+                        'product_id' => $i['product_id'],
+                        'variation_id' => $i['variation_id'],
+                        'quantity' => $qtd,
+                        'unit_price' => $i['custo_unitario'],
+                    ];
+                    $this->productUtil->decreaseProductQuantity($i['product_id'], $i['variation_id'], (int) $contagem->location_id, $qtd);
+                }
+                $ajuste->stock_adjustment_lines()->createMany($linhas);
+
+                $biz = DB::table('business')->where('id', $businessId)->first(['id', 'accounting_method', 'pos_settings']);
+                $this->transactionUtil->mapPurchaseSell(
+                    ['id' => $businessId, 'accounting_method' => $biz->accounting_method, 'location_id' => (int) $contagem->location_id, 'pos_settings' => $biz->pos_settings],
+                    $ajuste->stock_adjustment_lines,
+                    'stock_adjustment',
+                );
+                event(new StockAdjustmentCreatedOrModified($ajuste, 'added'));
+                $ajusteId = (int) $ajuste->id;
+            }
+
+            if ($sobras !== []) {
+                $entrada = Transaction::create([
+                    'business_id' => $businessId,
+                    'location_id' => $contagem->location_id,
+                    'type' => 'opening_stock',
+                    'opening_stock_product_id' => null,
+                    'status' => 'received',
+                    'payment_status' => 'paid',
+                    'transaction_date' => $agora,
+                    'total_before_tax' => (string) $totais->sobra,
+                    'final_total' => (string) $totais->sobra,
+                    'additional_notes' => $nota . ' — sobra',
+                    'created_by' => $userId,
+                ]);
+                $linhas = [];
+                foreach ($sobras as $i) {
+                    $linhas[] = new PurchaseLine([
+                        'product_id' => $i['product_id'],
+                        'variation_id' => $i['variation_id'],
+                        'quantity' => $i['diferenca'],
+                        'pp_without_discount' => $i['custo_unitario'],
+                        'purchase_price' => $i['custo_unitario'],
+                        'purchase_price_inc_tax' => $i['custo_unitario'],
+                        'item_tax' => 0,
+                    ]);
+                    $this->productUtil->updateProductQuantity((int) $contagem->location_id, $i['product_id'], $i['variation_id'], $i['diferenca'], 0, null, false);
+                }
+                $entrada->purchase_lines()->saveMany($linhas);
+                $entradaId = (int) $entrada->id;
+            }
+
+            DB::table('estoque_contagens')->where('id', $contagemId)->update([
+                'status' => 'ajustada',
+                'ajustada_por' => $userId,
+                'ajustada_em' => $agora,
+                'ajuste_transaction_id' => $ajusteId,
+                'entrada_transaction_id' => $entradaId,
+                'updated_at' => $agora,
+            ]);
+
+            return [
+                'ajuste_transaction_id' => $ajusteId,
+                'entrada_transaction_id' => $entradaId,
+                'itens_falta' => count($faltas),
+                'itens_sobra' => count($sobras),
+                'valor_falta' => (string) $totais->falta,
+                'valor_sobra' => (string) $totais->sobra,
+            ];
+        });
     }
 }
