@@ -2009,3 +2009,22 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 3. Reconciliar com os proposals existentes (`whatsapp-fila-inbound-worker-ct100.md` / `whatsapp-ingestao-perda-zero.md`) — esta US é a execução, não duplicar escopo.
 
 Refs: ROADMAP-SDD (sweep do mês)
+
+### US-WA-322 · Campanha por WhatsApp — disparo real com salvaguardas anti-ban (ADR 0268 fase 2)
+
+**Implementado em:** `Modules/Whatsapp/Jobs/DispararBroadcastJob.php` · `Modules/Whatsapp/Jobs/EnviarItemBroadcastJob.php` · `Modules/Whatsapp/Services/Broadcast/PlanoDeDisparo.php` · `Modules/Whatsapp/Database/Migrations/2026_10_26_000001_add_contadores_to_whatsapp_broadcasts.php` · `Modules/Whatsapp/Tests/Feature/BroadcastDisparoContratoTest.php`
+
+> owner: — · priority: p1 · estimate: 8h · type: story
+> blocked_by: —
+
+**Origem:** lacuna P1 do levantamento de 2026-10-25 (campanha em massa só tinha pré-checagem e rascunho). Fase 2 da US-WA-306 / ADR 0268, destravada por [W] em 2026-10-26.
+
+**Critérios de aceite:**
+1. Flag `whatsapp.broadcast.disparo_enabled` (env `WHATSAPP_BROADCAST_DISPARO_ENABLED`) desligada: rascunho fica rascunho.
+2. Disparar tira a campanha de `draft` para `dispatching` uma vez só (troca condicional) e agenda um envio por conversa; só texto livre (template HSM fica para canal oficial).
+3. Anti-ban: intervalo aleatório entre envios (20–45s), só das 8h às 20h no fuso da empresa, até 200 por dia — 40 enquanto o canal tem menos de 7 dias (aquecimento); o excedente passa ao dia seguinte.
+4. No momento do envio, rechecagem: campanha ainda em `dispatching` (cancelada não envia), conversa da empresa e do canal, não bloqueada, contato com `whatsapp_opt_in_at` e sem recusa (`canReceiveWhatsappNotification`). Falhou: conta como `pulado`.
+5. Envio pelo mesmo caminho da caixa de entrada (`EnvioDeTextoNoCanal`), mensagem `sender_kind=system`; sem retry automático (evita duplicata).
+6. Contadores `total/enviados/falhas/pulados`; campanha vira `done` quando a soma chega ao total.
+
+Ligar em produção é decisão [W]. Botão de disparar/cancelar na tela: US seguinte.
