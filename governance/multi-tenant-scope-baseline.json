@@ -16,8 +16,6 @@
                           "Modules/ComunicacaoVisual/Entities/Acabamento.php",
                           "Modules/ComunicacaoVisual/Entities/Apontamento.php",
                           "Modules/ComunicacaoVisual/Entities/InstalacaoCatalogo.php",
-                          "Modules/ComunicacaoVisual/Entities/Material.php",
-                          "Modules/ComunicacaoVisual/Entities/Orcamento.php",
                           "Modules/ComunicacaoVisual/Entities/OrdemProducao.php",
                           "Modules/ComunicacaoVisual/Entities/Substrato.php",
                           "Modules/Crm/Entities/CrmContactPersonCommission.php",
