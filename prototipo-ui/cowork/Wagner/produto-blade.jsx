@@ -154,7 +154,7 @@ function Sel({ value, onChange, options, vazio }) {
 // Motivo: dentro da grade do DS o `td` tem overflow:hidden, e qualquer popover
 // ancorado na célula (inclusive o DropdownMenu do DS, que não usa portal) é
 // recortado a uns 2px. Fecha em esc, clique-fora, scroll e resize.
-function Kebab({ acoes }) {
+function Kebab({ acoes, rotulo = "Ações do produto" }) {
   const [pos, setPos] = useState(null);
   const botao = useRef(null);
   const painel = useRef(null);
@@ -197,7 +197,7 @@ function Kebab({ acoes }) {
 
   return (
     <div className="pb-kebab">
-      <button ref={botao} className="os-btn sm" onClick={abrir} aria-haspopup="menu" aria-expanded={!!pos} aria-label="Ações do produto">
+      <button ref={botao} className="os-btn sm" onClick={abrir} aria-haspopup="menu" aria-expanded={!!pos} aria-label={rotulo}>
         Ações <Ic name="chev" size={12} />
       </button>
       {pos && ReactDOM.createPortal(

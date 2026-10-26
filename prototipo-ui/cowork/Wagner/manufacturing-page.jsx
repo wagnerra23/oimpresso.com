@@ -139,7 +139,6 @@ function ManufacturingModulo({ initialView }) {
     const base = linhas.filter(({ r, c }) => {
       if (cat !== "Todas" && r.cat !== cat) return false;
       if (kpi === "margem" && c.margem >= 45) return false;
-      if (kpi === "custo" && r.waste < 8) return false;
       const t = q.trim().toLowerCase();
       return !t || (r.name + " " + r.sku + " " + r.cat + " " + r.sub).toLowerCase().includes(t);
     });
@@ -161,7 +160,6 @@ function ManufacturingModulo({ initialView }) {
   ];
 
   const magra = linhas.filter(({ c }) => c.margem < 45).length;
-  const perda = linhas.filter(({ r }) => r.waste >= 8).length;
   const custoMed = linhas.length ? linhas.reduce((s, l) => s + l.c.unit, 0) / linhas.length : 0;
   const toggle = (id) => setSel((s) => s.includes(id) ? s.filter((x) => x !== id) : [...s, id]);
   const aberta = linhas.find(({ r }) => r.id === openId);
@@ -172,7 +170,7 @@ function ManufacturingModulo({ initialView }) {
     const id = Math.max(0, ...recipes.map((r) => r.id)) + 1;
     const nova = {
       id, name: nome, sku: "MFG-" + String(id).padStart(4, "0"), cat: c2, sub, qtd, un,
-      waste: src ? src.waste : 0, extra: src ? src.extra : 0, custoTipo: src ? src.custoTipo : "fixo",
+      extra: src ? src.extra : 0, custoTipo: src ? src.custoTipo : "fixo",
       venda: src ? src.venda : 0, atualizado: "agora", produto: "—",
       grupos: src ? JSON.parse(JSON.stringify(src.grupos)) : [],
     };
@@ -272,14 +270,12 @@ function ManufacturingModulo({ initialView }) {
 
       {aba === "receitas" && (
         <>
-          <div className="mfg-kpis">
+          <div className="mfg-kpis" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
             <KpiCard label="Custo médio / unidade" value={fmt(custoMed)} description={"média das " + recipes.length + " receitas"} />
             <KpiCard variant="filter" label="Margem abaixo de 45%" value={magra} sub="preço de venda desatualizado"
               icon={<I.scale size={17} />} tone="amber" selected={kpi === "margem"}
               onClick={() => setKpi(kpi === "margem" ? null : "margem")} />
-            <KpiCard variant="filter" label="Desperdício ≥ 8%" value={perda} sub="revisar plotagem / encaixe"
-              icon={<I.scissor size={17} />} tone="amber" selected={kpi === "custo"}
-              onClick={() => setKpi(kpi === "custo" ? null : "custo")} />
+            {/* Decisão [W], confirmada por Felipe com o Wagner em 23/10: desperdício é somente na Produção: o cartão "Desperdício ≥ 8%" saiu junto com o % da receita. */}
             <KpiCard label="Produção do mês" value={producoes.filter((p) => p.final).length}
               description={rascunhos + " rascunho" + (rascunhos === 1 ? "" : "s") + " em aberto"} />
           </div>
@@ -434,7 +430,6 @@ function RecipeDrawer({ r, c, perms, settings, onClose, onEdit, onProduzir, onIm
         <dl className="mfg-tot">
           <dt>Ingredientes</dt><dd>{fmt(c.ing)}</dd>
           <dt>Custo extra ({r.custoTipo === "percentual" ? r.extra + "% sobre ingredientes" : r.custoTipo === "unidade" ? window.MFG.fmt(r.extra) + " por " + r.un + " produzido" : "valor fixo"})</dt><dd>{fmt(c.extra)}</dd>
-          <dt>Desperdício</dt><dd>{num(r.waste, 0)}% · rende {num(c.qtdLiq, 2)} de {num(r.qtd, 2)} {r.un}</dd>
           {r.subUn && <><dt>Sub-unidade de saída</dt><dd>{num(c.qtdLiq * r.subFator, 2)} {r.subUn}</dd></>}
           <hr />
           <dt style={{ fontWeight: 600, color: "var(--text)" }}>Custo por {r.un}</dt>

@@ -141,7 +141,7 @@ final class ContagemInventarioService
             if ($item === null) {
                 $saldo = (string) (DB::table('variation_location_details')
                     ->where('variation_id', $variationId)->where('location_id', $contagem->location_id)
-                    ->sum('qty_available') ?? '0');
+                    ->sum('qty_available'));
                 DB::table('estoque_contagem_itens')->insert([
                     'business_id' => $businessId,
                     'contagem_id' => $contagemId,
