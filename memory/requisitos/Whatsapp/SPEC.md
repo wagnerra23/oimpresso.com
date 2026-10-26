@@ -2029,6 +2029,26 @@ Refs: ROADMAP-SDD (sweep do mês)
 5. Os canais vivos só enviam texto: anexos (URL absoluta, `document`|`image`) viram links no fim da mensagem.
 6. Nunca lança por falta de pré-condição: devolve o motivo (`enviado`, `sem_numero_configurado`, `contato_nao_encontrado`, `recusou_whatsapp`, `sem_celular`). Anexo ou evento inválido é erro de quem chamou (exceção).
 
+### US-WA-320 · Aviso de venda do núcleo enviado pela API do WhatsApp em vez de link (flag)
+
+**Implementado em:** `app/Utils/NotificationUtil.php` · `Modules/Whatsapp/Config/config.php` · `Modules/Whatsapp/Tests/Feature/AvisoVendaWhatsappApiContratoTest.php`
+
+**Testado em:** `Modules/Whatsapp/Tests/Feature/AvisoVendaWhatsappApiContratoTest.php`
+
+> owner: — · priority: p0 · estimate: 3h · type: story
+> blocked_by: US-WA-319
+
+**Origem:** lacuna P0 do levantamento de 2026-10-25 — `NotificationUtil.php` com `auto_send_wa_notif` só gerava link `wa.me` para o atendente clicar. Chamadores medidos em 2026-10-26: todos com `new_sale` (`SellPosController` ×4, `RecurringInvoice`, `RegistrarVendaRapida`, API `Connector`).
+
+**Critérios de aceite:**
+1. Flag `whatsapp.aviso_automatico.enabled` (env `WHATSAPP_AVISO_AUTOMATICO_ENABLED`) desligada: comportamento de sempre, link `wa.me`, nada pela API.
+2. Ligada: o texto do modelo vai pela API via `NotificadorClienteWhatsapp` (US-WA-319) e o link não é devolvido; registra `whatsapp_notification_sent` na atividade.
+3. Ligada e o cliente recusou WhatsApp (LGPD): nem API nem link.
+4. Ligada e sem número/contato/celular, ou erro inesperado: volta ao link manual.
+5. `payment_received`/`payment_reminder` usam o número de cobrança; o resto, o de saída padrão.
+
+Ligar em produção é decisão [W].
+
 ### US-WA-325 · Avisos de OS pronta e de instalação saem pelo canal vivo (notificador)
 
 **Implementado em:** `Modules/Whatsapp/Listeners/NotifyRepairCustomer.php` · `Modules/Whatsapp/Listeners/NotifyInstalacaoCvCustomer.php` · `Modules/Whatsapp/Services/Notify/NotificadorClienteWhatsapp.php`
@@ -2045,3 +2065,4 @@ Refs: ROADMAP-SDD (sweep do mês)
 2. Instalação agendada → mesmo texto de antes (OS, dia e hora; sem instalador nem veículo) pelo notificador, evento `outbound_default`.
 3. Travas do notificador valem nos dois: cliente da mesma empresa, opt-out LGPD, celular, canal no ar.
 4. O teste `NotifyRepairCustomerTest` (schema sintético, só rodava em sqlite e não estava em lane nenhuma) sai; o contrato fica com `ClienteAcompanhaStatusContratoTest` e `InstalacaoAvisoClienteContratoTest`, que rodam no MySQL da lane `verticais-pest`.
+
