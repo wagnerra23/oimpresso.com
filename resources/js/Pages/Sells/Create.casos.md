@@ -202,6 +202,130 @@ last_run: "2026-10-26"
 
 - **[BACKLOG] Venda paga no ato (dinheiro/PIX) fecha sem saldo devedor** — caminho feliz com pagamento integral; exige modelar o bloco de pagamentos no harness.
 - **[BACKLOG] Bloqueio por limite de crédito** — backend devolve `errors.venda` e o carrinho fica intacto (toast 8s) — exige fixture de limite no seed.
+
+**Casos pedidos em 2026-10-23 — limite de crédito, saldo a favor e pedido de compra do cliente**
+
+- **[BACKLOG] Venda acima do limite de crédito avisa ou bloqueia, conforme a empresa (US-CRM-081)**
+  `[V0]` — detalha o item acima. Aceite: Dado um cliente com limite de 2.000,00 e 1.500,00 em aberto,
+  Quando salvo uma venda a prazo de 800,00, Então com a empresa em "avisar" a venda salva e mostra
+  "passa 300,00 do limite"; em "bloquear" a venda não salva, o carrinho fica como estava e a mensagem
+  diz quanto passou. O que conta é o valor que fica em aberto: a parte paga no ato não usa limite, e a
+  venda com 100% de adiantamento passa mesmo com o limite estourado, como no Omie. Hoje
+  o sistema calcula (`TransactionUtil::isCustomerCreditLimitExeeded()`) e só avisa. Mexe em valor:
+  Regra Mestre.
+- **[BACKLOG] Usar o saldo a favor do cliente na venda** `[V0]` — Aceite: Dado um cliente com 120,00 a
+  favor e uma venda de 500,00, Quando escolho o cliente, Então a venda já abate os 120,00 (entra um
+  pagamento "Adiantamento" de 120,00, ficam 380,00 a receber e o saldo do cliente vai a 0,00), e o
+  vendedor pode recusar o abatimento, voltando o saldo como estava. Nunca usa mais que o saldo nem mais
+  que o total da venda (o Adiantamento já trava no saldo hoje). Mexe em valor: Regra Mestre. Fonte:
+  protótipo do [W] `cliente-drawer760.jsx` ("créditos a favor, abatidos na próxima venda; o vendedor
+  pode recusar"); US-VEST-021. Verificado contra as regras do [W] em 2026-10-23: o abatimento é automático, e recusar é a exceção.
+- **[BACKLOG] Número do pedido de compra do cliente** — o cliente empresa manda o próprio número de
+  pedido e quer vê-lo na nota. Aceite: Dado um cliente que enviou o pedido "4500012345", Quando
+  preencho "Pedido do cliente" na venda, Então o número fica gravado na venda, sai em cada OS da venda
+  e vai para a NF-e e a NFS-e no campo `xPed` (o número do item do pedido em `nItemPed`, quando houver).
+  Campo opcional; venda sem ele segue como hoje. Fonte: layout da NF-e (grupo do produto) e o schema
+  da NFS-e nacional no módulo NfeBrasil (`xPed`).
+- **[BACKLOG] Venda de serviço para cliente que retém ISS (UC-FLX-30)** `[V0]` — Aceite: Dado um
+  cliente marcado no cadastro como tomador que retém ISS e uma venda com instalação de 660,00 (ISS de
+  5%), Quando monto a venda, Então o resumo mostra "ISS retido previsto 33,00 · cliente paga" o total
+  menos 33,00, avisando que o valor exato sai na NFS-e; o total da venda não muda. Mexe em valor: Regra
+  Mestre. Fonte: US-FIN-072 (a retenção vira baixa quando a NFS-e é autorizada).
+- **[BACKLOG] Quem recebe comissão: vendedor, representante, agência ou ninguém** `[V0]` — Aceite:
+  Dado a venda, Quando escolho quem recebe comissão (o vendedor, um representante ou uma agência) ou
+  deixo "Sem comissionado", Então a venda grava a escolha; sem comissionado, nenhuma comissão nasce no
+  faturamento; com comissionado, a comissão nasce pela regra dele (UC-FLX-05). Comissionado de outra
+  empresa nunca aparece na lista. Fonte: Comissionados (`sales_commission_agents`, representante
+  externo).
+- **[BACKLOG] Crédito disponível ao escolher o cliente** `[V0]` — Aceite: Dado um cliente com limite
+  de 2.000,00 e 1.500,00 em aberto, Quando escolho o cliente na venda, Então o resumo mostra
+  "Disponível 500,00" antes de salvar; cliente sem limite não mostra nada. Fonte: DecoNetwork (crédito
+  restante no orçamento e no pedido); US-CRM-081.
+- **[BACKLOG] A condição do cliente preenche a venda** `[V0]` — Aceite: Dado o cliente com condição
+  própria de sinal de 50% e prazo de 28 dias, Quando faço uma venda para ele, Então a venda vem com
+  esse sinal e esse prazo, e o vendedor pode trocar; cliente sem condição usa a da empresa. Fonte:
+  DecoNetwork (condições por cliente); o caso irmão está em `Cliente/Index.casos.md`.
+- **[BACKLOG] Cobrar o sinal por link** `[V0]` — Aceite: Dado o sinal mínimo de 30% e uma venda
+  aprovada de 1.000,00, Quando gero a cobrança do sinal, Então sai uma cobrança de 300,00 (Pix ou
+  boleto) com link para o cliente, e o vendedor pode trocar o valor; paga, o retorno do banco lança o
+  pagamento na venda e libera a OS (UC-PCLIB-08). Mexe em valor: Regra Mestre. Fonte: Printavo
+  (pedido de pagamento com o valor escolhido); UC-FLX-28.
+- **[BACKLOG] Duplicar abre a venda nova com a origem** — Aceite: Quando duplico a V-150, Então abre um
+  rascunho com o mesmo cliente e os mesmos itens, sem pagamento, sem nota e com número novo, e o topo
+  mostra "Duplicada de V-150"; a origem fica gravada na venda nova. Hoje a cópia não guarda a origem
+  (`SellController::duplicateSell`, medido em 23/10/2026). Em aberto para o [W]: a cópia mantém os
+  preços da origem ou recalcula pela tabela de hoje.
+- **[BACKLOG] Venda para entrega futura** `[V0]` `[E0]` — Aceite: Dado uma venda marcada "entrega
+  futura" de 1.000 folhetos, Quando faturo, Então sai a nota de simples faturamento com o valor total
+  e o estoque não baixa; a cada entrega sai uma nota de remessa com a quantidade entregue, ligada à de
+  faturamento, e só então o estoque baixa; nunca se entrega mais que o faturado. CFOP de exemplo:
+  5.922 no faturamento, 5.116 (produção própria) ou 5.117 (revenda) na remessa; o CFOP e o destaque
+  do ICMS ficam com o contador. Mexe em valor e estoque: Regra Mestre. Fonte: UC-TRB-24 do protótipo
+  fiscal (falta).
+- **[BACKLOG] Item com imposto faltando avisa ao montar a venda** — Aceite: Dado um produto sem NCM
+  ou com a natureza fiscal "a decidir pelo contador", Quando o adiciono à venda, Então a linha mostra o
+  que falta para a nota sair, sem impedir salvar a venda. Fonte: CU-PROD-18 (aviso no cadastro do
+  produto) e UC-TRB-16 do protótipo fiscal ("pronto pra emitir").
+- **[BACKLOG] Cliente sem dados para a nota avisa ao ser escolhido** — Aceite: Dado um cliente sem
+  CPF ou CNPJ, sem endereço com município ou sem a indicação de contribuinte do ICMS, Quando o escolho
+  numa venda, Então o resumo mostra "Faltam dados para a nota" e quais, com link para completar o
+  cadastro, sem impedir salvar a venda. Fonte: grupo do destinatário da NF-e.
+- **[BACKLOG] Instrução de execução no item da venda** (pedido de 2026-10-23) — Aceite: Dado uma
+  venda com o item "Fachada em ACM 3 x 1 m", Quando escrevo no item "instalar no 2º andar, cliente
+  libera o acesso às 8h", Então a instrução fica gravada no item, sai na ficha da OS e aparece para
+  quem executa na produção. Item sem instrução não mostra nada. Hoje o Blade grava a nota do item
+  (`sell_line_note`); a venda React não tem o campo. A produção mostra a instrução
+  (Producao/Apontamento/Index.casos.md, mesmo pedido).
+- **[BACKLOG] Venda condicional** (pedido de 2026-10-23) `[V0]` `[E0]` — Aceite: Dado uma venda
+  marcada "condicional" com 5 peças, Quando o cliente leva as peças, Então elas saem do estoque
+  disponível, a venda fica "Condicional em aberto" e não gera conta a receber nem nota de venda; Quando
+  o cliente devolve 3 peças e fica com 2, Então as 3 voltam ao estoque e a venda vira venda normal das 2
+  peças, com valor e conta a receber só delas. Mexe em valor e estoque: Regra Mestre. A nota de
+  remessa, se houver, é decisão do contador.
+- **[BACKLOG] Funcionário que executou o serviço, por item** (pedido de 2026-10-23) — Aceite: Dado uma
+  venda com os serviços "troca de óleo" e "alinhamento", Quando indico quem executou cada um, Então o
+  nome fica gravado no item e aparece na consulta da venda e na comissão de quem executou. Hoje o
+  backend grava `res_service_staff_id` por item (vindo do Blade de restaurante); a venda React não tem
+  o campo. A OS tem o caso irmão (Repair/JobSheet/Create.casos.md).
+- **[BACKLOG] Modelo e série do aparelho na venda da pilha** (pedido de 2026-10-23) — Aceite: Dado um
+  produto do tipo pilha ou bateria, Quando o adiciono à venda, Então informo o modelo e o número de
+  série do aparelho onde ela vai; os dois saem na consulta da venda e na garantia. Produto de outro
+  tipo não pede nada. O cadastro do produto diz quais modelos usam a pilha
+  (Produto/Index.casos.md, mesmo pedido).
+- **[BACKLOG] Montar o kit dentro da venda** (pedido de 2026-10-23) `[V0]` `[E0]` — Aceite: Dado o
+  kit "Cortina completa", Quando o adiciono à venda e escolho os componentes (tecido 4,2 m, trilho 2 m e
+  2 suportes), Então a linha mostra o kit com os componentes e as quantidades, o preço do kit é o da
+  tabela ou a soma dos componentes, conforme o cadastro do kit, e a baixa de estoque sai de cada
+  componente. Trocar um componente refaz o preço e a baixa. Mexe em valor e estoque: Regra Mestre.
+  Hoje o produto do tipo combo (kit) e a composição existem no cadastro
+  (`memory/requisitos/Produto/_telas/bom-combo.casos.md`); a busca da venda reconhece o tipo `combo`,
+  mas não monta os componentes na venda.
+- **[BACKLOG] A tabela de preço do cliente preenche os preços** (pedido de 2026-10-23) `[V0]` — Aceite:
+  Dado um cliente ligado à tabela "Atacado", Quando o escolho na venda, Então os itens passam a usar os
+  preços dessa tabela, e o vendedor vê qual tabela está valendo; cliente sem tabela usa a padrão. Hoje
+  isso já funciona pelo grupo do cliente (o grupo aponta a tabela e a venda reprecifica ao escolher o
+  cliente), mas não há tabela no próprio cliente: um cliente com preço só dele precisa de um grupo só
+  dele. Sem caso nem teste até agora.
+- **[BACKLOG] A tabela de preço segue o canal de venda** (pedido de 2026-10-23) `[V0]` — Aceite: Dado as
+  tabelas Varejo e Atacado, Quando escolho o canal "Atacado", Então os itens usam a tabela de
+  atacado, e trocar o canal refaz os preços dos itens já lançados. Hoje a venda tem o seletor de tabela
+  de preço (`price_group_id`), mas não um canal que escolha a tabela.
+  Chamado de canal, e não de tipo de venda, porque o [W] já usa "tipo de venda" para balcão, reparo e
+  OS (decisão de 2026-10-01). Verificado contra as regras do [W] em 2026-10-23.
+- **[BACKLOG] Consignação para revendedor** (comparação com concorrentes, 2026-10-23) `[V0]` `[E0]` —
+  Aceite: Dado um revendedor que recebe 20 placas em consignação, Quando faço a remessa, Então as 20
+  saem do estoque próprio e ficam como "em poder de terceiros", sem conta a receber; Quando ele presta
+  contas de 12 vendidas e devolve 8, Então nasce a venda das 12 com a conta a receber, as 8 voltam ao
+  estoque e o saldo em consignação zera. Mexe em valor e estoque: Regra Mestre. Os CFOP da remessa e
+  do retorno são decisão do contador. Fonte: Omie (consignação, com estoque de terceiros e devolução
+  simbólica). Hoje não existe; a venda condicional (acima) é para o consumidor final.
+- **[BACKLOG] Tabela de preço com validade e por forma de pagamento, vendedor ou região** (comparação
+  com concorrentes, 2026-10-23) `[V0]` — Aceite: Dado a tabela "Promoção de outubro" válida de 01/10 a
+  31/10 e ligada à forma de pagamento Pix, Quando faço uma venda em 15/10 com Pix, Então os itens usam
+  essa tabela; em 01/11, ou com outra forma de pagamento, voltam à tabela que valia antes. O mesmo vale
+  para a tabela ligada a um vendedor, a uma região ou a uma loja. Fonte: Bling (lista de preços com
+  vigência, ligada a contato, vendedor, forma de pagamento, região ou loja). Hoje a tabela vem do grupo
+  do cliente ou do seletor da venda, sem validade nem esses vínculos.
 - **[BACKLOG] Emissão NF-e da venda (homolog/stub SEFAZ)** — wire já existe (suítes NfeBrasil); espelhar como UC quando o fluxo de emissão entrar no harness e2e.
 - **[BACKLOG] Fechar o diálogo de rascunho preserva a venda montada** — Dado um rascunho salvo · Quando o operador fecha o diálogo de recuperação SEM escolher (Esc, clique fora) · Então o rascunho **continua** no `localStorage` e a pergunta volta na próxima montagem; só o botão "Descartar" apaga. Exige exercitar `AlertDialog` do Radix no harness e2e (incluindo se `Esc` de fato fecha nesta versão, que não foi verificado). Origem: ROTA LIVRE perdeu venda montada durante janela de 503 do deploy, 2026-08-26.
 
@@ -217,3 +341,9 @@ last_run: "2026-10-26"
 - 2026-10-02 · [CL] UC-S04, preço de grupo 0 alinhado ao Blade. A anotação de 2026-10-01 ("o Blade trata 0 como sem preço") estava incompleta: medido no MySQL, o Blade usa o fixo 0 e ignora só o percentual 0. O `filterProduct` passou a devolver NULL no percentual que dá 0. Impacto em prod: nenhum (os 3305 preços de grupo são todos fixos).
 - 2026-10-01 · [CL] UC-S04: o autocomplete passou a mandar `price_group`, e o produto adicionado com grupo definido entra pelo preço do grupo, como no POS Blade. Antes, só a troca de grupo reprecificava, e só as linhas que já estavam no carrinho. Medido em prod: nenhuma venda com grupo de preço desde 2026-05-27 (a coluna é gravada: 90 vendas com grupo de 2021 a 2026-04-24, um único business) — defeito latente, nenhum valor gravado muda.
 - 2026-07-02 · [CC] Onda 1.4 (dente de cálculo): UC-S02 declarado com teste no MESMO PR (coordenação 1.3 ↔ 1.4, regra "declarar UC + teste = 1 PR"). Property `num_uf(num_f(x))==x` + golden no totalizador real `calculateInvoiceTotal` (227,90 − 10,05% = 204.99605, não infla) + discriminação RED vs strip-do-ponto + caracterização da divergência `getTotalPaid`(líquido) ≠ `getTotalAmountPaid`(bruto). TEST-ONLY — nenhum método de cálculo alterado.
+- 2026-10-23 · [M+C] Backlog de limite de crédito (avisar ou bloquear), saldo a favor na venda e pedido de compra do cliente, sem id.
+- 2026-10-23 · [M+C] Backlog de ISS retido previsto e de quem recebe comissão, sem id.
+- 2026-10-23 · [M+C] Backlog da comparação com concorrentes: crédito disponível, condição do cliente e cobrança do sinal por link, sem id; o caso do limite ganhou o aceite do adiantamento (Omie).
+- 2026-10-23 · [M+C] Backlog de duplicar com a origem e de venda para entrega futura, sem id.
+- 2026-10-23 · [M+C] Backlog: aviso de imposto faltando no item e de dados do cliente faltando para a nota, sem id.
+- 2026-10-23 · [M+C] Revalidado (G-6): as mudanças em `Create.tsx` depois do last_run 2026-10-02 são a venda de reparo (#8426, #8439 e #8447), descritas pelos UC-S05, S06 e S07 desta tela. Nenhum UC foi reexecutado; last_run 2026-10-02 → 2026-10-23.
