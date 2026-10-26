@@ -385,13 +385,13 @@ Migrations + Models todas com `business_id` + `HasBusinessScope` ([ADR 0093](../
 
 ### US-MKT-002 · Catálogo `mkt_marketplaces` seed 3 drivers — **P0** · 2h
 
-**Implementado em:** _pendente_ — módulo/tela não construído (US planejada): sem seeder `mkt_marketplaces` nem UI admin superadmin no disco
+**Implementado em:** _parcial_ · `Modules/Marketplaces/Database/Migrations/2026_10_26_000002_seed_mkt_marketplaces.php` · `Modules/Marketplaces/Tests/Feature/MarketplacesOAuthMercadoLivreContratoTest.php` — 2026-10-26: catálogo por migration idempotente (ML ativo, Shopee e Amazon inativos); a tela do superadmin para ativar/desativar ainda não existe
 
 Seeder com Mercado Livre + Shopee + Amazon BR. UI admin superadmin pra ativar/desativar.
 
 ### US-MKT-003 · OAuth2 Mercado Livre — authorization code flow + refresh token — **P0** · 6h
 
-**Implementado em:** _pendente_ — módulo/tela não construído (US planejada): sem `Marketplaces/Connect.tsx`, callback OAuth ou `RefreshTokensJob` no disco
+**Implementado em:** _parcial_ · `Modules/Marketplaces/Services/MercadoLivre/MercadoLivreOAuth.php` · `Modules/Marketplaces/Http/Controllers/ContasController.php` · `Modules/Marketplaces/Tests/Feature/MarketplacesOAuthMercadoLivreContratoTest.php` — 2026-10-26: conectar + callback com state da sessão e token cifrado por empresa; faltam a página `Connect.tsx` e a renovação diária (`RefreshTokensJob`); credencial do app ML é [W]
 
 - Page `Marketplaces/Connect.tsx` — botão "Conectar Mercado Livre"
 - Redirect → `https://auth.mercadolibre.com.br/authorization?response_type=code&client_id={app_id}&redirect_uri={callback}`

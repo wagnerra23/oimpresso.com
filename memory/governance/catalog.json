@@ -26,23 +26,23 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 862,
-    "edges": 1175,
+    "nodes": 864,
+    "edges": 1177,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 146,
-      "component": 478,
-      "api": 87
+      "component": 479,
+      "api": 88
     },
     "by_edge_type": {
       "ownsTable": 97,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 91,
+      "providesApi": 92,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 478,
+      "hasComponent": 479,
       "dependsOn": 131,
       "delegatesTo": 120,
       "migratesTo": 1,
@@ -1453,6 +1453,14 @@
       "prefix": "/manufacturing/*",
       "providers": [
         "Manufacturing"
+      ]
+    },
+    {
+      "id": "api:/marketplaces/contas/mercado-livre/conectar",
+      "type": "api",
+      "prefix": "/marketplaces/contas/mercado-livre/conectar",
+      "providers": [
+        "Marketplaces"
       ]
     },
     {
@@ -3721,6 +3729,13 @@
       "module": "Marketplaces",
       "name": "Catálogo global de marketplaces",
       "desc": ""
+    },
+    {
+      "id": "component:Marketplaces/ContasController",
+      "type": "component",
+      "module": "Marketplaces",
+      "name": "ContasController",
+      "desc": "conectar a conta do vendedor no Mercado Livre por OAuth (US-MKT-003)"
     },
     {
       "id": "component:Marketplaces/DataController",
@@ -11582,6 +11597,12 @@
     },
     {
       "from": "module:Marketplaces",
+      "to": "component:Marketplaces/ContasController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Marketplaces",
       "to": "component:Marketplaces/DataController",
       "type": "hasComponent",
       "source": "contains"
@@ -11591,6 +11612,12 @@
       "to": "component:Marketplaces/InstallController",
       "type": "hasComponent",
       "source": "contains"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "api:/marketplaces/contas/mercado-livre/conectar",
+      "type": "providesApi",
+      "source": "url_prefixes"
     },
     {
       "from": "module:Marketplaces",

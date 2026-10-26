@@ -5,6 +5,7 @@ migracao_ui: "n/a — módulo novo, nasce Inertia (sem Blade)"
 contains:
   - "DataController"
   - "InstallController"
+  - "ContasController — conectar a conta do vendedor no Mercado Livre por OAuth (US-MKT-003)"
   - "Catálogo global de marketplaces (mkt_marketplaces) e conta do vendedor por empresa com token cifrado (mkt_account_credentials)"
   - "Anúncios (mkt_listings), pedidos recebidos (mkt_orders) e log de webhook append-only (mkt_webhook_log) — US-MKT-001"
 not_contains:
@@ -18,7 +19,8 @@ depends_on:
 owner: wagner
 status: em construção
 url_prefixes:
-  - /marketplaces/install (instalação 1-clique; as demais rotas chegam com o OAuth, US-MKT-003)
+  - /marketplaces/install (instalação 1-clique)
+  - /marketplaces/contas/mercado-livre/conectar e /marketplaces/oauth/callback/mercado-livre (US-MKT-003)
 ---
 
 # Modules/Marketplaces
