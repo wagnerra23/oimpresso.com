@@ -11,7 +11,7 @@ parent_capterra: memory/requisitos/Whatsapp/CAPTERRA-FICHA.md
 supersedes: resources/js/Pages/Whatsapp/Settings.charter.md
 related_adrs: [35, 48, 93, 135]
 tier: B
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — `/atendimento/canais/jana-templates`
@@ -32,6 +32,7 @@ Drivers Whatsapp (Z-API/Meta/Baileys) moved para `/atendimento/canais` (ADR 0135
 
 - **Toggle bot Jana** global do business (`whatsapp_business_configs.bot_enabled`)
 - **4 templates HSM** nomeados: `repair_ready`, `repair_waiting_parts`, `billing_due`, `billing_paid`
+- **Régua de relacionamento** (US-WA-328 · 2026-10-26): liga e escreve as mensagens de aniversário e de recompra (dias depois da última compra, 7–365) da empresa, em card próprio deferido; avisa quando a flag do sistema está desligada. Motor: US-WA-326.
 - **Multi-tenant Tier 0** ([ADR 0093](memory/decisions/0093-multi-tenant-isolation-tier-0.md)) — global scope `business_id` em queries
 
 ---

@@ -2069,3 +2069,17 @@ Ligar em produção é decisão [W].
 6. Rodar de novo no mesmo dia não repete (`whatsapp_regua_envios`, chave única por empresa, tipo, cliente e ocasião). Cron diário 10h BRT em produção.
 
 Ligar em produção é decisão [W]. Tela para a empresa configurar texto e liga/desliga: US seguinte.
+
+### US-WA-328 · Tela de configurar a régua de relacionamento da empresa
+
+**Implementado em:** `Modules/Whatsapp/Http/Controllers/Admin/ReguaRelacionamentoController.php` · `Modules/Whatsapp/Resources/js/Pages/Atendimento/_components/ReguaRelacionamentoCard.tsx` · `Modules/Whatsapp/Resources/js/Pages/Atendimento/JanaTemplates.tsx`
+
+**Testado em:** `Modules/Whatsapp/Tests/Feature/ReguaRelacionamentoConfigContratoTest.php`
+
+> owner: — · priority: p2 · estimate: 3h · type: story
+> blocked_by: US-WA-326
+
+**Critérios de aceite:**
+1. Card "Régua de relacionamento" em `/atendimento/canais/jana-templates` (permissão `whatsapp.settings.manage`): aniversário e recompra, cada um com liga/desliga e mensagem (`{nome}` = primeiro nome); recompra com dias depois da última compra (7–365).
+2. `PUT /atendimento/canais/regua-relacionamento` grava uma linha por empresa e tipo (salvar de novo atualiza), só da empresa da sessão.
+3. Com a flag do sistema desligada, o card avisa que as mensagens só saem depois de ligada.
