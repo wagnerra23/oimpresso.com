@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 856,
-    "edges": 1162,
+    "nodes": 858,
+    "edges": 1164,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 146,
-      "component": 474,
+      "component": 476,
       "api": 86
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 90,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 474,
+      "hasComponent": 476,
       "dependsOn": 126,
       "delegatesTo": 117,
       "migratesTo": 1,
@@ -2112,6 +2112,13 @@
       "desc": ""
     },
     {
+      "id": "component:ComunicacaoVisual/OrcamentoAceiteController",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "OrcamentoAceiteController",
+      "desc": "POST /comunicacao-visual/api/orcamentos/{id}/link, US-COMVIS-023 · UC-CVACE-01/02)"
+    },
+    {
       "id": "component:ComunicacaoVisual/OrcamentoArquivoController",
       "type": "component",
       "module": "ComunicacaoVisual",
@@ -2124,6 +2131,13 @@
       "module": "ComunicacaoVisual",
       "name": "OrcamentoController",
       "desc": ""
+    },
+    {
+      "id": "component:ComunicacaoVisual/Public/OrcamentoAceitePublicoController",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "Public/OrcamentoAceitePublicoController",
+      "desc": "página pública SEM login onde o cliente aceita ou pede ajuste do orçamento (/orcamento-cv/{token}, token sha256 de uso único, throttle 30/1, US-COMVIS-023 · UC-CVACEP-01..04)"
     },
     {
       "id": "component:ComunicacaoVisual/Services/AgendaInstalacao",
@@ -8326,6 +8340,12 @@
     },
     {
       "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/OrcamentoAceiteController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/OrcamentoArquivoController",
       "type": "hasComponent",
       "source": "contains"
@@ -8333,6 +8353,12 @@
     {
       "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/OrcamentoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/Public/OrcamentoAceitePublicoController",
       "type": "hasComponent",
       "source": "contains"
     },
