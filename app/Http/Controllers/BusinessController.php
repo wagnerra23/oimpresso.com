@@ -347,6 +347,7 @@ class BusinessController extends Controller
                     array_map(fn ($k) => 'sms.'.$k, array_values(array_filter(self::SEGREDOS_SMS, fn ($k) => ! empty(((array) $business->sms_settings)[$k] ?? null)))),
                 ),
                 'email_superadmin' => ! empty($allow_superadmin_email_settings),
+                'app_lojas' => $this->ajustesAppLojas((array) $pos_settings),
                 'opcoes' => \Inertia\Inertia::defer(fn () => [
                     'moedas' => $currencies, 'fusos' => $timezone_list, 'meses' => $months,
                     'metodos' => $accounting_methods, 'formatos_data' => $date_formats, 'unidades' => $units_dropdown,
@@ -358,6 +359,25 @@ class BusinessController extends Controller
         }
 
         return view('business.settings', compact('business', 'currencies', 'tax_rates', 'timezone_list', 'months', 'accounting_methods', 'commission_agent_dropdown', 'units_dropdown', 'date_formats', 'shortcuts', 'pos_settings', 'modules', 'theme_colors', 'email_settings', 'sms_settings', 'mail_drivers', 'allow_superadmin_email_settings', 'custom_labels', 'common_settings', 'weighing_scale_setting', 'payment_types'));
+    }
+
+    /**
+     * Aba "App das lojas": os mesmos ajustes que a Blade `settings_app_lojas` desenha (bool e `na_tela`), com rótulo,
+     * ajuda e o valor atual vindos de AjustesDaEmpresa — a tela não copia texto nem padrão.
+     *
+     * @return list<array{chave: string, rotulo: string, ajuda: string, valor: bool}>
+     */
+    private function ajustesAppLojas(array $pos): array
+    {
+        $valores = \App\Services\AppLojas\AjustesDaEmpresa::completar($pos);
+        $saida = [];
+        foreach (\App\Services\AppLojas\AjustesDaEmpresa::CHAVES as $chave => $c) {
+            if ($c['na_tela'] && $c['tipo'] === 'bool') {
+                $saida[] = ['chave' => $chave, 'rotulo' => $c['rotulo'], 'ajuda' => $c['ajuda'], 'valor' => (bool) $valores[$chave]];
+            }
+        }
+
+        return $saida;
     }
 
     /**
