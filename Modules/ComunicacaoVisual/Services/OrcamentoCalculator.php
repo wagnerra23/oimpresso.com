@@ -16,7 +16,10 @@ use Modules\ComunicacaoVisual\Entities\Material;
  *
  * Fórmulas canônicas:
  *   area_m2  = largura_m × altura_m × quantidade  (round 3 casas PHP_ROUND_HALF_UP)
- *   area_cobrada_m2 = max(largura × altura, material.minimo_m2) × quantidade  (= area_m2 sem mínimo)
+ *   area_cobrada_m2 = max(largura × altura, material.minimo_m2) × (1 + material.perda_pct/100) × quantidade
+ *                     (= area_m2 sem mínimo aplicado e sem perda)
+ *   emenda (linha junto dos acabamentos) = (N − 1) × maior lado × material.preco_solda_m × quantidade,
+ *                     N = ⌈menor lado ÷ material.largura_bobina_m⌉, só quando o menor lado passa da bobina
  *   subtotal_item = area_cobrada_m2 × preco_unitario_m2   (round 2 casas PHP_ROUND_HALF_UP)
  *   subtotal = SUM(item.subtotal)
  *   acabamentos = SUM(item.valor_acabamentos)   (ver acabamentosDoItem)
@@ -170,15 +173,25 @@ class OrcamentoCalculator
         // US-COMVIS-001: mínimo cobrado POR PEÇA (`comvis_materiais.minimo_m2`). A peça menor que o
         // mínimo é cobrada pelo mínimo; `area_m2` segue sendo a área física (base do custo).
         // Sem mínimo, ou peça já maior, a área cobrada é a própria `area_m2`.
-        $minimo = $this->minimoDoMaterial($businessId, $item);
-        $areaCobrada = ($minimo !== null && $largura * $altura < $minimo)
-            ? round($minimo * $qtd, 3, PHP_ROUND_HALF_UP)
-            : $areaMeta;
+        // Perda % do material ([W] 2026-10-26) soma na área cobrada da peça, depois do mínimo:
+        //   peça cobrada = max(L × A, mínimo) × (1 + perda/100)
+        // Sem mínimo aplicado e sem perda, a área cobrada é a própria `area_m2` (orçamento antigo igual).
+        $regras = $this->regrasDoMaterial($businessId, $item);
+        $minimo = $regras['minimo_m2'];
+        $perda = $regras['perda_pct'];
+        $peca = ($minimo !== null && $largura * $altura < $minimo) ? $minimo : null;
+        $areaCobrada = ($peca === null && $perda === null)
+            ? $areaMeta
+            : round(($peca ?? $largura * $altura) * (1 + ($perda ?? 0) / 100) * $qtd, 3, PHP_ROUND_HALF_UP);
 
         // subtotal = area_cobrada_m2 × preco_unitario_m2 (2 casas decimais)
         $subtotalItem = round($areaCobrada * $precoUnitario, 2, PHP_ROUND_HALF_UP);
 
         $acabamentos = $this->acabamentosDoItem($businessId, $item, $indice, $largura, $altura, $qtd, $areaMeta);
+        $emenda = $this->emendaDoItem($regras, $largura, $altura, $qtd);
+        if ($emenda !== null) {
+            $acabamentos[] = $emenda;
+        }
         $valorAcabamentos = round(array_sum(array_column($acabamentos, 'valor')), 2, PHP_ROUND_HALF_UP);
 
         return [
@@ -190,6 +203,7 @@ class OrcamentoCalculator
             'observacoes'      => $item['observacoes']  ?? null,
             'area_m2'          => $areaMeta,
             'minimo_m2'        => $minimo,
+            'perda_pct'        => $perda,
             'area_cobrada_m2'  => $areaCobrada,
             'preco_unitario_m2' => $precoUnitario,
             'subtotal'         => $subtotalItem,
@@ -254,22 +268,68 @@ class OrcamentoCalculator
     }
 
     /**
-     * Mínimo cobrado por peça do material do item, ou null (sem material, sem empresa conhecida,
-     * mínimo vazio ou zero). Tier 0: filtra pelo `$businessId` explícito, sem depender do escopo
-     * da sessão (o app chama sem sessão); material de outra empresa não traz mínimo.
+     * Regras de preço do material do item: mínimo por peça, perda %, largura da bobina e preço do
+     * metro de solda. Cada uma é null quando vazia ou zero (sem material, sem empresa conhecida,
+     * ou material de outra empresa: tudo null). Tier 0: filtra pelo `$businessId` explícito, sem
+     * depender do escopo da sessão (o app chama sem sessão).
+     *
+     * @return array{minimo_m2: ?float, perda_pct: ?float, largura_bobina_m: ?float, preco_solda_m: ?float}
      */
-    private function minimoDoMaterial(?int $businessId, array $item): ?float
+    private function regrasDoMaterial(?int $businessId, array $item): array
     {
+        $vazio = ['minimo_m2' => null, 'perda_pct' => null, 'largura_bobina_m' => null, 'preco_solda_m' => null];
         if ($businessId === null || empty($item['material_id'])) {
-            return null;
+            return $vazio;
         }
-        $minimo = (float) DB::table('comvis_materiais')
+        $m = DB::table('comvis_materiais')
             ->where('business_id', $businessId)
             ->where('id', (int) $item['material_id'])
             ->whereNull('deleted_at')
-            ->value('minimo_m2');
+            ->first(['minimo_m2', 'perda_pct', 'largura_bobina_m', 'preco_solda_m']);
+        if ($m === null) {
+            return $vazio;
+        }
+        $valor = fn ($v, int $casas) => (float) $v > 0 ? round((float) $v, $casas, PHP_ROUND_HALF_UP) : null;
 
-        return $minimo > 0 ? round($minimo, 3, PHP_ROUND_HALF_UP) : null;
+        return [
+            'minimo_m2'        => $valor($m->minimo_m2, 3),
+            'perda_pct'        => $valor($m->perda_pct, 2),
+            'largura_bobina_m' => $valor($m->largura_bobina_m, 3),
+            'preco_solda_m'    => $valor($m->preco_solda_m, 2),
+        ];
+    }
+
+    /**
+     * Emenda ([W] 2026-10-26): a peça precisa de emenda quando passa da largura da bobina nos DOIS
+     * lados (girando a peça, o menor lado é o que se divide em tiras). Então:
+     *   tiras   N = ⌈menor lado ÷ largura da bobina⌉
+     *   emendas   = N − 1, cada uma do tamanho do MAIOR lado
+     *   valor     = (N − 1) × maior lado × preço do metro de solda × quantidade
+     * Entra como uma linha "Emenda (solda)" junto dos acabamentos (fora do subtotal do material).
+     * Null quando o material não tem bobina ou preço de solda, ou a peça cabe na bobina.
+     *
+     * @param  array{largura_bobina_m: ?float, preco_solda_m: ?float}  $regras
+     * @return array{acabamento_id: null, nome: string, tipo: string, preco: float, base: float, valor: float}|null
+     */
+    private function emendaDoItem(array $regras, float $largura, float $altura, int $qtd): ?array
+    {
+        $bobina = $regras['largura_bobina_m'];
+        $solda = $regras['preco_solda_m'];
+        $menor = min($largura, $altura);
+        if ($bobina === null || $solda === null || $menor <= $bobina) {
+            return null;
+        }
+        $emendas = (int) ceil(round($menor / $bobina, 6)) - 1;
+        $base = round($emendas * max($largura, $altura) * $qtd, 3, PHP_ROUND_HALF_UP);
+
+        return [
+            'acabamento_id' => null,
+            'nome'          => 'Emenda (solda)',
+            'tipo'          => 'emenda',
+            'preco'         => $solda,
+            'base'          => $base,
+            'valor'         => round($base * $solda, 2, PHP_ROUND_HALF_UP),
+        ];
     }
 
     /**

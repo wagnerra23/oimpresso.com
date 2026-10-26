@@ -176,7 +176,10 @@ class OrcamentoController extends Controller
                     'acabamento_id' => (int) $a['acabamento_id'],
                     'metros'        => $a['tipo'] === 'm_linear' ? (float) $a['base'] : null,
                     'quantidade'    => $a['tipo'] === 'unitario' ? (float) $a['base'] : null,
-                ], fn ($v) => $v !== null), $i->acabamentos_json ?? []),
+                ], fn ($v) => $v !== null), array_values(array_filter(
+                    $i->acabamentos_json ?? [],
+                    fn (array $a) => ! empty($a['acabamento_id']), // a emenda é recalculada, não escolhida
+                ))),
             ])->values()->all(),
         ];
     }
