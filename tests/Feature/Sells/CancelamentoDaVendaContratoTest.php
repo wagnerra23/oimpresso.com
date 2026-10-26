@@ -197,6 +197,8 @@ it('UC-VCAN-09 a venda cancelada sai do extrato do cliente', function () {
     $nova('final', 100.0);
     $nova('cancelled', 60.0);
     $nova('draft', 30.0);
+    // O método lê request()->session(); a requisição de teste não vem com a sessão ligada.
+    request()->setLaravelSession(app('session.store'));
     session(['user.business_id' => $this->biz]);
 
     $util = app(\App\Utils\TransactionUtil::class);
