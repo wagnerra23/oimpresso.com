@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 37,
-    "nodes": 856,
-    "edges": 1162,
+    "nodes": 858,
+    "edges": 1164,
     "by_node_type": {
       "module": 42,
       "table": 108,
       "adr": 146,
-      "component": 474,
+      "component": 476,
       "api": 86
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 90,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 474,
+      "hasComponent": 476,
       "dependsOn": 126,
       "delegatesTo": 117,
       "migratesTo": 1,
@@ -3722,6 +3722,13 @@
       "desc": "liga/desliga contingencia SEFAZ por tenant (US-NFE-006, ADR TECH-0002)"
     },
     {
+      "id": "component:NfeBrasil/DanfePublicaController",
+      "type": "component",
+      "module": "NfeBrasil",
+      "name": "DanfePublicaController",
+      "desc": "DANFE em PDF por link assinado (7 dias) para o cliente, GET /nfe-brasil/danfe/{business}/{emissao}; sem assinatura válida = 403 (US-WA-321, aviso por WhatsApp)"
+    },
+    {
       "id": "component:NfeBrasil/DataController",
       "type": "component",
       "module": "NfeBrasil",
@@ -4917,6 +4924,13 @@
       "module": "Whatsapp",
       "name": "Admin/QueuesController",
       "desc": "CRUD filas de atendimento whatsapp_queues (US-WA-301 ADR 0267, painel QueuesSheet da Caixa Unificada V4)"
+    },
+    {
+      "id": "component:Whatsapp/Admin/ReguaRelacionamentoController",
+      "type": "component",
+      "module": "Whatsapp",
+      "name": "Admin/ReguaRelacionamentoController",
+      "desc": "régua de aniversário e recompra por empresa, PUT /atendimento/canais/regua-relacionamento (US-WA-328); motor em Services/Regua, atrás de WHATSAPP_REGUA_RELACIONAMENTO_ENABLED"
     },
     {
       "id": "component:Whatsapp/Admin/SettingsController",
@@ -11559,6 +11573,12 @@
     },
     {
       "from": "module:NfeBrasil",
+      "to": "component:NfeBrasil/DanfePublicaController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NfeBrasil",
       "to": "component:NfeBrasil/DataController",
       "type": "hasComponent",
       "source": "contains"
@@ -13798,6 +13818,12 @@
     {
       "from": "module:Whatsapp",
       "to": "component:Whatsapp/Admin/QueuesController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "component:Whatsapp/Admin/ReguaRelacionamentoController",
       "type": "hasComponent",
       "source": "contains"
     },
