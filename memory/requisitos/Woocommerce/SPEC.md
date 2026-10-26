@@ -82,6 +82,10 @@ related_adrs:
 
 **Implementado em:** _parcial_ · `Modules/Woocommerce/Jobs/EnviarEstoqueWooJob.php` · `Modules/Woocommerce/Listeners/EstoqueMudouParaWoo.php` · `Modules/Woocommerce/Tests/Feature/EstoqueVoltaParaWooContratoTest.php` — 2026-10-26: produto simples; produto variável (estoque por variação, como o `syncProductVariations`) fica para o próximo PR
 
+**Testado em:** `Modules/Woocommerce/Tests/Feature/EstoqueVoltaParaWooContratoTest.php`
+
+**DoD:** o estoque enviado é o do local configurado da Woo, provado por dois caminhos; o job manda só manage_stock e stock_quantity; não envia sem pacote, sem local, com sync desligado no produto ou para produto de outra empresa; a baixa de estoque de produto ligado à Woo agenda o envio e a de produto solto não.
+
 Origem: levantamento de lacunas 2026-10-25 (P1 Plataforma — WooCommerce atualizado com estoque de volta).
 - Hoje o estoque só vai para a Woo quando alguém roda o sync de produtos; venda no balcão não atualiza a loja.
 - Mudança de estoque de produto já sincronizado (`woocommerce_product_id` preenchido) agenda job com `business_id` que envia só `stock_quantity` daquele produto/variação, com debounce por produto.
