@@ -5,7 +5,7 @@ irmaos: Sped.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-09-04"
+last_run: "2026-10-27"
 ---
 
 # Casos de Uso & Aceite — SPED e livros
@@ -367,7 +367,7 @@ executado" **sozinha**, sem editar código.
 2. **Cadência:** rodar ao fim de toda mexida. UC ❌ = regressão fiscal (multa).
 
 ## Trilha do tempo
-- 2026-10-27 · [CC] US-FISCAL-028 fatia 1: entram `UC-FSPED-11..14` (estrutura do arquivo pelo leiaute 020 / Guia 3.2.3). Rodam sem banco: o teste troca só a leitura (business + NF-e). O golden de 2026-09-03 **ficou atrás do gerador** (COD_VER 018, sem B/D/G/K/1, 9990 com uma a menos) e segue como captura histórica até ser regerado no CT 100.
+- 2026-10-27 · [CC] US-FISCAL-028 fatia 1: entram `UC-FSPED-11..14` (estrutura do arquivo pelo leiaute 020 / Guia 3.2.3). Rodam sem banco: o teste troca só a leitura (business + NF-e). O golden de 2026-09-03 **ficou atrás do gerador** (COD_VER 018, sem B/D/G/K/1, 9990 com uma a menos) e segue como captura histórica até ser regerado no CT 100. `last_run` 09-04 → 10-27: a única mudança no `Sped.tsx` depois de 09-04 foi o #7110 (09-09, rótulos e ordem das 7 abas, medido pela API do GitHub — o clone local é raso). Nenhum UC desta tela depende dos rótulos das abas; os UC antigos não foram re-executados (CT 100 fora do ar).
 - 2026-09-04 · [CC] Onda 10 (F1 Cowork): entram `UC-FSF1-01`, `UC-FSF1-06` e `UC-FSF1-07`, traduzindo os Goals 1 (completar), 5 e 4 do charter do Cowork. A régua ganhou barra na página (antes só existia dentro do drawer) e as duas superfícies novas são **medidas no arquivo de referência** — o cartão de validação teve de contradizer a copy do protótipo, que diz "golden file: não existe" e ficou desatualizada no dia seguinte ao charter. Goal 3 (prévia do TXT) segue em aberto por decisão [W].
 - 2026-07-03 · [CC] criado no Passo 3 do programa de ondas (régua por tela). 22 testes mapeados, 0 citavam UC-id.
 - 2026-09-03 · [CC] Onda 9 (F1 Cowork): entram `UC-FSF1-03` (régua de 4 checagens + guarda de entrada no Service) e `UC-FSF1-05` (golden file). Dois achados registrados sem conserto silencioso — o `TypeError` do Bloco 9, corrigido com um cast, e o emitente sem CNPJ/IE/UF, que é decisão do responsável. O §recibo de 07-27 caducou: `nfe_emissoes` existe no CT 100 desde o provisionamento de 07-28.
