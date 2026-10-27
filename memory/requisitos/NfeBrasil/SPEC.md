@@ -808,6 +808,23 @@ E empresa fora do Simples segue o R-NFE-017 (80,00) mesmo com RJ desmarcado
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` (lane `nfebrasil-pest`).
 **Fora deste item:** a guia (GNRE) do DIFAL; nenhum caller da emissão passa a interna do destino hoje, então o DIFAL ainda não chega à nota.
 
+### R-NFE-038 · O XML do mês vai ao contador, uma vez por competência
+
+```gherkin
+Dado a empresa com contador cadastrado e, em 09/2026, 1 NF-e autorizada, 1 cancelada e 1 rejeitada (fixture)
+Quando roda o envio da competência 2026-09
+Então o contador recebe um e-mail com um ZIP de 2 XML (a autorizada e a cancelada, marcada "-cancelada")
+E o envio fica registrado; rodar de novo no mesmo mês não manda outro e-mail
+E nota do mês sem XML no storage é contada no e-mail, não some
+E nota de outra empresa ou de outro mês não entra; empresa sem contador ou sem nota não recebe nada
+E o agendamento mensal (dia 5, 07:00) só roda com a chave ligada
+```
+
+**Contrato:** CONFAZ Ajuste SINIEF 07/2005, cláusula décima (o emitente guarda o XML e o disponibiliza); a NF-e cancelada segue escriturada.
+**Implementação:** `Modules/NfeBrasil/Services/PacoteXmlContadorService.php` · `Modules/NfeBrasil/Mail/PacoteXmlContadorMail.php` · `Modules/NfeBrasil/Console/Commands/EnviarXmlContadorCommand.php` · migração `2026_10_26_000001_create_nfe_envios_contador_table` · `Modules/NfeBrasil/Providers/NfeBrasilServiceProvider.php` (agenda) · `config/fiscal.php` (`envio_xml_contador_enabled`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/EnviarXmlContadorTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** o drawer "Enviar p/ contabilidade" do cockpit ainda mostra dados fictícios e o botão está desligado; NFS-e e eventos (CC-e) no pacote; SFTP.
+
 ### R-NFE-033 · Aceita CNPJ alfanumérico válido e recusa o inválido
 
 ```gherkin
@@ -1819,6 +1836,24 @@ Casos: `resources/js/Pages/Fiscal/Nfe.casos.md` UC-FNFE-15..18.
 - [x] Toda nota em contingência sai com `dhCont` e `xJust` preenchidos a partir do motivo da ativação; nota normal não muda — UC-FNFE-15/16
 - [x] Multi-tenant: o job de um business nunca transmite nota de outro (Pest com os tenants 98 e 2, UC-FNFE-18); ativar/desativar exige `nfe.contingencia.manage` (403 sem ela, `ContingenciaAtivacaoTest` UC-CONT-15)
 - [ ] Smoke fiscal manual contra SEFAZ só em biz=1, homologação
+
+### US-NFE-073 · XML do mês enviado ao contador sem ninguém lembrar — **P1**
+
+> owner: — · sprint: — · priority: p1 · estimate: 6h · type: story
+> blocked_by: —
+
+**Implementado em:** _parcial_ — `Modules/NfeBrasil/Services/PacoteXmlContadorService.php` · `Modules/NfeBrasil/Console/Commands/EnviarXmlContadorCommand.php` · `Modules/NfeBrasil/Tests/Feature/EnviarXmlContadorTest.php` (backend + agenda desligada; falta o drawer do cockpit com dado real)
+
+Como dono da empresa, quero que o XML das notas do mês chegue ao meu contador sozinho, no começo do mês seguinte, para não ter de baixar e mandar à mão nem esquecer.
+
+**Origem:** levantamento de lacunas de 2026-10-25 ("Envio automático dos XMLs ao contador", P1). Medido em 2026-10-26: o drawer `resources/js/Pages/Fiscal/_components/SendToContabilDrawer.tsx` tinha o botão desligado e o `CockpitController::mockContabilData` devolvia números fictícios; o contador já é cadastrado em `nfe_contadores` (thread 15b) e o XML já é lido pelo `DanfeService::obterXmlContents`.
+
+**Aceite:**
+- [x] O comando monta o ZIP das autorizadas e canceladas da competência, manda ao contador e registra, uma vez por empresa × mês — R-NFE-038, UC-FNFE-37/38
+- [x] Sem contador, sem nota ou em dry-run nada sai; o agendamento mensal fica atrás de `NFEBRASIL_ENVIO_XML_CONTADOR` (desligada) — UC-FNFE-39
+- [x] Multi-tenant: nota e contador de outra empresa nunca entram (tenants 98 e 99)
+- [ ] O drawer do cockpit mostra o histórico real (`nfe_envios_contador`) e o botão envia agora, com permissão
+- [ ] Ligar o envio automático em produção — **decisão [W]** (manda e-mail para fora)
 
 ### US-NFE-071 · Contingência: SVC-AN/SVC-RS, evento EPEC 110140 e marcação no DANFE (UC-FLX-32) — **P1**
 

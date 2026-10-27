@@ -719,6 +719,34 @@ creditado antes e não é desfeito (`CU-RB-09` item 3).
 - O e-mail com DANFE + XML é o `EnviarDanfePorEmail` (US-NFE-044, `EnviarDanfePorEmailTest`), fora deste
   bloco.
 
+## XML do mês vai ao contador (US-NFE-073 · R-NFE-038)
+
+> **Âncora:** [US-NFE-073](../../../../memory/requisitos/NfeBrasil/SPEC.md) e a R-NFE-038. Mora nesta
+> tela porque o pacote é feito das notas desta lista. Coluna CU `—`: o SDD §6 do Fiscal não tem CU do
+> envio ao contador. Prova: `EnviarXmlContadorTest` (MySQL, tenants 98 e 99, storage e e-mail falsos).
+
+## UC-FNFE-37 · O pacote leva as autorizadas e canceladas do mês, só da empresa · `must`
+
+**Dado** a empresa com, em 09/2026, uma NF-e autorizada, uma cancelada e uma rejeitada, mais uma autorizada
+em 10/2026 e uma do vizinho **Quando** monta o pacote de 2026-09 **Então** o ZIP tem 2 XML, a cancelada com
+"-cancelada" no nome, e nenhuma das outras. Nota do mês sem XML no storage é contada à parte.
+
+Status: 🧪
+
+## UC-FNFE-38 · O contador recebe uma vez por mês · `must`
+
+**Dado** contador cadastrado na empresa e no vizinho **Quando** roda o envio de 2026-09 duas vezes **Então** sai
+um e-mail só, para o contador da empresa, com 1 XML; o envio fica registrado; o vizinho sem nota não recebe.
+
+Status: 🧪
+
+## UC-FNFE-39 · Sem contador, em dry-run ou com a chave desligada, nada sai · `must`
+
+**Dado** a empresa sem contador **Quando** roda o envio **Então** nenhum e-mail sai. Em dry-run nada é enviado
+nem gravado. O agendamento do dia 5 às 07:00 existe e só passa com `NFEBRASIL_ENVIO_XML_CONTADOR` ligada.
+
+Status: 🧪
+
 ## Backlog de casos (sem id — entram quando um teste de COMPORTAMENTO os cobrir)
 
 - **[~~BACKLOG~~ · 🧪 tem teste, NÃO executa · Tier 0] Gate de permissão `fiscal.nfe.view` bloqueia a leitura da lista** — Dado usuário sem `fiscal.nfe.view` nem `superadmin` · Quando faz `GET /fiscal/nfe` · Então 403. **Corrigido em 2026-09-01:** a redação anterior dizia *"nenhum teste o exercita"* e isso era **falso** — o caso existe em [`GatesPermissaoFiscalTest.php:72`](../../../../Modules/Fiscal/Tests/Feature/GatesPermissaoFiscalTest.php), **com controle negativo** em `:79` (superadmin não recebe 403), e ancora `UC-FNFE-08`. O que é verdade é outra coisa, e a distinção importa: o arquivo inteiro **pula** (`:49-55`) em SQLite e sem `nfe_emissoes`, então o caso **não executa** em nenhuma lane de hoje. *Teste ausente* e *teste que não roda* pedem trabalhos diferentes — o primeiro é escrever, o segundo é dar lane ao módulo (o item de maior alavancagem do plano: 15 de 21 arquivos de teste do Fiscal chamam `markTestSkipped`).
