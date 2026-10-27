@@ -32,7 +32,7 @@ permissions:
 jobs:
   selftest:
     name: gate selftest (as catracas mordem · GT-G6)
-    runs-on: ${{ vars.CI_RUNNER_LEVE == 'ct100' && !github.event.pull_request.head.repo.fork && fromJSON('["self-hosted","ct100-leve"]') || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -67,7 +67,7 @@ jobs:
   # é o .test.mjs hermético de cada hook (não é mais Windows-coupled → roda em ubuntu).
   hooks-selftest:
     name: hooks selftest (advisory · node hook tests)
-    runs-on: ${{ vars.CI_RUNNER_LEVE == 'ct100' && !github.event.pull_request.head.repo.fork && fromJSON('["self-hosted","ct100-leve"]') || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
