@@ -142,6 +142,8 @@ class PurchaseRequisitionController extends Controller
                 ],
                 'requisicoes' => Inertia::defer(fn () => $this->requisicoesDaTela((int) $business_id, request())),
                 'opcoes' => Inertia::defer(fn () => $this->opcoesFiltroRequisicoes((int) $business_id)),
+                // US-COM-030 (MRP): o que falta comprar somando OS e estoque mínimo, por local permitido.
+                'necessidade' => Inertia::defer(fn () => $this->necessidadeDeCompra((int) $business_id, request())),
             ]);
         }
 
@@ -262,6 +264,49 @@ class PurchaseRequisitionController extends Controller
     }
 
     /** Opções dos filtros — as mesmas listas que a Blade monta para os selects. */
+    /**
+     * US-COM-030 — necessidade de compra (MRP) para a tela de requisições. O cálculo é do
+     * `Modules\Compras\Services\NecessidadeDeCompra`; aqui só se aplicam os locais permitidos (R3 do
+     * charter), o filtro de local da tela, e se trocam ids por nomes. A data vem formatada como na
+     * Blade (`date_format` da empresa): a tela não formata data.
+     *
+     * @return list<array<string,mixed>>|null null quando o módulo Compras não está no código
+     */
+    private function necessidadeDeCompra(int $business_id, Request $request): ?array
+    {
+        if (! class_exists(\Modules\Compras\Services\NecessidadeDeCompra::class)) {
+            return null;
+        }
+
+        $linhas = app(\Modules\Compras\Services\NecessidadeDeCompra::class)->listar($business_id);
+        $permitidos = auth()->user()->permitted_locations();
+        $filtro = $request->input('location_id');
+        $linhas = array_values(array_filter($linhas, fn ($l) => ($permitidos === 'all' || in_array($l['location_id'], (array) $permitidos))
+            && (empty($filtro) || (int) $filtro === $l['location_id'])));
+
+        $locais = BusinessLocation::where('business_id', $business_id)->pluck('name', 'id');
+        $fornecedores = \App\Contact::where('business_id', $business_id)
+            ->whereIn('id', array_filter(array_column($linhas, 'fornecedor_id')))
+            ->get(['id', 'name', 'supplier_business_name'])
+            ->mapWithKeys(fn ($c) => [$c->id => $c->supplier_business_name ?: $c->name]);
+        $formato = (string) ($request->session()->get('business.date_format') ?: 'd/m/Y');
+
+        return array_map(fn ($l) => [
+            'chave' => $l['location_id'].':'.$l['variation_id'],
+            'insumo' => $l['nome'],
+            'local' => $locais[$l['location_id']] ?? '',
+            'fornecedor' => $l['fornecedor_id'] !== null ? ($fornecedores[$l['fornecedor_id']] ?? null) : null,
+            'saldo' => (float) $l['saldo'],
+            'comprometido' => (float) $l['comprometido'],
+            'minimo' => (float) $l['minimo'],
+            'a_caminho' => (float) $l['a_caminho'],
+            'necessidade' => (float) $l['necessidade'],
+            'prazo_dias' => $l['prazo_dias'],
+            'pedir_ate' => \Illuminate\Support\Carbon::parse($l['pedir_ate'])->format($formato),
+            'atrasado' => $l['atrasado'],
+        ], $linhas);
+    }
+
     private function opcoesFiltroRequisicoes(int $business_id): array
     {
         $status = [];

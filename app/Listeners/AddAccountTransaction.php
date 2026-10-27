@@ -35,7 +35,10 @@ class AddAccountTransaction
     {
         //echo "<pre>";print_r($event->transactionPayment->toArray());exit;
         if ($event->transactionPayment->method == 'advance') {
-            $this->transactionUtil->updateContactBalance($event->transactionPayment->payment_for, $event->transactionPayment->amount, 'deduct');
+            // Adiantamento numa DEVOLUÇÃO é o vale-troca (US-VEST-021): a loja deve ao cliente,
+            // então o saldo dele SOBE. Em venda/compra o adiantamento é usado e o saldo desce.
+            $sentido = \App\Services\Sells\ValeTrocaService::ehVale($event->transactionPayment) ? 'add' : 'deduct';
+            $this->transactionUtil->updateContactBalance($event->transactionPayment->payment_for, $event->transactionPayment->amount, $sentido);
         }
 
         if (! $this->moduleUtil->isModuleEnabled('account', $event->transactionPayment->business_id)) {
