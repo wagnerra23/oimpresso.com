@@ -54,7 +54,7 @@ last_run_nota: "2026-10-05 revalidado por leitura na thread Crm/06: o Create.tsx
 - **Aceite:** Dado qualquer empresa, com a chave `MWART_CLIENTE_CREATE` desligada · Quando faço `GET /contacts/create?type=customer` · Então renderiza Inertia **`Cliente/Create`** com os `types` que o usuário pode cadastrar.
 - **Teste:** `tests/Feature/Cliente/ClienteCutoverReactTest.php` (Pest, lane Cliente · MySQL).
 - **Regressão que defende:** a volta do ramo Blade, apagado no cutover F5 de 2026-10-27. A view `contact.create` continua existindo porque os modais Blade de POS, Compras e Repair a incluem.
-- **Status: 🧪** — teste escrito; volta a ✅ quando `casos:results` regravar o manifesto.
+- **Status: ⬜** — teste novo; vira 🧪 com o run verde da lane Cliente.
 
 ---
 

@@ -66,7 +66,7 @@ last_run: "2026-07-08"
 - **Aceite:** Dado um contato da minha empresa, com a chave `MWART_CLIENTE_LEDGER` desligada · Quando faço `GET /contacts/ledger?contact_id=` · Então renderiza Inertia **`Cliente/Ledger`** com o contato pedido. O PDF (`action=pdf`) segue saindo pelo mPDF.
 - **Teste:** `tests/Feature/Cliente/ClienteCutoverReactTest.php` (Pest, lane Cliente · MySQL).
 - **Regressão que defende:** a volta do ramo Blade, apagado no cutover F5 de 2026-10-27.
-- **Status: 🧪** — teste escrito; volta a ✅ quando `casos:results` regravar o manifesto.
+- **Status: ⬜** — teste novo; vira 🧪 com o run verde da lane Cliente.
 
 ---
 

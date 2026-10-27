@@ -59,10 +59,7 @@ test('GET /contacts/map renderiza Inertia Cliente/Map com contacts/all_contacts'
 });
 
 test('Tier 0 — o mapa não lista cliente de outro business', function () {
-    $otherBusiness = DB::table('business')->where('id', '!=', $this->business->id)->first();
-    if (! $otherBusiness) {
-        $this->markTestSkipped('Sem 2º business pra teste cross-tenant.');
-    }
+    $otherBusiness = $this->seededSupportClientTenant(); // adversário fictício 99 (ADR 0358), nunca biz=4
 
     $meuName = 'Cliente Proprio Map '.uniqid();
     DB::table('contacts')->insert([

@@ -5,7 +5,7 @@ irmaos: Import.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o assistente de importação abrir (não cair no Blade legacy) não muda no refactor.
 owner: wagner
-last_run: "2026-08-20"
+last_run: "2026-10-27"
 ---
 
 # Casos de Uso & Aceite — Importar clientes em massa
@@ -23,7 +23,7 @@ last_run: "2026-08-20"
 - **Aceite:** Dado qualquer empresa, com a chave `MWART_CLIENTE_IMPORT` ligada ou não (cutover F5 de 2026-10-27) · Quando faço `GET /contacts/import` · Então renderiza Inertia **`Cliente/Import`** (não o Blade `contact.import`) e o payload traz `zip_available` (banner de aviso se o PHP Zip faltar).
 - **Teste:** `tests/Feature/Cliente/ClienteImportInertiaTest.php` — `GET /contacts/import renderiza Inertia Cliente/Import mesmo com a chave desligada`.
 - **Regressão que defende:** a volta do Blade legado. Desde 2026-10-27 o teste roda com a chave desligada, e a view `contact.import` foi apagada.
-- **Status: 🧪** — feature test HTTP passa no CI; ✅ com o manifesto regravado.
+- **Status: 🧪** — passou com a chave DESLIGADA no run 40496144297 da lane Cliente (2026-10-27, PR #10007); ✅ com o manifesto regravado.
 
 ---
 

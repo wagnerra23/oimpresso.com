@@ -5,7 +5,7 @@ irmaos: Map.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o mapa abrir em React e não vazar cliente de outro tenant não muda no refactor.
 owner: wagner
-last_run: "2026-09-11"
+last_run: "2026-10-27"
 ---
 
 > ℹ️ **`last_run` 2026-07-08 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
@@ -29,7 +29,7 @@ last_run: "2026-09-11"
 - **Persona:** Larissa — quer ver onde estão os clientes no mapa; abre a tela e vê o mapa + a lista lateral.
 - **Aceite:** Dado qualquer empresa, com a chave `MWART_CLIENTE_MAP` ligada ou não (cutover F5 de 2026-10-27; o teste roda com ela desligada) · Quando faço `GET /contacts/map` · Então renderiza Inertia **`Cliente/Map`** (não o Blade `contact.contact_map`) com os props `contacts` (os que têm posição) e `all_contacts` (todos, pra lista pesquisável).
 - **Teste:** `tests/Feature/Cliente/ClienteMapInertiaTest.php` — `GET /contacts/map renderiza Inertia Cliente/Map com contacts/all_contacts`.
-- **Status: 🧪** — feature test HTTP passa no CI; ✅ com o manifesto regravado.
+- **Status: 🧪** — passou com a chave DESLIGADA no run 40496144297 da lane Cliente (2026-10-27, PR #10007); ✅ com o manifesto regravado.
 
 ---
 
@@ -38,7 +38,7 @@ last_run: "2026-09-11"
 - **Aceite:** Dado um cliente cadastrado em OUTRO `business_id` · Quando abro `/contacts/map` no meu negócio · Então esse cliente estrangeiro **não** aparece em `all_contacts` (o global scope por `business_id` o esconde).
 - **Teste:** `tests/Feature/Cliente/ClienteMapInertiaTest.php` — `Tier 0 — o mapa não lista cliente de outro business`.
 - **Regressão que defende:** vazamento cross-tenant na listagem do mapa (`Contact::where('business_id')`).
-- **Status: 🧪** — feature test HTTP passa no CI; ✅ com o manifesto regravado.
+- **Status: ⬜** — adversário trocado para o tenant fictício 99 em 2026-10-27 (antes: a primeira outra empresa do banco); vira 🧪 com o próximo run verde da lane Cliente.
 
 ---
 
