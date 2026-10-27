@@ -42,11 +42,25 @@ last_run: "2026-10-14"
   Então `configurado` é verdadeiro · E nem a key nem o secret aparecem em nenhum lugar da resposta.
 - **Status: 🧪**
 
+## UC-WOOP-05 · Cada bloco de sincronização segue a permissão da Blade
+- **Aceite:** Dado um usuário só com `woocommerce.sync_orders` e o módulo na assinatura · Quando abro o painel · Então
+  `pode.pedidos` é verdadeiro e `pode.categorias`, `pode.sincronizar` e `pode.configurar` são falsos (os mesmos `@can`
+  dos blocos da Blade) · E `ultimas` vem adiada.
+- **Status: 🧪**
+
+## UC-WOOP-06 · Reiniciar categorias pela tela nova só limpa o meu negócio · `[T0]`
+- **Aceite:** Dado uma categoria minha e uma de outro negócio, as duas com id na loja · Quando chamo
+  `/woocommerce/reset-categories` como a tela nova chama (`X-Requested-With`) · Então a minha perde o id na loja · E a
+  alheia mantém o dela.
+- **Status: 🧪**
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
-- [BACKLOG] Sincronizar categorias, produtos e pedidos pela tela nova (F3-2).
+- [BACKLOG] Sincronizar produtos em páginas de 100 até `total_products = 0` (só no navegador; precisa de loja de teste).
+- [BACKLOG] Mapear impostos pela tela nova (hoje na Blade: chama a API da loja).
 - [BACKLOG] Preço e estoque enviados por produto — decisão [W] (regra mestre).
 - [BACKLOG] Testar a conexão com a loja sem travar a abertura da página.
 
 ## Trilha do tempo
 - 2026-10-13 · [CL] criado com a F3 da thread `woocommerce/playbook/01`.
 - 2026-10-14 · [CL] revalidado na thread 02: as abas saíram para `_components/WoocommerceAbas.tsx`; UC-WOOP-01..04 verdes no CT 100.
+- 2026-10-27 · [CL] F3-2: sincronizar e reiniciar na tela nova (UC-WOOP-05, UC-WOOP-06).

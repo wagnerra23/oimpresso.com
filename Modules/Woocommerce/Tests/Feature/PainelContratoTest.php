@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-WOOP-01, UC-WOOP-02, UC-WOOP-03, UC-WOOP-04 (Woocommerce/Painel/Index.casos.md).
+// Cobre UC-WOOP-01, UC-WOOP-02, UC-WOOP-03, UC-WOOP-04, UC-WOOP-05, UC-WOOP-06 (Woocommerce/Painel/Index.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -129,4 +129,43 @@ test('UC-WOOP-04 Tier 0 — as chaves da loja nunca chegam à página', function
     $parcial = woopContrGet($this, ['X-Inertia-Partial-Component' => 'Woocommerce/Painel/Index', 'X-Inertia-Partial-Data' => 'resumo,produtos']);
     expect($parcial->getContent())->not->toContain($chave);
     expect($parcial->getContent())->not->toContain($segredo);
+});
+
+test('UC-WOOP-05 cada bloco de sincronização aparece só para quem tem a permissão dele', function () {
+    config(['feature-flags.forced_on' => 'useV2WoocommercePainel']);
+    $mu = Mockery::mock(\App\Utils\ModuleUtil::class)->makePartial();
+    $mu->shouldReceive('hasThePermissionInSubscription')->andReturn(true);
+    app()->instance(\App\Utils\ModuleUtil::class, $mu);
+    $soPedidos = $this->usuarioComPermissoes(['woocommerce.sync_orders'], $this->business);
+    $this->actingAs($soPedidos);
+    session(['user.id' => $soPedidos->id]);
+
+    $r = woopContrGet($this);
+
+    $r->assertOk();
+    expect($r->json('props.pode'))->toMatchArray([
+        'pedidos' => true, 'categorias' => false, 'sincronizar' => false, 'configurar' => false,
+    ]);
+    // As datas da última sincronização vêm adiadas, como resumo e produtos.
+    expect($r->json('deferredProps.default'))->toContain('ultimas');
+});
+
+test('UC-WOOP-06 Tier 0 — reiniciar categorias pela tela nova só limpa o vínculo do meu negócio', function () {
+    $outro = $this->seededSupportClientTenant();
+    $minha = DB::table('categories')->insertGetId([
+        'name' => 'WOOP cat '.uniqid(), 'business_id' => $this->business->id, 'parent_id' => 0, 'created_by' => $this->user->id,
+        'category_type' => 'product', 'woocommerce_cat_id' => 901, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $alheia = DB::table('categories')->insertGetId([
+        'name' => 'WOOP cat '.uniqid(), 'business_id' => $outro->id, 'parent_id' => 0, 'created_by' => $this->user->id,
+        'category_type' => 'product', 'woocommerce_cat_id' => 902, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    // Mesma chamada que SincronizarLoja.tsx faz: GET com X-Requested-With, resposta JSON.
+    $r = $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])->get('/woocommerce/reset-categories');
+
+    $r->assertOk();
+    expect((bool) $r->json('success'))->toBeTrue();
+    expect(DB::table('categories')->where('id', $minha)->value('woocommerce_cat_id'))->toBeNull();
+    expect((int) DB::table('categories')->where('id', $alheia)->value('woocommerce_cat_id'))->toBe(902);
 });
