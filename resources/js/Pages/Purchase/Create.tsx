@@ -25,6 +25,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { FieldError } from '@/Components/ui/field-state';
 import { Plus, Trash2, Search, ShoppingCart, ArrowLeft, Save, LayoutGrid } from 'lucide-react';
 import GradeMatrixInput, { type GradeCell } from '@/Pages/Purchase/_components/GradeMatrixInput';
+import DespesasAnexo from '@/Pages/Purchase/_components/DespesasAnexo';
+import { camposDespesas, despesasVazias, somaDespesas, valorParaEnvio, type DespesaAdicional } from '@/Pages/Purchase/_components/compra-envio';
 import GradeProductCombobox, { type PickedProduct } from '@/Pages/Purchase/_components/GradeProductCombobox';
 import SupplierCombobox from '@/Pages/Purchase/_components/SupplierCombobox';
 import ReceberDoPedido from '@/Pages/Purchase/_components/ReceberDoPedido';
@@ -138,6 +140,8 @@ function PurchaseCreate({
   const [gradeLoading, setGradeLoading] = useState(false);
   const [gradeErro, setGradeErro] = useState<string | null>(null);
   const [erroItens, setErroItens] = useState<string | null>(null);
+  const [despesas, setDespesas] = useState<DespesaAdicional[]>(despesasVazias);
+  const [documento, setDocumento] = useState<File | null>(null);
 
   const form = useForm({
     ref_no: '' as string,
@@ -171,10 +175,13 @@ function PurchaseCreate({
         : form.data.discount_amount || 0;
     const totalImpostos = form.data.tax_amount || 0;
     const frete = form.data.shipping_charges || 0;
-    const final = subtotal - descontoValor + totalImpostos + frete;
-    return { subtotal, descontoValor, totalImpostos, frete, final };
+    // Mesma fórmula da Blade (purchase.js): as despesas adicionais somam ao total final.
+    const despesasTotal = somaDespesas(despesas);
+    const final = subtotal - descontoValor + totalImpostos + frete + despesasTotal;
+    return { subtotal, descontoValor, totalImpostos, frete, despesasTotal, final };
   }, [
     linhas,
+    despesas,
     form.data.discount_type,
     form.data.discount_amount,
     form.data.tax_amount,
@@ -343,8 +350,15 @@ function PurchaseCreate({
       // createOrUpdatePurchaseLines lê `purchase_line_tax_id` (não `tax_id`) sem isset →
       // a chave precisa existir em TODA linha (manual + grade), senão o warning vira 500.
       purchases: linhas.map((l) => ({ ...l, purchase_line_tax_id: l.tax_id ?? '' })),
-      total_before_tax: totais.subtotal,
-      final_total: totais.final,
+      // Valores em vírgula decimal e 2 casas (compra-envio.ts): o num_uf do store lê "3.495"
+      // como 3495. Até 2026-10-27 iam como float cru.
+      total_before_tax: valorParaEnvio(totais.subtotal),
+      final_total: valorParaEnvio(totais.final),
+      discount_amount: dados.discount_type === 'percentage' ? String(dados.discount_amount || 0).replace('.', ',') : valorParaEnvio(dados.discount_amount || 0),
+      tax_amount: valorParaEnvio(dados.tax_amount || 0),
+      shipping_charges: valorParaEnvio(dados.shipping_charges || 0),
+      ...camposDespesas(despesas),
+      ...(documento ? { document: documento } : {}),
     }));
     form.post('/purchases', {
       forceFormData: true,
@@ -713,6 +727,9 @@ function PurchaseCreate({
             {totais.frete > 0 && (
               <div className="flex justify-between"><span className="text-stone-500">Frete</span><span className="tabular-nums">+ {brl(totais.frete)}</span></div>
             )}
+            {totais.despesasTotal > 0 && (
+              <div className="flex justify-between"><span className="text-muted-foreground">Despesas adicionais</span><span className="tabular-nums">+ {brl(totais.despesasTotal)}</span></div>
+            )}
             <div className="flex justify-between border-t border-stone-200 pt-2 mt-2">
               <span className="font-semibold">Total final</span>
               <span className="tabular-nums font-semibold text-[15px]">{brl(totais.final)}</span>
@@ -724,6 +741,14 @@ function PurchaseCreate({
           </CardContent>
         </Card>
       </div>
+
+      <DespesasAnexo
+        despesas={despesas}
+        onDespesas={setDespesas}
+        documento={documento}
+        onDocumento={setDocumento}
+        erroDocumento={(form.errors as Record<string, string | undefined>).document}
+      />
 
       {/* Card 4: notas */}
       <Card className="mt-3" data-contract="purchase-notas">

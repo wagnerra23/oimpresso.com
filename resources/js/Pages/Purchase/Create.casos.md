@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: o contrato da grade (1 célula = 1 variation_id, 1 POST único) e o ownership das variations são duráveis — não mudam quando a tela ganhar campo novo.
 owner: wagner
 last_run: "2026-10-26"
-last_run_ci: "✅ 2026-09-05: os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841). Medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. Os 7 UC desta tela tem lane; 3 com defesa de COMPORTAMENTO (PurchaseGradeMatrixTest, que emite request e cujo bloco cross-tenant hoje roda em MySQL real) e 4 ESTRUTURAL (Wave2Create*, presence-gate LC-11). Nao restatear a mao: rode scripts/qa/uc-lane-coverage.mjs. ⚠ O TEXTO A SEGUIR ESTA SUPERADO e fica como fato datado - os dois numeros dele ja nasciam falsos (a pasta tem 10 arquivos, nao 8; e 4 ja rodavam quando foi escrito): 🔴 A DIVIDA CONTINUA ABERTA — NENHUM teste de tests/Feature/Purchase/ roda em lane alguma (8 arquivos orfaos de CI); o uc-lane-coverage reprova estes UC por isso e esta certo. Ver §Divida de prova. O bump de 2026-09-04 -> 2026-09-05 NAO paga essa divida e nao afirma execucao: ele registra a REVISAO exigida pelo G-6 depois que o .tsx foi tocado. O que foi revisado, e verificavel: o diff contra 153a65b558 (commit que criou este arquivo) e exatamente 5 atributos `data-contract` em <Card>, zero mudanca de logica/props/copy; e nenhum dos 7 UC depende de atributo/DOM/seletor (grep por data-contract|atributo|DOM|seletor|className neste arquivo: rc=1, zero hits) — os 7 sao de backend/tenant/dado. TENTATIVA DE PROVA REAL, e por que ela NAO vale como recibo: rodei tests/Feature/Purchase/ no CT 100 (90 passed, 6 failed, 6 skipped, 214 assertions), mas o checkout do container esta em c1abe9548f (2026-08-26) e NAO contem as ancoras (grep -c data-contract = 0). Run de outra arvore nao prova esta — citar aquele numero aqui seria medir a coisa errada."
+last_run_ci: "2026-10-27: UC-PURCRE-14/15 (despesas, valores em formato seguro e anexo) nascem sem veredito. Antes: ✅ 2026-09-05: os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841). Medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. Os 7 UC desta tela tem lane; 3 com defesa de COMPORTAMENTO (PurchaseGradeMatrixTest, que emite request e cujo bloco cross-tenant hoje roda em MySQL real) e 4 ESTRUTURAL (Wave2Create*, presence-gate LC-11). Nao restatear a mao: rode scripts/qa/uc-lane-coverage.mjs. ⚠ O TEXTO A SEGUIR ESTA SUPERADO e fica como fato datado - os dois numeros dele ja nasciam falsos (a pasta tem 10 arquivos, nao 8; e 4 ja rodavam quando foi escrito): 🔴 A DIVIDA CONTINUA ABERTA — NENHUM teste de tests/Feature/Purchase/ roda em lane alguma (8 arquivos orfaos de CI); o uc-lane-coverage reprova estes UC por isso e esta certo. Ver §Divida de prova. O bump de 2026-09-04 -> 2026-09-05 NAO paga essa divida e nao afirma execucao: ele registra a REVISAO exigida pelo G-6 depois que o .tsx foi tocado. O que foi revisado, e verificavel: o diff contra 153a65b558 (commit que criou este arquivo) e exatamente 5 atributos `data-contract` em <Card>, zero mudanca de logica/props/copy; e nenhum dos 7 UC depende de atributo/DOM/seletor (grep por data-contract|atributo|DOM|seletor|className neste arquivo: rc=1, zero hits) — os 7 sao de backend/tenant/dado. TENTATIVA DE PROVA REAL, e por que ela NAO vale como recibo: rodei tests/Feature/Purchase/ no CT 100 (90 passed, 6 failed, 6 skipped, 214 assertions), mas o checkout do container esta em c1abe9548f (2026-08-26) e NAO contem as ancoras (grep -c data-contract = 0). Run de outra arvore nao prova esta — citar aquele numero aqui seria medir a coisa errada."
 ---
 
 > ℹ️ **`last_run` 2026-10-20 → 2026-10-26 (G-6): entraram o UC-PURCRE-12 (pedidos abertos + estoque por dois caminhos) e o UC-PURCRE-13 (a tela traz o pedido).** A `Create.tsx` ganhou o bloco "Receber de um pedido de compra" e o campo `purchase_order_ids`; nenhum UC antigo mudou nem foi reexecutado.
@@ -496,6 +496,32 @@ Status: 🧪
   (vitest; mutação `quantity: l.pedido` derruba o assert com `expected 10 to be 6`).
 - **Contrato:** SPEC US-COM-013. Quem grava é o UC-PURCRE-12.
 - **Status: 🧪 comportamento**
+
+---
+
+## UC-PURCRE-14 · Despesas adicionais somam ao total, e os valores vão em formato seguro · `must` `[V0]`
+
+- **Persona:** Eliana (financeiro) lança a compra com frete e seguro cobrados à parte.
+- **Aceite:** Dado 40,00 de itens e 5,00 de frete · Quando a pessoa informa as despesas "Frete
+  extra" 12,50 e "Seguro" 2,50 · Então o total da tela é 60,00 e a compra grava `final_total`
+  60,00, com os dois pares em `additional_expense_key/value_1..2`. Total, desconto, imposto, frete e
+  despesas vão em vírgula decimal e 2 casas: 1,5 × 2,33 vai "3,5" e grava 3,50 (o float cru "3.495"
+  gravaria 3495 pelo `num_uf`).
+- **Dupla prova:** (a) os números montados à mão e gravados; (b) a soma refeita das colunas gravadas
+  (`total_before_tax` + frete + despesas) bate com o `final_total` gravado.
+- **Teste:** [`PurchaseCreateDespesasContratoTest`](../../../../tests/Feature/Purchase/PurchaseCreateDespesasContratoTest.php) ·
+  [`tests/js/compra-envio.test.ts`](../../../../tests/js/compra-envio.test.ts) (o que a tela monta).
+- **Contrato:** fórmula do total da Blade (`public/js/purchase.js`, `grand_total`) · pedido [W]
+  2026-10-27 de portar o que só a Blade tem antes do cutover · REGRA MESTRE de valor.
+- **Status: 🧪 sem veredito**
+
+## UC-PURCRE-15 · O anexo da nota fica gravado na compra · `must`
+
+- **Aceite:** Dado um PDF escolhido em "Anexo da nota" · Quando a compra é salva · Então
+  `transactions.document` guarda o arquivo e ele existe em `documents/`.
+- **Teste:** [`PurchaseCreateDespesasContratoTest`](../../../../tests/Feature/Purchase/PurchaseCreateDespesasContratoTest.php).
+- **Contrato:** Blade `purchase/create.blade.php` (campo `document`) · pedido [W] 2026-10-27.
+- **Status: 🧪 sem veredito**
 
 ---
 

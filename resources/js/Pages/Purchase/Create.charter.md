@@ -41,6 +41,7 @@ Maiara/Felipe escritório (compras pequenas/médias ~5-30 itens). **+ Larissa @ 
 1. Identificação (filial, fornecedor, data, status, ref)
 2. Itens
 3. Totais (desconto, impostos, frete, total final)
+3b. Despesas adicionais (até 4, somam ao total) e anexo da nota — portados da Blade em 2026-10-27, pedido [W] antes do cutover
 4. Pagamentos (opcional)
 5. Notas
 
