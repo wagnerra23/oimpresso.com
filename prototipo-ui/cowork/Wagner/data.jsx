@@ -81,6 +81,7 @@ const MENU = [
       { id: "venda-pagamento-maquininha", icon: "cash", label: "Pagamento: maquininha e offline" },
       { id: "catalogo-qr", icon: "grid",  label: "Catálogo QR" },
       { id: "woocommerce", icon: "plug",  label: "WooCommerce" },
+      { id: "marketplaces-pedidos", icon: "orders", label: "Pedidos dos marketplaces" },
       { id: "portalos",    icon: "globe", label: "Portal Consulta OS" },
     ]},
     { id: "oficinaauto", icon: "car",     label: "Oficina Auto", ghosts: [
