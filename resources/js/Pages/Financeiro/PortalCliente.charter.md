@@ -4,7 +4,7 @@ page: /portal-cliente/{token}
 component: resources/js/Pages/Financeiro/PortalCliente.tsx
 runbook: memory/requisitos/Financeiro/RUNBOOK-portal-cliente.md
 related_us: [US-FIN-082]
-related_prototype: prototipo-ui/cowork/Wagner/financeiro-pagamento-publico.jsx (FinPagamentoPublicoPage)
+related_prototype: n/a (tela pública fora do AppShellV2; o protótipo gerado no DS entra pelo PR #10055 em cowork/Wagner, financeiro-pagamento-publico.jsx, e a âncora passa a apontar para ele depois do merge)
 status: draft
 ---
 
