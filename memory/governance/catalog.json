@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 883,
-    "edges": 1199,
+    "nodes": 884,
+    "edges": 1200,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 148,
-      "component": 494,
+      "component": 495,
       "api": 90
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 94,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 494,
+      "hasComponent": 495,
       "dependsOn": 133,
       "delegatesTo": 122,
       "migratesTo": 1,
@@ -2947,6 +2947,13 @@
       "module": "Financeiro",
       "name": "InstallController",
       "desc": ""
+    },
+    {
+      "id": "component:Financeiro/OrcamentoService",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "OrcamentoService",
+      "desc": "US-FIN-076 orçado mensal por conta do plano de contas e centro de custo (fin_orcamentos) × realizado em competência ou caixa, desvio em centavos inteiros"
     },
     {
       "id": "component:Financeiro/PlanoContaController",
@@ -9550,6 +9557,12 @@
     {
       "from": "module:Financeiro",
       "to": "component:Financeiro/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "component:Financeiro/OrcamentoService",
       "type": "hasComponent",
       "source": "contains"
     },

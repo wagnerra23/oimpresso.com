@@ -14,6 +14,7 @@ contains:
   - "CategoriaController"
   - "RateioService — US-FIN-075 rateio do título em centros de custo (fin_centros_custo + fin_titulo_rateios): soma fecha valor_total em centavos inteiros; título sem rateio segue válido"
   - "CentroCustoFiltro — US-FIN-075 filtro ?centro_custo= da DRE e do fluxo realizado (todos / sem centro / fatia do centro; na baixa, proporcional à fatia do título)"
+  - "OrcamentoService — US-FIN-076 orçado mensal por conta do plano de contas e centro de custo (fin_orcamentos) × realizado em competência ou caixa, desvio em centavos inteiros"
   - "CobrancaController — F3 PaymentGateway UI Tela 1 (substitui /financeiro/boletos com escopo expandido boleto+pix+pix_recv+card; ADR 0144 + 0170)"
   - "ConciliacaoController — Onda 19 OFX MVP + scaffold Anexos/Aprovação"
   - "ContaBancariaController"

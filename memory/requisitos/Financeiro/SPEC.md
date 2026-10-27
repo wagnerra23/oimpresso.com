@@ -1273,7 +1273,7 @@ Onboarding novo cliente: migra 500+ títulos da planilha legacy num upload. Hoje
 > owner: — · priority: p2 · estimate: 12h · status: todo · type: story
 > blocked_by: —
 
-**Implementado em:** _pendente_
+**Implementado em:** _pendente_ — parcial em 2026-10-27: tabela `fin_orcamentos` (mês × conta × centro de custo opcional) e `OrcamentoService` (`definir` e `comparar` em competência ou caixa, desvio em centavos inteiros; teste `OrcamentoContratoTest`). Falta a tela (aguarda o protótipo) e a coluna de orçado na DRE e no fluxo. A âncora vira path quando a US fechar.
 
 **Origem:** lacuna P2 do levantamento de 2026-10-25. `FluxoCaixaService::projetar` só projeta 35 dias pelos títulos em aberto; não há orçamento.
 
