@@ -11,6 +11,22 @@ use Spatie\Activitylog\Traits\LogsActivity;
 /**
  * Regra de conciliação automática (US-FIN-080). Ver a migration
  * `2026_10_27_120000_create_fin_conciliacao_regras_table` e `RegrasConciliacaoService`.
+ *
+ * @property int $id
+ * @property int $business_id
+ * @property string $nome
+ * @property bool $ativo
+ * @property int $prioridade
+ * @property string|null $descricao_contem
+ * @property string|null $sentido
+ * @property float|null $valor_min
+ * @property float|null $valor_max
+ * @property int|null $conta_bancaria_id
+ * @property int|null $cliente_id
+ * @property int|null $plano_conta_id
+ * @property int|null $categoria_id
+ * @property string $acao
+ * @property int|null $created_by
  */
 class ConciliacaoRegra extends Model
 {

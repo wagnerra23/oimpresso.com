@@ -8,7 +8,21 @@ use Modules\Financeiro\Models\Concerns\BusinessScope;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
-/** Maquininha da empresa: taxa e prazo de repasse (US-FIN-083). */
+/**
+ * Maquininha da empresa: taxa e prazo de repasse (US-FIN-083).
+ *
+ * @property int $id
+ * @property int $business_id
+ * @property string $nome
+ * @property string $descricao_extrato
+ * @property int|null $conta_bancaria_id
+ * @property string $taxa_debito
+ * @property int $prazo_debito_dias
+ * @property string $taxa_credito
+ * @property int $prazo_credito_dias
+ * @property bool $padrao
+ * @property bool $ativo
+ */
 class CartaoAdquirente extends Model
 {
     use SoftDeletes, BusinessScope, LogsActivity;
