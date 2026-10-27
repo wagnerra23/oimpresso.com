@@ -68,8 +68,8 @@ class Remarcacao
                     ->leftJoin('tax_rates as t', fn ($j) => $j->on('t.id', '=', 'p.tax')->where('t.business_id', $biz))
                     ->where('p.business_id', $biz)->where('v.id', $l['variation_id'])->lockForUpdate()
                     ->first(['v.default_sell_price', 'v.profit_percent', 'v.default_purchase_price', 't.amount as taxa']);
-                $venda = round($this->util->calc_percentage_base($l['preco_depois'], (float) ($v->taxa ?? 0)), 4);
-                $lucro = round($this->util->get_percent((float) $v->default_purchase_price, $venda), 4);
+                $venda = round($this->util->calc_percentage_base($l['preco_depois'], (float) ($v->taxa ?? 0)), 4); // @phpstan-ignore argument.type (docblock do Util diz int; preço e taxa são float — mesma conta do cadastro)
+                $lucro = round($this->util->get_percent((float) $v->default_purchase_price, $venda), 4); // @phpstan-ignore argument.type, argument.type (idem: custo e venda são float)
                 DB::table('vestuario_remarcacao_itens')->insert([
                     'business_id' => $biz, 'remarcacao_id' => $loteId, 'product_id' => $l['product_id'],
                     'variation_id' => $l['variation_id'], 'preco_antes' => $l['preco_antes'], 'preco_depois' => $l['preco_depois'],
