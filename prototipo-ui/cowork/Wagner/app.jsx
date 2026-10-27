@@ -799,14 +799,23 @@ function App() {
     "cfg-primeiros-passos":    "Primeiros passos",
     "venda-aprovacao-publica": "Aprovação do orçamento (página pública)",
     "venda-pagamento-maquininha": "Pagamento do caixa: maquininha e venda sem internet",
+    "fin-extrato-ofx":         "Extrato da conta: importar OFX",
+    "fiscal-das":              "Apuração do DAS",
+    "cmp-entrada-xml":         "Entrada por XML",
+    "fin-contas-bancarias":    "Contas bancárias",
   };
+  // Rota do menu que passou a abrir uma tela nova sem mudar de id (o resto do protótipo segue linkando nela).
+  const PROTO_HTML_ALIAS = { "fin-bancos": "fin-contas-bancarias" };
   // Páginas públicas que a tela interna gera: "ver como o cliente vê".
   // Todas abrem no shell (fora do menu): o Artefato publicado não tem outras páginas para abrir em outra aba.
   const PUBLICAS = {
     "fin-receber":    [{ label: "Link de pagamento", route: "fin-link-pagar" }, { label: "Portal do cliente", route: "fin-portal-cliente" }],
     "venda-cotacoes": [{ label: "Aprovação do orçamento", route: "venda-aprovacao-publica" }],
   };
-  if (PROTO_HTML[route]) content = <window.ProtoHtmlPage key={route} chave={route} titulo={PROTO_HTML[route]} />;else
+  const protoChave = PROTO_HTML_ALIAS[route] || route;
+  if (PROTO_HTML[protoChave]) content = <window.ProtoHtmlPage key={route} chave={protoChave} titulo={PROTO_HTML[protoChave]} />;else
+  // DDA e pagamento pelo banco: as duas peças lado a lado, até entrarem no menu ··· e na gaveta do título.
+  if (route === "fin-dda") content = <window.FinDdaPagamentoDemo />;else
   // fin-link-pagar/fin-portal-cliente: o #9961 usava "fin-pagar", que já é Contas a pagar e casava antes.
   if (route === "fin-link-pagar" || route === "fin-portal-cliente") content = <window.FinPagamentoPublicoPage key={route} view={route === "fin-link-pagar" ? "pagar" : "portal"} />;else
   if (route === "fin-contabil") content = <window.FinContabilPage />;else

@@ -106,6 +106,8 @@ const MENU = [
       { id: "fin-categorias", icon: "folder", label: "Categorias de despesa" },
       { id: "fin-bancos",   icon: "cash",    label: "Contas bancárias" },
       { id: "fin-extrato",  icon: "list",    label: "Extrato" },
+      { id: "fin-extrato-ofx", icon: "upload", label: "Importar extrato (OFX)" },
+      { id: "fin-dda",       icon: "receipt", label: "Boletos DDA e pagamento" },
       { id: "fin-cc-orcado", icon: "chart",  label: "Centro de custo e orçado" },
       { id: "fin-contabil",  icon: "book",   label: "Contabilidade" },
     ]},
@@ -130,6 +132,7 @@ const MENU = [
       { id: "fiscal-config",  icon: "shield",  label: "Certificado e configuração" },
       { id: "fiscal-tributacao", icon: "percent", label: "Tributação" },
       { id: "fiscal-sped",    icon: "grid",    label: "SPED e livros" },
+      { id: "fiscal-das",     icon: "calc",    label: "Apuração do DAS" },
     ]},
   ]},
   { group: "PRODUÇÃO", items: [
@@ -164,6 +167,7 @@ const MENU = [
       { id: "cmp-devolucoes",  icon: "truck",  label: "Devoluções de compra" },
       { id: "cmp-grade",       icon: "grid",   label: "Grade matrix (tam × cor)" },
       { id: "cmp-reposicao",   icon: "chart",  label: "Reposição e curva ABC" },
+      { id: "cmp-entrada-xml", icon: "upload", label: "Entrada por XML" },
     ]},
     { id: "estoque", icon: "refresh", label: "Movimentações", ghosts: [
       { id: "est-ajustes",            icon: "list",  label: "Ajustes de estoque" },
