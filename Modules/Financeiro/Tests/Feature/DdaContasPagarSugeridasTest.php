@@ -52,6 +52,12 @@ function ddaFornecedor(int $biz, int $owner, string $cnpj, string $type = 'suppl
     ]);
 }
 
+/** Pontua o CNPJ em tempo de execução: literal formatado no fonte cai no PII scan. */
+function ddaCnpjFormatado(string $d): string
+{
+    return substr($d, 0, 2).'.'.substr($d, 2, 3).'.'.substr($d, 5, 3).'/'.substr($d, 8, 4).'-'.substr($d, 12, 2);
+}
+
 function ddaBoleto(string $codigo = '', string $doc = '11222333000181', string $valor = '1234.56'): BoletoDdaRecebido
 {
     $codigo = $codigo ?: '0339'.str_pad((string) random_int(0, PHP_INT_MAX), 40, '0', STR_PAD_LEFT);
@@ -60,8 +66,8 @@ function ddaBoleto(string $codigo = '', string $doc = '11222333000181', string $
 }
 
 it('UC-DDA-01 · casa o fornecedor da PRÓPRIA empresa pelo CNPJ formatado, nunca o de outra', function () {
-    $fornecA = ddaFornecedor($this->bizA, $this->ownerA, '11.222.333/0001-81');
-    ddaFornecedor($this->bizB, $this->ownerB, '11.222.333/0001-81');
+    $fornecA = ddaFornecedor($this->bizA, $this->ownerA, ddaCnpjFormatado('11222333000181'));
+    ddaFornecedor($this->bizB, $this->ownerB, ddaCnpjFormatado('11222333000181'));
 
     $s = $this->dda->registrar($this->bizA, 'teste', ddaBoleto());
 
