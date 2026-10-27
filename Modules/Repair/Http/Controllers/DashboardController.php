@@ -8,6 +8,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Modules\Repair\Entities\JobSheet;
+use Modules\Repair\Services\IndicadoresOsService;
 use Modules\Repair\Utils\RepairUtil;
 
 class DashboardController extends Controller
@@ -105,6 +106,11 @@ class DashboardController extends Controller
                 'trending_brand_chart' => $trendingBrands,
                 'trending_devices_chart' => $trendingDevices,
                 'trending_dm_chart' => $trendingModels,
+                // Indicadores da FSM (tempo por etapa, paradas, garantia, produtividade):
+                // leitura do histórico de 90 dias — cara, então adiada (RUNBOOK-inertia-defer).
+                'indicadores' => Inertia::defer(
+                    fn () => app(IndicadoresOsService::class)->montar((int) $business_id)
+                ),
             ]);
         }
 

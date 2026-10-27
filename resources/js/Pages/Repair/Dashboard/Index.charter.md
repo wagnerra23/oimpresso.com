@@ -35,6 +35,7 @@ Visão consolidada de OS Repair (KPIs + status + equipe + tendências) num únic
 - Lista "OS por service staff" (`job_sheets_by_service_staff`)
 - Lista "Top marcas trending" (`trending_brand_chart`)
 - Lista "Top modelos trending" (`trending_dm_chart`)
+- Indicadores da OS (US-REPA-006, prop adiada `indicadores`, janela fixa de 90 dias, lidos só da FSM): tempo médio por etapa, OS paradas com prazo vencido por etapa, taxa de retorno em garantia e produtividade por técnico
 
 ---
 
