@@ -7,6 +7,21 @@ use Modules\Financeiro\Models\Concerns\BusinessScope;
 
 /**
  * Boleto DDA emitido contra o CNPJ da empresa — sugestão de conta a pagar (US-FIN-078).
+ *
+ * @property int $id
+ * @property int $business_id
+ * @property string $fonte
+ * @property string $codigo_barras
+ * @property string|null $beneficiario_documento
+ * @property string|null $beneficiario_nome
+ * @property string $valor
+ * @property \Illuminate\Support\Carbon $vencimento
+ * @property int|null $contact_id
+ * @property string $status
+ * @property int|null $titulo_id
+ * @property int|null $decidido_por
+ * @property \Illuminate\Support\Carbon|null $decidido_em
+ * @property array<string, mixed>|null $raw_payload
  */
 class DdaBoleto extends Model
 {

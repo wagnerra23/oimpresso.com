@@ -10,7 +10,7 @@ return [
      * provedor de DDA) depende de decisão e credencial do [W] — ver BRIEFING.
      */
     'dda' => [
-        'enabled' => env('FINANCEIRO_DDA_ENABLED', false),
+        'enabled' => env('FINANCEIRO_DDA_ENABLED', false), // @phpstan-ignore larastan.noEnvCallsOutsideOfConfig
     ],
 
     /**

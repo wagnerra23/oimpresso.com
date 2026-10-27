@@ -18,6 +18,9 @@ use Modules\Financeiro\Models\Titulo;
  */
 class DdaService
 {
+    /** contacts.type que conta como fornecedor (enum do core, fora do dicionário do Financeiro). */
+    private const TIPOS_CONTATO_FORNECEDOR = ['supplier', 'both'];
+
     /** Grava a sugestão; idempotente por (business_id, codigo_barras). */
     public function registrar(int $businessId, string $fonte, BoletoDdaRecebido $boleto): DdaBoleto
     {
@@ -54,7 +57,7 @@ class DdaService
 
         $id = DB::table('contacts')
             ->where('business_id', $businessId)
-            ->whereIn('type', ['supplier', 'both'])
+            ->whereIn('type', self::TIPOS_CONTATO_FORNECEDOR)
             ->whereNull('deleted_at')
             ->whereRaw("REPLACE(REPLACE(REPLACE(REPLACE(tax_number, '.', ''), '/', ''), '-', ''), ' ', '') = ?", [$documento])
             ->orderBy('id')
