@@ -106,7 +106,7 @@ module: Superadmin
 - [config.php](../../../Modules/Superadmin/Config/config.php)
 - [retention.php](../../../Modules/Superadmin/Config/retention.php)
 
-## Views (Blade) — 38
+## Views (Blade) — 37
 
 - [index.blade.php](../../../Modules/Superadmin/Resources/views/business/index.blade.php)
 - [index.blade.php](../../../Modules/Superadmin/Resources/views/communicator/index.blade.php)
@@ -119,7 +119,6 @@ module: Superadmin
 - [create.blade.php](../../../Modules/Superadmin/Resources/views/pages/create.blade.php)
 - [edit.blade.php](../../../Modules/Superadmin/Resources/views/pages/edit.blade.php)
 - [index.blade.php](../../../Modules/Superadmin/Resources/views/pages/index.blade.php)
-- [show.blade.php](../../../Modules/Superadmin/Resources/views/pages/show.blade.php)
 - [index.blade.php](../../../Modules/Superadmin/Resources/views/pricing/index.blade.php)
 - [index.blade.php](../../../Modules/Superadmin/Resources/views/subscription/index.blade.php)
 - [max_location_modal.blade.php](../../../Modules/Superadmin/Resources/views/subscription/max_location_modal.blade.php)
@@ -198,9 +197,9 @@ module: Superadmin
 - [Index.casos.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Index.casos.md)
 - [Show.casos.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Show.casos.md)
 
-## Testes (Pest) — 26
+## Testes (Pest) — 27
 
-- 25 em [Modules/Superadmin/Tests/Feature/](../../../Modules/Superadmin/Tests/Feature)
+- 26 em [Modules/Superadmin/Tests/Feature/](../../../Modules/Superadmin/Tests/Feature)
 - 1 em [Modules/Superadmin/Tests/Feature/Lgpd/](../../../Modules/Superadmin/Tests/Feature/Lgpd)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 

@@ -644,6 +644,7 @@ jobs:
             Modules/Vestuario/Tests/Feature/SmokeRoutesVestuarioTest.php \
             Modules/Vestuario/Tests/Feature/CurvaDeCompraContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminDashboardContratoTest.php \
+            Modules/Superadmin/Tests/Feature/SuperadminPaginaPublicaTest.php \
             Modules/Superadmin/Tests/Feature/SubscriptionLifecycleServiceTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminNegociosContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminAssinaturasContratoTest.php \

@@ -2,6 +2,7 @@
 
 namespace Modules\Superadmin\Http\Controllers;
 
+use App\Util\HtmlSanitizer;
 use App\Utils\ModuleUtil;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -147,11 +148,23 @@ class PageController extends Controller
     {
         $page = SuperadminFrontendPage::where('slug', $slug)->first();
 
-        if (! empty($page)) {
-            return view('superadmin::pages.show')->with(compact('page'));
-        } else {
+        if (empty($page)) {
             abort(404);
         }
+
+        // Página pública do site (sem login). Reusa a tela `Site/Page` do site, a mesma de
+        // `/c/page/{slug}`; a Blade `pages.show` (layout antigo, HTML cru) saiu em 2026-10-27.
+        // O conteúdo passa pelo HtmlSanitizer porque a tela o injeta como HTML.
+        return Inertia::render('Site/Page', [
+            'page' => [
+                'id' => (int) $page->id,
+                'title' => (string) $page->title,
+                'content' => HtmlSanitizer::clean((string) $page->content),
+                'meta_description' => null,
+                'feature_image_url' => null,
+                'updated_at' => optional($page->updated_at)->toIso8601String(),
+            ],
+        ]);
     }
 
     /**
