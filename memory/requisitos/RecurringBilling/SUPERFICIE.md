@@ -14,7 +14,7 @@ module: RecurringBilling
 >
 > **O que isto é:** o inventário completo das raízes `Modules/RecurringBilling/**` + `resources/js/Pages/RecurringBilling/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 188 arquivos em 20 papéis.
+**Total mapeado:** 191 arquivos em 20 papéis.
 
 ## Controllers — 11
 
@@ -40,7 +40,7 @@ module: RecurringBilling
 - [UpdateAssinaturaRequest.php](../../../Modules/RecurringBilling/Http/Requests/UpdateAssinaturaRequest.php)
 - [UpdatePlanRequest.php](../../../Modules/RecurringBilling/Http/Requests/UpdatePlanRequest.php)
 
-## Services — 15
+## Services — 16
 
 - [AssinaturaCobrancaService.php](../../../Modules/RecurringBilling/Services/AssinaturaCobrancaService.php)
 - [AssinaturaService.php](../../../Modules/RecurringBilling/Services/AssinaturaService.php)
@@ -53,6 +53,7 @@ module: RecurringBilling
 - [C6Driver.php](../../../Modules/RecurringBilling/Services/Boleto/Drivers/C6Driver.php)
 - [InterDriver.php](../../../Modules/RecurringBilling/Services/Boleto/Drivers/InterDriver.php)
 - [CartaoSalvoService.php](../../../Modules/RecurringBilling/Services/CartaoSalvoService.php)
+- [CobradorCartaoRecorrente.php](../../../Modules/RecurringBilling/Services/CobradorCartaoRecorrente.php)
 - [CobradorPixAutomatico.php](../../../Modules/RecurringBilling/Services/CobradorPixAutomatico.php)
 - [GatewayBackfillService.php](../../../Modules/RecurringBilling/Services/GatewayBackfillService.php)
 - [InvoiceGeneratorService.php](../../../Modules/RecurringBilling/Services/InvoiceGeneratorService.php)
@@ -91,10 +92,11 @@ module: RecurringBilling
 - [MarcarFaturaPagaDaCobranca.php](../../../Modules/RecurringBilling/Listeners/MarcarFaturaPagaDaCobranca.php)
 - [SalvarCartaoDaCobrancaPaga.php](../../../Modules/RecurringBilling/Listeners/SalvarCartaoDaCobrancaPaga.php)
 
-## Console / Commands — 6
+## Console / Commands — 7
 
 - [BackfillCachedFieldsCommand.php](../../../Modules/RecurringBilling/Console/Commands/BackfillCachedFieldsCommand.php)
 - [BackfillGatewayCommand.php](../../../Modules/RecurringBilling/Console/Commands/BackfillGatewayCommand.php)
+- [CobrarCartaoCommand.php](../../../Modules/RecurringBilling/Console/Commands/CobrarCartaoCommand.php)
 - [CobrarPixAutomaticoCommand.php](../../../Modules/RecurringBilling/Console/Commands/CobrarPixAutomaticoCommand.php)
 - [GenerateInvoicesCommand.php](../../../Modules/RecurringBilling/Console/Commands/GenerateInvoicesCommand.php)
 - [RecurringHealthCommand.php](../../../Modules/RecurringBilling/Console/Commands/RecurringHealthCommand.php)
@@ -176,9 +178,9 @@ module: RecurringBilling
 - [Edit.casos.md](../../../resources/js/Pages/RecurringBilling/Planos/Edit.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/RecurringBilling/Planos/Index.casos.md)
 
-## Testes (Pest) — 46
+## Testes (Pest) — 47
 
-- 46 em [Modules/RecurringBilling/Tests/Feature/](../../../Modules/RecurringBilling/Tests/Feature)
+- 47 em [Modules/RecurringBilling/Tests/Feature/](../../../Modules/RecurringBilling/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 36
