@@ -56,7 +56,7 @@
 | [`Spreadsheet`](#spreadsheet) | 5 | 0 | 0 | 0 | 5 |
 | [`ConsultaOs`](#consultaos) | 4 | 0 | 0 | 0 | 4 |
 | [`Dashboard`](#dashboard) | 3 | 0 | 0 | 0 | 3 |
-| [`Estoque`](#estoque) | 3 | 1 | 0 | 0 | 2 |
+| [`Estoque`](#estoque) | 3 | 2 | 0 | 0 | 1 |
 | [`VozDoCliente`](#vozdocliente) | 3 | 0 | 0 | 0 | 3 |
 | [`ADS`](#ads) | 2 | 0 | 0 | 0 | 2 |
 | [`AssetManagement`](#assetmanagement) | 2 | 0 | 0 | 0 | 2 |
@@ -1446,11 +1446,11 @@
 ### doing
 
 - **US-ESTOQUE-002** — Contagem de inventário: abrir, contar com coletor, ver divergência e aprovar o ajuste _(`p0` · @wagner)_
+- **US-ESTOQUE-003** — Sugestão de reposição e curva ABC por produto _(`p2` · @wagner)_
 
 ### todo
 
 - **US-ESTOQUE-001** — Toda transferência cai pendente na requisição e só move o estoque quando aprovada _(`p2` · @wagner)_
-- **US-ESTOQUE-003** — Sugestão de reposição e curva ABC por produto _(`p2` · @wagner)_
 
 ## VozDoCliente
 
