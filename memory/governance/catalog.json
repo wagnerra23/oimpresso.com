@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 867,
-    "edges": 1180,
+    "nodes": 869,
+    "edges": 1182,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 146,
-      "component": 482,
+      "component": 484,
       "api": 88
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 92,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 482,
+      "hasComponent": 484,
       "dependsOn": 131,
       "delegatesTo": 120,
       "migratesTo": 1,
@@ -4835,6 +4835,20 @@
       "module": "Superadmin",
       "name": "Usuario360Controller",
       "desc": ""
+    },
+    {
+      "id": "component:Vestuario/CurvaCompraController",
+      "type": "component",
+      "module": "Vestuario",
+      "name": "CurvaCompraController",
+      "desc": "sugestão de compra por tamanho pela curva de venda, só leitura (GET /vestuario/curva-compra, US-VEST-031 · UC-VCUR-01..03)"
+    },
+    {
+      "id": "component:Vestuario/CurvaDeCompra",
+      "type": "component",
+      "module": "Vestuario",
+      "name": "CurvaDeCompra",
+      "desc": "proporção vendida por variação nos últimos 90 dias (ou da categoria), dividida pelo maior resto; diferente do GradeCurvaService, que guarda proporção fixa em configuração (US-VEST-031)"
     },
     {
       "id": "component:Vestuario/DevolucaoService",
@@ -13757,6 +13771,18 @@
       "to": "adr:0121",
       "type": "governedByAdr",
       "source": "related_adrs"
+    },
+    {
+      "from": "module:Vestuario",
+      "to": "component:Vestuario/CurvaCompraController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Vestuario",
+      "to": "component:Vestuario/CurvaDeCompra",
+      "type": "hasComponent",
+      "source": "contains"
     },
     {
       "from": "module:Vestuario",
