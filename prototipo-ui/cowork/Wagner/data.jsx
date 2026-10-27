@@ -614,6 +614,7 @@ const FIN_SUBNAV_OVERFLOW = [
   { label: "Extrato",           path: "/financeiro/extrato" },
   { label: "Contas Bancárias",  path: "/financeiro/contas-bancarias" },
   { label: "Contador",          path: "/financeiro/configuracoes/contador" },
+  { label: "Contabilidade",     path: "/financeiro/contabilidade", route: "fin-contabil" },
   { label: "Gateway",           path: "/settings/payment-gateways", route: "payment-gateways" },
 ];
 

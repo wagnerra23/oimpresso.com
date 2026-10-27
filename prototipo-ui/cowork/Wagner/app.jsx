@@ -837,6 +837,7 @@ function App() {
   if (route === "fin-dre") content = <window.FinanceiroPage initialTela="dre" />;else
   if (route === "fin-pcontas") content = <window.FinanceiroPage initialTela="pcontas" />;else
   if (route === "fin-impostos") content = <window.FinanceiroPage initialTela="impostos" />;else
+  if (route === "fin-contabil") content = <window.FinContabilPage />;else
   if (route === "cobranca") content = <window.CobrancaPage />;else
   if (route === "payment-gateways") content = <window.PaymentGatewaysPage />;else
   if (route === "sells-pg-preview") content = <window.SellsCobrancaPreviewPage />;else
