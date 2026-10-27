@@ -35,7 +35,7 @@ while true; do
   docker run --rm --name "$NAME" \
     --network "$NETWORK" \
     --cap-drop ALL --security-opt no-new-privileges \
-    --cpus 3 --memory 4g --pids-limit 2048 \
+    --cpus 2 --memory 3g --pids-limit 2048 \
     "$IMAGE" ./run.sh --jitconfig "$JIT" \
     || echo "job da vaga ${SLOT} saiu com erro (o veredito vai pro GitHub); seguindo" >&2
 done
