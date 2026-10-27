@@ -123,6 +123,7 @@ const MENU = [
     { id: "fiscal", icon: "receipt", label: "Fiscal", ghosts: [
       { id: "fiscal-nfe",     icon: "receipt", label: "NF-e · NFC-e" },
       { id: "fiscal-nfse",    icon: "doc",     label: "NFS-e" },
+      { id: "fiscal-transporte", icon: "truck", label: "MDF-e · CT-e" },
       { id: "fiscal-eventos", icon: "refresh", label: "Eventos" },
       { id: "fiscal-dfe",     icon: "archive", label: "Manifesto DF-e" },
       { id: "fiscal-config",  icon: "shield",  label: "Certificado e configuração" },

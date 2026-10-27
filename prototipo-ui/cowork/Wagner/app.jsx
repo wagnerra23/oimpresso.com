@@ -939,6 +939,7 @@ function App() {
   if (route === "fiscal-config") content = <window.FiscalPage view="config" />;else
   if (route === "fiscal-tributacao") content = <window.FiscalPage view="tributacao" />;else
   if (route === "fiscal-sped") content = <window.FiscalPage view="sped" />;else
+  if (route === "fiscal-transporte") content = <window.FiscalPage view="transporte" />;else
   if (route === "cv") content = <window.ComunicacaoVisualPage estado={tweaks.cvEstado} papel={tweaks.cvPapel} dense={tweaks.cvDensidade === "compacto"} toque={tweaks.cvToque} pcp={tweaks.cvPcp} salvar={tweaks.cvSalvar} />;else
   if (route === "arquivos" || (typeof route === "string" && route.indexOf("arq-") === 0)) content = <window.ArquivosPage view={{ "arquivos": "acervo", "arq-retencao": "retencao", "arq-cofre": "cofre", "arq-trilha": "trilha" }[route]} estado={tweaks.arqEstado} papel={tweaks.arqPapel} dense={tweaks.arqDensidade === "compacto"} toque={tweaks.arqToque} casa={tweaks.arqCasa} />;else
   if (route === "voz") content = <window.VozDoClientePage estado={tweaks.vozEstado} papel={tweaks.vozPapel} dense={tweaks.vozDensidade === "compacto"} />;else
