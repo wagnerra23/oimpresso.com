@@ -24,8 +24,8 @@ Origem: ficha 07 · permissão que o legado já exigia (`product.create`, D2 [W]
 
 **Dado** que tenho `product.create`
 **Quando** abro `/import-products`
-**Então** recebo Inertia `Produto/Importacao/Index` no modo produtos; `?classico=1` devolve a view
-`import_products.index`; sem `product.create` recebo 403.
+**Então** recebo Inertia `Produto/Importacao/Index` no modo produtos, também com `?classico=1`
+(a Blade `import_products.index` saiu no cutover de 2026-10-27); sem `product.create` recebo 403.
 
 Status: 🧪
 
