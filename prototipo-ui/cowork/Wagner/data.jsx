@@ -168,6 +168,7 @@ const MENU = [
       { id: "cmp-grade",       icon: "grid",   label: "Grade matrix (tam × cor)" },
       { id: "cmp-reposicao",   icon: "chart",  label: "Reposição e curva ABC" },
       { id: "cmp-entrada-xml", icon: "upload", label: "Entrada por XML" },
+      { id: "cmp-cards-novos", icon: "plus",   label: "Nova compra · cards novos" },
     ]},
     { id: "estoque", icon: "refresh", label: "Movimentações", ghosts: [
       { id: "est-ajustes",            icon: "list",  label: "Ajustes de estoque" },

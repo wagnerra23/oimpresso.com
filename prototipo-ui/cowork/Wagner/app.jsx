@@ -816,6 +816,8 @@ function App() {
   if (PROTO_HTML[protoChave]) content = <window.ProtoHtmlPage key={route} chave={protoChave} titulo={PROTO_HTML[protoChave]} />;else
   // DDA e pagamento pelo banco: as duas peças lado a lado, até entrarem no menu ··· e na gaveta do título.
   if (route === "fin-dda") content = <window.FinDdaPagamentoDemo />;else
+  // Cards novos da Nova compra/edição/detalhe (proposta de forma antes do cutover das Blades).
+  if (route === "cmp-cards-novos") content = <window.ComprasCardsNovosPage />;else
   // fin-link-pagar/fin-portal-cliente: o #9961 usava "fin-pagar", que já é Contas a pagar e casava antes.
   if (route === "fin-link-pagar" || route === "fin-portal-cliente") content = <window.FinPagamentoPublicoPage key={route} view={route === "fin-link-pagar" ? "pagar" : "portal"} />;else
   if (route === "fin-contabil") content = <window.FinContabilPage />;else
