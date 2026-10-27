@@ -639,7 +639,7 @@ _Aprovação pendente: Wagner via ADR `memory/decisions/proposals/drafts/crm-pre
 
 ### US-CRM-098 · Segmentação RFM — recência, frequência e valor por cliente
 
-**Implementado em:** `Modules/Crm/Services/Fidelidade/SegmentacaoRfmDoCrm.php` · `app/Contracts/Crm/SegmentacaoRfm.php` · `Modules/Crm/Console/Commands/RfmCalcularCommand.php` · `Modules/Crm/Database/Migrations/2026_10_27_000002_create_crm_rfm_clientes_table.php`
+**Implementado em:** `Modules/Crm/Services/Fidelidade/SegmentacaoRfmDoCrm.php` · `app/Contracts/Crm/SegmentacaoRfm.php` · `Modules/Crm/Console/Commands/RfmCalcularCommand.php` · `Modules/Crm/Database/Migrations/2026_10_27_000002_create_crm_rfm_clientes_table.php` · `Modules/Whatsapp/Http/Controllers/Admin/BroadcastController.php`
 
 **Testado em:** `Modules/Crm/Tests/Feature/CrmRfmContratoTest.php`
 
@@ -654,5 +654,5 @@ _Aprovação pendente: Wagner via ADR `memory/decisions/proposals/drafts/crm-pre
 3. Segmentos: campeões, novos, leais, promissores, em risco, hibernando, perdidos (UC-RFM-02).
 4. `crm:rfm-calcular [--business=]` substitui o cálculo anterior da empresa (UC-RFM-05); agendado às 04:30 com a flag `CRM_RFM_ENABLED`, que nasce desligada.
 5. Tier 0: o contrato devolve só contatos da empresa pedida (UC-RFM-04).
-6. Filtro por segmento no público da campanha e na régua — PR seguinte (Modules/Whatsapp).
+6. Público da campanha por segmento: `segmento_rfm` no pré-cálculo do público (`BroadcastController::preflight`), com todos os números contados só dentro do segmento e segmento desconhecido recusado (UC-CXU-11b). Na régua de relacionamento — PR seguinte.
 7. Tela com a distribuição por segmento — PR seguinte, ancorada em protótipo.
