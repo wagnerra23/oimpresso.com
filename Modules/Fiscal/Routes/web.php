@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Fiscal\Http\Controllers\AcoesController;
 use Modules\Fiscal\Http\Controllers\CockpitController;
 use Modules\Fiscal\Http\Controllers\ConfigController;
+use Modules\Fiscal\Http\Controllers\DasController;
 use Modules\Fiscal\Http\Controllers\DfeController;
 use Modules\Fiscal\Http\Controllers\EventosController;
 use Modules\Fiscal\Http\Controllers\InstallController;
@@ -68,6 +69,9 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
 
         // SPED & Livros (sub-página 7 — PR #3 Wave final, placeholder).
         Route::get('/sped', [SpedController::class, 'index'])->name('sped.index');
+
+        // Apuração do DAS (US-FISCAL-030 fatia 2) — só leitura, atrás de fiscal.das_apuracao_enabled.
+        Route::get('/das', [DasController::class, 'index'])->name('das');
 
         // ─── PR #8 Wave: SPED Fiscal EFD-ICMS/IPI ────────────────────────
         // Download TXT layout CONFAZ v3.1.1 (perfil A) por ano+mês.

@@ -1,0 +1,55 @@
+{
+  "_nota": "Contrato de tela GERADO por criar-tela.mjs junto com o PT-04 Dashboard de Fiscal/Das (2026-10-27). Roda em `node scripts/contrato-de-tela.mjs --contract <este-arquivo>`, no mesmo job que já varre todos os *.contract.json. As seções são as do ARQUÉTIPO e as âncoras data-contract correspondentes já nascem no .tsx — âncora e ordem são wiring do agente. A COPY não: veja _pendente_w.",
+  "tela": "Fiscal/Das",
+  "fonte": "prototipo-ui/cowork/Wagner/prototipos/fiscal-das.html",
+  "alvo": [
+    "resources/js/Pages/Fiscal/Das.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": [
+        "Competência",
+        "Anexo (informado pelo contador)"
+      ]
+    },
+    {
+      "id": "kpis",
+      "copy": [
+        "Receita do mês",
+        "RBT12",
+        "Alíquota efetiva",
+        "DAS do mês (prévia)"
+      ]
+    },
+    {
+      "id": "conta",
+      "copy": [
+        "O valor sai da conta inteira; a alíquota efetiva só aparece arredondada."
+      ]
+    },
+    {
+      "id": "faixas",
+      "copy": [
+        "Alíquota nominal",
+        "Parcela a deduzir"
+      ]
+    },
+    {
+      "id": "contador",
+      "copy": [
+        "Confirme com o contador"
+      ]
+    }
+  ],
+  "ordem": [
+    "cabecalho",
+    "kpis",
+    "conta",
+    "faixas",
+    "contador"
+  ],
+  "_pendente_w": [
+    "COPY — tirada do protótipo prototipos/fiscal-das.html, publicado como Artefato em 2026-10-27; vira lei quando [W] aprovar a tela."
+  ]
+}

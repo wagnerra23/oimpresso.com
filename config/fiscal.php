@@ -42,6 +42,10 @@ return [
     // Desligado por padrão: a seção só aparece na página do link quando ligada.
     'fechamento_contador_enabled' => env('NFEBRASIL_FECHAMENTO_CONTADOR', false),
 
+    // Apuração do DAS pelo Anexo (US-FISCAL-030 fatia 2). Desligada: /fiscal/das responde 404
+    // e a tela não entra na sub-nav. Ligar é decisão [W], depois do contador conferir a conta.
+    'das_apuracao_enabled' => env('FISCAL_DAS_APURACAO', false),
+
     // US-NFE-073 · envio mensal automático do XML ao contador (dia 5). Desligado por padrão:
     // ligar é decisão do dono (manda e-mail para fora). O comando à mão roda sempre.
     'envio_xml_contador_enabled' => env('NFEBRASIL_ENVIO_XML_CONTADOR', false),
