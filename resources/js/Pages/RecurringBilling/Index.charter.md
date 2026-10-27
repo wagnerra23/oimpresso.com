@@ -35,6 +35,7 @@ Listar assinaturas recorrentes (plano + cliente + próxima cobrança + status pa
 ## Goals — Features (faz · v1 Cowork)
 
 - AppShellV2 sidebar + `.rec-cowork` wrapper escopa CSS verbatim do prototipo
+- **Pix Automático** (US-RB-020 · [W] 2026-10-26): bloco no drawer, depois do fiscal, só com `RB_COBRAR_PIX_AUTOMATICO` ligada. Sem mandato → "Pedir autorização" (`POST /recurring-billing/{id}/pix-automatico`); `CRIADA` → QR + Pix copia e cola para o cliente aprovar no app do banco; `APROVADA` → texto de que as faturas são cobradas de 10 a 2 dias antes; recusada/expirada/cancelada → "Pedir nova autorização". Forma: `PixAutoCard` do protótipo `cobranca-recorrente-page.jsx`. QR preto no branco nos dois temas (leitura pelo app do banco).
 - Header `Cobrança recorrente` + subtitle mono `N ATIVAS · MRR R$ X · CHURN Y%` + 4 tabs (Assinaturas / Planos / Faturas / Configurações) + CTA `+ Nova assinatura`
 - 4 KPI cards: MRR (hero dark + sparkline derivada) · Churn mês · Próxima cobrança · Retentado falhos
 - 3-col body sub-tab Assinaturas:
@@ -73,7 +74,7 @@ Listar assinaturas recorrentes (plano + cliente + próxima cobrança + status pa
 - ❌ Cancelar contrato (US-RB-005 — separado em PR próprio)
 - ❌ Real-time updates Centrifugo
 - ❌ Migrar Blade `view('recurringbilling::index')` — fallback intacto (cutover Onda 10)
-- ❌ Pix Automático JRC (US-RB-006 — gap remanescente catalogado)
+- ~~❌ Pix Automático JRC (US-RB-006 — gap remanescente catalogado)~~ — **saiu dos Non-Goals por decisão [W] 2026-10-26** (Pix Automático pelo BCB direto; construir a tela de aprovação do mandato). Ver Goal "Pix Automático" abaixo do bloco fiscal.
 - ❌ Dunning automatizado (régua 3/7/15d — gap remanescente)
 
 ---

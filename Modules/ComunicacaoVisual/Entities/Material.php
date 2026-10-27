@@ -5,6 +5,7 @@ namespace Modules\ComunicacaoVisual\Entities;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\ComunicacaoVisual\Entities\Concerns\EscopoPorNegocioDaSessao;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -36,6 +37,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 class Material extends Model
 {
+    use EscopoPorNegocioDaSessao; // Tier 0 ADR 0093 — mesmo filtro da closure antiga, reconhecido pelo MultiTenantScopeArchitectureTest
     use SoftDeletes;
     use LogsActivity;
 
@@ -46,7 +48,7 @@ class Material extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['nome', 'categoria', 'preco_venda_m2', 'preco_custo_m2', 'estoque_minimo_m2', 'ativo'])
+            ->logOnly(['nome', 'categoria', 'preco_venda_m2', 'preco_custo_m2', 'estoque_minimo_m2', 'minimo_m2', 'perda_pct', 'largura_bobina_m', 'preco_solda_m', 'ativo'])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->useLogName('comvis.material');
@@ -63,6 +65,10 @@ class Material extends Model
         'preco_custo_m2',
         'preco_venda_m2',
         'estoque_minimo_m2',
+        'minimo_m2',
+        'perda_pct',
+        'largura_bobina_m',
+        'preco_solda_m',
         'ativo',
         'observacoes',
     ];
@@ -73,6 +79,10 @@ class Material extends Model
         'preco_custo_m2'    => 'decimal:2',
         'preco_venda_m2'    => 'decimal:2',
         'estoque_minimo_m2' => 'decimal:2',
+        'minimo_m2'         => 'decimal:3',
+        'perda_pct'         => 'decimal:2',
+        'largura_bobina_m'  => 'decimal:3',
+        'preco_solda_m'     => 'decimal:2',
         'ativo'             => 'boolean',
     ];
 
@@ -82,13 +92,7 @@ class Material extends Model
 
     protected static function booted(): void
     {
-        static::addGlobalScope('business_id', function (Builder $query) {
-            $businessId = session('user.business_id') ?? session('business.id');
-            if ($businessId !== null) {
-                $query->where('comvis_materiais.business_id', $businessId);
-            }
-        });
-
+        // Escopo por empresa: trait EscopoPorNegocioDaSessao (mesmo filtro, movido para trait).
         static::creating(function (Material $row) {
             if ($row->business_id === null) {
                 $row->business_id = session('user.business_id') ?? session('business.id') ?? 0;

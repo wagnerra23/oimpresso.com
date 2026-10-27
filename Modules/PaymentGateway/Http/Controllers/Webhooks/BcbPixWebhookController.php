@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Modules\PaymentGateway\Jobs\ProcessarWebhookBcbPixJob;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 
 /**
@@ -74,7 +75,7 @@ class BcbPixWebhookController extends Controller
             ?? $request->input('id')
             ?? md5($eventName . json_encode($request->all())));
 
-        return $this->processor->handle(
+        $resposta = $this->processor->handle(
             gatewayKey: 'bcb_pix',
             request: $request,
             businessId: $businessId,
@@ -83,5 +84,14 @@ class BcbPixWebhookController extends Controller
             signatureValid: true,
             credential: $credential,
         );
+
+        // US-RB-021: evento novo (não duplicado) segue para o processamento — cobrança do ciclo
+        // paga/rejeitada e status da recorrência. O job só age com RB_COBRAR_PIX_AUTOMATICO ligado.
+        $dados = $resposta->getData(true);
+        if (($dados['ok'] ?? false) && ! ($dados['duplicate'] ?? false) && ! empty($dados['webhook_row_id'])) {
+            ProcessarWebhookBcbPixJob::dispatch((int) $dados['webhook_row_id'], $businessId);
+        }
+
+        return $resposta;
     }
 }

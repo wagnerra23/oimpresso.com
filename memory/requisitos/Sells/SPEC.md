@@ -1650,3 +1650,26 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 - [ ] Protocolo da OS da Comunicação Visual (UC-FLX-23 no processo de OS), que hoje não tem protocolo.
 
 **Entregue em 2026-10-20 (backend):** total de volumes, não por item — um volume (caixa, rolo, pacote) pode levar várias linhas da venda, então volume por linha não é bem definido. Opcional porque o app que já está nos celulares não manda o campo; sem ele não se inventa número (fica nulo, "não informado"). O `volumes` só entra no hash de idempotência quando vem, para que o corpo antigo mantenha o hash de antes.
+
+### US-SELL-077 · Cancelar a venda devolve o estoque, tira a venda dos relatórios e cancela o título
+
+> owner: wagner · priority: p0 · estimate: 12h · status: doing · type: story · origin: coordenacao-lacunas-2026-10-26
+> blocked_by: —
+
+**Implementado em:** _pendente_ — em andamento: `App\Services\Sells\CancelamentoDaVenda` chamado pelo `CancelarVendaCascade` (UC-VCAN-01..08 em `Sells/Show.casos.md`). Falta: as consultas que contam `status != 'draft'` como compra do cliente e o dry-run das vendas antigas já canceladas.
+
+Antes, a ação FSM `cancelar_venda` cancelava notas e boleto pendente e soltava a reserva ativa, mas a venda continuava `final`: o estoque baixado não voltava, o título seguia aberto e relatórios e conferência de estoque ainda contavam a venda.
+
+Decisões [W] 2026-10-26:
+
+- **Venda cancelada vira `status = 'cancelled'` + `cancelled_at`.** Sai dos relatórios de faturamento, e a conferência de estoque passa a fechar. Vendas antigas já canceladas pela FSM e ainda `final` só mudam depois de um dry-run com tabela antes→depois aprovado pelo [W]; sem ele, não se mexe nelas.
+- **Venda já paga não cancela** até o dinheiro ser estornado ou devolvido. A recusa diz quanto foi recebido e o que fazer para liberar.
+
+Aceite:
+
+- O estoque volta pelo caminho por onde saiu: venda `final` devolve, por linha, `quantidade − já devolvida` e libera o lote de compra (mesmo caminho da devolução); reserva consumida pela FSM devolve a `qty_reserved` e passa a `released`.
+- Título sem pagamento: cancelado no Financeiro (`cancelarSeExistir`), nunca apagado.
+- Só pela ação FSM (`ExecuteStageActionService`), dentro da transação: recusa não deixa nada pela metade. Idempotente.
+- Só para venda; a OS do Repair que usa o mesmo efeito não muda.
+- Tier 0: outra empresa não cancela.
+

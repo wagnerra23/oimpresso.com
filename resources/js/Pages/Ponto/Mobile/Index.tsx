@@ -22,6 +22,7 @@ import { Grid, Inline, Stack } from '@/Components/layout';
 import PontoAreaHeader from '@/Pages/Ponto/_shared/PontoAreaHeader';
 import MeuEspelho, { type LinhaEspelho, type TotaisEspelho } from './_components/MeuEspelho';
 import Justificar from './_components/Justificar';
+import CienciaEspelho, { type CienciaEstado } from './_components/CienciaEspelho';
 
 interface MarcacaoHoje { id: string; nsr: number; tipo: string; hora: string | null; revisar: boolean }
 
@@ -32,6 +33,8 @@ interface Props {
   mes: string;
   totais?: TotaisEspelho | null; // Inertia::defer
   linhas?: LinhaEspelho[]; // Inertia::defer
+  /** US-PONTO-020: último mês fechado e a ciência do colaborador. Inertia::defer. */
+  ciencia_espelho?: CienciaEstado | null;
   tipos: Array<{ value: string; label: string }>;
   /** `ponto.access` (ou papel admin/rh/gestor): mostra o cabeçalho do módulo. */
   pode_ver_modulo: boolean;
@@ -193,7 +196,7 @@ function BaterPonto({ marcacoesIniciais, limites }: { marcacoesIniciais: Marcaca
   );
 }
 
-export default function Mobile({ colaborador, marcacoes_hoje, hoje, mes, totais, linhas, tipos, limites, pode_ver_modulo }: Props) {
+export default function Mobile({ colaborador, marcacoes_hoje, hoje, mes, totais, linhas, ciencia_espelho, tipos, limites, pode_ver_modulo }: Props) {
   const [tela, setTela] = useState<string>('bater');
   const titulo = TELAS.find((t) => t.value === tela)?.titulo ?? 'Ponto';
 
@@ -238,7 +241,7 @@ export default function Mobile({ colaborador, marcacoes_hoje, hoje, mes, totais,
                 options={TELAS.map((t) => ({ value: t.value, label: t.label }))} />
               {/* As 3 ficam montadas: trocar de tela não pode perder a batida recém-feita nem o GPS. */}
               <div className={tela === 'bater' ? undefined : 'hidden'}><BaterPonto marcacoesIniciais={marcacoes_hoje} limites={limites} /></div>
-              <div className={tela === 'espelho' ? undefined : 'hidden'}><MeuEspelho totais={totais} linhas={linhas} mes={mes} hoje={hoje} /></div>
+              <div className={tela === 'espelho' ? undefined : 'hidden'}><Stack gap={3}><CienciaEspelho estado={ciencia_espelho} /><MeuEspelho totais={totais} linhas={linhas} mes={mes} hoje={hoje} /></Stack></div>
               <div className={tela === 'justificar' ? undefined : 'hidden'}><Justificar tipos={tipos} hoje={hoje} /></div>
               </Stack>
             </CardContent>

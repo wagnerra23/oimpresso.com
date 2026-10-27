@@ -452,6 +452,8 @@ class SellReturnController extends Controller
             'numero' => (string) $sell->invoice_no,
             'data' => (string) $sell->getAttribute('transaction_date'),
             'cliente' => $contato->name ?? null,
+            // US-VEST-021 — vale-troca só para cliente cadastrado: o saldo do "Cliente padrão" seria de todos.
+            'cliente_aceita_vale' => ! empty($contato) && ! (bool) $contato->is_default,
             'local' => $local->name ?? null,
             'devolucao' => empty($devolucao) ? null : ['id' => (int) $devolucao->id, 'numero' => (string) $devolucao->invoice_no],
             'numero_devolucao_txt' => $devolucao->invoice_no ?? '',
@@ -800,5 +802,54 @@ class SellReturnController extends Controller
         return ['success' => 1,
             'redirect_url' => action([\App\Http\Controllers\SellReturnController::class, 'add'], [$sell->id]),
         ];
+    }
+
+    /**
+     * Vale-troca (US-VEST-021) — POST /sell-return/{id}/vale-troca.
+     *
+     * O valor em aberto da devolução vira saldo de Adiantamento do cliente, que o caixa aceita
+     * como forma de pagamento. Quem só vê as próprias devoluções só credita as suas.
+     * Tier 0: a devolução é buscada no business da sessão (ValeTrocaService).
+     */
+    public function valeTroca(Request $request, int $id)
+    {
+        $user = auth()->user();
+        $businessId = (int) $request->session()->get('user.business_id');
+        if (! $user->can('access_sell_return')) {
+            $propria = $user->can('access_own_sell_return') && Transaction::where('business_id', $businessId)
+                ->where('type', 'sell_return')->where('id', $id)->where('created_by', $user->id)->exists();
+            if (! $propria) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
+        try {
+            $r = app(\App\Services\Sells\ValeTrocaService::class)->creditar($businessId, $id, (int) $user->id);
+        } catch (\App\Services\Sells\ValeTrocaException $e) {
+            $status = $e->codigo === 'nao_encontrada' ? 404 : 422;
+
+            return response()->json(['erro' => $e->codigo, 'mensagem' => $e->getMessage()], $status);
+        }
+
+        return response()->json($r);
+    }
+
+    /**
+     * Vale-troca pela venda — POST /sell-return/vale-troca-da-venda/{vendaId}.
+     *
+     * A tela de registro (SellReturn/Add) salva pelo `store()`, que não devolve o id da devolução
+     * (e o charter da tela não deixa mexer nele). Cada venda tem uma devolução só, então ela é
+     * achada pela venda de origem, na empresa da sessão, e segue o mesmo caminho do valeTroca().
+     */
+    public function valeTrocaDaVenda(Request $request, int $vendaId)
+    {
+        $businessId = (int) $request->session()->get('user.business_id');
+        $devolucaoId = (int) Transaction::where('business_id', $businessId)->where('type', 'sell_return')
+            ->where('return_parent_id', $vendaId)->value('id');
+        if ($devolucaoId === 0) {
+            return response()->json(['erro' => 'nao_encontrada', 'mensagem' => 'Devolução não encontrada.'], 404);
+        }
+
+        return $this->valeTroca($request, $devolucaoId);
     }
 }

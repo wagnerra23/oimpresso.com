@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei) · memory/requisitos/AssetManagement/RUNBOOK-patr
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-09-30"
+last_run: "2026-10-26"
 ---
 
 > ℹ️ **`last_run` 2026-09-09 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
@@ -40,6 +40,10 @@ last_run: "2026-09-30"
 
 ---
 
+> ℹ️ **2026-10-26 (G-6):** a decisão [W] da US-ASSET-009 fez o servidor calcular a depreciação
+> gerencial; o UC-PAT-02 passa a valer só para quando nenhum bem tem vida útil, e nasce o UC-PAT-12.
+> Os textos datados do UC-PAT-02 sobre "decisão [W] em aberto" ficam como fato de antes dela.
+
 ## UC-PAT-02 · Valor residual sem fonte mostra `—`, nunca `R$ 0,00`
 - **Persona:** Eliana (financeiro) — precisa saber a diferença entre "não sobrou valor" e "não sei".
 - **Aceite:** Dado que o sistema não calcula depreciação (`assets.depreciation` é gravada como
@@ -57,6 +61,21 @@ last_run: "2026-09-30"
   `main` (`casos-results-publish.yml`) — não por afirmação minha (G-7).
 
 ---
+
+## UC-PAT-12 · Valor residual gerencial pela vida útil do bem · `must` valor
+
+- **Persona:** Eliana (financeiro) e o dono — querem saber quanto o patrimônio vale hoje sem
+  esperar o contador.
+- **Aceite:** Dado bens com vida útil em anos e data de compra · Quando o painel renderiza ·
+  Então o card "Valor residual" mostra a soma linear (valor de compra × meses que faltam ÷ meses
+  totais) com a descrição "gerencial, linear" e quantos bens sem vida útil ficaram fora; o
+  "Resumo de hoje" cita o mesmo valor. Bem de outra empresa não entra.
+- **Teste:** `Modules/AssetManagement/Tests/Feature/DepreciacaoGerencialTest.php` (a conta, com
+  números escritos à mão: plotter 12.000 em 10 anos, comprado em 01/01/2024, vale 8.600,00 em
+  02/11/2026) e `tests/js/patrimonio-painel-sem-fonte.test.tsx` (`describe('UC-PAT-12 …')`).
+- **Contrato:** SPEC AssetManagement US-ASSET-009 (decisão [W] 2026-10-26: linear, prazo editável
+  no bem, gerencial e nunca contábil). VALOR: regra mestre (dupla prova no PR).
+- **Status: 🧪 comportamento**
 
 ## UC-PAT-03 · Custo de manutenção sem coluna mostra `—`, nunca zero
 - **Persona:** Eliana — confere quanto se gastou mantendo o parque.

@@ -186,7 +186,8 @@ class RecipeController extends Controller
         $filtros = [
             'q'    => trim((string) request()->query('q', '')) ?: null,
             'cat'  => trim((string) request()->query('cat', '')) ?: null,
-            'kpi'  => in_array(request()->query('kpi'), ['margem', 'custo'], true) ? request()->query('kpi') : null,
+            // `custo` (desperdício ≥ 8%) saiu — decisão [W] 2026-10-23 (D4): desperdício é somente na Produção.
+            'kpi'  => request()->query('kpi') === 'margem' ? 'margem' : null,
             'sort' => in_array(request()->query('sort'), RecipeBomService::ORDENAVEIS, true) ? request()->query('sort') : 'name',
             'dir'  => request()->query('dir') === 'desc' ? 'desc' : 'asc',
         ];

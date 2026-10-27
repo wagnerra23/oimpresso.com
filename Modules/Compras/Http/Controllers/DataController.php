@@ -60,6 +60,17 @@ class DataController extends Controller
                 'label' => 'Compras: importar XML DF-e como compra',
                 'default' => false,
             ],
+            // US-COM-032 (decisão [W] 2026-10-26) — checadas por Modules\Compras\Services\AlcadaDoPedido.
+            [
+                'value' => 'compras.alcada.gerente',
+                'label' => 'Compras: aprovar pedido de compra até o limite do gerente',
+                'default' => false,
+            ],
+            [
+                'value' => 'compras.alcada.diretoria',
+                'label' => 'Compras: aprovar pedido de compra de qualquer valor',
+                'default' => false,
+            ],
         ];
     }
 
