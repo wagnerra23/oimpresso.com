@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1057 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1058 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -11,7 +11,7 @@
 | [`Jana`](#jana) | 84 | 2 | 0 | 0 | 82 |
 | [`Whatsapp`](#whatsapp) | 77 | 0 | 0 | 0 | 77 |
 | [`Sells`](#sells) | 72 | 2 | 0 | 0 | 70 |
-| [`Financeiro`](#financeiro) | 52 | 4 | 0 | 0 | 48 |
+| [`Financeiro`](#financeiro) | 53 | 4 | 0 | 0 | 49 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
 | [`OficinaAuto`](#oficinaauto) | 39 | 0 | 0 | 0 | 38 |
@@ -338,6 +338,7 @@
 
 ### todo
 
+- **US-FIN-084** — Extrato dos bancos além do Inter: OFX por conta e drivers de API — **P0** _(`p0`)_
 - **US-FIN-014** — Imprimir 2ª via boleto Inter pelo título financeiro (botão na tela /boletos) _(`p1` · @wagner)_
 - **US-FIN-016** — Auto-emite boleto Inter ao criar titulo_receber (Observer + Job idempotente) _(`p1` · @wagner)_
 - **US-FIN-017** — Boletos — Sheet Emitir multi-título (bulk emission) _(`p1` · @wagner)_

@@ -1300,10 +1300,10 @@ Onboarding novo cliente: migra 500+ títulos da planilha legacy num upload. Hoje
 
 ### US-FIN-084 · Extrato dos bancos além do Inter: OFX por conta e drivers de API — **P0**
 
-> owner: — · priority: p0 · estimate: 12h · status: doing · type: story
+> owner: — · priority: p0 · estimate: 12h · type: story
 > blocked_by: credenciais de API de cada banco ([W])
 
-**Implementado em:** `Modules/RecurringBilling/Services/Banking/Drivers/OfxStatementDriver.php`, `Modules/RecurringBilling/Services/Banking/StatementPersister.php`, `Modules/Financeiro/Services/Extrato/ImportarExtratoOfxService.php`, `Modules/Financeiro/Console/Commands/ImportarExtratoOfxCommand.php`, `Modules/Financeiro/Tests/Feature/ExtratoOfxContaContratoTest.php`
+**Implementado em:** _parcial_ · `Modules/RecurringBilling/Services/Banking/Drivers/OfxStatementDriver.php`, `Modules/RecurringBilling/Services/Banking/StatementPersister.php`, `Modules/Financeiro/Services/Extrato/ImportarExtratoOfxService.php`, `Modules/Financeiro/Console/Commands/ImportarExtratoOfxCommand.php`, `Modules/Financeiro/Tests/Feature/ExtratoOfxContaContratoTest.php`
 
 **Testado em:** `Modules/Financeiro/Tests/Feature/ExtratoOfxContaContratoTest.php`
 
