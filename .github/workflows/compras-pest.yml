@@ -192,6 +192,7 @@ jobs:
             Modules/Compras/Tests/Feature/RequisicaoEstoqueMinimoContratoTest.php \
             Modules/Compras/Tests/Feature/AplicarCustoDoRecebimentoTest.php \
             Modules/Compras/Tests/Feature/PropostasDePrecoContratoTest.php \
+            Modules/Compras/Tests/Feature/NecessidadeDeCompraTest.php \
             Modules/Compras/Tests/Feature/CotacaoDeCompraTest.php \
             Modules/Compras/Tests/Feature/AlcadaDoPedidoTest.php \
             Modules/Compras/Tests/Feature/EntradaXmlSchemaTest.php \

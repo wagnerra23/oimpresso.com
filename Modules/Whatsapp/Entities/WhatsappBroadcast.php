@@ -35,7 +35,7 @@ class WhatsappBroadcast extends Model
     protected $table = 'whatsapp_broadcasts';
 
     public const KINDS = ['freeform', 'template'];
-    public const STATUSES = ['draft', 'dispatching', 'done', 'failed'];
+    public const STATUSES = ['draft', 'dispatching', 'done', 'failed', 'cancelled'];
 
     protected $fillable = [
         'business_id', 'channel_id', 'created_by_user_id',
