@@ -42,6 +42,11 @@ Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezon
         Route::match(['get', 'post'], 'install/update', [Modules\Crm\Http\Controllers\InstallController::class, 'update']);
     });
 
+    // US-CRM-092 · ADR 0441 — funil de vendas em kanban (negócios em crm_deals). Permissões crm.funil.*.
+    Route::get('funil', [Modules\Crm\Http\Controllers\FunilController::class, 'index'])->name('crm.funil.index');
+    Route::post('funil', [Modules\Crm\Http\Controllers\FunilController::class, 'store'])->name('crm.funil.store');
+    Route::patch('funil/{id}/etapa', [Modules\Crm\Http\Controllers\FunilController::class, 'mover'])->whereNumber('id')->name('crm.funil.mover');
+
     Route::resource('leads', 'Modules\Crm\Http\Controllers\LeadController');
     Route::get('lead/{id}/convert', [Modules\Crm\Http\Controllers\LeadController::class, 'convertToCustomer']);
     Route::get('lead/{id}/post-life-stage', [Modules\Crm\Http\Controllers\LeadController::class, 'postLifeStage']);
