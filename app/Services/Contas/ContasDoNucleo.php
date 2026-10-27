@@ -69,7 +69,7 @@ class ContasDoNucleo
             $account_ids = array_unique($account_ids);
         }
 
-        if (! $this->moduleUtil->is_admin($user, $businessId) && $permitted_locations != 'all') {
+        if (! $this->moduleUtil->is_admin($user, $businessId) && $permitted_locations != 'all') { // @phpstan-ignore argument.type (docblock do Util diz "obj"; recebe o User, como no AccountController)
             $accounts->whereIn('accounts.id', $account_ids);
         }
 
@@ -116,7 +116,7 @@ class ContasDoNucleo
     public function definirEncerrada(int $businessId, int $accountId, bool $encerrada): Account
     {
         $account = Account::where('business_id', $businessId)->findOrFail($accountId);
-        $account->is_closed = $encerrada ? 1 : 0;
+        $account->is_closed = $encerrada;
         $account->save();
 
         return $account;

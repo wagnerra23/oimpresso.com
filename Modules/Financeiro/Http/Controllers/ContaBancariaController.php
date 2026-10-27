@@ -70,28 +70,33 @@ class ContaBancariaController extends Controller
             ->keyBy('account_id');
 
         $util = app(\App\Utils\Util::class);
-        $accounts = $linhas->map(function ($row) use ($complementos, $util) {
-            $cb = $complementos->get($row->id);
+        // As colunas vêm de aliases do SELECT (saldo, tipo, quem criou), não de atributos do model: lidas por getAttribute.
+        $accounts = $linhas->map(function (\Illuminate\Database\Eloquent\Model $row) use ($complementos, $util) {
+            $v = fn (string $campo) => $row->getAttribute($campo);
+            $id = (int) $v('id');
+            $cb = $complementos->get($id);
+            $tipoPai = $v('parent_account_type_name');
+            $saldo = (float) $v('balance');
 
             // Chaves do complemento como o ConfigurarBoletoSheet já lê; null quando a conta não tem complemento.
             return array_merge(
                 array_fill_keys(self::CAMPOS_COMPLEMENTO, null),
                 $cb ? array_intersect_key($cb->toArray(), array_flip(self::CAMPOS_COMPLEMENTO)) : [],
                 [
-                    'id' => (int) $row->id,
-                    'name' => $row->name,
-                    'account_number' => $row->account_number,
-                    'account_type_id' => $row->account_type_id ? (int) $row->account_type_id : null,
-                    'note' => $row->note,
-                    'account_details' => array_values((array) ($row->account_details ?? [])),
+                    'id' => $id,
+                    'name' => $v('name'),
+                    'account_number' => $v('account_number'),
+                    'account_type_id' => $v('account_type_id') ? (int) $v('account_type_id') : null,
+                    'note' => $v('note'),
+                    'account_details' => array_values((array) ($v('account_details') ?? [])),
                     'complemento_id' => $cb?->id,
-                    'tipo' => empty($row->parent_account_type_name) ? $row->account_type_name : $row->parent_account_type_name,
-                    'subtipo' => empty($row->parent_account_type_name) ? null : $row->account_type_name,
+                    'tipo' => empty($tipoPai) ? $v('account_type_name') : $tipoPai,
+                    'subtipo' => empty($tipoPai) ? null : $v('account_type_name'),
                     // Saldo formatado pelo mesmo num_f da Blade; a tela não soma nem formata valor.
-                    'saldo' => (float) $row->balance,
-                    'saldo_texto' => $util->num_f((float) $row->balance, true),
-                    'adicionado_por' => trim(preg_replace('/\s+/', ' ', (string) $row->added_by)),
-                    'encerrada' => (int) $row->is_closed === 1,
+                    'saldo' => $saldo,
+                    'saldo_texto' => $util->num_f($saldo, true),
+                    'adicionado_por' => trim(preg_replace('/\s+/', ' ', (string) $v('added_by'))),
+                    'encerrada' => (int) $v('is_closed') === 1,
                 ]
             );
         })->values();
