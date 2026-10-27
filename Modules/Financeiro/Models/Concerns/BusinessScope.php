@@ -29,8 +29,8 @@ trait BusinessScope
 
         // Auto-preenche business_id ao criar (DRY).
         static::creating(function (Model $model) {
-            if (empty($model->business_id) && session()->has('user.business_id')) {
-                $model->business_id = session('user.business_id');
+            if (empty($model->getAttribute('business_id')) && session()->has('user.business_id')) {
+                $model->setAttribute('business_id', session('user.business_id'));
             }
         });
     }
