@@ -444,9 +444,9 @@ Driver pattern: classe `MarketplaceDriver` abstrata + `MercadoLivreDriver`, `Sho
 
 ### US-MKT-007 · Pedido ML → cria `mkt_orders` + transaction UltimatePOS + FSM stage initial — **P0** · 8h
 
-**Implementado em:** _parcial_ · `Modules/Marketplaces/Services/PedidoParaVenda.php` · `Modules/Marketplaces/Jobs/VirarVendaJob.php` · `Modules/Marketplaces/Database/Migrations/2026_10_26_000003_add_location_id_to_mkt_account_credentials.php` — 2026-10-26: pedido pago vira venda final no local da conta, com baixa de estoque; falta o estágio FSM `venda_marketplace` (próximo PR)
+**Implementado em:** `Modules/Marketplaces/Services/PedidoParaVenda.php` · `Modules/Marketplaces/Jobs/VirarVendaJob.php` · `Modules/Marketplaces/Database/Migrations/2026_10_26_000003_add_location_id_to_mkt_account_credentials.php` · `Modules/Marketplaces/Database/Seeders/FsmProcessoVendaMarketplaceSeeder.php` · `Modules/Marketplaces/Services/IniciarPipelineMarketplace.php` — 2026-10-26: pedido pago vira venda final no local da conta, com baixa de estoque, e entra no estágio `pedido_recebido` do processo `venda_marketplace` (pago → enviado → entregue; cancelado nas laterais)
 
-**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesPedidoViraVendaContratoTest.php`
+**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesPedidoViraVendaContratoTest.php` · `Modules/Marketplaces/Tests/Feature/MarketplacesPipelineFsmContratoTest.php`
 
 **DoD:** pedido pago vira venda final no local da conta com final_total igual ao total do ML e igual à soma das linhas, e o estoque baixa a quantidade vendida; repetir não cria segunda venda nem baixa de novo; total que não bate, pedido não pago ou conta sem local não criam venda nem mexem no estoque; SKU de outra empresa nunca é usado.
 
