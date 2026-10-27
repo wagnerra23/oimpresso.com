@@ -17,7 +17,7 @@ authority: generated
 | Elo | Quantidade |
 |---|---:|
 | US no SPEC | 13 |
-| CU no SDD | 18 |
+| CU no SDD | 19 |
 | Telas (.tsx) | 12 |
 | Telas com `casos.md` | 16 |
 | UC declarados | 200 |
@@ -29,6 +29,7 @@ authority: generated
 |---|---|
 | `CU-PROD-09` sem UC | caso de uso que o exercite — Código de barras + etiqueta |
 | `CU-PROD-12` sem UC | caso de uso que o exercite — Correção de valor / agregação de inventário |
+| `CU-PROD-20` sem UC | caso de uso que o exercite — Locais de armazenagem e endereço no estoque |
 
 ### Backlog — NÃO é lacuna
 
