@@ -195,6 +195,48 @@ last_run: "2026-10-26"
 - **Teste:** `tests/Feature/Sells/IcmsStNaVendaContratoTest.php` — `UC-VST-05`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
+## Maquininha integrada ao caixa — TEF (US-SELL-075)
+
+> **Âncora:** US-SELL-075 (`memory/requisitos/Sells/SPEC.md`). O caixa manda o valor para a maquininha e a resposta
+> (bandeira, NSU, autorização) preenche a linha de pagamento. Camada independente da adquirente; o integrador real é
+> decisão [W] (`memory/requisitos/Sells/BRIEFING.md`). Driver `simulador`: valor terminado em ,99 é negado.
+> Flag `PAYMENTGATEWAY_TEF_ENABLED` desligada. Prova: `tests/Feature/Sells/TefCaixaContratoTest.php`.
+
+## UC-TEF-01 · Com a flag desligada a maquininha não existe para a empresa `[V0]` `[must]`
+- **Aceite:** Dado a flag desligada, ou ligada só para outra empresa · Quando o caixa pede uma cobrança · Então recebe 404 e nada é gravado.
+- **Teste:** `tests/Feature/Sells/TefCaixaContratoTest.php` — `UC-TEF-01`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-TEF-02 · O valor vai para a máquina e a aprovação traz bandeira, NSU e autorização `[V0]` `[must]`
+- **Aceite:** Dado crédito de 204,90 em 3x · Quando o caixa envia e depois consulta · Então a cobrança nasce `pendente`, vira `aprovada` com bandeira, NSU e autorização, e grava 20.490 centavos.
+- **Teste:** `tests/Feature/Sells/TefCaixaContratoTest.php` — `UC-TEF-02`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-TEF-03 · O mesmo clique reenviado não cobra duas vezes `[V0]` `[must]`
+- **Aceite:** Dado duas chamadas com a mesma chave de idempotência · Então existe uma só cobrança e as duas respostas têm o mesmo id.
+- **Teste:** `tests/Feature/Sells/TefCaixaContratoTest.php` — `UC-TEF-03`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-TEF-04 · Cartão recusado volta como negada `[V0]` `[must]`
+- **Aceite:** Dado débito de 12,99 · Quando a máquina responde · Então o status é `negada` e a autorização fica vazia.
+- **Teste:** `tests/Feature/Sells/TefCaixaContratoTest.php` — `UC-TEF-04`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-TEF-05 · Cobrança de outra empresa não aparece `[V0]` `[must]`
+- **Aceite:** Dado uma cobrança da empresa 99 · Quando o caixa da 98 consulta pelo id · Então recebe 404.
+- **Teste:** `tests/Feature/Sells/TefCaixaContratoTest.php` — `UC-TEF-05`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-TEF-06 · Valor com mais de 2 casas é recusado; centavos batem por dois caminhos `[V0]` `[must]`
+- **Aceite:** Dado `204.99605` · Então a validação recusa. E 204,99 / 12,5 / 0,1 / 1.000 / 1.234,05 viram 20.499 / 1.250 / 10 / 100.000 / 123.405 centavos.
+- **Teste:** `tests/Feature/Sells/TefCaixaContratoTest.php` — `UC-TEF-06`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-TEF-07 · Sem resposta da adquirente a cobrança vira erro visível `[V0]` `[must]`
+- **Aceite:** Dado o driver sem resposta · Quando o caixa envia · Então a cobrança fica `erro`, nunca pendurada.
+- **Teste:** `tests/Feature/Sells/TefCaixaContratoTest.php` — `UC-TEF-07`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão. Itens abaixo SEM token de UC de
