@@ -9,9 +9,13 @@ Medido em 2026-10-27 19:20Z: **1.471 runs na fila** contra **26 rodando**. O gar
 
 ## Como funciona
 
-- **16 vagas** (`ci-leve-1..16`), cada uma um container gerenciado por `ci-runner-leve@N.service`.
-  Para mais: `VAGAS=N install.sh`. Histórico: 8 → 12 (CT 100 medido ~75% ocioso) → 16, depois de
-  ampliar o CT 100 (abaixo), por decisão [W] 2026-10-27 de usar mais a máquina.
+- **8 vagas** (`ci-leve-1..8`), cada uma um container gerenciado por `ci-runner-leve@N.service`.
+  ⚠️ **O teto é o DISCO, não a CPU.** Medido 2026-10-27 21:11Z com 16 vagas, logo depois de o
+  roteamento entrar no `main`: carga 27 em 24 núcleos, mas CPU 43% ociosa e **43% em iowait**
+  (`/proc/pressure/io` some avg60=58). O health do MCP (`/api/mcp/health`), que responde em 0,03 s,
+  levou **5,2 s e 9,7 s**. Com 8 vagas voltou a 0,04–0,13 s, com iowait 6%. Os runners dividem o
+  disco com os serviços de produção do CT 100: **não suba vagas sem medir `/proc/pressure/io` e o
+  health do MCP com a fila cheia.**
 - **Runner persistente:** registra uma vez com um token de **registro** (vale 1 hora) e passa a
   usar a credencial própria que o `config.sh` grava dentro do container. **Nenhum PAT nem token
   fica guardado no host.**
@@ -52,7 +56,7 @@ com as vagas ligadas.
 Do computador de quem tem admin no repo (o `gh` gera o token de registro, que vale 1 hora):
 
 ```bash
-gh api -X POST repos/wagnerra23/oimpresso.com/actions/runners/registration-token --jq .token   | ssh root@192.168.0.50 'cd /opt/oimpresso-ci-src && git pull -q && VAGAS=16 docker/ci-runner-leve/install.sh'
+gh api -X POST repos/wagnerra23/oimpresso.com/actions/runners/registration-token --jq .token   | ssh root@192.168.0.50 'cd /opt/oimpresso-ci-src && git pull -q && VAGAS=8 docker/ci-runner-leve/install.sh'
 ```
 
 `/opt/oimpresso-ci-src` é um clone *sparse* do repo, só `docker/ci-runner-leve/`. O `install.sh`
