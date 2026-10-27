@@ -12,7 +12,8 @@ related_us: [US-FIN-008]
 smoke: "2026-07-02 — render prod OK biz=1 (Chrome MCP, sessão WR2 Sistemas; lista as 20 contas reais + status boleto/carteira). Antes: 2026-07-01 empty-state sob sessão matriz biz=0."
 related_prototype: n/a (sem protótipo Cowork — form dados bancários/beneficiário CNAB; credenciais gateway vivem em /settings/payment-gateways, ADR 0170)
 tier: A
-charter_version: 2
+charter_version: 3
+related_runbook: memory/requisitos/Financeiro/RUNBOOK-contas-bancarias.md
 ---
 
 # Page Charter — /financeiro/contas-bancarias
@@ -35,6 +36,8 @@ Listar contas bancárias do business + permitir configurar dados pra emissão de
 - Suporta bancos CNAB tradicionais (BB, Caixa, Sicoob, Inter etc) + conta virtual PJ (Asaas)
 - Link rápido pro cadastro de credenciais em `/settings/payment-gateways`
 - Multi-tenant: `business_id` global scope
+- **Tela única de contas (decisão [W] 2026-10-27):** cadastrar, editar, encerrar e reativar a conta do núcleo (`accounts`) — antes em `/account/account`
+- Saldo por conta e filtro Ativa/Encerrada, do mesmo SQL do núcleo (`App\Services\Contas\ContasDoNucleo`), formatado no servidor
 
 ---
 
@@ -42,7 +45,9 @@ Listar contas bancárias do business + permitir configurar dados pra emissão de
 
 - ❌ Cadastrar/editar credencial API de gateway (vai em `/settings/payment-gateways`)
 - ❌ Persistir `client_secret` / certificado mTLS / API token (foi removido em 2026-05-19; cofre vive em `payment_gateway_credentials`)
-- ❌ Criação de conta nova nesta tela (vem do flow de cadastro UltimatePOS)
+- ❌ ~~Criação de conta nova nesta tela~~ — revogado em 2026-10-27 pela decisão [W] (opção A: tela única de contas aqui)
+- ❌ Somar saldos (total, KPIs "Disponível"/"Conta de capital" do protótipo) ou calcular/formatar saldo no navegador — valor, só com dupla prova e [W]
+- ❌ Transferência entre contas, depósito avulso e edição de lançamento (uso zero medido em prod em 2026-10-27; saem no cutover)
 - ❌ Sincronizar saldo direto desta tela (`/financeiro/extrato/{id}` faz)
 - ❌ Emitir boleto avulso aqui (vai pra outras telas do RB/Cobrança)
 - ❌ Configurar webhook (admin separado)
@@ -103,4 +108,5 @@ Listar contas bancárias do business + permitir configurar dados pra emissão de
 |---|---|---|
 | 2026-05-07 | Opus + Wagner | Stub criado em S6 F1. Detalhamento Pest GUARD pendente F1.5. |
 | 2026-05-19 | Opus + Wagner | v2 — removidos campos gateway_* (credencial API). PaymentGateway extraído (ADR 0170). FK canon agora é `payment_gateway_credentials.conta_bancaria_id` (PR #1154). Tela passa a ser CNAB-only + beneficiário. |
+| 2026-10-27 | Claude + Wagner | v3 — decisão [W] (opção A): tela única de contas. Cadastro da conta do núcleo, saldo e situação entram aqui; Non-Goal de criação revogado. RUNBOOK-contas-bancarias. Casos UC-CTB-05..11. |
 | 2026-07-20 | Claude + Wagner | Piloto migração PT (US-COPI-146): saiu da ilha `.fin-cowork`/`.fin-curadoria`/`.vendas-aplus` → layout via tokens do tema global (`.cockpit`); botão "Nova conta" `oklch` inline → `<Button variant="default">` (roxo canon 295 por token, dark-aware). Config-only, zero mudança de comportamento. Conteúdo já usava tokens shadcn. |

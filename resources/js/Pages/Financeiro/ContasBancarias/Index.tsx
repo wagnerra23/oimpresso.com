@@ -1,19 +1,22 @@
 // @memcofre tela=/financeiro/contas-bancarias module=Financeiro
 
 import AppShellV2 from '@/Layouts/AppShellV2';
+import { router } from '@inertiajs/react';
 import { useState } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
-import { Settings, Plus, AlertTriangle, CheckCircle2, MinusCircle } from 'lucide-react';
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+} from '@/Components/ui/dropdown-menu';
+import { Settings, Plus, AlertTriangle, CheckCircle2, MinusCircle, MoreVertical } from 'lucide-react';
+import { toast } from 'sonner';
 import { ConfigurarBoletoSheet } from './components/ConfigurarBoletoSheet';
+import { ContaSheet, type ContaCadastro, type TipoConta } from './components/ContaSheet';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { PageHeader } from '@/Components/PageHeader';
 
-interface Account {
-  id: number;
-  name: string;
+interface Account extends ContaCadastro {
   account_number: string;
-  account_type_id: number | null;
   complemento_id: number | null;
   banco_codigo: string | null;
   agencia: string | null;
@@ -32,11 +35,18 @@ interface Account {
   ativo_para_boleto: boolean | null;
   tipo_conta: string | null;
   metadata: Record<string, unknown> | null;
+  tipo: string | null;
+  subtipo: string | null;
+  /** Texto já formatado pelo num_f do servidor — a tela não formata nem soma saldo. */
+  saldo_texto: string;
+  encerrada: boolean;
 }
 
 interface Props {
   accounts: Account[];
   bancos_suportados: string[];
+  situacao: 'ativa' | 'encerrada';
+  tipos_conta: TipoConta[];
 }
 
 function StatusBadge({ account }: { account: Account }) {
@@ -61,21 +71,34 @@ function StatusBadge({ account }: { account: Account }) {
   );
 }
 
-function Index({ accounts, bancos_suportados }: Props) {
-  const [editing, setEditing] = useState<Account | null>(null);
+function Index({ accounts, bancos_suportados, situacao, tipos_conta }: Props) {
+  const [boleto, setBoleto] = useState<Account | null>(null);
+  // undefined = fechado · null = nova conta · conta = editar.
+  const [cadastro, setCadastro] = useState<Account | null | undefined>(undefined);
+
+  const trocarSituacao = (s: 'ativa' | 'encerrada') =>
+    router.get('/financeiro/contas-bancarias', s === 'ativa' ? {} : { situacao: s }, { preserveScroll: true, preserveState: true });
+
+  const mudarSituacaoDaConta = (a: Account) => {
+    const acao = a.encerrada ? 'reativar' : 'encerrar';
+    if (!a.encerrada && !window.confirm(`Encerrar "${a.name}"? Ela sai das contas ativas; o movimento continua guardado.`)) return;
+    router.post(`/financeiro/contas-bancarias/${a.id}/${acao}`, {}, {
+      preserveScroll: true,
+      onSuccess: () => toast.success(a.encerrada ? 'Conta reativada.' : 'Conta encerrada.'),
+    });
+  };
 
   return (
     <>
       {/* PT-04/US-COPI-146: fora da ilha .fin-cowork — layout via tokens do tema global (.cockpit) */}
       <div className="p-6 max-w-6xl mx-auto space-y-6">
-        {/* Wave 4 (2026-05-25): migrado pra <PageHeader> canon v3.8 */}
         <PageHeader
           title="Contas Bancárias"
-          suffix=" · Dados de emissão de boleto"
+          suffix=" · Cadastro, saldo e boleto"
           subtitle={
             <>
-              Banco, agência, beneficiário. Cadastro principal continua em "Contas de pagamento" do POS;
-              credenciais API (Inter, Asaas, C6) ficam em <a href="/settings/payment-gateways" className="underline underline-offset-2">Gateways de Pagamento</a>.
+              Cadastro, saldo e dados de boleto de cada conta. Credenciais API (Inter, Asaas, C6) ficam em{' '}
+              <a href="/settings/payment-gateways" className="underline underline-offset-2">Gateways de Pagamento</a>.
             </>
           }
         >
@@ -87,62 +110,89 @@ function Index({ accounts, bancos_suportados }: Props) {
                 { key: 'gateways', label: 'Gateways', icon: <Settings size={13} />, onClick: () => { window.location.href = '/settings/payment-gateways'; }, title: 'Credenciais API gateways de pagamento' },
               ]}
             />
-            <Button asChild variant="default" size="sm">
-              <a href="/account/account/create">
-                <Plus size={13} /> Nova conta
-              </a>
+            <Button variant="default" size="sm" onClick={() => setCadastro(null)}>
+              <Plus size={13} /> Nova conta
             </Button>
           </div>
         </PageHeader>
 
         <div className="rounded-md border">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50">
-              <tr className="text-left">
-                <th className="px-4 py-2 font-medium">Conta</th>
-                <th className="px-4 py-2 font-medium">Banco</th>
-                <th className="px-4 py-2 font-medium">Boleto</th>
-                <th className="px-4 py-2 font-medium text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {accounts.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                    Nenhuma conta cadastrada. Cadastre primeiro no POS.
-                  </td>
-                </tr>
-              )}
-              {accounts.map((a) => (
-                <tr key={a.id} className="border-t hover:bg-muted/30">
-                  <td className="px-4 py-3">
-                    <div className="font-medium">{a.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {a.agencia
-                        ? `Ag ${a.agencia}${a.agencia_dv ? '-' + a.agencia_dv : ''} · Cc ${a.account_number}${a.conta_dv ? '-' + a.conta_dv : ''}`
-                        : `Cc ${a.account_number}`}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    {a.banco_codigo ? (
-                      <span className="font-mono">{a.banco_codigo}</span>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <StatusBadge account={a} />
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <Button size="sm" variant="ghost" onClick={() => setEditing(a)}>
-                      <Settings className="h-4 w-4 mr-1" />
-                      {a.complemento_id ? 'Editar' : 'Configurar'}
-                    </Button>
-                  </td>
-                </tr>
+          <div className="flex flex-wrap items-center gap-3 border-b px-3 py-2">
+            <div role="group" aria-label="Situação da conta" data-contract="filtro-situacao" className="inline-flex overflow-hidden rounded-md border">
+              {(['ativa', 'encerrada'] as const).map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  aria-pressed={situacao === s}
+                  onClick={() => trocarSituacao(s)}
+                  className={`h-8 px-3 text-sm ${situacao === s ? 'bg-accent text-accent-foreground font-medium' : 'bg-background text-muted-foreground'}`}
+                >
+                  {s === 'ativa' ? 'Ativa' : 'Encerrada'}
+                </button>
               ))}
-            </tbody>
-          </table>
+            </div>
+            <span className="ml-auto text-sm text-muted-foreground">
+              {accounts.length} conta(s) {situacao === 'ativa' ? 'ativa(s)' : 'encerrada(s)'}
+            </span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm" data-contract="contas-table">
+              <thead className="bg-muted/50">
+                <tr className="text-left">
+                  <th className="px-4 py-2 font-medium">Conta</th>
+                  <th className="px-4 py-2 font-medium">Tipo · subtipo</th>
+                  <th className="px-4 py-2 font-medium">Banco</th>
+                  <th className="px-4 py-2 font-medium">Boleto</th>
+                  <th className="px-4 py-2 font-medium text-right">Saldo</th>
+                  <th className="px-4 py-2 font-medium text-right"><span className="sr-only">Ações</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                {accounts.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                      {situacao === 'ativa' ? 'Nenhuma conta ativa. Use "Nova conta".' : 'Nenhuma conta encerrada.'}
+                    </td>
+                  </tr>
+                )}
+                {accounts.map((a) => (
+                  <tr key={a.id} className="border-t hover:bg-muted/30">
+                    <td className="px-4 py-3">
+                      <div className="font-medium">{a.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {a.agencia
+                          ? `Ag ${a.agencia}${a.agencia_dv ? '-' + a.agencia_dv : ''} · Cc ${a.account_number ?? ''}${a.conta_dv ? '-' + a.conta_dv : ''}`
+                          : a.account_number ? `Cc ${a.account_number}` : '—'}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">{a.tipo ? `${a.tipo}${a.subtipo ? ' · ' + a.subtipo : ''}` : <span className="text-muted-foreground">—</span>}</td>
+                    <td className="px-4 py-3">
+                      {a.banco_codigo ? <span className="font-mono">{a.banco_codigo}</span> : <span className="text-muted-foreground">—</span>}
+                    </td>
+                    <td className="px-4 py-3"><StatusBadge account={a} /></td>
+                    <td className="px-4 py-3 text-right font-mono tabular-nums">{a.saldo_texto}</td>
+                    <td className="px-4 py-3 text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="icon" variant="ghost" aria-label={`Ações da conta ${a.name}`}>
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onSelect={() => setCadastro(a)}>Editar conta</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => setBoleto(a)}>{a.complemento_id ? 'Editar boleto' : 'Configurar boleto'}</DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onSelect={() => mudarSituacaoDaConta(a)} className={a.encerrada ? '' : 'text-destructive'}>
+                            {a.encerrada ? 'Reativar conta' : 'Encerrar conta'}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <Card>
@@ -159,19 +209,18 @@ function Index({ accounts, bancos_suportados }: Props) {
         </Card>
       </div>
 
-      {editing && (
-        <ConfigurarBoletoSheet
-          account={editing}
-          bancosSuportados={bancos_suportados}
-          onClose={() => setEditing(null)}
-        />
+      {boleto && (
+        <ConfigurarBoletoSheet account={boleto} bancosSuportados={bancos_suportados} onClose={() => setBoleto(null)} />
+      )}
+      {cadastro !== undefined && (
+        <ContaSheet conta={cadastro} tiposConta={tipos_conta} onClose={() => setCadastro(undefined)} />
       )}
     </>
   );
 }
 
 Index.layout = (page: React.ReactNode) => (
-  <AppShellV2 title="Contas Bancárias · Boleto" breadcrumbItems={[{ label: 'Financeiro' }, { label: 'Contas Bancárias' }]}>
+  <AppShellV2 title="Contas Bancárias" breadcrumbItems={[{ label: 'Financeiro' }, { label: 'Contas Bancárias' }]}>
     {page}
   </AppShellV2>
 );
