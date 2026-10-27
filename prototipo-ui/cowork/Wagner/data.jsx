@@ -58,6 +58,8 @@ const MENU = [
       { id: "crm-taxonomias",  icon: "folder",  label: "Fontes e estágios" },
       { id: "crm-config",      icon: "cog",     label: "Configurações do CRM" },
       { id: "crm-portal",      icon: "globe",   label: "Portal do contato" },
+      { id: "crm-fidelidade",  icon: "star",    label: "Fidelidade e RFM" },
+      { id: "crm-nps",         icon: "chart",   label: "NPS e captura de lead" },
     ]},
     { id: "vendas",      icon: "cash",    label: "Vendas", ghosts: [
       { id: "venda-pedidos",     icon: "orders", label: "Pedido de venda" },
@@ -75,6 +77,7 @@ const MENU = [
       { id: "venda-assinaturas", icon: "clock",  label: "Assinaturas" },
       { id: "venda-devolver",    icon: "list",   label: "Devolver venda" },
       { id: "venda-importar",    icon: "upload", label: "Importação de vendas" },
+      { id: "venda-margem",      icon: "percent", label: "Margem da venda" },
       { id: "catalogo-qr", icon: "grid",  label: "Catálogo QR" },
       { id: "woocommerce", icon: "plug",  label: "WooCommerce" },
       { id: "portalos",    icon: "globe", label: "Portal Consulta OS" },
@@ -85,6 +88,7 @@ const MENU = [
     // Vestuário (Modules/Vestuario · group 'vender' no vivo, order 35) — entry top-level, ghost Etiquetas
     { id: "vestuario",   icon: "product", label: "Vestuário", ghosts: [
       { id: "vest-etiquetas", icon: "print", label: "Etiquetas" },
+      { id: "vest-remarcacao", icon: "percent", label: "Remarcação por coleção" },
     ]},
   ]},
   { group: "FINANÇAS", items: [
@@ -101,6 +105,8 @@ const MENU = [
       { id: "fin-categorias", icon: "folder", label: "Categorias de despesa" },
       { id: "fin-bancos",   icon: "cash",    label: "Contas bancárias" },
       { id: "fin-extrato",  icon: "list",    label: "Extrato" },
+      { id: "fin-cc-orcado", icon: "chart",  label: "Centro de custo e orçado" },
+      { id: "fin-contabil",  icon: "book",   label: "Contabilidade" },
     ]},
     { id: "cobranca",   icon: "receipt", label: "Cobrança", ghosts: [
       { id: "payment-gateways", icon: "shield", label: "Gateways de Pagamento" },
@@ -155,6 +161,7 @@ const MENU = [
       { id: "cmp-requisicoes", icon: "doc",    label: "Requisições de compra" },
       { id: "cmp-devolucoes",  icon: "truck",  label: "Devoluções de compra" },
       { id: "cmp-grade",       icon: "grid",   label: "Grade matrix (tam × cor)" },
+      { id: "cmp-reposicao",   icon: "chart",  label: "Reposição e curva ABC" },
     ]},
     { id: "estoque", icon: "refresh", label: "Movimentações", ghosts: [
       { id: "est-ajustes",            icon: "list",  label: "Ajustes de estoque" },
@@ -208,6 +215,7 @@ const MENU = [
     { id: "prefs",       icon: "cog",   label: "Preferências" },
     // Grupo "Configurações" do menu legado (AdminLTE) — importado do blade business/settings + cadastros
     { id: "cfg-empresa", icon: "cog", label: "Configurações", ghosts: [
+      { id: "cfg-primeiros-passos", icon: "check", label: "Primeiros passos" },
       { id: "cfg-locais",        icon: "globe",  label: "Locais comerciais" },
       { id: "cfg-fatura",        icon: "receipt", label: "Configurações da fatura" },
       { id: "cfg-barras",        icon: "grid",   label: "Código de barras" },
@@ -614,6 +622,7 @@ const FIN_SUBNAV_OVERFLOW = [
   { label: "Extrato",           path: "/financeiro/extrato" },
   { label: "Contas Bancárias",  path: "/financeiro/contas-bancarias" },
   { label: "Contador",          path: "/financeiro/configuracoes/contador" },
+  { label: "Contabilidade",     path: "/financeiro/contabilidade", route: "fin-contabil" },
   { label: "Gateway",           path: "/settings/payment-gateways", route: "payment-gateways" },
 ];
 

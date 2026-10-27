@@ -787,6 +787,27 @@ function App() {
   const janaTab = tweaks.janaMetas !== "aba" && chatTab === "metas" ? "painel" : chatTab;
 
   let content;
+  // Protótipos de 27/10/2026 — entram ANTES dos blocos por prefixo (crm-/cmp-/fin-/vest-/cfg-),
+  // que de outro jeito capturam a rota e mostram o stub do módulo.
+  const PROTO_HTML = {
+    "fin-cc-orcado":        { src: "financeiro-centro-custo-orcado.html", titulo: "Centro de custo e orçado × realizado" },
+    "crm-fidelidade":       { src: "crm-fidelidade-page.html",            titulo: "Fidelidade e RFM" },
+    "crm-nps":              { src: "prototipos/crm-nps-e-captura.html",   titulo: "NPS e captura de lead" },
+    "venda-margem":         { src: "vendas-detalhe-margem.html",          titulo: "Margem da venda" },
+    "cmp-reposicao":        { src: "estoque-reposicao-abc.html",          titulo: "Reposição e curva ABC" },
+    "vest-remarcacao":      { src: "vestuario-remarcacao.html",           titulo: "Remarcação por coleção" },
+    "cfg-primeiros-passos": { src: "primeiros-passos.html",               titulo: "Primeiros passos" },
+  };
+  // Páginas públicas que a tela interna gera: "ver como o cliente vê".
+  // `route` abre no shell; `href` abre a página pública em outra aba (fica fora do shell).
+  const PUBLICAS = {
+    "fin-receber":    [{ label: "Link de pagamento", route: "fin-link-pagar" }, { label: "Portal do cliente", route: "fin-portal-cliente" }],
+    "venda-cotacoes": [{ label: "Aprovação do orçamento", href: "vendas-orcamento-aprovacao-page.html" }],
+  };
+  if (PROTO_HTML[route]) content = <window.ProtoHtmlPage key={route} src={PROTO_HTML[route].src} titulo={PROTO_HTML[route].titulo} />;else
+  // fin-link-pagar/fin-portal-cliente: o #9961 usava "fin-pagar", que já é Contas a pagar e casava antes.
+  if (route === "fin-link-pagar" || route === "fin-portal-cliente") content = <window.FinPagamentoPublicoPage key={route} view={route === "fin-link-pagar" ? "pagar" : "portal"} />;else
+  if (route === "fin-contabil") content = <window.FinContabilPage />;else
   if (route === "chat") content = <window.JanaPage company={company} tab={janaTab} metasMode={tweaks.janaMetas === "aba" ? "aba" : "secao"} estado={tweaks.janaEstado} papel={tweaks.janaPapel} onGoTab={setChatTab} />;else
   if (route === "tarefas") content = <window.TasksPage />;else
   if (route === "dash-legacy") content = <window.DashLegacyPage />;else
@@ -933,6 +954,7 @@ function App() {
   "portalos", "auditoria"].
   includes(route)) content = <window.MockupPage route={route} />;else
   content = <ModuleStub routeId={route} />;
+  if (PUBLICAS[route]) content = <><window.ProtoPublicasBar itens={PUBLICAS[route]} />{content}</>;
 
   return (
     <div className={"app app--sb-" + (isMobile ? "expanded" : sbMode) + (isMobile ? " app--mobile" : "") + (isMobile && mobileMenuOpen ? " app--mob-open" : "")}>
