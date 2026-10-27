@@ -529,6 +529,26 @@ Slot pra cada side-effect: `app/Domain/Fsm/SideEffects/{Calcular,Estornar}Comiss
 
 ---
 
+### US-COMM-015 · Regra única de comissão: vendedor, produto ou categoria; % ou valor; técnico da OS como papel — **P2**
+
+> owner: wagner · priority: p2 · estimate: 16h · status: doing · type: story · origin: lacunas-concorrencia-2026-10-27
+> blocked_by: —
+
+**Implementado em:** _pendente_ — em andamento: cálculo pelo servidor feito (`App\Services\Sells\ComissaoPorRegra`, `GET /sells/{id}/comissao-por-regra`, tabela `commission_rules`, UC-COMR-01..05 em `Sells/Show.casos.md`), atrás da flag `SELLS_COMISSAO_POR_REGRA` desligada. Falta a tela de cadastro das regras e mostrar a comissão na venda.
+
+[W] 2026-10-27 destravou as lacunas ("pode destravar todos os outros vou fazer todos"), o que tira esta US do dormente da ADR 0151. É a versão enxuta das US-COMM-001/004/010: **uma** tabela de regra, sem policy, tier, meta nem fechamento (esses seguem nas US acima).
+
+Aceite:
+
+- Regra = papel (`vendedor` ou `tecnico`) + escopo (`vendedor`, `produto` ou `categoria`) + opcionalmente uma pessoa + tipo (`percentual` da linha ou `valor` por unidade).
+- Vendedor = `transactions.commission_agent`; técnico = `repair_job_sheets.service_staff` da OS que gerou a venda.
+- Por linha vale a mais específica: produto > categoria > geral; no mesmo escopo, a da pessoa > a de todos; empate, a mais nova. Sem regra, a linha não paga por regra.
+- Base = (quantidade − devolvida) × preço unitário com desconto da linha, sem imposto. Arredonda por linha.
+- Não muda `users.cmmsn_percent`, `commission_split` nem o relatório de comissão de hoje. Só calcula; gravar e estornar ficam para a US-COMM-002/003.
+- Tier 0: regras, linhas e pessoas lidas pelo business da venda.
+
+---
+
 ## §6 Riscos identificados
 
 | # | Risco | Mitigação |

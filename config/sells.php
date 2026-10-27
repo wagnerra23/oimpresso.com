@@ -47,6 +47,15 @@ return [
         'timeout_seconds' => (int) env('SELLS_AI_TIMEOUT', 8),
     ],
 
+    'comissao' => [
+        /*
+         * US-COMM-015 — comissão por regra (vendedor/produto/categoria, % ou valor; papel
+         * vendedor ou técnico da OS). Desligada: GET /sells/{id}/comissao-por-regra dá 404 e
+         * nada muda. Ligar é decisão [W] (regra mestre de valor).
+         */
+        'por_regra' => env('SELLS_COMISSAO_POR_REGRA', false),
+    ],
+
     'import' => [
         /*
          * Importação de vendas por planilha (`/import-sales`) — decisão D2 de [W] (2026-10-02):

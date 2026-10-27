@@ -293,6 +293,37 @@ last_run: "2026-10-21"
 - **Teste:** `tests/Feature/Sells/CancelamentoDaVendaContratoTest.php` — `UC-VCAN-09`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
+## Comissão por regra da venda (US-COMM-015 · lacunas [W] 2026-10-27)
+
+> Só o cálculo, pelo servidor (`GET /sells/{id}/comissao-por-regra`), atrás da flag `SELLS_COMISSAO_POR_REGRA`
+> desligada. A tela ainda não mostra; não toca o `Show.tsx`. Números do exemplo: linha A 3 × 100,00, linha B
+> 2 × 50,00 (as duas da categoria C), linha D 1 × 80,00 sem categoria.
+
+## UC-COMR-01 · A regra mais específica vale por linha `[V0]` `[must]`
+- **Aceite:** Dado regra geral do vendedor 2%, da categoria C 5% e do produto A só daquele vendedor 10% · Então a linha A paga 30,00 (produto), a B 5,00 (categoria), a D 1,60 (geral) e o vendedor soma 36,60.
+- **Teste:** `tests/Feature/Sells/ComissaoPorRegraContratoTest.php` — `UC-COMR-01`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-COMR-02 · O técnico da OS ganha pela regra do papel técnico `[V0]` `[must]`
+- **Aceite:** Dado a venda faturada de uma OS cujo técnico é T e a regra do papel técnico de R$ 4,50 por unidade do produto A · Então T recebe 13,50, as regras do vendedor não valem para ele e a venda soma 50,10.
+- **Teste:** `tests/Feature/Sells/ComissaoPorRegraContratoTest.php` — `UC-COMR-02`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-COMR-03 · A quantidade devolvida sai da comissão `[V0]` `[must]`
+- **Aceite:** Dado 1 unidade da linha A devolvida · Então a linha A paga 20,00 ao vendedor e o técnico recebe 9,00.
+- **Teste:** `tests/Feature/Sells/ComissaoPorRegraContratoTest.php` — `UC-COMR-03`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-COMR-04 · Com a flag desligada nada muda `[must]`
+- **Aceite:** Dado a flag desligada (padrão) · Então a rota responde 404.
+- **Teste:** `tests/Feature/Sells/ComissaoPorRegraContratoTest.php` — `UC-COMR-04`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-COMR-05 · Regra e venda de outra empresa não entram `[T0]` `[must]`
+- **Aceite:** Dado uma regra de 50% em outra empresa · Então a venda continua somando 50,10; e quem é de outra empresa recebe 404 ao pedir a comissão desta venda.
+- **Teste:** `tests/Feature/Sells/ComissaoPorRegraContratoTest.php` — `UC-COMR-05`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão (e o `casos-gate` é required com
@@ -310,6 +341,7 @@ last_run: "2026-10-21"
 3. **Cadência:** rodar ao fim de toda mexida em `Sells/Show.tsx` ou em `SellController@show`. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-27 · [CC] + UC-COMR-01..05 (US-COMM-015): comissão por regra, só servidor, flag desligada. Teste `ComissaoPorRegraContratoTest`, nasce sem run. `Show.tsx` não muda.
 - 2026-10-21 · [CC] + UC-VSHOW-22/23 (US-SELL-073 · UC-FLX-23): seção Entrega no detalhe, lida de `app_entregas` pelo business da venda. Teste `SellsShowEntregaContratoTest`, nasce sem run.
 - 2026-10-21 · [CC] `last_run` 2026-10-20 → 2026-10-21 por conferência, não por run novo: o diff do `Show.tsx` neste PR só acrescenta a seção Entrega (import do ícone, tipo `EntregaVenda`, um `<Deferred>` e o componente), sem remover nem alterar linha existente; UC-VSHOW-01..13 não dependem dela. Os casos novos 22/23 estão 🧪 até a lane `sells-pest` rodar.
 - 2026-10-21 · [CL] UC-VSHOW-14 (US-PCP-028 · UC-FLX-06): entrega prometida no cabeçalho. Teste `SellsPrazoEntregaContratoTest`, nasce sem run.
