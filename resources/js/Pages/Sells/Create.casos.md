@@ -195,6 +195,43 @@ last_run: "2026-10-26"
 - **Teste:** `tests/Feature/Sells/IcmsStNaVendaContratoTest.php` — `UC-VST-05`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
+## Resgate de pontos de fidelidade (US-SELL-079 · [W] 2026-10-27)
+
+> **Âncora:** US-SELL-079 (`memory/requisitos/Sells/SPEC.md`). Os pontos nativos (`business.enable_rp`) já ganham,
+> vencem e aparecem na ficha; o caixa React passa a resgatar. Empresa do teste: ponto vale 0,10, resgate mínimo 10
+> pontos, venda mínima 20,00. A tela só mostra o resgate com `SELLS_RESGATE_PONTOS_ENABLED`; a conferência no
+> servidor vale sempre.
+
+## UC-SRP-01 · Valor do resgate = pontos × valor do ponto, 2 casas `[V0]` `[must]`
+- **Aceite:** 50 × 0,10 = 5,00 · 7 × 0,15 = 1,05 · 3 × 0,3333 = 1,00 · 1 × 0,005 = 0,01 · 1 × 0,0049 = 0,00. A tela e o servidor dão o mesmo resultado.
+- **Teste:** `tests/Feature/Sells/ResgatePontosContratoTest.php` — `UC-SRP-01` · `tests/js/resgate-pontos-valor.test.ts` (a mesma tabela, na conta da tela).
+- **Status: 🧪** — roda na lane `sells-pest` e no vitest do `ci.yml`.
+
+## UC-SRP-02 · Resgate válido é gravado com pontos e valor conferidos `[V0]` `[must]`
+- **Aceite:** Dado cliente com 100 pontos · Quando a venda pede 50 pontos e 5,00 · Então o servidor confirma 50 e 5,00.
+- **Teste:** `tests/Feature/Sells/ResgatePontosContratoTest.php` — `UC-SRP-02`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-SRP-03 · Mais pontos que o disponível, abaixo do mínimo ou venda pequena são recusados `[V0]` `[must]`
+- **Aceite:** Cliente com 30 pontos pedindo 31 → "O cliente pode resgatar até 30 pontos nesta venda." · 5 pontos → "O resgate mínimo é de 10 pontos." · venda de 19,99 → "A venda não atinge o valor mínimo para resgatar pontos."
+- **Teste:** `tests/Feature/Sells/ResgatePontosContratoTest.php` — `UC-SRP-03`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-SRP-04 · Valor que não bate com os pontos é recusado `[V0]` `[must]`
+- **Aceite:** 50 pontos com 50,00 → recusa "O resgate de 50 pontos vale R$ 5,00…". Diferença de até 1 centavo passa e grava o valor do servidor.
+- **Teste:** `tests/Feature/Sells/ResgatePontosContratoTest.php` — `UC-SRP-04`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-SRP-05 · Cliente padrão, cliente de outra empresa e empresa sem pontos não resgatam `[V0]` `[must]`
+- **Aceite:** Cliente padrão ou de outra empresa → "Escolha um cliente cadastrado para resgatar pontos." · empresa com pontos desligados → "Os pontos de fidelidade não estão ligados nesta empresa."
+- **Teste:** `tests/Feature/Sells/ResgatePontosContratoTest.php` — `UC-SRP-05`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-SRP-06 · A tela só mostra o resgate com a flag ligada e a empresa com pontos `[should]`
+- **Aceite:** flag desligada ou `enable_rp = 0` → sem configuração (o bloco não aparece); ligadas → nome, valor do ponto, venda mínima e resgate mínimo.
+- **Teste:** `tests/Feature/Sells/ResgatePontosContratoTest.php` — `UC-SRP-06`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão. Itens abaixo SEM token de UC de
