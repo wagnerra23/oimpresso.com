@@ -14,9 +14,9 @@ module: Financeiro
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 376 arquivos em 22 papéis.
+**Total mapeado:** 382 arquivos em 22 papéis.
 
-## Controllers — 25
+## Controllers — 26
 
 - [AdvisorAuthController.php](../../../Modules/Financeiro/Http/Controllers/Advisor/AdvisorAuthController.php)
 - [AdvisorPortalController.php](../../../Modules/Financeiro/Http/Controllers/Advisor/AdvisorPortalController.php)
@@ -38,6 +38,7 @@ module: Financeiro
 - [ExtratoController.php](../../../Modules/Financeiro/Http/Controllers/ExtratoController.php)
 - [FinanceiroController.php](../../../Modules/Financeiro/Http/Controllers/FinanceiroController.php)
 - [FluxoController.php](../../../Modules/Financeiro/Http/Controllers/FluxoController.php)
+- [ImportacaoTitulosController.php](../../../Modules/Financeiro/Http/Controllers/ImportacaoTitulosController.php)
 - [ImpostosController.php](../../../Modules/Financeiro/Http/Controllers/ImpostosController.php)
 - [InstallController.php](../../../Modules/Financeiro/Http/Controllers/InstallController.php)
 - [PlanoContaController.php](../../../Modules/Financeiro/Http/Controllers/PlanoContaController.php)
@@ -61,7 +62,7 @@ module: Financeiro
 
 - [AdvisorViewScope.php](../../../Modules/Financeiro/Http/Middleware/AdvisorViewScope.php)
 
-## Services — 16
+## Services — 17
 
 - [BoletoOcrService.php](../../../Modules/Financeiro/Services/BoletoOcrService.php)
 - [CusteioRkwService.php](../../../Modules/Financeiro/Services/CusteioRkwService.php)
@@ -69,6 +70,7 @@ module: Financeiro
 - [FinanceiroAuditLogger.php](../../../Modules/Financeiro/Services/FinanceiroAuditLogger.php)
 - [FluxoCaixaService.php](../../../Modules/Financeiro/Services/FluxoCaixaService.php)
 - [FluxoRealizadoService.php](../../../Modules/Financeiro/Services/FluxoRealizadoService.php)
+- [ImportacaoTitulosService.php](../../../Modules/Financeiro/Services/ImportacaoTitulosService.php)
 - [AsaasPixAutomaticoService.php](../../../Modules/Financeiro/Services/Integrations/AsaasPixAutomaticoService.php)
 - [PluggyBankSyncService.php](../../../Modules/Financeiro/Services/Integrations/PluggyBankSyncService.php)
 - [PluggyClient.php](../../../Modules/Financeiro/Services/Integrations/PluggyClient.php)
@@ -294,7 +296,7 @@ module: Financeiro
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/Unificado/Index.charter.md)
 - [Novo.charter.md](../../../resources/js/Pages/Financeiro/Unificado/Novo.charter.md)
 
-## Casos (contrato UC) — 22
+## Casos (contrato UC) — 23
 
 - [Dashboard.casos.md](../../../resources/js/Pages/Financeiro/Advisor/Dashboard.casos.md)
 - [Login.casos.md](../../../resources/js/Pages/Financeiro/Advisor/Login.casos.md)
@@ -313,15 +315,16 @@ module: Financeiro
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Dre/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Extrato/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Fluxo/Index.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Financeiro/ImportacaoTitulos/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Impostos/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/PlanoContas/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Relatorios/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Unificado/Index.casos.md)
 - [Novo.casos.md](../../../resources/js/Pages/Financeiro/Unificado/Novo.casos.md)
 
-## Testes (Pest) — 92
+## Testes (Pest) — 93
 
-- 87 em [Modules/Financeiro/Tests/Feature/](../../../Modules/Financeiro/Tests/Feature)
+- 88 em [Modules/Financeiro/Tests/Feature/](../../../Modules/Financeiro/Tests/Feature)
 - 1 em [Modules/Financeiro/Tests/Feature/Advisor/](../../../Modules/Financeiro/Tests/Feature/Advisor)
 - 4 em [Modules/Financeiro/Tests/Unit/](../../../Modules/Financeiro/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._

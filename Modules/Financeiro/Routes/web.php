@@ -14,6 +14,7 @@ use Modules\Financeiro\Http\Controllers\ContaPagarController;
 use Modules\Financeiro\Http\Controllers\ContaReceberController;
 use Modules\Financeiro\Http\Controllers\DreController;
 use Modules\Financeiro\Http\Controllers\ExtratoController;
+use Modules\Financeiro\Http\Controllers\ImportacaoTitulosController;
 use Modules\Financeiro\Http\Controllers\FluxoController;
 use Modules\Financeiro\Http\Controllers\ImpostosController;
 use Modules\Financeiro\Http\Controllers\InstallController;
@@ -158,6 +159,12 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         Route::get('/dre/export-pdf', [DreController::class, 'exportPdf'])->name('dre.export-pdf');
         Route::get('/dre/export-xlsx', [DreController::class, 'exportXlsx'])->name('dre.export-xlsx');
         Route::get('/dre/export-csv', [DreController::class, 'exportCsv'])->name('dre.export-csv');
+
+        // Importação de títulos por planilha (US-FIN-034): prévia sem gravar, gravar só com o
+        // token da prévia depois da confirmação.
+        Route::get('/importacao-titulos/modelo', [ImportacaoTitulosController::class, 'modelo'])->name('importacao-titulos.modelo');
+        Route::post('/importacao-titulos/previa', [ImportacaoTitulosController::class, 'previa'])->name('importacao-titulos.previa');
+        Route::post('/importacao-titulos/gravar', [ImportacaoTitulosController::class, 'gravar'])->name('importacao-titulos.gravar');
 
         // Custeio RKW + ponto de equilíbrio (US-FIN-070). GET só lê; aplicar é ação explícita.
         Route::get('/custeio-rkw', [\Modules\Financeiro\Http\Controllers\CusteioRkwController::class, 'show'])->name('custeio-rkw.show');

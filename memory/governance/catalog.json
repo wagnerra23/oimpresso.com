@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 881,
-    "edges": 1197,
+    "nodes": 882,
+    "edges": 1198,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 148,
-      "component": 492,
+      "component": 493,
       "api": 90
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 94,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 492,
+      "hasComponent": 493,
       "dependsOn": 133,
       "delegatesTo": 122,
       "migratesTo": 1,
@@ -2926,6 +2926,13 @@
       "module": "Financeiro",
       "name": "FluxoController",
       "desc": ""
+    },
+    {
+      "id": "component:Financeiro/ImportacaoTitulosController",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "ImportacaoTitulosController",
+      "desc": "US-FIN-034 importação de títulos por planilha: prévia linha a linha sem gravar, gravar só com o token da prévia, sem duplicar"
     },
     {
       "id": "component:Financeiro/ImpostosController",
@@ -9518,6 +9525,12 @@
     {
       "from": "module:Financeiro",
       "to": "component:Financeiro/FluxoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "component:Financeiro/ImportacaoTitulosController",
       "type": "hasComponent",
       "source": "contains"
     },

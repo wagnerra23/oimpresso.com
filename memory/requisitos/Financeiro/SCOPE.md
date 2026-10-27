@@ -12,6 +12,7 @@ contains:
   - "AssinaturaController — FIN-004 atualizar cobrança recorrente (multi-tenant Tier 0, gateway delegado a AssinaturaCobrancaService)"
   - "CaixaController — F6 Soft wrapper Inertia /financeiro/caixa read-only sobre cash_registers core UltimatePOS (não migra dados; lifecycle abrir/fechar continua na header POS via CashRegisterController core)"
   - "CategoriaController"
+  - "ImportacaoTitulosController — US-FIN-034 importação de títulos por planilha: prévia linha a linha sem gravar, gravar só com o token da prévia, sem duplicar"
   - "CobrancaController — F3 PaymentGateway UI Tela 1 (substitui /financeiro/boletos com escopo expandido boleto+pix+pix_recv+card; ADR 0144 + 0170)"
   - "ConciliacaoController — Onda 19 OFX MVP + scaffold Anexos/Aprovação"
   - "ContaBancariaController"

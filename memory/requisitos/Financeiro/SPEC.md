@@ -1231,10 +1231,12 @@ Schedule diário avisa cliente X dias antes vencimento (cobrar antes de atrasar)
 
 ### US-FIN-034 · Importação massiva CSV/Excel — mapping wizard + dry-run + commit
 
-> owner: — · sprint: Onda 28 · priority: p2 · estimate: 5h · status: todo · type: story
+> owner: — · sprint: Onda 28 · priority: p2 · estimate: 5h · type: story
 > blocked_by: —
 
-**Implementado em:** _pendente_ — Sheet "Importar CSV" + wizard 3 steps (upload/mapping/dry-run/commit) nunca construídos.
+**Implementado em:** _parcial_ · `Modules/Financeiro/Services/ImportacaoTitulosService.php` · `Modules/Financeiro/Http/Controllers/ImportacaoTitulosController.php` · `Modules/Financeiro/Tests/Feature/ImportacaoTitulosContratoTest.php` · verificado@e80beef (2026-10-27) — backend: prévia linha a linha sem gravar, gravação só com o token da prévia, sem duplicar o que existe; modelo fixo de colunas. Falta a tela (protótipo `financeiro-contabil-page.jsx`, aba Importar) e o mapeamento de colunas livres.
+
+**Testado em:** `Modules/Financeiro/Tests/Feature/ImportacaoTitulosContratoTest.php` (UC-IMPT-01..05, lane `financeiro-pest`)
 
 Onboarding novo cliente: migra 500+ títulos da planilha legacy num upload. Hoje só digitação manual = friction adoption mortal pra clientes médios.
 
