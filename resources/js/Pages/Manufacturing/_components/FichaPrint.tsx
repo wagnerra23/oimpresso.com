@@ -78,17 +78,15 @@ export default function FichaPrint({ itens, semCusto, onDone }: Props) {
               <small>{r.un}</small>
             </div>
             <div className="cota">
-              <span className="l">Rendimento líquido</span>
-              <b>{num(r.custos.qtd_liq, 2)}</b>
+              <span className="l">Rendimento</span>
+              <b>{num(r.qtd, 2)}</b>
               <i className="ln" aria-hidden />
-              <small>
-                {r.un} · desperdício {num(r.waste, 0)}%
-              </small>
+              <small>{r.un} · desperdício só na ordem de produção</small>
             </div>
             {r.sub_un && r.sub_fator ? (
               <div className="cota">
                 <span className="l">Sub-unidade de saída</span>
-                <b>{num(r.custos.qtd_liq * r.sub_fator, 2)}</b>
+                <b>{num(r.qtd * r.sub_fator, 2)}</b>
                 <i className="ln" aria-hidden />
                 <small>{r.sub_un}</small>
               </div>

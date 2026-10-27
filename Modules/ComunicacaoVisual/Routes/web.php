@@ -9,6 +9,7 @@ use Modules\ComunicacaoVisual\Http\Controllers\OrcamentoAceiteController;
 use Modules\ComunicacaoVisual\Http\Controllers\OrcamentoArquivoController;
 use Modules\ComunicacaoVisual\Http\Controllers\OrcamentoController;
 use Modules\ComunicacaoVisual\Http\Controllers\Public\OrcamentoAceitePublicoController;
+use Modules\ComunicacaoVisual\Http\Controllers\RoteiroPadraoController;
 
 // Rota raiz do módulo: renderiza Index.tsx — calculadora de orçamento por m²
 // (US-COMVIS-001) + cartões "em breve" das outras áreas. Nasceu em 2026-05-26
@@ -134,6 +135,9 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         Route::post('orcamentos/{id}/link', [OrcamentoAceiteController::class, 'gerar'])
             ->whereNumber('id')
             ->name('comvis.api.orcamentos.link');
+        // US-COMVIS-003 (decisão [W] 2026-10-26): roteiro padrão com que a OS nasce no quadro do PCP
+        Route::get('roteiro-padrao', [RoteiroPadraoController::class, 'show'])->name('comvis.api.roteiro-padrao.show');
+        Route::put('roteiro-padrao', [RoteiroPadraoController::class, 'update'])->name('comvis.api.roteiro-padrao.update');
 
         // Arquivos do orçamento (arte, foto do local) — copiados para a OS ao aprovar (UC-FLX-01)
         Route::post('orcamentos/{id}/arquivos', [OrcamentoArquivoController::class, 'store'])

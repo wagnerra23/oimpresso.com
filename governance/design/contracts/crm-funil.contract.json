@@ -1,0 +1,20 @@
+{
+  "_nota": "Contrato de tela do funil de vendas (US-CRM-092 · ADR 0441), no formato do criar-tela.mjs para o PT-05 Kanban. As âncoras data-contract estão no .tsx; a copy literal é decisão [W] e nasce vazia.",
+  "tela": "Crm/Funil/Index",
+  "fonte": "prototipo-ui/cowork/Felipe/erp-shell-v2/crm-page.jsx",
+  "alvo": [
+    "Modules/Crm/Resources/js/Pages/Crm/Funil/Index.tsx"
+  ],
+  "secoes": [
+    { "id": "funil-indicadores", "copy": [] },
+    { "id": "funil-quadro", "copy": [] }
+  ],
+  "ordem": [
+    "funil-indicadores",
+    "funil-quadro"
+  ],
+  "_pendente_w": [
+    "COPY DE CADA SEÇÃO — vazia de propósito; copy literal é decisão [W].",
+    "ESTADOS — vazio/carregando/erro a declarar quando a tela tiver sinal de uso."
+  ]
+}

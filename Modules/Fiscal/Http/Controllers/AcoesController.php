@@ -8,6 +8,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Log;
 use Modules\NfeBrasil\Models\NfeDfeRecebido;
 use Modules\NfeBrasil\Models\NfeEmissao;
+use Modules\NfeBrasil\Services\DevolucaoService;
 use Modules\NfeBrasil\Services\Manifestacao\ManifestacaoService;
 use Modules\NfeBrasil\Services\NfeCartaCorrecaoService;
 use Modules\NfeBrasil\Services\NfeInutilizacaoService;
@@ -72,7 +73,10 @@ class AcoesController extends Controller
      *  - Envio evento 110111 SEFAZ
      *  - Persistir NfeEvento (cstat 135 = homologado)
      *  - Update NfeEmissao.status='cancelada'
-     *  - Dispara FSM cascade ADR 0143 (refund gateway + notificação cliente — biz=1 LIVE)
+     *
+     * Até 2026-10-26 esta lista dizia "dispara FSM cascade ADR 0143" — medido: o NfeService::cancelar
+     * não dispara FSM nenhuma. Agora, com `escopo=venda` (R-NFE-044), este método executa a ação FSM
+     * `cancelar_venda` da venda depois de a nota ser cancelada; com `escopo=nota` (padrão) só a nota.
      */
     public function cancelarNfe(Request $request, NfeService $nfeService, int $emissao): RedirectResponse
     {
@@ -82,7 +86,11 @@ class AcoesController extends Controller
 
         $data = $request->validate([
             'motivo' => ['required', 'string', 'min:15', 'max:255'],
+            // R-NFE-044 · a tela pergunta: só a nota (para reemitir) ou a venda junto. Sem o campo,
+            // só a nota — o comportamento de antes, para quem ainda não manda a escolha.
+            'escopo' => ['sometimes', 'string', 'in:nota,venda'],
         ]);
+        $cancelarVenda = ($data['escopo'] ?? 'nota') === 'venda';
 
         $businessId = (int) session('user.business_id');
 
@@ -97,6 +105,12 @@ class AcoesController extends Controller
             return back()->with('error', "Apenas notas autorizadas podem ser canceladas. Status atual: {$nfeEmissao->status}");
         }
 
+        // R-NFE-044 · com "venda junto", confere ANTES se a venda pode ser cancelada — senão a nota
+        // ficaria cancelada na SEFAZ (irreversível) com a venda de pé. Recusou: nada é cancelado.
+        if ($cancelarVenda && ($recusa = $this->recusaDaVenda($businessId, $nfeEmissao)) !== null) {
+            return back()->with('error', "Nada foi cancelado. {$recusa}");
+        }
+
         try {
             $evento = $nfeService->cancelar($businessId, $nfeEmissao->id, $data['motivo']);
 
@@ -107,7 +121,17 @@ class AcoesController extends Controller
                 'cstat_evento'   => $evento->cstat_evento,
             ]);
 
-            return back()->with('success', "NFe {$nfeEmissao->numero} cancelada · cstat {$evento->cstat_evento}");
+            $msg = "NFe {$nfeEmissao->numero} cancelada · cstat {$evento->cstat_evento}";
+            if (! $cancelarVenda) {
+                return back()->with('success', $msg);
+            }
+
+            // R-NFE-044 · "cancelar a venda junto": a ação FSM `cancelar_venda` da venda da nota, que
+            // roda o CancelarVendaCascade (notas por job idempotente, boleto pendente, reserva de
+            // estoque, aviso ao cliente). A nota já cancelada não é cancelada de novo.
+            [$ok, $msgVenda] = $this->cancelarVendaDaNota($businessId, $nfeEmissao, $data['motivo']);
+
+            return back()->with($ok ? 'success' : 'error', "{$msg}. {$msgVenda}");
         } catch (\Throwable $e) {
             Log::error('Fiscal.acoes.cancelarNfe falhou', [
                 'business_id'    => $businessId,
@@ -117,6 +141,66 @@ class AcoesController extends Controller
 
             return back()->with('error', 'Cancelamento falhou: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * R-NFE-044 · cancela a venda de uma nota pela ação FSM `cancelar_venda` (mesmo tenant).
+     *
+     * @return array{0: bool, 1: string}
+     */
+    protected function cancelarVendaDaNota(int $businessId, NfeEmissao $nota, string $motivo): array
+    {
+        if (($recusa = $this->recusaDaVenda($businessId, $nota)) !== null) {
+            return [false, $recusa];
+        }
+        $venda = $this->vendaDaNota($businessId, $nota);
+
+        try {
+            app(\App\Domain\Fsm\Services\ExecuteStageActionService::class)
+                ->execute($venda, 'cancelar_venda', auth()->user(), ['motivo' => $motivo]);
+        } catch (\Throwable $e) {
+            Log::warning('Fiscal.acoes.cancelarNfe: venda não cancelada', [
+                'business_id' => $businessId, 'transaction_id' => $venda->id, 'error' => $e->getMessage(),
+            ]);
+
+            return [false, "A venda #{$venda->id} não foi cancelada: {$e->getMessage()}"];
+        }
+
+        return [true, "Venda #{$venda->id} cancelada."];
+    }
+
+    private function vendaDaNota(int $businessId, NfeEmissao $nota): ?\App\Transaction
+    {
+        return \App\Transaction::query()
+            ->where('business_id', $businessId)
+            ->where('id', (int) $nota->transaction_id)
+            ->where('type', 'sell')
+            ->first();
+    }
+
+    /**
+     * R-NFE-044 · por que a venda da nota NÃO pode ser cancelada (null = pode). Usa as pendências do
+     * cancelamento da venda (US-SELL-077, `App\Services\Sells\CancelamentoDaVenda`: venda com dinheiro
+     * recebido não cancela) quando o serviço existe — o texto vem dele, não é repetido aqui.
+     */
+    protected function recusaDaVenda(int $businessId, NfeEmissao $nota): ?string
+    {
+        $venda = $this->vendaDaNota($businessId, $nota);
+        if ($venda === null) {
+            return 'A nota não tem venda nesta empresa — nada mais foi cancelado.';
+        }
+        if (empty($venda->current_stage_id)) {
+            return "A venda #{$venda->id} não está no fluxo de vendas; cancele-a pela tela de Vendas.";
+        }
+        $servico = 'App\\Services\\Sells\\CancelamentoDaVenda';
+        if (class_exists($servico)) {
+            $pendencias = app($servico)->pendencias($businessId, (int) $venda->id);
+            if ($pendencias !== []) {
+                return implode(' ', $pendencias);
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -524,6 +608,63 @@ class AcoesController extends Controller
             ]);
 
             return back()->with('error', 'Retransmissão falhou: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * POST /fiscal/acoes/nfe/{emissao}/devolucao
+     *
+     * R-NFE-039 · emite a NF-e de devolução (finNFe 4, refNFe da origem) de uma nota autorizada.
+     * A base e as alíquotas vêm do XML da nota de origem (R-NFE-026/027, DevolucaoService); aqui só
+     * permissão, empresa da sessão e as quantidades por item (`itens[nItem] = quantidade`).
+     */
+    public function devolucao(Request $request, DevolucaoService $devolucao, int $emissao): RedirectResponse
+    {
+        if (! auth()->user()->can('superadmin') && ! auth()->user()->can('fiscal.nfe.acoes')) {
+            abort(403, 'Sem permissão fiscal.nfe.acoes');
+        }
+
+        $data = $request->validate([
+            'itens'   => ['required', 'array', 'min:1'],
+            'itens.*' => ['required', 'numeric', 'gt:0'],
+        ]);
+
+        $businessId = (int) session('user.business_id');
+
+        $origem = NfeEmissao::query()
+            ->where('id', $emissao)
+            ->where('business_id', $businessId)
+            ->firstOrFail();
+
+        $quantidades = [];
+        foreach ($data['itens'] as $nItem => $qtd) {
+            $quantidades[(int) $nItem] = (float) $qtd;
+        }
+
+        try {
+            $nova = $devolucao->emitirDevolucao($businessId, (int) $origem->id, $quantidades);
+
+            Log::info('Fiscal.acoes.devolucao ok', [
+                'business_id'      => $businessId,
+                'nfe_origem_id'    => $origem->id,
+                'nfe_devolucao_id' => $nova->id,
+                'status'           => $nova->status,
+            ]);
+
+            return back()->with(
+                $nova->status === 'autorizada' ? 'success' : 'error',
+                $nova->status === 'autorizada'
+                    ? "NF-e de devolução nº {$nova->numero} autorizada · cstat {$nova->cstat}"
+                    : "NF-e de devolução enviada · status {$nova->status} · cstat {$nova->cstat} · {$nova->motivo}",
+            );
+        } catch (\Throwable $e) {
+            Log::error('Fiscal.acoes.devolucao falhou', [
+                'business_id'   => $businessId,
+                'nfe_origem_id' => $origem->id,
+                'error'         => $e->getMessage(),
+            ]);
+
+            return back()->with('error', 'Devolução falhou: ' . $e->getMessage());
         }
     }
 }

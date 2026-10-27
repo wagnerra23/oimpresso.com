@@ -42,6 +42,7 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Badge } from '@/Components/ui/badge';
 import { Inline } from '@/Components/layout';
+import { RoteiroPadraoCard } from './_components/RoteiroPadraoCard';
 
 interface Material {
   id: number;
@@ -971,6 +972,9 @@ export default function Index({
             </Deferred>
           </CardContent>
         </Card>
+
+        {/* US-COMVIS-003: roteiro com que a OS nasce no quadro do PCP (quem cuida do catálogo) */}
+        {podeVerCusto && <RoteiroPadraoCard />}
 
         {/* Áreas que chegam em breve — honesto, sem jargão técnico */}
         <Card data-contract="em-breve">

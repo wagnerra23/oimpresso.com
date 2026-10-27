@@ -28,6 +28,7 @@ Calculadora de orçamento por m² do vertical ComVis (US-COMVIS-001 · P0). É o
 3c. **Aprovar e criar OS** (US-COMVIS-020 · UC-FLX-01) — orçamento gravado e igual à tela troca "Salvar" por "Aprovar e criar OS"; o segundo clique confirma. A OS sai com o total gravado; o reaberto mostra o número dela (UC-CVOS-08).
 3d. **Arquivos do orçamento** (US-COMVIS-020) — com o orçamento salvo, "Anexar arquivo" grava a arte/foto em `media`; ao aprovar vai para a OS. Depois da OS não se anexa nem remove (UC-CVARQ-01..06).
 3e. **Mandar ao cliente** (US-COMVIS-023) — orçamento gravado, igual à tela e ainda não aprovado mostra "Enviar no WhatsApp": gera o link de aceite (7 dias, uma resposta) e oferece "Copiar link" e "Abrir no WhatsApp" (o WhatsApp do próprio vendedor, com a mensagem pronta; nada sai do sistema). O orçamento passa a enviado (UC-CVACE-03).
+3f. **Roteiro da produção** (US-COMVIS-003, decisão [W] 2026-10-26) — para quem cuida do catálogo, o cartão escolhe o roteiro padrão com que toda OS nasce no quadro do PCP (UC-CVOS-11).
 3e. **Custo e margem por peça** (US-COMVIS-022 · UC-FLX-03) — ao conferir, quem gerencia materiais vê custo e margem de cada peça e do orçamento (peças menos desconto). Peça sem custo cadastrado fica sem margem. Preço e total não mudam (UC-CVMRG-01..06).
 4. **"Em breve nesta tela"** — 3 cartões honestos (Ordens de serviço · Materiais · Apontamentos), sem ação.
 

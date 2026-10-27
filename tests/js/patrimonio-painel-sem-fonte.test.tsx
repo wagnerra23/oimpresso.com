@@ -108,6 +108,28 @@ describe('UC-PAT-02 · valor residual sem fonte', () => {
   });
 });
 
+// UC-PAT-12 (US-ASSET-009, decisão [W] 2026-10-26): com bem que tem vida útil, o servidor manda o
+// residual GERENCIAL e o card mostra o valor com o rótulo de gerencial. A conta vive no servidor
+// (DepreciacaoGerencialTest); aqui a prop é fixture e só se prova o que a tela faz com ela.
+describe('UC-PAT-12 · valor residual gerencial', () => {
+  const KPIS_COM_RESIDUAL = { ...KPIS_SEM_RESIDUAL, valorResidual: 8600, residualSemPrazo: 1 };
+
+  it('o card mostra o valor em reais e diz que é gerencial, com os bens fora da conta', () => {
+    render(<PainelPatrimonio {...BASE} kpis={KPIS_COM_RESIDUAL} manutencoes={[]} />);
+    const card = screen.getByText('Valor residual').closest('div[class*="rounded-xl"]');
+    expect(card, 'KpiCard do valor residual').not.toBeNull();
+    expect(card!.textContent).toMatch(/R\$\s?8\.600,00/);
+    expect(card!.textContent).toContain('gerencial');
+    expect(card!.textContent).toContain('1 bem sem vida útil fora da conta');
+  });
+
+  it('o "Resumo de hoje" cita o mesmo valor', () => {
+    render(<PainelPatrimonio {...BASE} kpis={KPIS_COM_RESIDUAL} manutencoes={[]} />);
+    const resumo = document.querySelector('[data-contract="resumo"]');
+    expect(resumo!.textContent).toMatch(/residual gerencial depois da depreciação é\s?R\$\s?8\.600,00/);
+  });
+});
+
 describe('UC-PAT-03 · custo de manutenção sem coluna', () => {
   it('a linha da manutenção mostra o traço no lugar do custo', () => {
     render(<PainelPatrimonio {...BASE} kpis={KPIS_SEM_RESIDUAL} manutencoes={MANUTENCAO_SEM_CUSTO} />);
