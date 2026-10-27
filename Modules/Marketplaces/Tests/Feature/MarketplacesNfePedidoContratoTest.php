@@ -11,9 +11,9 @@ use Illuminate\Support\Facades\Schema;
 use Modules\Marketplaces\Entities\ContaVendedor;
 use Modules\Marketplaces\Entities\Marketplace;
 use Modules\Marketplaces\Entities\PedidoMarketplace;
-use Modules\Marketplaces\Jobs\AvaliarNfeDoPedidoJob;
+use Modules\Marketplaces\Jobs\EmitirNfeDoPedidoJob;
 use Modules\Marketplaces\Services\Fiscal\CfopDoPedido;
-use Modules\Marketplaces\SideEffects\AvaliarNfeAoEnviar;
+use Modules\Marketplaces\SideEffects\EmitirNfeAoEnviar;
 
 uses(Tests\TestCase::class, DatabaseTransactions::class);
 
@@ -49,7 +49,7 @@ it('US-MKT-009 · flag desligada: marcar como enviado não põe nada na fila', f
     Queue::fake();
     config(['marketplaces.nfe.automatica' => false]);
 
-    (new AvaliarNfeAoEnviar())->execute((new Transaction())->forceFill(['id' => 1, 'business_id' => 98]));
+    (new EmitirNfeAoEnviar())->execute((new Transaction())->forceFill(['id' => 1, 'business_id' => 98]));
 
     Queue::assertNothingPushed();
 });
@@ -80,18 +80,34 @@ it('US-MKT-009 · flag ligada: a nota só pode sair com destinatário completo e
         'transaction_id' => $tx, 'status_external' => 'paid', 'shipping_type' => 'me2', 'buyer_external' => ['id' => 1],
     ]);
 
-    expect(AvaliarNfeDoPedidoJob::avaliar($biz, $tx))->toMatchArray(['pode' => false, 'motivo' => 'destinatário incompleto (documento e UF vêm do billing_info do ML)']);
+    expect(EmitirNfeDoPedidoJob::avaliar($biz, $tx))->toMatchArray(['pode' => false, 'motivo' => 'destinatário incompleto (documento e UF vêm do billing_info do ML)']);
 
-    $pedido->forceFill(['buyer_external' => ['id' => 1, 'documento' => '00000000000', 'uf' => 'SP']])->save();
-    expect(AvaliarNfeDoPedidoJob::avaliar($biz, $tx))->toBe(['pode' => true, 'motivo' => null, 'cfop' => '6102']);
+    $pedido->forceFill(['buyer_external' => ['id' => 1, 'documento' => '12345678909', 'uf' => 'SP']])->save();
+    expect(EmitirNfeDoPedidoJob::avaliar($biz, $tx)['pode'])->toBeFalse(); // sem o destinatário completo do faturamento
+
+    $pedido->forceFill(['buyer_external' => ['id' => 1, 'documento' => '12345678909', 'uf' => 'SP', 'destinatario' => ['tax_number' => '12345678909', 'name' => 'Ana Teste', 'state' => 'SP', 'city' => 'Cidade Inexistente Teste', 'city_code' => null]]])->save();
+    // Município fora da tabela de cidades: o NfeService usaria o do emitente → não pode sair.
+    expect(EmitirNfeDoPedidoJob::avaliar($biz, $tx))->toMatchArray(['pode' => false, 'motivo' => 'município do destinatário não encontrado na tabela de cidades']);
+
+    $pedido->forceFill(['buyer_external' => ['id' => 1, 'documento' => '12345678909', 'uf' => 'SP', 'destinatario' => ['tax_number' => '12345678909', 'name' => 'Ana Teste', 'state' => 'SP', 'city' => 'Sao Paulo', 'city_code' => '3550308']]])->save();
+    expect(EmitirNfeDoPedidoJob::avaliar($biz, $tx))->toMatchArray(['pode' => true, 'motivo' => null, 'cfop' => '6102']);
+
+    // Emite pelo NfeService com o destinatário e o CFOP (dublê: nenhum teste fala com a SEFAZ).
+    $nfe = Mockery::mock(\Modules\NfeBrasil\Services\NfeService::class);
+    $nfe->shouldReceive('emitirParaTransaction')->once()->withArgs(function (...$args) use ($tx) {
+        return (int) $args[0]->id === $tx && $args[1] === '55' && $args[2] === false
+            && $args[3]['tax_number'] === '12345678909' && ($args[4] ?? null) === '6102';
+    })->andReturn((new \Modules\NfeBrasil\Models\NfeEmissao())->forceFill(['status' => 'autorizada']));
+    app()->instance(\Modules\NfeBrasil\Services\NfeService::class, $nfe);
+    app()->call([new EmitirNfeDoPedidoJob($biz, $tx), 'handle']);
 
     config(['marketplaces.nfe.cfop_outra_uf' => null]);
-    expect(AvaliarNfeDoPedidoJob::avaliar($biz, $tx))->toMatchArray(['pode' => false, 'motivo' => 'CFOP do marketplace não configurado (depende do contador)']);
+    expect(EmitirNfeDoPedidoJob::avaliar($biz, $tx))->toMatchArray(['pode' => false, 'motivo' => 'CFOP do marketplace não configurado (depende do contador)']);
     config(['marketplaces.nfe.cfop_outra_uf' => '6102']);
 
     $pedido->forceFill(['shipping_type' => 'fulfillment'])->save();
-    expect(AvaliarNfeDoPedidoJob::avaliar($biz, $tx)['pode'])->toBeFalse();
+    expect(EmitirNfeDoPedidoJob::avaliar($biz, $tx)['pode'])->toBeFalse();
 
     // Outra empresa olhando a venda da 98: nunca "pode".
-    expect(AvaliarNfeDoPedidoJob::avaliar($b99, $tx))->toMatchArray(['pode' => false, 'motivo' => 'venda sem pedido de marketplace']);
+    expect(EmitirNfeDoPedidoJob::avaliar($b99, $tx))->toMatchArray(['pode' => false, 'motivo' => 'venda sem pedido de marketplace']);
 });
