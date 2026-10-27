@@ -1086,19 +1086,22 @@ Status: ⬜ não verificado (aguarda o run do CI)
 - **Regressão que defende:** ADR 0440 §1 *"e expira"*.
 
 ## UC-JCHAT-24 — com a flag desligada, o cartão não existe
-Status: 🧪 sem veredito
+Status: ⬜ não verificado (aguarda o run do CI)
+- **Persona:** administrador com a flag desligada (produção hoje).
 - **Aceite:** Com `copiloto.chat_acoes.enabled` desligada · Então listar, confirmar e cancelar respondem 404 e a proposta não muda.
 - **Teste:** `Modules/Jana/Tests/Feature/AcoesDoChatRotasContratoTest.php` — `UC-JCHAT-24 · …`
 - **Regressão que defende:** ADR 0440 §6.
 
 ## UC-JCHAT-25 — confirmar pela rota usa o business da sessão
-Status: 🧪 sem veredito
+Status: ⬜ não verificado (aguarda o run do CI)
+- **Persona:** gestor confirmando pelo cartão; adversário com sessão de outra empresa.
 - **Aceite:** Dada uma proposta da 98 · Quando a sessão é da 99 · Então 404 com a mensagem da recusa e nada é criado · Quando a sessão volta para a 98 · Então confirma e devolve o link da tarefa criada.
 - **Teste:** `Modules/Jana/Tests/Feature/AcoesDoChatRotasContratoTest.php` — `UC-JCHAT-25 · …`
 - **Regressão que defende:** ADR 0440 §3 *"business_id conferido no servidor, nunca vindo do modelo"*.
 
 ## UC-JCHAT-26 — a conversa lista só as minhas propostas
-Status: 🧪 sem veredito
+Status: ⬜ não verificado (aguarda o run do CI)
+- **Persona:** gestor abrindo a conversa onde a Jana propôs ações.
 - **Aceite:** Dadas propostas minhas numa conversa · Quando a tela pede a lista · Então vem cada uma com resumo e status, em ordem de criação — é o que o cartão desenha.
 - **Teste:** `Modules/Jana/Tests/Feature/AcoesDoChatRotasContratoTest.php` — `UC-JCHAT-26 · …`
 - **Regressão que defende:** ADR 0440 §2 (o cartão mostra o resumo legível).
