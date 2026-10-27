@@ -54,7 +54,7 @@ const CSS = `.fpp { --fg: var(--color-foreground); --font: var(--font-sans); --r
 function Estilo() { return <style>{CSS}</style>; }
 const TELAS = [
   { nome: 'PagamentoPublico · estado aberto', el: (<section>
-      <p className="rotulo">1 · /pagar/{token} — aberto</p>
+      <p className="rotulo">1 · /pagar/{"{token}"} — aberto</p>
       <div className="tela"><div className="col">
         <header className="topo">
           <span className="icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 17.5v-11"/></svg></span>
@@ -71,7 +71,7 @@ const TELAS = [
       </div></div>
     </section>) },
   { nome: 'PagamentoPublico · Pix gerado', el: (<section>
-      <p className="rotulo">2 · /pagar/{token} — Pix gerado</p>
+      <p className="rotulo">2 · /pagar/{"{token}"} — Pix gerado</p>
       <div className="tela"><div className="col">
         <header className="topo">
           <span className="icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/></svg></span>
@@ -89,7 +89,7 @@ const TELAS = [
       </div></div>
     </section>) },
   { nome: 'PagamentoPublico · indisponível', el: (<section>
-      <p className="rotulo">3 · /pagar/{token} — já pago / vencido</p>
+      <p className="rotulo">3 · /pagar/{"{token}"} — já pago / vencido</p>
       <div className="tela"><div className="col">
         <header className="topo">
           <span className="icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/></svg></span>
@@ -103,7 +103,7 @@ const TELAS = [
       </div></div>
     </section>) },
   { nome: 'PortalCliente', el: (<section>
-      <p className="rotulo">4 · /portal-cliente/{token} — portal do cliente</p>
+      <p className="rotulo">4 · /portal-cliente/{"{token}"} — portal do cliente</p>
       <div className="tela"><div className="col">
         <header className="topo">
           <span className="icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg></span>
