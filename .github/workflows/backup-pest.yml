@@ -81,6 +81,10 @@ on:
     paths:
       - 'app/Http/Controllers/BackUpController.php'
       - 'app/Jobs/RunBackupJob.php'
+      - 'app/Jobs/ExportarDadosDaEmpresaJob.php'
+      - 'app/Http/Controllers/ExportacaoEmpresaController.php'
+      - 'app/Models/ExportacaoEmpresa.php'
+      - 'database/migrations/2026_10_27_600000_create_exportacoes_empresa_table.php'
       - 'app/Backup/**'
       - 'app/Console/Kernel.php'
       # Util.php é código sob teste, não vizinho: o controller chama
@@ -132,6 +136,10 @@ jobs:
             backup:
               - 'app/Http/Controllers/BackUpController.php'
               - 'app/Jobs/RunBackupJob.php'
+              - 'app/Jobs/ExportarDadosDaEmpresaJob.php'
+              - 'app/Http/Controllers/ExportacaoEmpresaController.php'
+              - 'app/Models/ExportacaoEmpresa.php'
+              - 'database/migrations/2026_10_27_600000_create_exportacoes_empresa_table.php'
               - 'app/Backup/**'
               - 'app/Console/Kernel.php'
               - 'app/Utils/Util.php'

@@ -22,7 +22,7 @@ related_adrs:
 > owner: — · priority: p2 · estimate: 16h · status: todo · type: story
 > blocked_by: —
 
-**Implementado em:** _pendente_ — fatia 1 (o pacote: `app/Backup/ExportacaoEmpresa/` gera o zip com um CSV por tabela, atrás de `BACKUP_EXPORTACAO_EMPRESA`; teste 98 × 99 em `tests/Feature/Backup/ExportacaoEmpresaTest.php`); falta o job, a permissão, a tela, o link que expira e o registro do download
+**Implementado em:** _pendente_ — fatia 1 (o pacote: `app/Backup/ExportacaoEmpresa/` gera o zip com um CSV por tabela, atrás de `BACKUP_EXPORTACAO_EMPRESA`; teste 98 × 99 em `tests/Feature/Backup/ExportacaoEmpresaTest.php`); fatia 2 (pedido só do dono, job na fila `backups`, link assinado que expira e registro do pedido e do download: `ExportacaoEmpresaController`, `ExportarDadosDaEmpresaJob`, teste em `tests/Feature/Backup/ExportacaoEmpresaAcessoTest.php`); falta a tela
 
 Origem: levantamento de lacunas 2026-10-25 (P2 Plataforma — backup e exportação de dados por empresa).
 - O administrador da empresa pede a exportação; um job (com `business_id` no construtor) gera um zip com um CSV por tabela de negócio, só com as linhas da empresa.

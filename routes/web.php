@@ -1049,6 +1049,11 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('backup/download/{file_name}', [BackUpController::class, 'download']);
     Route::get('backup/{id}/delete', [BackUpController::class, 'delete'])->name('delete_backup');
     Route::resource('backup', BackUpController::class)->only('index', 'create', 'store');
+    // US-BKP-001 — exportação dos dados da própria empresa (só o dono; flag backup.exportacao_empresa.enabled).
+    Route::post('backup/empresa/exportacoes', [\App\Http\Controllers\ExportacaoEmpresaController::class, 'store'])->name('backup.empresa.exportar');
+    Route::get('backup/empresa/exportacoes/{id}', [\App\Http\Controllers\ExportacaoEmpresaController::class, 'show'])->whereNumber('id')->name('backup.empresa.status');
+    Route::get('backup/empresa/exportacoes/{id}/baixar', [\App\Http\Controllers\ExportacaoEmpresaController::class, 'baixar'])
+        ->whereNumber('id')->middleware('signed')->name('backup.empresa.baixar');
 
     Route::get('selling-price-group/activate-deactivate/{id}', [SellingPriceGroupController::class, 'activateDeactivate']);
     Route::get('update-product-price', [SellingPriceGroupController::class, 'updateProductPrice'])->name('update-product-price');
