@@ -636,3 +636,24 @@ _Aprovação pendente: Wagner via ADR `memory/decisions/proposals/drafts/crm-pre
 4. `PATCH /crm/funil/{id}/etapa` exige `crm.funil.editar`: grava a transição (de, para, razão, quando) pelo `DealPipelineService`; ganho/perdido não mudam de etapa; negócio de outra empresa dá 404.
 5. Resumo (prop deferida) por etapa e previsão ponderada do mês, só com negócios da empresa.
 6. Tela kanban (PT-05) em `Modules/Crm/Resources/js/Pages/Crm/Funil/Index.tsx`, ancorada no protótipo `prototipo-ui/cowork/Felipe/erp-shell-v2/crm-page.jsx` — PR seguinte.
+
+### US-CRM-093 · Cashback por regra — a venda paga vira crédito no saldo de Adiantamento
+
+**Implementado em:** `Modules/Crm/Services/Fidelidade/CashbackService.php` · `Modules/Crm/Listeners/VendaGeraCashback.php` · `Modules/Crm/Database/Migrations/2026_10_27_000001_create_crm_cashback_tables.php`
+
+**Testado em:** `Modules/Crm/Tests/Feature/CrmCashbackContratoTest.php`
+
+> owner: — · priority: p1 · estimate: 8h · type: story
+> blocked_by: —
+
+**Origem:** lacuna P1 do levantamento de concorrência (cashback e fidelidade com regras), destravada por [W] em 2026-10-27 ("pode destravar todos os outros vou fazer todos"). Reaproveita o saldo de Adiantamento do cliente, o mesmo do vale-troca (US-VEST-021, #9867), que o caixa já aceita como forma de pagamento e já trava no saldo. O registro `crm_cashback_creditos` guarda origem e validade, que o saldo sozinho não tem.
+
+**Critérios de aceite:**
+1. Flag `CRM_CASHBACK_ENABLED` nasce desligada; sem ela, ou sem regra ativa da empresa, nada acontece (UC-CASH-05).
+2. Regra por empresa (`crm_cashback_regras`): percentual, valor mínimo da venda, validade em dias.
+3. Venda `sell` final e paga, de cliente cadastrado, gera um crédito: `ROUND(base × percentual / 100, 2)`, com `base = final_total − pago com Adiantamento`, se `base ≥ valor mínimo`; o saldo do cliente sobe o mesmo valor (UC-CASH-01, 02, 07).
+4. Não credita: abaixo do mínimo, venda não paga, "Cliente padrão"; a venda a prazo credita quando ficar paga (UC-CASH-03).
+5. Uma vez por venda (UC-CASH-04).
+6. Tier 0: regra, venda e crédito são da mesma empresa (UC-CASH-06).
+7. Validade: crédito vencido baixa do saldo o que não foi usado — PR seguinte.
+8. Tela da regra e do extrato de cashback do cliente — PR seguinte, ancorada em protótipo.

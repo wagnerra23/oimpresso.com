@@ -46,6 +46,12 @@ class CrmServiceProvider extends ServiceProvider
 
         $this->registerMiddleware($this->app['router']);
 
+        // US-CRM-093 — venda paga gera cashback (flag crm.cashback.enabled, desligada por padrão).
+        \Illuminate\Support\Facades\Event::listen(
+            [\App\Events\SellCreatedOrModified::class, \App\Events\TransactionPaymentAdded::class],
+            [\Modules\Crm\Listeners\VendaGeraCashback::class, 'handle'],
+        );
+
         View::composer(
             ['crm::layouts.nav'],
             function ($view) {
