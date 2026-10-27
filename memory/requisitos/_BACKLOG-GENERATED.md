@@ -661,7 +661,6 @@
 - **US-RB-040** — Cobertura Pest dos 3 drivers de boleto (Inter/C6/Asaas) _(`p0`)_
 - **US-RB-042** — Completar cancelar() C6/Asaas + UI Cancelar título + audit log _(`p0`)_
 - **US-RB-050** — Inter PJ — PIX cobrança imediata (CYCLE-06 G1 wiring Martinho) _(`p0` · @wagner · sprint cycle-06)_
-- **US-RECURRINGBILLING-002** — Escopo 1 — Motor de cobrança recorrente (plans + contracts + invoices + job) _(`p0` · @wagner)_
 - **US-RECURRINGBILLING-003** — Escopo 2 — Boleto impresso via Asaas _(`p0` · @wagner)_
 - **US-RECURRINGBILLING-005** — Cobertura Pest dos 3 drivers de boleto (Inter/C6/Asaas) _(`p0`)_
 - **US-RECURRINGBILLING-007** — Completar cancelar() C6/Asaas + UI Cancelar título + audit log _(`p0`)_
@@ -684,6 +683,7 @@
 - **US-RB-021** — Cobrar via Pix Automático autorizado
 - **US-RB-030** — Configurar régua de inadimplência
 - **US-RB-031** — Disparar régua quando cobrança falha
+- **US-RECURRINGBILLING-002** — Escopo 1 — Motor de cobrança recorrente (plans + contracts + invoices + job)
 
 ## Arquivos
 
