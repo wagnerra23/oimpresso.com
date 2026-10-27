@@ -23,6 +23,8 @@ interface Item {
 interface Conferencia { id: number; fornecedor: string; cnpj: string; valor_total: number; fornecedor_cadastrado: boolean; itens: Item[] }
 interface Props { notas: Nota[]; nota: Conferencia | null; locais: Array<{ id: number; name: string }> }
 
+// Vínculo "crie o produto": o servidor cria fora de venda, com o custo da nota.
+const NOVO = -1;
 const brl = (n: number) => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
 function VincularProduto({ item, valor, onEscolher }: { item: Item; valor: Produto | null; onEscolher: (p: Produto | null) => void }) {
@@ -47,6 +49,7 @@ function VincularProduto({ item, valor, onEscolher }: { item: Item; valor: Produ
       {item.sugestao && (
         <Button variant="outline" size="sm" onClick={() => onEscolher(item.sugestao)}>Usar {item.sugestao.nome} (mesmo EAN)</Button>
       )}
+      <Button variant="outline" size="sm" onClick={() => onEscolher({ variation_id: NOVO, nome: 'Produto novo (fora de venda)', sku: null })}>Criar produto novo</Button>
       <Input value={q} onChange={(e) => buscar(e.target.value)} placeholder="Vincular produto…" aria-label={'Vincular ' + item.descricao} />
       {achados.map((p) => (
         <Button key={p.variation_id} variant="ghost" size="sm" className="justify-start" onClick={() => onEscolher(p)}>
@@ -61,7 +64,7 @@ export default function EntradaXml({ notas, nota, locais }: Props) {
   const erros = (usePage().props.errors ?? {}) as Record<string, string>;
   const [vinculos, setVinculos] = useState<Record<number, Produto | null>>({});
   const envio = useForm<{ arquivo: File | null }>({ arquivo: null });
-  const geracao = useForm({ location_id: locais[0]?.id ?? 0, vinculos: {} as Record<number, number> });
+  const geracao = useForm({ location_id: locais[0]?.id ?? 0, vinculos: {} as Record<number, number | 'novo'> });
 
   const escolhido = (i: Item) => (i.id in vinculos ? vinculos[i.id] : i.produto);
   const faltam = nota ? nota.itens.filter((i) => !escolhido(i)).length : 0;
@@ -85,8 +88,8 @@ export default function EntradaXml({ notas, nota, locais }: Props) {
 
   const gerar = () => {
     if (!nota) return;
-    const ids: Record<number, number> = {};
-    nota.itens.forEach((i) => { const p = escolhido(i); if (p) ids[i.id] = p.variation_id; });
+    const ids: Record<number, number | 'novo'> = {};
+    nota.itens.forEach((i) => { const p = escolhido(i); if (p) ids[i.id] = p.variation_id === NOVO ? 'novo' : p.variation_id; });
     geracao.transform((d) => ({ ...d, vinculos: ids }));
     geracao.post(`/compras/entrada-xml/${nota.id}/gerar`);
   };

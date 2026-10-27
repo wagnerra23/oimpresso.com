@@ -116,7 +116,7 @@ Como user com permission `purchase.create`, quero clicar "+ Nova compra" no cock
 
 **Status:** pending (Wave 6 — maior risco)
 **Persona:** user com permission `compras.import_xml`
-**Implementado em:** _parcial_ · `Modules/Compras/Services/ImportarDfeComoCompraService.php` · `Modules/Compras/Http/Controllers/EntradaXmlController.php` · `resources/js/Pages/Compras/EntradaXml.tsx` — atrás da flag `nfebrasil.entrada_xml_enabled` (desligada); o schema veio no #9836 e o leitor do XML na US-NFE-076. Falta o fornecedor criado na hora (R-COM-202) e o produto criado quando não existe
+**Implementado em:** _parcial_ · `Modules/Compras/Services/ImportarDfeComoCompraService.php` · `Modules/Compras/Http/Controllers/EntradaXmlController.php` · `resources/js/Pages/Compras/EntradaXml.tsx` — atrás da flag `nfebrasil.entrada_xml_enabled` (desligada); o schema veio no #9836 e o leitor do XML na US-NFE-076. Falta o fornecedor criado na hora (R-COM-202)
 
 **Testado em:** `Modules/Compras/Tests/Feature/ImportarDfeComoCompraContratoTest.php` · `Modules/Compras/Tests/Feature/EntradaXmlTelaContratoTest.php` (covers US-COM-003 · lane `compras-pest`)
 
@@ -141,7 +141,8 @@ Como user com permission `compras.import_xml`, quero abrir modal "Importar XML" 
 - [x] A mesma nota não vira duas compras (trava na linha da nota, R-COM-204/206) — UC-NFCOM-05
 - [x] Totais que não fecham e regime normal são recusados; flag desligada recusa — UC-NFCOM-06/07
 - [x] Tela de conferência antes de gravar (`/compras/entrada-xml`, desenho da aba Entradas de `fiscal-tributacao.jsx`) — UC-ENTRAD-01..05
-- [ ] Fornecedor criado na hora (R-COM-202) e produto criado quando não existe
+- [x] Produto criado quando não existe: nasce fora de venda, preço 0, custo da nota, vínculo lembrado — UC-NFCOM-08
+- [ ] Fornecedor criado na hora (R-COM-202): hoje a tela avisa "CNPJ não cadastrado" e bloqueia o Gerar compra
 
 ### US-COM-004 — Deprecar `/purchases` legacy
 

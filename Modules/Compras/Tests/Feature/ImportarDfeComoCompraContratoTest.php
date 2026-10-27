@@ -195,6 +195,22 @@ it('UC-NFCOM-05 · a mesma nota não vira duas compras', function () {
     expect(($this->estoque)($this->varA))->toBe(10.0);
 });
 
+it('UC-NFCOM-08 · item marcado "produto novo" cria o produto fora de venda, com o custo da nota, e lembra o vínculo', function () {
+    $dfe = ($this->nota)($this->biz->id, notaCompraXml('42261011222333000181550010000012341000000010', 392, 'NOVO-1'));
+    [$a, $b] = ($this->itens)($dfe);
+
+    $compra = $this->svc->executar($this->biz->id, $dfe->id, $this->user->id, $this->local, [$a => ImportarDfeComoCompraService::PRODUTO_NOVO, $b => $this->varB]);
+
+    $novaVar = (int) DB::table('compras_produto_fornecedor')->where('business_id', $this->biz->id)->where('codigo_fornecedor', 'NOVO-1')->value('variation_id');
+    $produto = DB::table('products')->join('variations', 'variations.product_id', '=', 'products.id')->where('variations.id', $novaVar)
+        ->first(['products.business_id', 'products.name', 'products.not_for_selling', 'variations.dpp_inc_tax', 'variations.sell_price_inc_tax']);
+    // 255,00 ÷ 10 = 25,5000 de custo; venda 0 e fora de venda até alguém pôr preço.
+    expect([(int) $produto->business_id, $produto->name, (int) $produto->not_for_selling])->toBe([$this->biz->id, 'Tinta solvente 1L', 1]);
+    expect([round((float) $produto->dpp_inc_tax, 4), (float) $produto->sell_price_inc_tax])->toBe([25.5, 0.0]);
+    expect(($this->estoque)($novaVar))->toBe(10.0);
+    expect((float) $compra->final_total)->toBe(392.0);
+});
+
 it('UC-NFCOM-06 · totais que não fecham com os itens são recusados', function () {
     $dfe = ($this->nota)($this->biz->id, notaCompraXml('42261011222333000181550010000012341000000008', 999));
     [$a, $b] = ($this->itens)($dfe);

@@ -6,8 +6,10 @@ namespace Modules\Compras\Services;
 
 use App\Contracts\Compras\CustoDoRecebimento;
 use App\Events\PurchaseCreatedOrModified;
+use App\Product;
 use App\Transaction;
 use App\Utils\ProductUtil;
+use App\Variation;
 use App\Utils\TransactionUtil;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -39,13 +41,16 @@ use Modules\NfeBrasil\Services\Entrada\LeitorNfeEntrada;
  */
 final class ImportarDfeComoCompraService
 {
+    /** Valor do vínculo que pede "crie o produto": nenhum produto da empresa serve. */
+    public const PRODUTO_NOVO = 'novo';
+
     public function __construct(
         private readonly ProductUtil $productUtil,
         private readonly TransactionUtil $transactionUtil,
     ) {}
 
     /**
-     * @param  array<int, int>  $vinculos  id do item da nota → variation_id escolhido na conferência
+     * @param  array<int, int|string>  $vinculos  id do item da nota → variation_id escolhido, ou PRODUTO_NOVO
      *
      * @throws CompraDaNotaRecusadaException
      */
@@ -125,6 +130,9 @@ final class ImportarDfeComoCompraService
         $faltam = [];
         $linhas = [];
         foreach ($itens as $item) {
+            if (($vinculos[$item->id] ?? null) === self::PRODUTO_NOVO) {
+                $vinculos[$item->id] = $this->criarProduto($businessId, $item, $userId);
+            }
             $variationId = $vinculos[$item->id] ?? $item->variation_id ?? $this->lembrado($businessId, $dfe->cnpj_emitente, $item->codigo_fornecedor);
             $produtoId = $variationId ? DB::table('variations')->join('products', 'products.id', '=', 'variations.product_id')
                 ->where('products.business_id', $businessId)->where('variations.id', $variationId)->value('products.id') : null;
@@ -154,6 +162,35 @@ final class ImportarDfeComoCompraService
         }
 
         return $linhas;
+    }
+
+    /**
+     * Item marcado "produto novo" na conferência: cria o produto simples da empresa com o nome do
+     * item, a unidade do XML (quando existe uma com a mesma sigla) e o custo da nota.
+     *
+     * Nasce **fora de venda** (`not_for_selling=1`) e com preço de venda 0: o preço é decisão de
+     * quem vende, e um produto à venda por R$ 0 seria pior que um produto que ainda não vende.
+     * Sem local da empresa vinculado, o produto não aparece em nenhum PDV até alguém liberar.
+     */
+    private function criarProduto(int $businessId, NfeDfeItem $item, int $userId): int
+    {
+        $unidade = DB::table('units')->where('business_id', $businessId)->whereNull('deleted_at')
+            ->whereRaw('LOWER(short_name) = ?', [mb_strtolower((string) $item->unidade)])->value('id')
+            ?? DB::table('units')->where('business_id', $businessId)->whereNull('deleted_at')->orderBy('id')->value('id')
+            ?? throw new CompraDaNotaRecusadaException('A empresa não tem unidade de medida cadastrada para criar o produto.');
+
+        $produto = Product::create([
+            'business_id' => $businessId, 'name' => mb_substr($item->descricao, 0, 191), 'type' => 'single',
+            'unit_id' => $unidade, 'enable_stock' => 1, 'not_for_selling' => 1, 'tax_type' => 'exclusive',
+            'barcode_type' => 'C128', 'sku' => ' ', 'alert_quantity' => 0, 'created_by' => $userId,
+        ]);
+        $produto->sku = $this->productUtil->generateProductSku($produto->id);
+        $produto->save();
+
+        $custo = number_format((float) $item->valor_total / max((float) $item->quantidade, 0.0001), 4, ',', '');
+        $this->productUtil->createSingleProductVariation($produto->id, $produto->sku, $custo, $custo, '0', '0', '0');
+
+        return (int) Variation::where('product_id', $produto->id)->value('id');
     }
 
     private function lembrado(int $businessId, string $cnpj, ?string $codigo): ?int

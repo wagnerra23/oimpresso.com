@@ -58,7 +58,7 @@ last_run: "2026-10-27"
 
 - **[BACKLOG]** Chego na tela pela aba "Entrada por XML" do cabeçalho de Compras (flag ligada + `compras.import_xml`); prova = smoke com screenshot.
 - **[BACKLOG]** Aviso de NCM divergente entre o XML e o produto (o produto não guarda NCM hoje).
-- **[BACKLOG]** Criar fornecedor e produto na hora, quando não existem (US-COM-003, R-COM-202).
+- **[BACKLOG]** Criar fornecedor na hora, quando não existe (US-COM-003, R-COM-202). O produto novo já é criado (UC-NFCOM-08, no teste do serviço).
 - **[BACKLOG]** Gerar compra pela tela, conta conferida pelos dois caminhos do ImportarDfeComoCompraContratoTest.
 
 ## Trilha do tempo

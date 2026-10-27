@@ -67,16 +67,29 @@ class EntradaXmlController extends Controller
         $biz = $this->autorizar();
         $dados = $request->validate([
             'location_id' => 'required|integer',
-            'vinculos' => 'array', 'vinculos.*' => 'nullable|integer',
+            'vinculos' => 'array', 'vinculos.*' => ['nullable', 'regex:/^(\d+|novo)$/'],
         ], ['location_id.required' => 'Escolha o local de estoque.']);
 
         try {
-            $compra = $svc->executar($biz, $id, (int) auth()->id(), (int) $dados['location_id'], array_filter(array_map('intval', $dados['vinculos'] ?? [])));
+            $compra = $svc->executar($biz, $id, (int) auth()->id(), (int) $dados['location_id'], $this->vinculos($dados['vinculos'] ?? []));
         } catch (CompraDaNotaRecusadaException $e) {
             return back()->withErrors(['gerar' => $e->getMessage()]);
         }
 
         return redirect('/purchases')->with('status', ['success' => 1, 'msg' => 'Compra ' . $compra->ref_no . ' criada a partir da NF-e.']);
+    }
+
+    /** @return array<int, int|string> item → variation_id, ou "novo" para criar o produto */
+    private function vinculos(array $brutos): array
+    {
+        $saida = [];
+        foreach ($brutos as $item => $v) {
+            if ($v === ImportarDfeComoCompraService::PRODUTO_NOVO || (int) $v > 0) {
+                $saida[(int) $item] = $v === ImportarDfeComoCompraService::PRODUTO_NOVO ? $v : (int) $v;
+            }
+        }
+
+        return $saida;
     }
 
     /** Busca de produto para o vínculo (só da empresa). */
