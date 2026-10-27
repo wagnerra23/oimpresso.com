@@ -2,7 +2,7 @@
 id: resources-js-pages-vestuario-remarcacao-index-charter
 page: /vestuario/remarcacao
 component: resources/js/Pages/Vestuario/Remarcacao/Index.tsx
-related_prototype: prototipo-ui/vestuario/remarcacao.html
+related_prototype: prototipo-ui/cowork/Wagner/vestuario-remarcacao.html
 related_runbook: memory/requisitos/Vestuario/RUNBOOK-remarcacao.md
 related_casos: resources/js/Pages/Vestuario/Remarcacao/Index.casos.md
 owner: wagner

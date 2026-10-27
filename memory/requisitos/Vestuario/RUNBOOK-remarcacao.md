@@ -28,7 +28,7 @@ e as etiquetas novas saem para impressão.
 
 ## Fonte de design
 
-Protótipo [`prototipo-ui/vestuario/remarcacao.html`](../../../prototipo-ui/vestuario/remarcacao.html)
+Protótipo [`prototipo-ui/cowork/Wagner/vestuario-remarcacao.html`](../../../prototipo-ui/cowork/Wagner/vestuario-remarcacao.html)
 (ADR 0438), publicado como Artefato para o [W] ver e comentar.
 
 ## Rotas
