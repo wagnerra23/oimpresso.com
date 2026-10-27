@@ -65,6 +65,7 @@ const MENU = [
       { id: "venda-pedidos",     icon: "orders", label: "Pedido de venda" },
       { id: "venda-todas",       icon: "list",   label: "Todas as vendas" },
       { id: "venda-nova",        icon: "plus",   label: "Adicionar venda" },
+      { id: "venda-nova-producao", icon: "plus", label: "Nova venda (produção atual)" },
       { id: "venda-pos",         icon: "cash",   label: "lista de POS" },
       { id: "venda-pdv",         icon: "cash",   label: "POS" },
       { id: "venda-nova-rascunho", icon: "plus", label: "Adicionar rascunho" },

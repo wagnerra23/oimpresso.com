@@ -857,6 +857,8 @@ function App() {
   if (route === "vendas") content = <window.VendasModule />;else
   if (route === "venda-todas") content = <window.VendaTodasPage />;else
   if (route === "venda-pdv") content = <window.VendaBladePage view="pdv" />;else
+  // Nova venda que roda em produção (Sells/Create): o "Adicionar venda" abre a V3; esta mostra a tela atual para aprovação.
+  if (route === "venda-nova-producao") content = <window.VendasCreatePage onDone={() => window.__go && window.__go("vendas")} />;else
   if (route === "venda-nova") content = <window.VendaBladePage view="nova" status="final" />;else
   if (route === "venda-nova-rascunho") content = <window.VendaBladePage view="nova" status="draft" />;else
   if (route === "venda-nova-cotacao") content = <window.VendaBladePage view="nova" status="quotation" />;else
