@@ -62,7 +62,6 @@ class FeatureFlagService
         'useV2OfficeimpressoEmpresa' => true,
         'useV2ConfiguracoesContas' => true,
         'useV2SistemaFuncoes' => true,
-        'useV2VozDoClienteCaixa' => true,
         'useV2SpreadsheetIndex' => true,
         // D-LOGS ([W] 2026-10-14, playbook Officeimpresso A3/07): Logs/Index e Logs/Timeline
         // em React para todas as empresas. A tela segue listando máquinas. Rollback = flag OFF
