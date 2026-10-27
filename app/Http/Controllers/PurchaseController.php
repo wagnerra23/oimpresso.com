@@ -549,6 +549,7 @@ class PurchaseController extends Controller
             'purchases.*.product_id.required' => 'Há item sem produto do cadastro.',
             'purchases.*.variation_id.required' => 'Há item sem produto do cadastro.',
         ]);
+        $this->assertPagamentoDaCompra($request);
 
         try {
             $business_id = $request->session()->get('user.business_id');
@@ -650,7 +651,7 @@ class PurchaseController extends Controller
             $custoDaRegra?->aoReceber($transaction);
 
             //Add Purchase payments
-            // A tela React (Purchase/Create.tsx) não envia `payment` — compra nasce a prazo.
+            // A tela React manda `payment` vazio quando nada é pago na entrada (compra a prazo).
             // Sem o `?? []` o foreach de createOrUpdatePaymentLines recebe null, o warning vira
             // ErrorException e o catch abaixo devolve "algo deu errado" (UC-PURCRE-10).
             $this->transactionUtil->createOrUpdatePaymentLines($transaction, $request->input('payment') ?? []);
@@ -889,6 +890,54 @@ class PurchaseController extends Controller
                 'aprovar_preco' => $user->can('product.update'),
             ],
         ]);
+    }
+
+    /**
+     * Travas do pagamento lançado junto com a compra (`payment[]` do store), antes de qualquer
+     * escrita. A Blade e o createOrUpdatePaymentLines não conferiam nenhuma delas:
+     * - a conta tem de ser da empresa e estar aberta;
+     * - a forma tem de existir na empresa (a mesma lista que a tela oferece; a filial não filtra,
+     *   porque filial sem formas configuradas devolveria lista vazia e barraria todo pagamento);
+     * - a soma dos pagamentos não passa do total da compra.
+     * Fora do try do store de propósito: lá dentro a ValidationException vira "algo deu errado".
+     */
+    private function assertPagamentoDaCompra(Request $request): void
+    {
+        $pagamentos = array_values(array_filter((array) $request->input('payment', []), 'is_array'));
+        if ($pagamentos === []) {
+            return;
+        }
+        $business_id = (int) $request->session()->get('user.business_id');
+        $formas = array_keys($this->productUtil->payment_types(null, true, $business_id));
+
+        $erros = [];
+        $soma = 0.0;
+        foreach ($pagamentos as $i => $p) {
+            $valor = (float) $this->productUtil->num_uf($p['amount'] ?? '');
+            if ($valor == 0.0) {
+                continue;
+            }
+            $soma += $valor;
+            if (! in_array((string) ($p['method'] ?? ''), $formas, true)) {
+                $erros["payment.{$i}.method"] = 'Forma de pagamento inválida.';
+            }
+            if (! empty($p['account_id'])) {
+                $conta = DB::table('accounts')->where('business_id', $business_id)
+                    ->where('id', (int) $p['account_id'])->where('is_closed', 0)->exists();
+                if (! $conta) {
+                    $erros["payment.{$i}.account_id"] = 'Conta não encontrada nesta empresa.';
+                }
+            }
+        }
+
+        $total = (float) $this->productUtil->num_uf($request->input('final_total', ''));
+        if (round($soma, 2) > round($total, 2)) {
+            $erros['payment'] = 'O pagamento passa do total da compra.';
+        }
+
+        if ($erros !== []) {
+            throw \Illuminate\Validation\ValidationException::withMessages($erros);
+        }
     }
 
     /**

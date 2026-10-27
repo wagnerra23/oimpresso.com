@@ -8,7 +8,8 @@
 // Origem: Cowork "Compras" (prototipo-ui/cowork/Wagner/legado/compras/visual-source.html (MORTO 2026-08-13 — sem fonte no repo)).
 // Runbook: memory/requisitos/Purchase/RUNBOOK-create.md
 // Charter: ./Create.charter.md
-// MVP1: dados gerais + itens (busca + tabela) + desconto/frete + total + notas. Pagamento V2.
+// Dados gerais + itens (busca + tabela) + desconto/frete + despesas + total + pagamento + notas.
+// Pagamento na entrada e despesas/anexo portados da Blade em 2026-10-27 (pedido [W] antes do cutover).
 // US-COM-005: modo grade tam×cor pra produto variável (combobox → GradeMatrixInput → linhas).
 
 import AppShellV2 from '@/Layouts/AppShellV2';
@@ -26,6 +27,7 @@ import { FieldError } from '@/Components/ui/field-state';
 import { Plus, Trash2, Search, ShoppingCart, ArrowLeft, Save, LayoutGrid } from 'lucide-react';
 import GradeMatrixInput, { type GradeCell } from '@/Pages/Purchase/_components/GradeMatrixInput';
 import DespesasAnexo from '@/Pages/Purchase/_components/DespesasAnexo';
+import PagamentoNaCompra, { type PagamentoRascunho } from '@/Pages/Purchase/_components/PagamentoNaCompra';
 import { camposDespesas, despesasVazias, somaDespesas, valorParaEnvio, linhaParaEnvio, type DespesaAdicional } from '@/Pages/Purchase/_components/compra-envio';
 import GradeProductCombobox, { type PickedProduct } from '@/Pages/Purchase/_components/GradeProductCombobox';
 import SupplierCombobox from '@/Pages/Purchase/_components/SupplierCombobox';
@@ -126,6 +128,8 @@ function PurchaseCreate({
   permissions,
   default_datetime,
   common_settings,
+  payment_types,
+  accounts,
   produto_inicial = null,
 }: PurchaseCreatePageProps) {
   // US-COM-013: o pedido de compra só aparece quando a empresa o usa (mesmo interruptor do Blade).
@@ -142,6 +146,12 @@ function PurchaseCreate({
   const [erroItens, setErroItens] = useState<string | null>(null);
   const [despesas, setDespesas] = useState<DespesaAdicional[]>(despesasVazias);
   const [documento, setDocumento] = useState<File | null>(null);
+  const [pagamento, setPagamento] = useState<PagamentoRascunho>(() => ({
+    valor: 0,
+    forma: Object.keys(payment_types ?? {}).find((k) => k === 'cash') ?? Object.keys(payment_types ?? {})[0] ?? '',
+    data: default_datetime,
+    conta: '',
+  }));
 
   const form = useForm({
     ref_no: '' as string,
@@ -344,6 +354,10 @@ function PurchaseCreate({
       setErroItens('Há item sem produto do cadastro. Escolha o produto na busca "Adicionar por grade" e remova a linha digitada.');
       return;
     }
+    if (pagamento.valor > Math.round(totais.final * 100) / 100) {
+      form.setError('payment' as never, 'O pagamento passa do total da compra.');
+      return;
+    }
     setErroItens(null);
     form.transform((dados) => ({
       ...dados,
@@ -359,6 +373,17 @@ function PurchaseCreate({
       shipping_charges: valorParaEnvio(dados.shipping_charges || 0),
       ...camposDespesas(despesas),
       ...(documento ? { document: documento } : {}),
+      // Pago na entrada: uma linha, que o store grava por createOrUpdatePaymentLines. Vazio =
+      // compra a prazo (payment_status fica "due").
+      payment: pagamento.valor > 0
+        ? [{
+            amount: valorParaEnvio(pagamento.valor),
+            method: pagamento.forma,
+            paid_on: pagamento.data,
+            account_id: pagamento.conta,
+            note: '',
+          }]
+        : [],
     }));
     form.post('/purchases', {
       forceFormData: true,
@@ -748,6 +773,15 @@ function PurchaseCreate({
         documento={documento}
         onDocumento={setDocumento}
         erroDocumento={(form.errors as Record<string, string | undefined>).document}
+      />
+
+      <PagamentoNaCompra
+        valor={pagamento}
+        onChange={setPagamento}
+        total={totais.final}
+        formas={payment_types ?? {}}
+        contas={accounts ?? {}}
+        erro={(form.errors as Record<string, string | undefined>).payment}
       />
 
       {/* Card 4: notas */}

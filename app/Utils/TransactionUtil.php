@@ -749,7 +749,10 @@ class TransactionUtil extends Util
                     $payment_ref_no = $this->generateReferenceNumber($prefix_type, $ref_count, $business_id);
 
                     if (! empty($payment['paid_on'])) {
-                        $paid_on = $uf_data ? $this->uf_date($payment['paid_on'], true) : $payment['paid_on'];
+                        // uf_datetime_input aceita a data ISO das telas React e, fora dela, cai no
+                        // uf_date com o formato da empresa (o que a Blade manda). Até 2026-10-27 era
+                        // uf_date direto, e a data ISO da Nova compra React dava "Trailing data".
+                        $paid_on = $uf_data ? $this->uf_datetime_input($payment['paid_on']) : $payment['paid_on'];
                     } else {
                         $paid_on = \Carbon::now()->toDateTimeString();
                     }

@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: o contrato da grade (1 célula = 1 variation_id, 1 POST único) e o ownership das variations são duráveis — não mudam quando a tela ganhar campo novo.
 owner: wagner
 last_run: "2026-10-26"
-last_run_ci: "2026-10-27: UC-PURCRE-14/15 (despesas, valores em formato seguro e anexo) nascem sem veredito. Antes: ✅ 2026-09-05: os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841). Medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. Os 7 UC desta tela tem lane; 3 com defesa de COMPORTAMENTO (PurchaseGradeMatrixTest, que emite request e cujo bloco cross-tenant hoje roda em MySQL real) e 4 ESTRUTURAL (Wave2Create*, presence-gate LC-11). Nao restatear a mao: rode scripts/qa/uc-lane-coverage.mjs. ⚠ O TEXTO A SEGUIR ESTA SUPERADO e fica como fato datado - os dois numeros dele ja nasciam falsos (a pasta tem 10 arquivos, nao 8; e 4 ja rodavam quando foi escrito): 🔴 A DIVIDA CONTINUA ABERTA — NENHUM teste de tests/Feature/Purchase/ roda em lane alguma (8 arquivos orfaos de CI); o uc-lane-coverage reprova estes UC por isso e esta certo. Ver §Divida de prova. O bump de 2026-09-04 -> 2026-09-05 NAO paga essa divida e nao afirma execucao: ele registra a REVISAO exigida pelo G-6 depois que o .tsx foi tocado. O que foi revisado, e verificavel: o diff contra 153a65b558 (commit que criou este arquivo) e exatamente 5 atributos `data-contract` em <Card>, zero mudanca de logica/props/copy; e nenhum dos 7 UC depende de atributo/DOM/seletor (grep por data-contract|atributo|DOM|seletor|className neste arquivo: rc=1, zero hits) — os 7 sao de backend/tenant/dado. TENTATIVA DE PROVA REAL, e por que ela NAO vale como recibo: rodei tests/Feature/Purchase/ no CT 100 (90 passed, 6 failed, 6 skipped, 214 assertions), mas o checkout do container esta em c1abe9548f (2026-08-26) e NAO contem as ancoras (grep -c data-contract = 0). Run de outra arvore nao prova esta — citar aquele numero aqui seria medir a coisa errada."
+last_run_ci: "2026-10-27: UC-PURCRE-16/17 (pagamento na entrada) e UC-PURCRE-14/15 (despesas, valores em formato seguro e anexo) nascem sem veredito. Antes: ✅ 2026-09-05: os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841). Medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. Os 7 UC desta tela tem lane; 3 com defesa de COMPORTAMENTO (PurchaseGradeMatrixTest, que emite request e cujo bloco cross-tenant hoje roda em MySQL real) e 4 ESTRUTURAL (Wave2Create*, presence-gate LC-11). Nao restatear a mao: rode scripts/qa/uc-lane-coverage.mjs. ⚠ O TEXTO A SEGUIR ESTA SUPERADO e fica como fato datado - os dois numeros dele ja nasciam falsos (a pasta tem 10 arquivos, nao 8; e 4 ja rodavam quando foi escrito): 🔴 A DIVIDA CONTINUA ABERTA — NENHUM teste de tests/Feature/Purchase/ roda em lane alguma (8 arquivos orfaos de CI); o uc-lane-coverage reprova estes UC por isso e esta certo. Ver §Divida de prova. O bump de 2026-09-04 -> 2026-09-05 NAO paga essa divida e nao afirma execucao: ele registra a REVISAO exigida pelo G-6 depois que o .tsx foi tocado. O que foi revisado, e verificavel: o diff contra 153a65b558 (commit que criou este arquivo) e exatamente 5 atributos `data-contract` em <Card>, zero mudanca de logica/props/copy; e nenhum dos 7 UC depende de atributo/DOM/seletor (grep por data-contract|atributo|DOM|seletor|className neste arquivo: rc=1, zero hits) — os 7 sao de backend/tenant/dado. TENTATIVA DE PROVA REAL, e por que ela NAO vale como recibo: rodei tests/Feature/Purchase/ no CT 100 (90 passed, 6 failed, 6 skipped, 214 assertions), mas o checkout do container esta em c1abe9548f (2026-08-26) e NAO contem as ancoras (grep -c data-contract = 0). Run de outra arvore nao prova esta — citar aquele numero aqui seria medir a coisa errada."
 ---
 
 > ℹ️ **`last_run` 2026-10-20 → 2026-10-26 (G-6): entraram o UC-PURCRE-12 (pedidos abertos + estoque por dois caminhos) e o UC-PURCRE-13 (a tela traz o pedido).** A `Create.tsx` ganhou o bloco "Receber de um pedido de compra" e o campo `purchase_order_ids`; nenhum UC antigo mudou nem foi reexecutado.
@@ -521,6 +521,31 @@ Status: 🧪
   `transactions.document` guarda o arquivo e ele existe em `documents/`.
 - **Teste:** [`PurchaseCreateDespesasContratoTest`](../../../../tests/Feature/Purchase/PurchaseCreateDespesasContratoTest.php).
 - **Contrato:** Blade `purchase/create.blade.php` (campo `document`) · pedido [W] 2026-10-27.
+- **Status: 🧪 sem veredito**
+
+---
+
+## UC-PURCRE-16 · O pago na entrada vira pagamento e move o status · `must` `[V0]`
+
+- **Persona:** Larissa paga parte da compra no ato da entrega.
+- **Aceite:** Dado uma compra de 40,00 · Quando informa 15,00 em dinheiro em "Pagamento (opcional)" e
+  salva · Então grava 1 linha de 15,00 em `transaction_payments` com a data informada e a compra
+  fica `partial` (25,00 em aberto). Pagando 40,00, fica `paid`. Sem pagamento, nasce `due` e sem linhas.
+- **Dupla prova:** (a) linha e status gravados; (b) saldo refeito à mão (total − soma das linhas).
+- **Conserto que vem junto:** `createOrUpdatePaymentLines` passa a ler a data por
+  `uf_datetime_input`; com `uf_date` a data ISO da tela dava "Trailing data" e a compra falhava.
+- **Teste:** [`PurchaseCreatePagamentoContratoTest`](../../../../tests/Feature/Purchase/PurchaseCreatePagamentoContratoTest.php).
+- **Contrato:** charter §Hierarquia item 4 ("Pagamentos (opcional)") · Blade `purchase/create.blade.php`
+  (bloco de pagamento) · pedido [W] 2026-10-27.
+- **Status: 🧪 sem veredito**
+
+## UC-PURCRE-17 · O pagamento da entrada tem travas · `must` `[V0]` `[T0]`
+
+- **Aceite:** pagamento acima do total (40,01 numa compra de 40,00), conta de outra empresa e forma de
+  pagamento inexistente são recusados antes de gravar: a compra **não** é criada. A Blade não
+  conferia nenhuma das três.
+- **Teste:** [`PurchaseCreatePagamentoContratoTest`](../../../../tests/Feature/Purchase/PurchaseCreatePagamentoContratoTest.php).
+- **Contrato:** [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) · REGRA MESTRE de valor.
 - **Status: 🧪 sem veredito**
 
 ---
