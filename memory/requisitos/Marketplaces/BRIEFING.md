@@ -22,7 +22,12 @@ vertical (não é módulo de vertical). Separado do `Woocommerce`, que é loja p
 - **Código:** `Modules/Marketplaces` com instalação 1-clique, pacote `marketplaces_module` (desligado
   por padrão), as 5 tabelas do primeiro pedido (US-MKT-001), o catálogo (US-MKT-002) e a conexão
   da conta do Mercado Livre por OAuth, sem tela ainda (US-MKT-003, `/marketplaces/contas/mercado-livre/conectar`).
-  Próximas US em [SPEC.md](SPEC.md) §11.2: webhook → pedido vira venda → tela de pedidos → NF-e → rastreio.
+  As notificações do ML chegam em `/webhook/marketplaces/mercado-livre` e o pedido é gravado em
+  `mkt_orders` (US-MKT-006). Pedido **pago** vira venda final no local escolhido na conta, com baixa
+  de estoque e total conferido contra o do ML (US-MKT-007, decisões [W] 2026-10-26); a venda nasce
+  "a receber" até a conciliação do Mercado Pago.
+  Próximas US em [SPEC.md](SPEC.md) §11.2: estágio FSM da venda → tela de pedidos (inclui escolher o
+  local da conta) → NF-e → rastreio.
 
 ## O que depende de [W]
 
@@ -30,6 +35,7 @@ vertical (não é módulo de vertical). Separado do `Woocommerce`, que é loja p
   e de notificação) e guardar no Vaultwarden.
 - Conferir com o contador o mapeamento de CFOP (SPEC §5) antes de ligar a NF-e automática.
 - Indicar a empresa que testa primeiro em produção.
+- Cadastrar no app do ML a URL de notificação `https://oimpresso.com/webhook/marketplaces/mercado-livre`, tópico `orders_v2`.
 
 ## Regras que não mudam
 

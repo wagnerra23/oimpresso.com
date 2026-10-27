@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Marketplaces\Http\Controllers\ContasController;
 use Modules\Marketplaces\Http\Controllers\InstallController;
+use Modules\Marketplaces\Http\Controllers\NotificacoesMercadoLivreController;
 use Modules\Marketplaces\Http\Middleware\MarketplacesLiberado;
 
 /*
@@ -30,3 +31,11 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         Route::get('contas/mercado-livre/conectar', [ContasController::class, 'conectar'])->name('contas.mercado_livre.conectar');
         Route::get('oauth/callback/mercado-livre', [ContasController::class, 'callback'])->name('oauth.mercado_livre.callback');
     });
+
+/*
+ * Notificações do Mercado Livre (US-MKT-006). Pública e sem CSRF (o prefixo /webhook/* já está
+ * fora do VerifyCsrfToken): quem chama é o ML. O controller não confia no conteúdo — ver docblock.
+ */
+Route::middleware(['throttle:300,1'])
+    ->post('/webhook/marketplaces/mercado-livre', [NotificacoesMercadoLivreController::class, 'receber'])
+    ->name('marketplaces.webhook.mercado_livre');
