@@ -228,9 +228,9 @@ it('UC-PCV-11 · OS de outra empresa não troca nem mostra a arte (404)', functi
 
 function artVendaComCliente($t, int $biz): array
 {
-    $local = DB::table('business_locations')->where('business_id', $biz)->value('id')
-        ?? DB::table('business_locations')->insertGetId(['business_id' => $biz, 'name' => 'Loja '.uniqid(), 'country' => 'Brasil',
-            'state' => 'SC', 'city' => 'Tubarão', 'zip_code' => '88700000', 'created_at' => now(), 'updated_at' => now()]);
+    // `transactions.location_id` aceita null; o envio da prova não lê a loja. Criar loja exigiria
+    // invoice_scheme + invoice_layout da empresa (FK NOT NULL), que a 99 do seed não tem.
+    $local = DB::table('business_locations')->where('business_id', $biz)->value('id');
     $contato = (int) DB::table('contacts')->insertGetId(['business_id' => $biz, 'type' => 'customer', 'name' => 'Marta Prova',
         'mobile' => '48988887777', 'contact_status' => 'active', 'created_by' => $t->pcp->id, 'created_at' => now(), 'updated_at' => now()]);
     $venda = (int) DB::table('transactions')->insertGetId(['business_id' => $biz, 'location_id' => $local, 'type' => 'sell', 'status' => 'final',
