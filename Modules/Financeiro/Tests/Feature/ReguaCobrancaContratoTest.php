@@ -208,7 +208,7 @@ it('UC-CRREG-08 · o painel Lembretes da tela lista os do business, com o motivo
     // Abrir o painel = reload parcial pedindo só `lembretes`.
     $painel = $chamar($base + ['X-Inertia-Partial-Component' => 'Financeiro/ContasReceber/Index', 'X-Inertia-Partial-Data' => 'lembretes']);
     expect($painel->status())->toBe(200);
-    expect($painel->json('props.lembretes.regua'))->toBe(['ativo' => true, 'dias' => [1, 5, 15]]);
+    expect($painel->json('props.lembretes.regua'))->toBe(['ativo' => true, 'dias' => [1, 5, 15], 'dias_antes' => []]);
 
     $itens = collect($painel->json('props.lembretes.itens'))->keyBy('titulo_id');
     expect($itens->keys()->sort()->values()->all())->toBe(collect([$enviado, $optOut])->sort()->values()->all());
@@ -217,4 +217,91 @@ it('UC-CRREG-08 · o painel Lembretes da tela lista os do business, com o motivo
     expect($itens[$optOut]['status'])->toBe('nao_enviado');
     expect($itens[$optOut]['motivo'])->toBe('opt_out_email');
     expect($itens[$optOut]['etapa_dias'])->toBe(5);
+});
+
+it('UC-CRREG-09 · aviso antes do vencimento só com dias_antes configurado, sem tarefa', function () {
+    // Sem dias_antes (o padrão): título que vence em 3 dias não recebe nada.
+    $semConfig = reguaTitulo($this->bizA, $this->ownerA, -3, reguaContato($this->bizA, $this->ownerA));
+    (new ReguaCobrancaJob($this->bizA, REGUA_HOJE))->handle(app(ReguaCobrancaConfig::class));
+    expect(reguaLembretes($semConfig))->toHaveCount(0);
+
+    app(ReguaCobrancaConfig::class)->definir($this->bizA, true, null, [3]);
+    $vence3 = reguaTitulo($this->bizA, $this->ownerA, -3, reguaContato($this->bizA, $this->ownerA));
+    $vence2 = reguaTitulo($this->bizA, $this->ownerA, -2, reguaContato($this->bizA, $this->ownerA));
+    $antes = DB::table('crm_schedules')->where('business_id', $this->bizA)->count();
+
+    (new ReguaCobrancaJob($this->bizA, REGUA_HOJE))->handle(app(ReguaCobrancaConfig::class));
+
+    $l = reguaLembretes($vence3);
+    expect($l)->toHaveCount(1);
+    expect($l[0]->fase)->toBe('antes');
+    expect((int) $l[0]->etapa_dias)->toBe(3);
+    expect($l[0]->status)->toBe('enviado');
+    expect($l[0]->tarefa_id)->toBeNull();
+    expect(reguaLembretes($vence2))->toHaveCount(0); // D-2 não é etapa
+    expect(DB::table('crm_schedules')->where('business_id', $this->bizA)->count())->toBe($antes);
+    Mail::assertSent(LembreteCobrancaMail::class, fn ($m) => $m->tituloId === $vence3
+        && $m->fase === 'antes' && str_contains($m->build()->subject, 'vence em 3 dia'));
+});
+
+it('UC-CRREG-10 · aviso D-3 e lembrete D+3 do mesmo título convivem (UNIQUE por fase)', function () {
+    app(ReguaCobrancaConfig::class)->definir($this->bizA, true, [3], [3]);
+    $titulo = reguaTitulo($this->bizA, $this->ownerA, -3, reguaContato($this->bizA, $this->ownerA));
+    $depois = \Illuminate\Support\Carbon::parse(REGUA_HOJE)->addDays(6)->toDateString();
+
+    (new ReguaCobrancaJob($this->bizA, REGUA_HOJE))->handle(app(ReguaCobrancaConfig::class));
+    (new ReguaCobrancaJob($this->bizA, $depois))->handle(app(ReguaCobrancaConfig::class));
+    (new ReguaCobrancaJob($this->bizA, $depois))->handle(app(ReguaCobrancaConfig::class)); // idempotente
+
+    $fases = reguaLembretes($titulo)->map(fn ($l) => $l->fase.':'.$l->etapa_dias)->sort()->values()->all();
+    expect($fases)->toBe(['antes:3', 'apos:3']);
+    Mail::assertSent(LembreteCobrancaMail::class, 2);
+});
+
+function reguaCobranca(int $biz, string $origemType, int $origemId, string $status, array $over = []): int
+{
+    return DB::table('cobrancas')->insertGetId(array_merge([
+        'business_id' => $biz, 'tipo' => 'pix_cobv', 'status' => $status, 'valor_centavos' => 10000,
+        'vencimento' => REGUA_HOJE, 'contact_id' => 1, 'descricao' => 'Teste régua meio de pagar',
+        'idempotency_key' => uniqid('regua', true), 'origem_type' => $origemType, 'origem_id' => $origemId,
+        'created_at' => now(), 'updated_at' => now(),
+    ], $over));
+}
+
+it('UC-CRREG-11 · a mensagem leva o meio de pagar da cobrança aberta do título, nunca de cobrança paga ou de outro business', function () {
+    if (! Schema::hasTable('cobrancas')) {
+        $this->markTestSkipped('cobrancas ausente — rode migrate.');
+    }
+    $comPix = reguaTitulo($this->bizA, $this->ownerA, 1, reguaContato($this->bizA, $this->ownerA));
+    reguaCobranca($this->bizA, 'fin_titulo', $comPix, 'emitida', ['pix_emv' => 'PIX-ABERTO-A']);
+
+    $soPaga = reguaTitulo($this->bizA, $this->ownerA, 1, reguaContato($this->bizA, $this->ownerA));
+    reguaCobranca($this->bizA, 'fin_titulo', $soPaga, 'paga', ['pix_emv' => 'PIX-JA-PAGO']);
+    // Cobrança de OUTRO business apontando para o mesmo id de título: nunca entra (Tier 0).
+    reguaCobranca($this->bizB, 'fin_titulo', $soPaga, 'emitida', ['pix_emv' => 'PIX-DO-B']);
+
+    $venda = 900000000 + random_int(1, 99999);
+    $deVenda = reguaTitulo($this->bizA, $this->ownerA, 5, reguaContato($this->bizA, $this->ownerA),
+        ['origem' => 'venda', 'origem_id' => $venda]);
+    reguaCobranca($this->bizA, 'sale', $venda, 'vencida', ['tipo' => 'boleto', 'linha_digitavel' => '23790.00000 LINHA-DA-VENDA']);
+
+    (new ReguaCobrancaJob($this->bizA, REGUA_HOJE))->handle(app(ReguaCobrancaConfig::class));
+
+    $corpoDe = function (int $tituloId): string {
+        $corpo = null;
+        Mail::assertSent(LembreteCobrancaMail::class, function ($m) use ($tituloId, &$corpo) {
+            if ($m->tituloId === $tituloId) {
+                $corpo = $m->corpo;
+            }
+
+            return $m->tituloId === $tituloId;
+        });
+
+        return (string) $corpo;
+    };
+
+    expect($corpoDe($comPix))->toContain('Pix copia e cola: PIX-ABERTO-A');
+    expect($corpoDe($soPaga))->not->toContain('PIX-')
+        ->and($corpoDe($soPaga))->not->toContain('copia e cola');
+    expect($corpoDe($deVenda))->toContain('Linha digitável do boleto: 23790.00000 LINHA-DA-VENDA');
 });

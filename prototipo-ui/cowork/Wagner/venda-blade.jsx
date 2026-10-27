@@ -296,12 +296,16 @@ const diasDe = (txt) => {
 };
 const idadeTom = (d) => d <= 2 ? "fresh" : d <= 7 ? "aging" : "stale";
 const idadeLabel = (d) => d === 0 ? "hoje" : d === 1 ? "1 dia" : d + " dias";
-function TelaDraft({ tipo, avisar, densa, setDensa, onIr }) {
-  const { Widget } = UI();
+function TelaDraft({ tipo, avisar, densa, setDensa, onIr, perms }) {
+  const { Widget, Kebab, Modal } = UI();
   const cot = tipo === "cotacoes";
   const [base, setBase] = useState(cot ? COTACOES : RASCUNHOS);
   const [f, setF] = useState({});
   const [busca, setBusca] = useState("");
+  // Rascunho a excluir: abre a confirmação. Gate do Blade `sale_pos/draft`: `draft.delete`
+  // (SellController::getDraftDatables, ação "Excluir" do menu Ações).
+  const [excluir, setExcluir] = useState(null);
+  const podeExcluir = !perms || perms.pode("draft.delete");
   useEffect(() => { setBase(cot ? COTACOES : RASCUNHOS); }, [cot]);
   const rows = base.filter((s) => (!f.loc || s.loc === f.loc) && (!f.cli || s.cli === f.cli) && (!f.quem || s.quem === f.quem) &&
     (!busca || (s.ref + " " + s.cli).toLowerCase().includes(busca.toLowerCase())));
@@ -314,7 +318,7 @@ function TelaDraft({ tipo, avisar, densa, setDensa, onIr }) {
     { key: "loc", label: "Local", width: 130 },
     { key: "itens", label: "Itens", width: 92, align: "right", mono: true, sortable: true, sortValue: (r) => r._s.itens },
     { key: "total", label: "Valor", width: 124, align: "right", mono: true, sortable: true, sortValue: (r) => r._s.total },
-    { key: "acao", label: "Ações", width: cot ? 172 : 160, align: "right", resizable: false },
+    { key: "acao", label: "Ações", width: cot ? 172 : 196, align: "right", resizable: false },
   ];
   const linhas = rows.map((s) => {
     const dias = diasDe(s.data);
@@ -328,7 +332,18 @@ function TelaDraft({ tipo, avisar, densa, setDensa, onIr }) {
             <button className="os-btn sm" onClick={() => onIr("editar", s)}>Editar</button>
             <button className="os-btn sm primary" onClick={() => avisar(s.ref + " aberta para envio ao cliente.", "ok")}>Enviar</button>
           </div>
-        : <button className="os-btn sm" onClick={() => onIr("editar", s)}>Continuar venda</button>,
+        // Rascunho: "Continuar venda" fica à vista; o resto vai no menu Ações (⋮), sempre visível,
+        // como o menu da lista Blade `sale_pos/draft` (Imprimir · Excluir).
+        : <div className="vb-acoes-linha">
+            <button className="os-btn sm" onClick={() => onIr("editar", s)}>Continuar venda</button>
+            {Kebab ? <Kebab rotulo={"Ações do rascunho " + s.ref} acoes={[
+              { l: "Imprimir rascunho", ic: "print", on: () => avisar(s.ref + " enviado para impressão.", "ok") },
+              "-",
+              ...(podeExcluir
+                ? [{ l: "Excluir rascunho", ic: "x", tone: "danger", on: () => setExcluir(s) }]
+                : [{ l: "Excluir (sem permissão draft.delete)", ic: "x", on: () => avisar("Seu papel não tem draft.delete — peça ao administrador.", "warn") }]),
+            ]} /> : null}
+          </div>,
     };
   });
 
@@ -346,7 +361,7 @@ function TelaDraft({ tipo, avisar, densa, setDensa, onIr }) {
         { k: "periodo", l: "Período", op: PERIODOS, vazio: "Tudo" },
         { k: "quem", l: "Usuário", op: VENDEDORES },
       ]} />
-      <Widget flush titulo={<><Ic name="quote" size={13} /> {cot ? "Cotações" : "Rascunhos"}</>} nota={rows.length + " de " + (cot ? COTACOES : RASCUNHOS).length}>
+      <Widget flush titulo={<><Ic name="quote" size={13} /> {cot ? "Cotações" : "Rascunhos"}</>} nota={rows.length + " de " + base.length}>
         <Toolbar busca={busca} setBusca={setBusca} ph="Buscar por nº ou cliente…" densa={densa} setDensa={setDensa}>
           <button className="os-btn sm primary" onClick={() => onIr("nova", { status: cot ? "quotation" : "draft" })}>
             <Ic name="plus" size={12} /> {cot ? "Nova cotação" : "Nova venda"}
@@ -359,6 +374,18 @@ function TelaDraft({ tipo, avisar, densa, setDensa, onIr }) {
             : "Vendas salvas como rascunho — finalizar depois. A idade sinaliza abandono: até 2 dias fresco, até 7 esfriando, acima disso frio."}</span>
         </Rodape>
       </Widget>
+      {Modal && excluir &&
+        <Modal titulo={"Excluir rascunho · " + excluir.ref} onClose={() => setExcluir(null)} largura={480}
+          acoes={<>
+            <button className="os-btn" onClick={() => setExcluir(null)}>Cancelar</button>
+            <button className="os-btn danger" onClick={() => {
+              setBase(base.filter((x) => x.id !== excluir.id));
+              avisar("Rascunho " + excluir.ref + " excluído.", "warn");
+              setExcluir(null);
+            }}>Excluir rascunho</button>
+          </>}>
+          <p className="pb-help">O rascunho de <b>{excluir.cli}</b>, com {excluir.itens} {excluir.itens === 1 ? "item" : "itens"} e {fmtBRL(excluir.total)}, será apagado. Não dá para desfazer.</p>
+        </Modal>}
     </>
   );
 }
@@ -687,7 +714,7 @@ function VendaBladePage({ view = "pos", dense = false, papel = "administrador", 
     tela === "ver" ? (window.VendaShow ? <window.VendaShow venda={POS[1]} avisar={avisar} perms={perms} onVoltar={() => onIr("pos")} /> : null) :
     tela === "editar" ? <TelaPos avisar={avisar} densa={densa} setDensa={setDensa} onIr={onIr} perms={perms} editarInicial={POS[2]} /> :
     tela === "pos" ? <TelaPos avisar={avisar} densa={densa} setDensa={setDensa} onIr={onIr} perms={perms} /> :
-    tela === "rascunhos" ? <TelaDraft tipo="rascunhos" avisar={avisar} densa={densa} setDensa={setDensa} onIr={onIr} /> :
+    tela === "rascunhos" ? <TelaDraft tipo="rascunhos" avisar={avisar} densa={densa} setDensa={setDensa} onIr={onIr} perms={perms} /> :
     tela === "cotacoes" ? <TelaDraft tipo="cotacoes" avisar={avisar} densa={densa} setDensa={setDensa} onIr={onIr} /> :
     tela === "remessas" ? <TelaRemessas avisar={avisar} densa={densa} setDensa={setDensa} /> :
     tela === "descontos" ? (perms.pode("discount.access") ? <TelaDescontos avisar={avisar} densa={densa} setDensa={setDensa} /> : <SemPermissao o="discount.access" />) :

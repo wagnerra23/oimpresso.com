@@ -44,6 +44,8 @@ on:
     paths:
       - 'Modules/Connector/**'
       - 'tests/Feature/Connector/**'
+      # US-CONN-013 — o contrato da geração OpenAPI lê config/scribe.php.
+      - 'config/scribe.php'
       - 'app/Http/Middleware/Authenticate.php'
       - 'app/Providers/AuthServiceProvider.php'
       - 'database/schema/mysql-schema.sql'
@@ -84,6 +86,7 @@ jobs:
             connector:
               - 'Modules/Connector/**'
               - 'tests/Feature/Connector/**'
+              - 'config/scribe.php'
               - 'app/Http/Middleware/Authenticate.php'
               - 'app/Providers/AuthServiceProvider.php'
               - 'database/schema/mysql-schema.sql'
@@ -172,6 +175,7 @@ jobs:
             Modules/Connector/Tests/Feature/ApiClientsPanelTest.php \
             Modules/Connector/Tests/Feature/AuthApiTest.php \
             Modules/Connector/Tests/Feature/ClientControllerBaselineTest.php \
+            Modules/Connector/Tests/Feature/ConnectorOpenApiConfigContratoTest.php \
             Modules/Connector/Tests/Feature/ConnectorWebhookSaidaContratoTest.php \
             Modules/Connector/Tests/Feature/CustomerJourneyTest.php \
             Modules/Connector/Tests/Feature/LicencaComputadorApiEscopoTest.php \

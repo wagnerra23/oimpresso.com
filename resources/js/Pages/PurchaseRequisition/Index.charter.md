@@ -43,6 +43,9 @@ material é necessário — com o mesmo escopo e as mesmas datas que a Blade mos
   protótipo; o comprador ainda escolhe o fornecedor ao gerar o pedido.
 - KPIs: requisições sem pedido ainda (`ordered`) e parcialmente pedidas (`partial`), contadas na lista.
 - Criar (com `purchase_requisition.create`).
+- Necessidade de compra (MRP, US-COM-030 · decisão coordenação 2026-10-26): acima da lista, por insumo e local, quanto
+  comprar (reservado das OS e vendas + mínimo − saldo − a caminho), o fornecedor da última compra e a data de pedir pelo
+  prazo do fornecedor. Só mostra; o cálculo é do `NecessidadeDeCompra` e a data chega formatada. UC-REQC-07.
 
 ## Non-Goals
 

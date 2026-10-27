@@ -8,6 +8,8 @@ contains:
   - "GradeCurvaService — matriz tamanho × cor + proporção curva BR (Wave 27, ADR 0121 §P7)"
   - "VestuarioSettingsResolver — settings JSON per business cache 5min (Sprint 2 ADR 0121)"
   - "DevolucaoService — CDC art. 49 7d devolução + crédito vest_creditos_cliente (US-VEST-021, scaffold)"
+  - "CurvaCompraController — sugestão de compra por tamanho pela curva de venda, só leitura (GET /vestuario/curva-compra, US-VEST-031 · UC-VCUR-01..03)"
+  - "CurvaDeCompra — proporção vendida por variação nos últimos 90 dias (ou da categoria), dividida pelo maior resto; diferente do GradeCurvaService, que guarda proporção fixa em configuração (US-VEST-031)"
 not_contains:
   - "Núcleo transactions/contacts → UltimatePOS core (compartilhado entre verticais)"
   - "NFe/NFC-e → Modules/NfeBrasil (backbone)"

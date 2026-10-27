@@ -28,7 +28,7 @@ charter_version: 1
 
 ## Mission
 
-Transformar a lei em lista de casos: seis verificações da competência, cada apontamento com o
+Transformar a lei em lista de casos: sete verificações da competência (a 7ª, férias vencidas, entrou em 2026-10-26 — US-PONTO-018), cada apontamento com o
 artigo, o apurado, o limite e o atalho pro Espelho.
 
 ## Goals — Features (faz)
@@ -54,7 +54,7 @@ artigo, o apurado, o limite e o atalho pro Espelho.
 
 ## UX Targets
 
-- Cabe em 1280px; ordem das seções = protótipo: nota → 6 KPIs → tabela (6 colunas)
+- Cabe em 1280px; ordem das seções = protótipo: nota → KPIs (6 do protótipo + férias vencidas) → tabela (6 colunas)
 - Painel deferido (`Inertia::defer`) — o cabeçalho e o seletor de mês renderizam antes
 
 ## Refs

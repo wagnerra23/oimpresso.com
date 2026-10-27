@@ -5,18 +5,18 @@
 //   spec: memory/requisitos/Whatsapp/SPEC.md US-WA-068
 //   permissao: whatsapp.settings.manage (mesma da Channels CRUD)
 //
-// Tabs: Config | Usuários | Histórico. Tabs sem componente shadcn dedicado
+// Tabs: Config | Usuários | Histórico | Menu do bot (US-WA-327). Tabs sem componente shadcn dedicado
 // (não existe Components/ui/tabs.tsx) — usamos botões accessibility-friendly.
 
 import { Link, Deferred, router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import {
   ArrowLeft, Plug, Smartphone, MessageCircle, CheckCircle2, AlertTriangle,
-  Settings, Users, Clock, Loader2, Zap,
+  Settings, Users, Clock, Loader2, Zap, Bot,
 } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import { Card } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
@@ -24,6 +24,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from '@/Components/ui/dialog';
 import ChannelUsersTab from './_components/ChannelUsersTab';
+import BotMenuTab, { type MenuBotPayload } from './_components/BotMenuTab';
 
 interface ChannelUi {
   id: number;
@@ -84,21 +85,22 @@ interface Props {
   users?: AccessRow[];
   availableUsers?: AvailableUser[];
   audit?: AuditRow[];
+  menuBot?: MenuBotPayload;
 }
 
-type TabKey = 'config' | 'users' | 'history';
+type TabKey = 'config' | 'users' | 'history' | 'bot';
 
-export default function ChannelShow({ channel, users, availableUsers, audit }: Props) {
+export default function ChannelShow({ channel, users, availableUsers, audit, menuBot }: Props) {
   const [activeTab, setActiveTab] = useState<TabKey>('config');
 
   const TypeIcon = channel.type.startsWith('whatsapp_') ? MessageCircle : Plug;
 
   return (
-    <div className="p-4 space-y-4">
+    <>
       <PageHeader
-        icon={TypeIcon}
+        leading={<TypeIcon className="h-5 w-5 text-primary" aria-hidden="true" />}
         title={channel.label}
-        description={
+        subtitle={
           <span className="flex items-center gap-2 text-xs">
             <span className="text-muted-foreground">{channel.type}</span>
             <Badge variant="outline" className="text-[10px]">{channel.status}</Badge>
@@ -110,7 +112,7 @@ export default function ChannelShow({ channel, users, availableUsers, audit }: P
             )}
           </span>
         }
-        action={
+        actions={
           <Button asChild variant="outline" size="sm">
             <Link href={route('atendimento.channels.index')} data-testid="channel-show-back">
               <ArrowLeft size={14} className="mr-1.5" aria-hidden />
@@ -120,6 +122,7 @@ export default function ChannelShow({ channel, users, availableUsers, audit }: P
         }
       />
 
+      <div className="p-4 space-y-4">
       {/* Tabs nav — D-14 perf: contador `users` deferred, mostra '…' até resolver */}
       <div className="flex items-center gap-1 border-b" role="tablist" aria-label="Seções do canal">
         <TabButton
@@ -143,9 +146,21 @@ export default function ChannelShow({ channel, users, availableUsers, audit }: P
           onClick={() => setActiveTab('history')}
           testid="channel-tab-history"
         />
+        <TabButton
+          icon={Bot}
+          label="Menu do bot"
+          active={activeTab === 'bot'}
+          onClick={() => setActiveTab('bot')}
+          testid="channel-tab-bot"
+        />
       </div>
 
       {activeTab === 'config' && <ConfigTab channel={channel} />}
+      {activeTab === 'bot' && (
+        <Deferred data="menuBot" fallback={<Card className="p-4 text-sm text-muted-foreground">Carregando o menu…</Card>}>
+          {menuBot ? <BotMenuTab channelId={channel.id} dados={menuBot} /> : <></>}
+        </Deferred>
+      )}
       {activeTab === 'users' && (
         <Deferred
           data={['users', 'availableUsers']}
@@ -194,7 +209,8 @@ export default function ChannelShow({ channel, users, availableUsers, audit }: P
           <HistoryTab audit={audit ?? []} />
         </Deferred>
       )}
-    </div>
+      </div>
+    </>
   );
 }
 

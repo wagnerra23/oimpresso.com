@@ -99,7 +99,7 @@ class EssentialsLeaveTypeController extends Controller
     {
         $tipos = EssentialsLeaveType::where('business_id', $business_id)
                                 ->orderBy('leave_type')
-                                ->get(['id', 'leave_type', 'max_leave_count', 'leave_count_interval']);
+                                ->get(['id', 'leave_type', 'max_leave_count', 'leave_count_interval', 'ferias_clt']);
 
         $pedidosNoAno = EssentialsLeave::where('business_id', $business_id)
                                 ->whereYear('start_date', now()->year)
@@ -113,6 +113,8 @@ class EssentialsLeaveTypeController extends Controller
             'max_leave_count' => $t->max_leave_count !== null ? (int) $t->max_leave_count : null,
             'leave_count_interval' => $t->leave_count_interval,
             'leaves_count' => (int) ($pedidosNoAno[$t->id] ?? 0),
+            // US-PONTO-018: licença aprovada deste tipo abate o saldo de férias no Ponto.
+            'ferias_clt' => (bool) $t->ferias_clt,
         ])->values()->all();
     }
 
@@ -150,6 +152,7 @@ class EssentialsLeaveTypeController extends Controller
 
         try {
             $input = $request->only(['leave_type', 'max_leave_count', 'leave_count_interval']);
+            $input['ferias_clt'] = $request->boolean('ferias_clt'); // US-PONTO-018
 
             $input['business_id'] = $business_id;
 
@@ -221,6 +224,9 @@ class EssentialsLeaveTypeController extends Controller
         try {
             $input = $request->only(['leave_type', 'max_leave_count',
                 'leave_count_interval', ]);
+            // US-PONTO-018: o tipo diz por dado se consome o saldo de férias da CLT.
+            // Checkbox desmarcado não vem no POST, logo `boolean()` grava `false`.
+            $input['ferias_clt'] = $request->boolean('ferias_clt');
 
             $input['business_id'] = $business_id;
 
