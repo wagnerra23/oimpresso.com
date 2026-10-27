@@ -912,6 +912,12 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/labels/preview', [LabelsController::class, 'preview']);
 
     //Reports...
+    // US-REL-001 — relatório montável (JSON; flag relatorios.montavel.enabled).
+    Route::post('/relatorios/montavel/executar', [\App\Http\Controllers\Relatorios\RelatorioMontavelController::class, 'executar'])->name('relatorios.montavel.executar');
+    Route::get('/relatorios/montavel/salvos', [\App\Http\Controllers\Relatorios\RelatorioMontavelController::class, 'salvos'])->name('relatorios.montavel.salvos');
+    Route::post('/relatorios/montavel/salvos', [\App\Http\Controllers\Relatorios\RelatorioMontavelController::class, 'salvar'])->name('relatorios.montavel.salvar');
+    Route::put('/relatorios/montavel/salvos/{id}', [\App\Http\Controllers\Relatorios\RelatorioMontavelController::class, 'salvar'])->whereNumber('id')->name('relatorios.montavel.atualizar');
+    Route::get('/relatorios/montavel/salvos/{id}', [\App\Http\Controllers\Relatorios\RelatorioMontavelController::class, 'abrir'])->whereNumber('id')->name('relatorios.montavel.abrir');
     Route::get('/reports/gst-purchase-report', [ReportController::class, 'gstPurchaseReport']);
     Route::get('/reports/gst-sales-report', [ReportController::class, 'gstSalesReport']);
     Route::get('/reports/get-stock-by-sell-price', [ReportController::class, 'getStockBySellingPrice']);
