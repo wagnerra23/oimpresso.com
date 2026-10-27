@@ -5580,6 +5580,12 @@ parameters:
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$business_id\.$#'
 			identifier: property.notFound
+			count: 2
+			path: Modules/Financeiro/Models/Concerns/BusinessScope.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$business_id\.$#'
+			identifier: property.notFound
 			count: 1
 			path: Modules/Financeiro/Models/AccountsLegacyMap.php
 
