@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Whatsapp\Http\Controllers\Api\BaileysWebhookController;
 use Modules\Whatsapp\Http\Controllers\Api\ChannelBaileysWebhookController;
+use Modules\Whatsapp\Http\Controllers\Api\MetaGraphWebhookController;
 use Modules\Whatsapp\Http\Controllers\Api\MetaWebhookController;
 use Modules\Whatsapp\Http\Controllers\Api\WhatsmeowWebhookController;
 use Modules\Whatsapp\Http\Controllers\Api\ZapiWebhookController;
@@ -79,4 +80,17 @@ Route::group(['prefix' => 'atendimento/channels'], function () {
             'whatsapp.baileys.backpressure',
         ])
         ->name('atendimento.channels.baileys.webhook');
+});
+
+// US-WA-329 fatia 2 — Instagram Direct e Messenger (Meta Graph) na mesma Caixa Unificada.
+// Endereçado por channel_uuid; assinatura X-Hub-Signature-256 validada no controller com o
+// app secret do canal. Atrás de whatsapp.omnicanal.meta_graph_enabled (desligado = 404).
+Route::group(['prefix' => 'atendimento/channels/meta-graph'], function () {
+    $uuid = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
+    Route::get('/{channel_uuid}', [MetaGraphWebhookController::class, 'verify'])
+        ->where('channel_uuid', $uuid)->middleware('throttle:60,1')
+        ->name('atendimento.channels.meta_graph.verify');
+    Route::post('/{channel_uuid}', [MetaGraphWebhookController::class, 'handle'])
+        ->where('channel_uuid', $uuid)->middleware('throttle:120,1')
+        ->name('atendimento.channels.meta_graph.webhook');
 });

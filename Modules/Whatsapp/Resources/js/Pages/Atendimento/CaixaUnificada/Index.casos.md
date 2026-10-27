@@ -242,6 +242,15 @@ last_run: "2026-10-26"
 
 ---
 
+## UC-CXU-21 · O webhook do Instagram/Messenger só grava o que a Meta assinou, na empresa dona do canal
+- **Persona:** dono da empresa — conectou o Instagram e quer que só o recado verdadeiro chegue, e só na caixa dele.
+- **Aceite:** Dado um canal Instagram ou Messenger ativo com verify token e app secret · Quando a Meta confirma a inscrição e depois envia uma DM assinada · Então a inscrição só confirma com o token do canal, a DM vira conversa da empresa dona do canal, assinatura errada responde 401 sem gravar, reentrega não duplica, e entrada de outra conta ou de outro tipo de objeto é ignorada. Com a flag desligada a rota responde 404.
+- **Teste:** `Modules/Whatsapp/Tests/Feature/MetaGraphWebhookContratoTest.php` — os 4 casos `UC-CXU-21 · US-WA-329 · …` (lane MySQL, tenant 98 × 99).
+- **Regressão que defende:** webhook público aceitando payload forjado, ou gravando na empresa errada por confiar no id do payload em vez do canal da URL.
+- **Status: ⬜** — o veredito vem da lane MySQL do CI.
+
+---
+
 ## Backlog (prosa honesta — sem UC até ganhar teste que o cite)
 
 O charter descreve estes comportamentos e eles existem na tela, mas **não têm teste** hoje —

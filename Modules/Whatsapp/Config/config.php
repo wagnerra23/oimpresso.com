@@ -181,6 +181,15 @@ return [
     ],
 
     /*
+     * US-WA-329 — Instagram Direct, Messenger e e-mail na mesma Caixa Unificada (ADR 0135).
+     * Desligado por padrão: depende do app da Meta aprovado em App Review e da caixa de e-mail,
+     * que são do [W]. Com a flag desligada o webhook responde 404 e nada é gravado.
+     */
+    'omnicanal' => [
+        'meta_graph_enabled' => (bool) env('WHATSAPP_META_GRAPH_INBOX_ENABLED', false),
+    ],
+
+    /*
      * US-WA-326 — régua de relacionamento (aniversário e recompra), só para quem deu opt-in de
      * marketing. Desligada por padrão: ligar em produção é decisão [W]. Cada empresa ainda liga a
      * sua régua em whatsapp_reguas_relacionamento.
