@@ -1,6 +1,6 @@
 ---
 id: resources-js-pages-relatorios-gruposclientes-index-casos
-casos: Grupos de clientes · /reports/customer-group?tela=nova
+casos: Grupos de clientes · /reports/customer-group
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a tela mostra quanto cada grupo comprou; número diferente da Blade ou venda de outro negócio é incidente.
@@ -27,4 +27,12 @@ last_run: "2026-10-07"
 - **Aceite:** Dado as mesmas vendas no negócio 99 · Quando o 98 abre a tela · Então as linhas não mudam · E
   `grupos` e `locais` não trazem nada do 99 · Dado usuário sem `contacts_report.view` · Então 403 na tela nova e
   na Blade.
+- **Status: 🧪**
+
+## UC-RGC-03 · O menu abre a tela nova; a Blade só com `?classico=1` · `must`
+- **Aceite:** Dado o cutover pelo menu (D1 [W] 2026-10-07: por tela, React vira padrão, Blade só com
+  `?classico=1`) · Quando abro `/reports/customer-group` como o menu navega (sem `X-Inertia`) · Então recebo a Page · E a
+  visita Inertia (`X-Inertia` + `X-Requested-With`) também · E `?tela=nova` continua valendo · E com
+  `?classico=1` recebo a Blade · E o JSON do DataTable da Blade (`X-Requested-With`, sem `X-Inertia`) segue
+  respondendo.
 - **Status: 🧪**

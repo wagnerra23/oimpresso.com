@@ -42,3 +42,9 @@ Permissão `contacts_report.view` (a da Blade). Nada de schema.
 ## 5. Falta para o cutover (F5 — decisão [W])
 
 Aprovação do screenshot por [W], o smoke F4 e o aviso ao cliente.
+
+## Cutover pelo menu (2026-10-27)
+
+Por D1 [W] 2026-10-07 (*por tela, React vira padrão, Blade só com `?classico=1`*), `/reports/customer-group` abre a Page sem
+`?tela=nova`. A Blade segue em `?classico=1`; o JSON do DataTable dela (`X-Requested-With`, sem `X-Inertia`) segue no
+ramo `ajax()`. Teste: UC-RGC-03. A Blade sai depois do canário, por PR próprio.

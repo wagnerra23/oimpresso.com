@@ -15,6 +15,8 @@
             @component('components.filters', ['title' => __('report.filters')])
 
               {!! Form::open(['url' => action([\App\Http\Controllers\ReportController::class, 'getCustomerGroup']), 'method' => 'get', 'id' => 'cg_report_filter_form' ]) !!}
+              {{-- Enter num campo submete o formulário: sem isto, cairia na tela React, padrão do endereço. --}}
+              {!! Form::hidden('classico', 1) !!}
                 <div class="col-md-3">
                     <div class="form-group">
                         {!! Form::label('cg_customer_group_id', __( 'lang_v1.customer_group_name' ) . ':') !!}
