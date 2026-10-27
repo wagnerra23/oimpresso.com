@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $nome
  * @property string $email
  * @property string|null $crc
+ * @property string|null $cpf  só dígitos; exigido pelo 0100 da EFD-Contribuições
  * @property int|null $atualizado_por
  */
 class NfeContador extends Model
@@ -23,5 +24,5 @@ class NfeContador extends Model
 
     protected $table = 'nfe_contadores';
 
-    protected $fillable = ['business_id', 'nome', 'email', 'crc', 'atualizado_por'];
+    protected $fillable = ['business_id', 'nome', 'email', 'crc', 'cpf', 'atualizado_por'];
 }

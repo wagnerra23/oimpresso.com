@@ -139,3 +139,31 @@ it('UC-FCFG-09 · papel Contador sem venda, financeiro, cliente ou configuraçã
     $this->post('/fiscal/config/contador', ['nome' => 'Contadora', 'email' => 'c2@contador.test'])->assertSessionHasNoErrors();
     expect($papel->fresh()->permissions->pluck('name')->all())->not->toContain('fiscal.sped.export');
 });
+
+// ---------------------------------------------------------------------------------------
+// UC-FCFG-11 · O CPF do contador é gravado só com dígitos válidos, por empresa  [T0]
+// ---------------------------------------------------------------------------------------
+it('UC-FCFG-11 · CPF do contador: inválido é recusado no campo, válido grava só dígitos', function () {
+    if (! Schema::hasColumn('nfe_contadores', 'cpf')) {
+        $this->markTestSkipped('Migração 2026_10_27_100000 (cpf em nfe_contadores) não rodou.');
+    }
+    $editorA = test()->usuarioComPermissoes(['fiscal.config.edit']);
+    $editorB = test()->usuarioComPermissoes(['fiscal.config.edit'], test()->seededSupportClientTenant());
+    ctdComo($editorA, ctdA());
+
+    // Dígito verificador errado → erro no campo cpf, nada gravado.
+    $this->post('/fiscal/config/contador', ['nome' => 'C', 'email' => 'c@contador.test', 'cpf' => '529.982.247-24'])
+        ->assertSessionHasErrors('cpf');
+    expect(DB::table('nfe_contadores')->where('business_id', ctdA())->count())->toBe(0);
+
+    // Válido com máscara → grava os 11 dígitos.
+    $this->post('/fiscal/config/contador', ['nome' => 'C', 'email' => 'c@contador.test', 'cpf' => '529.982.247-25'])
+        ->assertSessionHasNoErrors();
+    expect(DB::table('nfe_contadores')->where('business_id', ctdA())->value('cpf'))->toBe('52998224725');
+
+    // A empresa vizinha salva o dela sem tocar no da A; em branco vira "sem CPF".
+    ctdComo($editorB, ctdB());
+    $this->post('/fiscal/config/contador', ['nome' => 'B', 'email' => 'b@contador.test', 'cpf' => ''])->assertSessionHasNoErrors();
+    expect(DB::table('nfe_contadores')->where('business_id', ctdB())->value('cpf'))->toBeNull()
+        ->and(DB::table('nfe_contadores')->where('business_id', ctdA())->value('cpf'))->toBe('52998224725');
+});

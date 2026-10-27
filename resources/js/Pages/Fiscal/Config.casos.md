@@ -251,6 +251,22 @@ cliente, não abre configurações da empresa nem `/fiscal/config` (403);
 - **Teste:** `Modules/Fiscal/Tests/Feature/ContadorCadastroTest.php` — `UC-FCFG-09 · papel Contador sem venda, financeiro, cliente ou configuração`.
 - **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
+## UC-FCFG-11 — O CPF do contador é gravado só com dígitos válidos `[must]` `[T0]`
+
+**Dado** o card **Envio de documentos**, com o cadastro do contador
+**Quando** quem tem `fiscal.config.edit` informa o CPF (com ou sem máscara)
+**Então** o cadastro guarda só os 11 dígitos; CPF com dígito verificador errado → erro no campo e nada gravado;
+**E** CPF em branco vira "sem CPF" (a coluna é nullable — quem já tinha contador não quebra);
+**E** a empresa vizinha salva o dela sem tocar no desta.
+
+- **Por quê:** o registro 0100 da EFD-Contribuições exige o CPF do contabilista (Guia Prático v1.35); sem
+  ele o gerador recusa o arquivo (`UC-FCONT-03`).
+- **Contrato:** US-FISCAL-011 · decisão [W] 2026-10-27 ("acrescente o CPF ao cadastro do contador").
+- **Teste:** `ContadorCadastroTest.php` (MySQL) e `CpfContadorTest.php` (sem banco) — `UC-FCFG-11`.
+- **Status:** 🧪 sem veredito de lane ainda.
+
+---
+
 ## UC-FCFG-10 — A contingência é ativada com o modo escolhido `[must]` `[fiscal]`
 
 **Dado** a seção Contingência SEFAZ desligada

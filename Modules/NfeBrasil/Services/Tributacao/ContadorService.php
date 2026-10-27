@@ -6,6 +6,7 @@ namespace Modules\NfeBrasil\Services\Tributacao;
 
 use Illuminate\Support\Facades\Schema;
 use Modules\NfeBrasil\Models\NfeContador;
+use Modules\NfeBrasil\Support\Cpf;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
@@ -41,7 +42,7 @@ class ContadorService
         return NfeContador::query()->where('business_id', $businessId)->first();
     }
 
-    /** @param array{nome: string, email: string, crc?: string|null} $dados */
+    /** @param array{nome: string, email: string, crc?: string|null, cpf?: string|null} $dados */
     public function salvar(int $businessId, array $dados, ?int $userId): NfeContador
     {
         $contador = NfeContador::query()->updateOrCreate(
@@ -50,6 +51,7 @@ class ContadorService
                 'nome'           => trim($dados['nome']),
                 'email'          => trim($dados['email']),
                 'crc'            => isset($dados['crc']) && trim((string) $dados['crc']) !== '' ? trim((string) $dados['crc']) : null,
+                'cpf'            => Cpf::normalizar($dados['cpf'] ?? null),
                 'atualizado_por' => $userId,
             ],
         );

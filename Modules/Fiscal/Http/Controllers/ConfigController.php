@@ -12,6 +12,7 @@ use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Models\NfeCertificado;
 use Modules\NfeBrasil\Services\ModoContingencia;
 use Modules\NfeBrasil\Services\Tributacao\ContadorService;
+use Modules\NfeBrasil\Support\Cpf;
 
 /**
  * Cert/Cfg fiscal — UNIFICADO (sub-página 6 do design KB-9.75).
@@ -151,6 +152,12 @@ class ConfigController extends Controller
             'nome'  => ['required', 'string', 'max:191'],
             'email' => ['required', 'email', 'max:191'],
             'crc'   => ['nullable', 'string', 'max:40'],
+            // CPF do contador: opcional no cadastro, exigido pelo 0100 da EFD-Contribuições.
+            'cpf'   => ['nullable', 'string', 'max:14', function (string $attr, mixed $valor, \Closure $falha) {
+                if (trim((string) $valor) !== '' && Cpf::normalizar((string) $valor) === null) {
+                    $falha('CPF do contador inválido.');
+                }
+            }],
         ]);
 
         $service->salvar((int) $request->session()->get('business.id'), $dados, (int) auth()->id());
@@ -158,13 +165,13 @@ class ConfigController extends Controller
         return back()->with('status', ['success' => 1, 'msg' => 'Contador salvo.']);
     }
 
-    /** @return array{nome: string, email: string, crc: string|null, papel: string}|null */
+    /** @return array{nome: string, email: string, crc: string|null, cpf: string|null, papel: string}|null */
     private function contadorPayload(int $businessId): ?array
     {
         $c = app(ContadorService::class)->doBusiness($businessId);
 
         return $c === null ? null : [
-            'nome' => $c->nome, 'email' => $c->email, 'crc' => $c->crc,
+            'nome' => $c->nome, 'email' => $c->email, 'crc' => $c->crc, 'cpf' => $c->cpf,
             'papel' => ContadorService::nomePapel($businessId),
         ];
     }

@@ -117,6 +117,8 @@ interface Contador {
   nome: string;
   email: string;
   crc: string | null;
+  /** Só dígitos. Exigido pelo registro 0100 da EFD-Contribuições. */
+  cpf: string | null;
   papel: string;
 }
 
@@ -248,10 +250,11 @@ export default function Config({
   });
 
   // Cadastro do contador (thread 15c) → POST /fiscal/config/contador
-  const contadorForm = useForm<{ nome: string; email: string; crc: string }>({
+  const contadorForm = useForm<{ nome: string; email: string; crc: string; cpf: string }>({
     nome: contador?.nome ?? '',
     email: contador?.email ?? '',
     crc: contador?.crc ?? '',
+    cpf: contador?.cpf ?? '',
   });
   const salvarContador = (e: FormEvent) => {
     e.preventDefault();
@@ -629,9 +632,16 @@ export default function Config({
                   value={contadorForm.data.crc}
                   onChange={(e) => contadorForm.setData('crc', e.target.value)}
                 />
-                {(contadorForm.errors.nome || contadorForm.errors.email || contadorForm.errors.crc) && (
+                <Input
+                  aria-label="CPF do contador"
+                  placeholder="CPF (exigido no SPED de PIS/COFINS)"
+                  inputMode="numeric"
+                  value={contadorForm.data.cpf}
+                  onChange={(e) => contadorForm.setData('cpf', e.target.value)}
+                />
+                {(contadorForm.errors.nome || contadorForm.errors.email || contadorForm.errors.crc || contadorForm.errors.cpf) && (
                   <small role="alert" style={{ color: 'var(--bad)' }}>
-                    {contadorForm.errors.nome || contadorForm.errors.email || contadorForm.errors.crc}
+                    {contadorForm.errors.nome || contadorForm.errors.email || contadorForm.errors.crc || contadorForm.errors.cpf}
                   </small>
                 )}
                 <div>
