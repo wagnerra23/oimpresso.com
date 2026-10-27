@@ -3,7 +3,7 @@ slug: 0443-nuvemshop-entra-no-marketplaces-como-driver
 number: 443
 title: "Nuvemshop entra no Modules/Marketplaces como segundo canal, não no Woocommerce"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
@@ -30,7 +30,9 @@ review_triggers:
 
 # ADR 0443 — Nuvemshop entra no `Modules/Marketplaces` como segundo canal
 
-> **Proposta.** A ratificação é do [W], no merge desta ADR.
+> **Ratificada por [W] em 2026-10-27:** "Ratifico a ADR 0443: a Nuvemshop entra no Marketplaces.
+> Pode seguir com as fatias." Ficam abertas, para decisão do [W], o `customers/redact` (seção LGPD)
+> e o antes → depois da fatia c (regra mestre de valor e estoque).
 
 ## Contexto
 

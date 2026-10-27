@@ -7,7 +7,7 @@
 ## Resumo
 - **448** arquivos · **433** números únicos · máx **0443**
 - **ADRs ATIVOS (lifecycle ativo): 401** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 386 · superseded 27 · proposto 21 · deprecated 11 · recusado 2 · rascunho 1
+- Por status: aceito 387 · superseded 27 · proposto 20 · deprecated 11 · recusado 2 · rascunho 1
 - Por lifecycle: ativo 401 · substituido 27 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
@@ -486,4 +486,4 @@ _(nenhuma)_
 | 0440 | proposto | ativo | decision | A Jana propõe a ação, o usuário confirma, e só então o sistema grava |
 | 0441 | proposto | ativo | decision | O funil de vendas (negócios em kanban) sai da depreciação do pipeline CRM |
 | 0442 | aceito | ativo | decision | IBS/CBS automático para todo emissor do regime normal (CRT 3) — emenda a 0321 |
-| 0443 | proposto | ativo | decision | Nuvemshop entra no Modules/Marketplaces como segundo canal, não no Woocommerce |
+| 0443 | aceito | ativo | decision | Nuvemshop entra no Modules/Marketplaces como segundo canal, não no Woocommerce |
