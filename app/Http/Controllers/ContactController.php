@@ -3100,7 +3100,7 @@ class ContactController extends Controller
             $mpdf->Output($output_file_name, 'I');
 
             // O mPDF já escreveu o PDF; antes o Blade do extrato era anexado depois dele.
-            return null;
+            return response('');
         }
 
         // Cutover F5 (2026-10-27): só React fora do PDF (chave cliente_ledger ligada para todas as

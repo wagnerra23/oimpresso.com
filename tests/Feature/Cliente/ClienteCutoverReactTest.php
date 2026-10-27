@@ -32,7 +32,12 @@ beforeEach(function () {
     ]);
 
     $this->actingAs($this->user);
-    session(['user.business_id' => $this->business->id, 'business.id' => $this->business->id]);
+    session([
+        'user.business_id' => $this->business->id,
+        'business.id' => $this->business->id,
+        // getLedgerDetails formata valores com num_f, que lê a moeda da sessão (sem ela: 500).
+        'currency' => ['id' => 1, 'code' => 'BRL', 'symbol' => 'R$', 'thousand_separator' => '.', 'decimal_separator' => ','],
+    ]);
 });
 
 test('UC-CCRE-04 — abrir o cadastro de contato serve a tela React mesmo com a chave desligada', function () {
