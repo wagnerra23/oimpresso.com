@@ -55,7 +55,7 @@ lente: [construir]
 | Superadmin | [BRIEFING](../requisitos/Superadmin/BRIEFING.md) | 2026-08-11 |
 | Vestuario | [BRIEFING](../requisitos/Vestuario/BRIEFING.md) | 2026-07-28 |
 | VozDoCliente | [BRIEFING](../requisitos/VozDoCliente/BRIEFING.md) | 2026-10-13 |
-| Whatsapp | [BRIEFING](../requisitos/Whatsapp/BRIEFING.md) | 2026-10-26 |
+| Whatsapp | [BRIEFING](../requisitos/Whatsapp/BRIEFING.md) | 2026-10-27 |
 | Woocommerce | [BRIEFING](../requisitos/Woocommerce/BRIEFING.md) | 2026-08-11 |
 
 ## Camada de IA
