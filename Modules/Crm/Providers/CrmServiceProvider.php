@@ -190,6 +190,7 @@ class CrmServiceProvider extends ServiceProvider
             \Modules\Crm\Console\SendScheduleNotification::class,
             \Modules\Crm\Console\CreateRecursiveFollowup::class,
             \Modules\Crm\Console\Commands\CrmHealthCommand::class,
+            \Modules\Crm\Console\Commands\EnviarPesquisaNpsCommand::class,
         ]);
     }
 
@@ -222,6 +223,8 @@ class CrmServiceProvider extends ServiceProvider
                 $schedule = $this->app->make(Schedule::class);
                 $schedule->command('pos:sendScheduleNotification')->everyMinute();
                 $schedule->command('pos:createRecursiveFollowup')->daily();
+                // US-CRM-097 — NPS pós-venda/OS; não faz nada com CRM_NPS_ENABLED desligado.
+                $schedule->command('crm:nps-enviar')->dailyAt('10:00');
             });
         }
     }

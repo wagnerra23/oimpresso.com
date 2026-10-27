@@ -636,3 +636,23 @@ _Aprovação pendente: Wagner via ADR `memory/decisions/proposals/drafts/crm-pre
 4. `PATCH /crm/funil/{id}/etapa` exige `crm.funil.editar`: grava a transição (de, para, razão, quando) pelo `DealPipelineService`; ganho/perdido não mudam de etapa; negócio de outra empresa dá 404.
 5. Resumo (prop deferida) por etapa e previsão ponderada do mês, só com negócios da empresa.
 6. Tela kanban (PT-05) em `Modules/Crm/Resources/js/Pages/Crm/Funil/Index.tsx`, ancorada no protótipo `prototipo-ui/cowork/Felipe/erp-shell-v2/crm-page.jsx` — PR seguinte.
+
+### US-CRM-097 · NPS pós-venda e pós-OS — nota 0-10 pelo WhatsApp e painel das respostas
+
+**Implementado em:** `Modules/Crm/Services/Nps/PesquisaNps.php` · `Modules/Crm/Console/Commands/EnviarPesquisaNpsCommand.php` · `Modules/Crm/Database/Migrations/2026_10_27_130000_create_crm_nps_pesquisas_table.php`
+
+**Testado em:** `Modules/Crm/Tests/Feature/CrmNpsContratoTest.php`
+
+> owner: — · priority: p2 · estimate: 10h · type: story
+> blocked_by: —
+
+**Origem:** lacuna P2 do levantamento de concorrência de 2026-10-25 (frente CRM: NPS pós-venda). Destravada por [W] em 2026-10-27. **Não substitui** a pesquisa de satisfação da entrega (US-SELL-071, CSAT 1-5 por venda): o NPS pergunta "recomendaria?" sobre o relacionamento, cobre também a OS do Repair e vai no máximo uma vez a cada 90 dias por cliente. O `Modules/VozDoCliente` não faz parte: ele registra dor relatada por **usuário do sistema**, não pesquisa com o cliente final.
+
+**Critérios de aceite:**
+1. Flag `CRM_NPS_ENABLED` desligada (padrão): `crm:nps-enviar` não envia nada. Agendado diariamente às 10:00 no ambiente `live`.
+2. Venda (`transactions` em `delivered`/`completed`) ou OS (`repair_job_sheets` em `entregue_completo`) entregue nos últimos 7 dias, com cliente, recebe uma pesquisa (`crm_nps_pesquisas`, uma por origem, até 20 por empresa por execução). Venda ou OS de outra empresa nunca entra.
+3. Um cliente recebe no máximo uma pesquisa a cada 90 dias.
+4. Envio pelo contrato `App\Contracts\Atendimento\AvisaClienteWhatsapp` (o Modules/Whatsapp implementa sobre o notificador da US-WA-319, que confere consentimento e celular), com o link `/nps/{token}` (token de 40 caracteres, único). Sem o contrato ligado ou recusado pelo canal: `nao_enviado` com o motivo.
+5. Resposta 0-10 com comentário opcional: só a primeira vale; nota fora da escala ou token desconhecido são recusados. A empresa vem da linha do token, nunca de quem responde.
+6. Resumo por empresa e período: promotores (9-10), neutros (7-8), detratores (0-6) e NPS = % promotores − % detratores.
+7. Página pública de resposta e painel das respostas: PR seguinte, com protótipo em `prototipo-ui/`.
