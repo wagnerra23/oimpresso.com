@@ -39,6 +39,7 @@ Devolver item de uma venda: quanto volta pro estoque e quanto vira saldo a pagar
 - R5 A tela envia os campos como o form Blade envia (texto no formato da empresa) e não
   recalcula nada no servidor: a regra de cálculo é a de `TransactionUtil::addSellReturn`.
 - R6 Venda de outra empresa não abre (404) e não pode ser devolvida pelo POST (ADR 0093).
+- R7 Pagamento ao cliente ([W] 2026-10-26): "Pagar depois" (padrão, como hoje) ou "Vale-troca". O vale só existe para cliente cadastrado — o Cliente padrão é de todos. O `store()` segue intacto: o vale é pedido depois de salvar, pela venda (`POST /sell-return/vale-troca-da-venda/{venda}`).
 
 ## Fora desta tela (do texto revisado, não implementado)
 
@@ -47,7 +48,7 @@ Devolver item de uma venda: quanto volta pro estoque e quanto vira saldo a pagar
 
 ## Non-goals
 
-- ❌ Não estornar pagamento aqui (é do Financeiro).
+- ❌ Não estornar pagamento aqui (é do Financeiro). **Vale-troca não é estorno** ([W] 2026-10-26): ao salvar, a tela pode pagar o cliente com vale-troca — o que falta pagar da devolução vira saldo de Adiantamento do cliente (US-VEST-021). Nada sai do caixa.
 - ❌ Não mudar `store()` nem `addSellReturn()` — esta tela só troca a forma, não a regra.
 - ❌ Não usar o termo "estorno" para devolução (`memory/dominio/vendas.md`).
 

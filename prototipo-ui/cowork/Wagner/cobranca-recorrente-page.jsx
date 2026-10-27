@@ -43,11 +43,11 @@
 
   // ── mock domínio gráfica (contratos recorrentes) ───────────────
   const SUBS = [
-  { id: "AS-1042", client: "Padaria Pão Quente", cnpj: "12.448.770/0001-22", plan: "Sinalização Mensal", cycle: "mensal", since: "2024-08-12", method: "pix", status: "em_dia", retry: null, nextAt: "2026-06-10", nextValue: 450, paid: 22, missed: 0, ltv: 9900, fiscal: "nfse", nf: "NFS-e 1188", os: "OS-3307", fav: true, contact: { name: "Dona Marli", phone: "(11) 99632-1180", email: "marli@paoquente.com.br" }, note: null },
+  { id: "AS-1042", client: "Padaria Pão Quente", cnpj: "12.448.770/0001-22", plan: "Sinalização Mensal", cycle: "mensal", since: "2024-08-12", method: "pix", status: "em_dia", retry: null, nextAt: "2026-06-10", nextValue: 450, paid: 22, missed: 0, ltv: 9900, fiscal: "nfse", nf: "NFS-e 1188", os: "OS-3307", fav: true, contact: { name: "Dona Marli", phone: "(11) 99632-1180", email: "marli@paoquente.com.br" }, note: null, pixAuto: { status: "APROVADA" } },
   { id: "AS-1051", client: "Auto Posto Trevo", cnpj: "08.911.332/0001-09", plan: "Adesivos Frota Mensal", cycle: "mensal", since: "2025-02-03", method: "boleto", status: "retentando", retry: 1, nextAt: "2026-06-05", nextValue: 680, paid: 15, missed: 1, ltv: 10200, fiscal: "nfe", nf: "NFe 4471", os: "OS-3312", fav: false, contact: { name: "Cláudio Reis", phone: "(11) 98115-4420", email: "financeiro@postotrevo.com.br" }, note: "Boleto venceu — cliente pediu 2ª via no WhatsApp." },
   { id: "AS-1063", client: "Restaurante Sabor Caseiro", cnpj: "21.005.118/0001-77", plan: "Impressão Trimestral", cycle: "trimestral", since: "2024-11-20", method: "card", status: "em_dia", retry: null, nextAt: "2026-07-20", nextValue: 1200, paid: 6, missed: 0, ltv: 7200, fiscal: "nfe", nf: "NFe 4402", os: null, fav: false, contact: { name: "Sr. Antônio", phone: "(11) 97744-3301", email: "antonio@saborcaseiro.com.br" }, note: null },
   { id: "AS-1070", client: "Academia CorpoForte", cnpj: "33.671.904/0001-50", plan: "Sinalização Mensal", cycle: "mensal", since: "2025-01-15", method: "boleto", status: "falhou", retry: 3, nextAt: "2026-05-28", nextValue: 450, paid: 13, missed: 3, ltv: 5850, fiscal: "nfse", nf: null, os: "OS-3290", fav: true, contact: { name: "Renata Lima", phone: "(11) 99280-7765", email: "renata@corpoforte.com.br" }, note: "3 tentativas sem sucesso. Avaliar suspensão." },
-  { id: "AS-1088", client: "Clínica Vida", cnpj: "45.220.661/0001-18", plan: "Manutenção Fachada Anual", cycle: "anual", since: "2024-03-01", method: "pix", status: "em_dia", retry: null, nextAt: "2027-03-01", nextValue: 3600, paid: 2, missed: 0, ltv: 7200, fiscal: "nfse", nf: "NFS-e 1102", os: "OS-3155", fav: false, contact: { name: "Dra. Helena", phone: "(11) 98870-2244", email: "adm@clinicavida.com.br" }, note: null },
+  { id: "AS-1088", client: "Clínica Vida", cnpj: "45.220.661/0001-18", plan: "Manutenção Fachada Anual", cycle: "anual", since: "2024-03-01", method: "pix", status: "em_dia", retry: null, nextAt: "2027-03-01", nextValue: 3600, paid: 2, missed: 0, ltv: 7200, fiscal: "nfse", nf: "NFS-e 1102", os: "OS-3155", fav: false, contact: { name: "Dra. Helena", phone: "(11) 98870-2244", email: "adm@clinicavida.com.br" }, note: null, pixAuto: { status: "CRIADA", copiaCola: "00020126180014br.gov.bcb.pix2558pix.exemplo.com/qr/v2/rec/AS-1088" } },
   { id: "AS-1094", client: "Mercado União", cnpj: "55.118.022/0001-31", plan: "Adesivos Frota Mensal", cycle: "mensal", since: "2024-09-09", method: "boleto", status: "retentando", retry: 2, nextAt: "2026-06-03", nextValue: 680, paid: 19, missed: 2, ltv: 12920, fiscal: "nfe", nf: "NFe 4468", os: null, fav: false, contact: { name: "Jair Souza", phone: "(11) 99044-1199", email: "jair@mercadouniao.com.br" }, note: null },
   { id: "AS-1101", client: "Escola Saber", cnpj: "60.337.481/0001-04", plan: "Impressão Trimestral", cycle: "trimestral", since: "2024-06-18", method: "boleto", status: "pausada", retry: null, nextAt: null, nextValue: 1200, paid: 7, missed: 0, ltv: 8400, fiscal: "nfe", nf: "NFe 4310", os: null, fav: false, contact: { name: "Coord. Paula", phone: "(11) 97331-8800", email: "paula@escolasaber.com.br" }, note: "Pausado nas férias escolares (jun–jul)." },
   { id: "AS-1109", client: "Farmácia Bem-Estar", cnpj: "71.992.150/0001-66", plan: "Sinalização Mensal", cycle: "mensal", since: "2025-03-22", method: "pix", status: "em_dia", retry: null, nextAt: "2026-06-02", nextValue: 450, paid: 11, missed: 0, ltv: 4950, fiscal: "nfse", nf: "NFS-e 1179", os: "OS-3321", fav: false, contact: { name: "Bruno Tavares", phone: "(11) 98220-5512", email: "bruno@bemestar.com.br" }, note: null },
@@ -207,6 +207,44 @@
 
   }
 
+  // Pix Automático do BCB (US-RB-020 · decisão [W] 2026-10-26): o cliente aprova uma vez no app do
+  // banco pelo QR; depois cada fatura é cobrada sozinha de 10 a 2 dias antes do vencimento.
+  // Estados = status da recorrência na API Pix (sem mandato · CRIADA · APROVADA · REJEITADA/EXPIRADA/CANCELADA).
+  function PixAutoCard({ sub }) {
+    const [mandato, setMandato] = useState(sub.pixAuto || null);
+    const [copiado, setCopiado] = useState(false);
+    const status = mandato ? mandato.status : null;
+    const pedir = () => setMandato({ status: "CRIADA", copiaCola: "00020126180014br.gov.bcb.pix2558pix.exemplo.com/qr/v2/rec/" + sub.id });
+    const copiar = () => {navigator.clipboard && navigator.clipboard.writeText(mandato.copiaCola);setCopiado(true);setTimeout(() => setCopiado(false), 1500);};
+    const texto = {
+      CRIADA: "Aguardando o cliente aprovar no app do banco.",
+      APROVADA: "Autorizado. Cada fatura é cobrada sozinha, de 10 a 2 dias antes do vencimento.",
+      REJEITADA: "O cliente recusou a autorização.",
+      EXPIRADA: "A autorização expirou sem resposta do cliente.",
+      CANCELADA: "A autorização foi cancelada."
+    };
+    return (
+      <div className="cr-card" data-contract="pix-automatico">
+        <div className="cr-blk-label">Pix Automático</div>
+        <div style={{ fontSize: 12.5, color: "var(--text-dim)", marginTop: 5 }}>
+          {status ? texto[status] : "Cobrança automática por Pix: o cliente autoriza uma vez no app do banco."}
+        </div>
+        {status === "CRIADA" &&
+        <div style={{ display: "flex", gap: 12, alignItems: "flex-start", marginTop: 10 }}>
+            <div role="img" aria-label="QR Code da autorização" style={{ width: 96, height: 96, flex: "none", border: "1px solid var(--border)", borderRadius: 6, display: "grid", placeItems: "center", fontSize: 10.5, color: "var(--text-mute)" }}>QR</div>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ fontFamily: "ui-monospace,monospace", fontSize: 11, color: "var(--text-dim)", wordBreak: "break-all" }}>{mandato.copiaCola}</div>
+              <button className="cr-act" style={{ marginTop: 8 }} onClick={copiar}><I.copy size={12} /> {copiado ? "Copiado!" : "Copiar Pix copia e cola"}</button>
+            </div>
+          </div>
+        }
+        {(!status || ["REJEITADA", "EXPIRADA", "CANCELADA"].includes(status)) &&
+        <button className="cr-act" style={{ marginTop: 10 }} onClick={pedir}><I.refresh size={12} /> {status ? "Pedir nova autorização" : "Pedir autorização"}</button>
+        }
+      </div>);
+
+  }
+
   function PaymentHeat({ paid, missed }) {
     const cells = useMemo(() => {
       return Array.from({ length: 12 }, (_, i) => {
@@ -319,6 +357,8 @@
                   {sub.nf && <button className="cr-act" title={`Reenviar ${sub.nf} por e-mail/WhatsApp`}><I.send size={12} /> Reenviar</button>}
                 </div>
               </div>
+
+              {!inactive && <PixAutoCard sub={sub} />}
 
               <div>
                 <div className="cr-blk-label">Notas &amp; eventos</div>
