@@ -26,7 +26,7 @@
 | [`ComunicacaoVisual`](#comunicacaovisual) | 22 | 0 | 0 | 0 | 22 |
 | [`Fiscal`](#fiscal) | 22 | 0 | 0 | 0 | 22 |
 | [`Connector`](#connector) | 20 | 0 | 0 | 0 | 19 |
-| [`Vestuario`](#vestuario) | 20 | 0 | 0 | 0 | 20 |
+| [`Vestuario`](#vestuario) | 20 | 1 | 0 | 0 | 19 |
 | [`Forja`](#forja) | 19 | 0 | 1 | 0 | 7 |
 | [`Mwart`](#mwart) | 19 | 0 | 0 | 0 | 19 |
 | [`Ponto`](#ponto) | 18 | 0 | 0 | 0 | 18 |
@@ -893,9 +893,12 @@
 ## Vestuario
 
 
-### todo
+### doing
 
 - **US-VEST-021** — Devolução/troca com prazo CDC + crédito em conta-cliente `p0` _(`p0`)_
+
+### todo
+
 - **US-VEST-022** — Comissão de vendedor (% sobre venda + meta) `p1` _(`p1`)_
 - **US-VEST-023** — Liquidação por categoria/marca/estação (desconto em massa) `p1` _(`p1`)_
 - **US-VEST-024** — Programa fidelidade (R$ [redacted Tier 0] = 1 ponto) com resgate em desconto `p1` _(`p1`)_
