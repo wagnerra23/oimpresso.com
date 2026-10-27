@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 use Modules\Fiscal\Services\Sped\EfdIcmsIpiLeiaute;
+use Modules\Fiscal\Services\Sped\EmitenteSped;
+use Modules\NfeBrasil\Support\CnpjDoEmitente;
 use Modules\NfeBrasil\Exceptions\NcmObrigatorioException;
 use Modules\NfeBrasil\Exceptions\TributacaoNaoConfiguradaException;
 use Modules\NfeBrasil\Models\NfeEmissao;
@@ -119,7 +121,16 @@ class SpedIcmsIpiGeneratorService
 
         $periodoIni = CarbonImmutable::create($ano, $mes, 1)->startOfMonth();
         $periodoFim = $periodoIni->endOfMonth();
+        // ⚠️ $ufBusiness segue a regra antiga de propósito: ele decide CFOP e alíquota do C170/C190,
+        // e trocá-lo muda valor fiscal (regra-mestre de proibicoes.md — fatia própria, com
+        // antes→depois aprovado). Nesta fatia só a IDENTIFICAÇÃO (0000/0005) muda de fonte.
         $ufBusiness = strtoupper((string) ($business->state ?? 'SP'));
+        $emitente = EmitenteSped::de(
+            $business,
+            $this->resolverCnpj($businessId),
+            $this->carregarUfDoEstabelecimento($businessId),
+            $this->carregarCodigoMunicipio($business),
+        );
 
         $emissoes = $this->carregarEmissoes($businessId, $periodoIni, $periodoFim);
 
@@ -127,9 +138,9 @@ class SpedIcmsIpiGeneratorService
         $linhas = [];
 
         // ── Bloco 0: Abertura + cadastros ────────────────────────────────
-        $linhas[] = $this->registro0000($business, $periodoIni, $periodoFim);
+        $linhas[] = $this->registro0000($emitente, $periodoIni, $periodoFim);
         $linhas[] = $this->registro0001(0); // Guia 3.2.3: valor válido só [0]
-        $linhas[] = $this->registro0005($business);
+        $linhas[] = $this->registro0005($emitente);
 
         // 0150: Tabela de participantes (destinatários únicos das NFes)
         $participantes = $this->extrairParticipantes($emissoes);
@@ -258,6 +269,28 @@ class SpedIcmsIpiGeneratorService
     protected function carregarBusiness(int $businessId): ?object
     {
         return DB::table('business')->where('id', $businessId)->first();
+    }
+
+    /** Mesmo dono do CNPJ que a manifestação usa (certificado → business.cnpj → tax_number_1). */
+    protected function resolverCnpj(int $businessId): ?string
+    {
+        return CnpjDoEmitente::resolver($businessId);
+    }
+
+    /** UF crua da primeira location — a mesma que `NfeService::resolverUF` lê para a NF-e. */
+    protected function carregarUfDoEstabelecimento(int $businessId): ?string
+    {
+        return DB::table('business_locations')->where('business_id', $businessId)->orderBy('id')->value('state');
+    }
+
+    /** IBGE do município pela mesma fonte do `cMun` da NF-e (`cidades.officeimpresso_codigo`). */
+    protected function carregarCodigoMunicipio(object $business): ?string
+    {
+        if (empty($business->cidade_id)) {
+            return null;
+        }
+
+        return DB::table('cidades')->where('id', $business->cidade_id)->value('officeimpresso_codigo');
     }
 
     /** NF-e autorizadas do período (saídas — modelo 55/65), sempre do business pedido. */
@@ -423,21 +456,23 @@ class SpedIcmsIpiGeneratorService
         $this->contadores[$reg] = ($this->contadores[$reg] ?? 0) + 1;
     }
 
-    private function registro0000(object $business, CarbonImmutable $ini, CarbonImmutable $fim): string
+    private function registro0000(EmitenteSped $emitente, CarbonImmutable $ini, CarbonImmutable $fim): string
     {
+        // Guia Prático v3.2.3, registro 0000: REG, COD_VER, COD_FIN, DT_INI, DT_FIN, NOME, CNPJ,
+        // CPF, UF, IE, COD_MUN, IM, SUFRAMA, IND_PERFIL, IND_ATIV. Antes o SUFRAMA levava a UF.
         return $this->linha('0000', [
             EfdIcmsIpiLeiaute::codVer((int) $ini->format('Y')),
             '0',
             $ini->format('dmY'),
             $fim->format('dmY'),
-            mb_strtoupper(substr((string) ($business->name ?? ''), 0, 100)),
-            preg_replace('/\D/', '', (string) ($business->tax_number ?? '')),
+            $emitente->nome,
+            $emitente->cnpj,
             '',
-            strtoupper((string) ($business->state ?? 'SP')),
-            (string) ($business->inscricao_estadual ?? ''),
-            $this->codigoIbgeMunicipio($business),
+            $emitente->uf,
+            $emitente->ie,
+            $emitente->codMun,
             '',
-            (string) ($business->state ?? 'SP'),
+            '',
             'A',
             '1',
         ]);
@@ -448,17 +483,20 @@ class SpedIcmsIpiGeneratorService
         return $this->linha('0001', [(string) $indMov]);
     }
 
-    private function registro0005(object $business): string
+    private function registro0005(EmitenteSped $emitente): string
     {
+        // Guia Prático v3.2.3, registro 0005: REG, FANTASIA, CEP, END, NUM, COMPL, BAIRRO, FONE,
+        // FAX, EMAIL. Antes NUM levava a cidade e COMPL a UF.
         return $this->linha('0005', [
-            mb_strtoupper(substr((string) ($business->name ?? ''), 0, 100)),
-            (string) ($business->zip_code ?? '00000000'),
-            substr((string) ($business->landmark ?? 'NAO INFORMADO'), 0, 60),
-            (string) ($business->city ?? ''),
-            (string) ($business->state ?? ''),
-            (string) ($business->mobile ?? ''),
-            (string) ($business->email ?? ''),
+            $emitente->fantasia,
+            $emitente->cep,
+            $emitente->logradouro,
+            $emitente->numero,
             '',
+            $emitente->bairro,
+            $emitente->fone,
+            '',
+            $emitente->email,
         ]);
     }
 
@@ -785,30 +823,5 @@ class SpedIcmsIpiGeneratorService
     private function keyTotalizadorC190(NfeEmissao $e, array $tributo): string
     {
         return sprintf('%s|%s|%.4f', $tributo['cst'], $tributo['cfop'], $tributo['aliq_icms']);
-    }
-
-    /**
-     * COD_MUN IBGE — placeholder UF+0000 enquanto integração com
-     * `business.city_id` (lookup tabela IBGE) não chegou. Audit sênior
-     * GAP-3 catalogou como hardcode Tier-0; PVA-EFD CONFAZ aceita placeholder
-     * em homologação mas rejeita em produção pra business com endereço
-     * preenchido. Wave futura: lookup completo via Modules/Geo/Municipio.
-     */
-    private function codigoIbgeMunicipio(object $business): string
-    {
-        $uf = strtoupper((string) ($business->state ?? 'SP'));
-        return $this->codigoIbgeUf($uf) . '0000';
-    }
-
-    private function codigoIbgeUf(string $uf): string
-    {
-        return [
-            'AC' => '12', 'AL' => '27', 'AP' => '16', 'AM' => '13', 'BA' => '29',
-            'CE' => '23', 'DF' => '53', 'ES' => '32', 'GO' => '52', 'MA' => '21',
-            'MT' => '51', 'MS' => '50', 'MG' => '31', 'PA' => '15', 'PB' => '25',
-            'PR' => '41', 'PE' => '26', 'PI' => '22', 'RJ' => '33', 'RN' => '24',
-            'RS' => '43', 'RO' => '11', 'RR' => '14', 'SC' => '42', 'SP' => '35',
-            'SE' => '28', 'TO' => '17',
-        ][strtoupper($uf)] ?? '35';
     }
 }

@@ -2,12 +2,11 @@
 
 declare(strict_types=1);
 
-use Carbon\CarbonImmutable;
-use Illuminate\Support\Collection;
 use Modules\Fiscal\Services\Sped\EfdIcmsIpiLeiaute;
-use Modules\Fiscal\Services\SpedIcmsIpiGeneratorService;
 
 uses(Tests\TestCase::class);
+
+require_once __DIR__.'/../Support/sped-sem-banco.php';
 
 /**
  * US-FISCAL-028 fatia 1 — estrutura do arquivo EFD-ICMS/IPI conforme o leiaute oficial.
@@ -19,34 +18,6 @@ uses(Tests\TestCase::class);
  * Roda o gerador INTEIRO, sem banco: só a leitura (business + NF-e) é trocada por um
  * tenant fictício 98 em memória. Tudo que sai no TXT passa pelo código de produção.
  */
-function spedSemBanco(array $emissoes = []): SpedIcmsIpiGeneratorService
-{
-    return new class($emissoes) extends SpedIcmsIpiGeneratorService {
-        public function __construct(private array $fake)
-        {
-            parent::__construct(null);
-        }
-
-        protected function carregarBusiness(int $businessId): ?object
-        {
-            return (object) ['id' => $businessId, 'name' => 'CI TENANT 98 (FICTICIO)', 'state' => 'SC'];
-        }
-
-        protected function carregarEmissoes(int $businessId, CarbonImmutable $ini, CarbonImmutable $fim): Collection
-        {
-            return collect($this->fake);
-        }
-    };
-}
-
-/** @return list<list<string>> campos de cada linha, sem os pipes das pontas */
-function camposSped(string $txt): array
-{
-    $linhas = array_values(array_filter(explode("\r\n", $txt), fn ($l) => $l !== ''));
-
-    return array_map(fn ($l) => explode('|', substr($l, 1, -1)), $linhas);
-}
-
 it('UC-FSPED-11 · COD_VER do 0000 segue a tabela 3.1.1 da NT 2025.001 pelo ano do período', function () {
     expect(camposSped(spedSemBanco()->gerar(98, 2025, 1))[0])->toMatchArray([0 => '0000', 1 => '019'])
         ->and(camposSped(spedSemBanco()->gerar(98, 2026, 1))[0])->toMatchArray([0 => '0000', 1 => '020']);

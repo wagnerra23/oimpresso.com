@@ -200,6 +200,23 @@ dados (`K010` só existe com `K001`=0) e o Bloco 1 traz `1001`=0 com o `1010` de
 ⚠️ Os 13 indicadores do `1010` saem `N` até o contador decidir — ver perguntas abertas na US-FISCAL-028.
 **Pronto quando:** os indicadores de abertura batem com o Guia num mês vazio.
 
+## UC-FSPED-15 — O emitente do 0000/0005 vem das mesmas fontes da NF-e
+Status: 🧪 (`SpedEmitenteTest::UC-FSPED-15` — 3 casos, rodam sem banco)
+Dado um emitente completo · Então o `0000` traz razão social, CNPJ, UF, IE e COD_MUN nos campos do
+Guia v3.2.3 (o SUFRAMA deixa de receber a UF) e o `0005` põe CEP, logradouro, número e bairro cada
+um no seu campo (antes NUM levava a cidade e COMPL a UF). Fontes: as do grupo `emit` da NF-e —
+`CnpjDoEmitente`, `business.ie/razao_social/rua/numero/bairro/cep`, `business_locations.state` (nome
+por extenso vira sigla) e `cidades.officeimpresso_codigo`. Âncora: proposta 2026-09-04 §5.1.
+**Pronto quando:** o TXT identifica o mesmo emitente das notas.
+
+## UC-FSPED-16 — Emitente incompleto recusa o arquivo em vez de inventar
+Status: 🧪 (`SpedEmitenteTest::UC-FSPED-16`)
+Dado CNPJ zerado, IE padrão, UF irreconhecível, município sem código IBGE ou endereço em branco ·
+Quando o arquivo é gerado · Então ele é **recusado** com a lista do que falta — nunca sai com `SP`,
+`9999999` ou CNPJ de zeros. Âncora: proposta 2026-09-04 §5.3 ("o fallback 'SP' deve morrer").
+⚠️ A UF que decide CFOP/alíquota no bloco C **não** mudou nesta fatia (valor fiscal — regra-mestre).
+**Pronto quando:** cada falta reprova com o nome do campo.
+
 ## UC-FSF1-03 — Competência em aberto é recusada antes de qualquer query
 Status: 🧪 (`SpedOndaF1Test` — 10 casos: 4 sobre a guarda do Service + 6 sobre a régua da tela. **14 passed (182 assertions)** medidos no CT 100 em 2026-09-03; o manifesto do G-7 é alimentado pelas lanes de CI, não por rodada local — daí 🧪 e não ✅)
 Dado uma competência cujo mês ainda não terminou · Quando alguém pede a geração — pela tela ou
