@@ -616,3 +616,65 @@ Then deve receber 403 Forbidden
 **Refs:** US-FISCAL-021 · [ADR 0321](../../decisions/0321-pin-sped-nfe-dev-master-ibs-cbs.md) · ADR ARQ-0004 · NT 2025.002 (grupo UB IBSUF/IBSMun).
 
 > **Nota Passo 2:** cap #8/#14 (cache KPIs + índice palette) **NÃO** virou US — já entregue em **US-FISCAL-019** (✅ done, GAP-FISCAL-002 fechado). US-FISCAL-023 gerada por engano foi descartada antes de persistir (dedup falhou pq `tasks-list` default só lista ativas).
+
+## Lacunas do levantamento de 2026-10-25 (frente Fiscal) — registradas em 2026-10-26
+
+> Origem: comparação com concorrentes (8 análises, commit `a8d85ae42d`), re-medida no `main` de 2026-10-26.
+> Os itens que viraram código têm US no SPEC do NfeBrasil: US-NFE-072 (ST/DIFAL, PRs #9828/#9841),
+> US-NFE-073 (XML ao contador, #9847), US-NFE-064 (rota da devolução, #9851) e R-NFE-040 (#9861).
+> EFD-Contribuições já é a US-FISCAL-011; CT-e/MDF-e da entrega da gráfica já é a US-COMVIS-016.
+
+### US-FISCAL-025 · IBS/CBS na NF-e de todo emissor do regime normal — **Legal**
+
+> owner: — · priority: p0 · estimate: 4h · status: todo · type: story
+> blocked_by: — ([W] 2026-10-26: ligar automático para todo CRT 3, por ADR nova que emenda a 0321)
+
+**Implementado em:** _pendente_ — hoje o grupo UB só sai com `nfe_business_configs.reforma_tributaria_modo` em `full`/`hybrid_2026` (`NfeService::schemaReforma`).
+
+Como empresa do regime normal, quero que a NF-e leve o grupo IBS/CBS sem eu ter de ligar nada, porque o preenchimento é obrigatório para fatos geradores desde 03/08/2026 (Ato Conjunto RFB/CGIBS nº 4/2026; a rejeição UB12-10 segue suspensa desde a NT 2025.002 v1.51, sem nova data).
+
+**Aceite:** CRT 3 usa o schema PL_010 por padrão (o `legacy` deixa de valer para regime normal); o grupo sai quando a regra tem CST IBS/CBS e cClassTrib; a Saúde fiscal aponta a regra do regime normal sem CST IBS/CBS; Simples segue sem grupo até 2027. Em produção não há emissor CRT 3 hoje (medido 26/10).
+
+### US-FISCAL-026 · IBS/CBS na DPS da NFS-e nacional — **Legal**
+
+> owner: — · priority: p1 · estimate: 6h · status: todo · type: story
+> blocked_by: o contador informar CST, cClassTrib e o indicador de operação (cIndOp) do serviço
+
+**Implementado em:** _pendente_ — `Modules/NFSe/Adapters/SnNfseAdapter.php::buildDps` não monta o grupo `IBSCBS` (o XSD v1.01 do repo já o tem, `tiposComplexos_v1.01.xsd`, `TCRTCInfoIBSCBS`, `minOccurs=0`).
+
+Como prestador do regime normal, quero que a DPS leve finNFSe, indFinal, cIndOp, indDest e o CST/cClassTrib do IBS/CBS, para a Sefin calcular os tributos novos. Os códigos vêm do contador (lei 4 do módulo: o sistema não inventa).
+
+### US-FISCAL-027 · NFS-e em município fora do padrão nacional — **Legal**
+
+> owner: — · priority: p3 · estimate: 16h · status: todo · type: epic
+> blocked_by: backlog — [W] 2026-10-26: "nenhum município por ora"; não construir até haver município com cliente que precise
+
+**Implementado em:** _pendente_ — só o emissor nacional emite; o padrão ABRASF só cancela (`AbrasfV204CancelDriver.php`).
+
+### US-FISCAL-028 · SPED EFD-ICMS/IPI blocos D e K — **P2**
+
+> owner: — · priority: p2 · estimate: 16h · status: todo · type: epic
+> blocked_by: —
+
+**Implementado em:** _pendente_ — `Modules/Fiscal/Services/SpedIcmsIpiGeneratorService.php` gera os blocos básicos + E + H esqueleto (US-FISCAL-016/017). O H com inventário real e o saldo credor do E110 estão na US-FISCAL-011. Falta o bloco D (serviços de transporte/comunicação, quando houver CT-e) e o bloco K (produção e estoque, obrigatório para industrial conforme o faturamento).
+
+### US-FISCAL-029 · MDF-e e CT-e no módulo novo — **P2**
+
+> owner: — · priority: p2 · estimate: 24h · status: todo · type: epic
+> blocked_by: sinal de cliente que transporte carga própria (ADR 0105 não se aplica a pedido [W]; falta só o recorte)
+
+**Implementado em:** _pendente_ — só o `app/Http/Controllers/CteController.php` legado. Caso de uso conhecido: entrega da gráfica (US-COMVIS-016).
+
+### US-FISCAL-030 · Apuração do DAS e guia GNRE — **P3**
+
+> owner: — · priority: p3 · estimate: 16h · status: todo · type: epic
+> blocked_by: —
+
+**Implementado em:** _pendente_ — só o Fator R (`Modules/NfeBrasil/Services/FatorRService.php`). A GNRE é a guia do DIFAL/ST quando a empresa não tem inscrição na UF de destino (depende da US-NFE-072).
+
+### US-FISCAL-031 · Split payment (LC 214/2025) e EFD-Reinf — **P3**
+
+> owner: — · priority: p3 · estimate: — · status: todo · type: epic
+> blocked_by: regulamentação do split payment; EFD-Reinf só para quem tem retenção a declarar
+
+**Implementado em:** _pendente_ — nenhum código.

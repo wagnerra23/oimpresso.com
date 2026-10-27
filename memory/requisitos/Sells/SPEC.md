@@ -1219,6 +1219,8 @@ Gerar QR Pix no fechamento da venda e reconciliar automaticamente via webhook (~
 - Tier 0: webhook com filtro multi-tenant `business_id`; idempotência de reconciliação; PII redacted em log; valor via regra-mestre. Provável reuso de PaymentGateway/RecurringBilling (drivers Inter/Asaas/PixAuto) — checar antes de criar (não duplicar).
 - Ref: memory/requisitos/Sells/CAPTERRA-FICHA.md §6 G-04
 
+**Implementado em:** _pendente_ — em andamento: a cobrança da venda já leva o saldo em aberto e não duplica (`SellController::emitirCobranca`, UC-VCOB-01..04 em `Sells/Show.casos.md`) e o retorno do banco lança o pagamento atrás da flag `PAYMENTGATEWAY_LANCAR_PAGAMENTO_NA_VENDA` (desligada). Falta o Pix direto do caixa e ligar a flag.
+
 ### US-SELL-056 · Keyboard-first coeso no Create — hotkeys configuráveis + Enter-avança + F-key pagar
 
 > owner: — · priority: p2 · estimate: 8h · status: todo · type: story
@@ -1648,6 +1650,51 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 - [ ] Protocolo da OS da Comunicação Visual (UC-FLX-23 no processo de OS), que hoje não tem protocolo.
 
 **Entregue em 2026-10-20 (backend):** total de volumes, não por item — um volume (caixa, rolo, pacote) pode levar várias linhas da venda, então volume por linha não é bem definido. Opcional porque o app que já está nos celulares não manda o campo; sem ele não se inventa número (fica nulo, "não informado"). O `volumes` só entra no hash de idempotência quando vem, para que o corpo antigo mantenha o hash de antes.
+
+### US-SELL-074 · Cliente aprova o orçamento pelo link público, e a aprovação vira pedido
+
+> owner: wagner · priority: p1 · estimate: 10h · status: todo · type: story · origin: lacunas-concorrencia-2026-10-25
+> blocked_by: —
+
+**Implementado em:** _pendente_ — não iniciada.
+
+O link público do orçamento (`SellPosController@showInvoice`) só mostra o documento. O cliente passa a aprovar (informando o nome) ou pedir ajuste; a aprovação fica registrada na venda, com data e IP, e o vendedor converte em pedido pelo caminho de conversão que já existe. Não muda valor nem estoque. Tier 0: o token do link só abre o orçamento da própria empresa.
+
+### US-SELL-075 · Maquininha integrada ao caixa (TEF): o valor vai para a máquina e a resposta preenche o pagamento
+
+> owner: wagner · priority: p1 · estimate: 40h · status: todo · type: story · origin: lacunas-concorrencia-2026-10-25
+> blocked_by: escolha do adquirente/integrador ([W])
+
+**Implementado em:** _pendente_ — não iniciada.
+
+Os drivers do `Modules/PaymentGateway` são de cobrança online; não há TEF. Antes de código: escolher o integrador (TEF dedicado, SmartPOS ou maquininha com API do adquirente). Aceite: o caixa manda o valor, a máquina devolve aprovação com bandeira, NSU e autorização, e o pagamento da venda nasce preenchido. Mexe em valor: regra mestre.
+
+### US-SELL-076 · Cupom de desconto e promoção leve X pague Y no caixa novo
+
+> owner: wagner · priority: p2 · estimate: 16h · status: todo · type: story · origin: lacunas-concorrencia-2026-10-25
+> blocked_by: —
+
+**Implementado em:** _pendente_ — não iniciada.
+
+Hoje há desconto por período (`DiscountController`). Faltam cupom com código, validade e limite de uso, e a promoção leve X pague Y aplicada sozinha no caixa. Mexe em valor: regra mestre (antes→depois e dupla prova).
+### US-SELL-078 · O ICMS-ST entra no total da venda, pela mesma conta da NF-e
+
+> owner: wagner · priority: p1 · estimate: 16h · status: doing · type: story · origin: coordenacao-lacunas-2026-10-26
+> blocked_by: R-NFE-043 (NfeBrasil, ST no XML)
+
+**Implementado em:** _pendente_ — em andamento: servidor feito (`App\Services\Sells\IcmsStDaVenda`, `POST /sells/icms-st`, UC-VST-01..05 em `Sells/Create.casos.md`). Falta a tela de venda mostrar o ST no total.
+
+A NF-e passou a somar o ICMS-ST no vNF (R-NFE-043, regra do leiaute). Sem esta US, a nota valeria mais do que a venda e o título que a geraram.
+
+Decisão [W] 2026-10-26: "O ST entra no fechamento da venda: com cliente contribuinte de outra UF, o caixa calcula o ST pelo mesmo motor da NF-e, mostra no total e o cliente paga junto. O título já nasce com o ST."
+
+Aceite:
+
+- O ST da venda é o da NF-e (55): mesma função (`NfeService::montarItensNfe`), mesmas entradas (emitente do local, destinatário do cadastro do cliente, alíquota interna do destino, NCM padrão). Só há ST com cliente identificado de outra UF e interna do destino cadastrada.
+- A tela pede o ST do carrinho (`POST /sells/icms-st`), mostra no total e manda `icms_st_valor` junto. Ao gravar, o servidor recalcula; divergiu mais de 1 centavo → a venda é recusada com o valor certo.
+- A venda guarda o ST (`transactions.icms_st_valor`) e o `final_total` já o inclui. A nota parte de `final_total − icms_st_valor` e soma o vST: **total da venda = vNF = valor do título**.
+- Venda sem ST: nada muda.
+- Tier 0: produto, cliente e local resolvidos no business da sessão.
 
 ### US-SELL-077 · Cancelar a venda devolve o estoque, tira a venda dos relatórios e cancela o título
 
