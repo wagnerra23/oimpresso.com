@@ -42,3 +42,19 @@ export function camposDespesas(despesas: DespesaAdicional[]): Record<string, str
 
 /** Valor monetário no formato que o `num_uf` lê sem ambiguidade. */
 export const valorParaEnvio = (v: number): string => paraNumUf(centavos(v), 2);
+
+/** Campos numéricos da linha que o createOrUpdatePurchaseLines passa pelo num_uf. */
+const CAMPOS_LINHA = ['quantity', 'pp_without_discount', 'discount_percent', 'purchase_price', 'purchase_price_inc_tax', 'item_tax'] as const;
+
+/**
+ * A linha no formato do num_uf: vírgula decimal, até 4 casas (custo unitário e quantidade em kg/m
+ * podem ter 3). Antes de 2026-10-27 ia o float cru, e "10.125" gravava 10125.
+ */
+export function linhaParaEnvio<T extends Partial<Record<(typeof CAMPOS_LINHA)[number], number | string | null>>>(linha: T): T {
+  const saida: Record<string, unknown> = { ...linha };
+  for (const campo of CAMPOS_LINHA) {
+    const v = linha[campo];
+    if (typeof v === 'number') saida[campo] = paraNumUf(v, 4);
+  }
+  return saida as T;
+}

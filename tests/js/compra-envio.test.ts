@@ -4,6 +4,7 @@ import {
   despesasVazias,
   somaDespesas,
   valorParaEnvio,
+  linhaParaEnvio,
 } from '../../resources/js/Pages/Purchase/_components/compra-envio';
 
 // UC-PURCRE-14 [V0] — o que a Nova compra manda em total, frete e despesas. O `num_uf` do servidor
@@ -47,5 +48,15 @@ describe('UC-PURCRE-14 · despesas adicionais somam ao total e viram os 8 campos
       additional_expense_key_4: '',
       additional_expense_value_4: '',
     });
+  });
+});
+
+describe('UC-PURCRE-14 · linhas da compra vão com vírgula decimal (custo e quantidade)', () => {
+  it('custo 10,125 e quantidade 1,125 não viram milhar', () => {
+    const l = linhaParaEnvio({ quantity: 1.125, purchase_price: 10.125, purchase_price_inc_tax: 10.125, pp_without_discount: 10.125, discount_percent: 0, item_tax: 0, product_id: 7 });
+    expect(l.quantity).toBe('1,125');
+    expect(l.purchase_price).toBe('10,125');
+    expect(l.item_tax).toBe('0');
+    expect(l.product_id).toBe(7);
   });
 });

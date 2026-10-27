@@ -23,6 +23,8 @@ import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Plus, Trash2, Search, ShoppingCart, ArrowLeft, Save } from 'lucide-react';
+import DespesasAnexo from '@/Pages/Purchase/_components/DespesasAnexo';
+import { camposDespesas, despesasVazias, somaDespesas, valorParaEnvio, linhaParaEnvio, type DespesaAdicional } from '@/Pages/Purchase/_components/compra-envio';
 
 // ---------- Tipos ----------
 
@@ -85,6 +87,9 @@ interface PurchaseEditPayload {
   exchange_rate: number;
   total_before_tax: number;
   final_total: number;
+  /** Despesas adicionais gravadas (4 pares) e o anexo atual. */
+  despesas?: DespesaAdicional[];
+  document?: string | null;
   purchase_lines: PurchaseLineDraft[];
 }
 
@@ -114,6 +119,12 @@ function PurchaseEdit({
 }: PurchaseEditPageProps) {
   const [busca, setBusca] = useState('');
   const [erroItens, setErroItens] = useState<string | null>(null);
+  const [despesas, setDespesas] = useState<DespesaAdicional[]>(() => {
+    const base = despesasVazias();
+    (purchase.despesas ?? []).forEach((d, i) => { if (i < base.length) base[i] = { nome: d.nome ?? '', valor: d.valor ?? 0 }; });
+    return base;
+  });
+  const [documento, setDocumento] = useState<File | null>(null);
   const [linhas, setLinhas] = useState<PurchaseLineDraft[]>(
     purchase.purchase_lines.length > 0 ? purchase.purchase_lines : []
   );
@@ -145,10 +156,13 @@ function PurchaseEdit({
         : form.data.discount_amount || 0;
     const totalImpostos = form.data.tax_amount || 0;
     const frete = form.data.shipping_charges || 0;
-    const final = subtotal - descontoValor + totalImpostos + frete;
-    return { subtotal, descontoValor, totalImpostos, frete, final };
+    // Mesma fórmula da Blade e do Create: as despesas adicionais somam ao total final.
+    const despesasTotal = somaDespesas(despesas);
+    const final = subtotal - descontoValor + totalImpostos + frete + despesasTotal;
+    return { subtotal, descontoValor, totalImpostos, frete, despesasTotal, final };
   }, [
     linhas,
+    despesas,
     form.data.discount_type,
     form.data.discount_amount,
     form.data.tax_amount,
@@ -215,13 +229,19 @@ function PurchaseEdit({
       // createOrUpdatePurchaseLines só ATUALIZA a linha que vem com `purchase_line_id` — sem ele
       // cria uma nova e apaga a antiga (perde o vínculo com as vendas). E lê `purchase_line_tax_id`
       // sem isset: a chave tem que existir em toda linha, senão o update() quebra (UC-PUREDT-08).
-      purchases: linhas.map(({ id, ...l }) => ({
+      purchases: linhas.map(({ id, ...l }) => linhaParaEnvio({
         ...l,
         ...(id ? { purchase_line_id: id } : {}),
         purchase_line_tax_id: l.tax_id ?? '',
       })),
-      total_before_tax: totais.subtotal,
-      final_total: totais.final,
+      // Vírgula decimal e 2 casas (compra-envio.ts): o num_uf do update lê "3.495" como 3495.
+      total_before_tax: valorParaEnvio(totais.subtotal),
+      final_total: valorParaEnvio(totais.final),
+      discount_amount: dados.discount_type === 'percentage' ? String(dados.discount_amount || 0).replace('.', ',') : valorParaEnvio(dados.discount_amount || 0),
+      tax_amount: valorParaEnvio(dados.tax_amount || 0),
+      shipping_charges: valorParaEnvio(dados.shipping_charges || 0),
+      ...camposDespesas(despesas),
+      ...(documento ? { document: documento } : {}),
     }));
     form.post(`/purchases/${purchase.id}`, {
       forceFormData: true,
@@ -496,6 +516,9 @@ function PurchaseEdit({
             {totais.frete > 0 && (
               <div className="flex justify-between"><span className="text-stone-500">Frete</span><span className="tabular-nums">+ {brl(totais.frete)}</span></div>
             )}
+            {totais.despesasTotal > 0 && (
+              <div className="flex justify-between"><span className="text-muted-foreground">Despesas adicionais</span><span className="tabular-nums">+ {brl(totais.despesasTotal)}</span></div>
+            )}
             <div className="flex justify-between border-t border-stone-200 pt-2 mt-2">
               <span className="font-semibold">Total final</span>
               <span className="tabular-nums font-semibold text-[15px]">{brl(totais.final)}</span>
@@ -506,6 +529,15 @@ function PurchaseEdit({
           </CardContent>
         </Card>
       </div>
+
+      <DespesasAnexo
+        despesas={despesas}
+        onDespesas={setDespesas}
+        documento={documento}
+        onDocumento={setDocumento}
+        documentoAtual={purchase.document ? purchase.document.replace(/^\d+_/, '') : null}
+        erroDocumento={(form.errors as Record<string, string | undefined>).document}
+      />
 
       <Card className="mt-3">
         <CardHeader className="pb-2 pt-3 px-4">

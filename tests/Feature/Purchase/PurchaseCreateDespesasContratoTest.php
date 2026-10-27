@@ -160,3 +160,25 @@ it('UC-PURCRE-15 o anexo enviado pela tela fica gravado na compra', function () 
     expect((string) $tx->document)->toEndWith('_nota-fornecedor.pdf');
     Storage::disk(config('filesystems.default'))->assertExists('documents/' . $tx->document);
 });
+
+it('UC-PURCRE-14 [V0] linha com custo 10,125 e quantidade 1,125 grava os dois como digitados', function () {
+    // O antes: o float cru que a tela mandava viraria milhar.
+    expect(app(\App\Utils\Util::class)->num_uf('10.125'))->toBe(10125.0);
+
+    $dados = pcdPayload($this, ['total_before_tax' => '11,39', 'final_total' => '11,39']);
+    $dados['purchases'][0] = array_merge($dados['purchases'][0], [
+        'quantity' => '1,125',
+        'pp_without_discount' => '10,125',
+        'purchase_price' => '10,125',
+        'purchase_price_inc_tax' => '10,125',
+    ]);
+    $this->actingAs($this->user)->post('/purchases', $dados);
+
+    $tx = pcdCompra($this->biz, $dados['ref_no']);
+    expect($tx)->not->toBeNull();
+    $linha = DB::table('purchase_lines')->where('transaction_id', $tx->id)->first();
+    expect(round((float) $linha->quantity, 4))->toBe(1.125);
+    expect(round((float) $linha->purchase_price, 4))->toBe(10.125);
+    // segundo caminho: quantidade × custo das colunas gravadas ≈ total dos itens
+    expect(round((float) $linha->quantity * (float) $linha->purchase_price, 2))->toBe(11.39);
+});

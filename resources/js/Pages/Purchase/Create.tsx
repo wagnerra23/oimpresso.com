@@ -26,7 +26,7 @@ import { FieldError } from '@/Components/ui/field-state';
 import { Plus, Trash2, Search, ShoppingCart, ArrowLeft, Save, LayoutGrid } from 'lucide-react';
 import GradeMatrixInput, { type GradeCell } from '@/Pages/Purchase/_components/GradeMatrixInput';
 import DespesasAnexo from '@/Pages/Purchase/_components/DespesasAnexo';
-import { camposDespesas, despesasVazias, somaDespesas, valorParaEnvio, type DespesaAdicional } from '@/Pages/Purchase/_components/compra-envio';
+import { camposDespesas, despesasVazias, somaDespesas, valorParaEnvio, linhaParaEnvio, type DespesaAdicional } from '@/Pages/Purchase/_components/compra-envio';
 import GradeProductCombobox, { type PickedProduct } from '@/Pages/Purchase/_components/GradeProductCombobox';
 import SupplierCombobox from '@/Pages/Purchase/_components/SupplierCombobox';
 import ReceberDoPedido from '@/Pages/Purchase/_components/ReceberDoPedido';
@@ -349,7 +349,7 @@ function PurchaseCreate({
       ...dados,
       // createOrUpdatePurchaseLines lê `purchase_line_tax_id` (não `tax_id`) sem isset →
       // a chave precisa existir em TODA linha (manual + grade), senão o warning vira 500.
-      purchases: linhas.map((l) => ({ ...l, purchase_line_tax_id: l.tax_id ?? '' })),
+      purchases: linhas.map((l) => linhaParaEnvio({ ...l, purchase_line_tax_id: l.tax_id ?? '' })),
       // Valores em vírgula decimal e 2 casas (compra-envio.ts): o num_uf do store lê "3.495"
       // como 3495. Até 2026-10-27 iam como float cru.
       total_before_tax: valorParaEnvio(totais.subtotal),

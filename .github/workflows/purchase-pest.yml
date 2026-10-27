@@ -216,6 +216,7 @@ jobs:
             tests/Feature/Purchase/PurchaseIndexTenantContratoTest.php \
             tests/Feature/Purchase/PurchaseShowTenantContratoTest.php \
             tests/Feature/Purchase/PurchaseCreateDespesasContratoTest.php \
+            tests/Feature/Purchase/PurchaseEditPreservaContratoTest.php \
             tests/Feature/Purchase/UpdateCrossTenantIdorTest.php \
             tests/Feature/Purchase/PurchaseGradeMatrixTest.php \
             tests/Feature/Purchase/Wave2EditBaselineTest.php \

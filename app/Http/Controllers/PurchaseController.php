@@ -1080,6 +1080,13 @@ class PurchaseController extends Controller
                 'exchange_rate' => (float) ($purchase->exchange_rate ?? 1),
                 'total_before_tax' => (float) ($purchase->total_before_tax ?? 0),
                 'final_total' => (float) ($purchase->final_total ?? 0),
+                // Despesas adicionais e anexo atuais: o Edit React as mostra e as devolve no
+                // update — sem isso, salvar refazia o total sem elas.
+                'despesas' => collect(range(1, 4))->map(fn ($i) => [
+                    'nome' => (string) ($purchase->{"additional_expense_key_{$i}"} ?? ''),
+                    'valor' => (float) ($purchase->{"additional_expense_value_{$i}"} ?? 0),
+                ])->values(),
+                'document' => $purchase->document,
                 'purchase_lines' => $purchaseLines,
             ],
             'business_locations' => $business_locations,
@@ -1183,16 +1190,16 @@ class PurchaseController extends Controller
             $update_data['final_total'] = $this->productUtil->num_uf($update_data['final_total'], $currency_details) * $exchange_rate;
             //unformat input values ends
 
-            $update_data['custom_field_1'] = $request->input('custom_field_1', null);
-            $update_data['custom_field_2'] = $request->input('custom_field_2', null);
-            $update_data['custom_field_3'] = $request->input('custom_field_3', null);
-            $update_data['custom_field_4'] = $request->input('custom_field_4', null);
-
-            $update_data['shipping_custom_field_1'] = $request->input('shipping_custom_field_1', null);
-            $update_data['shipping_custom_field_2'] = $request->input('shipping_custom_field_2', null);
-            $update_data['shipping_custom_field_3'] = $request->input('shipping_custom_field_3', null);
-            $update_data['shipping_custom_field_4'] = $request->input('shipping_custom_field_4', null);
-            $update_data['shipping_custom_field_5'] = $request->input('shipping_custom_field_5', null);
+            // Só grava o campo que VEIO no formulário. Até 2026-10-27 estes campos eram gravados
+            // sempre, com null quando ausentes: o Edit React (que não os manda) e a Blade sem rótulo
+            // configurado apagavam em silêncio os campos personalizados e de frete da compra.
+            foreach (['custom_field_1', 'custom_field_2', 'custom_field_3', 'custom_field_4',
+                'shipping_custom_field_1', 'shipping_custom_field_2', 'shipping_custom_field_3',
+                'shipping_custom_field_4', 'shipping_custom_field_5', ] as $campo) {
+                if ($request->has($campo)) {
+                    $update_data[$campo] = $request->input($campo);
+                }
+            }
 
             //upload document
             $document_name = $this->transactionUtil->uploadFile($request, 'document', 'documents');
@@ -1202,15 +1209,17 @@ class PurchaseController extends Controller
 
             $purchase_order_ids = $transaction->purchase_order_ids ?? [];
 
-            $update_data['additional_expense_key_1'] = $request->input('additional_expense_key_1');
-            $update_data['additional_expense_key_2'] = $request->input('additional_expense_key_2');
-            $update_data['additional_expense_key_3'] = $request->input('additional_expense_key_3');
-            $update_data['additional_expense_key_4'] = $request->input('additional_expense_key_4');
-
-            $update_data['additional_expense_value_1'] = $request->input('additional_expense_value_1') != '' ? $this->productUtil->num_uf($request->input('additional_expense_value_1'), $currency_details) * $exchange_rate : 0;
-            $update_data['additional_expense_value_2'] = $request->input('additional_expense_value_2') != '' ? $this->productUtil->num_uf($request->input('additional_expense_value_2'), $currency_details) * $exchange_rate : 0;
-            $update_data['additional_expense_value_3'] = $request->input('additional_expense_value_3') != '' ? $this->productUtil->num_uf($request->input('additional_expense_value_3'), $currency_details) * $exchange_rate : 0;
-            $update_data['additional_expense_value_4'] = $request->input('additional_expense_value_4') != '' ? $this->productUtil->num_uf($request->input('additional_expense_value_4'), $currency_details) * $exchange_rate : 0;
+            // Despesas adicionais: mesma regra, por par. Formulário que não traz o par mantém o que
+            // está gravado (antes virava key null e value 0, e o total ficava sem a despesa).
+            for ($i = 1; $i <= 4; $i++) {
+                if ($request->has("additional_expense_key_{$i}")) {
+                    $update_data["additional_expense_key_{$i}"] = $request->input("additional_expense_key_{$i}");
+                }
+                if ($request->has("additional_expense_value_{$i}")) {
+                    $valor = $request->input("additional_expense_value_{$i}");
+                    $update_data["additional_expense_value_{$i}"] = $valor != '' ? $this->productUtil->num_uf($valor, $currency_details) * $exchange_rate : 0;
+                }
+            }
 
             DB::beginTransaction();
 

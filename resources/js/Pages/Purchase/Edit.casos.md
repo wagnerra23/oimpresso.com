@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: os três gates de escrita (tenant, janela temporal, devolução existente) são duráveis — não mudam quando o formulário ganhar campo novo.
 owner: wagner
 last_run: "2026-10-16"
-last_run_ci: "✅ 2026-09-05: os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841). Medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. Os 7 UC desta tela tem lane; 1 com defesa de COMPORTAMENTO (UpdateCrossTenantIdorTest - o IDOR de escrita cross-tenant em dinheiro; nao esta em quarantine.list nenhuma, e o markTestSkipped que sobrou so protege sqlite) e 6 ESTRUTURAL (Wave2Edit*, presence-gate LC-11). Nao restatear a mao: rode scripts/qa/uc-lane-coverage.mjs. ⚠ O TEXTO A SEGUIR ESTA SUPERADO e fica como fato datado - os dois numeros dele ja nasciam falsos: 🔴 NENHUM teste de tests/Feature/Purchase/ roda em lane alguma — 8 arquivos órfãos de CI; o do IDOR soma quarentena por cima. Ver §Dívida de prova."
+last_run_ci: "2026-10-27: UC-PUREDT-09/10 (despesas na edição e update que não apaga campo ausente) nascem sem veredito. Antes: ✅ 2026-09-05: os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841). Medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. Os 7 UC desta tela tem lane; 1 com defesa de COMPORTAMENTO (UpdateCrossTenantIdorTest - o IDOR de escrita cross-tenant em dinheiro; nao esta em quarantine.list nenhuma, e o markTestSkipped que sobrou so protege sqlite) e 6 ESTRUTURAL (Wave2Edit*, presence-gate LC-11). Nao restatear a mao: rode scripts/qa/uc-lane-coverage.mjs. ⚠ O TEXTO A SEGUIR ESTA SUPERADO e fica como fato datado - os dois numeros dele ja nasciam falsos: 🔴 NENHUM teste de tests/Feature/Purchase/ roda em lane alguma — 8 arquivos órfãos de CI; o do IDOR soma quarentena por cima. Ver §Dívida de prova."
 ---
 
 # Casos de Uso & Aceite — Editar Compra (`/purchases/{id}/edit`)
@@ -100,6 +100,8 @@ allowlist por conta própria — por que ela existe (custo de CI? teste instáve
 | UC-PUREDT-06 | O formulário chega pré-populado com a compra, tipada | should | RUNBOOK §4 · §9 | `Wave2EditInertiaTest` | 🧪 estrutural · na lane |
 | UC-PUREDT-07 | A Page não decide tenant — `business_id` vem das props | must `[T0]` | RUNBOOK §3 | `Wave2EditInertiaTest` | 🧪 estrutural · na lane |
 | UC-PUREDT-08 | Salvar a edição atualiza a linha existente e o estoque pela diferença | must `[T0]` `[V0]` | reclamação ROTA LIVRE 2026-10-16 · charter R-PUR-001 | `PurchaseGradeMatrixTest` | 🧪 comportamento · na lane |
+| UC-PUREDT-09 | Edição leva as despesas adicionais e o total sai com elas | must `[V0]` | Blade `purchase.js` (grand_total) · pedido [W] 2026-10-27 | `PurchaseEditPreservaContratoTest` | 🧪 sem veredito |
+| UC-PUREDT-10 | Salvar não apaga o que o formulário não trouxe (campos personalizados, de frete, despesas) | must `[V0]` | defeito medido 2026-10-27 · REGRA MESTRE de valor | `PurchaseEditPreservaContratoTest` | 🧪 sem veredito |
 
 ---
 
@@ -241,6 +243,30 @@ allowlist por conta própria — por que ela existe (custo de CI? teste instáve
   `Edit.tsx` mandava `id` e não mandava `purchase_line_tax_id`, e todo salvar caía em
   *"Undefined array key"* — nenhuma edição pela tela React chegava ao banco.
 - **Status: 🧪 comportamento · na lane**
+
+## UC-PUREDT-09 · A edição leva as despesas adicionais e o total sai com elas · `must` `[V0]`
+
+- **Aceite:** Dado uma compra de 40,00 em itens com a despesa "Frete extra" 12,50 (total 52,50) ·
+  Quando a pessoa muda a despesa para 20,00 e salva · Então grava a despesa 20,00 e o total 60,00.
+  Zerando a despesa, ela sai do total (40,00).
+- **Dupla prova:** (a) colunas gravadas; (b) a soma refeita das colunas (itens + despesas) bate com o
+  `final_total` gravado.
+- **Teste:** [`PurchaseEditPreservaContratoTest`](../../../../tests/Feature/Purchase/PurchaseEditPreservaContratoTest.php).
+- **Status: 🧪 sem veredito**
+
+## UC-PUREDT-10 · Salvar não apaga o que o formulário não trouxe · `must` `[V0]`
+
+- **O defeito (medido em 2026-10-27):** o `update` gravava `custom_field_1..4`,
+  `shipping_custom_field_1..5` e `additional_expense_*` sempre a partir do request, com null/0 quando
+  ausentes. O Edit React não mandava nenhum deles, e é ele que abre pelo cockpit ("Editar" e
+  "Atualizar status"). Salvar por ali zerava a despesa, apagava o campo personalizado e refazia o
+  total sem a despesa.
+- **Aceite:** campo que o formulário **não traz** fica como está gravado. Campo que **vem vazio** é
+  limpo, porque aí é a tela pedindo.
+- **Teste:** [`PurchaseEditPreservaContratoTest`](../../../../tests/Feature/Purchase/PurchaseEditPreservaContratoTest.php).
+- **Status: 🧪 sem veredito**
+
+---
 
 ## `[BACKLOG]` — achados sem contrato em 2 fontes, ou sem teste que os defenda
 
