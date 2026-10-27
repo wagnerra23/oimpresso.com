@@ -115,13 +115,12 @@ it('Page calcula totais reativos via useMemo', function () {
 
 // ─── F4 QA: Controller dual path + Tier 0 ────────────────────────────────────
 
-it('Controller create() tem dual path (React por padrão, Blade só com ?classico=1)', function () {
+it('Controller create() abre sempre o React (F5 2026-10-27, sem dual path)', function () {
     $source = readCreateControllerInertia();
-    // Até 2026-10-09: Inertia atrás de flag (?v=2 OU header). Desde o cutover pelo menu ·
-    // thread 03 (D1 [W] 2026-10-07) index() e create() usam a mesma condição — por isso 2.
-    // O regex antigo seguiria verde pelo edit(), que manteve a flag: aqui conta-se a nova.
-    // Comportamento provado em tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php.
-    expect(substr_count($source, "request()->query('v') === '2' || (! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia')))"))->toBe(2);
+    // Até 2026-10-27 index() e create() tinham a condição do `?classico=1`. As duas Blades
+    // foram apagadas; a condição não existe mais. Comportamento provado em
+    // tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php.
+    expect(substr_count($source, "request()->boolean('classico')"))->toBe(0);
     expect($source)->toContain('private function createInertia');
     expect($source)->toContain("Inertia::render('Purchase/Create'");
 });

@@ -30,16 +30,13 @@ function readCreateController(): string
 
 // ─── F2 BASELINE: legacy preserved ───────────────────────────────────────────
 
-it('Blade legacy create.blade.php existe e continua referência canônica', function () {
-    expect(file_exists(base_path(CREATE_BLADE_LEGACY)))->toBeTrue();
-    $blade = file_get_contents(base_path(CREATE_BLADE_LEGACY));
-    expect($blade)->toContain("Form::open([");
-    expect($blade)->toContain("PurchaseController::class");
+it('F5 (2026-10-27): a Blade create.blade.php foi apagada', function () {
+    expect(file_exists(base_path(CREATE_BLADE_LEGACY)))->toBeFalse();
 });
 
-it('Controller create() PRESERVA return view("purchase.create") (fallback legacy)', function () {
+it('Controller create() não devolve mais a view purchase.create', function () {
     $source = readCreateController();
-    expect($source)->toContain("return view('purchase.create')");
+    expect($source)->not->toContain("view('purchase.create')");
 });
 
 it('Controller create() PRESERVA permission check purchase.create (Tier 0)', function () {

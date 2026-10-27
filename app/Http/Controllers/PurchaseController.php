@@ -417,7 +417,6 @@ class PurchaseController extends Controller
                         ->get();
         $orderStatuses = $this->productUtil->orderStatuses();
         $business_locations = BusinessLocation::forDropdown($business_id, false, true);
-        $bl_attributes = $business_locations['attributes'];
         $business_locations = $business_locations['locations'];
 
         $currency_details = $this->transactionUtil->purchaseCurrencyDetails($business_id);
@@ -427,22 +426,8 @@ class PurchaseController extends Controller
             $default_purchase_status = 'received';
         }
 
-        $types = [];
-        if (auth()->user()->can('supplier.create')) {
-            $types['supplier'] = __('report.supplier');
-        }
-        if (auth()->user()->can('customer.create')) {
-            $types['customer'] = __('report.customer');
-        }
-        if (auth()->user()->can('supplier.create') && auth()->user()->can('customer.create')) {
-            $types['both'] = __('lang_v1.both_supplier_customer');
-        }
         $customer_groups = CustomerGroup::forDropdown($business_id);
 
-        $business_details = $this->businessUtil->getDetails($business_id);
-        $shortcuts = json_decode($business_details->keyboard_shortcuts, true);
-
-        $payment_line = $this->dummyPaymentLine;
         $payment_types = $this->productUtil->payment_types(null, true, $business_id);
 
         //Accounts
@@ -450,25 +435,21 @@ class PurchaseController extends Controller
 
         $common_settings = ! empty(session('business.common_settings')) ? session('business.common_settings') : [];
 
-        // MWART Wave2 B5 — dual path Inertia (ADR 0104, 0149). Cutover pelo menu · thread 03
-        // (D1 [W] 2026-10-07): React por padrão, Blade só com `?classico=1`; `?v=2` segue valendo.
-        if (request()->query('v') === '2' || (! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia')))) {
-            return $this->createInertia(
-                $business_id,
-                $business_locations,
-                $taxes,
-                $orderStatuses,
-                $default_purchase_status,
-                $currency_details,
-                $customer_groups,
-                $accounts,
-                $payment_types,
-                $common_settings
-            );
-        }
-
-        return view('purchase.create')
-            ->with(compact('taxes', 'orderStatuses', 'business_locations', 'currency_details', 'default_purchase_status', 'customer_groups', 'types', 'shortcuts', 'payment_line', 'payment_types', 'accounts', 'bl_attributes', 'common_settings'));
+        // F5 (2026-10-27, autorizado por [W]): a Blade `purchase.create` foi apagada. O que só ela
+        // tinha veio antes para o React: despesas e anexo, pagamento na entrada, prazo/frete/campos
+        // da empresa e importação de planilha.
+        return $this->createInertia(
+            $business_id,
+            $business_locations,
+            $taxes,
+            $orderStatuses,
+            $default_purchase_status,
+            $currency_details,
+            $customer_groups,
+            $accounts,
+            $payment_types,
+            $common_settings
+        );
     }
 
     /**

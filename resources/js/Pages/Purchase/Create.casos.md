@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: o contrato da grade (1 célula = 1 variation_id, 1 POST único) e o ownership das variations são duráveis — não mudam quando a tela ganhar campo novo.
 owner: wagner
 last_run: "2026-10-26"
-last_run_ci: "2026-10-27: UC-PURCRE-19/20 (importar planilha); UC-PURCRE-18 (prazo, frete e campos); UC-PURCRE-16/17 (pagamento na entrada) e UC-PURCRE-14/15 (despesas, valores em formato seguro e anexo) nascem sem veredito. Antes: ✅ 2026-09-05: os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841). Medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. Os 7 UC desta tela tem lane; 3 com defesa de COMPORTAMENTO (PurchaseGradeMatrixTest, que emite request e cujo bloco cross-tenant hoje roda em MySQL real) e 4 ESTRUTURAL (Wave2Create*, presence-gate LC-11). Nao restatear a mao: rode scripts/qa/uc-lane-coverage.mjs. ⚠ O TEXTO A SEGUIR ESTA SUPERADO e fica como fato datado - os dois numeros dele ja nasciam falsos (a pasta tem 10 arquivos, nao 8; e 4 ja rodavam quando foi escrito): 🔴 A DIVIDA CONTINUA ABERTA — NENHUM teste de tests/Feature/Purchase/ roda em lane alguma (8 arquivos orfaos de CI); o uc-lane-coverage reprova estes UC por isso e esta certo. Ver §Divida de prova. O bump de 2026-09-04 -> 2026-09-05 NAO paga essa divida e nao afirma execucao: ele registra a REVISAO exigida pelo G-6 depois que o .tsx foi tocado. O que foi revisado, e verificavel: o diff contra 153a65b558 (commit que criou este arquivo) e exatamente 5 atributos `data-contract` em <Card>, zero mudanca de logica/props/copy; e nenhum dos 7 UC depende de atributo/DOM/seletor (grep por data-contract|atributo|DOM|seletor|className neste arquivo: rc=1, zero hits) — os 7 sao de backend/tenant/dado. TENTATIVA DE PROVA REAL, e por que ela NAO vale como recibo: rodei tests/Feature/Purchase/ no CT 100 (90 passed, 6 failed, 6 skipped, 214 assertions), mas o checkout do container esta em c1abe9548f (2026-08-26) e NAO contem as ancoras (grep -c data-contract = 0). Run de outra arvore nao prova esta — citar aquele numero aqui seria medir a coisa errada."
+last_run_ci: "2026-10-27: F5 cutover, Blade purchase.create apagada, UC-PURCRE-01 reescrito; UC-PURCRE-19/20 (importar planilha); UC-PURCRE-18 (prazo, frete e campos); UC-PURCRE-16/17 (pagamento na entrada) e UC-PURCRE-14/15 (despesas, valores em formato seguro e anexo) nascem sem veredito. Antes: ✅ 2026-09-05: os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841). Medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. Os 7 UC desta tela tem lane; 3 com defesa de COMPORTAMENTO (PurchaseGradeMatrixTest, que emite request e cujo bloco cross-tenant hoje roda em MySQL real) e 4 ESTRUTURAL (Wave2Create*, presence-gate LC-11). Nao restatear a mao: rode scripts/qa/uc-lane-coverage.mjs. ⚠ O TEXTO A SEGUIR ESTA SUPERADO e fica como fato datado - os dois numeros dele ja nasciam falsos (a pasta tem 10 arquivos, nao 8; e 4 ja rodavam quando foi escrito): 🔴 A DIVIDA CONTINUA ABERTA — NENHUM teste de tests/Feature/Purchase/ roda em lane alguma (8 arquivos orfaos de CI); o uc-lane-coverage reprova estes UC por isso e esta certo. Ver §Divida de prova. O bump de 2026-09-04 -> 2026-09-05 NAO paga essa divida e nao afirma execucao: ele registra a REVISAO exigida pelo G-6 depois que o .tsx foi tocado. O que foi revisado, e verificavel: o diff contra 153a65b558 (commit que criou este arquivo) e exatamente 5 atributos `data-contract` em <Card>, zero mudanca de logica/props/copy; e nenhum dos 7 UC depende de atributo/DOM/seletor (grep por data-contract|atributo|DOM|seletor|className neste arquivo: rc=1, zero hits) — os 7 sao de backend/tenant/dado. TENTATIVA DE PROVA REAL, e por que ela NAO vale como recibo: rodei tests/Feature/Purchase/ no CT 100 (90 passed, 6 failed, 6 skipped, 214 assertions), mas o checkout do container esta em c1abe9548f (2026-08-26) e NAO contem as ancoras (grep -c data-contract = 0). Run de outra arvore nao prova esta — citar aquele numero aqui seria medir a coisa errada."
 ---
 
 > ℹ️ **`last_run` 2026-10-20 → 2026-10-26 (G-6): entraram o UC-PURCRE-12 (pedidos abertos + estoque por dois caminhos) e o UC-PURCRE-13 (a tela traz o pedido).** A `Create.tsx` ganhou o bloco "Receber de um pedido de compra" e o campo `purchase_order_ids`; nenhum UC antigo mudou nem foi reexecutado.
@@ -104,7 +104,7 @@ decisão do dono, com chip aberto.
 
 | UC | Título | Tipo | Âncora de contrato | Teste que cita | Status |
 |---|---|---|---|---|---|
-| UC-PURCRE-01 | SPA recebe React; Blade legacy preservado | must | RUNBOOK §3 | `Wave2CreateInertiaTest` · `Wave2CreateBaselineTest` | 🧪 estrutural · na lane |
+| UC-PURCRE-01 | Toda navegação recebe a Page React | must | RUNBOOK §3 | `Wave2CreateInertiaTest` · `Wave2CreateBaselineTest` | 🧪 estrutural · na lane |
 | UC-PURCRE-02 | Endpoint da grade recusa produto de outro tenant | must `[T0]` | RUNBOOK §10 · charter R-PUR-001 | `PurchaseGradeMatrixTest` | ✅ comportamento · na lane |
 | UC-PURCRE-03 | `store()` recusa `variation_id` forjado de outro tenant | must `[T0]` `[V0]` | RUNBOOK §10 · charter R-PUR-001 | `PurchaseGradeMatrixTest` | ✅ comportamento · na lane |
 | UC-PURCRE-04 | A grade nunca abre vazia — degrada 2D → 1 eixo → single | must | RUNBOOK §5 · charter Non-Goal 2 | `PurchaseGradeMatrixTest` | 🧪 comportamento · na lane (sem veredito no manifesto) |
@@ -117,23 +117,20 @@ decisão do dono, com chip aberto.
 
 ---
 
-## UC-PURCRE-01 · SPA recebe React; Blade legacy preservado · `must`
+## UC-PURCRE-01 · Toda navegação recebe a Page React · `must`
 
-- **Persona:** Maiara/Felipe lançam a compra pelo Cockpit; o Blade ainda atende acesso direto.
-- **Aceite:** Dado `PurchaseController@create` · Quando o request traz o header Inertia ou `?v=2`
-  · Então renderiza a Page `Purchase/Create`. E, como **controle negativo**, o GET normal continua
-  devolvendo a view Blade legacy, com o gate `purchase.create`, o escopo por `business_id` da sessão
-  e o `isSubscribed` **preservados**.
-- **Atualização (cutover pelo menu · thread 03, D1 [W] 2026-10-07):** o aceite acima descreve o
-  estado até então. Desde esse cutover o GET comum abre a Page React e o Blade só abre com
-  `?classico=1` (`?v=2` segue valendo). O `store()` continua compartilhado pelos dois. Prova de
-  comportamento: [`ComprasSemXInertiaTest`](../../../../tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php).
-- **Teste:** [`Wave2CreateInertiaTest`](../../../../tests/Feature/Purchase/Wave2CreateInertiaTest.php)
-  — *"Controller create() tem dual path"* · *"Controller PRESERVA path Blade legacy (dual safe)"*;
-  [`Wave2CreateBaselineTest`](../../../../tests/Feature/Purchase/Wave2CreateBaselineTest.php) —
-  *"PRESERVA permission check purchase.create (Tier 0)"* · *"PRESERVA business_id global scope da
-  sessão"* · *"PRESERVA isSubscribed gate"*.
-- **Contrato:** RUNBOOK §3 · [ADR 0104 MWART](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) (F5 CUTOVER é humano e não ocorreu).
+- **Persona:** Maiara/Felipe lançam a compra pelo Cockpit, pelo menu ou pela URL.
+- **Aceite:** Dado `PurchaseController@create` · Quando chega visita Inertia, GET comum ou
+  `?classico=1` · Então renderiza `Purchase/Create`.
+- **Mudança de 2026-10-27 (F5, autorizado por [W]):** a Blade `purchase.create` foi apagada. Até aqui
+  ela abria com `?classico=1`. O que só ela tinha veio antes: despesas e anexo (UC-PURCRE-14/15),
+  pagamento na entrada (UC-PURCRE-16/17), prazo/frete/campos da empresa (UC-PURCRE-18) e importação
+  de planilha (UC-PURCRE-19/20).
+- **Teste:** [`Wave2CreateInertiaTest`](../../../../tests/Feature/Purchase/Wave2CreateInertiaTest.php) —
+  *"Controller create() abre sempre o React"* · [`Wave2CreateBaselineTest`](../../../../tests/Feature/Purchase/Wave2CreateBaselineTest.php)
+  — *"a Blade create.blade.php foi apagada"*. Comportamento: [`ComprasSemXInertiaTest`](../../../../tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php)
+  — *"?classico=1 abre o React nas duas telas"*.
+- **Contrato:** RUNBOOK §3 · [ADR 0104 MWART](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) (F5).
 - **Regressão que defende:** o `store()` é **compartilhado** pelos dois paths. Mexer no create React
   achando que o Blade morreu quebra quem entra pela URL — e ninguém reporta o que não sabe que existe.
 - **Status: 🧪 estrutural · na lane** — o `Baseline` emite 1 request, mas as asserções de gate são
