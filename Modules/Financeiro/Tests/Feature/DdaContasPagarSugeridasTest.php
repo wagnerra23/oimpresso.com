@@ -13,7 +13,7 @@ uses(Tests\TestCase::class);
 
 /**
  * US-FIN-078 — DDA: boletos emitidos contra o CNPJ da empresa viram contas a pagar SUGERIDAS.
- * Contrato: resources/js/Pages/Financeiro/Dda/Index.casos.md (UC-DDA-01..07).
+ * Contrato: resources/js/Pages/Financeiro/Unificado/Index.casos.md (UC-DDA-01..07).
  *
  * Tenant 98 (ADR 0358); o 99 é o adversário cross-tenant. Tudo em transação desfeita no fim
  * (`fin_titulos` não aceita delete). Valor conferido por dois caminhos: o que a fonte entrega

@@ -85,6 +85,13 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 | UC-F02 (legado) | Recebimento baixa o título e entra no caixa | must `[V0]` | `CU-FIN-08` + `US-FIN-003` | `RetencaoLoopE2ETest` | ✅ |
 | UC-F04 (legado) | Ações em lote respeitam tenant/limite/contabilidade | must `[V0][T0]` | `CU-FIN-07` + `US-FIN-031` | `UnificadoBulkGuardTest` | 🧪 |
 | UC-F05 (legado) | Pill "Conta indefinida" na baixa sem conta | should | `CU-FIN-06` + `US-FIN-038` | `UnificadoContaIndefinidaGuardTest` | 🧪 |
+| UC-DDA-01 | Fornecedor casado pelo CNPJ da própria empresa | must `[T0]` | `US-FIN-078` | `DdaContasPagarSugeridasTest` | 🧪 |
+| UC-DDA-02 | Mesmo boleto vira uma sugestão só | must | `US-FIN-078` | `DdaContasPagarSugeridasTest` | 🧪 |
+| UC-DDA-03 | Sugestão não cria conta a pagar | must `[V0]` | `US-FIN-078` | `DdaContasPagarSugeridasTest` | 🧪 |
+| UC-DDA-04 | Aceitar cria o título a pagar com valor e vencimento do boleto | must `[V0]` | `US-FIN-078` | `DdaContasPagarSugeridasTest` | 🧪 |
+| UC-DDA-05 | Outra empresa não decide a sugestão | must `[T0]` | `US-FIN-078` | `DdaContasPagarSugeridasTest` | 🧪 |
+| UC-DDA-06 | Descartar encerra sem título | must | `US-FIN-078` | `DdaContasPagarSugeridasTest` | 🧪 |
+| UC-DDA-07 | Sync falha visível sem flag ou sem fonte | must | `US-FIN-078` | `DdaContasPagarSugeridasTest` | 🧪 |
 
 > ⚠️ Os ids legados `UC-F0N` **não casam** com a régua estrita do `requisitos-status.mjs`
 > (`UC-[A-Z0-9]{2,10}-\d{2,3}` exige o 2º hífen). Por isso esta tabela os cita **nominalmente**
@@ -133,6 +140,50 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 - **Aceite:** Dado `conta_bancaria_id` que pertence a **outro** business · Quando a baixa é submetida · Então a operação é recusada **fail-closed**: zero `fin_titulo_baixas`, `valor_aberto` e `status` intactos.
 - **Teste:** `BaixaConservacaoValorContratoTest` ("UC-FUNI-04 · Tier 0: conta bancária de outro business é recusada") — precisa de 2 businesses semeados (a lane semeia biz=1 + biz=2).
 - **Regressão que defende:** dinheiro de um tenant caindo na conta de outro.
+- **Status: 🧪**
+
+---
+
+## Contrato do DDA (US-FIN-078)
+
+> Derivam da **US-FIN-078** (`memory/requisitos/Financeiro/SPEC.md`): boleto emitido contra o CNPJ
+> da empresa vira conta a pagar **sugerida**; título só nasce quando o usuário aceita. Backend nesta
+> onda; a lista de sugestões nesta tela entra na próxima, só com `FINANCEIRO_DDA_ENABLED`.
+> **Lane:** `PHP / Pest (Financeiro · MySQL)`. **Veredito:** 🧪 — quem dá é a lane (G-7).
+
+## UC-DDA-01 · Fornecedor casado pelo CNPJ da própria empresa `[T0]` `[must]`
+- **Aceite:** Dado fornecedor da empresa com CNPJ formatado e outro de outra empresa com o mesmo CNPJ · Quando chega o boleto · Então a sugestão aponta o fornecedor da própria empresa; sem cadastro, fica sem fornecedor.
+- **Teste:** `DdaContasPagarSugeridasTest` ("UC-DDA-01").
+- **Status: 🧪**
+
+## UC-DDA-02 · Mesmo boleto vira uma sugestão só `[must]`
+- **Aceite:** Dado o mesmo código de barras entregue duas vezes (com ou sem pontuação) · Então existe uma sugestão.
+- **Teste:** `DdaContasPagarSugeridasTest` ("UC-DDA-02").
+- **Status: 🧪**
+
+## UC-DDA-03 · Sugestão não cria conta a pagar `[V0]` `[must]`
+- **Aceite:** Dado boleto registrado · Então o número de títulos da empresa não muda.
+- **Teste:** `DdaContasPagarSugeridasTest` ("UC-DDA-03").
+- **Status: 🧪**
+
+## UC-DDA-04 · Aceitar cria o título a pagar do boleto `[V0]` `[must]`
+- **Aceite:** Dado sugestão de 1234,56 com vencimento 10/04 · Quando o usuário aceita · Então nasce título a pagar aberto com `valor_total = valor_aberto = 1234.56`, o vencimento e o fornecedor do boleto, e a sugestão fica `aceito` ligada a ele; aceitar de novo é recusado.
+- **Teste:** `DdaContasPagarSugeridasTest` ("UC-DDA-04").
+- **Status: 🧪**
+
+## UC-DDA-05 · Outra empresa não decide a sugestão `[T0]` `[must]`
+- **Aceite:** Dado sugestão da empresa A · Quando a empresa B aceita ou descarta · Então é recusado e a sugestão segue `sugerido`.
+- **Teste:** `DdaContasPagarSugeridasTest` ("UC-DDA-05").
+- **Status: 🧪**
+
+## UC-DDA-06 · Descartar encerra sem título `[must]`
+- **Aceite:** Quando o usuário descarta · Então a sugestão fica `descartado` e nenhum título é criado.
+- **Teste:** `DdaContasPagarSugeridasTest` ("UC-DDA-06").
+- **Status: 🧪**
+
+## UC-DDA-07 · Sync falha visível sem flag ou sem fonte `[must]`
+- **Aceite:** `financeiro:dda-sync` sai com erro com a flag desligada e com nenhuma fonte registrada; com fonte registrada, grava a sugestão.
+- **Teste:** `DdaContasPagarSugeridasTest` ("UC-DDA-07").
 - **Status: 🧪**
 
 ---
