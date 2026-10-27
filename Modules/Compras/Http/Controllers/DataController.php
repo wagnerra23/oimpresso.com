@@ -125,6 +125,10 @@ class DataController extends Controller
                         // do playbook Compras: atalho, nao tela propria — a ficha do
                         // fornecedor (scorecard C11) segue segurada no SPEC.
                         ['key' => 'fornecedores', 'label' => 'Fornecedores', 'href' => '/cliente?type=supplier'],
+                        // US-COM-003: conferência da NF-e do fornecedor, só com a flag ligada e a permissão.
+                        ...(config('nfebrasil.entrada_xml_enabled') && auth()->user()?->can('compras.import_xml')
+                            ? [['key' => 'entrada-xml', 'label' => 'Entrada por XML', 'href' => '/compras/entrada-xml']]
+                            : []),
                     ],
                 ]
             )->order(45);

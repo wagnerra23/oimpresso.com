@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Compras\Http\Controllers\ComprasController;
+use Modules\Compras\Http\Controllers\EntradaXmlController;
 use Modules\Compras\Http\Controllers\InstallController;
 use Modules\Compras\Http\Controllers\PropostasPrecoController;
 use Modules\Compras\Http\Controllers\InsumoMetodoCustoController;
@@ -53,4 +54,9 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         Route::put('/insumos/{variation}/metodo-custo', [InsumoMetodoCustoController::class, 'update'])
             ->whereNumber('variation')
             ->name('insumos.metodo-custo');
+        // US-COM-003: conferência da NF-e do fornecedor antes de virar compra (flag nfebrasil.entrada_xml_enabled).
+        Route::get('/entrada-xml', [EntradaXmlController::class, 'index'])->name('entrada-xml');
+        Route::post('/entrada-xml/upload', [EntradaXmlController::class, 'upload'])->name('entrada-xml.upload');
+        Route::get('/entrada-xml/produtos', [EntradaXmlController::class, 'produtos'])->name('entrada-xml.produtos');
+        Route::post('/entrada-xml/{id}/gerar', [EntradaXmlController::class, 'gerar'])->whereNumber('id')->name('entrada-xml.gerar');
     });

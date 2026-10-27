@@ -116,9 +116,9 @@ Como user com permission `purchase.create`, quero clicar "+ Nova compra" no cock
 
 **Status:** pending (Wave 6 — maior risco)
 **Persona:** user com permission `compras.import_xml`
-**Implementado em:** _parcial_ · `Modules/Compras/Services/ImportarDfeComoCompraService.php` · `Modules/Compras/Tests/Feature/ImportarDfeComoCompraContratoTest.php` — serviço atrás da flag `nfebrasil.entrada_xml_enabled` (desligada); o schema veio no #9836 e o leitor do XML na US-NFE-076. Falta a tela de conferência (rota `importar-dfe`), o fornecedor criado na hora (R-COM-202) e o produto criado quando não existe
+**Implementado em:** _parcial_ · `Modules/Compras/Services/ImportarDfeComoCompraService.php` · `Modules/Compras/Http/Controllers/EntradaXmlController.php` · `resources/js/Pages/Compras/EntradaXml.tsx` — atrás da flag `nfebrasil.entrada_xml_enabled` (desligada); o schema veio no #9836 e o leitor do XML na US-NFE-076. Falta o fornecedor criado na hora (R-COM-202) e o produto criado quando não existe
 
-**Testado em:** `Modules/Compras/Tests/Feature/ImportarDfeComoCompraContratoTest.php` (covers US-COM-003 · lane `compras-pest`)
+**Testado em:** `Modules/Compras/Tests/Feature/ImportarDfeComoCompraContratoTest.php` · `Modules/Compras/Tests/Feature/EntradaXmlTelaContratoTest.php` (covers US-COM-003 · lane `compras-pest`)
 
 **Regras de valor (2026-10-27, regra mestre `memory/proibicoes.md`):** linha = qCom × (vProd ÷ qCom), o ICMS fica no custo no Simples (ADR D4); compra = Σ vProd − vDesc + vFrete + (vIPI + vST + vSeg + vOutro) = vNF, e se os componentes não fecharem o vNF a importação é recusada. Regime normal (crédito de ICMS fora do custo) é recusado até ter dupla prova e decisão [W].
 
@@ -140,7 +140,7 @@ Como user com permission `compras.import_xml`, quero abrir modal "Importar XML" 
 - [x] Variação e nota de outra empresa são recusadas (Tier 0) — UC-NFCOM-04
 - [x] A mesma nota não vira duas compras (trava na linha da nota, R-COM-204/206) — UC-NFCOM-05
 - [x] Totais que não fecham e regime normal são recusados; flag desligada recusa — UC-NFCOM-06/07
-- [ ] Tela de conferência antes de gravar (rota `importar-dfe`, aba Entradas do protótipo `fiscal-tributacao.jsx`)
+- [x] Tela de conferência antes de gravar (`/compras/entrada-xml`, desenho da aba Entradas de `fiscal-tributacao.jsx`) — UC-ENTRAD-01..05
 - [ ] Fornecedor criado na hora (R-COM-202) e produto criado quando não existe
 
 ### US-COM-004 — Deprecar `/purchases` legacy
