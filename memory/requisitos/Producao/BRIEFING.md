@@ -54,9 +54,10 @@ donos da OS; as ordens deles aparecem no quadro da Produção.
   um requisito por vez, cada uma com o teste que a prova.
 - Controle de qualidade e não conformidade: hoje só existe o registro de refugo
   (`RefugoService`).
-- Custo real unificado com a Fabricação (`Modules/Manufacturing`): as duas contas não se
-  conversam; a receita única por `product_bom` é decisão [W] de 2026-10-13 registrada no
-  [BRIEFING da Fabricação](../Manufacturing/BRIEFING.md).
+- Custo real unificado com a Fabricação (`Modules/Manufacturing`): a conta única existe
+  desligada (US-PCP-034, `App\Domain\Producao\CustoDoFabricado`); falta ligar a receita e a OS
+  nela (regra mestre). A receita única por `product_bom` é decisão [W] de 2026-10-13 registrada no
+  [BRIEFING da Fabricação](../Manufacturing/BRIEFING.md), ainda sem ADR nem código.
 
 ## Portas canônicas
 
