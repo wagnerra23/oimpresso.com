@@ -89,6 +89,11 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CVOS-09 | A OS aprovada nasce com o roteiro padrão e aparece no quadro do PCP | must | US-COMVIS-003 · decisão [W] 2026-10-26 | `OsRoteiroPadraoContratoTest` | 🧪 |
 | UC-CVOS-10 | O padrão só aceita roteiro ativo da própria empresa | must `[T0]` | US-COMVIS-003 · decisão [W] 2026-10-26 | `OsRoteiroPadraoContratoTest` | 🧪 |
 | UC-CVOS-11 | O hub mostra e troca o roteiro padrão para quem cuida do catálogo | should | US-COMVIS-003 · decisão [W] 2026-10-26 | `tests/js/cv-roteiro-padrao.test.tsx` | 🧪 |
+| UC-CVPOS-01 | Custo orçado, custo real e as duas margens da OS saem da conta feita à mão | must `[V0]` | US-COMVIS-005 | `OsPosCalculoContratoTest` | 🧪 |
+| UC-CVPOS-02 | Trecho aberto não entra; etapa sem m² conta a hora e não o material | must `[V0]` | US-COMVIS-005 | `OsPosCalculoContratoTest` | 🧪 |
+| UC-CVPOS-03 | Peça sem custo deixa o orçado vazio; nenhuma com custo deixa o real vazio | must | US-COMVIS-005 | `OsPosCalculoContratoTest` | 🧪 |
+| UC-CVPOS-04 | OS, hora e m² de outra empresa nunca entram | must `[T0]` | US-COMVIS-005 | `OsPosCalculoContratoTest` | 🧪 |
+| UC-CVPOS-05 | Flag desligada é 404; sem quem vê custo é 403 | must | US-COMVIS-005 | `OsPosCalculoContratoTest` | 🧪 |
 | UC-CVMRG-01 | Cada peça e o orçamento mostram custo e margem | must `[V0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVMRG-02 | Preço, subtotal e total são os mesmos com e sem margem | must `[V0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVMRG-03 | Peça sem custo fica sem margem; o orçamento diz quantas têm | must | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
@@ -653,6 +658,60 @@ Status: 🧪
 quando a escolha muda; sem roteiro ativo, diz para cadastrar na tela de Roteiros da produção.
 
 Teste: `tests/js/cv-roteiro-padrao.test.tsx`
+
+Status: 🧪
+
+## Pós-cálculo da OS (US-COMVIS-005)
+
+> Âncora: SPEC US-COMVIS-005 (custo orçado × real ao fechar a OS). `GET …/api/os/{os}/pos-calculo`
+> (`OsPosCalculoController` → `PosCalculoDaOs`), atrás de `COMVIS_POS_CALCULO_ENABLED` (desligada),
+> só para quem vê custo (superadmin ou `comvis.material.manage`). Só lê: nenhum valor gravado muda.
+> As horas e o m² impresso vêm do Producao pelo contrato `App\Contracts\Producao\CustoRealDaOs`
+> (a conta das horas é a do `CustoRealService`). Sem tela neste PR; terceiros entram na fatia seguinte.
+
+Conta do arranjo (preço da OS 300,00; peças A 6,000 m² e B 1,440 m², ambas a 8,50/m²; A com 18,00 de máquina prevista):
+
+| | Material | Máquina | Pessoa | Total | Margem |
+|---|---|---|---|---|---|
+| Orçado | 63,24 | 18,00 | — | 81,24 | 218,76 (72,9%) |
+| Real | 8,190 m² × 63,24 ÷ 7,440 = 69,615 → 69,62 | 2h30 × 9,00 = 22,50 | 1h × 15,00 = 15,00 | 107,12 | 192,88 (64,3%) |
+
+2º caminho do material: as duas peças custam 8,50/m², 8,190 × 8,50 = 69,615 → 69,62. Arredonda uma vez, meio para cima.
+
+## UC-CVPOS-01 · Custo orçado, custo real e as duas margens da OS saem da conta feita à mão · `must` `[V0]`
+
+**Dado** o arranjo acima **Quando** quem vê custo pede o pós-cálculo **Então** vêm preço 300,00, orçado
+63,24 + 18,00 = 81,24, real 69,62 + 22,50 + 15,00 = 107,12, margem orçada 218,76 (72,9%) e real 192,88
+(64,3%). O material real é o m² impresso nas etapas × o custo médio do m² das peças no dia do orçamento.
+
+Status: 🧪
+
+## UC-CVPOS-02 · Trecho aberto não entra; etapa sem m² conta a hora e não o material · `must` `[V0]`
+
+**Dado** um trecho de máquina fechado com 7,440 m², um de pessoa sem m² e um de máquina ainda aberto
+**Quando** pede o pós-cálculo **Então** o real é 63,24 + 9,00 + 15,00 = 87,24: o trecho aberto não conta.
+
+Status: 🧪
+
+## UC-CVPOS-03 · Peça sem custo deixa o orçado vazio; nenhuma com custo deixa o real vazio · `must`
+
+**Dado** a peça A sem custo previsto **Quando** pede o pós-cálculo **Então** orçado e margem orçada vêm
+vazios ("1 de 2" peças com custo) e o material usa o custo médio só da peça B (2,880 × 12,24 ÷ 1,440 =
+24,48). Sem nenhuma peça com custo, material, total e margem real vêm vazios: sem preço o material engana.
+
+Status: 🧪
+
+## UC-CVPOS-04 · OS, hora e m² de outra empresa nunca entram · `must` `[T0]`
+
+**Dado** a outra empresa apontando hora e m² no mesmo id de OS **Quando** pede o pós-cálculo **Então**
+nada disso entra; a OS da outra empresa devolve 404.
+
+Status: 🧪
+
+## UC-CVPOS-05 · Flag desligada é 404; sem quem vê custo é 403 · `must`
+
+**Dado** a flag desligada **Quando** alguém pede **Então** 404. Ligada, quem só vê orçamento recebe 403 e
+quem cuida do catálogo recebe 200.
 
 Status: 🧪
 

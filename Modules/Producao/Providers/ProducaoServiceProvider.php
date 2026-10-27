@@ -87,6 +87,8 @@ class ProducaoServiceProvider extends ServiceProvider
         $this->app->bind(\App\Contracts\Producao\CustoHoraDoPosto::class, \Modules\Producao\Services\CustoHoraDoPostoService::class);
         // US-COMVIS-003 (decisão [W] 2026-10-26): a OS da CV entra no quadro com o roteiro padrão da empresa.
         $this->app->bind(\App\Contracts\Producao\ProgramacaoDaOs::class, \Modules\Producao\Services\ProgramacaoDoRoteiro::class);
+        // US-COMVIS-005: o pós-cálculo da OS da CV lê as horas e o m² impresso apontados.
+        $this->app->bind(\App\Contracts\Producao\CustoRealDaOs::class, \Modules\Producao\Services\CustoRealDaOsService::class);
         // US-FIN-070 (custeio RKW): o Financeiro lê horas e troca custo-hora só por aqui.
         $this->app->bind(\App\Contracts\Producao\HorasDosPostos::class, \Modules\Producao\Services\HorasDosPostosService::class);
         // UC-FLXT-22: o interruptor da reserva de insumo na tela Fluxos (núcleo) chega aqui pelo contrato.
