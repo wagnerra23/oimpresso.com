@@ -22,7 +22,7 @@ related_adrs:
   - 0135-omnichannel-inbox-arquitetura
 related_charters: [resources/js/Pages/Atendimento/Inbox/Index.charter.md]
 tier: A
-charter_version: 23
+charter_version: 24
 permissao: whatsapp.access
 states: [default, dark]  # gate L2 — sync com tests/Browser/visreg-states.json (hotspot: 15 fixes visuais jun-jul/2026, 2º maior re-trabalho do mês)
 smoke: "2026-07-10 — render prod OK biz=1 (Chrome MCP, sessão WR2 Sistemas; https://oimpresso.com/atendimento/caixa-unificada: header 'Atendimento · 2 contas ativas · 2 filas · 475 abertas', lista 477 conversas reais, ChannelHealthBanner vivo 'WhatsApp — Jana está fora do ar + Reconectar canal' (US-WA-308), topnav Templates/Filas/Canais/Broadcast/Guia/+Nova conversa; 0 erro console pós-reload com tracking ativo)."
@@ -238,9 +238,11 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 - ❌ **Wizard de conexão** — `/atendimento/canais/{id}` show + tabs.
 - ❌ **Roteamento automático de filas** (round-robin/sticky/members) —
   `dist`/`members` são persistidos (ADR 0267) mas o roteamento é US futura.
-- ❌ **Disparo em massa do broadcast** — fase 2 (ADR 0268): Job rate-limited
-  anti-ban + retry por destinatário, com gate [W]. A fase 1 (pre-flight LGPD +
-  rascunho auditável) está entregue; o botão "Disparar" fica disabled até lá.
+- ~~❌ **Disparo em massa do broadcast** — fase 2 (ADR 0268)~~ — **destravado por [W] em
+  2026-10-26** (US-WA-322/323): "Salvar e disparar" agenda o envio real, só com a flag
+  `WHATSAPP_BROADCAST_DISPARO_ENABLED` ligada; desligada, o botão fica disabled e diz por quê.
+  Segue Non-Goal: disparo de template HSM (só texto livre por enquanto) e retry por destinatário
+  (reenvio automático em campanha é mensagem duplicada).
 - ❌ **Mídia outbound/inbound** UI — preserva legacy `MediaPreviewCard`
   durante coexistência. PR seguinte unifica.
 
@@ -343,7 +345,7 @@ Substituirá `/atendimento/inbox` após canary aprovado. Durante coexistência,
 Tabela `whatsapp_queues` (ADR 0267) + QueuesSheet CRUD + seed lazy do config.
 Roteamento automático (dist/members) fica dormente até US futura.
 
-### §2 Broadcast cross-canal (P2) — 🟡 FASE 1 ENTREGUE 2026-06-10 (US-WA-306 · ADR 0268)
+### §2 Broadcast cross-canal (P2) — 🟡 FASE 1 ENTREGUE 2026-06-10 (US-WA-306 · ADR 0268) · fase 2 em PR 2026-10-26 (US-WA-322/323)
 Entregue: modelo `whatsapp_broadcasts` + opt-in LGPD (`contacts.whatsapp_opt_in_at`)
 + pre-flight real (total/opt-in/janela 24h/só-HSM) + rascunho auditável
 (snapshot congelado server-side) + BroadcastSheet.
@@ -378,6 +380,7 @@ Após Wagner aprovar canary 7d:
 
 | Data | Autor | Mudança |
 |---|---|---|
+| 2026-10-26 | Claude Code [C] (frente CRM/WhatsApp, [W] destravou a fase 2) | **Broadcast fase 2 — "Salvar e disparar" + cancelar** (US-WA-322 motor anti-ban · US-WA-323 botão/endpoints). Non-Goal do disparo em massa riscado com data; seguem Non-Goal o template HSM e o retry por destinatário. Botão ligado só com `WHATSAPP_BROADCAST_DISPARO_ENABLED` (padrão desligado). Novo `UC-CXU-19` no casos. Charter v24. |
 | 2026-08-24 | Claude Code [C] (frente 4 — pendências de charter) | **Trio fechado: nasce o `Index.casos.md`.** A tela era a única do módulo com `.tsx` + charter e **sem** contrato executável. 16 UCs (`UC-CXU-01..16`) derivados DESTE charter (Goals · Non-Goals · Tier 0 · Anti-hooks) e das US do SPEC — **não** do `.tsx` (§5 2026-06-05, teste tautológico). Cada UC citado pelo TÍTULO de um teste (G-2 alcançável pelo manifesto, conforme recomenda o `casos:report`); os ids `R-WA-CAIXA-UNIF-*` foram **preservados** nos títulos, então nenhuma referência externa quebra. Medido: `casos:check` 110→109 violações, UCs declarados 703→719 (+16), **órfãos 12→12** (nenhum novo), metadata/STALE/G-7 = 0; os 3 modos do CI verdes. **Achado registrado:** rodar esta suíte no CT 100 em MySQL dá `16 skipped (0 assertions)` — a suíte é da lane **sqlite** (`ci-sqlite-pest.list:110`), onde dá `16 passed (129 assertions)`; a tabela abaixo trocou o `✅` atemporal por essa medição datada (LC-13 · LC-10). Charter v21. |
 | 2026-06-19 | Claude Code [CL] (rebase de #2964 · direção [W] "qualquer conta pode ver") | **Banner de saúde business-wide.** `buildUnhealthyChannelsPayload` perde o filtro ACL-de-canal (assinatura cai pra `(int $businessId)`): o alerta "seu WhatsApp caiu" aparece pra QUALQUER conta com `whatsapp.access`, não só admin `view-all-phones` — o business pode não ter grants de canal e ninguém via o banner. Tier 0 preservado por `business_id`. Pest renomeado `R-WA-CAIXA-UNIF-014 (health) → 015` (business-wide; resolve a colisão com o `014 media_inbound_24h` pré-existente no main). A parte "probe detecta provision_pending" do #2964 original foi **descartada**: o main já cobre via ADR 0287 (`decideAction` com guard `healthBefore==healthy` + supressão por inbound recente) — superior. Charter v19. |
 | 2026-06-18 | Claude Code [CL] (follow-up de #2963 · direção [W]) | **Banner de saúde movido pro topo da LISTA + layout via primitivos.** Após [W] apontar o screenshot do protótipo ("esse seria o lugar correto? mantenha íntegro"), o `ChannelHealthBanner` saiu do `Index.tsx` (full-width no topo da tela) e foi pro topo da **coluna de conversas** (renderizado por `ConversationListV4`, logo após a busca — fiel ao protótipo). Prop eager `unhealthyChannels` desce `Index → ConversationListV4 → banner`. **Também conserta o `main`:** o #2963 mergeou só o 1º commit (versão com `<div className="flex/grid">` cru) e o **layout-primitives ratchet (ADR 0253)** ficou vermelho no `main` — refeito 100% com `<Stack>`/`<Inline>` (centragem de ícone via idioma permitido `grid place-items-center`); `node scripts/layout-primitives-guard.mjs` verde. `R-WA-CAIXA-UNIF-014` (payload) intacto. Charter v18. |
