@@ -47,6 +47,7 @@ WooCommerce é a plataforma de e-commerce mais usada no Brasil entre PMEs (lojis
 - 🟡 Não testado contra WooCommerce 8.x/9.x atuais (escrito pra Woo ~3.x-6.x)
 - 🟡 Sem sync de cupons/coupons (P2 backlog se aparecer cliente)
 - 🟡 Sem sync inverso de estoque (Woo → oimpresso) — só pedido vira venda
+- 🟢 **Estoque do ERP → Woo automático (2026-10-26, US-WOO-007 parcial):** baixa, entrada ou ajuste de estoque de produto simples ligado à loja agenda o envio do `stock_quantity` (1 envio por produto a cada rajada). Produto variável ainda só pelo sync manual.
 - 🟡 Blade não migrado MWART (uso dormente, sem prioridade)
 - 🟡 Sem dashboard consolidado Woo (revenue/conversão) — usa UI Woo
 

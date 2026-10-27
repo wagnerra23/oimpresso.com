@@ -25,6 +25,11 @@ class WoocommerceServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
         $this->registerScheduleCommands();
 
+        // US-WOO-007: estoque mudou no ERP → agenda o envio para a loja (o decrement da baixa de
+        // venda dispara `updated`, não `saved`). Falha aqui nunca derruba venda/compra/ajuste.
+        \App\VariationLocationDetails::created([\Modules\Woocommerce\Listeners\EstoqueMudouParaWoo::class, 'aoSalvar']);
+        \App\VariationLocationDetails::updated([\Modules\Woocommerce\Listeners\EstoqueMudouParaWoo::class, 'aoSalvar']);
+
         //TODO: Need to be removed.
         view::composer('woocommerce::layouts.partials.sidebar', function ($view) {
             $module_util = new ModuleUtil();

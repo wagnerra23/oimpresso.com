@@ -32,7 +32,7 @@
  */
 import { useMemo, useState, type ReactNode } from 'react';
 import { Deferred, Head, Link, router } from '@inertiajs/react';
-import { Plus, Trash2, Calculator, ServerCog, Ruler, Clock, Printer, Save, FolderOpen, CheckCircle2, Paperclip, X } from 'lucide-react';
+import { Plus, Trash2, Calculator, ServerCog, Ruler, Clock, Printer, Save, FolderOpen, CheckCircle2, Paperclip, X, Send, Copy } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { PageHeader } from '@/Components/PageHeader';
@@ -261,6 +261,10 @@ export default function Index({
   const [aprovando, setAprovando] = useState(false);
   const [arquivos, setArquivos] = useState<ArquivoTela[]>(orcamento?.arquivos ?? []);
   const [enviandoArquivo, setEnviandoArquivo] = useState(false);
+  // US-COMVIS-023: link para o cliente aceitar. O token só aparece nesta resposta.
+  const [linkCliente, setLinkCliente] = useState<string | null>(null);
+  const [gerandoLink, setGerandoLink] = useState(false);
+  const [linkCopiado, setLinkCopiado] = useState(false);
 
   function mexeu() {
     setConferido(null);
@@ -368,6 +372,33 @@ export default function Index({
     } finally {
       setAprovando(false);
       setConfirmandoAprovar(false);
+    }
+  }
+
+  // US-COMVIS-023: gera o link de aceite; o vendedor manda pelo WhatsApp dele (nada sai do sistema).
+  async function gerarLinkCliente() {
+    if (!salvo) return;
+    setGerandoLink(true);
+    setErro(null);
+    setLinkCopiado(false);
+    try {
+      const r = (await chamarApi('POST', `/comunicacao-visual/api/orcamentos/${salvo.id}/link`, {})) as { url: string };
+      setLinkCliente(r.url);
+      if (salvo.status === 'rascunho') setSalvo({ ...salvo, status: 'enviado' });
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : 'Falha inesperada ao gerar o link do cliente.');
+    } finally {
+      setGerandoLink(false);
+    }
+  }
+
+  async function copiarLinkCliente() {
+    if (!linkCliente) return;
+    try {
+      await navigator.clipboard.writeText(linkCliente);
+      setLinkCopiado(true);
+    } catch {
+      setLinkCopiado(false);
     }
   }
 
@@ -854,6 +885,18 @@ export default function Index({
                     {salvando ? 'Salvando…' : salvo ? 'Salvar alterações' : 'Salvar orçamento'}
                   </Button>
                 )}
+                {podeAprovar && !confirmandoAprovar && salvo?.status !== 'aprovado' && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    data-contract="enviar-cliente"
+                    onClick={gerarLinkCliente}
+                    disabled={gerandoLink}
+                  >
+                    <Send className="mr-2 h-4 w-4" />
+                    {gerandoLink ? 'Gerando link…' : 'Enviar no WhatsApp'}
+                  </Button>
+                )}
                 {podeAprovar && !confirmandoAprovar && (
                   <Button type="button" data-contract="aprovar" onClick={() => setConfirmandoAprovar(true)}>
                     <CheckCircle2 className="mr-2 h-4 w-4" />
@@ -873,6 +916,31 @@ export default function Index({
                 )}
               </Inline>
             </div>
+
+            {linkCliente && salvo && !osCriada && (
+              <div data-contract="link-cliente" className="space-y-2 rounded-md border border-border p-3">
+                <Label htmlFor="link-cliente" className="text-xs">
+                  Link para o cliente aceitar o {salvo.numero} (vale 7 dias, uma resposta)
+                </Label>
+                <Input id="link-cliente" readOnly value={linkCliente} onFocus={(e) => e.currentTarget.select()} />
+                <Inline gap={2}>
+                  <Button type="button" variant="outline" size="sm" onClick={copiarLinkCliente}>
+                    <Copy className="mr-2 h-4 w-4" />
+                    {linkCopiado ? 'Copiado' : 'Copiar link'}
+                  </Button>
+                  <Button type="button" size="sm" asChild>
+                    <a
+                      href={`https://wa.me/?text=${encodeURIComponent(`Olá! Segue o orçamento ${salvo.numero} de ${bizName}. Para aceitar ou pedir ajuste: ${linkCliente}`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Send className="mr-2 h-4 w-4" />
+                      Abrir no WhatsApp
+                    </a>
+                  </Button>
+                </Inline>
+              </div>
+            )}
 
             <p className="text-xs text-muted-foreground">
               O cálculo na tela é só uma prévia. Ao conferir no servidor, o valor oficial é
