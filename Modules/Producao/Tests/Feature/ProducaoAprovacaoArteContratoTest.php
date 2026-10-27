@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PCART-01..05 e UC-PCV-11 (Producao/Apontamento/Index.casos.md) — UC-FLX-02 do catálogo de fluxos
+// Cobre UC-PCART-01..06 e UC-PCV-11 (Producao/Apontamento/Index.casos.md) — UC-FLX-02 do catálogo de fluxos
 // e a trava da arte da thread 10 do playbook de Produção.
 
 use App\Utils\ModuleUtil;
@@ -220,4 +220,84 @@ it('UC-PCV-11 · OS de outra empresa não troca nem mostra a arte (404)', functi
     $this->actingAs($alheio)->postJson("/producao/ordens/{$this->ordem->id}/arte/trocar", ['arquivo' => 'https://x.test/v9.png'])->assertNotFound();
     $this->getJson("/producao/ordens/{$this->ordem->id}/arte")->assertNotFound();
     expect(AprovacaoArte::withoutGlobalScopes()->where('ordem_id', $this->ordem->id)->count())->toBe(1);
+});
+
+// ── UC-PCART-06 · o link da prova vai ao cliente por WhatsApp (US-COMVIS-NEW-004) ──
+// O envio é do Modules/Whatsapp pelo contrato AvisaClienteWhatsapp; aqui ele é um dublê que grava as
+// chamadas. Flag `producao.aprovacao_arte.whatsapp` nasce desligada.
+
+function artVendaComCliente($t, int $biz): array
+{
+    $local = DB::table('business_locations')->where('business_id', $biz)->value('id')
+        ?? DB::table('business_locations')->insertGetId(['business_id' => $biz, 'name' => 'Loja '.uniqid(), 'country' => 'Brasil',
+            'state' => 'SC', 'city' => 'Tubarão', 'zip_code' => '88700000', 'created_at' => now(), 'updated_at' => now()]);
+    $contato = (int) DB::table('contacts')->insertGetId(['business_id' => $biz, 'type' => 'customer', 'name' => 'Marta Prova',
+        'mobile' => '48988887777', 'contact_status' => 'active', 'created_by' => $t->pcp->id, 'created_at' => now(), 'updated_at' => now()]);
+    $venda = (int) DB::table('transactions')->insertGetId(['business_id' => $biz, 'location_id' => $local, 'type' => 'sell', 'status' => 'final',
+        'contact_id' => $contato, 'invoice_no' => 'V-'.substr(uniqid(), -6), 'payment_status' => 'due', 'transaction_date' => now(),
+        'final_total' => 500, 'essentials_duration' => 0, 'created_by' => $t->pcp->id, 'created_at' => now(), 'updated_at' => now()]);
+
+    return [$contato, $venda];
+}
+
+function artDubleDoAviso(): object
+{
+    $duble = new class implements \App\Contracts\Atendimento\AvisaClienteWhatsapp {
+        public array $chamadas = [];
+
+        public function avisar(int $businessId, int $contactId, string $texto): array
+        {
+            $this->chamadas[] = compact('businessId', 'contactId', 'texto');
+
+            return ['enviado' => true, 'motivo' => null];
+        }
+    };
+    app()->instance(\App\Contracts\Atendimento\AvisaClienteWhatsapp::class, $duble);
+
+    return $duble;
+}
+
+it('UC-PCART-06 · com a flag desligada nada é enviado e o link volta ao operador', function () {
+    config(['producao.aprovacao_arte.whatsapp' => false]);
+    $duble = artDubleDoAviso();
+    $this->partialMock(ModuleUtil::class, fn ($m) => $m->shouldReceive('hasThePermissionInSubscription')
+        ->andReturnUsing(fn ($b, $perm) => $perm === 'producao_module'));
+
+    $r = $this->actingAs($this->designer)->postJson("/producao/ordens/{$this->ordem->id}/aprovacao-arte",
+        ['programacao_id' => $this->aprovacao->id, 'arquivo' => 'https://x.test/c.png'])->assertCreated();
+
+    expect($r->json('whatsapp'))->toBeNull()->and($r->json('link'))->toContain('/arte/')->and($duble->chamadas)->toBe([]);
+});
+
+it('UC-PCART-06 · com a flag ligada o link vai ao cliente da venda da OS, na empresa da OS', function () {
+    config(['producao.aprovacao_arte.whatsapp' => true]);
+    $duble = artDubleDoAviso();
+    [$contato, $venda] = artVendaComCliente($this, $this->b98);
+    DB::table('pcp_ordens')->where('id', $this->ordem->id)->update(['transaction_id' => $venda]);
+    $this->partialMock(ModuleUtil::class, fn ($m) => $m->shouldReceive('hasThePermissionInSubscription')
+        ->andReturnUsing(fn ($b, $perm) => $perm === 'producao_module'));
+
+    $r = $this->actingAs($this->designer)->postJson("/producao/ordens/{$this->ordem->id}/aprovacao-arte",
+        ['programacao_id' => $this->aprovacao->id, 'arquivo' => 'https://x.test/d.png'])->assertCreated();
+
+    expect($r->json('whatsapp'))->toBe(['enviado' => true, 'motivo' => null])->and($duble->chamadas)->toHaveCount(1);
+    $c = $duble->chamadas[0];
+    expect($c['businessId'])->toBe($this->b98)->and($c['contactId'])->toBe($contato)
+        ->and($c['texto'])->toContain($r->json('link'))->and($c['texto'])->toContain('Olá, Marta!');
+});
+
+it('UC-PCART-06 · venda de outra empresa ou sem cliente não manda nada e pede contato manual', function () {
+    config(['producao.aprovacao_arte.whatsapp' => true]);
+    $duble = artDubleDoAviso();
+    // A OS aponta para uma venda da empresa 99: o cliente dela nunca recebe o link da 98 (Tier 0).
+    [, $vendaAlheia] = artVendaComCliente($this, $this->b99);
+    DB::table('pcp_ordens')->where('id', $this->ordem->id)->update(['transaction_id' => $vendaAlheia]);
+    $this->partialMock(ModuleUtil::class, fn ($m) => $m->shouldReceive('hasThePermissionInSubscription')
+        ->andReturnUsing(fn ($b, $perm) => $perm === 'producao_module'));
+
+    $r = $this->actingAs($this->designer)->postJson("/producao/ordens/{$this->ordem->id}/aprovacao-arte",
+        ['programacao_id' => $this->aprovacao->id, 'arquivo' => 'https://x.test/e.png'])->assertCreated();
+
+    expect($r->json('whatsapp'))->toBe(['enviado' => false, 'motivo' => 'sem_cliente'])->and($duble->chamadas)->toBe([])
+        ->and(AprovacaoArte::withoutGlobalScopes()->find($r->json('id')))->not->toBeNull();
 });
