@@ -337,6 +337,27 @@ ROTA LIVRE usa Asaas como adapter de boleto + extrato (Inter PJ planejado em US-
 - [ ] Relatório "rotação por estação" (sell-through %)
 - [ ] Pré-requisito de US-VEST-022 (comissão por estação) e US-VEST-023 (liquidação)
 
+### US-VEST-031 · Sugestão de compra por tamanho pela curva de venda `p1`
+
+> owner: — · priority: p1 · estimate: 8h · type: story
+> blocked_by: —
+> **Implementado em:** _parcial_ · `Modules/Vestuario/Services/CurvaDeCompra.php` · `Modules/Vestuario/Http/Controllers/CurvaCompraController.php` — cálculo e endpoint GET /vestuario/curva-compra; falta o botão "Sugerir pela curva" na tela da compra
+> **Testado em:** `Modules/Vestuario/Tests/Feature/CurvaDeCompraContratoTest.php`
+> Contrato: `UC-VCUR-01..03` em `memory/requisitos/Vestuario/_telas/curva-de-compra.casos.md`.
+
+> **Decisão [W] 2026-10-26:** aprovada como sugestão editável. Na compra, o sistema sugere a quantidade por tamanho pela proporção vendida nos últimos 90 dias do produto, ou da categoria quando o produto é novo. Quem compra pode mudar a sugestão, e nada entra no estoque nem no pedido sem confirmação. Afeta a ROTA LIVRE (biz=4): teste no tenant 98, nada na biz=4.
+
+Lacuna "Grade cor e tamanho com curva de compra" (levantamento 2026-10-25, frente Verticais).
+
+**DoD:**
+
+- Para um produto com grade, sugere a quantidade de cada variação (tamanho, ou cor × tamanho) pela proporção vendida nos últimos 90 dias daquele produto.
+- Produto novo (sem venda no período): usa a proporção da categoria, casando as variações pelo nome (ex.: "M", "Azul - M").
+- Quem compra digita o total de peças; a divisão usa o maior resto, então a soma bate com o total.
+- É sugestão editável: nada entra no pedido nem no estoque sem a confirmação de quem compra.
+- Sem venda no produto nem na categoria: não sugere (diz por quê).
+- Tier 0: vendas e produtos só da empresa.
+
 ### US-VEST-030 · Ecommerce (loja virtual / WhatsApp catálogo) `p3`
 
 > owner: — · priority: p3 · estimate: 60h+ · status: todo · type: epic
