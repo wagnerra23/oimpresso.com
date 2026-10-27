@@ -53,18 +53,25 @@ it('o superadmin abre as telas vivas (controle positivo)', function () {
     $this->actingAs($su)->get('/superadmin/superadmin-subscription')->assertOk();
 });
 
+// Sem rota GET o Laravel responde 404, ou 405 quando o mesmo endereço tem PUT/DELETE no resource
+// (`/packages/{id}`, `/superadmin-subscription/{id}`). Os dois provam que a tela morta saiu.
+function semGet($resposta): void
+{
+    expect($resposta->getStatusCode())->toBeIn([404, 405]);
+}
+
 it('show de pacote e de assinatura não existe mais (era 500)', function () {
     $su = mortaSuperadmin();
 
-    $this->actingAs($su)->get('/superadmin/packages/1')->assertNotFound();
-    $this->actingAs($su)->get('/superadmin/superadmin-subscription/1')->assertNotFound();
+    semGet($this->actingAs($su)->get('/superadmin/packages/1'));
+    semGet($this->actingAs($su)->get('/superadmin/superadmin-subscription/1'));
 });
 
 it('o modal Blade da assinatura e o ajax da lista antiga não existem mais', function () {
     $su = mortaSuperadmin();
 
-    $this->actingAs($su)->get('/subscription/1')->assertNotFound();
-    $this->actingAs($su)->get('/all-subscriptions')->assertNotFound();
+    semGet($this->actingAs($su)->get('/subscription/1'));
+    semGet($this->actingAs($su)->get('/all-subscriptions'));
 });
 
 it('o fallback Blade /pricing/old saiu; /pricing segue', function () {
