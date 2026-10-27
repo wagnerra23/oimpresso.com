@@ -1,6 +1,6 @@
 ---
 id: resources-js-pages-relatorios-despesas-index-casos
-casos: Despesas · /reports/expense-report?tela=nova
+casos: Despesas · /reports/expense-report
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a tela mostra quanto o negócio gastou; total diferente da Blade ou despesa de outro negócio é incidente.
@@ -29,6 +29,13 @@ last_run: "2026-10-07"
 - **Aceite:** Dado as mesmas despesas no negócio 99 · Quando o 98 abre a tela · Então linhas e total não mudam
   · E `categorias` e `locais` não trazem nada do 99 · Dado usuário sem `expense_report.view` · Então 403 na
   tela nova e na Blade.
+- **Status: 🧪**
+
+## UC-RDE-03 · O menu abre a tela nova; a Blade só com `?classico=1` · `must`
+- **Aceite:** Dado o cutover pelo menu (D1 [W] 2026-10-07: por tela, React vira padrão, Blade só com
+  `?classico=1`) · Quando abro `/reports/expense-report` como o menu navega (sem `X-Inertia`) · Então recebo
+  a Page · E a visita Inertia (`X-Inertia` + `X-Requested-With`) também · E `?tela=nova` continua valendo ·
+  E com `?classico=1` recebo a Blade, cujo formulário de filtro leva `classico=1` para não cair na Page.
 - **Status: 🧪**
 
 ## Backlog
