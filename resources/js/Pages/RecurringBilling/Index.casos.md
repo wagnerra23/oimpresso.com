@@ -294,6 +294,35 @@ sem mandato → status nulo e o botão "Pedir autorização"; `CRIADA` → o QR 
 Teste: `MandatoPixAutomaticoContratoTest`.
 Status: 🧪
 
+## Cartão recorrente — cartão salvo como token (US-RB-011 · reaberta por [W] 2026-10-27)
+
+> Motor sem tela nesta fatia: quando a fatura de uma assinatura é paga no cartão pela página hospedada
+> do Asaas, o listener `SalvarCartaoDaCobrancaPaga` (só com `RB_SALVAR_CARTAO=true`) guarda o token do
+> cartão e o liga à assinatura, para as próximas faturas serem cobradas nele. Fonte: SPEC US-RB-011
+> (PCI: o número nunca chega ao oimpresso) + payload `payment.creditCard` do webhook do Asaas. Roda na
+> lane `paymentgateway-pest` (MySQL). Teste: [`CartaoSalvoContratoTest`](../../../../Modules/RecurringBilling/Tests/Feature/CartaoSalvoContratoTest.php).
+
+## UC-RBCC-01 · Fatura paga no cartão guarda o token e liga à assinatura · `must`
+**Dado** uma fatura de assinatura paga no cartão, com webhook do Asaas trazendo token, últimos 4 e bandeira
+**Quando** o `CobrancaPaga` sai **Então** nasce 1 cartão salvo com os últimos 4 e a bandeira, o token
+cifrado no banco (e fora do JSON do modelo), e a assinatura passa a apontar para ele.
+Status: 🧪
+
+## UC-RBCC-02 · O mesmo cartão não duplica e a assinatura com cartão não troca sozinha · `must`
+**Quando** o mesmo webhook é processado de novo **Então** o resultado é `ja_salvo` e não nasce outra linha;
+outro cartão salvo depois não substitui o da assinatura (trocar é ato do cliente ou do gestor).
+Status: 🧪
+
+## UC-RBCC-03 · Número de cartão é recusado; boleto e flag desligada não salvam · `must` `[T0]`
+**Dado** um campo com sequência de 13 a 19 dígitos **Então** nada é gravado (`recusado_numero`) e o log não
+leva o valor. Fatura paga no boleto é ignorada; com `RB_SALVAR_CARTAO` desligada nada é salvo.
+Status: 🧪
+
+## UC-RBCC-04 · Um business não salva o cartão da cobrança do outro · `must` `[T0]`
+**Dado** a cobrança do tenant 99 **Quando** chega um evento dizendo tenant 98 **Então** `ignorado`, nenhum
+cartão salvo e a assinatura do 99 intocada.
+Status: 🧪
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = **órfão** = viola o `casos-gate` e **bloqueia o
