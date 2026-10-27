@@ -18,7 +18,7 @@ last_run: "2026-10-27"
 - **Fonte:** RUNBOOK-entrada-xml §1 · ADR entrada por XML (feature nova atrás de flag).
 - **Aceite:** Dado a flag desligada · Quando abre a tela · Então 404. Dado usuário sem `compras.import_xml` · Então 403.
 - **Teste:** `Modules/Compras/Tests/Feature/EntradaXmlTelaContratoTest.php`
-- **Status: 🧪**
+- **Status: ⬜** — teste escrito, ainda não rodou (CT 100 fora do ar; vira 🧪 com o run do CI)
 
 ---
 
@@ -26,7 +26,7 @@ last_run: "2026-10-27"
 - **Fonte:** ADR D2/D3 · protótipo TrEntradas (UC-TRB-18).
 - **Aceite:** Dado notas da empresa e de outra · Quando abro a tela · Então só as minhas aparecem, e a conferência mostra CFOP de entrada proposto (5405 → 1403) e "ST retida" no CST 060.
 - **Teste:** `Modules/Compras/Tests/Feature/EntradaXmlTelaContratoTest.php`
-- **Status: 🧪**
+- **Status: ⬜** — teste escrito, ainda não rodou (CT 100 fora do ar; vira 🧪 com o run do CI)
 
 ---
 
@@ -34,7 +34,7 @@ last_run: "2026-10-27"
 - **Fonte:** ADR D2 (Tier 0, ADR 0093).
 - **Aceite:** Dado um XML cujo destinatário não é a empresa · Quando envio · Então volta "Esta nota foi emitida para outro CNPJ, não para esta empresa." e nada é gravado.
 - **Teste:** `Modules/Compras/Tests/Feature/EntradaXmlTelaContratoTest.php`
-- **Status: 🧪**
+- **Status: ⬜** — teste escrito, ainda não rodou (CT 100 fora do ar; vira 🧪 com o run do CI)
 
 ---
 
@@ -42,7 +42,7 @@ last_run: "2026-10-27"
 - **Fonte:** ADR D3 · US-COM-003.
 - **Aceite:** Dado uma nota com item sem vínculo · Quando clico Gerar compra · Então volta o motivo e nenhuma compra é criada.
 - **Teste:** `Modules/Compras/Tests/Feature/EntradaXmlTelaContratoTest.php`
-- **Status: 🧪**
+- **Status: ⬜** — teste escrito, ainda não rodou (CT 100 fora do ar; vira 🧪 com o run do CI)
 
 ---
 
@@ -50,7 +50,7 @@ last_run: "2026-10-27"
 - **Fonte:** Tier 0 (ADR 0093).
 - **Aceite:** Dado produtos de mesmo nome em duas empresas · Quando busco · Então só o meu aparece.
 - **Teste:** `Modules/Compras/Tests/Feature/EntradaXmlTelaContratoTest.php`
-- **Status: 🧪**
+- **Status: ⬜** — teste escrito, ainda não rodou (CT 100 fora do ar; vira 🧪 com o run do CI)
 
 ---
 
