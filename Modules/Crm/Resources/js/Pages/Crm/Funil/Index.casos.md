@@ -75,7 +75,7 @@ Status: 🧪
 
 **Dado** um negócio que entrou pelo formulário do site com UTM e outro criado à mão · **Quando** o quadro
 carrega · **Então** o cartão do primeiro mostra "Formulário · google / cpc · outubro" e o do segundo "Manual".
-Origem: US-CRM-096 (captura de lead) e protótipo `prototipo-ui/cowork/Wagner/prototipos/crm-nps-e-captura.html` (quadro C).
+Origem: US-CRM-096 (captura de lead) e protótipo `prototipo-ui/cowork/Wagner/crm-nps-captura-page.jsx` (quadro C).
 
 - **Teste:** `Modules/Crm/Tests/Feature/CrmFunilContratoTest.php` — `UC-CRMFN-06 · o negócio mostra de onde veio: formulário com os UTM ou manual (US-CRM-096)`.
 
