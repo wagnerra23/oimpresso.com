@@ -133,8 +133,10 @@ class PagamentoBancoService
             if ($titulo->status === 'quitado' || number_format((float) $titulo->valor_aberto, 2, '.', '') !== number_format((float) $pag->valor, 2, '.', '')) {
                 // O banco pagou, mas o título mudou no meio (baixa manual, edição): não baixa de
                 // novo — fica registrado para conferência humana.
-                $pag->update($dados + ['status' => PagamentoBanco::STATUS_PAGO, 'confirmado_em' => now(),
-                    'motivo' => 'Banco confirmou, mas o título já não tinha este aberto — conferir duplicidade.']);
+                // O aviso vem à esquerda: no `+` do PHP a chave da esquerda vence, e $dados
+                // sempre traz 'motivo' (null quando o banco não mandou nenhum).
+                $pag->update(['status' => PagamentoBanco::STATUS_PAGO, 'confirmado_em' => now(),
+                    'motivo' => 'Banco confirmou, mas o título já não tinha este aberto — conferir duplicidade.'] + $dados);
 
                 return $pag;
             }
