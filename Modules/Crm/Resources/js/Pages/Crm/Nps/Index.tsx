@@ -5,7 +5,7 @@
 //   permissao: crm.nps.ver
 //
 // Painel NPS (PT-02 · KPIs em cima, lista embaixo). Charter: ./Index.charter.md · Casos: ./Index.casos.md
-// Âncora de design: prototipo-ui/cowork/Wagner/prototipos/crm-nps-e-captura.html (quadro B).
+// Âncora de design: prototipo-ui/cowork/Wagner/crm-nps-captura-page.jsx (quadro B).
 
 import { Deferred, router } from '@inertiajs/react';
 import { PageHeader } from '@/Components/PageHeader';
