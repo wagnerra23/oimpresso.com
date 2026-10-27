@@ -141,3 +141,18 @@ it('UC-ETDS-02 · [T0] tarefa de outro business não abre', function () {
     etdfGet($this, "/essentials/todo/{$minha}")->assertStatus(200); // controle positivo
     expect(etdfGet($this, "/essentials/todo/{$alheia}")->status())->toBe(404);
 });
+
+it('UC-ETDC-03 · criar pelo serviço grava no business informado, sem depender da sessão', function () {
+    session()->flush();
+    $task = 'ETDC03 '.uniqid();
+
+    $todo = app(\Modules\Essentials\Services\TodoService::class)
+        ->criar(ETDF_BIZ, $this->tUser, ['task' => $task, 'date' => now()->format('Y-m-d'), 'priority' => 'low']);
+
+    $linha = DB::table('essentials_to_dos')->where('id', $todo->id)->first();
+    expect((int) $linha->business_id)->toBe(ETDF_BIZ);
+    expect($linha->task)->toBe($task);
+    expect((string) $linha->task_id)->not->toBe('');
+    expect(DB::table('essentials_todos_users')->where('todo_id', $todo->id)->pluck('user_id')->map('intval')->all())
+        ->toBe([(int) $this->tUser->id]);
+});
