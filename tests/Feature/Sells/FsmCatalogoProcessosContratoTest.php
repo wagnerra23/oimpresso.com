@@ -49,6 +49,7 @@ const FLX_REFS = [
     'ConciliacaoController' => \Modules\Financeiro\Http\Controllers\ConciliacaoController::class,
     'OnCobrancaPagaCreateFinanceiroTitulo' => \Modules\Financeiro\Listeners\OnCobrancaPagaCreateFinanceiroTitulo::class,
     'DealPipelineService' => \Modules\Crm\Services\DealPipelineService::class,
+    'FunilController' => \Modules\Crm\Http\Controllers\FunilController::class,
     'ContaPagarController' => \Modules\Financeiro\Http\Controllers\ContaPagarController::class,
     'PurchaseOrderController' => \App\Http\Controllers\PurchaseOrderController::class,
     'SellController' => \App\Http\Controllers\SellController::class,
