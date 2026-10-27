@@ -84,7 +84,7 @@ class InterPagadorBanco implements PagadorBanco
     private function cliente(ContaBancaria $conta): InterBankingClient
     {
         $cred = $conta->gatewayCredential;
-        if (! $cred || $cred->banco !== 'inter' || ! $cred->ativo) {
+        if (! $cred || $cred->getAttribute('banco') !== 'inter' || ! $cred->getAttribute('ativo')) {
             throw new \DomainException('Conta sem credencial Inter ativa para pagamento.');
         }
 
