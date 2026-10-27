@@ -1298,6 +1298,42 @@ Onboarding novo cliente: migra 500+ títulos da planilha legacy num upload. Hoje
 
 **Depende de:** especificação oficial de cada layout; coordenar com a frente Plataforma para um exportador só.
 
+### US-FIN-078 · Link de pagamento do título a receber (Pix e boleto)
+
+> owner: — · priority: p1 · estimate: 8h · status: review · type: story
+> blocked_by: —
+
+**Implementado em:** `Modules/Financeiro/Services/LinkDePagamentoDoTitulo.php`, `Modules/Financeiro/Http/Controllers/Public/PagamentoPublicoController.php`, `Modules/Financeiro/Listeners/OnCobrancaPagaCreateFinanceiroTitulo.php` (`baixarTituloComLink`), `resources/js/Pages/Financeiro/PagamentoPublico.tsx`, `Modules/Financeiro/Tests/Feature/LinkPagamentoTituloContratoTest.php`
+
+**Origem:** lacuna P1 do levantamento de concorrência de 2026-10-25. O título a receber só tinha o "Gerar boleto" do drawer (Inter, operador logado) e a régua que repete uma cobrança já emitida; o cliente não tinha onde pagar sozinho.
+
+⚠️ **REGRA MESTRE — VALOR**: cobra e baixa título.
+
+**Aceite:**
+- [x] O operador gera o link de um título a receber aberto/parcial (`POST /financeiro/unificado/{id}/link-pagamento`); token de 48 caracteres, só o sha256 no banco, válido 30 dias; gerar outro fecha o anterior.
+- [x] `/pagar/{token}` (sem login) mostra empresa, número, vencimento e o `valor_aberto` gravado; sem documento nem e-mail do cliente; `noindex`, `no-referrer`, throttle 30/min.
+- [x] Pix ou boleto pelo mesmo `PaymentGatewayContract` do drawer, `origem_type = fin_titulo`; cobrança ainda pagável é reaproveitada, não emitida de novo.
+- [x] O webhook dá baixa pelo valor pago: fora da empresa dona do SaaS só para título com link (antes, nenhuma empresa cliente recebia essa baixa).
+- [x] Tudo atrás de `FINANCEIRO_LINK_PAGAMENTO_ENABLED` (desligada: 404 e listener como antes).
+- [ ] Botão no drawer do Unificado para gerar e copiar o link.
+- [ ] Cartão: o contrato do gateway exige token de cartão gerado no navegador; fica para quando o checkout de cartão existir.
+- [ ] Canary com uma empresa antes de ligar para todas (decisão [W]).
+
+### US-FIN-079 · Portal do cliente: títulos em aberto, segunda via, histórico e pagamento
+
+> owner: — · priority: p1 · estimate: 8h · status: todo · type: story
+> blocked_by: US-FIN-078
+
+**Implementado em:** _pendente_
+
+**Origem:** lacuna P1 do levantamento de 2026-10-25. O cliente final não tem onde ver o que deve à empresa.
+
+**Aceite:**
+- [ ] Link assinado por cliente (token, sem conta) mostra só os títulos daquele cliente daquela empresa: em aberto, pagos (histórico) e a segunda via (Pix/boleto já emitidos).
+- [ ] Pagar um título pelo portal usa o mesmo caminho da US-FIN-078.
+- [ ] Token de um cliente não abre outro; o de uma empresa não abre outra; sem dado pessoal na URL; throttle.
+- [ ] Atrás de flag desligada.
+
 ### US-FIN-035 · Repetir lançamento próximo mês + Combobox autocomplete contraparte
 
 > owner: — · sprint: Onda 29 · priority: p2 · estimate: 4h · type: story

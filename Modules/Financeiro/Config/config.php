@@ -25,4 +25,15 @@ return [
         'webhook_secret' => env('ASAAS_WEBHOOK_SECRET'),
         'environment' => env('ASAAS_ENV', 'sandbox'),
     ],
+
+    /**
+     * US-FIN-078 — link para o cliente pagar o título a receber (Pix ou boleto).
+     *
+     * Desligado por padrão. Desligado, a rota pública responde 404, o operador não gera link e a
+     * baixa automática segue só na empresa dona do SaaS, como antes.
+     */
+    'link_pagamento' => [
+        'enabled' => env('FINANCEIRO_LINK_PAGAMENTO_ENABLED', false),
+        'dias_validade' => 30,
+    ],
 ];

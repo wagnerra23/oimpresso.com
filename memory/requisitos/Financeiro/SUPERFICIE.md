@@ -14,9 +14,9 @@ module: Financeiro
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 376 arquivos em 22 papéis.
+**Total mapeado:** 385 arquivos em 22 papéis.
 
-## Controllers — 25
+## Controllers — 26
 
 - [AdvisorAuthController.php](../../../Modules/Financeiro/Http/Controllers/Advisor/AdvisorAuthController.php)
 - [AdvisorPortalController.php](../../../Modules/Financeiro/Http/Controllers/Advisor/AdvisorPortalController.php)
@@ -41,6 +41,7 @@ module: Financeiro
 - [ImpostosController.php](../../../Modules/Financeiro/Http/Controllers/ImpostosController.php)
 - [InstallController.php](../../../Modules/Financeiro/Http/Controllers/InstallController.php)
 - [PlanoContaController.php](../../../Modules/Financeiro/Http/Controllers/PlanoContaController.php)
+- [PagamentoPublicoController.php](../../../Modules/Financeiro/Http/Controllers/Public/PagamentoPublicoController.php)
 - [RelatoriosController.php](../../../Modules/Financeiro/Http/Controllers/RelatoriosController.php)
 - [UnificadoController.php](../../../Modules/Financeiro/Http/Controllers/UnificadoController.php)
 
@@ -61,7 +62,7 @@ module: Financeiro
 
 - [AdvisorViewScope.php](../../../Modules/Financeiro/Http/Middleware/AdvisorViewScope.php)
 
-## Services — 16
+## Services — 17
 
 - [BoletoOcrService.php](../../../Modules/Financeiro/Services/BoletoOcrService.php)
 - [CusteioRkwService.php](../../../Modules/Financeiro/Services/CusteioRkwService.php)
@@ -73,6 +74,7 @@ module: Financeiro
 - [PluggyBankSyncService.php](../../../Modules/Financeiro/Services/Integrations/PluggyBankSyncService.php)
 - [PluggyClient.php](../../../Modules/Financeiro/Services/Integrations/PluggyClient.php)
 - [LinhaDigitavelValidator.php](../../../Modules/Financeiro/Services/LinhaDigitavelValidator.php)
+- [LinkDePagamentoDoTitulo.php](../../../Modules/Financeiro/Services/LinkDePagamentoDoTitulo.php)
 - [MeioDePagarDoTitulo.php](../../../Modules/Financeiro/Services/MeioDePagarDoTitulo.php)
 - [ReguaCobrancaConfig.php](../../../Modules/Financeiro/Services/ReguaCobrancaConfig.php)
 - [RetencaoNfseTituloService.php](../../../Modules/Financeiro/Services/RetencaoNfseTituloService.php)
@@ -149,7 +151,7 @@ module: Financeiro
 - [api.php](../../../Modules/Financeiro/Routes/api.php)
 - [web.php](../../../Modules/Financeiro/Routes/web.php)
 
-## Migrations (schema) — 32
+## Migrations (schema) — 33
 
 - [2026_04_24_140001_create_fin_planos_conta_table.php](../../../Modules/Financeiro/Database/Migrations/2026_04_24_140001_create_fin_planos_conta_table.php)
 - [2026_04_24_140002_create_fin_categorias_table.php](../../../Modules/Financeiro/Database/Migrations/2026_04_24_140002_create_fin_categorias_table.php)
@@ -183,6 +185,7 @@ module: Financeiro
 - [2026_10_20_120000_create_fin_titulo_lembretes_table.php](../../../Modules/Financeiro/Database/Migrations/2026_10_20_120000_create_fin_titulo_lembretes_table.php)
 - [2026_10_20_130000_add_retencao_to_fin_titulo_baixas_meio_pagamento.php](../../../Modules/Financeiro/Database/Migrations/2026_10_20_130000_add_retencao_to_fin_titulo_baixas_meio_pagamento.php)
 - [2026_10_26_120000_add_fase_to_fin_titulo_lembretes.php](../../../Modules/Financeiro/Database/Migrations/2026_10_26_120000_add_fase_to_fin_titulo_lembretes.php)
+- [2026_10_27_120000_create_fin_titulo_links_pagamento_table.php](../../../Modules/Financeiro/Database/Migrations/2026_10_27_120000_create_fin_titulo_links_pagamento_table.php)
 
 ## Seeders — 3
 
@@ -201,7 +204,7 @@ module: Financeiro
 - [master.blade.php](../../../Modules/Financeiro/Resources/views/layouts/master.blade.php)
 - [dre.blade.php](../../../Modules/Financeiro/Resources/views/pdf/dre.blade.php)
 
-## Telas (Inertia/React) — 22
+## Telas (Inertia/React) — 23
 
 - [Dashboard.tsx](../../../resources/js/Pages/Financeiro/Advisor/Dashboard.tsx)
 - [Login.tsx](../../../resources/js/Pages/Financeiro/Advisor/Login.tsx)
@@ -221,6 +224,7 @@ module: Financeiro
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Extrato/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Fluxo/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Impostos/Index.tsx)
+- [PagamentoPublico.tsx](../../../resources/js/Pages/Financeiro/PagamentoPublico.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/PlanoContas/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Relatorios/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Unificado/Index.tsx)
@@ -269,7 +273,7 @@ module: Financeiro
 - [FinStatStrip.tsx](../../../resources/js/Pages/Financeiro/_shared/FinStatStrip.tsx)
 - [FinanceiroSubNav.tsx](../../../resources/js/Pages/Financeiro/_shared/FinanceiroSubNav.tsx)
 
-## Charters (lei da tela) — 22
+## Charters (lei da tela) — 23
 
 - [Dashboard.charter.md](../../../resources/js/Pages/Financeiro/Advisor/Dashboard.charter.md)
 - [Login.charter.md](../../../resources/js/Pages/Financeiro/Advisor/Login.charter.md)
@@ -289,12 +293,13 @@ module: Financeiro
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/Extrato/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/Fluxo/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/Impostos/Index.charter.md)
+- [PagamentoPublico.charter.md](../../../resources/js/Pages/Financeiro/PagamentoPublico.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/PlanoContas/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/Relatorios/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/Unificado/Index.charter.md)
 - [Novo.charter.md](../../../resources/js/Pages/Financeiro/Unificado/Novo.charter.md)
 
-## Casos (contrato UC) — 22
+## Casos (contrato UC) — 23
 
 - [Dashboard.casos.md](../../../resources/js/Pages/Financeiro/Advisor/Dashboard.casos.md)
 - [Login.casos.md](../../../resources/js/Pages/Financeiro/Advisor/Login.casos.md)
@@ -314,14 +319,15 @@ module: Financeiro
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Extrato/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Fluxo/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Impostos/Index.casos.md)
+- [PagamentoPublico.casos.md](../../../resources/js/Pages/Financeiro/PagamentoPublico.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/PlanoContas/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Relatorios/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Unificado/Index.casos.md)
 - [Novo.casos.md](../../../resources/js/Pages/Financeiro/Unificado/Novo.casos.md)
 
-## Testes (Pest) — 92
+## Testes (Pest) — 93
 
-- 87 em [Modules/Financeiro/Tests/Feature/](../../../Modules/Financeiro/Tests/Feature)
+- 88 em [Modules/Financeiro/Tests/Feature/](../../../Modules/Financeiro/Tests/Feature)
 - 1 em [Modules/Financeiro/Tests/Feature/Advisor/](../../../Modules/Financeiro/Tests/Feature/Advisor)
 - 4 em [Modules/Financeiro/Tests/Unit/](../../../Modules/Financeiro/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._

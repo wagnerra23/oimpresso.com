@@ -18,6 +18,7 @@ use Modules\Financeiro\Http\Controllers\FluxoController;
 use Modules\Financeiro\Http\Controllers\ImpostosController;
 use Modules\Financeiro\Http\Controllers\InstallController;
 use Modules\Financeiro\Http\Controllers\PlanoContaController;
+use Modules\Financeiro\Http\Controllers\Public\PagamentoPublicoController;
 use Modules\Financeiro\Http\Controllers\RelatoriosController;
 use Modules\Financeiro\Http\Controllers\UnificadoController;
 
@@ -84,6 +85,10 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         Route::post('/unificado/{tituloId}/boleto', [UnificadoController::class, 'emitirBoletoTitulo'])
             ->whereNumber('tituloId')
             ->name('unificado.emitir-boleto');
+        // US-FIN-078 — link público para o cliente pagar o título (flag FINANCEIRO_LINK_PAGAMENTO_ENABLED).
+        Route::post('/unificado/{tituloId}/link-pagamento', [UnificadoController::class, 'gerarLinkPagamento'])
+            ->whereNumber('tituloId')
+            ->name('unificado.link-pagamento');
         // Onda 15 (2026-05-20): bulk update categoria em lote
         Route::post('/unificado/bulk-update-categoria', [UnificadoController::class, 'bulkUpdateCategoria'])
             ->name('unificado.bulk-update-categoria');
@@ -344,4 +349,16 @@ Route::middleware(['web'])
         Route::get('/', [AdvisorPortalController::class, 'index'])
             ->middleware('auth:web-advisor')
             ->name('dashboard');
+    });
+
+// ── US-FIN-078 · página pública para o cliente pagar o título (sem login) ──
+// A empresa vem do token (só o sha256 fica no banco), nunca da URL. Throttle 30/min/IP contra
+// varredura de token; `web` dá sessão + CSRF ao formulário. Flag desligada = 404 (no controller).
+Route::middleware(['web', 'throttle:30,1'])
+    ->prefix('pagar')
+    ->name('financeiro.pagamento-publico.')
+    ->group(function () {
+        Route::get('{token}', [PagamentoPublicoController::class, 'mostrar'])->where('token', '[A-Za-z0-9]{48}')->name('mostrar');
+        Route::post('{token}/{metodo}', [PagamentoPublicoController::class, 'pagar'])
+            ->where(['token' => '[A-Za-z0-9]{48}', 'metodo' => 'pix|boleto'])->name('pagar');
     });
