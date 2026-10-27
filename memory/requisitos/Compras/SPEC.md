@@ -116,7 +116,11 @@ Como user com permission `purchase.create`, quero clicar "+ Nova compra" no cock
 
 **Status:** pending (Wave 6 — maior risco)
 **Persona:** user com permission `compras.import_xml`
-**Implementado em:** _pendente_ — bridge `ImportarDfeComoCompraService` + migration `add_transaction_id_to_nfe_dfe_recebidos` + rota `importar-dfe` ainda não criados (GAP NOVO Wave 6; routes/web.php só cita no comentário)
+**Implementado em:** _parcial_ · `Modules/Compras/Services/ImportarDfeComoCompraService.php` · `Modules/Compras/Tests/Feature/ImportarDfeComoCompraContratoTest.php` — serviço atrás da flag `nfebrasil.entrada_xml_enabled` (desligada); o schema veio no #9836 e o leitor do XML na US-NFE-076. Falta a tela de conferência (rota `importar-dfe`), o fornecedor criado na hora (R-COM-202) e o produto criado quando não existe
+
+**Testado em:** `Modules/Compras/Tests/Feature/ImportarDfeComoCompraContratoTest.php` (covers US-COM-003 · lane `compras-pest`)
+
+**Regras de valor (2026-10-27, regra mestre `memory/proibicoes.md`):** linha = qCom × (vProd ÷ qCom), o ICMS fica no custo no Simples (ADR D4); compra = Σ vProd − vDesc + vFrete + (vIPI + vST + vSeg + vOutro) = vNF, e se os componentes não fecharem o vNF a importação é recusada. Regime normal (crédito de ICMS fora do custo) é recusado até ter dupla prova e decisão [W].
 
 Como user com permission `compras.import_xml`, quero abrir modal "Importar XML" e ver lista de DF-e pendentes do meu business (puxadas pela rotina SEFAZ NSU), selecionar uma e auto-criar compra com lines pré-populadas + fornecedor auto-matchado por CNPJ, pra não digitar nada.
 
@@ -128,6 +132,16 @@ Como user com permission `compras.import_xml`, quero abrir modal "Importar XML" 
 - R-COM-204 — UNIQUE compound `(business_id, transaction_id)` em `nfe_dfe_recebidos` — re-import idempotente
 - R-COM-205 — Migration nova: `2026_05_22_000000_add_transaction_id_to_nfe_dfe_recebidos.php` (Wave 6)
 - R-COM-206 — Advisory lock anti-race se 2 users importam mesmo DFe simultâneo
+
+**Aceite:**
+- [x] A nota vira compra recebida com final_total = vNF, estoque entra pelo `createOrUpdatePurchaseLines` e o título vem do observer do Financeiro — UC-NFCOM-01
+- [x] O vínculo item do fornecedor → variação fica lembrado; a próxima nota já vem vinculada — UC-NFCOM-02
+- [x] Item sem vínculo não vira compra e nada é gravado — UC-NFCOM-03
+- [x] Variação e nota de outra empresa são recusadas (Tier 0) — UC-NFCOM-04
+- [x] A mesma nota não vira duas compras (trava na linha da nota, R-COM-204/206) — UC-NFCOM-05
+- [x] Totais que não fecham e regime normal são recusados; flag desligada recusa — UC-NFCOM-06/07
+- [ ] Tela de conferência antes de gravar (rota `importar-dfe`, aba Entradas do protótipo `fiscal-tributacao.jsx`)
+- [ ] Fornecedor criado na hora (R-COM-202) e produto criado quando não existe
 
 ### US-COM-004 — Deprecar `/purchases` legacy
 

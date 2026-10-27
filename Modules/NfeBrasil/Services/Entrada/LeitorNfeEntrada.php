@@ -66,13 +66,20 @@ final class LeitorNfeEntrada
         }
 
         $dest = $infNFe->dest;
+        $tot = $infNFe->total->ICMSTot;
 
         return [
             'chave_44'          => substr((string) $infNFe['Id'], 3),
             'cnpj_emitente'     => (string) $infNFe->emit->CNPJ,
             'nome_emitente'     => (string) $infNFe->emit->xNome,
             'cnpj_destinatario' => (string) ($dest->CNPJ ?? ''),
-            'valor_total'       => (float) $infNFe->total->ICMSTot->vNF,
+            'valor_total'       => (float) $tot->vNF,
+            // Os componentes do vNF (leiaute 4.00, grupo W02): a compra fecha com eles.
+            'totais'            => [
+                'produtos' => (float) $tot->vProd, 'desconto' => (float) $tot->vDesc,
+                'frete' => (float) $tot->vFrete, 'seguro' => (float) $tot->vSeg,
+                'outras' => (float) $tot->vOutro, 'ipi' => (float) $tot->vIPI, 'st' => (float) $tot->vST,
+            ],
             'num_protocolo'     => (string) ($raiz->protNFe->infProt->nProt ?? ''),
             'data_emissao'      => isset($infNFe->ide->dhEmi) ? new \DateTimeImmutable((string) $infNFe->ide->dhEmi) : null,
             'itens'             => $itens,
