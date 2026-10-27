@@ -1,6 +1,6 @@
 // Ação por linha da fila de arte do Painel (UC-PCART-07). Âncora: `Painel` de
 // prototipo-ui/cowork/Wagner/producao-cv-page.jsx ("Enviar nova prova" no ajuste, "Reenviar link" no
-// aguardando) + prototipo-ui/producao/painel-enviar-nova-prova.html (o campo do arquivo e o resultado).
+// aguardando, com o campo do link do arquivo novo e a linha de resultado).
 // O banco só guarda o hash do token: reenviar gera link novo e o anterior deixa de valer.
 import { useState } from 'react';
 import type { FormEvent } from 'react';

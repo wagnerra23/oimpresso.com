@@ -49,9 +49,8 @@ Status: 🧪
 
 ## UC-PCART-07 · Reenviar o link ou enviar a nova prova pela fila · `must`
 
-> Âncora: `Painel` de `prototipo-ui/cowork/Wagner/producao-cv-page.jsx` (botão "Enviar nova prova" no ajuste e
-> "Reenviar link" no aguardando) + `prototipo-ui/producao/painel-enviar-nova-prova.html` (campo do arquivo e
-> resultado). Liberado por [W] em 2026-10-27. Prova: `ProducaoAprovacaoArteContratoTest`.
+> Âncora: `Painel` de `prototipo-ui/cowork/Wagner/producao-cv-page.jsx` (botão "Enviar nova prova" no ajuste,
+> com o campo do link do arquivo novo, e "Reenviar link" no aguardando; linha de resultado depois do envio). Liberado por [W] em 2026-10-27. Prova: `ProducaoAprovacaoArteContratoTest`.
 
 **Dado** uma arte aguardando o cliente **Quando** clico em "Reenviar link" **Então** sai um link novo para a mesma
 prova e o anterior deixa de valer (410) · **Dado** um ajuste pedido **Quando** envio a nova prova com o link do
