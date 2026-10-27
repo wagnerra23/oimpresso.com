@@ -78,3 +78,16 @@ Status: 🧪
 colega entra **E** o id de fora é ignorado.
 
 Status: 🧪
+
+## UC-PLAN-09 · Compartilhamento em JSON para a tela React · `must`
+
+**Dado** uma planilha minha compartilhada com um colega **Quando** a tela pede o compartilhamento em JSON **Então**
+recebo usuários, funções e tarefas do negócio (sem usuário de outro negócio) **E** `selecionados.user` traz o colega.
+
+Status: 🧪
+
+## UC-PLAN-10 · Excluir só a planilha que criei · `must`
+
+**Dado** uma planilha minha e uma recebida de colega **Quando** excluo as duas pela tela **Então** só a minha some.
+
+Status: 🧪
