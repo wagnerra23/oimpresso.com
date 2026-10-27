@@ -39,7 +39,7 @@ final class ComissaoPorRegra
         $biz = (int) $venda->business_id;
         $pessoas = array_filter([
             'vendedor' => $venda->commission_agent ? (int) $venda->commission_agent : null,
-            'tecnico' => $this->tecnicoDaOs($biz, $venda->repair_job_sheet_id ? (int) $venda->repair_job_sheet_id : null),
+            'tecnico' => $this->tecnicoDaOs($biz, $venda->getAttribute('repair_job_sheet_id') ? (int) $venda->getAttribute('repair_job_sheet_id') : null),
         ]);
 
         // Regras e pessoas lidas pelo business da venda, não pela sessão (vale também em fila/CLI).
