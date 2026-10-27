@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 882,
-    "edges": 1198,
+    "nodes": 883,
+    "edges": 1199,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 148,
-      "component": 493,
+      "component": 494,
       "api": 90
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 94,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 493,
+      "hasComponent": 494,
       "dependsOn": 133,
       "delegatesTo": 122,
       "migratesTo": 1,
@@ -2835,6 +2835,13 @@
       "module": "Financeiro",
       "name": "CategoriaController",
       "desc": ""
+    },
+    {
+      "id": "component:Financeiro/CentroCustoFiltro",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "CentroCustoFiltro",
+      "desc": "US-FIN-075 filtro ?centro_custo= da DRE e do fluxo realizado (todos / sem centro / fatia do centro; na baixa, proporcional à fatia do título)"
     },
     {
       "id": "component:Financeiro/CobrancaController",
@@ -9447,6 +9454,12 @@
     {
       "from": "module:Financeiro",
       "to": "component:Financeiro/CategoriaController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "component:Financeiro/CentroCustoFiltro",
       "type": "hasComponent",
       "source": "contains"
     },

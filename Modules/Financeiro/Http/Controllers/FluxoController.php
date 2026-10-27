@@ -7,6 +7,7 @@ use App\Util\OtelHelper;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Financeiro\Services\CentroCustoFiltro;
 use Modules\Financeiro\Services\FluxoCaixaService;
 use Modules\Financeiro\Services\FluxoRealizadoService;
 
@@ -50,10 +51,12 @@ class FluxoController extends Controller
         $tab = $this->resolveTab($request);
         $dias = $this->resolveDias($request);
         $meses = $this->resolveMeses($request);
+        // US-FIN-075: filtro por centro de custo no realizado (null = todos, 0 = sem centro).
+        $centroCusto = CentroCustoFiltro::daQuery($request->query('centro_custo'));
 
         // Wave 17 D9 — projeção 35d agrega Titulo + TituloBaixa + ContaBancaria.saldo_cached;
         // pode ser pesada em business com volume alto. Span ajuda a detectar regressão.
-        return OtelHelper::spanBiz('financeiro.fluxo.render', function () use ($businessId, $tab, $dias, $meses) {
+        return OtelHelper::spanBiz('financeiro.fluxo.render', function () use ($businessId, $tab, $dias, $meses, $centroCusto) {
             // Projetado: sempre presente no payload (default; props no shape canon
             // pra preservar testes existentes e Pest GUARDs do charter).
             // closure D-14: projeção 35d é por business, não muda com a troca de tab —
@@ -67,7 +70,7 @@ class FluxoController extends Controller
             // Realizado: só carrega quando tab=realizado pra evitar query custosa
             // em renders que não vão exibir. Estrutura ausente quando não carregada.
             $realizado = $tab === 'realizado'
-                ? $this->realizadoService->buscar($businessId, $meses)
+                ? $this->realizadoService->buscar($businessId, $meses, $centroCusto)
                 : null;
 
             return Inertia::render('Financeiro/Fluxo/Index', [
@@ -79,6 +82,8 @@ class FluxoController extends Controller
                 'dias'          => fn () => $projetado()['dias'],
                 'tab' => $tab,
                 'realizado' => $realizado,
+                'centro_custo'  => $centroCusto,
+                'centros_custo' => fn () => CentroCustoFiltro::opcoes($businessId),
             ]);
         }, ['op' => 'render', 'tab' => $tab, 'dias' => $dias, 'meses' => $meses]);
     }

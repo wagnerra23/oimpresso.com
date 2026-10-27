@@ -12,6 +12,7 @@ use Illuminate\Http\Response as IlluminateResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Financeiro\Exports\DreExport;
+use Modules\Financeiro\Services\CentroCustoFiltro;
 use Modules\Financeiro\Services\CusteioRkwService;
 use Modules\Financeiro\Services\DreService;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -60,8 +61,10 @@ class DreController extends Controller
         $anchorData = $this->resolveAnchorData($request);
         $user = $request->user();
         $mesCusteio = (string) $request->query('mes', '');
+        // US-FIN-075: filtro por centro de custo (null = todos, 0 = sem centro).
+        $centroCusto = CentroCustoFiltro::daQuery($request->query('centro_custo'));
 
-        return OtelHelper::spanBiz('financeiro.dre.index', function () use ($businessId, $periodoTipo, $anchorMes, $aba, $anchorData, $user, $mesCusteio) {
+        return OtelHelper::spanBiz('financeiro.dre.index', function () use ($businessId, $periodoTipo, $anchorMes, $aba, $anchorData, $user, $mesCusteio, $centroCusto) {
             // Tab Demonstrativo: comportamento atual preservado 100%.
             // Tabs Balanço + Balancete: payloads adicionais lazy carregados
             // só quando aba específica está ativa (perf — evita query custosa).
@@ -73,8 +76,8 @@ class DreController extends Controller
             // de aba — como closures memoizadas, o partial reload (only: aba/balanco/
             // balancete) pula a agregação inteira do montar(). Load cheio roda 1× só.
             $shapeCache = null;
-            $shape = function () use (&$shapeCache, $businessId, $periodoTipo, $anchorMes): array {
-                return $shapeCache ??= $this->service->montar($businessId, $periodoTipo, $anchorMes);
+            $shape = function () use (&$shapeCache, $businessId, $periodoTipo, $anchorMes, $centroCusto): array {
+                return $shapeCache ??= $this->service->montar($businessId, $periodoTipo, $anchorMes, $centroCusto);
             };
 
             $balanco = $aba === 'balanco'
@@ -99,6 +102,8 @@ class DreController extends Controller
                 'balanco'   => $balanco,
                 'balancete' => $balancete,
                 'custeio'   => $custeio,
+                'centro_custo'  => $centroCusto,
+                'centros_custo' => fn () => CentroCustoFiltro::opcoes($businessId),
             ]);
         }, ['op' => 'index', 'periodo_tipo' => $periodoTipo, 'aba' => $aba]);
     }
@@ -113,7 +118,7 @@ class DreController extends Controller
     {
         $businessId = (int) session('user.business_id');
         [$periodoTipo, $anchorMes] = $this->parseQuery($request);
-        $shape = $this->service->montar($businessId, $periodoTipo, $anchorMes);
+        $shape = $this->service->montar($businessId, $periodoTipo, $anchorMes, CentroCustoFiltro::daQuery($request->query('centro_custo')));
 
         if (! class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
             return response('PDF export indisponível neste ambiente.', 501);
@@ -134,7 +139,7 @@ class DreController extends Controller
     {
         $businessId = (int) session('user.business_id');
         [$periodoTipo, $anchorMes] = $this->parseQuery($request);
-        $shape = $this->service->montar($businessId, $periodoTipo, $anchorMes);
+        $shape = $this->service->montar($businessId, $periodoTipo, $anchorMes, CentroCustoFiltro::daQuery($request->query('centro_custo')));
 
         if (! class_exists(\Maatwebsite\Excel\Facades\Excel::class)) {
             return response('XLSX export indisponível neste ambiente.', 501);
@@ -154,7 +159,7 @@ class DreController extends Controller
     {
         $businessId = (int) session('user.business_id');
         [$periodoTipo, $anchorMes] = $this->parseQuery($request);
-        $shape = $this->service->montar($businessId, $periodoTipo, $anchorMes);
+        $shape = $this->service->montar($businessId, $periodoTipo, $anchorMes, CentroCustoFiltro::daQuery($request->query('centro_custo')));
 
         $filename = 'dre_'.$shape['meta']['anchor_mes'].'_'.now()->format('Ymd_His').'.csv';
 

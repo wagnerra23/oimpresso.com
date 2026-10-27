@@ -186,10 +186,10 @@ class DreService
      *   top_categorias_receita: array<int, array{label: string, valor: float, pct: float}>,
      * }
      */
-    public function montar(int $businessId, string $periodoTipo = 'mes', ?string $anchorMes = null): array
+    public function montar(int $businessId, string $periodoTipo = 'mes', ?string $anchorMes = null, ?int $centroCustoId = null): array
     {
-        return OtelHelper::spanBiz('financeiro.dre.montar', function () use ($businessId, $periodoTipo, $anchorMes): array {
-            return $this->montarInternal($businessId, $periodoTipo, $anchorMes);
+        return OtelHelper::spanBiz('financeiro.dre.montar', function () use ($businessId, $periodoTipo, $anchorMes, $centroCustoId): array {
+            return $this->montarInternal($businessId, $periodoTipo, $anchorMes, $centroCustoId);
         }, [
             'business_id' => $businessId,
             'periodo_tipo' => $periodoTipo,
@@ -204,7 +204,7 @@ class DreService
      *   top_categorias_receita: array<int, array{label: string, valor: float, pct: float}>,
      * }
      */
-    private function montarInternal(int $businessId, string $periodoTipo, ?string $anchorMes): array
+    private function montarInternal(int $businessId, string $periodoTipo, ?string $anchorMes, ?int $centroCustoId = null): array
     {
         // ───────── 1) Resolver período (atual + mês anterior) ─────────
         [$anchor, $prev] = $this->resolverMeses($anchorMes);
@@ -214,11 +214,14 @@ class DreService
         // 1 query: GROUP BY (competencia_mes, plano_conta_id). Cobre atual + prev.
         // LEFT JOIN fin_planos_conta pra ter codigo + nome. Filtra business_id
         // defensivo (defesa em profundidade; BusinessScope já filtra).
-        $rows = Titulo::query()
+        // US-FIN-075: com centro de custo, soma só a fatia do rateio (CentroCustoFiltro).
+        $query = Titulo::query()
             ->leftJoin('fin_planos_conta', 'fin_titulos.plano_conta_id', '=', 'fin_planos_conta.id')
             ->where('fin_titulos.business_id', $businessId)
             ->whereIn('fin_titulos.competencia_mes', $meses)
-            ->where('fin_titulos.status', '!=', 'cancelado')
+            ->where('fin_titulos.status', '!=', 'cancelado');
+        $valor = CentroCustoFiltro::aplicarNoTitulo($query, $businessId, $centroCustoId);
+        $rows = $query
             ->select(
                 'fin_titulos.competencia_mes AS competencia_mes',
                 'fin_titulos.tipo AS titulo_tipo',
@@ -227,7 +230,7 @@ class DreService
                 'fin_planos_conta.nome AS plano_nome',
                 'fin_planos_conta.tipo AS plano_tipo',
                 'fin_planos_conta.dre_linha AS plano_dre_linha',
-                DB::raw('SUM(fin_titulos.valor_total) AS total'),
+                DB::raw('SUM('.$valor->getValue(DB::connection()->getQueryGrammar()).') AS total'),
             )
             ->groupBy(
                 'fin_titulos.competencia_mes',
@@ -309,6 +312,7 @@ class DreService
                 'business_name'       => $businessName,
                 'business_id'         => $businessId,
                 'aviso_sem_mapping'   => $avisoSemMapping,
+                'centro_custo_id'     => $centroCustoId,
             ],
             'linhas'                 => $linhas,
             'margem_operacional'     => $margemOperacional,

@@ -64,9 +64,9 @@ class FluxoRealizadoService
      *   }>
      * }
      */
-    public function buscar(int $businessId, int $meses = 12): array
+    public function buscar(int $businessId, int $meses = 12, ?int $centroCustoId = null): array
     {
-        return OtelHelper::spanBiz('financeiro.fluxo_realizado.buscar', function () use ($businessId, $meses): array {
+        return OtelHelper::spanBiz('financeiro.fluxo_realizado.buscar', function () use ($businessId, $meses, $centroCustoId): array {
             return $this->buscarInternal($businessId, $meses);
         }, [
             'business_id' => $businessId,
@@ -74,7 +74,7 @@ class FluxoRealizadoService
         ]);
     }
 
-    private function buscarInternal(int $businessId, int $meses): array
+    private function buscarInternal(int $businessId, int $meses, ?int $centroCustoId = null): array
     {
         $hoje = CarbonImmutable::today();
         $inicio = $hoje->startOfMonth()->subMonths($meses - 1);
@@ -99,7 +99,7 @@ class FluxoRealizadoService
         // O filtro Tier 0 continua DUPLO, como o comentario acima ja prometia (defesa
         // em profundidade): explicito nas duas tabelas + o global scope, que agora
         // consegue casar o nome.
-        $rows = TituloBaixa::query()
+        $query = TituloBaixa::query()
             ->join('fin_titulos as t', function ($join) use ($businessId) {
                 $join->on('t.id', '=', 'fin_titulo_baixas.titulo_id')
                      ->where('t.business_id', '=', $businessId);
@@ -107,12 +107,15 @@ class FluxoRealizadoService
             ->where('fin_titulo_baixas.business_id', $businessId)
             ->whereBetween('fin_titulo_baixas.data_baixa', [$inicio->toDateString(), $fim->toDateString()])
             ->whereNull('fin_titulo_baixas.estorno_de_id')
-            ->whereNull('t.deleted_at')
+            ->whereNull('t.deleted_at');
+        // US-FIN-075: com centro de custo, cada baixa conta na proporção da fatia do título.
+        $valor = CentroCustoFiltro::aplicarNaBaixa($query, $businessId, $centroCustoId, 't', 'fin_titulo_baixas.valor_baixa');
+        $rows = $query
             ->select([
                 DB::raw('YEAR(fin_titulo_baixas.data_baixa) as ano'),
                 DB::raw('MONTH(fin_titulo_baixas.data_baixa) as mes_num'),
                 't.tipo as tipo',
-                DB::raw('SUM(fin_titulo_baixas.valor_baixa) as total'),
+                DB::raw('SUM('.$valor->getValue(DB::connection()->getQueryGrammar()).') as total'),
                 DB::raw('COUNT(*) as qtd'),
             ])
             ->groupBy('ano', 'mes_num', 't.tipo')
@@ -173,6 +176,7 @@ class FluxoRealizadoService
                 'primeiro_mes' => $inicio->format('Y-m'),
                 'ultimo_mes' => $fim->format('Y-m'),
                 'business_id' => $businessId,
+                'centro_custo_id' => $centroCustoId,
             ],
             'totais' => [
                 'entradas' => round($totaisEntradas, 2),

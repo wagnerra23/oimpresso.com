@@ -13,6 +13,7 @@ contains:
   - "CaixaController — F6 Soft wrapper Inertia /financeiro/caixa read-only sobre cash_registers core UltimatePOS (não migra dados; lifecycle abrir/fechar continua na header POS via CashRegisterController core)"
   - "CategoriaController"
   - "RateioService — US-FIN-075 rateio do título em centros de custo (fin_centros_custo + fin_titulo_rateios): soma fecha valor_total em centavos inteiros; título sem rateio segue válido"
+  - "CentroCustoFiltro — US-FIN-075 filtro ?centro_custo= da DRE e do fluxo realizado (todos / sem centro / fatia do centro; na baixa, proporcional à fatia do título)"
   - "CobrancaController — F3 PaymentGateway UI Tela 1 (substitui /financeiro/boletos com escopo expandido boleto+pix+pix_recv+card; ADR 0144 + 0170)"
   - "ConciliacaoController — Onda 19 OFX MVP + scaffold Anexos/Aprovação"
   - "ContaBancariaController"

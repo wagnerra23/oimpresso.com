@@ -1256,7 +1256,7 @@ Onboarding novo cliente: migra 500+ títulos da planilha legacy num upload. Hoje
 > owner: — · priority: p2 · estimate: 16h · status: todo · type: story
 > blocked_by: —
 
-**Implementado em:** _pendente_ — parcial em 2026-10-27: schema `fin_centros_custo` + `fin_titulo_rateios` e o `RateioService` (soma em centavos inteiros, maior resto no modo %; teste `RateioCentroCustoContratoTest`). Falta o cadastro na tela, o rateio no formulário do título e o filtro da DRE e do fluxo. A âncora vira path quando a US fechar.
+**Implementado em:** _pendente_ — parcial em 2026-10-27: schema `fin_centros_custo` + `fin_titulo_rateios` e o `RateioService` (soma em centavos inteiros, maior resto no modo %; teste `RateioCentroCustoContratoTest`). Filtro `?centro_custo=` na DRE e no fluxo realizado pelo `CentroCustoFiltro` (teste `CentroCustoFiltroContratoTest`: A + B + sem centro fecha o total). Falta o cadastro na tela, o rateio no formulário do título e o seletor do filtro nas telas (aguardam o protótipo). A âncora vira path quando a US fechar.
 
 **Origem:** lacuna P2 do levantamento de concorrência de 2026-10-25. `fin_titulos` não tem centro de custo nem rateio (o `CusteioRkwService` só custeia posto do PCP).
 
