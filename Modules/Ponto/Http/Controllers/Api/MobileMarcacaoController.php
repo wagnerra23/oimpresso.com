@@ -197,6 +197,9 @@ class MobileMarcacaoController extends Controller
             // Mesmos builders do Espelho/Show (US-PONTO-012 já corrigida lá) — não recalcula.
             'totais' => Inertia::defer(fn () => $colab ? $espelho->buildTotaisEspelho((int) $colab->business_id, (int) $colab->id, $ano, $mes) : null),
             'linhas' => Inertia::defer(fn () => $colab ? $espelho->buildLinhasEspelho((int) $colab->business_id, (int) $colab->id, $ano, $mes) : []),
+            // US-PONTO-020: o último mês fechado e se o colaborador já deu ciência dele. Deferido:
+            // conferir a ciência recalcula o espelho daquele mês.
+            'ciencia_espelho' => Inertia::defer(fn () => $colab ? app(EspelhoCienciaService::class)->ultimaFechada($colab) : null),
             'tipos'  => IntercorrenciaController::tiposDisponiveis(),
             // A rota fica fora do `ponto.access` ([W] 2026-09-29); o cabeçalho do módulo (abas de
             // RH) só aparece pra quem pode abrir o módulo — senão cada aba seria um 403.
