@@ -27,7 +27,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
-import { Plus, Eye, Trash2, Printer, ArrowRight, Truck, FileText } from 'lucide-react';
+import { Plus, Eye, Pencil, Trash2, Printer, ArrowRight, Truck, FileText } from 'lucide-react';
 import DetalheTransferenciaDialog from './_components/DetalheTransferenciaDialog';
 
 // ---------- Tipos ----------
@@ -279,6 +279,13 @@ function StockTransferIndex({ rows, filters, business_locations, statuses, permi
                       <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => window.open(`/stock-transfers/${r.id}/print`, '_blank')} title="Imprimir">
                         <Printer className="h-3.5 w-3.5" />
                       </Button>
+                      {/* Paridade Blade: editar só o que ainda não moveu saldo, com `purchase.update`; o
+                          `edit()`/`update()` exigem `purchase.create`. */}
+                      {permissions.update && permissions.create && !mexeuNoSaldo(r.status) && (
+                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => router.visit(`/stock-transfers/${r.id}/edit`)} title="Editar" aria-label={`Editar ${r.ref_no}`}>
+                          <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+                        </Button>
+                      )}
                       {permissions.delete && (
                         <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => setAlvoExclusao(r)} title="Excluir">
                           <Trash2 className="h-3.5 w-3.5" />
