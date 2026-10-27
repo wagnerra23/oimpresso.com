@@ -860,6 +860,8 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/sells/copy-quotation/{id}', [SellPosController::class, 'copyQuotation']);
 
     Route::post('/import-purchase-products', [PurchaseController::class, 'importPurchaseProducts']);
+    // Mesma planilha, em JSON, para a Nova compra React (substitui o modal de importação da Blade).
+    Route::post('/purchases/importar-itens', [PurchaseController::class, 'importarItens'])->name('purchases.importar-itens');
     Route::post('/purchases/update-status', [PurchaseController::class, 'updateStatus']);
     Route::get('/purchases/get_products', [PurchaseController::class, 'getProducts']);
     Route::get('/purchases/get_suppliers', [PurchaseController::class, 'getSuppliers']);

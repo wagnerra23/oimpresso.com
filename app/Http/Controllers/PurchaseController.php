@@ -1897,93 +1897,188 @@ class PurchaseController extends Controller
         return $purchase_line;
     }
 
-    public function importPurchaseProducts(Request $request)
+    /**
+     * POST /purchases/importar-itens — a mesma planilha da Blade, devolvida como linhas prontas
+     * para a Nova compra React (formato `PurchaseLineDraft`). A Blade recebe HTML; a tela React
+     * recebe JSON e só acrescenta as linhas — o valor gravado continua saindo do store.
+     *
+     * Custo: custo antes do desconto × (1 − desconto%). Imposto da linha = custo × alíquota%, a
+     * mesma conta das linhas da Blade (`imported_purchase_product_rows`).
+     */
+    public function importarItens(Request $request)
     {
+        if (! auth()->user()->can('purchase.create') && ! auth()->user()->can('purchase.update')) {
+            abort(403, 'Unauthorized action.');
+        }
+        $request->validate(['file' => ['required', 'file', 'mimes:xls,xlsx,csv,txt', 'max:5120']], [
+            'file.required' => 'Escolha a planilha.',
+            'file.mimes' => 'A planilha precisa ser .xls, .xlsx ou .csv.',
+        ]);
+        $business_id = (int) $request->session()->get('user.business_id');
+
         try {
-            $file = $request->file('file');
+            [$linhas, $erro] = $this->lerPlanilhaDeItens($request);
+        } catch (\Throwable $e) {
+            \Log::warning('PurchaseController.importarItens falhou ao ler a planilha', ['erro' => $e->getMessage()]);
 
-            $parsed_array = Excel::toArray([], $file);
-            //Remove header row
-            $imported_data = array_splice($parsed_array[0], 1);
+            return response()->json(['linhas' => [], 'erro' => 'Não foi possível ler a planilha.'], 422);
+        }
+        if ($erro !== '') {
+            return response()->json(['linhas' => [], 'erro' => $erro], 422);
+        }
 
-            $business_id = $request->session()->get('user.business_id');
-            $location_id = $request->input('location_id');
-            $row_count = $request->input('row_count');
+        $aliquotas = TaxRate::where('business_id', $business_id)->pluck('amount', 'id');
+        $saida = [];
+        foreach ($linhas as $l) {
+            $variation = $l['variation'];
+            $product = $l['product'];
+            $custoBruto = round($this->numeroDaPlanilha($l['unit_cost_before_discount']), 4);
+            $desconto = round($this->numeroDaPlanilha($l['discount_percent']), 4);
+            $custo = round($custoBruto * (1 - $desconto / 100), 4);
+            $aliquota = ! empty($l['tax_id']) ? (float) ($aliquotas[$l['tax_id']] ?? 0) : 0.0;
+            $imposto = round($custo * $aliquota / 100, 4);
 
-            $formatted_data = [];
-            $row_index = 0;
-            $error_msg = '';
-            foreach ($imported_data as $key => $value) {
-                $row_index = $key + 1;
-                $temp_array = [];
+            $nome = (string) $product->name;
+            if ($product->type === 'variable') {
+                $nome = trim($nome.' '.($variation->product_variation->name ?? '').' '.($variation->name ?? ''));
+            }
 
-                if (! empty($value[0])) {
-                    $variation = Variation::where('sub_sku', trim($value[0]))
-                                        ->join('products', 'products.id', '=', 'variations.product_id')
-                                        ->where('products.business_id', $business_id) 
-                                        ->with([
-                                            'product_variation',
-                                            'variation_location_details' => function ($q) use ($location_id) {
-                                                $q->where('location_id', $location_id);
-                                            },
-                                        ])
-                                        ->select('variations.*')
-                                        ->first();
-                    $temp_array['variation'] = $variation;
+            $saida[] = [
+                'product_name' => $nome,
+                'product_id' => (int) $product->id,
+                'variation_id' => (int) $variation->id,
+                'unit_id' => $product->unit_id,
+                'unit_name' => (string) ($product->unit->short_name ?? 'un'),
+                'quantity' => round($this->numeroDaPlanilha($l['quantity']), 4),
+                'pp_without_discount' => $custoBruto,
+                'discount_percent' => $desconto,
+                'item_tax' => $imposto,
+                'tax_id' => $l['tax_id'] ? (int) $l['tax_id'] : null,
+                'purchase_price' => $custo,
+                'purchase_price_inc_tax' => round($custo + $imposto, 4),
+            ];
+        }
 
-                    if (empty($variation)) {
-                        $error_msg = __('lang_v1.product_not_found_exception', ['row' => $row_index, 'sku' => $value[0]]);
-                        break;
-                    }
+        return response()->json(['linhas' => $saida, 'erro' => null]);
+    }
 
-                    $product = Product::where('id', $variation->product_id)
-                                    ->where('business_id', $business_id)
-                                    ->with(['unit'])
+    /**
+     * Célula numérica da planilha já chega como int/float e vale como está: passar por num_uf
+     * leria 10.125 como 10125. Texto (CSV em pt-BR, "10,125") passa pelo num_uf.
+     */
+    private function numeroDaPlanilha($valor): float
+    {
+        if (is_int($valor) || is_float($valor)) {
+            return (float) $valor;
+        }
+
+        return (float) $this->productUtil->num_uf((string) $valor);
+    }
+
+    /**
+     * Lê a planilha de itens da compra (mesmo modelo da Blade: SKU, quantidade, custo antes do
+     * desconto, % desconto, imposto, lote, fabricação, validade). Produto e imposto escopados pelo
+     * negócio da sessão. Usado pela Blade (`importPurchaseProducts`) e pela tela React
+     * (`importarItens`).
+     *
+     * @return array{0: array<int, array<string, mixed>>, 1: string}  [linhas, mensagem de erro]
+     */
+    private function lerPlanilhaDeItens(Request $request): array
+    {
+        $file = $request->file('file');
+
+        $parsed_array = Excel::toArray([], $file);
+        //Remove header row
+        $imported_data = array_splice($parsed_array[0], 1);
+
+        $business_id = $request->session()->get('user.business_id');
+        $location_id = $request->input('location_id');
+        $row_count = $request->input('row_count');
+
+        $formatted_data = [];
+        $row_index = 0;
+        $error_msg = '';
+        foreach ($imported_data as $key => $value) {
+            $row_index = $key + 1;
+            $temp_array = [];
+
+            if (! empty($value[0])) {
+                $variation = Variation::where('sub_sku', trim($value[0]))
+                                    ->join('products', 'products.id', '=', 'variations.product_id')
+                                    ->where('products.business_id', $business_id) 
+                                    ->with([
+                                        'product_variation',
+                                        'variation_location_details' => function ($q) use ($location_id) {
+                                            $q->where('location_id', $location_id);
+                                        },
+                                    ])
+                                    ->select('variations.*')
                                     ->first();
+                $temp_array['variation'] = $variation;
 
-                    if (empty($product)) {
-                        $error_msg = __('lang_v1.product_not_found_exception', ['row' => $row_index, 'sku' => $value[0]]);
-                        break;
-                    }
-
-                    $temp_array['product'] = $product;
-
-                    $sub_units = $this->productUtil->getSubUnits($business_id, $product->unit->id, false, $product->id);
-
-                    $temp_array['sub_units'] = $sub_units;
-                } else {
+                if (empty($variation)) {
                     $error_msg = __('lang_v1.product_not_found_exception', ['row' => $row_index, 'sku' => $value[0]]);
                     break;
                 }
 
-                if (! empty($value[0])) {
-                    $temp_array['quantity'] = $value[1];
-                } else {
-                    $error_msg = __('lang_v1.quantity_required', ['row' => $row_index]);
+                $product = Product::where('id', $variation->product_id)
+                                ->where('business_id', $business_id)
+                                ->with(['unit'])
+                                ->first();
+
+                if (empty($product)) {
+                    $error_msg = __('lang_v1.product_not_found_exception', ['row' => $row_index, 'sku' => $value[0]]);
                     break;
                 }
 
-                $temp_array['unit_cost_before_discount'] = ! empty($value[2]) ? $value[2] : $variation->default_purchase_price;
-                $temp_array['discount_percent'] = ! empty($value[3]) ? $value[3] : 0;
+                $temp_array['product'] = $product;
 
-                $tax_id = null;
+                $sub_units = $this->productUtil->getSubUnits($business_id, $product->unit->id, false, $product->id);
 
-                if (! empty($value[4])) {
-                    $tax_name = trim($value[4]);
-                    $tax = TaxRate::where('business_id', $business_id)
-                                ->where('name', 'like', "%{$tax_name}%")
-                                ->first();
-
-                    $tax_id = $tax->id ?? $tax_id;
-                }
-
-                $temp_array['tax_id'] = $tax_id;
-                $temp_array['lot_number'] = ! empty($value[5]) ? $value[5] : null;
-                $temp_array['mfg_date'] = ! empty($value[6]) ? $this->productUtil->format_date($value[6]) : null;
-                $temp_array['exp_date'] = ! empty($value[7]) ? $this->productUtil->format_date($value[7]) : null;
-
-                $formatted_data[] = $temp_array;
+                $temp_array['sub_units'] = $sub_units;
+            } else {
+                $error_msg = __('lang_v1.product_not_found_exception', ['row' => $row_index, 'sku' => $value[0]]);
+                break;
             }
+
+            if (! empty($value[0])) {
+                $temp_array['quantity'] = $value[1];
+            } else {
+                $error_msg = __('lang_v1.quantity_required', ['row' => $row_index]);
+                break;
+            }
+
+            $temp_array['unit_cost_before_discount'] = ! empty($value[2]) ? $value[2] : $variation->default_purchase_price;
+            $temp_array['discount_percent'] = ! empty($value[3]) ? $value[3] : 0;
+
+            $tax_id = null;
+
+            if (! empty($value[4])) {
+                $tax_name = trim($value[4]);
+                $tax = TaxRate::where('business_id', $business_id)
+                            ->where('name', 'like', "%{$tax_name}%")
+                            ->first();
+
+                $tax_id = $tax->id ?? $tax_id;
+            }
+
+            $temp_array['tax_id'] = $tax_id;
+            $temp_array['lot_number'] = ! empty($value[5]) ? $value[5] : null;
+            $temp_array['mfg_date'] = ! empty($value[6]) ? $this->productUtil->format_date($value[6]) : null;
+            $temp_array['exp_date'] = ! empty($value[7]) ? $this->productUtil->format_date($value[7]) : null;
+
+            $formatted_data[] = $temp_array;
+        }
+
+        return [$formatted_data, $error_msg];
+    }
+
+    public function importPurchaseProducts(Request $request)
+    {
+        try {
+            [$formatted_data, $error_msg] = $this->lerPlanilhaDeItens($request);
+            $business_id = $request->session()->get('user.business_id');
+            $row_count = $request->input('row_count');
 
             if (! empty($error_msg)) {
                 return [

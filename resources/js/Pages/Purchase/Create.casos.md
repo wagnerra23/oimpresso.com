@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: o contrato da grade (1 célula = 1 variation_id, 1 POST único) e o ownership das variations são duráveis — não mudam quando a tela ganhar campo novo.
 owner: wagner
 last_run: "2026-10-26"
-last_run_ci: "2026-10-27: UC-PURCRE-18 (prazo, frete e campos); UC-PURCRE-16/17 (pagamento na entrada) e UC-PURCRE-14/15 (despesas, valores em formato seguro e anexo) nascem sem veredito. Antes: ✅ 2026-09-05: os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841). Medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. Os 7 UC desta tela tem lane; 3 com defesa de COMPORTAMENTO (PurchaseGradeMatrixTest, que emite request e cujo bloco cross-tenant hoje roda em MySQL real) e 4 ESTRUTURAL (Wave2Create*, presence-gate LC-11). Nao restatear a mao: rode scripts/qa/uc-lane-coverage.mjs. ⚠ O TEXTO A SEGUIR ESTA SUPERADO e fica como fato datado - os dois numeros dele ja nasciam falsos (a pasta tem 10 arquivos, nao 8; e 4 ja rodavam quando foi escrito): 🔴 A DIVIDA CONTINUA ABERTA — NENHUM teste de tests/Feature/Purchase/ roda em lane alguma (8 arquivos orfaos de CI); o uc-lane-coverage reprova estes UC por isso e esta certo. Ver §Divida de prova. O bump de 2026-09-04 -> 2026-09-05 NAO paga essa divida e nao afirma execucao: ele registra a REVISAO exigida pelo G-6 depois que o .tsx foi tocado. O que foi revisado, e verificavel: o diff contra 153a65b558 (commit que criou este arquivo) e exatamente 5 atributos `data-contract` em <Card>, zero mudanca de logica/props/copy; e nenhum dos 7 UC depende de atributo/DOM/seletor (grep por data-contract|atributo|DOM|seletor|className neste arquivo: rc=1, zero hits) — os 7 sao de backend/tenant/dado. TENTATIVA DE PROVA REAL, e por que ela NAO vale como recibo: rodei tests/Feature/Purchase/ no CT 100 (90 passed, 6 failed, 6 skipped, 214 assertions), mas o checkout do container esta em c1abe9548f (2026-08-26) e NAO contem as ancoras (grep -c data-contract = 0). Run de outra arvore nao prova esta — citar aquele numero aqui seria medir a coisa errada."
+last_run_ci: "2026-10-27: UC-PURCRE-19/20 (importar planilha); UC-PURCRE-18 (prazo, frete e campos); UC-PURCRE-16/17 (pagamento na entrada) e UC-PURCRE-14/15 (despesas, valores em formato seguro e anexo) nascem sem veredito. Antes: ✅ 2026-09-05: os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841). Medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. Os 7 UC desta tela tem lane; 3 com defesa de COMPORTAMENTO (PurchaseGradeMatrixTest, que emite request e cujo bloco cross-tenant hoje roda em MySQL real) e 4 ESTRUTURAL (Wave2Create*, presence-gate LC-11). Nao restatear a mao: rode scripts/qa/uc-lane-coverage.mjs. ⚠ O TEXTO A SEGUIR ESTA SUPERADO e fica como fato datado - os dois numeros dele ja nasciam falsos (a pasta tem 10 arquivos, nao 8; e 4 ja rodavam quando foi escrito): 🔴 A DIVIDA CONTINUA ABERTA — NENHUM teste de tests/Feature/Purchase/ roda em lane alguma (8 arquivos orfaos de CI); o uc-lane-coverage reprova estes UC por isso e esta certo. Ver §Divida de prova. O bump de 2026-09-04 -> 2026-09-05 NAO paga essa divida e nao afirma execucao: ele registra a REVISAO exigida pelo G-6 depois que o .tsx foi tocado. O que foi revisado, e verificavel: o diff contra 153a65b558 (commit que criou este arquivo) e exatamente 5 atributos `data-contract` em <Card>, zero mudanca de logica/props/copy; e nenhum dos 7 UC depende de atributo/DOM/seletor (grep por data-contract|atributo|DOM|seletor|className neste arquivo: rc=1, zero hits) — os 7 sao de backend/tenant/dado. TENTATIVA DE PROVA REAL, e por que ela NAO vale como recibo: rodei tests/Feature/Purchase/ no CT 100 (90 passed, 6 failed, 6 skipped, 214 assertions), mas o checkout do container esta em c1abe9548f (2026-08-26) e NAO contem as ancoras (grep -c data-contract = 0). Run de outra arvore nao prova esta — citar aquele numero aqui seria medir a coisa errada."
 ---
 
 > ℹ️ **`last_run` 2026-10-20 → 2026-10-26 (G-6): entraram o UC-PURCRE-12 (pedidos abertos + estoque por dois caminhos) e o UC-PURCRE-13 (a tela traz o pedido).** A `Create.tsx` ganhou o bloco "Receber de um pedido de compra" e o campo `purchase_order_ids`; nenhum UC antigo mudou nem foi reexecutado.
@@ -559,6 +559,29 @@ Status: 🧪
   `shipping_custom_field_2` ficam gravados. Campo sem rótulo não aparece, igual à Blade.
 - **Teste:** [`PurchaseCamposExtrasContratoTest`](../../../../tests/Feature/Purchase/PurchaseCamposExtrasContratoTest.php).
 - **Contrato:** Blade `purchase/create.blade.php` (prazo, frete e campos personalizados) · pedido [W] 2026-10-27.
+- **Status: 🧪 sem veredito**
+
+---
+
+## UC-PURCRE-19 · Importar a planilha de itens traz as linhas com o custo já com desconto · `must` `[V0]`
+
+- **Aceite:** Dado a planilha do modelo (`public/files/import_purchase_products_template.xls`) com o
+  SKU de um produto da empresa, quantidade 2, custo 10,50 e desconto 10% · Quando a pessoa clica em
+  "Importar planilha" no card de itens · Então entra 1 linha com quantidade 2 e custo 9,45. Célula
+  numérica da planilha vale como está; só texto passa pelo `num_uf`, porque `num_uf("10.125")` daria
+  10125.
+- **Dupla prova:** (a) o que o endpoint devolve; (b) a conta à mão, 10,50 × (1 − 0,10).
+- **Teste:** [`PurchaseImportarItensContratoTest`](../../../../tests/Feature/Purchase/PurchaseImportarItensContratoTest.php).
+- **Contrato:** modal de importação da Blade (`purchase/partials/import_purchase_products_modal`) ·
+  pedido [W] 2026-10-27.
+- **Status: 🧪 sem veredito**
+
+## UC-PURCRE-20 · A importação não traz produto de outra empresa · `must` `[T0]`
+
+- **Aceite:** SKU de outra empresa volta como "produto não encontrado" (422) e nenhuma linha entra.
+  Sem `purchase.create` nem `purchase.update`, 403.
+- **Teste:** [`PurchaseImportarItensContratoTest`](../../../../tests/Feature/Purchase/PurchaseImportarItensContratoTest.php).
+- **Contrato:** [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
 - **Status: 🧪 sem veredito**
 
 ---

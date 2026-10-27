@@ -27,6 +27,7 @@ import { FieldError } from '@/Components/ui/field-state';
 import { Plus, Trash2, Search, ShoppingCart, ArrowLeft, Save, LayoutGrid } from 'lucide-react';
 import GradeMatrixInput, { type GradeCell } from '@/Pages/Purchase/_components/GradeMatrixInput';
 import DespesasAnexo from '@/Pages/Purchase/_components/DespesasAnexo';
+import ImportarItens from '@/Pages/Purchase/_components/ImportarItens';
 import CamposExtras, { chavesExtras, type CamposExtrasConfig, type ValoresExtras } from '@/Pages/Purchase/_components/CamposExtras';
 import PagamentoNaCompra, { type PagamentoRascunho } from '@/Pages/Purchase/_components/PagamentoNaCompra';
 import { camposDespesas, despesasVazias, somaDespesas, valorParaEnvio, linhaParaEnvio, type DespesaAdicional } from '@/Pages/Purchase/_components/compra-envio';
@@ -508,6 +509,13 @@ function PurchaseCreate({
         <CardHeader className="pb-2 pt-3 px-4 flex flex-row items-center gap-2">
           <h3 className="text-[11px] uppercase tracking-widest text-stone-500 font-medium flex-1">Itens da compra</h3>
           <span className="text-[11px] text-stone-500">{linhas.length} {linhas.length === 1 ? 'item' : 'itens'}</span>
+          <ImportarItens
+            locationId={form.data.location_id}
+            onLinhas={(novas) => {
+              setLinhas((prev) => [...prev, ...novas]);
+              setErroItens(null);
+            }}
+          />
         </CardHeader>
         <CardContent className="px-4 pb-4">
           {usaPedidoDeCompra && (
