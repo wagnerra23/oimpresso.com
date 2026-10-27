@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 // @covers-us US-MKT-026
+// @covers-uc UC-PEDIDO-05
 
 use App\Utils\ModuleUtil;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -74,12 +75,12 @@ function nsConectarECallback($t, string $code = 'CODIGO'): void
     $t->get('/marketplaces/oauth/callback/nuvemshop?code='.$code.'&state='.($q['state'] ?? ''))->assertRedirect('/home');
 }
 
-it('US-MKT-026 · catálogo traz a Nuvemshop cadastrada e inativa', function () {
+it('UC-PEDIDO-05 · US-MKT-026 · catálogo traz a Nuvemshop cadastrada e inativa', function () {
     expect($this->nuvem)->toBeGreaterThan(0)
         ->and((bool) Marketplace::query()->whereKey($this->nuvem)->value('ativo'))->toBeFalse();
 });
 
-it('US-MKT-026 · flag desligada: conectar volta com aviso e não manda para a Nuvemshop', function () {
+it('UC-PEDIDO-05 · US-MKT-026 · flag desligada: conectar volta com aviso e não manda para a Nuvemshop', function () {
     config(['marketplaces.nuvemshop.ativo' => false]);
     nsLogar($this, $this->u98);
 
@@ -88,7 +89,7 @@ it('US-MKT-026 · flag desligada: conectar volta com aviso e não manda para a N
     expect(session('marketplaces.oauth_state_nuvemshop'))->toBeNull();
 });
 
-it('US-MKT-026 · conectar manda para a autorização do app com o state da sessão', function () {
+it('UC-PEDIDO-05 · US-MKT-026 · conectar manda para a autorização do app com o state da sessão', function () {
     nsLogar($this, $this->u98);
 
     $destino = (string) $this->get('/marketplaces/contas/nuvemshop/conectar')->headers->get('Location');
@@ -99,7 +100,7 @@ it('US-MKT-026 · conectar manda para a autorização do app com o state da sess
         ->and(session('marketplaces.oauth_state_nuvemshop.business_id'))->toBe($this->b98);
 });
 
-it('US-MKT-026 · callback com state de outra sessão não chama a Nuvemshop nem grava conta', function () {
+it('UC-PEDIDO-05 · US-MKT-026 · callback com state de outra sessão não chama a Nuvemshop nem grava conta', function () {
     Http::fake();
     nsLogar($this, $this->u98);
     session(['marketplaces.oauth_state_nuvemshop' => [
@@ -113,7 +114,7 @@ it('US-MKT-026 · callback com state de outra sessão não chama a Nuvemshop nem
     expect(ContaVendedor::withoutGlobalScopes()->where('marketplace_id', $this->nuvem)->where('seller_id_external', '789')->exists())->toBeFalse();
 });
 
-it('US-MKT-026 · callback válido grava o token cifrado e sem vencimento na empresa da sessão, sem duplicar', function () {
+it('UC-PEDIDO-05 · US-MKT-026 · callback válido grava o token cifrado e sem vencimento na empresa da sessão, sem duplicar', function () {
     Http::fake(['nuvem-falsa.example/*' => Http::response(NS_RESPOSTA_DOC)]);
     nsLogar($this, $this->u98);
 
@@ -135,7 +136,7 @@ it('US-MKT-026 · callback válido grava o token cifrado e sem vencimento na emp
         ->not->toContain('61181d08b7e328d256736hdcb671c3ce50b8af5');
 });
 
-it('US-MKT-026 · token sem vencimento é devolvido sem renovar e fica fora da rotina horária do ML', function () {
+it('UC-PEDIDO-05 · US-MKT-026 · token sem vencimento é devolvido sem renovar e fica fora da rotina horária do ML', function () {
     Http::fake();
     Queue::fake();
     $conta = app(ContasVendedor::class)->gravarTokens($this->b98, $this->nuvem, [

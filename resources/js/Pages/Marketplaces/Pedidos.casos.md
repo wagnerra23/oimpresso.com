@@ -59,9 +59,22 @@ last_run: "2026-10-26"
 
 ---
 
+## UC-PEDIDO-05 · Conecto a loja Nuvemshop da minha empresa
+- **Persona:** dona da loja que vende na própria loja Nuvemshop e quer os pedidos aqui (ADR 0443, US-MKT-026).
+- **Aceite:** Dado a integração ligada (`MARKETPLACES_NUVEMSHOP_ATIVO`) e usuário com `marketplaces.account.connect` · Quando conecto a loja ·
+  Então volto da autorização da Nuvemshop com a loja gravada na **minha** empresa (98, nunca na 99), com o token cifrado e sem vencimento;
+  reconectar a mesma loja não duplica; retorno com `state` de outra sessão não grava nada; com a integração desligada, nada sai do ERP.
+- **Teste:** `Modules/Marketplaces/Tests/Feature/MarketplacesOAuthNuvemshopContratoTest.php` (todos os `it('UC-PEDIDO-05 · …')`).
+- **Regressão que defende:** loja de um cliente ligada à empresa de outro por um link de retorno forjado (ADR 0093); a conta
+  Nuvemshop cair na renovação de token do Mercado Livre e virar "token expirado" sem ter vencido.
+- **Status: ⬜** (roda só no CI; CT 100 fora do ar)
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** abrir o pedido num painel lateral com itens, envio e histórico do FSM (US-MKT-008, drawer `OrderSheet`).
 
 ## Trilha do tempo
 - 2026-10-26 · [CC] carimbado por criar-tela.mjs — trio nascido junto (charter + casos + teste). Refs: UI-0013 · ADR 0264 G-1/G-2.
+- 2026-10-27 · UC-PEDIDO-05 (conectar a loja Nuvemshop, ADR 0443 fatia a). Fonte do caso: ADR 0443 + SPEC US-MKT-026.
