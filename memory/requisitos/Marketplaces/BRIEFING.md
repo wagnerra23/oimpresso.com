@@ -26,8 +26,12 @@ vertical (não é módulo de vertical). Separado do `Woocommerce`, que é loja p
   `mkt_orders` (US-MKT-006). Pedido **pago** vira venda final no local escolhido na conta, com baixa
   de estoque e total conferido contra o do ML (US-MKT-007, decisões [W] 2026-10-26); a venda nasce
   "a receber" até a conciliação do Mercado Pago.
-  Próximas US em [SPEC.md](SPEC.md) §11.2: estágio FSM da venda → tela de pedidos (inclui escolher o
-  local da conta) → NF-e → rastreio.
+  A venda entra no processo FSM `venda_marketplace` (pago → enviado → entregue). A NF-e do pedido
+  tem o CFOP provisório e a avaliação no "marcar como enviado", atrás de flag desligada — nenhuma
+  nota é emitida ainda (US-MKT-009 parcial).
+  A tela `/marketplaces/pedidos` (menu COMERCIAL → Marketplaces) lista os pedidos e a venda gerada,
+  e é onde se escolhe o local de venda de cada conta (US-MKT-008, sem o painel lateral ainda).
+  Próximas US em [SPEC.md](SPEC.md) §11.2: destinatário e emissão da NF-e → rastreio.
 
 ## O que depende de [W]
 

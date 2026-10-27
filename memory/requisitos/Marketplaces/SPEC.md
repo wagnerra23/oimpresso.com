@@ -460,7 +460,11 @@ Driver pattern: classe `MarketplaceDriver` abstrata + `MercadoLivreDriver`, `Sho
 
 ### US-MKT-008 · UI Page `Marketplaces/Orders/Index.tsx` (Cockpit V2) — **P0** · 6h
 
-**Implementado em:** _pendente_ — tela não construída (US planejada): `resources/js/Pages/Marketplaces/` não existe no disco
+**Implementado em:** _parcial_ · `resources/js/Pages/Marketplaces/Pedidos.tsx` · `Modules/Marketplaces/Http/Controllers/PedidosController.php` · `resources/js/Pages/Marketplaces/Pedidos.casos.md` — 2026-10-26: lista de pedidos da empresa (com a venda gerada), filtro com/sem venda, contas conectadas com o local de venda escolhido ali (decisão [W]) e botão de conectar; tela gerada do PT-01 pelo designer-agente (sem protótipo, ADR 0282/0438). Faltam o painel lateral `OrderSheet` e as ações em lote
+
+**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesPedidosTelaContratoTest.php`
+
+**DoD:** a lista traz só os pedidos da empresa, com a venda quando já virou venda; o filtro separa com e sem venda; o local da conta aceita só local da empresa, recusa conta de outra empresa e exige a permissão de conectar; sem o pacote a tela não abre.
 
 - Lista pedidos com filtros (marketplace, status, data, valor)
 - Drawer `OrderSheet` com timeline FSM + items + buyer + shipping + dispute (se houver)
@@ -468,7 +472,11 @@ Driver pattern: classe `MarketplaceDriver` abstrata + `MercadoLivreDriver`, `Sho
 
 ### US-MKT-009 · NFe automática ao emitir → CFOP marketplace resolver + dispatch SEFAZ — **P0** · 7h
 
-**Implementado em:** _pendente_ — módulo não construído (US planejada): sem `OrderMarketplaceFaturadoListener` nem `MarketplaceCFOPResolver` no disco
+**Implementado em:** _parcial_ · `Modules/Marketplaces/Services/Fiscal/CfopDoPedido.php` · `Modules/Marketplaces/SideEffects/AvaliarNfeAoEnviar.php` · `Modules/Marketplaces/Jobs/AvaliarNfeDoPedidoJob.php` — 2026-10-26: CFOP só por configuração, sem valor padrão (depende do contador; sugestão do §5: 5102/6102), e avaliação da nota no `marcar_enviado`, atrás da flag `marketplaces.nfe.automatica` (desligada); **nenhuma nota é emitida ainda**. Faltam: destinatário pelo `billing_info` do ML, o NfeService aceitar o CFOP do marketplace (combinar com a frente Fiscal) e o envio do XML ao ML. Depende de [W] + contador conferirem o CFOP (D5)
+
+**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesNfePedidoContratoTest.php`
+
+**DoD:** CFOP 5102 na mesma UF e 6102 em outra, sem CFOP para Full ou UF ausente; flag desligada não põe nada na fila; flag ligada só deixa a nota sair com destinatário completo e fora do Full; outra empresa nunca avalia a venda da 98.
 
 - Listener `OrderMarketplaceFaturadoListener` no event FSM action `emitir_nfe`
 - Service `MarketplaceCFOPResolver` aplica mapping §5 (per-categoria + override business)

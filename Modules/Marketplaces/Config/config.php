@@ -23,4 +23,16 @@ return [
         'authorize_url' => env('MERCADOLIVRE_AUTHORIZE_URL', 'https://auth.mercadolivre.com.br/authorization'),
         'token_url' => env('MERCADOLIVRE_TOKEN_URL', 'https://api.mercadolibre.com/oauth/token'),
     ],
+
+    /*
+     * NF-e do pedido de marketplace (US-MKT-009 · ADR 0439 D5). DESLIGADA até [W] conferir o CFOP
+     * com o contador. O CFOP NÃO tem valor padrão de propósito: depende do contador (D5). Sem ele
+     * configurado, a nota do pedido cai em "não pode" com o motivo. O mapeamento provisório do
+     * SPEC §5 (5102 mesma UF · 6102 outra UF) é só a sugestão a conferir.
+     */
+    'nfe' => [
+        'automatica' => (bool) env('MARKETPLACES_NFE_AUTOMATICA', false),
+        'cfop_mesma_uf' => env('MARKETPLACES_CFOP_MESMA_UF'),
+        'cfop_outra_uf' => env('MARKETPLACES_CFOP_OUTRA_UF'),
+    ],
 ];

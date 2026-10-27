@@ -3,13 +3,15 @@
 namespace Modules\Marketplaces\Http\Controllers;
 
 use Illuminate\Routing\Controller;
+use Menu;
+use Modules\Marketplaces\Services\MarketplacesAcesso;
 
 /**
  * DataController — Modules/Marketplaces (ADR 0439).
  *
  * Habilitação é SEMPRE por UI (pacote do superadmin + permissão do papel), nunca por if de
- * business no código ({@see memory/proibicoes.md}). Sem item de menu até existir a tela de
- * pedidos (US-MKT-008).
+ * business no código ({@see memory/proibicoes.md}). O item do menu segue a MESMA regra do
+ * middleware das rotas (MarketplacesAcesso), para menu e rota nunca discordarem.
  */
 class DataController extends Controller
 {
@@ -32,6 +34,18 @@ class DataController extends Controller
 
     public function modifyAdminMenu(): void
     {
-        // US-MKT-008 cria a tela de pedidos e o item de menu.
+        if (! app(MarketplacesAcesso::class)->liberado(auth()->user(), session()->get('user.business_id'))) {
+            return;
+        }
+
+        $ativo = request()->segment(1) === 'marketplaces';
+        Menu::modify('admin-sidebar-menu', function ($menu) use ($ativo) {
+            $menu->url(url('/marketplaces/pedidos'), 'Marketplaces', [
+                'icon' => 'fa fa-store',
+                'active' => $ativo,
+                // Canal de venda: grupo COMERCIAL do sidebar (CRM · Vendas), como o Fisio.
+                'group' => 'comercial',
+            ]);
+        });
     }
 }
