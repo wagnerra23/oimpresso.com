@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 880,
-    "edges": 1196,
+    "nodes": 881,
+    "edges": 1197,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 148,
-      "component": 492,
+      "component": 493,
       "api": 89
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 492,
+      "hasComponent": 493,
       "dependsOn": 133,
       "delegatesTo": 122,
       "migratesTo": 1,
@@ -2939,6 +2939,13 @@
       "module": "Financeiro",
       "name": "PlanoContaController",
       "desc": "Onda 18 tela /plano-contas dedicada + Fluxo fallback sem conta"
+    },
+    {
+      "id": "component:Financeiro/RateioService",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "RateioService",
+      "desc": "US-FIN-075 rateio do título em centros de custo (fin_centros_custo + fin_titulo_rateios): soma fecha valor_total em centavos inteiros; título sem rateio segue válido"
     },
     {
       "id": "component:Financeiro/ReguaCobrancaJob + comando financeiro:regua-cobranca",
@@ -9528,6 +9535,12 @@
     {
       "from": "module:Financeiro",
       "to": "component:Financeiro/PlanoContaController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "component:Financeiro/RateioService",
       "type": "hasComponent",
       "source": "contains"
     },
