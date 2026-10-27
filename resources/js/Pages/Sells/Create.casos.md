@@ -195,6 +195,33 @@ last_run: "2026-10-26"
 - **Teste:** `tests/Feature/Sells/IcmsStNaVendaContratoTest.php` — `UC-VST-05`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
+## Venda sem internet no caixa (US-SELL-054)
+
+> **Âncora:** US-SELL-054 (`memory/requisitos/Sells/SPEC.md`). O caixa guarda a venda feita sem rede e reenvia o
+> mesmo payload ao voltar a conexão, com uma chave por venda (`offline_uuid`). O servidor grava uma vez só.
+> Flag `SELLS_OFFLINE_ENABLED` desligada. Números à mão: 10 em estoque, venda de 2 × 50,00 = 100,00, saldo 8.
+> Prova: `tests/Feature/Sells/VendaOfflineContratoTest.php`.
+
+## UC-VOFF-01 · A venda reenviada duas vezes grava uma venda e baixa o estoque uma vez `[V0]` `[must]`
+- **Aceite:** Dado a mesma venda enviada duas vezes com a mesma chave · Então existe uma venda de 100,00, o saldo vai de 10 para 8 e fica 8, e a segunda resposta diz `duplicada` com o mesmo id.
+- **Teste:** `tests/Feature/Sells/VendaOfflineContratoTest.php` — `UC-VOFF-01`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VOFF-02 · A chave de uma empresa não acha venda de outra `[V0]` `[must]`
+- **Aceite:** Dado a chave já usada pela empresa 99 · Quando a 98 envia a mesma chave · Então a 98 grava a própria venda.
+- **Teste:** `tests/Feature/Sells/VendaOfflineContratoTest.php` — `UC-VOFF-02`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VOFF-03 · Com a flag desligada a chave é ignorada `[V0]` `[must]`
+- **Aceite:** Dado a flag desligada · Então a venda segue o fluxo de hoje (redirect) e nenhuma chave é gravada.
+- **Teste:** `tests/Feature/Sells/VendaOfflineContratoTest.php` — `UC-VOFF-03`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VOFF-04 · Venda offline recusada volta em JSON e não grava a chave `[V0]` `[must]`
+- **Aceite:** Dado uma venda que o servidor recusa · Então a resposta é `success: 0` em JSON, nenhuma chave é gravada e o estoque fica 10, para o caixa manter a venda na fila.
+- **Teste:** `tests/Feature/Sells/VendaOfflineContratoTest.php` — `UC-VOFF-04`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão. Itens abaixo SEM token de UC de
