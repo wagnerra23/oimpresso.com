@@ -34,7 +34,7 @@ afterEach(function () {
     }
 });
 
-it('visitante sem login vê a página na tela Site/Page, com o HTML sem script', function () {
+it('UC-SPAGE-04 · visitante sem login vê a página do Superadmin na tela Site/Page, com o HTML sem script', function () {
     $p = SuperadminFrontendPage::create([
         'title' => 'Termos fictícios UC-SAPUB',
         'slug' => 'uc-sapub-termos-' . uniqid(),
@@ -53,6 +53,6 @@ it('visitante sem login vê a página na tela Site/Page, com o HTML sem script',
                 && ! str_contains((string) $html, '<script')));
 });
 
-it('slug que não existe responde 404', function () {
+it('UC-SPAGE-05 · /page/{slug} que não existe responde 404', function () {
     $this->get('/page/uc-sapub-nao-existe-' . uniqid())->assertNotFound();
 });
