@@ -64,6 +64,7 @@ dicionário continua travando o vocabulário vivo).
     "nfe_inutilizacoes.status": ["pendente", "enviado", "autorizado", "rejeitado"],
     "nfe_dfe_eventos.status": ["pendente", "enviado", "autorizado", "rejeitado"],
     "nfe_dfe_recebidos.status_manifestacao": ["pendente", "ciencia", "confirmada", "desconhecida", "nao_realizada"],
+    "nfe_dfe_recebidos.origem": ["nsu", "upload"],
     "nfe_business_configs.regime": ["mei", "simples", "lucro_presumido", "lucro_real"],
     "nfse_emissoes.status": ["pending", "sent", "authorized", "rejected", "cancelled"],
     "nfse_eventos_cancelamento.status": ["pendente", "enviado", "autorizado", "rejeitado"],

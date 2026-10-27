@@ -14,7 +14,7 @@ module: PaymentGateway
 >
 > **O que isto é:** o inventário completo das raízes `Modules/PaymentGateway/**` + `resources/js/Pages/PaymentGateway/**` + `resources/js/Pages/Settings/**` (namespaces Inertia `PaymentGateway`, `Settings`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `PaymentGateway` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 154 arquivos em 16 papéis.
+**Total mapeado:** 157 arquivos em 16 papéis.
 
 ## Controllers — 12
 
@@ -66,19 +66,21 @@ module: PaymentGateway
 - [InterWebhookLog.php](../../../Modules/PaymentGateway/Models/InterWebhookLog.php)
 - [PaymentGatewayCredential.php](../../../Modules/PaymentGateway/Models/PaymentGatewayCredential.php)
 
-## Jobs — 3
+## Jobs — 4
 
 - [CnabRetornoProcessor.php](../../../Modules/PaymentGateway/Jobs/CnabRetornoProcessor.php)
+- [ProcessarWebhookBcbPixJob.php](../../../Modules/PaymentGateway/Jobs/ProcessarWebhookBcbPixJob.php)
 - [ProcessarWebhookPixInterJob.php](../../../Modules/PaymentGateway/Jobs/ProcessarWebhookPixInterJob.php)
 - [RetryOrphanWebhookJob.php](../../../Modules/PaymentGateway/Jobs/RetryOrphanWebhookJob.php)
 
-## Events / Listeners — 6
+## Events / Listeners — 7
 
 - [CobrancaCancelada.php](../../../Modules/PaymentGateway/Events/CobrancaCancelada.php)
 - [CobrancaEmitida.php](../../../Modules/PaymentGateway/Events/CobrancaEmitida.php)
 - [CobrancaErro.php](../../../Modules/PaymentGateway/Events/CobrancaErro.php)
 - [CobrancaPaga.php](../../../Modules/PaymentGateway/Events/CobrancaPaga.php)
 - [CobrancaVencida.php](../../../Modules/PaymentGateway/Events/CobrancaVencida.php)
+- [RecorrenciaPixAtualizada.php](../../../Modules/PaymentGateway/Events/RecorrenciaPixAtualizada.php)
 - [LancarPagamentoDaCobrancaNaVenda.php](../../../Modules/PaymentGateway/Listeners/LancarPagamentoDaCobrancaNaVenda.php)
 
 ## Console / Commands — 8
@@ -149,8 +151,9 @@ module: PaymentGateway
 - 5 em [Modules/PaymentGateway/Tests/Feature/Settings/](../../../Modules/PaymentGateway/Tests/Feature/Settings)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 22
+## Demais arquivos (manifestos, docs, assets e misc) — 23
 
+- [CobrancaRecorrenteDriver.php](../../../Modules/PaymentGateway/Contracts/CobrancaRecorrenteDriver.php)
 - [PaymentDriverContract.php](../../../Modules/PaymentGateway/Contracts/PaymentDriverContract.php)
 - [PaymentGatewayContract.php](../../../Modules/PaymentGateway/Contracts/PaymentGatewayContract.php)
 - [CardToken.php](../../../Modules/PaymentGateway/Dto/CardToken.php)

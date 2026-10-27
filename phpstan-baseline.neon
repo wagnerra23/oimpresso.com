@@ -95,6 +95,36 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 8
+			path: Modules/Marketplaces/Config/config.php
+
+		-
+			message: '#^Access to an undefined property App\\Variation\:\:\$product\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/Marketplaces/Services/PedidoParaVenda.php
+
+		-
+			message: '#^Parameter \#3 \$invoice_total of method App\\Utils\\TransactionUtil\:\:createSellTransaction\(\) expects float, array\<string, float\|int\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/Marketplaces/Services/PedidoParaVenda.php
+
+		-
+			message: '#^Parameter \#3 \$location_id of method App\\Utils\\TransactionUtil\:\:createOrUpdateSellLines\(\) expects array, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/Marketplaces/Services/PedidoParaVenda.php
+
+		-
+			message: '#^Relation ''product'' is not found in App\\Variation model\.$#'
+			identifier: larastan.relationExistence
+			count: 4
+			path: Modules/Marketplaces/Services/PedidoParaVenda.php
+
+		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
 			count: 3
 			path: Modules/Arquivos/Config/retention.php
 
@@ -9074,6 +9104,12 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 1
+			path: Modules/RecurringBilling/Config/config.php
+
+		-
+			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
+			identifier: larastan.noEnvCallsOutsideOfConfig
 			count: 2
 			path: Modules/RecurringBilling/Config/retention.php
 
@@ -12486,7 +12522,7 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 56
+			count: 62
 			path: Modules/Whatsapp/Config/config.php
 
 		-

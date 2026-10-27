@@ -14,7 +14,12 @@ import { ProdutoFormulario } from './_components/formulario/ProdutoFormulario';
 import { camposPersonalizadosGravados, definidorDe } from './_components/formulario/tipos';
 import { ncmDoCadastro } from './_components/formulario/ncm';
 import { cestDoCadastro } from './_components/formulario/cest';
-import type { NumeroCampoPersonalizado, OptionMap, OptionStringMap } from './_components/formulario/tipos';
+import type {
+  NaturezaFiscalProduto,
+  NumeroCampoPersonalizado,
+  OptionMap,
+  OptionStringMap,
+} from './_components/formulario/tipos';
 
 const ADVANCED_OPEN_KEY = 'oimpresso.produto.edit.advanced.open';
 
@@ -38,6 +43,8 @@ interface ProdutoEditModel {
   larguraCm?: number | string | null;
   alturaCm?: number | string | null;
   comprimentoCm?: number | string | null;
+  /** UC-PEDIT-14: natureza fiscal decidida pelo contador; null = sem decisão registrada. */
+  naturezaFiscal?: NaturezaFiscalProduto | null;
   barcodeType: string;
   enableStock: boolean;
   alertQuantity: string | null;
@@ -169,6 +176,7 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
             opcoes={props}
             tipoAtual={props.productTypes[p.type] ?? p.type}
             chaveMaisOpcoes={ADVANCED_OPEN_KEY}
+            naturezaFiscal={p.naturezaFiscal ?? null}
           />
         </div>
       </div>

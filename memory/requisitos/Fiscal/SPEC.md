@@ -560,6 +560,8 @@ Then deve receber 403 Forbidden
 
 **Prazo regulatório:** homologação obrig. passou 01/07/2026; **produção obrigatória 03/08/2026** (CRT 3 Normal). Risco imediato contido (pilotos Simples) mas crítico se migrar regime.
 
+**2026-10-26 · [ADR 0442](../../decisions/0442-ibscbs-automatico-regime-normal-emenda-0321.md):** o emitente CRT 3 passa a usar o schema PL_010 sem opt-in (`NfeService::schemaReforma`); CRT 1/2 seguem a flag, byte-idêntico. Prova: `SerializacaoIbsCbsTest` UC-FNFE-47/48.
+
 **Refs:** CAPTERRA-FICHA Fiscal §7 · AUDIT-SENIOR-2026-05-25 GAP-FISCAL-004 · ADR ARQ-0004 (schema flexível CBS/IBS) · esta US é o **CÁLCULO** (o scaffold de schema já foi mergeado na migration `add_ibs_cbs_to_nfe_fiscal_rules`).
 
 ### US-FISCAL-022 · Health-check certificado A1 (cron alerta vencimento)
