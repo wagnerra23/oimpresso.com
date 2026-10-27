@@ -136,6 +136,8 @@ class FinanceiroServiceProvider extends ServiceProvider
                 \Modules\Financeiro\Console\Commands\ReguaCobrancaCommand::class,
                 // US-FIN-074 — extrato Pluggy (Open Finance) → fin_extrato_lancamentos.
                 \Modules\Financeiro\Console\Commands\PluggySyncCommand::class,
+                // US-FIN-078 — DDA → contas a pagar sugeridas (FINANCEIRO_DDA_ENABLED, default OFF).
+                \Modules\Financeiro\Console\Commands\DdaSyncCommand::class,
             ]);
         }
     }

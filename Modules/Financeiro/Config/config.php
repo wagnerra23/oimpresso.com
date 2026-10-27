@@ -25,4 +25,12 @@ return [
         'webhook_secret' => env('ASAAS_WEBHOOK_SECRET'),
         'environment' => env('ASAAS_ENV', 'sandbox'),
     ],
+    /**
+     * DDA — boletos emitidos contra o CNPJ da empresa viram contas a pagar
+     * SUGERIDAS (US-FIN-078). Desligado: a fonte dos boletos (API do banco ou
+     * provedor de DDA) depende de decisão e credencial do [W] — ver BRIEFING.
+     */
+    'dda' => [
+        'enabled' => env('FINANCEIRO_DDA_ENABLED', false),
+    ],
 ];
