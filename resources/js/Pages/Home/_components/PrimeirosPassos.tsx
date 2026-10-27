@@ -1,5 +1,5 @@
 // Onboarding guiado (US-SUPER-012) — card "Primeiros passos" da Visão geral.
-// Âncora de design: prototipo-ui/cowork/Wagner/primeiros-passos.html (ADR 0438).
+// Âncora de design: prototipo-ui/cowork/Wagner/primeiros-passos-page.jsx (shell integrado, ADR 0438).
 // O status de cada passo vem do servidor, derivado do dado real da empresa: clicar no
 // passo só leva à tela que já existe. Pular/dispensar gravam a escolha da empresa.
 
