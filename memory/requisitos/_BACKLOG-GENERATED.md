@@ -17,7 +17,7 @@
 | [`OficinaAuto`](#oficinaauto) | 39 | 0 | 0 | 0 | 38 |
 | [`Producao`](#producao) | 33 | 1 | 0 | 0 | 32 |
 | [`NfeBrasil`](#nfebrasil) | 32 | 0 | 0 | 6 | 26 |
-| [`Compras`](#compras) | 29 | 5 | 0 | 0 | 23 |
+| [`Compras`](#compras) | 29 | 6 | 0 | 0 | 22 |
 | [`Fiscal`](#fiscal) | 29 | 0 | 0 | 0 | 29 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
@@ -640,6 +640,7 @@
 - **US-COM-026** — Compra recebida aplica a regra de custo e preço (UC-FLX-17) _(`p1` · @wagner)_
 - **US-COM-028** — Aprovar ou recusar o preço proposto no detalhe da compra (UC-FLX-17) — **P1** _(`p1` · @wagner)_
 - **US-COM-034** — Inspeção de qualidade no recebimento da compra — **P2** _(`p2`)_
+- **US-COM-033** — Avaliação automática do fornecedor por entrega — **P3** _(`p3`)_
 
 ### todo
 
@@ -660,7 +661,6 @@
 - **US-COM-025** — Rastreio do rolo: em que OS cada fração da mídia foi usada (UC-FLX-18) — **P2** _(`p2` · @wagner)_
 - **US-COM-032** — Aprovação do pedido de compra por alçada de valor — **P2** _(`p2`)_
 - **US-COM-020** — A11y do drawer (`role=dialog` + focus-trap + `aria-label` + `Esc`) _(`p3`)_
-- **US-COM-033** — Avaliação automática do fornecedor por entrega — **P3** _(`p3`)_
 - **US-COM-001** — Cockpit `/compras` (lista paginada + 4 KPIs + drawer)
 - **US-COM-002** — Criar compra manual
 - **US-COM-003** — Importar XML DF-e como compra (GAP NOVO)

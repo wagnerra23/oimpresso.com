@@ -199,6 +199,7 @@ jobs:
             Modules/Compras/Tests/Feature/CotacaoDeCompraTest.php \
             Modules/Compras/Tests/Feature/AlcadaDoPedidoTest.php \
             Modules/Compras/Tests/Feature/InspecaoDoRecebimentoTest.php \
+            Modules/Compras/Tests/Feature/AvaliacaoDoFornecedorTest.php \
             Modules/Compras/Tests/Feature/EntradaXmlSchemaTest.php \
             Modules/Compras/Tests/Feature/ComprasExportarContratoTest.php
 

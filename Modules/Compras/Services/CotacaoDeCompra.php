@@ -227,6 +227,23 @@ final class CotacaoDeCompra
         });
     }
 
+    /**
+     * Avaliação de cada fornecedor convidado (US-COM-033), para escolher com dado ao lado do preço.
+     *
+     * @return array<int, array<string,mixed>> contact_id → avaliação
+     */
+    public function avaliacaoDosFornecedores(int $businessId, int $cotacaoId): array
+    {
+        $cotacao = DB::table('compras_cotacoes')->where('business_id', $businessId)->where('id', $cotacaoId)->first(['id']);
+        if ($cotacao === null) {
+            throw new InvalidArgumentException('Cotação inválida para este negócio.');
+        }
+        $convidados = DB::table('compras_cotacao_fornecedores')->where('business_id', $businessId)
+            ->where('cotacao_id', $cotacao->id)->pluck('contact_id')->map(fn ($c) => (int) $c)->all();
+
+        return app(AvaliacaoDoFornecedor::class)->porFornecedor($businessId, $convidados);
+    }
+
     private function aberta(int $businessId, int $cotacaoId): object
     {
         $c = DB::table('compras_cotacoes')->where('business_id', $businessId)->where('id', $cotacaoId)->first(['id', 'status']);

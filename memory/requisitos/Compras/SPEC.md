@@ -659,15 +659,24 @@ Como dono, quero que o pedido de compra acima do limite de quem o fez espere a a
 
 ### US-COM-033 · Avaliação automática do fornecedor por entrega — **P3**
 
-> owner: — · priority: p3 · status: todo · type: story
+> owner: — · priority: p3 · status: doing · type: story
 > blocked_by: US-COM-013
 
 Como comprador, quero ver por fornecedor quantas entregas chegaram no prazo e completas, calculado das entregas registradas, para escolher fornecedor com dado e não com impressão.
 
-**Implementado em:** _pendente_
+**Implementado em:** _pendente_ — serviço `Modules/Compras/Services/AvaliacaoDoFornecedor.php` e `CotacaoDeCompra::avaliacaoDosFornecedores`, com o `AvaliacaoDoFornecedorTest`, ainda sem veredito da lane `compras-pest`. A tela é a da cotação, que ainda não existe.
+
+**Testado em:** `Modules/Compras/Tests/Feature/AvaliacaoDoFornecedorTest.php` · casos em `memory/requisitos/Compras/_telas/cotacao.casos.md`
 
 - **Decisão coordenação 2026-10-26:** automática, derivada do recebimento parcial pelo pedido (US-COM-013), sem nota digitada. Tira da seção 9.1 o item "Supplier scorecard".
 - Prazo cumprido: data da compra que recebe × data de entrega prevista do pedido. Completa: soma recebida × soma pedida por linha.
+- Três números por fornecedor, na janela de 180 dias, sem índice único (o peso entre eles seria inventado): no prazo (entrega = compra recebida ligada a linha de pedido; pedido sem data prevista não conta), completas (só pedidos concluídos ou vencidos, para não punir pedido no prazo) e reprovação na inspeção (US-COM-034). Eixo sem dado fica vazio, nunca 0 nem 100.
+
+**Aceite:**
+- [ ] Cenário à mão: 2 entregas, 1 no prazo = 50,0 · (10+5)/(10+10) = 75,0 · 1 de 4 reprovada = 25,0
+- [ ] A cotação devolve a avaliação de cada fornecedor convidado
+- [ ] Tier 0: outra empresa não vê as entregas nem a cotação
+- [ ] Tela: a coluna na comparação da cotação (depois do protótipo)
 
 ### US-COM-034 · Inspeção de qualidade no recebimento da compra — **P2**
 
