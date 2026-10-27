@@ -27,6 +27,7 @@ import { PageHeader } from '@/Components/PageHeader';
 import { PeriodBar, type Period } from '@/Components/shared/PeriodBar';
 import type { PaginatorShape } from '@/Components/shared/DataTable';
 import GradesPainel, { type Aba, type LinhaDaGrade } from './_components/GradesPainel';
+import PrimeirosPassos, { type EstadoPrimeirosPassos } from './_components/PrimeirosPassos';
 import { hrefDaAba, type Filtros } from './_components/abaHref';
 import { Deferred, router } from '@inertiajs/react';
 import { ReactNode } from 'react';
@@ -65,6 +66,11 @@ interface Props {
    * de first-paint <= 800ms do charter não paga por atalho.
    */
   pendencias?: Array<{ aba: string; label: string; total: number }>;
+  /**
+   * Onboarding guiado (US-SUPER-012). Prop DEFERIDA, e `null` quando a flag
+   * onboardingPrimeirosPassos está desligada ou o usuário não configura a empresa.
+   */
+  primeiros_passos?: EstadoPrimeirosPassos | null;
   endpoints: {
     totals: string;
     stock_alert: string;
@@ -214,6 +220,7 @@ function HomeIndex({
   aba,
   grade,
   pendencias,
+  primeiros_passos,
 }: Props) {
   const lojas = Object.entries(all_locations);
   const mostraLoja = is_admin && lojas.length > 1;
@@ -295,6 +302,10 @@ function HomeIndex({
           </Stack>
         )}
       </Inline>
+
+      <Deferred data="primeiros_passos" fallback={null}>
+        <PrimeirosPassos estado={primeiros_passos} />
+      </Deferred>
 
       {can_dashboard_data && totals ? (
         <Stack className="gap-[10px]">
