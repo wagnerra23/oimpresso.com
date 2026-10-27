@@ -26,6 +26,9 @@ use Yajra\DataTables\Facades\DataTables;
 
 class SubscriptionController extends BaseController
 {
+    /** Formas de pagamento oferecidas na tela Pagar, na ordem em que aparecem ([W] 2026-10-27). */
+    public const GATEWAYS_DA_TELA = ['paymentgateway_pix_automatico', 'offline'];
+
     protected $provider;
 
     public function __construct(ModuleUtil $moduleUtil = null)
@@ -253,24 +256,13 @@ class SubscriptionController extends BaseController
                 }
             }
 
-            $gateways = $this->_payment_gateways();
-
-            $system_currency = System::getCurrency();
-
             DB::commit();
 
-            if (empty($form_register)) {
-                $layout = 'layouts.app';
-            } else {
-                $layout = 'layouts.auth';
-            }
-
-            $user = request()->session()->get('user');
-
-            $offline_payment_details = System::getProperty('offline_payment_details');
-
-            return view('superadmin::subscription.pay')
-                ->with(compact('package', 'gateways', 'system_currency', 'layout', 'user', 'offline_payment_details'));
+            // Tela React (2026-10-27, decisão [W]): só Pix automático e pagamento offline. A Blade
+            // `subscription.pay` e as 8 parciais `pay_*` saíram; `confirm()` recusa os outros gateways.
+            return Inertia::render('superadmin/Pagar/Index', [
+                'pagamento' => Inertia::defer(fn () => $this->montarPagamento($package)),
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -283,6 +275,36 @@ class SubscriptionController extends BaseController
                 ->action([\Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'index'])
                 ->with('status', $output);
         }
+    }
+
+    /**
+     * Payload da tela Pagar. Valor sai como TEXTO pronto (`moedaComoBlade`, o mesmo formato que
+     * a Blade mostrava); a tela não formata nem calcula dinheiro. O valor COBRADO não passa por
+     * aqui: é o `price` do pacote, lido de novo em `confirm()`.
+     */
+    protected function montarPagamento(Package $package): array
+    {
+        $formas = array_intersect_key($this->_payment_gateways(), array_flip(self::GATEWAYS_DA_TELA));
+
+        return [
+            'pacote' => [
+                'id' => (int) $package->id,
+                'nome' => (string) $package->name,
+                'descricao' => (string) $package->description,
+                'preco' => $this->moedaComoBlade($package->price),
+                'intervalo' => (string) $package->interval,
+                'intervalo_count' => (int) $package->interval_count,
+                'trial_dias' => (int) $package->trial_days,
+                'locais' => (int) $package->location_count,
+                'usuarios' => (int) $package->user_count,
+                'produtos' => (int) $package->product_count,
+                'faturas' => (int) $package->invoice_count,
+            ],
+            'formas' => collect(self::GATEWAYS_DA_TELA)
+                ->filter(fn ($k) => isset($formas[$k]))
+                ->map(fn ($k) => ['chave' => $k])->values()->all(),
+            'dados_offline' => isset($formas['offline']) ? (string) System::getProperty('offline_payment_details') : null,
+        ];
     }
 
     /**
@@ -317,9 +339,14 @@ class SubscriptionController extends BaseController
                 return back()->with('status', $output);
             }
 
-            //Confirm for pesapal payment gateway
-            if (isset($this->_payment_gateways()['pesapal']) && (strpos($request->merchant_reference, 'PESAPAL') !== false)) {
-                return $this->confirm_pesapal($package_id, $request);
+            // Só Pix automático e offline (decisão [W] 2026-10-27). Os outros gateways saíram da
+            // tela; aqui eles também param, para nenhum POST antigo cobrar por um caminho que a
+            // tela não oferece mais. Gateway fora da lista ou desligado = recusa, sem assinatura.
+            $gateway = (string) $request->input('gateway');
+            if (! in_array($gateway, self::GATEWAYS_DA_TELA, true) || ! isset($this->_payment_gateways()[$gateway])) {
+                return redirect()
+                    ->action([\Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'index'])
+                    ->with('status', ['success' => 0, 'msg' => __('messages.something_went_wrong')]);
             }
 
             // ADR 0170 Onda 5 — PaymentGateway PIX Automático é assíncrono

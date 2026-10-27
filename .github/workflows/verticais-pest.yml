@@ -653,6 +653,7 @@ jobs:
             Modules/Superadmin/Tests/Feature/SuperadminPaginasContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminConfiguracoesContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminMinhaAssinaturaContratoTest.php \
+            Modules/Superadmin/Tests/Feature/SuperadminPagarContratoTest.php \
             Modules/Superadmin/Tests/Feature/SitePricingContratoTest.php \
             tests/Feature/Site/SiteAuthContratoTest.php \
             Modules/Cms/Tests/Feature/CmsConteudoIndexContratoTest.php \

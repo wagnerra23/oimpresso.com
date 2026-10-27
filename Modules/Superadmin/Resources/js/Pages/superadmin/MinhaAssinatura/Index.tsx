@@ -12,8 +12,9 @@
 // que a Blade mostrava. Esta tela não formata nem calcula dinheiro — não há literal monetário
 // aqui (Tier 0, memory/proibicoes.md §CÁLCULO DE VALOR).
 //
-// Tela de cliente: sem CTA chamativo. Os pacotes levam ao pagamento, que segue em Blade
-// (`/subscription/{id}/pay`), por isso o link é <a> comum e não navegação Inertia.
+// Tela de cliente: sem CTA chamativo. Os pacotes levam ao pagamento (`/subscription/{id}/pay`,
+// tela React `superadmin/Pagar/Index` desde 2026-10-27). O link segue <a> comum porque o link
+// customizado do pacote pode ser externo.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred } from '@inertiajs/react';
