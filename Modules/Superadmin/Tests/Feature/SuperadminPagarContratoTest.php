@@ -171,3 +171,17 @@ it('UC-SAPGR-05 · confirmar offline cria a assinatura aguardando, com o preço 
     expect($sub->status)->toBe('waiting');
     expect((float) $sub->package_price)->toBe(49.9);
 });
+
+it('UC-SAPGR-06 · confirmar offline grava a assinatura só do meu negócio; o 99 fica intacto', function () {
+    Business::firstOrCreate(['id' => 99], ['name' => 'Tenant adversário pagar', 'currency_id' => 1]);
+    $id = pgPacote();
+    $antes99 = DB::table('subscriptions')->where('business_id', 99)->count();
+
+    $this->actingAs(pgUsuario('pg_permitido_test', true))
+        ->post("/subscription/{$id}/confirm", ['gateway' => 'offline'])
+        ->assertRedirect('/subscription');
+
+    expect(DB::table('subscriptions')->where('business_id', BIZ_PG)->where('package_id', $id)
+        ->where('paid_via', 'offline')->exists())->toBeTrue();
+    expect(DB::table('subscriptions')->where('business_id', 99)->count())->toBe($antes99);
+});
