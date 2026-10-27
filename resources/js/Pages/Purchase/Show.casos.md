@@ -125,6 +125,8 @@ comprovadamente verde e crescer daí — o caminho é converter, um UC por vez.
 | UC-PURSHW-07 | Preços propostos pelo recebimento aparecem no detalhe, com aviso da regra em Conferido | must `[T0]` | SPEC US-COM-028 · charter Goals | `PropostasDePrecoContratoTest` | 🧪 sem veredito |
 | UC-PURSHW-08 | Aprovar grava o preço proposto e devolve a margem de antes | must `[V0]` | SPEC US-COM-028 · US-COM-026 (`aplicar`) | `PropostasDePrecoContratoTest` | 🧪 sem veredito |
 | UC-PURSHW-09 | Recusar mantém o preço; aprovar exige `product.update`, a empresa certa e o preço de antes | must `[T0]` `[V0]` | SPEC US-COM-028 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `PropostasDePrecoContratoTest` | 🧪 sem veredito |
+| UC-PURSHW-10 | Inspeção da compra recebida: o reprovado sai do estoque e vira devolução ao fornecedor | must `[V0]` | SPEC US-COM-034 | `InspecaoDoRecebimentoTest` | 🧪 sem veredito |
+| UC-PURSHW-11 | Inspeção desligada por padrão; soma errada, reprovado sem motivo, segunda inspeção e compra de outra empresa são recusados | must `[T0]` | SPEC US-COM-034 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `InspecaoDoRecebimentoTest` | 🧪 sem veredito |
 
 ---
 
@@ -291,6 +293,24 @@ comprovadamente verde e crescer daí — o caminho é converter, um UC por vez.
   (sobrescreveria a mudança), devolve 403 sem `product.update` e 404 para proposta de outra empresa.
 - **Teste:** [`PropostasDePrecoContratoTest`](../../../../Modules/Compras/Tests/Feature/PropostasDePrecoContratoTest.php).
 - **Contrato:** SPEC US-COM-028 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
+- **Status: 🧪 sem veredito**
+
+## UC-PURSHW-10 · Inspeção da compra recebida: o reprovado vira devolução · `must` `[V0]`
+
+- **Aceite:** cada linha da compra recebida tem aprovado + reprovado = o que entrou por ela. 10
+  recebidas a 12,50 com 3 reprovadas: estoque 10 → 7 (saldo e soma das compras recebidas) e uma
+  devolução de compra de 3 × 12,50 = 37,50. Tudo aprovado não mexe no estoque nem cria devolução.
+- **Teste:** [`InspecaoDoRecebimentoTest`](../../../../Modules/Compras/Tests/Feature/InspecaoDoRecebimentoTest.php).
+- **Contrato:** SPEC US-COM-034. A tela vem depois do protótipo; hoje é o serviço.
+- **Status: 🧪 sem veredito**
+
+## UC-PURSHW-11 · Inspeção desligada por padrão e com travas · `must` `[T0]`
+
+- **Aceite:** sem `compras_inspecao_recebimento` ligada a inspeção é recusada. Soma diferente do
+  recebido, reprovado sem motivo, segunda inspeção da mesma linha e compra de outra empresa são
+  recusados, e o estoque não muda.
+- **Teste:** [`InspecaoDoRecebimentoTest`](../../../../Modules/Compras/Tests/Feature/InspecaoDoRecebimentoTest.php).
+- **Contrato:** SPEC US-COM-034 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
 - **Status: 🧪 sem veredito**
 
 ---
