@@ -293,6 +293,30 @@ last_run: "2026-10-21"
 - **Teste:** `tests/Feature/Sells/CancelamentoDaVendaContratoTest.php` — `UC-VCAN-09`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
+## Margem da venda pelo custo médio (US-PROD-024 fase 2)
+
+Na venda finalizada, para quem vê custo, o detalhe traz a margem pelo custo médio vigente na data da venda. Só aparece com a flag `COMPRAS_CUSTO_MEDIO_MOVEL` ligada. Protótipo: `prototipo-ui/cowork/Wagner/vendas-detalhe-margem.html` (a faixa na tela entra depois do OK do [W]).
+
+## UC-VSHOW-24 · Venda finalizada mostra a margem pelo custo médio da data da venda `[V0]` `[must]`
+- **Aceite:** Dada uma venda finalizada em 20/10 com 3 un a 20,00 e o custo médio da variação 15,00 desde 19/10 (e 30,00 só a partir de 25/10) · Quando quem tem `view_purchase_price` abre o detalhe · Então `detail.margem` traz receita 60,00, custo 45,00, margem 15,00 e 25,0%, e a linha com custo médio 15,00 e margem 25,0%. Um item sem custo médio na data fica fora da conta e conta em `itens_sem_custo`.
+- **Âncora:** SPEC Produto US-PROD-024 (fase 2) + `CustoMedioMovel::noMomento`.
+- **Teste:** `tests/Feature/Sells/SellsShowMargemCustoMedioContratoTest.php` — `UC-VSHOW-24`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VSHOW-25 · Sem `view_purchase_price`, com a flag desligada ou fora de venda finalizada, a margem não vai ao navegador `[must]`
+- **Aceite:** Sem a permissão, `detail.margem` é nulo e `margem_pct` não aparece no corpo. Com a flag desligada, nulo. Em orçamento (rascunho), nulo.
+- **Âncora:** gate de custo `view_purchase_price` (UC-VSHOW-08) + flag desligada por padrão.
+- **Teste:** `tests/Feature/Sells/SellsShowMargemCustoMedioContratoTest.php` — `UC-VSHOW-25`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VSHOW-26 · O custo médio de outra empresa não entra na margem `[T0]` `[must]`
+- **Aceite:** Um custo médio gravado no business 99 para a mesma variação não vale: a venda do 98 sem custo médio próprio mostra `itens_sem_custo` 1 e receita 0.
+- **Âncora:** ADR 0093.
+- **Teste:** `tests/Feature/Sells/SellsShowMargemCustoMedioContratoTest.php` — `UC-VSHOW-26`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão (e o `casos-gate` é required com
@@ -310,6 +334,7 @@ last_run: "2026-10-21"
 3. **Cadência:** rodar ao fim de toda mexida em `Sells/Show.tsx` ou em `SellController@show`. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-27 · [CC] + UC-VSHOW-24/25/26 (US-PROD-024 fase 2): `detail.margem` pelo custo médio da data da venda, atrás da flag. Só servidor; a faixa na tela espera o OK do [W] no protótipo. Teste `SellsShowMargemCustoMedioContratoTest`, nasce sem run.
 - 2026-10-21 · [CC] + UC-VSHOW-22/23 (US-SELL-073 · UC-FLX-23): seção Entrega no detalhe, lida de `app_entregas` pelo business da venda. Teste `SellsShowEntregaContratoTest`, nasce sem run.
 - 2026-10-21 · [CC] `last_run` 2026-10-20 → 2026-10-21 por conferência, não por run novo: o diff do `Show.tsx` neste PR só acrescenta a seção Entrega (import do ícone, tipo `EntregaVenda`, um `<Deferred>` e o componente), sem remover nem alterar linha existente; UC-VSHOW-01..13 não dependem dela. Os casos novos 22/23 estão 🧪 até a lane `sells-pest` rodar.
 - 2026-10-21 · [CL] UC-VSHOW-14 (US-PCP-028 · UC-FLX-06): entrega prometida no cabeçalho. Teste `SellsPrazoEntregaContratoTest`, nasce sem run.

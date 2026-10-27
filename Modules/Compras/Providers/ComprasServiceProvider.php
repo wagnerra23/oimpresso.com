@@ -75,6 +75,8 @@ class ComprasServiceProvider extends ServiceProvider
 
         // O núcleo pede o custo do insumo pela interface, sem importar o módulo.
         $this->app->bind(\App\Contracts\Compras\CustoDoInsumo::class, \Modules\Compras\Services\CustoDoInsumoService::class);
+        // US-PROD-024: a margem da venda lê o custo médio móvel do momento da venda.
+        $this->app->bind(\App\Contracts\Compras\CustoMedio::class, \Modules\Compras\Services\CustoMedioMovel::class);
         // UC-FLX-17: o recebimento da compra aplica a regra de custo e preço da empresa.
         $this->app->bind(\App\Contracts\Compras\CustoDoRecebimento::class, \Modules\Compras\Services\AplicarCustoDoRecebimento::class);
         // UC-FLX-19: a tela Fluxos liga e desliga a requisição pelo estoque mínimo.

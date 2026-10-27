@@ -29,7 +29,7 @@ use Illuminate\Support\Facades\DB;
  * Tier 0 (ADR 0093): variação só da empresa da compra (join em `products.business_id`); estoque
  * somado só nos locais da empresa.
  */
-final class CustoMedioMovel
+final class CustoMedioMovel implements \App\Contracts\Compras\CustoMedio
 {
     public function ligado(): bool
     {
