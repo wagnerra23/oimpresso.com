@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · SDD-espelho-e-jornada-v1.0.md §5.3 F8 + §6.5
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a vitrine de compliance do módulo — e a única tela cujo contrato é sobre o que ele NÃO entrega.
 owner: wagner
-last_run: "2026-09-30"
+last_run: "2026-10-26"
 last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 ---
 
@@ -43,6 +43,10 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 | UC-RELIDX-10 | AEJ sai no leiaute 002 (vínculo · REP · horário · pares E/S · desconsiderada · falta · BH) | must | Leiaute AEJ (MTE) + ADR 0420 | `RelatorioLegalContratoTest` | 🧪 sem veredito |
 | UC-RELIDX-11 | AEJ com dado legal ausente é recusado com a contagem, nunca preenchido | must | ADR 0420 §3 | `RelatorioLegalContratoTest` | 🧪 sem veredito |
 | UC-RELIDX-12 | GET do AEJ traz só o empregador da sessão | must `[T0]` | `CU-PONTO-12` + ADR 0093 | `RelatorioLegalContratoTest` | 🧪 sem veredito |
+| UC-RELIDX-13 | Horas Extras: HE de cada natureza no mês, hh:mm, por colaborador | must | US-PONTO-019 | `RelatorioFolhaContratoTest` | 🧪 sem veredito |
+| UC-RELIDX-14 | Atrasos e Faltas: falta só vira dia quando cheia e sem trabalho | must | US-PONTO-019 + CLT art. 130 (falta injustificada é dia) | `RelatorioFolhaContratoTest` | 🧪 sem veredito |
+| UC-RELIDX-15 | Banco de Horas: crédito e débito do mês e saldo atual com sinal | must | US-PONTO-019 | `RelatorioFolhaContratoTest` | 🧪 sem veredito |
+| UC-RELIDX-16 | Exportação só do empregador da sessão, CSV para download, 3 cards disponíveis | must `[T0]` | `CU-PONTO-12` + ADR 0093 + US-PONTO-019 | `RelatorioFolhaContratoTest` | 🧪 sem veredito |
 
 > 📋 **O que a lane disse até agora (run de 2026-08-28, commit anterior ao fix):**
 > `UC-RELIDX-01` ✓ · `UC-RELIDX-02` ✓ · `UC-RELIDX-05` ✓ · **`UC-RELIDX-03` ⨯ · `UC-RELIDX-04` ⨯**.
@@ -254,5 +258,31 @@ last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-
 - **Aceite:** Dado um colaborador do meu empregador e outro de outro empregador com marcação no
   mesmo mês · Quando baixo o AEJ · Então o CPF do outro **não** aparece no arquivo.
 - **Teste:** `RelatorioLegalContratoTest.php` — `UC-RELIDX-12`.
+- **Contrato:** `CU-PONTO-12` · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
+- **Status: 🧪 sem veredito.**
+
+## UC-RELIDX-13 · Horas Extras para a folha · `must`
+
+- **Aceite:** Dado um colaborador com HE diurna, noturna, de feriado, adicional noturno e DSR apurados em dois dias do mês e um dia fora do mês · Quando gero "Horas Extras" da competência · Então sai uma linha dele com cada natureza somada em `hh:mm`, só do mês, e o número de dias apurados.
+- **Teste:** `RelatorioFolhaContratoTest.php` — `UC-RELIDX-13`.
+- **Contrato:** US-PONTO-019 (lacuna "exportação do ponto para folha e contabilidade", 2026-10-25).
+- **Status: 🧪 sem veredito.**
+
+## UC-RELIDX-14 · Atrasos e Faltas para a folha · `must`
+
+- **Aceite:** Dado atraso, saída antecipada, uma falta de dia inteiro e meio dia faltado · Quando gero "Atrasos e Faltas" · Então as horas somam tudo e os dias de falta contam só o dia inteiro sem trabalho.
+- **Teste:** `RelatorioFolhaContratoTest.php` — `UC-RELIDX-14`.
+- **Status: 🧪 sem veredito.**
+
+## UC-RELIDX-15 · Banco de Horas para a folha · `must`
+
+- **Aceite:** Dado crédito e débito apurados no mês e saldo devedor · Quando gero "Banco de Horas" · Então saem o crédito e o débito do mês e o saldo atual com sinal negativo.
+- **Teste:** `RelatorioFolhaContratoTest.php` — `UC-RELIDX-15`.
+- **Status: 🧪 sem veredito.**
+
+## UC-RELIDX-16 · Exportação só do empregador da sessão · `must` `[T0]`
+
+- **Aceite:** Dado colaborador do meu empregador e de outro, ambos com HE no mês · Quando baixo "Horas Extras" · Então o arquivo é CSV para download, traz o meu e não traz o do outro; e os cards Horas Extras, Banco de Horas e Atrasos e Faltas aparecem disponíveis.
+- **Teste:** `RelatorioFolhaContratoTest.php` — `UC-RELIDX-16`.
 - **Contrato:** `CU-PONTO-12` · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
 - **Status: 🧪 sem veredito.**
