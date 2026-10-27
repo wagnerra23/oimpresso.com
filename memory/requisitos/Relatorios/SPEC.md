@@ -36,7 +36,7 @@ Origem: levantamento de lacunas 2026-10-25 (P2 Plataforma — relatório montáv
 > owner: wagner · priority: p2 · estimate: 16h · status: doing · type: story
 > blocked_by: —
 
-**Implementado em:** _parcial_ · `app/Http/Controllers/ReportController.php` · `resources/js/Pages/Relatorios/Despesas/Index.tsx` · `resources/js/Pages/Relatorios/GruposClientes/Index.tsx` · `resources/js/Pages/Relatorios/Mesas/Index.tsx` — cutover pelo menu de Despesas, Grupos de clientes e Mesas (2026-10-27); as demais telas de Relatórios ainda abrem a Blade
+**Implementado em:** _pendente_ — em andamento: cutover pelo menu de Despesas, Grupos de clientes e Mesas (2026-10-27, telas em resources/js/Pages/Relatorios/); as demais telas de Relatórios ainda abrem a Blade
 
 Origem: migração Blade → React do núcleo (ADR 0104), regra de cutover D1 [W] 2026-10-07 (*por tela, React vira padrão, Blade só com `?classico=1`*).
 - Cada relatório pronto do `ReportController` que já tem tela em `Relatorios/` abre a tela React pelo menu; a Blade fica em `?classico=1` até o canário, e depois sai.
