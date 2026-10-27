@@ -32,6 +32,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $previa
  * @property array<string, mixed>|null $contexto
  * @property \Illuminate\Support\Carbon|null $aprovada_em
+ * @property string $origem  painel | chat (ADR 0440)
+ * @property int|null $conversa_id
+ * @property \Illuminate\Support\Carbon|null $expira_em
+ * @property \Illuminate\Support\Carbon|null $decidida_em
+ * @property array<string, mixed>|null $resultado
  */
 class AcaoAprovacao extends Model
 {
@@ -43,14 +48,22 @@ class AcaoAprovacao extends Model
         'business_id',
         'user_id',
         'acao_key',
+        'origem',
+        'conversa_id',
         'status',
         'previa',
         'contexto',
         'aprovada_em',
+        'expira_em',
+        'decidida_em',
+        'resultado',
     ];
 
     protected $casts = [
         'contexto'    => 'array',
         'aprovada_em' => 'datetime',
+        'expira_em'   => 'datetime',
+        'decidida_em' => 'datetime',
+        'resultado'   => 'array',
     ];
 }

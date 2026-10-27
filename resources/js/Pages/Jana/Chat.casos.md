@@ -1032,3 +1032,43 @@ cabeçalho da âncora é vocabulário **da Jana**.
 
 **Escopo layout-only preservado:** `ConversaResumo`, `ChatController` e as migrations não foram
 tocados. **Não rodei Pest** — é CT 100 apenas (ADR 0062) e o diff não sai de `.tsx`/`.test.tsx`.
+
+---
+
+## Ações propostas pela Jana (ADR 0440 · US-COPI-151)
+
+> Derivados da ADR 0440 §1-§6 e da US-COPI-151, não do código. Esta fatia é o **serviço**:
+> proposta, confirmação e cancelamento. As rotas do cartão, o cartão na tela e a tool que o
+> agente usa para propor entram nas próximas fatias. Tudo atrás de
+> `copiloto.chat_acoes.enabled` (padrão desligado), que nasce com as rotas.
+> **Teste:** `Modules/Jana/Tests/Feature/AcoesDoChatContratoTest.php` (tenant 98; adversário 99).
+
+## UC-JCHAT-18 — a proposta guarda o resumo e não grava nada
+Status: 🧪 sem veredito
+- **Aceite:** Dado um pedido de tarefa que a Jana entendeu · Quando ela propõe · Então fica uma proposta `origem=chat`, `status=proposta`, com o resumo legível, prazo de validade e o `business_id` do servidor — e nenhuma tarefa é criada.
+- **Regressão que defende:** ADR 0440 §1 *"A Jana nunca grava"*.
+
+## UC-JCHAT-19 — confirmar cria a tarefa como o usuário e deixa trilha
+Status: 🧪 sem veredito
+- **Aceite:** Dada uma proposta minha · Quando confirmo · Então a tarefa nasce na minha empresa com eu como autor, pelo `TodoService::criar` (o mesmo da tela), a proposta vira `executada` com o id da tarefa, e o `activity_log` tem a proposta e a execução.
+- **Regressão que defende:** ADR 0440 §3 e §4.
+
+## UC-JCHAT-20 — [T0] proposta de uma empresa não executa em outra
+Status: 🧪 sem veredito
+- **Aceite:** Dada uma proposta da empresa 98 · Quando a confirmação chega com a sessão da 99 · Então 404, nada é criado e a proposta segue `proposta`.
+- **Regressão que defende:** ADR 0440 §3 *"business_id conferido no servidor"* · ADR 0093.
+
+## UC-JCHAT-21 — cancelar fecha sem gravar
+Status: 🧪 sem veredito
+- **Aceite:** Dada uma proposta · Quando cancelo · Então ela vira `cancelada`, nada é criado, e confirmar depois responde 409.
+- **Regressão que defende:** ADR 0440 §2 *"Sem clique do usuário, nada acontece"*.
+
+## UC-JCHAT-22 — sem permissão na hora de confirmar, nada grava
+Status: 🧪 sem veredito
+- **Aceite:** Dada uma proposta feita quando eu podia · Quando confirmo sem a permissão da ação · Então 403 e nada é criado. A permissão é conferida de novo na confirmação.
+- **Regressão que defende:** ADR 0440 §3 *"com a sessão e as permissões do usuário que confirma"*.
+
+## UC-JCHAT-23 — proposta vencida não executa
+Status: 🧪 sem veredito
+- **Aceite:** Dada uma proposta cujo prazo passou · Quando confirmo · Então 410 e nada é criado.
+- **Regressão que defende:** ADR 0440 §1 *"e expira"*.

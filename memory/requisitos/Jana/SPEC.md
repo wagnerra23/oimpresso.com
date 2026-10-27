@@ -2295,7 +2295,7 @@ e fica como tal.
 > owner: — · priority: p1 · estimate: 16h · status: todo · type: story
 > blocked_by: US-COPI-142
 
-**Implementado em:** _pendente_ — planejada (lacunas 2026-10-25); as tools do chat só leem (`ChatCopilotoAgent::tools()`), ligadas em produção desde 2026-07-17 (US-COPI-142)
+**Implementado em:** _pendente_ — em andamento (ADR 0440): backend de proposta/confirmação/cancelamento no ledger `jana_acao_aprovacoes` (`Modules/Jana/Services/AcoesDoChat/`, UC-JCHAT-18..23) e criação de tarefa por `TodoService::criar`; faltam a tool que propõe no `ChatCopilotoAgent`, o lembrete e o cartão no chat
 
 Origem: levantamento de lacunas 2026-10-25 (P1 Plataforma — IA que executa ações com aprovação). Pede ADR nova antes do código (proposta pela frente Plataforma).
 - A Jana nunca grava direto: ela devolve uma proposta de ação (tipo, alvo, campos) que a tela mostra num cartão com Confirmar/Cancelar.
