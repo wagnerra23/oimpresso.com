@@ -5,6 +5,15 @@ return [
     'module_version' => '0.1.0',
 
     /**
+     * DDA — boletos emitidos contra o CNPJ da empresa viram contas a pagar
+     * SUGERIDAS (US-FIN-078). Desligado: a fonte dos boletos (API do banco ou
+     * provedor de DDA) depende de decisão e credencial do [W] — ver BRIEFING.
+     */
+    'dda' => [
+        'enabled' => env('FINANCEIRO_DDA_ENABLED', false),
+    ],
+
+    /**
      * Juros de mora padrão BR (config por business pode override).
      * 0,033% ao dia (~1% ao mês) + 2% multa pós-vencimento.
      */
@@ -24,13 +33,5 @@ return [
         'api_key' => env('ASAAS_API_KEY'),
         'webhook_secret' => env('ASAAS_WEBHOOK_SECRET'),
         'environment' => env('ASAAS_ENV', 'sandbox'),
-    ],
-    /**
-     * DDA — boletos emitidos contra o CNPJ da empresa viram contas a pagar
-     * SUGERIDAS (US-FIN-078). Desligado: a fonte dos boletos (API do banco ou
-     * provedor de DDA) depende de decisão e credencial do [W] — ver BRIEFING.
-     */
-    'dda' => [
-        'enabled' => env('FINANCEIRO_DDA_ENABLED', false),
     ],
 ];
