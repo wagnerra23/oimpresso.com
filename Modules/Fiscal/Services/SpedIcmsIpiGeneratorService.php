@@ -10,8 +10,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 use Modules\Fiscal\Services\Sped\EfdIcmsIpiLeiaute;
+use Modules\Fiscal\Services\Sped\CarregaEmitente;
 use Modules\Fiscal\Services\Sped\EmitenteSped;
-use Modules\NfeBrasil\Support\CnpjDoEmitente;
 use Modules\NfeBrasil\Exceptions\NcmObrigatorioException;
 use Modules\NfeBrasil\Exceptions\TributacaoNaoConfiguradaException;
 use Modules\NfeBrasil\Models\NfeEmissao;
@@ -60,6 +60,8 @@ use RuntimeException;
  */
 class SpedIcmsIpiGeneratorService
 {
+    use CarregaEmitente;
+
     /**
      * Fallback Simples Nacional (CSOSN 102 — sem permissão crédito ICMS).
      *
@@ -125,12 +127,7 @@ class SpedIcmsIpiGeneratorService
         // e trocá-lo muda valor fiscal (regra-mestre de proibicoes.md — fatia própria, com
         // antes→depois aprovado). Nesta fatia só a IDENTIFICAÇÃO (0000/0005) muda de fonte.
         $ufBusiness = strtoupper((string) ($business->state ?? 'SP'));
-        $emitente = EmitenteSped::de(
-            $business,
-            $this->resolverCnpj($businessId),
-            $this->carregarUfDoEstabelecimento($businessId),
-            $this->carregarCodigoMunicipio($business),
-        );
+        $emitente = $this->emitente($business, $businessId);
 
         $emissoes = $this->carregarEmissoes($businessId, $periodoIni, $periodoFim);
 
@@ -269,28 +266,6 @@ class SpedIcmsIpiGeneratorService
     protected function carregarBusiness(int $businessId): ?object
     {
         return DB::table('business')->where('id', $businessId)->first();
-    }
-
-    /** Mesmo dono do CNPJ que a manifestação usa (certificado → business.cnpj → tax_number_1). */
-    protected function resolverCnpj(int $businessId): ?string
-    {
-        return CnpjDoEmitente::resolver($businessId);
-    }
-
-    /** UF crua da primeira location — a mesma que `NfeService::resolverUF` lê para a NF-e. */
-    protected function carregarUfDoEstabelecimento(int $businessId): ?string
-    {
-        return DB::table('business_locations')->where('business_id', $businessId)->orderBy('id')->value('state');
-    }
-
-    /** IBGE do município pela mesma fonte do `cMun` da NF-e (`cidades.officeimpresso_codigo`). */
-    protected function carregarCodigoMunicipio(object $business): ?string
-    {
-        if (empty($business->cidade_id)) {
-            return null;
-        }
-
-        return DB::table('cidades')->where('id', $business->cidade_id)->value('officeimpresso_codigo');
     }
 
     /** NF-e autorizadas do período (saídas — modelo 55/65), sempre do business pedido. */

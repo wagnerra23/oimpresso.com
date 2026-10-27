@@ -156,4 +156,8 @@ return [
     |
     */
     'sped_simples_only_lock' => env('FISCAL_SPED_SIMPLES_ONLY_LOCK', true),
+
+    // US-FISCAL-011 — gerador da EFD-Contribuições (Lucro Presumido cumulativo). Nasce desligado:
+    // não foi validado no PVA oficial e não tem tela.
+    'efd_contribuicoes_enabled' => env('FISCAL_EFD_CONTRIBUICOES', false),
 ];

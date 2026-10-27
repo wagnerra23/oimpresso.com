@@ -331,7 +331,14 @@ Lê `Modules/NfeBrasil/Models/NfeDfeRecebido`.
 
 ### US-FISCAL-011 · SPED Fiscal complete + PIS/COFINS — **backlog PR #10**
 
-**Implementado em:** _pendente_ — backlog PR #10 (EFD-Contribuições PIS/COFINS + saldo credor real E110 + Bloco H com inventário real); Fase 2 GAP-7 de US-FISCAL-020. Nenhum código entregue ainda.
+**Implementado em:** _pendente_ — EFD-Contribuições do Lucro Presumido cumulativo consolidado escrita em 2026-10-27 (`Modules/Fiscal/Services/EfdContribuicoesGeneratorService.php`, `UC-FCONT-01..03`), atrás de `fiscal.efd_contribuicoes_enabled` (desligada), sem tela e **sem validação no PVA**. Falta: Lucro Real (não cumulativo, créditos das entradas), mês sem receita (`0120`), saldo credor real do E110. O Bloco H está na US-FISCAL-028.
+
+**Padrões adotados ([W] 2026-10-27, "use os padrões mais comuns") e perguntas ao contador:**
+1. Base de PIS/COFINS **sem** excluir o ICMS (Tema 69 STF): é o padrão conservador. Excluir é decisão do contador.
+2. `IND_ATIV` 2 (comércio) no `0000`. Indústria ou serviço muda o código.
+3. Códigos da DCTF no `M205`/`M605`: 810902 e 217201, conferidos em fontes não oficiais.
+4. CPF do contador: o cadastro `nfe_contadores` não tem a coluna, e o `0100` exige. Sem CPF o arquivo não sai.
+5. NF-e de devolução (`metadata.devolucao`) fica fora da receita, sem deduzir nada.
 
 EFD-Contribuições (PIS/COFINS arquivo separado) + saldo credor real E110 + Bloco H com dados reais inventário 31/12.
 

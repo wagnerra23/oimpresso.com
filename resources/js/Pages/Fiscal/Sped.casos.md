@@ -217,6 +217,24 @@ Quando o arquivo é gerado · Então ele é **recusado** com a lista do que falt
 ⚠️ A UF que decide CFOP/alíquota no bloco C **não** mudou nesta fatia (valor fiscal — regra-mestre).
 **Pronto quando:** cada falta reprova com o nome do campo.
 
+## UC-FCONT-01 — EFD-Contribuições do Lucro Presumido apura PIS/COFINS cumulativos
+Status: 🧪 (`EfdContribuicoesTest::UC-FCONT-01` — 2 casos, rodam sem banco; sem tela, atrás de `fiscal.efd_contribuicoes_enabled`)
+Dado um business em `lucro_presumido` com NF-e/NFC-e autorizadas no mês · Então o arquivo (leiaute
+006, Guia v1.35) traz a receita no `F550` (CST 01, PIS 0,65%, COFINS 3%), a apuração no `M200`/`M210`
+e `M600`/`M610` (COD_CONT 51), o detalhamento por código de receita no `M205`/`M605` (810902/217201) e
+os documentos por modelo no `1900`. Conta conferida por fora: 12.345,67 → PIS 80,25 e COFINS 370,37.
+**Pronto quando:** o arquivo bate com a conta feita fora do código.
+
+## UC-FCONT-02 — Os encerramentos e o bloco 9 batem com o arquivo
+Status: 🧪 (`EfdContribuicoesTest::UC-FCONT-02`)
+Então os blocos saem na ordem 0, A, C, D, F, I, M, P, 1, 9, cada `x990` conta o próprio bloco e
+`9900`/`9999` batem com as linhas reais.
+
+## UC-FCONT-03 — Recusa em vez de inventar
+Status: 🧪 (`EfdContribuicoesTest::UC-FCONT-03`)
+Simples/MEI (dispensados), Lucro Real (precisa dos créditos das entradas), contador sem CPF (o `0100`
+exige), mês sem receita (o `0120` não está implementado) e flag desligada são recusados com o motivo.
+
 ## UC-FSF1-03 — Competência em aberto é recusada antes de qualquer query
 Status: 🧪 (`SpedOndaF1Test` — 10 casos: 4 sobre a guarda do Service + 6 sobre a régua da tela. **14 passed (182 assertions)** medidos no CT 100 em 2026-09-03; o manifesto do G-7 é alimentado pelas lanes de CI, não por rodada local — daí 🧪 e não ✅)
 Dado uma competência cujo mês ainda não terminou · Quando alguém pede a geração — pela tela ou
