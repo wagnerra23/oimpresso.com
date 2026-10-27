@@ -525,6 +525,7 @@ jobs:
             tests/Feature/Sells/SellsShowCustoOrcamentoContratoTest.php \
             tests/Feature/Sells/SellsShowEntregaContratoTest.php \
             tests/Feature/Sells/SellsMargemMinimaContratoTest.php \
+            tests/Feature/Sells/SellsEmitirCobrancaSaldoContratoTest.php \
             tests/Feature/Sells/SellsEditContratoTest.php \
             tests/Feature/Sells/SellsTravaAposNotaContratoTest.php \
             tests/Feature/Sells/SellsIndexTenantContratoTest.php \

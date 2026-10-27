@@ -1219,6 +1219,8 @@ Gerar QR Pix no fechamento da venda e reconciliar automaticamente via webhook (~
 - Tier 0: webhook com filtro multi-tenant `business_id`; idempotência de reconciliação; PII redacted em log; valor via regra-mestre. Provável reuso de PaymentGateway/RecurringBilling (drivers Inter/Asaas/PixAuto) — checar antes de criar (não duplicar).
 - Ref: memory/requisitos/Sells/CAPTERRA-FICHA.md §6 G-04
 
+**Implementado em:** _pendente_ — em andamento: a cobrança da venda já leva o saldo em aberto e não duplica (`SellController::emitirCobranca`, UC-VCOB-01..04 em `Sells/Show.casos.md`) e o retorno do banco lança o pagamento atrás da flag `PAYMENTGATEWAY_LANCAR_PAGAMENTO_NA_VENDA` (desligada). Falta o Pix direto do caixa e ligar a flag.
+
 ### US-SELL-056 · Keyboard-first coeso no Create — hotkeys configuráveis + Enter-avança + F-key pagar
 
 > owner: — · priority: p2 · estimate: 8h · status: todo · type: story
