@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Ponto\Entities\Colaborador;
+use Modules\Ponto\Services\ExportacaoFolhaService;
 use Modules\Ponto\Services\ReportService;
 
 class RelatorioController extends Controller
@@ -35,7 +36,7 @@ class RelatorioController extends Controller
      * Lista de relatórios disponíveis.
      *
      * Chave `disponivel`: se o relatório já foi implementado em ReportService.
-     * Hoje só `espelho` está pronto (funcional); os demais retornam RuntimeException.
+     * Relatório sem gerador fica `disponivel: false` e `gerar()` responde 501 para ele.
      * Quando cada um for implementado, trocar `false` por `true`.
      *
      * Chave `requer_colaborador`: se o relatório sai POR COLABORADOR e não em lote.
@@ -58,9 +59,9 @@ class RelatorioController extends Controller
             // ("Apuração"; o da Portaria é "Arquivo"): a correção vai ao Cowork pelo _saida-12.
             ['chave' => self::CHAVE_AEJ, 'titulo' => 'AEJ', 'descricao' => 'Apuração Eletrônica de Jornada', 'icone' => 'FileSpreadsheet', 'cor' => 'blue', 'disponivel' => app(\Modules\Ponto\Services\AejService::class)->configurado(), 'requer_colaborador' => false],
             ['chave' => self::CHAVE_ESPELHO, 'titulo' => 'Espelho de Ponto',   'descricao' => 'PDF mensal por colaborador',      'icone' => 'ClipboardList', 'cor' => 'emerald', 'disponivel' => true,  'requer_colaborador' => true],
-            ['chave' => 'he',          'titulo' => 'Horas Extras',             'descricao' => 'Relatório consolidado do mês',    'icone' => 'Clock',         'cor' => 'amber',   'disponivel' => false, 'requer_colaborador' => false],
-            ['chave' => 'banco-horas', 'titulo' => 'Banco de Horas',           'descricao' => 'Saldos e movimentações',          'icone' => 'PiggyBank',     'cor' => 'emerald', 'disponivel' => false, 'requer_colaborador' => false],
-            ['chave' => 'atrasos',     'titulo' => 'Atrasos e Faltas',         'descricao' => 'Por colaborador/departamento',    'icone' => 'AlertCircle',   'cor' => 'red',     'disponivel' => false, 'requer_colaborador' => false],
+            ['chave' => 'he',          'titulo' => 'Horas Extras',             'descricao' => 'Relatório consolidado do mês',    'icone' => 'Clock',         'cor' => 'amber',   'disponivel' => true,  'requer_colaborador' => false],
+            ['chave' => 'banco-horas', 'titulo' => 'Banco de Horas',           'descricao' => 'Saldos e movimentações',          'icone' => 'PiggyBank',     'cor' => 'emerald', 'disponivel' => true,  'requer_colaborador' => false],
+            ['chave' => 'atrasos',     'titulo' => 'Atrasos e Faltas',         'descricao' => 'Por colaborador/departamento',    'icone' => 'AlertCircle',   'cor' => 'red',     'disponivel' => true,  'requer_colaborador' => false],
             ['chave' => 'esocial',     'titulo' => 'Eventos eSocial',          'descricao' => 'S-1010 / S-2230 / S-2240',        'icone' => 'Send',          'cor' => 'violet',  'disponivel' => false, 'requer_colaborador' => false],
         ];
 
@@ -104,7 +105,7 @@ class RelatorioController extends Controller
     /**
      * Atalho do catálogo para o gerador do relatório.
      *
-     * Só o `espelho` tem destino hoje. Os outros 7 seguem `abort(501)` — e seguem
+     * Chave sem gerador segue `abort(501)` — e segue
      * `disponivel: false` no catálogo, então o botão deles nem fica clicável: é o
      * `CU-PONTO-14` ("o catálogo não promete o que não entrega") cumprido dos dois
      * lados, front e back.
@@ -121,6 +122,10 @@ class RelatorioController extends Controller
 
         if ($chave === self::CHAVE_AEJ) {
             return $this->gerarAej($request);
+        }
+
+        if (in_array($chave, ExportacaoFolhaService::TIPOS, true)) {
+            return $this->gerarExportacaoFolha($request, $chave);
         }
 
         if ($chave !== self::CHAVE_ESPELHO) {
@@ -216,6 +221,24 @@ class RelatorioController extends Controller
         return response($conteudo, 200, [
             'Content-Type'        => 'text/plain; charset=ISO-8859-1',
             'Content-Disposition' => 'attachment; filename="AEJ_' . $mes . '.txt"',
+        ]);
+    }
+
+    /**
+     * Exportação para a folha e a contabilidade (US-PONTO-019): HE, banco de horas ou
+     * atrasos/faltas da competência, um colaborador por linha, do empregador da sessão.
+     * Não depende do fechamento: é leitura da apuração, como o AEJ.
+     */
+    private function gerarExportacaoFolha(Request $request, string $tipo)
+    {
+        $dados = $request->validate(['periodo' => 'nullable|date_format:Y-m']);
+        $businessId = (int) (session('business.id') ?: $request->user()->business_id);
+
+        $arquivo = app(ExportacaoFolhaService::class)->gerar($tipo, $businessId, $dados['periodo'] ?? now()->format('Y-m'));
+
+        return response($arquivo['conteudo'], 200, [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $arquivo['nome'] . '"',
         ]);
     }
 }

@@ -144,12 +144,25 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 - **[BACKLOG] Lentes (caixa/competência/fiscal) refinam os KPIs** — coberto por `UnificadoLentesGuardTest` (Pest GUARD); vira UC com id quando os GUARDs ganharem UC-id no título.
 - **[BACKLOG] Baixa manual pela tela (dialog)** — coberto por `UnificadoBaixaDialogGuardTest`; idem.
 - **[BACKLOG] Conciliação bancária (extrato ↔ título)** — fluxo Pluggy/Inter; espelhar quando o harness tiver extrato fixture.
+- **[BACKLOG]** Total do serviço, retido e recebido em colunas separadas (UC-FLX-30) `[V0]` — Dado o
+  título de 1.000,00 com a baixa de retenção de 96,50 e o cliente pagando 903,50, Então o título mostra
+  "Total do serviço 1.000,00 · retido 96,50 · recebido 903,50", e o relatório de recebimentos soma o
+  recebido e o retido em colunas separadas (o retido não entra no caixa). Fonte: UC-CRISS-02 e 03. Veio da tela de Contas a receber, aposentada (2026-10-23).
+- **[BACKLOG]** Título de venda agrupada (US-SELL-024) `[V0]` — Dado três vendas de um cliente (300,00,
+  450,00 e 250,00), Quando as agrupo numa cobrança só, pela tela unificada, Então nasce um título de 1.000,00 que lista as
+  três vendas; pagar o título paga as três; uma venda não entra em dois grupos; cancelar uma venda do
+  grupo antes do pagamento tira o valor dela do título. Mexe em valor: Regra Mestre. Fonte: US-SELL-024
+  e o Delphi (`CODFINANCEIRO_GRUPO`). Veio da tela de Contas a receber, aposentada (2026-10-23).
+- **[BACKLOG]** Título de cada parte faturada `[V0]` — Dado uma venda de 1.000,00 faturada em duas
+  partes (400,00 e 600,00), Então cada parte tem o seu título; cancelar a nota de uma parte cancela o
+  título dela se ainda não estiver pago. Mexe em valor: Regra Mestre. Fonte: Omie (pedido parcial). Veio da tela de Contas a receber, aposentada (2026-10-23).
 
 ## Como rodar a suíte
 1. **Pest (MySQL real):** lane `financeiro-pest.yml` (check required `PHP / Pest (Financeiro · MySQL)`) — JUnit vira manifesto via `npm run casos:results` (merge per-UC).
 2. **Cadência:** rodar ao fim de toda mexida no Financeiro. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-23 · [M+C] Backlog vindo da tela de Contas a receber (aposentada): total do serviço, retido e recebido; título de venda agrupada; título de cada parte faturada. Sem id.
 - 2026-07-27 · [CC] onda `sdd-from-source` (passo 5 · Onda 2): nasce o **SDD do módulo**
   (`memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md` — o Financeiro tinha 0 CU) e os UC de
   contrato da baixa **UC-FUNI-01..04** (`[V0]`/`[T0]`), derivados de `§6.1 CU-FIN-02..05`, com teste novo

@@ -170,6 +170,8 @@ status: ativo
 
 ### US-RB-011 · Salvar cartão tokenizado de cliente
 
+> **Backlog por decisão [W] 2026-10-26 — cartão recorrente fica para depois.** Por enquanto a assinatura é cobrada só por Pix Automático (BCB, US-RB-021) e boleto. Esta US não entra em ciclo até nova decisão do [W]; o levantamento de concorrência de 2026-10-25 a listou como P1 ("cartão recorrente com nova tentativa automática").
+
 > **Área:** Cards
 > **Rota:** `POST /payment-gateway/cards`
 > **Permissão:** cliente final (portal) ou Larissa (admin)
@@ -207,6 +209,8 @@ status: ativo
 
 ### US-RB-013 · Smart retry em soft decline
 
+> **Backlog por decisão [W] 2026-10-26 — cartão recorrente fica para depois.** Por enquanto a assinatura é cobrada só por Pix Automático (BCB, US-RB-021) e boleto. Esta US não entra em ciclo até nova decisão do [W]; o levantamento de concorrência de 2026-10-25 a listou como P1 ("cartão recorrente com nova tentativa automática").
+
 > **Área:** SmartRetries
 > **Service:** `SmartRetryScheduler::schedule()`
 
@@ -226,11 +230,15 @@ status: ativo
 
 ### US-RB-020 · Solicitar autorização Pix Automático
 
+> **Decisão [W] 2026-10-26 — Pix Automático e cartão recorrente pelo banco direto, sem Asaas.** O mandato é o do BCB, pelo `BcbPixDriver`; o motor de cobrança automática da assinatura (US-RECURRINGBILLING-002) está destravado e se constrói sobre ele. Mexe em valor: regra mestre (dupla prova + tabela antes→depois para o [W] aprovar).
+>
+> **Medido na especificação oficial (API Pix BCB v2.10.0, `bacen/pix-api` `openapi.yaml`) em 2026-10-26:** a recorrência se cria por `POST /rec` (o `/rec/{idRec}` só tem `GET`/`PATCH`), a confirmação do pagador por `POST /solicrec` ou por QR (`/locrec`), e **cada cobrança do ciclo é criada pelo recebedor** em `PUT /cobr/{txid}` (com `idRec`, `calendario.dataDeVencimento`, `valor.original`, `recebedor` agência/conta), enviada de 10 a 2 dias antes do vencimento. O `BcbPixDriver` de hoje cria o mandato com `PUT /v2/rec/{txid}` e `recebedor.chave` — fora da especificação — e não tem o `/cobr`.
+
 > **Área:** Authorizations
 > **Rota:** `POST /pix-automatico/authorizations`
 > **Permissão:** `pix-automatico.authorizations.manage`
 
-**Implementado em:** _pendente_ — o sub-módulo PixAutomatico (autorização JRC/BCB: `pa_authorizations`, QR de autorização, status created→activated via webhook) não foi construído no RecurringBilling; o Pix Automático Asaas em `Modules/Financeiro` é capacidade distinta (não cobre esta US)
+**Implementado em:** _pendente_ — parcial em 2026-10-26: backend da jornada 2 do BCB (`MandatoPixAutomatico` + `POST /recurring-billing/{id}/pix-automatico`, flag `RB_COBRAR_PIX_AUTOMATICO`): cria a recorrência com QR e grava o mandato em `rb_subscriptions.metadata.pix_automatico` (no lugar da tabela `pa_authorizations` do desenho abaixo); o webhook da recorrência ativa o mandato (UC-RBPA-08/11..13). Tela: bloco "Pix Automático" no drawer da assinatura (`_components/PixAutomaticoBloco.tsx`, QR via `react-qr-code`), só com a flag ligada (UC-RBPA-14); forma gerada no protótipo `cobranca-recorrente-page.jsx` (`PixAutoCard`). O Pix Automático Asaas em `Modules/Financeiro` ficou fora por decisão [W] 2026-10-26.
 
 **Como** Larissa-financeiro
 **Quero** gerar QR code de autorização pix automático pro cliente apontar app
@@ -244,10 +252,14 @@ status: ativo
 
 ### US-RB-021 · Cobrar via Pix Automático autorizado
 
+> **Decisão [W] 2026-10-26 — Pix Automático e cartão recorrente pelo banco direto, sem Asaas.** O mandato é o do BCB, pelo `BcbPixDriver`; o motor de cobrança automática da assinatura (US-RECURRINGBILLING-002) está destravado e se constrói sobre ele. Mexe em valor: regra mestre (dupla prova + tabela antes→depois para o [W] aprovar).
+>
+> **Medido na especificação oficial (API Pix BCB v2.10.0, `bacen/pix-api` `openapi.yaml`) em 2026-10-26:** a recorrência se cria por `POST /rec` (o `/rec/{idRec}` só tem `GET`/`PATCH`), a confirmação do pagador por `POST /solicrec` ou por QR (`/locrec`), e **cada cobrança do ciclo é criada pelo recebedor** em `PUT /cobr/{txid}` (com `idRec`, `calendario.dataDeVencimento`, `valor.original`, `recebedor` agência/conta), enviada de 10 a 2 dias antes do vencimento. O `BcbPixDriver` de hoje cria o mandato com `PUT /v2/rec/{txid}` e `recebedor.chave` — fora da especificação — e não tem o `/cobr`.
+
 > **Área:** PaymentInstructions
 > **Service:** `PixAutomaticoCharger::charge()`
 
-**Implementado em:** _pendente_ — `PixAutomaticoCharger` e `pa_payment_instructions` não existem; depende do sub-módulo PixAutomatico (US-RB-020), ainda não construído no RecurringBilling
+**Implementado em:** _pendente_ — parcial em 2026-10-26: o motor que cobra a fatura pela recorrência aprovada existe (`CobradorPixAutomatico` + `rb:cobrar-pix-automatico`, flag `RB_COBRAR_PIX_AUTOMATICO` desligada; `BcbPixDriver::emitirCobrancaRecorrente`; UC-RBPA-01..06). Webhooks no formato da spec (`cobsr[]`/`recs[]`): `ProcessarWebhookBcbPixJob` paga a cobrança do ciclo pelo `ReconciliarCobrancaService` (→ `CobrancaPaga` → fatura paga, US-RB-057) e o mandato acompanha o status da recorrência (`AtualizarMandatoDaAssinatura`); UC-RBPA-07..10. Falta a jornada de aprovação do mandato (US-RB-020, que grava `metadata.pix_automatico`). O desenho `PixAutomaticoCharger`/`pa_payment_instructions` abaixo foi substituído pela tabela `cobrancas` do PaymentGateway, que já é a dona da cobrança emitida.
 
 **Como** Sistema (em `InvoiceController@charge` quando contract.payment_method = 'pix_automatico')
 **Quero** debitar via PSP usando autorização ativa
@@ -734,6 +746,10 @@ Então NÃO cria revenue_event (sem take rate)
 - **Pré-requisito de todos os outros escopos**
 
 ### US-RECURRINGBILLING-002 · Escopo 1 — Motor de cobrança recorrente (plans + contracts + invoices + job)
+
+> **Decisão [W] 2026-10-26 — Pix Automático e cartão recorrente pelo banco direto, sem Asaas.** O mandato é o do BCB, pelo `BcbPixDriver`; o motor de cobrança automática da assinatura (US-RECURRINGBILLING-002) está destravado e se constrói sobre ele. Mexe em valor: regra mestre (dupla prova + tabela antes→depois para o [W] aprovar).
+>
+> **Medido na especificação oficial (API Pix BCB v2.10.0, `bacen/pix-api` `openapi.yaml`) em 2026-10-26:** a recorrência se cria por `POST /rec` (o `/rec/{idRec}` só tem `GET`/`PATCH`), a confirmação do pagador por `POST /solicrec` ou por QR (`/locrec`), e **cada cobrança do ciclo é criada pelo recebedor** em `PUT /cobr/{txid}` (com `idRec`, `calendario.dataDeVencimento`, `valor.original`, `recebedor` agência/conta), enviada de 10 a 2 dias antes do vencimento. O `BcbPixDriver` de hoje cria o mandato com `PUT /v2/rec/{txid}` e `recebedor.chave` — fora da especificação — e não tem o `/cobr`.
 
 > owner: wagner · priority: p0 · estimate: 32h · type: story
 > blocked_by: —

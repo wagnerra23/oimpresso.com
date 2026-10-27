@@ -1,10 +1,10 @@
 ---
 id: requisitos-marketplaces-spec
 module: Marketplaces
-status: rascunho
-version: "1.0"
-last_updated: "2026-06-13"
-lifecycle: aguarda-sinal-qualificado
+status: ativo
+version: "1.1"
+last_updated: "2026-10-26"
+lifecycle: em-construcao
 piloto: ROTA LIVRE (Modules/Vestuario — sinal natural se Larissa ativar venda ML) OU 1º OfficeImpresso saudável com venda ML ativa (Vargas/Mhundo)
 piloto_previsao: depende de (a) Larissa confirmar interesse ML/Shopee OU (b) 1º cliente OfficeImpresso reportar "vendo em ML, quero integrar"
 cnae_aplicavel: cross-vertical (qualquer cliente que vende online — não tem CNAE próprio)
@@ -21,12 +21,16 @@ related_adrs:
   - "0117-multiplos-numeros-whatsapp-por-business"
   - "0119-migration-factory-capacidade-institucional"
   - "0129-state-machine-canonica-fsm-rbac"
+  - "0439-ativacao-modulo-marketplaces-mercado-livre-primeiro"
+  - "0382-remove-trava-de-sinal-para-trabalho-dirigido-por-w"
 related_proposals: [proposals/drafts/marketplaces-modulo-cross-vertical.md]
 last_review: 2026-05-12
 owner: [W]
 ---
 
 # Especificação funcional — Marketplaces (planejado — não existe) (cross-vertical)
+
+> **2026-10-26 — ativado por decisão [W]** ([ADR 0439](../../decisions/0439-ativacao-modulo-marketplaces-mercado-livre-primeiro.md), pela [ADR 0382](../../decisions/0382-remove-trava-de-sinal-para-trabalho-dirigido-por-w.md)): Mercado Livre primeiro, ordem do §11.2. Os textos abaixo que falam em "aguarda sinal" e "não codar" são o registro de antes da ativação (2026-05-12) e valem como história, não como estado.
 
 > Convenção do ID: `US-MKT-NNN` para user stories, `R-MKT-NNN` para regras Gherkin.
 > **Modulo NÃO existe em código.** SPEC **antecipatório** — formaliza contrato de construção SE/QUANDO (a) Larissa (ROTA LIVRE biz=4 ativa) reportar venda marketplace OU (b) 1+ OfficeImpresso saudável (Vargas/Extreme/Gold/Mhundo) confirmar "vendo em ML/Shopee, preciso integrar com NFe" ([ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) gatilho).
@@ -373,19 +377,33 @@ Webhook ML `claims` topic dispara:
 
 ### US-MKT-001 · Schema fundação 9 tabelas + Models global scope — **P0** · 4h
 
-**Implementado em:** _pendente_ — módulo não construído: o diretório do módulo em `Modules/` não existe, nenhuma migration `mkt_*` no disco (US planejada, aguarda sinal §11)
+**Implementado em:** `Modules/Marketplaces/Database/Migrations/2026_10_26_000001_create_mkt_tables.php` · `Modules/Marketplaces/Entities/` · `Modules/Marketplaces/Tests/Feature/MarketplacesEsquemaContratoTest.php`
+
+**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesEsquemaContratoTest.php`
+
+**DoD:** as tabelas da empresa têm business_id com FK; os models filtram por empresa (98 não vê 99); token cifrado no banco; pedido externo único por empresa; log de webhook recusa UPDATE/DELETE.
+
+> 2026-10-26: entram as 5 tabelas do primeiro pedido ponta a ponta (§3.1–3.4 e §3.6). As outras 4 (§3.5 envios, §3.7 disputas, §3.8 regras de preço, §3.9 reputação) nascem com as US que as usam (010, 014, 017, 016). Teste no tenant 98 contra o 99 ([ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)); o "biz=1 vs biz=99" abaixo é a redação de 2026-05.
 
 Migrations + Models todas com `business_id` + `HasBusinessScope` ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)) + Pest isolation biz=1 vs biz=99 ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md)).
 
 ### US-MKT-002 · Catálogo `mkt_marketplaces` seed 3 drivers — **P0** · 2h
 
-**Implementado em:** _pendente_ — módulo/tela não construído (US planejada): sem seeder `mkt_marketplaces` nem UI admin superadmin no disco
+**Implementado em:** _parcial_ · `Modules/Marketplaces/Database/Migrations/2026_10_26_000002_seed_mkt_marketplaces.php` · `Modules/Marketplaces/Tests/Feature/MarketplacesOAuthMercadoLivreContratoTest.php` — 2026-10-26: catálogo por migration idempotente (ML ativo, Shopee e Amazon inativos); a tela do superadmin para ativar/desativar ainda não existe
+
+**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesOAuthMercadoLivreContratoTest.php`
+
+**DoD:** o catálogo traz o Mercado Livre ativo e Shopee e Amazon cadastrados inativos, por migration que não sobrescreve o que o superadmin mudou.
 
 Seeder com Mercado Livre + Shopee + Amazon BR. UI admin superadmin pra ativar/desativar.
 
 ### US-MKT-003 · OAuth2 Mercado Livre — authorization code flow + refresh token — **P0** · 6h
 
-**Implementado em:** _pendente_ — módulo/tela não construído (US planejada): sem `Marketplaces/Connect.tsx`, callback OAuth ou `RefreshTokensJob` no disco
+**Implementado em:** _parcial_ · `Modules/Marketplaces/Services/MercadoLivre/MercadoLivreOAuth.php` · `Modules/Marketplaces/Http/Controllers/ContasController.php` · `Modules/Marketplaces/Tests/Feature/MarketplacesOAuthMercadoLivreContratoTest.php` · `Modules/Marketplaces/Jobs/RenovarTokenContaJob.php` · `Modules/Marketplaces/Tests/Feature/MarketplacesRenovacaoTokenContratoTest.php` — 2026-10-26: conectar + callback com state da sessão e token cifrado por empresa; renovação sob demanda e de hora em hora (o access token do ML vale ~6 h, então "diária" não bastaria); falta a página `Connect.tsx`; credencial do app ML é [W]
+
+**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesOAuthMercadoLivreContratoTest.php` · `Modules/Marketplaces/Tests/Feature/MarketplacesRenovacaoTokenContratoTest.php`
+
+**DoD:** conectar redireciona para a autorização do ML com state da sessão; só empresa com pacote e usuário com permissão conecta; callback só aceita o state da própria sessão; token cifrado na conta da empresa da sessão, sem duplicar ao reconectar.
 
 - Page `Marketplaces/Connect.tsx` — botão "Conectar Mercado Livre"
 - Redirect → `https://auth.mercadolibre.com.br/authorization?response_type=code&client_id={app_id}&redirect_uri={callback}`
@@ -410,7 +428,13 @@ Driver pattern: classe `MarketplaceDriver` abstrata + `MercadoLivreDriver`, `Sho
 
 ### US-MKT-006 · Webhook receiver ML orders_v2 + idempotency-key — **P0** · 5h
 
-**Implementado em:** _pendente_ — módulo não construído (US planejada): rota `POST /webhooks/marketplace/{key}`, middleware HMAC e `ProcessMarketplaceWebhookJob` não existem no disco
+**Implementado em:** `Modules/Marketplaces/Http/Controllers/NotificacoesMercadoLivreController.php` · `Modules/Marketplaces/Jobs/ProcessarNotificacaoMercadoLivreJob.php` · `Modules/Marketplaces/Tests/Feature/MarketplacesNotificacaoMercadoLivreContratoTest.php`
+
+**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesNotificacaoMercadoLivreContratoTest.php`
+
+**DoD:** notificação do vendedor conectado grava o log na empresa da conta e enfileira o processamento; app alheio ou vendedor não conectado não grava nada; o pedido é buscado na API com o token da conta, pedido de outro vendedor é recusado e notificação repetida não duplica.
+
+> **2026-10-26 — premissa corrigida antes do código.** O desenho abaixo pede HMAC por `webhook_secret`. A notificação do **Mercado Livre não traz assinatura**: os campos são `resource`, `user_id`, `topic`, `application_id` e `attempts`, e o detalhe se busca pela API com o token do vendedor. O `x-signature` com HMAC que aparece em busca é do **Mercado Pago**, outro produto. (A página oficial do ML devolveu 403 para leitura automática; a conclusão veio da documentação indexada e de guias, e deve ser reconferida contra uma notificação real quando o app existir.) A defesa implementada é não confiar no conteúdo: `application_id` precisa ser o nosso, `user_id` precisa ser vendedor conectado (a empresa sai da conta), e o pedido é lido da API com o token daquela conta, recusando pedido de outro vendedor. Rota: `POST /webhook/marketplaces/mercado-livre`. O texto original fica como registro do plano de 2026-05.
 
 - Rota pública `POST /webhooks/marketplace/{marketplace_key}` (sem auth Laravel — HMAC valida)
 - Middleware `ValidateMarketplaceWebhookSignature` valida HMAC SHA256 com `webhook_secret` por account
@@ -420,7 +444,13 @@ Driver pattern: classe `MarketplaceDriver` abstrata + `MercadoLivreDriver`, `Sho
 
 ### US-MKT-007 · Pedido ML → cria `mkt_orders` + transaction UltimatePOS + FSM stage initial — **P0** · 8h
 
-**Implementado em:** _pendente_ — módulo não construído (US planejada): sem `ProcessMercadoLivreOrderJob`, sem tabela `mkt_orders`, sem processo FSM `venda_marketplace` no disco
+**Implementado em:** `Modules/Marketplaces/Services/PedidoParaVenda.php` · `Modules/Marketplaces/Jobs/VirarVendaJob.php` · `Modules/Marketplaces/Database/Migrations/2026_10_26_000003_add_location_id_to_mkt_account_credentials.php` · `Modules/Marketplaces/Database/Seeders/FsmProcessoVendaMarketplaceSeeder.php` · `Modules/Marketplaces/Services/IniciarPipelineMarketplace.php` — 2026-10-26: pedido pago vira venda final no local da conta, com baixa de estoque, e entra no estágio `pedido_recebido` do processo `venda_marketplace` (pago → enviado → entregue; cancelado nas laterais)
+
+**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesPedidoViraVendaContratoTest.php` · `Modules/Marketplaces/Tests/Feature/MarketplacesPipelineFsmContratoTest.php`
+
+**DoD:** pedido pago vira venda final no local da conta com final_total igual ao total do ML e igual à soma das linhas, e o estoque baixa a quantidade vendida; repetir não cria segunda venda nem baixa de novo; total que não bate, pedido não pago ou conta sem local não criam venda nem mexem no estoque; SKU de outra empresa nunca é usado.
+
+> **Decisões [W] 2026-10-26 (antes do código):** o estoque baixa **quando o ML confirma pago**; a venda entra no **local escolhido ao conectar a conta** (`mkt_account_credentials.location_id`; sem local, o pedido não vira venda). Fixado na implementação: preço da linha = `unit_price` do ML com 2 casas, e o total das linhas tem de bater com o `total_amount` do ML (dupla prova; diferença > 1 centavo recusa); sem pagamento lançado — a venda nasce `due` até a conciliação do Mercado Pago (D6, US-MKT-015); cliente = consumidor final da empresa (o ML esconde o comprador); item ligado por `mkt_listings.item_id_external` e, sem anúncio, pelo `seller_sku` = `sub_sku` de produto da mesma empresa. O texto abaixo é o plano de 2026-05.
 
 - Job `ProcessMercadoLivreOrderJob` lê pedido ML completo + buyer + items + shipping
 - Cria `Transaction` UltimatePOS + `TransactionSellLines` + `Contact` (buyer com email/phone hash — PII redacted em log)
@@ -430,7 +460,11 @@ Driver pattern: classe `MarketplaceDriver` abstrata + `MercadoLivreDriver`, `Sho
 
 ### US-MKT-008 · UI Page `Marketplaces/Orders/Index.tsx` (Cockpit V2) — **P0** · 6h
 
-**Implementado em:** _pendente_ — tela não construída (US planejada): `resources/js/Pages/Marketplaces/` não existe no disco
+**Implementado em:** _parcial_ · `resources/js/Pages/Marketplaces/Pedidos.tsx` · `Modules/Marketplaces/Http/Controllers/PedidosController.php` · `resources/js/Pages/Marketplaces/Pedidos.casos.md` — 2026-10-26: lista de pedidos da empresa (com a venda gerada), filtro com/sem venda, contas conectadas com o local de venda escolhido ali (decisão [W]) e botão de conectar; tela gerada do PT-01 pelo designer-agente (sem protótipo, ADR 0282/0438). Faltam o painel lateral `OrderSheet` e as ações em lote
+
+**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesPedidosTelaContratoTest.php`
+
+**DoD:** a lista traz só os pedidos da empresa, com a venda quando já virou venda; o filtro separa com e sem venda; o local da conta aceita só local da empresa, recusa conta de outra empresa e exige a permissão de conectar; sem o pacote a tela não abre.
 
 - Lista pedidos com filtros (marketplace, status, data, valor)
 - Drawer `OrderSheet` com timeline FSM + items + buyer + shipping + dispute (se houver)
@@ -438,7 +472,11 @@ Driver pattern: classe `MarketplaceDriver` abstrata + `MercadoLivreDriver`, `Sho
 
 ### US-MKT-009 · NFe automática ao emitir → CFOP marketplace resolver + dispatch SEFAZ — **P0** · 7h
 
-**Implementado em:** _pendente_ — módulo não construído (US planejada): sem `OrderMarketplaceFaturadoListener` nem `MarketplaceCFOPResolver` no disco
+**Implementado em:** _parcial_ · `Modules/Marketplaces/Services/Fiscal/CfopDoPedido.php` · `Modules/Marketplaces/SideEffects/AvaliarNfeAoEnviar.php` · `Modules/Marketplaces/Jobs/AvaliarNfeDoPedidoJob.php` — 2026-10-26: CFOP só por configuração, sem valor padrão (depende do contador; sugestão do §5: 5102/6102), e avaliação da nota no `marcar_enviado`, atrás da flag `marketplaces.nfe.automatica` (desligada); **nenhuma nota é emitida ainda**. 2026-10-26 (2): o pedido pago busca o faturamento no ML e guarda o destinatário nas chaves de `contacts` (`Modules/Marketplaces/Services/MercadoLivre/DestinatarioMercadoLivre.php`; nomes dos campos do ML a reconferir contra resposta real). Interface combinada com a frente Fiscal: `NfeService::emitirParaTransaction($tx, '55', separada: false, destinatarioExterno: [...], cfop: ...)`. Faltam: ligar essa chamada quando o PR da Fiscal sair e o envio do XML ao ML. Depende de [W] + contador conferirem o CFOP (D5)
+
+**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesNfePedidoContratoTest.php` · `Modules/Marketplaces/Tests/Feature/MarketplacesDestinatarioContratoTest.php`
+
+**DoD:** CFOP 5102 na mesma UF e 6102 em outra, sem CFOP para Full ou UF ausente; flag desligada não põe nada na fila; flag ligada só deixa a nota sair com destinatário completo e fora do Full; outra empresa nunca avalia a venda da 98.
 
 - Listener `OrderMarketplaceFaturadoListener` no event FSM action `emitir_nfe`
 - Service `MarketplaceCFOPResolver` aplica mapping §5 (per-categoria + override business)

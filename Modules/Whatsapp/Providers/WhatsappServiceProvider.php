@@ -200,6 +200,8 @@ class WhatsappServiceProvider extends ServiceProvider
         // Centrifugo real-time UI omnichannel (US-WA-059 + ADR 0135) — channel
         // `omnichannel:business:{id}` separado do canal legacy acima.
         Event::listen(OmnichannelMessageReceived::class, PublishOmnichannelToCentrifugo::class);
+        // US-WA-324 — bot de menu responde antes do humano (flag whatsapp.bot_menu.enabled, menu por canal).
+        Event::listen(OmnichannelMessageReceived::class, [\Modules\Whatsapp\Listeners\ResponderMenuDeAtendimento::class, 'handle']);
         Event::listen(OmnichannelMessageSent::class, PublishOmnichannelToCentrifugo::class);
 
         // US-WA-VOZ-001 — Customer Memory (perfil persistente do cliente final).

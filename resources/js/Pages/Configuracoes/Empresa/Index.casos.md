@@ -127,6 +127,9 @@ last_run: "2026-10-21"
   "2, 7" e salvo · Então `ReguaCobrancaConfig::de()` (o que o job lê) diz ligada com 2 e 7, e as outras chaves de
   `common_settings` ficam · E na tela antiga a aba mostra "2, 7" e desmarcar desliga · E dia 0, acima de 365 ou repetido
   não vira etapa.
+- **Aviso antes do vencimento (US-FIN-033, 2026-10-26):** "Dias antes do vencimento" nasce vazio (não avisa antes) ·
+  Quando informo "3" e salvo · Então o job lê `dias_antes = [3]` · E a tela antiga mostra e regrava o campo, porque o
+  salvar substitui o objeto da régua inteiro (sem o campo na Blade, salvar por ela apagaria o valor).
 - **Status: 🧪**
 
 ## UC-EMP-16 · Vendas: ligar a pesquisa depois da entrega e escolher a nota baixa · `[dado]`
@@ -138,5 +141,18 @@ last_run: "2026-10-21"
 - **Teste:** `tests/Feature/Configuracoes/EmpresaContratoTest.php` — `UC-EMP-16`.
 - **Status: 🧪**
 
+## UC-EMP-17 · App das lojas: ligar e desligar os ajustes do app · `[dado]` `[T0]`
+- **Por quê:** os ajustes `pos_settings.app_*` (P2–P9 do app das lojas) só tinham tela na Blade
+  (`settings_app_lojas.blade.php`, #9442). Chave, rótulo, ajuda e padrão moram em `AjustesDaEmpresa::CHAVES`; a aba mostra
+  as de `na_tela` e tipo `bool`. Há ajuste com padrão ligado, então desmarcar tem de gravar desligado (a Blade manda
+  hidden `0`), e o salvar substitui `pos_settings` inteiro — as outras chaves, inclusive os segredos, ficam.
+- **Aceite:** Dado nenhum ajuste do app gravado · Quando a tela carrega · Então `app_lojas` traz as chaves `bool` de
+  `na_tela` com o rótulo do serviço e o padrão (biometria ligada, assinatura desligada) · Quando desmarco a biometria e marco
+  a assinatura e salvo · Então `AjustesDaEmpresa::paraEmpresa` lê biometria desligada e assinatura ligada · E a chave
+  secreta do Stripe e as outras chaves de `pos_settings` ficam · E o `pos_settings` do cliente 99 não muda.
+- **Teste:** `tests/Feature/Configuracoes/EmpresaContratoTest.php` — `UC-EMP-17`.
+- **Status: 🧪**
+
 ## Trilha do tempo
 - 2026-10-21 · [CL] UC-EMP-16 (pesquisa depois da entrega na aba Vendas). `last_run` 2026-10-13 → 2026-10-21 por conferência, não por run novo: o `Index.tsx` só ganhou o bloco da pesquisa dentro da aba Vendas; UC-EMP-01..14 seguem batendo com a tela.
+- 2026-10-26 · [C] UC-EMP-17 (aba App das lojas, 18 de 18 abas da Blade). UC-EMP-01..16 sem mudança.

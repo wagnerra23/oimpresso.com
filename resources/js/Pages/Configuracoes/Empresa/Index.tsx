@@ -32,7 +32,8 @@ type Valor = string | number | boolean | null | Valor[] | { [k: string]: Valor }
 type Corpo = Record<string, Valor>;
 type Lista = Record<string, string>;
 interface Opcoes { modulos: Lista; drivers_email: Lista; temas: Lista; moedas: Lista; fusos: Lista; meses: Lista; metodos: Lista; formatos_data: Lista; unidades: Lista; impostos: Lista; comissao: Lista; pagamentos: Lista }
-interface Props { corpo: Corpo; logo: string | null; segredos_gravados: string[]; email_superadmin: boolean; opcoes?: Opcoes }
+interface AjusteApp { chave: string; rotulo: string; ajuda: string; valor: boolean }
+interface Props { corpo: Corpo; logo: string | null; segredos_gravados: string[]; email_superadmin: boolean; app_lojas: AjusteApp[]; opcoes?: Opcoes }
 
 /** Abas na ordem e nos grupos do protótipo. As de PRONTAS estão na tela nova; as outras abrem na Blade. */
 const ABAS: { g: string; itens: { id: string; label: string }[] }[] = [
@@ -41,7 +42,7 @@ const ABAS: { g: string; itens: { id: string; label: string }[] }[] = [
     { id: 'financeiro', label: 'Financeiro' }] },
   { g: 'Sistema', itens: [{ id: 'painel', label: 'Painel' }, { id: 'sistema', label: 'Sistema' }, { id: 'prefixos', label: 'Prefixos' }] },
   { g: 'Integrações', itens: [{ id: 'email', label: 'E-mail' }, { id: 'sms', label: 'SMS' }, { id: 'fidelidade', label: 'Pontos de fidelidade' },
-    { id: 'modulos', label: 'Módulos' }, { id: 'rotulos', label: 'Rótulos personalizados' }] },
+    { id: 'modulos', label: 'Módulos' }, { id: 'rotulos', label: 'Rótulos personalizados' }, { id: 'app_lojas', label: 'App das lojas' }] },
 ];
 const PRONTAS: Record<string, string> = {
   negocio: 'O que identifica a empresa e como o sistema conta dinheiro, data e quantidade.',
@@ -61,6 +62,7 @@ const PRONTAS: Record<string, string> = {
   fidelidade: 'Quanto a venda rende em pontos e quanto o ponto vale no resgate.',
   modulos: 'O que aparece no menu e nas telas para este negócio.',
   rotulos: 'Nomes dos campos extras de cada cadastro. Campo sem nome não aparece na tela.',
+  app_lojas: 'O app das lojas lê estes ajustes ao abrir. Cada um passa a valer quando a função chega ao app.',
 };
 
 const PRECISOES: Lista = { 0: '0', 1: '1', 2: '2', 3: '3', 4: '4' };
@@ -115,7 +117,7 @@ const indices = (n: number): Lista => Object.fromEntries(Array.from({ length: n 
 const BALANCA: [string, string, number, string][] = [['product_sku_length', 'Dígitos do SKU', 9, '4'],
   ['qty_length', 'Dígitos inteiros da quantidade', 5, '3'], ['qty_length_decimal', 'Dígitos decimais da quantidade', 4, '2']];
 
-function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmin, opcoes }: Props) {
+function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmin, app_lojas, opcoes }: Props) {
   const [corpo, setCorpo] = useState<Corpo>(inicial);
   const [aba, setAba] = useState('negocio');
   const [arquivo, setArquivo] = useState<File | null>(null);
@@ -260,7 +262,9 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
     ? comum.financeiro_regua_cobranca : {}) as Record<string, Valor>;
   const reguaAtiva = regua.ativo === true || regua.ativo === 1 || regua.ativo === '1';
   const reguaDias = Array.isArray(regua.dias) ? regua.dias.join(', ') : regua.dias == null ? '1, 5, 15' : String(regua.dias);
-  const mudaRegua = (k: string, v: Valor) => mudaComum('financeiro_regua_cobranca', { ativo: reguaAtiva ? '1' : '0', dias: reguaDias, [k]: v });
+  // US-FIN-033: `dias_antes` (aviso antes do vencimento) nasce vazio — sem ele, nenhum aviso sai antes.
+  const reguaDiasAntes = Array.isArray(regua.dias_antes) ? regua.dias_antes.join(', ') : regua.dias_antes == null ? '' : String(regua.dias_antes);
+  const mudaRegua = (k: string, v: Valor) => mudaComum('financeiro_regua_cobranca', { ativo: reguaAtiva ? '1' : '0', dias: reguaDias, dias_antes: reguaDiasAntes, [k]: v });
   const titulo = (t: string) => <h3 className="m-0 text-xs font-semibold uppercase text-muted-foreground">{t}</h3>;
   const rotuloAba = ABAS.flatMap((g) => g.itens).find((i) => i.id === aba)?.label;
 
@@ -683,16 +687,28 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
               {aba === 'financeiro' && (
                 <Stack gap={3} data-contract="regua-cobranca">
                   {liga('emp-regua-ativo', 'Enviar lembrete de cobrança', reguaAtiva, (v) => mudaRegua('ativo', v ? '1' : '0'),
-                    'e-mail ao cliente quando o título a receber vence e não é pago.')}
+                    'e-mail ao cliente antes de o título a receber vencer e depois, se não for pago.')}
                   <Grid cols={2} gap={3}>
                     {rotulado('emp-regua-dias', 'Dias após o vencimento', (
                       <Input id="emp-regua-dias" inputMode="numeric" value={reguaDias} disabled={!reguaAtiva}
                         onChange={(e) => mudaRegua('dias', e.target.value)} />
                     ), 'Separados por vírgula. Na última etapa o vendedor recebe uma tarefa para cobrar.')}
+                    {rotulado('emp-regua-dias-antes', 'Dias antes do vencimento', (
+                      <Input id="emp-regua-dias-antes" inputMode="numeric" value={reguaDiasAntes} disabled={!reguaAtiva}
+                        placeholder="ex.: 3" onChange={(e) => mudaRegua('dias_antes', e.target.value)} />
+                    ), 'Vazio = não avisa antes. Ex.: 3 avisa três dias antes de vencer.')}
                   </Grid>
                   <span className="text-xs text-muted-foreground">
                     Cliente que recusou e-mail não recebe; o lembrete fica registrado com o motivo em Contas a Receber.
                   </span>
+                </Stack>
+              )}
+
+              {aba === 'app_lojas' && (
+                <Stack gap={2} data-contract="app-lojas">
+                  {/* Desmarcado manda '0', como o hidden da Blade: há ajuste com padrão ligado. Sem a chave no corpo, vale o valor gravado (ou o padrão). */}
+                  {app_lojas.map((a) => liga(`emp-pos-${a.chave}`, a.rotulo, a.chave in pos ? [true, 1, '1', 'true'].some((x) => x === pos[a.chave]) : a.valor,
+                    (v) => mudaPos(a.chave, v ? '1' : '0'), a.ajuda))}
                 </Stack>
               )}
 

@@ -154,7 +154,7 @@ function mfgLinha(int $id, string $name, array $over = []): array
 {
     return array_replace_recursive([
         'id' => $id, 'name' => $name, 'sku' => "SKU-{$id}", 'cat' => 'Impressos', 'sub' => '—',
-        'waste' => 0.0, 'venda' => 10.0,
+        'qtd' => 1.0, 'waste' => 0.0, 'venda' => 10.0,
         'custos' => ['qtd_liq' => 1.0, 'total' => 1.0, 'unit' => 1.0, 'margem' => 50.0],
     ], $over);
 }
@@ -190,7 +190,7 @@ describe('UC-RECIPE-09/10/11 — filtro, KPI e ordem no servidor (DB-less)', fun
         expect($s->filtrarOrdenar($todas, ['cat' => 'Adesivo']))->toBe([]);
     });
 
-    it('UC-RECIPE-10 o KPI 2 e o 3 filtram; os numeros do topo contam TODAS as receitas', function () {
+    it('UC-RECIPE-10 o KPI de margem filtra; os numeros do topo contam TODAS as receitas', function () {
         $s = new RecipeBomService();
         $todas = [
             mfgLinha(1, 'a', ['custos' => ['margem' => 44.9, 'unit' => 1.0], 'waste' => 7.99]),
@@ -198,15 +198,30 @@ describe('UC-RECIPE-09/10/11 — filtro, KPI e ordem no servidor (DB-less)', fun
             mfgLinha(3, 'c', ['custos' => ['margem' => 60.0, 'unit' => 6.0], 'waste' => 0.0]),
         ];
 
-        // R-05: margem ABAIXO de 45 (45 fica fora) · desperdício a partir de 8 (7,99 fica fora).
+        // R-05: margem ABAIXO de 45 (45 fica fora).
         expect(mfgIds($s->filtrarOrdenar($todas, ['kpi' => 'margem'])))->toBe([1]);
-        expect(mfgIds($s->filtrarOrdenar($todas, ['kpi' => 'custo'])))->toBe([2]);
 
-        // Os KPIs saem da lista inteira — o filtro e a página não mexem neles (§4.2).
-        expect($s->kpis($todas))->toBe([
-            'total' => 3, 'custo_medio' => 3.0, 'margem_baixa' => 1, 'desperdicio' => 1,
-        ]);
-        expect($s->kpis([]))->toBe(['total' => 0, 'custo_medio' => 0.0, 'margem_baixa' => 0, 'desperdicio' => 0]);
+        // D4 (decisão [W] 2026-10-23): o filtro de desperdício saiu. `kpi=custo` não filtra mais,
+        // mesmo com a receita 2 a 8% — a lista volta inteira, na ordem de chegada.
+        expect(mfgIds($s->filtrarOrdenar($todas, ['kpi' => 'custo'])))->toBe([1, 2, 3]);
+
+        // Os KPIs saem da lista inteira — o filtro e a página não mexem neles (§4.2). Sem o de
+        // desperdício (D4).
+        expect($s->kpis($todas))->toBe(['total' => 3, 'custo_medio' => 3.0, 'margem_baixa' => 1]);
+        expect($s->kpis([]))->toBe(['total' => 0, 'custo_medio' => 0.0, 'margem_baixa' => 0]);
+    });
+
+    it('UC-RECIPE-20 a coluna Quantidade ordena pela quantidade produzida, nao pelo rendimento (D4)', function () {
+        $s = new RecipeBomService();
+        // Receita 1: produz 10 com 50% de desperdício gravado (rendimento 5). Receita 2: produz 8,
+        // sem desperdício. Pelo rendimento a 2 viria depois da 1; pela quantidade, antes.
+        $todas = [
+            mfgLinha(1, 'a', ['qtd' => 10.0, 'waste' => 50.0, 'custos' => ['qtd_liq' => 5.0]]),
+            mfgLinha(2, 'b', ['qtd' => 8.0, 'custos' => ['qtd_liq' => 8.0]]),
+        ];
+
+        expect(mfgIds($s->filtrarOrdenar($todas, ['sort' => 'qtd'])))->toBe([2, 1]);
+        expect(mfgIds($s->filtrarOrdenar($todas, ['sort' => 'qtd', 'dir' => 'desc'])))->toBe([1, 2]);
     });
 
     it('UC-RECIPE-11 ordena pelas 7 colunas nos dois sentidos, texto por caractere como o navegador', function () {

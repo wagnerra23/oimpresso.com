@@ -140,7 +140,15 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 
 ### US-PONTO-009 · Geracao AEJ canon Portaria 671/2021 Anexo VI (CRITICO REGULATORIO)
 
-**Implementado em:** _pendente_ — GAP-PONTO-001: gerador AEJ + assinatura CAdES `.p7s` nao implementado (`RelatorioController::gerar('aej')` ainda `abort(501)`); exige revisao Eliana + ADR formal antes de codar
+**Implementado em:** _parcial_ · `Modules/Ponto/Services/AejService.php` · `Modules/Ponto/Http/Controllers/RelatorioController.php` · `Modules/Ponto/Tests/Feature/RelatorioLegalContratoTest.php` · verificado@93d6a5d11c (2026-10-26) — o AEJ leiaute 002 sai desde o #8242 (ADR 0420, UC-RELIDX-10..12), recusando dado legal ausente. Falta a assinatura CAdES `.p7s`, que depende do e-CNPJ A1 e de ADR nova (ADR 0413 D2). Ate 2026-09-29 esta linha dizia `_pendente_` com `abort(501)`, o que era verdade naquela data
+
+**Testado em:** `Modules/Ponto/Tests/Feature/RelatorioLegalContratoTest.php` (UC-RELIDX-10..12)
+
+**Aceite:** (estado medido em 2026-10-26)
+- [x] Leiaute AEJ versão "002" do MTE, ISO 8859-1, lendo a apuração (ADR 0420)
+- [x] Dado legal ausente (CPF, PTRP, motivo de marcação manual) recusa com a contagem, nunca inventa campo
+- [x] Só o empregador da sessão entra no arquivo (Tier 0, ADR 0093)
+- [ ] Assinatura CAdES `.p7s` — depende do e-CNPJ A1 e de ADR nova (ADR 0413 D2)
 
 **Como** RH,
 **quero** gerar arquivo AEJ (Arquivo Eletronico de Jornada) com assinatura CAdES `.p7s`,
@@ -393,3 +401,64 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 - [x] `business_id` explícito em toda consulta, sem depender da sessão; teste cross-tenant 98 × 99
 - [x] Marcação anulada e a própria linha de anulação não contam
 - [x] Mesma escolha de batidas do `ApuracaoService::carregarMarcacoes` (1ª entrada, última saída, 1º par de almoço)
+
+### US-PONTO-018 · Férias CLT: período aquisitivo, concessivo, dias de direito e alerta de férias vencidas
+
+> owner: — · priority: p0 · estimate: 10h · type: story
+
+**Implementado em:** _parcial_ · `Modules/Ponto/Services/FeriasService.php` · `Modules/Essentials/Database/Migrations/2026_10_26_000001_add_ferias_clt_to_essentials_leave_types.php` · `Modules/Ponto/Tests/Feature/FeriasCltContratoTest.php` · `Modules/Ponto/Services/ConformidadeService.php` · `Modules/Ponto/Tests/Feature/ConformidadeContratoTest.php` — PR 1/3 domínio e PR 3/3 alerta na Conformidade (UC-CONF-10). A marcação do tipo de licença na tela de Tipos do HRM é o PR 2
+**Testado em:** `Modules/Ponto/Tests/Feature/FeriasCltContratoTest.php`
+
+**Como** RH (Eliana na correção, Wagner no risco),
+**quero** ver, por colaborador, os períodos de férias com dias de direito, gozados, saldo e quando vencem,
+**para que** nenhuma férias passe do período concessivo e vire pagamento em dobro (CLT art. 137).
+
+**Aceite:**
+- [x] Aquisitivo de 12 meses a partir da admissão; concessivo dos 12 meses seguintes (CLT arts. 130 e 134)
+- [x] Dias de direito pela tabela do art. 130, com as faltas injustificadas lidas da apuração (dia previsto sem batida e com falta cheia; licença e intercorrência aprovadas já zeram a falta)
+- [x] Dias gozados = licenças aprovadas do HRM de tipo com `ferias_clt = true`, abatidas do período mais antigo já completo
+- [x] Situação por período: em aquisição, a gozar (com dias para vencer), vencido, quitado
+- [x] Alerta por empregador: vencidos e os que vencem dentro da antecedência
+- [x] `business_id` explícito em toda consulta; teste cross-tenant 98 × 99
+- [ ] Marcar o tipo de licença como férias na tela de Tipos do HRM (PR 2)
+- [x] Alerta visível na tela de Conformidade: 7ª verificação "Férias vencidas" (UC-CONF-10)
+- Fora, por ser valor: 1/3 constitucional e abono pecuniário em dinheiro — vão com a folha. Fora por falta de dado: perda do direito do art. 133 (afastamento)
+
+### US-PONTO-019 · Exportação do ponto para folha e contabilidade: Horas Extras, Banco de Horas e Atrasos/Faltas por competência
+
+> owner: — · priority: p1 · estimate: 6h · type: story
+
+**Implementado em:** `Modules/Ponto/Services/ExportacaoFolhaService.php` · `Modules/Ponto/Http/Controllers/RelatorioController.php` · `Modules/Ponto/Tests/Feature/RelatorioFolhaContratoTest.php`
+**Testado em:** `Modules/Ponto/Tests/Feature/RelatorioFolhaContratoTest.php`
+
+**Como** RH que manda o mês para a contabilidade,
+**quero** baixar, por competência, as horas extras, os atrasos e faltas e o banco de horas de cada colaborador,
+**para que** a folha seja lançada a partir da apuração, sem redigitar o espelho de cada um.
+
+**Aceite:**
+- [x] Os cards Horas Extras, Banco de Horas e Atrasos e Faltas do catálogo ficam disponíveis e geram CSV (`;`, UTF-8 com BOM, horas em `hh:mm`), um colaborador por linha (UC-RELIDX-13..15)
+- [x] Lê o que a apuração gravou em `ponto_apuracao_dia`; não reapura e não calcula valor em dinheiro
+- [x] Falta conta como dia só quando é cheia e sem trabalho, a mesma regra das férias (US-PONTO-018)
+- [x] Só o empregador da sessão (UC-RELIDX-16, Tier 0)
+- [ ] Leiautes próprios de Domínio, Alterdata e Questor — fora; é a lacuna P2 "Exportação para Domínio, Alterdata e Questor" da frente Plataforma
+
+### US-PONTO-020 · Ciência do espelho mensal pelo colaborador
+
+> owner: — · priority: p1 · estimate: 6h · type: story
+
+**Implementado em:** `Modules/Ponto/Services/EspelhoCienciaService.php` · `Modules/Ponto/Entities/EspelhoCiencia.php` · `Modules/Ponto/Database/Migrations/2026_10_26_000001_create_ponto_espelho_ciencias_table.php` · `Modules/Ponto/Http/Controllers/Api/MobileMarcacaoController.php` · `Modules/Ponto/Http/Controllers/EspelhoController.php` · `Modules/Ponto/Tests/Feature/EspelhoCienciaContratoTest.php` · `resources/js/Pages/Ponto/Mobile/_components/CienciaEspelho.tsx` — domínio, API do app, aviso "Dou ciência" no "Meu espelho" (UC-REPP-23) e ciência visível ao RH no Espelho (UC-ESPSH-06)
+**Testado em:** `Modules/Ponto/Tests/Feature/EspelhoCienciaContratoTest.php`
+
+**Como** colaborador,
+**quero** declarar que vi e concordo com o meu espelho do mês,
+**para que** a empresa tenha registro da minha ciência sem papel assinado.
+
+**Decisão de desenho:** só para competência **fechada** (ADR 0413): é o único espelho que não muda depois. Grava o SHA-256 do espelho que o colaborador viu; se uma anulação posterior o mudar, a ciência continua e passa a "não confere". Não é assinatura ICP, não grava IP (US-PONTO-001) nem biometria (ADR 0383).
+
+**Aceite:**
+- [x] `POST /ponto/api/espelho/ciencia` (e `/ponto/mobile/espelho/ciencia` na tela web): 201 com mês fechado, 422 com mês aberto, 409 se já deu ciência (UC-REPP-17..19)
+- [x] `GET /ponto/api/espelho` traz `competencia_fechada` e `ciencia { ciente_em, confere }` (UC-REPP-18, UC-REPP-22)
+- [x] Append-only: model e trigger MySQL recusam UPDATE/DELETE (UC-REPP-20)
+- [x] Fechamento de outro empregador não libera (UC-REPP-21, Tier 0)
+- [x] Aviso "Dou ciência" do último mês fechado no "Meu espelho" (UC-REPP-23)
+- [x] Ciência visível ao RH no Espelho do colaborador (UC-ESPSH-06)
