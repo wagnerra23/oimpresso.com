@@ -10,4 +10,17 @@
  */
 return [
     'name' => 'Marketplaces',
+
+    /*
+     * Aplicativo do Mercado Livre (US-MKT-003). UM aplicativo da plataforma, criado por [W] em
+     * developers.mercadolivre.com.br; os valores vêm do ambiente (Vaultwarden → .env), nunca do
+     * git. Vazios = botão de conectar recusa com mensagem, sem chamar a API.
+     */
+    'mercado_livre' => [
+        'client_id' => env('MERCADOLIVRE_CLIENT_ID', ''),
+        'client_secret' => env('MERCADOLIVRE_CLIENT_SECRET', ''),
+        'redirect_uri' => env('MERCADOLIVRE_REDIRECT_URI', ''),
+        'authorize_url' => env('MERCADOLIVRE_AUTHORIZE_URL', 'https://auth.mercadolivre.com.br/authorization'),
+        'token_url' => env('MERCADOLIVRE_TOKEN_URL', 'https://api.mercadolibre.com/oauth/token'),
+    ],
 ];
