@@ -45,7 +45,8 @@ Apresentação na tela (kanban de reparo): `recepcao → diagnostico → pecas �
     "vehicles.current_status": ["disponivel", "locada", "manutencao", "indisponivel"],
     "oa_inspection_items.categoria": ["motor", "freios", "correia", "bateria", "pneus", "suspensao", "direcao", "eletrica", "fluidos", "outro"],
     "oa_inspection_items.severity": ["ok", "atencao", "critico"],
-    "oa_inspection_items.client_decision": ["pending", "approved", "rejected"]
+    "oa_inspection_items.client_decision": ["pending", "approved", "rejected"],
+    "oficina_lembretes_revisao.tipo": ["km", "data"]
   },
   "forbidden_ui_terms": ["locacao", "cacamba"],
   "forbidden_ui_paths": [
@@ -119,3 +120,4 @@ novo com os termos = CI vermelho no `dominio-gate`.
 - 2026-06-09 · [CL] **Salto #3** — `dominio:check` ganhou cobertura de código (`undeclared-code-value`).
   Pegou 11 ramificações de `order_type === 'locacao'` em código vivo (dead-code) que o enum-check não via
   → absorvidas no baseline como débito caçável (ratchet).
+- 2026-10-26 · `oficina_lembretes_revisao.tipo` = `{km, data}`: o lembrete de revisão avisa por km estimado ou pela data da próxima revisão (US-AUTO-014, decisão [W] 2026-10-26).

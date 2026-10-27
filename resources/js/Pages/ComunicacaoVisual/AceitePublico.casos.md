@@ -5,8 +5,8 @@ irmaos: AceitePublico.charter.md (lei) · AceitePublico.tsx (código) · ../../.
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: o link é o único ponto em que alguém de fora decide sobre um orçamento; o que ele mostra e o que ele aceita não podem mudar sem querer.
 owner: wagner
-last_run: "2026-10-26"
-last_run_ci: "0 UC executado na lane — trio nasce neste PR; CT 100 (cópia isolada do branch) no corpo do PR"
+last_run: "2026-10-27"
+last_run_ci: "0 UC executado na lane — trio nasce neste PR; CT 100 (cópia isolada do branch) no corpo do PR. 2026-10-27: a tela trocou flex/grid solto por Inline/Grid (ratchet ADR 0253), sem mudar o que mostra nem o que aceita"
 related_us: [US-COMVIS-023]
 ---
 
