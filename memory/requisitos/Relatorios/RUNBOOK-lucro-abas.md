@@ -44,3 +44,10 @@ Permissão `profit_loss_report.view` (a da página; o endpoint exige desde o #90
 ## 5. Falta para o cutover (F5 — decisão [W])
 
 Aprovação do screenshot por [W], o smoke F4 e o aviso ao cliente.
+
+## Cutover pelo endereço (2026-10-27)
+
+Por D1 [W] 2026-10-07, `/reports/get-profit/{aba}` abre a Page sem `?tela=nova`. Não há Blade neste endereço: ele só
+servia o JSON das abas da Blade de lucro e prejuízo, que chegam por AJAX (`X-Requested-With`, sem `X-Inertia`) e seguem
+iguais. Nenhum item do menu aponta para cá; o que leva o usuário até as abas é a tela de lucro e prejuízo, no PR
+seguinte. Teste: UC-RLA-05.

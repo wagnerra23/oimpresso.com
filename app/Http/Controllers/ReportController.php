@@ -4602,7 +4602,10 @@ class ReportController extends Controller
 
         // Tela React (playbook sistema/07): as mesmas abas, com a mesma consulta (consultaLucro) e a mesma conta
         // do lucro por linha (lucroDaLinha). A permissão acima vale para as duas.
-        if (request()->query('tela') === 'nova') {
+        // Cutover pelo endereço (D1 [W] 2026-10-07, molde `getPurchaseSell`): navegação comum e visita Inertia abrem a
+        // Page. Aqui não há tela Blade — o endereço só serve o JSON das abas da Blade de lucro e prejuízo, que chegam
+        // por AJAX (X-Requested-With, sem X-Inertia) e seguem abaixo. Por isso não há `?classico=1`.
+        if (request()->query('tela') === 'nova' || ! request()->ajax() || request()->header('X-Inertia')) {
             return $this->telaLucroAbas(request(), (int) $business_id, (string) ($by ?: 'product'));
         }
 

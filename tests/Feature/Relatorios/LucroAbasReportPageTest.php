@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-RLA-01, UC-RLA-02, UC-RLA-03, UC-RLA-04 (resources/js/Pages/Relatorios/LucroAbas/Index.casos.md).
+// Cobre UC-RLA-01, UC-RLA-02, UC-RLA-03, UC-RLA-04, UC-RLA-05 (resources/js/Pages/Relatorios/LucroAbas/Index.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -130,4 +130,24 @@ test('UC-RLA-04 Tier 0 — venda do negócio 99 não aparece', function () {
 
     expect(rlaTela($this, 'product', $localAlheio)['linhas'])->toBe([]);
     expect(array_sum(array_map(fn ($l) => (float) $l['lucro'], rlaTela($this, 'day', $localAlheio)['linhas'])))->toEqual(0.0);
+});
+
+test('UC-RLA-05 cutover — navegar abre a Page na aba pedida; o DataTable da Blade segue no JSON', function () {
+    // Navegação comum (carga cheia, sem X-Inertia), com e sem aba.
+    $this->get('/reports/get-profit/category')->assertOk()
+        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $p) => $p->component('Relatorios/LucroAbas/Index', false));
+    $this->get('/reports/get-profit')->assertOk()
+        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $p) => $p->component('Relatorios/LucroAbas/Index', false));
+
+    // Visita Inertia real e o opt-in antigo.
+    expect($this->withHeaders($this->inertia)->get('/reports/get-profit/product')->json('component'))->toBe('Relatorios/LucroAbas/Index');
+    expect($this->withHeaders($this->inertia)->get('/reports/get-profit/product?tela=nova')->json('component'))->toBe('Relatorios/LucroAbas/Index');
+
+    // O DataTable da Blade de lucro e prejuízo (X-Requested-With, sem X-Inertia) segue recebendo o JSON.
+    // flushHeaders: withHeaders acumula entre requisições do mesmo teste.
+    $dt = $this->flushHeaders()->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
+        ->get('/reports/get-profit/product?'.http_build_query(['draw' => 1, 'start' => 0, 'length' => -1]));
+    $dt->assertOk();
+    expect($dt->json())->toHaveKey('data');
+    expect($dt->json())->not->toHaveKey('component');
 });

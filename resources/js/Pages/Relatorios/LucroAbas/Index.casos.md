@@ -1,6 +1,6 @@
 ---
 id: resources-js-pages-relatorios-lucroabas-index-casos
-casos: Abas de lucro · /reports/get-profit/{aba}?tela=nova
+casos: Abas de lucro · /reports/get-profit/{aba}
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a tela mostra de onde vem o lucro; valor diferente da Blade, ou venda de outro negócio, é incidente.
@@ -39,4 +39,11 @@ last_run: "2026-10-08"
 ## UC-RLA-04 · Só o meu negócio · `must` `[T0]`
 - **Aceite:** Dado uma venda do negócio 99 · Quando o 98 pede o local dela · Então não vê nada (a permissão do endpoint é
   coberta pelo `LucroAbasSegurancaTest`).
+- **Status: 🧪**
+
+## UC-RLA-05 · O endereço abre a tela nova; o JSON das abas da Blade segue igual · `must`
+- **Aceite:** Dado o cutover (D1 [W] 2026-10-07: por tela, React vira padrão) · Quando abro
+  `/reports/get-profit/category` navegando (sem `X-Inertia`) · Então recebo a Page na aba "por categoria" · E sem
+  aba recebo a aba "por produto" · E a visita Inertia e o `?tela=nova` também abrem a Page · E o DataTable da Blade
+  de lucro e prejuízo (`X-Requested-With`, sem `X-Inertia`) segue recebendo o JSON.
 - **Status: 🧪**

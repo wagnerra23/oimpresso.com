@@ -3,6 +3,7 @@ id: resources-js-pages-relatorios-lucroabas-index-charter
 page: /reports/get-profit
 component: resources/js/Pages/Relatorios/LucroAbas/Index.tsx
 related_prototype: prototipo-ui/cowork/Wagner/relatorios-page.jsx
+related_us: [US-REL-002]
 owner: wagner
 status: draft
 last_validated: "2026-10-08"
@@ -20,7 +21,7 @@ related_runbook: memory/requisitos/Relatorios/RUNBOOK-lucro-abas.md
 
 # Page Charter — /reports/get-profit/{aba} (DRAFT)
 
-> Draft · thread `sistema/playbook/07` · responde em `?tela=nova` (sem ele, o JSON dos DataTables da Blade) · casos: [`Index.casos.md`](./Index.casos.md).
+> Draft · thread `sistema/playbook/07` · responde em `?tela=nova` (sem ele, o JSON dos DataTables da Blade). **2026-10-27, cutover pelo endereço (D1 [W] 2026-10-07):** navegação comum abre esta Page; só o AJAX das abas da Blade recebe o JSON (UC-RLA-05) · casos: [`Index.casos.md`](./Index.casos.md).
 
 ## Mission
 
