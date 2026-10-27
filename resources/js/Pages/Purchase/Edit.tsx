@@ -24,6 +24,7 @@ import { Textarea } from '@/Components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Plus, Trash2, Search, ShoppingCart, ArrowLeft, Save } from 'lucide-react';
 import DespesasAnexo from '@/Pages/Purchase/_components/DespesasAnexo';
+import CamposExtras, { chavesExtras, type CamposExtrasConfig, type ValoresExtras } from '@/Pages/Purchase/_components/CamposExtras';
 import { camposDespesas, despesasVazias, somaDespesas, valorParaEnvio, linhaParaEnvio, type DespesaAdicional } from '@/Pages/Purchase/_components/compra-envio';
 
 // ---------- Tipos ----------
@@ -90,6 +91,8 @@ interface PurchaseEditPayload {
   /** Despesas adicionais gravadas (4 pares) e o anexo atual. */
   despesas?: DespesaAdicional[];
   document?: string | null;
+  /** Prazo, frete e campos personalizados gravados. */
+  extras?: ValoresExtras;
   purchase_lines: PurchaseLineDraft[];
 }
 
@@ -100,6 +103,7 @@ export interface PurchaseEditPageProps {
   order_statuses: Record<string, string>;
   currency: CurrencyDetails;
   permissions: Permissions;
+  campos_extras?: CamposExtrasConfig | null;
 }
 
 // ---------- Helpers ----------
@@ -116,6 +120,7 @@ function PurchaseEdit({
   order_statuses,
   currency,
   permissions,
+  campos_extras = null,
 }: PurchaseEditPageProps) {
   const [busca, setBusca] = useState('');
   const [erroItens, setErroItens] = useState<string | null>(null);
@@ -125,6 +130,7 @@ function PurchaseEdit({
     return base;
   });
   const [documento, setDocumento] = useState<File | null>(null);
+  const [extras, setExtras] = useState<ValoresExtras>(() => ({ ...(purchase.extras ?? {}) }));
   const [linhas, setLinhas] = useState<PurchaseLineDraft[]>(
     purchase.purchase_lines.length > 0 ? purchase.purchase_lines : []
   );
@@ -242,6 +248,7 @@ function PurchaseEdit({
       shipping_charges: valorParaEnvio(dados.shipping_charges || 0),
       ...camposDespesas(despesas),
       ...(documento ? { document: documento } : {}),
+      ...Object.fromEntries(chavesExtras(campos_extras).map((c) => [c, extras[c] ?? ''])),
     }));
     form.post(`/purchases/${purchase.id}`, {
       forceFormData: true,
@@ -529,6 +536,13 @@ function PurchaseEdit({
           </CardContent>
         </Card>
       </div>
+
+      <CamposExtras
+        config={campos_extras}
+        valores={extras}
+        onChange={setExtras}
+        erros={form.errors as Record<string, string | undefined>}
+      />
 
       <DespesasAnexo
         despesas={despesas}

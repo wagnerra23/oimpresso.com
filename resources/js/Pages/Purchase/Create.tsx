@@ -27,6 +27,7 @@ import { FieldError } from '@/Components/ui/field-state';
 import { Plus, Trash2, Search, ShoppingCart, ArrowLeft, Save, LayoutGrid } from 'lucide-react';
 import GradeMatrixInput, { type GradeCell } from '@/Pages/Purchase/_components/GradeMatrixInput';
 import DespesasAnexo from '@/Pages/Purchase/_components/DespesasAnexo';
+import CamposExtras, { chavesExtras, type CamposExtrasConfig, type ValoresExtras } from '@/Pages/Purchase/_components/CamposExtras';
 import PagamentoNaCompra, { type PagamentoRascunho } from '@/Pages/Purchase/_components/PagamentoNaCompra';
 import { camposDespesas, despesasVazias, somaDespesas, valorParaEnvio, linhaParaEnvio, type DespesaAdicional } from '@/Pages/Purchase/_components/compra-envio';
 import GradeProductCombobox, { type PickedProduct } from '@/Pages/Purchase/_components/GradeProductCombobox';
@@ -96,6 +97,8 @@ export interface PurchaseCreatePageProps {
   default_datetime: string;
   permissions: Permissions;
   common_settings: Record<string, unknown>;
+  /** Campos personalizados da compra e do frete configurados pela empresa. */
+  campos_extras?: CamposExtrasConfig | null;
   /** "Comprar" da lista de produtos: o produto que já entra como primeira linha (`?produto={id}`). */
   produto_inicial?: PickedProduct | null;
 }
@@ -130,6 +133,7 @@ function PurchaseCreate({
   common_settings,
   payment_types,
   accounts,
+  campos_extras = null,
   produto_inicial = null,
 }: PurchaseCreatePageProps) {
   // US-COM-013: o pedido de compra só aparece quando a empresa o usa (mesmo interruptor do Blade).
@@ -146,6 +150,7 @@ function PurchaseCreate({
   const [erroItens, setErroItens] = useState<string | null>(null);
   const [despesas, setDespesas] = useState<DespesaAdicional[]>(despesasVazias);
   const [documento, setDocumento] = useState<File | null>(null);
+  const [extras, setExtras] = useState<ValoresExtras>({});
   const [pagamento, setPagamento] = useState<PagamentoRascunho>(() => ({
     valor: 0,
     forma: Object.keys(payment_types ?? {}).find((k) => k === 'cash') ?? Object.keys(payment_types ?? {})[0] ?? '',
@@ -373,6 +378,7 @@ function PurchaseCreate({
       shipping_charges: valorParaEnvio(dados.shipping_charges || 0),
       ...camposDespesas(despesas),
       ...(documento ? { document: documento } : {}),
+      ...Object.fromEntries(chavesExtras(campos_extras).map((c) => [c, extras[c] ?? ''])),
       // Pago na entrada: uma linha, que o store grava por createOrUpdatePaymentLines. Vazio =
       // compra a prazo (payment_status fica "due").
       payment: pagamento.valor > 0
@@ -773,6 +779,13 @@ function PurchaseCreate({
         documento={documento}
         onDocumento={setDocumento}
         erroDocumento={(form.errors as Record<string, string | undefined>).document}
+      />
+
+      <CamposExtras
+        config={campos_extras}
+        valores={extras}
+        onChange={setExtras}
+        erros={form.errors as Record<string, string | undefined>}
       />
 
       <PagamentoNaCompra

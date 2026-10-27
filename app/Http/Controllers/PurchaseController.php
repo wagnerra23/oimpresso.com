@@ -474,6 +474,9 @@ class PurchaseController extends Controller
                 'view_purchase_price' => $user->can('view_purchase_price'),
             ],
             'common_settings' => $common_settings,
+            // Campos personalizados da compra e do frete que a empresa configurou (os mesmos que
+            // a Blade mostrava). Prazo e detalhes do frete a tela sempre mostra.
+            'campos_extras' => fn () => $this->camposExtrasDaCompra((int) $business_id),
             // "Comprar" da lista de produtos (/products) abre esta tela com o produto já na compra.
             'produto_inicial' => $this->produtoInicialDaCompra($business_id),
         ]);
@@ -893,6 +896,41 @@ class PurchaseController extends Controller
     }
 
     /**
+     * Campos personalizados que a empresa configurou para a compra (`custom_labels.purchase`,
+     * custom_field_1..4) e para o frete da compra (`custom_labels.purchase_shipping`,
+     * shipping_custom_field_1..5). Só entra campo com rótulo — é o mesmo critério da Blade.
+     *
+     * @return array{compra: list<array{campo:string,rotulo:string,obrigatorio:bool}>, frete: list<array{campo:string,rotulo:string,obrigatorio:bool}>}
+     */
+    private function camposExtrasDaCompra(int $business_id): array
+    {
+        $rotulos = json_decode((string) DB::table('business')->where('id', $business_id)->value('custom_labels'), true);
+        $rotulos = is_array($rotulos) ? $rotulos : [];
+
+        $monta = function (string $grupo, string $prefixo, int $quantos) use ($rotulos): array {
+            $saida = [];
+            for ($i = 1; $i <= $quantos; $i++) {
+                $rotulo = trim((string) ($rotulos[$grupo]["custom_field_{$i}"] ?? ''));
+                if ($rotulo === '') {
+                    continue;
+                }
+                $saida[] = [
+                    'campo' => "{$prefixo}{$i}",
+                    'rotulo' => $rotulo,
+                    'obrigatorio' => (int) ($rotulos[$grupo]["is_custom_field_{$i}_required"] ?? 0) === 1,
+                ];
+            }
+
+            return $saida;
+        };
+
+        return [
+            'compra' => $monta('purchase', 'custom_field_', 4),
+            'frete' => $monta('purchase_shipping', 'shipping_custom_field_', 5),
+        ];
+    }
+
+    /**
      * Travas do pagamento lançado junto com a compra (`payment[]` do store), antes de qualquer
      * escrita. A Blade e o createOrUpdatePaymentLines não conferiam nenhuma delas:
      * - a conta tem de ser da empresa e estar aberta;
@@ -1136,8 +1174,15 @@ class PurchaseController extends Controller
                     'valor' => (float) ($purchase->{"additional_expense_value_{$i}"} ?? 0),
                 ])->values(),
                 'document' => $purchase->document,
+                // Prazo, frete e campos personalizados atuais: a tela mostra e devolve no update.
+                'extras' => collect(['pay_term_number', 'pay_term_type', 'shipping_details',
+                    'custom_field_1', 'custom_field_2', 'custom_field_3', 'custom_field_4',
+                    'shipping_custom_field_1', 'shipping_custom_field_2', 'shipping_custom_field_3',
+                    'shipping_custom_field_4', 'shipping_custom_field_5', ])
+                    ->mapWithKeys(fn ($c) => [$c => (string) ($purchase->{$c} ?? '')])->all(),
                 'purchase_lines' => $purchaseLines,
             ],
+            'campos_extras' => fn () => $this->camposExtrasDaCompra((int) $business_id),
             'business_locations' => $business_locations,
             'taxes' => $taxes->map(fn ($t) => [
                 'id' => $t->id,
