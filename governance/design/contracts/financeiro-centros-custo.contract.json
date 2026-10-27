@@ -1,0 +1,14 @@
+{
+  "_nota": "Contrato de tela de Financeiro/CentrosCusto/Index (/financeiro/centros-custo), US-FIN-075. Copy tirada do protótipo aprovado por [W] em 2026-10-27 (aba Centros de custo) e conferida presente no alvo.",
+  "tela": "Financeiro/CentrosCusto/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/financeiro-centro-custo-orcado.html",
+  "alvo": [
+    "resources/js/Pages/Financeiro/CentrosCusto/Index.tsx"
+  ],
+  "secoes": [
+    { "id": "cabecalho", "copy": ["Centros de custo"] },
+    { "id": "filtros", "copy": ["Buscar centro…"] },
+    { "id": "lista", "copy": ["Código", "Nome", "Situação", "Títulos no mês", "Rateado no mês", "inativar"] }
+  ],
+  "ordem": ["cabecalho", "filtros", "lista"]
+}

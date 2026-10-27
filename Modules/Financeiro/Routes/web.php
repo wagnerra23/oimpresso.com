@@ -7,6 +7,7 @@ use Modules\Financeiro\Http\Controllers\AdvisorAccessController;
 use Modules\Financeiro\Http\Controllers\AssinaturaController;
 use Modules\Financeiro\Http\Controllers\CaixaController;
 use Modules\Financeiro\Http\Controllers\CategoriaController;
+use Modules\Financeiro\Http\Controllers\CentroCustoController;
 use Modules\Financeiro\Http\Controllers\CobrancaController;
 use Modules\Financeiro\Http\Controllers\ConciliacaoController;
 use Modules\Financeiro\Http\Controllers\ContaBancariaController;
@@ -243,6 +244,16 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         Route::post('/categorias/{id}/toggle', [CategoriaController::class, 'toggleAtivo'])
             ->whereNumber('id')
             ->name('categorias.toggle');
+
+        // US-FIN-075 — centros de custo (o rateio do título usa estes centros).
+        Route::get('/centros-custo', [CentroCustoController::class, 'index'])->name('centros-custo.index');
+        Route::post('/centros-custo', [CentroCustoController::class, 'store'])->name('centros-custo.store');
+        Route::put('/centros-custo/{id}', [CentroCustoController::class, 'update'])
+            ->whereNumber('id')
+            ->name('centros-custo.update');
+        Route::post('/centros-custo/{id}/toggle', [CentroCustoController::class, 'toggleAtivo'])
+            ->whereNumber('id')
+            ->name('centros-custo.toggle');
 
         // Onda 18 (2026-05-19) #48 — Plano de Contas tela dedicada.
         // Resolve workaround do botão "Plano de contas" no header /unificado

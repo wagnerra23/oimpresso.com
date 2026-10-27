@@ -174,7 +174,7 @@ class DataController extends Controller
                 // restante das telas legacy (Fluxo/DRE/Pagar/Categorias/etc).
                 $financeiroAtiva = in_array($seg2, [
                     'unificado','lancamentos','contas-pagar','fluxo','dre','plano-contas',
-                    'categorias','dashboard','configuracoes','relatorios',
+                    'categorias','centros-custo','orcamento','dashboard','configuracoes','relatorios',
                 ]);
                 $menu->url(
                     url('/financeiro/unificado'),
@@ -201,6 +201,8 @@ class DataController extends Controller
                             // Dashboard deprecado 2026-06-06 (Wagner não usa) — landing = Unificada.
                             ['key' => 'plano-contas',  'label' => 'Plano de Contas','href' => '/financeiro/plano-contas'],
                             ['key' => 'categorias',    'label' => 'Categorias',     'href' => '/financeiro/categorias'],
+                            // US-FIN-075 — centros de custo (rateio do título + filtro dos relatórios).
+                            ['key' => 'centros-custo', 'label' => 'Centros de custo', 'href' => '/financeiro/centros-custo'],
                             ['key' => 'contador',      'label' => 'Contador',       'href' => '/financeiro/configuracoes/contador'],
                         ],
                     ]

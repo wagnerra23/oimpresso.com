@@ -12,6 +12,7 @@ contains:
   - "AssinaturaController — FIN-004 atualizar cobrança recorrente (multi-tenant Tier 0, gateway delegado a AssinaturaCobrancaService)"
   - "CaixaController — F6 Soft wrapper Inertia /financeiro/caixa read-only sobre cash_registers core UltimatePOS (não migra dados; lifecycle abrir/fechar continua na header POS via CashRegisterController core)"
   - "CategoriaController"
+  - "CentroCustoController — US-FIN-075 cadastro de centros de custo /financeiro/centros-custo (lista com uso do mês, criar, editar, inativar)"
   - "RateioService — US-FIN-075 rateio do título em centros de custo (fin_centros_custo + fin_titulo_rateios): soma fecha valor_total em centavos inteiros; título sem rateio segue válido"
   - "CentroCustoFiltro — US-FIN-075 filtro ?centro_custo= da DRE e do fluxo realizado (todos / sem centro / fatia do centro; na baixa, proporcional à fatia do título)"
   - "OrcamentoService — US-FIN-076 orçado mensal por conta do plano de contas e centro de custo (fin_orcamentos) × realizado em competência ou caixa, desvio em centavos inteiros"
