@@ -1943,6 +1943,8 @@ Como empresa que ainda emite pelo Delphi (WR Comercial/OfficeImpresso), quero pa
 
 **Implementado em:** `Modules/NfeBrasil/Services/Entrada/LeitorNfeEntrada.php` · `Modules/NfeBrasil/Services/Entrada/ImportarXmlEntradaService.php` · `Modules/NfeBrasil/Models/NfeDfeItem.php` (`gravarDaNota`) · `Modules/NfeBrasil/Tests/Feature/EntradaXmlUploadContratoTest.php`
 
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/EntradaXmlUploadContratoTest.php` (covers US-NFE-076 · lane `nfebrasil-pest`)
+
 Como empresa que compra de fornecedor, quero que a NF-e que chega pela SEFAZ e a que eu envio em arquivo sejam lidas do mesmo jeito, com o código do item no fornecedor, EAN, unidade, CST/CSOSN e ICMS destacado, para depois virar compra sem digitar.
 
 **Origem:** fase 2 da ADR `proposals/2026-10-06-entrada-xml-compra.md` (D2, D3), ratificada em #9827; schema da fase 1 em #9836. A compra é a US-COM-003 (Compras).
