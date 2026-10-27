@@ -28,8 +28,13 @@ entregue 4 de 5 UCs · ausente UC-CRMPO-17 por falta de fonte no `main`.
 | UC-CRMPO-17 aviso de OS | **ausente.** O `main` não tem regra que diga, para o portal, quando uma OS está "pronta para retirada" ou com "orçamento aguardando". É a mesma derivação que a thread 25 (UC-COS-24) precisa criar. Ficou como `[BACKLOG]` no `Index.casos.md` |
 | UC-CRMPO-18 cada um na sua porta `[T0]` | teste escrito (operador → 403 no portal; contato → 403 em `/crm/leads`) |
 
-Pela prova do índice (o teste precisa conter `UC-CRMPO-17`), o placar **não** conta esta thread como feita. Isso é correto: escrever o id
-num teste sem o comportamento seria cobertura de faz-de-conta.
+Pela prova do índice (o teste precisa conter `UC-CRMPO-17`), o placar **não** conta esta thread como feita: `placar.mjs --thread 18`
+devolve `em curso`. Isso é correto: escrever o id num teste sem o comportamento seria cobertura de faz-de-conta.
+
+**Errata para o índice (pedido ao Cowork, não editei aqui):** a prova `contem "UC-CRMPO-17"` é satisfeita por qualquer menção ao texto.
+Na primeira versão deste PR o teste dizia, em comentário, que o caso 17 ficava de fora — e o placar marcou a thread como **feito**.
+Tirei o id do comentário e ele voltou a `em curso`. Sugestão: a prova dos UCs passar a exigir o id dentro de um `it('UC-…`, não em
+qualquer lugar do arquivo.
 
 ## Testes
 `Modules/Crm/Tests/Feature/CrmPortalPainelContratoTest.php`, registrado na lane `verticais-pest.yml` (lista de arquivos e os dois gatilhos,

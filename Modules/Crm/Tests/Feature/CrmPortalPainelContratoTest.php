@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 // Cobre UC-CRMPO-01, UC-CRMPO-02, UC-CRMPO-03, UC-CRMPO-18 (Crm/Portal/Painel/Index.casos.md).
-// UC-CRMPO-17 fica fora: depende da derivação de fase/orçamento da OS da thread 25 (ver o casos.md).
+// O aviso de OS do Início (caso 17 do portal) fica fora: depende da derivação de fase/orçamento da OS
+// da thread 25. O id não é escrito aqui de propósito — a prova do placar procura o texto, e um comentário
+// a satisfaria sem o comportamento existir.
 
 use App\User;
 use App\Utils\ModuleUtil;
