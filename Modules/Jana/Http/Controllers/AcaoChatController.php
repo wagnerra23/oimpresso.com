@@ -29,7 +29,7 @@ class AcaoChatController extends Controller
         $itens = AcaoAprovacao::where('business_id', $this->businessId($request))
             ->where('origem', 'chat')
             ->where('conversa_id', $conversa)
-            ->where('user_id', (int) $request->user()->id)
+            ->where('user_id', (int) $request->user()->getAuthIdentifier())
             ->orderBy('id')
             ->limit(50)
             ->get()
