@@ -587,7 +587,7 @@ class AdminSidebarMenu
                     __('lang_v1.payment_accounts'),
                     function ($sub) {
                         $sub->url(
-                            action([\App\Http\Controllers\AccountController::class, 'index']),
+                            '/financeiro/contas-bancarias', // tela única de contas — decisão [W] 2026-10-27
                             __('account.list_accounts'),
                             ['icon' => '', 'active' => request()->segment(1) == 'account' && request()->segment(2) == 'account']
                         );
@@ -602,7 +602,7 @@ class AdminSidebarMenu
                             ['icon' => '', 'active' => request()->segment(1) == 'account' && request()->segment(2) == 'trial-balance']
                         );
                         $sub->url(
-                            action([\App\Http\Controllers\AccountController::class, 'cashFlow']),
+                            '/financeiro/fluxo?tab=realizado',
                             __('lang_v1.cash_flow'),
                             ['icon' => '', 'active' => request()->segment(1) == 'account' && request()->segment(2) == 'cash-flow']
                         );

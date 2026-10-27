@@ -43,7 +43,9 @@ nem o caminho do saldo de abertura.
 1. **PR 1 (backend):** serviço `ContasDoNucleo`, `AccountController` delega; rotas `POST /financeiro/contas-bancarias`,
    `PUT /{id}/cadastro`, `POST /{id}/encerrar|reativar`; contrato UC-CTB-05..11 (#10046).
 2. **PR 2 (tela):** filtro de situação, coluna de saldo, menu da linha, `ContaSheet` (nova/editar).
-3. **PR 3 (cutover):** `/account/account*` redireciona para cá; saem as Blades `account/*` de cadastro e de
+3. **PR 3 (tipos de conta):** criar/editar/remover tipo e subtipo na mesma tela (a aba "Tipos de conta" da Blade
+   era a única porta para eles).
+4. **PR 4 (cutover):** `/account/account*` redireciona para cá; saem as Blades `account/*` de cadastro e de
    movimento manual (transferência, depósito, editar lançamento — uso zero medido em prod em 2026-10-27).
 
 ## 4–8. Tokens · estados · responsividade · atalhos · contrato

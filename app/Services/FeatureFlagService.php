@@ -60,7 +60,6 @@ class FeatureFlagService
         // pelo #9175 (com charter, RUNBOOK e teste de rollback), não por este bloco.
         'useV2OfficeimpressoEmpresas' => true,
         'useV2OfficeimpressoEmpresa' => true,
-        'useV2ConfiguracoesContas' => true,
         'useV2SistemaFuncoes' => true,
         'useV2VozDoClienteCaixa' => true,
         'useV2SpreadsheetIndex' => true,

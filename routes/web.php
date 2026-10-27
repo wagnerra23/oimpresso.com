@@ -1096,23 +1096,21 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::post('/fluxos/assistente', [\App\Http\Controllers\FluxosController::class, 'assistente'])->middleware('throttle:20,1')->name('fluxos.assistente');
 
     Route::prefix('account')->group(function () {
-        Route::resource('/account', AccountController::class);
-        Route::get('/fund-transfer/{id}', [AccountController::class, 'getFundTransfer']);
-        Route::post('/fund-transfer', [AccountController::class, 'postFundTransfer']);
-        Route::get('/deposit/{id}', [AccountController::class, 'getDeposit']);
-        Route::post('/deposit', [AccountController::class, 'postDeposit']);
-        Route::get('/close/{id}', [AccountController::class, 'close']);
-        Route::get('/activate/{id}', [AccountController::class, 'activate']);
-        Route::get('/delete-account-transaction/{id}', [AccountController::class, 'destroyAccountTransaction']);
-        Route::get('/edit-account-transaction/{id}', [AccountController::class, 'editAccountTransaction']);
-        Route::post('/update-account-transaction/{id}', [AccountController::class, 'updateAccountTransaction']);
+        // Decisão [W] 2026-10-27 (opção A): a tela única de contas é /financeiro/contas-bancarias. Lista, cadastro e
+        // edição redirecionam; transferência, depósito e edição de lançamento saíram (uso zero medido em prod).
+        // Fica o livro da conta (show), que ainda não tem equivalente no Financeiro.
+        Route::redirect('/account', '/financeiro/contas-bancarias', 301);
+        Route::redirect('/account/create', '/financeiro/contas-bancarias', 301);
+        Route::redirect('/account/{account}/edit', '/financeiro/contas-bancarias', 301);
+        Route::get('/account/{account}', [AccountController::class, 'show'])->whereNumber('account')->name('account.show');
         Route::get('/get-account-balance/{id}', [AccountController::class, 'getAccountBalance']);
         Route::get('/balance-sheet', [AccountReportsController::class, 'balanceSheet']);
         Route::get('/trial-balance', [AccountReportsController::class, 'trialBalance']);
         Route::get('/payment-account-report', [AccountReportsController::class, 'paymentAccountReport']);
         Route::get('/link-account/{id}', [AccountReportsController::class, 'getLinkAccount']);
         Route::post('/link-account', [AccountReportsController::class, 'postLinkAccount']);
-        Route::get('/cash-flow', [AccountController::class, 'cashFlow']);
+        // Fluxo de caixa realizado do Financeiro substitui o do núcleo (decisão [W] 2026-05-21, PR #1283).
+        Route::redirect('/cash-flow', '/financeiro/fluxo?tab=realizado', 301);
     });
 
     // Tipos de conta: tela no Financeiro (painel "Tipos de conta"), decisão [W] 2026-10-27; os modais Blade saíram.

@@ -5,7 +5,7 @@ type: runbook
 module: Configuracoes
 tela: Configuracoes/Contas/Index
 owner: W
-status: ativo
+status: historical
 last_validated: "2026-10-13"
 related_adrs:
   - '0104-processo-mwart-canonico-unico-caminho'
@@ -14,6 +14,10 @@ related_adrs:
 ---
 
 # RUNBOOK — Contas de pagamento (`/account/account`)
+
+> **Histórico desde 2026-10-27.** Decisão [W] (opção A): a tela única de contas é `/financeiro/contas-bancarias`;
+> `/account/account` redireciona e a Page `Configuracoes/Contas/Index` foi removida. O runbook vivo é
+> [`RUNBOOK-contas-bancarias.md`](../Financeiro/RUNBOOK-contas-bancarias.md). O texto abaixo é o registro da thread 06.
 
 > **Tipo:** runbook reproduzível · MWART ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)) · thread `sistema/playbook/06`, a parte de Contas (a de Modelos de notificação já está em Inertia: #9113, #9115, #9159)
 > **Fonte de design:** `prototipo-ui/cowork/Wagner/financeiro-legado.jsx` → `telaContas()` (rota `fin-bancos`, "Contas de pagamento"). O `_saida-00` registra que Contas não está entre as 21 telas do menu Sistema do protótipo e manda ancorar aqui.

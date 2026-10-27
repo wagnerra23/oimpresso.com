@@ -66,6 +66,13 @@ empresa responde 404.
 ## UC-CTB-11 — Sem permissão, não cria
 Status: 🧪 · Dado usuário sem `financeiro.contas_bancarias.manage` · Quando tenta criar · Então 403 e nada gravado.
 
+## UC-CTB-12 — Endereços antigos levam à tela única
+Status: 🧪 (`tests/Feature/Configuracoes/ContasCutoverTest.php`) · Quando abre `/account/account`, `/create`, `/{id}/edit`
+ou `/account/cash-flow` · Então recebe 301 para `/financeiro/contas-bancarias` (o fluxo vai para `/financeiro/fluxo?tab=realizado`).
+
+## UC-CTB-13 — Transferência, depósito e edição de lançamento saíram
+Status: 🧪 (`ContasCutoverTest`) · Quando chama os endpoints antigos de transferência, depósito, encerrar ou
+editar/apagar lançamento · Então 404 e nenhum lançamento é gravado (uso zero medido em prod em 2026-10-27).
 ## UC-CTB-14 — Tipos de conta na empresa da sessão
 Status: 🧪 (`tests/Feature/Configuracoes/TiposContaContratoTest.php`) · Quando cria tipo ou subtipo no painel "Tipos de
 conta" · Então ele nasce na empresa da sessão; um tipo pai de outra empresa é recusado e nada é gravado.

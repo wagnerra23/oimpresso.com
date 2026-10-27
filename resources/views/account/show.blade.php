@@ -106,9 +106,6 @@
     <div class="modal fade account_model" tabindex="-1" role="dialog" 
     	aria-labelledby="gridSystemModalLabel">
     </div>
-    <div class="modal fade account_model" tabindex="-1" role="dialog" 
-        aria-labelledby="gridSystemModalLabel" id="edit_account_transaction">
-    </div>
 
 </section>
 <!-- /.content -->
@@ -189,65 +186,8 @@
             account_book.ajax.reload();
         });
 
-        $('#edit_account_transaction').on('shown.bs.modal', function(e) {
-            $('#edit_account_transaction_form').validate({
-                submitHandler: function(form) {
-                    e.preventDefault();
-                    var data = $(form).serialize();
-                    $.ajax({
-                        method: 'POST',
-                        url: $(form).attr('action'),
-                        dataType: 'json',
-                        data: data,
-                        beforeSend: function(xhr) {
-                            __disable_submit_button($(form).find('button[type="submit"]'));
-                        },
-                        success: function(result) {
-                            if (result.success == true) {
-                                $('#edit_account_transaction').modal('hide');
-                                toastr.success(result.msg);
-
-                                if (typeof(account_book) != 'undefined') {
-                                    account_book.ajax.reload();
-                                }
-                                
-                            } else {
-                                toastr.error(result.msg);
-                            }
-                        },
-                    });
-                },
-            });
-        })
-
     });
 
-    $(document).on('click', '.delete_account_transaction', function(e){
-        e.preventDefault();
-        swal({
-          title: LANG.sure,
-          icon: "warning",
-          buttons: true,
-          dangerMode: true,
-        }).then((willDelete) => {
-            if (willDelete) {
-                var href = $(this).data('href');
-                $.ajax({
-                    url: href,
-                    dataType: "json",
-                    success: function(result){
-                        if(result.success === true){
-                            toastr.success(result.msg);
-                            account_book.ajax.reload();
-                            update_account_balance();
-                        } else {
-                            toastr.error(result.msg);
-                        }
-                    }
-                });
-            }
-        });
-    });
 
     function update_account_balance(argument) {
         $('span#account_balance').html('<i class="fas fa-sync fa-spin"></i>');

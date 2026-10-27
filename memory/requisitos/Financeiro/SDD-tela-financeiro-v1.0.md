@@ -389,7 +389,7 @@ Fica no legado por ora. **Non-Goal ou US? decisão [W].**
 
 | NFR | Alvo | Onde é defendido hoje |
 |---|---|---|
-| **Isolamento multi-tenant** | 0 vazamento | `MultiTenantComprehensiveTest`, `MultiTenantIsolationTest`, `AccountTransactionIdorTest` (na lane) |
+| **Isolamento multi-tenant** | 0 vazamento | `MultiTenantComprehensiveTest`, `MultiTenantIsolationTest` (na lane); o `AccountTransactionIdorTest` saiu em 2026-10-27 com os endpoints de editar/apagar lançamento (removidos no cutover das contas) |
 | **Corretude de valor** | centavo exato, conservação no split | **lacuna até CU-FIN-02 rodar** |
 | **Latência de lista** | partial reload `only:[kpis,lancamentos,pagination,filters,periodLabel]` + closures | charter v-D14 |
 | **Auditabilidade** | toda transição escreve `activity_log` / `FinanceiroAuditLogger` | CU-FIN-07, CU-FIN-12 |
