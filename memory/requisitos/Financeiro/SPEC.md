@@ -1256,7 +1256,7 @@ Onboarding novo cliente: migra 500+ títulos da planilha legacy num upload. Hoje
 > owner: — · priority: p2 · estimate: 16h · status: todo · type: story
 > blocked_by: —
 
-**Implementado em:** _pendente_ — parcial em 2026-10-27: schema `fin_centros_custo` + `fin_titulo_rateios` e o `RateioService` (soma em centavos inteiros, maior resto no modo %; teste `RateioCentroCustoContratoTest`). Filtro `?centro_custo=` na DRE e no fluxo realizado pelo `CentroCustoFiltro` (teste `CentroCustoFiltroContratoTest`: A + B + sem centro fecha o total). Tela `/financeiro/centros-custo` (UC-CCUSTO-01..04) e rateio no drawer do título (`RateioCentroCustoSection`, UC-FUNI-05..07; a conta do drawer é a mesma do serviço, `_lib/rateio.ts`). Falta o seletor do filtro nas telas da DRE e do fluxo. A âncora vira path quando a US fechar.
+**Implementado em:** _pendente_ — parcial em 2026-10-27: schema `fin_centros_custo` + `fin_titulo_rateios` e o `RateioService` (soma em centavos inteiros, maior resto no modo %; teste `RateioCentroCustoContratoTest`). Filtro `?centro_custo=` na DRE e no fluxo realizado pelo `CentroCustoFiltro` (teste `CentroCustoFiltroContratoTest`: A + B + sem centro fecha o total). Tela `/financeiro/centros-custo` (UC-CCUSTO-01..04) e rateio no drawer do título (`RateioCentroCustoSection`, UC-FUNI-05..07; a conta do drawer é a mesma do serviço, `_lib/rateio.ts`). Seletor de centro na DRE (UC-DRE-09, exports com o mesmo filtro) e no fluxo realizado (UC-FLX-40), pelo `_shared/CentroCustoSelect.tsx`. A âncora vira path quando a US fechar.
 
 **Origem:** lacuna P2 do levantamento de concorrência de 2026-10-25. `fin_titulos` não tem centro de custo nem rateio (o `CusteioRkwService` só custeia posto do PCP).
 

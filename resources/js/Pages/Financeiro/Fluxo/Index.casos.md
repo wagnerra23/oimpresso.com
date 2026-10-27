@@ -60,6 +60,10 @@ Quando `?tab` é inválida · Então renderiza Projetado; e com `tab=projetado` 
 Status: 🧪 (`FluxoControllerTest` + `FluxoRealizadoControllerTest` — business_id scope · GET não muta)
 Nenhuma query enxerga outro `business_id` ([ADR 0093]) e um GET em `/financeiro/fluxo` (qualquer aba) não escreve nada.
 
+## UC-FLX-40 — Realizado filtrado por centro de custo `[V0]`
+Status: 🧪 (`RelatoriosCentroCustoContratoTest` + `CentroCustoFiltroContratoTest`)
+Dado baixas de títulos rateados (US-FIN-075) · Quando escolho um centro no Realizado · Então cada baixa conta na proporção da fatia do centro (valor da baixa × fatia ÷ valor do título); o Projetado segue a empresa toda.
+
 ## Backlog de casos (sem id — entram quando tiverem teste)
 - **[BACKLOG] Empty state dos próximos eventos** — sem eventos em 7 dias, a tabela mostra "Nenhum evento programado nos próximos 7 dias." (hoje sem asserção).
 - **[BACKLOG] Tooltip de barra** — hover exibe `data · saldo acumulado` (visual, sem prova).

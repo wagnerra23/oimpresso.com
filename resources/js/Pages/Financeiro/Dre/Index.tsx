@@ -23,6 +23,7 @@ import { BalanceteView, type BalanceteData } from './_components/BalanceteView';
 import { CusteioView, type CusteioData } from './_components/CusteioView';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
+import { CentroCustoSelect, type CentroCustoOpcao } from '@/Pages/Financeiro/_shared/CentroCustoSelect';
 
 // ---------- Tipos das linhas (espelha DRE_LINES canon TelaDRE) ----------
 
@@ -85,6 +86,15 @@ interface Props {
   balanco?: BalancoData | null;
   balancete?: BalanceteData | null;
   custeio?: CusteioData | null;
+  // US-FIN-075 — filtro por centro de custo (null = todos · 0 = sem centro).
+  centros_custo?: CentroCustoOpcao[];
+  centro_custo?: number | null;
+}
+
+/** `?centro_custo=` atual, para os exports saírem com o mesmo filtro da tela. */
+function qsCentro(valor: number | null | undefined): string {
+  if (valor === null || valor === undefined) return '';
+  return `?centro_custo=${valor === 0 ? 'sem' : valor}`;
 }
 
 // ---------- Helpers ----------
@@ -116,7 +126,10 @@ function TabSwitcher({ aba }: { aba: AbaAtiva }) {
     if (alvo === aba) return;
     // D-14: partial reload — troca de aba só re-busca aba/balanco/balancete
     // (demonstrativo meta/linhas/margem são closures no controller, pulam no partial).
-    router.visit(`/financeiro/dre?aba=${alvo}`, {
+    // Mantém o resto da query (ex. ?centro_custo=) ao trocar de aba.
+    const url = new URL(window.location.href);
+    url.searchParams.set('aba', alvo);
+    router.visit(url.pathname + url.search, {
       preserveScroll: true,
       replace: true,
       only: ['aba', 'balanco', 'balancete', 'custeio'],
@@ -174,6 +187,8 @@ function FinanceiroDre({
   balanco,
   balancete,
   custeio,
+  centros_custo = [],
+  centro_custo = null,
 }: Props) {
   // F1: só "mes" funcional. Demais opções renderizam disabled com tooltip
   // "Em breve" (Q4 do visual-comparison; backlog US-FIN-DRE-PERIODOS).
@@ -218,7 +233,7 @@ function FinanceiroDre({
                 onClick: () => {
                   // Rota real GET /financeiro/dre/export-csv (DreController::exportCsv,
                   // StreamedResponse BOM UTF-8). PDF + Excel já têm âncoras inline no card.
-                  window.location.href = '/financeiro/dre/export-csv';
+                  window.location.href = `/financeiro/dre/export-csv${qsCentro(centro_custo)}`;
                 },
                 title: 'Baixar DRE em CSV (Excel BR)',
               },
@@ -284,6 +299,7 @@ function FinanceiroDre({
               </div>
             </div>
             <div className="ml-auto flex items-center gap-2">
+              <CentroCustoSelect centros={centros_custo} valor={centro_custo} only={['meta', 'linhas', 'margem_operacional', 'top_categorias_receita']} />
               {/* Pill toggle Mês/Trimestre/Ano/12m — só Mês funcional F1 (Q4). */}
               <div className="inline-flex bg-[var(--bg-2)] rounded-md p-0.5 border border-[var(--border)]">
                 {(['Mês', 'Trimestre', 'Ano', '12m'] as const).map((p) => {
@@ -307,13 +323,13 @@ function FinanceiroDre({
                 })}
               </div>
               <a
-                href="/financeiro/dre/export-pdf"
+                href={`/financeiro/dre/export-pdf${qsCentro(centro_custo)}`}
                 className="h-[30px] px-3 rounded-[7px] border border-[var(--border)] bg-[var(--surface)] text-[length:var(--fs-3)] font-medium text-[var(--text-dim)] hover:bg-[var(--bg-2)] hover:text-[var(--text)] hover:border-[var(--text-mute)] inline-flex items-center gap-1.5 whitespace-nowrap"
               >
                 <Download size={13} aria-hidden="true" /> PDF
               </a>
               <a
-                href="/financeiro/dre/export-xlsx"
+                href={`/financeiro/dre/export-xlsx${qsCentro(centro_custo)}`}
                 className="h-[30px] px-3 rounded-[7px] border border-[var(--border)] bg-[var(--surface)] text-[length:var(--fs-3)] font-medium text-[var(--text-dim)] hover:bg-[var(--bg-2)] hover:text-[var(--text)] hover:border-[var(--text-mute)] inline-flex items-center gap-1.5 whitespace-nowrap"
               >
                 Excel

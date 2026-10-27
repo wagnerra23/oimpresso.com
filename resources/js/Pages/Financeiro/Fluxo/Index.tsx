@@ -18,6 +18,7 @@ import { router } from '@inertiajs/react';
 import { useMemo, type ReactNode } from 'react';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
+import { CentroCustoSelect, type CentroCustoOpcao } from '@/Pages/Financeiro/_shared/CentroCustoSelect';
 import { Stack } from '@/Components/layout';
 
 // FIN-2 (2026-09-23): forma do TelaFluxo / FinFluxoRealizado do protótipo
@@ -129,6 +130,9 @@ interface Props {
   dias: Dia[];
   tab?: TabAtiva;
   realizado?: Realizado | null;
+  // US-FIN-075 — filtro por centro de custo no realizado (null = todos · 0 = sem centro).
+  centros_custo?: CentroCustoOpcao[];
+  centro_custo?: number | null;
 }
 
 const brl = (v: number) =>
@@ -143,7 +147,10 @@ function TabSwitcher({ tab }: { tab: TabAtiva }) {
     if (alvo === tab) return;
     // D-14: partial reload — troca de tab só re-busca tab/realizado
     // (projeção 35d saldo_hoje/dias/etc são closures no controller, pulam no partial).
-    router.visit(`/financeiro/fluxo?tab=${alvo}`, {
+    // Mantém o resto da query (ex. ?centro_custo=) ao trocar de tab.
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', alvo);
+    router.visit(url.pathname + url.search, {
       preserveScroll: true,
       replace: true,
       only: ['tab', 'realizado'],
@@ -605,7 +612,15 @@ function FinanceiroFluxo(props: Props) {
           dias={props.dias}
         />
       ) : (
-        <RealizadoView realizado={props.realizado ?? null} />
+        <>
+          {/* US-FIN-075 — o filtro vale para o realizado (baixas); a projeção segue a empresa toda. */}
+          {(props.centros_custo ?? []).length > 0 && (
+            <div className="px-6 pt-3 flex justify-end">
+              <CentroCustoSelect centros={props.centros_custo ?? []} valor={props.centro_custo ?? null} only={['realizado']} />
+            </div>
+          )}
+          <RealizadoView realizado={props.realizado ?? null} />
+        </>
       )}
     </div>
   );

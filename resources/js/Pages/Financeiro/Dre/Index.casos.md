@@ -80,6 +80,10 @@ Trocar de aba não re-carrega o demonstrativo inteiro (D-14).
 Status: 🧪 (`DreControllerTest` — business_id da session, nunca do query param)
 Nenhum `business_id` aceito por querystring ([ADR 0093]); GET não muta; export PDF/Excel não recalcula valor.
 
+## UC-DRE-09 — Filtro por centro de custo `[V0]`
+Status: 🧪 (`RelatoriosCentroCustoContratoTest` + `CentroCustoFiltroContratoTest`)
+Dado títulos rateados (US-FIN-075) · Quando escolho um centro no seletor do demonstrativo · Então a DRE soma só a fatia do centro (`?centro_custo=<id>`); "Sem centro" soma só títulos sem rateio; os exports saem com o mesmo filtro. Centro de outra empresa não traz nada.
+
 ## Backlog de casos (sem id)
 - **[BACKLOG] Export PDF/Excel bate com a tela** — `DreExport`/`pdf/dre.blade.php` devolvem os mesmos números do demonstrativo exibido.
 - **[BACKLOG] Meta de margem 12%** — card inferior compara margem com a meta hardcode F1 (config por tenant é backlog).
