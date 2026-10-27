@@ -233,6 +233,15 @@ last_run: "2026-10-26"
 
 ---
 
+## UC-CXU-20 · DM do Instagram, Messenger e e-mail caem na mesma caixa, fila e atendente
+- **Persona:** atendente — o cliente escreveu pelo Instagram (ou Messenger, ou e-mail) e não pelo WhatsApp.
+- **Aceite:** Dado um canal Instagram, Messenger ou e-mail ativo na empresa · Quando o cliente manda recado · Então ele vira conversa na mesma lista da Caixa (mesma `conversations`), o 2º recado cai na mesma conversa sem tirar o atendente, reentrega não duplica, e o mesmo e-mail em outra empresa fica na conversa daquela empresa.
+- **Teste:** `Modules/Whatsapp/Tests/Feature/RecebimentoOmnicanalContratoTest.php` — os 5 casos `UC-CXU-20 · US-WA-329 · …` (lane MySQL `whatsapp-pest.yml`, tenant 98 × 99).
+- **Regressão que defende:** criar caixa paralela por canal (ADR 0135 descartou tabelas por canal) e o vazamento de e-mail entre empresas pelo `provider_message_id` único no banco inteiro.
+- **Status: ⬜** — CT 100 fora do ar em 2026-10-27; o veredito vem da lane MySQL do CI.
+
+---
+
 ## Backlog (prosa honesta — sem UC até ganhar teste que o cite)
 
 O charter descreve estes comportamentos e eles existem na tela, mas **não têm teste** hoje —
