@@ -61,6 +61,15 @@ last_run: "2026-07-08"
 
 ---
 
+## UC-CLED-06 · Abrir o extrato de um contato de outra empresa responde 404
+- **Persona:** operador de qualquer empresa — trocar o `contact_id` na URL do extrato não pode mostrar o cliente de outra empresa.
+- **Aceite:** Dado um contato da minha empresa e um de outra · Quando abro `/contacts/ledger?contact_id=` com cada um · Então o meu abre (200) e o alheio responde **404**, sem nome, celular nem e-mail dele; e `POST /contacts/send-ledger` com o contato alheio responde 404 sem enviar e-mail.
+- **Teste:** `tests/Feature/Cliente/ClienteLedgerTenantIsolationTest.php` (Pest, lane Cliente · MySQL).
+- **Regressão que defende:** até 2026-10-27 o extrato fazia `Contact::find($contact_id)` sem `business_id` e devolvia os dados do contato de outra empresa (ADR 0093 Tier 0). `Contact` não tem escopo global.
+- **Status: 🧪** — teste escrito; volta a ✅ quando `casos:results` regravar o manifesto.
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão. Itens SEM token de UC até existir teste real.
@@ -78,6 +87,7 @@ last_run: "2026-07-08"
 | UC-CLED-03 | CU-CLI-08 | — |
 | UC-CLED-04 | CU-CLI-09 · CU-CLI-11 | — |
 | UC-CLED-05 | CU-CLI-08 | — |
+| UC-CLED-06 | CU-CLI-09 · CU-CLI-11 | — |
 
 > Coluna US vazia de propósito: o saldo do cliente (`getContactDue`/`getLedgerDetails`) **não tem US no SPEC** — o dente nasceu como onda de cálculo, não como US. É registro honesto de que a régua de valor mais crítica do módulo está fora do escopo declarado.
 
@@ -89,3 +99,4 @@ last_run: "2026-07-08"
 ## Trilha do tempo
 - 2026-07-27 · [CC] chip S-Cliente do passo 5 (agent `sdd-from-source`). **Nenhum UC reescrito** — o dente `[V0]` segue intacto (mexer em `getContactDue`/`getLedgerDetails` é US separada sob REGRA MESTRE). Correção factual: o dente de valor do saldo do cliente rodava **só no nightly**, em nenhuma lane de PR; lane criada agora, **advisory**, com a força declarada. + ponteiro pro SDD §6.2. Refs: [SDD Cliente](../../../../memory/requisitos/Cliente/SDD-cadastro-cliente-v1.0.md) · [ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md).
 - 2026-07-08 · [CC] criado — 1ª lane do módulo Cliente (casos_coverage 0% → trio Ledger fechado). 5 UCs ancorados no dente `CalculoValorClienteTest` (getContactDue + getLedgerDetails all_balance_due + dupla confirmação + multi-tenant), parte de "ligar a máquina do protocolo" (SDD anti-fachada). Statuses 🧪 (teste cita o UC e passa; manifesto per-UC regrava depois). Refs: [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md) G-1/G-2 · REGRA MESTRE cálculo de valor (proibicoes.md).
+- 2026-10-27 · [CC] UC-CLED-06: extrato e envio por e-mail passam a recusar contato de outra empresa (404). Furo achado na migração do núcleo (sessão mig-nucleo-contatos-geral).
