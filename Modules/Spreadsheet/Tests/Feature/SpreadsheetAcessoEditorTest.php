@@ -210,3 +210,61 @@ it('UC-PLED-07 · ?legacy=1 abre as Blades até o F5', function () {
     $this->get('/spreadsheet/sheets/'.$minha.'?legacy=1')->assertOk()->assertViewIs('spreadsheet::sheet.show');
     $this->get('/spreadsheet/sheets/create?legacy=1')->assertOk()->assertViewIs('spreadsheet::sheet.create');
 });
+
+// ── Compartilhar (thread telas-soltas/04, ações da lista) — UC-PLAN-06 a 08 ───────────────
+
+function edXhr($test): mixed
+{
+    return $test->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json']);
+}
+
+function edShares(int $sheet): array
+{
+    return DB::table('sheet_spreadsheet_shares')->where('sheet_spreadsheet_id', $sheet)
+        ->orderBy('shared_with')->orderBy('shared_id')->get(['shared_with', 'shared_id'])
+        ->map(fn ($r) => $r->shared_with.':'.$r->shared_id)->all();
+}
+
+it('UC-PLAN-06 · [T0] não mexo no compartilhamento de planilha de outro negócio', function () {
+    \Illuminate\Support\Facades\Notification::fake();
+    $eu = edUser($this, $this->edBiz);
+    $dono = edUser($this, $this->edAlheio);
+    $alheia = edPlanilha($this, $this->edAlheio, (int) $dono->id, 'ED alheia');
+    edCompartilha($alheia, 'user', (int) $dono->id);
+    $antes = edShares($alheia);
+    $this->actingAs($eu);
+
+    edXhr($this)->post('/spreadsheet/post-share-sheet', ['sheet_id' => $alheia, 'share' => ['user' => [(int) $eu->id]]])->assertNotFound();
+    edXhr($this)->get('/spreadsheet/get-sheet/'.$alheia.'/share')->assertNotFound();
+
+    expect(edShares($alheia))->toBe($antes);
+});
+
+it('UC-PLAN-07 · só quem criou compartilha; colega que recebeu não redistribui', function () {
+    \Illuminate\Support\Facades\Notification::fake();
+    $dono = edUser($this, $this->edBiz);
+    $colega = edUser($this, $this->edBiz);
+    $terceiro = edUser($this, $this->edBiz);
+    $sheet = edPlanilha($this, $this->edBiz, (int) $dono->id, 'ED do dono');
+    edCompartilha($sheet, 'user', (int) $colega->id);
+    $this->actingAs($colega);
+
+    edXhr($this)->post('/spreadsheet/post-share-sheet', ['sheet_id' => $sheet, 'share' => ['user' => [(int) $terceiro->id]]])->assertNotFound();
+
+    expect(edShares($sheet))->toBe(['user:'.$colega->id]);
+});
+
+it('UC-PLAN-08 · [T0] o dono compartilha com gente do negócio; id de outro negócio é ignorado', function () {
+    \Illuminate\Support\Facades\Notification::fake();
+    $dono = edUser($this, $this->edBiz);
+    $colega = edUser($this, $this->edBiz);
+    $alheio = edUser($this, $this->edAlheio);
+    $sheet = edPlanilha($this, $this->edBiz, (int) $dono->id, 'ED do dono');
+    $this->actingAs($dono);
+
+    $r = edXhr($this)->post('/spreadsheet/post-share-sheet', ['sheet_id' => $sheet, 'share' => ['user' => [(int) $colega->id, (int) $alheio->id]]]);
+
+    $r->assertOk();
+    expect((bool) $r->json('success'))->toBeTrue();
+    expect(edShares($sheet))->toBe(['user:'.$colega->id]);
+});
