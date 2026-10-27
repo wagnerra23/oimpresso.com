@@ -865,6 +865,8 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::post('/purchases/check_ref_number', [PurchaseController::class, 'checkRefNumber']);
     // US-COM-005 — layout da grade tam×cor pra produto variável (Tier 0 via business_id da sessão).
     Route::get('/purchases/grade-matrix', [PurchaseController::class, 'gradeMatrix'])->name('purchases.grade-matrix');
+    // US-COM-013 — pedidos de compra abertos do fornecedor, para receber em partes.
+    Route::get('/purchases/pedidos-abertos', [PurchaseController::class, 'pedidosAbertos'])->name('purchases.pedidos-abertos');
     Route::resource('purchases', PurchaseController::class)->except(['show']);
 
     // As rotas /sells (subscriptions, drafts, quotations, duplicate, convert-to-draft,
@@ -1037,6 +1039,9 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('sell-return/get-product-row', [SellReturnController::class, 'getProductRow']);
     Route::get('/sell-return/print/{id}', [SellReturnController::class, 'printInvoice']);
     Route::get('/sell-return/add/{id}', [SellReturnController::class, 'add']);
+    // US-VEST-021 — vale-troca: o valor da devolução vira saldo de Adiantamento do cliente.
+    Route::post('/sell-return/{id}/vale-troca', [SellReturnController::class, 'valeTroca'])->whereNumber('id');
+    Route::post('/sell-return/vale-troca-da-venda/{vendaId}', [SellReturnController::class, 'valeTrocaDaVenda'])->whereNumber('vendaId');
 
     //Backup
     Route::get('backup/download/{file_name}', [BackUpController::class, 'download']);

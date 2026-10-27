@@ -160,6 +160,10 @@ jobs:
             --log-junit test-results/pest-whatsapp-junit.xml \
             Modules/Whatsapp/Tests/Feature/RegisterWhatsappPermissionsCommandTest.php \
             Modules/Whatsapp/Tests/Feature/AppAtendimentoApiContratoTest.php \
+            Modules/Whatsapp/Tests/Feature/BotMenuAtendimentoContratoTest.php \
+            Modules/Whatsapp/Tests/Feature/BotMenuConfigContratoTest.php \
+            Modules/Whatsapp/Tests/Feature/BroadcastDisparoContratoTest.php \
+            Modules/Whatsapp/Tests/Feature/BroadcastDispararEndpointContratoTest.php \
             Modules/Whatsapp/Tests/Feature/NotificadorClienteWhatsappContratoTest.php \
             Modules/Whatsapp/Tests/Feature/AvisoVendaWhatsappApiContratoTest.php \
             Modules/Whatsapp/Tests/Feature/DanfePorWhatsappContratoTest.php \

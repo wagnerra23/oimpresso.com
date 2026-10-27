@@ -4,9 +4,9 @@
 //   runbook: memory/requisitos/AssetManagement/RUNBOOK-patrimonio-index.md
 //   adrs:    0394 (endereço Pages/Patrimonio/**) · 0104 (MWART) · 0093 (multi-tenant)
 //
-// Dois números do protótipo NÃO renderizam e mostram `—`: valor residual (a depreciação
-// nunca é calculada, e a regra é decisão [W] em aberto) e custo de manutenção (a tabela
-// não tem coluna de valor). Ver RUNBOOK §3 — não invente fórmula pra preenchê-los.
+// O valor residual é a depreciação GERENCIAL linear (US-ASSET-009, decisão [W] 2026-10-26) e
+// mostra `—` quando nenhum bem tem vida útil. O custo de manutenção segue `—` (a tabela não tem
+// coluna de valor). Ver RUNBOOK §3.
 import * as React from 'react';
 import { Deferred, router } from '@inertiajs/react';
 import AppShellV2 from '@/Layouts/AppShellV2';
@@ -26,8 +26,10 @@ import PatrimonioSubNav from './_shared/PatrimonioSubNav';
 
 interface Kpis {
   bruto: number;
-  /** `null` quando não há fonte — a depreciação não é calculada (RESÍDUO 6, decisão [W]). */
+  /** Depreciação gerencial linear dos bens com vida útil; `null` quando nenhum bem tem prazo. */
   valorResidual: number | null;
+  /** Bens sem vida útil ou sem data de compra — ficam fora do residual. */
+  residualSemPrazo?: number;
   unidades: number;
   totalBens: number;
   alocados: number;
@@ -419,7 +421,12 @@ export default function Index({ abas_contadores, is_admin, pode, apurado_em, kpi
                     </b>{' '}
                     e{' '}
                     <b className="text-foreground">{brl(kpis.bruto)}</b> de patrimônio bruto. O valor
-                    residual depois da depreciação não é calculado pelo sistema ({SEM_FONTE}).{' '}
+                    residual gerencial depois da depreciação é{' '}
+                    {kpis.valorResidual === null ? (
+                      <>{SEM_FONTE}, porque nenhum bem tem vida útil cadastrada.</>
+                    ) : (
+                      <><b className="text-foreground">{brl(kpis.valorResidual)}</b>.</>
+                    )}{' '}
                     {kpis.garantiaCritica > 0 ? (
                       <>Hoje pesa a <b className="text-foreground">cobertura</b>: {kpis.garantiaCritica}{' '}
                       {plural(kpis.garantiaCritica, 'bem', 'bens')} com garantia vencida ou vencendo em até 30 dias.</>
@@ -480,7 +487,11 @@ export default function Index({ abas_contadores, is_admin, pode, apurado_em, kpi
                   label="Valor residual"
                   value={kpis.valorResidual === null ? SEM_FONTE : brl(kpis.valorResidual)}
                   icon="trending-down"
-                  description="a regra de depreciação ainda não foi definida"
+                  description={
+                    kpis.valorResidual === null
+                      ? 'nenhum bem tem vida útil cadastrada'
+                      : `gerencial, linear${kpis.residualSemPrazo ? ` · ${kpis.residualSemPrazo} ${plural(kpis.residualSemPrazo, 'bem', 'bens')} sem vida útil fora da conta` : ''}`
+                  }
                 />
                 <KpiCard
                   label="Alocados"

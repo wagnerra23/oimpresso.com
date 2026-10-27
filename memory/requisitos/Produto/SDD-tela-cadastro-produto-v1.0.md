@@ -6,8 +6,8 @@ type: sdd
 module: Produto
 status: ativo
 owner: wagner
-version: 1.0.8
-last_updated: 2026-10-20
+version: 1.0.10
+last_updated: 2026-10-21
 related_docs:
   - SPEC.md
   - BRIEFING.md
@@ -974,8 +974,12 @@ travar uma nota — sem impedir o cadastro de ser salvo.
 - **Protótipo:** o `Product Cadastro.html` (Cowork do [F]) já desenha isso no painel lateral —
   *"Faltam: nome, NCM"*.
 - **Hoje no oimpresso:** 🟡 o Novo produto avisa NCM vazio ou incompleto (`UC-PCAD-14`), sem impedir
-  o salvamento — o cadastro mínimo (`CU-PROD-01`) continua sendo só nome e SKU. Falta olhar a natureza
-  (`CU-PROD-19`) e o EAN.
+  o salvamento — o cadastro mínimo (`CU-PROD-01`) continua sendo só nome e SKU. O Editar não avisa
+  falta de NCM em produto de serviço (`UC-PEDIT-14`). Com tipo EAN-13, EAN-8 ou UPC-A, o Novo e o
+  Editar avisam SKU que não vira código de barras válido (`UC-PCAD-17` e `UC-PEDIT-15`): letra, dígito
+  a mais ou dígito verificador errado. Esse aviso protege a **etiqueta** (a biblioteca recusa o
+  código); a nota fiscal não usa o EAN hoje, porque o emissor do NfeBrasil manda "SEM GTIN". Falta a
+  origem vazia.
 
 #### CU-PROD-19 — Natureza fiscal (mercadoria × serviço) e campos da nota de serviço `[must]` 🟡 **parcial**
 
@@ -997,7 +1001,10 @@ cadastro pede os dados da nota certa: NCM para mercadoria, item da LC 116 para s
      (índice único `business_id + product_id`).
   2. ✅ Só o contador decide, com fonte (`UC-NFTR-32`, tela de Tributação). A NF-e recusa item de serviço
      (`UC-NFTR-31`).
-  3. 🔴 A natureza **não aparece no cadastro do produto**.
+  3. 🟡 A natureza aparece no **Editar** (`UC-PEDIT-14`): "Natureza fiscal: Serviço · item 24.01 da LC 116",
+     "Mercadoria" ou "A decidir pelo contador", com o link para a Tributação. Produto de serviço não recebe
+     o aviso de "sem NCM". O núcleo pede o dado ao NfeBrasil pelo gancho `getModuleData`, sem importá-lo.
+     Ainda não aparece no **Novo produto** (produto novo não tem decisão) nem na ficha.
   4. 🟡 Na NFS-e o código da LC 116 vem do padrão da empresa (`nfse_provider_configs.lc116_codigo_default`),
      não do produto. O código de tributação nacional (`ctrib_nac`) só existe na emissão.
   5. 🔴 Código de tributação municipal e NBS não existem no código (o único `cTribMun` é um comentário em
@@ -1232,6 +1239,8 @@ cadastro pede os dados da nota certa: NCM para mercadoria, item da LC 116 para s
 
 **Histórico:**
 
+- 2026-10-21 — **`CU-PROD-18` ganha o aviso de EAN** (v1.0.10): `UC-PCAD-17` e `UC-PEDIT-15`. O aviso protege a etiqueta; a nota fiscal não usa o EAN hoje. [M+C]
+- 2026-10-21 — **`CU-PROD-19` item 3 passa de 🔴 a 🟡** (v1.0.9): o Editar mostra a natureza fiscal decidida pelo contador (`UC-PEDIT-14`) e o aviso de NCM deixa de aparecer para produto de serviço. Falta: Novo produto, ficha, e o item da LC 116 por produto na NFS-e (item 4). [M+C]
 - 2026-10-20 — **§6.1 ganha `CU-PROD-16`, `CU-PROD-17` e `CU-PROD-18`** (v1.0.8): dados fiscais para nota, peso e dimensões, aviso de pendência fiscal. Origem: benchmark de concorrentes da tela de cadastro (Bling, Tiny/Olist, Conta Azul, Omie, Shopify), registrado também na [CAPTERRA-FICHA §11](CAPTERRA-FICHA.md). Mesmo dia: [M] decidiu que o NCM entra no cadastro; pesquisa refeita com ERPs de comunicação visual, que trouxe `CU-PROD-19` (natureza mercadoria × serviço) e `CV-06`…`CV-11`. Nenhum UC novo em `casos.md` ainda. [M+C]
 - 2026-07-27 — **Badge de proveniência nas 12 seções** (v1.0.6). Fecha a dívida que o próprio exemplar criou ao virar template: o [SDD-TEMPLATE.md](../_DesignSystem/SDD-TEMPLATE.md), extraído daqui em 2026-07-26, passou a exigir badge por seção e este documento tinha **zero** (medido: `grep -cE "⚙️|🖐"` → 0). Badges atribuídos **pela tabela do template**, não por julgamento. Mudança de forma: nenhum CU/fluxo/risco/roadmap tocado. [CC]
 - 2026-07-26 (3ª corrida `sdd-from-source`, tela `Produto/Index`) — **§5.3 novo `F8` (lista do catálogo) + §6.1 novo `CU-PROD-15` (consultar o catálogo)**, derivados por triangulação React + Blade + Delphi ([ADR 0351](../../decisions/0351-sdd-from-source.md)). Particularidade do alvo: a "Blade legada" é o **outro branch do mesmo método** `index()` — a paridade é comparação interna do controller. **Achado principal:** a lista React entrega `price`/`cost`/`margin` de todo o catálogo **sem consultar permissão**, enquanto a própria lista Blade gateia as duas colunas com `@can` (`index.blade.php:287,294`) e o Delphi faz o campo sumir (`AR-PROD-015`) — mesmo furo do `CU-PROD-14.1`, agora em lote. **Achado de alcance:** `limit(200)` sem paginação com o KPI anunciando o total (perda silenciosa). **Achado de arquitetura:** `App\Product` **não tem global scope** (`addGlobalScope` = 0) — todo o isolamento do módulo é `where` manual repetido, o que reclassifica o §3.1 (ver ⚠️ abaixo). Trio fechado em [`Index.casos.md`](../../../resources/js/Pages/Produto/Index.casos.md) + `ProdutoIndexContratoTest` (failing-first, lane `Estoque · MySQL`). Nenhum UC ✅ — veredito é da lane. [CC]

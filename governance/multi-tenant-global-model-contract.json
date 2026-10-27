@@ -4,6 +4,11 @@
     "Modules/NfeBrasil/Models/NfeSefazStatus.php": {
       "reason": "Entidade system-wide que registra a saude do autorizador SEFAZ por UF. O fato observado e comum aos tenants; a decisao de ativar contingencia permanece isolada por business em nfe_business_configs.",
       "decision": "memory/requisitos/NfeBrasil/adr/tech/0002-contingencia-epec-fsda-retentativa-ordenada.md"
+    },
+    "Modules/Marketplaces/Entities/Marketplace.php": {
+      "reason": "Catalogo somente leitura dos marketplaces suportados (mkt_marketplaces): nome, slug e URLs da API, iguais para toda empresa. Nao guarda dado de empresa. Credencial, conta do vendedor, pedido, anuncio e webhook continuam com business_id e global scope (mkt_accounts, mkt_orders, mkt_listings, mkt_webhook_log). O Model recusa criar, alterar e apagar; so a migration de seed escreve, e nenhuma rota expoe escrita.",
+      "decision": "memory/decisions/0439-ativacao-modulo-marketplaces-mercado-livre-primeiro.md",
+      "approved": "[W] 2026-10-26 (excecao da ADR 0093, relayed pela sessao coordenadora)"
     }
   }
 }

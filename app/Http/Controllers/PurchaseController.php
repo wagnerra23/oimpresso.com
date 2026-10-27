@@ -525,6 +525,7 @@ class PurchaseController extends Controller
         // store() é compartilhado Blade+Inertia; bloqueia payload forjado cross-tenant.
         // Fora do try de propósito pra o 422 não ser engolido pelo catch genérico.
         $this->assertPurchaseVariationsOwnership($request);
+        $this->assertPurchaseOrdersAprovados($request); // US-COM-032
 
         // Validação FORA do try: dentro dele a ValidationException era engolida pelo catch
         // genérico e virava "algo deu errado" — a tela React nunca recebia o erro do campo.
@@ -1122,6 +1123,7 @@ class PurchaseController extends Controller
         // PurchaseLine::findOrFail sem escopo). Fora do try pra o 422 não virar mensagem crua.
         $this->assertPurchaseVariationsOwnership($request);
         $this->assertPurchaseLinesBelongTo($request, (int) $id);
+        $this->assertPurchaseOrdersAprovados($request); // US-COM-032
 
         try {
             $business_id = request()->session()->get('user.business_id');
@@ -1542,6 +1544,21 @@ class PurchaseController extends Controller
         abort_if($valid_count !== $line_ids->count(), 422, 'Linha de compra inválida para esta compra.');
     }
 
+    /**
+     * US-COM-032 — pedido de compra que passou da alçada só vira compra recebida depois de aprovado.
+     * Pendente ou recusado = 422 antes de qualquer escrita. Sem o módulo Compras, não há alçada.
+     */
+    private function assertPurchaseOrdersAprovados(Request $request): void
+    {
+        $ids = array_filter(array_map('intval', (array) $request->input('purchase_order_ids', [])));
+        if ($ids === [] || ! class_exists(\Modules\Compras\Services\AlcadaDoPedido::class)) {
+            return;
+        }
+        $bloqueados = app(\Modules\Compras\Services\AlcadaDoPedido::class)
+            ->bloqueiaRecebimento((int) $request->session()->get('user.business_id'), $ids);
+        abort_if($bloqueados !== [], 422, 'Há pedido de compra aguardando aprovação da alçada (ou recusado).');
+    }
+
     private function assertPurchaseVariationsOwnership(Request $request): void
     {
         $business_id = $request->session()->get('user.business_id');
@@ -1584,6 +1601,31 @@ class PurchaseController extends Controller
      * Resposta casa 1:1 com GradeMatrixInputProps (rows/cols = {id,label};
      * cellVariationMap keyed `${rowId}__${colId}` igual ao cellKey do componente).
      */
+    /**
+     * US-COM-013 — pedidos de compra abertos do fornecedor, com o que falta receber por linha.
+     * A tela de compra usa para receber o pedido em partes (decisão coordenação 2026-10-26).
+     * Tier 0: o serviço filtra pela empresa da sessão; fornecedor de outra empresa = lista vazia.
+     */
+    public function pedidosAbertos(Request $request)
+    {
+        if (! auth()->user()->can('purchase.create')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $request->validate([
+            'contact_id' => 'required|integer',
+            'location_id' => 'nullable|integer',
+        ]);
+
+        $pedidos = app(\App\Services\Purchase\PedidosAbertosDoFornecedor::class)->listar(
+            (int) $request->session()->get('user.business_id'),
+            (int) $request->input('contact_id'),
+            $request->filled('location_id') ? (int) $request->input('location_id') : null,
+        );
+
+        return response()->json(['pedidos' => $pedidos]);
+    }
+
     public function gradeMatrix(Request $request)
     {
         if (! auth()->user()->can('purchase.create')) {

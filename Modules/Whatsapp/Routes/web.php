@@ -240,6 +240,11 @@ Route::group([
     Route::post('/broadcast', [BroadcastController::class, 'store'])
         ->middleware('can:whatsapp.send')
         ->name('atendimento.broadcast.store');
+    // US-WA-323 (ADR 0268 fase 2) — interrompe uma campanha em disparo: os envios ainda agendados não saem.
+    Route::post('/broadcast/{id}/cancelar', [BroadcastController::class, 'cancelar'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.broadcast.cancelar');
 
     // PR-9 brief [CC] — IA na thread (laravel/ai, mesma infra dos Agents Jana).
     // dry_run da Jana gateia custo; PII redigida antes do provider (LGPD).
@@ -311,6 +316,11 @@ Route::group([
         ->whereNumber('id')
         ->middleware('can:whatsapp.settings.manage')
         ->name('atendimento.channels.show');
+    // US-WA-327 — menu do bot de atendimento do canal (motor US-WA-324).
+    Route::put('/canais/{id}/menu-bot', [\Modules\Whatsapp\Http\Controllers\Admin\BotMenuController::class, 'update'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.channels.menu_bot');
 
     Route::delete('/canais/{id}', [ChannelsController::class, 'destroy'])
         ->whereNumber('id')

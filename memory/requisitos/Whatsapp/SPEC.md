@@ -2010,6 +2010,79 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 Refs: ROADMAP-SDD (sweep do mês)
 
+### US-WA-322 · Campanha por WhatsApp — disparo real com salvaguardas anti-ban (ADR 0268 fase 2)
+
+**Implementado em:** `Modules/Whatsapp/Jobs/DispararBroadcastJob.php` · `Modules/Whatsapp/Jobs/EnviarItemBroadcastJob.php` · `Modules/Whatsapp/Services/Broadcast/PlanoDeDisparo.php` · `Modules/Whatsapp/Database/Migrations/2026_10_26_000001_add_contadores_to_whatsapp_broadcasts.php` · `Modules/Whatsapp/Tests/Feature/BroadcastDisparoContratoTest.php`
+
+**Testado em:** `Modules/Whatsapp/Tests/Feature/BroadcastDisparoContratoTest.php`
+
+> owner: — · priority: p1 · estimate: 8h · type: story
+> blocked_by: —
+
+**Origem:** lacuna P1 do levantamento de 2026-10-25 (campanha em massa só tinha pré-checagem e rascunho). Fase 2 da US-WA-306 / ADR 0268, destravada por [W] em 2026-10-26.
+
+**Critérios de aceite:**
+1. Flag `whatsapp.broadcast.disparo_enabled` (env `WHATSAPP_BROADCAST_DISPARO_ENABLED`) desligada: rascunho fica rascunho.
+2. Disparar tira a campanha de `draft` para `dispatching` uma vez só (troca condicional) e agenda um envio por conversa; só texto livre (template HSM fica para canal oficial).
+3. Anti-ban: intervalo aleatório entre envios (20–45s), só das 8h às 20h no fuso da empresa, até 200 por dia — 40 enquanto o canal tem menos de 7 dias (aquecimento); o excedente passa ao dia seguinte.
+4. No momento do envio, rechecagem: campanha ainda em `dispatching` (cancelada não envia), conversa da empresa e do canal, não bloqueada, contato com `whatsapp_opt_in_at` e sem recusa (`canReceiveWhatsappNotification`). Falhou: conta como `pulado`.
+5. Envio pelo mesmo caminho da caixa de entrada (`EnvioDeTextoNoCanal`), mensagem `sender_kind=system`; sem retry automático (evita duplicata).
+6. Contadores `total/enviados/falhas/pulados`; campanha vira `done` quando a soma chega ao total.
+
+Ligar em produção é decisão [W]. Botão de disparar/cancelar na tela: US seguinte.
+
+### US-WA-323 · Campanha por WhatsApp — "Salvar e disparar" e cancelar na Caixa Unificada
+
+**Implementado em:** `Modules/Whatsapp/Http/Controllers/Admin/BroadcastController.php` · `Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/_components/BroadcastSheet.tsx` · `Modules/Whatsapp/Tests/Feature/BroadcastDispararEndpointContratoTest.php`
+
+**Testado em:** `Modules/Whatsapp/Tests/Feature/BroadcastDispararEndpointContratoTest.php`
+
+> owner: — · priority: p1 · estimate: 4h · type: story
+> blocked_by: US-WA-322
+
+**Critérios de aceite:**
+1. Botão "Salvar e disparar" no painel de campanha: ligado só com `WHATSAPP_BROADCAST_DISPARO_ENABLED` e texto livre; desligado, diz por quê.
+2. `store` com `disparar=true`: flag desligada ou template → recusa sem gravar; canal com campanha em `dispatching` → recusa (uma por vez por canal, para o limite anti-ban valer).
+3. Ligada: grava a campanha e agenda `DispararBroadcastJob` (US-WA-322) da própria empresa.
+4. `POST /atendimento/broadcast/{id}/cancelar` (`can:whatsapp.send` + acesso ao canal): `dispatching → cancelled`; os envios agendados não saem. Campanha de outra empresa: 404.
+5. Contrato da tela: `UC-CXU-19` em `CaixaUnificada/Index.casos.md`.
+
+### US-WA-324 · Bot de atendimento com menu — opção leva à fila, coleta o nome, depois humano
+
+**Implementado em:** `Modules/Whatsapp/Services/BotMenu/MenuDeAtendimento.php` · `Modules/Whatsapp/Listeners/ResponderMenuDeAtendimento.php` · `Modules/Whatsapp/Database/Migrations/2026_10_26_000002_create_whatsapp_bot_menu_tables.php`
+
+**Testado em:** `Modules/Whatsapp/Tests/Feature/BotMenuAtendimentoContratoTest.php`
+
+> owner: — · priority: p1 · estimate: 8h · type: story
+> blocked_by: —
+> parent_plan: plano-atendimento-automatico
+
+**Origem:** lacuna P1 do levantamento de 2026-10-25 (bot com menu e coleta de dados). Etapa E4 do [PLANO-ATENDIMENTO-AUTOMATICO](PLANO-ATENDIMENTO-AUTOMATICO.md), adiada em 2026-06-20 e destravada por [W] em 2026-10-26 — como menu de regras, sem IA respondendo o cliente.
+
+**Critérios de aceite:**
+1. Flag `whatsapp.bot_menu.enabled` (env `WHATSAPP_BOT_MENU_ENABLED`) desligada, ou canal sem menu ativo: o bot não responde.
+2. Primeira mensagem do cliente (ou depois de 12h parada): saudação + opções numeradas.
+3. Opção válida: põe a conversa na fila da opção (`queue_override`, só se a fila existe na empresa) e responde; se o menu pede e a conversa não tem cliente cadastrado, pergunta o nome e grava em `contact_name`.
+4. Resposta inválida repete o menu uma vez; na segunda, avisa que vai passar a um atendente e para.
+5. Nunca responde a conversa com atendente, bloqueada, mensagem da importação de histórico ou com mais de 10 minutos, nem mensagem que não é texto. Menu de outra empresa não vale (Tier 0).
+6. Falha no envio: a conversa segue na fila humana (princípio 8).
+
+Ligar em produção é decisão [W]. Tela para configurar o menu do canal: US seguinte.
+
+### US-WA-327 · Tela de configurar o menu do bot por canal
+
+**Implementado em:** `Modules/Whatsapp/Http/Controllers/Admin/BotMenuController.php` · `Modules/Whatsapp/Resources/js/Pages/Atendimento/Channels/_components/BotMenuTab.tsx` · `Modules/Whatsapp/Resources/js/Pages/Atendimento/Channels/Show.tsx`
+
+**Testado em:** `Modules/Whatsapp/Tests/Feature/BotMenuConfigContratoTest.php`
+
+> owner: — · priority: p1 · estimate: 4h · type: story
+> blocked_by: US-WA-324
+
+**Critérios de aceite:**
+1. Aba "Menu do bot" em `/atendimento/canais/{id}` (permissão `whatsapp.settings.manage`): liga/desliga, saudação, até 9 opções (número, rótulo, fila da empresa, resposta) e "perguntar o nome".
+2. `PUT /atendimento/canais/{id}/menu-bot` grava um menu por canal (salvar de novo atualiza); canal de outra empresa → 404; fila de outra empresa e número repetido → recusados.
+3. O que a tela grava é o que o `MenuDeAtendimento` (US-WA-324) lê.
+4. Com a flag do sistema desligada, a aba avisa que o menu só responde depois de ligado.
 ### US-WA-319 · Notificador reutilizável de aviso automático ao cliente por WhatsApp (texto + anexo)
 
 **Implementado em:** `Modules/Whatsapp/Services/Notify/NotificadorClienteWhatsapp.php` · `Modules/Whatsapp/Services/Notify/ResultadoNotificacao.php` · `Modules/Whatsapp/Jobs/DespacharMensagemDoSistemaJob.php` · `Modules/Whatsapp/Tests/Feature/NotificadorClienteWhatsappContratoTest.php`

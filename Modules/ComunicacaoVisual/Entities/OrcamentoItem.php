@@ -80,6 +80,9 @@ class OrcamentoItem extends Model
         'horas_maquina_previstas',
         'custo_hora_previsto',
         'custo_maquina_previsto',
+        'area_cobrada_m2',
+        'valor_acabamentos',
+        'acabamentos_json',
     ];
 
     protected $casts = [
@@ -100,6 +103,9 @@ class OrcamentoItem extends Model
         'horas_maquina_previstas' => 'decimal:2',
         'custo_hora_previsto' => 'decimal:2',
         'custo_maquina_previsto' => 'decimal:2',
+        'area_cobrada_m2'  => 'decimal:3',
+        'valor_acabamentos' => 'decimal:2',
+        'acabamentos_json' => 'array',
     ];
 
     // ------------------------------------------------------------------
