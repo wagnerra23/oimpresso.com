@@ -24,6 +24,12 @@ class RecurringBillingServiceProvider extends ServiceProvider
         $this->registerObservers();
         $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
 
+        // US-RB-057: cobrança paga (origem_type=invoice) → fatura paga + InvoicePaid (desligado por config).
+        \Illuminate\Support\Facades\Event::listen(
+            \Modules\PaymentGateway\Events\CobrancaPaga::class,
+            [\Modules\RecurringBilling\Listeners\MarcarFaturaPagaDaCobranca::class, 'handle'],
+        );
+
         // US-RB-020/021: o banco mudou o status da recorrência Pix Automático → o mandato acompanha.
         \Illuminate\Support\Facades\Event::listen(
             \Modules\PaymentGateway\Events\RecorrenciaPixAtualizada::class,

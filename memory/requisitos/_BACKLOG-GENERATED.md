@@ -17,7 +17,7 @@
 | [`OficinaAuto`](#oficinaauto) | 39 | 0 | 0 | 0 | 38 |
 | [`Producao`](#producao) | 33 | 1 | 0 | 0 | 32 |
 | [`NfeBrasil`](#nfebrasil) | 29 | 0 | 0 | 6 | 23 |
-| [`Compras`](#compras) | 27 | 3 | 0 | 0 | 23 |
+| [`Compras`](#compras) | 28 | 4 | 0 | 0 | 23 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
@@ -619,6 +619,7 @@
 
 ### doing
 
+- **US-COM-029** — Compra a partir de pedido não aceita pedido nem linha de outra empresa — **P0** _(`p0`)_
 - **US-COM-024** — Custo do insumo numa data, pelo método da empresa (UC-FLX-38) _(`p1` · @wagner)_
 - **US-COM-026** — Compra recebida aplica a regra de custo e preço (UC-FLX-17) _(`p1` · @wagner)_
 - **US-COM-028** — Aprovar ou recusar o preço proposto no detalhe da compra (UC-FLX-17) — **P1** _(`p1` · @wagner)_

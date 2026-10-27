@@ -1160,3 +1160,26 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 **Nota de execução:** o teste #3737 já trava a divergência atual; ao unificar, o golden `divergencia_anchor_31_*` / `divergencia_vocabulario_cruzado_*` vai virar RED **conscientemente** — atualizar as asserções junto, documentando a decisão (é o sinal esperado, não regressão).
 
 **Refs:** PR #3737 · Onda 1.4 (`memory/requisitos/_Governanca/programa-ondas/onda-1-sells/1.4-dente-calculo.md`) · ADR 0093 · ADR 0101.
+
+### US-RB-057 · Cobrança paga pelo PaymentGateway marca a fatura da assinatura como paga e dispara InvoicePaid
+
+> owner: — · priority: p0 · estimate: 4h · status: done · type: story
+> blocked_by: —
+
+**Implementado em:** `Modules/RecurringBilling/Listeners/MarcarFaturaPagaDaCobranca.php` (registrado no `RecurringBillingServiceProvider`), `Modules/RecurringBilling/Tests/Feature/FaturaPagaPorCobrancaContratoTest.php`
+
+**Testado em:** `Modules/RecurringBilling/Tests/Feature/FaturaPagaPorCobrancaContratoTest.php`
+
+**Origem:** levantamento de concorrência de 2026-10-25, item "NF-e ao receber o pagamento da fatura" (código pronto e desligado). Medido em 2026-10-26: o `EmitirNFeAoReceberPagamento` escuta `InvoicePaid`, que só sai dos webhooks próprios do RecurringBilling (`ProcessAsaasWebhookJob` por `numero_documento`, `ProcessInterWebhookJob` por `gateway_ref` — que nenhum código de produção grava). O `CobrancaPaga` do PaymentGateway declara `RecurringBilling\Listeners\MarkInvoicePaid` como 1º listener (ADR 0170 CONTRACTS §3) e ele nunca existiu: a cobrança `origem_type = 'invoice'` emitida em `/financeiro/cobranca` e paga no banco deixava a fatura em aberto e não chegava à NF-e.
+
+⚠️ **REGRA MESTRE — VALOR** ([proibicoes.md](../../proibicoes.md)): muda o status da fatura para paga.
+
+**Aceite:**
+- [x] Cobrança `paga` com `origem_type = 'invoice'` marca a `rb_invoices` do mesmo business como `paid`, grava `pago_em` e dispara `InvoicePaid` com `numero_documento`, valor pago e data — uma vez só (retorno repetido = `ja_paga`).
+- [x] Só marca se o valor pago cobre a fatura, em centavos inteiros: 150,00 × 14.999 centavos não marca; 15.050 (juros) marca. Provado por dois caminhos (retorno do `marcar()` e a linha + o evento).
+- [x] Cobrança não paga ou de outra origem é ignorada; Tier 0: cobrança e fatura de businesses diferentes nunca se cruzam (98 × 99).
+- [x] Desligado por padrão (`RB_MARCAR_FATURA_PAGA_POR_COBRANCA`).
+
+**Depende do [W]:** ligar `RB_MARCAR_FATURA_PAGA_POR_COBRANCA` e, para a NF-e sair, `nfebrasil.auto_emission_on_invoice_paid` + certificado A1 e configuração fiscal do business (frente Fiscal).
+
+**Fora desta US:** cobrar a fatura automaticamente (hoje a cobrança da fatura só é emitida à mão) — é o motor da US-RECURRINGBILLING-002.
