@@ -28,7 +28,7 @@ lente: [construir]
 | Cms | [BRIEFING](../requisitos/Cms/BRIEFING.md) | 2026-09-15 |
 | Compras | [BRIEFING](../requisitos/Compras/BRIEFING.md) | 2026-10-27 |
 | ComunicacaoVisual | [BRIEFING](../requisitos/ComunicacaoVisual/BRIEFING.md) | 2026-10-26 |
-| Connector | [BRIEFING](../requisitos/Connector/BRIEFING.md) | 2026-08-03 |
+| Connector | [BRIEFING](../requisitos/Connector/BRIEFING.md) | 2026-10-26 |
 | ConsultaOs | [BRIEFING](../requisitos/ConsultaOs/BRIEFING.md) | 2026-10-02 |
 | Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-10-27 |
 | Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-09-29 |

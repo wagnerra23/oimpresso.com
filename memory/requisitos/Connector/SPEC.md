@@ -248,10 +248,14 @@ o veredito, a US segue pendente — arquivo existir não é teste passar (LC-13)
 
 ### US-CONN-021 · Webhooks de saída assinados por empresa (venda, pedido, cliente, estoque)
 
-> owner: — · priority: p1 · estimate: 12h · status: todo · type: story
+> owner: — · priority: p1 · estimate: 12h · type: story
 > blocked_by: —
 
-**Implementado em:** _pendente_ — planejada (lacunas 2026-10-25); nenhum código de webhook de saída no disco
+**Implementado em:** _parcial_ · `Modules/Connector/Services/WebhookSaida/DisparadorWebhookSaida.php` · `Modules/Connector/Jobs/EnviarWebhookSaidaJob.php` · `Modules/Connector/Listeners/VendaFinalizadaParaWebhookSaida.php` · `Modules/Connector/Tests/Feature/ConnectorWebhookSaidaContratoTest.php` — 2026-10-26: núcleo + evento `venda.finalizada`; faltam o cadastro do destino pela API, os eventos de cliente, venda cancelada e estoque, e a página no OpenAPI
+
+**Testado em:** `Modules/Connector/Tests/Feature/ConnectorWebhookSaidaContratoTest.php`
+
+**DoD:** venda finalizada da empresa avisa só os destinos dela, uma vez por venda, com payload sem dado pessoal; a entrega sai assinada (HMAC-SHA256 conferível pelo destino); recusa do destino não vira entregue e, esgotadas as tentativas, fica falhou; job com empresa errada não envia; segredo cifrado no banco.
 
 Origem: levantamento de lacunas 2026-10-25 (P1 Plataforma — API pública e webhooks de saída).
 - A empresa cadastra URL de destino + eventos (venda finalizada, venda cancelada, cliente criado/alterado, estoque alterado).
