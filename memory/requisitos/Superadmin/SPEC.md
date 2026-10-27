@@ -114,6 +114,18 @@ related_adrs:
 **Aceite:** KPIs saem do `SuperadminDashboardService`, não de query inline no controller (UC-SADASH-02) · a rota responde Inertia com o componente `superadmin/Dashboard/Index`, não Blade (UC-SADASH-01) · admin de negócio é barrado enquanto o superadmin passa (UC-SADASH-03) · as contagens enxergam TODOS os negócios, cross-tenant intencional por ADR 0093 §exceções (UC-SADASH-04) · nenhum bloco sem query no backend chega às props (UC-SADASH-05). Provado por `Modules/Superadmin/Tests/Feature/SuperadminDashboardContratoTest.php`.
 - **Parcial por escolha, não por esquecimento:** MRR, funil trial→pago, churn, receita por pacote e a fila "Vencendo ou vencido" ainda **não têm query** e por isso não são renderizados — o protótipo os desenha com mock, e mock em produção é número fabricado. Entram na SA-O1b (churn depende da migration `cancel_reason`, decisão [W] 2026-08-19)
 
+### US-SUPER-012 · Onboarding guiado da empresa nova e ajuda dentro do sistema
+
+> owner: — · priority: p2 · estimate: 10h · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_ — planejada (lacunas 2026-10-25); nenhum checklist de primeiros passos encontrado em `resources/js` (busca de 2026-10-26)
+
+Origem: levantamento de lacunas 2026-10-25 (P2 Plataforma — onboarding guiado e ajuda).
+- Lista de primeiros passos no início para a empresa nova (dados da empresa, primeiro produto, primeiro cliente, primeira venda, certificado fiscal), cada passo marcado como feito a partir do dado real, não de clique.
+- Some quando todos os passos estão feitos ou o usuário dispensa (por empresa).
+- Link de ajuda contextual por tela apontando para a documentação existente.
+
 ## Anti-padrões (NÃO fazer)
 
 - ❌ Expor rota do Superadmin sem middleware `is_superadmin`

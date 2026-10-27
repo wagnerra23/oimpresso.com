@@ -48,7 +48,7 @@ module: Marketplaces
 
 ## Jobs — 4
 
-- [AvaliarNfeDoPedidoJob.php](../../../Modules/Marketplaces/Jobs/AvaliarNfeDoPedidoJob.php)
+- [EmitirNfeDoPedidoJob.php](../../../Modules/Marketplaces/Jobs/EmitirNfeDoPedidoJob.php)
 - [ProcessarNotificacaoMercadoLivreJob.php](../../../Modules/Marketplaces/Jobs/ProcessarNotificacaoMercadoLivreJob.php)
 - [RenovarTokenContaJob.php](../../../Modules/Marketplaces/Jobs/RenovarTokenContaJob.php)
 - [VirarVendaJob.php](../../../Modules/Marketplaces/Jobs/VirarVendaJob.php)
@@ -100,7 +100,7 @@ module: Marketplaces
 ## Demais arquivos (manifestos, docs, assets e misc) — 5
 
 - [marketplaces.php](../../../Modules/Marketplaces/Resources/lang/pt-BR/marketplaces.php)
-- [AvaliarNfeAoEnviar.php](../../../Modules/Marketplaces/SideEffects/AvaliarNfeAoEnviar.php)
+- [EmitirNfeAoEnviar.php](../../../Modules/Marketplaces/SideEffects/EmitirNfeAoEnviar.php)
 - [composer.json](../../../Modules/Marketplaces/composer.json)
 - [module.json](../../../Modules/Marketplaces/module.json)
 - [SCOPE.md](../../../memory/requisitos/Marketplaces/SCOPE.md)

@@ -209,6 +209,39 @@ last_run: "2026-10-21"
 
 ---
 
+## Cobrança da venda leva só o saldo em aberto (US-SELL-055)
+
+> **Âncora:** aceite da **US-SELL-055** (`memory/requisitos/Sells/SPEC.md`): Pix gerado pela venda e
+> conciliado sozinho pelo retorno do banco. O retorno (`LancarPagamentoDaCobrancaNaVenda`) só lança o
+> pagamento que cabe no saldo; a cobrança então tem de nascer com o saldo, e não pode haver duas
+> valendo ao mesmo tempo. Endpoint: `POST /sells/{id}/emitir-cobranca`, chamado pelo drawer de cobrança
+> do detalhe da venda. Prova: `tests/Feature/Sells/SellsEmitirCobrancaSaldoContratoTest.php`.
+
+## UC-VCOB-01 · A cobrança leva o saldo em aberto, não o total da venda · `must`
+- **Aceite:** Dado uma venda de 500,00 com 200,00 já pagos · Quando emito a cobrança Pix · Então o gateway recebe 30000 centavos (300,00), com origem na venda.
+- **Teste:** `tests/Feature/Sells/SellsEmitirCobrancaSaldoContratoTest.php` — `UC-VCOB-01`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VCOB-02 · Venda quitada não gera cobrança · `must`
+- **Aceite:** Dado uma venda de 500,00 com 500,00 pagos · Quando emito a cobrança · Então `422` e o gateway não é chamado.
+- **Teste:** `tests/Feature/Sells/SellsEmitirCobrancaSaldoContratoTest.php` — `UC-VCOB-02`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VCOB-03 · Não há duas cobranças em aberto para a mesma venda · `must`
+- **Aceite:** Dado uma cobrança da venda emitida e ainda no prazo · Quando emito outra · Então `409` com o id da que existe, e o gateway não é chamado.
+- **Teste:** `tests/Feature/Sells/SellsEmitirCobrancaSaldoContratoTest.php` — `UC-VCOB-03`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VCOB-04 · Cobrança paga só libera outra depois de entrar como pagamento · `must`
+- **Aceite:** Dado uma cobrança paga de 200,00 ainda sem pagamento lançado na venda · Quando emito outra · Então `409`. Depois que o pagamento `PG-COB-<id>` entra na venda, emitir de novo cobra 30000 centavos.
+- **Teste:** `tests/Feature/Sells/SellsEmitirCobrancaSaldoContratoTest.php` — `UC-VCOB-04`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VCOB-05 · O drawer de cobrança mostra o Pix para o cliente pagar · `must`
+- **Aceite:** Dado uma cobrança Pix da venda emitida e no prazo · Quando abro o detalhe da venda · Então `cobranca.cob.pix_emv` traz o copia-e-cola, e o drawer mostra o QR, o texto e o botão Copiar. Depois que a cobrança é paga, `pix_emv` volta nulo e o código some. Logo após emitir, o drawer fica aberto mostrando o código.
+- **Teste:** `tests/Feature/Sells/SellsEmitirCobrancaSaldoContratoTest.php` — `UC-VCOB-05`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
 ## Cancelar a venda (US-SELL-077 · decisões [W] 2026-10-26)
 
 > **Âncora:** US-SELL-077 (`memory/requisitos/Sells/SPEC.md`). A ação FSM `cancelar_venda` (botão do drawer e do app)

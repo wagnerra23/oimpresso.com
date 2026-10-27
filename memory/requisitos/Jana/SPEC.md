@@ -2289,3 +2289,17 @@ esperado de um fluxo cuja primeira etapa não pede alvo e não sinaliza que falt
 ⚠️ **O que continua não medido:** *por que* aquele usuário não percorreu as etapas 2 e 3. A resposta
 provável está no próprio desenho (nada as indica), mas isso é inferência sobre intenção, não medição —
 e fica como tal.
+
+### US-COPI-151 · Jana propõe ação, usuário confirma no cartão, só então grava
+
+> owner: — · priority: p1 · estimate: 16h · status: todo · type: story
+> blocked_by: US-COPI-142
+
+**Implementado em:** _pendente_ — planejada (lacunas 2026-10-25); as tools do chat só leem (`ChatCopilotoAgent::tools()`), ligadas em produção desde 2026-07-17 (US-COPI-142)
+
+Origem: levantamento de lacunas 2026-10-25 (P1 Plataforma — IA que executa ações com aprovação). Pede ADR nova antes do código (proposta pela frente Plataforma).
+- A Jana nunca grava direto: ela devolve uma proposta de ação (tipo, alvo, campos) que a tela mostra num cartão com Confirmar/Cancelar.
+- Confirmar chama o mesmo serviço que a tela manual usa, com a permissão do usuário logado; sem permissão, o cartão nem aparece.
+- Primeiras ações: criar tarefa e registrar lembrete (sem valor nem estoque).
+- Toda proposta e confirmação vai para auditoria com `business_id` e usuário.
+- Teste 98 × 99: proposta criada na 98 não executa na 99.

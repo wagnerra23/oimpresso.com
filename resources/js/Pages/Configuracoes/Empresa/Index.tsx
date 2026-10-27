@@ -18,7 +18,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router } from '@inertiajs/react';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Textarea } from '@/Components/ui/textarea';
@@ -44,6 +44,17 @@ const ABAS: { g: string; itens: { id: string; label: string }[] }[] = [
   { g: 'Integrações', itens: [{ id: 'email', label: 'E-mail' }, { id: 'sms', label: 'SMS' }, { id: 'fidelidade', label: 'Pontos de fidelidade' },
     { id: 'modulos', label: 'Módulos' }, { id: 'rotulos', label: 'Rótulos personalizados' }, { id: 'app_lojas', label: 'App das lojas' }] },
 ];
+
+// Links que abrem uma aba direto pelo hash. A Blade chamava a aba do PDV de `pos` (Sidebar: `#pos`).
+const HASH_DA_BLADE: Record<string, string> = { pos: 'pdv' };
+
+function abaDoHash(): string {
+  if (typeof window === 'undefined') return 'negocio';
+  const h = decodeURIComponent(window.location.hash.slice(1));
+  const id = HASH_DA_BLADE[h] ?? h;
+  return ABAS.some((g) => g.itens.some((i) => i.id === id)) ? id : 'negocio';
+}
+
 const PRONTAS: Record<string, string> = {
   negocio: 'O que identifica a empresa e como o sistema conta dinheiro, data e quantidade.',
   imposto: 'Dois números fiscais aparecem no cabeçalho de todo documento.',
@@ -120,6 +131,8 @@ const BALANCA: [string, string, number, string][] = [['product_sku_length', 'Dí
 function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmin, app_lojas, opcoes }: Props) {
   const [corpo, setCorpo] = useState<Corpo>(inicial);
   const [aba, setAba] = useState('negocio');
+  // Depois de montar, para o render do servidor e o do navegador começarem iguais.
+  useEffect(() => setAba(abaDoHash()), []);
   const [arquivo, setArquivo] = useState<File | null>(null);
   const [sujo, setSujo] = useState(false);
   const [salvando, setSalvando] = useState(false);

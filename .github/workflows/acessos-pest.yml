@@ -117,6 +117,11 @@ on:
       - 'Modules/Woocommerce/Tests/Feature/Painel*'
       - 'Modules/Woocommerce/Tests/Feature/Configuracao*'
       - 'Modules/Woocommerce/Tests/Feature/Log*'
+      # US-WOO-007 — estoque do ERP volta para a Woo (job + listener + provider sob teste).
+      - 'Modules/Woocommerce/Jobs/**'
+      - 'Modules/Woocommerce/Listeners/**'
+      - 'Modules/Woocommerce/Providers/WoocommerceServiceProvider.php'
+      - 'Modules/Woocommerce/Tests/Feature/EstoqueVoltaParaWoo*'
       - 'app/Http/Controllers/BusinessController.php'
       - 'app/Services/FeatureFlagService.php'
       - 'config/feature-flags.php'
@@ -225,6 +230,11 @@ jobs:
               - 'Modules/Woocommerce/Tests/Feature/Painel*'
               - 'Modules/Woocommerce/Tests/Feature/Configuracao*'
               - 'Modules/Woocommerce/Tests/Feature/Log*'
+              # US-WOO-007 — estoque do ERP volta para a Woo (job + listener + provider sob teste).
+              - 'Modules/Woocommerce/Jobs/**'
+              - 'Modules/Woocommerce/Listeners/**'
+              - 'Modules/Woocommerce/Providers/WoocommerceServiceProvider.php'
+              - 'Modules/Woocommerce/Tests/Feature/EstoqueVoltaParaWoo*'
               - 'app/Http/Controllers/BusinessController.php'
               - 'app/Services/FeatureFlagService.php'
               - 'config/feature-flags.php'
@@ -290,6 +300,7 @@ jobs:
             Modules/Woocommerce/Tests/Feature/LogBaselineTest.php \
             Modules/Woocommerce/Tests/Feature/ConfiguracaoContratoTest.php \
             Modules/Woocommerce/Tests/Feature/LogContratoTest.php \
+            Modules/Woocommerce/Tests/Feature/EstoqueVoltaParaWooContratoTest.php \
             tests/Feature/VozDoCliente/CaixaContratoTest.php \
             tests/Feature/Configuracoes/ \
             tests/Feature/Restaurante/ \

@@ -27,7 +27,7 @@ use Spatie\Permission\Models\Role;
  *
  * Ações críticas (🔒, RBAC obrigatório): marcar_enviado, confirmar_entrega, cancelar_pedido.
  * `cancelar_pedido` usa o CancelarVendaCascade do núcleo (estorno de estoque, NF-e, avisos).
- * `marcar_enviado` põe na fila a avaliação da NF-e do pedido (US-MKT-009), que só age com a flag
+ * `marcar_enviado` põe na fila a emissão da NF-e do pedido (US-MKT-009), que só age com a flag
  * `marketplaces.nfe.automatica` ligada.
  *
  * Papéis por empresa (`roles.business_id` NOT NULL no UltimatePOS → sufixo `#{biz}`):
@@ -90,7 +90,7 @@ class FsmProcessoVendaMarketplaceSeeder extends Seeder
         $cascata = 'App\\Domain\\Fsm\\SideEffects\\CancelarVendaCascade';
         // [etapa de origem, chave, rótulo, destino, papéis, crítica, efeito]
         $acoes = [
-            ['pedido_recebido', 'marcar_enviado', 'Marcar como enviado', 'enviado', ['marketplaces.atendimento', 'marketplaces.gerente', 'marketplaces.system'], true, 'Modules\\Marketplaces\\SideEffects\\AvaliarNfeAoEnviar'],
+            ['pedido_recebido', 'marcar_enviado', 'Marcar como enviado', 'enviado', ['marketplaces.atendimento', 'marketplaces.gerente', 'marketplaces.system'], true, 'Modules\\Marketplaces\\SideEffects\\EmitirNfeAoEnviar'],
             ['enviado', 'confirmar_entrega', 'Confirmar entrega', 'entregue', ['marketplaces.atendimento', 'marketplaces.gerente', 'marketplaces.system'], true, null],
             ['pedido_recebido', 'cancelar_pedido', 'Cancelar pedido', 'cancelado', ['marketplaces.gerente', 'marketplaces.system'], true, $cascata],
             ['enviado', 'cancelar_pedido', 'Cancelar pedido', 'cancelado', ['marketplaces.gerente', 'marketplaces.system'], true, $cascata],

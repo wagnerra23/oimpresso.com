@@ -68,6 +68,10 @@ class FeatureFlagService
         // em React para todas as empresas. A tela segue listando máquinas. Rollback = flag OFF
         // no GrowthBook (UC-LOGS-16), o Blade segue no repo.
         'useV2OfficeimpressoLogs' => true,
+        // [W] 2026-10-27 ("Pode iniciar todas as ondas e coloque em produção"): Configuração da
+        // empresa (/business/settings) em React para todas as empresas, com as 18 abas da Blade.
+        // Rollback = remover esta linha (ou flag OFF no GrowthBook); `?classico=1` abre a Blade.
+        'useV2ConfiguracoesEmpresa' => true,
     ];
 
     public function isOn(string $flag, array $attrs = []): bool

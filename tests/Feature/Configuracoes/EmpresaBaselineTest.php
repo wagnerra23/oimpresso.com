@@ -66,7 +66,8 @@ test('baseline: sem business_settings.access a tela e o salvar devolvem 403 e na
 });
 
 test('baseline: a tela abre a Blade com o negócio da sessão', function () {
-    $r = $this->get('/business/settings');
+    // Desde o cutover [W] 2026-10-27 a rota abre a tela React; a Blade segue em ?classico=1.
+    $r = $this->get('/business/settings?classico=1');
 
     $r->assertOk();
     $r->assertViewIs('business.settings');
