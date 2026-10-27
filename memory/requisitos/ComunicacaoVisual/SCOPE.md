@@ -23,6 +23,7 @@ contains:
   - "Services/AgendaInstalacao (agenda equipe e veículo na OS; recusa sem janela — US-COMVIS-007 · UC-FLX-21)"
   - "Entities/OsItem (comvis_os_itens — itens da OS copiados do orçamento, UC-FLX-01)"
   - "Services/OrcamentoViraOs (orçamento aprovado vira OS com itens, medidas e arquivos — US-COMVIS-020 · UC-FLX-01)"
+  - "OsPosCalculoController + Services/PosCalculoDaOs (custo orçado × real e margem da OS, flag COMVIS_POS_CALCULO_ENABLED — US-COMVIS-005)"
   # Mora em `database/seeders/` (convenção do projeto pros seeders de FSM canon), NÃO sob
   # Modules/ComunicacaoVisual/ — o SDD §5.4.5 já registra isso. Path anotado em 2026-08-10
   # porque a ausência sob o módulo já foi lida como "nunca construído": é código real,

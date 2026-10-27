@@ -15,9 +15,4 @@ return [
      * Configurável por business futuramente.
      */
     'unidade_medida_default' => 'm2',
-
-    /*
-     * US-COMVIS-005: pós-cálculo da OS (custo orçado × real e margem). Nasce desligada.
-     */
-    'pos_calculo' => (bool) env('COMVIS_POS_CALCULO_ENABLED', false),
 ];
