@@ -525,6 +525,7 @@ class PurchaseController extends Controller
         // store() é compartilhado Blade+Inertia; bloqueia payload forjado cross-tenant.
         // Fora do try de propósito pra o 422 não ser engolido pelo catch genérico.
         $this->assertPurchaseVariationsOwnership($request);
+        $this->assertPurchaseOrderRefsBelongTo($request); // US-COM-029
         $this->assertPurchaseOrdersAprovados($request); // US-COM-032
 
         // Validação FORA do try: dentro dele a ValidationException era engolida pelo catch
@@ -1123,6 +1124,7 @@ class PurchaseController extends Controller
         // PurchaseLine::findOrFail sem escopo). Fora do try pra o 422 não virar mensagem crua.
         $this->assertPurchaseVariationsOwnership($request);
         $this->assertPurchaseLinesBelongTo($request, (int) $id);
+        $this->assertPurchaseOrderRefsBelongTo($request); // US-COM-029
         $this->assertPurchaseOrdersAprovados($request); // US-COM-032
 
         try {
@@ -1542,6 +1544,44 @@ class PurchaseController extends Controller
             ->count();
 
         abort_if($valid_count !== $line_ids->count(), 422, 'Linha de compra inválida para esta compra.');
+    }
+
+    /**
+     * US-COM-029 (Tier 0, ADR 0093) — compra feita a partir de pedido de compra.
+     *
+     * `purchase_order_ids` e `purchases.*.purchase_order_line_id` chegam crus do formulário e
+     * descem para `ProductUtil::updatePurchaseOrderLine` (PurchaseLine::find) e
+     * `TransactionUtil::updatePurchaseOrderStatus` (Transaction::find), que não filtram por
+     * empresa: um id forjado somava quantidade recebida e trocava o status de pedido de OUTRA
+     * empresa. O pedido tem de ser `purchase_order` desta empresa; a linha, de um pedido desta
+     * empresa. Não exige a linha dentro de `purchase_order_ids` porque a edição pode tirar um
+     * pedido da lista e manter a linha já vinculada.
+     */
+    private function assertPurchaseOrderRefsBelongTo(Request $request): void
+    {
+        $business_id = (int) $request->session()->get('user.business_id');
+        $toIds = fn ($ids) => collect($ids)->filter(fn ($id) => ! empty($id))
+            ->map(fn ($id) => (int) $id)->unique()->values();
+
+        $po_ids = $toIds((array) $request->input('purchase_order_ids', []));
+        if ($po_ids->isNotEmpty()) {
+            $valid = Transaction::where('business_id', $business_id)
+                ->where('type', 'purchase_order')
+                ->whereIn('id', $po_ids->all())
+                ->count();
+            abort_if($valid !== $po_ids->count(), 422, 'Pedido de compra inválido para este negócio.');
+        }
+
+        $line_ids = $toIds(collect($request->input('purchases', []))->pluck('purchase_order_line_id'));
+        if ($line_ids->isNotEmpty()) {
+            $valid = PurchaseLine::query()
+                ->join('transactions', 'transactions.id', '=', 'purchase_lines.transaction_id')
+                ->whereIn('purchase_lines.id', $line_ids->all())
+                ->where('transactions.business_id', $business_id)
+                ->where('transactions.type', 'purchase_order')
+                ->count();
+            abort_if($valid !== $line_ids->count(), 422, 'Linha de pedido de compra inválida para este negócio.');
+        }
     }
 
     /**
