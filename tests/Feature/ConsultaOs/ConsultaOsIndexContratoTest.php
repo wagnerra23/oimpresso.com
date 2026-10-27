@@ -18,8 +18,8 @@ use Modules\Repair\Entities\JobSheet;
  * Cada `it()` cita o UC que defende (casos-gate G-2).
  *
  * US-CONSULTA-001 (2026-10-02): a busca lê as folhas de OS reais do Repair. O schema mínimo
- * é criado em SQLite in-memory, no idioma de Modules/Repair/Tests/Feature/
- * PortalStatusReparoSemVazamentoTest.php. Tenants fictícios 98 e 99 (ADR 0358) — nunca o 4.
+ * é criado em SQLite in-memory, no idioma que Modules/Repair/Tests/Feature/
+ * PortalStatusReparoSemVazamentoTest.php usava até o cutover de 2026-10-27. Tenants fictícios 98 e 99 (ADR 0358) — nunca o 4.
  * Fora de SQLite o teste pula (cria tabelas; não pode rodar contra banco persistente).
  *
  * Asserts de ausência usam assertArrayNotHasKey / not->toContain com 1 argumento, nunca
