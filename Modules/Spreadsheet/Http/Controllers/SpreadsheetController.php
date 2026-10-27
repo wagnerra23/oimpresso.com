@@ -128,6 +128,16 @@ class SpreadsheetController extends Controller
         }
         $folder_id = request()->input('folder_id', null);
 
+        // Editor em React (thread telas-soltas/04b, RUNBOOK-editor). `?legacy=1` serve a Blade até o F5.
+        if (! request()->boolean('legacy')) {
+            return Inertia::render('Spreadsheet/Editor', [
+                'planilha'    => null,
+                'pasta_id'    => $folder_id !== null && $folder_id !== '' ? (int) $folder_id : null,
+                'pode_gravar' => true,
+                'voltar'      => action([self::class, 'index']),
+            ]);
+        }
+
         return view('spreadsheet::sheet.create')->with(compact('folder_id'));
     }
 
@@ -180,6 +190,10 @@ class SpreadsheetController extends Controller
         $spreadsheet = $this->planilhaAcessivel((int) $business_id, (int) $id)
             ->select('sheet_spreadsheets.business_id', 'sheet_spreadsheets.id', 'sheet_spreadsheets.name', 'sheet_spreadsheets.sheet_data', 'sheet_spreadsheets.created_by')
             ->firstOrFail();
+
+        if (! request()->boolean('legacy')) {
+            return Inertia::render('Spreadsheet/Editor', $this->propsDoEditor($spreadsheet));
+        }
 
         return view('spreadsheet::sheet.show')
             ->with(compact('spreadsheet'));
@@ -512,6 +526,43 @@ class SpreadsheetController extends Controller
      * encadeava `orWhere` sem agrupar, e os ramos de compartilhamento escapavam do
      * `business_id`.
      */
+    /**
+     * Props do editor React. DTO explícito: nada de business_id nem created_by cru.
+     *
+     * `sheet_data` é gravado como string JSON dentro de JSON (o cast `array` do Model codifica a string
+     * que a tela manda), então a leitura devolve a string; linha antiga com array de verdade também vale.
+     */
+    private function propsDoEditor(Spreadsheet $spreadsheet): array
+    {
+        $minha = (int) $spreadsheet->created_by === (int) auth()->user()->id;
+        $dados = $spreadsheet->sheet_data;
+        if (is_string($dados)) {
+            $dados = json_decode($dados, true);
+        }
+
+        $voltar = action([self::class, 'index']);
+        if (! $minha) {
+            // Mesmo destino da Blade para quem recebeu: as tarefas do Essentials, quando o módulo existe.
+            try {
+                $voltar = action([\Modules\Essentials\Http\Controllers\ToDoController::class, 'index']);
+            } catch (\Throwable $e) {
+                $voltar = action([self::class, 'index']);
+            }
+        }
+
+        return [
+            'planilha' => [
+                'id'    => (int) $spreadsheet->id,
+                'nome'  => (string) $spreadsheet->name,
+                'dados' => is_array($dados) ? array_values($dados) : null,
+                'minha' => $minha,
+            ],
+            'pasta_id'    => null,
+            'pode_gravar' => auth()->user()->can('superadmin') || auth()->user()->can('create.spreadsheet'),
+            'voltar'      => $voltar,
+        ];
+    }
+
     /**
      * Uma planilha do negócio que o usuário pode abrir: criou, ou recebeu por usuário, função ou tarefa.
      *
