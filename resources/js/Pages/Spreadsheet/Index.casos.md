@@ -58,23 +58,27 @@ Status: 🧪
 Status: 🧪
 
 ## UC-PLAN-06 · [T0] Não mexo no compartilhamento de planilha de outro negócio · `must`
-
-**Dado** uma planilha de outro negócio **Quando** peço o compartilhamento dela ou gravo um compartilhamento nela
-**Então** 404 **E** os compartilhamentos dela não mudam. (Até 2026-10-27 o `post-share-sheet` aceitava qualquer
-`sheet_id`.) Teste: `Modules/Spreadsheet/Tests/Feature/SpreadsheetAcessoEditorTest.php`.
-
-Status: 🧪
+- **Persona:** usuário de um negócio com o módulo de planilhas.
+- **Aceite:** Dado uma planilha de outro negócio · Quando peço o compartilhamento dela ou gravo um compartilhamento nela ·
+  Então recebo 404 · E os compartilhamentos dela não mudam.
+- **Teste:** `Modules/Spreadsheet/Tests/Feature/SpreadsheetAcessoEditorTest.php` — `UC-PLAN-06 · [T0] não mexo no compartilhamento de planilha de outro negócio`.
+- **Regressão que defende:** até 2026-10-27 o `post-share-sheet` aceitava qualquer `sheet_id` e criava ou apagava
+  compartilhamento de planilha de outro negócio (ADR 0093).
+- **Status: ⬜** — escrito e na lane `spreadsheet-pest`; sem run do CI ainda.
 
 ## UC-PLAN-07 · Só quem criou compartilha · `must`
-
-**Dado** uma planilha que recebi **Quando** tento compartilhá-la com um terceiro **Então** 404 **E** nada muda — a
-mesma regra da tela, que só mostra "Compartilhar" para quem criou.
-
-Status: 🧪
+- **Persona:** colega que recebeu a planilha.
+- **Aceite:** Dado uma planilha que recebi · Quando tento compartilhá-la com um terceiro · Então recebo 404 · E nada muda.
+- **Teste:** `Modules/Spreadsheet/Tests/Feature/SpreadsheetAcessoEditorTest.php` — `UC-PLAN-07 · só quem criou compartilha; colega que recebeu não redistribui`.
+- **Regressão que defende:** a regra da Blade e da lista (Compartilhar só para quem criou) valer também no endpoint, não só
+  no botão (SPEC US-SHEET-003; charter "quem recebeu abre e edita, mas não redistribui").
+- **Status: ⬜** — escrito e na lane `spreadsheet-pest`; sem run do CI ainda.
 
 ## UC-PLAN-08 · [T0] Compartilhar só com gente do negócio · `must`
-
-**Dado** uma planilha minha **Quando** compartilho com um colega e com um usuário de outro negócio **Então** o
-colega entra **E** o id de fora é ignorado.
-
-Status: 🧪
+- **Persona:** dono da planilha.
+- **Aceite:** Dado uma planilha minha · Quando compartilho com um colega e com um usuário de outro negócio · Então o colega
+  entra · E o id de fora é ignorado.
+- **Teste:** `Modules/Spreadsheet/Tests/Feature/SpreadsheetAcessoEditorTest.php` — `UC-PLAN-08 · [T0] o dono compartilha com gente do negócio; id de outro negócio é ignorado`.
+- **Regressão que defende:** o `post-share-sheet` gravava qualquer id em `shared_id`, inclusive usuário de outro negócio
+  (ADR 0093).
+- **Status: ⬜** — escrito e na lane `spreadsheet-pest`; sem run do CI ainda.
