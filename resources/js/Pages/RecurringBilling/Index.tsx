@@ -14,6 +14,7 @@ import TourOnboarding, { TOUR_DONE_KEY } from './_components/TourOnboarding';
 import CheatSheet from './_components/CheatSheet';
 import CmdPalette from './_components/CmdPalette';
 import JanaPanel from './_components/JanaPanel';
+import PixAutomaticoBloco, { type PixAutoStatus } from './_components/PixAutomaticoBloco';
 import { printSubDetail, installPrintStyles } from './_components/printExtractStyles';
 import {
   Banknote,
@@ -107,6 +108,8 @@ interface SubRow {
   contact: { name: string; phone: string; email: string | null };
   note: { body: string; by: string; at: string | null } | null;
   fiscal: { type: FiscalType; channels: string[]; last_nf: string | null };
+  // US-RB-020 — null = recurso desligado; status null = sem mandato ainda.
+  pix_automatico?: { status: PixAutoStatus | null; pix_copia_cola: string | null } | null;
   churn_reason: string | null;
   paused_until: string | null;
   canceled_at: string | null;
@@ -1058,6 +1061,11 @@ function DetailDrawer({ sub, onTrouble, onEdit }: { sub: SubRow; onTrouble?: (t:
           )}
         </div>
       </div>
+
+      {/* US-RB-020 — Pix Automático (BCB): pedir autorização + QR. Só com o recurso ligado. */}
+      {sub.status !== 'cancelada' && sub.pix_automatico && (
+        <PixAutomaticoBloco key={sub.id} subId={sub.id} inicial={sub.pix_automatico} />
+      )}
 
       {/* Onda 17 v9,75 — Histórico de pagamentos (12 cells últimos meses). */}
       <PaymentHistory paid={sub.paid} missed={sub.missed} />

@@ -21,6 +21,7 @@ use Modules\RecurringBilling\Models\Plan;
 use Modules\RecurringBilling\Models\Subscription;
 use Modules\RecurringBilling\Models\SubscriptionEvent;
 use Modules\RecurringBilling\Repositories\SubscriptionRepository;
+use Modules\RecurringBilling\Services\MandatoPixAutomatico;
 
 /**
  * Controller principal — Page Cobrança Recorrente (Inertia React).
@@ -175,6 +176,32 @@ class RecurringBillingController extends Controller
         $msg = sprintf('Assinatura #%d cancelada (%s).', $sub->id, $sub->churn_reason);
 
         return $this->respondOk($request, $msg, ['subscription' => $sub->fresh()]);
+    }
+
+    /**
+     * POST /recurring-billing/{id}/pix-automatico — pede ao banco a recorrência do Pix Automático e
+     * devolve o QR (Pix copia e cola) para o cliente aprovar no app do banco (US-RB-020 · decisão
+     * [W] 2026-10-26). Só com `RB_COBRAR_PIX_AUTOMATICO` ligada; assinatura de outro business → 404.
+     */
+    public function solicitarPixAutomatico(Request $request, int $id, MandatoPixAutomatico $mandatos): RedirectResponse|JsonResponse
+    {
+        abort_unless((bool) config('recurringbilling.cobrar_pix_automatico', false), 404);
+        $sub = $this->loadOwnedOrFail($id);
+        Gate::authorize('update', $sub);
+
+        try {
+            $mandato = $mandatos->solicitar((int) $sub->business_id, (int) $sub->id);
+        } catch (\DomainException $e) {
+            return $this->respondError($request, $e->getMessage(), 422);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('[rb.pix_automatico] pedido de autorização falhou', [
+                'business_id' => $sub->business_id, 'subscription_id' => $sub->id, 'erro' => $e->getMessage(),
+            ]);
+
+            return $this->respondError($request, 'O banco não respondeu ao pedido de autorização. Tente de novo.', 502);
+        }
+
+        return $this->respondOk($request, 'Autorização do Pix Automático pedida ao banco.', ['mandato' => $mandato]);
     }
 
     /**

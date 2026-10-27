@@ -133,6 +133,9 @@ on:
       - 'app/Http/Controllers/CashRegisterController.php'
       # Sob teste em SellReturnIndexContratoTest (UC-SRIDX-*, lista de devoluções).
       - 'app/Http/Controllers/SellReturnController.php'
+      # US-VEST-021 — vale-troca: os listeners decidem o sentido do saldo de Adiantamento.
+      - 'app/Listeners/AddAccountTransaction.php'
+      - 'app/Listeners/DeleteAccountTransaction.php'
       # Sob teste em PesquisaSatisfacaoEntregaContratoTest (US-SELL-071 · UC-FLX-25).
       - 'app/Jobs/PesquisaSatisfacaoEntregaJob.php'
       - 'app/Services/Sells/PesquisaEntregaConfig.php'
@@ -226,6 +229,9 @@ jobs:
               - 'app/Utils/CashRegisterUtil.php'
               - 'app/Http/Controllers/CashRegisterController.php'
               - 'app/Http/Controllers/SellReturnController.php'
+              # US-VEST-021 — vale-troca: os listeners decidem o sentido do saldo de Adiantamento.
+              - 'app/Listeners/AddAccountTransaction.php'
+              - 'app/Listeners/DeleteAccountTransaction.php'
               - 'app/Jobs/PesquisaSatisfacaoEntregaJob.php'
               - 'app/Services/Sells/PesquisaEntregaConfig.php'
               - 'app/Console/Commands/Sells/PesquisaSatisfacaoEntregaCommand.php'
@@ -558,6 +564,7 @@ jobs:
             tests/Feature/Sells/SalesOrderIndexContratoTest.php \
             tests/Feature/Sells/SellReturnIndexContratoTest.php \
             tests/Feature/Sells/SellReturnAddContratoTest.php \
+            tests/Feature/Sells/ValeTrocaContratoTest.php \
             tests/Feature/Sells/CancelamentoDaVendaContratoTest.php \
             tests/Feature/Sells/DescontosContratoTest.php \
             tests/Feature/Sells/SellsPosIndexContratoTest.php \
