@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Inertia\Testing\AssertableInertia as Assert;
 use Modules\Manufacturing\Entities\MfgRecipe;
 use Modules\Manufacturing\Entities\MfgRecipeIngredient;
 use Modules\Manufacturing\Services\RecipeBomService;
@@ -176,11 +177,17 @@ describe('UC-RECIPE-13 · Nova receita — cópia', function () {
         $resposta = $this->actingAs($user)->withSession(mfgNovaSessao())
             ->get('/manufacturing/add-ingredient?variation_id='.$destino.'&copy_recipe_id='.$original);
 
-        $resposta->assertOk();
-        $resposta->assertSee('Insumo da original');
-        $resposta->assertSee('instrucao-da-receita-original');
-        // O tipo do custo extra vem junto (sem ele, 12 viraria valor fixo em vez de percentual).
-        expect(preg_match('/<option[^>]*value="percentage"[^>]*selected/', $resposta->getContent()))->toBe(1);
+        // Desde o cutover de 2026-10-27 o endereço serve só o editor React: a cópia chega nos props.
+        $resposta->assertOk()->assertInertia(fn (Assert $p) => $p
+            ->component('Manufacturing/IngredientesEditor')
+            ->where('receita.copiada_de', $original)
+            ->where('grupos.0.itens.0.nome', fn ($nome) => str_contains((string) $nome, 'Insumo da original'))
+            ->where('receita.instructions', 'instrucao-da-receita-original')
+            ->where('receita.waste_percent', fn ($v) => (float) $v === 5.0)
+            ->where('receita.extra_cost', fn ($v) => (float) $v === 12.0)
+            // O tipo do custo extra vem junto (sem ele, 12 viraria valor fixo em vez de percentual).
+            ->where('receita.production_cost_type', 'percentage')
+        );
     });
 
     it('renomear o grupo na cópia não renomeia o grupo da original', function () {

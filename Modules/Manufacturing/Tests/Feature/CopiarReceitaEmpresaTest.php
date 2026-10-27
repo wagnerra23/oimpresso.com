@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Inertia\Testing\AssertableInertia as Assert;
 use Modules\Manufacturing\Services\RecipeBomService;
 
 uses(Tests\TestCase::class, DatabaseTransactions::class);
@@ -68,8 +69,12 @@ describe('Copiar da receita — só do próprio business (Tier 0)', function () 
         $resposta = $this->actingAs($user)->withSession($sessao)
             ->get('/manufacturing/add-ingredient?variation_id='.$alvo.'&copy_recipe_id='.$propria);
 
-        $resposta->assertOk();
-        $resposta->assertSee('Insumo copia proprio');
+        // Desde o cutover de 2026-10-27 o endereço serve só o editor React: a cópia chega nos props.
+        $resposta->assertOk()->assertInertia(fn (Assert $p) => $p
+            ->component('Manufacturing/IngredientesEditor')
+            ->where('receita.copiada_de', $propria)
+            ->where('grupos.0.itens.0.nome', fn ($nome) => str_contains((string) $nome, 'Insumo copia proprio'))
+        );
     });
 
     it('a página de ingredientes não mostra ingrediente de receita de outra empresa', function () {
@@ -81,7 +86,11 @@ describe('Copiar da receita — só do próprio business (Tier 0)', function () 
         $resposta = $this->actingAs($user)->withSession($sessao)
             ->get('/manufacturing/add-ingredient?variation_id='.$alvo.'&copy_recipe_id='.$alheia);
 
-        $resposta->assertOk();
+        $resposta->assertOk()->assertInertia(fn (Assert $p) => $p
+            ->component('Manufacturing/IngredientesEditor')
+            ->where('receita.copiada_de', null)
+            ->where('grupos', [])
+        );
         $resposta->assertDontSee('Insumo copia alheio');
     });
 });
