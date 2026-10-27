@@ -121,6 +121,7 @@ class NfeBrasilServiceProvider extends ServiceProvider
             \Modules\NfeBrasil\Console\Commands\PuxarDfesRecebidosCommand::class,
             \Modules\NfeBrasil\Console\Commands\NfeHealthCommand::class,
             \Modules\NfeBrasil\Console\Commands\RetentarContingenciaCommand::class,
+            \Modules\NfeBrasil\Console\Commands\EnviarXmlContadorCommand::class,
         ]);
     }
 
@@ -161,6 +162,15 @@ class NfeBrasilServiceProvider extends ServiceProvider
                 ->everyFiveMinutes()
                 ->withoutOverlapping()
                 ->environments(['live']);
+
+            // US-NFE-073 — XML do mês anterior ao contador, dia 5 às 07:00. Só com a flag ligada;
+            // o envio é idempotente por empresa × competência (nfe_envios_contador).
+            $schedule->command('nfe:enviar-xml-contador')
+                ->monthlyOn(5, '07:00')
+                ->timezone('America/Sao_Paulo')
+                ->withoutOverlapping()
+                ->environments(['live'])
+                ->when(fn () => (bool) config('fiscal.envio_xml_contador_enabled', false));
         });
     }
 

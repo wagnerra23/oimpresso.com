@@ -103,6 +103,8 @@ jobs:
               - 'resources/js/Pages/Compras/**'
               - 'app/Utils/TransactionUtil.php'
               - 'app/Http/Controllers/PurchaseController.php'
+              - 'app/Services/Purchase/PedidosAbertosDoFornecedor.php'
+              - 'app/Http/Controllers/PurchaseOrderController.php'
               - 'app/Domain/Fsm/Modelos/RegrasDaEmpresa.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/compras-pest.yml'
@@ -191,6 +193,11 @@ jobs:
             Modules/Compras/Tests/Feature/RequisicaoEstoqueMinimoContratoTest.php \
             Modules/Compras/Tests/Feature/AplicarCustoDoRecebimentoTest.php \
             Modules/Compras/Tests/Feature/PropostasDePrecoContratoTest.php \
+            Modules/Compras/Tests/Feature/CompraDePedidoOutraEmpresaTest.php \
+            Modules/Compras/Tests/Feature/RecebimentoParcialPedidoTest.php \
+            Modules/Compras/Tests/Feature/NecessidadeDeCompraTest.php \
+            Modules/Compras/Tests/Feature/CotacaoDeCompraTest.php \
+            Modules/Compras/Tests/Feature/AlcadaDoPedidoTest.php \
             Modules/Compras/Tests/Feature/EntradaXmlSchemaTest.php \
             Modules/Compras/Tests/Feature/ComprasExportarContratoTest.php
 

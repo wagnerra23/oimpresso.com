@@ -66,7 +66,8 @@ test('baseline: sem business_settings.access a tela e o salvar devolvem 403 e na
 });
 
 test('baseline: a tela abre a Blade com o negócio da sessão', function () {
-    $r = $this->get('/business/settings');
+    // Desde o cutover [W] 2026-10-27 a rota abre a tela React; a Blade segue em ?classico=1.
+    $r = $this->get('/business/settings?classico=1');
 
     $r->assertOk();
     $r->assertViewIs('business.settings');
@@ -117,14 +118,14 @@ test('baseline: salvar é substituição total — checkbox, common_settings e e
 
 /**
  * A Blade edita as chaves de `common_settings` listadas em CHAVES_COMMON_DA_BLADE; outras features gravam as
- * delas no mesmo JSON (pesquisa de entrega, ISS retido, reserva de insumo, requisição por estoque mínimo). O
+ * delas no mesmo JSON (ISS retido, reserva de insumo, requisição por estoque mínimo). O
  * salvar da Blade só pode substituir as que ela desenha — trocar o array inteiro apagava as outras.
  * (Em 2026-10-21 eram 8; a régua de cobrança entrou na lista quando ganhou a aba Financeiro, UC-EMP-15.)
  */
 test('salvar pela Blade não apaga as chaves de common_settings que outras features gravam', function () {
     $deOutrasFeatures = [
         // `financeiro_regua_cobranca` saiu daqui: a aba Financeiro da Blade desenha a chave e a manda sempre (UC-EMP-15).
-        'sells_pesquisa_entrega' => ['ativo' => true],
+        // `sells_pesquisa_entrega` também: entrou em CHAVES_COMMON_DA_BLADE com a aba Vendas (#9708, UC-EMP-16).
         'financeiro_iss_retido_ajuste' => ['ativo' => true],
         'producao_reserva_insumo' => ['ativo' => true],
         'compras_requisicao_estoque_minimo' => ['ativo' => true],

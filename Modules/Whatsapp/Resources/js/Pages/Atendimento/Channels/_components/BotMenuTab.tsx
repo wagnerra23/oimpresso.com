@@ -13,7 +13,8 @@ import { Switch } from '@/Components/ui/switch';
 import { Textarea } from '@/Components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 
-export interface OpcaoMenu { tecla: string; rotulo: string; fila: string | null; resposta: string | null }
+// `type`, não `interface`: o `router.put` do Inertia só aceita objeto atribuível a FormDataConvertible (TS2322).
+export type OpcaoMenu = { tecla: string; rotulo: string; fila: string | null; resposta: string | null };
 export interface MenuBotPayload {
   menu: { ativo: boolean; saudacao: string; opcoes: OpcaoMenu[]; pergunta_nome: boolean } | null;
   filas: { slug: string; label: string }[];

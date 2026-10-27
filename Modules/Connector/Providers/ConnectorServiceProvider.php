@@ -37,6 +37,13 @@ class ConnectorServiceProvider extends ServiceProvider
         $this->registerFactories();
         $this->loadMigrationsFrom(__DIR__.'/../Database/Migrations');
 
+        // US-CONN-021: venda finalizada avisa os destinos de webhook de saída da empresa. Sem
+        // destino cadastrado, não faz nada; falha aqui nunca derruba a venda (try/catch no listener).
+        \Illuminate\Support\Facades\Event::listen(
+            \App\Events\SellCreatedOrModified::class,
+            [\Modules\Connector\Listeners\VendaFinalizadaParaWebhookSaida::class, 'handle'],
+        );
+
         $this->registerMiddleware($this->app['router']);
 
         /*ADD THIS LINES*/

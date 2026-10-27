@@ -22,7 +22,7 @@ uses(PontoTestCase::class);
  * Tier 0 (ADR 0093/0358): tenant fictício 98 vs adversário 99. NUNCA biz=4, nunca biz=1.
  * Sem `RefreshDatabase` — a lane `ponto-pest` proíbe.
  *
- * @covers-us US-PONTO-016
+ * @covers-us US-PONTO-016 US-PONTO-018
  */
 
 const CONF_MARCADOR = 'CONF-CONTRATO';
@@ -191,7 +191,7 @@ it('UC-CONF-08 · A tela abre pela rota com o painel deferido', function () {
     $parcial = $this->inertiaPartialGet($url, ['painel'], 'Ponto/Conformidade');
     $parcial->assertStatus(200);
     $ids = collect($parcial->json('props.painel.verificacoes'))->pluck('id')->all();
-    $this->assertSame(['jornada_aberta', 'interjornada', 'intrajornada', 'he', 'nsr', 'sem_pis'], $ids);
+    $this->assertSame(['jornada_aberta', 'interjornada', 'intrajornada', 'he', 'nsr', 'sem_pis', 'ferias_vencidas'], $ids);
     $this->assertSame(
         ['colaboradores', 'dias_apurados', 'estado'],
         array_keys($parcial->json('props.painel.cobertura')),
@@ -230,4 +230,47 @@ it('UC-CONF-09 · Sem dado, a nota explica por quê — sem colaborador, sem apu
     $this->assertSame(1, $p['cobertura']['dias_apurados']);
     $this->assertSame(ConformidadeService::ESTADO_APURADO, $p['cobertura']['estado']);
     $this->assertSame(0, confVerificacao($p, 'intrajornada')['total'], 'Controle: o dia apurado não gerou violação.');
+});
+
+it('UC-CONF-10 · Férias vencidas: período que passou do concessivo com saldo é listado; quitado, recente e desligado não', function () {
+    $biz = confPreparar();
+    if (! Schema::hasColumn('essentials_leave_types', 'ferias_clt')) {
+        $this->markTestSkipped('Coluna ferias_clt ausente — migration do Essentials não rodou.');
+    }
+    // Competência 2019-05: quem entrou em 2017-01-01 tem o 1º concessivo vencido em 2018-12-31.
+    $vencido   = confColaborador($biz, ['admissao' => '2017-01-01']);
+    $quitado   = confColaborador($biz, ['admissao' => '2017-01-01']);
+    $recente   = confColaborador($biz, ['admissao' => '2019-01-01']);
+    $desligado = confColaborador($biz, ['admissao' => '2017-01-01', 'desligamento' => '2019-03-01']);
+
+    $tipo = (int) DB::table('essentials_leave_types')->insertGetId([
+        'leave_type' => CONF_MARCADOR, 'business_id' => $biz, 'ferias_clt' => true,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $licenca = (int) DB::table('essentials_leaves')->insertGetId([
+        'essentials_leave_type_id' => $tipo, 'business_id' => $biz, 'user_id' => $quitado->user_id,
+        'start_date' => '2018-02-01', 'end_date' => '2018-03-02', 'status' => 'approved', // 30 dias
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    try {
+        $p = app(ConformidadeService::class)->competencia($biz, CONF_MES);
+        $v = confVerificacao($p, 'ferias_vencidas');
+        $casos = collect($p['casos']['ferias_vencidas']);
+        $ids = $casos->pluck('colaborador_id')->all();
+
+        expect($v['artigo'])->toContain('Art. 137');
+        $this->assertTrue($v['medido']);
+        $this->assertContains($vencido->id, $ids, 'Concessivo vencido com 30 dias de saldo tem de aparecer.');
+        $this->assertNotContains($quitado->id, $ids, 'Quem gozou os 30 dias não tem férias vencidas.');
+        $this->assertNotContains($recente->id, $ids, 'Admitido no ano não completou o aquisitivo.');
+        $this->assertNotContains($desligado->id, $ids, 'Desligado sai do painel (a rescisão não é desta tela).');
+
+        $caso = $casos->firstWhere('colaborador_id', $vencido->id);
+        $this->assertSame(['2018-12-31', '30 dias de saldo', 'conceder até 31/12/2018'],
+            [$caso['dia'], $caso['apurado'], $caso['limite']]);
+    } finally {
+        DB::table('essentials_leaves')->where('id', $licenca)->delete();
+        DB::table('essentials_leave_types')->where('id', $tipo)->delete();
+    }
 });

@@ -84,6 +84,14 @@ class SubscriptionIndexPresenter
             'last_nf'  => null,
         ];
 
+        // US-RB-020: mandato do Pix Automático (BCB). null = recurso desligado (a seção some);
+        // status null = sem mandato ainda. O QR só vai enquanto aguarda o cliente (CRIADA).
+        $mandato = (array) (($sub->metadata ?? [])['pix_automatico'] ?? []);
+        $row['pix_automatico'] = config('recurringbilling.cobrar_pix_automatico', false) ? [
+            'status'         => $mandato['status'] ?? null,
+            'pix_copia_cola' => ($mandato['status'] ?? null) === 'CRIADA' ? ($mandato['pix_copia_cola'] ?? null) : null,
+        ] : null;
+
         $row['churn_reason'] = $sub->churn_reason;
         $row['paused_until'] = optional($sub->paused_until)->toDateString();
         $row['canceled_at']  = optional($sub->canceled_at)->toIso8601String();

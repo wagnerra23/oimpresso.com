@@ -451,7 +451,7 @@ return [
 | `NullDriverTest` | Unit | dev/CI sem rede |
 | `SendWhatsappMessageJobTest` | Feature (Bus::fake) | retry + status flow |
 | `ProcessIncomingWebhookJobTest` | Feature | inbound flow + idempotency |
-| `NotifyRepairCustomerTest` | Feature | listener Repair |
+| `ClienteAcompanhaStatusContratoTest` (Repair) | Feature | listener Repair → notificador (o `NotifyRepairCustomerTest` saiu em 2026-10-26, US-WA-325) |
 | `DispatchToJanaBotTest` | Feature | 4 outcomes PolicyEngine |
 | `MetricasAggregationTest` | Feature | rollup diário |
 | `PiiRedactionTest` | Unit | PiiRedactor com telefones |

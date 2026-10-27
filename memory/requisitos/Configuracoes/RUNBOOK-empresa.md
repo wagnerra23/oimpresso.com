@@ -41,7 +41,9 @@ Trocar a Blade de ~16 abas pela tela React com trilho de abas do protótipo, sem
    **completo** (ver §10). Fatiar por grupo de abas do protótipo: Empresa (Negócio, Impostos, Produtos, Contatos) →
    Operação (Vendas, PDV, Compras, Pagamento) → Sistema (Painel, Sistema, Prefixos) → Integrações (E-mail, SMS,
    Fidelidade, Módulos, Rótulos). Enquanto um grupo não estiver na Page, os valores dele viajam como campos ocultos.
-3. **F4:** smoke biz=1 com a flag só para biz=1. **F5 (cutover):** decisão [W] — não é desta thread.
+3. **F4:** smoke biz=1 com a flag só para biz=1. **F5 (cutover):** decisão [W]. Em 2026-10-27 [W] decidiu ligar para
+   todas as empresas de uma vez ("Pode iniciar todas as ondas e coloque em produção"); sem GrowthBook por empresa, o
+   F4 isolado não existia, e o smoke biz=1 foi feito já com a flag ligada para todos.
 
 ## 4–8. Tokens · estados · responsividade · atalhos · contrato
 
@@ -60,7 +62,11 @@ Trilho vira seletor abaixo de 768px. `data-contract`: `page-header`, `abas`, `ab
 - [x] F3-5a: E-mail e SMS (UC-EMP-12)
 - [x] F3-5b: Pontos de fidelidade + Módulos (UC-EMP-13)
 - [x] F3-5c: Rótulos personalizados (UC-EMP-14) — **as 16 abas estão na tela nova**
-- [ ] Smoke biz=1 (F4) · cutover (F5, decisão [W])
+- [x] Financeiro: régua de cobrança (UC-EMP-15)
+- [x] App das lojas (UC-EMP-17) — **18 de 18 abas da Blade** na tela nova (medido 2026-10-26: 19 parciais `business/partials/settings_*.blade.php`; a balança é seção da aba Venda no PDV)
+- [x] Cutover (F5, [W] 2026-10-27): `useV2ConfiguracoesEmpresa => true` no `$fallbackDefaults` do `FeatureFlagService`;
+  rollback = remover a linha (ou flag OFF no GrowthBook) · `?classico=1` abre a Blade · `#pos` abre a aba Venda no PDV (UC-EMP-18)
+- [ ] Smoke em produção biz=1 com a flag ligada para todos (18 abas + `?classico=1` + salvar sem mudar nada = linha `business` igual)
 
 ## 10. Pegadinhas
 

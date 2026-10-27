@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-09-29"
+last_run: "2026-10-26"
 ---
 
 # Casos de Uso & Aceite — Ponto/Mobile/Index
@@ -121,11 +121,59 @@ last_run: "2026-09-29"
   é enviado · Então só os do meu business recebem; o token que o FCM responde UNREGISTERED fica inativo.
 - **Fonte:** ADR 0423 §3, §5. **Status: ⬜** (`EnviarLembretePontoJobTest`)
 
+## UC-REPP-17 · Mês ainda aberto não aceita ciência
+- **Origem:** US-PONTO-020 · Portaria MTP 671/2021 art. 84 · ADR 0413 (competência fechada não reabre).
+- **Aceite:** Dado competência ainda não fechada pela empresa · Quando dou ciência · Então recebo "o espelho deste mês ainda não foi fechado" e nada é gravado.
+- **Teste:** `EspelhoCienciaContratoTest.php` — *"UC-REPP-17"*.
+- **Status: 🧪**
+
+
+## UC-REPP-18 · Dou ciência do espelho de um mês fechado
+- **Origem:** US-PONTO-020 · Portaria MTP 671/2021 art. 84 · ADR 0413 (competência fechada não reabre).
+- **Aceite:** Dado competência fechada · Quando dou ciência · Então ela fica registrada com data, e o meu espelho daquele mês passa a mostrá-la conferindo.
+- **Teste:** `EspelhoCienciaContratoTest.php` — *"UC-REPP-18"*.
+- **Status: 🧪**
+
+
+## UC-REPP-19 · Uma ciência por mês
+- **Origem:** US-PONTO-020 · Portaria MTP 671/2021 art. 84 · ADR 0413 (competência fechada não reabre).
+- **Aceite:** Dado que já dei ciência · Quando tento de novo · Então sou avisado que já dei e nada novo é gravado.
+- **Teste:** `EspelhoCienciaContratoTest.php` — *"UC-REPP-19"*.
+- **Status: 🧪**
+
+
+## UC-REPP-20 · A ciência não muda nem some
+- **Origem:** US-PONTO-020 · Portaria MTP 671/2021 art. 84 · ADR 0413 (competência fechada não reabre).
+- **Aceite:** Dado uma ciência registrada · Quando alguém tenta alterá-la ou apagá-la, pelo sistema ou direto no banco · Então é recusado.
+- **Teste:** `EspelhoCienciaContratoTest.php` — *"UC-REPP-20"*.
+- **Status: 🧪**
+
+
+## UC-REPP-21 · Fechamento de outra empresa não vale para a minha
+- **Origem:** US-PONTO-020 · Portaria MTP 671/2021 art. 84 · ADR 0413 (competência fechada não reabre).
+- **Aceite:** Dado o mesmo mês fechado só noutro empregador · Quando dou ciência · Então é recusada como mês aberto (ADR 0093).
+- **Teste:** `EspelhoCienciaContratoTest.php` — *"UC-REPP-21"*.
+- **Status: 🧪**
+
+
+## UC-REPP-22 · Espelho que mudou depois da ciência aparece como não conferindo
+- **Origem:** US-PONTO-020 · Portaria MTP 671/2021 art. 84 · ADR 0413 (competência fechada não reabre).
+- **Aceite:** Dado que dei ciência e depois a apuração daquele mês mudou · Quando abro o espelho · Então a ciência continua lá, marcada como não conferindo com o que vi.
+- **Teste:** `EspelhoCienciaContratoTest.php` — *"UC-REPP-22"*.
+- **Status: 🧪**
+
+## UC-REPP-23 · "Meu espelho" pede a ciência do último mês fechado
+- **Origem:** US-PONTO-020.
+- **Aceite:** Dado um mês fechado pela empresa e sem minha ciência · Quando abro "Meu espelho" · Então vejo "O espelho de <mês> foi fechado pela empresa" com o botão "Dou ciência"; ao tocar, a tela passa a mostrar a data da ciência (e avisa se o espelho mudou depois).
+- **Teste:** `EspelhoCienciaContratoTest.php` — *"UC-REPP-23"*.
+- **Status: 🧪**
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** Fila do gestor com filtro de origem mobile em Aprovações (passo 3 da thread).
 
 ## Trilha do tempo
+- 2026-10-26 · UC-REPP-17..22 — ciência do espelho de competência fechada, pela API do app (US-PONTO-020). O botão na tela entrou como UC-REPP-23.
 - 2026-09-29 · [CL] carimbado por criar-tela.mjs e preenchido na thread 06 (PR 2a); UC-REPP-06/07 no PR 2b. Refs: UI-0013 · ADR 0264 G-1/G-2.
 - 2026-10-01 · [CL] UC-REPP-11/12/13 — registro do aparelho para o lembrete (ADR 0423, PR 1).
 - 2026-10-01 · [CL] UC-REPP-16 — envio do lembrete pelo FCM (ADR 0423, PR 2a).
