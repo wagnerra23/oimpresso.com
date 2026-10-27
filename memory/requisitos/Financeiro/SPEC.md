@@ -1321,18 +1321,20 @@ Onboarding novo cliente: migra 500+ títulos da planilha legacy num upload. Hoje
 
 ### US-FIN-082 · Portal do cliente: títulos em aberto, segunda via, histórico e pagamento
 
-> owner: — · priority: p1 · estimate: 8h · status: todo · type: story
+> owner: — · priority: p1 · estimate: 8h · status: review · type: story
 > blocked_by: US-FIN-081
 
-**Implementado em:** _pendente_
+**Implementado em:** `Modules/Financeiro/Services/PortalDoCliente.php`, `Modules/Financeiro/Http/Controllers/Public/PortalClientePublicoController.php`, `resources/js/Pages/Financeiro/PortalCliente.tsx`, `Modules/Financeiro/Tests/Feature/PortalClienteContratoTest.php`
 
 **Origem:** lacuna P1 do levantamento de 2026-10-25. O cliente final não tem onde ver o que deve à empresa.
 
 **Aceite:**
-- [ ] Link assinado por cliente (token, sem conta) mostra só os títulos daquele cliente daquela empresa: em aberto, pagos (histórico) e a segunda via (Pix/boleto já emitidos).
-- [ ] Pagar um título pelo portal usa o mesmo caminho da US-FIN-081.
-- [ ] Token de um cliente não abre outro; o de uma empresa não abre outra; sem dado pessoal na URL; throttle.
-- [ ] Atrás de flag desligada.
+- [x] Link por cliente (token, sem conta; `POST /financeiro/clientes/{id}/portal-link`) mostra só os títulos daquele cliente daquela empresa: em aberto (com total), pagos (últimos 20) e a segunda via (Pix/boleto já emitidos).
+- [x] Pagar um título pelo portal usa o mesmo caminho da US-FIN-081, sem fechar o link que o operador já mandou.
+- [x] Token de um cliente não paga título de outro; o de uma empresa não mostra outra; sem dado pessoal na URL; throttle 30/min.
+- [x] Atrás de `FINANCEIRO_PORTAL_CLIENTE_ENABLED` desligada (pagar exige também a flag do link).
+- [ ] Botão "link do portal" na ficha do cliente e envio por WhatsApp/e-mail.
+- [ ] Canary com uma empresa antes de ligar para todas (decisão [W]).
 
 ### US-FIN-035 · Repetir lançamento próximo mês + Combobox autocomplete contraparte
 

@@ -50,7 +50,7 @@ final class LinkDePagamentoDoTitulo
      * @throws \DomainException título que não vai ao cliente
      * @throws ModelNotFoundException título de outra empresa ou inexistente
      */
-    public function gerar(int $businessId, int $tituloId, ?int $userId = null): array
+    public function gerar(int $businessId, int $tituloId, ?int $userId = null, bool $fecharAnteriores = true): array
     {
         $titulo = $this->titulo($businessId, $tituloId) ?? throw (new ModelNotFoundException())->setModel(Titulo::class, [$tituloId]);
         if ($titulo->tipo !== 'receber') {
@@ -60,10 +60,13 @@ final class LinkDePagamentoDoTitulo
             throw new \DomainException('Este título não tem valor em aberto.');
         }
 
-        return DB::transaction(function () use ($businessId, $tituloId, $userId) {
+        return DB::transaction(function () use ($businessId, $tituloId, $userId, $fecharAnteriores) {
             $agora = now();
-            DB::table('fin_titulo_links_pagamento')->where('business_id', $businessId)->where('titulo_id', $tituloId)
-                ->where('expira_em', '>', $agora)->update(['expira_em' => $agora, 'updated_at' => $agora]);
+            // O portal do cliente (US-FIN-082) abre link sem fechar o que o operador já mandou.
+            if ($fecharAnteriores) {
+                DB::table('fin_titulo_links_pagamento')->where('business_id', $businessId)->where('titulo_id', $tituloId)
+                    ->where('expira_em', '>', $agora)->update(['expira_em' => $agora, 'updated_at' => $agora]);
+            }
 
             $token = Str::random(48);
             $expira = $agora->copy()->addDays((int) config('financeiro.link_pagamento.dias_validade', 30));

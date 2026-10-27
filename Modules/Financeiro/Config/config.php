@@ -36,4 +36,15 @@ return [
         'enabled' => env('FINANCEIRO_LINK_PAGAMENTO_ENABLED', false),
         'dias_validade' => 30,
     ],
+
+    /**
+     * US-FIN-082 — portal do cliente: títulos em aberto, segunda via e histórico por link, sem conta.
+     *
+     * Desligado por padrão (rota pública 404). Pagar pelo portal usa o link de pagamento acima e só
+     * funciona com as duas flags ligadas.
+     */
+    'portal_cliente' => [
+        'enabled' => env('FINANCEIRO_PORTAL_CLIENTE_ENABLED', false),
+        'dias_validade' => 30,
+    ],
 ];

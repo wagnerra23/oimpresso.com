@@ -31,6 +31,7 @@ use Modules\PaymentGateway\Exceptions\GatewayUnavailableException;
 use Modules\PaymentGateway\Exceptions\InvalidPayerException;
 use Modules\PaymentGateway\Exceptions\PaymentGatewayException;
 use Modules\Financeiro\Services\LinkDePagamentoDoTitulo;
+use Modules\Financeiro\Services\PortalDoCliente;
 use Spatie\Activitylog\Models\Activity;
 use Throwable;
 
@@ -968,6 +969,23 @@ class UnificadoController extends Controller
 
         return response()->json([
             'url'       => url('/pagar/'.$link['token']),
+            'expira_em' => $link['expira_em']->toIso8601String(),
+        ]);
+    }
+
+    /**
+     * POST /financeiro/clientes/{contactId}/portal-link — US-FIN-082.
+     *
+     * Gera o link do portal do cliente (títulos em aberto, segunda via, histórico). O token sai uma
+     * vez, na resposta; no banco fica só o hash. Flag desligada = 404; cliente de outra empresa = 404.
+     */
+    public function gerarLinkPortal(Request $request, int $contactId, PortalDoCliente $portal): JsonResponse
+    {
+        abort_unless(PortalDoCliente::ligado(), 404);
+        $link = $portal->gerar((int) session('user.business_id'), $contactId, $request->user()?->id);
+
+        return response()->json([
+            'url'       => url('/portal-cliente/'.$link['token']),
             'expira_em' => $link['expira_em']->toIso8601String(),
         ]);
     }

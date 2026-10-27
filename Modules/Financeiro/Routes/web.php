@@ -19,6 +19,7 @@ use Modules\Financeiro\Http\Controllers\ImpostosController;
 use Modules\Financeiro\Http\Controllers\InstallController;
 use Modules\Financeiro\Http\Controllers\PlanoContaController;
 use Modules\Financeiro\Http\Controllers\Public\PagamentoPublicoController;
+use Modules\Financeiro\Http\Controllers\Public\PortalClientePublicoController;
 use Modules\Financeiro\Http\Controllers\RelatoriosController;
 use Modules\Financeiro\Http\Controllers\UnificadoController;
 
@@ -89,6 +90,10 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         Route::post('/unificado/{tituloId}/link-pagamento', [UnificadoController::class, 'gerarLinkPagamento'])
             ->whereNumber('tituloId')
             ->name('unificado.link-pagamento');
+        // US-FIN-082 — link do portal do cliente (flag FINANCEIRO_PORTAL_CLIENTE_ENABLED).
+        Route::post('/clientes/{contactId}/portal-link', [UnificadoController::class, 'gerarLinkPortal'])
+            ->whereNumber('contactId')
+            ->name('clientes.portal-link');
         // Onda 15 (2026-05-20): bulk update categoria em lote
         Route::post('/unificado/bulk-update-categoria', [UnificadoController::class, 'bulkUpdateCategoria'])
             ->name('unificado.bulk-update-categoria');
@@ -361,4 +366,15 @@ Route::middleware(['web', 'throttle:30,1'])
         Route::get('{token}', [PagamentoPublicoController::class, 'mostrar'])->where('token', '[A-Za-z0-9]{48}')->name('mostrar');
         Route::post('{token}/{metodo}', [PagamentoPublicoController::class, 'pagar'])
             ->where(['token' => '[A-Za-z0-9]{48}', 'metodo' => 'pix|boleto'])->name('pagar');
+    });
+
+// ── US-FIN-082 · portal público do cliente (sem login) ──
+// Empresa e cliente vêm do token (só o sha256 no banco). Throttle 30/min/IP. Flag desligada = 404.
+Route::middleware(['web', 'throttle:30,1'])
+    ->prefix('portal-cliente')
+    ->name('financeiro.portal-cliente.')
+    ->group(function () {
+        Route::get('{token}', [PortalClientePublicoController::class, 'mostrar'])->where('token', '[A-Za-z0-9]{48}')->name('mostrar');
+        Route::post('{token}/{tituloId}/{metodo}', [PortalClientePublicoController::class, 'pagar'])
+            ->where(['token' => '[A-Za-z0-9]{48}', 'tituloId' => '[0-9]+', 'metodo' => 'pix|boleto'])->name('pagar');
     });
