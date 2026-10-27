@@ -376,6 +376,10 @@ Route::group([
     Route::put('/canais/jana-templates', [SettingsController::class, 'update'])
         ->middleware('can:whatsapp.settings.manage')
         ->name('atendimento.canais.jana_templates.update');
+    // US-WA-328 — régua de relacionamento (aniversário e recompra) da empresa (motor US-WA-326).
+    Route::put('/canais/regua-relacionamento', [\Modules\Whatsapp\Http\Controllers\Admin\ReguaRelacionamentoController::class, 'update'])
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.canais.regua_relacionamento.update');
 
     // US-WA-048 — Macros (quick replies + automation actions, Chatwoot pattern).
     // CRUD na tela settings + endpoint JSON pra dropdown do composer + apply.

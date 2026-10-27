@@ -106,6 +106,8 @@ class WhatsappServiceProvider extends ServiceProvider
                 // US-INFRA-002 — gera o link assinado do canal público de feedback
                 // (o órgão sensor da ADR 0334; sem ele o [W] não tem o que mandar ao cliente).
                 FeedbackLinkCommand::class,
+                // US-WA-326 — régua de relacionamento (aniversário e recompra), 1×/dia.
+                \Modules\Whatsapp\Console\Commands\ReguaRelacionamentoCommand::class,
                 // Guardião 6 camadas anti-mídia-perdida
                 ScanMediaDriftCommand::class,           // Camada 5 — scan drift daily
                 BackfillMediaDownloadCommand::class,    // Bonus — backfill one-shot
@@ -191,6 +193,12 @@ class WhatsappServiceProvider extends ServiceProvider
         // class_exists: o módulo ComunicacaoVisual pode não estar instalado nesta base.
         if (class_exists(InstalacaoAgendada::class)) {
             Event::listen(InstalacaoAgendada::class, [NotifyInstalacaoCvCustomer::class, 'handle']);
+        }
+
+        // NF-e autorizada → DANFE por WhatsApp (US-WA-321; flag whatsapp.aviso_automatico.danfe_enabled).
+        // class_exists: o NfeBrasil pode não estar instalado nesta base.
+        if (class_exists(\Modules\NfeBrasil\Events\NFeAutorizada::class)) {
+            Event::listen(\Modules\NfeBrasil\Events\NFeAutorizada::class, [\Modules\Whatsapp\Listeners\EnviarDanfePorWhatsapp::class, 'handle']);
         }
 
         // Centrifugo real-time UI (ADR 0058) — publica em whatsapp:business:{id} channel

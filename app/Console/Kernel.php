@@ -1150,6 +1150,19 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // US-WA-326 — régua de relacionamento por WhatsApp (aniversário e recompra), 1×/dia às 10h BRT.
+        // O próprio command não faz nada com WHATSAPP_REGUA_RELACIONAMENTO_ENABLED desligado (padrão).
+        $schedule->command('whatsapp:regua-relacionamento')
+            ->dailyAt('10:00')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule whatsapp:regua-relacionamento FALHOU — avisos de aniversário/recompra do dia não saíram'
+                );
+            });
+
         // US-WA-078 (PR-5 CYCLE-07) — Backfill weekly auto-link Conversation→Contact CRM
         // por phone match. Webhook auto-link cobre NOVAS conversations; este cron
         // cuida das órfãs históricas e dos casos onde o Contact CRM foi cadastrado
