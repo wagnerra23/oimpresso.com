@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do gestor + critério de aceite verificável (Dado/Quando/Então)
 por_que: indicador que diverge do quadro engana o PCP; alerta decorativo ensina a ignorar alerta; evento de outra empresa no feed é vazamento Tier 0.
 owner: wagner
-last_run: "2026-10-21"
+last_run: "2026-10-27"
 last_run_ci: "_pendente_ — o veredito entra quando a lane MySQL rodar o ProducaoQuadroContratoTest."
 ---
 
