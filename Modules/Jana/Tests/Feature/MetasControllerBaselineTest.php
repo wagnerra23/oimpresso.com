@@ -215,7 +215,7 @@ it('US-COPI-013 · update é PARCIAL: muda nome sem tocar slug nem tipo_agregaca
         ->and($fresh->tipo_agregacao)->toBe('soma');
 });
 
-it('US-COPI-011 · o drawer recebe as 12 apurações MAIS RECENTES, em ordem crescente', function () {
+it('UC-JPAIN-37 · US-COPI-011 · o drawer recebe as 12 apurações MAIS RECENTES, em ordem crescente', function () {
     for ($i = 0; $i < 15; $i++) {
         // `calculado_em` e `fonte_query_hash` são NOT NULL na migration, e o trio
         // (meta_id, data_ref, fonte_query_hash) é UNIQUE — hash distinto por linha.
@@ -258,7 +258,7 @@ it('US-COPI-011 · o drawer recebe as 12 apurações MAIS RECENTES, em ordem cre
     expect($datas)->toBe($ordenado);   // crescente: é como o drawer desenha a série
 });
 
-it('§9.4 PR-4 · cutover: ver, editar, criar e fonte da meta voltam pro Painel, sem Blade', function () {
+it('UC-JPAIN-36 · cutover: ver, editar, criar e fonte da meta voltam pro Painel, sem Blade', function () {
     $id = $this->metaPropria->id;
 
     $this->get("/ia/metas/{$id}")->assertRedirect('/ia');
@@ -271,7 +271,7 @@ it('§9.4 PR-4 · cutover: ver, editar, criar e fonte da meta voltam pro Painel,
     }
 });
 
-it('Tier 0 · fonte de meta de OUTRO tenant → 404, e não redirect', function () {
+it('UC-JPAIN-36 · Tier 0: fonte de meta de OUTRO tenant → 404, e não redirect', function () {
     $this->get("/ia/metas/{$this->metaAdversaria->id}/fonte")->assertNotFound();
 });
 
