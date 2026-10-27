@@ -16,6 +16,9 @@ Medido em 2026-10-27 19:20Z: **1.471 runs na fila** contra **26 rodando**. O gar
   levou **5,2 s e 9,7 s**. Com 8 vagas voltou a 0,04–0,13 s, com iowait 6%. Os runners dividem o
   disco com os serviços de produção do CT 100: **não suba vagas sem medir `/proc/pressure/io` e o
   health do MCP com a fila cheia.**
+  **Espaço:** cada vaga guarda dentro do container um checkout do repo e o cache do Node, reaproveitados
+  entre jobs: ~1,6 a 2,4 GB por vaga (medido 2026-10-27). Com 16 vagas o disco do CT 100 foi de 67% a
+  80%. Antes de subir vagas, confira também `df -h /`.
 - **Runner persistente:** registra uma vez com um token de **registro** (vale 1 hora) e passa a
   usar a credencial própria que o `config.sh` grava dentro do container. **Nenhum PAT nem token
   fica guardado no host.**
