@@ -15,33 +15,33 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 87.4,
+      "value": 87.5,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 87.4,
+        "coverage_pct": 87.5,
         "specs_total": 57,
-        "us_total": 1174,
-        "anchor_coverage_pct": 87.4,
+        "us_total": 1181,
+        "anchor_coverage_pct": 87.5,
         "by_state": {
           "sem_campo": 144,
           "placeholder": 4,
-          "pendente": 481,
-          "parcial": 140,
-          "anchored_ok": 405,
+          "pendente": 480,
+          "parcial": 142,
+          "anchored_ok": 411,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 1037,
+        "fields_total": 1044,
         "fields_placeholder": 4,
-        "fields_grammar_ok": 867,
+        "fields_grammar_ok": 865,
         "orphan_fields": 7,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
         "req_sem_aceite_total": 239,
-        "req_sem_covering_test_total": 341,
+        "req_sem_covering_test_total": 340,
         "req_teste_vermelho_total": 0,
         "req_sem_lane_total": 15,
         "behavior_known": false,
@@ -108,13 +108,13 @@
     },
     "n_quarantine": {
       "status": "measured",
-      "value": 251,
+      "value": 250,
       "unit": "arquivos de teste",
       "direction": "down",
       "target": 0,
       "source": "convenção legacy-quarantine (@group | ->group() | skip) em tests/ + Modules/*/Tests (este script)",
       "detail": {
-        "quarantined_files": 251
+        "quarantined_files": 250
       },
       "stream": "FV"
     },
@@ -141,8 +141,8 @@
           "B": 0,
           "C": 0
         },
-        "with_manual_ddl": 281,
-        "effectively_guarded": 281
+        "with_manual_ddl": 280,
+        "effectively_guarded": 280
       },
       "stream": "FV"
     },
@@ -204,7 +204,7 @@
     },
     "distiller_freshness": {
       "status": "measured",
-      "value": 10,
+      "value": 11,
       "unit": "portas atrás dos eventos (>7d vs doc OU código mais novo · ADR 0291 D-D)",
       "direction": "down",
       "target": 0,
@@ -213,7 +213,7 @@
         "portas": 87,
         "carimbadas": 15,
         "sem_carimbo": 72,
-        "stale": 10,
+        "stale": 11,
         "oldest_distilled_at": "2026-09-06",
         "datadas_por_codigo": 14
       },
