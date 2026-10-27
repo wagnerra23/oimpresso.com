@@ -151,7 +151,7 @@ class TodoService
      */
     public function criar(int $businessId, Model $user, array $data, string $prefix = ''): ToDo
     {
-        $createdBy = (int) $user->id;
+        $createdBy = (int) $user->getKey();
 
         $data['date']        = $this->parseDate($data['date'] ?? null);
         $data['end_date']    = ! empty($data['end_date']) ? $this->parseDate($data['end_date']) : null;
