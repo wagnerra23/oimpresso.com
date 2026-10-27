@@ -50,10 +50,7 @@ beforeEach(function () {
 });
 
 test('UC-CLED-06 — extrato do próprio contato abre; o de outra empresa responde 404', function () {
-    $outra = DB::table('business')->where('id', '!=', $this->business->id)->first();
-    if (! $outra) {
-        $this->markTestSkipped('Sem 2º business pra teste cross-tenant.');
-    }
+    $outra = $this->seededSupportClientTenant(); // adversário fictício 99 (ADR 0358), nunca biz=4
 
     $meu = ($this->novoContato)($this->business->id, $this->user->id, 'Cliente Proprio Ledger '.uniqid());
     $nomeAlheio = 'Cliente Alheio Ledger '.uniqid();
@@ -77,10 +74,7 @@ test('UC-CLED-06 — extrato do próprio contato abre; o de outra empresa respon
 });
 
 test('UC-CLED-06 — envio do extrato por e-mail recusa contato de outra empresa', function () {
-    $outra = DB::table('business')->where('id', '!=', $this->business->id)->first();
-    if (! $outra) {
-        $this->markTestSkipped('Sem 2º business pra teste cross-tenant.');
-    }
+    $outra = $this->seededSupportClientTenant(); // adversário fictício 99 (ADR 0358), nunca biz=4
 
     $alheio = ($this->novoContato)(
         (int) $outra->id,

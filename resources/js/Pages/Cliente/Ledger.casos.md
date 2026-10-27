@@ -66,7 +66,7 @@ last_run: "2026-07-08"
 - **Aceite:** Dado um contato da minha empresa e um de outra · Quando abro `/contacts/ledger?contact_id=` com cada um · Então o meu abre (200) e o alheio responde **404**, sem nome, celular nem e-mail dele; e `POST /contacts/send-ledger` com o contato alheio responde 404 sem enviar e-mail.
 - **Teste:** `tests/Feature/Cliente/ClienteLedgerTenantIsolationTest.php` (Pest, lane Cliente · MySQL).
 - **Regressão que defende:** até 2026-10-27 o extrato fazia `Contact::find($contact_id)` sem `business_id` e devolvia os dados do contato de outra empresa (ADR 0093 Tier 0). `Contact` não tem escopo global.
-- **Status: 🧪** — teste escrito; volta a ✅ quando `casos:results` regravar o manifesto.
+- **Status: ⬜** — teste novo (tenant 98 × adversário 99); vira 🧪 com o run verde da lane Cliente.
 
 ---
 
