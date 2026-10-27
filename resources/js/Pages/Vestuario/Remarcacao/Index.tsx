@@ -19,6 +19,7 @@ import { Label } from '@/Components/ui/label';
 import { Segmented } from '@/Components/ui/segmented';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
+import { Grid, Inline } from '@/Components/layout';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -122,19 +123,19 @@ export default function RemarcacaoIndex({ categorias, marcas, lotes }: Props) {
       </div>
       <div className="space-y-4 p-4">
         {feito && (
-          <div className="flex items-center justify-between rounded-md bg-success-soft p-3 text-sm" role="status">
+          <Inline justify="between" gap={0} className="rounded-md bg-success-soft p-3 text-sm" role="status">
             <span><b>Remarcação gravada.</b> {feito.n} variações remarcadas.</span>
             <Button size="sm" variant="outline" disabled={ocupado} onClick={() => etiquetas(feito.lote)}>
               <Printer className="mr-1 h-4 w-4" /> Imprimir etiquetas
             </Button>
-          </div>
+          </Inline>
         )}
         {aviso && <div className="rounded-md border p-3 text-sm" role="alert">{aviso}</div>}
 
         <Card data-contract="filtro">
           <CardHeader><CardTitle className="text-sm">1 · Quais peças</CardTitle></CardHeader>
           <CardContent className="space-y-3">
-            <div className="grid grid-cols-4 gap-3">
+            <Grid cols={4} gap={3}>
               {selectDe('Categoria', categoria, (v) => { setCategoria(v); setSubcategoria(TODAS); }, pais)}
               {selectDe('Subcategoria', subcategoria, setSubcategoria, filhas)}
               {selectDe('Marca', marca, setMarca, marcas)}
@@ -142,8 +143,8 @@ export default function RemarcacaoIndex({ categorias, marcas, lotes }: Props) {
                 <Label htmlFor="rem-nome" className="text-xs">Coleção (nome contém)</Label>
                 <Input id="rem-nome" value={nomeFiltro} placeholder="ex.: Verão24" onChange={(e) => setNomeFiltro(e.target.value)} />
               </div>
-            </div>
-            <div className="flex flex-wrap items-end gap-3">
+            </Grid>
+            <Inline wrap align="end" gap={3}>
               <div className="space-y-1">
                 <Label className="text-xs">Novo preço</Label>
                 <Segmented
@@ -157,7 +158,7 @@ export default function RemarcacaoIndex({ categorias, marcas, lotes }: Props) {
                 <Input id="rem-valor" className="w-36" inputMode="decimal" value={valor} onChange={(e) => setValor(e.target.value)} />
               </div>
               <Button disabled={ocupado} onClick={verPrevia}>Ver prévia</Button>
-            </div>
+            </Inline>
           </CardContent>
         </Card>
 
@@ -165,11 +166,11 @@ export default function RemarcacaoIndex({ categorias, marcas, lotes }: Props) {
           <Card data-contract="previa">
             <CardHeader><CardTitle className="text-sm">2 · Prévia — nada foi gravado ainda</CardTitle></CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex flex-wrap gap-2 text-xs">
+              <Inline wrap align="stretch" gap={2} className="text-xs">
                 <Badge variant="outline">{previa.linhas.length} variações mudam de preço</Badge>
                 {previa.ignoradas > 0 && <Badge variant="outline">{previa.ignoradas} sem mudança, fora da lista</Badge>}
                 <Badge variant="outline">Tabelas de preço por grupo não mudam</Badge>
-              </div>
+              </Inline>
               <table className="w-full text-sm tabular-nums">
                 <thead><tr className="border-b text-left text-xs text-muted-foreground">
                   <th className="p-2">Produto</th><th className="p-2">Variação</th><th className="p-2">SKU</th>
@@ -184,10 +185,10 @@ export default function RemarcacaoIndex({ categorias, marcas, lotes }: Props) {
                   </tr>))}
                 </tbody>
               </table>
-              <div className="flex items-center justify-between gap-3">
+              <Inline justify="between" gap={3}>
                 <p className="text-xs text-muted-foreground">Se algum preço mudar antes de gravar, a gravação é recusada e a prévia precisa ser refeita.</p>
                 <Button disabled={ocupado || previa.linhas.length === 0} onClick={() => setConfirmar(true)}>Gravar remarcação</Button>
-              </div>
+              </Inline>
             </CardContent>
           </Card>
         )}

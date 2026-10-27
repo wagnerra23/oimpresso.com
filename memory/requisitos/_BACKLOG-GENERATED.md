@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1057 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1058 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -26,7 +26,7 @@
 | [`Crm`](#crm) | 24 | 0 | 0 | 0 | 24 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 23 | 0 | 0 | 0 | 23 |
 | [`Connector`](#connector) | 21 | 0 | 0 | 0 | 20 |
-| [`Vestuario`](#vestuario) | 20 | 1 | 0 | 0 | 19 |
+| [`Vestuario`](#vestuario) | 21 | 1 | 0 | 0 | 20 |
 | [`Forja`](#forja) | 19 | 0 | 1 | 0 | 7 |
 | [`Mwart`](#mwart) | 19 | 0 | 0 | 0 | 19 |
 | [`Ponto`](#ponto) | 19 | 0 | 0 | 0 | 19 |
@@ -935,6 +935,7 @@
 - **US-VEST-031** — Sugestão de compra por tamanho pela curva de venda `p1` _(`p1`)_
 - **US-VEST-025** — Vale-presente / cartão presente (gift card) `p2` _(`p2`)_
 - **US-VEST-026** — Crediário próprio (layaway / parcelado loja) `p2` _(`p2`)_
+- **US-VEST-032** — Remarcação por coleção, com prévia e reversão `p2` _(`p2`)_
 - **US-VEST-027** — Provador / fila / pré-venda (separação reserva 24h) `p3` _(`p3`)_
 - **US-VEST-028** — Vendas externas (sacoleira / venda direta) `p3` _(`p3`)_
 - **US-VEST-030** — Ecommerce (loja virtual / WhatsApp catálogo) `p3` _(`p3`)_
