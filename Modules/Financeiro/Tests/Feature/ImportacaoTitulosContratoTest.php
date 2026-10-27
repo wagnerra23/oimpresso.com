@@ -9,8 +9,8 @@ use Modules\Financeiro\Services\ImportacaoTitulosService;
 uses(Tests\TestCase::class);
 
 /**
- * Importação de títulos por planilha (US-FIN-034) — contrato em
- * resources/js/Pages/Financeiro/ImportacaoTitulos/Index.casos.md (UC-IMPT-01..05).
+ * Importação de títulos por planilha (US-FIN-034), casos UC-IMPT-01..05. Backend sem tela ainda:
+ * a US está no SPEC e os casos vivem aqui; o .casos.md nasce com a tela (regra da rodada 27/10).
  *
  * Regra mestre de valor: a prévia não grava; o total gravado é conferido contra a soma
  * independente do banco (dois caminhos). Tenant 98 (ADR 0358), vencimentos em 2031-04,
