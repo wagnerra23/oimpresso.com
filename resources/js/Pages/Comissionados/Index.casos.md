@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o percentual define quanto o vendedor recebe; valor gravado errado ou comissionado de outro negócio na tela é incidente.
 owner: wagner
-last_run: "2026-10-06"
+last_run: "2026-10-27"
 ---
 
 # Casos de Uso & Aceite — Comissionados
@@ -44,6 +44,7 @@ last_run: "2026-10-06"
   · E o do meu negócio é editado. A forma Blade `GET …/{id}/edit` não existe mais (404).
 - **Status: 🧪** — até 2026-10-06 o `edit()` fazia `findOrFail($id)` sem negócio; em 2026-10-27 a Blade de edição saiu
   (cutover: o drawer React já editava por `PUT`) e o `update()` passou de `first()` (500 com id alheio) para `firstOrFail()`.
+  Passou no run 40491610923 (lane Acessos · MySQL, 486 passed / 2718 assertions, PR #9947).
 
 ## UC-CMSN-05 · Quem só vê não ganha as ações
 - **Aceite:** Dado só `commission_agent.view` · Quando abro a tela · Então ela renderiza com `pode.gerenciar = false`.
