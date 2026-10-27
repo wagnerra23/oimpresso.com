@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 876,
-    "edges": 1190,
+    "nodes": 877,
+    "edges": 1191,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 148,
-      "component": 487,
+      "component": 488,
       "api": 90
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 94,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 487,
+      "hasComponent": 488,
       "dependsOn": 132,
       "delegatesTo": 121,
       "migratesTo": 1,
@@ -2401,6 +2401,13 @@
       "module": "Connector",
       "name": "InstallController",
       "desc": ""
+    },
+    {
+      "id": "component:Connector/Webhooks de saída assinados por empresa",
+      "type": "component",
+      "module": "Connector",
+      "name": "Webhooks de saída assinados por empresa",
+      "desc": "US-CONN-021"
     },
     {
       "id": "component:ConsultaOs/ConsultaOsController",
@@ -8753,6 +8760,12 @@
     {
       "from": "module:Connector",
       "to": "component:Connector/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Connector",
+      "to": "component:Connector/Webhooks de saída assinados por empresa",
       "type": "hasComponent",
       "source": "contains"
     },

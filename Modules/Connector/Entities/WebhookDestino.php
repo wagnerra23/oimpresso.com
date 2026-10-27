@@ -8,6 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * Destino de webhook de saída de uma empresa (US-CONN-021). O segredo assina cada entrega
  * (HMAC-SHA256); fica cifrado no banco e fora do JSON.
+ *
+ * @property int $id
+ * @property int $business_id
+ * @property string $url
+ * @property string $segredo
+ * @property array<int, string>|null $eventos
+ * @property bool $ativo
+ * @property int|null $created_by
  */
 class WebhookDestino extends Model
 {

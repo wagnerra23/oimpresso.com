@@ -33,6 +33,7 @@ class DisparadorWebhookSaida
     {
         // Contexto pode ser fila/CLI (sem sessão): o escopo global não filtra, então a empresa
         // vai explícita em toda consulta.
+        // SUPERADMIN: fila/CLI sem sessão, o escopo global não filtra — business_id vai explícito no where.
         $destinos = WebhookDestino::withoutGlobalScopes()
             ->where('business_id', $businessId)
             ->where('ativo', true)
@@ -41,6 +42,7 @@ class DisparadorWebhookSaida
 
         $criadas = 0;
         foreach ($destinos as $destino) {
+            // SUPERADMIN: fila/CLI sem sessão, o escopo global não filtra — business_id vai explícito no where.
             if ($umaVezPorRecurso && $recursoId !== null && WebhookEntrega::withoutGlobalScopes()
                 ->where('business_id', $businessId)
                 ->where('destino_id', $destino->id)
@@ -51,6 +53,7 @@ class DisparadorWebhookSaida
             }
 
             $uuid = (string) Str::uuid();
+            // SUPERADMIN: fila/CLI sem sessão, o escopo global não filtra — business_id vai explícito no where.
             $entrega = WebhookEntrega::withoutGlobalScopes()->create([
                 'business_id' => $businessId,
                 'destino_id' => $destino->id,

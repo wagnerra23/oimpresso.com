@@ -50,6 +50,7 @@ class EnviarWebhookSaidaJob implements ShouldQueue
         if ($entrega === null || $entrega->status === WebhookEntrega::ENTREGUE) {
             return;
         }
+        // SUPERADMIN: fila/CLI sem sessão, o escopo global não filtra — business_id vai explícito no where.
         $destino = $entrega->destino()->withoutGlobalScopes()->where('business_id', $this->businessId)->first();
         if ($destino === null || ! $destino->ativo) {
             $entrega->update(['status' => WebhookEntrega::FALHOU, 'ultimo_erro' => 'destino removido ou desativado']);
@@ -98,6 +99,7 @@ class EnviarWebhookSaidaJob implements ShouldQueue
 
     private function entrega(): ?WebhookEntrega
     {
+        // SUPERADMIN: fila/CLI sem sessão, o escopo global não filtra — business_id vai explícito no where.
         return WebhookEntrega::withoutGlobalScopes()
             ->where('business_id', $this->businessId)
             ->where('id', $this->entregaId)
