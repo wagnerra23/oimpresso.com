@@ -137,7 +137,7 @@ test('UC-RDE-03 cutover — o menu abre a Page; ?classico=1 abre a Blade, com o 
     expect($this->withHeaders($this->inertia)->get('/reports/expense-report?tela=nova')->json('component'))->toBe('Relatorios/Despesas/Index');
 
     // A Blade só com ?classico=1, e o formulário de filtro dela leva o classico adiante.
-    $blade = $this->get('/reports/expense-report?classico=1');
+    $blade = $this->flushHeaders()->get('/reports/expense-report?classico=1'); // withHeaders acumula entre requisições
     $blade->assertOk()->assertViewIs('report.expense_report');
     expect($blade->getContent())->toMatch('/<input[^>]*name="classico"[^>]*value="1"/');
 });
