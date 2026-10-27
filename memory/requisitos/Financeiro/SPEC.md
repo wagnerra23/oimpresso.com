@@ -2143,3 +2143,28 @@ _PR 1 — sync:_
 **Decisão [W] 2026-10-26 — extrato pelo banco direto, sem agregador.** O Pluggy **não** é o caminho escolhido: nada de webhook, tela de vínculo nem contratação. O extrato automático segue pelas APIs dos próprios bancos, começando pelo Inter, que já existe (`SyncBankStatementsJob`, US-RB-045/046). O que este PR deixa (sinal do débito, paginação, comando atrás de `PLUGGY_ENABLED`, que segue **desligada**) fica como base inerte; o `tipoCanonico` vale para qualquer origem que grave em `fin_extrato_lancamentos`.
 
 **Fechada nesta forma:** os itens de webhook e tela de vínculo saem do escopo por decisão [W].
+
+### US-FIN-078 · Conciliação automática por regras — **P1**
+
+> owner: — · priority: p1 · estimate: 12h · status: doing · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_ — tela de regras no PR 2. Motor e flag já no código: `Modules/Financeiro/Services/Conciliacao/RegrasConciliacaoService.php` (`aplicar`), `Modules/Financeiro/Models/ConciliacaoRegra.php` (`atende`), `Modules/Financeiro/Http/Controllers/ConciliacaoController.php` (`sugerirMatches`, `aplicarRegras`, `reabrir`), `Modules/Financeiro/Database/Migrations/2026_10_27_120000_create_fin_conciliacao_regras_table.php`
+
+**Testado em:** `Modules/Financeiro/Tests/Feature/ConciliacaoRegrasContratoTest.php`
+
+**Origem:** lacuna P1 do levantamento de concorrência de 2026-10-25. A Conciliação só sugeria pelo valor e pela data (±3 dias); toda linha precisava de um clique, mesmo a mensalidade que entra todo mês com a mesma descrição.
+
+**Como funciona:** o usuário cadastra regras ("descrição contém X, entrada ou saída, faixa de valor, conta → título do cliente / plano de contas / categoria Y"). O motor roda antes do casamento por valor e data, nas duas origens (OFX e API); a primeira regra, por prioridade, que deixa **um só** título aberto de mesmo valor (parcial: o valor em aberto) dentro da janela casa a linha. Zero ou dois+ candidatos: a regra não decide e a linha segue o caminho de sempre. Ação `sugerir` deixa para confirmar; `conciliar` já confirma. Casar só grava o vínculo (`titulo_id` + `regra_id`) — não baixa nem altera o título.
+
+**Aceite:**
+
+_PR 1 — motor + flag:_
+- [x] Regra com alvo cliente casa a linha com o único título dele e o título fica igual (valor, aberto, status, nenhuma baixa) — prova por dois caminhos (UC-FCC-19).
+- [x] Dois títulos possíveis: a regra não decide; ação `sugerir` deixa a linha sugerida; reabrir limpa a regra (UC-FCC-20).
+- [x] Desligado por padrão (`FINANCEIRO_CONCILIACAO_REGRAS_ENABLED=false`): nenhuma regra roda (UC-FCC-21).
+- [x] Regra e título de outro business nunca casam a linha (UC-FCC-22, `[T0]`).
+- [x] `POST /financeiro/conciliacao/aplicar-regras` roda o motor sem upload (o extrato da API chega pelo sync).
+
+_PR 2 — tela:_
+- [ ] Cadastro de regras (criar, editar, desligar) e botão "Aplicar regras" na Conciliação, com a regra que casou visível na linha.
