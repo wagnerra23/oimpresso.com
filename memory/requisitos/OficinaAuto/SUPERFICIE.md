@@ -14,7 +14,7 @@ module: OficinaAuto
 >
 > **O que isto é:** o inventário completo das raízes `Modules/OficinaAuto/**` + `resources/js/Pages/OficinaAuto/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 187 arquivos em 18 papéis.
+**Total mapeado:** 192 arquivos em 18 papéis.
 
 ## Controllers — 10
 
@@ -43,12 +43,13 @@ module: OficinaAuto
 - [UpdateVehicleRequest.php](../../../Modules/OficinaAuto/Http/Requests/UpdateVehicleRequest.php)
 - [UploadDviPhotoRequest.php](../../../Modules/OficinaAuto/Http/Requests/UploadDviPhotoRequest.php)
 
-## Services — 16
+## Services — 17
 
 - [AcoesOsDoApp.php](../../../Modules/OficinaAuto/Services/AcoesOsDoApp.php)
 - [AprovacaoOsService.php](../../../Modules/OficinaAuto/Services/AprovacaoOsService.php)
 - [AssinaturaEntrega.php](../../../Modules/OficinaAuto/Services/AssinaturaEntrega.php)
 - [DviInspectionService.php](../../../Modules/OficinaAuto/Services/DviInspectionService.php)
+- [LembreteDeRevisao.php](../../../Modules/OficinaAuto/Services/LembreteDeRevisao.php)
 - [HttpPlacaProvider.php](../../../Modules/OficinaAuto/Services/PlacaLookup/HttpPlacaProvider.php)
 - [PlacaLookupException.php](../../../Modules/OficinaAuto/Services/PlacaLookup/PlacaLookupException.php)
 - [PlacaLookupResult.php](../../../Modules/OficinaAuto/Services/PlacaLookup/PlacaLookupResult.php)
@@ -62,9 +63,10 @@ module: OficinaAuto
 - [VehicleLookupService.php](../../../Modules/OficinaAuto/Services/VehicleLookupService.php)
 - [VehicleQueryService.php](../../../Modules/OficinaAuto/Services/VehicleQueryService.php)
 
-## Models / Entities — 6
+## Models / Entities — 7
 
 - [Agendamento.php](../../../Modules/OficinaAuto/Entities/Agendamento.php)
+- [EscopoPorNegocioDaSessao.php](../../../Modules/OficinaAuto/Entities/Concerns/EscopoPorNegocioDaSessao.php)
 - [OaInspectionItem.php](../../../Modules/OficinaAuto/Entities/OaInspectionItem.php)
 - [OsAssinatura.php](../../../Modules/OficinaAuto/Entities/OsAssinatura.php)
 - [ServiceOrder.php](../../../Modules/OficinaAuto/Entities/ServiceOrder.php)
@@ -79,7 +81,7 @@ module: OficinaAuto
 
 - [EnviarLinkAprovacaoWhatsappJob.php](../../../Modules/OficinaAuto/Jobs/EnviarLinkAprovacaoWhatsappJob.php)
 
-## Console / Commands — 6
+## Console / Commands — 7
 
 - [ImportFirebirdMartinhoCommand.php](../../../Modules/OficinaAuto/Console/Commands/ImportFirebirdMartinhoCommand.php)
 - [OficinaAutoCleanupMigratedClientCommand.php](../../../Modules/OficinaAuto/Console/Commands/OficinaAutoCleanupMigratedClientCommand.php)
@@ -87,6 +89,7 @@ module: OficinaAuto
 - [OficinaAutoSanityCheckCommand.php](../../../Modules/OficinaAuto/Console/Commands/OficinaAutoSanityCheckCommand.php)
 - [OficinaBoardDemoCommand.php](../../../Modules/OficinaAuto/Console/Commands/OficinaBoardDemoCommand.php)
 - [OficinaEntregaAssinaturaCommand.php](../../../Modules/OficinaAuto/Console/Commands/OficinaEntregaAssinaturaCommand.php)
+- [OficinaLembreteRevisaoCommand.php](../../../Modules/OficinaAuto/Console/Commands/OficinaLembreteRevisaoCommand.php)
 
 ## Providers — 2
 
@@ -97,7 +100,7 @@ module: OficinaAuto
 
 - [web.php](../../../Modules/OficinaAuto/Routes/web.php)
 
-## Migrations (schema) — 23
+## Migrations (schema) — 24
 
 - [2026_05_11_000010_create_vehicles_table.php](../../../Modules/OficinaAuto/Database/Migrations/2026_05_11_000010_create_vehicles_table.php)
 - [2026_05_11_000020_create_service_orders_table.php](../../../Modules/OficinaAuto/Database/Migrations/2026_05_11_000020_create_service_orders_table.php)
@@ -122,6 +125,7 @@ module: OficinaAuto
 - [2026_10_06_120000_add_next_service_km_to_vehicles.php](../../../Modules/OficinaAuto/Database/Migrations/2026_10_06_120000_add_next_service_km_to_vehicles.php)
 - [2026_10_06_180000_create_oficina_agendamentos_table.php](../../../Modules/OficinaAuto/Database/Migrations/2026_10_06_180000_create_oficina_agendamentos_table.php)
 - [2026_10_21_120000_create_oficina_os_assinaturas_table.php](../../../Modules/OficinaAuto/Database/Migrations/2026_10_21_120000_create_oficina_os_assinaturas_table.php)
+- [2026_10_26_300000_create_oficina_lembretes_revisao.php](../../../Modules/OficinaAuto/Database/Migrations/2026_10_26_300000_create_oficina_lembretes_revisao.php)
 
 ## Seeders — 4
 
@@ -196,12 +200,12 @@ module: OficinaAuto
 - [Index.casos.md](../../../resources/js/Pages/OficinaAuto/Vehicles/Index.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/OficinaAuto/Vehicles/Show.casos.md)
 
-## Testes (Pest) — 46
+## Testes (Pest) — 48
 
-- 46 em [Modules/OficinaAuto/Tests/Feature/](../../../Modules/OficinaAuto/Tests/Feature)
+- 48 em [Modules/OficinaAuto/Tests/Feature/](../../../Modules/OficinaAuto/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 9
+## Demais arquivos (manifestos, docs, assets e misc) — 8
 
 - [ServiceOrderPolicy.php](../../../Modules/OficinaAuto/Policies/ServiceOrderPolicy.php)
 - [VehiclePolicy.php](../../../Modules/OficinaAuto/Policies/VehiclePolicy.php)
@@ -210,5 +214,4 @@ module: OficinaAuto
 - [composer.json](../../../Modules/OficinaAuto/composer.json)
 - [module.json](../../../Modules/OficinaAuto/module.json)
 - [SCOPE.md](../../../memory/requisitos/OficinaAuto/SCOPE.md)
-- [kanbanDrag.ts](../../../resources/js/Pages/OficinaAuto/ProducaoOficina/_components/kanbanDrag.ts)
 - [boardTone.ts](../../../resources/js/Pages/OficinaAuto/ServiceOrders/_components/board/boardTone.ts)

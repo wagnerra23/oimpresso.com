@@ -23,6 +23,18 @@ class RecurringBillingServiceProvider extends ServiceProvider
         $this->registerViews();
         $this->registerObservers();
         $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
+
+        // US-RB-057: cobrança paga (origem_type=invoice) → fatura paga + InvoicePaid (desligado por config).
+        \Illuminate\Support\Facades\Event::listen(
+            \Modules\PaymentGateway\Events\CobrancaPaga::class,
+            [\Modules\RecurringBilling\Listeners\MarcarFaturaPagaDaCobranca::class, 'handle'],
+        );
+
+        // US-RB-020/021: o banco mudou o status da recorrência Pix Automático → o mandato acompanha.
+        \Illuminate\Support\Facades\Event::listen(
+            \Modules\PaymentGateway\Events\RecorrenciaPixAtualizada::class,
+            [\Modules\RecurringBilling\Listeners\AtualizarMandatoDaAssinatura::class, 'handle'],
+        );
     }
 
     /**
@@ -133,6 +145,8 @@ class RecurringBillingServiceProvider extends ServiceProvider
                 \Modules\RecurringBilling\Console\Commands\BackfillCachedFieldsCommand::class,
                 \Modules\RecurringBilling\Console\Commands\GenerateInvoicesCommand::class,
                 \Modules\RecurringBilling\Console\Commands\BackfillGatewayCommand::class,
+                // US-RB-021 — cobrança automática por Pix Automático BCB (default desligado).
+                \Modules\RecurringBilling\Console\Commands\CobrarPixAutomaticoCommand::class,
             ]);
         }
     }
@@ -158,6 +172,15 @@ class RecurringBillingServiceProvider extends ServiceProvider
                         'Schedule rb:generate-invoices FALHOU — assinaturas ativas não geraram fatura no ciclo. Verificar logs + rodar manual.'
                     );
                 });
+
+            // US-RB-021 — Pix Automático BCB (decisão [W] 2026-10-26): cobra as faturas das assinaturas
+            // com recorrência aprovada na janela de 10 a 2 dias. Só roda com a flag ligada.
+            $schedule->command('rb:cobrar-pix-automatico')
+                ->dailyAt('06:00')
+                ->timezone('America/Sao_Paulo')
+                ->when(fn () => (bool) config('recurringbilling.cobrar_pix_automatico', false))
+                ->withoutOverlapping()
+                ->environments(['live']);
         });
     }
 

@@ -11,6 +11,7 @@ contains:
   - "ConfigDefaultController — Nível 4 cascade (defaults business)"
   - "ImportRegrasController — import CSV bulk (US-NFE-010 fase 3)"
   - "NfeStatusController — endpoint JSON polling + Page Inertia (US-NFE-002 fase 2C)"
+  - "DanfePublicaController — DANFE em PDF por link assinado (7 dias) para o cliente, GET /nfe-brasil/danfe/{business}/{emissao}; sem assinatura válida = 403 (US-WA-321, aviso por WhatsApp)"
   - "NfeEmissaoController — emissão fiscal manual + reenvio DANFE email + download PDF (US-NFE-MANUAL, PR #262)"
   - "ManifestacaoController — Manifestação do Destinatário (US-NFE-052, PR #317)"
   - "NfeInutilizacaoController — UI admin pra inutilizar faixa NFe via SEFAZ (US-SELL-030)"

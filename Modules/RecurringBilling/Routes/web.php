@@ -56,6 +56,10 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::post('/{id}/reativar', [RecurringBillingController::class, 'reativar'])
             ->whereNumber('id')
             ->name('recurring-billing.reativar');
+        // US-RB-020 — pede a recorrência do Pix Automático (BCB) e devolve o QR para o cliente aprovar.
+        Route::post('/{id}/pix-automatico', [RecurringBillingController::class, 'solicitarPixAutomatico'])
+            ->whereNumber('id')
+            ->name('recurring-billing.pix-automatico');
 
         // Onda 9 v9,75 — Notes + Favorites por usuário (substitui localStorage Cowork).
         Route::post('/{subscriptionId}/notes', [SubscriptionNoteController::class, 'store'])

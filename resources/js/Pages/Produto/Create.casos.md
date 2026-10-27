@@ -45,6 +45,7 @@ last_run_ci: "PR #9736 (peso e dimensões, UC-PCAD-16), 2026-10-24, head f58ef91
 | UC-PCAD-14 | Sem NCM a tela avisa, e o produto é salvo assim mesmo | should | `CU-PROD-18` | `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
 | UC-PCAD-15 | Novo produto grava o CEST digitado (7 dígitos), sem exigir CEST | should | `CU-PROD-16` | `CadastroProdutoCestTest` + `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
 | UC-PCAD-16 | Novo produto grava peso líquido e dimensões da embalagem, opcionais; o peso de sempre é o peso bruto | should | `CU-PROD-17` | `CadastroProdutoPesoDimensoesTest` + `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
+| UC-PCAD-17 | Com tipo EAN-13, EAN-8 ou UPC-A, SKU que não vira código de barras válido é avisado; o produto é salvo assim mesmo | should | `CU-PROD-18` | `produto-formulario.test.tsx` (Vitest) | 🧪 escrito, sem veredito |
 | ~~UC-PCAD-02~~ | ~~Campo obrigatório validado server~~ | — | — | — | ⬛ **retirado** — gap de paridade, não bug |
 | ~~UC-PCAD-03~~ | ~~Defaults conservadores server~~ | — | — | — | ⬛ **retirado** — gap de paridade, não bug |
 | UC-PCAD-05 | Cadastro não aceita insumo de outro business | must `[T0]` | `CU-PROD-01.5` | — | 🔶 **backlog** — achado Tier 0 real, US própria |
@@ -232,6 +233,15 @@ last_run_ci: "PR #9736 (peso e dimensões, UC-PCAD-16), 2026-10-24, head f58ef91
 
 ---
 
+## UC-PCAD-17 · SKU que não vira código EAN válido é avisado · `should`
+- **Persona:** quem cadastra mercadoria com código de barras de fábrica e imprime etiqueta.
+- **Aceite:** Dado o "Tipo de código de barras" EAN-13, EAN-8 ou UPC-A · Quando o SKU tem letra ou símbolo, tem dígitos demais, ou o último dígito não confere com os outros (regra GS1) · Então aparece um aviso embaixo do tipo de código de barras, dizendo o que está errado e, no dígito, qual devia ser · E o produto é salvo assim mesmo · E SKU vazio (gerado pelo servidor), SKU mais curto e os tipos Code 128, Code 39 e UPC-E não avisam.
+- **Teste:** [`produto-formulario.test.tsx`](../../../../tests/js/produto-formulario.test.tsx) — `UC-PCAD-17` (a regra do dígito nos códigos de exemplo da GS1, os casos que avisam e os que não avisam, e o Novo produto com EAN-13: avisa, envia, e o aviso some com o código certo).
+- **Contrato:** `CU-PROD-18` do [SDD](../../../../memory/requisitos/Produto/SDD-tela-cadastro-produto-v1.0.md). O código de barras do produto é o SKU. Com esses tipos, a biblioteca da etiqueta (milon/barcode v13.1) recusa SKU com letra ou com o último dígito errado, e a etiqueta não sai; código mais curto ela completa com zeros. A nota fiscal **não** usa esse código hoje: o emissor do NfeBrasil manda "SEM GTIN".
+- **Status: 🧪** — escrito junto do código, sem veredito do job `Frontend / Vite build` (G-7).
+
+---
+
 ## Pendência de CONTRATO (achado sem caso de uso — não vira UC até `[F]` decidir)
 
 > ✅ **Resolvida em 2026-10-16 — saída (b), decisão [W].** O preço entrou na tela Novo: `UC-PCAD-09`.
@@ -278,6 +288,7 @@ last_run_ci: "PR #9736 (peso e dimensões, UC-PCAD-16), 2026-10-24, head f58ef91
   o Pest vê o 302 mas o que importa (o operador chega na lista) é smoke da US-PROD-023.
 - **Natureza fiscal (mercadoria × serviço) no cadastro** — `CU-PROD-19`. A natureza existe (`nfe_naturezas_produto`) e é decidida pelo contador na Tributação. Desde 2026-10-21 o Editar a mostra (`UC-PEDIT-14` em `Edit.casos.md`); no Novo produto não há o que mostrar, porque o produto ainda não existe para o contador decidir. Falta a ficha.
 - **Casos de comunicação visual** — `CV-06` a `CV-11` do SDD. A maior parte do dado mora no módulo de Comunicação Visual; viram UC com sinal de cliente.
+- **Locais de armazenagem e endereço no estoque** — `CU-PROD-20`, pedido da [M] em 2026-10-22, só no protótipo. No Novo: uma linha por local com Padrão, Local de estoque, Endereço no estoque e Qtd. inicial; "+ Adicionar local"; total. Vira UC quando a tela tiver o bloco e um teste que o cite. Decidido em 2026-10-22: endereço em prateleira, fileira e posição, e as duas seções de locais ficam. E o local padrão é o local sugerido na compra, na transferência e na separação; a venda continua baixando do local da venda.
 - **Quick-add inline** — `CU-PROD-08`. Rota e contrato separados (`save_quick_product`); merece
   `casos.md` próprio quando a tela de origem (venda/compra) fechar o trio dela.
 

@@ -234,6 +234,30 @@ Então o Controller recusa com erro no campo `motivo`; com motivo válido, a val
 Âncora: US-FISCAL-012 + Ajuste SINIEF 07/2005 (justificativa mínima).
 **Pronto quando:** a asserção usa a regra **do Controller** — afrouxá-la lá derruba este UC.
 
+## UC-FNFE-51 — Cancelar pergunta o escopo: só a nota ou a venda junto · `must`
+
+**Dado** uma NF-e autorizada **Quando** o fiscal cancela **Então** escolhe "só a nota" (para reemitir; o padrão, como
+antes) ou "venda junto"; qualquer outro valor não passa da validação. Âncora: R-NFE-044 · decisão [W] 2026-10-26.
+
+Status: 🧪 (`AcoesCancelarEscopoTest` — `UC-FNFE-51 · …`)
+
+## UC-FNFE-52 — "Venda junto" cancela a venda pelo fluxo, só na própria empresa · `must` `[T0]`
+
+**Dado** a nota de uma venda da empresa no fluxo de vendas **Quando** o fiscal escolhe "venda junto" **Então** a venda
+recebe a ação `cancelar_venda` com o mesmo motivo (o cascade estorna boleto pendente, libera a reserva de estoque e avisa
+o cliente); venda fora do fluxo não é cancelada e a mensagem manda cancelar em Vendas; venda de outra empresa não é
+achada. Com a US-SELL-077 (#9911) o cancelamento da venda devolve o estoque e cancela o título sem pagamento.
+
+Status: 🧪 (`AcoesCancelarEscopoTest` — `UC-FNFE-52 · …`, MySQL, tenant 98 × 99)
+
+## UC-FNFE-54 — Venda com dinheiro recebido: nada é cancelado, nem a nota · `must` `[T0]`
+
+**Dado** a nota de uma venda com um pagamento recebido **Quando** o fiscal escolhe "venda junto" **Então** a resposta diz
+"Nada foi cancelado." com a pendência do cancelamento da venda ("A venda tem … recebidos…"), a nota segue autorizada e
+a SEFAZ nem é chamada. Âncora: R-NFE-044 · US-SELL-077.
+
+Status: 🧪 (`AcoesCancelarEscopoTest` — `UC-FNFE-54 · …`; pula sem o `CancelamentoDaVenda` do #9911, verde com ele no CT 100)
+
 ## UC-FNFE-05 — Carta de Correção respeita texto 15–1000 e sequência 1–20
 Status: 🧪 (`AcoesContratoTest::UC-FNFE-05 · texto fora de 15–1000` / `n_seq fora de 1–20` / `aceita válido` — **passam**)
 Dado uma CC-e · Quando o texto sai da faixa de 15 a 1000 caracteres, ou a sequência sai de 1 a 20 ·
@@ -409,6 +433,26 @@ O Cockpit não é renderizado (recebe ~15 props de payload) e entra por um caso 
 que a pessoa fiscal **faz** (conferir, cancelar, manifestar, inutilizar); nenhum trata de
 preferência de exibição. Ancorar num CU plausível fecharia a lacuna do painel sem lastro (LC-11).
 
+## Item do regime normal com base e alíquota em percentual (R-NFE-040)
+
+> **Âncora:** R-NFE-040 do [SPEC do NfeBrasil](../../../../memory/requisitos/NfeBrasil/SPEC.md). Prova:
+> `NfeAliquotaPercentualTest` (sem banco, motor falso com alíquotas em fração como a régua guarda).
+
+## UC-FNFE-42 · Regime normal: base cheia e alíquota em percentual · `must`
+
+**Dado** uma regra CST 00 com ICMS 0,18, PIS 0,0165 e COFINS 0,076 **Quando** um item de 1.000,00 vai à nota
+**Então** sai vBC 1.000,00, pICMS 18, vICMS 180,00, pPIS 1,65, pCOFINS 7,6 e o total vBC 1.000,00; com base
+reduzida pelo benefício (600,00), a base é 600,00.
+
+Status: 🧪
+
+## UC-FNFE-43 · Simples e CST sem ICMS ficam como antes · `must`
+
+**Dado** CSOSN 102, CST 40 ou CST 00 com alíquota zero **Quando** o item vai à nota **Então** a base do ICMS
+fica 0 no item e no total.
+
+Status: 🧪
+
 ## NF-e em contingência quando a SEFAZ cai (US-NFE-070 · UC-FLX-32)
 
 > **Âncora:** [US-NFE-070](../../../../memory/requisitos/NfeBrasil/SPEC.md) (resto da US-NFE-006) e o
@@ -435,6 +479,15 @@ Status: 🧪
 
 Status: 🧪
 
+## UC-FNFE-53 · A NFC-e é assinada com o CSC que a empresa cadastrou · `must`
+
+> **Âncora:** R-NFE-045 do [SPEC do NfeBrasil](../../../../memory/requisitos/NfeBrasil/SPEC.md). Prova: `NfceCscConfigTest`.
+
+**Dado** a empresa com CSC e id do CSC cadastrados **Quando** a NFC-e vai ser assinada **Então** a configuração da
+`sped-nfe` leva `CSC` e `CSCid` com esses valores; sem CSC cadastrado, leva vazio.
+
+Status: 🧪
+
 ## UC-FNFE-17 · A retransmissão só sai quando há nota pendente e a SEFAZ responde · `must`
 
 **Dado** a empresa A com 1 nota em contingência e a B só com nota autorizada **Quando** o agendamento roda e o
@@ -447,6 +500,24 @@ Status: 🧪
 
 **Dado** uma nota em contingência em A e outra em B **Quando** roda o job de A **Então** só a nota de A é
 transmitida e a de B continua `contingencia`.
+
+Status: 🧪
+
+## UC-FNFE-47 · Regime normal emite o grupo IBS/CBS sem precisar ligar nada · `must`
+
+> **Âncora:** [ADR 0442](../../../../memory/decisions/0442-ibscbs-automatico-regime-normal-emenda-0321.md)
+> (emenda a 0321) · US-FISCAL-021. Prova: `SerializacaoIbsCbsTest` (XML montado pelo `buildXml`).
+
+**Dado** um emitente CRT 3 com `reforma_tributaria_modo = legacy` e regra com CST 000, cClassTrib 000001, IBS 0,1% e
+CBS 8,8% **Quando** sai uma NF-e de 1.000,00 **Então** o item leva o grupo IBS/CBS (vIBSUF 1,00 · vCBS 88,00) e o vNF
+continua 1.000,00.
+
+Status: 🧪
+
+## UC-FNFE-48 · Simples segue byte-idêntico · `must`
+
+**Dado** um emitente CRT 1 ou 2 em `legacy` **Quando** sai a NF-e, com ou sem IBS/CBS na regra **Então** o XML é o
+mesmo de antes, sem grupo.
 
 Status: 🧪
 
@@ -477,10 +548,110 @@ da nota diz "O DANFE só vale com o EPEC registrado".
 
 Status: 🧪
 
+## UC-FNFE-40 · Devolução exige a permissão e quantidade válida · `must`
+
+> **Âncora:** R-NFE-039 do [SPEC do NfeBrasil](../../../../memory/requisitos/NfeBrasil/SPEC.md) (rota da
+> NF-e de devolução, US-NFE-064). Prova: `AcoesDevolucaoTest`, que invoca o `AcoesController`.
+
+**Dado** uma NF-e autorizada **Quando** quem não tem `fiscal.nfe.acoes` pede a devolução **Então** 403. Sem item,
+ou com quantidade 0, negativa ou não numérica, o pedido não passa da validação; 2,5 passa.
+
+Status: 🧪
+
+## UC-FNFE-41 · A devolução só acha nota da própria empresa · `must`
+
+**Dado** uma nota autorizada da empresa A e outra da B **Quando** A pede a devolução da nota de B **Então** não é
+achada (404) e nada é emitido; da nota de A, o serviço recebe a empresa A, a nota e as quantidades por item.
+
+Status: 🧪
+
 ## UC-FNFE-31 · O EPEC de uma empresa grava evento só nela · `must`
 
 **Dado** a empresa A em EPEC **Quando** sai uma NF-e de A **Então** o único evento da nota é de A, e a empresa B
 não ganha evento 110140.
+
+Status: 🧪
+
+---
+
+## A NF-e da venda sai para o cliente, com o DIFAL (US-NFE-072 · R-NFE-036/037)
+
+> **Âncora:** [US-NFE-072](../../../../memory/requisitos/NfeBrasil/SPEC.md) e a regra R-NFE-036 do
+> SPEC do NfeBrasil (leiaute 4.00, grupo E do destinatário e `idDest`) e a R-NFE-037 (grupo NA, ICMSUFDest). Mora nesta tela porque a nota
+> emitida aparece nesta lista. Coluna CU `—`: o SDD §6 do Fiscal não tem CU de emissão a partir da
+> venda. Prova: `NfeDestinatarioDaVendaTest` (sem banco: contato como objeto, motor falso) e
+> `NfeDifalNoXmlTest` (XML montado pelo `buildXml`, sem SEFAZ).
+
+## UC-FNFE-32 · Cliente identificado vira o destinatário, e o destino chega ao motor · `must`
+
+**Dado** uma venda de SC para um cliente com CNPJ, IE e endereço no RJ **Quando** sai a NF-e (modelo 55)
+**Então** o destinatário leva o CNPJ só com dígitos, a IE, o código IBGE e a UF RJ, com `ind_ie_dest` 1;
+cliente sem IE é 9 e não leva IE; o indicador cadastrado (2, isento) prevalece. O motor recebe a UF RJ,
+`contribuinte` e a interna do RJ; um item de 1.000,00 sai com CFOP 6102 e o vNF continua 1.000,00.
+
+Status: 🧪
+
+## UC-FNFE-33 · Sem cliente identificado a nota é a de antes · `must`
+
+**Dado** um contato sem CPF/CNPJ, ou a NFC-e **Quando** sai a nota **Então** não há destinatário do cadastro,
+o motor é chamado como sempre (mesma UF, CFOP 5102) e o vNF é o total da venda. UF inválida no cadastro
+mantém a operação interna.
+
+Status: 🧪
+
+## UC-FNFE-34 · Venda a não contribuinte de outra UF leva o DIFAL na nota · `must`
+
+**Dado** um item de 1.000,00 de SC para não contribuinte no RJ, ICMS interestadual 12%, interna do RJ 20% e
+FCP 2% **Quando** sai a NF-e **Então** o item leva o grupo `ICMSUFDest` com base 1.000,00, interna 20,0000,
+interestadual 12,00, partilha 100, DIFAL 80,00 e FCP 20,00; o `ICMSTot` soma 80,00 e 20,00; o vNF fica
+1.000,00 (R-NFE-037).
+
+Status: 🧪
+
+## UC-FNFE-35 · Contribuinte, ou mesma UF, não leva DIFAL · `must`
+
+**Dado** o mesmo item vendido a um contribuinte no RJ, ou a um cliente de SC **Quando** sai a NF-e **Então**
+o item não leva `ICMSUFDest` e o total do grupo fica como antes.
+
+Status: 🧪
+
+## UC-FNFE-36 · Sem a interna do destino a nota é recusada com a saída · `must`
+
+**Dado** a venda a não contribuinte no RJ e a interna do RJ não cadastrada na tabela por UF **Quando** pede a
+NF-e **Então** a emissão é recusada com "Alíquota interna de RJ não cadastrada. Peça ao contador para
+preencher em Tributação."; com a interna, com cliente contribuinte, na mesma UF ou sem cliente, não recusa.
+
+Status: 🧪
+
+## UC-FNFE-49 · O ICMS-ST vai na nota e soma no valor total · `must`
+
+**Dado** um item de 1.000,00 de SC para contribuinte no RJ, regra CST 10, ICMS 12%, MVA 40% e interna do RJ 18%
+**Quando** sai a NF-e **Então** o ICMS10 leva base ST 1.400,00, MVA 40, alíquota ST 18 e ST 132,00; o total leva
+vBCST 1.400,00 e vST 132,00; o vNF e o pagamento são 1.132,00 (regra W16 do leiaute). Com CSOSN 202, idem.
+
+Status: 🧪
+
+## UC-FNFE-50 · Regra com MVA e CST sem ST é recusada · `must`
+
+**Dado** a mesma regra com CST 00 **Quando** pede a NF-e **Então** é recusada com "não leva ST — ajuste a regra em
+Tributação".
+
+Status: 🧪
+
+## UC-FNFE-55 · Destinatário informado por quem emite vence o cliente da venda · `must`
+
+**Dado** uma NF-e (modelo 55) emitida com um destinatário informado (ex. o comprador de um pedido de
+marketplace), com as chaves de `contacts` **Quando** sai a nota **Então** o destinatário é o informado,
+com CPF só com dígitos, a UF dele e `ind_ie_dest` 9 quando não há IE; informado sem CPF/CNPJ, a emissão
+recusa em vez de sair para o consumidor anônimo. Âncora: R-NFE-046 / US-NFE-075.
+
+Status: 🧪
+
+## UC-FNFE-56 · CFOP informado por quem emite vence o da regra · `must`
+
+**Dado** uma NF-e emitida com um CFOP informado **Quando** os itens são montados **Então** todos saem com
+esse CFOP e o resto do item fica igual; CFOP fora de 4 dígitos de 1xxx a 7xxx recusa. O valor do CFOP é
+de quem chama. Âncora: R-NFE-046 / US-NFE-075.
 
 Status: 🧪
 
@@ -547,6 +718,34 @@ creditado antes e não é desfeito (`CU-RB-09` item 3).
   veredito acima.
 - O e-mail com DANFE + XML é o `EnviarDanfePorEmail` (US-NFE-044, `EnviarDanfePorEmailTest`), fora deste
   bloco.
+
+## XML do mês vai ao contador (US-NFE-073 · R-NFE-038)
+
+> **Âncora:** [US-NFE-073](../../../../memory/requisitos/NfeBrasil/SPEC.md) e a R-NFE-038. Mora nesta
+> tela porque o pacote é feito das notas desta lista. Coluna CU `—`: o SDD §6 do Fiscal não tem CU do
+> envio ao contador. Prova: `EnviarXmlContadorTest` (MySQL, tenants 98 e 99, storage e e-mail falsos).
+
+## UC-FNFE-37 · O pacote leva as autorizadas e canceladas do mês, só da empresa · `must`
+
+**Dado** a empresa com, em 09/2026, uma NF-e autorizada, uma cancelada e uma rejeitada, mais uma autorizada
+em 10/2026 e uma do vizinho **Quando** monta o pacote de 2026-09 **Então** o ZIP tem 2 XML, a cancelada com
+"-cancelada" no nome, e nenhuma das outras. Nota do mês sem XML no storage é contada à parte.
+
+Status: 🧪
+
+## UC-FNFE-38 · O contador recebe uma vez por mês · `must`
+
+**Dado** contador cadastrado na empresa e no vizinho **Quando** roda o envio de 2026-09 duas vezes **Então** sai
+um e-mail só, para o contador da empresa, com 1 XML; o envio fica registrado; o vizinho sem nota não recebe.
+
+Status: 🧪
+
+## UC-FNFE-39 · Sem contador, em dry-run ou com a chave desligada, nada sai · `must`
+
+**Dado** a empresa sem contador **Quando** roda o envio **Então** nenhum e-mail sai. Em dry-run nada é enviado
+nem gravado. O agendamento do dia 5 às 07:00 existe e só passa com `NFEBRASIL_ENVIO_XML_CONTADOR` ligada.
+
+Status: 🧪
 
 ## Backlog de casos (sem id — entram quando um teste de COMPORTAMENTO os cobrir)
 

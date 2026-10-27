@@ -1,0 +1,15 @@
+{
+    "name": "oimpresso/marketplaces",
+    "description": "Marketplaces — integração cross-vertical com marketplaces brasileiros (ADR 0439)",
+    "authors": [{"name": "Wagner", "email": "wagnerra@gmail.com"}],
+    "extra": {
+        "laravel": {
+            "providers": ["Modules\\Marketplaces\\Providers\\MarketplacesServiceProvider"]
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Marketplaces\\": ""
+        }
+    }
+}

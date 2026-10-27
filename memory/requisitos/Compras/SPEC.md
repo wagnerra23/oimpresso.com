@@ -363,6 +363,8 @@ Como user, quero registrar recebimento parcial (qty recebida por linha diferente
 
 **Refs:** CAPTERRA C03 ❌. Líderes: Lightspeed/Shopify/Zoho.
 
+**Decisão (coordenação 2026-10-26, a partir da recomendação da frente Compras):** o recebimento parcial vai **pelo pedido de compra**, que o UltimatePOS já recebe em partes (`purchase_lines.po_quantity_purchased`, status `ordered → partial → completed` em `TransactionUtil::updatePurchaseOrderStatus`). Sem coluna nova: cada entrega vira uma compra ligada ao pedido, e o que falta fica no pedido. A tela React de compra passa a deixar escolher o pedido e mostra por linha Pedido / Já recebido / A receber. A opção do protótipo (quantidade recebida dentro da compra, com resíduo em trânsito, `CmpRecebimento` em `fsm-regras.jsx`) foi descartada porque mudaria quando o estoque entra. Mexe em estoque: regra mestre (dupla prova + antes→depois). Depende da US-COM-029 (trava entre empresas no mesmo caminho). O "autosave do check-in" do aceite acima sai do escopo desta US.
+
 ### US-COM-014 · FSM de estágios PERSISTIDA + auditável
 
 > owner: — · priority: p1 · estimate: M · status: todo · type: story · parent_plan: programa-ondas · tags: [capterra-gap, onda-2.1] · cycle: —
@@ -614,6 +616,83 @@ Como quem compra, quero que o item que caiu abaixo do mínimo no local apareça 
 - [x] A requisição sai com o fornecedor e o preço da última compra recebida do item: o fornecedor vai em `transactions.contact_id`, então há uma requisição automática por local **e fornecedor**; item nunca comprado fica numa sem fornecedor, com preço 0. A lista de requisições ganha a coluna Fornecedor. _(UC-REQMIN-07/08 · UC-REQC-06)_
 - [x] Tela para ligar/desligar a regra: card Compra da aba Fluxos da empresa (`/fluxos?aba=empresa`), com `fluxos.configurar` — a permissão das outras regras da empresa nessa tela, não uma de Compras. _(UC-FLXT-24)_
 
+### US-COM-030 · MRP: necessidade de compra somando todas as OS, com prazo do fornecedor — **P1**
+
+> owner: — · priority: p1 · status: todo · type: story
+> blocked_by: —
+
+Como comprador, quero ver numa lista só quanto falta de cada insumo somando todas as OS abertas e o estoque mínimo, por local, e até quando preciso pedir pelo prazo de entrega do fornecedor, para não comprar OS por OS nem descobrir a falta quando a OS já está parada.
+
+**Implementado em:** _pendente_
+
+- Origem: lacunas de 2026-10-25 (P1 Compras). Ordem MRP → cotação → qualidade e desenho ancorado no DS e no padrão de tela: **decisão coordenação 2026-10-26**.
+- Reaproveita a falta de material por OS (`Modules/Producao/Services/FaltaDeMaterialDaOs.php`) e o estoque mínimo que já vira requisição (US-COM-027, `RequisicaoEstoqueMinimoService`). Não cria um segundo cálculo de falta.
+- Campo novo: prazo de entrega em dias por (produto, fornecedor), por empresa. Data para pedir = data em que a primeira OS precisa do insumo − prazo do fornecedor.
+- Daqui sai a requisição de compra (e, depois, a cotação da US-COM-031).
+- Tier 0: tudo filtrado pela empresa do usuário.
+
+### US-COM-031 · Cotação de compra entre fornecedores — **P1**
+
+> owner: — · priority: p1 · status: todo · type: story
+> blocked_by: US-COM-030
+
+Como comprador, quero pedir preço e prazo a vários fornecedores para os itens de uma requisição, comparar as respostas lado a lado e transformar a melhor em pedido de compra, para não decidir pela memória nem por telefone.
+
+**Implementado em:** _pendente_
+
+- Origem: lacunas de 2026-10-25 (P1 Compras). Decisão coordenação 2026-10-26 (ordem e desenho).
+- Itens podem vir da requisição de compra ou de outro módulo: a frente Verticais (Oficina, "catálogo de peças por veículo com cotação") vai consumir esta mesma cotação, sem criar uma própria (combinado em 2026-10-26).
+- A cotação vencedora vira `transactions.type = purchase_order` pelo fluxo existente, e o pedido entra no recebimento parcial (US-COM-013).
+
+### US-COM-032 · Aprovação do pedido de compra por alçada de valor — **P2**
+
+> owner: — · priority: p2 · status: todo · type: story
+> blocked_by: —
+
+Como dono, quero que o pedido de compra acima do limite de quem o fez espere a aprovação de gerente ou diretoria, com os limites de valor configurados pela minha empresa, para que compra grande não saia sem alguém ver.
+
+**Implementado em:** _pendente_
+
+- **Decisão [W] 2026-10-26:** a alçada fica **no pedido de compra**, com limites de valor configuráveis por empresa (comprador, gerente, diretoria). Tira da seção 9.1 o item "Aprovação / workflow multi-nível (alçada)".
+- O protótipo de Fluxos já põe a alçada em Requisição → Pedido (`prototipo-ui/cowork/Wagner/fluxos-processos.jsx`).
+- Hoje o pedido nasce sem passo de aprovação (`PurchaseOrderController@store`).
+
+### US-COM-033 · Avaliação automática do fornecedor por entrega — **P3**
+
+> owner: — · priority: p3 · status: todo · type: story
+> blocked_by: US-COM-013
+
+Como comprador, quero ver por fornecedor quantas entregas chegaram no prazo e completas, calculado das entregas registradas, para escolher fornecedor com dado e não com impressão.
+
+**Implementado em:** _pendente_
+
+- **Decisão coordenação 2026-10-26:** automática, derivada do recebimento parcial pelo pedido (US-COM-013), sem nota digitada. Tira da seção 9.1 o item "Supplier scorecard".
+- Prazo cumprido: data da compra que recebe × data de entrega prevista do pedido. Completa: soma recebida × soma pedida por linha.
+
+### US-COM-034 · Inspeção de qualidade no recebimento da compra — **P2**
+
+> owner: — · priority: p2 · estimate: 3h · status: doing · type: story
+> blocked_by: US-COM-013
+
+Como quem recebe mercadoria, quero inspecionar cada linha da compra recebida e marcar quanto foi aprovado e quanto foi reprovado, para que o reprovado não fique no estoque disponível e volte ao fornecedor como devolução.
+
+**Implementado em:** _pendente_ — serviço `Modules/Compras/Services/InspecaoDoRecebimento.php`, tabela `compras_inspecoes` e o `InspecaoDoRecebimentoTest`, ainda sem veredito da lane `compras-pest`; a tela vem depois do protótipo (ADR 0438).
+
+**Testado em:** `Modules/Compras/Tests/Feature/InspecaoDoRecebimentoTest.php`
+
+- Origem: lacuna P2 de Compras (programa de lacunas, 2026-10-27), depois do recebimento parcial (US-COM-013). Diferente da US-PCP-033, que inspeciona a etapa da OS.
+- Uma inspeção por linha: aprovado + reprovado = o que entrou pela linha (`quantity − quantity_returned`). Resultado: aprovado, reprovado ou parcial.
+- O reprovado sai do estoque pela devolução de compra do núcleo, a mesma conta do `PurchaseReturnController@store`: `quantity_returned` += reprovado, estoque desce o mesmo, um `purchase_return` por compra com Σ `purchase_price_inc_tax × quantity_returned`. Vira crédito com o fornecedor.
+- Desligada por padrão (`business.common_settings['compras_inspecao_recebimento']`).
+- Tier 0: compra, linhas e devolução filtradas pela empresa.
+
+**Aceite:**
+- [ ] 10 recebidas, 7 aprovadas e 3 reprovadas: estoque 10 → 7 pelos dois caminhos e devolução de 3 × 12,50 = 37,50
+- [ ] Tudo aprovado não mexe no estoque nem cria devolução
+- [ ] Soma diferente do recebido, reprovado sem motivo e segunda inspeção da mesma linha são recusados
+- [ ] Desligada, a inspeção é recusada; compra de outra empresa é recusada e nada muda
+- [ ] Tela: inspecionar no detalhe da compra recebida (depois do protótipo)
+
 ### US-COM-028 · Aprovar ou recusar o preço proposto no detalhe da compra (UC-FLX-17) — **P1**
 
 > owner: wagner · priority: p1 · estimate: 3h · status: doing · type: story
@@ -639,11 +718,31 @@ Como dono que deixou a regra de custo em "Propõe novo preço", quero ver no det
 - [x] Aviso na tela quando a regra está em Conferido
 - [ ] Fila na Fabricação (`aprovacao = fabricacao`) e nas Pendências da Visão geral
 
+### US-COM-029 · Compra a partir de pedido não aceita pedido nem linha de outra empresa — **P0**
+
+> owner: — · priority: p0 · estimate: 2h · status: doing · type: story
+> blocked_by: —
+
+Como dono de uma empresa, quero que a compra feita a partir de um pedido de compra só aceite pedidos e linhas de pedido da minha empresa, para que ninguém consiga mexer na quantidade recebida ou no status do pedido de outra empresa.
+
+**Implementado em:** _pendente_ — trava `assertPurchaseOrderRefsBelongTo` no `PurchaseController` (store e update) e o `CompraDePedidoOutraEmpresaTest`, ainda sem veredito da lane `compras-pest`. A âncora vira path quando o teste ficar verde (ADR 0273 + doneness-lint ADR 0302).
+
+**Testado em:** `Modules/Compras/Tests/Feature/CompraDePedidoOutraEmpresaTest.php`
+
+- Origem (medido em 2026-10-26, `origin/main` `93d6a5d11c`): `purchase_order_ids` e `purchases.*.purchase_order_line_id` chegam crus do formulário e descem para `ProductUtil::updatePurchaseOrderLine` (`PurchaseLine::find`) e `TransactionUtil::updatePurchaseOrderStatus` (`Transaction::find`), sem filtro de empresa.
+- O pedido tem de ser `purchase_order` da empresa do usuário; a linha, de um pedido da empresa. A linha não precisa estar na lista de pedidos, porque a edição pode tirar um pedido da lista e manter a linha já vinculada.
+- Pré-requisito do recebimento parcial (US-COM-013), que reaproveita este caminho (pedido → compra com `po_quantity_purchased`).
+
+**Aceite:**
+- [ ] Pedido de outra empresa em `purchase_order_ids` = 422, pedido alheio intacto
+- [ ] Linha de pedido de outra empresa = 422, `po_quantity_purchased` alheio intacto
+- [ ] Pedido da própria empresa segue recebendo: 4 de 10 deixa o pedido `partial` (controle positivo)
+
 ### 9.1 Seguradas (feature-wish ADR 0105 — NÃO no backlog ativo)
 
 Sem dor reportada por cliente / sinal qualificado, estas **não** viram US ativa (ADR 0105 — cliente como sinal). Ficam catalogadas como wish, reabrem com sinal:
 
 - **3-way match (PO↔Recebimento↔NF-e)** (C05, P0-teto) — só com overpayment reportado; depende US-COM-003+013.
-- **Supplier scorecard (OTIF/lead-time/defect/fill-rate)** (C11, P1) — sem dor reportada.
-- **Aprovação / workflow multi-nível (alçada)** (C12, P1) — PME loja (Larissa) pode não precisar.
+- ~~**Supplier scorecard (OTIF/lead-time/defect/fill-rate)** (C11, P1) — sem dor reportada.~~ → ativa como US-COM-033 (decisão coordenação 2026-10-26).
+- ~~**Aprovação / workflow multi-nível (alçada)** (C12, P1) — PME loja (Larissa) pode não precisar.~~ → ativa como US-COM-032 (decisão [W] 2026-10-26).
 - **Atalhos de teclado com handlers** (C19, P3) — declarados no footer sem funcionar; Larissa não é power-user (risco de expectativa frustrada baixa prioridade).

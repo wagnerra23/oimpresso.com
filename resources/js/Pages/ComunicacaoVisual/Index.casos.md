@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a fórmula do m² e o isolamento por business são o que não pode mudar — a tela vai ganhar OS, materiais e apontamento por cima disso, e nenhum deles pode afrouxar o cálculo nem o escopo.
 owner: wagner
-last_run: "2026-10-21"
-last_run_ci: "2026-10-21 — CT 100 MySQL, cópia isolada do branch a8ada7ef4: OrcamentoSalvarReabrirContratoTest 6 passed (39 assertions) + ViraOs/CustoPrevisto/CustoMaquina 16 passed; sem run id de CI. ---- 2026-10-13 (PR contratos de tela, modulos-faltantes thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (e um div sem classe em volta do PageHeader); nenhum UC afirma ancora, nenhum calculo tocado. ---- REGISTRO ANTERIOR: last_run 2026-09-25. 2026-09-25 — GH run 36124963011 (verticais-pest, workflow_dispatch, MySQL, main 2e3f8adb4): MigrationsTest, Tier0GuardTest e MultiTenantTest PASS (lane vermelha só por Cms). CT 100 MySQL (worktree isolado em origin/main 1743f005a, sem run id): 10 arquivos, 58 passed / 10 failed (200 assertions) — ver §Revalidação 2026-09-25. Nenhum UC no manifesto G-7, logo nenhum ✅."
+last_run: "2026-10-26"
+last_run_ci: "2026-10-26 — a tela ganhou o cartão Roteiro da produção (UC-CVOS-11, #9900), depois composto com Stack; vitest local tests/js/cv-roteiro-padrao.test.tsx 2 passed; nenhum outro UC tocado. ---- 2026-10-21 — CT 100 MySQL, cópia isolada do branch a8ada7ef4: OrcamentoSalvarReabrirContratoTest 6 passed (39 assertions) + ViraOs/CustoPrevisto/CustoMaquina 16 passed; sem run id de CI. ---- 2026-10-13 (PR contratos de tela, modulos-faltantes thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (e um div sem classe em volta do PageHeader); nenhum UC afirma ancora, nenhum calculo tocado. ---- REGISTRO ANTERIOR: last_run 2026-09-25. 2026-09-25 — GH run 36124963011 (verticais-pest, workflow_dispatch, MySQL, main 2e3f8adb4): MigrationsTest, Tier0GuardTest e MultiTenantTest PASS (lane vermelha só por Cms). CT 100 MySQL (worktree isolado em origin/main 1743f005a, sem run id): 10 arquivos, 58 passed / 10 failed (200 assertions) — ver §Revalidação 2026-09-25. Nenhum UC no manifesto G-7, logo nenhum ✅."
 ---
 
 # Casos de Uso & Aceite — Hub + Calculadora de m² (`/comunicacao-visual`)
@@ -64,6 +64,10 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CV-10 | O hub abre pra quem tem permissão e renderiza a calculadora | must | `CU-CV-01` itens 1-2 | `ContratoTelaOrcamentoTest` | 🧪 ⏭ PR-skip |
 | UC-CV-11 | Salvar o orçamento grava os valores do servidor, atomicamente | should | `CU-CV-05` itens 1-4 | `OrcamentoControllerTest` | 🧪 ⏭ PR-skip |
 | UC-CV-12 | O catálogo de partida nasce completo, idempotente e isolado | should | `CU-CV-07` itens 1-3 | `MaterialSeederTest` | 🧪 ⏭ PR-skip |
+| UC-CVPRC-01 | Peça menor que o mínimo do material é cobrada pelo mínimo | must `[V0]` | `CU-CV-02` · DoD US-COMVIS-001 (mínimo) | `OrcamentoMinimoAcabamentoContratoTest` | 🧪 |
+| UC-CVPRC-02 | Acabamento do catálogo entra no total pela base do tipo dele | must `[V0]` `[T0]` | `CU-CV-02` · DoD US-COMVIS-001 (acabamentos) · SPEC §12.1 | `OrcamentoMinimoAcabamentoContratoTest` | 🧪 |
+| UC-CVPRC-03 | Perda % do material soma na área cobrada | must `[V0]` | Decisão [W] 2026-10-26 · US-COMVIS-001 | `OrcamentoPerdaEmendaContratoTest` | 🧪 |
+| UC-CVPRC-04 | Peça maior que a bobina leva emenda cobrada por metro de solda | must `[V0]` `[T0]` | Decisão [W] 2026-10-26 · US-COMVIS-001 | `OrcamentoPerdaEmendaContratoTest` | 🧪 |
 | UC-CVINST-01 | Agenda equipe e veículo na OS e a agenda da janela lista a instalação | must | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAgendaContratoTest` | 🧪 |
 | UC-CVINST-02 | Alguém da equipe ocupado na janela bloqueia, dizendo com quem e quando | must | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAgendaContratoTest` | 🧪 |
 | UC-CVINST-03 | O mesmo veículo na janela bloqueia, mesmo escrito de outro jeito | must | US-COMVIS-007 · UC-FLX-21 | `InstalacaoAgendaContratoTest` | 🧪 |
@@ -82,6 +86,9 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CVOS-06 | Orçamento recusado não vira OS | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 | UC-CVOS-07 | Só quem pode criar orçamento aprova | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 | UC-CVOS-08 | O orçamento aprovado reabre com o número da OS | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVOS-09 | A OS aprovada nasce com o roteiro padrão e aparece no quadro do PCP | must | US-COMVIS-003 · decisão [W] 2026-10-26 | `OsRoteiroPadraoContratoTest` | 🧪 |
+| UC-CVOS-10 | O padrão só aceita roteiro ativo da própria empresa | must `[T0]` | US-COMVIS-003 · decisão [W] 2026-10-26 | `OsRoteiroPadraoContratoTest` | 🧪 |
+| UC-CVOS-11 | O hub mostra e troca o roteiro padrão para quem cuida do catálogo | should | US-COMVIS-003 · decisão [W] 2026-10-26 | `tests/js/cv-roteiro-padrao.test.tsx` | 🧪 |
 | UC-CVMRG-01 | Cada peça e o orçamento mostram custo e margem | must `[V0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVMRG-02 | Preço, subtotal e total são os mesmos com e sem margem | must `[V0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVMRG-03 | Peça sem custo fica sem margem; o orçamento diz quantas têm | must | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
@@ -402,6 +409,63 @@ e marcar ✅ sem ela é `status:unverified` (G-7).
 
 ---
 
+## UC-CVPRC-01 · Peça menor que o mínimo do material é cobrada pelo mínimo · `must` `[V0]`
+
+- **Persona:** vendedor de gráfica orçando plaquinha de 30 × 40 cm — a gráfica não corta, imprime e
+  acaba uma peça por menos que o mínimo dela.
+- **Aceite:** Dado um material com mínimo de 0,5 m² por peça · Quando o item tem peças menores · Então
+  cada peça é cobrada como 0,5 m² (`area_cobrada_m2`), a área física (`area_m2`, base do custo) não
+  muda, e peça maior que o mínimo segue pela própria área. Material sem mínimo, ou de outra empresa,
+  não aplica mínimo nenhum: o orçamento sai com os mesmos números de antes.
+- **Teste:** [`OrcamentoMinimoAcabamentoContratoTest`](../../../../Modules/ComunicacaoVisual/Tests/Feature/OrcamentoMinimoAcabamentoContratoTest.php)
+  — cada valor é conta à mão, refeita por um segundo caminho sem banco.
+- **Contrato:** DoD da `US-COMVIS-001` no SPEC (*"mínimo cobrado configurável (`material.minimo_m2`)"*)
+  · `CU-CV-02` do SDD (o servidor é a fonte do valor) · SDD §5.4.6 / D-8.
+- **Status: 🧪** — verde no CT 100 em 2026-10-26 (cópia isolada do branch); veredito da lane pendente.
+
+---
+
+## UC-CVPRC-02 · Acabamento do catálogo entra no total pela base do tipo dele · `must` `[V0]` `[T0]`
+
+- **Persona:** vendedor que soma bainha, ilhós, laminação e arte num banner sem abrir planilha.
+- **Aceite:** Dado acabamentos cadastrados da empresa · Quando o item os escolhe · Então cada um vale
+  base × preço, com a base pelo tipo (SPEC §12.1): `m_linear` = metros informados ou o perímetro da
+  peça × quantidade; `m2` = área física; `unitario` = quantidade informada ou nº de peças; `fixo` = 1.
+  A soma vai para `acabamentos` e entra no total; o subtotal do material não muda. Acabamento de outra
+  empresa, inativo ou sem empresa conhecida é recusado. Gravar guarda o acabamento e o preço do dia.
+- **Teste:** [`OrcamentoMinimoAcabamentoContratoTest`](../../../../Modules/ComunicacaoVisual/Tests/Feature/OrcamentoMinimoAcabamentoContratoTest.php)
+- **Contrato:** DoD da `US-COMVIS-001` (*"acabamentos[]"*, *"extras = sum(acabamentos.preco)"*) ·
+  SPEC §12.1 (`cv_acabamentos.tipo`) · `CU-CV-02` do SDD.
+- **Status: 🧪** — verde no CT 100 em 2026-10-26 (cópia isolada do branch); veredito da lane pendente.
+
+---
+
+## UC-CVPRC-03 · Perda % do material soma na área cobrada · `must` `[V0]`
+
+- **Persona:** vendedor de gráfica orçando lona, que perde material no corte e na margem de refile.
+- **Aceite:** Dado um material com perda de 10% · Quando o item é calculado · Então a área cobrada é
+  `max(L × A, mínimo) × 1,10 × quantidade` (3 × 1,5 → 4,95 m²) e a área física não muda. Com mínimo, a
+  perda incide sobre o mínimo.
+- **Teste:** [`OrcamentoPerdaEmendaContratoTest`](../../../../Modules/ComunicacaoVisual/Tests/Feature/OrcamentoPerdaEmendaContratoTest.php)
+- **Contrato:** decisão [W] 2026-10-26 no DoD da US-COMVIS-001.
+- **Status: 🧪** — verde no CT 100 em 2026-10-26 (cópia isolada do branch); veredito da lane pendente.
+
+---
+
+## UC-CVPRC-04 · Peça maior que a bobina leva emenda cobrada por metro de solda · `must` `[V0]` `[T0]`
+
+- **Persona:** vendedor orçando fachada de 5 × 3 m numa lona de bobina 1,60 m.
+- **Aceite:** Dado um material com largura de bobina e preço do metro de solda · Quando os DOIS lados da
+  peça passam da bobina · Então entra a linha "Emenda (solda)" = (N − 1) × maior lado × preço × quantidade,
+  com N = tiras do menor lado (5 × 3 → 1 emenda de 5 m). Peça que cabe girada, material sem preço de
+  solda, ou de outra empresa, não leva emenda. Reabrir o orçamento não devolve a emenda como acabamento
+  escolhido (ela é recalculada).
+- **Teste:** [`OrcamentoPerdaEmendaContratoTest`](../../../../Modules/ComunicacaoVisual/Tests/Feature/OrcamentoPerdaEmendaContratoTest.php)
+- **Contrato:** decisão [W] 2026-10-26 no DoD da US-COMVIS-001.
+- **Status: 🧪** — verde no CT 100 em 2026-10-26 (cópia isolada do branch); veredito da lane pendente.
+
+---
+
 ## Agenda da instalação (US-COMVIS-007 · UC-FLX-21)
 
 > **Âncora:** UC-FLX-21 do catálogo de fluxos (*"Agenda equipe e veículo; bloqueia se não houver
@@ -562,6 +626,33 @@ mesmo número, e a outra empresa não reabre o orçamento.
 
 Na tela: o rodapé troca "Salvar" por "Aprovar e criar OS" quando o orçamento está gravado igual à
 tela; a confirmação é um segundo clique na mesma linha. Mudança não salva não aprova.
+
+Status: 🧪
+
+## UC-CVOS-09 · A OS aprovada nasce com o roteiro padrão e aparece no quadro do PCP · `must`
+
+**Dado** que a empresa escolheu um roteiro padrão **Quando** um orçamento vira OS (pela tela ou pelo
+cliente no link) **Então** a OS ganha uma etapa do PCP por etapa não opcional do roteiro, em ordem, e
+aparece em `/producao/quadro`. As etapas ficam no nome de quem aprovou; sem usuário (aceite pelo link),
+no do dono da empresa. Sem padrão, a OS nasce como antes, sem etapas.
+
+Status: 🧪
+
+## UC-CVOS-10 · O padrão só aceita roteiro ativo da própria empresa · `must` `[T0]`
+
+**Dado** quem cuida do catálogo **Quando** escolhe o roteiro padrão **Então** roteiro de outra empresa ou
+inativo dá 422 e nada muda; um roteiro ativo da empresa vira o padrão; vazio tira o padrão. Um roteiro
+de outra empresa gravado à mão no ajuste não gera etapa nenhuma.
+
+Status: 🧪
+
+## UC-CVOS-11 · O hub mostra e troca o roteiro padrão para quem cuida do catálogo · `should`
+
+**Dado** quem cuida do catálogo (`comvis.material.manage`) **Quando** abre o hub **Então** o cartão
+"Roteiro da produção" mostra o roteiro padrão atual e os roteiros ativos; "Salvar roteiro" só libera
+quando a escolha muda; sem roteiro ativo, diz para cadastrar na tela de Roteiros da produção.
+
+Teste: `tests/js/cv-roteiro-padrao.test.tsx`
 
 Status: 🧪
 
@@ -739,6 +830,42 @@ Status: 🧪
 
 ---
 
+## Aceite do orçamento pelo link (US-COMVIS-023)
+
+> Contrato: a US-COMVIS-023 do SPEC. Prova: `OrcamentoAceiteLinkContratoTest` (lane `verticais-pest`).
+> A página pública ainda não existe; estes casos cobrem o serviço e a rota que gera o link.
+
+## UC-CVACE-01 · Gerar o link guarda só o hash e vale para a empresa do orçamento · `must` `[T0]`
+
+**Dado** um orçamento salvo em rascunho **Quando** o operador gera o link **Então** sai um token de
+48 caracteres, o banco guarda só o sha256 dele, o orçamento passa a `enviado` e a leitura pelo token
+mostra itens e total, sem custo. Gerar de novo fecha o link anterior. Orçamento de outra empresa não
+gera link (404), nem pelo serviço nem pelo controller.
+
+Status: 🧪
+
+## UC-CVACE-02 · O cliente decide uma vez: aceitar vira OS com o total gravado, ajuste volta a rascunho · `must` `[V0]`
+
+**Dado** um link aberto **Quando** o cliente aceita **Então** o orçamento vira OS pelo mesmo caminho da
+tela, com `valor_total` igual ao `total` gravado, e o link não decide de novo. **Quando** pede ajuste
+com um comentário **Então** o orçamento volta a rascunho, sem OS; sem comentário, recusa. Link vencido,
+validade passada ou orçamento já aprovado não decidem.
+
+Status: 🧪
+
+## UC-CVACE-03 · A calculadora gera o link e entrega pronto para o WhatsApp · `should`
+
+**Dado** um orçamento gravado, igual à tela e ainda não aprovado **Quando** o vendedor clica "Enviar no
+WhatsApp" **Então** a tela chama `POST /comunicacao-visual/api/orcamentos/{id}/link`, mostra o link e
+oferece "Copiar link" e "Abrir no WhatsApp" (`wa.me` com o número do orçamento e o link na mensagem).
+Orçamento já aprovado não oferece o link (o serviço recusaria).
+
+Teste: `tests/js/cv-aceite-link.test.tsx`
+
+Status: 🧪
+
+---
+
 ## Backlog — prosa honesta, sem id (ainda não é UC)
 
 > Cada item aqui tem contrato em **uma fonte só**, ou não tem código. Vira UC quando ganhar
@@ -749,15 +876,13 @@ Status: 🧪
 - `[BACKLOG]` **Numeração de orçamento com reserva atômica.** `gerarNumero()` lê `MAX(numero)` fora
   da transação; a corrida é barrada pelo `UNIQUE (business_id, numero)` (erro visível, não corrupção),
   mas não há teste do caso concorrente. SDD §5.4.3 / D-2.
-- `[BACKLOG]` **Mínimo cobrado por material (`minimo_m2`).** O DoD da US-COMVIS-001 pede; a tabela
-  `comvis_materiais` tem `estoque_minimo_m2` (estoque, outra coisa) e **não tem** `minimo_m2`; o
-  calculator não aplica piso. SDD §5.4.6.
 - `[BACKLOG]` **CRUD de materiais.** Sem ele o catálogo do UC-CV-07 nasce vazio na prática — só
   existe seeder. SDD §6 CU-CV-07 item 4.
 - `[BACKLOG]` **Seed da tributária CNAE 1813 + wizard de onboarding.** Os NCM/CFOP do ramo (4911.10,
   4911.99, 3919, 7610, 9405 · 5101/5102/5933/5949) não são populados por nada. SDD §6 CU-CV-10 itens 2-3.
-- `[BACKLOG]` **Acabamentos, instalação e entrega como linhas do orçamento.** Hoje são um campo
-  "extras" manual único na tela; a Entity `Acabamento` existe e o calculator não a usa.
+- `[BACKLOG]` **Escolher o acabamento na calculadora; instalação e entrega como linhas.** O cálculo
+  já soma acabamentos do catálogo (UC-CVPRC-02, 2026-10-26), mas a tela ainda só tem o campo
+  "extras" manual, e não há cadastro de acabamentos nem de mínimo do material.
 - `[BACKLOG]` **Migrar o `<select>` nativo da linha de item pro `<Select>` do DS.** Resíduo declarado
   no próprio `.tsx` com `eslint-disable` justificado. ⚠️ ao fazer, usar
   [`<SafeSelectItem>`](../../../../memory/requisitos/_DesignSystem/SAFE-SELECT-ITEM.md) — `value=""`

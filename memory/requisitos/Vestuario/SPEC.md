@@ -209,8 +209,10 @@ ROTA LIVRE usa Asaas como adapter de boleto + extrato (Inter PJ planejado em US-
 
 ### US-VEST-021 · Devolução/troca com prazo CDC + crédito em conta-cliente `p0`
 
-> owner: — · priority: p0 · estimate: 16h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 16h · status: doing · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_ — em andamento. Decisão [W] 2026-10-26: o crédito é o saldo de **Adiantamento** do cliente (`contacts.balance`), que o caixa já aceita; `vest_creditos_cliente` fica sem uso. Feito: a devolução vira saldo (`POST /sell-return/{id}/vale-troca`, `App\Services\Sells\ValeTrocaService`, UC-SRETVT-01..05 em `SellReturn/Index.casos.md`). Falta o botão na tela de devolução e o prazo CDC com sobreposição do gestor.
 
 **Contexto.** CDC (Lei 8.078/90 art. 49) garante 7 dias devolução compras online + prazo legal 30d defeitos. Vestuário é setor com **alta taxa de troca por tamanho** (~15-25% segundo Linx Retail Insights). Hoje ROTA LIVRE faz troca via "criar venda nova + cancelar antiga" — perde rastreabilidade e quebra DRE. Concorrentes (Linx, ProMoz) têm fluxo dedicado **Devolução** que gera crédito automático na ficha do cliente, usável próxima compra.
 
@@ -336,6 +338,50 @@ ROTA LIVRE usa Asaas como adapter de boleto + extrato (Inter PJ planejado em US-
 - [ ] Filtro `/products?estacao=Verao24`
 - [ ] Relatório "rotação por estação" (sell-through %)
 - [ ] Pré-requisito de US-VEST-022 (comissão por estação) e US-VEST-023 (liquidação)
+
+### US-VEST-031 · Sugestão de compra por tamanho pela curva de venda `p1`
+
+> owner: — · priority: p1 · estimate: 8h · type: story
+> blocked_by: —
+> **Implementado em:** _parcial_ · `Modules/Vestuario/Services/CurvaDeCompra.php` · `Modules/Vestuario/Http/Controllers/CurvaCompraController.php` — cálculo e endpoint GET /vestuario/curva-compra; falta o botão "Sugerir pela curva" na tela da compra
+> **Testado em:** `Modules/Vestuario/Tests/Feature/CurvaDeCompraContratoTest.php`
+> Contrato: `UC-VCUR-01..03` em `memory/requisitos/Vestuario/_telas/curva-de-compra.casos.md`.
+
+> **Decisão [W] 2026-10-26:** aprovada como sugestão editável. Na compra, o sistema sugere a quantidade por tamanho pela proporção vendida nos últimos 90 dias do produto, ou da categoria quando o produto é novo. Quem compra pode mudar a sugestão, e nada entra no estoque nem no pedido sem confirmação. Afeta a ROTA LIVRE (biz=4): teste no tenant 98, nada na biz=4.
+
+Lacuna "Grade cor e tamanho com curva de compra" (levantamento 2026-10-25, frente Verticais).
+
+**DoD:**
+
+- Para um produto com grade, sugere a quantidade de cada variação (tamanho, ou cor × tamanho) pela proporção vendida nos últimos 90 dias daquele produto.
+- Produto novo (sem venda no período): usa a proporção da categoria, casando as variações pelo nome (ex.: "M", "Azul - M").
+- Quem compra digita o total de peças; a divisão usa o maior resto, então a soma bate com o total.
+- É sugestão editável: nada entra no pedido nem no estoque sem a confirmação de quem compra.
+- Sem venda no produto nem na categoria: não sugere (diz por quê).
+- Tier 0: vendas e produtos só da empresa.
+
+### US-VEST-032 · Remarcação por coleção, com prévia e reversão `p2`
+
+> owner: — · priority: p2 · estimate: 10h · type: story
+> blocked_by: —
+> **Implementado em:** _parcial_ · `Modules/Vestuario/Services/Remarcacao.php` · `Modules/Vestuario/Database/Migrations/2026_10_27_000001_create_vestuario_remarcacoes_tables.php` — prévia, gravação e reversão; falta a tela /vestuario/remarcacao e o envio para as etiquetas
+> **Testado em:** `Modules/Vestuario/Tests/Feature/RemarcacaoContratoTest.php`
+> Contrato: `UC-VREM-01..04` em `memory/requisitos/Vestuario/_telas/remarcacao.casos.md`.
+
+> **Decisão [W] 2026-10-27:** lacuna P2 "Remarcação por coleção" liberada ("pode destravar todos"). Quem remarca escolhe a coleção ou um filtro de produtos, aplica um novo preço (percentual ou valor), vê a prévia por produto e grava; depois pode reverter; as etiquetas novas saem para impressão. Muda preço em massa: prévia antes → depois obrigatória, nada gravado sem confirmação, histórico para reverter (regra mestre de valor). Teste no tenant 98, nada na biz=4.
+
+Diferente da US-VEST-023 (liquidação aplicada em runtime no carrinho): aqui o preço do cadastro muda e fica registrado em lote.
+
+**DoD:**
+
+- Filtro por categoria, subcategoria, marca ou trecho do nome (a "coleção" vira atributo na US-VEST-029); sem filtro, recusa. Até 2000 variações por lote.
+- Novo preço de etiqueta por percentual (ex.: −30%) ou valor fixo, arredondado a 2 casas; preço sem imposto e margem derivados pela taxa do produto.
+- Prévia antes → depois por variação; gravar só com a prévia em dia (se algum preço mudou, pede nova prévia).
+- Lote guarda o antes de cada variação; reverter devolve o antes e não pisa em preço mexido depois (conta como conflito).
+- Tabelas de preço (`variation_group_prices`) não são tocadas.
+- Liga por empresa: setting `remarcacao.enabled` do Vestuário, desligado por padrão.
+- Depois de gravar, as variações remarcadas vão para a tela de etiquetas.
+- Tier 0: produtos, lotes e reversão só da empresa.
 
 ### US-VEST-030 · Ecommerce (loja virtual / WhatsApp catálogo) `p3`
 

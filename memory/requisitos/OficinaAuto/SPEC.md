@@ -379,7 +379,7 @@ Estimate Fase 4: ~80h IA-pair fator 10x = ~2 semanas Felipe (PWA scaffold + 5 sc
 > owner: — · priority: p0 · estimate: 6h · type: story · origin: ADR-0143
 > blocked_by: US-OFICINA-001 (done)
 
-**Implementado em:** _parcial_ · `Modules/OficinaAuto/Database/Migrations/2026_05_13_010001_add_current_stage_id_to_service_orders.php` · `Modules/OficinaAuto/Database/Seeders/OficinaAutoFsmSeeder.php` · `app/Http/Controllers/ServiceOrderFsmActionController.php` · `resources/js/Pages/OficinaAuto/ServiceOrders/_components/ServiceOrderFsmActionPanel.tsx` · `Modules/OficinaAuto/Tests/Feature/FsmTransitionTest.php` · verificado@dd3ed7c (2026-07-01) — falta trait GuardsFsmTransitions no ServiceOrder (UPDATE direto em current_stage_id desguardado); seeder com 9 stages vs 15×19 do DoD; FsmTransitionTest 3 casos vs 15
+**Implementado em:** _parcial_ · `Modules/OficinaAuto/Database/Migrations/2026_05_13_010001_add_current_stage_id_to_service_orders.php` · `Modules/OficinaAuto/Database/Seeders/OficinaAutoFsmSeeder.php` · `app/Http/Controllers/ServiceOrderFsmActionController.php` · `resources/js/Pages/OficinaAuto/ServiceOrders/_components/ServiceOrderFsmActionPanel.tsx` · `Modules/OficinaAuto/Tests/Feature/FsmTransitionTest.php` · `Modules/OficinaAuto/Entities/ServiceOrder.php` · `Modules/OficinaAuto/Tests/Feature/ServiceOrderGuardsFsmTest.php` · verificado@dd3ed7c (2026-07-01) — trava GuardsFsmTransitions no ServiceOrder entregue em 2026-10-26 (antes o UPDATE direto em current_stage_id passava sem erro); seguem abertos: seeder com 9 stages vs 15×19 do DoD; FsmTransitionTest 3 casos vs 15
 
 - Adicionar `current_stage_id` em `service_orders` migration
 - Criar seeder `FsmProcessoOficinaAutoPadraoSeeder` (15 stages × 19 actions × roles)
@@ -906,7 +906,11 @@ Priorização: **P0** = bloqueia 1ª piloto (mínimo viável reconhecível pelo 
 > **Área:** Pos-venda
 > **blocked_by:** US-AUTO-001 (km_atual)
 
-**Implementado em:** _pendente_ — sem `oficina_auto_revisoes_planejadas` nem job de lembrete de revisão por km/tempo
+**Implementado em:** _parcial_ · `Modules/OficinaAuto/Services/LembreteDeRevisao.php` · `Modules/OficinaAuto/Console/Commands/OficinaLembreteRevisaoCommand.php` · `Modules/OficinaAuto/Database/Migrations/2026_10_26_300000_create_oficina_lembretes_revisao.php` · `app/Contracts/Atendimento/AvisaClienteWhatsapp.php` · `Modules/OficinaAuto/Tests/Feature/LembreteRevisaoContratoTest.php` — escolha de quem avisar (km estimado e data), registro do aviso e comando diário atrás de `OFICINA_LEMBRETE_REVISAO_ENABLED` (desligado); campo "Próxima revisão (data)" no cadastro do veículo (`resources/js/Pages/OficinaAuto/Vehicles/Edit.tsx`, `Create.tsx`); falta a ligação do contrato no Modules/Whatsapp (frente CRM, sobre o `NotificadorClienteWhatsapp` do US-WA-319). Sem a tabela `oficina_auto_revisoes_planejadas` do DoD: as metas ficam no próprio veículo (`next_service_km`, `next_service_date`)
+
+**Testado em:** `Modules/OficinaAuto/Tests/Feature/LembreteRevisaoContratoTest.php` (lane `sells-pest.yml`).
+
+> **Decisão [W] 2026-10-26:** estimar o km pela média diária entre as duas últimas OS e avisar quando faltarem ~500 km; criar o campo opcional de data da próxima revisão, que avisa 7 dias antes. Envio só para cliente com opt-in. O envio por WhatsApp é o mecanismo da frente CRM/WhatsApp, não outro.
 
 **Como** dono
 **Quero** que cliente receba lembrete WhatsApp "seu Civic está há 5.000km da última revisão — agendar?" baseado em km estimado (média mensal × tempo decorrido)

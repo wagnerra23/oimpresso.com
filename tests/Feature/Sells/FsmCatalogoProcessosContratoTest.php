@@ -49,6 +49,7 @@ const FLX_REFS = [
     'ConciliacaoController' => \Modules\Financeiro\Http\Controllers\ConciliacaoController::class,
     'OnCobrancaPagaCreateFinanceiroTitulo' => \Modules\Financeiro\Listeners\OnCobrancaPagaCreateFinanceiroTitulo::class,
     'DealPipelineService' => \Modules\Crm\Services\DealPipelineService::class,
+    'FunilController' => \Modules\Crm\Http\Controllers\FunilController::class,
     'ContaPagarController' => \Modules\Financeiro\Http\Controllers\ContaPagarController::class,
     'PurchaseOrderController' => \App\Http\Controllers\PurchaseOrderController::class,
     'SellController' => \App\Http\Controllers\SellController::class,
@@ -250,8 +251,18 @@ it('nenhuma referência aponta para classe, método ou rota inexistente', functi
 });
 
 it('o que a cobertura afirma sobre o código continua verdadeiro', function () {
-    // "existe sem rota nem chamador" — se alguém ligar, a cobertura sobe e este teste avisa.
-    expect(flxChamadores('emitirDevolucao('))->toBe([flxCaminho('Modules/NfeBrasil/Services/DevolucaoService.php')])
+    // R-NFE-039: a NF-e de devolução tem um chamador só, a ação fiscal com rota e permissão.
+    // Se a rota sumir, ou se aparecer outro chamador, a cobertura escrita fica falsa e este teste avisa.
+    $devolucaoRota = collect(Route::getRoutes()->getRoutes())->first(fn ($r) => $r->uri() === 'fiscal/acoes/nfe/{emissao}/devolucao');
+    $acoes = (string) file_get_contents(base_path('Modules/Fiscal/Http/Controllers/AcoesController.php'));
+    expect(flxChamadores('emitirDevolucao('))->toEqualCanonicalizing([
+        flxCaminho('Modules/NfeBrasil/Services/DevolucaoService.php'),
+        flxCaminho('Modules/Fiscal/Http/Controllers/AcoesController.php'),
+    ])
+        ->and($devolucaoRota)->not->toBeNull()
+        ->and($devolucaoRota?->methods())->toContain('POST')
+        ->and($devolucaoRota?->getActionName())->toBe(\Modules\Fiscal\Http\Controllers\AcoesController::class.'@devolucao')
+        ->and(str_contains($acoes, "can('fiscal.nfe.acoes')"))->toBeTrue()
         ->and(flxChamadores('registrarDevolucao('))->toBe([flxCaminho('Modules/Vestuario/Services/DevolucaoService.php')])
         ->and(collect(flxChamadores('DevolucaoController'))->filter(fn ($p) => str_contains(strtolower($p), '/routes/'))->all())->toBe([])
         // "o Financeiro não lê sell_return" (controle positivo: ele lê 'sell').
@@ -265,7 +276,8 @@ it('o que a cobertura afirma sobre o código continua verdadeiro', function () {
         ->and(flxChamadores('new RetentarContingenciaJob'))->toBe([])
         ->and(flxChamadores('TransactionDocument::create'))->toBe([])
         ->and(flxChamadores('new TransactionDocument'))->toBe([])
-        ->and(collect(flxChamadores('moverStage('))->reject(fn ($p) => str_ends_with($p, 'DealPipelineService.php'))->all())->toBe([])
+        // US-CRM funil (#9883): o kanban do funil passou a ser o único chamador; a venda perdida segue sem alimentar o funil.
+        ->and(collect(flxChamadores('moverStage('))->reject(fn ($p) => str_ends_with($p, 'DealPipelineService.php'))->values()->all())->toBe([flxCaminho('Modules/Crm/Http/Controllers/FunilController.php')])
         // US-FIN-072 · UC-FLX-30: o Financeiro passou a lançar a retenção da NFS-e como baixa (desligado por padrão).
         ->and(class_exists(\Modules\Financeiro\Services\RetencaoNfseTituloService::class))->toBeTrue()
         ->and(collect(flxChamadores('iss_retido'))->filter(fn ($p) => str_contains($p, 'Modules/Financeiro/'))->isNotEmpty())->toBeTrue()

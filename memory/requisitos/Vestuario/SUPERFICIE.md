@@ -14,10 +14,11 @@ module: Vestuario
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Vestuario/**` + `resources/js/Pages/Vestuario/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 41 arquivos em 16 papéis.
+**Total mapeado:** 47 arquivos em 16 papéis.
 
-## Controllers — 3
+## Controllers — 4
 
+- [CurvaCompraController.php](../../../Modules/Vestuario/Http/Controllers/CurvaCompraController.php)
 - [DataController.php](../../../Modules/Vestuario/Http/Controllers/DataController.php)
 - [EtiquetaTagController.php](../../../Modules/Vestuario/Http/Controllers/EtiquetaTagController.php)
 - [InstallController.php](../../../Modules/Vestuario/Http/Controllers/InstallController.php)
@@ -27,11 +28,13 @@ module: Vestuario
 - [StoreVestuarioRequest.php](../../../Modules/Vestuario/Http/Requests/StoreVestuarioRequest.php)
 - [UpdateGradeRequest.php](../../../Modules/Vestuario/Http/Requests/UpdateGradeRequest.php)
 
-## Services — 4
+## Services — 6
 
+- [CurvaDeCompra.php](../../../Modules/Vestuario/Services/CurvaDeCompra.php)
 - [DevolucaoService.php](../../../Modules/Vestuario/Services/DevolucaoService.php)
 - [EtiquetaTagService.php](../../../Modules/Vestuario/Services/EtiquetaTagService.php)
 - [GradeCurvaService.php](../../../Modules/Vestuario/Services/GradeCurvaService.php)
+- [Remarcacao.php](../../../Modules/Vestuario/Services/Remarcacao.php)
 - [VestuarioSettingsResolver.php](../../../Modules/Vestuario/Services/VestuarioSettingsResolver.php)
 
 ## Models / Entities — 1
@@ -51,11 +54,12 @@ module: Vestuario
 
 - [web.php](../../../Modules/Vestuario/Routes/web.php)
 
-## Migrations (schema) — 3
+## Migrations (schema) — 4
 
 - [2026_05_10_000001_create_vestuario_settings_table.php](../../../Modules/Vestuario/Database/Migrations/2026_05_10_000001_create_vestuario_settings_table.php)
 - [2026_05_17_000001_create_vestuario_devolucoes_table.php](../../../Modules/Vestuario/Database/Migrations/2026_05_17_000001_create_vestuario_devolucoes_table.php)
 - [2026_05_17_000002_create_vestuario_creditos_cliente_table.php](../../../Modules/Vestuario/Database/Migrations/2026_05_17_000002_create_vestuario_creditos_cliente_table.php)
+- [2026_10_27_000001_create_vestuario_remarcacoes_tables.php](../../../Modules/Vestuario/Database/Migrations/2026_10_27_000001_create_vestuario_remarcacoes_tables.php)
 
 ## Seeders — 1
 
@@ -81,9 +85,9 @@ module: Vestuario
 
 - [Index.casos.md](../../../resources/js/Pages/Vestuario/Etiquetas/Index.casos.md)
 
-## Testes (Pest) — 16
+## Testes (Pest) — 18
 
-- 16 em [Modules/Vestuario/Tests/Feature/](../../../Modules/Vestuario/Tests/Feature)
+- 18 em [Modules/Vestuario/Tests/Feature/](../../../Modules/Vestuario/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 2

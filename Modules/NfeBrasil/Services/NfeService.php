@@ -13,12 +13,15 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use InvalidArgumentException;
+use Modules\NfeBrasil\Exceptions\AliquotaInternaNaoCadastradaException;
 use Modules\NfeBrasil\Exceptions\NcmPadraoAusenteException;
 use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Models\NfeEmissao;
+use Modules\NfeBrasil\Models\NfeIcmsUf;
 use Modules\NfeBrasil\Models\NfeLocalEmissor;
 use Modules\NfeBrasil\Models\NfeEvento;
 use Modules\NfeBrasil\Services\Tributacao\ProdutoFiscalContext;
+use Modules\NfeBrasil\Services\Tributacao\TributoCalculado;
 use Modules\RecurringBilling\Models\Invoice;
 use NFePHP\Common\Certificate;
 use NFePHP\NFe\Common\Standardize;
@@ -187,21 +190,22 @@ class NfeService
                 'icms'    => [
                     'cst_csosn' => $tributo->csosn ?? $tributo->cst ?? '102',
                     'orig'      => 0,
-                    'vbc'       => $tributo->base_icms ?? 0,
-                    'picms'     => $tributo->aliquota_icms,
+                    'vbc'       => $this->baseIcmsDoItem($tributo, (float) $invoice->valor),
+                    // R-NFE-040: a régua guarda fração (0,18); o XML leva percentual (18,00).
+                    'picms'     => round($tributo->aliquota_icms * 100, 4),
                     'vicms'     => $tributo->valor_icms,
                     'pred_bc'   => round($tributo->reducao_base * 100, 4),
                 ],
                 'pis'     => [
                     'cst'   => '07', // 07 = isenta — default seguro Simples Nacional
                     'vbc'   => 0,
-                    'ppis'  => $tributo->aliquota_pis,
+                    'ppis'  => round($tributo->aliquota_pis * 100, 4),
                     'vpis'  => $tributo->valor_pis,
                 ],
                 'cofins'  => [
                     'cst'      => '07',
                     'vbc'      => 0,
-                    'pcofins'  => $tributo->aliquota_cofins,
+                    'pcofins'  => round($tributo->aliquota_cofins * 100, 4),
                     'vcofins'  => $tributo->valor_cofins,
                 ],
                 // IBS/CBS (Reforma · US-FISCAL-021 PR-D). Serializado só quando o business
@@ -220,7 +224,7 @@ class NfeService
             ]],
             'total' => [
                 'v_prod'    => (float) $invoice->valor,
-                'v_bc_icms' => $tributo->base_icms ?? 0, // thread 25: soma dos vBC (0 sem benefício)
+                'v_bc_icms' => $this->baseIcmsDoItem($tributo, (float) $invoice->valor), // R-NFE-040
                 'v_icms'    => $tributo->valor_icms,
                 'v_pis'     => $tributo->valor_pis,
                 'v_cofins'  => $tributo->valor_cofins,
@@ -274,7 +278,19 @@ class NfeService
      *
      * @throws RuntimeException Quando `final_total <= 0`, ncm_default ausente, ou business não encontrado.
      */
-    public function emitirParaTransaction(Transaction $tx, string $modelo = '65', bool $separada = false): NfeEmissao
+    /**
+     * @param array<string,mixed>|null $destinatarioExterno R-NFE-046 · destinatário vindo de fora do cadastro (ex.
+     *        pedido de marketplace), com as chaves de `contacts`; vence o cliente da venda. Só NF-e (55).
+     * @param string|null $cfop R-NFE-046 · CFOP de 4 dígitos que vence o da regra em todos os itens (ex. o do pedido
+     *        de marketplace, configurável lá). Null = o CFOP da regra, como antes.
+     */
+    public function emitirParaTransaction(
+        Transaction $tx,
+        string $modelo = '65',
+        bool $separada = false,
+        ?array $destinatarioExterno = null,
+        ?string $cfop = null,
+    ): NfeEmissao
     {
         $businessId = (int) $tx->business_id;
 
@@ -302,7 +318,10 @@ class NfeService
         // é um estabelecimento emissor próprio; senão, do business, como antes.
         $emitente = $this->resolverEmitente($business, $tx->location_id ? (int) $tx->location_id : null, (string) $modelo);
         $ufOrigem = $emitente['uf'];
-        $valorTotal = (float) $tx->final_total;
+        // US-SELL-078 · o `final_total` da venda já inclui o ICMS-ST cobrado no fechamento
+        // ([W] 2026-10-26). A nota parte da base SEM o ST e o soma de volta no vNF (R-NFE-043):
+        // vNF = (final_total − icms_st_valor) + vST = final_total. Sem a coluna, ST 0 como antes.
+        $valorTotal = $this->baseDaNota($tx);
         $frete = (float) ($tx->shipping_charges ?? 0);
 
         // Fase 2B (thread 17 · R-NFE-023..025c): um `det` por linha da venda, com o
@@ -345,6 +364,23 @@ class NfeService
         // Thread 29 · R-NFE-034: item de serviço (decidido pelo contador) não sai em NF-e/NFC-e.
         $this->recusarItensDeServico($businessId, $linhas);
 
+        // R-NFE-036: NF-e (55) de venda com cliente identificado sai para ele — documento, IE,
+        // endereço e UF. Sem cliente com CPF/CNPJ, e sempre na NFC-e, segue o consumidor anônimo
+        // da própria UF, como antes. A UF e o contribuinte do destino chegam ao motor (CFOP 6xxx,
+        // regra por UF, DIFAL); a interna do destino vem da tabela por UF quando cadastrada.
+        $destReal = (string) $modelo === '55'
+            ? $this->destinatarioDaEmissao($tx, $ufOrigem, $destinatarioExterno)
+            : null;
+        $ufDestino = $destReal['uf'] ?? $ufOrigem;
+        $contribuinte = $destReal === null ? null : $destReal['ind_ie_dest'] === '1';
+        $interna = $destReal === null || $ufDestino === $ufOrigem
+            ? null
+            : $this->internaDoDestino($businessId, $ufOrigem, $ufDestino);
+        // R-NFE-037: venda a não contribuinte de outra UF leva o grupo ICMSUFDest, que exige a
+        // alíquota interna do destino (a SEFAZ rejeita a nota sem o grupo). Sem a interna
+        // cadastrada a nota é recusada com a saída — nunca sai com DIFAL zero por falta de dado.
+        $this->garantirInternaDoDifal($destReal !== null, $ufOrigem, $ufDestino, $contribuinte, $interna);
+
         $itens = $this->montarItensNfe(
             linhas:         $linhas,
             valorNota:      $valorTotal,
@@ -353,14 +389,19 @@ class NfeService
             motor:          $motor,
             businessId:     $businessId,
             ufOrigem:       $ufOrigem,
-            ufDestino:      $ufOrigem, // NFC-e é sempre intra-estadual (varejo balcão)
+            ufDestino:      $ufDestino,
+            internaDestino: $interna,
+            destinatarioContribuinte: $contribuinte,
         );
+        if ($cfop !== null) {
+            $itens['dets'] = self::comCfop($itens['dets'], $cfop);
+        }
 
         $dadosNfe = [
             'transaction_id' => $tx->id,
             'modelo'         => $modelo,
-            'nat_op'         => 'VENDA AO CONSUMIDOR',
-            'dest' => [
+            'nat_op'         => $destReal === null ? 'VENDA AO CONSUMIDOR' : 'VENDA DE MERCADORIA',
+            'dest' => $destReal ?? [
                 // NFC-e B2C anônimo: doc é opcional. Se Transaction tiver contact_id
                 // com CPF, fase 2B preenche. Por ora, default anônimo.
                 'nome'         => 'CONSUMIDOR FINAL',
@@ -383,8 +424,10 @@ class NfeService
                 ],
             ]),
             // tpag='01' = dinheiro (default conservador). Fase 2B detecta via transaction_payments.
-            'pag'         => [['tpag' => '01', 'vpag' => $valorTotal]],
-            'valor_total' => $valorTotal,
+            // R-NFE-043: com ICMS-ST o vNF passa do total da venda; o pagamento acompanha o vNF
+            // (sem ST, v_nf == $valorTotal, como antes).
+            'pag'         => [['tpag' => '01', 'vpag' => $itens['total']['v_nf']]],
+            'valor_total' => $itens['total']['v_nf'],
             'inf_cpl'     => $separacao === null
                 ? "Venda PDV #{$tx->id}."
                 : "Venda PDV #{$tx->id}. Parte mercadoria; os servicos da venda saem em NFS-e.",
@@ -396,6 +439,171 @@ class NfeService
         }
 
         return $this->emitir($businessId, $dadosNfe);
+    }
+
+    /**
+     * US-SELL-078 · base da nota: o `final_total` da venda sem o ICMS-ST que ela já cobrou. A nota
+     * soma o vST de volta (R-NFE-043), então vNF = final_total. Venda sem ST: o próprio total.
+     */
+    public function baseDaNota(Transaction $tx): float
+    {
+        return (float) $tx->final_total - (float) ($tx->icms_st_valor ?? 0);
+    }
+
+    /**
+     * R-NFE-046 · destinatário da NF-e: o externo (ex. pedido de marketplace) quando vier, senão o
+     * cliente da venda (R-NFE-036). Externo sem CPF/CNPJ recusa — não cai no cliente da venda nem no
+     * consumidor anônimo, porque quem o mandou disse quem é o destinatário.
+     *
+     * @param array<string,mixed>|null $externo
+     * @return array<string,mixed>|null
+     */
+    public function destinatarioDaEmissao(Transaction $tx, string $ufOrigem, ?array $externo): ?array
+    {
+        if ($externo === null) {
+            return $this->destinatarioDaVenda($tx, $ufOrigem);
+        }
+
+        return $this->destinatarioDoContato((object) $externo, $ufOrigem)
+            ?? throw new RuntimeException('Destinatário informado sem CPF/CNPJ válido — a NF-e não sai sem documento do destinatário.');
+    }
+
+    /**
+     * R-NFE-046 · o CFOP informado vence o da regra em todos os itens. 4 dígitos começando por 1–7
+     * (entrada/saída × estado/fora/exterior); outro formato recusa. O valor é de quem chama.
+     *
+     * @param list<array<string,mixed>> $dets
+     * @return list<array<string,mixed>>
+     */
+    public static function comCfop(array $dets, string $cfop): array
+    {
+        if (! preg_match('/^[1-7]\d{3}$/', $cfop)) {
+            throw new RuntimeException("CFOP inválido: {$cfop} (4 dígitos, de 1xxx a 7xxx).");
+        }
+
+        return array_map(fn (array $d) => ['cfop' => $cfop] + $d, $dets);
+    }
+
+    /**
+     * R-NFE-036 · destinatário da NF-e (55) de venda: o cliente da venda, lido no mesmo tenant.
+     * Null = sem cliente identificado (sem contato, ou contato sem CPF/CNPJ) → consumidor anônimo.
+     */
+    protected function destinatarioDaVenda(Transaction $tx, string $ufOrigem): ?array
+    {
+        if (empty($tx->contact_id)) {
+            return null;
+        }
+        $contato = DB::table('contacts')
+            ->where('business_id', (int) $tx->business_id)
+            ->where('id', (int) $tx->contact_id)
+            ->first();
+
+        return $contato === null ? null : $this->destinatarioDoContato($contato, $ufOrigem);
+    }
+
+    /**
+     * R-NFE-036 · monta o `dest` a partir do cadastro do cliente. Sem DB (testável).
+     *
+     * IE: `inscricao_estadual` (canon NF-e) ou o espelho `ie` do drawer. `ind_ie_dest` vem do
+     * `indicador_ie` cadastrado (1 contribuinte · 2 isento · 9 não contribuinte); sem ele, IE
+     * preenchida = 1, vazia = 9. UF inválida cai na UF do emitente (operação interna).
+     *
+     * @return array<string,mixed>|null
+     */
+    public function destinatarioDoContato(object $c, string $ufOrigem): ?array
+    {
+        $doc = Cnpj::documentoFiscal((string) (($c->tax_number ?? '') ?: ($c->cpf_cnpj ?? '')));
+        if (! in_array(strlen($doc), [11, 14], true)) {
+            return null;
+        }
+
+        $ie  = preg_replace('/\D/', '', (string) (($c->inscricao_estadual ?? '') ?: ($c->ie ?? '')));
+        $ind = (string) ($c->indicador_ie ?? '');
+        if (! in_array($ind, ['1', '2', '9'], true)) {
+            $ind = $ie !== '' ? '1' : '9';
+        }
+        $uf = strtoupper(trim((string) ($c->state ?? '')));
+        if (! preg_match('/^[A-Z]{2}$/', $uf)) {
+            $uf = $ufOrigem;
+        }
+        $codMun = preg_replace('/\D/', '', (string) ($c->city_code ?? ''));
+        $nome = (string) (($c->supplier_business_name ?? '') ?: ($c->name ?? ''));
+
+        return array_filter([
+            strlen($doc) === 14 ? 'cnpj' : 'cpf' => $doc,
+            'nome'          => substr($nome !== '' ? $nome : 'CLIENTE', 0, 60),
+            'ind_ie_dest'   => $ind,
+            'ie'            => $ind === '1' && $ie !== '' ? $ie : null,
+            'logradouro'    => substr((string) (($c->address_line_1 ?? '') ?: 'NAO INFORMADO'), 0, 60),
+            'numero'        => substr((string) (($c->numero ?? '') ?: 'SN'), 0, 60),
+            'bairro'        => substr((string) (($c->neighborhood ?? '') ?: (($c->bairro ?? '') ?: 'CENTRO')), 0, 60),
+            'municipio'     => substr((string) (($c->city ?? '') ?: 'NAO INFORMADO'), 0, 60),
+            // 9999999 = o buildXml procura o código pela UF + nome da cidade, como já fazia.
+            'cod_municipio' => strlen($codMun) === 7 ? $codMun : '9999999',
+            'uf'            => $uf,
+            'cep'           => preg_replace('/\D/', '', (string) ($c->zip_code ?? '')),
+            'email'         => ($c->email ?? '') ?: null,
+        ], fn ($v) => $v !== null);
+    }
+
+    /** R-NFE-043 · grava no grupo ICMS do item os campos do ST (modBCST, pMVAST, vBCST, pICMSST, vICMSST). */
+    private function preencherSt(\stdClass $std, ?array $st): void
+    {
+        if ($st === null) {
+            return;
+        }
+        $std->modBCST = (int) $st['modbcst'];
+        $std->pMVAST  = $this->fmt((float) $st['pmvast'], 4);
+        $std->vBCST   = $this->fmt((float) $st['vbcst']);
+        $std->pICMSST = $this->fmt((float) $st['picmsst'], 4);
+        $std->vICMSST = $this->fmt((float) $st['vicmsst']);
+    }
+
+    /** CST (regime normal) e CSOSN (Simples) que levam ICMS-ST retido pelo emitente. */
+    private const CST_COM_ST = ['10', '30', '70', '90', '201', '202', '203', '900'];
+
+    /**
+     * R-NFE-043 · campos do ICMS-ST do item, a partir do motor (R-NFE-015: base pela MVA, ST =
+     * base × interna − ICMS próprio). Null sem ST. Regra com MVA e ST calculado, mas CST/CSOSN que
+     * não leva ST, é recusada — sairia nota com imposto que o código da situação diz não existir.
+     *
+     * @return array<string,float|int>|null
+     */
+    private function stDoItem(TributoCalculado $tributo, ?float $internaDestino): ?array
+    {
+        if ($tributo->valor_st <= 0) {
+            return null;
+        }
+        $cst = (string) ($tributo->csosn ?? $tributo->cst ?? '');
+        if (! in_array($cst, self::CST_COM_ST, true)) {
+            throw new RuntimeException("A regra fiscal calcula ICMS-ST (MVA) mas o CST/CSOSN {$cst} não leva ST — ajuste a regra em Tributação (ex.: CST 10 ou CSOSN 202).");
+        }
+
+        return [
+            'modbcst' => 4, // 4 = margem de valor agregado (%)
+            'pmvast'  => round((float) ($tributo->mva ?? 0) * 100, 4),
+            'vbcst'   => $tributo->base_st,
+            'picmsst' => round((float) $internaDestino * 100, 4),
+            'vicmsst' => $tributo->valor_st,
+        ];
+    }
+
+    /** R-NFE-037 · interestadual a não contribuinte sem interna do destino: recusa com a saída. */
+    private function garantirInternaDoDifal(bool $temDestinatario, string $ufOrigem, string $ufDestino, ?bool $contribuinte, ?float $interna): void
+    {
+        if ($temDestinatario && $ufDestino !== $ufOrigem && $contribuinte === false && $interna === null) {
+            throw AliquotaInternaNaoCadastradaException::para($ufDestino);
+        }
+    }
+
+    /** Interna do destino (decimal) da tabela por UF; null se o contador ainda não cadastrou. */
+    public function internaDoDestino(int $businessId, string $ufOrigem, string $ufDestino): ?float
+    {
+        try {
+            return NfeIcmsUf::aliquotaInterna($businessId, $ufOrigem, $ufDestino);
+        } catch (AliquotaInternaNaoCadastradaException) {
+            return null;
+        }
     }
 
     /**
@@ -433,7 +641,7 @@ class NfeService
      *
      * @return list<array{sell_line_id:int|null,product_id:int|null,cprod:string,xprod:string,ncm:string,origem:int,unidade:string,quantidade:float,valor_unitario:float}>
      */
-    protected function linhasDaVenda(int $businessId, int $transactionId): array
+    public function linhasDaVenda(int $businessId, int $transactionId): array
     {
         $rows = DB::table('transaction_sell_lines as tsl')
             ->join('products as p', 'p.id', '=', 'tsl.product_id')
@@ -500,6 +708,8 @@ class NfeService
         int $businessId,
         string $ufOrigem,
         string $ufDestino,
+        ?float $internaDestino = null,
+        ?bool $destinatarioContribuinte = null,
     ): array {
         // R-NFE-024 controle: sem NCM padrão válido não há saída — mesma recusa do
         // R-NFE-022 em emitirParaTransaction (defesa em profundidade, sem DB).
@@ -542,7 +752,9 @@ class NfeService
         // 2. motor por item
         $dets = [];
         $ncmPadraoUsado = [];
-        $tot = ['v_bc_icms' => 0.0, 'v_icms' => 0.0, 'v_pis' => 0.0, 'v_cofins' => 0.0, 'v_ibs' => 0.0, 'v_cbs' => 0.0];
+        $tot = ['v_bc_icms' => 0.0, 'v_icms' => 0.0, 'v_pis' => 0.0, 'v_cofins' => 0.0, 'v_ibs' => 0.0, 'v_cbs' => 0.0,
+            'v_icms_uf_dest' => 0.0, 'v_fcp_uf_dest' => 0.0, 'v_bc_st' => 0.0, 'v_st' => 0.0];
+        $temDifal = $internaDestino !== null && $destinatarioContribuinte === false && $ufOrigem !== $ufDestino;
         foreach ($itens as $i => $it) {
             $ncm = preg_replace('/\D/', '', (string) $it['ncm']);
             if (strlen($ncm) !== 8 || $ncm === '00000000') {
@@ -551,19 +763,25 @@ class NfeService
             }
 
             $base = ($it['vprod_cent'] - $descontos[$i] + $fretes[$i] + $outros[$i]) / 100.0;
-            $tributo = $motor->calcular(
-                new ProdutoFiscalContext(
-                    ncm:         $ncm,
-                    valor:       $base,
-                    // R-NFE-025 (N1): `products` não tem `fiscal_rule_override_id` no schema
-                    // hoje — a coluna é migration de outra lane 🔴. Até lá, null.
-                    fiscal_rule_override_id: null,
-                    description: (string) $it['xprod'],
-                ),
-                businessId: $businessId,
-                ufOrigem:   $ufOrigem,
-                ufDestino:  $ufDestino,
+            $contexto = new ProdutoFiscalContext(
+                ncm:         $ncm,
+                valor:       $base,
+                // R-NFE-025 (N1): `products` não tem `fiscal_rule_override_id` no schema
+                // hoje — a coluna é migration de outra lane 🔴. Até lá, null.
+                fiscal_rule_override_id: null,
+                description: (string) $it['xprod'],
             );
+            // R-NFE-036: sem dado de destino (NFC-e, consumidor anônimo) a chamada é a de sempre.
+            $tributo = $internaDestino === null && $destinatarioContribuinte === null
+                ? $motor->calcular($contexto, businessId: $businessId, ufOrigem: $ufOrigem, ufDestino: $ufDestino)
+                : $motor->calcularComDestino(
+                    $contexto,
+                    businessId: $businessId,
+                    ufOrigem: $ufOrigem,
+                    ufDestino: $ufDestino,
+                    aliquotaInternaDestino: $internaDestino,
+                    destinatarioContribuinte: $destinatarioContribuinte,
+                );
 
             $vprod = $it['vprod_cent'] / 100.0;
             $dets[] = [
@@ -591,23 +809,26 @@ class NfeService
                     // Origem do produto (tabela A). Linha montada sem a chave (teste, chamada
                     // antiga) segue com 0 — a origem que toda nota usava.
                     'orig'      => (int) ($it['origem'] ?? 0),
-                    'vbc'       => $tributo->base_icms ?? 0,
-                    'picms'     => $tributo->aliquota_icms,
+                    'vbc'       => $this->baseIcmsDoItem($tributo, $base),
+                    // R-NFE-040: a régua guarda fração (0,18); o XML leva percentual (18,00).
+                    'picms'     => round($tributo->aliquota_icms * 100, 4),
                     'vicms'     => $tributo->valor_icms,
                     'pred_bc'   => round($tributo->reducao_base * 100, 4),
+                    // R-NFE-043: ICMS-ST do motor (R-NFE-015) no grupo do CST/CSOSN com ST.
+                    'st'        => $this->stDoItem($tributo, $internaDestino),
                 ],
                 // R-NFE-025b: `nfe_fiscal_rules` não guarda CST de PIS/COFINS hoje — o
                 // motor não devolve. '07' segue como fallback, logado abaixo.
                 'pis'     => [
                     'cst'   => '07',
                     'vbc'   => 0,
-                    'ppis'  => $tributo->aliquota_pis,
+                    'ppis'  => round($tributo->aliquota_pis * 100, 4),
                     'vpis'  => $tributo->valor_pis,
                 ],
                 'cofins'  => [
                     'cst'      => '07',
                     'vbc'      => 0,
-                    'pcofins'  => $tributo->aliquota_cofins,
+                    'pcofins'  => round($tributo->aliquota_cofins * 100, 4),
                     'vcofins'  => $tributo->valor_cofins,
                 ],
                 'ibscbs'  => [
@@ -621,9 +842,27 @@ class NfeService
                     'valor_cbs'    => $tributo->valor_cbs,
                 ],
                 'nivel_tributacao' => $tributo->nivel_usado,
+                // R-NFE-037: DIFAL da venda a não contribuinte de outra UF (grupo ICMSUFDest).
+                // Os valores são os do motor (R-NFE-017/035); o vNF não muda.
+                'difal' => $temDifal ? [
+                    'vbc'       => $base,
+                    'p_interna' => $internaDestino,
+                    'p_inter'   => $tributo->aliquota_icms,
+                    'p_fcp'     => (float) ($tributo->fcp ?? 0),
+                    'v_fcp'     => $tributo->valor_fcp,
+                    'v_difal'   => $tributo->valor_difal,
+                ] : null,
             ];
+            if ($temDifal) {
+                $tot['v_icms_uf_dest'] += $tributo->valor_difal;
+                $tot['v_fcp_uf_dest']  += $tributo->valor_fcp;
+            }
+            if ($tributo->valor_st > 0) {
+                $tot['v_bc_st'] += $tributo->base_st;
+                $tot['v_st']    += $tributo->valor_st;
+            }
 
-            $tot['v_bc_icms'] += $tributo->base_icms ?? 0; // thread 25: só soma quando há benefício
+            $tot['v_bc_icms'] += $this->baseIcmsDoItem($tributo, $base); // R-NFE-040 (thread 25: benefício)
             $tot['v_icms']   += $tributo->valor_icms;
             $tot['v_pis']    += $tributo->valor_pis;
             $tot['v_cofins'] += $tributo->valor_cofins;
@@ -647,13 +886,36 @@ class NfeService
                 'v_cofins'  => round($tot['v_cofins'], 2),
                 'v_ibs'     => round($tot['v_ibs'], 2),
                 'v_cbs'     => round($tot['v_cbs'], 2),
-                'v_nf'      => $totalCent / 100.0,
+                'v_icms_uf_dest' => round($tot['v_icms_uf_dest'], 2),
+                'v_fcp_uf_dest'  => round($tot['v_fcp_uf_dest'], 2),
+                'v_bc_st'   => round($tot['v_bc_st'], 2),
+                'v_st'      => round($tot['v_st'], 2),
+                // R-NFE-043 · leiaute W16: vNF = vProd − vDesc + vST + vFrete + vSeg + vOutro + vII + vIPI.
+                // O ST entra por cima do total da venda (o comprador paga o imposto retido).
+                'v_nf'      => ($totalCent + (int) round($tot['v_st'] * 100)) / 100.0,
                 'v_desc'    => array_sum($descontos) / 100.0,
                 'v_frete'   => array_sum($fretes) / 100.0,
                 'v_outro'   => array_sum($outros) / 100.0,
             ],
             'metadata' => $ncmPadraoUsado === [] ? null : ['itens_ncm_padrao' => $ncmPadraoUsado],
         ];
+    }
+
+    /**
+     * R-NFE-040 · base do ICMS que vai ao item. Com benefício (base reduzida, thread 25) é a do
+     * motor. Sem ela, item do regime normal com CST tributado e alíquota leva a base do item —
+     * o vICMS é base × alíquota e a SEFAZ confere a conta. Simples e CST sem ICMS seguem 0.
+     */
+    private function baseIcmsDoItem(TributoCalculado $tributo, float $base): float
+    {
+        if ($tributo->base_icms !== null) {
+            return $tributo->base_icms;
+        }
+        $regimeNormalTributado = $tributo->csosn === null
+            && in_array((string) $tributo->cst, ['00', '10', '51', '90'], true)
+            && $tributo->aliquota_icms > 0;
+
+        return $regimeNormalTributado ? round($base, 2) : 0.0;
     }
 
     /**
@@ -1623,8 +1885,12 @@ class NfeService
             'siglaUF'     => $uf,
             'schemes'     => 'PL_009_V4',
             'versao'      => '4.00',
-            'tokenCSC'    => '',
-            'idCSC'       => '',
+            // R-NFE-045: a sped-nfe lê `CSC`/`CSCid` (Common\Tools::addQRCode) para o QR Code da
+            // NFC-e anterior à versão 3; até 2026-10-26 iam `tokenCSC`/`idCSC` vazios, que ela não
+            // lê. O CSC é o cadastrado na empresa (`business.csc`/`csc_id`, o mesmo que a
+            // consulta de cadastro já usa). No QR v3 a lib não exige o CSC.
+            'CSC'         => (string) ($business->csc ?? ''),
+            'CSCid'       => (string) ($business->csc_id ?? ''),
         ]);
     }
 
@@ -1960,9 +2226,17 @@ class NfeService
      * `legacy` (default de TODOS os business hoje) → null → `new Make(null)` ≡ `new Make()`
      * atual → schema PL_009_V4, XML byte-idêntico. Só `full`/`hybrid_2026` (opt-in
      * explícito pós homologação) → `PL_010_V1`, habilitando o grupo UB (IBS/CBS, PR-D).
+     *
+     * ADR 0442 (emenda a 0321): emitente do regime normal (CRT 3) usa `PL_010_V1` sempre, sem
+     * opt-in — o grupo IBS/CBS é obrigatório para ele desde 03/08/2026 (Ato Conjunto RFB/CGIBS
+     * nº 4/2026). CRT 1 e 2 (Simples) seguem a flag como antes, XML byte-idêntico.
      */
-    private function schemaReforma(int $businessId): ?string
+    private function schemaReforma(int $businessId, int $crt = 1): ?string
     {
+        if ($crt === 3) {
+            return 'PL_010_V1';
+        }
+
         $modo = NfeBusinessConfig::where('business_id', $businessId)
             ->value('reforma_tributaria_modo') ?: 'legacy';
 
@@ -1976,7 +2250,8 @@ class NfeService
     {
         // Legacy → new Make(null) ≡ new Make() (byte-idêntico); full → new Make('PL_010_V1').
         // O mesmo modo governa a serialização do grupo UB (IBS/CBS) nos itens (PR-D).
-        $schemaReforma = $this->schemaReforma($business->id);
+        // ADR 0442: o CRT decide antes do Make (mesma conta do bloco emit, abaixo).
+        $schemaReforma = $this->schemaReforma($business->id, (int) ($emitOverride['crt'] ?? $business->regime ?? 1));
         $nfe = new Make($schemaReforma);
 
         $std         = new \stdClass();
@@ -2154,12 +2429,14 @@ class NfeService
         $stdICMSTot->vBC         = $this->fmt($total['v_bc_icms'] ?? 0);
         $stdICMSTot->vICMS       = $this->fmt($total['v_icms'] ?? 0);
         $stdICMSTot->vICMSDeson  = 0.00;
-        $stdICMSTot->vFCPUFDest  = 0.00;
-        $stdICMSTot->vICMSUFDest = 0.00;
+        // R-NFE-037: soma do grupo ICMSUFDest dos itens (0 quando a nota não tem DIFAL, como antes).
+        $stdICMSTot->vFCPUFDest  = (float) ($total['v_fcp_uf_dest'] ?? 0) > 0 ? $this->fmt((float) $total['v_fcp_uf_dest']) : 0.00;
+        $stdICMSTot->vICMSUFDest = (float) ($total['v_icms_uf_dest'] ?? 0) > 0 ? $this->fmt((float) $total['v_icms_uf_dest']) : 0.00;
         $stdICMSTot->vICMSUFRemet = 0.00;
         $stdICMSTot->vFCP        = 0.00;
-        $stdICMSTot->vBCST       = 0.00;
-        $stdICMSTot->vST         = 0.00;
+        // R-NFE-043: soma do ST dos itens (0 sem ST, como antes).
+        $stdICMSTot->vBCST       = (float) ($total['v_bc_st'] ?? 0) > 0 ? $this->fmt((float) $total['v_bc_st']) : 0.00;
+        $stdICMSTot->vST         = (float) ($total['v_st'] ?? 0) > 0 ? $this->fmt((float) $total['v_st']) : 0.00;
         $stdICMSTot->vFCPST      = 0.00;
         $stdICMSTot->vFCPSTRet   = 0.00;
         $stdICMSTot->vProd       = $this->fmt($total['v_prod'] ?? 0);
@@ -2297,6 +2574,7 @@ class NfeService
             $stdICMS->vBC    = $this->fmt((float) ($icms['vbc'] ?? 0));
             $stdICMS->pICMS  = $this->fmt((float) ($icms['picms'] ?? 0));
             $stdICMS->vICMS  = $this->fmt((float) ($icms['vicms'] ?? 0));
+            $this->preencherSt($stdICMS, $icms['st'] ?? null);
             $nfe->tagICMS($stdICMS);
         } else {
             // Simples Nacional — CSOSN
@@ -2312,6 +2590,12 @@ class NfeService
                 $stdICMSSN->vBC    = $this->fmt((float) ($icms['vbc'] ?? 0));
                 $stdICMSSN->pICMS  = $this->fmt((float) ($icms['picms'] ?? 0));
                 $stdICMSSN->vICMS  = $this->fmt((float) ($icms['vicms'] ?? 0));
+            }
+            $this->preencherSt($stdICMSSN, $icms['st'] ?? null);
+            if (! empty($icms['st']) && $cstCsosn === '201') {
+                // CSOSN 201 exige o crédito do Simples; sem cadastro dele, 0 (a regra não guarda).
+                $stdICMSSN->pCredSN     = $this->fmt(0, 4);
+                $stdICMSSN->vCredICMSSN = $this->fmt(0);
             }
             $nfe->tagICMSSN($stdICMSSN);
         }
@@ -2335,6 +2619,26 @@ class NfeService
         $stdCOFINS->pCOFINS = $this->fmt((float) ($cofins['pcofins'] ?? 0));
         $stdCOFINS->vCOFINS = $this->fmt((float) ($cofins['vcofins'] ?? 0));
         $nfe->tagCOFINS($stdCOFINS);
+
+        // R-NFE-037: grupo NA (ICMSUFDest) — alíquotas em percentual, partilha 100% para o destino
+        // desde 2019 (EC 87/2015, art. 99 do ADCT). Sem a chave, o item sai como antes.
+        if (! empty($det['difal'])) {
+            $d = $det['difal'];
+            $stdDifal                 = new \stdClass();
+            $stdDifal->item           = $item;
+            $stdDifal->vBCUFDest      = $this->fmt((float) $d['vbc']);
+            if ((float) $d['p_fcp'] > 0) {
+                $stdDifal->vBCFCPUFDest = $this->fmt((float) $d['vbc']);
+                $stdDifal->pFCPUFDest   = $this->fmt((float) $d['p_fcp'] * 100, 4);
+                $stdDifal->vFCPUFDest   = $this->fmt((float) $d['v_fcp']);
+            }
+            $stdDifal->pICMSUFDest    = $this->fmt((float) $d['p_interna'] * 100, 4);
+            $stdDifal->pICMSInter     = $this->fmt((float) $d['p_inter'] * 100, 2);
+            $stdDifal->pICMSInterPart = 100;
+            $stdDifal->vICMSUFDest    = $this->fmt((float) $d['v_difal']);
+            $stdDifal->vICMSUFRemet   = $this->fmt(0);
+            $nfe->tagICMSUFDest($stdDifal);
+        }
 
         // ── IBS/CBS (Reforma Tributária · grupo UB · NT 2025.002 · PL_010_V1) ──
         // Serializa SÓ quando (a) o business está opt-in (schema PL_010 ativo) E
