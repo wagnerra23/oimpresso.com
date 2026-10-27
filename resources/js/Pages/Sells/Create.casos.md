@@ -8,6 +8,11 @@ owner: wagner
 last_run: "2026-10-26"
 ---
 
+<!-- REVALIDAÇÃO 2026-10-27 (G-6: o .tsx mudou — US-SELL-079, resgate de pontos).
+     O total passa a subtrair `rp_redeemed_amount`, que nasce "0.00" e só muda pelo bloco de resgate,
+     que só aparece com a flag SELLS_RESGATE_PONTOS_ENABLED e a empresa com pontos. Venda sem resgate:
+     total e envio idênticos aos de antes, então UC-S01..S07 e UC-VST-* mantêm o status. UC-SRP-* nascem ⬜. -->
+
 <!-- REVALIDAÇÃO 2026-10-01 (G-6: o .tsx mudou de novo — UC-S04, preço do grupo ao adicionar).
      Mudanças no .tsx: o autocomplete recebe `priceGroupId`, e o preço da linha nova e o da
      troca de grupo saem da mesma função (`precoDaBusca`). Sem grupo de preço, o envio e o
@@ -203,34 +208,46 @@ last_run: "2026-10-26"
 > servidor vale sempre.
 
 ## UC-SRP-01 · Valor do resgate = pontos × valor do ponto, 2 casas `[V0]` `[must]`
-- **Aceite:** 50 × 0,10 = 5,00 · 7 × 0,15 = 1,05 · 3 × 0,3333 = 1,00 · 1 × 0,005 = 0,01 · 1 × 0,0049 = 0,00. A tela e o servidor dão o mesmo resultado.
+- **Persona:** Operador de caixa, conferindo quanto o cliente economiza.
+- **Aceite:** Dado o ponto valendo 0,10, 0,15, 0,3333, 0,005 ou 0,0049 · Quando se resgatam 50, 7, 3, 1 e 1 pontos · Então o resgate vale 5,00, 1,05, 1,00, 0,01 e 0,00, igual na tela e no servidor.
 - **Teste:** `tests/Feature/Sells/ResgatePontosContratoTest.php` — `UC-SRP-01` · `tests/js/resgate-pontos-valor.test.ts` (a mesma tabela, na conta da tela).
-- **Status: 🧪** — roda na lane `sells-pest` e no vitest do `ci.yml`.
+- **Regressão que defende:** Tela e servidor calculando o resgate de formas diferentes, com o total gravado divergindo do mostrado.
+- **Status: ⬜** — não verificado: aguarda o primeiro run na lane `sells-pest` e no vitest do `ci.yml`.
 
 ## UC-SRP-02 · Resgate válido é gravado com pontos e valor conferidos `[V0]` `[must]`
+- **Persona:** Operador de caixa, com o cliente pedindo para usar os pontos.
 - **Aceite:** Dado cliente com 100 pontos · Quando a venda pede 50 pontos e 5,00 · Então o servidor confirma 50 e 5,00.
 - **Teste:** `tests/Feature/Sells/ResgatePontosContratoTest.php` — `UC-SRP-02`.
-- **Status: 🧪** — roda na lane `sells-pest`.
+- **Regressão que defende:** Resgate legítimo recusado pela conferência nova.
+- **Status: ⬜** — não verificado: aguarda o primeiro run na lane `sells-pest`.
 
 ## UC-SRP-03 · Mais pontos que o disponível, abaixo do mínimo ou venda pequena são recusados `[V0]` `[must]`
-- **Aceite:** Cliente com 30 pontos pedindo 31 → "O cliente pode resgatar até 30 pontos nesta venda." · 5 pontos → "O resgate mínimo é de 10 pontos." · venda de 19,99 → "A venda não atinge o valor mínimo para resgatar pontos."
+- **Persona:** Operador de caixa diante de um pedido de resgate que não cabe.
+- **Aceite:** Dado cliente com 30 pontos, resgate mínimo de 10 e venda mínima de 20,00 · Quando a venda pede 31 pontos, ou 5 pontos, ou 20 pontos numa venda de 19,99 · Então a gravação é recusada com "O cliente pode resgatar até 30 pontos nesta venda.", "O resgate mínimo é de 10 pontos." e "A venda não atinge o valor mínimo para resgatar pontos."
 - **Teste:** `tests/Feature/Sells/ResgatePontosContratoTest.php` — `UC-SRP-03`.
-- **Status: 🧪** — roda na lane `sells-pest`.
+- **Regressão que defende:** Resgatar mais pontos do que o cliente tem (antes só o JavaScript da Blade barrava).
+- **Status: ⬜** — não verificado: aguarda o primeiro run na lane `sells-pest`.
 
 ## UC-SRP-04 · Valor que não bate com os pontos é recusado `[V0]` `[must]`
-- **Aceite:** 50 pontos com 50,00 → recusa "O resgate de 50 pontos vale R$ 5,00…". Diferença de até 1 centavo passa e grava o valor do servidor.
+- **Persona:** Quem envia a venda direto ao servidor (tela desatualizada ou requisição feita à mão).
+- **Aceite:** Dado cliente com 100 pontos e ponto a 0,10 · Quando a venda pede 50 pontos com valor 50,00 · Então é recusada com "O resgate de 50 pontos vale R$ 5,00…". Com valor 5,01 (1 centavo) passa e grava 5,00.
 - **Teste:** `tests/Feature/Sells/ResgatePontosContratoTest.php` — `UC-SRP-04`.
-- **Status: 🧪** — roda na lane `sells-pest`.
+- **Regressão que defende:** Venda gravada com desconto de pontos maior que o valor dos pontos.
+- **Status: ⬜** — não verificado: aguarda o primeiro run na lane `sells-pest`.
 
 ## UC-SRP-05 · Cliente padrão, cliente de outra empresa e empresa sem pontos não resgatam `[V0]` `[must]`
-- **Aceite:** Cliente padrão ou de outra empresa → "Escolha um cliente cadastrado para resgatar pontos." · empresa com pontos desligados → "Os pontos de fidelidade não estão ligados nesta empresa."
+- **Persona:** Operador de caixa vendendo para o Cliente padrão ou de outra empresa.
+- **Aceite:** Dado o Cliente padrão, ou um cliente da empresa 99, ou a empresa com os pontos desligados · Quando a venda da empresa 98 pede resgate · Então é recusada com "Escolha um cliente cadastrado para resgatar pontos." ou "Os pontos de fidelidade não estão ligados nesta empresa."
 - **Teste:** `tests/Feature/Sells/ResgatePontosContratoTest.php` — `UC-SRP-05`.
-- **Status: 🧪** — roda na lane `sells-pest`.
+- **Regressão que defende:** Pontos de um cliente usados em venda de outro cliente ou de outra empresa (Tier 0).
+- **Status: ⬜** — não verificado: aguarda o primeiro run na lane `sells-pest`.
 
 ## UC-SRP-06 · A tela só mostra o resgate com a flag ligada e a empresa com pontos `[should]`
-- **Aceite:** flag desligada ou `enable_rp = 0` → sem configuração (o bloco não aparece); ligadas → nome, valor do ponto, venda mínima e resgate mínimo.
+- **Persona:** Dono da empresa, que liga ou não o resgate no caixa.
+- **Aceite:** Dado a flag `SELLS_RESGATE_PONTOS_ENABLED` desligada, ou a empresa com `enable_rp = 0` · Quando a tela de venda abre · Então não recebe configuração de resgate e o bloco não aparece; com as duas ligadas recebe nome, valor do ponto, venda mínima e resgate mínimo.
 - **Teste:** `tests/Feature/Sells/ResgatePontosContratoTest.php` — `UC-SRP-06`.
-- **Status: 🧪** — roda na lane `sells-pest`.
+- **Regressão que defende:** Bloco de resgate aparecendo na ROTA LIVRE sem a flag ligada.
+- **Status: ⬜** — não verificado: aguarda o primeiro run na lane `sells-pest`.
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
