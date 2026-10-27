@@ -111,7 +111,7 @@ last_updated: "2026-10-06"
 
 > owner: wagner · priority: p2 · status: doing · type: epic · estimate: 24h · origin: onda-produto-passo2-2026-07-03 · blocked_by: US-PROD-020
 
-**Implementado em:** `Modules/Compras/Services/CustoMedioMovel.php` · `Modules/Compras/Observers/CompraRecebidaCustoMedioObserver.php` · `Modules/Compras/Console/Commands/CustoMedioSemearCommand.php` · `Modules/Compras/Database/Migrations/2026_10_27_400000_create_compras_custo_medio_tables.php` · `Modules/Compras/Tests/Feature/CustoMedioMovelTest.php` — parcial (2026-10-27): custo médio móvel por variação atrás da flag `COMPRAS_CUSTO_MEDIO_MOVEL` (desligada). Falta: margem da venda lendo o médio, semente aprovada pelo [W] e KPIs do `/unificado`.
+**Implementado em:** _pendente_ — a US segue aberta (2026-10-27). Já existe o custo médio móvel por variação, atrás da flag `COMPRAS_CUSTO_MEDIO_MOVEL` (desligada): `Modules/Compras/Services/CustoMedioMovel.php` · `Modules/Compras/Observers/CompraRecebidaCustoMedioObserver.php` · `Modules/Compras/Console/Commands/CustoMedioSemearCommand.php` · `Modules/Compras/Database/Migrations/2026_10_27_400000_create_compras_custo_medio_tables.php`. Falta: margem da venda lendo o médio, semente aprovada pelo [W] e KPIs do `/unificado`.
 
 **Por quê (Wagner 2026-07-03: "estudar melhor o custo médio, muita coisa já tem pronta").** NÃO é greenfield — o UltimatePOS já calcula custo por compra. Antes de construir agregação, **mapear a máquina de custo que já roda**.
 
