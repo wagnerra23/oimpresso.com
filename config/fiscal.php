@@ -42,6 +42,10 @@ return [
     // Desligado por padrão: a seção só aparece na página do link quando ligada.
     'fechamento_contador_enabled' => env('NFEBRASIL_FECHAMENTO_CONTADOR', false),
 
+    // US-NFE-073 · envio mensal automático do XML ao contador (dia 5). Desligado por padrão:
+    // ligar é decisão do dono (manda e-mail para fora). O comando à mão roda sempre.
+    'envio_xml_contador_enabled' => env('NFEBRASIL_ENVIO_XML_CONTADOR', false),
+
     /*
     |---------------------------------------------------------------------------
     | Matriz UFs suportadas pelo SEFAZ ConsultaCadastro (ADR 0186 §Decisão)

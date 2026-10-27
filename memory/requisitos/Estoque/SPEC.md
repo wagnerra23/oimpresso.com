@@ -31,6 +31,26 @@ doc_raiz: ./DOC-RAIZ-ESTOQUE.md
 
 <!-- US-ESTOQUE-* criadas via MCP tasks-create -->
 
+### US-ESTOQUE-002 · Contagem de inventário: abrir, contar com coletor, ver divergência e aprovar o ajuste
+
+> owner: wagner · priority: p0 · estimate: 24h · status: doing · type: story · origin: lacunas-concorrencia-2026-10-25
+> blocked_by: —
+
+**Implementado em:** _pendente_ — parte 1 feita (abrir, contar, fechar e divergência em `App\Services\Estoque\ContagemInventarioService`, prova em `tests/Feature/Estoque/ContagemInventarioContratoTest.php`); faltam aprovar o ajuste e a tela com coletor.
+
+Lacuna P0 do levantamento de 2026-10-25: `CatalogoProcessos.php` (processo `inventario`) dizia que não existe contagem, nem tabela nem rota, e que o ajuste de estoque só tira e não vem de contagem.
+
+Aceite:
+
+- **Abrir:** escolhe o local; só uma contagem aberta por local de cada vez.
+- **Contar:** o coletor lê o SKU da variação (ou o do produto, quando ele tem uma só) e soma 1 a cada leitura; digitar a quantidade substitui. Produto sem controle de estoque é recusado. Quantidade negativa é recusada.
+- **Saldo congelado por item:** na primeira contagem do item o sistema guarda o saldo daquele local. A divergência é `contado − saldo guardado`; venda feita depois de contar a prateleira não vira falta falsa. A loja não para durante a contagem.
+- **Fechar:** depois de fechada, ninguém conta mais. A tela mostra falta e sobra por item, com o valor pela custo de compra.
+- **Aprovar ajuste (parte 2):** só quem tem a permissão de aprovar inventário. Aplica a diferença sobre o saldo do momento da aprovação, tirando a falta e lançando a sobra, com um movimento auditável por contagem. Regra mestre de estoque: antes→depois apresentado ao [W] e dupla prova antes do merge.
+- **Tela (parte 3):** abrir, contar pelo coletor, ver a divergência e aprovar.
+- **Tier 0:** contagem, local e produto sempre da mesma empresa; outra empresa não vê, não conta e não fecha.
+- **Fora desta US:** zerar itens não contados (decidir se a contagem é total ou por amostra), custo médio (outra US).
+
 ### US-ESTOQUE-001 · Toda transferência cai pendente na requisição e só move o estoque quando aprovada
 
 > owner: wagner · priority: p2 · status: todo · type: story · origin: decisao-felipe-2026-10-15
@@ -47,3 +67,12 @@ Decisões de [F] em 2026-10-15. A tela da requisição é do [W].
 - Depois disso: o "Transferir" do produto (painel e menu da linha da lista de produtos) abre a tela de transferência com produto e local de origem preenchidos.
 - Estoque Tier 0: dupla confirmação do saldo (só muda na aprovação, nunca duas vezes) e antes→depois apresentado antes do merge.
 - Detalhe: [`StockTransfer/Create.casos.md`](../../../resources/js/Pages/StockTransfer/Create.casos.md) e [`Index.casos.md`](../../../resources/js/Pages/StockTransfer/Index.casos.md), §Backlog.
+
+### US-ESTOQUE-003 · Sugestão de reposição e curva ABC por produto
+
+> owner: wagner · priority: p2 · estimate: 12h · status: todo · type: story · origin: lacunas-concorrencia-2026-10-25
+> blocked_by: —
+
+**Implementado em:** _pendente_ — não iniciada.
+
+Hoje existe alerta de estoque baixo e requisição por estoque mínimo (`RequisicaoEstoqueMinimoService`). Faltam a curva ABC (por faturamento e por margem, no período) e a sugestão de quanto comprar pelo giro e pelo prazo do fornecedor. Só leitura: não muda valor nem estoque.

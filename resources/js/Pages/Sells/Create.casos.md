@@ -5,7 +5,7 @@ irmaos: Create.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-10-23"
+last_run: "2026-10-26"
 ---
 
 <!-- REVALIDAÇÃO 2026-10-01 (G-6: o .tsx mudou de novo — UC-S04, preço do grupo ao adicionar).
@@ -67,6 +67,13 @@ last_run: "2026-10-23"
      O que está afirmado aqui é o ALCANCE do diff — medido — não um veredito de
      execução. O comportamento novo em si ainda não tem teste: está no Backlog
      abaixo, sem id, conforme G-2. -->
+
+<!-- REVALIDAÇÃO 2026-10-26 (G-6: o .tsx mudou depois do last_run de 02/10).
+     Commits no .tsx depois de 02/10, medidos com `git log --since=2026-10-01 -- Sells/Create.tsx`
+     (clone completo): #8439 (03/10, checklist pré-reparo, senha/padrão e modelos filtrados) e
+     #8447 (03/10, venda de reparo aberta a partir da OS). Os dois já trazem o próprio caso neste
+     arquivo — UC-S06 e UC-S07 — e mantêm o 🧪. A seção nova desta edição (UC-VST-01..05, ICMS-ST,
+     US-SELL-078) é do servidor e não toca o .tsx. Nenhum UC muda de status. -->
 
 <!-- REVALIDAÇÃO 2026-10-02 (G-6: o .tsx mudou depois do last_run de 01/10).
      Única mudança no .tsx: `osOrigem` entrou nas dependências do useMemo do `draftKey`
@@ -156,6 +163,37 @@ last_run: "2026-10-23"
 - **Diferenças conscientes do Blade:** o técnico da OS (`service_staff` → `res_waiter_id`) não é trazido — o PDV React não tem esse campo; a venda da OS não usa rascunho no `localStorage` (recuperar outra venda por cima misturaria origens).
 
 ---
+
+## ICMS-ST no total da venda (US-SELL-078 · [W] 2026-10-26)
+
+> **Âncora:** US-SELL-078 (`memory/requisitos/Sells/SPEC.md`). O ST é calculado pela conta da NF-e (R-NFE-043) e
+> entra no fechamento da venda. Números do fixture do Fiscal: item de 1.000,00 de SC para contribuinte no RJ, ICMS
+> 12%, MVA 40%, interna do RJ 18% → ST 132,00. Prova: `tests/Feature/Sells/IcmsStNaVendaContratoTest.php`.
+
+## UC-VST-01 · O caixa recebe o ST do carrinho pela conta da NF-e `[V0]` `[must]`
+- **Aceite:** Dado o carrinho com o item de 1.000,00 e cliente contribuinte no RJ · Quando a tela pede o ST (`POST /sells/icms-st`) · Então recebe `132.00`.
+- **Teste:** `tests/Feature/Sells/IcmsStNaVendaContratoTest.php` — `UC-VST-01`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VST-02 · Ao gravar, total da venda = vNF = título `[V0]` `[must]`
+- **Aceite:** Dado a venda gravada com total 1.132,00 e ST enviado 132,00 · Então a venda guarda `icms_st_valor = 132`, a base da nota é 1.000,00, o vNF é 1.132,00 e o título do Financeiro nasce com 1.132,00.
+- **Teste:** `tests/Feature/Sells/IcmsStNaVendaContratoTest.php` — `UC-VST-02`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VST-03 · Total enviado sem o ST é recusado com o valor certo `[V0]` `[must]`
+- **Aceite:** Dado a mesma venda gravada com total 1.000,00 e ST enviado 0 · Então a gravação é recusada com "O ICMS-ST desta venda é R$ 132,00, mas o total enviado considerou R$ 0,00. Atualize a venda e salve de novo."
+- **Teste:** `tests/Feature/Sells/IcmsStNaVendaContratoTest.php` — `UC-VST-03`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VST-04 · Cliente da mesma UF não tem ST `[V0]` `[must]`
+- **Aceite:** Dado cliente contribuinte em SC (mesma UF do emitente) · Então o ST é 0 e a venda segue como hoje.
+- **Teste:** `tests/Feature/Sells/IcmsStNaVendaContratoTest.php` — `UC-VST-04`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VST-05 · Venda sem cliente identificado não tem ST `[V0]` `[must]`
+- **Aceite:** Dado venda sem cliente · Então o ST é 0.
+- **Teste:** `tests/Feature/Sells/IcmsStNaVendaContratoTest.php` — `UC-VST-05`.
+- **Status: 🧪** — roda na lane `sells-pest`.
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 

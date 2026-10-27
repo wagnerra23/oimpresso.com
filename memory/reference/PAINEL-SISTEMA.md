@@ -40,7 +40,7 @@ lente: [construir]
 | Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-10-14 |
 | KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-29 |
 | Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-10-26 |
-| Marketplaces | [BRIEFING](../requisitos/Marketplaces/BRIEFING.md) | 2026-10-27 |
+| Marketplaces | [BRIEFING](../requisitos/Marketplaces/BRIEFING.md) | 2026-10-26 |
 | NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-10-21 |
 | NFSe | [BRIEFING](../requisitos/NFSe/BRIEFING.md) | 2026-10-13 |
 | Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-07-30 |
@@ -56,7 +56,7 @@ lente: [construir]
 | Vestuario | [BRIEFING](../requisitos/Vestuario/BRIEFING.md) | 2026-07-28 |
 | VozDoCliente | [BRIEFING](../requisitos/VozDoCliente/BRIEFING.md) | 2026-10-13 |
 | Whatsapp | [BRIEFING](../requisitos/Whatsapp/BRIEFING.md) | 2026-10-27 |
-| Woocommerce | [BRIEFING](../requisitos/Woocommerce/BRIEFING.md) | 2026-08-11 |
+| Woocommerce | [BRIEFING](../requisitos/Woocommerce/BRIEFING.md) | 2026-10-27 |
 
 ## Camada de IA
 

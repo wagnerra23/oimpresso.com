@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 877,
-    "edges": 1191,
+    "nodes": 881,
+    "edges": 1197,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 148,
-      "component": 488,
+      "component": 492,
       "api": 90
     },
     "by_edge_type": {
@@ -42,9 +42,9 @@
       "providesApi": 94,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 488,
-      "dependsOn": 132,
-      "delegatesTo": 121,
+      "hasComponent": 492,
+      "dependsOn": 133,
+      "delegatesTo": 122,
       "migratesTo": 1,
       "supersedes": 26,
       "supersedesPartially": 75,
@@ -2158,6 +2158,13 @@
       "desc": ""
     },
     {
+      "id": "component:ComunicacaoVisual/OrcamentoAceiteController",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "OrcamentoAceiteController",
+      "desc": "POST /comunicacao-visual/api/orcamentos/{id}/link, US-COMVIS-023 · UC-CVACE-01/02)"
+    },
+    {
       "id": "component:ComunicacaoVisual/OrcamentoArquivoController",
       "type": "component",
       "module": "ComunicacaoVisual",
@@ -2170,6 +2177,13 @@
       "module": "ComunicacaoVisual",
       "name": "OrcamentoController",
       "desc": ""
+    },
+    {
+      "id": "component:ComunicacaoVisual/Public/OrcamentoAceitePublicoController",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "Public/OrcamentoAceitePublicoController",
+      "desc": "página pública SEM login onde o cliente aceita ou pede ajuste do orçamento (/orcamento-cv/{token}, token sha256 de uso único, throttle 30/1, US-COMVIS-023 · UC-CVACEP-01..04)"
     },
     {
       "id": "component:ComunicacaoVisual/RoteiroPadraoController",
@@ -3845,6 +3859,13 @@
       "desc": "liga/desliga contingencia SEFAZ por tenant (US-NFE-006, ADR TECH-0002)"
     },
     {
+      "id": "component:NfeBrasil/DanfePublicaController",
+      "type": "component",
+      "module": "NfeBrasil",
+      "name": "DanfePublicaController",
+      "desc": "DANFE em PDF por link assinado (7 dias) para o cliente, GET /nfe-brasil/danfe/{business}/{emissao}; sem assinatura válida = 403 (US-WA-321, aviso por WhatsApp)"
+    },
+    {
       "id": "component:NfeBrasil/DataController",
       "type": "component",
       "module": "NfeBrasil",
@@ -5061,6 +5082,13 @@
       "module": "Whatsapp",
       "name": "Admin/QueuesController",
       "desc": "CRUD filas de atendimento whatsapp_queues (US-WA-301 ADR 0267, painel QueuesSheet da Caixa Unificada V4)"
+    },
+    {
+      "id": "component:Whatsapp/Admin/ReguaRelacionamentoController",
+      "type": "component",
+      "module": "Whatsapp",
+      "name": "Admin/ReguaRelacionamentoController",
+      "desc": "régua de aniversário e recompra por empresa, PUT /atendimento/canais/regua-relacionamento (US-WA-328); motor em Services/Regua, atrás de WHATSAPP_REGUA_RELACIONAMENTO_ENABLED"
     },
     {
       "id": "component:Whatsapp/Admin/SettingsController",
@@ -8489,6 +8517,12 @@
     },
     {
       "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/OrcamentoAceiteController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/OrcamentoArquivoController",
       "type": "hasComponent",
       "source": "contains"
@@ -8496,6 +8530,12 @@
     {
       "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/OrcamentoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/Public/OrcamentoAceitePublicoController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -11866,6 +11906,12 @@
     },
     {
       "from": "module:NfeBrasil",
+      "to": "component:NfeBrasil/DanfePublicaController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NfeBrasil",
       "to": "component:NfeBrasil/DataController",
       "type": "hasComponent",
       "source": "contains"
@@ -14000,6 +14046,13 @@
     },
     {
       "from": "module:Whatsapp",
+      "to": "module:NfeBrasil",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Emissão de NF-e / DANFE"
+    },
+    {
+      "from": "module:Whatsapp",
       "to": "module:PaymentGateway",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -14046,6 +14099,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Bot / memória conversacional / RAG"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "module:NfeBrasil",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Emissão de NF-e / DANFE"
     },
     {
       "from": "module:Whatsapp",
@@ -14137,6 +14197,12 @@
     {
       "from": "module:Whatsapp",
       "to": "component:Whatsapp/Admin/QueuesController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "component:Whatsapp/Admin/ReguaRelacionamentoController",
       "type": "hasComponent",
       "source": "contains"
     },

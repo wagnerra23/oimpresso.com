@@ -2,29 +2,29 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1031 tarefas abertas** em **57 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1057 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
 | Módulo | Abertas | doing | review | blocked | todo/backlog |
 |---|---:|---:|---:|---:|---:|
 | [`Jana`](#jana) | 84 | 2 | 0 | 0 | 82 |
-| [`Whatsapp`](#whatsapp) | 71 | 0 | 0 | 0 | 71 |
-| [`Sells`](#sells) | 68 | 1 | 0 | 0 | 67 |
+| [`Whatsapp`](#whatsapp) | 77 | 0 | 0 | 0 | 77 |
+| [`Sells`](#sells) | 72 | 2 | 0 | 0 | 70 |
 | [`Financeiro`](#financeiro) | 52 | 4 | 0 | 0 | 48 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
 | [`OficinaAuto`](#oficinaauto) | 39 | 0 | 0 | 0 | 38 |
 | [`Producao`](#producao) | 33 | 1 | 0 | 0 | 32 |
-| [`NfeBrasil`](#nfebrasil) | 29 | 0 | 0 | 6 | 23 |
-| [`Compras`](#compras) | 27 | 3 | 0 | 0 | 23 |
+| [`NfeBrasil`](#nfebrasil) | 32 | 0 | 0 | 6 | 26 |
+| [`Fiscal`](#fiscal) | 29 | 0 | 0 | 0 | 29 |
+| [`Compras`](#compras) | 28 | 4 | 0 | 0 | 23 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
 | [`Marketplaces`](#marketplaces) | 25 | 0 | 0 | 0 | 25 |
 | [`Crm`](#crm) | 24 | 0 | 0 | 0 | 24 |
-| [`ComunicacaoVisual`](#comunicacaovisual) | 22 | 0 | 0 | 0 | 22 |
-| [`Fiscal`](#fiscal) | 22 | 0 | 0 | 0 | 22 |
+| [`ComunicacaoVisual`](#comunicacaovisual) | 23 | 0 | 0 | 0 | 23 |
 | [`Connector`](#connector) | 21 | 0 | 0 | 0 | 20 |
 | [`Vestuario`](#vestuario) | 20 | 1 | 0 | 0 | 19 |
 | [`Forja`](#forja) | 19 | 0 | 1 | 0 | 7 |
@@ -56,6 +56,7 @@
 | [`Spreadsheet`](#spreadsheet) | 5 | 0 | 0 | 0 | 5 |
 | [`ConsultaOs`](#consultaos) | 4 | 0 | 0 | 0 | 4 |
 | [`Dashboard`](#dashboard) | 3 | 0 | 0 | 0 | 3 |
+| [`Estoque`](#estoque) | 3 | 1 | 0 | 0 | 2 |
 | [`VozDoCliente`](#vozdocliente) | 3 | 0 | 0 | 0 | 3 |
 | [`ADS`](#ads) | 2 | 0 | 0 | 0 | 2 |
 | [`AssetManagement`](#assetmanagement) | 2 | 0 | 0 | 0 | 2 |
@@ -63,8 +64,9 @@
 | [`MemoriaAutonoma`](#memoriaautonoma) | 2 | 0 | 0 | 0 | 2 |
 | [`Admin`](#admin) | 1 | 0 | 0 | 0 | 1 |
 | [`Auditoria`](#auditoria) | 1 | 0 | 0 | 0 | 1 |
-| [`Estoque`](#estoque) | 1 | 0 | 0 | 0 | 1 |
+| [`Backup`](#backup) | 1 | 0 | 0 | 0 | 1 |
 | [`Mcp`](#mcp) | 1 | 0 | 0 | 0 | 1 |
+| [`Relatorios`](#relatorios) | 1 | 0 | 0 | 0 | 1 |
 
 
 ## Jana
@@ -232,10 +234,16 @@
 - **US-WA-316** — Customer 360 sidebar + inferência IA (ondas 2-5 voz-cliente)
 - **US-WA-317** — VoC: ContactProfile acumulativo (Gap#3) + auto-tag IA + dashboard (Gap#4)
 - **US-WA-318** — DNS de mídia WhatsApp não resolve → ~48k mídias pending desde ~12/jun
+- **US-WA-319** — Notificador reutilizável de aviso automático ao cliente por WhatsApp (texto + anexo)
+- **US-WA-320** — Aviso de venda do núcleo enviado pela API do WhatsApp em vez de link (flag)
+- **US-WA-321** — NF-e autorizada manda a DANFE ao cliente por WhatsApp (anexo por link assinado)
 - **US-WA-322** — Campanha por WhatsApp — disparo real com salvaguardas anti-ban (ADR 0268 fase 2)
 - **US-WA-323** — Campanha por WhatsApp — "Salvar e disparar" e cancelar na Caixa Unificada
 - **US-WA-324** — Bot de atendimento com menu — opção leva à fila, coleta o nome, depois humano
+- **US-WA-325** — Avisos de OS pronta e de instalação saem pelo canal vivo (notificador)
+- **US-WA-326** — Régua de relacionamento por WhatsApp — aniversário e recompra
 - **US-WA-327** — Tela de configurar o menu do bot por canal
+- **US-WA-328** — Tela de configurar a régua de relacionamento da empresa
 
 ## Sells
 
@@ -243,13 +251,17 @@
 ### doing
 
 - **US-SELL-077** — Cancelar a venda devolve o estoque, tira a venda dos relatórios e cancela o título _(`p0` · @wagner)_
+- **US-SELL-078** — O ICMS-ST entra no total da venda, pela mesma conta da NF-e _(`p1` · @wagner)_
 
 ### todo
 
 - **US-SELL-054** — Offline-first no PDV — fila IndexedDB + reemissão ao reconectar _(`p1`)_
 - **US-SELL-055** — Pix QR no PDV + webhook auto-reconcile ligado à venda/caixa _(`p1`)_
+- **US-SELL-074** — Cliente aprova o orçamento pelo link público, e a aprovação vira pedido _(`p1` · @wagner)_
+- **US-SELL-075** — Maquininha integrada ao caixa (TEF): o valor vai para a máquina e a resposta preenche o pagamento _(`p1` · @wagner)_
 - **US-SELL-056** — Keyboard-first coeso no Create — hotkeys configuráveis + Enter-avança + F-key pagar _(`p2`)_
 - **US-SELL-057** — Skeleton de carregamento no Create + INP < 200ms _(`p2`)_
+- **US-SELL-076** — Cupom de desconto e promoção leve X pague Y no caixa novo _(`p2` · @wagner)_
 - **US-SELL-001** — Epic — Migrar /sells/create pra MWART
 - **US-SELL-002** — Backend dual Inertia/Blade + feature flag + Pest
 - **US-SELL-003** — Frontend skeleton + AppShellV2 + props contract
@@ -591,13 +603,16 @@
 
 ### todo
 
+- **US-NFE-072** — ICMS-ST e DIFAL chegam à NF-e da venda interestadual — **Legal** _(`p0` · sprint —)_
 - **US-NFE-042** — Discovery técnico instalação Gold Comunicação Visual _(`p1` · @wagner · sprint Gold-Reativacao)_
 - **US-NFE-053** — Smoke homologação SEFAZ-SP eventos 210/220 biz=Gold _(`p1` · @wagner · sprint Gold-Reativacao)_
 - **US-NFE-054** — Smoke real homologação SEFAZ-SC biz=1 — 1ª NFC-e cstat 100 (Goal #1 CYCLE-03) _(`p1` · @wagner)_
 - **US-NFE-062** — AuditLog em mutações fiscais NFe (Tributacao, Certificado, Manifestacao) _(`p1` · sprint cycle-04)_
 - **US-NFE-069** — A natureza fiscal do item escolhe a nota: NF-e para mercadoria, NFS-e para serviço e instalação (UC-FLX-31) — **P1** _(`p1` · sprint —)_
 - **US-NFE-071** — Contingência: SVC-AN/SVC-RS, evento EPEC 110140 e marcação no DANFE (UC-FLX-32) — **P1** _(`p1` · sprint —)_
+- **US-NFE-073** — XML do mês enviado ao contador sem ninguém lembrar — **P1** _(`p1` · sprint —)_
 - **US-NFE-074** — Cutover da emissão Delphi → oimpresso, por empresa — **Backlog** _(`p1` · sprint —)_
+- **US-NFE-075** — NF-e com destinatário e CFOP vindos de fora da venda (pedido de marketplace) — **P1** _(`p1` · sprint —)_
 - **US-NFE-055** — Estabilizar 107 tests broken Modules/NfeBrasil aplicando dual-mode SQLite/MySQL _(`p2`)_
 - **US-NFE-056** — Continuação PR #453 — migrar configBusiness(4) → configBusiness(1) em MotorTributarioServiceTest _(`p2`)_
 - **US-NFE-057** — Schema drift — atualizar fixtures DanfeServicePrefersArquivosTest pós-remoção `arquivos.filename` _(`p2`)_
@@ -615,11 +630,47 @@
 - **US-NFE-009** — Gerar SPED Fiscal/EFD ICMS-IPI mensal
 - **US-NFE-010** — Cadastrar regra tributária por NCM (motor)
 
+## Fiscal
+
+
+### todo
+
+- **US-FISCAL-021** — IBS/CBS cálculo no MotorTributarioService (Onda 6 — sair do scaffold) _(`p0` · @wagner)_
+- **US-FISCAL-025** — IBS/CBS na NF-e de todo emissor do regime normal — **Legal** _(`p0`)_
+- **US-FISCAL-026** — IBS/CBS na DPS da NFS-e nacional — **Legal** _(`p1`)_
+- **US-FISCAL-024** — IBS/CBS — split UF/Município na régua fiscal (coluna de schema) _(`p2`)_
+- **US-FISCAL-028** — SPED EFD-ICMS/IPI blocos D e K — **P2** _(`p2`)_
+- **US-FISCAL-029** — MDF-e e CT-e no módulo novo — **P2** _(`p2`)_
+- **US-FISCAL-027** — NFS-e em município fora do padrão nacional — **Legal** _(`p3`)_
+- **US-FISCAL-030** — Apuração do DAS e guia GNRE — **P3** _(`p3`)_
+- **US-FISCAL-031** — Split payment (LC 214/2025) e EFD-Reinf — **P3** _(`p3`)_
+- **US-FISCAL-001** — Cockpit NF-e · NFC-e (sub-página 2)
+- **US-FISCAL-002** — Cockpit (sub-página 1) — ✅ PR #2 Wave
+- **US-FISCAL-003** — ⌘K palette cross-fiscal — **backlog PR #3**
+- **US-FISCAL-004** — Ações de mutação — **backlog PR #4**
+- **US-FISCAL-005** — NFS-e (sub-página 3) — ✅ PR #2 Wave
+- **US-FISCAL-006** — Manifesto DF-e (sub-página 4) — **backlog PR #6**
+- **US-FISCAL-007** — Eventos (sub-página 5) — ✅ PR #2 Wave
+- **US-FISCAL-008** — DF-e manifesto (sub-página 4) — ✅ PR #3 Wave
+- **US-FISCAL-009** — Cert/Cfg fiscal (sub-página 6) — ✅ PR #3 Wave
+- **US-FISCAL-010** — SPED & Livros (sub-página 7) — ✅ PR #3 Wave (placeholder)
+- **US-FISCAL-011** — SPED Fiscal complete + PIS/COFINS — **backlog PR #10**
+- **US-FISCAL-012** — Ações mutação NFe + DF-e — ✅ PR #4 Wave
+- **US-FISCAL-013** — CC-e (Carta de Correção) + Inutilização faixa — ✅ PR #5 Wave
+- **US-FISCAL-014** — Retransmitir NFe rejeitada/denegada — ✅ PR #6 Wave
+- **US-FISCAL-015** — ⌘K palette cross-fiscal — ✅ PR #7 Wave
+- **US-FISCAL-016** — Gerador SPED EFD-ICMS/IPI MVP — ✅ PR #8 Wave
+- **US-FISCAL-017** — SPED EFD-ICMS/IPI Bloco E + Bloco H — ✅ PR #9 Wave
+- **US-FISCAL-018** — Habilitar cockpit Fiscal Larissa biz=4 + canary 7d smoke
+- **US-FISCAL-019** — Cache Redis 60s KPIs + anti-DOS palette LIKE — ✅ Onda ESTABILIZAR
+- **US-FISCAL-020** — Integrar MotorTributarioService NfeBrasil — elimina 6 hardcodes Tier-0 SPED — ✅ Onda CONSOLIDAR
+
 ## Compras
 
 
 ### doing
 
+- **US-COM-029** — Compra a partir de pedido não aceita pedido nem linha de outra empresa — **P0** _(`p0`)_
 - **US-COM-024** — Custo do insumo numa data, pelo método da empresa (UC-FLX-38) _(`p1` · @wagner)_
 - **US-COM-026** — Compra recebida aplica a regra de custo e preço (UC-FLX-17) _(`p1` · @wagner)_
 - **US-COM-028** — Aprovar ou recusar o preço proposto no detalhe da compra (UC-FLX-17) — **P1** _(`p1` · @wagner)_
@@ -818,6 +869,7 @@
 - **US-COMVIS-021** — Salvar e reabrir o orçamento na calculadora de m² — **P0** _(`p0` · @wagner)_
 - **US-COMVIS-019** — Item do orçamento guarda o custo do material no dia (UC-FLX-33) — **P1** _(`p1` · @wagner)_
 - **US-COMVIS-022** — Custo e margem por peça na calculadora de m² (UC-FLX-03) — **P1** _(`p1` · @wagner)_
+- **US-COMVIS-023** — Cliente aceita o orçamento da gráfica pelo link — **P1** _(`p1`)_
 - **US-COMVIS-001** — Cálculo automático por m² (lona, vinil, banner, fachada) — **P0**
 - **US-COMVIS-002** — Cadastro de material com preço por gramatura — **P0**
 - **US-COMVIS-003** — PCP gráfico — fluxo OS multi-etapa com responsável + prazo + custo — **P0**
@@ -836,34 +888,6 @@
 - **US-COMVIS-016** — CT-e/MDF-e pra entrega — **P3**
 - **US-COMVIS-017** — Importação massiva de clientes/produtos do legacy OfficeImpresso — **P0**
 - **US-COMVIS-018** — Loja whitelabel pra catálogo público — **P3**
-
-## Fiscal
-
-
-### todo
-
-- **US-FISCAL-021** — IBS/CBS cálculo no MotorTributarioService (Onda 6 — sair do scaffold) _(`p0` · @wagner)_
-- **US-FISCAL-024** — IBS/CBS — split UF/Município na régua fiscal (coluna de schema) _(`p2`)_
-- **US-FISCAL-001** — Cockpit NF-e · NFC-e (sub-página 2)
-- **US-FISCAL-002** — Cockpit (sub-página 1) — ✅ PR #2 Wave
-- **US-FISCAL-003** — ⌘K palette cross-fiscal — **backlog PR #3**
-- **US-FISCAL-004** — Ações de mutação — **backlog PR #4**
-- **US-FISCAL-005** — NFS-e (sub-página 3) — ✅ PR #2 Wave
-- **US-FISCAL-006** — Manifesto DF-e (sub-página 4) — **backlog PR #6**
-- **US-FISCAL-007** — Eventos (sub-página 5) — ✅ PR #2 Wave
-- **US-FISCAL-008** — DF-e manifesto (sub-página 4) — ✅ PR #3 Wave
-- **US-FISCAL-009** — Cert/Cfg fiscal (sub-página 6) — ✅ PR #3 Wave
-- **US-FISCAL-010** — SPED & Livros (sub-página 7) — ✅ PR #3 Wave (placeholder)
-- **US-FISCAL-011** — SPED Fiscal complete + PIS/COFINS — **backlog PR #10**
-- **US-FISCAL-012** — Ações mutação NFe + DF-e — ✅ PR #4 Wave
-- **US-FISCAL-013** — CC-e (Carta de Correção) + Inutilização faixa — ✅ PR #5 Wave
-- **US-FISCAL-014** — Retransmitir NFe rejeitada/denegada — ✅ PR #6 Wave
-- **US-FISCAL-015** — ⌘K palette cross-fiscal — ✅ PR #7 Wave
-- **US-FISCAL-016** — Gerador SPED EFD-ICMS/IPI MVP — ✅ PR #8 Wave
-- **US-FISCAL-017** — SPED EFD-ICMS/IPI Bloco E + Bloco H — ✅ PR #9 Wave
-- **US-FISCAL-018** — Habilitar cockpit Fiscal Larissa biz=4 + canary 7d smoke
-- **US-FISCAL-019** — Cache Redis 60s KPIs + anti-DOS palette LIKE — ✅ Onda ESTABILIZAR
-- **US-FISCAL-020** — Integrar MotorTributarioService NfeBrasil — elimina 6 hardcodes Tier-0 SPED — ✅ Onda CONSOLIDAR
 
 ## Connector
 
@@ -1416,6 +1440,18 @@
 - **US-DASH-002** — Charts ECharts em Inertia (backlog F1→F4 wave)
 - **US-DASH-003** — Widget registry pluggable em React (backlog ADR nova)
 
+## Estoque
+
+
+### doing
+
+- **US-ESTOQUE-002** — Contagem de inventário: abrir, contar com coletor, ver divergência e aprovar o ajuste _(`p0` · @wagner)_
+
+### todo
+
+- **US-ESTOQUE-001** — Toda transferência cai pendente na requisição e só move o estoque quando aprovada _(`p2` · @wagner)_
+- **US-ESTOQUE-003** — Sugestão de reposição e curva ABC por produto _(`p2` · @wagner)_
+
 ## VozDoCliente
 
 
@@ -1471,12 +1507,12 @@
 
 - **US-AUDIT-009** — Pages Inertia Index + Detail `parcial`
 
-## Estoque
+## Backup
 
 
 ### todo
 
-- **US-ESTOQUE-001** — Toda transferência cai pendente na requisição e só move o estoque quando aprovada _(`p2` · @wagner)_
+- **US-BKP-001** — A empresa exporta os próprios dados num arquivo _(`p2`)_
 
 ## Mcp
 
@@ -1484,3 +1520,10 @@
 ### todo
 
 - **US-MCP-017** — Tool `module-state <modulo>` (CQRS projection per bounded context) _(`p1` · @wagner)_
+
+## Relatorios
+
+
+### todo
+
+- **US-REL-001** — Relatório montável pelo usuário, salvo e enviado por agenda _(`p2`)_
