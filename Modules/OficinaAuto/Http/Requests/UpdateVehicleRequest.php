@@ -47,6 +47,7 @@ class UpdateVehicleRequest extends FormRequest
             'mileage_at_entry'  => ['nullable', 'integer', 'min:0'],
             // Lembrete de revisão por km (decisão [W] 2026-10-06): km da próxima revisão, manual.
             'next_service_km'   => ['nullable', 'integer', 'min:0'],
+            'next_service_date' => ['nullable', 'date'],
             'fuel_type'         => ['nullable', 'string', 'max:30'],
             'color'             => ['nullable', 'string', 'max:30'],
             'notes'             => ['nullable', 'string'],
@@ -60,6 +61,7 @@ class UpdateVehicleRequest extends FormRequest
             'vehicle_type.required' => 'Selecione o tipo do veículo.',
             'vehicle_type.in'       => 'Tipo de veículo inválido.',
             'next_service_km.min'   => 'O km da próxima revisão não pode ser negativo.',
+            'next_service_date.date' => 'A data da próxima revisão não é válida.',
         ];
     }
 
