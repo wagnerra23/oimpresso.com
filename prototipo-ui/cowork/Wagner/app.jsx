@@ -803,6 +803,7 @@ function App() {
     "fiscal-das":              "Apuração do DAS",
     "cmp-entrada-xml":         "Entrada por XML",
     "fin-contas-bancarias":    "Contas bancárias",
+    "superadmin-pagar":        "Pagar assinatura",
   };
   // Rota do menu que passou a abrir uma tela nova sem mudar de id (o resto do protótipo segue linkando nela).
   const PROTO_HTML_ALIAS = { "fin-bancos": "fin-contas-bancarias" };

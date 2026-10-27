@@ -237,6 +237,7 @@ const MENU = [
       { id: "cfg-cozinha",       icon: "list",   label: "Cozinha" },
       { id: "cfg-pedidos-rest",  icon: "orders", label: "Pedidos do restaurante" },
       { id: "cfg-pacote",        icon: "refresh", label: "Assinatura de pacote" },
+      { id: "superadmin-pagar",  icon: "cash",    label: "Pagar assinatura" },
     ]},
     { id: "relatorios",  icon: "chart", label: "Relatórios", ghosts: [
       { id: "rel-financeiro", icon: "cash",    label: "Financeiro" },
