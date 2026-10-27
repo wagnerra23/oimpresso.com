@@ -217,6 +217,22 @@ Quando o arquivo é gerado · Então ele é **recusado** com a lista do que falt
 ⚠️ A UF que decide CFOP/alíquota no bloco C **não** mudou nesta fatia (valor fiscal — regra-mestre).
 **Pronto quando:** cada falta reprova com o nome do campo.
 
+## UC-FSPED-17 — A EFD de fevereiro traz o inventário de 31/12
+Status: 🧪 (`SpedBlocoHTest::UC-FSPED-17` — 3 casos, rodam sem banco)
+Dado a competência de fevereiro · Então o `H001` sai `0`, o `H005` traz `DT_INV` = 31/12 do ano
+anterior, `MOT_INV` 01 e `VL_INV` = soma dos `VL_ITEM`, e cada `H010` (QTD 3 casas, VL_UNIT 6, VL_ITEM 2)
+tem o item no `0200`, a unidade no `0190` e a conta de estoque no `0500`. Nos outros meses o H segue
+vazio. Âncora: Guia v3.2.3, registros H001/H005/H010. O `0200` passa a ter os 12 campos (faltava o CEST).
+Valor: mesma conta do `getOpeningClosingStock` (custo de compra + imposto da linha), por item.
+**Pronto quando:** o inventário fecha no H005 e todo H010 tem cadastro.
+
+## UC-FSPED-18 — Inventário que não fecha com o estoque do sistema não sai
+Status: 🧪 (`SpedBlocoHTest::UC-FSPED-18`)
+Dado a soma por item diferente, em mais de meio centavo, do estoque final que o sistema calcula por
+outro caminho (`TransactionUtil::getOpeningClosingStock`) · Então o arquivo é **recusado**. É a dupla
+prova da regra-mestre de valor/estoque, rodando a cada geração e não só no teste.
+**Pronto quando:** divergência reprova e meio centavo de arredondamento passa.
+
 ## UC-FSF1-03 — Competência em aberto é recusada antes de qualquer query
 Status: 🧪 (`SpedOndaF1Test` — 10 casos: 4 sobre a guarda do Service + 6 sobre a régua da tela. **14 passed (182 assertions)** medidos no CT 100 em 2026-09-03; o manifesto do G-7 é alimentado pelas lanes de CI, não por rodada local — daí 🧪 e não ✅)
 Dado uma competência cujo mês ainda não terminou · Quando alguém pede a geração — pela tela ou

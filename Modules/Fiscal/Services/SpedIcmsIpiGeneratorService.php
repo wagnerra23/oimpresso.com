@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 use Modules\Fiscal\Services\Sped\EfdIcmsIpiLeiaute;
 use Modules\Fiscal\Services\Sped\EmitenteSped;
+use Modules\Fiscal\Services\Sped\InventarioSped;
 use Modules\NfeBrasil\Support\CnpjDoEmitente;
 use Modules\NfeBrasil\Exceptions\NcmObrigatorioException;
 use Modules\NfeBrasil\Exceptions\TributacaoNaoConfiguradaException;
@@ -88,6 +89,15 @@ class SpedIcmsIpiGeneratorService
 
     private const FALLBACK_COD_GEN_MERCADORIA = '00';
 
+    /**
+     * Conta contábil do estoque no H010 (COD_CTA, obrigatório no perfil A — Guia v3.2.3) e no 0500.
+     * Padrão comum por decisão [W] 2026-10-27 até o contador informar a conta do plano dele
+     * (pergunta registrada na US-FISCAL-028).
+     */
+    private const CONTA_ESTOQUE_PADRAO = '1.1.3.01';
+
+    private const CONTA_ESTOQUE_NOME = 'ESTOQUE DE MERCADORIAS';
+
     /** @var array<string,int> contador linhas por tipo registro (bloco 9900) */
     private array $contadores = [];
 
@@ -134,6 +144,9 @@ class SpedIcmsIpiGeneratorService
 
         $emissoes = $this->carregarEmissoes($businessId, $periodoIni, $periodoFim);
 
+        // Bloco H: o inventário de 31/12 vai na EFD de FEVEREIRO (Guia v3.2.3, registro H005).
+        $inventario = $mes === 2 ? $this->inventarioConferido($businessId, $ano - 1) : null;
+
         $this->contadores = [];
         $linhas = [];
 
@@ -150,11 +163,30 @@ class SpedIcmsIpiGeneratorService
 
         // 0190: Unidades de medida
         $linhas[] = $this->registro0190('UN', 'UNIDADE');
+        foreach (array_unique(array_column($inventario['itens'] ?? [], 'unid')) as $unid) {
+            if ($unid !== 'UN') {
+                $linhas[] = $this->registro0190($unid, $unid);
+            }
+        }
 
         // 0200: Tabela de itens (produtos das NFes)
         $itens = $this->extrairItens($emissoes);
+        foreach ($inventario['itens'] ?? [] as $inv) {
+            $itens[] = [
+                'cod' => $inv['cod'], 'descr' => $inv['descr'], 'unid' => $inv['unid'],
+                'ncm' => $inv['ncm'], 'gen' => $inv['ncm'] !== '' ? substr($inv['ncm'], 0, 2) : '',
+                'cest' => $inv['cest'],
+            ];
+        }
+        $itens = array_values(array_column($itens, null, 'cod')); // um 0200 por código
         foreach ($itens as $item) {
             $linhas[] = $this->registro0200($item);
+        }
+
+        if ($inventario !== null) {
+            // 0500: REG, DT_ALT, COD_NAT_CC (01 ativo), IND_CTA (A analítica), NIVEL, COD_CTA, NOME_CTA
+            $linhas[] = $this->linha('0500', [$periodoIni->format('dmY'), '01', 'A', '4',
+                self::CONTA_ESTOQUE_PADRAO, self::CONTA_ESTOQUE_NOME]);
         }
 
         $linhas[] = $this->registro0990(count($linhas) + 1); // +1 conta o próprio 0990
@@ -219,7 +251,26 @@ class SpedIcmsIpiGeneratorService
 
         // ── Bloco H: Inventário (esqueleto — declaração 31/12 só em janeiro) ──
         $bloco_h_inicio = count($linhas);
-        $linhas[] = $this->registroH001(1);
+        if ($inventario === null) {
+            $linhas[] = $this->registroH001(1);
+        } else {
+            $linhas[] = $this->registroH001(0);
+            $vlInv = 0.0;
+            $h010 = [];
+            foreach ($inventario['itens'] as $inv) {
+                $vlItem = round($inv['valor'], 2);
+                $vlInv += $vlItem;
+                // REG, COD_ITEM, UNID, QTD, VL_UNIT, VL_ITEM, IND_PROP, COD_PART, TXT_COMPL, COD_CTA, VL_ITEM_IR
+                $h010[] = [$inv['cod'], $inv['unid'], number_format($inv['qtd'], 3, ',', ''),
+                    number_format($inv['valor'] / $inv['qtd'], 6, ',', ''), number_format($vlItem, 2, ',', ''),
+                    '0', '', '', self::CONTA_ESTOQUE_PADRAO, ''];
+            }
+            // H005: DT_INV, VL_INV (= soma dos VL_ITEM do H010), MOT_INV 01 (final do período)
+            $linhas[] = $this->linha('H005', ['3112' . ($ano - 1), number_format($vlInv, 2, ',', ''), '01']);
+            foreach ($h010 as $campos) {
+                $linhas[] = $this->linha('H010', $campos);
+            }
+        }
         $linhas[] = $this->registroH990(count($linhas) - $bloco_h_inicio + 1);
 
         // ── Bloco K: produção e estoque — K010 só existe com K001 IND_MOV=0 ─
@@ -291,6 +342,37 @@ class SpedIcmsIpiGeneratorService
         }
 
         return DB::table('cidades')->where('id', $business->cidade_id)->value('officeimpresso_codigo');
+    }
+
+    /**
+     * Inventário de 31/12 com DUPLA PROVA (regra-mestre de valor/estoque, proibicoes.md): a soma por
+     * item tem de bater com o estoque final que o próprio sistema calcula por outro caminho
+     * (`TransactionUtil::getOpeningClosingStock`). Divergindo, o arquivo não sai.
+     *
+     * @return array{itens: list<array<string,mixed>>, soma_bruta: float, negativos: int, total_canonico: float}
+     */
+    private function inventarioConferido(int $businessId, int $anoInventario): array
+    {
+        $data = sprintf('%04d-12-31', $anoInventario);
+        $inv = $this->carregarInventario($businessId, $data);
+
+        if (abs($inv['soma_bruta'] - $inv['total_canonico']) > 0.005) {
+            throw new RuntimeException(sprintf(
+                'Bloco H: a soma por item do estoque em %s (%.2f) diverge do estoque final do sistema (%.2f). '
+                . 'O arquivo não sai com inventário que não fecha.',
+                $data, $inv['soma_bruta'], $inv['total_canonico']
+            ));
+        }
+
+        return $inv;
+    }
+
+    /** @return array{itens: list<array<string,mixed>>, soma_bruta: float, negativos: int, total_canonico: float} */
+    protected function carregarInventario(int $businessId, string $data): array
+    {
+        $servico = app(InventarioSped::class);
+
+        return $servico->posicao($businessId, $data) + ['total_canonico' => $servico->totalCanonico($businessId, $data)];
     }
 
     /** NF-e autorizadas do período (saídas — modelo 55/65), sempre do business pedido. */
@@ -530,13 +612,14 @@ class SpedIcmsIpiGeneratorService
             substr((string) $item['descr'], 0, 100),
             '',
             '',
-            'UN',
-            '00',
-            (string) ($item['ncm'] ?? self::FALLBACK_NCM_SEM_CADASTRO),
+            (string) ($item['unid'] ?? 'UN'),
+            '00', // TIPO_ITEM 00 — mercadoria para revenda (padrão de comércio)
+            (string) (($item['ncm'] ?? '') !== '' ? $item['ncm'] : self::FALLBACK_NCM_SEM_CADASTRO),
             '',
             (string) ($item['gen'] ?? self::FALLBACK_COD_GEN_MERCADORIA),
             '',
             '',
+            (string) ($item['cest'] ?? ''), // CEST — campo 13, faltava
         ]);
     }
 

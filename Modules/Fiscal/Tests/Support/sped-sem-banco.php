@@ -16,7 +16,7 @@ use Modules\Fiscal\Services\SpedIcmsIpiGeneratorService;
  * válidos, não pertence a ninguém); o mesmo que `DfeCnpjEAlarmeTest` usa.
  *
  * @param  array<string,mixed>  $sobrescrever  campos de `business` a trocar
- * @param  array{cnpj?: ?string, uf?: ?string, cod_mun?: ?string}  $fontes
+ * @param  array{cnpj?: ?string, uf?: ?string, cod_mun?: ?string, inventario?: array}  $fontes
  */
 if (! function_exists('spedSemBanco')) {
 function spedSemBanco(array $emissoes = [], array $sobrescrever = [], array $fontes = []): SpedIcmsIpiGeneratorService
@@ -26,7 +26,8 @@ function spedSemBanco(array $emissoes = [], array $sobrescrever = [], array $fon
         'cep' => '88700-000', 'rua' => 'RUA DO TESTE', 'numero' => '98', 'bairro' => 'CENTRO',
         'telefone' => '48 99999-0098', 'cidade_id' => 1,
     ], $sobrescrever);
-    $fontes = array_merge(['cnpj' => '11222333000181', 'uf' => 'SC', 'cod_mun' => '4207304'], $fontes);
+    $fontes = array_merge(['cnpj' => '11222333000181', 'uf' => 'SC', 'cod_mun' => '4207304',
+        'inventario' => ['itens' => [], 'soma_bruta' => 0.0, 'negativos' => 0, 'total_canonico' => 0.0]], $fontes);
 
     return new class($emissoes, $business, $fontes) extends SpedIcmsIpiGeneratorService {
         public function __construct(private array $fake, private array $business, private array $fontes)
@@ -52,6 +53,11 @@ function spedSemBanco(array $emissoes = [], array $sobrescrever = [], array $fon
         protected function carregarCodigoMunicipio(object $business): ?string
         {
             return $this->fontes['cod_mun'];
+        }
+
+        protected function carregarInventario(int $businessId, string $data): array
+        {
+            return $this->fontes['inventario'];
         }
 
         protected function carregarEmissoes(int $businessId, CarbonImmutable $ini, CarbonImmutable $fim): Collection
