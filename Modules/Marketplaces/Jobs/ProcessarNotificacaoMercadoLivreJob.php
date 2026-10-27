@@ -15,6 +15,7 @@ use Modules\Marketplaces\Entities\Marketplace;
 use Modules\Marketplaces\Entities\PedidoMarketplace;
 use Modules\Marketplaces\Entities\WebhookRecebido;
 use Modules\Marketplaces\Services\ContasVendedor;
+use Modules\Marketplaces\Services\MercadoLivre\DestinatarioMercadoLivre;
 use RuntimeException;
 use Throwable;
 
@@ -69,7 +70,7 @@ class ProcessarNotificacaoMercadoLivreJob implements ShouldQueue
                 throw new RuntimeException('Pedido de outro vendedor — ignorado.');
             }
 
-            $this->gravarPedido($conta, $pedido);
+            $this->gravarPedido($conta, $pedido, $base);
             $this->registrar($log, WebhookRecebido::PROCESSADO, null);
         } catch (Throwable $e) {
             $this->registrar($log, WebhookRecebido::FALHOU, $e->getMessage());
@@ -80,7 +81,7 @@ class ProcessarNotificacaoMercadoLivreJob implements ShouldQueue
     }
 
     /** @param  array<string, mixed>  $p */
-    private function gravarPedido(ContaVendedor $conta, array $p): void
+    private function gravarPedido(ContaVendedor $conta, array $p, string $apiBase): void
     {
         // firstOrNew com a empresa explícita: a chave única do banco (empresa, marketplace, id)
         // SUPERADMIN: garante que notificação repetida atualiza em vez de duplicar.
@@ -93,7 +94,7 @@ class ProcessarNotificacaoMercadoLivreJob implements ShouldQueue
         $pedido->fill([
             'account_id' => (int) $conta->id,
             'status_external' => isset($p['status']) ? (string) $p['status'] : null,
-            'buyer_external' => ['id' => $p['buyer']['id'] ?? null, 'nickname' => $p['buyer']['nickname'] ?? null],
+            'buyer_external' => $this->comprador($conta, $p, $apiBase, (array) ($pedido->buyer_external ?? [])),
             'total_amount' => $p['total_amount'] ?? null,
             'shipping_type' => $p['shipping']['logistic_type'] ?? null,
             'date_created_external' => isset($p['date_created']) ? Carbon::parse($p['date_created']) : null,
@@ -106,6 +107,37 @@ class ProcessarNotificacaoMercadoLivreJob implements ShouldQueue
         if ($pedido->status_external === 'paid' && $pedido->transaction_id === null) {
             VirarVendaJob::dispatch($this->businessId, (int) $pedido->id);
         }
+    }
+
+    /**
+     * Comprador do pedido. Com o pedido pago e ainda sem destinatário, busca os dados de
+     * faturamento no ML (US-MKT-009) e guarda CPF/CNPJ e UF para a NF-e. Fica só no banco, na
+     * linha da empresa — nunca em log. Falha na busca não impede gravar o pedido.
+     *
+     * @param  array<string, mixed>  $p
+     * @param  array<string, mixed>  $atual
+     * @return array<string, mixed>
+     */
+    private function comprador(ContaVendedor $conta, array $p, string $apiBase, array $atual): array
+    {
+        $comprador = ['id' => $p['buyer']['id'] ?? null, 'nickname' => $p['buyer']['nickname'] ?? null];
+        if (isset($atual['destinatario'])) {
+            return $comprador + array_intersect_key($atual, array_flip(['documento', 'uf', 'destinatario']));
+        }
+        if (($p['status'] ?? null) !== 'paid') {
+            return $comprador;
+        }
+
+        try {
+            $destinatario = app(DestinatarioMercadoLivre::class)->buscar($conta, $p, $apiBase);
+        } catch (Throwable) {
+            $destinatario = null;
+        }
+        if ($destinatario === null) {
+            return $comprador;
+        }
+
+        return $comprador + ['documento' => $destinatario['tax_number'], 'uf' => $destinatario['state'], 'destinatario' => $destinatario];
     }
 
     private function registrar(WebhookRecebido $recebido, string $status, ?string $erro): void
