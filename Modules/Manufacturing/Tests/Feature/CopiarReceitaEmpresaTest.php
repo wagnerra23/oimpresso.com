@@ -65,6 +65,8 @@ describe('Copiar da receita — só do próprio business (Tier 0)', function () 
         [$propria] = mfgEmpReceita(MFG_EMP_BIZ, $user->id, 'Insumo copia proprio');
         [, $alvo] = mfgEmpProduto(MFG_EMP_BIZ, 'Produto novo sem receita', $user->id);
 
+        // Abrir o editor pede `access_recipe` desde o cutover de 2026-10-27 (antes a Blade pedia `add_recipe`).
+        $user->givePermissionTo(\Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'manufacturing.access_recipe', 'guard_name' => 'web']));
         $sessao = ['currency' => ['code' => 'BRL', 'symbol' => 'R$', 'thousand_separator' => '.', 'decimal_separator' => ',']];
         $resposta = $this->actingAs($user)->withSession($sessao)
             ->get('/manufacturing/add-ingredient?variation_id='.$alvo.'&copy_recipe_id='.$propria);
@@ -82,6 +84,8 @@ describe('Copiar da receita — só do próprio business (Tier 0)', function () 
         [$alheia] = mfgEmpReceita(MFG_EMP_OUTRO, $user->id, 'Insumo copia alheio');
         [, $alvo] = mfgEmpProduto(MFG_EMP_BIZ, 'Produto novo sem receita', $user->id);
 
+        // Abrir o editor pede `access_recipe` desde o cutover de 2026-10-27 (antes a Blade pedia `add_recipe`).
+        $user->givePermissionTo(\Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'manufacturing.access_recipe', 'guard_name' => 'web']));
         $sessao = ['currency' => ['code' => 'BRL', 'symbol' => 'R$', 'thousand_separator' => '.', 'decimal_separator' => ',']];
         $resposta = $this->actingAs($user)->withSession($sessao)
             ->get('/manufacturing/add-ingredient?variation_id='.$alvo.'&copy_recipe_id='.$alheia);

@@ -171,6 +171,8 @@ describe('UC-RECIPE-12 · Nova receita — busca de produto', function () {
 describe('UC-RECIPE-13 · Nova receita — cópia', function () {
     it('a página do editor vem com desperdício, custo extra e instruções da receita copiada', function () {
         $user = mfgEmpUsuario('mfg_nova_receita_test');
+        // Abrir o editor pede `access_recipe` desde o cutover de 2026-10-27 (antes a Blade pedia `add_recipe`).
+        $user->givePermissionTo(\Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'manufacturing.access_recipe', 'guard_name' => 'web']));
         [$original] = mfgNovaOriginal($user->id);
         [, $destino] = mfgEmpProduto(MFG_EMP_BIZ, 'Produto destino da copia', $user->id);
 
