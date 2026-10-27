@@ -47,6 +47,14 @@ return [
         'timeout_seconds' => (int) env('SELLS_AI_TIMEOUT', 8),
     ],
 
+    'cupom' => [
+        /*
+         * US-SELL-076 — cupom por código no caixa. Desligado: POST /sells/cupom dá 404 e nada
+         * muda. Ligar é decisão [W] (regra mestre de valor).
+         */
+        'ativo' => env('SELLS_CUPOM', false),
+    ],
+
     'import' => [
         /*
          * Importação de vendas por planilha (`/import-sales`) — decisão D2 de [W] (2026-10-02):

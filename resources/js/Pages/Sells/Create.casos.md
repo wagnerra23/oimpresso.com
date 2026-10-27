@@ -195,6 +195,39 @@ last_run: "2026-10-26"
 - **Teste:** `tests/Feature/Sells/IcmsStNaVendaContratoTest.php` — `UC-VST-05`.
 - **Status: 🧪** — roda na lane `sells-pest`.
 
+---
+
+## Cupom por código no caixa (US-SELL-076 · lacunas [W] 2026-10-27)
+
+> Só o servidor (`POST /sells/cupom`), atrás da flag `SELLS_CUPOM` desligada; não toca o `Create.tsx`. A promoção por
+> produto, categoria, marca ou período já existe (`discounts`, por linha). Carrinho do exemplo: subtotal 200,00 sem
+> promoção, promoção das linhas 20,00. Prova: `tests/Feature/Sells/CupomDaVendaContratoTest.php`.
+
+## UC-VCUP-01 · Cupom que não acumula e dá mais substitui a promoção `[V0]` `[must]`
+- **Aceite:** Dado o cupom de 15% que não acumula · Então o desconto é 30,00, substitui a promoção de 20,00 e o total é 170,00.
+- **Teste:** `tests/Feature/Sells/CupomDaVendaContratoTest.php` — `UC-VCUP-01`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VCUP-02 · Cupom que não acumula e dá menos é recusado `[V0]` `[must]`
+- **Aceite:** Dado o cupom de 5% que não acumula · Então é recusado ("A promoção do carrinho já dá mais desconto que este cupom, e ele não acumula.") e fica a promoção (total 180,00).
+- **Teste:** `tests/Feature/Sells/CupomDaVendaContratoTest.php` — `UC-VCUP-02`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VCUP-03 · Cupom que acumula incide depois da promoção e não passa da base `[V0]` `[must]`
+- **Aceite:** Dado o cupom de 10% que acumula · Então o desconto é 18,00 (sobre 180,00) e o total 162,00 · Dado um cupom de valor 250,00 que acumula · Então o desconto para em 180,00.
+- **Teste:** `tests/Feature/Sells/CupomDaVendaContratoTest.php` — `UC-VCUP-03`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VCUP-04 · Validade, limite de uso e valor mínimo `[V0]` `[must]`
+- **Aceite:** Cupom vencido ou ainda não vigente → "fora da validade"; compra abaixo do mínimo → recusado; cupom de uso único gasto uma vez → o 2º gasto falha, o contador fica em 1 e o cupom passa a "esgotado".
+- **Teste:** `tests/Feature/Sells/CupomDaVendaContratoTest.php` — `UC-VCUP-04`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VCUP-05 · A rota só existe ligada; cupom de outra empresa é inválido `[T0]` `[must]`
+- **Aceite:** Ligada, " quinze " vale como QUINZE e dá 30,00 · Um cupom que só existe em outra empresa responde "Cupom não encontrado." · Desligada (padrão), a rota responde 404.
+- **Teste:** `tests/Feature/Sells/CupomDaVendaContratoTest.php` — `UC-VCUP-05`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão. Itens abaixo SEM token de UC de
