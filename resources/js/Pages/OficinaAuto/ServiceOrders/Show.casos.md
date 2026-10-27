@@ -207,20 +207,32 @@ related_cu: [CU-OFI-04, CU-OFI-05, CU-OFI-07, CU-OFI-08, CU-OFI-09, CU-OFI-10, C
 > Prova: `Modules/OficinaAuto/Tests/Feature/PecasCompativeisContratoTest.php` (lane `PHP / Pest (Sells · MySQL)`).
 
 ## UC-OSPECA-01 · Na OS aparecem só as peças daquela marca, modelo e ano
+- **Persona:** atendente da oficina lançando peça na OS de um veículo.
 - **Aceite:** Dado peças marcadas para VW Gol 2010–2020, VW (toda a marca), VW Saveiro e VW Gol 1995–2005 · Quando a OS é de um Gol 2016 · Então aparecem só a do Gol 2010–2020 e a da marca.
-- **Status: 🧪**
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/PecasCompativeisContratoTest.php` — `UC-OSPECA-01 · na OS do veículo aparecem só as peças daquela marca/modelo e ano`.
+- **Regressão que defende:** decisão [W] 2026-10-26 (marca e modelo em texto; a compatível aparece na OS daquele veículo).
+- **Status: ⬜** — não verificado: CT 100 fora do ar, aguarda a lane `sells-pest` do CI.
 
 ## UC-OSPECA-02 · Sem marca não há sugestão, e marcar de novo não duplica
+- **Persona:** atendente marcando uma peça como compatível.
 - **Aceite:** Dado um veículo sem marca · Então a lista vem vazia · Quando a mesma peça é marcada duas vezes para Fiat Strada · Então fica uma linha só (a segunda atualiza o ano).
-- **Status: 🧪**
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/PecasCompativeisContratoTest.php` — `UC-OSPECA-02 · veículo sem marca não recebe sugestão, e marcar de novo não duplica`.
+- **Regressão que defende:** sugestão errada em veículo sem marca e catálogo com linhas repetidas.
+- **Status: ⬜** — não verificado: CT 100 fora do ar, aguarda a lane `sells-pest` do CI.
 
 ## UC-OSPECA-03 · Peça e veículo de outra empresa não entram `[T0]`
+- **Persona:** qualquer usuário da empresa 98; a 99 é a adversária.
 - **Aceite:** Marcar peça da empresa 99 pela 98 é recusado · Compatibilidade gravada na 99 não aparece na OS da 98 · Pedir a lista de um veículo da 99 pela 98 é recusado.
-- **Status: 🧪**
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/PecasCompativeisContratoTest.php` — `UC-OSPECA-03 · peça e veículo de outra empresa não entram (Tier 0)`.
+- **Regressão que defende:** ADR 0093: peça ou compatibilidade de outra empresa aparecendo na OS.
+- **Status: ⬜** — não verificado: CT 100 fora do ar, aguarda a lane `sells-pest` do CI.
 
 ## UC-OSPECA-04 · O catálogo nasce desligado
+- **Persona:** dono da oficina antes de ligar o recurso.
 - **Aceite:** Sem a variável ligada, o serviço diz desligado e as rotas devolvem 404.
-- **Status: 🧪**
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/PecasCompativeisContratoTest.php` — `UC-OSPECA-04 · o catálogo nasce desligado`.
+- **Regressão que defende:** feature nova ligada sem decisão [W] no piloto ao vivo.
+- **Status: ⬜** — não verificado: CT 100 fora do ar, aguarda a lane `sells-pest` do CI.
 ---
 
 ## Rastreabilidade (âncora no SDD §6 · [ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md))
