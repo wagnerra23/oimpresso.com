@@ -117,7 +117,7 @@ class SpreadsheetController extends Controller
     /**
      * Show the form for creating a new resource.
      *
-     * @return Response
+     * @return \Inertia\Response|\Illuminate\View\View
      */
     public function create()
     {
@@ -177,7 +177,7 @@ class SpreadsheetController extends Controller
      * Show the specified resource.
      *
      * @param  int  $id
-     * @return Response
+     * @return \Inertia\Response|\Illuminate\View\View
      */
     public function show($id)
     {
@@ -535,7 +535,9 @@ class SpreadsheetController extends Controller
     private function propsDoEditor(Spreadsheet $spreadsheet): array
     {
         $minha = (int) $spreadsheet->created_by === (int) auth()->user()->id;
-        $dados = $spreadsheet->sheet_data;
+        // Valor cru do banco: o cast `array` devolve a string interna, e o Model declara array. Decodifica até
+        // duas vezes (string JSON dentro de JSON, como a tela grava; ou array de verdade, linha antiga).
+        $dados = json_decode((string) $spreadsheet->getRawOriginal('sheet_data'), true);
         if (is_string($dados)) {
             $dados = json_decode($dados, true);
         }
