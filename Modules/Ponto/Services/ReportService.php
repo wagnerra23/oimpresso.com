@@ -18,8 +18,10 @@ use RuntimeException;
  *   - afd(): AFD do REP-P por colaborador (Portaria MTP 671/2021) — ADR 0413 W7
  *   - aej(): AEJ do empregador no período — ADR 0420 (AejService)
  *
+ * Exportação para a folha (HE, banco de horas, atrasos/faltas): `ExportacaoFolhaService` — US-PONTO-019.
+ *
  * Stub (retorna 501):
- *   - he(), bancoHoras(), atrasos(), esocial()
+ *   - esocial()
  *   (o AFDT saiu: formato da Portaria 1510/2009 — ADR 0413 W7)
  *
  * Wave 12 — instrumentação OTel canônica (ADR 0155 D9.a + ADR 0156 errata).
@@ -268,21 +270,6 @@ class ReportService
     public function aej(int $businessId, Carbon $inicio, Carbon $fim): string
     {
         return app(AejService::class)->gerar($businessId, $inicio, $fim);
-    }
-
-    public function he($businessId, Carbon $inicio, Carbon $fim)
-    {
-        throw new RuntimeException('Relatório de HE ainda não implementado.');
-    }
-
-    public function bancoHoras($businessId, Carbon $data)
-    {
-        throw new RuntimeException('Relatório de BH ainda não implementado.');
-    }
-
-    public function atrasos($businessId, Carbon $inicio, Carbon $fim)
-    {
-        throw new RuntimeException('Relatório de atrasos/faltas ainda não implementado.');
     }
 
     public function esocial($businessId, Carbon $competencia)
