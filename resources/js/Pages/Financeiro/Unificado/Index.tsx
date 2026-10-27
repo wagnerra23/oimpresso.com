@@ -17,7 +17,7 @@ import React, { useState, useMemo, useCallback, useEffect, type ReactNode } from
 // Onda 12 (2026-05-19) — paridade 100% canon REAL (/cowork-preview/Oimpresso ERP - Chat.html):
 // emoji → lucide-react nos 8 botões + Download icon adicional + remoção FinMonthDigest
 // (não-canon) + summary numérica footer + KPI hero dark.
-import { Search, Plus, Sparkles, CheckSquare, Check, Play, Printer, RefreshCw, FolderOpen, Download, ChevronDown, TrendingUp, TrendingDown, Camera, Landmark, Eye, FileText, Percent, Link2, ShoppingBag, Wrench, Package, Receipt, Send, Archive, type LucideIcon } from 'lucide-react';
+import { Search, Plus, Sparkles, CheckSquare, Check, Play, Printer, RefreshCw, FolderOpen, Download, ChevronDown, TrendingUp, TrendingDown, Camera, Landmark, Eye, FileText, Percent, Link2, ShoppingBag, Wrench, Package, Receipt, Send, Archive, Inbox, type LucideIcon } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -73,6 +73,7 @@ import FinPeriodBar from './_components/FinPeriodBar';
 import { FinAnexosPanel } from './_components/FinAnexosPanel';
 // US-FIN-029 (Onda 23) — Sheet OCR boleto (OpenAI Vision API extrai linha digitavel + valor + vencimento).
 import { FinOcrBoletoSheet } from './_components/FinOcrBoletoSheet';
+import { FinDdaSheet, type DdaSugestao } from './_components/FinDdaSheet';
 // 2026-06-03 — forma de pagamento (rótulo + ícone) compartilhada.
 import { formaPagamentoLabel, formaPagamentoIcon, type MeioPagamento } from './_lib/forma-pagamento';
 
@@ -226,6 +227,8 @@ interface Props {
   planosConta: PlanoConta[];
   periodLabel: string;
   businessName: string;
+  // US-FIN-078 — null com FINANCEIRO_DDA_ENABLED desligado (a entrada não aparece).
+  dda?: DdaSugestao[] | null;
 }
 
 // ---------- Helpers ----------
@@ -1248,7 +1251,7 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
 // ---------- Página principal ----------
 // (FinanceiroSubNav extraído pra `_shared/FinanceiroSubNav.tsx` 2026-05-21 — ADR 0180 Fase 5 propagação)
 
-function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, categorias, planosConta, periodLabel, businessName }: Props) {
+function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, categorias, planosConta, periodLabel, businessName, dda }: Props) {
   // US-FIN-028 (Onda 22) — gate Spatie pra aprovar/rejeitar.
   // HOTFIX 2026-05-20: shared `auth.can` vem do HandleInertiaRequests.share como
   // OBJETO `Record<string, boolean>` (não array de strings — vide app/Http/Middleware/
@@ -1368,6 +1371,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
   const [createTipo, setCreateTipo] = useState<'receber' | 'pagar' | null>(null);
   // US-FIN-029 (Onda 23) — Sheet OCR boleto.
   const [ocrSheetOpen, setOcrSheetOpen] = useState(false);
+  const [ddaSheetOpen, setDdaSheetOpen] = useState(false);
   // 2026-06-03 — diálogo de baixa (escolher valor/conta/forma/plano). Botões
   // "Recebi/Paguei" abrem este sheet; espaço/bulk seguem baixa instantânea.
   const [baixaId, setBaixaId] = useState<number | null>(null);
@@ -1622,6 +1626,11 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
               <DropdownMenuItem onClick={() => setOcrSheetOpen(true)} title="Importar boleto via foto/PDF (OCR via IA)">
                 <Camera className="mr-2 h-3.5 w-3.5" /> Importar boleto OCR
               </DropdownMenuItem>
+              {dda && (
+                <DropdownMenuItem onClick={() => setDdaSheetOpen(true)} title="Boletos emitidos contra o CNPJ da empresa">
+                  <Inbox className="mr-2 h-3.5 w-3.5" /> Boletos DDA{dda.length > 0 ? ` (${dda.length})` : ''}
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -3092,6 +3101,8 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
         open={ocrSheetOpen}
         onClose={() => setOcrSheetOpen(false)}
       />
+
+      {dda && <FinDdaSheet open={ddaSheetOpen} onClose={() => setDdaSheetOpen(false)} sugestoes={dda} />}
     </div>
   );
 }

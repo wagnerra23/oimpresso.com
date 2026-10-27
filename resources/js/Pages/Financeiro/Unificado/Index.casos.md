@@ -5,10 +5,12 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-10-14"
+last_run: "2026-10-27"
 last_run_ci: "0 UC executado — UC-FUNI-01..04 nascem neste PR; veredito pendente da lane PHP / Pest (Financeiro · MySQL)"
 sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 ---
+
+> ℹ️ **`last_run` 2026-10-14 → 2026-10-27 (G-6) — US-FIN-078:** entrada "Boletos DDA" no menu "Novo título" (só com a flag) + `FinDdaSheet`. UCs novos UC-DDA-08..10; veredito pendente da lane. Os UCs anteriores não foram reexecutados.
 
 > ℹ️ **`last_run` 2026-09-25 → 2026-10-14 (G-6) — tema escuro, thread 03 do playbook `cowork-inbox/tema-escuro`: só COR.**
 > O [#9319](https://github.com/wagnerra23/oimpresso.com/pull/9319) passou as cores da pílula de direção (Receber/Pagar) de `style` inline para classes com par `dark:`, e a borda e a sombra para `currentColor`. No modo claro as cores são as mesmas oklch de antes. Zero handler, prop, rota, cálculo ou copy alterado.
@@ -92,6 +94,9 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 | UC-DDA-05 | Outra empresa não decide a sugestão | must `[T0]` | `US-FIN-078` | `DdaContasPagarSugeridasTest` | 🧪 |
 | UC-DDA-06 | Descartar encerra sem título | must | `US-FIN-078` | `DdaContasPagarSugeridasTest` | 🧪 |
 | UC-DDA-07 | Sync falha visível sem flag ou sem fonte | must | `US-FIN-078` | `DdaContasPagarSugeridasTest` | 🧪 |
+| UC-DDA-08 | Aceitar pela tela exige permissão e cria a conta a pagar | must `[V0]` | `US-FIN-078` | `DdaTelaContratoTest` | 🧪 |
+| UC-DDA-09 | Outra empresa não aceita; desligado é 404 | must `[T0]` | `US-FIN-078` | `DdaTelaContratoTest` | 🧪 |
+| UC-DDA-10 | Lista da tela: só abertas da própria empresa, some sem flag | must `[T0]` | `US-FIN-078` | `DdaTelaContratoTest` | 🧪 |
 
 > ⚠️ Os ids legados `UC-F0N` **não casam** com a régua estrita do `requisitos-status.mjs`
 > (`UC-[A-Z0-9]{2,10}-\d{2,3}` exige o 2º hífen). Por isso esta tabela os cita **nominalmente**
@@ -147,8 +152,8 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 ## Contrato do DDA (US-FIN-078)
 
 > Derivam da **US-FIN-078** (`memory/requisitos/Financeiro/SPEC.md`): boleto emitido contra o CNPJ
-> da empresa vira conta a pagar **sugerida**; título só nasce quando o usuário aceita. Backend nesta
-> onda; a lista de sugestões nesta tela entra na próxima, só com `FINANCEIRO_DDA_ENABLED`.
+> da empresa vira conta a pagar **sugerida**; título só nasce quando o usuário aceita. A lista de
+> sugestões fica no menu "Novo título" → "Boletos DDA", só com `FINANCEIRO_DDA_ENABLED`.
 > **Lane:** `PHP / Pest (Financeiro · MySQL)`. **Veredito:** 🧪 — quem dá é a lane (G-7).
 
 ## UC-DDA-01 · Fornecedor casado pelo CNPJ da própria empresa `[T0]` `[must]`
@@ -184,6 +189,21 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 ## UC-DDA-07 · Sync falha visível sem flag ou sem fonte `[must]`
 - **Aceite:** `financeiro:dda-sync` sai com erro com a flag desligada e com nenhuma fonte registrada; com fonte registrada, grava a sugestão.
 - **Teste:** `DdaContasPagarSugeridasTest` ("UC-DDA-07").
+- **Status: 🧪**
+
+## UC-DDA-08 · Aceitar pela tela exige permissão e cria a conta a pagar `[V0]` `[must]`
+- **Aceite:** No menu "Novo título" → "Boletos DDA", quem não tem `financeiro.contas_pagar.create` recebe 403 e a sugestão segue aberta; quem tem aceita e nasce o título a pagar com o valor do boleto (250.00) na própria empresa.
+- **Teste:** `DdaTelaContratoTest` ("UC-DDA-08").
+- **Status: 🧪**
+
+## UC-DDA-09 · Outra empresa não aceita; desligado é 404 `[T0]` `[must]`
+- **Aceite:** Sessão da empresa B ao aceitar sugestão da A recebe 404 e nada muda; com `FINANCEIRO_DDA_ENABLED=false` a rota responde 404.
+- **Teste:** `DdaTelaContratoTest` ("UC-DDA-09").
+- **Status: 🧪**
+
+## UC-DDA-10 · Lista da tela: só abertas da própria empresa, some sem flag `[T0]` `[must]`
+- **Aceite:** A lista traz as sugestões `sugerido` da própria empresa; descartada sai da lista; com a flag desligada a prop é nula e a entrada "Boletos DDA" não aparece.
+- **Teste:** `DdaTelaContratoTest` ("UC-DDA-10").
 - **Status: 🧪**
 
 ---

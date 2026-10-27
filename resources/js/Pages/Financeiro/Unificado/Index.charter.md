@@ -11,14 +11,14 @@ parent_module: Financeiro
 states: [default, empty, loading, dark, error]  # gate L2 — cada estado é forçado pelo harness não-produtivo e recebe baseline próprio; sync com tests/Browser/visreg-states.json
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
 related_adrs: [93, 94]
-related_us: [US-FIN-013, US-FIN-020, US-FIN-021, US-FIN-027, US-FIN-029, US-FIN-031, US-FIN-038, US-FIN-050-anexos, US-FIN-055-aprovacao]
+related_us: [US-FIN-078, US-FIN-013, US-FIN-020, US-FIN-021, US-FIN-027, US-FIN-029, US-FIN-031, US-FIN-038, US-FIN-050-anexos, US-FIN-055-aprovacao]
 related_prototype: prototipo-ui/cowork/Wagner/financeiro-page.jsx
 related_prototype_nota: '(design real da Visão Unificada; corrigido 2026-07-06 — antes apontava pro shell oimpresso.com.html, âncora podre pega pelo Wagner)'
 bundle_source: financeiro-page.jsx
 canon_method: Bundle copy CSS 9054 LOC inteiro (regra Tier 0 feedback-cowork-bundle-aplicar-inteiro) — Ondas 12-21
 runbook: memory/requisitos/Financeiro/RUNBOOK-unificado.md
 tier: A
-charter_version: 22
+charter_version: 23
 related_visual_comparison: memory/requisitos/Financeiro/financeiro-unificado-visual-comparison.md
 ---
 
@@ -26,6 +26,7 @@ related_visual_comparison: memory/requisitos/Financeiro/financeiro-unificado-vis
 
 > **Status:** F3 entregue (PR #349). Charter retroativo (sessão 2026-05-09 audit) — sem `Index.charter.md` original, divergências do ADR ui/0002 documentadas abaixo.
 > Persona: **Eliana [E]** — financeiro escritório, densidade alta, atalhos teclado.
+> **v23 (2026-10-27) · US-FIN-078 (DDA):** menu "Novo título" ganha **"Boletos DDA (N)"**, só com `FINANCEIRO_DDA_ENABLED` (prop lazy `dda` nula quando desligada — a tela não muda). Abre a Sheet `FinDdaSheet`: boletos emitidos contra o CNPJ da empresa, com fornecedor casado pelo CNPJ; **Aceitar** cria o título a pagar, **Descartar** encerra. Nada vira título sem o usuário. Rotas `POST /financeiro/dda/{id}/aceitar|descartar` com `financeiro.contas_pagar.create`. UC-DDA-08..10.
 > **v22 (2026-07-14) · US-FIN-038 (PR1/3 — Visão Unificada):** linhas/drawer pagos SEM vinculação bancária (baixa com `conta_bancaria_id NULL`, ADR 0175) passam a mostrar o pill **"Conta indefinida"** (warning leve amber, dark-aware) no lugar do "—" na coluna Conta — o próprio pill é o CTA (link `/financeiro/contas-bancarias`). Backend: `shapeTitulo.conta_indefinida` (não mexe em valor). Componente reusável `_components/FinPillContaIndefinida.tsx` (ContasReceber/Cobranca herdam nas PRs 2/3). GUARD `UnificadoContaIndefinidaGuardTest` (G1 null→pill · G2 vinculada→sem pill · G3 sem baixa→sem pill), lane financeiro-pest. UC-F05.
 > **v21 (2026-07-13) · intenção e estados verificáveis:** o charter aponta para `financeiro-unificado.intent.json`, que transforma cinco fluxos críticos em evidências verificáveis. O empty state e Cmd+K de "Novo lançamento" passam a abrir o mesmo `TituloCreateSheet` de "Novo recebimento" — nunca a rota legada `/financeiro/unificado/novo`. `default`, `empty`, `loading`, `dark` e `error` entram no manifesto L2; o runner usa tenant vazio, defer congelado, tema em memória e flash de erro, sem contaminar produção.
 > **v19 (2026-07-10) · APLICADO · fidelidade proto (mandato [W] "zerar diferenças"):** (a) rodapé/status-bar + toggles "Só atrasados"/"Arquivados" theme-aware — `white` chumbado → `var(--surface)` (dark fica escuro, light continua claro; fingerprint CLARO-NO-DARK zerado); emoji 🗄 → lucide `Archive`; (b) ícones nas abas da subnav (proto data.jsx: banknote/receipt/refresh-cw/chart/file/folder — opt-in `PageHeaderGhost.icon`, outras telas inalteradas); (c) segmented (lente + Filtrar-por): 12.5px, weights 500/600, sombra do ativo literal do proto (`var(--sh-1, 0 1px 2px rgba(0,0,0,.06))`), radius 4px do DS mantido; (d) números em IBM Plex Mono (KPIs, coluna Valor, totais/kbd do rodapé — fonte já carregada via `<link>` no inertia.blade.php); (e) doc-chip inline na linha (`NFe N`/`Doc N` do payload real — substitui a 2ª linha "NF-e N"; sem tipo Fat/Recibo/OS no payload, não inventa dado).
@@ -44,6 +45,8 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 ---
 
 ## Goals — Features (faz)
+
+- **Boletos DDA viram conta a pagar sugerida (US-FIN-078)** (2026-10-27, charter v23): entrada no menu "Novo título" atrás de `FINANCEIRO_DDA_ENABLED`; aceitar/descartar por boleto, nunca automático.
 
 - **Bulk actions completas (US-FIN-031)** (2026-07-06, charter v17): endpoint genérico **`POST /unificado/bulk`** `{action, ids[], payload{}}` com 5 ações — **baixar** (quitação total instantânea, mesmos efeitos da baixa rápida legacy; substitui o loop de N POSTs por 1 request), **categoria** (Sheet Onda 15 migrado pro endpoint; rota `bulk-update-categoria` preservada back-compat), **plano_conta** (Sheet novo, mesmo padrão), **cancelar** (Sheet de confirmação DESTRUTIVA com "Você está cancelando N títulos totalizando R$ X" ANTES de aplicar — REGRA MESTRE valor; `status='cancelado'` append-only, quitado é pulado) e **exportar_csv** (download da seleção; BOM UTF-8 + `;` pt-BR). Tier 0: ownership de **TODOS** os ids validada antes de qualquer escrita (1 id alheio = 422 fail-closed), limite **500**/chamada, audit trail `Activity bulk_*` com `{action, ids, count, total}`. Cobertura `UnificadoBulkGuardTest` (UC-F04, 6 GUARDs — cross-tenant · soma por 2 caminhos · append-only · plano cross-tenant · limite · export não-muta).
 

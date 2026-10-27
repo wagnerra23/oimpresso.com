@@ -12,6 +12,7 @@ use Modules\Financeiro\Http\Controllers\ConciliacaoController;
 use Modules\Financeiro\Http\Controllers\ContaBancariaController;
 use Modules\Financeiro\Http\Controllers\ContaPagarController;
 use Modules\Financeiro\Http\Controllers\ContaReceberController;
+use Modules\Financeiro\Http\Controllers\DdaController;
 use Modules\Financeiro\Http\Controllers\DreController;
 use Modules\Financeiro\Http\Controllers\ExtratoController;
 use Modules\Financeiro\Http\Controllers\FluxoController;
@@ -306,6 +307,15 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         Route::post('/unificado/{id}/rejeitar', [UnificadoController::class, 'rejeitar'])
             ->whereNumber('id')
             ->name('unificado.rejeitar');
+
+        // US-FIN-078 — boletos DDA sugeridos viram conta a pagar só por ação do usuário.
+        // Desligado (FINANCEIRO_DDA_ENABLED) = 404. Permissão financeiro.contas_pagar.create.
+        Route::post('/dda/{id}/aceitar', [DdaController::class, 'aceitar'])
+            ->whereNumber('id')
+            ->name('dda.aceitar');
+        Route::post('/dda/{id}/descartar', [DdaController::class, 'descartar'])
+            ->whereNumber('id')
+            ->name('dda.descartar');
 
         // Onda 31 (2026-05-20) #57 US-FIN-037 — Portal Advisor (Fase 1 MVP).
         // Tela admin onde owner do business adiciona seu contador (grant access).

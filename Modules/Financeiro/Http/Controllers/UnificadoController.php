@@ -311,6 +311,9 @@ class UnificadoController extends Controller
             // PR E (2026-05-25) US-FIN-022 — aging breakdown pra chips de filtro
             // (closure D-14: agregado por business, não muda com filtro — pula no partial)
             'agingBreakdown' => fn () => $this->agingBreakdown($businessId),
+            // US-FIN-078 — boletos DDA sugeridos (closure D-14). Null com a flag desligada,
+            // e aí a tela não mostra a entrada "Boletos DDA".
+            'dda' => fn () => DdaController::sugestoes($businessId),
             'periodLabel' => $periodLabel,
             'businessName' => $businessName,
         ]);
