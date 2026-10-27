@@ -2,7 +2,7 @@
 id: requisitos-comissao-spec
 module: Comissao
 version: "1.0"
-last_updated: "2026-06-13"
+last_updated: "2026-10-27"
 owner: wagner
 status: rascunho
 related_adrs: [0151-modules-comissao-feature-wish, 0105-cliente-como-sinal-guiar-sem-mandar, 0143-fsm-pipeline-live-prod-marco-2026-05-12]
@@ -549,6 +549,40 @@ Aceite:
 
 ---
 
+### US-COMM-016 · Relatório de comissão por vendedor pela regra: valor a pagar e detalhe por item — **P2**
+
+> owner: — · priority: p2 · estimate: 12h · status: todo · type: story · origin: sinal-cliente-2026-10-27
+> blocked_by: US-COMM-015
+
+**Implementado em:** _pendente_ — não iniciada: a US-COMM-015 calcula a comissão por regra venda a venda (`GET /sells/{id}/comissao-por-regra`), mas nenhum relatório soma esse cálculo por vendedor; o relatório de comissão de hoje (`ReportController`, tela `Report/SalesRepresentative/Index`) usa só o percentual fixo do vendedor (`users.cmmsn_percent`).
+
+**Sinal (ADR 0105), relato do suporte [F] em 2026-10-27:** a **CyberStudio** usa comissão de 2% **por produto**, guardada na formação de preço de cada produto. Para pagar, ela tira o relatório de produtos vendidos e calcula a comissão de cada vendedor à mão. A regra por produto ela passa a ter com a US-COMM-015; o que falta é o sistema entregar a conta pronta.
+
+**Como deve funcionar:**
+
+1. **No relatório de comissão por vendedor que já existe** (a tela nova, `?tela=nova`), uma seção "Comissão pela regra" — não uma tela nova. Aparece só com a flag `SELLS_COMISSAO_POR_REGRA` ligada.
+2. **Total a pagar por vendedor no período**, somando a US-COMM-015 linha a linha. A base de período segue a configuração que a empresa já tem (`pos_settings.cmmsn_calculation_type`), como o relatório de hoje: venda faturada no período, ou a parte recebida no período (comissão da venda × recebido ÷ total da venda).
+3. **Detalhe por venda e item:** produto, quantidade líquida de devolução, base, regra aplicada (escopo produto, categoria ou geral, e o % ou o valor por unidade) e a comissão. Ex.: *"Venda 1234 · Placa ACM · base 200,00 · regra de produto 2% · comissão 4,00"*. Linha sem regra aparece como "sem regra", com zero, para a pessoa ver o que não está coberto.
+4. **Exportar o detalhe em CSV**, para conferir e pagar.
+5. **O número é calculado na leitura.** Mudar a regra, ou uma devolução feita depois, muda o valor de um período já pago. Congelar o valor pago e estornar no mês seguinte é das US-COMM-002 e US-COMM-003; esta US não grava nada.
+
+**Aceite:**
+
+- [ ] Seção "Comissão pela regra" no relatório de comissão por vendedor, atrás da flag `SELLS_COMISSAO_POR_REGRA`; com a flag desligada o relatório fica idêntico ao de hoje.
+- [ ] Total por vendedor no período e detalhe por venda e item, com a regra aplicada em cada linha; linha sem regra visível com zero.
+- [ ] Base de período pela `cmmsn_calculation_type` da empresa (faturado ou recebido).
+- [ ] CSV do detalhe.
+- [ ] Mesma permissão do relatório de hoje (`sales_representative.view`); o vendedor que não pode ver todos vê só as próprias linhas (§6 R5).
+- [ ] Teste de contrato no tenant de teste 98 ([ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)): o total do relatório é igual à soma do `GET /sells/{id}/comissao-por-regra` das vendas do período (dois caminhos); devolução parcial reduz o total; com a flag desligada nada muda.
+- [ ] Multi-tenant Tier 0 ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)): vendas, regras e vendedores lidos pelo `business_id` da sessão; outra empresa não entra na soma.
+- [ ] **REGRA MESTRE** ([proibicoes.md](../../proibicoes.md)): comissão é valor — dupla confirmação do cálculo (os dois caminhos acima + um cenário conferido à mão) e aprovação [W] antes de ligar a flag em produção.
+
+**Fora desta US:** gravar, aprovar, pagar e estornar a comissão (US-COMM-002, US-COMM-003, US-COMM-007, US-COMM-012); cadastro das regras (o que falta da US-COMM-015); migrar `users.cmmsn_percent` para regra geral (US-COMM-014).
+
+**Relações:** US-COMM-015 (o cálculo que esta US soma) · US-PROD-032 (a formação de preço do produto lê a mesma regra de produto, [#10075](https://github.com/wagnerra23/oimpresso.com/pull/10075)) · US-COMM-008 (o relatório completo do motor, com aprovação e fechamento — esta é a versão enxuta, como a US-COMM-015 é das US-COMM-001/004/010).
+
+---
+
 ## §6 Riscos identificados
 
 | # | Risco | Mitigação |
@@ -606,6 +640,9 @@ US-COMM-001 (schema)
                             └─→ US-COMM-012 (workflow approval) — P1
                             └─→ US-COMM-013 (mobile) — P2
                             └─→ US-COMM-014 (migration legacy) — P3
+
+US-COMM-015 (regra única — versão enxuta, fora da cadeia acima)
+    └─→ US-COMM-016 (relatório por vendedor pela regra)
 ```
 
 ---
