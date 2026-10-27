@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a fórmula do m² e o isolamento por business são o que não pode mudar — a tela vai ganhar OS, materiais e apontamento por cima disso, e nenhum deles pode afrouxar o cálculo nem o escopo.
 owner: wagner
-last_run: "2026-10-21"
-last_run_ci: "2026-10-21 — CT 100 MySQL, cópia isolada do branch a8ada7ef4: OrcamentoSalvarReabrirContratoTest 6 passed (39 assertions) + ViraOs/CustoPrevisto/CustoMaquina 16 passed; sem run id de CI. ---- 2026-10-13 (PR contratos de tela, modulos-faltantes thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (e um div sem classe em volta do PageHeader); nenhum UC afirma ancora, nenhum calculo tocado. ---- REGISTRO ANTERIOR: last_run 2026-09-25. 2026-09-25 — GH run 36124963011 (verticais-pest, workflow_dispatch, MySQL, main 2e3f8adb4): MigrationsTest, Tier0GuardTest e MultiTenantTest PASS (lane vermelha só por Cms). CT 100 MySQL (worktree isolado em origin/main 1743f005a, sem run id): 10 arquivos, 58 passed / 10 failed (200 assertions) — ver §Revalidação 2026-09-25. Nenhum UC no manifesto G-7, logo nenhum ✅."
+last_run: "2026-10-26"
+last_run_ci: "2026-10-26 — a tela ganhou o cartão Roteiro da produção (UC-CVOS-11, #9900), depois composto com Stack; vitest local tests/js/cv-roteiro-padrao.test.tsx 2 passed; nenhum outro UC tocado. ---- 2026-10-21 — CT 100 MySQL, cópia isolada do branch a8ada7ef4: OrcamentoSalvarReabrirContratoTest 6 passed (39 assertions) + ViraOs/CustoPrevisto/CustoMaquina 16 passed; sem run id de CI. ---- 2026-10-13 (PR contratos de tela, modulos-faltantes thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (e um div sem classe em volta do PageHeader); nenhum UC afirma ancora, nenhum calculo tocado. ---- REGISTRO ANTERIOR: last_run 2026-09-25. 2026-09-25 — GH run 36124963011 (verticais-pest, workflow_dispatch, MySQL, main 2e3f8adb4): MigrationsTest, Tier0GuardTest e MultiTenantTest PASS (lane vermelha só por Cms). CT 100 MySQL (worktree isolado em origin/main 1743f005a, sem run id): 10 arquivos, 58 passed / 10 failed (200 assertions) — ver §Revalidação 2026-09-25. Nenhum UC no manifesto G-7, logo nenhum ✅."
 ---
 
 # Casos de Uso & Aceite — Hub + Calculadora de m² (`/comunicacao-visual`)
@@ -86,6 +86,9 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CVOS-06 | Orçamento recusado não vira OS | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 | UC-CVOS-07 | Só quem pode criar orçamento aprova | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 |
 | UC-CVOS-08 | O orçamento aprovado reabre com o número da OS | must | US-COMVIS-020 · UC-FLX-01 | `OrcamentoViraOsContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
+| UC-CVOS-09 | A OS aprovada nasce com o roteiro padrão e aparece no quadro do PCP | must | US-COMVIS-003 · decisão [W] 2026-10-26 | `OsRoteiroPadraoContratoTest` | 🧪 |
+| UC-CVOS-10 | O padrão só aceita roteiro ativo da própria empresa | must `[T0]` | US-COMVIS-003 · decisão [W] 2026-10-26 | `OsRoteiroPadraoContratoTest` | 🧪 |
+| UC-CVOS-11 | O hub mostra e troca o roteiro padrão para quem cuida do catálogo | should | US-COMVIS-003 · decisão [W] 2026-10-26 | `tests/js/cv-roteiro-padrao.test.tsx` | 🧪 |
 | UC-CVMRG-01 | Cada peça e o orçamento mostram custo e margem | must `[V0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVMRG-02 | Preço, subtotal e total são os mesmos com e sem margem | must `[V0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVMRG-03 | Peça sem custo fica sem margem; o orçamento diz quantas têm | must | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
@@ -626,6 +629,33 @@ tela; a confirmação é um segundo clique na mesma linha. Mudança não salva n
 
 Status: 🧪
 
+## UC-CVOS-09 · A OS aprovada nasce com o roteiro padrão e aparece no quadro do PCP · `must`
+
+**Dado** que a empresa escolheu um roteiro padrão **Quando** um orçamento vira OS (pela tela ou pelo
+cliente no link) **Então** a OS ganha uma etapa do PCP por etapa não opcional do roteiro, em ordem, e
+aparece em `/producao/quadro`. As etapas ficam no nome de quem aprovou; sem usuário (aceite pelo link),
+no do dono da empresa. Sem padrão, a OS nasce como antes, sem etapas.
+
+Status: 🧪
+
+## UC-CVOS-10 · O padrão só aceita roteiro ativo da própria empresa · `must` `[T0]`
+
+**Dado** quem cuida do catálogo **Quando** escolhe o roteiro padrão **Então** roteiro de outra empresa ou
+inativo dá 422 e nada muda; um roteiro ativo da empresa vira o padrão; vazio tira o padrão. Um roteiro
+de outra empresa gravado à mão no ajuste não gera etapa nenhuma.
+
+Status: 🧪
+
+## UC-CVOS-11 · O hub mostra e troca o roteiro padrão para quem cuida do catálogo · `should`
+
+**Dado** quem cuida do catálogo (`comvis.material.manage`) **Quando** abre o hub **Então** o cartão
+"Roteiro da produção" mostra o roteiro padrão atual e os roteiros ativos; "Salvar roteiro" só libera
+quando a escolha muda; sem roteiro ativo, diz para cadastrar na tela de Roteiros da produção.
+
+Teste: `tests/js/cv-roteiro-padrao.test.tsx`
+
+Status: 🧪
+
 ## Custo e margem por peça (US-COMVIS-022 · UC-FLX-03)
 
 > Âncora: UC-FLX-03 (margem por item no orçamento) e SPEC US-COMVIS-022. `POST …/api/calcular`
@@ -795,6 +825,42 @@ Status: 🧪
 
 **Dado** um usuário só com `comvis.orcamento.view` **Quando** ele tenta salvar ou regravar **Então** a
 resposta é 403 e nenhum orçamento é criado; listar continua permitido.
+
+Status: 🧪
+
+---
+
+## Aceite do orçamento pelo link (US-COMVIS-023)
+
+> Contrato: a US-COMVIS-023 do SPEC. Prova: `OrcamentoAceiteLinkContratoTest` (lane `verticais-pest`).
+> A página pública ainda não existe; estes casos cobrem o serviço e a rota que gera o link.
+
+## UC-CVACE-01 · Gerar o link guarda só o hash e vale para a empresa do orçamento · `must` `[T0]`
+
+**Dado** um orçamento salvo em rascunho **Quando** o operador gera o link **Então** sai um token de
+48 caracteres, o banco guarda só o sha256 dele, o orçamento passa a `enviado` e a leitura pelo token
+mostra itens e total, sem custo. Gerar de novo fecha o link anterior. Orçamento de outra empresa não
+gera link (404), nem pelo serviço nem pelo controller.
+
+Status: 🧪
+
+## UC-CVACE-02 · O cliente decide uma vez: aceitar vira OS com o total gravado, ajuste volta a rascunho · `must` `[V0]`
+
+**Dado** um link aberto **Quando** o cliente aceita **Então** o orçamento vira OS pelo mesmo caminho da
+tela, com `valor_total` igual ao `total` gravado, e o link não decide de novo. **Quando** pede ajuste
+com um comentário **Então** o orçamento volta a rascunho, sem OS; sem comentário, recusa. Link vencido,
+validade passada ou orçamento já aprovado não decidem.
+
+Status: 🧪
+
+## UC-CVACE-03 · A calculadora gera o link e entrega pronto para o WhatsApp · `should`
+
+**Dado** um orçamento gravado, igual à tela e ainda não aprovado **Quando** o vendedor clica "Enviar no
+WhatsApp" **Então** a tela chama `POST /comunicacao-visual/api/orcamentos/{id}/link`, mostra o link e
+oferece "Copiar link" e "Abrir no WhatsApp" (`wa.me` com o número do orçamento e o link na mensagem).
+Orçamento já aprovado não oferece o link (o serviço recusaria).
+
+Teste: `tests/js/cv-aceite-link.test.tsx`
 
 Status: 🧪
 

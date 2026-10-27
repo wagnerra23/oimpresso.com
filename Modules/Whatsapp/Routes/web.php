@@ -240,6 +240,11 @@ Route::group([
     Route::post('/broadcast', [BroadcastController::class, 'store'])
         ->middleware('can:whatsapp.send')
         ->name('atendimento.broadcast.store');
+    // US-WA-323 (ADR 0268 fase 2) — interrompe uma campanha em disparo: os envios ainda agendados não saem.
+    Route::post('/broadcast/{id}/cancelar', [BroadcastController::class, 'cancelar'])
+        ->whereNumber('id')
+        ->middleware('can:whatsapp.send')
+        ->name('atendimento.broadcast.cancelar');
 
     // PR-9 brief [CC] — IA na thread (laravel/ai, mesma infra dos Agents Jana).
     // dry_run da Jana gateia custo; PII redigida antes do provider (LGPD).
@@ -371,6 +376,10 @@ Route::group([
     Route::put('/canais/jana-templates', [SettingsController::class, 'update'])
         ->middleware('can:whatsapp.settings.manage')
         ->name('atendimento.canais.jana_templates.update');
+    // US-WA-328 — régua de relacionamento (aniversário e recompra) da empresa (motor US-WA-326).
+    Route::put('/canais/regua-relacionamento', [\Modules\Whatsapp\Http\Controllers\Admin\ReguaRelacionamentoController::class, 'update'])
+        ->middleware('can:whatsapp.settings.manage')
+        ->name('atendimento.canais.regua_relacionamento.update');
 
     // US-WA-048 — Macros (quick replies + automation actions, Chatwoot pattern).
     // CRUD na tela settings + endpoint JSON pra dropdown do composer + apply.

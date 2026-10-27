@@ -14,9 +14,9 @@ module: Whatsapp
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Whatsapp/**` + `resources/js/Pages/Whatsapp/**` + `resources/js/Pages/Atendimento/**` (namespaces Inertia `Whatsapp`, `Atendimento`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `Whatsapp` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 446 arquivos em 20 papéis.
+**Total mapeado:** 465 arquivos em 20 papéis.
 
-## Controllers — 25
+## Controllers — 26
 
 - [BotMenuController.php](../../../Modules/Whatsapp/Http/Controllers/Admin/BotMenuController.php)
 - [BroadcastController.php](../../../Modules/Whatsapp/Http/Controllers/Admin/BroadcastController.php)
@@ -30,6 +30,7 @@ module: Whatsapp
 - [MacrosController.php](../../../Modules/Whatsapp/Http/Controllers/Admin/MacrosController.php)
 - [MetricsController.php](../../../Modules/Whatsapp/Http/Controllers/Admin/MetricsController.php)
 - [QueuesController.php](../../../Modules/Whatsapp/Http/Controllers/Admin/QueuesController.php)
+- [ReguaRelacionamentoController.php](../../../Modules/Whatsapp/Http/Controllers/Admin/ReguaRelacionamentoController.php)
 - [SettingsController.php](../../../Modules/Whatsapp/Http/Controllers/Admin/SettingsController.php)
 - [TemplatesController.php](../../../Modules/Whatsapp/Http/Controllers/Admin/TemplatesController.php)
 - [AppAtendimentoController.php](../../../Modules/Whatsapp/Http/Controllers/Api/AppAtendimentoController.php)
@@ -62,11 +63,12 @@ module: Whatsapp
 - [VerifyWhatsmeowSignature.php](../../../Modules/Whatsapp/Http/Middleware/VerifyWhatsmeowSignature.php)
 - [VerifyZapiSignature.php](../../../Modules/Whatsapp/Http/Middleware/VerifyZapiSignature.php)
 
-## Services — 50
+## Services — 54
 
 - [AudioTranscriber.php](../../../Modules/Whatsapp/Services/Audio/Contracts/AudioTranscriber.php)
 - [WhisperTranscriber.php](../../../Modules/Whatsapp/Services/Audio/WhisperTranscriber.php)
 - [MenuDeAtendimento.php](../../../Modules/Whatsapp/Services/BotMenu/MenuDeAtendimento.php)
+- [PlanoDeDisparo.php](../../../Modules/Whatsapp/Services/Broadcast/PlanoDeDisparo.php)
 - [CentrifugoPublisher.php](../../../Modules/Whatsapp/Services/Centrifugo/CentrifugoPublisher.php)
 - [CentrifugoTokenIssuer.php](../../../Modules/Whatsapp/Services/Centrifugo/CentrifugoTokenIssuer.php)
 - [ConversationContactLinker.php](../../../Modules/Whatsapp/Services/Contacts/ConversationContactLinker.php)
@@ -110,6 +112,9 @@ module: Whatsapp
 - [SlashCommandParser.php](../../../Modules/Whatsapp/Services/Notes/SlashCommandParser.php)
 - [SlashCommandRegistry.php](../../../Modules/Whatsapp/Services/Notes/SlashCommandRegistry.php)
 - [SlashCommandResult.php](../../../Modules/Whatsapp/Services/Notes/SlashCommandResult.php)
+- [NotificadorClienteWhatsapp.php](../../../Modules/Whatsapp/Services/Notify/NotificadorClienteWhatsapp.php)
+- [ResultadoNotificacao.php](../../../Modules/Whatsapp/Services/Notify/ResultadoNotificacao.php)
+- [ReguaDeRelacionamento.php](../../../Modules/Whatsapp/Services/Regua/ReguaDeRelacionamento.php)
 - [SlaEnforcer.php](../../../Modules/Whatsapp/Services/Sla/SlaEnforcer.php)
 - [MessagePersister.php](../../../Modules/Whatsapp/Services/Webhook/MessagePersister.php)
 - [WebhookSignatureChecker.php](../../../Modules/Whatsapp/Services/Webhook/WebhookSignatureChecker.php)
@@ -152,12 +157,15 @@ module: Whatsapp
 - [MessageObserver.php](../../../Modules/Whatsapp/Observers/MessageObserver.php)
 - [WhatsappMessageObserver.php](../../../Modules/Whatsapp/Observers/WhatsappMessageObserver.php)
 
-## Jobs — 17
+## Jobs — 20
 
 - [BackfillLidConversationsJob.php](../../../Modules/Whatsapp/Jobs/BackfillLidConversationsJob.php)
 - [DeleteBaileysInstanceJob.php](../../../Modules/Whatsapp/Jobs/DeleteBaileysInstanceJob.php)
+- [DespacharMensagemDoSistemaJob.php](../../../Modules/Whatsapp/Jobs/DespacharMensagemDoSistemaJob.php)
+- [DispararBroadcastJob.php](../../../Modules/Whatsapp/Jobs/DispararBroadcastJob.php)
 - [DispatchCsatJob.php](../../../Modules/Whatsapp/Jobs/DispatchCsatJob.php)
 - [DownloadMediaJob.php](../../../Modules/Whatsapp/Jobs/DownloadMediaJob.php)
+- [EnviarItemBroadcastJob.php](../../../Modules/Whatsapp/Jobs/EnviarItemBroadcastJob.php)
 - [NotificarClienteCancelamentoJob.php](../../../Modules/Whatsapp/Jobs/NotificarClienteCancelamentoJob.php)
 - [PersistContactsFromHistorySyncJob.php](../../../Modules/Whatsapp/Jobs/PersistContactsFromHistorySyncJob.php)
 - [PersistHistorySyncBatchJob.php](../../../Modules/Whatsapp/Jobs/PersistHistorySyncBatchJob.php)
@@ -172,7 +180,7 @@ module: Whatsapp
 - [TranscribeAudioJob.php](../../../Modules/Whatsapp/Jobs/TranscribeAudioJob.php)
 - [WhatsappDriverHealthCheckJob.php](../../../Modules/Whatsapp/Jobs/WhatsappDriverHealthCheckJob.php)
 
-## Events / Listeners — 14
+## Events / Listeners — 15
 
 - [OmnichannelMessageReceived.php](../../../Modules/Whatsapp/Events/OmnichannelMessageReceived.php)
 - [OmnichannelMessageSent.php](../../../Modules/Whatsapp/Events/OmnichannelMessageSent.php)
@@ -181,6 +189,7 @@ module: Whatsapp
 - [WhatsappMessageReceived.php](../../../Modules/Whatsapp/Events/WhatsappMessageReceived.php)
 - [WhatsappMessageSent.php](../../../Modules/Whatsapp/Events/WhatsappMessageSent.php)
 - [DispatchToJanaBot.php](../../../Modules/Whatsapp/Listeners/DispatchToJanaBot.php)
+- [EnviarDanfePorWhatsapp.php](../../../Modules/Whatsapp/Listeners/EnviarDanfePorWhatsapp.php)
 - [NotifyInstalacaoCvCustomer.php](../../../Modules/Whatsapp/Listeners/NotifyInstalacaoCvCustomer.php)
 - [NotifyRepairCustomer.php](../../../Modules/Whatsapp/Listeners/NotifyRepairCustomer.php)
 - [PublishMessageReceivedToCentrifugo.php](../../../Modules/Whatsapp/Listeners/PublishMessageReceivedToCentrifugo.php)
@@ -189,7 +198,7 @@ module: Whatsapp
 - [ResponderMenuDeAtendimento.php](../../../Modules/Whatsapp/Listeners/ResponderMenuDeAtendimento.php)
 - [TouchCustomerMemoryOnMessage.php](../../../Modules/Whatsapp/Listeners/TouchCustomerMemoryOnMessage.php)
 
-## Console / Commands — 33
+## Console / Commands — 34
 
 - [AuditChannelAccessCommand.php](../../../Modules/Whatsapp/Console/Commands/AuditChannelAccessCommand.php)
 - [AutoLinkConversationContactsCommand.php](../../../Modules/Whatsapp/Console/Commands/AutoLinkConversationContactsCommand.php)
@@ -215,6 +224,7 @@ module: Whatsapp
 - [MetricsAggregateCommand.php](../../../Modules/Whatsapp/Console/Commands/MetricsAggregateCommand.php)
 - [ReconnectAndImportCommand.php](../../../Modules/Whatsapp/Console/Commands/ReconnectAndImportCommand.php)
 - [RegisterWhatsappPermissionsCommand.php](../../../Modules/Whatsapp/Console/Commands/RegisterWhatsappPermissionsCommand.php)
+- [ReguaRelacionamentoCommand.php](../../../Modules/Whatsapp/Console/Commands/ReguaRelacionamentoCommand.php)
 - [ReparseMediaFromPayloadCommand.php](../../../Modules/Whatsapp/Console/Commands/ReparseMediaFromPayloadCommand.php)
 - [RetryRecentMediaDownloadsCommand.php](../../../Modules/Whatsapp/Console/Commands/RetryRecentMediaDownloadsCommand.php)
 - [ScanMediaDriftCommand.php](../../../Modules/Whatsapp/Console/Commands/ScanMediaDriftCommand.php)
@@ -235,7 +245,7 @@ module: Whatsapp
 - [api.php](../../../Modules/Whatsapp/Routes/api.php)
 - [web.php](../../../Modules/Whatsapp/Routes/web.php)
 
-## Migrations (schema) — 49
+## Migrations (schema) — 51
 
 - [2026_05_07_000001_create_whatsapp_business_configs_table.php](../../../Modules/Whatsapp/Database/Migrations/2026_05_07_000001_create_whatsapp_business_configs_table.php)
 - [2026_05_07_000002_create_whatsapp_conversations_table.php](../../../Modules/Whatsapp/Database/Migrations/2026_05_07_000002_create_whatsapp_conversations_table.php)
@@ -285,7 +295,9 @@ module: Whatsapp
 - [2026_06_13_120000_enforce_single_active_channel_user_access.php](../../../Modules/Whatsapp/Database/Migrations/2026_06_13_120000_enforce_single_active_channel_user_access.php)
 - [2026_06_19_000001_create_channel_health_snapshots_table.php](../../../Modules/Whatsapp/Database/Migrations/2026_06_19_000001_create_channel_health_snapshots_table.php)
 - [2026_07_17_100000_add_web_form_channel_to_clients_feedbacks.php](../../../Modules/Whatsapp/Database/Migrations/2026_07_17_100000_add_web_form_channel_to_clients_feedbacks.php)
+- [2026_10_26_000001_add_contadores_to_whatsapp_broadcasts.php](../../../Modules/Whatsapp/Database/Migrations/2026_10_26_000001_add_contadores_to_whatsapp_broadcasts.php)
 - [2026_10_26_000002_create_whatsapp_bot_menu_tables.php](../../../Modules/Whatsapp/Database/Migrations/2026_10_26_000002_create_whatsapp_bot_menu_tables.php)
+- [2026_10_26_000003_create_whatsapp_regua_relacionamento_tables.php](../../../Modules/Whatsapp/Database/Migrations/2026_10_26_000003_create_whatsapp_regua_relacionamento_tables.php)
 
 ## Config — 1
 
@@ -309,7 +321,7 @@ module: Whatsapp
 - [Settings.tsx](../../../resources/js/Pages/Whatsapp/Settings.tsx)
 - [Index.tsx](../../../resources/js/Pages/Whatsapp/Templates/Index.tsx)
 
-## Componentes / apoio de tela — 31
+## Componentes / apoio de tela — 32
 
 - [BroadcastSheet.tsx](../../../Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/_components/BroadcastSheet.tsx)
 - [ChannelHealthBanner.tsx](../../../Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/_components/ChannelHealthBanner.tsx)
@@ -330,6 +342,7 @@ module: Whatsapp
 - [ReconnectModal.tsx](../../../Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/_components/ReconnectModal.tsx)
 - [BotMenuTab.tsx](../../../Modules/Whatsapp/Resources/js/Pages/Atendimento/Channels/_components/BotMenuTab.tsx)
 - [ChannelUsersTab.tsx](../../../Modules/Whatsapp/Resources/js/Pages/Atendimento/Channels/_components/ChannelUsersTab.tsx)
+- [ReguaRelacionamentoCard.tsx](../../../Modules/Whatsapp/Resources/js/Pages/Atendimento/_components/ReguaRelacionamentoCard.tsx)
 - [Avatar.tsx](../../../resources/js/Pages/Whatsapp/_components/Avatar.tsx)
 - [CaptureFeedbackSheet.tsx](../../../resources/js/Pages/Whatsapp/_components/CaptureFeedbackSheet.tsx)
 - [ContactPickerModal.tsx](../../../resources/js/Pages/Whatsapp/_components/ContactPickerModal.tsx)
@@ -371,9 +384,9 @@ module: Whatsapp
 - [Settings.casos.md](../../../resources/js/Pages/Whatsapp/Settings.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Whatsapp/Templates/Index.casos.md)
 
-## Testes (Pest) — 127
+## Testes (Pest) — 133
 
-- 127 em [Modules/Whatsapp/Tests/Feature/](../../../Modules/Whatsapp/Tests/Feature)
+- 133 em [Modules/Whatsapp/Tests/Feature/](../../../Modules/Whatsapp/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 18

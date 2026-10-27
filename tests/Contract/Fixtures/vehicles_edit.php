@@ -103,6 +103,8 @@ return [
             ['send' => 'mileage_at_entry', 'value' => 87654, 'recv' => 'mileage_at_entry', 'match' => 'int'],
             // Lembrete de revisão por km (decisão [W] 2026-10-06).
             ['send' => 'next_service_km', 'value' => 97654, 'recv' => 'next_service_km', 'match' => 'int'],
+            // Lembrete de revisão por data (US-AUTO-014, decisão [W] 2026-10-26).
+            ['send' => 'next_service_date', 'value' => '2027-03-15', 'recv' => 'next_service_date'],
             ['send' => 'fuel_type', 'value' => 'diesel', 'recv' => 'fuel_type'],
             ['send' => 'color', 'value' => 'branco', 'recv' => 'color'],
 

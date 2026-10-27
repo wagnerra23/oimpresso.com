@@ -2,35 +2,35 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1015 tarefas abertas** em **57 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1058 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
 | Módulo | Abertas | doing | review | blocked | todo/backlog |
 |---|---:|---:|---:|---:|---:|
-| [`Jana`](#jana) | 83 | 2 | 0 | 0 | 81 |
-| [`Whatsapp`](#whatsapp) | 69 | 0 | 0 | 0 | 69 |
-| [`Sells`](#sells) | 67 | 0 | 0 | 0 | 67 |
+| [`Jana`](#jana) | 84 | 2 | 0 | 0 | 82 |
+| [`Whatsapp`](#whatsapp) | 77 | 0 | 0 | 0 | 77 |
+| [`Sells`](#sells) | 73 | 3 | 0 | 0 | 70 |
+| [`Financeiro`](#financeiro) | 52 | 4 | 0 | 0 | 48 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
-| [`Financeiro`](#financeiro) | 49 | 4 | 0 | 0 | 45 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
 | [`OficinaAuto`](#oficinaauto) | 39 | 0 | 0 | 0 | 38 |
 | [`Producao`](#producao) | 33 | 1 | 0 | 0 | 32 |
-| [`NfeBrasil`](#nfebrasil) | 29 | 0 | 0 | 6 | 23 |
-| [`Compras`](#compras) | 27 | 3 | 0 | 0 | 23 |
+| [`NfeBrasil`](#nfebrasil) | 32 | 0 | 0 | 6 | 26 |
+| [`Compras`](#compras) | 29 | 5 | 0 | 0 | 23 |
+| [`Fiscal`](#fiscal) | 29 | 0 | 0 | 0 | 29 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
 | [`Inventory`](#inventory) | 25 | 0 | 0 | 0 | 25 |
 | [`Marketplaces`](#marketplaces) | 25 | 0 | 0 | 0 | 25 |
-| [`Crm`](#crm) | 23 | 0 | 0 | 0 | 23 |
-| [`ComunicacaoVisual`](#comunicacaovisual) | 22 | 0 | 0 | 0 | 22 |
-| [`Fiscal`](#fiscal) | 22 | 0 | 0 | 0 | 22 |
-| [`Connector`](#connector) | 20 | 0 | 0 | 0 | 19 |
+| [`Crm`](#crm) | 24 | 0 | 0 | 0 | 24 |
+| [`ComunicacaoVisual`](#comunicacaovisual) | 23 | 0 | 0 | 0 | 23 |
+| [`Connector`](#connector) | 21 | 0 | 0 | 0 | 20 |
+| [`Vestuario`](#vestuario) | 21 | 1 | 0 | 0 | 20 |
 | [`Forja`](#forja) | 19 | 0 | 1 | 0 | 7 |
 | [`Mwart`](#mwart) | 19 | 0 | 0 | 0 | 19 |
-| [`Vestuario`](#vestuario) | 19 | 0 | 0 | 0 | 19 |
+| [`Ponto`](#ponto) | 19 | 0 | 0 | 0 | 19 |
 | [`Officeimpresso`](#officeimpresso) | 17 | 0 | 0 | 0 | 17 |
-| [`Ponto`](#ponto) | 17 | 0 | 0 | 0 | 17 |
 | [`Accounting`](#accounting) | 16 | 0 | 0 | 0 | 16 |
 | [`Autopecas`](#autopecas) | 15 | 0 | 0 | 0 | 15 |
 | [`Essentials`](#essentials) | 15 | 0 | 0 | 0 | 15 |
@@ -39,31 +39,33 @@
 | [`Fisio`](#fisio) | 12 | 0 | 0 | 0 | 12 |
 | [`NFSe`](#nfse) | 12 | 0 | 0 | 0 | 12 |
 | [`PontoWr2`](#pontowr2) | 12 | 0 | 0 | 0 | 12 |
-| [`Superadmin`](#superadmin) | 11 | 0 | 0 | 0 | 11 |
+| [`Superadmin`](#superadmin) | 12 | 0 | 0 | 0 | 12 |
+| [`Produto`](#produto) | 11 | 0 | 0 | 0 | 11 |
 | [`Cms`](#cms) | 10 | 0 | 0 | 0 | 10 |
-| [`Produto`](#produto) | 10 | 0 | 0 | 0 | 10 |
 | [`Cliente`](#cliente) | 9 | 1 | 0 | 0 | 8 |
 | [`TaskRegistry`](#taskregistry) | 9 | 0 | 0 | 0 | 9 |
 | [`KB`](#kb) | 8 | 0 | 0 | 0 | 8 |
 | [`Manufacturing`](#manufacturing) | 8 | 0 | 0 | 0 | 8 |
+| [`Woocommerce`](#woocommerce) | 8 | 0 | 0 | 0 | 8 |
 | [`EvolutionAgent`](#evolutionagent) | 7 | 0 | 0 | 0 | 7 |
 | [`TeamMcp`](#teammcp) | 7 | 0 | 0 | 0 | 7 |
 | [`NotificationTemplate`](#notificationtemplate) | 6 | 0 | 0 | 0 | 6 |
 | [`SRS`](#srs) | 6 | 0 | 0 | 0 | 6 |
-| [`Woocommerce`](#woocommerce) | 6 | 0 | 0 | 0 | 6 |
 | [`LaravelAI`](#laravelai) | 5 | 0 | 0 | 0 | 5 |
 | [`Repair`](#repair) | 5 | 0 | 0 | 0 | 5 |
 | [`Spreadsheet`](#spreadsheet) | 5 | 0 | 0 | 0 | 5 |
 | [`ConsultaOs`](#consultaos) | 4 | 0 | 0 | 0 | 4 |
 | [`Dashboard`](#dashboard) | 3 | 0 | 0 | 0 | 3 |
+| [`Estoque`](#estoque) | 3 | 1 | 0 | 0 | 2 |
 | [`VozDoCliente`](#vozdocliente) | 3 | 0 | 0 | 0 | 3 |
 | [`ADS`](#ads) | 2 | 0 | 0 | 0 | 2 |
 | [`AssetManagement`](#assetmanagement) | 2 | 0 | 0 | 0 | 2 |
 | [`Documentacao`](#documentacao) | 2 | 0 | 0 | 0 | 2 |
 | [`MemoriaAutonoma`](#memoriaautonoma) | 2 | 0 | 0 | 0 | 2 |
+| [`Relatorios`](#relatorios) | 2 | 1 | 0 | 0 | 1 |
 | [`Admin`](#admin) | 1 | 0 | 0 | 0 | 1 |
 | [`Auditoria`](#auditoria) | 1 | 0 | 0 | 0 | 1 |
-| [`Estoque`](#estoque) | 1 | 0 | 0 | 0 | 1 |
+| [`Backup`](#backup) | 1 | 0 | 0 | 0 | 1 |
 | [`Mcp`](#mcp) | 1 | 0 | 0 | 0 | 1 |
 
 
@@ -82,6 +84,7 @@
 - **US-COPI-139** — Badalo do ratio negócio÷governança no brief-fetch (o alarme existe e nunca dispara) _(`p1`)_
 - **US-COPI-143** — Deprecar o `jana:drift-sentinel` tautológico (o "alarme de drift" mede gt-vs-gt, não a Jana) _(`p1`)_
 - **US-COPI-145** — Desbloquear modelo frontier no chat da Jana: ANTHROPIC_API_KEY em prod OU acesso gpt-4o no projeto OpenAI _(`p1` · @wagner)_
+- **US-COPI-151** — Jana propõe ação, usuário confirma no cartão, só então grava _(`p1`)_
 - **US-COPI-146** — Migrar Jana/Dashboard pro padrão PT-04 (sair do bundle CSS paralelo .sells-cowork) _(`p2`)_
 - **US-COPI-147** — Higiene de schema da camada de IA — 2 resíduos reais, 4 falsos positivos e 1 promessa que não pode virar trigger _(`p2`)_
 - **US-COPI-148** — Fundir as telas da Jana numa tela única `/ia` com abas Painel | Conversa | Memória _(`p2` · @wagner)_
@@ -231,18 +234,35 @@
 - **US-WA-316** — Customer 360 sidebar + inferência IA (ondas 2-5 voz-cliente)
 - **US-WA-317** — VoC: ContactProfile acumulativo (Gap#3) + auto-tag IA + dashboard (Gap#4)
 - **US-WA-318** — DNS de mídia WhatsApp não resolve → ~48k mídias pending desde ~12/jun
+- **US-WA-319** — Notificador reutilizável de aviso automático ao cliente por WhatsApp (texto + anexo)
+- **US-WA-320** — Aviso de venda do núcleo enviado pela API do WhatsApp em vez de link (flag)
+- **US-WA-321** — NF-e autorizada manda a DANFE ao cliente por WhatsApp (anexo por link assinado)
+- **US-WA-322** — Campanha por WhatsApp — disparo real com salvaguardas anti-ban (ADR 0268 fase 2)
+- **US-WA-323** — Campanha por WhatsApp — "Salvar e disparar" e cancelar na Caixa Unificada
 - **US-WA-324** — Bot de atendimento com menu — opção leva à fila, coleta o nome, depois humano
+- **US-WA-325** — Avisos de OS pronta e de instalação saem pelo canal vivo (notificador)
+- **US-WA-326** — Régua de relacionamento por WhatsApp — aniversário e recompra
 - **US-WA-327** — Tela de configurar o menu do bot por canal
+- **US-WA-328** — Tela de configurar a régua de relacionamento da empresa
 
 ## Sells
 
+
+### doing
+
+- **US-SELL-077** — Cancelar a venda devolve o estoque, tira a venda dos relatórios e cancela o título _(`p0` · @wagner)_
+- **US-SELL-078** — O ICMS-ST entra no total da venda, pela mesma conta da NF-e _(`p1` · @wagner)_
+- **US-SELL-079** — Resgate de pontos de fidelidade no caixa React _(`p1` · @wagner)_
 
 ### todo
 
 - **US-SELL-054** — Offline-first no PDV — fila IndexedDB + reemissão ao reconectar _(`p1`)_
 - **US-SELL-055** — Pix QR no PDV + webhook auto-reconcile ligado à venda/caixa _(`p1`)_
+- **US-SELL-074** — Cliente aprova o orçamento pelo link público, e a aprovação vira pedido _(`p1` · @wagner)_
+- **US-SELL-075** — Maquininha integrada ao caixa (TEF): o valor vai para a máquina e a resposta preenche o pagamento _(`p1` · @wagner)_
 - **US-SELL-056** — Keyboard-first coeso no Create — hotkeys configuráveis + Enter-avança + F-key pagar _(`p2`)_
 - **US-SELL-057** — Skeleton de carregamento no Create + INP < 200ms _(`p2`)_
+- **US-SELL-076** — Cupom de desconto e promoção leve X pague Y no caixa novo _(`p2` · @wagner)_
 - **US-SELL-001** — Epic — Migrar /sells/create pra MWART
 - **US-SELL-002** — Backend dual Inertia/Blade + feature flag + Pest
 - **US-SELL-003** — Frontend skeleton + AppShellV2 + props contract
@@ -307,6 +327,67 @@
 - **US-SELL-072** — Venda com nota ou pagamento trava itens e valores — **P1**
 - **US-SELL-073** — Volumes no protocolo de entrega (UC-FLX-23) — **P2**
 
+## Financeiro
+
+
+### doing
+
+- **US-FIN-033** — Notificações vencimento próximo (e-mail + WhatsApp X dias antes) _(`p0` · sprint Onda 27)_
+- **US-FIN-070** — Custeio RKW e ponto de equilíbrio no fechamento do mês (UC-FLX-20) — **P2** _(`p2`)_
+- **US-FIN-071** — Régua de cobrança do título vencido D+1/D+5/D+15 (UC-FLX-29) — **P2** _(`p2`)_
+- **US-FIN-072** — ISS retido ajusta o título para o valor líquido na autorização da NFS-e (UC-FLX-30) — **P2** _(`p2`)_
+
+### todo
+
+- **US-FIN-014** — Imprimir 2ª via boleto Inter pelo título financeiro (botão na tela /boletos) _(`p1` · @wagner)_
+- **US-FIN-016** — Auto-emite boleto Inter ao criar titulo_receber (Observer + Job idempotente) _(`p1` · @wagner)_
+- **US-FIN-017** — Boletos — Sheet Emitir multi-título (bulk emission) _(`p1` · @wagner)_
+- **US-FIN-030** — Aging buckets <30/30-60/60-90/90+ no header Unificado + filtro _(`p1` · sprint Onda 24)_
+- **US-FIN-043** — Coleta pre-migracao Financeiro Delphi cliente piloto (Maiara) _(`p1` · @maiara)_
+- **US-FIN-044** — SicoobApiDriver nativo (OAuth2 + mTLS + webhook real-time) _(`p1` · @wagner)_
+- **US-FIN-045** — Wizard bank-first 2-step (banco → modo conexão) _(`p1`)_
+- **US-FIN-055** — Purgar coluna-fantasma transactions.total_remaining_amount (resto Financeiro + TituloAutoService) _(`p1`)_
+- **US-FIN-058** — Reparar 59 boletos órfãos + 3.372 fin_titulos com origem_id bug (Firebird) _(`p1`)_
+- **US-FIN-059** — Observers Sells/Compras→Financeiro: try/catch + report() (nunca propagar) + idealmente Job afterCommit _(`p1`)_
+- **US-FIN-060** — Reabilitar acesso OpenAI gpt-4o do BoletoOcrService (403 silencioso em prod) _(`p1`)_
+- **US-FIN-018** — Boletos — Sheet Remessa/Retorno CNAB upload + processing _(`p2` · @wagner)_
+- **US-FIN-019** — Boletos — Drawer timeline cronológica rica via activity_log Spatie _(`p2` · @wagner)_
+- **US-FIN-020** — Boletos — Jobs automáticos cobrança (lembrete + ativa + protesto) _(`p2` · @wagner)_
+- **US-FIN-021** — Fluxo de caixa — Margem mínima configurável via business_settings _(`p2` · @wagner)_
+- **US-FIN-022** — Onda 4d.6.1 — Widget Asaas JS tokenização cartão (PCI-DSS) _(`p2` · @wagner)_
+- **US-FIN-023** — Onda 4d.6.2 — SheetNovaCobranca UI tipo=card (campos cartão) _(`p2` · @wagner)_
+- **US-FIN-024** — Onda 5 — Dogfooding Superadmin (Plan SaaS Oimpresso Premium biz=1) _(`p2` · @wagner)_
+- **US-FIN-034** — Importação massiva CSV/Excel — mapping wizard + dry-run + commit _(`p2` · sprint Onda 28)_
+- **US-FIN-035** — Repetir lançamento próximo mês + Combobox autocomplete contraparte _(`p2` · sprint Onda 29)_
+- **US-FIN-036** — PWA básico Financeiro — manifest + service worker + offline cache + install prompt _(`p2` · sprint Onda 30)_
+- **US-FIN-039** — Artisan command financeiro:vincular-baixas-sem-conta - reconciliacao posterior _(`p2`)_
+- **US-FIN-040** — Artisan command financeiro:health-check cron daily 06:00 BRT - detecta gaps bridge _(`p2`)_
+- **US-FIN-041** — Onda 6 Accounting DROP TABLE - 6 vazias + ARCHIVE 2 seed + DELETE permissions _(`p2`)_
+- **US-FIN-061** — Otimizar LCP das telas núcleo (Financeiro/Unificado + Sells) — verificar prod real + reduzir bundle JS _(`p2`)_
+- **US-FIN-064** — Redirect ContasReceber/ContasPagar → Unificado (deprecação) _(`p2`)_
+- **US-FIN-065** — Elevar tela Unificado/Novo a ≥70 (form unificado real de cobrança) _(`p2`)_
+- **US-FIN-069** — Baseline de pixel do DRE (#7767) não reproduz o render do CI — visual-regression vermelho em todo PR de escopo global _(`p2` · @wagner)_
+- **US-FIN-075** — Centro de custo com rateio no título _(`p2`)_
+- **US-FIN-076** — Orçado × realizado no fluxo de caixa _(`p2`)_
+- **US-FIN-077** — Exportar lançamentos contábeis (Domínio, Alterdata, Questor) _(`p2`)_
+- **US-FIN-025** — Onda 6 — Cleanup colunas legacy + remover redirects 301 _(`p3` · @wagner)_
+- **US-FIN-042** — Backfill cliente_descricao biz=1 - 52 fin_titulos pre-Onda-Edit NULL _(`p3`)_
+- **US-FIN-066** — Elevar tela AssinaturaAtualizar a ≥70 (PageHeader canon + preview de valor) _(`p3`)_
+- **US-FIN-067** — Elevar tela Advisor/Login a ≥70 (DS v4 roxo + @/ui + charter) _(`p3`)_
+- **US-FIN-001** — Listar Contas a Receber em aberto
+- **US-FIN-002** — Lançar título a receber manual
+- **US-FIN-003** — Baixar título (parcial ou total)
+- **US-FIN-004** — Listar Contas a Pagar com vencimento próximo
+- **US-FIN-005** — Cadastrar título a pagar com upload de boleto OCR
+- **US-FIN-006** — Pagar título (registrar saída do caixa)
+- **US-FIN-007** — Visualizar fluxo de caixa projetado
+- **US-FIN-008** — Cadastrar conta bancária
+- **US-FIN-009** — Importar extrato OFX e conciliar
+- **US-FIN-010** — Emitir boleto bancário (CNAB ou via gateway)
+- **US-FIN-011** — DRE (Demonstração de Resultado)
+- **US-FIN-012** — Aging de inadimplência
+- **US-FIN-013** — Dashboard unificado de títulos (4 estados na mesma tela)
+
 ## Infra
 
 
@@ -363,64 +444,6 @@
 - **US-INFRA-051** — Exportar OIMPRESSO_MCP_TOKEN no ambiente (luiz)
 - **US-INFRA-052** — Exportar OIMPRESSO_MCP_TOKEN no ambiente (eliana)
 - **US-INFRA-053** — Token MCP novo (luiz) — o #22 foi revogado em 16/09
-
-## Financeiro
-
-
-### doing
-
-- **US-FIN-033** — Notificações vencimento próximo (e-mail + WhatsApp X dias antes) _(`p0` · sprint Onda 27)_
-- **US-FIN-070** — Custeio RKW e ponto de equilíbrio no fechamento do mês (UC-FLX-20) — **P2** _(`p2`)_
-- **US-FIN-071** — Régua de cobrança do título vencido D+1/D+5/D+15 (UC-FLX-29) — **P2** _(`p2`)_
-- **US-FIN-072** — ISS retido ajusta o título para o valor líquido na autorização da NFS-e (UC-FLX-30) — **P2** _(`p2`)_
-
-### todo
-
-- **US-FIN-014** — Imprimir 2ª via boleto Inter pelo título financeiro (botão na tela /boletos) _(`p1` · @wagner)_
-- **US-FIN-016** — Auto-emite boleto Inter ao criar titulo_receber (Observer + Job idempotente) _(`p1` · @wagner)_
-- **US-FIN-017** — Boletos — Sheet Emitir multi-título (bulk emission) _(`p1` · @wagner)_
-- **US-FIN-030** — Aging buckets <30/30-60/60-90/90+ no header Unificado + filtro _(`p1` · sprint Onda 24)_
-- **US-FIN-043** — Coleta pre-migracao Financeiro Delphi cliente piloto (Maiara) _(`p1` · @maiara)_
-- **US-FIN-044** — SicoobApiDriver nativo (OAuth2 + mTLS + webhook real-time) _(`p1` · @wagner)_
-- **US-FIN-045** — Wizard bank-first 2-step (banco → modo conexão) _(`p1`)_
-- **US-FIN-055** — Purgar coluna-fantasma transactions.total_remaining_amount (resto Financeiro + TituloAutoService) _(`p1`)_
-- **US-FIN-058** — Reparar 59 boletos órfãos + 3.372 fin_titulos com origem_id bug (Firebird) _(`p1`)_
-- **US-FIN-059** — Observers Sells/Compras→Financeiro: try/catch + report() (nunca propagar) + idealmente Job afterCommit _(`p1`)_
-- **US-FIN-060** — Reabilitar acesso OpenAI gpt-4o do BoletoOcrService (403 silencioso em prod) _(`p1`)_
-- **US-FIN-018** — Boletos — Sheet Remessa/Retorno CNAB upload + processing _(`p2` · @wagner)_
-- **US-FIN-019** — Boletos — Drawer timeline cronológica rica via activity_log Spatie _(`p2` · @wagner)_
-- **US-FIN-020** — Boletos — Jobs automáticos cobrança (lembrete + ativa + protesto) _(`p2` · @wagner)_
-- **US-FIN-021** — Fluxo de caixa — Margem mínima configurável via business_settings _(`p2` · @wagner)_
-- **US-FIN-022** — Onda 4d.6.1 — Widget Asaas JS tokenização cartão (PCI-DSS) _(`p2` · @wagner)_
-- **US-FIN-023** — Onda 4d.6.2 — SheetNovaCobranca UI tipo=card (campos cartão) _(`p2` · @wagner)_
-- **US-FIN-024** — Onda 5 — Dogfooding Superadmin (Plan SaaS Oimpresso Premium biz=1) _(`p2` · @wagner)_
-- **US-FIN-034** — Importação massiva CSV/Excel — mapping wizard + dry-run + commit _(`p2` · sprint Onda 28)_
-- **US-FIN-035** — Repetir lançamento próximo mês + Combobox autocomplete contraparte _(`p2` · sprint Onda 29)_
-- **US-FIN-036** — PWA básico Financeiro — manifest + service worker + offline cache + install prompt _(`p2` · sprint Onda 30)_
-- **US-FIN-039** — Artisan command financeiro:vincular-baixas-sem-conta - reconciliacao posterior _(`p2`)_
-- **US-FIN-040** — Artisan command financeiro:health-check cron daily 06:00 BRT - detecta gaps bridge _(`p2`)_
-- **US-FIN-041** — Onda 6 Accounting DROP TABLE - 6 vazias + ARCHIVE 2 seed + DELETE permissions _(`p2`)_
-- **US-FIN-061** — Otimizar LCP das telas núcleo (Financeiro/Unificado + Sells) — verificar prod real + reduzir bundle JS _(`p2`)_
-- **US-FIN-064** — Redirect ContasReceber/ContasPagar → Unificado (deprecação) _(`p2`)_
-- **US-FIN-065** — Elevar tela Unificado/Novo a ≥70 (form unificado real de cobrança) _(`p2`)_
-- **US-FIN-069** — Baseline de pixel do DRE (#7767) não reproduz o render do CI — visual-regression vermelho em todo PR de escopo global _(`p2` · @wagner)_
-- **US-FIN-025** — Onda 6 — Cleanup colunas legacy + remover redirects 301 _(`p3` · @wagner)_
-- **US-FIN-042** — Backfill cliente_descricao biz=1 - 52 fin_titulos pre-Onda-Edit NULL _(`p3`)_
-- **US-FIN-066** — Elevar tela AssinaturaAtualizar a ≥70 (PageHeader canon + preview de valor) _(`p3`)_
-- **US-FIN-067** — Elevar tela Advisor/Login a ≥70 (DS v4 roxo + @/ui + charter) _(`p3`)_
-- **US-FIN-001** — Listar Contas a Receber em aberto
-- **US-FIN-002** — Lançar título a receber manual
-- **US-FIN-003** — Baixar título (parcial ou total)
-- **US-FIN-004** — Listar Contas a Pagar com vencimento próximo
-- **US-FIN-005** — Cadastrar título a pagar com upload de boleto OCR
-- **US-FIN-006** — Pagar título (registrar saída do caixa)
-- **US-FIN-007** — Visualizar fluxo de caixa projetado
-- **US-FIN-008** — Cadastrar conta bancária
-- **US-FIN-009** — Importar extrato OFX e conciliar
-- **US-FIN-010** — Emitir boleto bancário (CNAB ou via gateway)
-- **US-FIN-011** — DRE (Demonstração de Resultado)
-- **US-FIN-012** — Aging de inadimplência
-- **US-FIN-013** — Dashboard unificado de títulos (4 estados na mesma tela)
 
 ## Governance
 
@@ -581,13 +604,16 @@
 
 ### todo
 
+- **US-NFE-072** — ICMS-ST e DIFAL chegam à NF-e da venda interestadual — **Legal** _(`p0` · sprint —)_
 - **US-NFE-042** — Discovery técnico instalação Gold Comunicação Visual _(`p1` · @wagner · sprint Gold-Reativacao)_
 - **US-NFE-053** — Smoke homologação SEFAZ-SP eventos 210/220 biz=Gold _(`p1` · @wagner · sprint Gold-Reativacao)_
 - **US-NFE-054** — Smoke real homologação SEFAZ-SC biz=1 — 1ª NFC-e cstat 100 (Goal #1 CYCLE-03) _(`p1` · @wagner)_
 - **US-NFE-062** — AuditLog em mutações fiscais NFe (Tributacao, Certificado, Manifestacao) _(`p1` · sprint cycle-04)_
 - **US-NFE-069** — A natureza fiscal do item escolhe a nota: NF-e para mercadoria, NFS-e para serviço e instalação (UC-FLX-31) — **P1** _(`p1` · sprint —)_
 - **US-NFE-071** — Contingência: SVC-AN/SVC-RS, evento EPEC 110140 e marcação no DANFE (UC-FLX-32) — **P1** _(`p1` · sprint —)_
+- **US-NFE-073** — XML do mês enviado ao contador sem ninguém lembrar — **P1** _(`p1` · sprint —)_
 - **US-NFE-074** — Cutover da emissão Delphi → oimpresso, por empresa — **Backlog** _(`p1` · sprint —)_
+- **US-NFE-075** — NF-e com destinatário e CFOP vindos de fora da venda (pedido de marketplace) — **P1** _(`p1` · sprint —)_
 - **US-NFE-055** — Estabilizar 107 tests broken Modules/NfeBrasil aplicando dual-mode SQLite/MySQL _(`p2`)_
 - **US-NFE-056** — Continuação PR #453 — migrar configBusiness(4) → configBusiness(1) em MotorTributarioServiceTest _(`p2`)_
 - **US-NFE-057** — Schema drift — atualizar fixtures DanfeServicePrefersArquivosTest pós-remoção `arquivos.filename` _(`p2`)_
@@ -610,9 +636,11 @@
 
 ### doing
 
+- **US-COM-029** — Compra a partir de pedido não aceita pedido nem linha de outra empresa — **P0** _(`p0`)_
 - **US-COM-024** — Custo do insumo numa data, pelo método da empresa (UC-FLX-38) _(`p1` · @wagner)_
 - **US-COM-026** — Compra recebida aplica a regra de custo e preço (UC-FLX-17) _(`p1` · @wagner)_
 - **US-COM-028** — Aprovar ou recusar o preço proposto no detalhe da compra (UC-FLX-17) — **P1** _(`p1` · @wagner)_
+- **US-COM-034** — Inspeção de qualidade no recebimento da compra — **P2** _(`p2`)_
 
 ### todo
 
@@ -644,6 +672,41 @@
 
 - **US-COM-017** — ~~PiiRedactor no Drawer de compra~~ → RETIRADA (2026-07-03)
 
+## Fiscal
+
+
+### todo
+
+- **US-FISCAL-021** — IBS/CBS cálculo no MotorTributarioService (Onda 6 — sair do scaffold) _(`p0` · @wagner)_
+- **US-FISCAL-025** — IBS/CBS na NF-e de todo emissor do regime normal — **Legal** _(`p0`)_
+- **US-FISCAL-026** — IBS/CBS na DPS da NFS-e nacional — **Legal** _(`p1`)_
+- **US-FISCAL-024** — IBS/CBS — split UF/Município na régua fiscal (coluna de schema) _(`p2`)_
+- **US-FISCAL-028** — SPED EFD-ICMS/IPI blocos D e K — **P2** _(`p2`)_
+- **US-FISCAL-029** — MDF-e e CT-e no módulo novo — **P2** _(`p2`)_
+- **US-FISCAL-027** — NFS-e em município fora do padrão nacional — **Legal** _(`p3`)_
+- **US-FISCAL-030** — Apuração do DAS e guia GNRE — **P3** _(`p3`)_
+- **US-FISCAL-031** — Split payment (LC 214/2025) e EFD-Reinf — **P3** _(`p3`)_
+- **US-FISCAL-001** — Cockpit NF-e · NFC-e (sub-página 2)
+- **US-FISCAL-002** — Cockpit (sub-página 1) — ✅ PR #2 Wave
+- **US-FISCAL-003** — ⌘K palette cross-fiscal — **backlog PR #3**
+- **US-FISCAL-004** — Ações de mutação — **backlog PR #4**
+- **US-FISCAL-005** — NFS-e (sub-página 3) — ✅ PR #2 Wave
+- **US-FISCAL-006** — Manifesto DF-e (sub-página 4) — **backlog PR #6**
+- **US-FISCAL-007** — Eventos (sub-página 5) — ✅ PR #2 Wave
+- **US-FISCAL-008** — DF-e manifesto (sub-página 4) — ✅ PR #3 Wave
+- **US-FISCAL-009** — Cert/Cfg fiscal (sub-página 6) — ✅ PR #3 Wave
+- **US-FISCAL-010** — SPED & Livros (sub-página 7) — ✅ PR #3 Wave (placeholder)
+- **US-FISCAL-011** — SPED Fiscal complete + PIS/COFINS — **backlog PR #10**
+- **US-FISCAL-012** — Ações mutação NFe + DF-e — ✅ PR #4 Wave
+- **US-FISCAL-013** — CC-e (Carta de Correção) + Inutilização faixa — ✅ PR #5 Wave
+- **US-FISCAL-014** — Retransmitir NFe rejeitada/denegada — ✅ PR #6 Wave
+- **US-FISCAL-015** — ⌘K palette cross-fiscal — ✅ PR #7 Wave
+- **US-FISCAL-016** — Gerador SPED EFD-ICMS/IPI MVP — ✅ PR #8 Wave
+- **US-FISCAL-017** — SPED EFD-ICMS/IPI Bloco E + Bloco H — ✅ PR #9 Wave
+- **US-FISCAL-018** — Habilitar cockpit Fiscal Larissa biz=4 + canary 7d smoke
+- **US-FISCAL-019** — Cache Redis 60s KPIs + anti-DOS palette LIKE — ✅ Onda ESTABILIZAR
+- **US-FISCAL-020** — Integrar MotorTributarioService NfeBrasil — elimina 6 hardcodes Tier-0 SPED — ✅ Onda CONSOLIDAR
+
 ## RecurringBilling
 
 
@@ -652,7 +715,6 @@
 - **US-RB-040** — Cobertura Pest dos 3 drivers de boleto (Inter/C6/Asaas) _(`p0`)_
 - **US-RB-042** — Completar cancelar() C6/Asaas + UI Cancelar título + audit log _(`p0`)_
 - **US-RB-050** — Inter PJ — PIX cobrança imediata (CYCLE-06 G1 wiring Martinho) _(`p0` · @wagner · sprint cycle-06)_
-- **US-RECURRINGBILLING-002** — Escopo 1 — Motor de cobrança recorrente (plans + contracts + invoices + job) _(`p0` · @wagner)_
 - **US-RECURRINGBILLING-003** — Escopo 2 — Boleto impresso via Asaas _(`p0` · @wagner)_
 - **US-RECURRINGBILLING-005** — Cobertura Pest dos 3 drivers de boleto (Inter/C6/Asaas) _(`p0`)_
 - **US-RECURRINGBILLING-007** — Completar cancelar() C6/Asaas + UI Cancelar título + audit log _(`p0`)_
@@ -675,6 +737,7 @@
 - **US-RB-021** — Cobrar via Pix Automático autorizado
 - **US-RB-030** — Configurar régua de inadimplência
 - **US-RB-031** — Disparar régua quando cobrança falha
+- **US-RECURRINGBILLING-002** — Escopo 1 — Motor de cobrança recorrente (plans + contracts + invoices + job)
 
 ## Arquivos
 
@@ -797,6 +860,7 @@
 - **US-CRM-061** — MWART tela Lead Show (drawer cockpit pattern V2 ADR 0110) · **P2** · 12H
 - **US-CRM-062** — MWART CrmDashboard com Recharts · **P2** · 10H
 - **US-CRM-077** — Pattern canon `officeimpresso_codigo` nos 3 importers de contacts (gap ADR 0200) · **P1** · 6H
+- **US-CRM-092** — Funil de vendas em kanban — negócios por etapa (ADR 0441)
 
 ## ComunicacaoVisual
 
@@ -807,6 +871,7 @@
 - **US-COMVIS-021** — Salvar e reabrir o orçamento na calculadora de m² — **P0** _(`p0` · @wagner)_
 - **US-COMVIS-019** — Item do orçamento guarda o custo do material no dia (UC-FLX-33) — **P1** _(`p1` · @wagner)_
 - **US-COMVIS-022** — Custo e margem por peça na calculadora de m² (UC-FLX-03) — **P1** _(`p1` · @wagner)_
+- **US-COMVIS-023** — Cliente aceita o orçamento da gráfica pelo link — **P1** _(`p1`)_
 - **US-COMVIS-001** — Cálculo automático por m² (lona, vinil, banner, fachada) — **P0**
 - **US-COMVIS-002** — Cadastro de material com preço por gramatura — **P0**
 - **US-COMVIS-003** — PCP gráfico — fluxo OS multi-etapa com responsável + prazo + custo — **P0**
@@ -826,40 +891,13 @@
 - **US-COMVIS-017** — Importação massiva de clientes/produtos do legacy OfficeImpresso — **P0**
 - **US-COMVIS-018** — Loja whitelabel pra catálogo público — **P3**
 
-## Fiscal
-
-
-### todo
-
-- **US-FISCAL-021** — IBS/CBS cálculo no MotorTributarioService (Onda 6 — sair do scaffold) _(`p0` · @wagner)_
-- **US-FISCAL-024** — IBS/CBS — split UF/Município na régua fiscal (coluna de schema) _(`p2`)_
-- **US-FISCAL-001** — Cockpit NF-e · NFC-e (sub-página 2)
-- **US-FISCAL-002** — Cockpit (sub-página 1) — ✅ PR #2 Wave
-- **US-FISCAL-003** — ⌘K palette cross-fiscal — **backlog PR #3**
-- **US-FISCAL-004** — Ações de mutação — **backlog PR #4**
-- **US-FISCAL-005** — NFS-e (sub-página 3) — ✅ PR #2 Wave
-- **US-FISCAL-006** — Manifesto DF-e (sub-página 4) — **backlog PR #6**
-- **US-FISCAL-007** — Eventos (sub-página 5) — ✅ PR #2 Wave
-- **US-FISCAL-008** — DF-e manifesto (sub-página 4) — ✅ PR #3 Wave
-- **US-FISCAL-009** — Cert/Cfg fiscal (sub-página 6) — ✅ PR #3 Wave
-- **US-FISCAL-010** — SPED & Livros (sub-página 7) — ✅ PR #3 Wave (placeholder)
-- **US-FISCAL-011** — SPED Fiscal complete + PIS/COFINS — **backlog PR #10**
-- **US-FISCAL-012** — Ações mutação NFe + DF-e — ✅ PR #4 Wave
-- **US-FISCAL-013** — CC-e (Carta de Correção) + Inutilização faixa — ✅ PR #5 Wave
-- **US-FISCAL-014** — Retransmitir NFe rejeitada/denegada — ✅ PR #6 Wave
-- **US-FISCAL-015** — ⌘K palette cross-fiscal — ✅ PR #7 Wave
-- **US-FISCAL-016** — Gerador SPED EFD-ICMS/IPI MVP — ✅ PR #8 Wave
-- **US-FISCAL-017** — SPED EFD-ICMS/IPI Bloco E + Bloco H — ✅ PR #9 Wave
-- **US-FISCAL-018** — Habilitar cockpit Fiscal Larissa biz=4 + canary 7d smoke
-- **US-FISCAL-019** — Cache Redis 60s KPIs + anti-DOS palette LIKE — ✅ Onda ESTABILIZAR
-- **US-FISCAL-020** — Integrar MotorTributarioService NfeBrasil — elimina 6 hardcodes Tier-0 SPED — ✅ Onda CONSOLIDAR
-
 ## Connector
 
 
 ### todo
 
 - **US-CONN-013** — Documentar a API Connector em OpenAPI 3.0 sem expor dados reais _(`p0` · @[F])_
+- **US-CONN-021** — Webhooks de saída assinados por empresa (venda, pedido, cliente, estoque) _(`p1`)_
 - **US-CONN-014** — [EPIC] Migrar a tela Conector (API) de Blade para Inertia (MWART) _(`p2` · @[W])_
 - **US-CONN-016** — F2 — Dual render + feature flag + comando artisan _(`p2` · @[F])_
 - **US-CONN-017** — F2 — Mapa de paridade campo-a-campo _(`p2` · @[F])_
@@ -882,6 +920,36 @@
 ### in_progress
 
 - **US-CONN-015** — F2 — Pest baseline do ClientController antes de tocar _(`p2` · @[F])_
+
+## Vestuario
+
+
+### doing
+
+- **US-VEST-021** — Devolução/troca com prazo CDC + crédito em conta-cliente `p0` _(`p0`)_
+
+### todo
+
+- **US-VEST-022** — Comissão de vendedor (% sobre venda + meta) `p1` _(`p1`)_
+- **US-VEST-023** — Liquidação por categoria/marca/estação (desconto em massa) `p1` _(`p1`)_
+- **US-VEST-024** — Programa fidelidade (R$ [redacted Tier 0] = 1 ponto) com resgate em desconto `p1` _(`p1`)_
+- **US-VEST-029** — Atributo "estação" (verão/inverno/meia-estação/atemporal) `p1` _(`p1`)_
+- **US-VEST-031** — Sugestão de compra por tamanho pela curva de venda `p1` _(`p1`)_
+- **US-VEST-025** — Vale-presente / cartão presente (gift card) `p2` _(`p2`)_
+- **US-VEST-026** — Crediário próprio (layaway / parcelado loja) `p2` _(`p2`)_
+- **US-VEST-032** — Remarcação por coleção, com prévia e reversão `p2` _(`p2`)_
+- **US-VEST-027** — Provador / fila / pré-venda (separação reserva 24h) `p3` _(`p3`)_
+- **US-VEST-028** — Vendas externas (sacoleira / venda direta) `p3` _(`p3`)_
+- **US-VEST-030** — Ecommerce (loja virtual / WhatsApp catálogo) `p3` _(`p3`)_
+- **US-VEST-001** — Cadastro de produto com variações tamanho + cor `live`
+- **US-VEST-002** — Venda balcão (PDV) com leitor de código de barras `live`
+- **US-VEST-003** — Emissão de NFC-e modelo 65 a partir do POS `live (parcial — biz=4 não usa hoje, mas infra existe)`
+- **US-VEST-004** — Histórico de vendas com filtros (cliente, período, vendedor) `live`
+- **US-VEST-005** — Estoque por localização (matriz tamanho × cor × loja) `live`
+- **US-VEST-006** — Compra (purchase) com fornecedor + recebimento `live`
+- **US-VEST-007** — Conta a receber (boleto Asaas) e a pagar `live`
+- **US-VEST-008** — Múltiplos schemes de invoice convivendo (`2026/NNNN` + `17NNN`) `live`
+- **US-VEST-009** — Sidebar/topnav adaptado por monitor 1280px `live`
 
 ## Forja
 
@@ -939,30 +1007,30 @@
 - **US-MWART-010** — Onda 7 — migrar Configurações, admin & documentos e desligar Blade _(`p3`)_
 - **US-MWART-012** — Onda 9 — migrar Acesso & onboarding e remover /login/old _(`p3`)_
 
-## Vestuario
+## Ponto
 
 
 ### todo
 
-- **US-VEST-021** — Devolução/troca com prazo CDC + crédito em conta-cliente `p0` _(`p0`)_
-- **US-VEST-022** — Comissão de vendedor (% sobre venda + meta) `p1` _(`p1`)_
-- **US-VEST-023** — Liquidação por categoria/marca/estação (desconto em massa) `p1` _(`p1`)_
-- **US-VEST-024** — Programa fidelidade (R$ [redacted Tier 0] = 1 ponto) com resgate em desconto `p1` _(`p1`)_
-- **US-VEST-029** — Atributo "estação" (verão/inverno/meia-estação/atemporal) `p1` _(`p1`)_
-- **US-VEST-025** — Vale-presente / cartão presente (gift card) `p2` _(`p2`)_
-- **US-VEST-026** — Crediário próprio (layaway / parcelado loja) `p2` _(`p2`)_
-- **US-VEST-027** — Provador / fila / pré-venda (separação reserva 24h) `p3` _(`p3`)_
-- **US-VEST-028** — Vendas externas (sacoleira / venda direta) `p3` _(`p3`)_
-- **US-VEST-030** — Ecommerce (loja virtual / WhatsApp catálogo) `p3` _(`p3`)_
-- **US-VEST-001** — Cadastro de produto com variações tamanho + cor `live`
-- **US-VEST-002** — Venda balcão (PDV) com leitor de código de barras `live`
-- **US-VEST-003** — Emissão de NFC-e modelo 65 a partir do POS `live (parcial — biz=4 não usa hoje, mas infra existe)`
-- **US-VEST-004** — Histórico de vendas com filtros (cliente, período, vendedor) `live`
-- **US-VEST-005** — Estoque por localização (matriz tamanho × cor × loja) `live`
-- **US-VEST-006** — Compra (purchase) com fornecedor + recebimento `live`
-- **US-VEST-007** — Conta a receber (boleto Asaas) e a pagar `live`
-- **US-VEST-008** — Múltiplos schemes de invoice convivendo (`2026/NNNN` + `17NNN`) `live`
-- **US-VEST-009** — Sidebar/topnav adaptado por monitor 1280px `live`
+- **US-PONTO-014** — Lane required de Ponto vira arvore-menos-quarentena (vermelha no main ha 5 runs; 27 de 38 testes fora da allowlist) _(`p0`)_
+- **US-PONTO-018** — Férias CLT: período aquisitivo, concessivo, dias de direito e alerta de férias vencidas _(`p0`)_
+- **US-PONTO-017** — Presença do dia lida por outro módulo (somente leitura) _(`p1`)_
+- **US-PONTO-019** — Exportação do ponto para folha e contabilidade: Horas Extras, Banco de Horas e Atrasos/Faltas por competência _(`p1`)_
+- **US-PONTO-020** — Ciência do espelho mensal pelo colaborador _(`p1`)_
+- **US-PONTO-016** — Painel de Conformidade CLT da competência (somente leitura) _(`p2`)_
+- **US-PONTO-001** — Relogio web pra registrar entrada/saida (REP-P)
+- **US-PONTO-002** — Marcacao via REP-A (importacao AFD)
+- **US-PONTO-003** — Workflow de intercorrencia (atestado/abono/falta)
+- **US-PONTO-004** — Banco de horas com saldo + creditos/debitos
+- **US-PONTO-005** — Apuracao automatica de jornada (Art. 66 + 71 CLT)
+- **US-PONTO-006** — Geracao AFD legacy pra fiscalizacao MTE (REP-A INMETRO)
+- **US-PONTO-007** — Multi-tenant isolation (Tier 0 IRREVOGAVEL)
+- **US-PONTO-008** — Imutabilidade append-only (Portaria 671/2021)
+- **US-PONTO-009** — Geracao AEJ canon Portaria 671/2021 Anexo VI (CRITICO REGULATORIO)
+- **US-PONTO-010** — Comprovante PDF QR Code (Anexo I §5.5 Portaria 671)
+- **US-PONTO-011** — Fechar o append-only do ledger de banco de horas
+- **US-PONTO-012** — Corrigir os atributos fantasma do modulo (4 instancias)
+- **US-PONTO-013** — Consertar as duas telas que nao persistem
 
 ## Officeimpresso
 
@@ -986,29 +1054,6 @@
 - **US-OI-015** — F3: tela `Empresas/Index` (Empresas Licenciadas) em PT-01
 - **US-OI-016** — F4: QA da `Empresas/Index` — os itens `alta` viram teste
 - **US-OI-017** — F5: cutover das 3 telas da Onda 2 e sunset dos Blades
-
-## Ponto
-
-
-### todo
-
-- **US-PONTO-014** — Lane required de Ponto vira arvore-menos-quarentena (vermelha no main ha 5 runs; 27 de 38 testes fora da allowlist) _(`p0`)_
-- **US-PONTO-018** — Férias CLT: período aquisitivo, concessivo, dias de direito e alerta de férias vencidas _(`p0`)_
-- **US-PONTO-017** — Presença do dia lida por outro módulo (somente leitura) _(`p1`)_
-- **US-PONTO-016** — Painel de Conformidade CLT da competência (somente leitura) _(`p2`)_
-- **US-PONTO-001** — Relogio web pra registrar entrada/saida (REP-P)
-- **US-PONTO-002** — Marcacao via REP-A (importacao AFD)
-- **US-PONTO-003** — Workflow de intercorrencia (atestado/abono/falta)
-- **US-PONTO-004** — Banco de horas com saldo + creditos/debitos
-- **US-PONTO-005** — Apuracao automatica de jornada (Art. 66 + 71 CLT)
-- **US-PONTO-006** — Geracao AFD legacy pra fiscalizacao MTE (REP-A INMETRO)
-- **US-PONTO-007** — Multi-tenant isolation (Tier 0 IRREVOGAVEL)
-- **US-PONTO-008** — Imutabilidade append-only (Portaria 671/2021)
-- **US-PONTO-009** — Geracao AEJ canon Portaria 671/2021 Anexo VI (CRITICO REGULATORIO)
-- **US-PONTO-010** — Comprovante PDF QR Code (Anexo I §5.5 Portaria 671)
-- **US-PONTO-011** — Fechar o append-only do ledger de banco de horas
-- **US-PONTO-012** — Corrigir os atributos fantasma do modulo (4 instancias)
-- **US-PONTO-013** — Consertar as duas telas que nao persistem
 
 ## Accounting
 
@@ -1172,6 +1217,7 @@
 
 ### todo
 
+- **US-SUPER-012** — Onboarding guiado da empresa nova e ajuda dentro do sistema _(`p2`)_
 - **US-SUPER-001** — Listagem e CRUD de Businesses
 - **US-SUPER-002** — Gestão de Packages (planos comerciais)
 - **US-SUPER-003** — Subscriptions (cobrança recorrente)
@@ -1183,6 +1229,23 @@
 - **US-SUPER-009** — Pricing público (`/pricing`)
 - **US-SUPER-010** — Usuario 360 (visão consolidada do cliente)
 - **US-SUPER-011** — Visão geral da plataforma (`/superadmin`)
+
+## Produto
+
+
+### todo
+
+- **US-PROD-020** — [G-04] Governança do Produto: casos.md + revisar SPEC _(`p0` · @wagner)_
+- **US-PROD-021** — [G-01] Kardex real na tela React StockHistory (deixar de linkar Blade) _(`p0` · @wagner)_
+- **US-PROD-022** — [G-02] ⚠️Tier0 · Multiplicador/markup por tabela de preço (SellingPriceGroup.mult) _(`p1` · @wagner)_
+- **US-PROD-023** — [G-05] Finalizar + promover as **6 telas React não-cadastrais** do Produto (draft→live) + ligar a Consulta na navegação _(`p1` · @wagner)_
+- **US-PROD-027** — [V0] Travar o acidente do 0-row: preço zero em tabela é inerte só por sorte do PHP _(`p1` · @wagner)_
+- **US-PROD-031** — Importar produtos exportados do Bling, Tiny ou Omie sem montar planilha _(`p1`)_
+- **US-PROD-024** — [G-03] ⚠️Tier0 · Custo médio + valor/custo em estoque — SPIKE de descoberta primeiro _(`p2` · @wagner)_
+- **US-PROD-025** — [G-06] UI de BOM drag-drop + baixa-de-componente do kit no PDV _(`p2` · @wagner)_
+- **US-PROD-029** — Cadastro de produto em ROTA PARALELA (o `ProductController` da Larissa não é tocado) _(`p2` · @felipe)_
+- **US-PROD-030** — ⚠️Tier0 · Política de preço por produto: atualizar a cada custo novo OU manter o preço _(`p2` · @wagner)_
+- **US-PROD-026** — Fornecedores/cotação por produto (melhor preço no drawer) _(`p3` · @wagner)_
 
 ## Cms
 
@@ -1199,22 +1262,6 @@
 - **US-CMS-008** — Autenticação social no landing
 - **US-CMS-009** — Importer WordPress (XML/REST API)
 - **US-CMS-010** — Editor visual drag-drop (page builder)
-
-## Produto
-
-
-### todo
-
-- **US-PROD-020** — [G-04] Governança do Produto: casos.md + revisar SPEC _(`p0` · @wagner)_
-- **US-PROD-021** — [G-01] Kardex real na tela React StockHistory (deixar de linkar Blade) _(`p0` · @wagner)_
-- **US-PROD-022** — [G-02] ⚠️Tier0 · Multiplicador/markup por tabela de preço (SellingPriceGroup.mult) _(`p1` · @wagner)_
-- **US-PROD-023** — [G-05] Finalizar + promover as **6 telas React não-cadastrais** do Produto (draft→live) + ligar a Consulta na navegação _(`p1` · @wagner)_
-- **US-PROD-027** — [V0] Travar o acidente do 0-row: preço zero em tabela é inerte só por sorte do PHP _(`p1` · @wagner)_
-- **US-PROD-024** — [G-03] ⚠️Tier0 · Custo médio + valor/custo em estoque — SPIKE de descoberta primeiro _(`p2` · @wagner)_
-- **US-PROD-025** — [G-06] UI de BOM drag-drop + baixa-de-componente do kit no PDV _(`p2` · @wagner)_
-- **US-PROD-029** — Cadastro de produto em ROTA PARALELA (o `ProductController` da Larissa não é tocado) _(`p2` · @felipe)_
-- **US-PROD-030** — ⚠️Tier0 · Política de preço por produto: atualizar a cada custo novo OU manter o preço _(`p2` · @wagner)_
-- **US-PROD-026** — Fornecedores/cotação por produto (melhor preço no drawer) _(`p3` · @wagner)_
 
 ## Cliente
 
@@ -1280,6 +1327,20 @@
 - **US-MANU-007** — Formulário de ordem de produção
 - **US-MANU-008** — Rotas legadas só tocam dado da própria empresa
 
+## Woocommerce
+
+
+### todo
+
+- **US-WOO-007** — Estoque do ERP volta para a loja WooCommerce sozinho quando muda _(`p1`)_
+- **US-WOO-008** — Contrato do WooCommerce 8/9 na API REST v3 (pedido e produto) _(`p1`)_
+- **US-WOO-001** — Configurar credenciais API (consumer key/secret + URL)
+- **US-WOO-002** — Sync de produtos (oimpresso → WooCommerce)
+- **US-WOO-003** — Sync de categorias e tax rates
+- **US-WOO-004** — Visualizar sync log + diagnóstico
+- **US-WOO-005** — Webhook: pedido criado na Woo → venda no oimpresso
+- **US-WOO-006** — Webhook: pedido atualizado na Woo → atualizar no oimpresso
+
 ## EvolutionAgent
 
 
@@ -1329,18 +1390,6 @@
 - **US-SRS-004** — Search hybrid (FULLTEXT + chat)
 - **US-SRS-005** — Audit log SRS (validation runs)
 - **US-SRS-006** — Memcofre legacy prefix (compat layer)
-
-## Woocommerce
-
-
-### todo
-
-- **US-WOO-001** — Configurar credenciais API (consumer key/secret + URL)
-- **US-WOO-002** — Sync de produtos (oimpresso → WooCommerce)
-- **US-WOO-003** — Sync de categorias e tax rates
-- **US-WOO-004** — Visualizar sync log + diagnóstico
-- **US-WOO-005** — Webhook: pedido criado na Woo → venda no oimpresso
-- **US-WOO-006** — Webhook: pedido atualizado na Woo → atualizar no oimpresso
 
 ## LaravelAI
 
@@ -1394,6 +1443,18 @@
 - **US-DASH-002** — Charts ECharts em Inertia (backlog F1→F4 wave)
 - **US-DASH-003** — Widget registry pluggable em React (backlog ADR nova)
 
+## Estoque
+
+
+### doing
+
+- **US-ESTOQUE-002** — Contagem de inventário: abrir, contar com coletor, ver divergência e aprovar o ajuste _(`p0` · @wagner)_
+
+### todo
+
+- **US-ESTOQUE-001** — Toda transferência cai pendente na requisição e só move o estoque quando aprovada _(`p2` · @wagner)_
+- **US-ESTOQUE-003** — Sugestão de reposição e curva ABC por produto _(`p2` · @wagner)_
+
 ## VozDoCliente
 
 
@@ -1435,6 +1496,17 @@
 - **US-MEMORIAAUTONOMA-001** — MEM-MIGRACAO Auto-mem → git/MCP (22 candidatos pós-consolidação 2026-05-10) _(`p2` · @wagner)_
 - **US-MEMORIAAUTONOMA-002** — MEM-VERIFICAR 8 pendências stale detectadas pós-consolidação 2026-05-10 _(`p3` · @wagner)_
 
+## Relatorios
+
+
+### doing
+
+- **US-REL-002** — Os relatórios prontos do núcleo abrem em React pelo menu _(`p2` · @wagner)_
+
+### todo
+
+- **US-REL-001** — Relatório montável pelo usuário, salvo e enviado por agenda _(`p2`)_
+
 ## Admin
 
 
@@ -1449,12 +1521,12 @@
 
 - **US-AUDIT-009** — Pages Inertia Index + Detail `parcial`
 
-## Estoque
+## Backup
 
 
 ### todo
 
-- **US-ESTOQUE-001** — Toda transferência cai pendente na requisição e só move o estoque quando aprovada _(`p2` · @wagner)_
+- **US-BKP-001** — A empresa exporta os próprios dados num arquivo _(`p2`)_
 
 ## Mcp
 

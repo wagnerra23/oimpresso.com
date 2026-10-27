@@ -338,6 +338,8 @@ class SellPosController extends Controller
                     'editPrice'    => $edit_price,
                 ],
                 'posSettings'          => $pos_settings,
+                // US-SELL-079 — resgate de pontos de fidelidade (null = escondido).
+                'pontosFidelidade'     => \App\Services\Sells\ResgatePontosFidelidade::propsDaTela((int) $business_id),
                 'subType'              => $sub_type,
                 // Reparo como tipo de venda (UC-S05): as opções que o POS Blade já monta via
                 // getModuleData('get_pos_screen_view') e o React descartava. Sem query nova.
@@ -572,6 +574,14 @@ class SellPosController extends Controller
                 ];
                 $invoice_total = $this->productUtil->calculateInvoiceTotal($input['products'], $input['tax_rate_id'], $discount);
 
+                // US-SELL-079 — resgate de pontos: o servidor confere pontos e valor (antes só o JS da Blade conferia).
+                $resgate = app(\App\Services\Sells\ResgatePontosFidelidade::class)->conferir(
+                    (int) $business_id, isset($input['contact_id']) ? (int) $input['contact_id'] : null,
+                    $input['rp_redeemed'] ?? 0, $input['rp_redeemed_amount'] ?? 0, (float) ($invoice_total['final_total'] ?? 0),
+                );
+                $input['rp_redeemed'] = $resgate['pontos'];
+                $input['rp_redeemed_amount'] = $resgate['valor'];
+
                 DB::beginTransaction();
 
                 // R9 (2026-05-28) — diagnóstico drift +2h47 Larissa session log
@@ -730,6 +740,10 @@ class SellPosController extends Controller
                 Media::uploadMedia($business_id, $transaction, $request, 'shipping_documents', false, 'shipping_document');
 
                 $this->transactionUtil->createOrUpdateSellLines($transaction, $input['products'], $input['location_id']);
+
+                // US-SELL-078 ([W] 2026-10-26): o total já traz o ICMS-ST que a tela mostrou;
+                // recalcula pela mesma conta da NF-e e recusa se divergir (a transação volta).
+                app(\App\Services\Sells\IcmsStDaVenda::class)->conferirEGravar($transaction, (string) $request->input('icms_st_valor', '0'));
 
                 $change_return['amount'] = $input['change_return'] ?? 0;
                 $change_return['is_return'] = 1;
@@ -897,7 +911,13 @@ class SellPosController extends Controller
                 // Variação do produto que falhou → o frontend contorna a linha.
                 $itemVariationId = $e->variationId;
             }
+            if ($e instanceof \App\Services\Sells\ResgatePontosException) {
+                $msg = $e->getMessage();
+            }
             if ($e instanceof \App\Exceptions\AdvanceBalanceNotAvailable) {
+                $msg = $e->getMessage();
+            }
+            if ($e instanceof \App\Services\Sells\IcmsStDivergenteException) {
                 $msg = $e->getMessage();
             }
 
@@ -1739,6 +1759,11 @@ class SellPosController extends Controller
                 //Update Sell lines
                 $deleted_lines = $this->transactionUtil->createOrUpdateSellLines($transaction, $input['products'], $input['location_id'], true, $status_before);
 
+                // US-SELL-078: a edição mantém o ST de antes quando a tela não manda outro; se as
+                // linhas mudaram o ST, a gravação é recusada com o valor certo (a edição ainda não
+                // mostra o ST).
+                app(\App\Services\Sells\IcmsStDaVenda::class)->conferirEGravar($transaction, (string) $request->input('icms_st_valor', (string) ($transaction->getOriginal('icms_st_valor') ?? '0')));
+
                 //Update update lines
                 $is_credit_sale = isset($input['is_credit_sale']) && $input['is_credit_sale'] == 1 ? true : false;
 
@@ -1863,7 +1888,8 @@ class SellPosController extends Controller
             \Log::emergency('File:' . $e->getFile() . 'Line:' . $e->getLine() . 'Message:' . $e->getMessage());
             $output = ['success' => 0,
                 // UC-DRAFT-05: a recusa por margem diz ao vendedor o que fazer.
-                'msg' => $e instanceof \App\Exceptions\MargemAbaixoDoMinimo ? $e->getMessage() : __('messages.something_went_wrong'),
+                'msg' => ($e instanceof \App\Exceptions\MargemAbaixoDoMinimo || $e instanceof \App\Services\Sells\IcmsStDivergenteException)
+                    ? $e->getMessage() : __('messages.something_went_wrong'),
             ];
         }
 
