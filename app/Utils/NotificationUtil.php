@@ -92,7 +92,10 @@ class NotificationUtil extends Util
                     $data['mobile_number'] = $contact->mobile;
                     if (! empty($contact->mobile)) {
                         $pelaApi = $this->enviarWhatsappPelaApi($business_id, $notification_type, $contact, (string) $data['whatsapp_text']);
-                        if ($pelaApi === ResultadoNotificacao::Enviado) {
+                        // `null` primeiro: sem o módulo Whatsapp, ler `ResultadoNotificacao::...` seria erro fatal.
+                        if ($pelaApi === null) {
+                            $whatsapp_link = $this->getWhatsappNotificationLink($data);
+                        } elseif ($pelaApi === ResultadoNotificacao::Enviado) {
                             $this->activityLog($transaction, 'whatsapp_notification_sent', null, [], false, $business_id);
                         } elseif ($pelaApi !== ResultadoNotificacao::RecusouWhatsapp) {
                             // Sem envio pela API (flag desligada, sem número, etc.): segue o link manual de sempre.
