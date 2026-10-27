@@ -6,8 +6,8 @@ type: sdd
 module: Produto
 status: ativo
 owner: wagner
-version: 1.0.15
-last_updated: 2026-10-22
+version: 1.0.16
+last_updated: 2026-10-27
 related_docs:
   - SPEC.md
   - BRIEFING.md
@@ -694,10 +694,35 @@ A lista Blade (`resources/views/product/partials/product_list.blade.php`, todas 
    do produto (`store`/`update`/`saveQuickProduct`), não deste fluxo, e nenhum teste o exercita.
    Paridade em aberto: o legado tem **dois** limiares (`AR-PROD-053`, Estoque Máx. **e** Mín.); o
    oimpresso tem um (`alert_quantity`).
-   - ✅ **O mínimo já gera requisição de compra** (US-COM-027 · UC-FLX-19, pronta): um job diário,
-     ligado pela empresa em Fluxos, põe numa requisição do local o item com saldo abaixo de
-     `alert_quantity`, com quantidade = mínimo − saldo, o fornecedor e o preço da última compra.
-     Desligado por padrão.
+   - ✅ **O mínimo já aparece para o comprador** (US-COM-030, #9878, 2026-10-27): a tela de
+     requisições de compra mostra a lista **Necessidade de compra**, com o item abaixo do mínimo,
+     quanto comprar (reservado pelas OS + mínimo − saldo − a caminho), o fornecedor da última compra
+     e até quando pedir. Só na tela React de requisições, que é ligada por empresa
+     (`useV2ComprasRequisicoes`).
+   - 🔴 **Falta a ação do comprador** (comentário do [W] em 2026-10-27): a lista só mostra. Gerar
+     dali a requisição ou a cotação do item ainda não existe, e a cotação é a US-COM-031, pendente.
+     Hoje o comprador cria a requisição pela tela de criar, que já lista os itens no alerta
+     (`PurchaseRequisitionController::getRequisitionProducts`).
+   - ✅ **Requisição automática, opcional** (US-COM-027 · UC-FLX-19): um job diário, ligado pela
+     empresa em Fluxos, põe numa requisição do local o item com saldo abaixo de `alert_quantity`,
+     com quantidade = mínimo − saldo, o fornecedor e o preço da última compra. Desligado por
+     padrão. A requisição cai na lista de requisições, e o comprador a transforma em pedido.
+   - 🔶 **Como calcular o mínimo** (comentário do [W] em 2026-10-27): mínimo = consumo médio por
+     dia × prazo total de reposição em dias, com prazo total = cotação + solicitação/aprovação +
+     compra + entrega do fornecedor. Exemplo do [W]: Lona 440g, 2 m por dia e 5 dias de reposição
+     dão 10 m. Proposta, decisão [W]/[M]: somar uma margem de segurança em dias, porque com 10 m um
+     dia de consumo maior ou de atraso do fornecedor já deixa faltar lona (com 2 dias de margem, a
+     lona fica com 14 m). O sistema sugere o mínimo e a pessoa confirma, porque mexe em estoque e
+     compra.
+   - ⚠️ **O que falta para o sistema sugerir o mínimo** (medido no código em 2026-10-27): o prazo do
+     fornecedor tem tabela (`compras_prazo_fornecedor`, #9878), mas nenhuma tela grava nela; os
+     prazos internos (cotação, aprovação) não têm onde ficar; e o consumo médio não é calculado em
+     lugar nenhum. O giro do #9983 (rascunho, US-ESTOQUE-003) conta só as vendas, e insumo como a
+     lona é gasto na produção: o consumo precisa contar também a baixa de insumo das OS.
+   - ⚠️ **Conflito com o "Pedir até" do MRP:** para item sem OS, o MRP calcula pedir até = hoje −
+     prazo do fornecedor e marca **Atrasado** assim que o item tem prazo cadastrado
+     (`NecessidadeDeCompra::linha`). Se o mínimo já inclui o prazo de reposição, chegar ao mínimo
+     quer dizer "pedir hoje", não "atrasado". Ainda não aparece, porque nenhuma tela cadastra prazo.
    - 🎨 **No protótipo (2026-10-22):** "Quantidade de alerta" passa a se chamar **Estoque mínimo**
      (mesmo campo).
    - **Decidido pela [M] em 2026-10-22: não há "Estoque máximo".** A requisição automática segue a
@@ -1263,6 +1288,7 @@ cadastro pede os dados da nota certa: NCM para mercadoria, item da LC 116 para s
 
 **Histórico:**
 
+- 2026-10-27 — **Estoque mínimo: o comprador e o cálculo** (v1.0.16), a partir do comentário do [W] no #9930: `CU-PROD-04` item 2 passa a dizer que o item abaixo do mínimo já aparece na lista Necessidade de compra (US-COM-030, #9878), que falta gerar a requisição ou a cotação dali (US-COM-031), e como calcular o mínimo (consumo médio × prazo total de reposição, com margem de segurança proposta). Registra o que falta para o sistema sugerir o mínimo e o conflito com o "Pedir até" do MRP. Texto sobreposto com autorização da [M]. [F+C]
 - 2026-10-22 — **Decisões da [M] sobre as pendências de fluxo** (v1.0.15): sem "Estoque máximo"; a requisição segue até o mínimo (`CU-PROD-04` item 2). Natureza uma por produto, mantendo a D-NATUREZA do [W] (`CU-PROD-19`). Roteiro de produção segue a ADR 0436 do [W] (item 3): sem roteiro no produto, a OS usa as etapas de produção do modelo da empresa; o protótipo mostra isso no card Produção. ⚠️ Ainda não funciona: a OS por item (US-PCP-026, #9641) não tem esse padrão, e hoje produto sem roteiro não vira OS (`UC-PCROT-02`). [M+C]
 - 2026-10-22 — **Três pendências das regras de fluxo registradas** (v1.0.14): natureza "a decidir" no Novo produto (`CU-PROD-19` item 3, proposta; trava a NFS-e da venda até o contador decidir), item da LC 116 do produto na NFS-e (`CU-PROD-19` item 4, corrigido: já funciona desde o #9727) e estoque mínimo e máximo (`CU-PROD-04` item 2; a requisição pelo mínimo já existe na US-COM-027, o máximo é proposta). [M+C]
 - 2026-10-21 — **`CU-PROD-18` ganha o aviso de EAN** (v1.0.10): `UC-PCAD-17` e `UC-PEDIT-15`. O aviso protege a etiqueta; a nota fiscal não usa o EAN hoje. [M+C]
