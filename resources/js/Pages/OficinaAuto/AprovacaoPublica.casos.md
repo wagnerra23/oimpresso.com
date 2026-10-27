@@ -123,20 +123,32 @@ related_cu: [CU-OFI-12, CU-OFI-15]
 > Prova: `Modules/OficinaAuto/Tests/Feature/PagarPeloLinkContratoTest.php` (lane `PHP / Pest (Sells · MySQL)`).
 
 ## UC-OAPAG-01 · Depois de aprovada, o mesmo link mostra o valor em aberto
+- **Persona:** cliente da oficina abrindo o link da aprovação depois que o carro ficou pronto.
 - **Aceite:** Dada a OS aprovada e pronta, com venda e título a receber parcial de 90,00 · Quando o cliente abre o mesmo link · Então a OS é reconhecida para pagar (aprovar/recusar seguem só em orçamento) e o valor em aberto é 90,00.
-- **Status: 🧪**
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/PagarPeloLinkContratoTest.php` — `UC-OAPAG-01 · depois de aprovada, o mesmo link identifica a OS e mostra o valor em aberto da venda`.
+- **Regressão que defende:** decisão [W] 2026-10-27 opção (a): o botão aparece quando a OS fica pronta e a venda tem título em aberto.
+- **Status: ⬜** — não verificado: CT 100 fora do ar, aguarda a lane `sells-pest` do CI.
 
 ## UC-OAPAG-02 · Título que não está em aberto, ou de outra empresa, não aparece `[T0]`
+- **Persona:** cliente da empresa 98; a 99 é a adversária.
 - **Aceite:** Títulos quitado, cancelado, com valor em aberto zero, de outra empresa com o mesmo id de venda, ou OS sem venda · Então não há o que pagar.
-- **Status: 🧪**
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/PagarPeloLinkContratoTest.php` — `UC-OAPAG-02 · título quitado, cancelado, zerado ou de outra empresa não aparece `[T0]``.
+- **Regressão que defende:** ADR 0093 e cobrança de título já pago.
+- **Status: ⬜** — não verificado: CT 100 fora do ar, aguarda a lane `sells-pest` do CI.
 
 ## UC-OAPAG-03 · Pagar manda para a página de pagamento do Financeiro
+- **Persona:** cliente clicando em "Pagar agora".
 - **Aceite:** Ligado e com título de 150,00 em aberto · Quando o cliente pede para pagar · Então é redirecionado para `/pagar/{token}`, nasce um link para aquele título e o título não muda.
-- **Status: 🧪**
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/PagarPeloLinkContratoTest.php` — `UC-OAPAG-03 · pagar gera o link do Financeiro para o título e manda o cliente para /pagar/{token}`.
+- **Regressão que defende:** link de pagamento paralelo ao do Financeiro (US-FIN-081) e valor recalculado fora do título.
+- **Status: ⬜** — não verificado: CT 100 fora do ar, aguarda a lane `sells-pest` do CI.
 
 ## UC-OAPAG-04 · Desligado não aparece; sem valor em aberto não gera link
+- **Persona:** dono da oficina antes de ligar o recurso.
 - **Aceite:** Desligado, `POST …/pagar` dá 404 · Ligado e sem título em aberto, volta para a página da aprovação e nenhum link é criado.
-- **Status: 🧪**
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/PagarPeloLinkContratoTest.php` — `UC-OAPAG-04 · desligado, pagar dá 404; sem título em aberto, volta para a página sem gerar link`.
+- **Regressão que defende:** feature nova ligada sem decisão [W] e link gerado sem valor a pagar.
+- **Status: ⬜** — não verificado: CT 100 fora do ar, aguarda a lane `sells-pest` do CI.
 
 ## Backlog (prosa honesta — vira UC quando ganhar teste que o cite)
 
