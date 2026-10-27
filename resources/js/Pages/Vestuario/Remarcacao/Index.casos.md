@@ -26,20 +26,26 @@ last_run_ci: "0 UC executado na lane — nasce neste PR"
 | UC-VREM-07 | prévia → gravar → etiquetas do lote; etiquetas de lote alheio dão 404 | must `[T0]` | US-VEST-032 | `RemarcacaoTelaContratoTest` |
 
 ## UC-VREM-05 · Desligada por padrão
+- **Persona:** empresa que ainda não ligou a remarcação.
 - **Aceite:** Dado uma empresa sem `remarcacao.enabled` · Quando abre `/vestuario/remarcacao` ou
   chama a prévia · Então recebe 404 e nada é calculado.
 - **Teste:** `Modules/Vestuario/Tests/Feature/RemarcacaoTelaContratoTest.php`
-- **Status: 🧪**
+- **Regressão que defende:** tela ou endpoint de remarcação acessível com o setting desligado.
+- **Status: ⬜** (não verificado — nasce neste PR; roda na lane `verticais-pest`)
 
 ## UC-VREM-06 · Ligada, só com permissão, só dados da empresa `[T0]`
+- **Persona:** quem cuida dos preços da loja e tem permissão de editar produto.
 - **Aceite:** Dado o setting ligado · Quando quem tem `product.update` abre a tela · Então recebe a
   página com categorias e marcas da própria empresa (nenhuma de outra). Sem a permissão, 403.
 - **Teste:** `Modules/Vestuario/Tests/Feature/RemarcacaoTelaContratoTest.php`
-- **Status: 🧪**
+- **Regressão que defende:** tela aberta sem permissão de editar produto, ou listando categoria/marca de outra empresa.
+- **Status: ⬜** (não verificado — nasce neste PR; roda na lane `verticais-pest`)
 
 ## UC-VREM-07 · Do filtro às etiquetas `[T0]`
+- **Persona:** quem remarca e precisa reimprimir as etiquetas das peças remarcadas.
 - **Aceite:** Dado o setting ligado · Quando pede a prévia, grava com a assinatura dela e pede as
   etiquetas do lote · Então recebe os itens com o preço novo no formato de `lote/pdf`. Pedir as
   etiquetas (ou reverter) um lote de outra empresa dá 404/422 e não muda preço.
 - **Teste:** `Modules/Vestuario/Tests/Feature/RemarcacaoTelaContratoTest.php`
-- **Status: 🧪**
+- **Regressão que defende:** etiqueta ou reversão de lote de outra empresa, ou etiqueta saindo com o preço antigo.
+- **Status: ⬜** (não verificado — nasce neste PR; roda na lane `verticais-pest`)
