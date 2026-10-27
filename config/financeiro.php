@@ -62,4 +62,12 @@ return [
         'force_mock'       => env('PLUGGY_FORCE_MOCK', false),
     ],
 
+    /*
+    | Extrato dos bancos além do Inter (US-FIN-082). Desligado por padrão.
+    | ofx_por_conta: importar OFX direto no extrato da conta (fin_extrato_lancamentos).
+    */
+    'extrato_bancos' => [
+        'ofx_por_conta' => env('FINANCEIRO_EXTRATO_OFX_CONTA', false),
+    ],
+
 ];
