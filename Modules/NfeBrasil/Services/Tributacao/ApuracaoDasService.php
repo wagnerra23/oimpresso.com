@@ -73,7 +73,7 @@ final class ApuracaoDasService
         $rbtCent = (int) round($rbt12 * 100);
         $recCent = (int) round($receitaMes * 100);
         $base = [
-            'anexo' => $anexo, 'rbt12' => $rbtCent / 100, 'receita_mes' => $recCent / 100,
+            'anexo' => $anexo, 'rbt12' => $rbtCent / 100.0, 'receita_mes' => $recCent / 100.0,
             'faixa' => null, 'aliquota_nominal' => null, 'parcela_deduzir' => null,
             'aliquota_efetiva' => null, 'das' => null, 'acima_sublimite' => $rbtCent > self::SUBLIMITE_CENT,
             'motivo' => null,
@@ -83,7 +83,7 @@ final class ApuracaoDasService
             return ['motivo' => 'sem RBT12: início de atividade usa a receita proporcional (art. 18 §2º) — confirmar com o contador'] + $base;
         }
         if ($rbtCent > self::TETO_CENT) {
-            return ['motivo' => 'RBT12 acima de R$ 4,8 milhões: fora do Simples (art. 3º, II)'] + $base;
+            return ['motivo' => 'RBT12 acima do teto de 4,8 milhões: fora do Simples (art. 3º, II)'] + $base;
         }
 
         foreach (self::ANEXOS[$anexo] as $i => [$limite, $aliqCentPp, $pd]) {
