@@ -85,7 +85,7 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         Route::post('/unificado/{tituloId}/boleto', [UnificadoController::class, 'emitirBoletoTitulo'])
             ->whereNumber('tituloId')
             ->name('unificado.emitir-boleto');
-        // US-FIN-078 — link público para o cliente pagar o título (flag FINANCEIRO_LINK_PAGAMENTO_ENABLED).
+        // US-FIN-081 — link público para o cliente pagar o título (flag FINANCEIRO_LINK_PAGAMENTO_ENABLED).
         Route::post('/unificado/{tituloId}/link-pagamento', [UnificadoController::class, 'gerarLinkPagamento'])
             ->whereNumber('tituloId')
             ->name('unificado.link-pagamento');
@@ -351,7 +351,7 @@ Route::middleware(['web'])
             ->name('dashboard');
     });
 
-// ── US-FIN-078 · página pública para o cliente pagar o título (sem login) ──
+// ── US-FIN-081 · página pública para o cliente pagar o título (sem login) ──
 // A empresa vem do token (só o sha256 fica no banco), nunca da URL. Throttle 30/min/IP contra
 // varredura de token; `web` dá sessão + CSRF ao formulário. Flag desligada = 404 (no controller).
 Route::middleware(['web', 'throttle:30,1'])

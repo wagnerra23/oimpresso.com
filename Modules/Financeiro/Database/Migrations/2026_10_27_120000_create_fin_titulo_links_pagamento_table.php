@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * US-FIN-078 — link para o cliente pagar um título a receber.
+ * US-FIN-081 — link para o cliente pagar um título a receber.
  *
  * Uma linha por link gerado. Só o sha256 do token fica no banco; o token sai uma vez, para o
  * operador mandar ao cliente. Gerar outro link do mesmo título fecha o anterior adiantando

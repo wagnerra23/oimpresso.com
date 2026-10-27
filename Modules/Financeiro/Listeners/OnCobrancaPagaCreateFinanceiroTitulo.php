@@ -44,7 +44,7 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
     public function handle(CobrancaPaga $event): void
     {
         if ($event->businessId !== (int) config('app.saas_owner_business_id')) {
-            // US-FIN-078: fora da empresa dona do SaaS, só o título que tem link de pagamento recebe
+            // US-FIN-081: fora da empresa dona do SaaS, só o título que tem link de pagamento recebe
             // baixa — e só com a flag ligada. Desligada, nada muda em relação a antes.
             $this->baixarTituloComLink($event);
 
@@ -148,7 +148,7 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
     }
 
     /**
-     * US-FIN-078 — baixa fora da empresa dona do SaaS, restrita ao título que tem link de pagamento.
+     * US-FIN-081 — baixa fora da empresa dona do SaaS, restrita ao título que tem link de pagamento.
      *
      * Só com `financeiro.link_pagamento.enabled`; a cobrança é conferida pelo business_id do evento
      * e precisa ter nascido do próprio título. O resto é o mesmo caminho da empresa dona.

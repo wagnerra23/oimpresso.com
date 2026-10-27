@@ -15,7 +15,7 @@ use Modules\PaymentGateway\Contracts\PaymentGatewayContract;
 use Modules\PaymentGateway\Dto\EmitirCobrancaInput;
 
 /**
- * Link para o cliente pagar um título a receber (US-FIN-078).
+ * Link para o cliente pagar um título a receber (US-FIN-081).
  *
  * Gerar: o operador pede o link de um título a receber aberto ou parcial. Sai um token aleatório;
  * só o sha256 fica em `fin_titulo_links_pagamento`, válido por `dias_validade` dias. Gerar outro

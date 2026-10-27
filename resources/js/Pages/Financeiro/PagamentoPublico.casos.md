@@ -1,18 +1,18 @@
 ---
 id: resources-js-pages-financeiro-pagamento-publico-casos
 casos: Pagamento público do título · /pagar/{token}
-irmaos: PagamentoPublico.charter.md (lei) · PagamentoPublico.tsx (código) · ../../../../memory/requisitos/Financeiro/SPEC.md (US-FIN-078)
+irmaos: PagamentoPublico.charter.md (lei) · PagamentoPublico.tsx (código) · ../../../../memory/requisitos/Financeiro/SPEC.md (US-FIN-081)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: o link é o único ponto em que alguém de fora paga um título sem login; o que ele mostra, o valor que cobra e a baixa que gera não podem mudar sem querer.
 owner: wagner
 last_run: "2026-10-27"
 last_run_ci: "0 UC executado na lane — trio nasce neste PR; o veredito sai da lane financeiro-pest do PR"
-related_us: [US-FIN-078]
+related_us: [US-FIN-081]
 ---
 
 # Casos de Uso & Aceite — Pagamento público do título (`/pagar/{token}`)
 
-> Os UC derivam da US-FIN-078 do [SPEC](../../../../memory/requisitos/Financeiro/SPEC.md) e do charter,
+> Os UC derivam da US-FIN-081 do [SPEC](../../../../memory/requisitos/Financeiro/SPEC.md) e do charter,
 > **não** do `.tsx` ([proibicoes §5](../../../../memory/proibicoes.md) 2026-06-05). O desenho repete o
 > aceite público do orçamento (US-COMVIS-023).
 
@@ -20,11 +20,11 @@ related_us: [US-FIN-078]
 
 | UC | O que defende | Peso | Âncora | Teste |
 |---|---|---|---|---|
-| UC-FINPAG-01 | link válido abre a página com o valor em aberto, sem documento, sem indexar | must | US-FIN-078 | `LinkPagamentoTituloContratoTest` |
-| UC-FINPAG-02 | token desconhecido e flag desligada dão 404 | must `[T0]` | US-FIN-078 | `LinkPagamentoTituloContratoTest` |
-| UC-FINPAG-03 | uma empresa não gera link de título de outra | must `[T0]` | US-FIN-078 | `LinkPagamentoTituloContratoTest` |
-| UC-FINPAG-04 | pagar com Pix cobra o valor em aberto e não duplica cobrança pagável | must `[V0]` | US-FIN-078 | `LinkPagamentoTituloContratoTest` |
-| UC-FINPAG-05 | o aviso do banco dá baixa pelo valor pago; flag desligada não baixa | must `[V0]` | US-FIN-078 | `LinkPagamentoTituloContratoTest` |
+| UC-FINPAG-01 | link válido abre a página com o valor em aberto, sem documento, sem indexar | must | US-FIN-081 | `LinkPagamentoTituloContratoTest` |
+| UC-FINPAG-02 | token desconhecido e flag desligada dão 404 | must `[T0]` | US-FIN-081 | `LinkPagamentoTituloContratoTest` |
+| UC-FINPAG-03 | uma empresa não gera link de título de outra | must `[T0]` | US-FIN-081 | `LinkPagamentoTituloContratoTest` |
+| UC-FINPAG-04 | pagar com Pix cobra o valor em aberto e não duplica cobrança pagável | must `[V0]` | US-FIN-081 | `LinkPagamentoTituloContratoTest` |
+| UC-FINPAG-05 | o aviso do banco dá baixa pelo valor pago; flag desligada não baixa | must `[V0]` | US-FIN-081 | `LinkPagamentoTituloContratoTest` |
 
 ## UC-FINPAG-01 · Link válido abre a página com o valor em aberto · `must`
 

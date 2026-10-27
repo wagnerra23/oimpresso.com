@@ -3,7 +3,7 @@ id: resources-js-pages-financeiro-pagamento-publico-charter
 page: /pagar/{token}
 component: resources/js/Pages/Financeiro/PagamentoPublico.tsx
 runbook: memory/requisitos/Financeiro/RUNBOOK-pagamento-publico.md
-related_us: [US-FIN-078]
+related_us: [US-FIN-081]
 related_prototype: n/a (tela pública fora do AppShellV2; segue o padrão de Pages/ComunicacaoVisual/AceitePublico.tsx)
 status: draft
 ---
@@ -32,4 +32,4 @@ Contrato comportamental: [`PagamentoPublico.casos.md`](PagamentoPublico.casos.md
 
 ## Fora desta versão
 
-Cartão de crédito e o portal com todos os títulos do cliente (US-FIN-079).
+Cartão de crédito e o portal com todos os títulos do cliente (US-FIN-082).

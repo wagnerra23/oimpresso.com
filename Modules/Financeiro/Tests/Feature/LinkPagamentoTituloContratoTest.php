@@ -1,5 +1,5 @@
 <?php
-// @covers-us US-FIN-078
+// @covers-us US-FIN-081
 
 declare(strict_types=1);
 
@@ -17,7 +17,7 @@ use Modules\PaymentGateway\Events\CobrancaPaga;
 use Tests\Support\WithSeededTenant;
 
 /**
- * US-FIN-078 — link para o cliente pagar o título (UC-FINPAG-01..05 do PagamentoPublico.casos.md).
+ * US-FIN-081 — link para o cliente pagar o título (UC-FINPAG-01..05 do PagamentoPublico.casos.md).
  *
  * Âncora: a US no SPEC e o charter da tela. Tenant 98 (ADR 0358); o adversário cross-tenant é o 99.
  * Nunca biz=4, nunca biz=1.

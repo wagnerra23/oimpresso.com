@@ -27,7 +27,7 @@ return [
     ],
 
     /**
-     * US-FIN-078 — link para o cliente pagar o título a receber (Pix ou boleto).
+     * US-FIN-081 — link para o cliente pagar o título a receber (Pix ou boleto).
      *
      * Desligado por padrão. Desligado, a rota pública responde 404, o operador não gera link e a
      * baixa automática segue só na empresa dona do SaaS, como antes.

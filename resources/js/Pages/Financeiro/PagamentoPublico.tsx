@@ -1,4 +1,4 @@
-// Rota PÚBLICA sem login — cliente paga um título a receber por Pix ou boleto (US-FIN-078)
+// Rota PÚBLICA sem login — cliente paga um título a receber por Pix ou boleto (US-FIN-081)
 // Charter: PagamentoPublico.charter.md · Casos: PagamentoPublico.casos.md
 // Tier 0: a empresa vem do token (só o sha256 no banco), nunca da URL (ADR 0093)
 

@@ -1298,7 +1298,7 @@ Onboarding novo cliente: migra 500+ títulos da planilha legacy num upload. Hoje
 
 **Depende de:** especificação oficial de cada layout; coordenar com a frente Plataforma para um exportador só.
 
-### US-FIN-078 · Link de pagamento do título a receber (Pix e boleto)
+### US-FIN-081 · Link de pagamento do título a receber (Pix e boleto)
 
 > owner: — · priority: p1 · estimate: 8h · status: review · type: story
 > blocked_by: —
@@ -1319,10 +1319,10 @@ Onboarding novo cliente: migra 500+ títulos da planilha legacy num upload. Hoje
 - [ ] Cartão: o contrato do gateway exige token de cartão gerado no navegador; fica para quando o checkout de cartão existir.
 - [ ] Canary com uma empresa antes de ligar para todas (decisão [W]).
 
-### US-FIN-079 · Portal do cliente: títulos em aberto, segunda via, histórico e pagamento
+### US-FIN-082 · Portal do cliente: títulos em aberto, segunda via, histórico e pagamento
 
 > owner: — · priority: p1 · estimate: 8h · status: todo · type: story
-> blocked_by: US-FIN-078
+> blocked_by: US-FIN-081
 
 **Implementado em:** _pendente_
 
@@ -1330,7 +1330,7 @@ Onboarding novo cliente: migra 500+ títulos da planilha legacy num upload. Hoje
 
 **Aceite:**
 - [ ] Link assinado por cliente (token, sem conta) mostra só os títulos daquele cliente daquela empresa: em aberto, pagos (histórico) e a segunda via (Pix/boleto já emitidos).
-- [ ] Pagar um título pelo portal usa o mesmo caminho da US-FIN-078.
+- [ ] Pagar um título pelo portal usa o mesmo caminho da US-FIN-081.
 - [ ] Token de um cliente não abre outro; o de uma empresa não abre outra; sem dado pessoal na URL; throttle.
 - [ ] Atrás de flag desligada.
 

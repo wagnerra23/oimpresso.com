@@ -9,7 +9,7 @@ use Modules\Financeiro\Services\LinkDePagamentoDoTitulo;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * US-FIN-078 — página PÚBLICA (sem login) em que o cliente paga um título a receber.
+ * US-FIN-081 — página PÚBLICA (sem login) em que o cliente paga um título a receber.
  *
  *   GET  /pagar/{token}           → título + valor em aberto + meio de pagar já emitido
  *   POST /pagar/{token}/{metodo}  → emite Pix ou boleto (ou devolve o que já existe)

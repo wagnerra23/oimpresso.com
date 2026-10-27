@@ -17,7 +17,7 @@ owner: W
 > **F1 PLAN do MWART** ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)) para tela
 > **nova** e **pública**, sem Blade anterior. Charter:
 > [`PagamentoPublico.charter.md`](../../../resources/js/Pages/Financeiro/PagamentoPublico.charter.md) · casos:
-> [`PagamentoPublico.casos.md`](../../../resources/js/Pages/Financeiro/PagamentoPublico.casos.md) · SPEC: US-FIN-078.
+> [`PagamentoPublico.casos.md`](../../../resources/js/Pages/Financeiro/PagamentoPublico.casos.md) · SPEC: US-FIN-081.
 > Segue o desenho do aceite público do orçamento ([RUNBOOK-aceite-publico](../ComunicacaoVisual/RUNBOOK-aceite-publico.md)).
 
 ## 1. Estrutura
@@ -47,4 +47,4 @@ atraso ficam fora desta versão. A baixa usa `valor_pago_centavos` que o banco i
 ## 4. Fora desta versão
 
 Cartão (o contrato do gateway exige token de cartão gerado no navegador, que não existe aqui),
-botão no drawer do Unificado e o portal com todos os títulos do cliente (US-FIN-079).
+botão no drawer do Unificado e o portal com todos os títulos do cliente (US-FIN-082).

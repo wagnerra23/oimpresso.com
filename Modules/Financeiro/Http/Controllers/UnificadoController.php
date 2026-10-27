@@ -950,7 +950,7 @@ class UnificadoController extends Controller
     }
 
     /**
-     * POST /financeiro/unificado/{tituloId}/link-pagamento — US-FIN-078.
+     * POST /financeiro/unificado/{tituloId}/link-pagamento — US-FIN-081.
      *
      * Gera o link público para o cliente pagar este título (Pix ou boleto). O token sai uma vez, na
      * resposta; no banco fica só o hash. Flag desligada = 404.
