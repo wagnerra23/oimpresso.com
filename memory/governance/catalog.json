@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 885,
-    "edges": 1201,
+    "nodes": 886,
+    "edges": 1202,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 148,
-      "component": 496,
+      "component": 497,
       "api": 90
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 94,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 496,
+      "hasComponent": 497,
       "dependsOn": 133,
       "delegatesTo": 122,
       "migratesTo": 1,
@@ -2954,6 +2954,13 @@
       "module": "Financeiro",
       "name": "InstallController",
       "desc": ""
+    },
+    {
+      "id": "component:Financeiro/OrcamentoController",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "OrcamentoController",
+      "desc": "US-FIN-076 tela /financeiro/orcamento: orçado × realizado por conta no mês, filtro de centro e regime, orçado editável na célula"
     },
     {
       "id": "component:Financeiro/OrcamentoService",
@@ -9570,6 +9577,12 @@
     {
       "from": "module:Financeiro",
       "to": "component:Financeiro/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "component:Financeiro/OrcamentoController",
       "type": "hasComponent",
       "source": "contains"
     },

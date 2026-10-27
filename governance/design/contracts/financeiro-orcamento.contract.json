@@ -1,0 +1,14 @@
+{
+  "_nota": "Contrato de tela de Financeiro/Orcamento/Index (/financeiro/orcamento), US-FIN-076. Copy tirada do protótipo aprovado por [W] em 2026-10-27 (aba Orçado × realizado) e conferida presente no alvo.",
+  "tela": "Financeiro/Orcamento/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/financeiro-centro-custo-orcado.html",
+  "alvo": [
+    "resources/js/Pages/Financeiro/Orcamento/Index.tsx"
+  ],
+  "secoes": [
+    { "id": "cabecalho", "copy": ["Orçado × realizado"] },
+    { "id": "filtros", "copy": ["Todos os centros", "Competência", "Caixa"] },
+    { "id": "lista", "copy": ["Conta", "Orçado", "Realizado", "Desvio", "Consumo", "Receitas", "Despesas", "Resultado do mês"] }
+  ],
+  "ordem": ["cabecalho", "filtros", "lista"]
+}

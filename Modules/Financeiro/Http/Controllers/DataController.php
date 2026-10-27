@@ -195,6 +195,8 @@ class DataController extends Controller
                             ['key' => 'contas-pagar',  'label' => 'Contas a Pagar', 'href' => '/financeiro/contas-pagar'],
                             ['key' => 'fluxo',         'label' => 'Fluxo de Caixa', 'href' => '/financeiro/fluxo'],
                             ['key' => 'dre',           'label' => 'DRE',            'href' => '/financeiro/dre'],
+                            // US-FIN-076 — orçado × realizado do mês.
+                            ['key' => 'orcamento',     'label' => 'Orçamento',      'href' => '/financeiro/orcamento'],
                             ['key' => 'relatorios',    'label' => 'Relatórios',     'href' => '/financeiro/relatorios'],
                             // F2 PR-2 (2026-06-10) — Impostos & obrigações (estimativa Simples; oficial = Fiscal).
                             ['key' => 'impostos',      'label' => 'Impostos',       'href' => '/financeiro/impostos'],

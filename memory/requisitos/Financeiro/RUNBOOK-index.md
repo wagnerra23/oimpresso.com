@@ -30,6 +30,7 @@ Hook `block-mwart-violation.ps1` matcha pelo nome do arquivo. Pages atuais no m�
 12. `resources/js/Pages/Financeiro/Categorias/Index.tsx` — **Categorias** livres (CRUD)
 13. `resources/js/Pages/Financeiro/Configuracoes/Contador.tsx` — **Contador Parceiro** (Onda 31 US-FIN-037)
 14. `resources/js/Pages/Financeiro/CentrosCusto/Index.tsx` — **Centros de custo** (CRUD, US-FIN-075; protótipo `prototipo-ui/cowork/Wagner/financeiro-centro-custo-orcado.html`)
+15. `resources/js/Pages/Financeiro/Orcamento/Index.tsx` — **Orçado × realizado** (US-FIN-076; protótipo `prototipo-ui/cowork/Wagner/financeiro-centro-custo-orcado.html`)
 
 ### Outras (não-sidebar)
 

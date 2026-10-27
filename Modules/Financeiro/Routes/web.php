@@ -8,6 +8,7 @@ use Modules\Financeiro\Http\Controllers\AssinaturaController;
 use Modules\Financeiro\Http\Controllers\CaixaController;
 use Modules\Financeiro\Http\Controllers\CategoriaController;
 use Modules\Financeiro\Http\Controllers\CentroCustoController;
+use Modules\Financeiro\Http\Controllers\OrcamentoController;
 use Modules\Financeiro\Http\Controllers\CobrancaController;
 use Modules\Financeiro\Http\Controllers\ConciliacaoController;
 use Modules\Financeiro\Http\Controllers\ContaBancariaController;
@@ -254,6 +255,10 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         Route::post('/centros-custo/{id}/toggle', [CentroCustoController::class, 'toggleAtivo'])
             ->whereNumber('id')
             ->name('centros-custo.toggle');
+
+        // US-FIN-076 — orçado × realizado por conta do plano de contas.
+        Route::get('/orcamento', [OrcamentoController::class, 'index'])->name('orcamento.index');
+        Route::post('/orcamento', [OrcamentoController::class, 'salvar'])->name('orcamento.salvar');
 
         // Onda 18 (2026-05-19) #48 — Plano de Contas tela dedicada.
         // Resolve workaround do botão "Plano de contas" no header /unificado
