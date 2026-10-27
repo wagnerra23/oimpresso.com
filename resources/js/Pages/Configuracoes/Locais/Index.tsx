@@ -4,8 +4,8 @@
 //   stories: thread sistema/playbook/04 (tela 3 de 3)
 //   permissao: business_settings.access (a mesma da Configuração da empresa — o legado não separa)
 //
-// Locais comerciais (filiais) do negócio. Atrás da flag `useV2ConfiguracoesLocais` (BusinessLocationController::FLAG_V2);
-// desligada, a rota segue na Blade `business_location/index`.
+// Locais comerciais (filiais) do negócio. Esteve atrás da flag `useV2ConfiguracoesLocais` até o cutover de
+// 2026-10-27, que apagou a flag e a Blade `business_location/*`.
 // Charter: ./Index.charter.md · Casos: ./Index.casos.md · RUNBOOK: memory/requisitos/Configuracoes/RUNBOOK-locais.md
 // Âncora de design: prototipo-ui/cowork/Wagner/configuracoes-cadastros.jsx → Locais()
 //

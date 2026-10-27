@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Barcode;
 use App\Services\FeatureFlagService;
-use Datatables;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -17,7 +16,6 @@ class BarcodeController extends Controller
      *
      * @see memory/requisitos/Configuracoes/RUNBOOK-codigo-barras.md
      */
-    private const FLAG_V2 = 'useV2ConfiguracoesCodigoBarras';
 
     /**
      * Display a listing of the resource.
@@ -32,45 +30,9 @@ class BarcodeController extends Controller
 
         $business_id = request()->session()->get('user.business_id');
 
-        // `! inertia()`: o Inertia v3 manda `X-Requested-With` em toda visita; sem esta perna o
-        // partial reload da prop adiada caía no JSON do DataTables (RUNBOOK-codigo-barras §10).
-        if (request()->ajax() && ! request()->inertia()) {
-            $barcodes = Barcode::where('business_id', $business_id)
-                        ->select(['name', 'description', 'id', 'is_default']);
-
-            return Datatables::of($barcodes)
-                ->addColumn(
-                    'action',
-                    '<a href="{{action(\'App\Http\Controllers\BarcodeController@edit\', [$id])}}" class="tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline tw-dw-btn-primary"><i class="glyphicon glyphicon-edit"></i> @lang("messages.edit")</a>
-                        &nbsp;
-                        <button type="button" data-href="{{action(\'App\Http\Controllers\BarcodeController@destroy\', [$id])}}" class="tw-dw-btn tw-dw-btn-outline tw-dw-btn-xs tw-dw-btn-error delete_barcode_button" @if($is_default) disabled @endif><i class="glyphicon glyphicon-trash"></i> @lang("messages.delete")</button>&nbsp;
-                        @if($is_default)
-                            <button type="button" class="tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline tw-dw-btn-accent" disabled><i class="fa fa-check-square-o" aria-hidden="true"></i> @lang("barcode.default")</button>
-                        @else
-                            <button class="btn btn-xs btn-info set_default" data-href="{{action(\'App\Http\Controllers\BarcodeController@setDefault\', [$id])}}">@lang("barcode.set_as_default")</button>
-                        @endif
-                        '
-                )
-                ->editColumn('name', function ($row) {
-                    if ($row->is_default == 1) {
-                        return $row->name.' &nbsp; <span class="label label-success">'.__('barcode.default').'</span>';
-                    } else {
-                        return $row->name;
-                    }
-                })
-                ->removeColumn('id')
-                ->removeColumn('is_default')
-                ->rawColumns([0, 2])
-                ->make(false);
-        }
-
-        if (app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
-            return Inertia::render('Configuracoes/CodigoBarras/Index', [
-                'etiquetas' => Inertia::defer(fn () => $this->etiquetasDoNegocio((int) $business_id)),
-            ]);
-        }
-
-        return view('barcode.index');
+        return Inertia::render('Configuracoes/CodigoBarras/Index', [
+            'etiquetas' => Inertia::defer(fn () => $this->etiquetasDoNegocio((int) $business_id)),
+        ]);
     }
 
     /**
@@ -97,19 +59,6 @@ class BarcodeController extends Controller
             ->all();
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        if (! auth()->user()->can('barcode_settings.access')) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        return view('barcode.create');
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -160,36 +109,7 @@ class BarcodeController extends Controller
         return redirect('barcodes')->with('status', $output);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Barcode  $barcode
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Barcode $barcode)
-    {
-        //
-    }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        if (! auth()->user()->can('barcode_settings.access')) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $business_id = request()->session()->get('user.business_id');
-        // Tier 0: com find() o id de outro negócio virava null e a Blade quebrava (500); agora 404.
-        $barcode = Barcode::where('business_id', $business_id)->findOrFail($id);
-
-        return view('barcode.edit')
-            ->with(compact('barcode'));
-    }
 
     /**
      * Update the specified resource in storage.

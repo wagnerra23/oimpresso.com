@@ -24,7 +24,6 @@ class BusinessLocationController extends Controller
      *
      * @see memory/requisitos/Configuracoes/RUNBOOK-locais.md
      */
-    private const FLAG_V2 = 'useV2ConfiguracoesLocais';
 
     protected $moduleUtil;
 
@@ -55,65 +54,10 @@ class BusinessLocationController extends Controller
 
         $business_id = request()->session()->get('user.business_id');
 
-        // `! inertia()`: o Inertia v3 manda `X-Requested-With` em toda visita; sem esta perna o
-        // partial reload da prop adiada caía no JSON do DataTables (RUNBOOK-locais §10).
-        if (request()->ajax() && ! request()->inertia()) {
-            $locations = BusinessLocation::where('business_locations.business_id', $business_id)
-                ->leftjoin(
-                    'invoice_schemes as ic',
-                    'business_locations.invoice_scheme_id',
-                    '=',
-                    'ic.id'
-                )
-                ->leftjoin(
-                    'invoice_layouts as il',
-                    'business_locations.invoice_layout_id',
-                    '=',
-                    'il.id'
-                )
-                ->leftjoin(
-                    'invoice_layouts as sil',
-                    'business_locations.sale_invoice_layout_id',
-                    '=',
-                    'sil.id'
-                )
-                ->leftjoin(
-                    'selling_price_groups as spg',
-                    'business_locations.selling_price_group_id',
-                    '=',
-                    'spg.id'
-                )
-                ->select(['business_locations.name', 'location_id', 'landmark', 'city', 'zip_code', 'state',
-                    'country', 'business_locations.id', 'spg.name as price_group', 'ic.name as invoice_scheme', 'il.name as invoice_layout', 'sil.name as sale_invoice_layout', 'business_locations.is_active', ]);
-
-            $permitted_locations = auth()->user()->permitted_locations();
-            if ($permitted_locations != 'all') {
-                $locations->whereIn('business_locations.id', $permitted_locations);
-            }
-
-            return Datatables::of($locations)
-                ->addColumn(
-                    'action',
-                    '<button type="button" data-href="{{action(\'App\Http\Controllers\BusinessLocationController@edit\', [$id])}}" class="tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline tw-dw-btn-primary btn-modal" data-container=".location_edit_modal"><i class="glyphicon glyphicon-edit"></i> @lang("messages.edit")</button>
-                    <a href="{{route(\'location.settings\', [$id])}}" class="tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline  tw-dw-btn-accent"><i class="fa fa-wrench"></i> @lang("messages.settings")</a>
-
-                    <button type="button" data-href="{{action(\'App\Http\Controllers\BusinessLocationController@activateDeactivateLocation\', [$id])}}" class="tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline   activate-deactivate-location @if($is_active) tw-dw-btn-error @else tw-dw-btn-accent @endif tw-w-max"><i class="fa fa-power-off"></i> @if($is_active) @lang("lang_v1.deactivate_location") @else @lang("lang_v1.activate_location") @endif </button>
-                    '
-                )
-                ->removeColumn('id')
-                ->removeColumn('is_active')
-                ->rawColumns([11])
-                ->make(false);
-        }
-
-        if (app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
-            return Inertia::render('Configuracoes/Locais/Index', [
-                'locais' => Inertia::defer(fn () => $this->locaisDoNegocio((int) $business_id)),
-                'opcoes' => Inertia::defer(fn () => $this->opcoesDoFormulario((int) $business_id), 'formulario'),
-            ]);
-        }
-
-        return view('business_location.index');
+        return Inertia::render('Configuracoes/Locais/Index', [
+            'locais' => Inertia::defer(fn () => $this->locaisDoNegocio((int) $business_id)),
+            'opcoes' => Inertia::defer(fn () => $this->opcoesDoFormulario((int) $business_id), 'formulario'),
+        ]);
     }
 
     /**
@@ -176,52 +120,6 @@ class BusinessLocationController extends Controller
         ];
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        if (! auth()->user()->can('business_settings.access')) {
-            abort(403, 'Unauthorized action.');
-        }
-        $business_id = request()->session()->get('user.business_id');
-
-        //Check if subscribed or not, then check for location quota
-        if (! $this->moduleUtil->isSubscribed($business_id)) {
-            return $this->moduleUtil->expiredResponse();
-        } elseif (! $this->moduleUtil->isQuotaAvailable('locations', $business_id)) {
-            return $this->moduleUtil->quotaExpiredResponse('locations', $business_id);
-        }
-
-        $invoice_layouts = InvoiceLayout::where('business_id', $business_id)
-                            ->get()
-                            ->pluck('name', 'id');
-
-        $invoice_schemes = InvoiceScheme::where('business_id', $business_id)
-                            ->get()
-                            ->pluck('name', 'id');
-
-        $price_groups = SellingPriceGroup::forDropdown($business_id);
-
-        $payment_types = $this->commonUtil->payment_types(null, false, $business_id);
-
-        //Accounts
-        $accounts = [];
-        if ($this->commonUtil->isModuleEnabled('account')) {
-            $accounts = Account::forDropdown($business_id, true, false);
-        }
-
-        return view('business_location.create')
-                    ->with(compact(
-                        'invoice_layouts',
-                        'invoice_schemes',
-                        'price_groups',
-                        'payment_types',
-                        'accounts'
-                    ));
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -333,62 +231,7 @@ class BusinessLocationController extends Controller
         return null;
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\StoreFront  $storeFront
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\StoreFront  $storeFront
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        if (! auth()->user()->can('business_settings.access')) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $business_id = request()->session()->get('user.business_id');
-        // Tier 0: com find() o id de outro negócio virava null e quebrava adiante (500); agora 404.
-        $location = BusinessLocation::where('business_id', $business_id)
-                                    ->findOrFail($id);
-        $invoice_layouts = InvoiceLayout::where('business_id', $business_id)
-                            ->get()
-                            ->pluck('name', 'id');
-        $invoice_schemes = InvoiceScheme::where('business_id', $business_id)
-                            ->get()
-                            ->pluck('name', 'id');
-
-        $price_groups = SellingPriceGroup::forDropdown($business_id);
-
-        $payment_types = $this->commonUtil->payment_types(null, false, $business_id);
-
-        //Accounts
-        $accounts = [];
-        if ($this->commonUtil->isModuleEnabled('account')) {
-            $accounts = Account::forDropdown($business_id, true, false);
-        }
-        $featured_products = $location->getFeaturedProducts(true, false);
-
-        return view('business_location.edit')
-                ->with(compact(
-                    'location',
-                    'invoice_layouts',
-                    'invoice_schemes',
-                    'price_groups',
-                    'payment_types',
-                    'accounts',
-                    'featured_products'
-                ));
-    }
 
     /**
      * Update the specified resource in storage.

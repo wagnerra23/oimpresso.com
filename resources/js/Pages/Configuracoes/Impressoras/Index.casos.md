@@ -26,9 +26,11 @@ last_run: "2026-10-07"
   não o JSON da DataTable.
 - **Status: 🧪**
 
-## UC-IMPR-02 · Com a flag desligada, a Blade continua
-- **Aceite:** Dado a flag desligada · Quando faço `GET /printers` · Então a resposta é a Blade `printer.index`.
-- **Status: 🧪**
+## UC-IMPR-02 · Cutover: a Blade saiu, a flag não traz a tela antiga de volta
+- **Aceite:** Dado `useV2ConfiguracoesImpressoras` desligada · Quando faço `GET /printers` · Então a resposta segue `Configuracoes/Impressoras/Index`,
+  e a view `printer.index` não existe mais.
+- **Status: 🧪** — até 2026-10-27 este caso afirmava o contrário (flag OFF devolvia a Blade). A flag está
+  ligada para todas as empresas desde D-CFG-LIGAR ([W] 2026-10-07); o cutover apagou index/create/edit em Blade.
 
 ## UC-IMPR-03 · A lista é só do meu negócio · `[T0]`
 - **Aceite:** Dado uma impressora minha e uma de outro negócio · Quando a lista carrega (prop deferida `impressoras`) ·
