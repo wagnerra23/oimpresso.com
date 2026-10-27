@@ -136,7 +136,7 @@ A terceira é o gate de sempre: sem `dashboard.data` a prop nem é registrada, i
 
 ## Primeiros passos — onboarding guiado (US-SUPER-012)
 
-> Derivados de [`memory/requisitos/Superadmin/SPEC.md`](../../../../memory/requisitos/Superadmin/SPEC.md) US-SUPER-012 e do protótipo [`primeiros-passos.html`](../../../../prototipo-ui/cowork/Wagner/primeiros-passos.html), nunca do `.tsx`. Atrás da flag `onboardingPrimeirosPassos`, que nasce **desligada**. Testes: `tests/Feature/Home/PrimeirosPassosContratoTest.php`.
+> Derivados de [`memory/requisitos/Superadmin/SPEC.md`](../../../../memory/requisitos/Superadmin/SPEC.md) US-SUPER-012 e do protótipo `prototipo-ui/cowork/Wagner/primeiros-passos-page.jsx` (shell integrado), nunca do `.tsx`. Atrás da flag `onboardingPrimeirosPassos`, que nasce **desligada**. Testes: `tests/Feature/Home/PrimeirosPassosContratoTest.php`.
 
 ## UC-PPAS-01 — Flag desligada, nada muda na Visão geral
 Status: 🧪 (1 teste em `PrimeirosPassosContratoTest`.)
