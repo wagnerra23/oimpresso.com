@@ -22,8 +22,9 @@ escolher um pacote. A decisão D2 de [W] (2026-10-01) mantém a tela aqui no Sup
   visão do superadmin). A tela segue o PT de lista e as telas irmãs (`Pacotes/Index`).
 - **Page:** `Modules/Superadmin/Resources/js/Pages/superadmin/MinhaAssinatura/Index.tsx`.
 - **Rotas (não mudam):** `GET /subscription` → `index()` · `GET /subscription/{id}/pay` → `pay()`
-  (segue **Blade**). `GET /all-subscriptions` (DataTables) e `GET /subscription/{id}` (modal) ficam
-  sem consumidor na tela nova e **não** foram removidos nesta onda.
+  (segue **Blade**). `GET /all-subscriptions` (DataTables) e `GET /subscription/{id}` (modal) ficaram
+  sem consumidor na tela nova e foram removidos em 2026-10-27, com as Blades `subscription.index` e
+  `show_subscription_modal` (teste `SuperadminRotasMortasTest`).
 
 ## 1. O que mudou no backend
 

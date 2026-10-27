@@ -55,10 +55,9 @@ class SiteHomeTest extends TestCase
         $this->assertArrayHasKey('permissions', $payload['props']);
     }
 
-    public function test_pricing_old_mantem_blade_legado_funcionando(): void
+    public function test_pricing_old_saiu_no_cutover(): void
     {
-        $response = $this->get('/pricing/old');
-
-        $response->assertStatus(200);
+        // Fallback Blade `/pricing/old` apagado em 2026-10-27; /pricing (React) é a única tela.
+        $this->get('/pricing/old')->assertNotFound();
     }
 }

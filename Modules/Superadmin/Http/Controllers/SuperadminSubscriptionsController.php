@@ -319,16 +319,6 @@ class SuperadminSubscriptionsController extends BaseController
     }
 
     /**
-     * Show the specified resource.
-     *
-     * @return Response
-     */
-    public function show()
-    {
-        return view('superadmin::show');
-    }
-
-    /**
      * `GET /superadmin/superadmin-subscription/{id}/edit` — thread Superadmin/04.
      *
      * Devolvia o modal Blade de status. Mudar status já é a gaveta "Mudar status" da lista

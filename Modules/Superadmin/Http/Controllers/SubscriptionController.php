@@ -22,7 +22,6 @@ use Srmklive\PayPal\Services\ExpressCheckout;
 use Stripe\Charge;
 use Stripe\Customer;
 use Stripe\Stripe;
-use Yajra\DataTables\Facades\DataTables;
 
 class SubscriptionController extends BaseController
 {
@@ -812,101 +811,4 @@ class SubscriptionController extends BaseController
         }
     }
 
-    /**
-     * Show the specified resource.
-     *
-     * @return Response
-     */
-    public function show($id)
-    {
-        if (! auth()->user()->can('superadmin.access_package_subscriptions')) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $business_id = request()->session()->get('user.business_id');
-
-        $subscription = Subscription::where('business_id', $business_id)
-                                    ->with(['package', 'created_user', 'business'])
-                                    ->find($id);
-
-        $system_settings = System::getProperties([
-            'invoice_business_name',
-            'email',
-            'invoice_business_landmark',
-            'invoice_business_city',
-            'invoice_business_zip',
-            'invoice_business_state',
-            'invoice_business_country',
-        ]);
-        $system = [];
-        foreach ($system_settings as $setting) {
-            $system[$setting['key']] = $setting['value'];
-        }
-
-        return view('superadmin::subscription.show_subscription_modal')
-            ->with(compact('subscription', 'system'));
-    }
-
-    /**
-     * Retrieves list of all subscriptions for the current business
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function allSubscriptions()
-    {
-        if (! auth()->user()->can('superadmin.access_package_subscriptions')) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $business_id = request()->session()->get('user.business_id');
-
-        $subscriptions = Subscription::where('subscriptions.business_id', $business_id)
-                        ->leftjoin(
-                            'packages as P',
-                            'subscriptions.package_id',
-                            '=',
-                            'P.id'
-                        )
-                        ->leftjoin(
-                            'users as U',
-                            'subscriptions.created_id',
-                            '=',
-                            'U.id'
-                        )
-                        ->addSelect(
-                            'P.name as package_name',
-                            DB::raw("CONCAT(COALESCE(U.surname, ''), ' ', COALESCE(U.first_name, ''), ' ', COALESCE(U.last_name, '')) as created_by"),
-                            'subscriptions.*'
-                        );
-
-        return Datatables::of($subscriptions)
-             ->editColumn(
-                 'start_date',
-                 '@if(!empty($start_date)){{@format_date($start_date)}}@endif'
-             )
-             ->editColumn(
-                 'end_date',
-                 '@if(!empty($end_date)){{@format_date($end_date)}}@endif'
-             )
-             ->editColumn(
-                 'trial_end_date',
-                 '@if(!empty($trial_end_date)){{@format_date($trial_end_date)}}@endif'
-             )
-             ->editColumn(
-                 'package_price',
-                 '<span class="display_currency" data-currency_symbol="true">{{$package_price}}</span>'
-             )
-             ->editColumn(
-                 'created_at',
-                 '@if(!empty($created_at)){{@format_date($created_at)}}@endif'
-             )
-             ->filterColumn('created_by', function ($query, $keyword) {
-                 $query->whereRaw("CONCAT(COALESCE(U.surname, ''), ' ', COALESCE(U.first_name, ''), ' ', COALESCE(U.last_name, '')) like ?", ["%{$keyword}%"]);
-             })
-             ->addColumn('action', function ($row) {
-                 return '<button type="button" class="btn btn-primary btn-xs btn-modal" data-container=".view_modal" data-href="'.action([\Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'show'], $row->id).'" ><i class="fa fa-eye" aria-hidden="true"></i> '.__('messages.view').'</button>';
-             })
-             ->rawColumns(['package_price', 'action'])
-             ->make(true);
-    }
 }

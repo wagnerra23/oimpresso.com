@@ -48,23 +48,4 @@ class PricingController extends Controller
             'permissions' => $permission_formatted,
         ]);
     }
-
-    /**
-     * Versão Blade legada do /pricing (template UltimatePOS roxo "estilo 2010").
-     * Mantida em /pricing/old durante a transição — remover após validação.
-     */
-    public function indexLegacy()
-    {
-        $packages = Package::listPackages(true);
-        $permissions = $this->moduleUtil->getModuleData('superadmin_package');
-        $permission_formatted = [];
-        foreach ($permissions as $permission) {
-            foreach ($permission as $details) {
-                $permission_formatted[$details['name']] = $details['label'];
-            }
-        }
-
-        return view('superadmin::pricing.index')
-            ->with(compact('packages', 'permission_formatted'));
-    }
 }

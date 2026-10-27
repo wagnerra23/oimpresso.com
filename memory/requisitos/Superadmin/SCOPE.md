@@ -32,8 +32,7 @@ related_adrs:
 url_prefixes:
   - /superadmin/*
   - /subscription/* (pay-stack · flutterwave · {package_id})
-  - /pricing/*
-  - /all-subscriptions
+  - /pricing
   - /page/{slug}
 drift_alerts: []
 ---

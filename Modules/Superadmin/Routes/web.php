@@ -5,8 +5,6 @@
 // use Illuminate\Support\Facades\Route;
 
 Route::get('/pricing', [Modules\Superadmin\Http\Controllers\PricingController::class, 'index'])->name('pricing');
-// Fallback Blade legado (template UltimatePOS roxo) — remover após validar a Inertia
-Route::get('/pricing/old', [Modules\Superadmin\Http\Controllers\PricingController::class, 'indexLegacy'])->name('pricing.legacy');
 
 // D8.b Wave 13 — throttle:superadmin (60 req/min por user/IP) protege actions sensíveis admin
 // (criar business, resetar senha, destruir tenant). RateLimiter registrado em RouteServiceProvider.
@@ -42,14 +40,15 @@ Route::middleware(['web', 'auth', 'language', 'AdminSidebarMenu', 'superadmin', 
         ->except(['edit', 'update']);
     Route::get('/business/{id}/destroy', [Modules\Superadmin\Http\Controllers\BusinessController::class, 'destroy']);
 
-    Route::resource('/packages', 'Modules\Superadmin\Http\Controllers\PackagesController');
+    // `show` saiu (2026-10-27): era `view('superadmin::show')`, view que nunca existiu (500).
+    Route::resource('/packages', Modules\Superadmin\Http\Controllers\PackagesController::class)->except(['show']);
     Route::get('/packages/{id}/destroy', [Modules\Superadmin\Http\Controllers\PackagesController::class, 'destroy']);
 
     Route::get('/settings', [Modules\Superadmin\Http\Controllers\SuperadminSettingsController::class, 'edit']);
     Route::put('/settings', [Modules\Superadmin\Http\Controllers\SuperadminSettingsController::class, 'update']);
     Route::get('/edit-subscription/{id}', [Modules\Superadmin\Http\Controllers\SuperadminSubscriptionsController::class, 'editSubscription']);
     Route::post('/update-subscription', [Modules\Superadmin\Http\Controllers\SuperadminSubscriptionsController::class, 'updateSubscription']);
-    Route::resource('/superadmin-subscription', 'Modules\Superadmin\Http\Controllers\SuperadminSubscriptionsController');
+    Route::resource('/superadmin-subscription', Modules\Superadmin\Http\Controllers\SuperadminSubscriptionsController::class)->except(['show']);
 
     Route::get('/communicator', [Modules\Superadmin\Http\Controllers\CommunicatorController::class, 'index']);
     Route::post('/communicator/send', [Modules\Superadmin\Http\Controllers\CommunicatorController::class, 'send']);
@@ -72,11 +71,12 @@ Route::middleware('web', 'SetSessionData', 'auth', 'language', 'timezone', 'Admi
 
     Route::get('/subscription/{package_id}/pay', [Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'pay']);
     Route::any('/subscription/{package_id}/confirm', [Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'confirm'])->name('subscription-confirm');
-    Route::get('/all-subscriptions', [Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'allSubscriptions']);
 
     Route::get('/subscription/{package_id}/register-pay', [Modules\Superadmin\Http\Controllers\SubscriptionController::class, 'registerPay'])->name('register-pay');
 
-    Route::resource('/subscription', 'Modules\Superadmin\Http\Controllers\SubscriptionController');
+    // Só `index` (Minha assinatura, React). `show` era o modal Blade que o drawer substituiu
+    // (thread 07); create/store/edit/update/destroy nunca tiveram método (500). 2026-10-27.
+    Route::resource('/subscription', Modules\Superadmin\Http\Controllers\SubscriptionController::class)->only(['index']);
 });
 
 Route::get('/page/{slug}', [Modules\Superadmin\Http\Controllers\PageController::class, 'showPage'])->name('frontend-pages');
