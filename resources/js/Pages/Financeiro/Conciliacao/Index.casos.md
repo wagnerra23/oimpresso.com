@@ -229,6 +229,23 @@ Linhas de extrato de outro business não entram no `resumo`, e uma linha que apo
 título de outro business recebe `titulo = null` (ADR 0093).
 **Pronto quando:** o resumo não se move com as linhas do outro business e o título dele não é anexado.
 
+## UC-FCC-17 — Extrato do Pluggy chega à lista com o sinal certo
+Status: 🧪 (`PluggySyncContratoTest` — *"UC-FCC-17 · ..."* · nasce em 2026-10-26, US-FIN-074; ainda sem run)
+Fonte: SPEC US-FIN-074 + ADR 0236 (a Conciliação lê `fin_extrato_lancamentos` com `tipo` `C`/`D`).
+O sync do Pluggy grava cada transação com `tipo = C` (crédito) ou `D` (débito) — o `type` do
+Pluggy decide, o sinal do `amount` só na falta dele — e lê todas as páginas da janela.
+**Pronto quando:** um débito de 50,00 vira linha `tipo = D` · `valor = 50.00` **e** a lista da
+Conciliação mostra `-50.00` para ela; um crédito de 120,00 mostra `120.00`; a 2ª página do Pluggy
+também entra.
+
+## UC-FCC-18 — `financeiro:pluggy-sync` só sincroniza contas vinculadas, cada uma no seu business `[T0]`
+Status: 🧪 (`PluggySyncContratoTest` — *"UC-FCC-18 · ..."* · nasce em 2026-10-26, US-FIN-074; ainda sem run)
+Fonte: SPEC US-FIN-074 + ADR 0093.
+Com `PLUGGY_ENABLED=false` o comando não chama a API. Ligado, sincroniza só as contas com
+`metadata.pluggy.account_id`, gravando o `business_id` da própria conta; rodar de novo não duplica.
+**Pronto quando:** flag desligada → zero linhas e zero chamadas HTTP; ligada → as linhas da conta do
+98 ficam no 98, a conta do 99 sem vínculo fica sem linha, e o 2º run atualiza em vez de inserir.
+
 ---
 
 ---

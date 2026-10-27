@@ -66,6 +66,7 @@
             <directory>./Modules/Producao/Tests/Feature</directory>
             <directory>./Modules/Fisio/Tests/Feature</directory>
             <directory>./Modules/Fisio/Tests/Unit</directory>
+            <directory>./Modules/Marketplaces/Tests/Feature</directory>
         </testsuite>
     </testsuites>
     <source>

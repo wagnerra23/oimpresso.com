@@ -41,7 +41,7 @@ import '../../../css/cowork-manufacturing-bundle.css';
 interface Filtros {
   q: string | null;
   cat: string | null;
-  kpi: 'margem' | 'custo' | null;
+  kpi: 'margem' | null;
   sort: string;
   dir: 'asc' | 'desc';
 }
@@ -50,7 +50,7 @@ interface Props {
   recipes: PaginatorShape<Receita>;
   filtros: Filtros;
   /** Sobre TODAS as receitas do business, nunca sobre a página nem o filtro (§4.2). */
-  kpis: { total: number; custo_medio: number; margem_baixa: number; desperdicio: number };
+  kpis: { total: number; custo_medio: number; margem_baixa: number };
   categorias: string[];
   /** R-08 — os ids de TODAS as filtradas, de todas as páginas. */
   ids_filtrados: number[];
@@ -105,11 +105,11 @@ const COLUNAS: ColumnDef<Receita, unknown>[] = [
     // R-09 — a coluna DECLARA a unidade que está exibindo. Com sub-unidade de saída, mostra a
     // quantidade convertida COM o rótulo da sub-unidade.
     id: 'qtd',
-    accessorFn: (r) => r.custos.qtd_liq,
+    accessorFn: (r) => r.qtd,
     header: 'Quantidade',
     meta: { align: 'right', mono: true },
     cell: ({ row: { original: r } }) =>
-      `${r.sub_un && r.sub_fator ? num(r.custos.qtd_liq * r.sub_fator, 2) : num(r.custos.qtd_liq, 2)} ${r.sub_un ?? r.un}`,
+      `${r.sub_un && r.sub_fator ? num(r.qtd * r.sub_fator, 2) : num(r.qtd, 2)} ${r.sub_un ?? r.un}`,
   },
   {
     id: 'total',
@@ -204,7 +204,7 @@ export default function Recipes({
   const CATS = ['Todas', ...categorias];
   const cat = filtros.cat ?? 'Todas';
   const trocarCat = (c: string) => filtrar({ cat: c === 'Todas' ? null : c });
-  const trocarKpi = (k: 'margem' | 'custo') => filtrar({ kpi: filtros.kpi === k ? null : k });
+  const trocarKpi = (k: 'margem') => filtrar({ kpi: filtros.kpi === k ? null : k });
 
   // R-08 — "selecionar todas" marca as FILTRADAS de todas as páginas, não só as visíveis.
   const marcadasNoFiltro = ids_filtrados.filter((id) => sel.includes(id)).length;
@@ -254,12 +254,14 @@ export default function Recipes({
           §18.3 do handoff dizia "sem backend, a aba não sai", e o backend saiu. */}
       <FabricacaoAbas ativa="receitas" receitas={kpis.total} producao={producao} podeProduzir={permissions.prod} />
 
-      {/* §4.2 — 4 KPIs; o 2º e o 3º FILTRAM (liga/desliga), o 1º e o 4º são leitura (R-05).
-          Os 4 cartões são o `KpiCard` do DS, como no protótipo (`manufacturing-page.jsx`): os
-          de leitura na variante padrão; os 2 que filtram na `variant="filter"`, com a placa de
-          ícone e o tom âmbar. O protótipo pinta o ÍCONE, não o número (medido com a sonda nos
-          dois lados, 2026-09-30). */}
-      <div className="mfg-kpis" data-contract="kpis">
+      {/* §4.2 — 3 KPIs; o 2º FILTRA (liga/desliga), o 1º e o 3º são leitura (R-05). Até
+          2026-10-25 eram 4: o "Desperdício ≥ 8%" saiu com o % da receita (D4 · decisão [W]
+          2026-10-23: desperdício é somente na Produção), e o protótipo passou a grade para 3
+          colunas do mesmo jeito. Os cartões são o `KpiCard` do DS, como no protótipo
+          (`manufacturing-page.jsx`): os de leitura na variante padrão; o que filtra na
+          `variant="filter"`, com a placa de ícone e o tom âmbar. O protótipo pinta o ÍCONE, não
+          o número (medido com a sonda nos dois lados, 2026-09-30). */}
+      <div className="mfg-kpis" data-contract="kpis" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
         <KpiCard
           label="Custo médio / unidade"
           value={fmt(kpis.custo_medio)}
@@ -274,16 +276,6 @@ export default function Recipes({
           filterTone="amber"
           selected={filtros.kpi === 'margem'}
           onClick={() => trocarKpi('margem')}
-        />
-        <KpiCard
-          variant="filter"
-          label="Desperdício ≥ 8%"
-          value={kpis.desperdicio}
-          description="revisar plotagem / encaixe"
-          icon="Scissors"
-          filterTone="amber"
-          selected={filtros.kpi === 'custo'}
-          onClick={() => trocarKpi('custo')}
         />
         <KpiCard
           label="Produção do mês"
@@ -433,7 +425,7 @@ function RecipeDrawer({
       onClose={onClose}
       titulo={r.name}
       subtitulo={
-        `${r.sku} · ${r.cat} / ${r.sub} · rende ${num(r.custos.qtd_liq, 2)} ${r.un}` +
+        `${r.sku} · ${r.cat} / ${r.sub} · rende ${num(r.qtd, 2)} ${r.un}` +
         (r.atualizado ? ` · atualizado ${r.atualizado}` : '')
       }
       rodape={
@@ -501,15 +493,11 @@ function RecipeDrawer({
           <dd>{fmt(r.custos.ingredientes)}</dd>
           <dt>Custo extra ({rotuloCustoExtra(r.custo_tipo, r.extra, r.un)})</dt>
           <dd>{fmt(r.custos.extra)}</dd>
-          <dt>Desperdício</dt>
-          <dd>
-            {num(r.waste, 0)}% · rende {num(r.custos.qtd_liq, 2)} de {num(r.qtd, 2)} {r.un}
-          </dd>
           {r.sub_un && r.sub_fator ? (
             <>
               <dt>Sub-unidade de saída</dt>
               <dd>
-                {num(r.custos.qtd_liq * r.sub_fator, 2)} {r.sub_un}
+                {num(r.qtd * r.sub_fator, 2)} {r.sub_un}
               </dd>
             </>
           ) : null}

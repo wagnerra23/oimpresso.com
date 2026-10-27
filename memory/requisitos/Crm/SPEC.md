@@ -617,3 +617,22 @@ E sale_stage_history mantém audit (LGPD Art. 7º permite preservar dados legais
 
 _Última geração: 2026-05-12 — opus-4.7_
 _Aprovação pendente: Wagner via ADR `memory/decisions/proposals/drafts/crm-pre-venda-pipeline.md`_
+
+### US-CRM-092 · Funil de vendas em kanban — negócios por etapa (ADR 0441)
+
+**Implementado em:** `Modules/Crm/Http/Controllers/FunilController.php` · `Modules/Crm/Services/DealPipelineService.php` · `Modules/Crm/Routes/web.php`
+
+**Testado em:** `Modules/Crm/Tests/Feature/CrmFunilContratoTest.php`
+
+> owner: — · priority: p1 · estimate: 10h · type: story
+> blocked_by: —
+
+**Origem:** lacuna P1 do levantamento de concorrência de 2026-10-25 (funil de vendas em kanban; motor `DealPipelineService` pronto e sem tela). Destravada por [W] em 2026-10-26 via [ADR 0441](../../decisions/0441-funil-de-vendas-sai-da-depreciacao-emenda-0301.md), que tira só o funil de negócios da depreciação da ADR 0301.
+
+**Critérios de aceite:**
+1. `GET /crm/funil` exige `crm.funil.ver` (ninguém tem por padrão); abre as 6 etapas de `Deal::STAGES` com rótulo em PT e probabilidade.
+2. Negócios (prop deferida) só da empresa da sessão, com título, etapa, valor, cliente, responsável e fechamento previsto.
+3. `POST /crm/funil` exige `crm.funil.editar`: cliente obrigatório e da mesma empresa, valor numérico ≥ 0 arredondado a 2 casas; nasce em Lead com o usuário como responsável.
+4. `PATCH /crm/funil/{id}/etapa` exige `crm.funil.editar`: grava a transição (de, para, razão, quando) pelo `DealPipelineService`; ganho/perdido não mudam de etapa; negócio de outra empresa dá 404.
+5. Resumo (prop deferida) por etapa e previsão ponderada do mês, só com negócios da empresa.
+6. Tela kanban (PT-05) em `Modules/Crm/Resources/js/Pages/Crm/Funil/Index.tsx`, ancorada no protótipo `prototipo-ui/cowork/Felipe/erp-shell-v2/crm-page.jsx` — PR seguinte.
