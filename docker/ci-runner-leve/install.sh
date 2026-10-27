@@ -9,7 +9,7 @@
 set -euo pipefail
 
 DIR=$(cd "$(dirname "$0")" && pwd)
-VAGAS="${VAGAS:-8}"
+VAGAS="${VAGAS:-12}"
 REPO="${CI_LEVE_REPO:-wagnerra23/oimpresso.com}"
 IMAGE="${CI_LEVE_IMAGE:-oimpresso/ci-runner-leve:2.338.0}"
 read -r REG_TOKEN

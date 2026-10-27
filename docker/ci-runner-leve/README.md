@@ -9,8 +9,9 @@ Medido em 2026-10-27 19:20Z: **1.471 runs na fila** contra **26 rodando**. O gar
 
 ## Como funciona
 
-- **8 vagas** (`ci-leve-1..8`), cada uma um container gerenciado por `ci-runner-leve@N.service`.
-  CT 100: 16 núcleos, 32 GB; [W] 2026-10-27 liberou aumentar (`VAGAS=12 install.sh`).
+- **12 vagas** (`ci-leve-1..12`), cada uma um container gerenciado por `ci-runner-leve@N.service`.
+  Subiu de 8 para 12 em 2026-10-27, depois de medir o CT 100 ~75% ocioso (carga 1,6–4,3 em 16
+  núcleos, 25 GB livres de 32) com [W] pedindo para usar mais a máquina. Para mais: `VAGAS=N install.sh`.
 - **Runner persistente:** registra uma vez com um token de **registro** (vale 1 hora) e passa a
   usar a credencial própria que o `config.sh` grava dentro do container. **Nenhum PAT nem token
   fica guardado no host.**
@@ -40,7 +41,7 @@ com as vagas ligadas.
 Do computador de quem tem admin no repo (o `gh` gera o token de registro, que vale 1 hora):
 
 ```bash
-gh api -X POST repos/wagnerra23/oimpresso.com/actions/runners/registration-token --jq .token   | ssh root@192.168.0.50 'cd /opt/oimpresso-ci-src && git pull -q && VAGAS=8 docker/ci-runner-leve/install.sh'
+gh api -X POST repos/wagnerra23/oimpresso.com/actions/runners/registration-token --jq .token   | ssh root@192.168.0.50 'cd /opt/oimpresso-ci-src && git pull -q && VAGAS=12 docker/ci-runner-leve/install.sh'
 ```
 
 `/opt/oimpresso-ci-src` é um clone *sparse* do repo, só `docker/ci-runner-leve/`. O `install.sh`
