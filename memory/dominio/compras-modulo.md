@@ -36,6 +36,7 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0093-multi-tenant-is
   "enums": {
     "compras_insumo_metodo_custo.metodo": ["medio", "ultimo"],
     "compras_propostas_preco.status": ["pendente", "aprovada", "recusada"],
+    "compras_cotacoes.status": ["aberta", "fechada", "cancelada"],
     "compras_aprovacoes_pedido.nivel": ["gerente", "diretoria"],
     "compras_aprovacoes_pedido.status": ["pendente", "aprovado", "recusado"]
   },
