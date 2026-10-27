@@ -34,6 +34,38 @@ Um POST com campos de credencial ainda salva os dados bancários e **descarta** 
 Status: 🧪 (`MultiTenantIsolationTest`)
 Conta de outro business não aparece nem é editável ([ADR 0093]).
 
+## Cadastro da conta (tela única de contas — decisão [W] 2026-10-27)
+
+Desde 2026-10-27 esta tela também cadastra a conta do núcleo (`accounts`), antes feita em `/account/account`. O saldo
+e o saldo de abertura saem do mesmo serviço do núcleo (`App\Services\Contas\ContasDoNucleo`). Prova:
+`tests/Feature/Configuracoes/ContasNoFinanceiroContratoTest.php`.
+
+## UC-CTB-05 — Lista só da empresa, com o saldo do núcleo
+Status: 🧪 · Dado contas em duas empresas e lançamentos (um apagado) · Quando abre a tela · Então só aparecem as da
+empresa da sessão e o saldo é crédito − débito sem o apagado, igual à conta à mão (dois caminhos).
+
+## UC-CTB-06 — Nova conta com saldo de abertura
+Status: 🧪 · Quando salva "Nova conta" com saldo de abertura "1.234,56" · Então a conta nasce na empresa da sessão
+(o `business_id` do formulário é ignorado) e um crédito `opening_balance` de 1234,56 é gravado — o mesmo valor que o
+`num_uf` do núcleo dá para o texto (dois caminhos).
+
+## UC-CTB-07 — Sem saldo de abertura, sem lançamento
+Status: 🧪 · Quando salva sem saldo de abertura · Então a conta não ganha lançamento.
+
+## UC-CTB-08 — Tipo de conta de outra empresa é recusado
+Status: 🧪 · Quando o formulário traz um tipo de conta de outra empresa · Então dá erro no campo e nada é gravado.
+
+## UC-CTB-09 — Editar não toca no saldo
+Status: 🧪 · Quando edita nome e observação · Então o cadastro muda e o saldo continua o mesmo; conta de outra
+empresa responde 404 e fica intacta.
+
+## UC-CTB-10 — Encerrar e reativar
+Status: 🧪 · Quando encerra · Então a conta sai das ativas e aparece em "encerrada"; reativar devolve. Conta de outra
+empresa responde 404.
+
+## UC-CTB-11 — Sem permissão, não cria
+Status: 🧪 · Dado usuário sem `financeiro.contas_bancarias.manage` · Quando tenta criar · Então 403 e nada gravado.
+
 ## Backlog de casos (sem id)
 - **[BACKLOG] Sem side-effect ao abrir** — não testa conectividade de gateway, não emite boleto, não chama driver Inter/Asaas/C6.
 - **[BACKLOG] Pill "Conta indefinida" (US-FIN-038 PR2/3)** — herdar da Unificada quando a baixa não tem conta vinculada.
