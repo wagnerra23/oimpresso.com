@@ -798,6 +798,7 @@ function App() {
     "vest-remarcacao":         "Remarcação por coleção",
     "cfg-primeiros-passos":    "Primeiros passos",
     "venda-aprovacao-publica": "Aprovação do orçamento (página pública)",
+    "venda-pagamento-maquininha": "Pagamento do caixa: maquininha e venda sem internet",
   };
   // Páginas públicas que a tela interna gera: "ver como o cliente vê".
   // Todas abrem no shell (fora do menu): o Artefato publicado não tem outras páginas para abrir em outra aba.

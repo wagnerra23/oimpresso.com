@@ -78,6 +78,7 @@ const MENU = [
       { id: "venda-devolver",    icon: "list",   label: "Devolver venda" },
       { id: "venda-importar",    icon: "upload", label: "Importação de vendas" },
       { id: "venda-margem",      icon: "percent", label: "Margem da venda" },
+      { id: "venda-pagamento-maquininha", icon: "cash", label: "Pagamento: maquininha e offline" },
       { id: "catalogo-qr", icon: "grid",  label: "Catálogo QR" },
       { id: "woocommerce", icon: "plug",  label: "WooCommerce" },
       { id: "portalos",    icon: "globe", label: "Portal Consulta OS" },
