@@ -167,6 +167,7 @@ jobs:
             Modules/Whatsapp/Tests/Feature/NotificadorClienteWhatsappContratoTest.php \
             Modules/Whatsapp/Tests/Feature/RecebimentoOmnicanalContratoTest.php \
             Modules/Whatsapp/Tests/Feature/MetaGraphWebhookContratoTest.php \
+            Modules/Whatsapp/Tests/Feature/EnvioMetaGraphContratoTest.php \
             Modules/Whatsapp/Tests/Feature/AvisoVendaWhatsappApiContratoTest.php \
             Modules/Whatsapp/Tests/Feature/DanfePorWhatsappContratoTest.php \
             Modules/Whatsapp/Tests/Feature/ReguaRelacionamentoContratoTest.php \

@@ -251,6 +251,15 @@ last_run: "2026-10-26"
 
 ---
 
+## UC-CXU-22 · O atendente responde a DM do Instagram/Messenger pela mesma caixa
+- **Persona:** atendente — respondeu na Caixa uma conversa que veio do Instagram.
+- **Aceite:** Dado uma conversa de Instagram ou Messenger · Quando o atendente envia a resposta · Então ela sai pela Send API da Meta para o cliente daquela conversa, fica `sent` com o id da Meta, e o eco que a Meta devolve pelo webhook não duplica a mensagem. Sem token, com a Meta recusando ou com a flag desligada, a mensagem fica `failed` com o motivo.
+- **Teste:** `Modules/Whatsapp/Tests/Feature/EnvioMetaGraphContratoTest.php` — os 2 casos `UC-CXU-22 · US-WA-329 · …` (lane MySQL, Meta falsa).
+- **Regressão que defende:** a resposta "verde na tela" que nunca saiu (incidente 2026-05-28 do whatsmeow) e o eco duplicando cada resposta na conversa.
+- **Status: ⬜** — o veredito vem da lane MySQL do CI.
+
+---
+
 ## Backlog (prosa honesta — sem UC até ganhar teste que o cite)
 
 O charter descreve estes comportamentos e eles existem na tela, mas **não têm teste** hoje —

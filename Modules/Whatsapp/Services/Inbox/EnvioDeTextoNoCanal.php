@@ -33,6 +33,11 @@ final class EnvioDeTextoNoCanal
      */
     public function despachar(Message $message, Conversation $conversation, Channel $channel, ?string $texto): array
     {
+        // US-WA-329 — Instagram Direct e Messenger respondem pela Send API da Meta, no mesmo caminho.
+        if ($channel->type === Channel::TYPE_INSTAGRAM || $channel->type === Channel::TYPE_MESSENGER) {
+            return app(\Modules\Whatsapp\Services\Canais\EnvioMetaGraph::class)
+                ->despachar($message, $conversation, $channel, $texto);
+        }
         if ($channel->type !== Channel::TYPE_WHATSAPP_BAILEYS
             && $channel->type !== Channel::TYPE_WHATSAPP_WHATSMEOW) {
             $message->forceFill([
