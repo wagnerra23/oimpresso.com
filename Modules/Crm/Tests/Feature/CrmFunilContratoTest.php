@@ -180,3 +180,19 @@ it('UC-CRMFN-05 · o resumo soma por etapa e prevê o fechamento do mês só com
     expect((float) $resumo['por_etapa']['proposta']['valor_total'])->toBe($antes)
         ->and((float) $resumo['por_etapa']['proposta']['valor_total'])->toBeLessThan(50000.0);
 });
+
+it('UC-CRMFN-06 · o negócio mostra de onde veio: formulário com os UTM ou manual (US-CRM-096)', function () {
+    if (! Schema::hasColumn('crm_deals', 'origem')) {
+        $this->markTestSkipped('Coluna crm_deals.origem ausente — migração da US-CRM-096.');
+    }
+    $user = funilUsuario('funil_ver_test', ['crm.funil.ver']);
+    $site = funilDeal(FUNIL_BIZ, funilCliente(FUNIL_BIZ, 'Lead do site', $user), $user, 'Lead site');
+    DB::table('crm_deals')->where('id', $site)->update(['origem' => 'formulario', 'utm_source' => 'google', 'utm_medium' => 'cpc', 'utm_campaign' => 'outubro']);
+    funilDeal(FUNIL_BIZ, funilCliente(FUNIL_BIZ, 'Cliente balcao', $user), $user, 'Negocio balcao');
+
+    $negocios = collect(funilParcial($user, 'negocios'));
+    $n = $negocios->firstWhere('titulo', 'Lead site '.FUNIL_TAG);
+    expect($n['origem'])->toBe('formulario')->and($n['utm'])->toBe('google / cpc · outubro');
+    $m = $negocios->firstWhere('titulo', 'Negocio balcao '.FUNIL_TAG);
+    expect($m['origem'])->toBe('manual')->and($m['utm'])->toBeNull();
+});

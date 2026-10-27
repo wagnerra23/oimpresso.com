@@ -23,6 +23,10 @@ export interface Negocio {
   contato_id: number | null;
   contato: string | null;
   responsavel: string | null;
+  /** US-CRM-096 — 'formulario' (lead do site) ou 'manual'. */
+  origem: string;
+  /** Resumo dos UTM ("google / cpc · outubro"); null sem UTM. */
+  utm: string | null;
 }
 
 export const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
@@ -65,6 +69,15 @@ function NegocioCardImpl({ negocio, podeArrastar, onAbrir }: { negocio: Negocio;
       <span className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
         <span className="truncate">{negocio.responsavel ?? ''}</span>
         {negocio.fechamento_previsto && <Badge variant="outline" className="shrink-0 font-normal">fecha {negocio.fechamento_previsto}</Badge>}
+      </span>
+      <span>
+        <Badge
+          variant={negocio.origem === 'formulario' ? 'secondary' : 'outline'}
+          className="max-w-full truncate font-normal"
+          data-testid={`funil-origem-${negocio.id}`}
+        >
+          {negocio.origem === 'formulario' ? ['Formulário', negocio.utm].filter(Boolean).join(' · ') : 'Manual'}
+        </Badge>
       </span>
     </button>
   );

@@ -71,6 +71,18 @@ Status: 🧪
 
 ---
 
+## UC-CRMFN-06 · Ver de onde veio o negócio · `should`
+
+**Dado** um negócio que entrou pelo formulário do site com UTM e outro criado à mão · **Quando** o quadro
+carrega · **Então** o cartão do primeiro mostra "Formulário · google / cpc · outubro" e o do segundo "Manual".
+Origem: US-CRM-096 (captura de lead) e protótipo `prototipo-ui/cowork/Wagner/prototipos/crm-nps-e-captura.html` (quadro C).
+
+- **Teste:** `Modules/Crm/Tests/Feature/CrmFunilContratoTest.php` — `UC-CRMFN-06 · o negócio mostra de onde veio: formulário com os UTM ou manual (US-CRM-096)`.
+
+Status: 🧪
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** O item "Funil" aparece no menu do CRM só para quem tem `crm.funil.ver` (E2E de alcance).
@@ -78,3 +90,4 @@ Status: 🧪
 
 ## Trilha do tempo
 - 2026-10-26 · [C] trio nascido com a tela (US-CRM-092 · ADR 0441).
+- 2026-10-27 · [C] UC-CRMFN-06: origem do negócio no cartão (US-CRM-096).

@@ -108,6 +108,15 @@ class FunilController extends Controller
     }
 
     /** @return list<array<string, mixed>> */
+    /** "google / cpc · outubro" — só as partes preenchidas; null quando não há UTM. */
+    private static function resumoUtm(object $r): ?string
+    {
+        $fonte = implode(' / ', array_filter([trim((string) $r->utm_source), trim((string) $r->utm_medium)]));
+        $texto = implode(' · ', array_filter([$fonte, trim((string) $r->utm_campaign)]));
+
+        return $texto !== '' ? $texto : null;
+    }
+
     private function negocios(int $businessId): array
     {
         return DB::table('crm_deals as d')
@@ -119,6 +128,7 @@ class FunilController extends Controller
             ->limit(500)
             ->get([
                 'd.id', 'd.titulo', 'd.stage', 'd.valor_estimado', 'd.data_fechamento_prevista', 'd.updated_at',
+                'd.origem', 'd.utm_source', 'd.utm_medium', 'd.utm_campaign',
                 'c.id as contato_id', 'c.name as contato', 'c.supplier_business_name as empresa',
                 DB::raw("TRIM(CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, ''))) as responsavel"),
             ])
@@ -132,6 +142,9 @@ class FunilController extends Controller
                 'contato_id' => $r->contato_id !== null ? (int) $r->contato_id : null,
                 'contato' => trim((string) ($r->empresa ?: $r->contato)) ?: null,
                 'responsavel' => trim((string) $r->responsavel) ?: null,
+                // US-CRM-096 — de onde veio: 'formulario' (captura do site) ou 'manual'.
+                'origem' => (string) ($r->origem ?: 'manual'),
+                'utm' => self::resumoUtm($r),
             ])
             ->values()
             ->all();
