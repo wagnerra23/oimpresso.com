@@ -192,6 +192,35 @@ related_cu: [CU-OFI-04, CU-OFI-05, CU-OFI-07, CU-OFI-08, CU-OFI-09, CU-OFI-10, C
 - **Aceite:** Quando roda `oficina:entrega-assinatura <biz> --ligar` · Então a empresa passa a exigir e a outra não muda · Com `--desligar` volta a não exigir.
 - **Status: 🧪**
 
+
+## Vários mecânicos na OS, com horas (US-AUTO-006) — backend, atrás de flag
+
+> **Âncora:** decisão [W] 2026-10-26 no SPEC — *"vários mecânicos por OS com horas digitadas,
+> alimentando a comissão por papel de técnico"*. Uma linha por mecânico em `oficina_os_mecanicos`;
+> o `assigned_user_id` da OS segue sendo o responsável. As horas são registro: não mudam total,
+> preço nem estoque. A comissão por regra (frente Vendas, US-COMM-015) lê pelo contrato
+> `App\Contracts\Comissao\TecnicosDaOs`.
+>
+> **Desligado por padrão:** `OFICINA_MULTI_MECANICO_ENABLED=false` → `ordens-servico/{order}/mecanicos`
+> devolve 404. A tela vem em PR próprio, depois do protótipo.
+>
+> Prova: `Modules/OficinaAuto/Tests/Feature/MecanicosDaOsContratoTest.php` (lane `PHP / Pest (Sells · MySQL)`).
+
+## UC-OSMEC-01 · Grava vários mecânicos com as horas de cada um
+- **Aceite:** Quando salva Ana 2,5 h e Beto 1 h · Então a OS fica com os dois · Quando salva só Caio 3 h · Então a lista é trocada · Lista vazia limpa.
+- **Status: 🧪**
+
+## UC-OSMEC-02 · Horas inválidas ou mecânico repetido são recusados
+- **Aceite:** Horas 0, negativas, acima de 999,99 ou o mesmo mecânico duas vezes · Então é recusado e a lista anterior fica intacta.
+- **Status: 🧪**
+
+## UC-OSMEC-03 · Mecânico ou OS de outra empresa são recusados `[T0]`
+- **Aceite:** Lançar mecânico da empresa 99 numa OS da 98, ou qualquer mecânico numa OS da 99 pela 98 · Então é recusado e nada é gravado.
+- **Status: 🧪**
+
+## UC-OSMEC-04 · A comissão lê as horas pela venda da OS
+- **Aceite:** Dada a OS ligada à venda X com Ana 3 h e Beto 1,5 h · Então `TecnicosDaOs::daVenda(empresa, X)` devolve os dois com as horas · Outra empresa ou outra venda recebe lista vazia · O recurso nasce desligado.
+- **Status: 🧪**
 ---
 
 ## Rastreabilidade (âncora no SDD §6 · [ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md))
@@ -220,6 +249,10 @@ related_cu: [CU-OFI-04, CU-OFI-05, CU-OFI-07, CU-OFI-08, CU-OFI-09, CU-OFI-10, C
 | UC-OSH-20 | should | CU-OFI-08 · US-OFICINA-048 |
 | UC-OSH-21 | must `[T0]` | CU-OFI-15 · US-OFICINA-048 |
 | UC-OSH-22 | should | US-OFICINA-048 |
+| UC-OSMEC-01 | must | US-AUTO-006 |
+| UC-OSMEC-02 | must | US-AUTO-006 |
+| UC-OSMEC-03 | must `[T0]` | US-AUTO-006 |
+| UC-OSMEC-04 | must | US-AUTO-006 · US-COMM-015 |
 
 > ⚖️ **Força do veredito:** lane `PHP / Pest (OficinaAuto · MySQL)`, criada em 2026-07-27 —
 > **ADVISORY**: reprova fica visível e **não bloqueia merge** (não está em

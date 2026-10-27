@@ -65,4 +65,10 @@ return [
     'lembrete_revisao' => [
         'enabled' => (bool) env('OFICINA_LEMBRETE_REVISAO_ENABLED', false),
     ],
+
+    // US-AUTO-006 — vários mecânicos por OS com horas digitadas (decisão [W] 2026-10-26).
+    // Desligado por padrão: feature nova. Ligar = OFICINA_MULTI_MECANICO_ENABLED=true (decisão [W]).
+    'multi_mecanico' => [
+        'enabled' => (bool) env('OFICINA_MULTI_MECANICO_ENABLED', false),
+    ],
 ];

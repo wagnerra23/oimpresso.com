@@ -61,6 +61,8 @@ class OficinaAutoServiceProvider extends ServiceProvider
 
         // Avançar etapa da OS pelo app (contrato do núcleo; o núcleo não importa o módulo).
         $this->app->bind(\App\Contracts\Oficina\AcoesOs::class, \Modules\OficinaAuto\Services\AcoesOsDoApp::class);
+        // US-AUTO-006 — horas por mecânico da OS, lidas pela comissão por regra (papel técnico).
+        $this->app->bind(\App\Contracts\Comissao\TecnicosDaOs::class, \Modules\OficinaAuto\Services\MecanicosDaOs::class);
     }
 
     /**

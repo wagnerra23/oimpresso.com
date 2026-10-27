@@ -723,7 +723,9 @@ Priorização: **P0** = bloqueia 1ª piloto (mínimo viável reconhecível pelo 
 > **Área:** Producao
 > **blocked_by:** US-AUTO-005
 
-**Implementado em:** _pendente_ — OS tem 1 mecânico (`assigned_user_id`), mas a tabela `oficina_auto_os_atribuicoes` (N mecânicos com horas/peças distintas) + apontamento não existe
+**Implementado em:** `Modules/OficinaAuto/Services/MecanicosDaOs.php` · `Modules/OficinaAuto/Http/Controllers/ServiceOrderMecanicoController.php` · `app/Contracts/Comissao/TecnicosDaOs.php` · `Modules/OficinaAuto/Database/Migrations/2026_10_27_110000_create_oficina_os_mecanicos.php` · `Modules/OficinaAuto/Tests/Feature/MecanicosDaOsContratoTest.php` — parcial: backend atrás de `OFICINA_MULTI_MECANICO_ENABLED=false`; a tela vem depois do protótipo; peças por mecânico e apontamento por relógio seguem fora.
+
+> **Decisão [W] 2026-10-26:** vários mecânicos por OS com **horas digitadas** (não relógio), alimentando a comissão do papel técnico. A Oficina grava as horas (`oficina_os_mecanicos`) e expõe `App\Contracts\Comissao\TecnicosDaOs::daVenda()`; o cálculo da comissão é da US-COMM-015 (frente Vendas).
 
 **Como** dono
 **Quero** que 1 OS de revisão completa possa ter mecânico_A (parte mecânica, 4h) + mecânico_B (parte elétrica, 1h) registrados separadamente
