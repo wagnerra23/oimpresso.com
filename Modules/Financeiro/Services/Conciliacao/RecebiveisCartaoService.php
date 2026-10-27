@@ -15,7 +15,7 @@ use Modules\Financeiro\Models\Concerns\BusinessScopeImpl;
 use Modules\Financeiro\Services\FinanceiroAuditLogger;
 
 /**
- * Cartão da maquininha (US-FIN-081 · UC-FCC-23..26).
+ * Cartão da maquininha (US-FIN-083 · UC-FCC-23..26).
  *
  * 1. Pagamento de venda no cartão → recebível previsto na adquirente padrão do business:
  *    bruto, taxa (débito ou crédito), líquido e data prevista (data do pagamento + prazo, em dias

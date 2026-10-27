@@ -271,28 +271,28 @@ Fonte: SPEC US-FIN-080 + ADR 0093.
 **Pronto quando:** a regra e o título do 99 não tocam a linha do 98, rodando o motor dos dois businesses.
 
 ## UC-FCC-23 — Venda no cartão vira recebível previsto
-Status: 🧪 (`CartaoRecebiveisContratoTest` — *"UC-FCC-23 · ..."* · nasce em 2026-10-27, US-FIN-081; ainda sem run)
-Fonte: SPEC US-FIN-081 + regra mestre de VALOR.
+Status: 🧪 (`CartaoRecebiveisContratoTest` — *"UC-FCC-23 · ..."* · nasce em 2026-10-27, US-FIN-083; ainda sem run)
+Fonte: SPEC US-FIN-083 + regra mestre de VALOR.
 Maquininha com débito 1,99% em 1 dia e crédito 3,19% em 30 dias.
 **Pronto quando:** crédito de 100,00 → taxa 3,19, líquido 96,81, previsto em 30 dias corridos; débito de
 80,00 → taxa 1,59, líquido 78,41, em 1 dia; 50,00 no crédito → taxa 1,60 (1,595 meio-para-cima), líquido
 48,40; líquido + taxa = bruto nos três; apagar o pagamento deixa o recebível `cancelado`.
 
 ## UC-FCC-24 — Repasse de um recebível baixa só ele, sem mexer na venda
-Status: 🧪 (`CartaoRecebiveisContratoTest` — *"UC-FCC-24 · ..."* · nasce em 2026-10-27, US-FIN-081; ainda sem run)
-Fonte: SPEC US-FIN-081 + charter (Anti-hook: não cria/edita Título).
+Status: 🧪 (`CartaoRecebiveisContratoTest` — *"UC-FCC-24 · ..."* · nasce em 2026-10-27, US-FIN-083; ainda sem run)
+Fonte: SPEC US-FIN-083 + charter (Anti-hook: não cria/edita Título).
 **Pronto quando:** a entrada "STONE … 78,41" no dia previsto deixa o recebível do débito `recebido` com a
 linha que o pagou, o do crédito segue `previsto`, a linha fica `conciliado` sem título e nenhuma baixa nasce.
 
 ## UC-FCC-25 — Repasse agregado do dia
-Status: 🧪 (`CartaoRecebiveisContratoTest` — *"UC-FCC-25 · ..."* · nasce em 2026-10-27, US-FIN-081; ainda sem run)
-Fonte: SPEC US-FIN-081.
+Status: 🧪 (`CartaoRecebiveisContratoTest` — *"UC-FCC-25 · ..."* · nasce em 2026-10-27, US-FIN-083; ainda sem run)
+Fonte: SPEC US-FIN-083.
 **Pronto quando:** dois créditos previstos para o mesmo dia (96,81 + 48,40) são baixados por uma entrada de
 145,21; uma entrada de 145,20 não baixa nenhum.
 
 ## UC-FCC-26 — Flag desligada não gera recebível; outro business não é baixado `[T0]`
-Status: 🧪 (`CartaoRecebiveisContratoTest` — *"UC-FCC-26 · ..."* · nasce em 2026-10-27, US-FIN-081; ainda sem run)
-Fonte: SPEC US-FIN-081 + ADR 0093.
+Status: 🧪 (`CartaoRecebiveisContratoTest` — *"UC-FCC-26 · ..."* · nasce em 2026-10-27, US-FIN-083; ainda sem run)
+Fonte: SPEC US-FIN-083 + ADR 0093.
 **Pronto quando:** com a flag desligada a venda no cartão não gera recebível; a entrada do 98 não baixa o
 recebível do 99 de mesmo valor.
 

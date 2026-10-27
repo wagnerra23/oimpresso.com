@@ -581,7 +581,7 @@ class ConciliacaoController extends Controller
         // financeiro.conciliacao.regras_enabled). O que elas casam sai de `pendente`; o resto
         // cai no casamento por valor e data abaixo, como sempre.
         app(RegrasConciliacaoService::class)->aplicar($businessId);
-        // US-FIN-081: repasse da maquininha baixa os recebíveis previstos (desligado por padrão).
+        // US-FIN-083: repasse da maquininha baixa os recebíveis previstos (desligado por padrão).
         app(RecebiveisCartaoService::class)->conciliarRepasses($businessId);
 
         // OFX — data em `data_movimento`, valor já com sinal. Tier 0 (re-impl #2045):

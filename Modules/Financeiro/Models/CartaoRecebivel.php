@@ -7,7 +7,7 @@ use Modules\Financeiro\Models\Concerns\BusinessScope;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
-/** O que a adquirente deve pagar por um pagamento de venda no cartão (US-FIN-081). */
+/** O que a adquirente deve pagar por um pagamento de venda no cartão (US-FIN-083). */
 class CartaoRecebivel extends Model
 {
     use BusinessScope, LogsActivity;

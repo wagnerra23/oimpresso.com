@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Cartão da maquininha (US-FIN-081 · UC-FCC-23..26).
+ * Cartão da maquininha (US-FIN-083 · UC-FCC-23..26).
  *
  * `fin_cartao_adquirentes`: a maquininha da empresa (Stone, Cielo, Rede…), com a taxa e o prazo
  * de repasse do débito e do crédito, e o trecho que identifica o repasse dela na descrição do

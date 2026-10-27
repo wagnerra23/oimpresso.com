@@ -52,7 +52,7 @@ class TransactionPaymentObserver
     }
 
     /**
-     * US-FIN-081: recebível do cartão da maquininha (desligado por padrão). Falha aqui nunca
+     * US-FIN-083: recebível do cartão da maquininha (desligado por padrão). Falha aqui nunca
      * derruba o pagamento da venda (US-FIN-059): reporta e segue.
      */
     private function recebivelCartao(\Closure $acao): void

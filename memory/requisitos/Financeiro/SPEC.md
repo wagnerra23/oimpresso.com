@@ -2169,7 +2169,7 @@ _PR 1 — motor + flag:_
 _PR 2 — tela:_
 - [ ] Cadastro de regras (criar, editar, desligar) e botão "Aplicar regras" na Conciliação, com a regra que casou visível na linha.
 
-### US-FIN-081 · Conciliação do cartão da maquininha — recebíveis previstos e baixa pelo repasse — **P1**
+### US-FIN-083 · Conciliação do cartão da maquininha — recebíveis previstos e baixa pelo repasse — **P1**
 
 > owner: — · priority: p1 · estimate: 12h · status: doing · type: story
 > blocked_by: —

@@ -73,7 +73,7 @@ return [
     ],
 
     /*
-    | Cartão da maquininha (US-FIN-081): venda no cartão vira recebível previsto e o repasse da
+    | Cartão da maquininha (US-FIN-083): venda no cartão vira recebível previsto e o repasse da
     | adquirente no extrato o baixa. Desligado por padrão.
     */
     'cartao' => [
