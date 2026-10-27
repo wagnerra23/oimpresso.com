@@ -52,9 +52,13 @@ it('Page importa AppShellV2 + PageHeader', function () {
     expect($source)->toMatch('/StockAdjustmentCreate\\.layout\\s*=/');
 });
 
-it('Page declara AdjustmentLineDraft + AdjustmentType + Permissions interfaces', function () {
+// 2026-10-27: a linha deixou de ser `AdjustmentLineDraft` (texto livre, product_id nulo) e passou
+// a ser `LinhaEstoque`, vinda de /stock-transfers/produto-linha (UC-AJCRT-05).
+it('Page usa a linha de produto real (LinhaEstoque) + AdjustmentType + Permissions', function () {
     $source = readSACreateInertia();
-    expect($source)->toContain('interface AdjustmentLineDraft');
+    expect($source)->not->toContain('interface AdjustmentLineDraft');
+    expect($source)->toContain("from '@/Pages/Estoque/_components/linhas-estoque-dominio'");
+    expect($source)->toContain('<LinhasDeEstoque');
     expect($source)->toContain('type AdjustmentType');
     expect($source)->toContain('interface Permissions');
     expect($source)->toContain('interface StockAdjustmentCreatePageProps');
@@ -64,7 +68,7 @@ it('Page valida R-ADJ-003 (recovered <= total) client-side', function () {
     $source = readSACreateInertia();
     expect($source)->toContain('recuperadoExcede');
     expect($source)->toContain('AlertCircle');
-    expect($source)->toContain('disabled={form.processing || recuperadoExcede}');
+    expect($source)->toContain('disabled={form.processing || recuperadoExcede || linhasComErro}');
 });
 
 it('Page destaca o tipo abnormal por ramificação, com token semântico (não cor crua)', function () {
