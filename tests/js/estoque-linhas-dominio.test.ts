@@ -96,10 +96,6 @@ describe('UC-TRCRT-06 · recusas da linha (paridade Blade)', () => {
     expect(erroDaLinha({ ...linhaNova(d), quantidade: 5, lot_no_line_id: 5 })).toMatch(/Só há 4/);
   });
 
-  it('na edição, a quantidade já reservada pela própria transferência conta como disponível', () => {
-    expect(erroDaLinha({ ...linhaNova(dados({ qty_available: 2 })), quantidade: 5 }, 3)).toBeNull();
-  });
-
   it('produto sem controle de estoque não tem limite; zero e fração indevida são recusados', () => {
     expect(erroDaLinha({ ...linhaNova(dados({ enable_stock: 0 })), quantidade: 500 })).toBeNull();
     expect(erroDaLinha({ ...linhaNova(dados()), quantidade: 0 })).toMatch(/maior que zero/);

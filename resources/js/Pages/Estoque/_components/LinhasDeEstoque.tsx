@@ -39,8 +39,6 @@ interface Props {
   editarCusto: boolean;
   /** Mostra a escolha de unidade (a transferência tem; o ajuste não tinha na Blade). */
   comUnidade?: boolean;
-  /** Edição: quanto de cada variação já está reservado por esta mesma transferência. */
-  reservadoPorVariacao?: Record<number, number>;
 }
 
 export default function LinhasDeEstoque({
@@ -50,7 +48,6 @@ export default function LinhasDeEstoque({
   verCusto,
   editarCusto,
   comUnidade = false,
-  reservadoPorVariacao = {},
 }: Props) {
   const [aviso, setAviso] = useState<string | null>(null);
   const [buscando, setBuscando] = useState(false);
@@ -69,7 +66,7 @@ export default function LinhasDeEstoque({
       setAviso('Não foi possível trazer o produto deste local.');
       return;
     }
-    if (dados.enable_stock === 1 && dados.qty_available <= 0 && !((reservadoPorVariacao[variationId] ?? 0) > 0)) {
+    if (dados.enable_stock === 1 && dados.qty_available <= 0) {
       setAviso(`${dados.nome} está sem saldo neste local.`);
       return;
     }
@@ -110,7 +107,7 @@ export default function LinhasDeEstoque({
           </thead>
           <tbody>
             {linhas.map((l, idx) => {
-              const erro = erroDaLinha(l, reservadoPorVariacao[l.dados.variation_id] ?? 0);
+              const erro = erroDaLinha(l);
               const usaLote = (l.dados.usa_lote || l.dados.usa_validade) && l.dados.lotes.length > 0;
               return (
                 <tr key={l.dados.variation_id} className="border-b border-border align-top text-[13px]">

@@ -97,12 +97,10 @@ export function quantidadeBase(l: LinhaEstoque): number {
 
 /**
  * Erro da linha, ou null. Mesmas recusas da Blade: quantidade maior que zero e, em produto que
- * controla estoque, não mais que o saldo do local (ou do lote).
- *
- * `extraDisponivel` = quanto desta linha já está reservado pela própria transferência pendente
- * (edição): a Blade soma `quantity_ordered` ao saldo pelo mesmo motivo.
+ * controla estoque, não mais que o saldo do local (ou do lote). Na edição a Blade usa o mesmo
+ * limite (`qty_available` do local, sem somar o já pedido): transferência pendente não baixa saldo.
  */
-export function erroDaLinha(l: LinhaEstoque, extraDisponivel = 0): string | null {
+export function erroDaLinha(l: LinhaEstoque): string | null {
   if (!(l.quantidade > 0)) return 'Informe uma quantidade maior que zero.';
   const unidadeDecimal =
     l.sub_unit_id === null
@@ -110,7 +108,7 @@ export function erroDaLinha(l: LinhaEstoque, extraDisponivel = 0): string | null
       : (l.dados.sub_unidades.find((u) => u.id === l.sub_unit_id)?.permite_decimal ?? l.dados.permite_decimal);
   if (!unidadeDecimal && !Number.isInteger(l.quantidade)) return 'Esta unidade não aceita fração.';
   if (l.dados.enable_stock === 1) {
-    const disponivel = saldoDisponivel(l) + extraDisponivel;
+    const disponivel = saldoDisponivel(l);
     if (quantidadeBase(l) > disponivel + 1e-9) {
       return `Só há ${disponivel.toLocaleString('pt-BR')} ${l.dados.unidade} disponível.`;
     }
