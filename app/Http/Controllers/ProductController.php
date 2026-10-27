@@ -267,7 +267,7 @@ class ProductController extends Controller
 
             // "Exportar filtrados" (rodapé da lista): download, não página.
             if (request()->input('exportar') === 'csv') {
-                return $this->exportarListaCsv($business_id, $filtrosLista, $podeVerCusto, $podeVerPreco, $is_woocommerce);
+                return $this->exportarListaCsv($business_id, $filtrosLista, $podeVerCusto, $podeVerPreco, $is_woocommerce, collect($taxes)->isNotEmpty());
             }
 
             return Inertia::render('Produto/Index', [
@@ -1128,7 +1128,7 @@ class ProductController extends Controller
      *
      * @param  array<string, mixed>  $f  `filtrosListaProdutos()`
      */
-    protected function exportarListaCsv(int $business_id, array $f, bool $podeVerCusto, bool $podeVerPreco, bool $is_woocommerce): \Illuminate\Http\Response
+    protected function exportarListaCsv(int $business_id, array $f, bool $podeVerCusto, bool $podeVerPreco, bool $is_woocommerce, bool $temAliquota = true): \Illuminate\Http\Response
     {
         $linhas = $this->buildProdutoListaPaginada($business_id, array_merge($f, ['per_page' => -1, 'page' => 1]), $podeVerCusto, $podeVerPreco, $is_woocommerce)['data'];
         $rotulos = array_filter($this->rotulosCamposProduto());
@@ -1136,8 +1136,11 @@ class ProductController extends Controller
         $dinheiro = fn ($v) => $v === null ? '' : number_format((float) $v, 2, ',', '');
         $quantidade = fn ($v) => $v === null ? '' : rtrim(rtrim(number_format((float) $v, 4, ',', ''), '0'), ',');
 
-        $cabecalho = ['Produto', 'SKU', 'Tipo', 'Categoria', 'Subcategoria', 'Marca', 'Unidade', 'Imposto', 'Locais',
-            'Estoque atual', 'Quantidade de alerta', 'Situação', 'Não para venda'];
+        // A coluna Imposto segue a da lista: só em empresa com alíquota cadastrada (decisão [F]
+        // 2026-10-26). Sem ela a coluna sairia vazia em todas as linhas.
+        $cabecalho = array_merge(['Produto', 'SKU', 'Tipo', 'Categoria', 'Subcategoria', 'Marca', 'Unidade'],
+            $temAliquota ? ['Imposto'] : [],
+            ['Locais', 'Estoque atual', 'Quantidade de alerta', 'Situação', 'Não para venda']);
         if ($podeVerCusto) {
             array_push($cabecalho, 'Preço de compra (mín.)', 'Preço de compra (máx.)');
         }
@@ -1156,13 +1159,15 @@ class ProductController extends Controller
         fwrite($saida, "\xEF\xBB\xBF");
         fputcsv($saida, $cabecalho, ';', '"', '');
         foreach ($linhas as $l) {
-            $linha = [
+            $linha = array_merge([
                 (string) $l['nome'], (string) $l['sku'], $tipos[$l['tipo']] ?? (string) $l['tipo'],
                 (string) ($l['categoria'] ?? ''), (string) ($l['subcategoria'] ?? ''), (string) ($l['marca'] ?? ''),
-                (string) ($l['unidade'] ?? ''), (string) ($l['imposto'] ?? ''), implode(', ', $l['locais']),
+                (string) ($l['unidade'] ?? ''),
+            ], $temAliquota ? [(string) ($l['imposto'] ?? '')] : [], [
+                implode(', ', $l['locais']),
                 $l['controla_estoque'] ? $quantidade($l['estoque']) : '', $quantidade($l['alerta']),
                 $l['inativo'] ? 'Inativo' : 'Ativo', $l['nao_para_venda'] ? 'Sim' : 'Não',
-            ];
+            ]);
             if ($podeVerCusto) {
                 array_push($linha, $dinheiro($l['compra_min'] ?? null), $dinheiro($l['compra_max'] ?? null));
             }

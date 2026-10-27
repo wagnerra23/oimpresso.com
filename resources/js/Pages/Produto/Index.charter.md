@@ -112,8 +112,9 @@ função da lista Blade que roda hoje em produção.
 >   - **Feito:** aba Fiscal e "Dados fiscais (NCM/CFOP)" do menu só em empresa que emite nota (módulo
 >     Fiscal no pacote, o mesmo teste do botão "Abrir no módulo Fiscal"); a aba começa dizendo se o
 >     produto está pronto para nota (UC-PIDX-17 e 25).
->   - Coluna e filtro Imposto da lista: só se a empresa tem alíquota cadastrada; a coluna nasce
->     desligada e fica no menu Colunas. Os dois exports seguem a regra da coluna.
+>   - **Feito:** coluna e filtro Imposto da lista só se a empresa tem alíquota cadastrada; a coluna
+>     nasce desligada e fica no menu Colunas; o CSV de "Exportar filtrados" segue a regra (UC-PIDX-34).
+>     O "Baixar Excel" é o arquivo de reimportação da Blade e fica como está, por decisão à parte.
 >
 > Nada disso esconde da tela nova o que a lista Blade mostra, então não entra no Non-Goal "Função a
 > menos que a lista Blade". Uma diferença pequena, de propósito: a janela "Ver" da Blade escreve
