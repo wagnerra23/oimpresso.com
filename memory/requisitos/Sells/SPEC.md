@@ -1651,6 +1651,32 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 
 **Entregue em 2026-10-20 (backend):** total de volumes, não por item — um volume (caixa, rolo, pacote) pode levar várias linhas da venda, então volume por linha não é bem definido. Opcional porque o app que já está nos celulares não manda o campo; sem ele não se inventa número (fica nulo, "não informado"). O `volumes` só entra no hash de idempotência quando vem, para que o corpo antigo mantenha o hash de antes.
 
+### US-SELL-074 · Cliente aprova o orçamento pelo link público, e a aprovação vira pedido
+
+> owner: wagner · priority: p1 · estimate: 10h · status: todo · type: story · origin: lacunas-concorrencia-2026-10-25
+> blocked_by: —
+
+**Implementado em:** _pendente_ — não iniciada.
+
+O link público do orçamento (`SellPosController@showInvoice`) só mostra o documento. O cliente passa a aprovar (informando o nome) ou pedir ajuste; a aprovação fica registrada na venda, com data e IP, e o vendedor converte em pedido pelo caminho de conversão que já existe. Não muda valor nem estoque. Tier 0: o token do link só abre o orçamento da própria empresa.
+
+### US-SELL-075 · Maquininha integrada ao caixa (TEF): o valor vai para a máquina e a resposta preenche o pagamento
+
+> owner: wagner · priority: p1 · estimate: 40h · status: todo · type: story · origin: lacunas-concorrencia-2026-10-25
+> blocked_by: escolha do adquirente/integrador ([W])
+
+**Implementado em:** _pendente_ — não iniciada.
+
+Os drivers do `Modules/PaymentGateway` são de cobrança online; não há TEF. Antes de código: escolher o integrador (TEF dedicado, SmartPOS ou maquininha com API do adquirente). Aceite: o caixa manda o valor, a máquina devolve aprovação com bandeira, NSU e autorização, e o pagamento da venda nasce preenchido. Mexe em valor: regra mestre.
+
+### US-SELL-076 · Cupom de desconto e promoção leve X pague Y no caixa novo
+
+> owner: wagner · priority: p2 · estimate: 16h · status: todo · type: story · origin: lacunas-concorrencia-2026-10-25
+> blocked_by: —
+
+**Implementado em:** _pendente_ — não iniciada.
+
+Hoje há desconto por período (`DiscountController`). Faltam cupom com código, validade e limite de uso, e a promoção leve X pague Y aplicada sozinha no caixa. Mexe em valor: regra mestre (antes→depois e dupla prova).
 ### US-SELL-078 · O ICMS-ST entra no total da venda, pela mesma conta da NF-e
 
 > owner: wagner · priority: p1 · estimate: 16h · status: doing · type: story · origin: coordenacao-lacunas-2026-10-26
