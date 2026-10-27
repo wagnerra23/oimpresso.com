@@ -10,6 +10,7 @@ use Illuminate\Routing\Controller;
 use Modules\Marketplaces\Entities\ContaVendedor;
 use Modules\Marketplaces\Entities\Marketplace;
 use Modules\Marketplaces\Entities\WebhookRecebido;
+use Modules\Marketplaces\Jobs\ProcessarNotificacaoNuvemshopJob;
 
 /**
  * Recebe as notificações da Nuvemshop (ADR 0443, fatia b).
@@ -72,7 +73,7 @@ class NotificacoesNuvemshopController extends Controller
             }
 
             // SUPERADMIN: webhook público sem sessão; a empresa vem da conta e entra explícita.
-            WebhookRecebido::withoutGlobalScopes()->create([
+            $log = WebhookRecebido::withoutGlobalScopes()->create([
                 'business_id' => (int) $conta->business_id,
                 'marketplace_id' => (int) $canal->id,
                 'topic' => mb_substr($evento, 0, 100),
@@ -82,6 +83,11 @@ class NotificacoesNuvemshopController extends Controller
                 'processing_status' => $status,
                 'received_at' => now(),
             ]);
+
+            // Fatia c: evento de pedido vai para a fila, que busca o pedido na API e decide se vira venda.
+            if (str_starts_with($evento, 'order/') && isset($dados['id'])) {
+                ProcessarNotificacaoNuvemshopJob::dispatch((int) $conta->business_id, (int) $conta->id, (int) $log->id);
+            }
         }
 
         return response()->json(['ok' => true]);

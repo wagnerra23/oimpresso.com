@@ -611,6 +611,16 @@ Fatia a da [ADR 0443](../../decisions/0443-nuvemshop-entra-no-marketplaces-como-
 
 Fatia b da [ADR 0443](../../decisions/0443-nuvemshop-entra-no-marketplaces-como-driver.md). Parcial: o processamento dos eventos de pedido é a fatia c; o tratamento do `customers/redact` espera a decisão do [W] registrada na ADR.
 
+### US-MKT-028 · Nuvemshop — pedido pago vira venda com desconto e frete, e baixa o estoque — **P1** · 6h
+
+**Implementado em:** `Modules/Marketplaces/Jobs/ProcessarNotificacaoNuvemshopJob.php` · `Modules/Marketplaces/Services/PedidoParaVenda.php` · `Modules/Marketplaces/Http/Controllers/NotificacoesNuvemshopController.php`
+
+**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesPedidoNuvemshopViraVendaContratoTest.php` · `Modules/Marketplaces/Tests/Feature/MarketplacesPedidoViraVendaContratoTest.php`
+
+**DoD:** a notificação de pedido busca o pedido na API da loja com `Authorization: Bearer` e `User-Agent`, grava em `mkt_orders` e, se pago, manda virar venda; a venda nasce final no local da conta com origem `nuvemshop`, soma das linhas = `subtotal` da loja, desconto e frete gravados, e `final_total` = linhas − desconto + frete = `total` da loja (±1 centavo, senão recusa); o estoque baixa a quantidade; pedido não pago não vira venda; o pedido do Mercado Livre segue igual (desconto e frete 0).
+
+Fatia c da [ADR 0443](../../decisions/0443-nuvemshop-entra-no-marketplaces-como-driver.md). Regra mestre de valor e estoque: o antes → depois foi apresentado ao [W] no PR.
+
 ## 9. Concorrentes (research consolidada §discovery)
 
 | Concorrente | Pricing | Forte | Calcanhar oimpresso pode bater |

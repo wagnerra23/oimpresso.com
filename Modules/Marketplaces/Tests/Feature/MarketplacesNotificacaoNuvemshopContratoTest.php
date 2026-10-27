@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
 use Modules\Marketplaces\Entities\ContaVendedor;
 use Modules\Marketplaces\Entities\Marketplace;
@@ -31,6 +32,8 @@ beforeEach(function () {
         $this->markTestSkipped('Tabelas mkt_* ausentes — migrations do Modules/Marketplaces não rodaram.');
     }
     config(['marketplaces.nuvemshop.ativo' => true, 'marketplaces.nuvemshop.client_secret' => 'segredo-app-teste']);
+    // O evento de pedido enfileira o processamento (fatia c); aqui só se prova o receptor.
+    Queue::fake();
     $this->b98 = (int) $this->seededTenant()->id;
     $this->b99 = (int) $this->seededSupportClientTenant()->id;
     $this->nuvem = (int) Marketplace::query()->where('slug', Marketplace::NUVEMSHOP)->value('id');
