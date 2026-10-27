@@ -29,8 +29,9 @@ vertical (não é módulo de vertical). Separado do `Woocommerce`, que é loja p
   A venda entra no processo FSM `venda_marketplace` (pago → enviado → entregue). A NF-e do pedido
   tem o CFOP provisório e a avaliação no "marcar como enviado", atrás de flag desligada — nenhuma
   nota é emitida ainda (US-MKT-009 parcial).
-  Próximas US em [SPEC.md](SPEC.md) §11.2: tela de pedidos (inclui escolher o local da conta) →
-  destinatário e emissão da NF-e → rastreio.
+  A tela `/marketplaces/pedidos` (menu COMERCIAL → Marketplaces) lista os pedidos e a venda gerada,
+  e é onde se escolhe o local de venda de cada conta (US-MKT-008, sem o painel lateral ainda).
+  Próximas US em [SPEC.md](SPEC.md) §11.2: destinatário e emissão da NF-e → rastreio.
 
 ## O que depende de [W]
 
