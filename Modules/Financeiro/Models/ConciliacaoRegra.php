@@ -63,7 +63,7 @@ class ConciliacaoRegra extends Model
 
     /**
      * A linha (descrição, valor com sinal, conta) atende os critérios da regra?
-     * Valor da faixa é comparado em módulo: a regra fala de "R$ 50 a R$ 80", o sentido diz o lado.
+     * Valor da faixa é comparado em módulo: a faixa é sempre positiva, o sentido diz o lado.
      */
     public function atende(string $descricao, float $valorComSinal, ?int $contaBancariaId): bool
     {
