@@ -725,9 +725,22 @@ A lista Blade (`resources/views/product/partials/product_list.blade.php`, todas 
      quer dizer "pedir hoje", não "atrasado". Ainda não aparece, porque nenhuma tela cadastra prazo.
    - 🎨 **No protótipo (2026-10-22):** "Quantidade de alerta" passa a se chamar **Estoque mínimo**
      (mesmo campo).
-   - **Decidido pela [M] em 2026-10-22: não há "Estoque máximo".** A requisição automática segue a
-     US-COM-027 como está, pedindo até o mínimo. O limiar de máximo do legado (`AR-PROD-053`) fica
-     fora, por decisão.
+   - 🔶 **Estoque máximo, opcional por produto** (revisão da [M] em 2026-10-27, a partir de um caso
+     do [L]; substitui a decisão de 2026-10-22, que dizia não haver máximo). O mínimo diz **quando**
+     comprar; o máximo diz **até onde** o estoque pode subir. Caso do [L]: uma barra de ferro de pouco
+     giro enferruja parada no estoque; sem teto, uma compra grande demais vira prejuízo. Recupera o
+     Estoque Máx. do legado (`AR-PROD-053`).
+     - **Regra proposta:** o máximo é o teto. A quantidade pedida não pode fazer o estoque passar
+       dele: teto = máximo − saldo − a caminho. Campo vazio = sem máximo, e tudo segue como hoje.
+       Exemplo: barra chata 1/4", mínimo 4, máximo 10, saldo 2, nada a caminho: dá para pedir até
+       8; se alguém pedir 20, a tela avisa que passa do máximo.
+     - **Em aberto, decisão [M]/[W]:** (a) abaixo do teto, a reposição pede até o mínimo (como a
+       US-COM-027 faz hoje) ou até o máximo; (b) material reservado para uma OS conta dentro do teto
+       ou fica fora dele, porque já tem destino e não fica parado.
+     - 🔴 **Não existe no código:** não há coluna de máximo em `products` nem em `variations`, e nem
+       a requisição automática (`RequisicaoEstoqueMinimoService`, US-COM-027) nem a Necessidade de
+       compra (US-COM-030) leem um máximo. Precisa de US no SPEC do Produto e de Compras antes de
+       virar código.
 3. `enable_product_expiry`/`enable_lot_number` habilitam validade/lote. — 🟡 **lote sim, validade
    em aberto**: `UC-PINIC-04` trava o lote; a **validade** fica fora do assert porque os **dois
    writers a parseiam de formas diferentes** (`uf_date` no controller × `Carbon::createFromFormat
@@ -1335,7 +1348,7 @@ qual é o local padrão.
 
 **Histórico:**
 
-- 2026-10-27 — **Estoque mínimo: o comprador e o cálculo** (v1.0.16), a partir do comentário do [W] no #9930: `CU-PROD-04` item 2 passa a dizer que o item abaixo do mínimo já aparece na lista Necessidade de compra (US-COM-030, #9878), que falta gerar a requisição ou a cotação dali (US-COM-031), e como calcular o mínimo (consumo médio × prazo total de reposição, com margem de segurança proposta). Registra o que falta para o sistema sugerir o mínimo e o conflito com o "Pedir até" do MRP. Texto sobreposto com autorização da [M]. [F+C]
+- 2026-10-27 — **Estoque mínimo: o comprador e o cálculo** (v1.0.16), a partir do comentário do [W] no #9930: `CU-PROD-04` item 2 passa a dizer que o item abaixo do mínimo já aparece na lista Necessidade de compra (US-COM-030, #9878), que falta gerar a requisição ou a cotação dali (US-COM-031), e como calcular o mínimo (consumo médio × prazo total de reposição, com margem de segurança proposta). Registra o que falta para o sistema sugerir o mínimo e o conflito com o "Pedir até" do MRP. Texto sobreposto com autorização da [M]. Na mesma versão, revisão da [M] a partir de um caso do [L]: o **estoque máximo volta, opcional por produto**, como teto da compra (barra de pouco giro enferruja parada); substitui a decisão de 2026-10-22 de não ter máximo. [F+C] [M+C]
 - 2026-10-22 — **Decisões da [M] sobre as pendências de fluxo** (v1.0.15): sem "Estoque máximo"; a requisição segue até o mínimo (`CU-PROD-04` item 2). Natureza uma por produto, mantendo a D-NATUREZA do [W] (`CU-PROD-19`). Roteiro de produção segue a ADR 0436 do [W] (item 3): sem roteiro no produto, a OS usa as etapas de produção do modelo da empresa; o protótipo mostra isso no card Produção. ⚠️ Ainda não funciona: a OS por item (US-PCP-026, #9641) não tem esse padrão, e hoje produto sem roteiro não vira OS (`UC-PCROT-02`). [M+C]
 - 2026-10-22 — **Três pendências das regras de fluxo registradas** (v1.0.14): natureza "a decidir" no Novo produto (`CU-PROD-19` item 3, proposta; trava a NFS-e da venda até o contador decidir), item da LC 116 do produto na NFS-e (`CU-PROD-19` item 4, corrigido: já funciona desde o #9727) e estoque mínimo e máximo (`CU-PROD-04` item 2; a requisição pelo mínimo já existe na US-COM-027, o máximo é proposta). [M+C]
 - 2026-10-22 — **`CU-PROD-20`: local padrão decidido pela [M]** (v1.0.13): é o local sugerido na compra, na transferência e na separação; a venda continua baixando do local da venda. O protótipo foi revisado contra as regras de fluxo e ganhou o Método de custo (UC-FLX-38) e os campos que a tela real já tem (Venda com imposto, Não está à venda, Expira em, Garantia). [M+C]
