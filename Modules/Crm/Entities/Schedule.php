@@ -34,6 +34,10 @@ class Schedule extends Model
     protected $casts = [
         'notify_via' => 'array',
         'followup_additional_info' => 'array',
+        // Chamado de garantia com SLA (US-CRM-094).
+        'garantia' => 'boolean',
+        'sla_vence_em' => 'datetime',
+        'sla_alertado_em' => 'datetime',
     ];
 
     /**
