@@ -173,6 +173,25 @@ it('UC-REPP-22 · se o espelho muda depois da ciência, ela deixa de conferir �
     $this->assertFalse($r->json('ciencia.confere'), 'Espelho diferente do que o colaborador viu tem de aparecer como não conferindo.');
 });
 
+it('UC-REPP-23 · a tela "Meu espelho" mostra o último mês fechado e, depois da ciência pela própria tela, quando foi dada', function () {
+    $eu = cienUsuario(CIEN_BIZ);
+    // Mês sintético bem à frente: é o último fechado do tenant 98 qualquer que seja o resto do banco.
+    $mes = '2099-01';
+    cienFechar(CIEN_BIZ, $eu->id, $mes);
+    $this->actingAs($eu);
+
+    $antes = $this->inertiaPartialGet('/ponto/mobile', ['ciencia_espelho'], 'Ponto/Mobile/Index')->assertOk();
+    $this->assertSame($mes, $antes->json('props.ciencia_espelho.mes'));
+    $this->assertTrue($antes->json('props.ciencia_espelho.competencia_fechada'));
+    $this->assertNull($antes->json('props.ciencia_espelho.ciencia'));
+
+    $this->postJson('/ponto/mobile/espelho/ciencia', ['mes' => $mes])->assertStatus(201);
+
+    $depois = $this->inertiaPartialGet('/ponto/mobile', ['ciencia_espelho'], 'Ponto/Mobile/Index')->assertOk();
+    $this->assertNotNull($depois->json('props.ciencia_espelho.ciencia.ciente_em'));
+    $this->assertTrue($depois->json('props.ciencia_espelho.ciencia.confere'));
+});
+
 it('UC-ESPSH-06 · o espelho do RH mostra se o colaborador deu ciência do mês, e de que colaborador do próprio empregador', function () {
     $gestor = User::query()->where('business_id', CIEN_BIZ)->first() ?? $this->markTestSkipped('Nenhum user no biz 98.');
     \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'ponto.access', 'guard_name' => 'web']);
