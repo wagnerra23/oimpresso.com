@@ -17,6 +17,7 @@ distilled_by: jana:distill-module-truth
 - Drawer com autosave (`ClienteAutosaveController`).
 - Score de risco do cliente — endpoint determinístico (zero LLM, sinais fixos), no drawer desde 2026-05.
 - Exportação CSV e auditoria LGPD (`ClienteAuditoriaController`; o CSV nunca exporta `tax_number` em claro).
+- Funil de vendas em kanban (`/crm/funil`, US-CRM-092): negócios de `crm_deals` por etapa, arrastar para mover, indicadores e previsão do mês. Saiu da depreciação pela ADR 0441 (proposta, 2026-10-26); permissões `crm.funil.ver`/`crm.funil.editar`, ninguém tem por padrão.
 - API externa `/connector/api/crm/*` (módulo Connector) e portal do contato `/contact/*` (zona cinza; uso real medido — ver `DEPRECATION-PLAN-pipeline.md` §Recibo do portal, 2026-09-04).
 
 ## Gaps
@@ -25,7 +26,7 @@ distilled_by: jana:distill-module-truth
 - Zona cinza — portal `/contact/*`: uso real medido em 2026-09-04 com controle positivo (`DEPRECATION-PLAN-pipeline.md` §Recibo do portal); decisão [W].
 
 ## Última mudança
-2026-09-04/05 — os bloqueios do plano de depreciação passam a ter medição: BLOQUEIO 3 fechado (#6774, 2026-09-04), uso do portal medido em zero com controle positivo (#6804) e bloqueios 1 e 2 medidos no CT 100 (#6791), ambos 2026-09-05. Antes: gate de módulo real no endpoint de veículos (#5725/#5729, 2026-08-13) e o fix "salvar a tela apagava o CRM em silêncio" (#6302, 2026-08-26).
+2026-10-26 — funil de vendas em kanban (US-CRM-092, ADR 0441). Antes: 2026-09-04/05 — os bloqueios do plano de depreciação passam a ter medição: BLOQUEIO 3 fechado (#6774, 2026-09-04), uso do portal medido em zero com controle positivo (#6804) e bloqueios 1 e 2 medidos no CT 100 (#6791), ambos 2026-09-05. Antes: gate de módulo real no endpoint de veículos (#5725/#5729, 2026-08-13) e o fix "salvar a tela apagava o CRM em silêncio" (#6302, 2026-08-26).
 
 ## Proveniência (destilado de)
 

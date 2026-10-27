@@ -59,6 +59,8 @@ Cross-refs externos: 5 ADRs (todas sobre A/cadastro: 0179/0185/0186/0197 + 0013 
 | `LeadController`, `ProposalController`, `ProposalTemplateController`, `CampaignController`, `CallLogController`, `ScheduleController`, `ScheduleLogController`, `CrmDashboardController`, `ReportController`, `CrmMarketplaceController`, `DataController`, `CrmSettingsController` | **B TARGET** | Rotas `/crm/*`, nav `crm::layouts.nav` |
 | Entities `Leaduser`, `CrmContact`, `Proposal`, `ProposalTemplate`, `Campaign`, `Schedule`, `ScheduleLog`, `ScheduleUser`, `CrmCallLog`, `Deal`, `CrmMarketplace`, `CrmContactPersonCommission` | **B TARGET** | Pipeline domain |
 | Services `CrmLeadService`, `ProposalService`, `CampaignService`, `CallLogService`, `ScheduleService`, `DealPipelineService`, `LeadAssignmentService` | **B TARGET** | Pipeline domain |
+
+> **Emenda 2026-10-26 ([ADR 0441](../../decisions/0441-funil-de-vendas-sai-da-depreciacao-emenda-0301.md), proposto):** `Deal` + `DealPipelineService` + `crm_deals` saem do TARGET e ficam **KEEP** — o funil de negócios em kanban volta como tela. O resto da linha acima segue TARGET.
 | Services `BrLookupService`, `ContactBookingService` | `BrLookupService` = **A** (medido 2026-09-04) · `ContactBookingService` segue **ZONA CINZA** | `BrLookupService`: único consumidor de código é `ClienteLookupController` (A) — **fica em A, não move** (receita no §BLOQUEIOS). `ContactBookingService`: **não medido** |
 | Commands `pos:sendScheduleNotification` (everyMinute), `pos:createRecursiveFollowup` (daily), `crm:health` | **B TARGET** | Follow-up reminders |
 
@@ -105,7 +107,7 @@ Mapa de FK confirmado por leitura das 27 migrations: tabelas pipeline apontam PA
 | `crm_campaigns` | ? | média | 1825d | **ARCHIVE→DROP** | Histórico marketing |
 | `crm_marketplaces` | ? | baixa | 1095d | **ARCHIVE→DROP** | "uso real desconhecido" — se 0 rows, DROP direto |
 | `crm_contact_person_commissions` | ? | baixa | 1825d | **ARCHIVE→DROP** | Regra comercial |
-| `crm_deals` | ? | baixa | n/a (recente) | **ARCHIVE→DROP** | Wave 27; provável ZERO rows reais |
+| `crm_deals` | ? | baixa | n/a (recente) | ~~ARCHIVE→DROP~~ **KEEP** desde [ADR 0441](../../decisions/0441-funil-de-vendas-sai-da-depreciacao-emenda-0301.md) (2026-10-26, proposto) | Wave 27; o funil de negócios sai da depreciação |
 | `crm_lead_users` (pivot) | ? | não | herda | **DROP** | Atribuição vendedor↔lead |
 
 Também: `business.crm_settings` (JSON) — **PRESERVE** (tabela core). `users.crm_*` — **KEEP** (usadas por A).
