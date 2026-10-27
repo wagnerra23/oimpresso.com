@@ -30,6 +30,10 @@
     "app/Jobs/CancelarCobrancaInterJob.php",
     "app/Services/CriarOsPorVendaService.php"
   ],
-  "allowlist": [],
-  "allowlist_razoes": {}
+  "allowlist": [
+    "app/Utils/NotificationUtil.php"
+  ],
+  "allowlist_razoes": {
+    "app/Utils/NotificationUtil.php": "Dependencia opcional do modulo Whatsapp (US-WA-320, #9817; registrada no #9946): so age com a flag whatsapp.aviso_automatico.enabled e class_exists(NotificadorClienteWhatsapp); sem o modulo devolve null e o caller segue o link manual sem ler o enum. Curar = interface de notificador em app/ implementada pelo modulo (opcao b)."
+  }
 }
