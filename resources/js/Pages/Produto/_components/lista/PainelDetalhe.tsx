@@ -16,7 +16,7 @@ import { Skeleton } from '@/Components/ui/skeleton';
 import { Grid, Inline } from '@/Components/layout';
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import { brl, qtdComUnidade } from '../../Unificado/_components/catalogo';
-import { TIPO_ROTULO, type AbaDoDetalhe, type DetalheProdutoDados, type PrecoPropostoDoProduto, type RoteiroDoProduto } from './tipos';
+import { TIPO_ROTULO, dataBr, type AbaDoDetalhe, type DetalheProdutoDados, type PrecoPropostoDoProduto, type RoteiroDoProduto } from './tipos';
 import { ORIGENS_MERCADORIA } from '../origem-mercadoria';
 
 type Aba = AbaDoDetalhe;
@@ -264,6 +264,13 @@ function RoteiroDoProdutoSecao({ r }: { r: RoteiroDoProduto }) {
   );
 }
 
+/** UC-PIDX-32: o método de custo da variação, com a data da última compra recebida. */
+function textoMetodoCusto(m: { metodo: 'medio' | 'ultimo' | null; ultima_compra_em: string | null }): string {
+  if (m.metodo === null) return 'sem método definido';
+  const base = m.metodo === 'medio' ? 'custo médio' : 'última compra';
+  return m.ultima_compra_em ? `${base} · ${dataBr(m.ultima_compra_em)}` : `${base} · sem compra recebida`;
+}
+
 function Dt({ rotulo, valor }: { rotulo: string; valor: string | null | undefined }) {
   return (
     <div className="pb-dt">
@@ -298,6 +305,8 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
   const custo = (d?.variacoes ?? []).some((v) => v.compra_exc !== undefined);
   const venda = (d?.variacoes ?? []).some((v) => v.venda_exc !== undefined);
   const lucro = (d?.variacoes ?? []).some((v) => v.lucro_percentual !== undefined);
+  // UC-PIDX-32: só quando a empresa gravou a regra de custo (o servidor manda o campo).
+  const metodoCusto = (d?.variacoes ?? []).some((v) => v.custo_metodo !== undefined);
   const grupos = d?.variacoes[0]?.grupos ?? [];
 
   const abas = d
@@ -435,6 +444,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                         <th>SKU</th>
                         {custo && <th className="r">Compra (excl.)</th>}
                         {custo && <th className="r">Compra (incl.)</th>}
+                        {metodoCusto && <th>Método do custo</th>}
                         {lucro && <th className="r">% lucro</th>}
                         {venda && <th className="r">Venda (excl.)</th>}
                         {venda && <th className="r">Venda (incl.)</th>}
@@ -447,6 +457,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                           <td className="m">{v.sku}</td>
                           {custo && <td className="r">{dinheiro(v.compra_exc)}</td>}
                           {custo && <td className="r">{dinheiro(v.compra_inc)}</td>}
+                          {metodoCusto && <td data-contract="produto-detalhe-metodo-custo">{v.custo_metodo ? textoMetodoCusto(v.custo_metodo) : '—'}</td>}
                           {lucro && <td className="r">{v.lucro_percentual === undefined ? '—' : `${qtd(v.lucro_percentual)} %`}</td>}
                           {venda && <td className="r">{dinheiro(v.venda_exc)}</td>}
                           {venda && <td className="r">{dinheiro(v.venda_inc)}</td>}
@@ -604,6 +615,18 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                     </tbody>
                   </table>
                   <p className="pb-help mb-4">Saldo e vendido por local, os mesmos de Relatórios → Estoque. O histórico completo fica em Histórico de estoque.</p>
+                  {/* UC-PIDX-30 (UC-FLX-19): requisição de compra aberta, do estoque mínimo ou feita à mão. */}
+                  {d.requisicao && (
+                    <div className="mb-4" data-contract="produto-detalhe-requisicao">
+                      <p className="pb-help mb-1.5">
+                        Requisição de compra <b>{d.requisicao.numero}</b> aberta em {dataBr(d.requisicao.data)}
+                        {d.requisicao.fornecedor ? `, para ${d.requisicao.fornecedor}` : ''}.
+                      </p>
+                      <Button variant="outline" size="sm" className="h-[26px] px-[10px] text-[11.5px]" onClick={() => d.requisicao && irPara(d.requisicao.url)}>
+                        Abrir a requisição
+                      </Button>
+                    </div>
+                  )}
                   {/* Botão pequeno do protótipo (`os-btn sm`): 26px de altura, 11,5px. */}
                   <Button variant="outline" size="sm" className="h-[26px] px-[10px] text-[11.5px]" onClick={() => irPara(`/products/stock-history/${d.id}`)}>
                     Abrir histórico de estoque

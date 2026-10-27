@@ -4,7 +4,7 @@ irmaos: Tipos.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-09-11"
+last_run: "2026-10-26"
 ---
 
 > ℹ️ **`last_run` 2026-09-05 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
@@ -117,6 +117,26 @@ last_run: "2026-09-11"
 - **Teste:** `HrmExclusaoGuardaTest.php` — *"tipo de licença cross-tenant: tipo do biz adversário → 404 e continua existindo"*.
 - **Regressão que defende:** o id chega **cru** da rota; resolver fora do business apagaria dado
   alheio ([ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
+- **Status: 🧪**
+
+---
+
+## UC-TIPOS-09 · Vejo quais tipos contam como férias da CLT
+- **Persona:** RH — precisa saber quais licenças abatem o saldo de férias no Ponto.
+- **Origem:** US-PONTO-018 (Ponto/SPEC) — férias da CLT, arts. 130, 134 e 137.
+- **Aceite:** Dado um tipo marcado como férias e outro não · Quando abro a lista · Então só o
+  primeiro mostra o selo "férias CLT"; tipo nunca marcado chega `false`, não nulo.
+- **Teste:** `HrmTiposIndexTest.php` — *"UC-TIPOS-09: o payload diz se o tipo conta como férias da CLT, e o default é falso"*.
+- **Status: 🧪**
+
+---
+
+## UC-TIPOS-10 · Marco e desmarco "conta como férias" na edição
+- **Origem:** US-PONTO-018.
+- **Aceite:** Dado um tipo do meu negócio · Quando marco "Conta como férias (CLT)" e salvo ·
+  Então ele passa a contar; quando desmarco (o checkbox não vem no formulário) · Então volta a
+  não contar. Dado o id de um tipo do vizinho · Quando mando editar · Então nada muda nele.
+- **Teste:** `HrmTiposIndexTest.php` — *"UC-TIPOS-10: editar marca e desmarca "conta como férias"; o tipo do vizinho não muda (ADR 0093)"*.
 - **Status: 🧪**
 
 ---

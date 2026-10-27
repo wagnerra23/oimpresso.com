@@ -207,3 +207,40 @@ it('UC-TIPOS-05: "Pedidos no ano" ignora licença de ano anterior', function () 
 
     expect($porId[$tipo->id]['leaves_count'])->toBe(0);
 });
+
+// ── Férias CLT (US-PONTO-018) ───────────────────────────────────────────────────
+
+it('UC-TIPOS-09: o payload diz se o tipo conta como férias da CLT, e o default é falso', function () {
+    if (! Schema::hasColumn('essentials_leave_types', 'ferias_clt')) {
+        $this->markTestSkipped('Coluna ferias_clt ausente — migration do Essentials não rodou.');
+    }
+    $comum  = tiposCriarTipo($this->tenant->id, 'UC09-abonada');
+    $ferias = tiposCriarTipo($this->tenant->id, 'UC09-ferias');
+    $ferias->forceFill(['ferias_clt' => true])->save();
+
+    $porId = collect(tiposPayload($this))->keyBy('id');
+
+    expect($porId[$comum->id]['ferias_clt'])->toBeFalse();
+    expect($porId[$ferias->id]['ferias_clt'])->toBeTrue();
+});
+
+it('UC-TIPOS-10: editar marca e desmarca "conta como férias"; o tipo do vizinho não muda (ADR 0093)', function () {
+    if (! Schema::hasColumn('essentials_leave_types', 'ferias_clt')) {
+        $this->markTestSkipped('Coluna ferias_clt ausente — migration do Essentials não rodou.');
+    }
+    $meu    = tiposCriarTipo($this->tenant->id, 'UC10-meu');
+    $alheio = tiposCriarTipo($this->adversario->id, 'UC10-alheio');
+
+    $this->put("/hrm/leave-type/{$meu->id}", ['leave_type' => $meu->leave_type, 'ferias_clt' => '1'])
+        ->assertStatus(200);
+    $this->assertTrue((bool) EssentialsLeaveType::withoutGlobalScopes()->find($meu->id)->ferias_clt, 'marcar grava true'); // SUPERADMIN: leitura de fixture
+
+    // Checkbox desmarcado não vem no POST do formulário.
+    $this->put("/hrm/leave-type/{$meu->id}", ['leave_type' => $meu->leave_type])->assertStatus(200);
+    $this->assertFalse((bool) EssentialsLeaveType::withoutGlobalScopes()->find($meu->id)->ferias_clt, 'desmarcar grava false'); // SUPERADMIN: leitura de fixture
+
+    $this->put("/hrm/leave-type/{$alheio->id}", ['leave_type' => 'invadido', 'ferias_clt' => '1']);
+    $depois = EssentialsLeaveType::withoutGlobalScopes()->find($alheio->id); // SUPERADMIN: confere o tenant adversário
+    $this->assertFalse((bool) $depois->ferias_clt, 'tipo do vizinho não muda');
+    $this->assertSame($alheio->leave_type, $depois->leave_type, 'nome do tipo do vizinho não muda');
+});

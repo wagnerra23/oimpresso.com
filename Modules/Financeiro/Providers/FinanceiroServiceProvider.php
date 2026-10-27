@@ -134,6 +134,8 @@ class FinanceiroServiceProvider extends ServiceProvider
                 \Modules\Financeiro\Console\Commands\CusteioRkwCommand::class,
                 // US-FIN-071 · UC-FLX-29 — régua de cobrança D+1/D+5/D+15 (default OFF por business).
                 \Modules\Financeiro\Console\Commands\ReguaCobrancaCommand::class,
+                // US-FIN-074 — extrato Pluggy (Open Finance) → fin_extrato_lancamentos.
+                \Modules\Financeiro\Console\Commands\PluggySyncCommand::class,
             ]);
         }
     }
@@ -149,6 +151,14 @@ class FinanceiroServiceProvider extends ServiceProvider
         $this->callAfterResolving(\Illuminate\Console\Scheduling\Schedule::class, function ($schedule): void {
             $schedule->command('financeiro:regua-cobranca')
                 ->dailyAt('09:00')
+                ->withoutOverlapping()
+                ->onOneServer();
+
+            // US-FIN-074 — extrato Pluggy. Só roda com PLUGGY_ENABLED=true (default false); depois
+            // do sync Inter das 07:00, para a conciliação abrir o dia com as duas fontes.
+            $schedule->command('financeiro:pluggy-sync')
+                ->dailyAt('07:15')
+                ->when(fn () => (bool) config('financeiro.pluggy.enabled', false))
                 ->withoutOverlapping()
                 ->onOneServer();
         });
