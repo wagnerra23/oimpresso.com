@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do atendente + critério de aceite verificável (Dado/Quando/Então)
 por_que: a tela concentra a conversa com o cliente de TODOS os canais — se o isolamento por business ou o ACL canal=fila falhar, um tenant lê a conversa do outro. É o comportamento durável que nenhum refactor pode perder.
 owner: wagner
-last_run: "2026-10-06"
+last_run: "2026-10-26"
 ---
 
 > ℹ️ **`last_run` 2026-09-25 → 2026-10-06 (G-6), e o que mudou NÃO foi comportamento.**
@@ -221,6 +221,15 @@ last_run: "2026-10-06"
 - **Teste:** `Modules/Whatsapp/Tests/Feature/CaixaUnificadaControllerTest.php` — `UC-CXU-18 · R-WA-CAIXA-UNIF-017 — abrir conversa com não lidas manda recibo de leitura ao WhatsApp (só as recebidas)` + `UC-CXU-18 · controle — conversa sem não lidas não manda recibo nenhum`.
 - **Regressão que defende:** relato [W] 2026-09-25 "não está marcando as mensagens lidas … marca, mas não na hora": o oimpresso só zerava o contador interno e nunca chamava `/chat/markread` (varredura `git grep markread` = 0), então o "lido" só chegava ao cliente quando alguém abria o WhatsApp no aparelho.
 - **Status: 🧪** — criado 2026-09-25, aguardando o veredito da lane sqlite.
+
+---
+
+## UC-CXU-19 · "Salvar e disparar" agenda a campanha só com o disparo ligado, uma por canal
+- **Persona:** gestor que quer mandar uma promoção a quem deu opt-in, sem arriscar o número da empresa.
+- **Aceite:** Dado o disparo de campanhas desligado · Quando peço "Salvar e disparar" · Então nada é gravado nem agendado (o rascunho continua funcionando); Dado o disparo ligado e uma campanha de texto livre · Então a campanha é gravada e o disparo dela é agendado na fila da própria empresa; Dado template ou um canal que já tem campanha em disparo · Então é recusado; e Quando cancelo uma campanha em disparo · Então ela sai de `dispatching` e os envios agendados não saem — campanha de outra empresa dá 404.
+- **Teste:** `Modules/Whatsapp/Tests/Feature/BroadcastDispararEndpointContratoTest.php` — `UC-CXU-19 · US-WA-323 · flag ligada: grava a campanha e agenda o disparo dela, da própria empresa` (+ os 3 casos irmãos do arquivo).
+- **Regressão que defende:** US-WA-322/323 (ADR 0268 fase 2, destravada por [W] em 2026-10-26). Uma campanha por vez por canal é o que faz o limite diário anti-ban valer: duas campanhas simultâneas no mesmo número dobrariam o ritmo e arriscariam o banimento.
+- **Status: 🧪** — CT 100 MySQL 2026-10-26: 4 passed (11 assertions); sem a trava de uma campanha por canal, 1 failed.
 
 ---
 
