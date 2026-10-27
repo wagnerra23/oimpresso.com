@@ -2370,6 +2370,28 @@ function linhaTotal(l) { return submitSafe(parseBR(l.qtd) * parseBR(l.preco) * (
 const Passo = ({ n }) => <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 18, height: 18, borderRadius: 999, marginRight: 8, background: 'var(--accent)', color: 'var(--accent-fg)', font: '600 11.5px/1 var(--font-mono)', verticalAlign: '1px' }}>{n}</span>;
 
 /* Linha do resumo de fechamento */
+/* CUPOM (US-SELL-076) — a mesma regra do servidor `App\Services\Sells\CupomDaVenda`:
+   a promoção vale por linha; o cupom vale sobre o carrinho. Acumula → incide depois da promoção.
+   Não acumula (padrão) → o cliente fica com o MAIOR dos dois: só entra se der mais e, aí, substitui a promoção.
+   Nunca passa da base. Cupons de cena; na tela real a conta é do POST /sells/cupom. */
+const CUPONS_DEMO = {
+  QUINZE: { tipo: 'percentual', valor: 15, acumula: false },
+  DEZ: { tipo: 'percentual', valor: 10, acumula: true },
+  CINCO: { tipo: 'percentual', valor: 5, acumula: false },
+};
+const MSG_CUPOM = {
+  invalido: 'Cupom não encontrado.',
+  promocao_maior: 'A promoção do carrinho já dá mais desconto que este cupom, e ele não acumula.',
+};
+function avaliarCupom(codigo, semPromo, promo) {
+  const c = CUPONS_DEMO[String(codigo || '').trim().toUpperCase()];
+  if (!c) return { ok: false, motivo: 'invalido', desconto: 0 };
+  const base = c.acumula ? Math.max(0, semPromo - promo) : semPromo;
+  const desc = submitSafe(Math.min(c.tipo === 'valor' ? c.valor : base * c.valor / 100, base));
+  if (!c.acumula && desc <= submitSafe(promo)) return { ok: false, motivo: 'promocao_maior', desconto: 0 };
+  return { ok: true, desconto: desc, substitui: !c.acumula && promo > 0, acumula: c.acumula };
+}
+
 const Res = ({ l, v, c, forte }) => (
   <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, padding: '5px 0' }}>
     <span style={{ font: (forte ? '600 ' : '') + '12.5px/1.3 var(--font-sans)', color: 'var(--text-dim)' }}>{l}</span>
@@ -2406,6 +2428,8 @@ function Create({ onOpen, modo = 'create', registro }) {
   const larguraMin = Math.max(760, cols.reduce((s, c) => s + (c.w || 110), 0) + W_ACOES);
   const [descTipo, setDescTipo] = React.useState('percentual');
   const [descVal, setDescVal] = React.useState('0,00');
+  const [cupomCod, setCupomCod] = React.useState('');
+  const [cupom, setCupom] = React.useState(null); /* código aplicado; a conta se refaz quando o carrinho muda */
   const [freteModo, setFreteModo] = React.useState('hoje');
   const [frete, setFrete] = React.useState('0,00');
   const [acr, setAcr] = React.useState('0,00');
@@ -2446,7 +2470,12 @@ function Create({ onOpen, modo = 'create', registro }) {
   const tabelaTrocada = !!tabela && tabela !== tabelaCadastro;
   const subtotal = submitSafe(itens.reduce((s, l) => s + linhaTotal(l), 0));
   const descAplicado = descTipo === 'percentual' ? submitSafe(subtotal * parseBR(descVal) / 100) : submitSafe(parseBR(descVal));
-  const baseTrib = submitSafe(subtotal - descAplicado);
+  /* promoção das linhas = o desconto % de cada linha; o cupom é avaliado contra ela */
+  const promoLinhas = submitSafe(itens.reduce((s, l) => s + parseBR(l.qtd) * parseBR(l.preco) * parseBR(l.desc || '0') / 100, 0));
+  const cupomRes = cupom ? avaliarCupom(cupom, submitSafe(subtotal + promoLinhas), promoLinhas) : null;
+  /* desconto A MAIS sobre o subtotal (que já tem a promoção): substituindo, devolve a promoção e tira o cupom */
+  const descCupom = cupomRes && cupomRes.ok ? submitSafe(cupomRes.substitui ? cupomRes.desconto - promoLinhas : cupomRes.desconto) : 0;
+  const baseTrib = submitSafe(subtotal - descAplicado - descCupom);
   /* margem estimada: preço de tabela do catálogo × 0,58 é o custo de cena (o custo real vem do cadastro) */
   const custoEstimado = submitSafe(itens.reduce((s, l) => {
     const p = window.SD.catalogo.find((x) => x.sku === l.sku);
@@ -2754,6 +2783,7 @@ function Create({ onOpen, modo = 'create', registro }) {
           <div style={{ marginTop: 12 }}>
             <Res l="Subtotal" v={fmtBR(subtotal)} />
             <Res l="Desconto" v={descAplicado ? '− ' + fmtBR(descAplicado) : fmtBR(0)} c={descAplicado ? 'var(--neg)' : 'var(--text-dim)'} />
+            {cupomRes && cupomRes.ok && <Res l={'Cupom ' + cupom.toUpperCase()} v={'− ' + fmtBR(descCupom)} c="var(--neg)" />}
             <Res l="Imposto" v={fmtBR(vImposto)} />
             <Res l="Acréscimo" v={vAcr ? '+ ' + fmtBR(vAcr) : fmtBR(0)} c={vAcr ? 'var(--warn)' : 'var(--text-dim)'} />
             <Res l="Frete" v={fmtBR(vFrete)} c={vFrete ? 'var(--text)' : 'var(--text-dim)'} />
@@ -2762,6 +2792,26 @@ function Create({ onOpen, modo = 'create', registro }) {
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12 }}>
               <div style={{ width: 124, flex: 'none' }}><Select label="Tipo de desconto" value={descTipo} onChange={(e) => setDescTipo(e.target.value)} options={[{ value: 'percentual', label: 'Percentual %' }, { value: 'fixo', label: 'Valor R$' }]} /></div>
               <div style={{ flex: 1, minWidth: 0 }}><Money label="Desconto do pedido" aria={descTipo === 'percentual' ? 'Desconto do pedido em percentual' : 'Desconto do pedido em reais'} value={descVal} onChange={setDescVal} prefix={descTipo === 'percentual' ? '%' : 'R$'} hue={alcada ? 'var(--neg)' : 'var(--text-dim)'} /></div>
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <Input label="Cupom" placeholder="Código do cupom" value={cupom ? cupom.toUpperCase() : cupomCod} readOnly={!!cupom}
+                    onChange={(e) => setCupomCod(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && cupomCod.trim()) setCupom(cupomCod.trim()); }} />
+                </div>
+                {cupom
+                  ? <Button variant="ghost" onClick={() => { setCupom(null); setCupomCod(''); }}>Tirar</Button>
+                  : <Button variant="secondary" disabled={!cupomCod.trim()} onClick={() => setCupom(cupomCod.trim())}>Aplicar</Button>}
+              </div>
+              {cupomRes && (cupomRes.ok
+                ? <span role="status" style={{ display: 'block', marginTop: 4, font: '11.5px/1.35 var(--font-sans)', color: 'var(--text-dim)' }}>
+                    {cupomRes.substitui
+                      ? 'Dá ' + fmtBR(cupomRes.desconto) + ', mais que a promoção das linhas (' + fmtBR(promoLinhas) + '): substitui a promoção.'
+                      : cupomRes.acumula ? 'Acumula com a promoção: ' + fmtBR(cupomRes.desconto) + ' sobre o subtotal já com promoção.' : 'Desconto de ' + fmtBR(cupomRes.desconto) + '.'}
+                  </span>
+                : <span role="alert" style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 4, font: '600 11.5px/1.35 var(--font-sans)', color: tomFg('var(--neg)') }}>
+                    <Icon name="AlertTriangle" size={12} />{MSG_CUPOM[cupomRes.motivo]}
+                  </span>)}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <Money label="Acréscimo" value={acr} onChange={setAcr} hue="color-mix(in oklch, var(--warn) 62%, var(--text))" />
