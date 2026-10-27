@@ -9,7 +9,7 @@ use Modules\Financeiro\Services\Extrato\ImportarExtratoOfxService;
 
 /**
  * `financeiro:importar-extrato-ofx` — importa um OFX no extrato de uma conta
- * (`fin_extrato_lancamentos`, lido pela Conciliação). US-FIN-082.
+ * (`fin_extrato_lancamentos`, lido pela Conciliação). US-FIN-084.
  *
  *   php artisan financeiro:importar-extrato-ofx --business=98 --conta=12 --arquivo=extrato.ofx --dry
  *

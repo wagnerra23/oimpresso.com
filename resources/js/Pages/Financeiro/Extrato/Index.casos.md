@@ -44,11 +44,11 @@ Status: 🧪 (`ExtratoControllerTest` — valida `business_id` do `contaId`)
 
 ## UC-EXT-07 — OFX de banco sem API entra no extrato da conta com o sinal certo
 Status: 🧪 (`ExtratoOfxContaContratoTest`)
-Dado um banco sem API de extrato (Bradesco, Caixa, BB, C6, Cora — medido 2026-10-27) · Quando o OFX exportado do internet banking é importado na conta · Então cada transação vira linha em `fin_extrato_lancamentos` com valor positivo e tipo C/D pelo sinal do `TRNAMT` (vírgula decimal aceita), e a Conciliação lê o mesmo valor com sinal. Reimportar o arquivo não duplica (FITID). Conta de outro business não recebe nada. Com `FINANCEIRO_EXTRATO_OFX_CONTA` desligada, nada é gravado (US-FIN-082).
+Dado um banco sem API de extrato (Bradesco, Caixa, BB, C6, Cora — medido 2026-10-27) · Quando o OFX exportado do internet banking é importado na conta · Então cada transação vira linha em `fin_extrato_lancamentos` com valor positivo e tipo C/D pelo sinal do `TRNAMT` (vírgula decimal aceita), e a Conciliação lê o mesmo valor com sinal. Reimportar o arquivo não duplica (FITID). Conta de outro business não recebe nada. Com `FINANCEIRO_EXTRATO_OFX_CONTA` desligada, nada é gravado (US-FIN-084).
 
 ## UC-EXT-08 — O sync do Inter grava pelo mesmo caminho do OFX
 Status: 🧪 (`ExtratoOfxContaContratoTest`)
-O extrato do Inter (`SyncBankStatementsJob`) e o OFX passam pelo mesmo `StatementPersister`: valor positivo + C/D, `business_id` da própria conta, `origem` e `external_id` no formato da ADR 0236 (`api:<id>` / `ofx:<FITID>`) (US-FIN-082).
+O extrato do Inter (`SyncBankStatementsJob`) e o OFX passam pelo mesmo `StatementPersister`: valor positivo + C/D, `business_id` da própria conta, `origem` e `external_id` no formato da ADR 0236 (`api:<id>` / `ofx:<FITID>`) (US-FIN-084).
 
 ## Backlog de casos (sem id)
 - **[BACKLOG] Nenhum side-effect no render** — não chama gateway, não dispara sync, não muta saldo (cron é o gatilho).
@@ -56,7 +56,7 @@ O extrato do Inter (`SyncBankStatementsJob`) e o OFX passam pelo mesmo `Statemen
 
 ## Trilha do tempo
 - 2026-08-17 · [CC] criado no espelho Cowork; achada a âncora podre do charter.
-- 2026-10-27 · [CC] UC-EXT-07/08 — OFX por conta na tabela canônica e gravação comum a todos os drivers (US-FIN-082).
+- 2026-10-27 · [CC] UC-EXT-07/08 — OFX por conta na tabela canônica e gravação comum a todos os drivers (US-FIN-084).
 
 [ADR 0264]: ../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md
 [ADR 0093]: ../../memory/decisions/0093-multi-tenant-isolation-tier-0.md

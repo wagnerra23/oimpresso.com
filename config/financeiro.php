@@ -63,7 +63,7 @@ return [
     ],
 
     /*
-    | Extrato dos bancos além do Inter (US-FIN-082). Desligado por padrão.
+    | Extrato dos bancos além do Inter (US-FIN-084). Desligado por padrão.
     | ofx_por_conta: importar OFX direto no extrato da conta (fin_extrato_lancamentos).
     */
     'extrato_bancos' => [

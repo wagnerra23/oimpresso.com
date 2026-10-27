@@ -17,7 +17,7 @@ use Modules\RecurringBilling\Services\Banking\StatementPersister;
  * então a Conciliação lê a linha sem mudar nada. Atrás da flag
  * `financeiro.extrato_bancos.ofx_por_conta` (FINANCEIRO_EXTRATO_OFX_CONTA, desligada).
  *
- * @see US-FIN-082
+ * @see US-FIN-084
  */
 class ImportarExtratoOfxService
 {

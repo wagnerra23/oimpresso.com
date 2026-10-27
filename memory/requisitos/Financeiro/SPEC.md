@@ -1298,7 +1298,7 @@ Onboarding novo cliente: migra 500+ títulos da planilha legacy num upload. Hoje
 
 **Depende de:** especificação oficial de cada layout; coordenar com a frente Plataforma para um exportador só.
 
-### US-FIN-082 · Extrato dos bancos além do Inter: OFX por conta e drivers de API — **P0**
+### US-FIN-084 · Extrato dos bancos além do Inter: OFX por conta e drivers de API — **P0**
 
 > owner: — · priority: p0 · estimate: 12h · status: doing · type: story
 > blocked_by: credenciais de API de cada banco ([W])

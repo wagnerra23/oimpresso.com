@@ -22,7 +22,7 @@ use Modules\RecurringBilling\Dto\StatementLineDto;
  * `origem`/`external_id` seguem a convenção do backfill da ADR 0236
  * (`api:<key>` / `ofx:<FITID>`) quando as colunas existem.
  *
- * @see US-FIN-082
+ * @see US-FIN-084
  */
 class StatementPersister
 {

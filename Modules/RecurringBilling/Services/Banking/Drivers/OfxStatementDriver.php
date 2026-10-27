@@ -27,7 +27,7 @@ use Modules\RecurringBilling\Dto\StatementLineDto;
  *  - Chave anti-duplicata = FITID, no formato do backfill (`ofx-<FITID>` /
  *    `ofx:<FITID>`), para a linha migrada e a importada não duplicarem.
  *
- * @see US-FIN-082
+ * @see US-FIN-084
  */
 class OfxStatementDriver implements BankStatementDriverContract
 {

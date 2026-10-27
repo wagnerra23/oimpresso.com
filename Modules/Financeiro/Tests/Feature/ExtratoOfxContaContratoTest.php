@@ -1,8 +1,8 @@
 <?php
 
 declare(strict_types=1);
-// @covers-us US-FIN-082
-// Cobre UC-EXT-07..08 (resources/js/Pages/Financeiro/Extrato/Index.casos.md · US-FIN-082).
+// @covers-us US-FIN-084
+// Cobre UC-EXT-07..08 (resources/js/Pages/Financeiro/Extrato/Index.casos.md · US-FIN-084).
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\ModelNotFoundException;

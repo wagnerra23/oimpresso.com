@@ -92,7 +92,7 @@ class SyncBankStatementsJob implements ShouldQueue
 
         $linhas = $driver->fetchStatement($from, $to);
 
-        // Gravação comum a todos os drivers (Inter, OFX, próximos bancos) — US-FIN-082.
+        // Gravação comum a todos os drivers (Inter, OFX, próximos bancos) — US-FIN-084.
         (new StatementPersister())->gravar($conta, $linhas, 'api');
     }
 
