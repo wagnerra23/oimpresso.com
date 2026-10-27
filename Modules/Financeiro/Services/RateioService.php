@@ -34,7 +34,7 @@ class RateioService
     /**
      * Distribui o valor do título. Não toca o banco.
      *
-     * @param  array<int, array{centro_custo_id:int, percentual?:string|float|int|null, valor?:string|float|int|null}>  $linhas
+     * @param  array<int, array<string, mixed>>  $linhas  cada linha: centro_custo_id + percentual (modo %) ou valor (modo valor)
      * @return array<int, array{centro_custo_id:int, percentual:string, valor:string}>
      *
      * @throws ValidationException
@@ -74,7 +74,7 @@ class RateioService
      */
     public function salvar(Titulo $titulo, int $businessId, string $modo, array $linhas): array
     {
-        if ((int) $titulo->business_id !== $businessId) {
+        if ((int) $titulo->getAttribute('business_id') !== $businessId) {
             throw ValidationException::withMessages(['rateio' => 'Título de outra empresa.']);
         }
 

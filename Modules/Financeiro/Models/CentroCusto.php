@@ -9,7 +9,15 @@ use Modules\Financeiro\Models\Concerns\BusinessScope;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
-/** Centro de custo da empresa (US-FIN-075). */
+/**
+ * Centro de custo da empresa (US-FIN-075).
+ *
+ * @property int $id
+ * @property int $business_id
+ * @property string|null $codigo
+ * @property string $nome
+ * @property bool $ativo
+ */
 class CentroCusto extends Model
 {
     use SoftDeletes, BusinessScope, LogsActivity;

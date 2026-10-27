@@ -6,7 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\Financeiro\Models\Concerns\BusinessScope;
 
-/** Uma fatia do título num centro de custo (US-FIN-075). Gravada só pelo RateioService. */
+/**
+ * Uma fatia do título num centro de custo (US-FIN-075). Gravada só pelo RateioService.
+ *
+ * @property int $id
+ * @property int $business_id
+ * @property int $titulo_id
+ * @property int $centro_custo_id
+ * @property string $percentual
+ * @property string $valor
+ */
 class TituloRateio extends Model
 {
     use BusinessScope;
