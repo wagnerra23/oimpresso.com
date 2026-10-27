@@ -40,6 +40,10 @@ related_cu: [CU-OFI-12, CU-OFI-15]
 | UC-OAP-05 | token de outro cliente não abre a OS | must | CU-OFI-15 · US-AUTO-009 | `AprovacaoOsTokenTest` |
 | UC-OAP-06 | PIN correto é de uso único | must | CU-OFI-12 · US-OFICINA-014 | `AprovacaoOsTokenTest` |
 | UC-OAP-07 | rejeitar não muda o estado da OS | should | CU-OFI-12 · US-OFICINA-014 | `WhatsAppAprovacaoPinTest` |
+| UC-OAPAG-01 | depois de aprovada, o mesmo link mostra o valor em aberto da venda | must | US-OFICINA-014 · US-FIN-081 | `PagarPeloLinkContratoTest` |
+| UC-OAPAG-02 | título quitado, cancelado, zerado ou de outra empresa não aparece | must `[T0]` | US-OFICINA-014 | `PagarPeloLinkContratoTest` |
+| UC-OAPAG-03 | pagar gera o link do Financeiro e manda para /pagar/{token} | must | US-OFICINA-014 · US-FIN-081 | `PagarPeloLinkContratoTest` |
+| UC-OAPAG-04 | desligado dá 404; sem valor em aberto volta sem gerar link | must | US-OFICINA-014 | `PagarPeloLinkContratoTest` |
 
 ---
 
@@ -102,6 +106,37 @@ related_cu: [CU-OFI-12, CU-OFI-15]
 - **Status: 🧪**
 
 ---
+
+## Pagar pelo link da aprovação (US-OFICINA-014 · opção a, decisão [W] 2026-10-27) — backend, atrás de flag
+
+> **Âncora:** decisão [W] 2026-10-27 — *"o botão aparece na página da aprovação quando a OS fica
+> pronta e a venda tem título em aberto"*. Reaproveita o link de pagamento do Financeiro (US-FIN-081):
+> o clique gera o link na hora e manda para `/pagar/{token}`. A Oficina não guarda token (o Financeiro
+> guarda só o hash, e gerar outro fecha o anterior) e não calcula valor (mostra o `valor_aberto` gravado).
+>
+> **Desligado por padrão:** `OFICINA_PAGAR_PELO_LINK_ENABLED=false` → a página segue como antes e
+> `POST /aprovar-os/{token}/pagar` devolve 404. O botão na tela vem em PR próprio, depois do protótipo.
+>
+> **Limite declarado:** o token da aprovação vale 7 dias; OS que fica pronta depois disso não mostra o
+> botão pelo link antigo.
+>
+> Prova: `Modules/OficinaAuto/Tests/Feature/PagarPeloLinkContratoTest.php` (lane `PHP / Pest (Sells · MySQL)`).
+
+## UC-OAPAG-01 · Depois de aprovada, o mesmo link mostra o valor em aberto
+- **Aceite:** Dada a OS aprovada e pronta, com venda e título a receber parcial de 90,00 · Quando o cliente abre o mesmo link · Então a OS é reconhecida para pagar (aprovar/recusar seguem só em orçamento) e o valor em aberto é 90,00.
+- **Status: 🧪**
+
+## UC-OAPAG-02 · Título que não está em aberto, ou de outra empresa, não aparece `[T0]`
+- **Aceite:** Títulos quitado, cancelado, com valor em aberto zero, de outra empresa com o mesmo id de venda, ou OS sem venda · Então não há o que pagar.
+- **Status: 🧪**
+
+## UC-OAPAG-03 · Pagar manda para a página de pagamento do Financeiro
+- **Aceite:** Ligado e com título de 150,00 em aberto · Quando o cliente pede para pagar · Então é redirecionado para `/pagar/{token}`, nasce um link para aquele título e o título não muda.
+- **Status: 🧪**
+
+## UC-OAPAG-04 · Desligado não aparece; sem valor em aberto não gera link
+- **Aceite:** Desligado, `POST …/pagar` dá 404 · Ligado e sem título em aberto, volta para a página da aprovação e nenhum link é criado.
+- **Status: 🧪**
 
 ## Backlog (prosa honesta — vira UC quando ganhar teste que o cite)
 

@@ -268,4 +268,7 @@ Route::middleware(['web', 'throttle:30,1'])->group(function () {
         ->name('oficinaauto.aprovacao.show');
     Route::post('/aprovar-os/{token}', [AprovacaoOsController::class, 'submit'])
         ->name('oficinaauto.aprovacao.submit');
+    // US-OFICINA-014 · pagar pelo link (flag oficina-auto.pagar_pelo_link.enabled; desligada = 404).
+    Route::post('/aprovar-os/{token}/pagar', [AprovacaoOsController::class, 'pagar'])
+        ->name('oficinaauto.aprovacao.pagar');
 });

@@ -118,7 +118,17 @@ class AprovacaoOsService
         });
     }
 
-    private function validarTokenInterno(string $token): ?ServiceOrder
+    /**
+     * US-OFICINA-014 · pagar pelo link (decisão [W] 2026-10-27, opção a): o MESMO token da aprovação,
+     * com assinatura e prazo válidos, também identifica a OS depois de aprovada — só para a página
+     * mostrar "Pagar agora". Não exige status `orcamento`; aprovar/recusar seguem por validarToken().
+     */
+    public function osDoTokenParaPagamento(string $token): ?ServiceOrder
+    {
+        return $this->validarTokenInterno($token, exigeOrcamento: false);
+    }
+
+    private function validarTokenInterno(string $token, bool $exigeOrcamento = true): ?ServiceOrder
     {
         $parts = explode('.', $token);
         if (count($parts) !== 2) {
@@ -158,7 +168,7 @@ class AprovacaoOsService
         }
 
         // Apenas OS em status orcamento são elegíveis (cenário 2 do test)
-        if ($os->status !== 'orcamento') {
+        if ($exigeOrcamento && $os->status !== 'orcamento') {
             return null;
         }
 

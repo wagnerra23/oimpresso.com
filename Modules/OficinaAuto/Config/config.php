@@ -65,4 +65,11 @@ return [
     'lembrete_revisao' => [
         'enabled' => (bool) env('OFICINA_LEMBRETE_REVISAO_ENABLED', false),
     ],
+
+    // US-OFICINA-014 · pagar pelo link da aprovação (decisão [W] 2026-10-27, opção a): quando a OS fica
+    // pronta e a venda tem título em aberto, a página da aprovação mostra "Pagar agora", que abre o link
+    // de pagamento do Financeiro (US-FIN-081). Desligado por padrão. Ligar = OFICINA_PAGAR_PELO_LINK_ENABLED=true.
+    'pagar_pelo_link' => [
+        'enabled' => (bool) env('OFICINA_PAGAR_PELO_LINK_ENABLED', false),
+    ],
 ];

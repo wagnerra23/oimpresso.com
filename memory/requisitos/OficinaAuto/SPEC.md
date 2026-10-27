@@ -464,6 +464,8 @@ Tabela `oa_temparios` + seed manual 100 serviços frequentes (troca óleo, alinh
 
 **Testado em:** `Modules/OficinaAuto/Tests/Feature/AprovacaoOsTokenTest.php` · `Modules/OficinaAuto/Tests/Feature/WhatsAppAprovacaoPinTest.php` · `Modules/OficinaAuto/Tests/Feature/EnviarLinkAprovacaoWhatsappJobTest.php` — lane `PHP / Pest (OficinaAuto · MySQL)` — advisory (criada 2026-07-27)
 
+**Pagar pelo link (decisão [W] 2026-10-27, opção a):** quando a OS fica pronta e a venda tem título a receber em aberto, o mesmo link da aprovação mostra "Pagar agora", que gera o link de pagamento do Financeiro (US-FIN-081) e manda para `/pagar/{token}`. Backend em `Modules/OficinaAuto/Services/PagamentoDaOs.php` e `POST /aprovar-os/{token}/pagar`, atrás de `OFICINA_PAGAR_PELO_LINK_ENABLED=false`; o botão na tela vem depois do protótipo. Testado em `Modules/OficinaAuto/Tests/Feature/PagarPeloLinkContratoTest.php`.
+
 Endpoint público `/oficina/aprovar/{token}` mostra orçamento mobile-first + PIN 4 dígitos via SMS/WhatsApp. Webhook dispara FSM action `cliente_aprovou` ou `cliente_rejeitou` com role `public.token`. Rate-limit + LGPD consentimento.
 
 ### US-OFICINA-015 · App PWA mecânico campo (V0 — minhas OS + foto + clock-in) — **P2**

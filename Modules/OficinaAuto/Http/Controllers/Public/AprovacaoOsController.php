@@ -12,6 +12,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\OficinaAuto\Entities\ServiceOrder;
 use Modules\OficinaAuto\Services\AprovacaoOsService;
+use Modules\OficinaAuto\Services\PagamentoDaOs;
 
 /**
  * AprovacaoOsController — Endpoint público SEM auth pra cliente aprovar/rejeitar OS
@@ -37,6 +38,7 @@ class AprovacaoOsController extends Controller
 {
     public function __construct(
         private readonly AprovacaoOsService $service,
+        private readonly PagamentoDaOs $pagamento,
     ) {
     }
 
@@ -48,6 +50,23 @@ class AprovacaoOsController extends Controller
     public function show(string $token): Response
     {
         $os = $this->service->validarToken($token);
+
+        // US-OFICINA-014 · pagar pelo link (opção a, [W] 2026-10-27): depois de aprovada, o mesmo link
+        // mostra "Pagar agora" se a venda da OS tem título em aberto. Desligado = comportamento antigo.
+        if ($os === null && $this->pagamento->ligado()) {
+            $paga = $this->service->osDoTokenParaPagamento($token);
+            $titulo = $paga ? $this->pagamento->tituloEmAberto($paga) : null;
+            if ($titulo !== null) {
+                return Inertia::render('OficinaAuto/AprovacaoPublica', [
+                    'erro'                => null,
+                    'mensagem'            => null,
+                    'token'               => $token,
+                    'os'                  => $this->osPayload($paga),
+                    'tentativasRestantes' => 0,
+                    'pagamento'           => ['valor_aberto' => $titulo['valor_aberto']],
+                ]);
+            }
+        }
 
         if ($os === null) {
             return Inertia::render('OficinaAuto/AprovacaoPublica', [
@@ -66,6 +85,29 @@ class AprovacaoOsController extends Controller
             'os'               => $this->osPayload($os),
             'tentativasRestantes' => $this->service->tentativasRestantes($os),
         ]);
+    }
+
+    /**
+     * POST /aprovar-os/{token}/pagar — US-OFICINA-014 · pagar pelo link (opção a, [W] 2026-10-27).
+     *
+     * Gera na hora o link de pagamento do Financeiro (US-FIN-081) para o título em aberto da venda
+     * da OS e redireciona o cliente para ele. Flag desligada = 404. Sem título em aberto = volta
+     * para a página com aviso. Não guarda token nem calcula valor.
+     */
+    public function pagar(string $token): RedirectResponse
+    {
+        abort_unless($this->pagamento->ligado(), 404);
+
+        $os = $this->service->osDoTokenParaPagamento($token);
+        $url = $os ? $this->pagamento->linkParaPagar($os) : null;
+        if ($url === null) {
+            return redirect()->route('oficinaauto.aprovacao.show', ['token' => $token])->with('flash', [
+                'type'    => 'info',
+                'message' => 'Não há valor em aberto para pagar por este link. Fale com a oficina.',
+            ]);
+        }
+
+        return redirect()->away($url);
     }
 
     /**

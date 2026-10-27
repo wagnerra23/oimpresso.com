@@ -81,6 +81,10 @@ on:
       - 'Modules/OficinaAuto/Entities/ServiceOrder.php'
       - 'Modules/OficinaAuto/Tests/Feature/LembreteRevisaoContratoTest.php'  # US-AUTO-014 lembrete de revisão
       - 'Modules/OficinaAuto/Services/LembreteDeRevisao.php'
+      - 'Modules/OficinaAuto/Tests/Feature/PagarPeloLinkContratoTest.php'  # US-OFICINA-014 pagar pelo link
+      - 'Modules/OficinaAuto/Services/PagamentoDaOs.php'
+      - 'Modules/OficinaAuto/Services/AprovacaoOsService.php'
+      - 'Modules/OficinaAuto/Http/Controllers/Public/AprovacaoOsController.php'
       - 'Modules/OficinaAuto/Services/AssinaturaEntrega.php'
       - 'Modules/OficinaAuto/Http/Controllers/ServiceOrderAssinaturaController.php'
       - 'Modules/OficinaAuto/Entities/OsAssinatura.php'
@@ -294,6 +298,10 @@ jobs:
               - 'Modules/OficinaAuto/Entities/ServiceOrder.php'
               - 'Modules/OficinaAuto/Tests/Feature/LembreteRevisaoContratoTest.php'  # US-AUTO-014 lembrete de revisão
               - 'Modules/OficinaAuto/Services/LembreteDeRevisao.php'
+              - 'Modules/OficinaAuto/Tests/Feature/PagarPeloLinkContratoTest.php'  # US-OFICINA-014 pagar pelo link
+              - 'Modules/OficinaAuto/Services/PagamentoDaOs.php'
+              - 'Modules/OficinaAuto/Services/AprovacaoOsService.php'
+              - 'Modules/OficinaAuto/Http/Controllers/Public/AprovacaoOsController.php'
               - 'Modules/OficinaAuto/Services/AssinaturaEntrega.php'
               - 'Modules/OficinaAuto/Http/Controllers/ServiceOrderAssinaturaController.php'
               - 'Modules/OficinaAuto/Entities/OsAssinatura.php'
@@ -548,6 +556,7 @@ jobs:
             Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaAssinaturaTest.php \
             Modules/OficinaAuto/Tests/Feature/ServiceOrderGuardsFsmTest.php \
             Modules/OficinaAuto/Tests/Feature/LembreteRevisaoContratoTest.php \
+            Modules/OficinaAuto/Tests/Feature/PagarPeloLinkContratoTest.php \
             tests/Feature/Sells/AppOsArquivosApiContratoTest.php \
             tests/Feature/Sells/AppPedidoEntregaContratoTest.php \
             tests/Feature/Sells/AppOficinaAgendaApiContratoTest.php \
