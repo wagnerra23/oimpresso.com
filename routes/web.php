@@ -871,6 +871,8 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/purchases/grade-matrix', [PurchaseController::class, 'gradeMatrix'])->name('purchases.grade-matrix');
     // US-COM-013 — pedidos de compra abertos do fornecedor, para receber em partes.
     Route::get('/purchases/pedidos-abertos', [PurchaseController::class, 'pedidosAbertos'])->name('purchases.pedidos-abertos');
+    // CSV da lista (substitui a exportação do DataTable da Blade apagada no cutover · UC-CMP-11).
+    Route::get('/purchases/exportar', [PurchaseController::class, 'exportar'])->name('purchases.exportar');
     Route::resource('purchases', PurchaseController::class)->except(['show']);
 
     // As rotas /sells (subscriptions, drafts, quotations, duplicate, convert-to-draft,

@@ -128,13 +128,16 @@ it('Controller importa Inertia\\Inertia (STEP 3)', function () {
     expect($source)->toMatch('/use Inertia\\\\Inertia;/');
 });
 
-it('Controller index() tem dual path (React por padrão, Blade só com ?classico=1)', function () {
+it('Controller index() abre sempre o React (Blade apagada no cutover de 2026-10-27)', function () {
     $source = readPurchaseController();
     // Até 2026-10-09 o React ficava atrás de flag (header X-Inertia OU ?v=2). Desde o cutover
     // pelo menu · thread 03 (D1 [W] 2026-10-07) o React é o padrão e o Blade só abre com
     // `?classico=1`; `?v=2` segue abrindo o React. O comportamento é provado em
     // tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php — aqui só a forma da condição.
-    expect($source)->toContain("request()->query('v') === '2' || (! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia')))");
+    // Desde 2026-10-27 a Blade `purchase.index` não existe; só o AJAX sem X-Inertia (JSON do
+    // DataTable da aba Compras do contato) não vira Page.
+    expect($source)->toContain("if (! request()->ajax() || request()->header('X-Inertia')) {");
+    expect($source)->not->toContain("view('purchase.index')");
     // Método helper privado
     expect($source)->toContain('private function indexInertia');
     // Inertia::render
@@ -178,13 +181,10 @@ it('Controller indexInertia retorna permissions completas pro Page', function ()
     expect($source)->toContain("\$user->can('purchase.delete')");
 });
 
-// ─── STEP 3 CHECK: Blade legacy NÃO foi removida ─────────────────────────────
+// ─── F5 CUTOVER: a Blade da lista foi apagada (2026-10-27) ──────────────────
 
-it('Controller PRESERVA path Blade legacy (não substituiu — dual safe)', function () {
-    $source = readPurchaseController();
-    // Path original return view ainda presente
-    expect($source)->toContain("return view('purchase.index')");
-    expect($source)->toContain("compact('business_locations', 'suppliers', 'orderStatuses')");
+it('a view purchase.index não existe mais', function () {
+    expect(file_exists(resource_path('views/purchase/index.blade.php')))->toBeFalse();
 });
 
 it('Controller PRESERVA path AJAX DataTables legacy (Yajra)', function () {

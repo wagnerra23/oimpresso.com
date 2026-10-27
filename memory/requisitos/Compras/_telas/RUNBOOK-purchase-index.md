@@ -46,6 +46,8 @@ Regressão clássica: ação existe no dropdown Blade e não foi portada pro Rea
 | Excluir | ✅ `purchase.delete` | ✅ `permissions.delete` |
 | Pagamento / devolução / status / e-mail | ✅ | ⚠️ ainda só Blade (gap conhecido) |
 
+> **F5 (2026-10-27, autorizado por [W]):** a Blade da lista foi apagada. Pagamento passou para o detalhe da compra (#10061); devolução, status e notificação ficam no menu de ações do cockpit `/compras`. A exportação do cockpit virou `GET /purchases/exportar`. A tabela acima descreve o estado até essa data.
+
 > Histórico: a ação **Etiquetas** existia no Blade (`PurchaseController.php:142`,
 > incondicional) e não foi portada na migração React. Cliente ROTA LIVRE (biz=4)
 > reportou via WhatsApp 2026-06-17 — "cadastrei umas peças e não tem opção de

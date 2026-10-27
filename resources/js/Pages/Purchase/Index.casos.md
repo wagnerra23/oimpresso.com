@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: o dual-path Blade×React e o escopo por tenant são duráveis — não mudam quando a lista ganhar coluna ou filtro novo.
 owner: wagner
 last_run: "2026-09-11"
-last_run_ci: "✅ 2026-09-05, três frentes do mesmo dia. (a) A lane purchase-pest.yml nasceu e os 2 UC [T0] (02/03) têm contrato de COMPORTAMENTO em PurchaseIndexTenantContratoTest — 4 passed, 11 assertions, verde no CI, mordida verificada por mutação. (b) Os UC 04/05 têm E2E de COMPORTAMENTO em IndexEtiquetaTest (Pest 4 Browser) na lane visual-regression, ENFORCING desde 2026-09-05 (flip [W]) apos 3 verdes que EXECUTARAM, 3 passed / 7 assertions cada. (c) Os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841) — medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. ⚠️ A frase anterior \"restam 🔴 sem lane os UC 01 e 06\" ficou FALSA com (c): o IndexPageTest que eles citam esta na allowlist. Eles passam a 🧪 estrutural · na lane — presence-gate segue sendo presence-gate; ganhar lane muda \"ninguem o acorda\" para \"alguem o acorda\", nao a natureza da prova. Nenhum ✅ nos 04/05: o visual-regression não emite JUnit, então nada dele chega ao manifesto do G-7. Não restatear estes numeros a mao: rode node scripts/qa/uc-lane-coverage.mjs. Ver §Dívida de prova."
+last_run_ci: "2026-10-27: F5 cutover, Blade purchase.index apagada; UC-PURIDX-01 reescrito, sem veredito. Antes: ✅ 2026-09-05, três frentes do mesmo dia. (a) A lane purchase-pest.yml nasceu e os 2 UC [T0] (02/03) têm contrato de COMPORTAMENTO em PurchaseIndexTenantContratoTest — 4 passed, 11 assertions, verde no CI, mordida verificada por mutação. (b) Os UC 04/05 têm E2E de COMPORTAMENTO em IndexEtiquetaTest (Pest 4 Browser) na lane visual-regression, ENFORCING desde 2026-09-05 (flip [W]) apos 3 verdes que EXECUTARAM, 3 passed / 7 assertions cada. (c) Os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841) — medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. ⚠️ A frase anterior \"restam 🔴 sem lane os UC 01 e 06\" ficou FALSA com (c): o IndexPageTest que eles citam esta na allowlist. Eles passam a 🧪 estrutural · na lane — presence-gate segue sendo presence-gate; ganhar lane muda \"ninguem o acorda\" para \"alguem o acorda\", nao a natureza da prova. Nenhum ✅ nos 04/05: o visual-regression não emite JUnit, então nada dele chega ao manifesto do G-7. Não restatear estes numeros a mao: rode node scripts/qa/uc-lane-coverage.mjs. Ver §Dívida de prova."
 ---
 
 > ℹ️ **`last_run` 2026-09-05 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
@@ -132,7 +132,7 @@ daí — o caminho é converter, um UC por vez, não ligar tudo de uma vez.
 
 | UC | Título | Tipo | Âncora de contrato | Teste que cita | Status |
 |---|---|---|---|---|---|
-| UC-PURIDX-01 | SPA recebe React; acesso direto recebe Blade | must | RUNBOOK §1 · charter Mission | `IndexPageTest` | 🧪 estrutural · na lane |
+| UC-PURIDX-01 | Toda navegação recebe a Page React | must | RUNBOOK §1 · charter Mission | `IndexPageTest` | 🧪 estrutural · na lane |
 | UC-PURIDX-02 | Lista nunca sai do `business_id` da sessão | must `[T0]` | RUNBOOK §5 · charter Non-Goal 4 | `PurchaseIndexTenantContratoTest` | ✅ comportamento · na lane |
 | UC-PURIDX-03 | Lista respeita `permitted_locations` | must `[T0]` | RUNBOOK §3 · charter Goals | `PurchaseIndexTenantContratoTest` | ✅ comportamento · na lane |
 | UC-PURIDX-04 | Ação "Etiquetas" existe no React (paridade Blade) | must `[reg]` | RUNBOOK §2 (regressão datada) | `IndexEtiquetaTest` | 🧪 comportamento · na lane (enforcing, fora do manifesto) |
@@ -141,24 +141,21 @@ daí — o caminho é converter, um UC por vez, não ligar tudo de uma vez.
 
 ---
 
-## UC-PURIDX-01 · SPA recebe React; acesso direto recebe Blade · `must`
+## UC-PURIDX-01 · Toda navegação recebe a Page React · `must`
 
-- **Persona:** Maiara/Felipe navegam pelo Cockpit; o cliente enxerga sempre o path React.
-- **Aceite:** Dado `PurchaseController@index` · Quando o request traz o header Inertia **ou** `?v=2`
-  · Então renderiza a Page `Purchase/Index` via Inertia. E, como **controle negativo**, um GET normal
-  sem header **continua** caindo na view Blade legacy, e o request AJAX continua devolvendo o JSON
-  Datatables.
-- **Atualização (cutover pelo menu · thread 03, D1 [W] 2026-10-07):** o aceite acima descreve o
-  estado até então. Desde esse cutover o GET comum (como o menu navega) abre a Page React; o Blade
-  só abre com `?classico=1`; `?v=2` e o AJAX do DataTable seguem como estavam. Prova de comportamento:
-  [`ComprasSemXInertiaTest`](../../../../tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php).
+- **Persona:** Maiara/Felipe navegam pelo Cockpit, pelo menu ou pela URL digitada; todos caem na
+  mesma tela.
+- **Aceite:** Dado `PurchaseController@index` · Quando chega visita Inertia, GET comum ou
+  `?classico=1` · Então renderiza `Purchase/Index`. Só o AJAX sem `X-Inertia` recebe JSON: é o
+  DataTable da aba Compras de `contact/show.blade.php`, que não é tela.
+- **Mudança de 2026-10-27 (F5, autorizado por [W]):** a Blade `purchase.index` foi apagada. Até aqui
+  ela abria com `?classico=1` (cutover pelo menu, thread 03, 2026-10-07). O que só ela fazia foi
+  portado antes: registrar pagamento (#10061), e a exportação do cockpit virou `GET /purchases/exportar`.
 - **Teste:** [`IndexPageTest`](../../../../tests/Feature/Purchase/IndexPageTest.php) — *"Controller
-  index() tem dual path"* · *"Controller PRESERVA path Blade legacy"* · *"Controller PRESERVA path
-  AJAX DataTables legacy (Yajra)"*.
-- **Contrato:** RUNBOOK §1 (tabela de decisão do dual-path) · [ADR 0104 MWART](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md).
-- **Regressão que defende:** o F5 CUTOVER do MWART é humano e ainda não aconteceu nesta tela. Um
-  refactor que "limpe" o Blade legacy mata o acesso direto fora do SPA — e o sintoma só aparece
-  para quem abre a URL na mão, que é justamente quem não reporta.
+  index() abre sempre o React"* · *"a view purchase.index não existe mais"* · *"Controller PRESERVA
+  path AJAX DataTables legacy (Yajra)"*. Comportamento: [`ComprasSemXInertiaTest`](../../../../tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php)
+  — *"?classico=1 na lista abre o React"*.
+- **Contrato:** [ADR 0104 MWART](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) (F5).
 - **Status: 🧪 estrutural · na lane** — as três asserções são casamento de texto no fonte do controller e
   nenhuma emite request; provariam que o código não foi *apagado*, não que o roteamento funciona.
   E nem a isso chegam: nenhuma lane as executa.
@@ -323,9 +320,10 @@ daí — o caminho é converter, um UC por vez, não ligar tudo de uma vez.
   em vez de listá-las à mão) exige as duas coisas — é exatamente o que o `purchase-pest.yml` faz
   e por isso os UC 02/03 podem ser `✅`. Enquanto não existir, nenhum UC provado por teste
   **Browser** chega a `✅`, aqui ou nas outras telas com step advisory naquele workflow.
-- `[BACKLOG]` **Ações ainda só no Blade.** RUNBOOK §2 marca `⚠️` para pagamento, devolução, mudança
-  de status e e-mail — existem no dropdown Blade e não foram portadas para o React. É gap
-  **conhecido e aceito**, não defeito; vira UC quando a paridade for decidida (é escopo, decisão [W]).
+- `[BACKLOG]` **Ações que eram só do Blade, depois do cutover (2026-10-27).** Pagamento: no detalhe
+  (#10061). Devolução, mudança de status e notificação: no menu de ações do cockpit `/compras`
+  (devolução abre `/purchase-return/add/{id}`; status e notificação abrem a edição). Nenhuma está no
+  menu de linha desta lista React; trazê-las é escopo, decisão [W].
 - `[BACKLOG]` **Teto rígido de 200 linhas sem paginação server-side.** O charter §Non-Goals declara
   o teto como *"inferência pendente de Wagner"* — premissa não estabelecida por [W] não vira
   contrato executável ([proibicoes §5](../../../../memory/proibicoes.md) 2026-07-16: UC não é canal de pedido).

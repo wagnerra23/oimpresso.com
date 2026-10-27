@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: o comportamento é durável — o escopo de quem-vê-o-quê e o contrato de filtro não mudam quando o cockpit ganhar abas novas.
 owner: wagner
 last_run: "2026-10-14"
-last_run_ci: "Revalidado em 2026-10-14 sem reexecucao: o #9321 (tema escuro) trocou so as cores inline #fff/#fbf9f3 da barra e do rodape por var(--cmp-paper)/var(--cmp-bg-2), nenhum UC muda. Antes: revalidado em 2026-10-13 pela lane PHP / Pest (Compras · MySQL) — run 38328490401, 47 passed, 134 assertions, 0 skipped, no commit 0d8350c91 que mudou o endereço do Exportar (UC-CMP-11, 5 assertions). Bump exigido pelo G-6 (a tela mudou). Historico: em 2026-09-05 o run 33941351234 (125 assertions) revalidou as ancoras data-contract; UC-CMP-06/07 reconciliados em 2026-08-11."
+last_run_ci: "2026-10-27: o cutover da lista apagou a Blade `purchase.index`; o Exportar passou a baixar `/purchases/exportar` (UC-CMP-11 reescrito, ainda sem veredito). Antes: revalidado em 2026-10-14 sem reexecucao: o #9321 (tema escuro) trocou so as cores inline #fff/#fbf9f3 da barra e do rodape por var(--cmp-paper)/var(--cmp-bg-2), nenhum UC muda. Antes: revalidado em 2026-10-13 pela lane PHP / Pest (Compras · MySQL) — run 38328490401, 47 passed, 134 assertions, 0 skipped, no commit 0d8350c91 que mudou o endereço do Exportar (UC-CMP-11, 5 assertions). Bump exigido pelo G-6 (a tela mudou). Historico: em 2026-09-05 o run 33941351234 (125 assertions) revalidou as ancoras data-contract; UC-CMP-06/07 reconciliados em 2026-08-11."
 ---
 
 # Casos de Uso & Aceite — Cockpit de Compras (`/compras`)
@@ -46,7 +46,7 @@ last_run_ci: "Revalidado em 2026-10-14 sem reexecucao: o #9321 (tema escuro) tro
 | UC-CMP-08 | Cockpit respeita as localizações permitidas | must `[reg]` | `CU-COM-05` item 1 | `ComprasContratoFiltrosTest` | 🧪 **vermelho esperado** |
 | UC-CMP-09 | Entrada da compra grava valor e move estoque | must `[V0]` | `CU-COM-08` itens 1-3 | `PurchaseCalculoValorEstoqueE2ETest` | 🧪 (roda só no **nightly**, não no PR) |
 | UC-CMP-10 | Itens conta as linhas e NF-e lê a **chave fiscal de entrada** | must | protótipo `compras-page.jsx:501,508` + charter §Goals | `ComprasContratoFiltrosTest` | 🧪 veredito na lane |
-| UC-CMP-11 | O botão Exportar abre a tela que exporta | must `[reg]` | SDD §0.2 + F6 · `CU-COM-07` item 4 | `ComprasExportarContratoTest` | 🧪 veredito na lane |
+| UC-CMP-11 | O botão Exportar baixa a lista de compras | must `[reg]` | SDD §0.2 + F6 · `CU-COM-07` item 4 | `ComprasExportarContratoTest` | 🧪 veredito na lane |
 
 > 🧪 **Nenhum status aqui é afirmação de verde.** Este PR não executou teste algum (CT 100/CI —
 > [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)). "Vermelho
@@ -270,21 +270,25 @@ last_run_ci: "Revalidado em 2026-10-14 sem reexecucao: o #9321 (tema escuro) tro
 
 ---
 
-## UC-CMP-11 · O botão Exportar abre a tela que exporta · `must` `[reg]`
+## UC-CMP-11 · O botão Exportar baixa a lista de compras · `must` `[reg]`
 
-- **Persona:** operador de compras que filtra o cockpit e quer a lista em CSV/Excel/PDF ou impressa.
-- **Aceite:** Dado um usuário com `purchase.view` · Quando clica em qualquer um dos 4 botões de
-  exportação do cockpit · Então a nova aba abre a **Blade** da lista de compras (`purchase.index`),
-  que tem os botões de exportação do DataTables — não a Page React `Purchase/Index`, que não exporta.
+- **Persona:** operador de compras que quer a lista de compras numa planilha.
+- **Aceite:** Dado um usuário com `purchase.view` · Quando clica em **CSV** ou **Excel** no cockpit ·
+  Então a nova aba baixa `GET /purchases/exportar`: CSV com BOM UTF-8, separador `;` e cabeçalho em
+  pt-BR, com os mesmos filtros e escopos da lista de compras (empresa, locais permitidos e "só as
+  minhas" quando o usuário tem `view_own_purchase`). Sem `purchase.view` nem `view_own_purchase`: 403.
 - **Teste:** [`ComprasExportarContratoTest`](../../../../Modules/Compras/Tests/Feature/ComprasExportarContratoTest.php) —
-  *"UC-CMP-11 · o endereço do Exportar abre a Blade da lista de compras, que exporta"*. Lê o endereço
-  que o `Index.tsx` passa ao `window.open` e faz a mesma navegação da nova aba (GET sem `X-Inertia`).
-- **Contrato:** SDD §0.2 e fluxo F6 (a Blade é o destino da exportação do cockpit) · `CU-COM-07` item 4
-  (bridges Blade-only por `window.open`).
-- **Regressão que defende:** o cutover pelo menu (#9095, D1 [W] 2026-10-07) fez GET comum em
-  `/purchases` abrir a Page React. O botão abria `/purchases` sem `?classico=1` e passou a cair numa
-  tela sem exportação. O conserto (2026-10-13) foi o endereço `/purchases?classico=1`.
-- **Status: 🧪** — verde na lane `PHP / Pest (Compras · MySQL)` em 2026-10-13 (run 38328490401: 1 passed, 5 assertions, 0 skipped). Fica 🧪 até o manifesto de resultados do G-7 trazer o veredito.
+  *"UC-CMP-11 · o endereço do Exportar baixa o CSV da lista de compras"* e *"UC-CMP-11 · sem permissão
+  de ver compras a exportação dá 403"*. Lê o endereço que o `Index.tsx` passa ao `window.open` e faz a
+  mesma navegação da nova aba.
+- **Contrato:** SDD §0.2 e fluxo F6 · `CU-COM-07` item 4.
+- **Mudança de 2026-10-27 (cutover da lista):** até aqui o destino era a **Blade** `purchase.index`
+  (`/purchases?classico=1`), que exportava pelos botões do DataTable em CSV, Excel, PDF e impressão. A
+  Blade foi apagada. Ficam CSV e Excel (o Excel abre o mesmo CSV); **PDF e Imprimir da lista saíram**
+  do cockpit. Impressão e PDF da compra individual seguem em Blade (`/purchases/print/{id}`).
+- **Histórico:** o cutover pelo menu (#9095, D1 [W] 2026-10-07) fez GET comum em `/purchases` abrir a
+  Page React; o conserto de 2026-10-13 foi o endereço `/purchases?classico=1`, verde no run 38328490401.
+- **Status: 🧪** — o caso mudou neste PR e ainda não rodou. Fica 🧪 até a lane `PHP / Pest (Compras · MySQL)` trazer o veredito.
 
 ---
 

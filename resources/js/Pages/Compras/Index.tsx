@@ -193,13 +193,11 @@ function ComprasIndex({ filters, selected_id, permissions, kpis, rows, summary, 
     navigateWithFilters({ per_page: value });
   };
 
-  const openExportBlade = (_format: 'csv' | 'excel' | 'pdf' | 'print') => {
-    // Bridge mode — Blade legacy DataTables tem exports nativos via buttons plugin.
-    // PR seguinte substitui por endpoints Compras nativos respeitando filtros.
-    // _format ignorado: Blade legacy mostra todos os 4 botões na mesma tela.
-    // `?classico=1` é obrigatório desde o cutover pelo menu (#9095): sem ele `/purchases`
-    // abre a Page React `Purchase/Index`, que não exporta. Contrato: UC-CMP-11.
-    window.open('/purchases?classico=1', '_blank', 'noopener,noreferrer');
+  const openExportBlade = (_format: 'csv' | 'excel') => {
+    // A Blade da lista (que exportava pelo DataTable) foi apagada no cutover de 2026-10-27.
+    // `/purchases/exportar` devolve o CSV com os filtros e escopos da lista; o Excel abre o
+    // mesmo arquivo, então os dois botões baixam o CSV. Contrato: UC-CMP-11.
+    window.open('/purchases/exportar', '_blank', 'noopener,noreferrer');
   };
 
   const openDrawer = (compraId: number, tab: 'resumo' | 'pagamentos' = 'resumo') => {
@@ -689,7 +687,7 @@ function Toolbar({
   colVisibility: Record<string, boolean>;
   setColVisibility: (next: Record<string, boolean>) => void;
   onPerPageChange: (n: number) => void;
-  onExport: (format: 'csv' | 'excel' | 'pdf' | 'print') => void;
+  onExport: (format: 'csv' | 'excel') => void;
 }) {
   return (
     <div
@@ -733,19 +731,13 @@ function Toolbar({
 
       <div style={{ flex: 1 }}></div>
 
-      <button className="btn sm" onClick={() => onExport('csv')} title="Exportar CSV (Blade legacy nova aba)">
+      <button className="btn sm" onClick={() => onExport('csv')} title="Baixar a lista de compras em CSV">
         ↓ CSV
       </button>
-      <button className="btn sm" onClick={() => onExport('excel')} title="Exportar Excel (Blade legacy nova aba)">
+      <button className="btn sm" onClick={() => onExport('excel')} title="Baixar a lista de compras em CSV, que o Excel abre">
         ↓ Excel
       </button>
-      <button className="btn sm" onClick={() => onExport('print')} title="Imprimir (Blade legacy nova aba)">
-        ⎙ Imprimir
-      </button>
       <VisibilidadeColunas columns={COLUMNS} value={colVisibility} onChange={setColVisibility} />
-      <button className="btn sm" onClick={() => onExport('pdf')} title="Exportar PDF (Blade legacy nova aba)">
-        ↓ PDF
-      </button>
     </div>
   );
 }
