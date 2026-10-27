@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: os três gates de escrita (tenant, janela temporal, devolução existente) são duráveis — não mudam quando o formulário ganhar campo novo.
 owner: wagner
 last_run: "2026-10-16"
-last_run_ci: "2026-10-27: UC-PUREDT-11 (prazo, frete e campos); UC-PUREDT-09/10 (despesas na edição e update que não apaga campo ausente) nascem sem veredito. Antes: ✅ 2026-09-05: os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841). Medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. Os 7 UC desta tela tem lane; 1 com defesa de COMPORTAMENTO (UpdateCrossTenantIdorTest - o IDOR de escrita cross-tenant em dinheiro; nao esta em quarantine.list nenhuma, e o markTestSkipped que sobrou so protege sqlite) e 6 ESTRUTURAL (Wave2Edit*, presence-gate LC-11). Nao restatear a mao: rode scripts/qa/uc-lane-coverage.mjs. ⚠ O TEXTO A SEGUIR ESTA SUPERADO e fica como fato datado - os dois numeros dele ja nasciam falsos: 🔴 NENHUM teste de tests/Feature/Purchase/ roda em lane alguma — 8 arquivos órfãos de CI; o do IDOR soma quarentena por cima. Ver §Dívida de prova."
+last_run_ci: "2026-10-27: F5 cutover, Blade purchase.edit apagada, UC-PUREDT-01 reescrito; UC-PUREDT-11 (prazo, frete e campos); UC-PUREDT-09/10 (despesas na edição e update que não apaga campo ausente) nascem sem veredito. Antes: ✅ 2026-09-05: os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841). Medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. Os 7 UC desta tela tem lane; 1 com defesa de COMPORTAMENTO (UpdateCrossTenantIdorTest - o IDOR de escrita cross-tenant em dinheiro; nao esta em quarantine.list nenhuma, e o markTestSkipped que sobrou so protege sqlite) e 6 ESTRUTURAL (Wave2Edit*, presence-gate LC-11). Nao restatear a mao: rode scripts/qa/uc-lane-coverage.mjs. ⚠ O TEXTO A SEGUIR ESTA SUPERADO e fica como fato datado - os dois numeros dele ja nasciam falsos: 🔴 NENHUM teste de tests/Feature/Purchase/ roda em lane alguma — 8 arquivos órfãos de CI; o do IDOR soma quarentena por cima. Ver §Dívida de prova."
 ---
 
 # Casos de Uso & Aceite — Editar Compra (`/purchases/{id}/edit`)
@@ -92,7 +92,7 @@ allowlist por conta própria — por que ela existe (custo de CI? teste instáve
 
 | UC | Título | Tipo | Âncora de contrato | Teste que cita | Status |
 |---|---|---|---|---|---|
-| UC-PUREDT-01 | SPA recebe React; Blade legacy preservado | must | RUNBOOK §11 · charter §Reuso | `Wave2EditInertiaTest` · `Wave2EditBaselineTest` | 🧪 estrutural · na lane |
+| UC-PUREDT-01 | Toda abertura da edição recebe a Page React | must `[T0]` | RUNBOOK §11 · charter §Reuso | `Wave2EditInertiaTest` · `Wave2EditBaselineTest` | 🧪 estrutural · na lane |
 | UC-PUREDT-02 | `update()` nunca alcança transação de outro tenant | must `[T0]` `[V0]` | RUNBOOK §3 · charter R-PUR-001 | `UpdateCrossTenantIdorTest` | ✅ comportamento · na lane |
 | UC-PUREDT-03 | Edição fora da janela `transaction_edit_days` é recusada | must | RUNBOOK §3 · charter R-PUR-005 | `Wave2EditBaselineTest` | 🧪 estrutural · na lane |
 | UC-PUREDT-04 | Compra com devolução já criada não pode ser editada | must `[V0]` | RUNBOOK §3 · charter R-PUR-006 | `Wave2EditBaselineTest` | 🧪 estrutural · na lane |
@@ -105,20 +105,24 @@ allowlist por conta própria — por que ela existe (custo de CI? teste instáve
 
 ---
 
-## UC-PUREDT-01 · SPA recebe React; Blade legacy preservado · `must`
+## UC-PUREDT-01 · Toda abertura da edição recebe a Page React · `must` `[T0]`
 
-- **Persona:** Maiara/Felipe corrigem a compra pelo Cockpit; o Blade atende acesso direto.
-- **Aceite:** Dado `PurchaseController@edit` · Quando o request traz o header Inertia ou `?v=2`
-  · Então renderiza a Page `Purchase/Edit`. E, como **controle negativo**, o GET normal continua
-  devolvendo a view Blade legacy.
-- **Teste:** [`Wave2EditInertiaTest`](../../../../tests/Feature/Purchase/Wave2EditInertiaTest.php) —
-  *"Controller edit() tem dual path (Inertia atrás de ?v=2 OU header)"*;
-  [`Wave2EditBaselineTest`](../../../../tests/Feature/Purchase/Wave2EditBaselineTest.php) —
-  *"Blade legacy edit.blade.php existe"* · *"Controller edit() PRESERVA return view(purchase.edit)"*.
-- **Contrato:** RUNBOOK §11 (F5 CUTOVER = dual path) · [ADR 0104](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md).
-- **Regressão que defende:** o `update()` é compartilhado. Limpar o Blade "porque migrou" quebra
-  quem entra pela URL direta.
-- **Status: 🧪 estrutural · na lane** — casamento de texto no fonte; nenhum request emitido.
+- **Persona:** Maiara/Felipe corrigem a compra pelo Cockpit, pela lista ou pelo link direto.
+- **Aceite:** Dado `PurchaseController@edit` · Quando chega visita Inertia ou GET comum · Então
+  renderiza `Purchase/Edit`. Compra de outra empresa responde 404 (antes, `first()` devolvia null e
+  a tela quebrava com 500).
+- **Mudança de 2026-10-27 (F5, autorizado por [W]):** a Blade `purchase.edit` foi apagada. Até aqui
+  ela era o padrão, e o React só abria com `X-Inertia` ou `?v=2`. Antes do cutover vieram despesas e
+  anexo (UC-PUREDT-09), o `update` que não apaga campo ausente (UC-PUREDT-10) e prazo/frete/campos da
+  empresa (UC-PUREDT-11). **Fica de fora:** trocar os pedidos de compra vinculados na edição
+  (`purchase_order_ids`), que a Blade permitia. O React não manda o campo e o `update` mantém o vínculo
+  gravado.
+- **Teste:** [`PurchaseEditPreservaContratoTest`](../../../../tests/Feature/Purchase/PurchaseEditPreservaContratoTest.php)
+  — *"GET comum da edição abre a Page React"* · *"editar compra de outra empresa responde 404"* ·
+  [`Wave2EditBaselineTest`](../../../../tests/Feature/Purchase/Wave2EditBaselineTest.php) — *"a Blade
+  edit.blade.php foi apagada"*.
+- **Contrato:** [ADR 0104](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) (F5).
+- **Status: 🧪 sem veredito**
 
 ---
 

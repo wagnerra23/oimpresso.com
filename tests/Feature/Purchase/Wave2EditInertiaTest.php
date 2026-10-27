@@ -81,7 +81,7 @@ it('Page submete POST /purchases/{id} (method spoofing PUT)', function () {
     expect($source)->toContain('form.post(`/purchases/${purchase.id}`');
 });
 
-it('Controller edit() tem dual path (Inertia atrás de ?v=2 OU header)', function () {
+it('Controller edit() renderiza a Page React (F5 2026-10-27, sem a Blade)', function () {
     $source = readEditControllerInertia();
     expect($source)->toContain('private function editInertia');
     expect($source)->toContain("Inertia::render('Purchase/Edit'");

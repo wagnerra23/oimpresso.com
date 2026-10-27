@@ -1039,8 +1039,6 @@ class PurchaseController extends Controller
                 'msg' => __('lang_v1.return_exist'), ]);
         }
 
-        $business = Business::find($business_id);
-
         $currency_details = $this->transactionUtil->purchaseCurrencyDetails($business_id);
 
         $taxes = TaxRate::where('business_id', $business_id)
@@ -1061,7 +1059,9 @@ class PurchaseController extends Controller
                         'purchase_lines.sub_unit',
                         'purchase_lines.purchase_order_line'
                     )
-                    ->first();
+                    // firstOrFail: compra de outra empresa (ou inexistente) é 404. Com first() o
+                    // foreach abaixo quebrava em null e devolvia 500.
+                    ->firstOrFail();
 
         foreach ($purchase->purchase_lines as $key => $value) {
             if (! empty($value->sub_unit_id)) {
@@ -1074,70 +1074,18 @@ class PurchaseController extends Controller
 
         $business_locations = BusinessLocation::forDropdown($business_id);
 
-        $default_purchase_status = null;
-        if (request()->session()->get('business.enable_purchase_status') != 1) {
-            $default_purchase_status = 'received';
-        }
-
-        $types = [];
-        if (auth()->user()->can('supplier.create')) {
-            $types['supplier'] = __('report.supplier');
-        }
-        if (auth()->user()->can('customer.create')) {
-            $types['customer'] = __('report.customer');
-        }
-        if (auth()->user()->can('supplier.create') && auth()->user()->can('customer.create')) {
-            $types['both'] = __('lang_v1.both_supplier_customer');
-        }
-        $customer_groups = CustomerGroup::forDropdown($business_id);
-
-        $business_details = $this->businessUtil->getDetails($business_id);
-        $shortcuts = json_decode($business_details->keyboard_shortcuts, true);
-
-        $common_settings = ! empty(session('business.common_settings')) ? session('business.common_settings') : [];
-
-        $purchase_orders = null;
-        if (! empty($common_settings['enable_purchase_order'])) {
-            $purchase_orders = Transaction::where('business_id', $business_id)
-                                        ->where('type', 'purchase_order')
-                                        ->where('contact_id', $purchase->contact_id)
-                                        ->where(function ($q) use ($purchase) {
-                                            $q->where('status', '!=', 'completed');
-
-                                            if (! empty($purchase->purchase_order_ids)) {
-                                                $q->orWhereIn('id', $purchase->purchase_order_ids);
-                                            }
-                                        })
-                                        ->pluck('ref_no', 'id');
-        }
-
-        // MWART Wave2 B5 — dual path opt-in Inertia via ?v=2 (ADR 0104).
-        if (request()->header('X-Inertia') || request()->query('v') === '2') {
-            return $this->editInertia(
-                $business_id,
-                $purchase,
-                $business_locations,
-                $taxes,
-                $orderStatuses,
-                $currency_details
-            );
-        }
-
-        return view('purchase.edit')
-            ->with(compact(
-                'taxes',
-                'purchase',
-                'orderStatuses',
-                'business_locations',
-                'business',
-                'currency_details',
-                'default_purchase_status',
-                'customer_groups',
-                'types',
-                'shortcuts',
-                'purchase_orders',
-                'common_settings'
-            ));
+        // F5 (2026-10-27, autorizado por [W]): a Blade `purchase.edit` foi apagada. Antes ela era o
+        // padrão e o React só abria com X-Inertia ou ?v=2. O que só ela tinha veio antes para o
+        // React (despesas e anexo, prazo/frete/campos da empresa), e o update deixou de apagar o
+        // campo que o formulário não traz.
+        return $this->editInertia(
+            $business_id,
+            $purchase,
+            $business_locations,
+            $taxes,
+            $orderStatuses,
+            $currency_details
+        );
     }
 
     /**

@@ -27,13 +27,13 @@ function readPurchaseEditController(): string
     return file_get_contents(base_path(EDIT_CONTROLLER));
 }
 
-it('Blade legacy edit.blade.php existe', function () {
-    expect(file_exists(base_path(EDIT_BLADE_LEGACY)))->toBeTrue();
+it('F5 (2026-10-27): a Blade edit.blade.php foi apagada', function () {
+    expect(file_exists(base_path(EDIT_BLADE_LEGACY)))->toBeFalse();
 });
 
-it('Controller edit() PRESERVA return view("purchase.edit") (fallback legacy)', function () {
+it('Controller edit() não devolve mais a view purchase.edit', function () {
     $source = readPurchaseEditController();
-    expect($source)->toContain("return view('purchase.edit')");
+    expect($source)->not->toContain("view('purchase.edit')");
 });
 
 it('Controller edit() PRESERVA permission purchase.update + canBeEdited time-gate', function () {

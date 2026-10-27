@@ -206,3 +206,39 @@ it('UC-PUREDT-10 campo personalizado que VEM vazio é limpo: a regra respeita o 
 
     expect($this->compra->fresh()->custom_field_1)->toBeIn([null, '']);
 });
+
+it('UC-PUREDT-01 GET comum da edição (sem X-Inertia, como o link direto) abre a Page React', function () {
+    // Discrimina o cutover: até 2026-10-27 esta mesma requisição devolvia a view `purchase.edit`.
+    $this->actingAs($this->user)
+        ->get("/purchases/{$this->compra->id}/edit")
+        ->assertOk()
+        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $p) => $p
+            ->component('Purchase/Edit', false)
+            ->where('purchase.id', $this->compra->id));
+});
+
+it('UC-PUREDT-01 [T0] editar compra de outra empresa responde 404', function () {
+    $outra = (int) DB::table('business')->whereIn('id', [99, 2])->where('id', '!=', $this->biz)->orderByDesc('id')->value('id');
+    if ($outra <= 0) {
+        $this->markTestSkipped('Sem empresa adversária fictícia (99 ou 2) neste ambiente.');
+    }
+    $alheia = DB::table('transactions')->insertGetId([
+        'business_id' => $outra,
+        'location_id' => EstoqueFixture::locationId($outra, '-PED'),
+        'created_by' => $this->user->id,
+        'type' => 'purchase',
+        'status' => 'received',
+        'payment_status' => 'due',
+        'ref_no' => 'PED-ALHEIA-' . uniqid(),
+        'transaction_date' => now(),
+        'total_before_tax' => 10,
+        'final_total' => 10,
+        'tax_amount' => 0,
+        'discount_amount' => 0,
+        'essentials_duration' => 0,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $this->actingAs($this->user)->get("/purchases/{$alheia}/edit")->assertNotFound();
+});
