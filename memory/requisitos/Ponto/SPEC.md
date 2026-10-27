@@ -424,6 +424,24 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 - [x] Alerta visível na tela de Conformidade: 7ª verificação "Férias vencidas" (UC-CONF-10)
 - Fora, por ser valor: 1/3 constitucional e abono pecuniário em dinheiro — vão com a folha. Fora por falta de dado: perda do direito do art. 133 (afastamento)
 
+### US-PONTO-019 · Exportação do ponto para folha e contabilidade: Horas Extras, Banco de Horas e Atrasos/Faltas por competência
+
+> owner: — · priority: p1 · estimate: 6h · type: story
+
+**Implementado em:** `Modules/Ponto/Services/ExportacaoFolhaService.php` · `Modules/Ponto/Http/Controllers/RelatorioController.php` · `Modules/Ponto/Tests/Feature/RelatorioFolhaContratoTest.php`
+**Testado em:** `Modules/Ponto/Tests/Feature/RelatorioFolhaContratoTest.php`
+
+**Como** RH que manda o mês para a contabilidade,
+**quero** baixar, por competência, as horas extras, os atrasos e faltas e o banco de horas de cada colaborador,
+**para que** a folha seja lançada a partir da apuração, sem redigitar o espelho de cada um.
+
+**Aceite:**
+- [x] Os cards Horas Extras, Banco de Horas e Atrasos e Faltas do catálogo ficam disponíveis e geram CSV (`;`, UTF-8 com BOM, horas em `hh:mm`), um colaborador por linha (UC-RELIDX-13..15)
+- [x] Lê o que a apuração gravou em `ponto_apuracao_dia`; não reapura e não calcula valor em dinheiro
+- [x] Falta conta como dia só quando é cheia e sem trabalho, a mesma regra das férias (US-PONTO-018)
+- [x] Só o empregador da sessão (UC-RELIDX-16, Tier 0)
+- [ ] Leiautes próprios de Domínio, Alterdata e Questor — fora; é a lacuna P2 "Exportação para Domínio, Alterdata e Questor" da frente Plataforma
+
 ### US-PONTO-020 · Ciência do espelho mensal pelo colaborador
 
 > owner: — · priority: p1 · estimate: 6h · type: story
