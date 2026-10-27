@@ -2,7 +2,7 @@
 // A tabela abaixo é a mesma de tests/Feature/Sells/ResgatePontosContratoTest.php (UC-SRP-01):
 // se uma das duas mudar, a outra reprova (dupla prova da regra mestre de valor).
 import { describe, expect, it } from 'vitest';
-import { valorDoResgate } from '@/Pages/Sells/_components/ResgatePontos';
+import { valorDoResgate } from '@/Pages/Sells/_components/resgate-pontos-valor';
 
 const TABELA: Array<[number, string, string]> = [
   [50, '0.1000', '5.00'],

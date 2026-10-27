@@ -12,6 +12,7 @@
 //   - US-SELL-006: bloco pagamentos real + frete
 //   - US-SELL-007: atalhos / Esc Cmd+Enter + auto-save draft localStorage
 
+import { Inline } from '@/Components/layout';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router, useForm } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -1625,10 +1626,10 @@ export default function SellsCreate(props: SellsCreatePageProps) {
               </div>
             )}
             {Number(data.rp_redeemed_amount) > 0 && (
-              <div className="flex justify-between text-muted-foreground">
+              <Inline gap={0} justify="between" className="text-muted-foreground">
                 <span>Resgate de {props.pontosFidelidade?.nome.toLowerCase()} ({data.rp_redeemed})</span>
                 <span className="tabular-nums">- {formatBRL(Number(data.rp_redeemed_amount))}</span>
-              </div>
+              </Inline>
             )}
             {data.shipping.cost > 0 && (
               <div className="flex justify-between text-muted-foreground">

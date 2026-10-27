@@ -64,7 +64,7 @@ it('UC-SRP-03 recusa mais pontos que o disponível, abaixo do mínimo de pontos 
 it('UC-SRP-04 recusa valor que não bate com os pontos (o total da venda já veio descontado)', function () {
     $c = ($this->cliente)($this->biz);
 
-    expect(fn () => ($this->servico)()->conferir($this->biz, $c, 50, '50.00', 120.0))->toThrow(ResgatePontosException::class, 'vale R$ 5,00');
+    expect(fn () => ($this->servico)()->conferir($this->biz, $c, 50, '50.00', 120.0))->toThrow(ResgatePontosException::class, '5,00, mas a venda');
     expect(($this->servico)()->conferir($this->biz, $c, 50, '5.01', 120.0)['valor'])->toBe('5.00'); // tolerância de 1 centavo
 });
 

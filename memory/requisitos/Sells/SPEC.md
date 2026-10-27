@@ -1701,7 +1701,7 @@ Aceite:
 
 > owner: wagner · priority: p1 · estimate: 6h · status: doing · type: story · origin: coordenacao-lacunas-2026-10-27
 
-**Implementado em:** `app/Services/Sells/ResgatePontosFidelidade.php` · `app/Http/Controllers/SellPosController.php` · `resources/js/Pages/Sells/_components/ResgatePontos.tsx` · `resources/js/Pages/Sells/Create.tsx`
+**Implementado em:** _pendente_ — em andamento: `App\Services\Sells\ResgatePontosFidelidade` chamado pelo `SellPosController::store` e o bloco `Sells/_components/ResgatePontos.tsx` na `Sells/Create` (UC-SRP-01..06 em `Sells/Create.casos.md`). Falta: ligar `SELLS_RESGATE_PONTOS_ENABLED` depois do teste no caixa.
 
 Os pontos de fidelidade nativos (`business.enable_rp`) já tinham regra de ganho, validade, configuração em React (`Configuracoes/Empresa`, aba Pontos de fidelidade) e extrato na ficha do cliente. Faltava resgatar no caixa React: o `store` aceitava `rp_redeemed` e `rp_redeemed_amount` como vinham, e quem conferia era o JavaScript da Blade. Decisão [W] 2026-10-27: "constrói o resgate de pontos de fidelidade no caixa React, usando o rp_redeemed que o backend já aceita" (no lugar do cashback em dinheiro, que duplicava os pontos).
 

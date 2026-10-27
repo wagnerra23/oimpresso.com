@@ -8,22 +8,16 @@
 // Valor = pontos × valor do ponto, arredondado a 2 casas, contado em inteiros (décimos de milésimo
 // de real) para não cair em ponto flutuante — a mesma conta do servidor.
 import { useEffect, useState } from 'react';
+import { Inline } from '@/Components/layout';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
+import { valorDoResgate } from './resgate-pontos-valor';
 
 export interface PontosFidelidadeConfig {
   nome: string;
   valor_ponto: string;
   minimo_venda: string;
   minimo_pontos: number;
-}
-
-/** pontos × valor do ponto → "0.00", meio para cima, sem ponto flutuante. */
-export function valorDoResgate(pontos: number, valorDoPonto: string): string {
-  const [inteiro, fracao = ''] = valorDoPonto.trim().split('.');
-  const decimilesimos = Number(inteiro) * 10000 + Number((fracao + '0000').slice(0, 4));
-  const centavos = Math.floor((Math.trunc(pontos) * decimilesimos + 50) / 100);
-  return `${Math.floor(centavos / 100)}.${String(centavos % 100).padStart(2, '0')}`;
 }
 
 function csrf(): string {
@@ -83,7 +77,7 @@ export default function ResgatePontos({ config, contactId, pontos, totalAntes, o
   return (
     <div className="space-y-1.5" data-testid="resgate-pontos">
       <Label htmlFor="rp_redeemed">Resgatar {config.nome.toLowerCase()}</Label>
-      <div className="flex items-center gap-2">
+      <Inline gap={2}>
         <Input
           id="rp_redeemed"
           type="number"
@@ -102,7 +96,7 @@ export default function ResgatePontos({ config, contactId, pontos, totalAntes, o
         <span className="text-sm text-muted-foreground tabular-nums">
           = {formatBRL(Number(valor))}
         </span>
-      </div>
+      </Inline>
       <p className="text-xs text-muted-foreground">
         {disponivel === null
           ? 'Consultando o saldo do cliente…'
