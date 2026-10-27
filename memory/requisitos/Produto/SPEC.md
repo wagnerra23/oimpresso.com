@@ -115,6 +115,10 @@ last_updated: "2026-10-06"
 
 **Por quê (Wagner 2026-07-03: "estudar melhor o custo médio, muita coisa já tem pronta").** NÃO é greenfield — o UltimatePOS já calcula custo por compra. Antes de construir agregação, **mapear a máquina de custo que já roda**.
 
+**Testado em:** `Modules/Compras/Tests/Feature/CustoMedioMovelTest.php` (lane `compras-pest.yml`, UC-CMED-01..08).
+
+**Aceite:** as caixas das Fases 1 e 2 abaixo.
+
 **Fase 1 — SPIKE de descoberta (obrigatória antes de codar):**
 - [x] Inventariar o que já existe (2026-10-27): o core grava o **último** preço em `variations.dpp_inc_tax` (`ProductUtil::updateProductFromPurchase`, com `enable_editing_product_from_purchase`). A regra de custo da aba Fluxos (US-COM-026) troca isso pelo método da empresa no recebimento, via `CustoDoInsumoService::naData` (US-COM-024). O lucro dos relatórios usa o custo do **lote** (`transaction_sell_lines_purchase_lines` → `purchase_lines.purchase_price_inc_tax`, FIFO/LIFO).
 - [x] Documentar (2026-10-27): o `medio` do `CustoDoInsumoService` é a média de **todas** as compras até a data; o que já saiu do estoque continua pesando (compra 10 a 10,00, vende 10, compra 10 a 20,00 → 15,00, quando o estoque custa 20,00). Não existia médio **móvel**. Valor em estoque: não há fonte única (lote no relatório, `dpp_inc_tax` no cadastro).

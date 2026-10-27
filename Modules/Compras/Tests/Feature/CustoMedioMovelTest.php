@@ -23,6 +23,8 @@ use Tests\Support\WithSeededTenant;
  *   móvel  = (10,00 × 10 + 20,00 × 10) / 20 = 300 / 20 = 15,0000
  * Se o saldo inicial já tinha sido todo vendido (lote restante 0, estoque depois de C1 = 10):
  *   móvel  = 20,0000 (nada antes) · a média de todas as compras daria 15,00 — é a diferença do método.
+ *
+ * @covers-us US-PROD-024
  */
 uses(Tests\TestCase::class, DatabaseTransactions::class, WithSeededTenant::class);
 
