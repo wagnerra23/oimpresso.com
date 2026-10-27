@@ -260,6 +260,15 @@ last_run: "2026-10-26"
 
 ---
 
+## UC-CXU-23 · E-mail que chega na caixa da empresa entra na Caixa, e a resposta sai pelo SMTP dela
+- **Persona:** atendente — o cliente mandou e-mail pedindo orçamento.
+- **Aceite:** Dado um canal de e-mail ativo com token de entrada e SMTP · Quando o provedor encaminha o e-mail com o token do canal · Então ele vira conversa da empresa dona do canal (remetente em minúsculas, assunto e corpo gravados), reentrega não duplica, token errado responde 401 sem gravar; e a resposta do atendente sai pelo SMTP da própria caixa, com "Re:" do último assunto recebido. Sem SMTP a resposta fica `failed` e nada é enviado. Com a flag desligada a rota responde 404.
+- **Teste:** `Modules/Whatsapp/Tests/Feature/EmailNaCaixaContratoTest.php` — os 4 casos `UC-CXU-23 · US-WA-329 · …` (lane MySQL, SMTP falso).
+- **Regressão que defende:** responder o cliente pelo e-mail do sistema em vez da caixa da empresa, e e-mail de uma empresa caindo na caixa de outra.
+- **Status: ⬜** — o veredito vem da lane MySQL do CI.
+
+---
+
 ## Backlog (prosa honesta — sem UC até ganhar teste que o cite)
 
 O charter descreve estes comportamentos e eles existem na tela, mas **não têm teste** hoje —

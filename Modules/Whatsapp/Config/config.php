@@ -187,6 +187,7 @@ return [
      */
     'omnicanal' => [
         'meta_graph_enabled' => (bool) env('WHATSAPP_META_GRAPH_INBOX_ENABLED', false),
+        'email_enabled' => (bool) env('WHATSAPP_EMAIL_INBOX_ENABLED', false),
     ],
 
     /*

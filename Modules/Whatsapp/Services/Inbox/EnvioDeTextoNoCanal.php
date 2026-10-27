@@ -38,6 +38,9 @@ final class EnvioDeTextoNoCanal
             return app(\Modules\Whatsapp\Services\Canais\EnvioMetaGraph::class)
                 ->despachar($message, $conversation, $channel, $texto);
         }
+        if ($channel->type === Channel::TYPE_EMAIL_IMAP) {
+            return app(\Modules\Whatsapp\Services\Canais\EnvioEmail::class)->despachar($message, $conversation, $channel, $texto);
+        }
         if ($channel->type !== Channel::TYPE_WHATSAPP_BAILEYS
             && $channel->type !== Channel::TYPE_WHATSAPP_WHATSMEOW) {
             $message->forceFill([

@@ -2195,9 +2195,9 @@ Ligar em produção é decisão [W]. Tela para a empresa configurar texto e liga
 
 ### US-WA-329 · Instagram Direct, Messenger e e-mail na mesma Caixa Unificada
 
-**Implementado em:** `Modules/Whatsapp/Http/Controllers/Api/MetaGraphWebhookController.php` · `Modules/Whatsapp/Services/Canais/EnvioMetaGraph.php` · `Modules/Whatsapp/Services/Canais/RecebimentoNoCanal.php` · `Modules/Whatsapp/Services/Canais/NormalizadorMetaGraph.php` · `Modules/Whatsapp/Services/Canais/MensagemRecebida.php`
+**Implementado em:** `Modules/Whatsapp/Http/Controllers/Api/MetaGraphWebhookController.php` · `Modules/Whatsapp/Services/Canais/EnvioMetaGraph.php` · `Modules/Whatsapp/Http/Controllers/Api/EmailEntradaController.php` · `Modules/Whatsapp/Services/Canais/EnvioEmail.php` · `Modules/Whatsapp/Services/Canais/RecebimentoNoCanal.php` · `Modules/Whatsapp/Services/Canais/NormalizadorMetaGraph.php` · `Modules/Whatsapp/Services/Canais/MensagemRecebida.php`
 
-**Testado em:** `Modules/Whatsapp/Tests/Feature/RecebimentoOmnicanalContratoTest.php` · `Modules/Whatsapp/Tests/Feature/MetaGraphWebhookContratoTest.php` · `Modules/Whatsapp/Tests/Feature/EnvioMetaGraphContratoTest.php`
+**Testado em:** `Modules/Whatsapp/Tests/Feature/RecebimentoOmnicanalContratoTest.php` · `Modules/Whatsapp/Tests/Feature/MetaGraphWebhookContratoTest.php` · `Modules/Whatsapp/Tests/Feature/EnvioMetaGraphContratoTest.php` · `Modules/Whatsapp/Tests/Feature/EmailNaCaixaContratoTest.php`
 
 > owner: — · priority: p2 · estimate: 8h · type: story
 > origem: lacuna P2 do programa de lacunas (destravada por [W] 2026-10-27, "pode destravar todos") · ADR 0135 Fase 1/2
@@ -2212,7 +2212,7 @@ Conversa de Instagram Direct, Messenger e e-mail entra na Caixa Unificada que j�
 4. Conversa bloqueada descarta o recado do cliente; evento sem mensagem (leitura, reação) é ignorado.
 5. Webhook Meta Graph por canal atrás de flag desligada, assinatura `X-Hub-Signature-256` e verify token do canal.
 6. Resposta do atendente a Instagram/Messenger sai pela Send API da Meta no mesmo `EnvioDeTextoNoCanal`; o eco não duplica.
-8. *(fatia 4)* E-mail: entrada e resposta pela Caixa, atrás de flag desligada.
+8. E-mail encaminhado pelo provedor de entrada (formato Postmark Inbound, token do canal) entra na Caixa; a resposta sai pelo SMTP da caixa da empresa. Por encaminhamento e não IMAP: o PHP 8.4 não traz a extensão `imap` e o projeto não tem biblioteca IMAP.
 7. *(fatia 5)* Chip do canal Instagram aparece ativo na Caixa (hoje o catálogo usa `instagram_dm`, que não casa com `Channel::TYPE_INSTAGRAM`).
 
 **Depende do [W]:** app da Meta com `instagram_manage_messages` + `pages_messaging` aprovados em App Review, e a caixa de e-mail (host, usuário, senha) — sem isso as flags ficam desligadas.

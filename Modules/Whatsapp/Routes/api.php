@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Whatsapp\Http\Controllers\Api\BaileysWebhookController;
 use Modules\Whatsapp\Http\Controllers\Api\ChannelBaileysWebhookController;
+use Modules\Whatsapp\Http\Controllers\Api\EmailEntradaController;
 use Modules\Whatsapp\Http\Controllers\Api\MetaGraphWebhookController;
 use Modules\Whatsapp\Http\Controllers\Api\MetaWebhookController;
 use Modules\Whatsapp\Http\Controllers\Api\WhatsmeowWebhookController;
@@ -94,3 +95,10 @@ Route::group(['prefix' => 'atendimento/channels/meta-graph'], function () {
         ->where('channel_uuid', $uuid)->middleware('throttle:120,1')
         ->name('atendimento.channels.meta_graph.webhook');
 });
+
+// US-WA-329 fatia 4 — e-mail encaminhado pelo provedor de entrada (formato Postmark Inbound).
+// Token do canal no Basic Auth ou em X-Inbound-Token. Atrás de whatsapp.omnicanal.email_enabled.
+Route::post('atendimento/channels/email/{channel_uuid}', [EmailEntradaController::class, 'handle'])
+    ->where('channel_uuid', '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
+    ->middleware('throttle:120,1')
+    ->name('atendimento.channels.email.inbound');
