@@ -9,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Button } from '@/Components/ui/button';
 import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
+import { Grid, Inline } from '@/Components/layout';
 import { fmtDataBr } from '@/Lib/datetime-br';
 
 interface Item {
@@ -68,7 +69,7 @@ export default function AceitePublico({ token, orcamento, feito }: Props) {
   ];
 
   return (
-    <div className="min-h-screen bg-muted/30 flex justify-center px-4 py-8">
+    <Inline align="stretch" justify="center" gap={0} className="min-h-screen bg-muted/30 px-4 py-8">
       <Head title={`Orçamento ${orcamento.numero} · ${orcamento.empresa}`} />
 
       <main className="max-w-xl w-full space-y-4" data-contract="aceite-publico">
@@ -110,7 +111,8 @@ export default function AceitePublico({ token, orcamento, feito }: Props) {
           </h2>
           <ul className="divide-y">
             {orcamento.itens.map((item, i) => (
-              <li key={i} className="py-2 flex justify-between gap-4 text-sm">
+              <Inline asChild key={i} align="stretch" justify="between" gap={4} className="py-2 text-sm">
+              <li>
                 <div className="min-w-0">
                   <p className="font-medium break-words">{item.descricao}</p>
                   <p className="text-muted-foreground tabular-nums">
@@ -119,25 +121,26 @@ export default function AceitePublico({ token, orcamento, feito }: Props) {
                 </div>
                 <span className="tabular-nums shrink-0">{brl(item.subtotal)}</span>
               </li>
+              </Inline>
             ))}
           </ul>
 
           <dl className="mt-3 pt-3 border-t space-y-1 text-sm">
             {linhas.filter(([, v]) => v !== 0).map(([rotulo, v]) => (
-              <div key={rotulo} className="flex justify-between gap-4">
+              <Inline key={rotulo} align="stretch" justify="between" gap={4}>
                 <dt className="text-muted-foreground">{rotulo}</dt>
                 <dd className="tabular-nums">{brl(v)}</dd>
-              </div>
+              </Inline>
             ))}
-            <div className="flex justify-between gap-4 pt-2 border-t">
+            <Inline align="stretch" justify="between" gap={4} className="pt-2 border-t">
               <dt className="font-medium">Total</dt>
               <dd className="font-bold tabular-nums">{brl(orcamento.total)}</dd>
-            </div>
+            </Inline>
           </dl>
         </section>
 
         {aberto && !pedindoAjuste && (
-          <div className="grid grid-cols-2 gap-2" data-contract="acoes">
+          <Grid cols={2} gap={2} data-contract="acoes">
             <Button type="button" variant="outline" disabled={ocupado} onClick={() => setPedindoAjuste(true)}>
               <MessageSquare className="size-4 mr-1.5" aria-hidden="true" />
               Pedir ajuste
@@ -146,7 +149,7 @@ export default function AceitePublico({ token, orcamento, feito }: Props) {
               <Check className="size-4 mr-1.5" aria-hidden="true" />
               {aceite.processing ? 'Enviando…' : 'Aceitar orçamento'}
             </Button>
-          </div>
+          </Grid>
         )}
 
         {aberto && pedindoAjuste && (
@@ -171,19 +174,19 @@ export default function AceitePublico({ token, orcamento, feito }: Props) {
             {errors.comentario && (
               <p id="comentario-erro" className="text-sm text-destructive">{errors.comentario}</p>
             )}
-            <div className="grid grid-cols-2 gap-2">
+            <Grid cols={2} gap={2}>
               <Button type="button" variant="outline" disabled={ocupado} onClick={() => setPedindoAjuste(false)}>
                 Voltar
               </Button>
               <Button type="submit" disabled={ocupado || ajuste.data.comentario.trim() === ''}>
                 {ajuste.processing ? 'Enviando…' : 'Enviar pedido'}
               </Button>
-            </div>
+            </Grid>
           </form>
         )}
 
         <p className="text-xs text-center text-muted-foreground">Link válido por 7 dias · oimpresso.com</p>
       </main>
-    </div>
+    </Inline>
   );
 }

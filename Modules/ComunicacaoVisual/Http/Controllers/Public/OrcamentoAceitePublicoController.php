@@ -63,12 +63,14 @@ class OrcamentoAceitePublicoController extends Controller
     /** @param array<string, mixed> $orcamento */
     private function pagina(string $token, array $orcamento): Response
     {
-        return Inertia::render('ComunicacaoVisual/AceitePublico', [
+        $resposta = Inertia::render('ComunicacaoVisual/AceitePublico', [
             'token'     => $token,
             'orcamento' => $orcamento,
             'feito'     => session('aceite_feito'),
-        ])->toResponse(request())
-            ->header('X-Robots-Tag', 'noindex, nofollow')
-            ->header('Referrer-Policy', 'no-referrer');
+        ])->toResponse(request());
+        $resposta->headers->set('X-Robots-Tag', 'noindex, nofollow');
+        $resposta->headers->set('Referrer-Policy', 'no-referrer');
+
+        return $resposta;
     }
 }
