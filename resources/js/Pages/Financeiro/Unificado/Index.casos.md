@@ -81,6 +81,14 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 | UC-FUNI-02 | Baixa acima do aberto quita exatamente o aberto | must `[V0]` | `CU-FIN-03` + `US-FIN-003` | `BaixaConservacaoValorContratoTest` | 🧪 |
 | UC-FUNI-03 | Quitado/cancelado recusa baixa | must | `CU-FIN-04` + `US-FIN-003` | `BaixaConservacaoValorContratoTest` | 🧪 |
 | UC-FUNI-04 | Conta de outro business recusada | must `[T0]` | `CU-FIN-05` + ADR 0093 | `BaixaConservacaoValorContratoTest` | 🧪 |
+| UC-PAGBAN-01 | Desligado, nada vai ao banco | must | `US-FIN-079` | `PagamentoBancoContratoTest` | 🧪 |
+| UC-PAGBAN-02 | Valor confirmado diferente do aberto não envia | must `[V0]` | `US-FIN-079` | `PagamentoBancoContratoTest` | 🧪 |
+| UC-PAGBAN-03 | Pedir não baixa; a trilha guarda quem, quanto e para onde | must `[V0]` | `US-FIN-079` | `PagamentoBancoContratoTest` | 🧪 |
+| UC-PAGBAN-04 | Um pedido em aberto por título | must `[V0]` | `US-FIN-079` | `PagamentoBancoContratoTest` | 🧪 |
+| UC-PAGBAN-05 | Banco confirma → baixa uma vez e quita | must `[V0]` | `US-FIN-079` | `PagamentoBancoContratoTest` | 🧪 |
+| UC-PAGBAN-06 | Banco recusa → sem baixa, pode pedir de novo | must | `US-FIN-079` | `PagamentoBancoContratoTest` | 🧪 |
+| UC-PAGBAN-07 | Título quitado por outro caminho não recebe 2ª baixa | must `[V0]` | `US-FIN-079` | `PagamentoBancoContratoTest` | 🧪 |
+| UC-PAGBAN-08 | Outra empresa não paga o título nem usa a conta de outra | must `[T0]` | `US-FIN-079` | `PagamentoBancoContratoTest` | 🧪 |
 | UC-F01 (legado) | Venda a prazo gera título a receber | must `[V0]` | `CU-FIN-01` + `US-FIN-013` | `RetencaoLoopE2ETest` | ✅ |
 | UC-F02 (legado) | Recebimento baixa o título e entra no caixa | must `[V0]` | `CU-FIN-08` + `US-FIN-003` | `RetencaoLoopE2ETest` | ✅ |
 | UC-F04 (legado) | Ações em lote respeitam tenant/limite/contabilidade | must `[V0][T0]` | `CU-FIN-07` + `US-FIN-031` | `UnificadoBulkGuardTest` | 🧪 |
@@ -90,6 +98,56 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 > (`UC-[A-Z0-9]{2,10}-\d{2,3}` exige o 2º hífen). Por isso esta tabela os cita **nominalmente**
 > e a linha `> **Âncora:**` acima é o que liga os CU — renomeá-los exigiria editar
 > `tests/Feature/TravaSegunda/RetencaoLoopE2ETest.php`, fora da área deste chip.
+
+---
+
+## Contrato do pagamento pelo banco (US-FIN-079)
+
+> Derivam da **US-FIN-079** (`memory/requisitos/Financeiro/SPEC.md`): saída de dinheiro, então nunca
+> automático — cada pedido exige o valor confirmado pelo usuário, e a baixa só vem da confirmação do
+> banco. Banco simulado nos testes; o adaptador do Inter e a consulta agendada entram na próxima onda. O botão na gaveta do título a pagar entra na próxima onda, só com
+> a flag e a permissão `financeiro.contas_pagar.pagar_banco`.
+> **Lane:** `PHP / Pest (Financeiro · MySQL)`. **Veredito:** 🧪 — quem dá é a lane (G-7).
+
+## UC-PAGBAN-01 · Desligado, nada vai ao banco `[must]`
+- **Aceite:** Dado `FINANCEIRO_PAGAMENTO_BANCO_ENABLED=false` · Quando o usuário pede o pagamento · Então é recusado e o banco não é chamado.
+- **Teste:** `PagamentoBancoContratoTest` ("UC-PAGBAN-01").
+- **Status: 🧪**
+
+## UC-PAGBAN-02 · Valor confirmado diferente do aberto não envia `[V0]` `[must]`
+- **Aceite:** Dado título com aberto 1234.56 · Quando o valor confirmado é 1234.55, `1234,56`, 1234.5 ou 1234.560 · Então nada é enviado e nenhum pedido é gravado.
+- **Teste:** `PagamentoBancoContratoTest` ("UC-PAGBAN-02").
+- **Status: 🧪**
+
+## UC-PAGBAN-03 · Pedir não baixa; a trilha guarda quem, quanto e para onde `[V0]` `[must]`
+- **Aceite:** Quando o pedido vai ao banco · Então `fin_pagamentos_banco` registra solicitante, valor, destino normalizado e código do banco, e o título segue aberto, sem baixa.
+- **Teste:** `PagamentoBancoContratoTest` ("UC-PAGBAN-03").
+- **Status: 🧪**
+
+## UC-PAGBAN-04 · Um pedido em aberto por título `[V0]` `[must]`
+- **Aceite:** Dado pedido aguardando o banco · Quando o usuário pede de novo · Então é recusado e o banco recebeu um envio só.
+- **Teste:** `PagamentoBancoContratoTest` ("UC-PAGBAN-04").
+- **Status: 🧪**
+
+## UC-PAGBAN-05 · Banco confirma → baixa uma vez e quita `[V0]` `[must]`
+- **Aceite:** Quando a consulta devolve pago (duas vezes) · Então existe UMA baixa de 1234.56, meio do pedido e mesma chave de idempotência, e o título fica quitado com aberto 0.00.
+- **Teste:** `PagamentoBancoContratoTest` ("UC-PAGBAN-05").
+- **Status: 🧪**
+
+## UC-PAGBAN-06 · Banco recusa → sem baixa, pode pedir de novo `[must]`
+- **Aceite:** Quando o banco recusa · Então não há baixa, o título segue aberto e um novo pedido é aceito.
+- **Teste:** `PagamentoBancoContratoTest` ("UC-PAGBAN-06").
+- **Status: 🧪**
+
+## UC-PAGBAN-07 · Título quitado por outro caminho não recebe 2ª baixa `[V0]` `[must]`
+- **Aceite:** Dado pedido aguardando e título baixado à mão no meio · Quando o banco confirma · Então nenhuma baixa nova; o pedido fica pago com motivo "conferir duplicidade".
+- **Teste:** `PagamentoBancoContratoTest` ("UC-PAGBAN-07").
+- **Status: 🧪**
+
+## UC-PAGBAN-08 · Outra empresa não paga o título nem usa a conta de outra `[T0]` `[must]`
+- **Aceite:** Empresa B não paga título de A, não debita conta de A, e título a receber não vai ao banco.
+- **Teste:** `PagamentoBancoContratoTest` ("UC-PAGBAN-08").
+- **Status: 🧪**
 
 ---
 
