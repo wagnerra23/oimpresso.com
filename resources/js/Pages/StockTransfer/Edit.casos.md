@@ -21,7 +21,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Status: 🧪**
 
 ## UC-TREDT-02 · Abre com o que está gravado e com origem e destino travados `[must]`
-- **Aceite:** Dado uma transferência pendente de 3 un · Quando abro a edição · Então a tela React recebe a transferência com status, origem, destino e uma linha de 3 un (ligada à linha de venda gravada) com o saldo da **origem**; `?classico=1` ainda abre a Blade até o cutover.
+- **Aceite:** Dado uma transferência pendente de 3 un · Quando abro a edição · Então a tela React recebe a transferência com status, origem, destino e uma linha de 3 un (ligada à linha de venda gravada) com o saldo da **origem**; `?classico=1` também abre a tela React (a Blade foi apagada no cutover de 2026-10-27).
 - **Teste:** `EstoqueTransferenciaEditTest` — `UC-TREDT-02`.
 - **Status: 🧪**
 

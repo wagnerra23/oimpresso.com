@@ -1,8 +1,8 @@
 // Linhas de produto dos formulários de estoque (transferência e ajuste).
 //
 // Protótipo: `prototipo-ui/cowork/Wagner/estoque-forms.jsx` — BuscaProduto + LinhasItens.
-// A busca é a mesma da venda (`/products/list` no local escolhido, igual à Blade
-// `stock_transfer.js`); escolhida a variação, a linha vem de `/stock-transfers/produto-linha`
+// A busca é a mesma da venda (`/products/list` no local escolhido, como a Blade fazia até o
+// cutover de 2026-10-27); escolhida a variação, a linha vem de `/stock-transfers/produto-linha`
 // (saldo naquele local, custo, unidades e lotes). Regras e envio em `linhas-estoque-dominio.ts`.
 
 import { useState } from 'react';

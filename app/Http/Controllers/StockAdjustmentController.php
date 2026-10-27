@@ -544,45 +544,6 @@ class StockAdjustmentController extends Controller
     }
 
     /**
-     * Return product rows
-     *
-     * @param  Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function getProductRow(Request $request)
-    {
-        if (request()->ajax()) {
-            $row_index = $request->input('row_index');
-            $variation_id = $request->input('variation_id');
-            $location_id = $request->input('location_id');
-
-            $business_id = $request->session()->get('user.business_id');
-            $product = $this->productUtil->getDetailsFromVariation($variation_id, $business_id, $location_id);
-            $product->formatted_qty_available = $this->productUtil->num_f($product->qty_available);
-            $type = ! empty($request->input('type')) ? $request->input('type') : 'stock_adjustment';
-
-            //Get lot number dropdown if enabled
-            $lot_numbers = [];
-            if (request()->session()->get('business.enable_lot_number') == 1 || request()->session()->get('business.enable_product_expiry') == 1) {
-                $lot_number_obj = $this->transactionUtil->getLotNumbersFromVariation($variation_id, $business_id, $location_id, true);
-                foreach ($lot_number_obj as $lot_number) {
-                    $lot_number->qty_formated = $this->productUtil->num_f($lot_number->qty_available);
-                    $lot_numbers[] = $lot_number;
-                }
-            }
-            $product->lot_numbers = $lot_numbers;
-
-            $sub_units = $this->productUtil->getSubUnits($business_id, $product->unit_id, false, $product->id);
-            // Só o formulário Blade de transferência (edição) ainda pede a linha em HTML; a do
-            // ajuste saiu com o formulário Blade de ajuste (cutover, 2026-10-27).
-            abort_unless($type == 'stock_transfer', 404);
-
-            return view('stock_transfer.partials.product_table_row')
-                ->with(compact('product', 'row_index', 'sub_units'));
-        }
-    }
-
-    /**
      * Sets expired purchase line as stock adjustmnet
      *
      * @param  int  $purchase_line_id

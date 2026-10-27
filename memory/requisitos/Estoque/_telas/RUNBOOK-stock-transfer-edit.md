@@ -17,7 +17,7 @@ blueprint_cowork: prototipo-ui/cowork/Wagner/estoque-forms.jsx
 ## 1. Contexto
 - **Rota:** `GET /stock-transfers/{id}/edit` · grava em `PUT /stock-transfers/{id}`
 - **Controller:** `App\Http\Controllers\StockTransferController@edit` (+ `editInertia`) e `@update`
-- **Blade legacy:** `resources/views/stock_transfer/edit.blade.php` (só com `?classico=1` até o cutover)
+- **Blade legacy:** `resources/views/stock_transfer/edit.blade.php` (apagada no cutover de 2026-10-27)
 - **Inertia destino:** `resources/js/Pages/StockTransfer/Edit.tsx`
 - **Protótipo:** `FormTransferencia` (create + edit) em `prototipo-ui/cowork/Wagner/estoque-forms.jsx:253`
 

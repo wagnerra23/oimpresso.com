@@ -41,4 +41,4 @@ Maiara — listagem rápida transferências (origem→destino, status, total).
 ## Estados
 - Cada linha é o par `sell_transfer` (origem) + `purchase_transfer` (destino); status `final` aparece como `completed`.
 - Lista vazia sem filtro: "Registrar primeira transferência" (se `create`); com filtro, aviso de filtro sem resultado. Máximo de 200 linhas, sem paginação.
-- Só abre em React com `?v=2`; sem isso o mesmo `index()` serve a Blade.
+- Abre só em React. Até 2026-10-07 dependia de `?v=2`; a Blade (`?classico=1`) foi apagada no cutover de 2026-10-27.

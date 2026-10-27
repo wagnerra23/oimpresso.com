@@ -9,10 +9,8 @@ use App\TransactionSellLinesPurchaseLines;
 use App\Utils\ModuleUtil;
 use App\Utils\ProductUtil;
 use App\Utils\TransactionUtil;
-use Datatables;
 use DB;
 use Illuminate\Http\Request;
-use Spatie\Activitylog\Models\Activity;
 use App\Events\StockTransferCreatedOrModified;
 use Inertia\Inertia;
 
@@ -75,109 +73,9 @@ class StockTransferController extends Controller
 
         $statuses = $this->stockTransferStatuses();
 
-        // Cutover pelo menu · thread 04 (D1 [W] 2026-10-07): React é o padrão, `?classico=1`
-        // mantém o Blade — molde `UnitController@index`; `?v=2` segue abrindo o React. A decisão
-        // vem ANTES do ramo `ajax()`: o Inertia manda `X-Requested-With` junto do `X-Inertia`, e
-        // com o `ajax()` primeiro o filtro da Page (`router.get`) recebia o JSON do DataTable
-        // (§5 2026-09-08). O DataTable do Blade (AJAX sem `X-Inertia`) segue no ramo de baixo.
-        if (request()->query('v') === '2' || (! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia')))) {
-            return $this->indexInertia($statuses);
-        }
-
-        if (request()->ajax()) {
-            $business_id = request()->session()->get('user.business_id');
-            $edit_days = request()->session()->get('business.transaction_edit_days');
-
-            $stock_transfers = Transaction::join(
-                'business_locations AS l1',
-                'transactions.location_id',
-                '=',
-                'l1.id'
-            )
-                    ->join('transactions as t2', 't2.transfer_parent_id', '=', 'transactions.id')
-                    ->join(
-                        'business_locations AS l2',
-                        't2.location_id',
-                        '=',
-                        'l2.id'
-                    )
-                    ->where('transactions.business_id', $business_id)
-                    ->where('transactions.type', 'sell_transfer');
-
-                    if (! auth()->user()->can('purchase.view') && auth()->user()->can('view_own_purchase')) {
-                        $stock_transfers->where('t2.created_by', request()->session()->get('user.id'));
-                    }
-
-                    $stock_transfers->select(
-                        'transactions.id',
-                        'transactions.transaction_date',
-                        'transactions.ref_no',
-                        'l1.name as location_from',
-                        'l2.name as location_to',
-                        'transactions.final_total',
-                        'transactions.shipping_charges',
-                        'transactions.additional_notes',
-                        'transactions.id as DT_RowId',
-                        'transactions.status'
-                    );
-
-
-
-            return Datatables::of($stock_transfers)
-                ->addColumn('action', function ($row) use ($edit_days) {
-                    $html = '<button type="button" title="'.__('stock_adjustment.view_details').'" class="tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline  tw-dw-btn-accent btn-modal" data-container=".view_modal" data-href="'.action([\App\Http\Controllers\StockTransferController::class, 'show'], [$row->id]).'"><i class="fa fa-eye" aria-hidden="true"></i> '.__('messages.view').'</button>';
-
-                    $html .= ' <a href="#" class="print-invoice tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline  tw-dw-btn-info" data-href="'.action([\App\Http\Controllers\StockTransferController::class, 'printInvoice'], [$row->id]).'"><i class="fa fa-print" aria-hidden="true"></i> '.__('messages.print').'</a>';
-
-                    $date = \Carbon::parse($row->transaction_date)
-                        ->addDays($edit_days);
-                    $today = today();
-
-                    if ($date->gte($today) && auth()->user()->can('purchase.delete')) {
-                        $html .= '&nbsp;
-                        <button type="button" data-href="'.action([\App\Http\Controllers\StockTransferController::class, 'destroy'], [$row->id]).'" class="tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline  tw-dw-btn-error delete_stock_transfer"><i class="fa fa-trash" aria-hidden="true"></i> '.__('messages.delete').'</button>';
-                    }
-
-                    if ($row->status != 'final' && auth()->user()->can('purchase.update')) {
-                        $html .= '&nbsp;
-                        <a href="'.action([\App\Http\Controllers\StockTransferController::class, 'edit'], [$row->id]).'" class="tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline  tw-dw-btn-primary"><i class="fa fa-edit" aria-hidden="true"></i> '.__('messages.edit').'</a>';
-                    }
-
-                    return $html;
-                })
-                ->editColumn(
-                    'final_total',
-                    function($row) {
-                        if (auth()->user()->can('view_purchase_price')) {
-                            return '<span class="display_currency" data-currency_symbol="true">' . $row->final_total . '</span>';
-                        } else {
-                            return '<span>-</span>';
-                        }
-                    }
-                )
-                ->editColumn(
-                    'shipping_charges',
-                    '<span class="display_currency" data-currency_symbol="true">{{$shipping_charges}}</span>'
-                )
-                ->editColumn('status', function ($row) use ($statuses) {
-                    $row->status = $row->status == 'final' ? 'completed' : $row->status;
-                    $status = $statuses[$row->status];
-                    $status_color = ! empty($this->status_colors[$row->status]) ? $this->status_colors[$row->status] : 'bg-gray';
-                    $status = $row->status != 'completed' ? '<a href="#" class="stock_transfer_status" data-status="'.$row->status.'" data-href="'.action([\App\Http\Controllers\StockTransferController::class, 'updateStatus'], [$row->id]).'"><span class="label '.$status_color.'">'.$statuses[$row->status].'</span></a>' : '<span class="label '.$status_color.'">'.$statuses[$row->status].'</span>';
-
-                    return $status;
-                })
-                ->editColumn('transaction_date', '{{@format_datetime($transaction_date)}}')
-                ->rawColumns(['final_total', 'action', 'shipping_charges', 'status'])
-                ->setRowAttr([
-                    'data-href' => function ($row) {
-                        return  action([\App\Http\Controllers\StockTransferController::class, 'show'], [$row->id]);
-                    }, ])
-                ->make(true);
-        }
-
-        // Blade legacy: só com `?classico=1` (cutover pelo menu · thread 04, ver o topo).
-        return view('stock_transfer.index')->with(compact('statuses'));
+        // A tela é a Page React. A lista Blade e o JSON do DataTable dela foram apagados no
+        // cutover de 2026-10-27; nenhum outro consumidor lia `/stock-transfers` em AJAX.
+        return $this->indexInertia($statuses);
     }
 
     /**
@@ -295,14 +193,8 @@ class StockTransferController extends Controller
 
         $statuses = $this->stockTransferStatuses();
 
-        // MWART Wave2 B5 — dual path Inertia (ADR 0104). Cutover pelo menu · thread 04: React
-        // por padrão, Blade só com `?classico=1`; `?v=2` segue valendo.
-        if (request()->query('v') === '2' || (! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia')))) {
-            return $this->createInertia($business_id, $business_locations, $statuses);
-        }
-
-        return view('stock_transfer.create')
-                ->with(compact('business_locations', 'statuses'));
+        // A tela é a Page React; o formulário Blade foi apagado no cutover de 2026-10-27.
+        return $this->createInertia($business_id, $business_locations, $statuses);
     }
 
     /**
@@ -671,20 +563,14 @@ class StockTransferController extends Controller
 
         $statuses['final'] = __('restaurant.completed');
 
-        $activities = Activity::forSubject($sell_transfer)
-           ->with(['causer', 'subject'])
-           ->latest()
-           ->get();
 
-        // O "Ver" da lista React pede JSON e abre o detalhe num diálogo. A visita Inertia
-        // (`router.visit`) recebia este fragmento de modal Blade, que não é resposta Inertia.
-        // O DataTable do Blade carrega o fragmento por AJAX HTML e segue no `view()` abaixo.
+        // O "Ver" da lista React pede JSON e abre o detalhe num diálogo. O fragmento de modal
+        // Blade saiu no cutover de 2026-10-27; quem abre o endereço direto volta para a lista.
         if (request()->wantsJson() && ! request()->header('X-Inertia')) {
             return response()->json($this->detalheJson($sell_transfer, $location_details, $statuses, $lot_n_exp_enabled));
         }
 
-        return view('stock_transfer.show')
-                ->with(compact('sell_transfer', 'location_details', 'lot_n_exp_enabled', 'statuses', 'activities'));
+        return redirect('stock-transfers');
     }
 
     /**
@@ -927,38 +813,8 @@ class StockTransferController extends Controller
                 ->where('type', 'purchase_transfer')
                 ->first();
 
-        $products = [];
-        foreach ($sell_transfer->sell_lines as $sell_line) {
-            $product = $this->productUtil->getDetailsFromVariation($sell_line->variation_id, $business_id, $sell_transfer->location_id, false);
-            $product->formatted_qty_available = $this->productUtil->num_f($product->qty_available);
-            $product->sub_unit_id = $sell_line->sub_unit_id;
-            $product->quantity_ordered = $sell_line->quantity;
-            $product->transaction_sell_lines_id = $sell_line->id;
-            $product->lot_no_line_id = $sell_line->lot_no_line_id;
-
-            $product->unit_details = $this->productUtil->getSubUnits($business_id, $product->unit_id);
-
-            //Get lot number dropdown if enabled
-            $lot_numbers = [];
-            if (request()->session()->get('business.enable_lot_number') == 1 || request()->session()->get('business.enable_product_expiry') == 1) {
-                $lot_number_obj = $this->transactionUtil->getLotNumbersFromVariation($sell_line->variation_id, $business_id, $sell_transfer->location_id, true);
-                foreach ($lot_number_obj as $lot_number) {
-                    $lot_number->qty_formated = $this->productUtil->num_f($lot_number->qty_available);
-                    $lot_numbers[] = $lot_number;
-                }
-            }
-            $product->lot_numbers = $lot_numbers;
-
-            $products[] = $product;
-        }
-
-        // A tela é a Page React; a Blade só com `?classico=1` até o cutover da transferência.
-        if (! request()->boolean('classico')) {
-            return $this->editInertia($business_id, $sell_transfer, $purchase_transfer, $business_locations, $statuses);
-        }
-
-        return view('stock_transfer.edit')
-                ->with(compact('sell_transfer', 'purchase_transfer', 'business_locations', 'statuses', 'products'));
+        // A tela é a Page React; o formulário Blade foi apagado no cutover de 2026-10-27.
+        return $this->editInertia($business_id, $sell_transfer, $purchase_transfer, $business_locations, $statuses);
     }
 
     /**

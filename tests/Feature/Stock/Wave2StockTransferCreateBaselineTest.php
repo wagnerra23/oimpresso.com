@@ -14,13 +14,9 @@ function readSTCreateController(): string
     return file_get_contents(base_path(ST_CREATE_CONTROLLER));
 }
 
-it('Blade legacy stock_transfer/create.blade.php existe', function () {
-    expect(file_exists(base_path(ST_CREATE_BLADE)))->toBeTrue();
-});
-
-it('Controller create() PRESERVA return view("stock_transfer.create")', function () {
-    $source = readSTCreateController();
-    expect($source)->toContain("return view('stock_transfer.create')");
+it('a Blade foi apagada no cutover (2026-10-27) e o controller não a renderiza mais', function () {
+    expect(file_exists(base_path(ST_CREATE_BLADE)))->toBeFalse();
+    expect(file_get_contents(base_path('app/Http/Controllers/StockTransferController.php')))->not->toContain("view('stock_transfer.create')");
 });
 
 it('Controller create() PRESERVA permission purchase.create + isSubscribed', function () {

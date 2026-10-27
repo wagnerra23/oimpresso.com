@@ -14,19 +14,9 @@ function readStockTransferController(): string
     return file_get_contents(base_path(ST_CONTROLLER));
 }
 
-it('Blade legacy stock_transfer/index.blade.php existe', function () {
-    expect(file_exists(base_path(ST_INDEX_BLADE)))->toBeTrue();
-});
-
-it('Controller PRESERVA return view("stock_transfer.index") (legacy fallback)', function () {
-    $source = readStockTransferController();
-    expect($source)->toContain("return view('stock_transfer.index')");
-});
-
-it('Controller PRESERVA AJAX DataTables path (Yajra)', function () {
-    $source = readStockTransferController();
-    expect($source)->toContain("request()->ajax()");
-    expect($source)->toContain("Datatables::of(\$stock_transfers)");
+it('a Blade foi apagada no cutover (2026-10-27) e o controller não a renderiza mais', function () {
+    expect(file_exists(base_path(ST_INDEX_BLADE)))->toBeFalse();
+    expect(file_get_contents(base_path('app/Http/Controllers/StockTransferController.php')))->not->toContain("view('stock_transfer.index')");
 });
 
 it('Controller PRESERVA business_id Tier 0 + type sell_transfer', function () {

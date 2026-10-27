@@ -21,7 +21,7 @@ use Spatie\Permission\Models\Permission;
  *
  * Os caminhos que importam, por tela:
  *   GET comum            → Page React
- *   ?classico=1          → Blade (só transferências; a Blade dos ajustes foi apagada em 2026-10-27)
+ *   ?classico=1          → Page React (as 4 Blades foram apagadas no cutover de 2026-10-27)
  *   visita Inertia real  → Page (X-Inertia **e** X-Requested-With — §5 2026-09-08)
  *   ?v=2                 → Page (o opt-in antigo continua valendo)
  * e, nas listas, o AJAX sem X-Inertia (DataTable do Blade) → JSON.
@@ -73,8 +73,8 @@ function esxVersao(): string
 function esxTelas(): array
 {
     return [
-        'transferências' => ['/stock-transfers', 'StockTransfer/Index', 'stock_transfer.index', ['purchase.view', 'access_all_locations']],
-        'nova transferência' => ['/stock-transfers/create', 'StockTransfer/Create', 'stock_transfer.create', ['purchase.create', 'access_all_locations']],
+        'transferências' => ['/stock-transfers', 'StockTransfer/Index', null, ['purchase.view', 'access_all_locations']],
+        'nova transferência' => ['/stock-transfers/create', 'StockTransfer/Create', null, ['purchase.create', 'access_all_locations']],
         'ajustes' => ['/stock-adjustments', 'StockAdjustment/Index', null, ['purchase.view', 'access_all_locations']],
         'novo ajuste' => ['/stock-adjustments/create', 'StockAdjustment/Create', null, ['purchase.create', 'access_all_locations']],
     ];
@@ -101,23 +101,8 @@ it('GET comum (como o menu navega) abre a Page React das 4 telas', function () {
     }
 });
 
-it('?classico=1 mantém o Blade das transferências', function () {
-    foreach (esxTelas() as $nome => [$rota, , $blade, $permissoes]) {
-        if ($blade === null) {
-            continue;
-        }
-        esxLogin($this, esxUsuario($this->bizId, $permissoes))
-            ->get($rota . '?classico=1')
-            ->assertOk()
-            ->assertViewIs($blade);
-    }
-});
-
-it('ajustes: ?classico=1 abre a Page React, porque a Blade foi apagada (cutover 2026-10-27)', function () {
-    foreach (esxTelas() as $nome => [$rota, $componente, $blade, $permissoes]) {
-        if ($blade !== null) {
-            continue;
-        }
+it('?classico=1 abre a Page React das 4 telas, porque as Blades foram apagadas (cutover 2026-10-27)', function () {
+    foreach (esxTelas() as $nome => [$rota, $componente, , $permissoes]) {
         $resp = esxLogin($this, esxUsuario($this->bizId, $permissoes))->get($rota . '?classico=1');
         $resp->assertOk();
         $resp->assertInertia(fn (AssertableInertia $p) => $p->component($componente, false));
@@ -147,8 +132,10 @@ it('?v=2 (o opt-in antigo) continua abrindo a Page das 4 telas', function () {
     }
 });
 
-it('AJAX sem X-Inertia (o DataTable do Blade) continua recebendo o JSON das duas listas', function () {
-    foreach (['/stock-transfers', '/stock-adjustments'] as $rota) {
+// Só a de ajustes: o relatório Blade de ajustes (js/stock_adjustment.js) ainda lê esse JSON.
+// A lista de transferências não tem mais leitor de DataTable (Blade apagada em 2026-10-27).
+it('AJAX sem X-Inertia (o DataTable do relatório Blade) continua recebendo o JSON da lista de ajustes', function () {
+    foreach (['/stock-adjustments'] as $rota) {
         $resp = esxLogin($this, esxUsuario($this->bizId, ['purchase.view', 'access_all_locations']))->withHeaders([
             'X-Requested-With' => 'XMLHttpRequest',
             'Accept' => 'application/json',

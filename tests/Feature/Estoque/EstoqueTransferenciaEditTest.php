@@ -143,11 +143,11 @@ it('UC-TREDT-02 a edição abre a Page React com as linhas gravadas e origem/des
             ->where('transferencia.linhas.0.dados.qty_available', fn ($q) => (float) $q === 10.0)
         );
 
-    // `?classico=1` mantém a Blade até o cutover.
+    // A Blade de edição foi apagada no cutover de 2026-10-27: `?classico=1` também abre a Page.
     $this->actingAs($this->usuario)->withSession($this->sessao)
         ->get("/stock-transfers/{$venda->id}/edit?classico=1")
         ->assertOk()
-        ->assertViewIs('stock_transfer.edit');
+        ->assertInertia(fn (AssertableInertia $p) => $p->component('StockTransfer/Edit', false));
 });
 
 it('UC-TREDT-03 editar a pendente para 4 un e concluir tira 4 da origem e põe 4 no destino (formato da tela React)', function () {
