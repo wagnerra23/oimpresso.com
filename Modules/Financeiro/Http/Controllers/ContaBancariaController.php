@@ -118,10 +118,13 @@ class ContaBancariaController extends Controller
                 ->with('sub_types')
                 ->orderBy('name')
                 ->get()
-                ->map(fn ($t) => [
-                    'id' => $t->id,
-                    'nome' => $t->name,
-                    'subtipos' => $t->sub_types->map(fn ($s) => ['id' => $s->id, 'nome' => $s->name])->values(),
+                ->map(fn (AccountType $t) => [
+                    'id' => (int) $t->id,
+                    'nome' => (string) $t->name,
+                    'subtipos' => $t->sub_types
+                        ->map(fn (AccountType $s) => ['id' => (int) $s->id, 'nome' => (string) $s->name])
+                        ->values()
+                        ->all(),
                 ])->values(),
         ]);
     }
