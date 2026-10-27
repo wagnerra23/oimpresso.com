@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1026 tarefas abertas** em **57 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1029 tarefas abertas** em **57 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -10,13 +10,13 @@
 |---|---:|---:|---:|---:|---:|
 | [`Jana`](#jana) | 83 | 2 | 0 | 0 | 81 |
 | [`Whatsapp`](#whatsapp) | 71 | 0 | 0 | 0 | 71 |
-| [`Sells`](#sells) | 68 | 1 | 0 | 0 | 67 |
+| [`Sells`](#sells) | 69 | 2 | 0 | 0 | 67 |
 | [`Financeiro`](#financeiro) | 52 | 4 | 0 | 0 | 48 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
 | [`OficinaAuto`](#oficinaauto) | 39 | 0 | 0 | 0 | 38 |
 | [`Producao`](#producao) | 33 | 1 | 0 | 0 | 32 |
-| [`NfeBrasil`](#nfebrasil) | 29 | 0 | 0 | 6 | 23 |
+| [`NfeBrasil`](#nfebrasil) | 31 | 0 | 0 | 6 | 25 |
 | [`Compras`](#compras) | 28 | 4 | 0 | 0 | 23 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
@@ -242,6 +242,7 @@
 ### doing
 
 - **US-SELL-077** — Cancelar a venda devolve o estoque, tira a venda dos relatórios e cancela o título _(`p0` · @wagner)_
+- **US-SELL-078** — O ICMS-ST entra no total da venda, pela mesma conta da NF-e _(`p1` · @wagner)_
 
 ### todo
 
@@ -590,6 +591,7 @@
 
 ### todo
 
+- **US-NFE-072** — ICMS-ST e DIFAL chegam à NF-e da venda interestadual — **Legal** _(`p0` · sprint —)_
 - **US-NFE-042** — Discovery técnico instalação Gold Comunicação Visual _(`p1` · @wagner · sprint Gold-Reativacao)_
 - **US-NFE-053** — Smoke homologação SEFAZ-SP eventos 210/220 biz=Gold _(`p1` · @wagner · sprint Gold-Reativacao)_
 - **US-NFE-054** — Smoke real homologação SEFAZ-SC biz=1 — 1ª NFC-e cstat 100 (Goal #1 CYCLE-03) _(`p1` · @wagner)_
@@ -597,6 +599,7 @@
 - **US-NFE-069** — A natureza fiscal do item escolhe a nota: NF-e para mercadoria, NFS-e para serviço e instalação (UC-FLX-31) — **P1** _(`p1` · sprint —)_
 - **US-NFE-071** — Contingência: SVC-AN/SVC-RS, evento EPEC 110140 e marcação no DANFE (UC-FLX-32) — **P1** _(`p1` · sprint —)_
 - **US-NFE-074** — Cutover da emissão Delphi → oimpresso, por empresa — **Backlog** _(`p1` · sprint —)_
+- **US-NFE-075** — NF-e com destinatário e CFOP vindos de fora da venda (pedido de marketplace) — **P1** _(`p1` · sprint —)_
 - **US-NFE-055** — Estabilizar 107 tests broken Modules/NfeBrasil aplicando dual-mode SQLite/MySQL _(`p2`)_
 - **US-NFE-056** — Continuação PR #453 — migrar configBusiness(4) → configBusiness(1) em MotorTributarioServiceTest _(`p2`)_
 - **US-NFE-057** — Schema drift — atualizar fixtures DanfeServicePrefersArquivosTest pós-remoção `arquivos.filename` _(`p2`)_
