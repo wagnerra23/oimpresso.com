@@ -35,6 +35,8 @@ class ComprasServiceProvider extends ServiceProvider
         // UC-FLX-33: congela o custo do insumo na linha de orçamento (venda em rascunho).
         // Só lê compras; nunca derruba a venda (ver o docblock do observer).
         \App\TransactionSellLine::observe(\Modules\Compras\Observers\TransactionSellLineCustoObserver::class);
+        // US-PROD-024: compra recebida recalcula o custo médio móvel (flag compras.custo_medio_movel).
+        \App\Transaction::observe(\Modules\Compras\Observers\CompraRecebidaCustoMedioObserver::class);
 
         $this->registerCommands();
         $this->registerCommandSchedules();
@@ -46,6 +48,8 @@ class ComprasServiceProvider extends ServiceProvider
             $this->commands([
                 // US-COM-027 · UC-FLX-19 — estoque mínimo vira requisição de compra (default OFF por business).
                 \Modules\Compras\Console\Commands\RequisicaoEstoqueMinimoCommand::class,
+                // US-PROD-024 — semente do custo médio móvel (dry-run por padrão).
+                \Modules\Compras\Console\Commands\CustoMedioSemearCommand::class,
             ]);
         }
     }

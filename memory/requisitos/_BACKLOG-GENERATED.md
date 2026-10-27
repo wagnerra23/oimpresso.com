@@ -40,7 +40,7 @@
 | [`NFSe`](#nfse) | 12 | 0 | 0 | 0 | 12 |
 | [`PontoWr2`](#pontowr2) | 12 | 0 | 0 | 0 | 12 |
 | [`Superadmin`](#superadmin) | 12 | 0 | 0 | 0 | 12 |
-| [`Produto`](#produto) | 11 | 0 | 0 | 0 | 11 |
+| [`Produto`](#produto) | 11 | 1 | 0 | 0 | 10 |
 | [`Cms`](#cms) | 10 | 0 | 0 | 0 | 10 |
 | [`Cliente`](#cliente) | 9 | 1 | 0 | 0 | 8 |
 | [`TaskRegistry`](#taskregistry) | 9 | 0 | 0 | 0 | 9 |
@@ -1230,6 +1230,10 @@
 ## Produto
 
 
+### doing
+
+- **US-PROD-024** — [G-03] ⚠️Tier0 · Custo médio + valor/custo em estoque — SPIKE de descoberta primeiro _(`p2` · @wagner)_
+
 ### todo
 
 - **US-PROD-020** — [G-04] Governança do Produto: casos.md + revisar SPEC _(`p0` · @wagner)_
@@ -1238,7 +1242,6 @@
 - **US-PROD-023** — [G-05] Finalizar + promover as **6 telas React não-cadastrais** do Produto (draft→live) + ligar a Consulta na navegação _(`p1` · @wagner)_
 - **US-PROD-027** — [V0] Travar o acidente do 0-row: preço zero em tabela é inerte só por sorte do PHP _(`p1` · @wagner)_
 - **US-PROD-031** — Importar produtos exportados do Bling, Tiny ou Omie sem montar planilha _(`p1`)_
-- **US-PROD-024** — [G-03] ⚠️Tier0 · Custo médio + valor/custo em estoque — SPIKE de descoberta primeiro _(`p2` · @wagner)_
 - **US-PROD-025** — [G-06] UI de BOM drag-drop + baixa-de-componente do kit no PDV _(`p2` · @wagner)_
 - **US-PROD-029** — Cadastro de produto em ROTA PARALELA (o `ProductController` da Larissa não é tocado) _(`p2` · @felipe)_
 - **US-PROD-030** — ⚠️Tier0 · Política de preço por produto: atualizar a cada custo novo OU manter o preço _(`p2` · @wagner)_
