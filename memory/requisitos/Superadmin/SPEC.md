@@ -119,7 +119,9 @@ related_adrs:
 > owner: — · priority: p2 · estimate: 10h · status: todo · type: story
 > blocked_by: —
 
-**Implementado em:** _pendente_ — planejada (lacunas 2026-10-25); nenhum checklist de primeiros passos encontrado em `resources/js` (busca de 2026-10-26)
+**Implementado em:** _parcial_ · `app/Services/Dashboard/PrimeirosPassosService.php` · `app/Http/Controllers/HomeController.php` · `routes/web.php` — card "Primeiros passos" da Visão geral atrás da flag `onboardingPrimeirosPassos` (desligada); falta a fatia de tela e o link de ajuda contextual
+**Testado em:** `tests/Feature/Home/PrimeirosPassosContratoTest.php`
+- Casos UC-PPAS-01..07 em `resources/js/Pages/Home/Index.casos.md` · protótipo `prototipo-ui/cowork/Wagner/primeiros-passos.html` (ADR 0438).
 
 Origem: levantamento de lacunas 2026-10-25 (P2 Plataforma — onboarding guiado e ajuda).
 - Lista de primeiros passos no início para a empresa nova (dados da empresa, primeiro produto, primeiro cliente, primeira venda, certificado fiscal), cada passo marcado como feito a partir do dado real, não de clique.

@@ -134,13 +134,47 @@ A terceira é o gate de sempre: sem `dashboard.data` a prop nem é registrada, i
 
 ---
 
+## Primeiros passos — onboarding guiado (US-SUPER-012)
+
+> Derivados de [`memory/requisitos/Superadmin/SPEC.md`](../../../../memory/requisitos/Superadmin/SPEC.md) US-SUPER-012 e do protótipo [`primeiros-passos.html`](../../../../prototipo-ui/cowork/Wagner/primeiros-passos.html), nunca do `.tsx`. Atrás da flag `onboardingPrimeirosPassos`, que nasce **desligada**. Testes: `tests/Feature/Home/PrimeirosPassosContratoTest.php`.
+
+## UC-PPAS-01 — Flag desligada, nada muda na Visão geral
+Status: 🧪 (1 teste em `PrimeirosPassosContratoTest`.)
+Com a flag desligada a prop `primeiros_passos` é `null` e `POST /home/primeiros-passos` responde 404. **Pronto quando:** os dois valem com a flag OFF.
+
+## UC-PPAS-02 — Quem configura a empresa vê os 6 passos, na ordem
+Status: 🧪 (1 teste em `PrimeirosPassosContratoTest`.)
+Com a flag ligada e `business_settings.access`, a prop é **deferida** (fora do first-paint) e traz, nesta ordem: dados da empresa, certificado e fiscal, primeiro produto, primeiro cliente, primeira venda, convite à equipe. Cada passo leva à tela que já existe. **Pronto quando:** `deferredProps` lista `primeiros_passos` e o partial reload devolve as 6 chaves na ordem.
+
+## UC-PPAS-03 — Funcionário sem permissão de configurar a empresa não vê o card
+Status: 🧪 (1 teste em `PrimeirosPassosContratoTest`.)
+**Pronto quando:** sem `business_settings.access` a prop é `null` e o endpoint responde 404.
+
+## UC-PPAS-04 — O passo é FEITO pelo dado real da própria empresa
+Status: 🧪 (1 teste em `PrimeirosPassosContratoTest`.)
+Clicar não marca nada (US-SUPER-012). Dado de outra empresa não conta (ADR 0093). **Pronto quando:** sem CNPJ o passo "Dados da empresa" está aberto mesmo com a outra empresa preenchida, e vira feito quando a própria empresa preenche; sem certificado ativo próprio o passo fiscal está aberto.
+
+## UC-PPAS-05 — Pular tira o passo da conta sem fingir que foi feito
+Status: 🧪 (1 teste em `PrimeirosPassosContratoTest`.)
+**Pronto quando:** pular grava o passo em `common_settings.primeiros_passos.pulados` da empresa e o status vira `pulado` (não `feito`); voltar desfaz.
+
+## UC-PPAS-06 — Dispensar esconde o card para a empresa; retomar devolve
+Status: 🧪 (1 teste em `PrimeirosPassosContratoTest`.)
+**Pronto quando:** depois de dispensar, `visivel` é falso; depois de retomar, verdadeiro; o `common_settings` da outra empresa não muda.
+
+## UC-PPAS-07 — Ação ou passo desconhecido é recusado
+Status: 🧪 (1 teste em `PrimeirosPassosContratoTest`.)
+**Pronto quando:** `acao` ou `passo` fora da lista volta com erro de validação e nada é gravado.
+
+---
+
 ## Refs
 
 - Lei: [`Index.charter.md`](Index.charter.md) v5 — §Goals, §Non-Goals (cada um vira GUARD), §Test plan
 - Tela: [`Index.tsx`](Index.tsx) + [`_components/GradesPainel.tsx`](_components/GradesPainel.tsx)
 - SPEC: [`memory/requisitos/Dashboard/SPEC.md`](../../../../memory/requisitos/Dashboard/SPEC.md) — US-DASH-001..006
 - RUNBOOK: [`RUNBOOK-home-index.md`](../../../../memory/requisitos/Dashboard/RUNBOOK-home-index.md)
-- Testes: `tests/Feature/Home/HomeIndexInertiaTest.php` (6) · `tests/Feature/Home/GradesDoPainelTest.php` (15) · `tests/Browser/Home/VisaoGeralIndexTest.php` (3, eixo RENDER)
+- Testes: `tests/Feature/Home/PrimeirosPassosContratoTest.php` (7) · `tests/Feature/Home/HomeIndexInertiaTest.php` (6) · `tests/Feature/Home/GradesDoPainelTest.php` (15) · `tests/Browser/Home/VisaoGeralIndexTest.php` (3, eixo RENDER)
 - Lane do eixo render: `.github/workflows/visual-regression.yml` (step `E2E de render · Home/Visao geral`, **advisory** no nascimento — ADR 0261/0275)
 - Lane: `.github/workflows/dashboard-pest.yml` (MySQL real)
 - Serviço das grades: [`GradesDoPainelService.php`](../../../../app/Services/Dashboard/GradesDoPainelService.php)
