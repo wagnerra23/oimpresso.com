@@ -39,8 +39,8 @@ return new class extends Migration
         if (! Schema::hasTable('crm_formularios_captura')) {
             Schema::create('crm_formularios_captura', function (Blueprint $t) {
                 $t->bigIncrements('id');
-                // Mesmo tipo e FK de crm_deals.business_id (2026_05_17_120000).
-                $t->unsignedBigInteger('business_id')->comment('Tier 0 ADR 0093 — resolvida pela chave, nunca pelo visitante');
+                // business.id é INT UNSIGNED: a FK exige o mesmo tipo (MySQL 3780 com bigint).
+                $t->unsignedInteger('business_id')->comment('Tier 0 ADR 0093 — resolvida pela chave, nunca pelo visitante');
                 $t->foreign('business_id', 'crm_form_captura_biz_fk')->references('id')->on('business')->onDelete('cascade');
                 $t->char('chave', 40)->unique('crm_form_captura_chave_uq')->comment('Pública: vai no action do formulário do site');
                 $t->string('nome', 120);

@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Modules\Crm\Entities;
 
+use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 /**
  * Formulário público de captura de lead (US-CRM-096).
  *
- * Sem global scope de business de propósito: a leitura acontece numa rota PÚBLICA, sem sessão,
- * e a empresa é resolvida pela `chave`. Quem consultar fora dessa rota filtra `business_id`
- * explicitamente (Tier 0, ADR 0093).
+ * Global scope de business (Tier 0, ADR 0093) para a leitura logada. Na rota PÚBLICA não há
+ * usuário logado, o scope não filtra, e a empresa é resolvida pela `chave` — que é única.
  *
  * @property int $id
  * @property int $business_id
@@ -24,6 +24,8 @@ use Illuminate\Support\Str;
  */
 class FormularioCaptura extends Model
 {
+    use HasBusinessScope;
+
     protected $table = 'crm_formularios_captura';
 
     protected $fillable = ['business_id', 'chave', 'nome', 'owner_user_id', 'obrigado_url', 'ativo'];
