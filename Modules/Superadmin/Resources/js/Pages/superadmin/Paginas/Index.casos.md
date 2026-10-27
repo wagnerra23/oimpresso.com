@@ -1,11 +1,11 @@
 ---
 id: modules-superadmin-pages-superadmin-paginas-index-casos
-casos: Superadmin · Páginas do site · /superadmin/frontend-pages?tela=nova
+casos: Superadmin · Páginas do site · /superadmin/frontend-pages
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: Termos de uso e política de privacidade moram aqui; uma edição errada tem efeito legal, e a tela é global (sem tenant), então a trava é só o gate superadmin.
 owner: wagner
-last_run: "2026-10-09"
+last_run: "2026-10-27"
 ---
 
 # Casos de Uso & Aceite — Superadmin · Páginas do site
@@ -14,10 +14,11 @@ last_run: "2026-10-09"
 > (editar páginas estáticas do site público) + decisão [W] D-PAG + o charter ao lado. Os UCs
 > derivam disso, nunca do `Index.tsx`.
 
-## UC-SAPAG-01 · A tela nova só responde com a chave; sem ela segue a Blade · `must`
+## UC-SAPAG-01 · A tela React é o padrão e as telas Blade de criar/editar não existem mais · `must`
 
-**Dado** que sou superadmin **Quando** abro `/superadmin/frontend-pages?tela=nova` **Então** recebo
-Inertia com `superadmin/Paginas/Index`; **e** sem `?tela=nova` recebo a view `superadmin::pages.index`.
+**Dado** que sou superadmin **Quando** abro `/superadmin/frontend-pages` **Então** recebo Inertia com
+`superadmin/Paginas/Index`; **e** `/superadmin/frontend-pages/create` e `/{id}/edit` respondem 404
+(criar e editar são o drawer da própria tela — cutover 2026-10-27).
 
 Status: 🧪
 
@@ -45,13 +46,13 @@ Status: 🧪
 ## UC-SAPAG-05 · Editar pela tela nova grava e volta para a tela nova · `must`
 
 **Dado** uma página **Quando** salvo título e visibilidade novos **Então** o banco guarda os
-valores e o redirect volta para `?tela=nova`, não para a Blade.
+valores e o redirect volta para a lista `/superadmin/frontend-pages`.
 
 Status: 🧪
 
 ## UC-SAPAG-06 · Excluir pela tela nova remove a página · `must`
 
 **Dado** uma página **Quando** confirmo a exclusão **Então** ela some do banco e o redirect volta
-para `?tela=nova`.
+para a lista.
 
 Status: 🧪
