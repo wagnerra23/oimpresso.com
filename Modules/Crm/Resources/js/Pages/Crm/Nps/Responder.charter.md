@@ -2,7 +2,7 @@
 id: modules-crm-pages-crm-nps-responder-charter
 page: /nps/{token}
 component: Modules/Crm/Resources/js/Pages/Crm/Nps/Responder.tsx
-related_prototype: prototipo-ui/cowork/Wagner/prototipos/crm-nps-e-captura.html
+related_prototype: prototipo-ui/cowork/Wagner/crm-nps-captura-page.jsx
 owner: wagner
 status: draft
 last_validated: "2026-10-27"
@@ -23,7 +23,7 @@ charter_version: 1
 
 > **Status:** draft. Lacuna P2 "NPS pós-venda" do levantamento de concorrência de 2026-10-25, destravada
 > por [W] em 2026-10-27. Página pública, **sem AppShellV2**. Forma: quadro A do protótipo
-> `prototipo-ui/cowork/Wagner/prototipos/crm-nps-e-captura.html` (ADR 0438). Casos:
+> `prototipo-ui/cowork/Wagner/crm-nps-captura-page.jsx` (ADR 0438). Casos:
 > [`Responder.casos.md`](Responder.casos.md) · SPEC: US-CRM-097.
 
 ## Mission

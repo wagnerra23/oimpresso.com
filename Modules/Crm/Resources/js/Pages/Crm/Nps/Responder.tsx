@@ -1,6 +1,6 @@
 // Página pública — não usa AppShellV2/Sidebar do ERP. O cliente abre pelo link do WhatsApp,
 // no celular, e dá uma nota de 0 a 10 (US-CRM-097). Forma: quadro A de
-// prototipo-ui/cowork/Wagner/prototipos/crm-nps-e-captura.html.
+// prototipo-ui/cowork/Wagner/crm-nps-captura-page.jsx.
 
 import { useState } from 'react';
 import { Head, useForm } from '@inertiajs/react';
