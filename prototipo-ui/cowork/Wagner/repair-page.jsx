@@ -96,7 +96,72 @@ function Painel({ folhas, onIr }) {
             {Chart && <Chart type="bar" height={130} data={D.tendencia(folhas, campo).slice(0, 6)} highlightLast={false} formatValue={(v) => v + " folhas"} />}
           </section>)}
       </div>
+      <Indicadores ind={D.INDICADORES} />
     </div>
+  );
+}
+
+// Indicadores da OS (US-REPA-006). Tudo vem da FSM — o histórico de etapas e a etapa atual —,
+// nunca de contador próprio. Janela fixa: o painel não tem filtro de período (Non-Goal do charter).
+function Indicadores({ ind }) {
+  const D = R();
+  const { KpiCard } = DS();
+  const maxT = Math.max(1, ...ind.tempo_por_etapa.map((e) => e.horas_media));
+  const maxP = Math.max(1, ...ind.paradas_por_etapa.map((e) => e.count));
+  const maxC = Math.max(1, ...ind.produtividade.map((t) => t.concluidas));
+  const g = ind.garantia;
+  const lenta = ind.tempo_por_etapa.reduce((a, e) => (!a || e.horas_media > a.horas_media ? e : a), null);
+  return (
+    <section className="rep-ind" aria-labelledby="rep-ind-t">
+      <h2 id="rep-ind-t" className="rep-ind-t">Indicadores da OS <span>últimos {ind.janela_dias} dias</span></h2>
+      <div className="rep-kpis">
+        {KpiCard && <>
+          <KpiCard label="Retorno em garantia" value={g.taxa == null ? "—" : String(g.taxa).replace(".", ",") + "%"}
+            tone={g.taxa > 10 ? "danger" : "default"} description={g.acionadas + " de " + g.entregues + " OS entregues voltaram"} />
+          <KpiCard label="Paradas além do prazo" value={ind.paradas_por_etapa.reduce((s, e) => s + e.count, 0)}
+            tone={ind.paradas_por_etapa.length ? "danger" : "default"} description="OS no fluxo com entrega vencida" />
+          <KpiCard label="Etapa mais lenta" value={lenta ? D.duracao(lenta.horas_media) : "—"}
+            description={lenta ? lenta.label : "sem transições na janela"} />
+        </>}
+      </div>
+      <div className="rep-grid3">
+        <section className="rep-card">
+          <h3>Tempo médio por etapa</h3>
+          <div className="rep-bars">
+            {ind.tempo_por_etapa.map((e) =>
+              <div key={e.key} className="rep-bar plain" title={e.amostras + " passagens"}>
+                <span className="l" title={e.label}>{e.label}</span>
+                <span className="t" style={{ "--st": "var(--accent)", "--w": (e.horas_media / maxT) * 100 + "%" }} />
+                <b>{D.duracao(e.horas_media)}</b>
+              </div>)}
+          </div>
+        </section>
+        <section className="rep-card">
+          <h3>Paradas além do prazo, por etapa</h3>
+          {ind.paradas_por_etapa.length === 0 ? <p className="rep-vazio">Nenhuma OS parada com prazo vencido.</p> :
+          <div className="rep-bars">
+            {ind.paradas_por_etapa.map((e) =>
+              <div key={e.key} className="rep-bar plain">
+                <span className="l" title={e.label}>{e.label}</span>
+                <span className="t" style={{ "--st": "var(--neg)", "--w": (e.count / maxP) * 100 + "%" }} />
+                <b>{e.count}</b>
+              </div>)}
+          </div>}
+        </section>
+        <section className="rep-card">
+          <h3>Produtividade por técnico</h3>
+          <div className="rep-bars">
+            {ind.produtividade.map((t) =>
+              <div key={t.label} className="rep-bar plain">
+                <span className="l">{t.label}<small className="rep-dim">média {D.duracao(t.horas_media)}</small></span>
+                <span className="t" style={{ "--st": "var(--accent)", "--w": (t.concluidas / maxC) * 100 + "%" }} />
+                <b>{t.concluidas}</b>
+              </div>)}
+          </div>
+          <p className="rep-nota">OS que chegaram a "concluído" na janela. A média vai da abertura da OS até a conclusão.</p>
+        </section>
+      </div>
+    </section>
   );
 }
 
