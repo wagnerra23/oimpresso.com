@@ -357,6 +357,12 @@ Status: 🧪
 ## UC-RBCC-10 · A rodada de um business não cobra a fatura do outro · `must` `[T0]`
 Status: 🧪
 
+## UC-RBCC-11 · O drawer mostra o cartão salvo e as tentativas · `must`
+**Dado** assinatura com forma de pagamento cartão **Então** o drawer mostra o bloco "Cartão recorrente": sem cartão
+salvo, explica como ele é salvo; com cartão, bandeira e final (nunca o número) e cada tentativa da fatura em aberto
+com status e motivo. Assinatura fora do cartão não recebe o bloco (`cartao = null`). Teste: `tests/cartao-recorrente-bloco.test.tsx`.
+Status: 🧪
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = **órfão** = viola o `casos-gate` e **bloqueia o

@@ -6,6 +6,7 @@ namespace Modules\RecurringBilling\Http\Presenters;
 
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Modules\RecurringBilling\Models\ChargeAttempt;
 use Modules\RecurringBilling\Models\Subscription;
 
@@ -92,11 +93,35 @@ class SubscriptionIndexPresenter
             'pix_copia_cola' => ($mandato['status'] ?? null) === 'CRIADA' ? ($mandato['pix_copia_cola'] ?? null) : null,
         ] : null;
 
+        // US-RB-011/013: só em assinatura no cartão. Cartão = bandeira + final (o token nunca sai); as
+        // tentativas são as da fatura em aberto mais recente, com o motivo da recusa.
+        $row['cartao'] = $sub->payment_method === 'card' ? self::cartao($sub) : null;
+
         $row['churn_reason'] = $sub->churn_reason;
         $row['paused_until'] = optional($sub->paused_until)->toDateString();
         $row['canceled_at']  = optional($sub->canceled_at)->toIso8601String();
 
         return $row;
+    }
+
+    /** @return array{ultimos_4:?string, bandeira:?string, tentativas:list<array<string,mixed>>} */
+    private static function cartao(Subscription $sub): array
+    {
+        $biz = (int) $sub->business_id;
+        $cartao = $sub->cartao_salvo_id
+            ? DB::table('rb_cartoes_salvos')->where('business_id', $biz)->where('id', (int) $sub->cartao_salvo_id)
+                ->where('status', 'ativo')->first(['ultimos_4', 'bandeira'])
+            : null;
+        $fatura = DB::table('rb_invoices')->where('business_id', $biz)->where('subscription_id', $sub->id)
+            ->where('status', 'open')->orderByDesc('vencimento')->value('id');
+        $tentativas = $fatura === null ? [] : DB::table('rb_charge_attempts')->where('business_id', $biz)
+            ->where('invoice_id', $fatura)->orderBy('attempt_n')
+            ->get(['attempt_n', 'status', 'created_at', 'error_message'])
+            ->map(fn ($t) => ['n' => (int) $t->attempt_n, 'status' => $t->status,
+                'em' => $t->created_at ? substr((string) $t->created_at, 0, 19) : null, 'motivo' => $t->error_message])
+            ->values()->all();
+
+        return ['ultimos_4' => $cartao?->ultimos_4, 'bandeira' => $cartao?->bandeira, 'tentativas' => $tentativas];
     }
 
     /**
