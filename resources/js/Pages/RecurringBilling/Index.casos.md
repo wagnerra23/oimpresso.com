@@ -303,25 +303,32 @@ Status: 🧪
 > lane `paymentgateway-pest` (MySQL). Teste: [`CartaoSalvoContratoTest`](../../../../Modules/RecurringBilling/Tests/Feature/CartaoSalvoContratoTest.php).
 
 ## UC-RBCC-01 · Fatura paga no cartão guarda o token e liga à assinatura · `must`
-**Dado** uma fatura de assinatura paga no cartão, com webhook do Asaas trazendo token, últimos 4 e bandeira
-**Quando** o `CobrancaPaga` sai **Então** nasce 1 cartão salvo com os últimos 4 e a bandeira, o token
-cifrado no banco (e fora do JSON do modelo), e a assinatura passa a apontar para ele.
-Status: 🧪
+- **Persona:** cliente da assinatura que paga a 1ª fatura no cartão pela página hospedada do Asaas; o gestor quer que as próximas caiam no mesmo cartão sem pedir os dados de novo.
+- **Aceite:** Dado uma fatura de assinatura paga no cartão, com o webhook do Asaas trazendo token, últimos 4 e bandeira · Quando o `CobrancaPaga` sai · Então nasce 1 cartão salvo com os últimos 4 e a bandeira, o token cifrado no banco (e fora do JSON do modelo), e a assinatura passa a apontar para ele.
+- **Teste:** `Modules/RecurringBilling/Tests/Feature/CartaoSalvoContratoTest.php` — `UC-RBCC-01 · fatura paga no cartão salva o token cifrado com últimos 4 e bandeira, e liga à assinatura`.
+- **Regressão que defende:** SPEC US-RB-011 (salvar só o token do gateway; PCI fora do oimpresso).
+- **Status: 🧪** — passou na lane `paymentgateway-pest` (MySQL) do PR #9951, run 40492147242, 8 assertions; ✅ quando `casos:results` regravar o manifesto.
 
 ## UC-RBCC-02 · O mesmo cartão não duplica e a assinatura com cartão não troca sozinha · `must`
-**Quando** o mesmo webhook é processado de novo **Então** o resultado é `ja_salvo` e não nasce outra linha;
-outro cartão salvo depois não substitui o da assinatura (trocar é ato do cliente ou do gestor).
-Status: 🧪
+- **Persona:** gestor da carteira; o webhook do Asaas pode chegar repetido.
+- **Aceite:** Dado um cartão já salvo · Quando o mesmo webhook é processado de novo · Então o resultado é `ja_salvo` e não nasce outra linha; Dado uma assinatura que já tem cartão · Quando outro cartão é salvo · Então ele não substitui o da assinatura (trocar é ato do cliente ou do gestor).
+- **Teste:** `Modules/RecurringBilling/Tests/Feature/CartaoSalvoContratoTest.php` — `UC-RBCC-02 · o mesmo cartão não é salvo duas vezes e a assinatura que já tem cartão não troca`.
+- **Regressão que defende:** SPEC US-RB-011 (idempotência do webhook; o cartão da assinatura não muda sem ato humano).
+- **Status: 🧪** — passou na lane `paymentgateway-pest` (MySQL) do PR #9951, run 40492147242, 5 assertions; ✅ quando `casos:results` regravar o manifesto.
 
 ## UC-RBCC-03 · Número de cartão é recusado; boleto e flag desligada não salvam · `must` `[T0]`
-**Dado** um campo com sequência de 13 a 19 dígitos **Então** nada é gravado (`recusado_numero`) e o log não
-leva o valor. Fatura paga no boleto é ignorada; com `RB_SALVAR_CARTAO` desligada nada é salvo.
-Status: 🧪
+- **Persona:** responsável pela segurança dos dados (PCI e LGPD).
+- **Aceite:** Dado um campo com sequência de 13 a 19 dígitos · Quando o cartão seria salvo · Então nada é gravado (`recusado_numero`) e o log não leva o valor; Dado uma fatura paga no boleto · Então ela é ignorada; Dado `RB_SALVAR_CARTAO` desligada · Então nada é salvo.
+- **Teste:** `Modules/RecurringBilling/Tests/Feature/CartaoSalvoContratoTest.php` — `UC-RBCC-03 · campo com sequência de número de cartão é recusado e nada é gravado; boleto e flag desligada não salvam`.
+- **Regressão que defende:** SPEC US-RB-011 (nunca número nem CVV no banco ou log) e a flag desligada por padrão.
+- **Status: 🧪** — passou na lane `paymentgateway-pest` (MySQL) do PR #9951, run 40492147242, 3 assertions; ✅ quando `casos:results` regravar o manifesto.
 
 ## UC-RBCC-04 · Um business não salva o cartão da cobrança do outro · `must` `[T0]`
-**Dado** a cobrança do tenant 99 **Quando** chega um evento dizendo tenant 98 **Então** `ignorado`, nenhum
-cartão salvo e a assinatura do 99 intocada.
-Status: 🧪
+- **Persona:** dono de outra empresa no mesmo servidor (isolamento Tier 0, ADR 0093).
+- **Aceite:** Dado a cobrança do tenant 99 · Quando chega um evento dizendo tenant 98 · Então `ignorado`, nenhum cartão salvo e a assinatura do 99 intocada.
+- **Teste:** `Modules/RecurringBilling/Tests/Feature/CartaoSalvoContratoTest.php` — `UC-RBCC-04 · evento com business errado não salva o cartão da cobrança do outro`.
+- **Regressão que defende:** ADR 0093 (`business_id` em toda leitura e escrita) e ADR 0358 (98 grava, 99 fica intacto).
+- **Status: 🧪** — passou na lane `paymentgateway-pest` (MySQL) do PR #9951, run 40492147242, 3 assertions; ✅ quando `casos:results` regravar o manifesto.
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
