@@ -8,6 +8,9 @@ import { router } from '@inertiajs/react';
 import { toast } from 'sonner';
 import { X, Check, RotateCw, ArrowRight, Copy } from 'lucide-react';
 import QRCode from 'react-qr-code';
+import { Button } from '@/Components/ui/button';
+import { Textarea } from '@/Components/ui/textarea';
+import { Stack } from '@/Components/layout';
 import type { CobrancaState, VendaContext } from './CobrancaChip';
 
 interface Props {
@@ -50,23 +53,23 @@ function CodigoPagamento({ pixEmv, linhaDigitavel }: { pixEmv?: string | null; l
     }
   };
   return (
-    <div className="border border-stone-200 rounded-md p-3 space-y-3" data-testid="cobranca-codigo">
+    <Stack gap={3} className="border border-border rounded-md p-3" data-testid="cobranca-codigo">
       {pixEmv && (
-        <div className="flex justify-center bg-white p-2">
+        <Stack align="center" className="bg-card p-2">
           <QRCode value={pixEmv} size={176} aria-label="QR code do Pix" />
-        </div>
+        </Stack>
       )}
       <div>
-        <div className="text-[10px] uppercase tracking-widest text-stone-500 font-medium mb-1">
+        <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-medium mb-1">
           {pixEmv ? 'Pix copia-e-cola' : 'Linha digitável do boleto'}
         </div>
-        <textarea readOnly value={codigo} rows={pixEmv ? 3 : 2} onFocus={e => e.currentTarget.select()}
-          className="w-full px-2 py-1.5 text-[11.5px] font-mono bg-stone-50 border border-stone-300 rounded text-stone-900 break-all resize-none" />
+        <Textarea readOnly value={codigo} rows={pixEmv ? 3 : 2} onFocus={e => e.currentTarget.select()}
+          className="font-mono text-[11.5px] break-all resize-none" />
       </div>
-      <button onClick={copiar} className="inline-flex items-center gap-1.5 h-8 px-3 text-[12px] font-medium rounded-md border border-stone-300 text-stone-700 hover:bg-stone-50">
+      <Button type="button" variant="outline" size="sm" onClick={copiar} className="self-start">
         <Copy className="h-3 w-3" />Copiar
-      </button>
-    </div>
+      </Button>
+    </Stack>
   );
 }
 
@@ -191,7 +194,7 @@ export default function CobrancaDrawer({ venda, state, onClose }: Props) {
           {/* Recém-emitida nesta abertura do drawer */}
           {emitida && (
             <div className="p-4 space-y-3">
-              <div className="text-[12px] text-stone-700">Cobrança #{emitida.id} emitida. Mostre o código ao cliente.</div>
+              <div className="text-[12px] text-foreground">Cobrança #{emitida.id} emitida. Mostre o código ao cliente.</div>
               <CodigoPagamento pixEmv={emitida.pix_emv} linhaDigitavel={emitida.linha_digitavel} />
             </div>
           )}
