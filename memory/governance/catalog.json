@@ -26,23 +26,23 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 866,
-    "edges": 1181,
+    "nodes": 871,
+    "edges": 1186,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 146,
-      "component": 482,
-      "api": 87
+      "component": 485,
+      "api": 89
     },
     "by_edge_type": {
       "ownsTable": 97,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 91,
+      "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 482,
+      "hasComponent": 485,
       "dependsOn": 132,
       "delegatesTo": 121,
       "migratesTo": 1,
@@ -1456,6 +1456,14 @@
       ]
     },
     {
+      "id": "api:/marketplaces/contas/mercado-livre/conectar",
+      "type": "api",
+      "prefix": "/marketplaces/contas/mercado-livre/conectar",
+      "providers": [
+        "Marketplaces"
+      ]
+    },
+    {
       "id": "api:/marketplaces/install",
       "type": "api",
       "prefix": "/marketplaces/install",
@@ -1749,6 +1757,14 @@
       "prefix": "/webhook/*",
       "providers": [
         "Woocommerce"
+      ]
+    },
+    {
+      "id": "api:/webhook/marketplaces/mercado-livre",
+      "type": "api",
+      "prefix": "/webhook/marketplaces/mercado-livre",
+      "providers": [
+        "Marketplaces"
       ]
     },
     {
@@ -3730,6 +3746,13 @@
       "desc": ""
     },
     {
+      "id": "component:Marketplaces/ContasController",
+      "type": "component",
+      "module": "Marketplaces",
+      "name": "ContasController",
+      "desc": "conectar a conta do vendedor no Mercado Livre por OAuth (US-MKT-003)"
+    },
+    {
       "id": "component:Marketplaces/DataController",
       "type": "component",
       "module": "Marketplaces",
@@ -3741,6 +3764,20 @@
       "type": "component",
       "module": "Marketplaces",
       "name": "InstallController",
+      "desc": ""
+    },
+    {
+      "id": "component:Marketplaces/NotificacoesMercadoLivreController",
+      "type": "component",
+      "module": "Marketplaces",
+      "name": "NotificacoesMercadoLivreController",
+      "desc": "recebe as notificações do ML e busca o pedido na API com o token da conta (US-MKT-006)"
+    },
+    {
+      "id": "component:Marketplaces/Renovação do token do vendedor sob demanda e de hora em hora",
+      "type": "component",
+      "module": "Marketplaces",
+      "name": "Renovação do token do vendedor sob demanda e de hora em hora",
       "desc": ""
     },
     {
@@ -11616,6 +11653,12 @@
     },
     {
       "from": "module:Marketplaces",
+      "to": "component:Marketplaces/ContasController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Marketplaces",
       "to": "component:Marketplaces/DataController",
       "type": "hasComponent",
       "source": "contains"
@@ -11628,7 +11671,31 @@
     },
     {
       "from": "module:Marketplaces",
+      "to": "component:Marketplaces/NotificacoesMercadoLivreController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "component:Marketplaces/Renovação do token do vendedor sob demanda e de hora em hora",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "api:/marketplaces/contas/mercado-livre/conectar",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Marketplaces",
       "to": "api:/marketplaces/install",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "api:/webhook/marketplaces/mercado-livre",
       "type": "providesApi",
       "source": "url_prefixes"
     },
