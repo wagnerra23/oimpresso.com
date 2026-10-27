@@ -46,7 +46,7 @@ lente: [construir]
 | Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-07-30 |
 | OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-09-15 |
 | PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-09-07 |
-| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-10-26 |
+| Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-10-27 |
 | Producao | [BRIEFING](../requisitos/Producao/BRIEFING.md) | 2026-10-26 |
 | ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-07-23 |
 | RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-09-07 |
