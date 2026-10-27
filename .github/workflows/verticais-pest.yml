@@ -643,6 +643,7 @@ jobs:
             Modules/Repair/Tests/Feature/ClienteAcompanhaStatusContratoTest.php \
             Modules/Vestuario/Tests/Feature/SmokeRoutesVestuarioTest.php \
             Modules/Vestuario/Tests/Feature/CurvaDeCompraContratoTest.php \
+            Modules/Vestuario/Tests/Feature/RemarcacaoContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminDashboardContratoTest.php \
             Modules/Superadmin/Tests/Feature/SubscriptionLifecycleServiceTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminNegociosContratoTest.php \
