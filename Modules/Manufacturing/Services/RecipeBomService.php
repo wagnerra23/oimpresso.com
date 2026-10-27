@@ -545,13 +545,14 @@ class RecipeBomService
     public const ORDENAVEIS = ['name', 'cat', 'qtd', 'total', 'unit', 'venda', 'margem'];
 
     /**
-     * Os 4 números do topo da tela, sobre TODAS as receitas do business — nunca sobre a página
-     * nem sobre o filtro (§4.2: os KPIs descrevem o conjunto; o 2º e o 3º são o próprio filtro).
+     * Os números do topo da tela, sobre TODAS as receitas do business — nunca sobre a página
+     * nem sobre o filtro (§4.2: os KPIs descrevem o conjunto; o de margem é o próprio filtro).
+     * O de desperdício (≥ 8%) saiu com o % da receita — decisão [W] 2026-10-23 (D4): desperdício é somente na Produção.
      *
      * Leitura pura sobre o que `presentRecipe` já derivou: nenhum custo é recalculado aqui.
      *
      * @param  list<array<string, mixed>>  $receitas  saída de `listRecipesWithCost`
-     * @return array{total: int, custo_medio: float, margem_baixa: int, desperdicio: int}
+     * @return array{total: int, custo_medio: float, margem_baixa: int}
      */
     public function kpis(array $receitas): array
     {
@@ -561,7 +562,6 @@ class RecipeBomService
             'total'        => $n,
             'custo_medio'  => $n ? array_sum(array_map(fn ($r) => (float) $r['custos']['unit'], $receitas)) / $n : 0.0,
             'margem_baixa' => count(array_filter($receitas, fn ($r) => $r['custos']['margem'] < 45)), // R-05
-            'desperdicio'  => count(array_filter($receitas, fn ($r) => $r['waste'] >= 8)),
         ];
     }
 
@@ -570,7 +570,7 @@ class RecipeBomService
      * agora no servidor pra a lista paginar aqui (playbook ds-atomos D-GRADE · ADR de design 0412
      * item 2 do handoff). Mesmas regras, uma por uma:
      *  · categoria exata; ausente = todas
-     *  · `kpi=margem` → margem < 45 (R-05) · `kpi=custo` → desperdício ≥ 8
+     *  · `kpi=margem` → margem < 45 (R-05). O `kpi=custo` (desperdício ≥ 8) saiu — decisão [W] 2026-10-23 (D4): desperdício é somente na Produção
      *  · busca em nome + SKU + categoria + subcategoria, sem diferenciar maiúscula (R-03)
      *  · ordem por uma das 7 colunas; empate mantém a ordem de chegada (nome, do SELECT)
      *
@@ -591,9 +591,6 @@ class RecipeBomService
             if ($kpi === 'margem' && $r['custos']['margem'] >= 45) {
                 return false;
             }
-            if ($kpi === 'custo' && $r['waste'] < 8) {
-                return false;
-            }
 
             return $q === '' || str_contains(mb_strtolower("{$r['name']} {$r['sku']} {$r['cat']} {$r['sub']}"), $q);
         }));
@@ -603,7 +600,7 @@ class RecipeBomService
         $chave = match ($sort) {
             'name'   => fn ($r) => mb_strtolower($r['name']),
             'cat'    => fn ($r) => $r['cat'] . $r['sub'],
-            'qtd'    => fn ($r) => (float) $r['custos']['qtd_liq'],
+            'qtd'    => fn ($r) => (float) $r['qtd'], // a coluna mostra a quantidade produzida (D4)
             'total'  => fn ($r) => (float) $r['custos']['total'],
             'unit'   => fn ($r) => (float) $r['custos']['unit'],
             'venda'  => fn ($r) => (float) $r['venda'],

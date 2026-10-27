@@ -261,7 +261,7 @@ export default function NovaReceitaDialog({ open, onOpenChange }: Props) {
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                Copia ingredientes, quantidades, desperdício, custo extra e instruções. O preço de venda
+                Copia ingredientes, quantidades, custo extra e instruções. O preço de venda
                 não é copiado.
               </p>
             </Stack>

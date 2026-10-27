@@ -5,9 +5,15 @@ irmaos: Add.charter.md (lei) · Add.tsx
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o registro grava valor e estoque — a troca de Blade por React não pode mudar nenhum dos dois.
 owner: wagner
-last_run: "2026-10-05"
+last_run: "2026-10-26"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Sells · MySQL)"
 ---
+
+<!-- REVALIDAÇÃO 2026-10-26 (G-6: o .tsx mudou depois do last_run de 05/10).
+     A única mudança no Add.tsx depois de 05/10 é a do #9903 (26/10): o bloco "Pagamento ao
+     cliente" (pagar depois ou vale-troca), que os UC-SRADDV-01/02 desta edição cobrem.
+     Os UC-SRADD-01..06 não dependem desse bloco: o padrão segue "pagar depois", que salva
+     como antes. -->
 
 # Casos de Uso & Aceite — Devolução de venda · registro
 
@@ -68,11 +74,53 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ---
 
+## Pagamento ao cliente com vale-troca (US-VEST-021 · R7)
+
+> **Âncora:** US-VEST-021 e decisão [W] de 2026-10-26: o vale-troca entra **no registro da devolução**, ao salvar, e
+> não é estorno. O valor vira saldo de Adiantamento do cliente (regras do saldo em `SellReturn/Index.casos.md`,
+> UC-SRETVT-*). Prova: `tests/Feature/Sells/ValeTrocaContratoTest.php`.
+
+## UC-SRADDV-01 · A tela pede o vale pela venda de origem `[V0]` `[must]`
+- **Aceite:** Dado uma venda com a devolução de 150,00 já salva e o cliente com saldo 20,00 · Quando a tela pede o vale pela venda (`POST /sell-return/vale-troca-da-venda/{venda}`) · Então o vale é de 150,00 e o saldo vai a 170,00. Venda sem devolução → `404`.
+- **Teste:** `tests/Feature/Sells/ValeTrocaContratoTest.php` — `UC-SRADDV-01`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-SRADDV-02 · Devolução do Cliente padrão não vira vale `[V0]` `[must]`
+- **Aceite:** Dado uma devolução do Cliente padrão (consumidor sem cadastro) · Quando peço o vale · Então `422 cliente_padrao`, nenhum pagamento e nenhum saldo. Na tela, a opção Vale-troca aparece desabilitada e diz por quê.
+- **Teste:** `tests/Feature/Sells/ValeTrocaContratoTest.php` — `UC-SRADDV-02`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
 ## Backlog de casos
 
 - **[BACKLOG]** Sem quantidade preenchida, "Salvar devolução" fica desabilitado (era `UC-DEV-02`) — comportamento só do front; entra quando houver teste de navegador para a tela.
 - **[BACKLOG]** Motivo da devolução em texto livre no histórico (charter R3) — exige gravar motivo no `store()`.
 - **[BACKLOG]** Aviso de item feito sob medida antes de salvar (charter R4) — o produto não guarda essa informação.
+- **[BACKLOG]** A devolução pode virar saldo a favor do cliente (pedido de 2026-10-23) `[V0]` — Aceite:
+  Dado uma venda paga de 200,00 e um cliente identificado, Quando devolvo um item de 80,00 e o gerente
+  aprova "trocar com crédito", Então nenhum dinheiro sai do caixa e o cliente fica com 80,00 a favor,
+  válidos por 6 meses, que aparecem no drawer do cliente e podem ser usados na próxima venda; escolher
+  "devolver o dinheiro" segue como hoje. Segue o processo "Devolução, troca e garantia" do [W]
+  (`fluxos-processos.jsx`: "Trocar com crédito", aprovado pelo gerente com cliente identificado; "Lançar
+  crédito", com validade de 6 meses). Depende do [W]: o charter desta tela diz "não mudar `store()` nem
+  `addSellReturn()`" (regra escrita na migração), e lançar o crédito ao salvar muda isso. Mexe em valor:
+  Regra Mestre. Verificado contra as regras do [W] em 2026-10-23.
+- **[BACKLOG]** Devolver tudo (pedido de 2026-10-23) `[V0]` `[E0]` — Dado uma venda de 3 itens, Quando
+  clico "Devolver tudo", Então cada linha vem com a quantidade que ainda pode voltar e o total é o da
+  venda menos o já devolvido; a devolução parcial continua digitando a quantidade de cada linha
+  (UC-SRADD-04). Mexe em valor e estoque: Regra Mestre.
+- **[BACKLOG]** A segunda devolução da mesma venda só aceita o que ainda não voltou (pedido de
+  2026-10-23) `[E0]` — Dado 3 unidades vendidas e 2 já devolvidas, Quando abro a devolução de novo,
+  Então o teto da linha é 1. Fonte: processo "Devolução, troca e garantia" de Fluxos ("quantidade até
+  a vendida, devolução total ou parcial").
+- **[BACKLOG]** Receber a nota de devolução emitida pelo cliente (comparação com concorrentes,
+  2026-10-23) `[V0]` `[E0]` — Dado um cliente empresa que devolve 2 itens com a própria NF-e de
+  devolução, Quando informo a chave dessa nota (ou ela chega pelo DF-e), Então a devolução é registrada
+  ligada à venda original, com os itens e as quantidades da nota, o estoque volta e o financeiro fica
+  igual ao da devolução que nós emitimos; nota com item que não estava na venda é recusada. Fonte: Omie
+  (importação da NF-e de devolução pela chave ou pelo XML, associada ao pedido de venda). Hoje a nota
+  do cliente pode chegar pela manifestação do DF-e, mas não vira devolução ligada à venda.
 
 ## Trilha do tempo
+- 2026-10-23 · [M+C] Backlog: devolver tudo e segunda devolução da mesma venda, sem id.
+- 2026-10-23 · [M+C] Backlog: a devolução pode virar saldo a favor do cliente, sem id.
 - 2026-10-05 · [CL] trio nascido junto (charter + casos + teste) na thread 03 de venda-menu, PR 2 de 2.

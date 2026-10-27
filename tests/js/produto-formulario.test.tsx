@@ -42,6 +42,7 @@ vi.mock('@/Layouts/AppShellV2', () => ({ default: ({ children }: { children: unk
 import ProdutoCreate from '@/Pages/Produto/Create'
 import ProdutoEdit from '@/Pages/Produto/Edit'
 import { opcoesDe } from '@/Pages/Produto/_components/formulario/tipos'
+import { avisoCodigoBarras, digitoVerificadorGtin } from '@/Pages/Produto/_components/formulario/ean'
 
 // As listas como o ProductController@create/@edit as manda (forDropdown com "show none").
 const listasDoServidor = {
@@ -500,5 +501,141 @@ describe('UC-PCAD-16 · UC-PEDIT-13 · peso e dimensões no cadastro', () => {
     fireEvent.change(campo('altura_cm'), { target: { value: '' } })
 
     expect(salvar(container, 'produto-edit-form')?.altura_cm).toBe('')
+  })
+})
+
+// UC-PEDIT-14 — a natureza fiscal no Editar (CU-PROD-19). Quem decide se o produto é mercadoria ou
+// serviço é o contador, na Tributação; o cadastro só mostra. Produto de serviço não leva NCM, então
+// o aviso de "sem NCM" não aparece para ele.
+describe('UC-PEDIT-14 · natureza fiscal no Editar produto', () => {
+  const editar = (naturezaFiscal: Record<string, unknown> | null, ncm: string | null = null) =>
+    render(
+      <ProdutoEdit
+        {...(listasDoServidor as never)}
+        product={{
+          id: 9, name: 'Arte de banner', sku: 'ART-01', type: 'single', brandId: 3, unitId: 5,
+          subUnitIds: null, categoryId: 1, subCategoryId: null, tax: 2, taxType: 'exclusive',
+          origemMercadoria: 0, ncm, barcodeType: 'C128', enableStock: false, alertQuantity: null,
+          weight: null, productDescription: null, productLocations: [1], image: null,
+          warrantyId: null, camposPersonalizados: {}, expiryPeriod: null, expiryPeriodType: null,
+          naturezaFiscal,
+        } as never}
+        subUnits={{}}
+        permissions={{ opening_stock: false, delete: false }}
+      />,
+    )
+  const natureza = () => screen.queryByTestId('natureza-fiscal')
+  const aviso = () => screen.queryByTestId('ncm-aviso')
+
+  it('produto de serviço mostra a natureza e o item da LC 116, e não avisa a falta de NCM', () => {
+    editar({ natureza: 'servico', codigoServico: '24.01', link: '/nfe-brasil/tributacao?produto=9' })
+
+    expect(natureza()?.textContent).toContain('Serviço')
+    expect(natureza()?.textContent).toContain('item 24.01 da LC 116')
+    expect(natureza()?.querySelector('a')?.getAttribute('href')).toBe('/nfe-brasil/tributacao?produto=9')
+    expect(aviso()).toBeNull()
+  })
+
+  it('produto de mercadoria sem NCM continua com o aviso', () => {
+    editar({ natureza: 'mercadoria', codigoServico: null, link: null })
+
+    expect(natureza()?.textContent).toContain('Mercadoria')
+    expect(aviso()?.textContent).toContain('Sem NCM a nota fiscal de mercadoria não sai')
+  })
+
+  it('produto de serviço com NCM no formato errado ainda avisa o formato', () => {
+    editar({ natureza: 'servico', codigoServico: '24.01', link: null }, '4911')
+
+    expect(aviso()?.textContent).toBe('O NCM tem 8 dígitos.')
+  })
+
+  it('produto sem decisão do contador não mostra a natureza', () => {
+    editar(null)
+
+    expect(natureza()).toBeNull()
+    expect(aviso()?.textContent).toContain('Sem NCM a nota fiscal de mercadoria não sai')
+  })
+})
+
+// UC-PCAD-17 e UC-PEDIT-15 — aviso de código de barras EAN/UPC (CU-PROD-18). O código de barras é o
+// SKU. Com EAN-13, EAN-8 ou UPC-A, SKU com letra ou com o último dígito errado não vira etiqueta
+// (milon/barcode v13.1 recusa). O aviso não impede salvar.
+describe('UC-PCAD-17 · UC-PEDIT-15 · aviso de código de barras EAN', () => {
+  it('UC-PCAD-17 · o dígito verificador segue a regra GS1 nos códigos de exemplo', () => {
+    expect(digitoVerificadorGtin('400638133393')).toBe(1) // EAN-13 4006381333931
+    expect(digitoVerificadorGtin('9638507')).toBe(4) // EAN-8 96385074
+    expect(digitoVerificadorGtin('03600029145')).toBe(2) // UPC-A 036000291452
+  })
+
+  it('UC-PCAD-17 · só avisa nos tipos EAN-13, EAN-8 e UPC-A, e nunca com SKU vazio', () => {
+    expect(avisoCodigoBarras('4006381333931', 'EAN13')).toBeNull()
+    expect(avisoCodigoBarras('96385074', 'EAN8')).toBeNull()
+    expect(avisoCodigoBarras('036000291452', 'UPCA')).toBeNull()
+    expect(avisoCodigoBarras('LON-440', 'C128')).toBeNull()
+    expect(avisoCodigoBarras('', 'EAN13')).toBeNull()
+    // Código mais curto: a etiqueta completa com zeros, então não avisa.
+    expect(avisoCodigoBarras('1234', 'EAN13')).toBeNull()
+
+    expect(avisoCodigoBarras('LON-440', 'EAN13')).toContain('só tem números')
+    expect(avisoCodigoBarras('4006381333932', 'EAN13')).toContain('devia ser 1')
+    expect(avisoCodigoBarras('40063813339310', 'EAN13')).toBe('O EAN-13 tem 13 dígitos, e este SKU tem 14.')
+  })
+
+  const novo = () =>
+    render(
+      <ProdutoCreate
+        {...(listasDoServidor as never)}
+        barcodeDefault="EAN13"
+        defaultProfitPercent={25}
+        duplicateProduct={null}
+        sellingPriceGroupCount={0}
+        commonSettings={{}}
+        enableExpiry={false}
+        enableLot={false}
+        enableRacks={false}
+      />,
+    )
+  const campoSku = () => document.querySelector('#sku') as HTMLInputElement
+  const aviso = () => screen.queryByTestId('ean-aviso')
+
+  it('UC-PCAD-17 · no Novo com EAN-13, SKU com dígito errado avisa e o produto é enviado assim mesmo', () => {
+    const { container } = novo()
+    expect(aviso()).toBeNull()
+
+    fireEvent.change(campoSku(), { target: { value: '4006381333932' } })
+    expect(aviso()?.textContent).toContain('O último dígito do EAN-13 não confere com os outros (devia ser 1)')
+
+    enviado.payload = null
+    fireEvent.submit(container.querySelector('form#produto-create-form') as HTMLFormElement)
+    expect((enviado.payload as Record<string, unknown> | null)?.sku).toBe('4006381333932')
+
+    fireEvent.change(campoSku(), { target: { value: '4006381333931' } })
+    expect(aviso()).toBeNull()
+  })
+
+  const editar = (sku: string, barcodeType: string) =>
+    render(
+      <ProdutoEdit
+        {...(listasDoServidor as never)}
+        product={{
+          id: 9, name: 'Lona 440g', sku, type: 'single', brandId: 3, unitId: 5,
+          subUnitIds: null, categoryId: 1, subCategoryId: null, tax: 1, taxType: 'exclusive',
+          origemMercadoria: 0, barcodeType, enableStock: true, alertQuantity: null,
+          weight: null, productDescription: null, productLocations: [1], image: null,
+          warrantyId: null, camposPersonalizados: {}, expiryPeriod: null, expiryPeriodType: null,
+        }}
+        subUnits={{}}
+        permissions={{ opening_stock: false, delete: false }}
+      />,
+    )
+
+  it('UC-PEDIT-15 · no Editar, SKU com letra num produto EAN-13 avisa', () => {
+    editar('LON-440', 'EAN13')
+    expect(aviso()?.textContent).toContain('O EAN-13 só tem números')
+  })
+
+  it('UC-PEDIT-15 · no Editar, o mesmo SKU com Code 128 não avisa', () => {
+    editar('LON-440', 'C128')
+    expect(aviso()).toBeNull()
   })
 })

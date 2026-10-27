@@ -34,7 +34,9 @@ class DeleteAccountTransaction
     {
         //Add contact advance if exists
         if ($event->transactionPayment->method == 'advance') {
-            $this->transactionUtil->updateContactBalance($event->transactionPayment->payment_for, $event->transactionPayment->amount);
+            // Espelho do AddAccountTransaction: apagar o vale-troca tira do saldo o que ele pôs.
+            $sentido = \App\Services\Sells\ValeTrocaService::ehVale($event->transactionPayment) ? 'deduct' : 'add';
+            $this->transactionUtil->updateContactBalance($event->transactionPayment->payment_for, $event->transactionPayment->amount, $sentido);
         }
 
         if (! $this->moduleUtil->isModuleEnabled('account')) {

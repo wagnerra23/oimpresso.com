@@ -5,7 +5,7 @@ title: "BRIEFING — Modules/Compras"
 type: briefing
 module: Compras
 status: em-construcao
-updated_at: "2026-08-16"
+updated_at: "2026-10-26"
 version: 0.3
 owner: W
 ---
@@ -34,7 +34,7 @@ owner: W
 | FSM 6 estágios PERSISTIDA | ❌ só `const STAGES` visual no `Drawer.tsx` (não é máquina de estado) | — |
 | Importar XML DF-e como compra | 🟡 **substrato pronto no NfeBrasil** (pull SEFAZ NSU + manifestação testados); falta só a **ponte→compra** | `Modules/NfeBrasil/Services/Manifestacao/*` ✅ · bridge `ImportarDfeComoCompraService` ❌ (US-COM-003) |
 | Matching automático XML→produto (EAN/xProd) | ❌ | depende da ponte |
-| Recebimento parcial (qty recebida ≠ pedida) | ❌ | — |
+| Recebimento parcial (qty recebida ≠ pedida) | 🟡 **em PR (2026-10-26)** — pelo pedido de compra (decisão coordenação 2026-10-26): a tela de compra traz o pedido com o que falta, e o pedido fica parcial até completar | `GET /purchases/pedidos-abertos` + `ReceberDoPedido` em `Purchase/Create.tsx` (US-COM-013) |
 | Teste de cálculo custo/total/estoque (Tier 0) | ❌ (hardening tests são source-grep tautológicos) | gap G-03 |
 | PiiRedactor no Drawer (CNPJ/CPF/mobile/email) | ❌ raw (gap LGPD ativo) | `Drawer.tsx:266/275/281` |
 

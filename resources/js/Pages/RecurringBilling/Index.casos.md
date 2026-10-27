@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o comportamento de cobrar é durável — a assinatura que fatura hoje tem que faturar depois do refactor.
 owner: wagner
-last_run: "2026-10-13"
-last_run_ci: "2026-10-13 (PR contratos de tela, recorrente thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (ancoras do contrato de tela), sem dado, handler, copy nem classe; nenhum UC afirma ancora. ---- REGISTRO ANTERIOR: last_run 2026-09-11. 2026-09-08 (PR tokenizacao da superficie) — REVALIDACAO ANALITICA, suite NAO executada. Por que: Pest so roda no CT 100 (proibicao Tier 0) e o checkout de la nao contem esta mudanca, entao rodar ali produziria recibo de OUTRO codigo. O que a mudanca E: 518 trocas de `className` (cor crua -> token do DS: bg-white->bg-card, text-stone-*->text-foreground/muted-foreground, ring/border-stone-*->ring/border-border). Zero linha de logica, controller, service ou query. MEDIDO, nao lido: (a) grep por `className|bg-white|text-stone|oklch|css|tailwind|style=` nos 14 arquivos de teste citados por estes casos.md devolveu 0 hits em TODOS, com controle positivo (8 a 33 asserts casam por arquivo, logo o grep funciona); (b) as cores de STATUS ficaram INTACTAS — o diff toca emerald/amber/rose em 2 pontos e ambos sao vizinhanca neutra (`border-stone-300`->`border-border` ao lado de um `focus:ring-rose-100` preservado, e o cinza do icone NAO-pinado ao lado de um `fill-amber-500` preservado), o que mantem o UC-RBSUB-07 ("Larissa/Wagner leem a lista por cor") valido; (c) contraste medido no runtime antes/depois: identico (425 passam AA / 27 reprovam / pior 1.00 nos dois estados). Isto NAO substitui execucao: o Status continua vindo do manifesto G-7, que a lane do PR alimenta. ---- REGISTRO ANTERIOR: 2026-08-28 (PR desta sessão) — REVALIDAÇÃO ANALÍTICA, suíte NÃO executada. Por quê: Pest só roda no CT 100 (proibição Ti..."
+last_run: "2026-10-26"
+last_run_ci: "2026-10-26 (PR #9870, Pix Automatico BCB) — a tela ganhou o bloco Pix Automatico no drawer (PixAutomaticoBloco, so com o recurso ligado), coberto pelo UC-RBPA-14 deste arquivo; MandatoPixAutomaticoContratoTest rodou no CT 100 MySQL no head combinado da pilha (29 passed, 104 assertions, com os testes de webhook, cobranca e driver) e o vitest do bloco deu 6 passed. Os demais UCs nao tocam o drawer de mandato. ---- REGISTRO ANTERIOR: last_run 2026-10-13. 2026-10-13 (PR contratos de tela, recorrente thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (ancoras do contrato de tela), sem dado, handler, copy nem classe; nenhum UC afirma ancora. ---- REGISTRO ANTERIOR: last_run 2026-09-11. 2026-09-08 (PR tokenizacao da superficie) — REVALIDACAO ANALITICA, suite NAO executada. Por que: Pest so roda no CT 100 (proibicao Tier 0) e o checkout de la nao contem esta mudanca, entao rodar ali produziria recibo de OUTRO codigo. O que a mudanca E: 518 trocas de `className` (cor crua -> token do DS: bg-white->bg-card, text-stone-*->text-foreground/muted-foreground, ring/border-stone-*->ring/border-border). Zero linha de logica, controller, service ou query. MEDIDO, nao lido: (a) grep por `className|bg-white|text-stone|oklch|css|tailwind|style=` nos 14 arquivos de teste citados por estes casos.md devolveu 0 hits em TODOS, com controle positivo (8 a 33 asserts casam por arquivo, logo o grep funciona); (b) as cores de STATUS ficaram INTACTAS — o diff toca emerald/amber/rose em 2 pontos e ambos sao vizinhanca neutra (`border-stone-300`->`border-border` ao lado de um `focus:ring-rose-100` preservado, e o cinza do icone NAO-pinado ao lado de um `fill-amber-500` preservado), o que mantem o UC-RBSUB-07 ("Larissa/Wagner leem a lista por cor") valido; (c) contraste medido no runtime antes/depois: identico (425 passam AA / 27 reprovam / pior 1.00 nos dois estados). Isto NAO substitui execucao: o Status continua vindo do manifesto G-7, que a lane do PR alimenta. ---- REGISTRO ANTERIOR: 2026-08-28 (PR desta sessão) — REVALIDAÇÃO ANALÍTICA, suíte NÃO executada. Por quê: Pest só roda no CT 100 (proibição Ti..."
 ---
 
 > ℹ️ **`last_run` 2026-09-08 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
@@ -63,7 +63,7 @@ last_run_ci: "2026-10-13 (PR contratos de tela, recorrente thread 01) — REVALI
 | UC-RBSUB-02 | Validação recusa contato ausente, enum inválido e data no passado | must | `CU-RB-02` 2 | `Wave21NewSubscriptionTest` | 🧪 |
 | UC-RBSUB-03 | Busca de cliente não vaza outro business nem tipo errado | must `[T0]` | `CU-RB-02` 3 | `Wave21NewSubscriptionTest` | 🧪 |
 | UC-RBSUB-04 | Editar cobrança: 404 cross-tenant · 422 se cancelada | must `[T0]` `[V0]` | `CU-RB-04` | `Wave23EditarAssinaturaTest` | 🧪 |
-| UC-RBSUB-05 | **Assinatura criada tem que ser faturável** | must `[V0]` | `CU-RB-02` 5 | `PlanoSemFaturaContratoTest` | ❌ **vermelho esperado** |
+| UC-RBSUB-05 | **Assinatura criada tem que ser faturável** | must `[V0]` | `CU-RB-02` 5 | `PlanoSemFaturaContratoTest` · `AssinaturaNegociadaSchemaRealContratoTest` | 🧪 |
 | UC-RBSUB-06 | MRR normaliza o ciclo e churn ignora trial | must `[V0]` | `CU-RB-14` 2/3 | `Wave4PresenterIndexTest` | 🧪 |
 | UC-RBSUB-07 | Status visual deriva do estado do banco (5 estados) | must | `CU-RB-14` 1 | `Wave4PresenterIndexTest` | 🧪 |
 | UC-RBSUB-08 | Ciclo de vida completo (criar → pausar → retomar → cancelar) sem vazar tenant | must `[T0]` | `CU-RB-05` · `CU-RB-10` | `CustomerJourneyTest` | 🧪 |
@@ -134,7 +134,7 @@ last_run_ci: "2026-10-13 (PR contratos de tela, recorrente thread 01) — REVALI
 
 ---
 
-## UC-RBSUB-05 · A assinatura criada tem que ser faturável · `must` `[V0]` 🔴
+## UC-RBSUB-05 · A assinatura criada tem que ser faturável · `must` `[V0]`
 - **Persona:** Wagner cadastra uma assinatura com valor negociado (ex.: R$ 187,00, que não é o valor
   cheio de nenhum plano). Espera que ela cobre.
 - **Aceite:** Dado uma assinatura ativa criada pelo fluxo real (`POST /recurring-billing`) com
@@ -153,6 +153,14 @@ last_run_ci: "2026-10-13 (PR contratos de tela, recorrente thread 01) — REVALI
   anulam (o gerador cair pra `metadata.valor` × o `store()` recusar valor sem plano × criar plano
   implícito), e escolher remédio antes do diagnóstico é o erro catalogado em
   [proibicoes §5](../../../../memory/proibicoes.md) 2026-07-15.
+- **Desfecho (fato datado, o texto acima fica):** [W] escolheu o remédio "a" em 2026-10-19 e o #9606 ensinou o
+  gerador a faturar por `metadata.valor`/`metadata.ciclo`. **Medido em 2026-10-26:** os dois testes desta linha
+  (`PlanoSemFaturaContratoTest` e `Wave21NewSubscriptionTest`) usam schema sintético com `plan_id` **nulável**,
+  mas a migration e a produção têm `NOT NULL` — no MySQL real o `store()` estourava `1048 Column 'plan_id'
+  cannot be null` e a assinatura negociada nunca existia. A migration `make_plan_id_nullable_on_rb_subscriptions`
+  fecha isso, e [`AssinaturaNegociadaSchemaRealContratoTest`](../../../../Modules/RecurringBilling/Tests/Feature/AssinaturaNegociadaSchemaRealContratoTest.php)
+  prova no schema real: criada sem plano pelo `store()` e faturada pelo gerador com o valor negociado.
+- **Status: 🧪** — verde no CT 100 (MySQL real); a lane `modules-pest` dá o veredito.
 
 ---
 
@@ -205,6 +213,87 @@ last_run_ci: "2026-10-13 (PR contratos de tela, recorrente thread 01) — REVALI
 
 ---
 
+## Cobrança automática pelo Pix Automático do BCB (US-RB-021 · decisão [W] 2026-10-26)
+
+> Motor sem tela: o comando `rb:cobrar-pix-automatico` (06:00, só com `RB_COBRAR_PIX_AUTOMATICO=true`)
+> cobra a fatura das assinaturas desta tela que têm recorrência Pix Automático aprovada. Fonte:
+> SPEC US-RB-021 + API Pix do BCB v2.10.0 (`/cobr` criada pelo recebedor de 10 a 2 dias antes do
+> vencimento). Teste: [`CobrarPixAutomaticoContratoTest`](../../../../Modules/RecurringBilling/Tests/Feature/CobrarPixAutomaticoContratoTest.php).
+
+## UC-RBPA-01 · Fatura da assinatura com recorrência aprovada é cobrada no ciclo, pelo valor dela · `must` `[V0]`
+**Dado** uma assinatura mensal de 106,07 com recorrência `APROVADA` vencendo em 5 dias **Quando** o motor roda
+**Então** a fatura é gerada (106,07, vencimento certo) e nasce 1 cobrança `pix_recv` `emitida` de 10.607 centavos,
+e o banco recebe `valor.original = "106.07"` com o `idRec` da assinatura — os três batem.
+Status: 🧪
+
+## UC-RBPA-02 · Fora da janela de 10 a 2 dias, ou sem recorrência aprovada, não cobra · `must` `[V0]`
+**Dado** vencimentos em 1 e em 11 dias, e assinaturas com recorrência `CRIADA` ou sem recorrência que já têm
+fatura aberta dentro da janela **Quando** o motor roda **Então** nenhuma cobrança nasce e nada vai ao banco.
+Status: 🧪
+
+## UC-RBPA-03 · Rodar duas vezes no mesmo dia não cobra duas vezes · `must` `[V0]`
+**Quando** o motor roda duas vezes **Então** existe 1 cobrança e a 2ª rodada reporta `ja_cobrada`.
+Status: 🧪
+
+## UC-RBPA-04 · Erro do banco fica registrado e a rodada seguinte tenta de novo · `must`
+**Dado** o banco devolvendo erro na 1ª tentativa **Então** a cobrança fica `erro`, e a rodada seguinte cria outra
+com chave (e txid) diferente, que sai `emitida`.
+Status: 🧪
+
+## UC-RBPA-05 · `--dry-run` mostra o que seria cobrado sem gravar nem chamar o banco · `must`
+**Quando** rodo `rb:cobrar-pix-automatico --dry-run` **Então** ele informa as faturas ainda a gerar e as que seriam
+cobradas, e nenhuma fatura, cobrança ou chamada ao banco acontece.
+Status: 🧪
+
+## UC-RBPA-06 · Um business não toca o outro; flag desligada não cobra · `must` `[T0]`
+**Dado** 98 e 99 com assinatura e credencial **Quando** o motor roda para a 98 **Então** a 99 fica sem fatura e sem
+cobrança; e com a flag desligada o comando não cobra ninguém.
+Status: 🧪
+
+## UC-RBPA-07 · Cobrança do ciclo liquidada vira paga, com o valor dela · `must` `[V0]`
+Fonte: API Pix BCB v2.10.0 (webhook `cobsr[]`, status `CONCLUIDA`). Teste: `WebhookPixAutomaticoContratoTest`.
+**Dado** uma cobrança `pix_recv` emitida de 10.607 centavos **Quando** chega o webhook com o `txid` dela em
+`CONCLUIDA` **Então** ela fica `paga` com `valor_pago_centavos = 10607` e a data da liquidação, e sai 1
+`CobrancaPaga` com esse valor (a fatura vira paga pelo listener da US-RB-057); reentrega não repete.
+Status: 🧪
+
+## UC-RBPA-08 · Recorrência aprovada atualiza o mandato; cobrança rejeitada vira erro · `must`
+**Quando** chega `recs[]` com `APROVADA` **Então** o mandato da assinatura com aquele `idRec` passa a `APROVADA`
+(é o que o motor exige para cobrar). E `REJEITADA` deixa a cobrança em `erro`, mas `CANCELADA` não desfaz uma
+cobrança já paga.
+Status: 🧪
+
+## UC-RBPA-09 · Flag desligada: o webhook fica gravado sem processar · `must`
+Status: 🧪
+
+## UC-RBPA-10 · Um business não paga cobrança do outro · `must` `[T0]`
+**Dado** a mesma `txid` numa cobrança da 99 **Quando** o evento é da 98 **Então** nada muda na 99; e o job pedido
+com o business errado não carrega o evento.
+Status: 🧪
+
+## UC-RBPA-11 · Pedir a autorização do Pix Automático gera o QR com o valor da assinatura · `must` `[V0]`
+Fonte: SPEC US-RB-020 + API Pix BCB v2.10.0 (jornada 2: `/locrec` → `/rec` com `loc` → `GET /rec` com `dadosQR`).
+Teste: `MandatoPixAutomaticoContratoTest`.
+**Dado** uma assinatura ativa com plano mensal de 106,07 e cliente com CPF **Quando** peço a autorização **Então** o
+banco recebe a recorrência com `valorRec = "106.07"`, `MENSAL`, início no próximo vencimento, o CPF do cliente e o
+`loc` criado; o mandato grava `id_rec`, `status = CRIADA`, o Pix copia e cola e 10.607 centavos.
+Status: 🧪
+
+## UC-RBPA-12 · Pedir de novo não cria outra recorrência · `must`
+**Dado** um mandato `CRIADA` ou `APROVADA` **Quando** peço de novo **Então** volta o mesmo QR e nada vai ao banco.
+Status: 🧪
+
+## UC-RBPA-13 · A rota respeita flag, empresa e credencial · `must` `[T0]`
+**Então** flag desligada → 404; assinatura de outra empresa → 404 (e o mandato dela não muda); empresa sem credencial
+do Pix Automático → 422 com a mensagem; com tudo certo → o QR na resposta.
+Status: 🧪
+
+## UC-RBPA-14 · O drawer mostra o bloco Pix Automático só com o recurso ligado · `must`
+**Dado** `RB_COBRAR_PIX_AUTOMATICO` desligada **Então** o drawer não recebe o bloco (`pix_automatico = null`). Ligada,
+sem mandato → status nulo e o botão "Pedir autorização"; `CRIADA` → o QR e o Pix copia e cola; `APROVADA` → sem QR.
+Teste: `MandatoPixAutomaticoContratoTest`.
+Status: 🧪
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = **órfão** = viola o `casos-gate` e **bloqueia o
@@ -222,6 +311,10 @@ last_run_ci: "2026-10-13 (PR contratos de tela, recorrente thread 01) — REVALI
   precisa de contrato antes de virar UC.
 - **[BACKLOG]** `Inertia::defer` em `subscriptions`/`kpis` (`CU-RB-14` item 5) — nenhum teste hoje
   prova que a prop **não** vem no render inicial.
+- **[BACKLOG]** Limite de crédito também no contrato (pedido de 2026-10-23) `[V0]` — Dado um cliente
+  acima do limite de crédito, Quando crio uma assinatura para ele, Então com a empresa em "avisar" ela
+  nasce com o aviso de quanto passou; em "bloquear" ela não nasce. É a mesma escolha da venda. Fonte:
+  Omie (o limite vale para OS, contrato e pedido); US-CRM-081.
 
 ---
 
