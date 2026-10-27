@@ -2,14 +2,14 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1022 tarefas abertas** em **57 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1024 tarefas abertas** em **57 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
 | Módulo | Abertas | doing | review | blocked | todo/backlog |
 |---|---:|---:|---:|---:|---:|
 | [`Jana`](#jana) | 83 | 2 | 0 | 0 | 81 |
-| [`Whatsapp`](#whatsapp) | 69 | 0 | 0 | 0 | 69 |
+| [`Whatsapp`](#whatsapp) | 71 | 0 | 0 | 0 | 71 |
 | [`Sells`](#sells) | 68 | 1 | 0 | 0 | 67 |
 | [`Financeiro`](#financeiro) | 52 | 4 | 0 | 0 | 48 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
@@ -26,7 +26,7 @@
 | [`ComunicacaoVisual`](#comunicacaovisual) | 22 | 0 | 0 | 0 | 22 |
 | [`Fiscal`](#fiscal) | 22 | 0 | 0 | 0 | 22 |
 | [`Connector`](#connector) | 20 | 0 | 0 | 0 | 19 |
-| [`Vestuario`](#vestuario) | 20 | 0 | 0 | 0 | 20 |
+| [`Vestuario`](#vestuario) | 20 | 1 | 0 | 0 | 19 |
 | [`Forja`](#forja) | 19 | 0 | 1 | 0 | 7 |
 | [`Mwart`](#mwart) | 19 | 0 | 0 | 0 | 19 |
 | [`Ponto`](#ponto) | 19 | 0 | 0 | 0 | 19 |
@@ -231,6 +231,8 @@
 - **US-WA-316** — Customer 360 sidebar + inferência IA (ondas 2-5 voz-cliente)
 - **US-WA-317** — VoC: ContactProfile acumulativo (Gap#3) + auto-tag IA + dashboard (Gap#4)
 - **US-WA-318** — DNS de mídia WhatsApp não resolve → ~48k mídias pending desde ~12/jun
+- **US-WA-322** — Campanha por WhatsApp — disparo real com salvaguardas anti-ban (ADR 0268 fase 2)
+- **US-WA-323** — Campanha por WhatsApp — "Salvar e disparar" e cancelar na Caixa Unificada
 - **US-WA-324** — Bot de atendimento com menu — opção leva à fila, coleta o nome, depois humano
 - **US-WA-327** — Tela de configurar o menu do bot por canal
 
@@ -893,9 +895,12 @@
 ## Vestuario
 
 
-### todo
+### doing
 
 - **US-VEST-021** — Devolução/troca com prazo CDC + crédito em conta-cliente `p0` _(`p0`)_
+
+### todo
+
 - **US-VEST-022** — Comissão de vendedor (% sobre venda + meta) `p1` _(`p1`)_
 - **US-VEST-023** — Liquidação por categoria/marca/estação (desconto em massa) `p1` _(`p1`)_
 - **US-VEST-024** — Programa fidelidade (R$ [redacted Tier 0] = 1 ponto) com resgate em desconto `p1` _(`p1`)_

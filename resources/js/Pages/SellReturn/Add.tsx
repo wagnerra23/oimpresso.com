@@ -19,6 +19,7 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import { calcularTotais, numUf } from './_components/devolucaoCalculo';
 
@@ -42,6 +43,7 @@ interface VendaOrigem {
   numero: string;
   data: string;
   cliente: string | null;
+  cliente_aceita_vale: boolean; // US-VEST-021 — falso no "Cliente padrão"
   local: string | null;
   devolucao: { id: number; numero: string } | null;
   numero_devolucao_txt: string;
@@ -83,6 +85,8 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
   const [descontoTipo, setDescontoTipo] = useState(venda.desconto_tipo);
   const [descontoValor, setDescontoValor] = useState(venda.desconto_valor_txt);
   const [salvando, setSalvando] = useState(false);
+  // US-VEST-021 — pagar ao cliente depois (fica "A pagar" na lista) ou já como vale-troca.
+  const [pagamento, setPagamento] = useState<'depois' | 'vale'>('depois');
 
   const linhasCalculo = venda.linhas.map((l, i) => ({
     quantidade_txt: quantidades[i] ?? '',
@@ -150,6 +154,21 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
         return;
       }
       toast.success(`Devolução da venda ${venda.numero} salva.`);
+      if (pagamento === 'vale') {
+        // O store() não devolve o id da devolução; o vale é pedido pela venda (uma devolução por venda).
+        const vt = await fetch(`/sell-return/vale-troca-da-venda/${venda.id}`, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrf() },
+        });
+        const vj = await vt.json().catch(() => null);
+        if (vt.ok && vj) {
+          toast.success(`Vale-troca de ${fmtBRL(Number(vj.valor))} no saldo do cliente.`);
+        } else {
+          // A devolução já foi salva: o vale pode ser refeito depois; o aviso diz o porquê.
+          toast.error(vj?.mensagem ?? `A devolução foi salva, mas o vale-troca não (HTTP ${vt.status}).`);
+        }
+      }
       router.visit('/sell-return');
     } catch {
       toast.error('Erro de rede ao salvar a devolução.');
@@ -250,6 +269,28 @@ function FormularioDevolucao({ venda }: { venda: VendaOrigem }) {
             </span>
             <strong className="text-base">Total devolvido: {fmtBRL(totais.total)}</strong>
           </Stack>
+        </FormSection>
+
+        <FormSection title="Pagamento ao cliente" data-contract="pagamento-cliente">
+          <RadioGroup value={pagamento} onValueChange={(v) => setPagamento(v as 'depois' | 'vale')} className="gap-3">
+            <Inline gap={2} className="items-start">
+              <RadioGroupItem id="pagar-depois" value="depois" />
+              <Label htmlFor="pagar-depois" className="font-normal">
+                Pagar depois — a devolução fica &quot;A pagar&quot; na lista de devoluções
+              </Label>
+            </Inline>
+            <Inline gap={2} className="items-start">
+              <RadioGroupItem id="pagar-vale" value="vale" disabled={!venda.cliente_aceita_vale} />
+              <Label htmlFor="pagar-vale" className="font-normal">
+                Vale-troca — o que falta pagar da devolução vira saldo do cliente, para usar no caixa como Adiantamento
+                {!venda.cliente_aceita_vale && (
+                  <span className="block text-xs text-muted-foreground">
+                    Indisponível: a venda é do Cliente padrão. Cadastre o cliente na venda para dar vale-troca.
+                  </span>
+                )}
+              </Label>
+            </Inline>
+          </RadioGroup>
         </FormSection>
 
         <Inline justify="end" gap={2}>
