@@ -207,20 +207,32 @@ related_cu: [CU-OFI-04, CU-OFI-05, CU-OFI-07, CU-OFI-08, CU-OFI-09, CU-OFI-10, C
 > Prova: `Modules/OficinaAuto/Tests/Feature/MecanicosDaOsContratoTest.php` (lane `PHP / Pest (Sells · MySQL)`).
 
 ## UC-OSMEC-01 · Grava vários mecânicos com as horas de cada um
+- **Persona:** chefe de oficina fechando quem trabalhou na OS.
 - **Aceite:** Quando salva Ana 2,5 h e Beto 1 h · Então a OS fica com os dois · Quando salva só Caio 3 h · Então a lista é trocada · Lista vazia limpa.
-- **Status: 🧪**
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/MecanicosDaOsContratoTest.php` — `UC-OSMEC-01 · grava vários mecânicos com as horas de cada um, e regravar troca a lista`.
+- **Regressão que defende:** decisão [W] 2026-10-26 (vários mecânicos por OS, horas digitadas).
+- **Status: ⬜** — não verificado: CT 100 fora do ar, aguarda a lane `sells-pest` do CI.
 
 ## UC-OSMEC-02 · Horas inválidas ou mecânico repetido são recusados
+- **Persona:** chefe de oficina digitando horas.
 - **Aceite:** Horas 0, negativas, acima de 999,99 ou o mesmo mecânico duas vezes · Então é recusado e a lista anterior fica intacta.
-- **Status: 🧪**
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/MecanicosDaOsContratoTest.php` — `UC-OSMEC-02 · horas zero, negativas, acima do limite ou mecânico repetido são recusados e nada muda`.
+- **Regressão que defende:** horas inválidas virando comissão.
+- **Status: ⬜** — não verificado: CT 100 fora do ar, aguarda a lane `sells-pest` do CI.
 
 ## UC-OSMEC-03 · Mecânico ou OS de outra empresa são recusados `[T0]`
+- **Persona:** usuário da empresa 98; a 99 é a adversária.
 - **Aceite:** Lançar mecânico da empresa 99 numa OS da 98, ou qualquer mecânico numa OS da 99 pela 98 · Então é recusado e nada é gravado.
-- **Status: 🧪**
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/MecanicosDaOsContratoTest.php` — `UC-OSMEC-03 · mecânico ou OS de outra empresa são recusados `[T0]``.
+- **Regressão que defende:** ADR 0093: mecânico de outra empresa recebendo horas da OS.
+- **Status: ⬜** — não verificado: CT 100 fora do ar, aguarda a lane `sells-pest` do CI.
 
 ## UC-OSMEC-04 · A comissão lê as horas pela venda da OS
+- **Persona:** comissão por regra (US-COMM-015) lendo as horas da venda.
 - **Aceite:** Dada a OS ligada à venda X com Ana 3 h e Beto 1,5 h · Então `TecnicosDaOs::daVenda(empresa, X)` devolve os dois com as horas · Outra empresa ou outra venda recebe lista vazia · O recurso nasce desligado.
-- **Status: 🧪**
+- **Teste:** `Modules/OficinaAuto/Tests/Feature/MecanicosDaOsContratoTest.php` — `UC-OSMEC-04 · a comissão lê as horas pela venda da OS, só na empresa dela, e o recurso nasce desligado`.
+- **Regressão que defende:** comissão do técnico lendo horas de outra empresa ou de outra venda.
+- **Status: ⬜** — não verificado: CT 100 fora do ar, aguarda a lane `sells-pest` do CI.
 ---
 
 ## Rastreabilidade (âncora no SDD §6 · [ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md))
