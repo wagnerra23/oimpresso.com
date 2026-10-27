@@ -46,6 +46,8 @@ Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezon
     Route::get('funil', [Modules\Crm\Http\Controllers\FunilController::class, 'index'])->name('crm.funil.index');
     Route::post('funil', [Modules\Crm\Http\Controllers\FunilController::class, 'store'])->name('crm.funil.store');
     Route::patch('funil/{id}/etapa', [Modules\Crm\Http\Controllers\FunilController::class, 'mover'])->whereNumber('id')->name('crm.funil.mover');
+    // US-CRM-097 — painel NPS (respostas da pesquisa pós-venda/OS). Permissão crm.nps.ver.
+    Route::get('nps', [Modules\Crm\Http\Controllers\NpsPainelController::class, 'index'])->name('crm.nps.index');
 
     Route::resource('leads', 'Modules\Crm\Http\Controllers\LeadController');
     Route::get('lead/{id}/convert', [Modules\Crm\Http\Controllers\LeadController::class, 'convertToCustomer']);

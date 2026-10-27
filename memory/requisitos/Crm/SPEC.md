@@ -639,9 +639,9 @@ _Aprovação pendente: Wagner via ADR `memory/decisions/proposals/drafts/crm-pre
 
 ### US-CRM-097 · NPS pós-venda e pós-OS — nota 0-10 pelo WhatsApp e painel das respostas
 
-**Implementado em:** `Modules/Crm/Services/Nps/PesquisaNps.php` · `Modules/Crm/Console/Commands/EnviarPesquisaNpsCommand.php` · `Modules/Crm/Database/Migrations/2026_10_27_130000_create_crm_nps_pesquisas_table.php`
+**Implementado em:** `Modules/Crm/Services/Nps/PesquisaNps.php` · `Modules/Crm/Console/Commands/EnviarPesquisaNpsCommand.php` · `Modules/Crm/Database/Migrations/2026_10_27_130000_create_crm_nps_pesquisas_table.php` · `Modules/Crm/Http/Controllers/NpsPainelController.php`
 
-**Testado em:** `Modules/Crm/Tests/Feature/CrmNpsContratoTest.php`
+**Testado em:** `Modules/Crm/Tests/Feature/CrmNpsContratoTest.php` · `Modules/Crm/Tests/Feature/CrmNpsPainelContratoTest.php`
 
 > owner: — · priority: p2 · estimate: 10h · type: story
 > blocked_by: —
@@ -654,5 +654,5 @@ _Aprovação pendente: Wagner via ADR `memory/decisions/proposals/drafts/crm-pre
 3. Um cliente recebe no máximo uma pesquisa a cada 90 dias.
 4. Envio pelo contrato `App\Contracts\Atendimento\AvisaClienteWhatsapp` (o Modules/Whatsapp implementa sobre o notificador da US-WA-319, que confere consentimento e celular), com o link `/nps/{token}` (token de 40 caracteres, único). Sem o contrato ligado ou recusado pelo canal: `nao_enviado` com o motivo.
 5. Resposta 0-10 com comentário opcional: só a primeira vale; nota fora da escala ou token desconhecido são recusados. A empresa vem da linha do token, nunca de quem responde.
-6. Resumo por empresa e período: promotores (9-10), neutros (7-8), detratores (0-6) e NPS = % promotores − % detratores.
+6. Resumo por empresa e período: promotores (9-10), neutros (7-8), detratores (0-6) e NPS = % promotores − % detratores. Painel `/crm/nps` (`Crm/Nps/Index`, permissão `crm.nps.ver`, ninguém tem por padrão): resumo e até 100 respostas do período (7, 30 ou 90 dias), detratores primeiro, só da empresa da sessão.
 7. Página pública de resposta e painel das respostas: PR seguinte, com protótipo em `prototipo-ui/`.

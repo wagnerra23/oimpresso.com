@@ -182,6 +182,8 @@ class DataController extends Controller
                                 ['key' => 'dashboard',      'label' => 'Dashboard',      'href' => '/crm/dashboard'],
                                 // US-CRM-092 · ADR 0441 — o funil só aparece para quem pode vê-lo.
                                 auth()->user()?->can('crm.funil.ver') ? ['key' => 'funil', 'label' => 'Funil', 'href' => '/crm/funil'] : null,
+                                // US-CRM-097 — painel NPS só para quem pode vê-lo.
+                                auth()->user()?->can('crm.nps.ver') ? ['key' => 'nps', 'label' => 'NPS', 'href' => '/crm/nps'] : null,
                                 ['key' => 'leads',          'label' => 'Leads',          'href' => '/crm/leads'],
                                 ['key' => 'follow-ups',     'label' => 'Follow-ups',     'href' => '/crm/follow-ups'],
                                 ['key' => 'campaigns',      'label' => 'Campanhas',      'href' => '/crm/campaigns'],
@@ -428,6 +430,7 @@ class DataController extends Controller
         // US-CRM-092 · ADR 0441 — funil de vendas em kanban. Ninguém tem por padrão.
         $permissions[] = ['value' => 'crm.funil.ver', 'label' => 'Funil de vendas: ver', 'default' => false];
         $permissions[] = ['value' => 'crm.funil.editar', 'label' => 'Funil de vendas: criar e mover negócios', 'default' => false];
+        $permissions[] = ['value' => 'crm.nps.ver', 'label' => 'NPS: ver as respostas da pesquisa', 'default' => false];
 
         return $permissions;
     }
