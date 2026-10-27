@@ -45,7 +45,8 @@ no desenho do alvo da A1, sem chamar a API da loja e sem expor as chaves dela.
 4. F4 — smoke em biz=1 com a flag ligada.
 5. F3-2 (2026-10-27) — `_components/SincronizarLoja.tsx`: sincronizar categorias, produtos (offset de 100 até
    `total_products = 0`) e pedidos, e reiniciar, pelos endpoints JSON da Blade. `pode` ganha `categorias` e `pedidos`;
-   `ultimas` (datas por tipo) vem adiada. UC-WOOP-05/06. Mapear impostos segue na Blade.
+   `ultimas` (datas por tipo) vem adiada. UC-WOOP-05/06. Mapa de impostos em `_components/MapaImpostos.tsx`: lê
+   `/woocommerce/tax-rates-map` só ao abrir (taxas da loja vêm da API) e grava no `map-taxrates` de sempre. UC-WOOP-07/08.
 6. F5 — cutover — decisão [W] 2026-10-27 ("pode destravar todos"), depois de mapear impostos e o detalhe do log.
 
 ## 4–8. Tokens · estados · responsividade · atalhos · contrato

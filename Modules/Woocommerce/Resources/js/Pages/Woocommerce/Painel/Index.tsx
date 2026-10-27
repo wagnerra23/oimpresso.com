@@ -6,7 +6,7 @@
 //
 // Painel da sincronização com a loja WooCommerce. Atrás da flag `useV2WoocommercePainel` (WoocommerceController::FLAG_V2);
 // desligada, a rota segue na Blade `woocommerce::woocommerce.index`. `?classico=1` abre a Blade com a flag ligada.
-// Sincronizar e reiniciar acontecem aqui (F3-2, `_components/SincronizarLoja`); mapear impostos segue na Blade.
+// Sincronizar, reiniciar (`_components/SincronizarLoja`) e mapear impostos (`_components/MapaImpostos`) acontecem aqui (F3-2).
 // Charter: ./Index.charter.md · Casos: ./Index.casos.md · RUNBOOK: memory/requisitos/Woocommerce/RUNBOOK-painel.md
 // Âncora de design: governance/design/targets/woocommerce--index.alvo.json (A1) ← integra-extras.jsx WooCommercePage.
 //
@@ -16,7 +16,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router } from '@inertiajs/react';
 import { useMemo, useState, type ReactNode } from 'react';
-import { ExternalLink, Info, Search } from 'lucide-react';
+import { Info, Search } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Badge } from '@/Components/ui/badge';
@@ -24,6 +24,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { PageHeader } from '@/Components/PageHeader';
 import WoocommerceAbas from '../_components/WoocommerceAbas';
 import SincronizarLoja, { type PodeSincronizar, type Ultimas } from '../_components/SincronizarLoja';
+import MapaImpostos from '../_components/MapaImpostos';
 import EmptyState from '@/Components/shared/EmptyState';
 import DataTable from '@/Components/shared/DataTable';
 import KpiCard from '@/Components/shared/KpiCard';
@@ -50,7 +51,7 @@ interface Props {
   resumo?: Resumo;
   produtos?: { itens: ProdutoLoja[]; pagina: number; ultima_pagina: number; total: number };
   ultimas?: Ultimas;
-  pode: PodeSincronizar & { configurar: boolean };
+  pode: PodeSincronizar & { configurar: boolean; impostos: boolean };
 }
 
 const SITUACAO: Record<Situacao, { rotulo: string; variante: 'success' | 'warning' | 'info' | 'neutral' }> = {
@@ -84,11 +85,7 @@ function PainelIndex({ configurado, resumo, produtos, ultimas, pode }: Props) {
         <PageHeader title="WooCommerce"
           subtitle={resumo?.ultima_sincronizacao ? <>última sincronização de produtos em <strong>{resumo.ultima_sincronizacao}</strong></> : 'sincronização da loja'}
           subnav={<WoocommerceAbas ativa="/woocommerce" podeConfigurar={pode.configurar} />}
-          actions={pode.sincronizar ? (
-            <Button asChild variant="outline">
-              <a href="/woocommerce?classico=1"><ExternalLink className="size-4" /> Mapear impostos na tela clássica</a>
-            </Button>
-          ) : undefined} />
+          actions={pode.impostos && configurado ? <MapaImpostos /> : undefined} />
       </div>
 
       <Stack gap={4} className="px-6 pt-4">

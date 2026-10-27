@@ -54,9 +54,19 @@ last_run: "2026-10-14"
   alheia mantém o dela.
 - **Status: 🧪**
 
+## UC-WOOP-07 · O mapa de impostos traz só as minhas taxas, e avisa quando a loja não devolve taxa · `[T0]`
+- **Aceite:** Dado uma taxa minha com id na loja e uma de outro negócio · Quando abro o mapa (`/woocommerce/tax-rates-map`) ·
+  Então a lista do ERP traz a minha, com o id da loja salvo, e não traz a alheia · E sem lista de taxas da loja,
+  `loja_respondeu` é falso e a tela avisa em vez de mostrar um mapa vazio.
+- **Status: 🧪**
+
+## UC-WOOP-08 · Gravar o mapa como a tela nova grava não toca taxa de outro negócio · `[T0]`
+- **Aceite:** Dado uma taxa minha e uma alheia · Quando mando `taxes[minha] = ''` e `taxes[alheia] = 99` para
+  `/woocommerce/map-taxrates` · Então a minha fica sem vínculo · E a alheia mantém o vínculo dela.
+- **Status: 🧪**
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 - [BACKLOG] Sincronizar produtos em páginas de 100 até `total_products = 0` (só no navegador; precisa de loja de teste).
-- [BACKLOG] Mapear impostos pela tela nova (hoje na Blade: chama a API da loja).
 - [BACKLOG] Preço e estoque enviados por produto — decisão [W] (regra mestre).
 - [BACKLOG] Testar a conexão com a loja sem travar a abertura da página.
 
@@ -64,3 +74,4 @@ last_run: "2026-10-14"
 - 2026-10-13 · [CL] criado com a F3 da thread `woocommerce/playbook/01`.
 - 2026-10-14 · [CL] revalidado na thread 02: as abas saíram para `_components/WoocommerceAbas.tsx`; UC-WOOP-01..04 verdes no CT 100.
 - 2026-10-27 · [CL] F3-2: sincronizar e reiniciar na tela nova (UC-WOOP-05, UC-WOOP-06).
+- 2026-10-27 · [CL] F3-2: mapa de impostos na tela nova (UC-WOOP-07, UC-WOOP-08).

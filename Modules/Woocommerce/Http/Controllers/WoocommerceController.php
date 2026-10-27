@@ -79,8 +79,8 @@ class WoocommerceController extends Controller
     public function index()
     {
         // Thread woocommerce/playbook/01: com a flag ligada o painel é a tela React. `?classico=1` mantém a Blade. A tela
-        // React sincroniza e reinicia pelos mesmos endpoints JSON da Blade (F3-2); mapear impostos segue na Blade, que
-        // chama a API da loja (getTaxRates). Ao abrir, a tela React só lê o banco e nunca recebe as chaves da API.
+        // React sincroniza, reinicia e mapeia impostos pelos mesmos endpoints da Blade (F3-2); as taxas da loja só são lidas
+        // quando o mapa abre (mapaDeImpostos). Ao abrir, a tela React só lê o banco e nunca recebe as chaves da API.
         $business_id = (int) request()->session()->get('business.id');
         if ($this->usaTelaNova($business_id)) {
             $this->authService->ensureModulo($business_id);
@@ -103,6 +103,7 @@ class WoocommerceController extends Controller
                     'sincronizar' => $this->authService->podeExecutarAcao($business_id, 'woocommerce.sync_products'),
                     'categorias' => $this->authService->podeExecutarAcao($business_id, 'woocommerce.syc_categories'),
                     'pedidos' => $this->authService->podeExecutarAcao($business_id, 'woocommerce.sync_orders'),
+                    'impostos' => $this->authService->podeExecutarAcao($business_id, 'woocommerce.map_tax_rates'),
                 ],
             ]);
         }
@@ -547,6 +548,43 @@ class WoocommerceController extends Controller
 
             return $last_sync;
         }
+    }
+
+    /**
+     * GET /woocommerce/tax-rates-map — dados do mapa de impostos para a tela React (painel, F3-2).
+     *
+     * O mesmo que o index() da Blade monta: as taxas do ERP do negócio da sessão com o vínculo atual, e as taxas da
+     * loja lidas da API (getTaxRates). Só é chamado quando a pessoa abre o mapa, para o painel continuar sem chamar
+     * a loja ao abrir. `loja_respondeu` só é verdadeiro com pelo menos uma taxa da loja: o getAllResponse() engole erro
+     * da API e devolve lista vazia, então "não respondeu" e "loja sem taxa cadastrada" não se distinguem daqui.
+     */
+    public function mapaDeImpostos()
+    {
+        $business_id = (int) request()->session()->get('business.id');
+        $this->authService->ensureAcao($business_id, 'woocommerce.map_tax_rates');
+
+        $erp = TaxRate::where('business_id', $business_id)->orderBy('name')->get(['id', 'name', 'amount', 'woocommerce_tax_rate_id'])
+            ->map(fn ($t) => [
+                'id' => (int) $t->id,
+                'nome' => (string) $t->name,
+                'aliquota' => (float) $t->amount,
+                'loja_id' => $t->woocommerce_tax_rate_id !== null ? (int) $t->woocommerce_tax_rate_id : null,
+            ])->values();
+
+        $loja = [];
+        $respondeu = false;
+        if (empty($this->woocommerceUtil->notAllowedInDemo())) {
+            try {
+                foreach ((array) $this->woocommerceUtil->getTaxRates($business_id) as $r) {
+                    $loja[] = ['id' => (int) $r->id, 'nome' => (string) $r->name];
+                }
+                $respondeu = $loja !== [];
+            } catch (\Throwable $e) {
+                $respondeu = false;
+            }
+        }
+
+        return response()->json(['erp' => $erp, 'loja' => $loja, 'loja_respondeu' => $respondeu]);
     }
 
     /**
