@@ -71,6 +71,8 @@ class Vehicle extends Model
         'manufacture_year',
         'model_year',
         'renavam',
+        'brand',
+        'model',
         'vehicle_type',
         'capacity_m3',
         'current_status',
