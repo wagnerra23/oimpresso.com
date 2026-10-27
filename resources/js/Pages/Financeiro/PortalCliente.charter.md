@@ -4,7 +4,7 @@ page: /portal-cliente/{token}
 component: resources/js/Pages/Financeiro/PortalCliente.tsx
 runbook: memory/requisitos/Financeiro/RUNBOOK-portal-cliente.md
 related_us: [US-FIN-082]
-related_prototype: n/a (tela pública fora do AppShellV2; segue o padrão de Pages/Financeiro/PagamentoPublico.tsx)
+related_prototype: prototipo-ui/cowork/Wagner/financeiro-pagamento-publico.jsx (FinPagamentoPublicoPage)
 status: draft
 ---
 
