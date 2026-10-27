@@ -14,7 +14,7 @@ module: Financeiro
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 376 arquivos em 22 papéis.
+**Total mapeado:** 383 arquivos em 22 papéis.
 
 ## Controllers — 25
 
@@ -61,7 +61,7 @@ module: Financeiro
 
 - [AdvisorViewScope.php](../../../Modules/Financeiro/Http/Middleware/AdvisorViewScope.php)
 
-## Services — 16
+## Services — 17
 
 - [BoletoOcrService.php](../../../Modules/Financeiro/Services/BoletoOcrService.php)
 - [CusteioRkwService.php](../../../Modules/Financeiro/Services/CusteioRkwService.php)
@@ -74,6 +74,7 @@ module: Financeiro
 - [PluggyClient.php](../../../Modules/Financeiro/Services/Integrations/PluggyClient.php)
 - [LinhaDigitavelValidator.php](../../../Modules/Financeiro/Services/LinhaDigitavelValidator.php)
 - [MeioDePagarDoTitulo.php](../../../Modules/Financeiro/Services/MeioDePagarDoTitulo.php)
+- [PagamentoBancoService.php](../../../Modules/Financeiro/Services/PagamentoBancoService.php)
 - [ReguaCobrancaConfig.php](../../../Modules/Financeiro/Services/ReguaCobrancaConfig.php)
 - [RetencaoNfseTituloService.php](../../../Modules/Financeiro/Services/RetencaoNfseTituloService.php)
 - [TituloAutoService.php](../../../Modules/Financeiro/Services/TituloAutoService.php)
@@ -84,7 +85,7 @@ module: Financeiro
 
 - [CnabDirectStrategy.php](../../../Modules/Financeiro/Strategies/CnabDirectStrategy.php)
 
-## Models / Entities — 17
+## Models / Entities — 18
 
 - [AccountsLegacyMap.php](../../../Modules/Financeiro/Models/AccountsLegacyMap.php)
 - [Advisor.php](../../../Modules/Financeiro/Models/Advisor.php)
@@ -98,6 +99,7 @@ module: Financeiro
 - [BusinessScopeImpl.php](../../../Modules/Financeiro/Models/Concerns/BusinessScopeImpl.php)
 - [ContaBancaria.php](../../../Modules/Financeiro/Models/ContaBancaria.php)
 - [ExtratoLancamento.php](../../../Modules/Financeiro/Models/ExtratoLancamento.php)
+- [PagamentoBanco.php](../../../Modules/Financeiro/Models/PagamentoBanco.php)
 - [PlanoConta.php](../../../Modules/Financeiro/Models/PlanoConta.php)
 - [Titulo.php](../../../Modules/Financeiro/Models/Titulo.php)
 - [TituloAnexo.php](../../../Modules/Financeiro/Models/TituloAnexo.php)
@@ -149,7 +151,7 @@ module: Financeiro
 - [api.php](../../../Modules/Financeiro/Routes/api.php)
 - [web.php](../../../Modules/Financeiro/Routes/web.php)
 
-## Migrations (schema) — 32
+## Migrations (schema) — 33
 
 - [2026_04_24_140001_create_fin_planos_conta_table.php](../../../Modules/Financeiro/Database/Migrations/2026_04_24_140001_create_fin_planos_conta_table.php)
 - [2026_04_24_140002_create_fin_categorias_table.php](../../../Modules/Financeiro/Database/Migrations/2026_04_24_140002_create_fin_categorias_table.php)
@@ -183,6 +185,7 @@ module: Financeiro
 - [2026_10_20_120000_create_fin_titulo_lembretes_table.php](../../../Modules/Financeiro/Database/Migrations/2026_10_20_120000_create_fin_titulo_lembretes_table.php)
 - [2026_10_20_130000_add_retencao_to_fin_titulo_baixas_meio_pagamento.php](../../../Modules/Financeiro/Database/Migrations/2026_10_20_130000_add_retencao_to_fin_titulo_baixas_meio_pagamento.php)
 - [2026_10_26_120000_add_fase_to_fin_titulo_lembretes.php](../../../Modules/Financeiro/Database/Migrations/2026_10_26_120000_add_fase_to_fin_titulo_lembretes.php)
+- [2026_10_27_130000_create_fin_pagamentos_banco_table.php](../../../Modules/Financeiro/Database/Migrations/2026_10_27_130000_create_fin_pagamentos_banco_table.php)
 
 ## Seeders — 3
 
@@ -319,18 +322,19 @@ module: Financeiro
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Unificado/Index.casos.md)
 - [Novo.casos.md](../../../resources/js/Pages/Financeiro/Unificado/Novo.casos.md)
 
-## Testes (Pest) — 92
+## Testes (Pest) — 93
 
-- 87 em [Modules/Financeiro/Tests/Feature/](../../../Modules/Financeiro/Tests/Feature)
+- 88 em [Modules/Financeiro/Tests/Feature/](../../../Modules/Financeiro/Tests/Feature)
 - 1 em [Modules/Financeiro/Tests/Feature/Advisor/](../../../Modules/Financeiro/Tests/Feature/Advisor)
 - 4 em [Modules/Financeiro/Tests/Unit/](../../../Modules/Financeiro/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 43
+## Demais arquivos (manifestos, docs, assets e misc) — 44
 
 - [.gitkeep](../../../Modules/Financeiro/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Financeiro/Console/.gitkeep)
 - [BoletoStrategy.php](../../../Modules/Financeiro/Contracts/BoletoStrategy.php)
+- [PagadorBanco.php](../../../Modules/Financeiro/Contracts/PagadorBanco.php)
 - [.gitkeep](../../../Modules/Financeiro/Database/Migrations/.gitkeep)
 - [.gitkeep](../../../Modules/Financeiro/Database/Seeders/.gitkeep)
 - [.gitkeep](../../../Modules/Financeiro/Database/factories/.gitkeep)
