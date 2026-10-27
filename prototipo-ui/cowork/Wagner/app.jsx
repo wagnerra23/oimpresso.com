@@ -858,7 +858,6 @@ function App() {
   if (route === "oficinaauto") content = <window.OficinaPage />;else
   if (route === "oficina-os") content = <window.OficinaOSPage />;else
   if (route === "crm-ficha") content = <window.CrmFicha />;else
-  if ((route === "fin-pagar" || route === "fin-portal-cliente") && window.FinPagamentoPublicoPage) content = <window.FinPagamentoPublicoPage key={route} view={route === "fin-pagar" ? "pagar" : "portal"} />;else
   if ((route === "crm-portal" || route.indexOf("crm-portal-") === 0) && window.CrmPortalPage) content = <window.CrmPortalPage key={route} view={route.slice(11) || "painel"} />;else
   if ((route === "crm" || route.indexOf("crm-") === 0) && window.CrmBladePage) {
     // Módulo Crm do legado (crm::layouts.nav) traduzido em crm-blade.jsx.
