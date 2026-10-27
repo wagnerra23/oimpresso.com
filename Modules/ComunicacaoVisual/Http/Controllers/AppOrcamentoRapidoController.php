@@ -99,7 +99,7 @@ class AppOrcamentoRapidoController extends Controller
             return $this->invalido($erro);
         }
 
-        $calc = $this->calculator->calcular($this->payload($user, null, [$item]))['itens'][0];
+        $calc = $this->calculator->calcular($this->payload($user, null, [$item]), $bizId)['itens'][0];
 
         return response()->json([
             'area_m2' => (float) $calc['area_m2'],
@@ -171,7 +171,7 @@ class AppOrcamentoRapidoController extends Controller
             return $this->invalido($campos);
         }
 
-        $calculado = $this->calculator->calcular($this->payload($user, $clienteId, $itens));
+        $calculado = $this->calculator->calcular($this->payload($user, $clienteId, $itens), $bizId);
 
         // DUPLA PROVA: o total que o app mostrou × o que o ERP calculou, item a item, em centavos.
         foreach (array_values($d['itens']) as $n => $i) {

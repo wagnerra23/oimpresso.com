@@ -48,6 +48,8 @@ on:
       - 'app/Http/Controllers/SellCommissionSplitController.php'
       - 'app/Http/Controllers/SellController.php'
       - 'app/Http/Controllers/Api/App/PedidosController.php'
+      - 'app/Services/AppLojas/EtiquetaProducao.php'  # QR da OS/etapa (AppProducaoApontamentoContratoTest)
+      - 'Modules/Producao/Http/Controllers/Api/AppApontamentoController.php'  # API de apontamento do app
       - 'app/Domain/Fsm/Support/PassosDoProcesso.php'
       - 'database/migrations/2026_10_16_120000_add_passo_to_sale_process_stages.php'
       - 'database/seeders/FsmProcessoVendaComProducaoSeeder.php'
@@ -75,6 +77,8 @@ on:
       - 'app/Http/Controllers/ServiceOrderFsmActionController.php'
       - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php'
       - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaAssinaturaTest.php'  # UC-FLX-22 assinatura na entrega
+      - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderGuardsFsmTest.php'  # US-OFICINA-006 trava FSM
+      - 'Modules/OficinaAuto/Entities/ServiceOrder.php'
       - 'Modules/OficinaAuto/Services/AssinaturaEntrega.php'
       - 'Modules/OficinaAuto/Http/Controllers/ServiceOrderAssinaturaController.php'
       - 'Modules/OficinaAuto/Entities/OsAssinatura.php'
@@ -129,6 +133,9 @@ on:
       - 'app/Http/Controllers/CashRegisterController.php'
       # Sob teste em SellReturnIndexContratoTest (UC-SRIDX-*, lista de devoluções).
       - 'app/Http/Controllers/SellReturnController.php'
+      # US-VEST-021 — vale-troca: os listeners decidem o sentido do saldo de Adiantamento.
+      - 'app/Listeners/AddAccountTransaction.php'
+      - 'app/Listeners/DeleteAccountTransaction.php'
       # Sob teste em PesquisaSatisfacaoEntregaContratoTest (US-SELL-071 · UC-FLX-25).
       - 'app/Jobs/PesquisaSatisfacaoEntregaJob.php'
       - 'app/Services/Sells/PesquisaEntregaConfig.php'
@@ -149,6 +156,7 @@ on:
       # Sob teste em ImportSalesContratoTest (thread 05 · importação de vendas por planilha).
       - 'app/Http/Controllers/ImportSalesController.php'
       - 'app/Services/Sells/**'
+      - 'app/Domain/Fsm/SideEffects/CancelarVendaCascade.php'  # US-SELL-077 cancelamento devolve estoque
       # Sob teste em SellsTravaAposNotaContratoTest (US-SELL-072): contrato e leitores de nota.
       - 'app/Contracts/Fiscal/**'
       - 'Modules/NfeBrasil/Services/NotaDaVendaNfeBrasil.php'
@@ -221,6 +229,9 @@ jobs:
               - 'app/Utils/CashRegisterUtil.php'
               - 'app/Http/Controllers/CashRegisterController.php'
               - 'app/Http/Controllers/SellReturnController.php'
+              # US-VEST-021 — vale-troca: os listeners decidem o sentido do saldo de Adiantamento.
+              - 'app/Listeners/AddAccountTransaction.php'
+              - 'app/Listeners/DeleteAccountTransaction.php'
               - 'app/Jobs/PesquisaSatisfacaoEntregaJob.php'
               - 'app/Services/Sells/PesquisaEntregaConfig.php'
               - 'app/Console/Commands/Sells/PesquisaSatisfacaoEntregaCommand.php'
@@ -236,6 +247,7 @@ jobs:
               - 'resources/js/Pages/Discount/**'
               - 'app/Http/Controllers/ImportSalesController.php'
               - 'app/Services/Sells/**'
+              - 'app/Domain/Fsm/SideEffects/CancelarVendaCascade.php'  # US-SELL-077 cancelamento devolve estoque
               - 'app/Contracts/Fiscal/**'
               - 'Modules/NfeBrasil/Services/NotaDaVendaNfeBrasil.php'
               - 'Modules/NFSe/Services/NotaDaVendaNfse.php'
@@ -243,6 +255,8 @@ jobs:
               - 'config/mwart.php'
               - 'app/Support/Mwart.php'
               - 'app/Http/Controllers/Api/App/PedidosController.php'
+              - 'app/Services/AppLojas/EtiquetaProducao.php'  # QR da OS/etapa (AppProducaoApontamentoContratoTest)
+              - 'Modules/Producao/Http/Controllers/Api/AppApontamentoController.php'  # API de apontamento do app
               - 'app/Domain/Fsm/Support/PassosDoProcesso.php'
               - 'database/migrations/2026_10_16_120000_add_passo_to_sale_process_stages.php'
               - 'database/seeders/FsmProcessoVendaComProducaoSeeder.php'
@@ -270,6 +284,8 @@ jobs:
               - 'app/Http/Controllers/ServiceOrderFsmActionController.php'
               - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php'
               - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaAssinaturaTest.php'  # UC-FLX-22 assinatura na entrega
+              - 'Modules/OficinaAuto/Tests/Feature/ServiceOrderGuardsFsmTest.php'  # US-OFICINA-006 trava FSM
+              - 'Modules/OficinaAuto/Entities/ServiceOrder.php'
               - 'Modules/OficinaAuto/Services/AssinaturaEntrega.php'
               - 'Modules/OficinaAuto/Http/Controllers/ServiceOrderAssinaturaController.php'
               - 'Modules/OficinaAuto/Entities/OsAssinatura.php'
@@ -521,6 +537,7 @@ jobs:
             tests/Feature/Sells/AppOsApiContratoTest.php \
             Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaFotoTest.php \
             Modules/OficinaAuto/Tests/Feature/ServiceOrderEntregaAssinaturaTest.php \
+            Modules/OficinaAuto/Tests/Feature/ServiceOrderGuardsFsmTest.php \
             tests/Feature/Sells/AppOsArquivosApiContratoTest.php \
             tests/Feature/Sells/AppPedidoEntregaContratoTest.php \
             tests/Feature/Sells/AppOficinaAgendaApiContratoTest.php \
@@ -547,6 +564,8 @@ jobs:
             tests/Feature/Sells/SalesOrderIndexContratoTest.php \
             tests/Feature/Sells/SellReturnIndexContratoTest.php \
             tests/Feature/Sells/SellReturnAddContratoTest.php \
+            tests/Feature/Sells/ValeTrocaContratoTest.php \
+            tests/Feature/Sells/CancelamentoDaVendaContratoTest.php \
             tests/Feature/Sells/DescontosContratoTest.php \
             tests/Feature/Sells/SellsPosIndexContratoTest.php \
             tests/Feature/Sells/QuotationConvertTest.php \

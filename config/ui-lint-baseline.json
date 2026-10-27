@@ -549,7 +549,7 @@
     "resources/js/Pages/OficinaAuto/ProducaoOficina/_components/DragConfirmDialog.tsx": {
       "R1": 19
     },
-    "resources/js/Pages/OficinaAuto/ProducaoOficina/_components/KanbanDndProvider.tsx": {
+    "resources/js/Components/shared/KanbanDndProvider.tsx": {
       "R1": 4
     },
     "resources/js/Pages/OficinaAuto/ProducaoOficina/_components/MercosulPlate.tsx": {

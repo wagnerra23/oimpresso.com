@@ -73,6 +73,17 @@ na_justified:
 - [ ] PDF gerado via `eduardokum/sped-da` salvo em `storage/app/nfe-brasil/{business_id}/danfe/{chave}.pdf`
 - [ ] Test Feature: emissão happy path + idempotência + rejeição cStat 217 + isolamento
 
+**Pré-voo da NFC-e automática — medido em produção em 2026-10-26 (só leitura), [W] 2026-10-26:**
+nenhuma empresa passou nos quatro itens (certificado A1 válido · CSC e série · ambiente de produção · não emitir por
+outro sistema), e nenhuma foi ligada.
+- **biz=1 (WR2):** estava ligada (`auto_emission_enabled`), mas o certificado A1 tinha vencido em 2026-08-06 e a
+  SEFAZ-SC recusava as NFC-e com 781 ("emissor não habilitado") — faltava o credenciamento NFC-e. Nenhuma venda nos
+  30 dias anteriores.
+- **biz=4 (ROTA LIVRE):** emitia pelo Delphi (WR Comercial/OfficeImpresso), o sistema que está sendo migrado para o
+  oimpresso — [W] 2026-10-26: *"emite pelo sistema Delphi meu o que esta sendo migrado"*. Ligar aqui duplicaria a nota.
+- **biz=164 (Martinho):** emitia NF-e pelo Delphi (as notas no oimpresso eram importadas, `legacy_source`).
+Ligar a NFC-e nessas empresas é passo de cutover da migração (US-NFE-074), não um toggle.
+
 ### US-NFE-003 · Visualizar e reimprimir NFCe/NFe emitida
 
 > **Área:** Emissao
@@ -383,6 +394,20 @@ Então o XML original ainda está lá, com hash SHA256 batendo com `nfe_emissoes
 **Implementação:** Storage `storage/app/nfe-brasil/{business_id}/xmls/{ano}/{mes}/{chave}.xml` (read-only após escrita); `xml_hash` na tabela; rotina diária verifica integridade.
 **Testado em:** _lacuna — XmlImutabilidadeTest não existe; nenhum teste valida `xml_hash` SHA256 batendo nem imutabilidade read-only do XML após 5 anos_.
 
+### R-NFE-045 · A config da SEFAZ leva o CSC da empresa com o nome que a lib lê
+
+```gherkin
+Dado uma empresa com CSC e id do CSC cadastrados (business.csc / business.csc_id)
+Quando a NFC-e é assinada
+Então a configuração da sped-nfe leva CSC e CSCid com esses valores (as chaves que Common\Tools::addQRCode lê)
+E empresa sem CSC leva vazio — no QR Code versão 3 a lib não exige o CSC
+```
+
+**Contrato:** sped-nfe `Common\Tools::addQRCode` (lança "faltam dados CSC e/ou CSCId" fora do QR v3).
+**Implementação:** `Modules/NfeBrasil/Services/NfeService.php` (`montarConfigSefaz`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfceCscConfigTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** o CSC também vai vazio em `NfeCartaCorrecaoService` e `NfeInutilizacaoService` (eventos de NF-e, onde a lib não usa o CSC).
+
 ### R-NFE-011 · Schema CBS/IBS vazio em 2026, preenchido conforme legislação
 
 ```gherkin
@@ -394,6 +419,24 @@ E o XML emitido NÃO inclui blocos CBS/IBS
 
 **Implementação:** Schema flexível; `MotorTributarioService` skip CBS/IBS se rule é NULL.
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/OndaIbsCbsScaffoldTest.php` (schema flexível IBS/CBS: colunas nullable `cst_ibs`/`cst_cbs`/`aliquota_ibs`/`aliquota_cbs` em `$fillable` + casts; cascade do motor coberto por `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php`).
+
+### R-NFE-044 · Cancelar a NF-e pergunta: só a nota ou a venda junto
+
+```gherkin
+Dado uma NF-e autorizada de uma venda da empresa, no fluxo de vendas (FSM)
+Quando o fiscal cancela a nota escolhendo "venda junto"
+Então a nota é cancelada na SEFAZ (evento 110111) e a venda recebe a ação FSM cancelar_venda com o mesmo motivo
+E escolhendo "só a nota" (ou sem escolha, como antes) só a nota é cancelada, para reemitir
+E venda de outra empresa não é achada; venda fora do fluxo não é cancelada e a mensagem manda cancelar em Vendas
+E escolha diferente de nota/venda não passa da validação
+```
+
+**Contrato:** decisão [W] 2026-10-26 ("ao cancelar, o sistema pergunta"). O que a ação `cancelar_venda` faz é o `CancelarVendaCascade`: cancela as notas por job idempotente, estorna boleto pendente, libera **reserva** de estoque e avisa o cliente.
+**Implementação:** `Modules/Fiscal/Http/Controllers/AcoesController.php` (`cancelarNfe`, `cancelarVendaDaNota`).
+**Testado em:** `Modules/Fiscal/Tests/Feature/AcoesCancelarEscopoTest.php` (lane `nfebrasil-pest`).
+**Fora deste item (até a US-SELL-077, #9911):** o cascade **não** devolvia ao estoque o que a venda já baixou nem cancelava o título do Financeiro (medido em 2026-10-26 — `LiberarReserva` "NÃO mexe em qty_available"). Com a US-SELL-077 a venda vira `cancelled`, o estoque volta e o título sem pagamento é cancelado; venda com dinheiro recebido **não** cancela.
+**Conferência antes da nota (2026-10-26):** com "venda junto", o controller confere antes de cancelar a nota se a venda pode ser cancelada (`recusaDaVenda`: sem venda na empresa, fora do fluxo, ou as pendências do `CancelamentoDaVenda` — dinheiro recebido). Recusou → **nada** é cancelado, nem a nota (o cancelamento na SEFAZ é irreversível). Prova: `AcoesCancelarEscopoTest` UC-FNFE-54.
+**Tela:** `resources/js/Pages/Fiscal/_components/NotaDrawer.tsx` (modal com as duas opções; padrão "só a nota") · teste `tests/js/fiscal-nfe-cancelar-escopo.test.tsx` (lane `fiscal-teclado-gate`).
 
 ### R-NFE-012 · Não-emissão NÃO bloqueia venda (assíncrono)
 
@@ -469,6 +512,31 @@ E a mesma regra com csosn=201 calcula a ST
 **Implementação:** `Modules/NfeBrasil/Services/MotorTributarioService.php` (`calcularStFcpDifal`).
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` (lane `nfebrasil-pest`).
 **Fora deste item:** CST 60 (regime normal, mesma situação) ainda não é tratado.
+
+### R-NFE-041 · Busca de DF-e e manifestação usam o CNPJ que a empresa tem
+
+```gherkin
+Dado a empresa sem titular no certificado, com tax_number_1 vazio e business.cnpj preenchido (biz=1 em produção, #9833)
+Quando a busca de DF-e ou a manifestação montam a configuração da SEFAZ
+Então o CNPJ é o do business.cnpj; o valor padrão da coluna (só zeros) não conta e cai no tax_number_1; o titular do certificado vem primeiro
+E sem CNPJ em nenhum dos três a chamada é recusada com "CNPJ da empresa … não configurado — preencha em Fiscal › Configuração"
+```
+
+**Implementação:** `Modules/NfeBrasil/Support/CnpjDoEmitente.php` · `Modules/NfeBrasil/Services/Manifestacao/DistribuicaoDfeService.php` e `ManifestacaoService.php` (`buildConfig`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/DfeCnpjEAlarmeTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** o ambiente (`nfebrasil.ambiente` nulo em produção → homologação) — ligar `ambiente=1` é decisão [W] depois deste conserto; o `EmpresaFiscalLookupService` segue com a ordem dele (titular → `tax_number_1`).
+
+### R-NFE-042 · Falha da busca de DF-e vira alarme visível
+
+```gherkin
+Dado o BuscarDfesRecebidosJob falhando nas 3 tentativas
+Quando ele desiste
+Então grava um alerta dfe_busca_falhou (aberto, severidade alta, com o último erro) em mcp_alertas_eventos, um por empresa e por dia
+E o cockpit Fiscal da empresa mostra o alerta em crit nos 3 dias seguintes, até alguém arquivá-lo; a empresa vizinha não o vê
+```
+
+**Implementação:** `Modules/NfeBrasil/Jobs/BuscarDfesRecebidosJob.php` (`failed`) · `Modules/Fiscal/Http/Controllers/CockpitController.php` (`computeAlerts`, `ultimaFalhaBuscaDfe`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/DfeCnpjEAlarmeTest.php` (lane `nfebrasil-pest`).
 
 ### R-NFE-017 · DIFAL só para não contribuinte em outra UF
 
@@ -631,6 +699,21 @@ E devolução rejeitada, de outra nota ou de outra empresa não consome saldo
 **Implementação:** `Modules/NfeBrasil/Services/DevolucaoService.php` (`montarDevolucao`, rateio pela quantidade acumulada · `saldoDevolvido`).
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeDevolucaoTest.php` (lane `nfebrasil-pest`).
 
+### R-NFE-039 · A NF-e de devolução tem rota, com permissão e na empresa da sessão
+
+```gherkin
+Dado uma NF-e autorizada da empresa A
+Quando o fiscal com a permissão fiscal.nfe.acoes pede POST /fiscal/acoes/nfe/{id}/devolucao com itens[1]=2 e itens[3]=0,5
+Então o DevolucaoService recebe a empresa A, a nota e {1: 2, 3: 0,5} (R-NFE-026/027 fazem o resto)
+E sem a permissão a resposta é 403; sem item, ou com quantidade zero, negativa ou não numérica, não passa da validação
+E a nota de outra empresa não é achada (404) e o serviço não é chamado
+```
+
+**Contrato:** US-NFE-064 (a devolução copia a nota de origem) · ADR 0093.
+**Implementação:** `Modules/Fiscal/Http/Controllers/AcoesController.php` (`devolucao`) · `Modules/Fiscal/Routes/web.php` (`fiscal.acoes.nfe.devolucao`).
+**Testado em:** `Modules/Fiscal/Tests/Feature/AcoesDevolucaoTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** o botão "Emitir devolução" na tela da nota (escolher itens e quantidades) e o vínculo com a devolução de venda do estoque (`sell_return`).
+
 ### R-NFE-030 · Base reduzida e cBenef no item
 
 ```gherkin
@@ -662,6 +745,21 @@ E filial incompleta, com a série da matriz, ou apontando local de outra empresa
 **Implementação:** migração `2026_10_14_000002_create_nfe_locais_emissores_table` · `Modules/NfeBrasil/Models/NfeLocalEmissor.php` · `Modules/NfeBrasil/Services/NfeService.php` (`resolverEmitente`, `emitirParaTransaction`).
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeFilialNumeracaoTest.php` · `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` (lane `nfebrasil-pest`).
 **Fora deste item:** o motor ainda não lê a interestadual da tabela (é o fallback da thread 09); o certificado continua o do business; a cobrança recorrente (`emitirParaInvoice`) segue emitindo pelo business — ver `_saida-26.md`.
+
+### R-NFE-040 · Item do regime normal sai com base e alíquotas em percentual
+
+```gherkin
+Dado uma regra do regime normal com CST 00, ICMS 0,18, PIS 0,0165 e COFINS 0,076 (fração, como a régua guarda)
+Quando um item de 1.000,00 vai à NF-e
+Então o item leva vBC 1.000,00, pICMS 18, vICMS 180,00, pPIS 1,65 e pCOFINS 7,6, e o ICMSTot leva vBC 1.000,00
+E vBC × pICMS / 100 = vICMS (a conta que a SEFAZ confere)
+E com base reduzida (benefício) a base é a do motor; Simples, CST sem ICMS ou alíquota zero seguem com base 0
+```
+
+**Contrato:** NF-e leiaute 4.00 — `pICMS`, `pPIS` e `pCOFINS` são percentuais (TDec_0302a04); `UpsertRegraTributariaRequest` guarda fração ("0.18 = 18%").
+**Implementação:** `Modules/NfeBrasil/Services/NfeService.php` (`montarItensNfe`, `emitirParaInvoice`, `baseIcmsDoItem`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeAliquotaPercentualTest.php` · `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` · `Modules/NfeBrasil/Tests/Feature/NfeDevolucaoTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** CST de PIS/COFINS do regime normal com base (hoje `07` fixo, R-NFE-025b) e o ICMS-ST.
 
 ### R-NFE-032 · Série e numeração são do local emissor (o certificado segue o do business)
 
@@ -1103,6 +1201,8 @@ Implementar `Modules/NfeBrasil/Services/Manifestacao/ManifestacaoService.php` en
 **Implementado em:** `Modules/NfeBrasil/Services/Manifestacao/DistribuicaoDfeService.php` · `Modules/NfeBrasil/Jobs/BuscarDfesRecebidosJob.php` · verificado@3b425d8 (2026-06-24) — sefazDistDFe por NSU + Job agendado diário
 
 Implementar `Modules/NfeBrasil/Services/Manifestacao/DistribuicaoDfeService.php` envolvendo `Tools::sefazDistDFe($lastNSU)` + Job agendado.
+
+**2026-10-26 · R-NFE-041/042:** o job falhava todo dia desde 2026-07-03 (69 falhas, medido no #9833) porque o CNPJ vinha só do `tax_number_1`, vazio no biz=1. Agora o CNPJ segue titular → `business.cnpj` → `tax_number_1` e a falha definitiva vira alerta no cockpit Fiscal.
 
 **Acceptance criteria:**
 - Tabela `nfe_dfe_nsu_state` (business_id, last_nsu unsignedBigInteger, ultimo_check_em) — guarda cursor por business
@@ -1572,11 +1672,11 @@ Salvar em `memory/requisitos/NfeBrasil/smoke-2026-05-10.md`:
 > owner: — · sprint: — · priority: p1 · estimate: 3h · status: done · type: story
 > blocked_by: —
 
-**Implementado em:** `Modules/NfeBrasil/Services/DevolucaoService.php` · `Modules/NfeBrasil/Services/NfeService.php` · `Modules/NfeBrasil/Tests/Feature/NfeDevolucaoTest.php`
+**Implementado em:** `Modules/NfeBrasil/Services/DevolucaoService.php` · `Modules/NfeBrasil/Services/NfeService.php` · `Modules/NfeBrasil/Tests/Feature/NfeDevolucaoTest.php` · `Modules/Fiscal/Http/Controllers/AcoesController.php` (rota, R-NFE-039) · `Modules/Fiscal/Tests/Feature/AcoesDevolucaoTest.php`
 
 Como contador, quero que a NF-e de devolução use a base e as alíquotas da nota de origem — não a regra de hoje — para estornar exatamente o crédito ou débito que a venda gerou.
 
-**Critérios de aceite:** R-NFE-026 · R-NFE-027.
+**Critérios de aceite:** R-NFE-026 · R-NFE-027 · R-NFE-039 (rota com permissão e empresa da sessão, 2026-10-26; o botão na tela da nota segue pendente).
 
 **Disparo:** playbook Fiscal thread 20 (`prototipo-ui/cowork/Wagner/cowork-inbox/fiscal/playbook/20-devolucao.md`) · UC-TRB-13.
 
@@ -1717,3 +1817,21 @@ Casos: `resources/js/Pages/Fiscal/Nfe.casos.md` UC-FNFE-19, 20, 30, 31 · prova 
 - [x] Multi-tenant: o evento de um tenant nunca grava em outro (Pest com os tenants 98 e 2) — UC-FNFE-31
 - [ ] Smoke fiscal manual contra SEFAZ só em biz=1, homologação
 
+
+### US-NFE-074 · Cutover da emissão Delphi → oimpresso, por empresa — **Backlog**
+
+> owner: — · sprint: — · priority: p1 · estimate: 4h · status: todo · type: story
+> blocked_by: decisão [W] por empresa (data do cutover)
+
+**Implementado em:** _pendente_ — registro de backlog, nada executado.
+
+Como empresa que ainda emite pelo Delphi (WR Comercial/OfficeImpresso), quero passar a emitir pelo oimpresso num dia combinado, sem duplicar nota nem repetir número, para terminar a migração.
+
+**Origem:** pré-voo da NFC-e automática de 2026-10-26 (US-NFE-002) — biz=4 e biz=164 emitiam pelo Delphi; [W] 2026-10-26.
+
+**Antes de ligar, por empresa (checklist):**
+- [ ] Certificado A1 da empresa cadastrado no oimpresso e dentro da validade
+- [ ] Ambiente de produção configurado para a empresa
+- [ ] Credenciamento NFC-e na SEFAZ da UF (SEFAZ-SC para as empresas de hoje)
+- [ ] Série e numeração que **não** colidam com as que o Delphi já usou — medir a última numeração do Delphi por série antes de definir
+- [ ] Desligar a emissão no Delphi e ligar aqui no **mesmo dia**, com aviso prévio ao cliente e canary, conforme a F5 do MWART (ADR 0104)

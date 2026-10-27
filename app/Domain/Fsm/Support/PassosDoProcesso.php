@@ -35,6 +35,12 @@ final class PassosDoProcesso
             'instalacao' => 'Instalação',
             'entregue' => 'Entregue',
         ],
+        // Pedido de marketplace (ADR 0439): só vira venda quando já está pago.
+        'venda_marketplace' => [
+            'pago' => 'Pago',
+            'enviado' => 'Enviado',
+            'entregue' => 'Entregue',
+        ],
     ];
 
     /** chave da etapa => chave do passo (null = fora dos passos). */
@@ -61,6 +67,10 @@ final class PassosDoProcesso
             'entregue_completo' => 'entregue', 'garantia_acionada' => 'entregue',
             'cancelado' => null,
         ],
+        'venda_marketplace' => [
+            'pedido_recebido' => 'pago', 'enviado' => 'enviado', 'entregue' => 'entregue',
+            'cancelado' => null,
+        ],
     ];
 
     /** Etapas canceladas (filtro `cancelados` do app, fora dos passos). */
@@ -73,6 +83,8 @@ final class PassosDoProcesso
             'arte_aprovada', 'aguardando_maquina', 'em_impressao', 'impressao_concluida',
             'aguardando_acabamento', 'acabamento_concluido',
         ],
+        // Pedido de marketplace sai do estoque pronto: nada vai para a aba Produção.
+        'venda_marketplace' => [],
     ];
 
     /**

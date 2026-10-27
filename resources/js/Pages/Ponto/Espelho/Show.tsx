@@ -87,6 +87,28 @@ interface Props {
   // first render até o auto-fetch async resolver (RUNBOOK-inertia-defer-pattern.md).
   totais?: Totais;
   linhas?: Linha[];
+  /** US-PONTO-020: ciência do colaborador neste mês. Inertia::defer. */
+  ciencia?: { competencia_fechada: boolean; ciencia: { ciente_em: string; confere: boolean } | null };
+}
+
+/** Uma linha de estado — a ciência só existe para competência fechada (ADR 0413). */
+function CienciaDoMes({ estado }: { estado?: Props['ciencia'] }) {
+  if (!estado) return null;
+  const c = estado.ciencia;
+  const texto = c
+    ? `Ciência do colaborador: dada em ${new Date(c.ciente_em).toLocaleDateString('pt-BR')}.`
+    : estado.competencia_fechada
+    ? 'Ciência do colaborador: pendente — o mês está fechado e ele ainda não deu ciência no app.'
+    : 'Ciência do colaborador: o mês ainda não foi fechado.';
+
+  return (
+    <p className="text-sm text-muted-foreground print:hidden">
+      {texto}
+      {c && !c.confere && (
+        <span className="ml-1 text-warning-fg">O espelho mudou depois da ciência.</span>
+      )}
+    </p>
+  );
 }
 
 const TOTAIS_FALLBACK: Totais = {
@@ -101,7 +123,7 @@ const tipoBadgeVariant: Record<string, 'default' | 'secondary' | 'outline' | 'de
   SAIDA:         'outline',
 };
 
-export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props) {
+export default function EspelhoShow({ colaborador, mes, totais, linhas, ciencia }: Props) {
   // Guardas defensivas (defesa dupla com o <Deferred>): props deferidas são
   // undefined no first render.
   const t = totais ?? TOTAIS_FALLBACK;
@@ -197,6 +219,10 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
           </CardContent>
           </Grid>
         </Card>
+
+        <Deferred data="ciencia" fallback={null}>
+          <CienciaDoMes estado={ciencia} />
+        </Deferred>
 
         <Deferred
           data={['totais', 'linhas']}
