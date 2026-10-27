@@ -23,8 +23,11 @@ vertical (não é módulo de vertical). Separado do `Woocommerce`, que é loja p
   por padrão), as 5 tabelas do primeiro pedido (US-MKT-001), o catálogo (US-MKT-002) e a conexão
   da conta do Mercado Livre por OAuth, sem tela ainda (US-MKT-003, `/marketplaces/contas/mercado-livre/conectar`).
   As notificações do ML chegam em `/webhook/marketplaces/mercado-livre` e o pedido é gravado em
-  `mkt_orders`, ainda sem virar venda (US-MKT-006).
-  Próximas US em [SPEC.md](SPEC.md) §11.2: pedido vira venda → tela de pedidos → NF-e → rastreio.
+  `mkt_orders` (US-MKT-006). Pedido **pago** vira venda final no local escolhido na conta, com baixa
+  de estoque e total conferido contra o do ML (US-MKT-007, decisões [W] 2026-10-26); a venda nasce
+  "a receber" até a conciliação do Mercado Pago.
+  Próximas US em [SPEC.md](SPEC.md) §11.2: estágio FSM da venda → tela de pedidos (inclui escolher o
+  local da conta) → NF-e → rastreio.
 
 ## O que depende de [W]
 

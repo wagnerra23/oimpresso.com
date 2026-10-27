@@ -39,7 +39,7 @@ class ContaVendedor extends Model
     protected $table = 'mkt_account_credentials';
 
     protected $fillable = [
-        'business_id', 'marketplace_id', 'seller_id_external', 'seller_nickname',
+        'business_id', 'marketplace_id', 'seller_id_external', 'seller_nickname', 'location_id',
         'access_token', 'refresh_token', 'access_token_expires_at', 'refresh_token_expires_at',
         'oauth_state', 'last_sync_at', 'last_refresh_at', 'status',
     ];

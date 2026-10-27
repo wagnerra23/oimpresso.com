@@ -20,7 +20,7 @@ use Throwable;
 
 /**
  * Processa UMA notificação do Mercado Livre (US-MKT-006): busca o recurso na API com o token da
- * conta e grava/atualiza o pedido em `mkt_orders`. Não cria venda — isso é a US-MKT-007.
+ * conta e grava/atualiza o pedido em `mkt_orders`. Pedido pago dispara o `VirarVendaJob` (US-MKT-007).
  *
  * `business_id` no construtor e em toda consulta. O log de webhook é append-only: o resultado
  * entra como linha nova apontando `superseded_id` para a notificação recebida.
@@ -101,6 +101,11 @@ class ProcessarNotificacaoMercadoLivreJob implements ShouldQueue
             'raw_payload' => $p,
             'processed_at' => now(),
         ])->save();
+
+        // US-MKT-007: pedido pago e ainda sem venda → tenta virar venda (estoque baixa no pago, decisão [W]).
+        if ($pedido->status_external === 'paid' && $pedido->transaction_id === null) {
+            VirarVendaJob::dispatch($this->businessId, (int) $pedido->id);
+        }
     }
 
     private function registrar(WebhookRecebido $recebido, string $status, ?string $erro): void
