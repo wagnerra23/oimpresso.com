@@ -836,6 +836,7 @@ function App() {
   if (route === "comissoes") content = <window.ComissoesPage />;else
   if (route === "prefs") content = <window.PrefsPage />;else
   if (route === "notificacoes") content = <window.NotificacoesPage />;else
+  if (route === "exportar-dados") content = <window.ExportarDadosPage />;else
   if (route === "backup") content = <window.BackupPage destino={tweaks.bkpDestino} estado={tweaks.bkpEstado} permissao={tweaks.bkpPermissao} />;else
   if (route === "modulos") content = <window.ModulosPage />;else
   if (route === "os") content = <window.OsListPage />;else

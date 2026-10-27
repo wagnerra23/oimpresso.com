@@ -239,6 +239,7 @@ const MENU = [
       { id: "cfg-pedidos-rest",  icon: "orders", label: "Pedidos do restaurante" },
       { id: "cfg-pacote",        icon: "refresh", label: "Assinatura de pacote" },
       { id: "superadmin-pagar",  icon: "cash",    label: "Pagar assinatura" },
+      { id: "exportar-dados",    icon: "archive", label: "Exportar dados da empresa" },
     ]},
     { id: "relatorios",  icon: "chart", label: "Relatórios", ghosts: [
       { id: "rel-financeiro", icon: "cash",    label: "Financeiro" },
