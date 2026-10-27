@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Modules\Vestuario\Http\Controllers\CurvaCompraController;
 use Modules\Vestuario\Http\Controllers\EtiquetaTagController;
 use Modules\Vestuario\Http\Controllers\InstallController;
 
@@ -31,4 +32,13 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         Route::get('/',         [EtiquetaTagController::class, 'index'])->name('index');
         Route::post('lote/zpl', [EtiquetaTagController::class, 'storeZpl'])->name('lote.zpl');
         Route::post('lote/pdf', [EtiquetaTagController::class, 'storePdf'])->name('lote.pdf');
+    });
+
+// ── US-VEST-031 · sugestão de compra por tamanho pela curva de venda (decisão [W] 2026-10-26) ──
+// Só lê. A tela da compra mostra a sugestão; quem compra confirma.
+Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
+    ->prefix('vestuario')
+    ->name('vestuario.')
+    ->group(function () {
+        Route::get('curva-compra', [CurvaCompraController::class, 'show'])->name('curva-compra');
     });
