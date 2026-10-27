@@ -59,4 +59,10 @@ return [
             ],
         ],
     ],
+
+    // US-AUTO-014 — lembrete de revisão por WhatsApp (decisão [W] 2026-10-26). Desligado por padrão:
+    // manda mensagem a clientes reais. Ligar = OFICINA_LEMBRETE_REVISAO_ENABLED=true (decisão [W]).
+    'lembrete_revisao' => [
+        'enabled' => (bool) env('OFICINA_LEMBRETE_REVISAO_ENABLED', false),
+    ],
 ];
