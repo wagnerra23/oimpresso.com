@@ -95,19 +95,11 @@ class DashboardController extends Controller
         ], fn ($v) => $v !== null);
     }
 
-    /** Dado da casca do contato: a loja, o contato e as telas que ele pode abrir. */
     private function casca($contact): array
     {
         $modulos = ! empty(session('business.enabled_modules')) ? session('business.enabled_modules') : [];
 
-        return [
-            'empresa' => (string) ($contact->business->name ?? ''),
-            'contato' => ['nome' => (string) $contact->name, 'pessoa' => (string) trim(auth()->user()->first_name.' '.auth()->user()->last_name), 'tipo' => (string) $contact->type],
-            'menu' => app(PortalContatoMenu::class)->itens($contact, $modulos),
-            'perfil' => action([ManageProfileController::class, 'getProfile']),
-            'novo_pedido' => action([OrderRequestController::class, 'create']),
-            'agendar' => action([ContactBookingController::class, 'create']),
-        ];
+        return app(PortalContatoMenu::class)->casca($contact, $modulos);
     }
 
     private function decimal(float $v): string
