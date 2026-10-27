@@ -14,7 +14,7 @@ module: Marketplaces
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Marketplaces/**` + `resources/js/Pages/Marketplaces/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 34 arquivos em 12 papéis.
+**Total mapeado:** 37 arquivos em 13 papéis.
 
 ## Controllers — 4
 
@@ -27,9 +27,10 @@ module: Marketplaces
 
 - [MarketplacesLiberado.php](../../../Modules/Marketplaces/Http/Middleware/MarketplacesLiberado.php)
 
-## Services — 4
+## Services — 5
 
 - [ContasVendedor.php](../../../Modules/Marketplaces/Services/ContasVendedor.php)
+- [IniciarPipelineMarketplace.php](../../../Modules/Marketplaces/Services/IniciarPipelineMarketplace.php)
 - [MarketplacesAcesso.php](../../../Modules/Marketplaces/Services/MarketplacesAcesso.php)
 - [MercadoLivreOAuth.php](../../../Modules/Marketplaces/Services/MercadoLivre/MercadoLivreOAuth.php)
 - [PedidoParaVenda.php](../../../Modules/Marketplaces/Services/PedidoParaVenda.php)
@@ -67,13 +68,17 @@ module: Marketplaces
 - [2026_10_26_000002_seed_mkt_marketplaces.php](../../../Modules/Marketplaces/Database/Migrations/2026_10_26_000002_seed_mkt_marketplaces.php)
 - [2026_10_26_000003_add_location_id_to_mkt_account_credentials.php](../../../Modules/Marketplaces/Database/Migrations/2026_10_26_000003_add_location_id_to_mkt_account_credentials.php)
 
+## Seeders — 1
+
+- [FsmProcessoVendaMarketplaceSeeder.php](../../../Modules/Marketplaces/Database/Seeders/FsmProcessoVendaMarketplaceSeeder.php)
+
 ## Config — 1
 
 - [config.php](../../../Modules/Marketplaces/Config/config.php)
 
-## Testes (Pest) — 5
+## Testes (Pest) — 6
 
-- 5 em [Modules/Marketplaces/Tests/Feature/](../../../Modules/Marketplaces/Tests/Feature)
+- 6 em [Modules/Marketplaces/Tests/Feature/](../../../Modules/Marketplaces/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 4
