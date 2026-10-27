@@ -145,11 +145,11 @@ Route::middleware(['web'])
     });
 
 // ─── Maquininha integrada ao caixa — TEF (US-SELL-075) ─────────────────
-// JSON para a linha de pagamento do caixa. Flag PAYMENTGATEWAY_TEF_ENABLED
+// JSON para a linha de pagamento do caixa. Flag SELLS_TEF_ENABLED
 // desligada → 404 no controller.
 Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'CheckUserLogin'])
     ->prefix('paymentgateway/tef')
-    ->name('paymentgateway.tef.')
+    ->name('sells.tef.')
     ->group(function () {
         Route::post('cobrancas', [TefController::class, 'store'])->name('store');
         Route::get('cobrancas/{id}', [TefController::class, 'show'])->whereNumber('id')->name('show');

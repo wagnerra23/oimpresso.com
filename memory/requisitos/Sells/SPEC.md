@@ -1665,7 +1665,7 @@ O link público do orçamento (`SellPosController@showInvoice`) só mostra o doc
 > owner: wagner · priority: p1 · estimate: 40h · status: doing · type: story · origin: lacunas-concorrencia-2026-10-25
 > blocked_by: — (só o driver real depende da escolha do integrador [W])
 
-**Implementado em:** `Modules/PaymentGateway/Services/Tef/TefService.php` · `Modules/PaymentGateway/Http/Controllers/TefController.php` · `tests/Feature/Sells/TefCaixaContratoTest.php` — em andamento: camada independente da adquirente com driver `simulador`, atrás de `PAYMENTGATEWAY_TEF_ENABLED` (desligada); UC-TEF-01..07 em `resources/js/Pages/Sells/Create.casos.md`. Falta o botão no caixa e o driver da adquirente escolhida.
+**Implementado em:** _pendente_ — em andamento (servidor feito em `TefService` e `TefController`): camada independente da adquirente com driver `simulador`, atrás de `SELLS_TEF_ENABLED` (desligada); UC-TEF-01..07 em `resources/js/Pages/Sells/Create.casos.md`. Falta o botão no caixa e o driver da adquirente escolhida.
 
 **Testado em:** `tests/Feature/Sells/TefCaixaContratoTest.php`
 

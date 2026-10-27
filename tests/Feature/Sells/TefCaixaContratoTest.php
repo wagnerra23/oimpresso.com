@@ -29,9 +29,9 @@ beforeEach(function () {
     }
     $this->biz = EstoqueFixture::businessId();
     config([
-        'paymentgateway.tef.enabled'      => true,
-        'paymentgateway.tef.business_ids' => [$this->biz],
-        'paymentgateway.tef.driver'       => 'simulador',
+        'sells.tef.enabled'      => true,
+        'sells.tef.business_ids' => [$this->biz],
+        'sells.tef.driver'       => 'simulador',
     ]);
     $this->user = $this->usuarioComPermissoes(['sell.create'], \App\Business::findOrFail($this->biz));
     $this->caixa = fn () => $this->actingAs($this->user)
@@ -39,12 +39,12 @@ beforeEach(function () {
 });
 
 it('UC-TEF-01 a flag desligada esconde a maquininha da empresa', function () {
-    config(['paymentgateway.tef.enabled' => false]);
+    config(['sells.tef.enabled' => false]);
     ($this->caixa)()->postJson('/paymentgateway/tef/cobrancas', [
         'valor' => '10.00', 'modalidade' => 'debito', 'idempotency_key' => 'k-flag',
     ])->assertNotFound();
 
-    config(['paymentgateway.tef.enabled' => true, 'paymentgateway.tef.business_ids' => [$this->biz + 1]]);
+    config(['sells.tef.enabled' => true, 'sells.tef.business_ids' => [$this->biz + 1]]);
     ($this->caixa)()->postJson('/paymentgateway/tef/cobrancas', [
         'valor' => '10.00', 'modalidade' => 'debito', 'idempotency_key' => 'k-flag2',
     ])->assertNotFound();

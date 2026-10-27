@@ -200,7 +200,7 @@ last_run: "2026-10-26"
 > **Âncora:** US-SELL-075 (`memory/requisitos/Sells/SPEC.md`). O caixa manda o valor para a maquininha e a resposta
 > (bandeira, NSU, autorização) preenche a linha de pagamento. Camada independente da adquirente; o integrador real é
 > decisão [W] (`memory/requisitos/Sells/BRIEFING.md`). Driver `simulador`: valor terminado em ,99 é negado.
-> Flag `PAYMENTGATEWAY_TEF_ENABLED` desligada. Prova: `tests/Feature/Sells/TefCaixaContratoTest.php`.
+> Flag `SELLS_TEF_ENABLED` desligada. Prova: `tests/Feature/Sells/TefCaixaContratoTest.php`.
 
 ## UC-TEF-01 · Com a flag desligada a maquininha não existe para a empresa `[V0]` `[must]`
 - **Aceite:** Dado a flag desligada, ou ligada só para outra empresa · Quando o caixa pede uma cobrança · Então recebe 404 e nada é gravado.

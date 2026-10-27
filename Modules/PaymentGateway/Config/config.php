@@ -28,22 +28,4 @@ return [
     | importa: se o retorno chegar antes do lançamento manual, o manual vira o duplicado).
     */
     'lancar_pagamento_na_venda' => env('PAYMENTGATEWAY_LANCAR_PAGAMENTO_NA_VENDA', false),
-    /*
-    |--------------------------------------------------------------------------
-    | Maquininha integrada ao caixa — TEF (US-SELL-075)
-    |--------------------------------------------------------------------------
-    | Default OFF. A camada é independente da adquirente: o driver vem de
-    | `PAYMENTGATEWAY_TEF_DRIVER` (hoje só `simulador`, para homologação). O driver
-    | real depende da escolha do integrador e do contrato, decisão [W] registrada
-    | em memory/requisitos/Sells/BRIEFING.md.
-    | `PAYMENTGATEWAY_TEF_BIZ` = lista de empresas (vazia = todas, se ligado).
-    */
-    'tef' => [
-        'enabled'      => env('PAYMENTGATEWAY_TEF_ENABLED', false),
-        'business_ids' => array_values(array_filter(array_map(
-            'intval',
-            explode(',', (string) env('PAYMENTGATEWAY_TEF_BIZ', ''))
-        ))),
-        'driver'       => env('PAYMENTGATEWAY_TEF_DRIVER', 'simulador'),
-    ],
 ];

@@ -31,18 +31,18 @@ final class TefService
 
     public static function habilitado(int $businessId): bool
     {
-        if (! config('paymentgateway.tef.enabled')) {
+        if (! config('sells.tef.enabled')) {
             return false;
         }
 
-        $empresas = (array) config('paymentgateway.tef.business_ids', []);
+        $empresas = (array) config('sells.tef.business_ids', []);
 
         return empty($empresas) || in_array($businessId, $empresas, true);
     }
 
     public function driver(): TefDriver
     {
-        $key = (string) config('paymentgateway.tef.driver', 'simulador');
+        $key = (string) config('sells.tef.driver', 'simulador');
         $classe = self::DRIVERS[$key] ?? throw new \InvalidArgumentException("Driver TEF desconhecido: {$key}");
 
         return app($classe);

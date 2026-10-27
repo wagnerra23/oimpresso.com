@@ -14,14 +14,15 @@ module: PaymentGateway
 >
 > **O que isto é:** o inventário completo das raízes `Modules/PaymentGateway/**` + `resources/js/Pages/PaymentGateway/**` + `resources/js/Pages/Settings/**` (namespaces Inertia `PaymentGateway`, `Settings`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `PaymentGateway` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 157 arquivos em 16 papéis.
+**Total mapeado:** 164 arquivos em 16 papéis.
 
-## Controllers — 12
+## Controllers — 13
 
 - [DataController.php](../../../Modules/PaymentGateway/Http/Controllers/DataController.php)
 - [InstallController.php](../../../Modules/PaymentGateway/Http/Controllers/InstallController.php)
 - [PaymentGatewaysCnabRetornoController.php](../../../Modules/PaymentGateway/Http/Controllers/Settings/PaymentGatewaysCnabRetornoController.php)
 - [PaymentGatewaysController.php](../../../Modules/PaymentGateway/Http/Controllers/Settings/PaymentGatewaysController.php)
+- [TefController.php](../../../Modules/PaymentGateway/Http/Controllers/TefController.php)
 - [AsaasWebhookController.php](../../../Modules/PaymentGateway/Http/Controllers/Webhooks/AsaasWebhookController.php)
 - [BcbPixWebhookController.php](../../../Modules/PaymentGateway/Http/Controllers/Webhooks/BcbPixWebhookController.php)
 - [C6WebhookController.php](../../../Modules/PaymentGateway/Http/Controllers/Webhooks/C6WebhookController.php)
@@ -31,7 +32,7 @@ module: PaymentGateway
 - [SicoobApiWebhookController.php](../../../Modules/PaymentGateway/Http/Controllers/Webhooks/SicoobApiWebhookController.php)
 - [WebhookProcessor.php](../../../Modules/PaymentGateway/Http/Controllers/Webhooks/WebhookProcessor.php)
 
-## Services — 24
+## Services — 26
 
 - [CnabBoletoAdapter.php](../../../Modules/PaymentGateway/Services/Cnab/CnabBoletoAdapter.php)
 - [AilosCnabDriver.php](../../../Modules/PaymentGateway/Services/Cnab/Drivers/AilosCnabDriver.php)
@@ -56,15 +57,18 @@ module: PaymentGateway
 - [HttpClientFactory.php](../../../Modules/PaymentGateway/Services/HttpClientFactory.php)
 - [PaymentGatewayService.php](../../../Modules/PaymentGateway/Services/PaymentGatewayService.php)
 - [ReconciliarCobrancaService.php](../../../Modules/PaymentGateway/Services/ReconciliarCobrancaService.php)
+- [SimuladorTefDriver.php](../../../Modules/PaymentGateway/Services/Tef/SimuladorTefDriver.php)
+- [TefService.php](../../../Modules/PaymentGateway/Services/Tef/TefService.php)
 - [CobrancaWebhookResolver.php](../../../Modules/PaymentGateway/Services/Webhook/CobrancaWebhookResolver.php)
 
-## Models / Entities — 5
+## Models / Entities — 6
 
 - [CnabRetornoUpload.php](../../../Modules/PaymentGateway/Models/CnabRetornoUpload.php)
 - [Cobranca.php](../../../Modules/PaymentGateway/Models/Cobranca.php)
 - [GatewayWebhookEvent.php](../../../Modules/PaymentGateway/Models/GatewayWebhookEvent.php)
 - [InterWebhookLog.php](../../../Modules/PaymentGateway/Models/InterWebhookLog.php)
 - [PaymentGatewayCredential.php](../../../Modules/PaymentGateway/Models/PaymentGatewayCredential.php)
+- [TefTransacao.php](../../../Modules/PaymentGateway/Models/TefTransacao.php)
 
 ## Jobs — 4
 
@@ -103,7 +107,7 @@ module: PaymentGateway
 
 - [web.php](../../../Modules/PaymentGateway/Routes/web.php)
 
-## Migrations (schema) — 11
+## Migrations (schema) — 12
 
 - [2026_05_19_120000_create_payment_gateway_credentials_table.php](../../../Modules/PaymentGateway/Database/Migrations/2026_05_19_120000_create_payment_gateway_credentials_table.php)
 - [2026_05_19_120001_create_cobrancas_table.php](../../../Modules/PaymentGateway/Database/Migrations/2026_05_19_120001_create_cobrancas_table.php)
@@ -116,6 +120,7 @@ module: PaymentGateway
 - [2026_05_27_140000_drop_mtls_columns_sicoob_reusa_nfecertificado.php](../../../Modules/PaymentGateway/Database/Migrations/2026_05_27_140000_drop_mtls_columns_sicoob_reusa_nfecertificado.php)
 - [2026_06_08_120000_add_fin_titulo_to_cobrancas_origem_type.php](../../../Modules/PaymentGateway/Database/Migrations/2026_06_08_120000_add_fin_titulo_to_cobrancas_origem_type.php)
 - [2026_06_13_080000_alter_payment_gateway_credentials_config_json_to_longtext.php](../../../Modules/PaymentGateway/Database/Migrations/2026_06_13_080000_alter_payment_gateway_credentials_config_json_to_longtext.php)
+- [2026_10_27_150000_create_tef_transacoes_table.php](../../../Modules/PaymentGateway/Database/Migrations/2026_10_27_150000_create_tef_transacoes_table.php)
 
 ## Config — 1
 
@@ -151,16 +156,18 @@ module: PaymentGateway
 - 5 em [Modules/PaymentGateway/Tests/Feature/Settings/](../../../Modules/PaymentGateway/Tests/Feature/Settings)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 23
+## Demais arquivos (manifestos, docs, assets e misc) — 25
 
 - [CobrancaRecorrenteDriver.php](../../../Modules/PaymentGateway/Contracts/CobrancaRecorrenteDriver.php)
 - [PaymentDriverContract.php](../../../Modules/PaymentGateway/Contracts/PaymentDriverContract.php)
 - [PaymentGatewayContract.php](../../../Modules/PaymentGateway/Contracts/PaymentGatewayContract.php)
+- [TefDriver.php](../../../Modules/PaymentGateway/Contracts/TefDriver.php)
 - [CardToken.php](../../../Modules/PaymentGateway/Dto/CardToken.php)
 - [CobrancaEmitidaResult.php](../../../Modules/PaymentGateway/Dto/CobrancaEmitidaResult.php)
 - [CobrancaStatus.php](../../../Modules/PaymentGateway/Dto/CobrancaStatus.php)
 - [DriverHealth.php](../../../Modules/PaymentGateway/Dto/DriverHealth.php)
 - [EmitirCobrancaInput.php](../../../Modules/PaymentGateway/Dto/EmitirCobrancaInput.php)
+- [TefRespostaTerminal.php](../../../Modules/PaymentGateway/Dto/TefRespostaTerminal.php)
 - [CardDeclinedException.php](../../../Modules/PaymentGateway/Exceptions/CardDeclinedException.php)
 - [CredentialMisconfiguredException.php](../../../Modules/PaymentGateway/Exceptions/CredentialMisconfiguredException.php)
 - [DriverNotSupportedException.php](../../../Modules/PaymentGateway/Exceptions/DriverNotSupportedException.php)

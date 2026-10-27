@@ -20,6 +20,14 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $valor_centavos
  * @property string $status
  * @property string $modalidade
+ * @property int $parcelas
+ * @property int|null $transaction_id
+ * @property string|null $bandeira
+ * @property string|null $nsu
+ * @property string|null $autorizacao
+ * @property string|null $externo_id
+ * @property string|null $mensagem
+ * @property array|null $payload
  */
 class TefTransacao extends Model
 {
