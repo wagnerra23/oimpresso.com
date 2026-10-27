@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\Route;
  */
 uses(Tests\TestCase::class);
 
-it('Tier 0: o POST antigo do portal não existe mais', function () {
+it('UC-COS-11 Tier 0: o POST antigo do portal não existe mais', function () {
     expect(Route::has('post-repair-status'))->toBeFalse();
 
     $resposta = test()->post('/post-repair-status', [
@@ -40,7 +40,7 @@ it('Tier 0: o POST antigo do portal não existe mais', function () {
     expect((string) $resposta->getContent())->not->toContain('repair_html');
 });
 
-it('GET /repair-status leva ao ConsultaOs, sem tela Blade de fallback', function () {
+it('UC-COS-11 GET /repair-status leva ao ConsultaOs, sem tela Blade de fallback', function () {
     $resposta = test()->get('/repair-status');
 
     if (Route::has('consulta-os.index')) {
