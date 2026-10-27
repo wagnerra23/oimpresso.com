@@ -647,7 +647,7 @@ Como responsável pela qualidade, quero registrar a inspeção de uma etapa (apr
 
 Como dono, quero que o custo de um produto fabricado saia de uma conta só — material pelo custo médio, mais mão de obra, mais perdas —, valendo para a Fabricação (`Modules/Manufacturing`) e a Produção (`Modules/Producao`), para que a receita e a ordem não mostrem dois custos diferentes para o mesmo produto.
 
-**Implementado em:** `app/Domain/Producao/CustoDoFabricado.php` (a conta, atrás de `producao.custo_fabricado_unificado`, desligada) · `Modules/Producao/Config/config.php` (a flag)
+**Implementado em:** `app/Domain/Producao/CustoDoFabricado.php` (a conta, atrás de `custo_fabricado.unificado`, desligada) · `config/custo_fabricado.php` (a flag)
 
 **Testado em:** `tests/Feature/Domain/Producao/CustoDoFabricadoContratoTest.php` (UC-PCP34-01..07)
 

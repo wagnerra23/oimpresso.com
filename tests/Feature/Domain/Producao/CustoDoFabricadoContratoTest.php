@@ -133,6 +133,6 @@ it('UC-PCP34-06: recusa quantidade boa zero e valores negativos', function (stri
 ])->throws(InvalidArgumentException::class);
 
 it('UC-PCP34-07: nasce desligada', function () {
-    expect(config('producao.custo_fabricado_unificado', false))->toBeFalse();
+    expect(config('custo_fabricado.unificado', false))->toBeFalse();
     expect(CustoDoFabricado::ligada())->toBeFalse();
 });

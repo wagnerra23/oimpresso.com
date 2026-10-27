@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1057 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1058 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -15,7 +15,7 @@
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
 | [`OficinaAuto`](#oficinaauto) | 39 | 0 | 0 | 0 | 38 |
-| [`Producao`](#producao) | 33 | 1 | 0 | 0 | 32 |
+| [`Producao`](#producao) | 34 | 2 | 0 | 0 | 32 |
 | [`NfeBrasil`](#nfebrasil) | 32 | 0 | 0 | 6 | 26 |
 | [`Fiscal`](#fiscal) | 29 | 0 | 0 | 0 | 29 |
 | [`Compras`](#compras) | 28 | 4 | 0 | 0 | 23 |
@@ -553,6 +553,7 @@
 ### doing
 
 - **US-PCP-028** — Prazo de entrega calculado pela fila (UC-FLX-06) — **P2** _(`p2` · @wagner)_
+- **US-PCP-034** — Custo do fabricado numa conta só, para Fabricação e Produção — **P2** _(`p2`)_
 
 ### todo
 

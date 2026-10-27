@@ -39,7 +39,7 @@ final class CustoDoFabricado
 {
     public static function ligada(): bool
     {
-        return (bool) config('producao.custo_fabricado_unificado', false);
+        return (bool) config('custo_fabricado.unificado', false);
     }
 
     /**
