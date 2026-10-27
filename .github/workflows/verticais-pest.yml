@@ -148,6 +148,8 @@ on:
       - 'app/Domain/Fsm/Modelos/RegrasDaEmpresa.php'
       # US-FISIO-003 — fundo do Fisio (triggers append-only + escopo multi-tenant exigem MySQL).
       - 'Modules/Fisio/**'
+      # US-MKT-001 — fundo do Marketplaces (FK, escopo 98×99 e trigger append-only exigem MySQL).
+      - 'Modules/Marketplaces/**'
       # Etapa 02 T-13 — service worker do portal do paciente (FisioPortalAppTest lê o arquivo).
       - 'public/sw-fisio-portal.js'
       # Thread Producao/04 — o apontamento lê a saída do ponto (D-PONTO).
@@ -280,6 +282,8 @@ jobs:
               - 'app/Domain/Fsm/Modelos/RegrasDaEmpresa.php'
               # US-FISIO-003 — fundo do Fisio (triggers append-only + escopo multi-tenant exigem MySQL).
               - 'Modules/Fisio/**'
+              # US-MKT-001 — fundo do Marketplaces.
+              - 'Modules/Marketplaces/**'
               # Etapa 02 T-13 — service worker do portal do paciente (FisioPortalAppTest lê o arquivo).
               - 'public/sw-fisio-portal.js'
               # Thread Producao/04 — o apontamento lê a saída do ponto (D-PONTO).
@@ -724,6 +728,7 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioMultiTenantTest.php \
             Modules/Fisio/Tests/Feature/FisioModuloVisibilidadeTest.php \
             Modules/Fisio/Tests/Feature/FisioModuloContratoTest.php \
+            Modules/Marketplaces/Tests/Feature/MarketplacesEsquemaContratoTest.php \
             Modules/Fisio/Tests/Feature/FisioEvolucaoTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalAcessoTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalSemLoginTest.php \
