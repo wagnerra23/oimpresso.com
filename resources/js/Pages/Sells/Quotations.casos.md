@@ -113,17 +113,21 @@ do cliente e o movimento da FSM entram nas próximas fatias. Atrás de `SELLS_OR
 **Dado** no business 98 um orçamento aberto e o vendedor com `quotation.update` **Quando** gera o link
 **Então** recebe `/orcamento/{token}` com token de 48 caracteres, e o banco guarda só o sha256, válido por 7 dias.
 
+- **Persona:** Vendedor (`quotation.update`).
 - **Teste:** `tests/Feature/Sells/OrcamentoAceiteLinkContratoTest.php` — `UC-OAC-01`.
+- **Regressão que defende:** token em claro no banco, ou link que nunca vence (o `invoice_token` legado não vence).
 
-Status: 🧪
+Status: ⬜ (sem verde ainda — o 1º run da lane Sells caiu por fixture do teste, corrigida em 3f0641244e)
 
 ## UC-OAC-02 · Gerar de novo fecha o link anterior · `must`
 
 **Dado** um link aberto **Quando** o vendedor gera outro **Então** o anterior fica vencido e só o novo abre.
 
+- **Persona:** Vendedor que reenviou o orçamento.
 - **Teste:** `tests/Feature/Sells/OrcamentoAceiteLinkContratoTest.php` — `UC-OAC-02`.
+- **Regressão que defende:** dois links abertos para o mesmo orçamento, e o cliente aprovando pelo link velho.
 
-Status: 🧪
+Status: ⬜ (sem verde ainda — o 1º run da lane Sells caiu por fixture do teste, corrigida em 3f0641244e)
 
 ## UC-OAC-03 · O cliente vê itens, frete e o total gravado, e nada mais · `must`
 
@@ -131,18 +135,22 @@ Status: 🧪
 subtotais 300,00 e 49,90, frete 10,00 e total 359,90 (o total gravado, sem recálculo), sem nome do cliente
 nem custo. Token desconhecido não devolve nada.
 
+- **Persona:** Cliente que abre o link (sem login).
 - **Teste:** `tests/Feature/Sells/OrcamentoAceiteLinkContratoTest.php` — `UC-OAC-03`.
+- **Regressão que defende:** página pública mostrando custo, margem ou dado do cliente, ou um total recalculado diferente do gravado.
 
-Status: 🧪
+Status: ⬜ (sem verde ainda — o 1º run da lane Sells caiu por fixture do teste, corrigida em 3f0641244e)
 
 ## UC-OAC-04 · Não gera link de outra empresa, de venda final, nem com a flag desligada · `[T0]` `must`
 
 **Dado** o vendedor do 98 **Quando** pede link de orçamento do 99 **Então** 404; de venda final, 422; com a
 flag desligada, 404. Nenhum link é gravado.
 
+- **Persona:** Vendedor de outra empresa.
 - **Teste:** `tests/Feature/Sells/OrcamentoAceiteLinkContratoTest.php` — `UC-OAC-04`.
+- **Regressão que defende:** link gerado para orçamento de outra empresa (Tier 0), para venda já final, ou com a feature desligada.
 
-Status: 🧪
+Status: ⬜ (sem verde ainda — o 1º run da lane Sells caiu por fixture do teste, corrigida em 3f0641244e)
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
