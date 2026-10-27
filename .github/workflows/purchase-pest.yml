@@ -215,6 +215,7 @@ jobs:
             --log-junit test-results/pest-purchase-junit.xml \
             tests/Feature/Purchase/PurchaseIndexTenantContratoTest.php \
             tests/Feature/Purchase/PurchaseShowTenantContratoTest.php \
+            tests/Feature/Purchase/PurchaseRegistrarPagamentoContratoTest.php \
             tests/Feature/Purchase/UpdateCrossTenantIdorTest.php \
             tests/Feature/Purchase/PurchaseGradeMatrixTest.php \
             tests/Feature/Purchase/Wave2EditBaselineTest.php \

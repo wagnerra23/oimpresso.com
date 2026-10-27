@@ -887,8 +887,101 @@ class PurchaseController extends Controller
                 'delete' => $user->can('purchase.delete'),
                 'payments' => $user->can('purchase.payments') || $user->can('edit_purchase_payment') || $user->can('delete_purchase_payment'),
                 'aprovar_preco' => $user->can('product.update'),
+                'registrar_pagamento' => $user->can('purchase.payments'),
             ],
+            // Formulário "Registrar pagamento" (registrarPagamento). Mesmas formas que o
+            // endpoint aceita: as da filial da compra, sem "advance".
+            'formas_pagamento' => fn () => collect($this->productUtil->payment_types($purchase->location_id, false, (int) $purchase->business_id))
+                ->map(fn ($label, $valor) => ['value' => (string) $valor, 'label' => (string) $label])->values(),
+            'contas' => fn () => $this->moduleUtil->isModuleEnabled('account', (int) $purchase->business_id)
+                ? collect($this->moduleUtil->accountsDropdown((int) $purchase->business_id, false))
+                    ->map(fn ($label, $id) => ['value' => (string) $id, 'label' => (string) $label])->values()
+                : [],
         ]);
+    }
+
+    /**
+     * POST /purchases/{id}/pagamento — registra um pagamento da compra pela tela React
+     * (`Purchase/Show`). Substitui o "Adicionar pagamento" do menu da lista Blade, que era a
+     * única tela que fazia isso.
+     *
+     * Diferenças deliberadas do `TransactionPaymentController@store` (que a Blade usava):
+     * - o valor chega NUMÉRICO (ponto decimal) e não passa por `num_uf`: o parser pt-BR lê "."
+     *   como milhar e já inflou valor em produção (incidente 2026-06-05);
+     * - o valor não pode passar do saldo da compra, e a conta precisa ser da empresa e estar
+     *   aberta (a Blade não conferia nenhum dos dois);
+     * - "advance" (saldo do fornecedor) fica fora: exige a conta de saldo do contato.
+     */
+    public function registrarPagamento(Request $request, $id)
+    {
+        if (! auth()->user()->can('purchase.payments')) {
+            abort(403, 'Unauthorized action.');
+        }
+        $business_id = (int) $request->session()->get('user.business_id');
+
+        $purchase = Transaction::where('business_id', $business_id)
+            ->where('type', 'purchase')
+            ->findOrFail($id);
+
+        $formas = $this->productUtil->payment_types($purchase->location_id, false, $business_id);
+        $contaAtiva = $this->moduleUtil->isModuleEnabled('account', $business_id);
+
+        $dados = $request->validate([
+            'amount' => ['required', 'numeric', 'min:0.01'],
+            'method' => ['required', 'string', Rule::in(array_keys($formas))],
+            'paid_on' => ['required', 'date'],
+            'note' => ['nullable', 'string', 'max:500'],
+            'account_id' => $contaAtiva
+                ? ['nullable', 'integer', Rule::exists('accounts', 'id')->where('business_id', $business_id)->where('is_closed', 0)]
+                : ['nullable'],
+        ], [
+            'amount.min' => 'Informe um valor maior que zero.',
+            'method.in' => 'Forma de pagamento inválida para esta filial.',
+            'account_id.exists' => 'Conta não encontrada nesta empresa.',
+        ]);
+
+        $valor = round((float) $dados['amount'], 2);
+        $pago = (float) DB::table('transaction_payments')
+            ->where('transaction_id', $purchase->id)
+            ->sum(DB::raw('IF(is_return = 0, amount, amount * -1)'));
+        $saldo = round((float) $purchase->final_total - $pago, 2);
+
+        if ($saldo <= 0) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['amount' => 'Esta compra já está paga.']);
+        }
+        if ($valor > $saldo) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'amount' => 'O valor passa do saldo da compra ('.number_format($saldo, 2, ',', '.').').',
+            ]);
+        }
+
+        DB::transaction(function () use ($purchase, $business_id, $dados, $valor, $contaAtiva) {
+            $antes = $purchase->replicate();
+            $ref_count = $this->transactionUtil->setAndGetReferenceCount('purchase_payment');
+
+            $entrada = [
+                'business_id' => $business_id,
+                'transaction_id' => $purchase->id,
+                'amount' => $valor,
+                'method' => $dados['method'],
+                'paid_on' => \Carbon\Carbon::parse($dados['paid_on'])->format('Y-m-d H:i:s'),
+                'note' => $dados['note'] ?? null,
+                'account_id' => $contaAtiva && ! empty($dados['account_id']) ? (int) $dados['account_id'] : null,
+                'created_by' => auth()->user()->id,
+                'payment_for' => $purchase->contact_id,
+                'payment_ref_no' => $this->transactionUtil->generateReferenceNumber('purchase_payment', $ref_count),
+            ];
+            $pagamento = \App\TransactionPayment::create($entrada);
+
+            // Mesmas chaves que o store legado passa: o AddAccountTransaction lê account_id,
+            // amount e transaction_type para lançar na conta.
+            event(new \App\Events\TransactionPaymentAdded($pagamento, $entrada + ['transaction_type' => $purchase->type]));
+
+            $purchase->payment_status = $this->transactionUtil->updatePaymentStatus($purchase->id, $purchase->final_total);
+            $this->transactionUtil->activityLog($purchase, 'payment_edited', $antes);
+        });
+
+        return redirect()->back()->with('status', ['success' => 1, 'msg' => 'Pagamento registrado.']);
     }
 
     /**

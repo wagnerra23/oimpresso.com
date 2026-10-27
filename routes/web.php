@@ -865,6 +865,8 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/purchases/get_suppliers', [PurchaseController::class, 'getSuppliers']);
     Route::post('/purchases/get_purchase_entry_row', [PurchaseController::class, 'getPurchaseEntryRow']);
     Route::post('/purchases/check_ref_number', [PurchaseController::class, 'checkRefNumber']);
+    // Pagamento da compra pela tela React (substitui o "Adicionar pagamento" da lista Blade).
+    Route::post('/purchases/{id}/pagamento', [PurchaseController::class, 'registrarPagamento'])->name('purchases.pagamento');
     // US-COM-005 — layout da grade tam×cor pra produto variável (Tier 0 via business_id da sessão).
     Route::get('/purchases/grade-matrix', [PurchaseController::class, 'gradeMatrix'])->name('purchases.grade-matrix');
     // US-COM-013 — pedidos de compra abertos do fornecedor, para receber em partes.

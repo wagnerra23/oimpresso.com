@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: o escopo por tenant e a ausência do barcode são duráveis — não mudam quando o detalhe ganhar card novo.
 owner: wagner
 last_run: "2026-10-21"
-last_run_ci: "✅ 2026-09-05: os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841). Medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. Os 6 UC desta tela tem lane; 2 com defesa de COMPORTAMENTO (PurchaseShowTenantContratoTest) e os demais ESTRUTURAL (presence-gate, LC-11). Nao restatear a mao: rode scripts/qa/uc-lane-coverage.mjs. HISTORICO (fato datado, preservado): 🟡 A lane purchase-pest.yml nasceu e os UC 01 [T0] e 05 [V0] têm contrato de COMPORTAMENTO em PurchaseShowTenantContratoTest — 4 passed, 8 assertions, run no CT 100, mordida verificada por mutação. Os UC 02/03/04/06 seguem 🔴 sem lane, e o 03 tem o critério ERRADO (casa o comentário do bug-fix) — ver §Divergências. Ver §Dívida de prova."
+last_run_ci: "2026-10-27: UC-PURSHW-12/13 (registrar pagamento) nascem sem veredito. Antes: ✅ 2026-09-05: os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841). Medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. Os 6 UC desta tela tem lane; 2 com defesa de COMPORTAMENTO (PurchaseShowTenantContratoTest) e os demais ESTRUTURAL (presence-gate, LC-11). Nao restatear a mao: rode scripts/qa/uc-lane-coverage.mjs. HISTORICO (fato datado, preservado): 🟡 A lane purchase-pest.yml nasceu e os UC 01 [T0] e 05 [V0] têm contrato de COMPORTAMENTO em PurchaseShowTenantContratoTest — 4 passed, 8 assertions, run no CT 100, mordida verificada por mutação. Os UC 02/03/04/06 seguem 🔴 sem lane, e o 03 tem o critério ERRADO (casa o comentário do bug-fix) — ver §Divergências. Ver §Dívida de prova."
 ---
 
 # Casos de Uso & Aceite — Detalhe da Compra (`/purchases/{id}`)
@@ -125,6 +125,8 @@ comprovadamente verde e crescer daí — o caminho é converter, um UC por vez.
 | UC-PURSHW-07 | Preços propostos pelo recebimento aparecem no detalhe, com aviso da regra em Conferido | must `[T0]` | SPEC US-COM-028 · charter Goals | `PropostasDePrecoContratoTest` | 🧪 sem veredito |
 | UC-PURSHW-08 | Aprovar grava o preço proposto e devolve a margem de antes | must `[V0]` | SPEC US-COM-028 · US-COM-026 (`aplicar`) | `PropostasDePrecoContratoTest` | 🧪 sem veredito |
 | UC-PURSHW-09 | Recusar mantém o preço; aprovar exige `product.update`, a empresa certa e o preço de antes | must `[T0]` `[V0]` | SPEC US-COM-028 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `PropostasDePrecoContratoTest` | 🧪 sem veredito |
+| UC-PURSHW-12 | Registrar pagamento grava o valor digitado e move status e saldo, por dois caminhos | must `[V0]` | [W] 2026-10-27 (porte da lista Blade) · protótipo `compras-page.jsx` aba Pagamentos | `PurchaseRegistrarPagamentoContratoTest` | 🧪 sem veredito |
+| UC-PURSHW-13 | Pagamento não passa do saldo, não paga compra de outra empresa e exige `purchase.payments` | must `[T0]` `[V0]` | [W] 2026-10-27 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `PurchaseRegistrarPagamentoContratoTest` | 🧪 sem veredito |
 
 ---
 
@@ -293,6 +295,31 @@ comprovadamente verde e crescer daí — o caminho é converter, um UC por vez.
 - **Contrato:** SPEC US-COM-028 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
 - **Status: 🧪 sem veredito**
 
+## UC-PURSHW-12 · Registrar pagamento grava o valor e move status e saldo · `must` `[V0]`
+
+- **Persona:** Eliana (financeiro) paga parte de uma compra e quer ver o saldo cair na hora.
+- **Aceite:** Dado uma compra de 135,00 sem pagamento · Quando registra 50,00 em dinheiro ·
+  Então grava 1 linha de 50,00 em `transaction_payments`, a compra vira `partial` e a tela mostra
+  pago 50,00 e a pagar 85,00. Registrando os 85,00 restantes, vira `paid` e o saldo zera. O valor
+  chega numérico: 1234.5 grava 1234,50, nunca 12345 (incidente 2026-06-05).
+- **Dupla prova:** (a) linhas e `payment_status` lidos do banco; (b) `amount_paid`/`payment_due`
+  do payload de `Purchase/Show`, calculados pelo `showInertia`.
+- **Teste:** [`PurchaseRegistrarPagamentoContratoTest`](../../../../tests/Feature/Purchase/PurchaseRegistrarPagamentoContratoTest.php).
+- **Contrato:** pedido [W] 2026-10-27 (portar o "Adicionar pagamento" da lista Blade antes do
+  cutover) · protótipo `prototipo-ui/cowork/Wagner/compras-page.jsx`, aba Pagamentos do `DrawerView`
+  (botão "+ Registrar pagamento" só com saldo).
+- **Status: 🧪 sem veredito**
+
+## UC-PURSHW-13 · O pagamento tem travas · `must` `[T0]` `[V0]`
+
+- **Aceite:** valor acima do saldo (85,01 com 85,00 em aberto), compra já paga e forma de
+  pagamento que a filial não habilita são recusados sem gravar nada. Compra de outra empresa
+  responde 404; usuário sem `purchase.payments` recebe 403.
+- **Teste:** [`PurchaseRegistrarPagamentoContratoTest`](../../../../tests/Feature/Purchase/PurchaseRegistrarPagamentoContratoTest.php).
+- **Contrato:** [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) ·
+  REGRA MESTRE de valor (`memory/proibicoes.md`).
+- **Status: 🧪 sem veredito**
+
 ---
 
 ## `[BACKLOG]` — achados sem contrato em 2 fontes, ou sem teste que os defenda
@@ -311,8 +338,6 @@ comprovadamente verde e crescer daí — o caminho é converter, um UC por vez.
 - `[BACKLOG]` **Sem timeline/histórico de auditoria.** O charter declara como Non-Goal, mas com a
   ressalva *"inferência pendente de Wagner"*. Enquanto for inferência do agente e não decisão de
   [W], não vira UC (*"UC não é canal de pedido"*).
-- `[BACKLOG]` **Pagamento não é lançado nesta tela.** Mesmo caso do item acima: Non-Goal marcado
-  como inferência pendente.
 - `[BACKLOG]` **A autorização de servidor no destroy/update não é exercitada por teste algum desta
   tela.** UC-PURSHW-04 cobre só a face visível (o botão). A metade que importa — o backend recusar a
   ação de quem não pode — pertence ao Edit e hoje só tem

@@ -18,6 +18,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader } from '@/Components/ui/card';
 import { Edit, Trash2, Printer, ArrowLeft, FileText, Download } from 'lucide-react';
 import PrecosPropostos, { type PrecosPropostosPayload } from './_components/PrecosPropostos';
+import RegistrarPagamento, { type Opcao } from './_components/RegistrarPagamento';
 
 // ---------- Tipos ----------
 
@@ -100,12 +101,15 @@ interface Permissions {
   delete: boolean;
   payments: boolean;
   aprovar_preco: boolean;
+  registrar_pagamento: boolean;
 }
 
 interface Props {
   purchase: PurchaseDetail;
   permissions: Permissions;
   precos_propostos?: PrecosPropostosPayload | null;
+  formas_pagamento: Opcao[];
+  contas: Opcao[];
 }
 
 // ---------- Helpers ----------
@@ -147,7 +151,7 @@ const PAYMENT_PILL: Record<PaymentStatus, string> = {
 
 // ---------- Página principal ----------
 
-function PurchaseShow({ purchase, permissions, precos_propostos }: Props) {
+function PurchaseShow({ purchase, permissions, precos_propostos, formas_pagamento, contas }: Props) {
   const onDelete = () => {
     if (!confirm(`Confirma exclusão da compra ${purchase.ref_no}?`)) return;
     router.delete(`/purchases/${purchase.id}`);
@@ -301,8 +305,18 @@ function PurchaseShow({ purchase, permissions, precos_propostos }: Props) {
       {/* Pagamentos + Totais */}
       <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
         <Card>
-          <CardHeader className="pb-2 pt-3 px-4">
+          <CardHeader className="pb-2 pt-3 px-4 flex flex-row items-center justify-between gap-2">
             <h3 className="text-[11px] uppercase tracking-widest text-stone-500 font-medium">Pagamentos</h3>
+            {/* Protótipo (compras-page.jsx, aba Pagamentos): o botão só aparece com saldo. */}
+            {permissions.registrar_pagamento && purchase.payment_due > 0.005 && (
+              <RegistrarPagamento
+                compraId={purchase.id}
+                refNo={purchase.ref_no}
+                saldo={purchase.payment_due}
+                formas={formas_pagamento ?? []}
+                contas={contas ?? []}
+              />
+            )}
           </CardHeader>
           <CardContent className="px-4 pb-4 text-[13px]">
             {purchase.payment_lines.length === 0 ? (

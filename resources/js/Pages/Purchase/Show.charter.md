@@ -51,7 +51,8 @@ Mostrar tudo de uma compra numa página só: fornecedor, empresa/filial, resumo,
 ---
 
 ## Non-Goals — Features (NÃO faz)
-- ❌ Não edita a compra nem lança pagamento nesta tela — só exibe; edição/pagamento são fluxos dedicados (inferência pendente de Wagner).
+- ❌ Não edita a compra nesta tela — edição é fluxo dedicado (inferência pendente de Wagner).
+- ✅ Registra pagamento da compra ("+ Registrar pagamento", só com saldo) — [W] 2026-10-27 mandou portar o "Adicionar pagamento" da lista Blade antes do cutover. Até essa data este item dizia que a tela não lançava pagamento.
 - ❌ Não mostra timeline/histórico de auditoria da transação (não há FsmActionPanel nem Timeline aqui).
 - ❌ Não recalcula totais no cliente — os valores vêm prontos do controller.
 - ❌ Não acessa compra de outro tenant — `show` carrega a transação escopada por `business_id` (Tier 0, ADR 0093); IDs de outro negócio devem retornar 404/403.
