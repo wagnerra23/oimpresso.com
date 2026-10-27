@@ -1313,6 +1313,30 @@ Como quem orça, quero ver quanto cada peça custa e quanto sobra, para não dar
 
 ---
 
+### US-COMVIS-023 · Cliente aceita o orçamento da gráfica pelo link — **P1**
+
+> owner: — · priority: p1 · estimate: 10h · type: story
+> blocked_by: —
+
+**Implementado em:** _parcial_ · `Modules/ComunicacaoVisual/Services/AceiteDoOrcamento.php` · `Modules/ComunicacaoVisual/Http/Controllers/OrcamentoAceiteController.php` · `Modules/ComunicacaoVisual/Database/Migrations/2026_10_26_200000_create_comvis_orcamento_aceites_table.php` · `Modules/ComunicacaoVisual/Http/Controllers/Public/OrcamentoAceitePublicoController.php` · `resources/js/Pages/ComunicacaoVisual/AceitePublico.tsx` — gerar o link e decidir (aceitar / pedir ajuste) no serviço, a rota autenticada que gera o link, a página pública `/orcamento-cv/{token}` e o botão "Enviar no WhatsApp" da calculadora (tela ComunicacaoVisual/Index, servida pela rota do próprio módulo; abre o WhatsApp do vendedor com o link); faltam o envio automático pelo WhatsApp da empresa com opt-in e o PDF
+
+**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoAceiteLinkContratoTest.php` · `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoAceitePublicoContratoTest.php` (lane `verticais-pest.yml`).
+
+> Contrato: `UC-CVACE-01` e `UC-CVACE-02` do `resources/js/Pages/ComunicacaoVisual/Index.casos.md` · `UC-CVACEP-01..04` do `resources/js/Pages/ComunicacaoVisual/AceitePublico.casos.md` · `UC-CVACE-03` (`tests/js/cv-aceite-link.test.tsx`).
+
+Lacuna "orçamento enviado em PDF ou WhatsApp com aceite pelo link" (levantamento 2026-10-25, frente Verticais). Padrão: token aleatório, só o sha256 no banco, validade 7 dias, uso único (como `AprovacaoArteService` do Producao). Combinado com a frente Vendas em 2026-10-26: o link da venda (US-SELL-074) é próprio da venda; se os três links (oficina, CV, venda) convergirem, extrai-se depois.
+
+**Aceite:**
+
+- Operador gera o link de um orçamento salvo (rascunho/enviado, sem OS); gerar de novo invalida o anterior; o orçamento passa a `enviado`.
+- Página pública sem login mostra empresa, número, itens (descrição, medidas, qtd, subtotal), totais e validade — nunca custo/margem.
+- Cliente aceita → orçamento aprovado e OS criada pelo mesmo `OrcamentoViraOs` (sem recalcular valor: a OS leva o total gravado). Cliente pede ajuste → volta a rascunho com o comentário (obrigatório).
+- Link vencido, já usado, de orçamento aprovado/recusado/expirado ou fora da validade não decide nada.
+- Tier 0: o token resolve o orçamento e a empresa; tudo depois filtra pelo `business_id` do link.
+- Fora: envio pelo WhatsApp com opt-in (PR seguinte) e PDF.
+
+---
+
 ## 16. Total US recalibrado (base 18 + novas 15 = 33 US)
 
 | Prioridade | US | Total esforço (h IA-pair) |
