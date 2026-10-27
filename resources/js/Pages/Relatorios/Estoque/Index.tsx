@@ -2,9 +2,10 @@
 // Não calcula nada: estoque, valores, lucro potencial e rodapé chegam prontos do controller (getProductStockDetails e
 // as contas da coluna da Blade), 25 por página no servidor. Preço e valores só vêm com a permissão, como na Blade.
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { router } from '@inertiajs/react';
+import { Deferred, router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { PageHeader } from '@/Components/PageHeader';
+import KpiCard from '@/Components/shared/KpiCard';
 import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { Inline, Stack } from '@/Components/layout';
@@ -12,8 +13,12 @@ import { formatDecimalPtBR } from '@/Lib/numberPtBR';
 import { Paginacao, type PaginacaoInfo } from '../_shared/Paginacao';
 
 type Opcao = { id: number; nome: string };
-type Filtros = { location_id: string; category_id: string; brand_id: string; unit_id: string };
-type CampoSelect = keyof Filtros;
+type Filtros = {
+  location_id: string; category_id: string; sub_category_id: string; brand_id: string; unit_id: string; only_mfg_products: string;
+};
+type CampoSelect = 'location_id' | 'category_id' | 'sub_category_id' | 'brand_id' | 'unit_id';
+/** O topo da Blade (estoque final pela compra e pela venda, lucro potencial, margem), pronto do controller. */
+type Resumo = { por_compra: number; por_venda: number; lucro_potencial: number; margem: number };
 type Linha = {
   sku: string; produto: string; variacao: string; categoria: string; local: string; preco: number | null;
   estoque: number | null; unidade: string; valor_compra: number | null; valor_venda: number | null;
@@ -30,8 +35,12 @@ type Props = {
   mostra_valor: boolean;
   paginacao: PaginacaoInfo;
   filtros: Filtros;
+  /** Adiado (duas consultas de estoque); `null` sem `view_product_stock_value`. */
+  resumo?: Resumo | null;
+  mostra_fabricacao: boolean;
   locais: Opcao[];
   categorias: Opcao[];
+  subcategorias: Opcao[];
   marcas: Opcao[];
   unidades: Opcao[];
   moeda: { simbolo: string; casas: number };
@@ -39,19 +48,26 @@ type Props = {
 
 const TODOS = 'todos';
 
-function EstoqueIndex({ linhas, rodape, mostra_preco, mostra_valor, paginacao, filtros, locais, categorias, marcas, unidades, moeda }: Props) {
+function EstoqueIndex({
+  linhas, rodape, mostra_preco, mostra_valor, paginacao, filtros, resumo, mostra_fabricacao, locais, categorias, subcategorias, marcas, unidades, moeda,
+}: Props) {
   const dinheiro = (v: number | null) => (v === null ? '' : `${moeda.simbolo} ${formatDecimalPtBR(Number(v), moeda.casas)}`);
   const qtd = (v: number, unidade = '') => `${formatDecimalPtBR(Number(v), 2)} ${unidade}`.trim();
 
   const navegar = (mudanca: Partial<Filtros> & { page?: number }) =>
     router.get('/reports/stock-report', { tela: 'nova', ...filtros, page: 1, ...mudanca }, {
-      preserveState: true, preserveScroll: true, replace: true, only: ['linhas', 'rodape', 'paginacao', 'filtros'],
+      preserveState: true, preserveScroll: true, replace: true,
+      only: ['linhas', 'rodape', 'paginacao', 'filtros', 'resumo', 'subcategorias'],
     });
 
+  /** Trocar a categoria zera a subcategoria, como o select da Blade (recarregado a partir da categoria). */
+  const mudar = (campo: CampoSelect, valor: string) =>
+    navegar(campo === 'category_id' ? { category_id: valor, sub_category_id: '' } : { [campo]: valor });
+
   /** '' = todos, como o select da Blade; o sentinela só existe porque o Radix não aceita value vazio. */
-  const filtro = (rotulo: string, todos: string, opcoes: Opcao[], campo: CampoSelect) => (
+  const filtro = (rotulo: string, todos: string, opcoes: Opcao[], campo: CampoSelect, desligado = false) => (
     <div className="w-52">
-      <Select value={filtros[campo] || TODOS} onValueChange={v => navegar({ [campo]: v === TODOS ? '' : v })}>
+      <Select value={filtros[campo] || TODOS} onValueChange={v => mudar(campo, v === TODOS ? '' : v)} disabled={desligado}>
         <SelectTrigger aria-label={rotulo}><SelectValue /></SelectTrigger>
         <SelectContent>
           <SafeSelectItem value={TODOS}>{todos}</SafeSelectItem>
@@ -75,9 +91,38 @@ function EstoqueIndex({ linhas, rodape, mostra_preco, mostra_valor, paginacao, f
         <Inline data-contract="filtros" wrap gap={2}>
           {filtro('Local', 'Todos os locais', locais, 'location_id')}
           {filtro('Categoria', 'Todas as categorias', categorias, 'category_id')}
+          {filtro('Subcategoria', 'Todas as subcategorias', subcategorias, 'sub_category_id', !filtros.category_id)}
           {filtro('Marca', 'Todas as marcas', marcas, 'brand_id')}
           {filtro('Unidade', 'Todas as unidades', unidades, 'unit_id')}
+          {mostra_fabricacao ? (
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="size-4"
+                checked={filtros.only_mfg_products === '1'}
+                onChange={e => navegar({ only_mfg_products: e.target.checked ? '1' : '' })}
+              />
+              Só produtos de fabricação
+            </label>
+          ) : null}
         </Inline>
+
+        {/* O topo da Blade, só para quem vê o valor do estoque. Os quatro números vêm prontos (resumoDoEstoque). */}
+        {mostra_valor ? (
+          <Deferred
+            data="resumo"
+            fallback={<div data-contract="resumo" className="h-24 animate-pulse rounded-xl border bg-muted" aria-busy="true" />}
+          >
+            {resumo ? (
+              <div data-contract="resumo" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                <KpiCard label="Estoque final (preço de compra)" value={dinheiro(resumo.por_compra)} />
+                <KpiCard label="Estoque final (preço de venda)" value={dinheiro(resumo.por_venda)} tone="info" />
+                <KpiCard label="Lucro potencial" value={dinheiro(resumo.lucro_potencial)} tone="success" />
+                <KpiCard label="Margem de lucro" value={`${formatDecimalPtBR(Number(resumo.margem), 2)} %`} />
+              </div>
+            ) : <div />}
+          </Deferred>
+        ) : null}
 
         <div data-contract="tabela" className="overflow-x-auto rounded-lg border bg-card">
           <table className="w-full text-sm">

@@ -735,8 +735,13 @@ class ReportController extends Controller
         $filtros = array_filter([
             'location_id' => (string) $request->query('location_id', ''),
             'category_id' => (string) $request->query('category_id', ''),
+            // Subcategoria só vale junto da categoria, como o select da Blade (carregado a partir da categoria).
+            'sub_category_id' => $request->query('category_id', '') !== '' ? (string) $request->query('sub_category_id', '') : '',
             'brand_id' => (string) $request->query('brand_id', ''),
             'unit_id' => (string) $request->query('unit_id', ''),
+            // "Só produtos de fabricação": a Blade só mostra o checkbox com o Manufacturing ligado (o filtro junta
+            // mfg_recipes, que só existe com o módulo). Sem ele, o filtro é ignorado.
+            'only_mfg_products' => $show_manufacturing_data && $request->boolean('only_mfg_products') ? '1' : '',
         ], fn ($v) => $v !== '');
         $verPreco = auth()->user()->can('access_default_selling_price');
         $verValor = auth()->user()->can('view_product_stock_value');
@@ -766,11 +771,30 @@ class ReportController extends Controller
             'filtros' => [
                 'location_id' => (string) ($filtros['location_id'] ?? ''),
                 'category_id' => (string) ($filtros['category_id'] ?? ''),
+                'sub_category_id' => (string) ($filtros['sub_category_id'] ?? ''),
                 'brand_id' => (string) ($filtros['brand_id'] ?? ''),
                 'unit_id' => (string) ($filtros['unit_id'] ?? ''),
+                'only_mfg_products' => (string) ($filtros['only_mfg_products'] ?? ''),
             ],
+            // O resumo do topo da Blade (bloco @can view_product_stock_value), pela MESMA conta do JSON dela
+            // (resumoDoEstoque). Duas consultas de estoque: chega adiado. Sem a permissão, não vem.
+            'resumo' => $verValor ? Inertia::defer(function () use ($business_id, $filtros) {
+                $r = $this->resumoDoEstoque($business_id, $filtros);
+
+                return [
+                    'por_compra' => (float) $r['closing_stock_by_pp'],
+                    'por_venda' => (float) $r['closing_stock_by_sp'],
+                    'lucro_potencial' => (float) $r['potential_profit'],
+                    'margem' => (float) $r['profit_margin'],
+                ];
+            }) : null,
+            'mostra_fabricacao' => (bool) $show_manufacturing_data,
             'locais' => collect(BusinessLocation::forDropdown($business_id, true))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
             'categorias' => collect(Category::forDropdown($business_id, 'product'))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+            // As subcategorias da categoria escolhida, como o select da Blade (ProductController::getSubCategories).
+            'subcategorias' => ($filtros['category_id'] ?? '') === '' ? [] : Category::where('business_id', $business_id)
+                ->where('parent_id', (int) $filtros['category_id'])->orderBy('name')->get(['id', 'name'])
+                ->map(fn ($c) => ['id' => (int) $c->id, 'nome' => (string) $c->name])->values(),
             'marcas' => collect(Brands::forDropdown($business_id))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
             'unidades' => collect(Unit::where('business_id', $business_id)->pluck('short_name', 'id'))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
             'moeda' => [
@@ -5239,9 +5263,23 @@ class ReportController extends Controller
         }
 
         $business_id = request()->session()->get('user.business_id');
+
+        return $this->resumoDoEstoque((int) $business_id, request()->only(['location_id', 'category_id', 'sub_category_id', 'brand_id', 'unit_id']));
+    }
+
+    /**
+     * Resumo do topo do relatório de estoque: estoque final (hoje) pela compra e pela venda, lucro potencial e margem.
+     * Uma conta só para o JSON da Blade (getStockValue) e para a tela nova (telaEstoque). Movido de getStockValue sem
+     * mudança: os mesmos filtros e os locais permitidos do usuário.
+     *
+     * @param  array<string, mixed>  $entrada  location_id, category_id, sub_category_id, brand_id, unit_id
+     * @return array{closing_stock_by_pp: float|int, closing_stock_by_sp: float|int, potential_profit: float|int, profit_margin: float|int}
+     */
+    private function resumoDoEstoque(int $business_id, array $entrada): array
+    {
         $end_date = \Carbon::now()->format('Y-m-d');
-        $location_id = request()->input('location_id');
-        $filters = request()->only(['category_id', 'sub_category_id', 'brand_id', 'unit_id']);
+        $location_id = $entrada['location_id'] ?? null;
+        $filters = array_intersect_key($entrada, array_flip(['category_id', 'sub_category_id', 'brand_id', 'unit_id']));
 
         $permitted_locations = auth()->user()->permitted_locations();
         //Get Closing stock

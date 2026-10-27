@@ -3,6 +3,7 @@ id: resources-js-pages-relatorios-estoque-index-charter
 page: /reports/stock-report
 component: resources/js/Pages/Relatorios/Estoque/Index.tsx
 related_prototype: prototipo-ui/cowork/Wagner/relatorios-page.jsx
+related_us: [US-REL-002]
 owner: wagner
 status: draft
 last_validated: "2026-10-07"
@@ -14,7 +15,7 @@ mwart_pattern_reuse:
   blueprint_cowork: "prototipo-ui/cowork/Wagner/relatorios-page.jsx"
   blueprint_screenshot_approval: "pendente [W]"
   derived_screens: [Relatorios/Estoque]
-  divergence_from_blueprint: "sem o resumo do topo e os filtros de subcategoria e só-fabricação (PR seguinte)"
+  divergence_from_blueprint: "resumo do topo em quatro KpiCards (o protótipo do estoque não desenha resumo; a Blade tem) — 2026-10-27"
 related_runbook: memory/requisitos/Relatorios/RUNBOOK-estoque.md
 ---
 
@@ -31,6 +32,8 @@ Mostrar quanto há de cada produto em cada local, quanto vale e quanto saiu.
 - Tabela paginada no servidor (25 por página, SKU crescente, como a Blade).
 - Linhas de `getProductStockDetails` e valores pelas mesmas contas da Blade (`valorDoEstoquePorVenda`, `lucroPotencialDoEstoque`).
 - Rodapé da página com as somas.
+- Resumo do topo (estoque final pela compra e pela venda, lucro potencial, margem) pela mesma conta do JSON da Blade (`resumoDoEstoque`), adiado, só com `view_product_stock_value`.
+- Filtros da Blade: local, categoria, subcategoria (da categoria escolhida), marca, unidade e "só fabricação" (com o Manufacturing).
 
 ## Non-Goals
 

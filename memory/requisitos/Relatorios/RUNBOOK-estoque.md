@@ -40,8 +40,10 @@ com `view_product_stock_value` — as mesmas regras da Blade. Nada de schema.
 
 ## 4. Divergências declaradas e achados
 
-- O resumo do topo da Blade (estoque final pela compra e pela venda, lucro potencial, margem — `/reports/get-stock-value`)
-  e os filtros de subcategoria e "só fabricação" ficam para o PR seguinte.
+- **Fechado em 2026-10-27:** o resumo do topo (estoque final pela compra e pela venda, lucro potencial, margem) vem de
+  `resumoDoEstoque()`, a conta que o JSON da Blade (`/reports/get-stock-value`) também usa, adiado e só com
+  `view_product_stock_value`; e os filtros de subcategoria e "só fabricação" entraram (UC-RES-06..08). Antes desta data
+  eles ficavam para o PR seguinte.
 - **Colunas de valor no JSON (corrigido em 2026-10-08):** o JSON do DataTable (`/reports/stock-report` ajax) devolvia as
   colunas de valor (pela compra, pela venda, lucro potencial) a qualquer usuário com `stock_report.view`; a Blade só as
   escondia na tela (`@can('view_product_stock_value')`). Agora vêm `null` sem `view_product_stock_value`; quem tem a
@@ -49,4 +51,5 @@ com `view_product_stock_value` — as mesmas regras da Blade. Nada de schema.
 
 ## 5. Falta para o cutover (F5 — decisão [W])
 
-O resumo e os filtros do §4, aprovação do screenshot por [W], o smoke F4 e o aviso ao cliente.
+Aprovação do screenshot por [W], o smoke F4 e o aviso ao cliente. O resumo e os filtros do §4 fecharam em 2026-10-27;
+pela regra D1 [W] 2026-10-07, o cutover pelo menu segue o molde do `getPurchaseSell`.

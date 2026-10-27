@@ -46,6 +46,27 @@ last_run: "2026-10-08"
   pela venda e lucro potencial (84 · 140 · 56) · Dado usuário sem a permissão · Então as três colunas vêm vazias.
 - **Status: 🧪**
 
+## UC-RES-06 · O resumo do topo é o da Blade · `must` `[T0]` `[estoque]` `[valor]`
+> Derivado de `ReportController::getStockValue` (`/reports/get-stock-value`, chamado por `get_stock_value()` em
+> `public/js/report.js`) e do bloco `@can('view_product_stock_value')` de `stock_report.blade.php`, lidos em 2026-10-27.
+- **Aceite:** Dado num local próprio um produto com estoque 7, comprado ontem 7 a 12 e preço de venda 20 · Quando abro a
+  tela nova e peço o JSON do topo da Blade · Então estoque final pela compra, pela venda, lucro potencial e margem são os
+  mesmos nos dois e batem com a conta à mão: 84 · 140 · 56 · 40% · Dado usuário sem `view_product_stock_value` · Então o
+  resumo não vem.
+- **Status: 🧪**
+
+## UC-RES-07 · Filtro de subcategoria como o da Blade · `must` `[T0]`
+- **Aceite:** Dado dois produtos da mesma categoria em subcategorias diferentes · Quando escolho a categoria e uma
+  subcategoria · Então a tela traz só o produto dela, o mesmo que o JSON do DataTable da Blade traz com o mesmo filtro · E
+  o select lista as subcategorias daquela categoria, nunca uma do negócio 99 · Dado subcategoria sem categoria · Então ela
+  é ignorada, como na Blade (o select dela depende da categoria).
+- **Status: 🧪**
+
+## UC-RES-08 · "Só produtos de fabricação" segue o Manufacturing · `must`
+- **Aceite:** Dado o Manufacturing desligado · Então o filtro não aparece e, pedido pela URL, é ignorado (ele junta
+  `mfg_recipes`) · Dado o Manufacturing ligado · Quando marco o filtro · Então a tela traz os mesmos produtos que o JSON do
+  DataTable da Blade com `only_mfg_products=1`.
+- **Status: 🧪**
+
 ## Backlog
-- [BACKLOG] Resumo do topo (estoque final pela compra e pela venda, lucro potencial, margem) e filtros de subcategoria e
-  "só fabricação", como a Blade.
+- [BACKLOG] Cutover pelo menu (D1 [W] 2026-10-07), agora que o §4 do RUNBOOK fechou.

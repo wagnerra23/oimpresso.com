@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-RES-01, UC-RES-02, UC-RES-03, UC-RES-04, UC-RES-05 (resources/js/Pages/Relatorios/Estoque/Index.casos.md).
+// Cobre UC-RES-01, UC-RES-02, UC-RES-03, UC-RES-04, UC-RES-05, UC-RES-06, UC-RES-07, UC-RES-08 (resources/js/Pages/Relatorios/Estoque/Index.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -169,4 +169,125 @@ test('UC-RES-05 Tier 0 — o JSON do DataTable só traz as colunas de valor com 
     // Sem a permissão: as três colunas vêm vazias, como a Blade já fazia na tela.
     resEntrar($this, ['stock_report.view', 'access_all_locations']);
     expect($json())->toBe([null, null, null]);
+});
+
+/** A prop adiada `resumo`, pedida como a Page pede (partial reload Inertia). */
+function resResumo($teste, array $query): ?array
+{
+    $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+    $r = $teste->flushHeaders()->withHeaders([
+        'X-Inertia' => 'true', 'X-Inertia-Version' => $versao, 'X-Requested-With' => 'XMLHttpRequest',
+        'X-Inertia-Partial-Component' => 'Relatorios/Estoque/Index', 'X-Inertia-Partial-Data' => 'resumo',
+    ])->get('/reports/stock-report?'.http_build_query(['tela' => 'nova'] + $query));
+    $r->assertOk();
+
+    return $r->json('props.resumo');
+}
+
+/** Coloca o produto do SKU na categoria/subcategoria dadas. */
+function resCategorizar(string $sku, ?int $categoria, ?int $subcategoria): void
+{
+    $produto = DB::table('variations')->where('sub_sku', $sku)->value('product_id');
+    DB::table('products')->where('id', $produto)->update(['category_id' => $categoria, 'sub_category_id' => $subcategoria]);
+}
+
+function resCategoria(int $businessId, string $nome, int $pai = 0): int
+{
+    return (int) DB::table('categories')->insertGetId([
+        'business_id' => $businessId, 'name' => $nome.' '.uniqid(), 'short_code' => 'RS'.random_int(100, 999), 'parent_id' => $pai,
+        'category_type' => 'product', 'created_by' => EstoqueFixture::userId($businessId), 'created_at' => now(), 'updated_at' => now(),
+    ]);
+}
+
+test('UC-RES-06 valor — o resumo do topo é o do JSON da Blade (get-stock-value) e bate com a conta à mão', function () {
+    $local = EstoqueFixture::locationId($this->business->id, '-RES6-'.uniqid());
+    resProduto($this->business->id, $local, $this->user->id, 'RES6-'.uniqid(), [7, 20, 7, 12, 0]);
+    // O resumo é o estoque final de HOJE: a compra do fixture (2099) vira ontem, como no EstoqueResumoPermissaoTest.
+    DB::table('transactions')->where('business_id', $this->business->id)->where('location_id', $local)->where('type', 'purchase')
+        ->update(['transaction_date' => now()->subDay()->toDateTimeString()]);
+
+    // Caminho 1: o JSON que o topo da Blade pede (get_stock_value em public/js/report.js).
+    $blade = $this->flushHeaders()->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
+        ->get('/reports/get-stock-value?'.http_build_query(['location_id' => $local]));
+    $blade->assertOk();
+
+    // Caminho 2: a prop adiada da Page.
+    $resumo = resResumo($this, ['location_id' => $local]);
+    $tela = [(float) $resumo['por_compra'], (float) $resumo['por_venda'], (float) $resumo['lucro_potencial'], (float) $resumo['margem']];
+    expect($tela)->toEqual([(float) $blade->json('closing_stock_by_pp'), (float) $blade->json('closing_stock_by_sp'),
+        (float) $blade->json('potential_profit'), (float) $blade->json('profit_margin')]);
+
+    // Conta à mão: 7 × 12 = 84 pela compra; 7 × 20 = 140 pela venda; lucro 56; margem 56 ÷ 140 = 40%.
+    expect($tela)->toEqual([84.0, 140.0, 56.0, 40.0]);
+
+    // Sem view_product_stock_value: o resumo não vem (a Blade esconde o bloco com @can).
+    resEntrar($this, ['stock_report.view', 'access_all_locations']);
+    $r = $this->flushHeaders()->withHeaders($this->inertia)->get('/reports/stock-report?'.http_build_query(['tela' => 'nova', 'location_id' => $local]));
+    $r->assertOk();
+    expect($r->json('props.resumo'))->toBeNull();
+    expect($r->json('props.mostra_valor'))->toBeFalse();
+});
+
+test('UC-RES-07 — filtro de subcategoria igual ao do DataTable da Blade, com as subcategorias da categoria', function () {
+    $local = EstoqueFixture::locationId($this->business->id, '-RES7-'.uniqid());
+    $categoria = resCategoria($this->business->id, 'RES7 cat');
+    $sub1 = resCategoria($this->business->id, 'RES7 sub1', $categoria);
+    $sub2 = resCategoria($this->business->id, 'RES7 sub2', $categoria);
+    $skuA = 'RES7-A-'.uniqid();
+    $skuB = 'RES7-B-'.uniqid();
+    resProduto($this->business->id, $local, $this->user->id, $skuA, [5, 10, 5, 4, 0]);
+    resProduto($this->business->id, $local, $this->user->id, $skuB, [3, 10, 3, 4, 0]);
+    resCategorizar($skuA, $categoria, $sub1);
+    resCategorizar($skuB, $categoria, $sub2);
+
+    // Tier 0: uma "subcategoria" do negócio 99 pendurada na mesma categoria não aparece no select.
+    $alheio = $this->seededSupportClientTenant();
+    $subAlheia = resCategoria($alheio->id, 'RES7 alheia', $categoria);
+
+    $filtro = ['location_id' => $local, 'category_id' => $categoria, 'sub_category_id' => $sub1];
+    $props = $this->flushHeaders()->withHeaders($this->inertia)
+        ->get('/reports/stock-report?'.http_build_query(['tela' => 'nova'] + $filtro))->json('props');
+    expect(collect($props['linhas'])->pluck('sku')->all())->toBe([$skuA]);
+    expect(collect($props['subcategorias'])->pluck('id')->sort()->values()->all())->toBe(collect([$sub1, $sub2])->sort()->values()->all());
+    expect(collect($props['subcategorias'])->pluck('id'))->not->toContain($subAlheia);
+    expect($props['filtros']['sub_category_id'])->toBe((string) $sub1);
+
+    // O mesmo filtro no JSON do DataTable da Blade traz o mesmo produto.
+    $dt = $this->flushHeaders()->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
+        ->get('/reports/stock-report?'.http_build_query(['draw' => 1, 'start' => 0, 'length' => -1] + $filtro));
+    $dt->assertOk();
+    expect(collect($dt->json('data'))->pluck('sku')->all())->toBe([$skuA]);
+
+    // Subcategoria sem categoria é ignorada, como na Blade (o select dela depende da categoria).
+    $semCategoria = $this->flushHeaders()->withHeaders($this->inertia)
+        ->get('/reports/stock-report?'.http_build_query(['tela' => 'nova', 'location_id' => $local, 'sub_category_id' => $sub1]))->json('props');
+    expect(collect($semCategoria['linhas'])->pluck('sku')->sort()->values()->all())->toBe(collect([$skuA, $skuB])->sort()->values()->all());
+    expect($semCategoria['subcategorias'])->toBe([]);
+});
+
+test('UC-RES-08 — "só fabricação" segue o Manufacturing: sem o módulo é ignorado; com ele, igual ao DataTable da Blade', function () {
+    $local = EstoqueFixture::locationId($this->business->id, '-RES8-'.uniqid());
+    $sku = 'RES8-'.uniqid();
+    resProduto($this->business->id, $local, $this->user->id, $sku, [4, 10, 4, 5, 0]);
+
+    $tela = fn (array $q) => $this->flushHeaders()->withHeaders($this->inertia)
+        ->get('/reports/stock-report?'.http_build_query(['tela' => 'nova', 'location_id' => $local] + $q))->json('props');
+    $comFiltro = $tela(['only_mfg_products' => 1]);
+
+    if (! $comFiltro['mostra_fabricacao']) {
+        // Sem o Manufacturing a Blade nem mostra o checkbox, e o filtro não chega à consulta (ele junta mfg_recipes).
+        expect($comFiltro['filtros']['only_mfg_products'])->toBe('');
+        expect(collect($comFiltro['linhas'])->pluck('sku')->all())->toBe(collect($tela([])['linhas'])->pluck('sku')->all());
+
+        return;
+    }
+
+    // Com o módulo: o produto sem receita sai, como no JSON do DataTable da Blade com o mesmo filtro.
+    expect($comFiltro['filtros']['only_mfg_products'])->toBe('1');
+    $dt = $this->flushHeaders()->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
+        ->get('/reports/stock-report?'.http_build_query(['draw' => 1, 'start' => 0, 'length' => -1, 'location_id' => $local, 'only_mfg_products' => 1]));
+    $dt->assertOk();
+    // A Page ordena pelo SKU; sem `order` o DataTable não garante ordem — compara os conjuntos.
+    expect(collect($comFiltro['linhas'])->pluck('sku')->sort()->values()->all())->toBe(collect($dt->json('data'))->pluck('sku')->sort()->values()->all());
+    expect(collect($comFiltro['linhas'])->pluck('sku'))->not->toContain($sku);
 });
