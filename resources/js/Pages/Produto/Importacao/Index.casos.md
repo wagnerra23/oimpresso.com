@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a importação cria produto, marca, categoria e estoque inicial em lote. Uma conferência que grava, ou uma tela nova que importa diferente da antiga, move estoque e preço sem ninguém ver.
 owner: wagner
-last_run: "2026-10-01"
+last_run: "2026-10-27"
 last_run_ci: "_pendente_ — o trio nasce na thread Produto/05. O veredito por UC entra no manifesto quando a lane estoque-pest rodar; até lá o Status é 🧪."
 ---
 
@@ -27,7 +27,7 @@ Origem: ficha 07 · permissão que o legado já exigia (`product.create`, D2 [W]
 **Então** recebo Inertia `Produto/Importacao/Index` no modo produtos, também com `?classico=1`
 (a Blade `import_products.index` saiu no cutover de 2026-10-27); sem `product.create` recebo 403.
 
-Status: 🧪
+Status: 🧪 passou 2026-10-27 — lane estoque-pest, run 40498895303 (arquivo: 10 testes, 99 assertions, 0 skip)
 
 ---
 
