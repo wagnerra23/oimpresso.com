@@ -49,6 +49,7 @@ const FLX_REFS = [
     'ConciliacaoController' => \Modules\Financeiro\Http\Controllers\ConciliacaoController::class,
     'OnCobrancaPagaCreateFinanceiroTitulo' => \Modules\Financeiro\Listeners\OnCobrancaPagaCreateFinanceiroTitulo::class,
     'DealPipelineService' => \Modules\Crm\Services\DealPipelineService::class,
+    'FunilController' => \Modules\Crm\Http\Controllers\FunilController::class,
     'ContaPagarController' => \Modules\Financeiro\Http\Controllers\ContaPagarController::class,
     'PurchaseOrderController' => \App\Http\Controllers\PurchaseOrderController::class,
     'SellController' => \App\Http\Controllers\SellController::class,
@@ -275,7 +276,8 @@ it('o que a cobertura afirma sobre o código continua verdadeiro', function () {
         ->and(flxChamadores('new RetentarContingenciaJob'))->toBe([])
         ->and(flxChamadores('TransactionDocument::create'))->toBe([])
         ->and(flxChamadores('new TransactionDocument'))->toBe([])
-        ->and(collect(flxChamadores('moverStage('))->reject(fn ($p) => str_ends_with($p, 'DealPipelineService.php'))->all())->toBe([])
+        // US-CRM funil (#9883): o kanban do funil passou a ser o único chamador; a venda perdida segue sem alimentar o funil.
+        ->and(collect(flxChamadores('moverStage('))->reject(fn ($p) => str_ends_with($p, 'DealPipelineService.php'))->values()->all())->toBe([flxCaminho('Modules/Crm/Http/Controllers/FunilController.php')])
         // US-FIN-072 · UC-FLX-30: o Financeiro passou a lançar a retenção da NFS-e como baixa (desligado por padrão).
         ->and(class_exists(\Modules\Financeiro\Services\RetencaoNfseTituloService::class))->toBeTrue()
         ->and(collect(flxChamadores('iss_retido'))->filter(fn ($p) => str_contains($p, 'Modules/Financeiro/'))->isNotEmpty())->toBeTrue()
