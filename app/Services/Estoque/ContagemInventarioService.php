@@ -299,7 +299,7 @@ final class ContagemInventarioService
                 $biz = DB::table('business')->where('id', $businessId)->first(['id', 'accounting_method', 'pos_settings']);
                 $this->transactionUtil->mapPurchaseSell(
                     ['id' => $businessId, 'accounting_method' => $biz->accounting_method, 'location_id' => (int) $contagem->location_id, 'pos_settings' => $biz->pos_settings],
-                    $ajuste->stock_adjustment_lines,
+                    $ajuste->stock_adjustment_lines()->get(),
                     'stock_adjustment',
                 );
                 event(new StockAdjustmentCreatedOrModified($ajuste, 'added'));
