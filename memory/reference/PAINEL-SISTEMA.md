@@ -30,7 +30,7 @@ lente: [construir]
 | ComunicacaoVisual | [BRIEFING](../requisitos/ComunicacaoVisual/BRIEFING.md) | 2026-10-26 |
 | Connector | [BRIEFING](../requisitos/Connector/BRIEFING.md) | 2026-08-03 |
 | ConsultaOs | [BRIEFING](../requisitos/ConsultaOs/BRIEFING.md) | 2026-10-02 |
-| Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-09-07 |
+| Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-10-27 |
 | Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-09-29 |
 | Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-10-26 |
 | Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-10-26 |
