@@ -1,6 +1,6 @@
 ---
 id: resources-js-pages-relatorios-mesas-index-casos
-casos: Relatório por mesa · /reports/table-report?tela=nova
+casos: Relatório por mesa · /reports/table-report
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a tela mostra quanto cada mesa vendeu; total diferente da Blade, ou venda de outro negócio, é incidente.
@@ -38,4 +38,12 @@ last_run: "2026-10-07"
 - **Aceite:** Dado mesas com vendas no local A e no local B · Quando um usuário que só pode ver o local A abre a tela nova
   ou pede o JSON da Blade sem escolher local · Então vê só a mesa do A · Dado usuário sem local nenhum · Então não vê
   mesa nenhuma (mesmo desenho do #8986).
+- **Status: 🧪**
+
+## UC-RME-05 · O menu abre a tela nova; a Blade só com `?classico=1` · `must`
+- **Aceite:** Dado o cutover pelo menu (D1 [W] 2026-10-07: por tela, React vira padrão, Blade só com
+  `?classico=1`) · Quando abro `/reports/table-report` como o menu navega (sem `X-Inertia`) · Então recebo a Page · E a
+  visita Inertia (`X-Inertia` + `X-Requested-With`) também · E `?tela=nova` continua valendo · E com
+  `?classico=1` recebo a Blade · E o JSON do DataTable da Blade (`X-Requested-With`, sem `X-Inertia`) segue
+  respondendo.
 - **Status: 🧪**

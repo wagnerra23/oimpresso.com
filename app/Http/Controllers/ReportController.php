@@ -3861,7 +3861,9 @@ class ReportController extends Controller
 
         // Tela React (playbook sistema/07). Vem ANTES do ajax(): a visita Inertia manda
         // X-Requested-With. As linhas saem da MESMA consulta do DataTable da Blade, paginadas no servidor.
-        if ($request->query('tela') === 'nova') {
+        // Cutover pelo menu (D1 [W] 2026-10-07): React é o padrão, Blade só com `?classico=1` (molde
+        // `getPurchaseSell`). O DataTable da Blade (X-Requested-With, sem X-Inertia) segue no ramo ajax().
+        if ($request->query('tela') === 'nova' || (! $request->boolean('classico') && (! $request->ajax() || $request->header('X-Inertia')))) {
             return $this->telaMesas($request, $business_id);
         }
 

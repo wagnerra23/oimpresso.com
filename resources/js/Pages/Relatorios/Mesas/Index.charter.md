@@ -20,7 +20,7 @@ related_runbook: memory/requisitos/Relatorios/RUNBOOK-mesas.md
 
 # Page Charter — /reports/table-report (DRAFT)
 
-> Draft · thread `sistema/playbook/07` · responde em `?tela=nova` (sem ele, Blade) · casos: [`Index.casos.md`](./Index.casos.md).
+> Draft · thread `sistema/playbook/07` · responde em `?tela=nova` (sem ele, Blade). **2026-10-27, cutover pelo menu (D1 [W] 2026-10-07):** o GET comum abre esta Page; a Blade só com `?classico=1` (UC-RME-05) · casos: [`Index.casos.md`](./Index.casos.md).
 
 ## Mission
 

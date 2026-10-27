@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-RME-01, UC-RME-02, UC-RME-03, UC-RME-04 (resources/js/Pages/Relatorios/Mesas/Index.casos.md).
+// Cobre UC-RME-01, UC-RME-02, UC-RME-03, UC-RME-04, UC-RME-05 (resources/js/Pages/Relatorios/Mesas/Index.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -152,4 +152,24 @@ test('UC-RME-04 Tier 0 — só as mesas dos locais que o usuário pode ver', fun
 
     // Nenhum local: não vê mesa nenhuma.
     expect($visto([]))->toBe([[], []]);
+});
+
+test('UC-RME-05 cutover — o menu abre a Page; ?classico=1 abre a Blade; o DataTable segue no JSON', function () {
+    // GET comum, como o menu navega (carga cheia, sem X-Inertia).
+    $this->get('/reports/table-report')->assertOk()
+        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $p) => $p->component('Relatorios/Mesas/Index', false));
+
+    // Visita Inertia real (X-Inertia e X-Requested-With) e o opt-in antigo.
+    expect($this->withHeaders($this->inertia)->get('/reports/table-report')->json('component'))->toBe('Relatorios/Mesas/Index');
+    expect($this->withHeaders($this->inertia)->get('/reports/table-report?tela=nova')->json('component'))->toBe('Relatorios/Mesas/Index');
+
+    // A Blade só com ?classico=1 (flushHeaders: withHeaders acumula entre requisições do teste).
+    $this->flushHeaders()->get('/reports/table-report?classico=1')->assertOk()->assertViewIs('report.table_report');
+
+    // O DataTable da Blade (X-Requested-With, sem X-Inertia, sem classico) segue recebendo o JSON.
+    $dt = $this->flushHeaders()->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
+        ->get('/reports/table-report?'.http_build_query(['draw' => 1, 'start' => 0, 'length' => -1]));
+    $dt->assertOk();
+    expect($dt->json())->toHaveKey('data');
+    expect($dt->json())->not->toHaveKey('component');
 });
