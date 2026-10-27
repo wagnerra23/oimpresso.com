@@ -106,6 +106,7 @@ class ExportacaoContabilService
         return match ($layout) {
             'dominio' => $this->dominio($cnpj, $lancamentos),
             'alterdata' => $this->alterdata($lancamentos),
+            default => throw new \InvalidArgumentException("Leiaute desconhecido: {$layout}"),
         };
     }
 

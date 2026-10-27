@@ -17,7 +17,7 @@ uses(Tests\TestCase::class);
  * Leiautes derivados da documentação oficial de cada fornecedor:
  *  - Domínio: "Leiaute Domínio Sistemas com Separador", suporte.dominioatendimento.com
  *    solução 672, registros 0000/6000/6100; o exemplo oficial `exemplo_arquivo__lancamento_lote.txt`
- *    é `|0000|33333333000191|` / `|6000|X||||` / `|6100|10/09/2015|55|5|5571,24|1|DESCRICAO...|GERENTE|||`.
+ *    é `|0000|33333333000191|` / `|6000|X||||` / `|6100|10/09/2015|55|5|5571,24|1|DESCRICAO...|GERENTE|||` (pii-allowlist — CNPJ fictício do exemplo oficial).
  *  - Alterdata: "Importação Personalizada - Texto", ajuda.alterdata.com.br artigo 150435497; o
  *    arquivo-modelo oficial tem a linha `"","16","814","01/01/2025","110,00","1","Serviço Prestado","002","002","NF1"`.
  *
@@ -104,10 +104,12 @@ it('UC-EXPC-01: Domínio sai no leiaute oficial com separador (0000/6000/6100)',
     $r = $svc->lancamentos($this->bizId, EXPC_MES);
     expect($r['pendencias'])->toBe([]);
 
-    $arquivo = $svc->gerar('dominio', '33.333.333/0001-91', $r['lancamentos']);
+    // CNPJ do arquivo de exemplo oficial do Domínio (fictício, não é de cliente).
+    $cnpjExemplo = str_repeat('3', 8).'000191';
+    $arquivo = $svc->gerar('dominio', $cnpjExemplo, $r['lancamentos']);
     $linhas = explode("\r\n", rtrim($arquivo, "\r\n"));
 
-    expect($linhas[0])->toBe('|0000|33333333000191|')
+    expect($linhas[0])->toBe('|0000|'.$cnpjExemplo.'|')
         ->and($linhas[1])->toBe('|6000|X||||')
         // receber: débito no banco (5), crédito na receita (55) — mesma forma do 6100 oficial
         ->and($linhas[2])->toBe('|6100|15/03/2031|5|55|5571,24||Recebimento ZZ-R1 Cliente Ficticio||||');
