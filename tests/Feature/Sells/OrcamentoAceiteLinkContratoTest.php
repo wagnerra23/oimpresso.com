@@ -47,7 +47,6 @@ function oacUsuario(int $bizId, array $permissoes): User
 /** @param array<int, array{0: float, 1: float}> $linhas qtd × preço */
 function oacOrcamento(int $bizId, array $linhas, float $frete, string $status = 'draft', ?string $sub = 'quotation'): int
 {
-    $produto = EstoqueFixture::singleProduct($bizId);
     $soma = array_sum(array_map(fn ($l) => $l[0] * $l[1], $linhas));
     $id = (int) DB::table('transactions')->insertGetId([
         'business_id' => $bizId, 'location_id' => EstoqueFixture::locationId($bizId),
@@ -61,7 +60,9 @@ function oacOrcamento(int $bizId, array $linhas, float $frete, string $status = 
         'final_total' => $soma + $frete, 'created_by' => EstoqueFixture::userId($bizId),
         'essentials_duration' => 0, 'created_at' => now(), 'updated_at' => now(),
     ]);
+    // Um produto por linha: `uk_tsl_dup_prevent` recusa dois produtos iguais na mesma venda.
     foreach ($linhas as [$qtd, $preco]) {
+        $produto = EstoqueFixture::singleProduct($bizId);
         DB::table('transaction_sell_lines')->insert([
             'transaction_id' => $id, 'product_id' => $produto->productId,
             'variation_id' => $produto->variations[0]['variation_id'], 'quantity' => $qtd, 'quantity_returned' => 0,
