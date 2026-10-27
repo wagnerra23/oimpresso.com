@@ -88,8 +88,8 @@ Origem: ficha 07 ("mesma Page, dois modos") · permissão que o legado já exigi
 
 **Dado** que tenho `product.opening_stock`
 **Quando** abro `/import-opening-stock`
-**Então** recebo Inertia `Produto/Importacao/Index` com `modo = estoque`; `?classico=1` devolve a view
-`import_opening_stock.index`; sem `product.opening_stock` recebo 403.
+**Então** recebo Inertia `Produto/Importacao/Index` com `modo = estoque`, também com `?classico=1`
+(a Blade `import_opening_stock.index` saiu no cutover de 2026-10-27); sem `product.opening_stock` recebo 403.
 
 Status: 🧪
 

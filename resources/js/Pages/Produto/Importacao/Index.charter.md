@@ -41,7 +41,8 @@ acontecer antes de acontecer**.
 - **Modo estoque inicial** (`/import-opening-stock`, `product.opening_stock`): mesma tela, 6 colunas.
   A conferência roda o próprio `store()` — que valida e grava linha a linha no mesmo laço — e desfaz;
   lista por linha SKU, produto, local, quantidade, custo, saldo do local e total do lançamento como
-  ficaram gravados antes do rollback. `?classico=1` mantém a Blade.
+  ficaram gravados antes do rollback. As duas Blades (`import_products` e `import_opening_stock`)
+  saíram no cutover de 2026-10-27.
 
 ## Non-Goals (nesta fase)
 

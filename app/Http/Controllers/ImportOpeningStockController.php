@@ -34,7 +34,7 @@ class ImportOpeningStockController extends Controller
     /**
      * Display import product screen.
      *
-     * @return \Illuminate\View\View|\Inertia\Response
+     * @return \Inertia\Response
      */
     public function index()
     {
@@ -48,31 +48,17 @@ class ImportOpeningStockController extends Controller
         $date_format = session('business.date_format');
         $date_format = isset($date_formats[$date_format]) ? $date_formats[$date_format] : $date_format;
 
-        // Playbook Produto · thread 05 (PR-b): a tela é Inertia; `?classico=1` mantém a Blade.
-        if (! request()->boolean('classico')) {
-            return Inertia::render('Produto/Importacao/Index', [
-                'modo' => 'estoque',
-                'zip' => $zip_loaded,
-                'aviso' => session('notification'),
-                'resultado' => session('status'),
-                'conferencia' => session('conferencia'),
-                'modelo' => asset('files/import_opening_stock_csv_template.xls'),
-                'formato_data' => $date_format,
-            ]);
-        }
-
-        //Check if zip extension it loaded or not.
-        if ($zip_loaded === false) {
-            $notification = ['success' => 0,
-                'msg' => 'Please install/enable PHP Zip archive for import',
-            ];
-
-            return view('import_opening_stock.index')
-                ->with(compact('notification', 'date_format'));
-        } else {
-            return view('import_opening_stock.index')
-                ->with(compact('date_format'));
-        }
+        // Playbook Produto · thread 05 (PR-b): a tela é Inertia. A Blade `import_opening_stock.index`
+        // saiu no cutover de 2026-10-27 (MWART F5, ADR 0104); `?classico=1` não abre mais nada diferente.
+        return Inertia::render('Produto/Importacao/Index', [
+            'modo' => 'estoque',
+            'zip' => $zip_loaded,
+            'aviso' => session('notification'),
+            'resultado' => session('status'),
+            'conferencia' => session('conferencia'),
+            'modelo' => asset('files/import_opening_stock_csv_template.xls'),
+            'formato_data' => $date_format,
+        ]);
     }
 
     /**

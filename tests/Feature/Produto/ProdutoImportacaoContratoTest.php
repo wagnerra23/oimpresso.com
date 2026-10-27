@@ -229,14 +229,14 @@ function pimpRetratoEstoque(int $bizId): array
         ->map(fn ($r) => (array) $r)->all();
 }
 
-it('UC-PIMP-06 · /import-opening-stock abre a Importacao no modo estoque; ?classico=1 segue Blade; sem permissão 403', function () {
+it('UC-PIMP-06 · /import-opening-stock abre a Importacao no modo estoque, também com ?classico=1; sem permissão 403', function () {
     $user = pimpUsuario($this->biz->id, ['product.opening_stock']);
 
     pimpLogin($this, $user)->get('/import-opening-stock')->assertOk()
         ->assertInertia(fn (AssertableInertia $p) => $p->component('Produto/Importacao/Index', false)->where('modo', 'estoque'));
-    pimpLogin($this, $user)
-        ->withSession(['currency' => ['code' => 'BRL', 'symbol' => 'R$', 'thousand_separator' => '.', 'decimal_separator' => ',']])
-        ->get('/import-opening-stock?classico=1')->assertOk()->assertViewIs('import_opening_stock.index');
+    // Cutover 2026-10-27: a Blade saiu; o antigo atalho cai na mesma Page.
+    pimpLogin($this, $user)->get('/import-opening-stock?classico=1')->assertOk()
+        ->assertInertia(fn (AssertableInertia $p) => $p->component('Produto/Importacao/Index', false)->where('modo', 'estoque'));
     pimpLogin($this, pimpUsuario($this->biz->id))->get('/import-opening-stock')->assertForbidden();
 });
 
