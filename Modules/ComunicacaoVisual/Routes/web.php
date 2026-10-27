@@ -179,6 +179,12 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         Route::get('os/{os}/pos-calculo', [OsPosCalculoController::class, 'show'])
             ->whereNumber('os')
             ->name('comvis.api.os.pos-calculo');
+        Route::post('os/{os}/terceiros', [OsPosCalculoController::class, 'lancarTerceiro'])
+            ->whereNumber('os')
+            ->name('comvis.api.os.terceiros.lancar');
+        Route::delete('os/{os}/terceiros/{terceiro}', [OsPosCalculoController::class, 'removerTerceiro'])
+            ->whereNumber(['os', 'terceiro'])
+            ->name('comvis.api.os.terceiros.remover');
     });
 
 // ── US-COMVIS-023 · página pública do aceite do orçamento (sem login) ──

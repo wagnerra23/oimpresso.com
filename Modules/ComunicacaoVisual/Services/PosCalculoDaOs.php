@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\DB;
  *                    contaria o mesmo m² duas vezes.
  *   real.maquina   = horas de máquina apontadas nas etapas do roteiro (contrato CustoRealDaOs)
  *   real.pessoa    = horas de pessoa idem
+ *   real.terceiros = Σ dos lançamentos de terceiros da OS (`comvis_os_terceiros`)
  *   margem         = preço − custo ; margem_pct = margem ÷ preço × 100 (1 casa)
  *
  * Conta em inteiros: m² impresso (milésimos) × Σ custo (centavos) ÷ Σ m² (milésimos), arredonda UMA
@@ -29,6 +30,8 @@ use Illuminate\Support\Facades\DB;
  */
 final class PosCalculoDaOs
 {
+    public function __construct(private readonly TerceirosDaOs $terceiros) {}
+
     public const OS_TIPO = RoteiroPadraoDaOs::OS_TIPO;
 
     /** @return array<string, mixed>|null */
@@ -68,12 +71,13 @@ final class PosCalculoDaOs
             ? intdiv(2 * $m2Impresso * $orcadoMaterial + $areaComCusto, 2 * $areaComCusto)
             : null;
 
+        $terceiros = $this->terceiros->listar($businessId, $osId);
         $preco = self::centavos($os->valor_total);
         $real = [
             'material' => $material,
             'maquina'  => self::centavos($horas['maquina']),
             'pessoa'   => self::centavos($horas['pessoa']),
-            'terceiros' => 0,
+            'terceiros' => array_sum(array_map(fn (array $t) => self::centavos($t['valor']), $terceiros)),
         ];
         $real['total'] = $material === null ? null : array_sum($real);
         $orcado = $orcadoCompleto ? ['material' => $orcadoMaterial, 'maquina' => $orcadoMaquina, 'total' => $orcadoMaterial + $orcadoMaquina] : null;
@@ -86,6 +90,7 @@ final class PosCalculoDaOs
             'orcado'       => $orcado === null ? null : array_map([self::class, 'reais'], $orcado),
             'm2_impresso'  => sprintf('%d.%03d', intdiv($m2Impresso, 1000), $m2Impresso % 1000),
             'real'         => array_map(fn (?int $c) => $c === null ? null : self::reais($c), $real),
+            'terceiros_lancados' => $terceiros,
             'margem_orcada' => $orcado === null ? null : self::margem($preco, $orcado['total']),
             'margem_real'  => $real['total'] === null ? null : self::margem($preco, $real['total']),
             'itens_com_custo' => $comCusto,

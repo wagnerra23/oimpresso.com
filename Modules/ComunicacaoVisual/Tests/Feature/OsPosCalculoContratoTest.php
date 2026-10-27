@@ -25,7 +25,7 @@ use Tests\Support\WithSeededTenant;
 uses(Tests\TestCase::class, DatabaseTransactions::class, WithSeededTenant::class);
 
 beforeEach(function () {
-    foreach (['comvis_os', 'comvis_os_itens', 'comvis_apontamentos', 'pcp_postos', 'pcp_apontamentos'] as $t) {
+    foreach (['comvis_os', 'comvis_os_itens', 'comvis_os_terceiros', 'pcp_postos', 'pcp_apontamentos'] as $t) {
         if (! Schema::hasTable($t)) {
             $this->markTestSkipped("Schema ausente ({$t}).");
         }
@@ -148,4 +148,54 @@ it('UC-CVPOS-05 · com a flag desligada é 404; sem quem vê custo é 403', func
     config(['comunicacao-visual.pos_calculo' => true]);
     expect(($this->get)($os, ['comvis.orcamento.view']))->toBe(403)
         ->and(($this->get)($os, ['comvis.material.manage']))->toBe(200);
+});
+
+it('UC-CVPOS-06 · terceiro lançado soma no custo real e sai ao remover [V0]', function () {
+    [$os] = ($this->os)($this->biz);
+    ($this->hora)($this->biz, $os, 'maquina', '9.00', '2026-10-20 08:00:00', '2026-10-20 09:00:00', '7.440');
+    config(['comunicacao-visual.pos_calculo' => true]);
+    $user = $this->usuarioComPermissoes(['comvis.material.manage'], $this->B98);
+    $this->actingAs($user);
+    session(['user.business_id' => $this->biz, 'business.id' => $this->biz, 'user.id' => $user->id]);
+    $lancar = fn (array $d) => app()->call([app(OsPosCalculoController::class), 'lancarTerceiro'],
+        ['request' => \Illuminate\Http\Request::create('/x', 'POST', $d), 'os' => $os]);
+
+    $id = $lancar(['descricao' => 'Corte CNC', 'valor' => '120.50'])->getData(true)['id'];
+    $lancar(['descricao' => 'Frete', 'valor' => '30.00']);
+
+    // 63,24 + 9,00 + 150,50 de terceiros = 222,74 → margem 77,26 (25,8%)
+    $r = app(PosCalculoDaOs::class)->daOs($this->biz, $os);
+    expect($r['real']['terceiros'])->toBe('150.50')->and($r['real']['total'])->toBe('222.74')
+        ->and($r['margem_real'])->toBe(['valor' => '77.26', 'pct' => 25.8])
+        ->and(array_column($r['terceiros_lancados'], 'descricao'))->toBe(['Corte CNC', 'Frete']);
+
+    expect(app()->call([app(OsPosCalculoController::class), 'removerTerceiro'], ['os' => $os, 'terceiro' => $id])->getStatusCode())->toBe(204);
+    expect(app(PosCalculoDaOs::class)->daOs($this->biz, $os)['real']['terceiros'])->toBe('30.00');
+
+    expect(fn () => $lancar(['descricao' => 'X', 'valor' => '10.555']))->toThrow(\Illuminate\Validation\ValidationException::class);
+    expect(fn () => $lancar(['descricao' => 'X', 'valor' => '0']))->toThrow(\Illuminate\Validation\ValidationException::class);
+});
+
+it('UC-CVPOS-07 · terceiro em OS ou com fornecedor de outra empresa é recusado [T0]', function () {
+    [$minha] = ($this->os)($this->biz);
+    [$alheia] = ($this->os)($this->outra);
+    $fornecedorAlheio = (int) DB::table('contacts')->where('business_id', $this->outra)->value('id');
+    config(['comunicacao-visual.pos_calculo' => true]);
+    $user = $this->usuarioComPermissoes(['comvis.material.manage'], $this->B98);
+    $this->actingAs($user);
+    session(['user.business_id' => $this->biz, 'business.id' => $this->biz, 'user.id' => $user->id]);
+    $status = function (int $os, array $d) {
+        try {
+            return app()->call([app(OsPosCalculoController::class), 'lancarTerceiro'],
+                ['request' => \Illuminate\Http\Request::create('/x', 'POST', $d), 'os' => $os])->getStatusCode();
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+            return $e->getStatusCode();
+        }
+    };
+
+    expect($status($alheia, ['descricao' => 'Corte', 'valor' => '10.00']))->toBe(404);
+    if ($fornecedorAlheio > 0) {
+        expect($status($minha, ['descricao' => 'Corte', 'valor' => '10.00', 'fornecedor_id' => $fornecedorAlheio]))->toBe(422);
+    }
+    expect(DB::table('comvis_os_terceiros')->whereIn('os_id', [$minha, $alheia])->count())->toBe(0);
 });

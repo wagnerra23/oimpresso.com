@@ -94,6 +94,8 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CVPOS-03 | Peça sem custo deixa o orçado vazio; nenhuma com custo deixa o real vazio | must | US-COMVIS-005 | `OsPosCalculoContratoTest` | 🧪 |
 | UC-CVPOS-04 | OS, hora e m² de outra empresa nunca entram | must `[T0]` | US-COMVIS-005 | `OsPosCalculoContratoTest` | 🧪 |
 | UC-CVPOS-05 | Flag desligada é 404; sem quem vê custo é 403 | must | US-COMVIS-005 | `OsPosCalculoContratoTest` | 🧪 |
+| UC-CVPOS-06 | Terceiro lançado soma no custo real e sai ao remover | must `[V0]` | US-COMVIS-005 | `OsPosCalculoContratoTest` | 🧪 |
+| UC-CVPOS-07 | Terceiro em OS ou com fornecedor de outra empresa é recusado | must `[T0]` | US-COMVIS-005 | `OsPosCalculoContratoTest` | 🧪 |
 | UC-CVMRG-01 | Cada peça e o orçamento mostram custo e margem | must `[V0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVMRG-02 | Preço, subtotal e total são os mesmos com e sem margem | must `[V0]` | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
 | UC-CVMRG-03 | Peça sem custo fica sem margem; o orçamento diz quantas têm | must | US-COMVIS-022 · UC-FLX-03 | `OrcamentoMargemContratoTest` | 🧪 verde no CT 100 (2026-10-21) |
@@ -667,7 +669,8 @@ Status: 🧪
 > (`OsPosCalculoController` → `PosCalculoDaOs`), atrás de `COMVIS_POS_CALCULO_ENABLED` (desligada),
 > só para quem vê custo (superadmin ou `comvis.material.manage`). Só lê: nenhum valor gravado muda.
 > As horas e o m² impresso vêm do Producao pelo contrato `App\Contracts\Producao\CustoRealDaOs`
-> (a conta das horas é a do `CustoRealService`). Sem tela neste PR; terceiros entram na fatia seguinte.
+> (a conta das horas é a do `CustoRealService`). Terceiros (corte CNC, instalação terceirizada, frete) são
+> lançados na OS (`POST`/`DELETE …/api/os/{os}/terceiros`, `comvis_os_terceiros`) e somam no real. Sem tela ainda.
 
 Conta do arranjo (preço da OS 300,00; peças A 6,000 m² e B 1,440 m², ambas a 8,50/m²; A com 18,00 de máquina prevista):
 
@@ -712,6 +715,21 @@ Status: 🧪
 
 **Dado** a flag desligada **Quando** alguém pede **Então** 404. Ligada, quem só vê orçamento recebe 403 e
 quem cuida do catálogo recebe 200.
+
+Status: 🧪
+
+## UC-CVPOS-06 · Terceiro lançado soma no custo real e sai ao remover · `must` `[V0]`
+
+**Dado** uma OS com 63,24 de material e 9,00 de máquina **Quando** quem vê custo lança "Corte CNC" 120,50
+e "Frete" 30,00 **Então** o real tem 150,50 de terceiros, total 222,74 e margem 77,26 (25,8%) sobre 300,00.
+Remover o corte deixa 30,00. Valor com mais de 2 casas ou zero é recusado.
+
+Status: 🧪
+
+## UC-CVPOS-07 · Terceiro em OS ou com fornecedor de outra empresa é recusado · `must` `[T0]`
+
+**Dado** uma OS ou um fornecedor de outra empresa **Quando** alguém lança terceiro **Então** a OS alheia
+dá 404, o fornecedor alheio dá 422, e nada é gravado.
 
 Status: 🧪
 
