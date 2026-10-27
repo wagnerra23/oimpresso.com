@@ -444,9 +444,9 @@ Driver pattern: classe `MarketplaceDriver` abstrata + `MercadoLivreDriver`, `Sho
 
 ### US-MKT-007 · Pedido ML → cria `mkt_orders` + transaction UltimatePOS + FSM stage initial — **P0** · 8h
 
-**Implementado em:** _parcial_ · `Modules/Marketplaces/Services/PedidoParaVenda.php` · `Modules/Marketplaces/Jobs/VirarVendaJob.php` · `Modules/Marketplaces/Database/Migrations/2026_10_26_000003_add_location_id_to_mkt_account_credentials.php` — 2026-10-26: pedido pago vira venda final no local da conta, com baixa de estoque; falta o estágio FSM `venda_marketplace` (próximo PR)
+**Implementado em:** `Modules/Marketplaces/Services/PedidoParaVenda.php` · `Modules/Marketplaces/Jobs/VirarVendaJob.php` · `Modules/Marketplaces/Database/Migrations/2026_10_26_000003_add_location_id_to_mkt_account_credentials.php` · `Modules/Marketplaces/Database/Seeders/FsmProcessoVendaMarketplaceSeeder.php` · `Modules/Marketplaces/Services/IniciarPipelineMarketplace.php` — 2026-10-26: pedido pago vira venda final no local da conta, com baixa de estoque, e entra no estágio `pedido_recebido` do processo `venda_marketplace` (pago → enviado → entregue; cancelado nas laterais)
 
-**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesPedidoViraVendaContratoTest.php`
+**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesPedidoViraVendaContratoTest.php` · `Modules/Marketplaces/Tests/Feature/MarketplacesPipelineFsmContratoTest.php`
 
 **DoD:** pedido pago vira venda final no local da conta com final_total igual ao total do ML e igual à soma das linhas, e o estoque baixa a quantidade vendida; repetir não cria segunda venda nem baixa de novo; total que não bate, pedido não pago ou conta sem local não criam venda nem mexem no estoque; SKU de outra empresa nunca é usado.
 
@@ -460,7 +460,11 @@ Driver pattern: classe `MarketplaceDriver` abstrata + `MercadoLivreDriver`, `Sho
 
 ### US-MKT-008 · UI Page `Marketplaces/Orders/Index.tsx` (Cockpit V2) — **P0** · 6h
 
-**Implementado em:** _pendente_ — tela não construída (US planejada): `resources/js/Pages/Marketplaces/` não existe no disco
+**Implementado em:** _parcial_ · `resources/js/Pages/Marketplaces/Pedidos.tsx` · `Modules/Marketplaces/Http/Controllers/PedidosController.php` · `resources/js/Pages/Marketplaces/Pedidos.casos.md` — 2026-10-26: lista de pedidos da empresa (com a venda gerada), filtro com/sem venda, contas conectadas com o local de venda escolhido ali (decisão [W]) e botão de conectar; tela gerada do PT-01 pelo designer-agente (sem protótipo, ADR 0282/0438). Faltam o painel lateral `OrderSheet` e as ações em lote
+
+**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesPedidosTelaContratoTest.php`
+
+**DoD:** a lista traz só os pedidos da empresa, com a venda quando já virou venda; o filtro separa com e sem venda; o local da conta aceita só local da empresa, recusa conta de outra empresa e exige a permissão de conectar; sem o pacote a tela não abre.
 
 - Lista pedidos com filtros (marketplace, status, data, valor)
 - Drawer `OrderSheet` com timeline FSM + items + buyer + shipping + dispute (se houver)
@@ -468,7 +472,11 @@ Driver pattern: classe `MarketplaceDriver` abstrata + `MercadoLivreDriver`, `Sho
 
 ### US-MKT-009 · NFe automática ao emitir → CFOP marketplace resolver + dispatch SEFAZ — **P0** · 7h
 
-**Implementado em:** _pendente_ — módulo não construído (US planejada): sem `OrderMarketplaceFaturadoListener` nem `MarketplaceCFOPResolver` no disco
+**Implementado em:** _parcial_ · `Modules/Marketplaces/Services/Fiscal/CfopDoPedido.php` · `Modules/Marketplaces/SideEffects/AvaliarNfeAoEnviar.php` · `Modules/Marketplaces/Jobs/AvaliarNfeDoPedidoJob.php` — 2026-10-26: CFOP só por configuração, sem valor padrão (depende do contador; sugestão do §5: 5102/6102), e avaliação da nota no `marcar_enviado`, atrás da flag `marketplaces.nfe.automatica` (desligada); **nenhuma nota é emitida ainda**. 2026-10-26 (2): o pedido pago busca o faturamento no ML e guarda o destinatário nas chaves de `contacts` (`Modules/Marketplaces/Services/MercadoLivre/DestinatarioMercadoLivre.php`; nomes dos campos do ML a reconferir contra resposta real). Interface combinada com a frente Fiscal: `NfeService::emitirParaTransaction($tx, '55', separada: false, destinatarioExterno: [...], cfop: ...)`. Faltam: ligar essa chamada quando o PR da Fiscal sair e o envio do XML ao ML. Depende de [W] + contador conferirem o CFOP (D5)
+
+**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesNfePedidoContratoTest.php` · `Modules/Marketplaces/Tests/Feature/MarketplacesDestinatarioContratoTest.php`
+
+**DoD:** CFOP 5102 na mesma UF e 6102 em outra, sem CFOP para Full ou UF ausente; flag desligada não põe nada na fila; flag ligada só deixa a nota sair com destinatário completo e fora do Full; outra empresa nunca avalia a venda da 98.
 
 - Listener `OrderMarketplaceFaturadoListener` no event FSM action `emitir_nfe`
 - Service `MarketplaceCFOPResolver` aplica mapping §5 (per-categoria + override business)

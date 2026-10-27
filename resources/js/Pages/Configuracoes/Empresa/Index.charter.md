@@ -18,7 +18,8 @@ related_runbook: memory/requisitos/Configuracoes/RUNBOOK-empresa.md
 
 > **Status:** draft. Thread `sistema/playbook/08`, F3-1 (Negócio) e F3-2 (Impostos · Produtos · Contatos). `GET /business/settings` responde Inertia só com a flag
 > `useV2ConfiguracoesEmpresa` ligada para o negócio; desligada, ou com `?classico=1`, a Blade `business/settings` segue.
-> Vira `live` no cutover, decisão [W]. Casos: [`Index.casos.md`](./Index.casos.md).
+> Desde 2026-10-27 ([W]) a flag vem ligada para todas as empresas pelo `$fallbackDefaults` do `FeatureFlagService`; a
+> Blade segue em `?classico=1`. Vira `live` depois do smoke em produção. Casos: [`Index.casos.md`](./Index.casos.md).
 
 ## Mission
 

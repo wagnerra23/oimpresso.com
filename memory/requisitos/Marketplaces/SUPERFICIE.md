@@ -14,23 +14,27 @@ module: Marketplaces
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Marketplaces/**` + `resources/js/Pages/Marketplaces/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 34 arquivos em 12 papéis.
+**Total mapeado:** 48 arquivos em 16 papéis.
 
-## Controllers — 4
+## Controllers — 5
 
 - [ContasController.php](../../../Modules/Marketplaces/Http/Controllers/ContasController.php)
 - [DataController.php](../../../Modules/Marketplaces/Http/Controllers/DataController.php)
 - [InstallController.php](../../../Modules/Marketplaces/Http/Controllers/InstallController.php)
 - [NotificacoesMercadoLivreController.php](../../../Modules/Marketplaces/Http/Controllers/NotificacoesMercadoLivreController.php)
+- [PedidosController.php](../../../Modules/Marketplaces/Http/Controllers/PedidosController.php)
 
 ## Middleware — 1
 
 - [MarketplacesLiberado.php](../../../Modules/Marketplaces/Http/Middleware/MarketplacesLiberado.php)
 
-## Services — 4
+## Services — 7
 
 - [ContasVendedor.php](../../../Modules/Marketplaces/Services/ContasVendedor.php)
+- [CfopDoPedido.php](../../../Modules/Marketplaces/Services/Fiscal/CfopDoPedido.php)
+- [IniciarPipelineMarketplace.php](../../../Modules/Marketplaces/Services/IniciarPipelineMarketplace.php)
 - [MarketplacesAcesso.php](../../../Modules/Marketplaces/Services/MarketplacesAcesso.php)
+- [DestinatarioMercadoLivre.php](../../../Modules/Marketplaces/Services/MercadoLivre/DestinatarioMercadoLivre.php)
 - [MercadoLivreOAuth.php](../../../Modules/Marketplaces/Services/MercadoLivre/MercadoLivreOAuth.php)
 - [PedidoParaVenda.php](../../../Modules/Marketplaces/Services/PedidoParaVenda.php)
 
@@ -42,8 +46,9 @@ module: Marketplaces
 - [PedidoMarketplace.php](../../../Modules/Marketplaces/Entities/PedidoMarketplace.php)
 - [WebhookRecebido.php](../../../Modules/Marketplaces/Entities/WebhookRecebido.php)
 
-## Jobs — 3
+## Jobs — 4
 
+- [AvaliarNfeDoPedidoJob.php](../../../Modules/Marketplaces/Jobs/AvaliarNfeDoPedidoJob.php)
 - [ProcessarNotificacaoMercadoLivreJob.php](../../../Modules/Marketplaces/Jobs/ProcessarNotificacaoMercadoLivreJob.php)
 - [RenovarTokenContaJob.php](../../../Modules/Marketplaces/Jobs/RenovarTokenContaJob.php)
 - [VirarVendaJob.php](../../../Modules/Marketplaces/Jobs/VirarVendaJob.php)
@@ -67,18 +72,35 @@ module: Marketplaces
 - [2026_10_26_000002_seed_mkt_marketplaces.php](../../../Modules/Marketplaces/Database/Migrations/2026_10_26_000002_seed_mkt_marketplaces.php)
 - [2026_10_26_000003_add_location_id_to_mkt_account_credentials.php](../../../Modules/Marketplaces/Database/Migrations/2026_10_26_000003_add_location_id_to_mkt_account_credentials.php)
 
+## Seeders — 1
+
+- [FsmProcessoVendaMarketplaceSeeder.php](../../../Modules/Marketplaces/Database/Seeders/FsmProcessoVendaMarketplaceSeeder.php)
+
 ## Config — 1
 
 - [config.php](../../../Modules/Marketplaces/Config/config.php)
 
-## Testes (Pest) — 5
+## Telas (Inertia/React) — 1
 
-- 5 em [Modules/Marketplaces/Tests/Feature/](../../../Modules/Marketplaces/Tests/Feature)
+- [Pedidos.tsx](../../../resources/js/Pages/Marketplaces/Pedidos.tsx)
+
+## Charters (lei da tela) — 1
+
+- [Pedidos.charter.md](../../../resources/js/Pages/Marketplaces/Pedidos.charter.md)
+
+## Casos (contrato UC) — 1
+
+- [Pedidos.casos.md](../../../resources/js/Pages/Marketplaces/Pedidos.casos.md)
+
+## Testes (Pest) — 9
+
+- 9 em [Modules/Marketplaces/Tests/Feature/](../../../Modules/Marketplaces/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 4
+## Demais arquivos (manifestos, docs, assets e misc) — 5
 
 - [marketplaces.php](../../../Modules/Marketplaces/Resources/lang/pt-BR/marketplaces.php)
+- [AvaliarNfeAoEnviar.php](../../../Modules/Marketplaces/SideEffects/AvaliarNfeAoEnviar.php)
 - [composer.json](../../../Modules/Marketplaces/composer.json)
 - [module.json](../../../Modules/Marketplaces/module.json)
 - [SCOPE.md](../../../memory/requisitos/Marketplaces/SCOPE.md)

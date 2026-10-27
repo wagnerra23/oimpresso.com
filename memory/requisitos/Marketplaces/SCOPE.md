@@ -7,6 +7,7 @@ contains:
   - "InstallController"
   - "ContasController — conectar a conta do vendedor no Mercado Livre por OAuth (US-MKT-003)"
   - "NotificacoesMercadoLivreController — recebe as notificações do ML e busca o pedido na API com o token da conta (US-MKT-006)"
+  - "PedidosController — tela Pedidos dos marketplaces (lista, filtro com/sem venda, local de venda da conta) — US-MKT-008"
   - "Renovação do token do vendedor sob demanda e de hora em hora (marketplaces:renovar-tokens, US-MKT-003)"
   - "Catálogo global de marketplaces (mkt_marketplaces) e conta do vendedor por empresa com token cifrado (mkt_account_credentials)"
   - "Anúncios (mkt_listings), pedidos recebidos (mkt_orders) e log de webhook append-only (mkt_webhook_log) — US-MKT-001"
@@ -22,6 +23,7 @@ owner: wagner
 status: em construção
 url_prefixes:
   - /marketplaces/install (instalação 1-clique)
+  - /marketplaces/pedidos (tela Pedidos, US-MKT-008) e /marketplaces/contas/{conta}/local
   - /webhook/marketplaces/mercado-livre (notificações do ML, pública, US-MKT-006)
   - /marketplaces/contas/mercado-livre/conectar e /marketplaces/oauth/callback/mercado-livre (US-MKT-003)
 ---

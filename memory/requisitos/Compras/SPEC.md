@@ -694,6 +694,26 @@ Como dono que deixou a regra de custo em "Propõe novo preço", quero ver no det
 - [x] Aviso na tela quando a regra está em Conferido
 - [ ] Fila na Fabricação (`aprovacao = fabricacao`) e nas Pendências da Visão geral
 
+### US-COM-029 · Compra a partir de pedido não aceita pedido nem linha de outra empresa — **P0**
+
+> owner: — · priority: p0 · estimate: 2h · status: doing · type: story
+> blocked_by: —
+
+Como dono de uma empresa, quero que a compra feita a partir de um pedido de compra só aceite pedidos e linhas de pedido da minha empresa, para que ninguém consiga mexer na quantidade recebida ou no status do pedido de outra empresa.
+
+**Implementado em:** _pendente_ — trava `assertPurchaseOrderRefsBelongTo` no `PurchaseController` (store e update) e o `CompraDePedidoOutraEmpresaTest`, ainda sem veredito da lane `compras-pest`. A âncora vira path quando o teste ficar verde (ADR 0273 + doneness-lint ADR 0302).
+
+**Testado em:** `Modules/Compras/Tests/Feature/CompraDePedidoOutraEmpresaTest.php`
+
+- Origem (medido em 2026-10-26, `origin/main` `93d6a5d11c`): `purchase_order_ids` e `purchases.*.purchase_order_line_id` chegam crus do formulário e descem para `ProductUtil::updatePurchaseOrderLine` (`PurchaseLine::find`) e `TransactionUtil::updatePurchaseOrderStatus` (`Transaction::find`), sem filtro de empresa.
+- O pedido tem de ser `purchase_order` da empresa do usuário; a linha, de um pedido da empresa. A linha não precisa estar na lista de pedidos, porque a edição pode tirar um pedido da lista e manter a linha já vinculada.
+- Pré-requisito do recebimento parcial (US-COM-013), que reaproveita este caminho (pedido → compra com `po_quantity_purchased`).
+
+**Aceite:**
+- [ ] Pedido de outra empresa em `purchase_order_ids` = 422, pedido alheio intacto
+- [ ] Linha de pedido de outra empresa = 422, `po_quantity_purchased` alheio intacto
+- [ ] Pedido da própria empresa segue recebendo: 4 de 10 deixa o pedido `partial` (controle positivo)
+
 ### 9.1 Seguradas (feature-wish ADR 0105 — NÃO no backlog ativo)
 
 Sem dor reportada por cliente / sinal qualificado, estas **não** viram US ativa (ADR 0105 — cliente como sinal). Ficam catalogadas como wish, reabrem com sinal:
