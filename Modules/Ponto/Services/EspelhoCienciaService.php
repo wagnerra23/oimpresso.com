@@ -45,6 +45,29 @@ class EspelhoCienciaService
     }
 
     /**
+     * O último mês fechado pelo empregador que o colaborador trabalhou (a partir da admissão),
+     * com o estado da ciência — o que a tela "Meu espelho" mostra. Null se não há mês fechado.
+     *
+     * @return array{mes:string, competencia_fechada:bool, ciencia:?array{ciente_em:string, confere:bool}}|null
+     */
+    public function ultimaFechada(Colaborador $c): ?array
+    {
+        $q = Competencia::where('business_id', (int) $c->business_id);
+        if (! empty($c->admissao)) {
+            $q->whereDate('competencia', '>=', Carbon::parse($c->admissao)->startOfMonth()->toDateString());
+        }
+        $ultima = $q->orderByDesc('competencia')->first();
+        if ($ultima === null) {
+            return null;
+        }
+
+        $ano = (int) $ultima->competencia->year;
+        $mes = (int) $ultima->competencia->month;
+
+        return ['mes' => $ultima->competencia->format('Y-m')] + $this->estado($c, $ano, $mes);
+    }
+
+    /**
      * @return array{ciente_em:string, confere:bool}
      *
      * @throws DomainException com a mensagem `competencia_aberta` ou `ja_ciente`
