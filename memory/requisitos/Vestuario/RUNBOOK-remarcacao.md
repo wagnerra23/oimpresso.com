@@ -28,8 +28,9 @@ e as etiquetas novas saem para impressão.
 
 ## Fonte de design
 
-Protótipo [`prototipo-ui/cowork/Wagner/vestuario-remarcacao.html`](../../../prototipo-ui/cowork/Wagner/vestuario-remarcacao.html)
-(ADR 0438), publicado como Artefato para o [W] ver e comentar.
+Protótipo `prototipo-ui/cowork/Wagner/vestuario-remarcacao-page.jsx` (ADR 0438), registrado em
+`window.PROTO_HTML["vest-remarcacao"]` e aberto dentro do shell do protótipo (rota `vest-remarcacao`,
+ghost "Remarcação por coleção" em Vestuário, PR #10055). Para mudar a tela, edite esse `.jsx`.
 
 ## Rotas
 
