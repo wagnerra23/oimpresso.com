@@ -49,7 +49,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/Components/ui/sheet';
-import { Inline } from '@/Components/layout';
+import { Inline, Stack } from '@/Components/layout';
 
 interface LeaveType {
   id: number;
@@ -169,7 +169,8 @@ function TipoPainel({ alvo, onClose }: PainelProps) {
   return (
     <Sheet open={alvo !== null} onOpenChange={(o) => !o && onClose()}>
       <SheetContent className="w-full overflow-y-auto sm:max-w-md" data-contract="drawer">
-        <form onSubmit={salvar} className="flex h-full flex-col">
+        <Stack asChild gap={0} className="h-full">
+        <form onSubmit={salvar}>
           <SheetHeader>
             <SheetTitle>{editando ? 'Editar tipo de licença' : 'Novo tipo de licença'}</SheetTitle>
             <SheetDescription>
@@ -245,6 +246,7 @@ function TipoPainel({ alvo, onClose }: PainelProps) {
             </Button>
           </SheetFooter>
         </form>
+        </Stack>
       </SheetContent>
     </Sheet>
   );
