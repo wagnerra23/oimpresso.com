@@ -52,6 +52,7 @@ on:
       - 'app/Http/Controllers/PurchaseOrderController.php'
       # Requisições de compra (thread compras/playbook/07): RequisicoesCompraBaselineTest trava o index().
       - 'app/Http/Controllers/PurchaseRequisitionController.php'
+      - 'Modules/Compras/Services/NecessidadeDeCompra.php'
       # Devoluções de compra (thread compras/playbook/08): DevolucoesCompraBaselineTest trava o index().
       - 'app/Http/Controllers/PurchaseReturnController.php'
       # Sob teste em PurchaseIndexTenantContratoTest (UC-PURIDX-02): é `getListPurchases`
@@ -106,6 +107,7 @@ jobs:
               - 'app/Http/Controllers/PurchaseController.php'
               - 'app/Http/Controllers/PurchaseOrderController.php'
               - 'app/Http/Controllers/PurchaseRequisitionController.php'
+              - 'Modules/Compras/Services/NecessidadeDeCompra.php'
               - 'app/Http/Controllers/PurchaseReturnController.php'
               - 'app/Utils/TransactionUtil.php'
               - 'app/Utils/Util.php'
@@ -226,6 +228,7 @@ jobs:
             tests/Feature/Purchase/PedidosCompraContratoTest.php \
             tests/Feature/Purchase/RequisicoesCompraBaselineTest.php \
             tests/Feature/Purchase/RequisicoesCompraContratoTest.php \
+            tests/Feature/Purchase/RequisicoesNecessidadeContratoTest.php \
             tests/Feature/Purchase/DevolucoesCompraBaselineTest.php \
             tests/Feature/Purchase/DevolucoesCompraContratoTest.php \
             tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php

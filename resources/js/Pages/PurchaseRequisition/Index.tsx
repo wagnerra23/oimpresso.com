@@ -26,6 +26,7 @@ import EmptyState from '@/Components/shared/EmptyState';
 import DataTable from '@/Components/shared/DataTable';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Inline, Stack } from '@/Components/layout';
+import NecessidadeDeCompra, { type LinhaNecessidade } from './_components/NecessidadeDeCompra';
 
 export interface Requisicao {
   id: number;
@@ -54,6 +55,8 @@ interface Props {
   permissoes: { criar: boolean };
   requisicoes?: Lista;
   opcoes?: Opcoes;
+  /** US-COM-030 (MRP). Nulo quando o módulo Compras não está no código. */
+  necessidade?: LinhaNecessidade[] | null;
 }
 
 const TODOS = '__todos__';
@@ -81,7 +84,7 @@ function Kpi({ rotulo, valor, nota }: { rotulo: string; valor: number; nota: str
   );
 }
 
-function RequisicoesIndex({ filtros, permissoes, requisicoes, opcoes }: Props) {
+function RequisicoesIndex({ filtros, permissoes, requisicoes, opcoes, necessidade }: Props) {
   const linhas = useMemo(() => requisicoes?.linhas ?? [], [requisicoes]);
   const [q, setQ] = useState('');
   const busca = useRef<HTMLInputElement>(null);
@@ -99,7 +102,7 @@ function RequisicoesIndex({ filtros, permissoes, requisicoes, opcoes }: Props) {
   const filtrar = (mudanca: Partial<Filtros>) => {
     const novo = { ...filtros, ...mudanca };
     const data = Object.fromEntries(Object.entries(novo).filter(([, v]) => v !== null && v !== ''));
-    router.get('/purchase-requisition', data, { only: ['requisicoes', 'filtros'], preserveState: true, preserveScroll: true, replace: true });
+    router.get('/purchase-requisition', data, { only: ['requisicoes', 'filtros', 'necessidade'], preserveState: true, preserveScroll: true, replace: true });
   };
 
   const termo = q.trim().toLowerCase();
@@ -161,6 +164,10 @@ function RequisicoesIndex({ filtros, permissoes, requisicoes, opcoes }: Props) {
             </Inline>
           </Deferred>
         </Inline>
+
+        <Deferred data="necessidade" fallback={null}>
+          <NecessidadeDeCompra linhas={necessidade ?? []} />
+        </Deferred>
 
         <Deferred data="requisicoes" fallback={<p className="py-6 text-sm text-muted-foreground">Carregando requisições…</p>}>
           {linhas.length > 0 ? (
