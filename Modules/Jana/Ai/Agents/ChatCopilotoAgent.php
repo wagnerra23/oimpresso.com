@@ -10,12 +10,14 @@ use Laravel\Ai\Enums\Lab;
 use Laravel\Ai\Messages\Message;
 use Laravel\Ai\Promptable;
 use Modules\Jana\Ai\Cache\PromptCacheConfig;
+use Modules\Jana\Ai\Tools\Acoes\ProporTarefaTool;
 use Modules\Jana\Ai\Tools\BriefDiario\InadimplenciaTool;
 use Modules\Jana\Ai\Tools\BriefDiario\NfeStatusTool;
 use Modules\Jana\Ai\Tools\BriefDiario\OportunidadesTool;
 use Modules\Jana\Ai\Tools\BriefDiario\TicketsTopTool;
 use Modules\Jana\Ai\Tools\BriefDiario\VendasPeriodoTool;
 use Modules\Jana\Entities\Conversa;
+use Modules\Jana\Services\AcoesDoChat\PropostaAcaoService;
 use Modules\Jana\Support\ContextoNegocio;
 use Stringable;
 
@@ -133,6 +135,12 @@ class ChatCopilotoAgent implements Agent, HasProviderOptions, HasTools
      */
     protected function toolsAtivas(): array
     {
+        return array_merge($this->toolsDeLeitura(), $this->toolsDeAcao());
+    }
+
+    /** @return array<int, \Laravel\Ai\Contracts\Tool> */
+    protected function toolsDeLeitura(): array
+    {
         if (! (bool) config('copiloto.chat_tools.enabled', false)) {
             return [];
         }
@@ -152,6 +160,41 @@ class ChatCopilotoAgent implements Agent, HasProviderOptions, HasTools
             new NfeStatusTool($businessId),
             new OportunidadesTool($businessId),
         ];
+    }
+
+    /**
+     * Tools de AÇÃO (ADR 0440): só propõem — quem grava é o usuário, no cartão.
+     *
+     * Flag própria (`copiloto.chat_acoes.enabled`, padrão desligado), separada da
+     * de leitura. O usuário é o DONO da conversa, da mesma empresa; quem não tem
+     * a permissão da ação não recebe a tool (a Jana não oferece o que ele não
+     * poderia fazer na tela). Qualquer dúvida → nenhuma tool de ação.
+     *
+     * @return array<int, \Laravel\Ai\Contracts\Tool>
+     */
+    protected function toolsDeAcao(): array
+    {
+        if (! (bool) config('copiloto.chat_acoes.enabled', false)
+            || $this->conversa->business_id === null
+            || $this->conversa->user_id === null) {
+            return [];
+        }
+
+        $businessId = (int) $this->conversa->business_id;
+        $user = \App\User::find((int) $this->conversa->user_id);
+
+        if ($user === null || (int) $user->business_id !== $businessId) {
+            return [];
+        }
+
+        $tools = [];
+
+        if (app(PropostaAcaoService::class)->acao('criar-tarefa')->permitida($user, $businessId)) {
+            $conversaId = $this->conversa->id !== null ? (int) $this->conversa->id : null;
+            $tools[] = new ProporTarefaTool($businessId, $user, $conversaId);
+        }
+
+        return $tools;
     }
 
     /**
@@ -176,7 +219,16 @@ class ChatCopilotoAgent implements Agent, HasProviderOptions, HasTools
         Quando não tiver informação suficiente, peça esclarecimentos.
         PROMPT;
 
-        if (empty($this->toolsAtivas())) {
+        if (! empty($this->toolsDeAcao())) {
+            $base .= "\n\n" . <<<PROMPT
+            AÇÕES (você PROPÕE, o usuário confirma):
+            Quando o usuário pedir uma tarefa ou um lembrete, use a ferramenta de propor tarefa.
+            Ela não grava: aparece um cartão e só o clique dele em Confirmar cria a tarefa.
+            Nunca diga que já criou. Diga que está no cartão aguardando confirmação.
+            PROMPT;
+        }
+
+        if (empty($this->toolsDeLeitura())) {
             return $base;
         }
 
