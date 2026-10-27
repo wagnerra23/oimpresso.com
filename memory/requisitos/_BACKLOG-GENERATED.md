@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1023 tarefas abertas** em **57 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1024 tarefas abertas** em **57 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -29,7 +29,7 @@
 | [`Vestuario`](#vestuario) | 20 | 1 | 0 | 0 | 19 |
 | [`Forja`](#forja) | 19 | 0 | 1 | 0 | 7 |
 | [`Mwart`](#mwart) | 19 | 0 | 0 | 0 | 19 |
-| [`Ponto`](#ponto) | 18 | 0 | 0 | 0 | 18 |
+| [`Ponto`](#ponto) | 19 | 0 | 0 | 0 | 19 |
 | [`Officeimpresso`](#officeimpresso) | 17 | 0 | 0 | 0 | 17 |
 | [`Accounting`](#accounting) | 16 | 0 | 0 | 0 | 16 |
 | [`Autopecas`](#autopecas) | 15 | 0 | 0 | 0 | 15 |
@@ -985,6 +985,7 @@
 - **US-PONTO-014** — Lane required de Ponto vira arvore-menos-quarentena (vermelha no main ha 5 runs; 27 de 38 testes fora da allowlist) _(`p0`)_
 - **US-PONTO-018** — Férias CLT: período aquisitivo, concessivo, dias de direito e alerta de férias vencidas _(`p0`)_
 - **US-PONTO-017** — Presença do dia lida por outro módulo (somente leitura) _(`p1`)_
+- **US-PONTO-019** — Exportação do ponto para folha e contabilidade: Horas Extras, Banco de Horas e Atrasos/Faltas por competência _(`p1`)_
 - **US-PONTO-020** — Ciência do espelho mensal pelo colaborador _(`p1`)_
 - **US-PONTO-016** — Painel de Conformidade CLT da competência (somente leitura) _(`p2`)_
 - **US-PONTO-001** — Relogio web pra registrar entrada/saida (REP-P)
