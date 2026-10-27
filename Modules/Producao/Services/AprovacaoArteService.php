@@ -228,7 +228,9 @@ final class AprovacaoArteService
         if ($pedido->expira_em->isPast()) {
             throw new ApontamentoRecusado(ApontamentoRecusado::APROVACAO_ENCERRADA, 'Este link venceu. Peça um novo à gráfica.');
         }
-        $q = Programacao::query()->where('business_id', $pedido->business_id)->where('os_tipo', Ordem::OS_TIPO)->where('os_id', $pedido->ordem_id);
+        // SUPERADMIN: rota pública — a empresa vem do pedido, não da sessão de quem abre o link
+        // (logado noutra empresa, o escopo da sessão escondia a etapa e o link dava 410).
+        $q = Programacao::withoutGlobalScope(ScopeByBusiness::class)->where('business_id', $pedido->business_id)->where('os_tipo', Ordem::OS_TIPO)->where('os_id', $pedido->ordem_id);
         $etapa = ($travar ? $q->lockForUpdate() : $q)->find($pedido->programacao_id);
         if ($etapa === null || $etapa->status !== 'pendente') {
             throw new ApontamentoRecusado(ApontamentoRecusado::APROVACAO_ENCERRADA, 'Esta prova já foi respondida.');

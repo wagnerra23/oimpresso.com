@@ -306,8 +306,10 @@ it('UC-PCART-06 · venda de outra empresa ou sem cliente não manda nada e pede 
 
 function artReenvia($t, array $corpo = [])
 {
-    $t->partialMock(ModuleUtil::class, fn ($m) => $m->shouldReceive('hasThePermissionInSubscription')
-        ->andReturnUsing(fn ($b, $perm) => $perm === 'producao_module'));
+    // partialMock() é protegido no TestCase; fora do it() o dublê entra pelo container.
+    $m = \Mockery::mock(ModuleUtil::class)->makePartial();
+    $m->shouldReceive('hasThePermissionInSubscription')->andReturnUsing(fn ($b, $perm) => $perm === 'producao_module');
+    app()->instance(ModuleUtil::class, $m);
 
     return $t->actingAs($t->designer)->postJson("/producao/ordens/{$t->ordem->id}/aprovacao-arte/reenviar", $corpo);
 }
