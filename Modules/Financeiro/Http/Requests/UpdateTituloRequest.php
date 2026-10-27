@@ -62,6 +62,13 @@ class UpdateTituloRequest extends FormRequest
                 'nullable', 'integer',
                 Rule::exists((new ContaBancaria)->getTable(), 'id')->where('business_id', $businessId),
             ],
+            // US-FIN-075 — rateio por centro de custo. A soma e a posse do centro são
+            // conferidas no RateioService (centavos inteiros); aqui só a forma.
+            'rateio_modo' => ['nullable', Rule::in(['percentual', 'valor'])],
+            'rateio' => ['sometimes', 'array', 'max:50'],
+            'rateio.*.centro_custo_id' => ['required', 'integer', 'min:1'],
+            'rateio.*.percentual' => ['nullable'],
+            'rateio.*.valor' => ['nullable'],
         ];
     }
 

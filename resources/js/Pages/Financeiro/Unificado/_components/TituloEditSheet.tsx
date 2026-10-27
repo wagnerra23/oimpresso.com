@@ -22,6 +22,8 @@ import {
 } from '@/Components/ui/select';
 import { PlanoContaCombobox, type PlanoConta } from './PlanoContaCombobox';
 import { FORMA_PAGAMENTO_OPCOES, formaPagamentoLabel } from '../_lib/forma-pagamento';
+import { paraInteiro, type RateioLinha, type RateioModo } from '../_lib/rateio';
+import { RateioCentroCustoSection, rateioValido, type CentroOpcao } from './RateioCentroCustoSection';
 
 interface Categoria {
   id: number;
@@ -53,6 +55,8 @@ interface Lancamento {
   forma_pagamento_realizada: boolean;
   // 2026-06-04 — conta bancária prevista (editável).
   conta_bancaria_id: number | null;
+  // US-FIN-075 — rateio gravado por centro de custo (vazio = sem rateio).
+  rateio?: { centro_custo_id: number; percentual: string; valor: string }[];
 }
 
 interface TituloEditSheetProps {
@@ -62,9 +66,19 @@ interface TituloEditSheetProps {
   categorias: Categoria[];
   planos: PlanoConta[];
   contas: ContaOpt[];
+  centrosCusto?: CentroOpcao[];
 }
 
-export function TituloEditSheet({ open, onClose, lancamento, categorias, planos, contas }: TituloEditSheetProps) {
+/** Rateio gravado → linhas do form, em % (o modo padrão), sem zeros à direita. */
+function rateioInicial(l: Lancamento): RateioLinha[] {
+  return (l.rateio ?? []).map((r) => ({
+    centro_custo_id: r.centro_custo_id,
+    percentual: String(Number(r.percentual)),
+    valor: Number(r.valor).toFixed(2).replace('.', ','),
+  }));
+}
+
+export function TituloEditSheet({ open, onClose, lancamento, categorias, planos, contas, centrosCusto = [] }: TituloEditSheetProps) {
   const form = useForm({
     cliente_descricao: lancamento.contraparte === '—' ? '' : lancamento.contraparte,
     observacoes: lancamento.observacao ?? '',
@@ -74,6 +88,8 @@ export function TituloEditSheet({ open, onClose, lancamento, categorias, planos,
     valor_total: lancamento.valor,
     forma_pagamento: lancamento.forma_pagamento ?? '',
     conta_bancaria_id: (lancamento.conta_bancaria_id ?? '') as number | '',
+    rateio_modo: 'percentual' as RateioModo,
+    rateio: rateioInicial(lancamento),
   });
 
   // Reset form quando trocar de lançamento sem fechar.
@@ -87,9 +103,15 @@ export function TituloEditSheet({ open, onClose, lancamento, categorias, planos,
       valor_total: lancamento.valor,
       forma_pagamento: lancamento.forma_pagamento ?? '',
       conta_bancaria_id: (lancamento.conta_bancaria_id ?? '') as number | '',
+      rateio_modo: 'percentual' as RateioModo,
+      rateio: rateioInicial(lancamento),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lancamento.id]);
+
+  // US-FIN-075 — o rateio fecha sobre o valor que está no form (mesmo se ainda não salvo).
+  const totalCentavos = paraInteiro(String(form.data.valor_total ?? 0), 2) || 0;
+  const rateioOk = rateioValido(totalCentavos, form.data.rateio_modo, form.data.rateio);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,8 +131,14 @@ export function TituloEditSheet({ open, onClose, lancamento, categorias, planos,
     if (!lancamento.forma_pagamento_realizada) {
       data.forma_pagamento = form.data.forma_pagamento || null;
     }
+    // US-FIN-075 — rateio sempre vai (lista vazia = sem rateio).
+    data.rateio_modo = form.data.rateio_modo;
+    data.rateio = form.data.rateio;
+    // `transform` e não `{ data }` nas opções: no Inertia 3 o `put` do core faz
+    // `{ ...options, data }` e o `data` das opções era sobrescrito pelo form inteiro —
+    // o valor_total ia sempre e título quitado devolvia 422 em qualquer edição.
+    form.transform(() => data);
     form.put(`/financeiro/unificado/${lancamento.id}`, {
-      ...({ data } as any),
       preserveScroll: true,
       onSuccess: () => onClose(),
     });
@@ -308,8 +336,17 @@ export function TituloEditSheet({ open, onClose, lancamento, categorias, planos,
             )}
           </div>
 
+          <RateioCentroCustoSection
+            totalCentavos={totalCentavos}
+            modo={form.data.rateio_modo}
+            linhas={form.data.rateio}
+            centros={centrosCusto}
+            onChange={(modo, linhas) => form.setData((d) => ({ ...d, rateio_modo: modo, rateio: linhas }))}
+            erro={(form.errors as Record<string, string | undefined>).rateio}
+          />
+
           <div className="flex gap-2 pt-3 border-t border-stone-200 mt-auto">
-            <Button type="submit" disabled={form.processing}>
+            <Button type="submit" disabled={form.processing || !rateioOk}>
               {form.processing ? 'Salvando…' : 'Salvar'}
             </Button>
             <Button type="button" variant="outline" onClick={onClose} disabled={form.processing}>

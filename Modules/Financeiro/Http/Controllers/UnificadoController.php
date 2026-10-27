@@ -22,6 +22,8 @@ use Modules\Financeiro\Models\Titulo;
 use Modules\Financeiro\Models\TituloBaixa;
 use Modules\Financeiro\Models\TituloComment;
 use Modules\Financeiro\Services\BoletoOcrService;
+use Modules\Financeiro\Services\CentroCustoFiltro;
+use Modules\Financeiro\Services\RateioService;
 use Modules\Financeiro\Services\LinhaDigitavelValidator;
 use App\Account;
 use Modules\PaymentGateway\Contracts\PaymentGatewayContract;
@@ -89,6 +91,8 @@ class UnificadoController extends Controller
                 'conferidoPor:id,first_name,last_name,username',
                 'baixas' => fn ($q) => $q->orderByDesc('data_baixa'),
                 'baixas.contaBancaria.account:id,name',
+                // US-FIN-075 — rateio por centro de custo, para o drawer de edição.
+                'rateios:id,titulo_id,centro_custo_id,percentual,valor',
             ]);
 
         // Filtro "Arquivados" (Wagner 2026-06-03): por padrão a lista mostra só
@@ -308,6 +312,8 @@ class UnificadoController extends Controller
             'contas' => $contas,
             'categorias' => $categorias,
             'planosConta' => $planosConta,
+            // US-FIN-075 — centros ativos para o rateio no drawer (closure D-14: só no load cheio).
+            'centrosCusto' => fn () => CentroCustoFiltro::opcoes($businessId),
             // PR E (2026-05-25) US-FIN-022 — aging breakdown pra chips de filtro
             // (closure D-14: agregado por business, não muda com filtro — pula no partial)
             'agingBreakdown' => fn () => $this->agingBreakdown($businessId),
@@ -428,7 +434,16 @@ class UnificadoController extends Controller
             $payload['valor_aberto'] = max(0, $valorTotal - $somaBaixas);
         }
 
-        $titulo->fill($payload)->save();
+        // US-FIN-075: título e rateio gravam juntos — rateio que não fecha desfaz a edição inteira.
+        DB::transaction(function () use ($titulo, $payload, $request, $businessId): void {
+            $titulo->fill($payload)->save();
+
+            if ($request->has('rateio')) {
+                app(RateioService::class)->salvar($titulo, $businessId, (string) $request->input('rateio_modo', 'percentual'), (array) $request->input('rateio', []));
+            } elseif ($titulo->wasChanged('valor_total')) {
+                app(RateioService::class)->reajustar($titulo, $businessId);
+            }
+        });
 
         return back()->with('success', "Lançamento {$titulo->numero} atualizado.");
     }
@@ -1666,6 +1681,14 @@ class UnificadoController extends Controller
             'plano_conta_nome' => $t->planoConta?->nome,
             'conta_bancaria' => $contaBancariaNome,
             'conta_bancaria_id' => $t->getAttribute('conta_bancaria_id'),
+            // US-FIN-075 — rateio gravado (vazio = sem rateio). Valores em string decimal.
+            'rateio' => $t->relationLoaded('rateios')
+                ? $t->rateios->map(fn ($r) => [
+                    'centro_custo_id' => (int) $r->centro_custo_id,
+                    'percentual' => (string) $r->percentual,
+                    'valor' => (string) $r->valor,
+                ])->values()->all()
+                : [],
             // US-FIN-038 — pago SEM vinculação bancária: há baixa realizada mas a
             // última tem conta_bancaria_id NULL (ADR 0175 permite baixa sem conta).
             // Alimenta o pill "Conta indefinida" na linha/drawer. Não mexe em valor.

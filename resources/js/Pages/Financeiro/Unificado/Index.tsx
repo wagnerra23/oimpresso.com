@@ -63,6 +63,7 @@ import { FinMonthResumeDialog } from './_components/FinMonthResume';
 // e ageing bar é insight contextual no drawer, não strip permanente).
 // Onda Edit 2026-05-18 — Sheet inline pra editar título financeiro.
 import { TituloEditSheet } from './_components/TituloEditSheet';
+import type { CentroOpcao } from './_components/RateioCentroCustoSection';
 import { TituloCreateSheet } from './_components/TituloCreateSheet';
 // 2026-06-03 — diálogo de baixa (escolher valor/conta/forma/plano ao receber/pagar).
 import { FinBaixaSheet } from './_components/FinBaixaSheet';
@@ -224,6 +225,8 @@ interface Props {
   contas: { id: number; nome: string }[];
   categorias: { id: number; nome: string }[];
   planosConta: PlanoConta[];
+  /** US-FIN-075 — centros para o rateio no drawer (closure no controller: só no load cheio). */
+  centrosCusto?: CentroOpcao[];
   periodLabel: string;
   businessName: string;
 }
@@ -1248,7 +1251,7 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
 // ---------- Página principal ----------
 // (FinanceiroSubNav extraído pra `_shared/FinanceiroSubNav.tsx` 2026-05-21 — ADR 0180 Fase 5 propagação)
 
-function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, categorias, planosConta, periodLabel, businessName }: Props) {
+function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, categorias, planosConta, centrosCusto, periodLabel, businessName }: Props) {
   // US-FIN-028 (Onda 22) — gate Spatie pra aprovar/rejeitar.
   // HOTFIX 2026-05-20: shared `auth.can` vem do HandleInertiaRequests.share como
   // OBJETO `Record<string, boolean>` (não array de strings — vide app/Http/Middleware/
@@ -3048,6 +3051,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
           categorias={categorias}
           planos={planosConta}
           contas={contas}
+          centrosCusto={centrosCusto ?? []}
         />
       )}
 

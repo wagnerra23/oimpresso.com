@@ -14,7 +14,7 @@ module: Financeiro
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 396 arquivos em 22 papéis.
+**Total mapeado:** 399 arquivos em 22 papéis.
 
 ## Controllers — 26
 
@@ -237,7 +237,7 @@ module: Financeiro
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Unificado/Index.tsx)
 - [Novo.tsx](../../../resources/js/Pages/Financeiro/Unificado/Novo.tsx)
 
-## Componentes / apoio de tela — 41
+## Componentes / apoio de tela — 42
 
 - [CategoriaSheet.tsx](../../../resources/js/Pages/Financeiro/Categorias/components/CategoriaSheet.tsx)
 - [CentroCustoSheet.tsx](../../../resources/js/Pages/Financeiro/CentrosCusto/_components/CentroCustoSheet.tsx)
@@ -275,6 +275,7 @@ module: Financeiro
 - [FinTranscriptPDF.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/FinTranscriptPDF.tsx)
 - [FinTroubleshooter.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/FinTroubleshooter.tsx)
 - [PlanoContaCombobox.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/PlanoContaCombobox.tsx)
+- [RateioCentroCustoSection.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/RateioCentroCustoSection.tsx)
 - [TituloCreateSheet.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/TituloCreateSheet.tsx)
 - [TituloEditSheet.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/TituloEditSheet.tsx)
 - [useFinFavs.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/useFinFavs.tsx)
@@ -333,14 +334,14 @@ module: Financeiro
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Unificado/Index.casos.md)
 - [Novo.casos.md](../../../resources/js/Pages/Financeiro/Unificado/Novo.casos.md)
 
-## Testes (Pest) — 96
+## Testes (Pest) — 97
 
-- 91 em [Modules/Financeiro/Tests/Feature/](../../../Modules/Financeiro/Tests/Feature)
+- 92 em [Modules/Financeiro/Tests/Feature/](../../../Modules/Financeiro/Tests/Feature)
 - 1 em [Modules/Financeiro/Tests/Feature/Advisor/](../../../Modules/Financeiro/Tests/Feature/Advisor)
 - 4 em [Modules/Financeiro/Tests/Unit/](../../../Modules/Financeiro/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 43
+## Demais arquivos (manifestos, docs, assets e misc) — 44
 
 - [.gitkeep](../../../Modules/Financeiro/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Financeiro/Console/.gitkeep)
@@ -373,6 +374,7 @@ module: Financeiro
 - [cobranca-shared.ts](../../../resources/js/Pages/Financeiro/Cobranca/_lib/cobranca-shared.ts)
 - [total-envio.ts](../../../resources/js/Pages/Financeiro/Despesas/_lib/total-envio.ts)
 - [forma-pagamento.ts](../../../resources/js/Pages/Financeiro/Unificado/_lib/forma-pagamento.ts)
+- [rateio.ts](../../../resources/js/Pages/Financeiro/Unificado/_lib/rateio.ts)
 - [README.md](../../../resources/js/Pages/Financeiro/_cowork-bundle/README.md)
 - [financeiro-ai.jsx](../../../resources/js/Pages/Financeiro/_cowork-bundle/financeiro-ai.jsx)
 - [financeiro-app.jsx](../../../resources/js/Pages/Financeiro/_cowork-bundle/financeiro-app.jsx)

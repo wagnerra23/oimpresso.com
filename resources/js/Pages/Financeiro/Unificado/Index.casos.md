@@ -135,6 +135,22 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 - **Regressão que defende:** dinheiro de um tenant caindo na conta de outro.
 - **Status: 🧪**
 
+## UC-FUNI-05 · Rateio por centro de custo no drawer do título `[V0]` `[must]`
+- **Persona:** Eliana (financeiro) — reparte o aluguel entre administrativo e produção.
+- **Aceite:** Dado um título de 1.000,00 · Quando salvo o drawer com 60% / 40% · Então ficam 600,00 / 400,00. Mudando depois o valor para 1.500,01 sem mexer no rateio · Então as fatias são refeitas pelos percentuais: 900,01 / 600,00, somando 1.500,01 (centavo que sobra vai para a linha de maior resto). Fonte: US-FIN-075 + protótipo `financeiro-centro-custo-orcado.html` (aba Rateio no título).
+- **Teste:** `UnificadoRateioContratoTest` ("UC-FUNI-05 …").
+- **Status: 🧪**
+
+## UC-FUNI-06 · Rateio que não fecha desfaz a edição inteira `[V0]` `[must]`
+- **Aceite:** Dado um título de 1.000,00 · Quando salvo valor 2.000,00 com rateio de 60% + 30% · Então a edição é recusada com erro em `rateio` e o título continua com 1.000,00 e sem rateio. No drawer, o Salvar fica desabilitado enquanto a soma não fecha.
+- **Teste:** `UnificadoRateioContratoTest` ("UC-FUNI-06 …").
+- **Status: 🧪**
+
+## UC-FUNI-07 · Centro de outra empresa é recusado; centro inativado não trava a reedição `[T0]` `[must]`
+- **Aceite:** Dado um centro da empresa 99 · Quando a 98 rateia nele · Então é recusado e nada é gravado. Dado um rateio cujo centro foi inativado depois · Quando reedito o título · Então o rateio antigo continua aceito. Lista vazia remove o rateio.
+- **Teste:** `UnificadoRateioContratoTest` ("UC-FUNI-07 …").
+- **Status: 🧪**
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)

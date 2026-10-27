@@ -82,10 +82,14 @@ class RateioService
 
         $ids = array_column($distribuido, 'centro_custo_id');
         if ($ids !== []) {
+            // Centro inativado depois do rateio continua aceito NESTE título: reeditar o título
+            // não pode obrigar a desfazer o rateio antigo. Centro inativo novo é recusado.
+            $jaNoTitulo = TituloRateio::query()->where('business_id', $businessId)
+                ->where('titulo_id', $titulo->id)->pluck('centro_custo_id')->map(fn ($v) => (int) $v)->all();
             $validos = DB::table('fin_centros_custo')
                 ->where('business_id', $businessId)
                 ->whereIn('id', $ids)
-                ->where('ativo', true)
+                ->where(fn ($q) => $q->where('ativo', true)->orWhereIn('id', $jaNoTitulo ?: [0]))
                 ->whereNull('deleted_at')
                 ->count();
             if ($validos !== count($ids)) {
@@ -101,6 +105,27 @@ class RateioService
         });
 
         return $distribuido;
+    }
+
+    /**
+     * O valor do título mudou e o rateio não foi reenviado: refaz as fatias pelos percentuais
+     * gravados (que somam 100% nos dois modos), para a soma seguir fechando o novo total.
+     */
+    public function reajustar(Titulo $titulo, int $businessId): void
+    {
+        $linhas = TituloRateio::query()->where('business_id', $businessId)->where('titulo_id', $titulo->id)
+            ->orderBy('id')->get(['centro_custo_id', 'percentual'])
+            ->map(fn ($l) => ['centro_custo_id' => (int) $l->centro_custo_id, 'percentual' => (string) $l->percentual])
+            ->all();
+        if ($linhas === []) {
+            return;
+        }
+
+        $distribuido = $this->distribuir((string) $titulo->valor_total, self::MODO_PERCENTUAL, $linhas);
+        foreach ($distribuido as $linha) {
+            TituloRateio::query()->where('business_id', $businessId)->where('titulo_id', $titulo->id)
+                ->where('centro_custo_id', $linha['centro_custo_id'])->update(['valor' => $linha['valor']]);
+        }
     }
 
     private function porPercentual(int $totalCentavos, array $ids, array $linhas): array
