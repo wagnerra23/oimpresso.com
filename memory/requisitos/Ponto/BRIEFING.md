@@ -2,9 +2,9 @@
 id: requisitos-ponto-briefing
 module: Ponto
 status: parcial
-updated_at: "2026-09-28"
-distilled_at: "2026-10-19"
-distilled_by: "manual [CL] — redestilação PARCIAL (2026-10-19): só a seção nova **App Links** foi escrita, contra o #9583 (o assetlinks.json do Ponto passa a publicar também o app Fisio). O resto do corpo NÃO foi re-lido. Antes: redestilação PARCIAL (2026-10-08): só a linha **Apuracao HE 100%** do §Wip foi re-lida, contra o #9066 (feriado do HRM na apuração). O resto do corpo NÃO foi re-lido. Antes: redestilação PARCIAL (2026-09-28): só a linha de **importação AFD** de §Capacidades foi re-lida, contra os PRs #7992/#8011/#8024/#8036 (saiu de Wip para pronto). O resto do corpo NÃO foi re-lido. Antes: redestilação PARCIAL (2026-09-23): só a linha **Frontend** de §Stack e arquitetura foi re-lida, contra a remoção das 25 Blades mortas (thread 11 do playbook). O resto do corpo segue nos retratos abaixo e NÃO foi re-lido. Antes: redestilação PARCIAL (2026-09-15): UMA seção re-lida contra conhecimento novo — §Capacidades canon/Backlog ganhou o **Fechamento de competência** a partir da US-PONTO-015, com as 3 restrições [W] de 2026-09-14 e o estado medido (domínio inexistente em `origin/main`). O RESTO do corpo NÃO foi re-lido: §Cobertura de teste e §Atributos fantasma seguem no retrato de 2026-09-05 (PR #6802), §Contratos de tela no de 2026-08-21, e as demais no de 2026-07-27 (PR #4865). Gatilho: o `distiller_freshness` do sdd-scorecard acusou a porta 10d atrás dos eventos do módulo — eu adicionei a US e não refleti aqui; re-carimbar sem re-ler seria gaming."
+updated_at: "2026-10-26"
+distilled_at: "2026-10-26"
+distilled_by: "manual [C] — redestilação PARCIAL (2026-10-26): só §Capacidades canon (Entregue + Backlog) foi re-lida, contra os PRs do fechamento, app, conformidade, AFD e AEJ. O resto do corpo NÃO foi re-lido. Antes: redestilação PARCIAL (2026-10-19): só a seção nova **App Links** foi escrita, contra o #9583 (o assetlinks.json do Ponto passa a publicar também o app Fisio). O resto do corpo NÃO foi re-lido. Antes: redestilação PARCIAL (2026-10-08): só a linha **Apuracao HE 100%** do §Wip foi re-lida, contra o #9066 (feriado do HRM na apuração). O resto do corpo NÃO foi re-lido. Antes: redestilação PARCIAL (2026-09-28): só a linha de **importação AFD** de §Capacidades foi re-lida, contra os PRs #7992/#8011/#8024/#8036 (saiu de Wip para pronto). O resto do corpo NÃO foi re-lido. Antes: redestilação PARCIAL (2026-09-23): só a linha **Frontend** de §Stack e arquitetura foi re-lida, contra a remoção das 25 Blades mortas (thread 11 do playbook). O resto do corpo segue nos retratos abaixo e NÃO foi re-lido. Antes: redestilação PARCIAL (2026-09-15): UMA seção re-lida contra conhecimento novo — §Capacidades canon/Backlog ganhou o **Fechamento de competência** a partir da US-PONTO-015, com as 3 restrições [W] de 2026-09-14 e o estado medido (domínio inexistente em `origin/main`). O RESTO do corpo NÃO foi re-lido: §Cobertura de teste e §Atributos fantasma seguem no retrato de 2026-09-05 (PR #6802), §Contratos de tela no de 2026-08-21, e as demais no de 2026-07-27 (PR #4865). Gatilho: o `distiller_freshness` do sdd-scorecard acusou a porta 10d atrás dos eventos do módulo — eu adicionei a US e não refleti aqui; re-carimbar sem re-ler seria gaming."
 ---
 
 # BRIEFING — Modules/Ponto
@@ -101,13 +101,21 @@ Ponto eletronico CLT-compliance (Portaria MTP 671/2021) com **marcacao append-on
 🟡 **Wip:**
 - Apuracao HE 100% (feriados/domingos — Art. 7o XVI CF/88) parcial. **Feriado entregue em 2026-10-08 (#9066, issue #8200, D5 da ADR 0014):** a apuracao le `essentials_holidays` do HRM (empresa sem local ou local do usuario); no feriado nao ha falta, e o trabalhado vai para `he_feriado_minutos` (dobro, Sumula 146 TST), fora da HE de 50% e do banco de horas. Contrato: `FeriadoApuracaoContratoTest` (UC-FER-01..08). **Falta:** domingo/DSR trabalhado e a coluna no Espelho/relatorios
 
-❌ **Backlog (gap auditoria 35/100):**
-- Geracao AFDT pra fiscalizacao MTE (RelatorioController estrutura pronta, gerador por implementar)
-- Comprovante PDF QR Code (Anexo I 5.5 Portaria 671)
-- Espelho ponto colaborador self-service (visualizacao + correcao via intercorrencia)
-- Integracao eSocial S-1200 (events trabalhista)
-- Dashboard RH com cards (faltas dia, HE acumulada, intercorrencias PENDENTES)
-- **Fechamento de competencia** (US-PONTO-015, 2026-09-15) — tela e dominio **NAO existem**: zero
+✅ **Entregue entre 2026-09-25 e 2026-10-19 (re-medido em `origin/main` 93d6a5d11c, 2026-10-26):**
+- **Fechamento de competencia** — `ponto_competencias` append-only, `FechamentoService`, tela `/ponto/fechamento` e permissao `ponto.fechar` (#7985 · #7996 · #7998 · #7999, US-PONTO-015). O item do backlog abaixo e o retrato de 2026-09-15 e caducou.
+- **App do colaborador** — tela `/ponto/mobile` e API `/ponto/api/*`: marcar, hoje, saldo (#8130), `me`, espelho do mes e tipos de intercorrencia (#8481), lembrete por push (#8432 · #8434). Cobre o "espelho self-service" do backlog abaixo.
+- **Painel de conformidade CLT** — `/ponto/conformidade`, so leitura (#7994, US-PONTO-016).
+- **AFD do REP-P** por colaborador (#8224) e **AEJ** leiaute 002 do empregador (#8242, ADR 0420). Os dois recusam sem a identidade legal configurada e saem **sem** `.p7s`. O AFDT saiu do catalogo (formato da Portaria 1510/2009).
+
+❌ **Backlog (gap auditoria 35/100, conferido em 2026-10-26):**
+- ~~Geracao AFDT pra fiscalizacao MTE~~ — substituido pelo AFD 671 + AEJ (acima)
+- Comprovante PDF por marcacao (art. 79-80 Portaria 671, US-PONTO-010) — **ainda ausente**; depende do registro no INPI e do e-CNPJ A1 ([LEGAL-REP-P](LEGAL-REP-P-portaria-671.md) §3 item 5)
+- Assinatura CAdES `.p7s` do AFD e do AEJ — **ausente**; depende do e-CNPJ A1 e de ADR nova (ADR 0413 D2)
+- ~~Espelho ponto colaborador self-service~~ — entregue no app (acima). A **ciencia/assinatura do espelho pelo colaborador** segue ausente
+- Integracao eSocial (card "Eventos eSocial" do catalogo de relatorios segue `disponivel: false`)
+- Relatorios Horas Extras, Banco de Horas e Atrasos/Faltas — cards no catalogo, `disponivel: false` (exportacao para folha e contabilidade)
+- ~~Dashboard RH com cards~~ — `Ponto/Dashboard` existe (contrato `ponto-painel`)
+- **Fechamento de competencia** — ENTREGUE, ver acima. Retrato de 2026-09-15, preservado: (US-PONTO-015, 2026-09-15) — tela e dominio **NAO existem**: zero
   tabela/entity/service/rota (medido em `origin/main`). O que existe sao **3 restricoes [W] de
   2026-09-14**, vindas do `ponto-fechamento.jsx` do handoff 19: **D1** sem "Reabrir" na v1 · **D2**
   consolidar registra nome+data **sem assinatura digital** · **D4** o fechamento **nao** gera arquivo
@@ -183,6 +191,9 @@ O pior dos quatro nao era numero errado: era o `erro_mensagem`. Uma importacao A
 
 ## Atualizado
 
+- **2026-10-26** — Exportação para a folha (US-PONTO-019): os cards Horas Extras, Banco de Horas e Atrasos e Faltas do catálogo geram CSV por competência, um colaborador por linha, lido da apuração (#9845). O eSocial segue indisponível.
+- **2026-10-26** — Ciência do espelho (US-PONTO-020): o colaborador dá ciência do espelho de competência fechada pelo app ou pela aba "Meu espelho"; fica append-only com o SHA-256 do espelho visto (#9849 · #9854). Não é assinatura ICP.
+- **2026-10-26** — Férias CLT (US-PONTO-018): `FeriasService` (aquisitivo, concessivo, dias pelo art. 130, vencidas pelo art. 137), tipo de licença do HRM marca "conta como férias" e a Conformidade lista férias vencidas como 7ª verificação (#9823 · #9829 · #9839). Sem 1/3 nem abono em dinheiro (vão com a folha).
 - **2026-09-15** — US-PONTO-015 registra as 3 restrições [W] do Fechamento de competência (D1/D2/D4 do handoff 19). Sem código: a US nasce `todo` + `blocked_by` decisão [W]. A 4ª decisão do mesmo ciclo (**D3**, recusar grava anulação `ORIGEM_ANULACAO` sem alterar a marcação) **já estava implementada** — 14 arquivos, e os serviços de apuração excluem os registros de anulação.
 - **2026-05-16** — Wave Massive: criado SPEC.md + BRIEFING.md + Pest multi-tenant append-only/cross-tenant (US-PONTO-007 + US-PONTO-008 status `done`)
 

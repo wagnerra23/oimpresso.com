@@ -5,13 +5,14 @@
 // na janela 24h / só-HSM). "Salvar rascunho" persiste campanha auditável
 // (status=draft, snapshot congelado server-side).
 //
-// DISPARO É FASE 2 (Job rate-limited com gate [W]) — botão nasce disabled com
-// aviso explícito (anti M-AP-2: nada de fingir envio em massa que não roda).
+// US-WA-323 (ADR 0268 fase 2): "Salvar e disparar" agenda o envio real (US-WA-322 — intervalo
+// aleatório, horário comercial, limite diário). O botão só liga com a flag do disparo e com texto
+// livre; desligado, diz o porquê (anti M-AP-2: nada de fingir envio que não roda).
 // Referência visual: om-drawer Broadcast do inbox-page.jsx (que era mock).
 
 import { useMemo, useState } from 'react';
 import { router } from '@inertiajs/react';
-import { AlertTriangle, Calculator, Save } from 'lucide-react';
+import { AlertTriangle, Calculator, Save, Send } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -38,6 +39,8 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   accounts: AccountItem[];
   templates: ReadyTemplate[];
+  /** US-WA-323 — flag do disparo real da campanha (US-WA-322). */
+  disparoHabilitado?: boolean;
 }
 
 interface PreflightResult {
@@ -55,7 +58,7 @@ const PROVIDER_BY_CHANNEL_TYPE: Record<string, string> = {
   whatsapp_zapi: 'zapi',
 };
 
-export default function BroadcastSheet({ open, onOpenChange, accounts, templates }: Props) {
+export default function BroadcastSheet({ open, onOpenChange, accounts, templates, disparoHabilitado = false }: Props) {
   const activeAccounts = useMemo(() => accounts.filter(a => a.status === 'ativo'), [accounts]);
   const [channelId, setChannelId] = useState('');
   const [kind, setKind] = useState<'freeform' | 'template'>('freeform');
@@ -91,7 +94,7 @@ export default function BroadcastSheet({ open, onOpenChange, accounts, templates
       .finally(() => setLoadingPreflight(false));
   }
 
-  function saveDraft() {
+  function saveDraft(disparar = false) {
     if (saving || !channelId) return;
     setSaving(true);
     router.post(
@@ -101,6 +104,7 @@ export default function BroadcastSheet({ open, onOpenChange, accounts, templates
         kind,
         template_name: kind === 'template' ? templateName : null,
         body: kind === 'freeform' ? body : null,
+        disparar,
       },
       {
         preserveScroll: true,
@@ -116,6 +120,7 @@ export default function BroadcastSheet({ open, onOpenChange, accounts, templates
     && preflight !== null
     && preflight.with_opt_in > 0
     && !saving;
+  const canDispatch = canSave && disparoHabilitado && kind === 'freeform';
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -123,8 +128,8 @@ export default function BroadcastSheet({ open, onOpenChange, accounts, templates
         <SheetHeader>
           <SheetTitle>Broadcast cross-canal</SheetTitle>
           <SheetDescription>
-            Fase 1: audiência (opt-in LGPD + janela 24h Meta) + rascunho auditável.
-            O disparo em massa rate-limited é a fase 2 (ADR 0268).
+            Só entra quem deu opt-in (LGPD). O disparo sai aos poucos, em horário comercial,
+            para não arriscar o número.
           </SheetDescription>
         </SheetHeader>
 
@@ -232,7 +237,7 @@ export default function BroadcastSheet({ open, onOpenChange, accounts, templates
 
           <Button
             type="button"
-            onClick={saveDraft}
+            onClick={() => saveDraft(false)}
             disabled={!canSave}
             className="gap-1.5"
             data-testid="caixa-unif-bcast-save"
@@ -241,13 +246,23 @@ export default function BroadcastSheet({ open, onOpenChange, accounts, templates
             {saving ? 'Salvando…' : 'Salvar rascunho (auditável)'}
           </Button>
 
-          <Button type="button" disabled variant="outline" title="Fase 2 — Job rate-limited com gate Wagner (ADR 0268)">
-            Disparar broadcast — fase 2 (em construção)
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => saveDraft(true)}
+            disabled={!canDispatch}
+            className="gap-1.5"
+            data-testid="caixa-unif-bcast-disparar"
+          >
+            <Send size={14} aria-hidden />
+            Salvar e disparar
           </Button>
-          <small className="text-[10.5px] text-muted-foreground">
-            O motor de disparo em massa (fila + rate-limit anti-ban + retry por
-            destinatário) entra na fase 2 com aprovação explícita — este painel já
-            deixa a campanha pronta e auditável.
+          <small className="text-[10.5px] text-muted-foreground" data-testid="caixa-unif-bcast-disparo-aviso">
+            {!disparoHabilitado
+              ? 'O disparo de campanhas não está ligado nesta empresa. A campanha fica salva como rascunho.'
+              : kind !== 'freeform'
+                ? 'Por enquanto só campanha de texto livre pode ser disparada.'
+                : 'Envia uma mensagem a cada 20 a 45 segundos, das 8h às 20h, até 200 por dia (40 nos primeiros 7 dias do número).'}
           </small>
         </Stack>
       </SheetContent>

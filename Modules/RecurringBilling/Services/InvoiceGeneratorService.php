@@ -52,10 +52,15 @@ class InvoiceGeneratorService
      *
      * @return array{generated:int, skipped:int, errors:int, advanced:int}
      */
-    public function run(int $businessId, ?string $date = null, bool $dryRun = false, int $leadDays = 0): array
+    /**
+     * @param  list<int>|null  $somenteSubscriptions  restringe a estas assinaturas (o motor do Pix
+     *                                                 Automático gera antecipado só as com mandato
+     *                                                 aprovado); null = todas, o comportamento de sempre
+     */
+    public function run(int $businessId, ?string $date = null, bool $dryRun = false, int $leadDays = 0, ?array $somenteSubscriptions = null): array
     {
-        return OtelHelper::spanBiz('rb.invoice.gerador.run', function () use ($businessId, $date, $dryRun, $leadDays): array {
-            return $this->runInternal($businessId, $date, $dryRun, $leadDays);
+        return OtelHelper::spanBiz('rb.invoice.gerador.run', function () use ($businessId, $date, $dryRun, $leadDays, $somenteSubscriptions): array {
+            return $this->runInternal($businessId, $date, $dryRun, $leadDays, $somenteSubscriptions);
         }, [
             'module'      => 'RecurringBilling',
             'op'          => 'invoice.gerador.run',
@@ -68,7 +73,7 @@ class InvoiceGeneratorService
     /**
      * @return array{generated:int, skipped:int, errors:int, advanced:int}
      */
-    private function runInternal(int $businessId, ?string $date, bool $dryRun, int $leadDays): array
+    private function runInternal(int $businessId, ?string $date, bool $dryRun, int $leadDays, ?array $somenteSubscriptions = null): array
     {
         $today = $date !== null && $date !== '' ? Carbon::parse($date) : Carbon::today();
         $cutoff = $today->copy()->addDays(max(0, $leadDays))->toDateString();
@@ -77,6 +82,7 @@ class InvoiceGeneratorService
             ->where('business_id', $businessId)
             ->where('status', 'active')
             ->whereDate('next_due_date', '<=', $cutoff)
+            ->when($somenteSubscriptions !== null, fn ($q) => $q->whereIn('id', $somenteSubscriptions))
             ->with('plan')
             ->orderBy('id')
             ->get();

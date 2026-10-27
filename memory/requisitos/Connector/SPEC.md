@@ -128,6 +128,11 @@ REST API externa do oimpresso. Exposta sob prefixo `/connector/api/*` com middle
 **Implementado em:** _pendente_ — a especificação executável foi criada; nenhuma documentação
 foi gerada ou publicada e nenhum contrato runtime foi alterado.
 
+> 2026-10-26 — T-01 e T-02 entregues: `config/scribe.php` só documenta `/connector/api/*`, não
+> faz response call, não usa Model real e grava em `storage/app/scribe-connector` (fora da web);
+> contrato em `Modules/Connector/Tests/Feature/ConnectorOpenApiConfigContratoTest.php`. Faltam
+> T-03 (gerar e curar), T-04 (decisão de audiência [W]/[F]), T-05 e T-06.
+
 **Detalhamento:** [features/openapi-connector/](features/openapi-connector/requirements.md) — trio
 `requirements.md`/`plan.md`/`tasks.md`, validado por `feature-lint.mjs`.
 
