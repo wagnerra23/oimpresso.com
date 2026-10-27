@@ -1107,19 +1107,22 @@ Status: ⬜ não verificado (aguarda o run do CI)
 - **Regressão que defende:** ADR 0440 §2 (o cartão mostra o resumo legível).
 
 ## UC-JCHAT-27 — a Jana só ganha a ferramenta de propor com a flag ligada
-Status: 🧪 sem veredito
+Status: ⬜ não verificado (aguarda o run do CI)
+- **Persona:** gestor que pode criar tarefa, com a flag ligada e desligada.
 - **Aceite:** Com `copiloto.chat_acoes.enabled` desligada · Então o agente não tem tool de ação e o prompt não fala em ações · Ligada, e o dono da conversa podendo criar tarefa · Então recebe a tool de propor tarefa, que declara a permissão `essentials.add_todos`, e o prompt manda nunca dizer que já criou.
 - **Teste:** `Modules/Jana/Tests/Feature/AcoesDoChatToolContratoTest.php` — `UC-JCHAT-27 · …`
 - **Regressão que defende:** ADR 0440 §3 (*"usuário sem permissão não recebe a ferramenta"*) e §6.
 
 ## UC-JCHAT-28 — a ferramenta propõe, não cria
-Status: 🧪 sem veredito
+Status: ⬜ não verificado (aguarda o run do CI)
+- **Persona:** a Jana, chamando a ferramenta de propor tarefa.
 - **Aceite:** Quando o modelo chama a tool com um título · Então nasce uma proposta da conversa, na empresa da conversa, e nenhuma tarefa é criada.
 - **Teste:** `Modules/Jana/Tests/Feature/AcoesDoChatToolContratoTest.php` — `UC-JCHAT-28 · …`
 - **Regressão que defende:** ADR 0440 §1.
 
 ## UC-JCHAT-29 — [T0] conversa de outra empresa não recebe ação
-Status: 🧪 sem veredito
+Status: ⬜ não verificado (aguarda o run do CI)
+- **Persona:** adversário: conversa de outra empresa.
 - **Aceite:** Dada uma conversa da empresa 99 com um usuário da 98 · Então nenhuma tool de ação é oferecida.
 - **Teste:** `Modules/Jana/Tests/Feature/AcoesDoChatToolContratoTest.php` — `UC-JCHAT-29 · …`
 - **Regressão que defende:** ADR 0440 §3 · ADR 0093.
