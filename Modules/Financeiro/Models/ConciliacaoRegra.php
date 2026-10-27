@@ -9,7 +9,7 @@ use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
- * Regra de conciliação automática (US-FIN-078). Ver a migration
+ * Regra de conciliação automática (US-FIN-080). Ver a migration
  * `2026_10_27_120000_create_fin_conciliacao_regras_table` e `RegrasConciliacaoService`.
  */
 class ConciliacaoRegra extends Model

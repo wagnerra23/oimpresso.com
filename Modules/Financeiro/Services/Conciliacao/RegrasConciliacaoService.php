@@ -12,7 +12,7 @@ use Modules\Financeiro\Models\Titulo;
 use Modules\Financeiro\Services\FinanceiroAuditLogger;
 
 /**
- * Conciliação por regras (US-FIN-078 · UC-FCC-19..22).
+ * Conciliação por regras (US-FIN-080 · UC-FCC-19..22).
  *
  * Roda ANTES do casamento por valor e data do `ConciliacaoController::sugerirMatches`, sobre as
  * mesmas linhas pendentes (OFX `status = pendente`, API `status` nulo). Para cada linha, tenta as

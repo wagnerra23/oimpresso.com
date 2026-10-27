@@ -510,7 +510,7 @@ class ConciliacaoController extends Controller
             'match_score' => null,
             'updated_at'  => now(),
         ];
-        // US-FIN-078: reabrir desfaz também o vínculo com a regra que casou a linha.
+        // US-FIN-080: reabrir desfaz também o vínculo com a regra que casou a linha.
         if (Schema::hasColumn($origem === 'api' ? 'fin_extrato_lancamentos' : 'fin_bank_statement_lines', 'regra_id')) {
             $update['regra_id'] = null;
         }
@@ -542,7 +542,7 @@ class ConciliacaoController extends Controller
     }
 
     /**
-     * US-FIN-078: roda regras + casamento por valor e data sobre o que está pendente, sem
+     * US-FIN-080: roda regras + casamento por valor e data sobre o que está pendente, sem
      * precisar de upload (o extrato da API chega pelo sync, não pela tela).
      * POST /financeiro/conciliacao/aplicar-regras.
      */
@@ -576,7 +576,7 @@ class ConciliacaoController extends Controller
      */
     private function sugerirMatches(int $businessId): void
     {
-        // US-FIN-078: as regras do usuário decidem primeiro (desligado por padrão — flag
+        // US-FIN-080: as regras do usuário decidem primeiro (desligado por padrão — flag
         // financeiro.conciliacao.regras_enabled). O que elas casam sai de `pendente`; o resto
         // cai no casamento por valor e data abaixo, como sempre.
         app(RegrasConciliacaoService::class)->aplicar($businessId);

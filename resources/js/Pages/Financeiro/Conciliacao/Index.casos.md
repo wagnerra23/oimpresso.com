@@ -247,27 +247,27 @@ Com `PLUGGY_ENABLED=false` o comando não chama a API. Ligado, sincroniza só as
 98 ficam no 98, a conta do 99 sem vínculo fica sem linha, e o 2º run atualiza em vez de inserir.
 
 ## UC-FCC-19 — Regra casa a linha com o único título do alvo, sem mexer no título
-Status: 🧪 (`ConciliacaoRegrasContratoTest` — *"UC-FCC-19 · ..."* · nasce em 2026-10-27, US-FIN-078; ainda sem run)
-Fonte: SPEC US-FIN-078 + charter (Anti-hook: não cria/edita Título).
+Status: 🧪 (`ConciliacaoRegrasContratoTest` — *"UC-FCC-19 · ..."* · nasce em 2026-10-27, US-FIN-080; ainda sem run)
+Fonte: SPEC US-FIN-080 + charter (Anti-hook: não cria/edita Título).
 Com a flag ligada, uma regra "descrição contém *mensalidade*, entrada, cliente X, conciliar" casa a
 linha de 249,90 com o título aberto de 249,90 do cliente X — e não com o de outro cliente de mesmo valor.
 **Pronto quando:** a linha fica `conciliado` com `titulo_id` e `regra_id`, sem `conciliado_by`; o título
 tem o mesmo valor total, o mesmo aberto e o mesmo status, e nenhuma baixa nasceu.
 
 ## UC-FCC-20 — Regra só decide com um candidato; `sugerir` espera a pessoa; reabrir solta a regra
-Status: 🧪 (`ConciliacaoRegrasContratoTest` — *"UC-FCC-20 · ..."* · nasce em 2026-10-27, US-FIN-078; ainda sem run)
-Fonte: SPEC US-FIN-078.
+Status: 🧪 (`ConciliacaoRegrasContratoTest` — *"UC-FCC-20 · ..."* · nasce em 2026-10-27, US-FIN-080; ainda sem run)
+Fonte: SPEC US-FIN-080.
 **Pronto quando:** com dois títulos de mesmo valor a linha não recebe `regra_id` nem fica conciliada;
 uma regra `sugerir` deixa a linha `sugerido` com o título e a regra; reabrir zera status, título e regra.
 
 ## UC-FCC-21 — Flag desligada, regra nenhuma roda
-Status: 🧪 (`ConciliacaoRegrasContratoTest` — *"UC-FCC-21 · ..."* · nasce em 2026-10-27, US-FIN-078; ainda sem run)
-Fonte: SPEC US-FIN-078 (nasce atrás de `FINANCEIRO_CONCILIACAO_REGRAS_ENABLED`, desligada).
+Status: 🧪 (`ConciliacaoRegrasContratoTest` — *"UC-FCC-21 · ..."* · nasce em 2026-10-27, US-FIN-080; ainda sem run)
+Fonte: SPEC US-FIN-080 (nasce atrás de `FINANCEIRO_CONCILIACAO_REGRAS_ENABLED`, desligada).
 **Pronto quando:** com a flag desligada a linha não ganha `regra_id` nem fica conciliada.
 
 ## UC-FCC-22 — Regra e título de outro business não casam a linha `[T0]`
-Status: 🧪 (`ConciliacaoRegrasContratoTest` — *"UC-FCC-22 · ..."* · nasce em 2026-10-27, US-FIN-078; ainda sem run)
-Fonte: SPEC US-FIN-078 + ADR 0093.
+Status: 🧪 (`ConciliacaoRegrasContratoTest` — *"UC-FCC-22 · ..."* · nasce em 2026-10-27, US-FIN-080; ainda sem run)
+Fonte: SPEC US-FIN-080 + ADR 0093.
 **Pronto quando:** a regra e o título do 99 não tocam a linha do 98, rodando o motor dos dois businesses.
 
 ---

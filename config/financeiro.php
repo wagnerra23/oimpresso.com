@@ -63,7 +63,7 @@ return [
     ],
 
     /*
-    | Conciliação automática por regras (US-FIN-078). Desligada por padrão: com a flag
+    | Conciliação automática por regras (US-FIN-080). Desligada por padrão: com a flag
     | desligada o motor de regras não roda e a conciliação fica como sempre foi.
     */
     'conciliacao' => [

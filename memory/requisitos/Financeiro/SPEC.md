@@ -2144,7 +2144,7 @@ _PR 1 — sync:_
 
 **Fechada nesta forma:** os itens de webhook e tela de vínculo saem do escopo por decisão [W].
 
-### US-FIN-078 · Conciliação automática por regras — **P1**
+### US-FIN-080 · Conciliação automática por regras — **P1**
 
 > owner: — · priority: p1 · estimate: 12h · status: doing · type: story
 > blocked_by: —

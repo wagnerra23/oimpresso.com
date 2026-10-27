@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Regras de conciliação automática (US-FIN-078 · UC-FCC-19..22).
+ * Regras de conciliação automática (US-FIN-080 · UC-FCC-19..22).
  *
  * Uma regra diz "linha do extrato com descrição que contém X, nesse sentido, nessa faixa de
  * valor → é título daquele cliente / plano de contas / categoria". O motor
@@ -51,7 +51,7 @@ return new class extends Migration
             if (Schema::hasTable($tabela) && ! Schema::hasColumn($tabela, 'regra_id')) {
                 Schema::table($tabela, function (Blueprint $t) {
                     $t->unsignedInteger('regra_id')->nullable()->after('match_score')
-                        ->comment('fin_conciliacao_regras.id que casou a linha (US-FIN-078)');
+                        ->comment('fin_conciliacao_regras.id que casou a linha (US-FIN-080)');
                 });
             }
         }
