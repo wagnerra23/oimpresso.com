@@ -57,7 +57,7 @@ class ManageProfileController extends Controller
     /**
      * Shows profile of logged in user
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\View\View|\Inertia\Response
      */
     public function getProfile()
     {
@@ -106,7 +106,7 @@ class ManageProfileController extends Controller
     /**
      * updates user profile
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function updateProfile(Request $request)
     {
@@ -155,7 +155,7 @@ class ManageProfileController extends Controller
     /**
      * Update the password
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function updatePassword(Request $request)
     {

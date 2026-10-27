@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do contato logado + critério de aceite verific
 por_que: é escrita feita por um terceiro com login. Errar a lista permitida deixa o contato mudar o próprio cadastro fiscal; errar o escopo deixa mudar o de outro.
 owner: wagner
 last_run: "2026-10-27"
-last_run_ci: "_pendente_ — o trio nasce na thread Crm/19. O veredito por UC entra no manifesto quando a lane verticais-pest rodar; até lá o Status é 🧪."
+last_run_ci: "_pendente_ — o trio nasce na thread Crm/19. O veredito por UC entra no manifesto quando a lane verticais-pest rodar; até lá o Status é ⬜."
 ---
 
 # Casos de Uso & Aceite — Portal do contato · Perfil (`/contact/contact-profile`)
@@ -23,7 +23,7 @@ last_run_ci: "_pendente_ — o trio nasce na thread Crm/19. O veredito por UC en
 **Então** só e-mail, telefone, pessoa de contato e endereço são gravados · e os outros cinco ficam como estavam ·
 **E** o contato B do mesmo negócio não muda.
 
-Status: 🧪
+Status: ⬜ — teste escrito, ainda não rodou (o veredito sai da lane verticais-pest do PR #10041).
 
 ---
 
@@ -33,7 +33,7 @@ Status: 🧪
 **Com** a atual errada **Então** a tela recebe erro no campo da senha atual e nada muda ·
 **E** um `user_id` de outro no corpo é ignorado.
 
-Status: 🧪
+Status: ⬜ — teste escrito, ainda não rodou (o veredito sai da lane verticais-pest do PR #10041).
 
 > Divergência declarada: o caso de origem diz `422`. Em formulário Inertia a recusa é redirect com erro de validação
 > na sessão; o teste prova o erro no campo e o hash intacto (§5 2026-09-05, "302 nos dois caminhos").
