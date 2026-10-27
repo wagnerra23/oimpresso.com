@@ -813,11 +813,14 @@ function App() {
   const PUBLICAS = {
     "fin-receber":    [{ label: "Link de pagamento", route: "fin-link-pagar" }, { label: "Portal do cliente", route: "fin-portal-cliente" }],
     "venda-cotacoes": [{ label: "Aprovação do orçamento", route: "venda-aprovacao-publica" }],
+    "oficinaauto":    [{ label: "Aprovação da OS e pagamento", route: "oficina-aprovacao-publica" }],
+    "oficina-os":     [{ label: "Aprovação da OS e pagamento", route: "oficina-aprovacao-publica" }],
   };
   const protoChave = PROTO_HTML_ALIAS[route] || route;
   if (PROTO_HTML[protoChave]) content = <window.ProtoHtmlPage key={route} chave={protoChave} titulo={PROTO_HTML[protoChave]} />;else
   // DDA e pagamento pelo banco: as duas peças lado a lado, até entrarem no menu ··· e na gaveta do título.
   if (route === "fin-dda") content = <window.FinDdaPagamentoDemo />;else
+  if (route === "oficina-aprovacao-publica") content = <window.OficinaAprovacaoPublica />;else
   // Cards novos da Nova compra/edição/detalhe (proposta de forma antes do cutover das Blades).
   if (route === "cmp-cards-novos") content = <window.ComprasCardsNovosPage />;else
   // fin-link-pagar/fin-portal-cliente: o #9961 usava "fin-pagar", que já é Contas a pagar e casava antes.
