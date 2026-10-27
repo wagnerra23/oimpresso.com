@@ -46,7 +46,7 @@ function mortaSuperadmin(): User
     return $user;
 }
 
-it('o superadmin abre as telas vivas (controle positivo)', function () {
+it('UC-SAPAC-12 · controle positivo: o superadmin abre as telas vivas', function () {
     $su = mortaSuperadmin();
 
     $this->actingAs($su)->get('/superadmin/packages')->assertOk();
@@ -60,21 +60,22 @@ function semGet($resposta): void
     expect($resposta->getStatusCode())->toBeIn([404, 405]);
 }
 
-it('show de pacote e de assinatura não existe mais (era 500)', function () {
-    $su = mortaSuperadmin();
-
-    semGet($this->actingAs($su)->get('/superadmin/packages/1'));
-    semGet($this->actingAs($su)->get('/superadmin/superadmin-subscription/1'));
+it('UC-SAPAC-12 · o show de pacote não existe mais (era 500)', function () {
+    semGet($this->actingAs(mortaSuperadmin())->get('/superadmin/packages/1'));
 });
 
-it('o modal Blade da assinatura e o ajax da lista antiga não existem mais', function () {
+it('UC-SAASS-19 · o show de assinatura do superadmin não existe mais (era 500)', function () {
+    semGet($this->actingAs(mortaSuperadmin())->get('/superadmin/superadmin-subscription/1'));
+});
+
+it('UC-SAMA-06 · o modal Blade da assinatura e o ajax da lista antiga não existem mais', function () {
     $su = mortaSuperadmin();
 
     semGet($this->actingAs($su)->get('/subscription/1'));
     semGet($this->actingAs($su)->get('/all-subscriptions'));
 });
 
-it('o fallback Blade /pricing/old saiu; /pricing segue', function () {
+it('UC-SPRIC-03 · o fallback Blade /pricing/old saiu; /pricing segue', function () {
     $this->get('/pricing/old')->assertNotFound();
     $this->get('/pricing')->assertOk();
 });

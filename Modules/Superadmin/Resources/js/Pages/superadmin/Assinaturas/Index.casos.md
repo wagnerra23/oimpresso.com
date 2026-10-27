@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a tela onde o vocabulário do banco e o vocabulário do negócio NÃO coincidem — `trial` não é status, `approved` significa duas coisas conforme a data, e `declined` não é cancelamento. Sem casos travando a tradução, a próxima sessão "simplifica" o mapa e a tela passa a reportar cobrança errada sem quebrar nada visivelmente.
 owner: wagner
-last_run: "2026-09-11"
+last_run: "2026-10-27"
 revalidacao_2026_08_21: "O `.tsx` mudou de verdade nesta onda (SA-O4b): a tabela ganhou coluna de ações com kebab, e entrou a gaveta de dois modos. Não é toque cosmético — é comportamento novo, e por isso os UCs novos (UC-SAASS-11 a 16) nascem junto, cada um com fixture própria. Os UCs 01-10 não mudam de veredito: a leitura da lista continua idêntica."
 last_run_ci: "_pendente_ — o trio nasce nesta onda (SA-O4a). O veredito por UC entra no manifesto quando a lane rodar; até lá o Status é 🧪, nunca ✅."
 ---
@@ -270,3 +270,12 @@ Status: 🧪
 - **Escrita:** cada caso de ação usa fixture PRÓPRIA, recriada do zero. Reusar as fixtures de
   leitura faria o resultado depender da ordem dos casos — e a base do CT 100 persiste entre
   execuções, então "roda limpo" não vale lá.
+
+---
+
+## UC-SAASS-19 · O detalhe solto de assinatura não existe mais
+- **Persona:** [W], superadmin, ou link antigo para `/superadmin/superadmin-subscription/{id}`.
+- **Aceite:** Dado uma assinatura · Quando peço `GET /superadmin/superadmin-subscription/{id}` · Então não há rota GET (404 ou 405).
+- **Teste:** `Modules/Superadmin/Tests/Feature/SuperadminRotasMortasTest.php` — `UC-SAASS-19 · o show de assinatura do superadmin não existe mais (era 500)`.
+- **Regressão que defende:** o `show()` devolvia `view('superadmin::show')`, view que nunca existiu (500); o detalhe é o drawer desta tela.
+- **Status: ⬜** — teste novo, lane `verticais-pest.yml`; espera o primeiro run.

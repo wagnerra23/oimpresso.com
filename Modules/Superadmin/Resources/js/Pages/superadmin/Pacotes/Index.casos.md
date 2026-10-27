@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a tela onde `0` significa o CONTRÁRIO do que parece — zero é "sem teto", não "nenhum". Sem caso travando isso, a próxima sessão "simplifica" a renderização e a grade comercial passa a dizer o oposto do contrato. E é a tela vizinha da vitrine pública `/pricing`: unificar as duas consultas expõe pacote privado ao mundo.
 owner: wagner
-last_run: "2026-10-14"
+last_run: "2026-10-27"
 revalidacao_2026_10_05: "O `.tsx` mudou na thread Superadmin 03: a grade ganhou o botão Novo pacote, Editar em cada card e o drawer de formulário, e o cabeçalho migrou para o PageHeader canon. Os UC-SAPAC-01..08 não mudam de veredito — a leitura da grade é a mesma, e abrir a tela segue sem escrever (UC-08). O que a thread acrescenta está nos UC-SAPAC-09..11, novos e com teste."
 nota_data: "O trio nasceu em 20/08, mas o PR foi RECRIADO do main fresco em 21/08 (o #6066 ficou irreconciliável depois do squash do #6064). O commit do `.tsx` é de 21/08, então o G-6 compara contra esta data — não há re-execução a declarar, o conteúdo é o mesmo do dia anterior."
 last_run_ci: "_pendente_ — o trio nasce nesta onda (SA-O4c). O veredito por UC entra no manifesto quando a lane rodar; até lá o Status é 🧪, nunca ✅."
@@ -172,3 +172,12 @@ Status: 🧪
 - **Plural PT-BR:** 1 local / 2 locais · 1 assinante / 2 assinantes · 6 meses (nunca "mêses").
 - **Mono nunca quebra:** valor, contadores.
 - **Permissão:** admin de negócio 403; superadmin 200 (UC-SAPAC-02).
+
+---
+
+## UC-SAPAC-12 · O detalhe solto de pacote não existe mais
+- **Persona:** [W], superadmin, ou link antigo para `/superadmin/packages/{id}`.
+- **Aceite:** Dado um pacote · Quando peço `GET /superadmin/packages/{id}` · Então não há rota GET (404 ou 405); e `/superadmin/packages` segue abrindo (controle positivo).
+- **Teste:** `Modules/Superadmin/Tests/Feature/SuperadminRotasMortasTest.php` — `UC-SAPAC-12 · o show de pacote não existe mais (era 500)` e `UC-SAPAC-12 · controle positivo: o superadmin abre as telas vivas`.
+- **Regressão que defende:** o `show()` devolvia `view('superadmin::show')`, view que nunca existiu (500); editar pacote é o drawer desta tela.
+- **Status: ⬜** — teste novo, lane `verticais-pest.yml`; espera o primeiro run.

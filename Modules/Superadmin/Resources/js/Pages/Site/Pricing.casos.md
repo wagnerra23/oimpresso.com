@@ -4,7 +4,7 @@ irmaos: Pricing.charter.md (lei) · Pricing.tsx (código) · Modules/Superadmin/
 tecnica: Caso de uso = o que o prospect sem conta precisa ver + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a vitrine pública e lê o mesmo catálogo da tela de Pacotes; pacote privado ou desativado não pode vazar para o site
 owner: wagner
-last_run: "2026-10-14"
+last_run: "2026-10-27"
 ---
 
 # Casos de Uso & Aceite — Site/Pricing (`/pricing`)
@@ -27,3 +27,12 @@ last_run: "2026-10-14"
 - **Fonte:** RUNBOOK-pacotes ("Pacote privado não vaza … a de lá exclui privados") · charter (`listPackages(true)`).
 - **Aceite:** Dado um pacote ativo e público, um ativo e privado, e um desativado · Quando o visitante abre `/pricing` · Então vê só o ativo e público.
 - **Status:** 🧪
+
+---
+
+## UC-SPRIC-03 · O fallback Blade /pricing/old saiu
+- **Persona:** visitante anônimo com link antigo para `/pricing/old`.
+- **Aceite:** Quando peço `/pricing/old` · Então recebo 404; e `/pricing` segue abrindo.
+- **Teste:** `Modules/Superadmin/Tests/Feature/SuperadminRotasMortasTest.php` — `UC-SPRIC-03 · o fallback Blade /pricing/old saiu; /pricing segue`.
+- **Regressão que defende:** US-SUPER-009: o pricing é só a tela React; dois caminhos para a mesma página voltariam a divergir.
+- **Status: ⬜** — teste novo, lane `verticais-pest.yml`; espera o primeiro run.

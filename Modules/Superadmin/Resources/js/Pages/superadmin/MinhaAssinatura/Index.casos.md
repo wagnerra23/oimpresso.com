@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a tela em que o cliente vê quanto paga. Valor diferente do que a Blade mostrava confunde a cobrança; histórico sem filtro de negócio mostra a assinatura de outro cliente.
 owner: wagner
-last_run: "2026-10-05"
+last_run: "2026-10-27"
 ---
 
 # Casos de Uso & Aceite — Superadmin · Minha assinatura (`/subscription`)
@@ -48,3 +48,12 @@ Status: 🧪
 o pacote não está na lista.
 
 Status: 🧪
+
+---
+
+## UC-SAMA-06 · O modal Blade e a lista antiga por ajax não existem mais
+- **Persona:** dono do negócio com link antigo para o recibo ou a lista em DataTables.
+- **Aceite:** Dado o drawer do histórico desta tela · Quando peço `GET /subscription/{id}` ou `GET /all-subscriptions` · Então não há rota GET (404 ou 405).
+- **Teste:** `Modules/Superadmin/Tests/Feature/SuperadminRotasMortasTest.php` — `UC-SAMA-06 · o modal Blade da assinatura e o ajax da lista antiga não existem mais`.
+- **Regressão que defende:** thread 07: o drawer substituiu o modal `show_subscription_modal`, e as duas rotas ficaram sem consumidor.
+- **Status: ⬜** — teste novo, lane `verticais-pest.yml`; espera o primeiro run.
