@@ -9,14 +9,16 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { useForm, router, Deferred, Link } from '@inertiajs/react';
 import { type ReactNode, type FormEvent, useState } from 'react';
-import { Upload, Check, X, Search, Inbox, RotateCcw } from 'lucide-react';
+import { Upload, Check, X, Search, Inbox, RotateCcw, Wand2, Settings2 } from 'lucide-react';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
 import { Stack } from '@/Components/layout';
 import { Checkbox } from '@/Components/ui/checkbox';
+import { Button } from '@/Components/ui/button';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/Components/ui/select';
+import { RegrasMaquininhaSheet, type ConfigConciliacao } from './_components/RegrasMaquininhaSheet';
 
 interface Linha {
   uid: string;                  // "ofx:123" | "api:456" — chave estável (2 origens)
@@ -32,6 +34,10 @@ interface Linha {
   source_file: string | null;
   // FIN-4b: resumo do título vinculado (sugerido/conciliado) — coluna "Sistema" do protótipo.
   titulo: TituloResumo | null;
+  // US-FIN-080: regra que casou a linha · US-FIN-083: recebíveis de cartão baixados pelo repasse.
+  regra_id?: number | null;
+  regra_nome?: string | null;
+  repasse_recebiveis?: number;
 }
 
 interface TituloResumo {
@@ -65,6 +71,7 @@ interface Props {
   contas: { id: number; nome: string }[];
   filters: { incluir_resolvidos: boolean };
   resumo?: ResumoExtrato;
+  config?: ConfigConciliacao; // Inertia::optional — só chega quando o painel pede
 }
 
 const brl = (v: number) =>
@@ -115,8 +122,19 @@ function KpiFaixa({ itens }: { itens: KpiItem[] }) {
   );
 }
 
-function FinanceiroConciliacao({ linhas, stats, contas, filters, resumo }: Props) {
+function FinanceiroConciliacao({ linhas, stats, contas, filters, resumo, config }: Props) {
   const [busca, setBusca] = useState('');
+  const [painel, setPainel] = useState(false);
+
+  const abrirPainel = () => {
+    setPainel(true);
+    router.reload({ only: ['config'] });
+  };
+
+  // US-FIN-080: regras + repasse do cartão + valor/data sobre o que está pendente, sem upload.
+  const aplicarRegras = () => {
+    router.post('/financeiro/conciliacao/aplicar-regras', {}, { preserveScroll: true });
+  };
 
   const uploadForm = useForm<{ arquivo: File | null; conta_bancaria_id: string }>({
     arquivo: null,
@@ -281,6 +299,17 @@ function FinanceiroConciliacao({ linhas, stats, contas, filters, resumo }: Props
         </p>
       </div>
 
+      {/* US-FIN-080 + US-FIN-083: regras do usuário e maquininha de cartão */}
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <Button type="button" variant="outline" size="sm" onClick={aplicarRegras} title="Casa o que está pendente pelas regras, pelo repasse do cartão e por valor e data">
+          <Wand2 size={13} /> Aplicar regras
+        </Button>
+        <Button type="button" variant="ghost" size="sm" onClick={abrirPainel}>
+          <Settings2 size={13} /> Regras e maquininha
+        </Button>
+      </div>
+      {painel && <RegrasMaquininhaSheet key={config ? 'pronto' : 'carregando'} config={config} onClose={() => setPainel(false)} />}
+
       {/* Filtro busca + toggle "ver conciliados/ignorados" */}
       {linhas.length > 0 && (
         <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -396,9 +425,13 @@ function FinanceiroConciliacao({ linhas, stats, contas, filters, resumo }: Props
                     <span className={`w-1.5 h-1.5 rounded-full ${STATUS_CLR[l.status].ponto}`} aria-hidden="true" />
                     {l.status}
                   </span>
-                  {l.match_score && (
+                  {l.regra_nome ? (
+                    <div className="text-[length:var(--fs-1)] text-[var(--text-mute)] mt-0.5">regra: {l.regra_nome}</div>
+                  ) : (l.repasse_recebiveis ?? 0) > 0 ? (
+                    <div className="text-[length:var(--fs-1)] text-[var(--text-mute)] mt-0.5">repasse do cartão · {l.repasse_recebiveis} venda(s)</div>
+                  ) : l.match_score ? (
                     <div className="text-[length:var(--fs-1)] text-[var(--text-mute)] mt-0.5">match {(l.match_score * 100).toFixed(0)}%</div>
-                  )}
+                  ) : null}
                 </td>
                 <td className="px-3 py-2 text-right">
                   {l.status === 'sugerido' && l.titulo_id && (

@@ -112,6 +112,7 @@ class ConciliacaoController extends Controller
         // vinculado/sugerido. Leitura só de exibição — nada é criado nem editado
         // (Automation Anti-hook do charter: "Não cria/edita Titulo").
         $linhas = $this->anexarTitulos($businessId, $linhas);
+        $linhas = $this->anexarRegraERepasse($businessId, $linhas);
 
         $stats = $this->statsConsolidados($businessId);
 
@@ -128,6 +129,9 @@ class ConciliacaoController extends Controller
             // origens, todas as situações — mesmo universo dos 4 contadores de `stats`,
             // não a fila filtrada/limitada a 200. Deferido (RUNBOOK-inertia-defer-pattern).
             'resumo' => Inertia::defer(fn () => $this->resumoExtrato($businessId)),
+            // US-FIN-080 + US-FIN-083: painel "Regras e maquininha" — calculado só quando o
+            // painel abre (reload parcial `only: ['config']`), nunca na carga da tela.
+            'config' => Inertia::optional(fn () => ConciliacaoConfigController::painel($businessId)),
             'contas' => $contas,
             'filters' => [
                 'incluir_resolvidos' => $incluirResolvidos,
@@ -157,6 +161,7 @@ class ConciliacaoController extends Controller
             'titulo_id'      => $l->titulo_id !== null ? (int) $l->titulo_id : null,
             'match_score'    => $l->match_score !== null ? (float) $l->match_score : null,
             'source_file'    => $l->source_file,
+            'regra_id'       => isset($l->regra_id) ? (int) $l->regra_id : null,
         ];
     }
 
@@ -178,6 +183,7 @@ class ConciliacaoController extends Controller
             'titulo_id'      => isset($l->titulo_id) ? (int) $l->titulo_id : null,
             'match_score'    => isset($l->match_score) ? (float) $l->match_score : null,
             'source_file'    => null, // API não tem arquivo; front mostra chip "Banco".
+            'regra_id'       => isset($l->regra_id) ? (int) $l->regra_id : null,
         ];
     }
 
@@ -233,6 +239,41 @@ class ConciliacaoController extends Controller
                 'valor_total' => round((float) $t->getAttribute('valor_total'), 2),
                 'vencimento'  => $t->vencimento?->toDateString(),
             ];
+
+            return $l;
+        })->values();
+    }
+
+    /**
+     * US-FIN-080 + US-FIN-083: nome da regra que casou a linha e quantos recebíveis de cartão o
+     * repasse baixou. Só exibição; duas queries whereIn, business-scoped.
+     */
+    private function anexarRegraERepasse(int $businessId, \Illuminate\Support\Collection $linhas): \Illuminate\Support\Collection
+    {
+        $regraIds = $linhas->pluck('regra_id')->filter()->unique()->values();
+        $regras = $regraIds->isEmpty() || ! Schema::hasTable('fin_conciliacao_regras')
+            ? collect()
+            : \Modules\Financeiro\Models\ConciliacaoRegra::withTrashed()->where('business_id', $businessId)
+                ->whereIn('id', $regraIds)->pluck('nome', 'id');
+
+        $repasses = collect();
+        if (Schema::hasTable('fin_cartao_recebiveis')) {
+            $conciliadas = $linhas->where('status', 'conciliado')->whereNull('titulo_id');
+            if ($conciliadas->isNotEmpty()) {
+                $repasses = DB::table('fin_cartao_recebiveis')
+                    ->where('business_id', $businessId)
+                    ->where('status', 'recebido')
+                    ->whereIn('extrato_linha_id', $conciliadas->pluck('id'))
+                    ->selectRaw('extrato_origem, extrato_linha_id, COUNT(*) AS n')
+                    ->groupBy('extrato_origem', 'extrato_linha_id')
+                    ->get()
+                    ->keyBy(fn ($r) => $r->extrato_origem.':'.$r->extrato_linha_id);
+            }
+        }
+
+        return $linhas->map(function (array $l) use ($regras, $repasses) {
+            $l['regra_nome'] = $l['regra_id'] !== null ? ($regras[$l['regra_id']] ?? null) : null;
+            $l['repasse_recebiveis'] = (int) ($repasses->get($l['uid'])->n ?? 0);
 
             return $l;
         })->values();

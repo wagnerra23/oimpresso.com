@@ -47,6 +47,7 @@ e de **sync API do banco** — e deixar o usuário conciliá-las com títulos ab
 - Resumo do título vinculado em cada linha (`linhas[].titulo`), só exibição — ver `UC-FCC-15`
 - Regras do usuário casam a linha antes do valor + data (US-FIN-080, flag `FINANCEIRO_CONCILIACAO_REGRAS_ENABLED`, desligada) — só vinculam, não baixam — ver `UC-FCC-19..22`
 - Repasse da maquininha baixa os recebíveis de cartão previstos (US-FIN-083, flag `FINANCEIRO_CARTAO_RECEBIVEIS_ENABLED`, desligada) — baixa recebível, não título — ver `UC-FCC-23..26`
+- Botão "Aplicar regras" + painel lateral "Regras e maquininha" (cadastro de regras, maquininha padrão e resumo dos recebíveis; prop `config` via `Inertia::optional`) — ver `UC-FCC-27..28`
 
 ---
 
@@ -138,3 +139,4 @@ it('upload duplicado double click e idempotente');             // ✅ existe (an
 | 2026-05-31 | Opus + Wagner | Charter criado na Fase 1 ADR 0236 (tela passou a ler extrato API + coluna Origem). |
 | 2026-08-02 | Claude [C] | v2 — B7: nasce o `Index.casos.md` (`UC-FCC-01..13`). Corrigido o Non-Goal que dizia *"score fixo 0.85 no MVP"*: o 0.85 constante era o **bug B1** (ADR 0236), já substituído por `calcularMatchScore()` (`0.7·valor + 0.3·data`). Precedência teste-verde > charter — `ConciliacaoMatchScoreTest` provou (3 passed, CT 100 2026-08-02) e o charter foi corrigido no mesmo PR. |
 | 2026-10-27 | Claude [C] | US-FIN-080: regras de conciliação rodam antes do casamento por valor e data (`RegrasConciliacaoService`), atrás de flag desligada. Non-Goal "editar regra de match" segue valendo: ele fala da fórmula do score, que não mudou. |
+| 2026-10-27 | Claude [C] | US-FIN-083: repasse da maquininha baixa recebíveis de cartão. Painel "Regras e maquininha" (Sheet, montado no `.cockpit`) + botão "Aplicar regras". Sem fonte de design no protótipo: gerado no DS canon (Sheet/Input/Select/Switch). |

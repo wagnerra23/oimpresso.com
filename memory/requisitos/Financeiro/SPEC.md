@@ -2146,12 +2146,12 @@ _PR 1 — sync:_
 
 ### US-FIN-080 · Conciliação automática por regras — **P1**
 
-> owner: — · priority: p1 · estimate: 12h · status: doing · type: story
+> owner: — · priority: p1 · estimate: 12h · status: done · type: story
 > blocked_by: —
 
-**Implementado em:** _pendente_ — tela de regras no PR 2. Motor e flag já no código: `Modules/Financeiro/Services/Conciliacao/RegrasConciliacaoService.php` (`aplicar`), `Modules/Financeiro/Models/ConciliacaoRegra.php` (`atende`), `Modules/Financeiro/Http/Controllers/ConciliacaoController.php` (`sugerirMatches`, `aplicarRegras`, `reabrir`), `Modules/Financeiro/Database/Migrations/2026_10_27_120000_create_fin_conciliacao_regras_table.php`
+**Implementado em:** `resources/js/Pages/Financeiro/Conciliacao/_components/RegrasMaquininhaSheet.tsx`, `Modules/Financeiro/Http/Controllers/ConciliacaoConfigController.php`, `Modules/Financeiro/Services/Conciliacao/RegrasConciliacaoService.php` (`aplicar`), `Modules/Financeiro/Models/ConciliacaoRegra.php` (`atende`), `Modules/Financeiro/Http/Controllers/ConciliacaoController.php` (`sugerirMatches`, `aplicarRegras`, `reabrir`), `Modules/Financeiro/Database/Migrations/2026_10_27_120000_create_fin_conciliacao_regras_table.php`
 
-**Testado em:** `Modules/Financeiro/Tests/Feature/ConciliacaoRegrasContratoTest.php`
+**Testado em:** `Modules/Financeiro/Tests/Feature/ConciliacaoRegrasContratoTest.php`, `Modules/Financeiro/Tests/Feature/ConciliacaoConfigContratoTest.php`
 
 **Origem:** lacuna P1 do levantamento de concorrência de 2026-10-25. A Conciliação só sugeria pelo valor e pela data (±3 dias); toda linha precisava de um clique, mesmo a mensalidade que entra todo mês com a mesma descrição.
 
@@ -2167,16 +2167,16 @@ _PR 1 — motor + flag:_
 - [x] `POST /financeiro/conciliacao/aplicar-regras` roda o motor sem upload (o extrato da API chega pelo sync).
 
 _PR 2 — tela:_
-- [ ] Cadastro de regras (criar, editar, desligar) e botão "Aplicar regras" na Conciliação, com a regra que casou visível na linha.
+- [x] Cadastro de regras (criar, desligar, remover) e botão "Aplicar regras" na Conciliação, com a regra que casou visível na linha (UC-FCC-27).
 
 ### US-FIN-083 · Conciliação do cartão da maquininha — recebíveis previstos e baixa pelo repasse — **P1**
 
-> owner: — · priority: p1 · estimate: 12h · status: doing · type: story
+> owner: — · priority: p1 · estimate: 12h · status: done · type: story
 > blocked_by: —
 
-**Implementado em:** _pendente_ — tela de adquirentes e recebíveis no PR de tela. Serviço e flag já no código: `Modules/Financeiro/Services/Conciliacao/RecebiveisCartaoService.php` (`registrarDoPagamento`, `calcular`, `conciliarRepasses`), `Modules/Financeiro/Observers/TransactionPaymentObserver.php`, `Modules/Financeiro/Database/Migrations/2026_10_27_130000_create_fin_cartao_recebiveis_tables.php`
+**Implementado em:** `resources/js/Pages/Financeiro/Conciliacao/_components/RegrasMaquininhaSheet.tsx`, `Modules/Financeiro/Http/Controllers/ConciliacaoConfigController.php` (`salvarMaquininha`, `painel`), `Modules/Financeiro/Services/Conciliacao/RecebiveisCartaoService.php` (`registrarDoPagamento`, `calcular`, `conciliarRepasses`), `Modules/Financeiro/Observers/TransactionPaymentObserver.php`, `Modules/Financeiro/Database/Migrations/2026_10_27_130000_create_fin_cartao_recebiveis_tables.php`
 
-**Testado em:** `Modules/Financeiro/Tests/Feature/CartaoRecebiveisContratoTest.php`
+**Testado em:** `Modules/Financeiro/Tests/Feature/CartaoRecebiveisContratoTest.php`, `Modules/Financeiro/Tests/Feature/ConciliacaoConfigContratoTest.php`
 
 **Origem:** lacuna P1 do levantamento de concorrência de 2026-10-25. A venda no cartão é baixada no título na hora do pagamento (`TituloAutoService`, meio `cartao_credito`), mas o dinheiro chega dias depois, pela adquirente, com a taxa descontada. Não havia onde ver o que falta chegar nem conferir o repasse.
 
@@ -2193,6 +2193,6 @@ _PR 1 — serviço + flag:_
 - [x] Desligado por padrão (`FINANCEIRO_CARTAO_RECEBIVEIS_ENABLED=false`); recebível de outro business nunca é baixado (UC-FCC-26, `[T0]`).
 
 _PR de tela:_
-- [ ] Cadastro da maquininha e lista dos recebíveis (previsto / recebido / taxa do mês).
+- [x] Cadastro da maquininha e resumo dos recebíveis (a receber, repasses e taxa dos últimos 30 dias) (UC-FCC-28).
 
 **Fora:** parcelado (o core não guarda número de parcelas no pagamento), dias úteis no prazo, antecipação, mais de uma adquirente por venda e lançar a taxa como despesa.

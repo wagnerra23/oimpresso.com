@@ -296,6 +296,19 @@ Fonte: SPEC US-FIN-083 + ADR 0093.
 **Pronto quando:** com a flag desligada a venda no cartão não gera recebível; a entrada do 98 não baixa o
 recebível do 99 de mesmo valor.
 
+## UC-FCC-27 — Painel cadastra regra só no próprio business `[T0]`
+Status: 🧪 (`ConciliacaoConfigContratoTest` — *"UC-FCC-27 · ..."* · nasce em 2026-10-27, US-FIN-080; ainda sem run)
+Fonte: SPEC US-FIN-080 + ADR 0093.
+**Pronto quando:** a regra nasce no business da sessão; regra sem trecho de descrição nem plano/categoria é
+recusada; plano de contas de outro business é recusado; desligar e apagar só alcançam a regra do próprio
+business (a do 99 dá "não encontrada" e continua lá).
+
+## UC-FCC-28 — Maquininha padrão é uma só e o painel não mostra o outro business `[T0]`
+Status: 🧪 (`ConciliacaoConfigContratoTest` — *"UC-FCC-28 · ..."* · nasce em 2026-10-27, US-FIN-083; ainda sem run)
+Fonte: SPEC US-FIN-083 + ADR 0093.
+**Pronto quando:** salvar duas vezes deixa uma maquininha padrão, com a taxa da última gravação; o painel do
+98 não lista regra do 99 e diz que as regras estão desligadas quando a flag está desligada.
+
 ---
 
 ---

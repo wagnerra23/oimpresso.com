@@ -8,6 +8,7 @@ use Modules\Financeiro\Http\Controllers\AssinaturaController;
 use Modules\Financeiro\Http\Controllers\CaixaController;
 use Modules\Financeiro\Http\Controllers\CategoriaController;
 use Modules\Financeiro\Http\Controllers\CobrancaController;
+use Modules\Financeiro\Http\Controllers\ConciliacaoConfigController;
 use Modules\Financeiro\Http\Controllers\ConciliacaoController;
 use Modules\Financeiro\Http\Controllers\ContaBancariaController;
 use Modules\Financeiro\Http\Controllers\ContaPagarController;
@@ -264,6 +265,15 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
             ->name('conciliacao.upload');
         Route::post('/conciliacao/aplicar-regras', [ConciliacaoController::class, 'aplicarRegras'])
             ->name('conciliacao.aplicar-regras');
+        // US-FIN-080 + US-FIN-083: painel "Regras e maquininha".
+        Route::post('/conciliacao/regras', [ConciliacaoConfigController::class, 'storeRegra'])
+            ->name('conciliacao.regras.store');
+        Route::put('/conciliacao/regras/{id}', [ConciliacaoConfigController::class, 'updateRegra'])
+            ->whereNumber('id')->name('conciliacao.regras.update');
+        Route::delete('/conciliacao/regras/{id}', [ConciliacaoConfigController::class, 'destroyRegra'])
+            ->whereNumber('id')->name('conciliacao.regras.destroy');
+        Route::post('/conciliacao/maquininha', [ConciliacaoConfigController::class, 'salvarMaquininha'])
+            ->name('conciliacao.maquininha');
         Route::post('/conciliacao/{lineId}/match', [ConciliacaoController::class, 'match'])
             ->whereNumber('lineId')
             ->name('conciliacao.match');
