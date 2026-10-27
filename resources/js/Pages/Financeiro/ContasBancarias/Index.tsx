@@ -12,6 +12,7 @@ import { Settings, Plus, AlertTriangle, CheckCircle2, MinusCircle, MoreVertical 
 import { toast } from 'sonner';
 import { ConfigurarBoletoSheet } from './components/ConfigurarBoletoSheet';
 import { ContaSheet, type ContaCadastro, type TipoConta } from './components/ContaSheet';
+import { TiposContaSheet } from './components/TiposContaSheet';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { PageHeader } from '@/Components/PageHeader';
 
@@ -75,6 +76,7 @@ function Index({ accounts, bancos_suportados, situacao, tipos_conta }: Props) {
   const [boleto, setBoleto] = useState<Account | null>(null);
   // undefined = fechado · null = nova conta · conta = editar.
   const [cadastro, setCadastro] = useState<Account | null | undefined>(undefined);
+  const [tipos, setTipos] = useState(false);
 
   const trocarSituacao = (s: 'ativa' | 'encerrada') =>
     router.get('/financeiro/contas-bancarias', s === 'ativa' ? {} : { situacao: s }, { preserveScroll: true, preserveState: true });
@@ -107,6 +109,7 @@ function Index({ accounts, bancos_suportados, situacao, tipos_conta }: Props) {
               active="contas-bancarias"
               hidePrimary
               extraOverflowItems={[
+                { key: 'tipos-conta', label: 'Tipos de conta', icon: <Settings size={13} />, onClick: () => setTipos(true), title: 'Tipos e subtipos de conta' },
                 { key: 'gateways', label: 'Gateways', icon: <Settings size={13} />, onClick: () => { window.location.href = '/settings/payment-gateways'; }, title: 'Credenciais API gateways de pagamento' },
               ]}
             />
@@ -212,6 +215,7 @@ function Index({ accounts, bancos_suportados, situacao, tipos_conta }: Props) {
       {boleto && (
         <ConfigurarBoletoSheet account={boleto} bancosSuportados={bancos_suportados} onClose={() => setBoleto(null)} />
       )}
+      {tipos && <TiposContaSheet tiposConta={tipos_conta} onClose={() => setTipos(false)} />}
       {cadastro !== undefined && (
         <ContaSheet conta={cadastro} tiposConta={tipos_conta} onClose={() => setCadastro(undefined)} />
       )}

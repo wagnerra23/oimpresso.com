@@ -1115,7 +1115,8 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
         Route::get('/cash-flow', [AccountController::class, 'cashFlow']);
     });
 
-    Route::resource('account-types', AccountTypeController::class);
+    // Tipos de conta: tela no Financeiro (painel "Tipos de conta"), decisão [W] 2026-10-27; os modais Blade saíram.
+    Route::resource('account-types', AccountTypeController::class)->only(['store', 'update', 'destroy']);
 
     //Restaurant module
     Route::prefix('modules')->group(function () {

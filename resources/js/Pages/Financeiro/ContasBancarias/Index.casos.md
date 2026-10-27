@@ -66,6 +66,19 @@ empresa responde 404.
 ## UC-CTB-11 — Sem permissão, não cria
 Status: 🧪 · Dado usuário sem `financeiro.contas_bancarias.manage` · Quando tenta criar · Então 403 e nada gravado.
 
+## UC-CTB-14 — Tipos de conta na empresa da sessão
+Status: 🧪 (`tests/Feature/Configuracoes/TiposContaContratoTest.php`) · Quando cria tipo ou subtipo no painel "Tipos de
+conta" · Então ele nasce na empresa da sessão; um tipo pai de outra empresa é recusado e nada é gravado.
+
+## UC-CTB-15 — Tipo de outra empresa é intocável
+Status: 🧪 · Quando tenta editar (404) ou remover um tipo de outra empresa · Então ele continua igual.
+
+## UC-CTB-16 — Remover tipo solta os subtipos
+Status: 🧪 · Quando remove um tipo · Então os subtipos dele ficam sem pai; um tipo não pode ser pai de si mesmo.
+
+## UC-CTB-17 — Modais Blade de tipo saíram
+Status: 🧪 · `/account-types/create` e `/{id}/edit` não abrem mais tela; o cadastro é o painel desta tela.
+
 ## Backlog de casos (sem id)
 - **[BACKLOG] Sem side-effect ao abrir** — não testa conectividade de gateway, não emite boleto, não chama driver Inter/Asaas/C6.
 - **[BACKLOG] Pill "Conta indefinida" (US-FIN-038 PR2/3)** — herdar da Unificada quando a baixa não tem conta vinculada.
