@@ -148,6 +148,48 @@ return [
     'queue' => env('WHATSAPP_QUEUE', 'whatsapp'),
 
     /*
+     * US-WA-324 — bot de atendimento com menu (opção → fila, pergunta de nome, depois humano).
+     * Desligado por padrão: ligar em produção é decisão [W]. O menu também precisa estar ativo no canal.
+     */
+    'bot_menu' => [
+        'enabled' => (bool) env('WHATSAPP_BOT_MENU_ENABLED', false),
+    ],
+
+    /*
+     * US-WA-322 (ADR 0268 fase 2) — disparo real de campanha, com salvaguardas anti-ban.
+     * Desligado por padrão: ligar em produção é decisão [W].
+     */
+    'broadcast' => [
+        'disparo_enabled' => (bool) env('WHATSAPP_BROADCAST_DISPARO_ENABLED', false),
+        'intervalo_min_s' => (int) env('WHATSAPP_BROADCAST_INTERVALO_MIN_S', 20),
+        'intervalo_max_s' => (int) env('WHATSAPP_BROADCAST_INTERVALO_MAX_S', 45),
+        'janela_inicio' => 8,   // hora local da empresa
+        'janela_fim' => 20,
+        'limite_dia' => (int) env('WHATSAPP_BROADCAST_LIMITE_DIA', 200),
+        'limite_dia_aquecimento' => (int) env('WHATSAPP_BROADCAST_LIMITE_DIA_AQUECIMENTO', 40),
+        'dias_aquecimento' => 7,
+    ],
+
+    /*
+     * US-WA-320 — aviso de venda/pagamento do núcleo (NotificationUtil, `auto_send_wa_notif`) enviado
+     * pela API em vez de link wa.me. Desligado por padrão: ligar em produção é decisão [W].
+     */
+    'aviso_automatico' => [
+        'enabled' => (bool) env('WHATSAPP_AVISO_AUTOMATICO_ENABLED', false),
+        // US-WA-321 — NF-e autorizada manda a DANFE em PDF ao cliente. Desligado por padrão.
+        'danfe_enabled' => (bool) env('WHATSAPP_AVISO_DANFE_ENABLED', false),
+    ],
+
+    /*
+     * US-WA-326 — régua de relacionamento (aniversário e recompra), só para quem deu opt-in de
+     * marketing. Desligada por padrão: ligar em produção é decisão [W]. Cada empresa ainda liga a
+     * sua régua em whatsapp_reguas_relacionamento.
+     */
+    'regua_relacionamento' => [
+        'enabled' => (bool) env('WHATSAPP_REGUA_RELACIONAMENTO_ENABLED', false),
+    ],
+
+    /*
      * Caixa Unificada v4 (RUNBOOK-inbox-caixa-unificada-v4.md §4).
      *
      * Filas de atendimento APENAS VISUAIS (sem persistência DB nesta passada).

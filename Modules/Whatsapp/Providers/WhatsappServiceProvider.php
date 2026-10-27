@@ -106,6 +106,8 @@ class WhatsappServiceProvider extends ServiceProvider
                 // US-INFRA-002 — gera o link assinado do canal público de feedback
                 // (o órgão sensor da ADR 0334; sem ele o [W] não tem o que mandar ao cliente).
                 FeedbackLinkCommand::class,
+                // US-WA-326 — régua de relacionamento (aniversário e recompra), 1×/dia.
+                \Modules\Whatsapp\Console\Commands\ReguaRelacionamentoCommand::class,
                 // Guardião 6 camadas anti-mídia-perdida
                 ScanMediaDriftCommand::class,           // Camada 5 — scan drift daily
                 BackfillMediaDownloadCommand::class,    // Bonus — backfill one-shot
@@ -193,6 +195,12 @@ class WhatsappServiceProvider extends ServiceProvider
             Event::listen(InstalacaoAgendada::class, [NotifyInstalacaoCvCustomer::class, 'handle']);
         }
 
+        // NF-e autorizada → DANFE por WhatsApp (US-WA-321; flag whatsapp.aviso_automatico.danfe_enabled).
+        // class_exists: o NfeBrasil pode não estar instalado nesta base.
+        if (class_exists(\Modules\NfeBrasil\Events\NFeAutorizada::class)) {
+            Event::listen(\Modules\NfeBrasil\Events\NFeAutorizada::class, [\Modules\Whatsapp\Listeners\EnviarDanfePorWhatsapp::class, 'handle']);
+        }
+
         // Centrifugo real-time UI (ADR 0058) — publica em whatsapp:business:{id} channel
         Event::listen(WhatsappMessageReceived::class, PublishMessageReceivedToCentrifugo::class);
         Event::listen(WhatsappMessageSent::class, PublishMessageSentToCentrifugo::class);
@@ -200,6 +208,8 @@ class WhatsappServiceProvider extends ServiceProvider
         // Centrifugo real-time UI omnichannel (US-WA-059 + ADR 0135) — channel
         // `omnichannel:business:{id}` separado do canal legacy acima.
         Event::listen(OmnichannelMessageReceived::class, PublishOmnichannelToCentrifugo::class);
+        // US-WA-324 — bot de menu responde antes do humano (flag whatsapp.bot_menu.enabled, menu por canal).
+        Event::listen(OmnichannelMessageReceived::class, [\Modules\Whatsapp\Listeners\ResponderMenuDeAtendimento::class, 'handle']);
         Event::listen(OmnichannelMessageSent::class, PublishOmnichannelToCentrifugo::class);
 
         // US-WA-VOZ-001 — Customer Memory (perfil persistente do cliente final).

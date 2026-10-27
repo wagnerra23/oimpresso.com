@@ -209,6 +209,90 @@ last_run: "2026-10-21"
 
 ---
 
+## Cobrança da venda leva só o saldo em aberto (US-SELL-055)
+
+> **Âncora:** aceite da **US-SELL-055** (`memory/requisitos/Sells/SPEC.md`): Pix gerado pela venda e
+> conciliado sozinho pelo retorno do banco. O retorno (`LancarPagamentoDaCobrancaNaVenda`) só lança o
+> pagamento que cabe no saldo; a cobrança então tem de nascer com o saldo, e não pode haver duas
+> valendo ao mesmo tempo. Endpoint: `POST /sells/{id}/emitir-cobranca`, chamado pelo drawer de cobrança
+> do detalhe da venda. Prova: `tests/Feature/Sells/SellsEmitirCobrancaSaldoContratoTest.php`.
+
+## UC-VCOB-01 · A cobrança leva o saldo em aberto, não o total da venda · `must`
+- **Aceite:** Dado uma venda de 500,00 com 200,00 já pagos · Quando emito a cobrança Pix · Então o gateway recebe 30000 centavos (300,00), com origem na venda.
+- **Teste:** `tests/Feature/Sells/SellsEmitirCobrancaSaldoContratoTest.php` — `UC-VCOB-01`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VCOB-02 · Venda quitada não gera cobrança · `must`
+- **Aceite:** Dado uma venda de 500,00 com 500,00 pagos · Quando emito a cobrança · Então `422` e o gateway não é chamado.
+- **Teste:** `tests/Feature/Sells/SellsEmitirCobrancaSaldoContratoTest.php` — `UC-VCOB-02`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VCOB-03 · Não há duas cobranças em aberto para a mesma venda · `must`
+- **Aceite:** Dado uma cobrança da venda emitida e ainda no prazo · Quando emito outra · Então `409` com o id da que existe, e o gateway não é chamado.
+- **Teste:** `tests/Feature/Sells/SellsEmitirCobrancaSaldoContratoTest.php` — `UC-VCOB-03`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VCOB-04 · Cobrança paga só libera outra depois de entrar como pagamento · `must`
+- **Aceite:** Dado uma cobrança paga de 200,00 ainda sem pagamento lançado na venda · Quando emito outra · Então `409`. Depois que o pagamento `PG-COB-<id>` entra na venda, emitir de novo cobra 30000 centavos.
+- **Teste:** `tests/Feature/Sells/SellsEmitirCobrancaSaldoContratoTest.php` — `UC-VCOB-04`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VCOB-05 · O drawer de cobrança mostra o Pix para o cliente pagar · `must`
+- **Aceite:** Dado uma cobrança Pix da venda emitida e no prazo · Quando abro o detalhe da venda · Então `cobranca.cob.pix_emv` traz o copia-e-cola, e o drawer mostra o QR, o texto e o botão Copiar. Depois que a cobrança é paga, `pix_emv` volta nulo e o código some. Logo após emitir, o drawer fica aberto mostrando o código.
+- **Teste:** `tests/Feature/Sells/SellsEmitirCobrancaSaldoContratoTest.php` — `UC-VCOB-05`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## Cancelar a venda (US-SELL-077 · decisões [W] 2026-10-26)
+
+> **Âncora:** US-SELL-077 (`memory/requisitos/Sells/SPEC.md`). A ação FSM `cancelar_venda` (botão do drawer e do app)
+> roda `CancelarVendaCascade`, que agora começa por `CancelamentoDaVenda`. Prova:
+> `tests/Feature/Sells/CancelamentoDaVendaContratoTest.php`.
+
+## UC-VCAN-01 · Cancelar devolve o estoque, libera o lote e marca a venda como cancelada `[E0]` `[must]`
+- **Aceite:** Dado uma venda final de 3 un (saldo 7 depois dela, lote de compra com 3 vendidas) · Quando é cancelada · Então o saldo volta a 10, o lote fica com 0 vendidas, e a venda fica `cancelled` com `cancelled_at`.
+- **Teste:** `tests/Feature/Sells/CancelamentoDaVendaContratoTest.php` — `UC-VCAN-01`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VCAN-02 · O que a devolução já repôs não volta duas vezes `[E0]` `[must]`
+- **Aceite:** Dado a mesma venda com 1 un já devolvida (saldo 8) · Quando é cancelada · Então o saldo vai a 10 (volta 2, não 3).
+- **Teste:** `tests/Feature/Sells/CancelamentoDaVendaContratoTest.php` — `UC-VCAN-02`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VCAN-03 · Venda com dinheiro recebido não cancela e diz o que falta `[V0]` `[must]`
+- **Aceite:** Dado a venda com R$ 60,00 recebidos · Quando peço o cancelamento (direto ou pela ação FSM) · Então é recusado com "A venda tem R$ 60,00 recebidos (1 pagamento(s)). Devolva ou remova os pagamentos na própria venda e cancele de novo.", e nada muda: saldo 7, venda `final`.
+- **Teste:** `tests/Feature/Sells/CancelamentoDaVendaContratoTest.php` — `UC-VCAN-03`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VCAN-04 · Cancelar duas vezes não devolve o estoque duas vezes `[E0]` `[must]`
+- **Aceite:** Dado uma venda já cancelada · Quando o cancelamento roda de novo · Então nada muda (saldo segue 10).
+- **Teste:** `tests/Feature/Sells/CancelamentoDaVendaContratoTest.php` — `UC-VCAN-04`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VCAN-05 · Orçamento com reserva consumida pela FSM devolve a reserva `[E0]` `[must]`
+- **Aceite:** Dado um orçamento (rascunho) com reserva consumida de 2 un (saldo 8) · Quando é cancelado · Então o saldo volta a 10 e a reserva fica `released`.
+- **Teste:** `tests/Feature/Sells/CancelamentoDaVendaContratoTest.php` — `UC-VCAN-05`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VCAN-06 · A conferência de estoque fecha depois de cancelar `[E0]` `[must]`
+- **Aceite:** A diferença entre o saldo gravado e o saldo recalculado pelos movimentos (`getVariationStockMisMatch`) é a mesma antes e depois de cancelar.
+- **Teste:** `tests/Feature/Sells/CancelamentoDaVendaContratoTest.php` — `UC-VCAN-06`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VCAN-07 · Outra empresa não cancela a venda `[T0]` `[must]`
+- **Aceite:** Dado uma venda de outro business · Quando o cancelamento é pedido · Então "Venda não encontrada", saldo e status intactos.
+- **Teste:** `tests/Feature/Sells/CancelamentoDaVendaContratoTest.php` — `UC-VCAN-07`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VCAN-08 · Venda sem pagamento: o título fica cancelado, não apagado `[V0]` `[must]`
+- **Aceite:** Dado uma venda sem pagamento com título no Financeiro · Quando é cancelada · Então o título continua existindo com status `cancelado`.
+- **Teste:** `tests/Feature/Sells/CancelamentoDaVendaContratoTest.php` — `UC-VCAN-08`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
+## UC-VCAN-09 · A venda cancelada sai do extrato e do histórico do cliente `[V0]` `[must]`
+- **Aceite:** Dado um cliente com uma venda final de 100,00, uma cancelada de 60,00 e um rascunho de 30,00 · Quando o extrato soma as vendas · Então soma 100,00. O mesmo filtro (fora `draft` e `cancelled`) vale para a lista de clientes, o histórico de compras do CRM e o LTV da Caixa Unificada.
+- **Teste:** `tests/Feature/Sells/CancelamentoDaVendaContratoTest.php` — `UC-VCAN-09`.
+- **Status: 🧪** — roda na lane `sells-pest`.
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão (e o `casos-gate` é required com

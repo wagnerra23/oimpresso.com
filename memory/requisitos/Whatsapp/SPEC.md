@@ -237,7 +237,7 @@ Reabrir só se Evolution mudar substancialmente esses 3 pontos (improvável; nã
 
 ### US-WA-004 · Listener Repair: status `ready` dispara WhatsApp
 
-**Implementado em:** `Modules/Whatsapp/Listeners/NotifyRepairCustomer.php` · `Modules/Whatsapp/Tests/Feature/NotifyRepairCustomerTest.php` · verificado@dd3ed7c (2026-07-01)
+**Implementado em:** `Modules/Whatsapp/Listeners/NotifyRepairCustomer.php` · `Modules/Repair/Tests/Feature/ClienteAcompanhaStatusContratoTest.php` · verificado@dd3ed7c (2026-07-01); envio pelo notificador desde 2026-10-26 (US-WA-325) — o `NotifyRepairCustomerTest` original saiu
 
 > owner: wagner · sprint: 1 · priority: p2 · status: done
 
@@ -2009,3 +2009,186 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 3. Reconciliar com os proposals existentes (`whatsapp-fila-inbound-worker-ct100.md` / `whatsapp-ingestao-perda-zero.md`) — esta US é a execução, não duplicar escopo.
 
 Refs: ROADMAP-SDD (sweep do mês)
+
+### US-WA-322 · Campanha por WhatsApp — disparo real com salvaguardas anti-ban (ADR 0268 fase 2)
+
+**Implementado em:** `Modules/Whatsapp/Jobs/DispararBroadcastJob.php` · `Modules/Whatsapp/Jobs/EnviarItemBroadcastJob.php` · `Modules/Whatsapp/Services/Broadcast/PlanoDeDisparo.php` · `Modules/Whatsapp/Database/Migrations/2026_10_26_000001_add_contadores_to_whatsapp_broadcasts.php` · `Modules/Whatsapp/Tests/Feature/BroadcastDisparoContratoTest.php`
+
+**Testado em:** `Modules/Whatsapp/Tests/Feature/BroadcastDisparoContratoTest.php`
+
+> owner: — · priority: p1 · estimate: 8h · type: story
+> blocked_by: —
+
+**Origem:** lacuna P1 do levantamento de 2026-10-25 (campanha em massa só tinha pré-checagem e rascunho). Fase 2 da US-WA-306 / ADR 0268, destravada por [W] em 2026-10-26.
+
+**Critérios de aceite:**
+1. Flag `whatsapp.broadcast.disparo_enabled` (env `WHATSAPP_BROADCAST_DISPARO_ENABLED`) desligada: rascunho fica rascunho.
+2. Disparar tira a campanha de `draft` para `dispatching` uma vez só (troca condicional) e agenda um envio por conversa; só texto livre (template HSM fica para canal oficial).
+3. Anti-ban: intervalo aleatório entre envios (20–45s), só das 8h às 20h no fuso da empresa, até 200 por dia — 40 enquanto o canal tem menos de 7 dias (aquecimento); o excedente passa ao dia seguinte.
+4. No momento do envio, rechecagem: campanha ainda em `dispatching` (cancelada não envia), conversa da empresa e do canal, não bloqueada, contato com `whatsapp_opt_in_at` e sem recusa (`canReceiveWhatsappNotification`). Falhou: conta como `pulado`.
+5. Envio pelo mesmo caminho da caixa de entrada (`EnvioDeTextoNoCanal`), mensagem `sender_kind=system`; sem retry automático (evita duplicata).
+6. Contadores `total/enviados/falhas/pulados`; campanha vira `done` quando a soma chega ao total.
+
+Ligar em produção é decisão [W]. Botão de disparar/cancelar na tela: US seguinte.
+
+### US-WA-323 · Campanha por WhatsApp — "Salvar e disparar" e cancelar na Caixa Unificada
+
+**Implementado em:** `Modules/Whatsapp/Http/Controllers/Admin/BroadcastController.php` · `Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/_components/BroadcastSheet.tsx` · `Modules/Whatsapp/Tests/Feature/BroadcastDispararEndpointContratoTest.php`
+
+**Testado em:** `Modules/Whatsapp/Tests/Feature/BroadcastDispararEndpointContratoTest.php`
+
+> owner: — · priority: p1 · estimate: 4h · type: story
+> blocked_by: US-WA-322
+
+**Critérios de aceite:**
+1. Botão "Salvar e disparar" no painel de campanha: ligado só com `WHATSAPP_BROADCAST_DISPARO_ENABLED` e texto livre; desligado, diz por quê.
+2. `store` com `disparar=true`: flag desligada ou template → recusa sem gravar; canal com campanha em `dispatching` → recusa (uma por vez por canal, para o limite anti-ban valer).
+3. Ligada: grava a campanha e agenda `DispararBroadcastJob` (US-WA-322) da própria empresa.
+4. `POST /atendimento/broadcast/{id}/cancelar` (`can:whatsapp.send` + acesso ao canal): `dispatching → cancelled`; os envios agendados não saem. Campanha de outra empresa: 404.
+5. Contrato da tela: `UC-CXU-19` em `CaixaUnificada/Index.casos.md`.
+
+### US-WA-324 · Bot de atendimento com menu — opção leva à fila, coleta o nome, depois humano
+
+**Implementado em:** `Modules/Whatsapp/Services/BotMenu/MenuDeAtendimento.php` · `Modules/Whatsapp/Listeners/ResponderMenuDeAtendimento.php` · `Modules/Whatsapp/Database/Migrations/2026_10_26_000002_create_whatsapp_bot_menu_tables.php`
+
+**Testado em:** `Modules/Whatsapp/Tests/Feature/BotMenuAtendimentoContratoTest.php`
+
+> owner: — · priority: p1 · estimate: 8h · type: story
+> blocked_by: —
+> parent_plan: plano-atendimento-automatico
+
+**Origem:** lacuna P1 do levantamento de 2026-10-25 (bot com menu e coleta de dados). Etapa E4 do [PLANO-ATENDIMENTO-AUTOMATICO](PLANO-ATENDIMENTO-AUTOMATICO.md), adiada em 2026-06-20 e destravada por [W] em 2026-10-26 — como menu de regras, sem IA respondendo o cliente.
+
+**Critérios de aceite:**
+1. Flag `whatsapp.bot_menu.enabled` (env `WHATSAPP_BOT_MENU_ENABLED`) desligada, ou canal sem menu ativo: o bot não responde.
+2. Primeira mensagem do cliente (ou depois de 12h parada): saudação + opções numeradas.
+3. Opção válida: põe a conversa na fila da opção (`queue_override`, só se a fila existe na empresa) e responde; se o menu pede e a conversa não tem cliente cadastrado, pergunta o nome e grava em `contact_name`.
+4. Resposta inválida repete o menu uma vez; na segunda, avisa que vai passar a um atendente e para.
+5. Nunca responde a conversa com atendente, bloqueada, mensagem da importação de histórico ou com mais de 10 minutos, nem mensagem que não é texto. Menu de outra empresa não vale (Tier 0).
+6. Falha no envio: a conversa segue na fila humana (princípio 8).
+
+Ligar em produção é decisão [W]. Tela para configurar o menu do canal: US seguinte.
+
+### US-WA-327 · Tela de configurar o menu do bot por canal
+
+**Implementado em:** `Modules/Whatsapp/Http/Controllers/Admin/BotMenuController.php` · `Modules/Whatsapp/Resources/js/Pages/Atendimento/Channels/_components/BotMenuTab.tsx` · `Modules/Whatsapp/Resources/js/Pages/Atendimento/Channels/Show.tsx`
+
+**Testado em:** `Modules/Whatsapp/Tests/Feature/BotMenuConfigContratoTest.php`
+
+> owner: — · priority: p1 · estimate: 4h · type: story
+> blocked_by: US-WA-324
+
+**Critérios de aceite:**
+1. Aba "Menu do bot" em `/atendimento/canais/{id}` (permissão `whatsapp.settings.manage`): liga/desliga, saudação, até 9 opções (número, rótulo, fila da empresa, resposta) e "perguntar o nome".
+2. `PUT /atendimento/canais/{id}/menu-bot` grava um menu por canal (salvar de novo atualiza); canal de outra empresa → 404; fila de outra empresa e número repetido → recusados.
+3. O que a tela grava é o que o `MenuDeAtendimento` (US-WA-324) lê.
+4. Com a flag do sistema desligada, a aba avisa que o menu só responde depois de ligado.
+### US-WA-319 · Notificador reutilizável de aviso automático ao cliente por WhatsApp (texto + anexo)
+
+**Implementado em:** `Modules/Whatsapp/Services/Notify/NotificadorClienteWhatsapp.php` · `Modules/Whatsapp/Services/Notify/ResultadoNotificacao.php` · `Modules/Whatsapp/Jobs/DespacharMensagemDoSistemaJob.php` · `Modules/Whatsapp/Tests/Feature/NotificadorClienteWhatsappContratoTest.php`
+
+**Testado em:** `Modules/Whatsapp/Tests/Feature/NotificadorClienteWhatsappContratoTest.php`
+
+> owner: — · priority: p0 · estimate: 4h · type: story
+> blocked_by: —
+
+**Origem:** lacuna P0 do levantamento de concorrência de 2026-10-25 — `NotificationUtil::autoSendNotification` com `auto_send_wa_notif` só gera link `wa.me` para alguém clicar; cada módulo que avisa pela API (`NotifyRepairCustomer`, `NotifyInstalacaoCvCustomer`) repete as próprias travas. Consumidores previstos: aviso de venda/pagamento do núcleo (próxima US) e régua de cobrança do Financeiro.
+
+**Critérios de aceite:**
+1. Enfileira a mensagem pela API, sem clique humano, na conversa do cliente no canal (reaproveita por cliente ou número; senão cria), `sender_kind=system`; o envio ao daemon vai para a fila (`DespacharMensagemDoSistemaJob`), uma vez só.
+2. Canal = schema omnichannel (`channels`), o vivo em produção (medido 2026-10-26: 0 linhas em `whatsapp_business_phones`, 2 canais whatsmeow). `billing` prefere `handles_billing`, com fallback em `handles_outbound_default`; `outbound_default` usa o de saída. Canal caído (`disconnected`/`banned`), inativo ou de outra empresa não serve.
+3. Contato só da mesma empresa (Tier 0, ADR 0093); celular sem DDI ganha 55.
+4. LGPD: `Contact::canReceiveWhatsappNotification()` falso bloqueia; null permite. Sem celular não envia.
+5. Os canais vivos só enviam texto: anexos (URL absoluta, `document`|`image`) viram links no fim da mensagem.
+6. Nunca lança por falta de pré-condição: devolve o motivo (`enviado`, `sem_numero_configurado`, `contato_nao_encontrado`, `recusou_whatsapp`, `sem_celular`). Anexo ou evento inválido é erro de quem chamou (exceção).
+
+### US-WA-320 · Aviso de venda do núcleo enviado pela API do WhatsApp em vez de link (flag)
+
+**Implementado em:** `app/Utils/NotificationUtil.php` · `Modules/Whatsapp/Config/config.php` · `Modules/Whatsapp/Tests/Feature/AvisoVendaWhatsappApiContratoTest.php`
+
+**Testado em:** `Modules/Whatsapp/Tests/Feature/AvisoVendaWhatsappApiContratoTest.php`
+
+> owner: — · priority: p0 · estimate: 3h · type: story
+> blocked_by: US-WA-319
+
+**Origem:** lacuna P0 do levantamento de 2026-10-25 — `NotificationUtil.php` com `auto_send_wa_notif` só gerava link `wa.me` para o atendente clicar. Chamadores medidos em 2026-10-26: todos com `new_sale` (`SellPosController` ×4, `RecurringInvoice`, `RegistrarVendaRapida`, API `Connector`).
+
+**Critérios de aceite:**
+1. Flag `whatsapp.aviso_automatico.enabled` (env `WHATSAPP_AVISO_AUTOMATICO_ENABLED`) desligada: comportamento de sempre, link `wa.me`, nada pela API.
+2. Ligada: o texto do modelo vai pela API via `NotificadorClienteWhatsapp` (US-WA-319) e o link não é devolvido; registra `whatsapp_notification_sent` na atividade.
+3. Ligada e o cliente recusou WhatsApp (LGPD): nem API nem link.
+4. Ligada e sem número/contato/celular, ou erro inesperado: volta ao link manual.
+5. `payment_received`/`payment_reminder` usam o número de cobrança; o resto, o de saída padrão.
+
+Ligar em produção é decisão [W].
+
+### US-WA-321 · NF-e autorizada manda a DANFE ao cliente por WhatsApp (anexo por link assinado)
+
+**Implementado em:** `Modules/Whatsapp/Listeners/EnviarDanfePorWhatsapp.php` · `Modules/NfeBrasil/Http/Controllers/DanfePublicaController.php` · `Modules/Whatsapp/Tests/Feature/DanfePorWhatsappContratoTest.php`
+
+**Testado em:** `Modules/Whatsapp/Tests/Feature/DanfePorWhatsappContratoTest.php`
+
+> owner: — · priority: p0 · estimate: 3h · type: story
+> blocked_by: US-WA-319
+
+**Origem:** lacuna P0 do levantamento de 2026-10-25 (aviso por WhatsApp com anexo de NF-e). Par do `EnviarDanfePorEmail` (US-NFE-044) pelo outro canal.
+
+**Critérios de aceite:**
+1. Flag `whatsapp.aviso_automatico.danfe_enabled` (env `WHATSAPP_AVISO_DANFE_ENABLED`) desligada: nada sai.
+2. Ligada: ao `NFeAutorizada`, o cliente da venda (`transactions.contact_id`, mesma empresa) recebe texto + link assinado da DANFE pelo `NotificadorClienteWhatsapp` (US-WA-319, com LGPD e canal; os canais vivos só enviam texto).
+3. Emissão sem venda ou não autorizada: não avisa.
+4. Rota `nfe-brasil.danfe-publica` (GET `/nfe-brasil/danfe/{business}/{emissao}`): só com assinatura válida (7 dias no link gerado); sem assinatura ou adulterada → 403; emissão de outra empresa ou não autorizada → 404.
+
+Ligar em produção é decisão [W].
+
+### US-WA-325 · Avisos de OS pronta e de instalação saem pelo canal vivo (notificador)
+
+**Implementado em:** `Modules/Whatsapp/Listeners/NotifyRepairCustomer.php` · `Modules/Whatsapp/Listeners/NotifyInstalacaoCvCustomer.php` · `Modules/Whatsapp/Services/Notify/NotificadorClienteWhatsapp.php`
+
+**Testado em:** `Modules/Repair/Tests/Feature/ClienteAcompanhaStatusContratoTest.php` · `Modules/ComunicacaoVisual/Tests/Feature/InstalacaoAvisoClienteContratoTest.php`
+
+> owner: — · priority: p0 · estimate: 3h · type: story
+> blocked_by: US-WA-319
+
+**Origem:** medido em produção em 2026-10-26 — `whatsapp_business_phones` tem 0 linhas; os canais vivos são `channels` whatsmeow. Os avisos de OS pronta/aguardando peça (US-WA-004) e de instalação agendada (US-COMVIS-007) resolviam número por aquela tabela e **nunca saíam**. Item "OS pronta" do P0 do levantamento de 2026-10-25.
+
+**Critérios de aceite:**
+1. Status de OS com marca `ready`/`waiting_parts` → texto "Sua OS nº N está pronta para retirada" / "está aguardando peça" pelo `NotificadorClienteWhatsapp`, evento `repair_status` (canal com `handles_repair_status`, senão o de saída padrão).
+2. Instalação agendada → mesmo texto de antes (OS, dia e hora; sem instalador nem veículo) pelo notificador, evento `outbound_default`.
+3. Travas do notificador valem nos dois: cliente da mesma empresa, opt-out LGPD, celular, canal no ar.
+4. O teste `NotifyRepairCustomerTest` (schema sintético, só rodava em sqlite e não estava em lane nenhuma) sai; o contrato fica com `ClienteAcompanhaStatusContratoTest` e `InstalacaoAvisoClienteContratoTest`, que rodam no MySQL da lane `verticais-pest`.
+
+### US-WA-326 · Régua de relacionamento por WhatsApp — aniversário e recompra
+
+**Implementado em:** `Modules/Whatsapp/Services/Regua/ReguaDeRelacionamento.php` · `Modules/Whatsapp/Console/Commands/ReguaRelacionamentoCommand.php` · `Modules/Whatsapp/Database/Migrations/2026_10_26_000003_create_whatsapp_regua_relacionamento_tables.php`
+
+**Testado em:** `Modules/Whatsapp/Tests/Feature/ReguaRelacionamentoContratoTest.php`
+
+> owner: — · priority: p2 · estimate: 6h · type: story
+> blocked_by: US-WA-319
+
+**Origem:** lacuna P2 do levantamento de 2026-10-25 (régua de aniversário e recompra, ausente fora do CRM antigo); destravada por [W] em 2026-10-26.
+
+**Critérios de aceite:**
+1. Flag `whatsapp.regua_relacionamento.enabled` (env `WHATSAPP_REGUA_RELACIONAMENTO_ENABLED`) desligada, ou régua da empresa inativa: nada sai.
+2. Aniversário: cliente com `aniversario_mmdd` do dia (sem ele, mês/dia de `dob`); uma vez por ano.
+3. Recompra: última venda final do cliente há exatamente `dias_sem_compra` dias; uma vez por última compra; quem comprou depois sai da régua.
+4. Marketing: só cliente com opt-in de marketing (`whatsapp_opt_in_at`, ADR 0268); o notificador ainda confere a recusa de WhatsApp, o celular e o canal.
+5. Anti-ban: envios espaçados 20–45s pela fila (agendados, não em rajada) e no máximo 150 por empresa e régua por dia.
+6. Rodar de novo no mesmo dia não repete (`whatsapp_regua_envios`, chave única por empresa, tipo, cliente e ocasião). Cron diário 10h BRT em produção.
+
+Ligar em produção é decisão [W]. Tela para a empresa configurar texto e liga/desliga: US seguinte.
+
+### US-WA-328 · Tela de configurar a régua de relacionamento da empresa
+
+**Implementado em:** `Modules/Whatsapp/Http/Controllers/Admin/ReguaRelacionamentoController.php` · `Modules/Whatsapp/Resources/js/Pages/Atendimento/_components/ReguaRelacionamentoCard.tsx` · `Modules/Whatsapp/Resources/js/Pages/Atendimento/JanaTemplates.tsx`
+
+**Testado em:** `Modules/Whatsapp/Tests/Feature/ReguaRelacionamentoConfigContratoTest.php`
+
+> owner: — · priority: p2 · estimate: 3h · type: story
+> blocked_by: US-WA-326
+
+**Critérios de aceite:**
+1. Card "Régua de relacionamento" em `/atendimento/canais/jana-templates` (permissão `whatsapp.settings.manage`): aniversário e recompra, cada um com liga/desliga e mensagem (`{nome}` = primeiro nome); recompra com dias depois da última compra (7–365).
+2. `PUT /atendimento/canais/regua-relacionamento` grava uma linha por empresa e tipo (salvar de novo atualiza), só da empresa da sessão.
+3. Com a flag do sistema desligada, o card avisa que as mensagens só saem depois de ligada.

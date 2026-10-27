@@ -48,6 +48,11 @@ class SettingsController extends Controller
 
         return Inertia::render('Atendimento/JanaTemplates', [
             'config' => $configForUi,
+            // US-WA-328 — régua de relacionamento (aniversário e recompra) e se a flag do sistema está ligada.
+            'reguas' => Inertia::defer(fn () => [
+                'tipos' => ReguaRelacionamentoController::daEmpresa($businessId),
+                'ligado_no_sistema' => (bool) config('whatsapp.regua_relacionamento.enabled', false),
+            ]),
         ]);
     }
 

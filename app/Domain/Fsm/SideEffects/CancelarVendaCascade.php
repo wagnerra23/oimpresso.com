@@ -48,6 +48,13 @@ class CancelarVendaCascade implements SideEffectInterface
             'motivo' => $motivo,
         ]);
 
+        // 0) Venda (não OS do Repair): recusa se houver dinheiro recebido; senão devolve o estoque,
+        //    vira status 'cancelled' e cancela o título ([W] 2026-10-26). Roda ANTES de tudo e
+        //    dentro da transação do ExecuteStageActionService: a recusa não deixa nada pela metade.
+        if ($subject instanceof \App\Transaction) {
+            app(\App\Services\Sells\CancelamentoDaVenda::class)->aplicar($businessId, $transactionId, $motivo);
+        }
+
         // 1) Cancelar NFes autorizadas
         $this->cancelarNfes($businessId, $transactionId, $motivo);
 

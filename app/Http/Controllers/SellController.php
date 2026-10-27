@@ -1109,6 +1109,8 @@ class SellController extends Controller
                 'blAttributes'         => $bl_attributes,
                 'defaultLocation'      => $default_location,
                 'walkInCustomer'       => $walk_in_customer,
+                // US-SELL-079 — resgate de pontos de fidelidade (null = escondido).
+                'pontosFidelidade'     => \App\Services\Sells\ResgatePontosFidelidade::propsDaTela((int) $business_id),
                 'paymentTypes'         => $payment_types,
                 'invoiceSchemes'       => $invoice_schemes,
                 'defaultInvoiceScheme' => $default_invoice_schemes,
@@ -2045,6 +2047,9 @@ class SellController extends Controller
                 'paga_em' => $cob->paga_em?->toIso8601String(),
                 'emitida_em' => $cob->created_at?->toIso8601String(),
                 'erro_msg' => null, // payload_gateway pode ter; backlog
+                // US-SELL-055 — o código para o cliente pagar só enquanto a cobrança vale.
+                'pix_emv' => in_array($kind, ['pending', 'overdue'], true) ? $cob->pix_emv : null,
+                'linha_digitavel' => in_array($kind, ['pending', 'overdue'], true) ? $cob->linha_digitavel : null,
             ],
         ];
     }
@@ -2090,6 +2095,24 @@ class SellController extends Controller
             return response()->json(['error' => 'Venda sem cliente vinculado — emita cobrança avulsa.'], 422);
         }
 
+        // US-SELL-055 — a cobrança leva o SALDO EM ABERTO, não o total da venda. Cobrar o total
+        // de uma venda já paga em parte fazia o cliente pagar a mais, e o retorno do banco
+        // (LancarPagamentoDaCobrancaNaVenda) recusava o valor por não caber no saldo.
+        $valorCentavos = $this->saldoEmAbertoCentavos($sale->id, $businessId);
+        if ($valorCentavos <= 0) {
+            return response()->json(['error' => 'Venda sem saldo em aberto — não há o que cobrar.'], 422);
+        }
+
+        $existente = $this->cobrancaQueImpedeOutra($sale->id, $businessId);
+        if ($existente !== null) {
+            return response()->json([
+                'error' => $existente->status === 'paga'
+                    ? 'Esta venda já tem cobrança paga que ainda não entrou como pagamento. Registre o pagamento na venda antes de cobrar de novo.'
+                    : 'Já existe uma cobrança em aberto para esta venda.',
+                'cobranca_id' => $existente->id,
+            ], 409);
+        }
+
         $contaBancaria = isset($validated['account_id'])
             ? ContaBancaria::query()->where('business_id', $businessId)->find($validated['account_id'])
             : ContaBancaria::padraoParaCobranca($businessId);
@@ -2104,8 +2127,6 @@ class SellController extends Controller
         if (! $coreAccount) {
             return response()->json(['error' => 'Conta bancária core inválida'], 422);
         }
-
-        $valorCentavos = (int) round(((float) $sale->final_total) * 100);
 
         $input = new EmitirCobrancaInput(
             businessId: $businessId,
@@ -2152,6 +2173,47 @@ class SellController extends Controller
             report($e);
             return response()->json(['error' => 'Falha ao emitir. Detalhe no log.'], 500);
         }
+    }
+
+    /**
+     * Saldo em aberto da venda em centavos — total menos o que já foi pago (devolução subtrai).
+     * Conta em DECIMAL no MySQL, como o LancarPagamentoDaCobrancaNaVenda: nenhum float no caminho.
+     */
+    private function saldoEmAbertoCentavos(int $transactionId, int $businessId): int
+    {
+        $linha = DB::selectOne(
+            'SELECT CAST(ROUND((t.final_total - COALESCE((SELECT SUM(IF(tp.is_return = 0, tp.amount, -tp.amount))
+                FROM transaction_payments tp WHERE tp.transaction_id = t.id AND tp.business_id = t.business_id), 0)) * 100) AS SIGNED) AS centavos
+             FROM transactions t WHERE t.id = ? AND t.business_id = ?',
+            [$transactionId, $businessId],
+        );
+
+        return (int) ($linha->centavos ?? 0);
+    }
+
+    /**
+     * Cobrança da venda que impede emitir outra: (a) em aberto e no prazo; (b) paga, mas ainda
+     * sem o pagamento lançado na venda (`transaction_no = PG-COB-<id>`). Com o lançamento
+     * automático desligado, toda cobrança paga cai em (b) — a segunda seria cobrança em dobro.
+     */
+    private function cobrancaQueImpedeOutra(int $transactionId, int $businessId): ?Cobranca
+    {
+        $prefixo = \Modules\PaymentGateway\Listeners\LancarPagamentoDaCobrancaNaVenda::PREFIXO;
+
+        return Cobranca::query()
+            ->where('business_id', $businessId)
+            ->where('origem_type', 'sale')
+            ->where('origem_id', $transactionId)
+            ->where(fn ($q) => $q
+                ->where(fn ($a) => $a->whereIn('status', ['pending', 'emitida'])
+                    ->whereDate('vencimento', '>=', now()->toDateString()))
+                ->orWhere(fn ($p) => $p->where('status', 'paga')
+                    ->whereNotExists(fn ($s) => $s->from('transaction_payments')
+                        ->where('transaction_payments.business_id', $businessId)
+                        ->where('transaction_payments.transaction_id', $transactionId)
+                        ->whereRaw('transaction_payments.transaction_no = CONCAT(?, cobrancas.id)', [$prefixo]))))
+            ->orderByDesc('id')
+            ->first(['id', 'status']);
     }
 
     /**

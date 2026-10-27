@@ -154,6 +154,13 @@ Route::middleware(['web', 'throttle:30,1'])
             ->whereNumber(['link', 'id'])->name('ajuste');
     });
 
+// US-WA-321 — DANFE por link assinado, sem login: anexo do aviso por WhatsApp (o driver busca o PDF
+// pela URL). A empresa e a emissão vêm na URL assinada; trocar qualquer um invalida a assinatura.
+Route::middleware(['web', 'throttle:30,1', 'signed'])
+    ->get('nfe-brasil/danfe/{business}/{emissao}', [\Modules\NfeBrasil\Http\Controllers\DanfePublicaController::class, 'show'])
+    ->whereNumber(['business', 'emissao'])
+    ->name('nfe-brasil.danfe-publica');
+
 // US-NFE-002 fase 2C — endpoint JSON polling-friendly pra status NFC-e pós-venda.
 // UI cockpit POS chama a cada 2s após dispatch do Job, até receber status terminal
 // (autorizada/rejeitada/denegada). Não exige broadcast daemon — funciona em runtime
