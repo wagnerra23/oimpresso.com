@@ -34,11 +34,12 @@ class CatalogoDePecas
         if ((int) $veiculo->business_id !== $businessId) {
             throw new InvalidArgumentException('Veículo não pertence à empresa.');
         }
-        $marca = self::norm($veiculo->brand);
+        // brand/model lidos por atributo: o Model não declara @property para eles (US-AUTO-008).
+        $marca = self::norm($veiculo->getAttribute('brand'));
         if ($marca === '') {
             return [];
         }
-        $modelo = self::norm($veiculo->model);
+        $modelo = self::norm($veiculo->getAttribute('model'));
         $ano = $veiculo->model_year ?: $veiculo->manufacture_year;
 
         $q = DB::table('oficina_pecas_compativeis as c')

@@ -770,6 +770,8 @@ Priorização: **P0** = bloqueia 1ª piloto (mínimo viável reconhecível pelo 
 
 **Implementado em:** `Modules/OficinaAuto/Services/CatalogoDePecas.php` · `Modules/OficinaAuto/Http/Controllers/PecaCompativelController.php` · `Modules/OficinaAuto/Database/Migrations/2026_10_27_100000_create_oficina_pecas_compativeis.php` · `Modules/OficinaAuto/Tests/Feature/PecasCompativeisContratoTest.php` — parcial: backend atrás de `OFICINA_CATALOGO_PECAS_ENABLED=false`; a tela (sugestão no item da OS) vem depois do protótipo. Busca por código OEM e similares segue fora.
 
+**Testado em:** `Modules/OficinaAuto/Tests/Feature/PecasCompativeisContratoTest.php` — lane `PHP / Pest (Sells · MySQL)`
+
 > **Decisão [W] 2026-10-26:** catálogo por **marca e modelo em texto** (não OEM). O veículo ganha `brand`/`model`; a compatibilidade é `oficina_pecas_compativeis` (peça × marca × modelo opcional × faixa de ano). A peça compatível aparece na OS daquele veículo (`GET ordens-servico/{order}/pecas-compativeis`).
 
 **Como** mecânico

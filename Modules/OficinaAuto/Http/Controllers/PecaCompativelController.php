@@ -37,7 +37,7 @@ class PecaCompativelController extends Controller
         }
 
         return response()->json([
-            'veiculo' => ['marca' => $veiculo->brand, 'modelo' => $veiculo->model, 'ano' => $veiculo->model_year ?: $veiculo->manufacture_year],
+            'veiculo' => ['marca' => $veiculo->getAttribute('brand'), 'modelo' => $veiculo->getAttribute('model'), 'ano' => $veiculo->model_year ?: $veiculo->manufacture_year],
             'pecas'   => $this->catalogo->compativeisCom($businessId, $veiculo),
         ]);
     }
