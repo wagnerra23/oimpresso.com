@@ -643,7 +643,7 @@ _Aprovação pendente: Wagner via ADR `memory/decisions/proposals/drafts/crm-pre
 
 **Testado em:** `Modules/Crm/Tests/Feature/CrmChamadoGarantiaSlaContratoTest.php`
 
-> owner: — · priority: p3 · estimate: 8h · type: story · status: doing
+> owner: — · priority: p3 · estimate: 8h · type: story
 > blocked_by: —
 
 **Origem:** lacuna P3 do levantamento de concorrência ("ticket de garantia com SLA"), destravada por [W] em 2026-10-27 ("pode destravar todos os outros vou fazer todos").
