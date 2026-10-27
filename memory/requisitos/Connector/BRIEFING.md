@@ -2,7 +2,7 @@
 id: requisitos-connector-briefing
 module: Connector
 status: producao
-updated_at: "2026-08-03"
+updated_at: "2026-10-26"
 owner: W
 related_adrs: []
 ---
@@ -28,6 +28,7 @@ Módulo `Modules/Connector` — **REST API externa** do oimpresso. Expõe 30 con
 - **Middleware `log.delphi`** registra TODA chamada (mesmo 401) pra debug pós-hoc (request_headers + body_preview + body_format + business_location_id resolvido)
 - **Tests Wave A:** `AuthApiTest` (5 specs auth pipeline), `MultiTenantIsolationTest`, `SmokeApiRoutesTest` + `tests/Feature/Connector/DelphiOImpressoContractTest.php` (~30 specs contract)
 - **Test scaffold novo:** `ScaffoldConnectorTest` (Module::find + Route::has named + DelphiSyncService instanciável)
+- **Webhooks de saída (2026-10-26, US-CONN-021 parcial):** a venda finalizada avisa os destinos cadastrados pela empresa, com payload só de ids, assinatura HMAC-SHA256 (`X-Oimpresso-Signature`) e até 5 tentativas. Ainda sem tela/API para cadastrar o destino.
 
 ## Diferenciais vs concorrência
 

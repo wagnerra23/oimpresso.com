@@ -669,6 +669,30 @@ Como comprador, quero ver por fornecedor quantas entregas chegaram no prazo e co
 - **Decisão coordenação 2026-10-26:** automática, derivada do recebimento parcial pelo pedido (US-COM-013), sem nota digitada. Tira da seção 9.1 o item "Supplier scorecard".
 - Prazo cumprido: data da compra que recebe × data de entrega prevista do pedido. Completa: soma recebida × soma pedida por linha.
 
+### US-COM-034 · Inspeção de qualidade no recebimento da compra — **P2**
+
+> owner: — · priority: p2 · estimate: 3h · status: doing · type: story
+> blocked_by: US-COM-013
+
+Como quem recebe mercadoria, quero inspecionar cada linha da compra recebida e marcar quanto foi aprovado e quanto foi reprovado, para que o reprovado não fique no estoque disponível e volte ao fornecedor como devolução.
+
+**Implementado em:** _pendente_ — serviço `Modules/Compras/Services/InspecaoDoRecebimento.php`, tabela `compras_inspecoes` e o `InspecaoDoRecebimentoTest`, ainda sem veredito da lane `compras-pest`; a tela vem depois do protótipo (ADR 0438).
+
+**Testado em:** `Modules/Compras/Tests/Feature/InspecaoDoRecebimentoTest.php`
+
+- Origem: lacuna P2 de Compras (programa de lacunas, 2026-10-27), depois do recebimento parcial (US-COM-013). Diferente da US-PCP-033, que inspeciona a etapa da OS.
+- Uma inspeção por linha: aprovado + reprovado = o que entrou pela linha (`quantity − quantity_returned`). Resultado: aprovado, reprovado ou parcial.
+- O reprovado sai do estoque pela devolução de compra do núcleo, a mesma conta do `PurchaseReturnController@store`: `quantity_returned` += reprovado, estoque desce o mesmo, um `purchase_return` por compra com Σ `purchase_price_inc_tax × quantity_returned`. Vira crédito com o fornecedor.
+- Desligada por padrão (`business.common_settings['compras_inspecao_recebimento']`).
+- Tier 0: compra, linhas e devolução filtradas pela empresa.
+
+**Aceite:**
+- [ ] 10 recebidas, 7 aprovadas e 3 reprovadas: estoque 10 → 7 pelos dois caminhos e devolução de 3 × 12,50 = 37,50
+- [ ] Tudo aprovado não mexe no estoque nem cria devolução
+- [ ] Soma diferente do recebido, reprovado sem motivo e segunda inspeção da mesma linha são recusados
+- [ ] Desligada, a inspeção é recusada; compra de outra empresa é recusada e nada muda
+- [ ] Tela: inspecionar no detalhe da compra recebida (depois do protótipo)
+
 ### US-COM-028 · Aprovar ou recusar o preço proposto no detalhe da compra (UC-FLX-17) — **P1**
 
 > owner: wagner · priority: p1 · estimate: 3h · status: doing · type: story
@@ -693,6 +717,26 @@ Como dono que deixou a regra de custo em "Propõe novo preço", quero ver no det
 - [x] Sem `product.update` = 403; outra empresa = 404
 - [x] Aviso na tela quando a regra está em Conferido
 - [ ] Fila na Fabricação (`aprovacao = fabricacao`) e nas Pendências da Visão geral
+
+### US-COM-029 · Compra a partir de pedido não aceita pedido nem linha de outra empresa — **P0**
+
+> owner: — · priority: p0 · estimate: 2h · status: doing · type: story
+> blocked_by: —
+
+Como dono de uma empresa, quero que a compra feita a partir de um pedido de compra só aceite pedidos e linhas de pedido da minha empresa, para que ninguém consiga mexer na quantidade recebida ou no status do pedido de outra empresa.
+
+**Implementado em:** _pendente_ — trava `assertPurchaseOrderRefsBelongTo` no `PurchaseController` (store e update) e o `CompraDePedidoOutraEmpresaTest`, ainda sem veredito da lane `compras-pest`. A âncora vira path quando o teste ficar verde (ADR 0273 + doneness-lint ADR 0302).
+
+**Testado em:** `Modules/Compras/Tests/Feature/CompraDePedidoOutraEmpresaTest.php`
+
+- Origem (medido em 2026-10-26, `origin/main` `93d6a5d11c`): `purchase_order_ids` e `purchases.*.purchase_order_line_id` chegam crus do formulário e descem para `ProductUtil::updatePurchaseOrderLine` (`PurchaseLine::find`) e `TransactionUtil::updatePurchaseOrderStatus` (`Transaction::find`), sem filtro de empresa.
+- O pedido tem de ser `purchase_order` da empresa do usuário; a linha, de um pedido da empresa. A linha não precisa estar na lista de pedidos, porque a edição pode tirar um pedido da lista e manter a linha já vinculada.
+- Pré-requisito do recebimento parcial (US-COM-013), que reaproveita este caminho (pedido → compra com `po_quantity_purchased`).
+
+**Aceite:**
+- [ ] Pedido de outra empresa em `purchase_order_ids` = 422, pedido alheio intacto
+- [ ] Linha de pedido de outra empresa = 422, `po_quantity_purchased` alheio intacto
+- [ ] Pedido da própria empresa segue recebendo: 4 de 10 deixa o pedido `partial` (controle positivo)
 
 ### 9.1 Seguradas (feature-wish ADR 0105 — NÃO no backlog ativo)
 

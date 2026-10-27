@@ -3,6 +3,7 @@ id: resources-js-pages-relatorios-despesas-index-charter
 page: /reports/expense-report
 component: resources/js/Pages/Relatorios/Despesas/Index.tsx
 related_prototype: prototipo-ui/cowork/Wagner/relatorios-page.jsx
+related_us: [US-REL-002]
 owner: wagner
 status: draft
 last_validated: "2026-10-07"
@@ -20,7 +21,7 @@ related_runbook: memory/requisitos/Relatorios/RUNBOOK-despesas.md
 
 # Page Charter — /reports/expense-report (DRAFT)
 
-> Draft · thread `sistema/playbook/07` · responde em `?tela=nova` (sem ele, Blade) · casos: [`Index.casos.md`](./Index.casos.md).
+> Draft · thread `sistema/playbook/07` · responde em `?tela=nova` (sem ele, Blade). **2026-10-27, cutover pelo menu (D1 [W] 2026-10-07):** o GET comum abre esta Page; a Blade só com `?classico=1` (UC-RDE-03) · casos: [`Index.casos.md`](./Index.casos.md).
 
 ## Mission
 

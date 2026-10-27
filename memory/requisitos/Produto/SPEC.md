@@ -287,6 +287,20 @@ O custo da receita já acompanha o insumo, porque é recalculado na leitura. O *
 **Relação com a Fabricação:** independe da correção da janela "Nova receita" (a proposta em análise é a cópia de receita **não** levar o preço de venda). Esta US é o recurso que falta para o preço do composto acompanhar o custo quando o produto pede isso.
 
 
+### US-PROD-031 · Importar produtos exportados do Bling, Tiny ou Omie sem montar planilha
+
+> owner: — · priority: p1 · estimate: 10h · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_ — planejada (lacunas 2026-10-25); hoje só a importação genérica por planilha do UltimatePOS
+
+Origem: levantamento de lacunas 2026-10-25 (P1 Plataforma — importação pronta de Bling, Tiny ou Omie).
+- A tela de importação aceita o arquivo de produtos que cada sistema exporta, reconhece a origem pelas colunas e mapeia para o modelo do oimpresso (nome, SKU, código de barras, NCM, unidade, preço de venda, custo, categoria, marca).
+- Prévia antes de gravar, com linhas recusadas e o motivo.
+- Estoque inicial fica fora desta US (regra mestre de estoque) — só cadastro.
+- Começa pelo Bling; Tiny e Omie entram como mapeamentos adicionais.
+- Teste com arquivos de exemplo sintéticos de cada sistema.
+
 ## 4. Backlog fora do batch (sem sinal ainda — ADR 0105)
 
 Viram US quando houver cliente/sinal ou drift de métrica:

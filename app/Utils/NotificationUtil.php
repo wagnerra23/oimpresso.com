@@ -13,6 +13,8 @@ use App\System;
 use Config;
 use Notification;
 use App\Contact;
+use Modules\Whatsapp\Services\Notify\NotificadorClienteWhatsapp;
+use Modules\Whatsapp\Services\Notify\ResultadoNotificacao;
 
 
 class NotificationUtil extends Util
@@ -89,13 +91,48 @@ class NotificationUtil extends Util
                 if (! empty($notification_template->auto_send_wa_notif)) {
                     $data['mobile_number'] = $contact->mobile;
                     if (! empty($contact->mobile)) {
-                        $whatsapp_link = $this->getWhatsappNotificationLink($data);
+                        $pelaApi = $this->enviarWhatsappPelaApi($business_id, $notification_type, $contact, (string) $data['whatsapp_text']);
+                        // `null` primeiro: sem o módulo Whatsapp, ler `ResultadoNotificacao::...` seria erro fatal.
+                        if ($pelaApi === null) {
+                            $whatsapp_link = $this->getWhatsappNotificationLink($data);
+                        } elseif ($pelaApi === ResultadoNotificacao::Enviado) {
+                            $this->activityLog($transaction, 'whatsapp_notification_sent', null, [], false, $business_id);
+                        } elseif ($pelaApi !== ResultadoNotificacao::RecusouWhatsapp) {
+                            // Sem envio pela API (flag desligada, sem número, etc.): segue o link manual de sempre.
+                            $whatsapp_link = $this->getWhatsappNotificationLink($data);
+                        }
                     }
                 }
             }
         }
 
         return $whatsapp_link;
+    }
+
+    /**
+     * Envia o aviso pela API do WhatsApp em vez de gerar link (US-WA-320).
+     *
+     * Só age com `whatsapp.aviso_automatico.enabled` ligado e o módulo Whatsapp presente; aí delega ao
+     * `NotificadorClienteWhatsapp` (US-WA-319), que aplica número por evento, empresa, LGPD e celular.
+     * Devolve null quando não tentou: quem chama mantém o link manual. Cliente que recusou WhatsApp
+     * não ganha link (o mesmo opt-out vale para o envio manual sugerido pelo sistema).
+     */
+    private function enviarWhatsappPelaApi(int $business_id, string $notification_type, $contact, string $texto): ?ResultadoNotificacao
+    {
+        if (! config('whatsapp.aviso_automatico.enabled', false)
+            || ! class_exists(NotificadorClienteWhatsapp::class)
+            || empty($contact->id) || trim($texto) === '') {
+            return null;
+        }
+        $evento = in_array($notification_type, ['payment_received', 'payment_reminder'], true) ? 'billing' : 'outbound_default';
+
+        try {
+            return app(NotificadorClienteWhatsapp::class)->notificar($business_id, (int) $contact->id, $evento, $texto);
+        } catch (\Throwable $e) {
+            \Log::warning('[notification.whatsapp_api] falhou, segue o link manual', ['business_id' => $business_id, 'erro' => $e->getMessage()]);
+
+            return null;
+        }
     }
 
     /**

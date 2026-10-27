@@ -23,6 +23,7 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0093-multi-tenant-is
   quando a compra é recebida e a regra "Atualizar o custo dos insumos" da empresa está em "Propõe novo
   preço". `aprovada` e `recusada` são a decisão de quem aprova (fila ainda é follow-up); o preço da
   variação só muda quando a proposta for aprovada.
+- **`stock_reservations.status`** é do [estoque.md](estoque.md); vai repetido no `vocab` porque o MRP (US-COM-030) lê as reservas ativas pela coluna curta.
 - **`transactions.status`** é da espinha e o dono é [vendas.md](vendas.md). Vai repetido no `vocab`
   abaixo só porque o gate lê o código do módulo pela coluna curta (`status`): sem ele, cada
   `status = received` do módulo vira divergência. Mudou lá, muda aqui.
@@ -34,10 +35,15 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0093-multi-tenant-is
   "module": "Compras",
   "enums": {
     "compras_insumo_metodo_custo.metodo": ["medio", "ultimo"],
-    "compras_propostas_preco.status": ["pendente", "aprovada", "recusada"]
+    "compras_propostas_preco.status": ["pendente", "aprovada", "recusada"],
+    "compras_cotacoes.status": ["aberta", "fechada", "cancelada"],
+    "compras_aprovacoes_pedido.nivel": ["gerente", "diretoria"],
+    "compras_aprovacoes_pedido.status": ["pendente", "aprovado", "recusado"],
+    "compras_inspecoes.resultado": ["aprovado", "reprovado", "parcial"]
   },
   "vocab": {
-    "transactions.status": ["received", "pending", "ordered", "draft", "final"]
+    "transactions.status": ["received", "pending", "ordered", "draft", "final", "partial", "completed"],
+    "stock_reservations.status": ["active", "consumed", "released", "expired"]
   }
 }
 ```

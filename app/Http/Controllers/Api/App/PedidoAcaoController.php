@@ -157,6 +157,10 @@ class PedidoAcaoController extends Controller
             DB::rollBack();
 
             return $this->etapaMudou();
+        } catch (\App\Services\Sells\VendaNaoCancelavelException $e) {
+            DB::rollBack();
+
+            return $this->erro(422, 'nao_cancelavel', $e->getMessage());
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('API app pedidos.acao: ' . $e->getMessage(), ['business_id' => $bizId, 'transaction_id' => $id]);

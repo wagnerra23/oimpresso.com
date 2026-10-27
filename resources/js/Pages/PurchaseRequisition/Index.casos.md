@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: requisição de outro negócio ou de local vetado, ou prazo diferente do da Blade, leva o comprador a repor errado.
 owner: wagner
-last_run: "2026-10-21"
+last_run: "2026-10-26"
 ---
 
 # Casos de Uso & Aceite — Requisições de compra
@@ -55,6 +55,20 @@ last_run: "2026-10-21"
 
 ---
 
+
+## UC-REQC-07 · A necessidade de compra (MRP) aparece acima das requisições · `must`
+
+- **Persona:** o comprador.
+- **Aceite:** Dado insumos cuja reserva das OS e das vendas, somada ao estoque mínimo, passa do saldo
+  mais o que está a caminho · Quando a tela abre · Então a seção "Necessidade de compra" lista, por
+  insumo e local, quanto comprar, a conta (reservado + mínimo − saldo − a caminho), o fornecedor da
+  última compra e a data de pedir (já formatada pelo servidor), com "Atrasado" quando ela passou. O
+  filtro de local da tela também filtra a seção; só aparecem os locais que o usuário pode ver.
+- **Teste:** [`RequisicoesNecessidadeContratoTest`](../../../../tests/Feature/Purchase/RequisicoesNecessidadeContratoTest.php)
+  (lane purchase-pest) e `tests/purchase-necessidade-compra.test.tsx` (vitest).
+- **Contrato:** SPEC Compras US-COM-030 (decisão coordenação 2026-10-26). A conta é provada com
+  números em `NecessidadeDeCompraTest`.
+- **Status: 🧪 comportamento**
 ## Estoque mínimo vira requisição de compra (US-COM-027 · UC-FLX-19)
 
 > **Âncora:** [US-COM-027](../../../../memory/requisitos/Compras/SPEC.md) e o UC-FLX-19 do catálogo de

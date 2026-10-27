@@ -14,7 +14,7 @@ module: RecurringBilling
 >
 > **O que isto é:** o inventário completo das raízes `Modules/RecurringBilling/**` + `resources/js/Pages/RecurringBilling/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 173 arquivos em 20 papéis.
+**Total mapeado:** 183 arquivos em 20 papéis.
 
 ## Controllers — 11
 
@@ -40,7 +40,7 @@ module: RecurringBilling
 - [UpdateAssinaturaRequest.php](../../../Modules/RecurringBilling/Http/Requests/UpdateAssinaturaRequest.php)
 - [UpdatePlanRequest.php](../../../Modules/RecurringBilling/Http/Requests/UpdatePlanRequest.php)
 
-## Services — 12
+## Services — 14
 
 - [AssinaturaCobrancaService.php](../../../Modules/RecurringBilling/Services/AssinaturaCobrancaService.php)
 - [AssinaturaService.php](../../../Modules/RecurringBilling/Services/AssinaturaService.php)
@@ -52,8 +52,10 @@ module: RecurringBilling
 - [AsaasDriver.php](../../../Modules/RecurringBilling/Services/Boleto/Drivers/AsaasDriver.php)
 - [C6Driver.php](../../../Modules/RecurringBilling/Services/Boleto/Drivers/C6Driver.php)
 - [InterDriver.php](../../../Modules/RecurringBilling/Services/Boleto/Drivers/InterDriver.php)
+- [CobradorPixAutomatico.php](../../../Modules/RecurringBilling/Services/CobradorPixAutomatico.php)
 - [GatewayBackfillService.php](../../../Modules/RecurringBilling/Services/GatewayBackfillService.php)
 - [InvoiceGeneratorService.php](../../../Modules/RecurringBilling/Services/InvoiceGeneratorService.php)
+- [MandatoPixAutomatico.php](../../../Modules/RecurringBilling/Services/MandatoPixAutomatico.php)
 
 ## Models / Entities — 8
 
@@ -79,15 +81,18 @@ module: RecurringBilling
 - [SyncBankBalancesJob.php](../../../Modules/RecurringBilling/Jobs/SyncBankBalancesJob.php)
 - [SyncBankStatementsJob.php](../../../Modules/RecurringBilling/Jobs/SyncBankStatementsJob.php)
 
-## Events / Listeners — 2
+## Events / Listeners — 4
 
 - [AssinaturaAtualizada.php](../../../Modules/RecurringBilling/Events/AssinaturaAtualizada.php)
 - [InvoicePaid.php](../../../Modules/RecurringBilling/Events/InvoicePaid.php)
+- [AtualizarMandatoDaAssinatura.php](../../../Modules/RecurringBilling/Listeners/AtualizarMandatoDaAssinatura.php)
+- [MarcarFaturaPagaDaCobranca.php](../../../Modules/RecurringBilling/Listeners/MarcarFaturaPagaDaCobranca.php)
 
-## Console / Commands — 5
+## Console / Commands — 6
 
 - [BackfillCachedFieldsCommand.php](../../../Modules/RecurringBilling/Console/Commands/BackfillCachedFieldsCommand.php)
 - [BackfillGatewayCommand.php](../../../Modules/RecurringBilling/Console/Commands/BackfillGatewayCommand.php)
+- [CobrarPixAutomaticoCommand.php](../../../Modules/RecurringBilling/Console/Commands/CobrarPixAutomaticoCommand.php)
 - [GenerateInvoicesCommand.php](../../../Modules/RecurringBilling/Console/Commands/GenerateInvoicesCommand.php)
 - [RecurringHealthCommand.php](../../../Modules/RecurringBilling/Console/Commands/RecurringHealthCommand.php)
 - [SyncBankBalancesCommand.php](../../../Modules/RecurringBilling/Console/Commands/SyncBankBalancesCommand.php)
@@ -138,11 +143,12 @@ module: RecurringBilling
 - [Edit.tsx](../../../resources/js/Pages/RecurringBilling/Planos/Edit.tsx)
 - [Index.tsx](../../../resources/js/Pages/RecurringBilling/Planos/Index.tsx)
 
-## Componentes / apoio de tela — 7
+## Componentes / apoio de tela — 8
 
 - [CheatSheet.tsx](../../../resources/js/Pages/RecurringBilling/_components/CheatSheet.tsx)
 - [CmdPalette.tsx](../../../resources/js/Pages/RecurringBilling/_components/CmdPalette.tsx)
 - [JanaPanel.tsx](../../../resources/js/Pages/RecurringBilling/_components/JanaPanel.tsx)
+- [PixAutomaticoBloco.tsx](../../../resources/js/Pages/RecurringBilling/_components/PixAutomaticoBloco.tsx)
 - [PresentationMode.tsx](../../../resources/js/Pages/RecurringBilling/_components/PresentationMode.tsx)
 - [Sparkline.tsx](../../../resources/js/Pages/RecurringBilling/_components/Sparkline.tsx)
 - [TourOnboarding.tsx](../../../resources/js/Pages/RecurringBilling/_components/TourOnboarding.tsx)
@@ -166,9 +172,9 @@ module: RecurringBilling
 - [Edit.casos.md](../../../resources/js/Pages/RecurringBilling/Planos/Edit.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/RecurringBilling/Planos/Index.casos.md)
 
-## Testes (Pest) — 41
+## Testes (Pest) — 45
 
-- 41 em [Modules/RecurringBilling/Tests/Feature/](../../../Modules/RecurringBilling/Tests/Feature)
+- 45 em [Modules/RecurringBilling/Tests/Feature/](../../../Modules/RecurringBilling/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 36

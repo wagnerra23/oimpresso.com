@@ -3,6 +3,7 @@ module: Connector
 purpose: "Porta REST externa única do oimpresso (Passport auth:api, contrato congelado): expõe o núcleo do ERP a consumidores de fora — app POS móvel e integrações — e sustenta o handshake de licenciamento, registro e versão dos clientes Delphi WR Comercial em migração."
 migracao_ui: "concluido — 0 Blade servido"
 contains:
+  - "Webhooks de saída assinados por empresa (connector_webhook_destinos/entregas, evento venda.finalizada) — US-CONN-021"
   - "Api/ApiController"
   - "Api/AttendanceController"
   - "Api/BaseApiController"

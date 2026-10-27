@@ -6,7 +6,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { router } from '@inertiajs/react';
 import { toast } from 'sonner';
-import { X, Check, RotateCw, ArrowRight } from 'lucide-react';
+import { X, Check, RotateCw, ArrowRight, Copy } from 'lucide-react';
+import QRCode from 'react-qr-code';
+import { Button } from '@/Components/ui/button';
+import { Textarea } from '@/Components/ui/textarea';
+import { Stack } from '@/Components/layout';
 import type { CobrancaState, VendaContext } from './CobrancaChip';
 
 interface Props {
@@ -36,6 +40,39 @@ const DRIVERS_INFO: Record<string, { nome: string; sigla: string; bg: string }> 
   pesapal: { nome: 'PesaPal',      sigla: 'PP', bg: 'bg-purple-500' },
 };
 
+// US-SELL-055 — o que o cliente usa para pagar: QR + copia-e-cola do Pix, ou a linha do boleto.
+function CodigoPagamento({ pixEmv, linhaDigitavel }: { pixEmv?: string | null; linhaDigitavel?: string | null }) {
+  const codigo = pixEmv || linhaDigitavel;
+  if (!codigo) return null;
+  const copiar = async () => {
+    try {
+      await navigator.clipboard.writeText(codigo);
+      toast.success(pixEmv ? 'Pix copia-e-cola copiado' : 'Linha digitável copiada');
+    } catch {
+      toast.error('Não deu para copiar. Selecione o texto e copie.');
+    }
+  };
+  return (
+    <Stack gap={3} className="border border-border rounded-md p-3" data-testid="cobranca-codigo">
+      {pixEmv && (
+        <Stack align="center" className="bg-card p-2">
+          <QRCode value={pixEmv} size={176} aria-label="QR code do Pix" />
+        </Stack>
+      )}
+      <div>
+        <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-medium mb-1">
+          {pixEmv ? 'Pix copia-e-cola' : 'Linha digitável do boleto'}
+        </div>
+        <Textarea readOnly value={codigo} rows={pixEmv ? 3 : 2} onFocus={e => e.currentTarget.select()}
+          className="font-mono text-[11.5px] break-all resize-none" />
+      </div>
+      <Button type="button" variant="outline" size="sm" onClick={copiar} className="self-start">
+        <Copy className="h-3 w-3" />Copiar
+      </Button>
+    </Stack>
+  );
+}
+
 const TIPOS_LABEL: Record<string, string> = {
   boleto: 'Boleto',
   pix_cob: 'PIX cob',
@@ -54,6 +91,7 @@ export default function CobrancaDrawer({ venda, state, onClose }: Props) {
     return d.toISOString().slice(0, 10);
   });
   const [submitting, setSubmitting] = useState(false);
+  const [emitida, setEmitida] = useState<{ id: number; pix_emv: string | null; linha_digitavel: string | null } | null>(null);
 
   // Onda 4d.5: POST /sells/{id}/emitir-cobranca real
   const emitir = async () => {
@@ -81,9 +119,10 @@ export default function CobrancaDrawer({ venda, state, onClose }: Props) {
         toast.error(data.error || 'Falha ao emitir cobrança');
         return;
       }
-      toast.success(`Cobrança #${data.cobranca_id} emitida via ${data.tipo}`);
+      toast.success(`Cobrança #${data.cobranca_id} emitida`);
+      // Fica aberto mostrando o código: é o que a balconista mostra ao cliente.
+      setEmitida({ id: data.cobranca_id, pix_emv: data.pix_emv ?? null, linha_digitavel: data.linha_digitavel ?? null });
       router.reload({ only: ['cobranca'] });
-      onClose();
     } catch (e) {
       toast.error('Erro de rede ao emitir cobrança');
     } finally {
@@ -147,10 +186,18 @@ export default function CobrancaDrawer({ venda, state, onClose }: Props) {
             <div>
               <div className="text-[10px] uppercase tracking-widest text-stone-500 font-medium">Valor</div>
               <div className="mt-0.5 font-semibold text-[14px] tabular-nums text-stone-900">
-                {(venda.final_total || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                {((isView && state.cob ? state.cob.valor : venda.final_total) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
               </div>
             </div>
           </div>
+
+          {/* Recém-emitida nesta abertura do drawer */}
+          {emitida && (
+            <div className="p-4 space-y-3">
+              <div className="text-[12px] text-foreground">Cobrança #{emitida.id} emitida. Mostre o código ao cliente.</div>
+              <CodigoPagamento pixEmv={emitida.pix_emv} linhaDigitavel={emitida.linha_digitavel} />
+            </div>
+          )}
 
           {/* VIEW: cobrança existente */}
           {isView && state.cob && drv && (
@@ -187,6 +234,10 @@ export default function CobrancaDrawer({ venda, state, onClose }: Props) {
                 )}
               </div>
 
+              {(state.kind === 'pending' || state.kind === 'overdue') && (
+                <CodigoPagamento pixEmv={state.cob.pix_emv} linhaDigitavel={state.cob.linha_digitavel} />
+              )}
+
               <div className="flex gap-2">
                 <button
                   className="inline-flex items-center gap-1.5 h-8 px-3 text-[12px] font-medium rounded-md bg-stone-900 text-white hover:bg-stone-800"
@@ -199,7 +250,7 @@ export default function CobrancaDrawer({ venda, state, onClose }: Props) {
           )}
 
           {/* FORM: emitir (none ou error) */}
-          {!isView && (
+          {!isView && !emitida && (
             <div className="p-4 space-y-4">
               {state.kind === 'error' && state.cob?.erro_msg && (
                 <div className="bg-destructive-soft border border-destructive/20 rounded-md p-3 text-[11.5px] text-destructive-fg">
@@ -238,7 +289,7 @@ export default function CobrancaDrawer({ venda, state, onClose }: Props) {
               </div>
 
               <div className="bg-stone-50 border border-stone-200 rounded p-3 text-[11px] text-stone-700">
-                Dispara <span className="font-mono">PaymentGateway::emitir{tipo === 'card' ? 'Cartao' : tipo.startsWith('pix') ? 'Pix' : 'Boleto'}()</span> com origem <span className="font-mono">sale:{venda.id}</span> — idempotente (não duplica). Onda 5 backend wire-up pendente.
+                A cobrança leva o saldo em aberto da venda. Não é possível emitir outra enquanto esta estiver valendo.
               </div>
             </div>
           )}
@@ -249,12 +300,12 @@ export default function CobrancaDrawer({ venda, state, onClose }: Props) {
             Fechar (ESC)
           </button>
           <div className="flex-1" />
-          {!isView && (
+          {!isView && !emitida && (
             <button onClick={emitir} disabled={submitting} className="inline-flex items-center gap-1.5 h-8 px-3 text-[12px] font-medium rounded-md bg-stone-900 text-white hover:bg-stone-800 disabled:opacity-50">
               <Check className="h-3 w-3" />{submitting ? 'Emitindo…' : 'Emitir cobrança'}
             </button>
           )}
-          {state.kind === 'error' && (
+          {state.kind === 'error' && !emitida && (
             <button onClick={emitir} disabled={submitting} className="inline-flex items-center gap-1.5 h-8 px-3 text-[12px] font-medium rounded-md bg-stone-900 text-white hover:bg-stone-800 disabled:opacity-50">
               <RotateCw className="h-3 w-3" />{submitting ? 'Reemitindo…' : 'Reemitir'}
             </button>
