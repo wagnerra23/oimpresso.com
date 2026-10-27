@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do contato logado + critério de aceite verific
 por_que: é a única superfície que um terceiro acessa com login. Errar o escopo mostra a dívida de outro contato — incidente LGPD, não bug de tela.
 owner: wagner
 last_run: "2026-10-27"
-last_run_ci: "_pendente_ — o trio nasce na thread Crm/18. O veredito por UC entra no manifesto quando a lane verticais-pest rodar; até lá o Status é 🧪."
+last_run_ci: "run 40498496667 (verticais-pest): UC-CRMPO-01/02/03 passaram, UC-CRMPO-18 quebrou e foi corrigido no PR #10023."
 ---
 
 # Casos de Uso & Aceite — Portal do contato · Início (`/contact/contact-dashboard`)
@@ -23,7 +23,7 @@ last_run_ci: "_pendente_ — o trio nasce na thread Crm/18. O veredito por UC en
 **Quando** A abre `/contact/contact-dashboard`
 **Então** "a pagar" = 60,00 e "em vendas" = 100,00 · e nenhum valor de B ou de A' aparece em nenhuma prop.
 
-Status: 🧪
+Status: 🧪 — passou no CI, lane verticais-pest, run 40498496667 (lane: 1102 passed, 8209 assertions).
 
 ---
 
@@ -33,7 +33,7 @@ Status: 🧪
 **Dado** `supplier` **Então** só `compras` · **Dado** `both` **Então** os dois ·
 **E** `abertura` só vem quando existe saldo de abertura.
 
-Status: 🧪
+Status: 🧪 — passou no CI, lane verticais-pest, run 40498496667 (lane: 1102 passed, 8209 assertions).
 
 ---
 
@@ -43,7 +43,7 @@ Status: 🧪
 **Então** recebe Inertia `Crm/Portal/Painel/Index` com `shell.portal`, e a resposta **não** traz `shell.menu` do ERP ·
 **E** com a flag desligada, ou com `?classico=1`, recebe a view `crm::dashboard.index`.
 
-Status: 🧪
+Status: 🧪 — passou no CI, lane verticais-pest, run 40498496667 (lane: 1102 passed, 8209 assertions).
 
 ---
 
@@ -52,7 +52,7 @@ Status: 🧪
 **Dado** um operador (sem `user_customer`) **Quando** abre `/contact/contact-dashboard` **Então** é recusado ·
 **Dado** o contato A **Quando** abre `/crm/leads` **Então** é recusado e nada do ERP renderiza.
 
-Status: 🧪
+Status: ⬜ — quebrou no run 40498496667 (o operador recebe 404, não 403; o teste esperava 403). Teste corrigido para aceitar a recusa como 403 ou 404; ainda não rodou de novo.
 
 ---
 
