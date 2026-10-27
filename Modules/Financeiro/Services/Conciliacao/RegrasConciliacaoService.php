@@ -80,9 +80,11 @@ class RegrasConciliacaoService
      * Linhas pendentes das duas origens num shape só, valor COM sinal (mesma regra da tela:
      * OFX já tem sinal; API guarda positivo + tipo, e `D` vira negativo).
      *
+     * Também lida pelo repasse do cartão (US-FIN-081): as duas etapas olham as mesmas linhas.
+     *
      * @return list<array{origem:string,id:int,data:string,descricao:string,valor:float,conta_bancaria_id:?int}>
      */
-    private function linhasPendentes(int $businessId): array
+    public function linhasPendentes(int $businessId): array
     {
         $linhas = [];
 

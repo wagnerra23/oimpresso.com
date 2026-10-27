@@ -3,6 +3,7 @@
 namespace Modules\Financeiro\Observers;
 
 use App\TransactionPayment;
+use Modules\Financeiro\Services\Conciliacao\RecebiveisCartaoService;
 use Modules\Financeiro\Services\TituloAutoService;
 
 /**
@@ -28,6 +29,7 @@ class TransactionPaymentObserver
     public function created(TransactionPayment $tp): void
     {
         $this->service->registrarPagamento($tp);
+        $this->recebivelCartao(fn (RecebiveisCartaoService $c) => $c->registrarDoPagamento($tp));
     }
 
     public function updated(TransactionPayment $tp): void
@@ -40,10 +42,28 @@ class TransactionPaymentObserver
         // Estratégia: estorno da baixa antiga + cria nova com valores atuais.
         $this->service->cancelarPagamento($tp);
         $this->service->registrarPagamento($tp);
+        $this->recebivelCartao(fn (RecebiveisCartaoService $c) => $c->registrarDoPagamento($tp));
     }
 
     public function deleted(TransactionPayment $tp): void
     {
         $this->service->cancelarPagamento($tp);
+        $this->recebivelCartao(fn (RecebiveisCartaoService $c) => $c->cancelarDoPagamento($tp));
+    }
+
+    /**
+     * US-FIN-081: recebível do cartão da maquininha (desligado por padrão). Falha aqui nunca
+     * derruba o pagamento da venda (US-FIN-059): reporta e segue.
+     */
+    private function recebivelCartao(\Closure $acao): void
+    {
+        if (! RecebiveisCartaoService::ligado()) {
+            return;
+        }
+        try {
+            $acao(app(RecebiveisCartaoService::class));
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 }

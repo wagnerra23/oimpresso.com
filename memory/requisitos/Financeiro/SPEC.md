@@ -2168,3 +2168,31 @@ _PR 1 — motor + flag:_
 
 _PR 2 — tela:_
 - [ ] Cadastro de regras (criar, editar, desligar) e botão "Aplicar regras" na Conciliação, com a regra que casou visível na linha.
+
+### US-FIN-081 · Conciliação do cartão da maquininha — recebíveis previstos e baixa pelo repasse — **P1**
+
+> owner: — · priority: p1 · estimate: 12h · status: doing · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_ — tela de adquirentes e recebíveis no PR de tela. Serviço e flag já no código: `Modules/Financeiro/Services/Conciliacao/RecebiveisCartaoService.php` (`registrarDoPagamento`, `calcular`, `conciliarRepasses`), `Modules/Financeiro/Observers/TransactionPaymentObserver.php`, `Modules/Financeiro/Database/Migrations/2026_10_27_130000_create_fin_cartao_recebiveis_tables.php`
+
+**Testado em:** `Modules/Financeiro/Tests/Feature/CartaoRecebiveisContratoTest.php`
+
+**Origem:** lacuna P1 do levantamento de concorrência de 2026-10-25. A venda no cartão é baixada no título na hora do pagamento (`TituloAutoService`, meio `cartao_credito`), mas o dinheiro chega dias depois, pela adquirente, com a taxa descontada. Não havia onde ver o que falta chegar nem conferir o repasse.
+
+⚠️ **REGRA MESTRE — VALOR** ([proibicoes.md](../../proibicoes.md)): taxa e líquido do recebível são valor calculado.
+
+**Como funciona:** a empresa cadastra a maquininha (taxa e prazo do débito e do crédito, e o trecho que identifica o repasse na descrição do extrato). Cada pagamento de venda com `method = card` vira um recebível na adquirente padrão: bruto, taxa (centavos inteiros, meio-para-cima), líquido e data prevista (pagamento + prazo, dias corridos); `card_type = debit` é débito, o resto é crédito. Uma entrada no extrato com o trecho da adquirente, no valor de um líquido ou da soma dos líquidos previstos de um mesmo dia (±3 dias), baixa esses recebíveis e concilia a linha — passo dentro do `sugerirMatches`, depois das regras da US-FIN-080 e com o mesmo critério de descrição/conta. Não mexe em título nem em baixa.
+
+**Aceite:**
+
+_PR 1 — serviço + flag:_
+- [x] Venda no cartão gera o recebível com taxa, líquido e data prevista; apagar o pagamento cancela o previsto (UC-FCC-23). Prova por dois caminhos: o gravado e a conta à mão (líquido + taxa = bruto).
+- [x] Repasse de um recebível baixa só ele; a linha fica conciliada sem título e as baixas da venda não mudam (UC-FCC-24).
+- [x] Repasse que soma os previstos do dia baixa todos; um centavo a menos não baixa nenhum (UC-FCC-25).
+- [x] Desligado por padrão (`FINANCEIRO_CARTAO_RECEBIVEIS_ENABLED=false`); recebível de outro business nunca é baixado (UC-FCC-26, `[T0]`).
+
+_PR de tela:_
+- [ ] Cadastro da maquininha e lista dos recebíveis (previsto / recebido / taxa do mês).
+
+**Fora:** parcelado (o core não guarda número de parcelas no pagamento), dias úteis no prazo, antecipação, mais de uma adquirente por venda e lançar a taxa como despesa.

@@ -13,6 +13,7 @@ use Inertia\Response;
 use Modules\Financeiro\Models\BankStatementLine;
 use Modules\Financeiro\Models\ContaBancaria;
 use Modules\Financeiro\Models\Titulo;
+use Modules\Financeiro\Services\Conciliacao\RecebiveisCartaoService;
 use Modules\Financeiro\Services\Conciliacao\RegrasConciliacaoService;
 use Modules\Financeiro\Services\FinanceiroAuditLogger;
 
@@ -580,6 +581,8 @@ class ConciliacaoController extends Controller
         // financeiro.conciliacao.regras_enabled). O que elas casam sai de `pendente`; o resto
         // cai no casamento por valor e data abaixo, como sempre.
         app(RegrasConciliacaoService::class)->aplicar($businessId);
+        // US-FIN-081: repasse da maquininha baixa os recebíveis previstos (desligado por padrão).
+        app(RecebiveisCartaoService::class)->conciliarRepasses($businessId);
 
         // OFX — data em `data_movimento`, valor já com sinal. Tier 0 (re-impl #2045):
         // candidatas roteadas pela Model (BusinessScope + SoftDeletes); `->toBase()->get()`

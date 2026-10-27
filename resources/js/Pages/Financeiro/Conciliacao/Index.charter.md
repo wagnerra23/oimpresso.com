@@ -8,7 +8,7 @@ last_validated: "2026-05-31"
 parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
 related_adrs: [93, 101, 104, 236]
-related_us: [US-FIN-009, US-FIN-080]
+related_us: [US-FIN-009, US-FIN-080, US-FIN-081]
 smoke: "2026-07-02 — render prod OK biz=1 (Chrome MCP, sessão WR2 Sistemas; KPIs + upload OFX). Antes: 2026-07-01 render sob sessão matriz biz=0."
 related_prototype: prototipo-ui/cowork/Wagner/financeiro-telas-extras.jsx
 related_prototype_nota: '(TelaConciliacao) — tela viva evoluiu além do protótipo (extrato via API, ADR 0236)'
@@ -46,6 +46,7 @@ e de **sync API do banco** — e deixar o usuário conciliá-las com títulos ab
   todas as situações — ver `UC-FCC-14` (FIN-4b, 2026-09-23)
 - Resumo do título vinculado em cada linha (`linhas[].titulo`), só exibição — ver `UC-FCC-15`
 - Regras do usuário casam a linha antes do valor + data (US-FIN-080, flag `FINANCEIRO_CONCILIACAO_REGRAS_ENABLED`, desligada) — só vinculam, não baixam — ver `UC-FCC-19..22`
+- Repasse da maquininha baixa os recebíveis de cartão previstos (US-FIN-081, flag `FINANCEIRO_CARTAO_RECEBIVEIS_ENABLED`, desligada) — baixa recebível, não título — ver `UC-FCC-23..26`
 
 ---
 

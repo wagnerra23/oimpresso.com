@@ -72,4 +72,14 @@ return [
         'janela_dias'    => (int) env('FINANCEIRO_CONCILIACAO_JANELA_DIAS', 5),
     ],
 
+    /*
+    | Cartão da maquininha (US-FIN-081): venda no cartão vira recebível previsto e o repasse da
+    | adquirente no extrato o baixa. Desligado por padrão.
+    */
+    'cartao' => [
+        'recebiveis_enabled'  => env('FINANCEIRO_CARTAO_RECEBIVEIS_ENABLED', false),
+        // Distância máxima, em dias, entre a data prevista do recebível e a do repasse no extrato.
+        'janela_repasse_dias' => (int) env('FINANCEIRO_CARTAO_JANELA_REPASSE_DIAS', 3),
+    ],
+
 ];
