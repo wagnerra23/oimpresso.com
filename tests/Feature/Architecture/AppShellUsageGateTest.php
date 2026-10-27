@@ -31,6 +31,7 @@ const APPSHELL_ALLOWLIST_PREFIXES = [
 // Telas isentas por caminho exato (público sem login).
 const APPSHELL_ALLOWLIST_EXACT = [
     'OficinaAuto/AprovacaoPublica', // aprovação de OS por link público (sem sessão)
+    'ComunicacaoVisual/AceitePublico', // aceite do orçamento da gráfica por link com token (sem sessão; US-COMVIS-023)
 ];
 
 /**
