@@ -1204,7 +1204,7 @@ Persistir a venda em fila local (IndexedDB) quando a rede cai e sincronizar/emit
 - Tier 0: fila com `business_id` scopado; ao reemitir, respeitar regra-mestre de valor (arredondar 2 casas, num_uf 3-dígitos-milhar) + smoke biz=1 (ADR 0101).
 - Ref: memory/requisitos/Sells/CAPTERRA-FICHA.md §6 G-02 + §8.3
 
-**Implementado em:** `app/Services/Sells/VendaOffline.php` · `app/Http/Controllers/SellPosController.php` · `tests/Feature/Sells/VendaOfflineContratoTest.php` — em andamento: o servidor reconhece a chave `offline_uuid` e grava a venda uma vez só, atrás de `SELLS_OFFLINE_ENABLED` (desligada); UC-VOFF-01..04 em `resources/js/Pages/Sells/Create.casos.md`. Falta a fila no navegador e o aviso de "sem internet" no caixa.
+**Implementado em:** _pendente_ — em andamento (servidor feito em `VendaOffline` e `SellPosController::store`): o servidor reconhece a chave `offline_uuid` e grava a venda uma vez só, atrás de `SELLS_OFFLINE_ENABLED` (desligada); UC-VOFF-01..04 em `resources/js/Pages/Sells/Create.casos.md`. Falta a fila no navegador e o aviso de "sem internet" no caixa.
 
 **Testado em:** `tests/Feature/Sells/VendaOfflineContratoTest.php`
 
