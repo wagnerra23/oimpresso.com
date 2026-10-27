@@ -35,7 +35,8 @@ related_us: [US-VEST-032]
   de antes e o novo, arredondado a 2 casas; nenhum preço muda e nenhum lote é criado. Variação cujo
   preço não mudaria, ou ficaria zero, fica fora.
 - **Teste:** `Modules/Vestuario/Tests/Feature/RemarcacaoContratoTest.php`
-- **Status: 🧪**
+- **Regressão que defende:** gravar preço na prévia, ou mostrar preço que não será o gravado.
+- **Status: ⬜** (não verificado — nasce neste PR; roda na lane `verticais-pest`)
 
 ## UC-VREM-02 · Gravar exige a prévia em dia e guarda o antes
 - **Persona:** quem confirma a remarcação depois de olhar a prévia.
@@ -43,7 +44,8 @@ related_us: [US-VEST-032]
   gravado e pede-se nova prévia; senão, cada variação recebe o preço novo, o preço sem imposto e a
   margem são recalculados pela taxa do produto, e o lote guarda o antes de cada uma.
 - **Teste:** `Modules/Vestuario/Tests/Feature/RemarcacaoContratoTest.php`
-- **Status: 🧪**
+- **Regressão que defende:** gravar sobre prévia velha (preço mexido por outra pessoa) ou perder o preço de antes.
+- **Status: ⬜** (não verificado — nasce neste PR; roda na lane `verticais-pest`)
 
 ## UC-VREM-03 · Reverter devolve o antes sem pisar em preço mexido depois
 - **Persona:** quem desfaz a liquidação no fim da campanha.
@@ -51,11 +53,13 @@ related_us: [US-VEST-032]
   remarcação volta ao de antes (etiqueta, sem imposto e margem); a que foi mexida depois fica como
   está e é contada como conflito; reverter de novo é recusado.
 - **Teste:** `Modules/Vestuario/Tests/Feature/RemarcacaoContratoTest.php`
-- **Status: 🧪**
+- **Regressão que defende:** reversão que apaga um preço ajustado depois da remarcação.
+- **Status: ⬜** (não verificado — nasce neste PR; roda na lane `verticais-pest`)
 
 ## UC-VREM-04 · Outra empresa não entra; sem filtro não remarca `[T0]`
 - **Aceite:** Dado produtos de outra empresa com o mesmo nome · Quando remarca · Então eles não entram
   na prévia nem mudam de preço, e o lote não pode ser revertido por outra empresa. Sem nenhum filtro a
   prévia é recusada, para não remarcar a loja inteira por engano.
 - **Teste:** `Modules/Vestuario/Tests/Feature/RemarcacaoContratoTest.php`
-- **Status: 🧪**
+- **Regressão que defende:** remarcar produto de outra empresa, ou a loja inteira sem filtro.
+- **Status: ⬜** (não verificado — nasce neste PR; roda na lane `verticais-pest`)
