@@ -89,6 +89,9 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 | UC-PAGBAN-06 | Banco recusa → sem baixa, pode pedir de novo | must | `US-FIN-079` | `PagamentoBancoContratoTest` | 🧪 |
 | UC-PAGBAN-07 | Título quitado por outro caminho não recebe 2ª baixa | must `[V0]` | `US-FIN-079` | `PagamentoBancoContratoTest` | 🧪 |
 | UC-PAGBAN-08 | Outra empresa não paga o título nem usa a conta de outra | must `[T0]` | `US-FIN-079` | `PagamentoBancoContratoTest` | 🧪 |
+| UC-PAGBAN-09 | Envio ao Inter nunca devolve pago | must `[V0]` | `US-FIN-079` | `InterPagadorBancoTest` | 🧪 |
+| UC-PAGBAN-10 | Só status conhecido de débito vira pago | must `[V0]` | `US-FIN-079` | `InterPagadorBancoTest` | 🧪 |
+| UC-PAGBAN-11 | Sync só consulta, e só com a flag | must | `US-FIN-079` | `PagamentoBancoContratoTest` | 🧪 |
 | UC-F01 (legado) | Venda a prazo gera título a receber | must `[V0]` | `CU-FIN-01` + `US-FIN-013` | `RetencaoLoopE2ETest` | ✅ |
 | UC-F02 (legado) | Recebimento baixa o título e entra no caixa | must `[V0]` | `CU-FIN-08` + `US-FIN-003` | `RetencaoLoopE2ETest` | ✅ |
 | UC-F04 (legado) | Ações em lote respeitam tenant/limite/contabilidade | must `[V0][T0]` | `CU-FIN-07` + `US-FIN-031` | `UnificadoBulkGuardTest` | 🧪 |
@@ -105,7 +108,7 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 
 > Derivam da **US-FIN-079** (`memory/requisitos/Financeiro/SPEC.md`): saída de dinheiro, então nunca
 > automático — cada pedido exige o valor confirmado pelo usuário, e a baixa só vem da confirmação do
-> banco. Banco simulado nos testes; o adaptador do Inter e a consulta agendada entram na próxima onda. O botão na gaveta do título a pagar entra na próxima onda, só com
+> banco. Banco simulado nos testes. O botão na gaveta do título a pagar entra na próxima onda, só com
 > a flag e a permissão `financeiro.contas_pagar.pagar_banco`.
 > **Lane:** `PHP / Pest (Financeiro · MySQL)`. **Veredito:** 🧪 — quem dá é a lane (G-7).
 
@@ -147,6 +150,21 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 ## UC-PAGBAN-08 · Outra empresa não paga o título nem usa a conta de outra `[T0]` `[must]`
 - **Aceite:** Empresa B não paga título de A, não debita conta de A, e título a receber não vai ao banco.
 - **Teste:** `PagamentoBancoContratoTest` ("UC-PAGBAN-08").
+- **Status: 🧪**
+
+## UC-PAGBAN-09 · Envio ao Inter nunca devolve pago `[V0]` `[must]`
+- **Aceite:** Mesmo com o Inter respondendo "realizado" no envio, o status é aguardando; a chave de idempotência vai no cabeçalho e o valor em 2 casas.
+- **Teste:** `InterPagadorBancoTest` ("UC-PAGBAN-09").
+- **Status: 🧪**
+
+## UC-PAGBAN-10 · Só status conhecido de débito vira pago `[V0]` `[must]`
+- **Aceite:** Na consulta: status desconhecido fica aguardando, PAGO vira pago, REJEITADO vira recusado; conta sem credencial Inter ativa não chama o banco.
+- **Teste:** `InterPagadorBancoTest` ("UC-PAGBAN-10").
+- **Status: 🧪**
+
+## UC-PAGBAN-11 · Sync só consulta, e só com a flag `[must]`
+- **Aceite:** `financeiro:pagamentos-banco-sync` com a flag desligada não toca nada; ligada, baixa o confirmado e não envia pedido novo.
+- **Teste:** `PagamentoBancoContratoTest` ("UC-PAGBAN-11").
 - **Status: 🧪**
 
 ---
