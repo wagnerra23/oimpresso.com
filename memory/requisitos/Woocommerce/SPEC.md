@@ -80,7 +80,7 @@ related_adrs:
 > owner: — · priority: p1 · estimate: 8h · status: todo · type: story
 > blocked_by: —
 
-**Implementado em:** _parcial_ · `Modules/Woocommerce/Jobs/EnviarEstoqueWooJob.php` · `Modules/Woocommerce/Listeners/EstoqueMudouParaWoo.php` · `Modules/Woocommerce/Tests/Feature/EstoqueVoltaParaWooContratoTest.php` — 2026-10-26: produto simples; produto variável (estoque por variação, como o `syncProductVariations`) fica para o próximo PR
+**Implementado em:** _pendente_ — parcial em 2026-10-26: o produto simples já volta para a loja (Modules/Woocommerce/Jobs/EnviarEstoqueWooJob.php e Modules/Woocommerce/Listeners/EstoqueMudouParaWoo.php); produto variável (estoque por variação, como o `syncProductVariations`) fica para o próximo PR, e só então a US fecha
 
 **Testado em:** `Modules/Woocommerce/Tests/Feature/EstoqueVoltaParaWooContratoTest.php`
 

@@ -8,6 +8,7 @@ use App\Business;
 use App\Product;
 use App\Utils\ModuleUtil;
 use App\VariationLocationDetails;
+use Automattic\WooCommerce\Client;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -96,7 +97,11 @@ class EnviarEstoqueWooJob implements ShouldQueue, ShouldBeUnique
 
         $wooId = (int) Product::query()->where('business_id', $this->businessId)->where('id', $this->productId)->value('woocommerce_product_id');
 
-        $util->woo_client($this->businessId)->put('products/'.$wooId, [
+        // `WoocommerceUtil::woo_client()` declara `@return obj` (classe que não existe); o objeto
+        // real é o Client da Automattic, e é ele que o PHPStan precisa ver aqui.
+        /** @var Client $cliente */
+        $cliente = $util->woo_client($this->businessId);
+        $cliente->put('products/'.$wooId, [
             'manage_stock' => true,
             'stock_quantity' => $qtd,
         ]);
