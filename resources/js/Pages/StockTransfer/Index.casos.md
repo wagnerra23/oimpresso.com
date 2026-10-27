@@ -38,6 +38,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Status: ⬜**
 
 ## UC-TRIDX-04 · O "Imprimir" gera o recibo da transferência, só do próprio business `[T0]` `[must]`
+- **Persona:** quem separa e despacha a mercadoria e leva o recibo junto com a carga.
 - **Aceite:** Dado uma transferência do business 98 · Quando a lista pede `GET /stock-transfers/print/{id}` · Então recebe `success = 1` e o recibo em HTML com a referência dela (o mesmo `stock_transfer.print` da Blade); pedida por outro business, recebe `success = 0` e nenhum HTML.
 - **Teste:** [`tests/Feature/Estoque/EstoqueTransferenciaImpressaoTest.php`](../../../../tests/Feature/Estoque/EstoqueTransferenciaImpressaoTest.php) — os casos `UC-TRIDX-04`.
 - **Regressão que defende:** até 2026-10-27 o botão abria `/stock-transfers/{id}/print` numa aba, rota que não existe (404). A impressão continua sendo o HTML da Blade, por decisão [W] de 2026-10-27.
