@@ -83,8 +83,10 @@ it('UC-SAPAG-01 · a tela React é o padrão e as telas Blade de criar/editar n�
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page) => $page->component('superadmin/Paginas/Index'));
 
-    $this->actingAs($su)->get(ROTA_PAG . '/create')->assertNotFound();
-    $this->actingAs($su)->get(ROTA_PAG . '/' . $p->id . '/edit')->assertNotFound();
+    // Sem rota GET: `/create` casa com o PUT/DELETE de `/{id}` e responde 405; `/{id}/edit`, 404.
+    // As duas formas provam a mesma coisa — não existe mais tela Blade de criar nem de editar.
+    expect($this->actingAs($su)->get(ROTA_PAG . '/create')->getStatusCode())->toBeIn([404, 405]);
+    expect($this->actingAs($su)->get(ROTA_PAG . '/' . $p->id . '/edit')->getStatusCode())->toBeIn([404, 405]);
 });
 
 it('UC-SAPAG-02 · usuário comum é barrado enquanto o superadmin passa', function () {

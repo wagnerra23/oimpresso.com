@@ -17,7 +17,7 @@ last_run: "2026-10-27"
 ## UC-SAPAG-01 · A tela React é o padrão e as telas Blade de criar/editar não existem mais · `must`
 
 **Dado** que sou superadmin **Quando** abro `/superadmin/frontend-pages` **Então** recebo Inertia com
-`superadmin/Paginas/Index`; **e** `/superadmin/frontend-pages/create` e `/{id}/edit` respondem 404
+`superadmin/Paginas/Index`; **e** `/superadmin/frontend-pages/create` e `/{id}/edit` não têm rota GET (404 ou 405)
 (criar e editar são o drawer da própria tela — cutover 2026-10-27).
 
 Status: 🧪
