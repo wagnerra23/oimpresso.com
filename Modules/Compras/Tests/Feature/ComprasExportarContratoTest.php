@@ -9,22 +9,18 @@ use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Permission;
 
 /**
- * UC-CMP-11 — o botão "Exportar" do cockpit /compras abre a tela que EXPORTA.
+ * UC-CMP-11 — o botão "Exportar" do cockpit /compras baixa a lista de compras.
+ * Contrato: SDD-tela-cockpit-compras-v1.0 §0.2 + F6 e CU-COM-07 item 4. Casos:
+ * resources/js/Pages/Compras/Index.casos.md (UC-CMP-11).
  *
- * Contrato: SDD-tela-cockpit-compras-v1.0 §0.2 + F6 ("a Blade é o destino de
- * CSV/Excel/PDF/Imprimir do cockpit") e CU-COM-07 item 4 (bridges Blade-only por
- * `window.open`). Casos: resources/js/Pages/Compras/Index.casos.md (UC-CMP-11).
+ * Histórico: até 2026-10-27 o botão abria `/purchases?classico=1`, a Blade da lista, que
+ * exportava pelos botões do DataTable. O cutover apagou essa Blade; a exportação virou
+ * `PurchaseController@exportar` (GET /purchases/exportar), que reaproveita os filtros e os
+ * escopos da lista React (`listaFiltrada`).
  *
- * Por que existe: o cutover pelo menu (#9095, D1 [W] 2026-10-07) fez GET comum em
- * `/purchases` abrir a Page React `Purchase/Index`, que NÃO exporta (charter dela:
- * "❌ Não exporta CSV/PDF"). O `openExportBlade` abria `/purchases` cru — passou a
- * cair numa tela sem exportação. Só `?classico=1` devolve a Blade com os botões.
- *
- * Como mede: lê o endereço que o `Index.tsx` de fato passa ao `window.open` e faz a
- * MESMA navegação que a nova aba faz (GET sem `X-Inertia`, sem AJAX). Exige a view
- * Blade `purchase.index`. Com o endereço antigo (`/purchases`) a resposta é Inertia
- * e o assert cai — o caso discrimina (§5 2026-09-05). A leitura do .tsx é a ponte
- * (Pest não executa JS); o veredito vem da rota real.
+ * Como mede: lê o endereço que o `Index.tsx` passa ao `window.open` e faz a MESMA navegação
+ * da nova aba. Exige CSV com BOM e o cabeçalho em pt-BR. Com o endereço antigo o path não
+ * bate e o 1º assert cai — o caso discrimina (§5 2026-09-05).
  *
  * Tenant semeado do CI (ADR 0358). Nunca biz=4. Pest só no CI / CT 100.
  *
@@ -83,14 +79,27 @@ beforeEach(function () {
     ]);
 });
 
-it('UC-CMP-11 · o endereço do Exportar abre a Blade da lista de compras, que exporta', function () {
+it('UC-CMP-11 · o endereço do Exportar baixa o CSV da lista de compras', function () {
     $endereco = cexpEnderecoDoExportar();
 
-    // Controle anti-vácuo: o endereço tem de ser a lista de compras, não outra rota.
-    expect(parse_url($endereco, PHP_URL_PATH))->toBe('/purchases');
+    // Controle anti-vácuo: o endereço tem de ser a exportação da lista, não outra rota.
+    // Antes do cutover de 2026-10-27 era `/purchases?classico=1` (a Blade com DataTable).
+    expect(parse_url($endereco, PHP_URL_PATH))->toBe('/purchases/exportar');
 
-    $this->actingAs($this->user)
-        ->get($endereco)
-        ->assertOk()
-        ->assertViewIs('purchase.index');
+    $resp = $this->actingAs($this->user)->get($endereco);
+    $resp->assertOk();
+    expect((string) $resp->headers->get('Content-Type'))->toContain('text/csv');
+
+    $csv = $resp->streamedContent();
+    // BOM UTF-8 + cabeçalho em pt-BR separado por `;` (o Excel em pt-BR abre certo).
+    expect(bin2hex(substr($csv, 0, 3)))->toBe('efbbbf');
+    $cabecalho = strtok(substr($csv, 3), PHP_EOL);
+    expect(trim($cabecalho))->toBe('Data;Referência;Local;Fornecedor;Status;Pagamento;Total;Pago;"A pagar"');
+});
+
+it('UC-CMP-11 · sem permissão de ver compras a exportação dá 403', function () {
+    $this->user->syncPermissions([]);
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+    $this->actingAs($this->user)->get('/purchases/exportar')->assertForbidden();
 });

@@ -72,10 +72,11 @@ class PurchaseController extends Controller
         // Sem este check upstream, o `request()->ajax()` abaixo capturava o request
         // Inertia e retornava JSON Datatables → "All Inertia requests must receive a
         // valid Inertia response" + filtros quebravam a tela em prod.
-        // Cutover pelo menu · thread 03 (D1 [W] 2026-10-07): React é o padrão, `?classico=1`
-        // mantém o Blade — molde `UnitController@index`. O AJAX sem `X-Inertia` (DataTable do
-        // Blade) segue no ramo de baixo. `?v=2` continua abrindo o React (opt-in antigo).
-        if (request()->query('v') === '2' || (! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia')))) {
+        // Cutover F5 (2026-10-27): a Blade `purchase.index` foi apagada; toda navegação abre o
+        // React. O AJAX sem `X-Inertia` segue no ramo de baixo porque NÃO é tela: é o JSON do
+        // DataTable da aba Compras de `contact/show.blade.php` (`purchase.partials.purchase_table`
+        // + `public/js/purchase.js`). A exportação que a Blade fazia virou `exportar()`.
+        if (! request()->ajax() || request()->header('X-Inertia')) {
             // D-14 (2026-07-06): dropdowns viraram closures dentro de indexInertia()
             // — no partial reload (only: rows/filters) nem rodam a query.
             return $this->indexInertia($business_id);
@@ -231,22 +232,57 @@ class PurchaseController extends Controller
                 ->rawColumns(['final_total', 'action', 'payment_due', 'payment_status', 'status', 'ref_no', 'name'])
                 ->make(true);
         }
-
-        $business_locations = BusinessLocation::forDropdown($business_id);
-        $suppliers = Contact::suppliersDropdown($business_id, false);
-        $orderStatuses = $this->productUtil->orderStatuses();
-
-        // Blade legacy: só com `?classico=1` (cutover pelo menu · thread 03).
-        // Inertia path tratado upstream antes do AJAX check (HOT-FIX MWART).
-        return view('purchase.index')
-            ->with(compact('business_locations', 'suppliers', 'orderStatuses'));
     }
 
     /**
-     * MWART dual path: Inertia render preservando todos os scopes do legacy index().
-     * Snapshot paridade: memory/mwart-inventory/purchase/index.snapshot.md
+     * GET /purchases/exportar — CSV da lista de compras com os mesmos filtros e escopos da tela
+     * (`listaFiltrada`). Substitui os botões de exportação do DataTable da Blade apagada no
+     * cutover (UC-CMP-11). Separador `;` e BOM UTF-8 para o Excel em pt-BR abrir certo.
      */
-    private function indexInertia($business_id)
+    public function exportar()
+    {
+        if (! auth()->user()->can('purchase.view') && ! auth()->user()->can('view_own_purchase')) {
+            abort(403, 'Unauthorized action.');
+        }
+        $business_id = request()->session()->get('user.business_id');
+
+        $linhas = $this->listaFiltrada($business_id)
+            ->orderByDesc('transactions.transaction_date')
+            ->limit(5000)
+            ->get();
+
+        $num = fn ($v) => number_format((float) $v, 2, ',', '.');
+        $arquivo = 'compras-'.date('Y-m-d-His').'.csv';
+
+        return response()->streamDownload(function () use ($linhas, $num) {
+            $out = fopen('php://output', 'w');
+            fwrite($out, "\xEF\xBB\xBF");
+            fputcsv($out, ['Data', 'Referência', 'Local', 'Fornecedor', 'Status', 'Pagamento', 'Total', 'Pago', 'A pagar'], ';');
+            foreach ($linhas as $p) {
+                $total = (float) ($p->final_total ?? 0);
+                $pago = (float) ($p->amount_paid ?? 0);
+                fputcsv($out, [
+                    (string) $p->transaction_date,
+                    (string) ($p->ref_no ?? ''),
+                    (string) ($p->location_name ?? ''),
+                    (string) ($p->supplier_business_name ?: $p->name ?: ''),
+                    (string) $p->status,
+                    (string) $p->payment_status,
+                    $num($total),
+                    $num($pago),
+                    $num($total - $pago),
+                ], ';');
+            }
+            fclose($out);
+        }, $arquivo, ['Content-Type' => 'text/csv; charset=utf-8']);
+    }
+
+    /**
+     * Compras do tenant com os filtros da lista e os escopos de permissão (locais permitidos e
+     * `view_own_purchase`). Única fonte da lista React e da exportação CSV — se divergirem, o
+     * arquivo exporta linha que a tela não mostra.
+     */
+    private function listaFiltrada($business_id)
     {
         $purchasesQuery = $this->transactionUtil->getListPurchases($business_id);
 
@@ -279,6 +315,17 @@ class PurchaseController extends Controller
         if (! auth()->user()->can('purchase.view') && auth()->user()->can('view_own_purchase')) {
             $purchasesQuery->where('transactions.created_by', request()->session()->get('user.id'));
         }
+
+        return $purchasesQuery;
+    }
+
+    /**
+     * MWART dual path: Inertia render preservando todos os scopes do legacy index().
+     * Snapshot paridade: memory/mwart-inventory/purchase/index.snapshot.md
+     */
+    private function indexInertia($business_id)
+    {
+        $purchasesQuery = $this->listaFiltrada($business_id);
 
         $purchases = $purchasesQuery->orderByDesc('transactions.transaction_date')->limit(200)->get();
 

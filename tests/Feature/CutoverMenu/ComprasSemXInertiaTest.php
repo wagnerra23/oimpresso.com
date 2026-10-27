@@ -101,13 +101,22 @@ it('GET comum (como o menu navega) abre a Page React da lista e da nova compra',
     }
 });
 
-it('?classico=1 mantém o Blade da lista e da nova compra', function () {
-    foreach (csxTelas() as $nome => [$rota, , $blade, $permissoes]) {
+it('?classico=1 mantém o Blade da nova compra', function () {
+    // A lista saiu deste caso no cutover de 2026-10-27: a Blade `purchase.index` foi apagada.
+    foreach (array_intersect_key(csxTelas(), ['nova' => true]) as $nome => [$rota, , $blade, $permissoes]) {
         csxLogin($this, csxUsuario($this->bizId, $permissoes))
             ->get($rota . '?classico=1')
             ->assertOk()
             ->assertViewIs($blade);
     }
+});
+
+it('?classico=1 na lista abre o React: a Blade da lista não existe mais', function () {
+    // Discrimina o cutover: antes de 2026-10-27 esta mesma URL devolvia a view `purchase.index`.
+    $resp = csxLogin($this, csxUsuario($this->bizId, ['purchase.view', 'access_all_locations']))
+        ->get('/purchases?classico=1');
+    $resp->assertOk();
+    $resp->assertInertia(fn (AssertableInertia $p) => $p->component('Purchase/Index', false));
 });
 
 it('a visita Inertia (X-Inertia + X-Requested-With) recebe a Page das duas telas', function () {
