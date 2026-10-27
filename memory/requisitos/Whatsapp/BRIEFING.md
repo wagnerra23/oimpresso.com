@@ -21,6 +21,7 @@ Módulo de atendimento multicanal (inbox omnichannel) com WhatsApp como canal pr
 
 ## Gaps
 - Bot de atendimento com menu (opção → fila, pergunta de nome, depois humano): motor pronto atrás de `WHATSAPP_BOT_MENU_ENABLED` (US-WA-324, desligado); menu configurado na aba "Menu do bot" do canal (US-WA-327).
+- Campanha por WhatsApp: motor de disparo real com anti-ban (intervalo aleatório, horário comercial, limite diário com aquecimento) e rechecagem de opt-in pronto atrás de `WHATSAPP_BROADCAST_DISPARO_ENABLED` (US-WA-322, desligado); botão "Salvar e disparar" e cancelar na Caixa Unificada (US-WA-323).
 - Inbox omnichannel: só o eixo WhatsApp opera. `instagram`/`messenger`/`email_imap`/`email_smtp`/`mercadolivre` existem como tipo em `Channel::TYPES`, mas o `ChannelDriverFactory` lança `NotImplementedDriverException` e não há webhook — Fases 1–3 da ADR 0135 (Instagram · e-mail · Mercado Livre), backlog gated por sinal de cliente. ⚠️ Os ids US-WA-063/064/065 que a 0135 §Stories reserva pra essas fases já foram consumidos no SPEC por outras stories (063 Tags e 064 Contact/@lid, ambas `done`; 065 inexistente) — citar a fase, nunca o id.
 - Canais `Suporte` e `Jana` (biz=1) sem inbound desde aproximadamente julho/2026; recovery não executado (CT 100 inalcançável em 2026-09-02) — plano na sessão `2026-09-02-whatsapp-incident-canais-biz1-mudos-whatsmeow` §7.
 - Anexos automáticos (boleto/NFe/Pix) nas conversas — backlog (US-WA-038 · US-RB-044 v2; Pix marcado AUSENTE no CAPTERRA-INVENTARIO).
