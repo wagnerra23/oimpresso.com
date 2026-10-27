@@ -23,6 +23,8 @@ use Tests\Support\WithSeededTenant;
  *
  * Tenant 98 (fictício) · vizinho 99. biz=4 é proibido (ADR 0358).
  *
+ * @covers-us US-REPA-006
+ *
  * @see resources/js/Pages/Repair/Dashboard/Index.casos.md
  */
 uses(Tests\TestCase::class, WithSeededTenant::class);
@@ -43,13 +45,18 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    $os = DB::table('repair_job_sheets')->where('job_sheet_no', 'like', RIND_MARCA.'%')->pluck('id');
-    $proc = DB::table('sale_processes')->where('key', 'like', 'test_rind_%')->pluck('id');
-    $etapas = DB::table('sale_process_stages')->whereIn('process_id', $proc)->pluck('id');
-    DB::table('sale_stage_history')->whereIn('to_stage_id', $etapas)->delete();
-    DB::table('repair_job_sheets')->whereIn('id', $os)->delete();
-    DB::table('sale_process_stages')->whereIn('id', $etapas)->delete();
-    DB::table('sale_processes')->whereIn('id', $proc)->delete();
+    // O afterEach roda mesmo com o teste pulado: na lane SQLite as tabelas nem existem.
+    try {
+        $os = DB::table('repair_job_sheets')->where('job_sheet_no', 'like', RIND_MARCA.'%')->pluck('id');
+        $proc = DB::table('sale_processes')->where('key', 'like', 'test_rind_%')->pluck('id');
+        $etapas = DB::table('sale_process_stages')->whereIn('process_id', $proc)->pluck('id');
+        DB::table('sale_stage_history')->whereIn('to_stage_id', $etapas)->delete();
+        DB::table('repair_job_sheets')->whereIn('id', $os)->delete();
+        DB::table('sale_process_stages')->whereIn('id', $etapas)->delete();
+        DB::table('sale_processes')->whereIn('id', $proc)->delete();
+    } catch (\Throwable $e) {
+        // ambiente sem as tabelas — nada a limpar
+    }
     config(['mwart.repair_dashboard_index.enabled' => false, 'mwart.repair_dashboard_index.business_ids' => []]);
 });
 

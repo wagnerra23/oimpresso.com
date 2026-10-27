@@ -93,7 +93,7 @@ final class IndicadoresOsService
      * Etapas do processo do Repair deste business: o processo padrão pela chave, mais
      * qualquer processo em que alguma OS do business esteja hoje (empresa com modelo próprio).
      *
-     * @return Collection<int, object> id => {id,key,name,sort_order,is_terminal}
+     * @return Collection<int|string, \stdClass> id => {id,key,name,sort_order,is_terminal}
      */
     private function etapasDoRepair(int $businessId): Collection
     {

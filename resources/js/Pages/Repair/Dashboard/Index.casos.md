@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + criterio de aceite verificavel (D
 por_que: um painel so vale pelo que ele NAO faz — read-only puro, sem escrita, sem job, sem cruzar tenant; e o KPI precisa continuar contando o que o rotulo promete
 owner: wagner
 autor: "[C] 2026-09-05"
-last_run: "2026-09-09"
+last_run: "2026-10-27"
 ---
 
 # Casos de Uso & Aceite — Painel do Repair
