@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a lista é a PORTA do catálogo — se ela esconde produto, esconde preço a quem não devia, ou mistura tenant, todo o resto do ERP herda o erro.
 owner: wagner
-last_run: "2026-10-19"
+last_run: "2026-10-26"
 last_run_ci: "2026-10-23: run 39945557255 (lane Estoque · MySQL, main 53e7995, disparada à mão): 497 testes, 0 falhas, 0 pulados, com todos os arquivos Pest da lista; job 120384523098 (Frontend / Vite build, mesmo commit): os 2 arquivos Vitest da lista que rodam em lane passaram; os outros 8 arquivos Vitest da lista não rodam em lane e passaram local (133 de 133). Antes: 2026-10-19, job 118208572139."
 ---
 
@@ -66,7 +66,7 @@ last_run_ci: "2026-10-23: run 39945557255 (lane Estoque · MySQL, main 53e7995, 
 | UC-PIDX-08 | A aba "Relatório de estoque" mostra as linhas de Relatórios → Estoque com os filtros da tela e totaliza TODAS as linhas | must | charter v3 §Goals + Blade `#product_stock_report` (`@can('stock_report.view')`) | `ProdutoListaEstoqueAbaTest` (Pest) | 🧪 passou 2026-10-23 — Pest na lane (run 39945557255) |
 | UC-PIDX-09 | O painel de detalhe mostra o conteúdo da janela "Ver" da Blade, com os mesmos gates, e só do produto da empresa | must `[T0]` | charter v3 §Goals + Blade `ProductController::view` + ADR 0093 | `ProdutoDetalheTest` (Pest) | 🧪 passou 2026-10-23 — Pest na lane (run 39945557255) |
 | UC-PIDX-10 | "Exportar filtrados" traz as mesmas linhas da lista, em CSV, com preço só para quem pode ver | should | charter v3 §Goals + protótipo (rodapé, `exportarCsv`) + gate de preço da lista (UC-PIDX-03) | `ProdutoListaExportarTest` (Pest) | 🧪 passou 2026-10-23 — Pest na lane (run 39945557255) |
-| UC-PIDX-11 | "Comprar" abre a nova compra com o produto | should | protótipo (`acoesDe`, rodapé do `DetalheDrawer`) + pedido [F] 2026-10-11 | `ProdutoDetalheTest` (Pest) | 🧪 passou 2026-10-23 — Pest na lane (run 39945557255) |
+| UC-PIDX-11 | A consulta não oferece compra (nem a quem pode criar compra) | should | decisão [F] 2026-10-26 + protótipo (`acoesDe`, rodapé do `DetalheDrawer`, #9925) | `ProdutoDetalheTest` (Pest) + `produto-menu-da-linha.test.tsx` + `produto-painel-detalhe.test.tsx` (Vitest) | 🧪 aguarda veredito da lane — Vitest local passou 2026-10-26 |
 | UC-PIDX-12 | Os 3 indicadores da aba Estoque do painel são a soma das linhas do relatório de estoque do produto | must | protótipo (`DetalheDrawer`, aba Estoque) + contas de `linhaDoRelatorioEstoque` + Blade `view_product_stock_value` | `ProdutoDetalheTest` (Pest) | 🧪 passou 2026-10-23 — Pest na lane (run 39945557255) |
 | UC-PIDX-13 | Clicar no cabeçalho de uma coluna ordena a lista no servidor, nas duas direções; por preço só para quem pode ver o preço | should | protótipo (`ListaProdutos`, colunas `sortable`) + `$ordenaveis` de `buildProdutoListaPaginada` + gate de preço (UC-PIDX-03) | `ProdutoListaOrdenacaoTest` (Pest) + `produto-lista-ordenacao.test.tsx` (Vitest) | 🧪 passou 2026-10-23 — Pest na lane (run 39945557255) + Vitest local |
 | UC-PIDX-14 | "Cadastro rápido" cria o produto com os preços que o formulário Blade gravaria, só na empresa e nos locais permitidos | must `[V0]` `[T0]` | charter v3 §Goals ("Cadastro rápido") + protótipo (`ModalCadastroRapido`) + Blade `quick_add_product` / `saveQuickProduct` + REGRA MESTRE valor | `ProdutoListaCadastroRapidoTest` (Pest) + `produto-cadastro-rapido.test.tsx` (Vitest) | 🧪 passou 2026-10-23 — Pest na lane (run 39945557255) + Vitest local |
@@ -256,15 +256,13 @@ last_run_ci: "2026-10-23: run 39945557255 (lane Estoque · MySQL, main 53e7995, 
 - **Decisão [F] de 2026-10-26, ainda não na produção:** a coluna Imposto do CSV segue a da lista e só sai se a empresa tem alíquota cadastrada. Hoje sai sempre (`ProductController.php:1086`, verificado@3886121). Ver o backlog "Decisões do [F] de 2026-10-26".
 - **Status: 🧪** — passou (2026-10-23). Pest na lane Estoque · MySQL, run 39945557255 (main 53e7995, 2026-10-23): 497 testes, 0 falhas, 0 pulados.
 
-## UC-PIDX-11 · "Comprar" abre a nova compra com o produto · `should`
-- **Persona:** Larissa vê na lista que um produto está acabando e quer repor sem ter de procurá-lo de novo na compra.
-- **Aceite:** Dado um produto ativo e com controle de estoque, e a permissão de criar compra · Quando escolho "Comprar este produto" no menu da linha, ou "Comprar" no painel de detalhe · Então abre a nova compra já com esse produto (UC-PURCRE-09). Sem a permissão, ou com produto inativo ou sem controle de estoque, a ação não aparece.
-- **Teste:** [`ProdutoDetalheTest`](../../../../tests/Feature/Produto/ProdutoDetalheTest.php) — `UC-PIDX-11` (a permissão); o que a compra faz com o produto é o UC-PURCRE-09, em [`PurchaseGradeMatrixTest`](../../../../tests/Feature/Purchase/PurchaseGradeMatrixTest.php).
-- **Contrato:**
-  - **Protótipo** — `acoesDe` ("Comprar este produto") e rodapé do `DetalheDrawer` ("Comprar"); pedido [F] 2026-10-11 *"abre preenchido com o produto"*. Os dois saíram do protótipo em 2026-10-26 (#9925); ver abaixo.
-  - **Compra** — produto inativo ou sem controle de estoque não aparece na busca da compra (`getProducts`); por isso a ação some nesses casos, em vez de abrir uma compra vazia.
-- **Decisão [F] de 2026-10-26, ainda não na produção:** o "Comprar" sai do menu e do painel, porque a consulta não é a tela de compras. O caso e o teste continuam valendo enquanto a produção tiver o botão. O PR que tirar o botão reescreve este caso e o teste no mesmo PR. Ver o backlog "Decisões do [F] de 2026-10-26".
-- **Status: 🧪** — passou (2026-10-23). Pest na lane Estoque · MySQL, run 39945557255 (main 53e7995, 2026-10-23): 497 testes, 0 falhas, 0 pulados.
+## UC-PIDX-11 · A consulta não oferece compra · `should`
+- **Persona:** o vendedor e o administrador consultam o produto para informar preço e estoque; comprar é trabalho da tela de compras.
+- **Aceite:** Dado qualquer produto, inclusive ativo e com controle de estoque, e mesmo com a permissão de criar compra · Quando abro o menu Ações da linha ou o painel de detalhe · Então não há "Comprar este produto" nem "Comprar", e a lista não manda a permissão `comprar`.
+- **Teste:** [`ProdutoDetalheTest`](../../../../tests/Feature/Produto/ProdutoDetalheTest.php) — `UC-PIDX-11` (a lista não manda `comprar`, nem a quem tem `purchase.create`); [`produto-menu-da-linha.test.tsx`](../../../../tests/js/produto-menu-da-linha.test.tsx) — `UC-PIDX-11` (o menu); [`produto-painel-detalhe.test.tsx`](../../../../tests/js/produto-painel-detalhe.test.tsx) — `UC-PIDX-11 · rodapé`.
+- **Contrato:** decisão [F] de 2026-10-26, comentário na âncora: *"Aqui não é a tela do comprador, então não fica este botão aqui"*. Protótipo `produto-blade.jsx` sem "Comprar" no `acoesDe` nem no rodapé do `DetalheDrawer` (#9925).
+- **Antes (2026-10-11 a 2026-10-26) o caso era o oposto:** "Comprar" abria a nova compra com o produto, a pedido do [F] em 2026-10-11. A tela de compra continua aceitando o produto pelo endereço (UC-PURCRE-09, no módulo Compras); só a consulta deixou de oferecer o atalho.
+- **Status: 🧪** — aguarda veredito da lane (o Pest é novo). Vitest local em 2026-10-26: os 103 testes dos 9 arquivos da lista e do painel passaram; mutação de controle (um "Comprar" de volta no menu) derrubou 3 casos.
 
 ## UC-PIDX-12 · Os 3 indicadores da aba Estoque do painel somam o relatório de estoque do produto · `must`
 - **Persona:** Larissa abre o painel de um produto e quer ver de relance quanto tem dele, quanto isso vale pelo que pagou e por quanto venderia — sem ir a Relatórios → Estoque e somar local por local.
@@ -338,10 +336,10 @@ last_run_ci: "2026-10-23: run 39945557255 (lane Estoque · MySQL, main 53e7995, 
 
 ## UC-PIDX-17 · "Dados fiscais" no menu da linha abre o painel na aba Fiscal · `should`
 - **Persona:** Larissa vai emitir nota e quer conferir o NCM e o CFOP de um produto sem abrir o cadastro.
-- **Aceite:** Dada a lista aberta e a permissão de ver o produto · Quando escolho "Dados fiscais (NCM/CFOP)" no menu Ações da linha · Então o painel de detalhe daquele produto abre **já na aba Fiscal**, com NCM, CEST, CFOP dentro e fora do estado e os CSTs. O item fica logo depois de "Comprar este produto" e não depende de o produto ter estoque nem de estar ativo. Sem a permissão de ver o produto, o item não aparece (como o "Ver"). Abrir um produto pelo "Ver" ou pelo clique na linha continua começando na aba Dados.
+- **Aceite:** Dada a lista aberta e a permissão de ver o produto · Quando escolho "Dados fiscais (NCM/CFOP)" no menu Ações da linha · Então o painel de detalhe daquele produto abre **já na aba Fiscal**, com NCM, CEST, CFOP dentro e fora do estado e os CSTs. O item fica logo depois de "Adicionar ou editar preços por grupo" e não depende de o produto ter estoque nem de estar ativo. Sem a permissão de ver o produto, o item não aparece (como o "Ver"). Abrir um produto pelo "Ver" ou pelo clique na linha continua começando na aba Dados.
 - **Teste:** [`produto-menu-da-linha.test.tsx`](../../../../tests/js/produto-menu-da-linha.test.tsx) — `UC-PIDX-17` (o item, a posição, a permissão e a ação que ele dispara) e [`produto-painel-detalhe.test.tsx`](../../../../tests/js/produto-painel-detalhe.test.tsx) — `UC-PIDX-17` (o painel abre na aba pedida).
 - **Contrato:**
-  - **Protótipo** — `acoesDe`: `{ l: "Dados fiscais (NCM/CFOP)", … on: () => onAcao("fiscal", p) }`, no grupo de Comprar / Transferir / Usar em uma OS; a aba `fiscal` do `DetalheDrawer`.
+  - **Protótipo** — `acoesDe`: `{ l: "Dados fiscais (NCM/CFOP)", … on: () => onAcao("fiscal", p) }`, no grupo de Transferir / Usar em uma OS (o "Comprar" saiu em 2026-10-26, UC-PIDX-11); a aba `fiscal` do `DetalheDrawer`.
   - **Dados** — os da aba Fiscal que já existia (`buildProdutoDetalhe` → `fiscal`); nada novo vem do servidor.
 - **Diferença deliberada do protótipo:** lá `onAcao("fiscal")` faz o mesmo que o "Ver" (`setVer(p)`), e o painel nasce sempre em "Dados" — o item leva o nome de fiscal e cai na aba errada. Aqui ele abre na aba Fiscal.
 - **Efeito no "Ver":** a aba ativa do painel passou a ser guardada pela página, e cada abertura recomeça na aba pedida. Antes o painel guardava a aba e ficava montado entre uma abertura e outra. Medido em produção em 2026-10-13, antes desta mudança: abrir o produto "2" pelo "Ver", ir para Estoque, fechar e abrir o "55555555555" pelo "Ver" caiu em Estoque. No protótipo o painel sempre abre em Dados.
@@ -742,10 +740,7 @@ não o produto. O protótipo mudou no PR #9925. A produção segue como os casos
 item abaixo vira caso, com teste, no PR que o levar à produção; os casos que ele contradiz são
 reescritos no mesmo PR. As referências de código são do `main` em 3886121.
 
-- **[BACKLOG] A consulta não oferece compra** — Aceite: Dado qualquer produto e qualquer permissão ·
-  Quando abro o menu Ações da linha ou o painel de detalhe · Então não há "Comprar este produto" nem
-  "Comprar". Hoje: `AcoesProduto.tsx:74` e `PainelDetalhe.tsx:710`, com `purchase.create`.
-  Substitui o UC-PIDX-11.
+- A consulta não oferece compra: feito, virou o UC-PIDX-11 (com teste).
 - **[BACKLOG] O preço que a venda cobra vem primeiro, e o imposto aparece junto dele** — Aceite: Dado
   um produto com imposto e a permissão de ver o preço de venda · Quando abro o painel · Então a aba
   Dados começa com "Preço de venda" (o preço com imposto, `sell_price_inc_tax`, o mesmo número da
@@ -757,8 +752,9 @@ reescritos no mesmo PR. As referências de código são do `main` em 3886121.
   Dadas as tabelas de Variações e Composição do painel · Quando o produto não tem imposto · Então há
   uma coluna de compra e uma de venda ("Compra", "Venda", "Total") · Quando tem · Então "Compra sem
   imposto", "Compra com imposto", "Venda sem imposto", "Venda com imposto" e "Total sem imposto", não
-  "(excl.)" e "(incl.)". Hoje: sempre as duas, com "(excl.)/(incl.)"
-  (`PainelDetalhe.tsx:436-440,507-508,546-549`). É forma (eixo em que o protótipo manda).
+  "(excl.)" e "(incl.)". Hoje: sempre as duas colunas (`PainelDetalhe.tsx:436-440,507-508,546-549`);
+  os rótulos "sem imposto" e "com imposto" já foram para a produção junto com o UC-PIDX-11, e falta a
+  coluna única. É forma (eixo em que o protótipo manda).
 - **[BACKLOG] Aba Fiscal só em empresa que emite nota, começando pela prontidão** — Aceite: Dada uma
   empresa sem o módulo Fiscal no pacote · Então o painel não tem aba Fiscal e o menu da linha não tem
   "Dados fiscais (NCM/CFOP)" · Dada uma empresa com o módulo · Então a aba existe para quem vê o
@@ -795,6 +791,7 @@ há item aqui.
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
+- 2026-10-26 · [F+C] **UC-PIDX-11 reescrito** (decisão [F]): a consulta não oferece compra. Saem "Comprar este produto" do menu da linha, "Comprar" do rodapé do painel e a permissão `comprar` das props da lista; os rótulos "(excl.)/(incl.)" do painel viram "sem imposto/com imposto". O caso antigo ("Comprar abre a nova compra") fica registrado na seção do UC; o backlog perde o item que virou caso.
 - 2026-10-26 · [F+C] **só documentação:** as decisões do [F] na âncora e na conversa (Comprar sai, Gerar OP sai, imposto por relevância e não por permissão, preço que a venda cobra em primeiro, aba Fiscal só em empresa que emite nota) entram como backlog, com nota nos UC-PIDX-09, 10, 11, 17, 19 e 25. O protótipo mudou no #9925; a produção não. Nenhum caso, teste ou status muda.
 - 2026-10-23 · [M+C] **UC-PIDX-33** (painel, aba Estoque): o backlog "Quantidade vendida por local" vira caso, a pedido da ROTA LIVRE (número 33 porque 28–32 já estão nos rascunhos #9778 e #9785). A tabela de locais ganha a coluna "Vendido", como no artefato "Consulta de Produto" de 22/10; o número já vinha do servidor em cada linha.
 - 2026-10-18 · [F+C] `produto-lista-encaixe` e `produto-lista-redimensionar` (UC-PIDX-16, 26 e 27) entram no Vitest do `Frontend / Vite build`. Foi em PR próprio porque `.github/` pede revisão do [W]; o conserto da tela entrou antes, no #9535.
