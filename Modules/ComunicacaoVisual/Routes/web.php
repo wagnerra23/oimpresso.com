@@ -5,8 +5,11 @@ use Modules\ComunicacaoVisual\Http\Controllers\AgendaController;
 use Modules\ComunicacaoVisual\Http\Controllers\ApontamentoController;
 use Modules\ComunicacaoVisual\Http\Controllers\InstalacaoController;
 use Modules\ComunicacaoVisual\Http\Controllers\InstallController;
+use Modules\ComunicacaoVisual\Http\Controllers\OrcamentoAceiteController;
 use Modules\ComunicacaoVisual\Http\Controllers\OrcamentoArquivoController;
 use Modules\ComunicacaoVisual\Http\Controllers\OrcamentoController;
+use Modules\ComunicacaoVisual\Http\Controllers\Public\OrcamentoAceitePublicoController;
+use Modules\ComunicacaoVisual\Http\Controllers\RoteiroPadraoController;
 
 // Rota raiz do módulo: renderiza Index.tsx — calculadora de orçamento por m²
 // (US-COMVIS-001) + cartões "em breve" das outras áreas. Nasceu em 2026-05-26
@@ -128,6 +131,14 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
             ->whereNumber('id')
             ->name('comvis.api.orcamentos.aprovar');
 
+        // US-COMVIS-023: link para o cliente aceitar o orçamento (token só nesta resposta)
+        Route::post('orcamentos/{id}/link', [OrcamentoAceiteController::class, 'gerar'])
+            ->whereNumber('id')
+            ->name('comvis.api.orcamentos.link');
+        // US-COMVIS-003 (decisão [W] 2026-10-26): roteiro padrão com que a OS nasce no quadro do PCP
+        Route::get('roteiro-padrao', [RoteiroPadraoController::class, 'show'])->name('comvis.api.roteiro-padrao.show');
+        Route::put('roteiro-padrao', [RoteiroPadraoController::class, 'update'])->name('comvis.api.roteiro-padrao.update');
+
         // Arquivos do orçamento (arte, foto do local) — copiados para a OS ao aprovar (UC-FLX-01)
         Route::post('orcamentos/{id}/arquivos', [OrcamentoArquivoController::class, 'store'])
             ->whereNumber('id')
@@ -162,4 +173,16 @@ Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'Adm
         Route::post('os/{os}/instalacao', [InstalacaoController::class, 'agendar'])
             ->whereNumber('os')
             ->name('comvis.api.instalacoes.agendar');
+    });
+
+// ── US-COMVIS-023 · página pública do aceite do orçamento (sem login) ──
+// A empresa vem do token (só o sha256 fica no banco), nunca da URL. Throttle 30/min/IP contra
+// varredura de token; `web` dá sessão + CSRF ao formulário.
+Route::middleware(['web', 'throttle:30,1'])
+    ->prefix('orcamento-cv')
+    ->name('comvis.aceite.')
+    ->group(function () {
+        Route::get('{token}', [OrcamentoAceitePublicoController::class, 'mostrar'])->where('token', '[A-Za-z0-9]{48}')->name('mostrar');
+        Route::post('{token}/aceitar', [OrcamentoAceitePublicoController::class, 'aceitar'])->where('token', '[A-Za-z0-9]{48}')->name('aceitar');
+        Route::post('{token}/ajuste', [OrcamentoAceitePublicoController::class, 'ajuste'])->where('token', '[A-Za-z0-9]{48}')->name('ajuste');
     });

@@ -246,6 +246,24 @@ o veredito, a US segue pendente — arquivo existir não é teste passar (LC-13)
 - 30 dias sem incidente antes de remover `clients/index.blade.php` e o dual render.
 - Ao remover, reavaliar `na_justified.D4.c` no frontmatter: com tela Inertia viva a justificativa de N/A por "0 tsx" deixa de valer, e isso MUDA a nota do módulo — decisão [W].
 
+### US-CONN-021 · Webhooks de saída assinados por empresa (venda, pedido, cliente, estoque)
+
+> owner: — · priority: p1 · estimate: 12h · type: story
+> blocked_by: —
+
+**Implementado em:** _parcial_ · `Modules/Connector/Services/WebhookSaida/DisparadorWebhookSaida.php` · `Modules/Connector/Jobs/EnviarWebhookSaidaJob.php` · `Modules/Connector/Listeners/VendaFinalizadaParaWebhookSaida.php` · `Modules/Connector/Tests/Feature/ConnectorWebhookSaidaContratoTest.php` — 2026-10-26: núcleo + evento `venda.finalizada`; faltam o cadastro do destino pela API, os eventos de cliente, venda cancelada e estoque, e a página no OpenAPI
+
+**Testado em:** `Modules/Connector/Tests/Feature/ConnectorWebhookSaidaContratoTest.php`
+
+**DoD:** venda finalizada da empresa avisa só os destinos dela, uma vez por venda, com payload sem dado pessoal; a entrega sai assinada (HMAC-SHA256 conferível pelo destino); recusa do destino não vira entregue e, esgotadas as tentativas, fica falhou; job com empresa errada não envia; segredo cifrado no banco.
+
+Origem: levantamento de lacunas 2026-10-25 (P1 Plataforma — API pública e webhooks de saída).
+- A empresa cadastra URL de destino + eventos (venda finalizada, venda cancelada, cliente criado/alterado, estoque alterado).
+- Cada entrega é um job com `business_id` no construtor; payload assinado com HMAC-SHA256 por segredo da empresa (cabeçalho `X-Oimpresso-Signature`), id de entrega idempotente, até 5 tentativas com backoff.
+- Log de entrega por empresa (status, código HTTP, duração), sem PII em claro no log.
+- Nenhuma entrega cruza empresa: teste 98 × 99.
+- Payload documentado no OpenAPI da US-CONN-013.
+
 ## Pegadinhas catalogadas
 
 - **3 formatos de body Delphi** (`array_tabelas`, `json_flat`, `pipe`) — todos suportados em `DelphiSyncService::detectBodyFormat()`

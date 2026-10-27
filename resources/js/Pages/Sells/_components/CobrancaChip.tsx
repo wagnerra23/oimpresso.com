@@ -19,6 +19,8 @@ export interface CobrancaState {
     paga_em: string | null;
     emitida_em: string | null;
     erro_msg: string | null;
+    pix_emv?: string | null;
+    linha_digitavel?: string | null;
   };
 }
 

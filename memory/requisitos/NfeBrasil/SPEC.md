@@ -808,6 +808,23 @@ E empresa fora do Simples segue o R-NFE-017 (80,00) mesmo com RJ desmarcado
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` (lane `nfebrasil-pest`).
 **Fora deste item:** a guia (GNRE) do DIFAL; nenhum caller da emissão passa a interna do destino hoje, então o DIFAL ainda não chega à nota.
 
+### R-NFE-038 · O XML do mês vai ao contador, uma vez por competência
+
+```gherkin
+Dado a empresa com contador cadastrado e, em 09/2026, 1 NF-e autorizada, 1 cancelada e 1 rejeitada (fixture)
+Quando roda o envio da competência 2026-09
+Então o contador recebe um e-mail com um ZIP de 2 XML (a autorizada e a cancelada, marcada "-cancelada")
+E o envio fica registrado; rodar de novo no mesmo mês não manda outro e-mail
+E nota do mês sem XML no storage é contada no e-mail, não some
+E nota de outra empresa ou de outro mês não entra; empresa sem contador ou sem nota não recebe nada
+E o agendamento mensal (dia 5, 07:00) só roda com a chave ligada
+```
+
+**Contrato:** CONFAZ Ajuste SINIEF 07/2005, cláusula décima (o emitente guarda o XML e o disponibiliza); a NF-e cancelada segue escriturada.
+**Implementação:** `Modules/NfeBrasil/Services/PacoteXmlContadorService.php` · `Modules/NfeBrasil/Mail/PacoteXmlContadorMail.php` · `Modules/NfeBrasil/Console/Commands/EnviarXmlContadorCommand.php` · migração `2026_10_26_000001_create_nfe_envios_contador_table` · `Modules/NfeBrasil/Providers/NfeBrasilServiceProvider.php` (agenda) · `config/fiscal.php` (`envio_xml_contador_enabled`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/EnviarXmlContadorTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** o drawer "Enviar p/ contabilidade" do cockpit ainda mostra dados fictícios e o botão está desligado; NFS-e e eventos (CC-e) no pacote; SFTP.
+
 ### R-NFE-033 · Aceita CNPJ alfanumérico válido e recusa o inválido
 
 ```gherkin
@@ -822,6 +839,70 @@ E um CNPJ só numérico continua válido, com o mesmo DV de antes
 **Implementação:** `app/Support/BR/Cnpj.php` (DV módulo 11 com valor ASCII − 48) · `app/Rules/BR/CpfCnpj.php` (cadastro) · `Modules/NfeBrasil/Services/NfeService.php` (`emitirParaInvoice` e `buildXml` deixam de arrancar as letras do destinatário).
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/CnpjAlfanumericoTest.php` (lane `nfebrasil-pest`).
 **Fora deste item:** emitente com CNPJ alfanumérico, chave de acesso, QR Code, máscara no front e o XSD do sped-nfe (que ainda declara `TCnpj` como `[0-9]{14}`) — ver `_saida-27.md` da thread 27 do playbook Fiscal.
+
+### R-NFE-036 · A NF-e da venda sai para o cliente da venda
+
+```gherkin
+Dado uma venda de SC com cliente cadastrado com CNPJ, IE e endereço no RJ
+Quando emito a NF-e (modelo 55) dessa venda
+Então o <dest> leva o CNPJ, a IE, o endereço e a UF RJ do cliente, e o idDest é 2 (interestadual)
+E o motor recebe a UF RJ, se o cliente é contribuinte e a alíquota interna do RJ (quando cadastrada)
+E o vNF continua igual ao total da venda
+E venda sem cliente com CPF/CNPJ, e toda NFC-e, seguem com o consumidor anônimo da própria UF, como antes
+```
+
+**Contrato:** NF-e leiaute 4.00, grupo E (destinatário) e campo `idDest` (1 interna · 2 interestadual); `indIEDest` 1/2/9 conforme o cadastro do cliente.
+**Implementação:** `Modules/NfeBrasil/Services/NfeService.php` (`emitirParaTransaction`, `destinatarioDaVenda`, `destinatarioDoContato`, `internaDoDestino`, `montarItensNfe`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeDestinatarioDaVendaTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** gravar o ICMS-ST no XML (R-NFE-037 grava só o DIFAL).
+
+### R-NFE-037 · O DIFAL da venda a não contribuinte de outra UF vai ao XML
+
+```gherkin
+Dado uma venda de SC para não contribuinte no RJ, ICMS interestadual 12%, interna do RJ 20%, FCP 2%, item de 1.000,00 (fixture)
+Quando sai a NF-e
+Então o item leva o grupo ICMSUFDest com vBCUFDest 1.000,00, pICMSUFDest 20,0000, pICMSInter 12,00, partilha 100, vICMSUFDest 80,00 e vFCPUFDest 20,00
+E o ICMSTot leva vICMSUFDest 80,00 e vFCPUFDest 20,00, com o vNF igual ao total da venda (1.000,00)
+E contribuinte, ou mesma UF, não leva o grupo, e o XML fica como antes
+E sem a interna do RJ cadastrada a nota é recusada com "Alíquota interna de RJ não cadastrada"
+```
+
+**Contrato:** CF art. 155, § 2º, VII e VIII, b (EC 87/2015) e ADCT art. 99 (partilha 100% para o destino desde 2019); NF-e leiaute 4.00, grupo NA (ICMSUFDest). A SEFAZ exige o grupo na operação interestadual com consumidor final não contribuinte.
+**Implementação:** `Modules/NfeBrasil/Services/NfeService.php` (`montarItensNfe` monta o `difal` do item; `adicionarItem` emite `tagICMSUFDest`; `buildXml` soma no ICMSTot; `garantirInternaDoDifal` recusa sem a interna).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeDifalNoXmlTest.php` · `Modules/NfeBrasil/Tests/Feature/NfeDestinatarioDaVendaTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** empresa do Simples sai com o grupo e DIFAL zero quando a UF não cobra (R-NFE-035) — se a SEFAZ aceita assim só o smoke em homologação confirma; a guia GNRE do DIFAL; o `pICMSInter` é a alíquota ICMS da regra, então a regra interestadual tem de ter 4%, 7% ou 12%.
+
+### R-NFE-043 · O ICMS-ST do motor vai ao XML e soma no vNF
+
+```gherkin
+Dado um item de 1.000,00 de SC para contribuinte no RJ, regra CST 10, ICMS próprio 12%, MVA 40%, interna do RJ 18% (fixture)
+Quando sai a NF-e
+Então o ICMS10 leva modBCST 4, pMVAST 40, vBCST 1.400,00, pICMSST 18 e vICMSST 132,00 (1.400 × 0,18 − 120)
+E o ICMSTot leva vBCST 1.400,00 e vST 132,00, o vNF é 1.132,00 e o pagamento acompanha o vNF
+E CSOSN 202 também leva o ST; regra com MVA mas CST/CSOSN sem ST (ex. CST 00) é recusada com a saída
+E sem ST o vNF segue igual ao total da venda
+```
+
+**Contrato:** leiaute NF-e 4.00, regra W16 (rejeição 610 — "Total da NF difere do somatório"): vNF = vProd − vDesc − vICMSDeson + vST + vFCPST + vFrete + vSeg + vOutro + vII + vIPI + vIPIDevol. [W] 2026-10-26: "não é decisão minha, é regra do leiaute — siga".
+**Implementação:** `Modules/NfeBrasil/Services/NfeService.php` (`stDoItem`, `preencherSt`, `montarItensNfe`, `buildXml`, `emitirParaTransaction`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeIcmsStNoXmlTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** FCP-ST; ST em operação interna (a interna da própria UF ainda não chega ao motor — só a do destino interestadual); a venda continua com `final_total` sem o ST, então a nota com ST vale mais que a venda no caixa e o título do Financeiro.
+
+### R-NFE-046 · Destinatário e CFOP informados por quem emite (pedido de marketplace)
+
+```gherkin
+Dado uma venda cujo comprador veio de fora do cadastro (ex. pedido de marketplace)
+Quando emito a NF-e (modelo 55) informando esse destinatário, com as chaves de `contacts`
+Então o <dest> leva o documento, o endereço e a UF desse destinatário, e não o cliente da venda
+E destinatário informado sem CPF/CNPJ válido recusa a emissão, sem cair no consumidor anônimo
+Quando informo também um CFOP de 4 dígitos (1xxx a 7xxx)
+Então todos os itens saem com esse CFOP no lugar do da regra, e CFOP fora do formato recusa
+E sem destinatário nem CFOP informados a emissão é a do R-NFE-036
+```
+
+**Contrato:** NF-e leiaute 4.00, grupo E (destinatário) e campo `CFOP` do item (I08). O valor do CFOP é de quem chama: nada no `NfeService` fixa CFOP de marketplace.
+**Implementação:** `Modules/NfeBrasil/Services/NfeService.php` (`emitirParaTransaction`, `destinatarioDaEmissao`, `comCfop`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeDestinatarioExternoCfopTest.php` (lane `nfebrasil-pest`).
 
 ### R-NFSE-004 · A NFS-e lê o certificado da config pelo CertificadoService
 
@@ -1756,6 +1837,24 @@ Casos: `resources/js/Pages/Fiscal/Nfe.casos.md` UC-FNFE-15..18.
 - [x] Multi-tenant: o job de um business nunca transmite nota de outro (Pest com os tenants 98 e 2, UC-FNFE-18); ativar/desativar exige `nfe.contingencia.manage` (403 sem ela, `ContingenciaAtivacaoTest` UC-CONT-15)
 - [ ] Smoke fiscal manual contra SEFAZ só em biz=1, homologação
 
+### US-NFE-073 · XML do mês enviado ao contador sem ninguém lembrar — **P1**
+
+> owner: — · sprint: — · priority: p1 · estimate: 6h · type: story
+> blocked_by: —
+
+**Implementado em:** _parcial_ — `Modules/NfeBrasil/Services/PacoteXmlContadorService.php` · `Modules/NfeBrasil/Console/Commands/EnviarXmlContadorCommand.php` · `Modules/NfeBrasil/Tests/Feature/EnviarXmlContadorTest.php` (backend + agenda desligada; falta o drawer do cockpit com dado real)
+
+Como dono da empresa, quero que o XML das notas do mês chegue ao meu contador sozinho, no começo do mês seguinte, para não ter de baixar e mandar à mão nem esquecer.
+
+**Origem:** levantamento de lacunas de 2026-10-25 ("Envio automático dos XMLs ao contador", P1). Medido em 2026-10-26: o drawer `resources/js/Pages/Fiscal/_components/SendToContabilDrawer.tsx` tinha o botão desligado e o `CockpitController::mockContabilData` devolvia números fictícios; o contador já é cadastrado em `nfe_contadores` (thread 15b) e o XML já é lido pelo `DanfeService::obterXmlContents`.
+
+**Aceite:**
+- [x] O comando monta o ZIP das autorizadas e canceladas da competência, manda ao contador e registra, uma vez por empresa × mês — R-NFE-038, UC-FNFE-37/38
+- [x] Sem contador, sem nota ou em dry-run nada sai; o agendamento mensal fica atrás de `NFEBRASIL_ENVIO_XML_CONTADOR` (desligada) — UC-FNFE-39
+- [x] Multi-tenant: nota e contador de outra empresa nunca entram (tenants 98 e 99)
+- [ ] O drawer do cockpit mostra o histórico real (`nfe_envios_contador`) e o botão envia agora, com permissão
+- [ ] Ligar o envio automático em produção — **decisão [W]** (manda e-mail para fora)
+
 ### US-NFE-071 · Contingência: SVC-AN/SVC-RS, evento EPEC 110140 e marcação no DANFE (UC-FLX-32) — **P1**
 
 > owner: — · sprint: — · priority: p1 · estimate: 6h · status: todo · type: story
@@ -1782,6 +1881,42 @@ Casos: `resources/js/Pages/Fiscal/Nfe.casos.md` UC-FNFE-19, 20, 30, 31 · prova 
 - [x] Multi-tenant: o evento de um tenant nunca grava em outro (Pest com os tenants 98 e 2) — UC-FNFE-31
 - [ ] Smoke fiscal manual contra SEFAZ só em biz=1, homologação
 
+
+### US-NFE-072 · ICMS-ST e DIFAL chegam à NF-e da venda interestadual — **Legal**
+
+> owner: — · sprint: — · priority: p0 · estimate: 8h · type: story
+> blocked_by: —
+
+**Implementado em:** _parcial_ — `Modules/NfeBrasil/Services/NfeService.php` (destinatário real, destino no motor, DIFAL e ICMS-ST no XML, R-NFE-036/037/043) · `Modules/NfeBrasil/Tests/Feature/NfeDestinatarioDaVendaTest.php` · `Modules/NfeBrasil/Tests/Feature/NfeDifalNoXmlTest.php` · `Modules/NfeBrasil/Tests/Feature/NfeIcmsStNoXmlTest.php` (falta o smoke SEFAZ)
+
+Como empresa que vende para outro estado, quero que a NF-e saia para o meu cliente, com a UF dele, e leve o ICMS-ST e o DIFAL que o motor já calcula, para não emitir nota com imposto zerado numa operação interestadual.
+
+**Origem:** levantamento de lacunas de 2026-10-25 (item "ICMS-ST e DIFAL no XML da NF-e", obrigação legal). Medido em 2026-10-26 no `main`: o motor calcula ST, FCP e DIFAL (R-NFE-015..017, thread 06), mas (1) a NF-e da venda saía sempre para "CONSUMIDOR FINAL" na própria UF, então nenhuma venda chegava ao motor como interestadual, e (2) o `buildXml` grava `vBCST`, `vST`, `vICMSUFDest` e `vFCPUFDest` como zero e não emite os grupos de ST nem o `ICMSUFDest`.
+
+**Aceite:**
+- [x] A NF-e (55) da venda com cliente identificado leva o destinatário dele, e o motor recebe UF, contribuinte e interna do destino — R-NFE-036, UC-FNFE-32/33
+- [x] O XML grava o DIFAL no grupo `ICMSUFDest` e nos totais, sem mudar o vNF — R-NFE-037, UC-FNFE-34/35
+- [x] O XML grava o ICMS-ST no grupo do CST/CSOSN com ST e soma o vST ao vNF (regra W16 do leiaute; [W] 2026-10-26) — R-NFE-043, UC-FNFE-49/50
+- [x] Interestadual a não contribuinte sem interna cadastrada recusa a nota com a saída (cadastrar a interna), em vez de emitir DIFAL zero — UC-FNFE-36
+- [ ] Multi-tenant: o contato e a tabela por UF são lidos só do tenant da venda (Pest com os tenants 98 e 99)
+- [ ] Smoke fiscal manual contra SEFAZ só em biz=1, homologação (depende do certificado A1 de biz=1; em 2026-05-09 ele valia até 2026-08-06 — conferir antes)
+
+### US-NFE-075 · NF-e com destinatário e CFOP vindos de fora da venda (pedido de marketplace) — **P1**
+
+> owner: — · sprint: — · priority: p1 · estimate: 3h · type: story
+> blocked_by: —
+
+**Implementado em:** `Modules/NfeBrasil/Services/NfeService.php` (`emitirParaTransaction`, `destinatarioDaEmissao`, `comCfop`) · `Modules/NfeBrasil/Tests/Feature/NfeDestinatarioExternoCfopTest.php`
+
+Como integração de marketplace, quero emitir a NF-e do pedido pago informando quem compra e o CFOP da operação, para que a nota saia para o comprador do marketplace e com o CFOP que a empresa configurou.
+
+**Origem:** pedido da frente Plataforma de 2026-10-26: o PR #9908 deixa pronta, atrás da flag desligada `marketplaces.nfe.automatica`, a emissão da NF-e do pedido pago no Mercado Livre, e faltavam duas entradas no `NfeService`. O CFOP definitivo é decisão do contador; por isso o valor vem de quem chama e nada aqui fixa CFOP.
+
+**Aceite:**
+- [x] O destinatário externo (chaves de `contacts`) vence o cliente da venda; sem CPF/CNPJ a emissão recusa — R-NFE-046, UC-FNFE-55
+- [x] O CFOP informado vence o da regra em todos os itens; fora do formato recusa — R-NFE-046, UC-FNFE-56
+- [x] Sem os dois parâmetros a emissão é a de antes (R-NFE-036)
+- [ ] O de-para do comprador do marketplace para as chaves de `contacts` e o CFOP configurável ficam na integração do marketplace (PR #9908, frente Plataforma)
 
 ### US-NFE-074 · Cutover da emissão Delphi → oimpresso, por empresa — **Backlog**
 

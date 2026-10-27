@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-EMP-01, UC-EMP-02, UC-EMP-03, UC-EMP-04, UC-EMP-05, UC-EMP-06, UC-EMP-07, UC-EMP-08, UC-EMP-09, UC-EMP-10, UC-EMP-11, UC-EMP-12, UC-EMP-13, UC-EMP-14, UC-EMP-15 (Configuracoes/Empresa/Index.casos.md).
+// Cobre UC-EMP-01, UC-EMP-02, UC-EMP-03, UC-EMP-04, UC-EMP-05, UC-EMP-06, UC-EMP-07, UC-EMP-08, UC-EMP-09, UC-EMP-10, UC-EMP-11, UC-EMP-12, UC-EMP-13, UC-EMP-14, UC-EMP-15, UC-EMP-16, UC-EMP-17 (Configuracoes/Empresa/Index.casos.md).
 
 use App\Business;
 use App\Http\Controllers\BusinessController;
@@ -104,8 +104,27 @@ test('UC-EMP-01 com a flag ligada a tela abre em Inertia e o corpo não leva a s
 test('UC-EMP-02 com a flag desligada, ou com ?classico=1, a rota segue na Blade', function () {
     $this->get('/business/settings?classico=1')->assertOk()->assertViewIs('business.settings');
 
-    config(['feature-flags.forced_on' => '']);
+    // Desde o cutover [W] 2026-10-27 a flag vem LIGADA pelo fallbackDefaults; zerar o
+    // `feature-flags.forced_on` não a desliga mais. O lado Blade é medido com a flag OFF explícita.
+    app()->instance(\App\Services\FeatureFlagService::class, new class extends \App\Services\FeatureFlagService
+    {
+        public function isOn(string $flag, array $attrs = []): bool
+        {
+            return $flag === 'useV2ConfiguracoesEmpresa' ? false : parent::isOn($flag, $attrs);
+        }
+    });
     $this->get('/business/settings')->assertOk()->assertViewIs('business.settings');
+});
+
+test('UC-EMP-18 sem override nenhum a flag vem ligada para todas as empresas e ?classico=1 segue na Blade', function () {
+    config(['feature-flags.forced_on' => '']);
+
+    $r = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia, 'X-Requested-With' => 'XMLHttpRequest'])
+        ->get('/business/settings');
+    $r->assertOk();
+    expect($r->json('component'))->toBe('Configuracoes/Empresa/Index');
+
+    $this->get('/business/settings?classico=1')->assertOk()->assertViewIs('business.settings');
 });
 
 test('UC-EMP-03 o corpo é do negócio da sessão', function () {
@@ -556,4 +575,46 @@ test('UC-EMP-16 Vendas: ligar a pesquisa depois da entrega e escolher a nota bai
     $this->get('/business/settings?classico=1')->assertOk()
         ->assertSee('common_settings[sells_pesquisa_entrega][ativo]', false)
         ->assertSee('common_settings[sells_pesquisa_entrega][nota_baixa]', false);
+});
+
+test('UC-EMP-17 App das lojas: a aba traz os ajustes do serviço, desmarcar grava desligado e o resto de pos_settings fica', function () {
+    $outro = $this->seededSupportClientTenant();
+    $posOutro = DB::table('business')->where('id', $outro->id)->value('pos_settings');
+    DB::table('business')->where('id', $this->business->id)->update(['pos_settings' => json_encode([
+        'stripe_public_key' => 'pk_publica_98', 'stripe_secret_key' => 'sk_segredo_98', 'cash_denominations' => '100,50',
+    ])]);
+    $ajustes = \App\Services\AppLojas\AjustesDaEmpresa::class;
+
+    $r = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia, 'X-Requested-With' => 'XMLHttpRequest'])
+        ->get('/business/settings');
+    $r->assertOk();
+    $aba = collect($r->json('props.app_lojas'))->keyBy('chave')->all();
+    // PRÉ-CONDIÇÃO: a aba é exatamente o que a Blade desenha — `na_tela` e tipo bool, com o texto do serviço.
+    $esperadas = collect($ajustes::CHAVES)->filter(fn ($c) => $c['na_tela'] && $c['tipo'] === 'bool');
+    expect(array_keys($aba))->toBe($esperadas->keys()->all());
+    expect($aba['app_biometria_login']['rotulo'])->toBe($ajustes::CHAVES['app_biometria_login']['rotulo']);
+    expect($aba['app_biometria_login']['valor'])->toBeTrue();
+    expect($aba['app_entrega_exige_assinatura']['valor'])->toBeFalse();
+    expect($aba)->not->toHaveKey('app_acoes_fsm_liberadas');
+
+    // O que a aba manda: desmarcar = '0' (hidden da Blade), marcar = '1'.
+    $corpo = $r->json('props.corpo');
+    $corpo['pos_settings']['app_biometria_login'] = '0';
+    $corpo['pos_settings']['app_entrega_exige_assinatura'] = '1';
+    $this->post('/business/update', empFormData($corpo))->assertSessionHas('status.success', 1);
+
+    $lido = $ajustes::paraEmpresa($this->business->id);
+    expect($lido['app_biometria_login'])->toBeFalse();
+    expect($lido['app_entrega_exige_assinatura'])->toBeTrue();
+    expect($lido['app_anexos_camera'])->toBeTrue();
+    $gravado = empLinha($this->business->id)['pos_settings'];
+    expect($gravado['stripe_secret_key'])->toBe('sk_segredo_98');
+    expect($gravado['cash_denominations'])->toBe('100,50');
+    expect(DB::table('business')->where('id', $outro->id)->value('pos_settings'))->toBe($posOutro);
+
+    // Voltar marcado lê ligado de novo (a chave gravada como desligada não fica presa).
+    $corpo = empCorpo($this);
+    $corpo['pos_settings']['app_biometria_login'] = '1';
+    $this->post('/business/update', empFormData($corpo))->assertSessionHas('status.success', 1);
+    expect($ajustes::paraEmpresa($this->business->id)['app_biometria_login'])->toBeTrue();
 });

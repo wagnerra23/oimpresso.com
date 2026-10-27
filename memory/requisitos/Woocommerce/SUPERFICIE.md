@@ -14,7 +14,7 @@ module: Woocommerce
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Woocommerce/**` + `resources/js/Pages/Woocommerce/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 104 arquivos em 17 papéis.
+**Total mapeado:** 107 arquivos em 19 papéis.
 
 ## Controllers — 4
 
@@ -37,6 +37,14 @@ module: Woocommerce
 ## Models / Entities — 1
 
 - [WoocommerceSyncLog.php](../../../Modules/Woocommerce/Entities/WoocommerceSyncLog.php)
+
+## Jobs — 1
+
+- [EnviarEstoqueWooJob.php](../../../Modules/Woocommerce/Jobs/EnviarEstoqueWooJob.php)
+
+## Events / Listeners — 1
+
+- [EstoqueMudouParaWoo.php](../../../Modules/Woocommerce/Listeners/EstoqueMudouParaWoo.php)
 
 ## Console / Commands — 3
 
@@ -118,9 +126,9 @@ module: Woocommerce
 - [Index.casos.md](../../../Modules/Woocommerce/Resources/js/Pages/Woocommerce/Log/Index.casos.md)
 - [Index.casos.md](../../../Modules/Woocommerce/Resources/js/Pages/Woocommerce/Painel/Index.casos.md)
 
-## Testes (Pest) — 14
+## Testes (Pest) — 15
 
-- 14 em [Modules/Woocommerce/Tests/Feature/](../../../Modules/Woocommerce/Tests/Feature)
+- 15 em [Modules/Woocommerce/Tests/Feature/](../../../Modules/Woocommerce/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 33

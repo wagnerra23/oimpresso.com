@@ -173,6 +173,8 @@ class CaixaUnificadaController extends Controller
             'unlinked' => $unlinked,
             'mediaInbound24h' => $mediaInbound24h,
             'inboundAging' => $inboundAging,
+            // US-WA-323 — o botão "Salvar e disparar" só liga com a flag do disparo real (US-WA-322).
+            'broadcastDisparoHabilitado' => (bool) config('whatsapp.broadcast.disparo_enabled', false),
             'orderBy' => $orderBy,
             'activeTagIds' => array_values($activeTagIds),
             'thread' => $thread,
@@ -203,7 +205,7 @@ class CaixaUnificadaController extends Controller
      * `business_id`; o `contact_id` vem da conversa (já do business atual).
      * `total_paid` não existe no schema → subquery em `transaction_payments`
      * (mesma expressão do painel Cliente). Contagem/LTV só de venda real
-     * (`status != 'draft'`); saldo só de `due`/`partial`.
+     * (`status` fora de `draft` e `cancelled`); saldo só de `due`/`partial`.
      *
      * @return array{linked: bool, sells_count: int, ltv: float, saldo_aberto: float}
      */
@@ -220,9 +222,9 @@ class CaixaUnificadaController extends Controller
             ->where('contact_id', $contactId)
             ->where('type', 'sell')
             ->selectRaw("
-                SUM(CASE WHEN status != 'draft' THEN 1 ELSE 0 END) AS sells_count,
-                SUM(CASE WHEN status != 'draft' THEN final_total ELSE 0 END) AS ltv,
-                SUM(CASE WHEN status != 'draft' AND payment_status IN ('due','partial')
+                SUM(CASE WHEN status NOT IN ('draft', 'cancelled') THEN 1 ELSE 0 END) AS sells_count,
+                SUM(CASE WHEN status NOT IN ('draft', 'cancelled') THEN final_total ELSE 0 END) AS ltv,
+                SUM(CASE WHEN status NOT IN ('draft', 'cancelled') AND payment_status IN ('due','partial')
                     THEN (final_total - (SELECT COALESCE(SUM(tp.amount), 0) FROM transaction_payments tp WHERE tp.transaction_id = transactions.id))
                     ELSE 0 END) AS saldo_aberto
             ")

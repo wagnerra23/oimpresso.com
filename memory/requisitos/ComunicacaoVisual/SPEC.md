@@ -120,7 +120,10 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 > **Controller/ação:** `OsController`
 > **Reusa:** [Modules/Repair](../../../Modules/Repair) Kanban drag-drop (PR #363) — Modules/Repair é shared infrastructure ([ADR 0121 §P8](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md))
 
-**Implementado em:** _pendente_ — o quadro por etapa existe no `Modules/Producao` (`/producao/quadro`, `QuadroDaProducao`, ADR 0431/0436) e já lê `comvis_os`; medido em 2026-10-26 que a OS criada pelo orçamento aprovado (`OrcamentoViraOs`) não ganha etapas em `pcp_programacoes`, então não aparece no quadro (roteiro a decidir pelo [W]). `cv_ordens_producao`/`OrdemProducao` segue sem fluxo (a OS por item da venda é a `pcp_ordens`)
+**Implementado em:** _parcial_ · `Modules/ComunicacaoVisual/Services/RoteiroPadraoDaOs.php` · `Modules/ComunicacaoVisual/Http/Controllers/RoteiroPadraoController.php` · `Modules/Producao/Services/ProgramacaoDoRoteiro.php` · `app/Contracts/Producao/ProgramacaoDaOs.php` · `Modules/ComunicacaoVisual/Tests/Feature/OsRoteiroPadraoContratoTest.php` — o quadro por etapa é o do `Modules/Producao` (`/producao/quadro`, ADR 0431/0436), que já lê `comvis_os`; desde 2026-10-26 a OS que nasce do orçamento ganha as etapas do roteiro padrão da empresa e aparece nele (UC-CVOS-09/10). O padrão se escolhe no cartão "Roteiro da produção" do hub (`resources/js/Pages/ComunicacaoVisual/_components/RoteiroPadraoCard.tsx`, sobre a API GET/PUT /comunicacao-visual/api/roteiro-padrao). Falta trocar o roteiro de uma OS à mão. `cv_ordens_producao`/`OrdemProducao` segue sem fluxo
+**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OsRoteiroPadraoContratoTest.php` (lane `verticais-pest.yml`)
+
+> **Decisão [W] 2026-10-26:** toda OS de comunicação visual nasce com o roteiro padrão da empresa, e o operador pode trocar à mão depois (opção (b) entre: operador escolhe ao aprovar · padrão da empresa · roteiro por material).
 
 > A entrada da OS (orçamento aprovado vira OS com itens, medidas e arquivos — UC-FLX-01) está na US-COMVIS-020. Aqui fica o Kanban de etapas.
 
@@ -1307,6 +1310,30 @@ Como quem orça, quero ver quanto cada peça custa e quanto sobra, para não dar
 - [x] Peça sem custo fica sem margem; material de outra empresa não entra
 - [x] Só quem gerencia materiais vê
 - [ ] Alerta de margem abaixo do mínimo ao dar desconto
+
+---
+
+### US-COMVIS-023 · Cliente aceita o orçamento da gráfica pelo link — **P1**
+
+> owner: — · priority: p1 · estimate: 10h · type: story
+> blocked_by: —
+
+**Implementado em:** _parcial_ · `Modules/ComunicacaoVisual/Services/AceiteDoOrcamento.php` · `Modules/ComunicacaoVisual/Http/Controllers/OrcamentoAceiteController.php` · `Modules/ComunicacaoVisual/Database/Migrations/2026_10_26_200000_create_comvis_orcamento_aceites_table.php` · `Modules/ComunicacaoVisual/Http/Controllers/Public/OrcamentoAceitePublicoController.php` · `resources/js/Pages/ComunicacaoVisual/AceitePublico.tsx` — gerar o link e decidir (aceitar / pedir ajuste) no serviço, a rota autenticada que gera o link, a página pública `/orcamento-cv/{token}` e o botão "Enviar no WhatsApp" da calculadora (tela ComunicacaoVisual/Index, servida pela rota do próprio módulo; abre o WhatsApp do vendedor com o link); faltam o envio automático pelo WhatsApp da empresa com opt-in e o PDF
+
+**Testado em:** `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoAceiteLinkContratoTest.php` · `Modules/ComunicacaoVisual/Tests/Feature/OrcamentoAceitePublicoContratoTest.php` (lane `verticais-pest.yml`).
+
+> Contrato: `UC-CVACE-01` e `UC-CVACE-02` do `resources/js/Pages/ComunicacaoVisual/Index.casos.md` · `UC-CVACEP-01..04` do `resources/js/Pages/ComunicacaoVisual/AceitePublico.casos.md` · `UC-CVACE-03` (`tests/js/cv-aceite-link.test.tsx`).
+
+Lacuna "orçamento enviado em PDF ou WhatsApp com aceite pelo link" (levantamento 2026-10-25, frente Verticais). Padrão: token aleatório, só o sha256 no banco, validade 7 dias, uso único (como `AprovacaoArteService` do Producao). Combinado com a frente Vendas em 2026-10-26: o link da venda (US-SELL-074) é próprio da venda; se os três links (oficina, CV, venda) convergirem, extrai-se depois.
+
+**Aceite:**
+
+- Operador gera o link de um orçamento salvo (rascunho/enviado, sem OS); gerar de novo invalida o anterior; o orçamento passa a `enviado`.
+- Página pública sem login mostra empresa, número, itens (descrição, medidas, qtd, subtotal), totais e validade — nunca custo/margem.
+- Cliente aceita → orçamento aprovado e OS criada pelo mesmo `OrcamentoViraOs` (sem recalcular valor: a OS leva o total gravado). Cliente pede ajuste → volta a rascunho com o comentário (obrigatório).
+- Link vencido, já usado, de orçamento aprovado/recusado/expirado ou fora da validade não decide nada.
+- Tier 0: o token resolve o orçamento e a empresa; tudo depois filtra pelo `business_id` do link.
+- Fora: envio pelo WhatsApp com opt-in (PR seguinte) e PDF.
 
 ---
 

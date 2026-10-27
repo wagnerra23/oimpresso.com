@@ -18,7 +18,8 @@ related_runbook: memory/requisitos/Configuracoes/RUNBOOK-empresa.md
 
 > **Status:** draft. Thread `sistema/playbook/08`, F3-1 (Negócio) e F3-2 (Impostos · Produtos · Contatos). `GET /business/settings` responde Inertia só com a flag
 > `useV2ConfiguracoesEmpresa` ligada para o negócio; desligada, ou com `?classico=1`, a Blade `business/settings` segue.
-> Vira `live` no cutover, decisão [W]. Casos: [`Index.casos.md`](./Index.casos.md).
+> Desde 2026-10-27 ([W]) a flag vem ligada para todas as empresas pelo `$fallbackDefaults` do `FeatureFlagService`; a
+> Blade segue em `?classico=1`. Vira `live` depois do smoke em produção. Casos: [`Index.casos.md`](./Index.casos.md).
 
 ## Mission
 
@@ -35,6 +36,8 @@ aba a aba atrás da mesma flag, sem perder nada do que o salvar da Blade grava.
   os dias da régua — depois do vencimento e, vazio por padrão, antes dele (US-FIN-033) — em
   `common_settings['financeiro_regua_cobranca']` (UC-EMP-15). Fora do protótipo: a régua não tinha
   tela, e a aba segue o padrão das abas vizinhas.
+- Aba **App das lojas** (grupo Integrações, na Blade desde o #9442): liga e desliga os ajustes `pos_settings.app_*` que o
+  app lê, com chave, rótulo e padrão vindos de `AjustesDaEmpresa::CHAVES` (UC-EMP-17). Fora do protótipo, como o Financeiro.
 
 ## Non-Goals
 

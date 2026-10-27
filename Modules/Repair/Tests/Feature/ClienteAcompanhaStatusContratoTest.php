@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 // @covers-us US-CONSULTA-004
+// @covers-us US-WA-004
+// @covers-us US-WA-325
 
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
@@ -11,7 +13,8 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Modules\Repair\Events\RepairStatusChanged;
 use Modules\Repair\Tests\Support\JobSheetFixtures as Fx;
-use Modules\Whatsapp\Jobs\SendWhatsappMessageJob;
+use Modules\Whatsapp\Entities\Channel;
+use Modules\Whatsapp\Jobs\DespacharMensagemDoSistemaJob;
 use Tests\Support\WithSeededTenant;
 
 /**
@@ -20,7 +23,8 @@ use Tests\Support\WithSeededTenant;
  * O caminho medido (2026-10-20):
  *   PUT /repair/job-sheet/{id} muda `status_id`
  *     → JobSheetController::update dispara RepairStatusChanged(os, nome do status)
- *     → Modules\Whatsapp\Listeners\NotifyRepairCustomer enfileira SendWhatsappMessageJob
+ *     → Modules\Whatsapp\Listeners\NotifyRepairCustomer → NotificadorClienteWhatsapp (US-WA-319):
+ *       mensagem na conversa do cliente no canal omnichannel + DespacharMensagemDoSistemaJob na fila
  *     → /consulta-os/buscar lê `status_id` (repair_statuses) e devolve o status novo.
  *
  * QUEM DECIDE O AVISO (decisão [W] 2026-10-21): a marca `repair_statuses.whatsapp_template_aviso`
@@ -47,8 +51,8 @@ beforeEach(function () {
     if (($motivo = Fx::motivoDeSkip()) !== null) {
         $this->markTestSkipped($motivo);
     }
-    if (! Schema::hasTable('whatsapp_business_phones')) {
-        $this->markTestSkipped('Tabela whatsapp_business_phones ausente — módulo Whatsapp não migrado.');
+    if (! Schema::hasColumn('channels', 'handles_repair_status')) {
+        $this->markTestSkipped('Tabela channels sem handles_repair_status — módulo Whatsapp não migrado.');
     }
     if (! Event::hasListeners(RepairStatusChanged::class)) {
         $this->markTestSkipped('Nenhum listener de RepairStatusChanged — módulo Whatsapp desligado neste ambiente.');
@@ -69,7 +73,10 @@ afterEach(function () {
     // Medido 2026-10-21: o status "Recebido" vazio que sobrava daqui virava o "primeiro
     // status pendente" do RepairDashboardContratoTest (UC-RDSH-02) e mudava a contagem dele.
     if (! empty($GLOBALS['flx24_telefones'] ?? [])) {
-        DB::table('whatsapp_business_phones')->whereIn('id', $GLOBALS['flx24_telefones'])->delete();
+        $conversas = DB::table('conversations')->whereIn('channel_id', $GLOBALS['flx24_telefones'])->pluck('id');
+        DB::table('messages')->whereIn('conversation_id', $conversas)->delete();
+        DB::table('conversations')->whereIn('id', $conversas)->delete();
+        DB::table('channels')->whereIn('id', $GLOBALS['flx24_telefones'])->delete();
     }
 
     $contatos = DB::table('contacts')->where('name', 'like', '%FLX-24%')->pluck('id');
@@ -86,25 +93,32 @@ afterEach(function () {
         ->delete();
 });
 
-/** Número de WhatsApp do tenant que atende aviso de OS, com os dois templates. */
+/** Canal de WhatsApp do tenant marcado para aviso de OS. */
 function flx24Telefone(int $businessId): int
 {
-    $id = (int) DB::table('whatsapp_business_phones')->insertGetId([
+    $id = (int) Channel::query()->withoutGlobalScopes()->forceCreate([
         'business_id' => $businessId,
-        'phone_uuid' => (string) Str::uuid(),
+        'channel_uuid' => (string) Str::uuid(),
         'label' => 'Balcao FLX-24',
-        'driver' => 'zapi',
-        'fallback_driver' => 'meta_cloud',
-        'handles_repair_status' => 1,
-        'handles_outbound_default' => 0,
-        'template_repair_ready_name' => 'repair_status_ready',
-        'template_repair_waiting_parts_name' => 'repair_status_waiting_parts',
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
+        'type' => Channel::TYPE_WHATSAPP_WHATSMEOW,
+        'status' => 'active',
+        'channel_health' => 'healthy',
+        'handles_repair_status' => true,
+        'handles_outbound_default' => false,
+        'display_identifier' => '+55 47 3'.random_int(100, 999).'-'.random_int(1000, 9999),
+    ])->id;
     $GLOBALS['flx24_telefones'][] = $id;
 
     return $id;
+}
+
+/** Avisos que o notificador gravou (mensagens do sistema), com o canal e o número da conversa. */
+function flx24Avisos(): array
+{
+    return DB::table('messages as m')->join('conversations as c', 'c.id', '=', 'm.conversation_id')
+        ->where('m.direction', 'outbound')->where('m.sender_kind', 'system')
+        ->whereIn('c.channel_id', $GLOBALS['flx24_telefones'] ?? [])
+        ->orderBy('m.id')->get(['m.business_id', 'm.body', 'c.channel_id', 'c.customer_external_id'])->all();
 }
 
 /** Busca pública, sem login (o portal não tem sessão). */
@@ -146,7 +160,7 @@ it('UC-COS-12: mudar o status da OS avisa o cliente certo e o portal mostra o st
     $numeroVizinho = (string) DB::table('repair_job_sheets')->where('id', $osVizinha)->value('job_sheet_no');
     flx24Telefone((int) $vizinho->id);
 
-    Bus::fake([SendWhatsappMessageJob::class]);
+    Bus::fake([DespacharMensagemDoSistemaJob::class]);
 
     $this->actingAs($user)->put("/repair/job-sheet/{$osId}", [
         'contact_id' => $contato,
@@ -157,15 +171,14 @@ it('UC-COS-12: mudar o status da OS avisa o cliente certo e o portal mostra o st
 
     expect((int) DB::table('repair_job_sheets')->where('id', $osId)->value('status_id'))->toBe($statusNovo);
 
-    // Aviso: exatamente um, do número desta empresa, para o celular deste cliente.
-    Bus::assertDispatchedTimes(SendWhatsappMessageJob::class, 1);
-    Bus::assertDispatched(SendWhatsappMessageJob::class, function ($job) use ($biz, $telefone, $osId) {
-        return $job->businessId === (int) $biz->id
-            && $job->whatsappBusinessPhoneId === $telefone
-            && $job->to === '+5547900000098'
-            && $job->payload['name'] === 'repair_status_ready'
-            && (string) $job->payload['params']['repair_id'] === (string) $osId;
-    });
+    // Aviso: exatamente um, pelo canal desta empresa, para o celular deste cliente, dizendo que está pronta.
+    $avisos = flx24Avisos();
+    expect($avisos)->toHaveCount(1);
+    expect((int) $avisos[0]->business_id)->toBe((int) $biz->id)
+        ->and((int) $avisos[0]->channel_id)->toBe($telefone)
+        ->and($avisos[0]->customer_external_id)->toBe('+5547900000098')
+        ->and($avisos[0]->body)->toContain("OS nº {$numero}")->toContain('pronta para retirada');
+    Bus::assertDispatchedTimes(DespacharMensagemDoSistemaJob::class, 1);
 
     // Portal: a busca pelo nº da OS devolve só esta OS, já com o status novo.
     $corpo = flx24Portal($this, $numero);
@@ -191,7 +204,7 @@ it('UC-COS-13: status com o nome que a empresa deu avisa pelo WhatsApp quando es
     $numero = (string) DB::table('repair_job_sheets')->where('id', $osId)->value('job_sheet_no');
     $telefone = flx24Telefone((int) $biz->id);
 
-    Bus::fake([SendWhatsappMessageJob::class]);
+    Bus::fake([DespacharMensagemDoSistemaJob::class]);
 
     $this->actingAs($user)->put("/repair/job-sheet/{$osId}", [
         'contact_id' => $contato,
@@ -201,11 +214,11 @@ it('UC-COS-13: status com o nome que a empresa deu avisa pelo WhatsApp quando es
     ]);
 
     // O nome em português não atrapalha: a marca do status manda a mensagem de pronto.
-    Bus::assertDispatchedTimes(SendWhatsappMessageJob::class, 1);
-    Bus::assertDispatched(SendWhatsappMessageJob::class, fn ($job) => $job->businessId === (int) $biz->id
-        && $job->whatsappBusinessPhoneId === $telefone
-        && $job->to === '+5547900000198'
-        && $job->payload['name'] === 'repair_status_ready');
+    $avisos = flx24Avisos();
+    expect($avisos)->toHaveCount(1);
+    expect((int) $avisos[0]->channel_id)->toBe($telefone)
+        ->and($avisos[0]->customer_external_id)->toBe('+5547900000198')
+        ->and($avisos[0]->body)->toContain('pronta para retirada');
 
     $corpo = flx24Portal($this, $numero);
     expect($corpo['ordens'][0]['status']['nome'])->toBe('Pronto para retirada');
@@ -227,7 +240,7 @@ it('UC-COS-33: status sem marca não avisa, mesmo com o nome literal ready; a ma
     $osId = Fx::os((int) $biz->id, $contato, $statusInicial, (int) $user->id);
     flx24Telefone((int) $biz->id);
 
-    Bus::fake([SendWhatsappMessageJob::class]);
+    Bus::fake([DespacharMensagemDoSistemaJob::class]);
 
     $this->actingAs($user)->put("/repair/job-sheet/{$osId}", [
         'contact_id' => $contato,
@@ -236,18 +249,19 @@ it('UC-COS-33: status sem marca não avisa, mesmo com o nome literal ready; a ma
         'serial_no' => 'SN-FLX24-SM',
     ]);
     expect((int) DB::table('repair_job_sheets')->where('id', $osId)->value('status_id'))->toBe($semMarca);
-    Bus::assertNotDispatched(SendWhatsappMessageJob::class);
+    expect(flx24Avisos())->toBe([]);
 
-    // Controle: a mesma OS indo para um status marcado avisa, com o template de aguardando peças.
+    // Controle: a mesma OS indo para um status marcado avisa, com a mensagem de aguardando peça.
     $this->actingAs($user)->put("/repair/job-sheet/{$osId}", [
         'contact_id' => $contato,
         'status_id' => $aguardando,
         'service_type' => 'carry_in',
         'serial_no' => 'SN-FLX24-SM',
     ]);
-    Bus::assertDispatchedTimes(SendWhatsappMessageJob::class, 1);
-    Bus::assertDispatched(SendWhatsappMessageJob::class, fn ($job) => $job->to === '+5547900000698'
-        && $job->payload['name'] === 'repair_status_waiting_parts');
+    $avisos = flx24Avisos();
+    expect($avisos)->toHaveCount(1);
+    expect($avisos[0]->customer_external_id)->toBe('+5547900000698')
+        ->and($avisos[0]->body)->toContain('aguardando peça');
 });
 
 it('UC-COS-31: cliente que recusou WhatsApp não recebe o aviso; sem resposta (null) ainda recebe', function () {
@@ -260,19 +274,20 @@ it('UC-COS-31: cliente que recusou WhatsApp não recebe o aviso; sem resposta (n
     $semResposta = Fx::cliente((int) $biz->id, (int) $user->id, 'Cliente FLX-24 Sem Resposta');
     DB::table('contacts')->where('id', $semResposta)->update(['mobile' => '+5547900000398', 'whatsapp_consent' => null]);
 
-    Bus::fake([SendWhatsappMessageJob::class]);
+    Bus::fake([DespacharMensagemDoSistemaJob::class]);
     $listener = app(\Modules\Whatsapp\Listeners\NotifyRepairCustomer::class);
 
-    // Opt-out explícito (LGPD): nenhum job.
+    // Opt-out explícito (LGPD): nenhum aviso.
     $listener->handle((object) ['id' => 9801, 'business_id' => (int) $biz->id, 'contact_id' => $recusou], 'ready');
-    Bus::assertNotDispatched(SendWhatsappMessageJob::class);
+    expect(flx24Avisos())->toBe([]);
 
-    // Controle: mesmo número, mesmo template, contato sem resposta de consentimento → avisa.
+    // Controle: mesmo canal, mesma mensagem, contato sem resposta de consentimento → avisa.
     $listener->handle((object) ['id' => 9802, 'business_id' => (int) $biz->id, 'contact_id' => $semResposta], 'ready');
-    Bus::assertDispatchedTimes(SendWhatsappMessageJob::class, 1);
-    Bus::assertDispatched(SendWhatsappMessageJob::class, fn ($job) => $job->businessId === (int) $biz->id
-        && $job->whatsappBusinessPhoneId === $telefone
-        && $job->to === '+5547900000398');
+    $avisos = flx24Avisos();
+    expect($avisos)->toHaveCount(1);
+    expect((int) $avisos[0]->business_id)->toBe((int) $biz->id)
+        ->and((int) $avisos[0]->channel_id)->toBe($telefone)
+        ->and($avisos[0]->customer_external_id)->toBe('+5547900000398');
 });
 
 it('UC-COS-32: OS que aponta para cliente de outra empresa não avisa ninguém', function () {
@@ -288,15 +303,15 @@ it('UC-COS-32: OS que aponta para cliente de outra empresa não avisa ninguém',
     $proprio = Fx::cliente((int) $biz->id, (int) $user->id, 'Cliente FLX-24 Proprio');
     DB::table('contacts')->where('id', $proprio)->update(['mobile' => '+5547900000598', 'whatsapp_consent' => 1]);
 
-    Bus::fake([SendWhatsappMessageJob::class]);
+    Bus::fake([DespacharMensagemDoSistemaJob::class]);
     $listener = app(\Modules\Whatsapp\Listeners\NotifyRepairCustomer::class);
 
     // OS da 98 com contact_id da 99: o número da 98 não pode escrever para o cliente da 99.
     $listener->handle((object) ['id' => 9803, 'business_id' => (int) $biz->id, 'contact_id' => $contatoVizinho], 'ready');
-    Bus::assertNotDispatched(SendWhatsappMessageJob::class);
+    expect(flx24Avisos())->toBe([]);
 
     // Controle: o cliente da própria empresa recebe.
     $listener->handle((object) ['id' => 9804, 'business_id' => (int) $biz->id, 'contact_id' => $proprio], 'ready');
-    Bus::assertDispatchedTimes(SendWhatsappMessageJob::class, 1);
-    Bus::assertDispatched(SendWhatsappMessageJob::class, fn ($job) => $job->to === '+5547900000598');
+    $avisos = flx24Avisos();
+    expect($avisos)->toHaveCount(1)->and($avisos[0]->customer_external_id)->toBe('+5547900000598');
 });

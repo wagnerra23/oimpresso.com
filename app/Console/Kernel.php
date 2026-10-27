@@ -62,6 +62,20 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // OficinaAuto — lembrete de revisão do veículo por km estimado ou data (US-AUTO-014, decisão [W]
+        // 2026-10-26). Só cliente com opt-in; o envio é do Modules/Whatsapp pelo contrato AvisaClienteWhatsapp.
+        // Desligado até OFICINA_LEMBRETE_REVISAO_ENABLED=true (manda WhatsApp a clientes reais).
+        $schedule->command('oficinaauto:lembretes-revisao')
+            ->dailyAt('09:00')
+            ->withoutOverlapping(30)
+            ->environments(['live'])
+            ->when(fn () => (bool) config('oficina-auto.lembrete_revisao.enabled', false))
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule oficinaauto:lembretes-revisao FALHOU — lembretes de revisão podem não ter saído'
+                );
+            });
+
         // PaymentGateway — polling de reconciliação PIX Inter (fallback do webhook).
         // O Inter não empurra confirmação sozinho; este cron PERGUNTA ao Inter
         // quais cobranças PIX emitidas já foram pagas e reconcilia (marca paga +
@@ -1133,6 +1147,19 @@ class Kernel extends ConsoleKernel
             ->onFailure(function () {
                 \Illuminate\Support\Facades\Log::warning(
                     'Schedule whatsapp:health-check-all FALHOU — drivers Z-API/Baileys podem estar sem fallback ativo'
+                );
+            });
+
+        // US-WA-326 — régua de relacionamento por WhatsApp (aniversário e recompra), 1×/dia às 10h BRT.
+        // O próprio command não faz nada com WHATSAPP_REGUA_RELACIONAMENTO_ENABLED desligado (padrão).
+        $schedule->command('whatsapp:regua-relacionamento')
+            ->dailyAt('10:00')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule whatsapp:regua-relacionamento FALHOU — avisos de aniversário/recompra do dia não saíram'
                 );
             });
 

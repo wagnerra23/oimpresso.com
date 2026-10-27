@@ -25,29 +25,29 @@
     "supersededBy"
   ],
   "stats": {
-    "modules": 37,
-    "nodes": 857,
-    "edges": 1163,
+    "modules": 38,
+    "nodes": 882,
+    "edges": 1198,
     "by_node_type": {
-      "module": 42,
+      "module": 43,
       "table": 108,
-      "adr": 146,
-      "component": 475,
-      "api": 86
+      "adr": 148,
+      "component": 493,
+      "api": 90
     },
     "by_edge_type": {
       "ownsTable": 97,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 90,
+      "providesApi": 94,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 475,
-      "dependsOn": 126,
-      "delegatesTo": 117,
+      "hasComponent": 493,
+      "dependsOn": 133,
+      "delegatesTo": 122,
       "migratesTo": 1,
       "supersedes": 26,
-      "supersedesPartially": 74,
+      "supersedesPartially": 75,
       "supersededBy": 30
     },
     "dangling": 0
@@ -720,6 +720,13 @@
       "exists": true
     },
     {
+      "id": "adr:0301",
+      "type": "adr",
+      "num": "0301",
+      "slug": "0301-separar-cliente-deprecar-crm-pipeline",
+      "exists": true
+    },
+    {
       "id": "adr:0302",
       "type": "adr",
       "num": "0302",
@@ -1074,6 +1081,13 @@
       "type": "adr",
       "num": "0438",
       "slug": "0438-artefato-substitui-cowork-como-superficie-do-prototipo",
+      "exists": true
+    },
+    {
+      "id": "adr:0441",
+      "type": "adr",
+      "num": "0441",
+      "slug": "0441-funil-de-vendas-sai-da-depreciacao-emenda-0301",
       "exists": true
     },
     {
@@ -1456,6 +1470,30 @@
       ]
     },
     {
+      "id": "api:/marketplaces/contas/mercado-livre/conectar",
+      "type": "api",
+      "prefix": "/marketplaces/contas/mercado-livre/conectar",
+      "providers": [
+        "Marketplaces"
+      ]
+    },
+    {
+      "id": "api:/marketplaces/install",
+      "type": "api",
+      "prefix": "/marketplaces/install",
+      "providers": [
+        "Marketplaces"
+      ]
+    },
+    {
+      "id": "api:/marketplaces/pedidos",
+      "type": "api",
+      "prefix": "/marketplaces/pedidos",
+      "providers": [
+        "Marketplaces"
+      ]
+    },
+    {
       "id": "api:/nfe-brasil/*",
       "type": "api",
       "prefix": "/nfe-brasil/*",
@@ -1741,6 +1779,14 @@
       "prefix": "/webhook/*",
       "providers": [
         "Woocommerce"
+      ]
+    },
+    {
+      "id": "api:/webhook/marketplaces/mercado-livre",
+      "type": "api",
+      "prefix": "/webhook/marketplaces/mercado-livre",
+      "providers": [
+        "Marketplaces"
       ]
     },
     {
@@ -2112,6 +2158,13 @@
       "desc": ""
     },
     {
+      "id": "component:ComunicacaoVisual/OrcamentoAceiteController",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "OrcamentoAceiteController",
+      "desc": "POST /comunicacao-visual/api/orcamentos/{id}/link, US-COMVIS-023 · UC-CVACE-01/02)"
+    },
+    {
       "id": "component:ComunicacaoVisual/OrcamentoArquivoController",
       "type": "component",
       "module": "ComunicacaoVisual",
@@ -2124,6 +2177,20 @@
       "module": "ComunicacaoVisual",
       "name": "OrcamentoController",
       "desc": ""
+    },
+    {
+      "id": "component:ComunicacaoVisual/Public/OrcamentoAceitePublicoController",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "Public/OrcamentoAceitePublicoController",
+      "desc": "página pública SEM login onde o cliente aceita ou pede ajuste do orçamento (/orcamento-cv/{token}, token sha256 de uso único, throttle 30/1, US-COMVIS-023 · UC-CVACEP-01..04)"
+    },
+    {
+      "id": "component:ComunicacaoVisual/RoteiroPadraoController",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "RoteiroPadraoController",
+      "desc": "GET/PUT /comunicacao-visual/api/roteiro-padrao, US-COMVIS-003 · UC-CVOS-09..11)"
     },
     {
       "id": "component:ComunicacaoVisual/Services/AgendaInstalacao",
@@ -2350,6 +2417,13 @@
       "desc": ""
     },
     {
+      "id": "component:Connector/Webhooks de saída assinados por empresa",
+      "type": "component",
+      "module": "Connector",
+      "name": "Webhooks de saída assinados por empresa",
+      "desc": "US-CONN-021"
+    },
+    {
       "id": "component:ConsultaOs/ConsultaOsController",
       "type": "component",
       "module": "ConsultaOs",
@@ -2418,6 +2492,13 @@
       "module": "Crm",
       "name": "\"ContactAddressController\"     # US-CRM-078",
       "desc": "múltiplos endereços do cliente (PR1, drift do check-scope)"
+    },
+    {
+      "id": "component:Crm/\"FunilController\"            # Funil de vendas em kanban /crm/funil",
+      "type": "component",
+      "module": "Crm",
+      "name": "\"FunilController\"            # Funil de vendas em kanban /crm/funil",
+      "desc": "sai da depreciação pela ADR 0441"
     },
     {
       "id": "component:Crm/CallLogController",
@@ -2866,6 +2947,13 @@
       "module": "Financeiro",
       "name": "PlanoContaController",
       "desc": "Onda 18 tela /plano-contas dedicada + Fluxo fallback sem conta"
+    },
+    {
+      "id": "component:Financeiro/RateioService",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "RateioService",
+      "desc": "US-FIN-075 rateio do título em centros de custo (fin_centros_custo + fin_titulo_rateios): soma fecha valor_total em centavos inteiros; título sem rateio segue válido"
     },
     {
       "id": "component:Financeiro/ReguaCobrancaJob + comando financeiro:regua-cobranca",
@@ -3701,6 +3789,62 @@
       "desc": ""
     },
     {
+      "id": "component:Marketplaces/Anúncios",
+      "type": "component",
+      "module": "Marketplaces",
+      "name": "Anúncios",
+      "desc": "US-MKT-001"
+    },
+    {
+      "id": "component:Marketplaces/Catálogo global de marketplaces",
+      "type": "component",
+      "module": "Marketplaces",
+      "name": "Catálogo global de marketplaces",
+      "desc": ""
+    },
+    {
+      "id": "component:Marketplaces/ContasController",
+      "type": "component",
+      "module": "Marketplaces",
+      "name": "ContasController",
+      "desc": "conectar a conta do vendedor no Mercado Livre por OAuth (US-MKT-003)"
+    },
+    {
+      "id": "component:Marketplaces/DataController",
+      "type": "component",
+      "module": "Marketplaces",
+      "name": "DataController",
+      "desc": ""
+    },
+    {
+      "id": "component:Marketplaces/InstallController",
+      "type": "component",
+      "module": "Marketplaces",
+      "name": "InstallController",
+      "desc": ""
+    },
+    {
+      "id": "component:Marketplaces/NotificacoesMercadoLivreController",
+      "type": "component",
+      "module": "Marketplaces",
+      "name": "NotificacoesMercadoLivreController",
+      "desc": "recebe as notificações do ML e busca o pedido na API com o token da conta (US-MKT-006)"
+    },
+    {
+      "id": "component:Marketplaces/PedidosController",
+      "type": "component",
+      "module": "Marketplaces",
+      "name": "PedidosController",
+      "desc": "tela Pedidos dos marketplaces (lista, filtro com/sem venda, local de venda da conta) — US-MKT-008"
+    },
+    {
+      "id": "component:Marketplaces/Renovação do token do vendedor sob demanda e de hora em hora",
+      "type": "component",
+      "module": "Marketplaces",
+      "name": "Renovação do token do vendedor sob demanda e de hora em hora",
+      "desc": ""
+    },
+    {
       "id": "component:NfeBrasil/CertificadoController",
       "type": "component",
       "module": "NfeBrasil",
@@ -3720,6 +3864,13 @@
       "module": "NfeBrasil",
       "name": "ContingenciaController",
       "desc": "liga/desliga contingencia SEFAZ por tenant (US-NFE-006, ADR TECH-0002)"
+    },
+    {
+      "id": "component:NfeBrasil/DanfePublicaController",
+      "type": "component",
+      "module": "NfeBrasil",
+      "name": "DanfePublicaController",
+      "desc": "DANFE em PDF por link assinado (7 dias) para o cliente, GET /nfe-brasil/danfe/{business}/{emissao}; sem assinatura válida = 403 (US-WA-321, aviso por WhatsApp)"
     },
     {
       "id": "component:NfeBrasil/DataController",
@@ -4772,6 +4923,20 @@
       "desc": ""
     },
     {
+      "id": "component:Vestuario/CurvaCompraController",
+      "type": "component",
+      "module": "Vestuario",
+      "name": "CurvaCompraController",
+      "desc": "sugestão de compra por tamanho pela curva de venda, só leitura (GET /vestuario/curva-compra, US-VEST-031 · UC-VCUR-01..03)"
+    },
+    {
+      "id": "component:Vestuario/CurvaDeCompra",
+      "type": "component",
+      "module": "Vestuario",
+      "name": "CurvaDeCompra",
+      "desc": "proporção vendida por variação nos últimos 90 dias (ou da categoria), dividida pelo maior resto; diferente do GradeCurvaService, que guarda proporção fixa em configuração (US-VEST-031)"
+    },
+    {
       "id": "component:Vestuario/DevolucaoService",
       "type": "component",
       "module": "Vestuario",
@@ -4924,6 +5089,13 @@
       "module": "Whatsapp",
       "name": "Admin/QueuesController",
       "desc": "CRUD filas de atendimento whatsapp_queues (US-WA-301 ADR 0267, painel QueuesSheet da Caixa Unificada V4)"
+    },
+    {
+      "id": "component:Whatsapp/Admin/ReguaRelacionamentoController",
+      "type": "component",
+      "module": "Whatsapp",
+      "name": "Admin/ReguaRelacionamentoController",
+      "desc": "régua de aniversário e recompra por empresa, PUT /atendimento/canais/regua-relacionamento (US-WA-328); motor em Services/Regua, atrás de WHATSAPP_REGUA_RELACIONAMENTO_ENABLED"
     },
     {
       "id": "component:Whatsapp/Admin/SettingsController",
@@ -5376,6 +5548,19 @@
       "permission_prefix": "manufacturing.*",
       "charter_adr": "0080",
       "path": "memory/requisitos/Manufacturing/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
+    },
+    {
+      "id": "module:Marketplaces",
+      "type": "module",
+      "module": "Marketplaces",
+      "purpose": "Integração com marketplaces brasileiros (Mercado Livre primeiro; Shopee, Amazon e Magalu depois): o pedido do marketplace vira venda no núcleo com NF-e e rastreio, e anúncio e estoque ficam sincronizados. Cross-vertical. Ativado pela ADR 0439 em 2026-10-26.",
+      "trust": "",
+      "owner": "wagner",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "path": "memory/requisitos/Marketplaces/SCOPE.md",
       "catalog_kind": "scope",
       "catalog_status": "catalogued"
     },
@@ -7624,6 +7809,12 @@
       "source": "supersedes_partially"
     },
     {
+      "from": "adr:0441",
+      "to": "adr:0301",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
       "from": "module:Arquivos",
       "to": "adr:0123",
       "type": "charteredByAdr",
@@ -8333,6 +8524,12 @@
     },
     {
       "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/OrcamentoAceiteController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/OrcamentoArquivoController",
       "type": "hasComponent",
       "source": "contains"
@@ -8340,6 +8537,18 @@
     {
       "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/OrcamentoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/Public/OrcamentoAceitePublicoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/RoteiroPadraoController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -8603,6 +8812,12 @@
     },
     {
       "from": "module:Connector",
+      "to": "component:Connector/Webhooks de saída assinados por empresa",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Connector",
       "to": "api:/connector/*",
       "type": "providesApi",
       "source": "url_prefixes"
@@ -8804,6 +9019,12 @@
     {
       "from": "module:Crm",
       "to": "component:Crm/\"ContactAddressController\"     # US-CRM-078",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Crm",
+      "to": "component:Crm/\"FunilController\"            # Funil de vendas em kanban /crm/funil",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -9322,6 +9543,12 @@
     {
       "from": "module:Financeiro",
       "to": "component:Financeiro/PlanoContaController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "component:Financeiro/RateioService",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -11473,6 +11700,132 @@
       "source": "url_prefixes"
     },
     {
+      "from": "module:Marketplaces",
+      "to": "module:Financeiro",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Recebíveis do Mercado Pago"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "module:NfeBrasil",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Emissão de NF-e"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "module:Woocommerce",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Loja própria WordPress/WooCommerce"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "module:Financeiro",
+      "type": "dependsOn",
+      "source": "depends_on"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "module:Financeiro",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Recebíveis do Mercado Pago"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "module:NfeBrasil",
+      "type": "dependsOn",
+      "source": "depends_on"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "module:NfeBrasil",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Emissão de NF-e"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "module:Woocommerce",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Loja própria WordPress/WooCommerce"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "component:Marketplaces/Anúncios",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "component:Marketplaces/Catálogo global de marketplaces",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "component:Marketplaces/ContasController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "component:Marketplaces/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "component:Marketplaces/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "component:Marketplaces/NotificacoesMercadoLivreController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "component:Marketplaces/PedidosController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "component:Marketplaces/Renovação do token do vendedor sob demanda e de hora em hora",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "api:/marketplaces/contas/mercado-livre/conectar",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "api:/marketplaces/install",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "api:/marketplaces/pedidos",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Marketplaces",
+      "to": "api:/webhook/marketplaces/mercado-livre",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
       "from": "module:NfeBrasil",
       "to": "adr:0080",
       "type": "charteredByAdr",
@@ -11561,6 +11914,12 @@
     {
       "from": "module:NfeBrasil",
       "to": "component:NfeBrasil/ContingenciaController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "component:NfeBrasil/DanfePublicaController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -12951,6 +13310,13 @@
     },
     {
       "from": "module:RecurringBilling",
+      "to": "module:PaymentGateway",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Emissão da cobrança, driver do banco (BcbPixDriver, Pix Automático) e credenciais do gateway"
+    },
+    {
+      "from": "module:RecurringBilling",
       "to": "module:Forja",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -12969,6 +13335,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:RecurringBilling",
+      "to": "module:PaymentGateway",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Emissão da cobrança, driver do banco (BcbPixDriver, Pix Automático) e credenciais do gateway"
     },
     {
       "from": "module:RecurringBilling",
@@ -13574,6 +13947,18 @@
     },
     {
       "from": "module:Vestuario",
+      "to": "component:Vestuario/CurvaCompraController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Vestuario",
+      "to": "component:Vestuario/CurvaDeCompra",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Vestuario",
       "to": "component:Vestuario/DevolucaoService",
       "type": "hasComponent",
       "source": "contains"
@@ -13674,6 +14059,13 @@
     },
     {
       "from": "module:Whatsapp",
+      "to": "module:NfeBrasil",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Emissão de NF-e / DANFE"
+    },
+    {
+      "from": "module:Whatsapp",
       "to": "module:PaymentGateway",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -13720,6 +14112,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Bot / memória conversacional / RAG"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "module:NfeBrasil",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Emissão de NF-e / DANFE"
     },
     {
       "from": "module:Whatsapp",
@@ -13811,6 +14210,12 @@
     {
       "from": "module:Whatsapp",
       "to": "component:Whatsapp/Admin/QueuesController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "component:Whatsapp/Admin/ReguaRelacionamentoController",
       "type": "hasComponent",
       "source": "contains"
     },

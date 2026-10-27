@@ -16,7 +16,7 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 11 |
+| US no SPEC | 12 |
 | CU no SDD | 18 |
 | Telas (.tsx) | 12 |
 | Telas com `casos.md` | 16 |
@@ -49,6 +49,7 @@ authority: generated
 | US-PROD-027 | `todo` | [V0] Travar o acidente do 0-row: preço zero em tabela é inerte só por sorte do P |
 | US-PROD-029 | `todo` | Cadastro de produto em ROTA PARALELA (o `ProductController` da Larissa não é toc |
 | US-PROD-030 | `todo` | ⚠️Tier0 · Política de preço por produto: atualizar a cada custo novo OU manter o |
+| US-PROD-031 | `todo` | Importar produtos exportados do Bling, Tiny ou Omie sem montar planilha |
 
 ## UC por status
 

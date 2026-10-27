@@ -21,6 +21,7 @@ use Modules\Ponto\Entities\Marcacao;
 use Modules\Ponto\Http\Controllers\EspelhoController;
 use Modules\Ponto\Http\Controllers\IntercorrenciaController;
 use Modules\Ponto\Http\Requests\StoreIntercorrenciaRequest;
+use Modules\Ponto\Services\EspelhoCienciaService;
 use Modules\Ponto\Services\IntercorrenciaService;
 use Modules\Ponto\Services\MobileMarcacaoService;
 use RuntimeException;
@@ -196,6 +197,9 @@ class MobileMarcacaoController extends Controller
             // Mesmos builders do Espelho/Show (US-PONTO-012 já corrigida lá) — não recalcula.
             'totais' => Inertia::defer(fn () => $colab ? $espelho->buildTotaisEspelho((int) $colab->business_id, (int) $colab->id, $ano, $mes) : null),
             'linhas' => Inertia::defer(fn () => $colab ? $espelho->buildLinhasEspelho((int) $colab->business_id, (int) $colab->id, $ano, $mes) : []),
+            // US-PONTO-020: o último mês fechado e se o colaborador já deu ciência dele. Deferido:
+            // conferir a ciência recalcula o espelho daquele mês.
+            'ciencia_espelho' => Inertia::defer(fn () => $colab ? app(EspelhoCienciaService::class)->ultimaFechada($colab) : null),
             'tipos'  => IntercorrenciaController::tiposDisponiveis(),
             // A rota fica fora do `ponto.access` ([W] 2026-09-29); o cabeçalho do módulo (abas de
             // RH) só aparece pra quem pode abrir o módulo — senão cada aba seria um 403.
@@ -421,7 +425,41 @@ class MobileMarcacaoController extends Controller
             'mes'    => $mes,
             'totais' => $espelho->buildTotaisEspelho($bizId, (int) $colab->id, (int) $m[1], (int) $m[2]),
             'linhas' => $espelho->buildLinhasEspelho($bizId, (int) $colab->id, (int) $m[1], (int) $m[2]),
+            // US-PONTO-020: competência fechada? o colaborador já deu ciência? o espelho ainda confere?
+            ...app(EspelhoCienciaService::class)->estado($colab, (int) $m[1], (int) $m[2]),
         ]);
+    }
+
+    /**
+     * POST /ponto/api/espelho/ciencia — `ponto.api.espelho.ciencia` (US-PONTO-020).
+     *
+     * O colaborador declara ciência do espelho de uma competência fechada. 422 se a competência
+     * ainda está aberta; 409 se já deu ciência. Grava o hash do espelho, não o IP.
+     */
+    public function darCienciaEspelho(Request $request): JsonResponse
+    {
+        $colab = $this->colaboradorDoUsuario($request);
+        if (! $colab) {
+            return $this->semColaborador();
+        }
+
+        $mes = (string) $request->input('mes', '');
+        if (! preg_match('/^(\d{4})-(0[1-9]|1[0-2])$/', $mes, $m)) {
+            return response()->json([
+                'erro' => 'mes_invalido',
+                'mensagem' => 'Informe o mes no formato AAAA-MM.',
+            ], 422);
+        }
+
+        try {
+            $ciencia = app(EspelhoCienciaService::class)->registrar($colab, (int) $m[1], (int) $m[2]);
+        } catch (\DomainException $e) {
+            return $e->getMessage() === EspelhoCienciaService::ERRO_JA_CIENTE
+                ? response()->json(['erro' => 'ja_ciente', 'mensagem' => 'Voce ja deu ciencia deste espelho.'], 409)
+                : response()->json(['erro' => 'competencia_aberta', 'mensagem' => 'O espelho deste mes ainda nao foi fechado pela empresa.'], 422);
+        }
+
+        return response()->json(['mes' => $mes, 'ciencia' => $ciencia], 201);
     }
 
     /** GET /ponto/api/intercorrencias/tipos — `ponto.api.intercorrencias.tipos` (os motivos aceitos). */
