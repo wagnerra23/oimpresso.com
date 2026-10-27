@@ -297,6 +297,11 @@ tests/Feature/Modules/Governance/DashboardFiltrosMcpTest.php
 Modules/PaymentGateway/Tests/Feature/WebhookProcessorLinkageTest.php
 Modules/PaymentGateway/Tests/Feature/RetryOrphanWebhookJobTest.php
 
+# BcbPixDriver (Pix Automático BCB, US-RB-021 · decisão [W] 2026-10-26) — teste SEM banco
+# (credencial em memória + Http::fake). Antes criava a credencial no banco do business 1 e
+# não rodava em lane nenhuma; agora defende o contrato da API Pix v2.10 (/rec, /cobr).
+Modules/PaymentGateway/Tests/Feature/BcbPixDriverTest.php
+
 # Colisão de número de ADR (AdrNumberCollisionTest) — teste PURO de arquivo (lê
 # governance/adr-collisions-baseline.json + glob memory/decisions/, sem DB) → sqlite-safe.
 # Até 2026-07-01 NÃO rodava em lane nenhuma ("suite mente"): não estava aqui, o

@@ -14,9 +14,9 @@ module: _Geral
 >
 > **O que isto é:** a porta geral para componentes, layouts e templates herdáveis por mais de um módulo. A lista é derivada das raízes compartilhadas declaradas em `module-surface.mjs::RAIZES_GERAIS`. **O que NÃO é:** autorização para importar qualquer item sem verificar contrato, status e consumidores; para decidir reuso, consulte também `node scripts/reuse-index.mjs "<símbolo ou intenção>"` e o registry do Design System.
 
-**Total mapeado:** 132 arquivos em 6 papéis.
+**Total mapeado:** 134 arquivos em 6 papéis.
 
-## Componentes compartilhados (React) — 88
+## Componentes compartilhados (React) — 90
 
 - [CommandPalette.tsx](../../../resources/js/Components/CommandPalette.tsx)
 - [Icon.tsx](../../../resources/js/Components/Icon.tsx)
@@ -60,6 +60,7 @@ module: _Geral
 - [ConsentBanner.tsx](../../../resources/js/Components/shared/ConsentBanner.tsx)
 - [DataTable.tsx](../../../resources/js/Components/shared/DataTable.tsx)
 - [EmptyState.tsx](../../../resources/js/Components/shared/EmptyState.tsx)
+- [KanbanDndProvider.tsx](../../../resources/js/Components/shared/KanbanDndProvider.tsx)
 - [KpiCard.tsx](../../../resources/js/Components/shared/KpiCard.tsx)
 - [KpiGrid.tsx](../../../resources/js/Components/shared/KpiGrid.tsx)
 - [MercosulPlate.tsx](../../../resources/js/Components/shared/MercosulPlate.tsx)
@@ -74,6 +75,7 @@ module: _Geral
 - [TaskBadges.tsx](../../../resources/js/Components/shared/TaskBadges.tsx)
 - [Toolbar.tsx](../../../resources/js/Components/shared/Toolbar.tsx)
 - [VendaDerivadaCard.tsx](../../../resources/js/Components/shared/VendaDerivadaCard.tsx)
+- [kanbanDrag.ts](../../../resources/js/Components/shared/kanbanDrag.ts)
 - [SafeSelectItem.tsx](../../../resources/js/Components/ui/SafeSelectItem.tsx)
 - [alert-dialog.tsx](../../../resources/js/Components/ui/alert-dialog.tsx)
 - [alert.tsx](../../../resources/js/Components/ui/alert.tsx)

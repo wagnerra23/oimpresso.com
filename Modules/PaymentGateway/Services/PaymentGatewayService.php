@@ -6,6 +6,7 @@ namespace Modules\PaymentGateway\Services;
 
 use App\Account;
 use Illuminate\Container\Container;
+use Modules\PaymentGateway\Contracts\CobrancaRecorrenteDriver;
 use Modules\PaymentGateway\Contracts\PaymentDriverContract;
 use Modules\PaymentGateway\Contracts\PaymentGatewayContract;
 use Modules\PaymentGateway\Dto\CardToken;
@@ -173,6 +174,38 @@ class PaymentGatewayService implements PaymentGatewayContract
     public function emitirPixAutomatico(EmitirCobrancaInput $input): CobrancaEmitidaResult
     {
         return $this->emitir($input, 'pix_recv', fn ($driver, $cred) => $driver->emitirPixAutomatico($input, $cred));
+    }
+
+    /**
+     * Cobrança de UM ciclo de uma recorrência Pix Automático já aprovada (US-RB-021). Mesmo
+     * pipeline das outras emissões (idempotência + linha em `cobrancas`); só drivers que
+     * implementam `CobrancaRecorrenteDriver` (hoje o BcbPix) fazem.
+     */
+    public function emitirCobrancaRecorrente(EmitirCobrancaInput $input, string $idRec): CobrancaEmitidaResult
+    {
+        return $this->emitir($input, 'pix_recv', function ($driver, $cred) use ($input, $idRec) {
+            if (! $driver instanceof CobrancaRecorrenteDriver) {
+                throw new DriverNotSupportedException("Gateway '{$cred->gateway_key}' não emite cobrança recorrente do Pix Automático");
+            }
+
+            return $driver->emitirCobrancaRecorrente($input, $cred, $idRec);
+        });
+    }
+
+    /**
+     * Usa uma credencial já resolvida (job sem Account — o motor de assinatura acha a credencial
+     * `bcb_pix` ativa do business). Mesmas checagens do `for()`.
+     */
+    public function comCredencial(PaymentGatewayCredential $credential): self
+    {
+        if (! $credential->ativo) {
+            throw new CredentialMisconfiguredException(
+                "Credential #{$credential->id} ({$credential->gateway_key}) está inativa"
+            );
+        }
+        $this->activeCredential = $credential;
+
+        return $this;
     }
 
     public function cobrarCartao(EmitirCobrancaInput $input, CardToken $token): CobrancaEmitidaResult

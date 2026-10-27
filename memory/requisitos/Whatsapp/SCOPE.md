@@ -22,6 +22,7 @@ contains:
   - "Admin/InboxController — UI omnichannel /atendimento/inbox lê schema novo (US-WA-067/069 ADR 0135)"
   - "Admin/CaixaUnificadaController — UI omnichannel V4 /atendimento/caixa-unificada redesign Cowork F3 MWART (PR-D 2026-05-15, coexiste Inbox legacy canary 7d)"
   - "Admin/QueuesController — CRUD filas de atendimento whatsapp_queues (US-WA-301 ADR 0267, painel QueuesSheet da Caixa Unificada V4)"
+  - "Admin/BotMenuController — menu do bot por canal (opções → fila, captura de nome, saudação) PUT /atendimento/canais/{id}/menu-bot (US-WA-327); motor em Services/BotMenu, atrás de WHATSAPP_BOT_MENU_ENABLED"
   - "Admin/BroadcastController — broadcast fase 1: pre-flight audiencia (opt-in LGPD + janela 24h) + draft auditavel whatsapp_broadcasts (US-WA-306 ADR 0268; disparo = fase 2 gate W)"
   - "Admin/InboxAiController — IA na thread V4 (resumir/perguntar/sugerir resposta) via laravel/ai InboxAssistAgent; PII redigida (PiiRedactor Jana) + dry_run gateia custo (PR-9 brief CC 2026-06-10)"
   - "Admin/ClientFeedbackController — captura Voice of Customer canon a partir de bubble inbox (PR #1711 2026-05-27); ADR UI-0016 + ADR 0105 cliente-como-sinal"

@@ -1,0 +1,11 @@
+{
+    "name": "Marketplaces",
+    "alias": "marketplaces",
+    "description": "Marketplaces — integração com Mercado Livre (primeiro), Shopee, Amazon e Magalu: pedido do marketplace vira venda com NF-e e rastreio, estoque e anúncio sincronizados (ADR 0439).",
+    "keywords": ["marketplaces", "mercado-livre", "shopee", "amazon", "pedidos"],
+    "priority": 0,
+    "providers": [
+        "Modules\\Marketplaces\\Providers\\MarketplacesServiceProvider"
+    ],
+    "files": []
+}
