@@ -4,7 +4,7 @@ casos: Dashboard · Visão geral · /dashboard-legacy
 irmaos: Index.charter.md (lei) · Index.tsx (tela) · _components/GradesPainel.tsx
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-09-11"
+last_run: "2026-10-27"
 ---
 
 > ℹ️ **`last_run` 2026-09-04 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
@@ -139,32 +139,53 @@ A terceira é o gate de sempre: sem `dashboard.data` a prop nem é registrada, i
 > Derivados de [`memory/requisitos/Superadmin/SPEC.md`](../../../../memory/requisitos/Superadmin/SPEC.md) US-SUPER-012 e do protótipo `prototipo-ui/cowork/Wagner/primeiros-passos-page.jsx` (shell integrado), nunca do `.tsx`. Atrás da flag `onboardingPrimeirosPassos`, que nasce **desligada**. Testes: `tests/Feature/Home/PrimeirosPassosContratoTest.php`.
 
 ## UC-PPAS-01 — Flag desligada, nada muda na Visão geral
-Status: 🧪 (1 teste em `PrimeirosPassosContratoTest`.)
-Com a flag desligada a prop `primeiros_passos` é `null` e `POST /home/primeiros-passos` responde 404. **Pronto quando:** os dois valem com a flag OFF.
+- **Persona:** dono de empresa nova abrindo a Visão geral com a flag `onboardingPrimeirosPassos` desligada.
+- **Aceite:** Dado a flag desligada · Quando abro a Visão geral · Então a prop `primeiros_passos` vem `null`; e Quando chamo `POST /home/primeiros-passos` · Então a resposta é 404.
+- **Teste:** `tests/Feature/Home/PrimeirosPassosContratoTest.php` — `UC-PPAS-01 flag desligada: a Visão geral não registra a prop e o endpoint responde 404`.
+- **Regressão que defende:** feature nova nasce atrás de flag desligada (US-SUPER-012); ninguém vê o card antes da decisão de ligar.
+- **Status: ⬜** — não verificado; o teste ainda não rodou no CI.
 
 ## UC-PPAS-02 — Quem configura a empresa vê os 6 passos, na ordem
-Status: 🧪 (1 teste em `PrimeirosPassosContratoTest`.)
-Com a flag ligada e `business_settings.access`, a prop é **deferida** (fora do first-paint) e traz, nesta ordem: dados da empresa, certificado e fiscal, primeiro produto, primeiro cliente, primeira venda, convite à equipe. Cada passo leva à tela que já existe. **Pronto quando:** `deferredProps` lista `primeiros_passos` e o partial reload devolve as 6 chaves na ordem.
+- **Persona:** dono ou administrador com `business_settings.access`, flag ligada.
+- **Aceite:** Dado a flag ligada e a permissão · Quando abro a Visão geral · Então `primeiros_passos` é prop **deferida** (fora do first-paint); e Quando o partial reload a pede · Então vêm 6 passos nesta ordem: dados da empresa, certificado e fiscal, primeiro produto, primeiro cliente, primeira venda, convite à equipe — cada um com o link da tela que já existe.
+- **Teste:** `tests/Feature/Home/PrimeirosPassosContratoTest.php` — `UC-PPAS-02 flag ligada e quem configura a empresa: a prop é deferida e traz os 6 passos na ordem`.
+- **Regressão que defende:** US-SUPER-012 (a ordem dos passos e o "cada passo leva à tela existente") e a regra `Inertia::defer` para prop com consulta.
+- **Status: ⬜** — não verificado; o teste ainda não rodou no CI.
 
 ## UC-PPAS-03 — Funcionário sem permissão de configurar a empresa não vê o card
-Status: 🧪 (1 teste em `PrimeirosPassosContratoTest`.)
-**Pronto quando:** sem `business_settings.access` a prop é `null` e o endpoint responde 404.
+- **Persona:** funcionário sem `business_settings.access`, flag ligada.
+- **Aceite:** Dado a flag ligada e o usuário sem a permissão · Quando abro a Visão geral · Então a prop vem `null`; e Quando chamo o endpoint · Então a resposta é 404.
+- **Teste:** `tests/Feature/Home/PrimeirosPassosContratoTest.php` — `UC-PPAS-03 sem business_settings.access o card não existe e o endpoint responde 404`.
+- **Regressão que defende:** o onboarding é da empresa, e só quem configura a empresa pode pular ou dispensar passos.
+- **Status: ⬜** — não verificado; o teste ainda não rodou no CI.
 
 ## UC-PPAS-04 — O passo é FEITO pelo dado real da própria empresa
-Status: 🧪 (1 teste em `PrimeirosPassosContratoTest`.)
-Clicar não marca nada (US-SUPER-012). Dado de outra empresa não conta (ADR 0093). **Pronto quando:** sem CNPJ o passo "Dados da empresa" está aberto mesmo com a outra empresa preenchida, e vira feito quando a própria empresa preenche; sem certificado ativo próprio o passo fiscal está aberto.
+- **Persona:** dono da empresa 98, com a empresa 99 como outra empresa do mesmo sistema.
+- **Aceite:** Dado que a empresa 99 tem CNPJ e a 98 não · Quando a 98 abre o card · Então "Dados da empresa" está aberto; e Quando a 98 preenche o CNPJ · Então o passo vira feito. Dado que a 98 não tem certificado ativo · Então "Certificado e fiscal" está aberto, tenha a 99 certificado ou não.
+- **Teste:** `tests/Feature/Home/PrimeirosPassosContratoTest.php` — `UC-PPAS-04 o passo é FEITO pelo dado da própria empresa, e o dado de outra empresa não conta`.
+- **Regressão que defende:** US-SUPER-012 ("clicar não marca nada; o passo vem do dado") e o isolamento por `business_id` (ADR 0093).
+- **Status: ⬜** — não verificado; o teste ainda não rodou no CI.
 
 ## UC-PPAS-05 — Pular tira o passo da conta sem fingir que foi feito
-Status: 🧪 (1 teste em `PrimeirosPassosContratoTest`.)
-**Pronto quando:** pular grava o passo em `common_settings.primeiros_passos.pulados` da empresa e o status vira `pulado` (não `feito`); voltar desfaz.
+- **Persona:** dono da empresa nova que ainda não tem certificado e quer seguir adiante.
+- **Aceite:** Dado um passo aberto · Quando clico em Pular · Então o passo fica `pulado` (nunca `feito`) e a escolha fica gravada na empresa (`common_settings.primeiros_passos.pulados`); e Quando clico em Voltar a este passo · Então ele volta a `aberto`.
+- **Teste:** `tests/Feature/Home/PrimeirosPassosContratoTest.php` — `UC-PPAS-05 pular tira o passo da conta sem marcar feito, e voltar desfaz — gravado na empresa`.
+- **Regressão que defende:** US-SUPER-012 ("cada passo pode ser pulado e retomado; o progresso fica salvo").
+- **Status: ⬜** — não verificado; o teste ainda não rodou no CI.
 
 ## UC-PPAS-06 — Dispensar esconde o card para a empresa; retomar devolve
-Status: 🧪 (1 teste em `PrimeirosPassosContratoTest`.)
-**Pronto quando:** depois de dispensar, `visivel` é falso; depois de retomar, verdadeiro; o `common_settings` da outra empresa não muda.
+- **Persona:** dono da empresa 98, com a empresa 99 como outra empresa do mesmo sistema.
+- **Aceite:** Dado o card visível · Quando clico em Dispensar · Então `visivel` fica falso para a empresa; e Quando clico em Retomar · Então volta verdadeiro; em nenhum dos dois o `common_settings` da empresa 99 muda.
+- **Teste:** `tests/Feature/Home/PrimeirosPassosContratoTest.php` — `UC-PPAS-06 dispensar esconde o card para a empresa e retomar devolve, sem tocar a outra empresa`.
+- **Regressão que defende:** US-SUPER-012 (retomar depois) e o isolamento de escrita por empresa (ADR 0093, tenant 98 × 99).
+- **Status: ⬜** — não verificado; o teste ainda não rodou no CI.
 
 ## UC-PPAS-07 — Ação ou passo desconhecido é recusado
-Status: 🧪 (1 teste em `PrimeirosPassosContratoTest`.)
-**Pronto quando:** `acao` ou `passo` fora da lista volta com erro de validação e nada é gravado.
+- **Persona:** qualquer chamada ao endpoint com dados fora da lista.
+- **Aceite:** Dado uma `acao` ou um `passo` que não existe · Quando chamo `POST /home/primeiros-passos` · Então volta erro de validação e nada é gravado na empresa.
+- **Teste:** `tests/Feature/Home/PrimeirosPassosContratoTest.php` — `UC-PPAS-07 ação ou passo desconhecido é recusado e nada é gravado`.
+- **Regressão que defende:** o estado gravado só aceita as 6 chaves e as 4 ações conhecidas.
+- **Status: ⬜** — não verificado; o teste ainda não rodou no CI.
 
 ---
 
