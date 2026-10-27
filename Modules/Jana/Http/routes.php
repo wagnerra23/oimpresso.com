@@ -122,6 +122,13 @@ Route::group(
         Route::patch('/conversas/{id}',                    'ChatController@updateConversa')
             ->middleware('can:jana.chat')
             ->name('jana.conversas.update');
+        // ADR 0440 — cartões de ação do chat. 404 com `copiloto.chat_acoes.enabled` desligada.
+        Route::get('/conversas/{conversa}/acoes',          [\Modules\Jana\Http\Controllers\AcaoChatController::class, 'index'])
+            ->middleware('can:jana.chat')->whereNumber('conversa')->name('jana.chat.acoes.index');
+        Route::post('/acoes-chat/{id}/confirmar',          [\Modules\Jana\Http\Controllers\AcaoChatController::class, 'confirmar'])
+            ->middleware(['can:jana.chat', 'throttle:30,1'])->whereNumber('id')->name('jana.chat.acoes.confirmar');
+        Route::post('/acoes-chat/{id}/cancelar',           [\Modules\Jana\Http\Controllers\AcaoChatController::class, 'cancelar'])
+            ->middleware(['can:jana.chat', 'throttle:30,1'])->whereNumber('id')->name('jana.chat.acoes.cancelar');
         Route::post('/sugestoes/{id}/escolher',            'ChatController@escolher')
             ->middleware('can:jana.chat')
             ->name('jana.sugestoes.escolher');

@@ -633,6 +633,15 @@ return [
     ],
 
     /*
+    | Chat ações — a Jana PROPÕE, o usuário confirma no cartão, e só então grava
+    | (ADR 0440). Padrão desligado (ADR 0245: homologação liga, produção espera).
+    | Desligada: as rotas de cartão dão 404 e o agente não recebe tool de ação.
+    */
+    'chat_acoes' => [
+        'enabled' => (bool) env('JANA_CHAT_ACOES_ENABLED', false),
+    ],
+
+    /*
     |--------------------------------------------------------------------------
     | Chat model — modelo do ChatCopilotoAgent (US-COPI-135)
     |--------------------------------------------------------------------------
