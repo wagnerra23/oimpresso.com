@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Essentials\Entities\Folha;
+namespace Modules\Essentials\Entities;
 
 use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
