@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a lista é a PORTA do catálogo — se ela esconde produto, esconde preço a quem não devia, ou mistura tenant, todo o resto do ERP herda o erro.
 owner: wagner
-last_run: "2026-10-26"
+last_run: "2026-10-27"
 last_run_ci: "2026-10-23: run 39945557255 (lane Estoque · MySQL, main 53e7995, disparada à mão): 497 testes, 0 falhas, 0 pulados, com todos os arquivos Pest da lista; job 120384523098 (Frontend / Vite build, mesmo commit): os 2 arquivos Vitest da lista que rodam em lane passaram; os outros 8 arquivos Vitest da lista não rodam em lane e passaram local (133 de 133). Antes: 2026-10-19, job 118208572139."
 ---
 
@@ -778,6 +778,7 @@ há item aqui.
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
+- 2026-10-27 · [F+C] Revalidado (G-6): o `Index.tsx` mudou depois do last_run 2026-10-26 só pelos merges do `main` e do #9925 (o `emiteNota` passado ao painel, UC-PIDX-17 e 25), já descrito pelos casos acima. Vitest local dos 18 arquivos de produto: 213 testes passaram. Nenhum UC muda de status; last_run 2026-10-26 → 2026-10-27.
 - 2026-10-26 · [F+C] **UC-PIDX-34** (decisão [F]): coluna e filtro Imposto da lista só em empresa com alíquota cadastrada; a coluna nasce desligada e o "ligada" que o navegador guardou antes é desligado uma vez; o CSV de "Exportar filtrados" segue a regra. O UC-PIDX-10 deixa de ter nota pendente e o UC-PIDX-26 diz que o cenário de 12 colunas inclui a Imposto ligada. O backlog das decisões de 26/10 fica vazio.
 - 2026-10-26 · [F+C] **UC-PIDX-19 reescrito, UC-PIDX-17, 20 e 25 ajustados** (decisão [F]): o imposto aparece por relevância no painel. A aba Dados começa com o preço que a venda cobra (com imposto) e, só com imposto, o preço sem imposto, o imposto aplicável e a frase; as tabelas de preço têm uma coluna quando sem e com imposto são iguais; a aba Fiscal e o item "Dados fiscais" só existem em empresa com o módulo Fiscal no pacote (`contexto.emite_nota`) e a aba começa por "Pronto para nota" ou "Sem NCM". O caso antigo do UC-PIDX-19 fica registrado na seção dele; dois itens do backlog viram caso. Falta a coluna e o filtro Imposto da lista (PR seguinte).
 - 2026-10-26 · [F+C] **UC-PIDX-11 reescrito** (decisão [F]): a consulta não oferece compra. Saem "Comprar este produto" do menu da linha, "Comprar" do rodapé do painel e a permissão `comprar` das props da lista; os rótulos "(excl.)/(incl.)" do painel viram "sem imposto/com imposto". O caso antigo ("Comprar abre a nova compra") fica registrado na seção do UC; o backlog perde o item que virou caso.
