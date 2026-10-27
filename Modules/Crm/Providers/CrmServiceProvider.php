@@ -190,6 +190,7 @@ class CrmServiceProvider extends ServiceProvider
             \Modules\Crm\Console\SendScheduleNotification::class,
             \Modules\Crm\Console\CreateRecursiveFollowup::class,
             \Modules\Crm\Console\Commands\CrmHealthCommand::class,
+            \Modules\Crm\Console\AlertarSlaGarantia::class,
         ]);
     }
 
@@ -222,6 +223,8 @@ class CrmServiceProvider extends ServiceProvider
                 $schedule = $this->app->make(Schedule::class);
                 $schedule->command('pos:sendScheduleNotification')->everyMinute();
                 $schedule->command('pos:createRecursiveFollowup')->daily();
+                // US-CRM-094: o comando sai cedo com a flag desligada.
+                $schedule->command('crm:garantia-sla-alertar')->everyFifteenMinutes()->withoutOverlapping();
             });
         }
     }

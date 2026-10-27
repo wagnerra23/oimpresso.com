@@ -90,6 +90,7 @@ on:
       # US-CRM-094 — chamado de garantia com SLA (estende o acompanhamento).
       - 'Modules/Crm/Services/ChamadoGarantiaService.php'
       - 'Modules/Crm/Entities/SlaPolitica.php'
+      - 'Modules/Crm/Console/AlertarSlaGarantia.php'
       - 'Modules/Crm/Tests/Feature/CrmChamadoGarantiaSlaContratoTest.php'
       # Thread Crm/13 F2 — baseline dos dados dos Relatórios antes da tela React.
       - 'Modules/Crm/Tests/Feature/CrmRelatoriosBaselineTest.php'
@@ -232,6 +233,7 @@ jobs:
               - 'Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php'
               - 'Modules/Crm/Services/ChamadoGarantiaService.php'
               - 'Modules/Crm/Entities/SlaPolitica.php'
+              - 'Modules/Crm/Console/AlertarSlaGarantia.php'
               - 'Modules/Crm/Tests/Feature/CrmChamadoGarantiaSlaContratoTest.php'
               # Thread Crm/13 F2 — baseline dos dados dos Relatórios antes da tela React.
               - 'Modules/Crm/Tests/Feature/CrmRelatoriosBaselineTest.php'

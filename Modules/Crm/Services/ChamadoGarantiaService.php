@@ -7,9 +7,11 @@ namespace Modules\Crm\Services;
 use App\Scopes\ScopeByBusiness;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 use Modules\Crm\Entities\Schedule;
 use Modules\Crm\Entities\SlaPolitica;
+use Modules\Crm\Notifications\ScheduleNotification;
 
 /**
  * Chamado de garantia com SLA — US-CRM-094 (lacuna P3).
@@ -79,6 +81,55 @@ final class ChamadoGarantiaService
 
             return $chamado;
         });
+    }
+
+    /**
+     * Avisa o responsável dos chamados desta empresa cujo prazo vence dentro da janela
+     * (`crm.garantia_sla.alerta_antes_horas`) ou já venceu — uma vez por chamado.
+     *
+     * A marca `sla_alertado_em` é gravada antes do aviso por um UPDATE condicional: dois
+     * workers no mesmo minuto não avisam duas vezes. Chamado concluído ou cancelado não alerta.
+     *
+     * @return int quantos chamados foram avisados
+     */
+    public function alertarVencendo(int $businessId, ?CarbonImmutable $agora = null): int
+    {
+        if (! config('crm.garantia_sla.enabled')) {
+            return 0;
+        }
+
+        $agora ??= CarbonImmutable::now();
+        $limite = $agora->addHours((int) config('crm.garantia_sla.alerta_antes_horas', 4));
+
+        $ids = DB::table('crm_schedules')
+            ->where('business_id', $businessId)
+            ->where('garantia', true)
+            ->whereNull('sla_alertado_em')
+            ->where(fn ($q) => $q->whereNull('status')->orWhereNotIn('status', ['completed', 'cancelled']))
+            ->where('sla_vence_em', '<=', $limite)
+            ->pluck('id');
+
+        $avisados = 0;
+        foreach ($ids as $id) {
+            $pegou = DB::table('crm_schedules')->where('id', $id)->where('business_id', $businessId)
+                ->whereNull('sla_alertado_em')->update(['sla_alertado_em' => $agora]);
+            if ($pegou === 0) {
+                continue;
+            }
+
+            // SUPERADMIN: roda no comando agendado, sem sessão; o escopo é o where business_id acima.
+            $chamado = Schedule::withoutGlobalScope(ScopeByBusiness::class)->with('users')->find($id);
+            $vencido = $chamado->sla_vence_em->lte($agora);
+            $chamado->broadcast_title = 'Chamado de garantia';
+            $chamado->body = ($vencido ? 'Prazo vencido: ' : 'Prazo vencendo: ').$chamado->title
+                .' (até '.$chamado->sla_vence_em->format('d/m/Y H:i').')';
+            $chamado->link = '/crm/follow-ups';
+
+            Notification::send($chamado->users, new ScheduleNotification($chamado, ['database']));
+            $avisados++;
+        }
+
+        return $avisados;
     }
 
     private function validar(int $biz, int $contactId, ?int $vendaId, ?int $osId, ?int $categoriaId, string $relato): void

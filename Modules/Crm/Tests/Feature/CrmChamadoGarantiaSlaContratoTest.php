@@ -6,8 +6,10 @@ declare(strict_types=1);
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
+use Modules\Crm\Notifications\ScheduleNotification;
 use Modules\Crm\Services\ChamadoGarantiaService;
 use Tests\Support\EstoqueFixture;
 
@@ -174,4 +176,75 @@ it('UC-GAR-05 flag desligada não abre chamado', function () {
     expect(fn () => garAbrir($this, ['contact_id' => $c, 'transaction_id' => garVenda($this->biz, $c), 'relato' => 'Defeito no produto']))
         ->toThrow(RuntimeException::class);
     expect(DB::table('crm_schedules')->count())->toBe($antes);
+});
+
+/** Chamado de garantia com prazo fixo e responsável, gravado direto (fatia 2 testa só o alerta). */
+function garChamado(int $biz, string $venceEm, ?string $status = 'open'): int
+{
+    $c = garContato($biz);
+    $resp = EstoqueFixture::userId($biz);
+    $id = (int) DB::table('crm_schedules')->insertGetId([
+        'business_id' => $biz, 'contact_id' => $c, 'title' => 'Garantia: GAR teste', 'status' => $status,
+        'schedule_type' => 'call', 'start_datetime' => '2026-10-26 09:00:00', 'end_datetime' => $venceEm,
+        'allow_notification' => 0, 'created_by' => $resp, 'garantia' => 1, 'sla_vence_em' => $venceEm,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    DB::table('crm_schedule_users')->insert(['schedule_id' => $id, 'user_id' => $resp, 'created_at' => now(), 'updated_at' => now()]);
+
+    return $id;
+}
+
+function garAlertado(int $id): ?string
+{
+    return DB::table('crm_schedules')->where('id', $id)->value('sla_alertado_em');
+}
+
+// Relógio 2026-10-27 09:00, janela de 4h → alerta quem vence até 13:00.
+it('UC-GAR-06 avisa o responsável quando o prazo vence na janela ou já venceu, uma vez só', function () {
+    Notification::fake();
+    config(['crm.garantia_sla.alerta_antes_horas' => 4]);
+    $vencendo = garChamado($this->biz, '2026-10-27 12:00:00');
+    $vencido = garChamado($this->biz, '2026-10-26 18:00:00');
+    $servico = app(ChamadoGarantiaService::class);
+
+    expect($servico->alertarVencendo($this->biz, $this->agora))->toBe(2);
+    expect(garAlertado($vencendo))->toBe(GAR_AGORA)->and(garAlertado($vencido))->toBe(GAR_AGORA);
+    Notification::assertSentTimes(ScheduleNotification::class, 2);
+
+    expect($servico->alertarVencendo($this->biz, $this->agora->addHour()))->toBe(0);
+    Notification::assertSentTimes(ScheduleNotification::class, 2);
+});
+
+it('UC-GAR-07 não avisa prazo fora da janela, chamado concluído ou cancelado, nem com a flag desligada', function () {
+    Notification::fake();
+    config(['crm.garantia_sla.alerta_antes_horas' => 4]);
+    $longe = garChamado($this->biz, '2026-10-27 14:00:00');
+    $concluido = garChamado($this->biz, '2026-10-27 10:00:00', 'completed');
+    $cancelado = garChamado($this->biz, '2026-10-27 10:00:00', 'cancelled');
+    $servico = app(ChamadoGarantiaService::class);
+
+    config(['crm.garantia_sla.enabled' => false]);
+    $desligadoId = garChamado($this->biz, '2026-10-27 10:00:00');
+    expect($servico->alertarVencendo($this->biz, $this->agora))->toBe(0);
+    expect(garAlertado($desligadoId))->toBeNull();
+
+    config(['crm.garantia_sla.enabled' => true]);
+    $servico->alertarVencendo($this->biz, $this->agora);
+    expect(garAlertado($longe))->toBeNull()
+        ->and(garAlertado($concluido))->toBeNull()
+        ->and(garAlertado($cancelado))->toBeNull()
+        ->and(garAlertado($desligadoId))->toBe(GAR_AGORA);
+});
+
+it('UC-GAR-08 o alerta de uma empresa não toca chamado de outra (Tier 0)', function () {
+    if ($this->outro === null) {
+        $this->markTestSkipped('Só um business semeado — sem adversário 99.');
+    }
+    Notification::fake();
+    $doOutro = garChamado($this->outro, '2026-10-27 10:00:00');
+    $meu = garChamado($this->biz, '2026-10-27 10:00:00');
+
+    app(ChamadoGarantiaService::class)->alertarVencendo($this->biz, $this->agora);
+
+    expect(garAlertado($meu))->toBe(GAR_AGORA)->and(garAlertado($doOutro))->toBeNull();
 });

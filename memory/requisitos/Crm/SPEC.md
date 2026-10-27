@@ -639,7 +639,7 @@ _Aprovação pendente: Wagner via ADR `memory/decisions/proposals/drafts/crm-pre
 
 ### US-CRM-094 · Chamado de garantia com SLA — prazo por tipo, fila, responsável e alerta
 
-**Implementado em:** `Modules/Crm/Services/ChamadoGarantiaService.php` · `Modules/Crm/Entities/SlaPolitica.php` · `Modules/Crm/Database/Migrations/2026_10_27_120000_add_chamado_garantia_sla_to_crm_schedules.php` — parcial: abertura com prazo (fatia 1). Alerta de prazo vencendo e tela são as fatias 2 e 3.
+**Implementado em:** `Modules/Crm/Services/ChamadoGarantiaService.php` · `Modules/Crm/Entities/SlaPolitica.php` · `Modules/Crm/Database/Migrations/2026_10_27_120000_add_chamado_garantia_sla_to_crm_schedules.php` · `Modules/Crm/Console/AlertarSlaGarantia.php` — parcial: abertura com prazo (fatia 1) e alerta de prazo vencendo (fatia 2). A tela é a fatia 3.
 
 **Testado em:** `Modules/Crm/Tests/Feature/CrmChamadoGarantiaSlaContratoTest.php`
 
