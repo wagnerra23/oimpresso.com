@@ -32,7 +32,7 @@ Status: 🧪 sem veredito
 - **Regressão que defende:** charter §Goals *"prioridade/status (selects vindos do backend)"* — o mesmo conjunto que o `ToDoStoreRequest` aceita.
 
 ## UC-ETDC-03 · Criar pelo serviço grava no business informado, sem depender da sessão `[must]`
-Status: 🧪 sem veredito
+Status: ⬜ não verificado (aguarda o run do CI)
 - **Persona:** a Jana, executando a tarefa que o usuário confirmou no chat (ADR 0440).
 - **Aceite:** Dado `TodoService::criar($biz, $user, $campos)` chamado sem sessão de business · Quando grava · Então a tarefa nasce em `$biz`, com o autor como atribuído e `task_id` preenchido; a sessão vazia não muda o business.
 - **Teste:** `Modules/Essentials/Tests/Feature/TodoFormsContratoTest.php` — `UC-ETDC-03 · …`
