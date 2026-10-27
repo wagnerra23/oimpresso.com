@@ -35,6 +35,9 @@ final class LinkDePagamentoDoTitulo
 {
     public const METODOS = ['pix', 'boleto'];
 
+    /** Menor valor aceito pelo gateway para gerar o link, em centavos. */
+    public const VALOR_MINIMO_CENTAVOS = 100;
+
     public function __construct(
         private readonly PaymentGatewayContract $gateway,
         private readonly MeioDePagarDoTitulo $meio,
@@ -127,8 +130,11 @@ final class LinkDePagamentoDoTitulo
         }
 
         $valorCentavos = (int) round(((float) $titulo->valor_aberto) * 100);
-        if ($valorCentavos < 100) {
-            throw new \DomainException('O valor em aberto é menor que R$ 1,00. Fale com a empresa.');
+        if ($valorCentavos < self::VALOR_MINIMO_CENTAVOS) {
+            throw new \DomainException(sprintf(
+                'O valor em aberto é menor que o mínimo de %s. Fale com a empresa.',
+                'R$ '.number_format(self::VALOR_MINIMO_CENTAVOS / 100, 2, ',', '.'),
+            ));
         }
         $conta = ContaBancaria::padraoParaCobranca($biz);
         $account = $conta ? Account::query()->where('business_id', $biz)->find($conta->getAttribute('account_id')) : null;
