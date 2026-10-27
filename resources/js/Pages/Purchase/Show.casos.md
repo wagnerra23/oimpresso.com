@@ -5,7 +5,7 @@ irmaos: Show.charter.md (lei) · Show.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o escopo por tenant e a ausência do barcode são duráveis — não mudam quando o detalhe ganhar card novo.
 owner: wagner
-last_run: "2026-10-21"
+last_run: "2026-10-27"
 last_run_ci: "✅ 2026-09-05: os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841). Medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. Os 6 UC desta tela tem lane; 2 com defesa de COMPORTAMENTO (PurchaseShowTenantContratoTest) e os demais ESTRUTURAL (presence-gate, LC-11). Nao restatear a mao: rode scripts/qa/uc-lane-coverage.mjs. HISTORICO (fato datado, preservado): 🟡 A lane purchase-pest.yml nasceu e os UC 01 [T0] e 05 [V0] têm contrato de COMPORTAMENTO em PurchaseShowTenantContratoTest — 4 passed, 8 assertions, run no CT 100, mordida verificada por mutação. Os UC 02/03/04/06 seguem 🔴 sem lane, e o 03 tem o critério ERRADO (casa o comentário do bug-fix) — ver §Divergências. Ver §Dívida de prova."
 ---
 
@@ -125,6 +125,8 @@ comprovadamente verde e crescer daí — o caminho é converter, um UC por vez.
 | UC-PURSHW-07 | Preços propostos pelo recebimento aparecem no detalhe, com aviso da regra em Conferido | must `[T0]` | SPEC US-COM-028 · charter Goals | `PropostasDePrecoContratoTest` | 🧪 sem veredito |
 | UC-PURSHW-08 | Aprovar grava o preço proposto e devolve a margem de antes | must `[V0]` | SPEC US-COM-028 · US-COM-026 (`aplicar`) | `PropostasDePrecoContratoTest` | 🧪 sem veredito |
 | UC-PURSHW-09 | Recusar mantém o preço; aprovar exige `product.update`, a empresa certa e o preço de antes | must `[T0]` `[V0]` | SPEC US-COM-028 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `PropostasDePrecoContratoTest` | 🧪 sem veredito |
+| UC-PURSHW-10 | Inspeção da compra recebida: o reprovado sai do estoque e vira devolução ao fornecedor | must `[V0]` | SPEC US-COM-034 | `InspecaoDoRecebimentoTest` | ⬜ não verificado (lane compras-pest sem veredito ainda) |
+| UC-PURSHW-11 | Inspeção desligada por padrão; soma errada, reprovado sem motivo, segunda inspeção e compra de outra empresa são recusados | must `[T0]` | SPEC US-COM-034 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) | `InspecaoDoRecebimentoTest` | ⬜ não verificado (lane compras-pest sem veredito ainda) |
 
 ---
 
@@ -292,6 +294,32 @@ comprovadamente verde e crescer daí — o caminho é converter, um UC por vez.
 - **Teste:** [`PropostasDePrecoContratoTest`](../../../../Modules/Compras/Tests/Feature/PropostasDePrecoContratoTest.php).
 - **Contrato:** SPEC US-COM-028 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
 - **Status: 🧪 sem veredito**
+
+## UC-PURSHW-10 · Inspeção da compra recebida: o reprovado vira devolução · `must` `[V0]`
+
+- **Persona:** quem recebe a mercadoria e confere a qualidade (o comprador ou o conferente da loja).
+- **Aceite:** **Dado** uma compra recebida com 10 lonas a 12,50, **quando** a inspeção marca 7
+  aprovadas e 3 reprovadas (motivo "rasgada"), **então** o estoque vai de 10 a 7 (saldo e soma das
+  compras recebidas) e nasce uma devolução de compra de 3 × 12,50 = 37,50. Tudo aprovado não mexe no
+  estoque nem cria devolução; tudo reprovado zera a linha no estoque.
+- **Regressão que defende:** o reprovado ficar à venda no estoque disponível, ou a devolução sair com
+  valor diferente do que a tela de devolução de compra calcularia.
+- **Teste:** [`InspecaoDoRecebimentoTest`](../../../../Modules/Compras/Tests/Feature/InspecaoDoRecebimentoTest.php).
+- **Contrato:** SPEC US-COM-034. A tela vem depois do protótipo; hoje é o serviço.
+- **Status: ⬜ não verificado** — a lane `compras-pest` ainda não deu veredito.
+
+## UC-PURSHW-11 · Inspeção desligada por padrão e com travas · `must` `[T0]`
+
+- **Persona:** o mesmo conferente; e, para o isolamento, um usuário da empresa 99 (adversária).
+- **Aceite:** **Dado** a compra recebida da empresa 98, **quando** a inspeção chega com a chave
+  `compras_inspecao_recebimento` desligada, com aprovado + reprovado diferente do recebido, com
+  reprovado sem motivo, pela segunda vez na mesma linha, ou pela empresa 99 (mesmo com a chave dela
+  ligada), **então** é recusada e o estoque não muda.
+- **Regressão que defende:** feature ligada sem decisão da empresa; estoque baixado duas vezes pela
+  mesma linha; uma empresa mexer no estoque e na devolução de outra (Tier 0).
+- **Teste:** [`InspecaoDoRecebimentoTest`](../../../../Modules/Compras/Tests/Feature/InspecaoDoRecebimentoTest.php).
+- **Contrato:** SPEC US-COM-034 · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
+- **Status: ⬜ não verificado** — a lane `compras-pest` ainda não deu veredito.
 
 ---
 
