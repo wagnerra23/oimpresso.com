@@ -963,6 +963,7 @@ function App() {
   if (route === "vestuario" || route === "vest-etiquetas") content = <window.VestuarioPage estado={tweaks.vstEstado} papel={tweaks.vstPapel} dense={tweaks.vstDensidade === "compacto"} toque={tweaks.vstToque} previa={tweaks.vstPrevia} hardBlock={tweaks.vstHardBlock} />;else
   if (route === "catalogo-qr") content = <window.CatalogoQrPage estado={tweaks.cqrEstado} papel={tweaks.cqrPapel} dense={tweaks.cqrDensidade === "compacto"} logoCadastrado={tweaks.cqrLogo} />;else
   if (route === "relatorios") content = <window.RelatoriosPage />;else
+  if (route === "relatorio-montavel") content = <window.RelatorioMontavelPage />;else
   if (typeof route === "string" && route.indexOf("rel-") === 0) content = <window.RelatoriosPage grupo={{ "rel-financeiro": "Financeiro", "rel-comercial": "Comercial", "rel-estoque": "Estoque", "rel-fiscal": "Fiscal" }[route]} />;else
   if ([
   "inbox", "equipe",

@@ -245,6 +245,7 @@ const MENU = [
       { id: "rel-comercial",  icon: "chart",   label: "Comercial" },
       { id: "rel-estoque",    icon: "archive", label: "Estoque" },
       { id: "rel-fiscal",     icon: "receipt", label: "Fiscal" },
+      { id: "relatorio-montavel", icon: "chart", label: "Montar relatório" },
     ]},
     // Arquivos (Modules/Arquivos · DMS backbone ADR 0123). No vivo o DataController é NO-OP e a
     // UI nasce em Pages/Arquivos dentro do Admin Center (US-ARQ-013) — aqui entra como destino próprio.
