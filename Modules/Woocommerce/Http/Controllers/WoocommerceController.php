@@ -568,7 +568,8 @@ class WoocommerceController extends Controller
                 'id' => (int) $t->id,
                 'nome' => (string) $t->name,
                 'aliquota' => (float) $t->amount,
-                'loja_id' => $t->woocommerce_tax_rate_id !== null ? (int) $t->woocommerce_tax_rate_id : null,
+                // getAttribute(): a coluna existe (migração do módulo) mas o docblock de App\TaxRate não a declara.
+                'loja_id' => $t->getAttribute('woocommerce_tax_rate_id') !== null ? (int) $t->getAttribute('woocommerce_tax_rate_id') : null,
             ])->values();
 
         $loja = [];
