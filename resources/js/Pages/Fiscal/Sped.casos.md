@@ -5,7 +5,7 @@ irmaos: Sped.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-09-04"
+last_run: "2026-10-27"
 ---
 
 # Casos de Uso & Aceite — SPED e livros
@@ -170,6 +170,35 @@ Dado nenhuma configuração explícita · Quando o app lê `fiscal.sped_simples_
 **true** (fail-secure: sem trava, um TXT com hardcode sairia pro Fisco), a chave vive em
 `config/fiscal.php` e o `SpedController::gerar` de fato a consulta. Âncora: audit sênior R1.
 **Pronto quando:** default true, chave no arquivo canônico, e o Controller referencia a flag.
+
+## UC-FSPED-11 — O COD_VER do 0000 é o do leiaute do ano do período
+Status: 🧪 (`SpedEstruturaLeiauteTest::UC-FSPED-11` — 2 casos, rodam sem banco)
+Dado uma competência de 2025 ou de 2026 · Quando o gerador monta o `0000` · Então `COD_VER` é `019` e
+`020`, respectivamente — a tabela 3.1.1 da **NT 2025.001 v1.0**. Ano sem leiaute mapeado (2027, leiaute
+021 da NT 2026.001) é **recusado**, não gerado com a versão de outro ano. Âncora: NT 2025.001 §3.1.1.
+**Pronto quando:** o código sai por período, e não fixo em `018` (que só vale para 2024).
+
+## UC-FSPED-12 — Os 10 blocos obrigatórios saem, na ordem do Guia Prático
+Status: 🧪 (`SpedEstruturaLeiauteTest::UC-FSPED-12`)
+Dado qualquer competência · Quando o TXT é gerado · Então os blocos aparecem na ordem
+**0, B, C, D, E, G, H, K, 1, 9**. Âncora: Guia Prático v3.2.3, Cap. II, Seção 1 — *"É obrigatória a
+apresentação de todos os blocos, na sequência"*. Antes saíam só 0, C, E, H e 9.
+**Pronto quando:** a sequência de blocos do arquivo é exatamente essa.
+
+## UC-FSPED-13 — Cada encerramento conta as linhas do próprio bloco
+Status: 🧪 (`SpedEstruturaLeiauteTest::UC-FSPED-13`)
+Dado o TXT gerado · Então todo `x990` declara as linhas do bloco (abertura e encerramento inclusos), o
+`9990` conta também o `9999` (Guia v3.2.3, registro 9990, campo 02 — antes contava uma a menos), cada
+`9900` bate com as ocorrências reais do registro e o `9999` com o total de linhas.
+**Pronto quando:** nenhuma contagem declarada difere da contagem real.
+
+## UC-FSPED-14 — Mês sem NF-e gera arquivo com os indicadores válidos
+Status: 🧪 (`SpedEstruturaLeiauteTest::UC-FSPED-14`)
+Dado uma competência sem NF-e autorizada · Então `C001` sai `1` (antes saía `0`, porque `empty()` sobre
+Collection é sempre falso), `0001`/`E001`/`9001` saem `0` (único valor válido no Guia), B/D/G/K saem sem
+dados (`K010` só existe com `K001`=0) e o Bloco 1 traz `1001`=0 com o `1010` de 13 indicadores.
+⚠️ Os 13 indicadores do `1010` saem `N` até o contador decidir — ver perguntas abertas na US-FISCAL-028.
+**Pronto quando:** os indicadores de abertura batem com o Guia num mês vazio.
 
 ## UC-FSF1-03 — Competência em aberto é recusada antes de qualquer query
 Status: 🧪 (`SpedOndaF1Test` — 10 casos: 4 sobre a guarda do Service + 6 sobre a régua da tela. **14 passed (182 assertions)** medidos no CT 100 em 2026-09-03; o manifesto do G-7 é alimentado pelas lanes de CI, não por rodada local — daí 🧪 e não ✅)
@@ -338,6 +367,7 @@ executado" **sozinha**, sem editar código.
 2. **Cadência:** rodar ao fim de toda mexida. UC ❌ = regressão fiscal (multa).
 
 ## Trilha do tempo
+- 2026-10-27 · [CC] US-FISCAL-028 fatia 1: entram `UC-FSPED-11..14` (estrutura do arquivo pelo leiaute 020 / Guia 3.2.3). Rodam sem banco: o teste troca só a leitura (business + NF-e). O golden de 2026-09-03 **ficou atrás do gerador** (COD_VER 018, sem B/D/G/K/1, 9990 com uma a menos) e segue como captura histórica até ser regerado no CT 100. `last_run` 09-04 → 10-27: a única mudança no `Sped.tsx` depois de 09-04 foi o #7110 (09-09, rótulos e ordem das 7 abas, medido pela API do GitHub — o clone local é raso). Nenhum UC desta tela depende dos rótulos das abas; os UC antigos não foram re-executados (CT 100 fora do ar).
 - 2026-09-04 · [CC] Onda 10 (F1 Cowork): entram `UC-FSF1-01`, `UC-FSF1-06` e `UC-FSF1-07`, traduzindo os Goals 1 (completar), 5 e 4 do charter do Cowork. A régua ganhou barra na página (antes só existia dentro do drawer) e as duas superfícies novas são **medidas no arquivo de referência** — o cartão de validação teve de contradizer a copy do protótipo, que diz "golden file: não existe" e ficou desatualizada no dia seguinte ao charter. Goal 3 (prévia do TXT) segue em aberto por decisão [W].
 - 2026-07-03 · [CC] criado no Passo 3 do programa de ondas (régua por tela). 22 testes mapeados, 0 citavam UC-id.
 - 2026-09-03 · [CC] Onda 9 (F1 Cowork): entram `UC-FSF1-03` (régua de 4 checagens + guarda de entrada no Service) e `UC-FSF1-05` (golden file). Dois achados registrados sem conserto silencioso — o `TypeError` do Bloco 9, corrigido com um cast, e o emitente sem CNPJ/IE/UF, que é decisão do responsável. O §recibo de 07-27 caducou: `nfe_emissoes` existe no CT 100 desde o provisionamento de 07-28.

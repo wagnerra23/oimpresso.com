@@ -1,0 +1,13 @@
+[Unit]
+Description=Runner GitHub Actions ct100-leve (vaga %i)
+After=docker.service network-online.target
+Requires=docker.service
+
+[Service]
+ExecStartPre=/opt/oimpresso/ci-runner-leve/firewall.sh
+ExecStart=/opt/oimpresso/ci-runner-leve/supervisor.sh %i
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

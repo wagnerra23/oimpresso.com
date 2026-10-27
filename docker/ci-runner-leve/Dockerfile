@@ -1,0 +1,11 @@
+# Runner GitHub Actions dos gates LEVES (scripts Node de segundos).
+# Base oficial do GitHub, versão fixada. Acrescenta só o que os jobs leves usam:
+# git (actions/checkout com histórico) e certificados. Node vem do actions/setup-node.
+FROM ghcr.io/actions/actions-runner:2.338.0
+
+USER root
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends git ca-certificates curl unzip xz-utils \
+ && rm -rf /var/lib/apt/lists/*
+USER runner
+WORKDIR /home/runner
