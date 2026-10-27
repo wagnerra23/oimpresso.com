@@ -2,21 +2,21 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1027 tarefas abertas** em **57 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1036 tarefas abertas** em **57 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
 | Módulo | Abertas | doing | review | blocked | todo/backlog |
 |---|---:|---:|---:|---:|---:|
-| [`Jana`](#jana) | 83 | 2 | 0 | 0 | 81 |
+| [`Jana`](#jana) | 84 | 2 | 0 | 0 | 82 |
 | [`Whatsapp`](#whatsapp) | 71 | 0 | 0 | 0 | 71 |
-| [`Sells`](#sells) | 68 | 1 | 0 | 0 | 67 |
+| [`Sells`](#sells) | 69 | 2 | 0 | 0 | 67 |
 | [`Financeiro`](#financeiro) | 52 | 4 | 0 | 0 | 48 |
 | [`Infra`](#infra) | 51 | 0 | 0 | 0 | 51 |
 | [`Governance`](#governance) | 46 | 0 | 0 | 2 | 44 |
 | [`OficinaAuto`](#oficinaauto) | 39 | 0 | 0 | 0 | 38 |
 | [`Producao`](#producao) | 33 | 1 | 0 | 0 | 32 |
-| [`NfeBrasil`](#nfebrasil) | 29 | 0 | 0 | 6 | 23 |
+| [`NfeBrasil`](#nfebrasil) | 31 | 0 | 0 | 6 | 25 |
 | [`Compras`](#compras) | 28 | 4 | 0 | 0 | 23 |
 | [`RecurringBilling`](#recurringbilling) | 26 | 0 | 0 | 0 | 26 |
 | [`Arquivos`](#arquivos) | 25 | 0 | 0 | 0 | 25 |
@@ -25,7 +25,7 @@
 | [`Crm`](#crm) | 24 | 0 | 0 | 0 | 24 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 22 | 0 | 0 | 0 | 22 |
 | [`Fiscal`](#fiscal) | 22 | 0 | 0 | 0 | 22 |
-| [`Connector`](#connector) | 20 | 0 | 0 | 0 | 19 |
+| [`Connector`](#connector) | 21 | 0 | 0 | 0 | 20 |
 | [`Vestuario`](#vestuario) | 20 | 1 | 0 | 0 | 19 |
 | [`Forja`](#forja) | 19 | 0 | 1 | 0 | 7 |
 | [`Mwart`](#mwart) | 19 | 0 | 0 | 0 | 19 |
@@ -39,18 +39,18 @@
 | [`Fisio`](#fisio) | 12 | 0 | 0 | 0 | 12 |
 | [`NFSe`](#nfse) | 12 | 0 | 0 | 0 | 12 |
 | [`PontoWr2`](#pontowr2) | 12 | 0 | 0 | 0 | 12 |
-| [`Superadmin`](#superadmin) | 11 | 0 | 0 | 0 | 11 |
+| [`Superadmin`](#superadmin) | 12 | 0 | 0 | 0 | 12 |
+| [`Produto`](#produto) | 11 | 0 | 0 | 0 | 11 |
 | [`Cms`](#cms) | 10 | 0 | 0 | 0 | 10 |
-| [`Produto`](#produto) | 10 | 0 | 0 | 0 | 10 |
 | [`Cliente`](#cliente) | 9 | 1 | 0 | 0 | 8 |
 | [`TaskRegistry`](#taskregistry) | 9 | 0 | 0 | 0 | 9 |
 | [`KB`](#kb) | 8 | 0 | 0 | 0 | 8 |
 | [`Manufacturing`](#manufacturing) | 8 | 0 | 0 | 0 | 8 |
+| [`Woocommerce`](#woocommerce) | 8 | 0 | 0 | 0 | 8 |
 | [`EvolutionAgent`](#evolutionagent) | 7 | 0 | 0 | 0 | 7 |
 | [`TeamMcp`](#teammcp) | 7 | 0 | 0 | 0 | 7 |
 | [`NotificationTemplate`](#notificationtemplate) | 6 | 0 | 0 | 0 | 6 |
 | [`SRS`](#srs) | 6 | 0 | 0 | 0 | 6 |
-| [`Woocommerce`](#woocommerce) | 6 | 0 | 0 | 0 | 6 |
 | [`LaravelAI`](#laravelai) | 5 | 0 | 0 | 0 | 5 |
 | [`Repair`](#repair) | 5 | 0 | 0 | 0 | 5 |
 | [`Spreadsheet`](#spreadsheet) | 5 | 0 | 0 | 0 | 5 |
@@ -82,6 +82,7 @@
 - **US-COPI-139** — Badalo do ratio negócio÷governança no brief-fetch (o alarme existe e nunca dispara) _(`p1`)_
 - **US-COPI-143** — Deprecar o `jana:drift-sentinel` tautológico (o "alarme de drift" mede gt-vs-gt, não a Jana) _(`p1`)_
 - **US-COPI-145** — Desbloquear modelo frontier no chat da Jana: ANTHROPIC_API_KEY em prod OU acesso gpt-4o no projeto OpenAI _(`p1` · @wagner)_
+- **US-COPI-151** — Jana propõe ação, usuário confirma no cartão, só então grava _(`p1`)_
 - **US-COPI-146** — Migrar Jana/Dashboard pro padrão PT-04 (sair do bundle CSS paralelo .sells-cowork) _(`p2`)_
 - **US-COPI-147** — Higiene de schema da camada de IA — 2 resíduos reais, 4 falsos positivos e 1 promessa que não pode virar trigger _(`p2`)_
 - **US-COPI-148** — Fundir as telas da Jana numa tela única `/ia` com abas Painel | Conversa | Memória _(`p2` · @wagner)_
@@ -242,6 +243,7 @@
 ### doing
 
 - **US-SELL-077** — Cancelar a venda devolve o estoque, tira a venda dos relatórios e cancela o título _(`p0` · @wagner)_
+- **US-SELL-078** — O ICMS-ST entra no total da venda, pela mesma conta da NF-e _(`p1` · @wagner)_
 
 ### todo
 
@@ -590,6 +592,7 @@
 
 ### todo
 
+- **US-NFE-072** — ICMS-ST e DIFAL chegam à NF-e da venda interestadual — **Legal** _(`p0` · sprint —)_
 - **US-NFE-042** — Discovery técnico instalação Gold Comunicação Visual _(`p1` · @wagner · sprint Gold-Reativacao)_
 - **US-NFE-053** — Smoke homologação SEFAZ-SP eventos 210/220 biz=Gold _(`p1` · @wagner · sprint Gold-Reativacao)_
 - **US-NFE-054** — Smoke real homologação SEFAZ-SC biz=1 — 1ª NFC-e cstat 100 (Goal #1 CYCLE-03) _(`p1` · @wagner)_
@@ -597,6 +600,7 @@
 - **US-NFE-069** — A natureza fiscal do item escolhe a nota: NF-e para mercadoria, NFS-e para serviço e instalação (UC-FLX-31) — **P1** _(`p1` · sprint —)_
 - **US-NFE-071** — Contingência: SVC-AN/SVC-RS, evento EPEC 110140 e marcação no DANFE (UC-FLX-32) — **P1** _(`p1` · sprint —)_
 - **US-NFE-074** — Cutover da emissão Delphi → oimpresso, por empresa — **Backlog** _(`p1` · sprint —)_
+- **US-NFE-075** — NF-e com destinatário e CFOP vindos de fora da venda (pedido de marketplace) — **P1** _(`p1` · sprint —)_
 - **US-NFE-055** — Estabilizar 107 tests broken Modules/NfeBrasil aplicando dual-mode SQLite/MySQL _(`p2`)_
 - **US-NFE-056** — Continuação PR #453 — migrar configBusiness(4) → configBusiness(1) em MotorTributarioServiceTest _(`p2`)_
 - **US-NFE-057** — Schema drift — atualizar fixtures DanfeServicePrefersArquivosTest pós-remoção `arquivos.filename` _(`p2`)_
@@ -871,6 +875,7 @@
 ### todo
 
 - **US-CONN-013** — Documentar a API Connector em OpenAPI 3.0 sem expor dados reais _(`p0` · @[F])_
+- **US-CONN-021** — Webhooks de saída assinados por empresa (venda, pedido, cliente, estoque) _(`p1`)_
 - **US-CONN-014** — [EPIC] Migrar a tela Conector (API) de Blade para Inertia (MWART) _(`p2` · @[W])_
 - **US-CONN-016** — F2 — Dual render + feature flag + comando artisan _(`p2` · @[F])_
 - **US-CONN-017** — F2 — Mapa de paridade campo-a-campo _(`p2` · @[F])_
@@ -1189,6 +1194,7 @@
 
 ### todo
 
+- **US-SUPER-012** — Onboarding guiado da empresa nova e ajuda dentro do sistema _(`p2`)_
 - **US-SUPER-001** — Listagem e CRUD de Businesses
 - **US-SUPER-002** — Gestão de Packages (planos comerciais)
 - **US-SUPER-003** — Subscriptions (cobrança recorrente)
@@ -1200,6 +1206,23 @@
 - **US-SUPER-009** — Pricing público (`/pricing`)
 - **US-SUPER-010** — Usuario 360 (visão consolidada do cliente)
 - **US-SUPER-011** — Visão geral da plataforma (`/superadmin`)
+
+## Produto
+
+
+### todo
+
+- **US-PROD-020** — [G-04] Governança do Produto: casos.md + revisar SPEC _(`p0` · @wagner)_
+- **US-PROD-021** — [G-01] Kardex real na tela React StockHistory (deixar de linkar Blade) _(`p0` · @wagner)_
+- **US-PROD-022** — [G-02] ⚠️Tier0 · Multiplicador/markup por tabela de preço (SellingPriceGroup.mult) _(`p1` · @wagner)_
+- **US-PROD-023** — [G-05] Finalizar + promover as **6 telas React não-cadastrais** do Produto (draft→live) + ligar a Consulta na navegação _(`p1` · @wagner)_
+- **US-PROD-027** — [V0] Travar o acidente do 0-row: preço zero em tabela é inerte só por sorte do PHP _(`p1` · @wagner)_
+- **US-PROD-031** — Importar produtos exportados do Bling, Tiny ou Omie sem montar planilha _(`p1`)_
+- **US-PROD-024** — [G-03] ⚠️Tier0 · Custo médio + valor/custo em estoque — SPIKE de descoberta primeiro _(`p2` · @wagner)_
+- **US-PROD-025** — [G-06] UI de BOM drag-drop + baixa-de-componente do kit no PDV _(`p2` · @wagner)_
+- **US-PROD-029** — Cadastro de produto em ROTA PARALELA (o `ProductController` da Larissa não é tocado) _(`p2` · @felipe)_
+- **US-PROD-030** — ⚠️Tier0 · Política de preço por produto: atualizar a cada custo novo OU manter o preço _(`p2` · @wagner)_
+- **US-PROD-026** — Fornecedores/cotação por produto (melhor preço no drawer) _(`p3` · @wagner)_
 
 ## Cms
 
@@ -1216,22 +1239,6 @@
 - **US-CMS-008** — Autenticação social no landing
 - **US-CMS-009** — Importer WordPress (XML/REST API)
 - **US-CMS-010** — Editor visual drag-drop (page builder)
-
-## Produto
-
-
-### todo
-
-- **US-PROD-020** — [G-04] Governança do Produto: casos.md + revisar SPEC _(`p0` · @wagner)_
-- **US-PROD-021** — [G-01] Kardex real na tela React StockHistory (deixar de linkar Blade) _(`p0` · @wagner)_
-- **US-PROD-022** — [G-02] ⚠️Tier0 · Multiplicador/markup por tabela de preço (SellingPriceGroup.mult) _(`p1` · @wagner)_
-- **US-PROD-023** — [G-05] Finalizar + promover as **6 telas React não-cadastrais** do Produto (draft→live) + ligar a Consulta na navegação _(`p1` · @wagner)_
-- **US-PROD-027** — [V0] Travar o acidente do 0-row: preço zero em tabela é inerte só por sorte do PHP _(`p1` · @wagner)_
-- **US-PROD-024** — [G-03] ⚠️Tier0 · Custo médio + valor/custo em estoque — SPIKE de descoberta primeiro _(`p2` · @wagner)_
-- **US-PROD-025** — [G-06] UI de BOM drag-drop + baixa-de-componente do kit no PDV _(`p2` · @wagner)_
-- **US-PROD-029** — Cadastro de produto em ROTA PARALELA (o `ProductController` da Larissa não é tocado) _(`p2` · @felipe)_
-- **US-PROD-030** — ⚠️Tier0 · Política de preço por produto: atualizar a cada custo novo OU manter o preço _(`p2` · @wagner)_
-- **US-PROD-026** — Fornecedores/cotação por produto (melhor preço no drawer) _(`p3` · @wagner)_
 
 ## Cliente
 
@@ -1297,6 +1304,20 @@
 - **US-MANU-007** — Formulário de ordem de produção
 - **US-MANU-008** — Rotas legadas só tocam dado da própria empresa
 
+## Woocommerce
+
+
+### todo
+
+- **US-WOO-007** — Estoque do ERP volta para a loja WooCommerce sozinho quando muda _(`p1`)_
+- **US-WOO-008** — Contrato do WooCommerce 8/9 na API REST v3 (pedido e produto) _(`p1`)_
+- **US-WOO-001** — Configurar credenciais API (consumer key/secret + URL)
+- **US-WOO-002** — Sync de produtos (oimpresso → WooCommerce)
+- **US-WOO-003** — Sync de categorias e tax rates
+- **US-WOO-004** — Visualizar sync log + diagnóstico
+- **US-WOO-005** — Webhook: pedido criado na Woo → venda no oimpresso
+- **US-WOO-006** — Webhook: pedido atualizado na Woo → atualizar no oimpresso
+
 ## EvolutionAgent
 
 
@@ -1346,18 +1367,6 @@
 - **US-SRS-004** — Search hybrid (FULLTEXT + chat)
 - **US-SRS-005** — Audit log SRS (validation runs)
 - **US-SRS-006** — Memcofre legacy prefix (compat layer)
-
-## Woocommerce
-
-
-### todo
-
-- **US-WOO-001** — Configurar credenciais API (consumer key/secret + URL)
-- **US-WOO-002** — Sync de produtos (oimpresso → WooCommerce)
-- **US-WOO-003** — Sync de categorias e tax rates
-- **US-WOO-004** — Visualizar sync log + diagnóstico
-- **US-WOO-005** — Webhook: pedido criado na Woo → venda no oimpresso
-- **US-WOO-006** — Webhook: pedido atualizado na Woo → atualizar no oimpresso
 
 ## LaravelAI
 

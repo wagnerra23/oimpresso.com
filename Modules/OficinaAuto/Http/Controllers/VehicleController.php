@@ -331,8 +331,10 @@ class VehicleController extends Controller
      */
     private function gravarProximaRevisao(Vehicle $vehicle, array $validados): void
     {
-        if (array_key_exists('next_service_km', $validados)) {
-            $vehicle->forceFill(['next_service_km' => $validados['next_service_km']])->save();
+        $metas = array_intersect_key($validados, array_flip(['next_service_km', 'next_service_date']));
+        if ($metas !== []) {
+            // US-AUTO-014 (decisão [W] 2026-10-26): a data da próxima revisão segue o mesmo caminho do km.
+            $vehicle->forceFill($metas)->save();
         }
     }
 
