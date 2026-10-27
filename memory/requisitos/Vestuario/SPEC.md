@@ -209,8 +209,10 @@ ROTA LIVRE usa Asaas como adapter de boleto + extrato (Inter PJ planejado em US-
 
 ### US-VEST-021 · Devolução/troca com prazo CDC + crédito em conta-cliente `p0`
 
-> owner: — · priority: p0 · estimate: 16h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 16h · status: doing · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_ — em andamento. Decisão [W] 2026-10-26: o crédito é o saldo de **Adiantamento** do cliente (`contacts.balance`), que o caixa já aceita; `vest_creditos_cliente` fica sem uso. Feito: a devolução vira saldo (`POST /sell-return/{id}/vale-troca`, `App\Services\Sells\ValeTrocaService`, UC-SRETVT-01..05 em `SellReturn/Index.casos.md`). Falta o botão na tela de devolução e o prazo CDC com sobreposição do gestor.
 
 **Contexto.** CDC (Lei 8.078/90 art. 49) garante 7 dias devolução compras online + prazo legal 30d defeitos. Vestuário é setor com **alta taxa de troca por tamanho** (~15-25% segundo Linx Retail Insights). Hoje ROTA LIVRE faz troca via "criar venda nova + cancelar antiga" — perde rastreabilidade e quebra DRE. Concorrentes (Linx, ProMoz) têm fluxo dedicado **Devolução** que gera crédito automático na ficha do cliente, usável próxima compra.
 
@@ -336,6 +338,27 @@ ROTA LIVRE usa Asaas como adapter de boleto + extrato (Inter PJ planejado em US-
 - [ ] Filtro `/products?estacao=Verao24`
 - [ ] Relatório "rotação por estação" (sell-through %)
 - [ ] Pré-requisito de US-VEST-022 (comissão por estação) e US-VEST-023 (liquidação)
+
+### US-VEST-031 · Sugestão de compra por tamanho pela curva de venda `p1`
+
+> owner: — · priority: p1 · estimate: 8h · type: story
+> blocked_by: —
+> **Implementado em:** _parcial_ · `Modules/Vestuario/Services/CurvaDeCompra.php` · `Modules/Vestuario/Http/Controllers/CurvaCompraController.php` — cálculo e endpoint GET /vestuario/curva-compra; falta o botão "Sugerir pela curva" na tela da compra
+> **Testado em:** `Modules/Vestuario/Tests/Feature/CurvaDeCompraContratoTest.php`
+> Contrato: `UC-VCUR-01..03` em `memory/requisitos/Vestuario/_telas/curva-de-compra.casos.md`.
+
+> **Decisão [W] 2026-10-26:** aprovada como sugestão editável. Na compra, o sistema sugere a quantidade por tamanho pela proporção vendida nos últimos 90 dias do produto, ou da categoria quando o produto é novo. Quem compra pode mudar a sugestão, e nada entra no estoque nem no pedido sem confirmação. Afeta a ROTA LIVRE (biz=4): teste no tenant 98, nada na biz=4.
+
+Lacuna "Grade cor e tamanho com curva de compra" (levantamento 2026-10-25, frente Verticais).
+
+**DoD:**
+
+- Para um produto com grade, sugere a quantidade de cada variação (tamanho, ou cor × tamanho) pela proporção vendida nos últimos 90 dias daquele produto.
+- Produto novo (sem venda no período): usa a proporção da categoria, casando as variações pelo nome (ex.: "M", "Azul - M").
+- Quem compra digita o total de peças; a divisão usa o maior resto, então a soma bate com o total.
+- É sugestão editável: nada entra no pedido nem no estoque sem a confirmação de quem compra.
+- Sem venda no produto nem na categoria: não sugere (diz por quê).
+- Tier 0: vendas e produtos só da empresa.
 
 ### US-VEST-030 · Ecommerce (loja virtual / WhatsApp catálogo) `p3`
 

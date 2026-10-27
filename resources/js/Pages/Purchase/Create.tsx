@@ -27,6 +27,8 @@ import { Plus, Trash2, Search, ShoppingCart, ArrowLeft, Save, LayoutGrid } from 
 import GradeMatrixInput, { type GradeCell } from '@/Pages/Purchase/_components/GradeMatrixInput';
 import GradeProductCombobox, { type PickedProduct } from '@/Pages/Purchase/_components/GradeProductCombobox';
 import SupplierCombobox from '@/Pages/Purchase/_components/SupplierCombobox';
+import ReceberDoPedido from '@/Pages/Purchase/_components/ReceberDoPedido';
+import { linhasDoPedido, type PedidoAberto } from '@/Pages/Purchase/_components/pedidoAberto';
 
 // ---------- Tipos ----------
 
@@ -71,6 +73,11 @@ interface PurchaseLineDraft {
   tax_id: number | null;
   purchase_price: number;
   purchase_price_inc_tax: number;
+  /** US-COM-013: linha que veio de um pedido de compra (o store() soma no po_quantity_purchased). */
+  purchase_order_line_id?: number;
+  /** Só para mostrar na tela: quanto o pedido pediu e quanto já tinha chegado. */
+  po_pedido?: number;
+  po_recebido?: number;
 }
 
 export interface PurchaseCreatePageProps {
@@ -116,8 +123,11 @@ function PurchaseCreate({
   currency,
   permissions,
   default_datetime,
+  common_settings,
   produto_inicial = null,
 }: PurchaseCreatePageProps) {
+  // US-COM-013: o pedido de compra só aparece quando a empresa o usa (mesmo interruptor do Blade).
+  const usaPedidoDeCompra = !!common_settings?.enable_purchase_order;
   const [busca, setBusca] = useState('');
   const [linhas, setLinhas] = useState<PurchaseLineDraft[]>([]);
 
@@ -146,6 +156,7 @@ function PurchaseCreate({
     total_before_tax: 0,
     final_total: 0,
     purchases: [] as PurchaseLineDraft[],
+    purchase_order_ids: [] as number[],
   });
 
   // Totais reativos
@@ -213,6 +224,15 @@ function PurchaseCreate({
         return next;
       })
     );
+  };
+
+  // ---------- Receber de um pedido de compra (US-COM-013) ----------
+  // Cada linha entra com o que falta receber; a pessoa ajusta para o que chegou e o resto fica
+  // no pedido. Os preços são os da linha do pedido.
+  const trazerDoPedido = (pedido: PedidoAberto) => {
+    setLinhas((prev) => [...prev, ...linhasDoPedido(pedido)]);
+    form.setData('purchase_order_ids', [...form.data.purchase_order_ids, pedido.id]);
+    setErroItens(null);
   };
 
   // ---------- Modo grade tam×cor (US-COM-005) ----------
@@ -445,6 +465,15 @@ function PurchaseCreate({
           <span className="text-[11px] text-stone-500">{linhas.length} {linhas.length === 1 ? 'item' : 'itens'}</span>
         </CardHeader>
         <CardContent className="px-4 pb-4">
+          {usaPedidoDeCompra && (
+            <ReceberDoPedido
+              contactId={form.data.contact_id ? Number(form.data.contact_id) : null}
+              locationId={locationId}
+              jaUsados={form.data.purchase_order_ids}
+              onPick={trazerDoPedido}
+            />
+          )}
+
           {/* Modo grade tam×cor (US-COM-005) — produto variável → matriz → linhas */}
           <div className="mb-3 rounded-lg border border-border bg-muted/40 p-3">
             <div className="flex items-center gap-2 mb-2">
@@ -546,6 +575,16 @@ function PurchaseCreate({
                         onChange={(e) => atualizarLinha(idx, 'product_name', e.target.value)}
                         placeholder="Nome do produto"
                       />
+                      {linha.purchase_order_line_id != null && (
+                        <p className="text-[11px] text-muted-foreground mt-0.5 tabular-nums">
+                          Pedido {(linha.po_pedido ?? 0).toLocaleString('pt-BR')} · já recebido{' '}
+                          {(linha.po_recebido ?? 0).toLocaleString('pt-BR')} · a receber{' '}
+                          {Math.max(0, (linha.po_pedido ?? 0) - (linha.po_recebido ?? 0)).toLocaleString('pt-BR')}
+                          {linha.quantity > (linha.po_pedido ?? 0) - (linha.po_recebido ?? 0) && (
+                            <span className="text-destructive"> · acima do pedido</span>
+                          )}
+                        </p>
+                      )}
                     </td>
                     <td className="px-2 text-right">
                       <Input

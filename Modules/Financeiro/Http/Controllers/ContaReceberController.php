@@ -102,7 +102,7 @@ class ContaReceberController extends Controller
      * Lembretes da régua de cobrança (US-FIN-071 · UC-FLX-29), mais recentes primeiro, e o estado
      * da régua. O título é lido no MESMO business (Tier 0): o join filtra os dois lados.
      *
-     * @return array{regua: array{ativo: bool, dias: list<int>}, itens: list<array<string, mixed>>}
+     * @return array{regua: array{ativo: bool, dias: list<int>, dias_antes: list<int>}, itens: list<array<string, mixed>>}
      */
     private function lembretes(int $businessId): array
     {
@@ -111,6 +111,7 @@ class ContaReceberController extends Controller
             return ['regua' => $regua, 'itens' => []];
         }
 
+        $temFase = Schema::hasColumn('fin_titulo_lembretes', 'fase');
         $itens = DB::table('fin_titulo_lembretes as l')
             ->join('fin_titulos as t', function ($j) use ($businessId) {
                 $j->on('t.id', '=', 'l.titulo_id')->where('t.business_id', '=', $businessId);
@@ -120,7 +121,8 @@ class ContaReceberController extends Controller
             ->orderByDesc('l.id')
             ->limit(100)
             ->get(['l.id', 'l.titulo_id', 't.numero', 't.cliente_descricao', 't.vencimento', 'l.etapa_dias',
-                'l.canal', 'l.status', 'l.motivo', 'l.tarefa_id', 'l.enviado_em', 'l.created_at'])
+                'l.canal', 'l.status', 'l.motivo', 'l.tarefa_id', 'l.enviado_em', 'l.created_at',
+                $temFase ? 'l.fase' : DB::raw("'apos' as fase")])
             ->map(fn ($l) => [
                 'id' => (int) $l->id,
                 'titulo_id' => (int) $l->titulo_id,
@@ -128,6 +130,7 @@ class ContaReceberController extends Controller
                 'cliente' => $l->cliente_descricao,
                 'vencimento' => $l->vencimento ? substr((string) $l->vencimento, 0, 10) : null,
                 'etapa_dias' => (int) $l->etapa_dias,
+                'fase' => $l->fase, // 'antes' (aviso de vencimento, US-FIN-033) | 'apos'
                 'canal' => $l->canal,
                 'status' => $l->status,
                 'motivo' => $l->motivo,

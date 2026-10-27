@@ -550,10 +550,15 @@ class PurchaseOrderController extends Controller
 
             $this->transactionUtil->activityLog($transaction, 'added');
 
+            // US-COM-032: pedido acima do limite de quem o fez espera aprovação (alçada desligada por padrão).
+            $aprovacao = class_exists(\Modules\Compras\Services\AlcadaDoPedido::class)
+                ? app(\Modules\Compras\Services\AlcadaDoPedido::class)->registrar((int) $business_id, (int) $transaction->id, (int) $user_id)
+                : null;
+
             DB::commit();
 
             $output = ['success' => 1,
-                'msg' => __('lang_v1.added_success'),
+                'msg' => $aprovacao === 'pendente' ? 'Pedido salvo. Ele passou do seu limite e aguarda aprovação.' : __('lang_v1.added_success'),
             ];
         } catch (\Exception $e) {
             DB::rollBack();

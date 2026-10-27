@@ -234,6 +234,30 @@ Então o Controller recusa com erro no campo `motivo`; com motivo válido, a val
 Âncora: US-FISCAL-012 + Ajuste SINIEF 07/2005 (justificativa mínima).
 **Pronto quando:** a asserção usa a regra **do Controller** — afrouxá-la lá derruba este UC.
 
+## UC-FNFE-51 — Cancelar pergunta o escopo: só a nota ou a venda junto · `must`
+
+**Dado** uma NF-e autorizada **Quando** o fiscal cancela **Então** escolhe "só a nota" (para reemitir; o padrão, como
+antes) ou "venda junto"; qualquer outro valor não passa da validação. Âncora: R-NFE-044 · decisão [W] 2026-10-26.
+
+Status: 🧪 (`AcoesCancelarEscopoTest` — `UC-FNFE-51 · …`)
+
+## UC-FNFE-52 — "Venda junto" cancela a venda pelo fluxo, só na própria empresa · `must` `[T0]`
+
+**Dado** a nota de uma venda da empresa no fluxo de vendas **Quando** o fiscal escolhe "venda junto" **Então** a venda
+recebe a ação `cancelar_venda` com o mesmo motivo (o cascade estorna boleto pendente, libera a reserva de estoque e avisa
+o cliente); venda fora do fluxo não é cancelada e a mensagem manda cancelar em Vendas; venda de outra empresa não é
+achada. Com a US-SELL-077 (#9911) o cancelamento da venda devolve o estoque e cancela o título sem pagamento.
+
+Status: 🧪 (`AcoesCancelarEscopoTest` — `UC-FNFE-52 · …`, MySQL, tenant 98 × 99)
+
+## UC-FNFE-54 — Venda com dinheiro recebido: nada é cancelado, nem a nota · `must` `[T0]`
+
+**Dado** a nota de uma venda com um pagamento recebido **Quando** o fiscal escolhe "venda junto" **Então** a resposta diz
+"Nada foi cancelado." com a pendência do cancelamento da venda ("A venda tem … recebidos…"), a nota segue autorizada e
+a SEFAZ nem é chamada. Âncora: R-NFE-044 · US-SELL-077.
+
+Status: 🧪 (`AcoesCancelarEscopoTest` — `UC-FNFE-54 · …`; pula sem o `CancelamentoDaVenda` do #9911, verde com ele no CT 100)
+
 ## UC-FNFE-05 — Carta de Correção respeita texto 15–1000 e sequência 1–20
 Status: 🧪 (`AcoesContratoTest::UC-FNFE-05 · texto fora de 15–1000` / `n_seq fora de 1–20` / `aceita válido` — **passam**)
 Dado uma CC-e · Quando o texto sai da faixa de 15 a 1000 caracteres, ou a sequência sai de 1 a 20 ·
@@ -409,6 +433,26 @@ O Cockpit não é renderizado (recebe ~15 props de payload) e entra por um caso 
 que a pessoa fiscal **faz** (conferir, cancelar, manifestar, inutilizar); nenhum trata de
 preferência de exibição. Ancorar num CU plausível fecharia a lacuna do painel sem lastro (LC-11).
 
+## Item do regime normal com base e alíquota em percentual (R-NFE-040)
+
+> **Âncora:** R-NFE-040 do [SPEC do NfeBrasil](../../../../memory/requisitos/NfeBrasil/SPEC.md). Prova:
+> `NfeAliquotaPercentualTest` (sem banco, motor falso com alíquotas em fração como a régua guarda).
+
+## UC-FNFE-42 · Regime normal: base cheia e alíquota em percentual · `must`
+
+**Dado** uma regra CST 00 com ICMS 0,18, PIS 0,0165 e COFINS 0,076 **Quando** um item de 1.000,00 vai à nota
+**Então** sai vBC 1.000,00, pICMS 18, vICMS 180,00, pPIS 1,65, pCOFINS 7,6 e o total vBC 1.000,00; com base
+reduzida pelo benefício (600,00), a base é 600,00.
+
+Status: 🧪
+
+## UC-FNFE-43 · Simples e CST sem ICMS ficam como antes · `must`
+
+**Dado** CSOSN 102, CST 40 ou CST 00 com alíquota zero **Quando** o item vai à nota **Então** a base do ICMS
+fica 0 no item e no total.
+
+Status: 🧪
+
 ## NF-e em contingência quando a SEFAZ cai (US-NFE-070 · UC-FLX-32)
 
 > **Âncora:** [US-NFE-070](../../../../memory/requisitos/NfeBrasil/SPEC.md) (resto da US-NFE-006) e o
@@ -435,6 +479,15 @@ Status: 🧪
 
 Status: 🧪
 
+## UC-FNFE-53 · A NFC-e é assinada com o CSC que a empresa cadastrou · `must`
+
+> **Âncora:** R-NFE-045 do [SPEC do NfeBrasil](../../../../memory/requisitos/NfeBrasil/SPEC.md). Prova: `NfceCscConfigTest`.
+
+**Dado** a empresa com CSC e id do CSC cadastrados **Quando** a NFC-e vai ser assinada **Então** a configuração da
+`sped-nfe` leva `CSC` e `CSCid` com esses valores; sem CSC cadastrado, leva vazio.
+
+Status: 🧪
+
 ## UC-FNFE-17 · A retransmissão só sai quando há nota pendente e a SEFAZ responde · `must`
 
 **Dado** a empresa A com 1 nota em contingência e a B só com nota autorizada **Quando** o agendamento roda e o
@@ -447,6 +500,24 @@ Status: 🧪
 
 **Dado** uma nota em contingência em A e outra em B **Quando** roda o job de A **Então** só a nota de A é
 transmitida e a de B continua `contingencia`.
+
+Status: 🧪
+
+## UC-FNFE-47 · Regime normal emite o grupo IBS/CBS sem precisar ligar nada · `must`
+
+> **Âncora:** [ADR 0442](../../../../memory/decisions/0442-ibscbs-automatico-regime-normal-emenda-0321.md)
+> (emenda a 0321) · US-FISCAL-021. Prova: `SerializacaoIbsCbsTest` (XML montado pelo `buildXml`).
+
+**Dado** um emitente CRT 3 com `reforma_tributaria_modo = legacy` e regra com CST 000, cClassTrib 000001, IBS 0,1% e
+CBS 8,8% **Quando** sai uma NF-e de 1.000,00 **Então** o item leva o grupo IBS/CBS (vIBSUF 1,00 · vCBS 88,00) e o vNF
+continua 1.000,00.
+
+Status: 🧪
+
+## UC-FNFE-48 · Simples segue byte-idêntico · `must`
+
+**Dado** um emitente CRT 1 ou 2 em `legacy` **Quando** sai a NF-e, com ou sem IBS/CBS na regra **Então** o XML é o
+mesmo de antes, sem grupo.
 
 Status: 🧪
 
@@ -474,6 +545,23 @@ Status: 🧪
 **Dado** o modo EPEC **Quando** o AN devolve cStat de erro, ou o envio do evento lança exceção **Então** a nota
 continua `contingencia` com o XML guardado, o evento 110140 fica `rejeitado` com o cStat ou o erro, e o motivo
 da nota diz "O DANFE só vale com o EPEC registrado".
+
+Status: 🧪
+
+## UC-FNFE-40 · Devolução exige a permissão e quantidade válida · `must`
+
+> **Âncora:** R-NFE-039 do [SPEC do NfeBrasil](../../../../memory/requisitos/NfeBrasil/SPEC.md) (rota da
+> NF-e de devolução, US-NFE-064). Prova: `AcoesDevolucaoTest`, que invoca o `AcoesController`.
+
+**Dado** uma NF-e autorizada **Quando** quem não tem `fiscal.nfe.acoes` pede a devolução **Então** 403. Sem item,
+ou com quantidade 0, negativa ou não numérica, o pedido não passa da validação; 2,5 passa.
+
+Status: 🧪
+
+## UC-FNFE-41 · A devolução só acha nota da própria empresa · `must`
+
+**Dado** uma nota autorizada da empresa A e outra da B **Quando** A pede a devolução da nota de B **Então** não é
+achada (404) e nada é emitido; da nota de A, o serviço recebe a empresa A, a nota e as quantidades por item.
 
 Status: 🧪
 
