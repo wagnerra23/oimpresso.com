@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 871,
-    "edges": 1186,
+    "nodes": 874,
+    "edges": 1188,
     "by_node_type": {
       "module": 43,
       "table": 108,
-      "adr": 146,
-      "component": 485,
+      "adr": 148,
+      "component": 486,
       "api": 89
     },
     "by_edge_type": {
@@ -42,12 +42,12 @@
       "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 485,
+      "hasComponent": 486,
       "dependsOn": 132,
       "delegatesTo": 121,
       "migratesTo": 1,
       "supersedes": 26,
-      "supersedesPartially": 74,
+      "supersedesPartially": 75,
       "supersededBy": 30
     },
     "dangling": 0
@@ -720,6 +720,13 @@
       "exists": true
     },
     {
+      "id": "adr:0301",
+      "type": "adr",
+      "num": "0301",
+      "slug": "0301-separar-cliente-deprecar-crm-pipeline",
+      "exists": true
+    },
+    {
       "id": "adr:0302",
       "type": "adr",
       "num": "0302",
@@ -1074,6 +1081,13 @@
       "type": "adr",
       "num": "0438",
       "slug": "0438-artefato-substitui-cowork-como-superficie-do-prototipo",
+      "exists": true
+    },
+    {
+      "id": "adr:0441",
+      "type": "adr",
+      "num": "0441",
+      "slug": "0441-funil-de-vendas-sai-da-depreciacao-emenda-0301",
       "exists": true
     },
     {
@@ -2449,6 +2463,13 @@
       "module": "Crm",
       "name": "\"ContactAddressController\"     # US-CRM-078",
       "desc": "múltiplos endereços do cliente (PR1, drift do check-scope)"
+    },
+    {
+      "id": "component:Crm/\"FunilController\"            # Funil de vendas em kanban /crm/funil",
+      "type": "component",
+      "module": "Crm",
+      "name": "\"FunilController\"            # Funil de vendas em kanban /crm/funil",
+      "desc": "sai da depreciação pela ADR 0441"
     },
     {
       "id": "component:Crm/CallLogController",
@@ -7731,6 +7752,12 @@
       "source": "supersedes_partially"
     },
     {
+      "from": "adr:0441",
+      "to": "adr:0301",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
       "from": "module:Arquivos",
       "to": "adr:0123",
       "type": "charteredByAdr",
@@ -8917,6 +8944,12 @@
     {
       "from": "module:Crm",
       "to": "component:Crm/\"ContactAddressController\"     # US-CRM-078",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Crm",
+      "to": "component:Crm/\"FunilController\"            # Funil de vendas em kanban /crm/funil",
       "type": "hasComponent",
       "source": "contains"
     },
