@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 // Cobre US-FIN-075 (memory/requisitos/Financeiro/SPEC.md) — rateio do título em centros de custo.
+// UC-RAT-01..07: backend ainda sem tela; os blocos entram no Unificado/Index.casos.md com o drawer do rateio.
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -53,7 +54,7 @@ function rateioCentavos(array $linhas): int
     return array_sum(array_map(fn ($l) => (int) str_replace('.', '', $l['valor']), $linhas));
 }
 
-it('distribui por percentual com piso + maior resto e fecha o total em centavos', function () {
+it('UC-RAT-01 distribui por percentual com piso + maior resto e fecha o total em centavos', function () {
     // À mão: 100001 c × 333333 = 33.333.633.333 → piso 33333, resto 633.333;
     //        100001 c × 333334 = 33.333.733.334 → piso 33333, resto 733.334.
     // Pisos somam 99999, sobram 2 c: 1º à linha 3 (maior resto), 2º à linha 1 (empata com a 2, vale a primeira).
@@ -67,7 +68,7 @@ it('distribui por percentual com piso + maior resto e fecha o total em centavos'
         ->and(rateioCentavos($r))->toBe(100001);
 });
 
-it('distribui por valor, deriva o percentual e a última linha fecha 100%', function () {
+it('UC-RAT-02 distribui por valor, deriva o percentual e a última linha fecha 100%', function () {
     $r = $this->svc->distribuir('300.0000', 'valor', [
         ['centro_custo_id' => 1, 'valor' => '100,00'],
         ['centro_custo_id' => 2, 'valor' => '100.00'],
@@ -78,7 +79,7 @@ it('distribui por valor, deriva o percentual e a última linha fecha 100%', func
         ->and(rateioCentavos($r))->toBe(30000);
 });
 
-it('recusa rateio que não fecha 100% ou o valor do título', function (string $modo, array $linhas) {
+it('UC-RAT-03 recusa rateio que não fecha 100% ou o valor do título', function (string $modo, array $linhas) {
     $this->svc->distribuir('100.0000', $modo, $linhas);
 })->with([
     'percentual 99,99' => ['percentual', [['centro_custo_id' => 1, 'percentual' => '60'], ['centro_custo_id' => 2, 'percentual' => '39.99']]],
@@ -87,7 +88,7 @@ it('recusa rateio que não fecha 100% ou o valor do título', function (string $
     'centro repetido' => ['percentual', [['centro_custo_id' => 1, 'percentual' => '50'], ['centro_custo_id' => 1, 'percentual' => '50']]],
 ])->throws(ValidationException::class);
 
-it('grava o rateio do título e substitui o anterior', function () {
+it('UC-RAT-04 grava o rateio do título e substitui o anterior', function () {
     $a = rateioCentro($this->b98, 'ZZ Loja A');
     $b = rateioCentro($this->b98, 'ZZ Loja B');
     $t = rateioTitulo($this->b98, (int) $this->user->id, '1500.0000');
@@ -101,7 +102,7 @@ it('grava o rateio do título e substitui o anterior', function () {
         ->and(rateioCentavos($gravado->map(fn ($l) => ['valor' => number_format((float) $l->valor, 2, '.', '')])->all()))->toBe(150000);
 });
 
-it('recusa centro de custo de outra empresa (cross-tenant 98 × 99) e não grava nada', function () {
+it('UC-RAT-05 recusa centro de custo de outra empresa (cross-tenant 98 × 99) e não grava nada', function () {
     $alheio = rateioCentro($this->b99, 'ZZ centro da 99');
     $t = rateioTitulo($this->b98, (int) $this->user->id, '100.0000');
 
@@ -110,7 +111,7 @@ it('recusa centro de custo de outra empresa (cross-tenant 98 × 99) e não grava
     expect(DB::table('fin_titulo_rateios')->where('titulo_id', $t->id)->count())->toBe(0);
 });
 
-it('recusa centro inativo', function () {
+it('UC-RAT-06 recusa centro inativo', function () {
     $inativo = rateioCentro($this->b98, 'ZZ inativo', false);
     $t = rateioTitulo($this->b98, (int) $this->user->id, '100.0000');
 
@@ -118,7 +119,7 @@ it('recusa centro inativo', function () {
         ->toThrow(ValidationException::class);
 });
 
-it('título sem rateio continua válido e lista vazia remove o rateio', function () {
+it('UC-RAT-07 título sem rateio continua válido e lista vazia remove o rateio', function () {
     $a = rateioCentro($this->b98, 'ZZ Loja A');
     $t = rateioTitulo($this->b98, (int) $this->user->id, '100.0000');
     expect($t->rateios()->withoutGlobalScopes()->count())->toBe(0);
