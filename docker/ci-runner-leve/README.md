@@ -9,9 +9,9 @@ Medido em 2026-10-27 19:20Z: **1.471 runs na fila** contra **26 rodando**. O gar
 
 ## Como funciona
 
-- **12 vagas** (`ci-leve-1..12`), cada uma um container gerenciado por `ci-runner-leve@N.service`.
-  Subiu de 8 para 12 em 2026-10-27, depois de medir o CT 100 ~75% ocioso (carga 1,6–4,3 em 16
-  núcleos, 25 GB livres de 32) com [W] pedindo para usar mais a máquina. Para mais: `VAGAS=N install.sh`.
+- **16 vagas** (`ci-leve-1..16`), cada uma um container gerenciado por `ci-runner-leve@N.service`.
+  Para mais: `VAGAS=N install.sh`. Histórico: 8 → 12 (CT 100 medido ~75% ocioso) → 16, depois de
+  ampliar o CT 100 (abaixo), por decisão [W] 2026-10-27 de usar mais a máquina.
 - **Runner persistente:** registra uma vez com um token de **registro** (vale 1 hora) e passa a
   usar a credencial própria que o `config.sh` grava dentro do container. **Nenhum PAT nem token
   fica guardado no host.**
@@ -19,6 +19,17 @@ Medido em 2026-10-27 19:20Z: **1.471 runs na fila** contra **26 rodando**. O gar
   deixar resíduo para o seguinte na mesma vaga. Isso é aceitável porque só roda código de quem
   tem push ou de fork aprovado (ver ⚠️ abaixo).
 - A conexão é **de saída** para o GitHub: não precisa de porta aberta, IP fixo nem Tailscale.
+
+## Capacidade do CT 100 (Proxmox `sistema`, 192.168.0.2)
+
+Medido 2026-10-27 pela API do Proxmox: o servidor físico tem **28 threads** (Xeon E5-2680 v4) e
+**125,7 GB** de RAM, com 11 GB em uso. Os convidados são só o CT 100 (`docker-host`) e o CT 101
+(`ponte-tor`, 4 núcleos, 8 GB).
+
+Em 2026-10-27, com autorização [W], o CT 100 passou de **16 núcleos / 32 GB** para **24 núcleos /
+96 GB** (`PUT /nodes/sistema/lxc/100/config cores=24 memory=98304`). A mudança vale na hora, sem
+reiniciar. Sobram 4 threads e ~22 GB para o Proxmox e o CT 101. Para voltar:
+`cores=16 memory=32768`.
 
 ## Isolamento (medido 2026-10-27 no CT 100)
 
@@ -41,7 +52,7 @@ com as vagas ligadas.
 Do computador de quem tem admin no repo (o `gh` gera o token de registro, que vale 1 hora):
 
 ```bash
-gh api -X POST repos/wagnerra23/oimpresso.com/actions/runners/registration-token --jq .token   | ssh root@192.168.0.50 'cd /opt/oimpresso-ci-src && git pull -q && VAGAS=12 docker/ci-runner-leve/install.sh'
+gh api -X POST repos/wagnerra23/oimpresso.com/actions/runners/registration-token --jq .token   | ssh root@192.168.0.50 'cd /opt/oimpresso-ci-src && git pull -q && VAGAS=16 docker/ci-runner-leve/install.sh'
 ```
 
 `/opt/oimpresso-ci-src` é um clone *sparse* do repo, só `docker/ci-runner-leve/`. O `install.sh`
