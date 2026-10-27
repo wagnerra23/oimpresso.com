@@ -563,7 +563,8 @@ class CaixaUnificadaController extends Controller
             ['id' => 'whatsapp_whatsmeow', 'label' => 'WhatsApp', 'short' => 'WhatsApp', 'hue' => 145, 'glyph' => 'W'],
             ['id' => 'whatsapp_meta',    'label' => 'WhatsApp Meta Cloud', 'short' => 'WA · Meta Cloud', 'hue' => 145, 'glyph' => 'W'],
             ['id' => 'whatsapp_zapi',    'label' => 'WhatsApp Z-API',      'short' => 'WA · Z-API',      'hue' => 145, 'glyph' => 'W'],
-            ['id' => 'instagram_dm',     'label' => 'Instagram DM',        'short' => 'Instagram',       'hue' => 0,   'glyph' => '◎'],
+            // US-WA-329: o id é `Channel::TYPE_INSTAGRAM`. Era `instagram_dm`, que não casa com type nenhum (mesmo defeito do UC-CXU-13).
+            ['id' => 'instagram',        'label' => 'Instagram DM',        'short' => 'Instagram',       'hue' => 0,   'glyph' => '◎'],
             ['id' => 'messenger',        'label' => 'Facebook Messenger',  'short' => 'Messenger',       'hue' => 250, 'glyph' => 'f'],
             ['id' => 'email_imap',       'label' => 'Email (IMAP)',        'short' => 'Email',           'hue' => 280, 'glyph' => '@'],
             ['id' => 'mercadolivre',     'label' => 'Mercado Livre',       'short' => 'Mercado Livre',   'hue' => 95,  'glyph' => 'M'],

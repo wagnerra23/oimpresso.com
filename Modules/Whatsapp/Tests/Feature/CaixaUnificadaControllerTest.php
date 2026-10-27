@@ -272,7 +272,7 @@ function cuctSetUserAndGrant(int $businessId, int $userId, array $channelIds): v
     }
 }
 
-function cuctMakeChannel(int $businessId, string $uuid, string $status = 'active'): Channel
+function cuctMakeChannel(int $businessId, string $uuid, string $status = 'active', string $type = Channel::TYPE_WHATSAPP_WHATSMEOW): Channel
 {
     return Channel::withoutGlobalScope(ScopeByBusiness::class)->create([
         'business_id' => $businessId,
@@ -280,7 +280,7 @@ function cuctMakeChannel(int $businessId, string $uuid, string $status = 'active
         'label' => 'Suporte',
         // Type LIVE real (whatsmeow/WuzAPI, ADR 0204). Baileys foi deletado (ADR 0202) —
         // seedar o type morto mascararia o bug dos chips (PARTE 4 caixa unificada).
-        'type' => Channel::TYPE_WHATSAPP_WHATSMEOW,
+        'type' => $type,
         'status' => $status,
     ]);
 }
@@ -372,7 +372,7 @@ it('UC-CXU-01 · R-WA-CAIXA-UNIF-001 — happy path render com props básicas + 
     $channels = cuctResolveDefer($props['availableChannels']);
     expect($channels)->toHaveCount(7)
         ->and(collect($channels)->pluck('id')->all())
-        ->toContain('whatsapp_whatsmeow', 'whatsapp_meta', 'instagram_dm', 'email_imap', 'mercadolivre')
+        ->toContain('whatsapp_whatsmeow', 'whatsapp_meta', 'instagram', 'email_imap', 'mercadolivre')
         ->and(collect($channels)->pluck('id')->all())
         ->not->toContain('whatsapp_baileys'); // Baileys morto (ADR 0202) saiu do catálogo
 
@@ -429,6 +429,32 @@ it('UC-CXU-13 · R-WA-CAIXA-UNIF-013 — canal whatsmeow ativo vira chip ativo c
     expect($none['data'])->toHaveCount(0);
 });
 
+/**
+ * US-WA-329 — o chip do Instagram tinha id `instagram_dm`, que não casa com `Channel::TYPE_INSTAGRAM`
+ * (`instagram`): canal Instagram ativo ficava "em breve" e o filtro `?channel=` não achava nada.
+ * Mesmo defeito do UC-CXU-13. red-first: com o id antigo, firstWhere('id','instagram') é null.
+ */
+it('UC-CXU-24 · US-WA-329 — canal Instagram e e-mail ativos viram chip ativo, e o filtro traz as conversas deles', function () {
+    $wa = cuctMakeChannel(1, 'caixa-unif-024-wa');
+    $ig = cuctMakeChannel(1, 'caixa-unif-024-ig', 'active', Channel::TYPE_INSTAGRAM);
+    $em = cuctMakeChannel(1, 'caixa-unif-024-em', 'active', Channel::TYPE_EMAIL_IMAP);
+    cuctMakeConv(1, $wa->id);
+    cuctMakeConv(1, $ig->id);
+    cuctMakeConv(1, $em->id);
+    cuctSetUserAndGrant(1, 10, [$wa->id, $ig->id, $em->id]);
+
+    $channels = collect(cuctResolveDefer(cuctIndexProps(new CaixaUnificadaController(), cuctBuildRequest())['availableChannels']));
+    expect($channels->firstWhere('id', 'instagram'))->not->toBeNull()
+        ->and($channels->firstWhere('id', 'instagram')['status'])->toBe('ativo')
+        ->and($channels->firstWhere('id', 'instagram')['count'])->toBe(1)
+        ->and($channels->firstWhere('id', 'email_imap')['status'])->toBe('ativo')
+        ->and($channels->firstWhere('id', 'messenger')['status'])->toBe('em_breve');
+
+    $soIg = cuctResolveDefer(cuctIndexProps(new CaixaUnificadaController(), cuctBuildRequest(['channel' => 'instagram']))['conversations']);
+    expect($soIg['data'])->toHaveCount(1);
+    $todas = cuctResolveDefer(cuctIndexProps(new CaixaUnificadaController(), cuctBuildRequest())['conversations']);
+    expect($todas['data'])->toHaveCount(3);
+});
 /**
  * R-WA-CAIXA-UNIF-015 — US-WA-308/309 (incidente 2026-06-18): canal ATIVO com saúde
  * caída entra no payload eager `unhealthyChannels` (banner "religar"), **business-wide**

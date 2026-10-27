@@ -233,6 +233,15 @@ last_run: "2026-10-26"
 
 ---
 
+## UC-CXU-24 · O canal Instagram ativo aparece como ativo, com a contagem real
+- **Persona:** atendente — conectou o Instagram e procura nos filtros as conversas que vieram de lá.
+- **Aceite:** Dado um canal Instagram (ou e-mail) ativo com conversas · Quando abro os filtros de canal · Então o chip aparece **ativo** com a contagem real, e filtrar por ele traz só as conversas daquele canal; canal sem nenhum ativo (Messenger, aqui) segue "em breve".
+- **Teste:** `Modules/Whatsapp/Tests/Feature/CaixaUnificadaControllerTest.php` — `UC-CXU-24 · US-WA-329 — canal Instagram e e-mail ativos viram chip ativo, e o filtro traz as conversas deles`.
+- **Regressão que defende:** o mesmo defeito do UC-CXU-13, agora no Instagram — o catálogo usava `instagram_dm`, que não casa com `Channel::TYPE_INSTAGRAM` (`instagram`), então o canal ficava "em breve" e o filtro não achava nada.
+- **Status: ⬜** — o veredito vem da lane sqlite do CI.
+
+---
+
 ## Backlog (prosa honesta — sem UC até ganhar teste que o cite)
 
 O charter descreve estes comportamentos e eles existem na tela, mas **não têm teste** hoje —
