@@ -245,7 +245,7 @@
     "resources/js/Pages/OficinaAuto/ProducaoOficina/_components/CacambaKanbanColumn.tsx": 2,
     "resources/js/Pages/OficinaAuto/ProducaoOficina/_components/DragConfirmDialog.tsx": 7,
     "resources/js/Pages/OficinaAuto/ProducaoOficina/_components/DviPhotoGrid.tsx": 2,
-    "resources/js/Pages/OficinaAuto/ProducaoOficina/_components/KanbanDndProvider.tsx": 2,
+    "resources/js/Components/shared/KanbanDndProvider.tsx": 2,
     "resources/js/Pages/OficinaAuto/ProducaoOficina/_components/ServiceOrderRichSheet.tsx": 14,
     "resources/js/Pages/OficinaAuto/ProducaoOficina/Index.tsx": 8,
     "resources/js/Pages/OficinaAuto/ServiceOrders/_components/ApprovalGateCard.tsx": 3,

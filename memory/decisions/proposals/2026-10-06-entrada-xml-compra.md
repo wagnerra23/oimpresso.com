@@ -1,6 +1,6 @@
 ---
 title: "Entrada por XML de compra — de onde vem o XML, quem é dono, de-para lembrado e o que é fiscal"
-status: proposto
+status: aceito
 date: "2026-10-06"
 owners: [W]
 proposed_by: Claude Code (playbook Fiscal, thread 11 · decisão [W] D-ENTRADA)

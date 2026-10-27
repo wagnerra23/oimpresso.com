@@ -5,10 +5,8 @@ namespace Modules\Producao\Services;
 use App\Domain\Fsm\Modelos\CatalogoModelos;
 use App\Domain\Fsm\Models\SaleProcess;
 use App\Scopes\ScopeByBusiness;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Modules\Producao\Entities\Ordem;
-use Modules\Producao\Entities\Programacao;
 
 /**
  * "Cliente aprova" cria a OS por item (ADR 0436, UC-FLX-01 + UC-FLX-07).
@@ -34,7 +32,11 @@ final class CriarOsDaVenda
 {
     public const ETAPA_APROVADO = 'aprovado';
 
-    public function __construct(private readonly ProcessoDaOrdem $processo, private readonly ReservaDeInsumoDaOs $reserva) {}
+    public function __construct(
+        private readonly ProcessoDaOrdem $processo,
+        private readonly ReservaDeInsumoDaOs $reserva,
+        private readonly ProgramacaoDoRoteiro $programacao,
+    ) {}
 
     /** A etapa de destino de uma transição de venda é a que cria as OS? */
     public function deveCriar(int $businessId, ?int $stageId): bool
@@ -84,7 +86,7 @@ final class CriarOsDaVenda
                         'quantidade' => $linha->quantity, 'roteiro_id' => $roteiroId, 'current_stage_id' => $inicial->id, 'created_by' => $autor],
                 );
                 if ($ordem->wasRecentlyCreated) {
-                    $this->programar($businessId, $ordem, (int) $roteiroId, $autor);
+                    $this->programacao->programar($businessId, Ordem::OS_TIPO, (int) $ordem->id, (int) $roteiroId, $autor);
                     // US-PCP-031: item sob encomenda reserva o insumo da receita (chave da empresa, padrão desligada).
                     $this->reserva->reservar($businessId, $ordem);
                 }
@@ -93,34 +95,5 @@ final class CriarOsDaVenda
 
             return $ids;
         });
-    }
-
-    /**
-     * Uma programação por etapa do roteiro. Previsão simples, sem fila (UC-FLX-06 fica fora): cada
-     * bloco começa quando o anterior termina; as duas trilhas de um bloco começam juntas.
-     */
-    private function programar(int $businessId, Ordem $ordem, int $roteiroId, int $autor): void
-    {
-        $etapas = DB::table('pcp_roteiro_etapas')->where('business_id', $businessId)->where('roteiro_id', $roteiroId)
-            ->whereNull('opcional_por')->orderBy('bloco')->orderBy('trilha')->orderBy('ordem')->get();
-        $cursor = Carbon::now();
-        foreach ($etapas->groupBy('bloco') as $bloco) {
-            $fimBloco = $cursor->copy();
-            foreach ($bloco->groupBy('trilha') as $trilha) {
-                $inicio = $cursor->copy();
-                foreach ($trilha as $e) {
-                    $fim = $inicio->copy()->addMinutes((int) round(((float) $e->horas) * 60));
-                    Programacao::withoutGlobalScope(ScopeByBusiness::class)->create([
-                        'business_id' => $businessId, 'os_tipo' => Ordem::OS_TIPO, 'os_id' => $ordem->id,
-                        'posto_id' => $e->posto_id, 'roteiro_etapa_id' => $e->id, 'bloco' => $e->bloco, 'trilha' => $e->trilha,
-                        'ordem' => $e->ordem, 'nome' => $e->nome, 'junta' => $e->junta,
-                        'inicio_previsto' => $inicio, 'fim_previsto' => $fim, 'status' => 'pendente', 'created_by' => $autor,
-                    ]);
-                    $inicio = $fim;
-                }
-                $fimBloco = $fimBloco->max($inicio);
-            }
-            $cursor = $fimBloco;
-        }
     }
 }

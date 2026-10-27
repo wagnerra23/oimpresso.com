@@ -36,6 +36,9 @@ use RuntimeException;
  */
 class PluggyClient
 {
+    /** Teto de páginas de 200 por sync (10.000 lançamentos); acima disso o corte é logado. */
+    public const MAX_PAGINAS = 50;
+
     private string $baseUrl;
 
     private int $timeout;
@@ -88,9 +91,9 @@ class PluggyClient
     /**
      * Lista transações de uma conta no intervalo [$from, $to].
      *
-     * Pluggy paginates — coletamos `results` da página atual; sync mais
-     * sofisticado (paginate via `?page=`) fica em PluggyBankSyncService
-     * futuro quando connector ativo retornar > 200 tx/sync.
+     * Percorre todas as páginas (`totalPages` da resposta). Antes lia só a 1ª página de
+     * 200: conta com mais movimento na janela perdia lançamentos sem aviso. Acima de
+     * `MAX_PAGINAS` o corte é logado — nunca silencioso.
      *
      * @return array<int, array<string, mixed>>
      */
@@ -100,19 +103,36 @@ class PluggyClient
             return $this->mockTransactions($accountId, $from, $to);
         }
 
-        $response = $this->http()->get("{$this->baseUrl}/transactions", [
-            'accountId' => $accountId,
-            'from'      => $from->toDateString(),
-            'to'        => $to->toDateString(),
-            'pageSize'  => 200,
-        ]);
+        $todas = [];
+        $pagina = 1;
 
-        if (! $response->successful()) {
-            $this->logError('listTransactions', $accountId, $response->status(), $response->body());
-            throw new RuntimeException("Pluggy listTransactions falhou: HTTP {$response->status()}");
+        do {
+            $response = $this->http()->get("{$this->baseUrl}/transactions", [
+                'accountId' => $accountId,
+                'from'      => $from->toDateString(),
+                'to'        => $to->toDateString(),
+                'pageSize'  => 200,
+                'page'      => $pagina,
+            ]);
+
+            if (! $response->successful()) {
+                $this->logError('listTransactions', $accountId, $response->status(), $response->body());
+                throw new RuntimeException("Pluggy listTransactions falhou: HTTP {$response->status()}");
+            }
+
+            $todas = array_merge($todas, (array) ($response->json('results') ?? []));
+            $totalPaginas = max(1, (int) ($response->json('totalPages') ?? 1));
+            $pagina++;
+        } while ($pagina <= $totalPaginas && $pagina <= self::MAX_PAGINAS);
+
+        if ($totalPaginas > self::MAX_PAGINAS) {
+            Log::warning('[PluggyClient] listTransactions cortado no limite de páginas', [
+                'max_paginas'   => self::MAX_PAGINAS,
+                'total_paginas' => $totalPaginas,
+            ]);
         }
 
-        return (array) ($response->json('results') ?? []);
+        return $todas;
     }
 
     /**

@@ -21,6 +21,7 @@
     { "label": "financeiro-dre", "path": "/financeiro/dre", "auth": true, "source": "resources/js/Pages/Financeiro/Dre/Index.tsx" },
     { "label": "financeiro-plano-contas", "path": "/financeiro/plano-contas", "auth": true, "source": "resources/js/Pages/Financeiro/PlanoContas/Index.tsx" },
     { "label": "financeiro-impostos", "path": "/financeiro/impostos", "auth": true, "source": "resources/js/Pages/Financeiro/Impostos/Index.tsx" },
-    { "label": "catalogo-qr", "path": "/product-catalogue/catalogue-qr", "auth": true, "source": "resources/js/Pages/ProductCatalogue/CatalogueQr.tsx" }
+    { "label": "catalogo-qr", "path": "/product-catalogue/catalogue-qr", "auth": true, "source": "resources/js/Pages/ProductCatalogue/CatalogueQr.tsx" },
+    { "label": "manufacturing-receitas", "path": "/manufacturing/recipe", "auth": true, "source": "resources/js/Pages/Manufacturing/Recipes.tsx" }
   ]
 }

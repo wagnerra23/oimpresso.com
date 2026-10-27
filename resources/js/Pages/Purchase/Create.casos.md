@@ -5,9 +5,11 @@ irmaos: Create.charter.md (lei) · Create.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o contrato da grade (1 célula = 1 variation_id, 1 POST único) e o ownership das variations são duráveis — não mudam quando a tela ganhar campo novo.
 owner: wagner
-last_run: "2026-10-20"
+last_run: "2026-10-26"
 last_run_ci: "✅ 2026-09-05: os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841). Medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. Os 7 UC desta tela tem lane; 3 com defesa de COMPORTAMENTO (PurchaseGradeMatrixTest, que emite request e cujo bloco cross-tenant hoje roda em MySQL real) e 4 ESTRUTURAL (Wave2Create*, presence-gate LC-11). Nao restatear a mao: rode scripts/qa/uc-lane-coverage.mjs. ⚠ O TEXTO A SEGUIR ESTA SUPERADO e fica como fato datado - os dois numeros dele ja nasciam falsos (a pasta tem 10 arquivos, nao 8; e 4 ja rodavam quando foi escrito): 🔴 A DIVIDA CONTINUA ABERTA — NENHUM teste de tests/Feature/Purchase/ roda em lane alguma (8 arquivos orfaos de CI); o uc-lane-coverage reprova estes UC por isso e esta certo. Ver §Divida de prova. O bump de 2026-09-04 -> 2026-09-05 NAO paga essa divida e nao afirma execucao: ele registra a REVISAO exigida pelo G-6 depois que o .tsx foi tocado. O que foi revisado, e verificavel: o diff contra 153a65b558 (commit que criou este arquivo) e exatamente 5 atributos `data-contract` em <Card>, zero mudanca de logica/props/copy; e nenhum dos 7 UC depende de atributo/DOM/seletor (grep por data-contract|atributo|DOM|seletor|className neste arquivo: rc=1, zero hits) — os 7 sao de backend/tenant/dado. TENTATIVA DE PROVA REAL, e por que ela NAO vale como recibo: rodei tests/Feature/Purchase/ no CT 100 (90 passed, 6 failed, 6 skipped, 214 assertions), mas o checkout do container esta em c1abe9548f (2026-08-26) e NAO contem as ancoras (grep -c data-contract = 0). Run de outra arvore nao prova esta — citar aquele numero aqui seria medir a coisa errada."
 ---
+
+> ℹ️ **`last_run` 2026-10-20 → 2026-10-26 (G-6): entraram o UC-PURCRE-12 (pedidos abertos + estoque por dois caminhos) e o UC-PURCRE-13 (a tela traz o pedido).** A `Create.tsx` ganhou o bloco "Receber de um pedido de compra" e o campo `purchase_order_ids`; nenhum UC antigo mudou nem foi reexecutado.
 
 > ℹ️ **`last_run` 2026-10-16 → 2026-10-20 (G-6): entraram os UC-PURCUS-01..06 (US-COM-026).** O bump é a revisão do arquivo ao ganhar o bloco novo; nenhum UC antigo foi reexecutado. Os novos estão 🧪 até a lane `compras-pest` rodar `AplicarCustoDoRecebimentoTest`.
 
@@ -407,6 +409,93 @@ Status: 🧪
   decidir exigir vínculo.
 - `[BACKLOG]` **Schema 2D nativo.** O charter marca como Non-Goal (*"NÃO cria/edita produto pra montar
   2 eixos nativos — precisaria ADR de schema"*). Fica fora até existir a ADR.
+
+## Entrada de notas e unidade da compra (pedido de 2026-10-23)
+
+> Casos sem id: entram quando tiverem teste. Hoje o SPED (`Fiscal/Sped.casos.md`) gera só as notas
+> emitidas pela empresa: `SpedIcmsIpiGeneratorService` monta C100/C170/C190 a partir das emissões, e o
+> próprio backlog do SPED lista as entradas como fora do escopo. Os registros citados abaixo são do
+> leiaute da EFD ICMS/IPI; o que entra e como é decisão do contador.
+>
+> ⚠️ Os quatro casos de SPED abaixo (compra, energia, comunicação e CT-e) dependem do [W]: o charter
+> do SPED tem entre os Non-Goals aprovados por ele "❌ Entradas (NF-e contra o CNPJ via DF-e
+> manifestada) — só saídas por ora" (`Fiscal/Sped.charter.md`). O "por ora" deixa a porta aberta, mas
+> quem reabre é ele. Verificado contra as regras do [W] em 2026-10-23.
+
+- `[BACKLOG]` **Compra com unidade de medida diferente da cadastrada** `[V0]` `[E0]` — Dado o produto
+  cadastrado em m² e o fornecedor que vende em rolo de 50 m², Quando lanço a compra de 2 rolos,
+  Então o estoque entra com 100 m², o custo fica por m² (valor do rolo dividido por 50) e a nota
+  continua mostrando "2 rolos". A conversão fica lembrada para aquele fornecedor e produto, e vale
+  também na nota importada pelo XML. Hoje a tela antiga (Blade) aceita as subunidades do produto
+  (`sub_unit`, com o multiplicador do cadastro); a compra React não tem a escolha da unidade.
+  Aceite adicional (comparação com concorrentes, 2026-10-23): o mesmo produto aceita mais de uma
+  conversão por fornecedor (rolo de 50 m² e rolo de 25 m², por exemplo), e a nota importada usa a
+  conversão da unidade que veio no XML. Fonte: Omie (até 3 fatores de conversão por produto e
+  fornecedor, com a unidade da última nota lembrada).
+- `[BACKLOG]` **Notas de compra entram no SPED** `[V0]` — Dado uma compra lançada com a nota do
+  fornecedor (modelo 55), Quando gero o SPED da competência, Então a nota sai como entrada (C100 com
+  indicador de entrada, C170 e C190), com o crédito de ICMS que o regime da empresa permitir. Hoje o
+  SPED não traz nenhuma entrada.
+- `[BACKLOG]` **Nota de energia elétrica entra no SPED** `[V0]` — Dado a conta de energia da empresa
+  (modelo 06 ou 66), Quando lanço a nota na entrada com valor, base e ICMS, Então ela sai no SPED da
+  competência nos registros C500 e C590, sem mexer em estoque. Hoje a conta pode entrar como despesa,
+  sem os dados fiscais da nota, e o SPED não tem esse registro.
+- `[BACKLOG]` **Nota de comunicação entra no SPED** `[V0]` — Dado a conta de telefone e internet
+  (modelo 21, 22 ou 62), Quando lanço a nota na entrada, Então ela sai no SPED nos registros D500 e
+  D590, sem mexer em estoque. Hoje a conta pode entrar como despesa, sem os dados fiscais da nota, e o
+  SPED não tem esse registro.
+- `[BACKLOG]` **CT-e do frete entra no SPED** `[V0]` — Dado o CT-e (modelo 57) do frete de uma compra,
+  Quando o lanço na entrada ligado à nota da compra, Então ele sai no SPED nos registros D100 e D190, e
+  o valor do frete pode compor o custo dos itens da compra. Hoje o CT-e não é lançado e o SPED não tem
+  o bloco D.
+- `[BACKLOG]` **Entrada de nota de serviço** `[V0]` — Dado a NFS-e de um prestador com ISS retido,
+  Quando a lanço como entrada de serviço, Então nasce a conta a pagar pelo valor líquido, o ISS retido
+  fica registrado como imposto a recolher, nada entra no estoque e a nota aparece nas notas de entrada.
+  As demais retenções (IR, PIS, COFINS, CSLL e INSS) seguem a mesma linha. Hoje não há entrada de nota
+  de serviço; em que obrigação ela sai é decisão do contador.
+- `[BACKLOG]` **Notas de serviço tomado buscadas sozinhas** (comparação com concorrentes,
+  2026-10-23) `[V0]` — Dado a empresa com a busca ligada, Quando um prestador emite uma NFS-e contra o
+  CNPJ dela, Então a nota aparece numa lista de notas recebidas, o financeiro confere e aprova, e só
+  então nasce a conta a pagar; cada imposto retido vira uma conta a pagar própria, com o vencimento
+  dele. Nota recusada não gera nada. Fonte: Omie (monitoramento das NFS-e tomadas nas prefeituras e no
+  Ambiente Nacional). Hoje as notas que chegam sozinhas são as NF-e da distribuição do DF-e; a NFS-e
+  tomada não chega.
+
+---
+
+## Receber o pedido de compra em partes (US-COM-013)
+
+> **Âncora:** US-COM-013 do [SPEC de Compras](../../../../memory/requisitos/Compras/SPEC.md), com a
+> decisão da coordenação de 2026-10-26: o recebimento parcial vai pelo pedido de compra
+> (`po_quantity_purchased`), sem coluna nova. ESTOQUE: regra mestre.
+
+## UC-PURCRE-12 · O pedido de 10 recebe 4 e depois 6, e só o que chegou entra no estoque · `must` `[V0]` `[T0]`
+
+- **Persona:** quem recebe a mercadoria e lança a compra (Larissa, biz=4).
+- **Aceite:** Dado um pedido de compra de 10 unidades de um fornecedor · Quando a pessoa lança uma
+  compra recebida de 4 ligada a esse pedido · Então o estoque sobe 4, o pedido fica Parcial e a
+  lista de pedidos abertos do fornecedor mostra 6 a receber · E quando lança outra compra de 6 ·
+  Então o estoque fica em 10, o pedido fica Concluído e sai da lista. Pedido de fornecedor de outra
+  empresa nunca aparece na lista.
+- **Teste:** [`RecebimentoParcialPedidoTest`](../../../../Modules/Compras/Tests/Feature/RecebimentoParcialPedidoTest.php)
+  (lane compras-pest; estoque conferido por dois caminhos: saldo gravado e soma das compras recebidas).
+- **Contrato:** SPEC US-COM-013 + regra mestre de estoque. A trava contra pedido de outra empresa no
+  `store()` é a US-COM-029.
+- **Status: 🧪 comportamento · na lane**
+
+## UC-PURCRE-13 · Escolher o pedido traz as linhas com o que falta receber · `must`
+
+- **Persona:** quem recebe a mercadoria e lança a compra (Larissa, biz=4).
+- **Aceite:** Dado uma empresa que usa pedido de compra e um fornecedor escolhido com pedido aberto ·
+  Quando a pessoa escolhe o pedido em "Receber de um pedido de compra" e clica em Trazer itens ·
+  Então cada linha do pedido entra na compra com a quantidade que falta, o preço do pedido e a
+  indicação "Pedido · já recebido · a receber" embaixo do nome; a quantidade pode ser ajustada para
+  o que chegou, e acima do que falta a linha avisa "acima do pedido". O pedido trazido não aparece
+  de novo na lista. Sem fornecedor, ou sem pedido aberto, o bloco não aparece.
+- **Teste:** [`tests/purchase-receber-do-pedido.test.tsx`](../../../../tests/purchase-receber-do-pedido.test.tsx)
+  (vitest; mutação `quantity: l.pedido` derruba o assert com `expected 10 to be 6`).
+- **Contrato:** SPEC US-COM-013. Quem grava é o UC-PURCRE-12.
+- **Status: 🧪 comportamento**
 
 ---
 

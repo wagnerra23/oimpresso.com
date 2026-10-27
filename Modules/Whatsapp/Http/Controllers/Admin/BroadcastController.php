@@ -18,8 +18,9 @@ use Modules\Whatsapp\Entities\WhatsappBroadcast;
  * BroadcastController — broadcast cross-canal FASE 1 (US-WA-306 · ADR 0268).
  *
  * Pre-flight REAL (audiência com opt-in LGPD + janela 24h Meta) + draft
- * auditável. DISPARO É FASE 2 (Job rate-limited com gate [W]) — nenhum
- * endpoint aqui toca driver (anti M-AP-2: sem fingir envio em massa).
+ * auditável. Fase 2 (US-WA-323, destravada por [W] em 2026-10-26): `store` com
+ * `disparar=true` agenda o `DispararBroadcastJob` (US-WA-322) e `cancelar` tira a
+ * campanha do ar. Nenhum endpoint aqui toca o driver: o envio é todo em fila.
  *
  * Permission: `whatsapp.send` (operacional) + ACL canal (US-WA-069).
  * Tier 0 ADR 0093: where business_id explícito em toda query.
@@ -86,7 +87,28 @@ class BroadcastController extends Controller
             'kind' => ['required', Rule::in(WhatsappBroadcast::KINDS)],
             'template_name' => ['required_if:kind,template', 'nullable', 'string', 'max:64'],
             'body' => ['required_if:kind,freeform', 'nullable', 'string', 'max:4096'],
+            'disparar' => ['nullable', 'boolean'],
         ]);
+        $disparar = (bool) ($data['disparar'] ?? false);
+
+        // US-WA-323 — "Salvar e disparar": só com a flag do disparo real, só texto livre e com o canal
+        // livre (uma campanha por vez por canal, para o limite diário anti-ban valer de verdade).
+        if ($disparar) {
+            if (! config('whatsapp.broadcast.disparo_enabled', false)) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['disparar' => 'O disparo de campanhas não está ligado nesta empresa.']);
+            }
+            if ($data['kind'] !== 'freeform') {
+                throw \Illuminate\Validation\ValidationException::withMessages(['disparar' => 'Por enquanto só campanha de texto livre pode ser disparada.']);
+            }
+            $emAndamento = WhatsappBroadcast::query()
+                ->where('business_id', $businessId)
+                ->where('channel_id', $channel->id)
+                ->where('status', 'dispatching')
+                ->exists();
+            if ($emAndamento) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['disparar' => 'Já há uma campanha em disparo neste canal. Espere terminar ou cancele.']);
+            }
+        }
 
         // Recalcula audiência server-side (mesma lógica do preflight)
         $preflight = $this->preflight($request)->getData(true);
@@ -97,7 +119,7 @@ class BroadcastController extends Controller
             ]);
         }
 
-        WhatsappBroadcast::query()->create([
+        $broadcast = WhatsappBroadcast::query()->create([
             'business_id' => $businessId,
             'channel_id' => $channel->id,
             'created_by_user_id' => $userId,
@@ -109,7 +131,38 @@ class BroadcastController extends Controller
             'recipient_conversation_ids' => $preflight['recipient_conversation_ids'] ?? [],
         ]);
 
-        return back()->with('success', 'Rascunho de broadcast salvo — disparo em massa é a fase 2 (ADR 0268).');
+        if ($disparar) {
+            \Modules\Whatsapp\Jobs\DispararBroadcastJob::dispatch($businessId, (int) $broadcast->id);
+
+            return back()->with('success', 'Campanha agendada: os envios saem aos poucos, em horário comercial.');
+        }
+
+        return back()->with('success', 'Rascunho de campanha salvo.');
+    }
+
+    /**
+     * POST /atendimento/broadcast/{id}/cancelar — US-WA-323.
+     *
+     * Tira a campanha de `dispatching`; cada envio agendado confere o status antes de sair e não
+     * sai mais. O que já foi enviado continua contado. Só quem tem acesso ao canal da campanha.
+     */
+    public function cancelar(Request $request, int $id): RedirectResponse
+    {
+        $businessId = (int) session('user.business_id');
+        $broadcast = WhatsappBroadcast::query()->where('business_id', $businessId)->where('id', $id)->first();
+        if ($broadcast === null) {
+            abort(404);
+        }
+        $request->merge(['channel_id' => $broadcast->channel_id]);
+        $this->resolveChannelOrAbort($request);
+
+        $mudou = WhatsappBroadcast::query()
+            ->where('business_id', $businessId)->where('id', $id)->where('status', 'dispatching')
+            ->update(['status' => 'cancelled', 'concluido_em' => now()]);
+
+        return $mudou > 0
+            ? back()->with('success', 'Campanha cancelada: os envios que faltavam não saem.')
+            : back()->withErrors(['cancelar' => 'Esta campanha não está em disparo.']);
     }
 
     /**
