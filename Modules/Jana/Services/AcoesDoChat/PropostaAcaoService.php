@@ -53,7 +53,7 @@ class PropostaAcaoService
 
         $proposta = AcaoAprovacao::create([
             'business_id' => $businessId,
-            'user_id'     => (int) $user->id,
+            'user_id'     => (int) $user->getKey(),
             'acao_key'    => $chave,
             'origem'      => 'chat',
             'conversa_id' => $conversaId,
@@ -118,7 +118,7 @@ class PropostaAcaoService
         /** @var AcaoAprovacao|null $p */
         $p = AcaoAprovacao::where('id', $id)
             ->where('business_id', $businessId)
-            ->where('user_id', (int) $user->id)
+            ->where('user_id', (int) $user->getKey())
             ->where('origem', 'chat')
             ->lockForUpdate()
             ->first();
