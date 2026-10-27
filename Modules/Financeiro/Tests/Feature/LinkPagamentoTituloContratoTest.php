@@ -42,7 +42,9 @@ beforeEach(function () {
         $this->markTestSkipped('Tenant de teste ausente: ' . $e->getMessage());
     }
     config(['financeiro.link_pagamento.enabled' => true]);
-    $this->user = $this->usuarioComPermissoes([], $this->seededTenant());
+    // O UnificadoController exige `financeiro.dashboard.view` no construtor: sem ela a rota
+    // devolve 403 antes de buscar o título, e o 404 do UC-FINPAG-03 nunca seria exercido.
+    $this->user = $this->usuarioComPermissoes(['financeiro.dashboard.view'], $this->seededTenant());
 
     $this->cred = $cred = (int) DB::table('payment_gateway_credentials')->insertGetId([
         'business_id' => $this->biz, 'gateway_key' => 'inter', 'ambiente' => 'sandbox', 'ativo' => true,
@@ -112,8 +114,16 @@ it('UC-FINPAG-03 · uma empresa não gera link nem baixa título de outra', func
     expect(fn () => app(LinkDePagamentoDoTitulo::class)->gerar($this->outro, (int) $this->titulo->id))
         ->toThrow(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
 
+    $sessao = ['user.business_id' => $this->biz, 'business.id' => $this->biz];
+
+    // Âncora positiva: com a mesma permissão, o título da própria empresa gera o link. Assim o
+    // 404 abaixo vem da busca do título, não da trava de permissão nem da flag.
+    $proprio = ($this->novoTitulo)($this->biz);
+    $this->actingAs($this->user)->withSession($sessao)
+        ->postJson("/financeiro/unificado/{$proprio->id}/link-pagamento")->assertOk()->assertJsonStructure(['url', 'expira_em']);
+
     $deOutra = ($this->novoTitulo)($this->outro);
-    $this->actingAs($this->user)->withSession(['user.business_id' => $this->biz, 'business.id' => $this->biz])
+    $this->actingAs($this->user)->withSession($sessao)
         ->postJson("/financeiro/unificado/{$deOutra->id}/link-pagamento")->assertNotFound();
     expect(DB::table('fin_titulo_links_pagamento')->where('titulo_id', $deOutra->id)->exists())->toBeFalse();
 });
