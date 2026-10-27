@@ -468,7 +468,8 @@ function ReparoDrawer({ folha, close, avisar }) {
   return (
     <Drawer open onClose={close} width={680} title={"Venda de reparo " + v.repair} subtitle={folha.cliente || "Sem cliente"}
       footer={Button && <>
-        <Button variant="ghost" onClick={() => avisar("Via do cliente abre em nova aba.")}>Via do cliente</Button>
+        <Button variant="ghost" onClick={() => window.RepairVendaEtiqueta ? window.RepairVendaEtiqueta.printEtiquetaVenda(v) : avisar("Etiqueta da venda.")}>Etiqueta</Button>
+        <Button variant="ghost" onClick={() => window.RepairVendaRecibo ? window.RepairVendaRecibo.printReciboVenda(v) : avisar("Via do cliente abre em nova aba.")}>Via do cliente</Button>
         <Button variant="primary" onClick={() => avisar("Editar a venda de reparo abre em Vendas.")}>Editar</Button>
       </>}>
       <DrawerSection title="Detalhes da venda">
@@ -534,7 +535,7 @@ function Status({ folhas, papel, avisar }) {
               <span className="rep-status-meta mono">ordem {s.ordem} · coluna {s.coluna} · {n} folha(s)</span>
               <span className="rep-status-flag">{s.concluido ? "marcado como concluído" : "pendente"}</span>
               <span className="rep-status-tpl">SMS: “{s.sms}”</span>
-              {Button && <Button size="sm" variant="ghost" onClick={() => pode ? avisar("Editar status abre o formulário de " + s.nome + ".") : avisar("Seu papel não edita status.", "warn")}>Editar</Button>}
+              {Button && <Button size="sm" variant="ghost" onClick={() => { if (!pode) return avisar("Seu papel não edita status.", "warn"); window.__repStatusEditar = s.id; window.__go && window.__go("rep-status-editar"); }}>Editar</Button>}
             </div>
           );
         })}
@@ -543,7 +544,7 @@ function Status({ folhas, papel, avisar }) {
         No legado o status é FK das folhas — apagar um status usado deixa folha órfã. Antes de excluir, migre as folhas.
         {" "}Hoje {D.STATUS.filter((s) => folhas.some((f) => f.status === s.id)).length} de {D.STATUS.length} status estão em uso.
       </Alert>}
-      {Button && <div className="rep-cfg-acoes"><Button variant="primary" onClick={() => pode ? avisar("Novo status — nome, cor, ordem, templates.") : avisar("Sem permissão.", "warn")}>Adicionar status</Button>
+      {Button && <div className="rep-cfg-acoes"><Button variant="primary" onClick={() => pode ? (window.__go && window.__go("rep-status-novo")) : avisar("Sem permissão.", "warn")}>Adicionar status</Button>
         <span>Permissão: <b className="mono">access_job_sheet_status</b></span></div>}
     </div>
   );
@@ -954,6 +955,9 @@ const ROTAS = {
   "rep-folha-editar":  { page: "Repair/JobSheet/Edit",         aba: "folhas", modal: { t: "folha", modo: "editar", folhaId: 5 } },
   "rep-folha-pecas":   { page: "Repair/JobSheet/AddParts",     aba: "folhas", modal: { t: "pecas", folhaId: 7 } },
   "rep-status":        { page: "Repair/Status/Index",          aba: "status" },
+  // Cadastro de status é página, não modal (o charter de Repair/Status proíbe editar em modal).
+  "rep-status-novo":   { page: "Repair/Status/Create",         aba: "status", statusForm: { modo: "novo" } },
+  "rep-status-editar": { page: "Repair/Status/Edit",           aba: "status", statusForm: { modo: "editar" } },
   "rep-modelos":       { page: "Repair/DeviceModels/Index",    aba: "modelos" },
   "rep-modelo-novo":   { page: "Repair/DeviceModels/Create",   aba: "modelos", modelo: { modo: "novo" } },
   "rep-modelo-editar": { page: "Repair/DeviceModels/Edit",     aba: "modelos", modelo: { modo: "editar", id: 2 } },
@@ -1088,7 +1092,9 @@ function RepairPage({ view, dense, estado = "dados", papel: papelProp }) {
         {aba === "producao" && <div className="mp-body"><Producao folhas={lista} papel={papel} avisar={avisar} onAbrir={setSel} onMover={mover} /></div>}
         {aba === "folhas" && <Folhas folhas={lista} papel={papel} dense={dense} filtro={filtro} setFiltro={setFiltro} busca={busca} onAbrir={setSel} acoes={acoes} />}
         {aba === "reparos" && <Reparos folhas={lista} dense={dense} onAbrir={setReparo} />}
-        {aba === "status" && <div className="mp-body"><Status folhas={lista} papel={papel} avisar={avisar} /></div>}
+        {aba === "status" && <div className="mp-body">{rota && rota.statusForm && window.RepairStatusForm
+          ? <window.RepairStatusForm.StatusPagina modo={rota.statusForm.modo} statusId={window.__repStatusEditar || (D.STATUS[0] || {}).id} folhas={lista} papel={papel} avisar={avisar} onVoltar={() => window.__go && window.__go("rep-status")} />
+          : <Status folhas={lista} papel={papel} avisar={avisar} />}</div>}
         {aba === "modelos" && <Modelos modelos={modelos} folhas={lista} dense={dense} papel={papel}
           onNovo={() => setModeloForm({ modo: "novo" })} onEditar={(m) => setModeloForm({ modo: "editar", modelo: m })} />}
         {aba === "portal" && <div className="mp-body">{Portal && <Portal folhas={folhas} avisar={avisar} />}</div>}

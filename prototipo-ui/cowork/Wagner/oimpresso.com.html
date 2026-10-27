@@ -98,6 +98,7 @@
 <link rel="stylesheet" href="producao-cv.css?v=pcv14" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="repair-page.css?v=rpl5ind" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="repair-print.css?v=rp5qr" media="print" onload="this.media='all'"/>
+<link rel="stylesheet" href="repair-status-form.css?v=p2710" media="print" onload="this.media='all'"/>
 <!-- Camada transversal de otimização (ondas 1-7): sticky thead, tabular-nums, foco visível,
      toque >=44px, densidade num interruptor. Tudo em :where() → especificidade 0, nenhum
      módulo é repintado (telas ouro Clientes/Inbox intactas, FRESCOR 🔵). -->
@@ -403,10 +404,14 @@
 <script type="text/oi-lazy" data-src="patrimonio-page.jsx?v=pat9a11y"></script>
 <!-- Repair (assistência técnica) — importado dos blades Modules/Repair/Resources/views/* -->
 <script type="text/oi-lazy" data-src="repair-data.jsx?v=rp4ind"></script>
+<!-- Repair · cadastro de status em página, etiqueta e recibo da venda de reparo (leem window.RepData) -->
+<script type="text/oi-lazy" data-src="repair-status-form.jsx?v=p2710"></script>
+<script type="text/oi-lazy" data-src="repair-venda-etiqueta.js?v=p2710"></script>
+<script type="text/oi-lazy" data-src="repair-venda-recibo.js?v=p2710"></script>
 <script src="repair-print.js?v=rp5qr"></script>
 <script type="text/oi-lazy" data-src="repair-forms.jsx?v=rp3"></script>
 <script type="text/oi-lazy" data-src="repair-portal.jsx?v=rpl7"></script>
-<script type="text/oi-lazy" data-src="repair-page.jsx?v=rp5ind"></script>
+<script type="text/oi-lazy" data-src="repair-page.jsx?v=rp6-status"></script>
 <script type="text/oi-lazy" data-src="essenciais-page.jsx?v=ess8tpph"></script>
 <!-- Configurações (grupo do menu legado: business/settings + 9 cadastros) -->
 <script type="text/oi-lazy" data-src="configuracoes-fatura.jsx?v=cfg3"></script>
