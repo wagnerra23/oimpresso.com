@@ -104,8 +104,27 @@ test('UC-EMP-01 com a flag ligada a tela abre em Inertia e o corpo não leva a s
 test('UC-EMP-02 com a flag desligada, ou com ?classico=1, a rota segue na Blade', function () {
     $this->get('/business/settings?classico=1')->assertOk()->assertViewIs('business.settings');
 
-    config(['feature-flags.forced_on' => '']);
+    // Desde o cutover [W] 2026-10-27 a flag vem LIGADA pelo fallbackDefaults; zerar o
+    // `feature-flags.forced_on` não a desliga mais. O lado Blade é medido com a flag OFF explícita.
+    app()->instance(\App\Services\FeatureFlagService::class, new class extends \App\Services\FeatureFlagService
+    {
+        public function isOn(string $flag, array $attrs = []): bool
+        {
+            return $flag === 'useV2ConfiguracoesEmpresa' ? false : parent::isOn($flag, $attrs);
+        }
+    });
     $this->get('/business/settings')->assertOk()->assertViewIs('business.settings');
+});
+
+test('UC-EMP-18 sem override nenhum a flag vem ligada para todas as empresas e ?classico=1 segue na Blade', function () {
+    config(['feature-flags.forced_on' => '']);
+
+    $r = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia, 'X-Requested-With' => 'XMLHttpRequest'])
+        ->get('/business/settings');
+    $r->assertOk();
+    expect($r->json('component'))->toBe('Configuracoes/Empresa/Index');
+
+    $this->get('/business/settings?classico=1')->assertOk()->assertViewIs('business.settings');
 });
 
 test('UC-EMP-03 o corpo é do negócio da sessão', function () {
