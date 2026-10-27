@@ -38,4 +38,29 @@ class ContasVendedor
 
         return $conta;
     }
+
+    /**
+     * Devolve um access token válido da conta, renovando antes se faltar menos de
+     * $margemMinutos para vencer. Refresh token recusado (`invalid_grant` do ML) marca a conta
+     * como `token_expired`: a empresa precisa conectar de novo, e o erro sobe para quem chamou.
+     */
+    public function tokenValido(ContaVendedor $conta, int $margemMinutos = 5): string
+    {
+        $vence = $conta->access_token_expires_at;
+        if ($conta->access_token && $vence !== null && $vence->greaterThan(now()->addMinutes($margemMinutos))) {
+            return (string) $conta->access_token;
+        }
+
+        try {
+            $tokens = app(MercadoLivre\MercadoLivreOAuth::class)->renovar((string) $conta->refresh_token);
+        } catch (\Throwable $e) {
+            $conta->forceFill(['status' => ContaVendedor::STATUS_TOKEN_EXPIRADO])->save();
+            throw $e;
+        }
+
+        $atualizada = $this->gravarTokens((int) $conta->business_id, (int) $conta->marketplace_id, array_merge($tokens, ['user_id' => (string) $conta->seller_id_external]));
+        $conta->setRawAttributes($atualizada->getAttributes(), true);
+
+        return (string) $atualizada->access_token;
+    }
 }

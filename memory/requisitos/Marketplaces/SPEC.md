@@ -399,9 +399,9 @@ Seeder com Mercado Livre + Shopee + Amazon BR. UI admin superadmin pra ativar/de
 
 ### US-MKT-003 · OAuth2 Mercado Livre — authorization code flow + refresh token — **P0** · 6h
 
-**Implementado em:** _parcial_ · `Modules/Marketplaces/Services/MercadoLivre/MercadoLivreOAuth.php` · `Modules/Marketplaces/Http/Controllers/ContasController.php` · `Modules/Marketplaces/Tests/Feature/MarketplacesOAuthMercadoLivreContratoTest.php` — 2026-10-26: conectar + callback com state da sessão e token cifrado por empresa; faltam a página `Connect.tsx` e a renovação diária (`RefreshTokensJob`); credencial do app ML é [W]
+**Implementado em:** _parcial_ · `Modules/Marketplaces/Services/MercadoLivre/MercadoLivreOAuth.php` · `Modules/Marketplaces/Http/Controllers/ContasController.php` · `Modules/Marketplaces/Tests/Feature/MarketplacesOAuthMercadoLivreContratoTest.php` · `Modules/Marketplaces/Jobs/RenovarTokenContaJob.php` · `Modules/Marketplaces/Tests/Feature/MarketplacesRenovacaoTokenContratoTest.php` — 2026-10-26: conectar + callback com state da sessão e token cifrado por empresa; renovação sob demanda e de hora em hora (o access token do ML vale ~6 h, então "diária" não bastaria); falta a página `Connect.tsx`; credencial do app ML é [W]
 
-**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesOAuthMercadoLivreContratoTest.php`
+**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesOAuthMercadoLivreContratoTest.php` · `Modules/Marketplaces/Tests/Feature/MarketplacesRenovacaoTokenContratoTest.php`
 
 **DoD:** conectar redireciona para a autorização do ML com state da sessão; só empresa com pacote e usuário com permissão conecta; callback só aceita o state da própria sessão; token cifrado na conta da empresa da sessão, sem duplicar ao reconectar.
 
@@ -428,7 +428,13 @@ Driver pattern: classe `MarketplaceDriver` abstrata + `MercadoLivreDriver`, `Sho
 
 ### US-MKT-006 · Webhook receiver ML orders_v2 + idempotency-key — **P0** · 5h
 
-**Implementado em:** _pendente_ — módulo não construído (US planejada): rota `POST /webhooks/marketplace/{key}`, middleware HMAC e `ProcessMarketplaceWebhookJob` não existem no disco
+**Implementado em:** `Modules/Marketplaces/Http/Controllers/NotificacoesMercadoLivreController.php` · `Modules/Marketplaces/Jobs/ProcessarNotificacaoMercadoLivreJob.php` · `Modules/Marketplaces/Tests/Feature/MarketplacesNotificacaoMercadoLivreContratoTest.php`
+
+**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesNotificacaoMercadoLivreContratoTest.php`
+
+**DoD:** notificação do vendedor conectado grava o log na empresa da conta e enfileira o processamento; app alheio ou vendedor não conectado não grava nada; o pedido é buscado na API com o token da conta, pedido de outro vendedor é recusado e notificação repetida não duplica.
+
+> **2026-10-26 — premissa corrigida antes do código.** O desenho abaixo pede HMAC por `webhook_secret`. A notificação do **Mercado Livre não traz assinatura**: os campos são `resource`, `user_id`, `topic`, `application_id` e `attempts`, e o detalhe se busca pela API com o token do vendedor. O `x-signature` com HMAC que aparece em busca é do **Mercado Pago**, outro produto. (A página oficial do ML devolveu 403 para leitura automática; a conclusão veio da documentação indexada e de guias, e deve ser reconferida contra uma notificação real quando o app existir.) A defesa implementada é não confiar no conteúdo: `application_id` precisa ser o nosso, `user_id` precisa ser vendedor conectado (a empresa sai da conta), e o pedido é lido da API com o token daquela conta, recusando pedido de outro vendedor. Rota: `POST /webhook/marketplaces/mercado-livre`. O texto original fica como registro do plano de 2026-05.
 
 - Rota pública `POST /webhooks/marketplace/{marketplace_key}` (sem auth Laravel — HMAC valida)
 - Middleware `ValidateMarketplaceWebhookSignature` valida HMAC SHA256 com `webhook_secret` por account
@@ -438,7 +444,13 @@ Driver pattern: classe `MarketplaceDriver` abstrata + `MercadoLivreDriver`, `Sho
 
 ### US-MKT-007 · Pedido ML → cria `mkt_orders` + transaction UltimatePOS + FSM stage initial — **P0** · 8h
 
-**Implementado em:** _pendente_ — módulo não construído (US planejada): sem `ProcessMercadoLivreOrderJob`, sem tabela `mkt_orders`, sem processo FSM `venda_marketplace` no disco
+**Implementado em:** _parcial_ · `Modules/Marketplaces/Services/PedidoParaVenda.php` · `Modules/Marketplaces/Jobs/VirarVendaJob.php` · `Modules/Marketplaces/Database/Migrations/2026_10_26_000003_add_location_id_to_mkt_account_credentials.php` — 2026-10-26: pedido pago vira venda final no local da conta, com baixa de estoque; falta o estágio FSM `venda_marketplace` (próximo PR)
+
+**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesPedidoViraVendaContratoTest.php`
+
+**DoD:** pedido pago vira venda final no local da conta com final_total igual ao total do ML e igual à soma das linhas, e o estoque baixa a quantidade vendida; repetir não cria segunda venda nem baixa de novo; total que não bate, pedido não pago ou conta sem local não criam venda nem mexem no estoque; SKU de outra empresa nunca é usado.
+
+> **Decisões [W] 2026-10-26 (antes do código):** o estoque baixa **quando o ML confirma pago**; a venda entra no **local escolhido ao conectar a conta** (`mkt_account_credentials.location_id`; sem local, o pedido não vira venda). Fixado na implementação: preço da linha = `unit_price` do ML com 2 casas, e o total das linhas tem de bater com o `total_amount` do ML (dupla prova; diferença > 1 centavo recusa); sem pagamento lançado — a venda nasce `due` até a conciliação do Mercado Pago (D6, US-MKT-015); cliente = consumidor final da empresa (o ML esconde o comprador); item ligado por `mkt_listings.item_id_external` e, sem anúncio, pelo `seller_sku` = `sub_sku` de produto da mesma empresa. O texto abaixo é o plano de 2026-05.
 
 - Job `ProcessMercadoLivreOrderJob` lê pedido ML completo + buyer + items + shipping
 - Cria `Transaction` UltimatePOS + `TransactionSellLines` + `Contact` (buyer com email/phone hash — PII redacted em log)
