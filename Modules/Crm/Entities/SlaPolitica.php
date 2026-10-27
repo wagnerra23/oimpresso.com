@@ -8,6 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * Prazo do chamado de garantia por tipo (categoria de acompanhamento) — US-CRM-094.
  * `followup_category_id` nulo é o prazo padrão da empresa.
+ *
+ * @property int $id
+ * @property int $business_id
+ * @property ?int $followup_category_id
+ * @property int $prazo_horas
+ * @property ?string $fila
+ * @property ?int $responsavel_user_id
+ * @property bool $ativo
  */
 class SlaPolitica extends Model
 {
