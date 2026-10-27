@@ -42,7 +42,7 @@ class ContaVendedor extends Model
     protected $fillable = [
         'business_id', 'marketplace_id', 'seller_id_external', 'seller_nickname', 'location_id',
         'access_token', 'refresh_token', 'access_token_expires_at', 'refresh_token_expires_at',
-        'oauth_state', 'last_sync_at', 'last_refresh_at', 'status',
+        'oauth_state', 'last_sync_at', 'last_refresh_at', 'status', 'enviar_estoque',
     ];
 
     protected $hidden = ['access_token', 'refresh_token'];
@@ -51,6 +51,7 @@ class ContaVendedor extends Model
         'access_token' => 'encrypted',
         'refresh_token' => 'encrypted',
         'oauth_state' => 'array',
+        'enviar_estoque' => 'boolean',
         'access_token_expires_at' => 'datetime',
         'refresh_token_expires_at' => 'datetime',
         'last_sync_at' => 'datetime',

@@ -621,6 +621,16 @@ Fatia b da [ADR 0443](../../decisions/0443-nuvemshop-entra-no-marketplaces-como-
 
 Fatia c da [ADR 0443](../../decisions/0443-nuvemshop-entra-no-marketplaces-como-driver.md). Regra mestre de valor e estoque: o antes → depois foi apresentado ao [W] no PR.
 
+### US-MKT-029 · Nuvemshop — estoque do ERP para a loja, por conta — **P1** · 4h
+
+**Implementado em:** `Modules/Marketplaces/Listeners/EstoqueMudouParaNuvemshop.php` · `Modules/Marketplaces/Jobs/EnviarEstoqueNuvemshopJob.php` · `Modules/Marketplaces/Database/Migrations/2026_10_27_000005_add_enviar_estoque_to_mkt_account_credentials.php` · `Modules/Marketplaces/Providers/MarketplacesServiceProvider.php`
+
+**Testado em:** `Modules/Marketplaces/Tests/Feature/MarketplacesEstoqueNuvemshopContratoTest.php`
+
+**DoD:** saldo mudou no local de venda da conta agenda o envio (único por anúncio, 1 min de atraso); só com a flag ligada e a conta com `enviar_estoque`; envia `{action: replace, value, id}` com a parte inteira do saldo para a variante da loja, sem gravar nada no saldo do ERP; a 98 nunca envia o anúncio da 99.
+
+Fatia d da [ADR 0443](../../decisions/0443-nuvemshop-entra-no-marketplaces-como-driver.md) (D2 da ADR 0439: estoque ERP → canal atrás de chave por empresa). Loja com várias localizações na Nuvemshop usa `inventory_levels`, ainda não tratado.
+
 ## 9. Concorrentes (research consolidada §discovery)
 
 | Concorrente | Pricing | Forte | Calcanhar oimpresso pode bater |

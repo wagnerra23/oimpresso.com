@@ -20,6 +20,10 @@ class MarketplacesServiceProvider extends ServiceProvider
         $this->callAfterResolving(Schedule::class, function (Schedule $schedule) {
             $schedule->command('marketplaces:renovar-tokens')->hourly()->withoutOverlapping();
         });
+
+        // ADR 0443 fatia d: saldo mudou → estoque para a loja Nuvemshop (o listener checa a flag e a conta).
+        \App\VariationLocationDetails::created([\Modules\Marketplaces\Listeners\EstoqueMudouParaNuvemshop::class, 'aoSalvar']);
+        \App\VariationLocationDetails::updated([\Modules\Marketplaces\Listeners\EstoqueMudouParaNuvemshop::class, 'aoSalvar']);
     }
 
     public function register(): void
