@@ -162,12 +162,18 @@ last_run: "2026-10-26"
 - **Teste:** `EspelhoCienciaContratoTest.php` — *"UC-REPP-22"*.
 - **Status: 🧪**
 
+## UC-REPP-23 · "Meu espelho" pede a ciência do último mês fechado
+- **Origem:** US-PONTO-020.
+- **Aceite:** Dado um mês fechado pela empresa e sem minha ciência · Quando abro "Meu espelho" · Então vejo "O espelho de <mês> foi fechado pela empresa" com o botão "Dou ciência"; ao tocar, a tela passa a mostrar a data da ciência (e avisa se o espelho mudou depois).
+- **Teste:** `EspelhoCienciaContratoTest.php` — *"UC-REPP-23"*.
+- **Status: 🧪**
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** Fila do gestor com filtro de origem mobile em Aprovações (passo 3 da thread).
 
 ## Trilha do tempo
-- 2026-10-26 · UC-REPP-17..22 — ciência do espelho de competência fechada, pela API do app (US-PONTO-020). O botão na tela vem no PR seguinte.
+- 2026-10-26 · UC-REPP-17..22 — ciência do espelho de competência fechada, pela API do app (US-PONTO-020). O botão na tela entrou como UC-REPP-23.
 - 2026-09-29 · [CL] carimbado por criar-tela.mjs e preenchido na thread 06 (PR 2a); UC-REPP-06/07 no PR 2b. Refs: UI-0013 · ADR 0264 G-1/G-2.
 - 2026-10-01 · [CL] UC-REPP-11/12/13 — registro do aparelho para o lembrete (ADR 0423, PR 1).
 - 2026-10-01 · [CL] UC-REPP-16 — envio do lembrete pelo FCM (ADR 0423, PR 2a).
