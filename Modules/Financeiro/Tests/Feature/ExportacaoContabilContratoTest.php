@@ -11,8 +11,8 @@ use Modules\Financeiro\Services\ExportacaoContabilService;
 uses(Tests\TestCase::class);
 
 /**
- * Exportação contábil por competência (US-FIN-077) — contrato em
- * resources/js/Pages/Financeiro/ExportacaoContabil/Index.casos.md (UC-EXPC-01..05).
+ * Exportação contábil por competência (US-FIN-077), casos UC-EXPC-01..05. Backend sem tela ainda:
+ * a US está no SPEC e os casos vivem aqui; o .casos.md nasce com a tela (regra da rodada 27/10).
  *
  * Leiautes derivados da documentação oficial de cada fornecedor:
  *  - Domínio: "Leiaute Domínio Sistemas com Separador", suporte.dominioatendimento.com
