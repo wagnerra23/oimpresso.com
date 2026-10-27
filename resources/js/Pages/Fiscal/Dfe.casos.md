@@ -5,12 +5,17 @@ irmaos: Dfe.charter.md (lei) · memory/requisitos/Fiscal/SDD-cockpit-fiscal-v1.0
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-09-04"
+last_run: "2026-10-26"
 last_run_ci: "5 UC executados nesta corrida, em duas lanes diferentes — UC-FDFE-06 (vitest/jsdom: 4 casos verdes + 3 mutações provando que morde), UC-FDFE-07/08 (Pest no CT 100/MySQL: 3 passed / 9 assertions) e UC-FDFE-09/10 (Pest no CT 100/MySQL: 5 passed / 27 assertions). Os três blocos têm bite-test: mutar 1 das 4 chamadas → 1 failed nos 07/08; no 10, derrubar AS DUAS camadas de isolamento (o `where` explícito E o global scope) → 1 failed, porque cada uma segura sozinha. Os UC-FDFE-01..05 NÃO foram re-executados: são Pest e Pest não roda local (ADR 0062); o veredito deles segue pendente da lane Pest Fiscal (advisory) + suíte noturna CT 100, como já estava."
 related_us: [US-FISCAL-008, US-FISCAL-012]
 ---
 
 # Casos de Uso & Aceite — Manifesto DF-e
+
+> **Revalidação `last_run` 2026-10-26 (G-6):** depois de 2026-09-04 o `Dfe.tsx` teve um commit só,
+> o #7224 (2026-09-11), que troca um caminho dentro de comentário (`prototipo-ui/cowork/fiscal-subpages.jsx`
+> → `prototipo-ui/cowork/Wagner/fiscal-subpages.jsx`). Nenhum comportamento mudou, e os UCs seguem valendo.
+> Os UC-FDFE-11..13 desta revisão são de backend (CNPJ da busca e alarme) e não tocam o `.tsx`.
 
 > **Revalidação `last_run` 2026-09-01 — Onda 1 Fiscal (saneamento `fx-*` → DS):** mudança de
 > **apresentação apenas** — `fx-callout` → `<Alert>`, 5 `fx-chip` → `<Button>`, `fx-search` +
@@ -208,6 +213,30 @@ related_us: [US-FISCAL-008, US-FISCAL-012]
 - **Duas camadas, medidas:** o isolamento é sustentado pelo global scope `HasBusinessScope` **e** pelo `where('business_id')` do laço, e cada uma segura sozinha — mutação no CT 100: tirar só o `where` → verde; só o global scope → verde; **as duas** → vermelho. O bite-test está no docblock do teste, porque a linha explícita parece redundante e não é.
 - **Teste:** `AcoesDfeLoteTest` — `it('UC-FDFE-10 · DF-e de outro business no lote não é manifestada, e não derruba o lote (Tier 0 · ADR 0093)')`
 - **Status:** 🧪 verde no CT 100 (MySQL) em 2026-09-04, tenant fictício 98 × 99.
+
+---
+
+## UC-FDFE-11 — A busca das notas recebidas usa o CNPJ que a empresa tem `[must]`
+
+**Dado** a empresa sem certificado com titular, com `tax_number_1` vazio e o CNPJ em `business.cnpj` (o caso do biz=1 em produção, medido no #9833)
+**Quando** a busca de DF-e monta a configuração da SEFAZ
+**Então** usa o CNPJ de `business.cnpj`; o valor padrão da coluna (só zeros) não conta e cai no `tax_number_1`; o titular do certificado, quando existe, vem primeiro.
+
+- **Âncora:** R-NFE-041 do SPEC do NfeBrasil · US-NFE-051. Mesmo CNPJ para a manifestação.
+- **Teste:** `DfeCnpjEAlarmeTest` — `UC-FDFE-11 · …` (2 casos) · **Status:** 🧪 verde no CT 100 (MySQL) em 2026-10-26, tenant 98 × 99.
+
+## UC-FDFE-12 — Sem CNPJ a busca é recusada com a saída `[must]`
+
+**Dado** a empresa sem CNPJ em nenhum dos três lugares **Quando** a busca vai começar **Então** é recusada com "CNPJ da empresa … não configurado — preencha em Fiscal › Configuração", em vez de ir à SEFAZ com CNPJ vazio.
+
+- **Teste:** `DfeCnpjEAlarmeTest` — `UC-FDFE-12 · …` · **Status:** 🧪 verde no CT 100 em 2026-10-26.
+
+## UC-FDFE-13 — Falha definitiva da busca vira alerta da empresa, um por dia `[must]` `[T0]`
+
+**Dado** o job de busca falhando nas 3 tentativas **Quando** ele desiste **Então** grava em `mcp_alertas_eventos` um alerta `dfe_busca_falhou` aberto, severidade alta, com o último erro, só da empresa — duas falhas no mesmo dia são um alerta só.
+
+- **Âncora:** R-NFE-042. Origem: 69 falhas seguidas em `failed_jobs` desde 2026-07-03 sem ninguém ver.
+- **Teste:** `DfeCnpjEAlarmeTest` — `UC-FDFE-13 · …` · **Status:** 🧪 verde no CT 100 em 2026-10-26.
 
 ---
 

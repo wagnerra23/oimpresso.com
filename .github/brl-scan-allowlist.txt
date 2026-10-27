@@ -261,3 +261,11 @@ R$ 3,6 mi (LC 123/2006 art. 13-A); exatamente 90% já é atenção
 # Vetor de asserção do AppFinanceiroLancamentoAcoesApiContratoTest: confere que o histórico registra o
 # valor ANTES → DEPOIS no formato que o app mostra. Valores fictícios do fixture (título de teste), não dado de cliente.
 valor R$ 1.000,00 → R$ 1.200,00
+# ── Sells · cancelamento da venda (2026-10-26, PR #9911) ─────────────────────
+# "60,00" é o pagamento da FIXTURE do tenant fictício 98 em
+# CancelamentoDaVendaContratoTest (UC-VCAN): o teste exige que a mensagem de
+# recusa cite o valor recebido. Não é valor de cliente. Substrings com o texto
+# da mensagem junto, para não isentar qualquer "R$ 60,00" solto.
+A venda tem R$ 60,00 recebidos (1 pagamento(s))
+recusa "R$ 60,00 recebidos", saldo segue 7
+VendaNaoCancelavelException::class, 'R$ 60,00 recebidos'

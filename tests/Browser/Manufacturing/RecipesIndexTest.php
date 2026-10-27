@@ -255,14 +255,15 @@ function mfgAbrirTela(int $largura = 1280, int $altura = 800)
     return $page;
 }
 
-it('UC-RECIPE-01 · render — a tela monta autenticada com os 4 KPIs e a grade', function (int $w, int $h) {
+it('UC-RECIPE-01 · render — a tela monta autenticada com os 3 KPIs e a grade', function (int $w, int $h) {
     $page = mfgAbrirTela($w, $h);
 
-    // §4.2 do handoff — os 4 KPIs. Os rótulos são copy do contrato de tela
+    // §4.2 do handoff — os KPIs. Os rótulos são copy do contrato de tela
     // (`governance/design/contracts/manufacturing-recipes.contract.json`), não invenção do teste.
+    // O "Desperdício ≥ 8%" saiu (D4 · decisão [W] 2026-10-23: desperdício é somente na Produção).
     $page->assertSee('Custo médio / unidade')
         ->assertSee('Margem abaixo de 45%')
-        ->assertSee('Desperdício ≥ 8%')
+        ->assertDontSee('Desperdício ≥ 8%')
         ->assertSee('Produção do mês');
 
     // Colunas da grade: o que o usuário lê como promessa de custeio.

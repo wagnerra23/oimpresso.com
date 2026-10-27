@@ -436,6 +436,20 @@ class CockpitController extends Controller
             }
         }
 
+        // R-NFE-042 · Crit: a busca das notas recebidas falhou (BuscarDfesRecebidosJob::failed) nos
+        // últimos 3 dias e ninguém arquivou o alerta. Sem isso, a falha só existia no failed_jobs.
+        $falhaDfe = $this->ultimaFalhaBuscaDfe((int) (session('user.business_id') ?? 0));
+        if ($falhaDfe !== null) {
+            $alerts[] = [
+                'level'  => 'crit',
+                'icon'   => 'receipt',
+                'title'  => 'A busca das notas recebidas na SEFAZ falhou',
+                'sub'    => mb_strimwidth((string) $falhaDfe->descricao, 0, 140, '…'),
+                'action' => 'Abrir configuração',
+                'goto'   => 'fiscal_config',
+            ];
+        }
+
         // Info: DF-e pendente manifestação (reusa $dfeCount do contexto)
         $dfeCount = $contexto['dfeCount'];
         if ($dfeCount > 0) {
@@ -450,6 +464,22 @@ class CockpitController extends Controller
         }
 
         return $alerts;
+    }
+
+    /** R-NFE-042 · alerta aberto mais recente da falha da busca de DF-e, só da empresa. */
+    protected function ultimaFalhaBuscaDfe(int $businessId): ?object
+    {
+        if ($businessId <= 0 || ! \Illuminate\Support\Facades\Schema::hasTable('mcp_alertas_eventos')) {
+            return null;
+        }
+
+        return \Illuminate\Support\Facades\DB::table('mcp_alertas_eventos')
+            ->where('business_id', $businessId)
+            ->where('tipo', \Modules\NfeBrasil\Jobs\BuscarDfesRecebidosJob::TIPO_ALERTA)
+            ->whereIn('status', ['aberto', 'notificado'])
+            ->where('criado_em', '>=', now()->subDays(3))
+            ->orderByDesc('criado_em')
+            ->first(['descricao', 'criado_em']);
     }
 
     protected function modeloLabel(string $modelo): string

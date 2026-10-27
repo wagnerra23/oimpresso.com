@@ -191,6 +191,9 @@ O pior dos quatro nao era numero errado: era o `erro_mensagem`. Uma importacao A
 
 ## Atualizado
 
+- **2026-10-26** — Exportação para a folha (US-PONTO-019): os cards Horas Extras, Banco de Horas e Atrasos e Faltas do catálogo geram CSV por competência, um colaborador por linha, lido da apuração (#9845). O eSocial segue indisponível.
+- **2026-10-26** — Ciência do espelho (US-PONTO-020): o colaborador dá ciência do espelho de competência fechada pelo app ou pela aba "Meu espelho"; fica append-only com o SHA-256 do espelho visto (#9849 · #9854). Não é assinatura ICP.
+- **2026-10-26** — Férias CLT (US-PONTO-018): `FeriasService` (aquisitivo, concessivo, dias pelo art. 130, vencidas pelo art. 137), tipo de licença do HRM marca "conta como férias" e a Conformidade lista férias vencidas como 7ª verificação (#9823 · #9829 · #9839). Sem 1/3 nem abono em dinheiro (vão com a folha).
 - **2026-09-15** — US-PONTO-015 registra as 3 restrições [W] do Fechamento de competência (D1/D2/D4 do handoff 19). Sem código: a US nasce `todo` + `blocked_by` decisão [W]. A 4ª decisão do mesmo ciclo (**D3**, recusar grava anulação `ORIGEM_ANULACAO` sem alterar a marcação) **já estava implementada** — 14 arquivos, e os serviços de apuração excluem os registros de anulação.
 - **2026-05-16** — Wave Massive: criado SPEC.md + BRIEFING.md + Pest multi-tenant append-only/cross-tenant (US-PONTO-007 + US-PONTO-008 status `done`)
 

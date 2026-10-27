@@ -18,6 +18,7 @@ not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
   - "Tasks Jira-style → Modules/Forja"
   - "MCP server admin → Modules/Forja"
+  - "Emissão da cobrança, driver do banco (BcbPixDriver, Pix Automático) e credenciais do gateway → Modules/PaymentGateway"
 trust_required: L3
 owner: wagner
 permission_prefix: recurringbilling.*

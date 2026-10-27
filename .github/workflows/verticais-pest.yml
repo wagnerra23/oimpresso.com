@@ -95,6 +95,10 @@ on:
       # Thread Crm/02 — a lista de leads virou Inertia; o contrato dela roda aqui.
       - 'Modules/Crm/Http/Controllers/LeadController.php'
       - 'Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php'
+      # US-CRM-092 — funil de vendas em kanban.
+      - 'Modules/Crm/Http/Controllers/FunilController.php'
+      - 'Modules/Crm/Services/DealPipelineService.php'
+      - 'Modules/Crm/Tests/Feature/CrmFunilContratoTest.php'
       # Thread Crm/11 F2 — baseline da Blade de Campanhas antes da tela React.
       - 'Modules/Crm/Tests/Feature/CrmCampanhasBaselineTest.php'
       # Thread Crm/06 — o form de lead é o Cliente/Create parametrizado.
@@ -148,6 +152,8 @@ on:
       - 'app/Domain/Fsm/Modelos/RegrasDaEmpresa.php'
       # US-FISIO-003 — fundo do Fisio (triggers append-only + escopo multi-tenant exigem MySQL).
       - 'Modules/Fisio/**'
+      # US-MKT-001 — fundo do Marketplaces (FK, escopo 98×99 e trigger append-only exigem MySQL).
+      - 'Modules/Marketplaces/**'
       # Etapa 02 T-13 — service worker do portal do paciente (FisioPortalAppTest lê o arquivo).
       - 'public/sw-fisio-portal.js'
       # Thread Producao/04 — o apontamento lê a saída do ponto (D-PONTO).
@@ -228,6 +234,10 @@ jobs:
               # Thread Crm/02 — a lista de leads virou Inertia; o contrato dela roda aqui.
               - 'Modules/Crm/Http/Controllers/LeadController.php'
               - 'Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php'
+              # US-CRM-092 — funil de vendas em kanban.
+              - 'Modules/Crm/Http/Controllers/FunilController.php'
+              - 'Modules/Crm/Services/DealPipelineService.php'
+              - 'Modules/Crm/Tests/Feature/CrmFunilContratoTest.php'
               # Thread Crm/11 F2 — baseline da Blade de Campanhas antes da tela React.
               - 'Modules/Crm/Tests/Feature/CrmCampanhasBaselineTest.php'
               # Thread Crm/06 — o form de lead é o Cliente/Create parametrizado.
@@ -280,6 +290,8 @@ jobs:
               - 'app/Domain/Fsm/Modelos/RegrasDaEmpresa.php'
               # US-FISIO-003 — fundo do Fisio (triggers append-only + escopo multi-tenant exigem MySQL).
               - 'Modules/Fisio/**'
+              # US-MKT-001 — fundo do Marketplaces.
+              - 'Modules/Marketplaces/**'
               # Etapa 02 T-13 — service worker do portal do paciente (FisioPortalAppTest lê o arquivo).
               - 'public/sw-fisio-portal.js'
               # Thread Producao/04 — o apontamento lê a saída do ponto (D-PONTO).
@@ -610,6 +622,9 @@ jobs:
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoSalvarReabrirContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoArquivosContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoMargemContratoTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/OrcamentoMinimoAcabamentoContratoTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/OrcamentoPerdaEmendaContratoTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/OsRoteiroPadraoContratoTest.php \
             Modules/Repair/Tests/Feature/DeviceModelsInertiaSmokeTest.php \
             Modules/Repair/Tests/Feature/JobSheetShowContratoTest.php \
             Modules/Repair/Tests/Feature/ProducaoOficinaRefactorTest.php \
@@ -625,6 +640,7 @@ jobs:
             Modules/Repair/Tests/Feature/RepairFormVendaContratoTest.php \
             Modules/Repair/Tests/Feature/ClienteAcompanhaStatusContratoTest.php \
             Modules/Vestuario/Tests/Feature/SmokeRoutesVestuarioTest.php \
+            Modules/Vestuario/Tests/Feature/CurvaDeCompraContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminDashboardContratoTest.php \
             Modules/Superadmin/Tests/Feature/SubscriptionLifecycleServiceTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminNegociosContratoTest.php \
@@ -647,6 +663,7 @@ jobs:
             Modules/Crm/Tests/Feature/CrmChamadasBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmChamadasContratoTest.php \
             Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php \
+            Modules/Crm/Tests/Feature/CrmFunilContratoTest.php \
             Modules/Crm/Tests/Feature/CrmCampanhasBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmCampanhasContratoTest.php \
             Modules/Crm/Tests/Feature/CrmLeadShowEscopoTest.php \
@@ -720,6 +737,11 @@ jobs:
             Modules/Fisio/Tests/Feature/FisioMultiTenantTest.php \
             Modules/Fisio/Tests/Feature/FisioModuloVisibilidadeTest.php \
             Modules/Fisio/Tests/Feature/FisioModuloContratoTest.php \
+            Modules/Marketplaces/Tests/Feature/MarketplacesEsquemaContratoTest.php \
+            Modules/Marketplaces/Tests/Feature/MarketplacesOAuthMercadoLivreContratoTest.php \
+            Modules/Marketplaces/Tests/Feature/MarketplacesRenovacaoTokenContratoTest.php \
+            Modules/Marketplaces/Tests/Feature/MarketplacesNotificacaoMercadoLivreContratoTest.php \
+            Modules/Marketplaces/Tests/Feature/MarketplacesPedidoViraVendaContratoTest.php \
             Modules/Fisio/Tests/Feature/FisioEvolucaoTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalAcessoTest.php \
             Modules/Fisio/Tests/Feature/FisioPortalSemLoginTest.php \

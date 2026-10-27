@@ -135,6 +135,9 @@ on:
       - 'app/Http/Controllers/CashRegisterController.php'
       # Sob teste em SellReturnIndexContratoTest (UC-SRIDX-*, lista de devoluções).
       - 'app/Http/Controllers/SellReturnController.php'
+      # US-VEST-021 — vale-troca: os listeners decidem o sentido do saldo de Adiantamento.
+      - 'app/Listeners/AddAccountTransaction.php'
+      - 'app/Listeners/DeleteAccountTransaction.php'
       # Sob teste em PesquisaSatisfacaoEntregaContratoTest (US-SELL-071 · UC-FLX-25).
       - 'app/Jobs/PesquisaSatisfacaoEntregaJob.php'
       - 'app/Services/Sells/PesquisaEntregaConfig.php'
@@ -155,6 +158,7 @@ on:
       # Sob teste em ImportSalesContratoTest (thread 05 · importação de vendas por planilha).
       - 'app/Http/Controllers/ImportSalesController.php'
       - 'app/Services/Sells/**'
+      - 'app/Domain/Fsm/SideEffects/CancelarVendaCascade.php'  # US-SELL-077 cancelamento devolve estoque
       # Sob teste em SellsTravaAposNotaContratoTest (US-SELL-072): contrato e leitores de nota.
       - 'app/Contracts/Fiscal/**'
       - 'Modules/NfeBrasil/Services/NotaDaVendaNfeBrasil.php'
@@ -227,6 +231,9 @@ jobs:
               - 'app/Utils/CashRegisterUtil.php'
               - 'app/Http/Controllers/CashRegisterController.php'
               - 'app/Http/Controllers/SellReturnController.php'
+              # US-VEST-021 — vale-troca: os listeners decidem o sentido do saldo de Adiantamento.
+              - 'app/Listeners/AddAccountTransaction.php'
+              - 'app/Listeners/DeleteAccountTransaction.php'
               - 'app/Jobs/PesquisaSatisfacaoEntregaJob.php'
               - 'app/Services/Sells/PesquisaEntregaConfig.php'
               - 'app/Console/Commands/Sells/PesquisaSatisfacaoEntregaCommand.php'
@@ -242,6 +249,7 @@ jobs:
               - 'resources/js/Pages/Discount/**'
               - 'app/Http/Controllers/ImportSalesController.php'
               - 'app/Services/Sells/**'
+              - 'app/Domain/Fsm/SideEffects/CancelarVendaCascade.php'  # US-SELL-077 cancelamento devolve estoque
               - 'app/Contracts/Fiscal/**'
               - 'Modules/NfeBrasil/Services/NotaDaVendaNfeBrasil.php'
               - 'Modules/NFSe/Services/NotaDaVendaNfse.php'
@@ -561,6 +569,8 @@ jobs:
             tests/Feature/Sells/SalesOrderIndexContratoTest.php \
             tests/Feature/Sells/SellReturnIndexContratoTest.php \
             tests/Feature/Sells/SellReturnAddContratoTest.php \
+            tests/Feature/Sells/ValeTrocaContratoTest.php \
+            tests/Feature/Sells/CancelamentoDaVendaContratoTest.php \
             tests/Feature/Sells/DescontosContratoTest.php \
             tests/Feature/Sells/SellsPosIndexContratoTest.php \
             tests/Feature/Sells/QuotationConvertTest.php \

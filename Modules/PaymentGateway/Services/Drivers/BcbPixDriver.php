@@ -7,6 +7,7 @@ namespace Modules\PaymentGateway\Services\Drivers;
 use Carbon\Carbon;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
+use Modules\PaymentGateway\Contracts\CobrancaRecorrenteDriver;
 use Modules\PaymentGateway\Contracts\PaymentDriverContract;
 use Modules\PaymentGateway\Services\HttpClientFactory;
 use Modules\PaymentGateway\Dto\CardToken;
@@ -31,9 +32,10 @@ use Modules\PaymentGateway\Models\PaymentGatewayCredential;
  * que implemente API Open Finance Pix Automático. URL base via config.
  *
  * Suporta:
- *   ✓ emitirPixAutomatico (cria mandato via PUT /v2/rec/{txid})
- *   ✓ cancelar (DELETE /v2/rec/{txid} = revogar mandato)
- *   ✓ consultar (GET /v2/rec/{txid})
+ *   ✓ emitirPixAutomatico (cria a recorrência via POST /v2/rec — API Pix BCB v2.10.0)
+ *   ✓ emitirCobrancaRecorrente (cobrança de UM ciclo via PUT /v2/cobr/{txid})
+ *   ✓ cancelar (PATCH /v2/rec/{idRec} status=CANCELADA — a spec não tem DELETE)
+ *   ✓ consultar (GET /v2/rec/{idRec})
  *   ✓ healthCheck (OAuth ping)
  *   ✓ processWebhook (cobranças recorrentes notificadas pelo PSP)
  *
@@ -45,17 +47,23 @@ use Modules\PaymentGateway\Models\PaymentGatewayCredential;
  *   client_secret: OAuth2 PSP
  *   base_url:      URL PSP (sandbox/prod do parceiro escolhido)
  *   ambiente:      'sandbox' | 'production'
+ *   recebedor_agencia / recebedor_conta / recebedor_tipo_conta (CORRENTE|POUPANCA|PAGAMENTO):
+ *                  conta do recebedor que o `/cobr` exige (a spec recusa conta de outro usuário)
  *
  * Fluxo PIX Automático (BCB):
  *   1. Beneficiário (Wagner) cria mandato PUT /v2/rec/{txid} com pagador info
  *   2. Pagador autoriza via app banco dele (out-of-band, manual)
  *   3. Banco do pagador notifica BCB que aceitou
  *   4. PSP do beneficiário notifica via webhook que mandato está ATIVO
- *   5. PSP gera cobranças automáticas no ciclo definido (mensal/anual/etc)
+ *   5. A CADA ciclo o recebedor cria a cobrança (`PUT /cobr/{txid}`), de 10 a 2 dias antes do
+ *      vencimento — o PSP não gera sozinho (corrigido 2026-10-26 contra a spec oficial)
  *   6. Webhook chega a cada cobrança paga/falhada
  */
-class BcbPixDriver implements PaymentDriverContract
+class BcbPixDriver implements PaymentDriverContract, CobrancaRecorrenteDriver
 {
+    /** Escopos OAuth da API Pix BCB (securitySchemes da v2.10.0). */
+    private const ESCOPOS = 'rec.read rec.write cobr.read cobr.write solicrec.read solicrec.write payloadlocationrec.read payloadlocationrec.write';
+
     private array $tokenCache = [];
 
     public function key(): string
@@ -81,58 +89,60 @@ class BcbPixDriver implements PaymentDriverContract
     }
 
     /**
-     * Cria mandato PIX Automático (recv).
+     * Cria a recorrência (mandato) do Pix Automático — `POST /v2/rec` (API Pix BCB v2.10.0).
      *
-     * Pagador autoriza out-of-band depois. Retorna mandato em status PENDING
-     * (aguardando autorização do pagador no app do banco dele).
+     * A recorrência nasce `CRIADA`; o pagador ainda precisa aprová-la (jornada por QR ou por
+     * solicitação — próxima entrega). Corpo conforme `recBody1` da spec: `vinculo` com o devedor,
+     * `calendario`, `valor.valorRec` e `politicaRetentativa`. A recorrência não tem `recebedor.chave`
+     * (o driver antigo mandava, num `PUT /rec/{id}` que a spec não tem).
      */
     public function emitirPixAutomatico(EmitirCobrancaInput $input, object $cred): CobrancaEmitidaResult
     {
         $this->assertCredential($cred);
 
-        $cpfPagador = preg_replace('/\D/', '', $input->meta['payer_cpf_cnpj'] ?? '');
-        if ($cpfPagador === '') {
-            throw new InvalidPayerException('BcbPix mandato exige CPF/CNPJ do pagador em meta.payer_cpf_cnpj');
-        }
-
-        $pixKey = $input->meta['pix_key'] ?? null;
-        if ($pixKey === null) {
-            throw new InvalidPayerException('BcbPix mandato exige meta.pix_key (chave PIX do beneficiário)');
+        $doc = preg_replace('/\D/', '', (string) ($input->meta['payer_cpf_cnpj'] ?? ''));
+        if (! in_array(strlen($doc), [11, 14], true)) {
+            throw new InvalidPayerException('BcbPix recorrência exige CPF ou CNPJ do pagador em meta.payer_cpf_cnpj');
         }
 
         $payload = [
             'vinculo' => [
-                'contrato'      => $input->idempotencyKey,
-                'objeto'        => substr($input->descricao, 0, 35),
+                'contrato' => substr($input->idempotencyKey, 0, 35),
+                'devedor'  => array_filter([
+                    'cpf'  => strlen($doc) === 11 ? $doc : null,
+                    'cnpj' => strlen($doc) === 14 ? $doc : null,
+                    'nome' => $input->meta['payer_name'] ?? null,
+                ]),
+                'objeto'   => substr($input->descricao, 0, 35),
             ],
-            'calendario' => [
+            'calendario' => array_filter([
                 'dataInicial'   => Carbon::instance($input->vencimento)->toDateString(),
+                'dataFinal'     => $input->meta['data_final'] ?? null,
                 'periodicidade' => $input->meta['periodicidade'] ?? 'MENSAL', // SEMANAL/MENSAL/TRIMESTRAL/SEMESTRAL/ANUAL
-            ],
-            'valor' => [
-                'valorRec'      => number_format($input->valorCentavos / 100, 2, '.', ''),
-            ],
-            'pagador' => array_filter([
-                'cpf'           => strlen($cpfPagador) === 11 ? $cpfPagador : null,
-                'cnpj'          => strlen($cpfPagador) === 14 ? $cpfPagador : null,
-                'nome'          => $input->meta['payer_name'] ?? null,
             ]),
-            'recebedor' => [
-                'chave'         => $pixKey,
+            'valor' => [
+                'valorRec' => $this->reais($input->valorCentavos),
             ],
+            'politicaRetentativa' => $input->meta['politica_retentativa'] ?? 'NAO_PERMITE',
         ];
+        // Jornada 2 (QR da recorrência): a location criada em `/locrec` vai no `loc` da recorrência.
+        if (! empty($input->meta['loc_id'])) {
+            $payload['loc'] = (int) $input->meta['loc_id'];
+        }
 
-        $response = HttpClientFactory::send(fn () => $this->client($cred)
-            ->put("/v2/rec/{$input->idempotencyKey}", $payload));
+        $response = HttpClientFactory::send(fn () => $this->client($cred)->post('/v2/rec', $payload));
 
         if ($response->failed()) {
             throw new GatewayUnavailableException(
-                "BcbPix mandato falhou ({$response->status()}): " . substr($response->body(), 0, 200)
+                "BcbPix recorrência falhou ({$response->status()}): " . substr($response->body(), 0, 200)
             );
         }
 
         $data = $response->json() ?? [];
-        $idRec = (string) ($data['idRec'] ?? $data['txid'] ?? $input->idempotencyKey);
+        $idRec = (string) ($data['idRec'] ?? '');
+        if ($idRec === '') {
+            throw new GatewayUnavailableException('BcbPix recorrência: resposta sem idRec');
+        }
 
         return new CobrancaEmitidaResult(
             cobrancaId: 0,
@@ -141,6 +151,78 @@ class BcbPixDriver implements PaymentDriverContract
             emitidaEm: new \DateTimeImmutable(),
             payloadGateway: $data,
         );
+    }
+
+    /**
+     * Cobrança de UM ciclo da recorrência — `PUT /v2/cobr/{txid}` (API Pix BCB v2.10.0).
+     *
+     * O `txid` deriva do `idempotencyKey` (mesma chave → mesmo txid): a spec recusa txid repetido e
+     * recusa segunda cobrança ativa do mesmo `idRec` no mesmo ciclo, então reenviar não duplica.
+     * Valor em centavos inteiros convertido para texto "123.45", sem float.
+     */
+    public function emitirCobrancaRecorrente(EmitirCobrancaInput $input, object $cred, string $idRec): CobrancaEmitidaResult
+    {
+        $this->assertCredential($cred);
+        if ($idRec === '') {
+            throw new InvalidPayerException('BcbPix cobrança recorrente exige o idRec da recorrência aprovada');
+        }
+        if ($input->valorCentavos <= 0) {
+            throw new InvalidPayerException('BcbPix cobrança recorrente exige valor positivo');
+        }
+        $config = $cred->config_json ?? [];
+        if (empty($config['recebedor_agencia']) || empty($config['recebedor_conta'])) {
+            throw new CredentialMisconfiguredException(
+                'BcbPix cobrança recorrente precisa recebedor_agencia + recebedor_conta em config_json'
+            );
+        }
+
+        $txid = self::txidDe($input->idempotencyKey);
+        $payload = [
+            'idRec'         => $idRec,
+            'infoAdicional' => substr($input->descricao, 0, 140),
+            'calendario'    => [
+                'dataDeVencimento' => Carbon::instance($input->vencimento)->toDateString(),
+            ],
+            'valor'         => [
+                'original' => $this->reais($input->valorCentavos),
+            ],
+            'ajusteDiaUtil' => true,
+            'recebedor'     => [
+                'agencia'   => (string) $config['recebedor_agencia'],
+                'conta'     => (string) $config['recebedor_conta'],
+                'tipoConta' => (string) ($config['recebedor_tipo_conta'] ?? 'CORRENTE'),
+            ],
+        ];
+
+        $response = HttpClientFactory::send(fn () => $this->client($cred)->put("/v2/cobr/{$txid}", $payload));
+
+        if ($response->failed()) {
+            throw new GatewayUnavailableException(
+                "BcbPix cobrança recorrente falhou ({$response->status()}): " . substr($response->body(), 0, 200)
+            );
+        }
+
+        $data = $response->json() ?? [];
+
+        return new CobrancaEmitidaResult(
+            cobrancaId: 0,
+            gatewayExternalId: (string) ($data['txid'] ?? $txid),
+            tipo: 'pix_recv',
+            emitidaEm: new \DateTimeImmutable(),
+            payloadGateway: $data,
+        );
+    }
+
+    /** txid da spec: 26 a 35 caracteres alfanuméricos. Determinístico a partir da chave de idempotência. */
+    public static function txidDe(string $idempotencyKey): string
+    {
+        return 'RB' . substr(hash('sha256', $idempotencyKey), 0, 33);
+    }
+
+    /** Centavos inteiros → "123.45" sem passar por float. */
+    private function reais(int $centavos): string
+    {
+        return sprintf('%d.%02d', intdiv($centavos, 100), $centavos % 100);
     }
 
     public function cobrarCartao(EmitirCobrancaInput $input, object $cred, CardToken $token): CobrancaEmitidaResult
@@ -160,8 +242,10 @@ class BcbPixDriver implements PaymentDriverContract
             throw new InvalidPayerException('Cobranca sem gateway_external_id pra revogar mandato BcbPix');
         }
 
+        // A spec v2.10.0 não tem DELETE em /rec/{idRec}: o cancelamento é PATCH com status CANCELADA,
+        // e o PATCH não tem campo de motivo — `$motivo` fica no log de quem chama.
         $response = HttpClientFactory::send(fn () => $this->client($cred)
-            ->delete("/v2/rec/{$idRec}", ['motivo' => substr($motivo, 0, 140)]));
+            ->patch("/v2/rec/{$idRec}", ['status' => 'CANCELADA']));
 
         if ($response->failed()) {
             throw new GatewayUnavailableException(
@@ -176,6 +260,50 @@ class BcbPixDriver implements PaymentDriverContract
             'BcbPix mandato não tem refund individual via API. ' .
             'Revogue o mandato (cancelar) + faça devolução PIX manual da cobrança específica.'
         );
+    }
+
+    /**
+     * Location do QR da recorrência — `POST /v2/locrec` (jornada 2 da API Pix BCB v2.10.0). O `id`
+     * vai no `loc` da recorrência; o QR (`dadosQR.pixCopiaECola`) sai depois em `GET /rec/{idRec}`.
+     *
+     * @return array{id: int, location: string}
+     */
+    public function criarLocationRecorrencia(object $cred): array
+    {
+        $this->assertCredential($cred);
+        $response = HttpClientFactory::send(fn () => $this->client($cred)->post('/v2/locrec'));
+        if ($response->failed()) {
+            throw new GatewayUnavailableException(
+                "BcbPix location da recorrência falhou ({$response->status()}): " . substr($response->body(), 0, 200)
+            );
+        }
+        $data = $response->json() ?? [];
+        if (empty($data['id'])) {
+            throw new GatewayUnavailableException('BcbPix location da recorrência: resposta sem id');
+        }
+
+        return ['id' => (int) $data['id'], 'location' => (string) ($data['location'] ?? '')];
+    }
+
+    /**
+     * Recorrência completa — `GET /v2/rec/{idRec}`: status e, na jornada 2, `dadosQR.pixCopiaECola`.
+     *
+     * @return array<string, mixed>
+     */
+    public function consultarRecorrencia(object $cred, string $idRec): array
+    {
+        $this->assertCredential($cred);
+        if ($idRec === '') {
+            throw new InvalidPayerException('BcbPix consultar recorrência exige idRec');
+        }
+        $response = HttpClientFactory::send(fn () => $this->client($cred)->get("/v2/rec/{$idRec}"));
+        if ($response->failed()) {
+            throw new GatewayUnavailableException(
+                "BcbPix consultar recorrência falhou ({$response->status()}): " . substr($response->body(), 0, 200)
+            );
+        }
+
+        return (array) ($response->json() ?? []);
     }
 
     public function consultar(object $cobranca, object $cred): CobrancaStatus
@@ -214,7 +342,7 @@ class BcbPixDriver implements PaymentDriverContract
                     'client_id'     => $cred->config_json['client_id'] ?? '',
                     'client_secret' => $cred->config_json['client_secret'] ?? '',
                     'grant_type'    => 'client_credentials',
-                    'scope'         => 'pix.recorrencia.read pix.recorrencia.write',
+                    'scope'         => self::ESCOPOS,
                 ]);
 
             $latencyMs = (int) round((microtime(true) - $start) * 1000);
@@ -246,23 +374,31 @@ class BcbPixDriver implements PaymentDriverContract
         }
     }
 
+    /**
+     * Webhooks da API Pix BCB v2.10.0 (`cobRWebhookNotification1` / `recWebhookNotification1`):
+     *   - cobrança recorrente: `{ cobsr: [{ idRec, txid, status, … }] }` → id externo = `txid`
+     *     (é o que a cobrança gravou em `gateway_external_id`);
+     *   - recorrência:         `{ recs:  [{ idRec, status, … }] }`        → id externo = `idRec`.
+     * O resolver usa o 1º item para ligar a cobrança; o `ProcessarWebhookBcbPixJob` percorre todos.
+     * Formatos antigos (`pix[].infoPagador.idRec`, `idRec` solto) seguem aceitos.
+     */
     public function processWebhook(array $payload, object $cred): ?object
     {
-        // Webhook BCB padrão: pix[] (lista de cobranças confirmadas) OU
-        // rec[] (atualizações de mandato).
-        $idRec = (string) (
-            $payload['idRec']
+        $externo = (string) (
+            $payload['cobsr'][0]['txid']
+            ?? $payload['recs'][0]['idRec']
+            ?? $payload['idRec']
             ?? $payload['rec']['idRec']
             ?? $payload['pix'][0]['infoPagador']['idRec']
             ?? ''
         );
 
-        if ($idRec === '') {
+        if ($externo === '') {
             return null;
         }
 
         return (object) [
-            'gateway_external_id' => $idRec,
+            'gateway_external_id' => $externo,
             'gateway_key'         => $this->key(),
             'raw_payload'         => $payload,
         ];
@@ -326,7 +462,7 @@ class BcbPixDriver implements PaymentDriverContract
                 'client_id'     => $config['client_id'] ?? '',
                 'client_secret' => $config['client_secret'] ?? '',
                 'grant_type'    => 'client_credentials',
-                'scope'         => 'pix.recorrencia.read pix.recorrencia.write',
+                'scope'         => self::ESCOPOS,
             ]);
 
         if (! $response->successful() || empty($response->json('access_token'))) {
