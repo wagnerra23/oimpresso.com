@@ -636,3 +636,23 @@ _Aprovação pendente: Wagner via ADR `memory/decisions/proposals/drafts/crm-pre
 4. `PATCH /crm/funil/{id}/etapa` exige `crm.funil.editar`: grava a transição (de, para, razão, quando) pelo `DealPipelineService`; ganho/perdido não mudam de etapa; negócio de outra empresa dá 404.
 5. Resumo (prop deferida) por etapa e previsão ponderada do mês, só com negócios da empresa.
 6. Tela kanban (PT-05) em `Modules/Crm/Resources/js/Pages/Crm/Funil/Index.tsx`, ancorada no protótipo `prototipo-ui/cowork/Felipe/erp-shell-v2/crm-page.jsx` — PR seguinte.
+
+### US-CRM-098 · Segmentação RFM — recência, frequência e valor por cliente
+
+**Implementado em:** `Modules/Crm/Services/Fidelidade/SegmentacaoRfmDoCrm.php` · `app/Contracts/Crm/SegmentacaoRfm.php` · `Modules/Crm/Console/Commands/RfmCalcularCommand.php` · `Modules/Crm/Database/Migrations/2026_10_27_000002_create_crm_rfm_clientes_table.php`
+
+**Testado em:** `Modules/Crm/Tests/Feature/CrmRfmContratoTest.php`
+
+> owner: — · priority: p2 · estimate: 6h · type: story
+> blocked_by: —
+
+**Origem:** lacuna P2 do levantamento de concorrência (segmentação RFM), destravada por [W] em 2026-10-27. Os consumidores são a campanha de WhatsApp (US-WA-323, #9863) e a régua de relacionamento (US-WA-326, #9892), que leem os segmentos pelo contrato `App\Contracts\Crm\SegmentacaoRfm`, sem tocar nas tabelas do Crm.
+
+**Critérios de aceite:**
+1. Por cliente da empresa com venda final (sem o "Cliente padrão"): R = dias desde a última compra, F = vendas nos últimos 365 dias, M = soma dessas vendas (UC-RFM-03).
+2. Notas de 1 a 5 por quintil dentro da empresa; valores iguais têm a mesma nota (UC-RFM-01).
+3. Segmentos: campeões, novos, leais, promissores, em risco, hibernando, perdidos (UC-RFM-02).
+4. `crm:rfm-calcular [--business=]` substitui o cálculo anterior da empresa (UC-RFM-05); agendado às 04:30 com a flag `CRM_RFM_ENABLED`, que nasce desligada.
+5. Tier 0: o contrato devolve só contatos da empresa pedida (UC-RFM-04).
+6. Filtro por segmento no público da campanha e na régua — PR seguinte (Modules/Whatsapp).
+7. Tela com a distribuição por segmento — PR seguinte, ancorada em protótipo.
