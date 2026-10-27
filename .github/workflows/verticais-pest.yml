@@ -628,6 +628,7 @@ jobs:
             Modules/ComunicacaoVisual/Tests/Feature/OrcamentoPerdaEmendaContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OsRoteiroPadraoContratoTest.php \
             Modules/ComunicacaoVisual/Tests/Feature/OsPosCalculoContratoTest.php \
+            Modules/ComunicacaoVisual/Tests/Feature/OsFechaPeloRoteiroContratoTest.php \
             Modules/Repair/Tests/Feature/DeviceModelsInertiaSmokeTest.php \
             Modules/Repair/Tests/Feature/JobSheetShowContratoTest.php \
             Modules/Repair/Tests/Feature/ProducaoOficinaRefactorTest.php \

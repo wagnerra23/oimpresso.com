@@ -12,4 +12,7 @@ declare(strict_types=1);
 return [
     // US-COMVIS-005: pós-cálculo da OS (custo orçado × real e margem). Nasce desligada.
     'pos_calculo' => (bool) env('COMVIS_POS_CALCULO_ENABLED', false),
+
+    // A última etapa do roteiro no PCP fecha a OS (status concluída). Nasce desligada.
+    'fecha_os_pelo_roteiro' => (bool) env('COMVIS_FECHA_OS_PELO_ROTEIRO', false),
 ];

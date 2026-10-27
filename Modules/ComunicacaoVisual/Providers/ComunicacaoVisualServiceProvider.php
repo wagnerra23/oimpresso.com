@@ -2,9 +2,12 @@
 
 namespace Modules\ComunicacaoVisual\Providers;
 
+use App\Events\RoteiroDaOsConcluido;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Modules\ComunicacaoVisual\Console\Commands\ComvisHealthCommand;
 use Modules\ComunicacaoVisual\Console\Commands\DemoSeedCommand;
+use Modules\ComunicacaoVisual\Listeners\FechaOsPeloRoteiro;
 
 /**
  * ServiceProvider Modules/ComunicacaoVisual (ADR 0121 §P7).
@@ -31,6 +34,9 @@ class ComunicacaoVisualServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->loadTranslationsFrom(__DIR__ . '/../Resources/lang', 'comunicacao-visual');
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
+
+        // A última etapa do roteiro no PCP fecha a OS da gráfica (flag COMVIS_FECHA_OS_PELO_ROTEIRO).
+        Event::listen(RoteiroDaOsConcluido::class, [FechaOsPeloRoteiro::class, 'handle']);
 
         if ($this->app->runningInConsole()) {
             $this->commands([

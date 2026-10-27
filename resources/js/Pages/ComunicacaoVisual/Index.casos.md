@@ -89,6 +89,9 @@ não toca lá ([SDD §10](../../../../memory/requisitos/ComunicacaoVisual/SDD-te
 | UC-CVOS-09 | A OS aprovada nasce com o roteiro padrão e aparece no quadro do PCP | must | US-COMVIS-003 · decisão [W] 2026-10-26 | `OsRoteiroPadraoContratoTest` | 🧪 |
 | UC-CVOS-10 | O padrão só aceita roteiro ativo da própria empresa | must `[T0]` | US-COMVIS-003 · decisão [W] 2026-10-26 | `OsRoteiroPadraoContratoTest` | 🧪 |
 | UC-CVOS-11 | O hub mostra e troca o roteiro padrão para quem cuida do catálogo | should | US-COMVIS-003 · decisão [W] 2026-10-26 | `tests/js/cv-roteiro-padrao.test.tsx` | 🧪 |
+| UC-CVOS-12 | Concluir a última etapa do roteiro fecha a OS com a data de hoje | must | US-COMVIS-003 · decisão [W] 2026-10-27 | `OsFechaPeloRoteiroContratoTest` | 🧪 |
+| UC-CVOS-13 | Flag desligada não fecha; cancelada não reabre; repetir não muda nada | must | US-COMVIS-003 · decisão [W] 2026-10-27 | `OsFechaPeloRoteiroContratoTest` | 🧪 |
+| UC-CVOS-14 | Aviso de outra empresa ou de outro tipo de OS não fecha a OS | must `[T0]` | US-COMVIS-003 · decisão [W] 2026-10-27 | `OsFechaPeloRoteiroContratoTest` | 🧪 |
 | UC-CVPOS-01 | Custo orçado, custo real e as duas margens da OS saem da conta feita à mão | must `[V0]` | US-COMVIS-005 | `OsPosCalculoContratoTest` | 🧪 |
 | UC-CVPOS-02 | Trecho aberto não entra; etapa sem m² conta a hora e não o material | must `[V0]` | US-COMVIS-005 | `OsPosCalculoContratoTest` | 🧪 |
 | UC-CVPOS-03 | Peça sem custo deixa o orçado vazio; nenhuma com custo deixa o real vazio | must | US-COMVIS-005 | `OsPosCalculoContratoTest` | 🧪 |
@@ -648,6 +651,29 @@ Status: 🧪
 **Dado** quem cuida do catálogo **Quando** escolhe o roteiro padrão **Então** roteiro de outra empresa ou
 inativo dá 422 e nada muda; um roteiro ativo da empresa vira o padrão; vazio tira o padrão. Um roteiro
 de outra empresa gravado à mão no ajuste não gera etapa nenhuma.
+
+Status: 🧪
+
+## UC-CVOS-12 · Concluir a última etapa do roteiro fecha a OS com a data de hoje · `must`
+
+**Dado** uma OS da gráfica com roteiro de duas etapas e `COMVIS_FECHA_OS_PELO_ROTEIRO` ligada **Quando**
+a primeira etapa é concluída no PCP **Então** a OS continua aberta; **Quando** a última é concluída
+**Então** a OS fica `concluida` com a data de hoje. O PCP avisa pelo evento `App\Events\RoteiroDaOsConcluido`
+(o núcleo não importa módulo); a CV escuta e fecha. Decisão [W] 2026-10-27, passo antes da venda derivada.
+
+Status: 🧪
+
+## UC-CVOS-13 · Flag desligada não fecha; cancelada não reabre; repetir não muda nada · `must`
+
+**Dado** a flag desligada **Quando** o roteiro termina **Então** a OS fica como está. Ligada, uma OS
+cancelada não volta a concluída, e o mesmo aviso repetido não muda nada.
+
+Status: 🧪
+
+## UC-CVOS-14 · Aviso de outra empresa ou de outro tipo de OS não fecha a OS · `must` `[T0]`
+
+**Dado** uma OS aberta **Quando** chega o aviso com o mesmo id, mas de outra empresa ou de OS do tipo
+`pcp_ordem` **Então** a OS fica aberta: a CV busca a OS pelo `business_id` do aviso, nunca pela sessão.
 
 Status: 🧪
 

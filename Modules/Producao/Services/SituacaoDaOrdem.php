@@ -2,6 +2,7 @@
 
 namespace Modules\Producao\Services;
 
+use App\Events\RoteiroDaOsConcluido;
 use App\Domain\Fsm\Services\ExecuteStageActionService;
 use App\Scopes\ScopeByBusiness;
 use App\User;
@@ -93,6 +94,11 @@ final class SituacaoDaOrdem
     public function aoConcluirEtapa(int $businessId, Programacao $etapa, int $userId): void
     {
         if ($etapa->os_tipo !== Ordem::OS_TIPO) {
+            // OS de outro dono (a da CV): sem FSM aqui; avisa o dono quando o roteiro termina.
+            if ($this->roteiroTerminou($businessId, (string) $etapa->os_tipo, (int) $etapa->os_id)) {
+                RoteiroDaOsConcluido::dispatch($businessId, (string) $etapa->os_tipo, (int) $etapa->os_id, $userId);
+            }
+
             return;
         }
         $ordem = $this->ordem($businessId, (int) $etapa->os_id);
@@ -125,6 +131,17 @@ final class SituacaoDaOrdem
 
             return true;
         });
+    }
+
+    /**
+     * O roteiro da OS terminou: tem etapa concluída e nenhuma pendente ou em andamento — a mesma
+     * regra do Concluir item da OS por item. Etapa pulada/cancelada não segura o fechamento.
+     */
+    private function roteiroTerminou(int $businessId, string $osTipo, int $osId): bool
+    {
+        $status = Programacao::query()->where('business_id', $businessId)->where('os_tipo', $osTipo)->where('os_id', $osId)->pluck('status');
+
+        return $status->contains('concluida') && ! $status->contains(fn ($s) => in_array($s, ['pendente', 'iniciada'], true));
     }
 
     /**
