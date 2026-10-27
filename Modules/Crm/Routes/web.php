@@ -295,3 +295,14 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
             ->whereNumber('id')
             ->name('auditoria.export');
     });
+
+/*
+ * US-CRM-097 — resposta pública do NPS, aberta pelo link do WhatsApp. Sem login: o token é o
+ * único dado da URL e a empresa vem da linha dele. Flag crm.nps_enabled desligada = 404.
+ */
+Route::prefix('nps')->group(function () {
+    Route::get('{token}', [Modules\Crm\Http\Controllers\NpsRespostaController::class, 'show'])
+        ->whereAlphaNumeric('token')->middleware('throttle:30,1')->name('crm.nps.responder');
+    Route::post('{token}', [Modules\Crm\Http\Controllers\NpsRespostaController::class, 'store'])
+        ->whereAlphaNumeric('token')->middleware('throttle:10,1')->name('crm.nps.responder.store');
+});

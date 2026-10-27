@@ -104,6 +104,8 @@ on:
       - 'Modules/Crm/Console/Commands/EnviarPesquisaNpsCommand.php'
       - 'Modules/Crm/Database/Migrations/2026_10_27_130000_create_crm_nps_pesquisas_table.php'
       - 'Modules/Crm/Tests/Feature/CrmNpsContratoTest.php'
+      - 'Modules/Crm/Http/Controllers/NpsRespostaController.php'
+      - 'Modules/Crm/Tests/Feature/CrmNpsRespostaContratoTest.php'
       # Thread Crm/11 F2 — baseline da Blade de Campanhas antes da tela React.
       - 'Modules/Crm/Tests/Feature/CrmCampanhasBaselineTest.php'
       # Thread Crm/06 — o form de lead é o Cliente/Create parametrizado.
@@ -248,6 +250,8 @@ jobs:
               - 'Modules/Crm/Console/Commands/EnviarPesquisaNpsCommand.php'
               - 'Modules/Crm/Database/Migrations/2026_10_27_130000_create_crm_nps_pesquisas_table.php'
               - 'Modules/Crm/Tests/Feature/CrmNpsContratoTest.php'
+              - 'Modules/Crm/Http/Controllers/NpsRespostaController.php'
+              - 'Modules/Crm/Tests/Feature/CrmNpsRespostaContratoTest.php'
               # Thread Crm/11 F2 — baseline da Blade de Campanhas antes da tela React.
               - 'Modules/Crm/Tests/Feature/CrmCampanhasBaselineTest.php'
               # Thread Crm/06 — o form de lead é o Cliente/Create parametrizado.
@@ -677,6 +681,7 @@ jobs:
             Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php \
             Modules/Crm/Tests/Feature/CrmFunilContratoTest.php \
             Modules/Crm/Tests/Feature/CrmNpsContratoTest.php \
+            Modules/Crm/Tests/Feature/CrmNpsRespostaContratoTest.php \
             Modules/Crm/Tests/Feature/CrmCampanhasBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmCampanhasContratoTest.php \
             Modules/Crm/Tests/Feature/CrmLeadShowEscopoTest.php \
