@@ -34,6 +34,7 @@ interface Vehicle {
   engine: string | null;
   mileage_at_entry: number | null;
   next_service_km: number | null;
+  next_service_date: string | null;
   fuel_type: string | null;
   color: string | null;
   notes: string | null;
@@ -59,6 +60,7 @@ const FIELD_ORDER = [
   'color',
   'mileage_at_entry',
   'next_service_km',
+  'next_service_date',
   'notes',
 ] as const;
 
@@ -75,6 +77,7 @@ export default function VehiclesEdit({ vehicle, vehicleTypes }: Props) {
     engine: vehicle.engine ?? '',
     mileage_at_entry: vehicle.mileage_at_entry?.toString() ?? '',
     next_service_km: vehicle.next_service_km?.toString() ?? '',
+    next_service_date: vehicle.next_service_date?.slice(0, 10) ?? '',
     fuel_type: vehicle.fuel_type ?? '',
     color: vehicle.color ?? '',
     notes: vehicle.notes ?? '',
@@ -300,6 +303,19 @@ export default function VehiclesEdit({ vehicle, vehicleTypes }: Props) {
               />
               {errors.next_service_km && (
                 <p className="text-sm text-destructive mt-1">{errors.next_service_km}</p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="next_service_date">Próxima revisão (data)</Label>
+              <Input
+                id="next_service_date"
+                type="date"
+                value={data.next_service_date}
+                onChange={(e) => setData('next_service_date', e.target.value)}
+                aria-invalid={!!errors.next_service_date}
+              />
+              {errors.next_service_date && (
+                <p className="text-sm text-destructive mt-1">{errors.next_service_date}</p>
               )}
             </div>
           </div>

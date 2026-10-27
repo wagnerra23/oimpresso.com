@@ -574,6 +574,89 @@ Status: 🧪
 
 ---
 
+## A NF-e da venda sai para o cliente, com o DIFAL (US-NFE-072 · R-NFE-036/037)
+
+> **Âncora:** [US-NFE-072](../../../../memory/requisitos/NfeBrasil/SPEC.md) e a regra R-NFE-036 do
+> SPEC do NfeBrasil (leiaute 4.00, grupo E do destinatário e `idDest`) e a R-NFE-037 (grupo NA, ICMSUFDest). Mora nesta tela porque a nota
+> emitida aparece nesta lista. Coluna CU `—`: o SDD §6 do Fiscal não tem CU de emissão a partir da
+> venda. Prova: `NfeDestinatarioDaVendaTest` (sem banco: contato como objeto, motor falso) e
+> `NfeDifalNoXmlTest` (XML montado pelo `buildXml`, sem SEFAZ).
+
+## UC-FNFE-32 · Cliente identificado vira o destinatário, e o destino chega ao motor · `must`
+
+**Dado** uma venda de SC para um cliente com CNPJ, IE e endereço no RJ **Quando** sai a NF-e (modelo 55)
+**Então** o destinatário leva o CNPJ só com dígitos, a IE, o código IBGE e a UF RJ, com `ind_ie_dest` 1;
+cliente sem IE é 9 e não leva IE; o indicador cadastrado (2, isento) prevalece. O motor recebe a UF RJ,
+`contribuinte` e a interna do RJ; um item de 1.000,00 sai com CFOP 6102 e o vNF continua 1.000,00.
+
+Status: 🧪
+
+## UC-FNFE-33 · Sem cliente identificado a nota é a de antes · `must`
+
+**Dado** um contato sem CPF/CNPJ, ou a NFC-e **Quando** sai a nota **Então** não há destinatário do cadastro,
+o motor é chamado como sempre (mesma UF, CFOP 5102) e o vNF é o total da venda. UF inválida no cadastro
+mantém a operação interna.
+
+Status: 🧪
+
+## UC-FNFE-34 · Venda a não contribuinte de outra UF leva o DIFAL na nota · `must`
+
+**Dado** um item de 1.000,00 de SC para não contribuinte no RJ, ICMS interestadual 12%, interna do RJ 20% e
+FCP 2% **Quando** sai a NF-e **Então** o item leva o grupo `ICMSUFDest` com base 1.000,00, interna 20,0000,
+interestadual 12,00, partilha 100, DIFAL 80,00 e FCP 20,00; o `ICMSTot` soma 80,00 e 20,00; o vNF fica
+1.000,00 (R-NFE-037).
+
+Status: 🧪
+
+## UC-FNFE-35 · Contribuinte, ou mesma UF, não leva DIFAL · `must`
+
+**Dado** o mesmo item vendido a um contribuinte no RJ, ou a um cliente de SC **Quando** sai a NF-e **Então**
+o item não leva `ICMSUFDest` e o total do grupo fica como antes.
+
+Status: 🧪
+
+## UC-FNFE-36 · Sem a interna do destino a nota é recusada com a saída · `must`
+
+**Dado** a venda a não contribuinte no RJ e a interna do RJ não cadastrada na tabela por UF **Quando** pede a
+NF-e **Então** a emissão é recusada com "Alíquota interna de RJ não cadastrada. Peça ao contador para
+preencher em Tributação."; com a interna, com cliente contribuinte, na mesma UF ou sem cliente, não recusa.
+
+Status: 🧪
+
+## UC-FNFE-49 · O ICMS-ST vai na nota e soma no valor total · `must`
+
+**Dado** um item de 1.000,00 de SC para contribuinte no RJ, regra CST 10, ICMS 12%, MVA 40% e interna do RJ 18%
+**Quando** sai a NF-e **Então** o ICMS10 leva base ST 1.400,00, MVA 40, alíquota ST 18 e ST 132,00; o total leva
+vBCST 1.400,00 e vST 132,00; o vNF e o pagamento são 1.132,00 (regra W16 do leiaute). Com CSOSN 202, idem.
+
+Status: 🧪
+
+## UC-FNFE-50 · Regra com MVA e CST sem ST é recusada · `must`
+
+**Dado** a mesma regra com CST 00 **Quando** pede a NF-e **Então** é recusada com "não leva ST — ajuste a regra em
+Tributação".
+
+Status: 🧪
+
+## UC-FNFE-55 · Destinatário informado por quem emite vence o cliente da venda · `must`
+
+**Dado** uma NF-e (modelo 55) emitida com um destinatário informado (ex. o comprador de um pedido de
+marketplace), com as chaves de `contacts` **Quando** sai a nota **Então** o destinatário é o informado,
+com CPF só com dígitos, a UF dele e `ind_ie_dest` 9 quando não há IE; informado sem CPF/CNPJ, a emissão
+recusa em vez de sair para o consumidor anônimo. Âncora: R-NFE-046 / US-NFE-075.
+
+Status: 🧪
+
+## UC-FNFE-56 · CFOP informado por quem emite vence o da regra · `must`
+
+**Dado** uma NF-e emitida com um CFOP informado **Quando** os itens são montados **Então** todos saem com
+esse CFOP e o resto do item fica igual; CFOP fora de 4 dígitos de 1xxx a 7xxx recusa. O valor do CFOP é
+de quem chama. Âncora: R-NFE-046 / US-NFE-075.
+
+Status: 🧪
+
+---
+
 ## Boleto pago emite a NF-e (US-RB-044 · UC-FLX-26)
 
 > **Âncora:** [US-RB-044](../../../../memory/requisitos/RecurringBilling/SPEC.md) (*"Listener InvoicePaid

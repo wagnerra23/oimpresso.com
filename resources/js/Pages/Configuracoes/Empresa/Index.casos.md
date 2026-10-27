@@ -153,6 +153,16 @@ last_run: "2026-10-21"
 - **Teste:** `tests/Feature/Configuracoes/EmpresaContratoTest.php` — `UC-EMP-17`.
 - **Status: 🧪**
 
+## UC-EMP-18 · Ligada para todas as empresas; `?classico=1` segue na Blade
+- **Por quê:** o cutover ([W] 2026-10-27) liga a tela pelo `$fallbackDefaults`, sem GrowthBook por empresa. Sem
+  override nenhum a rota tem de abrir a tela React, e a Blade continua alcançável para rollback de uso.
+  O link `/business/settings#pos` da barra lateral abre a aba Venda no PDV (a Blade chamava a aba de `pos`).
+- **Aceite:** Dado `feature-flags.forced_on` vazio e GrowthBook fora · Quando abro `/business/settings` · Então o
+  componente é `Configuracoes/Empresa/Index` · E `/business/settings?classico=1` é a Blade.
+- **Teste:** `tests/Feature/Configuracoes/EmpresaContratoTest.php` — `UC-EMP-18`.
+- **Status: 🧪**
+
 ## Trilha do tempo
 - 2026-10-21 · [CL] UC-EMP-16 (pesquisa depois da entrega na aba Vendas). `last_run` 2026-10-13 → 2026-10-21 por conferência, não por run novo: o `Index.tsx` só ganhou o bloco da pesquisa dentro da aba Vendas; UC-EMP-01..14 seguem batendo com a tela.
 - 2026-10-26 · [C] UC-EMP-17 (aba App das lojas, 18 de 18 abas da Blade). UC-EMP-01..16 sem mudança.
+- 2026-10-27 · [C] UC-EMP-18 (cutover para todas as empresas, [W]). UC-EMP-02 passa a medir a Blade com a flag OFF explícita.
