@@ -14,7 +14,7 @@ use Tests\Support\WithSeededTenant;
 /**
  * Configuração da régua de relacionamento por empresa (US-WA-328).
  *
- * Âncora: SPEC US-WA-328 (critérios 1-3) e `JanaTemplates.casos.md` UC-JT-REGUA-01.
+ * Âncora: SPEC US-WA-328 (critérios 1-3) e `JanaTemplates.casos.md` UC-JTPL-04.
  * Tenant 98 contra 99 (ADR 0358). ⚠️ SKIP em SQLite (LC-13).
  */
 uses(Tests\TestCase::class, DatabaseTransactions::class, WithSeededTenant::class);
@@ -37,7 +37,7 @@ beforeEach(function () {
         ->update(Request::create('/atendimento/canais/regua-relacionamento', 'PUT', $d));
 });
 
-it('UC-JT-REGUA-01 · US-WA-328 · salvar grava a régua da própria empresa, uma linha por tipo', function () {
+it('UC-JTPL-04 · US-WA-328 · salvar grava a régua da própria empresa, uma linha por tipo', function () {
     expect(ReguaRelacionamentoController::daEmpresa($this->biz->id)['aniversario']['ativo'])->toBeFalse();
 
     ($this->salvar)(['tipo' => 'aniversario', 'ativo' => true, 'texto' => 'Parabéns, {nome}!']);

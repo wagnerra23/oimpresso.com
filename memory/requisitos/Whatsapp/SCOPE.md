@@ -55,6 +55,7 @@ not_contains:
   - "Lembrete financeiro (regra de negócio) → Modules/Financeiro"
   - "Bot / memória conversacional / RAG → Modules/Jana"
   - "Consulta pública de OS → Modules/ConsultaOs"
+  - "Emissão de NF-e / DANFE → Modules/NfeBrasil (Whatsapp só ENVIA a DANFE ao cliente, ouvindo o evento NFeAutorizada)"
 trust_required: L3
 owner: wagner
 permission_prefix: whatsapp.*

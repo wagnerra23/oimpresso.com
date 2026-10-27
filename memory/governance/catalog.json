@@ -27,7 +27,7 @@
   "stats": {
     "modules": 38,
     "nodes": 878,
-    "edges": 1192,
+    "edges": 1194,
     "by_node_type": {
       "module": 43,
       "table": 108,
@@ -43,8 +43,8 @@
       "charteredByAdr": 30,
       "governedByAdr": 78,
       "hasComponent": 489,
-      "dependsOn": 132,
-      "delegatesTo": 121,
+      "dependsOn": 133,
+      "delegatesTo": 122,
       "migratesTo": 1,
       "supersedes": 26,
       "supersedesPartially": 75,
@@ -14007,6 +14007,13 @@
     },
     {
       "from": "module:Whatsapp",
+      "to": "module:NfeBrasil",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Emissão de NF-e / DANFE"
+    },
+    {
+      "from": "module:Whatsapp",
       "to": "module:PaymentGateway",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -14053,6 +14060,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Bot / memória conversacional / RAG"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "module:NfeBrasil",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Emissão de NF-e / DANFE"
     },
     {
       "from": "module:Whatsapp",

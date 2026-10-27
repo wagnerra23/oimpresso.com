@@ -50,10 +50,10 @@ last_run: "2026-10-26"
 
 ---
 
-## UC-JT-REGUA-01 · A régua de relacionamento é configurada por empresa
+## UC-JTPL-04 · A régua de relacionamento é configurada por empresa
 - **Persona:** dono da loja escrevendo a mensagem de aniversário e a de recompra.
 - **Aceite:** Dado a minha empresa · Quando salvo a régua de aniversário e a de recompra (com os dias) · Então fica uma linha por tipo só da minha empresa e salvar de novo atualiza; tipo inventado, recompra sem dias ou com menos de 7 dias são recusados.
-- **Teste:** `Modules/Whatsapp/Tests/Feature/ReguaRelacionamentoConfigContratoTest.php` — `UC-JT-REGUA-01 · US-WA-328 · salvar grava a régua da própria empresa, uma linha por tipo` (+ o caso de recusa).
+- **Teste:** `Modules/Whatsapp/Tests/Feature/ReguaRelacionamentoConfigContratoTest.php` — `UC-JTPL-04 · US-WA-328 · salvar grava a régua da própria empresa, uma linha por tipo` (+ o caso de recusa).
 - **Regressão que defende:** US-WA-326/328 — régua de outra empresa ou recompra com "1 dia" (mensagem no dia seguinte a toda compra).
 - **Status: 🧪** — CT 100 MySQL 2026-10-26: 2 passed (9 assertions); sem o mínimo de 7 dias, 1 failed.
 

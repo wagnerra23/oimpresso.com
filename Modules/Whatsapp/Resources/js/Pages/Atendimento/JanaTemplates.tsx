@@ -8,10 +8,10 @@
 
 import { useState, type FormEvent } from 'react';
 import { Deferred, router } from '@inertiajs/react';
-import { Loader2 } from 'lucide-react';
+import { Bot, Loader2 } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -65,9 +65,9 @@ export default function JanaTemplates({ config, reguas }: Props) {
   return (
     <div className="space-y-6">
       <PageHeader
-        icon="bot"
+        leading={<Bot className="h-5 w-5 text-primary" aria-hidden="true" />}
         title="Templates + Bot Jana"
-        description="Toggle do bot Jana e nomes dos templates HSM que disparam automaticamente (cobrança, repair). Drivers Whatsapp ficam em Canais."
+        subtitle="Toggle do bot Jana e nomes dos templates HSM que disparam automaticamente (cobrança, repair). Drivers Whatsapp ficam em Canais."
       />
 
       <form onSubmit={onSubmit} className="space-y-6">
