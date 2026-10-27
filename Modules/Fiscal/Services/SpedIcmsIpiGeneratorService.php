@@ -121,16 +121,17 @@ class SpedIcmsIpiGeneratorService
 
         $periodoIni = CarbonImmutable::create($ano, $mes, 1)->startOfMonth();
         $periodoFim = $periodoIni->endOfMonth();
-        // ⚠️ $ufBusiness segue a regra antiga de propósito: ele decide CFOP e alíquota do C170/C190,
-        // e trocá-lo muda valor fiscal (regra-mestre de proibicoes.md — fatia própria, com
-        // antes→depois aprovado). Nesta fatia só a IDENTIFICAÇÃO (0000/0005) muda de fonte.
-        $ufBusiness = strtoupper((string) ($business->state ?? 'SP'));
         $emitente = EmitenteSped::de(
             $business,
             $this->resolverCnpj($businessId),
             $this->carregarUfDoEstabelecimento($businessId),
             $this->carregarCodigoMunicipio($business),
         );
+        // UF de ORIGEM do bloco C (CFOP interno × interestadual e regra do motor) = a UF real da
+        // empresa, a mesma do 0000 e da NF-e. Antes era `business.state ?? 'SP'` — coluna que não
+        // existe, então TODA empresa saía como SP. Troca aprovada por [W] em 2026-10-27, com o
+        // antes→depois no PR (no Simples muda só o CFOP; o ICMS segue 0).
+        $ufBusiness = $emitente->uf;
 
         $emissoes = $this->carregarEmissoes($businessId, $periodoIni, $periodoFim);
 

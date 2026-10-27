@@ -217,6 +217,14 @@ Quando o arquivo é gerado · Então ele é **recusado** com a lista do que falt
 ⚠️ A UF que decide CFOP/alíquota no bloco C **não** mudou nesta fatia (valor fiscal — regra-mestre).
 **Pronto quando:** cada falta reprova com o nome do campo.
 
+## UC-FSPED-19 — A UF de origem do bloco C é a UF real da empresa
+Status: 🧪 (`SpedUfOrigemTest::UC-FSPED-19` — 2 casos, rodam sem banco)
+Dado uma empresa de SC no Simples · Então o CFOP do C170/C190 é 5102 para cliente de SC, 6102 para
+cliente de SP e 5102 quando a nota não traz a UF do cliente, e o ICMS segue 0,00. Antes a origem era
+sempre SP (`business.state` não existe), e saía 6102/5102/5102. O controle com empresa em SP
+reproduz a regra antiga. Troca aprovada por [W] em 2026-10-27 com o antes→depois.
+**Pronto quando:** o CFOP segue a UF real e o valor do arquivo não muda no Simples.
+
 ## UC-FSF1-03 — Competência em aberto é recusada antes de qualquer query
 Status: 🧪 (`SpedOndaF1Test` — 10 casos: 4 sobre a guarda do Service + 6 sobre a régua da tela. **14 passed (182 assertions)** medidos no CT 100 em 2026-09-03; o manifesto do G-7 é alimentado pelas lanes de CI, não por rodada local — daí 🧪 e não ✅)
 Dado uma competência cujo mês ainda não terminou · Quando alguém pede a geração — pela tela ou
