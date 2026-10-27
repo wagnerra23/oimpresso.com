@@ -24,6 +24,7 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * pest-mysql-setup). Nunca biz=4. DatabaseTransactions: a lane compartilha o seed.
  *
  * @group folha
+ * @covers-us US-ESS-015
  */
 const FOLHA_BIZ = 98;
 const FOLHA_BIZ_ALHEIO = 2;
