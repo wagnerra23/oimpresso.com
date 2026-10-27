@@ -1,6 +1,6 @@
 ---
 id: resources-js-pages-user-perfil-charter
-page: /perfil (canon Inertia) · /user/profile (legacy Blade · intacto)
+page: /perfil (canon Inertia) · /user/profile (redireciona para /perfil desde 2026-10-27)
 component: resources/js/Pages/User/Perfil.tsx
 related_prototype: prototipo-ui/cowork/Wagner/perfil-page.jsx
 bundle_source: perfil-page.jsx
@@ -37,6 +37,7 @@ de processo. PageHeader v3 canônico forçado (decisão Wagner 2026-06-24).
 - **Dados bancários**: titular, conta, banco, código, agência, CPF/CNPJ (chaves reais `bank_details.*`) + nota LGPD.
 - **Segurança**: alterar senha (senha atual + nova + confirmação, validação `confirmed`).
 - **Rota nova** `/perfil` (Inertia) — o legado `/user/profile` (Blade) **fica intacto** (cutover decidido depois).
+- **2026-10-27 · cutover F5:** `/user/profile` passou a redirecionar para `/perfil`, a sidebar aponta para `/perfil` e o Blade `user/profile.blade.php` foi apagado (migração do núcleo ordenada pelo [W] em 2026-10-27; o merge é o ato de cutover).
 
 ## Non-Goals
 

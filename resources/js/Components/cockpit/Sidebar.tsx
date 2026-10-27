@@ -1443,7 +1443,7 @@ function SidebarUserMenu({
             <small>{email}</small>
           </div>
         </div>
-        <a href="/user/profile" className="um-item">
+        <a href="/perfil" className="um-item">
           <User size={14} className="ic" />
           <span className="label">Meu perfil</span>
         </a>

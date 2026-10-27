@@ -26,10 +26,10 @@ last_run_ci: "2026-10-13 (PR contratos de tela, telas-soltas thread 01) — REVA
 - **Teste:** `PerfilSmokeTest` ("UC-P01 · renderiza /perfil") — contrato Inertia (component + props).
 - **Status: 🧪**
 
-## UC-P02 · Legado /user/profile permanece intacto
-- **Persona:** usuário/admin — a rota Blade antiga não pode quebrar com a nova (sem cutover).
-- **Aceite:** Dado a rota legada `/user/profile` · Então responde 200 (não 500).
-- **Teste:** `PerfilSmokeTest` ("UC-P02 · legado /user/profile intacto").
+## UC-P02 · O endereço antigo /user/profile leva para /perfil
+- **Persona:** usuário/admin — favorito ou link velho para `/user/profile` continua funcionando, e cai na tela React.
+- **Aceite:** Dado a rota antiga `/user/profile` · Então redireciona para `/perfil`. Até o cutover F5 de 2026-10-27 o aceite era o oposto (Blade intacto, 200), porque as duas telas conviviam.
+- **Teste:** `PerfilSmokeTest` ("UC-P02 · o endereco antigo /user/profile leva para /perfil").
 - **Status: 🧪**
 
 ---

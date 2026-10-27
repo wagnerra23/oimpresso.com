@@ -43,6 +43,6 @@ it('UC-P01 · renderiza /perfil com o componente Inertia e as props do usuario l
         );
 });
 
-it('UC-P02 · mantem o legado /user/profile (Blade) intacto — nao 500', function () {
-    $this->get('/user/profile')->assertOk();
+it('UC-P02 · o endereco antigo /user/profile leva para /perfil', function () {
+    $this->get('/user/profile')->assertRedirect(route('perfil'));
 });

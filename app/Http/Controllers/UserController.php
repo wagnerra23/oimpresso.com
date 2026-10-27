@@ -45,15 +45,9 @@ class UserController extends Controller
      */
     public function getProfile()
     {
-        $user_id = request()->session()->get('user.id');
-        $user = User::where('id', $user_id)->with(['media'])->first();
-        $config_languages = config('constants.langs');
-        $languages = [];
-        foreach ($config_languages as $key => $value) {
-            $languages[$key] = $value['full_name'];
-        }
-
-        return view('user.profile', compact('user', 'languages'));
+        // Cutover F5 (2026-10-27): o perfil é a tela React /perfil (User/Perfil). A URL antiga
+        // segue respondendo, para favoritos e links velhos, mas só redireciona.
+        return redirect()->route('perfil');
     }
 
     /**
@@ -106,7 +100,7 @@ class UserController extends Controller
             ];
         }
 
-        return redirect('user/profile')->with('status', $output);
+        return redirect()->route('perfil')->with('status', $output);
     }
 
     /**
@@ -145,7 +139,7 @@ class UserController extends Controller
             ];
         }
 
-        return redirect('user/profile')->with('status', $output);
+        return redirect()->route('perfil')->with('status', $output);
     }
 
     /**
