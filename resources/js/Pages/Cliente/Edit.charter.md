@@ -23,6 +23,8 @@ related_visual_comparison: memory/requisitos/Crm/cliente-edit-visual-comparison.
 # Page Charter — /contacts/{id}/edit (LIVE)
 
 > **Status:** live — reconciliado de draft em 2026-06-24: Wagner confirmou biz=4 (ROTA LIVRE) em React em produção (flag `MWART_CLIENTE_EDIT` ON; fallback Blade no `ContactController`). Backend canon: `ContactController::edit($id)` linha 768. Family visual idêntica a Create.
+>
+> **2026-10-27 · cutover F5:** o `ContactController` passou a servir só React nesta tela; o fallback Blade citado acima foi apagado (a chave estava ligada para todas as empresas desde 2026-08-26).
 
 ## Mission
 

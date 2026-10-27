@@ -44,7 +44,8 @@ beforeEach(function () {
     // do manifest) via versão diferente e respondia 409 pedindo recarga da página.
     $this->versaoInertia = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
 
-    config(['mwart.cliente_edit.enabled' => true]);
+    // Cutover F5 (2026-10-27): a chave desligada não volta mais ao Blade.
+    config(['mwart.cliente_edit.enabled' => false]);
 
     $now = now();
     $this->contactId = DB::table('contacts')->insertGetId([
@@ -92,7 +93,7 @@ test('GET /contacts/{id}/edit Inertia retorna campos BR no props.contact (não-n
         ? json_decode($response->getContent(), true)
         : null;
 
-    expect($page)->not->toBeNull('Response não é Inertia — gate cliente_edit pode estar off.');
+    expect($page)->not->toBeNull('Response não é Inertia — o Blade legado voltou?');
     expect($page['component'] ?? null)->toBe('Cliente/Edit');
 
     $contact = $page['props']['contact'] ?? [];

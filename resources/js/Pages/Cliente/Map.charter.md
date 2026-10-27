@@ -23,6 +23,8 @@ related_visual_comparison: memory/requisitos/Crm/cliente-map-visual-comparison.m
 # Page Charter — /contacts/map (LIVE)
 
 > **Status:** live — reconciliado de draft em 2026-06-24: Wagner confirmou biz=4 (ROTA LIVRE) em React em produção (flag `MWART_CLIENTE_MAP` ON; fallback Blade no `ContactController`). Rota real é `/contacts/map` (corrigido de `/contacts/contact_map`). Backend canon: `ContactController::contactMap()` linha 1634. **Divergência ADR 0149:** Layout split-pane com lista lateral 1/3 + mapa 2/3. Wagner aprovou divergência pra utility/visualization page.
+>
+> **2026-10-27 · cutover F5:** o `ContactController` passou a servir só React nesta tela; o fallback Blade citado acima foi apagado (a chave estava ligada para todas as empresas desde 2026-08-26).
 
 ## Mission
 

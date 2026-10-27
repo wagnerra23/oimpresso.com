@@ -61,6 +61,15 @@ last_run: "2026-07-08"
 
 ---
 
+## UC-CLED-07 · Abrir o extrato serve a tela React
+- **Persona:** Larissa — abre o extrato do cliente e vê a tela React, nunca o extrato Blade antigo.
+- **Aceite:** Dado um contato da minha empresa, com a chave `MWART_CLIENTE_LEDGER` desligada · Quando faço `GET /contacts/ledger?contact_id=` · Então renderiza Inertia **`Cliente/Ledger`** com o contato pedido. O PDF (`action=pdf`) segue saindo pelo mPDF.
+- **Teste:** `tests/Feature/Cliente/ClienteCutoverReactTest.php` (Pest, lane Cliente · MySQL).
+- **Regressão que defende:** a volta do ramo Blade, apagado no cutover F5 de 2026-10-27.
+- **Status: 🧪** — teste escrito; volta a ✅ quando `casos:results` regravar o manifesto.
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão. Itens SEM token de UC até existir teste real.
@@ -78,6 +87,7 @@ last_run: "2026-07-08"
 | UC-CLED-03 | CU-CLI-08 | — |
 | UC-CLED-04 | CU-CLI-09 · CU-CLI-11 | — |
 | UC-CLED-05 | CU-CLI-08 | — |
+| UC-CLED-07 | CU-CLI-08 | — |
 
 > Coluna US vazia de propósito: o saldo do cliente (`getContactDue`/`getLedgerDetails`) **não tem US no SPEC** — o dente nasceu como onda de cálculo, não como US. É registro honesto de que a régua de valor mais crítica do módulo está fora do escopo declarado.
 
@@ -87,5 +97,6 @@ last_run: "2026-07-08"
 3. **Cadência:** rodar ao fim de toda mexida em `Ledger.tsx` ou nos métodos de saldo (`getContactDue`/`getLedgerDetails`). UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-10-27 · [CC] cutover F5: tela só React, fallback Blade apagado (sessão mig-nucleo-contatos-geral).
 - 2026-07-27 · [CC] chip S-Cliente do passo 5 (agent `sdd-from-source`). **Nenhum UC reescrito** — o dente `[V0]` segue intacto (mexer em `getContactDue`/`getLedgerDetails` é US separada sob REGRA MESTRE). Correção factual: o dente de valor do saldo do cliente rodava **só no nightly**, em nenhuma lane de PR; lane criada agora, **advisory**, com a força declarada. + ponteiro pro SDD §6.2. Refs: [SDD Cliente](../../../../memory/requisitos/Cliente/SDD-cadastro-cliente-v1.0.md) · [ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md).
 - 2026-07-08 · [CC] criado — 1ª lane do módulo Cliente (casos_coverage 0% → trio Ledger fechado). 5 UCs ancorados no dente `CalculoValorClienteTest` (getContactDue + getLedgerDetails all_balance_due + dupla confirmação + multi-tenant), parte de "ligar a máquina do protocolo" (SDD anti-fachada). Statuses 🧪 (teste cita o UC e passa; manifesto per-UC regrava depois). Refs: [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md) G-1/G-2 · REGRA MESTRE cálculo de valor (proibicoes.md).
