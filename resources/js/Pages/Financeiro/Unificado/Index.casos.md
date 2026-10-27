@@ -89,6 +89,9 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 | UC-PAGBAN-06 | Banco recusa → sem baixa, pode pedir de novo | must | `US-FIN-079` | `PagamentoBancoContratoTest` | ⬜ |
 | UC-PAGBAN-07 | Título quitado por outro caminho não recebe 2ª baixa | must `[V0]` | `US-FIN-079` | `PagamentoBancoContratoTest` | ⬜ |
 | UC-PAGBAN-08 | Outra empresa não paga o título nem usa a conta de outra | must `[T0]` | `US-FIN-079` | `PagamentoBancoContratoTest` | ⬜ |
+| UC-PAGBAN-09 | Envio ao Inter nunca devolve pago | must `[V0]` | `US-FIN-079` | `InterPagadorBancoTest` | ⬜ |
+| UC-PAGBAN-10 | Só status conhecido de débito vira pago | must `[V0]` | `US-FIN-079` | `InterPagadorBancoTest` | ⬜ |
+| UC-PAGBAN-11 | Sync só consulta, e só com a flag | must | `US-FIN-079` | `PagamentoBancoContratoTest` | ⬜ |
 | UC-F01 (legado) | Venda a prazo gera título a receber | must `[V0]` | `CU-FIN-01` + `US-FIN-013` | `RetencaoLoopE2ETest` | ✅ |
 | UC-F02 (legado) | Recebimento baixa o título e entra no caixa | must `[V0]` | `CU-FIN-08` + `US-FIN-003` | `RetencaoLoopE2ETest` | ✅ |
 | UC-F04 (legado) | Ações em lote respeitam tenant/limite/contabilidade | must `[V0][T0]` | `CU-FIN-07` + `US-FIN-031` | `UnificadoBulkGuardTest` | 🧪 |
@@ -105,7 +108,7 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 
 > Derivam da **US-FIN-079** (`memory/requisitos/Financeiro/SPEC.md`): saída de dinheiro, então nunca
 > automático — cada pedido exige o valor confirmado pelo usuário, e a baixa só vem da confirmação do
-> banco. Banco simulado nos testes. O botão na gaveta do título a pagar entra na próxima onda, só com
+> banco. Banco simulado nos testes (o adaptador do Inter usa HTTP simulado). O botão na gaveta do título a pagar entra na próxima onda, só com
 > a flag e a permissão `financeiro.contas_pagar.pagar_banco`.
 > **Lane:** `PHP / Pest (Financeiro · MySQL)` (roda a árvore do módulo menos a quarentena). **Veredito:** ⬜ até o primeiro run do CI — quem dá é a lane (G-7).
 
@@ -166,19 +169,25 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 - **Status: ⬜** — não verificado: teste escrito, ainda sem run do CI.
 
 ## UC-PAGBAN-09 · Envio ao Inter nunca devolve pago `[V0]` `[must]`
-- **Aceite:** Mesmo com o Inter respondendo "realizado" no envio, o status é aguardando; a chave de idempotência vai no cabeçalho e o valor em 2 casas.
-- **Teste:** `InterPagadorBancoTest` ("UC-PAGBAN-09").
-- **Status: 🧪**
+- **Persona:** Eliana [E] — só quer ver pago o que o banco de fato debitou.
+- **Aceite:** Dado o Inter respondendo realizado logo no envio do boleto · Quando o pedido é enviado · Então o status fica aguardando o banco; a chave de idempotência vai no cabeçalho x-id-idempotente e o valor sai em 2 casas (1234.56).
+- **Teste:** `Modules/Financeiro/Tests/Feature/InterPagadorBancoTest.php`, it("UC-PAGBAN-09 · …").
+- **Regressão que defende:** título quitado na hora do envio, antes da confirmação, e reenvio que o banco não reconhece como o mesmo pedido.
+- **Status: ⬜** — não verificado: teste escrito, ainda sem run do CI.
 
 ## UC-PAGBAN-10 · Só status conhecido de débito vira pago `[V0]` `[must]`
-- **Aceite:** Na consulta: status desconhecido fica aguardando, PAGO vira pago, REJEITADO vira recusado; conta sem credencial Inter ativa não chama o banco.
-- **Teste:** `InterPagadorBancoTest` ("UC-PAGBAN-10").
-- **Status: 🧪**
+- **Persona:** Eliana [E] — o banco devolve status que o sistema não conhece; ela não pode ver isso como pago.
+- **Aceite:** Dado consultas do Pix que devolvem EM_PROCESSAMENTO, PAGO e REJEITADO, e uma conta sem credencial Inter ativa · Quando o sistema consulta ou tenta enviar · Então desconhecido fica aguardando, PAGO vira pago, REJEITADO vira recusado, e a conta sem credencial não chama o banco.
+- **Teste:** `Modules/Financeiro/Tests/Feature/InterPagadorBancoTest.php`, it("UC-PAGBAN-10 · …").
+- **Regressão que defende:** status novo do banco lido como pago, ou chamada ao banco com conta não habilitada.
+- **Status: ⬜** — não verificado: teste escrito, ainda sem run do CI.
 
 ## UC-PAGBAN-11 · Sync só consulta, e só com a flag `[must]`
-- **Aceite:** `financeiro:pagamentos-banco-sync` com a flag desligada não toca nada; ligada, baixa o confirmado e não envia pedido novo.
-- **Teste:** `PagamentoBancoContratoTest` ("UC-PAGBAN-11").
-- **Status: 🧪**
+- **Persona:** Wagner [W] — a rotina agendada não pode mover dinheiro, só confirmar.
+- **Aceite:** Dado um pedido aguardando o banco · Quando roda financeiro:pagamentos-banco-sync com a flag desligada e depois ligada · Então desligada não toca nada; ligada, baixa o confirmado e o banco recebeu um envio só (o do usuário).
+- **Teste:** `Modules/Financeiro/Tests/Feature/PagamentoBancoContratoTest.php`, it("UC-PAGBAN-11 · …").
+- **Regressão que defende:** rotina agendada enviando pagamento sozinha, ou deixando título pago sem baixa.
+- **Status: ⬜** — não verificado: teste escrito, ainda sem run do CI.
 
 ---
 
