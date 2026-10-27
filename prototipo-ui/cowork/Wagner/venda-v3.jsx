@@ -105,7 +105,7 @@ window.SD = (() => {
     ['NG-03', 'POS rápido', 'Non-Goal', 'vai pra /sale-pos/create'],
     ['NG-04', 'Cotação', 'Non-Goal', '/sells/quotation/create (FSM quote_draft)'],
     ['NG-05', 'Print direto', 'Non-Goal', 'rota Blade separada /sells/{id}/print'],
-    ['NG-06', 'Resgate de pontos (reward)', 'gap', 'UPOS legado; sem sinal de cliente (ADR 0105)'],
+    ['NG-06', 'Resgate de pontos (reward)', 'ok', 'US-SELL-079 · decisão [W] 2026-10-27 · card Fechamento'],
     ['NG-07', 'Anexar documento à venda', 'gap', 'idem'],
     ['NG-08', 'Tipos de serviço (multi-select)', 'a avaliar', 'prop typesOfService existe, sem UI na V2 — decisão [W] PENDENTE'],
   ];
@@ -2430,6 +2430,10 @@ function Create({ onOpen, modo = 'create', registro }) {
   const [descVal, setDescVal] = React.useState('0,00');
   const [cupomCod, setCupomCod] = React.useState('');
   const [cupom, setCupom] = React.useState(null); /* código aplicado; a conta se refaz quando o carrinho muda */
+  /* US-SELL-079 — resgate de pontos de fidelidade. Cena: 120 pontos para quem não é o Cliente padrão, ponto a R$ 0,10.
+     O valor sai do total depois do imposto, como o rp_redeemed_amount sai do final_total no servidor. */
+  const PONTO_VALOR = 0.10;
+  const [pontos, setPontos] = React.useState(0);
   const [freteModo, setFreteModo] = React.useState('hoje');
   const [frete, setFrete] = React.useState('0,00');
   const [acr, setAcr] = React.useState('0,00');
@@ -2464,7 +2468,8 @@ function Create({ onOpen, modo = 'create', registro }) {
   }, [cliente, itens, descVal, pags, edit]);
 
   const cli = window.SD.clientes.find((c) => c.nome === cliente) || window.SD.clientes[0];
-  React.useEffect(() => { setTabela(null); }, [cliente]);
+  React.useEffect(() => { setTabela(null); setPontos(0); }, [cliente]);
+  const pontosDisp = cli.padrao ? 0 : (cli.pontos ?? 120);
   const tabelaCadastro = cli.tabela || TABELAS[0];
   const tabelaAtiva = tabela || tabelaCadastro;
   const tabelaTrocada = !!tabela && tabela !== tabelaCadastro;
@@ -2485,7 +2490,8 @@ function Create({ onOpen, modo = 'create', registro }) {
   const vImposto = submitSafe(baseTrib * 0.18);
   const vFrete = submitSafe(parseBR(frete));
   const vAcr = submitSafe(parseBR(acr));
-  const total = submitSafe(baseTrib + vImposto + vFrete + vAcr);
+  const vResgate = submitSafe(pontos * PONTO_VALOR);
+  const total = submitSafe(baseTrib + vImposto + vFrete + vAcr - vResgate);
   const pago = submitSafe(pags.reduce((s, p) => s + parseBR(p.v), 0) + parcelas.filter((p) => p.lanc === 'RECEBIDA').reduce((s, p) => s + parseBR(p.valor), 0));
   const saldo = submitSafe(total - pago);
   const payStatus = pago <= 0 ? 'due' : saldo > 0.005 ? 'partial' : 'paid';
@@ -2787,6 +2793,7 @@ function Create({ onOpen, modo = 'create', registro }) {
             <Res l="Imposto" v={fmtBR(vImposto)} />
             <Res l="Acréscimo" v={vAcr ? '+ ' + fmtBR(vAcr) : fmtBR(0)} c={vAcr ? 'var(--warn)' : 'var(--text-dim)'} />
             <Res l="Frete" v={fmtBR(vFrete)} c={vFrete ? 'var(--text)' : 'var(--text-dim)'} />
+            {vResgate > 0 && <Res l={'Pontos (' + pontos + ')'} v={'− ' + fmtBR(vResgate)} c="var(--neg)" />}
           </div>
           <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12 }}>
@@ -2812,6 +2819,11 @@ function Create({ onOpen, modo = 'create', registro }) {
                 : <span role="alert" style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 4, font: '600 11.5px/1.35 var(--font-sans)', color: tomFg('var(--neg)') }}>
                     <Icon name="AlertTriangle" size={12} />{MSG_CUPOM[cupomRes.motivo]}
                   </span>)}
+            </div>
+            <div>
+              <Input label="Resgatar pontos" inputMode="numeric" placeholder="0" disabled={pontosDisp === 0}
+                help={pontosDisp === 0 ? 'Escolha um cliente cadastrado para resgatar pontos.' : 'Disponível: ' + pontosDisp + ' pontos · cada um vale R$ ' + fmtBR(PONTO_VALOR) + '.'}
+                value={pontos ? String(pontos) : ''} onChange={(e) => setPontos(Math.min(pontosDisp, Math.max(0, parseInt(e.target.value, 10) || 0)))} />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <Money label="Acréscimo" value={acr} onChange={setAcr} hue="color-mix(in oklch, var(--warn) 62%, var(--text))" />

@@ -240,6 +240,7 @@ const MENU = [
       { id: "cfg-pacote",        icon: "refresh", label: "Assinatura de pacote" },
       { id: "superadmin-pagar",  icon: "cash",    label: "Pagar assinatura" },
       { id: "exportar-dados",    icon: "archive", label: "Exportar dados da empresa" },
+      { id: "atendimento-canais", icon: "inbox",  label: "Canais de atendimento" },
     ]},
     { id: "relatorios",  icon: "chart", label: "Relatórios", ghosts: [
       { id: "rel-financeiro", icon: "cash",    label: "Financeiro" },
