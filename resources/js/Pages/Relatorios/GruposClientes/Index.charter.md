@@ -3,6 +3,7 @@ id: resources-js-pages-relatorios-gruposclientes-index-charter
 page: /reports/customer-group
 component: resources/js/Pages/Relatorios/GruposClientes/Index.tsx
 related_prototype: prototipo-ui/cowork/Wagner/relatorios-page.jsx
+related_us: [US-REL-002]
 owner: wagner
 status: draft
 last_validated: "2026-10-07"
