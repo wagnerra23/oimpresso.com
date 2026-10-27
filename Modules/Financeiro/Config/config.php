@@ -17,7 +17,7 @@ return [
      * Mesmo ligado, cada pagamento é aprovado pelo usuário; nunca automático.
      */
     'pagamento_banco' => [
-        'enabled' => env('FINANCEIRO_PAGAMENTO_BANCO_ENABLED', false),
+        'enabled' => env('FINANCEIRO_PAGAMENTO_BANCO_ENABLED', false), // @phpstan-ignore larastan.noEnvCallsOutsideOfConfig
     ],
 
     /**

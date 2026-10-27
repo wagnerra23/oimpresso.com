@@ -9,6 +9,23 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Pedido de pagamento de título a pagar pelo banco (US-FIN-079). Trilha de auditoria.
+ *
+ * @property int $id
+ * @property int $business_id
+ * @property int $titulo_id
+ * @property int $conta_bancaria_id
+ * @property string $meio
+ * @property string $destino
+ * @property string $valor
+ * @property string $idempotency_key
+ * @property string $status
+ * @property string|null $codigo_transacao
+ * @property string|null $motivo
+ * @property int $solicitado_por
+ * @property \Illuminate\Support\Carbon $solicitado_em
+ * @property \Illuminate\Support\Carbon|null $confirmado_em
+ * @property int|null $baixa_id
+ * @property array<string, mixed>|null $resposta_banco
  */
 class PagamentoBanco extends Model
 {
