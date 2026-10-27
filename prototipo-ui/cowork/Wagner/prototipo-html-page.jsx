@@ -1,8 +1,9 @@
 // prototipo-html-page.jsx — põe dentro do shell os protótipos que nasceram como .html solto
-// (lacunas de 27/10/2026). O .html segue sendo a fonte, de cada sessão dona; esta página só o
-// carrega numa shadow root, sem iframe e sem copiar o conteúdo pra JSX (cópia divergiria da fonte).
+// (lacunas de 27/10/2026). Cada tela tem o próprio *-page.jsx, que registra o HTML dela em
+// window.PROTO_HTML[<rota>]; esta página o monta numa shadow root, sem iframe. Como o HTML vem num
+// .jsx citado pelo host, ele entra no build do Artefato (build-artefato-prototipo.mjs) como qualquer tela.
 //
-// O que ela faz com o .html:
+// O que ela faz com o HTML:
 //   · CSS: `:root`/`html` viram `:host` e `body` vira `.proto-body`, então o tema escuro/claro do
 //     protótipo segue o `data-theme` do shell e nenhuma regra vaza pro resto da tela.
 //   · JS: os <script> inline rodam com um `document` que procura dentro da shadow root
@@ -10,7 +11,7 @@
 // Expõe window.ProtoHtmlPage e window.ProtoPublicasBar.
 (() => {
 const { useEffect, useRef, useState } = React;
-const cache = {};
+
 
 if (!document.getElementById("proto-html-page-css")) {
   const s = document.createElement("style");
@@ -91,19 +92,25 @@ function montar(host, texto) {
   });
 }
 
-function ProtoHtmlPage({ src, titulo }) {
+// `chave` = id da rota; o HTML vem de window.PROTO_HTML[chave], registrado pelo *-page.jsx da tela.
+function ProtoHtmlPage({ chave, titulo }) {
   const host = useRef(null);
   const [erro, setErro] = useState(null);
   useEffect(() => {
-    let vivo = true;
+    let vivo = true, timer = null;
     setErro(null);
-    (cache[src] ? Promise.resolve(cache[src]) : fetch(src).then((r) => {
-      if (!r.ok) throw new Error(r.status + " ao abrir " + src);
-      return r.text();
-    })).then((t) => { cache[src] = t; if (vivo && host.current) montar(host.current, t); })
-      .catch((e) => vivo && setErro(String(e.message || e)));
-    return () => { vivo = false; };
-  }, [src]);
+    // O *-page.jsx da tela pode chegar depois desta página na fila de carga: espera o registro,
+    // e só acusa erro quando a fila inteira terminou sem ele.
+    const tentar = () => {
+      if (!vivo) return;
+      const t = (window.PROTO_HTML || {})[chave];
+      if (t != null) { if (host.current) montar(host.current, t); return; }
+      if (window.__oiLazyDone) { setErro("nenhum *-page.jsx registrou a tela " + chave); return; }
+      timer = setTimeout(tentar, 150);
+    };
+    tentar();
+    return () => { vivo = false; clearTimeout(timer); };
+  }, [chave]);
   useEffect(() => {
     const sync = () => host.current && host.current.setAttribute("data-theme", document.documentElement.dataset.theme || "dark");
     sync();
@@ -112,7 +119,7 @@ function ProtoHtmlPage({ src, titulo }) {
     return () => mo.disconnect();
   }, []);
   return (
-    <div className="proto-html-page" data-proto-src={src} aria-label={titulo}>
+    <div className="proto-html-page" data-proto-chave={chave} aria-label={titulo}>
       {erro && <div className="proto-html-erro" role="alert">Não abriu o protótipo: {erro}</div>}
       <div ref={host} className="proto-html-host" />
     </div>);

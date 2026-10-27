@@ -58,7 +58,7 @@ const MENU = [
       { id: "crm-taxonomias",  icon: "folder",  label: "Fontes e estágios" },
       { id: "crm-config",      icon: "cog",     label: "Configurações do CRM" },
       { id: "crm-portal",      icon: "globe",   label: "Portal do contato" },
-      { id: "crm-fidelidade",  icon: "star",    label: "Fidelidade e RFM" },
+      { id: "crm-segmentos",   icon: "users",   label: "Segmentos de clientes" },
       { id: "crm-nps",         icon: "chart",   label: "NPS e captura de lead" },
     ]},
     { id: "vendas",      icon: "cash",    label: "Vendas", ghosts: [

@@ -1,4 +1,8 @@
-<title>NPS e captura de lead</title>
+// crm-nps-captura-page.jsx — NPS pós-venda e captura de lead. Protótipo de 27/10/2026 (PR #10005), fonte desta tela no shell.
+// O HTML da tela vai literal abaixo; o prototipo-html-page.jsx o monta numa shadow root (CSS isolado,
+// tema do shell, scripts e onclick funcionando). Para editar: é HTML comum, mas dentro deste texto
+// crase, ${ e barra invertida vão com barra na frente (\`  \${  \\).
+(window.PROTO_HTML = window.PROTO_HTML || {})["crm-nps"] = `<title>NPS e captura de lead</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <!--
@@ -227,3 +231,4 @@ pre{font:12px/1.5 var(--font-mono);background:var(--bg-2);border:1px solid var(-
   document.querySelectorAll('.filtros .chip-f').forEach(function(c,_,todos){c.addEventListener('click',function(){todos.forEach(function(x){x.setAttribute('aria-pressed',String(x===c))})})});
 })();
 </script>
+`;

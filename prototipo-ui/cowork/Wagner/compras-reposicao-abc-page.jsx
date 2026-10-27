@@ -1,4 +1,8 @@
-<title>Reposição e curva ABC</title>
+// compras-reposicao-abc-page.jsx — Reposição e curva ABC. Protótipo de 27/10/2026 (PR #10006), fonte desta tela no shell.
+// O HTML da tela vai literal abaixo; o prototipo-html-page.jsx o monta numa shadow root (CSS isolado,
+// tema do shell, scripts e onclick funcionando). Para editar: é HTML comum, mas dentro deste texto
+// crase, ${ e barra invertida vão com barra na frente (\`  \${  \\).
+(window.PROTO_HTML = window.PROTO_HTML || {})["cmp-reposicao"] = `<title>Reposição e curva ABC</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
@@ -214,3 +218,4 @@ document.querySelectorAll(".chip").forEach((c) => c.addEventListener("click", ()
 }));
 desenhar();
 </script>
+`;

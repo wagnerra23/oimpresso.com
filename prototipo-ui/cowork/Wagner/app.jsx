@@ -790,21 +790,22 @@ function App() {
   // Protótipos de 27/10/2026 — entram ANTES dos blocos por prefixo (crm-/cmp-/fin-/vest-/cfg-),
   // que de outro jeito capturam a rota e mostram o stub do módulo.
   const PROTO_HTML = {
-    "fin-cc-orcado":        { src: "financeiro-centro-custo-orcado.html", titulo: "Centro de custo e orçado × realizado" },
-    "crm-fidelidade":       { src: "crm-fidelidade-page.html",            titulo: "Fidelidade e RFM" },
-    "crm-nps":              { src: "prototipos/crm-nps-e-captura.html",   titulo: "NPS e captura de lead" },
-    "venda-margem":         { src: "vendas-detalhe-margem.html",          titulo: "Margem da venda" },
-    "cmp-reposicao":        { src: "estoque-reposicao-abc.html",          titulo: "Reposição e curva ABC" },
-    "vest-remarcacao":      { src: "vestuario-remarcacao.html",           titulo: "Remarcação por coleção" },
-    "cfg-primeiros-passos": { src: "primeiros-passos.html",               titulo: "Primeiros passos" },
+    "fin-cc-orcado":           "Centro de custo e orçado × realizado",
+    "crm-segmentos":           "Segmentos de clientes",
+    "crm-nps":                 "NPS e captura de lead",
+    "venda-margem":            "Margem da venda",
+    "cmp-reposicao":           "Reposição e curva ABC",
+    "vest-remarcacao":         "Remarcação por coleção",
+    "cfg-primeiros-passos":    "Primeiros passos",
+    "venda-aprovacao-publica": "Aprovação do orçamento (página pública)",
   };
   // Páginas públicas que a tela interna gera: "ver como o cliente vê".
-  // `route` abre no shell; `href` abre a página pública em outra aba (fica fora do shell).
+  // Todas abrem no shell (fora do menu): o Artefato publicado não tem outras páginas para abrir em outra aba.
   const PUBLICAS = {
     "fin-receber":    [{ label: "Link de pagamento", route: "fin-link-pagar" }, { label: "Portal do cliente", route: "fin-portal-cliente" }],
-    "venda-cotacoes": [{ label: "Aprovação do orçamento", href: "vendas-orcamento-aprovacao-page.html" }],
+    "venda-cotacoes": [{ label: "Aprovação do orçamento", route: "venda-aprovacao-publica" }],
   };
-  if (PROTO_HTML[route]) content = <window.ProtoHtmlPage key={route} src={PROTO_HTML[route].src} titulo={PROTO_HTML[route].titulo} />;else
+  if (PROTO_HTML[route]) content = <window.ProtoHtmlPage key={route} chave={route} titulo={PROTO_HTML[route]} />;else
   // fin-link-pagar/fin-portal-cliente: o #9961 usava "fin-pagar", que já é Contas a pagar e casava antes.
   if (route === "fin-link-pagar" || route === "fin-portal-cliente") content = <window.FinPagamentoPublicoPage key={route} view={route === "fin-link-pagar" ? "pagar" : "portal"} />;else
   if (route === "fin-contabil") content = <window.FinContabilPage />;else

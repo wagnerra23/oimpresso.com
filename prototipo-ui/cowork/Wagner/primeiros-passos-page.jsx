@@ -1,8 +1,12 @@
-<title>Primeiros passos</title>
+// primeiros-passos-page.jsx — Primeiros passos. Protótipo de 27/10/2026 (PR #10009), fonte desta tela no shell.
+// O HTML da tela vai literal abaixo; o prototipo-html-page.jsx o monta numa shadow root (CSS isolado,
+// tema do shell, scripts e onclick funcionando). Para editar: é HTML comum, mas dentro deste texto
+// crase, ${ e barra invertida vão com barra na frente (\`  \${  \\).
+(window.PROTO_HTML = window.PROTO_HTML || {})["cfg-primeiros-passos"] = `<title>Primeiros passos</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <!--
   Protótipo · Onboarding guiado (US-SUPER-012) · card "Primeiros passos" na Visão geral.
-  Fonte de design no git (ADR 0438 D1). Tokens: bloco `.cockpit` de
+  Fonte de design no git (ADR 0438 D1). Tokens: bloco \`.cockpit\` de
   prototipo-ui/design-system/colors_and_type.css (copiados aqui só para a página abrir sozinha
   como Artefato; em produção vêm do cockpit.css). Fica no topo de /dashboard-legacy, acima dos
   KPIs, e só aparece para empresa com passo aberto e que não dispensou.
@@ -119,3 +123,4 @@
     <div class="kpis" aria-hidden="true"><div class="card"></div><div class="card"></div><div class="card"></div><div class="card"></div></div>
   </div>
 </div>
+`;

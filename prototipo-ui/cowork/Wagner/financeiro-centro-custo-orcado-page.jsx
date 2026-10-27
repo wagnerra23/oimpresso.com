@@ -1,8 +1,12 @@
-<title>Centro de custo e orçamento</title>
+// financeiro-centro-custo-orcado-page.jsx — Centro de custo e orçado × realizado. Protótipo de 27/10/2026 (PR #9956), fonte desta tela no shell.
+// O HTML da tela vai literal abaixo; o prototipo-html-page.jsx o monta numa shadow root (CSS isolado,
+// tema do shell, scripts e onclick funcionando). Para editar: é HTML comum, mas dentro deste texto
+// crase, ${ e barra invertida vão com barra na frente (\`  \${  \\).
+(window.PROTO_HTML = window.PROTO_HTML || {})["fin-cc-orcado"] = `<title>Centro de custo e orçamento</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <!--
   Protótipo — US-FIN-075 (centro de custo com rateio no título) + US-FIN-076 (orçado × realizado).
-  Fonte de design no git (ADR 0438 D1). Gerado ancorado no DS canon: tokens do bloco `.cockpit`
+  Fonte de design no git (ADR 0438 D1). Gerado ancorado no DS canon: tokens do bloco \`.cockpit\`
   de prototipo-ui/design-system/colors_and_type.css, PT-01 Lista para o cadastro, seção de drawer
   do título para o rateio. Dados de exemplo, fictícios.
 -->
@@ -200,14 +204,14 @@ const CENTROS = [
 /* ── 1 · cadastro ── */
 function renderCad() {
   const q = document.getElementById("busca").value.toLowerCase();
-  document.getElementById("cad-body").innerHTML = CENTROS.filter((c) => (c.nome + c.cod).toLowerCase().includes(q)).map((c) => `
+  document.getElementById("cad-body").innerHTML = CENTROS.filter((c) => (c.nome + c.cod).toLowerCase().includes(q)).map((c) => \`
     <tr>
-      <td class="mono">${c.cod}</td><td>${c.nome}</td>
-      <td><span class="pill ${c.ativo ? "on" : "off"}">${c.ativo ? "Ativo" : "Inativo"}</span></td>
-      <td class="r">${c.n || '<span class="mute">—</span>'}</td>
-      <td class="r">${c.v ? brl(c.v) : '<span class="mute">—</span>'}</td>
-      <td class="r"><button class="link">editar</button> · <button class="link" data-tog="${c.id}">${c.ativo ? "inativar" : "ativar"}</button></td>
-    </tr>`).join("");
+      <td class="mono">\${c.cod}</td><td>\${c.nome}</td>
+      <td><span class="pill \${c.ativo ? "on" : "off"}">\${c.ativo ? "Ativo" : "Inativo"}</span></td>
+      <td class="r">\${c.n || '<span class="mute">—</span>'}</td>
+      <td class="r">\${c.v ? brl(c.v) : '<span class="mute">—</span>'}</td>
+      <td class="r"><button class="link">editar</button> · <button class="link" data-tog="\${c.id}">\${c.ativo ? "inativar" : "ativar"}</button></td>
+    </tr>\`).join("");
 }
 document.getElementById("busca").addEventListener("input", renderCad);
 document.getElementById("cad-body").addEventListener("click", (e) => {
@@ -224,8 +228,8 @@ const TOTAL = 1250001; // R$ 12.500,01
 let modo = "pct";
 let linhas = [{ cc: 1, pct: "40", val: "" }, { cc: 2, pct: "35", val: "" }, { cc: 3, pct: "25", val: "" }];
 const paraInt = (s, casas) => {
-  s = String(s || "").trim(); if (s.includes(",")) s = s.replace(/\./g, "").replace(",", ".");
-  if (!/^\d*(\.\d*)?$/.test(s) || s === "" || s === ".") return NaN;
+  s = String(s || "").trim(); if (s.includes(",")) s = s.replace(/\\./g, "").replace(",", ".");
+  if (!/^\\d*(\\.\\d*)?$/.test(s) || s === "" || s === ".") return NaN;
   const [i, f = ""] = s.split("."); const fr = (f + "0".repeat(casas + 1)).slice(0, casas + 1);
   return parseInt((i || "0") + fr.slice(0, casas), 10) + (+fr[casas] >= 5 ? 1 : 0);
 };
@@ -251,22 +255,22 @@ function renderRat() {
   const ativos = CENTROS.filter((c) => c.ativo);
   document.getElementById("rat-lines").innerHTML = linhas.length === 0
     ? '<div class="mute" style="font-size:var(--fs-3)">Sem rateio: o título entra como “sem centro” nos relatórios.</div>'
-    : linhas.map((l, i) => `
+    : linhas.map((l, i) => \`
     <div class="rline">
-      <select id="cc-${i}" data-i="${i}" data-k="cc" aria-label="Centro de custo da linha ${i + 1}">${ativos.map((c) => `<option value="${c.id}" ${c.id === l.cc ? "selected" : ""}>${c.cod} · ${c.nome}</option>`).join("")}</select>
-      ${modo === "pct"
-        ? `<input id="pct-${i}" data-i="${i}" data-k="pct" value="${l.pct}" inputmode="decimal" aria-label="Percentual da linha ${i + 1}"><div class="calc">${isNaN(d.valores[i]) ? "—" : brl(d.valores[i])}</div>`
-        : `<input id="val-${i}" data-i="${i}" data-k="val" value="${l.val}" inputmode="decimal" aria-label="Valor da linha ${i + 1}"><div class="calc">${d.valores[i] > 0 ? pctTxt(Math.round((d.valores[i] * 1e6) / TOTAL)) : "—"}</div>`}
-      <button class="x" data-del="${i}" aria-label="Remover linha ${i + 1}">×</button>
-    </div>`).join("");
+      <select id="cc-\${i}" data-i="\${i}" data-k="cc" aria-label="Centro de custo da linha \${i + 1}">\${ativos.map((c) => \`<option value="\${c.id}" \${c.id === l.cc ? "selected" : ""}>\${c.cod} · \${c.nome}</option>\`).join("")}</select>
+      \${modo === "pct"
+        ? \`<input id="pct-\${i}" data-i="\${i}" data-k="pct" value="\${l.pct}" inputmode="decimal" aria-label="Percentual da linha \${i + 1}"><div class="calc">\${isNaN(d.valores[i]) ? "—" : brl(d.valores[i])}</div>\`
+        : \`<input id="val-\${i}" data-i="\${i}" data-k="val" value="\${l.val}" inputmode="decimal" aria-label="Valor da linha \${i + 1}"><div class="calc">\${d.valores[i] > 0 ? pctTxt(Math.round((d.valores[i] * 1e6) / TOTAL)) : "—"}</div>\`}
+      <button class="x" data-del="\${i}" aria-label="Remover linha \${i + 1}">×</button>
+    </div>\`).join("");
   const s = document.getElementById("soma");
   if (linhas.length === 0) { s.className = "soma"; s.textContent = ""; s.hidden = true; return; }
   s.hidden = false;
   const somaV = d.valores.reduce((a, b) => a + (b || 0), 0);
-  if (d.ok) { s.className = "soma ok"; s.innerHTML = `<span>Soma ${modo === "pct" ? "100%" : brl(somaV)}</span><span class="sp">${brl(somaV)} de ${brl(TOTAL)} ✓</span>`; }
+  if (d.ok) { s.className = "soma ok"; s.innerHTML = \`<span>Soma \${modo === "pct" ? "100%" : brl(somaV)}</span><span class="sp">\${brl(somaV)} de \${brl(TOTAL)} ✓</span>\`; }
   else { s.className = "soma bad"; s.innerHTML = modo === "pct"
-    ? `<span>${d.falta > 0 ? "Faltam " + pctTxt(d.falta) : "Passou " + pctTxt(-d.falta)}</span><span class="sp">Os percentuais precisam somar 100%</span>`
-    : `<span>${d.falta > 0 ? "Faltam " + brl(d.falta) : "Passou " + brl(-d.falta)}</span><span class="sp">Os valores precisam somar ${brl(TOTAL)}</span>`; }
+    ? \`<span>\${d.falta > 0 ? "Faltam " + pctTxt(d.falta) : "Passou " + pctTxt(-d.falta)}</span><span class="sp">Os percentuais precisam somar 100%</span>\`
+    : \`<span>\${d.falta > 0 ? "Faltam " + brl(d.falta) : "Passou " + brl(-d.falta)}</span><span class="sp">Os valores precisam somar \${brl(TOTAL)}</span>\`; }
   document.getElementById("salvar").disabled = !d.ok;
 }
 const ratBox = document.getElementById("rat-lines");
@@ -297,7 +301,7 @@ const CONTAS = [
 let regime = "comp";
 function renderCcSelect() {
   const sel = document.getElementById("cc"); const v = sel.value;
-  sel.innerHTML = `<option value="">Todos os centros</option>` + CENTROS.map((c) => `<option value="${c.id}">${c.cod} · ${c.nome}${c.ativo ? "" : " (inativo)"}</option>`).join("");
+  sel.innerHTML = \`<option value="">Todos os centros</option>\` + CENTROS.map((c) => \`<option value="\${c.id}">\${c.cod} · \${c.nome}\${c.ativo ? "" : " (inativo)"}</option>\`).join("");
   sel.value = v;
 }
 function linhaOrc(c, i) {
@@ -305,26 +309,26 @@ function linhaOrc(c, i) {
   const ruim = c.tipo === "rec" ? desv < 0 : desv > 0;
   const pct = c.orc ? Math.round((desv / c.orc) * 1000) / 10 : null;
   const cons = c.orc ? Math.min(real / c.orc, 1.5) : 0;
-  return `<tr>
-    <td><span class="mono" style="font-family:var(--font-mono);font-size:var(--fs-2);color:var(--text-dim)">${c.cod}</span> ${c.nome}</td>
-    <td class="r"><input class="orc" id="orc-${i}" data-o="${i}" value="${(c.orc / 100).toFixed(2).replace(".", ",")}" aria-label="Orçado de ${c.nome}"></td>
-    <td class="r">${real ? brl(real) : '<span class="mute">—</span>'}</td>
-    <td class="r ${desv === 0 ? "mute" : ruim ? "neg" : "pos"}">${desv === 0 ? "—" : (desv > 0 ? "+" : "") + brl(desv)}</td>
-    <td class="r ${pct === null || desv === 0 ? "mute" : ruim ? "neg" : "pos"}">${pct === null ? "—" : (pct > 0 ? "+" : "") + pct.toLocaleString("pt-BR") + "%"}</td>
-    <td><div class="bar" title="${Math.round(cons * 100)}% do orçado"><i class="${ruim ? "neg" : "pos"}" style="width:${(cons / 1.5) * 100}%"></i><b style="left:${100 / 1.5}%"></b></div></td>
-  </tr>`;
+  return \`<tr>
+    <td><span class="mono" style="font-family:var(--font-mono);font-size:var(--fs-2);color:var(--text-dim)">\${c.cod}</span> \${c.nome}</td>
+    <td class="r"><input class="orc" id="orc-\${i}" data-o="\${i}" value="\${(c.orc / 100).toFixed(2).replace(".", ",")}" aria-label="Orçado de \${c.nome}"></td>
+    <td class="r">\${real ? brl(real) : '<span class="mute">—</span>'}</td>
+    <td class="r \${desv === 0 ? "mute" : ruim ? "neg" : "pos"}">\${desv === 0 ? "—" : (desv > 0 ? "+" : "") + brl(desv)}</td>
+    <td class="r \${pct === null || desv === 0 ? "mute" : ruim ? "neg" : "pos"}">\${pct === null ? "—" : (pct > 0 ? "+" : "") + pct.toLocaleString("pt-BR") + "%"}</td>
+    <td><div class="bar" title="\${Math.round(cons * 100)}% do orçado"><i class="\${ruim ? "neg" : "pos"}" style="width:\${(cons / 1.5) * 100}%"></i><b style="left:\${100 / 1.5}%"></b></div></td>
+  </tr>\`;
 }
 function renderOrc() {
   document.getElementById("r-comp").setAttribute("aria-pressed", regime === "comp");
   document.getElementById("r-caixa").setAttribute("aria-pressed", regime === "caixa");
   let html = ""; const tot = {};
   ["Receitas", "Despesas"].forEach((g) => {
-    html += `<tr class="grp"><td colspan="6">${g}</td></tr>`;
+    html += \`<tr class="grp"><td colspan="6">\${g}</td></tr>\`;
     tot[g] = { orc: 0, real: 0 };
     CONTAS.forEach((c, i) => { if (c.g !== g) return; html += linhaOrc(c, i); tot[g].orc += c.orc; tot[g].real += c[regime]; });
   });
   const ro = tot.Receitas.orc - tot.Despesas.orc, rr = tot.Receitas.real - tot.Despesas.real, rd = rr - ro;
-  html += `<tr class="tot"><td>Resultado do mês</td><td class="r">${brl(ro)}</td><td class="r">${brl(rr)}</td><td class="r ${rd < 0 ? "neg" : "pos"}">${(rd > 0 ? "+" : "") + brl(rd)}</td><td></td><td></td></tr>`;
+  html += \`<tr class="tot"><td>Resultado do mês</td><td class="r">\${brl(ro)}</td><td class="r">\${brl(rr)}</td><td class="r \${rd < 0 ? "neg" : "pos"}">\${(rd > 0 ? "+" : "") + brl(rd)}</td><td></td><td></td></tr>\`;
   document.getElementById("orc-body").innerHTML = html;
 }
 document.getElementById("orc-body").addEventListener("change", (e) => { const i = e.target.dataset.o; if (i === undefined) return; const v = paraInt(e.target.value, 2); if (!isNaN(v)) CONTAS[i].orc = v; renderOrc(); });
@@ -340,3 +344,4 @@ document.querySelector(".tabs").addEventListener("click", (e) => { if (e.target.
 renderCad(); renderRat(); renderCcSelect(); renderOrc();
 const h = location.hash.slice(1); if (VIEWS.includes(h)) abrir(h);
 </script>
+`;

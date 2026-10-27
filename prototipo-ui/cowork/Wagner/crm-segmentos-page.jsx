@@ -1,8 +1,12 @@
-<title>Fidelidade do CRM</title>
+// crm-segmentos-page.jsx — Segmentos de clientes (RFM). Protótipo de 27/10/2026 (PR #9978), fonte desta tela no shell.
+// O HTML da tela vai literal abaixo; o prototipo-html-page.jsx o monta numa shadow root (CSS isolado,
+// tema do shell, scripts e onclick funcionando). Para editar: é HTML comum, mas dentro deste texto
+// crase, ${ e barra invertida vão com barra na frente (\`  \${  \\).
+(window.PROTO_HTML = window.PROTO_HTML || {})["crm-segmentos"] = `<title>Segmentos de clientes</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
-/* Protótipo US-CRM-093 (cashback) + US-CRM-098 (RFM). Tokens = .cockpit de
+/* Protótipo US-CRM-098 (RFM). O cashback (US-CRM-093) saiu: os pontos nativos já cobrem (decisão [W] 2026-10-27). Tokens = .cockpit de
    prototipo-ui/design-system/colors_and_type.css (ADR 0438 · DS no git).
    Layout: PT-04 Dashboard — cabeçalho, faixa de KPIs, duas seções de trabalho. Dados de EXEMPLO. */
 :root {
@@ -101,66 +105,12 @@ td.r, th.r { text-align: right; }
 <div class="page">
   <header class="ph">
     <div>
-      <div class="crumb">CRM › Fidelidade</div>
-      <h1>Fidelidade</h1>
-      <p class="sub">Cashback que volta como saldo do cliente no caixa, e os clientes agrupados por recência, frequência e valor.</p>
+      <div class="crumb">CRM › Segmentos</div>
+      <h1>Segmentos de clientes</h1>
+      <p class="sub">Clientes agrupados por recência, frequência e valor. Os pontos de fidelidade ficam em Configurações › Empresa, e o resgate no caixa.</p>
     </div>
     <span class="flag">Protótipo · dados de exemplo · empresa fictícia</span>
   </header>
-
-  <section class="kpis" aria-label="Resumo do cashback">
-    <div class="kpi"><span class="lb">Cashback a usar</span><span class="v num">R$ 3.418,40</span><span class="ft">212 clientes com saldo de cashback</span></div>
-    <div class="kpi"><span class="lb">Vence em 30 dias</span><span class="v num">R$ 486,10</span><span class="ft">38 créditos</span></div>
-    <div class="kpi"><span class="lb">Gerado no mês</span><span class="v num">R$ 1.102,75</span><span class="ft">231 vendas pagas</span></div>
-    <div class="kpi"><span class="lb">Usado no caixa no mês</span><span class="v num">R$ 744,30</span><span class="ft">pago com Adiantamento</span></div>
-  </section>
-
-  <div class="grid2">
-    <section class="panel" aria-labelledby="t-regra">
-      <div class="hd"><h2 id="t-regra">Regra do cashback</h2></div>
-      <form class="bd" id="regra" onsubmit="event.preventDefault()">
-        <div class="toggle">
-          <span>Cashback ligado</span>
-          <button type="button" class="sw" id="ativo" role="switch" aria-checked="true" aria-label="Cashback ligado"></button>
-        </div>
-        <div class="field">
-          <label for="pct">Percentual da venda</label>
-          <div class="row"><input type="text" id="pct" class="num" value="5,00" inputmode="decimal"><span>%</span></div>
-        </div>
-        <div class="field">
-          <label for="min">Valor mínimo da venda</label>
-          <div class="row"><span>R$</span><input type="text" id="min" class="num" value="50,00" inputmode="decimal"></div>
-        </div>
-        <div class="field">
-          <label for="val">Validade do crédito</label>
-          <div class="row"><input type="text" id="val" class="num" value="90" inputmode="numeric"><span>dias</span></div>
-        </div>
-        <div class="exemplo" aria-live="polite">
-          <div class="l"><span>Venda paga de</span><span class="num">R$ 200,00</span></div>
-          <div class="l"><span>Pago com Adiantamento</span><span class="num">− R$ 50,00</span></div>
-          <div class="l"><strong>Cliente ganha</strong><strong class="num" id="ganha">R$ 7,50</strong></div>
-        </div>
-        <p class="hint">O crédito entra no saldo de Adiantamento do cliente e é usado no caixa como forma de pagamento. A parte paga com Adiantamento não gera cashback. O Cliente padrão não recebe.</p>
-        <button type="submit" class="btn primary">Salvar regra</button>
-      </form>
-    </section>
-
-    <section class="panel" aria-labelledby="t-cred">
-      <div class="hd"><h2 id="t-cred">Créditos recentes</h2><button type="button" class="btn">Ver extrato completo</button></div>
-      <div class="tw">
-        <table>
-          <thead><tr><th>Cliente</th><th>Venda</th><th class="r">Base</th><th class="r">Crédito</th><th>Vence em</th><th>Situação</th></tr></thead>
-          <tbody>
-            <tr><td>Marina Costa</td><td class="num">#4812</td><td class="r num">R$ 320,00</td><td class="r num">R$ 16,00</td><td class="num">25/01/2027</td><td><span class="pill p-ativo">Ativo</span></td></tr>
-            <tr><td>Gráfica Ponto Azul</td><td class="num">#4809</td><td class="r num">R$ 1.240,00</td><td class="r num">R$ 62,00</td><td class="num">25/01/2027</td><td><span class="pill p-ativo">Ativo</span></td></tr>
-            <tr><td>Rafael Nunes</td><td class="num">#4790</td><td class="r num">R$ 150,00</td><td class="r num">R$ 7,50</td><td class="num">22/01/2027</td><td><span class="pill p-usado">Usado</span></td></tr>
-            <tr><td>Clara Dias</td><td class="num">#4511</td><td class="r num">R$ 98,40</td><td class="r num">R$ 4,92</td><td class="num">05/11/2026</td><td><span class="pill p-vence">Vence em 9 dias</span></td></tr>
-            <tr><td>João Prado</td><td class="num">#4102</td><td class="r num">R$ 260,00</td><td class="r num">R$ 13,00</td><td class="num">12/10/2026</td><td><span class="pill p-venc">Vencido</span></td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-  </div>
 
   <section class="panel" aria-labelledby="t-rfm">
     <div class="hd">
@@ -198,28 +148,19 @@ const total = SEGS.reduce((s, x) => s + x[3], 0);
 let atual = 'em_risco';
 function render() {
   document.getElementById('segs').innerHTML = SEGS.map(([k, n, d, q]) =>
-    `<button type="button" class="seg" aria-pressed="${k === atual}" data-k="${k}"><span>${n}</span><span class="n num">${q}</span>` +
-    `<span class="bar"><i style="width:${(q / total * 100).toFixed(1)}%"></i></span><span class="d">${d}</span></button>`).join('');
+    \`<button type="button" class="seg" aria-pressed="\${k === atual}" data-k="\${k}"><span>\${n}</span><span class="n num">\${q}</span>\` +
+    \`<span class="bar"><i style="width:\${(q / total * 100).toFixed(1)}%"></i></span><span class="d">\${d}</span></button>\`).join('');
   const rows = CLIENTES[atual] || CLIENTES.em_risco;
   document.getElementById('lista').innerHTML = rows.map(([c, r, f, m, notas]) =>
-    `<tr><td>${c}</td><td class="r num">há ${r} dias</td><td class="r num">${f}</td><td class="r num">R$ ${m}</td>` +
-    `<td><span class="notas">${notas.map(v => `<b class="${v >= 4 ? 'hi' : ''}">${v}</b>`).join('')}</span></td></tr>`).join('');
+    \`<tr><td>\${c}</td><td class="r num">há \${r} dias</td><td class="r num">\${f}</td><td class="r num">R$ \${m}</td>\` +
+    \`<td><span class="notas">\${notas.map(v => \`<b class="\${v >= 4 ? 'hi' : ''}">\${v}</b>\`).join('')}</span></td></tr>\`).join('');
   const seg = SEGS.find(s => s[0] === atual);
-  document.getElementById('campanha').textContent = `Criar campanha para ${seg[1]}`;
-  document.getElementById('rodape').textContent = `${seg[3]} clientes em ${seg[1]} · ${total} clientes com compra`;
+  document.getElementById('campanha').textContent = \`Criar campanha para \${seg[1]}\`;
+  document.getElementById('rodape').textContent = \`\${seg[3]} clientes em \${seg[1]} · \${total} clientes com compra\`;
 }
 document.getElementById('segs').addEventListener('click', e => {
   const b = e.target.closest('.seg'); if (b) { atual = b.dataset.k; render(); }
 });
-document.getElementById('ativo').addEventListener('click', e => {
-  const b = e.currentTarget; b.setAttribute('aria-checked', b.getAttribute('aria-checked') === 'true' ? 'false' : 'true');
-});
-function brl(n) { return n.toFixed(2).replace('.', ','); }
-function num(id) { return parseFloat(document.getElementById(id).value.replace(/\./g, '').replace(',', '.')) || 0; }
-document.getElementById('regra').addEventListener('input', () => {
-  const base = 150, pct = num('pct'), min = num('min');
-  const v = base >= min ? Math.round(base * pct) / 100 : 0;
-  document.getElementById('ganha').textContent = v > 0 ? `R$ ${brl(v)}` : 'abaixo do mínimo';
-});
 render();
 </script>
+`;

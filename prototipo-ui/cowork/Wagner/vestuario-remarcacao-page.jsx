@@ -1,4 +1,8 @@
-<!doctype html>
+// vestuario-remarcacao-page.jsx — Remarcação por coleção. Protótipo de 27/10/2026 (PR #10008), fonte desta tela no shell.
+// O HTML da tela vai literal abaixo; o prototipo-html-page.jsx o monta numa shadow root (CSS isolado,
+// tema do shell, scripts e onclick funcionando). Para editar: é HTML comum, mas dentro deste texto
+// crase, ${ e barra invertida vão com barra na frente (\`  \${  \\).
+(window.PROTO_HTML = window.PROTO_HTML || {})["vest-remarcacao"] = `<!doctype html>
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
@@ -102,11 +106,12 @@ function modo(x){m=x;document.getElementById('b-pct').setAttribute('aria-pressed
 document.getElementById('l-valor').textContent=x==='pct'?'Percentual (negativo baixa)':'Novo preço (R$)';document.getElementById('valor').value=x==='pct'?'-30':'39,90'}
 function calc(){const v=parseFloat(document.getElementById('valor').value.replace(',','.'))||0;
 return PECAS.map(([p,va,s,a])=>{const d=m==='pct'?Math.round(a*(1+v/100)*100)/100:Math.round(v*100)/100;return{p,va,s,a,d}})}
-function previa(){const r=calc();document.getElementById('linhas').innerHTML=r.map(x=>`<tr><td>${x.p}</td><td>${x.va}</td><td>${x.s}</td><td class="n antes">${brl(x.a)}</td><td class="n depois">${brl(x.d)}</td><td class="n ${x.d<x.a?'down':'up'}">${brl(x.d-x.a)}</td></tr>`).join('');
-document.getElementById('c-qtd').textContent=`${r.length} variações mudam de preço`;document.getElementById('conf-txt').textContent=`${r.length} variações vão mudar de preço.`;document.getElementById('previa').hidden=false}
+function previa(){const r=calc();document.getElementById('linhas').innerHTML=r.map(x=>\`<tr><td>\${x.p}</td><td>\${x.va}</td><td>\${x.s}</td><td class="n antes">\${brl(x.a)}</td><td class="n depois">\${brl(x.d)}</td><td class="n \${x.d<x.a?'down':'up'}">\${brl(x.d-x.a)}</td></tr>\`).join('');
+document.getElementById('c-qtd').textContent=\`\${r.length} variações mudam de preço\`;document.getElementById('conf-txt').textContent=\`\${r.length} variações vão mudar de preço.\`;document.getElementById('previa').hidden=false}
 function gravar(){document.getElementById('conf').close();const n=calc().length;document.getElementById('previa').hidden=true;
-document.getElementById('feito').hidden=false;document.getElementById('feito-txt').textContent=`${n} variações remarcadas.`;
-document.getElementById('hist').insertAdjacentHTML('afterbegin',`<tr><td>27/10/2026 10:05</td><td>${document.getElementById('nome').value}</td><td>${m==='pct'?document.getElementById('valor').value+'%':'R$ '+document.getElementById('valor').value}</td><td class="n">${n}</td><td><span class="status ap">aplicada</span></td><td><button class="btn" onclick="alert('Reverter: devolve o preço de antes; peça mexida depois fica como está')">Reverter</button></td></tr>`)}
+document.getElementById('feito').hidden=false;document.getElementById('feito-txt').textContent=\`\${n} variações remarcadas.\`;
+document.getElementById('hist').insertAdjacentHTML('afterbegin',\`<tr><td>27/10/2026 10:05</td><td>\${document.getElementById('nome').value}</td><td>\${m==='pct'?document.getElementById('valor').value+'%':'R$ '+document.getElementById('valor').value}</td><td class="n">\${n}</td><td><span class="status ap">aplicada</span></td><td><button class="btn" onclick="alert('Reverter: devolve o preço de antes; peça mexida depois fica como está')">Reverter</button></td></tr>\`)}
 </script>
 </body>
 </html>
+`;
