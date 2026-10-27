@@ -153,6 +153,8 @@ class RecurringBillingServiceProvider extends ServiceProvider
                 \Modules\RecurringBilling\Console\Commands\BackfillGatewayCommand::class,
                 // US-RB-021 — cobrança automática por Pix Automático BCB (default desligado).
                 \Modules\RecurringBilling\Console\Commands\CobrarPixAutomaticoCommand::class,
+                // US-RB-013 — cobrança no cartão salvo com nova tentativa na recusa leve (default desligado).
+                \Modules\RecurringBilling\Console\Commands\CobrarCartaoCommand::class,
             ]);
         }
     }
@@ -185,6 +187,15 @@ class RecurringBillingServiceProvider extends ServiceProvider
                 ->dailyAt('06:00')
                 ->timezone('America/Sao_Paulo')
                 ->when(fn () => (bool) config('recurringbilling.cobrar_pix_automatico', false))
+                ->withoutOverlapping()
+                ->environments(['live']);
+
+            // US-RB-013 — cartão recorrente (decisão [W] 2026-10-27): cobra no cartão salvo e tenta de
+            // novo na recusa leve, às 10:00 (regra fixa do MVP). Só roda com a flag ligada.
+            $schedule->command('rb:cobrar-cartao')
+                ->dailyAt('10:00')
+                ->timezone('America/Sao_Paulo')
+                ->when(fn () => (bool) config('recurringbilling.cobrar_cartao', false))
                 ->withoutOverlapping()
                 ->environments(['live']);
         });

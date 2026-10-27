@@ -13,4 +13,12 @@ return [
     // US-RB-011 (reaberta [W] 2026-10-27): fatura paga no cartão guarda o TOKEN do cartão (nunca o
     // número) e liga à assinatura. Default OFF; não mexe em valor.
     'salvar_cartao' => env('RB_SALVAR_CARTAO', false),
+    // US-RB-013: cobra a fatura no cartão salvo e tenta de novo na recusa leve. Default OFF — ligar é
+    // decisão [W] (cobra o cliente). Intervalos em dias entre tentativas; o limite é 1 + intervalos.
+    'cobrar_cartao' => env('RB_COBRAR_CARTAO', false),
+    'cartao_retry_dias' => env('RB_CARTAO_RETRY_DIAS', '1,3,7'),
+    // Termos da mensagem de recusa do gateway que tornam a recusa DEFINITIVA (não tenta de novo e
+    // avisa o cliente). Qualquer outra recusa é leve e entra na nova tentativa.
+    'cartao_recusa_definitiva' => ['vencido', 'expirado', 'cancelado', 'bloqueado', 'roubado', 'perdido',
+        'fraude', 'inexistente', 'inválido', 'invalido', 'restrito'],
 ];

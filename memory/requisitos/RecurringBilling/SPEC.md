@@ -218,7 +218,7 @@ status: ativo
 > **Área:** SmartRetries
 > **Service:** `SmartRetryScheduler::schedule()`
 
-**Implementado em:** _pendente_ — `SmartRetryScheduler` não existe; a tabela `rb_charge_attempts` já tem enum soft_decline/hard_decline, mas não há agendador de retry `[1d,3d,7d]` nem limite de 3 tentativas
+**Implementado em:** _pendente_ — parcial em 2026-10-27: `rb:cobrar-cartao` (10:00 SP, flag `RB_COBRAR_CARTAO` desligada) cobra no cartão salvo a fatura vencida e grava cada tentativa em `rb_charge_attempts`; recusa leve tenta de novo depois de `RB_CARTAO_RETRY_DIAS` (padrão 1, 3, 7 → até 4 tentativas), recusa definitiva para e avisa o cliente pelo WhatsApp — `Modules/RecurringBilling/Services/CobradorCartaoRecorrente.php` · `Modules/RecurringBilling/Console/Commands/CobrarCartaoCommand.php` · `Modules/RecurringBilling/Tests/Feature/CobrarCartaoContratoTest.php` (UC-RBCC-05..10). Falta: cancelar a nova tentativa pela tela (Larissa) e o `InvoiceFailed` para a régua de cobrança.
 
 **Como** Sistema (após charge attempt com soft decline)
 **Quero** agendar retentativa em horário ótimo (ML futuro; regra fixa MVP)

@@ -323,6 +323,40 @@ Status: 🧪
 cartão salvo e a assinatura do 99 intocada.
 Status: 🧪
 
+## Cartão recorrente — cobrança e nova tentativa (US-RB-013 · reaberta por [W] 2026-10-27)
+
+> Motor sem tela: `rb:cobrar-cartao` (10:00, só com `RB_COBRAR_CARTAO=true`) cobra no cartão salvo as
+> faturas vencidas das assinaturas desta tela. Recusa leve tenta de novo depois de `RB_CARTAO_RETRY_DIAS`
+> (padrão 1, 3, 7 dias → até 4 tentativas); recusa definitiva para e avisa o cliente. Cada tentativa fica
+> em `rb_charge_attempts` com o motivo. Fonte: SPEC US-RB-013. Teste:
+> [`CobrarCartaoContratoTest`](../../../../Modules/RecurringBilling/Tests/Feature/CobrarCartaoContratoTest.php).
+
+## UC-RBCC-05 · Fatura vencida é cobrada no cartão salvo, pelo valor dela · `must` `[V0]`
+**Dado** uma fatura de 89,90 vencida de assinatura com cartão salvo **Quando** o motor roda **Então** nasce a
+tentativa 1 `succeeded` com 8.990 centavos, a cobrança `card` de 8.990 e o Asaas recebe `value = 89.9` com o
+token — os três batem. Rodar de novo não cria outra tentativa.
+Status: 🧪
+
+## UC-RBCC-06 · Recusa leve espera o intervalo e tenta de novo, até o limite · `must` `[V0]`
+**Dado** recusa leve **Então** a tentativa fica `soft_decline` com o motivo, a cobrança vira `erro`, no mesmo dia
+a fatura fica `aguardando`, e depois de 1, 3 e 7 dias saem as tentativas 2, 3 e 4. A 5ª não sai (`tentativas_esgotadas`).
+Status: 🧪
+
+## UC-RBCC-07 · Recusa definitiva não tenta de novo e avisa o cliente · `must`
+**Dado** recusa com "cartão vencido" **Então** a tentativa fica `hard_decline`, nenhuma outra sai e o cliente recebe
+um aviso pelo WhatsApp citando o final do cartão.
+Status: 🧪
+
+## UC-RBCC-08 · Os intervalos são configuráveis · `must`
+**Dado** `RB_CARTAO_RETRY_DIAS=2` **Então** a nova tentativa espera 2 dias e o limite cai para 2 tentativas.
+Status: 🧪
+
+## UC-RBCC-09 · `--dry-run` não grava nem chama o gateway; flag desligada não cobra · `must` `[V0]`
+Status: 🧪
+
+## UC-RBCC-10 · A rodada de um business não cobra a fatura do outro · `must` `[T0]`
+Status: 🧪
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = **órfão** = viola o `casos-gate` e **bloqueia o

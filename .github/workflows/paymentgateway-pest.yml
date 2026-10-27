@@ -127,7 +127,8 @@ jobs:
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-paymentgateway-junit.xml \
             tests/Feature/PaymentGateway/ \
-            Modules/RecurringBilling/Tests/Feature/CartaoSalvoContratoTest.php
+            Modules/RecurringBilling/Tests/Feature/CartaoSalvoContratoTest.php \
+            Modules/RecurringBilling/Tests/Feature/CobrarCartaoContratoTest.php
 
       # A régua honesta é `assertions`, NÃO "0 failed": skip sai exit 0 (LC-13).
       - name: Sumário JUnit por arquivo (assertions — a régua contra skip-as-pass)
