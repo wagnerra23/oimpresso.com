@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **1059 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **1060 tarefas abertas** em **59 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -62,11 +62,11 @@
 | [`AssetManagement`](#assetmanagement) | 2 | 0 | 0 | 0 | 2 |
 | [`Documentacao`](#documentacao) | 2 | 0 | 0 | 0 | 2 |
 | [`MemoriaAutonoma`](#memoriaautonoma) | 2 | 0 | 0 | 0 | 2 |
+| [`Relatorios`](#relatorios) | 2 | 1 | 0 | 0 | 1 |
 | [`Admin`](#admin) | 1 | 0 | 0 | 0 | 1 |
 | [`Auditoria`](#auditoria) | 1 | 0 | 0 | 0 | 1 |
 | [`Backup`](#backup) | 1 | 0 | 0 | 0 | 1 |
 | [`Mcp`](#mcp) | 1 | 0 | 0 | 0 | 1 |
-| [`Relatorios`](#relatorios) | 1 | 0 | 0 | 0 | 1 |
 
 
 ## Jana
@@ -1495,6 +1495,17 @@
 - **US-MEMORIAAUTONOMA-001** — MEM-MIGRACAO Auto-mem → git/MCP (22 candidatos pós-consolidação 2026-05-10) _(`p2` · @wagner)_
 - **US-MEMORIAAUTONOMA-002** — MEM-VERIFICAR 8 pendências stale detectadas pós-consolidação 2026-05-10 _(`p3` · @wagner)_
 
+## Relatorios
+
+
+### doing
+
+- **US-REL-002** — Os relatórios prontos do núcleo abrem em React pelo menu _(`p2` · @wagner)_
+
+### todo
+
+- **US-REL-001** — Relatório montável pelo usuário, salvo e enviado por agenda _(`p2`)_
+
 ## Admin
 
 
@@ -1522,10 +1533,3 @@
 ### todo
 
 - **US-MCP-017** — Tool `module-state <modulo>` (CQRS projection per bounded context) _(`p1` · @wagner)_
-
-## Relatorios
-
-
-### todo
-
-- **US-REL-001** — Relatório montável pelo usuário, salvo e enviado por agenda _(`p2`)_
