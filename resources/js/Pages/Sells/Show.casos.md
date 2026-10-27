@@ -300,29 +300,39 @@ last_run: "2026-10-21"
 > 2 × 50,00 (as duas da categoria C), linha D 1 × 80,00 sem categoria.
 
 ## UC-COMR-01 · A regra mais específica vale por linha `[V0]` `[must]`
-- **Aceite:** Dado regra geral do vendedor 2%, da categoria C 5% e do produto A só daquele vendedor 10% · Então a linha A paga 30,00 (produto), a B 5,00 (categoria), a D 1,60 (geral) e o vendedor soma 36,60.
+- **Persona:** gerente que fecha a comissão do mês.
+- **Aceite:** Dado regra geral do vendedor 2%, da categoria C 5% e do produto A só daquele vendedor 10% · Quando a comissão da venda é calculada · Então a linha A paga 30,00 (produto), a B 5,00 (categoria), a D 1,60 (geral) e o vendedor soma 36,60.
 - **Teste:** `tests/Feature/Sells/ComissaoPorRegraContratoTest.php` — `UC-COMR-01`.
-- **Status: 🧪** — roda na lane `sells-pest`.
+- **Regressão que defende:** duas regras somando na mesma linha, ou a geral vencendo a do produto.
+- **Status: ⬜** — não verificado; aguarda o run da lane `sells-pest`.
 
 ## UC-COMR-02 · O técnico da OS ganha pela regra do papel técnico `[V0]` `[must]`
-- **Aceite:** Dado a venda faturada de uma OS cujo técnico é T e a regra do papel técnico de R$ 4,50 por unidade do produto A · Então T recebe 13,50, as regras do vendedor não valem para ele e a venda soma 50,10.
+- **Persona:** gerente que fecha a comissão do mês.
+- **Aceite:** Dado a venda faturada de uma OS cujo técnico é T e a regra do papel técnico de 4,50 por unidade do produto A · Quando a comissão é calculada · Então T recebe 13,50, as regras do vendedor não valem para ele e a venda soma 50,10.
 - **Teste:** `tests/Feature/Sells/ComissaoPorRegraContratoTest.php` — `UC-COMR-02`.
-- **Status: 🧪** — roda na lane `sells-pest`.
+- **Regressão que defende:** o técnico herdando a regra do vendedor, ou ficando de fora da venda que veio da OS.
+- **Status: ⬜** — não verificado; aguarda o run da lane `sells-pest`.
 
 ## UC-COMR-03 · A quantidade devolvida sai da comissão `[V0]` `[must]`
-- **Aceite:** Dado 1 unidade da linha A devolvida · Então a linha A paga 20,00 ao vendedor e o técnico recebe 9,00.
+- **Persona:** gerente que fecha a comissão do mês.
+- **Aceite:** Dado 1 unidade da linha A devolvida · Quando a comissão é calculada · Então a linha A paga 20,00 ao vendedor e o técnico recebe 9,00.
 - **Teste:** `tests/Feature/Sells/ComissaoPorRegraContratoTest.php` — `UC-COMR-03`.
-- **Status: 🧪** — roda na lane `sells-pest`.
+- **Regressão que defende:** pagar comissão sobre mercadoria que voltou.
+- **Status: ⬜** — não verificado; aguarda o run da lane `sells-pest`.
 
 ## UC-COMR-04 · Com a flag desligada nada muda `[must]`
-- **Aceite:** Dado a flag desligada (padrão) · Então a rota responde 404.
+- **Persona:** cliente que ainda não ligou a comissão por regra.
+- **Aceite:** Dado a flag desligada (padrão) · Quando alguém pede a comissão por regra · Então a rota responde 404.
 - **Teste:** `tests/Feature/Sells/ComissaoPorRegraContratoTest.php` — `UC-COMR-04`.
-- **Status: 🧪** — roda na lane `sells-pest`.
+- **Regressão que defende:** o cálculo novo aparecer para quem não ligou.
+- **Status: ⬜** — não verificado; aguarda o run da lane `sells-pest`.
 
 ## UC-COMR-05 · Regra e venda de outra empresa não entram `[T0]` `[must]`
-- **Aceite:** Dado uma regra de 50% em outra empresa · Então a venda continua somando 50,10; e quem é de outra empresa recebe 404 ao pedir a comissão desta venda.
+- **Persona:** gerente de uma empresa (tenant 98), com outra empresa como adversária.
+- **Aceite:** Dado uma regra de 50% em outra empresa · Quando a comissão da venda é calculada · Então a venda continua somando 50,10; e quem é de outra empresa recebe 404 ao pedir a comissão desta venda.
 - **Teste:** `tests/Feature/Sells/ComissaoPorRegraContratoTest.php` — `UC-COMR-05`.
-- **Status: 🧪** — roda na lane `sells-pest`.
+- **Regressão que defende:** vazamento de regra ou de venda entre empresas.
+- **Status: ⬜** — não verificado; aguarda o run da lane `sells-pest`.
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
