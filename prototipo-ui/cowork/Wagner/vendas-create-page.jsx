@@ -83,6 +83,9 @@ function VendasCreatePage({ onDone }) {
   const [payment, setPayment] = useStV("pix");
   const [installments, setInstallments] = useStV(1);
   const [discountCents, setDiscountCents] = useStV(0);
+  // US-SELL-079 — resgate de pontos de fidelidade (exemplo: cliente com 120 pontos, ponto vale R$ 0,10).
+  const PONTOS_DISP = 120, PONTO_CENTS = 10;
+  const [pontos, setPontos] = useStV(0);
   const [fiscalManual, setFiscalManual] = useStV(null);
 
   const [active, setActive] = useStV("dados");
@@ -144,7 +147,8 @@ function VendasCreatePage({ onDone }) {
   const aprovadoCents = useMemoV(() => aprItems.reduce((s, it) => s + lineCents(it), 0), [items]);
   const efFreteCents = freteModo === "entrega" ? freteCents : 0;
   const baseCents = isOfc ? aprovadoCents : produtosCents;
-  const totalCents = Math.max(0, baseCents + efFreteCents - discountCents);
+  const resgateCents = pontos * PONTO_CENTS;
+  const totalCents = Math.max(0, baseCents + efFreteCents - discountCents - resgateCents);
   const itemCount = items.reduce((s, it) => s + (parseInt(it.qty) || 0), 0);
   const pendentes = items.length - aprItems.length;
 
@@ -422,6 +426,8 @@ function VendasCreatePage({ onDone }) {
           {isOfc && pendentes > 0 && <div className="m"><span className="k">Pendente</span><span className="v" style={{ color: "var(--warn-fg)" }}>{centsToBRL(produtosCents - aprovadoCents)}</span></div>}
           {efFreteCents > 0 && <div className="m"><span className="k">Frete</span><span className="v">{centsToBRL(efFreteCents)}</span></div>}
           <div className="m desc-in"><span className="k">Desconto</span><input inputMode="numeric" value={centsToNum(discountCents)} onChange={e => setDiscountCents(parseCents(e.target.value))}/></div>
+          <div className="m desc-in" title={`Disponível: ${PONTOS_DISP} pontos · cada um vale R$ 0,10`}><span className="k">Pontos</span><input inputMode="numeric" aria-label="Pontos a resgatar" value={pontos || ""} onChange={e => setPontos(Math.min(PONTOS_DISP, Math.max(0, parseInt(e.target.value) || 0)))}/></div>
+          {resgateCents > 0 && <div className="m"><span className="k">Resgate</span><span className="v">− {centsToBRL(resgateCents)}</span></div>}
           <span style={{ width: 1, height: 28, background: "var(--border)", flex: "0 0 auto" }}></span>
           <div className="m"><span className="k">Total</span><span className="v grand">{centsToBRL(totalCents)}</span></div>
           {!canSave && <span className="badge warn">adicione 1 item</span>}
