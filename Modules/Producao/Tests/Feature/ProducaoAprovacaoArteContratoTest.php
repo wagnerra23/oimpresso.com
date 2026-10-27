@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PCART-01..06 e UC-PCV-11 (Producao/Apontamento/Index.casos.md) — UC-FLX-02 do catálogo de fluxos
+// Cobre UC-PCART-01..07 e UC-PCV-11 (Producao/Apontamento/Index.casos.md) — UC-FLX-02 do catálogo de fluxos
 // e a trava da arte da thread 10 do playbook de Produção.
 
 use App\Utils\ModuleUtil;
@@ -300,4 +300,55 @@ it('UC-PCART-06 · venda de outra empresa ou sem cliente não manda nada e pede 
 
     expect($r->json('whatsapp'))->toBe(['enviado' => false, 'motivo' => 'sem_cliente'])->and($duble->chamadas)->toBe([])
         ->and(AprovacaoArte::withoutGlobalScopes()->find($r->json('id')))->not->toBeNull();
+});
+
+// ── UC-PCART-07 · fila do Painel: reenviar o link ou enviar a nova prova (Painel/Index.casos.md) ──
+
+function artReenvia($t, array $corpo = [])
+{
+    $t->partialMock(ModuleUtil::class, fn ($m) => $m->shouldReceive('hasThePermissionInSubscription')
+        ->andReturnUsing(fn ($b, $perm) => $perm === 'producao_module'));
+
+    return $t->actingAs($t->designer)->postJson("/producao/ordens/{$t->ordem->id}/aprovacao-arte/reenviar", $corpo);
+}
+
+it('UC-PCART-07 · aguardando o cliente: reenviar gera link novo para a mesma prova e o anterior deixa de valer', function () {
+    $r = artReenvia($this)->assertCreated();
+
+    expect($r->json('link'))->not->toContain($this->link['token']);
+    $this->get($this->url)->assertStatus(410);
+    $this->get(parse_url($r->json('link'), PHP_URL_PATH))->assertOk()->assertSee('prova-banner.png');
+    $s = app(\Modules\Producao\Services\ArteDasOrdens::class)->travadas($this->b98, [$this->ordem->id]);
+    expect($s[$this->ordem->id]['estado'])->toBe('aguardando')->and(AprovacaoArte::withoutGlobalScopes()
+        ->where('ordem_id', $this->ordem->id)->count())->toBe(2);
+});
+
+it('UC-PCART-07 · ajuste pedido: exige o arquivo novo; com ele, sai link novo e a OS volta a aguardar', function () {
+    $this->post($this->url.'/recusar', ['comentario' => 'Trocar o telefone'])->assertOk();
+
+    artReenvia($this)->assertStatus(422)->assertJsonPath('codigo', ApontamentoRecusado::APROVACAO_ENCERRADA);
+    artReenvia($this, ['arquivo' => 'https://arquivos.exemplo.test/prova-banner.png'])->assertStatus(422);
+    expect(AprovacaoArte::withoutGlobalScopes()->where('ordem_id', $this->ordem->id)->count())->toBe(1);
+
+    $r = artReenvia($this, ['arquivo' => 'https://arquivos.exemplo.test/prova-banner-v2.png'])->assertCreated();
+    $this->get(parse_url($r->json('link'), PHP_URL_PATH))->assertOk()->assertSee('prova-banner-v2.png');
+    $s = app(\Modules\Producao\Services\ArteDasOrdens::class)->travadas($this->b98, [$this->ordem->id]);
+    expect($s[$this->ordem->id]['estado'])->toBe('aguardando')->and($s[$this->ordem->id]['arquivo'])->toContain('v2');
+});
+
+it('UC-PCART-07 · arte aprovada não reenvia (422) e nada é gravado', function () {
+    $this->post($this->url.'/aprovar')->assertOk();
+
+    artReenvia($this)->assertStatus(422);
+    expect(AprovacaoArte::withoutGlobalScopes()->where('ordem_id', $this->ordem->id)->count())->toBe(1);
+});
+
+it('UC-PCART-07 · OS de outra empresa não reenvia (404) e o link da 98 segue valendo', function () {
+    $alheio = $this->usuarioComPermissoes(['producao.access'], $this->B99);
+    $this->partialMock(ModuleUtil::class, fn ($m) => $m->shouldReceive('hasThePermissionInSubscription')
+        ->andReturnUsing(fn ($b, $perm) => $perm === 'producao_module'));
+
+    $this->actingAs($alheio)->postJson("/producao/ordens/{$this->ordem->id}/aprovacao-arte/reenviar", [])->assertNotFound();
+    expect(AprovacaoArte::withoutGlobalScopes()->where('ordem_id', $this->ordem->id)->count())->toBe(1);
+    $this->get($this->url)->assertOk();
 });

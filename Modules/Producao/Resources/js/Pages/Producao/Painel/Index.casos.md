@@ -43,7 +43,21 @@ Status: 🧪
 
 **Dado** OS com arte "aguardando" e "ajuste pedido" **Então** a fila mostra o que o cliente disse e quando, com o
 ajuste primeiro · Vale o pedido mais recente da OS: recusada e depois aprovada não trava · O cartão do Quadro
-leva a mesma situação. Reenviar o link e "Enviar nova prova" ficam para depois (charter, Non-Goals).
+leva a mesma situação. Reenviar o link e "Enviar nova prova" vieram depois (UC-PCART-07).
+
+Status: 🧪
+
+## UC-PCART-07 · Reenviar o link ou enviar a nova prova pela fila · `must`
+
+> Âncora: `Painel` de `prototipo-ui/cowork/Wagner/producao-cv-page.jsx` (botão "Enviar nova prova" no ajuste e
+> "Reenviar link" no aguardando) + `prototipo-ui/producao/painel-enviar-nova-prova.html` (campo do arquivo e
+> resultado). Liberado por [W] em 2026-10-27. Prova: `ProducaoAprovacaoArteContratoTest`.
+
+**Dado** uma arte aguardando o cliente **Quando** clico em "Reenviar link" **Então** sai um link novo para a mesma
+prova e o anterior deixa de valer (410) · **Dado** um ajuste pedido **Quando** envio a nova prova com o link do
+arquivo **Então** sai um link novo com o arquivo novo e a OS volta a "aguardando"; sem arquivo novo, ou com o
+mesmo, é recusado (422) e nada muda · Arte aprovada não reenvia (o caminho é trocar o arquivo) · OS de outra
+empresa: 404. Com o WhatsApp ligado o cliente recebe o link; senão o link aparece para mandar à mão.
 
 Status: 🧪
 

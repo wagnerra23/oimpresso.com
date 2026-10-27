@@ -68,6 +68,21 @@ class AprovacaoArteController extends Controller
         return $this->linkGerado($biz, $id, $r);
     }
 
+    /** UC-PCART-07 · Painel: reenviar o link (aguardando) ou enviar a nova prova (ajuste pedido). */
+    public function reenviar(Request $request, int $id): JsonResponse
+    {
+        $biz = $this->empresaComAcesso($request);
+        $arquivo = $request->validate(['arquivo' => ['nullable', 'url:http,https', 'max:500']])['arquivo'] ?? null;
+
+        try {
+            $r = $this->service->reenviar($biz, $id, $arquivo, $request->user());
+        } catch (ApontamentoRecusado $e) {
+            return response()->json(['codigo' => $e->codigo, 'mensagem' => $e->getMessage()], $e->codigo === ApontamentoRecusado::NAO_ENCONTRADO ? 404 : 422);
+        }
+
+        return $this->linkGerado($biz, $id, $r);
+    }
+
     public function vigente(Request $request, int $id): JsonResponse
     {
         $biz = $this->empresaComAcesso($request);
