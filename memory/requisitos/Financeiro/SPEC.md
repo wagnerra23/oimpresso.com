@@ -176,6 +176,49 @@ owner: wagner
 - [ ] Calcula automaticamente juros de mora se `data_pagamento > vencimento` (config tenant: 0,33% a.d. + 2% multa)
 - [ ] Test Feature: pagamento atrasado calcula juros + multa corretamente
 
+### US-FIN-078 · DDA — boletos contra o CNPJ da empresa viram contas a pagar sugeridas — **P1**
+
+> owner: — · priority: p1 · estimate: 12h · status: doing · type: story
+> blocked_by: fonte do DDA (decisão + credencial [W] — ver BRIEFING §Depende do [W])
+
+**Como** quem cuida do contas a pagar
+**Quero** que os boletos emitidos contra o CNPJ da empresa cheguem sozinhos como contas a pagar sugeridas, já casadas com o fornecedor
+**Para** não digitar boleto nem esquecer conta que o fornecedor registrou
+
+**Implementado em:** _pendente_ — backend pronto (`Modules/Financeiro/Services/DdaService.php`, `Modules/Financeiro/Console/Commands/DdaSyncCommand.php`, teste `Modules/Financeiro/Tests/Feature/DdaContasPagarSugeridasTest.php`); faltam a tela de sugestões e a fonte real
+
+**Origem:** lacuna P1 do levantamento de concorrência de 2026-10-25 (Omie, Conta Azul e Nibo trazem DDA). Em 2026-10-27 a API pública do Inter só cobre emissão/consulta de cobrança, saldo e extrato no código (`InterDriver`, `InterBankingClient`); nenhuma fonte encontrada documenta consulta de DDA no Inter. Por isso a fonte é uma interface (`FonteDda`) sem implementação ligada.
+
+⚠️ **REGRA MESTRE — VALOR**: o boleto vira título a pagar; valor conferido por dois caminhos no teste.
+
+**Aceite:**
+- [x] Boleto da fonte grava sugestão em `fin_dda_boletos`, idempotente por (`business_id`, código de barras), sem criar título.
+- [x] Fornecedor casado pelo CNPJ/CPF do beneficiário (só `supplier`/`both` da própria empresa).
+- [x] Aceitar cria o título a pagar aberto (valor, vencimento, fornecedor, `forma_pagamento=boleto`); descartar encerra sem título; decisão só uma vez.
+- [x] `financeiro:dda-sync` atrás de `FINANCEIRO_DDA_ENABLED` (default `false`), e sai com erro quando falta flag ou fonte.
+- [ ] Tela de sugestões com aceitar/descartar e permissão `financeiro.contas_pagar.create`.
+- [ ] Fonte real ligada (depende do [W]).
+
+### US-FIN-079 · Pagar o título a pagar pelo banco (boleto e Pix), com aprovação e baixa automática — **P1**
+
+> owner: — · priority: p1 · estimate: 16h · status: todo · type: story
+> blocked_by: escopos de pagamento na integração Inter (ação [W] — ver BRIEFING §Depende do [W])
+
+**Como** quem cuida do contas a pagar
+**Quero** pagar o título pelo banco, por boleto ou Pix, a partir do próprio título
+**Para** não redigitar no internet banking e ter a baixa feita quando o banco confirmar
+
+**Implementado em:** _pendente_
+
+⚠️ **REGRA MESTRE — VALOR**: saída de dinheiro. Nunca automático: cada pagamento é aprovado pelo usuário, com permissão própria e trilha de auditoria.
+
+**Aceite:**
+- [ ] Permissão própria `financeiro.contas_pagar.pagar_banco`, separada de registrar baixa.
+- [ ] Cada pagamento exige confirmação explícita do usuário com valor, beneficiário e conta debitada; não há lote nem agendamento automático.
+- [ ] Pedido ao banco idempotente (uma chave por título + tentativa) e registrado em trilha de auditoria (quem, quando, valor, resposta do banco).
+- [ ] Baixa no título só quando o banco confirmar o pagamento (consulta ou webhook), nunca na hora do pedido.
+- [ ] Atrás de flag desligada; teste no tenant 98 com o banco simulado.
+
 ### US-FIN-007 · Visualizar fluxo de caixa projetado
 
 > **Área:** Caixa
@@ -1256,7 +1299,7 @@ Onboarding novo cliente: migra 500+ títulos da planilha legacy num upload. Hoje
 > owner: — · priority: p2 · estimate: 16h · status: todo · type: story
 > blocked_by: —
 
-**Implementado em:** _pendente_
+**Implementado em:** _pendente_ — parcial em 2026-10-27: schema `fin_centros_custo` + `fin_titulo_rateios` e o `RateioService` (soma em centavos inteiros, maior resto no modo %; teste `RateioCentroCustoContratoTest`). Falta o cadastro na tela, o rateio no formulário do título e o filtro da DRE e do fluxo. A âncora vira path quando a US fechar.
 
 **Origem:** lacuna P2 do levantamento de concorrência de 2026-10-25. `fin_titulos` não tem centro de custo nem rateio (o `CusteioRkwService` só custeia posto do PCP).
 
@@ -1297,6 +1340,42 @@ Onboarding novo cliente: migra 500+ títulos da planilha legacy num upload. Hoje
 - [ ] Sem valor de cliente em fixture versionada.
 
 **Depende de:** especificação oficial de cada layout; coordenar com a frente Plataforma para um exportador só.
+
+### US-FIN-081 · Link de pagamento do título a receber (Pix e boleto)
+
+> owner: — · priority: p1 · estimate: 8h · status: review · type: story
+> blocked_by: —
+
+**Implementado em:** `Modules/Financeiro/Services/LinkDePagamentoDoTitulo.php`, `Modules/Financeiro/Http/Controllers/Public/PagamentoPublicoController.php`, `Modules/Financeiro/Listeners/OnCobrancaPagaCreateFinanceiroTitulo.php` (`baixarTituloComLink`), `resources/js/Pages/Financeiro/PagamentoPublico.tsx`, `Modules/Financeiro/Tests/Feature/LinkPagamentoTituloContratoTest.php`
+
+**Origem:** lacuna P1 do levantamento de concorrência de 2026-10-25. O título a receber só tinha o "Gerar boleto" do drawer (Inter, operador logado) e a régua que repete uma cobrança já emitida; o cliente não tinha onde pagar sozinho.
+
+⚠️ **REGRA MESTRE — VALOR**: cobra e baixa título.
+
+**Aceite:**
+- [x] O operador gera o link de um título a receber aberto/parcial (`POST /financeiro/unificado/{id}/link-pagamento`); token de 48 caracteres, só o sha256 no banco, válido 30 dias; gerar outro fecha o anterior.
+- [x] `/pagar/{token}` (sem login) mostra empresa, número, vencimento e o `valor_aberto` gravado; sem documento nem e-mail do cliente; `noindex`, `no-referrer`, throttle 30/min.
+- [x] Pix ou boleto pelo mesmo `PaymentGatewayContract` do drawer, `origem_type = fin_titulo`; cobrança ainda pagável é reaproveitada, não emitida de novo.
+- [x] O webhook dá baixa pelo valor pago: fora da empresa dona do SaaS só para título com link (antes, nenhuma empresa cliente recebia essa baixa).
+- [x] Tudo atrás de `FINANCEIRO_LINK_PAGAMENTO_ENABLED` (desligada: 404 e listener como antes).
+- [ ] Botão no drawer do Unificado para gerar e copiar o link.
+- [ ] Cartão: o contrato do gateway exige token de cartão gerado no navegador; fica para quando o checkout de cartão existir.
+- [ ] Canary com uma empresa antes de ligar para todas (decisão [W]).
+
+### US-FIN-082 · Portal do cliente: títulos em aberto, segunda via, histórico e pagamento
+
+> owner: — · priority: p1 · estimate: 8h · status: todo · type: story
+> blocked_by: US-FIN-081
+
+**Implementado em:** _pendente_
+
+**Origem:** lacuna P1 do levantamento de 2026-10-25. O cliente final não tem onde ver o que deve à empresa.
+
+**Aceite:**
+- [ ] Link assinado por cliente (token, sem conta) mostra só os títulos daquele cliente daquela empresa: em aberto, pagos (histórico) e a segunda via (Pix/boleto já emitidos).
+- [ ] Pagar um título pelo portal usa o mesmo caminho da US-FIN-081.
+- [ ] Token de um cliente não abre outro; o de uma empresa não abre outra; sem dado pessoal na URL; throttle.
+- [ ] Atrás de flag desligada.
 
 ### US-FIN-035 · Repetir lançamento próximo mês + Combobox autocomplete contraparte
 

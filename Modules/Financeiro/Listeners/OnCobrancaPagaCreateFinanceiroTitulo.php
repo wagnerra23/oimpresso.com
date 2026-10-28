@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Modules\Financeiro\Models\ContaBancaria;
 use Modules\Financeiro\Models\Titulo;
 use Modules\Financeiro\Models\TituloBaixa;
+use Modules\Financeiro\Services\LinkDePagamentoDoTitulo;
 use Modules\PaymentGateway\Events\CobrancaPaga;
 use Modules\PaymentGateway\Models\Cobranca;
 
@@ -43,6 +44,10 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
     public function handle(CobrancaPaga $event): void
     {
         if ($event->businessId !== (int) config('app.saas_owner_business_id')) {
+            // US-FIN-081: fora da empresa dona do SaaS, só o título que tem link de pagamento recebe
+            // baixa — e só com a flag ligada. Desligada, nada muda em relação a antes.
+            $this->baixarTituloComLink($event);
+
             return; // Onda 5 dogfooding processa só o business dono (SaaS)
         }
 
@@ -61,7 +66,7 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
         // Unificada) → dá BAIXA nesse título em vez de criar PG-xxx, senão o
         // recebível contaria em DOBRO (título original aberto + PG-xxx quitado).
         if ($cobranca->origem_type === 'fin_titulo' && $cobranca->origem_id) {
-            $this->baixarTituloExistente($event, $cobranca);
+            $this->baixarTituloExistente($event, $cobranca, 1, 1);
 
             return;
         }
@@ -75,7 +80,7 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
             return; // Idempotência — listener já processou
         }
 
-        $contaBancariaId = $this->resolveContaBancaria($cobranca);
+        $contaBancariaId = $this->resolveContaBancaria($cobranca, 1);
 
         DB::transaction(function () use ($event, $cobranca, $contaBancariaId): void {
             $valor = $cobranca->valor_centavos / 100;
@@ -143,15 +148,47 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
     }
 
     /**
+     * US-FIN-081 — baixa fora da empresa dona do SaaS, restrita ao título que tem link de pagamento.
+     *
+     * Só com `financeiro.link_pagamento.enabled`; a cobrança é conferida pelo business_id do evento
+     * e precisa ter nascido do próprio título. O resto é o mesmo caminho da empresa dona.
+     */
+    private function baixarTituloComLink(CobrancaPaga $event): void
+    {
+        if (! LinkDePagamentoDoTitulo::ligado() || $event->origemType !== 'fin_titulo' || ! $event->origemId) {
+            return;
+        }
+        $biz = $event->businessId;
+        // SUPERADMIN: webhook roda sem sessão; a cobrança é lida pelo id E pelo business_id do evento.
+        $cobranca = Cobranca::withoutGlobalScopes()->where('business_id', $biz)->find($event->cobrancaId);
+        if (! $cobranca || $cobranca->origem_type !== 'fin_titulo' || (int) $cobranca->origem_id !== $event->origemId
+            || ! LinkDePagamentoDoTitulo::temLink($biz, $event->origemId)) {
+            return;
+        }
+        // created_by é NOT NULL: a baixa fica em nome de quem gerou o link (senão, o 1º usuário da empresa).
+        $autor = (int) (DB::table('fin_titulo_links_pagamento')->where('business_id', $biz)->where('titulo_id', $event->origemId)
+            ->whereNotNull('created_by')->orderByDesc('id')->value('created_by')
+            ?? DB::table('users')->where('business_id', $biz)->orderBy('id')->value('id'));
+        if ($autor <= 0) {
+            Log::warning('[link-pagamento][financeiro] título não baixado: empresa sem usuário', ['cobranca_id' => $event->cobrancaId]);
+
+            return;
+        }
+
+        $this->baixarTituloExistente($event, $cobranca, $biz, $autor);
+    }
+
+    /**
      * Baixa um título PRÉ-EXISTENTE quando a cobrança nasceu dele (origem_type
      * 'fin_titulo' — botão "Gerar boleto" do drawer). Cria a TituloBaixa e
      * fecha o título, sem criar título novo (evita duplo-recebível).
      *
      * Idempotente via idempotency_key determinístico da TituloBaixa.
      */
-    private function baixarTituloExistente(CobrancaPaga $event, Cobranca $cobranca): void
+    private function baixarTituloExistente(CobrancaPaga $event, Cobranca $cobranca, int $biz, int $autor): void
     {
-        $titulo = Titulo::where('business_id', 1)
+        // SUPERADMIN: listener sem sessão; o business_id vem explícito (dono do SaaS ou o da cobrança).
+        $titulo = Titulo::withoutGlobalScopes()->where('business_id', $biz)
             ->where('id', $cobranca->origem_id)
             ->first();
 
@@ -169,18 +206,19 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
         }
 
         $idemKey = $this->buildIdempotencyKey($event->cobrancaId);
-        if (TituloBaixa::where('business_id', 1)->where('idempotency_key', $idemKey)->exists()) {
+        // SUPERADMIN: idem acima — escopo pelo business_id explícito.
+        if (TituloBaixa::withoutGlobalScopes()->where('business_id', $biz)->where('idempotency_key', $idemKey)->exists()) {
             return; // idempotência — baixa já registrada
         }
 
-        $contaBancariaId = $this->resolveContaBancaria($cobranca);
+        $contaBancariaId = $this->resolveContaBancaria($cobranca, $biz);
         $valorPago = ($cobranca->valor_pago_centavos ?? $cobranca->valor_centavos) / 100;
         $pagaEm = $event->pagaEm;
 
-        DB::transaction(function () use ($titulo, $contaBancariaId, $valorPago, $pagaEm, $event, $cobranca, $idemKey): void {
+        DB::transaction(function () use ($titulo, $contaBancariaId, $valorPago, $pagaEm, $event, $cobranca, $idemKey, $biz, $autor): void {
             if ($contaBancariaId) {
                 TituloBaixa::create([
-                    'business_id'       => 1,
+                    'business_id'       => $biz,
                     'titulo_id'         => $titulo->id,
                     'conta_bancaria_id' => $contaBancariaId,
                     'valor_baixa'       => $valorPago,
@@ -191,7 +229,7 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
                     'meio_pagamento'    => $this->mapMeioPagamento($cobranca->tipo, $cobranca->forma_pagamento),
                     'idempotency_key'   => $idemKey,
                     'observacoes'       => 'Auto-baixa boleto drawer · cobrança #' . $event->cobrancaId,
-                    'created_by'        => 1,
+                    'created_by'        => $autor,
                 ]);
             }
 
@@ -226,7 +264,7 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
      *   2. LEGACY: fin_contas_bancarias.payment_gateway_credential_id (FK reverso)
      *   3. FALLBACK: primeira ContaBancaria ativa em biz=1
      */
-    private function resolveContaBancaria(Cobranca $cobranca): ?int
+    private function resolveContaBancaria(Cobranca $cobranca, int $biz = 1): ?int
     {
         if ($cobranca->payment_gateway_credential_id !== null) {
             // 1. Canon: credencial → conta_bancaria_id (Account UPOS) → fin_contas_bancarias
@@ -237,7 +275,7 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
                 ->value('conta_bancaria_id');
 
             if ($accountId !== null) {
-                $conta = ContaBancaria::where('business_id', 1)
+                $conta = ContaBancaria::where('business_id', $biz)
                     ->where('account_id', $accountId)
                     ->first();
                 if ($conta) {
@@ -246,7 +284,7 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
             }
 
             // 2. Legacy: FK reverso
-            $conta = ContaBancaria::where('business_id', 1)
+            $conta = ContaBancaria::where('business_id', $biz)
                 ->where('payment_gateway_credential_id', $cobranca->payment_gateway_credential_id)
                 ->first();
             if ($conta) {
@@ -255,7 +293,7 @@ final class OnCobrancaPagaCreateFinanceiroTitulo
         }
 
         // 3. Fallback
-        $conta = ContaBancaria::where('business_id', 1)
+        $conta = ContaBancaria::where('business_id', $biz)
             ->where('ativo_para_boleto', true)
             ->first();
 

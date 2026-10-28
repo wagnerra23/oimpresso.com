@@ -26,23 +26,23 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 881,
-    "edges": 1197,
+    "nodes": 882,
+    "edges": 1198,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 148,
-      "component": 492,
-      "api": 90
+      "component": 494,
+      "api": 89
     },
     "by_edge_type": {
       "ownsTable": 97,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 94,
+      "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 492,
+      "hasComponent": 494,
       "dependsOn": 133,
       "delegatesTo": 122,
       "migratesTo": 1,
@@ -1582,14 +1582,6 @@
       ]
     },
     {
-      "id": "api:/post-repair-status",
-      "type": "api",
-      "prefix": "/post-repair-status",
-      "providers": [
-        "Repair"
-      ]
-    },
-    {
       "id": "api:/pricing/*",
       "type": "api",
       "prefix": "/pricing/*",
@@ -2947,6 +2939,20 @@
       "module": "Financeiro",
       "name": "PlanoContaController",
       "desc": "Onda 18 tela /plano-contas dedicada + Fluxo fallback sem conta"
+    },
+    {
+      "id": "component:Financeiro/Public/PagamentoPublicoController",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "Public/PagamentoPublicoController",
+      "desc": "US-FIN-081 página pública /pagar/{token}: cliente paga o título a receber por Pix ou boleto (flag FINANCEIRO_LINK_PAGAMENTO_ENABLED)"
+    },
+    {
+      "id": "component:Financeiro/RateioService",
+      "type": "component",
+      "module": "Financeiro",
+      "name": "RateioService",
+      "desc": "US-FIN-075 rateio do título em centros de custo (fin_centros_custo + fin_titulo_rateios): soma fecha valor_total em centavos inteiros; título sem rateio segue válido"
     },
     {
       "id": "component:Financeiro/ReguaCobrancaJob + comando financeiro:regua-cobranca",
@@ -9541,6 +9547,18 @@
     },
     {
       "from": "module:Financeiro",
+      "to": "component:Financeiro/Public/PagamentoPublicoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "component:Financeiro/RateioService",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Financeiro",
       "to": "component:Financeiro/ReguaCobrancaJob + comando financeiro:regua-cobranca",
       "type": "hasComponent",
       "source": "contains"
@@ -13569,12 +13587,6 @@
       "to": "component:Repair/RepairStatusController",
       "type": "hasComponent",
       "source": "contains"
-    },
-    {
-      "from": "module:Repair",
-      "to": "api:/post-repair-status",
-      "type": "providesApi",
-      "source": "url_prefixes"
     },
     {
       "from": "module:Repair",
