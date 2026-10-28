@@ -5,9 +5,11 @@ irmaos: Create.charter.md (lei) · Create.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o contrato da grade (1 célula = 1 variation_id, 1 POST único) e o ownership das variations são duráveis — não mudam quando a tela ganhar campo novo.
 owner: wagner
-last_run: "2026-10-26"
+last_run: "2026-10-27"
 last_run_ci: "✅ 2026-09-05: os 10 arquivos de tests/Feature/Purchase/ entraram na allowlist do purchase-pest.yml (#6824/#6827/#6841). Medido em origin/main b863647741: 0 orfaos no diretorio e uc-lane-coverage --check EXIT=0. Os 7 UC desta tela tem lane; 3 com defesa de COMPORTAMENTO (PurchaseGradeMatrixTest, que emite request e cujo bloco cross-tenant hoje roda em MySQL real) e 4 ESTRUTURAL (Wave2Create*, presence-gate LC-11). Nao restatear a mao: rode scripts/qa/uc-lane-coverage.mjs. ⚠ O TEXTO A SEGUIR ESTA SUPERADO e fica como fato datado - os dois numeros dele ja nasciam falsos (a pasta tem 10 arquivos, nao 8; e 4 ja rodavam quando foi escrito): 🔴 A DIVIDA CONTINUA ABERTA — NENHUM teste de tests/Feature/Purchase/ roda em lane alguma (8 arquivos orfaos de CI); o uc-lane-coverage reprova estes UC por isso e esta certo. Ver §Divida de prova. O bump de 2026-09-04 -> 2026-09-05 NAO paga essa divida e nao afirma execucao: ele registra a REVISAO exigida pelo G-6 depois que o .tsx foi tocado. O que foi revisado, e verificavel: o diff contra 153a65b558 (commit que criou este arquivo) e exatamente 5 atributos `data-contract` em <Card>, zero mudanca de logica/props/copy; e nenhum dos 7 UC depende de atributo/DOM/seletor (grep por data-contract|atributo|DOM|seletor|className neste arquivo: rc=1, zero hits) — os 7 sao de backend/tenant/dado. TENTATIVA DE PROVA REAL, e por que ela NAO vale como recibo: rodei tests/Feature/Purchase/ no CT 100 (90 passed, 6 failed, 6 skipped, 214 assertions), mas o checkout do container esta em c1abe9548f (2026-08-26) e NAO contem as ancoras (grep -c data-contract = 0). Run de outra arvore nao prova esta — citar aquele numero aqui seria medir a coisa errada."
 ---
+
+> ℹ️ **`last_run` 2026-10-26 → 2026-10-27 (G-6): entraram os casos de backlog de 27/10, sem id.** A única mudança em `Create.tsx` depois de 26/10 é o merge do próprio #9872 (receber em partes), cujos casos (UC-PURCRE-12 e 13) já estão neste arquivo; a data do commit é a do squash. Os casos novos são `[BACKLOG]` (unidade da compra com a conta pronta, compra a partir da nota do fornecedor, nota de entrada de pessoa física e NCM do produto criado na compra). Nenhum UC foi reexecutado.
 
 > ℹ️ **`last_run` 2026-10-20 → 2026-10-26 (G-6): entraram o UC-PURCRE-12 (pedidos abertos + estoque por dois caminhos) e o UC-PURCRE-13 (a tela traz o pedido).** A `Create.tsx` ganhou o bloco "Receber de um pedido de compra" e o campo `purchase_order_ids`; nenhum UC antigo mudou nem foi reexecutado.
 
@@ -432,6 +434,14 @@ Status: 🧪
   conversão por fornecedor (rolo de 50 m² e rolo de 25 m², por exemplo), e a nota importada usa a
   conversão da unidade que veio no XML. Fonte: Omie (até 3 fatores de conversão por produto e
   fornecedor, com a unidade da última nota lembrada).
+  Aceite adicional (suporte, 2026-10-27: Extreme, Techpress, Copylan, Mecânica Casa Grande, Art Laser
+  e Zoom precisam do suporte em 80% das conversões): a tela faz a conta. Na primeira nota ela
+  pergunta "1 CX deste fornecedor tem quantos UN?" e mostra a conta pronta, por exemplo "2 CX × 12 =
+  24 UN · custo 60,00 ÷ 12 = 5,00 por UN"; nas próximas, a conversão já vem e a pessoa confirma. O
+  fator é sugerido pela unidade tributável da nota (`qTrib` ÷ `qCom`, quando difere da comercial),
+  pela subunidade do cadastro ou, no rolo, por largura × comprimento; e a linha avisa quando o custo
+  convertido sai muito diferente do último custo do produto. O vínculo produto × fornecedor
+  (`compras_produto_fornecedor`, de 2026-10-27) ainda não guarda unidade nem fator.
 - `[BACKLOG]` **Notas de compra entram no SPED** `[V0]` — Dado uma compra lançada com a nota do
   fornecedor (modelo 55), Quando gero o SPED da competência, Então a nota sai como entrada (C100 com
   indicador de entrada, C170 e C190), com o crédito de ICMS que o regime da empresa permitir. Hoje o
@@ -460,6 +470,38 @@ Status: 🧪
   dele. Nota recusada não gera nada. Fonte: Omie (monitoramento das NFS-e tomadas nas prefeituras e no
   Ambiente Nacional). Hoje as notas que chegam sozinhas são as NF-e da distribuição do DF-e; a NFS-e
   tomada não chega.
+
+---
+
+## Compra com e sem nota e NCM na origem (pedido de 2026-10-27)
+
+> Casos sem id, como os de cima: entram quando tiverem teste. Pedido da PraMoto, trazido pelo
+> suporte ([F]): ela compra com e sem nota, e os produtos que entram sem nota ficam sem NCM. A
+> escolha de vender com ou sem nota continua na venda, como hoje; nenhum caso aqui faz a venda
+> decidir pela origem da compra.
+
+- `[BACKLOG]` **Compra nasce da nota do fornecedor** `[V0]` `[E0]` — Dado a NF-e do fornecedor
+  baixada da SEFAZ para o CNPJ, ou o XML enviado, Quando importo a nota como compra, Então cada item
+  fica ligado ao produto (o vínculo fica lembrado para a próxima nota do mesmo fornecedor), a compra
+  guarda a chave da nota, e o estoque e a conta a pagar nascem pelo caminho da compra de hoje. Uma
+  compra digitada à mão pode ser ligada depois a uma nota baixada. Âncora: US-COM-003 e a ADR de
+  entrada por XML (`memory/decisions/proposals/2026-10-06-entrada-xml-compra.md`, aceita). Hoje as
+  tabelas da entrada entraram (2026-10-27), o leitor do XML está no PR #10024 e a compra a partir da
+  nota ainda não existe.
+- `[BACKLOG]` **Compra de pessoa física emite a nota de entrada** `[V0]` — Dado uma peça ou moto
+  usada comprada de um particular, Quando lanço a compra, Então ela oferece "Emitir nota de entrada";
+  emitida, a nota fica ligada à compra e o produto passa a ter entrada com nota. Compra de empresa
+  sem nota fica marcada como sem nota: quem emite a nota é o fornecedor. O CFOP e a natureza da nota
+  de bem usado mudam por estado; o contador confirma. Hoje a nota de entrada que funciona é a da
+  devolução de venda (`DevolucaoService`); o código antigo de nota de entrada a partir da compra
+  (`NfeEntradaController`) não tem rota.
+- `[BACKLOG]` **Produto criado na compra pede o NCM** — Dado a empresa que emite nota, Quando
+  cadastro um produto novo pela compra ou pelo cadastro rápido, Então o NCM aparece pedido, com uma
+  sugestão tirada de produtos parecidos do catálogo; salvar sem NCM continua permitido, com o aviso.
+  O Novo produto já avisa (`Produto/Create.casos.md`, UC-PCAD-14); o cadastro rápido e a compra não.
+
+O saldo fiscal do produto e o aviso na emissão estão em `Produto/Index.casos.md` e
+`Fiscal/Nfe.casos.md`, com a mesma data.
 
 ---
 

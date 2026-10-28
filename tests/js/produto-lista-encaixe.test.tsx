@@ -1,8 +1,8 @@
 // Lista de produtos em tela estreita — as colunas encaixam no espaço, a largura arrastada fica
 // lembrada e a grade tem altura própria (a barra de rolar para o lado fica à vista).
 //
-// Cobre UC-PIDX-26 (encaixe), UC-PIDX-27 (altura da grade) e a parte "lembrada no navegador" do
-// UC-PIDX-16 (resources/js/Pages/Produto/Index.casos.md).
+// Cobre UC-PIDX-26 (encaixe), UC-PIDX-27 (altura da grade), a parte "lembrada no navegador" do
+// UC-PIDX-16 e o UC-PIDX-34 (coluna e filtro Imposto só com alíquota) — resources/js/Pages/Produto/Index.casos.md.
 //
 // Origem: reclamação da ROTA LIVRE (2026-10-17) — em monitor 1366×768 as colunas não apareciam e
 // era preciso estreitá-las à mão a cada visita. Medido em produção no mesmo dia, janela 1366×648,
@@ -19,14 +19,18 @@ import DataTable, { type PaginatorShape } from '@/Components/shared/DataTable';
 import { aplicarEncaixe, colunasDaLista, filtrosParaATabela } from '@/Pages/Produto/_components/lista/colunas';
 import { PISO_DA_COLUNA, encaixarColunas } from '@/Pages/Produto/_components/lista/encaixe';
 import MenuColunas from '@/Pages/Produto/_components/lista/MenuColunas';
+import FiltrosListaProdutos from '@/Pages/Produto/_components/lista/FiltrosLista';
 import { useLargurasGuardadas } from '@/Pages/Produto/_components/lista/useLargurasGuardadas';
 import {
   CHAVE_LARGURAS,
+  colunasGuardadas,
   colunasOpcionais,
   faixaDePreco,
   largurasValidas,
   visibilidadePadrao,
   type LinhaProduto,
+  type FiltrosLista,
+  type OpcoesLista,
   type PermissoesLista,
 } from '@/Pages/Produto/_components/lista/tipos';
 
@@ -49,10 +53,12 @@ const PAG: PaginatorShape<LinhaProduto> = {
 };
 const TUDO: PermissoesLista = {
   create: true, update: true, delete: true, opening_stock: true, view: true, stock_report: true,
-  etiquetas: true, comprar: true, view_purchase_price: true, access_default_selling_price: true,
+  etiquetas: true, view_purchase_price: true, access_default_selling_price: true,
 };
-const CONTEXTO = { empresa: 'Empresa de teste', grupos_de_preco: 1, woocommerce: false, papel: null, rotulos_campos: {} };
-const PADRAO = visibilidadePadrao(colunasOpcionais({}));
+const CONTEXTO = { empresa: 'Empresa de teste', grupos_de_preco: 1, emite_nota: true, woocommerce: false, papel: null, rotulos_campos: {} };
+// O cenário medido em produção em 2026-10-17 tinha a coluna Imposto ligada: até 2026-10-26 ela
+// nascia ligada (desde então nasce desligada, UC-PIDX-34). Com ela são 12 colunas, o caso mais apertado.
+const PADRAO = { ...visibilidadePadrao(colunasOpcionais({})), imposto: true };
 
 /** As colunas de saída, com a largura do protótipo — o que a tela entrega ao encaixe. */
 const colunasDoPrototipo = () => colunasDaLista({ visiveis: PADRAO, densa: false, permissions: TUDO, contexto: CONTEXTO, aoEscolher: () => undefined });
@@ -239,5 +245,54 @@ describe('UC-PIDX-16 · a largura arrastada fica lembrada no navegador', () => {
     fireEvent.keyDown(screen.getByRole('button', { name: /Colunas/ }), { key: 'Enter' });
     fireEvent.click(screen.getByRole('menuitem', { name: 'Voltar às larguras de saída' }));
     expect(aoRestaurar).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('UC-PIDX-34 · coluna e filtro Imposto só com alíquota cadastrada', () => {
+  // Decisão [F] 2026-10-26: o preço da lista já é o que a venda cobra, com o imposto; a coluna
+  // Imposto é consulta, não precisa nascer ligada. E sem alíquota cadastrada não há o que mostrar.
+  const FILTROS: FiltrosLista = {
+    type: null, category_id: null, brand_id: null, unit_id: null, tax_id: null, location_id: null, active_state: null,
+    not_for_selling: false, woocommerce_enabled: false, repair_model_id: null, q: '', sort: 'name', dir: 'asc',
+    per_page: 25, page: 1, aba: 'lista', estoque_pagina: 1, estoque_por_pagina: 25,
+  };
+  const opcoes = (impostos: OpcoesLista['impostos']): OpcoesLista => ({
+    categorias: [], marcas: [], unidades: [], impostos, locais: [{ id: '1', nome: 'Matriz' }], modelos_dispositivo: null,
+  });
+  const ICMS = [{ id: '3', nome: 'ICMS 18%' }];
+
+  it('com alíquota, a coluna existe no menu e nasce desligada', () => {
+    const imposto = colunasOpcionais({}, true).find((c) => c.id === 'imposto');
+    expect(imposto).toEqual({ id: 'imposto', rotulo: 'Imposto', padrao: false });
+    expect(visibilidadePadrao(colunasOpcionais({}, true)).imposto).toBe(false);
+    expect(visibilidadePadrao(colunasOpcionais({}, true)).marca).toBe(true); // anti-vácuo: as outras seguem ligadas
+  });
+
+  it('sem alíquota, a coluna nem aparece no menu "Colunas"', () => {
+    const colunas = colunasOpcionais({}, false);
+    expect(colunas.map((c) => c.id)).not.toContain('imposto');
+    render(<MenuColunas colunas={colunas} visiveis={visibilidadePadrao(colunas)} aoMudar={() => undefined} />);
+    fireEvent.keyDown(screen.getByRole('button', { name: /Colunas/ }), { key: 'Enter' });
+    const itens = screen.getAllByRole('menuitemcheckbox').map((i) => i.textContent);
+    expect(itens).toContain('Marca');
+    expect(itens).not.toContain('Imposto');
+  });
+
+  it('o "ligada" que o navegador guardou antes de 2026-10-26 era o padrão antigo: some na 1ª vez', () => {
+    const salvas = { marca: false, imposto: true };
+    expect(colunasGuardadas(salvas, false)).toEqual({ marca: false });
+    // Depois da 1ª vez, a escolha de quem religou a coluna fica.
+    expect(colunasGuardadas(salvas, true)).toEqual({ marca: false, imposto: true });
+  });
+
+  it('o filtro Imposto só existe com alíquota cadastrada', () => {
+    const { unmount } = render(<FiltrosListaProdutos filtros={FILTROS} opcoes={opcoes(ICMS)} woocommerce={false} aplicar={() => undefined} />);
+    expect(screen.getByRole('combobox', { name: 'Imposto' })).toBeTruthy();
+    unmount();
+
+    render(<FiltrosListaProdutos filtros={FILTROS} opcoes={opcoes([])} woocommerce={false} aplicar={() => undefined} />);
+    expect(screen.getByRole('combobox', { name: 'Marca' })).toBeTruthy(); // anti-vácuo: os filtros estão lá
+    expect(screen.queryByRole('combobox', { name: 'Imposto' })).toBeNull();
+    expect(screen.getByText(/Mesmos filtros do índice de produtos/).textContent).not.toContain('imposto');
   });
 });
