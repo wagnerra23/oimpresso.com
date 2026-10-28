@@ -483,12 +483,6 @@ Route::middleware(['setData'])->group(function () {
         ->middleware('throttle:10,1')
         ->name('auth.social.callback');
 
-    // Blade legado (UltimatePOS) — mantém /login/old e /register/old durante a transição.
-    // throttle:5,1 — anti-bruteforce de exibição (consistente com /login canônico).
-    Route::get('/login/old', [\App\Http\Controllers\Auth\LoginController::class, 'showLoginFormLegacy'])
-        ->middleware('throttle:5,1')
-        ->name('login.legacy');
-
     // /business/register — registro público novo business; alvo de enum/bruteforce + spam.
     // throttle:5,1 no POST (cria business); throttle:30,1 nas checagens AJAX (UX permite mais).
     Route::get('/business/register', [BusinessController::class, 'getRegister'])->name('business.getRegister');
