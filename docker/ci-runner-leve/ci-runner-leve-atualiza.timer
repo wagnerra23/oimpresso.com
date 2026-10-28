@@ -1,0 +1,10 @@
+[Unit]
+Description=Confere a cada 15 min se docker/ci-runner-leve mudou no main
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=15min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
