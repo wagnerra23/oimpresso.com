@@ -5,6 +5,7 @@ import { Button } from '@/Components/ui/button'
 import { Checkbox } from '@/Components/ui/checkbox'
 import { Input } from '@/Components/ui/input'
 import { Label } from '@/Components/ui/label'
+import { Inline, Stack } from '@/Components/layout'
 import {
   Dialog,
   DialogContent,
@@ -95,13 +96,13 @@ export function Mover({ alvo, pastas, onFechar }: { alvo: Alvo | null; pastas: P
           <DialogTitle>Mover para outra pasta</DialogTitle>
           <DialogDescription>Mover <b>{alvo?.nome}</b> — hoje em {atual ?? 'Sem pasta'}.</DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col gap-1" role="radiogroup" aria-label="Pasta de destino">
+        <Stack gap={1} role="radiogroup" aria-label="Pasta de destino">
           {pastas.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma pasta criada ainda.</p>}
           {pastas.filter((p) => p.id !== alvo?.pasta_id).map((p) => (
             <Button key={p.id} variant={destino === p.id ? 'default' : 'outline'} role="radio" aria-checked={destino === p.id}
               className="justify-start" onClick={() => setDestino(p.id)}>{p.nome}</Button>
           ))}
-        </div>
+        </Stack>
         <p className="text-xs text-muted-foreground">Mover não muda quem tem acesso — o compartilhamento é por planilha, não por pasta.</p>
         <DialogFooter>
           <Button variant="outline" onClick={onFechar}>Cancelar</Button>
@@ -146,21 +147,23 @@ export function Excluir({ alvo, onFechar }: { alvo: Alvo | null; onFechar: () =>
 function Grupo({ titulo, opcoes, marcados, onTroca }: { titulo: string; opcoes: Opcao[]; marcados: number[]; onTroca: (ids: number[]) => void }) {
   if (opcoes.length === 0) return null
   return (
-    <fieldset className="flex flex-col gap-1">
+    <Stack asChild gap={1}>
+    <fieldset>
       <legend className="mb-1 text-sm font-medium">{titulo}</legend>
       <div className="max-h-40 overflow-auto rounded-md border p-2">
         {opcoes.map((o) => {
           const id = `pl-sh-${titulo}-${o.id}`
           const on = marcados.includes(o.id)
           return (
-            <div key={o.id} className="flex items-center gap-2 py-0.5">
+            <Inline key={o.id} gap={2} className="py-0.5">
               <Checkbox id={id} checked={on} onCheckedChange={(v) => onTroca(v === true ? [...marcados, o.id] : marcados.filter((x) => x !== o.id))} />
               <Label htmlFor={id} className="font-normal">{o.nome}</Label>
-            </div>
+            </Inline>
           )
         })}
       </div>
     </fieldset>
+    </Stack>
   )
 }
 
@@ -206,11 +209,11 @@ export function CompartilharPlanilha({ alvo, onFechar }: { alvo: Alvo | null; on
         {erro && <p role="alert" className="text-sm text-destructive">{erro}</p>}
         {!dados && !erro && <p className="text-sm text-muted-foreground">Carregando…</p>}
         {dados && (
-          <div className="flex flex-col gap-3">
+          <Stack gap={3}>
             <Grupo titulo="Usuários" opcoes={dados.usuarios} marcados={sel.user} onTroca={(ids) => setSel((s) => ({ ...s, user: ids }))} />
             <Grupo titulo="Funções" opcoes={dados.funcoes} marcados={sel.role} onTroca={(ids) => setSel((s) => ({ ...s, role: ids }))} />
             <Grupo titulo="Tarefas" opcoes={dados.tarefas} marcados={sel.todo} onTroca={(ids) => setSel((s) => ({ ...s, todo: ids }))} />
-          </div>
+          </Stack>
         )}
         <DialogFooter>
           <Button variant="outline" onClick={onFechar}>Cancelar</Button>
