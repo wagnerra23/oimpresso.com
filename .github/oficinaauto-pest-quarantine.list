@@ -1,0 +1,13 @@
+# Quarentena da lane "PHP / Pest (OficinaAuto · MySQL)" — .github/workflows/oficinaauto-pest.yml
+#
+# COMO A LANE SELECIONA: run-set = TUDO em Modules/OficinaAuto/Tests/**/*Test.php
+# MENOS (1) quem tem dono em outra lane (sells-pest.yml, .github/ci-sqlite-pest.list),
+# (2) quem tem construto destrutivo em código (derivado pelo step) e (3) este arquivo.
+# Arquivo NOVO entra rodando.
+#
+# Entra aqui só teste MEDIDO falhando por dependência que a lane MySQL não tem, com o
+# motivo e o run de recibo na linha. Nunca enfraquecer assert para tirar daqui.
+#
+# 1 path por linha · '#' comenta · merge=union no .gitattributes. Depois de mergear o
+# main, confira duplicata como a lane compara:
+#   sed 's/#.*//; s/[[:space:]]*$//' <lista> | grep -vE '^$' | sort | uniq -d   # vazio = ok
