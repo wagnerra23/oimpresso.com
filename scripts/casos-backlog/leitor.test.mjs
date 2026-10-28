@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { lerArquivo, lerRepositorio, tituloDoBullet } from './leitor.mjs';
+import { lerArquivo, lerRepositorio, lerContratos, tituloDoBullet } from './leitor.mjs';
 import { ucScanRe } from '../lib/uc-regex.mjs';
 
 const SUBS = [
@@ -108,5 +108,30 @@ test('lerRepositorio lê só arquivos versionados, ignora o espelho do protótip
   escrever('resources/js/Pages/C/Index.casos.md', bullet);
   git('add', 'resources/js/Pages/C/Index.casos.md');
   assert.throws(() => lerRepositorio(raiz), /P-001 aparece em dois lugares/);
+  fs.rmSync(raiz, { recursive: true, force: true });
+});
+
+test('contratos: UCs por tela, com o veredito do manifesto e não o do arquivo', () => {
+  const raiz = fs.mkdtempSync(path.join(os.tmpdir(), 'casos-contratos-'));
+  const git = (...a) => execFileSync('git', a, { cwd: raiz, stdio: 'pipe' });
+  git('init', '-q');
+  const escrever = (rel, txt) => { fs.mkdirSync(path.join(raiz, path.dirname(rel)), { recursive: true }); fs.writeFileSync(path.join(raiz, rel), txt); git('add', rel); };
+  escrever('resources/js/Pages/A/Index.casos.md', [
+    '## UC-AIDX-01 · Abre a tela `[must]`', '- **Status:** ✅',
+    '## UC-AIDX-02 · Filtra por status', '- **Status:** ✅',
+    '## UC-AIDX-03 · Exporta', '',
+    '- **[BACKLOG] Um pedido** — sem id, não é contrato',
+  ].join('\n'));
+  escrever('resources/js/Pages/A/Index.tsx', 'export default () => null;\n');
+  escrever('prototipo-ui/cowork/A.casos.md', '## UC-AIDX-09 · Só no espelho\n');
+  escrever('memory/requisitos/A/Solto.casos.md', '## UC-SOLTO-01 · Sem tela ao lado\n');
+  escrever('scripts/casos-test-results.json', JSON.stringify({ ucs: { 'UC-AIDX-01': { verdict: 'pass' }, 'UC-AIDX-02': { verdict: 'fail' } } }));
+  const r = lerContratos(raiz);
+  assert.deepEqual(r.map(t => t.arquivo), ['resources/js/Pages/A/Index.casos.md']);
+  assert.deepEqual(r[0].ucs.map(u => [u.id, u.titulo, u.veredito]), [
+    ['UC-AIDX-01', 'Abre a tela', 'pass'],
+    ['UC-AIDX-02', 'Filtra por status', 'fail'],
+    ['UC-AIDX-03', 'Exporta', 'sem-prova'],
+  ], 'o ✅ escrito no arquivo não vira pass: quem decide é o manifesto');
   fs.rmSync(raiz, { recursive: true, force: true });
 });

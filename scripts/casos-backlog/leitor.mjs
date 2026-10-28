@@ -16,6 +16,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { ucBlocksInCasos } from '../lib/uc-regex.mjs';
+import { isPageScreenPath } from '../qa/page-path.mjs';
 
 const RE_PEDIDO_SUB = /^\s{2,}- Pedido: (P-\d{3})\s*$/;
 const RE_ORIGEM_UC = /^- \*\*Pedido de origem:\*\* (P-\d{3})/;
@@ -97,6 +99,36 @@ export function lerArquivo(md, rel) {
     pedidos.push({ id: p[1], arquivo: rel, linha: i + 1, titulo: tituloDoBullet(l), marcas: marcasDe(l), texto: prosa, estagio: 'pedido', ...campos(subs) });
   }
   return { pedidos, decisoes };
+}
+
+/**
+ * O contrato de cada tela: os casos de uso com id (`## UC-...`) de todos os .casos.md
+ * versionados. O veredito não vem do arquivo: vem do manifesto de testes que o casos-gate
+ * usa (scripts/casos-test-results.json), porque o status escrito pode estar velho.
+ */
+export function lerContratos(raiz) {
+  let manifesto = {};
+  try { manifesto = JSON.parse(fs.readFileSync(path.join(raiz, 'scripts/casos-test-results.json'), 'utf8')).ucs || {}; } catch { manifesto = {}; }
+  const telas = [];
+  // Mesmo recorte do casos-gate: só o casos.md ao lado de uma Page que o page-path reconhece.
+  const deTela = rel => { const tsx = rel.replace(/\.casos\.md$/, '.tsx'); return isPageScreenPath(tsx) && fs.existsSync(path.join(raiz, tsx)); };
+  for (const rel of arquivosCasos(raiz).filter(deTela)) {
+    const md = fs.readFileSync(path.join(raiz, rel), 'utf8');
+    const ucs = [];
+    let desde = 0;
+    // O parser de bloco é o do casos-gate (scripts/lib/uc-regex.mjs), não uma cópia.
+    for (const { uc, block } of ucBlocksInCasos(md)) {
+      const cabeca = block.split('\n')[0];
+      const pos = md.indexOf(cabeca, desde);
+      desde = pos + cabeca.length;
+      const titulo = cabeca.replace(/^\S+/, '').replace(/`[^`]*`/g, '').replace(/\s+/g, ' ')
+        .replace(/^[\s·:—-]+/, '').replace(/[\s·:—-]+$/, '').trim();
+      const v = manifesto[uc];
+      ucs.push({ id: uc, titulo, linha: md.slice(0, pos).split('\n').length, veredito: v ? v.verdict : 'sem-prova' });
+    }
+    if (ucs.length) telas.push({ arquivo: rel, ucs });
+  }
+  return telas;
 }
 
 /** Lê todos os .casos.md versionados. Pedido repetido é erro: um id, um lugar. */

@@ -172,6 +172,7 @@ tr.sem-caso td:first-child { box-shadow: inset 3px 0 0 var(--part) }
 
   <nav class="visoes" role="tablist" aria-label="Visões">
     <button type="button" role="tab" id="v-casos" data-visao="casos" aria-selected="true">Casos<span class="q" id="q-casos"></span></button>
+    <button type="button" role="tab" id="v-contratos" data-visao="contratos" aria-selected="false">O que as telas garantem<span class="q" id="q-contratos"></span></button>
     <button type="button" role="tab" id="v-regras" data-visao="regras" aria-selected="false">Regras<span class="q" id="q-regras"></span></button>
     <button type="button" role="tab" id="v-decisoes" data-visao="decisoes" aria-selected="false">Decisões para o Wagner<span class="q" id="q-decisoes"></span></button>
     <button type="button" role="tab" id="v-clientes" data-visao="clientes" aria-selected="false">Clientes<span class="q" id="q-clientes"></span></button>
@@ -195,6 +196,26 @@ tr.sem-caso td:first-child { box-shadow: inset 3px 0 0 var(--part) }
         <div class="lista" id="lista"></div>
       </div>
     </div>
+  </section>
+
+  <section id="p-contratos" role="tabpanel" aria-labelledby="v-contratos" hidden>
+    <div class="secao-cab">
+      <div>
+        <h2>O que as telas já garantem</h2>
+        <p id="contratos-resumo"></p>
+      </div>
+    </div>
+    <div class="ferramentas">
+      <div class="busca-linha">
+        <input type="search" id="busca-contratos" placeholder="Buscar tela, módulo, id ou título do caso de uso" aria-label="Buscar casos de uso">
+        <select id="modulo" aria-label="Módulo"></select>
+      </div>
+      <div class="filtros" role="group" aria-label="Veredito">
+        <button type="button" id="so-sem-prova" aria-pressed="false">Só os casos sem teste verde</button>
+      </div>
+      <div class="resultado" id="contratos-resultado"></div>
+    </div>
+    <div class="lista" id="contratos"></div>
   </section>
 
   <section id="p-regras" role="tabpanel" aria-labelledby="v-regras" hidden>
@@ -362,6 +383,7 @@ function corpoDe(c) {
     c.ancora ? ['Regra e âncora', rico(c.ancora)] : null,
     ['Clientes', c.clientes.length ? c.clientes.join(', ') : el('span', { class: 'muted' }, 'nenhum ligado')],
     ['Onde está', el('span', {}, t.nome, ' · ', el('a', { href: `${t.url}?plain=1#L${c.linha}`, target: '_blank', rel: 'noopener' }, el('code', {}, `${t.arquivo}:${c.linha}`)))],
+    contratoDe[c.tela] ? ['A tela já garante', el('button', { type: 'button', class: 'limpar', style: 'padding:0', onclick: () => abrirContratosDaTela(c.tela) }, `${contratoDe[c.tela].ucs.length} casos de uso`)] : null,
   ].filter(Boolean);
   const d = conf[c.n];
   const caixa = el('input', { type: 'checkbox', id: 'conf-' + c.n, checked: !!d, disabled: !podeConferir });
@@ -457,14 +479,61 @@ function desenharClientes() {
     el('div', { class: 'links-casos' }, ...cl.casos.map(c => linkCaso(c.n))))));
 }
 
+/* ---------- o que as telas garantem ---------- */
+const K = DADOS.contratos || [];
+const contratoDe = Object.fromEntries(K.map(t => [t.id, t]));
+const estC = { busca: '', modulo: '', semProva: false, aberta: null };
+const VEREDITO = { pass: ['ok', 'teste verde'], fail: ['miss', 'teste vermelho'], 'sem-prova': ['', 'sem prova'] };
+function desenharContratos() {
+  const total = K.reduce((s, t) => s + t.ucs.length, 0);
+  const verdes = K.reduce((s, t) => s + t.ucs.filter(u => u.veredito === 'pass').length, 0);
+  $('contratos-resumo').textContent = `${total} casos de uso em ${K.length} telas, ${verdes} com o teste verde. É o contrato do que o sistema já faz: cada caso tem id e um teste que o prova. O veredito vem do resultado dos testes, não do que está escrito no arquivo.`;
+  $('q-contratos').textContent = total;
+  const q = estC.busca.trim().toLowerCase();
+  const vis = K.filter(t => (!estC.modulo || t.modulo === estC.modulo)).map(t => {
+    const casaTela = !q || [t.nome, t.id, t.modulo].join(' ').toLowerCase().includes(q);
+    const ucs = t.ucs.filter(u => (!estC.semProva || u.veredito !== 'pass') && (casaTela || [u.id, u.titulo].join(' ').toLowerCase().includes(q)));
+    return { t, ucs };
+  }).filter(x => x.ucs.length);
+  const nUcs = vis.reduce((s, x) => s + x.ucs.length, 0);
+  $('contratos-resultado').textContent = `${vis.length} ${vis.length === 1 ? 'tela' : 'telas'} · ${nUcs} ${nUcs === 1 ? 'caso de uso' : 'casos de uso'}`;
+  if (!vis.length) { $('contratos').replaceChildren(el('div', { class: 'vazio' }, 'Nenhum caso de uso com essa busca.')); return; }
+  $('contratos').replaceChildren(...vis.map(({ t, ucs }) => {
+    const aberta = estC.aberta === t.id;
+    const verdesT = t.ucs.filter(u => u.veredito === 'pass').length;
+    const art = el('article', { class: 'caso', id: 'tela-' + t.id.replace(/[^A-Za-z0-9]/g, '-'), 'data-aberto': aberta || null },
+      el('button', { type: 'button', class: 'caso-cab', 'aria-expanded': String(aberta), onclick: () => { estC.aberta = aberta ? null : t.id; desenharContratos(); } },
+        el('span', { class: 'num-caso' }, t.modulo),
+        el('span', { class: 'caso-titulo' }, el('span', {}, t.nome),
+          el('span', { class: 'selos' },
+            el('span', { class: 'selo ' + (verdesT === t.ucs.length ? 'ok' : 'part') }, `${verdesT} de ${t.ucs.length} com teste verde`),
+            t.pedidos ? el('span', { class: 'selo dec' }, `${t.pedidos} pedido${t.pedidos > 1 ? 's' : ''} em aberto`) : null)),
+        el('span', { class: 'seta', 'aria-hidden': 'true' }, '›')));
+    if (aberta) art.append(el('div', { class: 'caso-corpo' },
+      el('div', { class: 'tabela-box' }, el('table', {},
+        el('thead', {}, el('tr', {}, el('th', {}, 'Caso de uso'), el('th', {}, 'O que garante'), el('th', {}, 'Teste'))),
+        el('tbody', {}, ...ucs.map(u => { const [cl, rot] = VEREDITO[u.veredito] || ['', u.veredito];
+          return el('tr', {},
+            el('td', {}, el('a', { href: `${t.url}?plain=1#L${u.linha}`, target: '_blank', rel: 'noopener' }, el('code', {}, u.id))),
+            el('td', {}, u.titulo), el('td', {}, el('span', { class: 'selo ' + cl }, rot))); })))),
+      t.pedidos ? el('div', {}, el('button', { type: 'button', class: 'limpar', onclick: () => { est.recorte = t.id; est.busca = ''; est.filtros.clear(); est.aberto = null; mostrar('casos'); desenharCasos(); } }, `Ver os ${t.pedidos} pedidos desta tela`)) : null));
+    return art;
+  }));
+}
+function abrirContratosDaTela(id) { estC.busca = ''; estC.modulo = ''; estC.semProva = false; estC.aberta = id; $('busca-contratos').value = ''; $('modulo').value = ''; $('so-sem-prova').setAttribute('aria-pressed', 'false'); mostrar('contratos'); desenharContratos(); const a = $('tela-' + id.replace(/[^A-Za-z0-9]/g, '-')); if (a) a.scrollIntoView({ block: 'start' }); }
+$('modulo').replaceChildren(el('option', { value: '' }, 'Todos os módulos'), ...[...new Set(K.map(t => t.modulo))].sort((a, b) => a.localeCompare(b, 'pt-BR')).map(m => el('option', { value: m }, m)));
+$('modulo').addEventListener('change', e => { estC.modulo = e.target.value; estC.aberta = null; desenharContratos(); });
+$('busca-contratos').addEventListener('input', e => { estC.busca = e.target.value; estC.aberta = null; desenharContratos(); });
+$('so-sem-prova').addEventListener('click', e => { estC.semProva = !estC.semProva; e.currentTarget.setAttribute('aria-pressed', String(estC.semProva)); desenharContratos(); });
+
 /* ---------- visões ---------- */
-const VISOES = ['casos', 'regras', 'decisoes', 'clientes'];
+const VISOES = ['casos', 'contratos', 'regras', 'decisoes', 'clientes'];
 function mostrar(v) {
   if (!VISOES.includes(v)) v = 'casos';
   VISOES.forEach(x => { $('p-' + x).hidden = x !== v; $('v-' + x).setAttribute('aria-selected', String(x === v)); });
   if (location.hash !== '#' + v) history.replaceState(null, '', '#' + v);
 }
-function desenharTudo() { desenharTopo(); desenharCasos(); desenharRegras(); desenharDecisoes(); desenharClientes(); }
+function desenharTudo() { desenharTopo(); desenharCasos(); desenharContratos(); desenharRegras(); desenharDecisoes(); desenharClientes(); }
 
 document.querySelectorAll('.visoes button').forEach(b => b.addEventListener('click', () => mostrar(b.dataset.visao)));
 $('busca').addEventListener('input', e => { est.busca = e.target.value; est.aberto = null; desenharCasos(); });

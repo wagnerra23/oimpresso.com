@@ -13,7 +13,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { lerRepositorio } from './leitor.mjs';
+import { lerRepositorio, lerContratos } from './leitor.mjs';
 
 const AQUI = path.dirname(fileURLToPath(import.meta.url));
 const RAIZ = path.resolve(AQUI, '..', '..');
@@ -73,7 +73,14 @@ export function montarDados(raiz = RAIZ) {
     return { id: k, nome, area, arquivo, url: REPO_URL + arquivo };
   });
   const areas = AREAS.map(([id, nome]) => ({ id, nome, telas: telas.filter(t => t.area === id).map(t => t.id) })).filter(a => a.telas.length);
-  return { dados: { geradoEm: new Date().toISOString().slice(0, 10), areas, telas, casos, regras, decisoes: decs }, problemas };
+  // O contrato de todas as telas: os casos de uso com id, agrupados pelo módulo do caminho.
+  const moduloDe = arquivo => (arquivo.match(/^Modules\/([^/]+)/) || arquivo.match(/\/Pages\/([^/]+)/) || [, 'Outros'])[1];
+  const contratos = lerContratos(raiz).map(t => {
+    const id = chaveDaTela(t.arquivo);
+    return { id, nome: (TELAS[id] || [id])[0], modulo: moduloDe(t.arquivo), arquivo: t.arquivo, url: REPO_URL + t.arquivo,
+      ucs: t.ucs, pedidos: casos.filter(c => c.tela === id).length };
+  });
+  return { dados: { geradoEm: new Date().toISOString().slice(0, 10), areas, telas, casos, regras, decisoes: decs, contratos }, problemas };
 }
 
 export function renderizar(dados) {
@@ -96,6 +103,8 @@ if (principal) {
     testados: dados.casos.filter(c => c.estagio === 'testado').length,
     telas: dados.telas.length, regras: dados.regras.length,
     regrasCitadas: new Set(dados.casos.flatMap(c => c.regras)).size, decisoes: dados.decisoes.length,
+    telasComContrato: dados.contratos.length, casosDeUso: dados.contratos.reduce((s, t) => s + t.ucs.length, 0),
+    casosDeUsoVerdes: dados.contratos.reduce((s, t) => s + t.ucs.filter(u => u.veredito === 'pass').length, 0),
   };
   console.log(JSON.stringify(resumo));
   for (const p of problemas) console.error('PROBLEMA: ' + p);
