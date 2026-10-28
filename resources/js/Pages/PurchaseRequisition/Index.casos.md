@@ -58,6 +58,7 @@ last_run: "2026-10-26"
 
 ## UC-REQC-07 · A necessidade de compra (MRP) aparece acima das requisições · `must`
 
+- **Pedido de origem:** P-110 (documento de casos de uso, pedido de 2026-10-27)
 - **Persona:** o comprador.
 - **Aceite:** Dado insumos cuja reserva das OS e das vendas, somada ao estoque mínimo, passa do saldo
   mais o que está a caminho · Quando a tela abre · Então a seção "Necessidade de compra" lista, por
@@ -130,6 +131,31 @@ last_run: "2026-10-26"
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 - [BACKLOG] Ver o detalhe e excluir pela tela nova (PR próprio).
 - [BACKLOG] KPI "Itens requisitados" e coluna "Pedido gerado" — decisão [W].
+- **[BACKLOG] Solicitação de compra** (pedido de 2026-10-23)
+  - Aceite: Produção e comprador. Dado um material que a produção precisa · Quando abro a requisição com os itens e a data em que são necessários · Então o comprador vê as requisições abertas e as transforma em pedido de compra.
+  - Pedido: P-075
+  - Âncora: `UC-REQC-01` a `06` · `UC-REQMIN`
+  - Fazer: Nada a fazer: já existe. Fica aqui para ligar os clientes.
+  - Hoje: ok | Em produção | Requisição de compra; a tela nova em React depende de uma flag. Fora do PR #9786
+  - Comunicação visual: ok | Sim | material pedido pela produção
+  - Clientes: Martinho, Max Comunicação, Jo Painéis
+  - Etiquetas: ok, cv
+- **[BACKLOG] Gerar a requisição ou a cotação dali mesmo** (pedido de 2026-10-27)
+  - Aceite: Comprador. Dado a lona na lista Necessidade de compra · Quando clico em gerar na linha · Então nasce a requisição do item com a quantidade, o local e o fornecedor; quando a cotação existir, posso pedir preço a vários fornecedores a partir da mesma linha.
+  - Pedido: P-111
+  - Âncora: `UC-REQC-07` · US-COM-031 · comentário do Wagner no PR #9930
+  - Fazer: Botão na linha da lista para gerar a requisição; depois, gerar a cotação (US-COM-031).
+  - Hoje: miss | Não tem | A lista só mostra. Hoje a requisição sai pela tela de criar, que já lista os itens abaixo do mínimo, ou pela requisição automática (desligada por padrão). A cotação ainda não existe
+  - Comunicação visual: ok | Sim | compra de insumo da produção
+  - Etiquetas: miss, cv
+- **[BACKLOG] Sistema sugere o estoque mínimo pelo consumo e pelo prazo de reposição** `[E0]` (pedido de 2026-10-27)
+  - Aceite: Dono e comprador. Dado a Lona 440g, que consome em média 2 m por dia e leva 5 dias para repor (cotação, aprovação, compra e entrega do fornecedor) · Quando abro o estoque mínimo do produto · Então o sistema sugere 10 m e a pessoa confirma. Com margem de segurança de 2 dias, sugere 14 m.
+  - Pedido: P-112
+  - Âncora: `CU-PROD-04` item 2 (SDD do Produto, PR #9930)
+  - Fazer: Calcular o consumo médio por dia contando também a baixa de insumo das OS; guardar o prazo do fornecedor e os prazos internos; sugerir o mínimo para a pessoa confirmar. Ao chegar no mínimo, "Pedir até" deve dizer pedir hoje, não atrasado.
+  - Hoje: miss | Não tem | O prazo do fornecedor tem tabela, mas nenhuma tela grava nela; o consumo médio não é calculado; o giro do PR #9983 (rascunho) conta só vendas
+  - Comunicação visual: ok | Sim | insumo gasto na produção, não vendido
+  - Etiquetas: valor, miss, cv, decisao
 
 ## Trilha do tempo
 - 2026-10-13 · [CL] criado com a F3 da thread `compras/playbook/07`.

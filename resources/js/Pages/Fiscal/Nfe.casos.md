@@ -757,26 +757,60 @@ Status: 🧪
   uma venda com NF-e autorizada e 2 de 3 itens devolvidos, Quando emito a devolução, Então a NF-e de
   devolução referencia a chave da original e leva só os 2 itens; com tudo devolvido, leva a nota
   inteira. Fonte: UC-TRB-13 do protótipo fiscal (proposta) e o processo "Devolução, troca e garantia".
+  - Pedido: P-040
+  - Âncora: `UC-TRB-13` (protótipo fiscal)
+  - Fazer: Nota de devolução com a chave da original e só os itens devolvidos.
+  - Hoje: miss | Não tem | 
+  - Comunicação visual: gray | Pouco | sob encomenda quase não volta
+  - Clientes: Fixar, Safety, Estilo, Max Comunicação, Ciasul, Extreme, Mecânica Casa Grande, Wow Comunicação, Litoral Comunicação, Placa Fácil, Makan, Lamac, Zoom, Lessa Cortinas, Movesul, Sabor Brasil, DMB, Mecânica Lebrinha, Jo Painéis, CyberStudio, GP, GSX, Molas Patrício, Display Paraná, Ntrogen, MidiaOff, Quimeco, Vargas
+  - Etiquetas: valor, miss
 - **[BACKLOG · ⬜ sem teste] Remessa para conserto e o retorno** (pedido de 2026-10-23) `[E0]` — Dado um
   bem enviado para conserto, Quando emito a remessa, Então a nota fica "aguardando retorno" e o bem não
   sai do estoque como venda; ao registrar a volta, a nota de retorno fica ligada à remessa e o saldo
   pendente zera. CFOP de exemplo: 5.915 na remessa e 1.916 na volta; o contador confirma. Fonte:
   UC-TRB-23 do protótipo fiscal (falta).
+  - Pedido: P-041
+  - Âncora: `UC-TRB-23` · CFOP de exemplo 5.915 e 1.916
+  - Fazer: Remessa com saldo pendente e retorno ligado; o contador decide o CFOP.
+  - Hoje: miss | Não tem | 
+  - Comunicação visual: part | Em parte | conserto de equipamento próprio
+  - Etiquetas: valor, miss, cv
 - **[BACKLOG · ⬜ sem teste] Remessa em garantia** (pedido de 2026-10-23) `[E0]` — Dado a troca de uma
   peça em garantia, Quando emito a nota, Então ela sai sem cobrança, como remessa em garantia, com
   referência à NF-e da venda; a peça com defeito que volta entra com a nota de entrada. CFOP do SPEC de
   Garantia: 5.949 na saída e 1.949 na entrada; o contador confirma. Fonte: SPEC de Garantia §1 e §5
   (planejado).
+  - Pedido: P-042
+  - Âncora: SPEC de Garantia · CFOP do SPEC 5.949 e 1.949
+  - Fazer: Nota de remessa em garantia ligada à venda; entrada da peça com defeito.
+  - Hoje: miss | Não tem | 
+  - Comunicação visual: ok | Sim | troca de peça ou refação
+  - Clientes: Martinho, Molas Patrício, Vargas
+  - Etiquetas: valor, miss, cv, decisao
 - **[BACKLOG · ⬜ sem teste] Notas da venda para entrega futura** (pedido de 2026-10-23) `[V0]` `[E0]` —
   Dado uma venda para entrega futura, Então a nota de simples faturamento e cada nota de remessa ficam
   ligadas, e a tela mostra o saldo a remeter; remessa acima do faturado é recusada. Fonte: UC-TRB-24 do
   protótipo fiscal (falta).
+  - Pedido: P-043
+  - Âncora: `UC-TRB-24` (protótipo fiscal)
+  - Fazer: Vínculo entre as notas e saldo a remeter.
+  - Hoje: miss | Não tem | 
+  - Comunicação visual: ok | Sim | entrega em lotes
+  - Clientes: Mil Letras
+  - Etiquetas: valor, miss, cv
 - **[BACKLOG · ⬜ sem teste] Emissão recusada antes da SEFAZ por pendência** (pedido de 2026-10-23) —
   Dado uma venda com item sem NCM, natureza fiscal a decidir ou cliente sem os dados do destinatário,
   Quando a nota é pedida, Então nada é enviado à SEFAZ, nenhum número é usado e a resposta lista as
   pendências de cada item e do cliente. Fonte: UC-TRB-05 e UC-TRB-16 do protótipo fiscal e UC-FNFSE-12.
   A lista de pendências traz a saída que o UC-TRB-33 decidido exige ("o bloqueio nunca é beco sem
   saída"): o NCM padrão marcado para revisão.
+  - Pedido: P-050
+  - Âncora: `UC-TRB-05` · `UC-TRB-16` · `UC-FNFSE-12`
+  - Fazer: Conferência antes do envio, sem consumir a numeração, com a saída do NCM padrão marcado para revisão (UC-TRB-33).
+  - Hoje: part | Em parte | Natureza pendente já bloqueia as duas notas
+  - Comunicação visual: ok | Sim | mercadoria × serviço em cada item
+  - Clientes: Techpress, PraMoto, Estilo
+  - Etiquetas: part, cv
 - **[BACKLOG · ⬜ sem teste] Cancelar a nota e emitir outra na mesma venda** (pedido de 2026-10-23)
   `[V0]` `[E0]` — Dado uma venda com NF-e autorizada que precisa ser corrigida, Quando cancelo a nota
   dentro do prazo, Então valem os efeitos do Cancelar do fluxo de NF-e (o estoque é estornado e o
@@ -789,6 +823,13 @@ Status: 🧪
   ou pendente do mesmo modelo (`NfeEmissaoController::emitir`), então emitir de novo depois de cancelar
   já passa; não há caso nem teste que prove o vínculo. Fonte: `fluxos-modelos.casos.md` (NF-e:
   Cancelar e Retorno 100; NFS-e: Substituir). Verificado contra as regras do [W] em 2026-10-23.
+  - Pedido: P-084
+  - Âncora: `fluxos-modelos.casos.md` (NF-e: Cancelar e Retorno 100; NFS-e: Substituir) · `Fiscal/Nfe.casos.md`
+  - Fazer: Ligar as notas da venda e seguir os efeitos do fluxo de NF-e; na NFS-e, usar a substituição, que vincula a nova à anterior e recalcula o título.
+  - Hoje: part | Em parte | Emitir de novo depois de cancelar já passa; falta a venda mostrar as notas e a prova de estoque e título
+  - Comunicação visual: ok | Sim | nota refeita por dado errado
+  - Clientes: Fixar, Display Paraná, Zoom, Sabor Brasil, Placa Fácil, Makan, Mil Letras
+  - Etiquetas: valor, part, cv
 - **[BACKLOG · ⬜ sem teste] Nota que deixaria o saldo fiscal negativo avisa** (pedido de 2026-10-27)
   — Dado um produto sem nenhuma entrada com nota, Quando emito uma NF-e com ele, Então a tela avisa
   que o saldo fiscal vai ficar negativo e oferece emitir a nota de entrada ou ligar a compra à nota do
@@ -796,6 +837,13 @@ Status: 🧪
   da compra. Avisar ou bloquear a emissão é decisão do [W]; a proposta é só avisar. Depende do saldo
   fiscal (`Produto/Index.casos.md`) e da compra ligada à nota (`Purchase/Create.casos.md`). Pedido da
   PraMoto.
+  - Pedido: P-103
+  - Âncora: Casos 100 a 102
+  - Fazer: Conferir o saldo fiscal na emissão, com o atalho para regularizar.
+  - Hoje: miss | Não tem | Não existe saldo fiscal
+  - Comunicação visual: part | Em parte | quem compra material sem nota
+  - Clientes: PraMoto
+  - Etiquetas: miss, cv, decisao
 
 ## Como rodar a suíte
 1. **Pest:** lane Fiscal no CT 100 (ADR 0062) — comando no §recibo acima. `AcoesContratoTest` roda em

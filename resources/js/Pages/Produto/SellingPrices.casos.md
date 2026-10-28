@@ -135,6 +135,13 @@ ainda não foi regravado — `✅` sem prova no manifesto o gate classifica como
   antes→depois. Não usa o grupo de imposto do produto, que soma o imposto por
   fora do preço. A tela própria da US-PROD-032 ainda não existe; o caso fica aqui, na tela de preço
   do produto, até ela existir. Pedido da Art Laser e da CyberStudio.
+  - Pedido: P-107
+  - Âncora: US-PROD-032 · regra de comissão do produto (US-COMM-015)
+  - Fazer: Tela de formação de preço fora da aba geral do cadastro (decisão do Wagner de 17/07): preço = (custo + valores fixos) ÷ (1 − soma dos %). A alíquota vem da empresa pela natureza do produto e a comissão vem da regra do produto. Aplicar o sugerido segue a política de preço do produto (US-PROD-030); enquanto ela não existe, é ato da pessoa, com antes→depois. Não usa o grupo de imposto do produto, que soma o imposto por fora do preço.
+  - Hoje: miss | Não tem | O produto tem custo, markup e preço, sem a composição do preço. A CyberStudio usa a formação de preço do sistema que tem hoje para a comissão
+  - Comunicação visual: ok | Sim | placa em NF-e e serviço em NFS-e
+  - Clientes: ArtLaser, CyberStudio
+  - Etiquetas: valor, miss, cv
 - **Reajuste em lote quando a alíquota muda** (pedido de 2026-10-27, US-PROD-032) `[V0]` — Dado a
   alíquota de produto que passa de 8% para 8,5% na competência nova, Quando abro a formação de
   preço, Então a tela lista os produtos cujo preço sugerido mudou, com o preço atual e o sugerido, e
@@ -142,6 +149,13 @@ ainda não foi regravado — `✅` sem prova no manifesto o gate classifica como
   política de preço da US-PROD-030: nos modelos de Fluxos do [W], o preço pode ser aplicado sem
   ninguém confirmar (regra de compra "preço aplicar", na gráfica digital e em brindes). Enquanto a
   política não existe, nenhum preço muda sem confirmação. Pedido da Art Laser.
+  - Pedido: P-108
+  - Âncora: US-PROD-032 · política de preço por produto (US-PROD-030)
+  - Fazer: Lista dos afetados com antes→depois e reajuste em lote. O que cada produto faz sozinho segue a política da US-PROD-030: nos modelos de Fluxos do Wagner o preço pode ser aplicado sem confirmação ("preço aplicar"). Enquanto a política não existe, nada muda sem confirmação.
+  - Hoje: miss | Não tem | Não existe formação de preço
+  - Comunicação visual: ok | Sim | tabela de preço de placa e serviço
+  - Clientes: ArtLaser
+  - Etiquetas: valor, miss, cv
 
 ---
 

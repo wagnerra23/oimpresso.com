@@ -80,7 +80,9 @@ it('aceita webhook PIX com signature HMAC válida e cria InterWebhookLog', funct
             'valor'      => '150.50',
             'horario'    => '2026-05-20T12:34:56Z',
             'pagador'    => [
-                'cpf'  => '12345678900',
+                // CPF com DV válido: o PiiRedactor só redige CPF CRU (11 dígitos) quando o
+                // dígito verificador confere; '12345678900' tem DV inválido e passa intacto.
+                'cpf'  => '11144477735',
                 'nome' => 'João da Silva',
             ],
         ]],
@@ -101,7 +103,7 @@ it('aceita webhook PIX com signature HMAC válida e cria InterWebhookLog', funct
     expect($log->signature_valid)->toBeTrue();
     expect($log->status)->toBe('received');
     // LGPD: CPF NÃO grava em raw — apenas redacted
-    expect($log->payer_cpf_cnpj_redacted)->not->toContain('12345678900');
+    expect($log->payer_cpf_cnpj_redacted)->not->toContain('11144477735');
 
     Queue::assertPushed(ProcessarWebhookPixInterJob::class, function ($job) use ($log) {
         return $job->interWebhookLogId === $log->id && $job->businessId === 1;
@@ -149,18 +151,15 @@ it('rejeita webhook quando credentialId não existe → 404', function () {
 it('fail-secure: credencial SEM webhook_secret cadastrado → 401', function () {
     Queue::fake();
 
-    $credSemSecret = PaymentGatewayCredential::query()->create([
-        'business_id'  => 1,
-        'gateway_key'  => 'inter',
-        'ambiente'     => 'sandbox',
-        'ativo'        => true,
-        'nome_display' => 'Inter sem secret',
-        'config_json'  => [
-            'client_id'     => 'x',
-            'client_secret' => 'y',
-            // sem webhook_secret
-        ],
-    ]);
+    // Reusa a credencial do beforeEach sem o webhook_secret: (business_id, gateway_key,
+    // ambiente) é UNIQUE, e uma 2ª inter/sandbox no biz=1 estoura no MySQL.
+    $credSemSecret = $this->credential;
+    $credSemSecret->config_json = [
+        'client_id'     => 'x',
+        'client_secret' => 'y',
+        // sem webhook_secret
+    ];
+    $credSemSecret->save();
 
     $payload = ['pix' => [['txid' => 't', 'valor' => '1.00']]];
     $response = postWithValidSignature($this, $credSemSecret->id, $payload);
@@ -186,10 +185,12 @@ it('txid duplicado mesma credencial → idempotente (devolve duplicated=1)', fun
 it('mesmo txid em credencial DIFERENTE NÃO colide', function () {
     Queue::fake();
 
+    // Outra credencial inter do MESMO biz só existe em outro ambiente: o par
+    // (business_id, gateway_key, ambiente) é UNIQUE.
     $cred2 = PaymentGatewayCredential::query()->create([
         'business_id'  => 1,
         'gateway_key'  => 'inter',
-        'ambiente'     => 'sandbox',
+        'ambiente'     => 'production',
         'ativo'        => true,
         'nome_display' => 'Inter 2',
         'config_json'  => [
@@ -307,31 +308,32 @@ it('Job worker idempotente: re-rodar linha já processed → cedo-return sem re-
 it('business_id resolvido pela credentialId (Tier 0 multi-tenant)', function () {
     Queue::fake();
 
-    // Credencial biz=99 (outro tenant)
-    $credBiz99 = PaymentGatewayCredential::query()->create([
-        'business_id'  => 99,
+    // Credencial do biz=2 (outro tenant, semeado pelo pest-mysql-setup). Com um business
+    // inexistente a FK iwl_biz_fk recusa o log e o controller conta como duplicado.
+    $credBiz2 = PaymentGatewayCredential::query()->create([
+        'business_id'  => 2,
         'gateway_key'  => 'inter',
         'ambiente'     => 'sandbox',
         'ativo'        => true,
-        'nome_display' => 'Inter biz=99',
+        'nome_display' => 'Inter biz=2',
         'config_json'  => [
             'client_id'      => 'a',
             'client_secret'  => 'b',
-            'webhook_secret' => 'secret-biz-99',
+            'webhook_secret' => 'secret-biz-2',
         ],
     ]);
 
-    $payload = ['pix' => [['txid' => 'biz99-tx', 'valor' => '99.00']]];
-    postWithValidSignature($this, $credBiz99->id, $payload, 'secret-biz-99')->assertOk();
+    $payload = ['pix' => [['txid' => 'biz2-tx', 'valor' => '99.00']]];
+    postWithValidSignature($this, $credBiz2->id, $payload, 'secret-biz-2')->assertOk();
 
     $log = InterWebhookLog::withoutGlobalScopes()
-        ->where('payment_gateway_credential_id', $credBiz99->id)
+        ->where('payment_gateway_credential_id', $credBiz2->id)
         ->first();
 
     expect($log)->not->toBeNull();
-    expect($log->business_id)->toBe(99);
+    expect($log->business_id)->toBe(2);
 
     Queue::assertPushed(ProcessarWebhookPixInterJob::class, function ($job) {
-        return $job->businessId === 99;
+        return $job->businessId === 2;
     });
 });

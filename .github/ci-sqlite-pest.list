@@ -697,3 +697,11 @@ Modules/PaymentGateway/Tests/Feature/InterReconcilePixCommandTest.php
 Modules/PaymentGateway/Tests/Feature/ReconciliarCobrancaServiceTest.php
 Modules/PaymentGateway/Tests/Feature/SantanderCnabDriverTest.php
 Modules/PaymentGateway/Tests/Feature/SicrediCnabDriverTest.php
+
+# 2026-10-28: 3 era-sqlite do PaymentGateway que a paymentgateway-pest barrava como
+# "destrutivos" (dropIfExists só no ramo sqlite) e listava como RefreshDatabase — os três
+# já usam DatabaseTransactions. WebhookEndpoints/WebhookSignatureValidation pulam inteiros no
+# MySQL; RetryOrphanWebhookCommand tem o GUARD 4 só-sqlite. Aqui rodam inteiros.
+Modules/PaymentGateway/Tests/Feature/RetryOrphanWebhookCommandTest.php
+Modules/PaymentGateway/Tests/Feature/WebhookEndpointsTest.php
+Modules/PaymentGateway/Tests/Feature/WebhookSignatureValidationTest.php

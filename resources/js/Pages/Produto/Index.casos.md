@@ -485,6 +485,7 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
 - **Status: 🧪** — escrito, sem veredito nesta divisão. Junto com os outros dois casos, no #9785, passou no job 120394269474 (lane Estoque · MySQL, commit 3587864, 2026-10-23). O Vitest não roda em lane.
 
 ## UC-PIDX-33 · Aba Estoque do painel: quantidade vendida por local · `should`
+- **Pedido de origem:** P-065 (documento de casos de uso, pedido de 2026-10-23)
 - **Persona:** a ROTA LIVRE abre um produto pelo painel e quer saber, sem ir ao Relatório de estoque, quanto daquele item já saiu em cada loja.
 - **Aceite:** Dado um produto que controla estoque, com saldo em dois locais, uma venda finalizada de 5 un no local A com 1 un devolvida e um rascunho de 2 un no mesmo local · Quando abro a aba Estoque do painel · Então a tabela de locais tem a coluna "Vendido", logo antes de "Situação" · E o local A mostra "4 Un" e o B "0 Un" · E o número de cada local é o mesmo "Total vendido" do Relatório de estoque para aquele produto e local (vendas finalizadas, desde sempre, menos as devoluções; rascunho e orçamento ficam fora).
 - **Teste:** [`ProdutoDetalheTest`](../../../../tests/Feature/Produto/ProdutoDetalheTest.php) — `UC-PIDX-33` (o vendido de cada linha do painel contra a conta à mão e contra a soma do JSON do DataTable do relatório) e [`produto-painel-detalhe.test.tsx`](../../../../tests/js/produto-painel-detalhe.test.tsx) — `UC-PIDX-33` (a coluna e a ordem; cada local com o número que o servidor mandou). Mutação conferida em 2026-10-23: mostrar o saldo no lugar do vendido derruba o caso de tela.
@@ -724,12 +725,24 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
   abrir esse produto; e no painel da pilha CR2032 vejo os produtos e aparelhos que a usam. Produto sem
   pilha não mostra nada. A venda pede o modelo e a série do aparelho (Sells/Create.casos.md, mesmo
   pedido).
+  - Pedido: P-062
+  - Âncora: `Produto/Index.casos.md`
+  - Fazer: Ligar o produto à pilha que ele usa, com a lista inversa no painel da pilha.
+  - Hoje: miss | Não tem | O cadastro não liga produto a pilha
+  - Comunicação visual: gray | Pouco | não é do ramo
+  - Etiquetas: miss
 - **[BACKLOG] Quantos kits dá para vender** (comparação com concorrentes, 2026-10-23) — Aceite: Dado o
   kit que leva 2 unidades de A e 1 de B, com 10 de A e 3 de B no local, Quando abro o painel do kit,
   Então ele mostra "3 kits disponíveis" e qual componente limita (B); a venda não deixa vender mais
   kits do que isso quando o estoque é controlado. Fonte: Base e Mercado Livre (o estoque do kit sai do
   componente mais escasso) e Omie (o kit só agrupa; o saldo vem dos componentes). Hoje o painel mostra
   a composição do kit, mas não calcula quantos kits os componentes permitem.
+  - Pedido: P-097
+  - Âncora: Base, Mercado Livre e Omie (saldo do kit pelos componentes) · `Produto/Index.casos.md`
+  - Fazer: Calcular os kits disponíveis pelo componente mais escasso e mostrar no painel e na venda.
+  - Hoje: part | Em parte | O painel mostra a composição do kit, mas não calcula quantos dá para vender
+  - Comunicação visual: ok | Sim | placa com suporte e fixação
+  - Etiquetas: part, cv
 - **[BACKLOG] Saldo fiscal no painel do produto** `[E0]` (pedido de 2026-10-27) — Aceite: Dado um
   produto com 5 un. no estoque, das quais 3 entraram com nota, Quando abro a aba Fiscal do painel,
   Então ela mostra "Saldo fiscal 3 un. · Estoque real 5 un." e de onde vem a diferença (compras sem
@@ -738,11 +751,25 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
   compra), lido das próprias notas; não mexe no estoque. É também o número que falta ao inventário do
   SPED (Bloco H). Pedido da PraMoto, que compra com e sem nota; a compra e o aviso na emissão estão em
   `Purchase/Create.casos.md` e `Fiscal/Nfe.casos.md`.
+  - Pedido: P-102
+  - Âncora: Aba Fiscal do painel (só para quem emite nota) · inventário do SPED (Bloco H, esqueleto)
+  - Fazer: Calcular o saldo fiscal por produto a partir das notas, com prova por dois caminhos, e mostrar na aba Fiscal. É também o número que falta ao Bloco H do SPED.
+  - Hoje: miss | Não tem | O estoque é um saldo só, e o produto não sabe se foi comprado com nota
+  - Comunicação visual: part | Em parte | quem compra material sem nota
+  - Clientes: PraMoto
+  - Etiquetas: valor, miss, cv
 - **[BACKLOG] Produtos sem NCM: filtro e NCM em lote** (pedido de 2026-10-27) — Aceite: Dado produtos
   que entraram sem NCM, Quando escolho o filtro "Falta NCM", Então a lista mostra só eles e eu informo
   o NCM de vários de uma vez. O card de Saúde fiscal, que já conta "Produtos ativos sem NCM válido"
   (`SaudeFiscalService`, `produto_sem_ncm`), abre a lista com esse filtro. Hoje a lista não tem o
   filtro nem a edição de NCM em lote. Pedido da PraMoto.
+  - Pedido: P-104
+  - Âncora: Saúde fiscal (`produto_sem_ncm`) · `Produto/Index.casos.md`
+  - Fazer: Filtro "Falta NCM" na lista e edição do NCM em lote; o link da Saúde fiscal chega já filtrado.
+  - Hoje: part | Em parte | A Saúde fiscal conta os produtos sem NCM e manda para a lista; a lista não tem o filtro nem a edição de NCM em lote
+  - Comunicação visual: ok | Sim | produto cadastrado às pressas
+  - Clientes: PraMoto
+  - Etiquetas: part, cv
 
 Fontes abertas em 2026-10-20: [Shopify](https://help.shopify.com/manual/products/searching-filtering) ·
 [Olist/Tiny](https://ajuda.olist.com/produtos/acoes-em-lote-e-gerenciamento-de-produtos) ·
