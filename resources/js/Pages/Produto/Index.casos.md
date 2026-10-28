@@ -633,6 +633,13 @@ last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com
   duplicado só pode ser inativado, com o estoque separado. Evitar a duplicação na entrada é o caso de
   `Purchase/Create.casos.md` do mesmo dia. Falta decisão [W]: quem pode juntar e se a junção pode ser
   desfeita. Mexe em estoque e custo: Regra Mestre, com dupla prova e antes e depois.
+  - Pedido: P-152
+  - Âncora: Consulta de produto · custo médio da compra (fluxo de Compra do [W]) · produto duplicado pela nota (P-151) · `Produto/Index.casos.md`
+  - Fazer: Ação "Juntar com outro produto" na consulta de produto, com prévia do estoque e do custo médio antes de confirmar; inativar o duplicado em vez de apagar.
+  - Hoje: miss | Não tem | Não há como juntar produtos; o duplicado só pode ser inativado, e o estoque dele fica separado
+  - Comunicação visual: ok | Sim | material cadastrado de novo a cada fornecedor
+  - Clientes: PraMoto, Techpress
+  - Etiquetas: valor, miss, cv, decisao
 
 ### Pesquisa de concorrentes (2026-10-20) — casos que a lista ainda não cobre
 

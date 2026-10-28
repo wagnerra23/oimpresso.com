@@ -635,6 +635,13 @@ O saldo fiscal do produto e o aviso na emissão estão em `Produto/Index.casos.m
   não serve de base: ele procurava só o código de barras ou o nome exato, sem filtrar por empresa. Falta
   decisão [W]: quem pode criar produto pela nota, e se a importação para com item sem vínculo ou deixa
   entrar marcado como pendente. Mexe em estoque: Regra Mestre.
+  - Pedido: P-151
+  - Âncora: Vínculo produto × fornecedor (`compras_produto_fornecedor`, 2026-10-27) · leitor do XML da compra (PR #10024) · compra a partir da nota (P-100) · `Purchase/Create.casos.md`
+  - Fazer: Na compra a partir da nota, ligar o item pelo vínculo do fornecedor, depois pelo código de barras, se só um produto o tiver; sem nenhum dos dois, sugerir os parecidos (nunca ligar sozinho pela descrição) e só criar produto novo com confirmação e permissão; lembrar a escolha por fornecedor. O estoque só entra quando todos os itens da nota estão resolvidos, e uma tela mostra e desfaz vínculos errados.
+  - Hoje: part | Em parte | O vínculo produto × fornecedor tem tabela desde 27/10, mas a compra a partir da nota ainda não existe. O código antigo de importação (`PurchaseXmlController`) não tem rota e não serve de base
+  - Comunicação visual: ok | Sim | lona, chapa e tinta de vários fornecedores
+  - Clientes: PraMoto, Techpress
+  - Etiquetas: valor, part, cv, decisao
 
 ## ⚠️ Divergências que precisam de [W] (não corrigidas aqui — são INTENÇÃO)
 
