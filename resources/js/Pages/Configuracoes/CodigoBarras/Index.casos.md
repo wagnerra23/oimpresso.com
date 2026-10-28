@@ -26,9 +26,11 @@ last_run: "2026-10-07"
   como o browser faz (`X-Inertia` **e** `X-Requested-With`) · Então renderiza **`Configuracoes/CodigoBarras/Index`**.
 - **Status: 🧪**
 
-## UC-ETQ-02 · Com a flag desligada, a Blade continua
-- **Aceite:** Dado a flag desligada · Quando faço `GET /barcodes` · Então a resposta é a Blade `barcode.index`.
-- **Status: 🧪**
+## UC-ETQ-02 · Cutover: a Blade saiu, a flag não traz a tela antiga de volta
+- **Aceite:** Dado `useV2ConfiguracoesCodigoBarras` desligada · Quando faço `GET /barcodes` · Então a resposta segue `Configuracoes/CodigoBarras/Index`,
+  e a view `barcode.index` não existe mais.
+- **Status: 🧪** — até 2026-10-27 este caso afirmava o contrário (flag OFF devolvia a Blade). A flag está
+  ligada para todas as empresas desde D-CFG-LIGAR ([W] 2026-10-07); o cutover apagou index/create/edit em Blade.
 
 ## UC-ETQ-03 · A lista é só do meu negócio, com a padrão primeiro e as medidas em polegada · `[T0]`
 - **Aceite:** Dado uma configuração minha (padrão, largura 1,5"), uma de outro negócio e um modelo global · Quando a

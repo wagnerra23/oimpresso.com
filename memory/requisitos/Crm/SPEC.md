@@ -658,3 +658,23 @@ _Aprovação pendente: Wagner via ADR `memory/decisions/proposals/drafts/crm-pre
 5. Cliente, venda, OS, tipo e responsável de outra empresa são recusados (ADR 0093).
 6. Fatia 2: comando agendado avisa o responsável quando o prazo está vencendo ou vencido, uma vez por chamado (`sla_alertado_em`).
 7. Fatia 3: aba "Garantia" em Acompanhamentos com fila, responsável e prazo, ancorada no protótipo.
+
+### US-CRM-096 · Captura de lead com origem e UTM — o lead entra no funil já com a origem
+
+**Implementado em:** `Modules/Crm/Http/Controllers/CapturaLeadController.php` · `Modules/Crm/Services/CapturaDeLead.php` · `Modules/Crm/Routes/api.php` · `Modules/Crm/Entities/FormularioCaptura.php`
+
+**Testado em:** `Modules/Crm/Tests/Feature/CrmCapturaLeadContratoTest.php`
+
+> owner: — · priority: p2 · estimate: 6h · type: story
+> blocked_by: —
+
+**Origem:** lacuna P2 do levantamento de concorrência de 2026-10-25 (frente CRM: RD Station, Pipedrive e Agendor capturam o lead do site com a campanha de onde ele veio). Destravada por [W] em 2026-10-27 ("pode destravar todos"). Respeita a [ADR 0441](../../decisions/0441-funil-de-vendas-sai-da-depreciacao-emenda-0301.md): o lead vira **negócio** em `crm_deals` apontando para cliente do cadastro; `contacts.type='lead'` segue em depreciação e não é usado.
+
+**Critérios de aceite:**
+1. `POST /api/crm/captura/{chave}` é público (sem sessão, sem CSRF) e responde 404 com a flag `CRM_CAPTURA_LEAD_ENABLED` desligada (padrão) ou com chave inexistente/inativa.
+2. A empresa vem só da chave do formulário (`crm_formularios_captura`); o visitante nunca informa empresa e a resposta é só `{ok: true}` (ou o redirecionamento para a página de agradecimento que a própria empresa configurou).
+3. O negócio nasce na etapa Lead, com `origem = formulario` e os 5 parâmetros UTM (`utm_source`, `utm_medium`, `utm_campaign`, `utm_term`, `utm_content`, até 120 caracteres), responsável = dono do formulário. Negócio criado à mão fica `origem = manual`.
+4. O cliente é procurado por e-mail ou celular **só na empresa do formulário**; existindo, é reaproveitado; senão nasce como cliente. Cliente de outra empresa com o mesmo e-mail nunca é usado.
+5. Nome e e-mail ou telefone obrigatórios (422 sem gravar).
+6. Anti-spam: campo-armadilha `website` preenchido responde sucesso e não grava; 10 envios por minuto por IP (o 11º recebe 429).
+7. Formulário criado por `php artisan crm:formulario-captura {business_id} {owner_user_id} {nome} [--obrigado=URL]` (responsável tem de ser da mesma empresa). Tela de gestão de formulários e a origem no cartão do funil ficam para o PR seguinte.

@@ -2,7 +2,7 @@
 id: requisitos-sells-briefing
 module: Sells
 status: producao
-updated_at: "2026-09-06"
+updated_at: "2026-10-27"
 distilled_at: "2026-09-06"
 distilled_by: jana:distill-module-truth
 ---
@@ -26,6 +26,7 @@ Sells é feature CORE do UltimatePOS (não existe um módulo `Sells` sob `Module
 - US-SELL-009: remover a Blade legacy da venda — só após cutover na ROTA LIVRE + 30 dias de monitor (relógio humano).
 - Reverter/estornar um cancelamento: plausível, sem rota nem US achadas — não medido.
 - Erratas que não voltam como gap: o dashboard `/relatorios/vendas-origem` é fantasma; ADR 0192 não é gap.
+- US-SELL-075 (maquininha/TEF): a camada independente da adquirente existe (`Modules/PaymentGateway/Services/Tef/`, driver `simulador`, flag `SELLS_TEF_ENABLED` desligada). **Decisão [W] pendente: qual integrador.** Pesquisa de 2026-10-27: o caixa é web, então TEF clássico (SiTef, PayGo) exige um agente instalado no PC da loja; terminal em nuvem (Mercado Pago Point pela API Orders, Stone Connect) funciona direto do navegador e tem sandbox. Recomendação técnica: terminal em nuvem, começando pela adquirente que a loja já usa. Envolve contrato e credencial da empresa, por isso é do [W].
 
 ## Última mudança
 Contrato de comportamento do editor (#6455, 2026-08-31) e as abas do drawer de item (#6360, 2026-08-27); depois, a Fronteira da preview (#6484, 2026-09-03) e o design-sync (#6892, 2026-09-06).

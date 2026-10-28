@@ -1,0 +1,9 @@
+[Unit]
+Description=Atualiza as vagas ct100-leve quando docker/ci-runner-leve muda no main
+After=docker.service network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/oimpresso/ci-runner-leve/atualiza.sh
+TimeoutStartSec=3h

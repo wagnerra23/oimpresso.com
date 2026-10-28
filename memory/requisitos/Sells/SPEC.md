@@ -1191,7 +1191,7 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 ### US-SELL-054 · Offline-first no PDV — fila IndexedDB + reemissão ao reconectar
 
-> owner: — · priority: p1 · estimate: 40h · status: todo · type: story
+> owner: — · priority: p1 · estimate: 40h · status: doing · type: story
 > blocked_by: —
 > parent_plan: programa-ondas-onda-1-sells
 
@@ -1203,6 +1203,15 @@ Persistir a venda em fila local (IndexedDB) quando a rede cai e sincronizar/emit
 - **ADR 0105 (cliente como sinal):** MEDIR a frequência de queda em biz=4 ANTES de executar as 40h — hipótese sem sinal vira feature-wish.
 - Tier 0: fila com `business_id` scopado; ao reemitir, respeitar regra-mestre de valor (arredondar 2 casas, num_uf 3-dígitos-milhar) + smoke biz=1 (ADR 0101).
 - Ref: memory/requisitos/Sells/CAPTERRA-FICHA.md §6 G-02 + §8.3
+
+**Implementado em:** _pendente_ — em andamento (servidor feito em `VendaOffline` e `SellPosController::store`): o servidor reconhece a chave `offline_uuid` e grava a venda uma vez só, atrás de `SELLS_OFFLINE_ENABLED` (desligada); UC-VOFF-01..04 em `resources/js/Pages/Sells/Create.casos.md`. Falta a fila no navegador e o aviso de "sem internet" no caixa.
+
+**Testado em:** `tests/Feature/Sells/VendaOfflineContratoTest.php`
+
+**Aceite:**
+- [x] O mesmo reenvio grava uma venda e baixa o estoque uma vez (UC-VOFF-01).
+- [x] Chave de uma empresa não acha venda de outra (UC-VOFF-02); flag desligada não muda nada (UC-VOFF-03).
+- [ ] O caixa guarda a venda no navegador quando a rede cai e reenvia ao voltar.
 
 ### US-SELL-055 · Pix QR no PDV + webhook auto-reconcile ligado à venda/caixa
 
@@ -1662,21 +1671,32 @@ O link público do orçamento (`SellPosController@showInvoice`) só mostra o doc
 
 ### US-SELL-075 · Maquininha integrada ao caixa (TEF): o valor vai para a máquina e a resposta preenche o pagamento
 
-> owner: wagner · priority: p1 · estimate: 40h · status: todo · type: story · origin: lacunas-concorrencia-2026-10-25
-> blocked_by: escolha do adquirente/integrador ([W])
+> owner: wagner · priority: p1 · estimate: 40h · status: doing · type: story · origin: lacunas-concorrencia-2026-10-25
+> blocked_by: — (só o driver real depende da escolha do integrador [W])
 
-**Implementado em:** _pendente_ — não iniciada.
+**Implementado em:** _pendente_ — em andamento (servidor feito em `TefService` e `TefController`): camada independente da adquirente com driver `simulador`, atrás de `SELLS_TEF_ENABLED` (desligada); UC-TEF-01..07 em `resources/js/Pages/Sells/Create.casos.md`. Falta o botão no caixa e o driver da adquirente escolhida.
+
+**Testado em:** `tests/Feature/Sells/TefCaixaContratoTest.php`
 
 Os drivers do `Modules/PaymentGateway` são de cobrança online; não há TEF. Antes de código: escolher o integrador (TEF dedicado, SmartPOS ou maquininha com API do adquirente). Aceite: o caixa manda o valor, a máquina devolve aprovação com bandeira, NSU e autorização, e o pagamento da venda nasce preenchido. Mexe em valor: regra mestre.
 
+**Aceite:**
+- [x] O caixa manda o valor e recebe `pendente`; a consulta devolve `aprovada` com bandeira, NSU e autorização (UC-TEF-02).
+- [x] Reenvio com a mesma chave não cobra duas vezes (UC-TEF-03); cobrança de outra empresa não aparece (UC-TEF-05).
+- [x] Valor com mais de 2 casas é recusado; centavos conferidos por dois caminhos (UC-TEF-06).
+- [ ] A linha de pagamento do caixa ganha "Cobrar na maquininha" e nasce preenchida com a resposta.
+- [ ] Driver da adquirente escolhida pelo [W].
+
 ### US-SELL-076 · Cupom de desconto e promoção leve X pague Y no caixa novo
 
-> owner: wagner · priority: p2 · estimate: 16h · status: todo · type: story · origin: lacunas-concorrencia-2026-10-25
+> owner: wagner · priority: p2 · estimate: 16h · status: doing · type: story · origin: lacunas-concorrencia-2026-10-25
 > blocked_by: —
 
-**Implementado em:** _pendente_ — não iniciada.
+**Implementado em:** _pendente_ — em andamento: cupom pelo servidor feito (`App\Services\Sells\CupomDaVenda`, `POST /sells/cupom`, tabela `sell_coupons`, UC-VCUP-01..05 em `Sells/Create.casos.md`), atrás da flag `SELLS_CUPOM` desligada. Falta o campo do cupom no caixa React, gastar o uso ao gravar a venda, o cadastro dos cupons e a promoção leve X pague Y.
 
 Hoje há desconto por período (`DiscountController`). Faltam cupom com código, validade e limite de uso, e a promoção leve X pague Y aplicada sozinha no caixa. Mexe em valor: regra mestre (antes→depois e dupla prova).
+
+Regra de acúmulo (2026-10-27): a promoção (`discounts`) vale por linha; o cupom vale sobre o carrinho. Cupom que **acumula** incide sobre o subtotal já com a promoção. Cupom que **não acumula** (padrão) dá ao cliente o maior dos dois: só entra se for maior que a promoção e, aí, a substitui. Desconto nunca passa da base.
 ### US-SELL-078 · O ICMS-ST entra no total da venda, pela mesma conta da NF-e
 
 > owner: wagner · priority: p1 · estimate: 16h · status: doing · type: story · origin: coordenacao-lacunas-2026-10-26

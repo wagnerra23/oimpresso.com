@@ -589,6 +589,8 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('/home', fn () => redirect('/dashboard-legacy', 302))->name('home');
     Route::get('/dashboard-legacy', [HomeController::class, 'index'])->name('home.legacy');
     Route::get('/home/get-totals', [HomeController::class, 'getTotals']);
+    // Onboarding guiado (US-SUPER-012) — pular/voltar passo, dispensar/retomar o card. Flag onboardingPrimeirosPassos.
+    Route::post('/home/primeiros-passos', [HomeController::class, 'primeirosPassos'])->name('home.primeiros-passos');
     Route::get('/home/product-stock-alert', [HomeController::class, 'getProductStockAlert']);
     Route::get('/home/purchase-payment-dues', [HomeController::class, 'getPurchasePaymentDues']);
     Route::get('/home/sales-payment-dues', [HomeController::class, 'getSalesPaymentDues']);
@@ -801,6 +803,8 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     // Chip "Emitir cobrança" no footer drawer Sells (ADR 0144 + 0170).
     // US-SELL-078 — ICMS-ST do carrinho pela mesma conta da NF-e (a tela mostra no total).
     Route::post('/sells/icms-st', [\App\Http\Controllers\SellIcmsStController::class, 'calcular'])->name('sells.icms-st');
+    // US-SELL-076 — cupom por código no caixa (só avalia; flag SELLS_CUPOM).
+    Route::post('/sells/cupom', [\App\Http\Controllers\SellCupomController::class, 'avaliar'])->name('sells.cupom');
     Route::post('/sells/{id}/emitir-cobranca', [SellController::class, 'emitirCobranca'])
         ->whereNumber('id')
         ->name('sells.emitir-cobranca');
@@ -898,7 +902,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::resource('group-taxes', GroupTaxController::class);
 
     Route::get('/barcodes/set_default/{id}', [BarcodeController::class, 'setDefault']);
-    Route::resource('barcodes', BarcodeController::class);
+    Route::resource('barcodes', BarcodeController::class)->except(['create', 'show', 'edit']);
 
     //Invoice schemes..
     Route::get('/invoice-schemes/set_default/{id}', [InvoiceSchemeController::class, 'setDefault']);
@@ -962,7 +966,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
 
     //Business Locations...
     Route::post('business-location/check-location-id', [BusinessLocationController::class, 'checkLocationId']);
-    Route::resource('business-location', BusinessLocationController::class);
+    Route::resource('business-location', BusinessLocationController::class)->except(['create', 'show', 'edit']);
 
     //Invoice layouts..
     Route::resource('invoice-layouts', InvoiceLayoutController::class);
@@ -991,7 +995,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::resource('payments', TransactionPaymentController::class);
 
     //Printers...
-    Route::resource('printers', PrinterController::class);
+    Route::resource('printers', PrinterController::class)->except(['create', 'show', 'edit']);
 
     Route::get('/stock-adjustments/remove-expired-stock/{purchase_line_id}', [StockAdjustmentController::class, 'removeExpiredStock']);
     Route::post('/stock-adjustments/get_product_row', [StockAdjustmentController::class, 'getProductRow']);

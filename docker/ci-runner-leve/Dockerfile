@@ -8,9 +8,9 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends git ca-certificates curl unzip xz-utils \
  && rm -rf /var/lib/apt/lists/*
 COPY --chmod=755 entrypoint.sh /usr/local/bin/ci-leve-entrypoint
-COPY --chmod=755 limpa-workspace.sh /usr/local/bin/ci-leve-limpa-workspace
+COPY --chmod=755 limpa-workspace.sh /usr/local/bin/ci-leve-limpa-workspace.sh
 # Esvazia o workspace antes de cada job (runner persistente; ver limpa-workspace.sh).
-ENV ACTIONS_RUNNER_HOOK_JOB_STARTED=/usr/local/bin/ci-leve-limpa-workspace
+ENV ACTIONS_RUNNER_HOOK_JOB_STARTED=/usr/local/bin/ci-leve-limpa-workspace.sh
 USER runner
 WORKDIR /home/runner
 ENTRYPOINT ["/usr/local/bin/ci-leve-entrypoint"]

@@ -6,7 +6,7 @@ type: sdd
 module: Produto
 status: ativo
 owner: wagner
-version: 1.0.16
+version: 1.0.17
 last_updated: 2026-10-27
 related_docs:
   - SPEC.md
@@ -1128,6 +1128,54 @@ qual é o local padrão.
 - **Casos de uso:** ainda sem id. Estão no backlog do `Create.casos.md` e do `Edit.casos.md` e
   ganham id quando houver teste que os defenda (G-2).
 
+#### CU-PROD-21 — Política de preço do produto `[should]` 🎨 **só no protótipo** (2026-10-22)
+
+<!-- curado: regra da compra em Fluxos (RegrasCompra.php, fsm-regras.jsx) + receita da Fabricação (manufacturing-recipe.jsx) + US-PROD-030 + medição do código em 2026-10-22 -->
+
+*Dado* um produto cujo custo muda quando a compra de um insumo é recebida; *quando* cadastro ou edito
+o produto; *então* escolho o que acontece com o preço de venda dele: fica parado, acompanha o custo ou
+volta para uma margem alvo.
+
+- **Origem:** pedido do [W] em 2026-10-06 (US-PROD-030), textual: *"tem produto que deve ser sempre
+  atualizado o preço a cada compra, ou modificação do item da composição. e tem produto que existe
+  tabela de preço dos vendedores e o cliente não quer mudar o valor toda hora então ele escolhe manter
+  desatualizado."* A regra da compra em Fluxos pergunta "Quais produtos seguem" e uma das respostas é
+  "Política de preço do produto" (`app/Domain/Fsm/Modelos/RegrasCompra.php`, parâmetro `regraEm`). O
+  protótipo de Fluxos anota: *"falta o campo no cadastro"* (`fluxos-modelos.casos.md`).
+- **As três opções** (nomes do protótipo do [W]: receita da Fabricação, `manufacturing-recipe.jsx`, e
+  regra da compra, `fsm-regras.jsx`):
+  1. **Preço fixo — só a margem muda.**
+  2. **Acompanha o custo — mantém o markup.**
+  3. **Margem alvo — recalcula pelo custo**, com o campo **Margem alvo (%)**, que só aparece nessa
+     opção.
+- **Produto novo começa com Preço fixo.** É a resposta do [W] à pergunta 1 da US-PROD-030 (2026-10-06,
+  "mantém o preço") e o padrão do protótipo (`{ tipo: "fixo" }`).
+- **Quem decide o quê:** a **política do produto** diz quais produtos seguem a regra. A **regra da
+  compra da empresa**, em Fluxos, diz o que acontece com eles: só recalcula o custo, propõe o preço
+  novo para alguém aprovar, ou aplica o preço novo sozinho.
+- **O que o sistema já tem (medido em 2026-10-22):**
+  1. ✅ A regra da compra é aplicada no recebimento (US-COM-026, `AplicarCustoDoRecebimento`,
+     2026-10-20), e o preço proposto vai para uma fila de aprovação no detalhe da compra (US-COM-028,
+     `PropostasDePreco`, 2026-10-21).
+  2. 🔴 Não existe coluna de política em `products` nem em `variations`, e o parâmetro `regraEm` ainda
+     não é lido (comentário de `RegrasCompra.php`). Hoje a regra da compra vale para **todos** os
+     produtos da empresa.
+- **No protótipo** (artefato do cadastro, bloco Preço & Imposto): no **Novo**, "Política de preço" com
+  Preço fixo; no **Editar**, o exemplo usa Margem alvo com 45%. A ajuda diz que a regra da compra em
+  Fluxos decide se o preço novo entra sozinho ou vai para aprovação.
+- **⚠️ O SPEC está atrás do fluxo:** a US-PROD-030 usa outros nomes (*mantém o preço · atualiza na
+  hora · atualiza com confirmação*) e põe "com confirmação" no produto. Datas conferidas no git: o
+  protótipo do [W] entrou no repositório em 2026-10-06 17:11 UTC (handoff 48, #8806) e o SPEC no mesmo
+  dia, às 18:57 UTC (#8818). O que veio depois seguiu o protótipo: a ADR 0435 (2026-10-16, *"o fluxo
+  do pedido segue o protótipo Fluxos e regras"*) e a regra da compra no código (2026-10-16 a 21), que
+  pôs a escolha "propõe para aprovação" na empresa. Decidido pela [M] em 2026-10-22: **seguem os nomes
+  de Fluxos e da Fabricação.** A US-PROD-030 precisa ser atualizada com esses nomes; não foi feito
+  neste documento.
+- **Ainda em aberto, sem presumir:** as outras respostas do [W] na US-PROD-030 (tabelas de preço,
+  aviso na receita, vários níveis da composição) não falam dos três nomes novos; a migração do legado
+  (`TEM_MARGEM_FIXA_CONTIBUICAO`) precisa ser refeita para eles.
+- **Casos de uso:** ainda sem id; ganham id quando houver teste que os defenda (G-2).
+
 ### 6.2 Vertical comunicação visual (`CV`)
 
 #### CV-01 — Produto/material precificado por m² 🟡 *criar*
@@ -1348,6 +1396,7 @@ qual é o local padrão.
 
 **Histórico:**
 
+- 2026-10-22 — **`CU-PROD-21`: política de preço do produto** (v1.0.17): três opções com os nomes de Fluxos e da Fabricação (Preço fixo · Acompanha o custo · Margem alvo), produto novo com Preço fixo, só no protótipo. Registrado que a US-PROD-030 usa outros nomes e ficou atrás do fluxo decidido depois (ADR 0435 e regra da compra no código). [M+C]
 - 2026-10-27 — **Estoque mínimo: o comprador e o cálculo** (v1.0.16), a partir do comentário do [W] no #9930: `CU-PROD-04` item 2 passa a dizer que o item abaixo do mínimo já aparece na lista Necessidade de compra (US-COM-030, #9878), que falta gerar a requisição ou a cotação dali (US-COM-031), e como calcular o mínimo (consumo médio × prazo total de reposição, com margem de segurança proposta). Registra o que falta para o sistema sugerir o mínimo e o conflito com o "Pedir até" do MRP. Texto sobreposto com autorização da [M]. Na mesma versão, revisão da [M] a partir de um caso do [L]: o **estoque máximo volta, opcional por produto**, como teto da compra (barra de pouco giro enferruja parada); substitui a decisão de 2026-10-22 de não ter máximo. [F+C] [M+C]
 - 2026-10-22 — **Decisões da [M] sobre as pendências de fluxo** (v1.0.15): sem "Estoque máximo"; a requisição segue até o mínimo (`CU-PROD-04` item 2). Natureza uma por produto, mantendo a D-NATUREZA do [W] (`CU-PROD-19`). Roteiro de produção segue a ADR 0436 do [W] (item 3): sem roteiro no produto, a OS usa as etapas de produção do modelo da empresa; o protótipo mostra isso no card Produção. ⚠️ Ainda não funciona: a OS por item (US-PCP-026, #9641) não tem esse padrão, e hoje produto sem roteiro não vira OS (`UC-PCROT-02`). [M+C]
 - 2026-10-22 — **Três pendências das regras de fluxo registradas** (v1.0.14): natureza "a decidir" no Novo produto (`CU-PROD-19` item 3, proposta; trava a NFS-e da venda até o contador decidir), item da LC 116 do produto na NFS-e (`CU-PROD-19` item 4, corrigido: já funciona desde o #9727) e estoque mínimo e máximo (`CU-PROD-04` item 2; a requisição pelo mínimo já existe na US-COM-027, o máximo é proposta). [M+C]

@@ -109,17 +109,25 @@ last_updated: "2026-10-27"
 
 ### US-PROD-024 · [G-03] ⚠️Tier0 · Custo médio + valor/custo em estoque — SPIKE de descoberta primeiro
 
-> owner: wagner · priority: p2 · status: todo · type: epic · estimate: 24h · origin: onda-produto-passo2-2026-07-03 · blocked_by: US-PROD-020
+> owner: wagner · priority: p2 · status: doing · type: epic · estimate: 24h · origin: onda-produto-passo2-2026-07-03 · blocked_by: US-PROD-020
 
-**Implementado em:** _pendente_ — não iniciada: o SPIKE (Fase 1) não produziu inventário algum em `memory/requisitos/Produto/`; as menções a custo médio no módulo são as pré-US (CAPTERRA-FICHA/INVENTARIO + SDD), não entrega desta.
+**Implementado em:** _pendente_ — a US segue aberta (2026-10-27). Já existe o custo médio móvel por variação, atrás da flag `COMPRAS_CUSTO_MEDIO_MOVEL` (desligada): `Modules/Compras/Services/CustoMedioMovel.php` · `Modules/Compras/Observers/CompraRecebidaCustoMedioObserver.php` · `Modules/Compras/Console/Commands/CustoMedioSemearCommand.php` · `Modules/Compras/Database/Migrations/2026_10_27_400000_create_compras_custo_medio_tables.php`. Falta: margem da venda lendo o médio, semente aprovada pelo [W] e KPIs do `/unificado`.
 
 **Por quê (Wagner 2026-07-03: "estudar melhor o custo médio, muita coisa já tem pronta").** NÃO é greenfield — o UltimatePOS já calcula custo por compra. Antes de construir agregação, **mapear a máquina de custo que já roda**.
 
+**Testado em:** `Modules/Compras/Tests/Feature/CustoMedioMovelTest.php` (lane `compras-pest.yml`, UC-CMED-01..08) · `tests/Feature/Sells/SellsShowMargemCustoMedioContratoTest.php` (lane `sells-pest.yml`, UC-VSHOW-24..26).
+
+**Aceite:** as caixas das Fases 1 e 2 abaixo.
+
 **Fase 1 — SPIKE de descoberta (obrigatória antes de codar):**
-- [ ] Inventariar o que já existe: `default_purchase_price`/`dpp_inc_tax` por variação, `VariationLocationDetails` (qty_available), fluxo de custo na entrada de compra (`PurchaseController`/`TransactionUtil`), relatórios `stock-report`/`stock-by-sell-price`/`get-opening-stock`.
-- [ ] Documentar: custo médio já é recalculado na compra? Onde? Qual a fonte-de-verdade de "valor em estoque"? Registrar em `casos.md` ou nota.
+- [x] Inventariar o que já existe (2026-10-27): o core grava o **último** preço em `variations.dpp_inc_tax` (`ProductUtil::updateProductFromPurchase`, com `enable_editing_product_from_purchase`). A regra de custo da aba Fluxos (US-COM-026) troca isso pelo método da empresa no recebimento, via `CustoDoInsumoService::naData` (US-COM-024). O lucro dos relatórios usa o custo do **lote** (`transaction_sell_lines_purchase_lines` → `purchase_lines.purchase_price_inc_tax`, FIFO/LIFO).
+- [x] Documentar (2026-10-27): o `medio` do `CustoDoInsumoService` é a média de **todas** as compras até a data; o que já saiu do estoque continua pesando (compra 10 a 10,00, vende 10, compra 10 a 20,00 → 15,00, quando o estoque custa 20,00). Não existia médio **móvel**. Valor em estoque: não há fonte única (lote no relatório, `dpp_inc_tax` no cadastro).
 
 **Fase 2 — só depois do spike:**
+- [x] Custo médio móvel por variação, recalculado a cada compra recebida (qualquer caminho: observer do `Transaction`, depois do commit), guardado em `compras_custo_medio` com o histórico em `compras_custo_medio_movimentos`. Atrás de `COMPRAS_CUSTO_MEDIO_MOVEL` (desligada). Não escreve em `variations`, preço nem estoque. Semente: `php artisan compras:custo-medio-semear {business}` mostra a tabela antes→depois; só grava com `--aplicar`.
+- [x] Margem da venda finalizada pelo custo médio do momento da venda — servidor (2026-10-27): `detail.margem` no `SellController::margemDaVenda`, pela interface `App\Contracts\Compras\CustoMedio`; só com `view_purchase_price` e a flag (UC-VSHOW-24..26, `tests/Feature/Sells/SellsShowMargemCustoMedioContratoTest.php`).
+- [ ] Faixa da margem no detalhe da venda (`Sells/Show.tsx`) — protótipo `prototipo-ui/cowork/Wagner/vendas-detalhe-margem.html`, espera o OK do [W].
+- [ ] Ligar a flag depois da semente aprovada pelo [W] (antes→depois por variação).
 - [ ] Expor agregação valor/custo em estoque + margem média nos KPIs do `/unificado` (hoje `margem_media`/`sem_giro`/`stockQty` zerados; reusa o que já existe).
 - [ ] **⚠️ Tier 0 estoque/valor** — dupla-confirmação (2 caminhos) + antes→depois + aprovação Wagner. Medir demanda (ADR 0105) antes de investir as ~20-30h.
 
@@ -330,7 +338,7 @@ Exemplo com alíquotas ilustrativas — custo 100,00, imposto 8%, lucro 20%:
 3. **Composição do preço no produto:** custo (o do cadastro) · imposto do Simples (automático, pela natureza) · comissão do vendedor (a regra de produto da US-COMM-015: regra em % entra como % do preço; regra em valor por unidade entra somada ao custo) · despesas fixas % e lucro desejado % (padrão da empresa, ajustável no produto). Resultado: preço sugerido e a decomposição em valores, ao lado do preço de venda atual.
 4. **Produto sem custo** (preço por m², comum em comunicação visual): a conta vira ao contrário, a partir do preço atual — quanto é imposto, comissão e despesas, e quanto sobra. Nunca sugere preço a partir de custo zero (guarda 3 do SDD do cadastro).
 5. **Soma dos percentuais igual ou acima de 100%:** não existe preço possível; a tela diz isso em vez de dividir.
-6. **Aplicar o sugerido é ato da pessoa,** num produto ou em lote, sempre com antes→depois. Quando a alíquota de uma competência nova muda o sugerido, a tela lista os produtos afetados (preço atual × sugerido) para o reajuste em lote. O que cada produto faz sozinho segue a política de preço da US-PROD-030 quando ela existir (atualiza na hora · com confirmação · mantém o preço); até lá, nenhum preço muda sem confirmação.
+6. **Aplicar o sugerido segue a política de preço do produto (US-PROD-030); enquanto ela não existe, é ato da pessoa,** num produto ou em lote, sempre com antes→depois. Os modelos de Fluxos do [W] já preveem o preço aplicado sem confirmação (regra de compra "preço aplicar", em `prototipo-ui/cowork/Wagner/fluxos-modelos.casos.md`), e a política tem de comportar isso. Quando a alíquota de uma competência nova muda o sugerido, a tela lista os produtos afetados (preço atual × sugerido) para o reajuste em lote. O que cada produto faz sozinho segue a política de preço da US-PROD-030 quando ela existir (atualiza na hora · com confirmação · mantém o preço); até lá, nenhum preço muda sem confirmação.
 7. **Não usa o grupo de imposto do produto** (`tax_rates`): aquele soma o imposto por fora do preço e o destaca na venda. O imposto do Simples fica dentro do preço; a venda e a nota não mudam.
 
 **Onde fica:** fora da aba geral do cadastro, conforme a decisão [W] de 2026-07-17 (`SDD-tela-cadastro-produto-v1.0.md`: a composição vai para tela própria ou para um "Avançado" de um nível). A forma sai do protótipo em `prototipo-ui/` antes do código ([ADR 0438](../../decisions/0438-artefato-substitui-cowork-como-superficie-do-prototipo.md)).

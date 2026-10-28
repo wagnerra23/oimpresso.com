@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Printer;
 use App\Services\FeatureFlagService;
-use Datatables;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -17,7 +16,6 @@ class PrinterController extends Controller
      *
      * @see memory/requisitos/Configuracoes/RUNBOOK-impressoras.md
      */
-    private const FLAG_V2 = 'useV2ConfiguracoesImpressoras';
 
     /**
      * Display a listing of the resource.
@@ -32,43 +30,10 @@ class PrinterController extends Controller
 
         $business_id = request()->session()->get('user.business_id');
 
-        // `! inertia()`: o Inertia v3 manda `X-Requested-With` em toda visita; sem esta perna o
-        // partial reload da prop adiada caía no JSON do DataTables (RUNBOOK-impressoras §10).
-        if (request()->ajax() && ! request()->inertia()) {
-            $printer = Printer::where('business_id', $business_id)
-                        ->select(['name', 'connection_type',
-                            'capability_profile', 'char_per_line', 'ip_address', 'port', 'path', 'id', ]);
-
-            return Datatables::of($printer)
-                ->editColumn('capability_profile', function ($row) {
-                    return Printer::capability_profile_srt($row->capability_profile);
-                })
-                ->editColumn('connection_type', function ($row) {
-                    return Printer::connection_type_str($row->connection_type);
-                })
-                ->addColumn(
-                    'action',
-                    '@can("printer.update")
-                    <a href="{{action(\'App\Http\Controllers\PrinterController@edit\', [$id])}}" class="tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline tw-dw-btn-primary"><i class="glyphicon glyphicon-edit"></i> @lang("messages.edit")</a>
-                        &nbsp;
-                    @endcan
-                    @can("printer.delete")
-                        <button data-href="{{action(\'App\Http\Controllers\PrinterController@destroy\', [$id])}}" class="tw-dw-btn tw-dw-btn-outline tw-dw-btn-xs tw-dw-btn-error delete_printer_button"><i class="glyphicon glyphicon-trash"></i> @lang("messages.delete")</button>
-                    @endcan'
-                )
-                ->removeColumn('id')
-                ->rawColumns([7])
-                ->make(false);
-        }
-
-        if (app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
-            return Inertia::render('Configuracoes/Impressoras/Index', [
-                'impressoras' => Inertia::defer(fn () => $this->impressorasDoNegocio((int) $business_id)),
-                'opcoes' => ['conexao' => Printer::connection_types(), 'perfil' => Printer::capability_profiles()],
-            ]);
-        }
-
-        return view('printer.index');
+        return Inertia::render('Configuracoes/Impressoras/Index', [
+            'impressoras' => Inertia::defer(fn () => $this->impressorasDoNegocio((int) $business_id)),
+            'opcoes' => ['conexao' => Printer::connection_types(), 'perfil' => Printer::capability_profiles()],
+        ]);
     }
 
     /** Impressoras do negócio da sessão, no shape da tela React. */
@@ -90,23 +55,6 @@ class PrinterController extends Controller
             ->all();
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        if (! auth()->user()->can('access_printers')) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $capability_profiles = Printer::capability_profiles();
-        $connection_types = Printer::connection_types();
-
-        return view('printer.create')
-            ->with(compact('capability_profiles', 'connection_types'));
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -151,39 +99,7 @@ class PrinterController extends Controller
         return redirect('printers')->with('status', $output);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        if (! auth()->user()->can('access_printers')) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $business_id = request()->session()->get('user.business_id');
-        // Tier 0: com find() o id de outro negócio virava null e a Blade quebrava (500); agora 404.
-        $printer = Printer::where('business_id', $business_id)->findOrFail($id);
-
-        $capability_profiles = Printer::capability_profiles();
-        $connection_types = Printer::connection_types();
-
-        return view('printer.edit')
-            ->with(compact('printer', 'capability_profiles', 'connection_types'));
-    }
 
     /**
      * Update the specified resource in storage.
