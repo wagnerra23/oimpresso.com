@@ -31,6 +31,8 @@ on:
     branches: [main]
     paths:
       - 'tests/Feature/Sells/**'
+      - 'Modules/PaymentGateway/Services/Tef/**'  # TEF no caixa (US-SELL-075)
+      - 'Modules/PaymentGateway/Http/Controllers/TefController.php'
       - 'tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php'  # cutover-menu thread 02
       - 'Modules/ProductCatalogue/Http/Controllers/ProductCatalogueController.php'  # modulos-faltantes 04
       - 'Modules/ProductCatalogue/Services/CatalogueQrService.php'
@@ -214,6 +216,8 @@ jobs:
           filters: |
             sells:
               - 'tests/Feature/Sells/**'
+              - 'Modules/PaymentGateway/Services/Tef/**'  # TEF no caixa (US-SELL-075)
+              - 'Modules/PaymentGateway/Http/Controllers/TefController.php'
               - 'tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php'
               - 'Modules/ProductCatalogue/Http/Controllers/ProductCatalogueController.php'
               - 'Modules/ProductCatalogue/Services/CatalogueQrService.php'
@@ -587,6 +591,7 @@ jobs:
             tests/Feature/Sells/SellReturnIndexContratoTest.php \
             tests/Feature/Sells/SellReturnAddContratoTest.php \
             tests/Feature/Sells/IcmsStNaVendaContratoTest.php \
+            tests/Feature/Sells/TefCaixaContratoTest.php \
             tests/Feature/Sells/VendaOfflineContratoTest.php \
             tests/Feature/Sells/ValeTrocaContratoTest.php \
             tests/Feature/Sells/ResgatePontosContratoTest.php \
