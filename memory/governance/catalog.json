@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 38,
-    "nodes": 884,
-    "edges": 1200,
+    "nodes": 885,
+    "edges": 1201,
     "by_node_type": {
       "module": 43,
       "table": 108,
       "adr": 148,
-      "component": 496,
+      "component": 497,
       "api": 89
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 93,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 496,
+      "hasComponent": 497,
       "dependsOn": 133,
       "delegatesTo": 122,
       "migratesTo": 1,
@@ -4234,6 +4234,13 @@
       "module": "PaymentGateway",
       "name": "Settings/PaymentGatewaysController",
       "desc": "F3 PaymentGateway UI Tela 2 (CRUD credenciais + health check + toggle, Onda 4d.3)"
+    },
+    {
+      "id": "component:PaymentGateway/TefController",
+      "type": "component",
+      "module": "PaymentGateway",
+      "name": "TefController",
+      "desc": "POST/GET /paymentgateway/tef/cobrancas, maquininha integrada ao caixa (US-SELL-075); Services/Tef/TefService + SimuladorTefDriver, contrato TefDriver; flag SELLS_TEF_ENABLED"
     },
     {
       "id": "component:PaymentGateway/Webhooks/AsaasWebhookController",
@@ -12681,6 +12688,12 @@
     {
       "from": "module:PaymentGateway",
       "to": "component:PaymentGateway/Settings/PaymentGatewaysController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:PaymentGateway",
+      "to": "component:PaymentGateway/TefController",
       "type": "hasComponent",
       "source": "contains"
     },
