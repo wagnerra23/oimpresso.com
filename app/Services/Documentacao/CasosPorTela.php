@@ -57,7 +57,7 @@ final class CasosPorTela
             preg_match_all('/UC-FLX-\d+/', ($p['ancora'] ?? '') . ' ' . ($p['titulo'] ?? ''), $m);
             $regrasDoCaso = array_values(array_unique($m[0]));
             foreach ($regrasDoCaso as $r) {
-                if (! isset($ids[$r])) {
+                if (! array_key_exists($r, $ids)) {
                     $problemas[] = "{$p['id']} cita {$r}, que não existe no catálogo";
                 }
             }
@@ -74,7 +74,7 @@ final class CasosPorTela
         $decs = [];
         foreach ($decisoes as $d) {
             foreach ($d['destrava'] ?? [] as $x) {
-                if (! isset($porId[$x])) {
+                if (! array_key_exists($x, $porId)) {
                     $problemas[] = "{$d['id']} destrava {$x}, que não está no git";
                 }
             }
@@ -98,7 +98,7 @@ final class CasosPorTela
 
         $areas = [];
         foreach ($mapa['areas'] as [$id, $nome]) {
-            $daArea = array_values(array_column(array_filter($telas, static fn (array $t): bool => $t['area'] === $id), 'id'));
+            $daArea = array_column(array_filter($telas, static fn (array $t): bool => $t['area'] === $id), 'id');
             if ($daArea) {
                 $areas[] = ['id' => $id, 'nome' => $nome, 'telas' => $daArea];
             }
@@ -309,7 +309,7 @@ final class CasosPorTela
         $selecao = static function (string $v): array {
             $partes = explode(' | ', $v);
 
-            return ['tipo' => $partes[0] ?? '', 'texto' => $partes[1] ?? '', 'nota' => implode(' | ', array_slice($partes, 2))];
+            return ['tipo' => $partes[0], 'texto' => $partes[1] ?? '', 'nota' => implode(' | ', array_slice($partes, 2))];
         };
         $lista = static fn (string $v): array => $v === '' ? [] : array_values(array_filter(array_map([self::class, 'trimJs'], explode(',', $v)), static fn ($x) => $x !== ''));
         foreach ($subs as [$k, $v]) {
