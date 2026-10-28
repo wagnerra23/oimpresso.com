@@ -609,44 +609,6 @@ class SpreadsheetController extends Controller
      * encadeava `orWhere` sem agrupar, e os ramos de compartilhamento escapavam do
      * `business_id`.
      */
-    /**
-     * Uma planilha do negócio que o usuário pode abrir: criou, ou recebeu por usuário, função ou tarefa.
-     *
-     * Antes de 2026-10-27 show() e update() montavam esta consulta à mão com `->where(created_by)
-     * ->orWhere(...)` sem agrupar: o OR escapava do `business_id` e do `id`. No update() o join não
-     * filtrava a planilha, então qualquer planilha compartilhada com o usuário fazia o `firstOrFail`
-     * passar e o UPDATE (que filtra só business e id) gravava por cima de planilha de colega.
-     * Agora o OR fica dentro de um grupo, como em planilhasVisiveis().
-     */
-    private function planilhaAcessivel(int $business_id, int $id)
-    {
-        $user_id = (int) request()->session()->get('user.id');
-        $role_id = User::find($user_id)?->roles()->first()?->id;
-        $todo_ids = $this->moduleUtil->getModuleData('getAssignedTaskForUser', $user_id)['Essentials'] ?? [];
-
-        $query = Spreadsheet::where('sheet_spreadsheets.business_id', $business_id)
-            ->where('sheet_spreadsheets.id', $id)
-            ->leftJoin('sheet_spreadsheet_shares as SSS', function ($join) use ($id) {
-                $join->on('sheet_spreadsheets.id', '=', 'SSS.sheet_spreadsheet_id')
-                    ->where('SSS.sheet_spreadsheet_id', '=', $id);
-            });
-
-        if (! auth()->user()->can('superadmin')) {
-            $query->where(function ($q) use ($user_id, $role_id, $todo_ids) {
-                $q->where('sheet_spreadsheets.created_by', $user_id)
-                    ->orWhere(fn ($q) => $q->where('SSS.shared_id', $user_id)->where('SSS.shared_with', 'user'));
-                if ($role_id !== null) {
-                    $q->orWhere(fn ($q) => $q->where('SSS.shared_id', $role_id)->where('SSS.shared_with', 'role'));
-                }
-                if (! empty($todo_ids)) {
-                    $q->orWhere(fn ($q) => $q->whereIn('SSS.shared_id', $todo_ids)->where('SSS.shared_with', 'todo'));
-                }
-            });
-        }
-
-        return $query;
-    }
-
     private function planilhasVisiveis(int $business_id)
     {
         $user_id = (int) request()->session()->get('user.id');
