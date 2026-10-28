@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a lista é a PORTA do catálogo — se ela esconde produto, esconde preço a quem não devia, ou mistura tenant, todo o resto do ERP herda o erro.
 owner: wagner
-last_run: "2026-10-27"
+last_run: "2026-10-28"
 last_run_ci: "2026-10-26: PR #9897 (natureza fiscal na consulta, UC-PIDX-31, com a requisição aberta e o método de custo do #9896 e do #9898 já no main), head 2c43ba7: lane PHP / Pest (Estoque · MySQL), job 121847889045: 550 passed, 0 pulados (2701 assertions), com ProdutoRequisicaoAbertaContratoTest 4, ProdutoNaturezaFiscalConsultaContratoTest 3 e ProdutoMetodoDeCustoContratoTest 2 verdes; job Frontend / Vite build 121847886774: 114 testes passaram em 14 arquivos. Antes: 2026-10-23: run 39945557255 (lane Estoque · MySQL, main 53e7995, disparada à mão): 497 testes, 0 falhas, 0 pulados, com todos os arquivos Pest da lista; job 120384523098 (Frontend / Vite build, mesmo commit): os 2 arquivos Vitest da lista que rodam em lane passaram; os outros 8 arquivos Vitest da lista não rodam em lane e passaram local (133 de 133). Antes: 2026-10-19, job 118208572139."
 ---
 
@@ -808,6 +808,7 @@ há item aqui.
 
 ## Trilha do tempo
 - 2026-10-28 · [F+C] Backlog: juntar produtos duplicados pela nota de compra (pedido de PraMoto e Techpress). Sem id.
+- 2026-10-28 · [F+C] `last_run` 2026-10-27 → 2026-10-28 (G-6). O `Index.tsx` mudou por último no #9897 (natureza fiscal, UC-PIDX-31), que entrou no main em 28/10 junto com estes casos revalidados; a data só acompanha o merge. Nenhum caso nem teste mudou.
 - 2026-10-27 · [F+C] Revalidado (G-6): o `Index.tsx` ganhou data nova só pelo merge com o `main` de hoje, depois que o #9925 entrou; o conteúdo é o `emiteNota` passado ao painel por este PR (UC-PIDX-17 e 25), já descrito pelos casos acima. Vitest local dos 18 arquivos de produto: 213 testes passaram. Nenhum UC muda de status; last_run 2026-10-26 → 2026-10-27.
 - 2026-10-26 · [F+C] **UC-PIDX-34** (decisão [F]): coluna e filtro Imposto da lista só em empresa com alíquota cadastrada; a coluna nasce desligada e o "ligada" que o navegador guardou antes é desligado uma vez; o CSV de "Exportar filtrados" segue a regra. O UC-PIDX-10 deixa de ter nota pendente e o UC-PIDX-26 diz que o cenário de 12 colunas inclui a Imposto ligada. O backlog das decisões de 26/10 fica vazio.
 - 2026-10-26 · [F+C] **UC-PIDX-19 reescrito, UC-PIDX-17, 20 e 25 ajustados** (decisão [F]): o imposto aparece por relevância no painel. A aba Dados começa com o preço que a venda cobra (com imposto) e, só com imposto, o preço sem imposto, o imposto aplicável e a frase; as tabelas de preço têm uma coluna quando sem e com imposto são iguais; a aba Fiscal e o item "Dados fiscais" só existem em empresa com o módulo Fiscal no pacote (`contexto.emite_nota`) e a aba começa por "Pronto para nota" ou "Sem NCM". O caso antigo do UC-PIDX-19 fica registrado na seção dele; dois itens do backlog viram caso. Falta a coluna e o filtro Imposto da lista (PR seguinte).
