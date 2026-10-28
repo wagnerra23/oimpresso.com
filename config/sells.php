@@ -47,6 +47,15 @@ return [
         'timeout_seconds' => (int) env('SELLS_AI_TIMEOUT', 8),
     ],
 
+    'resgate_pontos' => [
+        /*
+         * US-SELL-079 — resgate de pontos de fidelidade no caixa React (Sells/Create). Desligado
+         * por padrão: ligado, a tela mostra o resgate quando a empresa tem os pontos ligados
+         * (business.enable_rp). A conferência no servidor vale sempre, ligado ou não.
+         */
+        'enabled' => (bool) env('SELLS_RESGATE_PONTOS_ENABLED', false),
+    ],
+
     'import' => [
         /*
          * Importação de vendas por planilha (`/import-sales`) — decisão D2 de [W] (2026-10-02):
