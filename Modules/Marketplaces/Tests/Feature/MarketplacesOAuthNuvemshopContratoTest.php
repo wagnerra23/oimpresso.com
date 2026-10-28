@@ -31,7 +31,7 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * Tenant 98 contra 99 (ADR 0358). ⚠️ SKIP em SQLite (schema UltimatePOS).
  */
 const NS_RESPOSTA_DOC = [
-    'access_token' => '61181d08b7e328d256736hdcb671c3ce50b8af5',
+    'access_token' => 'token-de-teste-nuvemshop',
     'token_type' => 'bearer',
     'scope' => 'read_orders,write_products',
     'user_id' => '789',
@@ -128,11 +128,11 @@ it('US-MKT-026 · callback válido grava o token cifrado e sem vencimento na emp
     $contas = ContaVendedor::withoutGlobalScopes()->where('marketplace_id', $this->nuvem)->where('seller_id_external', '789')->get();
     expect($contas)->toHaveCount(1)
         ->and((int) $contas[0]->business_id)->toBe($this->b98)
-        ->and($contas[0]->access_token)->toBe('61181d08b7e328d256736hdcb671c3ce50b8af5')
+        ->and($contas[0]->access_token)->toBe('token-de-teste-nuvemshop')
         ->and($contas[0]->access_token_expires_at)->toBeNull()
         ->and($contas[0]->refresh_token)->toBeNull()
         ->and((string) DB::table('mkt_account_credentials')->where('id', $contas[0]->id)->value('access_token'))
-        ->not->toContain('61181d08b7e328d256736hdcb671c3ce50b8af5');
+        ->not->toContain('token-de-teste-nuvemshop');
 });
 
 it('US-MKT-026 · token sem vencimento é devolvido sem renovar e fica fora da rotina horária do ML', function () {
