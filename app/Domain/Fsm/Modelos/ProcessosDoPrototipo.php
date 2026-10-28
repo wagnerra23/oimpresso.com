@@ -52,6 +52,7 @@ final class ProcessosDoPrototipo
             'roteiro' => ['titulo' => 'Exemplo: fachada em ACM com letra caixa', 'trilhas' => [['Arte', 'Aprovação'], ['Impressão do adesivo', 'Laminação'], ['Corte ACM', 'Serralheria']], 'junta' => ['Montagem', 'Instalação']],
             'estados' => [
                 ['agl', 'Aguardando liberação', 'ini', false],
+                ['agm', 'Aguardando material', 'esp', true],
                 ['fila', 'Na fila', 'nor', false],
                 ['exe', 'Em execução', 'nor', false],
                 ['pau', 'Pausada', 'esp', true],
@@ -60,7 +61,9 @@ final class ProcessosDoPrototipo
                 ['canc', 'Cancelada', 'x', false],
             ],
             'trans' => [
-                ['Aguardando liberação', 'Na fila', 'Liberar', 'Arte aprovada · sinal pago (se exigido) · material disponível ou reservado', 'Reserva o material · calcula prazo pela fila', 'PCP / sistema'],
+                ['Aguardando liberação', 'Na fila', 'Liberar', 'Arte aprovada · sinal pago (se exigido)', 'Reserva o material · calcula prazo pela fila', 'PCP / sistema'],
+                ['Na fila', 'Aguardando material', 'Aguardar material', 'Chave da empresa ligada · falta insumo da receita (saldo do local menos reservas de outras OS e vendas)', 'Guarda o que faltava · a etapa não começa', 'Sistema, logo depois de liberar'],
+                ['Aguardando material', 'Na fila', 'Conferir material', 'Não falta mais nada', 'Volta para a fila · a etapa pode começar', 'PCP'],
                 ['Na fila', 'Em execução', 'Iniciar etapa', 'Operador do setor da etapa', 'Começa a contar o tempo (QR ou tela)', 'Operador'],
                 ['Em execução', 'Pausada', 'Pausar', 'Motivo: falta material · máquina · aguardando cliente', 'Para o relógio; alerta se passar do prazo', 'Operador'],
                 ['Pausada', 'Em execução', 'Retomar', '', 'Volta a contar o tempo', 'Operador'],
@@ -69,6 +72,7 @@ final class ProcessosDoPrototipo
                 ['Retrabalho', 'Em execução', 'Refazer', '', 'Reabre a etapa de origem', 'PCP'],
                 ['Em execução', 'Concluída', 'Concluir item', 'Última etapa do roteiro feita', 'Baixa o material real · congela custo · se todos os itens: OS pronta', 'Operador'],
                 ['Aguardando liberação', 'Cancelada', 'Cancelar item', 'Nada consumido · ou consumo lançado como perda', 'Libera reserva', 'Gerente'],
+                ['Aguardando material', 'Cancelada', 'Cancelar item', 'Nada consumido · ou consumo lançado como perda', 'Libera reserva', 'Gerente'],
             ],
         ],
         'nfe' => [

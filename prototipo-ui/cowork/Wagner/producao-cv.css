@@ -277,3 +277,6 @@ body.pcv-arrastando,body.pcv-arrastando *{-webkit-user-select:none!important;use
 .pcv-campo{display:flex;flex-direction:column;gap:4px;font-size:12.5px}
 .pcv-campo textarea{padding:8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font:inherit}
 @media (max-width:760px){.pcv-cad-grid,.pcv-cad-ops ul{grid-template-columns:1fr}}
+
+/* Aguardando material (US-PCP-032): aviso, tabela do que falta e ações, empilhados na aba Materiais */
+.pcv-falta { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }

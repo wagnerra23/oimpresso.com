@@ -84,6 +84,11 @@ const OS = [
   { id: "OS-2619", cliente: "Supermercado Bom Preço", titulo: "Banner roll-up 0,8×2 m (4 un)", produto: "lona", qtd: "6,4 m²", prazo: "2026-10-18", prioridade: "normal",
     arte: "ajuste", resp: "Larissa", orcado: 960, real: 120, perda: 0,
     etapas: [["arte","Arte e prova","Ana","andamento",0.5,0.6],["impressao","Impressão látex","Diego","fila",0.6,0,"latex"],["acabamento","Bainha + ilhós","Felipe","fila",0.5,0],["expedicao","Embalar e liberar","Larissa","fila",0.25,0]] },
+  // Liberada sem material (US-PCP-032 · D3): a chave da empresa está ligada e falta lona, então a OS foi de Na fila
+  // para Aguardando material e nenhuma etapa começa até o PCP conferir o material.
+  { id: "OS-2622", cliente: "Escola Crescer", titulo: "Painel de fachada em lona 6×2 m", produto: "lona", qtd: "12 m²", prazo: "2026-10-21", prioridade: "normal",
+    arte: "aprovada", aprovadaEm: "2026-10-14 15:10", material: "aguardando", resp: "Larissa", orcado: 1480, real: 40, perda: 0,
+    etapas: [["arte","Arte e prova","Ana","feito",0.5,0.5],["impressao","Impressão látex","Diego","fila",1,0,"latex"],["acabamento","Bainha + ilhós","Felipe","fila",1,0],["expedicao","Embalar e liberar","Larissa","fila",0.25,0]] },
   { id: "OS-2598", cliente: "Construtora Alicerce", titulo: "Tapume impresso 40 m", produto: "lona", qtd: "88 m²", prazo: "2026-10-14", prioridade: "alta",
     arte: "aprovada", aprovadaEm: "2026-10-08 14:00", resp: "Larissa", orcado: 3960, real: 3720, perda: 2.2,
     etapas: [["arte","Arte e prova","Ana","feito",1,1],["impressao","Impressão látex","Diego","feito",7.3,7.1,"latex"],["acabamento","Bainha + ilhós","Felipe","feito",4,3.8],["expedicao","Embalar e liberar","Larissa","andamento",0.5,0.3]] },
@@ -133,6 +138,7 @@ const MATERIAIS = {
   "OS-2617": [["Acrílico 3 mm leitoso", "chapa", 2, 0], ["Chapa galvanizada 0,5", "m²", 3.2, 0], ["Módulo LED 3 lâmpadas", "un", 60, 0]],
   "OS-2619": [["Lona fosca 440 g", "m²", 7, 0], ["Estrutura roll-up", "un", 4, 0]],
   "OS-2598": [["Lona 440 g 1,60 m", "m²", 90, 90.8], ["Ilhós latão nº 0", "un", 160, 160]],
+  "OS-2622": [["Lona 440 g 3,20 m", "m²", 13, 0], ["Ilhós latão nº 0", "un", 40, 0]],
 };
 
 // Perdas recentes de outras OS (relatório por motivo)
@@ -150,6 +156,8 @@ const EVENTOS = [
   { quando: "15/10 11:14", os: "OS-2611", quem: "Diego", tipo: "material", maq: "eco", texto: "Baixou 58 m² de vinil branco brilho" },
   { quando: "15/10 10:52", os: "OS-2603", quem: "Felipe", tipo: "etapa", texto: "Iniciou Bainha + ilhós" },
   { quando: "15/10 10:31", os: "OS-2608", quem: "Marcos", tipo: "etapa", maq: "cnc", texto: "Pausou Corte CNC do ACM — troca de fresa" },
+  { quando: "15/10 09:41", os: "OS-2622", quem: "Sistema", tipo: "material", texto: "Foi para Aguardando material: falta 8,0 m² de Lona 440 g 3,20 m" },
+  { quando: "15/10 09:40", os: "OS-2622", quem: "Larissa", tipo: "pcp", texto: "Liberou a OS para a produção" },
   { quando: "15/10 09:12", os: "OS-2614", quem: "Sistema", tipo: "arte", texto: "Reenviou o link de prova ao cliente" },
   { quando: "15/10 08:47", os: "OS-2619", quem: "Cliente", tipo: "cliente", texto: "Pediu ajuste: aumentar o logo e trocar o telefone" },
   { quando: "15/10 08:05", os: "OS-2611", quem: "Diego", tipo: "etapa", maq: "eco", texto: "Iniciou Impressão eco-solvente (QR na máquina)" },
@@ -194,6 +202,18 @@ const INSTALACOES = [
 // Aproveitamento de mídia (encaixe na bobina 1,60 m) — por máquina, hoje
 const ENCAIXE = { bobina: "Lona 440 g · 1,60 m", usado: 92.4, desperdicio: 7.6, sugestao: "Agrupar OS-2619 (roll-up) com a sobra lateral da OS-2603 economiza 3,1 m² (R$ 59)." };
 
+// Falta de material da OS em Aguardando material (US-PCP-032 · UC-PCMAT-02/03). Por insumo da receita:
+// necessário = receita × quantidade da OS · disponível = saldo no local da venda menos reservas ativas de outras OS e
+// vendas · a caminho = compras pedidas e ainda não recebidas. Só lê estoque: conferir não baixa nada.
+const FALTA = {
+  "OS-2622": [{ insumo: "Lona 440 g 3,20 m", un: "m²", necessario: 13, disponivel: 5, caminho: [{ compra: "PC-0412", qtd: 30, chega: "2026-10-17", fornecedor: "Distribuidora Sul Mídias" }] }],
+};
+const faltaDe = (id) => (FALTA[id] || []).map((f) => ({ ...f, falta: Math.max(0, f.necessario - f.disponivel) })).filter((f) => f.falta > 0);
+// Simulação do protótipo: a compra chega ao estoque. A OS NÃO sai sozinha de Aguardando material — o PCP confere.
+const receberCompra = (id) => {
+  (FALTA[id] || []).forEach((f) => { const q = f.caminho.reduce((s, c) => s + c.qtd, 0); if (q) registrar({ os: id, quem: "Estoque", tipo: "material", texto: "Recebeu a compra " + f.caminho.map((c) => c.compra).join(", ") + ": " + h1(q) + " " + f.un + " de " + f.insumo }); f.disponivel += q; f.caminho = []; });
+};
+
 // Derivadas
 const etapaObj = (e) => ({ setor: e[0], nome: e[1], resp: e[2], estado: e[3], prev: e[4], real: e[5], maq: e[6] || null, trilha: e[7] || null });
 const etapas = (os) => os.etapas.map(etapaObj);
@@ -206,12 +226,12 @@ const maqDe = (id) => MAQUINAS.find((m) => m.id === id);
 const osDe = (id) => OS.find((o) => o.id === id);
 // OS por item: cada OS nasce de UM item da venda quando o cliente aprova. [venda, nº do item, itens que geram OS, outros itens]
 const ORIGEM = { "OS-2611": ["V-8406", 1, 1, ""], "OS-2608": ["V-8398", 1, 1, ""], "OS-2617": ["V-8413", 1, 1, ""], "OS-2614": ["V-8411", 1, 1, "projeto de sinalização (serviço, sem OS)"],
-  "OS-2603": ["V-8401", 1, 2, ""], "OS-2619": ["V-8401", 2, 2, ""], "OS-2598": ["V-8390", 1, 1, ""] };
+  "OS-2603": ["V-8401", 1, 2, ""], "OS-2619": ["V-8401", 2, 2, ""], "OS-2598": ["V-8390", 1, 1, ""], "OS-2622": ["V-8417", 1, 1, ""] };
 const origemDe = (id) => { const o = ORIGEM[id]; return o ? { venda: o[0], item: o[1], total: o[2], outros: o[3], irmas: Object.keys(ORIGEM).filter((k) => ORIGEM[k][0] === o[0]) } : null; };
 
 // Gargalos: carga hoje por máquina (h previstas na agenda) contra a capacidade do posto (horasDia)
 const cargaMaquina = (id) => AGENDA.filter((b) => b.maq === id).reduce((s, b) => s + (b.fim - b.ini), 0);
 
-window.PCVD = { TURNO, DIAS, RETALHOS, FERRAMENTAS, EVENTOS, registrar, eventosDe, HOJE, fmt, d2, h1, dias, SETORES, MAQUINAS, PESSOAS, ROTEIROS, OS, ORCAMENTOS, AGENDA, AGENDA_AMANHA, MATERIAIS, PERDAS, INSTALACOES, ENCAIXE,
+window.PCVD = { TURNO, DIAS, RETALHOS, FERRAMENTAS, EVENTOS, registrar, eventosDe, FALTA, faltaDe, receberCompra, HOJE, fmt, d2, h1, dias, SETORES, MAQUINAS, PESSOAS, ROTEIROS, OS, ORCAMENTOS, AGENDA, AGENDA_AMANHA, MATERIAIS, PERDAS, INSTALACOES, ENCAIXE,
   etapas, atual, progresso, atraso, desvio, setorDe, maqDe, osDe, origemDe, cargaMaquina };
 })();

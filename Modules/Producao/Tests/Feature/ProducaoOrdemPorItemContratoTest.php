@@ -43,16 +43,16 @@ function ordemNova(int $biz, int $stageId, int $linha): Ordem
         'transaction_sell_line_id' => $linha, 'product_id' => 1, 'quantidade' => '2.0000', 'current_stage_id' => $stageId]);
 }
 
-it('monta os 7 estados e as 9 transições do protótipo (+ o Liberar automático pelo sinal, US-PCP-025, e Aguardando material, US-PCP-032), e aplicar de novo não duplica', function () {
+it('monta os 8 estados e as 12 transições do protótipo (+ o Liberar automático pelo sinal, US-PCP-025), e aplicar de novo não duplica', function () {
     $svc = app(ProcessoDaOrdem::class);
     $p1 = $svc->garantir($this->b98);
     $p2 = $svc->garantir($this->b98);
 
     expect($p2->id)->toBe($p1->id);
     $estados = SaleProcessStage::where('process_id', $p1->id)->orderBy('sort_order')->pluck('name')->all();
-    // Aguardando material (US-PCP-032): estado aprovado por [W] em 2026-10-21 (D3), ainda fora do protótipo
-    // fluxos-processos.jsx — pedido ao Cowork registrado no SPEC. Entra com 3 ações: aguardar, material
-    // disponível e cancelar item.
+    // Aguardando material (US-PCP-032): estado aprovado por [W] em 2026-10-21 (D3). Entrou no protótipo
+    // fluxos-processos.jsx em 2026-10-28, com 3 ações: aguardar, conferir (no motor, "Material
+    // disponível") e cancelar item.
     expect($estados)->toBe(['Aguardando liberação', 'Aguardando material', 'Na fila', 'Em execução', 'Pausada', 'Retrabalho', 'Concluída', 'Cancelada']);
     $acoes = SaleStageAction::whereIn('stage_id', SaleProcessStage::where('process_id', $p1->id)->pluck('id'))->count();
     expect($acoes)->toBe(13);

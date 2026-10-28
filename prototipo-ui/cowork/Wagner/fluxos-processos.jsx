@@ -36,9 +36,11 @@ const PROCS = [
 
   { id: "producao", area: "Produção", n: "OS e produção por item", doc: "Ordem de serviço / OP", prot: true,
     porque: "A OS anda por item: cada item tem o próprio roteiro. A OS só fica pronta quando todos os itens terminam.",
-    estados: [S("agl", "Aguardando liberação", "ini"), S("fila", "Na fila"), S("exe", "Em execução"), S("pau", "Pausada", "esp", 1), S("ret", "Retrabalho", "nor", 1), S("conc", "Concluída", "ok"), S("canc", "Cancelada", "x")],
+    estados: [S("agl", "Aguardando liberação", "ini"), S("agm", "Aguardando material", "esp", 1), S("fila", "Na fila"), S("exe", "Em execução"), S("pau", "Pausada", "esp", 1), S("ret", "Retrabalho", "nor", 1), S("conc", "Concluída", "ok"), S("canc", "Cancelada", "x")],
     trans: [
-      T("Aguardando liberação", "Na fila", "Liberar", "Arte aprovada · sinal pago (se exigido) · material disponível ou reservado", "Reserva o material · calcula prazo pela fila", "PCP / sistema"),
+      T("Aguardando liberação", "Na fila", "Liberar", "Arte aprovada · sinal pago (se exigido)", "Reserva o material · calcula prazo pela fila", "PCP / sistema"),
+      T("Na fila", "Aguardando material", "Aguardar material", "Chave da empresa ligada · falta insumo da receita (saldo do local menos reservas de outras OS e vendas)", "Guarda o que faltava · a etapa não começa", "Sistema, logo depois de liberar"),
+      T("Aguardando material", "Na fila", "Conferir material", "Não falta mais nada", "Volta para a fila · a etapa pode começar", "PCP"),
       T("Na fila", "Em execução", "Iniciar etapa", "Operador do setor da etapa", "Começa a contar o tempo (QR ou tela)", "Operador"),
       T("Em execução", "Pausada", "Pausar", "Motivo: falta material · máquina · aguardando cliente", "Para o relógio; alerta se passar do prazo", "Operador"),
       T("Pausada", "Em execução", "Retomar", "", "Volta a contar o tempo", "Operador"),
@@ -47,6 +49,7 @@ const PROCS = [
       T("Retrabalho", "Em execução", "Refazer", "", "Reabre a etapa de origem", "PCP"),
       T("Em execução", "Concluída", "Concluir item", "Última etapa do roteiro feita", "Baixa o material real · congela custo · se todos os itens: OS pronta", "Operador"),
       T("Aguardando liberação", "Cancelada", "Cancelar item", "Nada consumido · ou consumo lançado como perda", "Libera reserva", "Gerente"),
+      T("Aguardando material", "Cancelada", "Cancelar item", "Nada consumido · ou consumo lançado como perda", "Libera reserva", "Gerente"),
     ],
     roteiro: { titulo: "Exemplo: fachada em ACM com letra caixa", trilhas: [["Arte", "Aprovação"], ["Impressão do adesivo", "Laminação"], ["Corte ACM", "Serralheria"]], junta: ["Montagem", "Instalação"] },
     liga: ["venda", "requisicao", "entrega", "cobranca"] },
@@ -294,7 +297,7 @@ const PROCS = [
 ];
 
 // Cobertura no ERP por transição, na ordem de `trans` — EXPORTADA do CatalogoProcessos do main
-// (#9496 + #9505 + #9507) em 16/10/2026, não digitada. estado: sim · parcial · nao · nao_verificado; onde = classe/rota ou motivo.
+// (#9496 + #9505 + #9507) em 16/10/2026, não digitada; "producao" reexportado em 28/10/2026 (Aguardando material). estado: sim · parcial · nao · nao_verificado; onde = classe/rota ou motivo.
 // Regenerar do catálogo quando ele mudar (não editar à mão).
 const COB = {
   "venda": [
@@ -306,15 +309,18 @@ const COB = {
     ["parcial", "Ação FSM cancelar_venda com CancelarVendaCascade::execute libera a reserva. Não cobra \"nenhuma nota autorizada\": tenta cancelar as notas, mas lê transaction_documents, que nenhum código grava. Não estorna sinal já pago (só cancela boleto pendente)."],
   ],
   "producao": [
-    ["nao", "Nada gera as etapas (fila) a partir do roteiro: não há ação Liberar, reserva de material nem cálculo de prazo."],
-    ["parcial", "ApontamentoController@iniciar e a API do app → ApontamentoOperadorService::iniciar abrem o apontamento e contam o tempo, por QR ou tela; a trava é o responsável da etapa, não o setor. Só funciona com etapa já cadastrada, e nada cria etapa."],
-    ["parcial", "ApontamentoController@pausar → ApontamentoOperadorService::pausar para o relógio e exige motivo do cadastro. Não há alerta de prazo."],
-    ["parcial", "Retomar é um novo início na mesma etapa (ApontamentoController@iniciar) e o relógio volta. Não existe estado Pausada gravado; mesma dependência de etapa cadastrada."],
-    ["parcial", "ApontamentoController@concluir → ApontamentoOperadorService::concluir conclui a etapa e avisa o responsável da próxima. Não lê o roteiro, não trata etapas paralelas e não muda o estado da próxima."],
-    ["nao", "Não há ação de reprovar, etapa de origem nem custo de refugo somado à OS (só o cadastro de motivos de refugo)."],
-    ["nao", "Não existe Refazer: a etapa não tem estado de retrabalho."],
-    ["parcial", "Concluir a última etapa só a marca concluída. Não baixa o material real, não congela custo (CustoRealService::daOs calcula, mas não tem chamador) e não marca a OS pronta."],
-    ["nao", "Não existe cancelar item ou etapa no PCP, nem liberar reserva, nem lançar consumo como perda."],
+    ["parcial", "SituacaoDaOrdem::liberar executa Liberar na OS por item (ADR 0436); as etapas nascem do roteiro do produto quando o cliente aprova (CriarOsDaVenda). Sem tela ainda; não reserva material nem calcula prazo pela fila."],
+    ["parcial", "SituacaoDaOrdem::liberar, com a chave producao_aguarda_material da empresa ligada e faltando insumo da receita, leva a OS de Na fila para Aguardando material e guarda no histórico o que faltava (D3, US-PCP-032). A chave ainda não tem campo na aba Fluxos."],
+    ["parcial", "SituacaoDaOrdem::conferirMaterial (papel producao.liberar) devolve a OS para Na fila quando não falta mais nada e, faltando, devolve a lista. Não confere sozinho quando a compra é recebida, e a tela da OS ainda não mostra a falta."],
+    ["parcial", "ApontamentoOperadorService::iniciar abre o apontamento por QR ou tela e, na OS por item, leva a OS de Na fila a Em execução (SituacaoDaOrdem). A trava é o responsável da etapa, não o setor; etapa sem posto não aponta."],
+    ["parcial", "ApontamentoOperadorService::pausar exige motivo do cadastro do posto e, sem outra etapa da OS rodando, leva a OS por item a Pausada. Não há alerta de prazo."],
+    ["sim", "Iniciar de novo com a OS por item Pausada executa Retomar (SituacaoDaOrdem::aoIniciar) e o relógio volta."],
+    ["parcial", "ApontamentoOperadorService::concluir conclui a etapa e registra Concluir etapa na OS por item; etapa de um bloco só começa com o bloco anterior (as duas trilhas) feito. O aviso ao próximo segue a ordem prevista, não a junta."],
+    ["parcial", "SituacaoDaOrdem::reprovar (motivo de refugo do posto + etapa de origem já feita) leva a OS a Retrabalho e reabre a etapa de origem como etapa nova; o custo entra pelas horas dela. Sem tela ainda."],
+    ["parcial", "SituacaoDaOrdem::refazer volta a OS por item a Em execução. Sem tela ainda."],
+    ["parcial", "A última etapa concluída executa Concluir item (SituacaoDaOrdem::concluirItemSeTerminou): OS pronta e custo real congelado (CustoRealService::daOs). Não baixa o material real (decisão pendente)."],
+    ["parcial", "SituacaoDaOrdem::cancelarItem, antes de liberar, cancela as etapas programadas. Não lança consumo como perda nem libera reserva. Sem tela ainda."],
+    ["parcial", "SituacaoDaOrdem::cancelarItem também cancela a OS em Aguardando material e as etapas programadas. Não lança consumo como perda nem libera reserva. Sem tela ainda."],
   ],
   "nfe": [
     ["parcial", "Não há estado Rascunho nem Validada: as regras (valor, NCM, item de serviço) rodam dentro de NfeService::emitirInterno (POST /nfe-brasil/transactions/{tx}/emitir). Sem validação XSD explícita; o certificado só é checado por ativo, não por validade."],

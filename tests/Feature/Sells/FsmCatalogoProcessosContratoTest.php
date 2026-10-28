@@ -354,7 +354,7 @@ it('devolução completa, cobertura sem órfão e resumos', function () {
         ->and(CatalogoProcessos::resumo('compra'))->toBe(['sim' => 0, 'parcial' => 6, 'nao' => 1, 'nao_verificado' => 0, 'total' => 7])
         ->and(CatalogoProcessos::resumo('requisicao'))->toBe(['sim' => 0, 'parcial' => 0, 'nao' => 3, 'nao_verificado' => 0, 'total' => 3])
         ->and(CatalogoProcessos::resumo('inventario'))->toBe(['sim' => 0, 'parcial' => 1, 'nao' => 2, 'nao_verificado' => 0, 'total' => 3])
-        ->and(CatalogoProcessos::resumo('producao'))->toBe(['sim' => 1, 'parcial' => 8, 'nao' => 0, 'nao_verificado' => 0, 'total' => 9])
+        ->and(CatalogoProcessos::resumo('producao'))->toBe(['sim' => 1, 'parcial' => 11, 'nao' => 0, 'nao_verificado' => 0, 'total' => 12])
         ->and(CatalogoProcessos::resumo('entrega'))->toBe(['sim' => 0, 'parcial' => 5, 'nao' => 1, 'nao_verificado' => 0, 'total' => 6])
         ->and(CatalogoProcessos::resumo('atendimento'))->toBe(['sim' => 0, 'parcial' => 2, 'nao' => 2, 'nao_verificado' => 0, 'total' => 4])
         ->and(CatalogoProcessos::resumo('contrato'))->toBe(['sim' => 1, 'parcial' => 3, 'nao' => 2, 'nao_verificado' => 0, 'total' => 6])
