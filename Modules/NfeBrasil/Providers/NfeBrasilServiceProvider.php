@@ -73,6 +73,9 @@ class NfeBrasilServiceProvider extends ServiceProvider
 
         // US-SELL-072 — o núcleo pergunta "a venda tem nota válida?" pela tag (trava de edição).
         $this->app->tag([\Modules\NfeBrasil\Services\NotaDaVendaNfeBrasil::class], \App\Contracts\Fiscal\NotaDaVenda::TAG);
+
+        // UC-FLX-31 · UC-PIDX-31 — a consulta de produto (núcleo) mostra e filtra a natureza fiscal.
+        $this->app->bind(\App\Contracts\Fiscal\NaturezaDoProduto::class, \Modules\NfeBrasil\Services\Tributacao\NaturezaDoProdutoConsulta::class);
     }
 
     /**

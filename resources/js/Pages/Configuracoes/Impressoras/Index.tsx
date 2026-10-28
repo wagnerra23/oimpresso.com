@@ -4,8 +4,8 @@
 //   stories: thread sistema/playbook/04 (tela 1 de 3)
 //   permissao: access_printers (o controller exige em todas as ações)
 //
-// Impressoras de cupom do negócio. Atrás da flag `useV2ConfiguracoesImpressoras` (PrinterController::FLAG_V2);
-// com ela desligada a rota segue na Blade `printer/index`.
+// Impressoras de cupom do negócio. Esteve atrás da flag `useV2ConfiguracoesImpressoras` até o cutover de
+// 2026-10-27, que apagou a flag e a Blade `printer/*`.
 // Charter: ./Index.charter.md · Casos: ./Index.casos.md · RUNBOOK: memory/requisitos/Configuracoes/RUNBOOK-impressoras.md
 // Âncora de design: prototipo-ui/cowork/Wagner/configuracoes-cadastros.jsx → Impressoras()
 //
