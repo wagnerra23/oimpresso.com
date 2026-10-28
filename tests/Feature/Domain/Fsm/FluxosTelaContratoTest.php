@@ -451,8 +451,10 @@ it('UC-FLXT-18 · aba Processos mostra quanto o ERP executa de cada processo e d
     // Números do protótipo aprovado (#9506, fluxos-processos.jsx COB): [sim, parcial, nao, nao_verificado].
     // `producao` mudou com a OS por item (#9522, ADR 0436): Retomar virou sim e Liberar, Reprovar,
     // Refazer e Cancelar item viraram parcial em CatalogoProcessos — era [0, 5, 4, 0].
+    // Aguardando material (US-PCP-032, 2026-10-28) somou Aguardar material, Conferir material e o Cancelar
+    // item a partir dele, todos parcial — era [1, 8, 0, 0].
     $prototipo = [
-        'venda' => [0, 6, 0, 0], 'producao' => [1, 8, 0, 0], 'nfe' => [2, 7, 0, 0], 'nfse' => [1, 4, 2, 0],
+        'venda' => [0, 6, 0, 0], 'producao' => [1, 11, 0, 0], 'nfe' => [2, 7, 0, 0], 'nfse' => [1, 4, 2, 0],
         'cobranca' => [0, 5, 3, 0], 'pagar' => [0, 2, 2, 0], 'compra' => [0, 6, 1, 0], 'requisicao' => [0, 0, 3, 0],
         'inventario' => [0, 1, 2, 0], 'entrega' => [0, 5, 1, 0], 'devolucao' => [1, 2, 6, 0], 'devolucao-compra' => [2, 0, 0, 1],
         'os-reparo' => [21, 0, 2, 0], 'oficina-os' => [14, 0, 0, 0], 'os-cv' => [0, 32, 2, 0], 'atendimento' => [0, 2, 2, 0],
