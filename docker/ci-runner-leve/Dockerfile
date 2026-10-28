@@ -7,5 +7,7 @@ USER root
 RUN apt-get update \
  && apt-get install -y --no-install-recommends git ca-certificates curl unzip xz-utils \
  && rm -rf /var/lib/apt/lists/*
+COPY --chmod=755 entrypoint.sh /usr/local/bin/ci-leve-entrypoint
 USER runner
 WORKDIR /home/runner
+ENTRYPOINT ["/usr/local/bin/ci-leve-entrypoint"]

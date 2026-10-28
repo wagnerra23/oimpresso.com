@@ -1,9 +1,10 @@
 // Menu "Ações" da linha da lista de produtos — o item "Dados fiscais (NCM/CFOP)".
 //
-// Cobre UC-PIDX-17 (resources/js/Pages/Produto/Index.casos.md). No protótipo
-// (produto-blade.jsx · `acoesDe`) o item fica no grupo de "Comprar este produto" e abre o painel de
-// detalhe; aqui ele avisa a tela com a ação `fiscal`, e a tela abre o painel na aba Fiscal
-// (o lado do painel está em tests/js/produto-painel-detalhe.test.tsx).
+// Cobre UC-PIDX-17 e UC-PIDX-11 (resources/js/Pages/Produto/Index.casos.md). No protótipo
+// (produto-blade.jsx · `acoesDe`) o item abre o painel de detalhe; aqui ele avisa a tela com a ação
+// `fiscal`, e a tela abre o painel na aba Fiscal (o lado do painel está em
+// tests/js/produto-painel-detalhe.test.tsx). Desde 2026-10-26 o menu não tem "Comprar este produto"
+// (UC-PIDX-11): a consulta não é a tela de compras.
 //
 // ⚠️ Nenhuma lane de CI roda este arquivo ainda (cada lane Vitest lista os próprios specs).
 // Comando: npx vitest run tests/js/produto-menu-da-linha.test.tsx
@@ -21,7 +22,7 @@ const LINHA: LinhaProduto = {
 };
 const TUDO: PermissoesLista = {
   create: true, update: true, delete: true, opening_stock: true, view: true, stock_report: true,
-  etiquetas: true, comprar: true, view_purchase_price: true, access_default_selling_price: true,
+  etiquetas: true, view_purchase_price: true, access_default_selling_price: true,
 };
 const FISCAL = 'Dados fiscais (NCM/CFOP)';
 
@@ -37,11 +38,11 @@ function abrirMenu(permissoes: PermissoesLista, linha: LinhaProduto = LINHA) {
 afterEach(() => cleanup());
 
 describe('UC-PIDX-17 · "Dados fiscais" no menu da linha', () => {
-  it('quem pode ver o produto tem o item, logo depois de "Comprar este produto"', () => {
+  it('quem pode ver o produto tem o item, logo depois de "Adicionar ou editar preços por grupo"', () => {
     const { itens } = abrirMenu(TUDO);
     const lista = itens();
     expect(lista).toContain(FISCAL);
-    expect(lista.indexOf(FISCAL)).toBe(lista.indexOf('Comprar este produto') + 1);
+    expect(lista.indexOf(FISCAL)).toBe(lista.indexOf('Adicionar ou editar preços por grupo') + 1);
   });
 
   it('escolher o item avisa a tela com a ação `fiscal` e a linha', () => {
@@ -59,11 +60,9 @@ describe('UC-PIDX-17 · "Dados fiscais" no menu da linha', () => {
     expect(lista).not.toContain('Ver');
   });
 
-  it('o item não depende de estoque nem de o produto estar ativo (o "Comprar" depende)', () => {
+  it('o item não depende de estoque nem de o produto estar ativo', () => {
     const { itens } = abrirMenu(TUDO, { ...LINHA, controla_estoque: false, inativo: true });
-    const lista = itens();
-    expect(lista).toContain(FISCAL);
-    expect(lista).not.toContain('Comprar este produto');
+    expect(itens()).toContain(FISCAL);
   });
 
   it('os outros itens do menu continuam os mesmos, na mesma ordem', () => {
@@ -71,8 +70,18 @@ describe('UC-PIDX-17 · "Dados fiscais" no menu da linha', () => {
     expect(itens()).toEqual([
       'Ver', 'Editar', 'Adicionar ou editar estoque inicial', 'Histórico de estoque do produto',
       'Duplicar produto', 'Gerar código de barras', 'Adicionar ou editar preços por grupo',
-      'Comprar este produto', FISCAL,
+      FISCAL,
       'Desativar', 'Excluir',
     ]);
+  });
+});
+
+describe('UC-PIDX-11 · a consulta não oferece compra', () => {
+  it('nenhum item de compra, nem com tudo liberado, produto ativo e com estoque', () => {
+    // Discriminante: era exatamente o caso em que o "Comprar este produto" aparecia até 2026-10-26.
+    const { itens } = abrirMenu(TUDO, { ...LINHA, controla_estoque: true, inativo: false });
+    const lista = itens();
+    expect(lista).toContain('Editar'); // anti-vácuo: o menu abriu
+    expect(lista.filter((t) => /compr/i.test(t ?? ''))).toEqual([]);
   });
 });
