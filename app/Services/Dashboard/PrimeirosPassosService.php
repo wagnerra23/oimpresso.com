@@ -88,6 +88,9 @@ class PrimeirosPassosService
             'voltar' => $escolhas['pulados'] = array_values(array_diff($escolhas['pulados'], [$passo])),
             'dispensar' => $escolhas['dispensado_em'] = now()->toIso8601String(),
             'retomar' => $escolhas['dispensado_em'] = null,
+            // O controller valida `acao` (in:pular,voltar,dispensar,retomar); chamada direta
+            // com outro valor é erro de programação, não escolha a gravar.
+            default => throw new \InvalidArgumentException("Ação de primeiros passos desconhecida: {$acao}"),
         };
 
         $comum[self::CHAVE] = $escolhas;
