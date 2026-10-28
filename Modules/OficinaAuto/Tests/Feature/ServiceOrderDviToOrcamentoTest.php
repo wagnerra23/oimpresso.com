@@ -95,7 +95,7 @@ it('UC-OSH-07 · converte item DVI em ServiceOrderItem (valor sugerido vira valo
 
     $resp->assertStatus(201);
     $resp->assertJsonPath('item.tipo', 'mao_obra');
-    $resp->assertJsonPath('item.valor_unitario', 480.0);
+    expect((float) $resp->json('item.valor_unitario'))->toBe(480.0); // JSON nao preserva .0: o JsonResponse do Laravel nao usa JSON_PRESERVE_ZERO_FRACTION
     $resp->assertJsonPath('inspection_item_id', $dvi->id);
 
     // ServiceOrderItem criado de fato

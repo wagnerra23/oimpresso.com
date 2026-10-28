@@ -15,7 +15,7 @@ uses(Tests\TestCase::class);
 /**
  * Wave 3 — Smoke DVI (Vistoria Digital) US-OFICINA-035.
  *
- * Tests biz=1 conforme ADR 0101 (biz=99 só usado pra isolamento cross-tenant).
+ * Tests biz=1 conforme ADR 0101 (biz=2 só usado pra isolamento cross-tenant).
  * Espelha padrão ServiceOrderItemTest (Wave 27 G1).
  *
  * @see Modules/OficinaAuto/Entities/OaInspectionItem.php
@@ -24,7 +24,7 @@ uses(Tests\TestCase::class);
  */
 
 const BIZ_DVI = 1;
-const BIZ_DVI_OUTRO = 99;
+const BIZ_DVI_OUTRO = 2; // tenant que o seed da lane tem (1, 2, 98)
 const PLATE_DVI_PREFIX = 'WDVI';
 
 beforeEach(function () {
@@ -96,7 +96,7 @@ it('cria OaInspectionItem com auto-set business_id via creating hook', function 
     expect($item->metadata)->toBe(['km_restantes' => 4500]);
 })->afterEach(fn () => dvi_cleanup('A'));
 
-it('escopa por business_id global scope (biz=99 não enxerga itens biz=1)', function () {
+it('escopa por business_id global scope (biz=2 não enxerga itens biz=1)', function () {
     session(['user.business_id' => BIZ_DVI]);
     $os = dvi_criaOs('B', BIZ_DVI);
     OaInspectionItem::withoutGlobalScopes()->create([
@@ -108,7 +108,7 @@ it('escopa por business_id global scope (biz=99 não enxerga itens biz=1)', func
         'valor_recomendado' => 145.00,
     ]);
 
-    // Switch session pra biz=99 — global scope deve esconder
+    // Switch session pra biz=2 — global scope deve esconder
     session(['user.business_id' => BIZ_DVI_OUTRO]);
     $visiveis = OaInspectionItem::where('service_order_id', $os->id)->get();
     expect($visiveis)->toHaveCount(0);
@@ -250,7 +250,7 @@ it('HTTP POST cria item DVI 201 com payload correto (autenticado superadmin)', f
     $resp->assertStatus(201);
     $resp->assertJsonPath('item.severity', 'atencao');
     $resp->assertJsonPath('item.categoria', 'freios');
-    $resp->assertJsonPath('item.valor_recomendado', 145.00);
+    expect((float) $resp->json('item.valor_recomendado'))->toBe(145.00); // JSON nao preserva .0: o JsonResponse do Laravel nao usa JSON_PRESERVE_ZERO_FRACTION
 })->afterEach(fn () => dvi_cleanup('J'));
 
 it('HTTP PUT cross-OS guard: item de OS diferente retorna 404', function () {
