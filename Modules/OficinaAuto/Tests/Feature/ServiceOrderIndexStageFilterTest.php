@@ -148,7 +148,7 @@ it('1. filtro stage=disponivel filtra apenas OS com current_stage_id matching ke
         ->count();
 
     expect($filtered)->toBe(2);
-})->afterEach(function () {
+})->after(function () {
     osfCleanupTest(BIZ_STAGE_TEST);
 });
 
@@ -182,7 +182,7 @@ it('2. multi-tenant Tier 0 — OS biz=2 com mesmo stage_id NAO vaza pra biz=1', 
         ->count();
 
     expect($filtered)->toBe(1);
-})->afterEach(function () {
+})->after(function () {
     osfCleanupTest(BIZ_STAGE_TEST);
     osfCleanupTest(BIZ_STAGE_FICTICIO);
 });
@@ -215,7 +215,7 @@ it('3. buildStagesPayload retorna counts corretos por stage', function () {
 
     expect((int) $counts[$disp->id])->toBe(3);
     expect((int) $counts[$loc->id])->toBe(1);
-})->afterEach(function () {
+})->after(function () {
     osfCleanupTest(BIZ_STAGE_TEST);
 });
 
@@ -238,7 +238,7 @@ it('4. sem filtro stage retorna todas as OS do business (multi-tenant preservado
     // compartilhado com outros arquivos, então contar o tenant inteiro media o vizinho.
     $total = ServiceOrder::query()->whereIn('id', $ids)->count();
     expect($total)->toBe(3);
-})->afterEach(function () {
+})->after(function () {
     osfCleanupTest(BIZ_STAGE_TEST);
     osfCleanupTest(BIZ_STAGE_FICTICIO);
 });

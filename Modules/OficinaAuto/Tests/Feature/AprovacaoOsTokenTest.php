@@ -130,7 +130,7 @@ it('UC-OAP-05 · cenario 7: token gerado pra biz=1 NAO valida em OS de biz=2 (Ti
     $this->osOutroBiz = criarOsAprovacao(BIZ_APROV_OUTRO);
     $resolved2 = $svc->validarToken($g1['token']);
     expect($resolved2->business_id)->toBe(BIZ_APROV);
-})->afterEach(function () {
+})->after(function () {
     // A OS criada no biz=2 não fica no 2º tenant do seed (compartilhado com as outras lanes).
     // Apaga por id, não por prefixo de placa: no CT 100 o biz=2 é clone de prod.
     if (isset($this->osOutroBiz)) {

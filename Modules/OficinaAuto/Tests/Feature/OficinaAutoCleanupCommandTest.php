@@ -69,7 +69,7 @@ it('cenário 1: --dry-run não modifica DB', function () {
 
     // Dry-run NÃO removeu
     expect($countAfter)->toBe(1);
-})->afterEach(function () {
+})->after(function () {
     Vehicle::withoutGlobalScopes()->where('plate', 'FIXCLN1')->forceDelete();
 });
 
@@ -120,7 +120,7 @@ it('cenário 3: sanity-check detecta FK orphan', function () {
     // '[FAIL] 2)' e não só 'FK orphans': a linha [OK] também contém 'FK orphans', e o
     // exit 1 pode vir de outro check do tenant compartilhado.
     expect($output)->toContain('[FAIL] 2) FK orphans');
-})->afterEach(function () {
+})->after(function () {
     ServiceOrder::withoutGlobalScopes()
         ->where('business_id', BIZ_WAGNER_CLEANUP)
         ->where('vehicle_id', 99999999)

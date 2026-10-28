@@ -52,7 +52,7 @@ it('UC-OVS-02 · Vehicle biz=1 NÃO aparece com session biz=2', function () {
     $resultado = Vehicle::where('id', $v->id)->get();
 
     expect($resultado)->toHaveCount(0);
-})->afterEach(function () {
+})->after(function () {
     Vehicle::withoutGlobalScopes()->where('plate', 'MTT001')->forceDelete();
 });
 
@@ -70,7 +70,7 @@ it('Vehicle biz=1 aparece com session biz=1', function () {
 
     expect($resultado)->toHaveCount(1);
     expect($resultado->first()->plate)->toBe('MTT002');
-})->afterEach(function () {
+})->after(function () {
     Vehicle::withoutGlobalScopes()->where('plate', 'MTT002')->forceDelete();
 });
 
@@ -84,7 +84,7 @@ it('UC-OVC-03 · creating event auto-popula business_id da sessão', function ()
     ]);
 
     expect($v->business_id)->toBe(BIZ_WAGNER_VEH);
-})->afterEach(function () {
+})->after(function () {
     Vehicle::withoutGlobalScopes()->where('plate', 'MTT003')->forceDelete();
 });
 
@@ -110,6 +110,6 @@ it('UC-OVI-02 · Vehicle::all() respeita escopo (não vaza cross-business)', fun
 
     expect($vistos)->toContain('MTT004A');
     expect($vistos)->not->toContain('MTT004B');
-})->afterEach(function () {
+})->after(function () {
     Vehicle::withoutGlobalScopes()->where('plate', 'like', 'MTT004%')->forceDelete();
 });

@@ -108,7 +108,7 @@ it('1. withSum items_total soma valor_total dos itens da OS (mesma query do inde
         ->find($os->id);
 
     expect((float) $row->items_total)->toBe(800.0);
-})->afterEach(fn () => itotal_cleanup());
+})->after(fn () => itotal_cleanup());
 
 it('2. OS sem itens → items_total NULL (frontend renderiza "—")', function () {
     session(['user.business_id' => BIZ_ITOTAL]);
@@ -119,7 +119,7 @@ it('2. OS sem itens → items_total NULL (frontend renderiza "—")', function (
         ->find($os->id);
 
     expect($row->items_total)->toBeNull();
-})->afterEach(fn () => itotal_cleanup());
+})->after(fn () => itotal_cleanup());
 
 it('3. multi-tenant Tier 0 — global scope filtra a OS de outro business inteira', function () {
     session(['user.business_id' => BIZ_ITOTAL]);
@@ -143,4 +143,4 @@ it('3. multi-tenant Tier 0 — global scope filtra a OS de outro business inteir
 
     // Global scope (biz=1): só a OS do tenant aparece; a OS do biz=2 (e os R$ dela) não vazam.
     expect($rows->pluck('id')->all())->toBe([$osBiz1->id]);
-})->afterEach(fn () => itotal_cleanup());
+})->after(fn () => itotal_cleanup());

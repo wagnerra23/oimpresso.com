@@ -94,7 +94,7 @@ it('1. filtro box="Box 1" retorna só veículos cuja OS ativa está nesse box', 
         ->count();
 
     expect($filtered)->toBe(2);
-})->afterEach(fn () => boxCleanup(BIZ_BOX_TEST));
+})->after(fn () => boxCleanup(BIZ_BOX_TEST));
 
 it('2. multi-tenant Tier 0 — box "Box 1" do biz=2 NÃO vaza pro biz=1', function () {
     session(['user.business_id' => BIZ_BOX_TEST]);
@@ -112,7 +112,7 @@ it('2. multi-tenant Tier 0 — box "Box 1" do biz=2 NÃO vaza pro biz=1', functi
         ->count();
 
     expect($filtered)->toBe(1);
-})->afterEach(function () {
+})->after(function () {
     boxCleanup(BIZ_BOX_TEST);
     boxCleanup(BIZ_BOX_FICTICIO);
 });
@@ -144,4 +144,4 @@ it('3. buildFilterOptions retorna boxes distintos só das OS ativas', function (
         ->all();
 
     expect($boxes)->toBe(['Box 1', 'Elevador 2']);
-})->afterEach(fn () => boxCleanup(BIZ_BOX_TEST));
+})->after(fn () => boxCleanup(BIZ_BOX_TEST));
